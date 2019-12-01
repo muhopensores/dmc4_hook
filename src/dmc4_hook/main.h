@@ -53,7 +53,7 @@ public:
     void ImGuiToggleInfPlayerHealth();
     void ImGuiToggleInfDT();
     void ImGuiToggleBerialDaze();
-    void ImGuiToggleCancelEcstasy();
+    void ImGuiToggleSelectiveCancels();
     void ImGuiToggleDamageModifier();
     void ImGuiToggleLDKWithDMD();
     void ImGuiToggleTrackingFullHouse();
@@ -195,7 +195,7 @@ public:
     uintptr_t disableDarkslayerRight;
     uintptr_t disableDarkslayerUp;
     uintptr_t moveIDAlloc;
-    uintptr_t cancelEcstasy;
+    uintptr_t selectiveCancels;
     uintptr_t stunAnything;
     uintptr_t removeLaunchArmour;
     uintptr_t characterChangeOne;

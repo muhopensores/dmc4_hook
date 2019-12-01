@@ -4,7 +4,7 @@
 extern "C"
 {
     const float limitadjust = 0.0f;
-    int moveIDOne = 0;
+    int moveID = 0;
     int lockOnAlloc = 0;
     int backForwardAlloc = 0;
     float damagemultiplier = 1.0f;
@@ -21,8 +21,9 @@ extern "C"
     uintptr_t _infiniteDTContinue = NULL;
     uintptr_t _infinitePlayerHealthContinue = NULL;
     uintptr_t _berialDazeContinue = NULL;
-    uintptr_t _moveIDAllocContinue = NULL;
-    uintptr_t _cancelEcstasyContinue = NULL;
+    uintptr_t _moveIDAllocContinue = 0x0083EBDC;
+    uintptr_t _selectiveCancelsContinue = 0x00803336;
+    uintptr_t _selectiveCancelsJE = 0x0080337A;
     uintptr_t _stunAnythingContinue = NULL;
     uintptr_t _cameraHeightContinue = NULL;
     uintptr_t _cameraDistanceContinue = NULL;
@@ -42,7 +43,7 @@ extern "C"
     bool g_InfPlayerHealthEnable = false;
     bool g_berialDazeEnable = false;
     bool g_moveIDAllocEnable = false;
-    bool g_cancelEcstasyEnable = false;
+    bool g_selectiveCancelsEnable = false;
     bool g_damageModifierEnable = false;
     bool g_stunAnythingEnable = false;
     bool g_ldkWithDMDEnable = false;
@@ -129,7 +130,7 @@ _declspec(naked) void moveIDAlloc_proc(void)
 			cmp byte ptr [g_moveIDAllocEnable], 0
 			je originalcode
 
-			mov [moveIDOne],ecx
+			mov [moveID],ecx
 
 		originalcode:
 			mov [esi+0x0000225C],ecx
@@ -137,22 +138,46 @@ _declspec(naked) void moveIDAlloc_proc(void)
     }
 }
 
-_declspec(naked) void cancelEcstasy_proc(void)
+_declspec(naked) void selectiveCancels_proc(void)
 {
     _asm {
-			cmp byte ptr [g_cancelEcstasyEnable], 0
+			cmp byte ptr [g_selectiveCancelsEnable], 0
 			je originalcode
 
-			cmp [moveIDOne],0x412
-			je writecancel
+			cmp byte ptr [esi+0x8C],0xFFFFFFFF
+			jne originalcode
+			cmp byte ptr [esi+0x94],0xFFFFFFFF
+			jne originalcode
+
+			cmp [moveID],0x900 // Slash Dimension
+			je cancellable
+			cmp [moveID],0x411 // Grounded Ecstasy
+			je cancellable
+			cmp [moveID],0x412 // Aerial Ecstasy
+			je cancellable
+			cmp [moveID],0x30E // Kick 13
+			je cancellable
+			cmp [moveID],0x30F // DT Kick 13
+			je cancellable
+			cmp [moveID],0x333 // Shock
+			je cancellable
+			cmp [moveID],0x706 // Epidemic
+			je cancellable
+			cmp [moveID],0x71F // Hatred
+			je cancellable
+			cmp [moveID],0x719 // Jealousy
+			je cancellable
+			cmp [moveID],0x732 // Funship
+			je cancellable
+			jmp originalcode
+
+		cancellable:
+			mov dword ptr [esi-0x24],0x02
 
 		originalcode:
-			cmp dword ptr [esi+0x00003174],0x02
-			jmp dword ptr [_cancelEcstasyContinue]
-
-		writecancel:
-			mov [esi+0x00003174],0x02
-			jmp dword ptr [_cancelEcstasyContinue]
+			cmp dword ptr [esi-24],0x00
+            //je dword ptr [_selectiveCancelsJE] //0x0080337A //I don't know how to get JE to work
+			jmp dword ptr [_selectiveCancelsContinue]
     }
 }
 
@@ -257,8 +282,7 @@ _declspec(naked) void trackingFullHouse_proc(void)
 			je skipcode
 
 		originalcode:
-			comiss xmm0, [fullHouseAngle] // Thought I'd try make a new alloc because idk how to comiss xmm0,[00C0F9F4] (which was a
-                         // static 65 float)
+			comiss xmm0, [fullHouseAngle] // Thought I'd try make a new alloc because idk how to comiss xmm0,[00C0F9F4] (which was a static 65 float)
 
 		skipcode:
 			jmp dword ptr [_trackingFullHouseContinue]

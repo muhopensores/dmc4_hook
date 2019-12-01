@@ -101,6 +101,7 @@ void CreditsDrawing()
         ImGui::Spacing();
         ImGui::Spacing();
         ImGui::Text("Special Thanks:");
+        ImGui::Text("cheburrat0r");
         ImGui::Text("Whitelion");
         ImGui::Text("Whirling");
         ImGui::Text("endneo");

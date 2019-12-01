@@ -80,8 +80,8 @@ bool checkDisableDarkslayerDown = false;
 bool checkDisableDarkslayerLeft = false;
 bool checkDisableDarkslayerRight = false;
 bool checkDisableDarkslayerUp = false;
-bool checkmoveIDAlloc = false;
-bool checkCancelEcstasy = false;
+bool checkMoveIDAlloc = false;
+bool checkSelectiveCancels = false;
 bool checkDamageModifier = false;
 bool checkStunAnything = false;
 bool checkRemoveLaunchArmour = false;
@@ -130,10 +130,10 @@ void hlMain::ImGuiToggleBerialDaze()
     g_berialDazeEnable = !g_berialDazeEnable;
 }
 
-void hlMain::ImGuiToggleCancelEcstasy()
+void hlMain::ImGuiToggleSelectiveCancels()
 {
     g_moveIDAllocEnable = !g_moveIDAllocEnable;
-    g_cancelEcstasyEnable = !g_cancelEcstasyEnable;
+    g_selectiveCancelsEnable = !g_selectiveCancelsEnable;
 }
 
 void hlMain::ImGuiToggleDamageModifier()
@@ -427,9 +427,9 @@ void hlMain::GamePause()
 }
 
 void hlMain::ToggleStuff() {
-	if (checkCancelEcstasy) {
+	if (checkSelectiveCancels) {
 		g_moveIDAllocEnable = true;
-		g_cancelEcstasyEnable = true;
+		g_selectiveCancelsEnable = true;
 	}
 	ToggleStyleSwitch(checkStyleSwitch);
 	ToggleSwordSwitch(checkSwordSwitch);
@@ -518,7 +518,7 @@ bool hlMain::init()
     checkDisableDarkslayerLeft = reader.GetBoolean("gameplay", "disable_darkslayer_Dpad_left", true);
     checkDisableDarkslayerRight = reader.GetBoolean("gameplay", "disable_darkslayer_Dpad_right", true);
     checkDisableDarkslayerUp = reader.GetBoolean("gameplay", "disable_darkslayer_Dpad_up", true);
-    checkCancelEcstasy = reader.GetBoolean("gameplay", "cancel_ecstasy", true);
+    checkSelectiveCancels = reader.GetBoolean("gameplay", "selective_cancels", true);
     // bool ini_damageModifier = reader.GetBoolean("gameplay", "player_damage_modifier", true);
     checkStunAnything = reader.GetBoolean("practice", "stun_anything", true);
     checkRemoveLaunchArmour = reader.GetBoolean("practice", "remove_launch_armour", true);
@@ -680,7 +680,7 @@ bool hlMain::init()
 
 
 	moveIDAlloc = modBase + 0x43EBD6;
-    cancelEcstasy = modBase + 0x4038FE;
+    selectiveCancels = modBase + 0x403330;
     stunAnything = hl::FindPattern(stunAnything_aob);
     removeLaunchArmour = hl::FindPattern(removeLaunchArmour_aob);
     characterChangeOne = modBase + 0x3790CF;
@@ -791,12 +791,12 @@ bool hlMain::init()
 
     if (moveIDAlloc != 0)
     {
-        auto moveIDAlloc_hk = m_hook.hookJMP(moveIDAlloc, 6, &moveIDAlloc_proc, &_moveIDAllocContinue);
+        auto moveIDAlloc_hk = m_hook.hookJMP(moveIDAlloc, 6, &moveIDAlloc_proc); //, &_moveIDAllocContinue
     }
 
-    if (cancelEcstasy != 0)
+    if (selectiveCancels != 0)
     {
-        auto cancelEcstasy_hk = m_hook.hookJMP(cancelEcstasy, 7, &cancelEcstasy_proc, &_cancelEcstasyContinue);
+        auto selectiveCancels_hk =m_hook.hookJMP(selectiveCancels, 6, &selectiveCancels_proc); //, &_selectiveCancelsContinue
     }
 
     if (cameraHeightSetting != 0)
@@ -996,9 +996,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::SameLine(198);
 
-                if (ImGui::Checkbox("Cancel Ecstasy", &checkCancelEcstasy))
+                if (ImGui::Checkbox("Selective Cancels", &checkSelectiveCancels))
                 {
-                    main->ImGuiToggleCancelEcstasy();
+                    main->ImGuiToggleSelectiveCancels();
                 }
 
                 if (ImGui::Checkbox("Enemies DT Instantly", &checkEnemyInstantDT))
