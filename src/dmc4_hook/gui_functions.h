@@ -88,10 +88,11 @@ void Misc()
 
 void CreditsDrawing()
 {
-    if (ImGui::BeginTabItem("Credits"))
+    if (ImGui::BeginTabItem("About"))
     {
         ImGui::Spacing();
-
+        ImGui::Text("Credits");
+        ImGui::Spacing();
         ImGui::Text("Devil May Cry 4 Trainer");
         ImGui::Spacing();
         ImGui::Spacing();
@@ -107,6 +108,10 @@ void CreditsDrawing()
         ImGui::Text("endneo");
         ImGui::Text("CrazyMelody");
         ImGui::Text("Dlupx");
+        ImGui::Spacing();
+        ImGui::Spacing();
+        ImGui::Spacing();
+        ImGui::Text("For more infos visit the wiki:\n https://github.com/muhopensores/dmc4_hook/wiki");
 
         ImGui::EndTabItem();
     }

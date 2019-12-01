@@ -104,7 +104,7 @@ bool checkLockOff = false;
 bool checkTrackingFullHouse = false;
 bool checkTimerAlloc = false;
 bool checkBackForward = false;
-bool checkTrickDown= false;
+bool checkTrickDown = false;
 bool checkFloorTouch = false;
 
 
@@ -426,40 +426,50 @@ void hlMain::GamePause()
     }
 }
 
-void hlMain::ToggleStuff() {
-	if (checkSelectiveCancels) {
-		g_moveIDAllocEnable = true;
-		g_selectiveCancelsEnable = true;
+void hlMain::ToggleStuff()
+{
+    if (checkSelectiveCancels)
+    {
+        g_moveIDAllocEnable = true;
+        g_selectiveCancelsEnable = true;
+    }
+    if (checkTrackingFullHouse)
+    {
+        g_trackingFullHouseEnable = true;
 	}
-	ToggleStyleSwitch(checkStyleSwitch);
-	ToggleSwordSwitch(checkSwordSwitch);
-	ToggleGunSwitch(checkGunSwitch);
-	ToggleJcCooldown(checkJcCooldown);
-	ToggleMovingTargetChange(checkMovingTargetChange);
-	ToggleHeightRestrictionDante(checkHeightRestrictionDante);
-	ToggleHeightRestrictionNero(checkHeightRestrictionNero);
-	ToggleInfiniteTime(checkInfiniteTime);
-	ToggleInfiniteAllHealth(checkinfiniteAllHealth);
-	ToggleDisableCameraEvents(checkDisableCameraEvents);
-	ToggleHideHUD(checkHideHUD);
-	ToggleEnemyNoDT(checkEnemyNoDT);
-	ToggleEnemyInstantDT(checkEnemyInstantDT);
-	ToggleBpPortalAutoOpen(checkBpPortalAutoOpen);
-	ToggleFastPandora(checkFastPandora);
-	ToggleInfiniteAirHike(checkInfiniteAirHike);
-	ToggleBerialPractice(checkBerialPractice);
-	ToggleBossRush(checkBossRush);
-	ToggleDisableDarkslayerDown(checkDisableDarkslayerDown);
-	ToggleDisableDarkslayerLeft(checkDisableDarkslayerLeft);
-	ToggleStunAnything(checkStunAnything);
-	ToggleSprintFasterActivate(checkSprintFasterActivate);
-	ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
-	ToggleSlowWalk(checkSlowWalk);
-	ToggleHideStyle(checkHideStyle);
-	ToggleAutoSkipIntro(checkautoSkiptIntro);
-	ToggleLDKWithDMD(checkLDKWithDMD);
-	ToggleInfiniteRevive(checkInfiniteRevive);
-	ToggleAutoSkipOutro(checkAutoSkipOutro);
+	if (checkTrickDown)
+	{
+		g_trickDownEnable = true;
+	}
+    ToggleStyleSwitch(checkStyleSwitch);
+    ToggleSwordSwitch(checkSwordSwitch);
+    ToggleGunSwitch(checkGunSwitch);
+    ToggleJcCooldown(checkJcCooldown);
+    ToggleMovingTargetChange(checkMovingTargetChange);
+    ToggleHeightRestrictionDante(checkHeightRestrictionDante);
+    ToggleHeightRestrictionNero(checkHeightRestrictionNero);
+    ToggleInfiniteTime(checkInfiniteTime);
+    ToggleInfiniteAllHealth(checkinfiniteAllHealth);
+    ToggleDisableCameraEvents(checkDisableCameraEvents);
+    ToggleHideHUD(checkHideHUD);
+    ToggleEnemyNoDT(checkEnemyNoDT);
+    ToggleEnemyInstantDT(checkEnemyInstantDT);
+    ToggleBpPortalAutoOpen(checkBpPortalAutoOpen);
+    ToggleFastPandora(checkFastPandora);
+    ToggleInfiniteAirHike(checkInfiniteAirHike);
+    ToggleBerialPractice(checkBerialPractice);
+    ToggleBossRush(checkBossRush);
+    ToggleDisableDarkslayerDown(checkDisableDarkslayerDown);
+    ToggleDisableDarkslayerLeft(checkDisableDarkslayerLeft);
+    ToggleStunAnything(checkStunAnything);
+    ToggleSprintFasterActivate(checkSprintFasterActivate);
+    ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
+    ToggleSlowWalk(checkSlowWalk);
+    ToggleHideStyle(checkHideStyle);
+    ToggleAutoSkipIntro(checkautoSkiptIntro);
+    ToggleLDKWithDMD(checkLDKWithDMD);
+    ToggleInfiniteRevive(checkInfiniteRevive);
+    ToggleAutoSkipOutro(checkAutoSkipOutro);
 }
 
 void hlMain::ImGuiToggleLDKWithDMD()
@@ -492,15 +502,15 @@ bool hlMain::init()
     oWndProc = (WNDPROC)SetWindowLongPtr(window, GWL_WNDPROC, (LONG_PTR)WndProc);
 
     hookD3D9(modBase);
-	// define ini options
+    // define ini options
     INIReader reader("dmc4hook.ini");
-    checkStyleSwitch        = reader.GetBoolean("gameplay", "style_switch_limits_removed", true);
-    checkSwordSwitch        = reader.GetBoolean("gameplay", "sword_switch_limits_removed", true);
-    checkGunSwitch          = reader.GetBoolean("gameplay", "gun_switch_limits_removed", true);
-    checkJcCooldown         = reader.GetBoolean("gameplay", "jc_limits_removed", true);
+    checkStyleSwitch = reader.GetBoolean("gameplay", "style_switch_limits_removed", true);
+    checkSwordSwitch = reader.GetBoolean("gameplay", "sword_switch_limits_removed", true);
+    checkGunSwitch = reader.GetBoolean("gameplay", "gun_switch_limits_removed", true);
+    checkJcCooldown = reader.GetBoolean("gameplay", "jc_limits_removed", true);
     checkMovingTargetChange = reader.GetBoolean("gameplay", "target_change_while_moving", true);
     checkHeightRestrictionDante = reader.GetBoolean("gameplay", "dante_height_restriction_removed", true);
-    checkHeightRestrictionNero  = reader.GetBoolean("gameplay", "nero_height_restriction_removed", true);
+    checkHeightRestrictionNero = reader.GetBoolean("gameplay", "nero_height_restriction_removed", true);
     checkInfiniteTime = reader.GetBoolean("options", "infinite_time", true);
     checkinfiniteAllHealth = reader.GetBoolean("practice", "infinite_health_all", true);
     checkDisableCameraEvents = reader.GetBoolean("options", "disable_camera_events", true);
@@ -519,7 +529,6 @@ bool hlMain::init()
     checkDisableDarkslayerRight = reader.GetBoolean("gameplay", "disable_darkslayer_Dpad_right", true);
     checkDisableDarkslayerUp = reader.GetBoolean("gameplay", "disable_darkslayer_Dpad_up", true);
     checkSelectiveCancels = reader.GetBoolean("gameplay", "selective_cancels", true);
-    // bool ini_damageModifier = reader.GetBoolean("gameplay", "player_damage_modifier", true);
     checkStunAnything = reader.GetBoolean("practice", "stun_anything", true);
     checkRemoveLaunchArmour = reader.GetBoolean("practice", "remove_launch_armour", true);
     checkCharacterChange = reader.GetBoolean("options", "character_change", true);
@@ -533,8 +542,8 @@ bool hlMain::init()
     checkSetStyle = reader.GetBoolean("config", "set_style", true);
     checkAutoSkipOutro = reader.GetBoolean("options", "auto_skip_mission_outros", true);
     checkInfiniteTableHopper = reader.GetBoolean("gameplay", "infinite_table_hopper", true);
-    //bool ini_trackingFullHouse = reader.GetBoolean("gameplay", "tracking_full_house", true);
-    //bool ini_trickDown = reader.GetBoolean("gameplay", "trick_down", true);
+    checkTrackingFullHouse = reader.GetBoolean("gameplay", "tracking_full_house", true);
+    checkTrickDown = reader.GetBoolean("gameplay", "trick_down", true);
 
     // checking for ini
     if (reader.ParseError() < 0)
@@ -643,35 +652,40 @@ bool hlMain::init()
     disableDarkslayerUp = modBase + 0x3B6C84;
 
     HL_LOG_RAW("globalSpeed = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x28 });\n");
-    globalSpeed = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x28 }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x28);
+    globalSpeed =
+        ReadPointerPath<float*>({ modBase + 0xA558D0, 0x28 }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x28);
     if (globalSpeed == NULL)
     {
         HL_LOG_ERR("globalSpeed ptr is NULL");
         globalSpeed = (float*)&uninit_value;
     }
     HL_LOG_RAW("playerSpeed = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x2c });\n");
-    playerSpeed = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x2c }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x2c);
+    playerSpeed =
+        ReadPointerPath<float*>({ modBase + 0xA558D0, 0x2c }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x2c);
     if (playerSpeed == NULL)
     {
         HL_LOG_ERR("playerSpeed is NULL\n");
         playerSpeed = (float*)&uninit_value;
     }
     HL_LOG_RAW("enemySpeed = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x30 });\n");
-    enemySpeed = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x30 }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x30);
+    enemySpeed =
+        ReadPointerPath<float*>({ modBase + 0xA558D0, 0x30 }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x30);
     if (enemySpeed == NULL)
     {
         HL_LOG_ERR("enemySpeed is NULL\n");
         enemySpeed = (float*)&uninit_value;
     }
     HL_LOG_RAW("roomSpeed = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x34 });\n");
-    roomSpeed = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x34 }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x34);
+    roomSpeed =
+        ReadPointerPath<float*>({ modBase + 0xA558D0, 0x34 }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x34);
     if (roomSpeed == NULL)
     {
         HL_LOG_ERR("roomSpeed is NULL\n");
         roomSpeed = (float*)&uninit_value;
     }
     HL_LOG_RAW("turboValue = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x38 });\n");
-    turboValue = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x38 }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x38);
+    turboValue =
+        ReadPointerPath<float*>({ modBase + 0xA558D0, 0x38 }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x38);
     if (turboValue == NULL)
     {
         HL_LOG_ERR("turboValue is NULL\n");
@@ -679,7 +693,7 @@ bool hlMain::init()
     }
 
 
-	moveIDAlloc = modBase + 0x43EBD6;
+    moveIDAlloc = modBase + 0x43EBD6;
     selectiveCancels = modBase + 0x403330;
     stunAnything = hl::FindPattern(stunAnything_aob);
     removeLaunchArmour = hl::FindPattern(removeLaunchArmour_aob);
@@ -716,20 +730,24 @@ bool hlMain::init()
     // we'll set this in StageJump function
     // roomID = ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830, 0x6C });
     // //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x6C);
-    bpFloorStage = ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830, 0x74 }); //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x74);
+    bpFloorStage =
+        ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830,
+                                0x74 }); //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x74);
     if (bpFloorStage == NULL)
     {
         HL_LOG_ERR("bpFloorStage is NULL\n");
         bpFloorStage = (int*)&uninit_value;
     }
-	initiateJump = ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830, 0x68 }); //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x68);
+    initiateJump =
+        ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830,
+                                0x68 }); //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x68);
     if (initiateJump == NULL)
     {
         HL_LOG_ERR("initiateJump is NULL\n");
         initiateJump = (int*)&uninit_value;
     }
 
-	sprintFasterActivate = modBase + 0x40456C;
+    sprintFasterActivate = modBase + 0x40456C;
     enemyAttackOffscreen = modBase + 0xA8CE9;
     slowWalkOne = modBase + 0x421C83;
     slowWalkTwo = modBase + 0x421D85;
@@ -781,7 +799,7 @@ bool hlMain::init()
 
     if (infinitePlayerHealth != 0)
     {
-        auto infinitePlayerHealth_hk =m_hook.hookJMP(infinitePlayerHealth, 8, &infinitePlayerHealth_proc, &_infinitePlayerHealthContinue);
+        auto infinitePlayerHealth_hk = m_hook.hookJMP(infinitePlayerHealth, 8, &infinitePlayerHealth_proc, &_infinitePlayerHealthContinue);
     }
 
     if (berialDazeTwo != 0)
@@ -796,22 +814,22 @@ bool hlMain::init()
 
     if (selectiveCancels != 0)
     {
-        auto selectiveCancels_hk =m_hook.hookJMP(selectiveCancels, 6, &selectiveCancels_proc); //, &_selectiveCancelsContinue
+        auto selectiveCancels_hk = m_hook.hookJMP(selectiveCancels, 6, &selectiveCancels_proc);
     }
 
     if (cameraHeightSetting != 0)
     {
-        auto cameraHeightSetting_hk =m_hook.hookJMP(cameraHeightSetting, 8, &cameraHeight_proc, &_cameraHeightContinue);
+        auto cameraHeightSetting_hk = m_hook.hookJMP(cameraHeightSetting, 8, &cameraHeight_proc, &_cameraHeightContinue);
     }
 
     if (cameraDistanceSetting != 0)
     {
-        auto cameraDistanceSetting_hk =m_hook.hookJMP(cameraDistanceSetting, 8, &cameraDistance_proc, &_cameraDistanceContinue);
+        auto cameraDistanceSetting_hk = m_hook.hookJMP(cameraDistanceSetting, 8, &cameraDistance_proc, &_cameraDistanceContinue);
     }
 
     if (cameraDistanceLockonSetting != 0)
     {
-        auto cameraDistanceLockonSetting_hk =m_hook.hookJMP(cameraDistanceLockonSetting, 8, &cameraDistanceLockon_proc, &_cameraDistanceLockonContinue);
+        auto cameraDistanceLockonSetting_hk = m_hook.hookJMP(cameraDistanceLockonSetting, 8, &cameraDistanceLockon_proc, &_cameraDistanceLockonContinue);
     }
 
     if (cameraAngleSetting != 0)
@@ -834,31 +852,32 @@ bool hlMain::init()
         auto lockOff_hk = m_hook.hookJMP(lockOff, 10, &lockOff_proc, &_lockOffContinue);
     }
 
-	if (trackingFullHouse != 0)
-	{
-        auto trackingFullHouse_hk = m_hook.hookJMP(trackingFullHouse, 7, &trackingFullHouse_proc); //&_trackingFullHouseContinue);
-	}
+    if (trackingFullHouse != 0)
+    {
+        auto trackingFullHouse_hk = m_hook.hookJMP(trackingFullHouse, 7, &trackingFullHouse_proc);
+    }
 
-	if (timerAlloc != 0)
-	{
+    if (timerAlloc != 0)
+    {
         auto timerAlloc_hk = m_hook.hookJMP(timerAlloc, 10, &timerAlloc_proc);
-	}
+    }
 
-	if (backForward != 0)
-	{
-		auto backForward_hk = m_hook.hookJMP(backForward, 8, &backForward_proc);
-	}
+    if (backForward != 0)
+    {
+        auto backForward_hk = m_hook.hookJMP(backForward, 8, &backForward_proc);
+    }
 
-	if (trickDown != 0)
-	{
-		auto trickDown_hk = m_hook.hookJMP(trickDown, 8, &trickDown_proc);
-	}
+    if (trickDown != 0)
+    {
+        auto trickDown_hk = m_hook.hookJMP(trickDown, 8, &trickDown_proc);
+    }
 
-	if (floorTouch != 0)
-	{
-		auto floorTouch_hk = m_hook.hookJMP(floorTouch, 8, &floorTouch_proc);
-	}
-	ToggleStuff();
+    if (floorTouch != 0)
+    {
+        auto floorTouch_hk = m_hook.hookJMP(floorTouch, 8, &floorTouch_proc);
+    }
+
+    ToggleStuff();
     return true;
 }
 
@@ -876,11 +895,11 @@ bool hlMain::step()
 
 void RenderImgui(IDirect3DDevice9* m_pDevice)
 {
-	auto main = GetMain(); // get ptr to hacklib main
+    auto main = GetMain(); // get ptr to hacklib main
     if (g_bWasInitialized)
     {
         g_bWasInitialized = false;
-		main->ToggleStuff();
+        main->ToggleStuff();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -1018,7 +1037,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ImGuiToggleTrickDown();
                 }
 
-				ImGui::SameLine(198);
+                ImGui::SameLine(198);
 
                 if (ImGui::Checkbox("Enemies Attack Off-Screen", &checkEnemyAttackOffscreen))
                 {
@@ -1325,12 +1344,12 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ImGuiStageJump(room_item_current);
                 }
 
-				/*
-                if (ImGui::Button("Initiate Jump"))
-                {
-                    main->ImGuiInitiateJump();
-                }
-				*/
+                /*
+if (ImGui::Button("Initiate Jump"))
+{
+    main->ImGuiInitiateJump();
+}
+                */
 
                 ImGui::Spacing();
                 ImGui::Spacing();
@@ -2457,21 +2476,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleRemoveLaunchArmour(checkRemoveLaunchArmour);
                 }
 
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("Config"))
-            {
-                ImGui::Spacing();
-
-                if (ImGui::CollapsingHeader("Configuration"))
-                {
-                    ImGuiIO& io = ImGui::GetIO();
-                    ImGui::Checkbox("Cursor Blink", &io.ConfigInputTextCursorBlink);
-                    ImGui::SameLine();
-                    HelpMarker("Set to false to disable blinking cursor, for users who consider it distracting");
-                    ImGui::Separator();
-                }
                 ImGui::EndTabItem();
             }
 
