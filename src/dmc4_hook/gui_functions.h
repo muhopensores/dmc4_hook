@@ -5,7 +5,7 @@
 #include "imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
 
-
+//visual theme of the gui, can be changed to change the look
 void DarkTheme()
 {
     ImGui::GetStyle().FrameRounding = 3.0f;
@@ -62,6 +62,7 @@ void DarkTheme()
     colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 }
 
+//draw function with parameters for the gui overlay
 void DrawWindow()
 {
     ImGuiIO& io = ImGui::GetIO();
@@ -71,21 +72,25 @@ void DrawWindow()
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 }
 
+//imgui::being seperated into function (required to make gui overlay work, see imgui example and documentation
 void BeginDrawing()
 {
     ImGui::Begin("DMC4 Internal Trainer", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 }
 
+//function that draws the fps onto the gui
 void FPSDrawing()
 {
     ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 }
 
+//function that draws a "misc." text onto the gui, made because misc is used frequently, so to avoid typing extra stuff every time
 void Misc()
 {
     ImGui::Text("Misc");
 }
 
+//function for putting credits specific things in the gui
 void CreditsDrawing()
 {
     if (ImGui::BeginTabItem("About"))
@@ -119,6 +124,7 @@ void CreditsDrawing()
     }
 }
 
+//helpmarker function, to avoid typing it every time in the gui section
 static void HelpMarker(const char* desc)
 {
     ImGui::TextDisabled("(?)");

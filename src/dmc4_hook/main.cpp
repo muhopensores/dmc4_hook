@@ -51,10 +51,11 @@ T ReadPointerPath(std::vector<uintptr_t> offsets)
     else
         return (T)(ret + offsets[len - 1]);
 }
-
+//initialization bools
 bool initialized = true;
 bool g_bWasInitialized = true;
 
+//bools to check if cheat is active or not
 bool checkStyleSwitch = false;
 bool checkWeaponSwitch = false;
 bool checkJcCooldown = false;
@@ -122,6 +123,7 @@ hlMain* GetMain()
     return g_main.getMain();
 }
 
+//toggle functions to call from imgui to apply cheats
 void hlMain::ImGuiToggleInfPlayerHealth()
 {
     g_InfPlayerHealthEnable = !g_InfPlayerHealthEnable;
@@ -571,8 +573,8 @@ bool hlMain::init()
     modBase = (uintptr_t)GetModuleHandle(NULL);
     HWND window = FindWindowA(NULL, windowName);
     oWndProc = (WNDPROC)SetWindowLongPtr(window, GWL_WNDPROC, (LONG_PTR)WndProc);
-
     hookD3D9(modBase);
+
     // define ini options
     INIReader reader("dmc4hook.ini");
     checkStyleSwitch = reader.GetBoolean("gameplay", "style_switch_limits_removed", true);
@@ -629,7 +631,7 @@ bool hlMain::init()
         m_con.printf("Can't load 'dmc4hook.ini'. Using default settings\n");
     }
 
-    // find our aob/ addresses
+    // find our aobs/ addresses
     styleSwitch = hl::FindPattern(styleSwitch_aob);
     swordSwitch = hl::FindPattern(swordSwitch_aob);
     gunSwitch = hl::FindPattern(gunSwitch_aob);
@@ -731,6 +733,7 @@ bool hlMain::init()
     disableDarkslayerRight = modBase + 0x3B6D99;
     disableDarkslayerUp = modBase + 0x3B6C84;
 
+	//specific pointer checks for logging purposes - logs into the logfile after every boot of the game
     HL_LOG_RAW("globalSpeed = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x28 });\n");
     globalSpeed =
         ReadPointerPath<float*>({ modBase + 0xA558D0, 0x28 }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x28);
@@ -771,7 +774,6 @@ bool hlMain::init()
         HL_LOG_ERR("turboValue is NULL\n");
         turboValue = (float*)&uninit_value;
     }
-
 
     moveIDAlloc = modBase + 0x43EBD6;
     selectiveCancels = modBase + 0x40332A;
@@ -864,7 +866,7 @@ bool hlMain::init()
     replaceAgnus = modBase + 0x2BDE60;
     infiniteTableHopper = modBase + 0x3F873C;
 
-    // hooks
+    // hooks and jumps to get back to the correct address after hooking
     if (damagemodifier != 0)
     {
         auto damagemodifier_hk = m_hook.hookJMP(damagemodifier, 5, &damagemodifier_proc, &_damagemodifierContinue);
@@ -970,7 +972,7 @@ bool hlMain::step()
     return true;
 }
 
-
+//function to render the gui onto screen
 void RenderImgui(IDirect3DDevice9* m_pDevice)
 {
     auto main = GetMain(); // get ptr to hacklib main
@@ -992,6 +994,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
     ImGui::NewFrame();
     DrawWindow();
 
+	// specific imgui functions, can be looked up in examples or the documentation
+    // references/ points to other functions to apply logic behind the gui toggles/ objects
     {
         BeginDrawing();
         ImGui::SameLine(0, 0);
@@ -1030,7 +1034,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::Spacing();
-
                 (ImGui::Text("Height Restriction Removal"));
 
                 if (ImGui::Checkbox("Dante", &checkHeightRestrictionDante))
@@ -1088,23 +1091,16 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleEnemyInstantDT(checkEnemyInstantDT);
                 }
 
-                ImGui::SameLine(198);
-
                 if (ImGui::Checkbox("Enemies Don't DT", &checkEnemyNoDT))
                 {
                     main->ToggleEnemyNoDT(checkEnemyNoDT);
                 }
 
+				ImGui::SameLine(198);
+
                 if (ImGui::Checkbox("Trick Down", &checkTrickDown))
                 {
                     main->ImGuiToggleTrickDown();
-                }
-
-                ImGui::SameLine(198);
-
-                if (ImGui::Checkbox("Enemies Attack Off-Screen", &checkEnemyAttackOffscreen))
-                {
-                    main->ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
                 }
 
 				if (ImGui::Checkbox("Infinite Trick Range", &checkInfiniteTrickRange))
@@ -1117,6 +1113,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 				if (ImGui::Checkbox("Tracking Full House", &checkTrackingFullHouse))
                 {
                     main->ImGuiToggleTrackingFullHouse();
+                }
+
+				if (ImGui::Checkbox("Enemies Attack Off-Screen", &checkEnemyAttackOffscreen))
+                {
+                    main->ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
                 }
 
                 ImGui::Spacing();
@@ -1180,6 +1181,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                         main->ImGuiToggleOmenCancel();
                     }
                 }
+
+				ImGui::Spacing();
 
                 if (ImGui::CollapsingHeader("Disable Darkslayer Inputs"))
                 {
@@ -1400,7 +1403,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                                              "Secret Mission 3", "Secret Mission 4", "Secret Mission 5", "Secret Mission 6", "Secret Mission 7", "Secret Mission 8",
                                              "Secret Mission 9", "Secret Mission 10", "Secret Mission 11", "Secret Mission 12" 
 				};
-
                 int room_item_current = 0;
                 if (ImGui::ListBox("Room Codes\n(including BP)", &room_item_current, room_items, IM_ARRAYSIZE(room_items), 10))
                 {

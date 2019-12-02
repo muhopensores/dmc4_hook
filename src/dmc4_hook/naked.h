@@ -35,6 +35,8 @@ extern "C"
     uintptr_t _backForwardContinue = 0x00805A60; // This isn't return, its the next opcode
     uintptr_t _trickDownContinue = 0x007CB121;
     uintptr_t _floorTouchContinue = 0x007CB345;
+
+	//bools to check for toggling purposes within a gui checkbox, if false, then checkbox toggle is required to activate
     bool g_InfDTEnable = false;
     bool g_InfPlayerHealthEnable = false;
     bool g_berialDazeEnable = false;
@@ -54,7 +56,7 @@ extern "C"
     bool g_trickDownEnable = false;
 }
 
-
+//procs that apply changes directly using inline asm, work in conjunction with hooks
 _declspec(naked) void limitadjust_patch(void)
 {
     _asm {
@@ -304,12 +306,12 @@ _declspec(naked) void ldkWithDMD_proc(void)
 _declspec(naked) void lockOn_proc(void)
 {
     _asm {
-			cmp byte ptr [g_trackingFullHouseEnable], 0
-			je originalcode
+			//cmp byte ptr [g_trackingFullHouseEnable], 0
+			//je originalcode
 
 			mov [lockOnAlloc],0x01
 
-		originalcode:
+		//originalcode:
 			mov [edi+0x000016D0],0x1
 			jmp dword ptr [_lockOnContinue]
     }
@@ -318,12 +320,12 @@ _declspec(naked) void lockOn_proc(void)
 _declspec(naked) void lockOff_proc(void)
 {
     _asm {
-			cmp byte ptr [g_trackingFullHouseEnable], 0
-			je originalcode
+			//cmp byte ptr [g_trackingFullHouseEnable], 0
+			//je originalcode
 
 			mov [lockOnAlloc],0x0
 
-		originalcode:
+		//originalcode:
 			mov [edi+0x000016D0],0x0
 			jmp dword ptr [_lockOffContinue]
     }
