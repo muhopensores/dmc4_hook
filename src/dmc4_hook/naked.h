@@ -6,7 +6,6 @@ extern "C"
     const float limitadjust = 0.0f;
     int moveID = 0;
     int lockOnAlloc = 0;
-    int backForwardAlloc = 0;
     float damagemultiplier = 1.0f;
     float cameraHeight = 170.0f;
     float cameraDistance = 550.0f;
@@ -22,8 +21,7 @@ extern "C"
     uintptr_t _infinitePlayerHealthContinue = NULL;
     uintptr_t _berialDazeContinue = NULL;
     uintptr_t _moveIDAllocContinue = 0x0083EBDC;
-    uintptr_t _selectiveCancelsContinue = 0x00803336;
-    uintptr_t _selectiveCancelsJE = 0x0080337A;
+    uintptr_t _selectiveCancelsContinue = 0x0080332F;
     uintptr_t _stunAnythingContinue = NULL;
     uintptr_t _cameraHeightContinue = NULL;
     uintptr_t _cameraDistanceContinue = NULL;
@@ -37,8 +35,6 @@ extern "C"
     uintptr_t _backForwardContinue = 0x00805A60; // This isn't return, its the next opcode
     uintptr_t _trickDownContinue = 0x007CB121;
     uintptr_t _floorTouchContinue = 0x007CB345;
-    uintptr_t _tricksterDashMove = 0x00C413A4;
-    uintptr_t _skyStarMove = 0x00C413DC;
     bool g_InfDTEnable = false;
     bool g_InfPlayerHealthEnable = false;
     bool g_berialDazeEnable = false;
@@ -144,9 +140,9 @@ _declspec(naked) void selectiveCancels_proc(void)
 			cmp byte ptr [g_selectiveCancelsEnable], 0
 			je originalcode
 
-			cmp byte ptr [esi+0x8C],0xFFFFFFFF
+			cmp byte ptr [esi+0x13C],0xFFFFFFFF
 			jne originalcode
-			cmp byte ptr [esi+0x94],0xFFFFFFFF
+			cmp byte ptr [esi+0x144],0xFFFFFFFF
 			jne originalcode
 
 			cmp [moveID],0x900 // Slash Dimension
@@ -172,11 +168,10 @@ _declspec(naked) void selectiveCancels_proc(void)
 			jmp originalcode
 
 		cancellable:
-			mov dword ptr [esi-0x24],0x02
+			mov dword ptr [esi+0x8C],0x02
 
 		originalcode:
-			cmp dword ptr [esi-24],0x00
-            //je dword ptr [_selectiveCancelsJE] //0x0080337A //I don't know how to get JE to work
+			mov edi,0x00000008
 			jmp dword ptr [_selectiveCancelsContinue]
     }
 }
@@ -282,7 +277,8 @@ _declspec(naked) void trackingFullHouse_proc(void)
 			je skipcode
 
 		originalcode:
-			comiss xmm0, [fullHouseAngle] // Thought I'd try make a new alloc because idk how to comiss xmm0,[00C0F9F4] (which was a static 65 float)
+			comiss xmm0, [fullHouseAngle] // Thought I'd try make a new alloc because idk how to comiss xmm0,[00C0F9F4] (which was a
+                         // static 65 float)
 
 		skipcode:
 			jmp dword ptr [_trackingFullHouseContinue]
@@ -299,6 +295,27 @@ _declspec(naked) void timerAlloc_proc(void)
 			addss xmm5,[timerMemTick]
 			movss [timerMem],xmm5
 
+			cmp [timerMem],0x41a00000 //20
+			jl trickreplace
+			jmp dontreplace
+
+		dontreplace:
+			push eax
+			mov eax,0x00C413A4				// Trickster Dash
+			mov dword ptr [eax],0x5B		// Trickster Dash
+			mov eax,0x00C413DC				// Sky Star
+			mov dword ptr [eax],0x5C		// Sky Star
+			pop eax
+			jmp originalcode
+
+		trickreplace:
+			push eax
+			mov eax,0x00C413A4				// Trickster Dash
+			mov dword ptr [eax],0x5D		// Trick
+			mov eax,0x00C413DC				// Sky Star
+			mov dword ptr [eax],0x5D		// Trick
+			pop eax
+
 		originalcode:
 			mov [ecx+0x00000EA8],00000000
 			jmp dword ptr [_timerAllocContinue]
@@ -311,22 +328,14 @@ _declspec(naked) void backForward_proc(void)
 			cmp byte ptr [g_trickDownEnable], 0
 			je originalcode
 
+			cmp [timerMem],0x41200000 //=10
+			jl originalcode
 			cmp al,0x3
-			jne dontreplace
-			mov byte ptr [backForwardAlloc],al
-			cmp [backForwardAlloc],3
-			je trickreplace
-			jmp dontreplace
-
-		dontreplace:
-			mov byte ptr [_tricksterDashMove],0x5B
-			mov byte ptr [_skyStarMove],0x5C
+			je resettimer
 			jmp originalcode
-
-		trickreplace:
-			mov dword ptr [timerMem],0x00000000
-			mov byte ptr [_tricksterDashMove],0x5D
-			mov byte ptr [_skyStarMove],0x5D
+			
+		resettimer:
+			mov dword ptr [timerMem],0x00000000 //=0
 
 		originalcode:
 			mov [ebp+0x00],al
@@ -340,7 +349,7 @@ _declspec(naked) void trickDown_proc(void)
 			cmp byte ptr [g_trickDownEnable], 0
 			je originalcode
 
-			cmp dword ptr [timerMem],0x42480000
+			cmp dword ptr [timerMem],0x42480000 //=50 //0x41a00000 //=20
 			jl trickdownstart
 			jmp originalcode
 
@@ -359,7 +368,7 @@ _declspec(naked) void floorTouch_proc(void)
 			cmp byte ptr [g_trickDownEnable], 0
 			je originalcode
 
-			cmp dword ptr [timerMem],0x42a00000
+			cmp dword ptr [timerMem],0x42a00000 //=80
 			jl skipcode
 
 		originalcode:

@@ -107,6 +107,7 @@ bool checkTimerAlloc = false;
 bool checkBackForward = false;
 bool checkTrickDown = false;
 bool checkFloorTouch = false;
+bool checkInfiniteTrickRange = false;
 
 
 hl::StaticInit<class hlMain> g_main;
@@ -472,6 +473,7 @@ void hlMain::ToggleStuff()
     ToggleLDKWithDMD(checkLDKWithDMD);
     ToggleInfiniteRevive(checkInfiniteRevive);
     ToggleAutoSkipOutro(checkAutoSkipOutro);
+    ToggleInfiniteTrickRange(checkInfiniteTrickRange);
 }
 
 void hlMain::ImGuiToggleLDKWithDMD()
@@ -547,6 +549,7 @@ bool hlMain::init()
     checkInfiniteTableHopper = reader.GetBoolean("gameplay", "infinite_table_hopper", true);
     checkTrackingFullHouse = reader.GetBoolean("gameplay", "tracking_full_house", true);
     checkTrickDown = reader.GetBoolean("gameplay", "trick_down", true);
+    checkInfiniteTrickRange = reader.GetBoolean("gameplay", "infinite_trick_range", true);
 
     // checking for ini
     if (reader.ParseError() < 0)
@@ -699,7 +702,7 @@ bool hlMain::init()
 
 
     moveIDAlloc = modBase + 0x43EBD6;
-    selectiveCancels = modBase + 0x403330;
+    selectiveCancels = modBase + 0x40332A;
     stunAnything = hl::FindPattern(stunAnything_aob);
     removeLaunchArmour = hl::FindPattern(removeLaunchArmour_aob);
     characterChangeOne = modBase + 0x3790CF;
@@ -730,6 +733,7 @@ bool hlMain::init()
     backForward = modBase + 0x405BC1;
     trickDown = modBase + 0x3CB119;
     floorTouch = modBase + 0x3CB33D;
+    infiniteTrickRange = modBase + 0x3CB0A8;
 
 
     // we'll set this in StageJump function
@@ -819,7 +823,7 @@ bool hlMain::init()
 
     if (selectiveCancels != 0)
     {
-        auto selectiveCancels_hk = m_hook.hookJMP(selectiveCancels, 6, &selectiveCancels_proc);
+        auto selectiveCancels_hk = m_hook.hookJMP(selectiveCancels, 6, &selectiveCancels_proc); //, &selectiveCancelsContinue);
     }
 
     if (cameraHeightSetting != 0)
@@ -1047,6 +1051,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 if (ImGui::Checkbox("Enemies Attack Off-Screen", &checkEnemyAttackOffscreen))
                 {
                     main->ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
+                }
+
+				if (ImGui::Checkbox("Infinite Trick Range", &checkInfiniteTrickRange))
+                {
+                    main->ToggleInfiniteTrickRange(checkInfiniteTrickRange);
                 }
 
                 ImGui::Spacing();

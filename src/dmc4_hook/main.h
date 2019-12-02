@@ -49,6 +49,7 @@ public:
     void ToggleInfiniteRevive(bool toggle);
     void ToggleAutoSkipOutro(bool toggle);
     void ToggleInfiniteTableHopper(bool toggle);
+    void ToggleInfiniteTrickRange(bool toggle);
 
 	//imgui toggle functions
     void ImGuiToggleInfPlayerHealth();
@@ -267,6 +268,7 @@ public:
     uintptr_t backForward;
     uintptr_t trickDown;
     uintptr_t floorTouch;
+    uintptr_t infiniteTrickRange;
     float* globalSpeed;
     float* playerSpeed;
     float* enemySpeed;
@@ -317,7 +319,8 @@ public:
         replaceMephisto_patch, replaceFaust_patch, replaceFrost_patch, replaceAssault_patch, replaceBlitz_patch,
         replaceChimera_patch, replaceBasilisk_patch, replaceBerial_patch, replaceBael_patch, replaceEchidna_patch,
         replaceCredo_patch, replaceAgnus_patch, autoSkipOutro_patch, infiniteTableHopper_patch,
-        infiniteReviveFour_patch, heightRestrictionDoubleDown_patch, heightRestrictionRev_patch;
+        infiniteReviveFour_patch, heightRestrictionDoubleDown_patch, heightRestrictionRev_patch,
+        infiniteTrickRange_patch;
 
 
     const hl::IHook* g_PresentHook;
