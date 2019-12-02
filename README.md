@@ -1,4 +1,4 @@
-# DMC4 mods #
+# DMC4 Trainer #
 A trainer for the original version of Devil May Cry 4, made with hacklib. The main focus of this dll is to allow for options to customize your gameplay experience without having to look through menus or open things alongside your exe.
 
 For more infos check out the wiki.
