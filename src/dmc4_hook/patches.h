@@ -506,7 +506,7 @@ void hlMain::SetDefault()
 
     if (difficultySelectTwenty)
     {
-        difficultySelectTwenty_patch.apply(difficultySelectTwenty, "\x44\x01\x00\x00\x77", 5);
+        difficultySelectTwenty_patch.apply(difficultySelectTwenty, "\x40\x01\x00\x00\x75", 5);
     }
 
     if (difficultySelectTwentyOne)
@@ -626,7 +626,7 @@ void hlMain::SetDefault()
 
     if (difficultySelectFortyFour)
     {
-        difficultySelectFortyFour_patch.apply(difficultySelectFortyFour, "\xab\x27\xd6", 3);
+        difficultySelectFortyFour_patch.apply(difficultySelectFortyFour, "\xa8\x27\xd6", 3);
     }
 
     if (difficultySelectFortyFive)
