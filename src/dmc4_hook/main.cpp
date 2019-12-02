@@ -80,7 +80,14 @@ bool checkDisableDarkslayerLeft = false;
 bool checkDisableDarkslayerRight = false;
 bool checkDisableDarkslayerUp = false;
 bool checkMoveIDAlloc = false;
-bool checkSelectiveCancels = false;
+	bool checkSelectiveCancels = false;
+		bool checkEcstasyCancel = false;
+		bool checkArgumentCancel = false;
+		bool checkKickThirteenCancel = false;
+		bool checkSlashDimensionCancel = false;
+		bool checkPropCancel = false;
+		bool checkShockCancel = false;
+		bool checkOmenCancel = false;
 bool checkDamageModifier = false;
 bool checkStunAnything = false;
 bool checkRemoveLaunchArmour = false;
@@ -99,12 +106,12 @@ bool checkRandomEnemies = false;
 bool checkAutoSkipOutro = false;
 bool checkInfiniteTableHopper = false;
 bool checkLockOn = false;
-bool checkLockOff = false;
-bool checkTrackingFullHouse = false;
+	bool checkLockOff = false;
+		bool checkTrackingFullHouse = false;
 bool checkTimerAlloc = false;
-bool checkBackForward = false;
-bool checkTrickDown = false;
-bool checkFloorTouch = false;
+	bool checkBackForward = false;
+	bool checkTrickDown = false;
+	bool checkFloorTouch = false;
 bool checkInfiniteTrickRange = false;
 
 
@@ -134,6 +141,41 @@ void hlMain::ImGuiToggleSelectiveCancels()
 {
     g_moveIDAllocEnable = !g_moveIDAllocEnable;
     g_selectiveCancelsEnable = !g_selectiveCancelsEnable;
+}
+
+void hlMain::ImGuiToggleEcstasyCancel()
+{
+    g_ecstasyCancelEnable = !g_ecstasyCancelEnable;
+}
+
+void hlMain::ImGuiToggleArgumentCancel()
+{
+    g_argumentCancelEnable = !g_argumentCancelEnable;
+}
+
+void hlMain::ImGuiToggleKickThirteenCancel()
+{
+    g_kickThirteenCancelEnable = !g_kickThirteenCancelEnable;
+}
+
+void hlMain::ImGuiToggleSlashDimensionCancel()
+{
+    g_slashDimensionCancelEnable = !g_slashDimensionCancelEnable;
+}
+
+void hlMain::ImGuiTogglePropCancel()
+{
+    g_propCancelEnable = !g_propCancelEnable;
+}
+
+void hlMain::ImGuiToggleShockCancel()
+{
+    g_shockCancelEnable = !g_shockCancelEnable;
+}
+
+void hlMain::ImGuiToggleOmenCancel()
+{
+    g_omenCancelEnable = !g_omenCancelEnable;
 }
 
 void hlMain::ImGuiToggleDamageModifier()
@@ -434,6 +476,34 @@ void hlMain::ToggleStuff()
         g_moveIDAllocEnable = true;
         g_selectiveCancelsEnable = true;
     }
+    if (checkEcstasyCancel)
+    {
+        g_ecstasyCancelEnable = true;
+    }
+    if (checkArgumentCancel)
+    {
+        g_argumentCancelEnable = true;
+    }
+    if (checkKickThirteenCancel)
+    {
+        g_kickThirteenCancelEnable = true;
+    }
+    if (checkSlashDimensionCancel)
+    {
+        g_slashDimensionCancelEnable = true;
+    }
+    if (checkPropCancel)
+    {
+        g_propCancelEnable = true;
+    }
+    if (checkShockCancel)
+    {
+        g_shockCancelEnable = true;
+    }
+    if (checkOmenCancel)
+    {
+        g_omenCancelEnable = true;
+    }
     if (checkTrackingFullHouse)
     {
         g_trackingFullHouseEnable = true;
@@ -529,6 +599,13 @@ bool hlMain::init()
     checkDisableDarkslayerRight = reader.GetBoolean("gameplay", "disable_darkslayer_Dpad_right", true);
     checkDisableDarkslayerUp = reader.GetBoolean("gameplay", "disable_darkslayer_Dpad_up", true);
     checkSelectiveCancels = reader.GetBoolean("gameplay", "selective_cancels", true);
+		checkEcstasyCancel = reader.GetBoolean("gameplay", "ecstasy_cancel", true);
+		checkArgumentCancel = reader.GetBoolean("gameplay", "argument_cancel", true);
+		checkKickThirteenCancel = reader.GetBoolean("gameplay", "kick_13_cancel", true);
+		checkSlashDimensionCancel = reader.GetBoolean("gameplay", "slash_dimension_cancel", true);
+		checkPropCancel = reader.GetBoolean("gameplay", "prop_cancel", true);
+		checkShockCancel = reader.GetBoolean("gameplay", "shock_cancel", true);
+		checkOmenCancel = reader.GetBoolean("gameplay", "omen_cancel", true);
     checkStunAnything = reader.GetBoolean("practice", "stun_anything", true);
     checkRemoveLaunchArmour = reader.GetBoolean("practice", "remove_launch_armour", true);
     checkCharacterChange = reader.GetBoolean("options", "character_change", true);
@@ -1006,11 +1083,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::SameLine(198);
 
-                if (ImGui::Checkbox("Selective Cancels", &checkSelectiveCancels))
-                {
-                    main->ImGuiToggleSelectiveCancels();
-                }
-
                 if (ImGui::Checkbox("Enemies DT Instantly", &checkEnemyInstantDT))
                 {
                     main->ToggleEnemyInstantDT(checkEnemyInstantDT);
@@ -1050,6 +1122,64 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::Spacing();
+
+                if (ImGui::CollapsingHeader("Selective Cancels"))
+                {
+					if (ImGui::Checkbox("Enable", &checkSelectiveCancels))
+                    {
+                        main->ImGuiToggleSelectiveCancels();
+                    }
+
+					ImGui::Separator();
+                    ImGui::Text("Common");
+
+                    if (ImGui::Checkbox("Ecstasy", &checkEcstasyCancel))
+                    {
+                        main->ImGuiToggleEcstasyCancel();
+                    }
+
+					ImGui::SameLine(198);
+
+					if (ImGui::Checkbox("Argument", &checkArgumentCancel))
+                    {
+                        main->ImGuiToggleArgumentCancel();
+                    }
+
+					if (ImGui::Checkbox("Kick 13", &checkKickThirteenCancel))
+                    {
+                        main->ImGuiToggleKickThirteenCancel();
+                    }
+
+					ImGui::SameLine(198);
+
+					if (ImGui::Checkbox("Slash Dimension", &checkSlashDimensionCancel))
+                    {
+                        main->ImGuiToggleSlashDimensionCancel();
+                    }
+
+					ImGui::Separator();
+                    ImGui::Text("Swords");
+
+					if (ImGui::Checkbox("Prop", &checkPropCancel))
+                    {
+                        main->ImGuiTogglePropCancel();
+                    }
+
+					ImGui::SameLine(198);
+
+					if (ImGui::Checkbox("Shock", &checkShockCancel))
+                    {
+                        main->ImGuiToggleShockCancel();
+                    }
+
+					ImGui::Separator();
+                    ImGui::Text("Guns");
+
+					if (ImGui::Checkbox("Omen", &checkOmenCancel))
+                    {
+                        main->ImGuiToggleOmenCancel();
+                    }
+                }
 
                 if (ImGui::CollapsingHeader("Disable Darkslayer Inputs"))
                 {

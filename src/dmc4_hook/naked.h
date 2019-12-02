@@ -40,6 +40,13 @@ extern "C"
     bool g_berialDazeEnable = false;
     bool g_moveIDAllocEnable = false;
     bool g_selectiveCancelsEnable = false;
+		bool g_ecstasyCancelEnable = false;
+		bool g_argumentCancelEnable = false;
+		bool g_kickThirteenCancelEnable = false;
+		bool g_slashDimensionCancelEnable = false;
+		bool g_propCancelEnable = false;
+		bool g_shockCancelEnable = false;
+		bool g_omenCancelEnable = false;
     bool g_damageModifierEnable = false;
     bool g_stunAnythingEnable = false;
     bool g_ldkWithDMDEnable = false;
@@ -144,7 +151,7 @@ _declspec(naked) void selectiveCancels_proc(void)
 			jne originalcode
 			cmp byte ptr [esi+0x144],0xFFFFFFFF
 			jne originalcode
-
+            /*
 			cmp [moveID],0x900 // Slash Dimension
 			je cancellable
 			cmp [moveID],0x411 // Grounded Ecstasy
@@ -164,6 +171,61 @@ _declspec(naked) void selectiveCancels_proc(void)
 			cmp [moveID],0x719 // Jealousy
 			je cancellable
 			cmp [moveID],0x732 // Gunship
+			je cancellable
+			jmp originalcode
+			*/
+			cmp [moveID],0x411		// Grounded Ecstasy	// Checks move id like usual every tick
+			je cancellableecstasy	// If correct moveid, check against Gui
+			cmp [moveID],0x412		// Aerial Ecstasy
+			je cancellableecstasy
+			cmp [moveID],0x732		// Argument
+			je cancellableargument
+			cmp [moveID],0x30E		// Kick 13
+			je cancellablekickthirteen
+			cmp [moveID],0x30F		// DT Kick 13
+			je cancellablekickthirteen
+			cmp [moveID],0x900		// Slash Dimension
+			je cancellableslashdimension
+			cmp [moveID],0x232		// Prop
+			je cancellableprop
+			cmp [moveID],0x333		// Shock
+			je cancellableshock
+			cmp [moveID],0x735		// Omen
+			je cancellableomen
+			jmp originalcode
+
+			cancellableecstasy:
+			cmp [g_ecstasyCancelEnable],0x1	// If Gui is ticked,
+			je cancellable					// make the move cancellable
+			jmp originalcode				// if not, don't make it cancellable
+
+			cancellableargument:
+			cmp [g_argumentCancelEnable],0x1
+			je cancellable
+			jmp originalcode
+
+			cancellablekickthirteen:
+			cmp [g_kickThirteenCancelEnable],0x1
+			je cancellable
+			jmp originalcode
+
+			cancellableslashdimension:
+			cmp [g_slashDimensionCancelEnable],0x1
+			je cancellable
+			jmp originalcode
+
+			cancellableprop:
+			cmp [g_propCancelEnable],0x1
+			je cancellable
+			jmp originalcode
+
+			cancellableshock:
+			cmp [g_shockCancelEnable],0x1
+			je cancellable
+			jmp originalcode
+
+			cancellableomen:
+			cmp [g_omenCancelEnable],0x1
 			je cancellable
 			jmp originalcode
 
@@ -295,25 +357,25 @@ _declspec(naked) void timerAlloc_proc(void)
 			addss xmm5,[timerMemTick]
 			movss [timerMem],xmm5
 
-			cmp [timerMem],0x41a00000 //20
+			cmp [timerMem],0x41a00000 // 20
 			jl trickreplace
 			jmp dontreplace
 
 		dontreplace:
 			push eax
-			mov eax,0x00C413A4				// Trickster Dash
-			mov dword ptr [eax],0x5B		// Trickster Dash
-			mov eax,0x00C413DC				// Sky Star
-			mov dword ptr [eax],0x5C		// Sky Star
+			mov eax,0x00C413A4 // Trickster Dash
+			mov dword ptr [eax],0x5B // Trickster Dash
+			mov eax,0x00C413DC // Sky Star
+			mov dword ptr [eax],0x5C // Sky Star
 			pop eax
 			jmp originalcode
 
 		trickreplace:
 			push eax
-			mov eax,0x00C413A4				// Trickster Dash
-			mov dword ptr [eax],0x5D		// Trick
-			mov eax,0x00C413DC				// Sky Star
-			mov dword ptr [eax],0x5D		// Trick
+			mov eax,0x00C413A4 // Trickster Dash
+			mov dword ptr [eax],0x5D // Trick
+			mov eax,0x00C413DC // Sky Star
+			mov dword ptr [eax],0x5D // Trick
 			pop eax
 
 		originalcode:

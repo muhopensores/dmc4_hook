@@ -54,6 +54,13 @@ public:
     void ImGuiToggleInfDT();
     void ImGuiToggleBerialDaze();
     void ImGuiToggleSelectiveCancels();
+		void ImGuiToggleEcstasyCancel();
+		void ImGuiToggleArgumentCancel();
+		void ImGuiToggleKickThirteenCancel();
+		void ImGuiToggleSlashDimensionCancel();
+		void ImGuiTogglePropCancel();
+		void ImGuiToggleShockCancel();
+		void ImGuiToggleOmenCancel();
     void ImGuiToggleDamageModifier();
     void ImGuiToggleLDKWithDMD();
     void ImGuiToggleTrackingFullHouse();
