@@ -15,8 +15,9 @@ public:
 	void ToggleStuff();
     // patch functions
     void ToggleStyleSwitch(bool toggle);
-    void ToggleSwordSwitch(bool toggle);
-    void ToggleGunSwitch(bool toggle);
+    //void ToggleSwordSwitch(bool toggle);
+    //void ToggleGunSwitch(bool toggle);
+    void ToggleWeaponSwitch(bool toggle);
     void ToggleJcCooldown(bool toggle);
     void ToggleMovingTargetChange(bool toggle);
     void ToggleHeightRestrictionDante(bool toggle);
@@ -109,6 +110,8 @@ public:
     uintptr_t heightRestrictionExCalibur;
     uintptr_t heightRestrictionSnatch;
     uintptr_t heightRestrictionRaveNero;
+	uintptr_t heightRestrictionDoubleDown;
+    uintptr_t heightRestrictionRev;
     uintptr_t infiniteTime;
     uintptr_t infiniteAllHealth;
     uintptr_t disablecameraEventsOne;
@@ -314,7 +317,7 @@ public:
         replaceMephisto_patch, replaceFaust_patch, replaceFrost_patch, replaceAssault_patch, replaceBlitz_patch,
         replaceChimera_patch, replaceBasilisk_patch, replaceBerial_patch, replaceBael_patch, replaceEchidna_patch,
         replaceCredo_patch, replaceAgnus_patch, autoSkipOutro_patch, infiniteTableHopper_patch,
-        infiniteReviveFour_patch;
+        infiniteReviveFour_patch, heightRestrictionDoubleDown_patch, heightRestrictionRev_patch;
 
 
     const hl::IHook* g_PresentHook;

@@ -12,7 +12,7 @@ void hlMain::ToggleStyleSwitch(bool toggle)
     }
 }
 
-void hlMain::ToggleSwordSwitch(bool toggle)
+void hlMain::ToggleWeaponSwitch(bool toggle)
 {
     if (swordSwitch)
     {
@@ -21,8 +21,16 @@ void hlMain::ToggleSwordSwitch(bool toggle)
         else
             swordSwitch_patch.revert();
     }
-}
 
+	if (gunSwitch)
+    {
+        if (toggle)
+            gunSwitch_patch.apply(gunSwitch, (char*)&limitadjust_patch, 6);
+        else
+            gunSwitch_patch.revert();
+    }
+}
+/*
 void hlMain::ToggleGunSwitch(bool toggle)
 {
     if (gunSwitch)
@@ -32,7 +40,7 @@ void hlMain::ToggleGunSwitch(bool toggle)
         else
             gunSwitch_patch.revert();
     }
-}
+}*/
 
 void hlMain::ToggleJcCooldown(bool toggle)
 {
@@ -61,7 +69,7 @@ void hlMain::ToggleHeightRestrictionDante(bool toggle)
     if (heightRestrictionDante)
     {
         if (toggle)
-            heightRestrictionDante_patch.apply(heightRestrictionDante, "\x0F\x84\x7B\x03\x00\x00", 6);
+            heightRestrictionDante_patch.apply(heightRestrictionDante, "\x90\x90\x90\x90\x90\x90", 6);
         else
             heightRestrictionDante_patch.revert();
     }
@@ -72,7 +80,7 @@ void hlMain::ToggleHeightRestrictionNero(bool toggle)
     if (heightRestrictionBuster)
     {
         if (toggle)
-            heightRestrictionBuster_patch.apply(heightRestrictionBuster, "\x0F\x84\xEF\x02\x00\x00", 6);
+            heightRestrictionBuster_patch.apply(heightRestrictionBuster, "\x90\x90\x90\x90\x90\x90", 6);
         else
             heightRestrictionBuster_patch.revert();
     }
@@ -80,7 +88,7 @@ void hlMain::ToggleHeightRestrictionNero(bool toggle)
     if (heightRestrictionSplit)
     {
         if (toggle)
-            heightRestrictionSplit_patch.apply(heightRestrictionSplit, "\x0F\x84\xAD\x04\x00\x00", 6);
+            heightRestrictionSplit_patch.apply(heightRestrictionSplit, "\x90\x90\x90\x90\x90\x90", 6);
         else
             heightRestrictionSplit_patch.revert();
     }
@@ -88,7 +96,7 @@ void hlMain::ToggleHeightRestrictionNero(bool toggle)
     if (heightRestrictionCalibur)
     {
         if (toggle)
-            heightRestrictionCalibur_patch.apply(heightRestrictionCalibur, "\x0F\x84\xF2\x01\x00\x00", 6);
+            heightRestrictionCalibur_patch.apply(heightRestrictionCalibur, "\x90\x90\x90\x90\x90\x90", 6);
         else
             heightRestrictionCalibur_patch.revert();
     }
@@ -96,7 +104,7 @@ void hlMain::ToggleHeightRestrictionNero(bool toggle)
     if (heightRestrictionExCalibur)
     {
         if (toggle)
-            heightRestrictionExCalibur_patch.apply(heightRestrictionExCalibur, "\x0F\x84\x84\x01\x00\x00", 6);
+            heightRestrictionExCalibur_patch.apply(heightRestrictionExCalibur, "\x90\x90\x90\x90\x90\x90", 6);
         else
             heightRestrictionExCalibur_patch.revert();
     }
@@ -104,7 +112,7 @@ void hlMain::ToggleHeightRestrictionNero(bool toggle)
     if (heightRestrictionSnatch)
     {
         if (toggle)
-            heightRestrictionSnatch_patch.apply(heightRestrictionSnatch, "\x0F\x84\x56\x03\x00\x00", 6);
+            heightRestrictionSnatch_patch.apply(heightRestrictionSnatch, "\x90\x90\x90\x90\x90\x90", 6);
         else
             heightRestrictionSnatch_patch.revert();
     }
@@ -112,9 +120,25 @@ void hlMain::ToggleHeightRestrictionNero(bool toggle)
     if (heightRestrictionRaveNero)
     {
         if (toggle)
-            heightRestrictionRaveNero_patch.apply(heightRestrictionRaveNero, "\x0F\x84\xFB\x03\x00\x00", 6);
+            heightRestrictionRaveNero_patch.apply(heightRestrictionRaveNero, "\x90\x90\x90\x90\x90\x90", 6);
         else
             heightRestrictionRaveNero_patch.revert();
+    }
+
+	if (heightRestrictionDoubleDown)
+    {
+        if (toggle)
+            heightRestrictionDoubleDown_patch.apply(heightRestrictionDoubleDown, "\x90\x90\x90\x90\x90\x90", 6);
+        else
+            heightRestrictionDoubleDown_patch.revert();
+    }
+
+	if (heightRestrictionRev)
+    {
+        if (toggle)
+            heightRestrictionRev_patch.apply(heightRestrictionRev, "\x90\x90", 2);
+        else
+            heightRestrictionRev_patch.revert();
     }
 }
 

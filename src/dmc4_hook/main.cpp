@@ -56,8 +56,9 @@ bool initialized = true;
 bool g_bWasInitialized = true;
 
 bool checkStyleSwitch = false;
-bool checkSwordSwitch = false;
-bool checkGunSwitch = false;
+//bool checkSwordSwitch = false;
+//bool checkGunSwitch = false;
+bool checkWeaponSwitch = false;
 bool checkJcCooldown = false;
 bool checkMovingTargetChange = false;
 bool checkHeightRestrictionDante = false;
@@ -442,9 +443,10 @@ void hlMain::ToggleStuff()
 		g_trickDownEnable = true;
 	}
     ToggleStyleSwitch(checkStyleSwitch);
-    ToggleSwordSwitch(checkSwordSwitch);
-    ToggleGunSwitch(checkGunSwitch);
+    //ToggleSwordSwitch(checkSwordSwitch);
+    //ToggleGunSwitch(checkGunSwitch);
     ToggleJcCooldown(checkJcCooldown);
+    ToggleWeaponSwitch(checkWeaponSwitch);
     ToggleMovingTargetChange(checkMovingTargetChange);
     ToggleHeightRestrictionDante(checkHeightRestrictionDante);
     ToggleHeightRestrictionNero(checkHeightRestrictionNero);
@@ -505,8 +507,9 @@ bool hlMain::init()
     // define ini options
     INIReader reader("dmc4hook.ini");
     checkStyleSwitch = reader.GetBoolean("gameplay", "style_switch_limits_removed", true);
-    checkSwordSwitch = reader.GetBoolean("gameplay", "sword_switch_limits_removed", true);
-    checkGunSwitch = reader.GetBoolean("gameplay", "gun_switch_limits_removed", true);
+    //checkSwordSwitch = reader.GetBoolean("gameplay", "sword_switch_limits_removed", true);
+    //checkGunSwitch = reader.GetBoolean("gameplay", "gun_switch_limits_removed", true);
+    checkWeaponSwitch = reader.GetBoolean("gameplay", "sword_&_gun_switch_limits_removed", true);
     checkJcCooldown = reader.GetBoolean("gameplay", "jc_limits_removed", true);
     checkMovingTargetChange = reader.GetBoolean("gameplay", "target_change_while_moving", true);
     checkHeightRestrictionDante = reader.GetBoolean("gameplay", "dante_height_restriction_removed", true);
@@ -565,6 +568,8 @@ bool hlMain::init()
     heightRestrictionExCalibur = modBase + 0x3E62B6;
     heightRestrictionSnatch = modBase + 0x3E60E4;
     heightRestrictionRaveNero = modBase + 0x3E603F;
+    heightRestrictionDoubleDown = modBase + 0x3E5FE1;
+    heightRestrictionRev = modBase + 0x3E4B12;
     infiniteTime = modBase + 0x94D6E;
     infiniteAllHealth = modBase + 0x11BFD9;
     disablecameraEventsOne = hl::FindPattern(disableCameraEvents1_aob);
@@ -934,15 +939,15 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleStyleSwitch(checkStyleSwitch);
                 }
 
-                if (ImGui::Checkbox("Remove Sword Switch Limit", &checkSwordSwitch))
+                if (ImGui::Checkbox("Remove Sword & Gun Switch Limit", &checkWeaponSwitch))
                 {
-                    main->ToggleSwordSwitch(checkSwordSwitch);
+                    main->ToggleWeaponSwitch(checkWeaponSwitch);
                 }
-
+                /*
                 if (ImGui::Checkbox("Remove Gun Switch Limit", &checkGunSwitch))
                 {
                     main->ToggleGunSwitch(checkGunSwitch);
-                }
+                }*/
 
                 if (ImGui::Checkbox("Remove JC Limit", &checkJcCooldown))
                 {
