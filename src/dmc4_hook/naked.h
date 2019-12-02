@@ -153,29 +153,7 @@ _declspec(naked) void selectiveCancels_proc(void)
 			jne originalcode
 			cmp byte ptr [esi+0x144],0xFFFFFFFF
 			jne originalcode
-            /*
-			cmp [moveID],0x900 // Slash Dimension
-			je cancellable
-			cmp [moveID],0x411 // Grounded Ecstasy
-			je cancellable
-			cmp [moveID],0x412 // Aerial Ecstasy
-			je cancellable
-			cmp [moveID],0x30E // Kick 13
-			je cancellable
-			cmp [moveID],0x30F // DT Kick 13
-			je cancellable
-			cmp [moveID],0x333 // Shock
-			je cancellable
-			cmp [moveID],0x706 // Epidemic
-			je cancellable
-			cmp [moveID],0x71F // Hatred
-			je cancellable
-			cmp [moveID],0x719 // Jealousy
-			je cancellable
-			cmp [moveID],0x732 // Gunship
-			je cancellable
-			jmp originalcode
-			*/
+
 			cmp [moveID],0x411		// Grounded Ecstasy	// Checks move id like usual every tick
 			je cancellableecstasy	// If correct moveid, check against Gui
 			cmp [moveID],0x412		// Aerial Ecstasy
@@ -306,12 +284,7 @@ _declspec(naked) void ldkWithDMD_proc(void)
 _declspec(naked) void lockOn_proc(void)
 {
     _asm {
-			//cmp byte ptr [g_trackingFullHouseEnable], 0
-			//je originalcode
-
 			mov [lockOnAlloc],0x01
-
-		//originalcode:
 			mov [edi+0x000016D0],0x1
 			jmp dword ptr [_lockOnContinue]
     }
@@ -320,12 +293,7 @@ _declspec(naked) void lockOn_proc(void)
 _declspec(naked) void lockOff_proc(void)
 {
     _asm {
-			//cmp byte ptr [g_trackingFullHouseEnable], 0
-			//je originalcode
-
 			mov [lockOnAlloc],0x0
-
-		//originalcode:
 			mov [edi+0x000016D0],0x0
 			jmp dword ptr [_lockOffContinue]
     }
@@ -341,8 +309,7 @@ _declspec(naked) void trackingFullHouse_proc(void)
 			je skipcode
 
 		originalcode:
-			comiss xmm0, [fullHouseAngle] // Thought I'd try make a new alloc because idk how to comiss xmm0,[00C0F9F4] (which was a
-                         // static 65 float)
+			comiss xmm0, [fullHouseAngle]	// 65 float
 
 		skipcode:
 			jmp dword ptr [_trackingFullHouseContinue]
@@ -359,25 +326,27 @@ _declspec(naked) void timerAlloc_proc(void)
 			addss xmm5,[timerMemTick]
 			movss [timerMem],xmm5
 
-			cmp [timerMem],0x41a00000 // 20
+			cmp [timerMem],0x41a00000		// 20
 			jl trickreplace
 			jmp dontreplace
 
 		dontreplace:
 			push eax
-			mov eax,0x00C413A4 // Trickster Dash
-			mov dword ptr [eax],0x5B // Trickster Dash
-			mov eax,0x00C413DC // Sky Star
-			mov dword ptr [eax],0x5C // Sky Star
+			mov eax,0x00C413A4				// Trickster Dash
+			mov dword ptr [eax],0x5B		// Trickster Dash
+			mov eax,0x00C413DC				// Sky Star
+			mov dword ptr [eax],0x5C		// Sky Star
 			pop eax
 			jmp originalcode
 
 		trickreplace:
+			cmp [lockOnAlloc],0x0
+			je dontreplace
 			push eax
-			mov eax,0x00C413A4 // Trickster Dash
-			mov dword ptr [eax],0x5D // Trick
-			mov eax,0x00C413DC // Sky Star
-			mov dword ptr [eax],0x5D // Trick
+			mov eax,0x00C413A4				// Trickster Dash
+			mov dword ptr [eax],0x5D		// Trick
+			mov eax,0x00C413DC				// Sky Star
+			mov dword ptr [eax],0x5D		// Trick
 			pop eax
 
 		originalcode:
@@ -392,14 +361,14 @@ _declspec(naked) void backForward_proc(void)
 			cmp byte ptr [g_trickDownEnable], 0
 			je originalcode
 
-			cmp [timerMem],0x41200000 //=10
+			cmp [timerMem],0x41200000			//=10
 			jl originalcode
 			cmp al,0x3
 			je resettimer
 			jmp originalcode
 			
 		resettimer:
-			mov dword ptr [timerMem],0x00000000 //=0
+			mov dword ptr [timerMem],0x00000000	//=0
 
 		originalcode:
 			mov [ebp+0x00],al
@@ -413,7 +382,7 @@ _declspec(naked) void trickDown_proc(void)
 			cmp byte ptr [g_trickDownEnable], 0
 			je originalcode
 
-			cmp dword ptr [timerMem],0x42480000 //=50 //0x41a00000 //=20
+			cmp dword ptr [timerMem],0x42480000	//=50 //0x41a00000 //=20
 			jl trickdownstart
 			jmp originalcode
 
@@ -432,7 +401,7 @@ _declspec(naked) void floorTouch_proc(void)
 			cmp byte ptr [g_trickDownEnable], 0
 			je originalcode
 
-			cmp dword ptr [timerMem],0x42a00000 //=80
+			cmp dword ptr [timerMem],0x42a00000	//=80
 			jl skipcode
 
 		originalcode:

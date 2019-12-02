@@ -96,15 +96,18 @@ void CreditsDrawing()
     if (ImGui::BeginTabItem("About"))
     {
         ImGui::Spacing();
-        ImGui::Text("Credits");
         ImGui::Spacing();
         ImGui::Text("Devil May Cry 4 Trainer");
         ImGui::Spacing();
+        ImGui::Spacing();
+        ImGui::Separator();
         ImGui::Spacing();
         ImGui::Text("socks");
         ImGui::Text("Mstislav Capusta");
         ImGui::Text("SSSiyan");
         ImGui::Spacing();
+        ImGui::Spacing();
+        ImGui::Separator();
         ImGui::Spacing();
         ImGui::Text("Special Thanks:");
         ImGui::Text("cheburrat0r");
@@ -115,11 +118,12 @@ void CreditsDrawing()
         ImGui::Text("Dlupx");
         ImGui::Spacing();
         ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        ImGui::Text("For more info visit the wiki:\n");
+        ImGui::Text("https://github.com/muhopensores/dmc4_hook/wiki");
         ImGui::Spacing();
         ImGui::Spacing();
-        ImGui::Text("For more infos visit the wiki:\n");
-        ImGui::Text(" https://github.com/muhopensores/dmc4_hook/wiki");
-
         ImGui::EndTabItem();
     }
 }

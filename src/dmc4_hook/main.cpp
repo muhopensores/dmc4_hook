@@ -577,53 +577,53 @@ bool hlMain::init()
 
     // define ini options
     INIReader reader("dmc4hook.ini");
-    checkStyleSwitch = reader.GetBoolean("gameplay", "style_switch_limits_removed", true);
-    checkWeaponSwitch = reader.GetBoolean("gameplay", "sword_&_gun_switch_limits_removed", true);
-    checkJcCooldown = reader.GetBoolean("gameplay", "jc_limits_removed", true);
-    checkMovingTargetChange = reader.GetBoolean("gameplay", "target_change_limit_removed", true);
-    checkHeightRestrictionDante = reader.GetBoolean("gameplay", "dante_height_restriction_removed", true);
-    checkHeightRestrictionNero = reader.GetBoolean("gameplay", "nero_height_restriction_removed", true);
-    checkInfiniteTime = reader.GetBoolean("options", "infinite_time", true);
+    checkStyleSwitch = reader.GetBoolean("player", "style_switch_limits_removed", true);
+    checkWeaponSwitch = reader.GetBoolean("player", "sword_&_gun_switch_limits_removed", true);
+    checkJcCooldown = reader.GetBoolean("player", "jc_limits_removed", true);
+    checkMovingTargetChange = reader.GetBoolean("player", "target_change_limit_removed", true);
+    checkHeightRestrictionDante = reader.GetBoolean("player", "dante_height_restriction_removed", true);
+    checkHeightRestrictionNero = reader.GetBoolean("player", "nero_height_restriction_removed", true);
+    checkInfiniteTime = reader.GetBoolean("system", "infinite_time", true);
     checkinfiniteAllHealth = reader.GetBoolean("practice", "infinite_health_all", true);
-    checkDisableCameraEvents = reader.GetBoolean("options", "disable_camera_events", true);
-    checkHideHUD = reader.GetBoolean("options", "hide_hud", true);
-    checkFastPandora = reader.GetBoolean("gameplay", "fast_pandora", true);
-    checkInfiniteAirHike = reader.GetBoolean("gameplay", "infinite_air_hike", true);
-    checkEnemyNoDT = reader.GetBoolean("gameplay", "enemy_no_DT", true);
-    checkEnemyInstantDT = reader.GetBoolean("gameplay", "enemy_instant_DT", true);
-    checkBpPortalAutoOpen = reader.GetBoolean("options", "auto_open_doors_and_BP_portal", true);
+    checkDisableCameraEvents = reader.GetBoolean("system", "disable_camera_events", true);
+    checkHideHUD = reader.GetBoolean("system", "hide_hud", true);
+    checkFastPandora = reader.GetBoolean("player", "fast_pandora", true);
+    checkInfiniteAirHike = reader.GetBoolean("player", "infinite_air_hike", true);
+    checkEnemyNoDT = reader.GetBoolean("system", "enemy_no_DT", true);
+    checkEnemyInstantDT = reader.GetBoolean("system", "enemy_instant_DT", true);
+    checkBpPortalAutoOpen = reader.GetBoolean("system", "auto_open_doors_and_BP_portal", true);
     checkInfiniteDT = reader.GetBoolean("practice", "infinite_DT", true);
     checkInfinitePlayerHealth = reader.GetBoolean("practice", "infinite_player_health", true);
     checkBerialPractice = reader.GetBoolean("practice", "berial_practice", true);
-    checkBossRush = reader.GetBoolean("options", "boss_rush_mode", true);
-    checkDisableDarkslayerDown = reader.GetBoolean("gameplay", "disable_darkslayer_Dpad_down", true);
-    checkDisableDarkslayerLeft = reader.GetBoolean("gameplay", "disable_darkslayer_Dpad_left", true);
-    checkDisableDarkslayerRight = reader.GetBoolean("gameplay", "disable_darkslayer_Dpad_right", true);
-    checkDisableDarkslayerUp = reader.GetBoolean("gameplay", "disable_darkslayer_Dpad_up", true);
-    checkSelectiveCancels = reader.GetBoolean("gameplay", "selective_cancels", true);
-		checkEcstasyCancel = reader.GetBoolean("gameplay", "ecstasy_cancel", true);
-		checkArgumentCancel = reader.GetBoolean("gameplay", "argument_cancel", true);
-		checkKickThirteenCancel = reader.GetBoolean("gameplay", "kick_13_cancel", true);
-		checkSlashDimensionCancel = reader.GetBoolean("gameplay", "slash_dimension_cancel", true);
-		checkPropCancel = reader.GetBoolean("gameplay", "prop_cancel", true);
-		checkShockCancel = reader.GetBoolean("gameplay", "shock_cancel", true);
-		checkOmenCancel = reader.GetBoolean("gameplay", "omen_cancel", true);
+    checkBossRush = reader.GetBoolean("system", "boss_rush_mode", true);
+    checkDisableDarkslayerUp = reader.GetBoolean("practice", "disable_darkslayer_Dpad_up", true);
+    checkDisableDarkslayerDown = reader.GetBoolean("practice", "disable_darkslayer_Dpad_down", true);
+    checkDisableDarkslayerLeft = reader.GetBoolean("practice", "disable_darkslayer_Dpad_left", true);
+    checkDisableDarkslayerRight = reader.GetBoolean("practice", "disable_darkslayer_Dpad_right", true);
+    checkSelectiveCancels = reader.GetBoolean("player", "selective_cancels", true);
+    checkEcstasyCancel = reader.GetBoolean("player", "ecstasy_cancel", true);
+    checkArgumentCancel = reader.GetBoolean("player", "argument_cancel", true);
+    checkKickThirteenCancel = reader.GetBoolean("player", "kick_13_cancel", true);
+    checkSlashDimensionCancel = reader.GetBoolean("player", "slash_dimension_cancel", true);
+    checkPropCancel = reader.GetBoolean("player", "prop_cancel", true);
+    checkShockCancel = reader.GetBoolean("player", "shock_cancel", true);
+    checkOmenCancel = reader.GetBoolean("player", "omen_cancel", true);
     checkStunAnything = reader.GetBoolean("practice", "stun_anything", true);
     checkRemoveLaunchArmour = reader.GetBoolean("practice", "remove_launch_armour", true);
-    checkCharacterChange = reader.GetBoolean("options", "character_change", true);
-    checkSprintFasterActivate = reader.GetBoolean("options", "faster_sprint_activation", true);
-    checkEnemyAttackOffscreen = reader.GetBoolean("gameplay", "enemies_attack_offscreen", true);
-    checkSlowWalk = reader.GetBoolean("options", "enable_slow_walk", true);
-    checkHideStyle = reader.GetBoolean("options", "hide_Style_meter_and_orbs", true);
-    checkautoSkiptIntro = reader.GetBoolean("options", "auto_skip_mission_intro", true);
-    checkLDKWithDMD = reader.GetBoolean("options", "ldk_on_DMD_diff", true);
+    checkCharacterChange = reader.GetBoolean("system", "character_change", true);
+    checkSprintFasterActivate = reader.GetBoolean("player", "faster_sprint_activation", true);
+    checkEnemyAttackOffscreen = reader.GetBoolean("system", "enemies_attack_offscreen", true);
+    checkSlowWalk = reader.GetBoolean("system", "enable_slow_walk", true);
+    checkHideStyle = reader.GetBoolean("system", "hide_Style_meter_and_orbs", true);
+    checkautoSkiptIntro = reader.GetBoolean("system", "auto_skip_mission_intro", true);
+    checkLDKWithDMD = reader.GetBoolean("system", "ldk_on_DMD_diff", true);
     checkInfiniteRevive = reader.GetBoolean("practice", "infinite_revive", true);
     checkSetStyle = reader.GetBoolean("config", "set_style", true);
-    checkAutoSkipOutro = reader.GetBoolean("options", "auto_skip_mission_outros", true);
-    checkInfiniteTableHopper = reader.GetBoolean("gameplay", "infinite_table_hopper", true);
-    checkTrackingFullHouse = reader.GetBoolean("gameplay", "tracking_full_house", true);
-    checkTrickDown = reader.GetBoolean("gameplay", "trick_down", true);
-    checkInfiniteTrickRange = reader.GetBoolean("gameplay", "infinite_trick_range", true);
+    checkAutoSkipOutro = reader.GetBoolean("system", "auto_skip_mission_outros", true);
+    checkInfiniteTableHopper = reader.GetBoolean("player", "infinite_table_hopper", true);
+    checkTrackingFullHouse = reader.GetBoolean("player", "tracking_full_house", true);
+    checkTrickDown = reader.GetBoolean("player", "trick_down", true);
+    checkInfiniteTrickRange = reader.GetBoolean("player", "infinite_trick_range", true);
 
     // checking for ini
     if (reader.ParseError() < 0)
@@ -1000,30 +1000,27 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
         BeginDrawing();
         ImGui::SameLine(0, 0);
         FPSDrawing();
-        ImGui::Spacing();
-        ImGui::Spacing();
-        ImGui::Spacing();
-        ImGui::Spacing();
+
         if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyScroll))
         {
-            if (ImGui::BeginTabItem("Gameplay"))
+            if (ImGui::BeginTabItem("Player"))
             {
                 ImGui::Spacing();
                 ImGui::Text("Limit Removal");
 
-                if (ImGui::Checkbox("Remove Style Switch Limit", &checkStyleSwitch))
-                {
-                    main->ToggleStyleSwitch(checkStyleSwitch);
-                }
-
-                if (ImGui::Checkbox("Remove Sword & Gun Switch Limit", &checkWeaponSwitch))
+				if (ImGui::Checkbox("Remove Sword & Gun Switch Limit", &checkWeaponSwitch))
                 {
                     main->ToggleWeaponSwitch(checkWeaponSwitch);
                 }
 
-                if (ImGui::Checkbox("Remove JC Limit", &checkJcCooldown))
+				if (ImGui::Checkbox("Remove JC Limit", &checkJcCooldown))
                 {
                     main->ToggleJcCooldown(checkJcCooldown);
+                }
+
+                if (ImGui::Checkbox("Remove Style Switch Limit", &checkStyleSwitch))
+                {
+                    main->ToggleStyleSwitch(checkStyleSwitch);
                 }
 
                 if (ImGui::Checkbox("Remove Target Switch Limit", &checkMovingTargetChange))
@@ -1033,6 +1030,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::Spacing();
                 ImGui::Spacing();
+                ImGui::Separator();
                 ImGui::Spacing();
                 (ImGui::Text("Height Restriction Removal"));
 
@@ -1041,7 +1039,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleHeightRestrictionDante(checkHeightRestrictionDante);
                 }
 
-                ImGui::SameLine(123);
+                ImGui::SameLine(198);
 
                 if (ImGui::Checkbox("Nero", &checkHeightRestrictionNero))
                 {
@@ -1049,17 +1047,14 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 }
 
                 ImGui::Spacing();
-                ImGui::Spacing();
+                ImGui::Separator();
                 ImGui::Spacing();
 
-                if (ImGui::CollapsingHeader("Player Damage Modifier"))
+                if (ImGui::Checkbox("Player Damage Modifier", &checkDamageModifier))
                 {
-                    if (ImGui::Checkbox("Activate", &checkDamageModifier))
-                    {
-                        main->ImGuiToggleDamageModifier();
-                    }
-                    ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
+                    main->ImGuiToggleDamageModifier();
                 }
+				ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
 
                 ImGui::Spacing();
                 ImGui::Spacing();
@@ -1067,57 +1062,45 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 Misc();
 
-                if (ImGui::Checkbox("Fast Pandora", &checkFastPandora))
-                {
-                    main->ToggleFastPandora(checkFastPandora);
-                }
-
-                ImGui::SameLine(198);
-
                 if (ImGui::Checkbox("Infinite Air Hike", &checkInfiniteAirHike))
                 {
                     main->ToggleInfiniteAirHike(checkInfiniteAirHike);
                 }
+
+				ImGui::SameLine(198);
 
                 if (ImGui::Checkbox("Infinite Table Hopper", &checkInfiniteTableHopper))
                 {
                     main->ToggleInfiniteTableHopper(checkInfiniteTableHopper);
                 }
 
-                ImGui::SameLine(198);
-
-                if (ImGui::Checkbox("Enemies DT Instantly", &checkEnemyInstantDT))
-                {
-                    main->ToggleEnemyInstantDT(checkEnemyInstantDT);
-                }
-
-                if (ImGui::Checkbox("Enemies Don't DT", &checkEnemyNoDT))
-                {
-                    main->ToggleEnemyNoDT(checkEnemyNoDT);
-                }
-
-				ImGui::SameLine(198);
-
                 if (ImGui::Checkbox("Trick Down", &checkTrickDown))
                 {
                     main->ImGuiToggleTrickDown();
                 }
+
+				ImGui::SameLine(198);
 
 				if (ImGui::Checkbox("Infinite Trick Range", &checkInfiniteTrickRange))
                 {
                     main->ToggleInfiniteTrickRange(checkInfiniteTrickRange);
                 }
 
-				ImGui::SameLine(198);
-
 				if (ImGui::Checkbox("Tracking Full House", &checkTrackingFullHouse))
                 {
                     main->ImGuiToggleTrackingFullHouse();
                 }
 
-				if (ImGui::Checkbox("Enemies Attack Off-Screen", &checkEnemyAttackOffscreen))
+				ImGui::SameLine(198);
+
+				if (ImGui::Checkbox("Fast Pandora", &checkFastPandora))
                 {
-                    main->ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
+                    main->ToggleFastPandora(checkFastPandora);
+                }
+
+				if (ImGui::Checkbox("Fast Speed", &checkSprintFasterActivate))
+                {
+                    main->ToggleSprintFasterActivate(checkSprintFasterActivate);
                 }
 
                 ImGui::Spacing();
@@ -1182,40 +1165,15 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     }
                 }
 
-				ImGui::Spacing();
-
-                if (ImGui::CollapsingHeader("Disable Darkslayer Inputs"))
-                {
-                    if (ImGui::Checkbox("Disable Darkslayer Dpad Down", &checkDisableDarkslayerDown))
-                    {
-                        main->ToggleDisableDarkslayerDown(checkDisableDarkslayerDown);
-                    }
-
-                    if (ImGui::Checkbox("Disable Darkslayer Dpad Left", &checkDisableDarkslayerLeft))
-                    {
-                        main->ToggleDisableDarkslayerLeft(checkDisableDarkslayerLeft);
-                    }
-
-                    if (ImGui::Checkbox("Disable Darkslayer Dpad Right", &checkDisableDarkslayerRight))
-                    {
-                        main->ToggleDisableDarkslayerRight(checkDisableDarkslayerRight);
-                    }
-
-                    if (ImGui::Checkbox("Disable Darkslayer Dpad Up", &checkDisableDarkslayerUp))
-                    {
-                        main->ToggleDisableDarkslayerUp(checkDisableDarkslayerUp);
-                    }
-                }
-
                 ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::EndTabItem();
             }
 
-            if (ImGui::BeginTabItem("Options"))
+            if (ImGui::BeginTabItem("System"))
             {
                 ImGui::Spacing();
-                ImGui::Text("System");
+                ImGui::Text("General");
 
                 if (ImGui::Checkbox("Disable Timer", &checkInfiniteTime))
                 {
@@ -1275,13 +1233,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 HelpMarker("Press & hold the jump button to walk slowly");
 
-                ImGui::Spacing();
-
-                if (ImGui::Checkbox("Faster Sprint Activation", &checkSprintFasterActivate))
-                {
-                    main->ToggleSprintFasterActivate(checkSprintFasterActivate);
-                }
-
                 if (ImGui::Checkbox("Auto Open Sealed Doors & Portals", &checkBpPortalAutoOpen))
                 {
                     main->ToggleBpPortalAutoOpen(checkBpPortalAutoOpen);
@@ -1319,7 +1270,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::SameLine(0, -1);
                 HelpMarker("Toggle and start BP run");
-                ImGui::SameLine(200);
+                ImGui::SameLine(205);
 
                 if (ImGui::Checkbox("LDK on DMD Difficulty", &checkLDKWithDMD))
                 {
@@ -1329,6 +1280,23 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::SameLine(0, -1);
                 HelpMarker("Start a Mission on Legendary Dark Knight. Enemies are on DMD Difficulty, instead of SOS");
+
+				if (ImGui::Checkbox("Enemies DT Instantly", &checkEnemyInstantDT))
+                {
+                    main->ToggleEnemyInstantDT(checkEnemyInstantDT);
+                }
+
+                ImGui::SameLine(205);
+
+                if (ImGui::Checkbox("Enemies Don't DT", &checkEnemyNoDT))
+                {
+                    main->ToggleEnemyNoDT(checkEnemyNoDT);
+                }
+
+				if (ImGui::Checkbox("Enemies Attack Off-Screen", &checkEnemyAttackOffscreen))
+                {
+                    main->ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
+                }
 
                 ImGui::Spacing();
                 ImGui::Spacing();
@@ -1372,11 +1340,10 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 }
 
                 ImGui::Spacing();
-
                 ImGui::EndTabItem();
             }
 
-            if (ImGui::BeginTabItem("Options 2"))
+            if (ImGui::BeginTabItem("Environment"))
             {
                 ImGui::Spacing();
                 ImGui::Text("Area Jump");
@@ -2470,7 +2437,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::Spacing();
                 ImGui::Spacing();
-                ImGui::Spacing();
                 ImGui::EndTabItem();
             }
 
@@ -2527,6 +2493,36 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleRemoveLaunchArmour(checkRemoveLaunchArmour);
                 }
 
+                ImGui::Spacing();
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+				if (ImGui::CollapsingHeader("Disable Darkslayer Inputs"))
+                {
+                    if (ImGui::Checkbox("Disable Darkslayer Dpad Up", &checkDisableDarkslayerUp))
+                    {
+                        main->ToggleDisableDarkslayerUp(checkDisableDarkslayerUp);
+                    }
+
+                    if (ImGui::Checkbox("Disable Darkslayer Dpad Down", &checkDisableDarkslayerDown))
+                    {
+                        main->ToggleDisableDarkslayerDown(checkDisableDarkslayerDown);
+                    }
+
+                    if (ImGui::Checkbox("Disable Darkslayer Dpad Left", &checkDisableDarkslayerLeft))
+                    {
+                        main->ToggleDisableDarkslayerLeft(checkDisableDarkslayerLeft);
+                    }
+
+                    if (ImGui::Checkbox("Disable Darkslayer Dpad Right", &checkDisableDarkslayerRight))
+                    {
+                        main->ToggleDisableDarkslayerRight(checkDisableDarkslayerRight);
+                    }
+                }
+
+				ImGui::Spacing();
+                ImGui::Spacing();
                 ImGui::EndTabItem();
             }
 
