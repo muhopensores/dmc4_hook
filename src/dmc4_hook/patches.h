@@ -30,17 +30,6 @@ void hlMain::ToggleWeaponSwitch(bool toggle)
             gunSwitch_patch.revert();
     }
 }
-/*
-void hlMain::ToggleGunSwitch(bool toggle)
-{
-    if (gunSwitch)
-    {
-        if (toggle)
-            gunSwitch_patch.apply(gunSwitch, (char*)&limitadjust_patch, 6);
-        else
-            gunSwitch_patch.revert();
-    }
-}*/
 
 void hlMain::ToggleJcCooldown(bool toggle)
 {

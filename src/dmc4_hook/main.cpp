@@ -56,8 +56,6 @@ bool initialized = true;
 bool g_bWasInitialized = true;
 
 bool checkStyleSwitch = false;
-//bool checkSwordSwitch = false;
-//bool checkGunSwitch = false;
 bool checkWeaponSwitch = false;
 bool checkJcCooldown = false;
 bool checkMovingTargetChange = false;
@@ -158,6 +156,7 @@ void hlMain::ImGuiStageJump(int room)
         HL_LOG_ERR("initiateJump is NULL\n");
         roomID = (int*)&uninit_value;
     }
+
     // just set roomID and after the switch block initateJumps will be called, you can similarly
     // set the pointer to initiateJumps there to avoid having to define and call a function.
     // remove unused functions later.
@@ -444,8 +443,6 @@ void hlMain::ToggleStuff()
 		g_trickDownEnable = true;
 	}
     ToggleStyleSwitch(checkStyleSwitch);
-    //ToggleSwordSwitch(checkSwordSwitch);
-    //ToggleGunSwitch(checkGunSwitch);
     ToggleJcCooldown(checkJcCooldown);
     ToggleWeaponSwitch(checkWeaponSwitch);
     ToggleMovingTargetChange(checkMovingTargetChange);
@@ -509,11 +506,9 @@ bool hlMain::init()
     // define ini options
     INIReader reader("dmc4hook.ini");
     checkStyleSwitch = reader.GetBoolean("gameplay", "style_switch_limits_removed", true);
-    //checkSwordSwitch = reader.GetBoolean("gameplay", "sword_switch_limits_removed", true);
-    //checkGunSwitch = reader.GetBoolean("gameplay", "gun_switch_limits_removed", true);
     checkWeaponSwitch = reader.GetBoolean("gameplay", "sword_&_gun_switch_limits_removed", true);
     checkJcCooldown = reader.GetBoolean("gameplay", "jc_limits_removed", true);
-    checkMovingTargetChange = reader.GetBoolean("gameplay", "target_change_while_moving", true);
+    checkMovingTargetChange = reader.GetBoolean("gameplay", "target_change_limit_removed", true);
     checkHeightRestrictionDante = reader.GetBoolean("gameplay", "dante_height_restriction_removed", true);
     checkHeightRestrictionNero = reader.GetBoolean("gameplay", "nero_height_restriction_removed", true);
     checkInfiniteTime = reader.GetBoolean("options", "infinite_time", true);
@@ -735,21 +730,18 @@ bool hlMain::init()
     floorTouch = modBase + 0x3CB33D;
     infiniteTrickRange = modBase + 0x3CB0A8;
 
-
     // we'll set this in StageJump function
     // roomID = ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830, 0x6C });
     // //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x6C);
     bpFloorStage =
-        ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830,
-                                0x74 }); //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x74);
+        ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830, 0x74 }); //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x74);
     if (bpFloorStage == NULL)
     {
         HL_LOG_ERR("bpFloorStage is NULL\n");
         bpFloorStage = (int*)&uninit_value;
     }
     initiateJump =
-        ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830,
-                                0x68 }); //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x68);
+        ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830, 0x68 }); //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x68);
     if (initiateJump == NULL)
     {
         HL_LOG_ERR("initiateJump is NULL\n");
@@ -818,12 +810,12 @@ bool hlMain::init()
 
     if (moveIDAlloc != 0)
     {
-        auto moveIDAlloc_hk = m_hook.hookJMP(moveIDAlloc, 6, &moveIDAlloc_proc); //, &_moveIDAllocContinue
+        auto moveIDAlloc_hk = m_hook.hookJMP(moveIDAlloc, 6, &moveIDAlloc_proc);
     }
 
     if (selectiveCancels != 0)
     {
-        auto selectiveCancels_hk = m_hook.hookJMP(selectiveCancels, 6, &selectiveCancels_proc); //, &selectiveCancelsContinue);
+        auto selectiveCancels_hk = m_hook.hookJMP(selectiveCancels, 6, &selectiveCancels_proc);
     }
 
     if (cameraHeightSetting != 0)
@@ -947,25 +939,15 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 {
                     main->ToggleWeaponSwitch(checkWeaponSwitch);
                 }
-                /*
-                if (ImGui::Checkbox("Remove Gun Switch Limit", &checkGunSwitch))
-                {
-                    main->ToggleGunSwitch(checkGunSwitch);
-                }*/
 
                 if (ImGui::Checkbox("Remove JC Limit", &checkJcCooldown))
                 {
                     main->ToggleJcCooldown(checkJcCooldown);
                 }
 
-                if (ImGui::Checkbox("Changing Targets While Moving", &checkMovingTargetChange))
+                if (ImGui::Checkbox("Remove Target Switch Limit", &checkMovingTargetChange))
                 {
                     main->ToggleMovingTargetChange(checkMovingTargetChange);
-                }
-
-                if (ImGui::Checkbox("Tracking Full House", &checkTrackingFullHouse))
-                {
-                    main->ImGuiToggleTrackingFullHouse();
                 }
 
                 ImGui::Spacing();
@@ -1056,6 +1038,13 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 				if (ImGui::Checkbox("Infinite Trick Range", &checkInfiniteTrickRange))
                 {
                     main->ToggleInfiniteTrickRange(checkInfiniteTrickRange);
+                }
+
+				ImGui::SameLine(198);
+
+				if (ImGui::Checkbox("Tracking Full House", &checkTrackingFullHouse))
+                {
+                    main->ImGuiToggleTrackingFullHouse();
                 }
 
                 ImGui::Spacing();
@@ -1149,7 +1138,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleSlowWalk(checkSlowWalk);
                 }
 
-                ImGui::SameLine(0, -1);
+                ImGui::SameLine(0, 1);
 
                 HelpMarker("Press & hold the jump button to walk slowly");
 
@@ -1259,111 +1248,34 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 ImGui::Text("Area Jump");
                 ImGui::Spacing();
-                ImGui::InputInt("BP Floor\n(no boss stages)", main->bpFloorStage, 1, 10,
-                                ImGuiInputTextFlags_AllowTabInput);
+                ImGui::InputInt("BP Floor\n(no boss stages)", main->bpFloorStage, 1, 10, ImGuiInputTextFlags_AllowTabInput);
                 ImGui::SameLine(0, 1);
                 HelpMarker("Type in the BP floor you want to teleport to and choose the correct BP area below (example "
                            "21-39). Only "
                            "1-99, no boss stages. For boss stages simply select the boss room from the listbox below.");
                 ImGui::Spacing();
 
-                const char* room_items[] = { "Opera House",
-                                             "Opera House Plaza",
-                                             "Store House",
-                                             "Cathedral",
-                                             "Terrace / Business District",
-                                             "Residential District",
-                                             "Port Caerula",
-                                             "Customs House",
-                                             "First Mining Area",
-                                             "Ferrum Hills",
-                                             "M17 Opera House",
-                                             "M17 Opera House Plaza",
-                                             "Business District / Terrace",
-                                             "M20 Opera House Plaza",
-                                             "Second Mining Area",
-                                             "Fortuna Castle Gate",
-                                             "Grand Hall (Fortuna Castle)",
-                                             "Large Hall",
-                                             "Dining Room",
-                                             "Torture Chamber",
-                                             "Central Courtyard",
-                                             "Foris Falls (Bridge Area)",
-                                             "Gallery",
-                                             "Library",
-                                             "Soldier's Graveyard",
-                                             "Master's Chamber",
-                                             "Spiral Well",
-                                             "Underground Laboratory",
-                                             "R&D Access",
-                                             "Game Room",
-                                             "Containment Room",
-                                             "Angel Creation",
-                                             "Foris Falls (Detour Area)",
-                                             "Forest Entrance",
-                                             "Windswept Valley",
-                                             "Ruined Church",
-                                             "Ruined Valley",
-                                             "Ancient Training Ground",
-                                             "Lapis River",
-                                             "Ancient Plaza",
-                                             "Den of the She-Viper",
-                                             "Forgotten Ruins",
-                                             "Hidden Pit",
-                                             "Ruined Lowlands",
-                                             "Lost Woods",
-                                             "Gran Album Bridge",
-                                             "Grand Hall (Order of the Sword HQ)",
-                                             "Key Chamber",
-                                             "The Gauntlet",
-                                             "Agnus' Room",
-                                             "Security Corridor",
-                                             "Experiment Disposal",
-                                             "Meeting Room",
-                                             "Ascension Chamber",
-                                             "Advent Chamber",
-                                             "Machina Ex Deus",
-                                             "Stairway to Heaven",
-                                             "Sacred Heart",
-                                             "M18",
-                                             "Sky Above Fortuna",
-                                             "Bloody Palace 1-19",
-                                             "Bloody Palace 21-39",
-                                             "Bloody Palace 41-59",
-                                             "Bloody Palace 61-79",
-                                             "Bloody Palace 81-99",
-                                             "Bloody Palace 101",
-                                             "Bloody Palace 20",
-                                             "Bloody Palace 40",
-                                             "Bloody Palace 60",
-                                             "Bloody Palace 80",
-                                             "Bloody Palace 100",
-                                             "Secret Mission 1",
-                                             "Secret Mission 2",
-                                             "Secret Mission 3",
-                                             "Secret Mission 4",
-                                             "Secret Mission 5",
-                                             "Secret Mission 6",
-                                             "Secret Mission 7",
-                                             "Secret Mission 8",
-                                             "Secret Mission 9",
-                                             "Secret Mission 10",
-                                             "Secret Mission 11",
-                                             "Secret Mission 12" };
+                const char* room_items[] = { "Opera House", "Opera House Plaza", "Store House", "Cathedral", "Terrace / Business District", "Residential District",
+                                             "Port Caerula", "Customs House", "First Mining Area", "Ferrum Hills", "M17 Opera House",  "M17 Opera House Plaza",
+                                             "Business District / Terrace", "M20 Opera House Plaza", "Second Mining Area", "Fortuna Castle Gate", "Grand Hall (Fortuna Castle)",
+                                             "Large Hall", "Dining Room", "Torture Chamber", "Central Courtyard",  "Foris Falls (Bridge Area)", "Gallery", "Library",
+                                             "Soldier's Graveyard",  "Master's Chamber", "Spiral Well", "Underground Laboratory", "R&D Access", "Game Room", "Containment Room",
+                                             "Angel Creation", "Foris Falls (Detour Area)", "Forest Entrance", "Windswept Valley", "Ruined Church", "Ruined Valley",
+                                             "Ancient Training Ground", "Lapis River", "Ancient Plaza", "Den of the She-Viper", "Forgotten Ruins", "Hidden Pit", "Ruined Lowlands",
+                                             "Lost Woods", "Gran Album Bridge", "Grand Hall (Order of the Sword HQ)", "Key Chamber", "The Gauntlet", "Agnus' Room",
+                                             "Security Corridor", "Experiment Disposal", "Meeting Room", "Ascension Chamber", "Advent Chamber", "Machina Ex Deus",
+                                             "Stairway to Heaven", "Sacred Heart", "M18", "Sky Above Fortuna", "Bloody Palace 1-19", "Bloody Palace 21-39",
+                                             "Bloody Palace 41-59", "Bloody Palace 61-79", "Bloody Palace 81-99", "Bloody Palace 101", "Bloody Palace 20",
+                                             "Bloody Palace 40", "Bloody Palace 60", "Bloody Palace 80", "Bloody Palace 100", "Secret Mission 1", "Secret Mission 2",
+                                             "Secret Mission 3", "Secret Mission 4", "Secret Mission 5", "Secret Mission 6", "Secret Mission 7", "Secret Mission 8",
+                                             "Secret Mission 9", "Secret Mission 10", "Secret Mission 11", "Secret Mission 12" 
+				};
 
                 int room_item_current = 0;
-                if (ImGui::ListBox("Room Codes\n(including BP)", &room_item_current, room_items,
-                                   IM_ARRAYSIZE(room_items), 10))
+                if (ImGui::ListBox("Room Codes\n(including BP)", &room_item_current, room_items, IM_ARRAYSIZE(room_items), 10))
                 {
                     main->ImGuiStageJump(room_item_current);
                 }
-
-                /*
-if (ImGui::Button("Initiate Jump"))
-{
-    main->ImGuiInitiateJump();
-}
-                */
 
                 ImGui::Spacing();
                 ImGui::Spacing();
@@ -1388,8 +1300,7 @@ if (ImGui::Button("Initiate Jump"))
                             "Berial",  "Credo",          "Agnus",          "Sanctus",       "Dante",
                         };
                         static int scarecrowLeg_current = 0;
-                        if (ImGui::Combo("Replace SC(L)", &scarecrowLeg_current, scarecrowLeg_items,
-                                         IM_ARRAYSIZE(scarecrowLeg_items)))
+                        if (ImGui::Combo("Replace SC(L)", &scarecrowLeg_current, scarecrowLeg_items, IM_ARRAYSIZE(scarecrowLeg_items)))
                         {
                             switch (scarecrowLeg_current)
                             {
@@ -1459,8 +1370,7 @@ if (ImGui::Button("Initiate Jump"))
                             "Berial",  "Credo",          "Agnus",          "Sanctus",       "Dante"
                         };
                         static int scarecrowArm_current = 0;
-                        if (ImGui::Combo("Replace SC(A)", &scarecrowArm_current, scarecrowArm_items,
-                                         IM_ARRAYSIZE(scarecrowArm_items)))
+                        if (ImGui::Combo("Replace SC(A)", &scarecrowArm_current, scarecrowArm_items, IM_ARRAYSIZE(scarecrowArm_items)))
                         {
                             switch (scarecrowArm_current)
                             {
@@ -1531,8 +1441,7 @@ if (ImGui::Button("Initiate Jump"))
                             "Credo",        "Agnus",          "Sanctus",        "Kyrie",         "Dante"
                         };
                         static int megaScarecrow_current = 0;
-                        if (ImGui::Combo("Replace MSC", &megaScarecrow_current, megaScarecrow_items,
-                                         IM_ARRAYSIZE(megaScarecrow_items)))
+                        if (ImGui::Combo("Replace MSC", &megaScarecrow_current, megaScarecrow_items, IM_ARRAYSIZE(megaScarecrow_items)))
                         {
                             switch (megaScarecrow_current)
                             {
@@ -1762,8 +1671,7 @@ if (ImGui::Button("Initiate Jump"))
                                                          "Berial",         "Credo",          "Agnus",
                                                          "Sanctus",        "Dante" };
                         static int mephisto_current = 0;
-                        if (ImGui::Combo("Replace Mephisto", &mephisto_current, mephisto_items,
-                                         IM_ARRAYSIZE(mephisto_items)))
+                        if (ImGui::Combo("Replace Mephisto", &mephisto_current, mephisto_items, IM_ARRAYSIZE(mephisto_items)))
                         {
                             switch (mephisto_current)
                             {
@@ -1985,8 +1893,7 @@ if (ImGui::Button("Initiate Jump"))
                                                         "Berial",         "Credo",          "Agnus",
                                                         "Sanctus",        "Dante" };
                         static int assault_current = 0;
-                        if (ImGui::Combo("Replace Assault", &assault_current, assault_items,
-                                         IM_ARRAYSIZE(assault_items)))
+                        if (ImGui::Combo("Replace Assault", &assault_current, assault_items, IM_ARRAYSIZE(assault_items)))
                         {
                             switch (assault_current)
                             {
@@ -2208,8 +2115,7 @@ if (ImGui::Button("Initiate Jump"))
                                                          "Berial",         "Credo",          "Agnus",
                                                          "Sanctus",        "Dante" };
                         static int basilisk_current = 0;
-                        if (ImGui::Combo("Replace Basilisk", &basilisk_current, basilisk_items,
-                                         IM_ARRAYSIZE(basilisk_items)))
+                        if (ImGui::Combo("Replace Basilisk", &basilisk_current, basilisk_items, IM_ARRAYSIZE(basilisk_items)))
                         {
                             switch (basilisk_current)
                             {
@@ -2338,8 +2244,7 @@ if (ImGui::Button("Initiate Jump"))
                     {
                         const char* echidna_items[] = { "Default", "Berial", "Credo", "Agnus", "Sanctus", "Dante" };
                         static int echidna_current = 0;
-                        if (ImGui::Combo("Replace Echidna", &echidna_current, echidna_items,
-                                         IM_ARRAYSIZE(echidna_items)))
+                        if (ImGui::Combo("Replace Echidna", &echidna_current, echidna_items, IM_ARRAYSIZE(echidna_items)))
                         {
                             switch (echidna_current)
                             {

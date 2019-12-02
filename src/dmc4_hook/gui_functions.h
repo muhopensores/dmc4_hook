@@ -111,7 +111,9 @@ void CreditsDrawing()
         ImGui::Spacing();
         ImGui::Spacing();
         ImGui::Spacing();
-        ImGui::Text("For more infos visit the wiki:\n https://github.com/muhopensores/dmc4_hook/wiki");
+        ImGui::Spacing();
+        ImGui::Text("For more infos visit the wiki:\n");
+        ImGui::Text(" https://github.com/muhopensores/dmc4_hook/wiki");
 
         ImGui::EndTabItem();
     }

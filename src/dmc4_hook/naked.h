@@ -163,7 +163,7 @@ _declspec(naked) void selectiveCancels_proc(void)
 			je cancellable
 			cmp [moveID],0x719 // Jealousy
 			je cancellable
-			cmp [moveID],0x732 // Funship
+			cmp [moveID],0x732 // Gunship
 			je cancellable
 			jmp originalcode
 
