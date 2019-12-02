@@ -1240,6 +1240,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::Spacing();
                 ImGui::Spacing();
+                ImGui::Separator();
                 ImGui::Spacing();
                 ImGui::Text("Game Mode");
 
@@ -1268,7 +1269,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleBossRush(checkBossRush);
                 }
 
-                ImGui::SameLine(0, -1);
+                ImGui::SameLine(0, 1);
                 HelpMarker("Toggle and start BP run");
                 ImGui::SameLine(205);
 
@@ -1278,7 +1279,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ImGuiToggleLDKWithDMD();
                 }
 
-                ImGui::SameLine(0, -1);
+                ImGui::SameLine(0, 1);
                 HelpMarker("Start a Mission on Legendary Dark Knight. Enemies are on DMD Difficulty, instead of SOS");
 
 				if (ImGui::Checkbox("Enemies DT Instantly", &checkEnemyInstantDT))

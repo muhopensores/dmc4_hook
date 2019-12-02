@@ -75,7 +75,7 @@ void DrawWindow()
 //imgui::being seperated into function (required to make gui overlay work, see imgui example and documentation
 void BeginDrawing()
 {
-    ImGui::Begin("DMC4 Internal Trainer", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::Begin("DMC4Hook", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 }
 
 //function that draws the fps onto the gui
@@ -97,7 +97,7 @@ void CreditsDrawing()
     {
         ImGui::Spacing();
         ImGui::Spacing();
-        ImGui::Text("Devil May Cry 4 Trainer");
+        ImGui::Text("DMC4Hook - Devil May Cry 4 Trainer");
         ImGui::Spacing();
         ImGui::Spacing();
         ImGui::Separator();

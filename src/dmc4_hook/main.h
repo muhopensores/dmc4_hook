@@ -13,7 +13,7 @@ class hlMain : public hl::Main
 {
 public:
 	void ToggleStuff();
-    // patch functions
+    // patch functions definitons
     void ToggleStyleSwitch(bool toggle);
     void ToggleWeaponSwitch(bool toggle);
     void ToggleJcCooldown(bool toggle);
@@ -49,7 +49,7 @@ public:
     void ToggleInfiniteTableHopper(bool toggle);
     void ToggleInfiniteTrickRange(bool toggle);
 
-	//imgui toggle functions
+	//imgui toggle functions definitons
     void ImGuiToggleInfPlayerHealth();
     void ImGuiToggleInfDT();
     void ImGuiToggleBerialDaze();
