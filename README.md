@@ -5,3 +5,6 @@ For more infos check out the wiki.
 https://github.com/muhopensores/dmc4_hook/wiki
 ## How to build ##
 Run build_debug.bat/build_release.bat edit bat files according to your visual studio version if needed.
+
+## Download ##
+Releases can be found [here](https://github.com/muhopensores/dmc4_hook/releases)
