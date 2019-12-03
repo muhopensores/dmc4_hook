@@ -2847,3 +2847,14 @@ void hlMain::ToggleInfiniteTrickRange(bool toggle)
             infiniteTrickRange_patch.revert();
     }
 }
+
+void hlMain::ToggleCameraSensitivity(bool toggle)
+{
+    if (cameraSensitivity)
+    {
+        if (toggle)
+            cameraSensitivity_patch.apply(cameraSensitivity, "\x90\x90\x90\x90\x90\x90", 6);
+        else
+            cameraSensitivity_patch.revert();
+    }
+}

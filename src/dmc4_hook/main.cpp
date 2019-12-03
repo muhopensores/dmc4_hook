@@ -114,6 +114,7 @@ bool checkTimerAlloc = false;
 	bool checkTrickDown = false;
 	bool checkFloorTouch = false;
 bool checkInfiniteTrickRange = false;
+bool checkCameraSensitivity = false;
 
 
 hl::StaticInit<class hlMain> g_main;
@@ -543,6 +544,7 @@ void hlMain::ToggleStuff()
     ToggleInfiniteRevive(checkInfiniteRevive);
     ToggleAutoSkipOutro(checkAutoSkipOutro);
     ToggleInfiniteTrickRange(checkInfiniteTrickRange);
+    ToggleCameraSensitivity(checkCameraSensitivity);
 }
 
 void hlMain::ImGuiToggleLDKWithDMD()
@@ -624,6 +626,7 @@ bool hlMain::init()
     checkTrackingFullHouse = reader.GetBoolean("player", "tracking_full_house", true);
     checkTrickDown = reader.GetBoolean("player", "trick_down", true);
     checkInfiniteTrickRange = reader.GetBoolean("player", "infinite_trick_range", true);
+    checkCameraSensitivity = reader.GetBoolean("system", "increased_camera_sensitivity", true);
 
     // checking for ini
     if (reader.ParseError() < 0)
@@ -808,6 +811,7 @@ bool hlMain::init()
     trickDown = modBase + 0x3CB119;
     floorTouch = modBase + 0x3CB33D;
     infiniteTrickRange = modBase + 0x3CB0A8;
+    cameraSensitivity = modBase + 0x180A8;
 
     // we'll set this in StageJump function
     // roomID = ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830, 0x6C });
@@ -1338,6 +1342,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     ImGui::SameLine(0, 1);
                     HelpMarker("Value between -1.5 / 1.5. Default value is 0.2");
                     ImGui::Spacing();
+
+                    if (ImGui::Checkbox("Increased Camera Sensitivity", &checkCameraSensitivity))
+                    {
+                        main->ToggleCameraSensitivity(checkCameraSensitivity);
+                    }
                 }
 
                 ImGui::Spacing();
