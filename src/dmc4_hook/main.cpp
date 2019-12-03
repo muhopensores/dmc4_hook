@@ -916,12 +916,12 @@ bool hlMain::init()
     {
         auto cameraAngleSeting_hk = m_hook.hookJMP(cameraAngleSetting, 8, &cameraAngle_proc, &_cameraAngleContinue);
     }
-
+    
     if (ldkWithDMDOne != 0)
     {
-        auto ldkWithDMDOne_hk = m_hook.hookJMP(ldkWithDMDOne, 6, &ldkWithDMD_proc, &_ldkWithDMDContinue);
+        auto ldkWithDMDOne_hk = m_hook.hookJMP(ldkWithDMDOne, 6, &ldkWithDMD_proc);	//, &_ldkWithDMDContinue);
     }
-
+    
     if (lockOn != 0)
     {
         auto lockOn_hk = m_hook.hookJMP(lockOn, 10, &lockOn_proc, &_lockOnContinue);
@@ -2488,12 +2488,12 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 {
                     main->ToggleStunAnything(checkStunAnything);
                 }
-
+                
                 if (ImGui::Checkbox("Remove Launch & Knockaway Armour", &checkRemoveLaunchArmour))
                 {
                     main->ToggleRemoveLaunchArmour(checkRemoveLaunchArmour);
                 }
-
+				
                 ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::Separator();

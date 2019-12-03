@@ -27,7 +27,7 @@ extern "C"
     uintptr_t _cameraDistanceContinue = NULL;
     uintptr_t _cameraDistanceLockonContinue = NULL;
     uintptr_t _cameraAngleContinue = NULL;
-    uintptr_t _ldkWithDMDContinue = NULL;
+    uintptr_t _ldkWithDMDContinue = 0x00494AF3;
     uintptr_t _lockOnContinue = NULL;
     uintptr_t _lockOffContinue = NULL;
     uintptr_t _trackingFullHouseContinue = 0x007D3478;
