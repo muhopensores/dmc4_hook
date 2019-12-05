@@ -54,6 +54,7 @@ extern "C"
     bool g_ldkWithDMDEnable = false;
     bool g_trackingFullHouseEnable = false;
     bool g_trickDownEnable = false;
+    bool g_honeyCombEnable = false;
 }
 
 //procs that apply changes directly using inline asm, work in conjunction with hooks
@@ -319,34 +320,63 @@ _declspec(naked) void trackingFullHouse_proc(void)
 _declspec(naked) void timerAlloc_proc(void)
 {
     _asm {
-			cmp byte ptr [g_trickDownEnable], 0
-			je originalcode
-
+		// timer
 			movss xmm5,[timerMem]
 			addss xmm5,[timerMemTick]
 			movss [timerMem],xmm5
 
-			cmp [timerMem],0x41a00000		// 20
-			jl trickreplace
-			jmp dontreplace
+		// trick down check
+			cmp byte ptr [g_trickDownEnable], 1
+			je tricktimercompare
+			jmp honeycombcheck
 
-		dontreplace:
+		tricktimercompare:
+			cmp [timerMem],0x41a00000		// 20
+			jl replacetrick
+			jmp dontreplacetrick
+
+		replacetrick:
+			cmp [lockOnAlloc],0x0
+			je dontreplacetrick
 			push eax
 			mov eax,0x00C413A4				// Trickster Dash
-			mov dword ptr [eax],0x5B		// Trickster Dash
+			mov dword ptr [eax],0x5D		// Trick
 			mov eax,0x00C413DC				// Sky Star
-			mov dword ptr [eax],0x5C		// Sky Star
+			mov dword ptr [eax],0x5D		// Trick
+			pop eax
+			jmp honeycombcheck
+
+		dontreplacetrick:
+			push eax
+			mov eax,0x00C413A4 // Trickster Dash
+			mov dword ptr [eax],0x5B // Trickster Dash
+			mov eax,0x00C413DC // Sky Star
+			mov dword ptr [eax],0x5C // Sky Star
+			pop eax
+
+		honeycombcheck:
+			cmp byte ptr [g_honeyCombEnable],1
+			je honeycombtimercompare
+			jmp dontreplacetwosome
+
+		honeycombtimercompare:
+			cmp [timerMem],0x41a00000 // 20
+			jl replacetwosome
+			jmp dontreplacetwosome
+
+		replacetwosome:
+			cmp [lockOnAlloc],0x0
+			je dontreplacetwosome
+			push eax
+			mov eax,0x00C40DBC // Twosome Time
+			mov dword ptr [eax],0x45 // Honeycomb Fire
 			pop eax
 			jmp originalcode
 
-		trickreplace:
-			cmp [lockOnAlloc],0x0
-			je dontreplace
+		dontreplacetwosome:
 			push eax
-			mov eax,0x00C413A4				// Trickster Dash
-			mov dword ptr [eax],0x5D		// Trick
-			mov eax,0x00C413DC				// Sky Star
-			mov dword ptr [eax],0x5D		// Trick
+			mov eax,0x00C40DBC // Twosome Time
+			mov dword ptr [eax],0x44 // Twosome Time
 			pop eax
 
 		originalcode:
@@ -358,15 +388,25 @@ _declspec(naked) void timerAlloc_proc(void)
 _declspec(naked) void backForward_proc(void)
 {
     _asm {
-			cmp byte ptr [g_trickDownEnable], 0
-			je originalcode
+		// trickcompare
+			cmp byte ptr [g_trickDownEnable],0
+			je honeycombcompare
 
 			cmp [timerMem],0x41200000			//=10
 			jl originalcode
 			cmp al,0x3
 			je resettimer
+
+		honeycombcompare:
+			cmp byte ptr [g_honeyCombEnable],0
+			je originalcode
+
+			cmp [timerMem],0x41200000 //=10
+			jl originalcode
+			cmp al,0x3
+			je resettimer
 			jmp originalcode
-			
+
 		resettimer:
 			mov dword ptr [timerMem],0x00000000	//=0
 

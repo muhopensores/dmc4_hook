@@ -113,6 +113,7 @@ bool checkTimerAlloc = false;
 	bool checkBackForward = false;
 	bool checkTrickDown = false;
 	bool checkFloorTouch = false;
+	bool checkHoneyComb = false;
 bool checkInfiniteTrickRange = false;
 bool checkCameraSensitivity = false;
 
@@ -181,6 +182,11 @@ void hlMain::ImGuiToggleOmenCancel()
     g_omenCancelEnable = !g_omenCancelEnable;
 }
 
+void hlMain::ImGuiToggleHoneyComb()
+{
+    g_honeyCombEnable = !g_honeyCombEnable;
+}
+
 void hlMain::ImGuiToggleDamageModifier()
 {
     g_damageModifierEnable = !g_damageModifierEnable;
@@ -208,253 +214,253 @@ void hlMain::ImGuiStageJump(int room)
     switch (room)
     {
     case 0:
-        *roomID = 0;
+        *roomID = 705;	// "Bloody Palace 1-19"
         break;
     case 1:
-        *roomID = 1;
+        *roomID = 704;	// "Bloody Palace 21-39"
         break;
     case 2:
-        *roomID = 2;
+        *roomID = 703;	// "Bloody Palace 41-59"
         break;
     case 3:
-        *roomID = 3;
+        *roomID = 701;	// "Bloody Palace 61-79"
         break;
     case 4:
-        *roomID = 4;
+        *roomID = 702;	// "Bloody Palace 81-99"
         break;
     case 5:
-        *roomID = 5;
+        *roomID = 503;	// "Bloody Palace 20"
         break;
     case 6:
-        *roomID = 6;
+        *roomID = 504;	// "Bloody Palace 40"
         break;
     case 7:
-        *roomID = 7;
+        *roomID = 505;	// "Bloody Palace 60"
         break;
     case 8:
-        *roomID = 8;
+        *roomID = 507;	// "Bloody Palace 80"
         break;
     case 9:
-        *roomID = 9;
+        *roomID = 506;	// "Bloody Palace 100"
         break;
     case 10:
-        *roomID = 10;
+        *roomID = 700;	// "Bloody Palace 101"
         break;
     case 11:
-        *roomID = 11;
+        *roomID = 0;	// "Opera House"
         break;
     case 12:
-        *roomID = 12;
+        *roomID = 1;	// "Opera House Plaza"
         break;
     case 13:
-        *roomID = 13;
+        *roomID = 2;	// "Storehouse"
         break;
     case 14:
-        *roomID = 100;
+        *roomID = 3;	// "Cathedral"
         break;
     case 15:
-        *roomID = 105;
+        *roomID = 4;	// "Terrace / Business District"
         break;
     case 16:
-        *roomID = 200;
+        *roomID = 5;	// "Residential District"
         break;
     case 17:
-        *roomID = 201;
+        *roomID = 6;	// "Port Caerula"
         break;
     case 18:
-        *roomID = 202;
+        *roomID = 7;	// "Customs House"
         break;
     case 19:
-        *roomID = 203;
+        *roomID = 8;	// "First Mining Area"
         break;
     case 20:
-        *roomID = 204;
+        *roomID = 9;	// "Ferrum Hills"
         break;
     case 21:
-        *roomID = 205;
+        *roomID = 10;	// "M17 Opera House"
         break;
     case 22:
-        *roomID = 206;
+        *roomID = 11;	// "M17 Opera House Plaza"
         break;
     case 23:
-        *roomID = 207;
+        *roomID = 12;	// "Business District / Terrace"
         break;
     case 24:
-        *roomID = 209;
+        *roomID = 13;	// "M20 Opera House Plaza"
         break;
     case 25:
-        *roomID = 210;
+        *roomID = 100;	// "Second Mining Area"
         break;
     case 26:
-        *roomID = 211;
+        *roomID = 105;	// "Fortuna Castle Gate"
         break;
     case 27:
-        *roomID = 212;
+        *roomID = 200;	// "Grand Hall (Fortuna Castle)"
         break;
     case 28:
-        *roomID = 213;
+        *roomID = 201;	// "Large Hall"
         break;
     case 29:
-        *roomID = 214;
+        *roomID = 202;	// "Dining Room"
         break;
     case 30:
-        *roomID = 215;
+        *roomID = 203;	// "Torture Chamber"
         break;
     case 31:
-        *roomID = 216;
+        *roomID = 204;	// "Central Courtyard"
         break;
     case 32:
-        *roomID = 217;
+        *roomID = 205;	// "Foris Falls (Bridge Area)
         break;
     case 33:
-        *roomID = 300;
+        *roomID = 206;	// "Gallery"
         break;
     case 34:
-        *roomID = 301;
+        *roomID = 207;	// "Library"
         break;
     case 35:
-        *roomID = 302;
+        *roomID = 209;	// "Soldier's Graveyard"
         break;
     case 36:
-        *roomID = 303;
+        *roomID = 210;	// "Master's Chamber"
         break;
     case 37:
-        *roomID = 304;
+        *roomID = 211;	// "Spiral Wall"
         break;
     case 38:
-        *roomID = 305;
+        *roomID = 212;	// "Underground Labratory"
         break;
     case 39:
-        *roomID = 306;
+        *roomID = 213;	// "R&D Access"
         break;
     case 40:
-        *roomID = 307;
+        *roomID = 214;	// "Game Room"
         break;
     case 41:
-        *roomID = 308;
+        *roomID = 215;	// "Containment Room"
         break;
     case 42:
-        *roomID = 309;
+        *roomID = 216;	// "Angel Creation"
         break;
     case 43:
-        *roomID = 310;
+        *roomID = 217;	// "Foris Falls (Detour Area)"
         break;
     case 44:
-        *roomID = 311;
+        *roomID = 300;	// "Forest Entrance"
         break;
     case 45:
-        *roomID = 400;
+        *roomID = 301;	// "Windswept Valley"
         break;
     case 46:
-        *roomID = 401;
+        *roomID = 302;	// "Ruined Church"
         break;
     case 47:
-        *roomID = 402;
+        *roomID = 303;	// "Ruined Valley"
         break;
     case 48:
-        *roomID = 403;
+        *roomID = 304;	// "Ancient Training Ground"
         break;
     case 49:
-        *roomID = 404;
+        *roomID = 305;	// "Lapis River"
         break;
     case 50:
-        *roomID = 405;
+        *roomID = 306;	// "Ancient Plaza"
         break;
     case 51:
-        *roomID = 406;
+        *roomID = 307;	// "Den of the She-Viper"
         break;
     case 52:
-        *roomID = 407;
+        *roomID = 308;	// "Forgotten Ruins"
         break;
     case 53:
-        *roomID = 408;
+        *roomID = 309;	// "Hidden Pit"
         break;
     case 54:
-        *roomID = 409;
+        *roomID = 310;	// "Ruined Lowlands"
         break;
     case 55:
-        *roomID = 500;
+        *roomID = 311;	// "Lost Woods"
         break;
     case 56:
-        *roomID = 501;
+        *roomID = 400;	// "Gran Album Bridge"
         break;
     case 57:
-        *roomID = 502;
+        *roomID = 401;	// "Grand Hall (Order of the Sword HQ)"
         break;
     case 58:
-        *roomID = 510;
+        *roomID = 402;	// "Key Chamber"
         break;
     case 59:
-        *roomID = 512;
+        *roomID = 403;	// "The Gauntlet"
         break;
     case 60:
-        *roomID = 705;
+        *roomID = 404;	// "Agnus' Room"
         break;
     case 61:
-        *roomID = 704;
+        *roomID = 405;	// "Security Corridor"
         break;
     case 62:
-        *roomID = 703;
+        *roomID = 406;	// "Experiment Disposal"
         break;
     case 63:
-        *roomID = 701;
+        *roomID = 407;	// "Meeting Room"
         break;
     case 64:
-        *roomID = 702;
+        *roomID = 408;	// "Ascension Chamber"
         break;
     case 65:
-        *roomID = 700;
+        *roomID = 409;	// "Advent Chamber"
         break;
     case 66:
-        *roomID = 503;
+        *roomID = 500;	// "Machina Ex Deus"
         break;
     case 67:
-        *roomID = 504;
+        *roomID = 501;	// "Stairway to Heaven"
         break;
     case 68:
-        *roomID = 505;
+        *roomID = 502;	// "Sacred Heart"
         break;
     case 69:
-        *roomID = 507;
+        *roomID = 510;	// "M18"
         break;
     case 70:
-        *roomID = 506;
+        *roomID = 512;	// "Sky Above Fortuna"
         break;
     case 71:
-        *roomID = 800;
+        *roomID = 800;	// "Secret Mission 1"
         break;
     case 72:
-        *roomID = 801;
+        *roomID = 801;	// "Secret Mission 2"
         break;
     case 73:
-        *roomID = 802;
+        *roomID = 802;	// "Secret Mission 3"
         break;
     case 74:
-        *roomID = 803;
+        *roomID = 803;	// "Secret Mission 4"
         break;
     case 75:
-        *roomID = 804;
+        *roomID = 804;	// "Secret Mission 5"
         break;
     case 76:
-        *roomID = 805;
+        *roomID = 805;	// "Secret Mission 6"
         break;
     case 77:
-        *roomID = 806;
+        *roomID = 806;	// "Secret Mission 7"
         break;
     case 78:
-        *roomID = 807;
+        *roomID = 807;	// "Secret Mission 8"
         break;
     case 79:
-        *roomID = 808;
+        *roomID = 808;	// "Secret Mission 9"
         break;
     case 80:
-        *roomID = 809;
+        *roomID = 809;	// "Secret Mission 10"
         break;
     case 81:
-        *roomID = 810;
+        *roomID = 810;	// "Secret Mission 11"
         break;
     case 82:
-        *roomID = 811;
+        *roomID = 811;	// "Secret Mission 12"
         break;
     }
     ImGuiInitiateJump();
@@ -514,6 +520,10 @@ void hlMain::ToggleStuff()
 	if (checkTrickDown)
 	{
 		g_trickDownEnable = true;
+	}
+	if (checkHoneyComb)
+	{
+		g_honeyCombEnable = true;
 	}
     ToggleStyleSwitch(checkStyleSwitch);
     ToggleJcCooldown(checkJcCooldown);
@@ -625,6 +635,7 @@ bool hlMain::init()
     checkInfiniteTableHopper = reader.GetBoolean("player", "infinite_table_hopper", true);
     checkTrackingFullHouse = reader.GetBoolean("player", "tracking_full_house", true);
     checkTrickDown = reader.GetBoolean("player", "trick_down", true);
+    checkHoneyComb = reader.GetBoolean("player", "instant_honeycomb", true);
     checkInfiniteTrickRange = reader.GetBoolean("player", "infinite_trick_range", true);
     checkCameraSensitivity = reader.GetBoolean("system", "increased_camera_sensitivity", true);
 
@@ -1097,10 +1108,17 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
 				ImGui::SameLine(198);
 
+				if (ImGui::Checkbox("Instant Honeycomb", &checkHoneyComb))
+                {
+                    main->ImGuiToggleHoneyComb();
+                }
+
 				if (ImGui::Checkbox("Fast Pandora", &checkFastPandora))
                 {
                     main->ToggleFastPandora(checkFastPandora);
                 }
+
+				ImGui::SameLine(198);
 
 				if (ImGui::Checkbox("Fast Speed", &checkSprintFasterActivate))
                 {
@@ -1365,21 +1383,91 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                            "1-99, no boss stages. For boss stages simply select the boss room from the listbox below.");
                 ImGui::Spacing();
 
-                const char* room_items[] = { "Opera House", "Opera House Plaza", "Store House", "Cathedral", "Terrace / Business District", "Residential District",
-                                             "Port Caerula", "Customs House", "First Mining Area", "Ferrum Hills", "M17 Opera House",  "M17 Opera House Plaza",
-                                             "Business District / Terrace", "M20 Opera House Plaza", "Second Mining Area", "Fortuna Castle Gate", "Grand Hall (Fortuna Castle)",
-                                             "Large Hall", "Dining Room", "Torture Chamber", "Central Courtyard",  "Foris Falls (Bridge Area)", "Gallery", "Library",
-                                             "Soldier's Graveyard",  "Master's Chamber", "Spiral Well", "Underground Laboratory", "R&D Access", "Game Room", "Containment Room",
-                                             "Angel Creation", "Foris Falls (Detour Area)", "Forest Entrance", "Windswept Valley", "Ruined Church", "Ruined Valley",
-                                             "Ancient Training Ground", "Lapis River", "Ancient Plaza", "Den of the She-Viper", "Forgotten Ruins", "Hidden Pit", "Ruined Lowlands",
-                                             "Lost Woods", "Gran Album Bridge", "Grand Hall (Order of the Sword HQ)", "Key Chamber", "The Gauntlet", "Agnus' Room",
-                                             "Security Corridor", "Experiment Disposal", "Meeting Room", "Ascension Chamber", "Advent Chamber", "Machina Ex Deus",
-                                             "Stairway to Heaven", "Sacred Heart", "M18", "Sky Above Fortuna", "Bloody Palace 1-19", "Bloody Palace 21-39",
-                                             "Bloody Palace 41-59", "Bloody Palace 61-79", "Bloody Palace 81-99", "Bloody Palace 101", "Bloody Palace 20",
-                                             "Bloody Palace 40", "Bloody Palace 60", "Bloody Palace 80", "Bloody Palace 100", "Secret Mission 1", "Secret Mission 2",
-                                             "Secret Mission 3", "Secret Mission 4", "Secret Mission 5", "Secret Mission 6", "Secret Mission 7", "Secret Mission 8",
-                                             "Secret Mission 9", "Secret Mission 10", "Secret Mission 11", "Secret Mission 12" 
-				};
+                const char* room_items[] = { "Bloody Palace 1-19",					// 705
+                                             "Bloody Palace 21-39",					// 704
+                                             "Bloody Palace 41-59",					// 703
+                                             "Bloody Palace 61-79",					// 701
+                                             "Bloody Palace 81-99",					// 702
+                                             "Bloody Palace 20",					// 503
+                                             "Bloody Palace 40",					// 504
+                                             "Bloody Palace 60",					// 505
+                                             "Bloody Palace 80",					// 502
+                                             "Bloody Palace 100",					// 501
+                                             "Bloody Palace 101",					// 700
+                                             "Opera House",							// 0
+                                             "Opera House Plaza",					// 1
+                                             "Storehouse",							// 2
+                                             "Cathedral",							// 3
+                                             "Terrace / Business District",			// 4
+                                             "Residential District",				// 5
+                                             "Port Caerula",						// 6
+                                             "Customs House",						// 7
+                                             "First Mining Area",					// 8
+                                             "Ferrum Hills",						// 9
+                                             "M17 Opera House",						// 10
+                                             "M17 Opera House Plaza",				// 11
+                                             "Business District / Terrace",			// 12
+                                             "M20 Opera House Plaza",				// 13
+                                             "Second Mining Area",					// 100
+                                             "Fortuna Castle Gate",					// 105
+                                             "Grand Hall (Fortuna Castle)",			// 200
+                                             "Large Hall",							// 201
+                                             "Dining Room",							// 202
+                                             "Torture Chamber",						// 203
+                                             "Central Courtyard",					// 204
+                                             "Foris Falls (Bridge Area)",			// 205
+                                             "Gallery",								// 206
+                                             "Library",								// 207
+                                             "Soldier's Graveyard",					// 209
+                                             "Master's Chamber",					// 210
+                                             "Spiral Well",							// 211
+                                             "Underground Laboratory",				// 212
+                                             "R&D Access",							// 213
+                                             "Game Room",							// 214
+                                             "Containment Room",					// 215
+                                             "Angel Creation",						// 216
+                                             "Foris Falls (Detour Area)",			// 217
+                                             "Forest Entrance",						// 300
+                                             "Windswept Valley",					// 301
+                                             "Ruined Church",						// 302
+                                             "Ruined Valley",						// 303
+                                             "Ancient Training Ground",				// 304
+                                             "Lapis River",							// 305
+                                             "Ancient Plaza",						// 306
+                                             "Den of the She-Viper",				// 307
+                                             "Forgotten Ruins",						// 308
+                                             "Hidden Pit",							// 309
+                                             "Ruined Lowlands",						// 310
+                                             "Lost Woods",							// 311
+                                             "Gran Album Bridge",					// 400
+                                             "Grand Hall (Order of the Sword HQ)",	// 401
+                                             "Key Chamber",							// 402
+                                             "The Gauntlet",						// 403
+                                             "Agnus' Room",							// 404
+                                             "Security Corridor",					// 405
+                                             "Experiment Disposal",					// 406
+                                             "Meeting Room",						// 407
+                                             "Ascension Chamber",					// 408
+                                             "Advent Chamber",						// 409
+                                             "Machina Ex Deus",						// 500
+                                             "Stairway to Heaven",					// 501
+                                             "Sacred Heart",						// 502
+                                             "M18",									// 510
+                                             "Sky Above Fortuna",					// 512
+                                             "Secret Mission 1",					// 800
+                                             "Secret Mission 2",					// 801
+                                             "Secret Mission 3",					// 802
+                                             "Secret Mission 4",					// 803
+                                             "Secret Mission 5",					// 804
+                                             "Secret Mission 6",					// 805
+                                             "Secret Mission 7",					// 806
+                                             "Secret Mission 8",					// 807
+                                             "Secret Mission 9",					// 808
+                                             "Secret Mission 10",					// 809
+                                             "Secret Mission 11",					// 810
+                                             "Secret Mission 12"					// 811
+                };
+
                 int room_item_current = 0;
                 if (ImGui::ListBox("Room Codes\n(including BP)", &room_item_current, room_items, IM_ARRAYSIZE(room_items), 10))
                 {

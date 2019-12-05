@@ -66,6 +66,7 @@ public:
     void ImGuiToggleLDKWithDMD();
     void ImGuiToggleTrackingFullHouse();
     void ImGuiToggleTrickDown();
+    void ImGuiToggleHoneyComb();
     
 	//functions
     void ImGuiInitiateJump();
