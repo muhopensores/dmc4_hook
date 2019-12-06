@@ -155,30 +155,30 @@ _declspec(naked) void selectiveCancels_proc(void)
 			cmp byte ptr [esi+0x144],0xFFFFFFFF
 			jne originalcode
 
-			cmp [moveID],0x411		// Grounded Ecstasy	// Checks move id like usual every tick
-			je cancellableecstasy	// If correct moveid, check against Gui
-			cmp [moveID],0x412		// Aerial Ecstasy
+			cmp [moveID],0x411				// Grounded Ecstasy	// Checks move id like usual every tick
+			je cancellableecstasy				// If correct moveid, check against Gui:
+			cmp [moveID],0x412						// Aerial Ecstasy
 			je cancellableecstasy
-			cmp [moveID],0x732		// Argument
+			cmp [moveID],0x732						// Argument
 			je cancellableargument
-			cmp [moveID],0x30E		// Kick 13
+			cmp [moveID],0x30E						// Kick 13
 			je cancellablekickthirteen
-			cmp [moveID],0x30F		// DT Kick 13
+			cmp [moveID],0x30F						// DT Kick 13
 			je cancellablekickthirteen
-			cmp [moveID],0x900		// Slash Dimension
+			cmp [moveID],0x900						// Slash Dimension
 			je cancellableslashdimension
-			cmp [moveID],0x232		// Prop
+			cmp [moveID],0x232						// Prop
 			je cancellableprop
-			cmp [moveID],0x333		// Shock
+			cmp [moveID],0x333						// Shock
 			je cancellableshock
-			cmp [moveID],0x735		// Omen
+			cmp [moveID],0x735						// Omen
 			je cancellableomen
 			jmp originalcode
 
 			cancellableecstasy:
 			cmp [g_ecstasyCancelEnable],0x1	// If Gui is ticked,
-			je cancellable					// make the move cancellable
-			jmp originalcode				// if not, don't make it cancellable
+			je cancellable						// make the move cancellable
+			jmp originalcode					// if not, don't make it cancellable
 
 			cancellableargument:
 			cmp [g_argumentCancelEnable],0x1
@@ -211,10 +211,10 @@ _declspec(naked) void selectiveCancels_proc(void)
 			jmp originalcode
 
 		cancellable:
-			mov dword ptr [esi+0x8C],0x02
-
-		originalcode:
-			mov edi,0x00000008
+			mov dword ptr [esi+0x8C],0x02	// only movs to [esi+8C] after filtering out anything that doesn't have [esi+13C],FFFFFFFF and [esi+144],FFFFFFFF
+												// a change of cmps would allow for different types of cancels such as cancelling an animation with walking or another attack
+		originalcode:							// buffers are also used around this area - the je a few bytes down used to be an inconvenience
+			mov edi,0x00000008				// originalcode has nothing to do with our newmem, just a convenient jmp point so always run
 			jmp dword ptr [_selectiveCancelsContinue]
     }
 }
@@ -285,8 +285,8 @@ _declspec(naked) void ldkWithDMD_proc(void)
 _declspec(naked) void lockOn_proc(void)
 {
     _asm {
-			mov [lockOnAlloc],0x01
-			mov [edi+0x000016D0],0x1
+			mov [lockOnAlloc],0x01			// mov lock on state 0/1 to an address we can access anywhere
+			mov [edi+0x000016D0],0x1			// this is never toggled off, so can be used whenever and doesn't rely on any checkbox
 			jmp dword ptr [_lockOnContinue]
     }
 }
@@ -321,9 +321,9 @@ _declspec(naked) void timerAlloc_proc(void)
 {
     _asm {
 		// timer
-			movss xmm5,[timerMem]
-			addss xmm5,[timerMemTick]
-			movss [timerMem],xmm5
+			movss xmm5,[timerMem]			// Timer runs constantly. Not very efficient but would need to be turned on by any of the below cmps
+			addss xmm5,[timerMemTick]		// Timer starts at 0, has a 1 added to it every tick and is reset every time a backforward input is made
+			movss [timerMem],xmm5			// Would like to add a framerate compare here to make it not framerate variable but only 1 xmm was unused
 
 		// trick down check
 			cmp byte ptr [g_trickDownEnable], 1
@@ -332,8 +332,8 @@ _declspec(naked) void timerAlloc_proc(void)
 
 		tricktimercompare:
 			cmp [timerMem],0x41a00000		// 20
-			jl replacetrick
-			jmp dontreplacetrick
+			jl replacetrick					// If trick down is enabled, replace trickster dash and sky star to trick when timer is under (float)x
+			jmp dontreplacetrick			// By putting replacements on a timer you make a buffer for the input and have a convenient off state
 
 		replacetrick:
 			cmp [lockOnAlloc],0x0
@@ -348,19 +348,19 @@ _declspec(naked) void timerAlloc_proc(void)
 
 		dontreplacetrick:
 			push eax
-			mov eax,0x00C413A4 // Trickster Dash
-			mov dword ptr [eax],0x5B // Trickster Dash
-			mov eax,0x00C413DC // Sky Star
-			mov dword ptr [eax],0x5C // Sky Star
+			mov eax,0x00C413A4				// Trickster Dash
+			mov dword ptr [eax],0x5B		// Trickster Dash
+			mov eax,0x00C413DC				// Sky Star
+			mov dword ptr [eax],0x5C		// Sky Star
 			pop eax
 
 		honeycombcheck:
 			cmp byte ptr [g_honeyCombEnable],1
-			je honeycombtimercompare
+			je honeycombtimercompare		// If instant honeycomb is enabled, replace twosome time with honeycomb fire when timer is under (float)x
 			jmp dontreplacetwosome
 
 		honeycombtimercompare:
-			cmp [timerMem],0x41a00000 // 20
+			cmp [timerMem],0x41a00000		// 20
 			jl replacetwosome
 			jmp dontreplacetwosome
 
@@ -368,15 +368,15 @@ _declspec(naked) void timerAlloc_proc(void)
 			cmp [lockOnAlloc],0x0
 			je dontreplacetwosome
 			push eax
-			mov eax,0x00C40DBC // Twosome Time
-			mov dword ptr [eax],0x45 // Honeycomb Fire
+			mov eax,0x00C40DBC				// Twosome Time
+			mov dword ptr [eax],0x45		// Honeycomb Fire
 			pop eax
 			jmp originalcode
 
 		dontreplacetwosome:
 			push eax
-			mov eax,0x00C40DBC // Twosome Time
-			mov dword ptr [eax],0x44 // Twosome Time
+			mov eax,0x00C40DBC				// Twosome Time
+			mov dword ptr [eax],0x44		// Twosome Time
 			pop eax
 
 		originalcode:
@@ -401,7 +401,7 @@ _declspec(naked) void backForward_proc(void)
 			cmp byte ptr [g_honeyCombEnable],0
 			je originalcode
 
-			cmp [timerMem],0x41200000 //=10
+			cmp [timerMem],0x41200000			//=10
 			jl originalcode
 			cmp al,0x3
 			je resettimer
