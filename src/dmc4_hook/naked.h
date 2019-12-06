@@ -448,7 +448,7 @@ _declspec(naked) void floorTouch_proc(void)
 			je originalcode
 
 			cmp dword ptr [timerMem],0x42a00000	//=80	// if timer is less than x, skip the height adjust at the end of trick
-			jl skipcode										// this has to be higher than the start to account for how long trick takes to start up
+			jl skipcode										// this has to be higher than the start to account for how long trick takes to start up and play out
 
 		originalcode:
 			movss [esi+0x00000EC4],xmm2
