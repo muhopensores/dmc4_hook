@@ -321,7 +321,13 @@ _declspec(naked) void timerAlloc_proc(void) // This + the next 3 are what make u
 {
     _asm {
 		// timer
-			movss xmm5,[timerMem]			// Timer runs constantly. Not very efficient but would need to be turned on by any of the below cmps
+			cmp byte ptr [g_trickDownEnable], 1
+			je timerstart
+			cmp byte ptr [g_honeyCombEnable],1
+			je timerstart
+			jmp originalcode				// if nothing is using the timer, skip it	// haven't tested
+		timerstart:
+			movss xmm5,[timerMem]
 			addss xmm5,[timerMemTick]		// Timer starts at 0, has a 1 added to it every tick and is reset every time a backforward input is made
 			movss [timerMem],xmm5			// Would like to add a framerate compare here to make it not framerate variable but only 1 xmm was unused
 
@@ -393,7 +399,7 @@ _declspec(naked) void backForward_proc(void)
 			je honeycombcompare
 
 			cmp [timerMem],0x41200000			//=10	// If timer is less than 10, don't reset. With this, timer is only reset once per backforward.
-			jl originalcode									// 10 is over before trick finishes, so no worry about trick down not being available
+			jl originalcode									// 10 is over before the moves can finish, so no worry them not being available
 			cmp al,0x3
 			je resettimer
 
