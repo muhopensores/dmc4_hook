@@ -1,4 +1,4 @@
 build86/
-lib/hacklib.lib
-lib/hacklibd.lib
+hacklib.lib
+hacklibd.lib
 bin/
