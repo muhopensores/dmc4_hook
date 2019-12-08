@@ -84,8 +84,8 @@ _declspec(naked) void damagemodifier_proc(void)
             subss xmm0,xmm4
 
 		originalcode:
-            //movss [esi+0x18],xmm0
-			//movss [enemyHPDisplay],xmm0		// Writes to an address we'll use for orb display. In originalcode so its not dependent on this checkbox
+            movss [esi+0x18],xmm0
+			movss [enemyHPDisplay],xmm0		// Writes to an address we'll use for orb display. In originalcode so its not dependent on this checkbox
             jmp dword ptr [_damagemodifierContinue]
     }
 }
@@ -96,14 +96,21 @@ _declspec(naked) void orbDisplay_proc(void)
 			cmp byte ptr [g_orbDisplayEnable],0
 			je originalcode
 
-			cmp dword ptr [enemyHPDisplay],0x00000000	// Check to see if enemy is dead.
-			je originalcode									// If yes, show default Orb Count
+			//cmp dword ptr [enemyHPDisplay],0x00000000	// Check to see if enemy is dead.
+			// checking to see if enemyHP >= 0
+			// this clobbers xmm0 register but it does
+			// not seem to affect the game? not sure.
+			xorps xmm0, xmm0
+			comiss xmm0, DWORD PTR [enemyHPDisplay]
+			jae originalcode									// If yes, show default Orb Count
 
-			//cvttss2si eax, [enemyHPDisplay] // If no, write Enemy HP Display to orbs rather than Orb Count	// cvttss2si
-			//jmp dword ptr [_orbDisplayContinue]
+			cvttss2si eax, [enemyHPDisplay] // If no, write Enemy HP Display to orbs rather than Orb Count	// cvttss2si
+			push ebx //the push ebx instruction was missing
+			jmp dword ptr [_orbDisplayContinue]
 
-		originalcode:
+			originalcode:
 			mov eax,[eax+0x00000114]
+			push ebx //the push ebx instruction was missing
             jmp dword ptr [_orbDisplayContinue]
     }
 }

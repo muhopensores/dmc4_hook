@@ -964,10 +964,10 @@ bool hlMain::init()
         auto trackingFullHouse_hk = m_hook.hookJMP(trackingFullHouse, 7, &trackingFullHouse_proc);
     }
 
-    /*if (orbDisplay != 0)
+    if (orbDisplay != 0)
     {
         auto orbDisplay_hk = m_hook.hookJMP(orbDisplay, 6, &orbDisplay_proc);	//, &_orbDisplayContinue
-    }*/
+    }
 
     if (timerAlloc != 0)
     {
@@ -1277,10 +1277,10 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleBpPortalAutoOpen(checkBpPortalAutoOpen);
                 }
 
-				/*if (ImGui::Checkbox("Enemy HP Red Orb Display", &checkOrbDisplay))
+				if (ImGui::Checkbox("Enemy HP Red Orb Display", &checkOrbDisplay))
                 {
                     main->ImGuiToggleOrbDisplay();
-                }*/
+                }
 
                 ImGui::Spacing();
                 ImGui::Spacing();
