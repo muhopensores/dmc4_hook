@@ -16,7 +16,9 @@ extern "C"
     float timerMemTick = 1.0f;
     float downFloat = -200.0f;
     float momentumMem = 0.0f;
+	float enemyHPDisplay = 0.0f;
     uintptr_t _damagemodifierContinue = NULL;
+	uintptr_t _orbDisplayContinue = 0x004FDD3C;
     uintptr_t _infiniteDTContinue = NULL;
     uintptr_t _infinitePlayerHealthContinue = NULL;
     uintptr_t _berialDazeContinue = NULL;
@@ -50,6 +52,7 @@ extern "C"
 		bool g_shockCancelEnable = false;
 		bool g_omenCancelEnable = false;
     bool g_damageModifierEnable = false;
+	bool g_orbDisplayEnable = false;
     bool g_stunAnythingEnable = false;
     bool g_ldkWithDMDEnable = false;
     bool g_trackingFullHouseEnable = false;
@@ -81,8 +84,27 @@ _declspec(naked) void damagemodifier_proc(void)
             subss xmm0,xmm4
 
 		originalcode:
-            movss [esi+0x18],xmm0
+            //movss [esi+0x18],xmm0
+			//movss [enemyHPDisplay],xmm0		// Writes to an address we'll use for orb display. In originalcode so its not dependent on this checkbox
             jmp dword ptr [_damagemodifierContinue]
+    }
+}
+
+_declspec(naked) void orbDisplay_proc(void)
+{
+    _asm {
+			cmp byte ptr [g_orbDisplayEnable],0
+			je originalcode
+
+			cmp dword ptr [enemyHPDisplay],0x00000000	// Check to see if enemy is dead.
+			je originalcode									// If yes, show default Orb Count
+
+			//cvttss2si eax, [enemyHPDisplay] // If no, write Enemy HP Display to orbs rather than Orb Count	// cvttss2si
+			//jmp dword ptr [_orbDisplayContinue]
+
+		originalcode:
+			mov eax,[eax+0x00000114]
+            jmp dword ptr [_orbDisplayContinue]
     }
 }
 
@@ -95,7 +117,7 @@ _declspec(naked) void infiniteDT_proc(void)
 			mov dword ptr [ebp+0x00001F24], 0x461C4000
 
 		originalcode:
-			movss xmm0,[ebp+0x00001F24]
+			//movss xmm0,[ebp+0x00001F24]
 			jmp dword ptr [_infiniteDTContinue]
     }
 }
@@ -109,7 +131,7 @@ _declspec(naked) void infinitePlayerHealth_proc(void)
 			mov dword ptr [ebp+0x000015CC], 0x469C4000
 
 		originalcode:
-			movss xmm0,[ebp+0x000015CC]
+			//movss xmm0,[ebp+0x000015CC]
 			jmp dword ptr [_infinitePlayerHealthContinue]
     }
 }
@@ -125,7 +147,7 @@ _declspec(naked) void berialDaze_proc(void)
 			movss [esi+0x1B80], xmm0
 		
 		originalcode:
-			movss xmm0,[esi+0x00001B80]
+			//movss xmm0,[esi+0x00001B80]
 			jmp dword ptr [_berialDazeContinue]
     }
 }
@@ -139,7 +161,7 @@ _declspec(naked) void moveIDAlloc_proc(void)
 			mov [moveID],ecx
 
 		originalcode:
-			mov [esi+0x0000225C],ecx
+			//mov [esi+0x0000225C],ecx
 			jmp dword ptr [_moveIDAllocContinue]
     }
 }
@@ -226,7 +248,7 @@ _declspec(naked) void cameraHeight_proc(void)
 			mov eax,[cameraHeight]
 			mov [edi+0x000000D0], eax
 			pop eax
-			movss xmm0,[edi+0x000000D0]
+			//movss xmm0,[edi+0x000000D0]
 			jmp dword ptr [_cameraHeightContinue]
     }
 }
@@ -238,7 +260,7 @@ _declspec(naked) void cameraDistance_proc(void)
 			mov eax,[cameraDistance]
 			mov [esi+0x000000D8],eax
 			pop eax
-			movss xmm3,[esi+0x000000D8]
+			//movss xmm3,[esi+0x000000D8]
 			jmp dword ptr [_cameraDistanceContinue]
     }
 }
@@ -250,7 +272,7 @@ _declspec(naked) void cameraDistanceLockon_proc(void)
 			mov eax,[cameraDistanceLockon]
 			mov [ebx+0x000000DC],eax
 			pop eax
-			movss xmm1,[ebx+0x000000DC]
+			//movss xmm1,[ebx+0x000000DC]
 			jmp dword ptr [_cameraDistanceLockonContinue]
     }
 }
@@ -262,7 +284,7 @@ _declspec(naked) void cameraAngle_proc(void)
 			mov eax,[cameraAngle]
 			mov [edi+0x000000D4],eax
 			pop eax
-			movss xmm2,[edi+0x000000D4]
+			//movss xmm2,[edi+0x000000D4]
 			jmp dword ptr [_cameraAngleContinue]
     }
 }
@@ -286,7 +308,7 @@ _declspec(naked) void lockOn_proc(void)
 {
     _asm {
 			mov [lockOnAlloc],0x01			// mov lock on state 0/1 to an address we can access anywhere
-			mov [edi+0x000016D0],0x1			// this is never toggled off, so can be used whenever and doesn't rely on any checkbox
+			//mov [edi+0x000016D0],0x1			// this is never toggled off, so can be used whenever and doesn't rely on any checkbox
 			jmp dword ptr [_lockOnContinue]
     }
 }
@@ -295,7 +317,7 @@ _declspec(naked) void lockOff_proc(void)
 {
     _asm {
 			mov [lockOnAlloc],0x0
-			mov [edi+0x000016D0],0x0
+			//mov [edi+0x000016D0],0x0
 			jmp dword ptr [_lockOffContinue]
     }
 }

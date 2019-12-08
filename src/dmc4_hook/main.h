@@ -67,6 +67,7 @@ public:
     void ImGuiToggleTrackingFullHouse();
     void ImGuiToggleTrickDown();
     void ImGuiToggleHoneyComb();
+    void ImGuiToggleOrbDisplay();
     
 	//functions
     void ImGuiInitiateJump();
@@ -111,6 +112,7 @@ public:
     uintptr_t jcCooldown;
     uintptr_t movingTargetChange;
     uintptr_t damagemodifier;
+    uintptr_t orbDisplay;
     uintptr_t heightRestrictionDante;
     uintptr_t heightRestrictionBuster;
     uintptr_t heightRestrictionSplit;

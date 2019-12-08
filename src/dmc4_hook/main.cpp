@@ -90,6 +90,7 @@ bool checkMoveIDAlloc = false;
 		bool checkShockCancel = false;
 		bool checkOmenCancel = false;
 bool checkDamageModifier = false;
+bool checkOrbDisplay = false;
 bool checkStunAnything = false;
 bool checkRemoveLaunchArmour = false;
 bool checkCharacterChange = false;
@@ -525,6 +526,10 @@ void hlMain::ToggleStuff()
 	{
 		g_honeyCombEnable = true;
 	}
+	if (checkOrbDisplay)
+	{
+		g_orbDisplayEnable = true;
+	}
     ToggleStyleSwitch(checkStyleSwitch);
     ToggleJcCooldown(checkJcCooldown);
     ToggleWeaponSwitch(checkWeaponSwitch);
@@ -565,6 +570,11 @@ void hlMain::ImGuiToggleLDKWithDMD()
 void hlMain::ImGuiToggleTrackingFullHouse()
 {
     g_trackingFullHouseEnable = !g_trackingFullHouseEnable;
+}
+
+void hlMain::ImGuiToggleOrbDisplay()
+{
+    g_orbDisplayEnable = !g_orbDisplayEnable;
 }
 
 void hlMain::ImGuiToggleTrickDown()
@@ -638,6 +648,7 @@ bool hlMain::init()
     checkHoneyComb = reader.GetBoolean("player", "instant_honeycomb", true);
     checkInfiniteTrickRange = reader.GetBoolean("player", "infinite_trick_range", true);
     checkCameraSensitivity = reader.GetBoolean("system", "increased_camera_sensitivity", true);
+    checkOrbDisplay = reader.GetBoolean("system", "enemy_hp_red_orb_display", true);
 
     // checking for ini
     if (reader.ParseError() < 0)
@@ -652,6 +663,7 @@ bool hlMain::init()
     jcCooldown = hl::FindPattern(jcCooldown_aob);
     movingTargetChange = hl::FindPattern(movingTargetChange_aob);
     damagemodifier = hl::FindPattern(damagemodifier_aob);
+    orbDisplay = modBase + 0xFDD35;
     heightRestrictionDante = modBase + 0x3B764E;
     heightRestrictionBuster = modBase + 0x3E614B;
     heightRestrictionSplit = modBase + 0x3E5F8D;
@@ -951,6 +963,11 @@ bool hlMain::init()
     {
         auto trackingFullHouse_hk = m_hook.hookJMP(trackingFullHouse, 7, &trackingFullHouse_proc);
     }
+
+    /*if (orbDisplay != 0)
+    {
+        auto orbDisplay_hk = m_hook.hookJMP(orbDisplay, 6, &orbDisplay_proc);	//, &_orbDisplayContinue
+    }*/
 
     if (timerAlloc != 0)
     {
@@ -1259,6 +1276,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 {
                     main->ToggleBpPortalAutoOpen(checkBpPortalAutoOpen);
                 }
+
+				/*if (ImGui::Checkbox("Enemy HP Red Orb Display", &checkOrbDisplay))
+                {
+                    main->ImGuiToggleOrbDisplay();
+                }*/
 
                 ImGui::Spacing();
                 ImGui::Spacing();
