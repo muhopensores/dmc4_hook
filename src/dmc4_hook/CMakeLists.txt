@@ -36,6 +36,7 @@ SET (INIH
 SET (SOURCES
   hooks.cpp
   main.cpp
+  gui_functions.cpp
 )
 
 source_group("imgui", FILES ${IMGUI})
