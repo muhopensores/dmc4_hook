@@ -70,7 +70,7 @@ void DrawWindow()
 // imgui::being seperated into function (required to make gui overlay work, see imgui example and documentation
 void BeginDrawing()
 {
-    ImGui::Begin("DMC4Hook 1.1.3", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::Begin(GUI_VERSION, NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 }
 
 // function that draws the fps onto the gui

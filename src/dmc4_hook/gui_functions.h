@@ -5,6 +5,8 @@
 #include "imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
 
+#define GUI_VERSION "DMC4Hook 1.1.3" 
+
 //gui function definitions
 
 //visual theme of the gui, can be changed to change the look
