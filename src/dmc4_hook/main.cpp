@@ -531,10 +531,6 @@ void hlMain::ToggleStuff()
     {
         g_orbDisplayEnable = true;
     }
-    if (roseRemovesPins)
-    {
-        g_roseRemovesPinsEnable = true;
-    }
     ToggleStyleSwitch(checkStyleSwitch);
     ToggleJcCooldown(checkJcCooldown);
     ToggleWeaponSwitch(checkWeaponSwitch);
