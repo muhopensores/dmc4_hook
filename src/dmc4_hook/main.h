@@ -69,6 +69,7 @@ public:
     void ImGuiToggleHoneyComb();
     void ImGuiToggleOrbDisplay();
     void ImGuiToggleRoseRemovesPins();
+    void ImGuiToggleNoHelmBreakerKnockback();
     
 	//functions
     void ImGuiInitiateJump();
@@ -281,6 +282,7 @@ public:
     uintptr_t infiniteTrickRange;
     uintptr_t cameraSensitivity;
     uintptr_t roseRemovesPins;
+    uintptr_t noHelmBreakerKnockback;
     float* globalSpeed;
     float* playerSpeed;
     float* enemySpeed;

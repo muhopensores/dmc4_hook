@@ -118,6 +118,7 @@ bool checkHoneyComb = false;
 bool checkInfiniteTrickRange = false;
 bool checkCameraSensitivity = false;
 bool checkRoseRemovesPins = false;
+bool checkNoHelmBreakerKnockback = false;
 
 
 hl::StaticInit<class hlMain> g_main;
@@ -588,6 +589,11 @@ void hlMain::ImGuiToggleRoseRemovesPins()
     g_roseRemovesPinsEnable = !g_roseRemovesPinsEnable;
 }
 
+void hlMain::ImGuiToggleNoHelmBreakerKnockback()
+{
+    g_noHelmBreakerKnockbackEnable = !g_noHelmBreakerKnockbackEnable;
+}
+
 bool hlMain::init()
 {
     hl::LogConfig logCfg;
@@ -656,6 +662,7 @@ bool hlMain::init()
     checkCameraSensitivity = reader.GetBoolean("system", "increased_camera_sensitivity", true);
     checkOrbDisplay = reader.GetBoolean("system", "enemy_hp_red_orb_display", true);
     checkRoseRemovesPins = reader.GetBoolean("player", "rose_removes_pins", true);
+    checkNoHelmBreakerKnockback = reader.GetBoolean("player", "no_helmbreaker_knockback", true);
 
     // checking for ini
     if (reader.ParseError() < 0)
@@ -843,6 +850,7 @@ bool hlMain::init()
     infiniteTrickRange = modBase + 0x3CB0A8;
     cameraSensitivity = modBase + 0x180A8;
     roseRemovesPins = modBase + 0x4158C3;
+    noHelmBreakerKnockback = modBase + 0x11C384;
 
     // we'll set this in StageJump function
     // roomID = ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830, 0x6C });
@@ -1008,6 +1016,11 @@ bool hlMain::init()
         auto roseRemovesPins_hk = m_hook.hookJMP(roseRemovesPins, 10, &roseRemovesPins_proc);
     }
 
+    if (noHelmBreakerKnockback != 0)
+    {
+        auto noHelmBreakerKnockback_hk = m_hook.hookJMP(noHelmBreakerKnockback, 5, &noHelmBreakerKnockback_proc);
+    }
+
     ToggleStuff();
     return true;
 }
@@ -1164,6 +1177,13 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 if (ImGui::Checkbox("Rose Removes Pins", &checkRoseRemovesPins))
                 {
                     main->ImGuiToggleRoseRemovesPins();
+                }
+
+				ImGui::SameLine(198);
+
+                if (ImGui::Checkbox("No Helm Breaker Knockback", &checkNoHelmBreakerKnockback))
+                {
+                    main->ImGuiToggleNoHelmBreakerKnockback();
                 }
 
                 ImGui::Spacing();

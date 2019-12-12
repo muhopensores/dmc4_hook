@@ -39,6 +39,8 @@ extern "C"
     uintptr_t _floorTouchContinue = 0x007CB345;
     uintptr_t _roseRemovesPinsContinue = 0x008158CD;
     uintptr_t _roseRemovesPinsJE = 0x00815970;
+    uintptr_t _noHelmBreakerKnockbackContinue = 0x0051C389;
+    uintptr_t _noHelmBreakerKnockbackJE = 0x0051C367;
 
 	//bools to check for toggling purposes within a gui checkbox, if false, then checkbox toggle is required to activate
     bool g_InfDTEnable = false;
@@ -61,6 +63,7 @@ extern "C"
     bool g_trickDownEnable = false;
     bool g_honeyCombEnable = false;
 	bool g_roseRemovesPinsEnable = false;
+	bool g_noHelmBreakerKnockbackEnable = false;
 }
 
 //procs that apply changes directly using inline asm, work in conjunction with hooks
@@ -512,5 +515,34 @@ _declspec(naked) void roseRemovesPins_proc(void)
 			cmp byte ptr [esi+0x14],04
 			je removepinsje
 			jmp dword ptr [_roseRemovesPinsContinue]
+    }
+}
+
+_declspec(naked) void noHelmBreakerKnockback_proc(void)
+{
+    _asm {
+			cmp byte ptr [g_noHelmBreakerKnockbackEnable],0
+			je originalcode
+
+			cmp [moveID],0x20A	// 522 // Low
+			je newcode
+			cmp [moveID],0x213	// 531 // Mid
+			je newcode
+			cmp [moveID],0x214	// 532 // High
+			je newcode
+			jmp originalcode
+
+		newcode:
+			cmp ecx,0x05
+			je nohelmbreakerknockbackje
+			jmp dword ptr [_noHelmBreakerKnockbackContinue]
+
+		nohelmbreakerknockbackje:
+			jmp dword ptr [_noHelmBreakerKnockbackJE]
+
+		originalcode:
+			cmp ecx,0x05
+			jl nohelmbreakerknockbackje
+			jmp dword ptr [_noHelmBreakerKnockbackContinue]
     }
 }
