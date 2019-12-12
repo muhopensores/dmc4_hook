@@ -83,11 +83,15 @@ _declspec(naked) void damagemodifier_proc(void)
 			cmp dword ptr [esi+0x1C], 0x469C4000
 			je originalcode
 
-			movss xmm4,[esi+0x18]
-			subss xmm4,xmm0
-            movss xmm0,[esi+0x18]
-            mulss xmm4,[damagemultiplier]
-            subss xmm0,xmm4
+			movss dword ptr [ebp-4],xmm4
+
+			movss xmm4,[esi+0x18]				// get the current life
+			subss xmm4,xmm0						// substract the current life to the new life ( = currentHitDamage)
+            movss xmm0,[esi+0x18]				// set new life to old life
+            mulss xmm4,[damagemultiplier]		// multiply by "multiplier" the currentHitDamage (xmm2)
+            subss xmm0,xmm4						// subss to new life current hit dammage
+
+			movss xmm4, dword ptr [ebp-4]
 
 		originalcode:
             movss [esi+0x18],xmm0
@@ -102,21 +106,21 @@ _declspec(naked) void orbDisplay_proc(void)
 			cmp byte ptr [g_orbDisplayEnable],0
 			je originalcode
 
-			//cmp dword ptr [enemyHPDisplay],0x00000000	// Check to see if enemy is dead.
+			//cmp dword ptr [enemyHPDisplay],0x00000000		// Check to see if enemy is dead
 			// checking to see if enemyHP >= 0
 			// this clobbers xmm0 register but it does
 			// not seem to affect the game? not sure.
 			xorps xmm0, xmm0
 			comiss xmm0, DWORD PTR [enemyHPDisplay]
-			jae originalcode									// If yes, show default Orb Count
+			jae originalcode								// If yes, show default Orb Count
 
-			cvttss2si eax, [enemyHPDisplay] // If no, write Enemy HP Display to orbs rather than Orb Count	// cvttss2si
-			push ebx //the push ebx instruction was missing
+			cvttss2si eax, [enemyHPDisplay]					// If no, write Enemy HP Display to orbs rather than Orb Count	// cvttss2si
+			push ebx
 			jmp dword ptr [_orbDisplayContinue]
 
 			originalcode:
 			mov eax,[eax+0x00000114]
-			push ebx //the push ebx instruction was missing
+			push ebx 
             jmp dword ptr [_orbDisplayContinue]
     }
 }

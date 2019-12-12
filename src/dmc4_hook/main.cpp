@@ -120,7 +120,6 @@ bool checkCameraSensitivity = false;
 bool checkRoseRemovesPins = false;
 bool checkNoHelmBreakerKnockback = false;
 
-
 hl::StaticInit<class hlMain> g_main;
 
 hlMain* GetMain()
