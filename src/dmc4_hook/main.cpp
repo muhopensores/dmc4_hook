@@ -195,6 +195,36 @@ void hlMain::ImGuiToggleDamageModifier()
     g_damageModifierEnable = !g_damageModifierEnable;
 }
 
+void hlMain::ImGuiToggleLDKWithDMD()
+{
+    g_ldkWithDMDEnable = !g_ldkWithDMDEnable;
+}
+
+void hlMain::ImGuiToggleTrackingFullHouse()
+{
+    g_trackingFullHouseEnable = !g_trackingFullHouseEnable;
+}
+
+void hlMain::ImGuiToggleOrbDisplay()
+{
+    g_orbDisplayEnable = !g_orbDisplayEnable;
+}
+
+void hlMain::ImGuiToggleTrickDown()
+{
+    g_trickDownEnable = !g_trickDownEnable;
+}
+
+void hlMain::ImGuiToggleRoseRemovesPins()
+{
+    g_roseRemovesPinsEnable = !g_roseRemovesPinsEnable;
+}
+
+void hlMain::ImGuiToggleNoHelmBreakerKnockback()
+{
+    g_noHelmBreakerKnockbackEnable = !g_noHelmBreakerKnockbackEnable;
+}
+
 void hlMain::ImGuiInitiateJump()
 {
     *initiateJump = 1;
@@ -483,6 +513,48 @@ void hlMain::GamePause()
 
 void hlMain::ToggleStuff()
 {
+	// Player
+		// General
+	ToggleWeaponSwitch(checkWeaponSwitch);
+    ToggleJcCooldown(checkJcCooldown);
+    ToggleStyleSwitch(checkStyleSwitch);
+    ToggleMovingTargetChange(checkMovingTargetChange);
+		// Height Restriction Removal
+    ToggleHeightRestrictionDante(checkHeightRestrictionDante);
+    ToggleHeightRestrictionNero(checkHeightRestrictionNero);
+		// Player Damage Modifier
+    if (checkDamageModifier)
+    {
+        g_damageModifierEnable = true;
+    }
+		// Misc
+	ToggleInfiniteAirHike(checkInfiniteAirHike);
+    ToggleInfiniteTableHopper(checkInfiniteTableHopper);
+    if (checkTrickDown)
+    {
+        g_trickDownEnable = true;
+    }
+    ToggleInfiniteTrickRange(checkInfiniteTrickRange);
+    if (checkTrackingFullHouse)
+    {
+        g_trackingFullHouseEnable = true;
+    }
+    if (checkHoneyComb)
+    {
+        g_honeyCombEnable = true;
+    }
+	ToggleFastPandora(checkFastPandora);
+    ToggleSprintFasterActivate(checkSprintFasterActivate);
+	if (checkRoseRemovesPins)
+    {
+        g_roseRemovesPinsEnable = true;
+    }
+	if (checkNoHelmBreakerKnockback)
+	{
+		g_noHelmBreakerKnockbackEnable = true;
+	}
+		// Selective Cancels
+			// Common
     if (checkSelectiveCancels)
     {
         g_moveIDAllocEnable = true;
@@ -504,6 +576,7 @@ void hlMain::ToggleStuff()
     {
         g_slashDimensionCancelEnable = true;
     }
+			// Swords
     if (checkPropCancel)
     {
         g_propCancelEnable = true;
@@ -512,86 +585,68 @@ void hlMain::ToggleStuff()
     {
         g_shockCancelEnable = true;
     }
+			// Guns
     if (checkOmenCancel)
     {
         g_omenCancelEnable = true;
     }
-    if (checkTrackingFullHouse)
-    {
-        g_trackingFullHouseEnable = true;
-    }
-    if (checkTrickDown)
-    {
-        g_trickDownEnable = true;
-    }
-    if (checkHoneyComb)
-    {
-        g_honeyCombEnable = true;
-    }
+	// System
+		// General
+    ToggleInfiniteTime(checkInfiniteTime);
+    ToggleDisableCameraEvents(checkDisableCameraEvents);
+    ToggleAutoSkipIntro(checkautoSkiptIntro);
+    ToggleAutoSkipOutro(checkAutoSkipOutro);
+    ToggleHideHUD(checkHideHUD);
+    ToggleHideStyle(checkHideStyle);
+    ToggleCharacterChange(checkCharacterChange);
+    ToggleSlowWalk(checkSlowWalk);
+    ToggleBpPortalAutoOpen(checkBpPortalAutoOpen);
     if (checkOrbDisplay)
     {
         g_orbDisplayEnable = true;
     }
-    ToggleStyleSwitch(checkStyleSwitch);
-    ToggleJcCooldown(checkJcCooldown);
-    ToggleWeaponSwitch(checkWeaponSwitch);
-    ToggleMovingTargetChange(checkMovingTargetChange);
-    ToggleHeightRestrictionDante(checkHeightRestrictionDante);
-    ToggleHeightRestrictionNero(checkHeightRestrictionNero);
-    ToggleInfiniteTime(checkInfiniteTime);
-    ToggleInfiniteAllHealth(checkinfiniteAllHealth);
-    ToggleDisableCameraEvents(checkDisableCameraEvents);
-    ToggleHideHUD(checkHideHUD);
-    ToggleEnemyNoDT(checkEnemyNoDT);
-    ToggleEnemyInstantDT(checkEnemyInstantDT);
-    ToggleBpPortalAutoOpen(checkBpPortalAutoOpen);
-    ToggleFastPandora(checkFastPandora);
-    ToggleInfiniteAirHike(checkInfiniteAirHike);
-    ToggleBerialPractice(checkBerialPractice);
+		// Game Mode
     ToggleBossRush(checkBossRush);
+    ToggleLDKWithDMD(checkLDKWithDMD);
+		if (checkLDKWithDMD)
+		{
+			g_ldkWithDMDEnable = true;
+		}
+    ToggleInfiniteAllHealth(checkinfiniteAllHealth);
+	ToggleEnemyInstantDT(checkEnemyInstantDT);
+    ToggleEnemyNoDT(checkEnemyNoDT);
+    ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
+
+		// Misc
+    ToggleCameraSensitivity(checkCameraSensitivity);
+
+	// Practice
+		// General
+    ToggleInfiniteAllHealth(checkinfiniteAllHealth);
+    if (checkInfiniteDT)
+    {
+        g_InfDTEnable = true;
+    }
+    if (checkInfinitePlayerHealth)
+    {
+        g_InfPlayerHealthEnable = true;
+    }
+    ToggleInfiniteRevive(checkInfiniteRevive);
+
+		// Misc
+    ToggleBerialPractice(checkBerialPractice);
+		if (checkBerialPractice)
+		{
+			g_berialDazeEnable = true;
+		}
+    ToggleStunAnything(checkStunAnything);
+	ToggleRemoveLaunchArmour(checkRemoveLaunchArmour);
+
+		//Disable Darkslayer Inputs
+    ToggleDisableDarkslayerUp(checkDisableDarkslayerUp);
     ToggleDisableDarkslayerDown(checkDisableDarkslayerDown);
     ToggleDisableDarkslayerLeft(checkDisableDarkslayerLeft);
-    ToggleStunAnything(checkStunAnything);
-    ToggleSprintFasterActivate(checkSprintFasterActivate);
-    ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
-    ToggleSlowWalk(checkSlowWalk);
-    ToggleHideStyle(checkHideStyle);
-    ToggleAutoSkipIntro(checkautoSkiptIntro);
-    ToggleLDKWithDMD(checkLDKWithDMD);
-    ToggleInfiniteRevive(checkInfiniteRevive);
-    ToggleAutoSkipOutro(checkAutoSkipOutro);
-    ToggleInfiniteTrickRange(checkInfiniteTrickRange);
-    ToggleCameraSensitivity(checkCameraSensitivity);
-}
-
-void hlMain::ImGuiToggleLDKWithDMD()
-{
-    g_ldkWithDMDEnable = !g_ldkWithDMDEnable;
-}
-
-void hlMain::ImGuiToggleTrackingFullHouse()
-{
-    g_trackingFullHouseEnable = !g_trackingFullHouseEnable;
-}
-
-void hlMain::ImGuiToggleOrbDisplay()
-{
-    g_orbDisplayEnable = !g_orbDisplayEnable;
-}
-
-void hlMain::ImGuiToggleTrickDown()
-{
-    g_trickDownEnable = !g_trickDownEnable;
-}
-
-void hlMain::ImGuiToggleRoseRemovesPins()
-{
-    g_roseRemovesPinsEnable = !g_roseRemovesPinsEnable;
-}
-
-void hlMain::ImGuiToggleNoHelmBreakerKnockback()
-{
-    g_noHelmBreakerKnockbackEnable = !g_noHelmBreakerKnockbackEnable;
+    ToggleDisableDarkslayerRight(checkDisableDarkslayerRight);
 }
 
 bool hlMain::init()
@@ -611,29 +666,29 @@ bool hlMain::init()
 
     // define ini options
     INIReader reader("dmc4hook.ini");
-    checkStyleSwitch = reader.GetBoolean("player", "style_switch_limits_removed", true);
+	// Player
+		// Limit Removal
     checkWeaponSwitch = reader.GetBoolean("player", "sword_&_gun_switch_limits_removed", true);
     checkJcCooldown = reader.GetBoolean("player", "jc_limits_removed", true);
+    checkStyleSwitch = reader.GetBoolean("player", "style_switch_limits_removed", true);
     checkMovingTargetChange = reader.GetBoolean("player", "target_change_limit_removed", true);
+		// Height Restriction Removal
     checkHeightRestrictionDante = reader.GetBoolean("player", "dante_height_restriction_removed", true);
     checkHeightRestrictionNero = reader.GetBoolean("player", "nero_height_restriction_removed", true);
-    checkInfiniteTime = reader.GetBoolean("system", "infinite_time", true);
-    checkinfiniteAllHealth = reader.GetBoolean("practice", "infinite_health_all", true);
-    checkDisableCameraEvents = reader.GetBoolean("system", "disable_camera_events", true);
-    checkHideHUD = reader.GetBoolean("system", "hide_hud", true);
-    checkFastPandora = reader.GetBoolean("player", "fast_pandora", true);
+		// Player Damage Modifier
+    checkDamageModifier = reader.GetBoolean("player", "damage_modifier", true);
+		// Misc
     checkInfiniteAirHike = reader.GetBoolean("player", "infinite_air_hike", true);
-    checkEnemyNoDT = reader.GetBoolean("system", "enemy_no_DT", true);
-    checkEnemyInstantDT = reader.GetBoolean("system", "enemy_instant_DT", true);
-    checkBpPortalAutoOpen = reader.GetBoolean("system", "auto_open_doors_and_BP_portal", true);
-    checkInfiniteDT = reader.GetBoolean("practice", "infinite_DT", true);
-    checkInfinitePlayerHealth = reader.GetBoolean("practice", "infinite_player_health", true);
-    checkBerialPractice = reader.GetBoolean("practice", "berial_practice", true);
-    checkBossRush = reader.GetBoolean("system", "boss_rush_mode", true);
-    checkDisableDarkslayerUp = reader.GetBoolean("practice", "disable_darkslayer_Dpad_up", true);
-    checkDisableDarkslayerDown = reader.GetBoolean("practice", "disable_darkslayer_Dpad_down", true);
-    checkDisableDarkslayerLeft = reader.GetBoolean("practice", "disable_darkslayer_Dpad_left", true);
-    checkDisableDarkslayerRight = reader.GetBoolean("practice", "disable_darkslayer_Dpad_right", true);
+    checkInfiniteTableHopper = reader.GetBoolean("player", "infinite_table_hopper", true);
+    checkTrickDown = reader.GetBoolean("player", "trick_down", true);
+    checkInfiniteTrickRange = reader.GetBoolean("player", "infinite_trick_range", true);
+    checkTrackingFullHouse = reader.GetBoolean("player", "tracking_full_house", true);
+    checkHoneyComb = reader.GetBoolean("player", "instant_honeycomb", true);
+    checkFastPandora = reader.GetBoolean("player", "fast_pandora", true);
+    checkSprintFasterActivate = reader.GetBoolean("player", "faster_sprint_activation", true);
+    checkRoseRemovesPins = reader.GetBoolean("player", "rose_removes_pins", true);
+    checkNoHelmBreakerKnockback = reader.GetBoolean("player", "no_helmbreaker_knockback", true);
+		// Selective Cancels
     checkSelectiveCancels = reader.GetBoolean("player", "selective_cancels", true);
     checkEcstasyCancel = reader.GetBoolean("player", "ecstasy_cancel", true);
     checkArgumentCancel = reader.GetBoolean("player", "argument_cancel", true);
@@ -642,27 +697,43 @@ bool hlMain::init()
     checkPropCancel = reader.GetBoolean("player", "prop_cancel", true);
     checkShockCancel = reader.GetBoolean("player", "shock_cancel", true);
     checkOmenCancel = reader.GetBoolean("player", "omen_cancel", true);
-    checkStunAnything = reader.GetBoolean("practice", "stun_anything", true);
-    checkRemoveLaunchArmour = reader.GetBoolean("practice", "remove_launch_armour", true);
-    checkCharacterChange = reader.GetBoolean("system", "character_change", true);
-    checkSprintFasterActivate = reader.GetBoolean("player", "faster_sprint_activation", true);
-    checkEnemyAttackOffscreen = reader.GetBoolean("system", "enemies_attack_offscreen", true);
-    checkSlowWalk = reader.GetBoolean("system", "enable_slow_walk", true);
-    checkHideStyle = reader.GetBoolean("system", "hide_Style_meter_and_orbs", true);
+
+	// System
+		// General
+    checkInfiniteTime = reader.GetBoolean("system", "infinite_time", true);
+    checkDisableCameraEvents = reader.GetBoolean("system", "disable_camera_events", true);
     checkautoSkiptIntro = reader.GetBoolean("system", "auto_skip_mission_intro", true);
-    checkLDKWithDMD = reader.GetBoolean("system", "ldk_on_DMD_diff", true);
-    checkInfiniteRevive = reader.GetBoolean("practice", "infinite_revive", true);
-    checkSetStyle = reader.GetBoolean("config", "set_style", true);
-    checkAutoSkipOutro = reader.GetBoolean("system", "auto_skip_mission_outros", true);
-    checkInfiniteTableHopper = reader.GetBoolean("player", "infinite_table_hopper", true);
-    checkTrackingFullHouse = reader.GetBoolean("player", "tracking_full_house", true);
-    checkTrickDown = reader.GetBoolean("player", "trick_down", true);
-    checkHoneyComb = reader.GetBoolean("player", "instant_honeycomb", true);
-    checkInfiniteTrickRange = reader.GetBoolean("player", "infinite_trick_range", true);
+	checkAutoSkipOutro = reader.GetBoolean("system", "auto_skip_mission_outros", true);
+    checkHideHUD = reader.GetBoolean("system", "hide_hud", true);
+	checkHideStyle = reader.GetBoolean("system", "hide_Style_meter_and_orbs", true);
+    checkCharacterChange = reader.GetBoolean("system", "character_change", true);
+	checkSlowWalk = reader.GetBoolean("system", "enable_slow_walk", true);
+    checkBpPortalAutoOpen = reader.GetBoolean("system", "auto_open_doors_and_BP_portal", true);
+	checkOrbDisplay = reader.GetBoolean("system", "enemy_hp_red_orb_display", true);
+		// Game Mode
+	checkBossRush = reader.GetBoolean("system", "boss_rush_mode", true);
+	checkLDKWithDMD = reader.GetBoolean("system", "ldk_on_DMD_diff", true);
+	checkEnemyInstantDT = reader.GetBoolean("system", "enemy_instant_DT", true);
+    checkEnemyNoDT = reader.GetBoolean("system", "enemy_no_DT", true);
+    checkEnemyAttackOffscreen = reader.GetBoolean("system", "enemies_attack_offscreen", true);
+		// Misc
     checkCameraSensitivity = reader.GetBoolean("system", "increased_camera_sensitivity", true);
-    checkOrbDisplay = reader.GetBoolean("system", "enemy_hp_red_orb_display", true);
-    checkRoseRemovesPins = reader.GetBoolean("player", "rose_removes_pins", true);
-    checkNoHelmBreakerKnockback = reader.GetBoolean("player", "no_helmbreaker_knockback", true);
+
+	// Practice
+		// General
+    checkinfiniteAllHealth = reader.GetBoolean("practice", "infinite_health_all", true);
+    checkInfiniteDT = reader.GetBoolean("practice", "infinite_DT", true);
+    checkInfinitePlayerHealth = reader.GetBoolean("practice", "infinite_player_health", true);
+    checkInfiniteRevive = reader.GetBoolean("practice", "infinite_revive", true);
+		// Misc
+    checkBerialPractice = reader.GetBoolean("practice", "berial_practice", true);
+	checkStunAnything = reader.GetBoolean("practice", "stun_anything", true);
+    checkRemoveLaunchArmour = reader.GetBoolean("practice", "remove_launch_armour", true);
+		// Disable Darkslayer Inputs
+    checkDisableDarkslayerUp = reader.GetBoolean("practice", "disable_darkslayer_Dpad_up", true);
+    checkDisableDarkslayerDown = reader.GetBoolean("practice", "disable_darkslayer_Dpad_down", true);
+    checkDisableDarkslayerLeft = reader.GetBoolean("practice", "disable_darkslayer_Dpad_left", true);
+    checkDisableDarkslayerRight = reader.GetBoolean("practice", "disable_darkslayer_Dpad_right", true);
 
     // checking for ini
     if (reader.ParseError() < 0)
