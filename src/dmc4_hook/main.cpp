@@ -51,11 +51,11 @@ T ReadPointerPath(std::vector<uintptr_t> offsets)
     else
         return (T)(ret + offsets[len - 1]);
 }
-//initialization bools
+// initialization bools
 bool initialized = true;
 bool g_bWasInitialized = true;
 
-//bools to check if cheat is active or not
+// bools to check if cheat is active or not
 bool checkStyleSwitch = false;
 bool checkWeaponSwitch = false;
 bool checkJcCooldown = false;
@@ -81,14 +81,14 @@ bool checkDisableDarkslayerLeft = false;
 bool checkDisableDarkslayerRight = false;
 bool checkDisableDarkslayerUp = false;
 bool checkMoveIDAlloc = false;
-	bool checkSelectiveCancels = false;
-		bool checkEcstasyCancel = false;
-		bool checkArgumentCancel = false;
-		bool checkKickThirteenCancel = false;
-		bool checkSlashDimensionCancel = false;
-		bool checkPropCancel = false;
-		bool checkShockCancel = false;
-		bool checkOmenCancel = false;
+bool checkSelectiveCancels = false;
+bool checkEcstasyCancel = false;
+bool checkArgumentCancel = false;
+bool checkKickThirteenCancel = false;
+bool checkSlashDimensionCancel = false;
+bool checkPropCancel = false;
+bool checkShockCancel = false;
+bool checkOmenCancel = false;
 bool checkDamageModifier = false;
 bool checkOrbDisplay = false;
 bool checkStunAnything = false;
@@ -108,15 +108,16 @@ bool checkRandomEnemies = false;
 bool checkAutoSkipOutro = false;
 bool checkInfiniteTableHopper = false;
 bool checkLockOn = false;
-	bool checkLockOff = false;
-		bool checkTrackingFullHouse = false;
+bool checkLockOff = false;
+bool checkTrackingFullHouse = false;
 bool checkTimerAlloc = false;
-	bool checkBackForward = false;
-	bool checkTrickDown = false;
-	bool checkFloorTouch = false;
-	bool checkHoneyComb = false;
+bool checkBackForward = false;
+bool checkTrickDown = false;
+bool checkFloorTouch = false;
+bool checkHoneyComb = false;
 bool checkInfiniteTrickRange = false;
 bool checkCameraSensitivity = false;
+bool checkRoseRemovesPins = false;
 
 
 hl::StaticInit<class hlMain> g_main;
@@ -126,7 +127,7 @@ hlMain* GetMain()
     return g_main.getMain();
 }
 
-//toggle functions to call from imgui to apply cheats
+// toggle functions to call from imgui to apply cheats
 void hlMain::ImGuiToggleInfPlayerHealth()
 {
     g_InfPlayerHealthEnable = !g_InfPlayerHealthEnable;
@@ -215,253 +216,253 @@ void hlMain::ImGuiStageJump(int room)
     switch (room)
     {
     case 0:
-        *roomID = 705;	// "Bloody Palace 1-19"
+        *roomID = 705; // "Bloody Palace 1-19"
         break;
     case 1:
-        *roomID = 704;	// "Bloody Palace 21-39"
+        *roomID = 704; // "Bloody Palace 21-39"
         break;
     case 2:
-        *roomID = 703;	// "Bloody Palace 41-59"
+        *roomID = 703; // "Bloody Palace 41-59"
         break;
     case 3:
-        *roomID = 701;	// "Bloody Palace 61-79"
+        *roomID = 701; // "Bloody Palace 61-79"
         break;
     case 4:
-        *roomID = 702;	// "Bloody Palace 81-99"
+        *roomID = 702; // "Bloody Palace 81-99"
         break;
     case 5:
-        *roomID = 503;	// "Bloody Palace 20"
+        *roomID = 503; // "Bloody Palace 20"
         break;
     case 6:
-        *roomID = 504;	// "Bloody Palace 40"
+        *roomID = 504; // "Bloody Palace 40"
         break;
     case 7:
-        *roomID = 505;	// "Bloody Palace 60"
+        *roomID = 505; // "Bloody Palace 60"
         break;
     case 8:
-        *roomID = 507;	// "Bloody Palace 80"
+        *roomID = 507; // "Bloody Palace 80"
         break;
     case 9:
-        *roomID = 506;	// "Bloody Palace 100"
+        *roomID = 506; // "Bloody Palace 100"
         break;
     case 10:
-        *roomID = 700;	// "Bloody Palace 101"
+        *roomID = 700; // "Bloody Palace 101"
         break;
     case 11:
-        *roomID = 0;	// "Opera House"
+        *roomID = 0; // "Opera House"
         break;
     case 12:
-        *roomID = 1;	// "Opera House Plaza"
+        *roomID = 1; // "Opera House Plaza"
         break;
     case 13:
-        *roomID = 2;	// "Storehouse"
+        *roomID = 2; // "Storehouse"
         break;
     case 14:
-        *roomID = 3;	// "Cathedral"
+        *roomID = 3; // "Cathedral"
         break;
     case 15:
-        *roomID = 4;	// "Terrace / Business District"
+        *roomID = 4; // "Terrace / Business District"
         break;
     case 16:
-        *roomID = 5;	// "Residential District"
+        *roomID = 5; // "Residential District"
         break;
     case 17:
-        *roomID = 6;	// "Port Caerula"
+        *roomID = 6; // "Port Caerula"
         break;
     case 18:
-        *roomID = 7;	// "Customs House"
+        *roomID = 7; // "Customs House"
         break;
     case 19:
-        *roomID = 8;	// "First Mining Area"
+        *roomID = 8; // "First Mining Area"
         break;
     case 20:
-        *roomID = 9;	// "Ferrum Hills"
+        *roomID = 9; // "Ferrum Hills"
         break;
     case 21:
-        *roomID = 10;	// "M17 Opera House"
+        *roomID = 10; // "M17 Opera House"
         break;
     case 22:
-        *roomID = 11;	// "M17 Opera House Plaza"
+        *roomID = 11; // "M17 Opera House Plaza"
         break;
     case 23:
-        *roomID = 12;	// "Business District / Terrace"
+        *roomID = 12; // "Business District / Terrace"
         break;
     case 24:
-        *roomID = 13;	// "M20 Opera House Plaza"
+        *roomID = 13; // "M20 Opera House Plaza"
         break;
     case 25:
-        *roomID = 100;	// "Second Mining Area"
+        *roomID = 100; // "Second Mining Area"
         break;
     case 26:
-        *roomID = 105;	// "Fortuna Castle Gate"
+        *roomID = 105; // "Fortuna Castle Gate"
         break;
     case 27:
-        *roomID = 200;	// "Grand Hall (Fortuna Castle)"
+        *roomID = 200; // "Grand Hall (Fortuna Castle)"
         break;
     case 28:
-        *roomID = 201;	// "Large Hall"
+        *roomID = 201; // "Large Hall"
         break;
     case 29:
-        *roomID = 202;	// "Dining Room"
+        *roomID = 202; // "Dining Room"
         break;
     case 30:
-        *roomID = 203;	// "Torture Chamber"
+        *roomID = 203; // "Torture Chamber"
         break;
     case 31:
-        *roomID = 204;	// "Central Courtyard"
+        *roomID = 204; // "Central Courtyard"
         break;
     case 32:
-        *roomID = 205;	// "Foris Falls (Bridge Area)
+        *roomID = 205; // "Foris Falls (Bridge Area)
         break;
     case 33:
-        *roomID = 206;	// "Gallery"
+        *roomID = 206; // "Gallery"
         break;
     case 34:
-        *roomID = 207;	// "Library"
+        *roomID = 207; // "Library"
         break;
     case 35:
-        *roomID = 209;	// "Soldier's Graveyard"
+        *roomID = 209; // "Soldier's Graveyard"
         break;
     case 36:
-        *roomID = 210;	// "Master's Chamber"
+        *roomID = 210; // "Master's Chamber"
         break;
     case 37:
-        *roomID = 211;	// "Spiral Wall"
+        *roomID = 211; // "Spiral Wall"
         break;
     case 38:
-        *roomID = 212;	// "Underground Labratory"
+        *roomID = 212; // "Underground Labratory"
         break;
     case 39:
-        *roomID = 213;	// "R&D Access"
+        *roomID = 213; // "R&D Access"
         break;
     case 40:
-        *roomID = 214;	// "Game Room"
+        *roomID = 214; // "Game Room"
         break;
     case 41:
-        *roomID = 215;	// "Containment Room"
+        *roomID = 215; // "Containment Room"
         break;
     case 42:
-        *roomID = 216;	// "Angel Creation"
+        *roomID = 216; // "Angel Creation"
         break;
     case 43:
-        *roomID = 217;	// "Foris Falls (Detour Area)"
+        *roomID = 217; // "Foris Falls (Detour Area)"
         break;
     case 44:
-        *roomID = 300;	// "Forest Entrance"
+        *roomID = 300; // "Forest Entrance"
         break;
     case 45:
-        *roomID = 301;	// "Windswept Valley"
+        *roomID = 301; // "Windswept Valley"
         break;
     case 46:
-        *roomID = 302;	// "Ruined Church"
+        *roomID = 302; // "Ruined Church"
         break;
     case 47:
-        *roomID = 303;	// "Ruined Valley"
+        *roomID = 303; // "Ruined Valley"
         break;
     case 48:
-        *roomID = 304;	// "Ancient Training Ground"
+        *roomID = 304; // "Ancient Training Ground"
         break;
     case 49:
-        *roomID = 305;	// "Lapis River"
+        *roomID = 305; // "Lapis River"
         break;
     case 50:
-        *roomID = 306;	// "Ancient Plaza"
+        *roomID = 306; // "Ancient Plaza"
         break;
     case 51:
-        *roomID = 307;	// "Den of the She-Viper"
+        *roomID = 307; // "Den of the She-Viper"
         break;
     case 52:
-        *roomID = 308;	// "Forgotten Ruins"
+        *roomID = 308; // "Forgotten Ruins"
         break;
     case 53:
-        *roomID = 309;	// "Hidden Pit"
+        *roomID = 309; // "Hidden Pit"
         break;
     case 54:
-        *roomID = 310;	// "Ruined Lowlands"
+        *roomID = 310; // "Ruined Lowlands"
         break;
     case 55:
-        *roomID = 311;	// "Lost Woods"
+        *roomID = 311; // "Lost Woods"
         break;
     case 56:
-        *roomID = 400;	// "Gran Album Bridge"
+        *roomID = 400; // "Gran Album Bridge"
         break;
     case 57:
-        *roomID = 401;	// "Grand Hall (Order of the Sword HQ)"
+        *roomID = 401; // "Grand Hall (Order of the Sword HQ)"
         break;
     case 58:
-        *roomID = 402;	// "Key Chamber"
+        *roomID = 402; // "Key Chamber"
         break;
     case 59:
-        *roomID = 403;	// "The Gauntlet"
+        *roomID = 403; // "The Gauntlet"
         break;
     case 60:
-        *roomID = 404;	// "Agnus' Room"
+        *roomID = 404; // "Agnus' Room"
         break;
     case 61:
-        *roomID = 405;	// "Security Corridor"
+        *roomID = 405; // "Security Corridor"
         break;
     case 62:
-        *roomID = 406;	// "Experiment Disposal"
+        *roomID = 406; // "Experiment Disposal"
         break;
     case 63:
-        *roomID = 407;	// "Meeting Room"
+        *roomID = 407; // "Meeting Room"
         break;
     case 64:
-        *roomID = 408;	// "Ascension Chamber"
+        *roomID = 408; // "Ascension Chamber"
         break;
     case 65:
-        *roomID = 409;	// "Advent Chamber"
+        *roomID = 409; // "Advent Chamber"
         break;
     case 66:
-        *roomID = 500;	// "Machina Ex Deus"
+        *roomID = 500; // "Machina Ex Deus"
         break;
     case 67:
-        *roomID = 501;	// "Stairway to Heaven"
+        *roomID = 501; // "Stairway to Heaven"
         break;
     case 68:
-        *roomID = 502;	// "Sacred Heart"
+        *roomID = 502; // "Sacred Heart"
         break;
     case 69:
-        *roomID = 510;	// "M18"
+        *roomID = 510; // "M18"
         break;
     case 70:
-        *roomID = 512;	// "Sky Above Fortuna"
+        *roomID = 512; // "Sky Above Fortuna"
         break;
     case 71:
-        *roomID = 800;	// "Secret Mission 1"
+        *roomID = 800; // "Secret Mission 1"
         break;
     case 72:
-        *roomID = 801;	// "Secret Mission 2"
+        *roomID = 801; // "Secret Mission 2"
         break;
     case 73:
-        *roomID = 802;	// "Secret Mission 3"
+        *roomID = 802; // "Secret Mission 3"
         break;
     case 74:
-        *roomID = 803;	// "Secret Mission 4"
+        *roomID = 803; // "Secret Mission 4"
         break;
     case 75:
-        *roomID = 804;	// "Secret Mission 5"
+        *roomID = 804; // "Secret Mission 5"
         break;
     case 76:
-        *roomID = 805;	// "Secret Mission 6"
+        *roomID = 805; // "Secret Mission 6"
         break;
     case 77:
-        *roomID = 806;	// "Secret Mission 7"
+        *roomID = 806; // "Secret Mission 7"
         break;
     case 78:
-        *roomID = 807;	// "Secret Mission 8"
+        *roomID = 807; // "Secret Mission 8"
         break;
     case 79:
-        *roomID = 808;	// "Secret Mission 9"
+        *roomID = 808; // "Secret Mission 9"
         break;
     case 80:
-        *roomID = 809;	// "Secret Mission 10"
+        *roomID = 809; // "Secret Mission 10"
         break;
     case 81:
-        *roomID = 810;	// "Secret Mission 11"
+        *roomID = 810; // "Secret Mission 11"
         break;
     case 82:
-        *roomID = 811;	// "Secret Mission 12"
+        *roomID = 811; // "Secret Mission 12"
         break;
     }
     ImGuiInitiateJump();
@@ -517,19 +518,23 @@ void hlMain::ToggleStuff()
     if (checkTrackingFullHouse)
     {
         g_trackingFullHouseEnable = true;
-	}
-	if (checkTrickDown)
-	{
-		g_trickDownEnable = true;
-	}
-	if (checkHoneyComb)
-	{
-		g_honeyCombEnable = true;
-	}
-	if (checkOrbDisplay)
-	{
-		g_orbDisplayEnable = true;
-	}
+    }
+    if (checkTrickDown)
+    {
+        g_trickDownEnable = true;
+    }
+    if (checkHoneyComb)
+    {
+        g_honeyCombEnable = true;
+    }
+    if (checkOrbDisplay)
+    {
+        g_orbDisplayEnable = true;
+    }
+    if (roseRemovesPins)
+    {
+        g_roseRemovesPinsEnable = true;
+    }
     ToggleStyleSwitch(checkStyleSwitch);
     ToggleJcCooldown(checkJcCooldown);
     ToggleWeaponSwitch(checkWeaponSwitch);
@@ -580,6 +585,11 @@ void hlMain::ImGuiToggleOrbDisplay()
 void hlMain::ImGuiToggleTrickDown()
 {
     g_trickDownEnable = !g_trickDownEnable;
+}
+
+void hlMain::ImGuiToggleRoseRemovesPins()
+{
+    g_roseRemovesPinsEnable = !g_roseRemovesPinsEnable;
 }
 
 bool hlMain::init()
@@ -649,6 +659,7 @@ bool hlMain::init()
     checkInfiniteTrickRange = reader.GetBoolean("player", "infinite_trick_range", true);
     checkCameraSensitivity = reader.GetBoolean("system", "increased_camera_sensitivity", true);
     checkOrbDisplay = reader.GetBoolean("system", "enemy_hp_red_orb_display", true);
+    checkRoseRemovesPins = reader.GetBoolean("player", "rose_removes_pins", true);
 
     // checking for ini
     if (reader.ParseError() < 0)
@@ -759,7 +770,7 @@ bool hlMain::init()
     disableDarkslayerRight = modBase + 0x3B6D99;
     disableDarkslayerUp = modBase + 0x3B6C84;
 
-	//specific pointer checks for logging purposes - logs into the logfile after every boot of the game
+    // specific pointer checks for logging purposes - logs into the logfile after every boot of the game
     HL_LOG_RAW("globalSpeed = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x28 });\n");
     globalSpeed =
         ReadPointerPath<float*>({ modBase + 0xA558D0, 0x28 }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x28);
@@ -835,19 +846,22 @@ bool hlMain::init()
     floorTouch = modBase + 0x3CB33D;
     infiniteTrickRange = modBase + 0x3CB0A8;
     cameraSensitivity = modBase + 0x180A8;
+    roseRemovesPins = modBase + 0x4158C3;
 
     // we'll set this in StageJump function
     // roomID = ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830, 0x6C });
     // //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x6C);
     bpFloorStage =
-        ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830, 0x74 }); //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x74);
+        ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830,
+                                0x74 }); //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x74);
     if (bpFloorStage == NULL)
     {
         HL_LOG_ERR("bpFloorStage is NULL\n");
         bpFloorStage = (int*)&uninit_value;
     }
     initiateJump =
-        ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830, 0x68 }); //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x68);
+        ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830,
+                                0x68 }); //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x68);
     if (initiateJump == NULL)
     {
         HL_LOG_ERR("initiateJump is NULL\n");
@@ -906,7 +920,8 @@ bool hlMain::init()
 
     if (infinitePlayerHealth != 0)
     {
-        auto infinitePlayerHealth_hk = m_hook.hookJMP(infinitePlayerHealth, 8, &infinitePlayerHealth_proc, &_infinitePlayerHealthContinue);
+        auto infinitePlayerHealth_hk =
+            m_hook.hookJMP(infinitePlayerHealth, 8, &infinitePlayerHealth_proc, &_infinitePlayerHealthContinue);
     }
 
     if (berialDazeTwo != 0)
@@ -926,29 +941,32 @@ bool hlMain::init()
 
     if (cameraHeightSetting != 0)
     {
-        auto cameraHeightSetting_hk = m_hook.hookJMP(cameraHeightSetting, 8, &cameraHeight_proc, &_cameraHeightContinue);
+        auto cameraHeightSetting_hk =
+            m_hook.hookJMP(cameraHeightSetting, 8, &cameraHeight_proc, &_cameraHeightContinue);
     }
 
     if (cameraDistanceSetting != 0)
     {
-        auto cameraDistanceSetting_hk = m_hook.hookJMP(cameraDistanceSetting, 8, &cameraDistance_proc, &_cameraDistanceContinue);
+        auto cameraDistanceSetting_hk =
+            m_hook.hookJMP(cameraDistanceSetting, 8, &cameraDistance_proc, &_cameraDistanceContinue);
     }
 
     if (cameraDistanceLockonSetting != 0)
     {
-        auto cameraDistanceLockonSetting_hk = m_hook.hookJMP(cameraDistanceLockonSetting, 8, &cameraDistanceLockon_proc, &_cameraDistanceLockonContinue);
+        auto cameraDistanceLockonSetting_hk =
+            m_hook.hookJMP(cameraDistanceLockonSetting, 8, &cameraDistanceLockon_proc, &_cameraDistanceLockonContinue);
     }
 
     if (cameraAngleSetting != 0)
     {
         auto cameraAngleSeting_hk = m_hook.hookJMP(cameraAngleSetting, 8, &cameraAngle_proc, &_cameraAngleContinue);
     }
-    
+
     if (ldkWithDMDOne != 0)
     {
-        auto ldkWithDMDOne_hk = m_hook.hookJMP(ldkWithDMDOne, 6, &ldkWithDMD_proc);	//, &_ldkWithDMDContinue);
+        auto ldkWithDMDOne_hk = m_hook.hookJMP(ldkWithDMDOne, 6, &ldkWithDMD_proc); //, &_ldkWithDMDContinue);
     }
-    
+
     if (lockOn != 0)
     {
         auto lockOn_hk = m_hook.hookJMP(lockOn, 10, &lockOn_proc, &_lockOnContinue);
@@ -966,7 +984,7 @@ bool hlMain::init()
 
     if (orbDisplay != 0)
     {
-        auto orbDisplay_hk = m_hook.hookJMP(orbDisplay, 6, &orbDisplay_proc);	//, &_orbDisplayContinue
+        auto orbDisplay_hk = m_hook.hookJMP(orbDisplay, 6, &orbDisplay_proc); //, &_orbDisplayContinue
     }
 
     if (timerAlloc != 0)
@@ -989,6 +1007,11 @@ bool hlMain::init()
         auto floorTouch_hk = m_hook.hookJMP(floorTouch, 8, &floorTouch_proc);
     }
 
+    if (roseRemovesPins != 0)
+    {
+        auto roseRemovesPins_hk = m_hook.hookJMP(roseRemovesPins, 10, &roseRemovesPins_proc);
+    }
+
     ToggleStuff();
     return true;
 }
@@ -1004,7 +1027,7 @@ bool hlMain::step()
     return true;
 }
 
-//function to render the gui onto screen
+// function to render the gui onto screen
 void RenderImgui(IDirect3DDevice9* m_pDevice)
 {
     auto main = GetMain(); // get ptr to hacklib main
@@ -1026,7 +1049,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
     ImGui::NewFrame();
     DrawWindow();
 
-	// specific imgui functions, can be looked up in examples or the documentation
+    // specific imgui functions, can be looked up in examples or the documentation
     // references/ points to other functions to apply logic behind the gui toggles/ objects
     {
         BeginDrawing();
@@ -1040,12 +1063,12 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 ImGui::Text("Limit Removal");
 
-				if (ImGui::Checkbox("Remove Sword & Gun Switch Limit", &checkWeaponSwitch))
+                if (ImGui::Checkbox("Remove Sword & Gun Switch Limit", &checkWeaponSwitch))
                 {
                     main->ToggleWeaponSwitch(checkWeaponSwitch);
                 }
 
-				if (ImGui::Checkbox("Remove JC Limit", &checkJcCooldown))
+                if (ImGui::Checkbox("Remove JC Limit", &checkJcCooldown))
                 {
                     main->ToggleJcCooldown(checkJcCooldown);
                 }
@@ -1086,7 +1109,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 {
                     main->ImGuiToggleDamageModifier();
                 }
-				ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
+                ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
 
                 ImGui::Spacing();
                 ImGui::Spacing();
@@ -1099,7 +1122,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleInfiniteAirHike(checkInfiniteAirHike);
                 }
 
-				ImGui::SameLine(198);
+                ImGui::SameLine(198);
 
                 if (ImGui::Checkbox("Infinite Table Hopper", &checkInfiniteTableHopper))
                 {
@@ -1111,35 +1134,40 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ImGuiToggleTrickDown();
                 }
 
-				ImGui::SameLine(198);
+                ImGui::SameLine(198);
 
-				if (ImGui::Checkbox("Infinite Trick Range", &checkInfiniteTrickRange))
+                if (ImGui::Checkbox("Infinite Trick Range", &checkInfiniteTrickRange))
                 {
                     main->ToggleInfiniteTrickRange(checkInfiniteTrickRange);
                 }
 
-				if (ImGui::Checkbox("Tracking Full House", &checkTrackingFullHouse))
+                if (ImGui::Checkbox("Tracking Full House", &checkTrackingFullHouse))
                 {
                     main->ImGuiToggleTrackingFullHouse();
                 }
 
-				ImGui::SameLine(198);
+                ImGui::SameLine(198);
 
-				if (ImGui::Checkbox("Instant Honeycomb", &checkHoneyComb))
+                if (ImGui::Checkbox("Instant Honeycomb", &checkHoneyComb))
                 {
                     main->ImGuiToggleHoneyComb();
                 }
 
-				if (ImGui::Checkbox("Fast Pandora", &checkFastPandora))
+                if (ImGui::Checkbox("Fast Pandora", &checkFastPandora))
                 {
                     main->ToggleFastPandora(checkFastPandora);
                 }
 
-				ImGui::SameLine(198);
+                ImGui::SameLine(198);
 
-				if (ImGui::Checkbox("Fast Speed", &checkSprintFasterActivate))
+                if (ImGui::Checkbox("Fast Speed", &checkSprintFasterActivate))
                 {
                     main->ToggleSprintFasterActivate(checkSprintFasterActivate);
+                }
+
+                if (ImGui::Checkbox("Rose Removes Pins", &checkRoseRemovesPins))
+                {
+                    main->ImGuiToggleRoseRemovesPins();
                 }
 
                 ImGui::Spacing();
@@ -1148,12 +1176,12 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 if (ImGui::CollapsingHeader("Selective Cancels"))
                 {
-					if (ImGui::Checkbox("Enable", &checkSelectiveCancels))
+                    if (ImGui::Checkbox("Enable", &checkSelectiveCancels))
                     {
                         main->ImGuiToggleSelectiveCancels();
                     }
 
-					ImGui::Separator();
+                    ImGui::Separator();
                     ImGui::Text("Common");
 
                     if (ImGui::Checkbox("Ecstasy", &checkEcstasyCancel))
@@ -1161,44 +1189,44 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                         main->ImGuiToggleEcstasyCancel();
                     }
 
-					ImGui::SameLine(198);
+                    ImGui::SameLine(198);
 
-					if (ImGui::Checkbox("Argument", &checkArgumentCancel))
+                    if (ImGui::Checkbox("Argument", &checkArgumentCancel))
                     {
                         main->ImGuiToggleArgumentCancel();
                     }
 
-					if (ImGui::Checkbox("Kick 13", &checkKickThirteenCancel))
+                    if (ImGui::Checkbox("Kick 13", &checkKickThirteenCancel))
                     {
                         main->ImGuiToggleKickThirteenCancel();
                     }
 
-					ImGui::SameLine(198);
+                    ImGui::SameLine(198);
 
-					if (ImGui::Checkbox("Slash Dimension", &checkSlashDimensionCancel))
+                    if (ImGui::Checkbox("Slash Dimension", &checkSlashDimensionCancel))
                     {
                         main->ImGuiToggleSlashDimensionCancel();
                     }
 
-					ImGui::Separator();
+                    ImGui::Separator();
                     ImGui::Text("Swords");
 
-					if (ImGui::Checkbox("Prop", &checkPropCancel))
+                    if (ImGui::Checkbox("Prop", &checkPropCancel))
                     {
                         main->ImGuiTogglePropCancel();
                     }
 
-					ImGui::SameLine(198);
+                    ImGui::SameLine(198);
 
-					if (ImGui::Checkbox("Shock", &checkShockCancel))
+                    if (ImGui::Checkbox("Shock", &checkShockCancel))
                     {
                         main->ImGuiToggleShockCancel();
                     }
 
-					ImGui::Separator();
+                    ImGui::Separator();
                     ImGui::Text("Guns");
 
-					if (ImGui::Checkbox("Omen", &checkOmenCancel))
+                    if (ImGui::Checkbox("Omen", &checkOmenCancel))
                     {
                         main->ImGuiToggleOmenCancel();
                     }
@@ -1277,7 +1305,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleBpPortalAutoOpen(checkBpPortalAutoOpen);
                 }
 
-				if (ImGui::Checkbox("Enemy HP Red Orb Display", &checkOrbDisplay))
+                if (ImGui::Checkbox("Enemy HP Red Orb Display", &checkOrbDisplay))
                 {
                     main->ImGuiToggleOrbDisplay();
                 }
@@ -1326,7 +1354,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::SameLine(0, 1);
                 HelpMarker("Start a Mission on Legendary Dark Knight. Enemies are on DMD Difficulty, instead of SOS");
 
-				if (ImGui::Checkbox("Enemies DT Instantly", &checkEnemyInstantDT))
+                if (ImGui::Checkbox("Enemies DT Instantly", &checkEnemyInstantDT))
                 {
                     main->ToggleEnemyInstantDT(checkEnemyInstantDT);
                 }
@@ -1338,7 +1366,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleEnemyNoDT(checkEnemyNoDT);
                 }
 
-				if (ImGui::Checkbox("Enemies Attack Off-Screen", &checkEnemyAttackOffscreen))
+                if (ImGui::Checkbox("Enemies Attack Off-Screen", &checkEnemyAttackOffscreen))
                 {
                     main->ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
                 }
@@ -1398,100 +1426,103 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 ImGui::Text("Area Jump");
                 ImGui::Spacing();
-                ImGui::InputInt("BP Floor\n(no boss stages)", main->bpFloorStage, 1, 10, ImGuiInputTextFlags_AllowTabInput);
+                ImGui::InputInt("BP Floor\n(no boss stages)", main->bpFloorStage, 1, 10,
+                                ImGuiInputTextFlags_AllowTabInput);
                 ImGui::SameLine(0, 1);
                 HelpMarker("Type in the BP floor you want to teleport to and choose the correct BP area below (example "
                            "21-39). Only "
                            "1-99, no boss stages. For boss stages simply select the boss room from the listbox below.");
                 ImGui::Spacing();
 
-                const char* room_items[] = { "Bloody Palace 1-19",					// 705
-                                             "Bloody Palace 21-39",					// 704
-                                             "Bloody Palace 41-59",					// 703
-                                             "Bloody Palace 61-79",					// 701
-                                             "Bloody Palace 81-99",					// 702
-                                             "Bloody Palace 20",					// 503
-                                             "Bloody Palace 40",					// 504
-                                             "Bloody Palace 60",					// 505
-                                             "Bloody Palace 80",					// 502
-                                             "Bloody Palace 100",					// 501
-                                             "Bloody Palace 101",					// 700
-                                             "Opera House",							// 0
-                                             "Opera House Plaza",					// 1
-                                             "Storehouse",							// 2
-                                             "Cathedral",							// 3
-                                             "Terrace / Business District",			// 4
-                                             "Residential District",				// 5
-                                             "Port Caerula",						// 6
-                                             "Customs House",						// 7
-                                             "First Mining Area",					// 8
-                                             "Ferrum Hills",						// 9
-                                             "M17 Opera House",						// 10
-                                             "M17 Opera House Plaza",				// 11
-                                             "Business District / Terrace",			// 12
-                                             "M20 Opera House Plaza",				// 13
-                                             "Second Mining Area",					// 100
-                                             "Fortuna Castle Gate",					// 105
-                                             "Grand Hall (Fortuna Castle)",			// 200
-                                             "Large Hall",							// 201
-                                             "Dining Room",							// 202
-                                             "Torture Chamber",						// 203
-                                             "Central Courtyard",					// 204
-                                             "Foris Falls (Bridge Area)",			// 205
-                                             "Gallery",								// 206
-                                             "Library",								// 207
-                                             "Soldier's Graveyard",					// 209
-                                             "Master's Chamber",					// 210
-                                             "Spiral Well",							// 211
-                                             "Underground Laboratory",				// 212
-                                             "R&D Access",							// 213
-                                             "Game Room",							// 214
-                                             "Containment Room",					// 215
-                                             "Angel Creation",						// 216
-                                             "Foris Falls (Detour Area)",			// 217
-                                             "Forest Entrance",						// 300
-                                             "Windswept Valley",					// 301
-                                             "Ruined Church",						// 302
-                                             "Ruined Valley",						// 303
-                                             "Ancient Training Ground",				// 304
-                                             "Lapis River",							// 305
-                                             "Ancient Plaza",						// 306
-                                             "Den of the She-Viper",				// 307
-                                             "Forgotten Ruins",						// 308
-                                             "Hidden Pit",							// 309
-                                             "Ruined Lowlands",						// 310
-                                             "Lost Woods",							// 311
-                                             "Gran Album Bridge",					// 400
-                                             "Grand Hall (Order of the Sword HQ)",	// 401
-                                             "Key Chamber",							// 402
-                                             "The Gauntlet",						// 403
-                                             "Agnus' Room",							// 404
-                                             "Security Corridor",					// 405
-                                             "Experiment Disposal",					// 406
-                                             "Meeting Room",						// 407
-                                             "Ascension Chamber",					// 408
-                                             "Advent Chamber",						// 409
-                                             "Machina Ex Deus",						// 500
-                                             "Stairway to Heaven",					// 501
-                                             "Sacred Heart",						// 502
-                                             "M18",									// 510
-                                             "Sky Above Fortuna",					// 512
-                                             "Secret Mission 1",					// 800
-                                             "Secret Mission 2",					// 801
-                                             "Secret Mission 3",					// 802
-                                             "Secret Mission 4",					// 803
-                                             "Secret Mission 5",					// 804
-                                             "Secret Mission 6",					// 805
-                                             "Secret Mission 7",					// 806
-                                             "Secret Mission 8",					// 807
-                                             "Secret Mission 9",					// 808
-                                             "Secret Mission 10",					// 809
-                                             "Secret Mission 11",					// 810
-                                             "Secret Mission 12"					// 811
+                const char* room_items[] = {
+                    "Bloody Palace 1-19",                 // 705
+                    "Bloody Palace 21-39",                // 704
+                    "Bloody Palace 41-59",                // 703
+                    "Bloody Palace 61-79",                // 701
+                    "Bloody Palace 81-99",                // 702
+                    "Bloody Palace 20",                   // 503
+                    "Bloody Palace 40",                   // 504
+                    "Bloody Palace 60",                   // 505
+                    "Bloody Palace 80",                   // 502
+                    "Bloody Palace 100",                  // 501
+                    "Bloody Palace 101",                  // 700
+                    "Opera House",                        // 0
+                    "Opera House Plaza",                  // 1
+                    "Storehouse",                         // 2
+                    "Cathedral",                          // 3
+                    "Terrace / Business District",        // 4
+                    "Residential District",               // 5
+                    "Port Caerula",                       // 6
+                    "Customs House",                      // 7
+                    "First Mining Area",                  // 8
+                    "Ferrum Hills",                       // 9
+                    "M17 Opera House",                    // 10
+                    "M17 Opera House Plaza",              // 11
+                    "Business District / Terrace",        // 12
+                    "M20 Opera House Plaza",              // 13
+                    "Second Mining Area",                 // 100
+                    "Fortuna Castle Gate",                // 105
+                    "Grand Hall (Fortuna Castle)",        // 200
+                    "Large Hall",                         // 201
+                    "Dining Room",                        // 202
+                    "Torture Chamber",                    // 203
+                    "Central Courtyard",                  // 204
+                    "Foris Falls (Bridge Area)",          // 205
+                    "Gallery",                            // 206
+                    "Library",                            // 207
+                    "Soldier's Graveyard",                // 209
+                    "Master's Chamber",                   // 210
+                    "Spiral Well",                        // 211
+                    "Underground Laboratory",             // 212
+                    "R&D Access",                         // 213
+                    "Game Room",                          // 214
+                    "Containment Room",                   // 215
+                    "Angel Creation",                     // 216
+                    "Foris Falls (Detour Area)",          // 217
+                    "Forest Entrance",                    // 300
+                    "Windswept Valley",                   // 301
+                    "Ruined Church",                      // 302
+                    "Ruined Valley",                      // 303
+                    "Ancient Training Ground",            // 304
+                    "Lapis River",                        // 305
+                    "Ancient Plaza",                      // 306
+                    "Den of the She-Viper",               // 307
+                    "Forgotten Ruins",                    // 308
+                    "Hidden Pit",                         // 309
+                    "Ruined Lowlands",                    // 310
+                    "Lost Woods",                         // 311
+                    "Gran Album Bridge",                  // 400
+                    "Grand Hall (Order of the Sword HQ)", // 401
+                    "Key Chamber",                        // 402
+                    "The Gauntlet",                       // 403
+                    "Agnus' Room",                        // 404
+                    "Security Corridor",                  // 405
+                    "Experiment Disposal",                // 406
+                    "Meeting Room",                       // 407
+                    "Ascension Chamber",                  // 408
+                    "Advent Chamber",                     // 409
+                    "Machina Ex Deus",                    // 500
+                    "Stairway to Heaven",                 // 501
+                    "Sacred Heart",                       // 502
+                    "M18",                                // 510
+                    "Sky Above Fortuna",                  // 512
+                    "Secret Mission 1",                   // 800
+                    "Secret Mission 2",                   // 801
+                    "Secret Mission 3",                   // 802
+                    "Secret Mission 4",                   // 803
+                    "Secret Mission 5",                   // 804
+                    "Secret Mission 6",                   // 805
+                    "Secret Mission 7",                   // 806
+                    "Secret Mission 8",                   // 807
+                    "Secret Mission 9",                   // 808
+                    "Secret Mission 10",                  // 809
+                    "Secret Mission 11",                  // 810
+                    "Secret Mission 12"                   // 811
                 };
 
                 int room_item_current = 0;
-                if (ImGui::ListBox("Room Codes\n(including BP)", &room_item_current, room_items, IM_ARRAYSIZE(room_items), 10))
+                if (ImGui::ListBox("Room Codes\n(including BP)", &room_item_current, room_items,
+                                   IM_ARRAYSIZE(room_items), 10))
                 {
                     main->ImGuiStageJump(room_item_current);
                 }
@@ -1519,7 +1550,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                             "Berial",  "Credo",          "Agnus",          "Sanctus",       "Dante",
                         };
                         static int scarecrowLeg_current = 0;
-                        if (ImGui::Combo("Replace SC(L)", &scarecrowLeg_current, scarecrowLeg_items, IM_ARRAYSIZE(scarecrowLeg_items)))
+                        if (ImGui::Combo("Replace SC(L)", &scarecrowLeg_current, scarecrowLeg_items,
+                                         IM_ARRAYSIZE(scarecrowLeg_items)))
                         {
                             switch (scarecrowLeg_current)
                             {
@@ -1589,7 +1621,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                             "Berial",  "Credo",          "Agnus",          "Sanctus",       "Dante"
                         };
                         static int scarecrowArm_current = 0;
-                        if (ImGui::Combo("Replace SC(A)", &scarecrowArm_current, scarecrowArm_items, IM_ARRAYSIZE(scarecrowArm_items)))
+                        if (ImGui::Combo("Replace SC(A)", &scarecrowArm_current, scarecrowArm_items,
+                                         IM_ARRAYSIZE(scarecrowArm_items)))
                         {
                             switch (scarecrowArm_current)
                             {
@@ -1660,7 +1693,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                             "Credo",        "Agnus",          "Sanctus",        "Kyrie",         "Dante"
                         };
                         static int megaScarecrow_current = 0;
-                        if (ImGui::Combo("Replace MSC", &megaScarecrow_current, megaScarecrow_items, IM_ARRAYSIZE(megaScarecrow_items)))
+                        if (ImGui::Combo("Replace MSC", &megaScarecrow_current, megaScarecrow_items,
+                                         IM_ARRAYSIZE(megaScarecrow_items)))
                         {
                             switch (megaScarecrow_current)
                             {
@@ -1890,7 +1924,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                                                          "Berial",         "Credo",          "Agnus",
                                                          "Sanctus",        "Dante" };
                         static int mephisto_current = 0;
-                        if (ImGui::Combo("Replace Mephisto", &mephisto_current, mephisto_items, IM_ARRAYSIZE(mephisto_items)))
+                        if (ImGui::Combo("Replace Mephisto", &mephisto_current, mephisto_items,
+                                         IM_ARRAYSIZE(mephisto_items)))
                         {
                             switch (mephisto_current)
                             {
@@ -2112,7 +2147,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                                                         "Berial",         "Credo",          "Agnus",
                                                         "Sanctus",        "Dante" };
                         static int assault_current = 0;
-                        if (ImGui::Combo("Replace Assault", &assault_current, assault_items, IM_ARRAYSIZE(assault_items)))
+                        if (ImGui::Combo("Replace Assault", &assault_current, assault_items,
+                                         IM_ARRAYSIZE(assault_items)))
                         {
                             switch (assault_current)
                             {
@@ -2334,7 +2370,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                                                          "Berial",         "Credo",          "Agnus",
                                                          "Sanctus",        "Dante" };
                         static int basilisk_current = 0;
-                        if (ImGui::Combo("Replace Basilisk", &basilisk_current, basilisk_items, IM_ARRAYSIZE(basilisk_items)))
+                        if (ImGui::Combo("Replace Basilisk", &basilisk_current, basilisk_items,
+                                         IM_ARRAYSIZE(basilisk_items)))
                         {
                             switch (basilisk_current)
                             {
@@ -2463,7 +2500,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     {
                         const char* echidna_items[] = { "Default", "Berial", "Credo", "Agnus", "Sanctus", "Dante" };
                         static int echidna_current = 0;
-                        if (ImGui::Combo("Replace Echidna", &echidna_current, echidna_items, IM_ARRAYSIZE(echidna_items)))
+                        if (ImGui::Combo("Replace Echidna", &echidna_current, echidna_items,
+                                         IM_ARRAYSIZE(echidna_items)))
                         {
                             switch (echidna_current)
                             {
@@ -2607,18 +2645,18 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 {
                     main->ToggleStunAnything(checkStunAnything);
                 }
-                
+
                 if (ImGui::Checkbox("Remove Launch & Knockaway Armour", &checkRemoveLaunchArmour))
                 {
                     main->ToggleRemoveLaunchArmour(checkRemoveLaunchArmour);
                 }
-				
+
                 ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
 
-				if (ImGui::CollapsingHeader("Disable Darkslayer Inputs"))
+                if (ImGui::CollapsingHeader("Disable Darkslayer Inputs"))
                 {
                     if (ImGui::Checkbox("Disable Darkslayer Dpad Up", &checkDisableDarkslayerUp))
                     {
@@ -2641,7 +2679,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     }
                 }
 
-				ImGui::Spacing();
+                ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::EndTabItem();
             }

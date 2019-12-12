@@ -37,6 +37,8 @@ extern "C"
     uintptr_t _backForwardContinue = 0x00805A60; // This isn't return, its the next opcode
     uintptr_t _trickDownContinue = 0x007CB121;
     uintptr_t _floorTouchContinue = 0x007CB345;
+    uintptr_t _roseRemovesPinsContinue = 0x008158CD;
+    uintptr_t _roseRemovesPinsJE = 0x00815970;
 
 	//bools to check for toggling purposes within a gui checkbox, if false, then checkbox toggle is required to activate
     bool g_InfDTEnable = false;
@@ -58,6 +60,7 @@ extern "C"
     bool g_trackingFullHouseEnable = false;
     bool g_trickDownEnable = false;
     bool g_honeyCombEnable = false;
+	bool g_roseRemovesPinsEnable = false;
 }
 
 //procs that apply changes directly using inline asm, work in conjunction with hooks
@@ -484,5 +487,30 @@ _declspec(naked) void floorTouch_proc(void)
 
 		skipcode:
 			jmp dword ptr [_floorTouchContinue]
+    }
+}
+
+_declspec(naked) void roseRemovesPins_proc(void)
+{
+    _asm {
+			cmp byte ptr [g_roseRemovesPinsEnable],0
+			je originalcode
+
+			cmp byte ptr [esi+0x14],04
+			je removepinsje
+			cmp byte ptr [esi+0x14],03
+			je threecode
+			jmp dword ptr [_roseRemovesPinsContinue]
+
+		threecode:
+			mov byte ptr [esi+0x14],00
+
+		removepinsje:
+			jmp dword ptr [_roseRemovesPinsJE]
+
+		originalcode:
+			cmp byte ptr [esi+0x14],04
+			je removepinsje
+			jmp dword ptr [_roseRemovesPinsContinue]
     }
 }

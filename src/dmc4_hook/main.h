@@ -68,6 +68,7 @@ public:
     void ImGuiToggleTrickDown();
     void ImGuiToggleHoneyComb();
     void ImGuiToggleOrbDisplay();
+    void ImGuiToggleRoseRemovesPins();
     
 	//functions
     void ImGuiInitiateJump();
@@ -279,6 +280,7 @@ public:
     uintptr_t floorTouch;
     uintptr_t infiniteTrickRange;
     uintptr_t cameraSensitivity;
+    uintptr_t roseRemovesPins;
     float* globalSpeed;
     float* playerSpeed;
     float* enemySpeed;
