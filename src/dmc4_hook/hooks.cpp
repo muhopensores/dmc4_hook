@@ -4,8 +4,12 @@ bool        g_drawGUI   = false;
 const char* windowName  = "DEVIL MAY CRY 4";
 WNDPROC     oWndProc    = NULL;
 bool        resetCalled = false;
+HWND        hWindow;
 
 hl::Hooker  d3d_hook;
+int32_t width;
+int32_t height;
+
 
 static void resetCallDetour(hl::CpuContext* ctx) {
 	ImGui_ImplDX9_InvalidateDeviceObjects();
@@ -13,11 +17,18 @@ static void resetCallDetour(hl::CpuContext* ctx) {
 }
 static void presentCallDetour(hl::CpuContext* ctx) {
 	IDirect3DDevice9* device = (IDirect3DDevice9*)ctx->EAX;
-	if (resetCalled) {
+	auto d3dObj = *(D3D9obj*)ctx->ESI;
+
+	width = d3dObj.resX_00;
+	height = d3dObj.resY_00;
+
+	if (resetCalled) 
+	{
 		ImGui_ImplDX9_CreateDeviceObjects();
 		resetCalled = false;
 	}
-	if (g_drawGUI) {
+	if (g_drawGUI) 
+	{
 		RenderImgui(device);
 	}
 }
@@ -36,10 +47,43 @@ void hookD3D9(uintptr_t modBase) {
 	d3d_hook.hookDetour(resetCall2, 7, &resetCallDetour);
 }
 
+void ToggleBorderless(bool enable)
+{
+	if (!hWindow) 
+	{
+		return;
+	}
+	static LONG init = GetWindowLongA(hWindow, GWL_STYLE);
+	
+	LONG style = init;
+	if (enable) 
+	{
+		style = WS_OVERLAPPED | WS_MINIMIZEBOX | WS_CLIPSIBLINGS | WS_VISIBLE;
+	}
+	SetWindowLongA(hWindow, GWL_STYLE, style);
+
+	POINT point = {};
+	RECT rect = {};
+	if (!GetWindowRect(hWindow, &rect)) 
+	{
+		return;
+	}
+
+	point.x = rect.left;
+	point.y = rect.top;
+
+	rect.right = width;
+	rect.bottom = height;
+	
+	AdjustWindowRect(&rect, style, 0);
+	MoveWindow(hWindow, point.x, point.y, (rect.right - rect.left), (rect.bottom - rect.top), 0);
+}
+
 LRESULT __stdcall WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	hWindow = hWnd;
     if (true && ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
-        return true;
+        return DefWindowProc(hWnd, uMsg, wParam, lParam);
 
     return CallWindowProc(oWndProc, hWnd, uMsg, wParam, lParam);
 }

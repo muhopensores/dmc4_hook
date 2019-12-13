@@ -54,6 +54,7 @@ T ReadPointerPath(std::vector<uintptr_t> offsets)
 // initialization bools
 bool initialized = true;
 bool g_bWasInitialized = true;
+bool g_borderless = false;
 
 // bools to check if cheat is active or not
 bool checkStyleSwitch = false;
@@ -1103,6 +1104,11 @@ bool hlMain::step()
         g_drawGUI = !g_drawGUI;
         GamePause();
     }
+	if (input.wentDown(VK_OEM_3)) 
+	{
+		g_borderless = !g_borderless;
+		ToggleBorderless(g_borderless);
+	}
     return true;
 }
 
