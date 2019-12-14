@@ -666,6 +666,9 @@ bool hlMain::init()
 
     // define ini options
     INIReader reader("dmc4hook.ini");
+
+	//g_borderless = reader.GetBoolean("general", "borderless_window", true);
+
 	// Player
 		// Limit Removal
     checkWeaponSwitch = reader.GetBoolean("player", "sword_&_gun_switch_limits_removed", true);
@@ -1104,11 +1107,12 @@ bool hlMain::step()
         g_drawGUI = !g_drawGUI;
         GamePause();
     }
+    /*
 	if (input.wentDown(VK_OEM_3)) 
 	{
 		g_borderless = !g_borderless;
 		ToggleBorderless(g_borderless);
-	}
+	}*/
     return true;
 }
 
@@ -1140,6 +1144,12 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
         BeginDrawing();
         ImGui::SameLine(0, 0);
         FPSDrawing();
+        ImGui::Spacing();
+        if (ImGui::Checkbox("Borderless Window", &g_borderless))
+        {
+            ToggleBorderless(g_borderless);
+        }
+        ImGui::Spacing();
 
         if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyScroll))
         {
