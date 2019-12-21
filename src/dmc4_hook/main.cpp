@@ -1171,7 +1171,12 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
         {
             ToggleBorderless(g_borderless);
         }
-        ImGui::Spacing();
+		// TODO(): properly position this?
+        ImGui::SameLine(340.0f);
+		if (ImGui::Button("Save config"))
+		{
+			saveINI();
+		}
 
         if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyScroll))
         {
