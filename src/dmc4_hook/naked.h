@@ -4,7 +4,8 @@
 extern "C"
 {
     const float limitadjust = 0.0f;
-    int moveID = 0;
+    // NOTE(): moved moveID into it's own mod. moveID is externed in modMoveIDS.cpp
+	//int moveID = 0;
     int lockOnAlloc = 0;
     float damagemultiplier = 1.0f;
     float cameraHeight = 170.0f;
@@ -168,7 +169,8 @@ _declspec(naked) void berialDaze_proc(void)
 			jmp dword ptr [_berialDazeContinue]
     }
 }
-
+// NOTE(): moved to each own implementation file.
+#ifdef false
 _declspec(naked) void moveIDAlloc_proc(void)
 {
     _asm {
@@ -257,6 +259,8 @@ _declspec(naked) void selectiveCancels_proc(void)
 			jmp dword ptr [_selectiveCancelsContinue]
     }
 }
+#endif
+
 
 _declspec(naked) void cameraHeight_proc(void)
 {
@@ -521,7 +525,8 @@ _declspec(naked) void roseRemovesPins_proc(void)
 			jmp dword ptr [_roseRemovesPinsContinue]
     }
 }
-
+// TODO(): commented out to be able to compile
+#ifdef false
 _declspec(naked) void noHelmBreakerKnockback_proc(void)
 {
     _asm {
@@ -550,3 +555,4 @@ _declspec(naked) void noHelmBreakerKnockback_proc(void)
 			jmp dword ptr [_noHelmBreakerKnockbackContinue]
     }
 }
+#endif

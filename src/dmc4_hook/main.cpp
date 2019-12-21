@@ -4,7 +4,6 @@
 #include <tchar.h>
 #include <iostream>
 
-#include "inih/cpp/INIReader.h"
 #include "main.h"
 #include "hooks.h"
 #include "aobs.h"
@@ -12,6 +11,8 @@
 #include "patches.h"
 #include "imgui_dmc4.h"
 #include "gui_functions.h"
+#include "mods.h"
+#include "config.h"
 
 #include "hacklib/Logging.h"
 #include "hacklib/CrashHandler.h"
@@ -663,7 +664,13 @@ bool hlMain::init()
     HWND window = FindWindowA(NULL, windowName);
     oWndProc = (WNDPROC)SetWindowLongPtr(window, GWL_WNDPROC, (LONG_PTR)WndProc);
     hookD3D9(modBase);
-
+	
+	// NOTE(): refactored mods initialization
+	modLimitAdjust::init();
+	modMoveIDs::init(modBase);
+	modSelCancels::init(modBase);
+	// NOTE(): removed INIReader.h now different ini implementation is used.
+#ifdef false
     // define ini options
     INIReader reader("dmc4hook.ini");
 
@@ -743,13 +750,15 @@ bool hlMain::init()
     {
         m_con.printf("Can't load 'dmc4hook.ini'. Using default settings\n");
     }
+#endif
 
     // find our aobs/ addresses
-    styleSwitch = hl::FindPattern(styleSwitch_aob);
-    swordSwitch = hl::FindPattern(swordSwitch_aob);
-    gunSwitch = hl::FindPattern(gunSwitch_aob);
-    jcCooldown = hl::FindPattern(jcCooldown_aob);
-    movingTargetChange = hl::FindPattern(movingTargetChange_aob);
+	// NOTE() : moved into modLimitAdjust.cpp
+    //styleSwitch = hl::FindPattern(styleSwitch_aob);
+    //swordSwitch = hl::FindPattern(swordSwitch_aob);
+    //gunSwitch = hl::FindPattern(gunSwitch_aob);
+    //jcCooldown = hl::FindPattern(jcCooldown_aob);
+    //movingTargetChange = hl::FindPattern(movingTargetChange_aob);
     damagemodifier = hl::FindPattern(damagemodifier_aob);
     orbDisplay = modBase + 0xFDD35;
     heightRestrictionDante = modBase + 0x3B764E;
@@ -888,9 +897,9 @@ bool hlMain::init()
         HL_LOG_ERR("turboValue is NULL\n");
         turboValue = (float*)&uninit_value;
     }
-
-    moveIDAlloc = modBase + 0x43EBD6;
-    selectiveCancels = modBase + 0x40332A;
+	// NOTE(): moved this
+    //moveIDAlloc = modBase + 0x43EBD6;
+    //selectiveCancels = modBase + 0x40332A;
     stunAnything = hl::FindPattern(stunAnything_aob);
     removeLaunchArmour = hl::FindPattern(removeLaunchArmour_aob);
     characterChangeOne = modBase + 0x3790CF;
@@ -1007,6 +1016,9 @@ bool hlMain::init()
         auto berialDazeTwo_hk = m_hook.hookJMP(berialDazeTwo, 8, &berialDaze_proc, &_berialDazeContinue);
     }
 
+	// NOTE(): moved into specific implementation files on each mod. a call to
+	// modNamespace::init(); does the same thing.
+#ifdef false
     if (moveIDAlloc != 0)
     {
         auto moveIDAlloc_hk = m_hook.hookJMP(moveIDAlloc, 6, &moveIDAlloc_proc);
@@ -1016,7 +1028,7 @@ bool hlMain::init()
     {
         auto selectiveCancels_hk = m_hook.hookJMP(selectiveCancels, 6, &selectiveCancels_proc);
     }
-
+#endif
     if (cameraHeightSetting != 0)
     {
         auto cameraHeightSetting_hk =
@@ -1090,12 +1102,22 @@ bool hlMain::init()
         auto roseRemovesPins_hk = m_hook.hookJMP(roseRemovesPins, 10, &roseRemovesPins_proc);
     }
 
+	// TODO() : commented out to test compilation.
+#ifdef false
     if (noHelmBreakerKnockback != 0)
     {
         auto noHelmBreakerKnockback_hk = m_hook.hookJMP(noHelmBreakerKnockback, 5, &noHelmBreakerKnockback_proc);
     }
+#endif
 
-    ToggleStuff();
+
+    //ToggleStuff();
+	// NOTE(): new ini functionality
+	// loads ini settings into CONFIG structure and toggles mods.
+	parseINI();
+	// NOTE(): new ini functionality
+	// save all mod settings into ini file.
+	//saveINI();
     return true;
 }
 
@@ -1157,7 +1179,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
             {
                 ImGui::Spacing();
                 ImGui::Text("Limit Removal");
-
+				// NOTE(): refactored mods expose onGUIframe function to draw gui stuff.
+				modLimitAdjust::onGUIframe();
+#ifdef false
                 if (ImGui::Checkbox("Remove Sword & Gun Switch Limit", &checkWeaponSwitch))
                 {
                     main->ToggleWeaponSwitch(checkWeaponSwitch);
@@ -1177,6 +1201,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 {
                     main->ToggleMovingTargetChange(checkMovingTargetChange);
                 }
+#endif
 
                 ImGui::Spacing();
                 ImGui::Spacing();
@@ -1275,7 +1300,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::Spacing();
-
+				// NOTE(): refactored mods expose onGUIframe function to draw gui stuff.
+				modSelCancels::onGUIframe();
+#ifdef false
                 if (ImGui::CollapsingHeader("Selective Cancels"))
                 {
                     if (ImGui::Checkbox("Enable", &checkSelectiveCancels))
@@ -1333,6 +1360,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                         main->ImGuiToggleOmenCancel();
                     }
                 }
+#endif
 
                 ImGui::Spacing();
                 ImGui::Spacing();

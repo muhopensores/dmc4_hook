@@ -8,6 +8,8 @@ SET (HEADERS
   main.h
   naked.h
   patches.h
+  mods.h
+  config.h
 )
 
 SET (IMGUI
@@ -26,26 +28,32 @@ SET (IMGUI
   imgui/imstb_truetype.h
 )
 
-SET (INIH
-  inih/ini.c
-  inih/ini.h
-  inih/cpp/INIReader.cpp
-  inih/cpp/INIReader.h
+SET (MODS 
+  mods/modSelectiveCancels.cpp
+  mods/modMoveIDs.cpp
+  mods/modLimitAdjust.cpp
+  mods/modShared.cpp
+)
+SET (UTILS
+  utils/ini.h
 )
 
 SET (SOURCES
   hooks.cpp
   main.cpp
   gui_functions.cpp
+  config.cpp
 )
 
 source_group("imgui", FILES ${IMGUI})
-source_group("inih",  FILES ${INIH})
+source_group("mods",  FILES ${MODS})
+source_group("utils", FILES ${UTILS})
 
 ADD_LIBRARY(${PROJECT_NAME} SHARED
             ${HEADERS}
             ${IMGUI}
-            ${INIH}
+      		${MODS}
+			${UTILS}
             ${SOURCES}
 )
 
