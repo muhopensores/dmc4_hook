@@ -52,11 +52,11 @@ source_group("utils", FILES ${UTILS})
 ADD_LIBRARY(${PROJECT_NAME} SHARED
             ${HEADERS}
             ${IMGUI}
-      		${MODS}
-			${UTILS}
+      	    ${MODS}
+            ${UTILS}
             ${SOURCES}
 )
 
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES FOLDER ${PROJECT_NAME})
-
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME dinput8)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} hacklib)

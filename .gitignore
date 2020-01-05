@@ -1,4 +1,13 @@
 build86/
-hacklib.lib
-hacklibd.lib
 bin/
+hacklib.lib
+hacklib.pdb
+hacklibd.lib
+dinput8.exp
+dinput8.lib
+dinput8d.exp
+dinput8d.lib
+dmc4_hookd.exp
+dmc4_hookd.lib
+dmc4_hook.exp
+dmc4_hook.lib

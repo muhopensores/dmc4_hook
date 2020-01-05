@@ -17,7 +17,27 @@
 #include "hacklib/Logging.h"
 #include "hacklib/CrashHandler.h"
 
+
 uint32_t uninit_value = 0xCCCCCCCC;
+
+// hmodule of dinput8.dll for GetProcAddress
+HMODULE g_dinput = 0;
+extern "C" {
+	// DirectInput8Create wrapper for dinput8.dll
+	__declspec(dllexport) HRESULT WINAPI DirectInput8Create(HINSTANCE hinst, DWORD dwVersion, const IID& riidltf, LPVOID* ppvOut, LPUNKNOWN punkOuter) {
+		// i have no idea why but this gets exported as a decorated
+		// function despite it being __declspec(dllexport). This is a
+		// workaround to get it to load by the game.
+		#pragma comment(linker, "/EXPORT:DirectInput8Create=_DirectInput8Create@20")
+		return ((decltype(DirectInput8Create)*)GetProcAddress(g_dinput, "DirectInput8Create"))(hinst, dwVersion, riidltf, ppvOut, punkOuter);
+	}
+}
+
+void failed() {
+	MessageBox(0, "Unable to load the original dinput8.dll.", "DMC4Hook", 0);
+	ExitProcess(0);
+}
+
 
 uintptr_t readMemoryPointer(uintptr_t address)
 {
@@ -652,6 +672,19 @@ void hlMain::ToggleStuff()
 
 bool hlMain::init()
 {
+	wchar_t buffer[MAX_PATH]{ 0 };
+	if (GetSystemDirectoryW(buffer, MAX_PATH) != 0) {
+		// Load the original dinput8.dll
+		if ((g_dinput = LoadLibraryW((std::wstring{ buffer } + L"\\dinput8.dll").c_str())) == NULL) {
+			failed();
+		}
+	}
+	else {
+		failed();
+	}
+	// Wait 3 seconds to let the game start.
+	Sleep(3000);
+
     hl::LogConfig logCfg;
     logCfg.logToFile = true;
     logCfg.logTime = true;
@@ -664,6 +697,7 @@ bool hlMain::init()
     HWND window = FindWindowA(NULL, windowName);
     oWndProc = (WNDPROC)SetWindowLongPtr(window, GWL_WNDPROC, (LONG_PTR)WndProc);
     hookD3D9(modBase);
+
 	
 	// NOTE(): refactored mods initialization
 	modLimitAdjust::init();

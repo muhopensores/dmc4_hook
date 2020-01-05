@@ -13,7 +13,9 @@ void hl::StaticInitImpl::runMainThread()
 {
     // Must use WinAPI threads instead of std threads, because current std
     // implementation blocks within the loader lock.
-
+#ifdef _DEBUG
+	MessageBox(NULL, "Now's a good time to attach a debugger.", "DEBUG BUILD", MB_ICONINFORMATION);
+#endif
     HANDLE hThread = CreateThread(NULL, 0, ThreadFunc, (LPVOID)this, 0, NULL);
     if (hThread == NULL)
     {
