@@ -27,12 +27,14 @@ static void updateMods() {
 	// modNamespace::loadConfig(g_config) goes here
 	modSelCancels::loadConfig(g_config);
 	modLimitAdjust::loadConfig(g_config);
+	modBackgroundRendering::loadConfig(g_config);
 }
 /* updating config values with data from mods */
 void updateConfig() {
 	// modNamespace::saveConfig(g_config) goes here
 	modSelCancels::saveConfig(g_config);
 	modLimitAdjust::saveConfig(g_config);
+	modBackgroundRendering::saveConfig(g_config);
 }
 
 static void populateConfig(const std::string& key, const std::string& value, CONF_TYPE conf) {

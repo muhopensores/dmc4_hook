@@ -13,6 +13,7 @@
 #include "gui_functions.h"
 #include "mods.h"
 #include "config.h"
+#include "MinHook.h"
 
 #include "hacklib/Logging.h"
 #include "hacklib/CrashHandler.h"
@@ -670,6 +671,11 @@ void hlMain::ToggleStuff()
     ToggleDisableDarkslayerRight(checkDisableDarkslayerRight);
 }
 
+void hlMain::shutdown() {
+	MH_DisableHook(MH_ALL_HOOKS);
+	MH_Uninitialize();
+}
+
 bool hlMain::init()
 {
 	wchar_t buffer[MAX_PATH]{ 0 };
@@ -695,14 +701,23 @@ bool hlMain::init()
     HL_LOG_RAW("======================================================\n");
     modBase = (uintptr_t)GetModuleHandle(NULL);
     HWND window = FindWindowA(NULL, windowName);
+	hWindow = window;
+	hookSetEnableBackgroundInput(modBackgroundRendering::getModEnabledPtr());
     oWndProc = (WNDPROC)SetWindowLongPtr(window, GWL_WNDPROC, (LONG_PTR)WndProc);
     hookD3D9(modBase);
 
+	MH_Initialize();
 	
 	// NOTE(): refactored mods initialization
-	modLimitAdjust::init();
-	modMoveIDs::init(modBase);
-	modSelCancels::init(modBase);
+	if (!modLimitAdjust::init())
+		std::runtime_error("Failed to initialize modLimitAdjust");
+
+	if (!modMoveIDs::init(modBase))
+		std::runtime_error("Failed to initialize modMoveIDs");
+	if (!modSelCancels::init(modBase))
+		std::runtime_error("Failed to initialize modSelCancels");
+	if (!modBackgroundRendering::init(window, modBase))
+		std::runtime_error("Failed to initialize modBackgroundRendering");
 	// NOTE(): removed INIReader.h now different ini implementation is used.
 #ifdef false
     // define ini options
@@ -1186,9 +1201,12 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
         ImGui_ImplWin32_Init(FindWindowA(NULL, windowName));
         ImGui_ImplDX9_Init(m_pDevice);
+		DarkTheme();
     }
-
-    DarkTheme();
+	// I don't know why but using MouseDrawCursor draws two cursors whenever i build shit on my machine
+	// this is fucked up. It should hide hardware cursor, but just doesnt for whatever reason. I'm just gonna
+	// do this instead. If hardware cursor is missing draw an imgui one for people who had troubles.
+	ImGui::GetIO().MouseDrawCursor = !IsCursorVisibleWINAPI();
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
@@ -1545,7 +1563,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Separator();
                 ImGui::Spacing();
                 Misc();
-
+				modBackgroundRendering::onGUIframe();
                 if (ImGui::CollapsingHeader("Speed"))
                 {
                     ImGui::InputFloat("Turbo Value", main->turboValue, 0.1f, 0.5f, "%.1f%");

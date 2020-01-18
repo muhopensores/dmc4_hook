@@ -103,7 +103,7 @@ public:
     // hacklib init() / step() functions
     bool init() override;
     bool step() override;
-
+	void shutdown() override;
 
     // define our pointers here, but init and search for them in init()
     // pointer definitions

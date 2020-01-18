@@ -24,11 +24,16 @@ public:
 }; //Size=0x0840
 
 extern bool g_drawGUI;
-
+extern HWND hWindow;
 // def winproc
 extern const char* windowName;
 extern WNDPROC oWndProc;
 
+
+//TODO():move this somewhere more apropriate?
+bool IsCursorVisibleWINAPI();
+
+void hookSetEnableBackgroundInput(bool* address);
 void hookD3D9(uintptr_t modBase);
 
 // winproc

@@ -1,5 +1,6 @@
 #pragma once
 #include "hacklib/PatternScanner.h"
+#include "hacklib/Logging.h"
 #include "hacklib/Patch.h"
 #include "hacklib/Hooker.h"
 #include "imgui/imgui.h"
@@ -17,6 +18,14 @@ namespace modShared {
 namespace modMoveIDs {
 	bool init(uintptr_t base);
 	void toggle(bool value);
+};
+
+namespace modBackgroundRendering {
+	bool init(HWND gameWindow, uintptr_t modBase);
+	void onGUIframe();
+	void loadConfig(CONFIG& config);
+	void saveConfig(CONFIG& config);
+	bool* getModEnabledPtr();
 };
 
 namespace modSelCancels {

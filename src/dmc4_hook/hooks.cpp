@@ -1,15 +1,30 @@
 #include "hooks.h"
 
+bool*       g_enableBackgroundInput = false;
 bool        g_drawGUI   = false;
 const char* windowName  = "DEVIL MAY CRY 4";
 WNDPROC     oWndProc    = NULL;
 bool        resetCalled = false;
-HWND        hWindow;
+HWND        hWindow = NULL;
 
 hl::Hooker  d3d_hook;
 int32_t width;
 int32_t height;
 
+
+bool IsCursorVisibleWINAPI() {
+	CURSORINFO info = { sizeof(CURSORINFO), 0, nullptr, {} };
+	if (!GetCursorInfo(&info))
+	{
+		throw std::exception("GetCursorInfo");
+	}
+
+	return (info.flags & CURSOR_SHOWING) != 0;
+}
+
+void hookSetEnableBackgroundInput(bool* address) {
+	g_enableBackgroundInput = address;
+}
 
 static void resetCallDetour(hl::CpuContext* ctx) {
 	ImGui_ImplDX9_InvalidateDeviceObjects();
@@ -81,7 +96,42 @@ void ToggleBorderless(bool enable)
 
 LRESULT __stdcall WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	hWindow = hWnd;
+	if (*g_enableBackgroundInput)
+	{
+		switch (uMsg)
+		{
+			case WM_KILLFOCUS:
+			{
+				if (hWnd == hWindow) {
+					return DefWindowProc(hWnd, uMsg, wParam, lParam);
+				}
+				break;
+			}
+			case WM_MOUSEACTIVATE:
+			{
+				if ((HWND)wParam == hWindow) {
+					return MA_ACTIVATEANDEAT;
+				}
+				else {
+					return MA_ACTIVATE;
+				}
+			    break;
+			}
+			case WM_ACTIVATEAPP:
+			case WM_ACTIVATE:
+			case WM_NCACTIVATE:
+			{
+				return 1;
+				break;
+			}
+			case WM_SHOWWINDOW:
+			{
+				return DefWindowProc(hWnd, uMsg, wParam, lParam);
+			}
+
+		}
+
+	}
     if (true && ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
         return DefWindowProc(hWnd, uMsg, wParam, lParam);
 
