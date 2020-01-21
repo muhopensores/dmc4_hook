@@ -40,8 +40,8 @@ extern "C"
     uintptr_t _floorTouchContinue = 0x007CB345;
     uintptr_t _roseRemovesPinsContinue = 0x008158CD;
     uintptr_t _roseRemovesPinsJE = 0x00815970;
-    uintptr_t _noHelmBreakerKnockbackContinue = 0x0051C389;
-    uintptr_t _noHelmBreakerKnockbackJE = 0x0051C367;
+    //uintptr_t _noHelmBreakerKnockbackContinue = 0x0051C389;
+    //uintptr_t _noHelmBreakerKnockbackJE = 0x0051C367;
 
 	//bools to check for toggling purposes within a gui checkbox, if false, then checkbox toggle is required to activate
     bool g_InfDTEnable = false;

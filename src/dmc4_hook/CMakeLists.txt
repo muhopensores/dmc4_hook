@@ -28,13 +28,16 @@ SET (IMGUI
   imgui/imstb_truetype.h
 )
 
-SET (MODS 
-  mods/modSelectiveCancels.cpp
-  mods/modMoveIDs.cpp
-  mods/modLimitAdjust.cpp
-  mods/modShared.cpp
-  mods/modBackgroundRendering.cpp
-)
+#SET (MODS 
+#  mods/modSelectiveCancels.cpp
+#  mods/modMoveIDs.cpp
+#  mods/modLimitAdjust.cpp
+#  mods/modShared.cpp
+#  mods/modBackgroundRendering.cpp
+#)
+# aux_source_directory(<dir> <variable>)
+aux_source_directory(mods MODS)
+
 SET (UTILS
   utils/ini.h
 )

@@ -14,7 +14,7 @@ bool memAssert(const char* bytes, uintptr_t location) {
 */
 namespace modShared {
 	void limitadjust_patch(void);
-}
+};
 namespace modMoveIDs {
 	bool init(uintptr_t base);
 	void toggle(bool value);
@@ -48,6 +48,13 @@ namespace modLimitAdjust {
 	void loadConfig(CONFIG& config);
 	void saveConfig(CONFIG& config);
 	//void toggle(bool value, LIMIT_TYPE limit);
+}
+
+namespace modNoHBknockback {
+	bool init(uintptr_t modBase);
+	void onGUIframe();
+	void loadConfig(CONFIG& config);
+	void saveConfig(CONFIG& config);
 }
 /* mod sample exposing functions/variables we might want to call from outside
 namespace modSample {

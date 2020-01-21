@@ -28,6 +28,7 @@ static void updateMods() {
 	modSelCancels::loadConfig(g_config);
 	modLimitAdjust::loadConfig(g_config);
 	modBackgroundRendering::loadConfig(g_config);
+	modNoHBknockback::loadConfig(g_config);
 }
 /* updating config values with data from mods */
 void updateConfig() {
@@ -35,6 +36,7 @@ void updateConfig() {
 	modSelCancels::saveConfig(g_config);
 	modLimitAdjust::saveConfig(g_config);
 	modBackgroundRendering::saveConfig(g_config);
+	modNoHBknockback::saveConfig(g_config);
 }
 
 static void populateConfig(const std::string& key, const std::string& value, CONF_TYPE conf) {

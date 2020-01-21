@@ -13,15 +13,12 @@ namespace modSample {
 	static hl::Hooker hook;
 
 	// using detours should be the same as before.
-	extern "C" detour_jmp = 0xDEADBEEF;
+	extern "C" uintptr_t detour_jmp = 0xDEADBEEF;
 	_declspec(naked) void detour_proc(void) {
 		_asm {
 			; some rubbish asm
 			mov al, [enabled]
 			test al, al
-			je out
-			ret
-			out:
 			jmp dword ptr [detour_jmp]
 		}
 	}
@@ -35,12 +32,6 @@ namespace modSample {
 		hook.hookJMP(location, 5, &detour_proc);
 		return true;
 	};
-	/* call from the imgui drawing routine to draw gui elements if you require */
-	void onGUIframe() {
-		if (ImGui::Checkbox("mod_gui_entry", &enabled)) {
-			toggle(enabled);
-		}
-	}
 	/* toggling patches or other required mods here. */
 	void toggle(bool value) {
 		if (value)
@@ -48,7 +39,12 @@ namespace modSample {
 		else
 			patch.revert();
 	};
-
+	/* call from the imgui drawing routine to draw gui elements if you require */
+	void onGUIframe() {
+		if (ImGui::Checkbox("mod_gui_entry", &enabled)) {
+			toggle(enabled);
+		}
+	}
 	/* call this in config.cpp/updateMods(); to load values from the config and toggle upon start */
 	void loadConfig(CONFIG& config) {
 		// only define options you want to be saved/loaded

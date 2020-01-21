@@ -982,7 +982,7 @@ bool hlMain::init()
     infiniteTrickRange = modBase + 0x3CB0A8;
     cameraSensitivity = modBase + 0x180A8;
     roseRemovesPins = modBase + 0x4158C3;
-    noHelmBreakerKnockback = modBase + 0x11C384;
+    //noHelmBreakerKnockback = modBase + 0x11C384;
 
     // we'll set this in StageJump function
     // roomID = ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830, 0x6C });
@@ -1349,10 +1349,10 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
 				ImGui::SameLine(198);
 
-                if (ImGui::Checkbox("No Helm Breaker Knockback", &checkNoHelmBreakerKnockback))
-                {
-                    main->ImGuiToggleNoHelmBreakerKnockback();
-                }
+                //if (ImGui::Checkbox("No Helm Breaker Knockback", &checkNoHelmBreakerKnockback))
+                //{
+                //    main->ImGuiToggleNoHelmBreakerKnockback();
+                //}
 
                 ImGui::Spacing();
                 ImGui::Spacing();
