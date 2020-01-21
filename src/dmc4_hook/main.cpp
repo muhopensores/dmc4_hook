@@ -711,7 +711,8 @@ bool hlMain::init()
 	// NOTE(): refactored mods initialization
 	if (!modLimitAdjust::init())
 		std::runtime_error("Failed to initialize modLimitAdjust");
-
+	if (!modNoHBknockback::init(modBase))
+		std::runtime_error("Failed to initialize modNoHBknockback");
 	if (!modMoveIDs::init(modBase))
 		std::runtime_error("Failed to initialize modMoveIDs");
 	if (!modSelCancels::init(modBase))
@@ -1348,7 +1349,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 }
 
 				ImGui::SameLine(198);
-
+				modNoHBknockback::onGUIframe();
                 //if (ImGui::Checkbox("No Helm Breaker Knockback", &checkNoHelmBreakerKnockback))
                 //{
                 //    main->ImGuiToggleNoHelmBreakerKnockback();

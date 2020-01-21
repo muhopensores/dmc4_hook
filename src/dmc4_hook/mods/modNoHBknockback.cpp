@@ -8,7 +8,7 @@ namespace modNoHBknockback {
 
 	// mod variables
 	static bool modEnabled;
-	static uintptr_t detourLocation;
+	static uintptr_t noHelmBreakerKnockback;
     //static hl::Patch patch;
 	static hl::Hooker hook;
 
@@ -58,7 +58,13 @@ namespace modNoHBknockback {
 	bool init(uintptr_t modBase) {
 		// from main.cpp
 		// line 985 -> noHelmBreakerKnockback = modBase + 0x11C384;
-		detourLocation = modBase + 0x11C384;
+		noHelmBreakerKnockback = modBase + 0x11C384;
+		// from main.cpp
+		// line 1159 -> auto noHelmBreakerKnockback_hk = m_hook.hookJMP(noHelmBreakerKnockback, 5, &noHelmBreakerKnockback_proc);
+		auto noHelmBreakerKnockback_hk = hook.hookJMP(noHelmBreakerKnockback, 5, &noHelmBreakerKnockback_proc);
+		if (!noHelmBreakerKnockback_hk) {
+			return false;
+		}
 		return true;
 	};
 	/* call from the imgui drawing routine to draw gui elements if you require */
