@@ -84,7 +84,7 @@ _declspec(naked) void damagemodifier_proc(void)
 			cmp dword ptr [esi+0x1C], 0x469C4000
 			je originalcode
 
-			movss dword ptr [ebp-4],xmm4
+			//movss dword ptr [ebp-4],xmm4		// Maybe this was the reason m17 was crashing? testing now
 
 			movss xmm4,[esi+0x18]				// get the current life
 			subss xmm4,xmm0						// substract the current life to the new life ( = currentHitDamage)
@@ -92,7 +92,7 @@ _declspec(naked) void damagemodifier_proc(void)
             mulss xmm4,[damagemultiplier]		// multiply by "multiplier" the currentHitDamage (xmm2)
             subss xmm0,xmm4						// subss to new life current hit dammage
 
-			movss xmm4, dword ptr [ebp-4]
+			//movss xmm4, dword ptr [ebp-4]
 
 		originalcode:
             movss [esi+0x18],xmm0
