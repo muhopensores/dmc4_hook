@@ -1,4 +1,5 @@
 #pragma once
+
 #include <unordered_map>
 struct CONFIG {
 	struct player {
@@ -19,6 +20,13 @@ struct CONFIG {
 	};
 	practice practice;
 };
+
+typedef void (*ONLOAD)(CONFIG&);
+typedef void (*ONSAVE)(CONFIG&);
+
+void loadCallbackRegister(ONLOAD loadCb);
+void saveCallbackRegister(ONSAVE saveCb);
+
 void parseINI();
 void saveINI();
 //void updateMods();

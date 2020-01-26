@@ -40,6 +40,8 @@ aux_source_directory(mods MODS)
 
 SET (UTILS
   utils/ini.h
+  utils/crash_handler.h
+  utils/crash_handler.cpp
 )
 
 SET (SOURCES

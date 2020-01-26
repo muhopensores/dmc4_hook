@@ -1,5 +1,5 @@
 #include "../mods.h"
-
+#ifdef EXAMPLE
 // expose functions/variables you need to call from outside in mods.h
 namespace modSample {
 
@@ -30,6 +30,11 @@ namespace modSample {
 	bool init() {
 		location = hl::FindPattern(mod_aob);
 		hook.hookJMP(location, 5, &detour_proc);
+		// if everything went well register our ini callbacks.
+		// those will be called at ini load/save.
+		loadCallbackRegister(loadConfig);
+		saveCallbackRegister(saveConfig);
+
 		return true;
 	};
 	/* toggling patches or other required mods here. */
@@ -45,18 +50,19 @@ namespace modSample {
 			toggle(enabled);
 		}
 	}
-	/* call this in config.cpp/updateMods(); to load values from the config and toggle upon start */
+	// will be called during config.cpp/updateConfig() if you've set your callbacks
+	// to load values from the config and toggle upon start
 	void loadConfig(CONFIG& config) {
 		// only define options you want to be saved/loaded
 		enabled = config.player.options["mod_config_entry"];
 		// iterate over the list and toggle values according to config data.
 		toggle(enabled);
 	}
-	/* call this in config.cpp/updateConfig(); to save values into CONFIG structure 
-	   to be later saved into an ini file.
-	*/
+	// will be called during config.cpp/updateConfig() if you've set your callbacks
+	// to write values into config file
 	void saveConfig(CONFIG& config) {
 
 		config.player.options["mod_config_entry"] = enabled;
 	}
 };
+#endif

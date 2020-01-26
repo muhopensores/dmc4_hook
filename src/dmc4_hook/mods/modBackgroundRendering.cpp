@@ -78,6 +78,11 @@ namespace modBackgroundRendering {
 		//soundPatchLocation01 = modBase + 0x8725B;
 		//soundPatchLocation02 = modBase + 0x87263;
 
+		// if everything went well register our ini callbacks.
+		// those will be called at ini load/save.
+		loadCallbackRegister(loadConfig);
+		saveCallbackRegister(saveConfig);
+
 		return true;
 	};
 	
@@ -93,19 +98,19 @@ namespace modBackgroundRendering {
 		}
 	};*/
 
-	/* call this in config.cpp/updateMods(); to load values from the config and toggle upon start */
+	// will be called during config.cpp/updateConfig() if you've set your callbacks
+	// to load values from the config and toggle upon start
 	void loadConfig(CONFIG& config) {
 		// only define options you want to be saved/loaded
 		modEnabled = config.system.options["enable_focus_patch"];
 	}
-	/* call this in config.cpp/updateConfig(); to save values into CONFIG structure 
-	   to be later saved into an ini file.
-	*/
+	// will be called during config.cpp/updateConfig() if you've set your callbacks
+	// to write values into config file
 	void saveConfig(CONFIG& config) {
-		config.player.options["enable_focus_patch"] = modEnabled;
+		config.system.options["enable_focus_patch"] = modEnabled;
 	}
 
-	/* call from the imgui drawing routine to draw gui elements if you require */
+	// call from the imgui drawing routine to draw gui elements if you require
 	void onGUIframe() {
 		/*if (ImGui::Checkbox("Focus patch (background input)", &modEnabled)) {
 			toggle(modEnabled);

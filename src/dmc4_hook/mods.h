@@ -12,6 +12,7 @@ bool memAssert(const char* bytes, uintptr_t location) {
 	return result == 0;
 }
 */
+
 namespace modShared {
 	void limitadjust_patch(void);
 };

@@ -31,6 +31,12 @@ namespace modLimitAdjust {
 			!locationStyleSwitch || !locationMovingTargetChange) {
 			return false;
 		}
+
+		// if everything went well register our ini callbacks.
+		// those will be called at ini load/save.
+		loadCallbackRegister(loadConfig);
+		saveCallbackRegister(saveConfig);
+
 		return true;
     };
 

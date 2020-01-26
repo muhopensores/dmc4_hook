@@ -13,6 +13,7 @@
 #include "gui_functions.h"
 #include "mods.h"
 #include "config.h"
+#include "utils/crash_handler.h"
 #include "MinHook.h"
 
 #include "hacklib/Logging.h"
@@ -688,6 +689,9 @@ bool hlMain::init()
 	else {
 		failed();
 	}
+	MH_Initialize();
+	bool exp_result = InstallExceptionHandlerHooks();
+
 	// Wait 3 seconds to let the game start.
 	Sleep(3000);
 
@@ -705,8 +709,6 @@ bool hlMain::init()
 	hookSetEnableBackgroundInput(modBackgroundRendering::getModEnabledPtr());
     oWndProc = (WNDPROC)SetWindowLongPtr(window, GWL_WNDPROC, (LONG_PTR)WndProc);
     hookD3D9(modBase);
-
-	MH_Initialize();
 	
 	// NOTE(): refactored mods initialization
 	if (!modLimitAdjust::init())

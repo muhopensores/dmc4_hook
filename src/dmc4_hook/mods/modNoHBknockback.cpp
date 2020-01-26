@@ -65,27 +65,32 @@ namespace modNoHBknockback {
 		if (!noHelmBreakerKnockback_hk) {
 			return false;
 		}
+		// if everything went well register our ini callbacks.
+		// those will be called at ini load/save.
+		loadCallbackRegister(loadConfig);
+		saveCallbackRegister(saveConfig);
 		return true;
 	};
-	/* call from the imgui drawing routine to draw gui elements if you require */
+	// call from the imgui drawing routine to draw gui elements if you require
 	void onGUIframe() {
 		// from main.cpp
 		// line 1352 -> if (ImGui::Checkbox("No Helm Breaker Knockback", &checkNoHelmBreakerKnockback))
 
-		// since it's a simple detour we don't need to do anything in event of user clicking imgui checkbox
-		// and can just do this
-		ImGui::Checkbox("No Helm Breaker Knockback", &modEnabled);
+		if (ImGui::Checkbox("No Helm Breaker Knockback", &modEnabled)) {
+			modMoveIDs::toggle(modEnabled);
+		}
 	}
 
-	/* call this in config.cpp/updateMods(); to load values from the config and toggle upon start */
+	// will be called during config.cpp/updateConfig() if you've set your callbacks
+	// to load values from the config and toggle upon start
 	void loadConfig(CONFIG& config) {
 		// from main.cpp
 		// line 749 -> checkNoHelmBreakerKnockback = reader.GetBoolean("player", "no_helmbreaker_knockback", true);
 		modEnabled = config.player.options["no_helmbreaker_knockback"];
+		modMoveIDs::toggle(modEnabled);
 	}
-	/* call this in config.cpp/updateConfig(); to save values into CONFIG structure 
-	   to be later saved into an ini file.
-	*/
+	// will be called during config.cpp/updateConfig() if you've set your callbacks
+	// to write values into config file
 	void saveConfig(CONFIG& config) {
 		config.player.options["no_helmbreaker_knockback"] = modEnabled;
 	}

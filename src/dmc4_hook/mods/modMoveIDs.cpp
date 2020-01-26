@@ -5,6 +5,7 @@
 extern "C" int moveID = 0;
 
 namespace modMoveIDs {
+	bool    modInit = false;
 	bool    g_moveIDAllocEnable = false;
 	static  uintptr_t _moveIDAllocContinue = 0x0083EBDC;
 	static  hl::Hooker detour;
@@ -28,12 +29,14 @@ namespace modMoveIDs {
 		uintptr_t moveIDAlloc = base + 0x43EBD6;
 		auto hook = detour.hookJMP(moveIDAlloc, 6, &moveIDAlloc_proc);
 		if (!hook) {
-			return false;
+			return modInit;
 		}
-		return true;
+		modInit = true;
+		return modInit;
 	};
-
+	// inc/dec references every time a mod is toggled since it's used in multiple places 
 	void toggle(bool value) {
+		if (!modInit) { std::runtime_error("toggling modMoveIDs before init"); }
 		if (value) {
 			g_moveIDAllocEnable = true;
 			references++;
