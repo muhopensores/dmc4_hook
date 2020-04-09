@@ -9,7 +9,7 @@ SET (HEADERS
   naked.h
   patches.h
   mods.h
-  config.h
+  mod.hpp
 )
 
 SET (IMGUI
@@ -36,10 +36,23 @@ SET (IMGUI
 #  mods/modBackgroundRendering.cpp
 #)
 # aux_source_directory(<dir> <variable>)
-aux_source_directory(mods MODS)
+#aux_source_directory(mods MODS)
+SET (MODS
+  mods/modSelectiveCancels.hpp
+  mods/modSelectiveCancels.cpp
+  mods/modMoveIDs.cpp
+  mods/modLimitAdjust.cpp
+  mods/modShared.cpp
+  mods/modBackgroundRendering.cpp
+  mods/modNoHBknockback.cpp
+)
 
 SET (UTILS
   utils/ini.h
+  utils/Config.hpp
+  utils/Config.cpp
+  utils/String.cpp
+  utils/String.hpp
   utils/crash_handler.h
   utils/crash_handler.cpp
 )
@@ -48,7 +61,6 @@ SET (SOURCES
   hooks.cpp
   main.cpp
   gui_functions.cpp
-  config.cpp
 )
 
 source_group("imgui", FILES ${IMGUI})

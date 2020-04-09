@@ -5,13 +5,14 @@
 #include "hacklib/Hooker.h"
 #include "hacklib/ConsoleEx.h"
 #include "hacklib/Input.h"
-
+#include "utils/Config.hpp"
 
 class hlMain* GetMain();
 
 class hlMain : public hl::Main
 {
 public:
+	std::unique_ptr<utils::Config> cfg;
 	void ToggleStuff();
     // patch functions definitons
     void ToggleStyleSwitch(bool toggle);
@@ -343,4 +344,11 @@ public:
     hl::Hooker m_hooker, m_hook;
     hl::Input input;
     hl::ConsoleEx m_con;
+
+	void loadSettings();
+	void saveSettings();
+
+private:
+
+	std::string m_confPath;
 };

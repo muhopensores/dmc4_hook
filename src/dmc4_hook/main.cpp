@@ -12,7 +12,8 @@
 #include "imgui_dmc4.h"
 #include "gui_functions.h"
 #include "mods.h"
-#include "config.h"
+
+#include "utils/String.hpp"
 #include "utils/crash_handler.h"
 #include "MinHook.h"
 
@@ -677,6 +678,117 @@ void hlMain::shutdown() {
 	MH_Uninitialize();
 }
 
+void hlMain::loadSettings() {
+
+	checkHeightRestrictionNero = cfg->get<bool>("nero_height_restriction_removed").value_or(false);//reader.GetBoolean("player", "nero_height_restriction_removed", true);
+	checkHeightRestrictionDante = cfg->get<bool>("dante_height_restriction_removed").value_or(false);
+	checkDamageModifier =  cfg->get<bool>("damage_modifier").value_or(false);
+	damagemultiplier = cfg->get<float>("damage_factor").value_or(1.0f);
+
+	checkInfiniteAirHike = cfg->get<bool>("infinite_air_hike").value_or(false);// reader.GetBoolean("player", "infinite_air_hike", true);
+	checkInfiniteTableHopper = cfg->get<bool>("infinite_table_hopper").value_or(false);//reader.GetBoolean("player", "infinite_table_hopper", true);
+	checkTrickDown = cfg->get<bool>("trick_down").value_or(false);//reader.GetBoolean("player", "trick_down", true);
+	checkInfiniteTrickRange = cfg->get<bool>("infinite_trick_range").value_or(false);//reader.GetBoolean("player", "infinite_trick_range", true);
+	checkTrackingFullHouse = cfg->get<bool>("tracking_full_house").value_or(false);//reader.GetBoolean("player", "tracking_full_house", true);
+	checkHoneyComb = cfg->get<bool>("instant_honeycomb").value_or(false);//reader.GetBoolean("player", "instant_honeycomb", true);
+	checkFastPandora = cfg->get<bool>("fast_pandora").value_or(false);//reader.GetBoolean("player", "fast_pandora", true);
+	checkSprintFasterActivate = cfg->get<bool>("faster_sprint_activation").value_or(false);//reader.GetBoolean("player", "faster_sprint_activation", true);
+	checkRoseRemovesPins = cfg->get<bool>("rose_removes_pins").value_or(false);//reader.GetBoolean("player", "rose_removes_pins", true);
+
+	// General
+	checkInfiniteTime = cfg->get<bool>("infinite_time").value_or(false);//reader.GetBoolean("system", "infinite_time", true);
+	checkDisableCameraEvents = cfg->get<bool>("disable_camera_events").value_or(false);//reader.GetBoolean("system", "disable_camera_events", true);
+	checkautoSkiptIntro = cfg->get<bool>("auto_skip_mission_intro").value_or(false);//reader.GetBoolean("system", "auto_skip_mission_intro", true);
+	checkAutoSkipOutro = cfg->get<bool>("auto_skip_mission_outros").value_or(false);//reader.GetBoolean("system", "auto_skip_mission_outros", true);
+	checkHideHUD = cfg->get<bool>("hide_hud").value_or(false);//reader.GetBoolean("system", "hide_hud", true);
+	checkHideStyle = cfg->get<bool>("hide_Style_meter_and_orbs").value_or(false);//reader.GetBoolean("system", "hide_Style_meter_and_orbs", true);
+	checkCharacterChange = cfg->get<bool>("character_change").value_or(false);//reader.GetBoolean("system", "character_change", true);
+	checkSlowWalk = cfg->get<bool>("enable_slow_walk").value_or(false);//reader.GetBoolean("system", "enable_slow_walk", true);
+	checkBpPortalAutoOpen = cfg->get<bool>("auto_open_doors_and_BP_portal").value_or(false);//reader.GetBoolean("system", "auto_open_doors_and_BP_portal", true);
+	checkOrbDisplay = cfg->get<bool>("enemy_hp_red_orb_display").value_or(false);//reader.GetBoolean("system", "enemy_hp_red_orb_display", true);
+	// Game Mode
+	checkBossRush = cfg->get<bool>("boss_rush_mode").value_or(false);//reader.GetBoolean("system", "boss_rush_mode", true);
+	checkLDKWithDMD = cfg->get<bool>("ldk_on_DMD_diff").value_or(false);//reader.GetBoolean("system", "ldk_on_DMD_diff", true);
+	checkEnemyInstantDT = cfg->get<bool>("enemy_instant_DT").value_or(false);//reader.GetBoolean("system", "enemy_instant_DT", true);
+	checkEnemyNoDT = cfg->get<bool>("enemy_no_DT").value_or(false);//reader.GetBoolean("system", "enemy_no_DT", true);
+	checkEnemyAttackOffscreen = cfg->get<bool>("enemies_attack_offscreen").value_or(false);//reader.GetBoolean("system", "enemies_attack_offscreen", true);
+	// Misc
+	checkCameraSensitivity = cfg->get<bool>("increased_camera_sensitivity").value_or(false);//reader.GetBoolean("system", "increased_camera_sensitivity", true);
+	// Practice
+	// General
+	checkinfiniteAllHealth = cfg->get<bool>("infinite_health_all").value_or(false);//reader.GetBoolean("practice", "infinite_health_all", true);
+	checkInfiniteDT = cfg->get<bool>("infinite_DT").value_or(false);//reader.GetBoolean("practice", "infinite_DT", true);
+	checkInfinitePlayerHealth = cfg->get<bool>("infinite_player_health").value_or(false);//reader.GetBoolean("practice", "infinite_player_health", true);
+	checkInfiniteRevive = cfg->get<bool>("infinite_revive").value_or(false);//reader.GetBoolean("practice", "infinite_revive", true);
+	// Misc
+	checkBerialPractice = cfg->get<bool>("berial_practice").value_or(false);//reader.GetBoolean("practice", "berial_practice", true);
+	checkStunAnything = cfg->get<bool>("stun_anything").value_or(false);//reader.GetBoolean("practice", "stun_anything", true);
+	checkRemoveLaunchArmour = cfg->get<bool>("remove_launch_armour").value_or(false);//reader.GetBoolean("practice", "remove_launch_armour", true);
+	// Disable Darkslayer Inputs
+	checkDisableDarkslayerUp    = cfg->get<bool>("disable_darkslayer_Dpad_up").value_or(false);//reader.GetBoolean("practice", "disable_darkslayer_Dpad_up", true);
+	checkDisableDarkslayerDown  = cfg->get<bool>("disable_darkslayer_Dpad_down").value_or(false);//reader.GetBoolean("practice", "disable_darkslayer_Dpad_down", true);
+	checkDisableDarkslayerLeft  = cfg->get<bool>("disable_darkslayer_Dpad_left").value_or(false);//reader.GetBoolean("practice", "disable_darkslayer_Dpad_left", true);
+	checkDisableDarkslayerRight = cfg->get<bool>("disable_darkslayer_Dpad_right").value_or(false);//reader.GetBoolean("practice", "disable_darkslayer_Dpad_right", true);
+
+	modBackgroundRendering::onConfigLoad(*cfg);
+	modSelCancels::onConfigLoad(*cfg);
+	modLimitAdjust::onConfigLoad(*cfg);
+	modNoHBknockback::onConfigLoad(*cfg);
+}
+
+void hlMain::saveSettings() {
+	HL_LOG_RAW("Saving settings\n");
+	cfg->set<bool>("nero_height_restriction_removed",checkHeightRestrictionNero);
+	cfg->set<bool>("dante_height_restriction_removed",checkHeightRestrictionDante);
+	cfg->set<bool>("damage_modifier",checkDamageModifier);
+	cfg->set<float>("damage_factor", damagemultiplier);
+	
+	cfg->set<bool>("infinite_air_hike",checkInfiniteAirHike);
+	cfg->set<bool>("infinite_table_hopper",checkInfiniteTableHopper);
+	cfg->set<bool>("trick_down",checkTrickDown);
+	cfg->set<bool>("infinite_trick_range",checkInfiniteTrickRange);
+	cfg->set<bool>("tracking_full_house",checkTrackingFullHouse);
+	cfg->set<bool>("instant_honeycomb",checkHoneyComb);
+	cfg->set<bool>("fast_pandora",checkFastPandora);
+	cfg->set<bool>("faster_sprint_activation",checkSprintFasterActivate);
+	cfg->set<bool>("rose_removes_pins",checkRoseRemovesPins);
+	
+	cfg->set<bool>("infinite_time",checkInfiniteTime);
+	cfg->set<bool>("disable_camera_events",checkDisableCameraEvents);
+	cfg->set<bool>("auto_skip_mission_intro",checkautoSkiptIntro);
+	cfg->set<bool>("auto_skip_mission_outros",checkAutoSkipOutro);
+	cfg->set<bool>("hide_hud",checkHideHUD);
+	cfg->set<bool>("hide_Style_meter_and_orbs",checkHideStyle);
+	cfg->set<bool>("character_change",checkCharacterChange);
+	cfg->set<bool>("enable_slow_walk",checkSlowWalk);
+	cfg->set<bool>("auto_open_doors_and_BP_portal",checkBpPortalAutoOpen);
+	cfg->set<bool>("enemy_hp_red_orb_display",checkOrbDisplay);
+	cfg->set<bool>("boss_rush_mode",checkBossRush);
+	cfg->set<bool>("ldk_on_DMD_diff",checkLDKWithDMD);
+	cfg->set<bool>("enemy_instant_DT",checkEnemyInstantDT);
+	cfg->set<bool>("enemy_no_DT",checkEnemyNoDT);
+	cfg->set<bool>("enemies_attack_offscreen",checkEnemyAttackOffscreen);
+	cfg->set<bool>("increased_camera_sensitivity",checkCameraSensitivity);
+	cfg->set<bool>("infinite_health_all",checkinfiniteAllHealth);
+	cfg->set<bool>("infinite_DT",checkInfiniteDT);
+	cfg->set<bool>("infinite_player_health",checkInfinitePlayerHealth);
+	cfg->set<bool>("infinite_revive",checkInfiniteRevive);
+	cfg->set<bool>("berial_practice",checkBerialPractice);
+	cfg->set<bool>("stun_anything",checkStunAnything);
+	cfg->set<bool>("remove_launch_armour",checkRemoveLaunchArmour);
+	cfg->set<bool>("disable_darkslayer_Dpad_up",checkDisableDarkslayerUp);
+	cfg->set<bool>("disable_darkslayer_Dpad_down",checkDisableDarkslayerDown);
+	cfg->set<bool>("disable_darkslayer_Dpad_left",checkDisableDarkslayerLeft);
+	cfg->set<bool>("disable_darkslayer_Dpad_right",checkDisableDarkslayerRight);
+
+	modBackgroundRendering::onConfigSave(*cfg);
+	modSelCancels::onConfigSave(*cfg);
+	modLimitAdjust::onConfigSave(*cfg);
+	modNoHBknockback::onConfigSave(*cfg);
+	
+	cfg->save(m_confPath);
+}
+
 bool hlMain::init()
 {
 	wchar_t buffer[MAX_PATH]{ 0 };
@@ -691,6 +803,12 @@ bool hlMain::init()
 	}
 	MH_Initialize();
 	bool exp_result = InstallExceptionHandlerHooks();
+
+	auto cwd = hl::GetCurrentModulePath();
+	cwd = cwd.substr(0, cwd.find_last_of("\\/"));
+	//auto conf = cwd + "\\config.txt";
+	m_confPath = cwd + "\\dmc4_hook.cfg";
+	cfg = std::make_unique<utils::Config>( m_confPath );
 
 	// Wait 3 seconds to let the game start.
 	Sleep(3000);
@@ -721,7 +839,24 @@ bool hlMain::init()
 		std::runtime_error("Failed to initialize modSelCancels");
 	if (!modBackgroundRendering::init(window, modBase))
 		std::runtime_error("Failed to initialize modBackgroundRendering");
-	// NOTE(): removed INIReader.h now different ini implementation is used.
+	
+	// test
+	//checkWeaponSwitch = cfg->get<bool>("sword_&_gun_switch_limits_removed.Enabled").value_or(false);
+
+#if 0
+	checkJcCooldown = reader.GetBoolean("player", "jc_limits_removed", true);
+	checkStyleSwitch = reader.GetBoolean("player", "style_switch_limits_removed", true);
+	checkMovingTargetChange = reader.GetBoolean("player", "target_change_limit_removed", true);
+	// Height Restriction Removal
+	checkHeightRestrictionDante = reader.GetBoolean("player", "dante_height_restriction_removed", true);
+	checkHeightRestrictionNero = reader.GetBoolean("player", "nero_height_restriction_removed", true);
+	// Player Damage Modifier
+	checkDamageModifier = reader.GetBoolean("player", "damage_modifier", true);
+	// Misc
+	// System
+
+	// test
+#endif
 #ifdef false
     // define ini options
     INIReader reader("dmc4hook.ini");
@@ -1162,14 +1297,9 @@ bool hlMain::init()
     }
 #endif
 
+	// loads settings and toggles refactored mods.
+	loadSettings();
 
-    //ToggleStuff();
-	// NOTE(): new ini functionality
-	// loads ini settings into CONFIG structure and toggles mods.
-	parseINI();
-	// NOTE(): new ini functionality
-	// save all mod settings into ini file.
-	//saveINI();
     return true;
 }
 
@@ -1230,7 +1360,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
         ImGui::SameLine(340.0f);
 		if (ImGui::Button("Save config"))
 		{
-			saveINI();
+			main->saveSettings();
+			//saveINI();
 		}
 
         if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyScroll))

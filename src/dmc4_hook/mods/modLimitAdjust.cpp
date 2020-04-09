@@ -34,8 +34,8 @@ namespace modLimitAdjust {
 
 		// if everything went well register our ini callbacks.
 		// those will be called at ini load/save.
-		loadCallbackRegister(loadConfig);
-		saveCallbackRegister(saveConfig);
+		/*loadCallbackRegister(loadConfig);
+		saveCallbackRegister(saveConfig);*/
 
 		return true;
     };
@@ -93,22 +93,22 @@ namespace modLimitAdjust {
 			toggle(enabled[TARGET_CHANGE], TARGET_CHANGE);
 		}
 	}
-
-	void loadConfig(CONFIG& config) {
-		enabled[SWORD_GUNS]    = config.player.options["sword_gun_switch_limits_removed"];
-		enabled[JC]            = config.player.options["jc_limits_removed"];
-		enabled[STYLE_SWITCH]  = config.player.options["style_switch_limits_removed"];
-		enabled[TARGET_CHANGE] = config.player.options["target_change_limit_removed"];
-		// iterate over the list and toggle values according to config data.
+	void onConfigLoad(const utils::Config& cfg) {
+		enabled[SWORD_GUNS]   = cfg.get<bool>("sword_gun_switch_limits_removed").value_or(false);
+		enabled[JC]           = cfg.get<bool>("jc_limits_removed").value_or(false);
+		enabled[STYLE_SWITCH] = cfg.get<bool>("style_switch_limits_removed").value_or(false);
+		enabled[SWORD_GUNS]   = cfg.get<bool>("target_change_limit_removed").value_or(false);
 		for (int i = 0; i < 4; i++) {
 			toggle(enabled[i], (LIMIT_TYPE)i);
 		}
 	};
 
-	void saveConfig(CONFIG& config) {
-		config.player.options["sword_gun_switch_limits_removed"] = enabled[SWORD_GUNS];
-		config.player.options["jc_limits_removed"]               = enabled[JC];
-		config.player.options["style_switch_limits_removed"]     = enabled[STYLE_SWITCH];
-		config.player.options["target_change_limit_removed"]     = enabled[TARGET_CHANGE];
+	// will be called during config.cpp/updateConfig() if you've set your callbacks
+	// to write values into config file
+	void onConfigSave(utils::Config& cfg) {
+		cfg.set<bool>("sword_gun_switch_limits_removed", enabled[SWORD_GUNS]);
+		cfg.set<bool>("jc_limits_removed", enabled[JC]);
+		cfg.set<bool>("style_switch_limits_removed", enabled[STYLE_SWITCH]);
+		cfg.set<bool>("target_change_limit_removed", enabled[TARGET_CHANGE]);
 	};
 };

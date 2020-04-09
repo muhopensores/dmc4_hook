@@ -80,8 +80,8 @@ namespace modBackgroundRendering {
 
 		// if everything went well register our ini callbacks.
 		// those will be called at ini load/save.
-		loadCallbackRegister(loadConfig);
-		saveCallbackRegister(saveConfig);
+		/*loadCallbackRegister(loadConfig);
+		saveCallbackRegister(saveConfig);*/
 
 		return true;
 	};
@@ -98,17 +98,17 @@ namespace modBackgroundRendering {
 		}
 	};*/
 
+
 	// will be called during config.cpp/updateConfig() if you've set your callbacks
 	// to load values from the config and toggle upon start
-	void loadConfig(CONFIG& config) {
-		// only define options you want to be saved/loaded
-		modEnabled = config.system.options["enable_focus_patch"];
-	}
+	void onConfigLoad(const utils::Config& cfg) {
+		modEnabled = cfg.get<bool>("enable_focus_patch").value_or(false);
+	};
 	// will be called during config.cpp/updateConfig() if you've set your callbacks
 	// to write values into config file
-	void saveConfig(CONFIG& config) {
-		config.system.options["enable_focus_patch"] = modEnabled;
-	}
+	void onConfigSave(utils::Config& cfg) {
+		cfg.set<bool>("enable_focus_patch", modEnabled);
+	};
 
 	// call from the imgui drawing routine to draw gui elements if you require
 	void onGUIframe() {

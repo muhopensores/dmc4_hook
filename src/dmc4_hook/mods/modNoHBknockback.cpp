@@ -67,8 +67,8 @@ namespace modNoHBknockback {
 		}
 		// if everything went well register our ini callbacks.
 		// those will be called at ini load/save.
-		loadCallbackRegister(loadConfig);
-		saveCallbackRegister(saveConfig);
+		/*loadCallbackRegister(loadConfig);
+		saveCallbackRegister(saveConfig);*/
 		return true;
 	};
 	// call from the imgui drawing routine to draw gui elements if you require
@@ -83,15 +83,14 @@ namespace modNoHBknockback {
 
 	// will be called during config.cpp/updateConfig() if you've set your callbacks
 	// to load values from the config and toggle upon start
-	void loadConfig(CONFIG& config) {
-		// from main.cpp
-		// line 749 -> checkNoHelmBreakerKnockback = reader.GetBoolean("player", "no_helmbreaker_knockback", true);
-		modEnabled = config.player.options["no_helmbreaker_knockback"];
+	void onConfigLoad(const utils::Config& cfg) {
+		modEnabled = cfg.get<bool>("no_helmbreaker_knockback").value_or(false);
 		modMoveIDs::toggle(modEnabled);
-	}
+	};
+
 	// will be called during config.cpp/updateConfig() if you've set your callbacks
 	// to write values into config file
-	void saveConfig(CONFIG& config) {
-		config.player.options["no_helmbreaker_knockback"] = modEnabled;
-	}
+	void onConfigSave(utils::Config& cfg) {
+		cfg.set<bool>("no_helmbreaker_knockback", modEnabled);
+	};
 };

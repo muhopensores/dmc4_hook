@@ -4,8 +4,7 @@
 #include "hacklib/Patch.h"
 #include "hacklib/Hooker.h"
 #include "imgui/imgui.h"
-#include "config.h"
-
+#include "utils/Config.hpp"
 /*
 bool memAssert(const char* bytes, uintptr_t location) {
 	int result = std::memcmp(bytes, (const void*)location, sizeof(bytes));
@@ -24,16 +23,16 @@ namespace modMoveIDs {
 namespace modBackgroundRendering {
 	bool init(HWND gameWindow, uintptr_t modBase);
 	void onGUIframe();
-	void loadConfig(CONFIG& config);
-	void saveConfig(CONFIG& config);
+	void onConfigLoad(const utils::Config& cfg);
+	void onConfigSave(utils::Config& cfg);
 	bool* getModEnabledPtr();
 };
 
 namespace modSelCancels {
 	bool init(uintptr_t base);
 	void onGUIframe();
-	void loadConfig(CONFIG& config);
-	void saveConfig(CONFIG& config);
+	void onConfigLoad(const utils::Config& cfg);
+	void onConfigSave(utils::Config& cfg);
 	//void toggle(bool value);
 };
 
@@ -46,16 +45,16 @@ namespace modLimitAdjust {
 	};
 	bool init();
 	void onGUIframe();
-	void loadConfig(CONFIG& config);
-	void saveConfig(CONFIG& config);
+	void onConfigLoad(const utils::Config& cfg);
+	void onConfigSave(utils::Config& cfg);
 	//void toggle(bool value, LIMIT_TYPE limit);
 }
 
 namespace modNoHBknockback {
 	bool init(uintptr_t modBase);
 	void onGUIframe();
-	void loadConfig(CONFIG& config);
-	void saveConfig(CONFIG& config);
+	void onConfigLoad(const utils::Config& cfg);
+	void onConfigSave(utils::Config& cfg);
 }
 /* mod sample exposing functions/variables we might want to call from outside
 namespace modSample {
