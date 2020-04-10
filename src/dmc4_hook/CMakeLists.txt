@@ -67,6 +67,13 @@ source_group("imgui", FILES ${IMGUI})
 source_group("mods",  FILES ${MODS})
 source_group("utils", FILES ${UTILS})
 
+if(GIT_COMMIT_HASH)
+  message("GIT_COMMIT_HASH: ${GIT_COMMIT_HASH}")
+  message("GIT_COMMITTER_DATE: ${GIT_COMMITTER_DATE}")
+  add_compile_definitions(GIT_COMMIT_HASH=${GIT_COMMIT_HASH})
+  add_compile_definitions(GIT_COMMITTER_DATE=${GIT_COMMITTER_DATE})
+endif()
+
 ADD_LIBRARY(${PROJECT_NAME} SHARED
             ${HEADERS}
             ${IMGUI}

@@ -1,4 +1,28 @@
 #include "gui_functions.h"
+#include <string>
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include "Shellapi.h"
+
+
+inline void UnderLine( ImColor col_ )
+{
+	ImVec2 min = ImGui::GetItemRectMin();
+	ImVec2 max = ImGui::GetItemRectMax();
+	min.y = max.y;
+	ImGui::GetWindowDrawList()->AddLine( min, max, col_, 1.0f );
+}
+
+const std::string& GetVersionString() 
+{
+	static std::string version;
+#if defined(GIT_COMMIT_HASH) && defined(GIT_COMMITTER_DATE)
+	version = "DMC4Hook 1.1.4 #" GIT_COMMIT_HASH " " GIT_COMMITTER_DATE;
+#else
+	version = GUI_VERSION;
+#endif
+	return version;
+}
 
 // visual theme of the gui, can be changed to change the look
 void DarkTheme()
@@ -70,7 +94,7 @@ void DrawWindow()
 // imgui::being seperated into function (required to make gui overlay work, see imgui example and documentation
 void BeginDrawing()
 {
-    ImGui::Begin(GUI_VERSION, NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::Begin(GetVersionString().c_str(), NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 }
 
 // function that draws the fps onto the gui
@@ -88,6 +112,7 @@ void Misc()
 // function for putting credits specific things in the gui
 void CreditsDrawing()
 {
+	static ImVec4 color = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
     if (ImGui::BeginTabItem("About"))
     {
         ImGui::Spacing();
@@ -116,8 +141,18 @@ void CreditsDrawing()
         ImGui::Separator();
         ImGui::Spacing();
         ImGui::Text("For more info visit the wiki:\n");
-        ImGui::Text("https://github.com/muhopensores/dmc4_hook/wiki");
-        ImGui::Spacing();
+        ImGui::TextColored(color, "https://github.com/muhopensores/dmc4_hook/wiki");
+		if (ImGui::IsItemHovered()) {
+			color = ImVec4(0.356, 0.764, 0.960, 1.0f);
+		}
+		else {
+			color = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
+		}
+		if (ImGui::IsItemClicked()) {
+			ShellExecuteA( NULL, "open", "https://github.com/muhopensores/dmc4_hook/wiki", NULL, NULL, SW_SHOWNORMAL );
+		}
+		UnderLine(color);
+		ImGui::Spacing();
         ImGui::Spacing();
         ImGui::EndTabItem();
     }
