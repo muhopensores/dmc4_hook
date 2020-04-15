@@ -12,17 +12,13 @@ inline void UnderLine( ImColor col_ )
 	min.y = max.y;
 	ImGui::GetWindowDrawList()->AddLine( min, max, col_, 1.0f );
 }
-
-const std::string& GetVersionString() 
-{
-	static std::string version;
+// There probably is a more c++ way to do this?
 #if defined(GIT_COMMIT_HASH) && defined(GIT_COMMITTER_DATE)
-	version = "DMC4Hook 1.1.4 #" GIT_COMMIT_HASH " " GIT_COMMITTER_DATE;
+constexpr const char* version{ "DMC4Hook 1.1.4 Commit #" GIT_COMMIT_HASH " " GIT_COMMITTER_DATE };
 #else
-	version = GUI_VERSION;
+constexpr const char* std::string_view = GUI_VERSION;
 #endif
-	return version;
-}
+
 
 // visual theme of the gui, can be changed to change the look
 void DarkTheme()
@@ -94,7 +90,7 @@ void DrawWindow()
 // imgui::being seperated into function (required to make gui overlay work, see imgui example and documentation
 void BeginDrawing()
 {
-    ImGui::Begin(GetVersionString().c_str(), NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::Begin(version, NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 }
 
 // function that draws the fps onto the gui
@@ -143,7 +139,7 @@ void CreditsDrawing()
         ImGui::Text("For more info visit the wiki:\n");
         ImGui::TextColored(color, "https://github.com/muhopensores/dmc4_hook/wiki");
 		if (ImGui::IsItemHovered()) {
-			color = ImVec4(0.356, 0.764, 0.960, 1.0f);
+			color = ImVec4(0.356f, 0.764f, 0.960f, 1.0f);
 		}
 		else {
 			color = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);

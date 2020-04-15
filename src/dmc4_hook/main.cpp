@@ -17,6 +17,8 @@
 #include "utils/crash_handler.h"
 #include "MinHook.h"
 
+#include "mods/modWorkRate.hpp"
+#include "mods/modAreaJump.hpp"
 #include "hacklib/Logging.h"
 #include "hacklib/CrashHandler.h"
 
@@ -261,7 +263,7 @@ void hlMain::ImGuiStageJump(int room)
     roomID = ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830, 0x6C });
     if (roomID == NULL)
     {
-        HL_LOG_ERR("initiateJump is NULL\n");
+        HL_LOG_ERR("roomID is NULL\n");
         roomID = (int*)&uninit_value;
     }
 
@@ -525,14 +527,7 @@ void hlMain::ImGuiStageJump(int room)
 
 void hlMain::GamePause()
 {
-    if (g_drawGUI)
-    {
-        *globalSpeed = 0;
-    }
-    else
-    {
-        *globalSpeed = 1;
-    }
+	m_workRate->onGamePause(g_drawGUI);
 }
 
 void hlMain::ToggleStuff()
@@ -839,7 +834,8 @@ bool hlMain::init()
 		std::runtime_error("Failed to initialize modSelCancels");
 	if (!modBackgroundRendering::init(window, modBase))
 		std::runtime_error("Failed to initialize modBackgroundRendering");
-	
+	m_workRate = std::make_unique<WorkRate>();
+	m_areaJump = std::make_unique<AreaJump>();
 	// test
 	//checkWeaponSwitch = cfg->get<bool>("sword_&_gun_switch_limits_removed.Enabled").value_or(false);
 
@@ -1299,7 +1295,7 @@ bool hlMain::init()
 
 	// loads settings and toggles refactored mods.
 	loadSettings();
-
+	m_modsInitialized = true;
     return true;
 }
 
@@ -1698,7 +1694,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 Misc();
 				modBackgroundRendering::onGUIframe();
-                if (ImGui::CollapsingHeader("Speed"))
+                /*if (ImGui::CollapsingHeader("Speed"))
                 {
                     ImGui::InputFloat("Turbo Value", main->turboValue, 0.1f, 0.5f, "%.1f%");
                     ImGui::Spacing();
@@ -1709,7 +1705,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     ImGui::SliderFloat("Player Speed", main->playerSpeed, 0.0f, 3.0f, "%.1f");
                     ImGui::Spacing();
                     ImGui::SliderFloat("Enemy Speed", main->enemySpeed, 0.0f, 3.0f, "%.1f");
-                }
+                }*/
+				main->m_workRate->onGUIframe();
 
                 ImGui::Spacing();
 
@@ -1744,112 +1741,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
             if (ImGui::BeginTabItem("Environment"))
             {
-                ImGui::Spacing();
-                ImGui::Text("Area Jump");
-                ImGui::Spacing();
-                ImGui::InputInt("BP Floor\n(no boss stages)", main->bpFloorStage, 1, 10,
-                                ImGuiInputTextFlags_AllowTabInput);
-                ImGui::SameLine(0, 1);
-                HelpMarker("Type in the BP floor you want to teleport to and choose the correct BP area below (example "
-                           "21-39). Only "
-                           "1-99, no boss stages. For boss stages simply select the boss room from the listbox below.");
-                ImGui::Spacing();
-
-                const char* room_items[] = {
-                    "Bloody Palace 1-19",                 // 705
-                    "Bloody Palace 21-39",                // 704
-                    "Bloody Palace 41-59",                // 703
-                    "Bloody Palace 61-79",                // 701
-                    "Bloody Palace 81-99",                // 702
-                    "Bloody Palace 20",                   // 503
-                    "Bloody Palace 40",                   // 504
-                    "Bloody Palace 60",                   // 505
-                    "Bloody Palace 80",                   // 502
-                    "Bloody Palace 100",                  // 501
-                    "Bloody Palace 101",                  // 700
-                    "Opera House",                        // 0
-                    "Opera House Plaza",                  // 1
-                    "Storehouse",                         // 2
-                    "Cathedral",                          // 3
-                    "Terrace / Business District",        // 4
-                    "Residential District",               // 5
-                    "Port Caerula",                       // 6
-                    "Customs House",                      // 7
-                    "First Mining Area",                  // 8
-                    "Ferrum Hills",                       // 9
-                    "M17 Opera House",                    // 10
-                    "M17 Opera House Plaza",              // 11
-                    "Business District / Terrace",        // 12
-                    "M20 Opera House Plaza",              // 13
-                    "Second Mining Area",                 // 100
-                    "Fortuna Castle Gate",                // 105
-                    "Grand Hall (Fortuna Castle)",        // 200
-                    "Large Hall",                         // 201
-                    "Dining Room",                        // 202
-                    "Torture Chamber",                    // 203
-                    "Central Courtyard",                  // 204
-                    "Foris Falls (Bridge Area)",          // 205
-                    "Gallery",                            // 206
-                    "Library",                            // 207
-                    "Soldier's Graveyard",                // 209
-                    "Master's Chamber",                   // 210
-                    "Spiral Well",                        // 211
-                    "Underground Laboratory",             // 212
-                    "R&D Access",                         // 213
-                    "Game Room",                          // 214
-                    "Containment Room",                   // 215
-                    "Angel Creation",                     // 216
-                    "Foris Falls (Detour Area)",          // 217
-                    "Forest Entrance",                    // 300
-                    "Windswept Valley",                   // 301
-                    "Ruined Church",                      // 302
-                    "Ruined Valley",                      // 303
-                    "Ancient Training Ground",            // 304
-                    "Lapis River",                        // 305
-                    "Ancient Plaza",                      // 306
-                    "Den of the She-Viper",               // 307
-                    "Forgotten Ruins",                    // 308
-                    "Hidden Pit",                         // 309
-                    "Ruined Lowlands",                    // 310
-                    "Lost Woods",                         // 311
-                    "Gran Album Bridge",                  // 400
-                    "Grand Hall (Order of the Sword HQ)", // 401
-                    "Key Chamber",                        // 402
-                    "The Gauntlet",                       // 403
-                    "Agnus' Room",                        // 404
-                    "Security Corridor",                  // 405
-                    "Experiment Disposal",                // 406
-                    "Meeting Room",                       // 407
-                    "Ascension Chamber",                  // 408
-                    "Advent Chamber",                     // 409
-                    "Machina Ex Deus",                    // 500
-                    "Stairway to Heaven",                 // 501
-                    "Sacred Heart",                       // 502
-                    "M18",                                // 510
-                    "Sky Above Fortuna",                  // 512
-                    "Secret Mission 1",                   // 800
-                    "Secret Mission 2",                   // 801
-                    "Secret Mission 3",                   // 802
-                    "Secret Mission 4",                   // 803
-                    "Secret Mission 5",                   // 804
-                    "Secret Mission 6",                   // 805
-                    "Secret Mission 7",                   // 806
-                    "Secret Mission 8",                   // 807
-                    "Secret Mission 9",                   // 808
-                    "Secret Mission 10",                  // 809
-                    "Secret Mission 11",                  // 810
-                    "Secret Mission 12"                   // 811
-                };
-
-                int room_item_current = 0;
-                if (ImGui::ListBox("Room Codes\n(including BP)", &room_item_current, room_items,
-                                   IM_ARRAYSIZE(room_items), 10))
-                {
-                    main->ImGuiStageJump(room_item_current);
-                }
-
-                ImGui::Spacing();
-                ImGui::Spacing();
+				main->m_areaJump->onGUIframe();
                 ImGui::Separator();
                 ImGui::Spacing();
 

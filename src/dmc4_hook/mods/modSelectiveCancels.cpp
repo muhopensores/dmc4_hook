@@ -214,7 +214,7 @@ namespace modSelCancels {
 	static uintptr_t  _selectiveCancelsContinue = 0x0080332F;
 	static hl::Hooker detour;
 	
-	_declspec(naked) void selectiveCancels_proc(void)
+	naked void selectiveCancels_proc(void)
 	{
 		_asm {
 			cmp byte ptr [selectiveCancelsEnable], 0

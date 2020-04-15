@@ -7,6 +7,9 @@
 #include "hacklib/Input.h"
 #include "utils/Config.hpp"
 
+class WorkRate;
+class AreaJump;
+
 class hlMain* GetMain();
 
 class hlMain : public hl::Main
@@ -347,8 +350,10 @@ public:
 
 	void loadSettings();
 	void saveSettings();
-
+	//@TODO: remove this later, testing refactored mods
+	bool m_modsInitialized;
+	std::unique_ptr<WorkRate> m_workRate;
+	std::unique_ptr<AreaJump> m_areaJump;
 private:
-
 	std::string m_confPath;
 };

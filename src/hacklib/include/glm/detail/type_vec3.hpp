@@ -171,7 +171,7 @@ namespace glm
 				*this = tvec3<T, P>(scalar, v());
 			}
 #		endif// GLM_HAS_ANONYMOUS_UNION && defined(GLM_SWIZZLE)
-
+#if 0
         // HACKLIB PATCH BEGIN
         // This is mainly for backwards compatibility of hacklib code. Might be removed in the future.
         #ifdef _WIN32
@@ -182,6 +182,7 @@ namespace glm
                 return *reinterpret_cast<const D3DXVECTOR3*>(this);
             }
         #endif
+#endif
         // HACKLIB PATCH END
 
 		// -- Unary arithmetic operators --

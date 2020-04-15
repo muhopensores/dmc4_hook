@@ -38,6 +38,10 @@ SET (IMGUI
 # aux_source_directory(<dir> <variable>)
 #aux_source_directory(mods MODS)
 SET (MODS
+  mods/modAreaJump.cpp
+  mods/modAreaJump.hpp
+  mods/modWorkRate.cpp
+  mods/modWorkRate.hpp
   mods/modSelectiveCancels.hpp
   mods/modSelectiveCancels.cpp
   mods/modMoveIDs.cpp
@@ -48,13 +52,16 @@ SET (MODS
 )
 
 SET (UTILS
-  utils/ini.h
   utils/Config.hpp
   utils/Config.cpp
   utils/String.cpp
   utils/String.hpp
   utils/crash_handler.h
   utils/crash_handler.cpp
+)
+
+SET (SDK
+  sdk/ReClass_Internal.hpp
 )
 
 SET (SOURCES
@@ -66,6 +73,7 @@ SET (SOURCES
 source_group("imgui", FILES ${IMGUI})
 source_group("mods",  FILES ${MODS})
 source_group("utils", FILES ${UTILS})
+source_group("sdk",   FILES ${SDK})
 
 if(GIT_COMMIT_HASH)
   message("GIT_COMMIT_HASH: ${GIT_COMMIT_HASH}")
@@ -79,6 +87,7 @@ ADD_LIBRARY(${PROJECT_NAME} SHARED
             ${IMGUI}
       	    ${MODS}
             ${UTILS}
+			${SDK}
             ${SOURCES}
 )
 

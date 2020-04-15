@@ -1,5 +1,6 @@
 #include "hooks.h"
-
+#include "main.h"
+#include "mods/modWorkRate.hpp"
 bool*       g_enableBackgroundInput = false;
 bool        g_drawGUI   = false;
 const char* windowName  = "DEVIL MAY CRY 4";
@@ -42,6 +43,10 @@ static void presentCallDetour(hl::CpuContext* ctx) {
 		ImGui_ImplDX9_CreateDeviceObjects();
 		resetCalled = false;
 	}
+	/*auto main = GetMain();
+	if (main->m_modsInitialized) {
+		main->m_workRate->onFrame();
+	}*/
 	if (g_drawGUI) 
 	{
 		RenderImgui(device);
