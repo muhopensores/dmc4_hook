@@ -18,10 +18,6 @@ public:
 	std::unique_ptr<utils::Config> cfg;
 	void ToggleStuff();
     // patch functions definitons
-    void ToggleStyleSwitch(bool toggle);
-    void ToggleWeaponSwitch(bool toggle);
-    void ToggleJcCooldown(bool toggle);
-    void ToggleMovingTargetChange(bool toggle);
     void ToggleHeightRestrictionDante(bool toggle);
     void ToggleHeightRestrictionNero(bool toggle);
     void ToggleInfiniteTime(bool toggle);
@@ -58,14 +54,6 @@ public:
     void ImGuiToggleInfPlayerHealth();
     void ImGuiToggleInfDT();
     void ImGuiToggleBerialDaze();
-    void ImGuiToggleSelectiveCancels();
-		void ImGuiToggleEcstasyCancel();
-		void ImGuiToggleArgumentCancel();
-		void ImGuiToggleKickThirteenCancel();
-		void ImGuiToggleSlashDimensionCancel();
-		void ImGuiTogglePropCancel();
-		void ImGuiToggleShockCancel();
-		void ImGuiToggleOmenCancel();
     void ImGuiToggleDamageModifier();
     void ImGuiToggleLDKWithDMD();
     void ImGuiToggleTrackingFullHouse();
@@ -73,11 +61,8 @@ public:
     void ImGuiToggleHoneyComb();
     void ImGuiToggleOrbDisplay();
     void ImGuiToggleRoseRemovesPins();
-    void ImGuiToggleNoHelmBreakerKnockback();
     
 	//functions
-    void ImGuiInitiateJump();
-	void ImGuiStageJump(int room);
     void SetDefault();
     void SetDMD();
     void SetGMD();
@@ -112,11 +97,6 @@ public:
     // define our pointers here, but init and search for them in init()
     // pointer definitions
     uintptr_t modBase;
-    uintptr_t styleSwitch;
-    uintptr_t swordSwitch;
-    uintptr_t gunSwitch;
-    uintptr_t jcCooldown;
-    uintptr_t movingTargetChange;
     uintptr_t damagemodifier;
     uintptr_t orbDisplay;
     uintptr_t heightRestrictionDante;
@@ -213,8 +193,6 @@ public:
     uintptr_t disableDarkslayerLeft;
     uintptr_t disableDarkslayerRight;
     uintptr_t disableDarkslayerUp;
-    uintptr_t moveIDAlloc;
-    uintptr_t selectiveCancels;
     uintptr_t stunAnything;
     uintptr_t removeLaunchArmour;
     uintptr_t characterChangeOne;
@@ -286,19 +264,9 @@ public:
     uintptr_t infiniteTrickRange;
     uintptr_t cameraSensitivity;
     uintptr_t roseRemovesPins;
-    uintptr_t noHelmBreakerKnockback;
-    float* globalSpeed;
-    float* playerSpeed;
-    float* enemySpeed;
-    float* roomSpeed;
-    float* turboValue;
-    int* roomID;
-    int* bpFloorStage;
-    int* initiateJump;
 
 
-    hl::Patch styleSwitch_patch, swordSwitch_patch, gunSwitch_patch, jcCooldown_patch, movingTargetChange_patch,
-        heightRestrictionDante_patch, heightRestrictionBuster_patch, heightRestrictionSplit_patch,
+    hl::Patch heightRestrictionDante_patch, heightRestrictionBuster_patch, heightRestrictionSplit_patch,
         heightRestrictionCalibur_patch, heightRestrictionExCalibur_patch, heightRestrictionSnatch_patch,
         heightRestrictionRaveNero_patch, infiniteTime_patch, infiniteAllHealth_patch, disablecameraEventsOne_patch,
         disablecameraEventsTwo_patch, hideHUDOne_patch, hideHUDTwo_patch, hideHUDThree_patch, enemyNoDT_patch,
@@ -351,7 +319,6 @@ public:
 	void loadSettings();
 	void saveSettings();
 	//@TODO: remove this later, testing refactored mods
-	bool m_modsInitialized;
 	std::unique_ptr<WorkRate> m_workRate;
 	std::unique_ptr<AreaJump> m_areaJump;
 private:

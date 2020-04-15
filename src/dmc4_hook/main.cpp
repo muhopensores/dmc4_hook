@@ -170,47 +170,6 @@ void hlMain::ImGuiToggleBerialDaze()
     g_berialDazeEnable = !g_berialDazeEnable;
 }
 
-void hlMain::ImGuiToggleSelectiveCancels()
-{
-    g_moveIDAllocEnable = !g_moveIDAllocEnable;
-    g_selectiveCancelsEnable = !g_selectiveCancelsEnable;
-}
-
-void hlMain::ImGuiToggleEcstasyCancel()
-{
-    g_ecstasyCancelEnable = !g_ecstasyCancelEnable;
-}
-
-void hlMain::ImGuiToggleArgumentCancel()
-{
-    g_argumentCancelEnable = !g_argumentCancelEnable;
-}
-
-void hlMain::ImGuiToggleKickThirteenCancel()
-{
-    g_kickThirteenCancelEnable = !g_kickThirteenCancelEnable;
-}
-
-void hlMain::ImGuiToggleSlashDimensionCancel()
-{
-    g_slashDimensionCancelEnable = !g_slashDimensionCancelEnable;
-}
-
-void hlMain::ImGuiTogglePropCancel()
-{
-    g_propCancelEnable = !g_propCancelEnable;
-}
-
-void hlMain::ImGuiToggleShockCancel()
-{
-    g_shockCancelEnable = !g_shockCancelEnable;
-}
-
-void hlMain::ImGuiToggleOmenCancel()
-{
-    g_omenCancelEnable = !g_omenCancelEnable;
-}
-
 void hlMain::ImGuiToggleHoneyComb()
 {
     g_honeyCombEnable = !g_honeyCombEnable;
@@ -246,284 +205,6 @@ void hlMain::ImGuiToggleRoseRemovesPins()
     g_roseRemovesPinsEnable = !g_roseRemovesPinsEnable;
 }
 
-void hlMain::ImGuiToggleNoHelmBreakerKnockback()
-{
-    g_noHelmBreakerKnockbackEnable = !g_noHelmBreakerKnockbackEnable;
-}
-
-void hlMain::ImGuiInitiateJump()
-{
-    *initiateJump = 1;
-}
-
-void hlMain::ImGuiStageJump(int room)
-{
-    // this could be changed to local variable
-    HL_LOG_RAW("roomID = ReadPointerPath<int*>({ modBase + 0xA552C8, 0xDEADBEEF, 0x33 });\n")
-    roomID = ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830, 0x6C });
-    if (roomID == NULL)
-    {
-        HL_LOG_ERR("roomID is NULL\n");
-        roomID = (int*)&uninit_value;
-    }
-
-    // just set roomID and after the switch block initateJumps will be called, you can similarly
-    // set the pointer to initiateJumps there to avoid having to define and call a function.
-    // remove unused functions later.
-    switch (room)
-    {
-    case 0:
-        *roomID = 705; // "Bloody Palace 1-19"
-        break;
-    case 1:
-        *roomID = 704; // "Bloody Palace 21-39"
-        break;
-    case 2:
-        *roomID = 703; // "Bloody Palace 41-59"
-        break;
-    case 3:
-        *roomID = 701; // "Bloody Palace 61-79"
-        break;
-    case 4:
-        *roomID = 702; // "Bloody Palace 81-99"
-        break;
-    case 5:
-        *roomID = 503; // "Bloody Palace 20"
-        break;
-    case 6:
-        *roomID = 504; // "Bloody Palace 40"
-        break;
-    case 7:
-        *roomID = 505; // "Bloody Palace 60"
-        break;
-    case 8:
-        *roomID = 507; // "Bloody Palace 80"
-        break;
-    case 9:
-        *roomID = 506; // "Bloody Palace 100"
-        break;
-    case 10:
-        *roomID = 700; // "Bloody Palace 101"
-        break;
-    case 11:
-        *roomID = 0; // "Opera House"
-        break;
-    case 12:
-        *roomID = 1; // "Opera House Plaza"
-        break;
-    case 13:
-        *roomID = 2; // "Storehouse"
-        break;
-    case 14:
-        *roomID = 3; // "Cathedral"
-        break;
-    case 15:
-        *roomID = 4; // "Terrace / Business District"
-        break;
-    case 16:
-        *roomID = 5; // "Residential District"
-        break;
-    case 17:
-        *roomID = 6; // "Port Caerula"
-        break;
-    case 18:
-        *roomID = 7; // "Customs House"
-        break;
-    case 19:
-        *roomID = 8; // "First Mining Area"
-        break;
-    case 20:
-        *roomID = 9; // "Ferrum Hills"
-        break;
-    case 21:
-        *roomID = 10; // "M17 Opera House"
-        break;
-    case 22:
-        *roomID = 11; // "M17 Opera House Plaza"
-        break;
-    case 23:
-        *roomID = 12; // "Business District / Terrace"
-        break;
-    case 24:
-        *roomID = 13; // "M20 Opera House Plaza"
-        break;
-    case 25:
-        *roomID = 100; // "Second Mining Area"
-        break;
-    case 26:
-        *roomID = 105; // "Fortuna Castle Gate"
-        break;
-    case 27:
-        *roomID = 200; // "Grand Hall (Fortuna Castle)"
-        break;
-    case 28:
-        *roomID = 201; // "Large Hall"
-        break;
-    case 29:
-        *roomID = 202; // "Dining Room"
-        break;
-    case 30:
-        *roomID = 203; // "Torture Chamber"
-        break;
-    case 31:
-        *roomID = 204; // "Central Courtyard"
-        break;
-    case 32:
-        *roomID = 205; // "Foris Falls (Bridge Area)
-        break;
-    case 33:
-        *roomID = 206; // "Gallery"
-        break;
-    case 34:
-        *roomID = 207; // "Library"
-        break;
-    case 35:
-        *roomID = 209; // "Soldier's Graveyard"
-        break;
-    case 36:
-        *roomID = 210; // "Master's Chamber"
-        break;
-    case 37:
-        *roomID = 211; // "Spiral Wall"
-        break;
-    case 38:
-        *roomID = 212; // "Underground Labratory"
-        break;
-    case 39:
-        *roomID = 213; // "R&D Access"
-        break;
-    case 40:
-        *roomID = 214; // "Game Room"
-        break;
-    case 41:
-        *roomID = 215; // "Containment Room"
-        break;
-    case 42:
-        *roomID = 216; // "Angel Creation"
-        break;
-    case 43:
-        *roomID = 217; // "Foris Falls (Detour Area)"
-        break;
-    case 44:
-        *roomID = 300; // "Forest Entrance"
-        break;
-    case 45:
-        *roomID = 301; // "Windswept Valley"
-        break;
-    case 46:
-        *roomID = 302; // "Ruined Church"
-        break;
-    case 47:
-        *roomID = 303; // "Ruined Valley"
-        break;
-    case 48:
-        *roomID = 304; // "Ancient Training Ground"
-        break;
-    case 49:
-        *roomID = 305; // "Lapis River"
-        break;
-    case 50:
-        *roomID = 306; // "Ancient Plaza"
-        break;
-    case 51:
-        *roomID = 307; // "Den of the She-Viper"
-        break;
-    case 52:
-        *roomID = 308; // "Forgotten Ruins"
-        break;
-    case 53:
-        *roomID = 309; // "Hidden Pit"
-        break;
-    case 54:
-        *roomID = 310; // "Ruined Lowlands"
-        break;
-    case 55:
-        *roomID = 311; // "Lost Woods"
-        break;
-    case 56:
-        *roomID = 400; // "Gran Album Bridge"
-        break;
-    case 57:
-        *roomID = 401; // "Grand Hall (Order of the Sword HQ)"
-        break;
-    case 58:
-        *roomID = 402; // "Key Chamber"
-        break;
-    case 59:
-        *roomID = 403; // "The Gauntlet"
-        break;
-    case 60:
-        *roomID = 404; // "Agnus' Room"
-        break;
-    case 61:
-        *roomID = 405; // "Security Corridor"
-        break;
-    case 62:
-        *roomID = 406; // "Experiment Disposal"
-        break;
-    case 63:
-        *roomID = 407; // "Meeting Room"
-        break;
-    case 64:
-        *roomID = 408; // "Ascension Chamber"
-        break;
-    case 65:
-        *roomID = 409; // "Advent Chamber"
-        break;
-    case 66:
-        *roomID = 500; // "Machina Ex Deus"
-        break;
-    case 67:
-        *roomID = 501; // "Stairway to Heaven"
-        break;
-    case 68:
-        *roomID = 502; // "Sacred Heart"
-        break;
-    case 69:
-        *roomID = 510; // "M18"
-        break;
-    case 70:
-        *roomID = 512; // "Sky Above Fortuna"
-        break;
-    case 71:
-        *roomID = 800; // "Secret Mission 1"
-        break;
-    case 72:
-        *roomID = 801; // "Secret Mission 2"
-        break;
-    case 73:
-        *roomID = 802; // "Secret Mission 3"
-        break;
-    case 74:
-        *roomID = 803; // "Secret Mission 4"
-        break;
-    case 75:
-        *roomID = 804; // "Secret Mission 5"
-        break;
-    case 76:
-        *roomID = 805; // "Secret Mission 6"
-        break;
-    case 77:
-        *roomID = 806; // "Secret Mission 7"
-        break;
-    case 78:
-        *roomID = 807; // "Secret Mission 8"
-        break;
-    case 79:
-        *roomID = 808; // "Secret Mission 9"
-        break;
-    case 80:
-        *roomID = 809; // "Secret Mission 10"
-        break;
-    case 81:
-        *roomID = 810; // "Secret Mission 11"
-        break;
-    case 82:
-        *roomID = 811; // "Secret Mission 12"
-        break;
-    }
-    ImGuiInitiateJump();
-}
 
 void hlMain::GamePause()
 {
@@ -534,10 +215,6 @@ void hlMain::ToggleStuff()
 {
 	// Player
 		// General
-	ToggleWeaponSwitch(checkWeaponSwitch);
-    ToggleJcCooldown(checkJcCooldown);
-    ToggleStyleSwitch(checkStyleSwitch);
-    ToggleMovingTargetChange(checkMovingTargetChange);
 		// Height Restriction Removal
     ToggleHeightRestrictionDante(checkHeightRestrictionDante);
     ToggleHeightRestrictionNero(checkHeightRestrictionNero);
@@ -567,47 +244,6 @@ void hlMain::ToggleStuff()
 	if (checkRoseRemovesPins)
     {
         g_roseRemovesPinsEnable = true;
-    }
-	if (checkNoHelmBreakerKnockback)
-	{
-		g_noHelmBreakerKnockbackEnable = true;
-	}
-		// Selective Cancels
-			// Common
-    if (checkSelectiveCancels)
-    {
-        g_moveIDAllocEnable = true;
-        g_selectiveCancelsEnable = true;
-    }
-    if (checkEcstasyCancel)
-    {
-        g_ecstasyCancelEnable = true;
-    }
-    if (checkArgumentCancel)
-    {
-        g_argumentCancelEnable = true;
-    }
-    if (checkKickThirteenCancel)
-    {
-        g_kickThirteenCancelEnable = true;
-    }
-    if (checkSlashDimensionCancel)
-    {
-        g_slashDimensionCancelEnable = true;
-    }
-			// Swords
-    if (checkPropCancel)
-    {
-        g_propCancelEnable = true;
-    }
-    if (checkShockCancel)
-    {
-        g_shockCancelEnable = true;
-    }
-			// Guns
-    if (checkOmenCancel)
-    {
-        g_omenCancelEnable = true;
     }
 	// System
 		// General
@@ -801,7 +437,6 @@ bool hlMain::init()
 
 	auto cwd = hl::GetCurrentModulePath();
 	cwd = cwd.substr(0, cwd.find_last_of("\\/"));
-	//auto conf = cwd + "\\config.txt";
 	m_confPath = cwd + "\\dmc4_hook.cfg";
 	cfg = std::make_unique<utils::Config>( m_confPath );
 
@@ -823,7 +458,7 @@ bool hlMain::init()
     oWndProc = (WNDPROC)SetWindowLongPtr(window, GWL_WNDPROC, (LONG_PTR)WndProc);
     hookD3D9(modBase);
 	
-	// NOTE(): refactored mods initialization
+	// TODO(): rewrite those in muh c++ classes
 	if (!modLimitAdjust::init())
 		std::runtime_error("Failed to initialize modLimitAdjust");
 	if (!modNoHBknockback::init(modBase))
@@ -834,114 +469,10 @@ bool hlMain::init()
 		std::runtime_error("Failed to initialize modSelCancels");
 	if (!modBackgroundRendering::init(window, modBase))
 		std::runtime_error("Failed to initialize modBackgroundRendering");
+	// TODO(): throw this to std::vector in Mods.cpp or something
 	m_workRate = std::make_unique<WorkRate>();
 	m_areaJump = std::make_unique<AreaJump>();
-	// test
-	//checkWeaponSwitch = cfg->get<bool>("sword_&_gun_switch_limits_removed.Enabled").value_or(false);
 
-#if 0
-	checkJcCooldown = reader.GetBoolean("player", "jc_limits_removed", true);
-	checkStyleSwitch = reader.GetBoolean("player", "style_switch_limits_removed", true);
-	checkMovingTargetChange = reader.GetBoolean("player", "target_change_limit_removed", true);
-	// Height Restriction Removal
-	checkHeightRestrictionDante = reader.GetBoolean("player", "dante_height_restriction_removed", true);
-	checkHeightRestrictionNero = reader.GetBoolean("player", "nero_height_restriction_removed", true);
-	// Player Damage Modifier
-	checkDamageModifier = reader.GetBoolean("player", "damage_modifier", true);
-	// Misc
-	// System
-
-	// test
-#endif
-#ifdef false
-    // define ini options
-    INIReader reader("dmc4hook.ini");
-
-	//g_borderless = reader.GetBoolean("general", "borderless_window", true);
-
-	// Player
-		// Limit Removal
-    checkWeaponSwitch = reader.GetBoolean("player", "sword_&_gun_switch_limits_removed", true);
-    checkJcCooldown = reader.GetBoolean("player", "jc_limits_removed", true);
-    checkStyleSwitch = reader.GetBoolean("player", "style_switch_limits_removed", true);
-    checkMovingTargetChange = reader.GetBoolean("player", "target_change_limit_removed", true);
-		// Height Restriction Removal
-    checkHeightRestrictionDante = reader.GetBoolean("player", "dante_height_restriction_removed", true);
-    checkHeightRestrictionNero = reader.GetBoolean("player", "nero_height_restriction_removed", true);
-		// Player Damage Modifier
-    checkDamageModifier = reader.GetBoolean("player", "damage_modifier", true);
-		// Misc
-    checkInfiniteAirHike = reader.GetBoolean("player", "infinite_air_hike", true);
-    checkInfiniteTableHopper = reader.GetBoolean("player", "infinite_table_hopper", true);
-    checkTrickDown = reader.GetBoolean("player", "trick_down", true);
-    checkInfiniteTrickRange = reader.GetBoolean("player", "infinite_trick_range", true);
-    checkTrackingFullHouse = reader.GetBoolean("player", "tracking_full_house", true);
-    checkHoneyComb = reader.GetBoolean("player", "instant_honeycomb", true);
-    checkFastPandora = reader.GetBoolean("player", "fast_pandora", true);
-    checkSprintFasterActivate = reader.GetBoolean("player", "faster_sprint_activation", true);
-    checkRoseRemovesPins = reader.GetBoolean("player", "rose_removes_pins", true);
-    checkNoHelmBreakerKnockback = reader.GetBoolean("player", "no_helmbreaker_knockback", true);
-		// Selective Cancels
-    checkSelectiveCancels = reader.GetBoolean("player", "selective_cancels", true);
-    checkEcstasyCancel = reader.GetBoolean("player", "ecstasy_cancel", true);
-    checkArgumentCancel = reader.GetBoolean("player", "argument_cancel", true);
-    checkKickThirteenCancel = reader.GetBoolean("player", "kick_13_cancel", true);
-    checkSlashDimensionCancel = reader.GetBoolean("player", "slash_dimension_cancel", true);
-    checkPropCancel = reader.GetBoolean("player", "prop_cancel", true);
-    checkShockCancel = reader.GetBoolean("player", "shock_cancel", true);
-    checkOmenCancel = reader.GetBoolean("player", "omen_cancel", true);
-
-	// System
-		// General
-    checkInfiniteTime = reader.GetBoolean("system", "infinite_time", true);
-    checkDisableCameraEvents = reader.GetBoolean("system", "disable_camera_events", true);
-    checkautoSkiptIntro = reader.GetBoolean("system", "auto_skip_mission_intro", true);
-	checkAutoSkipOutro = reader.GetBoolean("system", "auto_skip_mission_outros", true);
-    checkHideHUD = reader.GetBoolean("system", "hide_hud", true);
-	checkHideStyle = reader.GetBoolean("system", "hide_Style_meter_and_orbs", true);
-    checkCharacterChange = reader.GetBoolean("system", "character_change", true);
-	checkSlowWalk = reader.GetBoolean("system", "enable_slow_walk", true);
-    checkBpPortalAutoOpen = reader.GetBoolean("system", "auto_open_doors_and_BP_portal", true);
-	checkOrbDisplay = reader.GetBoolean("system", "enemy_hp_red_orb_display", true);
-		// Game Mode
-	checkBossRush = reader.GetBoolean("system", "boss_rush_mode", true);
-	checkLDKWithDMD = reader.GetBoolean("system", "ldk_on_DMD_diff", true);
-	checkEnemyInstantDT = reader.GetBoolean("system", "enemy_instant_DT", true);
-    checkEnemyNoDT = reader.GetBoolean("system", "enemy_no_DT", true);
-    checkEnemyAttackOffscreen = reader.GetBoolean("system", "enemies_attack_offscreen", true);
-		// Misc
-    checkCameraSensitivity = reader.GetBoolean("system", "increased_camera_sensitivity", true);
-
-	// Practice
-		// General
-    checkinfiniteAllHealth = reader.GetBoolean("practice", "infinite_health_all", true);
-    checkInfiniteDT = reader.GetBoolean("practice", "infinite_DT", true);
-    checkInfinitePlayerHealth = reader.GetBoolean("practice", "infinite_player_health", true);
-    checkInfiniteRevive = reader.GetBoolean("practice", "infinite_revive", true);
-		// Misc
-    checkBerialPractice = reader.GetBoolean("practice", "berial_practice", true);
-	checkStunAnything = reader.GetBoolean("practice", "stun_anything", true);
-    checkRemoveLaunchArmour = reader.GetBoolean("practice", "remove_launch_armour", true);
-		// Disable Darkslayer Inputs
-    checkDisableDarkslayerUp = reader.GetBoolean("practice", "disable_darkslayer_Dpad_up", true);
-    checkDisableDarkslayerDown = reader.GetBoolean("practice", "disable_darkslayer_Dpad_down", true);
-    checkDisableDarkslayerLeft = reader.GetBoolean("practice", "disable_darkslayer_Dpad_left", true);
-    checkDisableDarkslayerRight = reader.GetBoolean("practice", "disable_darkslayer_Dpad_right", true);
-
-    // checking for ini
-    if (reader.ParseError() < 0)
-    {
-        m_con.printf("Can't load 'dmc4hook.ini'. Using default settings\n");
-    }
-#endif
-
-    // find our aobs/ addresses
-	// NOTE() : moved into modLimitAdjust.cpp
-    //styleSwitch = hl::FindPattern(styleSwitch_aob);
-    //swordSwitch = hl::FindPattern(swordSwitch_aob);
-    //gunSwitch = hl::FindPattern(gunSwitch_aob);
-    //jcCooldown = hl::FindPattern(jcCooldown_aob);
-    //movingTargetChange = hl::FindPattern(movingTargetChange_aob);
     damagemodifier = hl::FindPattern(damagemodifier_aob);
     orbDisplay = modBase + 0xFDD35;
     heightRestrictionDante = modBase + 0x3B764E;
@@ -1039,50 +570,6 @@ bool hlMain::init()
     disableDarkslayerRight = modBase + 0x3B6D99;
     disableDarkslayerUp = modBase + 0x3B6C84;
 
-    // specific pointer checks for logging purposes - logs into the logfile after every boot of the game
-    HL_LOG_RAW("globalSpeed = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x28 });\n");
-    globalSpeed =
-        ReadPointerPath<float*>({ modBase + 0xA558D0, 0x28 }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x28);
-    if (globalSpeed == NULL)
-    {
-        HL_LOG_ERR("globalSpeed ptr is NULL");
-        globalSpeed = (float*)&uninit_value;
-    }
-    HL_LOG_RAW("playerSpeed = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x2c });\n");
-    playerSpeed =
-        ReadPointerPath<float*>({ modBase + 0xA558D0, 0x2c }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x2c);
-    if (playerSpeed == NULL)
-    {
-        HL_LOG_ERR("playerSpeed is NULL\n");
-        playerSpeed = (float*)&uninit_value;
-    }
-    HL_LOG_RAW("enemySpeed = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x30 });\n");
-    enemySpeed =
-        ReadPointerPath<float*>({ modBase + 0xA558D0, 0x30 }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x30);
-    if (enemySpeed == NULL)
-    {
-        HL_LOG_ERR("enemySpeed is NULL\n");
-        enemySpeed = (float*)&uninit_value;
-    }
-    HL_LOG_RAW("roomSpeed = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x34 });\n");
-    roomSpeed =
-        ReadPointerPath<float*>({ modBase + 0xA558D0, 0x34 }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x34);
-    if (roomSpeed == NULL)
-    {
-        HL_LOG_ERR("roomSpeed is NULL\n");
-        roomSpeed = (float*)&uninit_value;
-    }
-    HL_LOG_RAW("turboValue = ReadPointerPath<float*>({ modBase + 0xA558D0, 0x38 });\n");
-    turboValue =
-        ReadPointerPath<float*>({ modBase + 0xA558D0, 0x38 }); //(float*)(*(uintptr_t*)(modBase + 0xA558D0) + 0x38);
-    if (turboValue == NULL)
-    {
-        HL_LOG_ERR("turboValue is NULL\n");
-        turboValue = (float*)&uninit_value;
-    }
-	// NOTE(): moved this
-    //moveIDAlloc = modBase + 0x43EBD6;
-    //selectiveCancels = modBase + 0x40332A;
     stunAnything = hl::FindPattern(stunAnything_aob);
     removeLaunchArmour = hl::FindPattern(removeLaunchArmour_aob);
     characterChangeOne = modBase + 0x3790CF;
@@ -1116,27 +603,6 @@ bool hlMain::init()
     infiniteTrickRange = modBase + 0x3CB0A8;
     cameraSensitivity = modBase + 0x180A8;
     roseRemovesPins = modBase + 0x4158C3;
-    //noHelmBreakerKnockback = modBase + 0x11C384;
-
-    // we'll set this in StageJump function
-    // roomID = ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830, 0x6C });
-    // //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x6C);
-    bpFloorStage =
-        ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830,
-                                0x74 }); //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x74);
-    if (bpFloorStage == NULL)
-    {
-        HL_LOG_ERR("bpFloorStage is NULL\n");
-        bpFloorStage = (int*)&uninit_value;
-    }
-    initiateJump =
-        ReadPointerPath<int*>({ modBase + 0xA552C8, 0x3830,
-                                0x68 }); //(int*)(*(uintptr_t*)(*(uintptr_t*)(modBase + 0xA552C8) + 0x3830) + 0x68);
-    if (initiateJump == NULL)
-    {
-        HL_LOG_ERR("initiateJump is NULL\n");
-        initiateJump = (int*)&uninit_value;
-    }
 
     sprintFasterActivate = modBase + 0x40456C;
     enemyAttackOffscreen = modBase + 0xA8CE9;
@@ -1199,19 +665,6 @@ bool hlMain::init()
         auto berialDazeTwo_hk = m_hook.hookJMP(berialDazeTwo, 8, &berialDaze_proc, &_berialDazeContinue);
     }
 
-	// NOTE(): moved into specific implementation files on each mod. a call to
-	// modNamespace::init(); does the same thing.
-#ifdef false
-    if (moveIDAlloc != 0)
-    {
-        auto moveIDAlloc_hk = m_hook.hookJMP(moveIDAlloc, 6, &moveIDAlloc_proc);
-    }
-
-    if (selectiveCancels != 0)
-    {
-        auto selectiveCancels_hk = m_hook.hookJMP(selectiveCancels, 6, &selectiveCancels_proc);
-    }
-#endif
     if (cameraHeightSetting != 0)
     {
         auto cameraHeightSetting_hk =
@@ -1285,17 +738,8 @@ bool hlMain::init()
         auto roseRemovesPins_hk = m_hook.hookJMP(roseRemovesPins, 10, &roseRemovesPins_proc);
     }
 
-	// TODO() : commented out to test compilation.
-#ifdef false
-    if (noHelmBreakerKnockback != 0)
-    {
-        auto noHelmBreakerKnockback_hk = m_hook.hookJMP(noHelmBreakerKnockback, 5, &noHelmBreakerKnockback_proc);
-    }
-#endif
-
 	// loads settings and toggles refactored mods.
 	loadSettings();
-	m_modsInitialized = true;
     return true;
 }
 
@@ -1368,27 +812,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Text("Limit Removal");
 				// NOTE(): refactored mods expose onGUIframe function to draw gui stuff.
 				modLimitAdjust::onGUIframe();
-#ifdef false
-                if (ImGui::Checkbox("Remove Sword & Gun Switch Limit", &checkWeaponSwitch))
-                {
-                    main->ToggleWeaponSwitch(checkWeaponSwitch);
-                }
-
-                if (ImGui::Checkbox("Remove JC Limit", &checkJcCooldown))
-                {
-                    main->ToggleJcCooldown(checkJcCooldown);
-                }
-
-                if (ImGui::Checkbox("Remove Style Switch Limit", &checkStyleSwitch))
-                {
-                    main->ToggleStyleSwitch(checkStyleSwitch);
-                }
-
-                if (ImGui::Checkbox("Remove Target Switch Limit", &checkMovingTargetChange))
-                {
-                    main->ToggleMovingTargetChange(checkMovingTargetChange);
-                }
-#endif
 
                 ImGui::Spacing();
                 ImGui::Spacing();
@@ -1489,66 +912,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
 				// NOTE(): refactored mods expose onGUIframe function to draw gui stuff.
 				modSelCancels::onGUIframe();
-#ifdef false
-                if (ImGui::CollapsingHeader("Selective Cancels"))
-                {
-                    if (ImGui::Checkbox("Enable", &checkSelectiveCancels))
-                    {
-                        main->ImGuiToggleSelectiveCancels();
-                    }
-
-                    ImGui::Separator();
-                    ImGui::Text("Common");
-
-                    if (ImGui::Checkbox("Ecstasy", &checkEcstasyCancel))
-                    {
-                        main->ImGuiToggleEcstasyCancel();
-                    }
-
-                    ImGui::SameLine(198);
-
-                    if (ImGui::Checkbox("Argument", &checkArgumentCancel))
-                    {
-                        main->ImGuiToggleArgumentCancel();
-                    }
-
-                    if (ImGui::Checkbox("Kick 13", &checkKickThirteenCancel))
-                    {
-                        main->ImGuiToggleKickThirteenCancel();
-                    }
-
-                    ImGui::SameLine(198);
-
-                    if (ImGui::Checkbox("Slash Dimension", &checkSlashDimensionCancel))
-                    {
-                        main->ImGuiToggleSlashDimensionCancel();
-                    }
-
-                    ImGui::Separator();
-                    ImGui::Text("Swords");
-
-                    if (ImGui::Checkbox("Prop", &checkPropCancel))
-                    {
-                        main->ImGuiTogglePropCancel();
-                    }
-
-                    ImGui::SameLine(198);
-
-                    if (ImGui::Checkbox("Shock", &checkShockCancel))
-                    {
-                        main->ImGuiToggleShockCancel();
-                    }
-
-                    ImGui::Separator();
-                    ImGui::Text("Guns");
-
-                    if (ImGui::Checkbox("Omen", &checkOmenCancel))
-                    {
-                        main->ImGuiToggleOmenCancel();
-                    }
-                }
-#endif
-
                 ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::EndTabItem();

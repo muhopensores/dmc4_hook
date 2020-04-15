@@ -2,67 +2,15 @@
 #include "naked.h"
 
 //patch functions that are being applied by patching the bytes in the specific addresses according to function body
-void hlMain::ToggleStyleSwitch(bool toggle)
-{
-    if (styleSwitch)
-    {
-        if (toggle)
-            styleSwitch_patch.apply(styleSwitch, "\x90\x90\x90\x90\x90\x90", 6);
-        else
-            styleSwitch_patch.revert();
-    }
-}
-
-void hlMain::ToggleWeaponSwitch(bool toggle)
-{
-    if (swordSwitch)
-    {
-        if (toggle)
-            swordSwitch_patch.apply(swordSwitch, (char*)&limitadjust_patch, 6);
-        else
-            swordSwitch_patch.revert();
-    }
-
-	if (gunSwitch)
-    {
-        if (toggle)
-            gunSwitch_patch.apply(gunSwitch, (char*)&limitadjust_patch, 6);
-        else
-            gunSwitch_patch.revert();
-    }
-}
-
-void hlMain::ToggleJcCooldown(bool toggle)
-{
-    if (jcCooldown)
-    {
-        if (toggle)
-            jcCooldown_patch.apply(jcCooldown, (char*)&limitadjust_patch, 6);
-        else
-            jcCooldown_patch.revert();
-    }
-}
-
-void hlMain::ToggleMovingTargetChange(bool toggle)
-{
-    if (movingTargetChange)
-    {
-        if (toggle)
-            movingTargetChange_patch.apply(movingTargetChange, "\x90\x90", 2);
-        else
-            movingTargetChange_patch.revert();
-    }
-}
-
 void hlMain::ToggleHeightRestrictionDante(bool toggle)
 {
-    if (heightRestrictionDante)
-    {
-        if (toggle)
-            heightRestrictionDante_patch.apply(heightRestrictionDante, "\x90\x90\x90\x90\x90\x90", 6);
-        else
-            heightRestrictionDante_patch.revert();
-    }
+	if (heightRestrictionDante)
+	{
+		if (toggle)
+			heightRestrictionDante_patch.apply(heightRestrictionDante, "\x0F\x84\x7B\x03\x00\x00", 6);
+		else
+			heightRestrictionDante_patch.revert();
+	}
 }
 
 void hlMain::ToggleHeightRestrictionNero(bool toggle)

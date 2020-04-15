@@ -3,9 +3,6 @@
 
 extern "C"
 {
-    const float limitadjust = 0.0f;
-    // NOTE(): moved moveID into it's own mod. moveID is externed in modMoveIDS.cpp
-	//int moveID = 0;
     int lockOnAlloc = 0;
     float damagemultiplier = 1.0f;
     float cameraHeight = 170.0f;
@@ -23,8 +20,6 @@ extern "C"
     uintptr_t _infiniteDTContinue = NULL;
     uintptr_t _infinitePlayerHealthContinue = NULL;
     uintptr_t _berialDazeContinue = NULL;
-    uintptr_t _moveIDAllocContinue = 0x0083EBDC;
-    uintptr_t _selectiveCancelsContinue = 0x0080332F;
     uintptr_t _stunAnythingContinue = NULL;
     uintptr_t _cameraHeightContinue = NULL;
     uintptr_t _cameraDistanceContinue = NULL;
@@ -47,15 +42,6 @@ extern "C"
     bool g_InfDTEnable = false;
     bool g_InfPlayerHealthEnable = false;
     bool g_berialDazeEnable = false;
-    bool g_moveIDAllocEnable = false;
-    bool g_selectiveCancelsEnable = false;
-		bool g_ecstasyCancelEnable = false;
-		bool g_argumentCancelEnable = false;
-		bool g_kickThirteenCancelEnable = false;
-		bool g_slashDimensionCancelEnable = false;
-		bool g_propCancelEnable = false;
-		bool g_shockCancelEnable = false;
-		bool g_omenCancelEnable = false;
     bool g_damageModifierEnable = false;
 	bool g_orbDisplayEnable = false;
     bool g_stunAnythingEnable = false;
@@ -68,13 +54,6 @@ extern "C"
 }
 
 //procs that apply changes directly using inline asm, work in conjunction with hooks
-_declspec(naked) void limitadjust_patch(void)
-{
-    _asm {
-			fld dword ptr [limitadjust]
-    }
-}
-
 _declspec(naked) void damagemodifier_proc(void)
 {
     _asm {
@@ -169,97 +148,6 @@ _declspec(naked) void berialDaze_proc(void)
 			jmp dword ptr [_berialDazeContinue]
     }
 }
-// NOTE(): moved to each own implementation file.
-#ifdef false
-_declspec(naked) void moveIDAlloc_proc(void)
-{
-    _asm {
-			cmp byte ptr [g_moveIDAllocEnable], 0
-			je originalcode
-
-			mov [moveID],ecx
-
-		originalcode:
-			//mov [esi+0x0000225C],ecx
-			jmp dword ptr [_moveIDAllocContinue]
-    }
-}
-
-_declspec(naked) void selectiveCancels_proc(void)
-{
-    _asm {
-			cmp byte ptr [g_selectiveCancelsEnable], 0
-			je originalcode
-
-			cmp byte ptr [esi+0x13C],0xFFFFFFFF
-			jne originalcode
-			cmp byte ptr [esi+0x144],0xFFFFFFFF
-			jne originalcode
-
-			cmp [moveID],0x411				// Grounded Ecstasy	// Checks move id like usual every tick
-			je cancellableecstasy				// If correct moveid, check against Gui:
-			cmp [moveID],0x412						// Aerial Ecstasy
-			je cancellableecstasy
-			cmp [moveID],0x732						// Argument
-			je cancellableargument
-			cmp [moveID],0x30E						// Kick 13
-			je cancellablekickthirteen
-			cmp [moveID],0x30F						// DT Kick 13
-			je cancellablekickthirteen
-			cmp [moveID],0x900						// Slash Dimension
-			je cancellableslashdimension
-			cmp [moveID],0x232						// Prop
-			je cancellableprop
-			cmp [moveID],0x333						// Shock
-			je cancellableshock
-			cmp [moveID],0x735						// Omen
-			je cancellableomen
-			jmp originalcode
-
-			cancellableecstasy:
-			cmp [g_ecstasyCancelEnable],0x1	// If Gui is ticked,
-			je cancellable						// make the move cancellable
-			jmp originalcode						// if not, don't make it cancellable
-
-			cancellableargument:
-			cmp [g_argumentCancelEnable],0x1
-			je cancellable
-			jmp originalcode
-
-			cancellablekickthirteen:
-			cmp [g_kickThirteenCancelEnable],0x1
-			je cancellable
-			jmp originalcode
-
-			cancellableslashdimension:
-			cmp [g_slashDimensionCancelEnable],0x1
-			je cancellable
-			jmp originalcode
-
-			cancellableprop:
-			cmp [g_propCancelEnable],0x1
-			je cancellable
-			jmp originalcode
-
-			cancellableshock:
-			cmp [g_shockCancelEnable],0x1
-			je cancellable
-			jmp originalcode
-
-			cancellableomen:
-			cmp [g_omenCancelEnable],0x1
-			je cancellable
-			jmp originalcode
-
-		cancellable:
-			mov dword ptr [esi+0x8C],0x02	// only movs to [esi+8C] after filtering out anything that doesn't have [esi+13C],FFFFFFFF and [esi+144],FFFFFFFF
-												// a change of cmps would allow for different types of cancels such as cancelling an animation with walking or another attack
-		originalcode:								// buffers are also used around this area - the je a few bytes down used to be an inconvenience
-			mov edi,0x00000008				// originalcode has nothing to do with our newmem, just a convenient jmp point so always run
-			jmp dword ptr [_selectiveCancelsContinue]
-    }
-}
-#endif
 
 
 _declspec(naked) void cameraHeight_proc(void)
@@ -525,34 +413,3 @@ _declspec(naked) void roseRemovesPins_proc(void)
 			jmp dword ptr [_roseRemovesPinsContinue]
     }
 }
-// TODO(): commented out to be able to compile
-#ifdef false
-_declspec(naked) void noHelmBreakerKnockback_proc(void)
-{
-    _asm {
-			cmp byte ptr [g_noHelmBreakerKnockbackEnable],0
-			je originalcode
-
-			cmp [moveID],0x20A	// 522 // Low
-			je newcode
-			cmp [moveID],0x213	// 531 // Mid
-			je newcode
-			cmp [moveID],0x214	// 532 // High
-			je newcode
-			jmp originalcode
-
-		newcode:
-			cmp ecx,0x05
-			je nohelmbreakerknockbackje
-			jmp dword ptr [_noHelmBreakerKnockbackContinue]
-
-		nohelmbreakerknockbackje:
-			jmp dword ptr [_noHelmBreakerKnockbackJE]
-
-		originalcode:
-			cmp ecx,0x05
-			jl nohelmbreakerknockbackje
-			jmp dword ptr [_noHelmBreakerKnockbackContinue]
-    }
-}
-#endif
