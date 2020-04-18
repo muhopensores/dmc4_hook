@@ -11,9 +11,8 @@ MoveIds::MoveIds() {
 naked void detour() {
 	_asm {
 		mov [MoveIds::moveID],ecx
-		originalcode:
 		//mov [esi+0x0000225C],ecx
-		jmp dword ptr [jmp_return]
+		jmp dword ptr [MoveIds::jmp_return]
 	}
 }
 

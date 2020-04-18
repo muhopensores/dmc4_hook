@@ -48,9 +48,11 @@ SET (MODS
   mods/modSelectiveCancels.cpp
   mods/modMoveIDs.cpp
   mods/modLimitAdjust.cpp
+  mods/modLimitAdjust.hpp
   mods/modShared.cpp
   mods/modBackgroundRendering.cpp
   mods/modNoHBknockback.cpp
+  mods/modNoHBknockback.hpp
 )
 
 SET (UTILS

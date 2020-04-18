@@ -39,37 +39,37 @@ naked void selectiveCancels_proc()
 		jmp originalcode
 
 		cancellableecstasy:
-		test [SelectiveCancels::cancels], SelectiveCancels::ECSTASY	// If Gui is ticked,
+		test [SelectiveCancels::cancels], ECSTASY	// If Gui is ticked,
 			jg cancellable						// make the move cancellable
 			jmp originalcode						// if not, don't make it cancellable
 
 			cancellableargument:
-		test [SelectiveCancels::cancels], SelectiveCancels::ARGUMENT
+		test [SelectiveCancels::cancels], ARGUMENT
 			jg cancellable
 			jmp originalcode
 
 			cancellablekickthirteen:
-		test [SelectiveCancels::cancels], SelectiveCancels::KICK13
+		test [SelectiveCancels::cancels], KICK13
 			jg cancellable
 			jmp originalcode
 
 			cancellableslashdimension:
-		test [SelectiveCancels::cancels], SelectiveCancels::SLASH_DIMENSION
+		test [SelectiveCancels::cancels], SLASH_DIMENSION
 			jg cancellable
 			jmp originalcode
 
 			cancellableprop:
-		test [SelectiveCancels::cancels], SelectiveCancels::PROP
+		test [SelectiveCancels::cancels], PROP
 			jg cancellable
 			jmp originalcode
 
 			cancellableshock:
-		test [SelectiveCancels::cancels], SelectiveCancels::SHOCK
+		test [SelectiveCancels::cancels], SHOCK
 			jg cancellable
 			jmp originalcode
 
 			cancellableomen:
-		test [SelectiveCancels::cancels], SelectiveCancels::OMEN
+		test [SelectiveCancels::cancels], OMEN
 			jg cancellable
 			jmp originalcode
 
