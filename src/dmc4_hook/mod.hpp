@@ -30,7 +30,7 @@ public:
 	bool install_hook_offset(ptrdiff_t offset, hl::Hooker& hook, void* detour, uintptr_t* ret, ptrdiff_t next_instruction_offset = 0) {
 		uintptr_t base = GetMain()->modBase;
 		uintptr_t location = base + offset;
-		HL_LOG_RAW("Installing hook at %p\n", location);
+		HL_LOG_RAW("[%s]: Installing hook at %p.\n", getModName().c_str(), location);
 		auto hkRes = hook.hookJMP(location, next_instruction_offset, detour);
 		if (!hkRes) {
 			return false;
@@ -41,7 +41,7 @@ public:
 		return true;
 	}
 	bool install_hook_absolute(uintptr_t location, hl::Hooker& hook, void* detour, uintptr_t* ret, ptrdiff_t next_instruction_offset = 0) {
-		HL_LOG_RAW("Installing hook at %p\n", location);
+		HL_LOG_RAW("[%s]: Installing hook at %p.\n", getModName().c_str(), location);
 		auto hkRes = hook.hookJMP(location, next_instruction_offset, detour);
 		if (!hkRes) {
 			return false;
@@ -51,6 +51,7 @@ public:
 		}
 		return true;
 	}
+	virtual std::string getModName() { return "UnknownMod"; };
 
 	virtual std::optional<std::string> onInitialize() { return std::nullopt; }
 	// called whether gui shows or not. would need to call it from d3d hook

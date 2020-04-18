@@ -9,7 +9,9 @@ public:
 	static uintptr_t  jmp_return;
 	static sWorkRate* sWorkRatePtr;
 
-	virtual std::optional<std::string> onInitialize() override;
+	std::string getModName() override { return "WorkRate"; };
+
+	std::optional<std::string> onInitialize() override;
 
 	void onFrame() override;
 	void onConfigLoad(const utils::Config& cfg) override;

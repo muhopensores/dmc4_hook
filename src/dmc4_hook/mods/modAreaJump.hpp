@@ -9,11 +9,14 @@ public:
 	static uintptr_t jmp_return;
 	static cAreaJump* cAreaJumpPtr;
 
-	virtual std::optional<std::string> onInitialize() override;
+	std::string getModName() override { return "AreaJump"; };
+
+	std::optional<std::string> onInitialize() override;
 
 	void onGUIframe() override;
 
 private:
 	void jumpToStage(int stage);
 	hl::Hooker hook;
+	int m_exeType = 1;
 };

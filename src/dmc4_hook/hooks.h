@@ -24,7 +24,6 @@ public:
 }; //Size=0x0840
 
 extern bool g_drawGUI;
-extern HWND hWindow;
 // def winproc
 extern const char* windowName;
 extern WNDPROC oWndProc;
@@ -42,3 +41,4 @@ typedef LRESULT(CALLBACK* WNDPROC)(HWND, UINT, WPARAM, LPARAM);
 LRESULT __stdcall WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 void ToggleBorderless(bool enable);
+HWND getMainWindow();

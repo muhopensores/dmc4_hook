@@ -21,7 +21,9 @@ public:
 	static uint32_t cancels;// = 0;
 	static uintptr_t  _selectiveCancelsContinue; //= 0x0080332F;
 
-	virtual std::optional<std::string> onInitialize() override;
+	std::string getModName() override { return "SelectiveCancels"; };
+
+	std::optional<std::string> onInitialize() override;
 
 	void onConfigLoad(const utils::Config& cfg) override;
 	void onConfigSave(utils::Config& cfg) override;

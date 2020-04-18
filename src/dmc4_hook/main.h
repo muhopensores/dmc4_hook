@@ -316,11 +316,17 @@ public:
     hl::Input input;
     hl::ConsoleEx m_con;
 
+	enum EXE_TYPE {
+		STEAM,
+		NO_STEAM
+	};
+
 	void loadSettings();
 	void saveSettings();
 	//@TODO: remove this later, testing refactored mods
 	std::unique_ptr<WorkRate> m_workRate;
 	std::unique_ptr<AreaJump> m_areaJump;
+	EXE_TYPE m_exeType;
 private:
 	std::string m_confPath;
 };

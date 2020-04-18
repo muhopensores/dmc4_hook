@@ -92,7 +92,8 @@ constexpr std::array room_items {
 };
 
 naked void detour() {
-	//DevilMayCry4_DX9.exe+546E76 - 8B 92 30380000        - mov edx,[edx+00003830]
+	// steam   DevilMayCry4_DX9.exe+E1F6   - 8B 92 30380000        - mov edx,[edx+00003830]
+	// nosteam DevilMayCry4_DX9.exe+546E76 - 8B 92 30380000        - mov edx,[edx+00003830]
 	__asm {
 		mov edx, [edx+3830h]
 		mov DWORD PTR [AreaJump::cAreaJumpPtr], edx
@@ -101,13 +102,20 @@ naked void detour() {
 }
 
 AreaJump::AreaJump() {
+	//m_exeType = i;
 	onInitialize();
 }
 
 std::optional<std::string> AreaJump::onInitialize() {
 
-	if (!install_hook_offset(0x546E76, hook, &detour, &jmp_return, 6)) {
-		return "Failed to init WorkRate mod";
+	uintptr_t address = hl::FindPattern("8B 92 30 38 00 00", "DevilMayCry4_DX9.exe");
+	if (!address) {
+		HL_LOG_ERR("Could not find AreaJump pattern\n");
+		return "Could not find AreaJump pattern";
+	}
+	if (!install_hook_absolute(address, hook, &detour, &jmp_return, 6)) {
+		HL_LOG_ERR("Failed to init AreaJump mod\n");
+		return "Failed to init AreaJump mod";
 	}
 
 	return Mod::onInitialize();

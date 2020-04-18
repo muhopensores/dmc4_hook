@@ -1,17 +1,31 @@
 #include "hooks.h"
 #include "main.h"
 #include "mods/modWorkRate.hpp"
+
 bool*       g_enableBackgroundInput = false;
 bool        g_drawGUI   = false;
 const char* windowName  = "DEVIL MAY CRY 4";
 WNDPROC     oWndProc    = NULL;
 bool        resetCalled = false;
 HWND        hWindow = NULL;
-
+static bool once = false;
 hl::Hooker  d3d_hook;
 int32_t width;
 int32_t height;
 
+HWND getMainWindow() {
+	if (!hWindow) {
+		HL_LOG_ERR("hWindow is null!\n");
+		//throw std::runtime_error("hWindow is null!");
+	}
+	return hWindow;
+}
+
+void setWindowHook(HWND window) {
+	HL_LOG_RAW("Setting window hook, param = %x hWindow = %x\n",window, hWindow);
+	hWindow = window;
+	oWndProc = (WNDPROC)SetWindowLongPtr(window, GWL_WNDPROC, (LONG_PTR)WndProc);
+}
 
 bool IsCursorVisibleWINAPI() {
 	CURSORINFO info = { sizeof(CURSORINFO), 0, nullptr, {} };
@@ -38,6 +52,25 @@ static void presentCallDetour(hl::CpuContext* ctx) {
 	width = d3dObj.resX_00;
 	height = d3dObj.resY_00;
 
+	if (!once) {
+		D3DDEVICE_CREATION_PARAMETERS devParams{ 0 };
+		auto hr = device->GetCreationParameters(&devParams);
+		if (SUCCEEDED(hr)) {
+			if (devParams.hFocusWindow) {
+				HL_LOG_RAW("[D3D Device present] D3DDEVICE_CREATION_PARAMETERS hFocusWindow=%x\n", devParams.hFocusWindow);
+				setWindowHook(devParams.hFocusWindow);
+			}
+			else {
+				HL_LOG_ERR("[D3D Device present] D3DDEVICE_CREATION_PARAMETERS hFocusWindow= is NULL\n");
+			}
+		}
+		else {
+			HL_LOG_RAW("[D3D Device present] device->GetCreationParameters() FAILED\n");
+			goto bail;
+		}
+		once = true;
+	}
+bail:
 	if (resetCalled) 
 	{
 		ImGui_ImplDX9_CreateDeviceObjects();

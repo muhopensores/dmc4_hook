@@ -4,6 +4,8 @@
 #include <tchar.h>
 #include <iostream>
 
+#include <filesystem>
+
 #include "main.h"
 #include "hooks.h"
 #include "aobs.h"
@@ -420,6 +422,8 @@ void hlMain::saveSettings() {
 	cfg->save(m_confPath);
 }
 
+namespace fs = std::filesystem;
+
 bool hlMain::init()
 {
 	wchar_t buffer[MAX_PATH]{ 0 };
@@ -446,16 +450,35 @@ bool hlMain::init()
     hl::LogConfig logCfg;
     logCfg.logToFile = true;
     logCfg.logTime = true;
-    logCfg.fileName = "dmc4_hook.dll_log.txt";
+    logCfg.fileName = "dmc4_hook_log.txt";
     hl::ConfigLog(logCfg);
     HL_LOG_RAW("======================================================\n");
     HL_LOG_RAW("                    LOG START                         \n");
     HL_LOG_RAW("======================================================\n");
+#if 0
+	uintmax_t exeSize = 0;
+	try {
+		fs::path p = fs::current_path() / "DevilMayCry4_DX9.exe";
+		exeSize = fs::file_size(p);
+	}
+	catch (fs::filesystem_error& e) {
+		HL_LOG_ERR("%s", e.what());
+	}
+	HL_LOG_RAW("Exe size is: %llu\n", exeSize);
+
+	if(((exeSize-10156480) <= (13156480-10156480))) {
+		m_exeType = EXE_TYPE::STEAM;
+	}
+	else {
+		m_exeType = EXE_TYPE::NO_STEAM;
+	}
+
+	HL_LOG_RAW("Exe type is: %s\n", m_exeType == EXE_TYPE::STEAM ? "STEAM" : "NO STEAM");
+#endif
     modBase = (uintptr_t)GetModuleHandle(NULL);
-    HWND window = FindWindowA(NULL, windowName);
-	hWindow = window;
+	
 	hookSetEnableBackgroundInput(modBackgroundRendering::getModEnabledPtr());
-    oWndProc = (WNDPROC)SetWindowLongPtr(window, GWL_WNDPROC, (LONG_PTR)WndProc);
+
     hookD3D9(modBase);
 	
 	// TODO(): rewrite those in muh c++ classes
@@ -467,7 +490,7 @@ bool hlMain::init()
 		std::runtime_error("Failed to initialize modMoveIDs");
 	if (!modSelCancels::init(modBase))
 		std::runtime_error("Failed to initialize modSelCancels");
-	if (!modBackgroundRendering::init(window, modBase))
+	if (!modBackgroundRendering::init(getMainWindow(), modBase))
 		std::runtime_error("Failed to initialize modBackgroundRendering");
 	// TODO(): throw this to std::vector in Mods.cpp or something
 	m_workRate = std::make_unique<WorkRate>();
@@ -772,7 +795,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-        ImGui_ImplWin32_Init(FindWindowA(NULL, windowName));
+        ImGui_ImplWin32_Init(getMainWindow());
         ImGui_ImplDX9_Init(m_pDevice);
 		DarkTheme();
     }
@@ -801,7 +824,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 		if (ImGui::Button("Save config"))
 		{
 			main->saveSettings();
-			//saveINI();
 		}
 
         if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyScroll))
