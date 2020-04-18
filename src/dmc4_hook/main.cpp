@@ -455,6 +455,9 @@ bool hlMain::init()
     HL_LOG_RAW("======================================================\n");
     HL_LOG_RAW("                    LOG START                         \n");
     HL_LOG_RAW("======================================================\n");
+	HL_LOG_RAW("\n");
+	HL_LOG_RAW("dinput8.dll build date %s, commit hash #%s\n", GIT_COMMITTER_DATE, GIT_COMMIT_HASH);
+	HL_LOG_RAW("\n");
 #if 0
 	uintmax_t exeSize = 0;
 	try {
