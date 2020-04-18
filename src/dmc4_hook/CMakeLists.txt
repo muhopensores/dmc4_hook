@@ -40,6 +40,8 @@ SET (IMGUI
 SET (MODS
   mods/modAreaJump.cpp
   mods/modAreaJump.hpp
+  mods/modMoveIDs.cpp
+  mods/modMoveIDs.hpp
   mods/modWorkRate.cpp
   mods/modWorkRate.hpp
   mods/modSelectiveCancels.hpp

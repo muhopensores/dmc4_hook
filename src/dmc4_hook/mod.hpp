@@ -36,7 +36,9 @@ public:
 			return false;
 		}
 		if (next_instruction_offset) {
-			*ret = location + next_instruction_offset;
+			if (ret) {
+				*ret = location + next_instruction_offset;
+			}
 		}
 		return true;
 	}
@@ -47,7 +49,9 @@ public:
 			return false;
 		}
 		if (next_instruction_offset) {
-			*ret = location + next_instruction_offset;
+			if (ret) {
+				*ret = location + next_instruction_offset;
+			}
 		}
 		return true;
 	}

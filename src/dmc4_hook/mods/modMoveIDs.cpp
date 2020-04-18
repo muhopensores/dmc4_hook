@@ -1,5 +1,34 @@
-#include "../mods.h"
+#include "modMoveIDs.hpp"
+#if 1
 
+uintptr_t  MoveIds::jmp_return{ NULL };
+uint32_t   MoveIds::moveID{ 0 };
+
+MoveIds::MoveIds() {
+	onInitialize();
+}
+
+naked void detour() {
+	_asm {
+		mov [MoveIds::moveID],ecx
+		originalcode:
+		//mov [esi+0x0000225C],ecx
+		jmp dword ptr [jmp_return]
+	}
+}
+
+std::optional<std::string> MoveIds::onInitialize() {
+
+	if (!install_hook_offset(0x43EBD6, hook, &detour, &jmp_return, 6)) {
+		HL_LOG_ERR("Failed to init WorkRate mod\n");
+		return "Failed to init WorkRate mod";
+	}
+
+	return Mod::onInitialize();
+}
+
+
+#else
 // making this variable external so that the other modules can link against it.
 // note that we set a value upon declaration only here.
 extern "C" int moveID = 0;
@@ -50,3 +79,4 @@ namespace modMoveIDs {
 		}
 	};
 }
+#endif

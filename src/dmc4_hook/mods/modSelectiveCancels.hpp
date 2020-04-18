@@ -4,7 +4,7 @@
 
 class SelectiveCancels : public Mod {
 public:
-	SelectiveCancels() = default;
+	SelectiveCancels();
 
 	// using powers of two here to avoid making alot of bool variables
 	enum CANCEL_MOVES {       // bits table
@@ -17,9 +17,9 @@ public:
 		OMEN            = 64  // 0100 0000
 	};
 
-	static bool selectiveCancelsEnable;// = false;
-	static uint32_t cancels;// = 0;
-	static uintptr_t  _selectiveCancelsContinue; //= 0x0080332F;
+	static bool      selectiveCancelsEnable;// = false;
+	static uint32_t  cancels;// = 0;
+	static uintptr_t _selectiveCancelsContinue; //= 0x0080332F;
 
 	std::string getModName() override { return "SelectiveCancels"; };
 

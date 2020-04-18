@@ -1,11 +1,13 @@
 #include "../mods.h"
 #include "modSelectiveCancels.hpp"
-#if 0
+#include "modMoveIDs.hpp"
+
+#if 1
 bool       SelectiveCancels::selectiveCancelsEnable = false;
 uint32_t   SelectiveCancels::cancels = 0;
 uintptr_t  SelectiveCancels::_selectiveCancelsContinue = 0x0080332F;
 
-_declspec(naked) void selectiveCancels_proc(void)
+naked void selectiveCancels_proc()
 {
 	_asm {
 		cmp byte ptr [SelectiveCancels::selectiveCancelsEnable], 0
@@ -16,23 +18,23 @@ _declspec(naked) void selectiveCancels_proc(void)
 		cmp byte ptr [esi+0x144],0xFFFFFFFF
 		jne originalcode
 
-		cmp [moveID],0x411				// Grounded Ecstasy	// Checks move id like usual every tick
+		cmp [MoveIds::moveID],0x411				// Grounded Ecstasy	// Checks move id like usual every tick
 		je cancellableecstasy				// If correct moveid, check against Gui:
-		cmp [moveID],0x412						// Aerial Ecstasy
+		cmp [MoveIds::moveID],0x412						// Aerial Ecstasy
 		je cancellableecstasy
-		cmp [moveID],0x732						// Argument
+		cmp [MoveIds::moveID],0x732						// Argument
 		je cancellableargument
-		cmp [moveID],0x30E						// Kick 13
+		cmp [MoveIds::moveID],0x30E						// Kick 13
 		je cancellablekickthirteen
-		cmp [moveID],0x30F						// DT Kick 13
+		cmp [MoveIds::moveID],0x30F						// DT Kick 13
 		je cancellablekickthirteen
-		cmp [moveID],0x900						// Slash Dimension
+		cmp [MoveIds::moveID],0x900						// Slash Dimension
 		je cancellableslashdimension
-		cmp [moveID],0x232						// Prop
+		cmp [MoveIds::moveID],0x232						// Prop
 		je cancellableprop
-		cmp [moveID],0x333						// Shock
+		cmp [MoveIds::moveID],0x333						// Shock
 		je cancellableshock
-		cmp [moveID],0x735						// Omen
+		cmp [MoveIds::moveID],0x735						// Omen
 		je cancellableomen
 		jmp originalcode
 
@@ -80,17 +82,17 @@ _declspec(naked) void selectiveCancels_proc(void)
 	}
 }
 
-uintptr_t ret;
-std::optional<std::string> SelectiveCancels::onInitialize() {
-	if (!install_hook_offset(0x40332A, detour, &selectiveCancels_proc, &ret, 6))
-		return "Failed to init SelectiveCancels";
-	return Mod::onInitialize();
+SelectiveCancels::SelectiveCancels() {
+	onInitialize();
 }
 
-void SelectiveCancels::toggle(bool value) {
-	selectiveCancelsEnable = value;
-	modMoveIDs::toggle(value);
-};
+std::optional<std::string> SelectiveCancels::onInitialize() {
+	if (!install_hook_offset(0x40332A, detour, &selectiveCancels_proc, 0, 6)) {
+		HL_LOG_ERR("Failed to init SelectiveCancels\n")
+		return "Failed to init SelectiveCancels";
+	}
+	return Mod::onInitialize();
+}
 
 inline void SelectiveCancels::drawCheckboxSimple(const char* name, CANCEL_MOVES move) {
 	// bitwise [AND cancels, move] to extract the bit that matters to us.
@@ -113,9 +115,7 @@ inline void SelectiveCancels::drawCheckboxSimple(const char* name, CANCEL_MOVES 
 void SelectiveCancels::onGUIframe() {
 	if (ImGui::CollapsingHeader("Selective Cancels"))
 	{
-		if (ImGui::Checkbox("Enable", &selectiveCancelsEnable)) {
-			toggle(selectiveCancelsEnable);
-		}
+		ImGui::Checkbox("Enable", &selectiveCancelsEnable);
 
 		ImGui::Separator();
 		ImGui::Text("Common");
@@ -156,36 +156,15 @@ void SelectiveCancels::onGUIframe() {
 
 void SelectiveCancels::onConfigSave(utils::Config& cfg) {
 	cfg.set<bool>("selective_cancels", selectiveCancelsEnable);
-	//config.player.options["selective_cancels"] = selectiveCancelsEnable;
 	cfg.set<uint32_t>("cancels", cancels);
-	/*
-	config.player.options["ecstasy_cancel"]    = (cancels & ECSTASY) > 0;
-	config.player.options["argument_cancel"]   = (cancels & ARGUMENT) > 0;
-	config.player.options["kick13_cancel"]     = (cancels & KICK13) > 0;
-	config.player.options["sd_cancel"]         = (cancels & SLASH_DIMENSION) > 0;
-	config.player.options["prop_cancel"]       = (cancels & PROP) > 0;
-	config.player.options["shock_cancel"]      = (cancels & SHOCK) > 0;
-	config.player.options["omen_cancel"]       = (cancels & OMEN) > 0;
-	*/
 };
 
 void SelectiveCancels::onConfigLoad(const utils::Config& cfg) {
 	selectiveCancelsEnable = cfg.get<bool>("selective_cancels").value_or(false);
 	cancels = cfg.get<uint32_t>("cancels").value_or(0);
-	toggle(selectiveCancelsEnable);
-	/*
-	//toggle(config.player.options["selective_cancels"]);
-	if (config.player.options["ecstasy_cancel"])  { cancels |= ECSTASY; }
-	if (config.player.options["argument_cancel"]) { cancels |= ARGUMENT; }
-	if (config.player.options["kick13_cancel"])   { cancels |= KICK13; }
-	if (config.player.options["sd_cancel"])       { cancels |= SLASH_DIMENSION;  }
-	if (config.player.options["prop_cancel"])     { cancels |= PROP;  }
-	if (config.player.options["shock_cancel"])    { cancels |= SHOCK;  }
-	if (config.player.options["omen_cancel"])     { cancels |= OMEN;  }
-	*/
 };
-#endif
 
+#else
 // using variable external to the module. In this case moveID.
 // only definition to signal the linker.
 extern "C" int moveID;
@@ -398,7 +377,7 @@ namespace modSelCancels {
 		if (config.player.options["omen_cancel"])     { cancels |= OMEN;  }
 		*/
 	};
-#if 0
+
 	void saveConfig(CONFIG& config) {
 		config.player.options["selective_cancels"] = selectiveCancelsEnable;
 		config.player.options["ecstasy_cancel"]    = (cancels & ECSTASY) > 0;
@@ -420,5 +399,6 @@ namespace modSelCancels {
 		if (config.player.options["shock_cancel"])    { cancels |= SHOCK;  }
 		if (config.player.options["omen_cancel"])     { cancels |= OMEN;  }
 	};
-#endif
+
 };
+#endif
