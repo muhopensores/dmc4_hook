@@ -484,7 +484,7 @@ bool hlMain::init()
 #endif
     modBase = (uintptr_t)GetModuleHandle(NULL);
 	
-	hookSetEnableBackgroundInput(modBackgroundRendering::getModEnabledPtr());
+	//hookSetEnableBackgroundInput(modBackgroundRendering::getModEnabledPtr());
 
     hookD3D9(modBase);
 	m_mods = std::make_unique<Mods>();
@@ -1090,7 +1090,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Separator();
                 ImGui::Spacing();
                 Misc();
-				modBackgroundRendering::onGUIframe();
+				//modBackgroundRendering::onGUIframe();
+				main->getMods()->onDrawUI("BackgroundRendering"_hash);
+
                 /*if (ImGui::CollapsingHeader("Speed"))
                 {
                     ImGui::InputFloat("Turbo Value", main->turboValue, 0.1f, 0.5f, "%.1f%");

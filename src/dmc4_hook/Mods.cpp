@@ -1,21 +1,28 @@
 #include "Mods.hpp"
+#include "utils/Hash.hpp"
+// include mod headers here
 #include "mods/modAreaJump.hpp"
 #include "mods/modLimitAdjust.hpp"
 #include "mods/modMoveIDs.hpp"
 #include "mods/modNoHBknockback.hpp"
 #include "mods/modSelectiveCancels.hpp"
 #include "mods/modWorkRate.hpp"
-#include "utils/Hash.hpp"
+#include "mods/modBackgroundRendering.hpp"
 
+// mods constructor
 Mods::Mods() {
+	//add mods here
+	//m_mods["ModName"_hash] = std::make_unique<ModName>();
 	m_mods["AreaJump"_hash] = std::make_unique<AreaJump>();
 	m_mods["LimitAdjust"_hash] = std::make_unique<LimitAdjust>();
 	m_mods["MoveIds"_hash] = std::make_unique<MoveIds>();
 	m_mods["NoHbKnockback"_hash] = std::make_unique<NoHbKnockback>();
 	m_mods["SelectiveCancels"_hash] = std::make_unique<SelectiveCancels>();
 	m_mods["WorkRate"_hash] = std::make_unique<WorkRate>();
+	m_mods["BackgroundRendering"_hash] = std::make_unique<BackgroundRendering>();
 }
 
+// Initializes mods, checks for errors
 std::optional<std::string> Mods::onInitialize() const {
 	for (auto& umod : m_mods) {
 		auto& mod = umod.second;
@@ -26,6 +33,7 @@ std::optional<std::string> Mods::onInitialize() const {
 			return e;
 		}
 	}
+// @TODO: use this version once all the mods are converted to muh c++
 #if 0
 	auto cwd = hl::GetCurrentModulePath();
 	cwd = cwd.substr(0, cwd.find_last_of("\\/"));
@@ -40,7 +48,7 @@ std::optional<std::string> Mods::onInitialize() const {
 #endif
 	return std::nullopt;
 }
-
+// @TODO: use this version once all the mods are converted to muh c++
 #if 0
 void Mods::onConfigSave() {
 	HL_LOG_RAW("Saving config to dmc4_hook.cfg\n");
@@ -60,6 +68,7 @@ void Mods::onConfigSave() {
 	}
 }
 #else
+// Walks over the unordered_map and calls saveConfig
 void Mods::onConfigSave(utils::Config& cfg) {
 	//HL_LOG_RAW("Saving config to dmc4_hook.cfg\n");
 
@@ -69,8 +78,9 @@ void Mods::onConfigSave(utils::Config& cfg) {
 		mod->onConfigSave(cfg);
 	}
 }
+// Walks over unordered_map and calls loadConfig
 void Mods::onConfigLoad(utils::Config& cfg) {
-	//HL_LOG_RAW("Saving config to dmc4_hook.cfg\n");
+	HL_LOG_RAW("Loading config from dmc4_hook.cfg\n");
 
 	for (auto& umod : m_mods) {
 		auto& mod = umod.second;
@@ -79,21 +89,21 @@ void Mods::onConfigLoad(utils::Config& cfg) {
 	}
 }
 #endif
-
+// Called when showing ui, currently only WorkRate uses this to freeze time.
 void Mods::onGamePause(bool toggle) {
 	for (auto& umod : m_mods) {
 		auto& mod = umod.second;
 		mod->onGamePause(toggle);
 	}
 }
-
+// Called on every frame for mods that override this method
 void Mods::onFrame() {
 	for (auto& umod : m_mods) {
 		auto& mod = umod.second;
 		mod->onFrame();
 	}
 }
-
+// Called when drawing the gui
 void Mods::onDrawUI(uint32_t hash) {
 	m_mods[hash]->onGUIframe();
 }

@@ -1,6 +1,7 @@
 #include "hooks.h"
 #include "main.h"
 #include "mods/modWorkRate.hpp"
+#include "mods/modBackgroundRendering.hpp"
 
 bool*       g_enableBackgroundInput = false;
 bool        g_drawGUI   = false;
@@ -37,10 +38,6 @@ bool IsCursorVisibleWINAPI() {
 	return (info.flags & CURSOR_SHOWING) != 0;
 }
 
-void hookSetEnableBackgroundInput(bool* address) {
-	g_enableBackgroundInput = address;
-}
-
 static void resetCallDetour(hl::CpuContext* ctx) {
 	ImGui_ImplDX9_InvalidateDeviceObjects();
 	resetCalled = true;
@@ -68,6 +65,7 @@ static void presentCallDetour(hl::CpuContext* ctx) {
 			HL_LOG_RAW("[D3D Device present] device->GetCreationParameters() FAILED\n");
 			goto bail;
 		}
+		g_enableBackgroundInput = BackgroundRendering::getModEnabledPtr();
 		once = true;
 	}
 bail:

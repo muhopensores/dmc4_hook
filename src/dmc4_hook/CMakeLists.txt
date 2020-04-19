@@ -52,6 +52,7 @@ SET (MODS
   mods/modLimitAdjust.hpp
   mods/modShared.cpp
   mods/modBackgroundRendering.cpp
+  mods/modBackgroundRendering.hpp
   mods/modNoHBknockback.cpp
   mods/modNoHBknockback.hpp
 )
@@ -94,7 +95,7 @@ ADD_LIBRARY(${PROJECT_NAME} SHARED
             ${IMGUI}
       	    ${MODS}
             ${UTILS}
-			${SDK}
+	    ${SDK}
             ${SOURCES}
 )
 

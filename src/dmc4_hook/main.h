@@ -325,10 +325,12 @@ public:
 
 	void loadSettings();
 	void saveSettings();
+
 	//@TODO: remove this later, testing refactored mods
 	//std::unique_ptr<WorkRate> m_workRate;
 	//std::unique_ptr<AreaJump> m_areaJump;
 private:
+
 	std::atomic<bool> m_gameDataInitialized{ false };
 	std::unique_ptr<Mods> m_mods;
 	std::string m_confPath;

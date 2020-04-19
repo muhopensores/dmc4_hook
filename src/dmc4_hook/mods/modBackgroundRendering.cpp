@@ -1,6 +1,6 @@
-#include "../mods.h"
 #include "MinHook.h"
-
+#include "../hooks.h"
+#include "modBackgroundRendering.hpp"
 // expose functions/variables you need to call from outside in mods.h
 
 typedef HWND (WINAPI *GETFOCUS)(VOID);
@@ -9,6 +9,80 @@ typedef HWND (WINAPI *GETFOREGROUNDWINDOW)(VOID);
 GETFOCUS            fpGetFocus            = NULL;
 GETFOREGROUNDWINDOW fpGetForegroundWindow = NULL;
 
+HWND modGameWindow{ 0 };
+bool modEnabled{ false };
+
+#if 1
+HWND WINAPI DetourGetForegroundWindow() {
+	if (modEnabled) {
+		return modGameWindow;
+	}
+	else
+		return fpGetForegroundWindow();
+}
+
+HWND WINAPI DetourGetFocus() {
+	if (modEnabled) {
+		return modGameWindow;
+	}
+	else
+		return fpGetForegroundWindow();
+}
+
+
+
+std::optional<std::string> BackgroundRendering::onInitialize() {
+	modGameWindow = getMainWindow();
+	if (MH_CreateHookApi(L"user32", "GetForegroundWindow", &DetourGetForegroundWindow, (LPVOID*)&fpGetForegroundWindow) == MH_OK) {
+		HL_LOG_RAW("[BackgroundRendering]: CreateHookApi(user32, GetForegroundWindow) returned MH_OK\n");
+	}
+	else {
+		HL_LOG_ERR("[BackgroundRendering]: CreateHookApi(user32, GetForegroundWindow) failed\n");
+		return "[BackgroundRendering]: CreateHookApi(user32, GetForegroundWindow) failed";
+	}
+	if (MH_EnableHook(&GetForegroundWindow) == MH_OK) {
+		HL_LOG_RAW("[BackgroundRendering]: EnableHook(&GetForegroundWindow) returned MH_OK\n");
+	}
+	else {
+		HL_LOG_RAW("[BackgroundRendering]: EnableHook(&GetForegroundWindow) failed\n");
+		return "[BackgroundRendering]: EnableHook(&GetForegroundWindow) failed";
+	}
+
+	if (MH_CreateHookApi(L"user32", "GetFocus", &DetourGetFocus, (LPVOID*)&fpGetFocus) == MH_OK) {
+		HL_LOG_RAW("[BackgroundRendering]: CreateHookApi(user32, GetFocus) returned MH_OK\n");
+	}
+	else {
+		HL_LOG_ERR("[BackgroundRendering]: CreateHookApi(user32, GetFocus) failed\n");
+		return "[BackgroundRendering]: CreateHookApi(user32, GetFocus) failed";
+	}
+	if (MH_EnableHook(&GetFocus) == MH_OK) {
+		HL_LOG_RAW("[BackgroundRendering]: EnableHook(&GetFocus) returned MH_OK\n");
+	}
+	else {
+		HL_LOG_RAW("[BackgroundRendering]: EnableHook(&GetFocus) failed\n");
+		return "[BackgroundRendering]: EnableHook(&GetFocus) failed";
+	}
+	return Mod::onInitialize();
+}
+
+void BackgroundRendering::onConfigLoad(const utils::Config& cfg) {
+	modEnabled = cfg.get<bool>("enable_focus_patch").value_or(false);
+};
+
+void BackgroundRendering::onConfigSave(utils::Config& cfg) {
+	cfg.set<bool>("enable_focus_patch", modEnabled);
+};
+
+
+void BackgroundRendering::onGUIframe() {
+	ImGui::Checkbox("Focus patch (background input)", &modEnabled);
+}
+
+bool* BackgroundRendering::getModEnabledPtr() {
+	return &modEnabled;
+}
+
+#else
 namespace modBackgroundRendering {
 
 	static bool modEnabled;
@@ -118,3 +192,4 @@ namespace modBackgroundRendering {
 		ImGui::Checkbox("Focus patch (background input)", &modEnabled);
 	}
 };
+#endif

@@ -12,6 +12,7 @@ public:
 
 	void onFrame();
 	void onDrawUI(uint32_t hash);
+// @TODO: leave those like that until complete rewrite
 #if 0
 	void onConfigSave();
 #else
