@@ -2,6 +2,7 @@
 #include "main.h"
 #include "mods/modWorkRate.hpp"
 #include "mods/modBackgroundRendering.hpp"
+#include "Mods.hpp"
 
 bool*       g_enableBackgroundInput = false;
 bool        g_drawGUI   = false;
@@ -74,6 +75,7 @@ bail:
 		ImGui_ImplDX9_CreateDeviceObjects();
 		resetCalled = false;
 	}
+	GetMain()->getMods()->onFrame();
 	/*auto main = GetMain();
 	if (main->m_modsInitialized) {
 		main->m_workRate->onFrame();
@@ -98,42 +100,13 @@ void hookD3D9(uintptr_t modBase) {
 	d3d_hook.hookDetour(resetCall2, 7, &resetCallDetour);
 }
 
-void ToggleBorderless(bool enable)
-{
-	if (!hWindow) 
-	{
-		return;
-	}
-	static LONG init = GetWindowLongA(hWindow, GWL_STYLE);
-	
-	LONG style = init;
-	if (enable) 
-	{
-		style = WS_OVERLAPPED | WS_MINIMIZEBOX | WS_CLIPSIBLINGS | WS_VISIBLE;
-	}
-	SetWindowLongA(hWindow, GWL_STYLE, style);
-
-	POINT point = {};
-	RECT rect = {};
-	if (!GetWindowRect(hWindow, &rect)) 
-	{
-		return;
-	}
-
-	point.x = rect.left;
-	point.y = rect.top;
-
-	rect.right = width;
-	rect.bottom = height;
-	
-	AdjustWindowRect(&rect, style, 0);
-	MoveWindow(hWindow, point.x, point.y, (rect.right - rect.left), (rect.bottom - rect.top), 0);
-}
-
 LRESULT __stdcall WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (*g_enableBackgroundInput)
 	{
+		if (!GetMain()->getMods()->onMessage(hWnd, uMsg, wParam, lParam)) {
+			return DefWindowProc(hWnd, uMsg, wParam, lParam);
+		}
 		switch (uMsg)
 		{
 			case WM_KILLFOCUS:

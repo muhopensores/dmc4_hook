@@ -39,6 +39,8 @@ SET (IMGUI
 # aux_source_directory(<dir> <variable>)
 #aux_source_directory(mods MODS)
 SET (MODS
+  mods/modBorderless.cpp
+  mods/modBorderless.hpp
   mods/modAreaJump.cpp
   mods/modAreaJump.hpp
   mods/modMoveIDs.cpp

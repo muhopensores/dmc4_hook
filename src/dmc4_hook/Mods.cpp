@@ -8,7 +8,7 @@
 #include "mods/modSelectiveCancels.hpp"
 #include "mods/modWorkRate.hpp"
 #include "mods/modBackgroundRendering.hpp"
-
+#include "mods/modBorderless.hpp"
 // mods constructor
 Mods::Mods() {
 	//add mods here
@@ -20,6 +20,7 @@ Mods::Mods() {
 	m_mods["SelectiveCancels"_hash] = std::make_unique<SelectiveCancels>();
 	m_mods["WorkRate"_hash] = std::make_unique<WorkRate>();
 	m_mods["BackgroundRendering"_hash] = std::make_unique<BackgroundRendering>();
+	m_mods["Borderless"_hash] = std::make_unique<Borderless>();
 }
 
 // Initializes mods, checks for errors
@@ -95,6 +96,15 @@ void Mods::onGamePause(bool toggle) {
 		auto& mod = umod.second;
 		mod->onGamePause(toggle);
 	}
+}
+bool Mods::onMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	for (auto& umod : m_mods) {
+		auto& mod = umod.second;
+		if (!mod->onMessage(wnd, message, wParam, lParam)) {
+			return false;
+		}
+	}
+	return true;
 }
 // Called on every frame for mods that override this method
 void Mods::onFrame() {

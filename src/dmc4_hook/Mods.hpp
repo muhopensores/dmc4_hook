@@ -20,6 +20,7 @@ public:
 	void onConfigSave(utils::Config& cfg);
 #endif
 	void onGamePause(bool toggle);
+	bool onMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
 	const auto& getMods() const {
 		return m_mods;
 	}

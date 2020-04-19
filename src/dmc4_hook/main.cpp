@@ -824,10 +824,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
         ImGui::SameLine(0, 0);
         FPSDrawing();
         ImGui::Spacing();
-        if (ImGui::Checkbox("Borderless Window", &g_borderless))
+		main->getMods()->onDrawUI("Borderless"_hash);
+        /*if (ImGui::Checkbox("Borderless Window", &g_borderless))
         {
             ToggleBorderless(g_borderless);
-        }
+        }*/
 		// TODO(): properly position this?
         ImGui::SameLine(340.0f);
 		if (ImGui::Button("Save config"))

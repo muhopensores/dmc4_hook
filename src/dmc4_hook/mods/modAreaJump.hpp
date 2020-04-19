@@ -18,5 +18,4 @@ public:
 private:
 	void jumpToStage(int stage);
 	hl::Hooker hook;
-	int m_exeType = 1;
 };
