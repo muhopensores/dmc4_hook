@@ -103,7 +103,7 @@ naked void detour() {
 
 AreaJump::AreaJump() {
 	//m_exeType = i;
-	onInitialize();
+	//onInitialize();
 }
 
 std::optional<std::string> AreaJump::onInitialize() {

@@ -6,7 +6,7 @@
 float LimitAdjust::limit{ 0.0f };
 
 LimitAdjust::LimitAdjust() {
-	onInitialize();
+	//onInitialize();
 }
 
 naked void limitadjust_patch(void) {
@@ -26,32 +26,35 @@ std::optional<std::string> LimitAdjust::onInitialize() {
 		"75 ?? 0F 57 C0 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 ?? 88 ?? ?? 30 00 00 75" //targetchange
 	};
 
-	/*constexpr auto swordSwitch_aob        = "D9 80 DC 00 00 00 8D ?? ?? 1D 00 00 D9 9E ?? 1E 00 00 C6 86 ?? 1E 00 00 00 E8";
+	/*
+	constexpr auto swordSwitch_aob        = "D9 80 DC 00 00 00 8D ?? ?? 1D 00 00 D9 9E ?? 1E 00 00 C6 86 ?? 1E 00 00 00 E8";
 	constexpr auto gunSwitch_aob          = "D9 81 DC 00 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? CC";
 	constexpr auto jcCooldown_aob         = "D9 81 3C 01 00 00 8B 07 D9 9F ?? ?? 00 00 8B 97 ?? 1E 00 00 D9 82 40 01 00 00 8B 90 94 01 00 00";
 	constexpr auto styleSwitch_aob        = "0F 82 ?? ?? 00 00 8B 86 ?? ?? 01 00 3B C7 0F 84 ?? ?? 00 00 39 9E A4 0E 00 00 F3 0F 10";
 	constexpr auto movingTargetChange_aob = "75 ?? 0F 57 C0 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 ?? 88 ?? ?? 30 00 00 75";
-	*/
-	/*m_limit[SWORDS].m_location        = hl::FindPattern(swordSwitch_aob);
+
+	m_limit[SWORDS].m_location        = hl::FindPattern(swordSwitch_aob);
 	m_limit[GUNS].m_location          = hl::FindPattern(gunSwitch_aob);
 	m_limit[JC].m_location            = hl::FindPattern(jcCooldown_aob);
 	m_limit[STYLE_SWITCH].m_location  = hl::FindPattern(styleSwitch_aob);
-	m_limit[TARGET_CHANGE].m_location = hl::FindPattern(movingTargetChange_aob);*/
+	m_limit[TARGET_CHANGE].m_location = hl::FindPattern(movingTargetChange_aob);
+	*/
 	int index = 0;
 	for (auto& limit : m_limit) {
 		limit.m_location = hl::FindPattern(aobs[index]);
 		if (!limit.m_location) {
+			HL_LOG_ERR("[LimitAjust] Failed to FindPattern %s\n", aobs[index]);
 			return "Failed to init Limit Adjust mod.";
 		}
-		index++;
+		++index;
 	}
 
 	return Mod::onInitialize();
 }
 
-void LimitAdjust::toggle(int index) {
+void LimitAdjust::toggle(int index) { 
 	if (m_limit[index].m_enabled) {
-		m_limit[index].m_patch.apply(m_limit[index].m_location, (char*)limitadjust_patch);
+		m_limit[index].m_patch.apply(m_limit[index].m_location, (char*)&limitadjust_patch, 6);
 	}
 	else {
 		m_limit[index].m_patch.revert();
@@ -60,7 +63,7 @@ void LimitAdjust::toggle(int index) {
 
 void LimitAdjust::onConfigLoad(const utils::Config& cfg) {
 
-	int index;
+	int index = 0;
 	for (auto& limit : m_limit) {
 		limit.m_enabled = cfg.get<bool>(cfgStrings[index]).value_or(false);
 		toggle(index);
@@ -73,7 +76,8 @@ void LimitAdjust::onConfigLoad(const utils::Config& cfg) {
 	m_limit[TARGET_CHANGE].m_enabled = cfg.get<bool>("target_change_limit_removed").value_or(false);*/
 }
 void LimitAdjust::onConfigSave(utils::Config& cfg) {
-	int index;
+
+	int index = 0;
 	for (auto& limit : m_limit) {
 		cfg.set<bool>(cfgStrings[index], limit.m_enabled);
 		index++;

@@ -5,6 +5,7 @@
 #include "hacklib/Hooker.h"
 #include "imgui/imgui.h"
 #include "utils/Config.hpp"
+#if 0
 /*
 bool memAssert(const char* bytes, uintptr_t location) {
 	int result = std::memcmp(bytes, (const void*)location, sizeof(bytes));
@@ -19,7 +20,7 @@ namespace modMoveIDs {
 	bool init(uintptr_t base);
 	void toggle(bool value);
 };
-
+#endif
 namespace modBackgroundRendering {
 	bool init(HWND gameWindow, uintptr_t modBase);
 	void onGUIframe();
@@ -27,7 +28,7 @@ namespace modBackgroundRendering {
 	void onConfigSave(utils::Config& cfg);
 	bool* getModEnabledPtr();
 };
-
+#if 0
 namespace modSelCancels {
 	bool init(uintptr_t base);
 	void onGUIframe();
@@ -65,3 +66,4 @@ namespace modSample {
 	void toggle(bool value);
 };
 */
+#endif

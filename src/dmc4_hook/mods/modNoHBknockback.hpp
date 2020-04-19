@@ -11,7 +11,7 @@ public:
 	static uintptr_t _noHelmBreakerKnockbackContinue;// = 0x0051C389;
 	static uintptr_t _noHelmBreakerKnockbackJE;// = 0x0051C367;
 
-	std::string getModName() override { return "SelectiveCancels"; };
+	std::string getModName() override { return "NoHbKnockback"; };
 
 	std::optional<std::string> onInitialize() override;
 

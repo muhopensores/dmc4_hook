@@ -5,7 +5,7 @@ uintptr_t  MoveIds::jmp_return{ NULL };
 uint32_t   MoveIds::moveID{ 0 };
 
 MoveIds::MoveIds() {
-	onInitialize();
+	//onInitialize();
 }
 
 naked void detour() {

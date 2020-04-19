@@ -7,14 +7,21 @@
 #include "hacklib/Input.h"
 #include "utils/Config.hpp"
 
-class WorkRate;
-class AreaJump;
+class Mods;
 
 class hlMain* GetMain();
 
 class hlMain : public hl::Main
 {
 public:
+
+	const auto& getMods() const {
+		return m_mods;
+	}
+	bool isReady() const {
+		return m_gameDataInitialized;
+	}
+
 	std::unique_ptr<utils::Config> cfg;
 	void ToggleStuff();
     // patch functions definitons
@@ -316,17 +323,13 @@ public:
     hl::Input input;
     hl::ConsoleEx m_con;
 
-	enum EXE_TYPE {
-		STEAM,
-		NO_STEAM
-	};
-
 	void loadSettings();
 	void saveSettings();
 	//@TODO: remove this later, testing refactored mods
-	std::unique_ptr<WorkRate> m_workRate;
-	std::unique_ptr<AreaJump> m_areaJump;
-	EXE_TYPE m_exeType;
+	//std::unique_ptr<WorkRate> m_workRate;
+	//std::unique_ptr<AreaJump> m_areaJump;
 private:
+	std::atomic<bool> m_gameDataInitialized{ false };
+	std::unique_ptr<Mods> m_mods;
 	std::string m_confPath;
 };

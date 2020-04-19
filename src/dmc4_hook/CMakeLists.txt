@@ -10,6 +10,7 @@ SET (HEADERS
   patches.h
   mods.h
   mod.hpp
+  Mods.hpp
 )
 
 SET (IMGUI
@@ -56,6 +57,7 @@ SET (MODS
 )
 
 SET (UTILS
+  utils/Hash.hpp
   utils/Config.hpp
   utils/Config.cpp
   utils/String.cpp
@@ -72,6 +74,7 @@ SET (SOURCES
   hooks.cpp
   main.cpp
   gui_functions.cpp
+  Mods.cpp
 )
 
 source_group("imgui", FILES ${IMGUI})

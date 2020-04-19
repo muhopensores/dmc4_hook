@@ -83,12 +83,12 @@ naked void selectiveCancels_proc()
 }
 
 SelectiveCancels::SelectiveCancels() {
-	onInitialize();
+	//onInitialize();
 }
 
 std::optional<std::string> SelectiveCancels::onInitialize() {
 	if (!install_hook_offset(0x40332A, detour, &selectiveCancels_proc, 0, 6)) {
-		HL_LOG_ERR("Failed to init SelectiveCancels\n")
+		HL_LOG_ERR("Failed to init SelectiveCancels\n");
 		return "Failed to init SelectiveCancels";
 	}
 	return Mod::onInitialize();

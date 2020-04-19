@@ -14,9 +14,10 @@
 #include "imgui_dmc4.h"
 #include "gui_functions.h"
 #include "mods.h"
-
+#include "Mods.hpp"
 #include "utils/String.hpp"
 #include "utils/crash_handler.h"
+#include "utils/Hash.hpp"
 #include "MinHook.h"
 
 #include "mods/modWorkRate.hpp"
@@ -210,7 +211,7 @@ void hlMain::ImGuiToggleRoseRemovesPins()
 
 void hlMain::GamePause()
 {
-	m_workRate->onGamePause(g_drawGUI);
+	m_mods->onGamePause(g_drawGUI);
 }
 
 void hlMain::ToggleStuff()
@@ -363,10 +364,11 @@ void hlMain::loadSettings() {
 	checkDisableDarkslayerLeft  = cfg->get<bool>("disable_darkslayer_Dpad_left").value_or(false);//reader.GetBoolean("practice", "disable_darkslayer_Dpad_left", true);
 	checkDisableDarkslayerRight = cfg->get<bool>("disable_darkslayer_Dpad_right").value_or(false);//reader.GetBoolean("practice", "disable_darkslayer_Dpad_right", true);
 
-	modBackgroundRendering::onConfigLoad(*cfg);
+	m_mods->onConfigLoad(*cfg);
+	/*modBackgroundRendering::onConfigLoad(*cfg);
 	modSelCancels::onConfigLoad(*cfg);
 	modLimitAdjust::onConfigLoad(*cfg);
-	modNoHBknockback::onConfigLoad(*cfg);
+	modNoHBknockback::onConfigLoad(*cfg);*/
 }
 
 void hlMain::saveSettings() {
@@ -414,11 +416,12 @@ void hlMain::saveSettings() {
 	cfg->set<bool>("disable_darkslayer_Dpad_left",checkDisableDarkslayerLeft);
 	cfg->set<bool>("disable_darkslayer_Dpad_right",checkDisableDarkslayerRight);
 
-	modBackgroundRendering::onConfigSave(*cfg);
+	/*modBackgroundRendering::onConfigSave(*cfg);
 	modSelCancels::onConfigSave(*cfg);
 	modLimitAdjust::onConfigSave(*cfg);
 	modNoHBknockback::onConfigSave(*cfg);
-	
+	*/
+
 	cfg->save(m_confPath);
 }
 
@@ -483,9 +486,10 @@ bool hlMain::init()
 	hookSetEnableBackgroundInput(modBackgroundRendering::getModEnabledPtr());
 
     hookD3D9(modBase);
-	
+	m_mods = std::make_unique<Mods>();
+	m_mods->onInitialize();
 	// TODO(): rewrite those in muh c++ classes
-	if (!modLimitAdjust::init())
+	/*if (!modLimitAdjust::init())
 		std::runtime_error("Failed to initialize modLimitAdjust");
 	if (!modNoHBknockback::init(modBase))
 		std::runtime_error("Failed to initialize modNoHBknockback");
@@ -494,10 +498,11 @@ bool hlMain::init()
 	if (!modSelCancels::init(modBase))
 		std::runtime_error("Failed to initialize modSelCancels");
 	if (!modBackgroundRendering::init(getMainWindow(), modBase))
-		std::runtime_error("Failed to initialize modBackgroundRendering");
+		std::runtime_error("Failed to initialize modBackgroundRendering");*/
+	
 	// TODO(): throw this to std::vector in Mods.cpp or something
-	m_workRate = std::make_unique<WorkRate>();
-	m_areaJump = std::make_unique<AreaJump>();
+	//m_workRate = std::make_unique<WorkRate>();
+	//m_areaJump = std::make_unique<AreaJump>();
 
     damagemodifier = hl::FindPattern(damagemodifier_aob);
     orbDisplay = modBase + 0xFDD35;
@@ -836,7 +841,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 ImGui::Text("Limit Removal");
 				// NOTE(): refactored mods expose onGUIframe function to draw gui stuff.
-				modLimitAdjust::onGUIframe();
+				//modLimitAdjust::onGUIframe();
+				main->getMods()->onDrawUI("LimitAdjust"_hash);
 
                 ImGui::Spacing();
                 ImGui::Spacing();
@@ -926,7 +932,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 }
 
 				ImGui::SameLine(198);
-				modNoHBknockback::onGUIframe();
+				//modNoHBknockback::onGUIframe();
+				main->getMods()->onDrawUI("NoHbKnockback"_hash);
                 //if (ImGui::Checkbox("No Helm Breaker Knockback", &checkNoHelmBreakerKnockback))
                 //{
                 //    main->ImGuiToggleNoHelmBreakerKnockback();
@@ -936,7 +943,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 ImGui::Spacing();
 				// NOTE(): refactored mods expose onGUIframe function to draw gui stuff.
-				modSelCancels::onGUIframe();
+				//modSelCancels::onGUIframe();
+				main->getMods()->onDrawUI("SelectiveCancels"_hash);
                 ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::EndTabItem();
@@ -1094,7 +1102,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     ImGui::Spacing();
                     ImGui::SliderFloat("Enemy Speed", main->enemySpeed, 0.0f, 3.0f, "%.1f");
                 }*/
-				main->m_workRate->onGUIframe();
+				//main->m_workRate->onGUIframe();
+				main->getMods()->onDrawUI("WorkRate"_hash);
 
                 ImGui::Spacing();
 
@@ -1129,7 +1138,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
             if (ImGui::BeginTabItem("Environment"))
             {
-				main->m_areaJump->onGUIframe();
+				//main->m_areaJump->onGUIframe();
+				main->getMods()->onDrawUI("AreaJump"_hash);
                 ImGui::Separator();
                 ImGui::Spacing();
 

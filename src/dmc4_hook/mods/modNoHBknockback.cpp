@@ -8,7 +8,7 @@ uintptr_t NoHbKnockback::_noHelmBreakerKnockbackContinue{ 0x0051C389 };
 uintptr_t NoHbKnockback::_noHelmBreakerKnockbackJE{ 0x0051C367 };
 
 NoHbKnockback::NoHbKnockback() {
-	onInitialize();
+	//onInitialize();
 }
 
 naked void noHelmBreakerKnockback_proc(void)

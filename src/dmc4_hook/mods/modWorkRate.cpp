@@ -6,7 +6,7 @@ uintptr_t  WorkRate::jmp_return{ NULL };
 sWorkRate* WorkRate::sWorkRatePtr{ NULL };
 
 WorkRate::WorkRate() {
-	onInitialize();
+	//onInitialize();
 }
 
 naked void detour() {
