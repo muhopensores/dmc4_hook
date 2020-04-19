@@ -42,7 +42,7 @@ naked void noHelmBreakerKnockback_proc(void)
 
 std::optional<std::string> NoHbKnockback::onInitialize() {
 
-	if (!install_hook_offset(0x11C384, hook, &noHelmBreakerKnockback_proc, 0, 6)) {
+	if (!install_hook_offset(0x11C384, hook, &noHelmBreakerKnockback_proc, 0, 5)) {
 		HL_LOG_ERR("Failed to init SelectiveCancels mod\n");
 		return "Failed to init SelectiveCancels mod";
 	}

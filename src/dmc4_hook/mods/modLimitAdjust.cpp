@@ -15,6 +15,13 @@ naked void limitadjust_patch(void) {
 	}
 }
 
+std::array patches = {
+	(const char*)limitadjust_patch,
+	(const char*)limitadjust_patch,
+	(const char*)limitadjust_patch,
+	(const char*)limitadjust_patch,
+	""
+};
 
 std::optional<std::string> LimitAdjust::onInitialize() {
 	// c++ 17 feature i think
@@ -53,12 +60,34 @@ std::optional<std::string> LimitAdjust::onInitialize() {
 }
 
 void LimitAdjust::toggle(int index) { 
-	if (m_limit[index].m_enabled) {
-		m_limit[index].m_patch.apply(m_limit[index].m_location, (char*)&limitadjust_patch, 6);
-	}
-	else {
-		m_limit[index].m_patch.revert();
-	}
+	switch (index) {
+    case STYLE_SWITCH: {
+        if (m_limit[index].m_enabled) {
+            m_limit[index].m_patch.apply(m_limit[index].m_location, "\x90\x90\x90\x90\x90\x90", 6);
+        }
+		else {
+            m_limit[index].m_patch.revert();
+        }
+        break;
+    }
+    case TARGET_CHANGE: {
+        if (m_limit[index].m_enabled) {
+            m_limit[index].m_patch.apply(m_limit[index].m_location, "\x90\x90", 2);
+        }
+        else {
+            m_limit[index].m_patch.revert();
+        }
+        break;
+    }
+    default: {
+        if (m_limit[index].m_enabled) {
+            m_limit[index].m_patch.apply(m_limit[index].m_location, (char*)&limitadjust_patch, 6);
+        }
+        else {
+            m_limit[index].m_patch.revert();
+        }
+    }
+    }
 };
 
 void LimitAdjust::onConfigLoad(const utils::Config& cfg) {

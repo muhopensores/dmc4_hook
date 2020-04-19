@@ -421,6 +421,7 @@ void hlMain::saveSettings() {
 	modLimitAdjust::onConfigSave(*cfg);
 	modNoHBknockback::onConfigSave(*cfg);
 	*/
+	m_mods->onConfigSave(*cfg);
 
 	cfg->save(m_confPath);
 }
