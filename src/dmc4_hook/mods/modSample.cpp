@@ -34,7 +34,7 @@ std::optional<std::string> ModName::onInitialize() {
 	// install_hook_offset takes offset from exe base, hl::Hooker instance,
 	// pointer to naked function, pointer to return address and next instruction offset
 	if (!install_hook_offset(0xBADF00D, hook, &detour, &jmp_return, 6)) {
-		return "Failed to init WorkRate mod";
+		return "Failed to init ModName mod";
 	}
 	// some patch example
 	if (mod_name_enabled) {
