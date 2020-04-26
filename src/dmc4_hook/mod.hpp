@@ -55,10 +55,11 @@ public:
 		}
 		return true;
 	}
+
 	virtual std::string getModName() { return "UnknownMod"; };
 
 	virtual std::optional<std::string> onInitialize() { return std::nullopt; }
-	// called whether gui shows or not. would need to call it from d3d hook
+	// should be called from d3d hook
 	virtual void onFrame() {}
 	// called only when imgui window displays
 	virtual void onGUIframe() {}

@@ -364,11 +364,8 @@ void hlMain::loadSettings() {
 	checkDisableDarkslayerLeft  = cfg->get<bool>("disable_darkslayer_Dpad_left").value_or(false);//reader.GetBoolean("practice", "disable_darkslayer_Dpad_left", true);
 	checkDisableDarkslayerRight = cfg->get<bool>("disable_darkslayer_Dpad_right").value_or(false);//reader.GetBoolean("practice", "disable_darkslayer_Dpad_right", true);
 
+	// load settings for each mod
 	m_mods->onConfigLoad(*cfg);
-	/*modBackgroundRendering::onConfigLoad(*cfg);
-	modSelCancels::onConfigLoad(*cfg);
-	modLimitAdjust::onConfigLoad(*cfg);
-	modNoHBknockback::onConfigLoad(*cfg);*/
 }
 
 void hlMain::saveSettings() {
@@ -416,11 +413,7 @@ void hlMain::saveSettings() {
 	cfg->set<bool>("disable_darkslayer_Dpad_left",checkDisableDarkslayerLeft);
 	cfg->set<bool>("disable_darkslayer_Dpad_right",checkDisableDarkslayerRight);
 
-	/*modBackgroundRendering::onConfigSave(*cfg);
-	modSelCancels::onConfigSave(*cfg);
-	modLimitAdjust::onConfigSave(*cfg);
-	modNoHBknockback::onConfigSave(*cfg);
-	*/
+	// call on config save for each mod
 	m_mods->onConfigSave(*cfg);
 
 	cfg->save(m_confPath);
@@ -462,48 +455,14 @@ bool hlMain::init()
 	HL_LOG_RAW("\n");
 	HL_LOG_RAW("dinput8.dll build date %s, commit hash #%s\n", GIT_COMMITTER_DATE, GIT_COMMIT_HASH);
 	HL_LOG_RAW("\n");
-#if 0
-	uintmax_t exeSize = 0;
-	try {
-		fs::path p = fs::current_path() / "DevilMayCry4_DX9.exe";
-		exeSize = fs::file_size(p);
-	}
-	catch (fs::filesystem_error& e) {
-		HL_LOG_ERR("%s", e.what());
-	}
-	HL_LOG_RAW("Exe size is: %llu\n", exeSize);
 
-	if(((exeSize-10156480) <= (13156480-10156480))) {
-		m_exeType = EXE_TYPE::STEAM;
-	}
-	else {
-		m_exeType = EXE_TYPE::NO_STEAM;
-	}
-
-	HL_LOG_RAW("Exe type is: %s\n", m_exeType == EXE_TYPE::STEAM ? "STEAM" : "NO STEAM");
-#endif
     modBase = (uintptr_t)GetModuleHandle(NULL);
 	
-	//hookSetEnableBackgroundInput(modBackgroundRendering::getModEnabledPtr());
-
     hookD3D9(modBase);
+	// init mods structure
 	m_mods = std::make_unique<Mods>();
+	// iterate over all the mods and call onInitialize();
 	m_mods->onInitialize();
-	// TODO(): rewrite those in muh c++ classes
-	/*if (!modLimitAdjust::init())
-		std::runtime_error("Failed to initialize modLimitAdjust");
-	if (!modNoHBknockback::init(modBase))
-		std::runtime_error("Failed to initialize modNoHBknockback");
-	if (!modMoveIDs::init(modBase))
-		std::runtime_error("Failed to initialize modMoveIDs");
-	if (!modSelCancels::init(modBase))
-		std::runtime_error("Failed to initialize modSelCancels");
-	if (!modBackgroundRendering::init(getMainWindow(), modBase))
-		std::runtime_error("Failed to initialize modBackgroundRendering");*/
-	
-	// TODO(): throw this to std::vector in Mods.cpp or something
-	//m_workRate = std::make_unique<WorkRate>();
-	//m_areaJump = std::make_unique<AreaJump>();
 
     damagemodifier = hl::FindPattern(damagemodifier_aob);
     orbDisplay = modBase + 0xFDD35;
@@ -783,12 +742,6 @@ bool hlMain::step()
         g_drawGUI = !g_drawGUI;
         GamePause();
     }
-    /*
-	if (input.wentDown(VK_OEM_3)) 
-	{
-		g_borderless = !g_borderless;
-		ToggleBorderless(g_borderless);
-	}*/
     return true;
 }
 

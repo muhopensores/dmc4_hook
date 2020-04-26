@@ -1,5 +1,27 @@
 PROJECT(dmc4_hook)
 
+#add mods here, modName.cpp and modName.hpp
+SET (MODS
+  mods/modSample.cpp
+  mods/modSample.hpp
+  mods/modBorderless.cpp
+  mods/modBorderless.hpp
+  mods/modAreaJump.cpp
+  mods/modAreaJump.hpp
+  mods/modMoveIDs.cpp
+  mods/modMoveIDs.hpp
+  mods/modWorkRate.cpp
+  mods/modWorkRate.hpp
+  mods/modSelectiveCancels.hpp
+  mods/modSelectiveCancels.cpp
+  mods/modLimitAdjust.cpp
+  mods/modLimitAdjust.hpp
+  mods/modBackgroundRendering.cpp
+  mods/modBackgroundRendering.hpp
+  mods/modNoHBknockback.cpp
+  mods/modNoHBknockback.hpp
+)
+
 SET (HEADERS
   aobs.h
   gui_functions.h
@@ -38,26 +60,6 @@ SET (IMGUI
 #)
 # aux_source_directory(<dir> <variable>)
 #aux_source_directory(mods MODS)
-SET (MODS
-  mods/modBorderless.cpp
-  mods/modBorderless.hpp
-  mods/modAreaJump.cpp
-  mods/modAreaJump.hpp
-  mods/modMoveIDs.cpp
-  mods/modMoveIDs.hpp
-  mods/modWorkRate.cpp
-  mods/modWorkRate.hpp
-  mods/modSelectiveCancels.hpp
-  mods/modSelectiveCancels.cpp
-  mods/modMoveIDs.cpp
-  mods/modLimitAdjust.cpp
-  mods/modLimitAdjust.hpp
-  mods/modShared.cpp
-  mods/modBackgroundRendering.cpp
-  mods/modBackgroundRendering.hpp
-  mods/modNoHBknockback.cpp
-  mods/modNoHBknockback.hpp
-)
 
 SET (UTILS
   utils/Hash.hpp
@@ -97,7 +99,7 @@ ADD_LIBRARY(${PROJECT_NAME} SHARED
             ${IMGUI}
       	    ${MODS}
             ${UTILS}
-	    ${SDK}
+	        ${SDK}
             ${SOURCES}
 )
 

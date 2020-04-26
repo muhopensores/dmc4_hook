@@ -9,6 +9,7 @@
 #include "mods/modWorkRate.hpp"
 #include "mods/modBackgroundRendering.hpp"
 #include "mods/modBorderless.hpp"
+//#include "mods/modSample.hpp"
 // mods constructor
 Mods::Mods() {
 	//add mods here

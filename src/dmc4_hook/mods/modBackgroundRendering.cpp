@@ -73,7 +73,6 @@ void BackgroundRendering::onConfigSave(utils::Config& cfg) {
 	cfg.set<bool>("enable_focus_patch", modEnabled);
 };
 
-
 void BackgroundRendering::onGUIframe() {
 	ImGui::Checkbox("Focus patch (background input)", &modEnabled);
 }
