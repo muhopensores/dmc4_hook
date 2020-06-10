@@ -82,10 +82,10 @@ SET (SOURCES
   Mods.cpp
 )
 
-source_group("imgui", FILES ${IMGUI})
-source_group("mods",  FILES ${MODS})
-source_group("utils", FILES ${UTILS})
-source_group("sdk",   FILES ${SDK})
+source_group("imgui" FILES ${IMGUI})
+source_group("mods"  FILES ${MODS})
+source_group("utils" FILES ${UTILS})
+source_group("sdk"   FILES ${SDK})
 
 if(GIT_COMMIT_HASH)
   message("GIT_COMMIT_HASH: ${GIT_COMMIT_HASH}")
