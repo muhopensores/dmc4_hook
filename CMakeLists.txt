@@ -12,10 +12,10 @@ IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
     SET(ARCH_64BIT TRUE)
     ADD_DEFINITIONS(-DARCH_64BIT)
     SET(PROJ_BIN        ${PROJ_ROOT}/build64/bin64)
-    SET(PROJ_LIB        ${PROJ_ROOT}/build64/lib64)
+    SET(PROJ_LIB        ${PROJ_ROOT}/lib64)
 ELSE()
     SET(PROJ_BIN        ${PROJ_ROOT}/build86/bin)
-    SET(PROJ_LIB        ${PROJ_ROOT}/build86/lib)
+    SET(PROJ_LIB        ${PROJ_ROOT}/lib)
 ENDIF()
 
 # default output directories
