@@ -5,6 +5,7 @@
 #include "mods/modLimitAdjust.hpp"
 #include "mods/modMoveIDs.hpp"
 #include "mods/modNoHBknockback.hpp"
+#include "mods/EasyJc.hpp"
 #include "mods/modSelectiveCancels.hpp"
 #include "mods/modWorkRate.hpp"
 #include "mods/modBackgroundRendering.hpp"
@@ -18,6 +19,7 @@ Mods::Mods() {
 	m_mods["LimitAdjust"_hash] = std::make_unique<LimitAdjust>();
 	m_mods["MoveIds"_hash] = std::make_unique<MoveIds>();
 	m_mods["NoHbKnockback"_hash] = std::make_unique<NoHbKnockback>();
+	m_mods["EasyJc"_hash] = std::make_unique<EasyJc>();
 	m_mods["SelectiveCancels"_hash] = std::make_unique<SelectiveCancels>();
 	m_mods["WorkRate"_hash] = std::make_unique<WorkRate>();
 	m_mods["BackgroundRendering"_hash] = std::make_unique<BackgroundRendering>();

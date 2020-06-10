@@ -149,6 +149,7 @@ bool checkInfiniteTrickRange = false;
 bool checkCameraSensitivity = false;
 bool checkRoseRemovesPins = false;
 bool checkNoHelmBreakerKnockback = false;
+bool checkEasyJc = false;
 
 hl::StaticInit<class hlMain> g_main;
 
@@ -384,6 +385,7 @@ void hlMain::saveSettings() {
 	cfg->set<bool>("fast_pandora",checkFastPandora);
 	cfg->set<bool>("faster_sprint_activation",checkSprintFasterActivate);
 	cfg->set<bool>("rose_removes_pins",checkRoseRemovesPins);
+    cfg->set<bool>("easy_jc",checkEasyJc);
 	
 	cfg->set<bool>("infinite_time",checkInfiniteTime);
 	cfg->set<bool>("disable_camera_events",checkDisableCameraEvents);
@@ -893,6 +895,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 //{
                 //    main->ImGuiToggleNoHelmBreakerKnockback();
                 //}
+
+                main->getMods()->onDrawUI("EasyJc"_hash);
 
                 ImGui::Spacing();
                 ImGui::Spacing();

@@ -20,6 +20,8 @@ SET (MODS
   mods/modBackgroundRendering.hpp
   mods/modNoHBknockback.cpp
   mods/modNoHBknockback.hpp
+  mods/EasyJc.cpp
+  mods/EasyJc.hpp
 )
 
 SET (HEADERS
