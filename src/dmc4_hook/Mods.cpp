@@ -10,6 +10,8 @@
 #include "mods/modWorkRate.hpp"
 #include "mods/modBackgroundRendering.hpp"
 #include "mods/modBorderless.hpp"
+#include "mods/InfDreadnought.hpp"
+
 //#include "mods/modSample.hpp"
 // mods constructor
 Mods::Mods() {
@@ -24,6 +26,7 @@ Mods::Mods() {
 	m_mods["WorkRate"_hash] = std::make_unique<WorkRate>();
 	m_mods["BackgroundRendering"_hash] = std::make_unique<BackgroundRendering>();
 	m_mods["Borderless"_hash] = std::make_unique<Borderless>();
+    m_mods["InfDreadnought"_hash] = std::make_unique<InfDreadnought>();
 }
 
 // Initializes mods, checks for errors

@@ -22,6 +22,8 @@ SET (MODS
   mods/modNoHBknockback.hpp
   mods/EasyJc.cpp
   mods/EasyJc.hpp
+  mods/InfDreadnought.cpp
+  mods/InfDreadnought.hpp
 )
 
 SET (HEADERS

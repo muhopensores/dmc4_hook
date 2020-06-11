@@ -52,6 +52,7 @@ extern "C"
 	bool g_roseRemovesPinsEnable = false;
 	bool g_noHelmBreakerKnockbackEnable = false;
 	bool g_easyJcEnable = false;
+	bool g_infDreadnoughtEnable = false;
 }
 
 //procs that apply changes directly using inline asm, work in conjunction with hooks

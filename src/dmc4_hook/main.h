@@ -68,7 +68,6 @@ public:
     void ImGuiToggleHoneyComb();
     void ImGuiToggleOrbDisplay();
     void ImGuiToggleRoseRemovesPins();
-    void ImGuiToggleEasyJc();
     
 	//functions
     void SetDefault();

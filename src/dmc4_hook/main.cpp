@@ -150,6 +150,7 @@ bool checkCameraSensitivity = false;
 bool checkRoseRemovesPins = false;
 bool checkNoHelmBreakerKnockback = false;
 bool checkEasyJc = false;
+bool checkInfDreadnought = false;
 
 hl::StaticInit<class hlMain> g_main;
 
@@ -386,6 +387,7 @@ void hlMain::saveSettings() {
 	cfg->set<bool>("faster_sprint_activation",checkSprintFasterActivate);
 	cfg->set<bool>("rose_removes_pins",checkRoseRemovesPins);
     cfg->set<bool>("easy_jc",checkEasyJc);
+    cfg->set<bool>("inf_dreadnought", checkInfDreadnought);
 	
 	cfg->set<bool>("infinite_time",checkInfiniteTime);
 	cfg->set<bool>("disable_camera_events",checkDisableCameraEvents);
@@ -897,6 +899,10 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 //}
 
                 main->getMods()->onDrawUI("EasyJc"_hash);
+
+                ImGui::SameLine(198);
+
+                main->getMods()->onDrawUI("InfDreadnought"_hash);
 
                 ImGui::Spacing();
                 ImGui::Spacing();
