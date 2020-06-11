@@ -27,6 +27,13 @@ public:
 		}
 	}
 
+	void install_patch_offset(ptrdiff_t offset, hl::Patch& patch, const char* patch_bytes, uint8_t length) {
+		uintptr_t base = GetMain()->modBase;
+		uintptr_t location = base + offset;
+		HL_LOG_RAW("[%s]: Installing patch at %p.\n", getModName().c_str(), location);
+		patch.apply(location, patch_bytes, length);
+	}
+
 	bool install_hook_offset(ptrdiff_t offset, hl::Hooker& hook, void* detour, uintptr_t* ret, ptrdiff_t next_instruction_offset = 0) {
 		uintptr_t base = GetMain()->modBase;
 		uintptr_t location = base + offset;

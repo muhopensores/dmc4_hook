@@ -5,10 +5,6 @@
 bool InfDreadnought::modEnabled{ false };
 uintptr_t InfDreadnought::_infDreadnoughtContinue{ NULL };
 
-InfDreadnought::InfDreadnought()
-{
-    // onInitialize();
-}
 
 naked void infDreadnought_proc(void)
 {
@@ -30,6 +26,7 @@ naked void infDreadnought_proc(void)
     }
 }
 
+
 std::optional<std::string> InfDreadnought::onInitialize()
 {
     if (!install_hook_offset(0x3BDB76, hook, &infDreadnought_proc, &InfDreadnought::_infDreadnoughtContinue, 6))
@@ -37,23 +34,36 @@ std::optional<std::string> InfDreadnought::onInitialize()
         HL_LOG_ERR("Failed to init InfDreadnought mod\n");
         return "Failed to init InfDreadnought mod";
     }
-    if (InfDreadnought::modEnabled == true)
-    {
-        patch.apply(0x3BDCE2, "\x90\x90\x90\x90\x90\x90");
-    }
+
     return Mod::onInitialize();
+}
+
+void InfDreadnought::toggle(bool enable)
+{
+    if (enable)
+    {
+        install_patch_offset(0x3BDCE2, patch, "\x90\x90\x90\x90\x90\x90", 6);
+    }
+    else
+    {
+        patch.revert();
+    }
 }
 
 void InfDreadnought::onGUIframe()
 {
     // from main.cpp
     // line 905 -> main->getMods()->onDrawUI("InfDreadnought"_hash);
-    ImGui::Checkbox("Inf Dreadnought", &modEnabled);
+    if (ImGui::Checkbox("Inf Dreadnought", &modEnabled))
+    {
+        toggle(modEnabled);
+    }
 }
 
 void InfDreadnought::onConfigLoad(const utils::Config& cfg)
 {
     modEnabled = cfg.get<bool>("inf_dreadnought").value_or(false);
+    toggle(modEnabled);
 };
 
 void InfDreadnought::onConfigSave(utils::Config& cfg)

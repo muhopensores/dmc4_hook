@@ -5,12 +5,14 @@
 class InfDreadnought : public Mod
 {
 public:
-    InfDreadnought();
+    InfDreadnought() = default;
 
     static bool modEnabled;
     static uintptr_t _infDreadnoughtContinue;
-
-    std::string getModName() override { return "InfDreadnought"; };
+	
+	void toggle(bool enable);
+    
+	std::string getModName() override { return "InfDreadnought"; };
 
     std::optional<std::string> onInitialize() override;
 
