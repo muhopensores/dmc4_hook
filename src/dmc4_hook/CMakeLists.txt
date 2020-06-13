@@ -34,6 +34,8 @@ SET (MODS
   mods/modInputStates.hpp
   mods/modFpsLimit.cpp
   mods/modFpsLimit.hpp
+  mods/modMoveIDsNero.cpp
+  mods/modMoveIDsNero.hpp
 )
 
 SET (HEADERS

@@ -1,6 +1,7 @@
 #include "../mods.h"
 #include "modNoHBknockback.hpp"
 #include "modMoveIDs.hpp"
+#include "modMoveIDsNero.hpp"
 
 #if 1
 bool      NoHbKnockback::modEnabled{ false };
@@ -16,24 +17,30 @@ naked void noHelmBreakerKnockback_proc(void)
 	_asm {
 		cmp byte ptr [NoHbKnockback::modEnabled],0
 		je originalcode
+		// Dante:
+		cmp [MoveIds::moveID],0x20A			// 522 // Low
+		je newcode
+		cmp [MoveIds::moveID],0x213			// 531 // Mid
+		je newcode
+		cmp [MoveIds::moveID],0x214			// 532 // High
+		je newcode
 
-		cmp [MoveIds::moveID],0x20A	// 522 // Low
+		// Nero:
+		cmp [MoveIdsNero::moveIDNero], 786	// Split
 		je newcode
-		cmp [MoveIds::moveID],0x213	// 531 // Mid
-		je newcode
-		cmp [MoveIds::moveID],0x214	// 532 // High
+		cmp [MoveIdsNero::moveIDNero], 812	// Double Down
 		je newcode
 		jmp originalcode
 
 		newcode:
-		cmp ecx,0x05
+			cmp ecx,0x05
 			je nohelmbreakerknockbackje
 			jmp dword ptr [NoHbKnockback::_noHelmBreakerKnockbackContinue]
 
-			nohelmbreakerknockbackje:
+		nohelmbreakerknockbackje:
 			jmp dword ptr [NoHbKnockback::_noHelmBreakerKnockbackJE]
 
-			originalcode:
+		originalcode:
 			cmp ecx,0x05
 			jl nohelmbreakerknockbackje
 			jmp dword ptr [NoHbKnockback::_noHelmBreakerKnockbackContinue]

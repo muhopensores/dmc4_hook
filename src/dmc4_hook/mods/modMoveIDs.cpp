@@ -11,7 +11,7 @@ MoveIds::MoveIds() {
 naked void detour() {
 	_asm {
 		mov [MoveIds::moveID],ecx
-		//mov [esi+0x0000225C],ecx
+		mov [esi+0x0000225C],ecx
 		jmp dword ptr [MoveIds::jmp_return]
 	}
 }
@@ -19,8 +19,8 @@ naked void detour() {
 std::optional<std::string> MoveIds::onInitialize() {
 
 	if (!install_hook_offset(0x43EBD6, hook, &detour, &jmp_return, 6)) {
-		HL_LOG_ERR("Failed to init WorkRate mod\n");
-		return "Failed to init WorkRate mod";
+		HL_LOG_ERR("Failed to init MoveIds mod\n");
+		return "Failed to init MoveIds mod";
 	}
 
 	return Mod::onInitialize();
