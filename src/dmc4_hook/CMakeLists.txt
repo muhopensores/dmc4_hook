@@ -26,6 +26,8 @@ SET (MODS
   mods/modInfDreadnought.hpp
   mods/modNoClip.cpp
   mods/modNoClip.hpp
+  mods/modSkipPandora.cpp
+  mods/modSkipPandora.hpp
 )
 
 SET (HEADERS
