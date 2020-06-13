@@ -490,10 +490,6 @@ bool hlMain::init()
     bpPortalAutoOpen = modBase + 0x4E1E0;
     fastPandoraOne = modBase + 0x3BCE7E;
     fastPandoraTwo = modBase + 0x3BD34F;
-    fastPandoraThree = modBase + 0x3EACCA;
-    fastPandoraFour = modBase + 0x3EAD76;
-    fastPandoraFive = modBase + 0x3EAD98;
-    fastPandoraSix = modBase + 0x3EADCB;
     infiniteAirHikeOne = modBase + 0x3ACA3A;
     infiniteAirHikeTwo = modBase + 0x3ACA4A;
     infiniteAirHikeThree = modBase + 0x3ACA51;

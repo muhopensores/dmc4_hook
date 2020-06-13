@@ -128,10 +128,6 @@ public:
     uintptr_t bpPortalAutoOpen;
     uintptr_t fastPandoraOne;
     uintptr_t fastPandoraTwo;
-    uintptr_t fastPandoraThree;
-    uintptr_t fastPandoraFour;
-    uintptr_t fastPandoraFive;
-    uintptr_t fastPandoraSix;
     uintptr_t infiniteAirHikeOne;
     uintptr_t infiniteAirHikeTwo;
     uintptr_t infiniteAirHikeThree;
@@ -278,8 +274,7 @@ public:
         heightRestrictionRaveNero_patch, infiniteTime_patch, infiniteAllHealth_patch, disablecameraEventsOne_patch,
         disablecameraEventsTwo_patch, hideHUDOne_patch, hideHUDTwo_patch, hideHUDThree_patch, enemyNoDT_patch,
         enemyInstantDT_patch, enemyInstantDTTwo_patch, bpPortalAutoOpen_patch, fastPandoraOne_patch,
-        fastPandoraTwo_patch, fastPandoraThree_patch, fastPandoraFour_patch, fastPandoraFive_patch,
-        fastPandoraSix_patch, infiniteAirHikeOne_patch, infiniteAirHikeTwo_patch, infiniteAirHikeThree_patch,
+        fastPandoraTwo_patch, infiniteAirHikeOne_patch, infiniteAirHikeTwo_patch, infiniteAirHikeThree_patch,
         berialDazeOne_patch, berialCollapse_patch, bossRushOne_patch, bossRushTwo_patch, bossRushThree_patch,
         bossRushFour_patch, bossRushFive_patch, bossRushSix_patch, bossRushSeven_patch, difficultySelectOne_patch,
         difficultySelectTwo_patch, difficultySelectThree_patch, difficultySelectFour_patch, difficultySelectFive_patch,

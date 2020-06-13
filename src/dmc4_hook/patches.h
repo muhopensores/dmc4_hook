@@ -216,38 +216,6 @@ void hlMain::ToggleFastPandora(bool toggle)
         else
             fastPandoraTwo_patch.revert();
     }
-
-    if (fastPandoraThree)
-    {
-        if (toggle)
-            fastPandoraThree_patch.apply(fastPandoraThree, "\x0F\x87\x80\x00\x00\x00", 6);
-        else
-            fastPandoraThree_patch.revert();
-    }
-
-    if (fastPandoraFour)
-    {
-        if (toggle)
-            fastPandoraFour_patch.apply(fastPandoraFour, "\x77\x66", 2);
-        else
-            fastPandoraFour_patch.revert();
-    }
-
-    if (fastPandoraFive)
-    {
-        if (toggle)
-            fastPandoraFive_patch.apply(fastPandoraFive, "\xD9\x05\xB4\xEE\xC0\x00", 6);
-        else
-            fastPandoraFive_patch.revert();
-    }
-
-    if (fastPandoraSix)
-    {
-        if (toggle)
-            fastPandoraSix_patch.apply(fastPandoraSix, "\xD9\x05\x94\xEF\xC0\x00", 6);
-        else
-            fastPandoraSix_patch.revert();
-    }
 }
 
 void hlMain::ToggleInfiniteAirHike(bool toggle)
