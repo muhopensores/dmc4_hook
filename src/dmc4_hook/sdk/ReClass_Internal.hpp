@@ -112,3 +112,26 @@ public:
 
 }; //Size=0x0404
 
+class Inputs
+{
+public:
+	virtual void Function0(); //
+	virtual void Function1(); //
+	virtual void Function2(); //
+	virtual void Function3(); //
+	virtual void Function4(); //
+	virtual void Function5(); //
+	virtual void Function6(); //
+	virtual void Function7(); //
+	virtual void Function8(); //
+	virtual void Function9(); //
+
+	__int32 ButtonPressed; //0x0004 
+	__int32 ButtonReleased; //0x0008 
+	__int32 ButtonWentDown; //0x000C 
+	__int32 ButtonPressed02; //0x0010 
+	char pad_0x0014[0x4]; //0x0014
+	float unkFloat; //0x0018 
+	char pad_0x001C[0x18]; //0x001C
+
+}; //Size=0x0034

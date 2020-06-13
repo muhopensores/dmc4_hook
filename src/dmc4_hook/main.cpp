@@ -150,13 +150,6 @@ bool checkHoneyComb = false;
 bool checkInfiniteTrickRange = false;
 bool checkCameraSensitivity = false;
 bool checkRoseRemovesPins = false;
-bool checkNoHelmBreakerKnockback = false;
-bool checkEasyJc = false;
-bool checkInfDreadnought = false;
-bool checkNoClip = false;
-bool checkSkipPandora = false;
-bool checkRestoreMaxHp = false;
-bool checkFpsLimit = false;
 
 hl::StaticInit<class hlMain> g_main;
 
@@ -392,13 +385,6 @@ void hlMain::saveSettings() {
 	cfg->set<bool>("fast_pandora",checkFastPandora);
 	cfg->set<bool>("faster_sprint_activation",checkSprintFasterActivate);
 	cfg->set<bool>("rose_removes_pins",checkRoseRemovesPins);
-    cfg->set<bool>("easy_jc",checkEasyJc);
-    cfg->set<bool>("inf_dreadnought", checkInfDreadnought);
-    cfg->set<bool>("noclip", checkNoClip);
-    cfg->set<bool>("skip_pandora", checkSkipPandora);
-    cfg->set<bool>("restore_max_hp", checkRestoreMaxHp);
-    cfg->set<bool>("fps_limit", checkFpsLimit);
-    cfg->set<float>("new_fps_limit", FpsLimit::newfpslimit);
 	
 	cfg->set<bool>("infinite_time",checkInfiniteTime);
 	cfg->set<bool>("disable_camera_events",checkDisableCameraEvents);

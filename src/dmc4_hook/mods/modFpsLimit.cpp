@@ -45,8 +45,8 @@ void FpsLimit::onGUIframe()
 
 void FpsLimit::onConfigLoad(const utils::Config& cfg)
 {
-    modEnabled = cfg.get<bool>("fps_limit").value_or(false);
-    modEnabled = cfg.get<float>("new_fps_limit").value_or(false);
+    modEnabled  = cfg.get<bool>("fps_limit").value_or(false);
+	newfpslimit = cfg.get<float>("new_fps_limit").value_or(120.0f);
 };
 
 void FpsLimit::onConfigSave(utils::Config& cfg)
