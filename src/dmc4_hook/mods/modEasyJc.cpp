@@ -1,5 +1,5 @@
 #include "../mods.h"
-#include "EasyJc.hpp"
+#include "modEasyJc.hpp"
 
 #if 1
 bool EasyJc::modEnabled{ false };

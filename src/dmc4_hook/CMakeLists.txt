@@ -20,12 +20,12 @@ SET (MODS
   mods/modBackgroundRendering.hpp
   mods/modNoHBknockback.cpp
   mods/modNoHBknockback.hpp
-  mods/EasyJc.cpp
-  mods/EasyJc.hpp
-  mods/InfDreadnought.cpp
-  mods/InfDreadnought.hpp
-  mods/NoClip.cpp
-  mods/NoClip.hpp
+  mods/modEasyJc.cpp
+  mods/modEasyJc.hpp
+  mods/modInfDreadnought.cpp
+  mods/modInfDreadnought.hpp
+  mods/modNoClip.cpp
+  mods/modNoClip.hpp
 )
 
 SET (HEADERS

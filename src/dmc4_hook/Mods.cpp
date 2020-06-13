@@ -5,13 +5,13 @@
 #include "mods/modLimitAdjust.hpp"
 #include "mods/modMoveIDs.hpp"
 #include "mods/modNoHBknockback.hpp"
-#include "mods/EasyJc.hpp"
+#include "mods/modEasyJc.hpp"
 #include "mods/modSelectiveCancels.hpp"
 #include "mods/modWorkRate.hpp"
 #include "mods/modBackgroundRendering.hpp"
 #include "mods/modBorderless.hpp"
-#include "mods/InfDreadnought.hpp"
-#include "mods/NoClip.hpp"
+#include "mods/modInfDreadnought.hpp"
+#include "mods/modNoClip.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor

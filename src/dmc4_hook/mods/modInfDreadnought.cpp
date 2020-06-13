@@ -1,5 +1,5 @@
 #include "../mods.h"
-#include "InfDreadnought.hpp"
+#include "modInfDreadnought.hpp"
 
 #if 1
 bool InfDreadnought::modEnabled{ false };

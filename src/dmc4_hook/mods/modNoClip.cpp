@@ -1,5 +1,5 @@
 #include "../mods.h"
-#include "NoClip.hpp"
+#include "modNoClip.hpp"
 
 #if 1
 bool NoClip::modEnabled{ false };
