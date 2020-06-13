@@ -5,7 +5,6 @@
 bool InfDreadnought::modEnabled{ false };
 uintptr_t InfDreadnought::_infDreadnoughtContinue{ NULL };
 
-
 naked void infDreadnought_proc(void)
 {
     _asm {
@@ -25,7 +24,6 @@ naked void infDreadnought_proc(void)
 		jmp dword ptr [InfDreadnought::_infDreadnoughtContinue]
     }
 }
-
 
 std::optional<std::string> InfDreadnought::onInitialize()
 {

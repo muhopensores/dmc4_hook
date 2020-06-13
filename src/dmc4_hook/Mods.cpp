@@ -13,6 +13,7 @@
 #include "mods/modInfDreadnought.hpp"
 #include "mods/modNoClip.hpp"
 #include "mods/modSkipPandora.hpp"
+#include "mods/modRestoreMaxHp.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -31,6 +32,7 @@ Mods::Mods() {
     m_mods["InfDreadnought"_hash] = std::make_unique<InfDreadnought>();
 	m_mods["NoClip"_hash] = std::make_unique<NoClip>();
     m_mods["SkipPandora"_hash] = std::make_unique<SkipPandora>();
+	m_mods["RestoreMaxHp"_hash] = std::make_unique<RestoreMaxHp>();
 }
 
 // Initializes mods, checks for errors

@@ -28,6 +28,8 @@ SET (MODS
   mods/modNoClip.hpp
   mods/modSkipPandora.cpp
   mods/modSkipPandora.hpp
+  mods/modRestoreMaxHp.cpp
+  mods/modRestoreMaxHp.hpp
 )
 
 SET (HEADERS

@@ -153,6 +153,7 @@ bool checkEasyJc = false;
 bool checkInfDreadnought = false;
 bool checkNoClip = false;
 bool checkSkipPandora = false;
+bool checkRestoreMaxHp = false;
 
 hl::StaticInit<class hlMain> g_main;
 
@@ -392,6 +393,7 @@ void hlMain::saveSettings() {
     cfg->set<bool>("inf_dreadnought", checkInfDreadnought);
     cfg->set<bool>("noclip", checkNoClip);
     cfg->set<bool>("skip_pandora", checkSkipPandora);
+    cfg->set<bool>("restore_max_hp", checkRestoreMaxHp);
 	
 	cfg->set<bool>("infinite_time",checkInfiniteTime);
 	cfg->set<bool>("disable_camera_events",checkDisableCameraEvents);
@@ -920,6 +922,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 				// NOTE(): refactored mods expose onGUIframe function to draw gui stuff.
 				//modSelCancels::onGUIframe();
 				main->getMods()->onDrawUI("SelectiveCancels"_hash);
+
                 ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::EndTabItem();
@@ -2214,6 +2217,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 {
                     main->ToggleInfiniteRevive(checkInfiniteRevive);
                 }
+
+                main->getMods()->onDrawUI("RestoreMaxHp"_hash);
 
                 ImGui::Spacing();
                 ImGui::Spacing();
