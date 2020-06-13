@@ -2219,6 +2219,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 }
 
                 main->getMods()->onDrawUI("RestoreMaxHp"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("Press Lock On + Taunt to restore Max HP to enemies");
 
                 ImGui::Spacing();
                 ImGui::Spacing();

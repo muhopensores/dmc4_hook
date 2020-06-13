@@ -30,6 +30,8 @@ SET (MODS
   mods/modSkipPandora.hpp
   mods/modRestoreMaxHp.cpp
   mods/modRestoreMaxHp.hpp
+  mods/modInputStates.cpp
+  mods/modInputStates.hpp
 )
 
 SET (HEADERS

@@ -1,5 +1,6 @@
 #include "../mods.h"
 #include "modRestoreMaxHp.hpp"
+#include "modInputStates.hpp"
 
 #if 1
 bool RestoreMaxHp::modEnabled{ false };
@@ -8,8 +9,10 @@ uintptr_t RestoreMaxHp::_restoreMaxHpContinue{ NULL };
 naked void restoreMaxHp_proc(void)
 {
     _asm {
-		cmp byte ptr [RestoreMaxHp::modEnabled], 0
+        cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
+		cmp byte ptr [InputStates::inputpressed], 24
+        jne code
 
         fstp dword ptr [ebx+1DA8h]  // Originalcode
 
