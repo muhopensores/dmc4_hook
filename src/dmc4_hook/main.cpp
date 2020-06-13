@@ -365,6 +365,7 @@ void hlMain::loadSettings() {
 	checkDisableDarkslayerLeft  = cfg->get<bool>("disable_darkslayer_Dpad_left").value_or(false);//reader.GetBoolean("practice", "disable_darkslayer_Dpad_left", true);
 	checkDisableDarkslayerRight = cfg->get<bool>("disable_darkslayer_Dpad_right").value_or(false);//reader.GetBoolean("practice", "disable_darkslayer_Dpad_right", true);
 
+	ToggleStuff();
 	// load settings for each mod
 	m_mods->onConfigLoad(*cfg);
 }
@@ -753,7 +754,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
     if (g_bWasInitialized)
     {
         g_bWasInitialized = false;
-        main->ToggleStuff();
+        //main->ToggleStuff();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
