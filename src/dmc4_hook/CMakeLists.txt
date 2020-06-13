@@ -32,6 +32,8 @@ SET (MODS
   mods/modRestoreMaxHp.hpp
   mods/modInputStates.cpp
   mods/modInputStates.hpp
+  mods/modFpsLimit.cpp
+  mods/modFpsLimit.hpp
 )
 
 SET (HEADERS

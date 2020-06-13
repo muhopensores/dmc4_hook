@@ -15,6 +15,7 @@
 #include "mods/modSkipPandora.hpp"
 #include "mods/modRestoreMaxHp.hpp"
 #include "mods/modInputStates.hpp"
+#include "mods/modFpsLimit.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -35,6 +36,7 @@ Mods::Mods() {
     m_mods["SkipPandora"_hash] = std::make_unique<SkipPandora>();
 	m_mods["RestoreMaxHp"_hash] = std::make_unique<RestoreMaxHp>();
     m_mods["InputStates"_hash] = std::make_unique<InputStates>();
+	m_mods["FpsLimit"_hash] = std::make_unique<FpsLimit>();
 }
 
 // Initializes mods, checks for errors

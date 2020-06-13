@@ -25,6 +25,8 @@
 #include "hacklib/Logging.h"
 #include "hacklib/CrashHandler.h"
 
+#include "mods/modFpsLimit.hpp"
+
 
 uint32_t uninit_value = 0xCCCCCCCC;
 
@@ -154,6 +156,7 @@ bool checkInfDreadnought = false;
 bool checkNoClip = false;
 bool checkSkipPandora = false;
 bool checkRestoreMaxHp = false;
+bool checkFpsLimit = false;
 
 hl::StaticInit<class hlMain> g_main;
 
@@ -394,6 +397,8 @@ void hlMain::saveSettings() {
     cfg->set<bool>("noclip", checkNoClip);
     cfg->set<bool>("skip_pandora", checkSkipPandora);
     cfg->set<bool>("restore_max_hp", checkRestoreMaxHp);
+    cfg->set<bool>("fps_limit", checkFpsLimit);
+    cfg->set<float>("new_fps_limit", FpsLimit::newfpslimit);
 	
 	cfg->set<bool>("infinite_time",checkInfiniteTime);
 	cfg->set<bool>("disable_camera_events",checkDisableCameraEvents);
@@ -1069,6 +1074,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 Misc();
 				//modBackgroundRendering::onGUIframe();
 				main->getMods()->onDrawUI("BackgroundRendering"_hash);
+
+                main->getMods()->onDrawUI("FpsLimit"_hash);
+                ImGui::InputFloat("New FPS Limit", &FpsLimit::newfpslimit, 1.0f, 1.0f, "%.0f");
 
                 /*if (ImGui::CollapsingHeader("Speed"))
                 {
