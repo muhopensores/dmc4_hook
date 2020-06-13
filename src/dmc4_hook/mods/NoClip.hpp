@@ -2,17 +2,16 @@
 
 #include "../mod.hpp"
 
-class EasyJc : public Mod
+class NoClip : public Mod
 {
 public:
-    EasyJc();
+    NoClip() = default;
 
     static bool modEnabled;
-    static uintptr_t _easyJcContinue;
 
     void toggle(bool enable);
 
-    std::string getModName() override { return "EasyJc"; };
+    std::string getModName() override { return "NoClip"; };
 
     std::optional<std::string> onInitialize() override;
 
@@ -22,6 +21,5 @@ public:
     void onGUIframe() override;
 
 private:
-    hl::Hooker hook;
     hl::Patch patch;
 };

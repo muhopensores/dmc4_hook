@@ -38,16 +38,32 @@ std::optional<std::string> EasyJc::onInitialize()
     return Mod::onInitialize();
 }
 
+void EasyJc::toggle(bool enable)
+{
+    if (enable)
+    {
+        install_patch_offset(0x427999, patch, "\x90\x90\x90\x90\x90", 5);
+    }
+    else
+    {
+        patch.revert();
+    }
+}
+
 void EasyJc::onGUIframe()
 {
     // from main.cpp
     // line 899 -> if (ImGui::Checkbox("Easy JCs", &checkEasyJc))
-    ImGui::Checkbox("Easy JCs", &modEnabled);
+    if (ImGui::Checkbox("Easy JCs", &modEnabled))
+    {
+        toggle(modEnabled);
+    }
 }
 
 void EasyJc::onConfigLoad(const utils::Config& cfg)
 {
     modEnabled = cfg.get<bool>("easy_jc").value_or(false);
+    toggle(modEnabled);
 };
 
 void EasyJc::onConfigSave(utils::Config& cfg)

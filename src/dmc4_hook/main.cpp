@@ -151,6 +151,7 @@ bool checkRoseRemovesPins = false;
 bool checkNoHelmBreakerKnockback = false;
 bool checkEasyJc = false;
 bool checkInfDreadnought = false;
+bool checkNoClip = false;
 
 hl::StaticInit<class hlMain> g_main;
 
@@ -388,6 +389,7 @@ void hlMain::saveSettings() {
 	cfg->set<bool>("rose_removes_pins",checkRoseRemovesPins);
     cfg->set<bool>("easy_jc",checkEasyJc);
     cfg->set<bool>("inf_dreadnought", checkInfDreadnought);
+    cfg->set<bool>("noclip", checkNoClip);
 	
 	cfg->set<bool>("infinite_time",checkInfiniteTime);
 	cfg->set<bool>("disable_camera_events",checkDisableCameraEvents);
@@ -903,6 +905,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::SameLine(198);
 
                 main->getMods()->onDrawUI("InfDreadnought"_hash);
+
+                main->getMods()->onDrawUI("NoClip"_hash);
 
                 ImGui::Spacing();
                 ImGui::Spacing();

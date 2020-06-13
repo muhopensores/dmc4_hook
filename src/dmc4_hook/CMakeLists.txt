@@ -24,6 +24,8 @@ SET (MODS
   mods/EasyJc.hpp
   mods/InfDreadnought.cpp
   mods/InfDreadnought.hpp
+  mods/NoClip.cpp
+  mods/NoClip.hpp
 )
 
 SET (HEADERS

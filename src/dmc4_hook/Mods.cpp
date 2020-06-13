@@ -11,6 +11,7 @@
 #include "mods/modBackgroundRendering.hpp"
 #include "mods/modBorderless.hpp"
 #include "mods/InfDreadnought.hpp"
+#include "mods/NoClip.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -27,6 +28,7 @@ Mods::Mods() {
 	m_mods["BackgroundRendering"_hash] = std::make_unique<BackgroundRendering>();
 	m_mods["Borderless"_hash] = std::make_unique<Borderless>();
     m_mods["InfDreadnought"_hash] = std::make_unique<InfDreadnought>();
+	m_mods["NoClip"_hash] = std::make_unique<NoClip>();
 }
 
 // Initializes mods, checks for errors
