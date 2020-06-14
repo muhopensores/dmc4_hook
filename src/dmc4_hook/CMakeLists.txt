@@ -36,6 +36,8 @@ SET (MODS
   mods/modFpsLimit.hpp
   mods/modMoveIDsNero.cpp
   mods/modMoveIDsNero.hpp
+  mods/modInfSkyStars.cpp
+  mods/modInfSkyStars.hpp
 )
 
 SET (HEADERS

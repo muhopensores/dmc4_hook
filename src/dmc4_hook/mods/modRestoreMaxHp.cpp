@@ -35,7 +35,6 @@ naked void restoreMaxHpScarecrow_proc(void)
 
     code:
         fld dword ptr [ebx+1548h]
-    cont:
 		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueScarecrow]
     }
 }

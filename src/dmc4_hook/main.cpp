@@ -904,6 +904,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 main->getMods()->onDrawUI("SkipPandora"_hash);
 
+                main->getMods()->onDrawUI("InfSkyStars"_hash);
+
                 ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::Spacing();

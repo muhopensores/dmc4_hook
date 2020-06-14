@@ -17,6 +17,7 @@
 #include "mods/modInputStates.hpp"
 #include "mods/modFpsLimit.hpp"
 #include "mods/modMoveIDsNero.hpp"
+#include "mods/modInfSkyStars.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -39,6 +40,7 @@ Mods::Mods() {
     m_mods["InputStates"_hash] = std::make_unique<InputStates>();
 	m_mods["FpsLimit"_hash] = std::make_unique<FpsLimit>();
     m_mods["MoveIdsNero"_hash] = std::make_unique<MoveIdsNero>();
+    m_mods["InfSkyStars"_hash] = std::make_unique<InfSkyStars>();
 }
 
 // Initializes mods, checks for errors
