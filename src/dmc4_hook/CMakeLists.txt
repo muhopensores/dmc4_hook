@@ -42,6 +42,8 @@ SET (MODS
   mods/modFreeCam.hpp
   mods/modForceLucifer.cpp
   mods/modForceLucifer.hpp
+  mods/modDisableLastEnemyZoom.cpp
+  mods/modDisableLastEnemyZoom.hpp
 )
 
 SET (HEADERS

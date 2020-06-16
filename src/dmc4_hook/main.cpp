@@ -980,26 +980,32 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 {
                     main->ToggleSlowWalk(checkSlowWalk);
                 }
-
                 ImGui::SameLine(0, 1);
-
                 HelpMarker("Press & hold the jump button to walk slowly");
 
-                if (ImGui::Checkbox("Auto Open Sealed Doors & Portals", &checkBpPortalAutoOpen))
-                {
-                    main->ToggleBpPortalAutoOpen(checkBpPortalAutoOpen);
-                }
+                main->getMods()->onDrawUI("FreeCam"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("Activate this before starting a level! Forces Free Cam and allows it to pass through walls");
+
+                ImGui::SameLine(205);
 
                 if (ImGui::Checkbox("Enemy HP Red Orb Display", &checkOrbDisplay))
                 {
                     main->ImGuiToggleOrbDisplay();
                 }
+                ImGui::SameLine(0, 1);
+                HelpMarker("Display the last hit enemy's HP in the Red Orb count");
+
+                if (ImGui::Checkbox("Auto Open Seals", &checkBpPortalAutoOpen))
+                {
+                    main->ToggleBpPortalAutoOpen(checkBpPortalAutoOpen);
+                }
+                ImGui::SameLine(0, 1);
+                HelpMarker("Sealed doors and portals open instantly");
 
                 ImGui::SameLine(205);
 
-                main->getMods()->onDrawUI("FreeCam"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("Activate this before starting a level!");
+                main->getMods()->onDrawUI("DisableLastEnemyZoom"_hash);
 
                 ImGui::Spacing();
                 ImGui::Spacing();

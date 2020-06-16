@@ -20,6 +20,7 @@
 #include "mods/modInfSkyStars.hpp"
 #include "mods/modFreeCam.hpp"
 #include "mods/modForceLucifer.hpp"
+#include "mods/modDisableLastEnemyZoom.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -45,6 +46,7 @@ Mods::Mods() {
     m_mods["InfSkyStars"_hash] = std::make_unique<InfSkyStars>();
     m_mods["FreeCam"_hash] = std::make_unique<FreeCam>();
     m_mods["ForceLucifer"_hash] = std::make_unique<ForceLucifer>();
+    m_mods["DisableLastEnemyZoom"_hash] = std::make_unique<DisableLastEnemyZoom>();
 }
 
 // Initializes mods, checks for errors
