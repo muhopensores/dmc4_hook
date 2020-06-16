@@ -209,6 +209,7 @@ _declspec(naked) void ldkWithDMD_proc(void)
 
 			add eax,[edi+0x00000140]
 			dec eax
+			jmp dword ptr [_ldkWithDMDContinue]
 
 		originalcode:
 			add eax,[edi+0x00000140]

@@ -9,8 +9,8 @@ std::optional<std::string> InfSkyStars::onInitialize()/*
 {   
     if (!install_hook_offset(0x3BDB76, hook, &infDreadnought_proc, &InfDreadnought::_infDreadnoughtContinue, 6))
     {
-        HL_LOG_ERR("Failed to init InfSkyStars mod\n");
-        return "Failed to init InfSkyStars mod";
+        HL_LOG_ERR("Failed to init InfDreadnought mod\n");
+        return "Failed to init InfDreadnought mod";
     }
 */
 {
