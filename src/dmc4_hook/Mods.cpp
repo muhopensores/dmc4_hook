@@ -19,6 +19,7 @@
 #include "mods/modMoveIDsNero.hpp"
 #include "mods/modInfSkyStars.hpp"
 #include "mods/modFreeCam.hpp"
+#include "mods/modForceLucifer.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -43,6 +44,7 @@ Mods::Mods() {
     m_mods["MoveIdsNero"_hash] = std::make_unique<MoveIdsNero>();
     m_mods["InfSkyStars"_hash] = std::make_unique<InfSkyStars>();
     m_mods["FreeCam"_hash] = std::make_unique<FreeCam>();
+    m_mods["ForceLucifer"_hash] = std::make_unique<ForceLucifer>();
 }
 
 // Initializes mods, checks for errors

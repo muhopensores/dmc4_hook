@@ -40,6 +40,8 @@ SET (MODS
   mods/modInfSkyStars.hpp
   mods/modFreeCam.cpp
   mods/modFreeCam.hpp
+  mods/modForceLucifer.cpp
+  mods/modForceLucifer.hpp
 )
 
 SET (HEADERS

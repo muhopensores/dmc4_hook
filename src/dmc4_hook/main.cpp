@@ -906,6 +906,10 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 main->getMods()->onDrawUI("InfSkyStars"_hash);
 
+                ImGui::SameLine(198);
+
+                main->getMods()->onDrawUI("ForceLucifer"_hash);
+
                 ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::Spacing();
