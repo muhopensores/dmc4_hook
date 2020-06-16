@@ -991,6 +991,12 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ImGuiToggleOrbDisplay();
                 }
 
+                ImGui::SameLine(205);
+
+                main->getMods()->onDrawUI("FreeCam"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("Activate this before starting a level!");
+
                 ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::Separator();

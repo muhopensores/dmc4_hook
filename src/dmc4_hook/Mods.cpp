@@ -18,6 +18,7 @@
 #include "mods/modFpsLimit.hpp"
 #include "mods/modMoveIDsNero.hpp"
 #include "mods/modInfSkyStars.hpp"
+#include "mods/modFreeCam.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -41,6 +42,7 @@ Mods::Mods() {
 	m_mods["FpsLimit"_hash] = std::make_unique<FpsLimit>();
     m_mods["MoveIdsNero"_hash] = std::make_unique<MoveIdsNero>();
     m_mods["InfSkyStars"_hash] = std::make_unique<InfSkyStars>();
+    m_mods["FreeCam"_hash] = std::make_unique<FreeCam>();
 }
 
 // Initializes mods, checks for errors

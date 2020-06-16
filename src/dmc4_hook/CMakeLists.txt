@@ -38,6 +38,8 @@ SET (MODS
   mods/modMoveIDsNero.hpp
   mods/modInfSkyStars.cpp
   mods/modInfSkyStars.hpp
+  mods/modFreeCam.cpp
+  mods/modFreeCam.hpp
 )
 
 SET (HEADERS
