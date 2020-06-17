@@ -5,7 +5,7 @@
 class LdkWithDmd : public Mod
 {
 public:
-    LdkWithDmd();
+    LdkWithDmd() = default;
 
     static bool modEnabled;
     static bool modFrostsCantEscapeEnabled;

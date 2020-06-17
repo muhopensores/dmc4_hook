@@ -7,10 +7,6 @@ bool LdkWithDmd::modEnabled{ false };
 bool LdkWithDmd::modFrostsCantEscapeEnabled{ false };
 uintptr_t LdkWithDmd::_ldkWithDmdContinue{ NULL };
 
-LdkWithDmd::LdkWithDmd()
-{
-    // onInitialize();
-}
 
 naked void ldkWithDmd_proc(void)
 {
@@ -64,6 +60,8 @@ void LdkWithDmd::onGUIframe()
     // from main.cpp
     // line 907 -> main->getMods()->onDrawUI("NoClip"_hash);
     ImGui::Checkbox("LDK With DMD", &modEnabled);
+	ImGui::SameLine(0, 1);
+	HelpMarker("Start a Mission on Legendary Dark Knight. Enemies are on DMD Difficulty, instead of SOS");
     ImGui::Checkbox("Frosts Can't Escape", &modFrostsCantEscapeEnabled);
 }
 

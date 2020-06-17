@@ -1022,10 +1022,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 HelpMarker("Toggle and start BP run");
                 ImGui::SameLine(205);
 
-                main->getMods()->onDrawUI("LdkOnDmd"_hash);
-
-                ImGui::SameLine(0, 1);
-                HelpMarker("Start a Mission on Legendary Dark Knight. Enemies are on DMD Difficulty, instead of SOS");
+                main->getMods()->onDrawUI("LdkWithDmd"_hash);
 
                 if (ImGui::Checkbox("Enemies DT Instantly", &checkEnemyInstantDT))
                 {
@@ -1045,8 +1042,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 }
 
                 ImGui::SameLine(205);
-
-                main->getMods()->onDrawUI("FrostsCantEscape"_hash);
 
                 ImGui::Spacing();
                 ImGui::Spacing();

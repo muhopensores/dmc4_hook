@@ -49,7 +49,6 @@ Mods::Mods() {
     m_mods["ForceLucifer"_hash] = std::make_unique<ForceLucifer>();
     m_mods["DisableLastEnemyZoom"_hash] = std::make_unique<DisableLastEnemyZoom>();
     m_mods["LdkWithDmd"_hash] = std::make_unique<LdkWithDmd>();
-    m_mods["FrostsCantEscape"_hash] = std::make_unique<LdkWithDmd>();
 }
 
 // Initializes mods, checks for errors
