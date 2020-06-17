@@ -126,9 +126,13 @@ void CreditsDrawing()
         ImGui::Separator();
         ImGui::Spacing();
         ImGui::Text("Special Thanks:");
+        ImGui::Text("Whirling");
+        ImGui::Text("Terrutas");
+        ImGui::Text("Boey");
+        ImGui::Text("DelusionaryKiller");
+        ImGui::Text("DJMalice");
         ImGui::Text("cheburrat0r");
         ImGui::Text("Whitelion");
-        ImGui::Text("Whirling");
         ImGui::Text("endneo");
         ImGui::Text("CrazyMelody");
         ImGui::Text("Dlupx");

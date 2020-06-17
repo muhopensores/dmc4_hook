@@ -133,7 +133,6 @@ bool checkSlowWalk = false;
 bool checkCameraSettings = false;
 bool checkHideStyle = false;
 bool checkautoSkiptIntro = false;
-bool checkLDKWithDMD = false;
 bool checkInfiniteRevive = false;
 bool checkSetStyle = false;
 bool checkRandomEnemies = false;
@@ -182,11 +181,6 @@ void hlMain::ImGuiToggleHoneyComb()
 void hlMain::ImGuiToggleDamageModifier()
 {
     g_damageModifierEnable = !g_damageModifierEnable;
-}
-
-void hlMain::ImGuiToggleLDKWithDMD()
-{
-    g_ldkWithDMDEnable = !g_ldkWithDMDEnable;
 }
 
 void hlMain::ImGuiToggleTrackingFullHouse()
@@ -266,11 +260,6 @@ void hlMain::ToggleStuff()
     }
 		// Game Mode
     ToggleBossRush(checkBossRush);
-    ToggleLDKWithDMD(checkLDKWithDMD);
-		if (checkLDKWithDMD)
-		{
-			g_ldkWithDMDEnable = true;
-		}
     ToggleInfiniteAllHealth(checkinfiniteAllHealth);
 	ToggleEnemyInstantDT(checkEnemyInstantDT);
     ToggleEnemyNoDT(checkEnemyNoDT);
@@ -343,7 +332,6 @@ void hlMain::loadSettings() {
 	checkOrbDisplay = cfg->get<bool>("enemy_hp_red_orb_display").value_or(false);//reader.GetBoolean("system", "enemy_hp_red_orb_display", true);
 	// Game Mode
 	checkBossRush = cfg->get<bool>("boss_rush_mode").value_or(false);//reader.GetBoolean("system", "boss_rush_mode", true);
-	checkLDKWithDMD = cfg->get<bool>("ldk_on_DMD_diff").value_or(false);//reader.GetBoolean("system", "ldk_on_DMD_diff", true);
 	checkEnemyInstantDT = cfg->get<bool>("enemy_instant_DT").value_or(false);//reader.GetBoolean("system", "enemy_instant_DT", true);
 	checkEnemyNoDT = cfg->get<bool>("enemy_no_DT").value_or(false);//reader.GetBoolean("system", "enemy_no_DT", true);
 	checkEnemyAttackOffscreen = cfg->get<bool>("enemies_attack_offscreen").value_or(false);//reader.GetBoolean("system", "enemies_attack_offscreen", true);
@@ -398,7 +386,6 @@ void hlMain::saveSettings() {
 	cfg->set<bool>("auto_open_doors_and_BP_portal",checkBpPortalAutoOpen);
 	cfg->set<bool>("enemy_hp_red_orb_display",checkOrbDisplay);
 	cfg->set<bool>("boss_rush_mode",checkBossRush);
-	cfg->set<bool>("ldk_on_DMD_diff",checkLDKWithDMD);
 	cfg->set<bool>("enemy_instant_DT",checkEnemyInstantDT);
 	cfg->set<bool>("enemy_no_DT",checkEnemyNoDT);
 	cfg->set<bool>("enemies_attack_offscreen",checkEnemyAttackOffscreen);
@@ -605,8 +592,6 @@ bool hlMain::init()
     hideOrbs = modBase + 0xFF1F2;
     autoSkipIntro = modBase + 0x6DF1;
     autoSkipOutro = modBase + 0x7E6D;
-    ldkWithDMDOne = modBase + 0x94AED;
-    ldkWithDMDTwo = modBase + 0x3309A1;
     infiniteReviveOne = modBase + 0x39FA7C;
     infiniteReviveTwo = modBase + 0xD270;
     infiniteReviveThree = modBase + 0xD49B;
@@ -675,11 +660,6 @@ bool hlMain::init()
     if (cameraAngleSetting != 0)
     {
         auto cameraAngleSeting_hk = m_hook.hookJMP(cameraAngleSetting, 8, &cameraAngle_proc, &_cameraAngleContinue);
-    }
-
-    if (ldkWithDMDOne != 0)
-    {
-        auto ldkWithDMDOne_hk = m_hook.hookJMP(ldkWithDMDOne, 6, &ldkWithDMD_proc); //, &_ldkWithDMDContinue);
     }
 
     if (lockOn != 0)
@@ -1042,11 +1022,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 HelpMarker("Toggle and start BP run");
                 ImGui::SameLine(205);
 
-                if (ImGui::Checkbox("LDK on DMD Difficulty", &checkLDKWithDMD))
-                {
-                    main->ToggleLDKWithDMD(checkLDKWithDMD);
-                    main->ImGuiToggleLDKWithDMD();
-                }
+                main->getMods()->onDrawUI("LdkOnDmd"_hash);
 
                 ImGui::SameLine(0, 1);
                 HelpMarker("Start a Mission on Legendary Dark Knight. Enemies are on DMD Difficulty, instead of SOS");
@@ -1067,6 +1043,10 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 {
                     main->ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
                 }
+
+                ImGui::SameLine(205);
+
+                main->getMods()->onDrawUI("FrostsCantEscape"_hash);
 
                 ImGui::Spacing();
                 ImGui::Spacing();

@@ -50,7 +50,6 @@ public:
     void ToggleSlowWalk(bool toggle);
     void ToggleHideStyle(bool toggle);
     void ToggleAutoSkipIntro(bool toggle);
-    void ToggleLDKWithDMD(bool toggle);
     void ToggleInfiniteRevive(bool toggle);
     void ToggleAutoSkipOutro(bool toggle);
     void ToggleInfiniteTableHopper(bool toggle);
@@ -62,7 +61,6 @@ public:
     void ImGuiToggleInfDT();
     void ImGuiToggleBerialDaze();
     void ImGuiToggleDamageModifier();
-    void ImGuiToggleLDKWithDMD();
     void ImGuiToggleTrackingFullHouse();
     void ImGuiToggleTrickDown();
     void ImGuiToggleHoneyComb();
@@ -231,8 +229,6 @@ public:
     uintptr_t hideOrbs;
     uintptr_t autoSkipIntro;
     uintptr_t autoSkipOutro;
-    uintptr_t ldkWithDMDOne;
-    uintptr_t ldkWithDMDTwo;
     uintptr_t infiniteReviveOne;
     uintptr_t infiniteReviveTwo;
     uintptr_t infiniteReviveThree;
@@ -301,7 +297,7 @@ public:
         characterChangeSixteen_patch, characterChangeSeventeen_patch, characterChangeEighteen_patch,
         characterChangeNineteen_patch, characterChangeTwenty_patch, characterChangeTwentyOne_patch,
         sprintFasterActivate_patch, enemyAttackOffscreen_patch, slowWalkOne_patch, slowWalkTwo_patch, hideStyle_patch,
-        hideOrbs_patch, hideTimer_patch, autoSkipIntro_patch, ldkWithDMDTwo_patch, infiniteReviveOne_patch,
+        hideOrbs_patch, hideTimer_patch, autoSkipIntro_patch, infiniteReviveOne_patch,
         infiniteReviveTwo_patch, infiniteReviveThree_patch, replaceScarecrowLeg_patch, replaceScarecrowArm_patch,
         replaceMegaScarecrow_patch, replacementAddressTwo_patch, replaceBiancoAngelo_patch, replaceAltoAngelo_patch,
         replaceMephisto_patch, replaceFaust_patch, replaceFrost_patch, replaceAssault_patch, replaceBlitz_patch,

@@ -25,7 +25,6 @@ extern "C"
     uintptr_t _cameraDistanceContinue = NULL;
     uintptr_t _cameraDistanceLockonContinue = NULL;
     uintptr_t _cameraAngleContinue = NULL;
-    uintptr_t _ldkWithDMDContinue = 0x00494AF3;
     uintptr_t _lockOnContinue = NULL;
     uintptr_t _lockOffContinue = NULL;
     uintptr_t _trackingFullHouseContinue = 0x007D3478;
@@ -45,7 +44,6 @@ extern "C"
     bool g_damageModifierEnable = false;
 	bool g_orbDisplayEnable = false;
     bool g_stunAnythingEnable = false;
-    bool g_ldkWithDMDEnable = false;
     bool g_trackingFullHouseEnable = false;
     bool g_trickDownEnable = false;
     bool g_honeyCombEnable = false;
@@ -194,22 +192,6 @@ _declspec(naked) void cameraAngle_proc(void)
 			pop eax
 			//movss xmm2,[edi+0x000000D4]
 			jmp dword ptr [_cameraAngleContinue]
-    }
-}
-
-_declspec(naked) void ldkWithDMD_proc(void)
-{
-    _asm {
-			cmp byte ptr [g_ldkWithDMDEnable], 0
-			je originalcode
-
-			add eax,[edi+0x00000140]
-			dec eax
-			jmp dword ptr [_ldkWithDMDContinue]
-
-		originalcode:
-			add eax,[edi+0x00000140]
-			jmp dword ptr [_ldkWithDMDContinue]
     }
 }
 

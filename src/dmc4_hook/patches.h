@@ -1406,17 +1406,6 @@ void hlMain::ToggleAutoSkipOutro(bool toggle)
     }
 }
 
-void hlMain::ToggleLDKWithDMD(bool toggle)
-{
-    if (ldkWithDMDTwo)
-    {
-        if (toggle)
-            ldkWithDMDTwo_patch.apply(ldkWithDMDTwo, "\x7d\x1f", 2);
-        else
-            ldkWithDMDTwo_patch.revert();
-    }
-}
-
 void hlMain::ToggleInfiniteRevive(bool toggle)
 {
     if (infiniteReviveOne)

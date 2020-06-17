@@ -21,6 +21,7 @@
 #include "mods/modFreeCam.hpp"
 #include "mods/modForceLucifer.hpp"
 #include "mods/modDisableLastEnemyZoom.hpp"
+#include "mods/modLdkWithDmd.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -47,6 +48,8 @@ Mods::Mods() {
     m_mods["FreeCam"_hash] = std::make_unique<FreeCam>();
     m_mods["ForceLucifer"_hash] = std::make_unique<ForceLucifer>();
     m_mods["DisableLastEnemyZoom"_hash] = std::make_unique<DisableLastEnemyZoom>();
+    m_mods["LdkWithDmd"_hash] = std::make_unique<LdkWithDmd>();
+    m_mods["FrostsCantEscape"_hash] = std::make_unique<LdkWithDmd>();
 }
 
 // Initializes mods, checks for errors
