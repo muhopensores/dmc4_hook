@@ -1,6 +1,6 @@
 #include "modAreaJump.hpp"
 #include <array>
-#if 1
+#include <algorithm>
 
 uintptr_t  AreaJump::jmp_return{ NULL };
 cAreaJump* AreaJump::cAreaJumpPtr{ NULL };
@@ -119,6 +119,33 @@ std::optional<std::string> AreaJump::onInitialize() {
 	}
 
 	return Mod::onInitialize();
+}
+
+int bpStage(int floor) {
+	auto in_range = [](int value, int low, int high) {return (value >= low) && (value <= high); };
+	
+	if (in_range(floor, 1, 19)) { return 0; }
+	if (in_range(floor, 21, 39)) { return 1; }
+	if (in_range(floor, 41, 59)) { return 2; }
+	if (in_range(floor, 61, 79)) { return 3; }
+	if (in_range(floor, 81, 99)) { return 4; }
+	switch (floor) {
+	case 20:
+		return 5;
+	case 40:
+		return 6;
+	case 60:
+		return 7;
+	case 80:
+		return 8;
+	case 100:
+		return 9;
+	case 101:
+		return 10;
+	default:
+		break;
+	}
+	return -1;
 }
 
 void AreaJump::jumpToStage(int stage) {
@@ -386,14 +413,20 @@ void AreaJump::onGUIframe() {
 	}
 	ImGui::Text("Area Jump");
 	ImGui::Spacing();
-	ImGui::InputInt("BP Floor\n(no boss stages)", &cAreaJumpPtr->bpFloorStage, 1, 10,
-		ImGuiInputTextFlags_AllowTabInput);
-	ImGui::SameLine(0, 1);
-	HelpMarker("Type in the BP floor you want to teleport to and choose the correct BP area below (example "
-		"21-39). Only "
-		"1-99, no boss stages. For boss stages simply select the boss room from the listbox below.");
-	ImGui::Spacing();
-
+	if (cAreaJumpPtr->bpFloorStage) {
+		if (ImGui::InputInt("BP Floor ", &cAreaJumpPtr->bpFloorStage, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
+			cAreaJumpPtr->bpFloorStage = std::clamp(cAreaJumpPtr->bpFloorStage, 1, 101);
+		}
+		ImGui::SameLine(0, 1);
+		if (ImGui::Button("Go")) {
+			jumpToStage(bpStage(cAreaJumpPtr->bpFloorStage));
+		}
+		ImGui::SameLine(0, 1);
+		HelpMarker("Type in the BP floor you want to teleport to and choose the correct BP area below (example "
+			"21-39). Only "
+			"1-99, no boss stages. For boss stages simply select the boss room from the listbox below.");
+		ImGui::Spacing();
+	}
 	int room_item_current = 0;
 	if (ImGui::ListBox("Room Codes\n(including BP)", &room_item_current, room_items.data(),
 		room_items.size(), 10))
@@ -404,4 +437,3 @@ void AreaJump::onGUIframe() {
 	ImGui::Spacing();
 	ImGui::Spacing();
 }
-#endif
