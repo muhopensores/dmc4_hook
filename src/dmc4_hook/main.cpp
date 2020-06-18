@@ -891,20 +891,18 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 ImGui::Text("General");
 
-                if (ImGui::Checkbox("Player Damage Modifier", &checkDamageModifier))
+                if (ImGui::Checkbox("Player Damage Multiplier", &checkDamageModifier))
                 {
                     main->ImGuiToggleDamageModifier();
                 }
 
-                ImGui::SameLine(198);
+                ImGui::SameLine(202);
 
                 main->getMods()->onDrawUI("OneHitKill"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("This overrides the multiplier");
 
                 ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
-
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
 
                 if (ImGui::Checkbox("Infinite Health (All)", &checkinfiniteAllHealth))
                 {
