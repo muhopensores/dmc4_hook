@@ -239,7 +239,6 @@ public:
     uintptr_t replacementAddressTwo;
     uintptr_t replaceBiancoAngelo;
     uintptr_t replaceAltoAngelo;
-    uintptr_t hideTimer;
     uintptr_t replaceMephisto;
     uintptr_t replaceFaust;
     uintptr_t replaceFrost;
@@ -297,7 +296,7 @@ public:
         characterChangeSixteen_patch, characterChangeSeventeen_patch, characterChangeEighteen_patch,
         characterChangeNineteen_patch, characterChangeTwenty_patch, characterChangeTwentyOne_patch,
         sprintFasterActivate_patch, enemyAttackOffscreen_patch, slowWalkOne_patch, slowWalkTwo_patch, hideStyle_patch,
-        hideOrbs_patch, hideTimer_patch, autoSkipIntro_patch, infiniteReviveOne_patch,
+        hideOrbs_patch, autoSkipIntro_patch, infiniteReviveOne_patch,
         infiniteReviveTwo_patch, infiniteReviveThree_patch, replaceScarecrowLeg_patch, replaceScarecrowArm_patch,
         replaceMegaScarecrow_patch, replacementAddressTwo_patch, replaceBiancoAngelo_patch, replaceAltoAngelo_patch,
         replaceMephisto_patch, replaceFaust_patch, replaceFrost_patch, replaceAssault_patch, replaceBlitz_patch,

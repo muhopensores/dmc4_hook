@@ -148,14 +148,6 @@ void hlMain::ToggleHideHUD(bool toggle)
         else
             hideHUDThree_patch.apply(hideHUDThree, "\x0F\x84\x5B\x03\x00\x00", 6);
     }
-
-    if (hideTimer)
-    {
-        if (toggle)
-            hideTimer_patch.apply(hideTimer, "\xc6\x40\x04\x00", 4);
-        else
-            hideTimer_patch.apply(hideTimer, "\xc6\x40\x04\x01", 4);
-    }
 }
 
 void hlMain::ToggleEnemyNoDT(bool toggle)
@@ -1373,14 +1365,6 @@ void hlMain::ToggleHideStyle(bool toggle)
             hideOrbs_patch.apply(hideOrbs, "\x80\xbf\xfe\x00\x00\x00\xff", 7);
         else
             hideOrbs_patch.apply(hideOrbs, "\x80\xbf\xfe\x00\x00\x00\x00", 7);
-    }
-
-    if (hideTimer)
-    {
-        if (toggle)
-            hideTimer_patch.apply(hideTimer, "\xc6\x40\x04\x00", 4);
-        else
-            hideTimer_patch.apply(hideTimer, "\xc6\x40\x04\x01", 4);
     }
 }
 

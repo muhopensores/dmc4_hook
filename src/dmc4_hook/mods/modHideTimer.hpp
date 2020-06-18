@@ -2,17 +2,16 @@
 
 #include "../mod.hpp"
 
-class LdkWithDmd : public Mod
+class HideTimer : public Mod
 {
 public:
-    LdkWithDmd() = default;
+    HideTimer() = default;
 
     static bool modEnabled;
-    //static bool modFrostsCantEscapeEnabled;
-    static uintptr_t _ldkWithDmdContinue;
+
     void toggle(bool enable);
 
-    std::string getModName() override { return "LdkWithDmd"; };
+    std::string getModName() override { return "HideTimer"; };
 
     std::optional<std::string> onInitialize() override;
 
@@ -22,6 +21,7 @@ public:
     void onGUIframe() override;
 
 private:
-    hl::Hooker hook;
-    hl::Patch patch;
+    hl::Patch patchbp;
+    hl::Patch patchm12;
+    hl::Patch patchm12flash;
 };

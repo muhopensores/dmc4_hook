@@ -52,6 +52,8 @@ SET (MODS
   mods/modDmdLevelAi.hpp
   mods/modOneHitKill.cpp
   mods/modOneHitKill.hpp
+  mods/modHideTimer.cpp
+  mods/modHideTimer.hpp
 )
 
 SET (HEADERS

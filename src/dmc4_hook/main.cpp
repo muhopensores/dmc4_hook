@@ -602,7 +602,6 @@ bool hlMain::init()
     replacementAddressTwo = modBase + 0x24B77B;
     replaceBiancoAngelo = modBase + 0x161A10;
     replaceAltoAngelo = modBase + 0x176C80;
-    hideTimer = modBase + 0xFDE27;
     replaceMephisto = modBase + 0x17F1E0;
     replaceFaust = modBase + 0x195810;
     replaceFrost = modBase + 0x1A3F60;
@@ -769,7 +768,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
         if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyScroll))
         {
-            if (ImGui::BeginTabItem("Player"))
+            if (ImGui::BeginTabItem("Character"))
             {
                 ImGui::Spacing();
                 ImGui::Text("Limit Removal");
@@ -777,7 +776,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 				//modLimitAdjust::onGUIframe();
 				main->getMods()->onDrawUI("LimitAdjust"_hash);
 
-                ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
@@ -798,30 +796,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
-
-                if (ImGui::Checkbox("Player Damage Modifier", &checkDamageModifier))
-                {
-                    main->ImGuiToggleDamageModifier();
-                }
-                ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
-
-                ImGui::Spacing();
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
                 Misc();
-
-                if (ImGui::Checkbox("Infinite Air Hike", &checkInfiniteAirHike))
-                {
-                    main->ToggleInfiniteAirHike(checkInfiniteAirHike);
-                }
-
-                ImGui::SameLine(198);
-
-                if (ImGui::Checkbox("Infinite Table Hopper", &checkInfiniteTableHopper))
-                {
-                    main->ToggleInfiniteTableHopper(checkInfiniteTableHopper);
-                }
 
                 if (ImGui::Checkbox("Trick Down", &checkTrickDown))
                 {
@@ -830,22 +805,38 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::SameLine(198);
 
-                if (ImGui::Checkbox("Infinite Trick Range", &checkInfiniteTrickRange))
-                {
-                    main->ToggleInfiniteTrickRange(checkInfiniteTrickRange);
-                }
-
                 if (ImGui::Checkbox("Tracking Full House", &checkTrackingFullHouse))
                 {
                     main->ImGuiToggleTrackingFullHouse();
                 }
 
-                ImGui::SameLine(198);
-
                 if (ImGui::Checkbox("Instant Honeycomb", &checkHoneyComb))
                 {
                     main->ImGuiToggleHoneyComb();
                 }
+
+                ImGui::SameLine(198);
+
+                if (ImGui::Checkbox("Rose Removes Pins", &checkRoseRemovesPins))
+                {
+                    main->ImGuiToggleRoseRemovesPins();
+                }
+
+                main->getMods()->onDrawUI("EasyJc"_hash);
+
+                ImGui::SameLine(198);
+
+                main->getMods()->onDrawUI("SkipPandora"_hash);
+
+                main->getMods()->onDrawUI("ForceLucifer"_hash);
+
+                ImGui::SameLine(198);
+
+                main->getMods()->onDrawUI("NoHbKnockback"_hash);
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
 
                 if (ImGui::Checkbox("Fast Pandora", &checkFastPandora))
                 {
@@ -859,254 +850,138 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleSprintFasterActivate(checkSprintFasterActivate);
                 }
 
-                if (ImGui::Checkbox("Rose Removes Pins", &checkRoseRemovesPins))
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                if (ImGui::Checkbox("Infinite Air Hike", &checkInfiniteAirHike))
                 {
-                    main->ImGuiToggleRoseRemovesPins();
+                    main->ToggleInfiniteAirHike(checkInfiniteAirHike);
                 }
 
-				ImGui::SameLine(198);
-				//modNoHBknockback::onGUIframe();
-				main->getMods()->onDrawUI("NoHbKnockback"_hash);
-                //if (ImGui::Checkbox("No Helm Breaker Knockback", &checkNoHelmBreakerKnockback))
-                //{
-                //    main->ImGuiToggleNoHelmBreakerKnockback();
-                //}
+                ImGui::SameLine(198);
 
-                main->getMods()->onDrawUI("EasyJc"_hash);
+                if (ImGui::Checkbox("Infinite Table Hopper", &checkInfiniteTableHopper))
+                {
+                    main->ToggleInfiniteTableHopper(checkInfiniteTableHopper);
+                }
+
+                if (ImGui::Checkbox("Infinite Trick Range", &checkInfiniteTrickRange))
+                {
+                    main->ToggleInfiniteTrickRange(checkInfiniteTrickRange);
+                }
 
                 ImGui::SameLine(198);
 
                 main->getMods()->onDrawUI("InfDreadnought"_hash);
 
-                main->getMods()->onDrawUI("NoClip"_hash);
-
-                ImGui::SameLine(198);
-
-                main->getMods()->onDrawUI("SkipPandora"_hash);
-
                 main->getMods()->onDrawUI("InfSkyStars"_hash);
 
-                ImGui::SameLine(198);
+                ImGui::Spacing();
+                // NOTE(): refactored mods expose onGUIframe function to draw gui stuff.
+                // modSelCancels::onGUIframe();
+                main->getMods()->onDrawUI("SelectiveCancels"_hash);
 
-                main->getMods()->onDrawUI("ForceLucifer"_hash);
-
-                ImGui::Spacing();
-                ImGui::Spacing();
-                ImGui::Spacing();
-				// NOTE(): refactored mods expose onGUIframe function to draw gui stuff.
-				//modSelCancels::onGUIframe();
-				main->getMods()->onDrawUI("SelectiveCancels"_hash);
-
-                ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::EndTabItem();
             }
 
-            if (ImGui::BeginTabItem("System"))
+            if (ImGui::BeginTabItem("Practice"))
             {
                 ImGui::Spacing();
                 ImGui::Text("General");
 
-                if (ImGui::Checkbox("Disable Timer", &checkInfiniteTime))
+                if (ImGui::Checkbox("Player Damage Modifier", &checkDamageModifier))
                 {
-                    main->ToggleInfiniteTime(checkInfiniteTime);
+                    main->ImGuiToggleDamageModifier();
                 }
 
-                ImGui::SameLine(205);
+                ImGui::SameLine(198);
 
-                if (ImGui::Checkbox("Disable Camera Events", &checkDisableCameraEvents))
-                {
-                    main->ToggleDisableCameraEvents(checkDisableCameraEvents);
-                }
+                main->getMods()->onDrawUI("OneHitKill"_hash);
 
-                ImGui::SameLine(0, 1);
-                HelpMarker("Certain missions or parts will cause a black screen when this option is enabled. Press the "
-                           "start button and then X/A to go into a menu. The screen should return to normal.");
+                ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
 
-                if (ImGui::Checkbox("Skip Mission Intros", &checkautoSkiptIntro))
-                {
-                    main->ToggleAutoSkipIntro(checkautoSkiptIntro);
-                }
-
-                ImGui::SameLine(205);
-
-                if (ImGui::Checkbox("Skip Mission Outros", &checkAutoSkipOutro))
-                {
-                    main->ToggleAutoSkipOutro(checkAutoSkipOutro);
-                }
-
-                if (ImGui::Checkbox("Hide HUD", &checkHideHUD))
-                {
-                    checkHideStyle = false;
-                    main->ToggleHideHUD(checkHideHUD);
-                }
-
-                ImGui::SameLine(205);
-
-                if (ImGui::Checkbox("Hide Timer,Style & Orbs", &checkHideStyle))
-                {
-                    checkHideHUD = false;
-                    main->ToggleHideStyle(checkHideStyle);
-                }
-
-                if (ImGui::Checkbox("Character Change", &checkCharacterChange))
-                {
-                    main->ToggleCharacterChange(checkCharacterChange);
-                }
-
-                ImGui::SameLine(205);
-
-                if (ImGui::Checkbox("Slow Walk", &checkSlowWalk))
-                {
-                    main->ToggleSlowWalk(checkSlowWalk);
-                }
-                ImGui::SameLine(0, 1);
-                HelpMarker("Press & hold the jump button to walk slowly");
-
-                main->getMods()->onDrawUI("FreeCam"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("Activate this before starting a level! Forces Free Cam and allows it to pass through walls");
-
-                ImGui::SameLine(205);
-
-                if (ImGui::Checkbox("Enemy HP Red Orb Display", &checkOrbDisplay))
-                {
-                    main->ImGuiToggleOrbDisplay();
-                }
-                ImGui::SameLine(0, 1);
-                HelpMarker("Display the last hit enemy's HP in the Red Orb count");
-
-                if (ImGui::Checkbox("Auto Open Seals", &checkBpPortalAutoOpen))
-                {
-                    main->ToggleBpPortalAutoOpen(checkBpPortalAutoOpen);
-                }
-                ImGui::SameLine(0, 1);
-                HelpMarker("Sealed doors and portals open instantly");
-
-                ImGui::SameLine(205);
-
-                main->getMods()->onDrawUI("DisableLastEnemyZoom"_hash);
-
-                ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
-                ImGui::Text("Game Mode");
 
-                static int diff_index = 0;
-                if (ImGui::Combo("Difficulty", &diff_index, "Default\0Dante Must Die\0God Must Die\0"))
+                if (ImGui::Checkbox("Infinite Health (All)", &checkinfiniteAllHealth))
                 {
-                    switch (diff_index)
-                    {
-                    case 0:
-                        main->SetDefault();
-                        break;
-                    case 1:
-                        main->SetDMD();
-                        break;
-                    case 2:
-                        main->SetGMD();
-                        break;
-                    }
+                    main->ToggleInfiniteAllHealth(checkinfiniteAllHealth);
                 }
 
-                ImGui::Spacing();
-                ImGui::Spacing();
+                ImGui::SameLine(202);
 
-                if (ImGui::Checkbox("Boss Rush Mode", &checkBossRush))
+                if (ImGui::Checkbox("Infinite DT", &checkInfiniteDT))
                 {
-                    main->ToggleBossRush(checkBossRush);
+                    main->ImGuiToggleInfDT();
                 }
 
+                if (ImGui::Checkbox("Infinite Player Health", &checkInfinitePlayerHealth))
+                {
+                    main->ImGuiToggleInfPlayerHealth();
+                }
+
+                ImGui::SameLine(202);
+
+                if (ImGui::Checkbox("Infinite Revive", &checkInfiniteRevive))
+                {
+                    main->ToggleInfiniteRevive(checkInfiniteRevive);
+                }
+
+                main->getMods()->onDrawUI("RestoreMaxHp"_hash);
                 ImGui::SameLine(0, 1);
-                HelpMarker("Toggle and start BP run");
-                ImGui::SameLine(205);
+                HelpMarker("Press Lock On + Taunt to restore Max HP to enemies");
 
-                main->getMods()->onDrawUI("LdkWithDmd"_hash);
-
-                if (ImGui::Checkbox("Enemies DT Instantly", &checkEnemyInstantDT))
-                {
-                    main->ToggleEnemyInstantDT(checkEnemyInstantDT);
-                }
-
-                ImGui::SameLine(205);
-
-                if (ImGui::Checkbox("Enemies Don't DT", &checkEnemyNoDT))
-                {
-                    main->ToggleEnemyNoDT(checkEnemyNoDT);
-                }
-
-                if (ImGui::Checkbox("Enemies Attack Off-Screen", &checkEnemyAttackOffscreen))
-                {
-                    main->ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
-                }
-
-                ImGui::SameLine(205);
-
-                main->getMods()->onDrawUI("DmdBloodyPalace"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("Testing version");
-
-                main->getMods()->onDrawUI("DmdLevelAi"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("Testing version");
-
-                ImGui::SameLine(205);
-
-                main->getMods()->onDrawUI("OneHitKill"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("Testing version");
-
-                ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
                 Misc();
-				//modBackgroundRendering::onGUIframe();
-				main->getMods()->onDrawUI("BackgroundRendering"_hash);
 
-                main->getMods()->onDrawUI("FpsLimit"_hash);
-                ImGui::InputFloat("New FPS Limit", &FpsLimit::newfpslimit, 1.0f, 1.0f, "%.0f");
-
-                /*if (ImGui::CollapsingHeader("Speed"))
+                if (ImGui::Checkbox("Berial Daze", &checkBerialPractice))
                 {
-                    ImGui::InputFloat("Turbo Value", main->turboValue, 0.1f, 0.5f, "%.1f%");
-                    ImGui::Spacing();
-                    ImGui::SliderFloat("Global Speed", main->globalSpeed, 0.0f, 3.0f, "%.1f");
-                    ImGui::Spacing();
-                    ImGui::SliderFloat("Room Speed", main->roomSpeed, 0.0f, 3.0f, "%.1f");
-                    ImGui::Spacing();
-                    ImGui::SliderFloat("Player Speed", main->playerSpeed, 0.0f, 3.0f, "%.1f");
-                    ImGui::Spacing();
-                    ImGui::SliderFloat("Enemy Speed", main->enemySpeed, 0.0f, 3.0f, "%.1f");
-                }*/
-				//main->m_workRate->onGUIframe();
-				main->getMods()->onDrawUI("WorkRate"_hash);
+                    main->ToggleBerialPractice(checkBerialPractice);
+                    main->ImGuiToggleBerialDaze();
+                }
+
+                ImGui::SameLine(202);
+
+                if (ImGui::Checkbox("Stun Anything", &checkStunAnything))
+                {
+                    main->ToggleStunAnything(checkStunAnything);
+                }
+
+                if (ImGui::Checkbox("Remove Launch & Knockaway Armour", &checkRemoveLaunchArmour))
+                {
+                    main->ToggleRemoveLaunchArmour(checkRemoveLaunchArmour);
+                }
 
                 ImGui::Spacing();
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
 
-                if (ImGui::CollapsingHeader("Camera"))
+                if (ImGui::CollapsingHeader("Disable Darkslayer Inputs"))
                 {
-                    ImGui::InputFloat("Camera Height", &cameraHeight, 1.0f, 10.0f, "%.0f%");
-                    ImGui::SameLine(0, 1);
-                    HelpMarker("Value between -10000 / 10000. Default value is 170");
-                    ImGui::Spacing();
-                    ImGui::InputFloat("Camera Distance", &cameraDistance, 1.0f, 10.0f, "%.0f%");
-                    ImGui::SameLine(0, 1);
-                    HelpMarker("Value between 0 / 50000. Default value is 550");
-                    ImGui::Spacing();
-                    ImGui::InputFloat("Camera Distance \n(Lockon)", &cameraDistanceLockon, 1.0f, 10.0f, "%.0f%");
-                    ImGui::SameLine(0, 1);
-                    HelpMarker("Value between 0 / 50000. Default value is 520");
-                    ImGui::Spacing();
-                    ImGui::InputFloat("Camera Angle", &cameraAngle, 0.1f, 0.5f, "%.1f%");
-                    ImGui::SameLine(0, 1);
-                    HelpMarker("Value between -1.5 / 1.5. Default value is 0.2");
-                    ImGui::Spacing();
-
-                    if (ImGui::Checkbox("Increased Camera Sensitivity", &checkCameraSensitivity))
+                    if (ImGui::Checkbox("Disable Darkslayer Dpad Up", &checkDisableDarkslayerUp))
                     {
-                        main->ToggleCameraSensitivity(checkCameraSensitivity);
+                        main->ToggleDisableDarkslayerUp(checkDisableDarkslayerUp);
+                    }
+
+                    if (ImGui::Checkbox("Disable Darkslayer Dpad Down", &checkDisableDarkslayerDown))
+                    {
+                        main->ToggleDisableDarkslayerDown(checkDisableDarkslayerDown);
+                    }
+
+                    if (ImGui::Checkbox("Disable Darkslayer Dpad Left", &checkDisableDarkslayerLeft))
+                    {
+                        main->ToggleDisableDarkslayerLeft(checkDisableDarkslayerLeft);
+                    }
+
+                    if (ImGui::Checkbox("Disable Darkslayer Dpad Right", &checkDisableDarkslayerRight))
+                    {
+                        main->ToggleDisableDarkslayerRight(checkDisableDarkslayerRight);
                     }
                 }
 
@@ -2183,96 +2058,222 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 }
 
                 ImGui::Spacing();
-                ImGui::Spacing();
                 ImGui::EndTabItem();
             }
 
-            if (ImGui::BeginTabItem("Practice"))
+            if (ImGui::BeginTabItem("System"))
             {
                 ImGui::Spacing();
                 ImGui::Text("General");
 
-                if (ImGui::Checkbox("Infinite Health (All)", &checkinfiniteAllHealth))
+                if (ImGui::Checkbox("Disable Timer", &checkInfiniteTime))
                 {
-                    main->ToggleInfiniteAllHealth(checkinfiniteAllHealth);
+                    main->ToggleInfiniteTime(checkInfiniteTime);
                 }
 
-                ImGui::SameLine(202);
+                ImGui::SameLine(205);
 
-                if (ImGui::Checkbox("Infinite DT", &checkInfiniteDT))
+                main->getMods()->onDrawUI("HideTimer"_hash);
+
+                if (ImGui::Checkbox("Hide Style & Orbs", &checkHideStyle))
                 {
-                    main->ImGuiToggleInfDT();
+                    checkHideHUD = false;
+                    main->ToggleHideStyle(checkHideStyle);
                 }
 
-                if (ImGui::Checkbox("Infinite Player Health", &checkInfinitePlayerHealth))
+                ImGui::SameLine(205);
+
+                if (ImGui::Checkbox("Hide HUD", &checkHideHUD))
                 {
-                    main->ImGuiToggleInfPlayerHealth();
+                    checkHideStyle = false;
+                    main->ToggleHideHUD(checkHideHUD);
                 }
 
-                ImGui::SameLine(202);
-
-                if (ImGui::Checkbox("Infinite Revive", &checkInfiniteRevive))
+                if (ImGui::Checkbox("Enemy HP Red Orb Display", &checkOrbDisplay))
                 {
-                    main->ToggleInfiniteRevive(checkInfiniteRevive);
+                    main->ImGuiToggleOrbDisplay();
                 }
-
-                main->getMods()->onDrawUI("RestoreMaxHp"_hash);
                 ImGui::SameLine(0, 1);
-                HelpMarker("Press Lock On + Taunt to restore Max HP to enemies");
+                HelpMarker("Display the last hit enemy's HP in the Red Orb count");
 
                 ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                if (ImGui::Checkbox("Disable Camera Events", &checkDisableCameraEvents))
+                {
+                    main->ToggleDisableCameraEvents(checkDisableCameraEvents);
+                }
+
+                ImGui::SameLine(0, 1);
+                HelpMarker("Certain missions or parts will cause a black screen when this option is enabled. Press the "
+                           "start button and then X/A to go into a menu. The screen should return to normal.");
+
+                ImGui::SameLine(205);
+
+                main->getMods()->onDrawUI("FreeCam"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker(
+                    "Activate this before starting a level! Forces Free Cam and allows it to pass through walls");
+
+                if (ImGui::Checkbox("Skip Mission Intros", &checkautoSkiptIntro))
+                {
+                    main->ToggleAutoSkipIntro(checkautoSkiptIntro);
+                }
+
+                ImGui::SameLine(205);
+
+                if (ImGui::Checkbox("Skip Mission Outros", &checkAutoSkipOutro))
+                {
+                    main->ToggleAutoSkipOutro(checkAutoSkipOutro);
+                }
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                if (ImGui::Checkbox("Character Change", &checkCharacterChange))
+                {
+                    main->ToggleCharacterChange(checkCharacterChange);
+                }
+
+                ImGui::SameLine(205);
+
+                if (ImGui::Checkbox("Slow Walk", &checkSlowWalk))
+                {
+                    main->ToggleSlowWalk(checkSlowWalk);
+                }
+                ImGui::SameLine(0, 1);
+                HelpMarker("Press & hold the jump button to walk slowly");
+
+                if (ImGui::Checkbox("Auto Open Seals", &checkBpPortalAutoOpen))
+                {
+                    main->ToggleBpPortalAutoOpen(checkBpPortalAutoOpen);
+                }
+                ImGui::SameLine(0, 1);
+                HelpMarker("Sealed doors and portals open instantly");
+
+                ImGui::SameLine(205);
+
+                main->getMods()->onDrawUI("DisableLastEnemyZoom"_hash);
+
+                main->getMods()->onDrawUI("NoClip"_hash);
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+                ImGui::Text("Game Mode");
+
+                static int diff_index = 0;
+                if (ImGui::Combo("Difficulty", &diff_index, "Default\0Dante Must Die\0God Must Die\0"))
+                {
+                    switch (diff_index)
+                    {
+                    case 0:
+                        main->SetDefault();
+                        break;
+                    case 1:
+                        main->SetDMD();
+                        break;
+                    case 2:
+                        main->SetGMD();
+                        break;
+                    }
+                }
+
+                ImGui::Spacing();
+                ImGui::Spacing();
+
+                if (ImGui::Checkbox("Boss Rush Mode", &checkBossRush))
+                {
+                    main->ToggleBossRush(checkBossRush);
+                }
+
+                ImGui::SameLine(0, 1);
+                HelpMarker("Toggle and start BP run");
+                ImGui::SameLine(205);
+
+                main->getMods()->onDrawUI("LdkWithDmd"_hash);
+
+                if (ImGui::Checkbox("Enemies DT Instantly", &checkEnemyInstantDT))
+                {
+                    main->ToggleEnemyInstantDT(checkEnemyInstantDT);
+                }
+
+                ImGui::SameLine(205);
+
+                if (ImGui::Checkbox("Enemies Don't DT", &checkEnemyNoDT))
+                {
+                    main->ToggleEnemyNoDT(checkEnemyNoDT);
+                }
+
+                main->getMods()->onDrawUI("DmdBloodyPalace"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("Testing version");
+
+                ImGui::SameLine(205);
+
+                main->getMods()->onDrawUI("DmdLevelAi"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("Testing version");
+
+                if (ImGui::Checkbox("Enemies Attack Off-Screen", &checkEnemyAttackOffscreen))
+                {
+                    main->ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
+                }
+
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
                 Misc();
+                // modBackgroundRendering::onGUIframe();
+                main->getMods()->onDrawUI("BackgroundRendering"_hash);
 
-                if (ImGui::Checkbox("Berial Daze", &checkBerialPractice))
+                main->getMods()->onDrawUI("FpsLimit"_hash);
+                ImGui::InputFloat("New FPS Limit", &FpsLimit::newfpslimit, 1.0f, 1.0f, "%.0f");
+
+                /*if (ImGui::CollapsingHeader("Speed"))
                 {
-                    main->ToggleBerialPractice(checkBerialPractice);
-                    main->ImGuiToggleBerialDaze();
-                }
-
-                ImGui::SameLine(202);
-
-                if (ImGui::Checkbox("Stun Anything", &checkStunAnything))
-                {
-                    main->ToggleStunAnything(checkStunAnything);
-                }
-
-                if (ImGui::Checkbox("Remove Launch & Knockaway Armour", &checkRemoveLaunchArmour))
-                {
-                    main->ToggleRemoveLaunchArmour(checkRemoveLaunchArmour);
-                }
+                    ImGui::InputFloat("Turbo Value", main->turboValue, 0.1f, 0.5f, "%.1f%");
+                    ImGui::Spacing();
+                    ImGui::SliderFloat("Global Speed", main->globalSpeed, 0.0f, 3.0f, "%.1f");
+                    ImGui::Spacing();
+                    ImGui::SliderFloat("Room Speed", main->roomSpeed, 0.0f, 3.0f, "%.1f");
+                    ImGui::Spacing();
+                    ImGui::SliderFloat("Player Speed", main->playerSpeed, 0.0f, 3.0f, "%.1f");
+                    ImGui::Spacing();
+                    ImGui::SliderFloat("Enemy Speed", main->enemySpeed, 0.0f, 3.0f, "%.1f");
+                }*/
+                // main->m_workRate->onGUIframe();
+                main->getMods()->onDrawUI("WorkRate"_hash);
 
                 ImGui::Spacing();
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
 
-                if (ImGui::CollapsingHeader("Disable Darkslayer Inputs"))
+                if (ImGui::CollapsingHeader("Camera"))
                 {
-                    if (ImGui::Checkbox("Disable Darkslayer Dpad Up", &checkDisableDarkslayerUp))
-                    {
-                        main->ToggleDisableDarkslayerUp(checkDisableDarkslayerUp);
-                    }
+                    ImGui::InputFloat("Camera Height", &cameraHeight, 1.0f, 10.0f, "%.0f%");
+                    ImGui::SameLine(0, 1);
+                    HelpMarker("Value between -10000 / 10000. Default value is 170");
+                    ImGui::Spacing();
+                    ImGui::InputFloat("Camera Distance", &cameraDistance, 1.0f, 10.0f, "%.0f%");
+                    ImGui::SameLine(0, 1);
+                    HelpMarker("Value between 0 / 50000. Default value is 550");
+                    ImGui::Spacing();
+                    ImGui::InputFloat("Camera Distance \n(Lockon)", &cameraDistanceLockon, 1.0f, 10.0f, "%.0f%");
+                    ImGui::SameLine(0, 1);
+                    HelpMarker("Value between 0 / 50000. Default value is 520");
+                    ImGui::Spacing();
+                    ImGui::InputFloat("Camera Angle", &cameraAngle, 0.1f, 0.5f, "%.1f%");
+                    ImGui::SameLine(0, 1);
+                    HelpMarker("Value between -1.5 / 1.5. Default value is 0.2");
+                    ImGui::Spacing();
 
-                    if (ImGui::Checkbox("Disable Darkslayer Dpad Down", &checkDisableDarkslayerDown))
+                    if (ImGui::Checkbox("Increased Camera Sensitivity", &checkCameraSensitivity))
                     {
-                        main->ToggleDisableDarkslayerDown(checkDisableDarkslayerDown);
-                    }
-
-                    if (ImGui::Checkbox("Disable Darkslayer Dpad Left", &checkDisableDarkslayerLeft))
-                    {
-                        main->ToggleDisableDarkslayerLeft(checkDisableDarkslayerLeft);
-                    }
-
-                    if (ImGui::Checkbox("Disable Darkslayer Dpad Right", &checkDisableDarkslayerRight))
-                    {
-                        main->ToggleDisableDarkslayerRight(checkDisableDarkslayerRight);
+                        main->ToggleCameraSensitivity(checkCameraSensitivity);
                     }
                 }
 
-                ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::EndTabItem();
             }

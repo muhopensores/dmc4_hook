@@ -52,7 +52,7 @@ void InfDreadnought::onGUIframe()
 {
     // from main.cpp
     // line 905 -> main->getMods()->onDrawUI("InfDreadnought"_hash);
-    if (ImGui::Checkbox("Inf Dreadnought", &modEnabled))
+    if (ImGui::Checkbox("Infinite Dreadnought", &modEnabled))
     {
         toggle(modEnabled);
     }
