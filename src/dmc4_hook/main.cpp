@@ -904,6 +904,10 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
 
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
                 if (ImGui::Checkbox("Infinite Health (All)", &checkinfiniteAllHealth))
                 {
                     main->ToggleInfiniteAllHealth(checkinfiniteAllHealth);
