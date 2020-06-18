@@ -1051,6 +1051,12 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::SameLine(0, 1);
                 HelpMarker("Testing version");
 
+                ImGui::SameLine(205);
+
+                main->getMods()->onDrawUI("OneHitKill"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("Testing version");
+
                 ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::Separator();

@@ -50,6 +50,8 @@ SET (MODS
   mods/modDmdBloodyPalace.hpp
   mods/modDmdLevelAi.cpp
   mods/modDmdLevelAi.hpp
+  mods/modOneHitKill.cpp
+  mods/modOneHitKill.hpp
 )
 
 SET (HEADERS
