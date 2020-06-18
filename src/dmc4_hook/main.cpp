@@ -1043,6 +1043,14 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::SameLine(205);
 
+                main->getMods()->onDrawUI("DmdBloodyPalace"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("Testing version");
+
+                main->getMods()->onDrawUI("DmdLevelAi"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("Testing version");
+
                 ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::Separator();

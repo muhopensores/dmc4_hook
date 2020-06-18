@@ -46,6 +46,10 @@ SET (MODS
   mods/modDisableLastEnemyZoom.hpp
   mods/modLdkWithDmd.cpp
   mods/modLdkWithDmd.hpp
+  mods/modDmdBloodyPalace.cpp
+  mods/modDmdBloodyPalace.hpp
+  mods/modDmdLevelAi.cpp
+  mods/modDmdLevelAi.hpp
 )
 
 SET (HEADERS
