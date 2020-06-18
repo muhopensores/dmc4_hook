@@ -54,6 +54,8 @@ SET (MODS
   mods/modOneHitKill.hpp
   mods/modHideTimer.cpp
   mods/modHideTimer.hpp
+  mods/modManualTwosomeTime.cpp
+  mods/modManualTwosomeTime.hpp
 )
 
 SET (HEADERS

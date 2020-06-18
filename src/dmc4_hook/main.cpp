@@ -834,6 +834,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 main->getMods()->onDrawUI("NoHbKnockback"_hash);
 
+                main->getMods()->onDrawUI("ManualTwosomeTime"_hash);
+
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
@@ -886,7 +888,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::EndTabItem();
             }
 
-            if (ImGui::BeginTabItem("Practice"))
+            if (ImGui::BeginTabItem("General"))
             {
                 ImGui::Spacing();
                 ImGui::Text("General");
@@ -939,6 +941,72 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
+
+                ImGui::Text("Game Mode");
+
+                static int diff_index = 0;
+                if (ImGui::Combo("Difficulty", &diff_index, "Default\0Dante Must Die\0God Must Die\0"))
+                {
+                    switch (diff_index)
+                    {
+                    case 0:
+                        main->SetDefault();
+                        break;
+                    case 1:
+                        main->SetDMD();
+                        break;
+                    case 2:
+                        main->SetGMD();
+                        break;
+                    }
+                }
+
+                ImGui::Spacing();
+                ImGui::Spacing();
+                ImGui::Spacing();
+
+                if (ImGui::Checkbox("Boss Rush Mode", &checkBossRush))
+                {
+                    main->ToggleBossRush(checkBossRush);
+                }
+
+                ImGui::SameLine(0, 1);
+                HelpMarker("Toggle and start BP run");
+                ImGui::SameLine(205);
+
+                main->getMods()->onDrawUI("LdkWithDmd"_hash);
+
+                if (ImGui::Checkbox("Enemies DT Instantly", &checkEnemyInstantDT))
+                {
+                    main->ToggleEnemyInstantDT(checkEnemyInstantDT);
+                }
+
+                ImGui::SameLine(205);
+
+                if (ImGui::Checkbox("Enemies Don't DT", &checkEnemyNoDT))
+                {
+                    main->ToggleEnemyNoDT(checkEnemyNoDT);
+                }
+
+                main->getMods()->onDrawUI("DmdBloodyPalace"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("Testing version");
+
+                ImGui::SameLine(205);
+
+                main->getMods()->onDrawUI("DmdLevelAi"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("Testing version");
+
+                if (ImGui::Checkbox("Enemies Attack Off-Screen", &checkEnemyAttackOffscreen))
+                {
+                    main->ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
+                }
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
                 Misc();
 
                 if (ImGui::Checkbox("Berial Daze", &checkBerialPractice))
@@ -2164,69 +2232,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
-                ImGui::Text("Game Mode");
-
-                static int diff_index = 0;
-                if (ImGui::Combo("Difficulty", &diff_index, "Default\0Dante Must Die\0God Must Die\0"))
-                {
-                    switch (diff_index)
-                    {
-                    case 0:
-                        main->SetDefault();
-                        break;
-                    case 1:
-                        main->SetDMD();
-                        break;
-                    case 2:
-                        main->SetGMD();
-                        break;
-                    }
-                }
-
-                ImGui::Spacing();
-                ImGui::Spacing();
-
-                if (ImGui::Checkbox("Boss Rush Mode", &checkBossRush))
-                {
-                    main->ToggleBossRush(checkBossRush);
-                }
-
-                ImGui::SameLine(0, 1);
-                HelpMarker("Toggle and start BP run");
-                ImGui::SameLine(205);
-
-                main->getMods()->onDrawUI("LdkWithDmd"_hash);
-
-                if (ImGui::Checkbox("Enemies DT Instantly", &checkEnemyInstantDT))
-                {
-                    main->ToggleEnemyInstantDT(checkEnemyInstantDT);
-                }
-
-                ImGui::SameLine(205);
-
-                if (ImGui::Checkbox("Enemies Don't DT", &checkEnemyNoDT))
-                {
-                    main->ToggleEnemyNoDT(checkEnemyNoDT);
-                }
-
-                main->getMods()->onDrawUI("DmdBloodyPalace"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("Testing version");
-
-                ImGui::SameLine(205);
-
-                main->getMods()->onDrawUI("DmdLevelAi"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("Testing version");
-
-                if (ImGui::Checkbox("Enemies Attack Off-Screen", &checkEnemyAttackOffscreen))
-                {
-                    main->ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
-                }
-
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
+                
                 Misc();
                 // modBackgroundRendering::onGUIframe();
                 main->getMods()->onDrawUI("BackgroundRendering"_hash);
