@@ -2,16 +2,16 @@
 
 #include "../mod.hpp"
 
-class InfSkyStars : public Mod
+class InfFaustCloak : public Mod
 {
 public:
-    InfSkyStars() = default;
+    InfFaustCloak() = default;
 
     static bool modEnabled;
 
     void toggle(bool enable);
 
-    std::string getModName() override { return "InfSkyStars"; };
+    std::string getModName() override { return "InfFaustCloak"; };
 
     std::optional<std::string> onInitialize() override;
 
