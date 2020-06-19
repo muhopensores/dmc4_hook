@@ -35,7 +35,7 @@ naked void skipPandora_proc(void)
 
 std::optional<std::string> SkipPandora::onInitialize()
 {
-    if (!install_hook_offset(0x2E844B, hook, &skipPandora_proc, &SkipPandora::_skipPandoraContinue, 5))
+    if (!install_hook_offset(0x3B122F, hook, &skipPandora_proc, &SkipPandora::_skipPandoraContinue, 5))
     {
         HL_LOG_ERR("Failed to init SkipPandora mod\n");
         return "Failed to init SkipPandora mod";
