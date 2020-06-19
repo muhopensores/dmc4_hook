@@ -904,7 +904,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::SameLine(0, 1);
                 HelpMarker("This overrides the multiplier");
 
+                ImGui::PushItemWidth(213);
                 ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
+                ImGui::PopItemWidth();
 
                 ImGui::Spacing();
                 ImGui::Separator();
@@ -945,6 +947,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Text("Game Mode");
 
                 static int diff_index = 0;
+                ImGui::PushItemWidth(216);
                 if (ImGui::Combo("Difficulty", &diff_index, "Default\0Dante Must Die\0God Must Die\0"))
                 {
                     switch (diff_index)
@@ -960,6 +963,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                         break;
                     }
                 }
+                ImGui::PopItemWidth();
 
                 ImGui::Spacing();
                 ImGui::Spacing();
@@ -2238,7 +2242,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 main->getMods()->onDrawUI("BackgroundRendering"_hash);
 
                 main->getMods()->onDrawUI("FpsLimit"_hash);
+                ImGui::PushItemWidth(216);
                 ImGui::InputFloat("New FPS Limit", &FpsLimit::newfpslimit, 1.0f, 1.0f, "%.0f");
+                ImGui::PopItemWidth();
 
                 /*if (ImGui::CollapsingHeader("Speed"))
                 {
