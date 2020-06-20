@@ -60,6 +60,8 @@ SET (MODS
   mods/modHeightRestrictionDante.hpp
   mods/modInfFaustCloak.cpp
   mods/modInfFaustCloak.hpp
+  mods/modPassiveEnemies.cpp
+  mods/modPassiveEnemies.hpp
 )
 
 SET (HEADERS

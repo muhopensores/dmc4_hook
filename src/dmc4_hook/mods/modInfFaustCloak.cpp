@@ -4,14 +4,7 @@
 #if 1
 bool InfFaustCloak::modEnabled{ false };
 
-std::optional<std::string> InfFaustCloak::onInitialize() /*
- {
-     if (!install_hook_offset(0x3BDB76, hook, &infDreadnought_proc, &InfDreadnought::_infDreadnoughtContinue, 6))
-     {
-         HL_LOG_ERR("Failed to init InfDreadnought mod\n");
-         return "Failed to init InfDreadnought mod";
-     }
- */
+std::optional<std::string> InfFaustCloak::onInitialize()
 {
     return Mod::onInitialize();
 }

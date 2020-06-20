@@ -1028,6 +1028,10 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleRemoveLaunchArmour(checkRemoveLaunchArmour);
                 }
 
+                main->getMods()->onDrawUI("PassiveEnemies"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("Not perfectly passive, but more so");
+
                 ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::Separator();

@@ -69,6 +69,7 @@ naked void restoreMaxHpArmour_proc(void)
 
     code:
         fld dword ptr [esi+1520h]
+        test byte ptr [esi+0EA8h],-80h
 		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueArmour]
     }
 }
@@ -189,6 +190,7 @@ naked void restoreMaxHpDog_proc(void)
 
     code:
         fld dword ptr [edi+7FE0h]
+        test byte ptr [edi+0EA8h], -80h
 		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueDog]
     }
 }
