@@ -62,6 +62,7 @@ Mods::Mods() {
     m_mods["OneHitKill"_hash] = std::make_unique<OneHitKill>();
     m_mods["HideTimer"_hash] = std::make_unique<HideTimer>();
     m_mods["ManualTwosomeTime"_hash] = std::make_unique<ManualTwosomeTime>();
+	m_mods["HeightRestrictionDante"_hash] = std::make_unique<HeightRestrictionDante>();
     m_mods["InfFaustCloak"_hash] = std::make_unique<InfFaustCloak>();
 }
 

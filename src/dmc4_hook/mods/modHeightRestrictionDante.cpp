@@ -17,12 +17,10 @@ void HeightRestrictionDante::toggle(bool enable)
     if (enable)
     {
         install_patch_offset(0x3B764E, patch, "\x0F\x84\x7B\x03\x00\x00", 6);
-      
     }
     else
     {
         patch.revert();
-   
     }
 }
 
