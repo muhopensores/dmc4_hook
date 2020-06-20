@@ -1,6 +1,5 @@
 #pragma once
 
-#if 1
 #include "../mod.hpp"
 
 class HeightRestrictionDante : public Mod {
@@ -23,4 +22,3 @@ private:
 	hl::Patch patch;
 	
 };
-#endif
