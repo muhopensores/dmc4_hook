@@ -897,7 +897,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::SameLine(0, 1);
                 HelpMarker("This overrides the multiplier");
 
-                ImGui::PushItemWidth(213);
+                ImGui::PushItemWidth(215);
                 ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
                 ImGui::PopItemWidth();
 
@@ -1019,7 +1019,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleStunAnything(checkStunAnything);
                 }
 
-                if (ImGui::Checkbox("Remove Launch & Knockaway Armour", &checkRemoveLaunchArmour))
+                main->getMods()->onDrawUI("InfFaustCloak"_hash);
+
+                ImGui::SameLine(202);
+
+                if (ImGui::Checkbox("Remove Launch Armour", &checkRemoveLaunchArmour))
                 {
                     main->ToggleRemoveLaunchArmour(checkRemoveLaunchArmour);
                 }

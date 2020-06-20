@@ -58,6 +58,8 @@ SET (MODS
   mods/modManualTwosomeTime.hpp
   mods/modHeightRestrictionDante.cpp
   mods/modHeightRestrictionDante.hpp
+  mods/modInfFaustCloak.cpp
+  mods/modInfFaustCloak.hpp
 )
 
 SET (HEADERS

@@ -28,6 +28,8 @@
 #include "mods/modHideTimer.hpp"
 #include "mods/modManualTwosomeTime.hpp"
 #include "mods/modHeightRestrictionDante.hpp"
+#include "mods/modInfFaustCloak.hpp"
+
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -60,6 +62,7 @@ Mods::Mods() {
     m_mods["OneHitKill"_hash] = std::make_unique<OneHitKill>();
     m_mods["HideTimer"_hash] = std::make_unique<HideTimer>();
     m_mods["ManualTwosomeTime"_hash] = std::make_unique<ManualTwosomeTime>();
+    m_mods["InfFaustCloak"_hash] = std::make_unique<InfFaustCloak>();
 }
 
 // Initializes mods, checks for errors

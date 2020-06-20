@@ -3,7 +3,6 @@
 
 #if 1
 bool InfSkyStars::modEnabled{ false };
-uintptr_t InfSkyStars::_infSkyStarsContinue{ NULL };
 
 std::optional<std::string> InfSkyStars::onInitialize()/*
 {   

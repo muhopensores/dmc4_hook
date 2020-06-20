@@ -13,7 +13,7 @@ void OneHitKill::toggle(bool enable)
 {
     if (enable)
     {
-        install_patch_offset(0x11C11B, patch, "\x74", 1);
+        install_patch_offset(0x11C11B, patch, "\x74", 1); // TODO: Currently kills the player too. Should add esi+0x1C, 2,000f je code to fix
     }
     else
     {

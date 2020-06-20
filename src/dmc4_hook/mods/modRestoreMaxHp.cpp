@@ -154,6 +154,7 @@ naked void restoreMaxHpRiot_proc(void)
 
     code:
         fld dword ptr [esi+151Ch]
+        cmp byte ptr [esi+1438h],00
 		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueRiot]
     }
 }
