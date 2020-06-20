@@ -92,7 +92,6 @@ bool checkStyleSwitch = false;
 bool checkWeaponSwitch = false;
 bool checkJcCooldown = false;
 bool checkMovingTargetChange = false;
-bool checkHeightRestrictionDante = false;
 bool checkHeightRestrictionNero = false;
 bool checkInfiniteTime = false;
 bool checkinfiniteAllHealth = false;
@@ -214,7 +213,6 @@ void hlMain::ToggleStuff()
 	// Player
 		// General
 		// Height Restriction Removal
-    ToggleHeightRestrictionDante(checkHeightRestrictionDante);
     ToggleHeightRestrictionNero(checkHeightRestrictionNero);
 		// Player Damage Modifier
     if (checkDamageModifier)
@@ -305,7 +303,6 @@ void hlMain::shutdown() {
 void hlMain::loadSettings() {
 
 	checkHeightRestrictionNero = cfg->get<bool>("nero_height_restriction_removed").value_or(false);//reader.GetBoolean("player", "nero_height_restriction_removed", true);
-	checkHeightRestrictionDante = cfg->get<bool>("dante_height_restriction_removed").value_or(false);
 	checkDamageModifier =  cfg->get<bool>("damage_modifier").value_or(false);
 	damagemultiplier = cfg->get<float>("damage_factor").value_or(1.0f);
 
@@ -361,7 +358,6 @@ void hlMain::loadSettings() {
 void hlMain::saveSettings() {
 	HL_LOG_RAW("Saving settings\n");
 	cfg->set<bool>("nero_height_restriction_removed",checkHeightRestrictionNero);
-	cfg->set<bool>("dante_height_restriction_removed",checkHeightRestrictionDante);
 	cfg->set<bool>("damage_modifier",checkDamageModifier);
 	cfg->set<float>("damage_factor", damagemultiplier);
 	
@@ -455,7 +451,6 @@ bool hlMain::init()
 
     damagemodifier = hl::FindPattern(damagemodifier_aob);
     orbDisplay = modBase + 0xFDD35;
-    heightRestrictionDante = modBase + 0x3B764E;
     heightRestrictionBuster = modBase + 0x3E614B;
     heightRestrictionSplit = modBase + 0x3E5F8D;
     heightRestrictionCalibur = modBase + 0x3E6248;
@@ -742,6 +737,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 	// this is fucked up. It should hide hardware cursor, but just doesnt for whatever reason. I'm just gonna
 	// do this instead. If hardware cursor is missing draw an imgui one for people who had troubles.
 	ImGui::GetIO().MouseDrawCursor = !IsCursorVisibleWINAPI();
+    
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
@@ -781,10 +777,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 (ImGui::Text("Height Restriction Removal"));
 
-                if (ImGui::Checkbox("Dante", &checkHeightRestrictionDante))
-                {
-                    main->ToggleHeightRestrictionDante(checkHeightRestrictionDante);
-                }
+                main->getMods()->onDrawUI("HeightRestrictionDante"_hash);
 
                 ImGui::SameLine(198);
 

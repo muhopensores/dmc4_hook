@@ -27,6 +27,7 @@
 #include "mods/modOneHitKill.hpp"
 #include "mods/modHideTimer.hpp"
 #include "mods/modManualTwosomeTime.hpp"
+#include "mods/modHeightRestrictionDante.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor

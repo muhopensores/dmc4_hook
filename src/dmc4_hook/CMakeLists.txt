@@ -56,6 +56,8 @@ SET (MODS
   mods/modHideTimer.hpp
   mods/modManualTwosomeTime.cpp
   mods/modManualTwosomeTime.hpp
+  mods/modHeightRestrictionDante.cpp
+  mods/modHeightRestrictionDante.hpp
 )
 
 SET (HEADERS

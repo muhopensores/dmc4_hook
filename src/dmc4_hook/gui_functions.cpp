@@ -25,7 +25,7 @@ void DarkTheme()
 {
     ImGui::GetStyle().FrameRounding = 2.5f;
     ImGui::GetStyle().GrabRounding = 3.0f;
-    
+   
     auto& style = ImGui::GetStyle();
     style.WindowPadding = ImVec2(6, 4);
     style.WindowRounding = 3.0f;

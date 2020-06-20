@@ -25,7 +25,6 @@ public:
 	std::unique_ptr<utils::Config> cfg;
 	void ToggleStuff();
     // patch functions definitons
-    void ToggleHeightRestrictionDante(bool toggle);
     void ToggleHeightRestrictionNero(bool toggle);
     void ToggleInfiniteTime(bool toggle);
     void ToggleInfiniteAllHealth(bool toggle);
@@ -104,7 +103,6 @@ public:
     uintptr_t modBase;
     uintptr_t damagemodifier;
     uintptr_t orbDisplay;
-    uintptr_t heightRestrictionDante;
     uintptr_t heightRestrictionBuster;
     uintptr_t heightRestrictionSplit;
     uintptr_t heightRestrictionCalibur;
@@ -264,7 +262,7 @@ public:
     uintptr_t roseRemovesPins;
 
 
-    hl::Patch heightRestrictionDante_patch, heightRestrictionBuster_patch, heightRestrictionSplit_patch,
+    hl::Patch heightRestrictionBuster_patch, heightRestrictionSplit_patch,
         heightRestrictionCalibur_patch, heightRestrictionExCalibur_patch, heightRestrictionSnatch_patch,
         heightRestrictionRaveNero_patch, infiniteTime_patch, infiniteAllHealth_patch, disablecameraEventsOne_patch,
         disablecameraEventsTwo_patch, hideHUDOne_patch, hideHUDTwo_patch, hideHUDThree_patch, enemyNoDT_patch,

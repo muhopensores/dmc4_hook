@@ -2,16 +2,6 @@
 #include "naked.h"
 
 //patch functions that are being applied by patching the bytes in the specific addresses according to function body
-void hlMain::ToggleHeightRestrictionDante(bool toggle)
-{
-	if (heightRestrictionDante)
-	{
-		if (toggle)
-			heightRestrictionDante_patch.apply(heightRestrictionDante, "\x0F\x84\x7B\x03\x00\x00", 6);
-		else
-			heightRestrictionDante_patch.revert();
-	}
-}
 
 void hlMain::ToggleHeightRestrictionNero(bool toggle)
 {
