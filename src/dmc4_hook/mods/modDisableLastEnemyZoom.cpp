@@ -13,7 +13,8 @@ void DisableLastEnemyZoom::toggle(bool enable)
 {
     if (enable)
     {
-        install_patch_offset(0x1A408, patch, "\x90\x90\x90\x90", 4);
+        install_patch_offset(0x1A4C1, patch, "\xEB", 1);
+
     }
     else
     {
