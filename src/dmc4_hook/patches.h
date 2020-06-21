@@ -3,18 +3,6 @@
 
 //patch functions that are being applied by patching the bytes in the specific addresses according to function body
 
-
-void hlMain::ToggleInfiniteTime(bool toggle)
-{
-    if (infiniteTime)
-    {
-        if (toggle)
-            infiniteTime_patch.apply(infiniteTime, "\x77\x54", 2);
-        else
-            infiniteTime_patch.revert();
-    }
-}
-
 void hlMain::ToggleInfiniteAllHealth(bool toggle)
 {
     if (infiniteAllHealth)

@@ -1,12 +1,8 @@
-// include your mod header file
 #include "modHeightRestrictionNero.hpp"
 
 #if 1
-// static variable defined in cpp file makes it local to current file
 bool HeightRestrictionNero::modEnabled{ false };
 
-// initialization
-// return Mod::onInitialize(); on success or error string on failure.
 std::optional<std::string> HeightRestrictionNero::onInitialize() {
 
     return Mod::onInitialize();

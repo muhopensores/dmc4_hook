@@ -64,6 +64,8 @@ SET (MODS
   mods/modPassiveEnemies.hpp
   mods/modHeightRestrictionNero.cpp
   mods/modHeightRestrictionNero.hpp
+  mods/modInfiniteTime.cpp
+  mods/modInfiniteTime.hpp
 )
 
 SET (HEADERS

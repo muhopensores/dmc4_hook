@@ -92,7 +92,6 @@ bool checkStyleSwitch = false;
 bool checkWeaponSwitch = false;
 bool checkJcCooldown = false;
 bool checkMovingTargetChange = false;
-bool checkInfiniteTime = false;
 bool checkinfiniteAllHealth = false;
 bool checkDisableCameraEvents = false;
 bool checkHideHUD = false;
@@ -241,7 +240,6 @@ void hlMain::ToggleStuff()
     }
 	// System
 		// General
-    ToggleInfiniteTime(checkInfiniteTime);
     ToggleDisableCameraEvents(checkDisableCameraEvents);
     ToggleAutoSkipIntro(checkautoSkiptIntro);
     ToggleAutoSkipOutro(checkAutoSkipOutro);
@@ -314,7 +312,6 @@ void hlMain::loadSettings() {
 	checkRoseRemovesPins = cfg->get<bool>("rose_removes_pins").value_or(false);//reader.GetBoolean("player", "rose_removes_pins", true);
 
 	// General
-	checkInfiniteTime = cfg->get<bool>("infinite_time").value_or(false);//reader.GetBoolean("system", "infinite_time", true);
 	checkDisableCameraEvents = cfg->get<bool>("disable_camera_events").value_or(false);//reader.GetBoolean("system", "disable_camera_events", true);
 	checkautoSkiptIntro = cfg->get<bool>("auto_skip_mission_intro").value_or(false);//reader.GetBoolean("system", "auto_skip_mission_intro", true);
 	checkAutoSkipOutro = cfg->get<bool>("auto_skip_mission_outros").value_or(false);//reader.GetBoolean("system", "auto_skip_mission_outros", true);
@@ -367,7 +364,6 @@ void hlMain::saveSettings() {
 	cfg->set<bool>("faster_sprint_activation",checkSprintFasterActivate);
 	cfg->set<bool>("rose_removes_pins",checkRoseRemovesPins);
 	
-	cfg->set<bool>("infinite_time",checkInfiniteTime);
 	cfg->set<bool>("disable_camera_events",checkDisableCameraEvents);
 	cfg->set<bool>("auto_skip_mission_intro",checkautoSkiptIntro);
 	cfg->set<bool>("auto_skip_mission_outros",checkAutoSkipOutro);
@@ -447,7 +443,6 @@ bool hlMain::init()
 
     damagemodifier = hl::FindPattern(damagemodifier_aob);
     orbDisplay = modBase + 0xFDD35;
-    infiniteTime = modBase + 0x94D6E;
     infiniteAllHealth = modBase + 0x11BFD9;
     disablecameraEventsOne = hl::FindPattern(disableCameraEvents1_aob);
     disablecameraEventsTwo = hl::FindPattern(disableCameraEvents2_aob);
@@ -2126,10 +2121,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 ImGui::Text("General");
 
-                if (ImGui::Checkbox("Disable Timer", &checkInfiniteTime))
-                {
-                    main->ToggleInfiniteTime(checkInfiniteTime);
-                }
+                main->getMods()->onDrawUI("InfiniteTime"_hash);
 
                 ImGui::SameLine(205);
 
