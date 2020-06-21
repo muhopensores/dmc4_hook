@@ -3,16 +3,6 @@
 
 //patch functions that are being applied by patching the bytes in the specific addresses according to function body
 
-void hlMain::ToggleInfiniteAllHealth(bool toggle)
-{
-    if (infiniteAllHealth)
-    {
-        if (toggle)
-            infiniteAllHealth_patch.apply(infiniteAllHealth, "\xF3\x0F\x5C\xC9", 4);
-        else
-            infiniteAllHealth_patch.revert();
-    }
-}
 
 void hlMain::ToggleDisableCameraEvents(bool toggle)
 {

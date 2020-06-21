@@ -92,7 +92,6 @@ bool checkStyleSwitch = false;
 bool checkWeaponSwitch = false;
 bool checkJcCooldown = false;
 bool checkMovingTargetChange = false;
-bool checkinfiniteAllHealth = false;
 bool checkDisableCameraEvents = false;
 bool checkHideHUD = false;
 bool checkEnemyNoDT = false;
@@ -254,7 +253,6 @@ void hlMain::ToggleStuff()
     }
 		// Game Mode
     ToggleBossRush(checkBossRush);
-    ToggleInfiniteAllHealth(checkinfiniteAllHealth);
 	ToggleEnemyInstantDT(checkEnemyInstantDT);
     ToggleEnemyNoDT(checkEnemyNoDT);
     ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
@@ -264,7 +262,6 @@ void hlMain::ToggleStuff()
 
 	// Practice
 		// General
-    ToggleInfiniteAllHealth(checkinfiniteAllHealth);
     if (checkInfiniteDT)
     {
         g_InfDTEnable = true;
@@ -330,7 +327,6 @@ void hlMain::loadSettings() {
 	checkCameraSensitivity = cfg->get<bool>("increased_camera_sensitivity").value_or(false);//reader.GetBoolean("system", "increased_camera_sensitivity", true);
 	// Practice
 	// General
-	checkinfiniteAllHealth = cfg->get<bool>("infinite_health_all").value_or(false);//reader.GetBoolean("practice", "infinite_health_all", true);
 	checkInfiniteDT = cfg->get<bool>("infinite_DT").value_or(false);//reader.GetBoolean("practice", "infinite_DT", true);
 	checkInfinitePlayerHealth = cfg->get<bool>("infinite_player_health").value_or(false);//reader.GetBoolean("practice", "infinite_player_health", true);
 	checkInfiniteRevive = cfg->get<bool>("infinite_revive").value_or(false);//reader.GetBoolean("practice", "infinite_revive", true);
@@ -378,7 +374,6 @@ void hlMain::saveSettings() {
 	cfg->set<bool>("enemy_no_DT",checkEnemyNoDT);
 	cfg->set<bool>("enemies_attack_offscreen",checkEnemyAttackOffscreen);
 	cfg->set<bool>("increased_camera_sensitivity",checkCameraSensitivity);
-	cfg->set<bool>("infinite_health_all",checkinfiniteAllHealth);
 	cfg->set<bool>("infinite_DT",checkInfiniteDT);
 	cfg->set<bool>("infinite_player_health",checkInfinitePlayerHealth);
 	cfg->set<bool>("infinite_revive",checkInfiniteRevive);
@@ -443,7 +438,6 @@ bool hlMain::init()
 
     damagemodifier = hl::FindPattern(damagemodifier_aob);
     orbDisplay = modBase + 0xFDD35;
-    infiniteAllHealth = modBase + 0x11BFD9;
     disablecameraEventsOne = hl::FindPattern(disableCameraEvents1_aob);
     disablecameraEventsTwo = hl::FindPattern(disableCameraEvents2_aob);
     hideHUDOne = modBase + 0xFEFE5;
@@ -885,10 +879,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Separator();
                 ImGui::Spacing();
 
-                if (ImGui::Checkbox("Infinite Health (All)", &checkinfiniteAllHealth))
-                {
-                    main->ToggleInfiniteAllHealth(checkinfiniteAllHealth);
-                }
+                main->getMods()->onDrawUI("InfAllHealth"_hash);
 
                 ImGui::SameLine(202);
 

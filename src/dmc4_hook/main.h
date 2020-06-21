@@ -25,7 +25,6 @@ public:
 	std::unique_ptr<utils::Config> cfg;
 	void ToggleStuff();
     // patch functions definitons
-    void ToggleInfiniteAllHealth(bool toggle);
     void ToggleDisableCameraEvents(bool toggle);
     void ToggleHideHUD(bool toggle);
     void ToggleEnemyNoDT(bool toggle);
@@ -101,7 +100,6 @@ public:
     uintptr_t modBase;
     uintptr_t damagemodifier;
     uintptr_t orbDisplay;
-    uintptr_t infiniteAllHealth;
     uintptr_t disablecameraEventsOne;
     uintptr_t disablecameraEventsTwo;
     uintptr_t hideHUDOne;
@@ -251,7 +249,7 @@ public:
     uintptr_t roseRemovesPins;
 
 
-    hl::Patch infiniteAllHealth_patch, disablecameraEventsOne_patch,
+    hl::Patch disablecameraEventsOne_patch,
         disablecameraEventsTwo_patch, hideHUDOne_patch, hideHUDTwo_patch, hideHUDThree_patch, enemyNoDT_patch,
         enemyInstantDT_patch, enemyInstantDTTwo_patch, bpPortalAutoOpen_patch, fastPandoraOne_patch,
         fastPandoraTwo_patch, infiniteAirHikeOne_patch, infiniteAirHikeTwo_patch, infiniteAirHikeThree_patch,

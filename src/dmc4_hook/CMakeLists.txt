@@ -66,6 +66,8 @@ SET (MODS
   mods/modHeightRestrictionNero.hpp
   mods/modInfiniteTime.cpp
   mods/modInfiniteTime.hpp
+  mods/modInfAllHealth.cpp
+  mods/modInfAllHealth.hpp
 )
 
 SET (HEADERS
