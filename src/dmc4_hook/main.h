@@ -25,7 +25,6 @@ public:
 	std::unique_ptr<utils::Config> cfg;
 	void ToggleStuff();
     // patch functions definitons
-    void ToggleHeightRestrictionNero(bool toggle);
     void ToggleInfiniteTime(bool toggle);
     void ToggleInfiniteAllHealth(bool toggle);
     void ToggleDisableCameraEvents(bool toggle);
@@ -103,14 +102,6 @@ public:
     uintptr_t modBase;
     uintptr_t damagemodifier;
     uintptr_t orbDisplay;
-    uintptr_t heightRestrictionBuster;
-    uintptr_t heightRestrictionSplit;
-    uintptr_t heightRestrictionCalibur;
-    uintptr_t heightRestrictionExCalibur;
-    uintptr_t heightRestrictionSnatch;
-    uintptr_t heightRestrictionRaveNero;
-	uintptr_t heightRestrictionDoubleDown;
-    uintptr_t heightRestrictionRev;
     uintptr_t infiniteTime;
     uintptr_t infiniteAllHealth;
     uintptr_t disablecameraEventsOne;
@@ -262,9 +253,7 @@ public:
     uintptr_t roseRemovesPins;
 
 
-    hl::Patch heightRestrictionBuster_patch, heightRestrictionSplit_patch,
-        heightRestrictionCalibur_patch, heightRestrictionExCalibur_patch, heightRestrictionSnatch_patch,
-        heightRestrictionRaveNero_patch, infiniteTime_patch, infiniteAllHealth_patch, disablecameraEventsOne_patch,
+    hl::Patch infiniteTime_patch, infiniteAllHealth_patch, disablecameraEventsOne_patch,
         disablecameraEventsTwo_patch, hideHUDOne_patch, hideHUDTwo_patch, hideHUDThree_patch, enemyNoDT_patch,
         enemyInstantDT_patch, enemyInstantDTTwo_patch, bpPortalAutoOpen_patch, fastPandoraOne_patch,
         fastPandoraTwo_patch, infiniteAirHikeOne_patch, infiniteAirHikeTwo_patch, infiniteAirHikeThree_patch,
@@ -300,8 +289,7 @@ public:
         replaceMephisto_patch, replaceFaust_patch, replaceFrost_patch, replaceAssault_patch, replaceBlitz_patch,
         replaceChimera_patch, replaceBasilisk_patch, replaceBerial_patch, replaceBael_patch, replaceEchidna_patch,
         replaceCredo_patch, replaceAgnus_patch, autoSkipOutro_patch, infiniteTableHopper_patch,
-        infiniteReviveFour_patch, heightRestrictionDoubleDown_patch, heightRestrictionRev_patch,
-        infiniteTrickRange_patch, cameraSensitivity_patch;
+        infiniteReviveFour_patch,infiniteTrickRange_patch, cameraSensitivity_patch;
 
 
     const hl::IHook* g_PresentHook;

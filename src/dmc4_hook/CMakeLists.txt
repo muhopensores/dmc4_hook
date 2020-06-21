@@ -62,6 +62,8 @@ SET (MODS
   mods/modInfFaustCloak.hpp
   mods/modPassiveEnemies.cpp
   mods/modPassiveEnemies.hpp
+  mods/modHeightRestrictionNero.cpp
+  mods/modHeightRestrictionNero.hpp
 )
 
 SET (HEADERS

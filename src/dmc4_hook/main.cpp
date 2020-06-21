@@ -92,7 +92,6 @@ bool checkStyleSwitch = false;
 bool checkWeaponSwitch = false;
 bool checkJcCooldown = false;
 bool checkMovingTargetChange = false;
-bool checkHeightRestrictionNero = false;
 bool checkInfiniteTime = false;
 bool checkinfiniteAllHealth = false;
 bool checkDisableCameraEvents = false;
@@ -212,8 +211,7 @@ void hlMain::ToggleStuff()
 {
 	// Player
 		// General
-		// Height Restriction Removal
-    ToggleHeightRestrictionNero(checkHeightRestrictionNero);
+
 		// Player Damage Modifier
     if (checkDamageModifier)
     {
@@ -302,7 +300,6 @@ void hlMain::shutdown() {
 
 void hlMain::loadSettings() {
 
-	checkHeightRestrictionNero = cfg->get<bool>("nero_height_restriction_removed").value_or(false);//reader.GetBoolean("player", "nero_height_restriction_removed", true);
 	checkDamageModifier =  cfg->get<bool>("damage_modifier").value_or(false);
 	damagemultiplier = cfg->get<float>("damage_factor").value_or(1.0f);
 
@@ -357,7 +354,6 @@ void hlMain::loadSettings() {
 
 void hlMain::saveSettings() {
 	HL_LOG_RAW("Saving settings\n");
-	cfg->set<bool>("nero_height_restriction_removed",checkHeightRestrictionNero);
 	cfg->set<bool>("damage_modifier",checkDamageModifier);
 	cfg->set<float>("damage_factor", damagemultiplier);
 	
@@ -451,14 +447,6 @@ bool hlMain::init()
 
     damagemodifier = hl::FindPattern(damagemodifier_aob);
     orbDisplay = modBase + 0xFDD35;
-    heightRestrictionBuster = modBase + 0x3E614B;
-    heightRestrictionSplit = modBase + 0x3E5F8D;
-    heightRestrictionCalibur = modBase + 0x3E6248;
-    heightRestrictionExCalibur = modBase + 0x3E62B6;
-    heightRestrictionSnatch = modBase + 0x3E60E4;
-    heightRestrictionRaveNero = modBase + 0x3E603F;
-    heightRestrictionDoubleDown = modBase + 0x3E5FE1;
-    heightRestrictionRev = modBase + 0x3E4B12;
     infiniteTime = modBase + 0x94D6E;
     infiniteAllHealth = modBase + 0x11BFD9;
     disablecameraEventsOne = hl::FindPattern(disableCameraEvents1_aob);
@@ -781,10 +769,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::SameLine(198);
 
-                if (ImGui::Checkbox("Nero", &checkHeightRestrictionNero))
-                {
-                    main->ToggleHeightRestrictionNero(checkHeightRestrictionNero);
-                }
+                main->getMods()->onDrawUI("HeightRestrictionNero"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();
