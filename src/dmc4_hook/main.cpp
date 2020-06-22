@@ -92,9 +92,6 @@ bool checkStyleSwitch = false;
 bool checkWeaponSwitch = false;
 bool checkJcCooldown = false;
 bool checkMovingTargetChange = false;
-bool checkHeightRestrictionNero = false;
-bool checkInfiniteTime = false;
-bool checkinfiniteAllHealth = false;
 bool checkDisableCameraEvents = false;
 bool checkHideHUD = false;
 bool checkEnemyNoDT = false;
@@ -212,8 +209,7 @@ void hlMain::ToggleStuff()
 {
 	// Player
 		// General
-		// Height Restriction Removal
-    ToggleHeightRestrictionNero(checkHeightRestrictionNero);
+
 		// Player Damage Modifier
     if (checkDamageModifier)
     {
@@ -243,7 +239,6 @@ void hlMain::ToggleStuff()
     }
 	// System
 		// General
-    ToggleInfiniteTime(checkInfiniteTime);
     ToggleDisableCameraEvents(checkDisableCameraEvents);
     ToggleAutoSkipIntro(checkautoSkiptIntro);
     ToggleAutoSkipOutro(checkAutoSkipOutro);
@@ -258,7 +253,6 @@ void hlMain::ToggleStuff()
     }
 		// Game Mode
     ToggleBossRush(checkBossRush);
-    ToggleInfiniteAllHealth(checkinfiniteAllHealth);
 	ToggleEnemyInstantDT(checkEnemyInstantDT);
     ToggleEnemyNoDT(checkEnemyNoDT);
     ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
@@ -268,7 +262,6 @@ void hlMain::ToggleStuff()
 
 	// Practice
 		// General
-    ToggleInfiniteAllHealth(checkinfiniteAllHealth);
     if (checkInfiniteDT)
     {
         g_InfDTEnable = true;
@@ -302,7 +295,6 @@ void hlMain::shutdown() {
 
 void hlMain::loadSettings() {
 
-	checkHeightRestrictionNero = cfg->get<bool>("nero_height_restriction_removed").value_or(false);//reader.GetBoolean("player", "nero_height_restriction_removed", true);
 	checkDamageModifier =  cfg->get<bool>("damage_modifier").value_or(false);
 	damagemultiplier = cfg->get<float>("damage_factor").value_or(1.0f);
 
@@ -317,7 +309,6 @@ void hlMain::loadSettings() {
 	checkRoseRemovesPins = cfg->get<bool>("rose_removes_pins").value_or(false);//reader.GetBoolean("player", "rose_removes_pins", true);
 
 	// General
-	checkInfiniteTime = cfg->get<bool>("infinite_time").value_or(false);//reader.GetBoolean("system", "infinite_time", true);
 	checkDisableCameraEvents = cfg->get<bool>("disable_camera_events").value_or(false);//reader.GetBoolean("system", "disable_camera_events", true);
 	checkautoSkiptIntro = cfg->get<bool>("auto_skip_mission_intro").value_or(false);//reader.GetBoolean("system", "auto_skip_mission_intro", true);
 	checkAutoSkipOutro = cfg->get<bool>("auto_skip_mission_outros").value_or(false);//reader.GetBoolean("system", "auto_skip_mission_outros", true);
@@ -336,7 +327,6 @@ void hlMain::loadSettings() {
 	checkCameraSensitivity = cfg->get<bool>("increased_camera_sensitivity").value_or(false);//reader.GetBoolean("system", "increased_camera_sensitivity", true);
 	// Practice
 	// General
-	checkinfiniteAllHealth = cfg->get<bool>("infinite_health_all").value_or(false);//reader.GetBoolean("practice", "infinite_health_all", true);
 	checkInfiniteDT = cfg->get<bool>("infinite_DT").value_or(false);//reader.GetBoolean("practice", "infinite_DT", true);
 	checkInfinitePlayerHealth = cfg->get<bool>("infinite_player_health").value_or(false);//reader.GetBoolean("practice", "infinite_player_health", true);
 	checkInfiniteRevive = cfg->get<bool>("infinite_revive").value_or(false);//reader.GetBoolean("practice", "infinite_revive", true);
@@ -357,7 +347,6 @@ void hlMain::loadSettings() {
 
 void hlMain::saveSettings() {
 	HL_LOG_RAW("Saving settings\n");
-	cfg->set<bool>("nero_height_restriction_removed",checkHeightRestrictionNero);
 	cfg->set<bool>("damage_modifier",checkDamageModifier);
 	cfg->set<float>("damage_factor", damagemultiplier);
 	
@@ -371,7 +360,6 @@ void hlMain::saveSettings() {
 	cfg->set<bool>("faster_sprint_activation",checkSprintFasterActivate);
 	cfg->set<bool>("rose_removes_pins",checkRoseRemovesPins);
 	
-	cfg->set<bool>("infinite_time",checkInfiniteTime);
 	cfg->set<bool>("disable_camera_events",checkDisableCameraEvents);
 	cfg->set<bool>("auto_skip_mission_intro",checkautoSkiptIntro);
 	cfg->set<bool>("auto_skip_mission_outros",checkAutoSkipOutro);
@@ -386,7 +374,6 @@ void hlMain::saveSettings() {
 	cfg->set<bool>("enemy_no_DT",checkEnemyNoDT);
 	cfg->set<bool>("enemies_attack_offscreen",checkEnemyAttackOffscreen);
 	cfg->set<bool>("increased_camera_sensitivity",checkCameraSensitivity);
-	cfg->set<bool>("infinite_health_all",checkinfiniteAllHealth);
 	cfg->set<bool>("infinite_DT",checkInfiniteDT);
 	cfg->set<bool>("infinite_player_health",checkInfinitePlayerHealth);
 	cfg->set<bool>("infinite_revive",checkInfiniteRevive);
@@ -451,16 +438,6 @@ bool hlMain::init()
 
     damagemodifier = hl::FindPattern(damagemodifier_aob);
     orbDisplay = modBase + 0xFDD35;
-    heightRestrictionBuster = modBase + 0x3E614B;
-    heightRestrictionSplit = modBase + 0x3E5F8D;
-    heightRestrictionCalibur = modBase + 0x3E6248;
-    heightRestrictionExCalibur = modBase + 0x3E62B6;
-    heightRestrictionSnatch = modBase + 0x3E60E4;
-    heightRestrictionRaveNero = modBase + 0x3E603F;
-    heightRestrictionDoubleDown = modBase + 0x3E5FE1;
-    heightRestrictionRev = modBase + 0x3E4B12;
-    infiniteTime = modBase + 0x94D6E;
-    infiniteAllHealth = modBase + 0x11BFD9;
     disablecameraEventsOne = hl::FindPattern(disableCameraEvents1_aob);
     disablecameraEventsTwo = hl::FindPattern(disableCameraEvents2_aob);
     hideHUDOne = modBase + 0xFEFE5;
@@ -781,10 +758,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::SameLine(198);
 
-                if (ImGui::Checkbox("Nero", &checkHeightRestrictionNero))
-                {
-                    main->ToggleHeightRestrictionNero(checkHeightRestrictionNero);
-                }
+                main->getMods()->onDrawUI("HeightRestrictionNero"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();
@@ -905,10 +879,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Separator();
                 ImGui::Spacing();
 
-                if (ImGui::Checkbox("Infinite Health (All)", &checkinfiniteAllHealth))
-                {
-                    main->ToggleInfiniteAllHealth(checkinfiniteAllHealth);
-                }
+                main->getMods()->onDrawUI("InfAllHealth"_hash);
 
                 ImGui::SameLine(202);
 
@@ -2141,10 +2112,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 ImGui::Text("General");
 
-                if (ImGui::Checkbox("Disable Timer", &checkInfiniteTime))
-                {
-                    main->ToggleInfiniteTime(checkInfiniteTime);
-                }
+                main->getMods()->onDrawUI("InfiniteTime"_hash);
 
                 ImGui::SameLine(205);
 
