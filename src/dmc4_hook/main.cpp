@@ -636,24 +636,24 @@ bool hlMain::init()
     if (cameraHeightSetting != 0)
     {
         auto cameraHeightSetting_hk =
-            m_hook.hookJMP(cameraHeightSetting, 8, &cameraHeight_proc, &_cameraHeightContinue);
+            m_hook.hookJMP(cameraHeightSetting, 8, &cameraHeight_proc); //, &_cameraHeightContinue
     }
 
     if (cameraDistanceSetting != 0)
     {
         auto cameraDistanceSetting_hk =
-            m_hook.hookJMP(cameraDistanceSetting, 8, &cameraDistance_proc, &_cameraDistanceContinue);
+            m_hook.hookJMP(cameraDistanceSetting, 8, &cameraDistance_proc); //, &_cameraDistanceContinue
     }
 
     if (cameraDistanceLockonSetting != 0)
     {
         auto cameraDistanceLockonSetting_hk =
-            m_hook.hookJMP(cameraDistanceLockonSetting, 8, &cameraDistanceLockon_proc, &_cameraDistanceLockonContinue);
+            m_hook.hookJMP(cameraDistanceLockonSetting, 8, &cameraDistanceLockon_proc); //, &_cameraDistanceLockonContinue
     }
 
     if (cameraAngleSetting != 0)
     {
-        auto cameraAngleSeting_hk = m_hook.hookJMP(cameraAngleSetting, 8, &cameraAngle_proc, &_cameraAngleContinue);
+        auto cameraAngleSeting_hk = m_hook.hookJMP(cameraAngleSetting, 8, &cameraAngle_proc); //, &_cameraAngleContinue
     }
 
     if (lockOn != 0)
