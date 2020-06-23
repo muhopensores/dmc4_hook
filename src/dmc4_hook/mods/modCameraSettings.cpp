@@ -3,6 +3,8 @@
 
 #if 1
 
+bool cameraSensEnabled{ false };
+
 bool CameraSettings::modEnabled{ false };
 float CameraSettings::cameraHeight{ 0 };
 float CameraSettings::cameraDistance{ 0 };
@@ -12,6 +14,7 @@ float CameraSettings::cameraAngleLockon{ 0 };
 float CameraSettings::cameraFovInBattle{ 0 };
 float CameraSettings::cameraFov{ 0 };
 
+constexpr ptrdiff_t cameraSensitivity = 0x180A8;
 
 uintptr_t CameraSettings::cameraHeightContinue{ NULL };
 uintptr_t CameraSettings::cameraDistanceContinue{ NULL };
@@ -20,11 +23,6 @@ uintptr_t CameraSettings::cameraAngleContinue{ NULL };
 uintptr_t CameraSettings::cameraAngleLockonContinue{ NULL };
 uintptr_t CameraSettings::cameraFovInBattleContinue{ NULL };
 uintptr_t CameraSettings::cameraFovContinue{ NULL };
-
-CameraSettings::CameraSettings()
-{
-    // onInitialize();
-}
 
 naked void cameraHeight_proc(void)
 {
@@ -154,7 +152,8 @@ std::optional<std::string> CameraSettings::onInitialize()
         return "Failed to init CameraSettings mod";
     }
 
-    if (!install_hook_offset(0x01A140, hook, &cameraDistanceLockon_proc, &CameraSettings::cameraDistanceLockonContinue, 8))
+    if (!install_hook_offset(0x01A140, hook, &cameraDistanceLockon_proc, &CameraSettings::cameraDistanceLockonContinue,
+                             8))
     {
         HL_LOG_ERR("Failed to init CameraSettings mod\n");
         return "Failed to init CameraSettings mod";
@@ -187,25 +186,75 @@ std::optional<std::string> CameraSettings::onInitialize()
     return Mod::onInitialize();
 }
 
+void CameraSettings::toggleCamSensitivity(bool toggle)
+{
+    if (toggle)
+    {
+        install_patch_offset(cameraSensitivity, cSens, "\x90\x90\x90\x90\x90\x90", 6);
+        // cameraSensitivity_patch.apply(cameraSensitivity, "\x90\x90\x90\x90\x90\x90", 6);
+    }
+    else
+    {
+        cSens.revert();
+        // cameraSensitivity_patch.revert();
+    }
+}
+
 void CameraSettings::onGUIframe()
 {
-    ImGui::Checkbox("Camera Settings", &modEnabled);
+    if (ImGui::CollapsingHeader("Camera"))
+    {
+        ImGui::Checkbox("Camera Settings", &modEnabled);
+        ImGui::InputFloat("Camera Height", &CameraSettings::cameraHeight, 1.0f, 1.0f, "%.0f");
+
+        ImGui::Spacing();
+
+        ImGui::InputFloat("Camera Distance", &CameraSettings::cameraDistance, 1.0f, 10.0f, "%.0f%");
+
+        ImGui::Spacing();
+
+        ImGui::InputFloat("Camera Distance \n(Lockon)", &CameraSettings::cameraDistanceLockon, 1.0f, 10.0f, "%.0f%");
+
+        ImGui::Spacing();
+
+        ImGui::InputFloat("Camera Angle", &CameraSettings::cameraAngle, 0.1f, 0.5f, "%.1f%");
+
+        ImGui::Spacing();
+
+        ImGui::InputFloat("Camera Angle \n(Lockon)", &CameraSettings::cameraAngleLockon, 0.1f, 0.5f, "%.1f%");
+
+        ImGui::Spacing();
+
+        ImGui::InputFloat("Camera FOV", &CameraSettings::cameraFov, 1.0f, 10.0f, "%.0f%");
+
+        ImGui::Spacing();
+
+        ImGui::InputFloat("Camera FOV \n(In Battle)", &CameraSettings::cameraFovInBattle, 1.0f, 10.0f, "%.0f%");
+
+        if (ImGui::Checkbox("Increased Camera Sensitivity", &cameraSensEnabled))
+        {
+            toggleCamSensitivity(cameraSensEnabled);
+        }
+    }
 }
 
 void CameraSettings::onConfigLoad(const utils::Config& cfg)
 {
     modEnabled = cfg.get<bool>("camera_settings").value_or(false);
+    cameraSensEnabled = cfg.get<bool>("increased_camera_sensitivity").value_or(false);
     cameraHeight = cfg.get<float>("camera_height").value_or(0.0f);
     cameraDistance = cfg.get<float>("camera_distance").value_or(0.0f);
     cameraDistanceLockon = cfg.get<float>("camera_distance_lockon").value_or(0.0f);
     cameraAngle = cfg.get<float>("camera_angle").value_or(0.0f);
     cameraAngleLockon = cfg.get<float>("camera_angle_lockon").value_or(0.0f);
     cameraFov = cfg.get<float>("camera_fov_battle").value_or(0.0f);
+	toggleCamSensitivity(cameraSensEnabled);
 };
 
 void CameraSettings::onConfigSave(utils::Config& cfg)
 {
     cfg.set<bool>("camera_settings", modEnabled);
+    cfg.set<bool>("increased_camera_sensitivity", cameraSensEnabled);
     cfg.set<float>("camera_height", cameraHeight);
     cfg.set<float>("camera_distance", cameraDistance);
     cfg.set<float>("camera_distance_lockon", cameraDistanceLockon);

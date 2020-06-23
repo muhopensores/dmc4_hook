@@ -26,7 +26,6 @@
 #include "hacklib/CrashHandler.h"
 
 #include "mods/modFpsLimit.hpp"
-#include "mods/modCameraSettings.hpp"
 
 
 uint32_t uninit_value = 0xCCCCCCCC;
@@ -144,7 +143,6 @@ bool checkTrickDown = false;
 bool checkFloorTouch = false;
 bool checkHoneyComb = false;
 bool checkInfiniteTrickRange = false;
-bool checkCameraSensitivity = false;
 bool checkRoseRemovesPins = false;
 
 hl::StaticInit<class hlMain> g_main;
@@ -259,7 +257,6 @@ void hlMain::ToggleStuff()
     ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
 
 		// Misc
-    ToggleCameraSensitivity(checkCameraSensitivity);
 
 	// Practice
 		// General
@@ -324,8 +321,6 @@ void hlMain::loadSettings() {
 	checkEnemyInstantDT = cfg->get<bool>("enemy_instant_DT").value_or(false);//reader.GetBoolean("system", "enemy_instant_DT", true);
 	checkEnemyNoDT = cfg->get<bool>("enemy_no_DT").value_or(false);//reader.GetBoolean("system", "enemy_no_DT", true);
 	checkEnemyAttackOffscreen = cfg->get<bool>("enemies_attack_offscreen").value_or(false);//reader.GetBoolean("system", "enemies_attack_offscreen", true);
-	// Misc
-	checkCameraSensitivity = cfg->get<bool>("increased_camera_sensitivity").value_or(false);//reader.GetBoolean("system", "increased_camera_sensitivity", true);
 	// Practice
 	// General
 	checkInfiniteDT = cfg->get<bool>("infinite_DT").value_or(false);//reader.GetBoolean("practice", "infinite_DT", true);
@@ -374,7 +369,6 @@ void hlMain::saveSettings() {
 	cfg->set<bool>("enemy_instant_DT",checkEnemyInstantDT);
 	cfg->set<bool>("enemy_no_DT",checkEnemyNoDT);
 	cfg->set<bool>("enemies_attack_offscreen",checkEnemyAttackOffscreen);
-	cfg->set<bool>("increased_camera_sensitivity",checkCameraSensitivity);
 	cfg->set<bool>("infinite_DT",checkInfiniteDT);
 	cfg->set<bool>("infinite_player_health",checkInfinitePlayerHealth);
 	cfg->set<bool>("infinite_revive",checkInfiniteRevive);
@@ -550,7 +544,6 @@ bool hlMain::init()
     trickDown = modBase + 0x3CB119;
     floorTouch = modBase + 0x3CB33D;
     infiniteTrickRange = modBase + 0x3CB0A8;
-    cameraSensitivity = modBase + 0x180A8;
     roseRemovesPins = modBase + 0x4158C3;
 
     sprintFasterActivate = modBase + 0x40456C;
@@ -2206,41 +2199,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::Spacing();
 
-                if (ImGui::CollapsingHeader("Camera"))
-                {
-                    main->getMods()->onDrawUI("CameraSettings"_hash);
-                    ImGui::InputFloat("Camera Height", &CameraSettings::cameraHeight, 1.0f, 1.0f, "%.0f");
-
-                    ImGui::Spacing();
-
-                    ImGui::InputFloat("Camera Distance", &CameraSettings::cameraDistance, 1.0f, 10.0f, "%.0f%");
-
-                    ImGui::Spacing();
-
-                    ImGui::InputFloat("Camera Distance \n(Lockon)", &CameraSettings::cameraDistanceLockon, 1.0f, 10.0f, "%.0f%");
-
-                    ImGui::Spacing();
-
-                    ImGui::InputFloat("Camera Angle", &CameraSettings::cameraAngle, 0.1f, 0.5f, "%.1f%");
-
-                    ImGui::Spacing();
-
-                    ImGui::InputFloat("Camera Angle \n(Lockon)", &CameraSettings::cameraAngleLockon, 0.1f, 0.5f, "%.1f%");
-
-                    ImGui::Spacing();
-
-                    ImGui::InputFloat("Camera FOV", &CameraSettings::cameraFov, 1.0f, 10.0f, "%.0f%");
-
-                    ImGui::Spacing();
-
-                    ImGui::InputFloat("Camera FOV \n(In Battle)", &CameraSettings::cameraFovInBattle, 1.0f, 10.0f, "%.0f%");
-
-                    if (ImGui::Checkbox("Increased Camera Sensitivity", &checkCameraSensitivity))
-                    {
-                        main->ToggleCameraSensitivity(checkCameraSensitivity);
-                    }
-                }
-
+				main->getMods()->onDrawUI("CameraSettings"_hash);
+				
                 ImGui::Spacing();
                 ImGui::EndTabItem();
             }

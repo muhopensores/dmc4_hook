@@ -50,7 +50,6 @@ public:
     void ToggleAutoSkipOutro(bool toggle);
     void ToggleInfiniteTableHopper(bool toggle);
     void ToggleInfiniteTrickRange(bool toggle);
-    void ToggleCameraSensitivity(bool toggle);
 
 	//imgui toggle functions definitons
     void ImGuiToggleInfPlayerHealth();
@@ -241,7 +240,6 @@ public:
     uintptr_t trickDown;
     uintptr_t floorTouch;
     uintptr_t infiniteTrickRange;
-    uintptr_t cameraSensitivity;
     uintptr_t roseRemovesPins;
 
 
@@ -281,7 +279,7 @@ public:
         replaceMephisto_patch, replaceFaust_patch, replaceFrost_patch, replaceAssault_patch, replaceBlitz_patch,
         replaceChimera_patch, replaceBasilisk_patch, replaceBerial_patch, replaceBael_patch, replaceEchidna_patch,
         replaceCredo_patch, replaceAgnus_patch, autoSkipOutro_patch, infiniteTableHopper_patch,
-        infiniteReviveFour_patch,infiniteTrickRange_patch, cameraSensitivity_patch;
+        infiniteReviveFour_patch,infiniteTrickRange_patch;
 
 
     const hl::IHook* g_PresentHook;

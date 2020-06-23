@@ -5,7 +5,7 @@
 class CameraSettings : public Mod
 {
 public:
-    CameraSettings();
+    CameraSettings() = default;
 
     static bool modEnabled;
     static float cameraHeight;
@@ -31,7 +31,9 @@ public:
     void onConfigSave(utils::Config& cfg) override;
 
     void onGUIframe() override;
+	void toggleCamSensitivity(bool toggle);
 
 private:
     hl::Hooker hook;
+	hl::Patch  cSens;
 };
