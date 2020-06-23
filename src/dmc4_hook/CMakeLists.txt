@@ -70,6 +70,8 @@ SET (MODS
   mods/modInfAllHealth.hpp
   mods/modCameraSettings.cpp
   mods/modCameraSettings.hpp
+  mods/modFreezeEnemies.cpp
+  mods/modFreezeEnemies.hpp
 )
 
 SET (HEADERS

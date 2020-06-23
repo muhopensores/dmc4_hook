@@ -932,13 +932,13 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 main->getMods()->onDrawUI("DmdBloodyPalace"_hash);
                 ImGui::SameLine(0, 1);
-                HelpMarker("Testing version");
+                HelpMarker("Forces the ingame version of DMD. Enemies will take longer to DT than with the Game Mode option");
 
                 ImGui::SameLine(205);
 
                 main->getMods()->onDrawUI("DmdLevelAi"_hash);
                 ImGui::SameLine(0, 1);
-                HelpMarker("Testing version");
+                HelpMarker("Forces enemies to use the ingame DMD AI, even on non DMD difficulties");
 
                 if (ImGui::Checkbox("Enemies Attack Off-Screen", &checkEnemyAttackOffscreen))
                 {
@@ -975,7 +975,13 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 main->getMods()->onDrawUI("PassiveEnemies"_hash);
                 ImGui::SameLine(0, 1);
-                HelpMarker("Not perfectly passive, but more so");
+                HelpMarker("Forces enemies to use their lowest AI. This will completely stop some enemy types from attacking");
+
+                ImGui::SameLine(202);
+
+                main->getMods()->onDrawUI("FreezeEnemies"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("Freezes enemies, even if they're midair. Use with infinite enemy hp");
 
                 ImGui::Spacing();
                 ImGui::Spacing();
