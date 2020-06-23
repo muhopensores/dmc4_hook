@@ -26,6 +26,7 @@
 #include "hacklib/CrashHandler.h"
 
 #include "mods/modFpsLimit.hpp"
+#include "mods/modCameraSettings.hpp"
 
 
 uint32_t uninit_value = 0xCCCCCCCC;
@@ -556,10 +557,6 @@ bool hlMain::init()
     enemyAttackOffscreen = modBase + 0xA8CE9;
     slowWalkOne = modBase + 0x421C83;
     slowWalkTwo = modBase + 0x421D85;
-    cameraHeightSetting = modBase + 0x191C5;
-    cameraDistanceSetting = modBase + 0x1EF09;
-    cameraDistanceLockonSetting = modBase + 0x19D16;
-    cameraAngleSetting = modBase + 0x1914C;
     hideStyle = modBase + 0x1017F8;
     hideOrbs = modBase + 0xFF1F2;
     autoSkipIntro = modBase + 0x6DF1;
@@ -608,29 +605,6 @@ bool hlMain::init()
     if (berialDazeTwo != 0)
     {
         auto berialDazeTwo_hk = m_hook.hookJMP(berialDazeTwo, 8, &berialDaze_proc, &_berialDazeContinue);
-    }
-
-    if (cameraHeightSetting != 0)
-    {
-        auto cameraHeightSetting_hk =
-            m_hook.hookJMP(cameraHeightSetting, 8, &cameraHeight_proc); //, &_cameraHeightContinue
-    }
-
-    if (cameraDistanceSetting != 0)
-    {
-        auto cameraDistanceSetting_hk =
-            m_hook.hookJMP(cameraDistanceSetting, 8, &cameraDistance_proc); //, &_cameraDistanceContinue
-    }
-
-    if (cameraDistanceLockonSetting != 0)
-    {
-        auto cameraDistanceLockonSetting_hk =
-            m_hook.hookJMP(cameraDistanceLockonSetting, 8, &cameraDistanceLockon_proc); //, &_cameraDistanceLockonContinue
-    }
-
-    if (cameraAngleSetting != 0)
-    {
-        auto cameraAngleSeting_hk = m_hook.hookJMP(cameraAngleSetting, 8, &cameraAngle_proc); //, &_cameraAngleContinue
     }
 
     if (lockOn != 0)
@@ -2234,22 +2208,32 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 if (ImGui::CollapsingHeader("Camera"))
                 {
-                    ImGui::InputFloat("Camera Height", &cameraHeight, 1.0f, 10.0f, "%.0f%");
-                    ImGui::SameLine(0, 1);
-                    HelpMarker("Value between -10000 / 10000. Default value is 170");
+                    main->getMods()->onDrawUI("CameraSettings"_hash);
+                    ImGui::InputFloat("Camera Height", &CameraSettings::cameraHeight, 1.0f, 1.0f, "%.0f");
+
                     ImGui::Spacing();
-                    ImGui::InputFloat("Camera Distance", &cameraDistance, 1.0f, 10.0f, "%.0f%");
-                    ImGui::SameLine(0, 1);
-                    HelpMarker("Value between 0 / 50000. Default value is 550");
+
+                    ImGui::InputFloat("Camera Distance", &CameraSettings::cameraDistance, 1.0f, 10.0f, "%.0f%");
+
                     ImGui::Spacing();
-                    ImGui::InputFloat("Camera Distance \n(Lockon)", &cameraDistanceLockon, 1.0f, 10.0f, "%.0f%");
-                    ImGui::SameLine(0, 1);
-                    HelpMarker("Value between 0 / 50000. Default value is 520");
+
+                    ImGui::InputFloat("Camera Distance \n(Lockon)", &CameraSettings::cameraDistanceLockon, 1.0f, 10.0f, "%.0f%");
+
                     ImGui::Spacing();
-                    ImGui::InputFloat("Camera Angle", &cameraAngle, 0.1f, 0.5f, "%.1f%");
-                    ImGui::SameLine(0, 1);
-                    HelpMarker("Value between -1.5 / 1.5. Default value is 0.2");
+
+                    ImGui::InputFloat("Camera Angle", &CameraSettings::cameraAngle, 0.1f, 0.5f, "%.1f%");
+
                     ImGui::Spacing();
+
+                    ImGui::InputFloat("Camera Angle \n(Lockon)", &CameraSettings::cameraAngleLockon, 0.1f, 0.5f, "%.1f%");
+
+                    ImGui::Spacing();
+
+                    ImGui::InputFloat("Camera FOV", &CameraSettings::cameraFov, 1.0f, 10.0f, "%.0f%");
+
+                    ImGui::Spacing();
+
+                    ImGui::InputFloat("Camera FOV \n(In Battle)", &CameraSettings::cameraFovInBattle, 1.0f, 10.0f, "%.0f%");
 
                     if (ImGui::Checkbox("Increased Camera Sensitivity", &checkCameraSensitivity))
                     {

@@ -5,16 +5,6 @@ extern "C"
 {
     int lockOnAlloc = 0;
     float damagemultiplier = 1.0f;
-
-    float cameraHeight = 0.0f;              // 170.0f;
-    float cameraDistance = 0.0f;            // 550.0f;
-    float cameraDistanceLockon = 0.0f;		// 520.0f;
-    float cameraAngle = 0.0f;               // 0.2f;
-    // float actualCamHeight = cameraHeight + 170.0f;
-    // float actualCameraDistance = cameraDistance + 550.0f;
-    // float actualCameraDistanceLockon = cameraDistanceLockon + 520.0f;
-    // float actualCameraAngle = cameraAngle + 0.2f;
-
     float fullHouseAngle = 65.0f;
     float timerMem = 0.0f;
     float timerMemTick = 1.0f;
@@ -27,10 +17,6 @@ extern "C"
     uintptr_t _infinitePlayerHealthContinue = NULL;
     uintptr_t _berialDazeContinue = NULL;
     uintptr_t _stunAnythingContinue = NULL;
-    uintptr_t _cameraHeightContinue = 0x004191CD;
-    uintptr_t _cameraDistanceContinue = 0x0041EF11;
-    uintptr_t _cameraDistanceLockonContinue = 0x00419D1E;
-    uintptr_t _cameraAngleContinue = 0x00419154;
     uintptr_t _lockOnContinue = NULL;
     uintptr_t _lockOffContinue = NULL;
     uintptr_t _trackingFullHouseContinue = 0x007D3478;
@@ -40,8 +26,6 @@ extern "C"
     uintptr_t _floorTouchContinue = 0x007CB345;
     uintptr_t _roseRemovesPinsContinue = 0x008158CD;
     uintptr_t _roseRemovesPinsJE = 0x00815970;
-    //uintptr_t _noHelmBreakerKnockbackContinue = 0x0051C389;
-    //uintptr_t _noHelmBreakerKnockbackJE = 0x0051C367;
 
 	//bools to check for toggling purposes within a gui checkbox, if false, then checkbox toggle is required to activate
     bool g_InfDTEnable = false;
@@ -149,43 +133,6 @@ _declspec(naked) void berialDaze_proc(void)
 		originalcode:
 			//movss xmm0,[esi+0x00001B80]
 			jmp dword ptr [_berialDazeContinue]
-    }
-}
-
-
-_declspec(naked) void cameraHeight_proc(void)
-{
-    _asm {
-			movss xmm0,[edi+0x000000D0]
-			addss xmm0,[cameraHeight]
-			jmp dword ptr [_cameraHeightContinue]
-    }
-}
-
-_declspec(naked) void cameraDistance_proc(void)
-{
-    _asm {
-			movss xmm3,[esi+0x000000D8]
-			addss xmm3,[cameraDistance]
-			jmp dword ptr [_cameraDistanceContinue]
-    }
-}
-
-_declspec(naked) void cameraDistanceLockon_proc(void)
-{
-    _asm {
-			movss xmm1,[ebx+0x000000DC]
-			addss xmm1,[cameraDistanceLockon]
-			jmp dword ptr [_cameraDistanceLockonContinue]
-    }
-}
-
-_declspec(naked) void cameraAngle_proc(void)
-{
-    _asm {
-			movss xmm2,[edi+0x000000D4]
-			addss xmm2,[cameraAngle]
-			jmp dword ptr [_cameraAngleContinue]
     }
 }
 

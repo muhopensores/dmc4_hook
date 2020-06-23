@@ -206,10 +206,6 @@ public:
     uintptr_t enemyAttackOffscreen;
     uintptr_t slowWalkOne;
     uintptr_t slowWalkTwo;
-    uintptr_t cameraHeightSetting;
-    uintptr_t cameraDistanceSetting;
-    uintptr_t cameraDistanceLockonSetting;
-    uintptr_t cameraAngleSetting;
     uintptr_t hideStyle;
     uintptr_t hideOrbs;
     uintptr_t autoSkipIntro;

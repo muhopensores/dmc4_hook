@@ -33,6 +33,7 @@
 #include "mods/modHeightRestrictionNero.hpp"
 #include "mods/modInfiniteTime.hpp"
 #include "mods/modInfAllHealth.hpp"
+#include "mods/modCameraSettings.hpp"
 
 
 //#include "mods/modSample.hpp"
@@ -72,6 +73,7 @@ Mods::Mods() {
 	m_mods["HeightRestrictionNero"_hash] = std::make_unique<HeightRestrictionNero>();
 	m_mods["InfiniteTime"_hash] = std::make_unique<InfiniteTime>();
 	m_mods["InfAllHealth"_hash] = std::make_unique<InfAllHealth>();
+	m_mods["CameraSettings"_hash] = std::make_unique<CameraSettings>();
 }
 
 // Initializes mods, checks for errors

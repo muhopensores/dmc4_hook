@@ -68,6 +68,8 @@ SET (MODS
   mods/modInfiniteTime.hpp
   mods/modInfAllHealth.cpp
   mods/modInfAllHealth.hpp
+  mods/modCameraSettings.cpp
+  mods/modCameraSettings.hpp
 )
 
 SET (HEADERS
