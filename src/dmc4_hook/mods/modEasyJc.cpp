@@ -1,5 +1,6 @@
 #include "../mods.h"
 #include "modEasyJc.hpp"
+#include "modFreeJc.hpp"
 
 #if 1
 bool EasyJc::modEnabled{ false };
@@ -46,7 +47,10 @@ void EasyJc::toggle(bool enable)
     }
     else
     {
-        patch.revert();
+        if (FreeJc::modEnabled == false)
+        {
+            patch.revert();
+        }
     }
 }
 
@@ -54,7 +58,7 @@ void EasyJc::onGUIframe()
 {
     // from main.cpp
     // line 899 -> if (ImGui::Checkbox("Easy JCs", &checkEasyJc))
-    if (ImGui::Checkbox("Easy JCs", &modEnabled))
+    if (ImGui::Checkbox("Easy JC", &modEnabled))
     {
         toggle(modEnabled);
     }

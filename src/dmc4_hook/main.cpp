@@ -757,16 +757,24 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 }
 
                 main->getMods()->onDrawUI("EasyJc"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("50% bigger JC hitspheres");
 
                 ImGui::SameLine(198);
+
+                main->getMods()->onDrawUI("FreeJc"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("JC anywhere in the room with an enemy");
 
                 main->getMods()->onDrawUI("SkipPandora"_hash);
 
-                main->getMods()->onDrawUI("ForceLucifer"_hash);
-
                 ImGui::SameLine(198);
 
+                main->getMods()->onDrawUI("ForceLucifer"_hash);
+
                 main->getMods()->onDrawUI("NoHbKnockback"_hash);
+
+                ImGui::SameLine(198);
 
                 main->getMods()->onDrawUI("ManualTwosomeTime"_hash);
 
@@ -904,9 +912,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 {
                     main->ToggleBossRush(checkBossRush);
                 }
-
                 ImGui::SameLine(0, 1);
                 HelpMarker("Toggle and start BP run");
+
                 ImGui::SameLine(205);
 
                 main->getMods()->onDrawUI("LdkWithDmd"_hash);

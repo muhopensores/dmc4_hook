@@ -35,6 +35,7 @@
 #include "mods/modInfAllHealth.hpp"
 #include "mods/modCameraSettings.hpp"
 #include "mods/modFreezeEnemies.hpp"
+#include "mods/modFreeJc.hpp"
 
 
 //#include "mods/modSample.hpp"
@@ -76,6 +77,7 @@ Mods::Mods() {
 	m_mods["InfAllHealth"_hash] = std::make_unique<InfAllHealth>();
 	m_mods["CameraSettings"_hash] = std::make_unique<CameraSettings>();
 	m_mods["FreezeEnemies"_hash] = std::make_unique<FreezeEnemies>();
+	m_mods["FreeJc"_hash] = std::make_unique<FreeJc>();
 }
 
 // Initializes mods, checks for errors
