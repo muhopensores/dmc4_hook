@@ -2,16 +2,16 @@
 
 #include "../mod.hpp"
 
-class NoClip : public Mod
+class CameraLookdown : public Mod
 {
 public:
-    NoClip() = default;
+    CameraLookdown() = default;
 
     static bool modEnabled;
 
     void toggle(bool enable);
 
-    std::string getModName() override { return "NoClip"; };
+    std::string getModName() override { return "CameraLookdown"; };
 
     std::optional<std::string> onInitialize() override;
 
@@ -21,6 +21,5 @@ public:
     void onGUIframe() override;
 
 private:
-    hl::Patch patch1;
-    hl::Patch patch2;
+    hl::Patch patch;
 };

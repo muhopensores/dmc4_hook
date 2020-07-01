@@ -13,11 +13,13 @@ void NoClip::toggle(bool enable)
 {
     if (enable)
     {
-        install_patch_offset(0xA748B, patch, "\x90\x90\x90", 3);
+        install_patch_offset(0x115BC4, patch1, "\x90\x90\x90", 3);
+        install_patch_offset(0x10FA06, patch2, "\x01", 1);
     }
     else
     {
-        patch.revert();
+        patch1.revert();
+        patch2.revert();
     }
 }
 

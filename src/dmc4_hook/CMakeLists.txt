@@ -74,6 +74,8 @@ SET (MODS
   mods/modFreezeEnemies.hpp
   mods/modFreeJc.cpp
   mods/modFreeJc.hpp
+  mods/modCameraLookdown.cpp
+  mods/modCameraLookdown.hpp
 )
 
 SET (HEADERS

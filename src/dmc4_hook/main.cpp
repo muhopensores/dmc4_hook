@@ -2133,13 +2133,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 HelpMarker("Certain missions or parts will cause a black screen when this option is enabled. Press the "
                            "start button and then X/A to go into a menu. The screen should return to normal.");
 
-                ImGui::SameLine(205);
-
-                main->getMods()->onDrawUI("FreeCam"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker(
-                    "Activate this before starting a level! Forces Free Cam and allows it to pass through walls");
-
                 if (ImGui::Checkbox("Skip Mission Intros", &checkautoSkiptIntro))
                 {
                     main->ToggleAutoSkipIntro(checkautoSkiptIntro);
@@ -2151,6 +2144,16 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 {
                     main->ToggleAutoSkipOutro(checkAutoSkipOutro);
                 }
+
+                main->getMods()->onDrawUI("FreeCam"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("Activate this before starting a level! Forces Free Cam and allows it to pass through walls");
+
+                ImGui::SameLine(205);
+
+                main->getMods()->onDrawUI("CameraLookdown"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("When above the locked on enemy the camera will look down");
 
                 ImGui::Spacing();
                 ImGui::Separator();

@@ -36,6 +36,7 @@
 #include "mods/modCameraSettings.hpp"
 #include "mods/modFreezeEnemies.hpp"
 #include "mods/modFreeJc.hpp"
+#include "mods/modCameraLookdown.hpp"
 
 
 //#include "mods/modSample.hpp"
@@ -78,6 +79,7 @@ Mods::Mods() {
 	m_mods["CameraSettings"_hash] = std::make_unique<CameraSettings>();
 	m_mods["FreezeEnemies"_hash] = std::make_unique<FreezeEnemies>();
 	m_mods["FreeJc"_hash] = std::make_unique<FreeJc>();
+	m_mods["CameraLookdown"_hash] = std::make_unique<CameraLookdown>();
 }
 
 // Initializes mods, checks for errors
