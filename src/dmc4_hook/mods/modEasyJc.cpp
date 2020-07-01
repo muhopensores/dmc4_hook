@@ -47,10 +47,7 @@ void EasyJc::toggle(bool enable)
     }
     else
     {
-        if (FreeJc::modEnabled == false)
-        {
-            patch.revert();
-        }
+        install_patch_offset(0x427999, patch, "\xBF\x02\x00\x00\x00", 5);
     }
 }
 

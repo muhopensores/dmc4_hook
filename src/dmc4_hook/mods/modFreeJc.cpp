@@ -19,11 +19,7 @@ void FreeJc::toggle(bool enable)
     }
     else
     {
-        patch1.revert();
-        if (EasyJc::modEnabled == false)
-        {
-            patch2.revert();
-        }
+        install_patch_offset(0x427999, patch2, "\xBF\x02\x00\x00\x00", 5);
     }
 }
 
