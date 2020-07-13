@@ -10,7 +10,8 @@ enum CANCEL_MOVES {       // bits table
 	SLASH_DIMENSION = 8,  // 0000 1000
 	PROP            = 16, // 0001 0000
 	SHOCK           = 32, // 0010 0000
-	OMEN            = 64  // 0100 0000
+	OMEN            = 64, // 0100 0000
+	GUNSTINGER		= 128
 };
 
 class SelectiveCancels : public Mod {

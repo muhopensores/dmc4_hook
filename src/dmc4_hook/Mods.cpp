@@ -37,6 +37,8 @@
 #include "mods/modFreezeEnemies.hpp"
 #include "mods/modFreeJc.hpp"
 #include "mods/modCameraLookdown.hpp"
+#include "mods/modNoDeath.hpp"
+//#include "mods/modEnemySpawn.hpp"
 
 
 //#include "mods/modSample.hpp"
@@ -80,6 +82,8 @@ Mods::Mods() {
 	m_mods["FreezeEnemies"_hash] = std::make_unique<FreezeEnemies>();
 	m_mods["FreeJc"_hash] = std::make_unique<FreeJc>();
 	m_mods["CameraLookdown"_hash] = std::make_unique<CameraLookdown>();
+	m_mods["NoDeath"_hash] = std::make_unique<NoDeath>();
+	//m_mods["EnemySpawn"_hash] = std::make_unique<EnemySpawn>();
 }
 
 // Initializes mods, checks for errors

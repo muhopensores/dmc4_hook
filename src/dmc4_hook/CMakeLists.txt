@@ -76,6 +76,10 @@ SET (MODS
   mods/modFreeJc.hpp
   mods/modCameraLookdown.cpp
   mods/modCameraLookdown.hpp
+  mods/modNoDeath.cpp
+  mods/modNoDeath.hpp
+  mods/modEnemySpawn.cpp
+  mods/modEnemySpawn.hpp
 )
 
 SET (HEADERS

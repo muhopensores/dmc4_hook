@@ -18,8 +18,8 @@ naked void selectiveCancels_proc()
 		cmp byte ptr [esi+0x144],0xFFFFFFFF
 		jne originalcode
 
-		cmp [MoveIds::moveID],0x411				// Grounded Ecstasy	// Checks move id like usual every tick
-		je cancellableecstasy				// If correct moveid, check against Gui:
+		cmp [MoveIds::moveID],0x411						// Grounded Ecstasy	// Checks move id like usual every tick
+		je cancellableecstasy							// If correct moveid, check against Gui:
 		cmp [MoveIds::moveID],0x412						// Aerial Ecstasy
 		je cancellableecstasy
 		cmp [MoveIds::moveID],0x732						// Argument
@@ -36,6 +36,8 @@ naked void selectiveCancels_proc()
 		je cancellableshock
 		cmp [MoveIds::moveID],0x735						// Omen
 		je cancellableomen
+		cmp [MoveIds::moveID],0x635						// Gunstinger
+		je cancellablegunstinger
 		jmp originalcode
 
 		cancellableecstasy:
@@ -70,6 +72,11 @@ naked void selectiveCancels_proc()
 
 			cancellableomen:
 		test [SelectiveCancels::cancels], OMEN
+			jg cancellable
+			jmp originalcode
+
+			cancellablegunstinger:
+		test [SelectiveCancels::cancels], GUNSTINGER
 			jg cancellable
 			jmp originalcode
 
@@ -151,6 +158,10 @@ void SelectiveCancels::onGUIframe() {
 
 		//drawCheckbox("Omen", &checkOmen, OMEN);
 		drawCheckboxSimple("Omen", OMEN);
+
+		ImGui::SameLine(198);
+
+		drawCheckboxSimple("Gun Stinger", GUNSTINGER);
 	}
 };
 

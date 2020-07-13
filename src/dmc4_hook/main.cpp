@@ -850,6 +850,10 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
                 ImGui::PopItemWidth();
 
+                main->getMods()->onDrawUI("NoDeath"_hash);
+                ImGui::SameLine(0, 1);
+                HelpMarker("Disables dying while still allowing hp to drop");
+
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
@@ -2083,6 +2087,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                         ImGui::TreePop();
                     }
                 }
+
+                //main->getMods()->onDrawUI("EnemySpawn"_hash);
 
                 ImGui::Spacing();
                 ImGui::EndTabItem();
