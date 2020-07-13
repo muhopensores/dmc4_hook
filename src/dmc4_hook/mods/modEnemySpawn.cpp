@@ -1,21 +1,71 @@
 
 #include "../mods.h"
 #include "modEnemySpawn.hpp"
-
-constexpr std::array<uintptr_t, 5> fptrEmFactories{
-	0x0055E710, // arm crow call 0055E710
-	0x0053F810, // leg crow call 0053F810
-	0x005A3F60, // frost call 005A3F60
-	0x00561A10, // white armours call 00561A10
-	0x0057F1E0, // ghosties call 0057F1E0
+// 00738AA2 calls spawns
+constexpr std::array<uintptr_t, 19> fptrEmFactories{
+	0x0055E710,			// Arm Scarecrow em01
+	0x0053F810,			// Leg Scarecrow em02
+    0x0055F7E0,			// Mega Scarecrow em03
+	0x005A3F60,			// Frost em04
+    0x005B3170,			// Assault em05
+    0x005D1760,			// Blitz em06
+    // 0x00618460,		// Gladius em07 // Broken
+    // 0x00609C20,		// Cutlass em08 // Broken
+	0x0061A7B0,			// Basilisk em09
+	0x005DC160,			// Chimera Seed em10
+						// Chimera
+    0x0057F1E0,			// Mephisto em12
+	0x00595810,			// Faust em13
+	0x00561A10,			// Bianco Angelo em14
+    0x00576C80,			// Alto Angelo em15
+						// Fault em16
+//--------------------------------
+	0x00630AC0,			// Berial bo01
+	0x00649CB0,			// BP Frog bo02
+						// The Other Frog bo03
+	0x00685340,			// Echidna bo04
+						// Agnus bo05
+	0x006BDE60,			// Angelo Agnus bo06
+	0x006AA2C0,			// Angelo Credo bo07
+						// The Savior bo08
+						// The False Savior bo09
+    0x006F81E0,			// Sanctus bo10
+    0x007022F0			// Sanctus Diabolica bo11
+						// Dante bo12
 };
 
-constexpr std::array<const char*, 5> enemyNames{
-	"Spawn em001",
-	"Spawn em002",
-	"Spawn em003",
-	"Spawn em004",
-	"Spawn em005"
+
+
+constexpr std::array<const char*, 19> enemyNames{
+	"Scarecrow (Arm)",	// em01
+	"Scarecrow (Leg)",	// em02
+	"Mega Scarecrow",	// em03
+	"Frost",			// em04
+	"Assault",			// em05
+	"Blitz",			// em06
+	// "Gladius",		// em07
+	// "Cutlass",		// em08
+	"Basilisk",			// em09
+	"Chimera Seed",		// em10
+	// Chimera			// em11
+    "Mephisto",			// em12
+    "Faust",			// em13
+	"Bianco Angelo",	// em14
+	"Alto Angelo",		// em15
+	// Fault			// em16
+//--------------------------------
+	"Berial",			// bo01
+	"Bael",				// bo02
+	// Dagon			// bo03
+	"Echidna",			// bo04
+	// Agnus			// bo05
+	"Angelo Agnus",		// bo06
+	"Angelo Credo",		// bo07
+	// The Savior		// bo08
+	// The False Savior	// bo09
+	"Sanctus",			// bo10
+	"Sanctus Diabolica"	// bo11
+	// Dante			// bo12
 };
 
 static uintptr_t fptrUpdateActorList{ 0x008DC540 }; // Spawns shit
