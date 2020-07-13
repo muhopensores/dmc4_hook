@@ -2161,6 +2161,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::SameLine(0, 1);
                 HelpMarker("When above the locked on enemy the camera will look down");
 
+                main->getMods()->onDrawUI("CameraReset"_hash);
+                
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();

@@ -80,6 +80,8 @@ SET (MODS
   mods/modNoDeath.hpp
   mods/modEnemySpawn.cpp
   mods/modEnemySpawn.hpp
+  mods/modCameraReset.cpp
+  mods/modCameraReset.hpp
 )
 
 SET (HEADERS
