@@ -1027,6 +1027,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Separator();
                 ImGui::Spacing();
 
+				main->getMods()->onDrawUI("EnemySpawn"_hash);
+
                 if (ImGui::CollapsingHeader("Enemy Replacement"))
                 {
                     ImGui::Spacing();

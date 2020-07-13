@@ -1,17 +1,43 @@
-/*
+
 #include "../mods.h"
 #include "modEnemySpawn.hpp"
 
-#if 1
+constexpr std::array<uintptr_t, 5> fptrEmFactories{
+	0x0055E710, // arm crow call 0055E710
+	0x0053F810, // leg crow call 0053F810
+	0x005A3F60, // frost call 005A3F60
+	0x00561A10, // white armours call 00561A10
+	0x0057F1E0, // ghosties call 0057F1E0
+};
 
-bool EnemySpawn::modEnabled{ false };
-// uintptr_t EnemySpawn::_enemySpawnContinue{ NULL };
+constexpr std::array<const char*, 5> enemyNames{
+	"Spawn em001",
+	"Spawn em002",
+	"Spawn em003",
+	"Spawn em004",
+	"Spawn em005"
+};
 
-EnemySpawn::EnemySpawn()
-{
-    // onInitialize();
+static uintptr_t fptrUpdateActorList{ 0x008DC540 }; // Spawns shit
+static uintptr_t someStruct{ 0x00E552CC };
+
+void spawnEm00x(int index) {
+	uintptr_t emFunctionPointer = fptrEmFactories.at(index);
+	__asm {
+		pusha
+		pushf
+		call emFunctionPointer // make actor
+        mov esi, eax
+        mov ecx, 0Fh
+        mov eax, [someStruct] // static
+		mov eax, [eax]
+        push 0Fh
+        call fptrUpdateActorList
+		popf
+		popa
+	}
 }
-
+#if 0
 naked void enemySpawn_proc(void)
 {
     _asm {
@@ -44,43 +70,34 @@ naked void enemySpawn_proc(void)
         ret
     }
 }
-
-
-//arm crow call 0055E710
-//leg crow call 0053F810
-//frost call 005A3F60
-//white armours call 00561A10
-//ghosties call 0057F1E0
-
-
-std::optional<std::string> EnemySpawn::onInitialize()
-{
-    if (!install_hook_offset(0x0, hook, &enemySpawn_proc, &EnemySpawn::_enemySpawnContinue, 5))
-    {
-        HL_LOG_ERR("Failed to init EnemySpawn mod\n");
-        return "Failed to init EnemySpawn mod";
-    }
-
-    return Mod::onInitialize();
-}
-
-    void EnemySpawn::onGUIframe()
-{
-    // from main.cpp
-    // line 907 -> main->getMods()->onDrawUI("NoClip"_hash);
-    ImGui::Checkbox("Enemy Spawn", &modEnabled);
-}
-/*
-void EnemySpawn::onConfigLoad(const utils::Config& cfg)
-{
-    modEnabled = cfg.get<bool>("enemy_spawn").value_or(false);
-};
-
-void EnemySpawn::onConfigSave(utils::Config& cfg)
-{
-    cfg.set<bool>("enemy_spawn", modEnabled);
-};
-
 #endif
 
-*/
+
+std::optional<std::string> EnemySpawn::onInitialize() 
+{ 
+	return Mod::onInitialize(); 
+}
+
+void EnemySpawn::onGUIframe()
+{
+	/*auto lambda = [](int i) {
+		if (ImGui::Button(enemyNames[i])) {
+			spawnEm00x(i);
+		}
+	};
+	std::for_each(enemyNames.begin(), enemyNames.end(), lambda);*/
+
+	ImGui::Text("Enemy Spawn");
+	// will mr.compiler unroll this? probably not check the .ASM listings im not gonna
+		for (int i = 0, e = enemyNames.size(); i != e; i++) {
+			if (ImGui::Button(enemyNames[i])) {
+				spawnEm00x(i);
+			}
+			if (i % 2 == 0) {
+				ImGui::SameLine();
+			}
+		}
+	ImGui::NewLine();
+	ImGui::Separator();
+}
+
