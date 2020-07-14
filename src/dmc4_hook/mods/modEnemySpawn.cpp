@@ -2,15 +2,15 @@
 #include "../mods.h"
 #include "modEnemySpawn.hpp"
 // 00738AA2 calls spawns
-constexpr std::array<uintptr_t, 19> fptrEmFactories{
+constexpr std::array<uintptr_t, 21> fptrEmFactories{
 	0x0055E710,			// Arm Scarecrow em01
 	0x0053F810,			// Leg Scarecrow em02
     0x0055F7E0,			// Mega Scarecrow em03
 	0x005A3F60,			// Frost em04
     0x005B3170,			// Assault em05
     0x005D1760,			// Blitz em06
-    // 0x00618460,		// Gladius em07 // Broken
-    // 0x00609C20,		// Cutlass em08 // Broken
+    0x00618460,			// Gladius em07 // Broken
+    0x00609C20,			// Cutlass em08 // Broken
 	0x0061A7B0,			// Basilisk em09
 	0x005DC160,			// Chimera Seed em10
 						// Chimera
@@ -36,15 +36,15 @@ constexpr std::array<uintptr_t, 19> fptrEmFactories{
 
 
 
-constexpr std::array<const char*, 19> enemyNames{
+constexpr std::array<const char*, 21> enemyNames{
 	"Scarecrow (Arm)",	// em01
 	"Scarecrow (Leg)",	// em02
 	"Mega Scarecrow",	// em03
 	"Frost",			// em04
 	"Assault",			// em05
 	"Blitz",			// em06
-	// "Gladius",		// em07
-	// "Cutlass",		// em08
+	"Gladius",			// em07
+	"Cutlass",			// em08
 	"Basilisk",			// em09
 	"Chimera Seed",		// em10
 	// Chimera			// em11
@@ -81,7 +81,7 @@ void spawnEm00x(int index) {
         mov ecx, 0Fh
         mov eax, [someStruct] // static
 		mov eax, [eax]
-        push 0Fh
+        push 1ah
         call fptrUpdateActorList
 		popf
 		popa

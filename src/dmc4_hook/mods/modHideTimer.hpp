@@ -24,4 +24,5 @@ private:
     hl::Patch patchbp;
     hl::Patch patchm12;
     hl::Patch patchm12flash;
+    hl::Patch patchbpplus;
 };

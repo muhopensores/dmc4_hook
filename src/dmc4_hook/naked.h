@@ -61,8 +61,9 @@ _declspec(naked) void damagemodifier_proc(void)
 			//movss xmm4, dword ptr [ebp-4]
 
 		originalcode:
-            //movss [esi+0x18],xmm0			// commented out because right now its going through code twice
-			movss [enemyHPDisplay],xmm0		// Writes to an address we'll use for orb display. In originalcode so its not dependent on this checkbox
+            //movss [esi+0x18],xmm0				// commented out because right now its going through code twice
+			movss [enemyHPDisplay],xmm0			// Writes to an address we'll use for orb display. In originalcode so its not dependent on this checkbox
+			comiss xmm2,xmm0					// Lost in cmps
             jmp dword ptr [_damagemodifierContinue]
     }
 }
