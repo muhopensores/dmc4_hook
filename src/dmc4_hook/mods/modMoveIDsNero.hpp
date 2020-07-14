@@ -2,8 +2,7 @@
 
 #include "../mod.hpp"
 
-class MoveIdsNero : public Mod
-{
+class MoveIdsNero : public Mod {
 public:
     MoveIdsNero();
 

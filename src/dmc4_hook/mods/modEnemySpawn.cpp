@@ -81,7 +81,7 @@ void spawnEm00x(int index) {
         mov ecx, 0Fh
         mov eax, [someStruct] // static
 		mov eax, [eax]
-        push 1ah
+        push 0Fh
         call fptrUpdateActorList
 		popf
 		popa

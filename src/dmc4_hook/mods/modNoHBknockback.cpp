@@ -26,9 +26,9 @@ naked void noHelmBreakerKnockback_proc(void)
 		je newcode
 
 		// Nero:
-		cmp [MoveIdsNero::moveIDNero], 786	// Split
+		cmp [MoveIdsNero::moveIDNero], 786  // Split
 		je newcode
-		cmp [MoveIdsNero::moveIDNero], 812	// Double Down
+		cmp [MoveIdsNero::moveIDNero], 812  // Double Down
 		je newcode
 		jmp originalcode
 

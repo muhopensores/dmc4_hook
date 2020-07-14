@@ -1,4 +1,5 @@
 #include "modMoveIDsNero.hpp"
+#include "modMoveIDs.hpp"
 #if 1
 
 uintptr_t MoveIdsNero::jmp_return{ NULL };
@@ -13,6 +14,7 @@ naked void detour()
 {
     _asm {
 		mov [MoveIdsNero::moveIDNero], esi
+        mov [MoveIds::moveID], 0
         mov [ecx+295Ch], esi
 		jmp dword ptr [MoveIdsNero::jmp_return]
     }
