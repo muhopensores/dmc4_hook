@@ -40,6 +40,7 @@
 #include "mods/modNoDeath.hpp"
 #include "mods/modEnemySpawn.hpp"
 #include "mods/modCameraReset.hpp"
+#include "mods/modKnockbackEdits.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -85,6 +86,7 @@ Mods::Mods() {
 	m_mods["NoDeath"_hash] = std::make_unique<NoDeath>();
 	m_mods["EnemySpawn"_hash] = std::make_unique<EnemySpawn>();
 	m_mods["CameraReset"_hash] = std::make_unique<CameraReset>();
+	m_mods["KnockbackEdits"_hash] = std::make_unique<KnockbackEdits>();
 }
 
 // Initializes mods, checks for errors

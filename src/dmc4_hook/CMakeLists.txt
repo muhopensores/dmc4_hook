@@ -82,6 +82,8 @@ SET (MODS
   mods/modEnemySpawn.hpp
   mods/modCameraReset.cpp
   mods/modCameraReset.hpp
+  mods/modKnockbackEdits.cpp
+  mods/modKnockbackEdits.hpp
 )
 
 SET (HEADERS

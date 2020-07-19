@@ -87,41 +87,84 @@ void spawnEm00x(int index) {
 		popa
 	}
 }
+
 #if 0
-naked void enemySpawn_proc(void)
-{
-    _asm {
-		cmp byte ptr [EnemySpawn::modEnabled], 0
-		je code
-        ret // ?
+[ENABLE]
+alloc(emspawn,64,DevilMayCry4_DX9.exe)
+createthread(emspawn)
+emspawn:
+call 0055E710
+//does jackshit
+/*pushad
+fld dword ptr [float1]
+fld dword ptr [float2]
+fld dword ptr [float3]
+popad
+pushad
+lea eax, [eax+1898]
+fstp dword ptr [eax]
+lea eax, [eax-04]
+fstp dword ptr [eax]
+lea eax, [eax-04]
+fstp dword ptr [eax]
+popad*/
+mov esi, eax
+mov ecx, 0F
+//mov ecx, 126
+mov eax,[00E552CC]
+push 0F
+call 008DC540
+ret
 
-    code:
-        call 0055E710h //Scarecrow Arm
-        //does jackshit
-        //pushad
-        //fld dword ptr [float1]
-        //fld dword ptr [float2]
-        //fld dword ptr [float3]
-        //popad
-        //pushad
-        //lea eax, [eax+1898]
-        //fstp dword ptr [eax]
-        //lea eax, [eax-04]
-        //fstp dword ptr [eax]
-        //lea eax, [eax-04]
-        //fstp dword ptr [eax]
-        //popad
-        mov esi, eax
-        mov ecx, 0Fh
-        //mov ecx, 126
-        mov eax, [00E552CCh]
-        push 0Fh
-        call 008DC540h
-        ret
-    }
-}
+[DISABLE]
+dealloc(emspawn)
+unregistersymbol(emspawn)
+
+[ENABLE]
+alloc(emspawn,64,devilmaycry4specialedition.exe)
+alloc(emspawndata,64,devilmaycry4specialedition.exe)
+emspawndata:
+float1:
+dd (float)0
+float2:
+dd (float)0
+float3:
+dd (float)0
+
+createthread(emspawn)
+emspawn:
+mov eax,DevilMayCry4SpecialEdition.exe+26E590 // 1
+call eax
+pushad
+fld dword ptr [float1]
+fld dword ptr [float2]
+fld dword ptr [float3]
+popad
+pushad
+lea eax,[eax+00001898]
+fstp dword ptr [eax]
+lea eax,[eax-04]
+fstp dword ptr [eax]
+lea eax,[eax-04]
+fstp dword ptr [eax]
+popad
+mov esi,eax
+mov ecx,0000000F
+push 00
+push 00
+push esi
+push ecx
+mov ecx,[DevilMayCry4SpecialEdition.exe+F240A4] // 2
+mov eax,DevilMayCry4SpecialEdition.exe+6C32E0 // 3
+call eax
+ret
+
+[DISABLE]
+dealloc(emspawn)
+unregistersymbol(emspawn)
+dealloc(emspawndata)
+unregistersymbol(emspawndata)
 #endif
-
 
 std::optional<std::string> EnemySpawn::onInitialize() 
 { 
