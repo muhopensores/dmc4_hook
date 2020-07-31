@@ -41,6 +41,7 @@
 #include "mods/modEnemySpawn.hpp"
 #include "mods/modCameraReset.hpp"
 #include "mods/modKnockbackEdits.hpp"
+#include "mods/modNoDtCooldown.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -87,6 +88,7 @@ Mods::Mods() {
 	m_mods["EnemySpawn"_hash] = std::make_unique<EnemySpawn>();
 	m_mods["CameraReset"_hash] = std::make_unique<CameraReset>();
 	m_mods["KnockbackEdits"_hash] = std::make_unique<KnockbackEdits>();
+	m_mods["NoDtCooldown"_hash] = std::make_unique<NoDtCooldown>();
 }
 
 // Initializes mods, checks for errors

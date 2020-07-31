@@ -84,6 +84,8 @@ SET (MODS
   mods/modCameraReset.hpp
   mods/modKnockbackEdits.cpp
   mods/modKnockbackEdits.hpp
+  mods/modNoDtCooldown.cpp
+  mods/modNoDtCooldown.hpp
 )
 
 SET (HEADERS

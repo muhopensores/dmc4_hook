@@ -774,11 +774,13 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 main->getMods()->onDrawUI("NoHbKnockback"_hash); // Takes up a lot of room so leave on the right
 
-                //ImGui::SameLine(198);
-
                 main->getMods()->onDrawUI("KnockbackEdits"_hash);
 
+                ImGui::SameLine(198);
+
                 main->getMods()->onDrawUI("ManualTwosomeTime"_hash);
+
+                main->getMods()->onDrawUI("NoDtCooldown"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();
