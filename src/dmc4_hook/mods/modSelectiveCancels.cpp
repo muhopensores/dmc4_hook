@@ -38,11 +38,13 @@ naked void selectiveCancels_proc()
 		je cancellableomen
 		cmp [MoveIds::moveID],0x635						// Gunstinger
 		je cancellablegunstinger
+		cmp [MoveIds::moveID],0x706						// Epidemic
+		je cancellableepidemic
 		jmp originalcode
 
 		cancellableecstasy:
 		test [SelectiveCancels::cancels], ECSTASY	// If Gui is ticked,
-			jg cancellable						// make the move cancellable
+			jg cancellable						    // make the move cancellable
 			jmp originalcode						// if not, don't make it cancellable
 
 			cancellableargument:
@@ -80,11 +82,16 @@ naked void selectiveCancels_proc()
 			jg cancellable
 			jmp originalcode
 
+			cancellableepidemic:
+		test [SelectiveCancels::cancels], EPIDEMIC
+			jg cancellable
+			jmp originalcode
+
 			cancellable:
-		mov dword ptr [esi+0x8C],0x02	// only movs to [esi+8C] after filtering out anything that doesn't have [esi+13C],FFFFFFFF and [esi+144],FFFFFFFF
-										// a change of cmps would allow for different types of cancels such as cancelling an animation with walking or another attack
+		mov dword ptr [esi+0x8C],0x02					// only movs to [esi+8C] after filtering out anything that doesn't have [esi+13C],FFFFFFFF and [esi+144],FFFFFFFF
+														// a change of cmps would allow for different types of cancels such as cancelling an animation with walking or another attack
 			originalcode:								// buffers are also used around this area - the je a few bytes down used to be an inconvenience
-			mov edi,0x00000008				// originalcode has nothing to do with our newmem, just a convenient jmp point so always run
+			mov edi,0x00000008							// originalcode has nothing to do with our newmem, just a convenient jmp point so always run
 			jmp dword ptr [SelectiveCancels::_selectiveCancelsContinue]
 	}
 }
@@ -160,6 +167,8 @@ void SelectiveCancels::onGUIframe() {
 		drawCheckboxSimple("Omen", OMEN);
 
 		ImGui::SameLine(198);
+
+		drawCheckboxSimple("Epidemic", EPIDEMIC);
 
 		drawCheckboxSimple("Gun Stinger", GUNSTINGER);
 	}

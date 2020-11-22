@@ -86,6 +86,8 @@ SET (MODS
   mods/modKnockbackEdits.hpp
   mods/modNoDtCooldown.cpp
   mods/modNoDtCooldown.hpp
+  mods/modDtEnemiesDontStun.cpp
+  mods/modDtEnemiesDontStun.hpp
 )
 
 SET (HEADERS

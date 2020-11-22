@@ -954,6 +954,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
                 }
 
+                main->getMods()->onDrawUI("DtEnemiesDontStun"_hash);
+
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();

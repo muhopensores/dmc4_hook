@@ -10,7 +10,70 @@ constexpr auto shottySwap =
     "00 00 00 00 04 00 00 00 52 00 00 00 0B 00 00 00" // Fifth byte selects knockback type // Originally 2
     "52 00 00 00 0B 00 00 00 00 00 C8 41 00 00 16 43"
     "00 00 B4 41 00 00 00 00 01 00 00 00 00 00 00 00";
+/*
+class attackDataEntry
+{
+public:
+    char name[12];    // 0x1365888
+    __int32 unk00;    // 0x000C
+    __int32 unkInt00; // 0x0010
+    float   damage;   // 0x0014
+    __int32 unkInt01; // 0x0018
+    __int32 unkInt02; // 0x001C
+    __int32 isGround; // 0x0020
+    __int32 unkInt04; // 0x0024
+    __int32 unkInt05; // 0x0028
+    __int32 unkInt06; // 0x002C
+    __int32 unkInt07; // 0x0030
+    __int32 kbType;   // 0x0034
+    __int32 unkInt08; // 0x0038
+    __int32 unkInt09; // 0x003C
+    Vector3 unkVec3;  // 0x0040
+    __int32 unkInt10; // 0x004C
+    __int32 unkInt11; // 0x0050
+    __int32 end;      // 0x0054
 
+}; // Size=0x0058
+
+class atkData
+{
+public:
+    char header[4];           // 0x1365888
+    DWORD headerWord;         // 0x0004
+    attackDataEntry name[64]; // 0x0008
+
+}; // Size=0x1608
+
+class attStruct
+{
+public:
+    char pad_0x0000[0x6C];  // 0x0000
+    atkData* atkDataPtr;    // 0x006C
+    char pad_0x0070[0x794]; // 0x0070
+
+}; // Size=0x0804
+
+
+class kbStruct
+{
+public:
+    virtual create;           //
+    virtual void Function1(); //
+    virtual void Function2(); //
+    virtual void Function3(); //
+    virtual void Function4(); //
+    virtual void Function5(); //
+    virtual void Function6(); //
+    virtual void Function7(); //
+    virtual void Function8(); //
+    virtual void Function9(); //
+
+    char pad_0x0004[0x17EC]; // 0x0004
+    attStruct* attPtr;       // 0x17F0
+    char pad_0x17F4[0x4C];   // 0x17F4
+
+}; // Size=0x1840
+*/
 KnockbackEdits::KnockbackEdits()
 {
     // onInitialize();
