@@ -32,8 +32,12 @@ public:
 
     void onGUIframe() override;
 	void toggleCamSensitivity(bool toggle);
+    void toggleAttackTowardsCam(bool toggle);
 
 private:
     hl::Hooker hook;
 	hl::Patch  cSens;
+    hl::Patch  attackTowardsCamPatch1;
+    hl::Patch  attackTowardsCamPatch2;
+    hl::Patch  attackTowardsCamPatch3;
 };

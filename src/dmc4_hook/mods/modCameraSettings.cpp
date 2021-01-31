@@ -4,6 +4,7 @@
 #if 1
 
 bool cameraSensEnabled{ false };
+bool cameraAutoCorrectTowardsCamEnabled{ false };
 
 bool CameraSettings::modEnabled{ false };
 float CameraSettings::cameraHeight{ 0 };
@@ -15,6 +16,10 @@ float CameraSettings::cameraFovInBattle{ 0 };
 float CameraSettings::cameraFov{ 0 };
 
 constexpr ptrdiff_t cameraSensitivity = 0x180A8;
+
+constexpr ptrdiff_t cameraTowardsAutoCorrect1 = 0x195A5;
+constexpr ptrdiff_t cameraTowardsAutoCorrect2 = 0x195F7;
+constexpr ptrdiff_t cameraTowardsAutoCorrect3 = 0x19822;
 
 uintptr_t CameraSettings::cameraHeightContinue{ NULL };
 uintptr_t CameraSettings::cameraDistanceContinue{ NULL };
@@ -200,6 +205,22 @@ void CameraSettings::toggleCamSensitivity(bool toggle)
     }
 }
 
+void CameraSettings::toggleAttackTowardsCam(bool toggle)
+{
+    if (toggle)
+    {
+        install_patch_offset(cameraTowardsAutoCorrect1, attackTowardsCamPatch1, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+        install_patch_offset(cameraTowardsAutoCorrect2, attackTowardsCamPatch2, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+        install_patch_offset(cameraTowardsAutoCorrect3, attackTowardsCamPatch3, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+    }
+    else
+    {
+        attackTowardsCamPatch1.revert();
+        attackTowardsCamPatch2.revert();
+        attackTowardsCamPatch3.revert();
+    }
+}
+
 void CameraSettings::onGUIframe()
 {
     if (ImGui::CollapsingHeader("Camera"))
@@ -235,6 +256,11 @@ void CameraSettings::onGUIframe()
         {
             toggleCamSensitivity(cameraSensEnabled);
         }
+
+        if (ImGui::Checkbox("Disable Autocorrect When Attacking Camera Direction", &cameraAutoCorrectTowardsCamEnabled))
+        {
+            toggleAttackTowardsCam(cameraAutoCorrectTowardsCamEnabled);
+        }
     }
 }
 
@@ -249,18 +275,20 @@ void CameraSettings::onConfigLoad(const utils::Config& cfg)
     cameraAngleLockon = cfg.get<float>("camera_angle_lockon").value_or(0.0f);
     cameraFov = cfg.get<float>("camera_fov_battle").value_or(0.0f);
 	toggleCamSensitivity(cameraSensEnabled);
+    toggleAttackTowardsCam(cameraAutoCorrectTowardsCamEnabled);
 };
 
 void CameraSettings::onConfigSave(utils::Config& cfg)
 {
     cfg.set<bool>("camera_settings", modEnabled);
-    cfg.set<bool>("increased_camera_sensitivity", cameraSensEnabled);
     cfg.set<float>("camera_height", cameraHeight);
     cfg.set<float>("camera_distance", cameraDistance);
     cfg.set<float>("camera_distance_lockon", cameraDistanceLockon);
     cfg.set<float>("camera_angle", cameraAngle);
     cfg.set<float>("camera_angle_lockon", cameraAngleLockon);
     cfg.set<float>("camera_fov_battle", cameraFov);
+    cfg.set<bool>("increased_camera_sensitivity", cameraSensEnabled);
+    cfg.set<bool>("disable_camera_autocorrect_towards_camera", cameraAutoCorrectTowardsCamEnabled);
 };
 
 #endif
