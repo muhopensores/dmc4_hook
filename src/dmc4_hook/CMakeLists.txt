@@ -96,6 +96,14 @@ SET (MODS
   mods/modTrackingFullHouse.hpp
   mods/modInfTrickRange.cpp
   mods/modInfTrickRange.hpp
+  mods/modTimerMem.cpp
+  mods/modTimerMem.hpp
+  mods/modTrickDown.cpp
+  mods/modTrickDown.hpp
+  mods/modDamageMultiplier.cpp
+  mods/modDamageMultiplier.hpp
+  mods/modHpInOrbsDisplay.cpp
+  mods/modHpInOrbsDisplay.hpp
 )
 
 SET (HEADERS

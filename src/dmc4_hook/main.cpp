@@ -117,8 +117,6 @@ bool checkSlashDimensionCancel = false;
 bool checkPropCancel = false;
 bool checkShockCancel = false;
 bool checkOmenCancel = false;
-bool checkDamageModifier = false;
-bool checkOrbDisplay = false;
 bool checkStunAnything = false;
 bool checkRemoveLaunchArmour = false;
 bool checkCharacterChange = false;
@@ -134,11 +132,6 @@ bool checkSetStyle = false;
 bool checkRandomEnemies = false;
 bool checkAutoSkipOutro = false;
 bool checkInfiniteTableHopper = false;
-bool checkTimerAlloc = false;
-bool checkBackForward = false;
-bool checkTrickDown = false;
-bool checkFloorTouch = false;
-bool checkHoneyComb = false;
 bool checkRoseRemovesPins = false;
 
 hl::StaticInit<class hlMain> g_main;
@@ -164,26 +157,6 @@ void hlMain::ImGuiToggleBerialDaze()
     g_berialDazeEnable = !g_berialDazeEnable;
 }
 
-void hlMain::ImGuiToggleHoneyComb()
-{
-    g_honeyCombEnable = !g_honeyCombEnable;
-}
-
-void hlMain::ImGuiToggleDamageModifier()
-{
-    g_damageModifierEnable = !g_damageModifierEnable;
-}
-
-void hlMain::ImGuiToggleOrbDisplay()
-{
-    g_orbDisplayEnable = !g_orbDisplayEnable;
-}
-
-void hlMain::ImGuiToggleTrickDown()
-{
-    g_trickDownEnable = !g_trickDownEnable;
-}
-
 void hlMain::ImGuiToggleRoseRemovesPins()
 {
     g_roseRemovesPinsEnable = !g_roseRemovesPinsEnable;
@@ -199,24 +172,9 @@ void hlMain::ToggleStuff()
 {
 	// Player
 		// General
-
-		// Player Damage Modifier
-    if (checkDamageModifier)
-    {
-        g_damageModifierEnable = true;
-    }
 		// Misc
 	ToggleInfiniteAirHike(checkInfiniteAirHike);
     ToggleInfiniteTableHopper(checkInfiniteTableHopper);
-    if (checkTrickDown)
-    {
-        g_trickDownEnable = true;
-    }
-
-    if (checkHoneyComb)
-    {
-        g_honeyCombEnable = true;
-    }
 	ToggleFastPandora(checkFastPandora);
     ToggleSprintFasterActivate(checkSprintFasterActivate);
 	if (checkRoseRemovesPins)
@@ -233,10 +191,6 @@ void hlMain::ToggleStuff()
     ToggleCharacterChange(checkCharacterChange);
     ToggleSlowWalk(checkSlowWalk);
     ToggleBpPortalAutoOpen(checkBpPortalAutoOpen);
-    if (checkOrbDisplay)
-    {
-        g_orbDisplayEnable = true;
-    }
 		// Game Mode
     ToggleBossRush(checkBossRush);
 	ToggleEnemyInstantDT(checkEnemyInstantDT);
@@ -279,14 +233,8 @@ void hlMain::shutdown() {
 }
 
 void hlMain::loadSettings() {
-
-	checkDamageModifier =  cfg->get<bool>("damage_modifier").value_or(false);
-	damagemultiplier = cfg->get<float>("damage_factor").value_or(1.0f);
-
 	checkInfiniteAirHike = cfg->get<bool>("infinite_air_hike").value_or(false);// reader.GetBoolean("player", "infinite_air_hike", true);
 	checkInfiniteTableHopper = cfg->get<bool>("infinite_table_hopper").value_or(false);//reader.GetBoolean("player", "infinite_table_hopper", true);
-	checkTrickDown = cfg->get<bool>("trick_down").value_or(false);//reader.GetBoolean("player", "trick_down", true);
-	checkHoneyComb = cfg->get<bool>("instant_honeycomb").value_or(false);//reader.GetBoolean("player", "instant_honeycomb", true);
 	checkFastPandora = cfg->get<bool>("fast_pandora").value_or(false);//reader.GetBoolean("player", "fast_pandora", true);
 	checkSprintFasterActivate = cfg->get<bool>("faster_sprint_activation").value_or(false);//reader.GetBoolean("player", "faster_sprint_activation", true);
 	checkRoseRemovesPins = cfg->get<bool>("rose_removes_pins").value_or(false);//reader.GetBoolean("player", "rose_removes_pins", true);
@@ -300,7 +248,6 @@ void hlMain::loadSettings() {
 	checkCharacterChange = cfg->get<bool>("character_change").value_or(false);//reader.GetBoolean("system", "character_change", true);
 	checkSlowWalk = cfg->get<bool>("enable_slow_walk").value_or(false);//reader.GetBoolean("system", "enable_slow_walk", true);
 	checkBpPortalAutoOpen = cfg->get<bool>("auto_open_doors_and_BP_portal").value_or(false);//reader.GetBoolean("system", "auto_open_doors_and_BP_portal", true);
-	checkOrbDisplay = cfg->get<bool>("enemy_hp_red_orb_display").value_or(false);//reader.GetBoolean("system", "enemy_hp_red_orb_display", true);
 	// Game Mode
 	checkBossRush = cfg->get<bool>("boss_rush_mode").value_or(false);//reader.GetBoolean("system", "boss_rush_mode", true);
 	checkEnemyInstantDT = cfg->get<bool>("enemy_instant_DT").value_or(false);//reader.GetBoolean("system", "enemy_instant_DT", true);
@@ -328,13 +275,8 @@ void hlMain::loadSettings() {
 
 void hlMain::saveSettings() {
 	HL_LOG_RAW("Saving settings\n");
-	cfg->set<bool>("damage_modifier",checkDamageModifier);
-	cfg->set<float>("damage_factor", damagemultiplier);
-	
 	cfg->set<bool>("infinite_air_hike",checkInfiniteAirHike);
 	cfg->set<bool>("infinite_table_hopper",checkInfiniteTableHopper);
-	cfg->set<bool>("trick_down",checkTrickDown);
-	cfg->set<bool>("instant_honeycomb",checkHoneyComb);
 	cfg->set<bool>("fast_pandora",checkFastPandora);
 	cfg->set<bool>("faster_sprint_activation",checkSprintFasterActivate);
 	cfg->set<bool>("rose_removes_pins",checkRoseRemovesPins);
@@ -347,7 +289,6 @@ void hlMain::saveSettings() {
 	cfg->set<bool>("character_change",checkCharacterChange);
 	cfg->set<bool>("enable_slow_walk",checkSlowWalk);
 	cfg->set<bool>("auto_open_doors_and_BP_portal",checkBpPortalAutoOpen);
-	cfg->set<bool>("enemy_hp_red_orb_display",checkOrbDisplay);
 	cfg->set<bool>("boss_rush_mode",checkBossRush);
 	cfg->set<bool>("enemy_instant_DT",checkEnemyInstantDT);
 	cfg->set<bool>("enemy_no_DT",checkEnemyNoDT);
@@ -413,9 +354,6 @@ bool hlMain::init()
 	m_mods = std::make_unique<Mods>();
 	// iterate over all the mods and call onInitialize();
 	m_mods->onInitialize();
-
-    damagemodifier = hl::FindPattern(damagemodifier_aob);
-    orbDisplay = modBase + 0xFDD35;
     disablecameraEventsOne = hl::FindPattern(disableCameraEvents1_aob);
     disablecameraEventsTwo = hl::FindPattern(disableCameraEvents2_aob);
     hideHUDOne = modBase + 0xFEFE5;
@@ -519,10 +457,6 @@ bool hlMain::init()
     characterChangeNineteen = modBase + 0x4AD1D9;
     characterChangeTwenty = modBase + 0x4AD339;
     characterChangeTwentyOne = modBase + 0x4AD449;
-    timerAlloc = modBase + 0x3AD76A;
-    backForward = modBase + 0x405BC1;
-    trickDown = modBase + 0x3CB119;
-    floorTouch = modBase + 0x3CB33D;
     roseRemovesPins = modBase + 0x4158C3;
 
     sprintFasterActivate = modBase + 0x40456C;
@@ -558,11 +492,6 @@ bool hlMain::init()
     infiniteTableHopper = modBase + 0x3F873C;
 
     // hooks and jumps to get back to the correct address after hooking
-    if (damagemodifier != 0)
-    {
-        auto damagemodifier_hk = m_hook.hookJMP(damagemodifier, 5, &damagemodifier_proc, &_damagemodifierContinue);
-    }
-
     if (infiniteDT != 0)
     {
         auto infiniteDT_hk = m_hook.hookJMP(infiniteDT, 8, &infiniteDT_proc, &_infiniteDTContinue);
@@ -577,30 +506,6 @@ bool hlMain::init()
     if (berialDazeTwo != 0)
     {
         auto berialDazeTwo_hk = m_hook.hookJMP(berialDazeTwo, 8, &berialDaze_proc, &_berialDazeContinue);
-    }
-    if (orbDisplay != 0)
-    {
-        auto orbDisplay_hk = m_hook.hookJMP(orbDisplay, 6, &orbDisplay_proc); //, &_orbDisplayContinue
-    }
-
-    if (timerAlloc != 0)
-    {
-        auto timerAlloc_hk = m_hook.hookJMP(timerAlloc, 10, &timerAlloc_proc);
-    }
-
-    if (backForward != 0)
-    {
-        auto backForward_hk = m_hook.hookJMP(backForward, 8, &backForward_proc);
-    }
-
-    if (trickDown != 0)
-    {
-        auto trickDown_hk = m_hook.hookJMP(trickDown, 8, &trickDown_proc);
-    }
-
-    if (floorTouch != 0)
-    {
-        auto floorTouch_hk = m_hook.hookJMP(floorTouch, 8, &floorTouch_proc);
     }
 
     if (roseRemovesPins != 0)
@@ -695,19 +600,13 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 Misc();
 
-                if (ImGui::Checkbox("Trick Down", &checkTrickDown))
-                {
-                    main->ImGuiToggleTrickDown();
-                }
+                main->getMods()->onDrawUI("TrickDown"_hash);
 
                 ImGui::SameLine(198);
 
                 main->getMods()->onDrawUI("TrackingFullHouse"_hash);
 
-                if (ImGui::Checkbox("Instant Honeycomb", &checkHoneyComb))
-                {
-                    main->ImGuiToggleHoneyComb();
-                }
+                main->getMods()->onDrawUI("TimerMem"_hash); // instant honeycomb
 
                 ImGui::SameLine(198);
 
@@ -717,8 +616,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 }
 
                 main->getMods()->onDrawUI("EasyJc"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("50% bigger JC hitspheres");
 
                 ImGui::SameLine(198);
 
@@ -796,20 +693,13 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
                 ImGui::Text("General");
 
-                if (ImGui::Checkbox("Player Damage Multiplier", &checkDamageModifier))
-                {
-                    main->ImGuiToggleDamageModifier();
-                }
-
-                ImGui::SameLine(202);
+                main->getMods()->onDrawUI("DamageMultiplier"_hash);
 
                 main->getMods()->onDrawUI("OneHitKill"_hash);
                 ImGui::SameLine(0, 1);
                 HelpMarker("This overrides the multiplier");
 
-                ImGui::PushItemWidth(215);
-                ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
-                ImGui::PopItemWidth();
+                ImGui::SameLine(202);
 
                 main->getMods()->onDrawUI("NoDeath"_hash);
                 ImGui::SameLine(0, 1);
@@ -2086,12 +1976,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleHideHUD(checkHideHUD);
                 }
 
-                if (ImGui::Checkbox("Enemy HP Red Orb Display", &checkOrbDisplay))
-                {
-                    main->ImGuiToggleOrbDisplay();
-                }
-                ImGui::SameLine(0, 1);
-                HelpMarker("Display the last hit enemy's HP in the Red Orb count");
+                main->getMods()->onDrawUI("HpInOrbsDisplay"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();

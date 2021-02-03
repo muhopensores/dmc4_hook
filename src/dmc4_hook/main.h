@@ -54,10 +54,6 @@ public:
     void ImGuiToggleInfPlayerHealth();
     void ImGuiToggleInfDT();
     void ImGuiToggleBerialDaze();
-    void ImGuiToggleDamageModifier();
-    void ImGuiToggleTrickDown();
-    void ImGuiToggleHoneyComb();
-    void ImGuiToggleOrbDisplay();
     void ImGuiToggleRoseRemovesPins();
     
 	//functions
@@ -95,8 +91,6 @@ public:
     // define our pointers here, but init and search for them in init()
     // pointer definitions
     uintptr_t modBase;
-    uintptr_t damagemodifier;
-    uintptr_t orbDisplay;
     uintptr_t disablecameraEventsOne;
     uintptr_t disablecameraEventsTwo;
     uintptr_t hideHUDOne;
@@ -230,10 +224,6 @@ public:
     uintptr_t replaceCredo;
     uintptr_t replaceAgnus;
     uintptr_t infiniteTableHopper;
-    uintptr_t timerAlloc;
-    uintptr_t backForward;
-    uintptr_t trickDown;
-    uintptr_t floorTouch;
     uintptr_t roseRemovesPins;
 
 

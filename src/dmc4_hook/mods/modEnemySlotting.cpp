@@ -18,12 +18,12 @@ naked void detour(void)
 		je originalcode
 
 		mov eax, [enemyslotlimit]
-		mov ecx, [0x00E558AC] // compiles as mov ecx,00E558AC rather than mov ecx,[00E558AC]
+		mov ecx, [0x00E558AC] // mov ecx, [0x00E558AC] compiles as mov ecx,00E558AC rather than mov ecx,[00E558AC]
 		jmp dword ptr [EnemySlotting::jmp_ret]
 
 	originalcode:
 		mov eax, [esi+0x28]
-		mov ecx, [enemySlottingMov] // compiles as mov ecx,[7B7CB1E8]
+		mov ecx, [0x00E558AC] // mov ecx, [enemySlottingMov] compiles as mov ecx,7B7CB1E8 rather than mov ecx,[00E558AC]
 		jmp dword ptr [EnemySlotting::jmp_ret]
 	}
 }

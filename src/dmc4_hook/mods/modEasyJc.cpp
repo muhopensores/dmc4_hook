@@ -59,6 +59,8 @@ void EasyJc::onGUIframe()
     {
         toggle(modEnabled);
     }
+    ImGui::SameLine(0, 1);
+    HelpMarker("50% bigger JC hitspheres");
 }
 
 void EasyJc::onConfigLoad(const utils::Config& cfg)

@@ -47,6 +47,10 @@
 #include "mods/modPlayerTracker.hpp"
 #include "mods/modTrackingFullHouse.hpp"
 #include "mods/modInfTrickRange.hpp"
+#include "mods/modTimerMem.hpp"
+#include "mods/modTrickDown.hpp"
+#include "mods/modDamageMultiplier.hpp"
+#include "mods/modHpInOrbsDisplay.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -99,7 +103,10 @@ Mods::Mods() {
 		m_mods["PlayerTracker"_hash] = std::make_unique<PlayerTracker>();
 		m_mods["TrackingFullHouse"_hash] = std::make_unique<TrackingFullHouse>();
 		m_mods["InfTrickRange"_hash] = std::make_unique<InfTrickRange>();
-        
+        m_mods["TimerMem"_hash] = std::make_unique<TimerMem>();
+		m_mods["TrickDown"_hash] = std::make_unique<TrickDown>();
+        m_mods["DamageMultiplier"_hash] = std::make_unique<DamageMultiplier>();
+		m_mods["HpInOrbsDisplay"_hash] = std::make_unique<HpInOrbsDisplay>();
 }
 
 // Initializes mods, checks for errors
