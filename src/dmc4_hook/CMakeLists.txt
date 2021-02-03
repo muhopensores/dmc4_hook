@@ -90,6 +90,12 @@ SET (MODS
   mods/modDtEnemiesDontStun.hpp
   mods/modEnemySlotting.cpp
   mods/modEnemySlotting.hpp
+  mods/modPlayerTracker.cpp
+  mods/modPlayerTracker.hpp
+  mods/modTrackingFullHouse.cpp
+  mods/modTrackingFullHouse.hpp
+  mods/modInfTrickRange.cpp
+  mods/modInfTrickRange.hpp
 )
 
 SET (HEADERS

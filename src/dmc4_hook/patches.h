@@ -2627,14 +2627,3 @@ void hlMain::ToggleInfiniteTableHopper(bool toggle)
             infiniteTableHopper_patch.revert();
     }
 }
-
-void hlMain::ToggleInfiniteTrickRange(bool toggle)
-{
-    if (infiniteTrickRange)
-    {
-        if (toggle)
-            infiniteTrickRange_patch.apply(infiniteTrickRange, "\x90\x90\x90", 3);
-        else
-            infiniteTrickRange_patch.revert();
-    }
-}

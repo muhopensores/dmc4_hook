@@ -2,15 +2,16 @@
 
 #include "../mod.hpp"
 
-class EnemySlotting : public Mod
+class InfTrickRange : public Mod
 {
 public:
-    EnemySlotting();
+    InfTrickRange();
 
     static bool modEnabled;
-    static uintptr_t jmp_ret; // = 0x00337729;
 
-    std::string getModName() override { return "EnemySlotting"; };
+    void toggle(bool enable);
+
+    std::string getModName() override { return "InfTrickRange"; };
 
     std::optional<std::string> onInitialize() override;
 
@@ -20,5 +21,5 @@ public:
     void onGUIframe() override;
 
 private:
-    hl::Hooker hook;
+    hl::Patch patch;
 };

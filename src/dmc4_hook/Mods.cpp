@@ -44,55 +44,62 @@
 #include "mods/modNoDtCooldown.hpp"
 #include "mods/modDtEnemiesDontStun.hpp"
 #include "mods/modEnemySlotting.hpp"
+#include "mods/modPlayerTracker.hpp"
+#include "mods/modTrackingFullHouse.hpp"
+#include "mods/modInfTrickRange.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
 Mods::Mods() {
-	//add mods here
-	//m_mods["ModName"_hash] = std::make_unique<ModName>();
-	m_mods["AreaJump"_hash] = std::make_unique<AreaJump>();
-	m_mods["LimitAdjust"_hash] = std::make_unique<LimitAdjust>();
-	m_mods["MoveIds"_hash] = std::make_unique<MoveIds>();
-	m_mods["NoHbKnockback"_hash] = std::make_unique<NoHbKnockback>();
-	m_mods["EasyJc"_hash] = std::make_unique<EasyJc>();
-	m_mods["SelectiveCancels"_hash] = std::make_unique<SelectiveCancels>();
-	m_mods["WorkRate"_hash] = std::make_unique<WorkRate>();
-	m_mods["BackgroundRendering"_hash] = std::make_unique<BackgroundRendering>();
-	m_mods["Borderless"_hash] = std::make_unique<Borderless>();
-    m_mods["InfDreadnought"_hash] = std::make_unique<InfDreadnought>();
-	m_mods["NoClip"_hash] = std::make_unique<NoClip>();
-    m_mods["SkipPandora"_hash] = std::make_unique<SkipPandora>();
-	m_mods["RestoreMaxHp"_hash] = std::make_unique<RestoreMaxHp>();
-    m_mods["InputStates"_hash] = std::make_unique<InputStates>();
-	m_mods["FpsLimit"_hash] = std::make_unique<FpsLimit>();
-    m_mods["MoveIdsNero"_hash] = std::make_unique<MoveIdsNero>();
-    m_mods["InfSkyStars"_hash] = std::make_unique<InfSkyStars>();
-    m_mods["FreeCam"_hash] = std::make_unique<FreeCam>();
-    m_mods["ForceLucifer"_hash] = std::make_unique<ForceLucifer>();
-    m_mods["DisableLastEnemyZoom"_hash] = std::make_unique<DisableLastEnemyZoom>();
-    m_mods["LdkWithDmd"_hash] = std::make_unique<LdkWithDmd>();
-    m_mods["DmdBloodyPalace"_hash] = std::make_unique<DmdBloodyPalace>();
-    m_mods["DmdLevelAi"_hash] = std::make_unique<DmdLevelAi>();
-    m_mods["OneHitKill"_hash] = std::make_unique<OneHitKill>();
-    m_mods["HideTimer"_hash] = std::make_unique<HideTimer>();
-    m_mods["ManualTwosomeTime"_hash] = std::make_unique<ManualTwosomeTime>();
-	m_mods["HeightRestrictionDante"_hash] = std::make_unique<HeightRestrictionDante>();
-    m_mods["InfFaustCloak"_hash] = std::make_unique<InfFaustCloak>();
-    m_mods["PassiveEnemies"_hash] = std::make_unique<PassiveEnemies>();
-	m_mods["HeightRestrictionNero"_hash] = std::make_unique<HeightRestrictionNero>();
-	m_mods["InfiniteTime"_hash] = std::make_unique<InfiniteTime>();
-	m_mods["InfAllHealth"_hash] = std::make_unique<InfAllHealth>();
-	m_mods["CameraSettings"_hash] = std::make_unique<CameraSettings>();
-	m_mods["FreezeEnemies"_hash] = std::make_unique<FreezeEnemies>();
-	m_mods["FreeJc"_hash] = std::make_unique<FreeJc>();
-	m_mods["CameraLookdown"_hash] = std::make_unique<CameraLookdown>();
-	m_mods["NoDeath"_hash] = std::make_unique<NoDeath>();
-	m_mods["EnemySpawn"_hash] = std::make_unique<EnemySpawn>();
-	m_mods["CameraReset"_hash] = std::make_unique<CameraReset>();
-	m_mods["KnockbackEdits"_hash] = std::make_unique<KnockbackEdits>();
-	m_mods["NoDtCooldown"_hash] = std::make_unique<NoDtCooldown>();
-	m_mods["DtEnemiesDontStun"_hash] = std::make_unique<DtEnemiesDontStun>();
-	m_mods["EnemySlotting"_hash] = std::make_unique<EnemySlotting>();
+		//add mods here
+		//m_mods["ModName"_hash] = std::make_unique<ModName>();
+		m_mods["AreaJump"_hash] = std::make_unique<AreaJump>();
+		m_mods["LimitAdjust"_hash] = std::make_unique<LimitAdjust>();
+		m_mods["MoveIds"_hash] = std::make_unique<MoveIds>();
+		m_mods["NoHbKnockback"_hash] = std::make_unique<NoHbKnockback>();
+		m_mods["EasyJc"_hash] = std::make_unique<EasyJc>();
+		m_mods["SelectiveCancels"_hash] = std::make_unique<SelectiveCancels>();
+		m_mods["WorkRate"_hash] = std::make_unique<WorkRate>();
+		m_mods["BackgroundRendering"_hash] = std::make_unique<BackgroundRendering>();
+		m_mods["Borderless"_hash] = std::make_unique<Borderless>();
+		m_mods["InfDreadnought"_hash] = std::make_unique<InfDreadnought>();
+		m_mods["NoClip"_hash] = std::make_unique<NoClip>();
+		m_mods["SkipPandora"_hash] = std::make_unique<SkipPandora>();
+		m_mods["RestoreMaxHp"_hash] = std::make_unique<RestoreMaxHp>();
+		m_mods["InputStates"_hash] = std::make_unique<InputStates>();
+		m_mods["FpsLimit"_hash] = std::make_unique<FpsLimit>();
+		m_mods["MoveIdsNero"_hash] = std::make_unique<MoveIdsNero>();
+		m_mods["InfSkyStars"_hash] = std::make_unique<InfSkyStars>();
+		m_mods["FreeCam"_hash] = std::make_unique<FreeCam>();
+		m_mods["ForceLucifer"_hash] = std::make_unique<ForceLucifer>();
+		m_mods["DisableLastEnemyZoom"_hash] = std::make_unique<DisableLastEnemyZoom>();
+		m_mods["LdkWithDmd"_hash] = std::make_unique<LdkWithDmd>();
+		m_mods["DmdBloodyPalace"_hash] = std::make_unique<DmdBloodyPalace>();
+		m_mods["DmdLevelAi"_hash] = std::make_unique<DmdLevelAi>();
+		m_mods["OneHitKill"_hash] = std::make_unique<OneHitKill>();
+		m_mods["HideTimer"_hash] = std::make_unique<HideTimer>();
+		m_mods["ManualTwosomeTime"_hash] = std::make_unique<ManualTwosomeTime>();
+		m_mods["HeightRestrictionDante"_hash] = std::make_unique<HeightRestrictionDante>();
+		m_mods["InfFaustCloak"_hash] = std::make_unique<InfFaustCloak>();
+		m_mods["PassiveEnemies"_hash] = std::make_unique<PassiveEnemies>();
+		m_mods["HeightRestrictionNero"_hash] = std::make_unique<HeightRestrictionNero>();
+		m_mods["InfiniteTime"_hash] = std::make_unique<InfiniteTime>();
+		m_mods["InfAllHealth"_hash] = std::make_unique<InfAllHealth>();
+		m_mods["CameraSettings"_hash] = std::make_unique<CameraSettings>();
+		m_mods["FreezeEnemies"_hash] = std::make_unique<FreezeEnemies>();
+		m_mods["FreeJc"_hash] = std::make_unique<FreeJc>();
+		m_mods["CameraLookdown"_hash] = std::make_unique<CameraLookdown>();
+		m_mods["NoDeath"_hash] = std::make_unique<NoDeath>();
+		m_mods["EnemySpawn"_hash] = std::make_unique<EnemySpawn>();
+		m_mods["CameraReset"_hash] = std::make_unique<CameraReset>();
+		m_mods["KnockbackEdits"_hash] = std::make_unique<KnockbackEdits>();
+		m_mods["NoDtCooldown"_hash] = std::make_unique<NoDtCooldown>();
+		m_mods["DtEnemiesDontStun"_hash] = std::make_unique<DtEnemiesDontStun>();
+		m_mods["EnemySlotting"_hash] = std::make_unique<EnemySlotting>();
+		m_mods["PlayerTracker"_hash] = std::make_unique<PlayerTracker>();
+		m_mods["TrackingFullHouse"_hash] = std::make_unique<TrackingFullHouse>();
+		m_mods["InfTrickRange"_hash] = std::make_unique<InfTrickRange>();
+        
 }
 
 // Initializes mods, checks for errors

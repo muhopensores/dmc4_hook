@@ -2,7 +2,7 @@
 #include "modEnemySlotting.hpp"
 
 bool      EnemySlotting::modEnabled{ false };
-uintptr_t EnemySlotting::_enemySlottingContinue{ 0x00737732 };
+uintptr_t EnemySlotting::jmp_ret{ NULL }; // 0x00737732
 int enemyslotlimit{};
 
 static uintptr_t enemySlottingMov{ 0x00E558AC }; // mov ecx,[DevilMayCry4_DX9.exe+A558AC] // mov ecx,[00E558AC]
@@ -11,7 +11,7 @@ EnemySlotting::EnemySlotting() {
 	//onInitialize();
 }
 
-naked void EnemySlotting_proc(void)
+naked void detour(void)
 {
 	_asm {
 		cmp byte ptr [EnemySlotting::modEnabled],0
@@ -19,22 +19,22 @@ naked void EnemySlotting_proc(void)
 
 		mov eax, [enemyslotlimit]
 		mov ecx, [0x00E558AC] // compiles as mov ecx,00E558AC rather than mov ecx,[00E558AC]
-		jmp dword ptr [EnemySlotting::_enemySlottingContinue]
+		jmp dword ptr [EnemySlotting::jmp_ret]
 
 	originalcode:
 		mov eax, [esi+0x28]
 		mov ecx, [enemySlottingMov] // compiles as mov ecx,[7B7CB1E8]
-		jmp dword ptr [EnemySlotting::_enemySlottingContinue]
+		jmp dword ptr [EnemySlotting::jmp_ret]
 	}
 }
 
 std::optional<std::string> EnemySlotting::onInitialize() {
-
-	if (!install_hook_offset(0x337729, hook, &EnemySlotting_proc, 0,9)) {
+    /*
+	if (!install_hook_offset(0x337729, hook, &detour, &jmp_ret, 9)) {
 		HL_LOG_ERR("Failed to init EnemySlotting mod\n");
 		return "Failed to init EnemySlotting mod";
 	}
-
+    */
 	return Mod::onInitialize();
 }
 

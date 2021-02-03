@@ -1,11 +1,9 @@
 #pragma once
-
+//#include "mods/modPlayerTracker.hpp"
 
 extern "C"
 {
-    int lockOnAlloc = 0;
     float damagemultiplier = 1.0f;
-    float fullHouseAngle = 65.0f;
     float timerMem = 0.0f;
     float timerMemTick = 1.0f;
     float downFloat = -200.0f;
@@ -17,9 +15,6 @@ extern "C"
     uintptr_t _infinitePlayerHealthContinue = NULL;
     uintptr_t _berialDazeContinue = NULL;
     uintptr_t _stunAnythingContinue = NULL;
-    uintptr_t _lockOnContinue = NULL;
-    uintptr_t _lockOffContinue = NULL;
-    uintptr_t _trackingFullHouseContinue = 0x007D3478;
     uintptr_t _timerAllocContinue = 0x007AD774;
     uintptr_t _backForwardContinue = 0x00805A60; // This isn't return, its the next opcode
     uintptr_t _trickDownContinue = 0x007CB121;
@@ -34,7 +29,6 @@ extern "C"
     bool g_damageModifierEnable = false;
 	bool g_orbDisplayEnable = false;
     bool g_stunAnythingEnable = false;
-    bool g_trackingFullHouseEnable = false;
     bool g_trickDownEnable = false;
     bool g_honeyCombEnable = false;
 	bool g_roseRemovesPinsEnable = false;
@@ -137,41 +131,6 @@ _declspec(naked) void berialDaze_proc(void)
     }
 }
 
-_declspec(naked) void lockOn_proc(void)
-{
-    _asm {
-			mov [lockOnAlloc],0x01			// mov lock on state 0/1 to an address we can access anywhere
-			//mov [edi+0x000016D0],0x1			// this is never toggled off, so can be used whenever and doesn't rely on any checkbox
-			jmp dword ptr [_lockOnContinue]
-    }
-}
-
-_declspec(naked) void lockOff_proc(void)
-{
-    _asm {
-			mov [lockOnAlloc],0x0
-			//mov [edi+0x000016D0],0x0
-			jmp dword ptr [_lockOffContinue]
-    }
-}
-
-_declspec(naked) void trackingFullHouse_proc(void)
-{
-    _asm {
-			cmp byte ptr [g_trackingFullHouseEnable], 0
-			je originalcode
-
-			cmp [lockOnAlloc],0x1
-			je skipcode
-
-		originalcode:
-			comiss xmm0, [fullHouseAngle]	// 65 float
-
-		skipcode:
-			jmp dword ptr [_trackingFullHouseContinue]
-    }
-}
-
 _declspec(naked) void timerAlloc_proc(void) // This + the next 3 are what make up down trick
 {
     _asm {
@@ -197,7 +156,7 @@ _declspec(naked) void timerAlloc_proc(void) // This + the next 3 are what make u
 			jmp dontreplacetrick			// By putting replacements on a timer you make a buffer for the input and have a convenient off state
 
 		replacetrick:
-			cmp [lockOnAlloc],0x0
+			// cmp [lockOnAlloc],0x0
 			je dontreplacetrick
 			push eax
 			mov eax,0x00C413A4				// Trickster Dash
@@ -226,7 +185,7 @@ _declspec(naked) void timerAlloc_proc(void) // This + the next 3 are what make u
 			jmp dontreplacetwosome
 
 		replacetwosome:
-			cmp [lockOnAlloc],0x0
+			// cmp [lockOnAlloc],0x0
 			je dontreplacetwosome
 			push eax
 			mov eax,0x00C40DBC				// Twosome Time

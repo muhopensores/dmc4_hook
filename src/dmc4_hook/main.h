@@ -49,14 +49,12 @@ public:
     void ToggleInfiniteRevive(bool toggle);
     void ToggleAutoSkipOutro(bool toggle);
     void ToggleInfiniteTableHopper(bool toggle);
-    void ToggleInfiniteTrickRange(bool toggle);
 
 	//imgui toggle functions definitons
     void ImGuiToggleInfPlayerHealth();
     void ImGuiToggleInfDT();
     void ImGuiToggleBerialDaze();
     void ImGuiToggleDamageModifier();
-    void ImGuiToggleTrackingFullHouse();
     void ImGuiToggleTrickDown();
     void ImGuiToggleHoneyComb();
     void ImGuiToggleOrbDisplay();
@@ -232,14 +230,10 @@ public:
     uintptr_t replaceCredo;
     uintptr_t replaceAgnus;
     uintptr_t infiniteTableHopper;
-    uintptr_t lockOn;
-    uintptr_t lockOff;
-    uintptr_t trackingFullHouse;
     uintptr_t timerAlloc;
     uintptr_t backForward;
     uintptr_t trickDown;
     uintptr_t floorTouch;
-    uintptr_t infiniteTrickRange;
     uintptr_t roseRemovesPins;
 
 
@@ -279,7 +273,7 @@ public:
         replaceMephisto_patch, replaceFaust_patch, replaceFrost_patch, replaceAssault_patch, replaceBlitz_patch,
         replaceChimera_patch, replaceBasilisk_patch, replaceBerial_patch, replaceBael_patch, replaceEchidna_patch,
         replaceCredo_patch, replaceAgnus_patch, autoSkipOutro_patch, infiniteTableHopper_patch,
-        infiniteReviveFour_patch,infiniteTrickRange_patch;
+        infiniteReviveFour_patch;
 
 
     const hl::IHook* g_PresentHook;

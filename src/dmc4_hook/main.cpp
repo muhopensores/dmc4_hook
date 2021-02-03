@@ -134,15 +134,11 @@ bool checkSetStyle = false;
 bool checkRandomEnemies = false;
 bool checkAutoSkipOutro = false;
 bool checkInfiniteTableHopper = false;
-bool checkLockOn = false;
-bool checkLockOff = false;
-bool checkTrackingFullHouse = false;
 bool checkTimerAlloc = false;
 bool checkBackForward = false;
 bool checkTrickDown = false;
 bool checkFloorTouch = false;
 bool checkHoneyComb = false;
-bool checkInfiniteTrickRange = false;
 bool checkRoseRemovesPins = false;
 
 hl::StaticInit<class hlMain> g_main;
@@ -176,11 +172,6 @@ void hlMain::ImGuiToggleHoneyComb()
 void hlMain::ImGuiToggleDamageModifier()
 {
     g_damageModifierEnable = !g_damageModifierEnable;
-}
-
-void hlMain::ImGuiToggleTrackingFullHouse()
-{
-    g_trackingFullHouseEnable = !g_trackingFullHouseEnable;
 }
 
 void hlMain::ImGuiToggleOrbDisplay()
@@ -221,11 +212,7 @@ void hlMain::ToggleStuff()
     {
         g_trickDownEnable = true;
     }
-    ToggleInfiniteTrickRange(checkInfiniteTrickRange);
-    if (checkTrackingFullHouse)
-    {
-        g_trackingFullHouseEnable = true;
-    }
+
     if (checkHoneyComb)
     {
         g_honeyCombEnable = true;
@@ -299,8 +286,6 @@ void hlMain::loadSettings() {
 	checkInfiniteAirHike = cfg->get<bool>("infinite_air_hike").value_or(false);// reader.GetBoolean("player", "infinite_air_hike", true);
 	checkInfiniteTableHopper = cfg->get<bool>("infinite_table_hopper").value_or(false);//reader.GetBoolean("player", "infinite_table_hopper", true);
 	checkTrickDown = cfg->get<bool>("trick_down").value_or(false);//reader.GetBoolean("player", "trick_down", true);
-	checkInfiniteTrickRange = cfg->get<bool>("infinite_trick_range").value_or(false);//reader.GetBoolean("player", "infinite_trick_range", true);
-	checkTrackingFullHouse = cfg->get<bool>("tracking_full_house").value_or(false);//reader.GetBoolean("player", "tracking_full_house", true);
 	checkHoneyComb = cfg->get<bool>("instant_honeycomb").value_or(false);//reader.GetBoolean("player", "instant_honeycomb", true);
 	checkFastPandora = cfg->get<bool>("fast_pandora").value_or(false);//reader.GetBoolean("player", "fast_pandora", true);
 	checkSprintFasterActivate = cfg->get<bool>("faster_sprint_activation").value_or(false);//reader.GetBoolean("player", "faster_sprint_activation", true);
@@ -349,8 +334,6 @@ void hlMain::saveSettings() {
 	cfg->set<bool>("infinite_air_hike",checkInfiniteAirHike);
 	cfg->set<bool>("infinite_table_hopper",checkInfiniteTableHopper);
 	cfg->set<bool>("trick_down",checkTrickDown);
-	cfg->set<bool>("infinite_trick_range",checkInfiniteTrickRange);
-	cfg->set<bool>("tracking_full_house",checkTrackingFullHouse);
 	cfg->set<bool>("instant_honeycomb",checkHoneyComb);
 	cfg->set<bool>("fast_pandora",checkFastPandora);
 	cfg->set<bool>("faster_sprint_activation",checkSprintFasterActivate);
@@ -536,14 +519,10 @@ bool hlMain::init()
     characterChangeNineteen = modBase + 0x4AD1D9;
     characterChangeTwenty = modBase + 0x4AD339;
     characterChangeTwentyOne = modBase + 0x4AD449;
-    lockOn = modBase + 0x3a8337;
-    lockOff = modBase + 0x3a838c;
-    trackingFullHouse = modBase + 0x3d3471;
     timerAlloc = modBase + 0x3AD76A;
     backForward = modBase + 0x405BC1;
     trickDown = modBase + 0x3CB119;
     floorTouch = modBase + 0x3CB33D;
-    infiniteTrickRange = modBase + 0x3CB0A8;
     roseRemovesPins = modBase + 0x4158C3;
 
     sprintFasterActivate = modBase + 0x40456C;
@@ -599,22 +578,6 @@ bool hlMain::init()
     {
         auto berialDazeTwo_hk = m_hook.hookJMP(berialDazeTwo, 8, &berialDaze_proc, &_berialDazeContinue);
     }
-
-    if (lockOn != 0)
-    {
-        auto lockOn_hk = m_hook.hookJMP(lockOn, 10, &lockOn_proc, &_lockOnContinue);
-    }
-
-    if (lockOff != 0)
-    {
-        auto lockOff_hk = m_hook.hookJMP(lockOff, 10, &lockOff_proc, &_lockOffContinue);
-    }
-
-    if (trackingFullHouse != 0)
-    {
-        auto trackingFullHouse_hk = m_hook.hookJMP(trackingFullHouse, 7, &trackingFullHouse_proc);
-    }
-
     if (orbDisplay != 0)
     {
         auto orbDisplay_hk = m_hook.hookJMP(orbDisplay, 6, &orbDisplay_proc); //, &_orbDisplayContinue
@@ -739,10 +702,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::SameLine(198);
 
-                if (ImGui::Checkbox("Tracking Full House", &checkTrackingFullHouse))
-                {
-                    main->ImGuiToggleTrackingFullHouse();
-                }
+                main->getMods()->onDrawUI("TrackingFullHouse"_hash);
 
                 if (ImGui::Checkbox("Instant Honeycomb", &checkHoneyComb))
                 {
@@ -814,10 +774,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                     main->ToggleInfiniteTableHopper(checkInfiniteTableHopper);
                 }
 
-                if (ImGui::Checkbox("Infinite Trick Range", &checkInfiniteTrickRange))
-                {
-                    main->ToggleInfiniteTrickRange(checkInfiniteTrickRange);
-                }
+                main->getMods()->onDrawUI("InfTrickRange"_hash);
 
                 ImGui::SameLine(198);
 

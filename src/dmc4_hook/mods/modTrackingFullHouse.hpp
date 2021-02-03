@@ -2,15 +2,16 @@
 
 #include "../mod.hpp"
 
-class EnemySlotting : public Mod
+class TrackingFullHouse : public Mod
 {
 public:
-    EnemySlotting();
+    TrackingFullHouse();
 
     static bool modEnabled;
-    static uintptr_t jmp_ret; // = 0x00337729;
+    static uintptr_t jmp_ret;
+    static uintptr_t jmp_out;
 
-    std::string getModName() override { return "EnemySlotting"; };
+    std::string getModName() override { return "TrackingFullHouse"; };
 
     std::optional<std::string> onInitialize() override;
 
