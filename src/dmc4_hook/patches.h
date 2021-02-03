@@ -3,55 +3,6 @@
 
 //patch functions that are being applied by patching the bytes in the specific addresses according to function body
 
-
-void hlMain::ToggleDisableCameraEvents(bool toggle)
-{
-    if (disablecameraEventsOne)
-    {
-        if (toggle)
-            disablecameraEventsOne_patch.apply(disablecameraEventsOne, "\x31\xC0\xB8\x06\x00\x00\x00", 7);
-        else
-            disablecameraEventsOne_patch.revert();
-    }
-
-    if (disablecameraEventsTwo)
-    {
-        if (toggle)
-            disablecameraEventsTwo_patch.apply(disablecameraEventsTwo, "\xEB\x17\xD9\x05\x7C\xA2\xB9\x00", 8);
-        else
-            disablecameraEventsTwo_patch.revert();
-    }
-}
-
-void hlMain::ToggleHideHUD(bool toggle)
-{
-    if (hideHUDOne)
-    {
-        if (toggle)
-            hideHUDOne_patch.apply(hideHUDOne, "\x73\x2E", 2);
-        else
-            hideHUDOne_patch.revert();
-    }
-
-    if (hideHUDTwo)
-    {
-        if (toggle)
-            hideHUDTwo_patch.apply(hideHUDTwo, "\x73\x76", 2);
-        if (toggle)
-            hideOrbs_patch.apply(hideOrbs, "\x80\xbf\xfe\x00\x00\x00\x00", 7);
-        else
-            hideHUDTwo_patch.revert();
-    }
-
-    if (hideHUDThree)
-    {
-        if (toggle)
-            hideHUDThree_patch.apply(hideHUDThree, "\x0F\x83\x5B\x03\x00\x00", 6);
-        else
-            hideHUDThree_patch.apply(hideHUDThree, "\x0F\x84\x5B\x03\x00\x00", 6);
-    }
-}
-
 void hlMain::ToggleEnemyNoDT(bool toggle)
 {
     if (enemyNoDT)
@@ -136,25 +87,6 @@ void hlMain::ToggleInfiniteAirHike(bool toggle)
             infiniteAirHikeThree_patch.apply(infiniteAirHikeThree, "\x80\x81\x7E\x1E\x00\x00\x00", 7);
         else
             infiniteAirHikeThree_patch.revert();
-    }
-}
-
-void hlMain::ToggleBerialPractice(bool toggle)
-{
-    if (berialDazeOne)
-    {
-        if (toggle)
-            berialDazeOne_patch.apply(berialDazeOne, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-        else
-            berialDazeOne_patch.revert();
-    }
-
-    if (berialCollapse)
-    {
-        if (toggle)
-            berialCollapse_patch.apply(berialCollapse, "\x0F\x2F\xC0\x90\x90\x90\x90\x90", 8);
-        else
-            berialCollapse_patch.revert();
     }
 }
 
@@ -1013,17 +945,6 @@ void hlMain::ToggleDisableDarkslayerUp(bool toggle)
     }
 }
 
-void hlMain::ToggleStunAnything(bool toggle)
-{
-    if (stunAnything)
-    {
-        if (toggle)
-            stunAnything_patch.apply(stunAnything, "\x83\xf9\x01\x90\x90", 5);
-        else
-            stunAnything_patch.revert();
-    }
-}
-
 void hlMain::ToggleRemoveLaunchArmour(bool toggle)
 {
     if (removeLaunchArmour)
@@ -1244,29 +1165,6 @@ void hlMain::ToggleSlowWalk(bool toggle)
             slowWalkTwo_patch.apply(slowWalkTwo, "\x0c\x14\x00\x00\x39\xc8", 6);
         else
             slowWalkTwo_patch.revert();
-    }
-}
-
-void hlMain::ToggleHideStyle(bool toggle)
-{
-    if (hideStyle)
-    {
-        if (toggle)
-            hideStyle_patch.apply(hideStyle, "\x0f\x83\x5b\x03\x00\x00", 6);
-        if (toggle)
-            hideHUDOne_patch.apply(hideHUDOne, "\x74\x2E", 2);
-        if (toggle)
-            hideHUDTwo_patch.apply(hideHUDTwo, "\x74\x76", 2);
-        else
-            hideStyle_patch.apply(hideStyle, "\x0f\x84\x5b\x03\x00\x00", 6);
-    }
-
-    if (hideOrbs)
-    {
-        if (toggle)
-            hideOrbs_patch.apply(hideOrbs, "\x80\xbf\xfe\x00\x00\x00\xff", 7);
-        else
-            hideOrbs_patch.apply(hideOrbs, "\x80\xbf\xfe\x00\x00\x00\x00", 7);
     }
 }
 

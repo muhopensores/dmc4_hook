@@ -52,8 +52,6 @@ SET (MODS
   mods/modDmdLevelAi.hpp
   mods/modOneHitKill.cpp
   mods/modOneHitKill.hpp
-  mods/modHideTimer.cpp
-  mods/modHideTimer.hpp
   mods/modManualTwosomeTime.cpp
   mods/modManualTwosomeTime.hpp
   mods/modHeightRestrictionDante.cpp
@@ -104,6 +102,20 @@ SET (MODS
   mods/modDamageMultiplier.hpp
   mods/modHpInOrbsDisplay.cpp
   mods/modHpInOrbsDisplay.hpp
+  mods/modInfDT.cpp
+  mods/modInfDT.hpp
+  mods/modInfPlayerHealth.cpp
+  mods/modInfPlayerHealth.hpp
+  mods/modBerialDaze.cpp
+  mods/modBerialDaze.hpp
+  mods/modRoseRemovesPins.cpp
+  mods/modRoseRemovesPins.hpp
+  mods/modStunAnything.cpp
+  mods/modStunAnything.hpp
+  mods/modDisableCameraEvents.cpp
+  mods/modDisableCameraEvents.hpp
+  mods/modHideHud.cpp
+  mods/modHideHud.hpp
 )
 
 SET (HEADERS

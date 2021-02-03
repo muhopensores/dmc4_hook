@@ -92,16 +92,11 @@ bool checkStyleSwitch = false;
 bool checkWeaponSwitch = false;
 bool checkJcCooldown = false;
 bool checkMovingTargetChange = false;
-bool checkDisableCameraEvents = false;
-bool checkHideHUD = false;
 bool checkEnemyNoDT = false;
 bool checkEnemyInstantDT = false;
 bool checkBpPortalAutoOpen = false;
 bool checkFastPandora = false;
 bool checkInfiniteAirHike = false;
-bool checkInfiniteDT = false;
-bool checkInfinitePlayerHealth = false;
-bool checkBerialPractice = false;
 bool checkBossRush = false;
 bool checkDanteMustDie = false;
 bool checkDisableDarkslayerDown = false;
@@ -117,7 +112,6 @@ bool checkSlashDimensionCancel = false;
 bool checkPropCancel = false;
 bool checkShockCancel = false;
 bool checkOmenCancel = false;
-bool checkStunAnything = false;
 bool checkRemoveLaunchArmour = false;
 bool checkCharacterChange = false;
 bool checkSprintFasterActivate = false;
@@ -125,14 +119,12 @@ bool checkKeyboardEnable = false;
 bool checkEnemyAttackOffscreen = false;
 bool checkSlowWalk = false;
 bool checkCameraSettings = false;
-bool checkHideStyle = false;
 bool checkautoSkiptIntro = false;
 bool checkInfiniteRevive = false;
 bool checkSetStyle = false;
 bool checkRandomEnemies = false;
 bool checkAutoSkipOutro = false;
 bool checkInfiniteTableHopper = false;
-bool checkRoseRemovesPins = false;
 
 hl::StaticInit<class hlMain> g_main;
 
@@ -142,26 +134,6 @@ hlMain* GetMain()
 }
 
 // toggle functions to call from imgui to apply cheats
-void hlMain::ImGuiToggleInfPlayerHealth()
-{
-    g_InfPlayerHealthEnable = !g_InfPlayerHealthEnable;
-}
-
-void hlMain::ImGuiToggleInfDT()
-{
-    g_InfDTEnable = !g_InfDTEnable;
-}
-
-void hlMain::ImGuiToggleBerialDaze()
-{
-    g_berialDazeEnable = !g_berialDazeEnable;
-}
-
-void hlMain::ImGuiToggleRoseRemovesPins()
-{
-    g_roseRemovesPinsEnable = !g_roseRemovesPinsEnable;
-}
-
 
 void hlMain::GamePause()
 {
@@ -177,17 +149,10 @@ void hlMain::ToggleStuff()
     ToggleInfiniteTableHopper(checkInfiniteTableHopper);
 	ToggleFastPandora(checkFastPandora);
     ToggleSprintFasterActivate(checkSprintFasterActivate);
-	if (checkRoseRemovesPins)
-    {
-        g_roseRemovesPinsEnable = true;
-    }
 	// System
 		// General
-    ToggleDisableCameraEvents(checkDisableCameraEvents);
     ToggleAutoSkipIntro(checkautoSkiptIntro);
     ToggleAutoSkipOutro(checkAutoSkipOutro);
-    ToggleHideHUD(checkHideHUD);
-    ToggleHideStyle(checkHideStyle);
     ToggleCharacterChange(checkCharacterChange);
     ToggleSlowWalk(checkSlowWalk);
     ToggleBpPortalAutoOpen(checkBpPortalAutoOpen);
@@ -201,23 +166,9 @@ void hlMain::ToggleStuff()
 
 	// Practice
 		// General
-    if (checkInfiniteDT)
-    {
-        g_InfDTEnable = true;
-    }
-    if (checkInfinitePlayerHealth)
-    {
-        g_InfPlayerHealthEnable = true;
-    }
     ToggleInfiniteRevive(checkInfiniteRevive);
 
 		// Misc
-    ToggleBerialPractice(checkBerialPractice);
-		if (checkBerialPractice)
-		{
-			g_berialDazeEnable = true;
-		}
-    ToggleStunAnything(checkStunAnything);
 	ToggleRemoveLaunchArmour(checkRemoveLaunchArmour);
 
 		//Disable Darkslayer Inputs
@@ -237,14 +188,10 @@ void hlMain::loadSettings() {
 	checkInfiniteTableHopper = cfg->get<bool>("infinite_table_hopper").value_or(false);//reader.GetBoolean("player", "infinite_table_hopper", true);
 	checkFastPandora = cfg->get<bool>("fast_pandora").value_or(false);//reader.GetBoolean("player", "fast_pandora", true);
 	checkSprintFasterActivate = cfg->get<bool>("faster_sprint_activation").value_or(false);//reader.GetBoolean("player", "faster_sprint_activation", true);
-	checkRoseRemovesPins = cfg->get<bool>("rose_removes_pins").value_or(false);//reader.GetBoolean("player", "rose_removes_pins", true);
 
 	// General
-	checkDisableCameraEvents = cfg->get<bool>("disable_camera_events").value_or(false);//reader.GetBoolean("system", "disable_camera_events", true);
 	checkautoSkiptIntro = cfg->get<bool>("auto_skip_mission_intro").value_or(false);//reader.GetBoolean("system", "auto_skip_mission_intro", true);
 	checkAutoSkipOutro = cfg->get<bool>("auto_skip_mission_outros").value_or(false);//reader.GetBoolean("system", "auto_skip_mission_outros", true);
-	checkHideHUD = cfg->get<bool>("hide_hud").value_or(false);//reader.GetBoolean("system", "hide_hud", true);
-	checkHideStyle = cfg->get<bool>("hide_Style_meter_and_orbs").value_or(false);//reader.GetBoolean("system", "hide_Style_meter_and_orbs", true);
 	checkCharacterChange = cfg->get<bool>("character_change").value_or(false);//reader.GetBoolean("system", "character_change", true);
 	checkSlowWalk = cfg->get<bool>("enable_slow_walk").value_or(false);//reader.GetBoolean("system", "enable_slow_walk", true);
 	checkBpPortalAutoOpen = cfg->get<bool>("auto_open_doors_and_BP_portal").value_or(false);//reader.GetBoolean("system", "auto_open_doors_and_BP_portal", true);
@@ -255,12 +202,8 @@ void hlMain::loadSettings() {
 	checkEnemyAttackOffscreen = cfg->get<bool>("enemies_attack_offscreen").value_or(false);//reader.GetBoolean("system", "enemies_attack_offscreen", true);
 	// Practice
 	// General
-	checkInfiniteDT = cfg->get<bool>("infinite_DT").value_or(false);//reader.GetBoolean("practice", "infinite_DT", true);
-	checkInfinitePlayerHealth = cfg->get<bool>("infinite_player_health").value_or(false);//reader.GetBoolean("practice", "infinite_player_health", true);
 	checkInfiniteRevive = cfg->get<bool>("infinite_revive").value_or(false);//reader.GetBoolean("practice", "infinite_revive", true);
 	// Misc
-	checkBerialPractice = cfg->get<bool>("berial_practice").value_or(false);//reader.GetBoolean("practice", "berial_practice", true);
-	checkStunAnything = cfg->get<bool>("stun_anything").value_or(false);//reader.GetBoolean("practice", "stun_anything", true);
 	checkRemoveLaunchArmour = cfg->get<bool>("remove_launch_armour").value_or(false);//reader.GetBoolean("practice", "remove_launch_armour", true);
 	// Disable Darkslayer Inputs
 	checkDisableDarkslayerUp    = cfg->get<bool>("disable_darkslayer_Dpad_up").value_or(false);//reader.GetBoolean("practice", "disable_darkslayer_Dpad_up", true);
@@ -279,13 +222,8 @@ void hlMain::saveSettings() {
 	cfg->set<bool>("infinite_table_hopper",checkInfiniteTableHopper);
 	cfg->set<bool>("fast_pandora",checkFastPandora);
 	cfg->set<bool>("faster_sprint_activation",checkSprintFasterActivate);
-	cfg->set<bool>("rose_removes_pins",checkRoseRemovesPins);
-	
-	cfg->set<bool>("disable_camera_events",checkDisableCameraEvents);
 	cfg->set<bool>("auto_skip_mission_intro",checkautoSkiptIntro);
 	cfg->set<bool>("auto_skip_mission_outros",checkAutoSkipOutro);
-	cfg->set<bool>("hide_hud",checkHideHUD);
-	cfg->set<bool>("hide_Style_meter_and_orbs",checkHideStyle);
 	cfg->set<bool>("character_change",checkCharacterChange);
 	cfg->set<bool>("enable_slow_walk",checkSlowWalk);
 	cfg->set<bool>("auto_open_doors_and_BP_portal",checkBpPortalAutoOpen);
@@ -293,11 +231,7 @@ void hlMain::saveSettings() {
 	cfg->set<bool>("enemy_instant_DT",checkEnemyInstantDT);
 	cfg->set<bool>("enemy_no_DT",checkEnemyNoDT);
 	cfg->set<bool>("enemies_attack_offscreen",checkEnemyAttackOffscreen);
-	cfg->set<bool>("infinite_DT",checkInfiniteDT);
-	cfg->set<bool>("infinite_player_health",checkInfinitePlayerHealth);
 	cfg->set<bool>("infinite_revive",checkInfiniteRevive);
-	cfg->set<bool>("berial_practice",checkBerialPractice);
-	cfg->set<bool>("stun_anything",checkStunAnything);
 	cfg->set<bool>("remove_launch_armour",checkRemoveLaunchArmour);
 	cfg->set<bool>("disable_darkslayer_Dpad_up",checkDisableDarkslayerUp);
 	cfg->set<bool>("disable_darkslayer_Dpad_down",checkDisableDarkslayerDown);
@@ -354,11 +288,6 @@ bool hlMain::init()
 	m_mods = std::make_unique<Mods>();
 	// iterate over all the mods and call onInitialize();
 	m_mods->onInitialize();
-    disablecameraEventsOne = hl::FindPattern(disableCameraEvents1_aob);
-    disablecameraEventsTwo = hl::FindPattern(disableCameraEvents2_aob);
-    hideHUDOne = modBase + 0xFEFE5;
-    hideHUDTwo = modBase + 0xFF1F0;
-    hideHUDThree = modBase + 0x1017F8;
     enemyNoDT = modBase + 0x3309DD;
     enemyInstantDT = modBase + 0x3309A1;
     enemyInstantDTTwo = modBase + 0x3309DF;
@@ -368,11 +297,6 @@ bool hlMain::init()
     infiniteAirHikeOne = modBase + 0x3ACA3A;
     infiniteAirHikeTwo = modBase + 0x3ACA4A;
     infiniteAirHikeThree = modBase + 0x3ACA51;
-    infiniteDT = modBase + 0xFF315;
-    infinitePlayerHealth = modBase + 0xFF282;
-    berialDazeOne = modBase + 0x23515B;
-    berialDazeTwo = modBase + 0x24271A;
-    berialCollapse = modBase + 0x234FDA;
     bossRushOne = modBase + 0x101AA4;
     bossRushTwo = modBase + 0x4AB8E2;
     bossRushThree = modBase + 0x4AB8FD;
@@ -433,8 +357,6 @@ bool hlMain::init()
     disableDarkslayerLeft = modBase + 0x3B6D42;
     disableDarkslayerRight = modBase + 0x3B6D99;
     disableDarkslayerUp = modBase + 0x3B6C84;
-
-    stunAnything = hl::FindPattern(stunAnything_aob);
     removeLaunchArmour = hl::FindPattern(removeLaunchArmour_aob);
     characterChangeOne = modBase + 0x3790CF;
     characterChangeTwo = modBase + 0x87825C;
@@ -457,14 +379,11 @@ bool hlMain::init()
     characterChangeNineteen = modBase + 0x4AD1D9;
     characterChangeTwenty = modBase + 0x4AD339;
     characterChangeTwentyOne = modBase + 0x4AD449;
-    roseRemovesPins = modBase + 0x4158C3;
 
     sprintFasterActivate = modBase + 0x40456C;
     enemyAttackOffscreen = modBase + 0xA8CE9;
     slowWalkOne = modBase + 0x421C83;
     slowWalkTwo = modBase + 0x421D85;
-    hideStyle = modBase + 0x1017F8;
-    hideOrbs = modBase + 0xFF1F2;
     autoSkipIntro = modBase + 0x6DF1;
     autoSkipOutro = modBase + 0x7E6D;
     infiniteReviveOne = modBase + 0x39FA7C;
@@ -492,26 +411,6 @@ bool hlMain::init()
     infiniteTableHopper = modBase + 0x3F873C;
 
     // hooks and jumps to get back to the correct address after hooking
-    if (infiniteDT != 0)
-    {
-        auto infiniteDT_hk = m_hook.hookJMP(infiniteDT, 8, &infiniteDT_proc, &_infiniteDTContinue);
-    }
-
-    if (infinitePlayerHealth != 0)
-    {
-        auto infinitePlayerHealth_hk =
-            m_hook.hookJMP(infinitePlayerHealth, 8, &infinitePlayerHealth_proc, &_infinitePlayerHealthContinue);
-    }
-
-    if (berialDazeTwo != 0)
-    {
-        auto berialDazeTwo_hk = m_hook.hookJMP(berialDazeTwo, 8, &berialDaze_proc, &_berialDazeContinue);
-    }
-
-    if (roseRemovesPins != 0)
-    {
-        auto roseRemovesPins_hk = m_hook.hookJMP(roseRemovesPins, 10, &roseRemovesPins_proc);
-    }
 
 	// loads settings and toggles refactored mods.
 	loadSettings();
@@ -610,10 +509,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::SameLine(198);
 
-                if (ImGui::Checkbox("Rose Removes Pins", &checkRoseRemovesPins))
-                {
-                    main->ImGuiToggleRoseRemovesPins();
-                }
+                main->getMods()->onDrawUI("RoseRemovesPins"_hash);
 
                 main->getMods()->onDrawUI("EasyJc"_hash);
 
@@ -713,15 +609,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::SameLine(202);
 
-                if (ImGui::Checkbox("Infinite DT", &checkInfiniteDT))
-                {
-                    main->ImGuiToggleInfDT();
-                }
+                main->getMods()->onDrawUI("InfDT"_hash);
 
-                if (ImGui::Checkbox("Infinite Player Health", &checkInfinitePlayerHealth))
-                {
-                    main->ImGuiToggleInfPlayerHealth();
-                }
+                main->getMods()->onDrawUI("InfPlayerHealth"_hash);
 
                 ImGui::SameLine(202);
 
@@ -811,18 +701,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 Misc();
 
-                if (ImGui::Checkbox("Berial Daze", &checkBerialPractice))
-                {
-                    main->ToggleBerialPractice(checkBerialPractice);
-                    main->ImGuiToggleBerialDaze();
-                }
+                main->getMods()->onDrawUI("BerialDaze"_hash);
 
                 ImGui::SameLine(202);
 
-                if (ImGui::Checkbox("Stun Anything", &checkStunAnything))
-                {
-                    main->ToggleStunAnything(checkStunAnything);
-                }
+                main->getMods()->onDrawUI("StunAnything"_hash);
 
                 main->getMods()->onDrawUI("InfFaustCloak"_hash);
 
@@ -1960,36 +1843,15 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::SameLine(205);
 
-                main->getMods()->onDrawUI("HideTimer"_hash);
-
-                if (ImGui::Checkbox("Hide Style & Orbs", &checkHideStyle))
-                {
-                    checkHideHUD = false;
-                    main->ToggleHideStyle(checkHideStyle);
-                }
-
-                ImGui::SameLine(205);
-
-                if (ImGui::Checkbox("Hide HUD", &checkHideHUD))
-                {
-                    checkHideStyle = false;
-                    main->ToggleHideHUD(checkHideHUD);
-                }
-
                 main->getMods()->onDrawUI("HpInOrbsDisplay"_hash);
+
+                main->getMods()->onDrawUI("HideHud"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
 
-                if (ImGui::Checkbox("Disable Camera Events", &checkDisableCameraEvents))
-                {
-                    main->ToggleDisableCameraEvents(checkDisableCameraEvents);
-                }
-
-                ImGui::SameLine(0, 1);
-                HelpMarker("Certain missions or parts will cause a black screen when this option is enabled. Press the "
-                           "start button and then X/A to go into a menu. The screen should return to normal.");
+                main->getMods()->onDrawUI("DisableCameraEvents"_hash);
 
                 if (ImGui::Checkbox("Skip Mission Intros", &checkautoSkiptIntro))
                 {

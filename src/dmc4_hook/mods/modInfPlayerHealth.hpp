@@ -2,16 +2,15 @@
 
 #include "../mod.hpp"
 
-class HideTimer : public Mod
+class InfPlayerHealth : public Mod
 {
 public:
-    HideTimer() = default;
+    InfPlayerHealth();
 
     static bool modEnabled;
+    static uintptr_t jmp_ret;
 
-    void toggle(bool enable);
-
-    std::string getModName() override { return "HideTimer"; };
+    std::string getModName() override { return "InfPlayerHealth"; };
 
     std::optional<std::string> onInitialize() override;
 
@@ -21,8 +20,5 @@ public:
     void onGUIframe() override;
 
 private:
-    hl::Patch patchbp;
-    hl::Patch patchm12;
-    hl::Patch patchm12flash;
-    hl::Patch patchbpplus;
+    hl::Hooker hook;
 };

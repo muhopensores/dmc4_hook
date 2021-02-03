@@ -25,36 +25,27 @@ public:
 	std::unique_ptr<utils::Config> cfg;
 	void ToggleStuff();
     // patch functions definitons
-    void ToggleDisableCameraEvents(bool toggle);
-    void ToggleHideHUD(bool toggle);
     void ToggleEnemyNoDT(bool toggle);
     void ToggleEnemyInstantDT(bool toggle);
     void ToggleBpPortalAutoOpen(bool toggle);
     void ToggleFastPandora(bool toggle);
     void ToggleInfiniteAirHike(bool toggle);
-    void ToggleBerialPractice(bool toggle);
     void ToggleBossRush(bool toggle);
     void ToggleDisableDarkslayerDown(bool toggle);
     void ToggleDisableDarkslayerLeft(bool toogle);
     void ToggleDisableDarkslayerRight(bool toggle);
     void ToggleDisableDarkslayerUp(bool toggle);
-    void ToggleStunAnything(bool toggle);
     void ToggleRemoveLaunchArmour(bool toggle);
     void ToggleCharacterChange(bool toggle);
     void ToggleSprintFasterActivate(bool toggle);
     void ToggleEnemyAttackOffscreen(bool toggle);
     void ToggleSlowWalk(bool toggle);
-    void ToggleHideStyle(bool toggle);
     void ToggleAutoSkipIntro(bool toggle);
     void ToggleInfiniteRevive(bool toggle);
     void ToggleAutoSkipOutro(bool toggle);
     void ToggleInfiniteTableHopper(bool toggle);
 
 	//imgui toggle functions definitons
-    void ImGuiToggleInfPlayerHealth();
-    void ImGuiToggleInfDT();
-    void ImGuiToggleBerialDaze();
-    void ImGuiToggleRoseRemovesPins();
     
 	//functions
     void SetDefault();
@@ -91,11 +82,6 @@ public:
     // define our pointers here, but init and search for them in init()
     // pointer definitions
     uintptr_t modBase;
-    uintptr_t disablecameraEventsOne;
-    uintptr_t disablecameraEventsTwo;
-    uintptr_t hideHUDOne;
-    uintptr_t hideHUDTwo;
-    uintptr_t hideHUDThree;
     uintptr_t enemyNoDT;
     uintptr_t enemyInstantDT;
     uintptr_t enemyInstantDTTwo;
@@ -105,11 +91,6 @@ public:
     uintptr_t infiniteAirHikeOne;
     uintptr_t infiniteAirHikeTwo;
     uintptr_t infiniteAirHikeThree;
-    uintptr_t infiniteDT;
-    uintptr_t infinitePlayerHealth;
-    uintptr_t berialDazeOne;
-    uintptr_t berialDazeTwo;
-    uintptr_t berialCollapse;
     uintptr_t bossRushOne;
     uintptr_t bossRushTwo;
     uintptr_t bossRushThree;
@@ -170,7 +151,6 @@ public:
     uintptr_t disableDarkslayerLeft;
     uintptr_t disableDarkslayerRight;
     uintptr_t disableDarkslayerUp;
-    uintptr_t stunAnything;
     uintptr_t removeLaunchArmour;
     uintptr_t characterChangeOne;
     uintptr_t characterChangeTwo;
@@ -197,8 +177,6 @@ public:
     uintptr_t enemyAttackOffscreen;
     uintptr_t slowWalkOne;
     uintptr_t slowWalkTwo;
-    uintptr_t hideStyle;
-    uintptr_t hideOrbs;
     uintptr_t autoSkipIntro;
     uintptr_t autoSkipOutro;
     uintptr_t infiniteReviveOne;
@@ -224,14 +202,12 @@ public:
     uintptr_t replaceCredo;
     uintptr_t replaceAgnus;
     uintptr_t infiniteTableHopper;
-    uintptr_t roseRemovesPins;
 
 
-    hl::Patch disablecameraEventsOne_patch,
-        disablecameraEventsTwo_patch, hideHUDOne_patch, hideHUDTwo_patch, hideHUDThree_patch, enemyNoDT_patch,
+    hl::Patch enemyNoDT_patch,
         enemyInstantDT_patch, enemyInstantDTTwo_patch, bpPortalAutoOpen_patch, fastPandoraOne_patch,
         fastPandoraTwo_patch, infiniteAirHikeOne_patch, infiniteAirHikeTwo_patch, infiniteAirHikeThree_patch,
-        berialDazeOne_patch, berialCollapse_patch, bossRushOne_patch, bossRushTwo_patch, bossRushThree_patch,
+        bossRushOne_patch, bossRushTwo_patch, bossRushThree_patch,
         bossRushFour_patch, bossRushFive_patch, bossRushSix_patch, bossRushSeven_patch, difficultySelectOne_patch,
         difficultySelectTwo_patch, difficultySelectThree_patch, difficultySelectFour_patch, difficultySelectFive_patch,
         difficultySelectSix_patch, difficultySelectSeven_patch, difficultySelectEight_patch, difficultySelectNine_patch,
@@ -249,15 +225,15 @@ public:
         difficultySelectFortyThree_patch, difficultySelectFortyFour_patch, difficultySelectFortyFive_patch,
         difficultySelectFortySix_patch, difficultySelectFortySeven_patch, difficultySelectFortyEight_patch,
         difficultySelectFortyNine_patch, disableDarkslayerDown_patch, disableDarkslayerLeft_patch,
-        disableDarkslayerRight_patch, disableDarkslayerUp_patch, stunAnything_patch, removeLaunchArmour_patch,
+        disableDarkslayerRight_patch, disableDarkslayerUp_patch, removeLaunchArmour_patch,
         characterChangeOne_patch, characterChangeTwo_patch, characterchangeThree_patch, characterchangeFour_patch,
         characterChangeFive_patch, characterChangeSix_patch, characterChangeSeven_patch, characterChangeEight_patch,
         characterChangeNine_patch, characterChangeTen_patch, characterChangeEleven_patch, characterChangeTwelve_patch,
         characterChangeThirteen_patch, characterChangeFourteen_patch, characterChangeFifteen_patch,
         characterChangeSixteen_patch, characterChangeSeventeen_patch, characterChangeEighteen_patch,
         characterChangeNineteen_patch, characterChangeTwenty_patch, characterChangeTwentyOne_patch,
-        sprintFasterActivate_patch, enemyAttackOffscreen_patch, slowWalkOne_patch, slowWalkTwo_patch, hideStyle_patch,
-        hideOrbs_patch, autoSkipIntro_patch, infiniteReviveOne_patch,
+        sprintFasterActivate_patch, enemyAttackOffscreen_patch, slowWalkOne_patch, slowWalkTwo_patch,
+        autoSkipIntro_patch, infiniteReviveOne_patch,
         infiniteReviveTwo_patch, infiniteReviveThree_patch, replaceScarecrowLeg_patch, replaceScarecrowArm_patch,
         replaceMegaScarecrow_patch, replacementAddressTwo_patch, replaceBiancoAngelo_patch, replaceAltoAngelo_patch,
         replaceMephisto_patch, replaceFaust_patch, replaceFrost_patch, replaceAssault_patch, replaceBlitz_patch,

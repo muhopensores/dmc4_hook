@@ -18,14 +18,5 @@ constexpr auto jcCooldown_aob =
 constexpr auto movingTargetChange_aob =
     "75 ?? 0F 57 C0 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 ?? 88 ?? ?? 30 00 00 75";
 
-constexpr auto disableCameraEvents1_aob = 
-	"0F B6 80 A0 CA 40 00";
-
-constexpr auto disableCameraEvents2_aob = 
-	"75 17 D9 05 7C A2 B9 00 8B 3D B8 58 E5 00 51 D9 1C 24 E8 D8";
-
-constexpr auto stunAnything_aob = 
-	"83 F9 01 7C 30";
-
 constexpr auto removeLaunchArmour_aob = 
 	"83 FF 05 7C 05 BF 04 00 00 00 33 C9";

@@ -25,7 +25,6 @@
 #include "mods/modDmdBloodyPalace.hpp"
 #include "mods/modDmdLevelAi.hpp"
 #include "mods/modOneHitKill.hpp"
-#include "mods/modHideTimer.hpp"
 #include "mods/modManualTwosomeTime.hpp"
 #include "mods/modHeightRestrictionDante.hpp"
 #include "mods/modInfFaustCloak.hpp"
@@ -51,6 +50,13 @@
 #include "mods/modTrickDown.hpp"
 #include "mods/modDamageMultiplier.hpp"
 #include "mods/modHpInOrbsDisplay.hpp"
+#include "mods/modInfDT.hpp"
+#include "mods/modInfPlayerHealth.hpp"
+#include "mods/modBerialDaze.hpp"
+#include "mods/modRoseRemovesPins.hpp"
+#include "mods/modStunAnything.hpp"
+#include "mods/modDisableCameraEvents.hpp"
+#include "mods/modHideHud.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -81,7 +87,6 @@ Mods::Mods() {
 		m_mods["DmdBloodyPalace"_hash] = std::make_unique<DmdBloodyPalace>();
 		m_mods["DmdLevelAi"_hash] = std::make_unique<DmdLevelAi>();
 		m_mods["OneHitKill"_hash] = std::make_unique<OneHitKill>();
-		m_mods["HideTimer"_hash] = std::make_unique<HideTimer>();
 		m_mods["ManualTwosomeTime"_hash] = std::make_unique<ManualTwosomeTime>();
 		m_mods["HeightRestrictionDante"_hash] = std::make_unique<HeightRestrictionDante>();
 		m_mods["InfFaustCloak"_hash] = std::make_unique<InfFaustCloak>();
@@ -107,6 +112,13 @@ Mods::Mods() {
 		m_mods["TrickDown"_hash] = std::make_unique<TrickDown>();
         m_mods["DamageMultiplier"_hash] = std::make_unique<DamageMultiplier>();
 		m_mods["HpInOrbsDisplay"_hash] = std::make_unique<HpInOrbsDisplay>();
+        m_mods["InfDT"_hash] = std::make_unique<InfDT>();
+		m_mods["InfPlayerHealth"_hash] = std::make_unique<InfPlayerHealth>();
+        m_mods["BerialDaze"_hash] = std::make_unique<BerialDaze>();
+		m_mods["RoseRemovesPins"_hash] = std::make_unique<RoseRemovesPins>();
+        m_mods["StunAnything"_hash] = std::make_unique<StunAnything>();
+		m_mods["DisableCameraEvents"_hash] = std::make_unique<DisableCameraEvents>();
+        m_mods["HideHud"_hash] = std::make_unique<HideHud>();
 }
 
 // Initializes mods, checks for errors
