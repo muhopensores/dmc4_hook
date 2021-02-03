@@ -88,6 +88,8 @@ SET (MODS
   mods/modNoDtCooldown.hpp
   mods/modDtEnemiesDontStun.cpp
   mods/modDtEnemiesDontStun.hpp
+  mods/modEnemySlotting.cpp
+  mods/modEnemySlotting.hpp
 )
 
 SET (HEADERS

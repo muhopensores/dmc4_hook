@@ -955,7 +955,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 }
 
                 main->getMods()->onDrawUI("DtEnemiesDontStun"_hash);
-
+                
+                main->getMods()->onDrawUI("EnemySlotting"_hash);
+                
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
