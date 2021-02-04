@@ -27,6 +27,8 @@ void DmdLevelAi::onGUIframe()
     {
         toggle(modEnabled);
     }
+    ImGui::SameLine(0, 1);
+    HelpMarker("Forces enemies to use the ingame DMD AI, even on non DMD difficulties");
 }
 
 void DmdLevelAi::onConfigLoad(const utils::Config& cfg)

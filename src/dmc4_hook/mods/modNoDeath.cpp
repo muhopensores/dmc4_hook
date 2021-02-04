@@ -29,6 +29,8 @@ void NoDeath::onGUIframe()
     {
         toggle(modEnabled);
     }
+    ImGui::SameLine(0, 1);
+    HelpMarker("Disables dying while still allowing hp to drop");
 }
 
 void NoDeath::onConfigLoad(const utils::Config& cfg)

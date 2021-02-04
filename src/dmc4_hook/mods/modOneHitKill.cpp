@@ -27,6 +27,8 @@ void OneHitKill::onGUIframe()
     {
         toggle(modEnabled);
     }
+    ImGui::SameLine(0, 1);
+    HelpMarker("This overrides the multiplier");
 }
 
 void OneHitKill::onConfigLoad(const utils::Config& cfg)

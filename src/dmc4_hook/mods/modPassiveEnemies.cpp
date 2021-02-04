@@ -29,6 +29,8 @@ void PassiveEnemies::onGUIframe()
     {
         toggle(modEnabled);
     }
+    ImGui::SameLine(0, 1);
+    HelpMarker("Forces enemies to use their lowest AI. This will completely stop some enemy types from attacking");
 }
 
 void PassiveEnemies::onConfigLoad(const utils::Config& cfg)

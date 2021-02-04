@@ -385,8 +385,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::SameLine(198);
 
                 main->getMods()->onDrawUI("FreeJc"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("JC anywhere in the room with an enemy");
 
                 main->getMods()->onDrawUI("SkipPandora"_hash);
 
@@ -449,14 +447,10 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 main->getMods()->onDrawUI("DamageMultiplier"_hash);
 
                 main->getMods()->onDrawUI("OneHitKill"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("This overrides the multiplier");
 
                 ImGui::SameLine(202);
 
                 main->getMods()->onDrawUI("NoDeath"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("Disables dying while still allowing hp to drop");
 
                 ImGui::Spacing();
                 ImGui::Separator();
@@ -475,8 +469,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 main->getMods()->onDrawUI("InfRevive"_hash);
 
                 main->getMods()->onDrawUI("RestoreMaxHp"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("Press Lock On + Taunt to restore Max HP to enemies");
 
                 ImGui::Spacing();
                 ImGui::Separator();
@@ -515,15 +507,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 main->getMods()->onDrawUI("EnemyDT"_hash);
 
-                main->getMods()->onDrawUI("DmdBloodyPalace"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("Forces the ingame version of DMD. Enemies will take longer to DT than with the Game Mode option");
+                main->getMods()->onDrawUI("DmdBloodyPalace"_hash);;
 
                 ImGui::SameLine(205);
 
                 main->getMods()->onDrawUI("DmdLevelAi"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("Forces enemies to use the ingame DMD AI, even on non DMD difficulties");
 
                 main->getMods()->onDrawUI("EnemyAttackOffScreen"_hash);
 
@@ -550,16 +538,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 main->getMods()->onDrawUI("RemoveLaunchArmour"_hash);
 
                 main->getMods()->onDrawUI("PassiveEnemies"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("Forces enemies to use their lowest AI. This will completely stop some enemy types from attacking");
 
                 ImGui::SameLine(202);
 
                 main->getMods()->onDrawUI("FreezeEnemies"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("Freezes enemies, even if they're midair. Use with infinite enemy hp");
 
-                ImGui::Spacing();
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
@@ -1668,8 +1651,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 main->getMods()->onDrawUI("CutsceneSkip"_hash);
 
                 main->getMods()->onDrawUI("FreeCam"_hash);
-                ImGui::SameLine(0, 1);
-                HelpMarker("Activate this before starting a level! Forces Free Cam and allows it to pass through walls");
+                
 
                 ImGui::SameLine(205);
 
@@ -1704,23 +1686,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 main->getMods()->onDrawUI("BackgroundRendering"_hash);
 
                 main->getMods()->onDrawUI("FpsLimit"_hash);
-                ImGui::PushItemWidth(216);
-                ImGui::InputFloat("New FPS Limit", &FpsLimit::newfpslimit, 1.0f, 1.0f, "%.0f");
-                ImGui::PopItemWidth();
 
-                /*if (ImGui::CollapsingHeader("Speed"))
-                {
-                    ImGui::InputFloat("Turbo Value", main->turboValue, 0.1f, 0.5f, "%.1f%");
-                    ImGui::Spacing();
-                    ImGui::SliderFloat("Global Speed", main->globalSpeed, 0.0f, 3.0f, "%.1f");
-                    ImGui::Spacing();
-                    ImGui::SliderFloat("Room Speed", main->roomSpeed, 0.0f, 3.0f, "%.1f");
-                    ImGui::Spacing();
-                    ImGui::SliderFloat("Player Speed", main->playerSpeed, 0.0f, 3.0f, "%.1f");
-                    ImGui::Spacing();
-                    ImGui::SliderFloat("Enemy Speed", main->enemySpeed, 0.0f, 3.0f, "%.1f");
-                }*/
-                // main->m_workRate->onGUIframe();
                 main->getMods()->onDrawUI("WorkRate"_hash);
 
                 ImGui::Spacing();

@@ -33,6 +33,8 @@ void FreeCam::onGUIframe()
     {
         toggle(modEnabled);
     }
+    ImGui::SameLine(0, 1);
+    HelpMarker("Activate this before starting a level! Forces Free Cam and allows it to pass through walls");
 }
 
 void FreeCam::onConfigLoad(const utils::Config& cfg)

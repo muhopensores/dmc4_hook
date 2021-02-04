@@ -27,6 +27,8 @@ void DmdBloodyPalace::onGUIframe()
     {
         toggle(modEnabled);
     }
+    ImGui::SameLine(0, 1);
+    HelpMarker("Forces the ingame version of DMD. Enemies will take longer to DT than with the Game Mode option")
 }
 
 void DmdBloodyPalace::onConfigLoad(const utils::Config& cfg)
