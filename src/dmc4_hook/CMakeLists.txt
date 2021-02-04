@@ -116,6 +116,22 @@ SET (MODS
   mods/modDisableCameraEvents.hpp
   mods/modHideHud.cpp
   mods/modHideHud.hpp
+  mods/modEnemyDT.cpp
+  mods/modEnemyDT.hpp
+  mods/modBpPortal.cpp
+  mods/modBpPortal.hpp
+  mods/modFastPandora.cpp
+  mods/modFastPandora.hpp
+  mods/modInfAirHikes.cpp
+  mods/modInfAirHikes.hpp
+  mods/modBpBossRush.cpp
+  mods/modBpBossRush.hpp
+  mods/modInfRevive.cpp
+  mods/modInfRevive.hpp
+  mods/modCharacterSwap.cpp
+  mods/modCharacterSwap.hpp
+  mods/modDisableDarkslayer.cpp
+  mods/modDisableDarkslayer.hpp
 )
 
 SET (HEADERS

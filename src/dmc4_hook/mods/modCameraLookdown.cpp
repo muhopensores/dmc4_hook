@@ -27,6 +27,8 @@ void CameraLookdown::onGUIframe()
     {
         toggle(modEnabled);
     }
+    ImGui::SameLine(0, 1);
+    HelpMarker("When above the locked on enemy the camera will look down");
 }
 
 void CameraLookdown::onConfigLoad(const utils::Config& cfg)

@@ -57,6 +57,14 @@
 #include "mods/modStunAnything.hpp"
 #include "mods/modDisableCameraEvents.hpp"
 #include "mods/modHideHud.hpp"
+#include "mods/modEnemyDT.hpp"
+#include "mods/modBpPortal.hpp"
+#include "mods/modFastPandora.hpp"
+#include "mods/modInfAirHikes.hpp"
+#include "mods/modBpBossRush.hpp"
+#include "mods/modInfRevive.hpp"
+#include "mods/modCharacterSwap.hpp"
+#include "mods/modDisableDarkslayer.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -119,6 +127,14 @@ Mods::Mods() {
         m_mods["StunAnything"_hash] = std::make_unique<StunAnything>();
 		m_mods["DisableCameraEvents"_hash] = std::make_unique<DisableCameraEvents>();
         m_mods["HideHud"_hash] = std::make_unique<HideHud>();
+		m_mods["EnemyDT"_hash] = std::make_unique<EnemyDT>();
+        m_mods["BpPortal"_hash] = std::make_unique<BpPortal>();
+		m_mods["FastPandora"_hash] = std::make_unique<FastPandora>();
+        m_mods["InfAirHikes"_hash] = std::make_unique<InfAirHikes>();
+		m_mods["BpBossRush"_hash] = std::make_unique<BpBossRush>();
+        m_mods["InfRevive"_hash] = std::make_unique<InfRevive>();
+		m_mods["CharacterSwap"_hash] = std::make_unique<CharacterSwap>();
+        m_mods["DisableDarkslayer"_hash] = std::make_unique<DisableDarkslayer>();
 }
 
 // Initializes mods, checks for errors
