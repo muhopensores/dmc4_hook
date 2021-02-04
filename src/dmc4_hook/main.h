@@ -29,9 +29,6 @@ public:
 	//imgui toggle functions definitons
     
 	//functions
-    void SetDefault();
-    void SetDMD();
-    void SetGMD();
     void GamePause();
     void ReplaceEnemyDefault(uintptr_t address);
     void ReplaceEnemyOne(uintptr_t address);
@@ -63,55 +60,6 @@ public:
     // define our pointers here, but init and search for them in init()
     // pointer definitions
     uintptr_t modBase;
-    uintptr_t difficultySelectOne;
-    uintptr_t difficultySelectTwo;
-    uintptr_t difficultySelectThree;
-    uintptr_t difficultySelectFour;
-    uintptr_t difficultySelectFive;
-    uintptr_t difficultySelectSix;
-    uintptr_t difficultySelectSeven;
-    uintptr_t difficultySelectEight;
-    uintptr_t difficultySelectNine;
-    uintptr_t difficultySelectTen;
-    uintptr_t difficultySelectEleven;
-    uintptr_t difficultySelectTwelve;
-    uintptr_t difficultySelectThirteen;
-    uintptr_t difficultySelectFourteen;
-    uintptr_t difficultySelectFifteen;
-    uintptr_t difficultySelectSixteen;
-    uintptr_t difficultySelectSeventeen;
-    uintptr_t difficultySelectEighteen;
-    uintptr_t difficultySelectNineteen;
-    uintptr_t difficultySelectTwenty;
-    uintptr_t difficultySelectTwentyOne;
-    uintptr_t difficultySelectTwentyTwo;
-    uintptr_t difficultySelectTwentyThree;
-    uintptr_t difficultySelectTwentyFour;
-    uintptr_t difficultySelectTwentyFive;
-    uintptr_t difficultySelectTwentySix;
-    uintptr_t difficultySelectTwentySeven;
-    uintptr_t difficultySelectTwentyEight;
-    uintptr_t difficultySelectTwentyNine;
-    uintptr_t difficultySelectThirty;
-    uintptr_t difficultySelectThirtyOne;
-    uintptr_t difficultySelectThirtyTwo;
-    uintptr_t difficultySelectThirtyThree;
-    uintptr_t difficultySelectThirtyFour;
-    uintptr_t difficultySelectThirtyFive;
-    uintptr_t difficultySelectThirtySix;
-    uintptr_t difficultySelectThirtySeven;
-    uintptr_t difficultySelectThirtyEight;
-    uintptr_t difficultySelectThirtyNine;
-    uintptr_t difficultySelectForty;
-    uintptr_t difficultySelectFortyOne;
-    uintptr_t difficultySelectFortyTwo;
-    uintptr_t difficultySelectFortyThree;
-    uintptr_t difficultySelectFortyFour;
-    uintptr_t difficultySelectFortyFive;
-    uintptr_t difficultySelectFortySix;
-    uintptr_t difficultySelectFortySeven;
-    uintptr_t difficultySelectFortyEight;
-    uintptr_t difficultySelectFortyNine;
     uintptr_t replaceScarecrowLeg;
     uintptr_t replaceScarecrowArm;
     uintptr_t replaceMegaScarecrow;
@@ -132,22 +80,7 @@ public:
     uintptr_t replaceAgnus;
 
 
-    hl::Patch difficultySelectOne_patch, difficultySelectTwo_patch, difficultySelectThree_patch,
-        difficultySelectFour_patch, difficultySelectFive_patch, difficultySelectSix_patch, difficultySelectSeven_patch,
-        difficultySelectEight_patch, difficultySelectNine_patch, difficultySelectTen_patch,
-        difficultySelectEleven_patch, difficultySelectTwelve_patch, difficultySelectThirteen_patch,
-        difficultySelectFourteen_patch, difficultySelectFifteen_patch, difficultySelectSixteen_patch,
-        difficultySelectSeventeen_patch, difficultySelectEighteen_patch, difficultySelectNineteen_patch,
-        difficultySelectTwenty_patch, difficultySelectTwentyOne_patch, difficultySelectTwentyTwo_patch,
-        difficultySelectTwentyThree_patch, difficultySelectTwentyFour_patch, difficultySelectTwentyFive_patch,
-        difficultySelectTwentySix_patch, difficultySelectTwentySeven_patch, difficultySelectTwentyEight_patch,
-        difficultySelectTwentyNine_patch, difficultySelectThirty_patch, difficultySelectThirtyOne_patch,
-        difficultySelectThirtyTwo_patch, difficultySelectThirtyThree_patch, difficultySelectThirtyFour_patch,
-        difficultySelectThirtyFive_patch, difficultySelectThirtySix_patch, difficultySelectThirtySeven_patch,
-        difficultySelectThirtyEight_patch, difficultySelectThirtyNine_patch, difficultySelectForty_patch,
-        difficultySelectFortyOne_patch, difficultySelectFortyTwo_patch, difficultySelectFortyThree_patch,
-        difficultySelectFortyFour_patch, difficultySelectFortyFive_patch, difficultySelectFortySix_patch,
-        difficultySelectFortySeven_patch, difficultySelectFortyEight_patch, difficultySelectFortyNine_patch,
+    hl::Patch
         replaceScarecrowLeg_patch, replaceScarecrowArm_patch, replaceMegaScarecrow_patch, replacementAddressTwo_patch,
         replaceBiancoAngelo_patch, replaceAltoAngelo_patch, replaceMephisto_patch, replaceFaust_patch,
         replaceFrost_patch, replaceAssault_patch, replaceBlitz_patch, replaceChimera_patch, replaceBasilisk_patch,

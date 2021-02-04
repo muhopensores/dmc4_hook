@@ -41,7 +41,7 @@ void FpsLimit::onGUIframe()
     // from main.cpp
     // line 907 -> main->getMods()->onDrawUI("NoClip"_hash);
     ImGui::Checkbox("Override FPS Limit", &modEnabled);
-    ImGui::PushItemWidth(216);
+    ImGui::PushItemWidth(217);
     ImGui::InputFloat("New FPS Limit", &newfpslimit, 1.0f, 1.0f, "%.0f");
     ImGui::PopItemWidth();
 }

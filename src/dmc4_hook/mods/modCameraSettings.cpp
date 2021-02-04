@@ -1,8 +1,6 @@
 #include "../mods.h"
 #include "modCameraSettings.hpp"
 
-#if 1
-
 bool cameraSensEnabled{ false };
 bool cameraAutoCorrectTowardsCamEnabled{ false };
 
@@ -267,14 +265,15 @@ void CameraSettings::onGUIframe()
 void CameraSettings::onConfigLoad(const utils::Config& cfg)
 {
     modEnabled = cfg.get<bool>("camera_settings").value_or(false);
-    cameraSensEnabled = cfg.get<bool>("increased_camera_sensitivity").value_or(false);
     cameraHeight = cfg.get<float>("camera_height").value_or(0.0f);
     cameraDistance = cfg.get<float>("camera_distance").value_or(0.0f);
     cameraDistanceLockon = cfg.get<float>("camera_distance_lockon").value_or(0.0f);
     cameraAngle = cfg.get<float>("camera_angle").value_or(0.0f);
     cameraAngleLockon = cfg.get<float>("camera_angle_lockon").value_or(0.0f);
     cameraFov = cfg.get<float>("camera_fov_battle").value_or(0.0f);
-	toggleCamSensitivity(cameraSensEnabled);
+    cameraSensEnabled = cfg.get<bool>("increased_camera_sensitivity").value_or(false);
+    toggleCamSensitivity(cameraSensEnabled);
+    cameraAutoCorrectTowardsCamEnabled = cfg.get<bool>("disable_camera_autocorrect_towards_camera").value_or(false);
     toggleAttackTowardsCam(cameraAutoCorrectTowardsCamEnabled);
 };
 
@@ -291,4 +290,3 @@ void CameraSettings::onConfigSave(utils::Config& cfg)
     cfg.set<bool>("disable_camera_autocorrect_towards_camera", cameraAutoCorrectTowardsCamEnabled);
 };
 
-#endif

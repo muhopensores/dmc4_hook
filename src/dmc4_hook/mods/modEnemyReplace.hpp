@@ -9,7 +9,7 @@ public:
 
     static bool modEnabled;
 
-    void toggle(bool enable);
+    void ReplaceEnemyDefault(uintptr_t);
 
     std::string getModName() override { return "EnemyReplace"; };
     std::optional<std::string> onInitialize() override;

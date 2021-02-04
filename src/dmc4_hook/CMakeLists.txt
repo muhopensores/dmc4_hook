@@ -146,6 +146,8 @@ SET (MODS
   mods/modSlowWalk.hpp
   mods/modEnemyReplace.cpp
   mods/modEnemyReplace.hpp
+  mods/modDifficultySelect.cpp
+  mods/modDifficultySelect.hpp
 )
 
 SET (HEADERS

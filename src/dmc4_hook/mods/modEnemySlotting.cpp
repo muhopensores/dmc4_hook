@@ -42,7 +42,7 @@ void EnemySlotting::onGUIframe() {
 	ImGui::Checkbox("Custom Enemy Slot Limit", &modEnabled);
     ImGui::SameLine(0, 1);
     HelpMarker("Set how many enemies can attack at the same time.\nDefault is usually 1");
-    ImGui::PushItemWidth(215);
+    ImGui::PushItemWidth(217);
     ImGui::InputInt("Slot Limit ", &enemyslotlimit, 1, 10, ImGuiInputTextFlags_AllowTabInput);
     ImGui::PopItemWidth();
 }

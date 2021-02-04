@@ -207,55 +207,6 @@ bool hlMain::init()
 	m_mods = std::make_unique<Mods>();
 	// iterate over all the mods and call onInitialize();
 	m_mods->onInitialize();
-    difficultySelectOne = modBase + 0x4D6C7;
-    difficultySelectTwo = modBase + 0x94AE7;
-    difficultySelectThree = modBase + 0x94B02;
-    difficultySelectFour = modBase + 0xB5689;
-    difficultySelectFive = modBase + 0x11B9B6;
-    difficultySelectSix = modBase + 0x11B9BE;
-    difficultySelectSeven = modBase + 0x11B9DB;
-    difficultySelectEight = modBase + 0x11B9E4;
-    difficultySelectNine = modBase + 0x11BAFA;
-    difficultySelectTen = modBase + 0x11BB02;
-    difficultySelectEleven = modBase + 0x11BB19;
-    difficultySelectTwelve = modBase + 0x11BB21;
-    difficultySelectThirteen = modBase + 0x234D4C;
-    difficultySelectFourteen = modBase + 0x24D80D;
-    difficultySelectFifteen = modBase + 0x2892AB;
-    difficultySelectSixteen = modBase + 0x2ABB41;
-    difficultySelectSeventeen = modBase + 0x2C0435;
-    difficultySelectEighteen = modBase + 0x2DA9EB;
-    difficultySelectNineteen = modBase + 0x2FAD4E;
-    difficultySelectTwenty = modBase + 0x304E9E;
-    difficultySelectTwentyOne = modBase + 0x3309A0;
-    difficultySelectTwentyTwo = modBase + 0x343B6A;
-    difficultySelectTwentyThree = modBase + 0x4AB93C;
-    difficultySelectTwentyFour = modBase + 0x837A5F;
-    difficultySelectTwentyFive = modBase + 0x9EC8B4;
-    difficultySelectTwentySix = modBase + 0x9EC9F4;
-    difficultySelectTwentySeven = modBase + 0x9ECB34;
-    difficultySelectTwentyEight = modBase + 0x9ECC74;
-    difficultySelectTwentyNine = modBase + 0x9ECDB4;
-    difficultySelectThirty = modBase + 0x11BA85;
-    difficultySelectThirtyOne = modBase + 0x11BA90;
-    difficultySelectThirtyTwo = modBase + 0x1D2197;
-    difficultySelectThirtyThree = modBase + 0x234D5B;
-    difficultySelectThirtyFour = modBase + 0x24D6F6;
-    difficultySelectThirtyFive = modBase + 0x24D81C;
-    difficultySelectThirtySix = modBase + 0x254383;
-    difficultySelectThirtySeven = modBase + 0x2892BA;
-    difficultySelectThirtyEight = modBase + 0x2949A4;
-    difficultySelectThirtyNine = modBase + 0x2ABB50;
-    difficultySelectForty = modBase + 0x2C0445;
-    difficultySelectFortyOne = modBase + 0x2DA9CA;
-    difficultySelectFortyTwo = modBase + 0x2FAD60;
-    difficultySelectFortyThree = modBase + 0x304EB0;
-    difficultySelectFortyFour = modBase + 0x3BFD41;
-    difficultySelectFortyFive = modBase + 0x3BFD72;
-    difficultySelectFortySix = modBase + 0x3C0309;
-    difficultySelectFortySeven = modBase + 0x378D60;
-    difficultySelectFortyEight = modBase + 0x3A7B09;
-    difficultySelectFortyNine = modBase + 0x9EC0E0;
     replaceScarecrowLeg = modBase + 0x13F810;
     replaceScarecrowArm = modBase + 0x15E710;
     replaceMegaScarecrow = modBase + 0x15F7E0;
@@ -453,24 +404,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::Text("Game Mode");
 
-                static int diff_index = 0;
-                ImGui::PushItemWidth(216);
-                if (ImGui::Combo("Difficulty", &diff_index, "Default\0Dante Must Die\0God Must Die\0"))
-                {
-                    switch (diff_index)
-                    {
-                    case 0:
-                        main->SetDefault();
-                        break;
-                    case 1:
-                        main->SetDMD();
-                        break;
-                    case 2:
-                        main->SetGMD();
-                        break;
-                    }
-                }
-                ImGui::PopItemWidth();
+                main->getMods()->onDrawUI("DifficultySelect"_hash);
 
                 main->getMods()->onDrawUI("BpBossRush"_hash);
                 ImGui::SameLine(205);

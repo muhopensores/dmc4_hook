@@ -71,6 +71,7 @@
 #include "mods/modInfTableHopper.hpp"
 #include "mods/modEnemyAttackOffScreen.hpp"
 #include "mods/modSlowWalk.hpp"
+#include "mods/modDifficultySelect.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -147,6 +148,7 @@ Mods::Mods() {
         m_mods["InfTableHopper"_hash] = std::make_unique<InfTableHopper>();
 		m_mods["EnemyAttackOffScreen"_hash] = std::make_unique<EnemyAttackOffScreen>();
         m_mods["SlowWalk"_hash] = std::make_unique<SlowWalk>();
+		m_mods["DifficultySelect"_hash] = std::make_unique<DifficultySelect>();
 }
 
 // Initializes mods, checks for errors
