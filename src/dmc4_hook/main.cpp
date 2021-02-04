@@ -130,12 +130,9 @@ void hlMain::ToggleStuff()
 	// System
 		// General
 		// Game Mode
-
 		// Misc
-
 	// Practice
 		// General
-
 		// Misc
 }
 
@@ -147,7 +144,6 @@ void hlMain::shutdown() {
 void hlMain::loadSettings() {
 
 	// General
-	checkSlowWalk = cfg->get<bool>("enable_slow_walk").value_or(false);//reader.GetBoolean("system", "enable_slow_walk", true);
 	// Game Mode
 	// Practice
 	// General
@@ -347,58 +343,48 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
             if (ImGui::BeginTabItem("Character"))
             {
                 ImGui::Spacing();
+
                 ImGui::Text("Limit Removal");
-				// NOTE(): refactored mods expose onGUIframe function to draw gui stuff.
-				//modLimitAdjust::onGUIframe();
+
 				main->getMods()->onDrawUI("LimitAdjust"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
+
                 (ImGui::Text("Height Restriction Removal"));
 
                 main->getMods()->onDrawUI("HeightRestrictionDante"_hash);
-
-                ImGui::SameLine(198);
-
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("HeightRestrictionNero"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
+
                 Misc();
 
                 main->getMods()->onDrawUI("TrickDown"_hash);
-
-                ImGui::SameLine(198);
-
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("TrackingFullHouse"_hash);
 
                 main->getMods()->onDrawUI("TimerMem"_hash); // instant honeycomb
-
-                ImGui::SameLine(198);
-
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("RoseRemovesPins"_hash);
 
                 main->getMods()->onDrawUI("EasyJc"_hash);
-
-                ImGui::SameLine(198);
-
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("FreeJc"_hash);
 
                 main->getMods()->onDrawUI("SkipPandora"_hash);
-
-                ImGui::SameLine(198);
-
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("ForceLucifer"_hash);
 
+                main->getMods()->onDrawUI("ManualTwosomeTime"_hash);
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("NoHbKnockback"_hash); // Takes up a lot of room so leave on the right
 
-                main->getMods()->onDrawUI("KnockbackEdits"_hash);
-
-                ImGui::SameLine(198);
-
-                main->getMods()->onDrawUI("ManualTwosomeTime"_hash);
+                main->getMods()->onDrawUI("KnockbackEdits"_hash); // currently empty
 
                 main->getMods()->onDrawUI("NoDtCooldown"_hash);
 
@@ -408,7 +394,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 main->getMods()->onDrawUI("FastPandora"_hash);
 
-                ImGui::SameLine(198);
+                ImGui::SameLine(205);
 
                 main->getMods()->onDrawUI("FastSprint"_hash);
 
@@ -417,23 +403,20 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
 
                 main->getMods()->onDrawUI("InfAirHikes"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("InfSkyStars"_hash);
 
-                ImGui::SameLine(198);
+                main->getMods()->onDrawUI("InfTrickRange"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("InfDreadnought"_hash);
 
                 main->getMods()->onDrawUI("InfTableHopper"_hash);
 
-                main->getMods()->onDrawUI("InfTrickRange"_hash);
-
-                ImGui::SameLine(198);
-
-                main->getMods()->onDrawUI("InfDreadnought"_hash);
-
-                main->getMods()->onDrawUI("InfSkyStars"_hash);
-
                 ImGui::Spacing();
-                // NOTE(): refactored mods expose onGUIframe function to draw gui stuff.
-                // modSelCancels::onGUIframe();
+
                 main->getMods()->onDrawUI("SelectiveCancels"_hash);
+
+                main->getMods()->onDrawUI("DisableDarkslayer"_hash);
 
                 ImGui::Spacing();
                 ImGui::EndTabItem();
@@ -447,9 +430,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 main->getMods()->onDrawUI("DamageMultiplier"_hash);
 
                 main->getMods()->onDrawUI("OneHitKill"_hash);
-
-                ImGui::SameLine(202);
-
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("NoDeath"_hash);
 
                 ImGui::Spacing();
@@ -457,15 +438,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
 
                 main->getMods()->onDrawUI("InfAllHealth"_hash);
-
-                ImGui::SameLine(202);
-
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("InfDT"_hash);
 
                 main->getMods()->onDrawUI("InfPlayerHealth"_hash);
-
-                ImGui::SameLine(202);
-
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("InfRevive"_hash);
 
                 main->getMods()->onDrawUI("RestoreMaxHp"_hash);
@@ -495,29 +472,21 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 }
                 ImGui::PopItemWidth();
 
-                ImGui::Spacing();
-                ImGui::Spacing();
-                ImGui::Spacing();
-
                 main->getMods()->onDrawUI("BpBossRush"_hash);
-
                 ImGui::SameLine(205);
-
                 main->getMods()->onDrawUI("LdkWithDmd"_hash);
 
                 main->getMods()->onDrawUI("EnemyDT"_hash);
 
-                main->getMods()->onDrawUI("DmdBloodyPalace"_hash);;
-
+                main->getMods()->onDrawUI("DmdBloodyPalace"_hash);
                 ImGui::SameLine(205);
-
                 main->getMods()->onDrawUI("DmdLevelAi"_hash);
 
+                main->getMods()->onDrawUI("DtEnemiesDontStun"_hash);
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("EnemyAttackOffScreen"_hash);
 
-                main->getMods()->onDrawUI("DtEnemiesDontStun"_hash);
-                
-                main->getMods()->onDrawUI("EnemySlotting"_hash);
+                main->getMods()->onDrawUI("EnemySlotting"_hash); // needs its own line
                 
                 ImGui::Spacing();
                 ImGui::Separator();
@@ -527,27 +496,17 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 main->getMods()->onDrawUI("BerialDaze"_hash);
 
-                ImGui::SameLine(202);
+                ImGui::SameLine(205);
 
                 main->getMods()->onDrawUI("StunAnything"_hash);
 
                 main->getMods()->onDrawUI("InfFaustCloak"_hash);
-
-                ImGui::SameLine(202);
-
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("RemoveLaunchArmour"_hash);
 
                 main->getMods()->onDrawUI("PassiveEnemies"_hash);
-
-                ImGui::SameLine(202);
-
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("FreezeEnemies"_hash);
-
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
-
-                main->getMods()->onDrawUI("DisableDarkslayer"_hash);
 
                 ImGui::Spacing();
                 ImGui::EndTabItem();
@@ -1635,9 +1594,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Text("General");
 
                 main->getMods()->onDrawUI("InfiniteTime"_hash);
-
                 ImGui::SameLine(205);
-
                 main->getMods()->onDrawUI("HpInOrbsDisplay"_hash);
 
                 main->getMods()->onDrawUI("HideHud"_hash);
@@ -1651,10 +1608,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 main->getMods()->onDrawUI("CutsceneSkip"_hash);
 
                 main->getMods()->onDrawUI("FreeCam"_hash);
-                
-
                 ImGui::SameLine(205);
-
                 main->getMods()->onDrawUI("CameraLookdown"_hash);
 
                 main->getMods()->onDrawUI("CameraReset"_hash);
@@ -1664,15 +1618,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
 
                 main->getMods()->onDrawUI("CharacterSwap"_hash);
-
                 ImGui::SameLine(205);
-
                 main->getMods()->onDrawUI("SlowWalk"_hash);
 
                 main->getMods()->onDrawUI("BpPortal"_hash);
-
                 ImGui::SameLine(205);
-
                 main->getMods()->onDrawUI("DisableLastEnemyZoom"_hash);
 
                 main->getMods()->onDrawUI("NoClip"_hash);
@@ -1689,14 +1639,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 main->getMods()->onDrawUI("WorkRate"_hash);
 
-                ImGui::Spacing();
-
 				main->getMods()->onDrawUI("CameraSettings"_hash);
 				
                 ImGui::Spacing();
                 ImGui::EndTabItem();
             }
-
             CreditsDrawing();
             ImGui::EndTabBar();
         }

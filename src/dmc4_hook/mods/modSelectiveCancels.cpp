@@ -137,14 +137,14 @@ void SelectiveCancels::onGUIframe() {
 		//drawCheckbox("Ecstasy", &checkEcstasy, ECSTASY);
 		drawCheckboxSimple("Ecstasy", ECSTASY);
 
-		ImGui::SameLine(198);
+		ImGui::SameLine(205);
 
 		//drawCheckbox("Argument", &checkArgument, ARGUMENT);
 		drawCheckboxSimple("Argument", ARGUMENT);
 		//drawCheckbox("Kick 13", &checkKick13, KICK13);
 		drawCheckboxSimple("Kick 13", KICK13);
 
-		ImGui::SameLine(198);
+		ImGui::SameLine(205);
 
 		//drawCheckbox("Slash Dimension", &checkSD, SLASH_DIMENSION);
 		drawCheckboxSimple("Slash Dimension", SLASH_DIMENSION);
@@ -155,7 +155,7 @@ void SelectiveCancels::onGUIframe() {
 		//drawCheckbox("Prop", &checkProp, PROP);
 		drawCheckboxSimple("Prop", PROP);
 
-		ImGui::SameLine(198);
+		ImGui::SameLine(205);
 
 		//drawCheckbox("Shock", &checkShock, SHOCK);
 		drawCheckboxSimple("Shock", SHOCK);
@@ -166,7 +166,7 @@ void SelectiveCancels::onGUIframe() {
 		//drawCheckbox("Omen", &checkOmen, OMEN);
 		drawCheckboxSimple("Omen", OMEN);
 
-		ImGui::SameLine(198);
+		ImGui::SameLine(205);
 
 		drawCheckboxSimple("Epidemic", EPIDEMIC);
 

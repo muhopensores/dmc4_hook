@@ -41,6 +41,7 @@ void EnemyDT::onGUIframe()
         toggleInstantDT(modEnabledInstantDT); // update other mod
         toggleNoDT(modEnabledNoDT);
     }
+    ImGui::SameLine(205);
     if (ImGui::Checkbox("Enemies DT Instantly", &modEnabledInstantDT))
     {
         modEnabledNoDT = 0;                   // turn off other mod
