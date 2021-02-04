@@ -2,7 +2,7 @@
 #include "naked.h"
 
 //patch functions that are being applied by patching the bytes in the specific addresses according to function body
-
+/*
 void hlMain::ReplaceEnemyDefault(uintptr_t address)
 {
     if (address == replaceScarecrowLeg)
@@ -1292,3 +1292,4 @@ void hlMain::ReplaceEnemyNineteen(uintptr_t address)
         replaceBlitz_patch.apply(replaceBlitz, "\xe9\x1b\xe2\x1e\x00", 5);
     }
 }
+*/

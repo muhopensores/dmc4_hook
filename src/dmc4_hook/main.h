@@ -30,27 +30,6 @@ public:
     
 	//functions
     void GamePause();
-    void ReplaceEnemyDefault(uintptr_t address);
-    void ReplaceEnemyOne(uintptr_t address);
-    void ReplaceEnemyTwo(uintptr_t address);
-    void ReplaceEnemyThree(uintptr_t address);
-    void ReplaceEnemyFour(uintptr_t address);
-    void ReplaceEnemyFive(uintptr_t address);
-    void ReplaceEnemySix(uintptr_t address);
-    void ReplaceEnemySeven(uintptr_t address);
-    void ReplaceEnemyEight(uintptr_t address);
-    void ReplaceEnemyNine(uintptr_t address);
-    void ReplaceEnemyTen(uintptr_t address);
-    void ReplaceEnemyEleven(uintptr_t address);
-    void ReplaceEnemyTwelve(uintptr_t address);
-    void ReplaceEnemyThirteen(uintptr_t address);
-    void ReplaceEnemyFourteen(uintptr_t address);
-    void ReplaceEnemyFifteen(uintptr_t address);
-    void ReplaceEnemySixteen(uintptr_t address);
-    void ReplaceEnemySeventeeen(uintptr_t address);
-	void ReplaceEnemyEighteen(uintptr_t address);
-    void ReplaceEnemyNineteen(uintptr_t address);
-
 
     // hacklib init() / step() functions
     bool init() override;
@@ -60,32 +39,9 @@ public:
     // define our pointers here, but init and search for them in init()
     // pointer definitions
     uintptr_t modBase;
-    uintptr_t replaceScarecrowLeg;
-    uintptr_t replaceScarecrowArm;
-    uintptr_t replaceMegaScarecrow;
-    uintptr_t replacementAddressTwo;
-    uintptr_t replaceBiancoAngelo;
-    uintptr_t replaceAltoAngelo;
-    uintptr_t replaceMephisto;
-    uintptr_t replaceFaust;
-    uintptr_t replaceFrost;
-    uintptr_t replaceAssault;
-    uintptr_t replaceBlitz;
-    uintptr_t replaceChimera;
-    uintptr_t replaceBasilisk;
-    uintptr_t replaceBerial;
-    uintptr_t replaceBael;
-    uintptr_t replaceEchidna;
-    uintptr_t replaceCredo;
-    uintptr_t replaceAgnus;
 
 
-    hl::Patch
-        replaceScarecrowLeg_patch, replaceScarecrowArm_patch, replaceMegaScarecrow_patch, replacementAddressTwo_patch,
-        replaceBiancoAngelo_patch, replaceAltoAngelo_patch, replaceMephisto_patch, replaceFaust_patch,
-        replaceFrost_patch, replaceAssault_patch, replaceBlitz_patch, replaceChimera_patch, replaceBasilisk_patch,
-        replaceBerial_patch, replaceBael_patch, replaceEchidna_patch, replaceCredo_patch, replaceAgnus_patch;
-
+    // hl::Patch
 
     const hl::IHook* g_PresentHook;
     const hl::IHook* g_EndSceneHook;
