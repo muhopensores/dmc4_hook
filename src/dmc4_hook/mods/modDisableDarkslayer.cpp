@@ -14,7 +14,7 @@ void DisableDarkslayer::toggleUp(bool enable)
 {
     if (enable)
     {
-        install_patch_offset(0x3B6C84, patch1, "\x90\x90\x90", 3);
+        install_patch_offset(0x03B6C84, patch1, "\x90\x90\x90", 3);
     }
     else
     {
@@ -25,7 +25,7 @@ void DisableDarkslayer::toggleDown(bool enable)
 {
     if (enable)
     {
-        install_patch_offset(0x3B6CE3, patch2, "\x90\x90\x90", 3);
+        install_patch_offset(0x03B6CE3, patch2, "\x90\x90\x90", 3);
     }
     else
     {
@@ -36,7 +36,7 @@ void DisableDarkslayer::toggleLeft(bool enable)
 {
     if (enable)
     {
-        install_patch_offset(0x3B6D42, patch3, "\x90\x90\x90", 3);
+        install_patch_offset(0x03B6D42, patch3, "\x90\x90\x90", 3);
     }
     else
     {
@@ -47,7 +47,7 @@ void DisableDarkslayer::toggleRight(bool enable)
 {
     if (enable)
     {
-        install_patch_offset(0x3B6D99, patch4, "\x90\x90\x90", 3);
+        install_patch_offset(0x03B6D99, patch4, "\x90\x90\x90", 3);
     }
     else
     {

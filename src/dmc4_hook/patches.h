@@ -755,80 +755,6 @@ void hlMain::SetGMD()
     }
 }
 
-void hlMain::ToggleRemoveLaunchArmour(bool toggle)
-{
-    if (removeLaunchArmour)
-    {
-        if (toggle)
-            removeLaunchArmour_patch.apply(removeLaunchArmour, "\x90\x90\x90\x7c\x05", 5);
-        else
-            removeLaunchArmour_patch.revert();
-    }
-}
-
-void hlMain::ToggleSprintFasterActivate(bool toggle)
-{
-    if (sprintFasterActivate)
-    {
-        if (toggle)
-            sprintFasterActivate_patch.apply(sprintFasterActivate, "\x77\x33", 2);
-        else
-            sprintFasterActivate_patch.revert();
-    }
-}
-
-void hlMain::ToggleEnemyAttackOffscreen(bool toggle)
-{
-    if (enemyAttackOffscreen)
-    {
-        if (toggle)
-            enemyAttackOffscreen_patch.apply(enemyAttackOffscreen, "\x73\x1e", 2);
-        else
-            enemyAttackOffscreen_patch.revert();
-    }
-}
-
-void hlMain::ToggleSlowWalk(bool toggle)
-{
-    if (slowWalkOne)
-    {
-        if (toggle)
-            slowWalkOne_patch.apply(slowWalkOne, "\x0c\x14\x00\x00\x04\x0f\x83", 7);
-        else
-            slowWalkOne_patch.revert();
-    }
-
-    if (slowWalkTwo)
-    {
-        if (toggle)
-            slowWalkTwo_patch.apply(slowWalkTwo, "\x0c\x14\x00\x00\x39\xc8", 6);
-        else
-            slowWalkTwo_patch.revert();
-    }
-}
-
-void hlMain::ToggleAutoSkipIntro(bool toggle)
-{
-    if (autoSkipIntro)
-    {
-        if (toggle)
-            autoSkipIntro_patch.apply(autoSkipIntro, "\x80\xb8\x88\x00\x00\x00\x01", 7);
-        else
-            autoSkipIntro_patch.revert();
-    }
-}
-
-void hlMain::ToggleAutoSkipOutro(bool toggle)
-{
-    if (autoSkipOutro)
-    {
-        if (toggle)
-            autoSkipOutro_patch.apply(autoSkipOutro, "\x80\xb8\x88\x00\x00\x00\x01", 7);
-        else
-            autoSkipOutro_patch.revert();
-    }
-}
-
 void hlMain::ReplaceEnemyDefault(uintptr_t address)
 {
     if (address == replaceScarecrowLeg)
@@ -2116,16 +2042,5 @@ void hlMain::ReplaceEnemyNineteen(uintptr_t address)
     if (address == replaceBlitz)
     {
         replaceBlitz_patch.apply(replaceBlitz, "\xe9\x1b\xe2\x1e\x00", 5);
-    }
-}
-
-void hlMain::ToggleInfiniteTableHopper(bool toggle)
-{
-    if (infiniteTableHopper)
-    {
-        if (toggle)
-            infiniteTableHopper_patch.apply(infiniteTableHopper, "\x80\xbe\x14\xce\x00\x00\x00", 7);
-        else
-            infiniteTableHopper_patch.revert();
     }
 }

@@ -25,13 +25,6 @@ public:
 	std::unique_ptr<utils::Config> cfg;
 	void ToggleStuff();
     // patch functions definitons
-    void ToggleRemoveLaunchArmour(bool toggle);
-    void ToggleSprintFasterActivate(bool toggle);
-    void ToggleEnemyAttackOffscreen(bool toggle);
-    void ToggleSlowWalk(bool toggle);
-    void ToggleAutoSkipIntro(bool toggle);
-    void ToggleAutoSkipOutro(bool toggle);
-    void ToggleInfiniteTableHopper(bool toggle);
 
 	//imgui toggle functions definitons
     
@@ -119,13 +112,6 @@ public:
     uintptr_t difficultySelectFortySeven;
     uintptr_t difficultySelectFortyEight;
     uintptr_t difficultySelectFortyNine;
-    uintptr_t removeLaunchArmour;
-    uintptr_t sprintFasterActivate;
-    uintptr_t enemyAttackOffscreen;
-    uintptr_t slowWalkOne;
-    uintptr_t slowWalkTwo;
-    uintptr_t autoSkipIntro;
-    uintptr_t autoSkipOutro;
     uintptr_t replaceScarecrowLeg;
     uintptr_t replaceScarecrowArm;
     uintptr_t replaceMegaScarecrow;
@@ -144,7 +130,6 @@ public:
     uintptr_t replaceEchidna;
     uintptr_t replaceCredo;
     uintptr_t replaceAgnus;
-    uintptr_t infiniteTableHopper;
 
 
     hl::Patch difficultySelectOne_patch, difficultySelectTwo_patch, difficultySelectThree_patch,
@@ -163,13 +148,10 @@ public:
         difficultySelectFortyOne_patch, difficultySelectFortyTwo_patch, difficultySelectFortyThree_patch,
         difficultySelectFortyFour_patch, difficultySelectFortyFive_patch, difficultySelectFortySix_patch,
         difficultySelectFortySeven_patch, difficultySelectFortyEight_patch, difficultySelectFortyNine_patch,
-        removeLaunchArmour_patch, sprintFasterActivate_patch,
-        enemyAttackOffscreen_patch, slowWalkOne_patch, slowWalkTwo_patch, autoSkipIntro_patch,
         replaceScarecrowLeg_patch, replaceScarecrowArm_patch, replaceMegaScarecrow_patch, replacementAddressTwo_patch,
         replaceBiancoAngelo_patch, replaceAltoAngelo_patch, replaceMephisto_patch, replaceFaust_patch,
         replaceFrost_patch, replaceAssault_patch, replaceBlitz_patch, replaceChimera_patch, replaceBasilisk_patch,
-        replaceBerial_patch, replaceBael_patch, replaceEchidna_patch, replaceCredo_patch, replaceAgnus_patch,
-        autoSkipOutro_patch, infiniteTableHopper_patch;
+        replaceBerial_patch, replaceBael_patch, replaceEchidna_patch, replaceCredo_patch, replaceAgnus_patch;
 
 
     const hl::IHook* g_PresentHook;

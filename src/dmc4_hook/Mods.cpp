@@ -65,6 +65,12 @@
 #include "mods/modInfRevive.hpp"
 #include "mods/modCharacterSwap.hpp"
 #include "mods/modDisableDarkslayer.hpp"
+#include "mods/modRemoveLaunchArmour.hpp"
+#include "mods/modCutsceneSkip.hpp"
+#include "mods/modFastSprint.hpp"
+#include "mods/modInfTableHopper.hpp"
+#include "mods/modEnemyAttackOffScreen.hpp"
+#include "mods/modSlowWalk.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -135,6 +141,12 @@ Mods::Mods() {
         m_mods["InfRevive"_hash] = std::make_unique<InfRevive>();
 		m_mods["CharacterSwap"_hash] = std::make_unique<CharacterSwap>();
         m_mods["DisableDarkslayer"_hash] = std::make_unique<DisableDarkslayer>();
+		m_mods["RemoveLaunchArmour"_hash] = std::make_unique<RemoveLaunchArmour>();
+        m_mods["CutsceneSkip"_hash] = std::make_unique<CutsceneSkip>();
+		m_mods["FastSprint"_hash] = std::make_unique<FastSprint>();
+        m_mods["InfTableHopper"_hash] = std::make_unique<InfTableHopper>();
+		m_mods["EnemyAttackOffScreen"_hash] = std::make_unique<EnemyAttackOffScreen>();
+        m_mods["SlowWalk"_hash] = std::make_unique<SlowWalk>();
 }
 
 // Initializes mods, checks for errors

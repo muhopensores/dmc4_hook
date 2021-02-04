@@ -132,6 +132,20 @@ SET (MODS
   mods/modCharacterSwap.hpp
   mods/modDisableDarkslayer.cpp
   mods/modDisableDarkslayer.hpp
+  mods/modRemoveLaunchArmour.cpp
+  mods/modRemoveLaunchArmour.hpp
+  mods/modCutsceneSkip.cpp
+  mods/modCutsceneSkip.hpp
+  mods/modFastSprint.cpp
+  mods/modFastSprint.hpp
+  mods/modInfTableHopper.cpp
+  mods/modInfTableHopper.hpp
+  mods/modEnemyAttackOffScreen.cpp
+  mods/modEnemyAttackOffScreen.hpp
+  mods/modSlowWalk.cpp
+  mods/modSlowWalk.hpp
+  mods/modEnemyReplace.cpp
+  mods/modEnemyReplace.hpp
 )
 
 SET (HEADERS

@@ -102,17 +102,11 @@ bool checkSlashDimensionCancel = false;
 bool checkPropCancel = false;
 bool checkShockCancel = false;
 bool checkOmenCancel = false;
-bool checkRemoveLaunchArmour = false;
-bool checkSprintFasterActivate = false;
 bool checkKeyboardEnable = false;
-bool checkEnemyAttackOffscreen = false;
 bool checkSlowWalk = false;
 bool checkCameraSettings = false;
-bool checkautoSkiptIntro = false;
 bool checkSetStyle = false;
 bool checkRandomEnemies = false;
-bool checkAutoSkipOutro = false;
-bool checkInfiniteTableHopper = false;
 
 hl::StaticInit<class hlMain> g_main;
 
@@ -133,15 +127,9 @@ void hlMain::ToggleStuff()
 	// Player
 		// General
 		// Misc
-    ToggleInfiniteTableHopper(checkInfiniteTableHopper);
-    ToggleSprintFasterActivate(checkSprintFasterActivate);
 	// System
 		// General
-    ToggleAutoSkipIntro(checkautoSkiptIntro);
-    ToggleAutoSkipOutro(checkAutoSkipOutro);
-    ToggleSlowWalk(checkSlowWalk);
 		// Game Mode
-    ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
 
 		// Misc
 
@@ -149,7 +137,6 @@ void hlMain::ToggleStuff()
 		// General
 
 		// Misc
-	ToggleRemoveLaunchArmour(checkRemoveLaunchArmour);
 }
 
 void hlMain::shutdown() {
@@ -158,19 +145,13 @@ void hlMain::shutdown() {
 }
 
 void hlMain::loadSettings() {
-	checkInfiniteTableHopper = cfg->get<bool>("infinite_table_hopper").value_or(false);//reader.GetBoolean("player", "infinite_table_hopper", true);
-	checkSprintFasterActivate = cfg->get<bool>("faster_sprint_activation").value_or(false);//reader.GetBoolean("player", "faster_sprint_activation", true);
 
 	// General
-	checkautoSkiptIntro = cfg->get<bool>("auto_skip_mission_intro").value_or(false);//reader.GetBoolean("system", "auto_skip_mission_intro", true);
-	checkAutoSkipOutro = cfg->get<bool>("auto_skip_mission_outros").value_or(false);//reader.GetBoolean("system", "auto_skip_mission_outros", true);
 	checkSlowWalk = cfg->get<bool>("enable_slow_walk").value_or(false);//reader.GetBoolean("system", "enable_slow_walk", true);
 	// Game Mode
-	checkEnemyAttackOffscreen = cfg->get<bool>("enemies_attack_offscreen").value_or(false);//reader.GetBoolean("system", "enemies_attack_offscreen", true);
 	// Practice
 	// General
 	// Misc
-	checkRemoveLaunchArmour = cfg->get<bool>("remove_launch_armour").value_or(false);//reader.GetBoolean("practice", "remove_launch_armour", true);
 
 	ToggleStuff();
 	// load settings for each mod
@@ -179,13 +160,6 @@ void hlMain::loadSettings() {
 
 void hlMain::saveSettings() {
 	HL_LOG_RAW("Saving settings\n");
-	cfg->set<bool>("infinite_table_hopper",checkInfiniteTableHopper);
-	cfg->set<bool>("faster_sprint_activation",checkSprintFasterActivate);
-	cfg->set<bool>("auto_skip_mission_intro",checkautoSkiptIntro);
-	cfg->set<bool>("auto_skip_mission_outros",checkAutoSkipOutro);
-	cfg->set<bool>("enable_slow_walk",checkSlowWalk);
-	cfg->set<bool>("enemies_attack_offscreen",checkEnemyAttackOffscreen);
-	cfg->set<bool>("remove_launch_armour",checkRemoveLaunchArmour);
 
 	// call on config save for each mod
 	m_mods->onConfigSave(*cfg);
@@ -286,13 +260,6 @@ bool hlMain::init()
     difficultySelectFortySeven = modBase + 0x378D60;
     difficultySelectFortyEight = modBase + 0x3A7B09;
     difficultySelectFortyNine = modBase + 0x9EC0E0;
-    removeLaunchArmour = hl::FindPattern(removeLaunchArmour_aob);
-    sprintFasterActivate = modBase + 0x40456C;
-    enemyAttackOffscreen = modBase + 0xA8CE9;
-    slowWalkOne = modBase + 0x421C83;
-    slowWalkTwo = modBase + 0x421D85;
-    autoSkipIntro = modBase + 0x6DF1;
-    autoSkipOutro = modBase + 0x7E6D;
     replaceScarecrowLeg = modBase + 0x13F810;
     replaceScarecrowArm = modBase + 0x15E710;
     replaceMegaScarecrow = modBase + 0x15F7E0;
@@ -311,7 +278,6 @@ bool hlMain::init()
     replaceEchidna = modBase + 0x285340;
     replaceCredo = modBase + 0x2AA2C0;
     replaceAgnus = modBase + 0x2BDE60;
-    infiniteTableHopper = modBase + 0x3F873C;
 
     // hooks and jumps to get back to the correct address after hooking
 
@@ -446,10 +412,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::SameLine(198);
 
-                if (ImGui::Checkbox("Fast Speed", &checkSprintFasterActivate))
-                {
-                    main->ToggleSprintFasterActivate(checkSprintFasterActivate);
-                }
+                main->getMods()->onDrawUI("FastSprint"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();
@@ -459,10 +422,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::SameLine(198);
 
-                if (ImGui::Checkbox("Infinite Table Hopper", &checkInfiniteTableHopper))
-                {
-                    main->ToggleInfiniteTableHopper(checkInfiniteTableHopper);
-                }
+                main->getMods()->onDrawUI("InfTableHopper"_hash);
 
                 main->getMods()->onDrawUI("InfTrickRange"_hash);
 
@@ -565,10 +525,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::SameLine(0, 1);
                 HelpMarker("Forces enemies to use the ingame DMD AI, even on non DMD difficulties");
 
-                if (ImGui::Checkbox("Enemies Attack Off-Screen", &checkEnemyAttackOffscreen))
-                {
-                    main->ToggleEnemyAttackOffscreen(checkEnemyAttackOffscreen);
-                }
+                main->getMods()->onDrawUI("EnemyAttackOffScreen"_hash);
 
                 main->getMods()->onDrawUI("DtEnemiesDontStun"_hash);
                 
@@ -590,10 +547,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::SameLine(202);
 
-                if (ImGui::Checkbox("Remove Launch Armour", &checkRemoveLaunchArmour))
-                {
-                    main->ToggleRemoveLaunchArmour(checkRemoveLaunchArmour);
-                }
+                main->getMods()->onDrawUI("RemoveLaunchArmour"_hash);
 
                 main->getMods()->onDrawUI("PassiveEnemies"_hash);
                 ImGui::SameLine(0, 1);
@@ -1711,17 +1665,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 main->getMods()->onDrawUI("DisableCameraEvents"_hash);
 
-                if (ImGui::Checkbox("Skip Mission Intros", &checkautoSkiptIntro))
-                {
-                    main->ToggleAutoSkipIntro(checkautoSkiptIntro);
-                }
-
-                ImGui::SameLine(205);
-
-                if (ImGui::Checkbox("Skip Mission Outros", &checkAutoSkipOutro))
-                {
-                    main->ToggleAutoSkipOutro(checkAutoSkipOutro);
-                }
+                main->getMods()->onDrawUI("CutsceneSkip"_hash);
 
                 main->getMods()->onDrawUI("FreeCam"_hash);
                 ImGui::SameLine(0, 1);
@@ -1741,12 +1685,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::SameLine(205);
 
-                if (ImGui::Checkbox("Slow Walk", &checkSlowWalk))
-                {
-                    main->ToggleSlowWalk(checkSlowWalk);
-                }
-                ImGui::SameLine(0, 1);
-                HelpMarker("Press & hold the jump button to walk slowly");
+                main->getMods()->onDrawUI("SlowWalk"_hash);
 
                 main->getMods()->onDrawUI("BpPortal"_hash);
 
