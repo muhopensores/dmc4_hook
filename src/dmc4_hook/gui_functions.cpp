@@ -123,12 +123,14 @@ void CreditsDrawing()
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
+        ImGui::Spacing();
         ImGui::Text("socks");
         ImGui::Text("Mstislav Capusta");
         ImGui::Text("SSSiyan");
         ImGui::Spacing();
         ImGui::Spacing();
         ImGui::Separator();
+        ImGui::Spacing();
         ImGui::Spacing();
         ImGui::Text("Special Thanks:");
         ImGui::Text("Whirling");
@@ -144,6 +146,7 @@ void CreditsDrawing()
         ImGui::Spacing();
         ImGui::Spacing();
         ImGui::Separator();
+        ImGui::Spacing();
         ImGui::Spacing();
         ImGui::Text("For more info visit the wiki:\n");
         ImGui::TextColored(color, "https://github.com/muhopensores/dmc4_hook/wiki");

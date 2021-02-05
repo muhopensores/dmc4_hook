@@ -1557,14 +1557,15 @@ void EnemyReplace::onGUIframe()
     if (ImGui::CollapsingHeader("Enemy Replacement"))
     {
         ImGui::Spacing();
+
         ImGui::Text("No Cyclical Replacements!");
         ImGui::SameLine(0, 1);
         HelpMarker("Example: Don't replace Mephisto with Faust and Faust with Mephisto at the same time. "
                    "The game will get stuck in a loop and cause undesired behaviour.");
-        ImGui::Spacing();
+
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Scarecrow(Leg) with: "))
+        ImGui::Text("Replace Scarecrow(Leg) with: ");
         {
             const char* scarecrowLeg_items[] = {
                 "Default", "Scarecrow(Arm)", "Mega Scarecrow", "Bianco Angelo", "Alto Angelo",  "Mephisto",
@@ -1572,7 +1573,7 @@ void EnemyReplace::onGUIframe()
                 "Berial",  "Credo",          "Agnus",          "Sanctus",       "Dante",
             };
             static int scarecrowLeg_current = 0;
-            if (ImGui::Combo("Replace SC(L)", &scarecrowLeg_current, scarecrowLeg_items,
+            if (ImGui::Combo("##Replace SC(L)", &scarecrowLeg_current, scarecrowLeg_items,
                              IM_ARRAYSIZE(scarecrowLeg_items)))
             {
                 switch (scarecrowLeg_current)
@@ -1630,12 +1631,11 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
 
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Scarecrow(Arm) with: "))
+        ImGui::Text("Replace Scarecrow(Arm) with: ");
         {
             const char* scarecrowArm_items[] = { "Default",     "Scarecrow(Leg)", "Mega Scarecrow", "Bianco Angelo",
                                                  "Alto Angelo", "Mephisto",       "Faust",          "Frost",
@@ -1643,7 +1643,7 @@ void EnemyReplace::onGUIframe()
                                                  "Berial",      "Credo",          "Agnus",          "Sanctus",
                                                  "Dante" };
             static int scarecrowArm_current = 0;
-            if (ImGui::Combo("Replace SC(A)", &scarecrowArm_current, scarecrowArm_items,
+            if (ImGui::Combo("##Replace SC(A)", &scarecrowArm_current, scarecrowArm_items,
                              IM_ARRAYSIZE(scarecrowArm_items)))
             {
                 switch (scarecrowArm_current)
@@ -1701,12 +1701,11 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
 
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Mega Scarecrow with: "))
+        ImGui::Text("Replace Mega Scarecrow with: ");
         {
             const char* megaScarecrow_items[] = { "Default",     "Scarecrow(Leg)", "Scarecrow(Arm)", "Bianco Angelo",
                                                   "Alto Angelo", "Mephisto",       "Faust",          "Frost",
@@ -1714,7 +1713,7 @@ void EnemyReplace::onGUIframe()
                                                   "Berial",      "Bael",           "Echidna",        "Credo",
                                                   "Agnus",       "Sanctus",        "Kyrie",          "Dante" };
             static int megaScarecrow_current = 0;
-            if (ImGui::Combo("Replace MSC", &megaScarecrow_current, megaScarecrow_items,
+            if (ImGui::Combo("##Replace MSC", &megaScarecrow_current, megaScarecrow_items,
                              IM_ARRAYSIZE(megaScarecrow_items)))
             {
                 switch (megaScarecrow_current)
@@ -1781,12 +1780,11 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
 
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Bianco Angelo with: "))
+        ImGui::Text("Replace Bianco Angelo with: ");
         {
             const char* bianco_items[] = { "Default",     "Scarecrow(Leg)", "Scarecrow(Arm)", "Mega Scarecrow",
                                            "Alto Angelo", "Mephisto",       "Faust",          "Frost",
@@ -1794,7 +1792,7 @@ void EnemyReplace::onGUIframe()
                                            "Berial",      "Credo",          "Agnus",          "Sanctus",
                                            "Dante" };
             static int bianco_current = 0;
-            if (ImGui::Combo("Replace Bianco", &bianco_current, bianco_items, IM_ARRAYSIZE(bianco_items)))
+            if (ImGui::Combo("##Replace Bianco", &bianco_current, bianco_items, IM_ARRAYSIZE(bianco_items)))
             {
                 switch (bianco_current)
                 {
@@ -1851,12 +1849,11 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
 
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Alto Angelo with: "))
+        ImGui::Text("Replace Alto Angelo with: ");
         {
             const char* alto_items[] = { "Default",       "Scarecrow(Leg)", "Scarecrow(Arm)", "Mega Scarecrow",
                                          "Bianco Angelo", "Mephisto",       "Faust",          "Frost",
@@ -1864,7 +1861,7 @@ void EnemyReplace::onGUIframe()
                                          "Berial",        "Bael",           "Echidna",        "Credo",
                                          "Agnus",         "Sanctus",        "Kyrie",          "Dante" };
             static int alto_current = 0;
-            if (ImGui::Combo("Replace Alto", &alto_current, alto_items, IM_ARRAYSIZE(alto_items)))
+            if (ImGui::Combo("##Replace Alto", &alto_current, alto_items, IM_ARRAYSIZE(alto_items)))
             {
                 switch (alto_current)
                 {
@@ -1930,12 +1927,11 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
 
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Mephisto with: "))
+        ImGui::Text("Replace Mephisto with: ");
         {
             const char* mephisto_items[] = { "Default",       "Scarecrow(Leg)", "Scarecrow(Arm)", "Mega Scarecrow",
                                              "Bianco Angelo", "Alto Angelo",    "Faust",          "Frost",
@@ -1943,7 +1939,7 @@ void EnemyReplace::onGUIframe()
                                              "Berial",        "Credo",          "Agnus",          "Sanctus",
                                              "Dante" };
             static int mephisto_current = 0;
-            if (ImGui::Combo("Replace Mephisto", &mephisto_current, mephisto_items, IM_ARRAYSIZE(mephisto_items)))
+            if (ImGui::Combo("##Replace Mephisto", &mephisto_current, mephisto_items, IM_ARRAYSIZE(mephisto_items)))
             {
                 switch (mephisto_current)
                 {
@@ -2000,12 +1996,11 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
 
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Faust with: "))
+        ImGui::Text("Replace Faust with: ");
         {
             const char* faust_items[] = { "Default",       "Scarecrow(Leg)", "Scarecrow(Arm)", "Mega Scarecrow",
                                           "Bianco Angelo", "Alto Angelo",    "Mephisto",       "Frost",
@@ -2013,7 +2008,7 @@ void EnemyReplace::onGUIframe()
                                           "Berial",        "Bael",           "Echidna",        "Credo",
                                           "Agnus",         "Sanctus",        "Kyrie",          "Dante" };
             static int faust_current = 0;
-            if (ImGui::Combo("Replace Faust", &faust_current, faust_items, IM_ARRAYSIZE(faust_items)))
+            if (ImGui::Combo("##Replace Faust", &faust_current, faust_items, IM_ARRAYSIZE(faust_items)))
             {
                 switch (faust_current)
                 {
@@ -2079,12 +2074,11 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
 
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Frost with: "))
+        ImGui::Text("Replace Frost with: ");
         {
             const char* frost_items[] = { "Default",       "Scarecrow(Leg)", "Scarecrow(Arm)", "Mega Scarecrow",
                                           "Bianco Angelo", "Alto Angelo",    "Mephisto",       "Faust",
@@ -2092,7 +2086,7 @@ void EnemyReplace::onGUIframe()
                                           "Berial",        "Credo",          "Agnus",          "Sanctus",
                                           "Dante" };
             static int frost_current = 0;
-            if (ImGui::Combo("Replace Faust", &frost_current, frost_items, IM_ARRAYSIZE(frost_items)))
+            if (ImGui::Combo("##Replace Faust", &frost_current, frost_items, IM_ARRAYSIZE(frost_items)))
             {
                 switch (frost_current)
                 {
@@ -2149,12 +2143,11 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
 
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Assault with: "))
+        ImGui::Text("Replace Assault with: ");
         {
             const char* assault_items[] = { "Default",       "Scarecrow(Leg)", "Scarecrow(Arm)", "Mega Scarecrow",
                                             "Bianco Angelo", "Alto Angelo",    "Mephisto",       "Faust",
@@ -2162,7 +2155,7 @@ void EnemyReplace::onGUIframe()
                                             "Berial",        "Credo",          "Agnus",          "Sanctus",
                                             "Dante" };
             static int assault_current = 0;
-            if (ImGui::Combo("Replace Assault", &assault_current, assault_items, IM_ARRAYSIZE(assault_items)))
+            if (ImGui::Combo("##Replace Assault", &assault_current, assault_items, IM_ARRAYSIZE(assault_items)))
             {
                 switch (assault_current)
                 {
@@ -2219,12 +2212,11 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
 
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Blitz with: "))
+        ImGui::Text("Replace Blitz with: ");
         {
             const char* blitz_items[] = { "Default",       "Scarecrow(Leg)", "Scarecrow(Arm)", "Mega Scarecrow",
                                           "Bianco Angelo", "Alto Angelo",    "Mephisto",       "Faust",
@@ -2232,7 +2224,7 @@ void EnemyReplace::onGUIframe()
                                           "Berial",        "Bael",           "Echidna",        "Credo",
                                           "Agnus",         "Sanctus",        "Kyrie",          "Dante" };
             static int blitz_current = 0;
-            if (ImGui::Combo("Replace Blitz", &blitz_current, blitz_items, IM_ARRAYSIZE(blitz_items)))
+            if (ImGui::Combo("##Replace Blitz", &blitz_current, blitz_items, IM_ARRAYSIZE(blitz_items)))
             {
                 switch (blitz_current)
                 {
@@ -2298,12 +2290,11 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
 
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Chimera Seed with: "))
+        ImGui::Text("Replace Chimera Seed with: ");
         {
             const char* chimera_items[] = { "Default",       "Scarecrow(Leg)", "Scarecrow(Arm)", "Mega Scarecrow",
                                             "Bianco Angelo", "Alto Angelo",    "Mephisto",       "Faust",
@@ -2311,7 +2302,7 @@ void EnemyReplace::onGUIframe()
                                             "Berial",        "Credo",          "Agnus",          "Sanctus",
                                             "Dante" };
             static int chimera_current = 0;
-            if (ImGui::Combo("Replace Seed", &chimera_current, chimera_items, IM_ARRAYSIZE(chimera_items)))
+            if (ImGui::Combo("##Replace Seed", &chimera_current, chimera_items, IM_ARRAYSIZE(chimera_items)))
             {
                 switch (chimera_current)
                 {
@@ -2368,12 +2359,11 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
 
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Basilisk with: "))
+        ImGui::Text("Replace Basilisk with: ");
         {
             const char* basilisk_items[] = { "Default",       "Scarecrow(Leg)", "Scarecrow(Arm)", "Mega Scarecrow",
                                              "Bianco Angelo", "Alto Angelo",    "Mephisto",       "Faust",
@@ -2381,7 +2371,7 @@ void EnemyReplace::onGUIframe()
                                              "Berial",        "Credo",          "Agnus",          "Sanctus",
                                              "Dante" };
             static int basilisk_current = 0;
-            if (ImGui::Combo("Replace Basilisk", &basilisk_current, basilisk_items, IM_ARRAYSIZE(basilisk_items)))
+            if (ImGui::Combo("##Replace Basilisk", &basilisk_current, basilisk_items, IM_ARRAYSIZE(basilisk_items)))
             {
                 switch (basilisk_current)
                 {
@@ -2438,16 +2428,15 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
 
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Berial with: "))
+        ImGui::Text("Replace Berial with: ");
         {
             const char* berial_items[] = { "Default", "Credo", "Agnus", "Sanctus", "Dante" };
             static int berial_current = 0;
-            if (ImGui::Combo("Replace Berial", &berial_current, berial_items, IM_ARRAYSIZE(berial_items)))
+            if (ImGui::Combo("##Replace Berial", &berial_current, berial_items, IM_ARRAYSIZE(berial_items)))
             {
                 switch (berial_current)
                 {
@@ -2468,16 +2457,15 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
 
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Bael with: "))
+        ImGui::Text("Replace Bael with: ");
         {
             const char* bael_items[] = { "Default", "Berial", "Credo", "Agnus", "Sanctus", "Dante" };
             static int bael_current = 0;
-            if (ImGui::Combo("Replace Bael", &bael_current, bael_items, IM_ARRAYSIZE(bael_items)))
+            if (ImGui::Combo("##Replace Bael", &bael_current, bael_items, IM_ARRAYSIZE(bael_items)))
             {
                 switch (bael_current)
                 {
@@ -2501,16 +2489,15 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
 
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Echidna with: "))
+        ImGui::Text("Replace Echidna with: ");
         {
             const char* echidna_items[] = { "Default", "Berial", "Credo", "Agnus", "Sanctus", "Dante" };
             static int echidna_current = 0;
-            if (ImGui::Combo("Replace Echidna", &echidna_current, echidna_items, IM_ARRAYSIZE(echidna_items)))
+            if (ImGui::Combo("##Replace Echidna", &echidna_current, echidna_items, IM_ARRAYSIZE(echidna_items)))
             {
                 switch (echidna_current)
                 {
@@ -2534,16 +2521,15 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
 
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Credo with: "))
+        ImGui::Text("Replace Credo with: ");
         {
             const char* credo_items[] = { "Default", "Berial", "Bael", "Echidna", "Agnus", "Sanctus", "Dante" };
             static int credo_current = 0;
-            if (ImGui::Combo("Replace Credo", &credo_current, credo_items, IM_ARRAYSIZE(credo_items)))
+            if (ImGui::Combo("##Replace Credo", &credo_current, credo_items, IM_ARRAYSIZE(credo_items)))
             {
                 switch (credo_current)
                 {
@@ -2570,16 +2556,15 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
 
         ImGui::Spacing();
 
-        if (ImGui::TreeNode("Replace Agnus with: "))
+        ImGui::Text("Replace Agnus with: ");
         {
             const char* agnus_items[] = { "Default", "Berial", "Credo", "Sanctus" };
             static int agnus_current = 0;
-            if (ImGui::Combo("Replace Agnus", &agnus_current, agnus_items, IM_ARRAYSIZE(agnus_items)))
+            if (ImGui::Combo("##Replace Agnus", &agnus_current, agnus_items, IM_ARRAYSIZE(agnus_items)))
             {
                 switch (agnus_current)
                 {
@@ -2597,7 +2582,6 @@ void EnemyReplace::onGUIframe()
                     break;
                 }
             }
-            ImGui::TreePop();
         }
     }
 }

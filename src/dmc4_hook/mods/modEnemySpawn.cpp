@@ -1,16 +1,18 @@
-
 #include "../mods.h"
 #include "modEnemySpawn.hpp"
+#include "modAreaJump.hpp" // for cAreaJumpPtr
+
 // 00738AA2 calls spawns
-constexpr std::array<uintptr_t, 21> fptrEmFactories{
+
+constexpr std::array<uintptr_t, 19> fptrEmFactories{
 	0x0055E710,			// Arm Scarecrow em01
 	0x0053F810,			// Leg Scarecrow em02
     0x0055F7E0,			// Mega Scarecrow em03
 	0x005A3F60,			// Frost em04
     0x005B3170,			// Assault em05
     0x005D1760,			// Blitz em06
-    0x00618460,			// Gladius em07 // Broken
-    0x00609C20,			// Cutlass em08 // Broken
+    // 0x00618460,		// Gladius em07 // Broken
+    // 0x00609C20,		// Cutlass em08 // Broken
 	0x0061A7B0,			// Basilisk em09
 	0x005DC160,			// Chimera Seed em10
 						// Chimera
@@ -34,17 +36,15 @@ constexpr std::array<uintptr_t, 21> fptrEmFactories{
 						// Dante bo12
 };
 
-
-
-constexpr std::array<const char*, 21> enemyNames{
+constexpr std::array<const char*, 19> enemyNames{
 	"Scarecrow (Arm)",	// em01
 	"Scarecrow (Leg)",	// em02
 	"Mega Scarecrow",	// em03
 	"Frost",			// em04
 	"Assault",			// em05
 	"Blitz",			// em06
-	"Gladius",			// em07
-	"Cutlass",			// em08
+	// "Gladius",		// em07
+	// "Cutlass",		// em08
 	"Basilisk",			// em09
 	"Chimera Seed",		// em10
 	// Chimera			// em11
@@ -86,6 +86,47 @@ void spawnEm00x(int index) {
 		popf
 		popa
 	}
+}
+
+std::optional<std::string> EnemySpawn::onInitialize() 
+{ 
+	return Mod::onInitialize(); 
+}
+
+void EnemySpawn::onGUIframe()
+{
+	/*auto lambda = [](int i) {
+		if (ImGui::Button(enemyNames[i])) {
+			spawnEm00x(i);
+		}
+	};
+	std::for_each(enemyNames.begin(), enemyNames.end(), lambda);*/
+
+	if (IsBadWritePtr(AreaJump::cAreaJumpPtr, sizeof(uint32_t)) || IsBadReadPtr(AreaJump::cAreaJumpPtr, sizeof(uint32_t)))
+    {
+        ImGui::TextWrapped("Enemy Spawner is not initialized.\nLoad into a stage to access it.");
+        return;
+    }
+
+	ImGui::Text("Enemy Spawner");
+    ImGui::SameLine(0, 1);
+    HelpMarker("Spawn position is not yet supported; enemies will always spawn at 0,0,0.");
+
+	// will mr.compiler unroll this? probably not check the .ASM listings im not gonna
+	/*for (int i = 0, e = enemyNames.size(); i != e; i++) {
+		if (ImGui::Button(enemyNames[i])) {
+			spawnEm00x(i);
+		}
+		if (i % 2 == 0) {
+			ImGui::SameLine();
+		}
+	}*/
+
+	int enemyNames_current = 0;
+	if (ImGui::ListBox("##Enemy Spawn Listbox", &enemyNames_current, enemyNames.data(), enemyNames.size(), 19))
+    {
+            spawnEm00x(enemyNames_current);
+    }
 }
 
 #if 0
@@ -165,32 +206,3 @@ unregistersymbol(emspawn)
 dealloc(emspawndata)
 unregistersymbol(emspawndata)
 #endif
-
-std::optional<std::string> EnemySpawn::onInitialize() 
-{ 
-	return Mod::onInitialize(); 
-}
-
-void EnemySpawn::onGUIframe()
-{
-	/*auto lambda = [](int i) {
-		if (ImGui::Button(enemyNames[i])) {
-			spawnEm00x(i);
-		}
-	};
-	std::for_each(enemyNames.begin(), enemyNames.end(), lambda);*/
-
-	ImGui::Text("Enemy Spawn");
-	// will mr.compiler unroll this? probably not check the .ASM listings im not gonna
-		for (int i = 0, e = enemyNames.size(); i != e; i++) {
-			if (ImGui::Button(enemyNames[i])) {
-				spawnEm00x(i);
-			}
-			if (i % 2 == 0) {
-				ImGui::SameLine();
-			}
-		}
-	ImGui::NewLine();
-	ImGui::Separator();
-}
-

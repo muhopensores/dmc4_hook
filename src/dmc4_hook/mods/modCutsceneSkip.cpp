@@ -27,7 +27,7 @@ void CutsceneSkip::toggleOutro(bool enable)
     }
     else
     {
-        patch1.revert();
+        patch2.revert();
     }
 }
 

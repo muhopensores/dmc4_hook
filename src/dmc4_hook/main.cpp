@@ -25,9 +25,6 @@
 #include "hacklib/Logging.h"
 #include "hacklib/CrashHandler.h"
 
-#include "mods/modFpsLimit.hpp"
-
-
 uint32_t uninit_value = 0xCCCCCCCC;
 
 // hmodule of dinput8.dll for GetProcAddress
@@ -86,27 +83,6 @@ T ReadPointerPath(std::vector<uintptr_t> offsets)
 bool initialized = true;
 bool g_bWasInitialized = true;
 bool g_borderless = false;
-
-// bools to check if cheat is active or not
-bool checkStyleSwitch = false;
-bool checkWeaponSwitch = false;
-bool checkJcCooldown = false;
-bool checkMovingTargetChange = false;
-bool checkDanteMustDie = false;
-bool checkMoveIDAlloc = false;
-bool checkSelectiveCancels = false;
-bool checkEcstasyCancel = false;
-bool checkArgumentCancel = false;
-bool checkKickThirteenCancel = false;
-bool checkSlashDimensionCancel = false;
-bool checkPropCancel = false;
-bool checkShockCancel = false;
-bool checkOmenCancel = false;
-bool checkKeyboardEnable = false;
-bool checkSlowWalk = false;
-bool checkCameraSettings = false;
-bool checkSetStyle = false;
-bool checkRandomEnemies = false;
 
 hl::StaticInit<class hlMain> g_main;
 
@@ -441,6 +417,10 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
 				main->getMods()->onDrawUI("EnemySpawn"_hash);
 
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
                 main->getMods()->onDrawUI("EnemyReplace"_hash);
 
                 ImGui::Spacing();
@@ -487,8 +467,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 
                 Misc();
 
-                // modBackgroundRendering::onGUIframe();
-
                 main->getMods()->onDrawUI("BackgroundRendering"_hash);
 
                 main->getMods()->onDrawUI("FpsLimit"_hash);
@@ -498,7 +476,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 				main->getMods()->onDrawUI("CameraSettings"_hash);
 				
                 ImGui::Spacing();
-
                 ImGui::EndTabItem();
             }
             CreditsDrawing();
