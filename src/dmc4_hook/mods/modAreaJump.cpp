@@ -406,7 +406,6 @@ void AreaJump::jumpToStage(int stage) {
 
 
 void AreaJump::onGUIframe() {
-	ImGui::Spacing();
 	if (IsBadWritePtr(cAreaJumpPtr, sizeof(uint32_t)) || IsBadReadPtr(cAreaJumpPtr,sizeof(uint32_t))) {
 		ImGui::TextWrapped("Area Jump is not initialized, load into the stage to access it.");
 		return;
@@ -433,7 +432,4 @@ void AreaJump::onGUIframe() {
 	{
 		jumpToStage(room_item_current);
 	}
-
-	ImGui::Spacing();
-	ImGui::Spacing();
 }

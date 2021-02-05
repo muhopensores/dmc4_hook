@@ -12,6 +12,11 @@ float CameraSettings::cameraAngle{ 0 };
 float CameraSettings::cameraAngleLockon{ 0 };
 float CameraSettings::cameraFovInBattle{ 0 };
 float CameraSettings::cameraFov{ 0 };
+bool  CameraSettings::freeCamEnabled{ false };
+bool CameraSettings::cameraLookdownEnabled{ false };
+float degrees{ 1.57f };
+bool CameraSettings::cameraResetEnabled{ false };
+bool CameraSettings::camRight{ false };
 
 constexpr ptrdiff_t cameraSensitivity = 0x180A8;
 
@@ -26,6 +31,8 @@ uintptr_t CameraSettings::cameraAngleContinue{ NULL };
 uintptr_t CameraSettings::cameraAngleLockonContinue{ NULL };
 uintptr_t CameraSettings::cameraFovInBattleContinue{ NULL };
 uintptr_t CameraSettings::cameraFovContinue{ NULL };
+uintptr_t CameraSettings::cameraResetContinue{ NULL };
+uintptr_t CameraSettings::cameraResetDefaultContinue{ NULL };
 
 naked void cameraHeight_proc(void)
 {
@@ -96,7 +103,7 @@ naked void cameraAngle_proc(void)
 naked void cameraAngleLockon_proc(void)
 {
     _asm {
-            cmp byte ptr [CameraSettings::modEnabled],0
+            cmp byte ptr [CameraSettings::cameraLookdownEnabled],0
             je code
 
 			movss xmm0,[ebx+0x000000D4]
@@ -138,6 +145,56 @@ naked void cameraFov_proc(void)
         code:
             movss xmm0,[esi+0x000000E4]
             jmp dword ptr [CameraSettings::cameraFovContinue]
+    }
+}
+
+naked void cameraReset_proc(void)
+{
+    _asm {
+		    cmp byte ptr [CameraSettings::cameraResetEnabled], 1
+		    je camleft
+            cmp byte ptr [CameraSettings::camRight], 1
+            je camright
+            jmp originalcode
+
+        camleft:
+            movss xmm0, [ecx+00001210h]
+            subss xmm0, [degrees] // 90 degrees left
+            jmp [CameraSettings::cameraResetContinue]
+
+        camright:
+            movss xmm0, [ecx+00001210h]
+            addss xmm0, [degrees] // 90 degrees right
+            jmp [CameraSettings::cameraResetContinue]
+
+        originalcode:
+            movss xmm0,[ecx+00001210h]
+            jmp [CameraSettings::cameraResetContinue]
+    }
+}
+
+naked void cameraResetDefault_proc(void)
+{
+    _asm {
+		    cmp byte ptr [CameraSettings::cameraResetEnabled], 1
+		    je camleft
+            cmp byte ptr [CameraSettings::camRight], 1
+            je camright
+            jmp originalcode
+
+        camleft:
+            movss xmm0, [edx+00001210h]
+            subss xmm0, [degrees] // 90 degrees left
+            jmp [CameraSettings::cameraResetDefaultContinue]
+
+        camright:
+            movss xmm0, [edx+00001210h]
+            addss xmm0, [degrees] // 90 degrees right
+            jmp [CameraSettings::cameraResetDefaultContinue]
+
+        originalcode:
+            movss xmm0,[edx+00001210h]
+            jmp [CameraSettings::cameraResetDefaultContinue]
     }
 }
 
@@ -186,6 +243,17 @@ std::optional<std::string> CameraSettings::onInitialize()
         return "Failed to init CameraSettings mod";
     }
 
+    if (!install_hook_offset(0x022D5F, cameraResetHook, &cameraReset_proc, &CameraSettings::cameraResetContinue, 8))
+    {
+        HL_LOG_ERR("Failed to init CameraReset mod\n");
+        return "Failed to init CameraReset mod";
+    }
+
+    if (!install_hook_offset(0x02261A, cameraResetDefaultHook, &cameraResetDefault_proc, &CameraSettings::cameraResetDefaultContinue, 8))
+    {
+        HL_LOG_ERR("Failed to init CameraReset mod\n");
+        return "Failed to init CameraReset mod";
+    }
     return Mod::onInitialize();
 }
 
@@ -194,12 +262,10 @@ void CameraSettings::toggleCamSensitivity(bool toggle)
     if (toggle)
     {
         install_patch_offset(cameraSensitivity, cSens, "\x90\x90\x90\x90\x90\x90", 6);
-        // cameraSensitivity_patch.apply(cameraSensitivity, "\x90\x90\x90\x90\x90\x90", 6);
     }
     else
     {
         cSens.revert();
-        // cameraSensitivity_patch.revert();
     }
 }
 
@@ -219,11 +285,40 @@ void CameraSettings::toggleAttackTowardsCam(bool toggle)
     }
 }
 
+void CameraSettings::toggleFreeCam(bool toggle)
+{
+    if (toggle)
+    {
+        install_patch_offset(0xF9318, patchFreeCam1, "\x90\x90\x90\x90\x90\x90", 6);
+        install_patch_offset(0xF9334, patchFreeCam2, "\x90\x90\x90\x90\x90\x90", 6);
+        install_patch_offset(0x180C1, patchFreeCam3, "\x90\x90\x90\x90\x90", 5);
+    }
+    else
+    {
+        patchFreeCam1.revert();
+        patchFreeCam2.revert();
+        patchFreeCam3.revert();
+    }
+}
+
+void CameraSettings::toggleCameraLookdown(bool toggle)
+{
+    if (toggle)
+    {
+        install_patch_offset(0x132483, patchCameraLookdown, "\x90\x90\x90\x90\x90\x90", 6);
+    }
+    else
+    {
+        patchCameraLookdown.revert();
+    }
+}
+
 void CameraSettings::onGUIframe()
 {
     if (ImGui::CollapsingHeader("Camera"))
     {
         ImGui::Checkbox("Camera Settings", &modEnabled);
+
         ImGui::InputFloat("Camera Height", &CameraSettings::cameraHeight, 1.0f, 1.0f, "%.0f");
 
         ImGui::Spacing();
@@ -250,6 +345,10 @@ void CameraSettings::onGUIframe()
 
         ImGui::InputFloat("Camera FOV \n(In Battle)", &CameraSettings::cameraFovInBattle, 1.0f, 10.0f, "%.0f%");
 
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
         if (ImGui::Checkbox("Increased Camera Sensitivity", &cameraSensEnabled))
         {
             toggleCamSensitivity(cameraSensEnabled);
@@ -259,6 +358,34 @@ void CameraSettings::onGUIframe()
         {
             toggleAttackTowardsCam(cameraAutoCorrectTowardsCamEnabled);
         }
+
+        if (ImGui::Checkbox("Free Cam", &freeCamEnabled))
+        {
+            toggleFreeCam(freeCamEnabled);
+        }
+        ImGui::SameLine(0, 1);
+        HelpMarker("Activate this before starting a level! Forces Free Cam and allows it to pass through walls");
+        ImGui::SameLine(205);
+        if (ImGui::Checkbox("Camera Lookdown", &cameraLookdownEnabled))
+        {
+            toggleCameraLookdown(cameraLookdownEnabled);
+        }
+        ImGui::SameLine(0, 1);
+        HelpMarker("When above the locked on enemy the camera will look down");
+
+        if (ImGui::Checkbox("Left Side Reset", &cameraResetEnabled))
+        {
+            camRight = 0;
+        }
+        ImGui::SameLine(0, 1);
+        HelpMarker("When pressing the button that resets the camera behind Dante, the camera will instead be set to Dante's left");
+        ImGui::SameLine(205);
+        if (ImGui::Checkbox("Right Side Reset", &camRight))
+        {
+            cameraResetEnabled = 0;
+        }
+        ImGui::SameLine(0, 1);
+        HelpMarker("Set the camera to the right instead");
     }
 }
 
@@ -275,6 +402,12 @@ void CameraSettings::onConfigLoad(const utils::Config& cfg)
     toggleCamSensitivity(cameraSensEnabled);
     cameraAutoCorrectTowardsCamEnabled = cfg.get<bool>("disable_camera_autocorrect_towards_camera").value_or(false);
     toggleAttackTowardsCam(cameraAutoCorrectTowardsCamEnabled);
+    freeCamEnabled = cfg.get<bool>("free_cam").value_or(false);
+    toggleFreeCam(freeCamEnabled);
+    cameraLookdownEnabled = cfg.get<bool>("camera_lookdown").value_or(false);
+    toggleCameraLookdown(cameraLookdownEnabled);
+    cameraResetEnabled = cfg.get<bool>("camera_reset").value_or(false);
+    camRight = cfg.get<bool>("right_side_reset").value_or(false);
 };
 
 void CameraSettings::onConfigSave(utils::Config& cfg)
@@ -288,5 +421,8 @@ void CameraSettings::onConfigSave(utils::Config& cfg)
     cfg.set<float>("camera_fov_battle", cameraFov);
     cfg.set<bool>("increased_camera_sensitivity", cameraSensEnabled);
     cfg.set<bool>("disable_camera_autocorrect_towards_camera", cameraAutoCorrectTowardsCamEnabled);
+    cfg.set<bool>("free_cam", freeCamEnabled);
+    cfg.set<bool>("camera_lookdown", cameraLookdownEnabled);
+    cfg.set<bool>("camera_reset", cameraResetEnabled);
+    cfg.set<bool>("right_side_reset", camRight);
 };
-

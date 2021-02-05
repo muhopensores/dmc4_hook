@@ -38,8 +38,6 @@ SET (MODS
   mods/modMoveIDsNero.hpp
   mods/modInfSkyStars.cpp
   mods/modInfSkyStars.hpp
-  mods/modFreeCam.cpp
-  mods/modFreeCam.hpp
   mods/modForceLucifer.cpp
   mods/modForceLucifer.hpp
   mods/modDisableLastEnemyZoom.cpp
@@ -72,14 +70,10 @@ SET (MODS
   mods/modFreezeEnemies.hpp
   mods/modFreeJc.cpp
   mods/modFreeJc.hpp
-  mods/modCameraLookdown.cpp
-  mods/modCameraLookdown.hpp
   mods/modNoDeath.cpp
   mods/modNoDeath.hpp
   mods/modEnemySpawn.cpp
   mods/modEnemySpawn.hpp
-  mods/modCameraReset.cpp
-  mods/modCameraReset.hpp
   mods/modKnockbackEdits.cpp
   mods/modKnockbackEdits.hpp
   mods/modNoDtCooldown.cpp

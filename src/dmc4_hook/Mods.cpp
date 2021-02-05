@@ -18,7 +18,6 @@
 #include "mods/modFpsLimit.hpp"
 #include "mods/modMoveIDsNero.hpp"
 #include "mods/modInfSkyStars.hpp"
-#include "mods/modFreeCam.hpp"
 #include "mods/modForceLucifer.hpp"
 #include "mods/modDisableLastEnemyZoom.hpp"
 #include "mods/modLdkWithDmd.hpp"
@@ -35,10 +34,8 @@
 #include "mods/modCameraSettings.hpp"
 #include "mods/modFreezeEnemies.hpp"
 #include "mods/modFreeJc.hpp"
-#include "mods/modCameraLookdown.hpp"
 #include "mods/modNoDeath.hpp"
 #include "mods/modEnemySpawn.hpp"
-#include "mods/modCameraReset.hpp"
 #include "mods/modKnockbackEdits.hpp"
 #include "mods/modNoDtCooldown.hpp"
 #include "mods/modDtEnemiesDontStun.hpp"
@@ -96,7 +93,6 @@ Mods::Mods() {
 		m_mods["FpsLimit"_hash] = std::make_unique<FpsLimit>();
 		m_mods["MoveIdsNero"_hash] = std::make_unique<MoveIdsNero>();
 		m_mods["InfSkyStars"_hash] = std::make_unique<InfSkyStars>();
-		m_mods["FreeCam"_hash] = std::make_unique<FreeCam>();
 		m_mods["ForceLucifer"_hash] = std::make_unique<ForceLucifer>();
 		m_mods["DisableLastEnemyZoom"_hash] = std::make_unique<DisableLastEnemyZoom>();
 		m_mods["LdkWithDmd"_hash] = std::make_unique<LdkWithDmd>();
@@ -113,10 +109,8 @@ Mods::Mods() {
 		m_mods["CameraSettings"_hash] = std::make_unique<CameraSettings>();
 		m_mods["FreezeEnemies"_hash] = std::make_unique<FreezeEnemies>();
 		m_mods["FreeJc"_hash] = std::make_unique<FreeJc>();
-		m_mods["CameraLookdown"_hash] = std::make_unique<CameraLookdown>();
 		m_mods["NoDeath"_hash] = std::make_unique<NoDeath>();
 		m_mods["EnemySpawn"_hash] = std::make_unique<EnemySpawn>();
-		m_mods["CameraReset"_hash] = std::make_unique<CameraReset>();
 		m_mods["KnockbackEdits"_hash] = std::make_unique<KnockbackEdits>();
 		m_mods["NoDtCooldown"_hash] = std::make_unique<NoDtCooldown>();
 		m_mods["DtEnemiesDontStun"_hash] = std::make_unique<DtEnemiesDontStun>();

@@ -358,6 +358,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
             if (ImGui::BeginTabItem("General"))
             {
                 ImGui::Spacing();
+
                 ImGui::Text("General");
 
                 main->getMods()->onDrawUI("DamageMultiplier"_hash);
@@ -430,16 +431,17 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
             if (ImGui::BeginTabItem("Environment"))
             {
-				//main->m_areaJump->onGUIframe();
+                ImGui::Spacing();
+
 				main->getMods()->onDrawUI("AreaJump"_hash);
+
+                ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
 
 				main->getMods()->onDrawUI("EnemySpawn"_hash);
 
                 main->getMods()->onDrawUI("EnemyReplace"_hash);
-
-                //main->getMods()->onDrawUI("EnemySpawn"_hash);
 
                 ImGui::Spacing();
                 ImGui::EndTabItem();
@@ -448,6 +450,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
             if (ImGui::BeginTabItem("System"))
             {
                 ImGui::Spacing();
+
                 ImGui::Text("General");
 
                 main->getMods()->onDrawUI("InfiniteTime"_hash);
@@ -463,12 +466,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 main->getMods()->onDrawUI("DisableCameraEvents"_hash);
 
                 main->getMods()->onDrawUI("CutsceneSkip"_hash);
-
-                main->getMods()->onDrawUI("FreeCam"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("CameraLookdown"_hash);
-
-                main->getMods()->onDrawUI("CameraReset"_hash);
                 
                 ImGui::Spacing();
                 ImGui::Separator();
@@ -501,6 +498,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 				main->getMods()->onDrawUI("CameraSettings"_hash);
 				
                 ImGui::Spacing();
+
                 ImGui::EndTabItem();
             }
             CreditsDrawing();

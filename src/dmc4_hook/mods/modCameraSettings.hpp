@@ -22,6 +22,12 @@ public:
     static uintptr_t cameraAngleLockonContinue;
     static uintptr_t cameraFovInBattleContinue;
     static uintptr_t cameraFovContinue;
+    static uintptr_t cameraResetContinue;
+    static uintptr_t cameraResetDefaultContinue;
+    static bool freeCamEnabled;
+    static bool cameraLookdownEnabled;
+    static bool cameraResetEnabled;
+    static bool camRight;
 
     std::string getModName() override { return "CameraSettings"; };
 
@@ -33,6 +39,8 @@ public:
     void onGUIframe() override;
 	void toggleCamSensitivity(bool toggle);
     void toggleAttackTowardsCam(bool toggle);
+    void toggleFreeCam(bool toggle);
+    void toggleCameraLookdown(bool toggle);
 
 private:
     hl::Hooker hook;
@@ -40,4 +48,10 @@ private:
     hl::Patch  attackTowardsCamPatch1;
     hl::Patch  attackTowardsCamPatch2;
     hl::Patch  attackTowardsCamPatch3;
+    hl::Patch  patchFreeCam1;
+    hl::Patch  patchFreeCam2;
+    hl::Patch  patchFreeCam3;
+    hl::Patch  patchCameraLookdown;
+    hl::Hooker cameraResetHook;
+    hl::Hooker cameraResetDefaultHook;
 };
