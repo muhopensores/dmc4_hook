@@ -29,7 +29,7 @@ naked void detour(void)
 	jnecode:
 		cmp byte ptr [EnemySlotting::modEnabled], 1
 		je cheatcode
-		mov eax,[esi+28]
+		mov eax, [esi+28h]
 		jmp dword ptr [EnemySlotting::jmp_ret]
 
 	cheatcode:
