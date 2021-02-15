@@ -88,9 +88,9 @@ void HideHud::onConfigLoad(const utils::Config& cfg)
     modEnabledHealth = cfg.get<bool>("hide_hp_hud").value_or(false);
     toggleHealth(modEnabledHealth);
     modEnabledOrbs = cfg.get<bool>("hide_orbs_hud").value_or(false);
-    toggleHealth(modEnabledOrbs);
+    toggleOrbs(modEnabledOrbs);
     modEnabledStyle = cfg.get<bool>("hide_style_hud").value_or(false);
-    toggleHealth(modEnabledStyle);
+    toggleStyle(modEnabledStyle);
     modEnabledTimer = cfg.get<bool>("hide_timer_hud").value_or(false);
     toggleTimer(modEnabledTimer);
 };
