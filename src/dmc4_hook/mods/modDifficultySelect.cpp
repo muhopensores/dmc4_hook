@@ -2,6 +2,8 @@
 
 // bool DifficultySelect::modEnabled{ false };
 
+int gameDifficulty = 0;
+
 std::optional<std::string> DifficultySelect::onInitialize()
 {
     return Mod::onInitialize();
@@ -173,13 +175,38 @@ void DifficultySelect::setGMD()
                                              "\x00\x00\x61\x44\x00\x00\x78\x30\x00\x00\xe1\x44\x00\xc0\xa8\x44\x00\xc0\xa8\x44", 72);
 }
 
+void DifficultySelect::onConfigLoad(const utils::Config& cfg)
+{
+    gameDifficulty = cfg.get<int>("game_difficulty").value_or(0);
+    if (gameDifficulty)
+    {
+        switch (gameDifficulty)
+        {
+        case 0:
+            setDefault();
+            break;
+        case 1:
+            setDMD();
+            break;
+        case 2:
+            setGMD();
+            break;
+        }
+    }
+}
+
+void DifficultySelect::onConfigSave(utils::Config& cfg)
+{
+    cfg.set<int>("game_difficulty", gameDifficulty);
+}
+
+
 void DifficultySelect::onGUIframe()
 {
-    static int diff_index = 0;
     ImGui::PushItemWidth(216);
-    if (ImGui::Combo("Difficulty", &diff_index, "Default\0Dante Must Die\0God Must Die\0"))
+    if (ImGui::Combo("Difficulty", &gameDifficulty, "Default\0Dante Must Die\0God Must Die\0"))
     {
-        switch (diff_index)
+        switch (gameDifficulty)
         {
         case 0:
             setDefault();

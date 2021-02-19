@@ -2,7 +2,6 @@
 #include "modRestoreMaxHp.hpp"
 #include "modInputStates.hpp"
 
-#if 1
 bool RestoreMaxHp::modEnabled{ false };
 uintptr_t RestoreMaxHp::_restoreMaxHpContinueScarecrow{ NULL };
 uintptr_t RestoreMaxHp::_restoreMaxHpContinueFrost{ NULL };
@@ -21,6 +20,11 @@ uintptr_t RestoreMaxHp::_restoreMaxHpContinueCredo{ NULL };
 uintptr_t RestoreMaxHp::_restoreMaxHpContinueAgnus{ NULL };
 uintptr_t RestoreMaxHp::_restoreMaxHpContinueSanctus{ NULL };
 uintptr_t RestoreMaxHp::_restoreMaxHpContinueDante{ NULL };
+
+uintptr_t RestoreMaxHp::_resetTimerContinue{ NULL };
+
+float twoMinutesTimer = 7200.0f;
+bool resetTimer = false;
 
 naked void restoreMaxHpScarecrow_proc(void)
 {
@@ -314,6 +318,23 @@ naked void restoreMaxHpDante_proc(void)
     }
 }
 
+naked void resetTimer_proc(void)
+{
+    _asm {
+        cmp byte ptr [resetTimer], 0
+        je code
+		cmp byte ptr [InputStates::inputpressed], 24
+        jne code
+
+        movss xmm3, [twoMinutesTimer]
+        movss [esi+00000250h], xmm3
+
+    code:
+        movss xmm3, [esi+00000250h]
+		jmp dword ptr [RestoreMaxHp::_resetTimerContinue]
+    }
+}
+
 std::optional<std::string> RestoreMaxHp::onInitialize()
 {
     if (!install_hook_offset(0x143BC1, hookScarecrow, &restoreMaxHpScarecrow_proc, &RestoreMaxHp::_restoreMaxHpContinueScarecrow, 6))
@@ -417,6 +438,13 @@ std::optional<std::string> RestoreMaxHp::onInitialize()
         HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
         return "Failed to init RestoreMaxHp mod";
     }
+
+    if (!install_hook_offset(0x94D60, hookTimer, &resetTimer_proc, &RestoreMaxHp::_resetTimerContinue, 8))
+    {
+        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
+        return "Failed to init RestoreMaxHp mod";
+    }
+
     return Mod::onInitialize();
 }
 
@@ -427,16 +455,20 @@ void RestoreMaxHp::onGUIframe()
     ImGui::Checkbox("Restore Max HP", &modEnabled);
     ImGui::SameLine(0, 1);
     HelpMarker("Press Lock On + Taunt to restore Max HP to enemies");
+    ImGui::SameLine(205);
+    ImGui::Checkbox("Reset Timer", &resetTimer);
+    ImGui::SameLine(0, 1);
+    HelpMarker("Press Lock On + Taunt to reset the BP timer");
 }
 
 void RestoreMaxHp::onConfigLoad(const utils::Config& cfg)
 {
     modEnabled = cfg.get<bool>("restore_max_hp").value_or(false);
+    resetTimer = cfg.get<bool>("reset_bp_timer").value_or(false);
 };
 
 void RestoreMaxHp::onConfigSave(utils::Config& cfg)
 {
     cfg.set<bool>("restore_max_hp", modEnabled);
+    cfg.set<bool>("reset_bp_timer", resetTimer);
 };
-
-#endif

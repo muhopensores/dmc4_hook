@@ -26,6 +26,8 @@ public:
     static uintptr_t _restoreMaxHpContinueSanctus;
     static uintptr_t _restoreMaxHpContinueDante;
 
+    static uintptr_t _resetTimerContinue;
+
     std::string getModName() override { return "RestoreMaxHp"; };
 
     std::optional<std::string> onInitialize() override;
@@ -53,4 +55,5 @@ private:
     hl::Hooker hookAgnus;
     hl::Hooker hookSanctus;
     hl::Hooker hookDante;
+    hl::Hooker hookTimer;
 };

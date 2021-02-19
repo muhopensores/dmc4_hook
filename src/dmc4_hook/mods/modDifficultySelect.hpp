@@ -16,8 +16,8 @@ public:
     std::string getModName() override { return "DifficultySelect"; };
     std::optional<std::string> onInitialize() override;
 
-    // void onConfigLoad(const utils::Config& cfg) override;
-    // void onConfigSave(utils::Config& cfg) override;
+    void onConfigLoad(const utils::Config& cfg) override;
+    void onConfigSave(utils::Config& cfg) override;
     void onGUIframe() override;
 
 private:
