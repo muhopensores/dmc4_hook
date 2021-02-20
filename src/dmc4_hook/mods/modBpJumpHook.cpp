@@ -180,7 +180,7 @@ naked void bpJumpHook_proc(void) // Initial load of BP
     }
 }
 
-naked void bpJumpHook2_proc(void)
+naked void bpJumpHook2_proc(void) // called on most floors
 {
     _asm {
         cmp [BpJumpHook::modEnabled], 0
@@ -207,7 +207,7 @@ naked void bpJumpHook2_proc(void)
     }
 }
 
-naked void bpJumpHook3_proc(void)
+naked void bpJumpHook3_proc(void) // called after boss stages
 {
     _asm {
         cmp [BpJumpHook::modEnabled], 0
