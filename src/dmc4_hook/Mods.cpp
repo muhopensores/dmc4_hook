@@ -70,6 +70,7 @@
 #include "mods/modSlowWalk.hpp"
 #include "mods/modDifficultySelect.hpp"
 #include "mods/modEnemyReplace.hpp"
+#include "mods/modBpJumpHook.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -145,6 +146,7 @@ Mods::Mods() {
         m_mods["SlowWalk"_hash] = std::make_unique<SlowWalk>();
 		m_mods["DifficultySelect"_hash] = std::make_unique<DifficultySelect>();
         m_mods["EnemyReplace"_hash] = std::make_unique<EnemyReplace>();
+		m_mods["BpJumpHook"_hash] = std::make_unique<BpJumpHook>();
 }
 
 // Initializes mods, checks for errors

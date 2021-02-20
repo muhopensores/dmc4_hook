@@ -253,6 +253,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
             {
                 ImGui::Spacing();
 
+                main->getMods()->onDrawUI("BpJumpHook"_hash);
+
                 ImGui::Text("Limit Removal");
 
 				main->getMods()->onDrawUI("LimitAdjust"_hash);

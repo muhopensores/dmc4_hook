@@ -67,15 +67,15 @@ void DifficultySelect::setDefault()
 
 void DifficultySelect::setDMD()
 {
-    install_patch_offset(0x004D6C7, patch1, "\x05\xa8\xcd\xde\x00", 3);
-    install_patch_offset(0x0094AE7, patch2, "\x00\x77\x14", 2);
-    install_patch_offset(0x0094B02, patch3, "\x50\xb9\xcb\x00\x8b\xc7", 6);
-    install_patch_offset(0x00B5689, patch4, "\x70\x01\xcc\x00", 3);
-    install_patch_offset(0x011B9B6, patch5, "\x72\x0e", 2);
-    install_patch_offset(0x011B9BE, patch6, "\x00\x74\x05\xba\x00", 5);
-    install_patch_offset(0x011B9DB, patch7, "\xf4", 1);
-    install_patch_offset(0x011B9E4, patch8, "\xf4\xbe", 1);
-    install_patch_offset(0x011BAFA, patch9, "\x72", 1);
+    install_patch_offset(0x004D6C7, patch1,  "\x05\xa8\xcd\xde\x00", 3);
+    install_patch_offset(0x0094AE7, patch2,  "\x00\x77\x14", 2);
+    install_patch_offset(0x0094B02, patch3,  "\x50\xb9\xcb\x00\x8b\xc7", 6);
+    install_patch_offset(0x00B5689, patch4,  "\x70\x01\xcc\x00", 3);
+    install_patch_offset(0x011B9B6, patch5,  "\x72\x0e", 2);
+    install_patch_offset(0x011B9BE, patch6,  "\x00\x74\x05\xba\x00", 5);
+    install_patch_offset(0x011B9DB, patch7,  "\xf4", 1);
+    install_patch_offset(0x011B9E4, patch8,  "\xf4\xbe", 1);
+    install_patch_offset(0x011BAFA, patch9,  "\x72", 1);
     install_patch_offset(0x011BB02, patch10, "\x00\x74\x05\xb9\x00", 5);
     install_patch_offset(0x011BB19, patch11, "\x40\xbd", 2);
     install_patch_offset(0x011BB21, patch12, "\x40\xbd", 2);
@@ -199,7 +199,6 @@ void DifficultySelect::onConfigSave(utils::Config& cfg)
 {
     cfg.set<int>("game_difficulty", gameDifficulty);
 }
-
 
 void DifficultySelect::onGUIframe()
 {

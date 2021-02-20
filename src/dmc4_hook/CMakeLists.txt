@@ -142,6 +142,8 @@ SET (MODS
   mods/modEnemyReplace.hpp
   mods/modDifficultySelect.cpp
   mods/modDifficultySelect.hpp
+  mods/modBpJumpHook.cpp
+  mods/modBpJumpHook.hpp
 )
 
 SET (HEADERS
