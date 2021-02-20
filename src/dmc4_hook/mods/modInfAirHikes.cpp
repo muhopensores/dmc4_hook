@@ -21,7 +21,7 @@ void InfAirHikes::toggle(bool enable)
 
 void InfAirHikes::onGUIframe()
 {
-    if (ImGui::Checkbox("Inf Air Hikes", &modEnabled))
+    if (ImGui::Checkbox("Infinite Air Hikes", &modEnabled))
     {
         toggle(modEnabled);
     }

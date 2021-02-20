@@ -44,6 +44,7 @@ void FpsLimit::onGUIframe()
     ImGui::PushItemWidth(217);
     ImGui::InputFloat("New FPS Limit", &newfpslimit, 1.0f, 1.0f, "%.0f");
     ImGui::PopItemWidth();
+    ImGui::Spacing();
 }
 
 void FpsLimit::onConfigLoad(const utils::Config& cfg)

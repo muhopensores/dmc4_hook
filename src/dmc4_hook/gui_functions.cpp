@@ -104,12 +104,6 @@ void FPSDrawing()
     ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 }
 
-// function that draws a "misc." text onto the gui, made because misc is used frequently, so to avoid typing extra stuff every time
-void Misc()
-{
-    ImGui::Text("Misc");
-}
-
 // function for putting credits specific things in the gui
 void CreditsDrawing()
 {

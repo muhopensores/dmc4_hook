@@ -28,6 +28,7 @@ public:
     static bool cameraLookdownEnabled;
     static bool cameraResetEnabled;
     static bool camRight;
+    static bool disableLastEnemyZoom;
 
     std::string getModName() override { return "CameraSettings"; };
 
@@ -41,6 +42,7 @@ public:
     void toggleAttackTowardsCam(bool toggle);
     void toggleFreeCam(bool toggle);
     void toggleCameraLookdown(bool toggle);
+    void toggleDisableLastEnemyZoom(bool toggle);
 
 private:
     hl::Hooker hook;
@@ -52,6 +54,7 @@ private:
     hl::Patch  patchFreeCam2;
     hl::Patch  patchFreeCam3;
     hl::Patch  patchCameraLookdown;
+    hl::Patch  cameraDisableLastEnemyZoomPatch;
     hl::Hooker cameraResetHook;
     hl::Hooker cameraResetDefaultHook;
 };

@@ -1,15 +1,26 @@
 #include "../mods.h"
 #include "modBpJumpHook.hpp"
-#include "ctime"
+#include "modAreaJump.hpp"
+#include "random"
+#include "numeric"
+// #include "algorithm"
+// #include "array"
 
-int bpArray[100];
+bool BpJumpHook::modEnabled{ false };
+uintptr_t BpJumpHook::_bpJumpHookContinue{ NULL };
+uintptr_t BpJumpHook::_bpJumpHook2Continue{ NULL };
 int bpFloor = 0;
-bool didBpFloorAlreadyHappen = false;
+int areaJumpID = 0;
 int numberOfCompleteFloors = 0;
-int attemptedBpFloor = 0;
-uintptr_t* areaJumpPtr = NULL;
+std::array<uint32_t, 100> bpArray;
 
-int bpStageArea(int floor) {
+BpJumpHook::BpJumpHook()
+{
+    // onInitialize();
+}
+
+int bpStageArea(int floor) 
+{
 	auto in_range = [](int value, int low, int high) {return (value >= low) && (value <= high); };
 	
 	if (in_range(floor,  1, 19)) { return  6; }
@@ -36,6 +47,188 @@ int bpStageArea(int floor) {
 	return -1;
 }
 
+int jumpToStage(int stage)
+{
+    switch (stage)
+    {
+    case 0:
+        return 503; // "Bloody Palace 20"
+    case 1:
+        return 504; // "Bloody Palace 40"
+    case 2:
+        return 505; // "Bloody Palace 60"
+    case 3:
+        return 507; // "Bloody Palace 80"
+    case 4:
+        return 506; // "Bloody Palace 100"
+    case 5:
+        return 700; // "Bloody Palace 101"
+    case 6:
+        return 705; // "Bloody Palace 1-19"
+    case 7:
+        return 704; // "Bloody Palace 21-39"
+    case 8:
+        return 703; // "Bloody Palace 41-59"
+    case 9:
+        return 701; // "Bloody Palace 61-79"
+    case 10:
+        return 702; // "Bloody Palace 81-99"
+    }
+    return -1;
+}
+
+void randomize_bp_floors()
+{
+    numberOfCompleteFloors = 0;
+    std::iota(bpArray.begin(), bpArray.end(), 2); // fill the list starting from 2
+    std::random_device rd;                        // random device for shuffle
+    std::mt19937 g(rd());
+    std::shuffle(bpArray.begin(), bpArray.end(), g);
+}
+
+void bp_start() // first bp detour
+{
+    // randomize bp floors
+    randomize_bp_floors();
+
+    // apply floor
+    bpFloor = 1;
+
+    // set area jump
+    areaJumpID = 705;
+}
+
+void bp_continue() // other bp detours
+{
+    // apply floor
+    bpFloor = bpArray[numberOfCompleteFloors];
+
+    // set area jump
+    areaJumpID = jumpToStage(bpStageArea(bpFloor));
+
+    // inc number of complete floors
+    numberOfCompleteFloors++;
+}
+
+naked void bpJumpHook_proc(void) // Initial load of BP
+{
+    _asm {
+        cmp [BpJumpHook::modEnabled], 0
+        je code
+
+        // create randomized numbers
+        pushad
+        pushfd
+        call bp_start
+        popfd
+        popad
+
+        // write floor and area ID
+        push edx
+        mov edx, [bpFloor]
+        mov [eax+74h], edx
+        mov edx, [areaJumpID]
+        mov [eax+6Ch], edx
+        pop edx
+        jmp retcode
+
+    code:
+        mov [eax+74h], 00000001
+    retcode:
+		jmp dword ptr [BpJumpHook::_bpJumpHookContinue]
+    }
+}
+
+naked void bpJumpHook2_proc(void) // called every time you enter a teleporter
+{
+    _asm {
+        cmp [BpJumpHook::modEnabled], 0
+        je code
+
+        // update floor and area ID values
+        pushad
+        pushfd
+        call bp_continue
+        popfd
+        popad
+
+        // write floor and area ID
+        push edx
+        mov edx, [bpFloor]
+        mov [ecx+74h], edx
+        mov edx, [areaJumpID]
+        mov [ecx+6Ch], edx
+        pop edx
+        jmp retcode
+
+    code:
+        mov [ecx+6Ch], edx
+    retcode:
+        mov edx, [ebx+04h]
+		jmp dword ptr [BpJumpHook::_bpJumpHook2Continue]
+    }
+}
+
+void BpJumpHook::toggle(bool enable)
+{
+    if (enable)
+    {
+        install_patch_offset(0x04B808, patch, "\x90\x90\x90\x90", 4);
+        install_patch_offset(0x04C200, patch2, "\x90\x90\x90\x90\x90", 5);
+    }
+    else
+    {
+        patch.revert();
+        patch2.revert();
+    }
+}
+
+std::optional<std::string> BpJumpHook::onInitialize()
+{
+    if (!install_hook_offset(0x4AB8FA, hook, &bpJumpHook_proc, &BpJumpHook::_bpJumpHookContinue, 7))
+    {
+        HL_LOG_ERR("Failed to init BpJumpHook mod\n");
+        return "Failed to init BpJumpHook mod";
+    }
+    if (!install_hook_offset(0x04A974, hook2, &bpJumpHook2_proc, &BpJumpHook::_bpJumpHook2Continue, 6))
+    {
+        HL_LOG_ERR("Failed to init BpJumpHook mod\n");
+        return "Failed to init BpJumpHook2 mod";
+    }
+    return Mod::onInitialize();
+}
+
+void BpJumpHook::onGUIframe()
+{
+    if (ImGui::Checkbox("Randomize BP", &modEnabled))
+    {
+        toggle(modEnabled);
+        bp_start();
+    }
+    ImGui::SameLine(0, 1);
+    HelpMarker("Enable before playing BP.");
+}
+
+void BpJumpHook::onConfigLoad(const utils::Config& cfg)
+{
+    modEnabled = cfg.get<bool>("randomize_bp").value_or(false);
+    toggle(modEnabled);
+}
+
+void BpJumpHook::onConfigSave(utils::Config& cfg)
+{
+    cfg.set<bool>("randomize_bp", modEnabled);
+}
+
+/*
+// get area jump pointer
+push edx
+lea edx, [eax+6Ch]
+mov [areaJumpPtr], edx
+pop edx
+*/
+
+/*
 void jumpToStage(int stage)
 {
     switch (stage)
@@ -76,215 +269,12 @@ void jumpToStage(int stage)
         break;
     }
 }
+*/
 
-int random_num(int range_start, int range_end)
-{
-    std::srand((unsigned int)time(0));
-    return range_start + (std::rand() % (range_end - range_start + 1));
-}
-
-bool check_complete_floors()
-{
-    for (int i = 0; i < numberOfCompleteFloors; i++)
-    {
-        if (bpArray[i] == attemptedBpFloor)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
+/*
 void reset_random_bp()
 {
-    std::fill_n(bpArray, 100, 0); // fill array with 0
+    std::fill(bpArray.begin(), bpArray.end(), 0);
     numberOfCompleteFloors = 0;
-    return;
 }
-
-void get_random_bp_floor()
-{
-    do
-    {
-        attemptedBpFloor = random_num(1, 101);             // put a random number in attemptedBpFloor
-        didBpFloorAlreadyHappen = check_complete_floors(); // see if it's already been played
-    } 
-    while (didBpFloorAlreadyHappen == true);             // if it has been played, get another number
-
-    // save bp floor completion
-    bpFloor = attemptedBpFloor;
-    bpArray[numberOfCompleteFloors] = bpFloor;
-
-    // inc number of complete floors
-    numberOfCompleteFloors++;
-
-    // set area jump pointer
-    jumpToStage(bpStageArea(bpFloor));
-    return;
-}
-
-//___________________________________________________________________________________
-
-bool BpJumpHook::modEnabled{ false };
-uintptr_t BpJumpHook::_bpJumpHookContinue{ NULL };
-uintptr_t BpJumpHook::_bpJumpHook2Continue{ NULL };
-uintptr_t BpJumpHook::_bpJumpHook3Continue{ NULL };
-
-BpJumpHook::BpJumpHook()
-{
-    // onInitialize();
-}
-
-void functiontest()
-{
-    BpJumpHook::modEnabled = 0;
-    return;
-}
-
-naked void bpJumpHook_proc(void) // Initial load of BP
-{
-    _asm {
-        cmp [BpJumpHook::modEnabled], 0
-        je code
-
-        // reset random BP
-        pushad
-        pushfd
-        call reset_random_bp
-        popfd
-        popad
-
-        // get area jump pointer
-        push edx
-        lea edx, [eax+6Ch]
-        mov [areaJumpPtr], edx
-        pop edx
-
-        // get randomized bp floor
-        pushad
-        pushfd
-        call get_random_bp_floor
-        popfd
-        popad
-
-        // write new floor
-        push edx
-        mov edx, [bpFloor]
-        mov [eax+74h], edx
-        pop edx
-        jmp retcode
-
-    code:
-        mov [eax+74h], 00000001
-    retcode:
-		jmp dword ptr [BpJumpHook::_bpJumpHookContinue]
-    }
-}
-
-naked void bpJumpHook2_proc(void) // called on most floors
-{
-    _asm {
-        cmp [BpJumpHook::modEnabled], 0
-        je code
-
-        // get  randomized bp floor
-        pushad
-        pushfd
-        call get_random_bp_floor
-        popfd
-        popad
-
-        //write new floor
-        push edx
-        mov edx, [bpFloor]
-        mov [eax+ecx*4h+74h], edx
-        pop edx
-        jmp retcode
-
-    code:
-        add dword ptr [eax+ecx*4h+74h], 01
-    retcode:
-		jmp dword ptr [BpJumpHook::_bpJumpHook2Continue]
-    }
-}
-
-naked void bpJumpHook3_proc(void) // called after boss stages
-{
-    _asm {
-        cmp [BpJumpHook::modEnabled], 0
-        je code
-
-        // get  randomized bp floor
-        pushad
-        pushfd
-        call get_random_bp_floor
-        popfd
-        popad
-
-        // write new floor
-        push edx
-        mov edx, [bpFloor]
-        mov [eax+ecx*4h+74h], edx
-        pop edx
-        jmp retcode
-
-    code:
-        mov [eax+ecx*4h+74h], edx
-    retcode:
-        add dword ptr [ebx+04h], 03
-		jmp dword ptr [BpJumpHook::_bpJumpHook3Continue]
-    }
-}
-
-void BpJumpHook::toggle(bool enable)
-{
-    if (enable)
-    {
-        install_patch_offset(0x004A974, patch, "\x90\x90\x90", 3);
-    }
-    else
-    {
-        patch.revert();
-    }
-}
-
-std::optional<std::string> BpJumpHook::onInitialize()
-{
-    if (!install_hook_offset(0x4AB8FA, hook, &bpJumpHook_proc, &BpJumpHook::_bpJumpHookContinue, 7))
-    {
-        HL_LOG_ERR("Failed to init BpJumpHook mod\n");
-        return "Failed to init BpJumpHook mod";
-    }
-    if (!install_hook_offset(0x04C200, hook2, &bpJumpHook2_proc, &BpJumpHook::_bpJumpHook2Continue, 5))
-    {
-        HL_LOG_ERR("Failed to init BpJumpHook mod\n");
-        return "Failed to init BpJumpHook2 mod";
-    }
-    if (!install_hook_offset(0x04B808, hook3, &bpJumpHook3_proc, &BpJumpHook::_bpJumpHook3Continue, 8))
-    {
-        HL_LOG_ERR("Failed to init BpJumpHook mod\n");
-        return "Failed to init BpJumpHook3 mod";
-    }
-
-    return Mod::onInitialize();
-}
-
-void BpJumpHook::onGUIframe()
-{
-    if (ImGui::Checkbox("Randomize BP", &modEnabled))
-    {
-        reset_random_bp();
-        toggle(modEnabled);
-    }
-}
-
-void BpJumpHook::onConfigLoad(const utils::Config& cfg)
-{
-    modEnabled = cfg.get<bool>("randomize_bp").value_or(false);
-    toggle(modEnabled);
-}
-
-void BpJumpHook::onConfigSave(utils::Config& cfg)
-{
-    cfg.set<bool>("randomize_bp", modEnabled);
-}
+*/

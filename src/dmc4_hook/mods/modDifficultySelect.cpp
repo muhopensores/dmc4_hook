@@ -219,6 +219,7 @@ void DifficultySelect::onGUIframe()
         }
     }
     ImGui::PopItemWidth();
+    ImGui::Spacing();
     // if (ImGui::Checkbox("Default", &modEnabledDefault))
     // {
     //     toggleDefault(modEnabled);

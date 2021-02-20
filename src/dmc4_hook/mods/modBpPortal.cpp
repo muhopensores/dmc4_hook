@@ -21,7 +21,7 @@ void BpPortal::toggle(bool enable)
 
 void BpPortal::onGUIframe()
 {
-    if (ImGui::Checkbox("Instant BP Portal", &modEnabled))
+    if (ImGui::Checkbox("Ignore Red Seal kill requirements", &modEnabled))
     {
         toggle(modEnabled);
     }

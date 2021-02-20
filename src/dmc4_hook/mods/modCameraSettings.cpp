@@ -17,6 +17,7 @@ bool CameraSettings::cameraLookdownEnabled{ false };
 float degrees{ 1.57f };
 bool CameraSettings::cameraResetEnabled{ false };
 bool CameraSettings::camRight{ false };
+bool CameraSettings::disableLastEnemyZoom{ false };
 
 constexpr ptrdiff_t cameraSensitivity = 0x180A8;
 
@@ -313,11 +314,23 @@ void CameraSettings::toggleCameraLookdown(bool toggle)
     }
 }
 
+void CameraSettings::toggleDisableLastEnemyZoom(bool toggle)
+{
+    if (toggle)
+    {
+        install_patch_offset(0x01A4C1, cameraDisableLastEnemyZoomPatch, "\xEB", 1);
+    }
+    else
+    {
+        cameraDisableLastEnemyZoomPatch.revert();
+    }
+}
+
 void CameraSettings::onGUIframe()
 {
     if (ImGui::CollapsingHeader("Camera"))
     {
-        ImGui::Checkbox("Camera Settings", &modEnabled);
+        ImGui::Checkbox("Custom Camera Variables", &modEnabled);
 
         ImGui::InputFloat("Camera Height", &CameraSettings::cameraHeight, 1.0f, 1.0f, "%.0f");
 
@@ -386,6 +399,11 @@ void CameraSettings::onGUIframe()
         }
         ImGui::SameLine(0, 1);
         HelpMarker("Set the camera to the right instead");
+
+        if (ImGui::Checkbox("Disable Last Enemy Zoom", &disableLastEnemyZoom))
+        {
+            toggleDisableLastEnemyZoom(disableLastEnemyZoom);
+        }
     }
 }
 
@@ -408,6 +426,8 @@ void CameraSettings::onConfigLoad(const utils::Config& cfg)
     toggleCameraLookdown(cameraLookdownEnabled);
     cameraResetEnabled = cfg.get<bool>("camera_reset").value_or(false);
     camRight = cfg.get<bool>("right_side_reset").value_or(false);
+    disableLastEnemyZoom = cfg.get<bool>("disable_last_enemy_zoom").value_or(false);
+    toggleDisableLastEnemyZoom(disableLastEnemyZoom);
 };
 
 void CameraSettings::onConfigSave(utils::Config& cfg)
@@ -425,4 +445,5 @@ void CameraSettings::onConfigSave(utils::Config& cfg)
     cfg.set<bool>("camera_lookdown", cameraLookdownEnabled);
     cfg.set<bool>("camera_reset", cameraResetEnabled);
     cfg.set<bool>("right_side_reset", camRight);
+    cfg.set<bool>("disable_last_enemy_zoom", disableLastEnemyZoom);
 };

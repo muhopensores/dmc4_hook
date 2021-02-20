@@ -133,6 +133,7 @@ void SelectiveCancels::onGUIframe() {
 
 		ImGui::Separator();
 		ImGui::Text("Common");
+        ImGui::Spacing();
 
 		//drawCheckbox("Ecstasy", &checkEcstasy, ECSTASY);
 		drawCheckboxSimple("Ecstasy", ECSTASY);
@@ -151,6 +152,7 @@ void SelectiveCancels::onGUIframe() {
 
 		ImGui::Separator();
 		ImGui::Text("Swords");
+                ImGui::Spacing();
 
 		//drawCheckbox("Prop", &checkProp, PROP);
 		drawCheckboxSimple("Prop", PROP);
@@ -162,6 +164,7 @@ void SelectiveCancels::onGUIframe() {
 
 		ImGui::Separator();
 		ImGui::Text("Guns");
+        ImGui::Spacing();
 
 		//drawCheckbox("Omen", &checkOmen, OMEN);
 		drawCheckboxSimple("Omen", OMEN);

@@ -54,6 +54,7 @@ void WorkRate::onGUIframe() {
 		{
 			if (!checkWorkRatePtr()) {
 				ImGui::TextWrapped("Speed adjustments are not initialized yet, load into the stage to access them.");
+				ImGui::Spacing();
 				return;
 			}
 				ImGui::InputFloat("Turbo Value", &sWorkRatePtr->turboSpeed, 0.1f, 0.5f, "%.1f%");

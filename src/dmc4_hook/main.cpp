@@ -249,21 +249,101 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
         if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyScroll))
         {
+            if (ImGui::BeginTabItem("General"))
+            {
+                ImGui::Spacing();
+
+                ImGui::Text("General");
+
+                ImGui::Spacing();
+
+                main->getMods()->onDrawUI("DamageMultiplier"_hash); // needs its own line
+
+                main->getMods()->onDrawUI("OneHitKill"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("InfAllHealth"_hash);
+
+                main->getMods()->onDrawUI("NoDeath"_hash);
+
+                main->getMods()->onDrawUI("RestoreMaxHp"_hash); // needs its own line
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                ImGui::Text("Enemy Difficulty");
+
+                ImGui::Spacing();
+
+                main->getMods()->onDrawUI("DifficultySelect"_hash); // needs its own line
+
+                main->getMods()->onDrawUI("EnemyDT"_hash);
+
+                main->getMods()->onDrawUI("DmdLevelAi"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("LdkWithDmd"_hash);
+
+                main->getMods()->onDrawUI("EnemyAttackOffScreen"_hash);
+
+                main->getMods()->onDrawUI("EnemySlotting"_hash); // needs its own line
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                ImGui::Text("Bloody Palace");
+
+                ImGui::Spacing();
+
+                main->getMods()->onDrawUI("BpJumpHook"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("BpBossRush"_hash);
+
+                main->getMods()->onDrawUI("DmdBloodyPalace"_hash);
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                ImGui::Text("Enemy Options");
+
+                ImGui::Spacing();
+
+                main->getMods()->onDrawUI("StunAnything"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("RemoveLaunchArmour"_hash);
+
+                main->getMods()->onDrawUI("DtEnemiesDontStun"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("InfFaustCloak"_hash);
+
+                main->getMods()->onDrawUI("PassiveEnemies"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("FreezeEnemies"_hash);
+
+                main->getMods()->onDrawUI("BerialDaze"_hash);
+
+                ImGui::Spacing();
+                ImGui::EndTabItem();
+            }
+
             if (ImGui::BeginTabItem("Character"))
             {
                 ImGui::Spacing();
 
-                main->getMods()->onDrawUI("BpJumpHook"_hash);
-
                 ImGui::Text("Limit Removal");
 
-				main->getMods()->onDrawUI("LimitAdjust"_hash);
+                ImGui::Spacing();
+
+                main->getMods()->onDrawUI("LimitAdjust"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
 
                 (ImGui::Text("Height Restriction Removal"));
+
+                ImGui::Spacing();
 
                 main->getMods()->onDrawUI("HeightRestrictionDante"_hash);
                 ImGui::SameLine(205);
@@ -273,135 +353,87 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Separator();
                 ImGui::Spacing();
 
-                Misc();
+                ImGui::Text("Character Abilities");
 
-                main->getMods()->onDrawUI("TrickDown"_hash);
-                ImGui::SameLine(205);
+                ImGui::Spacing();
+
                 main->getMods()->onDrawUI("TrackingFullHouse"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("TrickDown"_hash);
+
+                main->getMods()->onDrawUI("RoseRemovesPins"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("ForceLucifer"_hash);
 
                 main->getMods()->onDrawUI("TimerMem"_hash); // instant honeycomb
                 ImGui::SameLine(205);
-                main->getMods()->onDrawUI("RoseRemovesPins"_hash);
+                main->getMods()->onDrawUI("SkipPandora"_hash);
+
+                main->getMods()->onDrawUI("ManualTwosomeTime"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("NoHbKnockback"_hash); // needs its own line
+
+                main->getMods()->onDrawUI("KnockbackEdits"_hash); // currently empty
+
+                main->getMods()->onDrawUI("NoDtCooldown"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("NoClip"_hash);
 
                 main->getMods()->onDrawUI("EasyJc"_hash);
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("FreeJc"_hash);
 
-                main->getMods()->onDrawUI("SkipPandora"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("ForceLucifer"_hash);
-
-                main->getMods()->onDrawUI("ManualTwosomeTime"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("NoHbKnockback"_hash); // Takes up a lot of room so leave on the right
-
-                main->getMods()->onDrawUI("KnockbackEdits"_hash); // currently empty
-
-                main->getMods()->onDrawUI("NoDtCooldown"_hash);
-
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
-
                 main->getMods()->onDrawUI("FastPandora"_hash);
-
                 ImGui::SameLine(205);
-
                 main->getMods()->onDrawUI("FastSprint"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
 
-                main->getMods()->onDrawUI("InfAirHikes"_hash);
+                ImGui::Text("Shared Cheats");
+
+                ImGui::Spacing();
+
+                main->getMods()->onDrawUI("InfRevive"_hash);
                 ImGui::SameLine(205);
-                main->getMods()->onDrawUI("InfSkyStars"_hash);
+                main->getMods()->onDrawUI("InfPlayerHealth"_hash);
+
+                main->getMods()->onDrawUI("InfDT"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("InfAirHikes"_hash);
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                ImGui::Text("Dante Cheats");
+
+                ImGui::Spacing();
 
                 main->getMods()->onDrawUI("InfTrickRange"_hash);
                 ImGui::SameLine(205);
+                main->getMods()->onDrawUI("InfSkyStars"_hash);
+
                 main->getMods()->onDrawUI("InfDreadnought"_hash);
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                ImGui::Text("Nero Cheats");
+
+                ImGui::Spacing();
 
                 main->getMods()->onDrawUI("InfTableHopper"_hash);
 
+                ImGui::Spacing();
+                ImGui::Separator();
                 ImGui::Spacing();
 
                 main->getMods()->onDrawUI("SelectiveCancels"_hash);
 
                 main->getMods()->onDrawUI("DisableDarkslayer"_hash);
-
-                ImGui::Spacing();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("General"))
-            {
-                ImGui::Spacing();
-
-                ImGui::Text("General");
-
-                main->getMods()->onDrawUI("DamageMultiplier"_hash);
-
-                main->getMods()->onDrawUI("OneHitKill"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("NoDeath"_hash);
-
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
-
-                main->getMods()->onDrawUI("InfAllHealth"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("InfDT"_hash);
-
-                main->getMods()->onDrawUI("InfPlayerHealth"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("InfRevive"_hash);
-
-                main->getMods()->onDrawUI("RestoreMaxHp"_hash);
-
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
-
-                ImGui::Text("Game Mode");
-
-                main->getMods()->onDrawUI("DifficultySelect"_hash);
-
-                main->getMods()->onDrawUI("BpBossRush"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("LdkWithDmd"_hash);
-
-                main->getMods()->onDrawUI("EnemyDT"_hash);
-
-                main->getMods()->onDrawUI("DmdBloodyPalace"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("DmdLevelAi"_hash);
-
-                main->getMods()->onDrawUI("DtEnemiesDontStun"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("EnemyAttackOffScreen"_hash);
-
-                main->getMods()->onDrawUI("EnemySlotting"_hash); // needs its own line
-                
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
-
-                Misc();
-
-                main->getMods()->onDrawUI("BerialDaze"_hash);
-
-                ImGui::SameLine(205);
-
-                main->getMods()->onDrawUI("StunAnything"_hash);
-
-                main->getMods()->onDrawUI("InfFaustCloak"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("RemoveLaunchArmour"_hash);
-
-                main->getMods()->onDrawUI("PassiveEnemies"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("FreezeEnemies"_hash);
 
                 ImGui::Spacing();
                 ImGui::EndTabItem();
@@ -433,7 +465,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
             {
                 ImGui::Spacing();
 
-                ImGui::Text("General");
+                ImGui::Text("HUD");
+
+                ImGui::Spacing();
 
                 main->getMods()->onDrawUI("InfiniteTime"_hash);
                 ImGui::SameLine(205);
@@ -445,6 +479,10 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Separator();
                 ImGui::Spacing();
 
+                ImGui::Text("Cutscenes");
+
+                ImGui::Spacing();
+
                 main->getMods()->onDrawUI("DisableCameraEvents"_hash);
 
                 main->getMods()->onDrawUI("CutsceneSkip"_hash);
@@ -453,25 +491,31 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Separator();
                 ImGui::Spacing();
 
+                ImGui::Text("Misc");
+
+                ImGui::Spacing();
+
                 main->getMods()->onDrawUI("CharacterSwap"_hash);
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("SlowWalk"_hash);
 
-                main->getMods()->onDrawUI("BpPortal"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("DisableLastEnemyZoom"_hash);
-
-                main->getMods()->onDrawUI("NoClip"_hash);
+                main->getMods()->onDrawUI("BpPortal"_hash); // needs its own line
 
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
                 
-                Misc();
+                ImGui::Text("System");
+
+                ImGui::Spacing();
 
                 main->getMods()->onDrawUI("BackgroundRendering"_hash);
 
                 main->getMods()->onDrawUI("FpsLimit"_hash);
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
 
                 main->getMods()->onDrawUI("WorkRate"_hash);
 

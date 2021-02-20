@@ -7,7 +7,7 @@ class TimerMem : public Mod
 public:
     TimerMem();
 
-    static bool TimerMem::instantHoneycombEnabled;
+    static bool instantHoneycombEnabled;
     static uintptr_t timer_jmp_ret;
     static uintptr_t back_forward_jmp_ret;
     static float timerMem;

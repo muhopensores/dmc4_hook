@@ -19,7 +19,6 @@
 #include "mods/modMoveIDsNero.hpp"
 #include "mods/modInfSkyStars.hpp"
 #include "mods/modForceLucifer.hpp"
-#include "mods/modDisableLastEnemyZoom.hpp"
 #include "mods/modLdkWithDmd.hpp"
 #include "mods/modDmdBloodyPalace.hpp"
 #include "mods/modDmdLevelAi.hpp"
@@ -95,7 +94,6 @@ Mods::Mods() {
 		m_mods["MoveIdsNero"_hash] = std::make_unique<MoveIdsNero>();
 		m_mods["InfSkyStars"_hash] = std::make_unique<InfSkyStars>();
 		m_mods["ForceLucifer"_hash] = std::make_unique<ForceLucifer>();
-		m_mods["DisableLastEnemyZoom"_hash] = std::make_unique<DisableLastEnemyZoom>();
 		m_mods["LdkWithDmd"_hash] = std::make_unique<LdkWithDmd>();
 		m_mods["DmdBloodyPalace"_hash] = std::make_unique<DmdBloodyPalace>();
 		m_mods["DmdLevelAi"_hash] = std::make_unique<DmdLevelAi>();

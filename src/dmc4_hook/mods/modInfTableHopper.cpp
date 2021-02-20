@@ -21,7 +21,7 @@ void InfTableHopper::toggle(bool enable)
 
 void InfTableHopper::onGUIframe()
 {
-    if (ImGui::Checkbox("Inf Table Hopper", &modEnabled))
+    if (ImGui::Checkbox("Infinite Table Hopper", &modEnabled))
     {
         toggle(modEnabled);
     }

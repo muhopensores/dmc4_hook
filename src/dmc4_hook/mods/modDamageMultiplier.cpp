@@ -55,6 +55,7 @@ void DamageMultiplier::onGUIframe() {
     ImGui::PushItemWidth(217);
     ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
     ImGui::PopItemWidth();
+    ImGui::Spacing();
 }
 
 void DamageMultiplier::onConfigLoad(const utils::Config& cfg) {

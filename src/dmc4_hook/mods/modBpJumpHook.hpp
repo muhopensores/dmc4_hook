@@ -10,7 +10,6 @@ public:
     static bool modEnabled;
     static uintptr_t _bpJumpHookContinue;
     static uintptr_t _bpJumpHook2Continue;
-    static uintptr_t _bpJumpHook3Continue;
     void toggle(bool enable);
 
     std::string getModName() override { return "BpJumpHook"; };
@@ -25,6 +24,6 @@ public:
 private:
     hl::Hooker hook;
     hl::Hooker hook2;
-    hl::Hooker hook3;
     hl::Patch patch;
+    hl::Patch patch2;
 };

@@ -414,13 +414,15 @@ void AreaJump::onGUIframe()
 
     ImGui::Text("Bloody Palace Floor Teleports");
 
+    ImGui::Spacing();
+
 	if (cAreaJumpPtr->bpFloorStage)
     {
 		if (ImGui::InputInt("##BP Floor ", &cAreaJumpPtr->bpFloorStage, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
 			cAreaJumpPtr->bpFloorStage = std::clamp(cAreaJumpPtr->bpFloorStage, 1, 101);
 		}
 
-        if (ImGui::Button("Go", ImVec2(100, 25)))
+        if (ImGui::Button("Go", ImVec2(290, 20)))
         {
 			jumpToStage(bpStage(cAreaJumpPtr->bpFloorStage));
 		}
@@ -435,6 +437,8 @@ void AreaJump::onGUIframe()
     ImGui::Spacing();
 
     ImGui::Text("Mission Area Teleports");
+
+    ImGui::Spacing();
 
 	int room_item_current = 0;
 	if (ImGui::ListBox("##Room Codes Listbox", &room_item_current, room_items.data(), room_items.size(), 10))

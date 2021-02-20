@@ -55,6 +55,7 @@ void EnemySlotting::onGUIframe() {
     ImGui::PushItemWidth(217);
     ImGui::InputInt("Slot Limit ", &enemyslotlimit, 1, 10, ImGuiInputTextFlags_AllowTabInput);
     ImGui::PopItemWidth();
+    ImGui::Spacing();
 }
 
 void EnemySlotting::onConfigLoad(const utils::Config& cfg) {
