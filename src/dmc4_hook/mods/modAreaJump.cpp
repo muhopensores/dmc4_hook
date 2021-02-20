@@ -419,8 +419,8 @@ void AreaJump::onGUIframe()
 		if (ImGui::InputInt("##BP Floor ", &cAreaJumpPtr->bpFloorStage, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
 			cAreaJumpPtr->bpFloorStage = std::clamp(cAreaJumpPtr->bpFloorStage, 1, 101);
 		}
-		ImGui::SameLine(0, 4);
-		if (ImGui::Button("Go"))
+
+        if (ImGui::Button("Go", ImVec2(100, 25)))
         {
 			jumpToStage(bpStage(cAreaJumpPtr->bpFloorStage));
 		}

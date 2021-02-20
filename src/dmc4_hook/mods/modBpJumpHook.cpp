@@ -108,7 +108,8 @@ void get_random_bp_floor()
     {
         attemptedBpFloor = random_num(1, 101);             // put a random number in attemptedBpFloor
         didBpFloorAlreadyHappen = check_complete_floors(); // see if it's already been played
-    } while (didBpFloorAlreadyHappen == true);             // if it has been played, get another number
+    } 
+    while (didBpFloorAlreadyHappen == true);             // if it has been played, get another number
 
     // save bp floor completion
     bpFloor = attemptedBpFloor;
