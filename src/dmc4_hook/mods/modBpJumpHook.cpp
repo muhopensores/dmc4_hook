@@ -100,6 +100,13 @@ void bp_start() // first bp detour
 
 void bp_continue() // other bp detours
 {
+    if (numberOfCompleteFloors == 100) // + 1
+    {
+        bpFloor = 101;
+        areaJumpID = -1;
+        return;
+    }
+
     // apply floor
     bpFloor = bpArray[numberOfCompleteFloors];
 
@@ -206,7 +213,28 @@ void BpJumpHook::onGUIframe()
         bp_start();
     }
     ImGui::SameLine(0, 1);
-    HelpMarker("Enable before playing BP.");
+    HelpMarker("Enable before starting BP");
+
+    if (ImGui::CollapsingHeader("[spoilers] What stages did you roll?"))
+    {
+        ImGui::Text("Stage Number");
+        ImGui::SameLine(205);
+        ImGui::Text("Random Stage");
+
+        ImGui::Text("1");
+        ImGui::SameLine(205);
+        ImGui::Text("1");
+
+        int stageCount = 2; 
+        for (int i : bpArray)
+        {
+            ImGui::Text("%i",stageCount);
+            stageCount++;
+            ImGui::SameLine(205);
+            ImGui::Text("%i", i);
+        }
+        ImGui::Separator();
+    }
 }
 
 void BpJumpHook::onConfigLoad(const utils::Config& cfg)
