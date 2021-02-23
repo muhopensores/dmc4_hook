@@ -1,6 +1,7 @@
 #include "Mods.hpp"
 #include "utils/Hash.hpp"
 // include mod headers here
+#include "mods/modFastStart.hpp"
 #include "mods/modAreaJump.hpp"
 #include "mods/modLimitAdjust.hpp"
 #include "mods/modMoveIDs.hpp"
@@ -70,13 +71,14 @@
 #include "mods/modDifficultySelect.hpp"
 #include "mods/modEnemyReplace.hpp"
 #include "mods/modBpJumpHook.hpp"
-#include "mods/modFastStart.hpp"
+
 
 //#include "mods/modSample.hpp"
 // mods constructor
 Mods::Mods() {
 		//add mods here
 		//m_mods["ModName"_hash] = std::make_unique<ModName>();
+		m_mods["FastStart"_hash] = std::make_unique<FastStart>();
 		m_mods["AreaJump"_hash] = std::make_unique<AreaJump>();
 		m_mods["LimitAdjust"_hash] = std::make_unique<LimitAdjust>();
 		m_mods["MoveIds"_hash] = std::make_unique<MoveIds>();
@@ -146,7 +148,7 @@ Mods::Mods() {
 		m_mods["DifficultySelect"_hash] = std::make_unique<DifficultySelect>();
         m_mods["EnemyReplace"_hash] = std::make_unique<EnemyReplace>();
 		m_mods["BpJumpHook"_hash] = std::make_unique<BpJumpHook>();
-		m_mods["FastStart"_hash] = std::make_unique<FastStart>();
+		
 }
 
 // Initializes mods, checks for errors
