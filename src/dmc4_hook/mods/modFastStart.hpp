@@ -23,4 +23,6 @@ public:
 private:
 	hl::Hooker hook_dti;
 	hl::Patch  patch_menu;
+	hl::Patch  patch_mt01; // menu transitions
+	hl::Patch  patch_mt02;
 };

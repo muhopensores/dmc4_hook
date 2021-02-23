@@ -39,11 +39,18 @@ void FastStart::toggle(bool enable)
 {
     if (enable)
     {
+		float one = 1.0f;
         install_patch_offset(0x4996B5, patch_menu, "\x07", 1);
+		//just a memcpy with VirtualProtect
+		install_patch_offset(0x810268, patch_mt01, (char*)&one, sizeof(float));
+		install_patch_offset(0x79A27C, patch_mt02, (char*)&one, sizeof(float));
+
     }
     else
     {
 		patch_menu.revert();
+		patch_mt01.revert();
+		patch_mt02.revert();
     }
 }
 
