@@ -154,19 +154,20 @@ bool hlMain::init()
 		failed();
 	}
 	MH_Initialize();
-	bool exp_result = InstallExceptionHandlerHooks();
+	//bool exp_result = InstallExceptionHandlerHooks();
 
 	auto cwd = hl::GetCurrentModulePath();
 	cwd = cwd.substr(0, cwd.find_last_of("\\/"));
 	m_confPath = cwd + "\\dmc4_hook.cfg";
 	cfg = std::make_unique<utils::Config>( m_confPath );
 
-	/*// Wait 3 seconds to let the game start.
-	Sleep(3000);*/
+	// Wait 3 seconds to let the game start.
+	//Sleep(3000);
 	uintptr_t codePtr = 0x008DB650;
 	int data = *(int*)(codePtr);
 	while (data != 0x5324EC83) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		data = *(int*)(codePtr);
+		Sleep(10);
 	}
 
     hl::LogConfig logCfg;

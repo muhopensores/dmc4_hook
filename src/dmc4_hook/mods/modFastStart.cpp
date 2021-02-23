@@ -16,14 +16,9 @@ naked void detour(void)
 		cmp byte ptr [FastStart::modEnabled],0
 		je originalCode
 		
-		pushad
-		push ecx
-		call checkClassName
-		test al,al
-		pop ecx
-		popad
-		
-		je originalCode
+		cmp ecx, 0x00E55D88
+		jne originalCode
+
 		mov ecx, 0x00E56BC8
 
 	originalCode:

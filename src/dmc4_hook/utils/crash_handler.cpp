@@ -2,7 +2,7 @@
 #include "hacklib/Logging.h"
 #include "MinHook.h"
 #include <DbgHelp.h>
-
+#if 0
 // Link with DbgHelp.lib
 #pragma comment ( lib, "dbghelp.lib" )
 
@@ -61,7 +61,7 @@ void CreateMiniDump( EXCEPTION_POINTERS* pep )
 		mdei.ExceptionPointers  = pep; 
 		mdei.ClientPointers     = FALSE; 
 
-		MINIDUMP_TYPE mdt       = MiniDumpNormal; 
+		MINIDUMP_TYPE mdt       = (MINIDUMP_TYPE)(MiniDumpNormal | MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory); 
 
 		BOOL rv = MiniDumpWriteDump( GetCurrentProcess(), GetCurrentProcessId(), 
 			hFile, mdt, (pep != 0) ? &mdei : 0, 0, 0 ); 
@@ -72,7 +72,6 @@ void CreateMiniDump( EXCEPTION_POINTERS* pep )
 		else {
 			HL_LOG_RAW("Minidump created.\n");
 		}
-		// Close the file 
 
 		CloseHandle( hFile ); 
 
@@ -108,3 +107,4 @@ Our_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
     //return EXCEPTION_EXECUTE_HANDLER;
 }
+#endif
