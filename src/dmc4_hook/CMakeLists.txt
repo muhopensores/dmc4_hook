@@ -142,6 +142,8 @@ SET (MODS
   mods/modDifficultySelect.hpp
   mods/modBpJumpHook.cpp
   mods/modBpJumpHook.hpp
+  mods/modFastStart.cpp
+  mods/modFastStart.hpp
 )
 
 SET (HEADERS

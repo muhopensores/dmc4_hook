@@ -135,3 +135,31 @@ public:
 	char pad_0x001C[0x18]; //0x001C
 
 }; //Size=0x0034
+
+class MtObject;
+
+class MtDTI
+{
+public:
+	char *mName; //0x0004
+	class MtDTI *mpNext; //0x0008
+	class MtDTI *mpChild; //0x000C
+	class MtDTI *mpParent; //0x0010
+	class MtDTI *mpLink; //0x0014
+	uint32_t mpLink1; //0x0018
+	uint32_t mID; //0x001C
+	// hope it's fucking thiscall
+	//virtual void vecDelDtor(MtDTI* this, unsigned int x)();
+	//virtual void MtObject* newInstance(MtDTI *this)();
+
+	virtual void vecDelDtor(unsigned int x);
+	virtual MtObject* newInstance();
+	virtual void Function2();
+	virtual void Function3();
+	virtual void Function4();
+	virtual void Function5();
+	virtual void Function6();
+	virtual void Function7();
+	virtual void Function8();
+	virtual void Function9();
+}; //Size: 0x0020
