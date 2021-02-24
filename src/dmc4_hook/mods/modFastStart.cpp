@@ -5,21 +5,47 @@ bool FastStart::modEnabled{ false };
 
 static uintptr_t jmp_ret;
 
-bool checkClassName(MtDTI* dti) {
+static bool checkClassName(MtDTI* dti) {
 	char* aTitle = "aInit";
 	return strcmp(dti->mName, aTitle) == 0;
+}
+
+static void loadSaveSlot() {
+	uintptr_t func = 0x004A03B0; // load function ptr
+	_asm {
+		mov edx, 0x00E55E48 // sPCSave
+		mov edx, [edx]
+		mov eax, 0 // slot?
+		push edx
+		call dword ptr [func]
+	}
 }
 
 naked void detour(void)
 {
 	_asm {
-		cmp byte ptr [FastStart::modEnabled],0
+		cmp byte ptr[FastStart::modEnabled], 0
 		je originalCode
-		
-		cmp ecx, 0x00E55D88
-		jne originalCode
 
-		mov ecx, 0x00E56BC8
+		cmp ecx, 0x00E55C88 // aAdvertise
+		je aAdv
+		cmp ecx, 0x00E55D88 // aInit
+		je aInit
+		jmp originalCode
+	aAdv:
+		mov ecx, 0x00E55E48 // aMissionSelect
+		jmp originalCode
+
+		; 0x00E55CE8 // aGame
+		; 0x00E55C88 // aAdvertise
+
+		; mov ecx, 0x00E56BC8 // aTitle
+		; mov ecx, 0x00E55E48  // aMissionSelect
+	aInit:
+		mov ecx, 0x00E55CE8 // aGame
+		pushad
+		call loadSaveSlot //load save in slot 0
+		popad
 
 	originalCode:
 
@@ -34,11 +60,11 @@ void FastStart::toggle(bool enable)
 {
     if (enable)
     {
-		float one = 1.0f;
-        install_patch_offset(0x4996B5, patch_menu, "\x07", 1);
+		//float one = 1.0f;
+        //install_patch_offset(0x4996B5, patch_menu, "\x07", 1);
 		//just a memcpy with VirtualProtect
-		install_patch_offset(0x810268, patch_mt01, (char*)&one, sizeof(float));
-		install_patch_offset(0x79A27C, patch_mt02, (char*)&one, sizeof(float));
+		//install_patch_offset(0x810268, patch_mt01, (char*)&one, sizeof(float));
+		//install_patch_offset(0x79A27C, patch_mt02, (char*)&one, sizeof(float));
 
     }
     else

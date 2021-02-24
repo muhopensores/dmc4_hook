@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <tchar.h>
 #include <iostream>
+#include <tlhelp32.h>
 
 #include <filesystem>
 
@@ -139,6 +140,70 @@ void hlMain::saveSettings() {
 	cfg->save(m_confPath);
 }
 
+// Pass 0 as the targetProcessId to suspend threads in the current process
+void DoSuspendThread(DWORD targetProcessId, DWORD targetThreadId)
+{
+	HANDLE h = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+	if (h != INVALID_HANDLE_VALUE)
+	{
+		THREADENTRY32 te;
+		te.dwSize = sizeof(te);
+		if (Thread32First(h, &te))
+		{
+			do
+			{
+				if (te.dwSize >= FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) + sizeof(te.th32OwnerProcessID)) 
+				{
+					// Suspend all threads EXCEPT the one we want to keep running
+					if(te.th32ThreadID != targetThreadId && te.th32OwnerProcessID == targetProcessId)
+					{
+						HANDLE thread = ::OpenThread(THREAD_ALL_ACCESS, FALSE, te.th32ThreadID);
+						if(thread != NULL)
+						{
+							SuspendThread(thread);
+							CloseHandle(thread);
+						}
+					}
+				}
+				te.dwSize = sizeof(te);
+			} while (Thread32Next(h, &te));
+		}
+		CloseHandle(h);    
+	}
+}
+
+// Pass 0 as the targetProcessId to suspend threads in the current process
+void DoResumeThread(DWORD targetProcessId, DWORD targetThreadId)
+{
+	HANDLE h = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+	if (h != INVALID_HANDLE_VALUE)
+	{
+		THREADENTRY32 te;
+		te.dwSize = sizeof(te);
+		if (Thread32First(h, &te))
+		{
+			do
+			{
+				if (te.dwSize >= FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) + sizeof(te.th32OwnerProcessID)) 
+				{
+					// Suspend all threads EXCEPT the one we want to keep running
+					if(te.th32ThreadID != targetThreadId && te.th32OwnerProcessID == targetProcessId)
+					{
+						HANDLE thread = ::OpenThread(THREAD_ALL_ACCESS, FALSE, te.th32ThreadID);
+						if(thread != NULL)
+						{
+							ResumeThread(thread);
+							CloseHandle(thread);
+						}
+					}
+				}
+				te.dwSize = sizeof(te);
+			} while (Thread32Next(h, &te));
+		}
+		CloseHandle(h);    
+	}
+}
+
 namespace fs = std::filesystem;
 
 bool hlMain::init()
@@ -169,6 +234,7 @@ bool hlMain::init()
 		data = *(int*)(codePtr);
 		Sleep(10);
 	}
+	DoSuspendThread(0, GetCurrentThreadId());
 
     hl::LogConfig logCfg;
     logCfg.logToFile = true;
@@ -194,6 +260,7 @@ bool hlMain::init()
 
 	// loads settings and toggles refactored mods.
 	loadSettings();
+	DoResumeThread(0, GetCurrentThreadId());
     return true;
 }
 
