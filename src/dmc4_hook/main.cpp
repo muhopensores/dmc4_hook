@@ -140,6 +140,7 @@ void hlMain::saveSettings() {
 	cfg->save(m_confPath);
 }
 
+// TODO(): move this somewhere
 // Pass 0 as the targetProcessId to suspend threads in the current process
 void DoSuspendThread(DWORD targetProcessId, DWORD targetThreadId)
 {
@@ -172,6 +173,7 @@ void DoSuspendThread(DWORD targetProcessId, DWORD targetThreadId)
 	}
 }
 
+// TODO(): move this somewhere
 // Pass 0 as the targetProcessId to suspend threads in the current process
 void DoResumeThread(DWORD targetProcessId, DWORD targetThreadId)
 {
@@ -234,7 +236,7 @@ bool hlMain::init()
 		data = *(int*)(codePtr);
 		Sleep(10);
 	}
-	DoSuspendThread(0, GetCurrentThreadId());
+	DoSuspendThread(GetCurrentProcessId(), GetCurrentThreadId());
 
     hl::LogConfig logCfg;
     logCfg.logToFile = false;
@@ -260,7 +262,9 @@ bool hlMain::init()
 
 	// loads settings and toggles refactored mods.
 	loadSettings();
-	DoResumeThread(0, GetCurrentThreadId());
+
+	DoResumeThread(GetCurrentProcessId(), GetCurrentThreadId());
+
     return true;
 }
 
