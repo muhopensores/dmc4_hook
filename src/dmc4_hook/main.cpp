@@ -237,7 +237,7 @@ bool hlMain::init()
 	DoSuspendThread(0, GetCurrentThreadId());
 
     hl::LogConfig logCfg;
-    logCfg.logToFile = true;
+    logCfg.logToFile = false;
     logCfg.logTime = true;
     logCfg.fileName = "dmc4_hook_log.txt";
     hl::ConfigLog(logCfg);
