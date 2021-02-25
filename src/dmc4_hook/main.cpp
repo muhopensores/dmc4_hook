@@ -239,7 +239,7 @@ bool hlMain::init()
 	DoSuspendThread(GetCurrentProcessId(), GetCurrentThreadId());
 
     hl::LogConfig logCfg;
-    logCfg.logToFile = false;
+    logCfg.logToFile = true;
     logCfg.logTime = true;
     logCfg.fileName = "dmc4_hook_log.txt";
     hl::ConfigLog(logCfg);
@@ -398,6 +398,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("FreezeEnemies"_hash);
 
+                main->getMods()->onDrawUI("DisableChimeraBlades"_hash);
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("BerialDaze"_hash);
 
                 ImGui::Spacing();
@@ -574,6 +576,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 main->getMods()->onDrawUI("CharacterSwap"_hash);
                 ImGui::SameLine(205);
+                main->getMods()->onDrawUI("NoAutomaticCharacters"_hash);
                 main->getMods()->onDrawUI("SlowWalk"_hash);
 
                 main->getMods()->onDrawUI("BpPortal"_hash); // needs its own line

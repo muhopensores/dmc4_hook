@@ -144,6 +144,10 @@ SET (MODS
   mods/modBpJumpHook.hpp
   mods/modFastStart.cpp
   mods/modFastStart.hpp
+  mods/modNoAutomaticCharacters.cpp
+  mods/modNoAutomaticCharacters.hpp
+  mods/modDisableChimeraBlades.cpp
+  mods/modDisableChimeraBlades.hpp
 )
 
 SET (HEADERS

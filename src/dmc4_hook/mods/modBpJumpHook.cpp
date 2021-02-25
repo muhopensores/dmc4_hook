@@ -1,6 +1,7 @@
 #include "../mods.h"
 #include "modBpJumpHook.hpp"
 #include "modAreaJump.hpp"
+#include "modBpBossRush.hpp"
 #include "random"
 #include "numeric"
 // #include "algorithm"
@@ -211,6 +212,7 @@ void BpJumpHook::onGUIframe()
     {
         toggle(modEnabled);
         bp_start();
+        BpBossRush::modEnabled = 0;
     }
     ImGui::SameLine(0, 1);
     HelpMarker("Enable before starting BP");
@@ -241,68 +243,13 @@ void BpJumpHook::onConfigLoad(const utils::Config& cfg)
 {
     modEnabled = cfg.get<bool>("randomize_bp").value_or(false);
     toggle(modEnabled);
+    if (modEnabled)
+    {
+        BpBossRush::modEnabled = false;
+    }
 }
 
 void BpJumpHook::onConfigSave(utils::Config& cfg)
 {
     cfg.set<bool>("randomize_bp", modEnabled);
 }
-
-/*
-// get area jump pointer
-push edx
-lea edx, [eax+6Ch]
-mov [areaJumpPtr], edx
-pop edx
-*/
-
-/*
-void jumpToStage(int stage)
-{
-    switch (stage)
-    {
-    case 0:
-        *areaJumpPtr = 503; // "Bloody Palace 20"
-        break;
-    case 1:
-        *areaJumpPtr = 504; // "Bloody Palace 40"
-        break;
-    case 2:
-        *areaJumpPtr = 505; // "Bloody Palace 60"
-        break;
-    case 3:
-        *areaJumpPtr = 507; // "Bloody Palace 80"
-        break;
-    case 4:
-        *areaJumpPtr = 506; // "Bloody Palace 100"
-        break;
-    case 5:
-        *areaJumpPtr = 700; // "Bloody Palace 101"
-        break;
-    case 6:
-        *areaJumpPtr = 705; // "Bloody Palace 1-19"
-        break;
-    case 7:
-        *areaJumpPtr = 704; // "Bloody Palace 21-39"
-        break;
-    case 8:
-        *areaJumpPtr = 703; // "Bloody Palace 41-59"
-        break;
-    case 9:
-        *areaJumpPtr = 701; // "Bloody Palace 61-79"
-        break;
-    case 10:
-        *areaJumpPtr = 702; // "Bloody Palace 81-99"
-        // AreaJump::cAreaJumpPtr->roomId
-        break;
-    }
-}
-*/
-
-/*
-void reset_random_bp()
-{
-    std::fill(bpArray.begin(), bpArray.end(), 0);
-    numberOfCompleteFloors = 0;
-}
-*/

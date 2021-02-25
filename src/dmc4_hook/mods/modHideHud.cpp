@@ -49,14 +49,14 @@ void HideHud::toggleTimer(bool enable)
     {
         install_patch_offset(0x0FDE2A, patchbp, "\x00", 1);
         install_patch_offset(0x0FE298, patchm12, "\x00", 1);
-        install_patch_offset(0x50A8E6, patchm12flash, "\x90\x90\x90\x90\x90", 5);
+        // install_patch_offset(0x50A8E6, patchm12flash, "\x90\x90\x90\x90\x90", 5);
         install_patch_offset(0x0FE088, patchbpplus, "\x90\x90\x90\x90", 4);
     }
     else
     {
         patchbp.revert();
         patchm12.revert();
-        patchm12flash.revert();
+        // patchm12flash.revert();
         patchbpplus.revert();
     }
 }

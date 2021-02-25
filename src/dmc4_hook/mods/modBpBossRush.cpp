@@ -1,4 +1,5 @@
 #include "modBpBossRush.hpp"
+#include "modBpJumpHook.hpp"
 
 bool BpBossRush::modEnabled{ false };
 
@@ -36,6 +37,7 @@ void BpBossRush::onGUIframe()
     if (ImGui::Checkbox("BP Boss Rush", &modEnabled))
     {
         toggle(modEnabled);
+        BpJumpHook::modEnabled = 0;
     }
     ImGui::SameLine(0, 1);
     HelpMarker("Activate before starting BP to be teleported only to boss stages");
@@ -45,9 +47,13 @@ void BpBossRush::onConfigLoad(const utils::Config& cfg)
 {
     modEnabled = cfg.get<bool>("bp_boss_rush").value_or(false);
     toggle(modEnabled);
-};
+    if (modEnabled)
+    {
+        BpJumpHook::modEnabled = false;
+    }
+}
 
 void BpBossRush::onConfigSave(utils::Config& cfg)
 {
     cfg.set<bool>("bp_boss_rush", modEnabled);
-};
+}
