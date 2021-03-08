@@ -77,4 +77,7 @@ public:
 	//game specific callbacks
 	virtual void onGamePause(bool toggle) {};
 	virtual bool onMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) { return true; };
+
+	// twitch
+	virtual void onTwitchCommand(std::size_t hash) {};
 };

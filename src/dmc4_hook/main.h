@@ -5,7 +5,9 @@
 #include "hacklib/Hooker.h"
 #include "hacklib/ConsoleEx.h"
 #include "hacklib/Input.h"
+
 #include "utils/Config.hpp"
+#include "utils/RingBuffer.hpp"
 
 class Mods;
 
@@ -39,7 +41,6 @@ public:
     // define our pointers here, but init and search for them in init()
     // pointer definitions
     uintptr_t modBase;
-
 
     // hl::Patch
 

@@ -148,6 +148,8 @@ SET (MODS
   mods/modNoAutomaticCharacters.hpp
   mods/modDisableChimeraBlades.cpp
   mods/modDisableChimeraBlades.hpp
+  mods/modTwitch.hpp
+  mods/modTwitch.cpp
 )
 
 SET (HEADERS
@@ -190,6 +192,8 @@ SET (IMGUI
 #aux_source_directory(mods MODS)
 
 SET (UTILS
+  utils/MessageDisplay.cpp
+  utils/MessageDisplay.hpp
   utils/Hash.hpp
   utils/Config.hpp
   utils/Config.cpp
@@ -197,6 +201,17 @@ SET (UTILS
   utils/String.hpp
   utils/crash_handler.h
   utils/crash_handler.cpp
+  utils/RingBuffer.hpp
+)
+
+SET (TWITCH
+  twitch/twitch.hpp # note to future self pick one fucking capitalisation scheme
+  twitch/twitch.cpp
+  twitch/libirc_errors.h
+  twitch/libirc_events.h
+  twitch/libirc_options.h
+  twitch/libirc_rfcnumeric.h
+  twitch/libircclient.h
 )
 
 SET (SDK
@@ -214,6 +229,7 @@ source_group("imgui" FILES ${IMGUI})
 source_group("mods"  FILES ${MODS})
 source_group("utils" FILES ${UTILS})
 source_group("sdk"   FILES ${SDK})
+source_group("twitch" FILES ${TWITCH})
 
 if(GIT_COMMIT_HASH)
   message("GIT_COMMIT_HASH: ${GIT_COMMIT_HASH}")
@@ -221,16 +237,17 @@ if(GIT_COMMIT_HASH)
   add_compile_definitions(GIT_COMMIT_HASH=${GIT_COMMIT_HASH})
   add_compile_definitions(GIT_COMMITTER_DATE=${GIT_COMMITTER_DATE})
 endif()
-
+add_compile_definitions(_WINSOCKAPI_)
 ADD_LIBRARY(${PROJECT_NAME} SHARED
             ${HEADERS}
             ${IMGUI}
       	    ${MODS}
             ${UTILS}
-	        ${SDK}
+	    ${SDK}
             ${SOURCES}
+            ${TWITCH}
 )
 
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES FOLDER ${PROJECT_NAME})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME dinput8)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} hacklib minhook)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} hacklib minhook libircclient.lib)

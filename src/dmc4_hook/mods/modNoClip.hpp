@@ -19,8 +19,10 @@ public:
     void onConfigSave(utils::Config& cfg) override;
 
     void onGUIframe() override;
+	void onTwitchCommand(std::size_t hash) override;
 
 private:
+	std::size_t m_command;
     hl::Patch patch1;
     hl::Patch patch2;
 };

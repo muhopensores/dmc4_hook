@@ -73,6 +73,8 @@
 #include "mods/modBpJumpHook.hpp"
 #include "mods/modNoAutomaticCharacters.hpp"
 #include "mods/modDisableChimeraBlades.hpp"
+#include "mods/modTwitch.hpp"
+
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -151,6 +153,7 @@ Mods::Mods() {
 		m_mods["BpJumpHook"_hash] = std::make_unique<BpJumpHook>();
         m_mods["NoAutomaticCharacters"_hash] = std::make_unique<NoAutomaticCharacters>();
 		m_mods["DisableChimeraBlades"_hash] = std::make_unique<DisableChimeraBlades>();
+		m_mods["TwitchClient"_hash] = std::make_unique<TwitchClient>();
 }
 
 // Initializes mods, checks for errors
@@ -248,3 +251,12 @@ void Mods::onDrawUI(uint32_t hash) {
 	m_mods[hash]->onGUIframe();
 }
 
+// this is terrible atm
+void Mods::onChatCommand(const std::string& message) {
+	std::size_t hash = std::hash<std::string>{}(message);
+	HL_LOG_RAW("[TwitchCommand] hash:%d message:%s", hash, message.c_str());
+	for (auto& umod : m_mods) {
+		auto& mod = umod.second;
+		mod->onTwitchCommand(hash);
+	}
+}

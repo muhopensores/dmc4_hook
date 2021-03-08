@@ -6,6 +6,7 @@
 #include "imgui/imgui_internal.h"
 
 // imgui draw function prototype
-void RenderImgui(IDirect3DDevice9* pDevice);
+void RenderImgui(IDirect3DDevice9* pDevice, bool draw);
+void RenderBackgroundWindow();
 
 

@@ -26,6 +26,8 @@
 #include "hacklib/Logging.h"
 #include "hacklib/CrashHandler.h"
 
+#include "utils/MessageDisplay.hpp"
+
 uint32_t uninit_value = 0xCCCCCCCC;
 
 // hmodule of dinput8.dll for GetProcAddress
@@ -264,7 +266,7 @@ bool hlMain::init()
 	loadSettings();
 
 	DoResumeThread(GetCurrentProcessId(), GetCurrentThreadId());
-
+	DISPLAY_MESSAGE("Welcome to dmc4hook.dll version FIX_FORMAT_STRINGS_BRO");
     return true;
 }
 
@@ -278,9 +280,46 @@ bool hlMain::step()
     }
     return true;
 }
+bool bg_draw = true;
+
+/*
+struct message_handler {
+	utils::bufferino<message*> m_messages;
+	
+	void show_messages() 
+	{
+		for (message* m : m_messages) 
+		{
+			m->show();
+		}
+	}
+
+	void update_messages() 
+	{
+		for (message& m : m_messages) {
+			if (!m.update(0.1f)) {
+			}
+		}
+	}
+};*/
+
+
+void RenderBackgroundWindow() {
+	if (g_bWasInitialized) { return; }
+
+	ImGuiIO& io = ImGui::GetIO();
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar;
+	ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+	ImGui::SetNextWindowSize(io.DisplaySize);
+
+	ImGui::Begin("Overlay", &bg_draw, windowFlags);
+	SHOW_MESSAGES();
+	UPDATE_MESSAGE();
+	ImGui::End();
+}
 
 // function to render the gui onto screen
-void RenderImgui(IDirect3DDevice9* m_pDevice)
+void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 {
     auto main = GetMain(); // get ptr to hacklib main
     if (g_bWasInitialized)
@@ -303,6 +342,12 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
+
+	RenderBackgroundWindow();
+
+	if (!draw) {
+		goto imgui_finish;
+	}
     DrawWindow();
 
     // specific imgui functions, can be looked up in examples or the documentation
@@ -603,6 +648,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
 				main->getMods()->onDrawUI("CameraSettings"_hash);
 				
+				main->getMods()->onDrawUI("TwitchClient"_hash);
                 ImGui::Spacing();
                 ImGui::EndTabItem();
             }
@@ -611,6 +657,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
         }
         ImGui::End();
     }
+imgui_finish:
     // Render dear imgui into screen
     ImGui::EndFrame();
     ImGui::Render();

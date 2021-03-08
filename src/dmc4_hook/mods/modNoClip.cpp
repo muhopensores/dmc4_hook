@@ -6,6 +6,7 @@ bool NoClip::modEnabled{ false };
 
 std::optional<std::string> NoClip::onInitialize()
 {
+	m_command = std::hash<std::string>{}("\\" + getModName());
     return Mod::onInitialize();
 }
 
@@ -31,6 +32,16 @@ void NoClip::onGUIframe()
     {
         toggle(modEnabled);
     }
+}
+
+void NoClip::onTwitchCommand(std::size_t hash)
+{
+	HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_command);
+	if (hash == m_command) 
+	{
+		modEnabled = !modEnabled;
+		toggle(modEnabled);
+	}
 }
 
 void NoClip::onConfigLoad(const utils::Config& cfg)

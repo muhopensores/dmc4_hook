@@ -4,7 +4,7 @@
 
 #include "imgui_dmc4.h"
 #include "hacklib/Hooker.h"
-
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
 class D3D9obj

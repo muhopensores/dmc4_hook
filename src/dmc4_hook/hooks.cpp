@@ -80,10 +80,12 @@ bail:
 	if (main->m_modsInitialized) {
 		main->m_workRate->onFrame();
 	}*/
-	if (g_drawGUI) 
+
+	RenderImgui(device,g_drawGUI);
+	/*if (g_drawGUI) 
 	{
-		RenderImgui(device);
-	}
+		RenderImgui(device,g_drawGUI);
+	}*/
 }
 void hookD3D9(uintptr_t modBase) {
 	// present call

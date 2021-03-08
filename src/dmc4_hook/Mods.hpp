@@ -21,6 +21,7 @@ public:
 #endif
 	void onGamePause(bool toggle);
 	bool onMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
+	void onChatCommand(const std::string& message);
 	const auto& getMods() const {
 		return m_mods;
 	}
