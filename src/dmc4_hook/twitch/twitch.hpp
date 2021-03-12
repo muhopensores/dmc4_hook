@@ -25,7 +25,7 @@ public:
 	Twitch();
 	~Twitch();
 
-	std::thread Connect( const std::string &user, const std::string &password, bool use_ssl );
+	std::thread Connect( const std::string &user, const std::string &password);
 	void Disconnect();
 
 	void SendChatMessage( const std::string &message );

@@ -77,7 +77,7 @@ void TwitchClient::makeInstance() {
 	if ( !login.empty() && !password.empty() ) {
 		HL_LOG_RAW("[TwitchClient] Connecting to Twitch chat...\n");
 
-		twitch_thread = twitch->Connect( login, password, use_ssl );
+		twitch_thread = twitch->Connect( login, password);
 		twitch_thread.detach();
 		twitchStatus = TWITCH_CONNECTING;
 	}
@@ -123,7 +123,6 @@ void TwitchClient::onGUIframe()
 		ImGui::Text( "\n" );
 		ImGui::InputText( "Twitch login", twitch_login, 128);
 		ImGui::InputText( "Twitch chat OAuth password", twitch_chat_oauth_password, 128, ImGuiInputTextFlags_Password );
-		ImGui::Checkbox ( "Connect over secure connection", &use_ssl );
 		if ( ImGui::Button( "Get OAuth password..." ) ) {
 			ShellExecute( 0, 0, "https://twitchapps.com/tmi/", 0, 0, SW_SHOW );
 		}

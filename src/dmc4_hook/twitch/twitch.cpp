@@ -231,8 +231,8 @@ Twitch::~Twitch() {
 	}
 }
 
-std::thread Twitch::Connect( const std::string &user, const std::string &password, bool use_ssl ) {
-	return std::thread( [this, user, password, use_ssl] {
+std::thread Twitch::Connect( const std::string &user, const std::string &password) {
+	return std::thread( [this, user, password] {
 		this->user = user;
 		this->channel = "#" + user;
 
@@ -257,19 +257,10 @@ std::thread Twitch::Connect( const std::string &user, const std::string &passwor
 
 		status = TWITCH_CONNECTING;
 
-		if (use_ssl) {
-			if (irc_connect(session, "#irc.chat.twitch.tv", 6667, password.c_str(), user.c_str(), user.c_str(), user.c_str())) {
-				OnError(irc_errno(session), irc_strerror(irc_errno(session)));
-				status = TWITCH_DISCONNECTED;
-				return;
-			}
-		}
-		else {
-			if (irc_connect(session, "irc.chat.twitch.tv", 6667, password.c_str(), user.c_str(), user.c_str(), user.c_str())) {
-				OnError(irc_errno(session), irc_strerror(irc_errno(session)));
-				status = TWITCH_DISCONNECTED;
-				return;
-			}
+		if (irc_connect(session, "irc.chat.twitch.tv", 6667, password.c_str(), user.c_str(), user.c_str(), user.c_str())) {
+			OnError(irc_errno(session), irc_strerror(irc_errno(session)));
+			status = TWITCH_DISCONNECTED;
+			return;
 		}
 
 		if ( irc_run( session ) ) {

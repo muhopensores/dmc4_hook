@@ -22,7 +22,6 @@ public:
 
 	bool vote_checkbox = false;
 	bool mirror_chat_checkbox = false;
-	bool use_ssl = false;
 	int  voting_result = 0;
 
 	Twitch* twitch;
