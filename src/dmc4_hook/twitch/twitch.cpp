@@ -4,6 +4,7 @@
 #include <fstream>
 #include <mutex>
 #include <map>
+#include <cctype>
 
 #include <assert.h>
 
@@ -233,8 +234,11 @@ Twitch::~Twitch() {
 
 std::thread Twitch::Connect( const std::string &user, const std::string &password) {
 	return std::thread( [this, user, password] {
-		this->user = user;
-		this->channel = "#" + user;
+		std::string lowercase_name = user;
+		std::transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(),
+			[](unsigned char c){ return std::tolower(c); });
+		this->user = lowercase_name;
+		this->channel = "#" + lowercase_name;
 
 		irc_callbacks_t	callbacks;
 		memset( &callbacks, 0, sizeof( callbacks ) );
