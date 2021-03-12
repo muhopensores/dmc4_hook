@@ -3,7 +3,7 @@
 #include "../utils/MessageDisplay.hpp"
 #include "../main.h"
 #include "../Mods.hpp"
-#include "hacklib/Logging.h"
+#include "hacklib/Logging.h" // TODO: log's not working for some reason idk
 
 static hlMain* g_main{};
 
@@ -12,17 +12,10 @@ static hlMain* g_main{};
 // return Mod::onInitialize(); on success or error string on failure.
 std::optional<std::string> TwitchClient::onInitialize() {
 	g_main = GetMain();
-#if 0
-	// install_hook_offset takes offset from exe base, hl::Hooker instance,
-	// pointer to naked function, pointer to return address and next instruction offset
-	if (!install_hook_offset(0xBADF00D, hook, &detour, &jmp_return, 6)) {
-		return "Failed to init ModName mod";
+	if (!dynLinkLibIRCclient()) {
+		DISPLAY_MESSAGE("[TwitchClient] libircclient.dll not found, skipping.");
 	}
-	// some patch example
-	if (mod_name_enabled) {
-		patch.apply(0x400000, "\x90\x90\x90\x90");
-	}
-#endif
+	DISPLAY_MESSAGE("[TwitchClient] libircclient.dll loaded.");
 	return Mod::onInitialize();
 }
 
@@ -84,7 +77,7 @@ void TwitchClient::makeInstance() {
 	if ( !login.empty() && !password.empty() ) {
 		HL_LOG_RAW("[TwitchClient] Connecting to Twitch chat...\n");
 
-		twitch_thread = twitch->Connect( login, password );
+		twitch_thread = twitch->Connect( login, password, use_ssl );
 		twitch_thread.detach();
 		twitchStatus = TWITCH_CONNECTING;
 	}
@@ -130,7 +123,7 @@ void TwitchClient::onGUIframe()
 		ImGui::Text( "\n" );
 		ImGui::InputText( "Twitch login", twitch_login, 128);
 		ImGui::InputText( "Twitch chat OAuth password", twitch_chat_oauth_password, 128, ImGuiInputTextFlags_Password );
-
+		ImGui::Checkbox ( "Connect over secure connection", &use_ssl );
 		if ( ImGui::Button( "Get OAuth password..." ) ) {
 			ShellExecute( 0, 0, "https://twitchapps.com/tmi/", 0, 0, SW_SHOW );
 		}

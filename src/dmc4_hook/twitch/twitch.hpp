@@ -6,7 +6,11 @@
 #include <thread>
 #include <list>
 #include "libircclient.h"
-//#include "libirc_rfcnumeric.h"
+#include "libirc_rfcnumeric.h"
+
+
+int dynLinkLibIRCclient();
+
 
 struct TwitchContext;
 
@@ -21,7 +25,7 @@ public:
 	Twitch();
 	~Twitch();
 
-	std::thread Connect( const std::string &user, const std::string &password );
+	std::thread Connect( const std::string &user, const std::string &password, bool use_ssl );
 	void Disconnect();
 
 	void SendChatMessage( const std::string &message );
