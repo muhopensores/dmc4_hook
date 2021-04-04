@@ -249,7 +249,7 @@ bool hlMain::init()
     HL_LOG_RAW("                    LOG START                         \n");
     HL_LOG_RAW("======================================================\n");
 	HL_LOG_RAW("\n");
-	HL_LOG_RAW("dinput8.dll build date %s, commit hash #%s\n", GIT_COMMITTER_DATE, GIT_COMMIT_HASH);
+    HL_LOG_RAW("dinput8.dll build date %s, commit hash #%s\n"); // GIT_COMMITTER_DATE, GIT_COMMIT_HASH);
 	HL_LOG_RAW("\n");
 
     modBase = (uintptr_t)GetModuleHandle(NULL);

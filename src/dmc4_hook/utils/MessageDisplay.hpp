@@ -1,5 +1,6 @@
 #include "../imgui_dmc4.h"
 #include <deque>
+#include <string>
 
 #define SHOW_MESSAGES()  MessageDisplay::instance().show_messages();
 #define UPDATE_MESSAGE()  MessageDisplay::instance().update_messages();

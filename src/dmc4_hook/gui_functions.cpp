@@ -12,13 +12,16 @@ inline void UnderLine( ImColor col_ )
 	min.y = max.y;
 	ImGui::GetWindowDrawList()->AddLine( min, max, col_, 1.0f );
 }
+/*
 // There probably is a more c++ way to do this?
 #if defined(GIT_COMMIT_HASH) && defined(GIT_COMMITTER_DATE)
 constexpr const char* version{ "DMC4Hook 1.1.4 Commit #" GIT_COMMIT_HASH " " GIT_COMMITTER_DATE };
 #else
 constexpr const char* std::string_view = GUI_VERSION;
 #endif
+*/
 
+constexpr const char* version{ "DMC4Hook 1.3.1" };
 
 // visual theme of the gui, can be changed to change the look
 void DarkTheme()

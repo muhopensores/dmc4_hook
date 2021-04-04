@@ -22,8 +22,8 @@ public:
     static uintptr_t cameraAngleLockonContinue;
     static uintptr_t cameraFovInBattleContinue;
     static uintptr_t cameraFovContinue;
-    static uintptr_t cameraResetContinue;
     static uintptr_t cameraResetDefaultContinue;
+    static uintptr_t cameraResetDefaultKeyboardContinue;
     static bool freeCamEnabled;
     static bool cameraLookdownEnabled;
     static bool cameraResetEnabled;
@@ -38,7 +38,6 @@ public:
     void onConfigSave(utils::Config& cfg) override;
 
     void onGUIframe() override;
-	void toggleCamSensitivity(bool toggle);
     void toggleAttackTowardsCam(bool toggle);
     void toggleFreeCam(bool toggle);
     void toggleCameraLookdown(bool toggle);
@@ -46,7 +45,9 @@ public:
 
 private:
     hl::Hooker hook;
-	hl::Patch  cSens;
+    // hl::Hooker cameraResetHook;
+    hl::Hooker cameraResetDefaultHook;
+    hl::Hooker cameraResetDefaultKeyboardHook;
     hl::Patch  attackTowardsCamPatch1;
     hl::Patch  attackTowardsCamPatch2;
     hl::Patch  attackTowardsCamPatch3;
@@ -55,6 +56,4 @@ private:
     hl::Patch  patchFreeCam3;
     hl::Patch  patchCameraLookdown;
     hl::Patch  cameraDisableLastEnemyZoomPatch;
-    hl::Hooker cameraResetHook;
-    hl::Hooker cameraResetDefaultHook;
 };
