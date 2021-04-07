@@ -3,6 +3,7 @@
 #include "modAreaJump.hpp" // for cAreaJumpPtr
 
 // 00738AA2 calls spawns
+// scarecrow arm can be spawned via twitch chat with "\SpawnScarecrowArm"
 
 constexpr std::array<uintptr_t, 19> fptrEmFactories{
 	0x0055E710,			// Arm Scarecrow em01
@@ -37,34 +38,34 @@ constexpr std::array<uintptr_t, 19> fptrEmFactories{
 };
 
 constexpr std::array<const char*, 19> enemyNames{
-	"Scarecrow (Arm)",	// em01
-	"Scarecrow (Leg)",	// em02
-	"Mega Scarecrow",	// em03
-	"Frost",			// em04
-	"Assault",			// em05
-	"Blitz",			// em06
+	"Scarecrow (Arm)",	// em01 //  0
+	"Scarecrow (Leg)",	// em02 //  1
+	"Mega Scarecrow",	// em03 //  2
+	"Frost",			// em04 //  3
+	"Assault",			// em05 //  4
+	"Blitz",			// em06 //  5
 	// "Gladius",		// em07
 	// "Cutlass",		// em08
-	"Basilisk",			// em09
-	"Chimera Seed",		// em10
+	"Basilisk",			// em09 //  6
+	"Chimera Seed",		// em10 //  7
 	// Chimera			// em11
-    "Mephisto",			// em12
-    "Faust",			// em13
-	"Bianco Angelo",	// em14
-	"Alto Angelo",		// em15
+    "Mephisto",			// em12 //  8
+    "Faust",			// em13 //  9
+	"Bianco Angelo",	// em14 // 10
+	"Alto Angelo",		// em15 // 11
 	// Fault			// em16
 //--------------------------------
-	"Berial",			// bo01
-	"Bael",				// bo02
+	"Berial",			// bo01 // 12
+	"Bael",				// bo02 // 13
 	// Dagon			// bo03
-	"Echidna",			// bo04
+	"Echidna",			// bo04 // 14
 	// Agnus			// bo05
-	"Angelo Agnus",		// bo06
-	"Angelo Credo",		// bo07
+	"Angelo Agnus",		// bo06 // 15
+	"Angelo Credo",		// bo07 // 16
 	// The Savior		// bo08
 	// The False Savior	// bo09
-	"Sanctus",			// bo10
-	"Sanctus Diabolica"	// bo11
+	"Sanctus",			// bo10 // 17
+	"Sanctus Diabolica"	// bo11 // 18
 	// Dante			// bo12
 };
 
@@ -90,18 +91,21 @@ void spawnEm00x(int index) {
 
 std::optional<std::string> EnemySpawn::onInitialize() 
 { 
+	m_spawnScarecrowArmCommand = std::hash<std::string>{}("\\SpawnScarecrowArm");
+    m_spawnScarecrowLegCommand = std::hash<std::string>{}("\\SpawnScarecrowLeg");
+	m_spawnMegaCommand = std::hash<std::string>{}("\\SpawnMega");
+    m_spawnFrostCommand = std::hash<std::string>{}("\\SpawnFrost");
+	m_spawnAssaultCommand = std::hash<std::string>{}("\\SpawnAssault");
+    m_spawnBasiliskCommand = std::hash<std::string>{}("\\SpawnBasilisk");
+	m_spawnMephistoCommand = std::hash<std::string>{}("\\SpawnMephisto");
+    m_spawnFaustCommand = std::hash<std::string>{}("\\SpawnFaust");
+    m_spawnBiancoCommand = std::hash<std::string>{}("\\SpawnBianco");
+    m_spawnAltoCommand = std::hash<std::string>{}("\\SpawnAlto");
 	return Mod::onInitialize(); 
 }
 
 void EnemySpawn::onGUIframe()
 {
-	/*auto lambda = [](int i) {
-		if (ImGui::Button(enemyNames[i])) {
-			spawnEm00x(i);
-		}
-	};
-	std::for_each(enemyNames.begin(), enemyNames.end(), lambda);*/
-
 	if (IsBadWritePtr(AreaJump::cAreaJumpPtr, sizeof(uint32_t)) || IsBadReadPtr(AreaJump::cAreaJumpPtr, sizeof(uint32_t)))
     {
         ImGui::TextWrapped("Enemy Spawner is not initialized.\nLoad into a stage to access it.");
@@ -112,20 +116,64 @@ void EnemySpawn::onGUIframe()
     ImGui::SameLine(0, 1);
     HelpMarker("Spawn position is not yet supported; enemies will always spawn at 0,0,0.");
 
-	// will mr.compiler unroll this? probably not check the .ASM listings im not gonna
-	/*for (int i = 0, e = enemyNames.size(); i != e; i++) {
-		if (ImGui::Button(enemyNames[i])) {
-			spawnEm00x(i);
-		}
-		if (i % 2 == 0) {
-			ImGui::SameLine();
-		}
-	}*/
-
 	int enemyNames_current = 0;
 	if (ImGui::ListBox("##Enemy Spawn Listbox", &enemyNames_current, enemyNames.data(), enemyNames.size(), 19))
     {
             spawnEm00x(enemyNames_current);
+    }
+}
+
+void EnemySpawn::onTwitchCommand(std::size_t hash)
+{
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnScarecrowArmCommand);
+    if (hash == m_spawnScarecrowArmCommand)
+    {
+        spawnEm00x(0);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnScarecrowLegCommand);
+    if (hash == m_spawnScarecrowLegCommand)
+    {
+        spawnEm00x(1);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnMegaCommand);
+    if (hash == m_spawnMegaCommand)
+    {
+        spawnEm00x(2);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnFrostCommand);
+    if (hash == m_spawnFrostCommand)
+    {
+        spawnEm00x(3);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnAssaultCommand);
+    if (hash == m_spawnAssaultCommand)
+    {
+        spawnEm00x(4);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnBasiliskCommand);
+    if (hash == m_spawnBasiliskCommand)
+    {
+        spawnEm00x(6); // Skipping Blitz
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnMephistoCommand);
+    if (hash == m_spawnMephistoCommand)
+    {
+        spawnEm00x(8); // Skipping Chimera
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnFaustCommand);
+    if (hash == m_spawnFaustCommand)
+    {
+        spawnEm00x(9);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnBiancoCommand);
+    if (hash == m_spawnBiancoCommand)
+    {
+        spawnEm00x(10);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnAltoCommand);
+    if (hash == m_spawnAltoCommand)
+    {
+        spawnEm00x(11);
     }
 }
 

@@ -172,7 +172,7 @@ naked void cameraResetKeyboard_proc(void)
             jmp [CameraSettings::cameraResetKeyboardContinue]
 
         originalcode:
-            movss xmm0,[edx+00001210h]
+            movss xmm0, [edx+00001210h]
             jmp [CameraSettings::cameraResetKeyboardContinue]
     }
 }
