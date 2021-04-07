@@ -14,12 +14,9 @@ float CameraSettings::cameraFovInBattle{ 0 };
 float CameraSettings::cameraFov{ 0 };
 bool  CameraSettings::freeCamEnabled{ false };
 bool CameraSettings::cameraLookdownEnabled{ false };
-float degrees{ 1.57f };
 bool CameraSettings::cameraResetEnabled{ false };
 bool CameraSettings::camRight{ false };
 bool CameraSettings::disableLastEnemyZoom{ false };
-
-constexpr ptrdiff_t cameraSensitivity = 0x180A8;
 
 constexpr ptrdiff_t cameraTowardsAutoCorrect1 = 0x195A5;
 constexpr ptrdiff_t cameraTowardsAutoCorrect2 = 0x195F7;
@@ -32,9 +29,14 @@ uintptr_t CameraSettings::cameraAngleContinue{ NULL };
 uintptr_t CameraSettings::cameraAngleLockonContinue{ NULL };
 uintptr_t CameraSettings::cameraFovInBattleContinue{ NULL };
 uintptr_t CameraSettings::cameraFovContinue{ NULL };
-// uintptr_t CameraSettings::cameraResetContinue{ NULL };
-uintptr_t CameraSettings::cameraResetDefaultKeyboardContinue{ NULL };
-uintptr_t CameraSettings::cameraResetDefaultContinue{ NULL };
+uintptr_t CameraSettings::cameraResetKeyboardContinue{ NULL };
+uintptr_t CameraSettings::cameraResetContinue{ NULL };
+uintptr_t CameraSettings::cameraSensClockwiseContinue{ NULL };
+uintptr_t CameraSettings::cameraSensAntiClockwiseContinue{ NULL };
+uintptr_t CameraSettings::cameraSensBrakesContinue{ NULL };
+
+float degrees{ 1.57f };
+float doubleCameraSens{ 2.0f };
 
 naked void cameraHeight_proc(void)
 {
@@ -150,7 +152,7 @@ naked void cameraFov_proc(void)
     }
 }
 
-naked void cameraResetDefaultKeyboard_proc(void)
+naked void cameraResetKeyboard_proc(void)
 {
     _asm {
 		    cmp byte ptr [CameraSettings::cameraResetEnabled], 1
@@ -162,20 +164,20 @@ naked void cameraResetDefaultKeyboard_proc(void)
         camleft:
             movss xmm0, [edx+00001210h]
             subss xmm0, [degrees] // 90 degrees left
-            jmp [CameraSettings::cameraResetDefaultKeyboardContinue]
+            jmp [CameraSettings::cameraResetKeyboardContinue]
 
         camright:
             movss xmm0, [edx+00001210h]
             addss xmm0, [degrees] // 90 degrees right
-            jmp [CameraSettings::cameraResetDefaultKeyboardContinue]
+            jmp [CameraSettings::cameraResetKeyboardContinue]
 
         originalcode:
             movss xmm0,[edx+00001210h]
-            jmp [CameraSettings::cameraResetDefaultKeyboardContinue]
+            jmp [CameraSettings::cameraResetKeyboardContinue]
     }
 }
 
-naked void cameraResetDefault_proc(void)
+naked void cameraReset_proc(void)
 {
     _asm {
 		    cmp byte ptr [CameraSettings::cameraResetEnabled], 1 
@@ -187,16 +189,56 @@ naked void cameraResetDefault_proc(void)
         camleft:
             movss xmm0, [edx+00001210h]
             subss xmm0, [degrees] // 90 degrees left
-            jmp [CameraSettings::cameraResetDefaultContinue]
+            jmp [CameraSettings::cameraResetContinue]
 
         camright:
             movss xmm0, [edx+00001210h]
             addss xmm0, [degrees] // 90 degrees right
-            jmp [CameraSettings::cameraResetDefaultContinue]
+            jmp [CameraSettings::cameraResetContinue]
 
         originalcode:
             movss xmm0,[edx+00001210h]
-            jmp [CameraSettings::cameraResetDefaultContinue]
+            jmp [CameraSettings::cameraResetContinue]
+    }
+}
+
+naked void cameraSensClockwise_proc(void)
+{
+    _asm {
+            cmp byte ptr [cameraSensEnabled], 0
+            je code
+
+            mulss xmm4, [doubleCameraSens]
+        code:
+            movss [esi+00000268h], xmm4
+            jmp dword ptr [CameraSettings::cameraSensClockwiseContinue]
+    }
+}
+
+naked void cameraSensAntiClockwise_proc(void)
+{
+    _asm {
+            cmp byte ptr [cameraSensEnabled], 0
+            je code
+
+            mulss xmm6, [doubleCameraSens]
+        code:
+            movss [esi+00000268h], xmm6
+            jmp dword ptr [CameraSettings::cameraSensAntiClockwiseContinue]
+    }
+}
+
+naked void cameraSensBrakes_proc(void)
+{
+    _asm {
+            cmp byte ptr [cameraSensEnabled], 0
+            je code
+
+            mulss xmm6, [doubleCameraSens]
+        code:
+            subss xmm0, xmm6
+            movss [esi+00000268h], xmm0
+            jmp dword ptr [CameraSettings::cameraSensBrakesContinue]
     }
 }
 
@@ -214,8 +256,7 @@ std::optional<std::string> CameraSettings::onInitialize()
         return "Failed to init CameraSettings mod";
     }
 
-    if (!install_hook_offset(0x01A140, hook, &cameraDistanceLockon_proc, &CameraSettings::cameraDistanceLockonContinue,
-                             8))
+    if (!install_hook_offset(0x01A140, hook, &cameraDistanceLockon_proc, &CameraSettings::cameraDistanceLockonContinue, 8))
     {
         HL_LOG_ERR("Failed to init CameraSettings mod\n");
         return "Failed to init CameraSettings mod";
@@ -245,17 +286,36 @@ std::optional<std::string> CameraSettings::onInitialize()
         return "Failed to init CameraSettings mod";
     }
 
-    if (!install_hook_offset(0x02261A, cameraResetDefaultHook, &cameraResetDefault_proc, &CameraSettings::cameraResetDefaultContinue, 8))
+    if (!install_hook_offset(0x02261A, cameraResetHook, &cameraReset_proc, &CameraSettings::cameraResetContinue, 8))
     {
         HL_LOG_ERR("Failed to init CameraReset mod\n");
         return "Failed to init CameraReset mod";
     }
     
-    if (!install_hook_offset(0x022681, cameraResetDefaultKeyboardHook, &cameraResetDefaultKeyboard_proc, &CameraSettings::cameraResetDefaultKeyboardContinue, 8))
+    if (!install_hook_offset(0x022681, cameraResetKeyboardHook, &cameraResetKeyboard_proc, &CameraSettings::cameraResetKeyboardContinue, 8))
     {
-        HL_LOG_ERR("Failed to init CameraReset mod\n");
-        return "Failed to init CameraReset mod";
+        HL_LOG_ERR("Failed to init CameraReset2 mod\n");
+        return "Failed to init CameraReset2 mod";
     }
+
+    if (!install_hook_offset(0x0225A4, cameraSensClockwiseHook, &cameraSensClockwise_proc, &CameraSettings::cameraSensClockwiseContinue, 8))
+    {
+        HL_LOG_ERR("Failed to init CameraSens mod\n");
+        return "Failed to init CameraSens mod";
+    }
+
+    if (!install_hook_offset(0x0225BB, cameraSensAntiClockwiseHook, &cameraSensAntiClockwise_proc, &CameraSettings::cameraSensAntiClockwiseContinue, 8))
+    {
+        HL_LOG_ERR("Failed to init CameraSens2 mod\n");
+        return "Failed to init CameraSens2 mod";
+    }
+
+    if (!install_hook_offset(0x022575, cameraSensBrakesHook, &cameraSensBrakes_proc, &CameraSettings::cameraSensBrakesContinue, 12))
+    {
+        HL_LOG_ERR("Failed to init CameraSens3 mod\n");
+        return "Failed to init CameraSens3 mod";
+    }
+
     return Mod::onInitialize();
 }
 
@@ -356,6 +416,13 @@ void CameraSettings::onGUIframe()
             toggleAttackTowardsCam(cameraAutoCorrectTowardsCamEnabled);
         }
 
+        ImGui::Checkbox("Increased Sensitivity", &cameraSensEnabled);
+        ImGui::SameLine(205);
+        if (ImGui::Checkbox("Disable Last Enemy Zoom", &disableLastEnemyZoom))
+        {
+            toggleDisableLastEnemyZoom(disableLastEnemyZoom);
+        }
+
         if (ImGui::Checkbox("Free Cam", &freeCamEnabled))
         {
             toggleFreeCam(freeCamEnabled);
@@ -383,11 +450,6 @@ void CameraSettings::onGUIframe()
         }
         ImGui::SameLine(0, 1);
         HelpMarker("Set the camera to the right instead");
-
-        if (ImGui::Checkbox("Disable Last Enemy Zoom", &disableLastEnemyZoom))
-        {
-            toggleDisableLastEnemyZoom(disableLastEnemyZoom);
-        }
     }
 }
 
@@ -400,8 +462,7 @@ void CameraSettings::onConfigLoad(const utils::Config& cfg)
     cameraAngle = cfg.get<float>("camera_angle").value_or(0.0f);
     cameraAngleLockon = cfg.get<float>("camera_angle_lockon").value_or(0.0f);
     cameraFov = cfg.get<float>("camera_fov_battle").value_or(0.0f);
-    // cameraSensEnabled = cfg.get<bool>("increased_camera_sensitivity").value_or(false);
-    // toggleCamSensitivity(cameraSensEnabled);
+    cameraSensEnabled = cfg.get<bool>("increased_camera_sensitivity").value_or(false);
     cameraAutoCorrectTowardsCamEnabled = cfg.get<bool>("disable_camera_autocorrect_towards_camera").value_or(false);
     toggleAttackTowardsCam(cameraAutoCorrectTowardsCamEnabled);
     freeCamEnabled = cfg.get<bool>("free_cam").value_or(false);
@@ -423,7 +484,7 @@ void CameraSettings::onConfigSave(utils::Config& cfg)
     cfg.set<float>("camera_angle", cameraAngle);
     cfg.set<float>("camera_angle_lockon", cameraAngleLockon);
     cfg.set<float>("camera_fov_battle", cameraFov);
-    // cfg.set<bool>("increased_camera_sensitivity", cameraSensEnabled);
+    cfg.set<bool>("increased_camera_sensitivity", cameraSensEnabled);
     cfg.set<bool>("disable_camera_autocorrect_towards_camera", cameraAutoCorrectTowardsCamEnabled);
     cfg.set<bool>("free_cam", freeCamEnabled);
     cfg.set<bool>("camera_lookdown", cameraLookdownEnabled);

@@ -22,8 +22,11 @@ public:
     static uintptr_t cameraAngleLockonContinue;
     static uintptr_t cameraFovInBattleContinue;
     static uintptr_t cameraFovContinue;
-    static uintptr_t cameraResetDefaultContinue;
-    static uintptr_t cameraResetDefaultKeyboardContinue;
+    static uintptr_t cameraResetContinue;
+    static uintptr_t cameraResetKeyboardContinue;
+    static uintptr_t cameraSensClockwiseContinue;
+    static uintptr_t cameraSensAntiClockwiseContinue;
+    static uintptr_t cameraSensBrakesContinue;
     static bool freeCamEnabled;
     static bool cameraLookdownEnabled;
     static bool cameraResetEnabled;
@@ -45,9 +48,11 @@ public:
 
 private:
     hl::Hooker hook;
-    // hl::Hooker cameraResetHook;
-    hl::Hooker cameraResetDefaultHook;
-    hl::Hooker cameraResetDefaultKeyboardHook;
+    hl::Hooker cameraResetHook;
+    hl::Hooker cameraResetKeyboardHook;
+    hl::Hooker cameraSensClockwiseHook;
+    hl::Hooker cameraSensAntiClockwiseHook;
+    hl::Hooker cameraSensBrakesHook;
     hl::Patch  attackTowardsCamPatch1;
     hl::Patch  attackTowardsCamPatch2;
     hl::Patch  attackTowardsCamPatch3;
