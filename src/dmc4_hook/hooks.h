@@ -31,8 +31,6 @@ extern WNDPROC oWndProc;
 
 //TODO():move this somewhere more apropriate?
 bool IsCursorVisibleWINAPI();
-
-void hookSetEnableBackgroundInput(bool* address);
 void hookD3D9(uintptr_t modBase);
 
 // winproc
@@ -40,5 +38,4 @@ extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam
 typedef LRESULT(CALLBACK* WNDPROC)(HWND, UINT, WPARAM, LPARAM);
 LRESULT __stdcall WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-void ToggleBorderless(bool enable);
 HWND getMainWindow();

@@ -101,45 +101,18 @@ void hlMain::GamePause()
 	m_mods->onGamePause(g_drawGUI);
 }
 
-void hlMain::ToggleStuff()
-{
-	// Player
-		// General
-		// Misc
-	// System
-		// General
-		// Game Mode
-		// Misc
-	// Practice
-		// General
-		// Misc
-}
-
 void hlMain::shutdown() {
 	MH_DisableHook(MH_ALL_HOOKS);
 	MH_Uninitialize();
-}
-
-void hlMain::loadSettings() {
-
-	// General
-	// Game Mode
-	// Practice
-	// General
-	// Misc
-
-	ToggleStuff();
-	// load settings for each mod
-	m_mods->onConfigLoad(*cfg);
 }
 
 void hlMain::saveSettings() {
 	HL_LOG_RAW("Saving settings\n");
 
 	// call on config save for each mod
-	m_mods->onConfigSave(*cfg);
+	m_mods->onConfigSave();
 
-	cfg->save(m_confPath);
+	//cfg->save(m_confPath);
 }
 
 // TODO(): move this somewhere
@@ -208,8 +181,6 @@ void DoResumeThread(DWORD targetProcessId, DWORD targetThreadId)
 	}
 }
 
-namespace fs = std::filesystem;
-
 bool hlMain::init()
 {
 	wchar_t buffer[MAX_PATH]{ 0 };
@@ -225,20 +196,18 @@ bool hlMain::init()
 	MH_Initialize();
 	//bool exp_result = InstallExceptionHandlerHooks();
 
-	auto cwd = hl::GetCurrentModulePath();
-	cwd = cwd.substr(0, cwd.find_last_of("\\/"));
-	m_confPath = cwd + "\\dmc4_hook.cfg";
-	cfg = std::make_unique<utils::Config>( m_confPath );
-
-	// Wait 3 seconds to let the game start.
-	//Sleep(3000);
+	//SteamStub shit
 	uintptr_t codePtr = 0x008DB650;
 	int data = *(int*)(codePtr);
 	while (data != 0x5324EC83) {
 		data = *(int*)(codePtr);
-		Sleep(10);
+		Sleep(1);
 	}
-	DoSuspendThread(GetCurrentProcessId(), GetCurrentThreadId());
+
+	DWORD pid = GetCurrentProcessId();
+	DWORD tid = GetCurrentThreadId();
+
+	DoSuspendThread(pid, tid);
 
     hl::LogConfig logCfg;
     logCfg.logToFile = true;
@@ -249,7 +218,7 @@ bool hlMain::init()
     HL_LOG_RAW("                    LOG START                         \n");
     HL_LOG_RAW("======================================================\n");
 	HL_LOG_RAW("\n");
-    HL_LOG_RAW("dinput8.dll build date %s, commit hash #%s\n"); // GIT_COMMITTER_DATE, GIT_COMMIT_HASH);
+    HL_LOG_RAW("dinput8.dll %s\n", GUI_VERSION);
 	HL_LOG_RAW("\n");
 
     modBase = (uintptr_t)GetModuleHandle(NULL);
@@ -260,13 +229,12 @@ bool hlMain::init()
 	// iterate over all the mods and call onInitialize();
 	m_mods->onInitialize();
 
-    // hooks and jumps to get back to the correct address after hooking
+	DoResumeThread(pid, tid);
 
-	// loads settings and toggles refactored mods.
-	loadSettings();
-
-	DoResumeThread(GetCurrentProcessId(), GetCurrentThreadId());
 	DISPLAY_MESSAGE("Welcome to dmc4hook.dll version FIX_FORMAT_STRINGS_BRO");
+	Sleep(2000);
+	m_mods->onSlowInitialize();
+
     return true;
 }
 
@@ -357,7 +325,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
         ImGui::SameLine(0, 0);
         FPSDrawing();
         ImGui::Spacing();
-		main->getMods()->onDrawUI("Borderless"_hash);
+		main->getMods()->onDrawSlowUI("Borderless"_hash);
         /*if (ImGui::Checkbox("Borderless Window", &g_borderless))
         {
             ToggleBorderless(g_borderless);
@@ -636,7 +604,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
 				main->getMods()->onDrawUI("FastStart"_hash);
 
-                main->getMods()->onDrawUI("BackgroundRendering"_hash);
+                main->getMods()->onDrawSlowUI("BackgroundRendering"_hash);
 
                 main->getMods()->onDrawUI("FpsLimit"_hash);
 

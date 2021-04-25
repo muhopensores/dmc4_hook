@@ -79,6 +79,8 @@
 //#include "mods/modSample.hpp"
 // mods constructor
 Mods::Mods() {
+	    m_slowMods["BackgroundRendering"_hash] = std::make_unique<BackgroundRendering>();
+		m_slowMods["Borderless"_hash] = std::make_unique<Borderless>();
 		//add mods here
 		//m_mods["ModName"_hash] = std::make_unique<ModName>();
 		m_mods["FastStart"_hash] = std::make_unique<FastStart>();
@@ -89,8 +91,6 @@ Mods::Mods() {
 		m_mods["EasyJc"_hash] = std::make_unique<EasyJc>();
 		m_mods["SelectiveCancels"_hash] = std::make_unique<SelectiveCancels>();
 		m_mods["WorkRate"_hash] = std::make_unique<WorkRate>();
-		m_mods["BackgroundRendering"_hash] = std::make_unique<BackgroundRendering>();
-		m_mods["Borderless"_hash] = std::make_unique<Borderless>();
 		m_mods["InfDreadnought"_hash] = std::make_unique<InfDreadnought>();
 		m_mods["NoClip"_hash] = std::make_unique<NoClip>();
 		m_mods["SkipPandora"_hash] = std::make_unique<SkipPandora>();
@@ -156,6 +156,27 @@ Mods::Mods() {
 		m_mods["TwitchClient"_hash] = std::make_unique<TwitchClient>();
 }
 
+std::optional<std::string> Mods::onSlowInitialize() const {
+	for (auto& umod : m_slowMods) {
+		auto& mod = umod.second;
+		HL_LOG_RAW("%s::onSlowInitialize()\n", mod->getModName().data());
+
+		if (auto e = mod->onInitialize(); e != std::nullopt) {
+			HL_LOG_RAW("%s::onSlowInitialize() has failed: %s\n", mod->getModName().data(), *e);
+			return e;
+		}
+	}
+
+	utils::Config cfg{ "dmc4_hook.cfg" };
+
+	for (auto& umod : m_slowMods) {
+		auto& mod = umod.second;
+		HL_LOG_RAW("%s::onConfigLoad()\n", mod->getModName().data());
+		mod->onConfigLoad(cfg);
+	}
+	return std::nullopt;
+}
+
 // Initializes mods, checks for errors
 std::optional<std::string> Mods::onInitialize() const {
 	for (auto& umod : m_mods) {
@@ -167,29 +188,23 @@ std::optional<std::string> Mods::onInitialize() const {
 			return e;
 		}
 	}
-// @TODO: use this version once all the mods are converted to muh c++
-#if 0
-	auto cwd = hl::GetCurrentModulePath();
-	cwd = cwd.substr(0, cwd.find_last_of("\\/"));
-	std::string m_confPath = cwd + "\\dmc4_hook.cfg";
-	utils::Config cfg{ m_confPath };
+
+
+	utils::Config cfg{ "dmc4_hook.cfg" };
 
 	for (auto& umod : m_mods) {
 		auto& mod = umod.second;
 		HL_LOG_RAW("%s::onConfigLoad()\n", mod->getModName().data());
 		mod->onConfigLoad(cfg);
 	}
-#endif
+
 	return std::nullopt;
 }
 // @TODO: use this version once all the mods are converted to muh c++
-#if 0
+#if 1
 void Mods::onConfigSave() {
 	HL_LOG_RAW("Saving config to dmc4_hook.cfg\n");
 
-	auto cwd = hl::GetCurrentModulePath();
-	cwd = cwd.substr(0, cwd.find_last_of("\\/"));
-	std::string m_confPath = cwd + "\\dmc4_hook.cfg";
 	utils::Config cfg{};
 
 	for (auto& umod : m_mods) {
@@ -197,8 +212,8 @@ void Mods::onConfigSave() {
 		HL_LOG_RAW("%s::onConfigSave()\n", mod->getModName().data());
 		mod->onConfigSave(cfg);
 	}
-	if (!cfg.save(m_confPath)) {
-		HL_LOG_RAW("Failed to save the config %s\n", m_confPath);
+	if (!cfg.save("dmc4_hook.cfg")) {
+		HL_LOG_RAW("Failed to save the config\n");
 	}
 }
 #else
@@ -249,6 +264,11 @@ void Mods::onFrame() {
 // Called when drawing the gui
 void Mods::onDrawUI(uint32_t hash) {
 	m_mods[hash]->onGUIframe();
+}
+
+// Called when drawing the gui
+void Mods::onDrawSlowUI(uint32_t hash) {
+	m_slowMods[hash]->onGUIframe();
 }
 
 // this is terrible atm

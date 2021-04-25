@@ -9,11 +9,13 @@ public:
 	virtual ~Mods() {};
 
 	std::optional<std::string> onInitialize() const;
+	std::optional<std::string> onSlowInitialize() const;
 
 	void onFrame();
 	void onDrawUI(uint32_t hash);
+	void onDrawSlowUI(uint32_t hash);
 // @TODO: leave those like that until complete rewrite
-#if 0
+#if 1
 	void onConfigSave();
 #else
 	void onConfigLoad(utils::Config& cfg);
@@ -28,5 +30,6 @@ public:
 
 private:
 	std::unordered_map<std::uint32_t, std::shared_ptr<Mod>> m_mods;
+	std::unordered_map<std::uint32_t, std::shared_ptr<Mod>> m_slowMods;
 	//std::vector<std::shared_ptr<Mod>> m_mods;
 };

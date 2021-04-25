@@ -23,12 +23,6 @@ public:
 	bool isReady() const {
 		return m_gameDataInitialized;
 	}
-
-	std::unique_ptr<utils::Config> cfg;
-	void ToggleStuff();
-    // patch functions definitons
-
-	//imgui toggle functions definitons
     
 	//functions
     void GamePause();
@@ -42,16 +36,14 @@ public:
     // pointer definitions
     uintptr_t modBase;
 
-    // hl::Patch
-
     const hl::IHook* g_PresentHook;
     const hl::IHook* g_EndSceneHook;
     const hl::IHook* g_ResetHook;
+
     hl::Hooker m_hooker, m_hook;
     hl::Input input;
     hl::ConsoleEx m_con;
 
-	void loadSettings();
 	void saveSettings();
 
 private:

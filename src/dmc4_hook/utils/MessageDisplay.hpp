@@ -9,8 +9,7 @@
 
 struct message {
 
-	message(std::string msg) {
-		m_message = msg;
+	message(std::string msg) : m_message(std::move(msg)) {
 	}
 
 	std::string m_message;

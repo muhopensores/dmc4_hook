@@ -21,7 +21,7 @@ constexpr const char* std::string_view = GUI_VERSION;
 #endif
 */
 
-constexpr const char* version{ "DMC4Hook 1.3.1" };
+constexpr const char* version{ GUI_VERSION };
 
 // visual theme of the gui, can be changed to change the look
 void DarkTheme()
