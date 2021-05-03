@@ -11,7 +11,7 @@ public:
 	std::optional<std::string> onInitialize() const;
 	std::optional<std::string> onSlowInitialize() const;
 
-	void onFrame();
+	void onFrame(fmilliseconds& dt);
 	void onDrawUI(uint32_t hash);
 	void onDrawSlowUI(uint32_t hash);
 // @TODO: leave those like that until complete rewrite

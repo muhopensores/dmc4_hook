@@ -1,11 +1,15 @@
-#include "../mods.h"
 #include "modNoClip.hpp"
 
 #if 1
 bool NoClip::modEnabled{ false };
 
+static void onTimerCallback() {
+	NoClip::modEnabled = !NoClip::modEnabled;
+}
+
 std::optional<std::string> NoClip::onInitialize()
 {
+	m_timer = new utils::Timer(5.0f, onTimerCallback);
 	m_command = std::hash<std::string>{}("\\" + getModName());
     return Mod::onInitialize();
 }
@@ -53,6 +57,11 @@ void NoClip::onConfigLoad(const utils::Config& cfg)
 void NoClip::onConfigSave(utils::Config& cfg)
 {
     cfg.set<bool>("noclip", modEnabled);
+};
+
+void NoClip::onFrame(fmilliseconds& dt) 
+{
+	m_timer->tick(dt);
 };
 
 #endif

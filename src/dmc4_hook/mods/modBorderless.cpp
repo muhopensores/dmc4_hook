@@ -105,7 +105,7 @@ bool Borderless::onMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 }
 
-void Borderless::onFrame() {
+void Borderless::onFrame(fmilliseconds& dt) {
 	if (m_enabled && !m_isChoiceFulfilled) {
 		apply();
 	}

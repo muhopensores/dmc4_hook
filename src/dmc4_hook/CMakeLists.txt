@@ -150,6 +150,8 @@ SET (MODS
   mods/modDisableChimeraBlades.hpp
   mods/modTwitch.hpp
   mods/modTwitch.cpp
+  mods/modQuicksilver.hpp
+  mods/modQuicksilver.cpp
 )
 
 SET (HEADERS
@@ -192,8 +194,10 @@ SET (IMGUI
 #aux_source_directory(mods MODS)
 
 SET (UTILS
-  utils/MessageDisplay.cpp
+  utils/Timer.hpp
+  utils/Timer.cpp
   utils/MessageDisplay.hpp
+  utils/MessageDisplay.cpp
   utils/Hash.hpp
   utils/Config.hpp
   utils/Config.cpp

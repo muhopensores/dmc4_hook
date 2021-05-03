@@ -18,7 +18,7 @@ public:
 
 	std::optional<std::string> onInitialize() override;
 
-	void onFrame() override;
+	void onFrame(fmilliseconds& dt) override;
 	void onGUIframe() override;
 	bool onMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
 

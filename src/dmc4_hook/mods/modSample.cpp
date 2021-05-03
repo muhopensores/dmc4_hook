@@ -1,7 +1,7 @@
 // include your mod header file
 #include "modSample.hpp"
 
-#if 1
+#if 0
 // static variable defined in cpp file makes it local to current file
 static uintptr_t  jmp_return { NULL };
 // initialzie our static vairables

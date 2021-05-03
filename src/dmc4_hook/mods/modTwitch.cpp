@@ -15,15 +15,16 @@ std::optional<std::string> TwitchClient::onInitialize() {
 	if (!dynLinkLibIRCclient()) {
 		DISPLAY_MESSAGE("[TwitchClient] libircclient.dll not found, skipping.");
 	}
+	libirc_loaded = true;
 	DISPLAY_MESSAGE("[TwitchClient] libircclient.dll loaded.");
 	return Mod::onInitialize();
 }
 
 // onFrame()
 // do something each frame example
-void TwitchClient::onFrame() {
+/*void TwitchClient::onFrame() {
 	
-}
+}*/
 // onConfigSave
 // save your data into cfg structure.
 void TwitchClient::onConfigSave(utils::Config& cfg) {
@@ -47,28 +48,33 @@ void TwitchClient::makeInstance() {
 		twitch = new Twitch();
 
 		twitch->OnConnected = [this] {
-			HL_LOG_RAW("[TwitchClient]: Connected to Twitch chat\n");
+			//HL_LOG_RAW("[TwitchClient]: Connected to Twitch chat\n");
 			DISPLAY_MESSAGE("[TwitchClient]: Connected to Twitch chat");
 			twitchStatus = TWITCH_CONNECTED;
 		};
 
 		twitch->OnDisconnected = [this] {
-			HL_LOG_RAW("[TwitchClient]: Disconnected from Twitch chat\n");
+			//HL_LOG_RAW("[TwitchClient]: Disconnected from Twitch chat\n");
 			DISPLAY_MESSAGE("[TwitchClient]: Disconnected from Twitch chat");
 			twitchStatus = TWITCH_DISCONNECTED;
 		};
 		
 		twitch->OnError = [this](int errorCode, const std::string& error) {
-			HL_LOG_RAW("[TwitchClient]: Twitch Chat error %d: %s\n", errorCode, error.c_str());
+			//HL_LOG_RAW("[TwitchClient]: Twitch Chat error %d: %s\n", errorCode, error.c_str());
 
 			DISPLAY_MESSAGE(error.c_str());
 		};
 
 		twitch->OnMessage = [this](const std::string& sender, const std::string& message) {
-			HL_LOG_RAW("[TwitchClient]: Got message! %s: %s \n", sender.c_str(), message.c_str());
-			DISPLAY_MESSAGE(std::string{ sender + ": " + message });
-			auto& mods = g_main->getMods();
-			mods->onChatCommand(message);
+			//HL_LOG_RAW("[TwitchClient]: Got message! %s: %s \n", sender.c_str(), message.c_str());
+			if (mirror_chat_checkbox) {
+				DISPLAY_MESSAGE(std::string{ sender + ": " + message });
+			}
+			std::size_t found = message.find("/");
+			if (found != std::string::npos) {
+				auto& mods = g_main->getMods();
+				mods->onChatCommand(message);
+			}
 		};
 	}
 
@@ -95,6 +101,11 @@ void TwitchClient::disconnect()
 // draw your imgui widgets here, you are inside imgui context.
 void TwitchClient::onGUIframe() 
 { 
+	if (!libirc_loaded) {
+		ImGui::Text("libircclient.dll not found, twitch support disabled");
+		return;
+	}
+
 	if ( ImGui::CollapsingHeader( "Twitch Integration" ) ) {
 		ImGui::TextWrapped(
 			"Filling both fields and enabling one of the options below will allow "

@@ -1,6 +1,6 @@
 #pragma once
 
-#if 1
+#if 0
 #include "../mod.hpp"
 
 // Define ModName class that is a Mod
@@ -30,7 +30,7 @@ public:
 	// callbacks
 	// onFrame() gets called every frame whether or not gui shows up or not
 	// override this method if you want to do something every frame
-	void onFrame() override;
+	void onFrame(fmilliseconds& dt) override;
 	// onConfigLoad() gets called on load during hl::init()
 	// override this method if you want to load settings from config.
 	void onConfigLoad(const utils::Config& cfg) override;

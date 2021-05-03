@@ -5,6 +5,8 @@
 // 00738AA2 calls spawns
 // scarecrow arm can be spawned via twitch chat with "\SpawnScarecrowArm"
 
+constexpr uintptr_t sMediatorPtr = 0x00E558B8;
+
 constexpr std::array<uintptr_t, 19> fptrEmFactories{
 	0x0055E710,			// Arm Scarecrow em01
 	0x0053F810,			// Leg Scarecrow em02

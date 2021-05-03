@@ -12,7 +12,7 @@ public:
 	std::optional<std::string> onInitialize() override;
 
 	// callbacks
-	void onFrame() override;
+	/*void onFrame() override;*/
 	void onConfigLoad(const utils::Config& cfg) override;
 	void onConfigSave(utils::Config& cfg) override;
 	void onGUIframe() override;
@@ -22,6 +22,7 @@ public:
 
 	bool vote_checkbox = false;
 	bool mirror_chat_checkbox = false;
+	bool libirc_loaded = false;
 	int  voting_result = 0;
 
 	Twitch* twitch;

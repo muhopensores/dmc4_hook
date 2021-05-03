@@ -28,9 +28,9 @@ std::optional<std::string> WorkRate::onInitialize() {
 	return Mod::onInitialize();
 }
 
-void WorkRate::onFrame() {
+/*void WorkRate::onFrame(fmilliseconds& dt) {
 
-}
+}*/
 
 inline bool WorkRate::checkWorkRatePtr() {
 	if (IsBadWritePtr(sWorkRatePtr, sizeof(uint32_t))) {

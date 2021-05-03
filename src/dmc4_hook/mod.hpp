@@ -5,6 +5,7 @@
 #include "hacklib/Hooker.h"
 #include "imgui/imgui.h"
 #include "utils/Config.hpp"
+#include "utils/Timer.hpp"
 #include "sdk/ReClass_Internal.hpp"
 #include "main.h"
 
@@ -67,7 +68,7 @@ public:
 
 	virtual std::optional<std::string> onInitialize() { return std::nullopt; }
 	// should be called from d3d hook
-	virtual void onFrame() {}
+	virtual void onFrame(fmilliseconds& dt) {}
 	// called only when imgui window displays
 	virtual void onGUIframe() {}
 

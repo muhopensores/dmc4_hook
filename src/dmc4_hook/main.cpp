@@ -555,6 +555,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
             if (ImGui::BeginTabItem("System"))
             {
+				main->getMods()->onDrawUI("Quicksilver"_hash);
                 ImGui::Spacing();
 
                 ImGui::Text("HUD");

@@ -13,7 +13,7 @@ public:
 
 	std::optional<std::string> onInitialize() override;
 
-	void onFrame() override;
+	/*void onFrame(fmilliseconds& dt) override;*/
 	void onConfigLoad(const utils::Config& cfg) override;
 	void onConfigSave(utils::Config& cfg) override;
 	void onGUIframe() override;

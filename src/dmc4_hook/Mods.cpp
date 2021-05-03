@@ -74,6 +74,7 @@
 #include "mods/modNoAutomaticCharacters.hpp"
 #include "mods/modDisableChimeraBlades.hpp"
 #include "mods/modTwitch.hpp"
+#include "mods/modQuicksilver.hpp"
 
 
 //#include "mods/modSample.hpp"
@@ -154,6 +155,7 @@ Mods::Mods() {
         m_mods["NoAutomaticCharacters"_hash] = std::make_unique<NoAutomaticCharacters>();
 		m_mods["DisableChimeraBlades"_hash] = std::make_unique<DisableChimeraBlades>();
 		m_mods["TwitchClient"_hash] = std::make_unique<TwitchClient>();
+		m_mods["Quicksilver"_hash] = std::make_unique<Quicksilver>();
 }
 
 std::optional<std::string> Mods::onSlowInitialize() const {
@@ -255,10 +257,10 @@ bool Mods::onMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	return true;
 }
 // Called on every frame for mods that override this method
-void Mods::onFrame() {
+void Mods::onFrame(fmilliseconds& dt) {
 	for (auto& umod : m_mods) {
 		auto& mod = umod.second;
-		mod->onFrame();
+		mod->onFrame(dt);
 	}
 }
 // Called when drawing the gui
