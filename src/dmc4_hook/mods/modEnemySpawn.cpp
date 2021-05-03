@@ -1,11 +1,15 @@
 #include "../mods.h"
+//#include "../sdk/ReClass_Internal.hpp"
+
 #include "modEnemySpawn.hpp"
 #include "modAreaJump.hpp" // for cAreaJumpPtr
 
 // 00738AA2 calls spawns
 // scarecrow arm can be spawned via twitch chat with "\SpawnScarecrowArm"
 
-constexpr uintptr_t sMediatorPtr = 0x00E558B8;
+constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
+sMediator* sMedPtr = nullptr;
+uPlayer* uLocalPlr = nullptr;
 
 constexpr std::array<uintptr_t, 19> fptrEmFactories{
 	0x0055E710,			// Arm Scarecrow em01
@@ -74,6 +78,17 @@ constexpr std::array<const char*, 19> enemyNames{
 static uintptr_t fptrUpdateActorList{ 0x008DC540 }; // Spawns shit
 static uintptr_t someStruct{ 0x00E552CC };
 
+glm::vec3 getPlayerPosition() {
+	sMedPtr = (sMediator*)*(uintptr_t*)staticMediatorPtr;
+	uLocalPlr = sMedPtr->playerPtr;
+	return uLocalPlr->mPos;
+}
+
+void setEnemyPosition(uEnemySomething* em) {
+	em->mSpawnCoords = getPlayerPosition() + glm::vec3{ 0.0f, 300.0f, 0.0f };
+	em->mEnemySpawnEffectSomething = 4;
+}
+
 void spawnEm00x(int index) {
 	uintptr_t emFunctionPointer = fptrEmFactories.at(index);
 	__asm {
@@ -81,6 +96,11 @@ void spawnEm00x(int index) {
 		pushf
 		call emFunctionPointer // make actor
         mov esi, eax
+		pusha
+		push esi
+		call setEnemyPosition
+		pop esi
+		popa
         mov ecx, 0Fh
         mov eax, [someStruct] // static
 		mov eax, [eax]
@@ -103,6 +123,7 @@ std::optional<std::string> EnemySpawn::onInitialize()
     m_spawnFaustCommand = std::hash<std::string>{}("\\SpawnFaust");
     m_spawnBiancoCommand = std::hash<std::string>{}("\\SpawnBianco");
     m_spawnAltoCommand = std::hash<std::string>{}("\\SpawnAlto");
+
 	return Mod::onInitialize(); 
 }
 
