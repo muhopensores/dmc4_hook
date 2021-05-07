@@ -242,6 +242,7 @@ if(GIT_COMMIT_HASH)
   add_compile_definitions(GIT_COMMITTER_DATE=${GIT_COMMITTER_DATE})
 endif()
 add_compile_definitions(_WINSOCKAPI_)
+add_compile_definitions(TRACY_ENABLE)
 ADD_LIBRARY(${PROJECT_NAME} SHARED
             ${HEADERS}
             ${IMGUI}
@@ -254,5 +255,5 @@ ADD_LIBRARY(${PROJECT_NAME} SHARED
 
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES FOLDER ${PROJECT_NAME})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME dinput8)
-#TARGET_LINK_LIBRARIES(${PROJECT_NAME} hacklib minhook libircclient.lib)
+#TARGET_LINK_LIBRARIES(${PROJECT_NAME} hacklib minhook libircclient.lib tracy)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} hacklib minhook)

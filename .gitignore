@@ -14,3 +14,5 @@ dmc4_hook.lib
 minhook.lib
 minhook.pdb
 minhookd.lib
+tracy_clientd.lib
+tracy_client.lib
