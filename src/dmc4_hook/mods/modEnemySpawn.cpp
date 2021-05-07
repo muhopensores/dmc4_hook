@@ -7,6 +7,8 @@
 // 00738AA2 calls spawns
 // scarecrow arm can be spawned via twitch chat with "\SpawnScarecrowArm"
 
+
+// TODO(): move this somewhere maybe
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 sMediator* sMedPtr = nullptr;
 uPlayer* uLocalPlr = nullptr;
@@ -79,9 +81,17 @@ static uintptr_t fptrUpdateActorList{ 0x008DC540 }; // Spawns shit
 static uintptr_t someStruct{ 0x00E552CC };
 
 glm::vec3 getPlayerPosition() {
+	// TODO(): move this into somewhere general since
+	// this player ptr might be useful in other places
 	sMedPtr = (sMediator*)*(uintptr_t*)staticMediatorPtr;
 	uLocalPlr = sMedPtr->playerPtr;
-	return uLocalPlr->mPos;
+	// not sure if this check is needed
+	if (uLocalPlr) {
+		return uLocalPlr->mPos;
+	}
+	else {
+		return { 0.0f, 0.0f, 0.0f };
+	}
 }
 
 void setEnemyPosition(uEnemySomething* em) {

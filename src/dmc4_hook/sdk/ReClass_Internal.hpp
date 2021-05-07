@@ -176,7 +176,7 @@ public:
 	virtual bool isEnableInstance();
 	virtual void createProperty(void* prop);
 	virtual MtDTI* getDTI();
-	virtual void Function5();
+	virtual MtObject* allocate(size_t size, int a2);
 	virtual void Function6();
 	virtual void Function7();
 	virtual void Function8();
@@ -223,39 +223,41 @@ public:
 }; //Size: 0x0040
 static_assert(sizeof(MtHermiteCurve) == 0x40);
 
+enum class CC_TYPE : int32_t
+{
+	TYPE_UNUSED = 0,
+	TYPE_HUE = 1,
+	TYPE_CONTRAST = 2,
+	TYPE_CONTRAST2 = 3,
+	TYPE_CHROMA = 4,
+	TYPE_CHROMA2 = 5,
+	TYPE_BRIGHTNESS = 6,
+	TYPE_BRIGHTNESS2 = 7,
+	TYPE_SCALE = 8,
+	TYPE_SCALE2 = 9,
+	TYPE_INPUTLEVEL = 10,
+	TYPE_INPUTLEVEL2 = 11,
+	TYPE_OUTPUTLEVEL = 12,
+	TYPE_OUTPUTLEVEL2 = 13,
+	TYPE_SEPIA = 14,
+	TYPE_SEPIA2 = 15,
+	TYPE_NEGA = 16,
+	TYPE_NEGA2 = 17,
+	TYPE_GRAYSCALE = 18,
+	TYPE_RREPLACE = 19,
+	TYPE_GREPLACE = 20,
+	TYPE_BREPLACE = 21,
+	TYPE_SEPIA3 = 22
+}; //0x0008
+
 class uColorCorrectFilter__Corrector
 {
-	enum class type : int32_t
-	{
-		TYPE_UNUSED = 0,
-		TYPE_HUE = 1,
-		TYPE_CONTRAST = 2,
-		TYPE_CONTRAST2 = 3,
-		TYPE_CHROMA = 4,
-		TYPE_CHROMA2 = 5,
-		TYPE_BRIGHTNESS = 6,
-		TYPE_BRIGHTNESS2 = 7,
-		TYPE_SCALE = 8,
-		TYPE_SCALE2 = 9,
-		TYPE_INPUTLEVEL = 10,
-		TYPE_INPUTLEVEL2 = 11,
-		TYPE_OUTPUTLEVEL = 12,
-		TYPE_OUTPUTLEVEL2 = 13,
-		TYPE_SEPIA = 14,
-		TYPE_SEPIA2 = 15,
-		TYPE_NEGA = 16,
-		TYPE_NEGA2 = 17,
-		TYPE_GRAYSCALE = 18,
-		TYPE_RREPLACE = 19,
-		TYPE_GREPLACE = 20,
-		TYPE_BREPLACE = 21,
-		TYPE_SEPIA3 = 22
-	}; //0x0008
 public:
+
 	bool mEnable; //0x0004
-	uint16_t N00002DAF; //0x0005
-	uint8_t N00002DB0; //0x0007
-	type mType; //0x0008
+	/*uint16_t N00002DAF; //0x0005
+	uint8_t N00002DB0; //0x0007*/
+	CC_TYPE mType; //0x0008
 	Vector4 mFactor; //0x000C
 	Vector4 mFactor2; //0x001C
 	char pad_002C[4]; //0x002C
@@ -346,7 +348,106 @@ public:
 class uStageSetTimeSlow
 {
 public:
-	// TODO(): time not implemented
-	char pad_0000[8296]; //0x0000
+	char pad_0000[4996]; //0x0000
+	float mDuration; //0x1384
+	float mEnemyWorkRate; //0x1388
+	float mStageWorkRate; //0x138C
+	char pad_1390[3288]; //0x1390
 }; //Size: 0x2068
+static_assert(sizeof(uStageSetTimeSlow) == 0x2068);
 
+
+class cResource : public MtObject
+{
+public:
+	char path[64]; //0x0004
+	uint32_t mRefCount; //0x0044
+	uint32_t mAttr; //0x0048
+	uint32_t mFlagsSomething; //0x004C
+	uint32_t mSize; //0x0050
+	int64_t mID; //0x0054
+	char pad_005C[4]; //0x005C
+}; //Size: 0x0060
+
+class N00002D7A
+{
+public:
+	char pad_0000[4]; //0x0000
+}; //Size: 0x0004
+static_assert(sizeof(N00002D7A) == 0x4);
+
+class rEffectList : public cResource
+{
+public:
+	float mBaseFps; //0x0060
+	char *mParamBuf; //0x0064
+	uint32_t mParamBuffSize; //0x0068
+	uint32_t mListNum; //0x006C
+	uint32_t N00002D88; //0x0070
+	uint32_t N00002D89; //0x0074
+	uint32_t mResourcePtr; //0x0078
+	uint32_t mResourceInfoNum; //0x007C
+}; //Size: 0x0080
+
+class MtAllocator : public MtObject
+{
+public:
+	uint32_t mUsedSize; //0x0004
+	uint32_t mMaxUsedSize; //0x0008
+	uint32_t mTotalSize; //0x000C
+	char *mName; //0x0010
+	uint16_t mType; //0x0014
+	uint16_t mAttr; //0x0016
+	uint32_t mOwner; //0x0018
+	class MtCriticalSection *mCS; //0x001C
+}; //Size: 0x0020
+
+class MtHeapAllocator : public MtAllocator
+{
+public:
+	char pad_0020[60]; //0x0020
+}; //Size: 0x005C
+
+class uEfctCam
+{
+public:
+	char pad_0000[512]; //0x0000
+	uint32_t someField; //0x0200
+}; //Size: 0x0204
+
+class uTVNoiseFilter : public uFilter
+{
+public:
+	Vector3f mNoisyUVOffset; //0x0020
+	char pad_002C[8]; //0x002C
+	float mNoisePower; //0x0034
+	float mNoisePowerCroma; //0x0038
+	float mScaleY; //0x003C
+	float mScaleCrCb; //0x0040
+	uint32_t mScanlineSize; //0x0044
+	float mScanlineAlpha; //0x0048
+	uint32_t noiseTexturePtr; //0x004C
+	uint32_t mpTVMaskTexturePtr; //0x0050
+	bool mEnableBlankScan; //0x0054
+	char pad_0055[3]; //0x0055
+	float mBlankOfs_y; //0x0058
+	float mBlankSpeed; //0x005C
+	uint8_t mBlankAlpha; //0x0060
+	char pad_0061[3]; //0x0061
+	float mBlankSize; //0x0064
+	float mShockNoiseFreq; //0x0068
+	float mHSyncNoiseAmplitude; //0x006C
+	float mVSyncNoiseAmplitude; //0x0070
+	float mShockDetailReduction; //0x0074
+	float mHSyncBlankWidth; //0x0078
+	float mVSyncBlankWidth; //0x007C
+	Vector4 mVSyncBlankColor; //0x0080
+	uint32_t mShockNoiseTime; //0x0090
+	float mHSyncNoiseValue; //0x0094
+	float mVSyncNoiseValue; //0x0098
+	float mHSyncLag; //0x009C
+	float mVSyncLag; //0x00A0
+	float mDetailReduction; //0x00A4
+	float mHSyncNoiseOffset; //0x00A8
+	char pad_00AC[1992]; //0x00AC
+}; //Size: 0x0874
