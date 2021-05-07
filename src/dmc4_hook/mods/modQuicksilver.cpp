@@ -1,5 +1,7 @@
 #include "modQuicksilver.hpp"
 
+#include "glm/gtx/compatibility.hpp"
+
 // Found out that the game does not load anything
 // not related to current stage, after writing
 // all this nonsence
@@ -104,6 +106,10 @@ struct PostProcessingEffects {
 };
 
 PostProcessingEffects pps;
+uStageSetTimeSlow* g_ss;
+
+bool m_allowed = true; // idk this is terrible move this into
+				       // specific thing
 
 void TVNoiseConstructorParams(uTVNoiseFilter* tv) {
 	tv->mPriority ^= 2048;
@@ -115,13 +121,19 @@ void TVNoiseConstructorParams(uTVNoiseFilter* tv) {
 void uColorCorrectConstructorParams(uColorCorrectFilter* cc) {
 	cc->mPriority ^= 2048;
 	
-	cc->correctors[0].mType = CC_TYPE::TYPE_NEGA;
+	cc->correctors[0].mType = CC_TYPE::TYPE_NEGA2;
 	cc->correctors[0].mEnable = true;
 
 	cc->correctors[1].mType = CC_TYPE::TYPE_CHROMA;
-	cc->correctors[1].mFactor = glm::vec4{ 1.0f, 0.0f, 0.0f, 0.0f };
+	cc->correctors[1].mFactor = glm::vec4{ 1.0f, 0.1f, 0.1f, 0.1f };
 	cc->correctors[1].mEnable = true;
 }
+
+void uStageSetTimeSlowConstructorParams(uStageSetTimeSlow* ss) {
+	g_ss = ss;
+	ss->mDuration = 1100.0f; // hardcoded for now idk what they used
+}
+bool startInterpolating = false;
 
 void qsOperatorNew() {
 
@@ -133,6 +145,8 @@ void qsOperatorNew() {
 	float tvNoiseArg1 = 0.06f;
 	float tvNoiseArg2 = 0.02f;
 	float tvNOiseArg3 = 0.005f;
+	startInterpolating = true;
+
 	__asm {
 		pusha
 		pushf
@@ -188,6 +202,11 @@ void qsOperatorNew() {
 		// slowdown
 
 		call uStageSlowConstructor
+		pusha
+		push eax
+		call uStageSetTimeSlowConstructorParams
+		pop eax
+		popa
 		mov esi, eax
 		test esi, esi
 		jz bounce
@@ -202,32 +221,49 @@ void qsOperatorNew() {
 }
 
 static void onTimerCallback() {
+	g_ss->mTimeLeft = 0.0f;
+	pps.tv->bitfield ^= 2048;
+	pps.cc->bitfield ^= 2048;
+	m_allowed = true; // allow this command again, TODO(): delete this
+}
+
+static void onCooldownCallback() {
+	m_allowed = true;
 }
 
 std::optional<std::string> Quicksilver::onInitialize()
 {
+	m_command = std::hash<std::string>{}("\\Quicksilver");
+	m_shorthand = std::hash<std::string>{}("\\qs");
+
+	// timer duration in float and callback function once it finishes
+	m_timer = new utils::Timer(10.0f, onTimerCallback);
+
 	return Mod::onInitialize();
 }
 
 void Quicksilver::onGUIframe()
 {
-	// from main.cpp
-	// line 907 -> main->getMods()->onDrawUI("NoClip"_hash);
-	if (ImGui::Button("Quicksilver test"))
-	{
-		qsOperatorNew();
-	}
+	// TODO(): not twitch shit
 }
 
 void Quicksilver::onTwitchCommand(std::size_t hash)
 {
-	HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_command);
-	if (hash == m_command) 
+	if (!m_allowed) { return; }
+
+	if (hash == m_command || hash == m_shorthand) 
 	{
+		if (m_timer) {
+			m_allowed = false;
+			qsOperatorNew();
+			m_timer->start();
+		}
 	}
 }
 
 void Quicksilver::onFrame(fmilliseconds& dt) 
 {
-	//m_timer->tick(dt);
+	if (m_timer) {
+		m_timer->tick(dt);
+	}
 };

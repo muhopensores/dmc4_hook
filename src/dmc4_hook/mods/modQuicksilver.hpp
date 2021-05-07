@@ -20,6 +20,9 @@ public:
 	void onTwitchCommand(std::size_t hash) override;
 
 private:
-	utils::Timer* m_timer;
+	utils::Timer* m_timer; // i've kept those as ptrs to avoid malloc/free calls
+	                       // all the time which would cause memory fragmenation
+	                       // not sure how modern c++ handles this shit idk
 	std::size_t m_command;
+	std::size_t m_shorthand;
 };

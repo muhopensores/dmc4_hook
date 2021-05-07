@@ -43,7 +43,9 @@ static void resetCallDetour(hl::CpuContext* ctx) {
 	ImGui_ImplDX9_InvalidateDeviceObjects();
 	resetCalled = true;
 }
-std::chrono::system_clock::time_point prevTime;
+
+std::chrono::high_resolution_clock::time_point prevTime;
+
 static void presentCallDetour(hl::CpuContext* ctx) {
 	IDirect3DDevice9* device = (IDirect3DDevice9*)ctx->EAX;
 	auto d3dObj = *(D3D9obj*)ctx->ESI;
@@ -69,7 +71,7 @@ static void presentCallDetour(hl::CpuContext* ctx) {
 		}
 		g_enableBackgroundInput = BackgroundRendering::getModEnabledPtr();
 		once = true;
-		prevTime = std::chrono::system_clock::now();
+		prevTime = std::chrono::high_resolution_clock::now();
 	}
 bail:
 	if (resetCalled) 
@@ -77,7 +79,7 @@ bail:
 		ImGui_ImplDX9_CreateDeviceObjects();
 		resetCalled = false;
 	}
-	std::chrono::system_clock::time_point nowTime = std::chrono::system_clock::now();
+	std::chrono::high_resolution_clock::time_point nowTime = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float, std::milli> delta = nowTime - prevTime;
 	GetMain()->getMods()->onFrame(delta);
 	/*auto main = GetMain();

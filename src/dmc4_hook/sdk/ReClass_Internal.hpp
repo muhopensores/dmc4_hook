@@ -198,7 +198,7 @@ using Matrix4x4 = MtMatrix;
 class cUnit : public MtObject
 {
 public:
-	uint32_t N00002DC6; //0x0004
+	uint32_t bitfield; //0x0004
 	class cUnit *mpNextUnit; //0x0008
 	class cUnit *mpPrevUnit; //0x000C
 	float mDeltaTime; //0x0010
@@ -348,7 +348,8 @@ public:
 class uStageSetTimeSlow
 {
 public:
-	char pad_0000[4996]; //0x0000
+	char pad_0000[4992]; //0x0000
+	float mTimeLeft; //0x1380
 	float mDuration; //0x1384
 	float mEnemyWorkRate; //0x1388
 	float mStageWorkRate; //0x138C

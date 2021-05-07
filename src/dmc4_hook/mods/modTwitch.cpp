@@ -70,7 +70,7 @@ void TwitchClient::makeInstance() {
 			if (mirror_chat_checkbox) {
 				DISPLAY_MESSAGE(std::string{ sender + ": " + message });
 			}
-			std::size_t found = message.find("/");
+			std::size_t found = message.find("\\");
 			if (found != std::string::npos) {
 				auto& mods = g_main->getMods();
 				mods->onChatCommand(message);
