@@ -9,7 +9,7 @@ static uintptr_t JointSizeDetour2Continue = NULL;
 
 glm::vec3 size{ 7.0f, 7.0f, 7.0f };
 
-float getCurrentStyleRank() {
+static float getCurrentStyleRank() {
 	constexpr uintptr_t sStylishCountPtr = 0x00E558CC;
 	sStylishCount* sc = (sStylishCount*)*(uintptr_t*)sStylishCountPtr;
 	uint32_t rank = sc->currentStyleTier;
@@ -20,11 +20,11 @@ float getCurrentStyleRank() {
 	return normalizedRank;
 }
 
-void scaleHeadJoint(uModel__Joint* joint) {
+static void scaleHeadJoint(uModel__Joint* joint) {
 	joint->size = size * getCurrentStyleRank();
 }
 
-int isHeadJoint(uModel__Joint* joint) {
+static int isHeadJoint(uModel__Joint* joint) {
 
 	constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 	sMediator* sMedPtr = (sMediator*)*(uintptr_t*)staticMediatorPtr;

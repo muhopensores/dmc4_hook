@@ -5,7 +5,7 @@
 class DamageMultiplier : public Mod
 {
 public:
-    DamageMultiplier();
+    DamageMultiplier() = default;
 
     static bool modEnabled;
     static uintptr_t jmp_ret;
