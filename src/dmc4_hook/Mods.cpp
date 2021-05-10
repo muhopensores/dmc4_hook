@@ -75,7 +75,9 @@
 #include "mods/modDisableChimeraBlades.hpp"
 #include "mods/modTwitch.hpp"
 #include "mods/modQuicksilver.hpp"
-
+#include "mods/modTwCmdHolyWater.hpp"
+#include "mods/modBigHeadMode.hpp"
+#include "mods/modTwCmdPlayerTransforms.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -156,6 +158,9 @@ Mods::Mods() {
 		m_mods["DisableChimeraBlades"_hash] = std::make_unique<DisableChimeraBlades>();
 		m_mods["TwitchClient"_hash] = std::make_unique<TwitchClient>();
 		m_mods["Quicksilver"_hash] = std::make_unique<Quicksilver>();
+		m_mods["TwCmdHolyWater"_hash] = std::make_unique<TwCmdHolyWater>();
+		m_mods["BigHeadMode"_hash] = std::make_unique<BigHeadMode>();
+		m_mods["TwCmdPlayerTransforms"_hash] = std::make_unique<TwCmdPlayerTransforms>();
 }
 
 std::optional<std::string> Mods::onSlowInitialize() const {

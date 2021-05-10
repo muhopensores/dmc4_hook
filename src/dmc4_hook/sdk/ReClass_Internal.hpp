@@ -337,13 +337,34 @@ public:
 	char pad_0028[24]; //0x0028
 }; //Size: 0x0040
 
+class uModel__Joint
+{
+public:
+	char pad_0000[48]; //0x0000
+	Vector3f size; //0x0030
+	char pad_003C[84]; //0x003C
+}; //Size: 0x0090
+static_assert(sizeof(uModel__Joint) == 0x90);
+
+class uModelJointArr
+{
+public:
+	class uModel__Joint joint[75]; //0x0000
+}; //Size: 0x2A30
+static_assert(sizeof(uModelJointArr) == 0x2A30);
+
 class uPlayer : public cUnit
 {
 public:
 	char pad_0018[24]; //0x0018
 	Vector3f mPos; //0x0030
-	char pad_003C[1060]; //0x003C
+	char pad_003C[676]; //0x003C
+	uint32_t mJointArraySize; //0x02E0
+	class uModelJointArr *jointArray; //0x02E4
+	char pad_02E8[376]; //0x02E8
 }; //Size: 0x0460
+static_assert(sizeof(uPlayer) == 0x460);
+
 
 class uStageSetTimeSlow
 {
@@ -452,3 +473,13 @@ public:
 	float mHSyncNoiseOffset; //0x00A8
 	char pad_00AC[1992]; //0x00AC
 }; //Size: 0x0874
+
+
+class sStylishCount
+{
+public:
+	char pad_0000[32]; //0x0000
+	uint32_t currentStyleTier; //0x0020
+	char pad_0024[508]; //0x0024
+}; //Size: 0x0220
+static_assert(sizeof(sStylishCount) == 0x220);

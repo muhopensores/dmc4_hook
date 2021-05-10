@@ -152,6 +152,12 @@ SET (MODS
   mods/modTwitch.cpp
   mods/modQuicksilver.hpp
   mods/modQuicksilver.cpp
+  mods/modTwCmdHolyWater.hpp
+  mods/modTwCmdHolyWater.cpp
+  mods/modBigHeadMode.hpp
+  mods/modBigHeadMode.cpp
+  mods/modTwCmdPlayerTransforms.hpp
+  mods/modTwCmdPlayerTransforms.cpp
 )
 
 SET (HEADERS
