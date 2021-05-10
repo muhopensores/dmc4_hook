@@ -21,7 +21,7 @@ public:
 	void disconnect();
 
 	bool vote_checkbox = false;
-	bool mirror_chat_checkbox = false;
+	bool mirror_chat_checkbox = true; // always forget to set this when testing shit
 	bool libirc_loaded = false;
 	int  voting_result = 0;
 
