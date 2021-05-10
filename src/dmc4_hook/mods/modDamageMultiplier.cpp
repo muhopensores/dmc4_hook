@@ -13,6 +13,7 @@ float xmm4backup{ NULL };
 static float getCurrentStyleRank() {
 	constexpr uintptr_t sStylishCountPtr = 0x00E558CC;
 	sStylishCount* sc = (sStylishCount*)*(uintptr_t*)sStylishCountPtr;
+	if (!sc) { return 0.0f; }
 	uint32_t rank = sc->currentStyleTier;
 	float normalizedRank = glm::smoothstep(0.0f, 7.0f, (float)rank);
 	return normalizedRank;
@@ -33,7 +34,6 @@ static float almostIdentity( float x, float m, float n )
 }
 
 static void mustStyleMultiplier() {
-	if (!g_mustStyle) { return; }
 	damagemultiplier = almostIdentity(getCurrentStyleRank(), 0.3f, 0.3f);
 }
 
@@ -45,14 +45,13 @@ naked void detour(void)
 
 			cmp dword ptr [esi+0x1C], 0x469C4000 // ignore if player
 			je originalcode
-			call mustStyleMultiplier
 			//movss dword ptr [ebp-4],xmm4		 // Maybe this was the reason m17 was crashing? testing now
 			movss [xmm4backup], xmm4
 
 			movss xmm4, [esi+0x18]				 // get the current life
 			subss xmm4, xmm0					 // subtract the current life to the new life ( = currentHitDamage)
             movss xmm0, [esi+0x18]				 // set new life to old life
-            mulss xmm4, [damagemultiplier]		 // multiply by "multiplier" the currentHitDamage (xmm2)
+			mulss xmm4, [damagemultiplier]		 // multiply by "multiplier" the currentHitDamage (xmm2)
             subss xmm0, xmm4					 // subss to new life current hit dammage
 
 			movss xmm4, [xmm4backup]
@@ -84,6 +83,11 @@ void DamageMultiplier::onGUIframe() {
 	if (modEnabled) {
 		ImGui::Checkbox("Must style mode", &g_mustStyle);
 	}
+}
+
+void DamageMultiplier::onFrame(fmilliseconds & dt) {
+	if (!g_mustStyle) { return; }
+	mustStyleMultiplier();
 }
 
 void DamageMultiplier::onConfigLoad(const utils::Config& cfg) {

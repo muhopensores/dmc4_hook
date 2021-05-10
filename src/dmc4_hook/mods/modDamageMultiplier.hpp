@@ -20,6 +20,7 @@ public:
     void onConfigSave(utils::Config& cfg) override;
 
     void onGUIframe() override;
+	void onFrame(fmilliseconds& dt) override;
 
 private:
     hl::Hooker hook;
