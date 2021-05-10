@@ -93,9 +93,11 @@ void DamageMultiplier::onFrame(fmilliseconds & dt) {
 void DamageMultiplier::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("damage_multiplier").value_or(false);
     damagemultiplier = cfg.get<float>("damage_multiplier_float").value_or(1.0f);
+    g_mustStyle = cfg.get<bool>("must_style").value_or(false);
 }
 
 void DamageMultiplier::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("damage_multiplier", modEnabled);
     cfg.set < float > ("damage_multiplier_float", damagemultiplier);
+    cfg.set<bool>("must_style", g_mustStyle);
 }
