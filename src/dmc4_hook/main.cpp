@@ -231,7 +231,7 @@ bool hlMain::init()
 
 	DoResumeThread(pid, tid);
 
-	DISPLAY_MESSAGE("Welcome to dmc4hook.dll version FIX_FORMAT_STRINGS_BRO");
+	//DISPLAY_MESSAGE("Welcome to dmc4hook.dll version FIX_FORMAT_STRINGS_BRO");
 	Sleep(2000);
 	m_mods->onSlowInitialize();
 
@@ -273,10 +273,14 @@ struct message_handler {
 
 
 void RenderBackgroundWindow() {
+
 	if (g_bWasInitialized) { return; }
 
 	ImGuiIO& io = ImGui::GetIO();
-	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar;
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
 	ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
 	ImGui::SetNextWindowSize(io.DisplaySize);
 
@@ -305,7 +309,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 	// I don't know why but using MouseDrawCursor draws two cursors whenever i build shit on my machine
 	// this is fucked up. It should hide hardware cursor, but just doesnt for whatever reason. I'm just gonna
 	// do this instead. If hardware cursor is missing draw an imgui one for people who had troubles.
-	ImGui::GetIO().MouseDrawCursor = !IsCursorVisibleWINAPI();
+	ImGui::GetIO().MouseDrawCursor = false;
     
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -316,6 +320,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 	if (!draw) {
 		goto imgui_finish;
 	}
+	ImGui::GetIO().MouseDrawCursor = !IsCursorVisibleWINAPI();
     DrawWindow();
 
     // specific imgui functions, can be looked up in examples or the documentation

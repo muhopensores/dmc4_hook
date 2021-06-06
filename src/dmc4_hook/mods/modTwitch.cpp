@@ -13,10 +13,12 @@ static hlMain* g_main{};
 std::optional<std::string> TwitchClient::onInitialize() {
 	g_main = GetMain();
 	if (!dynLinkLibIRCclient()) {
-		DISPLAY_MESSAGE("[TwitchClient] libircclient.dll not found, skipping.");
+		//DISPLAY_MESSAGE("[TwitchClient] libircclient.dll not found, skipping.");
+		HL_LOG_RAW("[TwitchClient] libircclient.dll not found, skipping.");
 	}
 	libirc_loaded = true;
-	DISPLAY_MESSAGE("[TwitchClient] libircclient.dll loaded.");
+	//DISPLAY_MESSAGE("[TwitchClient] libircclient.dll loaded.");
+	HL_LOG_RAW("[TwitchClient] libircclient.dll loaded.");
 	return Mod::onInitialize();
 }
 
@@ -97,10 +99,11 @@ void TwitchClient::makeInstance() {
 
 void TwitchClient::disconnect()
 {
-	twitch->Disconnect();
-	delete twitch;
-	twitch = nullptr;
-
+	if (twitch) {
+		twitch->Disconnect();
+		delete twitch;
+		twitch = nullptr;
+	}
 }
 
 // onGUIframe()

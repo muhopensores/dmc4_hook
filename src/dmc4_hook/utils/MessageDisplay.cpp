@@ -1,7 +1,7 @@
 #include "MessageDisplay.hpp"
 
 void message::show() {
-	ImGui::Text("%s (%f)",m_message.c_str(), m_time);
+	ImGui::TextWrapped("%s (%f)",m_message.c_str(), m_time);
 }
 
 bool message::update(float dt) {
