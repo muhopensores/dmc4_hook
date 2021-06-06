@@ -129,6 +129,7 @@ std::optional<std::string> EnemySpawn::onInitialize()
     m_spawnFrostCommand = std::hash<std::string>{}("\\SpawnFrost");
 	m_spawnAssaultCommand = std::hash<std::string>{}("\\SpawnAssault");
     m_spawnBasiliskCommand = std::hash<std::string>{}("\\SpawnBasilisk");
+    m_spawnChimeraCommand = std::hash<std::string>{}("\\SpawnChimera");
 	m_spawnMephistoCommand = std::hash<std::string>{}("\\SpawnMephisto");
     m_spawnFaustCommand = std::hash<std::string>{}("\\SpawnFaust");
     m_spawnBiancoCommand = std::hash<std::string>{}("\\SpawnBianco");
@@ -186,10 +187,15 @@ void EnemySpawn::onTwitchCommand(std::size_t hash)
     {
         spawnEm00x(6); // Skipping Blitz
     }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnChimeraCommand);
+    if (hash == m_spawnChimeraCommand)
+    {
+        spawnEm00x(7);
+    }
     HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnMephistoCommand);
     if (hash == m_spawnMephistoCommand)
     {
-        spawnEm00x(8); // Skipping Chimera
+        spawnEm00x(8);
     }
     HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnFaustCommand);
     if (hash == m_spawnFaustCommand)
