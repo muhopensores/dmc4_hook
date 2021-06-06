@@ -3,25 +3,32 @@
 #include "glm/gtx/compatibility.hpp"
 
 bool g_enable_mod = false;
-
+bool g_swole_mode = false;
 static uintptr_t JointSizeDetour1Continue = NULL;
 static uintptr_t JointSizeDetour2Continue = NULL;
 
-glm::vec3 size{ 7.0f, 7.0f, 7.0f };
+glm::vec3 size{ 0.5f, 0.5f, 0.5f };
+glm::vec3 size_torso{ 0.9f, 0.8f, 0.8f };
 
 static float getCurrentStyleRank() {
 	constexpr uintptr_t sStylishCountPtr = 0x00E558CC;
 	sStylishCount* sc = (sStylishCount*)*(uintptr_t*)sStylishCountPtr;
 	uint32_t rank = sc->currentStyleTier;
-	float normalizedRank = glm::smoothstep(0.0f, 7.0f, (float)rank); // no style no head
+	//float normalizedRank = glm::smoothstep(0.0f, 7.0f, (float)(rank+1)); // no style no head
 	//                                    edge0 edge1        x
 	// smoothstep Returns 0.0 if x <= edge0 and 1.0 if x >= edge1 and performs smooth
 	// Hermite interpolation between 0 and 1 when edge0 < x < edge1.
-	return normalizedRank;
+	//return normalizedRank;
+	return (float)(rank + 1);
 }
 
 static void scaleHeadJoint(uModel__Joint* joint) {
-	joint->size = size * getCurrentStyleRank();
+	if (g_swole_mode) {
+		joint->size = size * (glm::clamp(getCurrentStyleRank(),1.5f,3.0f));
+	}
+	else {
+		joint->size = size * getCurrentStyleRank();
+	}
 }
 
 static int isHeadJoint(uModel__Joint* joint) {
@@ -29,9 +36,15 @@ static int isHeadJoint(uModel__Joint* joint) {
 	constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 	sMediator* sMedPtr = (sMediator*)*(uintptr_t*)staticMediatorPtr;
 	uPlayer* uPlr = sMedPtr->playerPtr;
-	uModel__Joint* head = &uPlr->jointArray->joint[4]; // seems to be heads for both chars
-
-	return joint == head;
+	if (g_swole_mode) {
+		uModel__Joint* torso = &uPlr->jointArray->joint[2]; // seems to be torso for both chars
+		return joint == torso;
+	}
+	else {
+		uModel__Joint* head = &uPlr->jointArray->joint[4]; // seems to be heads for both chars
+		return joint == head;
+	}
+	return 0;
 }
 
 naked void JointSizeDetour1() {
@@ -129,11 +142,18 @@ std::optional<std::string> BigHeadMode::onInitialize()
 void BigHeadMode::onGUIframe()
 {
 	ImGui::Checkbox("Big head mode", &g_enable_mod);
+	if (ImGui::Checkbox("Swole mode", &g_swole_mode)) {
+		g_enable_mod = g_swole_mode;
+	}
 }
 
 void BigHeadMode::onTwitchCommand(std::size_t hash)
 {
 	if (hash == m_command) {
 		g_enable_mod = !g_enable_mod;
+	}
+	if (hash == m_swCommand) {
+		g_enable_mod = !g_enable_mod;
+		g_swole_mode = !g_swole_mode;
 	}
 }

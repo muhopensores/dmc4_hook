@@ -146,8 +146,6 @@ void EnemySpawn::onGUIframe()
     }
 
 	ImGui::Text("Enemy Spawner");
-    ImGui::SameLine(0, 1);
-    HelpMarker("Spawn position is not yet supported; enemies will always spawn at 0,0,0.");
 
 	int enemyNames_current = 0;
 	if (ImGui::ListBox("##Enemy Spawn Listbox", &enemyNames_current, enemyNames.data(), enemyNames.size(), 19))

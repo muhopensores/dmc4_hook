@@ -43,6 +43,12 @@ void TwitchClient::onConfigLoad(const utils::Config& cfg) {
 };
 
 void TwitchClient::makeInstance() {
+
+	if ((twitchStatus == TWITCH_CONNECTING) ||
+		(twitchStatus == TWITCH_CONNECTED)) {
+		return;
+	}
+
 	if (!twitch) 
 	{
 		twitch = new Twitch();

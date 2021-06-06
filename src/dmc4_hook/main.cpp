@@ -603,7 +603,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::Text("System");
 
                 ImGui::Spacing();
-
+				main->getMods()->onDrawUI("TwCmdPlayerTransforms"_hash);
 				main->getMods()->onDrawUI("FastStart"_hash);
 
                 main->getMods()->onDrawSlowUI("BackgroundRendering"_hash);

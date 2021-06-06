@@ -4,9 +4,12 @@ static uintptr_t PlayerTransformsDetourContinue = NULL;
 
 bool  g_modEnable = false;
 float tWorkrate   = 1.2f;
+float oWorkrate   = 0.0f;
+uPlayer* plr = nullptr;
 
 naked void PlayerTransformsDetour() {
 	__asm {
+		mov [plr], eax
 		cmp g_modEnable, 1
 		jne originalCode
 		movss xmm2, [tWorkrate]
@@ -43,6 +46,22 @@ void TwCmdPlayerTransforms::onFrame(fmilliseconds & dt)
 	m_timer->tick(dt);
 }
 
+#if 0
+void TwCmdPlayerTransforms::onGUIframe()
+{
+	if (ImGui::Button("LowGravityTest")) {
+		m_timer->start();
+		g_modEnable = true;
+		tWorkrate = plr->mDeltaTime * 0.5f;
+	}
+	if (ImGui::Button("HighGravityTest")) {
+		m_timer->start();
+		g_modEnable = true;
+		tWorkrate = plr->mDeltaTime * 1.27f;
+	}
+}
+#endif
+
 void TwCmdPlayerTransforms::onTwitchCommand(std::size_t hash)
 {
 	// TODO(): send a message if shit is already active?
@@ -52,11 +71,11 @@ void TwCmdPlayerTransforms::onTwitchCommand(std::size_t hash)
 	if (hash == m_command_less_gravity) {
 		m_timer->start();
 		g_modEnable = true;
-		tWorkrate = 0.88f;
+		tWorkrate = plr->mDeltaTime * 0.5f;
 	}
 	if (hash == m_command_more_gravity) {
 		m_timer->start();
 		g_modEnable = true;
-		tWorkrate = 1.4f;
+		tWorkrate = plr->mDeltaTime * 1.27f;
 	}
 }

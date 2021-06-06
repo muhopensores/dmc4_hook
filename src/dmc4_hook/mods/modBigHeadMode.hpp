@@ -22,6 +22,7 @@ public:
 private:
 
 	std::size_t m_command;
+	std::size_t m_swCommand;
 	hl::Hooker hook1;
 	hl::Hooker hook2;
 };

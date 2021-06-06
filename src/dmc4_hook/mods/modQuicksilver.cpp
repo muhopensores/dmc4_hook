@@ -108,9 +108,6 @@ struct PostProcessingEffects {
 PostProcessingEffects pps;
 uStageSetTimeSlow* g_ss;
 
-bool m_allowed = true; // idk this is terrible move this into
-				       // specific thing
-
 void TVNoiseConstructorParams(uTVNoiseFilter* tv) {
 	tv->mPriority ^= 2048;
 	tv->mNoisePower = 0.06f;
@@ -121,12 +118,12 @@ void TVNoiseConstructorParams(uTVNoiseFilter* tv) {
 void uColorCorrectConstructorParams(uColorCorrectFilter* cc) {
 	cc->mPriority ^= 2048;
 	
-	cc->correctors[0].mType = CC_TYPE::TYPE_NEGA2;
-	cc->correctors[0].mEnable = true;
+	/*cc->correctors[0].mType = CC_TYPE::TYPE_NEGA2;
+	cc->correctors[0].mEnable = true;*/
 
-	cc->correctors[1].mType = CC_TYPE::TYPE_CHROMA;
-	cc->correctors[1].mFactor = glm::vec4{ 1.0f, 0.1f, 0.1f, 0.1f };
-	cc->correctors[1].mEnable = true;
+	cc->correctors[0].mType = CC_TYPE::TYPE_CHROMA;
+	cc->correctors[0].mFactor = glm::vec4{ 1.0f, 0.1f, 0.1f, 0.1f };
+	cc->correctors[0].mEnable = true;
 }
 
 void uStageSetTimeSlowConstructorParams(uStageSetTimeSlow* ss) {
@@ -224,11 +221,6 @@ static void onTimerCallback() {
 	g_ss->mTimeLeft = 0.0f;
 	pps.tv->bitfield ^= 2048;
 	pps.cc->bitfield ^= 2048;
-	m_allowed = true; // allow this command again, TODO(): delete this
-}
-
-static void onCooldownCallback() {
-	m_allowed = true;
 }
 
 std::optional<std::string> Quicksilver::onInitialize()
@@ -237,24 +229,27 @@ std::optional<std::string> Quicksilver::onInitialize()
 	m_shorthand = std::hash<std::string>{}("\\qs");
 
 	// timer duration in float and callback function once it finishes
-	m_timer = new utils::Timer(10.0f, onTimerCallback);
+	m_timer = new utils::Timer(15.0f, onTimerCallback);
 
 	return Mod::onInitialize();
 }
 
 void Quicksilver::onGUIframe()
 {
+	if (ImGui::Button("QSTEST")) {
+		qsOperatorNew();
+		m_timer->start();
+	}
 	// TODO(): not twitch shit
 }
 
 void Quicksilver::onTwitchCommand(std::size_t hash)
 {
-	if (!m_allowed) { return; }
+	if (!m_timer->m_active) { return; }
 
 	if (hash == m_command || hash == m_shorthand) 
 	{
 		if (m_timer) {
-			m_allowed = false;
 			qsOperatorNew();
 			m_timer->start();
 		}

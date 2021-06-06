@@ -16,7 +16,7 @@ public:
 	std::optional<std::string> onInitialize() override;
 
 	void onFrame(fmilliseconds& dt) override;
-	//void onGUIframe() override;
+	// void onGUIframe() override;
 	void onTwitchCommand(std::size_t hash) override;
 
 private:
