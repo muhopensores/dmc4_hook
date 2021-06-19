@@ -1,6 +1,7 @@
 #include "modBigHeadMode.hpp"
 
 #include "glm/gtx/compatibility.hpp"
+#include "../sdk/Devil4.hpp"
 
 bool g_enable_mod = false;
 bool g_swole_mode = false;
@@ -11,8 +12,7 @@ glm::vec3 size{ 0.5f, 0.5f, 0.5f };
 glm::vec3 size_torso{ 0.9f, 0.8f, 0.8f };
 
 static float getCurrentStyleRank() {
-	constexpr uintptr_t sStylishCountPtr = 0x00E558CC;
-	sStylishCount* sc = (sStylishCount*)*(uintptr_t*)sStylishCountPtr;
+	sStylishCount* sc = Devil4SDK::getStylishCount();
 	uint32_t rank = sc->currentStyleTier;
 	//float normalizedRank = glm::smoothstep(0.0f, 7.0f, (float)(rank+1)); // no style no head
 	//                                    edge0 edge1        x
@@ -32,10 +32,7 @@ static void scaleHeadJoint(uModel__Joint* joint) {
 }
 
 static int isHeadJoint(uModel__Joint* joint) {
-
-	constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
-	sMediator* sMedPtr = (sMediator*)*(uintptr_t*)staticMediatorPtr;
-	uPlayer* uPlr = sMedPtr->playerPtr;
+	uPlayer* uPlr = Devil4SDK::getLocalPlayer();
 	if (g_swole_mode) {
 		uModel__Joint* torso = &uPlr->jointArray->joint[2]; // seems to be torso for both chars
 		return joint == torso;

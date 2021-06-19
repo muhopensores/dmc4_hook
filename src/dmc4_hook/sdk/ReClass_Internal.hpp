@@ -206,6 +206,20 @@ public:
 }; //Size: 0x0018
 static_assert(sizeof(cUnit) == 0x18);
 
+class uCoord : public cUnit
+{
+public:
+	class uCoord *mpParent; //0x0018
+	char pad_001C[20]; //0x001C
+	Vector3f mPos; //0x0030
+	char pad_003C[4]; //0x003C
+	Vector4 mQuat; //0x0040
+	Vector3f mScale; //0x0050
+	Matrix4x4 mLmat; //0x005C
+	Matrix4x4 mWmat; //0x009C
+}; //Size: 0x00DC
+static_assert(sizeof(uCoord) == 0xDC);
+
 class uFilter : public cUnit
 {
 public:
@@ -333,8 +347,11 @@ class sMediator
 {
 public:
 	char pad_0000[36]; //0x0000
-	class uPlayer *playerPtr; //0x0024
+	class uPlayer* playerPtr; //0x0024
 	char pad_0028[24]; //0x0028
+
+	// TODO(): make it into methods for this shit?
+	//uPlayer* getLocalPlayer();
 }; //Size: 0x0040
 
 class uModel__Joint
@@ -353,17 +370,19 @@ public:
 }; //Size: 0x2A30
 static_assert(sizeof(uModelJointArr) == 0x2A30);
 
-class uPlayer : public cUnit
+class uPlayer : public uCoord
 {
 public:
-	char pad_0018[24]; //0x0018
-	Vector3f mPos; //0x0030
-	char pad_003C[676]; //0x003C
+	char pad_00DC[516]; //0x00DC
 	uint32_t mJointArraySize; //0x02E0
 	class uModelJointArr *jointArray; //0x02E4
-	char pad_02E8[376]; //0x02E8
-}; //Size: 0x0460
-static_assert(sizeof(uPlayer) == 0x460);
+	char pad_02E8[7016]; //0x02E8
+	Vector3f m_dVelocity; //0x1E50
+	char pad_1E5C[4]; //0x1E5C
+	float m_dVelMagnitude; //0x1E60
+	char pad_1E64[2564]; //0x1E64
+}; //Size: 0x2868
+static_assert(sizeof(uPlayer) == 0x2868);
 
 
 class uStageSetTimeSlow

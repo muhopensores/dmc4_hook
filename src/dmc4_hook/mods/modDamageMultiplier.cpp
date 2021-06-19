@@ -1,5 +1,6 @@
 #include "../mods.h"
 #include "modDamageMultiplier.hpp"
+#include "../sdk/Devil4.hpp"
 
 #include "glm/gtx/compatibility.hpp"
 
@@ -7,15 +8,17 @@ bool DamageMultiplier::modEnabled{ false };
 bool g_mustStyle{ false };
 uintptr_t DamageMultiplier::jmp_ret{ NULL };
 float DamageMultiplier::enemyHPDisplay{ NULL };
-float damagemultiplier = 1.0f;
+float damagemultiplier{ 1.0f };
 float xmm4backup{ NULL };
 
 static float getCurrentStyleRank() {
-	constexpr uintptr_t sStylishCountPtr = 0x00E558CC;
-	sStylishCount* sc = (sStylishCount*)*(uintptr_t*)sStylishCountPtr;
+
+	sStylishCount* sc = Devil4SDK::getStylishCount();
 	if (!sc) { return 0.0f; }
+
 	uint32_t rank = sc->currentStyleTier;
 	float normalizedRank = glm::smoothstep(0.0f, 7.0f, (float)rank);
+
 	return normalizedRank;
 }
 

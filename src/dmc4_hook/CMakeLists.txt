@@ -2,6 +2,8 @@ PROJECT(dmc4_hook)
 
 #add mods here, modName.cpp and modName.hpp
 SET (MODS
+  mods/modTwCmdSuperhot.hpp
+  mods/modTwCmdSuperhot.cpp
   mods/modSample.cpp
   mods/modSample.hpp
   mods/modBorderless.cpp
@@ -226,6 +228,8 @@ SET (TWITCH
 
 SET (SDK
   sdk/ReClass_Internal.hpp
+  sdk/Devil4.cpp
+  sdk/Devil4.hpp
 )
 
 SET (SOURCES

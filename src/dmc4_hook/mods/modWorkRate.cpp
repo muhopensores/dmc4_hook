@@ -1,10 +1,10 @@
 #include "modWorkRate.hpp"
+#include "../sdk/Devil4.hpp"
 
-#if 1
 
+#if 0
 uintptr_t  WorkRate::jmp_return{ NULL };
 sWorkRate* WorkRate::sWorkRatePtr{ NULL };
-
 WorkRate::WorkRate() {
 	//onInitialize();
 }
@@ -18,12 +18,13 @@ naked void detour() {
 		jmp DWORD PTR [WorkRate::jmp_return]
 	}
 }
+#endif
 
 std::optional<std::string> WorkRate::onInitialize() {
 
-	if (!install_hook_offset(0xA948, hook, &detour, &jmp_return, 6)) {
+	/*if (!install_hook_offset(0xA948, hook, &detour, &jmp_return, 6)) {
 		return "Failed to init WorkRate mod";
-	}
+	}*/
 
 	return Mod::onInitialize();
 }
@@ -32,8 +33,8 @@ std::optional<std::string> WorkRate::onInitialize() {
 
 }*/
 
-inline bool WorkRate::checkWorkRatePtr() {
-	if (IsBadWritePtr(sWorkRatePtr, sizeof(uint32_t))) {
+inline bool WorkRate::checkWorkRatePtr(sWorkRate* wr) {
+	if (IsBadWritePtr(wr, sizeof(uint32_t))) {
 		return false;
 	}
 	else {
@@ -52,7 +53,8 @@ void WorkRate::onConfigSave(utils::Config & cfg) {
 void WorkRate::onGUIframe() {
 		if (ImGui::CollapsingHeader("Speed"))
 		{
-			if (!checkWorkRatePtr()) {
+			sWorkRate* sWorkRatePtr = Devil4SDK::getWorkRate();
+			if (!checkWorkRatePtr(sWorkRatePtr)) {
 				ImGui::TextWrapped("Speed adjustments are not initialized yet, load into the stage to access them.");
 				ImGui::Spacing();
 				return;
@@ -69,7 +71,9 @@ void WorkRate::onGUIframe() {
 		}
 }
 void WorkRate::onGamePause(bool toggle) {
-	if (!checkWorkRatePtr()) {
+
+	sWorkRate* sWorkRatePtr = Devil4SDK::getWorkRate();
+	if (!checkWorkRatePtr(sWorkRatePtr)) {
 		return;
 	}
 	if (toggle) {
@@ -79,4 +83,3 @@ void WorkRate::onGamePause(bool toggle) {
 		sWorkRatePtr->globalSpeed = m_globalSpeed;
 	}
 }
-#endif

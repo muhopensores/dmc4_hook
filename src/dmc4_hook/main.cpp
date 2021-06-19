@@ -501,6 +501,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 main->getMods()->onDrawUI("InfAirHikes"_hash);
 
 				main->getMods()->onDrawUI("BigHeadMode"_hash);
+				
+				main->getMods()->onDrawUI("ModTwCmdSuperhot"_hash);
+
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
