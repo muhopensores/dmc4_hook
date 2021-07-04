@@ -158,6 +158,8 @@ SET (MODS
   mods/modBigHeadMode.cpp
   mods/modTwCmdPlayerTransforms.hpp
   mods/modTwCmdPlayerTransforms.cpp
+  mods/modInfCalibur.hpp
+  mods/modInfCalibur.cpp
 )
 
 SET (HEADERS

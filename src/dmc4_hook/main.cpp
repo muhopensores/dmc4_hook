@@ -524,6 +524,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::Spacing();
 
                 main->getMods()->onDrawUI("InfTableHopper"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("InfCalibur"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();
