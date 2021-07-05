@@ -514,6 +514,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 main->getMods()->onDrawUI("InfSkyStars"_hash);
 
                 main->getMods()->onDrawUI("InfDreadnought"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("RgMultiplier"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();

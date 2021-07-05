@@ -2,16 +2,16 @@
 
 #include "../mod.hpp"
 
-class InfCalibur : public Mod
+class RgMultiplier : public Mod
 {
 public:
-    InfCalibur() = default;
+    RgMultiplier();
 
     static bool modEnabled;
+    static uintptr_t jmp_ret;
+    static uintptr_t jmp_ret2;
 
-    void toggle(bool enable);
-
-    std::string getModName() override { return "InfCalibur"; };
+    std::string getModName() override { return "RgMultiplier"; };
 
     std::optional<std::string> onInitialize() override;
 
@@ -21,6 +21,6 @@ public:
     void onGUIframe() override;
 
 private:
-    hl::Patch patch;
-    hl::Patch patch2;
+    hl::Hooker hook;
+    hl::Hooker hook2;
 };

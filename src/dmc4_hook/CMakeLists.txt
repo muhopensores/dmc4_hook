@@ -160,6 +160,8 @@ SET (MODS
   mods/modTwCmdPlayerTransforms.cpp
   mods/modInfCalibur.hpp
   mods/modInfCalibur.cpp
+  mods/modRgMultiplier.hpp
+  mods/modRgMultiplier.cpp
 )
 
 SET (HEADERS

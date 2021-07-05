@@ -13,10 +13,12 @@ void InfCalibur::toggle(bool enable)
     if (enable)
     {
         install_patch_offset(0x03FDE98, patch, "\x90\x90\x90\x90\x90\x90", 6);
+        install_patch_offset(0x04003AB, patch2, "\x90\x90\x90\x90\x90\x90", 6);
     }
     else
     {
         patch.revert();
+        patch2.revert();
     }
 }
 
@@ -38,4 +40,3 @@ void InfCalibur::onConfigSave(utils::Config& cfg)
 {
     cfg.set<bool>("inf_calibur", modEnabled);
 };
-
