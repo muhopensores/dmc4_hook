@@ -71,7 +71,7 @@ void ModTwCmdSuperhot::onFrame(fmilliseconds& dt) {
 // draw your imgui widgets here, you are inside imgui context.
 void ModTwCmdSuperhot::onGUIframe() { 
 	ImGui::Checkbox("SUPERHOT mode", &mod_enabled);
-	ImGui::InputFloat("Tiny", &tiny, 0.01f);
+	ImGui::InputFloat("Velocity factor:", &tiny, 0.01f);
 };
 
 // onGamePause()

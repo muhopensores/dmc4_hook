@@ -502,3 +502,20 @@ public:
 	char pad_0024[508]; //0x0024
 }; //Size: 0x0220
 static_assert(sizeof(sStylishCount) == 0x220);
+
+class uEm003Shl : public MtObject
+{
+public:
+	char pad_0004[44]; //0x0004
+	Vector3f mPosMaybe; //0x0030
+	char pad_003C[3716]; //0x003C
+	Vector3f mSomeFloatVec; //0x0EC0
+	char pad_0ECC[2260]; //0x0ECC
+	uint32_t mRequiredIdkWtfIsThisNeedsToBe2; //0x17A0
+	uint32_t mRequiredIdkWtfIsThisNeedsToBe6; //0x17A4
+	char pad_17A8[12]; //0x17A8
+	uint16_t N00005A23; //0x17B4
+	uint8_t mRequiredSomeByteIdk; //0x17B6
+	char pad_17B7[57]; //0x17B7
+}; //Size: 0x17F0
+static_assert(sizeof(uEm003Shl) == 0x17F0);
