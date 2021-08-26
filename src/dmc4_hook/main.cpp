@@ -27,6 +27,7 @@
 #include "hacklib/CrashHandler.h"
 
 #include "utils/MessageDisplay.hpp"
+#include "utils/Thread.hpp"
 
 uint32_t uninit_value = 0xCCCCCCCC;
 
@@ -115,72 +116,6 @@ void hlMain::saveSettings() {
 	//cfg->save(m_confPath);
 }
 
-// TODO(): move this somewhere
-// Pass 0 as the targetProcessId to suspend threads in the current process
-void DoSuspendThread(DWORD targetProcessId, DWORD targetThreadId)
-{
-	HANDLE h = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-	if (h != INVALID_HANDLE_VALUE)
-	{
-		THREADENTRY32 te;
-		te.dwSize = sizeof(te);
-		if (Thread32First(h, &te))
-		{
-			do
-			{
-				if (te.dwSize >= FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) + sizeof(te.th32OwnerProcessID)) 
-				{
-					// Suspend all threads EXCEPT the one we want to keep running
-					if(te.th32ThreadID != targetThreadId && te.th32OwnerProcessID == targetProcessId)
-					{
-						HANDLE thread = ::OpenThread(THREAD_ALL_ACCESS, FALSE, te.th32ThreadID);
-						if(thread != NULL)
-						{
-							SuspendThread(thread);
-							CloseHandle(thread);
-						}
-					}
-				}
-				te.dwSize = sizeof(te);
-			} while (Thread32Next(h, &te));
-		}
-		CloseHandle(h);    
-	}
-}
-
-// TODO(): move this somewhere
-// Pass 0 as the targetProcessId to suspend threads in the current process
-void DoResumeThread(DWORD targetProcessId, DWORD targetThreadId)
-{
-	HANDLE h = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-	if (h != INVALID_HANDLE_VALUE)
-	{
-		THREADENTRY32 te;
-		te.dwSize = sizeof(te);
-		if (Thread32First(h, &te))
-		{
-			do
-			{
-				if (te.dwSize >= FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) + sizeof(te.th32OwnerProcessID)) 
-				{
-					// Suspend all threads EXCEPT the one we want to keep running
-					if(te.th32ThreadID != targetThreadId && te.th32OwnerProcessID == targetProcessId)
-					{
-						HANDLE thread = ::OpenThread(THREAD_ALL_ACCESS, FALSE, te.th32ThreadID);
-						if(thread != NULL)
-						{
-							ResumeThread(thread);
-							CloseHandle(thread);
-						}
-					}
-				}
-				te.dwSize = sizeof(te);
-			} while (Thread32Next(h, &te));
-		}
-		CloseHandle(h);    
-	}
-}
-
 bool hlMain::init()
 {
 	wchar_t buffer[MAX_PATH]{ 0 };
@@ -194,7 +129,6 @@ bool hlMain::init()
 		failed();
 	}
 	MH_Initialize();
-	//bool exp_result = InstallExceptionHandlerHooks();
 
 	//SteamStub shit
 	uintptr_t codePtr = 0x008DB650;
@@ -204,10 +138,7 @@ bool hlMain::init()
 		Sleep(1);
 	}
 
-	DWORD pid = GetCurrentProcessId();
-	DWORD tid = GetCurrentThreadId();
-
-	DoSuspendThread(pid, tid);
+    std::queue<DWORD> tr = utils::SuspendAllOtherThreads();
 
     hl::LogConfig logCfg;
     logCfg.logToFile = true;
@@ -229,7 +160,7 @@ bool hlMain::init()
 	// iterate over all the mods and call onInitialize();
 	m_mods->onInitialize();
 
-	DoResumeThread(pid, tid);
+    utils::ResumeThreads(tr);
 
 	//DISPLAY_MESSAGE("Welcome to dmc4hook.dll version FIX_FORMAT_STRINGS_BRO");
 	Sleep(2000);

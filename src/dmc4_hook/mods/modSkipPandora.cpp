@@ -37,7 +37,7 @@ naked void skipPandora_proc(void)
 std::optional<std::string> SkipPandora::onInitialize()
 {
 	// bad fix for crashing on securom exe
-	const char bytes[5] = { 0x89, 0x47, 0x30, 0xB0, 0x01 };
+	const unsigned char bytes[5] = { 0x89, 0x47, 0x30, 0xB0, 0x01 };
 	if (memcmp((void*)0x7B122F, bytes, sizeof(bytes))) {
 		hooked = false;
 		return Mod::onInitialize();

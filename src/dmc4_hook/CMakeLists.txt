@@ -206,6 +206,8 @@ SET (IMGUI
 #aux_source_directory(mods MODS)
 
 SET (UTILS
+  utils/Thread.hpp
+  utils/Thread.cpp
   utils/Timer.hpp
   utils/Timer.cpp
   utils/MessageDisplay.hpp
