@@ -79,6 +79,9 @@
 #include "mods/modBigHeadMode.hpp"
 #include "mods/modTwCmdPlayerTransforms.hpp"
 #include "mods/modTwCmdSuperhot.hpp"
+#include "mods/modInfCalibur.hpp"
+#include "mods/modRgMultiplier.hpp"
+
 //#include "mods/modSample.hpp"
 // mods constructor
 Mods::Mods() {
@@ -162,6 +165,8 @@ Mods::Mods() {
 		m_mods["BigHeadMode"_hash] = std::make_unique<BigHeadMode>();
 		m_mods["TwCmdPlayerTransforms"_hash] = std::make_unique<TwCmdPlayerTransforms>();
 		m_mods["ModTwCmdSuperhot"_hash] = std::make_unique<ModTwCmdSuperhot>();
+		m_mods["InfCalibur"_hash] = std::make_unique<InfCalibur>();
+		m_mods["RgMultiplier"_hash] = std::make_unique<RgMultiplier>();
 }
 
 std::optional<std::string> Mods::onSlowInitialize() const {
