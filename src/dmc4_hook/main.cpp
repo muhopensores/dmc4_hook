@@ -23,6 +23,7 @@
 
 #include "mods/modWorkRate.hpp"
 #include "mods/modAreaJump.hpp"
+#include "mods/modBackgroundRendering.hpp"
 #include "hacklib/Logging.h"
 #include "hacklib/CrashHandler.h"
 
@@ -272,7 +273,7 @@ bool hlMain::init()
 bool hlMain::step()
 {
     input.update();
-    if (input.wentDown(VK_DELETE))
+    if (input.wentDown(VK_DELETE) && (*(BackgroundRendering::getModEnabledPtr()) || getMainWindow() == GetForegroundWindow()))
     {
         g_drawGUI = !g_drawGUI;
         GamePause();
