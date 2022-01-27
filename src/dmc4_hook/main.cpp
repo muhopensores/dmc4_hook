@@ -323,8 +323,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
                 main->getMods()->onDrawUI("BpJumpHook"_hash);
 
-                main->getMods()->onDrawUI("BpBossRush"_hash);
-                ImGui::SameLine(205);
+                //main->getMods()->onDrawUI("BpBossRush"_hash);
+                //ImGui::SameLine(205);
                 main->getMods()->onDrawUI("DmdBloodyPalace"_hash);
 
                 ImGui::Spacing();

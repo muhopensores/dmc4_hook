@@ -58,7 +58,7 @@
 #include "mods/modBpPortal.hpp"
 #include "mods/modFastPandora.hpp"
 #include "mods/modInfAirHikes.hpp"
-#include "mods/modBpBossRush.hpp"
+//#include "mods/modBpBossRush.hpp"
 #include "mods/modInfRevive.hpp"
 #include "mods/modCharacterSwap.hpp"
 #include "mods/modDisableDarkslayer.hpp"
@@ -144,7 +144,7 @@ Mods::Mods() {
         m_mods["BpPortal"_hash] = std::make_unique<BpPortal>();
 		m_mods["FastPandora"_hash] = std::make_unique<FastPandora>();
         m_mods["InfAirHikes"_hash] = std::make_unique<InfAirHikes>();
-		m_mods["BpBossRush"_hash] = std::make_unique<BpBossRush>();
+		//m_mods["BpBossRush"_hash] = std::make_unique<BpBossRush>();
         m_mods["InfRevive"_hash] = std::make_unique<InfRevive>();
 		m_mods["CharacterSwap"_hash] = std::make_unique<CharacterSwap>();
         m_mods["DisableDarkslayer"_hash] = std::make_unique<DisableDarkslayer>();

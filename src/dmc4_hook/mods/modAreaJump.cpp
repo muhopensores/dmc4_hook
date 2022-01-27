@@ -9,8 +9,8 @@ constexpr std::array room_items {
 	"Berial",                             // 503
 	"Bael",                               // 504
 	"Echidna",                            // 505
-	"Credo",                              // 502
-	"Agnus",                              // 501
+	"Credo",                              // 507
+	"Agnus",                              // 506
 	"Dante",                              // 700
 	"Opera House",                        // 0
 	"Opera House Plaza",                  // 1

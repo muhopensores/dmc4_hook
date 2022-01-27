@@ -4,16 +4,20 @@
 #include "modBpBossRush.hpp"
 #include "random"
 #include "numeric"
-// #include "algorithm"
-// #include "array"
 
 bool BpJumpHook::modEnabled{ false };
+bool bpBossRush{ false };
 uintptr_t BpJumpHook::_bpJumpHookContinue{ NULL };
 uintptr_t BpJumpHook::_bpJumpHook2Continue{ NULL };
 int bpFloor = 0;
 int areaJumpID = 0;
 int numberOfCompleteFloors = 0;
 std::array<uint32_t, 100> bpArray;
+
+int numberOfCompleteBosses = 0;
+std::array<uint32_t, 5> bossArray;
+int bossRoomID = 0;
+int bossAreaID = 0;
 
 BpJumpHook::BpJumpHook()
 {
@@ -87,6 +91,26 @@ void randomize_bp_floors()
     std::shuffle(bpArray.begin(), bpArray.end(), g);
 }
 
+void randomize_bp_bosses()
+{
+    numberOfCompleteBosses = 0;
+    bossArray[0] = 20;
+    bossArray[1] = 40;
+    bossArray[2] = 60;
+    bossArray[3] = 80;
+    bossArray[4] = 100;
+    std::random_device rd; // random device for shuffle
+    std::mt19937 g(rd());
+    std::shuffle(bossArray.begin(), bossArray.end(), g);
+}
+
+void randomize_bp_bosses_area_id(void)
+{
+    bossRoomID = bossArray[numberOfCompleteBosses];
+    bossAreaID = jumpToStage(bpStageArea(bossRoomID));
+    numberOfCompleteBosses++;
+}
+
 void bp_start() // first bp detour
 {
     // randomize bp floors
@@ -121,6 +145,9 @@ void bp_continue() // other bp detours
 naked void bpJumpHook_proc(void) // Initial load of BP
 {
     _asm {
+        cmp byte ptr [bpBossRush], 1
+        je bossrush
+
         cmp [BpJumpHook::modEnabled], 0
         je code
 
@@ -140,8 +167,30 @@ naked void bpJumpHook_proc(void) // Initial load of BP
         pop edx
         jmp retcode
 
+    bossrush:
+        //cmp byte ptr [BpJumpHook::modEnabled], 1 // should randomize?
+        //je randombossrushstart
+        mov dword ptr [eax+74h], 20 // room id
+        mov dword ptr [eax+6Ch], 503 // area id
+        jmp retcode
+
+    randombossrushstart:
+        pushad
+        pushfd
+        call randomize_bp_bosses
+        call randomize_bp_bosses_area_id
+        popfd
+        popad
+        push edx
+        mov edx, [bossRoomID]
+        mov [eax+74h], edx
+        mov edx, [bossAreaID]
+        mov [eax+6Ch], edx
+        pop edx
+        jmp retcode
+
     code:
-        mov [eax+74h], 00000001
+        mov dword ptr [eax+74h], 00000001
     retcode:
 		jmp dword ptr [BpJumpHook::_bpJumpHookContinue]
     }
@@ -150,6 +199,9 @@ naked void bpJumpHook_proc(void) // Initial load of BP
 naked void bpJumpHook2_proc(void) // called every time you enter a teleporter
 {
     _asm {
+        cmp byte ptr [bpBossRush], 1
+        je bossrush
+
         cmp [BpJumpHook::modEnabled], 0
         je code
 
@@ -169,15 +221,43 @@ naked void bpJumpHook2_proc(void) // called every time you enter a teleporter
         pop edx
         jmp retcode
 
+    bossrush:
+        cmp dword ptr [ecx+74h], 21
+        je stage40
+        cmp dword ptr [ecx+74h], 41
+        je stage60
+        cmp dword ptr [ecx+74h], 61
+        je stage80
+        cmp dword ptr [ecx+74h], 81
+        je stage100
+        jmp code
+
+    stage40:
+        mov dword ptr [ecx+74h], 40
+        mov dword ptr [ecx+6Ch], 504
+        jmp retcode
+    stage60:
+        mov dword ptr [ecx+74h], 60
+        mov dword ptr [ecx+6Ch], 505
+        jmp retcode
+    stage80:
+        mov dword ptr [ecx+74h], 80
+        mov dword ptr [ecx+6Ch], 507
+        jmp retcode
+    stage100:
+        mov dword ptr [ecx+74h], 100
+        mov dword ptr [ecx+6Ch], 506
+        jmp retcode
+
     code:
-        mov [ecx+6Ch], edx
+        mov dword ptr [ecx+6Ch], edx
     retcode:
         mov edx, [ebx+04h]
 		jmp dword ptr [BpJumpHook::_bpJumpHook2Continue]
     }
 }
 
-void BpJumpHook::toggle(bool enable)
+void BpJumpHook::toggle(bool enable) // randomized bp
 {
     if (enable)
     {
@@ -188,6 +268,20 @@ void BpJumpHook::toggle(bool enable)
     {
         patch.revert();
         patch2.revert();
+    }
+}
+
+void BpJumpHook::toggle2(bool enable) // boss rush
+{
+    if (enable)
+    {
+        install_patch_offset(0x04AB8E2, patch3, "\x68\x65\xE5\x00\x8B", 5); // makes initial jump work
+        // DevilMayCry4_DX9.exe+4AB8E1-push DevilMayCry4_DX9.exe+A56768 originally,
+        // this patch makes it push DevilMayCry4_DX9.exe+A56568
+    }
+    else
+    {
+        patch3.revert();
     }
 }
 
@@ -211,13 +305,25 @@ void BpJumpHook::onGUIframe()
     if (ImGui::Checkbox("Randomize BP", &modEnabled))
     {
         toggle(modEnabled);
-        bp_start();
-        BpBossRush::modEnabled = 0;
+        //bp_start();
+
+        bpBossRush = false;
+        toggle2(bpBossRush);
     }
     ImGui::SameLine(0, 1);
     HelpMarker("Enable before starting BP");
+    ImGui::SameLine(205);
+    if (ImGui::Checkbox("Boss Rush", &bpBossRush))
+    {
+        toggle2(bpBossRush);
 
-    if (ImGui::CollapsingHeader("[spoilers] What stages did you roll?"))
+        modEnabled = false;
+        toggle(modEnabled);
+    }
+    ImGui::SameLine(0, 1);
+    HelpMarker("Enable before starting BP");
+    /*
+    if (ImGui::CollapsingHeader("[debug] What stages did you roll?"))
     {
         ImGui::Text("Stage Number");
         ImGui::SameLine(205);
@@ -237,19 +343,19 @@ void BpJumpHook::onGUIframe()
         }
         ImGui::Separator();
     }
+    */
 }
 
 void BpJumpHook::onConfigLoad(const utils::Config& cfg)
 {
     modEnabled = cfg.get<bool>("randomize_bp").value_or(false);
+    bpBossRush = cfg.get<bool>("bp_boss_rush").value_or(false);
     toggle(modEnabled);
-    if (modEnabled)
-    {
-        BpBossRush::modEnabled = false;
-    }
+    toggle2(bpBossRush);
 }
 
 void BpJumpHook::onConfigSave(utils::Config& cfg)
 {
     cfg.set<bool>("randomize_bp", modEnabled);
+    cfg.set<bool>("bp_boss_rush", bpBossRush);
 }
