@@ -12,7 +12,6 @@ public:
     static uintptr_t _bpJumpHook2Continue;
     void toggle(bool enable);
     void toggle2(bool enable);
-
     std::string getModName() override { return "BpJumpHook"; };
 
     std::optional<std::string> onInitialize() override;

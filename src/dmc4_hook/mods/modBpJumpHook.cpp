@@ -24,6 +24,14 @@ BpJumpHook::BpJumpHook()
     // onInitialize();
 }
 
+const char BossStartIDs[][7] = { "\x68\x65\xE5",   // const char* BerialFloor  = "\x68\x65\xE5";
+                                 "\x28\x65\xE5",   // const char* BaelFloor    = "\x28\x65\xE5";
+                                 "\xE8\x5F\xE5",   // const char* EchidnaFloor = "\xE8\x5F\xE5";
+                                 "\x88\x5F\xE5",   // const char* CredoFloor   = "\x88\x5F\xE5";
+                                 "\x28\x67\xE5",   // const char* AgnusFloor   = "\x28\x67\xE5";
+                                 "\x08\x65\xE5",   // const char* DanteFloor   = "\x08\x65\xE5";
+                                 "\x68\x67\xE5" }; // const char* DefaultFloor = "\x68\x67\xE5";
+
 int bpStageArea(int floor) 
 {
 	auto in_range = [](int value, int low, int high) {return (value >= low) && (value <= high); };
@@ -275,13 +283,11 @@ void BpJumpHook::toggle2(bool enable) // boss rush
 {
     if (enable)
     {
-        install_patch_offset(0x04AB8E2, patch3, "\x68\x65\xE5\x00\x8B", 5); // makes initial jump work
-        // DevilMayCry4_DX9.exe+4AB8E1-push DevilMayCry4_DX9.exe+A56768 originally,
-        // this patch makes it push DevilMayCry4_DX9.exe+A56568
+        install_patch_offset(0x04AB8E2, patch3, BossStartIDs[0], 3);
     }
     else
     {
-        patch3.revert();
+        install_patch_offset(0x04AB8E2, patch3, BossStartIDs[6], 3);
     }
 }
 
