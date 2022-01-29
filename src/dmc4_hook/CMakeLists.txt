@@ -164,6 +164,8 @@ SET (MODS
   mods/modInfCalibur.cpp
   mods/modRgMultiplier.hpp
   mods/modRgMultiplier.cpp
+  mods/modDeltaTime.hpp
+  mods/modDeltaTime.cpp
 )
 
 SET (HEADERS

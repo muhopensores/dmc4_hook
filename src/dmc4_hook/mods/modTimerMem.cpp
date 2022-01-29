@@ -1,5 +1,6 @@
 #include "../mods.h"
 #include "modTimerMem.hpp"
+#include "modDeltaTime.hpp"
 #include "modPlayerTracker.hpp"
 #include "modTrickDown.hpp"
 
@@ -8,7 +9,8 @@ uintptr_t TimerMem::timer_jmp_ret{ NULL };
 uintptr_t TimerMem::back_forward_jmp_ret{ 0x00805A60 }; // maybe
 
 float TimerMem::timerMem = 0.0f;
-float timerMemTick = 1.0f;
+float timerMemTick = 2.0f;
+float xmmbackup = 0.0f;
 
 TimerMem::TimerMem()
 {
@@ -24,9 +26,13 @@ naked void timerDetour(void) {
 			jmp originalcode                     // if nothing is using the timer, skip it
 
 		timerstart:
-			movss xmm5,[TimerMem::timerMem]
-			addss xmm5,[timerMemTick]            // Timer starts at 0, has a 1 added to it every tick and is reset every time a backforward input is made
-			movss [TimerMem::timerMem],xmm5      // Would like to add a framerate compare here to make it not framerate variable but only 1 xmm was unused
+			movss xmm5, [TimerMem::timerMem]
+			movss [xmmbackup], xmm6
+			movss xmm6, [timerMemTick]            // Timer starts at 0, has a 1 added to it every tick and is reset every time a backforward input is made
+			mulss xmm6, [DeltaTime::currentDeltaTime]
+			addss xmm5, xmm6
+			movss xmm6, [xmmbackup]
+			movss [TimerMem::timerMem], xmm5
 
         // trick down check
 			cmp byte ptr [TrickDown::modEnabled], 1

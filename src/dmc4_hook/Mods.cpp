@@ -81,6 +81,7 @@
 #include "mods/modTwCmdSuperhot.hpp"
 #include "mods/modInfCalibur.hpp"
 #include "mods/modRgMultiplier.hpp"
+#include "mods/modDeltaTime.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -167,6 +168,7 @@ Mods::Mods() {
 		m_mods["ModTwCmdSuperhot"_hash] = std::make_unique<ModTwCmdSuperhot>();
 		m_mods["InfCalibur"_hash] = std::make_unique<InfCalibur>();
 		m_mods["RgMultiplier"_hash] = std::make_unique<RgMultiplier>();
+		m_mods["DeltaTime"_hash] = std::make_unique<DeltaTime>();
 }
 
 std::optional<std::string> Mods::onSlowInitialize() const {

@@ -24,8 +24,8 @@ std::optional<std::string> InputStates::onInitialize()
 {
     if (!install_hook_offset(0x3B0847, hook, &detour, &jmp_return, 6))
     {
-        HL_LOG_ERR("Failed to init WorkRate mod\n");
-        return "Failed to init WorkRate mod";
+        HL_LOG_ERR("Failed to init InputStates mod\n");
+        return "Failed to init InputStates mod";
     }
 
     return Mod::onInitialize();
