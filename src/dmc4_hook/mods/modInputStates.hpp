@@ -9,6 +9,7 @@ public:
 
     static uintptr_t jmp_return;
     static uint32_t inputpressed;
+    static float inputTimer;
 
     std::string getModName() override { return "InputStates"; };
 

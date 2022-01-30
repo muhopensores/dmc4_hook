@@ -182,7 +182,7 @@ naked void bpJumpHook_proc(void) // Initial load of BP
         mov dword ptr [eax+6Ch], 503 // area id
         jmp retcode
 
-    randombossrushstart:
+    /*randombossrushstart:
         pushad
         pushfd
         call randomize_bp_bosses
@@ -195,7 +195,7 @@ naked void bpJumpHook_proc(void) // Initial load of BP
         mov edx, [bossAreaID]
         mov [eax+6Ch], edx
         pop edx
-        jmp retcode
+        jmp retcode*/
 
     code:
         mov dword ptr [eax+74h], 00000001

@@ -166,6 +166,8 @@ SET (MODS
   mods/modRgMultiplier.cpp
   mods/modDeltaTime.hpp
   mods/modDeltaTime.cpp
+  mods/modActiveBlock.hpp
+  mods/modActiveBlock.cpp
 )
 
 SET (HEADERS

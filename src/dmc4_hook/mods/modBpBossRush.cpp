@@ -1,6 +1,7 @@
 #include "modBpBossRush.hpp"
 #include "modBpJumpHook.hpp"
-
+// THIS ISN'T USED SO DON'T EDIT IT THEN WONDER WHY IT'S NOT CHANGING ANYTHING
+// Look in BpJumpHook instead
 bool BpBossRush::modEnabled{ false };
 
 std::optional<std::string> BpBossRush::onInitialize()
@@ -13,7 +14,7 @@ void BpBossRush::toggle(bool enable)
     if (enable)
     {
         install_patch_offset(0x0101AA4, patch1, "\x72\x06", 2);
-        install_patch_offset(0x04AB8E2, patch2, "\x68\x65\xE5\x00\x8B", 5); // makes initial jump work but only to berial
+        install_patch_offset(0x04AB8E2, patch2, "\x68\x65\xE5\x00\x8B", 5); // makes bp load stage 20 rather than 1
         install_patch_offset(0x04AB8FD, patch3, "\x14\x00", 2);
         install_patch_offset(0x0837BAC, patch4, "\x28\x00\xf8\x01", 5);
         install_patch_offset(0x0837CCA, patch5, "\x3C\x00\xf9\x01", 5);

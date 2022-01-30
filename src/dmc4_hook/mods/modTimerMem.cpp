@@ -28,7 +28,7 @@ naked void timerDetour(void) {
 		timerstart:
 			movss xmm5, [TimerMem::timerMem]
 			movss [xmmbackup], xmm6
-			movss xmm6, [timerMemTick]            // Timer starts at 0, has a 1 added to it every tick and is reset every time a backforward input is made
+			movss xmm6, [timerMemTick]           // Timer starts at 0, has a 1 added to it every tick and is reset every time a backforward input is made
 			mulss xmm6, [DeltaTime::currentDeltaTime]
 			addss xmm5, xmm6
 			movss xmm6, [xmmbackup]
