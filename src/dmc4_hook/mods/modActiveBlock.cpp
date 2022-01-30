@@ -20,7 +20,7 @@ naked void detour()
 {
     _asm {
         cmp [ActiveBlock::modEnabled], 0
-        je code
+        jmp code
 
         cmp dword ptr [InputStates::inputTimer], 0x40a00000 // 0x41200000 = 10 // 0x40a00000 = 5
         ja code
@@ -32,7 +32,7 @@ naked void detour()
         jmp dword ptr [ActiveBlock::alt_ret]
 
     code:
-        cmp [esi+0x00014CD4], bl
+        cmp byte ptr [esi+0x00014CD4], bl
 		jmp dword ptr [ActiveBlock::jmp_return]
     }
 }
@@ -72,11 +72,11 @@ naked void detour3()
 
 std::optional<std::string> ActiveBlock::onInitialize()
 {
-    if (!install_hook_offset(0x3BBE36, hook, &detour, &jmp_return, 6))
+    /* if (!install_hook_offset(0x3BBE36, hook, &detour, &jmp_return, 6))
     {
         HL_LOG_ERR("Failed to init ActiveBlock mod\n");
         return "Failed to init ActiveBlock mod";
-    }
+    }*/
     if (!install_hook_offset(0x3B6DCD, hook2, &detour2, &jmp_return2, 6))
     {
         HL_LOG_ERR("Failed to init ActiveBlock2 mod\n");
@@ -94,7 +94,7 @@ void ActiveBlock::onGUIframe()
 {
     ImGui::Checkbox("Active Block", &modEnabled);
     ImGui::SameLine(0, 1);
-    HelpMarker("Guard even during uncancellable frames");
+    HelpMarker("Block during uncancellable frames");
 }
 
 void ActiveBlock::onConfigLoad(const utils::Config& cfg)
