@@ -77,35 +77,35 @@ constexpr std::array<const char*, 19> enemyNames{
 	// Dante			// bo12
 };
 
-std::vector<std::pair<int, int>> EnemyAndSpawnType{
-    EnemyAndSpawnType[0]  = {  0,  4 },  // "Scarecrow Arm"     // em01 //  0
-    EnemyAndSpawnType[1]  = {  1,  4 },  // "Scarecrow Leg"     // em02 //  1
-    EnemyAndSpawnType[2]  = {  2,  4 },  // "Mega Scarecrow",   // em03 //  2
-    EnemyAndSpawnType[3]  = {  3,  4 },  // "Frost",            // em04 //  3
-    EnemyAndSpawnType[4]  = {  4,  4 },  // "Assault",          // em05 //  4
-    EnemyAndSpawnType[5]  = {  5,  4 },  // "Blitz",            // em06 //  5
-                                         // "Gladius",		    // em07
-                                         // "Cutlass",		    // em08
-    EnemyAndSpawnType[6]  = {  6,  4 },  // "Basilisk",         // em09 //  6
-    EnemyAndSpawnType[7]  = {  7,  1 },  // "Chimera Seed",     // em10 //  7 // requires different spawn
-                                         // "Chimera",		    // em11
-    EnemyAndSpawnType[8]  = {  8,  4 },  // "Mephisto",         // em12 //  8
-    EnemyAndSpawnType[9]  = {  9,  4 },  // "Faust",            // em13 //  9
-    EnemyAndSpawnType[10] = { 10,  4 },  // "Bianco Angelo",    // em14 // 10
-    EnemyAndSpawnType[11] = { 11,  4 },  // "Alto Angelo",      // em15 // 11
-                                         // "Fault",		    // em16
-    EnemyAndSpawnType[12] = { 12,  4 },  // "Berial",           // bo01 // 12
-    EnemyAndSpawnType[13] = { 13,  4 },  // "Bael",             // bo02 // 13
-                                         // "Dagon",	        // bo03
-    EnemyAndSpawnType[14] = { 14,  4 },  // "Echidna",          // bo04 // 14
-                                         // "Agnus",	        // bo05
-    EnemyAndSpawnType[15] = { 15,  4 },  // "Angelo Agnus",     // bo06 // 15
-    EnemyAndSpawnType[16] = { 16,  4 },  // "Angelo Credo",     // bo07 // 16
-                                         // "The Savior",		// bo08
-                                         // "The False Savior",	// bo09
-    EnemyAndSpawnType[17] = { 17,  4 },  // "Sanctus",          // bo10 // 17
-    EnemyAndSpawnType[18] = { 18,  4 }   // "Sanctus Diabolica" // bo11 // 18
-                                         // "Dante"			    // bo12
+constexpr std::array<int, 19> EnemyAndSpawnType{
+    4,  // "Scarecrow Arm"     // em01 //  0
+    4,  // "Scarecrow Leg"     // em02 //  1
+    4,  // "Mega Scarecrow",   // em03 //  2
+    4,  // "Frost",            // em04 //  3
+    4,  // "Assault",          // em05 //  4
+    4,  // "Blitz",            // em06 //  5
+        // "Gladius",		   // em07
+        // "Cutlass",		   // em08
+    4,  // "Basilisk",         // em09 //  6
+    1,  // "Chimera Seed",     // em10 //  7 // requires different spawn
+        // "Chimera",		   // em11
+    4,  // "Mephisto",         // em12 //  8
+    4,  // "Faust",            // em13 //  9
+    4,  // "Bianco Angelo",    // em14 // 10
+    4,  // "Alto Angelo",      // em15 // 11
+        // "Fault",		       // em16
+    4,  // "Berial",           // bo01 // 12
+    4,  // "Bael",             // bo02 // 13
+        // "Dagon",	           // bo03
+    4,  // "Echidna",          // bo04 // 14
+        // "Agnus",	           // bo05
+    4,  // "Angelo Agnus",     // bo06 // 15
+    4,  // "Angelo Credo",     // bo07 // 16
+        // "The Savior",	   // bo08
+        // "The False Savior", // bo09
+    4,  // "Sanctus",          // bo10 // 17
+    4   // "Sanctus Diabolica" // bo11 // 18
+        // "Dante"			   // bo12
 };
 
 static uintptr_t fptrUpdateActorList{ 0x008DC540 }; // Spawns shit
@@ -125,9 +125,12 @@ glm::vec3 getPlayerPosition() {
 	}
 }
 
+int enemySpawning = 0;
+
 void setEnemyPosition(uEnemySomething* em) {
 	em->mSpawnCoords = getPlayerPosition() + glm::vec3{ 0.0f, 300.0f, 0.0f };
-	em->mEnemySpawnEffectSomething = 4;
+	//em->mEnemySpawnEffectSomething = 4;
+    em->mEnemySpawnEffectSomething = EnemyAndSpawnType[(enemySpawning)];
 }
 
 void spawnEm00x(int index) {
@@ -137,6 +140,12 @@ void spawnEm00x(int index) {
 		pushf
 		call emFunctionPointer // make actor
         mov esi, eax
+
+        push edx
+        mov edx, index
+        mov [enemySpawning], edx
+        pop edx
+
 		pusha
 		push esi
 		call setEnemyPosition
