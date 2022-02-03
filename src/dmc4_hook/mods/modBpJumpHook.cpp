@@ -24,13 +24,16 @@ BpJumpHook::BpJumpHook()
     // onInitialize();
 }
 
-const char BossStartIDs[][7] = { "\x68\x65\xE5",   // const char* BerialFloor  = "\x68\x65\xE5";
-                                 "\x28\x65\xE5",   // const char* BaelFloor    = "\x28\x65\xE5";
-                                 "\xE8\x5F\xE5",   // const char* EchidnaFloor = "\xE8\x5F\xE5";
-                                 "\x88\x5F\xE5",   // const char* CredoFloor   = "\x88\x5F\xE5";
-                                 "\x28\x67\xE5",   // const char* AgnusFloor   = "\x28\x67\xE5";
-                                 "\x08\x65\xE5",   // const char* DanteFloor   = "\x08\x65\xE5";
-                                 "\x68\x67\xE5" }; // const char* DefaultFloor = "\x68\x67\xE5";
+const char BossStartIDs[][7]
+{
+    "\x68\x65\xE5",   // const char* BerialFloor  = "\x68\x65\xE5";
+    "\x28\x65\xE5",   // const char* BaelFloor    = "\x28\x65\xE5";
+    "\xE8\x5F\xE5",   // const char* EchidnaFloor = "\xE8\x5F\xE5";
+    "\x88\x5F\xE5",   // const char* CredoFloor   = "\x88\x5F\xE5";
+    "\x28\x67\xE5",   // const char* AgnusFloor   = "\x28\x67\xE5";
+    "\x08\x65\xE5",   // const char* DanteFloor   = "\x08\x65\xE5";
+    "\x68\x67\xE5"    // const char* DefaultFloor = "\x68\x67\xE5";
+};
 
 int bpStageArea(int floor) 
 {

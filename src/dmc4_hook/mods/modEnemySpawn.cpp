@@ -77,17 +77,17 @@ constexpr std::array<const char*, 19> enemyNames{
 	// Dante			// bo12
 };
 
-constexpr std::array<int, 19> EnemyAndSpawnType{
+constexpr std::array<int, 19> EnemySpawnType{
     4,  // "Scarecrow Arm"     // em01 //  0
     4,  // "Scarecrow Leg"     // em02 //  1
     4,  // "Mega Scarecrow",   // em03 //  2
     4,  // "Frost",            // em04 //  3
-    4,  // "Assault",          // em05 //  4
+    0,  // "Assault",          // em05 //  4
     4,  // "Blitz",            // em06 //  5
         // "Gladius",		   // em07
         // "Cutlass",		   // em08
-    4,  // "Basilisk",         // em09 //  6
-    1,  // "Chimera Seed",     // em10 //  7 // requires different spawn
+    3,  // "Basilisk",         // em09 //  6
+    3,  // "Chimera Seed",     // em10 //  7 // requires different spawn
         // "Chimera",		   // em11
     4,  // "Mephisto",         // em12 //  8
     4,  // "Faust",            // em13 //  9
@@ -130,8 +130,50 @@ int enemySpawning = 0;
 void setEnemyPosition(uEnemySomething* em) {
 	em->mSpawnCoords = getPlayerPosition() + glm::vec3{ 0.0f, 300.0f, 0.0f };
 	//em->mEnemySpawnEffectSomething = 4;
-    em->mEnemySpawnEffectSomething = EnemyAndSpawnType[(enemySpawning)];
+    em->mEnemySpawnEffectSomething = EnemySpawnType[(enemySpawning)];
 }
+
+/*
+scarecrow:
+2 scarecrow built by ants (also for mega), looks weird coming from the air
+3 scarecrows fall out of horizontal portal while lying down
+4 scarecrows fall out of horizontal portal
+5 broken on most, T POSE BABYYYYY
+
+frost:
+2 frost spawns in ice
+3 frost jump far horizontally
+4 frost falls, looks good
+
+blitz:
+1 blitz spawns under player explosion
+2 blitz spawns on player explosion
+4 blitz spawns teleporting around
+
+mephisto/faust:
+2 makes mephisto+faust spawn down, usually through the floor
+3 mephisto faust spawns and goes up
+4 mephisto faust spawns and goes up
+
+assault:
+0 assualt spawns under the player
+2 assault spawns through wall portal
+3 assault do tiny jump towards camera
+4 assault long jump
+
+armour:
+1 bianco spawns through horizontal portal
+4 bianco spawns through vertical portal
+
+basilisk:
+2 basilisk hops forward from air
+3 basilisk horizontal portal ground
+4 basilisk spawns attacking random spot
+
+seed:
+2 chimera seed spawns in seed and falls from much higher up
+3 chimera seed spawns in seed and falls
+*/
 
 void spawnEm00x(int index) {
 	uintptr_t emFunctionPointer = fptrEmFactories.at(index);

@@ -32,7 +32,7 @@ naked void detour()
         mov dword ptr [InputStates::inputTimer], 0
         jmp code
 
-    inctimer:
+    inctimer: // timer for ActiveBlock
         movss xmm0, [InputStates::inputTimer]
         movss xmm1, [TimerTick]
         mulss xmm1, [DeltaTime::currentDeltaTime]
