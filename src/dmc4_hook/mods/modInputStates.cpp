@@ -16,11 +16,10 @@ InputStates::InputStates()
 naked void detour()
 {
     _asm {
-        mov [eax+10h], edx
-        mov [eax+34h], cl
         cmp byte ptr [ActiveBlock::modEnabled], 0
         je code
 
+        mov [InputStates::inputpressed], edx
         push eax
         push edx
         mov eax, 0x06
@@ -28,7 +27,7 @@ naked void detour()
         test eax, edx
         pop edx
         pop eax
-        jne inctimer
+        jnz inctimer
         mov dword ptr [InputStates::inputTimer], 0
         jmp code
 
@@ -40,14 +39,15 @@ naked void detour()
         movss [InputStates::inputTimer], xmm0
 
     code:
-        mov [InputStates::inputpressed], edx
+        cmp [eax+0x41], cl
+        mov [eax+10h], edx
 		jmp dword ptr [InputStates::jmp_return]
     }
 }
 
 std::optional<std::string> InputStates::onInitialize()
 {
-    if (!install_hook_offset(0x3B0847, hook, &detour, &jmp_return, 6))
+    if (!install_hook_offset(0x3B0844, hook, &detour, &jmp_return, 6))
     {
         HL_LOG_ERR("Failed to init InputStates mod\n");
         return "Failed to init InputStates mod";
