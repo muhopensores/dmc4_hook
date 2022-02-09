@@ -285,11 +285,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
                 main->getMods()->onDrawUI("DamageMultiplier"_hash); // needs its own line
 
-                main->getMods()->onDrawUI("OneHitKill"_hash);
-                ImGui::SameLine(205);
+                //main->getMods()->onDrawUI("OneHitKill"_hash);
+
                 main->getMods()->onDrawUI("InfAllHealth"_hash);
 
-                main->getMods()->onDrawUI("NoDeath"_hash);
+                main->getMods()->onDrawUI("NoDeath"_hash); // needs its own line
 
                 main->getMods()->onDrawUI("RestoreMaxHp"_hash); // needs its own line
 

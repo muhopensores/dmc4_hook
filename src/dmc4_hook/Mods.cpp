@@ -111,7 +111,7 @@ Mods::Mods() {
 		m_mods["LdkWithDmd"_hash] = std::make_unique<LdkWithDmd>();
 		m_mods["DmdBloodyPalace"_hash] = std::make_unique<DmdBloodyPalace>();
 		m_mods["DmdLevelAi"_hash] = std::make_unique<DmdLevelAi>();
-		m_mods["OneHitKill"_hash] = std::make_unique<OneHitKill>();
+		//m_mods["OneHitKill"_hash] = std::make_unique<OneHitKill>();
 		m_mods["ManualTwosomeTime"_hash] = std::make_unique<ManualTwosomeTime>();
 		m_mods["HeightRestrictionDante"_hash] = std::make_unique<HeightRestrictionDante>();
 		m_mods["InfFaustCloak"_hash] = std::make_unique<InfFaustCloak>();

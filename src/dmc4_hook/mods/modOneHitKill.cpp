@@ -1,6 +1,6 @@
 #include "../mods.h"
 #include "modOneHitKill.hpp"
-
+// THIS IS UNUSED, CHECK NODEATH
 #if 1
 bool OneHitKill::modEnabled{ false };
 
@@ -13,7 +13,7 @@ void OneHitKill::toggle(bool enable)
 {
     if (enable)
     {
-        install_patch_offset(0x11C11B, patch, "\x74", 1); // TODO: Currently kills the player too. Should add esi+0x1C, 2,000f je code to fix
+        install_patch_offset(0x11C11B, patch, "\x74", 1);
     }
     else
     {

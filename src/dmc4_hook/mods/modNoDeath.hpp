@@ -8,8 +8,9 @@ public:
     NoDeath() = default;
 
     static bool modEnabled;
-
+    static bool oneHitKill;
     void toggle(bool enable);
+    void toggle2(bool enable);
 
     std::string getModName() override { return "NoDeath"; };
 
