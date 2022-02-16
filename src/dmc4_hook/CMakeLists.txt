@@ -48,8 +48,6 @@ SET (MODS
   mods/modDmdBloodyPalace.hpp
   mods/modDmdLevelAi.cpp
   mods/modDmdLevelAi.hpp
-  mods/modOneHitKill.cpp
-  mods/modOneHitKill.hpp
   mods/modManualTwosomeTime.cpp
   mods/modManualTwosomeTime.hpp
   mods/modHeightRestrictionDante.cpp
@@ -118,8 +116,6 @@ SET (MODS
   mods/modFastPandora.hpp
   mods/modInfAirHikes.cpp
   mods/modInfAirHikes.hpp
-  mods/modBpBossRush.cpp
-  mods/modBpBossRush.hpp
   mods/modInfRevive.cpp
   mods/modInfRevive.hpp
   mods/modCharacterSwap.cpp

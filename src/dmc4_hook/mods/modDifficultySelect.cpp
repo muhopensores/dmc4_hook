@@ -203,7 +203,7 @@ void DifficultySelect::onConfigSave(utils::Config& cfg)
 void DifficultySelect::onGUIframe()
 {
     ImGui::PushItemWidth(216);
-    if (ImGui::Combo("Difficulty", &gameDifficulty, "Default\0Dante Must Die\0God Must Die\0"))
+    if (ImGui::Combo("Game Mode", &gameDifficulty, "Default\0Dante Must Die\0God Must Die\0"))
     {
         switch (gameDifficulty)
         {

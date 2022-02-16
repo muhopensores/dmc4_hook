@@ -5,7 +5,7 @@
 #include "imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
 
-#define GUI_VERSION "DMC4Hook 1.3.4" // Added Rose Removes Pins // Added No Helm Breaker Knockaway
+#define GUI_VERSION "DMC4Hook 1.3.5" // 1.4 soon :)
 
 //gui function definitions
 
