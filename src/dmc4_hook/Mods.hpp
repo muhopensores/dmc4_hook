@@ -21,6 +21,7 @@ public:
 	void onConfigLoad(utils::Config& cfg);
 	void onConfigSave(utils::Config& cfg);
 #endif
+    void onUpdateInput(hl::Input& input);
 	void onGamePause(bool toggle);
 	bool onMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
 	void onChatCommand(const std::string& message);

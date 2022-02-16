@@ -293,3 +293,10 @@ void Mods::onChatCommand(const std::string& message) {
 		mod->onTwitchCommand(hash);
 	}
 }
+
+void Mods::onUpdateInput(hl::Input& input) {
+    for (auto& umod : m_mods) {
+        auto& mod = umod.second;
+        mod->onUpdateInput(input);
+    }
+}

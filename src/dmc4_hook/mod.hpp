@@ -74,6 +74,7 @@ public:
 
 	virtual void onConfigLoad(const utils::Config& cfg) {}
 	virtual void onConfigSave(utils::Config& cfg) {}
+    virtual void onUpdateInput(hl::Input& input) {}
 
 	//game specific callbacks
 	virtual void onGamePause(bool toggle) {};

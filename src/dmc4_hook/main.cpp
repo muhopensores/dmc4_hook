@@ -172,10 +172,13 @@ bool hlMain::init()
 bool hlMain::step()
 {
     input.update();
-    if (input.wentDown(VK_DELETE))
-    {
-        g_drawGUI = !g_drawGUI;
-        GamePause();
+    if (getMainWindow() == GetForegroundWindow()) {
+        m_mods->onUpdateInput(input);
+        if (input.wentDown(VK_DELETE))
+        {
+            g_drawGUI = !g_drawGUI;
+            GamePause();
+        }
     }
     return true;
 }

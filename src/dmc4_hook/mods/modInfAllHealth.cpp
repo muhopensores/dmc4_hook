@@ -1,7 +1,6 @@
 #include "modInfAllHealth.hpp"
 //#include "hacklib/Input.h" // needed for input.wentDown
-#include "../hooks.h" // needed for getMainWindow
-
+#include "../utils/MessageDisplay.hpp" // TODO(): DISPLAY_MESSAGE should probably be included in mod.hpp or something
 #if 1
 bool InfAllHealth::modEnabled{ false };
 float inputLockoutTimer = 0.0f;
@@ -45,15 +44,12 @@ void InfAllHealth::onConfigSave(utils::Config& cfg)
     cfg.set<int>("inf_hp_hotkey", infhphotkey);
 };
 
-void InfAllHealth::onFrame(fmilliseconds& dt){
-    inputLockoutTimer = inputLockoutTimer + 0.1f; // without a lockout this is called constantly? works in nier so big confusion
-    //if (hlMain::input.wentDown(VK_F1)) is probably way cleaner but I can't figure it out
-    if ((GetKeyState(infhphotkey) & 0x8000) && (inputLockoutTimer > 5.0f) && getMainWindow() == GetForegroundWindow()) // ty lion
-    {
+void InfAllHealth::onUpdateInput(hl::Input& input)
+{
+    if (input.wentDown(VK_F1)) {
+        DISPLAY_MESSAGE("Infinite HP toggle"); // lmao no format strings for almost a year or when i wrote that shit
         modEnabled = !modEnabled;
         toggle(modEnabled);
-        inputLockoutTimer = 0.0f;
     }
-};
-
+}
 #endif
