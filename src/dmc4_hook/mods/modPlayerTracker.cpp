@@ -75,7 +75,7 @@ std::optional<std::string> PlayerTracker::onInitialize()
 
     return Mod::onInitialize();
 }
-#endif
+
 
 void PlayerTracker::onGUIframe()
 {
@@ -91,7 +91,7 @@ void PlayerTracker::onGUIframe()
         ImGui::Text("Load into an area and debug info might pop up.");
     }
 }
-
+#endif
 /*
             // sub esp, 0x10
             // movss [esp], xmm3

@@ -18,8 +18,8 @@ public:
 
     void onConfigLoad(const utils::Config& cfg) override;
     void onConfigSave(utils::Config& cfg) override;
-
     void onGUIframe() override;
+    void onUpdateInput(hl::Input& input) override;
 
 private:
     hl::Patch patchhp;

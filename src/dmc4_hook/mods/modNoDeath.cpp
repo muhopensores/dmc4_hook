@@ -1,9 +1,10 @@
 #include "../mods.h"
 #include "modNoDeath.hpp"
-
+#include "../utils/MessageDisplay.hpp" // TODO(): DISPLAY_MESSAGE should probably be included in mod.hpp or something
 #if 1
 bool NoDeath::modEnabled{ false };
 bool NoDeath::oneHitKill{ false };
+int oneHitKillHotkey;
 
 std::optional<std::string> NoDeath::onInitialize()
 {
@@ -58,6 +59,7 @@ void NoDeath::onConfigLoad(const utils::Config& cfg)
 {
     modEnabled = cfg.get<bool>("no_death").value_or(false);
     oneHitKill = cfg.get<bool>("one_hit_kill").value_or(false);
+    oneHitKillHotkey = cfg.get<int>("one_hit_kill_hotkey").value_or(0x71);
     toggle(modEnabled);
 };
 
@@ -65,6 +67,23 @@ void NoDeath::onConfigSave(utils::Config& cfg)
 {
     cfg.set<bool>("no_death", modEnabled);
     cfg.set<bool>("one_hit_kill", oneHitKill);
+    cfg.set<int>("one_hit_kill_hotkey", oneHitKillHotkey);
 };
 
+void NoDeath::onUpdateInput(hl::Input& input)
+{
+    if (input.wentDown(oneHitKillHotkey))
+    {
+        if (oneHitKill)
+        {
+            DISPLAY_MESSAGE("One Hit Kill Off");
+        }
+        else
+        {
+            DISPLAY_MESSAGE("One Hit Kill On");
+        }
+        oneHitKill = !oneHitKill;
+        toggle2(oneHitKill);
+    }
+}
 #endif

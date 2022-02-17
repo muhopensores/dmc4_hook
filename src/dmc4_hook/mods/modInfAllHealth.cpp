@@ -1,10 +1,11 @@
 #include "modInfAllHealth.hpp"
 //#include "hacklib/Input.h" // needed for input.wentDown
 #include "../utils/MessageDisplay.hpp" // TODO(): DISPLAY_MESSAGE should probably be included in mod.hpp or something
+#include "iostream"
 #if 1
 bool InfAllHealth::modEnabled{ false };
 float inputLockoutTimer = 0.0f;
-int infhphotkey;
+int infHPHotkey;
 
 std::optional<std::string> InfAllHealth::onInitialize() {
 
@@ -34,20 +35,25 @@ void InfAllHealth::onGUIframe()
 void InfAllHealth::onConfigLoad(const utils::Config& cfg)
 {
     modEnabled = cfg.get<bool>("infinite_health_all").value_or(false);
-    infhphotkey = cfg.get<int>("inf_hp_hotkey").value_or(0x70);
+    infHPHotkey = cfg.get<int>("inf_hp_hotkey").value_or(0x70);
     toggle(modEnabled);
 };
 
 void InfAllHealth::onConfigSave(utils::Config& cfg)
 {
     cfg.set<bool>("infinite_health_all", modEnabled);
-    cfg.set<int>("inf_hp_hotkey", infhphotkey);
+    cfg.set<int>("inf_hp_hotkey", infHPHotkey);
 };
 
 void InfAllHealth::onUpdateInput(hl::Input& input)
 {
-    if (input.wentDown(VK_F1)) {
-        DISPLAY_MESSAGE("Infinite HP toggle"); // lmao no format strings for almost a year or when i wrote that shit
+    if (input.wentDown(infHPHotkey)) {
+        if (modEnabled) {
+            DISPLAY_MESSAGE("Infinite Health (All) Off"); // lmao no format strings for almost a year or when i wrote that shit
+        }
+        else {
+            DISPLAY_MESSAGE("Infinite Health (All) On");
+        }
         modEnabled = !modEnabled;
         toggle(modEnabled);
     }
