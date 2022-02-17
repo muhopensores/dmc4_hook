@@ -36,7 +36,7 @@ void BpPortal::onGUIframe()
 void BpPortal::onConfigLoad(const utils::Config& cfg)
 {
     modEnabled = cfg.get<bool>("instant_bp_portal").value_or(false);
-    redSealAndBPPortalHotkey = cfg.get<int>("red_seal_and_bp_portal_hotkey").value_or(0x72);
+    redSealAndBPPortalHotkey = cfg.get<int>("red_seal_and_bp_portal_hotkey").value_or(0x72); //F2
     toggle(modEnabled);
 };
 
@@ -45,7 +45,7 @@ void BpPortal::onConfigSave(utils::Config& cfg)
     cfg.set<bool>("instant_bp_portal", modEnabled);
     cfg.set<int>("red_seal_and_bp_portal_hotkey", redSealAndBPPortalHotkey);
 };
-
+/*
 void BpPortal::toggleOffTimer(void) { // meant to toggle the cheat back off after the portal has opened but it never does
     float portaltimer = 0.0f;
     while (portaltimer < 10.0f)
@@ -69,3 +69,4 @@ void BpPortal::onUpdateInput(hl::Input& input)
         }
     }
 }
+*/

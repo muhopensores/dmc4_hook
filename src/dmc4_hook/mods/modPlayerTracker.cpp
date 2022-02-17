@@ -1,4 +1,6 @@
 #include "modPlayerTracker.hpp"
+#include "modWorkRate.hpp"
+
 #if 1
 
 uintptr_t PlayerTracker::jmp_return{ NULL };
@@ -76,9 +78,9 @@ std::optional<std::string> PlayerTracker::onInitialize()
     return Mod::onInitialize();
 }
 
-
 void PlayerTracker::onGUIframe()
 {
+    ImGui::Checkbox("Disable Game Pause when opening the trainer", &WorkRate::disableTrainerPause);
     if (PlayerTracker::player_ptr != NULL)
     {
         ImGui::InputFloat3("Player Position", *playerXYZ);
@@ -91,7 +93,9 @@ void PlayerTracker::onGUIframe()
         ImGui::Text("Load into an area and debug info might pop up.");
     }
 }
+
 #endif
+
 /*
             // sub esp, 0x10
             // movss [esp], xmm3

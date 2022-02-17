@@ -7,10 +7,14 @@ class NoDeath : public Mod
 public:
     NoDeath() = default;
 
-    static bool modEnabled;
+    static bool cantDie;
     static bool oneHitKill;
-    void toggle(bool enable);
-    void toggle2(bool enable);
+
+    static uintptr_t jmp_ret;
+    static uintptr_t jmp_out;
+
+    void NoDeathToggle(bool enable);
+    // void toggle2(bool enable);
 
     std::string getModName() override { return "NoDeath"; };
 
@@ -22,6 +26,7 @@ public:
     void onUpdateInput(hl::Input& input) override;
 
 private:
-    hl::Patch patchhp;
+    //hl::Patch patchhp;
     hl::Patch patchomen;
+    hl::Hooker hook;
 };

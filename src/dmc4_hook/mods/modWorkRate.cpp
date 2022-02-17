@@ -1,7 +1,7 @@
 #include "modWorkRate.hpp"
 #include "../sdk/Devil4.hpp"
 
-bool disableTrainerPause = false;
+bool WorkRate::disableTrainerPause = false;
 
 #if 0
 uintptr_t  WorkRate::jmp_return{ NULL };
