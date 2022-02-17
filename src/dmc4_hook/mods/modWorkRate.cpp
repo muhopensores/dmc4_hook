@@ -1,6 +1,7 @@
 #include "modWorkRate.hpp"
 #include "../sdk/Devil4.hpp"
 
+bool disableTrainerPause = false;
 
 #if 0
 uintptr_t  WorkRate::jmp_return{ NULL };
@@ -43,11 +44,11 @@ inline bool WorkRate::checkWorkRatePtr(sWorkRate* wr) {
 }
 
 void WorkRate::onConfigLoad(const utils::Config & cfg) {
-
+    disableTrainerPause = cfg.get<bool>("disable_trainer_pause").value_or(false);
 }
 
 void WorkRate::onConfigSave(utils::Config & cfg) {
-
+    cfg.set<bool>("disable_trainer_pause", disableTrainerPause);
 }
 
 void WorkRate::onGUIframe() {
@@ -68,6 +69,7 @@ void WorkRate::onGUIframe() {
 				ImGui::SliderFloat("Player Speed", &sWorkRatePtr->playerSpeed, 0.0f, 3.0f, "%.1f");
 				ImGui::Spacing();
 				ImGui::SliderFloat("Enemy Speed", &sWorkRatePtr->enemySpeed, 0.0f, 3.0f, "%.1f");
+				ImGui::Checkbox("Disable Game Pause when opening the trainer", &disableTrainerPause);
 		}
 }
 void WorkRate::onGamePause(bool toggle) {
@@ -76,7 +78,7 @@ void WorkRate::onGamePause(bool toggle) {
 	if (!checkWorkRatePtr(sWorkRatePtr)) {
 		return;
 	}
-	if (toggle) {
+	if (toggle == true && disableTrainerPause == false) {
 		sWorkRatePtr->globalSpeed = 0.0f;
 	}
 	else {

@@ -373,17 +373,18 @@ static_assert(sizeof(uModelJointArr) == 0x2A30);
 class uPlayer : public uCoord
 {
 public:
-	char pad_00DC[516]; //0x00DC
+    char pad_00DC[0x204]; //0x00DC
 	uint32_t mJointArraySize; //0x02E0
 	class uModelJointArr *jointArray; //0x02E4
-	char pad_02E8[7016]; //0x02E8
+	char pad_02E8[0x13E8]; //0x02E8
+	bool lockontoggle; //0x16D0
+    char pad_16D1[0x77F]; //0x16D1
 	Vector3f m_dVelocity; //0x1E50
-	char pad_1E5C[4]; //0x1E5C
+	char pad_1E5C[0x4]; //0x1E5C
 	float m_dVelMagnitude; //0x1E60
-	char pad_1E64[2564]; //0x1E64
+	char pad_1E64[0xA04]; //0x1E64
 }; //Size: 0x2868
 static_assert(sizeof(uPlayer) == 0x2868);
-
 
 class uStageSetTimeSlow
 {

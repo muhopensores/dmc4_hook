@@ -17,7 +17,7 @@ naked void detour(void)
 	_asm {
 			cmp byte ptr [TrackingFullHouse::modEnabled], 0
 			je originalcode
-			cmp [PlayerTracker::lockOnAlloc], 1
+			cmp byte ptr [PlayerTracker::lockOnAlloc], 1
 			je cheatcode
 
 		originalcode:
