@@ -5,8 +5,9 @@ uintptr_t PlayerTracker::jmp_return{ NULL };
 // uintptr_t* PlayerTracker::player_base_ptr{ (uintptr_t*)(0x00E558B8) }; // DevilMayCry4_DX9.exe+A558B8
 uPlayer* PlayerTracker::player_ptr{ NULL };
 bool PlayerTracker::lockOnAlloc{ false };
-float* xyz[3]{ NULL, NULL, NULL };
-
+float* playerXYZ[3]{ NULL, NULL, NULL };
+float* playerRotation[4]{ NULL, NULL, NULL, NULL };
+float* playerScale[3]{ NULL, NULL, NULL };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
 PlayerTracker::PlayerTracker()
@@ -21,9 +22,19 @@ void update_player_info(void) {
     uPlayer* uLocalPlr = sMedPtr->playerPtr;
 
     PlayerTracker::player_ptr = uLocalPlr; // used for valid check
-    xyz[0] = &uLocalPlr->mPos[0];
-    xyz[1] = &uLocalPlr->mPos[1];
-    xyz[2] = &uLocalPlr->mPos[2];
+    playerXYZ[0] = &uLocalPlr->mPos[0];
+    playerXYZ[1] = &uLocalPlr->mPos[1];
+    playerXYZ[2] = &uLocalPlr->mPos[2];
+
+    playerRotation[0] = &uLocalPlr->mQuat[0];
+    playerRotation[1] = &uLocalPlr->mQuat[1];
+    playerRotation[2] = &uLocalPlr->mQuat[2];
+    playerRotation[3] = &uLocalPlr->mQuat[3];
+
+    playerScale[0] = &uLocalPlr->mScale[0];
+    playerScale[1] = &uLocalPlr->mScale[1];
+    playerScale[2] = &uLocalPlr->mScale[2];
+
     PlayerTracker::lockOnAlloc = uLocalPlr->lockontoggle;
 }
 
@@ -70,7 +81,9 @@ void PlayerTracker::onGUIframe()
 {
     if (PlayerTracker::player_ptr != NULL)
     {
-        ImGui::InputFloat3("Player Position", *xyz);
+        ImGui::InputFloat3("Player Position", *playerXYZ);
+        ImGui::InputFloat4("Player Rotation", *playerRotation);
+        ImGui::InputFloat3("Player Scale", *playerScale);
         ImGui::Checkbox("Lock on", &PlayerTracker::lockOnAlloc);
     }
     else
