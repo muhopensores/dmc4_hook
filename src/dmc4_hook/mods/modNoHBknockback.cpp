@@ -18,7 +18,7 @@ naked void noHelmBreakerKnockback_proc(void)
 			cmp byte ptr [NoHbKnockback::modEnabled], 1
 			je cheatcode
 			cmp byte ptr [NeroFullHouse::modEnabled], 1
-			je cheatcode
+			je nerocheatcode
 		originalcode:
 			cmp ecx,0x05
 			jl nohelmbreakerknockbackje
@@ -32,7 +32,7 @@ naked void noHelmBreakerKnockback_proc(void)
 			je newcode
 			cmp [MoveIds::moveID],0x214			// 532 // High
 			je newcode
-
+		nerocheatcode:
 			// Nero:
 			cmp [MoveIdsNero::moveIDNero], 786  // Split
 			je newcode

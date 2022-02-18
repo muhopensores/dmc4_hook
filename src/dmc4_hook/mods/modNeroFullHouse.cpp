@@ -150,6 +150,7 @@ std::optional<std::string> NeroFullHouse::onInitialize()
 void NeroFullHouse::onGUIframe()
 {
     ImGui::Checkbox("Nero Full House", &modEnabled);
+    ImGui::SameLine();
     HelpMarker("Very work in progress. Currently swaps helm splitter");
 }
 
