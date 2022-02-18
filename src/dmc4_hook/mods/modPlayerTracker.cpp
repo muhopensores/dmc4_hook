@@ -90,7 +90,7 @@ void PlayerTracker::onGUIframe()
     }
     else
     {
-        ImGui::Text("Load into an area and debug info might pop up.");
+        ImGui::Text("Load into an area and debug info might pop up");
     }
 }
 

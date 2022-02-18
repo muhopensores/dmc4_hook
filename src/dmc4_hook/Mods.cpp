@@ -81,6 +81,7 @@
 #include "mods/modRgMultiplier.hpp"
 #include "mods/modDeltaTime.hpp"
 #include "mods/modActiveBlock.hpp"
+#include "mods/modNeroFullHouse.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -167,6 +168,7 @@ Mods::Mods() {
 		m_mods["RgMultiplier"_hash] = std::make_unique<RgMultiplier>();
 		m_mods["DeltaTime"_hash] = std::make_unique<DeltaTime>();
 		m_mods["ActiveBlock"_hash] = std::make_unique<ActiveBlock>();
+		m_mods["NeroFullHouse"_hash] = std::make_unique<NeroFullHouse>();
 }
 
 std::optional<std::string> Mods::onSlowInitialize() const {

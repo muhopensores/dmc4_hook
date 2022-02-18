@@ -418,6 +418,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("FastSprint"_hash);
 
+                main->getMods()->onDrawUI("NeroFullHouse"_hash);
+
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();

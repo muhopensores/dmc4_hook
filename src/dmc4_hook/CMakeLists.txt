@@ -164,6 +164,8 @@ SET (MODS
   mods/modDeltaTime.cpp
   mods/modActiveBlock.hpp
   mods/modActiveBlock.cpp
+  mods/modNeroFullHouse.hpp
+  mods/modNeroFullHouse.cpp
 )
 
 SET (HEADERS
