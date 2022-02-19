@@ -386,6 +386,49 @@ public:
 }; //Size: 0x2868
 static_assert(sizeof(uPlayer) == 0x2868);
 
+//0x0330 start of animation stuff (also a pointer)
+//0x0348 float animationFrame
+//0x1201 bool isHitstop
+//0x1408 start of inputs stuff (also a pointer)
+//0x140C bool*4 inputs on hold
+//0x1410 bool*4 inputs on press?
+//0x1414 bool*4 inputs on release?
+//0x1504 int partOfMove? (shows int 1-5 when doing actions)
+//0x15CC float currentHP
+//0x15D0 float maxHP
+//0x1640 bool isDead
+//0x1660 float 180float (some float that starts at 0, incs to 180, then resets?)
+//0x16AC int movementType (0=still, 1=walking, 2=running)
+//0x19B8 pointer to uPlayer
+//0x1D94 dante gilgamesh pointer
+//->0x137C bool shouldShow
+//0x1D98 dante lucifer pointer
+//->0x137C bool shouldShow
+//0x1D9C dante ebony+ivory pointer
+//->0x137C bool shouldShow
+//0x1DA0 dante shotgun pointer
+//->0x137C bool shouldShow
+//0x1DA4 dante pandora pointer
+//->0x137C bool shouldShow
+//0x1DA8 pointer only in dantes char, contains what I used for moveid
+//->0x225C int moveiddante (should replace this with uPlayer+0x295C moveid)
+//0x1DFC start of move properties stuff (also a pointer)
+//0x1E14 bool*4 canCancel
+//0x1E68 float hitStopTimer
+//0x1E64 float direction of magnitude?
+//0x1E7B byte airAttackCount
+//0x1E7D byte weight
+//0x1E7E byte airHikeCount
+//0x1F24 float currentDT
+//0x1F28 float maxDT
+//0x1FF4 float some jump timer
+//0x1FF8 float another jump timer
+//0x28A4 pointer to uPlayer+330 for animation stuff, e.g. uPlayer + 0x28A4->0x18 = frame of animation = uPlayer + 348
+//0x2008 bool grounded
+//0x295C int moveid
+//0x30C4 int canBuffer (0=can't act, 1=can buffer, 2=can act)
+//0x3178 bool isJumpBuffered (1 will make the player jump on the first available frame)
+
 class uStageSetTimeSlow
 {
 public:

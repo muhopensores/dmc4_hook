@@ -12,7 +12,8 @@ enum CANCEL_MOVES {       // bits table
 	SHOCK           = 32, // 0010 0000
 	OMEN            = 64, // 0100 0000
 	GUNSTINGER		= 128,
-	EPIDEMIC        = 256
+	EPIDEMIC        = 256,
+	DT_PIN_UP_P2	= 512
 };
 
 class SelectiveCancels : public Mod {

@@ -4,6 +4,7 @@
 
 uintptr_t  MoveIds::jmp_return{ NULL };
 uint32_t   MoveIds::moveID{ 0 };
+constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
 MoveIds::MoveIds() {
 	//onInitialize();
@@ -11,8 +12,19 @@ MoveIds::MoveIds() {
 
 naked void detour() {
 	_asm {
+		// edi has uPlayer
+		// esi is a pointer to uPlayer + 0x42EF0
+        push ecx
+        mov ecx, [staticMediatorPtr]
+        mov ecx, [ecx]
+        mov ecx, [ecx+0x24]
+        cmp edi, ecx
+        pop ecx
+        jne code
+
 		mov [MoveIds::moveID], ecx
 		mov [MoveIdsNero::moveIDNero], 0
+	code:
 		mov [esi+0x0000225C], ecx
 		jmp dword ptr [MoveIds::jmp_return]
 	}

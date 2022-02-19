@@ -7,6 +7,7 @@ uintptr_t InputStates::jmp_return{ NULL };
 uint32_t InputStates::inputpressed{ 0 };
 float InputStates::inputTimer{ 0.0f };
 float TimerTick{ 1.0f };
+constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
 InputStates::InputStates()
 {
@@ -18,6 +19,15 @@ naked void detour()
     _asm {
         cmp byte ptr [ActiveBlock::modEnabled], 0
         je code
+
+        push ecx
+        mov ecx, [staticMediatorPtr] // only get player inputs (thanks boss dante)
+        mov ecx, [ecx]
+        mov ecx, [ecx+0x24]
+        add ecx, 0x1408 // start of input stuff is at uPlayer+0x1408
+        cmp eax, ecx
+        pop ecx
+        jne code
 
         mov [InputStates::inputpressed], edx
         push eax

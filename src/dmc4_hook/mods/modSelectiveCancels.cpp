@@ -40,50 +40,57 @@ naked void selectiveCancels_proc()
 		je cancellablegunstinger
 		cmp [MoveIds::moveID],0x706						// Epidemic
 		je cancellableepidemic
+		cmp [MoveIds::moveID],0x410						// DT Pin Up part 2
+		je cancellableDTPinUp
 		jmp originalcode
 
-		cancellableecstasy:
-		test [SelectiveCancels::cancels], ECSTASY	// If Gui is ticked,
+			cancellableecstasy:
+			test [SelectiveCancels::cancels], ECSTASY	// If Gui is ticked,
 			jg cancellable						    // make the move cancellable
 			jmp originalcode						// if not, don't make it cancellable
 
 			cancellableargument:
-		test [SelectiveCancels::cancels], ARGUMENT
+			test [SelectiveCancels::cancels], ARGUMENT
 			jg cancellable
 			jmp originalcode
 
 			cancellablekickthirteen:
-		test [SelectiveCancels::cancels], KICK13
+			test [SelectiveCancels::cancels], KICK13
 			jg cancellable
 			jmp originalcode
 
 			cancellableslashdimension:
-		test [SelectiveCancels::cancels], SLASH_DIMENSION
+			test [SelectiveCancels::cancels], SLASH_DIMENSION
 			jg cancellable
 			jmp originalcode
 
 			cancellableprop:
-		test [SelectiveCancels::cancels], PROP
+			test [SelectiveCancels::cancels], PROP
 			jg cancellable
 			jmp originalcode
 
 			cancellableshock:
-		test [SelectiveCancels::cancels], SHOCK
+			test [SelectiveCancels::cancels], SHOCK
 			jg cancellable
 			jmp originalcode
 
 			cancellableomen:
-		test [SelectiveCancels::cancels], OMEN
+			test [SelectiveCancels::cancels], OMEN
 			jg cancellable
 			jmp originalcode
 
 			cancellablegunstinger:
-		test [SelectiveCancels::cancels], GUNSTINGER
+			test [SelectiveCancels::cancels], GUNSTINGER
 			jg cancellable
 			jmp originalcode
 
 			cancellableepidemic:
-		test [SelectiveCancels::cancels], EPIDEMIC
+			test [SelectiveCancels::cancels], EPIDEMIC
+			jg cancellable
+			jmp originalcode
+
+			cancellableDTPinUp:
+			test [SelectiveCancels::cancels], DT_PIN_UP_P2
 			jg cancellable
 			jmp originalcode
 
@@ -152,7 +159,7 @@ void SelectiveCancels::onGUIframe() {
 
 		ImGui::Separator();
 		ImGui::Text("Swords");
-                ImGui::Spacing();
+        ImGui::Spacing();
 
 		//drawCheckbox("Prop", &checkProp, PROP);
 		drawCheckboxSimple("Prop", PROP);
@@ -174,6 +181,10 @@ void SelectiveCancels::onGUIframe() {
 		drawCheckboxSimple("Epidemic", EPIDEMIC);
 
 		drawCheckboxSimple("Gun Stinger", GUNSTINGER);
+
+		ImGui::SameLine(205);
+
+		drawCheckboxSimple("DT Pin Up Part 2", DT_PIN_UP_P2);
 	}
 };
 
