@@ -4,18 +4,20 @@
 
 bool BpPortal::modEnabled{ false };
 int BpPortal::hotkey{ NULL };
+BpPortal* g_mod{ nullptr };
 
 static void onTimerCallback()
 {
     BpPortal::modEnabled = !BpPortal::modEnabled;
-    // BpPortal::toggle(BpPortal::modEnabled); // help
-    DISPLAY_MESSAGE("BP Portal / Red Seals Closed"); // debug
+    g_mod->toggle(BpPortal::modEnabled);
+    // DISPLAY_MESSAGE("BP Portal / Red Seals Closed"); // debug
     BpPortal::modEnabled = false;
-    // BpPortal::toggle(BpPortal::modEnabled); // help
+    g_mod->toggle(BpPortal::modEnabled);
 }
 
 std::optional<std::string> BpPortal::onInitialize()
 {
+    g_mod = this;
     m_timer = new utils::Timer(1.0f, onTimerCallback);
     return Mod::onInitialize();
 }

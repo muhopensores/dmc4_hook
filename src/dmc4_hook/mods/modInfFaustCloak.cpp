@@ -23,8 +23,6 @@ void InfFaustCloak::toggle(bool enable)
 
 void InfFaustCloak::onGUIframe()
 {
-    // from main.cpp
-    // line 905 -> main->getMods()->onDrawUI("InfDreadnought"_hash);
     if (ImGui::Checkbox("Infinite Faust Cloak", &modEnabled))
     {
         toggle(modEnabled);

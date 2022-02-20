@@ -11,7 +11,7 @@
 #include "mods/modWorkRate.hpp"
 #include "mods/modBackgroundRendering.hpp"
 #include "mods/modBorderless.hpp"
-#include "mods/modInfDreadnought.hpp"
+#include "mods/modInfDreadnaught.hpp"
 #include "mods/modNoClip.hpp"
 #include "mods/modSkipWeapons.hpp"
 #include "mods/modRestoreMaxHp.hpp"
@@ -98,7 +98,7 @@ Mods::Mods() {
 		m_mods["EasyJc"_hash] = std::make_unique<EasyJc>();
 		m_mods["SelectiveCancels"_hash] = std::make_unique<SelectiveCancels>();
 		m_mods["WorkRate"_hash] = std::make_unique<WorkRate>();
-		m_mods["InfDreadnought"_hash] = std::make_unique<InfDreadnought>();
+		m_mods["InfDreadnaught"_hash] = std::make_unique<InfDreadnaught>();
 		m_mods["NoClip"_hash] = std::make_unique<NoClip>();
 		m_mods["SkipWeapons"_hash] = std::make_unique<SkipWeapons>();
 		m_mods["RestoreMaxHp"_hash] = std::make_unique<RestoreMaxHp>();

@@ -2,17 +2,17 @@
 
 #include "../mod.hpp"
 
-class InfDreadnought : public Mod
+class InfDreadnaught : public Mod
 {
 public:
-    InfDreadnought() = default;
+    InfDreadnaught() = default;
 
     static bool modEnabled;
-    static uintptr_t _infDreadnoughtContinue;
+    static uintptr_t _infDreadnaughtContinue;
 	
 	void toggle(bool enable);
     
-	std::string getModName() override { return "InfDreadnought"; };
+	std::string getModName() override { return "InfDreadnaught"; };
 
     std::optional<std::string> onInitialize() override;
 

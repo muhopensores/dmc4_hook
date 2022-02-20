@@ -24,8 +24,8 @@ SET (MODS
   mods/modNoHBknockback.hpp
   mods/modEasyJc.cpp
   mods/modEasyJc.hpp
-  mods/modInfDreadnought.cpp
-  mods/modInfDreadnought.hpp
+  mods/modInfDreadnaught.cpp
+  mods/modInfDreadnaught.hpp
   mods/modNoClip.cpp
   mods/modNoClip.hpp
   mods/modSkipWeapons.cpp
