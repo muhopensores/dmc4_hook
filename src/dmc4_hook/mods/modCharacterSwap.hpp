@@ -7,9 +7,11 @@ class CharacterSwap : public Mod
 public:
     CharacterSwap() = default;
 
-    static bool modEnabled;
+    static bool neroEnabled;
+    static bool danteEnabled;
 
-    void toggle(bool enable);
+    void toggleNero(bool enable);
+    void toggleDante(bool enable);
 
     std::string getModName() override { return "CharacterSwap"; };
     std::optional<std::string> onInitialize() override;

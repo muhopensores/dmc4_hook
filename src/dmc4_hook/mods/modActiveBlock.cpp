@@ -6,10 +6,11 @@ bool ActiveBlock::modEnabled{ false };
 uintptr_t ActiveBlock::alt_ret{ 0x007BBE76 };
 
 uintptr_t ActiveBlock::jmp_return2{ NULL };
-int currentStyle = 0;
+// int currentStyle = 0;
 
 uintptr_t ActiveBlock::jmp_return3{ NULL };
 uintptr_t ActiveBlock::alt_ret3{ 0x007BBAC1 };
+constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
 ActiveBlock::ActiveBlock()
 {
@@ -26,7 +27,7 @@ naked void detour()
         ja code
         cmp dword ptr [InputStates::inputTimer], 0x00000000
         je code
-        cmp dword ptr [currentStyle], 3
+        // cmp dword ptr [currentStyle], 3
         jne code
         push edi
         jmp dword ptr [ActiveBlock::alt_ret]
@@ -44,7 +45,7 @@ naked void detour2()
         cmp [ActiveBlock::modEnabled], 0
         je retcode
 
-        mov dword ptr [currentStyle], eax
+        // mov dword ptr [currentStyle], eax
 
     retcode:
 		jmp dword ptr [ActiveBlock::jmp_return2]
@@ -56,11 +57,20 @@ naked void detour3()
     _asm {
         cmp [ActiveBlock::modEnabled], 0
         je code
+
+        push ecx
+        mov ecx, [staticMediatorPtr]
+        mov ecx, [ecx]
+        mov ecx, [ecx+0x24]
+        cmp esi, ecx
+        pop ecx
+        jne code
+
         cmp dword ptr [InputStates::inputTimer], 0x40a00000
         ja code
         cmp dword ptr [InputStates::inputTimer], 0x00000000
         je code
-        cmp dword ptr [currentStyle], 3
+        cmp dword ptr [esi+0x00014D98], 3 //[currentStyle], 3
         jne code
         jmp dword ptr [ActiveBlock::alt_ret3]
 
@@ -76,16 +86,16 @@ std::optional<std::string> ActiveBlock::onInitialize()
     {
         HL_LOG_ERR("Failed to init ActiveBlock mod\n");
         return "Failed to init ActiveBlock mod";
-    }*/
+    }
     if (!install_hook_offset(0x3B6DCD, hook2, &detour2, &jmp_return2, 6))
     {
         HL_LOG_ERR("Failed to init ActiveBlock2 mod\n");
         return "Failed to init ActiveBlock2 mod";
-    }
+    }*/
     if (!install_hook_offset(0x3BBAAE, hook3, &detour3, &jmp_return3, 7))
     {
-        HL_LOG_ERR("Failed to init ActiveBlock2 mod\n");
-        return "Failed to init ActiveBlock2 mod";
+        HL_LOG_ERR("Failed to init ActiveBlock3 mod\n");
+        return "Failed to init ActiveBlock3 mod";
     }
     return Mod::onInitialize();
 }

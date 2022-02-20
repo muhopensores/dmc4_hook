@@ -539,9 +539,10 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
                 ImGui::Spacing();
 
-                main->getMods()->onDrawUI("CharacterSwap"_hash);
-                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("CharacterSwap"_hash); // needs its own line
+                
                 main->getMods()->onDrawUI("NoAutomaticCharacters"_hash);
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("SlowWalk"_hash);
 
                 main->getMods()->onDrawUI("BpPortal"_hash); // needs its own line
