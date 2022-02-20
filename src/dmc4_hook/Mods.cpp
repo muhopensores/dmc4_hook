@@ -13,7 +13,7 @@
 #include "mods/modBorderless.hpp"
 #include "mods/modInfDreadnought.hpp"
 #include "mods/modNoClip.hpp"
-#include "mods/modSkipPandora.hpp"
+#include "mods/modSkipWeapons.hpp"
 #include "mods/modRestoreMaxHp.hpp"
 #include "mods/modInputStates.hpp"
 #include "mods/modFpsLimit.hpp"
@@ -33,7 +33,7 @@
 #include "mods/modCameraSettings.hpp"
 #include "mods/modFreezeEnemies.hpp"
 #include "mods/modFreeJc.hpp"
-#include "mods/modNoDeath.hpp"
+#include "mods/modOneHitKill.hpp"
 #include "mods/modEnemySpawn.hpp"
 #include "mods/modKnockbackEdits.hpp"
 #include "mods/modNoDtCooldown.hpp"
@@ -100,7 +100,7 @@ Mods::Mods() {
 		m_mods["WorkRate"_hash] = std::make_unique<WorkRate>();
 		m_mods["InfDreadnought"_hash] = std::make_unique<InfDreadnought>();
 		m_mods["NoClip"_hash] = std::make_unique<NoClip>();
-		m_mods["SkipPandora"_hash] = std::make_unique<SkipPandora>();
+		m_mods["SkipWeapons"_hash] = std::make_unique<SkipWeapons>();
 		m_mods["RestoreMaxHp"_hash] = std::make_unique<RestoreMaxHp>();
 		m_mods["InputStates"_hash] = std::make_unique<InputStates>();
 		m_mods["FpsLimit"_hash] = std::make_unique<FpsLimit>();
@@ -120,7 +120,7 @@ Mods::Mods() {
 		m_mods["CameraSettings"_hash] = std::make_unique<CameraSettings>();
 		m_mods["FreezeEnemies"_hash] = std::make_unique<FreezeEnemies>();
 		m_mods["FreeJc"_hash] = std::make_unique<FreeJc>();
-		m_mods["NoDeath"_hash] = std::make_unique<NoDeath>();
+		m_mods["OneHitKill"_hash] = std::make_unique<OneHitKill>();
 		m_mods["EnemySpawn"_hash] = std::make_unique<EnemySpawn>();
 		m_mods["KnockbackEdits"_hash] = std::make_unique<KnockbackEdits>();
 		m_mods["NoDtCooldown"_hash] = std::make_unique<NoDtCooldown>();

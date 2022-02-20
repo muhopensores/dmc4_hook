@@ -288,11 +288,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
                 main->getMods()->onDrawUI("DamageMultiplier"_hash); // needs its own line
 
-                //main->getMods()->onDrawUI("OneHitKill"_hash);
-
                 main->getMods()->onDrawUI("InfAllHealth"_hash);
 
-                main->getMods()->onDrawUI("NoDeath"_hash); // needs its own line
+                main->getMods()->onDrawUI("OneHitKill"_hash); // needs its own line
 
                 main->getMods()->onDrawUI("RestoreMaxHp"_hash); // needs its own line
 
@@ -326,8 +324,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
                 main->getMods()->onDrawUI("BpJumpHook"_hash);
 
-                //main->getMods()->onDrawUI("BpBossRush"_hash);
-                //ImGui::SameLine(205);
                 main->getMods()->onDrawUI("DmdBloodyPalace"_hash);
 
                 ImGui::Spacing();
@@ -396,15 +392,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("ForceLucifer"_hash);
 
-                main->getMods()->onDrawUI("TimerMem"_hash); // instant honeycomb
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("SkipPandora"_hash);
+                main->getMods()->onDrawUI("SkipWeapons"_hash); // needs its own line
 
                 main->getMods()->onDrawUI("ManualTwosomeTime"_hash);
                 ImGui::SameLine(205);
-                main->getMods()->onDrawUI("NoHbKnockback"_hash); // needs its own line
-
-                main->getMods()->onDrawUI("KnockbackEdits"_hash); // currently empty
+                main->getMods()->onDrawUI("NoHbKnockback"_hash); // needs to be on the right
 
                 main->getMods()->onDrawUI("NoDtCooldown"_hash);
                 ImGui::SameLine(205);
@@ -418,8 +410,13 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("FastSprint"_hash);
 
+                main->getMods()->onDrawUI("ActiveBlock"_hash);
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("NeroFullHouse"_hash);
 
+                main->getMods()->onDrawUI("TimerMem"_hash);       // instant honeycomb
+
+                // main->getMods()->onDrawUI("KnockbackEdits"_hash); // currently empty
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
@@ -455,8 +452,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 main->getMods()->onDrawUI("InfDreadnought"_hash);
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("RgMultiplier"_hash);
-
-                main->getMods()->onDrawUI("ActiveBlock"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();

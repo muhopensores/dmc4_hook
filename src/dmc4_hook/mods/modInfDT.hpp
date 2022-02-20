@@ -9,6 +9,7 @@ public:
 
     static bool modEnabled;
     static uintptr_t jmp_ret;
+    static int hotkey;
 
     std::string getModName() override { return "InfDT"; };
 
@@ -18,6 +19,7 @@ public:
     void onConfigSave(utils::Config& cfg) override;
 
     void onGUIframe() override;
+    void onUpdateInput(hl::Input& input) override;
 
 private:
     hl::Hooker hook;

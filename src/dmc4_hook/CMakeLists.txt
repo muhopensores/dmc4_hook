@@ -28,8 +28,8 @@ SET (MODS
   mods/modInfDreadnought.hpp
   mods/modNoClip.cpp
   mods/modNoClip.hpp
-  mods/modSkipPandora.cpp
-  mods/modSkipPandora.hpp
+  mods/modSkipWeapons.cpp
+  mods/modSkipWeapons.hpp
   mods/modRestoreMaxHp.cpp
   mods/modRestoreMaxHp.hpp
   mods/modInputStates.cpp
@@ -68,8 +68,8 @@ SET (MODS
   mods/modFreezeEnemies.hpp
   mods/modFreeJc.cpp
   mods/modFreeJc.hpp
-  mods/modNoDeath.cpp
-  mods/modNoDeath.hpp
+  mods/modOneHitKill.cpp
+  mods/modOneHitKill.hpp
   mods/modEnemySpawn.cpp
   mods/modEnemySpawn.hpp
   mods/modKnockbackEdits.cpp

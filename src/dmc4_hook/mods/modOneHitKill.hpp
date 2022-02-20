@@ -2,21 +2,21 @@
 
 #include "../mod.hpp"
 
-class NoDeath : public Mod
+class OneHitKill : public Mod
 {
 public:
-    NoDeath() = default;
+    OneHitKill() = default;
 
     static bool cantDie;
     static bool oneHitKill;
-
+    static int hotkey;
     static uintptr_t jmp_ret;
     static uintptr_t jmp_out;
 
     void NoDeathToggle(bool enable);
     // void toggle2(bool enable);
 
-    std::string getModName() override { return "NoDeath"; };
+    std::string getModName() override { return "OneHitKill"; };
 
     std::optional<std::string> onInitialize() override;
 

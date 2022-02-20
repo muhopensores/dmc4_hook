@@ -726,7 +726,7 @@ void RestoreMaxHp::onGUIframe()
 {
     // from main.cpp
     // line 2221 -> main->getMods()->onDrawUI("RestoreMaxHp"_hash);
-    ImGui::Checkbox("Restore Max HP", &modEnabled);
+    ImGui::Checkbox("Restore Enemy HP", &modEnabled);
     ImGui::SameLine(0, 1);
     HelpMarker("Press Lock On + Taunt to restore Max HP to enemies");
     ImGui::SameLine(205);

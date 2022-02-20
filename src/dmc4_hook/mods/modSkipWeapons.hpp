@@ -2,15 +2,17 @@
 
 #include "../mod.hpp"
 
-class SkipPandora : public Mod
+class SkipWeapons : public Mod
 {
 public:
-    SkipPandora();
+    SkipWeapons();
 
-	static bool      modEnabled;
-    static uintptr_t _skipPandoraContinue;
+	static bool skipPandora;
+    static bool skipLucifer;
+    static uintptr_t _skipDanteGunContinue;
+    static uintptr_t _skipDanteSwordContinue;
 
-    std::string getModName() override { return "SkipPandora"; };
+    std::string getModName() override { return "SkipWeapons"; };
 
     std::optional<std::string> onInitialize() override;
 
@@ -21,4 +23,5 @@ public:
 
 private:
     hl::Hooker hook;
+    hl::Hooker hook2;
 };

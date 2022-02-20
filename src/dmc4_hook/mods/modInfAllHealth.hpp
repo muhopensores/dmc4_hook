@@ -8,7 +8,7 @@ public:
 	InfAllHealth() = default;
 
 	static bool modEnabled;
-
+	static int hotkey;
 	void toggle(bool enable);
 
 	std::string getModName() override { return "InfAllHealth"; };

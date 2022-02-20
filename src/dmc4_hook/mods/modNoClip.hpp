@@ -10,6 +10,7 @@ public:
     NoClip() = default;
 
     static bool modEnabled;
+    static int hotkey;
 
     void toggle(bool enable);
 
@@ -23,6 +24,7 @@ public:
     void onGUIframe() override;
 	void onFrame(fmilliseconds& dt) override;
 	void onTwitchCommand(std::size_t hash) override;
+    void onUpdateInput(hl::Input& input) override;
 
 private:
 	utils::Timer* m_timer;

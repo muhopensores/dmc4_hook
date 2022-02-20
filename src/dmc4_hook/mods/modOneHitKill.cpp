@@ -1,16 +1,17 @@
 #include "../mods.h"
-#include "modNoDeath.hpp"
+#include "modOneHitKill.hpp"
 #include "../utils/MessageDisplay.hpp" // TODO(): DISPLAY_MESSAGE should probably be included in mod.hpp or something
 #if 1
-bool NoDeath::cantDie{ false };
-bool NoDeath::oneHitKill{ false };
-uintptr_t NoDeath::jmp_ret{ NULL };
-uintptr_t NoDeath::jmp_out{ 0x0051C129 };
+bool OneHitKill::cantDie{ false };
+bool OneHitKill::oneHitKill{ false };
+int OneHitKill::hotkey{ NULL };
+uintptr_t OneHitKill::jmp_ret{ NULL };
+uintptr_t OneHitKill::jmp_out{ 0x0051C129 };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
 int oneHitKillHotkey;
 
-void NoDeath::NoDeathToggle(bool enable){ // no death 
+void OneHitKill::NoDeathToggle(bool enable){ // no death 
     if (enable)
     {
         //install_patch_offset(0x11C11B, patchhp, "\xEB", 1); // used for both
@@ -26,18 +27,18 @@ void NoDeath::NoDeathToggle(bool enable){ // no death
 naked void detour(void)
 {
     _asm {
-            cmp byte ptr [NoDeath::oneHitKill], 1
+            cmp byte ptr [OneHitKill::oneHitKill], 1
             je playercheck
-			cmp byte ptr [NoDeath::cantDie], 1
+			cmp byte ptr [OneHitKill::cantDie], 1
 			je jmpout
         code:
 			comiss xmm2, [esi+0x18]
 			jb jmpout
         jmpret:
-			jmp dword ptr [NoDeath::jmp_ret]
+			jmp dword ptr [OneHitKill::jmp_ret]
 
 		jmpout:
-			jmp dword ptr [NoDeath::jmp_out]
+			jmp dword ptr [OneHitKill::jmp_out]
 
         playercheck:
             push ecx
@@ -54,18 +55,18 @@ naked void detour(void)
     }
 }
 
-std::optional<std::string> NoDeath::onInitialize()
+std::optional<std::string> OneHitKill::onInitialize()
 {
     if (!install_hook_offset(0x011C117, hook, &detour, &jmp_ret, 6))
     {
-        HL_LOG_ERR("Failed to init NoDeath mod\n");
-        return "Failed to init NoDeath mod";
+        HL_LOG_ERR("Failed to init OneHitKill mod\n");
+        return "Failed to init OneHitKill mod";
     }
 
     return Mod::onInitialize();
 }
 
-void NoDeath::onGUIframe()
+void OneHitKill::onGUIframe()
 {
     if (ImGui::Checkbox("No Death", &cantDie))
     {
@@ -84,24 +85,24 @@ void NoDeath::onGUIframe()
     }
 }
 
-void NoDeath::onConfigLoad(const utils::Config& cfg)
+void OneHitKill::onConfigLoad(const utils::Config& cfg)
 {
     cantDie = cfg.get<bool>("no_death").value_or(false);
     oneHitKill = cfg.get<bool>("one_hit_kill").value_or(false);
-    oneHitKillHotkey = cfg.get<int>("one_hit_kill_hotkey").value_or(0x71);
+    hotkey = cfg.get<int>("one_hit_kill_hotkey").value_or(0x72);
     NoDeathToggle(cantDie);
 };
 
-void NoDeath::onConfigSave(utils::Config& cfg)
+void OneHitKill::onConfigSave(utils::Config& cfg)
 {
     cfg.set<bool>("no_death", cantDie);
     cfg.set<bool>("one_hit_kill", oneHitKill);
-    cfg.set<int>("one_hit_kill_hotkey", oneHitKillHotkey);
+    cfg.set<int>("one_hit_kill_hotkey", hotkey);
 };
 
-void NoDeath::onUpdateInput(hl::Input& input)
+void OneHitKill::onUpdateInput(hl::Input& input)
 {
-    if (input.wentDown(oneHitKillHotkey))
+    if (input.wentDown(hotkey))
     {
         if (oneHitKill)
         {
