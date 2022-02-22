@@ -113,6 +113,9 @@ void Borderless::onFrame(fmilliseconds& dt) {
 
 void Borderless::onConfigLoad(const utils::Config & cfg) {
 	m_enabled = cfg.get<bool>("borderless_window").value_or(false);
+    if (m_enabled) {
+        apply();
+	}
 }
 
 void Borderless::onConfigSave(utils::Config & cfg) {

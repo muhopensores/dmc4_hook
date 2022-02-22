@@ -18,7 +18,7 @@ static void onTimerCallback()
 std::optional<std::string> BpPortal::onInitialize()
 {
     g_mod = this;
-    m_timer = new utils::Timer(1.0f, onTimerCallback);
+    m_timer = new utils::Timer(0.5f, onTimerCallback);
     return Mod::onInitialize();
 }
 

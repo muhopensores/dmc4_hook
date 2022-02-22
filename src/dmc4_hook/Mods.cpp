@@ -204,7 +204,6 @@ std::optional<std::string> Mods::onInitialize() const {
 		}
 	}
 
-
 	utils::Config cfg{ "dmc4_hook.cfg" };
 
 	for (auto& umod : m_mods) {
@@ -223,6 +222,12 @@ void Mods::onConfigSave() {
 	utils::Config cfg{};
 
 	for (auto& umod : m_mods) {
+		auto& mod = umod.second;
+		HL_LOG_RAW("%s::onConfigSave()\n", mod->getModName().data());
+		mod->onConfigSave(cfg);
+	}
+	// this might be really dumb pls fix if so, background rendering wasn't saving
+	for (auto& umod : m_slowMods) {
 		auto& mod = umod.second;
 		HL_LOG_RAW("%s::onConfigSave()\n", mod->getModName().data());
 		mod->onConfigSave(cfg);
