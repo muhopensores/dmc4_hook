@@ -414,7 +414,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("NeroFullHouse"_hash);
 
-                main->getMods()->onDrawUI("TimerMem"_hash);       // instant honeycomb
+                main->getMods()->onDrawUI("TimerMem"_hash); // instant honeycomb
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("InputStates"_hash); // Taunt Ecstasy
 
                 // main->getMods()->onDrawUI("KnockbackEdits"_hash); // currently empty
                 ImGui::Spacing();

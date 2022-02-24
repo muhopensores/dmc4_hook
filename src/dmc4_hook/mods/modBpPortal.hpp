@@ -10,7 +10,6 @@ public:
     static bool modEnabled;
     static int hotkey;
     void toggle(bool enable);
-    // void onTimerCallback();
 
     std::string getModName() override { return "BpPortal"; };
     std::optional<std::string> onInitialize() override;
