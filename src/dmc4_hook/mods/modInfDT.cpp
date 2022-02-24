@@ -1,6 +1,7 @@
 #include "../mods.h"
 #include "modInfDT.hpp"
 #include "../utils/MessageDisplay.hpp"
+#include "modEnemySpawn.hpp"
 
 bool InfDT::modEnabled{ false };
 uintptr_t InfDT::jmp_ret{ NULL };
@@ -52,16 +53,19 @@ void InfDT::onConfigSave(utils::Config& cfg) {
 
 void InfDT::onUpdateInput(hl::Input& input)
 {
-    if (input.wentDown(hotkey))
+    if (!input.isDown(EnemySpawn::hotkeySpawnModifier))
     {
-        if (modEnabled)
+        if (input.wentDown(hotkey))
         {
-            DISPLAY_MESSAGE("Infinite DT Off");
+            if (modEnabled)
+            {
+                DISPLAY_MESSAGE("Infinite DT Off");
+            }
+            else
+            {
+                DISPLAY_MESSAGE("Infinite DT On");
+            }
+            modEnabled = !modEnabled;
         }
-        else
-        {
-            DISPLAY_MESSAGE("Infinite DT On");
-        }
-        modEnabled = !modEnabled;
     }
 }

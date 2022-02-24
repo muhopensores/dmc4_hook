@@ -8,10 +8,15 @@
 #include "./mods/modInfDT.hpp"
 #include "./mods/modBpPortal.hpp"
 #include "./mods/modNoClip.hpp"
+#include "./mods/modEnemySpawn.hpp"
 
 std::string HotkeyName(int hotkey) {
     switch (hotkey)
     {
+    case 0x10: // 16
+        return "Shift";
+    case 0x11: // 17
+        return "Ctrl";
     case 0x70: // 112
         return "F1";
     case 0x71: // 113
@@ -32,9 +37,9 @@ std::string HotkeyName(int hotkey) {
         return "F9";
     case 0x79: // 121
         return "F10";
-    case 0x80: // 122
+    case 0x7A: // 122
         return "F11";
-    case 0x81: // 123
+    case 0x7B: // 123
         return "F12";
     }
     return "Invalid";
@@ -165,7 +170,7 @@ void CreditsDrawing()
         ImGui::Text("DelusionaryKiller");
         ImGui::Text("DJMalice");
         ImGui::Text("cheburrat0r");
-        ImGui::Text("Whitelion");
+        ImGui::Text("  "); // light feline
         ImGui::Text("endneo");
         ImGui::Text("CrazyMelody");
         ImGui::Text("Dlupx");
@@ -197,6 +202,22 @@ void CreditsDrawing()
         ImGui::Text("Lock On + Taunt = Restore Enemy HP");
         ImGui::SameLine();
         HelpMarker("Only if \"Restore Enemy HP\" is checked in the General tab");
+        ImGui::Spacing();
+        ImGui::Text("%s = Spawn Modifier", &HotkeyName(EnemySpawn::hotkeySpawnModifier));
+        ImGui::SameLine();
+        HelpMarker("The following hotkeys will only be activated if this modifier is held");
+        ImGui::Text("%s = Spawn Scarecrow Arm", &HotkeyName(EnemySpawn::hotkeySpawnScarecrowArm));
+        ImGui::Text("%s = Spawn Scarecrow Leg", &HotkeyName(EnemySpawn::hotkeySpawnScarecrowLeg));
+        ImGui::Text("%s = Spawn Mega", &HotkeyName(EnemySpawn::hotkeySpawnMega));
+        ImGui::Text("%s = Spawn Frost", &HotkeyName(EnemySpawn::hotkeySpawnFrost));
+        ImGui::Text("%s = Spawn Assault", &HotkeyName(EnemySpawn::hotkeySpawnAssault));
+        ImGui::Text("%s = Spawn Blitz", &HotkeyName(EnemySpawn::hotkeySpawnBlitz));
+        ImGui::Text("%s = Spawn Basilisk", &HotkeyName(EnemySpawn::hotkeySpawnBasilisk));
+        ImGui::Text("%s = Spawn Chimera", &HotkeyName(EnemySpawn::hotkeySpawnChimera));
+        ImGui::Text("%s = Spawn Mephisto", &HotkeyName(EnemySpawn::hotkeySpawnMephisto));
+        ImGui::Text("%s = Spawn Faust", &HotkeyName(EnemySpawn::hotkeySpawnFaust));
+        ImGui::Text("%s = Spawn Bianco", &HotkeyName(EnemySpawn::hotkeySpawnBianco));
+        ImGui::Text("%s = Spawn Alto", &HotkeyName(EnemySpawn::hotkeySpawnAlto));
         ImGui::EndTabItem();
     }
 }

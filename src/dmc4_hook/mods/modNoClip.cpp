@@ -1,5 +1,6 @@
 #include "modNoClip.hpp"
 #include "../utils/MessageDisplay.hpp"
+#include "modEnemySpawn.hpp"
 
 #if 1
 bool NoClip::modEnabled{ false };
@@ -68,18 +69,21 @@ void NoClip::onFrame(fmilliseconds& dt)
 
 void NoClip::onUpdateInput(hl::Input& input)
 {
-    if (input.wentDown(hotkey))
+    if (!input.isDown(EnemySpawn::hotkeySpawnModifier))
     {
-        if (modEnabled)
+        if (input.wentDown(hotkey))
         {
-            DISPLAY_MESSAGE("Noclip Off");
+            if (modEnabled)
+            {
+                DISPLAY_MESSAGE("Noclip Off");
+            }
+            else
+            {
+                DISPLAY_MESSAGE("Noclip On");
+            }
+            modEnabled = !modEnabled;
+            toggle(modEnabled);
         }
-        else
-        {
-            DISPLAY_MESSAGE("Noclip On");
-        }
-        modEnabled = !modEnabled;
-        toggle(modEnabled);
     }
 }
 

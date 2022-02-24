@@ -1,6 +1,7 @@
 #include "modBpPortal.hpp"
 #include "../utils/MessageDisplay.hpp" // TODO(): DISPLAY_MESSAGE should probably be included in mod.hpp or something
 #include "modDeltaTime.hpp"
+#include "modEnemySpawn.hpp"
 
 bool BpPortal::modEnabled{ false };
 int BpPortal::hotkey{ NULL };
@@ -65,14 +66,18 @@ void BpPortal::onFrame(fmilliseconds& dt)
 
 void BpPortal::onUpdateInput(hl::Input& input)
 {
-    if (input.wentDown(hotkey))
+    if (!input.isDown(EnemySpawn::hotkeySpawnModifier))
     {
-        if (!modEnabled)
+        if (input.wentDown(hotkey))
         {
-            DISPLAY_MESSAGE("BP Portal / Red Seals Opened");
-            modEnabled = true;
-            toggle(modEnabled);
-            m_timer->start();
+            if (!modEnabled)
+            {
+                DISPLAY_MESSAGE("BP Portal / Red Seals Opened");
+                modEnabled = true;
+                toggle(modEnabled);
+                m_timer->start();
+            }
         }
     }
+
 }

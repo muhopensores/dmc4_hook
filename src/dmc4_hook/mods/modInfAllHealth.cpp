@@ -1,5 +1,5 @@
 #include "modInfAllHealth.hpp"
-//#include "hacklib/Input.h" // needed for input.wentDown
+#include "modEnemySpawn.hpp"
 #include "../utils/MessageDisplay.hpp" // TODO(): DISPLAY_MESSAGE should probably be included in mod.hpp or something
 #include "iostream"
 #if 1
@@ -47,15 +47,18 @@ void InfAllHealth::onConfigSave(utils::Config& cfg)
 
 void InfAllHealth::onUpdateInput(hl::Input& input)
 {
-    if (input.wentDown(hotkey)) {
-        if (modEnabled) {
-            DISPLAY_MESSAGE("Infinite Health Off"); // lmao no format strings for almost a year or when i wrote that shit
+    if (!input.isDown(EnemySpawn::hotkeySpawnModifier))
+    {
+        if (input.wentDown(hotkey)) {
+            if (modEnabled) {
+                DISPLAY_MESSAGE("Infinite Health Off"); // lmao no format strings for almost a year or when i wrote that shit
+            }
+            else {
+                DISPLAY_MESSAGE("Infinite Health On");
+            }
+            modEnabled = !modEnabled;
+            toggle(modEnabled);
         }
-        else {
-            DISPLAY_MESSAGE("Infinite Health On");
-        }
-        modEnabled = !modEnabled;
-        toggle(modEnabled);
     }
 }
 #endif

@@ -13,6 +13,21 @@ constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 sMediator* sMedPtr = nullptr;
 uPlayer* uLocalPlr = nullptr;
 
+int EnemySpawn::hotkeySpawnModifier{ NULL };
+
+int EnemySpawn::hotkeySpawnScarecrowArm{ NULL };
+int EnemySpawn::hotkeySpawnScarecrowLeg{ NULL };
+int EnemySpawn::hotkeySpawnMega{ NULL };
+int EnemySpawn::hotkeySpawnFrost{ NULL };
+int EnemySpawn::hotkeySpawnAssault{ NULL };
+int EnemySpawn::hotkeySpawnBlitz{ NULL };
+int EnemySpawn::hotkeySpawnBasilisk{ NULL };
+int EnemySpawn::hotkeySpawnChimera{ NULL };
+int EnemySpawn::hotkeySpawnMephisto{ NULL };
+int EnemySpawn::hotkeySpawnFaust{ NULL };
+int EnemySpawn::hotkeySpawnBianco{ NULL };
+int EnemySpawn::hotkeySpawnAlto{ NULL };
+
 constexpr std::array<uintptr_t, 19> fptrEmFactories{
 	0x0055E710,			// Arm Scarecrow em01
 	0x0053F810,			// Leg Scarecrow em02
@@ -210,6 +225,7 @@ std::optional<std::string> EnemySpawn::onInitialize()
 	m_spawnMegaCommand = std::hash<std::string>{}("\\SpawnMega");
     m_spawnFrostCommand = std::hash<std::string>{}("\\SpawnFrost");
 	m_spawnAssaultCommand = std::hash<std::string>{}("\\SpawnAssault");
+    m_spawnBlitzCommand = std::hash<std::string>{}("\\SpawnBlitz");
     m_spawnBasiliskCommand = std::hash<std::string>{}("\\SpawnBasilisk");
     m_spawnChimeraCommand = std::hash<std::string>{}("\\SpawnChimera");
 	m_spawnMephistoCommand = std::hash<std::string>{}("\\SpawnMephisto");
@@ -264,10 +280,15 @@ void EnemySpawn::onTwitchCommand(std::size_t hash)
     {
         spawnEm00x(4);
     }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnBlitzCommand);
+    if (hash == m_spawnBlitzCommand)
+    {
+        spawnEm00x(5);
+    }
     HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnBasiliskCommand);
     if (hash == m_spawnBasiliskCommand)
     {
-        spawnEm00x(6); // Skipping Blitz
+        spawnEm00x(6);
     }
     HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnChimeraCommand);
     if (hash == m_spawnChimeraCommand)
@@ -293,6 +314,96 @@ void EnemySpawn::onTwitchCommand(std::size_t hash)
     if (hash == m_spawnAltoCommand)
     {
         spawnEm00x(11);
+    }
+}
+
+void EnemySpawn::onConfigLoad(const utils::Config& cfg)
+{
+    hotkeySpawnModifier = cfg.get<int>("hotkey_spawn_modifier").value_or(0x11); // Ctrl
+
+    hotkeySpawnScarecrowArm = cfg.get<int>("hotkey_spawn_scarecrow_arm").value_or(0x70); // F1
+    hotkeySpawnScarecrowLeg = cfg.get<int>("hotkey_spawn_scarecrow_leg").value_or(0x71); // F2
+    hotkeySpawnMega = cfg.get<int>("hotkey_spawn_mega").value_or(0x72);                  // F3
+    hotkeySpawnFrost = cfg.get<int>("hotkey_spawn_frost").value_or(0x73);                // F4
+    hotkeySpawnAssault = cfg.get<int>("hotkey_spawn_assault").value_or(0x74);            // F5
+    hotkeySpawnBlitz = cfg.get<int>("hotkey_spawn_blitz").value_or(0x75);                // F6
+    hotkeySpawnBasilisk = cfg.get<int>("hotkey_spawn_basilisk").value_or(0x76);          // F7
+    hotkeySpawnChimera = cfg.get<int>("hotkey_spawn_chimera").value_or(0x77);            // F8
+    hotkeySpawnMephisto = cfg.get<int>("hotkey_spawn_mephisto").value_or(0x78);          // F9
+    hotkeySpawnFaust = cfg.get<int>("hotkey_spawn_faust").value_or(0x79);                // F10
+    hotkeySpawnBianco = cfg.get<int>("hotkey_spawn_bianco").value_or(0x7A);              // F11
+    hotkeySpawnAlto = cfg.get<int>("hotkey_spawn_alto").value_or(0x7B);                  // F12
+};
+
+void EnemySpawn::onConfigSave(utils::Config& cfg)
+{
+    cfg.set<int>("hotkey_spawn_modifier", hotkeySpawnModifier);
+
+    cfg.set<int>("hotkey_spawn_scarecrow_arm", hotkeySpawnScarecrowArm);
+    cfg.set<int>("hotkey_spawn_scarecrow_leg", hotkeySpawnScarecrowLeg);
+    cfg.set<int>("hotkey_spawn_mega", hotkeySpawnMega);
+    cfg.set<int>("hotkey_spawn_frost", hotkeySpawnFrost);
+    cfg.set<int>("hotkey_spawn_assault", hotkeySpawnAssault);
+    cfg.set<int>("hotkey_spawn_blitz", hotkeySpawnBlitz);
+    cfg.set<int>("hotkey_spawn_basilisk", hotkeySpawnBasilisk);
+    cfg.set<int>("hotkey_spawn_chimera", hotkeySpawnChimera);
+    cfg.set<int>("hotkey_spawn_mephisto", hotkeySpawnMephisto);
+    cfg.set<int>("hotkey_spawn_faust", hotkeySpawnFaust);
+    cfg.set<int>("hotkey_spawn_bianco", hotkeySpawnBianco);
+    cfg.set<int>("hotkey_spawn_alto", hotkeySpawnAlto);
+};
+
+void EnemySpawn::onUpdateInput(hl::Input& input)
+{
+    if (input.isDown(hotkeySpawnModifier)) {
+        if (input.wentDown(hotkeySpawnScarecrowArm))
+        {
+            spawnEm00x(0);
+        }
+        if (input.wentDown(hotkeySpawnScarecrowLeg))
+        {
+            spawnEm00x(1);
+        }
+        if (input.wentDown(hotkeySpawnMega))
+        {
+            spawnEm00x(2);
+        }
+        if (input.wentDown(hotkeySpawnFrost))
+        {
+            spawnEm00x(3);
+        }
+        if (input.wentDown(hotkeySpawnAssault))
+        {
+            spawnEm00x(4);
+        }
+        if (input.wentDown(hotkeySpawnBlitz))
+        {
+            spawnEm00x(5);
+        }
+        if (input.wentDown(hotkeySpawnBasilisk))
+        {
+            spawnEm00x(6);
+        }
+        if (input.wentDown(hotkeySpawnChimera))
+        {
+            spawnEm00x(7);
+        }
+        if (input.wentDown(hotkeySpawnMephisto))
+        {
+            spawnEm00x(8);
+        }
+        if (input.wentDown(hotkeySpawnFaust))
+        {
+            spawnEm00x(9);
+        }
+        if (input.wentDown(hotkeySpawnBianco))
+        {
+            spawnEm00x(10);
+        }
+        if (input.wentDown(hotkeySpawnAlto))
+        {
+            spawnEm00x(11);
+        }
     }
 }
 

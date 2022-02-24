@@ -1,6 +1,7 @@
 #include "../mods.h"
 #include "modOneHitKill.hpp"
 #include "../utils/MessageDisplay.hpp" // TODO(): DISPLAY_MESSAGE should probably be included in mod.hpp or something
+#include "modEnemySpawn.hpp"
 #if 1
 bool OneHitKill::cantDie{ false };
 bool OneHitKill::oneHitKill{ false };
@@ -102,20 +103,23 @@ void OneHitKill::onConfigSave(utils::Config& cfg)
 
 void OneHitKill::onUpdateInput(hl::Input& input)
 {
-    if (input.wentDown(hotkey))
+    if (!input.isDown(EnemySpawn::hotkeySpawnModifier))
     {
-        if (oneHitKill)
+        if (input.wentDown(hotkey))
         {
-            DISPLAY_MESSAGE("One Hit Kill Off");
+            if (oneHitKill)
+            {
+                DISPLAY_MESSAGE("One Hit Kill Off");
+            }
+            else
+            {
+                DISPLAY_MESSAGE("One Hit Kill On");
+                cantDie = false;
+                NoDeathToggle(cantDie);
+            }
+            oneHitKill = !oneHitKill;
+            // toggle2(oneHitKill);
         }
-        else
-        {
-            DISPLAY_MESSAGE("One Hit Kill On");
-            cantDie = false;
-            NoDeathToggle(cantDie);
-        }
-        oneHitKill = !oneHitKill;
-        //toggle2(oneHitKill);
     }
 }
 #endif
