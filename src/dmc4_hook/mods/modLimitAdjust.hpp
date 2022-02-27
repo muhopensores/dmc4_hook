@@ -1,7 +1,43 @@
 #pragma once
-#include "../mod.hpp"
-#include <array>
 
+#include "../mod.hpp"
+
+#if 1
+class LimitAdjust : public Mod
+{
+public:
+    LimitAdjust() = default;
+
+	static bool gunSword;
+    static bool enemyStep;
+	static bool style;
+	static bool target;
+
+    static float limit;
+
+    void SwordAndGun(bool enable);
+    void EnemyStep(bool enable);
+    void Style(bool enable);
+    void Target(bool enable);
+
+    std::string getModName() override { return "LimitAdjust"; };
+
+    std::optional<std::string> onInitialize() override;
+
+    void onConfigLoad(const utils::Config& cfg) override;
+    void onConfigSave(utils::Config& cfg) override;
+
+    void onGUIframe() override;
+
+private:
+    hl::Patch patchsword;
+    hl::Patch patchgun;
+    hl::Patch patchenemystep;
+    hl::Patch patchstyle;
+    hl::Patch patchtarget;
+};
+
+#else
 struct limitStruct {
 	bool      m_enabled{ false };
 	uintptr_t m_location{ NULL };
@@ -55,3 +91,4 @@ private:
 
 	void toggle(int index);
 };
+#endif

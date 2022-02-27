@@ -2,140 +2,277 @@
 #include "modLimitAdjust.hpp"
 
 #if 1
+bool LimitAdjust::gunSword = false;
+bool LimitAdjust::enemyStep = false;
+bool LimitAdjust::style = false;
+bool LimitAdjust::target = false;
 
-float LimitAdjust::limit{ 0.0f };
+float LimitAdjust::limit = 0.0f;
 
-LimitAdjust::LimitAdjust() {
-	//onInitialize();
+std::optional<std::string> LimitAdjust::onInitialize()
+{
+    return Mod::onInitialize();
 }
 
 naked void limitadjust_patch(void) {
 	_asm {
+		fld dword ptr [LimitAdjust::limit]
+	}
+}
+
+void LimitAdjust::SwordAndGun(bool enable)
+{
+    if (enable)
+    {
+        install_patch_offset(0x04045DE, patchsword, (char*)&limitadjust_patch, 6);
+        install_patch_offset(0x0404625, patchgun, (char*)&limitadjust_patch, 6);
+    }
+    else
+    {
+        patchsword.revert();
+        patchgun.revert();
+    }
+}
+
+void LimitAdjust::EnemyStep(bool enable)
+{
+    if (enable)
+    {
+        install_patch_offset(0x0404A8E, patchenemystep, (char*)&limitadjust_patch, 6);
+    }
+    else
+    {
+        patchenemystep.revert();
+    }
+}
+
+void LimitAdjust::Style(bool enable)
+{
+    if (enable)
+    {
+        install_patch_offset(0x03B6DC7, patchstyle, "\x90\x90\x90\x90\x90\x90", 6);
+    }
+    else
+    {
+        patchstyle.revert();
+    }
+}
+
+void LimitAdjust::Target(bool enable)
+{
+    if (enable)
+    {
+        install_patch_offset(0x04208D7, patchtarget, "\x90\x90", 2);
+    }
+    else
+    {
+        patchtarget.revert();
+    }
+}
+
+void LimitAdjust::onGUIframe()
+{
+    if (ImGui::Checkbox("Remove Sword & Gun Switch Limit", &gunSword))
+    {
+        SwordAndGun(gunSword);
+    }
+    if (ImGui::Checkbox("Remove JC Limit", &enemyStep))
+    {
+        EnemyStep(enemyStep);
+    }
+    if (ImGui::Checkbox("Remove Style Switch Limit", &style))
+    {
+        Style(style);
+    }
+    if (ImGui::Checkbox("Remove Target Switch Limit", &target))
+    {
+        Target(target);
+    }
+}
+
+void LimitAdjust::onConfigLoad(const utils::Config& cfg)
+{
+    gunSword = cfg.get<bool>("sword_switch_limits_removed").value_or(false);
+    SwordAndGun(gunSword);
+    enemyStep = cfg.get<bool>("jc_limits_removed").value_or(false);
+    EnemyStep(enemyStep);
+    style = cfg.get<bool>("style_switch_limits_removed").value_or(false);
+    Style(style);
+    target = cfg.get<bool>("target_change_limit_removed").value_or(false);
+    Target(target);
+};
+
+void LimitAdjust::onConfigSave(utils::Config& cfg)
+{
+    cfg.set<bool>("sword_switch_limits_removed", gunSword);
+    cfg.set<bool>("jc_limits_removed", enemyStep);
+    cfg.set<bool>("style_switch_limits_removed", style);
+    cfg.set<bool>("target_change_limit_removed", target);
+};
+
+#else
+float LimitAdjust::limit{ 0.0f };
+
+LimitAdjust::LimitAdjust()
+{
+    // onInitialize();
+}
+
+naked void limitadjust_patch(void)
+{
+    _asm {
 		fld dword ptr[LimitAdjust::limit]
 	}
 }
 
-std::array patches = {
-	(const char*)limitadjust_patch,
-	(const char*)limitadjust_patch,
-	(const char*)limitadjust_patch,
-	(const char*)limitadjust_patch,
-	""
-};
+std::array patches = { (const char*)limitadjust_patch, (const char*)limitadjust_patch, (const char*)limitadjust_patch,
+                       (const char*)limitadjust_patch, "" };
 
-std::optional<std::string> LimitAdjust::onInitialize() {
-	// c++ 17 feature i think
-	constexpr std::array aobs = {
-		"D9 80 DC 00 00 00 8D ?? ?? 1D 00 00 D9 9E ?? 1E 00 00 C6 86 ?? 1E 00 00 00 E8", //swords
-		"D9 81 DC 00 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? CC", //guns
-		"D9 81 3C 01 00 00 8B 07 D9 9F ?? ?? 00 00 8B 97 ?? 1E 00 00 D9 82 40 01 00 00 8B 90 94 01 00 00", //jc
-		"0F 82 ?? ?? 00 00 8B 86 ?? ?? 01 00 3B C7 0F 84 ?? ?? 00 00 39 9E A4 0E 00 00 F3 0F 10", //styleswitch
-		"75 ?? 0F 57 C0 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 ?? 88 ?? ?? 30 00 00 75" //targetchange
-	};
+std::optional<std::string> LimitAdjust::onInitialize()
+{
+    // c++ 17 feature i think
+    constexpr std::array
+        aobs = {
+            "D9 80 DC 00 00 00 8D ?? ?? 1D 00 00 D9 9E ?? 1E 00 00 C6 86 ?? 1E 00 00 00 E8", // swords
+            "D9 81 DC 00 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? "
+            "CC",                                                                                              // guns
+            "D9 81 3C 01 00 00 8B 07 D9 9F ?? ?? 00 00 8B 97 ?? 1E 00 00 D9 82 40 01 00 00 8B 90 94 01 00 00", // jc
+            "0F 82 ?? ?? 00 00 8B 86 ?? ?? 01 00 3B C7 0F 84 ?? ?? 00 00 39 9E A4 0E 00 00 F3 0F 10", // styleswitch
+            "75 ?? 0F 57 C0 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 ?? 88 ?? ?? 30 00 00 "
+            "75" // targetchange
+        };
+    constexpr std::array addresses { 0x03FDE98; }
 
-	/*
-	constexpr auto swordSwitch_aob        = "D9 80 DC 00 00 00 8D ?? ?? 1D 00 00 D9 9E ?? 1E 00 00 C6 86 ?? 1E 00 00 00 E8";
-	constexpr auto gunSwitch_aob          = "D9 81 DC 00 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? CC";
-	constexpr auto jcCooldown_aob         = "D9 81 3C 01 00 00 8B 07 D9 9F ?? ?? 00 00 8B 97 ?? 1E 00 00 D9 82 40 01 00 00 8B 90 94 01 00 00";
-	constexpr auto styleSwitch_aob        = "0F 82 ?? ?? 00 00 8B 86 ?? ?? 01 00 3B C7 0F 84 ?? ?? 00 00 39 9E A4 0E 00 00 F3 0F 10";
-	constexpr auto movingTargetChange_aob = "75 ?? 0F 57 C0 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 ?? 88 ?? ?? 30 00 00 75";
+    /*
+    constexpr auto swordSwitch_aob        = "D9 80 DC 00 00 00 8D ?? ?? 1D 00 00 D9 9E ?? 1E 00 00 C6 86 ?? 1E 00 00 00
+    E8"; constexpr auto gunSwitch_aob          = "D9 81 DC 00 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ??
+    00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? CC"; constexpr auto jcCooldown_aob         = "D9 81 3C 01 00 00 8B 07 D9 9F ??
+    ?? 00 00 8B 97 ?? 1E 00 00 D9 82 40 01 00 00 8B 90 94 01 00 00"; constexpr auto styleSwitch_aob        = "0F 82 ??
+    ?? 00 00 8B 86 ?? ?? 01 00 3B C7 0F 84 ?? ?? 00 00 39 9E A4 0E 00 00 F3 0F 10"; constexpr auto
+    movingTargetChange_aob = "75 ?? 0F 57 C0 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 ?? 88
+    ?? ?? 30 00 00 75";
 
-	m_limit[SWORDS].m_location        = hl::FindPattern(swordSwitch_aob);
-	m_limit[GUNS].m_location          = hl::FindPattern(gunSwitch_aob);
-	m_limit[JC].m_location            = hl::FindPattern(jcCooldown_aob);
-	m_limit[STYLE_SWITCH].m_location  = hl::FindPattern(styleSwitch_aob);
-	m_limit[TARGET_CHANGE].m_location = hl::FindPattern(movingTargetChange_aob);
-	*/
-	int index = 0;
-	for (auto& limit : m_limit) {
-		limit.m_location = hl::FindPattern(aobs[index]);
-		if (!limit.m_location) {
-			HL_LOG_ERR("[LimitAjust] Failed to FindPattern %s\n", aobs[index]);
-			return "Failed to init Limit Adjust mod.";
-		}
-		++index;
-	}
+    m_limit[SWORDS].m_location        = hl::FindPattern(swordSwitch_aob);
+    m_limit[GUNS].m_location          = hl::FindPattern(gunSwitch_aob);
+    m_limit[JC].m_location            = hl::FindPattern(jcCooldown_aob);
+    m_limit[STYLE_SWITCH].m_location  = hl::FindPattern(styleSwitch_aob);
+    m_limit[TARGET_CHANGE].m_location = hl::FindPattern(movingTargetChange_aob);
+    */
+    int index = 0;
+    for (auto& limit : m_limit)
+    {
+        // limit.m_location = hl::FindPattern(aobs[index]);
+        limit.m_location = hl::FindPattern(aobs[index]);
+        if (!limit.m_location)
+        {
+            HL_LOG_ERR("[LimitAjust] Failed to FindPattern %s\n", aobs[index]);
+            return "Failed to init Limit Adjust mod.";
+        }
+        ++index;
+    }
 
-	return Mod::onInitialize();
+    return Mod::onInitialize();
 }
 
-void LimitAdjust::toggle(int index) { 
-	switch (index) {
-    case STYLE_SWITCH: {
-        if (m_limit[index].m_enabled) {
+void LimitAdjust::toggle(int index)
+{
+    switch (index)
+    {
+    case STYLE_SWITCH:
+    {
+        if (m_limit[index].m_enabled)
+        {
             m_limit[index].m_patch.apply(m_limit[index].m_location, "\x90\x90\x90\x90\x90\x90", 6);
         }
-		else {
+        else
+        {
             m_limit[index].m_patch.revert();
         }
         break;
     }
-    case TARGET_CHANGE: {
-        if (m_limit[index].m_enabled) {
+    case TARGET_CHANGE:
+    {
+        if (m_limit[index].m_enabled)
+        {
             m_limit[index].m_patch.apply(m_limit[index].m_location, "\x90\x90", 2);
         }
-        else {
+        else
+        {
             m_limit[index].m_patch.revert();
         }
         break;
     }
-    default: {
-        if (m_limit[index].m_enabled) {
+    default:
+    {
+        if (m_limit[index].m_enabled)
+        {
             m_limit[index].m_patch.apply(m_limit[index].m_location, (char*)&limitadjust_patch, 6);
         }
-        else {
+        else
+        {
             m_limit[index].m_patch.revert();
         }
     }
     }
 };
 
-void LimitAdjust::onConfigLoad(const utils::Config& cfg) {
-
-	int index = 0;
-	for (auto& limit : m_limit) {
-		limit.m_enabled = cfg.get<bool>(cfgStrings[index]).value_or(false);
-		toggle(index);
-		++index;
-	}
-	/*m_limit[SWORDS].m_enabled        = cfg.get<bool>("sword_gun_switch_limits_removed").value_or(false);
-	m_limit[GUNS].m_enabled          = cfg.get<bool>("sword_gun_switch_limits_removed").value_or(false);
-	m_limit[JC].m_enabled            = cfg.get<bool>("jc_limits_removed").value_or(false);
-	m_limit[STYLE_SWITCH].m_enabled  = cfg.get<bool>("style_switch_limits_removed").value_or(false);
-	m_limit[TARGET_CHANGE].m_enabled = cfg.get<bool>("target_change_limit_removed").value_or(false);*/
+void LimitAdjust::onConfigLoad(const utils::Config& cfg)
+{
+    int index = 0;
+    for (auto& limit : m_limit)
+    {
+        limit.m_enabled = cfg.get<bool>(cfgStrings[index]).value_or(false);
+        toggle(index);
+        ++index;
+    }
+    /*m_limit[SWORDS].m_enabled        = cfg.get<bool>("sword_gun_switch_limits_removed").value_or(false);
+    m_limit[GUNS].m_enabled          = cfg.get<bool>("sword_gun_switch_limits_removed").value_or(false);
+    m_limit[JC].m_enabled            = cfg.get<bool>("jc_limits_removed").value_or(false);
+    m_limit[STYLE_SWITCH].m_enabled  = cfg.get<bool>("style_switch_limits_removed").value_or(false);
+    m_limit[TARGET_CHANGE].m_enabled = cfg.get<bool>("target_change_limit_removed").value_or(false);*/
 }
-void LimitAdjust::onConfigSave(utils::Config& cfg) {
-
-	int index = 0;
-	for (auto& limit : m_limit) {
-		cfg.set<bool>(cfgStrings[index], limit.m_enabled);
-		index++;
-	}
-	/*cfg.set<bool>("sword_gun_switch_limits_removed", m_limit[SWORDS].m_enabled);
-	cfg.set<bool>("sword_gun_switch_limits_removed", m_limit[GUNS].m_enabled);
-	cfg.set<bool>("jc_limits_removed",               m_limit[JC].m_enabled);
-	cfg.set<bool>("style_switch_limits_removed",     m_limit[STYLE_SWITCH].m_enabled);
-	cfg.set<bool>("target_change_limit_removed",     m_limit[TARGET_CHANGE].m_enabled);*/
-}
-
-void LimitAdjust::onGUIframe() {
-	if (ImGui::Checkbox("Remove Sword & Gun Switch Limit", &m_limit[SWORDS].m_enabled)) {
-		m_limit[GUNS].m_enabled = m_limit[SWORDS].m_enabled;
-		toggle(SWORDS);
-		toggle(GUNS);
-	}
-	if (ImGui::Checkbox("Remove JC Limit", &m_limit[JC].m_enabled)) {
-		toggle(JC);
-	}
-	if (ImGui::Checkbox("Remove Style Switch Limit", &m_limit[STYLE_SWITCH].m_enabled)) {
-		toggle(STYLE_SWITCH);
-	}
-	if (ImGui::Checkbox("Remove Target Switch Limit", &m_limit[TARGET_CHANGE].m_enabled)) {
-		toggle(TARGET_CHANGE);
-	}
+void LimitAdjust::onConfigSave(utils::Config& cfg)
+{
+    int index = 0;
+    for (auto& limit : m_limit)
+    {
+        cfg.set<bool>(cfgStrings[index], limit.m_enabled);
+        index++;
+    }
+    /*cfg.set<bool>("sword_gun_switch_limits_removed", m_limit[SWORDS].m_enabled);
+    cfg.set<bool>("sword_gun_switch_limits_removed", m_limit[GUNS].m_enabled);
+    cfg.set<bool>("jc_limits_removed",               m_limit[JC].m_enabled);
+    cfg.set<bool>("style_switch_limits_removed",     m_limit[STYLE_SWITCH].m_enabled);
+    cfg.set<bool>("target_change_limit_removed",     m_limit[TARGET_CHANGE].m_enabled);*/
 }
 
-#else
+void LimitAdjust::onGUIframe()
+{
+    if (ImGui::Checkbox("Remove Sword & Gun Switch Limit", &m_limit[SWORDS].m_enabled))
+    {
+        m_limit[GUNS].m_enabled = m_limit[SWORDS].m_enabled;
+        toggle(SWORDS);
+        toggle(GUNS);
+    }
+    if (ImGui::Checkbox("Remove JC Limit", &m_limit[JC].m_enabled))
+    {
+        toggle(JC);
+    }
+    if (ImGui::Checkbox("Remove Style Switch Limit", &m_limit[STYLE_SWITCH].m_enabled))
+    {
+        toggle(STYLE_SWITCH);
+    }
+    if (ImGui::Checkbox("Remove Target Switch Limit", &m_limit[TARGET_CHANGE].m_enabled))
+    {
+        toggle(TARGET_CHANGE);
+    }
+}
+
+
+
+
+
+
 namespace modLimitAdjust {
 
     constexpr auto swordSwitch_aob        = "D9 80 DC 00 00 00 8D ?? ?? 1D 00 00 D9 9E ?? 1E 00 00 C6 86 ?? 1E 00 00 00 E8";

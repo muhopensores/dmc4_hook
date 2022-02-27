@@ -28,7 +28,7 @@ naked void detour() // inputpressed // ActiveBlock
         jne code // if not player, jump to code
         mov [InputStates::inputpressed], edx
         cmp byte ptr [ActiveBlock::modEnabled], 1
-        jne code // checkrose
+        jne code
 
     // active block setup
         push eax
@@ -40,7 +40,7 @@ naked void detour() // inputpressed // ActiveBlock
         mov dword ptr [InputStates::inputTimer], 0
         pop edx
         pop eax
-        jmp code // checkrose
+        jmp code
 
     inctimer: // timer for ActiveBlock
         pop edx
@@ -85,7 +85,7 @@ naked void detour2() // inputonpress // touchpad ecstasy // player is in esi
         mov edx, 0x8 // edx has desired input
         test al, dl
         pop edx
-        jnz rosethrow // only send ecstasy input on press
+        jnz rosethrow // only send ecstasy input on press rather than hold
     jmpret:
 		jmp dword ptr [InputStates::jmp_return2]
 
@@ -129,21 +129,6 @@ std::optional<std::string> InputStates::onInitialize()
     return Mod::onInitialize();
 }
 
-void InputStates::onConfigLoad(const utils::Config& cfg)
-{
-    touchpadRoseEnabled = cfg.get<bool>("taunt_ectasy").value_or(false);
-};
-
-void InputStates::onConfigSave(utils::Config& cfg)
-{
-    cfg.set<bool>("taunt_ectasy", touchpadRoseEnabled);
-};
-
-void InputStates::onGUIframe()
-{
-    ImGui::Checkbox("Taunt Ecstasy", &touchpadRoseEnabled);
-}
-
 void InputStates::PlayRose(void)
 {
     sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
@@ -171,18 +156,18 @@ void InputStates::onFrame(fmilliseconds& dt) { // the game does buffers on tick 
         if (sMedPtr)
         {
             uPlayer* uLocalPlr = sMedPtr->playerPtr;
-            uint8_t* grounded = (uint8_t*)uLocalPlr + 0xEA8;
-            uint8_t* cancellable = (uint8_t*)uLocalPlr + 0x1E15;
+            uint8_t& grounded = *(uint8_t*)((uintptr_t)uLocalPlr + 0xEA8);
+            uint8_t& cancellable = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1E15);
             // input
             if (roseInput) // if touchpad is pressed
             {
-                if (*grounded == 3) // aerial?
+                if (grounded == 3) // aerial?
                 {
-                    if (*cancellable == 0x10) // if in free frames
+                    if (cancellable == 0x10) // if in free frames
                     {
                         InputStates::PlayRose();
                     }
-                    if (*cancellable == 0x30) // if in buffer frames
+                    if (cancellable == 0x30) // if in buffer frames
                     {
                         bufferedRose = true;
                     }
@@ -194,14 +179,14 @@ void InputStates::onFrame(fmilliseconds& dt) { // the game does buffers on tick 
             // buffer
             if (bufferedRose)
             {
-                if (*grounded == 3) // aerial?
+                if (grounded == 3) // aerial?
                 {
-                    if (*cancellable == 0x10) // if in free frames
+                    if (cancellable == 0x10) // if in free frames
                     {
                         bufferedRose = false;
                         InputStates::PlayRose();
                     }
-                    if (*cancellable == 0x00) // if another attack starts, kill the buffer
+                    if (cancellable == 0x00) // if another attack starts, kill the buffer
                     {
                         bufferedRose = false;
                     }
@@ -211,6 +196,23 @@ void InputStates::onFrame(fmilliseconds& dt) { // the game does buffers on tick 
             }
         }
     }
+}
+
+void InputStates::onConfigLoad(const utils::Config& cfg)
+{
+    touchpadRoseEnabled = cfg.get<bool>("taunt_ectasy").value_or(false);
+};
+
+void InputStates::onConfigSave(utils::Config& cfg)
+{
+    cfg.set<bool>("taunt_ectasy", touchpadRoseEnabled);
+};
+
+void InputStates::onGUIframe()
+{
+    ImGui::Checkbox("Taunt Ecstasy", &touchpadRoseEnabled);
+    ImGui::SameLine();
+    HelpMarker("Consider using this with selective cancellable ecstasy to make it feel more like 5");
 }
 
 #endif
