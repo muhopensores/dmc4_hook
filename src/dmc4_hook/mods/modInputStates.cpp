@@ -19,7 +19,7 @@ InputStates::InputStates()
     // onInitialize();
 }
 
-naked void detour()
+naked void detour() // inputpressed // ActiveBlock
 {
     _asm {
         push ecx
@@ -32,7 +32,8 @@ naked void detour()
         jne code // if not player, jump to code
         mov [InputStates::inputpressed], edx
         cmp byte ptr [ActiveBlock::modEnabled], 1
-        jne checkRose // code
+        jne code // checkrose
+
     // active block setup
         push eax
         push edx
@@ -43,7 +44,7 @@ naked void detour()
         mov dword ptr [InputStates::inputTimer], 0
         pop edx
         pop eax
-        jmp checkRose // code
+        jmp code // checkrose
 
     inctimer: // timer for ActiveBlock
         pop edx
@@ -53,51 +54,35 @@ naked void detour()
         mulss xmm1, [DeltaTime::currentDeltaTime]
         addss xmm0, xmm1
         movss [InputStates::inputTimer], xmm0
-        jmp checkRose
+        jmp code
 
-    checkRose: // rose setup
-        push eax
-        push edx
-        mov eax, 0x8 // edx has desired input
-        mov dl, byte ptr [InputStates::inputpressed]
-        test al, dl
-        pop edx
-        pop eax
-        jnz rosethrow
     code:
         cmp [eax+0x41], cl
         mov [eax+10h], edx
 		jmp dword ptr [InputStates::jmp_return]
-
-    rosethrow:
-        mov byte ptr [roseInput], 1
-        jmp code
     }
 }
 
-naked void detour2() // called when you press touchpad or jump during cancellable frames, no buffers :(
+naked void detour2() // inputsonpress // touchpad ecstasy // player is in esi
 {
     _asm {
-    code:
-        mov ecx, [eax+0x0000140C]
-
+        mov [esi+0x00001410], eax
+        cmp byte ptr [InputStates::touchpadRoseEnabled], 0
+        je jmpret
         push ecx
         mov ecx, [staticMediatorPtr] // only get player inputs (thanks boss dante)
         mov ecx, [ecx]
         mov ecx, [ecx+0x24]
-        cmp eax, ecx
+        cmp esi, ecx
         pop ecx
-        jne jmpret // if not player, jump to code
+        jne jmpret // if not player, jump
 
     // checkrose
-        push eax
         push edx
-        mov eax, 0x8 // edx has desired input
-        mov dl, byte ptr [InputStates::inputpressed]
+        mov edx, 0x8 // edx has desired input
         test al, dl
         pop edx
-        pop eax
-        jnz rosethrow
+        jnz rosethrow // only send ecstasy input on press
     jmpret:
 		jmp dword ptr [InputStates::jmp_return2]
 
@@ -113,12 +98,12 @@ std::optional<std::string> InputStates::onInitialize()
     {
         HL_LOG_ERR("Failed to init InputStates mod\n");
         return "Failed to init InputStates mod";
-    } /*
-    if (!install_hook_offset(0x403351, hook2, &detour2, &jmp_return2, 6))
+    } 
+    if (!install_hook_offset(0x3A9329, hook2, &detour2, &jmp_return2, 6))
     {
         HL_LOG_ERR("Failed to init InputStates2 mod\n");
         return "Failed to init InputStates2 mod";
-    }*/
+    }
     return Mod::onInitialize();
 }
 
@@ -137,32 +122,25 @@ void InputStates::onGUIframe()
     ImGui::Checkbox("Taunt Ecstasy", &touchpadRoseEnabled);
 }
 
-void PlayRose(void){
-    sMediator* sMedPtr = (sMediator*)*(uintptr_t*)staticMediatorPtr;
+void PlayRose(void)
+{
+    sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
     uPlayer* uLocalPlr = sMedPtr->playerPtr;
-    uint8_t* moveBank = (uint8_t*)uLocalPlr + 0x1500;
-    uint8_t* moveID = (uint8_t*)uLocalPlr + 0x1564;
-    uint8_t* movePart = (uint8_t*)uLocalPlr + 0x1504;
+    uint8_t& moveBank = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1500);
+    uint8_t& moveID = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1564);
+    uint8_t& movePart = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1504);
 
+    uintptr_t* luciferPtr = (uintptr_t*)((uintptr_t)uLocalPlr + 0x1D98);
+    uintptr_t luciferBase = *luciferPtr;
+    bool& showLucifer = *(bool*)(luciferBase + 0x137C);
 
-
-    //uintptr_t* luciferPtr = (uintptr_t*)uLocalPlr + 0x1D98;
-    //uintptr_t luciferBase = *(uintptr_t*)luciferPtr;
-    //bool* showLucifer = (bool*)luciferBase + 0x137C;
-
-
-
-    // please save me i just want mov ecx, [eax+0x1D98]
-    //                            mov ecx, [ecx+0x137C]
-
-
-    //*showLucifer = true;
-    *moveBank = 12;
-    *moveID = 55;
-    *movePart = 00;
+    showLucifer = true;
+    moveBank = 12;
+    moveID = 55;
+    movePart = 00;
 }
 
-void InputStates::onFrame(fmilliseconds& dt) {
+void InputStates::onFrame(fmilliseconds& dt) { // the game does buffers on tick too so i don't think this is too awful
     sMediator* sMedPtr = (sMediator*)*(uintptr_t*)staticMediatorPtr;
     uPlayer* uLocalPlr = sMedPtr->playerPtr;
     bool* grounded = (bool*)uLocalPlr + 0x2008;
@@ -184,9 +162,9 @@ void InputStates::onFrame(fmilliseconds& dt) {
                     {
                         bufferedRose = true;
                     }
-                    roseInput = false;
+                    roseInput = false; // in active frames
                 }
-                else roseInput = false;
+                else roseInput = false; // grounded.
             }
             // buffer
             if (bufferedRose)
@@ -206,7 +184,7 @@ void InputStates::onFrame(fmilliseconds& dt) {
                 else bufferedRose = false; // grounded.
             }
         }
-        else roseInput = false;
+        else roseInput = false; // cheat is disabled
     }
 }
 
