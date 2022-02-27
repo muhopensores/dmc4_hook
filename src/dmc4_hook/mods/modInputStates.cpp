@@ -2,6 +2,7 @@
 #include "modDeltaTime.hpp"
 #include "modActiveBlock.hpp"
 #include "modMoveIDs.hpp"
+#include "../utils/MessageDisplay.hpp"
 #if 1
 
 uintptr_t InputStates::jmp_return{ NULL };
@@ -99,6 +100,24 @@ naked void detour2() // inputonpress // touchpad ecstasy // player is in esi
     }
 }
 
+static void onTimerCallback() // hide lucifer after rose if weaponid is not lucifer
+{
+    sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
+    if (sMedPtr)
+    {
+        uPlayer* uLocalPlr = sMedPtr->playerPtr;
+        uint8_t& weaponID = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1DB4);
+        uintptr_t* luciferPtr = (uintptr_t*)((uintptr_t)uLocalPlr + 0x1D98);
+        uintptr_t luciferBase = *luciferPtr;
+        bool& showLucifer = *(bool*)(luciferBase + 0x137C);
+        if (showLucifer == true && weaponID != 6)
+        {
+            showLucifer = false;
+        }
+        // DISPLAY_MESSAGE("Lucifer timer finished"); // debug
+    }
+}
+
 std::optional<std::string> InputStates::onInitialize()
 {
     if (!install_hook_offset(0x3B0844, hook, &detour, &jmp_return, 6))
@@ -111,6 +130,7 @@ std::optional<std::string> InputStates::onInitialize()
         HL_LOG_ERR("Failed to init InputStates2 mod\n");
         return "Failed to init InputStates2 mod";
     }
+    m_timer = new utils::Timer(2.0f, onTimerCallback);
     return Mod::onInitialize();
 }
 
@@ -129,7 +149,7 @@ void InputStates::onGUIframe()
     ImGui::Checkbox("Taunt Ecstasy", &touchpadRoseEnabled);
 }
 
-void PlayRose(void)
+void InputStates::PlayRose(void)
 {
     sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
     uPlayer* uLocalPlr = sMedPtr->playerPtr;
@@ -145,15 +165,17 @@ void PlayRose(void)
     moveBank = 12;
     moveID = 55;
     movePart = 00;
+    m_timer->start();
 }
 
 void InputStates::onFrame(fmilliseconds& dt) { // the game does buffers on tick too so i don't think this is too awful
+    m_timer->tick(dt);
     sMediator* sMedPtr = (sMediator*)*(uintptr_t*)staticMediatorPtr;
-    uPlayer* uLocalPlr = sMedPtr->playerPtr;
-    bool* grounded = (bool*)uLocalPlr + 0x2008;
-    uint8_t* cancellable = (uint8_t*)uLocalPlr + 0x1E15;
-    if (uLocalPlr)
+    if (sMedPtr)
     {
+        uPlayer* uLocalPlr = sMedPtr->playerPtr;
+        bool* grounded = (bool*)uLocalPlr + 0x2008;
+        uint8_t* cancellable = (uint8_t*)uLocalPlr + 0x1E15;
         if (touchpadRoseEnabled) // if cheat is enabled
         {
             // input
@@ -163,7 +185,7 @@ void InputStates::onFrame(fmilliseconds& dt) { // the game does buffers on tick 
                 {
                     if (*cancellable == 0x10) // if in free frames
                     {
-                        PlayRose();
+                        InputStates::PlayRose();
                     }
                     if (*cancellable == 0x30) // if in buffer frames
                     {
@@ -171,7 +193,8 @@ void InputStates::onFrame(fmilliseconds& dt) { // the game does buffers on tick 
                     }
                     roseInput = false; // in active frames
                 }
-                else roseInput = false; // grounded.
+                else
+                    roseInput = false; // grounded.
             }
             // buffer
             if (bufferedRose)
@@ -181,17 +204,19 @@ void InputStates::onFrame(fmilliseconds& dt) { // the game does buffers on tick 
                     if (*cancellable == 0x10) // if in free frames
                     {
                         bufferedRose = false;
-                        PlayRose();
+                        InputStates::PlayRose();
                     }
                     if (*cancellable == 0x00) // if another attack starts, kill the buffer
                     {
                         bufferedRose = false;
                     }
                 }
-                else bufferedRose = false; // grounded.
+                else
+                    bufferedRose = false; // grounded.
             }
         }
-        else roseInput = false; // cheat is disabled
+        else
+            roseInput = false; // cheat is disabled
     }
 }
 

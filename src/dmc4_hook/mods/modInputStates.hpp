@@ -12,6 +12,7 @@ public:
     static uint32_t inputpressed;
     static float inputTimer;
     static bool touchpadRoseEnabled;
+    void PlayRose();
 
     std::string getModName() override { return "InputStates"; };
 
@@ -24,4 +25,5 @@ public:
 private:
     hl::Hooker hook;
     hl::Hooker hook2;
+    utils::Timer* m_timer;
 };
