@@ -15,11 +15,6 @@ bool InputStates::touchpadRoseEnabled{ false };
 bool roseInput{ false };
 bool bufferedRose{ false };
 
-InputStates::InputStates()
-{
-    // onInitialize();
-}
-
 naked void detour() // inputpressed // ActiveBlock
 {
     _asm {
@@ -120,12 +115,12 @@ static void onTimerCallback() // hide lucifer after rose if weaponid is not luci
 
 std::optional<std::string> InputStates::onInitialize()
 {
-    if (!install_hook_offset(0x3B0844, hook, &detour, &jmp_return, 6))
+    if (!install_hook_offset(0x3B0844, hook, &detour, &jmp_return, 6)) // ActiveBlock
     {
         HL_LOG_ERR("Failed to init InputStates mod\n");
         return "Failed to init InputStates mod";
     } 
-    if (!install_hook_offset(0x3A9329, hook2, &detour2, &jmp_return2, 6))
+    if (!install_hook_offset(0x3A9329, hook2, &detour2, &jmp_return2, 6)) // TauntEcstasy
     {
         HL_LOG_ERR("Failed to init InputStates2 mod\n");
         return "Failed to init InputStates2 mod";
@@ -169,19 +164,19 @@ void InputStates::PlayRose(void)
 }
 
 void InputStates::onFrame(fmilliseconds& dt) { // the game does buffers on tick too so i don't think this is too awful
-    m_timer->tick(dt);
-    sMediator* sMedPtr = (sMediator*)*(uintptr_t*)staticMediatorPtr;
-    if (sMedPtr)
+    if (touchpadRoseEnabled) // if cheat is enabled
     {
-        uPlayer* uLocalPlr = sMedPtr->playerPtr;
-        bool* grounded = (bool*)uLocalPlr + 0x2008;
-        uint8_t* cancellable = (uint8_t*)uLocalPlr + 0x1E15;
-        if (touchpadRoseEnabled) // if cheat is enabled
+        m_timer->tick(dt);
+        sMediator* sMedPtr = (sMediator*)*(uintptr_t*)staticMediatorPtr;
+        if (sMedPtr)
         {
+            uPlayer* uLocalPlr = sMedPtr->playerPtr;
+            uint8_t* grounded = (uint8_t*)uLocalPlr + 0xEA8;
+            uint8_t* cancellable = (uint8_t*)uLocalPlr + 0x1E15;
             // input
             if (roseInput) // if touchpad is pressed
             {
-                if (*grounded == false)
+                if (*grounded == 3) // aerial?
                 {
                     if (*cancellable == 0x10) // if in free frames
                     {
@@ -199,7 +194,7 @@ void InputStates::onFrame(fmilliseconds& dt) { // the game does buffers on tick 
             // buffer
             if (bufferedRose)
             {
-                if (*grounded == false) // grounded?
+                if (*grounded == 3) // aerial?
                 {
                     if (*cancellable == 0x10) // if in free frames
                     {
@@ -215,8 +210,6 @@ void InputStates::onFrame(fmilliseconds& dt) { // the game does buffers on tick 
                     bufferedRose = false; // grounded.
             }
         }
-        else
-            roseInput = false; // cheat is disabled
     }
 }
 

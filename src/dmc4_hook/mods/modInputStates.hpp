@@ -5,7 +5,7 @@
 class InputStates : public Mod
 {
 public:
-    InputStates();
+    InputStates() = default;
 
     static uintptr_t jmp_return;
     static uintptr_t jmp_return2;
