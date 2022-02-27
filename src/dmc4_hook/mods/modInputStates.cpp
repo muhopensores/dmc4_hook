@@ -58,17 +58,24 @@ naked void detour() // inputpressed // ActiveBlock
 
     code:
         cmp [eax+0x41], cl
-        mov [eax+10h], edx
+        mov [eax+0x10], edx
 		jmp dword ptr [InputStates::jmp_return]
     }
 }
 
-naked void detour2() // inputsonpress // touchpad ecstasy // player is in esi
+naked void detour2() // inputonpress // touchpad ecstasy // player is in esi
 {
     _asm {
         mov [esi+0x00001410], eax
         cmp byte ptr [InputStates::touchpadRoseEnabled], 0
         je jmpret
+        push ecx
+        mov ecx, [staticMediatorPtr] // only get player inputs (thanks boss dante)
+        mov ecx, [ecx]
+        mov ecx, [ecx+0x24]
+        cmp dword ptr [ecx+0x1494], 0 // playerid hopefully
+        pop ecx
+        jne jmpret
         push ecx
         mov ecx, [staticMediatorPtr] // only get player inputs (thanks boss dante)
         mov ecx, [ecx]
