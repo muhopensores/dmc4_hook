@@ -39,7 +39,7 @@ naked void restoreMaxHpScarecrow_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -48,7 +48,7 @@ naked void restoreMaxHpScarecrow_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -71,7 +71,7 @@ naked void restoreMaxHpFrost_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -80,7 +80,7 @@ naked void restoreMaxHpFrost_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -103,7 +103,7 @@ naked void restoreMaxHpArmour_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -112,7 +112,7 @@ naked void restoreMaxHpArmour_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -136,7 +136,7 @@ naked void restoreMaxHpGhosts_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -145,7 +145,7 @@ naked void restoreMaxHpGhosts_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -168,7 +168,7 @@ naked void restoreMaxHpSwordFly_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -177,7 +177,7 @@ naked void restoreMaxHpSwordFly_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -200,7 +200,7 @@ naked void restoreMaxHpSwordFish_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -209,7 +209,7 @@ naked void restoreMaxHpSwordFish_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -232,7 +232,7 @@ naked void restoreMaxHpSeed_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -241,7 +241,7 @@ naked void restoreMaxHpSeed_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -264,7 +264,7 @@ naked void restoreMaxHpRiot_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -273,7 +273,7 @@ naked void restoreMaxHpRiot_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -297,7 +297,7 @@ naked void restoreMaxHpBlitz_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -306,7 +306,7 @@ naked void restoreMaxHpBlitz_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -329,7 +329,7 @@ naked void restoreMaxHpDog_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -338,7 +338,7 @@ naked void restoreMaxHpDog_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -362,7 +362,7 @@ naked void restoreMaxHpBerial_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -371,7 +371,7 @@ naked void restoreMaxHpBerial_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -394,7 +394,7 @@ naked void restoreMaxHpFrog_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -403,7 +403,7 @@ naked void restoreMaxHpFrog_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -426,7 +426,7 @@ naked void restoreMaxHpEchidna_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -435,7 +435,7 @@ naked void restoreMaxHpEchidna_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -458,7 +458,7 @@ naked void restoreMaxHpCredo_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -467,7 +467,7 @@ naked void restoreMaxHpCredo_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -490,7 +490,7 @@ naked void restoreMaxHpAgnus_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -499,7 +499,7 @@ naked void restoreMaxHpAgnus_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -522,7 +522,7 @@ naked void restoreMaxHpSanctus_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -531,7 +531,7 @@ naked void restoreMaxHpSanctus_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -554,7 +554,7 @@ naked void restoreMaxHpDante_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -563,7 +563,7 @@ naked void restoreMaxHpDante_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
@@ -586,7 +586,7 @@ naked void resetTimer_proc(void)
         push edx
         mov eax, 0x10
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         jne check2
         pop edx
         pop eax
@@ -595,7 +595,7 @@ naked void resetTimer_proc(void)
     check2:
         mov eax, 0x08
         mov dl, byte ptr [InputStates::inputpressed] // edx
-        test eax, edx
+        test al, dl
         pop edx
         pop eax
         je code
