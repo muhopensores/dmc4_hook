@@ -108,7 +108,7 @@ AreaJump::AreaJump() {
 
 std::optional<std::string> AreaJump::onInitialize() {
 
-	uintptr_t address = hl::FindPattern("8B 92 30 38 00 00", "DevilMayCry4_DX9.exe"); // DevilMayCry4_DX9.exe+E1F6 
+	// uintptr_t address = hl::FindPattern("8B 92 30 38 00 00", "DevilMayCry4_DX9.exe"); // DevilMayCry4_DX9.exe+E1F6 
     if (!install_hook_offset(0x00E1F6, hook, &detour, &AreaJump::jmp_return, 6))
         {
             HL_LOG_ERR("Failed to init AreaJump mod\n");

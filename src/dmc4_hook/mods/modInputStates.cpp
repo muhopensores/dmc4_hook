@@ -59,7 +59,7 @@ naked void detour() // inputpressed // ActiveBlock
     }
 }
 
-naked void detour2() // inputonpress // touchpad ecstasy // player is in esi
+naked void detour2() // inputonpress // no keyboard support whoops // touchpad ecstasy // player is in esi
 {
     _asm {
         mov [esi+0x00001410], eax
