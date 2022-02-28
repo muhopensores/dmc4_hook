@@ -23,12 +23,12 @@ void EnemyDT::toggleInstantDT(bool enable)
 {
     if (enable)
     {
-        install_patch_offset(0x03309A1, patch2, "\xEB\x1f", 2);
+        //install_patch_offset(0x03309A1, patch2, "\xEB\x1f", 2); // forces DT on any difficulty
         install_patch_offset(0x03309DF, patch3, "\x0f\x57\xc0\x90\x90", 5);
     }
     else
     {
-        patch2.revert();
+        //patch2.revert();
         patch3.revert();
     }
 }
@@ -61,5 +61,5 @@ void EnemyDT::onConfigLoad(const utils::Config& cfg)
 void EnemyDT::onConfigSave(utils::Config& cfg)
 {
     cfg.set<bool>("enemy_no_dt", modEnabledNoDT);
-    cfg.set<bool>("enemy_Instant_dt", modEnabledInstantDT);
+    cfg.set<bool>("enemy_instant_dt", modEnabledInstantDT);
 };

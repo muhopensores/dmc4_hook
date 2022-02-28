@@ -3,10 +3,27 @@
 // bool DifficultySelect::modEnabled{ false };
 
 int gameDifficulty = 0;
+bool disableFrostJumpout = 0;
 
 std::optional<std::string> DifficultySelect::onInitialize()
 {
     return Mod::onInitialize();
+}
+
+// Enemies access a float on spawn, that float seems to control I assume something like aggression until they DT
+void DifficultySelect::ToggleFrostJumpout(bool enable)
+{
+    if (enable)
+    {
+        install_patch_offset(0x01A46F3, patchfrostjumpout, "\x0F\x57\xC0\x90\x90\x90\x90\x90", 8);
+        // xorps xmm0, xmm0
+        // nop 5
+    }
+    else
+    {
+        patchfrostjumpout.revert();
+        // movss xmm0,[eax+00000134]
+    }
 }
 
 void DifficultySelect::setDefault()
@@ -31,7 +48,7 @@ void DifficultySelect::setDefault()
     install_patch_offset(0x02DA9EB, patch18, "\x03\x75", 2);
     install_patch_offset(0x02FAD4E, patch19, "\x40\x01\x00\x00\x75", 5);
     install_patch_offset(0x0304E9E, patch20, "\x40\x01\x00\x00\x75", 5);
-    install_patch_offset(0x03309A0, patch21, "\x03\x74", 2);
+    install_patch_offset(0x03309A0, patch21, "\x03\x74\x1F", 3); // je
     install_patch_offset(0x0343B6A, patch22, "\x24\xf3\xc0", 3);
     install_patch_offset(0x04AB93C, patch23, "\x24\xf3\xc0", 3);
     install_patch_offset(0x0837A5F, patch24, "\x20\x1c", 2);
@@ -59,15 +76,16 @@ void DifficultySelect::setDefault()
     install_patch_offset(0x03C0309, patch46, "\x88\x9f", 2);
     install_patch_offset(0x0378D60, patch47, "\x01", 1);
     install_patch_offset(0x03A7B09, patch48, "\x40", 1);
-    install_patch_offset(0x09EC0E0, patch49,"\x00\xc0\x28\x45\x00\xc0\x28\x45\x00\x00\x80\xbf\x00\xc0\xa8\x45\x00\x00\xc0\xa8\x00\x00\x61\x45\x00\x00"
-                                            "\xe1\x45\x78\x30\x30\x00\x00\xc0\x28\x45\x00\xa0\x0c\x46\x00\xa0\x8c\x45\x00\x00\x61\x45\x00\xa0\x0c\x46"
-                                            "\x00\x00\xe1\x44\x00\x00\x78\x30\x00\x00\x61\x45\x00\xc0\x28\x45\x00\xc0\x28\x45", 72);
+    install_patch_offset(0x09EC0E0, patch49, "\x00\xc0\x28\x45\x00\xc0\x28\x45\x00\x00\x80\xbf\x00\xc0\xa8\x45\x00\x00\xc0\xa8\x00\x00\x61\x45\x00\x00"
+                                             "\xe1\x45\x78\x30\x30\x00\x00\xc0\x28\x45\x00\xa0\x0c\x46\x00\xa0\x8c\x45\x00\x00\x61\x45\x00\xa0\x0c\x46"
+                                             "\x00\x00\xe1\x44\x00\x00\x78\x30\x00\x00\x61\x45\x00\xc0\x28\x45\x00\xc0\x28\x45", 72);
 
 }
 
 void DifficultySelect::setDMD()
 {
-    install_patch_offset(0x004D6C7, patch1,  "\x05\xa8\xcd\xde\x00", 3);
+    // 1-29 are different on DMD compared to default, the rest are unchanged.
+    install_patch_offset(0x004D6C7, patch1, "\x05\xa8\xcd\xde\x00", 3); // frosts jump out of combos outside of DT
     install_patch_offset(0x0094AE7, patch2,  "\x00\x77\x14", 2);
     install_patch_offset(0x0094B02, patch3,  "\x50\xb9\xcb\x00\x8b\xc7", 6);
     install_patch_offset(0x00B5689, patch4,  "\x70\x01\xcc\x00", 3);
@@ -87,7 +105,7 @@ void DifficultySelect::setDMD()
     install_patch_offset(0x02DA9EB, patch18, "\x05\x74", 2);
     install_patch_offset(0x02FAD4E, patch19, "\x44\x01\x00\x00\x77", 5);
     install_patch_offset(0x0304E9E, patch20, "\x44\x01\x00\x00\x77", 5);
-    install_patch_offset(0x03309A0, patch21, "\x05\x75", 2);
+    install_patch_offset(0x03309A0, patch21, "\x03\xEB\x1F", 3); // jmp instead of jne // turns on enemy dt
     install_patch_offset(0x0343B6A, patch22, "\x70\x01\xcc", 3);
     install_patch_offset(0x04AB93C, patch23, "\x70\x01\xcc", 3);
     install_patch_offset(0x0837A5F, patch24, "\x30\x2a", 2);
@@ -121,8 +139,10 @@ void DifficultySelect::setDMD()
 }
 
 void DifficultySelect::setGMD()
-{                                                                             // the below are copied from CE, remember hex
-    install_patch_offset(0x004D6C7, patch1,  "\x05\xa8\xcd\xde\x00", 3);      // `fld dword ptr [edi+DevilMayCry4_DX9.exe+9EC778]` to `fld dword ptr `fld dword ptr [DevilMayCry4_DX9.exe+9ECDA8]` (1000.0f)
+{
+    // the below are copied from CE, remember hex
+    // DevilMayCry4_DX9.exe+
+    install_patch_offset(0x004D6C7, patch1, "\x05\xa8\xcd\xde\x00", 3);   // `fld dword ptr [edi+DevilMayCry4_DX9.exe+9EC778]` to `fld dword ptr `fld dword ptr [DevilMayCry4_DX9.exe+9ECDA8]` (1000.0f)
     install_patch_offset(0x0094AE7, patch2,  "\x00\x77\x14", 2);              // `cmp eax, 14` to `cmp eax, 00`
     install_patch_offset(0x0094B02, patch3,  "\x50\xb9\xcb\x00\x8b\xc7", 6);  // `movss xmm0,[DevilMayCry4_DX9.exe+8BAD28]` (500.0f) to `movss xmm0,[DevilMayCry4_DX9.exe+8BB950]` (1000.0f)
     install_patch_offset(0x00B5689, patch4,  "\xc4\xcd\xde\x00", 3);          // `subss xmm0,[DevilMayCry4_DX9.exe+80F324]` (7200.0f) to `subss xmm0,[DevilMayCry4_DX9.exe+8C0170]` (10800.0f)
@@ -142,7 +162,7 @@ void DifficultySelect::setGMD()
     install_patch_offset(0x02DA9EB, patch18, "\x05\x74", 2);                  // `jne DevilMayCry4_DX9.exe+2DAA12` to `je DevilMayCry4_DX9.exe+2DAA12`
     install_patch_offset(0x02FAD4E, patch19, "\x44\x01\x00\x00\x77", 5);      // `cmp [eax+00000140],edx` & `jne DevilMayCry4_DX9.exe+2FAD84` to `cmp [eax+00000144],edx` & `ja DevilMayCry4_DX9.exe+2FAD84`
     install_patch_offset(0x0304E9E, patch20, "\x44\x01\x00\x00\x77", 5);      // `cmp [eax+00000140],edx` & `jne DevilMayCry4_DX9.exe+304ED4` to `cmp [eax+0000014],edx` & `ja DevilMayCry4_DX9.exe+304ED4`
-    install_patch_offset(0x03309A0, patch21, "\x05\x75", 2);                  // `cmp dword ptr [eax+00000140],03` & `je DevilMayCry4_DX9.exe+3309C2` to `cmp dword ptr [eax+00000140],05` & `jne DevilMayCry4_DX9.exe+3309C2`
+    install_patch_offset(0x03309A0, patch21, "\x05\xEB\x1F", 3); // jmp instead of jne                  // `cmp dword ptr [eax+00000140],03` & `je DevilMayCry4_DX9.exe+3309C2` to `cmp dword ptr [eax+00000140],05` & `jne DevilMayCry4_DX9.exe+3309C2`
     install_patch_offset(0x0343B6A, patch22, "\xc4\xcd\xde", 3);              // `subss xmm0,[DevilMayCry4_DX9.exe+80F324]` (7200.0f) changes per difficulty, GMD's is `subss xmm0,[DevilMayCry4_DX9.exe+9ECDC4]` (18000.0f)
     install_patch_offset(0x04AB93C, patch23, "\xc4\xcd\xde", 3);              // `movss xmm0,[DevilMayCry4_DX9.exe+80F324]` (7200.0f) changes per difficulty, GMD's is `movss xmm0,[DevilMayCry4_DX9.exe+9ECDC4]` (18000.0f)
     install_patch_offset(0x0837A5F, patch24, "\x50\x46", 2);                  // `7200.0f` changes per difficulty, GMD's is `18000.0f` idk why its 2 bytes and not aligned
@@ -198,13 +218,14 @@ void DifficultySelect::setGMD()
 
 void DifficultySelect::onConfigLoad(const utils::Config& cfg)
 {
+    disableFrostJumpout = cfg.get<bool>("disable_frost_jumpout").value_or(false);
     gameDifficulty = cfg.get<int>("game_difficulty").value_or(0);
     if (gameDifficulty)
     {
         switch (gameDifficulty)
         {
         case 0:
-            setDefault();
+            //setDefault(); // no need to set default on load
             break;
         case 1:
             setDMD();
@@ -218,11 +239,16 @@ void DifficultySelect::onConfigLoad(const utils::Config& cfg)
 
 void DifficultySelect::onConfigSave(utils::Config& cfg)
 {
+    cfg.set<bool>("disable_frost_jumpout", disableFrostJumpout);
     cfg.set<int>("game_difficulty", gameDifficulty);
 }
 
 void DifficultySelect::onGUIframe()
 {
+    if (ImGui::Checkbox("Disable Frosts jumping out of combos outside of DT", &disableFrostJumpout))
+    {
+        ToggleFrostJumpout(disableFrostJumpout);
+    }
     ImGui::PushItemWidth(216);
     if (ImGui::Combo("Game Mode", &gameDifficulty, "Default\0Dante Must Die\0God Must Die\0"))
     {
@@ -240,6 +266,8 @@ void DifficultySelect::onGUIframe()
         }
     }
     ImGui::PopItemWidth();
+    ImGui::SameLine();
+    HelpMarker("Set before entering a stage.");
     ImGui::Spacing();
     // if (ImGui::Checkbox("Default", &modEnabledDefault))
     // {

@@ -9,6 +9,7 @@ public:
 
     // static bool modEnabled;
 
+    void ToggleFrostJumpout(bool enable);
     void setDefault();
     void setDMD();
     void setGMD();
@@ -70,4 +71,5 @@ private:
     hl::Patch patch47;
     hl::Patch patch48;
     hl::Patch patch49;
+    hl::Patch patchfrostjumpout;
 };
