@@ -350,6 +350,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("BerialDaze"_hash);
 
+                main->getMods()->onDrawUI("FrostsDontJump"_hash);
+
                 ImGui::Spacing();
                 ImGui::EndTabItem();
             }

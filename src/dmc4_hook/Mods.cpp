@@ -82,6 +82,7 @@
 #include "mods/modDeltaTime.hpp"
 #include "mods/modActiveBlock.hpp"
 #include "mods/modNeroFullHouse.hpp"
+#include "mods/modFrostsDontJump.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -169,6 +170,7 @@ Mods::Mods() {
 		m_mods["DeltaTime"_hash] = std::make_unique<DeltaTime>();
 		m_mods["ActiveBlock"_hash] = std::make_unique<ActiveBlock>();
 		m_mods["NeroFullHouse"_hash] = std::make_unique<NeroFullHouse>();
+		m_mods["FrostsDontJump"_hash] = std::make_unique<FrostsDontJump>();
 }
 
 std::optional<std::string> Mods::onSlowInitialize() const {

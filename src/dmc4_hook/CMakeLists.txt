@@ -166,6 +166,8 @@ SET (MODS
   mods/modActiveBlock.cpp
   mods/modNeroFullHouse.hpp
   mods/modNeroFullHouse.cpp
+  mods/modFrostsDontJump.hpp
+  mods/modFrostsDontJump.cpp
 )
 
 SET (HEADERS

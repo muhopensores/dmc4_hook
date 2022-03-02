@@ -3,27 +3,10 @@
 // bool DifficultySelect::modEnabled{ false };
 
 int gameDifficulty = 0;
-bool disableFrostJumpout = 0;
 
 std::optional<std::string> DifficultySelect::onInitialize()
 {
     return Mod::onInitialize();
-}
-
-// Enemies access a float on spawn, that float seems to control I assume something like aggression until they DT
-void DifficultySelect::ToggleFrostJumpout(bool enable)
-{
-    if (enable)
-    {
-        install_patch_offset(0x01A46F3, patchfrostjumpout, "\x0F\x57\xC0\x90\x90\x90\x90\x90", 8);
-        // xorps xmm0, xmm0
-        // nop 5
-    }
-    else
-    {
-        patchfrostjumpout.revert();
-        // movss xmm0,[eax+00000134]
-    }
 }
 
 void DifficultySelect::setDefault()
@@ -218,7 +201,6 @@ void DifficultySelect::setGMD()
 
 void DifficultySelect::onConfigLoad(const utils::Config& cfg)
 {
-    disableFrostJumpout = cfg.get<bool>("disable_frost_jumpout").value_or(false);
     gameDifficulty = cfg.get<int>("game_difficulty").value_or(0);
     if (gameDifficulty)
     {
@@ -239,16 +221,11 @@ void DifficultySelect::onConfigLoad(const utils::Config& cfg)
 
 void DifficultySelect::onConfigSave(utils::Config& cfg)
 {
-    cfg.set<bool>("disable_frost_jumpout", disableFrostJumpout);
     cfg.set<int>("game_difficulty", gameDifficulty);
 }
 
 void DifficultySelect::onGUIframe()
 {
-    if (ImGui::Checkbox("Disable Frosts jumping out of combos outside of DT", &disableFrostJumpout))
-    {
-        ToggleFrostJumpout(disableFrostJumpout);
-    }
     ImGui::PushItemWidth(216);
     if (ImGui::Combo("Game Mode", &gameDifficulty, "Default\0Dante Must Die\0God Must Die\0"))
     {
