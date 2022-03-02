@@ -1,6 +1,5 @@
 #include "../mods.h"
 #include "modFrostsDontJump.hpp"
-#include "modEasyJc.hpp"
 
 #if 1
 bool FrostsDontJump::modEnabled{ false };

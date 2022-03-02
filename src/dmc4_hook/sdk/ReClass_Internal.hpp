@@ -386,19 +386,27 @@ public:
 }; //Size: 0x2868
 static_assert(sizeof(uPlayer) == 0x2868);
 
+//I tried adding this in through reclass but it drives me crazy when you screw up later offsets by editing earlier stuff
+//also I swear there's no goto shortcut im not scrolling to 14D98
 //0x00330 start of animation stuff (also a pointer)
 //0x00348 float animationFrame
+//0x00EA8 uint32_t grounded (3 = aerial)
 //0x01201 bool isHitstop
 //0x01408 start of inputs stuff (also a pointer)
 //0x0140C bool*4 inputs on hold
 //0x01410 bool*4 inputs on press?
 //0x01414 bool*4 inputs on release?
-//0x01504 int partOfMove? (shows int 1-5 when doing actions)
+//0x01494 uint32_t playerID
+//0x01500 uint32_t moveid pushed to move selection switch
+//0x01504 uint32_t movePart
+//0x01554 uint32_t attackState (jumping, doing an action etc)
+//0x01564 uint32_t moveID
+//0x01568 uint32_t prevMoveID
 //0x015CC float currentHP
 //0x015D0 float maxHP
 //0x01640 bool isDead
 //0x01660 float 180float (some float that starts at 0, incs to 180, then resets?)
-//0x016AC int movementType (0=still, 1=walking, 2=running)
+//0x016AC uint32_t movementType (0=still, 1=walking, 2=running)
 //0x019B8 pointer to uPlayer
 //0x01D94 dante gilgamesh pointer
 //->0x0137C bool shouldShow
@@ -411,24 +419,33 @@ static_assert(sizeof(uPlayer) == 0x2868);
 //0x01DA4 dante pandora pointer
 //->0x0137C bool shouldShow
 //0x01DA8 pointer only in dantes char, contains what I used for moveid
-//->0x0225C int moveiddante (should replace this with uPlayer+0x295C moveid)
+//->0x0225C uint32_t moveiddante (should replace this with uPlayer+0x295C moveid)
+//0x01DB4 uint32_t danteSwordID
+//0x01DB8 uint32_t danteGunID
+//0x01DBC uint32_t standing pose
 //0x01DFC start of move properties stuff (also a pointer)
-//0x01E14 bool*4 canCancel
+//0x01E14 uint8_t*4 canCancel (0x00 in active frames, 0x10 in cancellable frames, 0x30 in buffer frames)
 //0x01E68 float hitStopTimer
 //0x01E64 float direction of magnitude?
-//0x01E7B byte airAttackCount
-//0x01E7D byte weight
-//0x01E7E byte airHikeCount
+//0x01E7B uint8_t airAttackCount
+//0x01E7D uint8_t weight
+//0x01E7E uint8_t airHikeCount
+//0x01E8C pointer used by every air move
+//->0x0001C bool compared to in air moves, no idea what it does
 //0x01F24 float currentDT
 //0x01F28 float maxDT
+//0x01F50 uint8_t everyMoveWrites (no clue what this is, every move seems to mov 1 to it)
 //0x01FF4 float some jump timer
 //0x01FF8 float another jump timer
 //0x028A4 pointer to uPlayer+330 for animation stuff, e.g. uPlayer + 0x28A4->0x18 = frame of animation = uPlayer + 348
-//0x02008 bool grounded
-//0x0295C int moveid
-//0x030C4 int canBuffer (0=can't act, 1=can buffer, 2=can act)
+//0x02008 bool groundedbad
+//0x0295C uint32_t moveid
+//0x03080 pointer to locked on enemy
+//0x03084 pointer to a later part of locked on enemy
+//0x030C4 uint8_t canBuffer (0=can't act, 1=can buffer, 2=can act) (probably int8 didn't check)
 //0x03178 bool isJumpBuffered (1 will make the player jump on the first available frame)
-//0x14CD4 currentStyle
+//0x0CCE8 uint32_t exceedLevel
+//0x14D98 uint32_t currentStyle (wtf is that offset DevilMayCry4_DX9.exe+3B6C92 - mov [esi+00014D98],00000004)
 
 class uStageSetTimeSlow
 {
@@ -441,7 +458,6 @@ public:
 	char pad_1390[3288]; //0x1390
 }; //Size: 0x2068
 static_assert(sizeof(uStageSetTimeSlow) == 0x2068);
-
 
 class cResource : public MtObject
 {

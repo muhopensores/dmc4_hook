@@ -207,7 +207,7 @@ void DifficultySelect::onConfigLoad(const utils::Config& cfg)
         switch (gameDifficulty)
         {
         case 0:
-            //setDefault(); // no need to set default on load
+            // setDefault(); // no need to set default on load
             break;
         case 1:
             setDMD();
@@ -243,75 +243,5 @@ void DifficultySelect::onGUIframe()
         }
     }
     ImGui::PopItemWidth();
-    ImGui::SameLine();
-    HelpMarker("Set before entering a stage.");
     ImGui::Spacing();
-    // if (ImGui::Checkbox("Default", &modEnabledDefault))
-    // {
-    //     toggleDefault(modEnabled);
-    // }
-    // ImGui::SameLine(205);
 }
-/*
-void DifficultySelect::onConfigLoad(const utils::Config& cfg)
-{
-    modEnabled = cfg.get<bool>("x_x").value_or(false);
-    toggle(modEnabled);
-};
-
-void DifficultySelect::onConfigSave(utils::Config& cfg)
-{
-    //cfg.set<bool>("x_x", modEnabled);
-};
-*/
-/*
-        patch1.revert();
-        patch2.revert();
-        patch3.revert();
-        patch4.revert();
-        patch5.revert();
-        patch6.revert();
-        patch7.revert();
-        patch8.revert();
-        patch9.revert();
-        patch10.revert();
-        patch11.revert();
-        patch12.revert();
-        patch13.revert();
-        patch14.revert();
-        patch15.revert();
-        patch16.revert();
-        patch17.revert();
-        patch18.revert();
-        patch19.revert();
-        patch20.revert();
-        patch21.revert();
-        patch22.revert();
-        patch23.revert();
-        patch24.revert();
-        patch25.revert();
-        patch26.revert();
-        patch27.revert();
-        patch28.revert();
-        patch29.revert();
-        patch30.revert();
-        patch31.revert();
-        patch32.revert();
-        patch33.revert();
-        patch34.revert();
-        patch35.revert();
-        patch36.revert();
-        patch37.revert();
-        patch38.revert();
-        patch39.revert();
-        patch40.revert();
-        patch41.revert();
-        patch42.revert();
-        patch43.revert();
-        patch44.revert();
-        patch45.revert();
-        patch46.revert();
-        patch47.revert();
-        patch48.revert();
-        patch49.revert();
-*/

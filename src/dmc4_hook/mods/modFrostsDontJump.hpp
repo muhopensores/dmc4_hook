@@ -22,5 +22,4 @@ public:
 
 private:
     hl::Patch patch1;
-    hl::Patch patch2;
 };
