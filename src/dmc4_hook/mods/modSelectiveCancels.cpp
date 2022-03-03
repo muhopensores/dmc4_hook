@@ -134,58 +134,42 @@ inline void SelectiveCancels::drawCheckboxSimple(const char* name, CANCEL_MOVES 
 };
 
 void SelectiveCancels::onGUIframe() {
-	if (ImGui::CollapsingHeader("Selective Cancels"))
-	{
-		ImGui::Checkbox("Enable", &selectiveCancelsEnable);
+	ImGui::Text("Selective Cancels");
+	ImGui::Spacing();
+	ImGui::Checkbox("Enable", &selectiveCancelsEnable);
 
-		ImGui::Separator();
-		ImGui::Text("Common");
-        ImGui::Spacing();
+	if (ImGui::CollapsingHeader("Selective Cancel Toggles")){
+			ImGui::Spacing();
+			ImGui::Text("Swords");
+			ImGui::Spacing();
 
-		//drawCheckbox("Ecstasy", &checkEcstasy, ECSTASY);
-		drawCheckboxSimple("Ecstasy", ECSTASY);
+			drawCheckboxSimple("Ecstasy", ECSTASY);
+			ImGui::SameLine(205);
+			drawCheckboxSimple("Kick 13", KICK13);
 
-		ImGui::SameLine(205);
+			drawCheckboxSimple("Prop", PROP);
+			ImGui::SameLine(205);
+			drawCheckboxSimple("Shock", SHOCK);
 
-		//drawCheckbox("Argument", &checkArgument, ARGUMENT);
-		drawCheckboxSimple("Argument", ARGUMENT);
-		//drawCheckbox("Kick 13", &checkKick13, KICK13);
-		drawCheckboxSimple("Kick 13", KICK13);
+			drawCheckboxSimple("Slash Dimension", SLASH_DIMENSION);
+			ImGui::SameLine(205);
+			drawCheckboxSimple("DT Pin Up Part 2", DT_PIN_UP_P2);
 
-		ImGui::SameLine(205);
+			ImGui::Spacing();
+			ImGui::Text("Guns");
+			ImGui::Spacing();
 
-		//drawCheckbox("Slash Dimension", &checkSD, SLASH_DIMENSION);
-		drawCheckboxSimple("Slash Dimension", SLASH_DIMENSION);
+			drawCheckboxSimple("Omen", OMEN);
+			ImGui::SameLine(205);
+			drawCheckboxSimple("Epidemic", EPIDEMIC);
 
-		ImGui::Separator();
-		ImGui::Text("Swords");
-        ImGui::Spacing();
-
-		//drawCheckbox("Prop", &checkProp, PROP);
-		drawCheckboxSimple("Prop", PROP);
-
-		ImGui::SameLine(205);
-
-		//drawCheckbox("Shock", &checkShock, SHOCK);
-		drawCheckboxSimple("Shock", SHOCK);
-
-		ImGui::Separator();
-		ImGui::Text("Guns");
-        ImGui::Spacing();
-
-		//drawCheckbox("Omen", &checkOmen, OMEN);
-		drawCheckboxSimple("Omen", OMEN);
-
-		ImGui::SameLine(205);
-
-		drawCheckboxSimple("Epidemic", EPIDEMIC);
-
-		drawCheckboxSimple("Gun Stinger", GUNSTINGER);
-
-		ImGui::SameLine(205);
-
-		drawCheckboxSimple("DT Pin Up Part 2", DT_PIN_UP_P2);
+			drawCheckboxSimple("Argument", ARGUMENT);
+			ImGui::SameLine(205);
+			drawCheckboxSimple("Gun Stinger", GUNSTINGER);
 	}
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Spacing();
 };
 
 void SelectiveCancels::onConfigSave(utils::Config& cfg) {

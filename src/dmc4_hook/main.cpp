@@ -271,7 +271,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
         }*/
 		// TODO(): properly position this?
         ImGui::SameLine(340.0f);
-		if (ImGui::Button("Save config"))
+		if (ImGui::Button("Save Config"))
 		{
 			main->saveSettings();
 		}

@@ -2,6 +2,7 @@
 #include "modDeltaTime.hpp"
 #include "modActiveBlock.hpp"
 #include "modMoveIDs.hpp"
+#include "modForceLucifer.hpp"
 #include "../utils/MessageDisplay.hpp"
 #if 1
 
@@ -105,7 +106,7 @@ static void onTimerCallback() // hide lucifer after rose if weaponid is not luci
         uintptr_t* luciferPtr = (uintptr_t*)((uintptr_t)uLocalPlr + 0x1D98);
         uintptr_t luciferBase = *luciferPtr;
         bool& showLucifer = *(bool*)(luciferBase + 0x137C);
-        if (showLucifer == true && weaponID != 6)
+        if (showLucifer == true && weaponID != 6 && !ForceLucifer::modEnabled)
         {
             showLucifer = false;
         }

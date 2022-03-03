@@ -80,13 +80,16 @@ std::optional<std::string> PlayerTracker::onInitialize()
 
 void PlayerTracker::onGUIframe()
 {
-    ImGui::Checkbox("Disable Game Pause when opening the trainer", &WorkRate::disableTrainerPause);
+    ImGui::Checkbox("Disable Game Pause When Opening The Trainer", &WorkRate::disableTrainerPause);
+
+    ImGui::Spacing();
+
     if (PlayerTracker::player_ptr != NULL)
     {
         ImGui::InputFloat3("Player Position", *playerXYZ);
         ImGui::InputFloat4("Player Rotation", *playerRotation);
         ImGui::InputFloat3("Player Scale", *playerScale);
-        ImGui::Checkbox("Lock on", &PlayerTracker::lockOnAlloc);
+        ImGui::Checkbox("Lock On", &PlayerTracker::lockOnAlloc);
     }
     else
     {

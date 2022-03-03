@@ -134,16 +134,16 @@ void TwitchClient::onGUIframe()
 			break;
 		}
 		ImGui::Text( "\n" );
-		if(ImGui::Button("Connect to Twitch")) {
+		if(ImGui::Button("Connect To Twitch")) {
 			makeInstance();
 		} ImGui::SameLine();
-		if (ImGui::Button("Disconnect from Twitch")) {
+		if (ImGui::Button("Disconnect From Twitch")) {
 			disconnect();
 		}
 		ImGui::Text( "\n" );
-		ImGui::InputText( "Twitch login", twitch_login, 128);
-		ImGui::InputText( "Twitch chat OAuth password", twitch_chat_oauth_password, 128, ImGuiInputTextFlags_Password );
-		if ( ImGui::Button( "Get OAuth password..." ) ) {
+		ImGui::InputText( "Twitch Login", twitch_login, 128);
+		ImGui::InputText( "Twitch OAuth", twitch_chat_oauth_password, 128, ImGuiInputTextFlags_Password );
+		if ( ImGui::Button( "Get OAuth Password..." ) ) {
 			ShellExecute( 0, 0, "https://twitchapps.com/tmi/", 0, 0, SW_SHOW );
 		}
 		ImGui::SameLine();
@@ -153,18 +153,18 @@ void TwitchClient::onGUIframe()
 
 		ImGui::Text( "\n" );
 		// FIXME not implemented
-		if ( ImGui::Checkbox( "Viewers can vote on random gameplay mods", &vote_checkbox ) ) {
+		if ( ImGui::Checkbox( "Viewers Can Vote On Random Gameplay Mods", &vote_checkbox ) ) {
 
 		}
 		// FIXME not implemented
 		if ( vote_checkbox ) {
-			if ( ImGui::RadioButton( "Voting affects which mod WILL BE activated next", &voting_result, 0 ) ) {
+			if ( ImGui::RadioButton( "Voting Affects Which Mod WILL BE Activated Next", &voting_result, 0 ) ) {
 			}
-			if ( ImGui::RadioButton( "Voting affects which mod IS MORE LIKELY to be activated next", &voting_result, 1 ) ) {
+			if ( ImGui::RadioButton( "Voting Affects Which Mod IS MORE LIKELY To Be Activated next", &voting_result, 1 ) ) {
 			}
 		}
 		// FIXME you guessed it
-		if ( ImGui::Checkbox( "Relay Twitch chat to Devil May Cry 4", &mirror_chat_checkbox ) ) {
+		if ( ImGui::Checkbox( "Relay Twitch Chat To Devil May Cry 4", &mirror_chat_checkbox ) ) {
 		}
 	}
 };

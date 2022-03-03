@@ -57,26 +57,27 @@ void DisableDarkslayer::toggleRight(bool enable)
 
 void DisableDarkslayer::onGUIframe()
 {
-    if (ImGui::CollapsingHeader("Disable Darkslayer Inputs"))
+    ImGui::Text("Disable Darkslayer Inputs");
+
+    ImGui::Spacing();
+
+    if (ImGui::Checkbox("Disable Darkslayer Up", &modEnabledUp))
     {
-        if (ImGui::Checkbox("Disable Darkslayer Up", &modEnabledUp))
-        {
-            toggleUp(modEnabledUp);
-        }
-        ImGui::SameLine(205);
-        if (ImGui::Checkbox("Disable Darkslayer Down", &modEnabledDown))
-        {
-            toggleDown(modEnabledDown);
-        }
-        if (ImGui::Checkbox("Disable Darkslayer Left", &modEnabledLeft))
-        {
-            toggleLeft(modEnabledLeft);
-        }
-        ImGui::SameLine(205);
-        if (ImGui::Checkbox("Disable Darkslayer Right", &modEnabledRight))
-        {
-            toggleRight(modEnabledRight);
-        }
+        toggleUp(modEnabledUp);
+    }
+    ImGui::SameLine(205);
+    if (ImGui::Checkbox("Disable Darkslayer Down", &modEnabledDown))
+    {
+        toggleDown(modEnabledDown);
+    }
+    if (ImGui::Checkbox("Disable Darkslayer Left", &modEnabledLeft))
+    {
+        toggleLeft(modEnabledLeft);
+    }
+    ImGui::SameLine(205);
+    if (ImGui::Checkbox("Disable Darkslayer Right", &modEnabledRight))
+    {
+        toggleRight(modEnabledRight);
     }
 }
 

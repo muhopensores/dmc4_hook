@@ -138,8 +138,8 @@ std::optional<std::string> BigHeadMode::onInitialize()
 
 void BigHeadMode::onGUIframe()
 {
-	ImGui::Checkbox("Big head mode", &g_enable_mod);
-	if (ImGui::Checkbox("Swole mode", &g_swole_mode)) {
+	ImGui::Checkbox("Big Head Mode", &g_enable_mod);
+	if (ImGui::Checkbox("Swole Mode", &g_swole_mode)) {
 		g_enable_mod = g_swole_mode;
 	}
 }
