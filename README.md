@@ -7,12 +7,11 @@ This dll will give you access to training, gameplay, and quality of life options
 
 Builds are intended for use on the Steam DX9 version of the game and will crash on other versions.
 
-## Instructions
+## Download
+Releases can be found [here.](https://github.com/muhopensores/dmc4_hook/releases)
 
+## Instructions
 For help regarding usage of the trainer, check our [wiki.](https://github.com/muhopensores/dmc4_hook/wiki)
 
-## How to build ##
+## How to build
 Run build_debug.bat/build_release.bat edit bat files according to your visual studio version if needed.
-
-## Download ##
-Releases can be found [here.](https://github.com/muhopensores/dmc4_hook/releases)
