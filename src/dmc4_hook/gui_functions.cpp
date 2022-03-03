@@ -164,6 +164,7 @@ void CreditsDrawing()
         ImGui::Separator();
         ImGui::Spacing();
         ImGui::Text("Special Thanks:");
+        ImGui::Spacing();
         ImGui::Text("Whirling");
         ImGui::Text("Terrutas");
         ImGui::Text("Boey");
@@ -194,6 +195,7 @@ void CreditsDrawing()
         ImGui::Separator();
         ImGui::Spacing();
         ImGui::Text("Hotkeys:");
+        ImGui::Spacing();
         ImGui::Text("%s = Infinite Health", &HotkeyName(InfAllHealth::hotkey));
         ImGui::Text("%s = Inf DT", &HotkeyName(InfDT::hotkey));
         ImGui::Text("%s = One Hit Kill", &HotkeyName(OneHitKill::hotkey));
@@ -202,6 +204,10 @@ void CreditsDrawing()
         ImGui::Text("Lock On + Taunt = Restore Enemy HP");
         ImGui::SameLine();
         HelpMarker("Only if \"Restore Enemy HP\" is checked in the General tab");
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        ImGui::Text("Spawn Hotkeys:");
         ImGui::Spacing();
         ImGui::Text("%s = Spawn Modifier", &HotkeyName(EnemySpawn::hotkeySpawnModifier));
         ImGui::SameLine();

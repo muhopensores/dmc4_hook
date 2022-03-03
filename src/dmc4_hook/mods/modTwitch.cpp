@@ -6,6 +6,7 @@
 #include "hacklib/Logging.h" // TODO: log's not working for some reason idk
 
 static hlMain* g_main{};
+bool twitchLoginOnBoot = false;
 
 #if 1
 // initialization
@@ -32,16 +33,20 @@ std::optional<std::string> TwitchClient::onInitialize() {
 void TwitchClient::onConfigSave(utils::Config& cfg) {
 	cfg.set("twitch_login", twitch_login);
 	cfg.set("twitch_oauth", twitch_chat_oauth_password);
+	cfg.set<bool>("twitch_login_on_boot", twitchLoginOnBoot);
 };
 // onConfigLoad
 // load data into variables from config structure.
 void TwitchClient::onConfigLoad(const utils::Config& cfg) {
 	auto cfg_login = cfg.get("twitch_login").value_or("");
 	auto cfg_oauth = cfg.get("twitch_oauth").value_or("");
-
 	strcpy(twitch_login, cfg_login.c_str());
 	strcpy(twitch_chat_oauth_password, cfg_oauth.c_str());
-
+	twitchLoginOnBoot = cfg.get<bool>("twitch_login_on_boot").value_or(false);
+    if (twitchLoginOnBoot)
+    {
+        makeInstance();
+	}
 };
 
 void TwitchClient::makeInstance() {
@@ -133,19 +138,18 @@ void TwitchClient::onGUIframe()
 			ImGui::Text("Twitch status: TWITCH_DISCONNECTED");
 			break;
 		}
-		ImGui::Text( "\n" );
+		if ( ImGui::Button( "Get OAuth Password..." ) ) {
+			ShellExecute( 0, 0, "https://twitchapps.com/tmi/", 0, 0, SW_SHOW );
+		}
+		ImGui::InputText( "Twitch Username", twitch_login, 128);
+		ImGui::InputText( "Twitch OAuth", twitch_chat_oauth_password, 128, ImGuiInputTextFlags_Password );
 		if(ImGui::Button("Connect To Twitch")) {
 			makeInstance();
 		} ImGui::SameLine();
 		if (ImGui::Button("Disconnect From Twitch")) {
 			disconnect();
 		}
-		ImGui::Text( "\n" );
-		ImGui::InputText( "Twitch Login", twitch_login, 128);
-		ImGui::InputText( "Twitch OAuth", twitch_chat_oauth_password, 128, ImGuiInputTextFlags_Password );
-		if ( ImGui::Button( "Get OAuth Password..." ) ) {
-			ShellExecute( 0, 0, "https://twitchapps.com/tmi/", 0, 0, SW_SHOW );
-		}
+        ImGui::Checkbox("Log In On Game Boot Automatically", &twitchLoginOnBoot);
 		ImGui::SameLine();
 		// FIXME not implemented lmao use config
 		/*if ( ImGui::Button( "Save login info" ) ) {
