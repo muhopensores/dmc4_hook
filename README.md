@@ -1,7 +1,7 @@
 # DMC4Hook #
 
 ## Info
-A trainer for the original DX9 version of Devil May Cry 4, made with hacklib.
+A trainer for the original DX9 version of Devil May Cry 4 made with [hacklib](https://github.com/rafzi/hacklib), [minhook](https://github.com/TsudaKageyu/minhook), and [ImGui](https://github.com/ocornut/imgui).
 
 This dll will give you access to training, gameplay, and quality of life options without ever needing to open anything alongside your exe.
 
