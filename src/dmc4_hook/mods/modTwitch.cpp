@@ -23,36 +23,9 @@ std::optional<std::string> TwitchClient::onInitialize() {
 	return Mod::onInitialize();
 }
 
-// onFrame()
-// do something each frame example
-/*void TwitchClient::onFrame() {
-	
-}*/
-// onConfigSave
-// save your data into cfg structure.
-void TwitchClient::onConfigSave(utils::Config& cfg) {
-	cfg.set("twitch_login", twitch_login);
-	cfg.set("twitch_oauth", twitch_chat_oauth_password);
-	cfg.set<bool>("twitch_login_on_boot", twitchLoginOnBoot);
-};
-// onConfigLoad
-// load data into variables from config structure.
-void TwitchClient::onConfigLoad(const utils::Config& cfg) {
-	auto cfg_login = cfg.get("twitch_login").value_or("");
-	auto cfg_oauth = cfg.get("twitch_oauth").value_or("");
-	strcpy(twitch_login, cfg_login.c_str());
-	strcpy(twitch_chat_oauth_password, cfg_oauth.c_str());
-	twitchLoginOnBoot = cfg.get<bool>("twitch_login_on_boot").value_or(false);
-    if (twitchLoginOnBoot)
-    {
-        makeInstance();
-	}
-};
-
 void TwitchClient::makeInstance() {
 
-	if ((twitchStatus == TWITCH_CONNECTING) ||
-		(twitchStatus == TWITCH_CONNECTED)) {
+	if ((twitchStatus == TWITCH_CONNECTING) || (twitchStatus == TWITCH_CONNECTED)) {
 		return;
 	}
 
@@ -150,11 +123,11 @@ void TwitchClient::onGUIframe()
 			disconnect();
 		}
         ImGui::Checkbox("Log In On Game Boot Automatically", &twitchLoginOnBoot);
-		ImGui::SameLine();
+		// ImGui::SameLine();
 		// FIXME not implemented lmao use config
 		/*if ( ImGui::Button( "Save login info" ) ) {
 		}*/
-
+		/*
 		ImGui::Text( "\n" );
 		// FIXME not implemented
 		if ( ImGui::Checkbox( "Viewers Can Vote On Random Gameplay Mods", &vote_checkbox ) ) {
@@ -166,10 +139,32 @@ void TwitchClient::onGUIframe()
 			}
 			if ( ImGui::RadioButton( "Voting Affects Which Mod IS MORE LIKELY To Be Activated next", &voting_result, 1 ) ) {
 			}
-		}
+		}*/
 		// FIXME you guessed it
 		if ( ImGui::Checkbox( "Relay Twitch Chat To Devil May Cry 4", &mirror_chat_checkbox ) ) {
 		}
 	}
 };
+
+void TwitchClient::onConfigSave(utils::Config& cfg)
+{
+    cfg.set("twitch_login", twitch_login);
+    cfg.set("twitch_oauth", twitch_chat_oauth_password);
+    cfg.set<bool>("twitch_login_on_boot", twitchLoginOnBoot);
+};
+// onConfigLoad
+// load data into variables from config structure.
+void TwitchClient::onConfigLoad(const utils::Config& cfg)
+{
+    auto cfg_login = cfg.get("twitch_login").value_or("");
+    auto cfg_oauth = cfg.get("twitch_oauth").value_or("");
+    strcpy(twitch_login, cfg_login.c_str());
+    strcpy(twitch_chat_oauth_password, cfg_oauth.c_str());
+    twitchLoginOnBoot = cfg.get<bool>("twitch_login_on_boot").value_or(false);
+    if (twitchLoginOnBoot)
+    {
+        makeInstance(); // sometimes gets stuck on connecting, says "IRC session terminated" 
+    }
+};
+
 #endif

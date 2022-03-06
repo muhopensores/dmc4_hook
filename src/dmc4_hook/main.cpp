@@ -421,6 +421,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 main->getMods()->onDrawUI("InputStates"_hash); // Taunt Ecstasy
 
                 // main->getMods()->onDrawUI("KnockbackEdits"_hash); // currently empty
+
+                main->getMods()->onDrawUI("Quicksilver"_hash);
+
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
@@ -505,9 +508,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
             if (ImGui::BeginTabItem("System"))
             {
-				main->getMods()->onDrawUI("Quicksilver"_hash);
-                ImGui::Spacing();
-
                 ImGui::Text("HUD");
 
                 ImGui::Spacing();

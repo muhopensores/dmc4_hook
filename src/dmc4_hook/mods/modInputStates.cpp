@@ -99,7 +99,8 @@ naked void detour2() // inputonpress // no keyboard support whoops // touchpad e
 static void onTimerCallback() // hide lucifer after rose if weaponid is not lucifer
 {
     sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
-    if (sMedPtr)
+    uPlayer* uLocalPlr = sMedPtr->playerPtr;
+    if (uLocalPlr)
     {
         uPlayer* uLocalPlr = sMedPtr->playerPtr;
         uint8_t& weaponID = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1DB4);
@@ -153,10 +154,10 @@ void InputStates::onFrame(fmilliseconds& dt) { // the game does buffers on tick 
     if (touchpadRoseEnabled) // if cheat is enabled
     {
         m_timer->tick(dt);
-        sMediator* sMedPtr = (sMediator*)*(uintptr_t*)staticMediatorPtr;
-        if (sMedPtr)
+        sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
+        uPlayer* uLocalPlr = sMedPtr->playerPtr;
+        if (uLocalPlr)
         {
-            uPlayer* uLocalPlr = sMedPtr->playerPtr;
             uint8_t& grounded = *(uint8_t*)((uintptr_t)uLocalPlr + 0xEA8);
             uint8_t& cancellable = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1E15);
             // input

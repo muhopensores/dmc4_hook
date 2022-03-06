@@ -9,6 +9,7 @@
 #include "./mods/modBpPortal.hpp"
 #include "./mods/modNoClip.hpp"
 #include "./mods/modEnemySpawn.hpp"
+#include "./mods/modQuicksilver.hpp"
 
 std::string HotkeyName(int hotkey) {
     switch (hotkey)
@@ -41,8 +42,10 @@ std::string HotkeyName(int hotkey) {
         return "F11";
     case 0x7B: // 123
         return "F12";
+    case 0xBB: // 187
+        return "=/+";
     }
-    return "Invalid";
+    return "Siyan Moment";
 }
 
 inline void UnderLine( ImColor col_ )
@@ -161,17 +164,14 @@ void CreditsDrawing()
         ImGui::Text("Mstislav Capusta");
         ImGui::Text("SSSiyan");
         ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
         ImGui::Text("Special Thanks:");
-        ImGui::Spacing();
         ImGui::Text("Whirling");
         ImGui::Text("Terrutas");
         ImGui::Text("Boey");
         ImGui::Text("DelusionaryKiller");
         ImGui::Text("DJMalice");
         ImGui::Text("cheburrat0r");
-        ImGui::Text("  "); // light feline
+        ImGui::Text("LightFeline");
         ImGui::Text("endneo");
         ImGui::Text("CrazyMelody");
         ImGui::Text("Dlupx");
@@ -194,24 +194,38 @@ void CreditsDrawing()
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
+
         ImGui::Text("Hotkeys:");
+
         ImGui::Spacing();
+
         ImGui::Text("%s = Infinite Health", &HotkeyName(InfAllHealth::hotkey));
+
         ImGui::Text("%s = Inf DT", &HotkeyName(InfDT::hotkey));
+
         ImGui::Text("%s = One Hit Kill", &HotkeyName(OneHitKill::hotkey));
+
         ImGui::Text("%s = Open BP Portal / Red Seal", &HotkeyName(BpPortal::hotkey));
+
         ImGui::Text("%s = NoClip", &HotkeyName(NoClip::hotkey));
+
         ImGui::Text("Lock On + Taunt = Restore Enemy HP");
         ImGui::SameLine();
         HelpMarker("Only if \"Restore Enemy HP\" is checked in the General tab");
+
+        ImGui::Text("%s = Quicksilver", &HotkeyName(Quicksilver::hotkey));
+
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
+
         ImGui::Text("Spawn Hotkeys:");
         ImGui::Spacing();
+
         ImGui::Text("%s = Spawn Modifier", &HotkeyName(EnemySpawn::hotkeySpawnModifier));
         ImGui::SameLine();
         HelpMarker("The following hotkeys will only be activated if this modifier is held");
+
         ImGui::Text("%s = Spawn Scarecrow Arm", &HotkeyName(EnemySpawn::hotkeySpawnScarecrowArm));
         ImGui::Text("%s = Spawn Scarecrow Leg", &HotkeyName(EnemySpawn::hotkeySpawnScarecrowLeg));
         ImGui::Text("%s = Spawn Mega", &HotkeyName(EnemySpawn::hotkeySpawnMega));

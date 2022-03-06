@@ -8,6 +8,8 @@ public:
 	// using default constructor
 	Quicksilver() = default;
 
+	static int hotkey;
+
 	// override getModName() method with your mod name for logging.
 	std::string getModName() override { return "Quicksilver"; };
 
@@ -18,6 +20,10 @@ public:
 	void onFrame(fmilliseconds& dt) override;
 	void onGUIframe() override;
 	void onTwitchCommand(std::size_t hash) override;
+	void onUpdateInput(hl::Input& input) override;
+
+	void onConfigLoad(const utils::Config& cfg) override;
+    void onConfigSave(utils::Config& cfg) override;
 
 private:
 	utils::Timer* m_timer; // i've kept those as ptrs to avoid malloc/free calls
