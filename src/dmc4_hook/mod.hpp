@@ -5,6 +5,7 @@
 #include "hacklib/Hooker.h"
 #include "imgui/imgui.h"
 #include "utils/Config.hpp"
+#include "utils/Timer.hpp"
 #include "sdk/ReClass_Internal.hpp"
 #include "main.h"
 
@@ -67,14 +68,18 @@ public:
 
 	virtual std::optional<std::string> onInitialize() { return std::nullopt; }
 	// should be called from d3d hook
-	virtual void onFrame() {}
+	virtual void onFrame(fmilliseconds& dt) {}
 	// called only when imgui window displays
 	virtual void onGUIframe() {}
 
 	virtual void onConfigLoad(const utils::Config& cfg) {}
 	virtual void onConfigSave(utils::Config& cfg) {}
+    virtual void onUpdateInput(hl::Input& input) {}
 
 	//game specific callbacks
 	virtual void onGamePause(bool toggle) {};
 	virtual bool onMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) { return true; };
+
+	// twitch
+	virtual void onTwitchCommand(std::size_t hash) {};
 };

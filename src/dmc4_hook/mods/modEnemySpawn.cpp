@@ -1,8 +1,32 @@
 #include "../mods.h"
+//#include "../sdk/ReClass_Internal.hpp"
+
 #include "modEnemySpawn.hpp"
 #include "modAreaJump.hpp" // for cAreaJumpPtr
 
 // 00738AA2 calls spawns
+// scarecrow arm can be spawned via twitch chat with "\SpawnScarecrowArm"
+
+
+// TODO(): move this somewhere maybe
+constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
+sMediator* sMedPtr = nullptr;
+uPlayer* uLocalPlr = nullptr;
+
+int EnemySpawn::hotkeySpawnModifier{ NULL };
+
+int EnemySpawn::hotkeySpawnScarecrowArm{ NULL };
+int EnemySpawn::hotkeySpawnScarecrowLeg{ NULL };
+int EnemySpawn::hotkeySpawnMega{ NULL };
+int EnemySpawn::hotkeySpawnFrost{ NULL };
+int EnemySpawn::hotkeySpawnAssault{ NULL };
+int EnemySpawn::hotkeySpawnBlitz{ NULL };
+int EnemySpawn::hotkeySpawnBasilisk{ NULL };
+int EnemySpawn::hotkeySpawnChimera{ NULL };
+int EnemySpawn::hotkeySpawnMephisto{ NULL };
+int EnemySpawn::hotkeySpawnFaust{ NULL };
+int EnemySpawn::hotkeySpawnBianco{ NULL };
+int EnemySpawn::hotkeySpawnAlto{ NULL };
 
 constexpr std::array<uintptr_t, 19> fptrEmFactories{
 	0x0055E710,			// Arm Scarecrow em01
@@ -37,39 +61,134 @@ constexpr std::array<uintptr_t, 19> fptrEmFactories{
 };
 
 constexpr std::array<const char*, 19> enemyNames{
-	"Scarecrow (Arm)",	// em01
-	"Scarecrow (Leg)",	// em02
-	"Mega Scarecrow",	// em03
-	"Frost",			// em04
-	"Assault",			// em05
-	"Blitz",			// em06
+	"Scarecrow (Arm)",	// em01 //  0
+	"Scarecrow (Leg)",	// em02 //  1
+	"Mega Scarecrow",	// em03 //  2
+	"Frost",			// em04 //  3
+	"Assault",			// em05 //  4
+	"Blitz",			// em06 //  5
 	// "Gladius",		// em07
 	// "Cutlass",		// em08
-	"Basilisk",			// em09
-	"Chimera Seed",		// em10
+	"Basilisk",			// em09 //  6
+	"Chimera Seed",		// em10 //  7
 	// Chimera			// em11
-    "Mephisto",			// em12
-    "Faust",			// em13
-	"Bianco Angelo",	// em14
-	"Alto Angelo",		// em15
+    "Mephisto",			// em12 //  8
+    "Faust",			// em13 //  9
+	"Bianco Angelo",	// em14 // 10
+	"Alto Angelo",		// em15 // 11
 	// Fault			// em16
 //--------------------------------
-	"Berial",			// bo01
-	"Bael",				// bo02
+	"Berial",			// bo01 // 12
+	"Bael",				// bo02 // 13
 	// Dagon			// bo03
-	"Echidna",			// bo04
+	"Echidna",			// bo04 // 14
 	// Agnus			// bo05
-	"Angelo Agnus",		// bo06
-	"Angelo Credo",		// bo07
+	"Angelo Agnus",		// bo06 // 15
+	"Angelo Credo",		// bo07 // 16
 	// The Savior		// bo08
 	// The False Savior	// bo09
-	"Sanctus",			// bo10
-	"Sanctus Diabolica"	// bo11
+	"Sanctus",			// bo10 // 17
+	"Sanctus Diabolica"	// bo11 // 18
 	// Dante			// bo12
+};
+
+constexpr std::array<int, 19> EnemySpawnType{
+    4,  // "Scarecrow Arm"     // em01 //  0
+    4,  // "Scarecrow Leg"     // em02 //  1
+    4,  // "Mega Scarecrow",   // em03 //  2
+    4,  // "Frost",            // em04 //  3
+    0,  // "Assault",          // em05 //  4
+    4,  // "Blitz",            // em06 //  5
+        // "Gladius",		   // em07
+        // "Cutlass",		   // em08
+    3,  // "Basilisk",         // em09 //  6
+    3,  // "Chimera Seed",     // em10 //  7 // requires different spawn
+        // "Chimera",		   // em11
+    4,  // "Mephisto",         // em12 //  8
+    4,  // "Faust",            // em13 //  9
+    4,  // "Bianco Angelo",    // em14 // 10
+    4,  // "Alto Angelo",      // em15 // 11
+        // "Fault",		       // em16
+    4,  // "Berial",           // bo01 // 12
+    4,  // "Bael",             // bo02 // 13
+        // "Dagon",	           // bo03
+    4,  // "Echidna",          // bo04 // 14
+        // "Agnus",	           // bo05
+    4,  // "Angelo Agnus",     // bo06 // 15
+    4,  // "Angelo Credo",     // bo07 // 16
+        // "The Savior",	   // bo08
+        // "The False Savior", // bo09
+    4,  // "Sanctus",          // bo10 // 17
+    4   // "Sanctus Diabolica" // bo11 // 18
+        // "Dante"			   // bo12
 };
 
 static uintptr_t fptrUpdateActorList{ 0x008DC540 }; // Spawns shit
 static uintptr_t someStruct{ 0x00E552CC };
+
+glm::vec3 getPlayerPosition() {
+	// TODO(): move this into somewhere general since
+	// this player ptr might be useful in other places
+	sMedPtr = (sMediator*)*(uintptr_t*)staticMediatorPtr;
+	uLocalPlr = sMedPtr->playerPtr;
+	// not sure if this check is needed
+	if (uLocalPlr) {
+		return uLocalPlr->mPos;
+	}
+	else {
+		return { 0.0f, 0.0f, 0.0f };
+	}
+}
+
+int enemySpawning = 0;
+
+void setEnemyPosition(uEnemySomething* em) {
+	em->mSpawnCoords = getPlayerPosition() + glm::vec3{ 0.0f, 300.0f, 0.0f };
+	//em->mEnemySpawnEffectSomething = 4;
+    em->mEnemySpawnEffectSomething = EnemySpawnType[(enemySpawning)];
+}
+
+/*
+scarecrow:
+2 scarecrow built by ants (also for mega), looks weird coming from the air
+3 scarecrows fall out of horizontal portal while lying down
+4 scarecrows fall out of horizontal portal
+5 broken on most, T POSE BABYYYYY
+
+frost:
+2 frost spawns in ice
+3 frost jump far horizontally
+4 frost falls, looks good
+
+blitz:
+1 blitz spawns under player explosion
+2 blitz spawns on player explosion
+4 blitz spawns teleporting around
+
+mephisto/faust:
+2 makes mephisto+faust spawn down, usually through the floor
+3 mephisto faust spawns and goes up
+4 mephisto faust spawns and goes up
+
+assault:
+0 assualt spawns under the player
+2 assault spawns through wall portal
+3 assault do tiny jump towards camera
+4 assault long jump
+
+armour:
+1 bianco spawns through horizontal portal
+4 bianco spawns through vertical portal
+
+basilisk:
+2 basilisk hops forward from air
+3 basilisk horizontal portal ground
+4 basilisk spawns attacking random spot
+
+seed:
+2 chimera seed spawns in seed and falls from much higher up
+3 chimera seed spawns in seed and falls
+*/
 
 void spawnEm00x(int index) {
 	uintptr_t emFunctionPointer = fptrEmFactories.at(index);
@@ -78,6 +197,17 @@ void spawnEm00x(int index) {
 		pushf
 		call emFunctionPointer // make actor
         mov esi, eax
+
+        push edx
+        mov edx, index
+        mov [enemySpawning], edx
+        pop edx
+
+		pusha
+		push esi
+		call setEnemyPosition
+		pop esi
+		popa
         mov ecx, 0Fh
         mov eax, [someStruct] // static
 		mov eax, [eax]
@@ -90,18 +220,24 @@ void spawnEm00x(int index) {
 
 std::optional<std::string> EnemySpawn::onInitialize() 
 { 
+	m_spawnScarecrowArmCommand = std::hash<std::string>{}("\\SpawnScarecrowArm");
+    m_spawnScarecrowLegCommand = std::hash<std::string>{}("\\SpawnScarecrowLeg");
+	m_spawnMegaCommand = std::hash<std::string>{}("\\SpawnMega");
+    m_spawnFrostCommand = std::hash<std::string>{}("\\SpawnFrost");
+	m_spawnAssaultCommand = std::hash<std::string>{}("\\SpawnAssault");
+    m_spawnBlitzCommand = std::hash<std::string>{}("\\SpawnBlitz");
+    m_spawnBasiliskCommand = std::hash<std::string>{}("\\SpawnBasilisk");
+    m_spawnChimeraCommand = std::hash<std::string>{}("\\SpawnChimera");
+	m_spawnMephistoCommand = std::hash<std::string>{}("\\SpawnMephisto");
+    m_spawnFaustCommand = std::hash<std::string>{}("\\SpawnFaust");
+    m_spawnBiancoCommand = std::hash<std::string>{}("\\SpawnBianco");
+    m_spawnAltoCommand = std::hash<std::string>{}("\\SpawnAlto");
+
 	return Mod::onInitialize(); 
 }
 
 void EnemySpawn::onGUIframe()
 {
-	/*auto lambda = [](int i) {
-		if (ImGui::Button(enemyNames[i])) {
-			spawnEm00x(i);
-		}
-	};
-	std::for_each(enemyNames.begin(), enemyNames.end(), lambda);*/
-
 	if (IsBadWritePtr(AreaJump::cAreaJumpPtr, sizeof(uint32_t)) || IsBadReadPtr(AreaJump::cAreaJumpPtr, sizeof(uint32_t)))
     {
         ImGui::TextWrapped("Enemy Spawner is not initialized.\nLoad into a stage to access it.");
@@ -109,23 +245,165 @@ void EnemySpawn::onGUIframe()
     }
 
 	ImGui::Text("Enemy Spawner");
-    ImGui::SameLine(0, 1);
-    HelpMarker("Spawn position is not yet supported; enemies will always spawn at 0,0,0.");
-
-	// will mr.compiler unroll this? probably not check the .ASM listings im not gonna
-	/*for (int i = 0, e = enemyNames.size(); i != e; i++) {
-		if (ImGui::Button(enemyNames[i])) {
-			spawnEm00x(i);
-		}
-		if (i % 2 == 0) {
-			ImGui::SameLine();
-		}
-	}*/
 
 	int enemyNames_current = 0;
 	if (ImGui::ListBox("##Enemy Spawn Listbox", &enemyNames_current, enemyNames.data(), enemyNames.size(), 19))
     {
             spawnEm00x(enemyNames_current);
+    }
+}
+
+void EnemySpawn::onTwitchCommand(std::size_t hash)
+{
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnScarecrowArmCommand);
+    if (hash == m_spawnScarecrowArmCommand)
+    {
+        spawnEm00x(0);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnScarecrowLegCommand);
+    if (hash == m_spawnScarecrowLegCommand)
+    {
+        spawnEm00x(1);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnMegaCommand);
+    if (hash == m_spawnMegaCommand)
+    {
+        spawnEm00x(2);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnFrostCommand);
+    if (hash == m_spawnFrostCommand)
+    {
+        spawnEm00x(3);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnAssaultCommand);
+    if (hash == m_spawnAssaultCommand)
+    {
+        spawnEm00x(4);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnBlitzCommand);
+    if (hash == m_spawnBlitzCommand)
+    {
+        spawnEm00x(5);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnBasiliskCommand);
+    if (hash == m_spawnBasiliskCommand)
+    {
+        spawnEm00x(6);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnChimeraCommand);
+    if (hash == m_spawnChimeraCommand)
+    {
+        spawnEm00x(7);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnMephistoCommand);
+    if (hash == m_spawnMephistoCommand)
+    {
+        spawnEm00x(8);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnFaustCommand);
+    if (hash == m_spawnFaustCommand)
+    {
+        spawnEm00x(9);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnBiancoCommand);
+    if (hash == m_spawnBiancoCommand)
+    {
+        spawnEm00x(10);
+    }
+    HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnAltoCommand);
+    if (hash == m_spawnAltoCommand)
+    {
+        spawnEm00x(11);
+    }
+}
+
+void EnemySpawn::onConfigLoad(const utils::Config& cfg)
+{
+    hotkeySpawnModifier = cfg.get<int>("hotkey_spawn_modifier").value_or(0x11); // Ctrl
+
+    hotkeySpawnScarecrowArm = cfg.get<int>("hotkey_spawn_scarecrow_arm").value_or(0x70); // F1
+    hotkeySpawnScarecrowLeg = cfg.get<int>("hotkey_spawn_scarecrow_leg").value_or(0x71); // F2
+    hotkeySpawnMega = cfg.get<int>("hotkey_spawn_mega").value_or(0x72);                  // F3
+    hotkeySpawnFrost = cfg.get<int>("hotkey_spawn_frost").value_or(0x73);                // F4
+    hotkeySpawnAssault = cfg.get<int>("hotkey_spawn_assault").value_or(0x74);            // F5
+    hotkeySpawnBlitz = cfg.get<int>("hotkey_spawn_blitz").value_or(0x75);                // F6
+    hotkeySpawnBasilisk = cfg.get<int>("hotkey_spawn_basilisk").value_or(0x76);          // F7
+    hotkeySpawnChimera = cfg.get<int>("hotkey_spawn_chimera").value_or(0x77);            // F8
+    hotkeySpawnMephisto = cfg.get<int>("hotkey_spawn_mephisto").value_or(0x78);          // F9
+    hotkeySpawnFaust = cfg.get<int>("hotkey_spawn_faust").value_or(0x79);                // F10
+    hotkeySpawnBianco = cfg.get<int>("hotkey_spawn_bianco").value_or(0x7A);              // F11
+    hotkeySpawnAlto = cfg.get<int>("hotkey_spawn_alto").value_or(0x7B);                  // F12
+};
+
+void EnemySpawn::onConfigSave(utils::Config& cfg)
+{
+    cfg.set<int>("hotkey_spawn_modifier", hotkeySpawnModifier);
+
+    cfg.set<int>("hotkey_spawn_scarecrow_arm", hotkeySpawnScarecrowArm);
+    cfg.set<int>("hotkey_spawn_scarecrow_leg", hotkeySpawnScarecrowLeg);
+    cfg.set<int>("hotkey_spawn_mega", hotkeySpawnMega);
+    cfg.set<int>("hotkey_spawn_frost", hotkeySpawnFrost);
+    cfg.set<int>("hotkey_spawn_assault", hotkeySpawnAssault);
+    cfg.set<int>("hotkey_spawn_blitz", hotkeySpawnBlitz);
+    cfg.set<int>("hotkey_spawn_basilisk", hotkeySpawnBasilisk);
+    cfg.set<int>("hotkey_spawn_chimera", hotkeySpawnChimera);
+    cfg.set<int>("hotkey_spawn_mephisto", hotkeySpawnMephisto);
+    cfg.set<int>("hotkey_spawn_faust", hotkeySpawnFaust);
+    cfg.set<int>("hotkey_spawn_bianco", hotkeySpawnBianco);
+    cfg.set<int>("hotkey_spawn_alto", hotkeySpawnAlto);
+};
+
+void EnemySpawn::onUpdateInput(hl::Input& input)
+{
+    if (input.isDown(hotkeySpawnModifier)) {
+        if (input.wentDown(hotkeySpawnScarecrowArm))
+        {
+            spawnEm00x(0);
+        }
+        if (input.wentDown(hotkeySpawnScarecrowLeg))
+        {
+            spawnEm00x(1);
+        }
+        if (input.wentDown(hotkeySpawnMega))
+        {
+            spawnEm00x(2);
+        }
+        if (input.wentDown(hotkeySpawnFrost))
+        {
+            spawnEm00x(3);
+        }
+        if (input.wentDown(hotkeySpawnAssault))
+        {
+            spawnEm00x(4);
+        }
+        if (input.wentDown(hotkeySpawnBlitz))
+        {
+            spawnEm00x(5);
+        }
+        if (input.wentDown(hotkeySpawnBasilisk))
+        {
+            spawnEm00x(6);
+        }
+        if (input.wentDown(hotkeySpawnChimera))
+        {
+            spawnEm00x(7);
+        }
+        if (input.wentDown(hotkeySpawnMephisto))
+        {
+            spawnEm00x(8);
+        }
+        if (input.wentDown(hotkeySpawnFaust))
+        {
+            spawnEm00x(9);
+        }
+        if (input.wentDown(hotkeySpawnBianco))
+        {
+            spawnEm00x(10);
+        }
+        if (input.wentDown(hotkeySpawnAlto))
+        {
+            spawnEm00x(11);
+        }
     }
 }
 

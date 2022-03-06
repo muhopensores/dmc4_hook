@@ -3,7 +3,50 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include "Shellapi.h"
+#include "./mods/modInfAllHealth.hpp"
+#include "./mods/modOneHitKill.hpp"
+#include "./mods/modInfDT.hpp"
+#include "./mods/modBpPortal.hpp"
+#include "./mods/modNoClip.hpp"
+#include "./mods/modEnemySpawn.hpp"
+#include "./mods/modQuicksilver.hpp"
 
+std::string HotkeyName(int hotkey) {
+    switch (hotkey)
+    {
+    case 0x10: // 16
+        return "Shift";
+    case 0x11: // 17
+        return "Ctrl";
+    case 0x70: // 112
+        return "F1";
+    case 0x71: // 113
+        return "F2";
+    case 0x72: // 114
+        return "F3";
+    case 0x73: // 115
+        return "F4";
+    case 0x74: // 116
+        return "F5";
+    case 0x75: // 117
+        return "F6";
+    case 0x76: // 118
+        return "F7";
+    case 0x77: // 119
+        return "F8";
+    case 0x78: // 120
+        return "F9";
+    case 0x79: // 121
+        return "F10";
+    case 0x7A: // 122
+        return "F11";
+    case 0x7B: // 123
+        return "F12";
+    case 0xBB: // 187
+        return "=/+";
+    }
+    return "Siyan Moment";
+}
 
 inline void UnderLine( ImColor col_ )
 {
@@ -20,8 +63,8 @@ constexpr const char* version{ "DMC4Hook 1.1.4 Commit #" GIT_COMMIT_HASH " " GIT
 constexpr const char* std::string_view = GUI_VERSION;
 #endif
 */
-constexpr const char* version{ "DMC4Hook 1.3.0" };
-// 1.release.test
+
+constexpr const char* version{ GUI_VERSION };
 
 // visual theme of the gui, can be changed to change the look
 void DarkTheme()
@@ -82,7 +125,6 @@ void DarkTheme()
     colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
     colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
     colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.4588f, 0.45880f, 0.4588f, 0.35f);
-   
 }
 
 // draw function with parameters for the gui overlay
@@ -114,20 +156,13 @@ void CreditsDrawing()
     if (ImGui::BeginTabItem("About"))
     {
         ImGui::Spacing();
-        ImGui::Spacing();
         ImGui::Text("DMC4Hook - Devil May Cry 4 Trainer");
         ImGui::Spacing();
-        ImGui::Spacing();
         ImGui::Separator();
-        ImGui::Spacing();
         ImGui::Spacing();
         ImGui::Text("socks");
         ImGui::Text("Mstislav Capusta");
         ImGui::Text("SSSiyan");
-        ImGui::Spacing();
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
         ImGui::Spacing();
         ImGui::Text("Special Thanks:");
         ImGui::Text("Whirling");
@@ -136,16 +171,15 @@ void CreditsDrawing()
         ImGui::Text("DelusionaryKiller");
         ImGui::Text("DJMalice");
         ImGui::Text("cheburrat0r");
+        ImGui::Text("LightFeline");
         ImGui::Text("endneo");
         ImGui::Text("CrazyMelody");
         ImGui::Text("Dlupx");
         ImGui::Spacing();
-        ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
-        ImGui::Spacing();
-        ImGui::Text("For more info visit the wiki:\n");
-        ImGui::TextColored(color, "https://github.com/muhopensores/dmc4_hook/wiki");
+        ImGui::Text("For more info and updates visit the github:");
+        ImGui::TextColored(color, "https://github.com/muhopensores/dmc4_hook");
 		if (ImGui::IsItemHovered()) {
 			color = ImVec4(0.356f, 0.764f, 0.960f, 1.0f);
 		}
@@ -153,11 +187,57 @@ void CreditsDrawing()
 			color = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
 		}
 		if (ImGui::IsItemClicked()) {
-			ShellExecuteA( NULL, "open", "https://github.com/muhopensores/dmc4_hook/wiki", NULL, NULL, SW_SHOWNORMAL );
+			ShellExecuteA( NULL, "open", "https://github.com/muhopensores/dmc4_hook", NULL, NULL, SW_SHOWNORMAL );
 		}
 		UnderLine(color);
-		ImGui::Spacing();
+
         ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        ImGui::Text("Hotkeys:");
+
+        ImGui::Spacing();
+
+        ImGui::Text("%s = Infinite Health", &HotkeyName(InfAllHealth::hotkey));
+
+        ImGui::Text("%s = Inf DT", &HotkeyName(InfDT::hotkey));
+
+        ImGui::Text("%s = One Hit Kill", &HotkeyName(OneHitKill::hotkey));
+
+        ImGui::Text("%s = Open BP Portal / Red Seal", &HotkeyName(BpPortal::hotkey));
+
+        ImGui::Text("%s = NoClip", &HotkeyName(NoClip::hotkey));
+
+        ImGui::Text("Lock On + Taunt = Restore Enemy HP");
+        ImGui::SameLine();
+        HelpMarker("Only if \"Restore Enemy HP\" is checked in the General tab");
+
+        ImGui::Text("%s = Quicksilver", &HotkeyName(Quicksilver::hotkey));
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        ImGui::Text("Spawn Hotkeys:");
+        ImGui::Spacing();
+
+        ImGui::Text("%s = Spawn Modifier", &HotkeyName(EnemySpawn::hotkeySpawnModifier));
+        ImGui::SameLine();
+        HelpMarker("The following hotkeys will only be activated if this modifier is held");
+
+        ImGui::Text("%s = Spawn Scarecrow Arm", &HotkeyName(EnemySpawn::hotkeySpawnScarecrowArm));
+        ImGui::Text("%s = Spawn Scarecrow Leg", &HotkeyName(EnemySpawn::hotkeySpawnScarecrowLeg));
+        ImGui::Text("%s = Spawn Mega", &HotkeyName(EnemySpawn::hotkeySpawnMega));
+        ImGui::Text("%s = Spawn Frost", &HotkeyName(EnemySpawn::hotkeySpawnFrost));
+        ImGui::Text("%s = Spawn Assault", &HotkeyName(EnemySpawn::hotkeySpawnAssault));
+        ImGui::Text("%s = Spawn Blitz", &HotkeyName(EnemySpawn::hotkeySpawnBlitz));
+        ImGui::Text("%s = Spawn Basilisk", &HotkeyName(EnemySpawn::hotkeySpawnBasilisk));
+        ImGui::Text("%s = Spawn Chimera", &HotkeyName(EnemySpawn::hotkeySpawnChimera));
+        ImGui::Text("%s = Spawn Mephisto", &HotkeyName(EnemySpawn::hotkeySpawnMephisto));
+        ImGui::Text("%s = Spawn Faust", &HotkeyName(EnemySpawn::hotkeySpawnFaust));
+        ImGui::Text("%s = Spawn Bianco", &HotkeyName(EnemySpawn::hotkeySpawnBianco));
+        ImGui::Text("%s = Spawn Alto", &HotkeyName(EnemySpawn::hotkeySpawnAlto));
         ImGui::EndTabItem();
     }
 }

@@ -7,9 +7,42 @@ class EnemySpawn : public Mod
 public:
     EnemySpawn() = default;
 
+	static int hotkeySpawnModifier;
+
+    static int hotkeySpawnScarecrowArm;
+    static int hotkeySpawnScarecrowLeg;
+    static int hotkeySpawnMega;
+    static int hotkeySpawnFrost;
+    static int hotkeySpawnAssault;
+    static int hotkeySpawnBlitz;
+    static int hotkeySpawnBasilisk;
+    static int hotkeySpawnChimera;
+    static int hotkeySpawnMephisto;
+    static int hotkeySpawnFaust;
+    static int hotkeySpawnBianco;
+    static int hotkeySpawnAlto;
+
     std::string getModName() override { return "EnemySpawn"; };
 
 	std::optional<std::string> onInitialize() override;
-	void onGUIframe() override;
 
+	void onConfigLoad(const utils::Config& cfg) override;
+    void onConfigSave(utils::Config& cfg) override;
+	void onGUIframe() override;
+	void onTwitchCommand(std::size_t hash) override;
+	void onUpdateInput(hl::Input& input) override;
+
+private:
+	std::size_t m_spawnScarecrowArmCommand;
+    std::size_t m_spawnScarecrowLegCommand;
+	std::size_t m_spawnMegaCommand;
+	std::size_t m_spawnFrostCommand;
+	std::size_t m_spawnAssaultCommand;
+	std::size_t m_spawnBlitzCommand;
+	std::size_t m_spawnBasiliskCommand;
+	std::size_t m_spawnChimeraCommand;
+	std::size_t m_spawnMephistoCommand;
+	std::size_t m_spawnFaustCommand;
+	std::size_t m_spawnBiancoCommand;
+	std::size_t m_spawnAltoCommand;
 };

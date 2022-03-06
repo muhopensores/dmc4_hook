@@ -2,6 +2,7 @@
 #include "modNoHBknockback.hpp"
 #include "modMoveIDs.hpp"
 #include "modMoveIDsNero.hpp"
+#include "modNeroFullHouse.hpp"
 
 bool      NoHbKnockback::modEnabled{ false };
 uintptr_t NoHbKnockback::_noHelmBreakerKnockbackContinue{ NULL }; // 0x0051C389
@@ -14,8 +15,16 @@ NoHbKnockback::NoHbKnockback() {
 naked void noHelmBreakerKnockback_proc(void)
 {
 	_asm {
-			cmp byte ptr [NoHbKnockback::modEnabled],0
-			je originalcode
+			cmp byte ptr [NoHbKnockback::modEnabled], 1
+			je cheatcode
+			cmp byte ptr [NeroFullHouse::modEnabled], 1
+			je nerocheatcode
+		originalcode:
+			cmp ecx,0x05
+			jl nohelmbreakerknockbackje
+			jmp dword ptr [NoHbKnockback::_noHelmBreakerKnockbackContinue]
+
+		cheatcode:
 			// Dante:
 			cmp [MoveIds::moveID],0x20A			// 522 // Low
 			je newcode
@@ -23,7 +32,7 @@ naked void noHelmBreakerKnockback_proc(void)
 			je newcode
 			cmp [MoveIds::moveID],0x214			// 532 // High
 			je newcode
-
+		nerocheatcode:
 			// Nero:
 			cmp [MoveIdsNero::moveIDNero], 786  // Split
 			je newcode
@@ -38,11 +47,6 @@ naked void noHelmBreakerKnockback_proc(void)
 
 		nohelmbreakerknockbackje:
 			jmp dword ptr [NoHbKnockback::_noHelmBreakerKnockbackJE]
-
-		originalcode:
-			cmp ecx,0x05
-			jl nohelmbreakerknockbackje
-			jmp dword ptr [NoHbKnockback::_noHelmBreakerKnockbackContinue]
 	}
 }
 

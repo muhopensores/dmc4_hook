@@ -8,7 +8,7 @@ public:
 	InfAllHealth() = default;
 
 	static bool modEnabled;
-
+	static int hotkey;
 	void toggle(bool enable);
 
 	std::string getModName() override { return "InfAllHealth"; };
@@ -17,6 +17,8 @@ public:
 	void onConfigLoad(const utils::Config& cfg) override;
 	void onConfigSave(utils::Config& cfg) override;
 	void onGUIframe() override;
+	//void onFrame(fmilliseconds& dt) override;
+    void onUpdateInput(hl::Input& input) override;
 
 private:
 	hl::Patch patchAllHealth;

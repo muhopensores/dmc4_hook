@@ -43,6 +43,9 @@ static void resetCallDetour(hl::CpuContext* ctx) {
 	ImGui_ImplDX9_InvalidateDeviceObjects();
 	resetCalled = true;
 }
+
+std::chrono::high_resolution_clock::time_point prevTime;
+
 static void presentCallDetour(hl::CpuContext* ctx) {
 	IDirect3DDevice9* device = (IDirect3DDevice9*)ctx->EAX;
 	auto d3dObj = *(D3D9obj*)ctx->ESI;
@@ -68,6 +71,7 @@ static void presentCallDetour(hl::CpuContext* ctx) {
 		}
 		g_enableBackgroundInput = BackgroundRendering::getModEnabledPtr();
 		once = true;
+		prevTime = std::chrono::high_resolution_clock::now();
 	}
 bail:
 	if (resetCalled) 
@@ -75,15 +79,20 @@ bail:
 		ImGui_ImplDX9_CreateDeviceObjects();
 		resetCalled = false;
 	}
-	GetMain()->getMods()->onFrame();
+	std::chrono::high_resolution_clock::time_point nowTime = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<float, std::milli> delta = nowTime - prevTime;
+	GetMain()->getMods()->onFrame(delta);
 	/*auto main = GetMain();
 	if (main->m_modsInitialized) {
 		main->m_workRate->onFrame();
 	}*/
-	if (g_drawGUI) 
+
+	RenderImgui(device,g_drawGUI);
+	/*if (g_drawGUI) 
 	{
-		RenderImgui(device);
-	}
+		RenderImgui(device,g_drawGUI);
+	}*/
+	prevTime = nowTime;
 }
 void hookD3D9(uintptr_t modBase) {
 	// present call

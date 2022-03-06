@@ -27,6 +27,9 @@
 #include "hacklib/Logging.h"
 #include "hacklib/CrashHandler.h"
 
+#include "utils/MessageDisplay.hpp"
+#include "utils/Thread.hpp"
+
 uint32_t uninit_value = 0xCCCCCCCC;
 
 // hmodule of dinput8.dll for GetProcAddress
@@ -100,114 +103,19 @@ void hlMain::GamePause()
 	m_mods->onGamePause(g_drawGUI);
 }
 
-void hlMain::ToggleStuff()
-{
-	// Player
-		// General
-		// Misc
-	// System
-		// General
-		// Game Mode
-		// Misc
-	// Practice
-		// General
-		// Misc
-}
-
 void hlMain::shutdown() {
 	MH_DisableHook(MH_ALL_HOOKS);
 	MH_Uninitialize();
-}
-
-void hlMain::loadSettings() {
-
-	// General
-	// Game Mode
-	// Practice
-	// General
-	// Misc
-
-	ToggleStuff();
-	// load settings for each mod
-	m_mods->onConfigLoad(*cfg);
 }
 
 void hlMain::saveSettings() {
 	HL_LOG_RAW("Saving settings\n");
 
 	// call on config save for each mod
-	m_mods->onConfigSave(*cfg);
+	m_mods->onConfigSave();
 
-	cfg->save(m_confPath);
+	//cfg->save(m_confPath);
 }
-
-// TODO(): move this somewhere
-// Pass 0 as the targetProcessId to suspend threads in the current process
-void DoSuspendThread(DWORD targetProcessId, DWORD targetThreadId)
-{
-	HANDLE h = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-	if (h != INVALID_HANDLE_VALUE)
-	{
-		THREADENTRY32 te;
-		te.dwSize = sizeof(te);
-		if (Thread32First(h, &te))
-		{
-			do
-			{
-				if (te.dwSize >= FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) + sizeof(te.th32OwnerProcessID)) 
-				{
-					// Suspend all threads EXCEPT the one we want to keep running
-					if(te.th32ThreadID != targetThreadId && te.th32OwnerProcessID == targetProcessId)
-					{
-						HANDLE thread = ::OpenThread(THREAD_ALL_ACCESS, FALSE, te.th32ThreadID);
-						if(thread != NULL)
-						{
-							SuspendThread(thread);
-							CloseHandle(thread);
-						}
-					}
-				}
-				te.dwSize = sizeof(te);
-			} while (Thread32Next(h, &te));
-		}
-		CloseHandle(h);    
-	}
-}
-
-// TODO(): move this somewhere
-// Pass 0 as the targetProcessId to suspend threads in the current process
-void DoResumeThread(DWORD targetProcessId, DWORD targetThreadId)
-{
-	HANDLE h = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-	if (h != INVALID_HANDLE_VALUE)
-	{
-		THREADENTRY32 te;
-		te.dwSize = sizeof(te);
-		if (Thread32First(h, &te))
-		{
-			do
-			{
-				if (te.dwSize >= FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) + sizeof(te.th32OwnerProcessID)) 
-				{
-					// Suspend all threads EXCEPT the one we want to keep running
-					if(te.th32ThreadID != targetThreadId && te.th32OwnerProcessID == targetProcessId)
-					{
-						HANDLE thread = ::OpenThread(THREAD_ALL_ACCESS, FALSE, te.th32ThreadID);
-						if(thread != NULL)
-						{
-							ResumeThread(thread);
-							CloseHandle(thread);
-						}
-					}
-				}
-				te.dwSize = sizeof(te);
-			} while (Thread32Next(h, &te));
-		}
-		CloseHandle(h);    
-	}
-}
-
-namespace fs = std::filesystem;
 
 bool hlMain::init()
 {
@@ -222,22 +130,16 @@ bool hlMain::init()
 		failed();
 	}
 	MH_Initialize();
-	//bool exp_result = InstallExceptionHandlerHooks();
 
-	auto cwd = hl::GetCurrentModulePath();
-	cwd = cwd.substr(0, cwd.find_last_of("\\/"));
-	m_confPath = cwd + "\\dmc4_hook.cfg";
-	cfg = std::make_unique<utils::Config>( m_confPath );
-
-	// Wait 3 seconds to let the game start.
-	//Sleep(3000);
+	//SteamStub shit
 	uintptr_t codePtr = 0x008DB650;
 	int data = *(int*)(codePtr);
 	while (data != 0x5324EC83) {
 		data = *(int*)(codePtr);
-		Sleep(10);
+		Sleep(1);
 	}
-	DoSuspendThread(GetCurrentProcessId(), GetCurrentThreadId());
+
+    std::queue<DWORD> tr = utils::SuspendAllOtherThreads();
 
     hl::LogConfig logCfg;
     logCfg.logToFile = true;
@@ -248,8 +150,7 @@ bool hlMain::init()
     HL_LOG_RAW("                    LOG START                         \n");
     HL_LOG_RAW("======================================================\n");
 	HL_LOG_RAW("\n");
-	HL_LOG_RAW("dinput8.dll build date %s, commit hash #%s\n");
-    // HL_LOG_RAW("dinput8.dll build date %s, commit hash #%s\n", GIT_COMMITTER_DATE, GIT_COMMIT_HASH);
+    HL_LOG_RAW("dinput8.dll %s\n", GUI_VERSION);
 	HL_LOG_RAW("\n");
 
     modBase = (uintptr_t)GetModuleHandle(NULL);
@@ -260,12 +161,11 @@ bool hlMain::init()
 	// iterate over all the mods and call onInitialize();
 	m_mods->onInitialize();
 
-    // hooks and jumps to get back to the correct address after hooking
+    utils::ResumeThreads(tr);
 
-	// loads settings and toggles refactored mods.
-	loadSettings();
-
-	DoResumeThread(GetCurrentProcessId(), GetCurrentThreadId());
+	//DISPLAY_MESSAGE("Welcome to dmc4hook.dll version FIX_FORMAT_STRINGS_BRO");
+	Sleep(2000);
+	m_mods->onSlowInitialize();
 
     return true;
 }
@@ -273,16 +173,60 @@ bool hlMain::init()
 bool hlMain::step()
 {
     input.update();
-    if (input.wentDown(VK_DELETE) && (*(BackgroundRendering::getModEnabledPtr()) || getMainWindow() == GetForegroundWindow()))
-    {
-        g_drawGUI = !g_drawGUI;
-        GamePause();
+    if (getMainWindow() == GetForegroundWindow()) {
+        m_mods->onUpdateInput(input);
+        if (input.wentDown(VK_DELETE))
+        {
+            g_drawGUI = !g_drawGUI;
+            GamePause();
+        }
     }
     return true;
 }
+bool bg_draw = true;
+
+/*
+struct message_handler {
+	utils::bufferino<message*> m_messages;
+	
+	void show_messages() 
+	{
+		for (message* m : m_messages) 
+		{
+			m->show();
+		}
+	}
+
+	void update_messages() 
+	{
+		for (message& m : m_messages) {
+			if (!m.update(0.1f)) {
+			}
+		}
+	}
+};*/
+
+
+void RenderBackgroundWindow() {
+
+	if (g_bWasInitialized) { return; }
+
+	ImGuiIO& io = ImGui::GetIO();
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+	ImGui::SetNextWindowSize(io.DisplaySize);
+
+	ImGui::Begin("Overlay", &bg_draw, windowFlags);
+	SHOW_MESSAGES();
+	UPDATE_MESSAGE();
+	ImGui::End();
+}
 
 // function to render the gui onto screen
-void RenderImgui(IDirect3DDevice9* m_pDevice)
+void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 {
     auto main = GetMain(); // get ptr to hacklib main
     if (g_bWasInitialized)
@@ -300,11 +244,18 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 	// I don't know why but using MouseDrawCursor draws two cursors whenever i build shit on my machine
 	// this is fucked up. It should hide hardware cursor, but just doesnt for whatever reason. I'm just gonna
 	// do this instead. If hardware cursor is missing draw an imgui one for people who had troubles.
-	ImGui::GetIO().MouseDrawCursor = !IsCursorVisibleWINAPI();
+	ImGui::GetIO().MouseDrawCursor = false;
     
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
+
+	RenderBackgroundWindow();
+
+	if (!draw) {
+		goto imgui_finish;
+	}
+	ImGui::GetIO().MouseDrawCursor = !IsCursorVisibleWINAPI();
     DrawWindow();
 
     // specific imgui functions, can be looked up in examples or the documentation
@@ -314,14 +265,14 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
         ImGui::SameLine(0, 0);
         FPSDrawing();
         ImGui::Spacing();
-		main->getMods()->onDrawUI("Borderless"_hash);
+		main->getMods()->onDrawSlowUI("Borderless"_hash);
         /*if (ImGui::Checkbox("Borderless Window", &g_borderless))
         {
             ToggleBorderless(g_borderless);
         }*/
 		// TODO(): properly position this?
         ImGui::SameLine(340.0f);
-		if (ImGui::Button("Save config"))
+		if (ImGui::Button("Save Config"))
 		{
 			main->saveSettings();
 		}
@@ -338,11 +289,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 main->getMods()->onDrawUI("DamageMultiplier"_hash); // needs its own line
 
-                main->getMods()->onDrawUI("OneHitKill"_hash);
-                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("InfAllHealth"_hash);
 
-                main->getMods()->onDrawUI("NoDeath"_hash);
+                main->getMods()->onDrawUI("OneHitKill"_hash); // needs its own line
 
                 main->getMods()->onDrawUI("RestoreMaxHp"_hash); // needs its own line
 
@@ -376,8 +325,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 main->getMods()->onDrawUI("BpJumpHook"_hash);
 
-                main->getMods()->onDrawUI("BpBossRush"_hash);
-                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("DmdBloodyPalace"_hash);
 
                 ImGui::Spacing();
@@ -403,6 +350,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 main->getMods()->onDrawUI("DisableChimeraBlades"_hash);
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("BerialDaze"_hash);
+
+                main->getMods()->onDrawUI("FrostsDontJump"_hash);
 
                 ImGui::Spacing();
                 ImGui::EndTabItem();
@@ -446,15 +395,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("ForceLucifer"_hash);
 
-                main->getMods()->onDrawUI("TimerMem"_hash); // instant honeycomb
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("SkipPandora"_hash);
+                main->getMods()->onDrawUI("SkipWeapons"_hash); // needs its own line
 
                 main->getMods()->onDrawUI("ManualTwosomeTime"_hash);
                 ImGui::SameLine(205);
-                main->getMods()->onDrawUI("NoHbKnockback"_hash); // needs its own line
-
-                main->getMods()->onDrawUI("KnockbackEdits"_hash); // currently empty
+                main->getMods()->onDrawUI("NoHbKnockback"_hash); // needs to be on the right
 
                 main->getMods()->onDrawUI("NoDtCooldown"_hash);
                 ImGui::SameLine(205);
@@ -467,6 +412,18 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 main->getMods()->onDrawUI("FastPandora"_hash);
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("FastSprint"_hash);
+
+                main->getMods()->onDrawUI("ActiveBlock"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("NeroFullHouse"_hash);
+
+                main->getMods()->onDrawUI("TimerMem"_hash); // instant honeycomb
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("InputStates"_hash); // Taunt Ecstasy
+
+                // main->getMods()->onDrawUI("KnockbackEdits"_hash); // currently empty
+
+                main->getMods()->onDrawUI("Quicksilver"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();
@@ -484,6 +441,10 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("InfAirHikes"_hash);
 
+				main->getMods()->onDrawUI("BigHeadMode"_hash);
+				
+				main->getMods()->onDrawUI("ModTwCmdSuperhot"_hash);
+
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
@@ -496,7 +457,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("InfSkyStars"_hash);
 
-                main->getMods()->onDrawUI("InfDreadnought"_hash);
+                main->getMods()->onDrawUI("InfDreadnaught"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("RgMultiplier"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();
@@ -507,6 +470,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
                 ImGui::Spacing();
 
                 main->getMods()->onDrawUI("InfTableHopper"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("InfCalibur"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();
@@ -544,8 +509,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
             if (ImGui::BeginTabItem("System"))
             {
-                ImGui::Spacing();
-
                 ImGui::Text("HUD");
 
                 ImGui::Spacing();
@@ -576,9 +539,10 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::Spacing();
 
-                main->getMods()->onDrawUI("CharacterSwap"_hash);
-                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("CharacterSwap"_hash); // needs its own line
+                
                 main->getMods()->onDrawUI("NoAutomaticCharacters"_hash);
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("SlowWalk"_hash);
 
                 main->getMods()->onDrawUI("BpPortal"_hash); // needs its own line
@@ -591,20 +555,34 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
 
                 ImGui::Spacing();
 
-				main->getMods()->onDrawUI("FastStart"_hash);
+                main->getMods()->onDrawSlowUI("BackgroundRendering"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("MessageDisplayMod"_hash);
 
-                main->getMods()->onDrawUI("BackgroundRendering"_hash);
+				main->getMods()->onDrawUI("TwCmdPlayerTransforms"_hash); // empty
 
-                main->getMods()->onDrawUI("FpsLimit"_hash);
+				main->getMods()->onDrawUI("FastStart"_hash); // needs its own line
+
+                main->getMods()->onDrawUI("FpsLimit"_hash); // needs its own line
 
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
 
-                main->getMods()->onDrawUI("WorkRate"_hash);
+                main->getMods()->onDrawUI("WorkRate"_hash); // needs its own line
 
-				main->getMods()->onDrawUI("CameraSettings"_hash);
+				main->getMods()->onDrawUI("CameraSettings"_hash); // needs its own line
 				
+				main->getMods()->onDrawSlowUI("TwitchClient"_hash); // needs its own line
+
+                ImGui::Spacing();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Debug"))
+            {
+                main->getMods()->onDrawUI("PlayerTracker"_hash); // needs its own line
+
                 ImGui::Spacing();
                 ImGui::EndTabItem();
             }
@@ -613,6 +591,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice)
         }
         ImGui::End();
     }
+imgui_finish:
     // Render dear imgui into screen
     ImGui::EndFrame();
     ImGui::Render();

@@ -2086,7 +2086,7 @@ void EnemyReplace::onGUIframe()
                                           "Berial",        "Credo",          "Agnus",          "Sanctus",
                                           "Dante" };
             static int frost_current = 0;
-            if (ImGui::Combo("##Replace Faust", &frost_current, frost_items, IM_ARRAYSIZE(frost_items)))
+            if (ImGui::Combo("##Replace Frost", &frost_current, frost_items, IM_ARRAYSIZE(frost_items)))
             {
                 switch (frost_current)
                 {

@@ -1,15 +1,43 @@
 #include "../mods.h"
 #include "modDamageMultiplier.hpp"
+#include "../sdk/Devil4.hpp"
+
+#include "glm/gtx/compatibility.hpp"
 
 bool DamageMultiplier::modEnabled{ false };
+bool g_mustStyle{ false };
 uintptr_t DamageMultiplier::jmp_ret{ NULL };
 float DamageMultiplier::enemyHPDisplay{ NULL };
-float damagemultiplier = 1.0f;
+float damagemultiplier{ 1.0f };
 float xmm4backup{ NULL };
 
-DamageMultiplier::DamageMultiplier()
+static float getCurrentStyleRank() {
+
+	sStylishCount* sc = Devil4SDK::getStylishCount();
+	if (!sc) { return 0.0f; }
+
+	uint32_t rank = sc->currentStyleTier;
+	float normalizedRank = glm::smoothstep(0.0f, 7.0f, (float)rank);
+
+	return normalizedRank;
+}
+
+// shameless copypaste from 
+// https://www.iquilezles.org/www/articles/functions/functions.htm
+// Let m be the threshold (anything above m stays unchanged),
+// and n the value things will take when your input is zero.
+// Then, the following function does the soft clipping (in a cubic fashion):
+static float almostIdentity( float x, float m, float n )
 {
-	//onInitialize();
+	if( x>m ) return x;
+	const float a = 2.0f*n - m;
+	const float b = 2.0f*m - 3.0f*n;
+	const float t = x/m;
+	return (a*t + b)*t*t + n;
+}
+
+static void mustStyleMultiplier() {
+	damagemultiplier = almostIdentity(getCurrentStyleRank(), 0.3f, 0.3f);
 }
 
 naked void detour(void)
@@ -20,14 +48,13 @@ naked void detour(void)
 
 			cmp dword ptr [esi+0x1C], 0x469C4000 // ignore if player
 			je originalcode
-
 			//movss dword ptr [ebp-4],xmm4		 // Maybe this was the reason m17 was crashing? testing now
 			movss [xmm4backup], xmm4
 
 			movss xmm4, [esi+0x18]				 // get the current life
 			subss xmm4, xmm0					 // subtract the current life to the new life ( = currentHitDamage)
             movss xmm0, [esi+0x18]				 // set new life to old life
-            mulss xmm4, [damagemultiplier]		 // multiply by "multiplier" the currentHitDamage (xmm2)
+			mulss xmm4, [damagemultiplier]		 // multiply by "multiplier" the currentHitDamage (xmm2)
             subss xmm0, xmm4					 // subss to new life current hit dammage
 
 			movss xmm4, [xmm4backup]
@@ -56,14 +83,24 @@ void DamageMultiplier::onGUIframe() {
     ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
     ImGui::PopItemWidth();
     ImGui::Spacing();
+	if (modEnabled) {
+		ImGui::Checkbox("Must style mode", &g_mustStyle);
+	}
+}
+
+void DamageMultiplier::onFrame(fmilliseconds & dt) {
+	if (!g_mustStyle) { return; }
+	mustStyleMultiplier();
 }
 
 void DamageMultiplier::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("damage_multiplier").value_or(false);
     damagemultiplier = cfg.get<float>("damage_multiplier_float").value_or(1.0f);
+    g_mustStyle = cfg.get<bool>("must_style").value_or(false);
 }
 
 void DamageMultiplier::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("damage_multiplier", modEnabled);
     cfg.set < float > ("damage_multiplier_float", damagemultiplier);
+    cfg.set<bool>("must_style", g_mustStyle);
 }

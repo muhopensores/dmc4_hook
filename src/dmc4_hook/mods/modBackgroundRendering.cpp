@@ -32,7 +32,11 @@ HWND WINAPI DetourGetFocus() {
 
 
 std::optional<std::string> BackgroundRendering::onInitialize() {
-	modGameWindow = getMainWindow();
+	modGameWindow = FindWindowA(NULL, "DEVIL MAY CRY 4");
+	if (!modGameWindow) {
+		throw std::runtime_error("[BackgroundRendering] WINDOW NOT FOUND\n");
+	}
+
 	if (MH_CreateHookApi(L"user32", "GetForegroundWindow", &DetourGetForegroundWindow, (LPVOID*)&fpGetForegroundWindow) == MH_OK) {
 		HL_LOG_RAW("[BackgroundRendering]: CreateHookApi(user32, GetForegroundWindow) returned MH_OK\n");
 	}
@@ -74,7 +78,7 @@ void BackgroundRendering::onConfigSave(utils::Config& cfg) {
 };
 
 void BackgroundRendering::onGUIframe() {
-	ImGui::Checkbox("Focus patch (background input)", &modEnabled);
+	ImGui::Checkbox("Background Input", &modEnabled);
 }
 
 bool* BackgroundRendering::getModEnabledPtr() {

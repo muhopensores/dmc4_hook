@@ -61,7 +61,7 @@ void LdkWithDmd::onGUIframe()
     // line 907 -> main->getMods()->onDrawUI("NoClip"_hash);
     ImGui::Checkbox("LDK With DMD", &modEnabled);
 	ImGui::SameLine(0, 1);
-	HelpMarker("Start a Mission on Legendary Dark Knight. Enemies are on DMD Difficulty, instead of SOS");
+	HelpMarker("When playing a mission on Legendary Dark Knight, enemies will be on DMD Difficulty instead of SOS");
     //ImGui::Checkbox("Frosts Can't Escape", &modFrostsCantEscapeEnabled);
 }
 

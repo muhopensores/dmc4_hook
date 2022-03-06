@@ -1,9 +1,13 @@
 #include "../mods.h"
 #include "modFastStart.hpp"
 
-bool FastStart::modEnabled{ false };
+static bool modEnabled{ false };
+static bool skipFades { false };
 
 static uintptr_t jmp_ret;
+static uintptr_t jmp_ret_uFade;
+
+constexpr float fadeAmmount = 999.f;
 
 static bool checkClassName(MtDTI* dti) {
 	char* aTitle = "aInit";
@@ -24,7 +28,7 @@ static void loadSaveSlot() {
 naked void detour(void)
 {
 	_asm {
-		cmp byte ptr[FastStart::modEnabled], 0
+		cmp byte ptr[modEnabled], 0
 		je originalCode
 
 		cmp ecx, 0x00E55C88 // aAdvertise
@@ -56,28 +60,36 @@ naked void detour(void)
 	}
 }
 
-void FastStart::toggle(bool enable)
-{
-    if (enable)
-    {
-		//float one = 1.0f;
-        //install_patch_offset(0x4996B5, patch_menu, "\x07", 1);
-		//just a memcpy with VirtualProtect
-		//install_patch_offset(0x810268, patch_mt01, (char*)&one, sizeof(float));
-		//install_patch_offset(0x79A27C, patch_mt02, (char*)&one, sizeof(float));
+naked void detour_uFade() {
+	
+	__asm {
+		cmp byte ptr[skipFades], 0
+		je originalCode
 
-    }
-    else
-    {
-		patch_menu.revert();
-		patch_mt01.revert();
-		patch_mt02.revert();
-    }
+		movss xmm0, dword ptr [fadeAmmount]
+		movss dword ptr [esi+24h], xmm0
+		movss dword ptr [esi+1Ch], xmm0
+		pop edi
+		pop esi
+		add esp, 10h
+		ret
+	
+	originalCode:
+		movss dword ptr [esi+24h], xmm0
+		movss xmm0, dword ptr [esi+1Ch]
+		addss xmm0, dword ptr [esp+0Ch]
+		movss dword ptr [esi+1Ch],xmm0
+		pop edi
+		pop esi
+		add esp,10h
+		ret
+	}
 }
 
 std::optional<std::string> FastStart::onInitialize()
 {
 	install_hook_absolute(0x008DB77D, hook_dti, detour, &jmp_ret, 5);
+	install_hook_absolute(0x00739632, hook_uFade, detour_uFade, &jmp_ret_uFade, 5);
 
 	return Mod::onInitialize();
 }
@@ -86,15 +98,18 @@ std::optional<std::string> FastStart::onInitialize()
 void FastStart::onGUIframe()
 {
 	ImGui::Checkbox("Fast Game Load", &modEnabled);
+    ImGui::SameLine(205);
+	ImGui::Checkbox("Fast Menu Fades", &skipFades);
 }
 
 void FastStart::onConfigLoad(const utils::Config& cfg)
 {
 	modEnabled = cfg.get<bool>("fast_load").value_or(false);
-	toggle(modEnabled);
+	skipFades  = cfg.get<bool>("skip_fades").value_or(false);
 };
 
 void FastStart::onConfigSave(utils::Config& cfg)
 {
 	cfg.set<bool>("fast_load", modEnabled);
+	cfg.set<bool>("skip_fades", skipFades);
 };

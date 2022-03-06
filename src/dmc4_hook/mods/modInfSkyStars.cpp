@@ -22,8 +22,6 @@ void InfSkyStars::toggle(bool enable)
 
 void InfSkyStars::onGUIframe()
 {
-    // from main.cpp
-    // line 905 -> main->getMods()->onDrawUI("InfDreadnought"_hash);
     if (ImGui::Checkbox("Infinite Sky Stars", &modEnabled))
     {
         toggle(modEnabled);

@@ -40,50 +40,57 @@ naked void selectiveCancels_proc()
 		je cancellablegunstinger
 		cmp [MoveIds::moveID],0x706						// Epidemic
 		je cancellableepidemic
+		cmp [MoveIds::moveID],0x410						// DT Pin Up part 2
+		je cancellableDTPinUp
 		jmp originalcode
 
-		cancellableecstasy:
-		test [SelectiveCancels::cancels], ECSTASY	// If Gui is ticked,
+			cancellableecstasy:
+			test [SelectiveCancels::cancels], ECSTASY	// If Gui is ticked,
 			jg cancellable						    // make the move cancellable
 			jmp originalcode						// if not, don't make it cancellable
 
 			cancellableargument:
-		test [SelectiveCancels::cancels], ARGUMENT
+			test [SelectiveCancels::cancels], ARGUMENT
 			jg cancellable
 			jmp originalcode
 
 			cancellablekickthirteen:
-		test [SelectiveCancels::cancels], KICK13
+			test [SelectiveCancels::cancels], KICK13
 			jg cancellable
 			jmp originalcode
 
 			cancellableslashdimension:
-		test [SelectiveCancels::cancels], SLASH_DIMENSION
+			test [SelectiveCancels::cancels], SLASH_DIMENSION
 			jg cancellable
 			jmp originalcode
 
 			cancellableprop:
-		test [SelectiveCancels::cancels], PROP
+			test [SelectiveCancels::cancels], PROP
 			jg cancellable
 			jmp originalcode
 
 			cancellableshock:
-		test [SelectiveCancels::cancels], SHOCK
+			test [SelectiveCancels::cancels], SHOCK
 			jg cancellable
 			jmp originalcode
 
 			cancellableomen:
-		test [SelectiveCancels::cancels], OMEN
+			test [SelectiveCancels::cancels], OMEN
 			jg cancellable
 			jmp originalcode
 
 			cancellablegunstinger:
-		test [SelectiveCancels::cancels], GUNSTINGER
+			test [SelectiveCancels::cancels], GUNSTINGER
 			jg cancellable
 			jmp originalcode
 
 			cancellableepidemic:
-		test [SelectiveCancels::cancels], EPIDEMIC
+			test [SelectiveCancels::cancels], EPIDEMIC
+			jg cancellable
+			jmp originalcode
+
+			cancellableDTPinUp:
+			test [SelectiveCancels::cancels], DT_PIN_UP_P2
 			jg cancellable
 			jmp originalcode
 
@@ -127,54 +134,42 @@ inline void SelectiveCancels::drawCheckboxSimple(const char* name, CANCEL_MOVES 
 };
 
 void SelectiveCancels::onGUIframe() {
-	if (ImGui::CollapsingHeader("Selective Cancels"))
-	{
-		ImGui::Checkbox("Enable", &selectiveCancelsEnable);
+	ImGui::Text("Selective Cancels");
+	ImGui::Spacing();
+	ImGui::Checkbox("Enable", &selectiveCancelsEnable);
 
-		ImGui::Separator();
-		ImGui::Text("Common");
-        ImGui::Spacing();
+	if (ImGui::CollapsingHeader("Selective Cancel Toggles")){
+			ImGui::Spacing();
+			ImGui::Text("Swords");
+			ImGui::Spacing();
 
-		//drawCheckbox("Ecstasy", &checkEcstasy, ECSTASY);
-		drawCheckboxSimple("Ecstasy", ECSTASY);
+			drawCheckboxSimple("Ecstasy", ECSTASY);
+			ImGui::SameLine(205);
+			drawCheckboxSimple("Kick 13", KICK13);
 
-		ImGui::SameLine(205);
+			drawCheckboxSimple("Prop", PROP);
+			ImGui::SameLine(205);
+			drawCheckboxSimple("Shock", SHOCK);
 
-		//drawCheckbox("Argument", &checkArgument, ARGUMENT);
-		drawCheckboxSimple("Argument", ARGUMENT);
-		//drawCheckbox("Kick 13", &checkKick13, KICK13);
-		drawCheckboxSimple("Kick 13", KICK13);
+			drawCheckboxSimple("Slash Dimension", SLASH_DIMENSION);
+			ImGui::SameLine(205);
+			drawCheckboxSimple("DT Pin Up Part 2", DT_PIN_UP_P2);
 
-		ImGui::SameLine(205);
+			ImGui::Spacing();
+			ImGui::Text("Guns");
+			ImGui::Spacing();
 
-		//drawCheckbox("Slash Dimension", &checkSD, SLASH_DIMENSION);
-		drawCheckboxSimple("Slash Dimension", SLASH_DIMENSION);
+			drawCheckboxSimple("Omen", OMEN);
+			ImGui::SameLine(205);
+			drawCheckboxSimple("Epidemic", EPIDEMIC);
 
-		ImGui::Separator();
-		ImGui::Text("Swords");
-                ImGui::Spacing();
-
-		//drawCheckbox("Prop", &checkProp, PROP);
-		drawCheckboxSimple("Prop", PROP);
-
-		ImGui::SameLine(205);
-
-		//drawCheckbox("Shock", &checkShock, SHOCK);
-		drawCheckboxSimple("Shock", SHOCK);
-
-		ImGui::Separator();
-		ImGui::Text("Guns");
-        ImGui::Spacing();
-
-		//drawCheckbox("Omen", &checkOmen, OMEN);
-		drawCheckboxSimple("Omen", OMEN);
-
-		ImGui::SameLine(205);
-
-		drawCheckboxSimple("Epidemic", EPIDEMIC);
-
-		drawCheckboxSimple("Gun Stinger", GUNSTINGER);
+			drawCheckboxSimple("Argument", ARGUMENT);
+			ImGui::SameLine(205);
+			drawCheckboxSimple("Gun Stinger", GUNSTINGER);
 	}
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Spacing();
 };
 
 void SelectiveCancels::onConfigSave(utils::Config& cfg) {

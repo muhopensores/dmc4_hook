@@ -2,6 +2,8 @@ PROJECT(dmc4_hook)
 
 #add mods here, modName.cpp and modName.hpp
 SET (MODS
+  mods/modTwCmdSuperhot.hpp
+  mods/modTwCmdSuperhot.cpp
   mods/modSample.cpp
   mods/modSample.hpp
   mods/modBorderless.cpp
@@ -22,12 +24,12 @@ SET (MODS
   mods/modNoHBknockback.hpp
   mods/modEasyJc.cpp
   mods/modEasyJc.hpp
-  mods/modInfDreadnought.cpp
-  mods/modInfDreadnought.hpp
+  mods/modInfDreadnaught.cpp
+  mods/modInfDreadnaught.hpp
   mods/modNoClip.cpp
   mods/modNoClip.hpp
-  mods/modSkipPandora.cpp
-  mods/modSkipPandora.hpp
+  mods/modSkipWeapons.cpp
+  mods/modSkipWeapons.hpp
   mods/modRestoreMaxHp.cpp
   mods/modRestoreMaxHp.hpp
   mods/modInputStates.cpp
@@ -46,8 +48,6 @@ SET (MODS
   mods/modDmdBloodyPalace.hpp
   mods/modDmdLevelAi.cpp
   mods/modDmdLevelAi.hpp
-  mods/modOneHitKill.cpp
-  mods/modOneHitKill.hpp
   mods/modManualTwosomeTime.cpp
   mods/modManualTwosomeTime.hpp
   mods/modHeightRestrictionDante.cpp
@@ -68,8 +68,8 @@ SET (MODS
   mods/modFreezeEnemies.hpp
   mods/modFreeJc.cpp
   mods/modFreeJc.hpp
-  mods/modNoDeath.cpp
-  mods/modNoDeath.hpp
+  mods/modOneHitKill.cpp
+  mods/modOneHitKill.hpp
   mods/modEnemySpawn.cpp
   mods/modEnemySpawn.hpp
   mods/modKnockbackEdits.cpp
@@ -116,8 +116,6 @@ SET (MODS
   mods/modFastPandora.hpp
   mods/modInfAirHikes.cpp
   mods/modInfAirHikes.hpp
-  mods/modBpBossRush.cpp
-  mods/modBpBossRush.hpp
   mods/modInfRevive.cpp
   mods/modInfRevive.hpp
   mods/modCharacterSwap.cpp
@@ -148,6 +146,28 @@ SET (MODS
   mods/modNoAutomaticCharacters.hpp
   mods/modDisableChimeraBlades.cpp
   mods/modDisableChimeraBlades.hpp
+  mods/modTwitch.hpp
+  mods/modTwitch.cpp
+  mods/modQuicksilver.hpp
+  mods/modQuicksilver.cpp
+  mods/modTwCmdHolyWater.hpp
+  mods/modTwCmdHolyWater.cpp
+  mods/modBigHeadMode.hpp
+  mods/modBigHeadMode.cpp
+  mods/modTwCmdPlayerTransforms.hpp
+  mods/modTwCmdPlayerTransforms.cpp
+  mods/modInfCalibur.hpp
+  mods/modInfCalibur.cpp
+  mods/modRgMultiplier.hpp
+  mods/modRgMultiplier.cpp
+  mods/modDeltaTime.hpp
+  mods/modDeltaTime.cpp
+  mods/modActiveBlock.hpp
+  mods/modActiveBlock.cpp
+  mods/modNeroFullHouse.hpp
+  mods/modNeroFullHouse.cpp
+  mods/modFrostsDontJump.hpp
+  mods/modFrostsDontJump.cpp
 )
 
 SET (HEADERS
@@ -190,6 +210,12 @@ SET (IMGUI
 #aux_source_directory(mods MODS)
 
 SET (UTILS
+  utils/Thread.hpp
+  utils/Thread.cpp
+  utils/Timer.hpp
+  utils/Timer.cpp
+  utils/MessageDisplay.hpp
+  utils/MessageDisplay.cpp
   utils/Hash.hpp
   utils/Config.hpp
   utils/Config.cpp
@@ -197,10 +223,23 @@ SET (UTILS
   utils/String.hpp
   utils/crash_handler.h
   utils/crash_handler.cpp
+  utils/RingBuffer.hpp
+)
+
+SET (TWITCH
+  twitch/twitch.hpp # note to future self pick one fucking capitalisation scheme
+  twitch/twitch.cpp
+  twitch/libirc_errors.h
+  twitch/libirc_events.h
+  twitch/libirc_options.h
+  twitch/libirc_rfcnumeric.h
+  twitch/libircclient.h
 )
 
 SET (SDK
   sdk/ReClass_Internal.hpp
+  sdk/Devil4.cpp
+  sdk/Devil4.hpp
 )
 
 SET (SOURCES
@@ -214,6 +253,7 @@ source_group("imgui" FILES ${IMGUI})
 source_group("mods"  FILES ${MODS})
 source_group("utils" FILES ${UTILS})
 source_group("sdk"   FILES ${SDK})
+source_group("twitch" FILES ${TWITCH})
 
 if(GIT_COMMIT_HASH)
   message("GIT_COMMIT_HASH: ${GIT_COMMIT_HASH}")
@@ -221,16 +261,19 @@ if(GIT_COMMIT_HASH)
   add_compile_definitions(GIT_COMMIT_HASH=${GIT_COMMIT_HASH})
   add_compile_definitions(GIT_COMMITTER_DATE=${GIT_COMMITTER_DATE})
 endif()
-
+add_compile_definitions(_WINSOCKAPI_)
+add_compile_definitions(TRACY_ENABLE)
 ADD_LIBRARY(${PROJECT_NAME} SHARED
             ${HEADERS}
             ${IMGUI}
       	    ${MODS}
             ${UTILS}
-	        ${SDK}
+	    ${SDK}
             ${SOURCES}
+            ${TWITCH}
 )
 
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES FOLDER ${PROJECT_NAME})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME dinput8)
+#TARGET_LINK_LIBRARIES(${PROJECT_NAME} hacklib minhook libircclient.lib tracy)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} hacklib minhook)

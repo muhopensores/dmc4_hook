@@ -23,8 +23,6 @@ void PassiveEnemies::toggle(bool enable)
 
 void PassiveEnemies::onGUIframe()
 {
-    // from main.cpp
-    // line 905 -> main->getMods()->onDrawUI("InfDreadnought"_hash);
     if (ImGui::Checkbox("Passive Enemies", &modEnabled))
     {
         toggle(modEnabled);

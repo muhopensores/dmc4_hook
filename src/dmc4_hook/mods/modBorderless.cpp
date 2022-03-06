@@ -105,7 +105,7 @@ bool Borderless::onMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 }
 
-void Borderless::onFrame() {
+void Borderless::onFrame(fmilliseconds& dt) {
 	if (m_enabled && !m_isChoiceFulfilled) {
 		apply();
 	}
@@ -113,6 +113,9 @@ void Borderless::onFrame() {
 
 void Borderless::onConfigLoad(const utils::Config & cfg) {
 	m_enabled = cfg.get<bool>("borderless_window").value_or(false);
+    if (m_enabled) {
+        apply();
+	}
 }
 
 void Borderless::onConfigSave(utils::Config & cfg) {

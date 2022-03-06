@@ -8,7 +8,7 @@ public:
     BpPortal() = default;
 
     static bool modEnabled;
-
+    static int hotkey;
     void toggle(bool enable);
 
     std::string getModName() override { return "BpPortal"; };
@@ -17,7 +17,10 @@ public:
     void onConfigLoad(const utils::Config& cfg) override;
     void onConfigSave(utils::Config& cfg) override;
     void onGUIframe() override;
+    void onFrame(fmilliseconds& dt) override;
+    void onUpdateInput(hl::Input& input) override;
 
 private:
+    utils::Timer* m_timer;
     hl::Patch patch;
 };

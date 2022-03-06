@@ -11,9 +11,9 @@
 #include "mods/modWorkRate.hpp"
 #include "mods/modBackgroundRendering.hpp"
 #include "mods/modBorderless.hpp"
-#include "mods/modInfDreadnought.hpp"
+#include "mods/modInfDreadnaught.hpp"
 #include "mods/modNoClip.hpp"
-#include "mods/modSkipPandora.hpp"
+#include "mods/modSkipWeapons.hpp"
 #include "mods/modRestoreMaxHp.hpp"
 #include "mods/modInputStates.hpp"
 #include "mods/modFpsLimit.hpp"
@@ -23,7 +23,6 @@
 #include "mods/modLdkWithDmd.hpp"
 #include "mods/modDmdBloodyPalace.hpp"
 #include "mods/modDmdLevelAi.hpp"
-#include "mods/modOneHitKill.hpp"
 #include "mods/modManualTwosomeTime.hpp"
 #include "mods/modHeightRestrictionDante.hpp"
 #include "mods/modInfFaustCloak.hpp"
@@ -34,7 +33,7 @@
 #include "mods/modCameraSettings.hpp"
 #include "mods/modFreezeEnemies.hpp"
 #include "mods/modFreeJc.hpp"
-#include "mods/modNoDeath.hpp"
+#include "mods/modOneHitKill.hpp"
 #include "mods/modEnemySpawn.hpp"
 #include "mods/modKnockbackEdits.hpp"
 #include "mods/modNoDtCooldown.hpp"
@@ -58,7 +57,6 @@
 #include "mods/modBpPortal.hpp"
 #include "mods/modFastPandora.hpp"
 #include "mods/modInfAirHikes.hpp"
-#include "mods/modBpBossRush.hpp"
 #include "mods/modInfRevive.hpp"
 #include "mods/modCharacterSwap.hpp"
 #include "mods/modDisableDarkslayer.hpp"
@@ -73,10 +71,26 @@
 #include "mods/modBpJumpHook.hpp"
 #include "mods/modNoAutomaticCharacters.hpp"
 #include "mods/modDisableChimeraBlades.hpp"
+#include "mods/modTwitch.hpp"
+#include "mods/modQuicksilver.hpp"
+#include "mods/modTwCmdHolyWater.hpp"
+#include "mods/modBigHeadMode.hpp"
+#include "mods/modTwCmdPlayerTransforms.hpp"
+#include "mods/modTwCmdSuperhot.hpp"
+#include "mods/modInfCalibur.hpp"
+#include "mods/modRgMultiplier.hpp"
+#include "mods/modDeltaTime.hpp"
+#include "mods/modActiveBlock.hpp"
+#include "mods/modNeroFullHouse.hpp"
+#include "mods/modFrostsDontJump.hpp"
+#include "./utils/MessageDisplay.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
 Mods::Mods() {
+	    m_slowMods["BackgroundRendering"_hash] = std::make_unique<BackgroundRendering>();
+		m_slowMods["Borderless"_hash] = std::make_unique<Borderless>();
+		m_slowMods["TwitchClient"_hash] = std::make_unique<TwitchClient>();
 		//add mods here
 		//m_mods["ModName"_hash] = std::make_unique<ModName>();
 		m_mods["FastStart"_hash] = std::make_unique<FastStart>();
@@ -87,11 +101,9 @@ Mods::Mods() {
 		m_mods["EasyJc"_hash] = std::make_unique<EasyJc>();
 		m_mods["SelectiveCancels"_hash] = std::make_unique<SelectiveCancels>();
 		m_mods["WorkRate"_hash] = std::make_unique<WorkRate>();
-		m_mods["BackgroundRendering"_hash] = std::make_unique<BackgroundRendering>();
-		m_mods["Borderless"_hash] = std::make_unique<Borderless>();
-		m_mods["InfDreadnought"_hash] = std::make_unique<InfDreadnought>();
+		m_mods["InfDreadnaught"_hash] = std::make_unique<InfDreadnaught>();
 		m_mods["NoClip"_hash] = std::make_unique<NoClip>();
-		m_mods["SkipPandora"_hash] = std::make_unique<SkipPandora>();
+		m_mods["SkipWeapons"_hash] = std::make_unique<SkipWeapons>();
 		m_mods["RestoreMaxHp"_hash] = std::make_unique<RestoreMaxHp>();
 		m_mods["InputStates"_hash] = std::make_unique<InputStates>();
 		m_mods["FpsLimit"_hash] = std::make_unique<FpsLimit>();
@@ -101,7 +113,6 @@ Mods::Mods() {
 		m_mods["LdkWithDmd"_hash] = std::make_unique<LdkWithDmd>();
 		m_mods["DmdBloodyPalace"_hash] = std::make_unique<DmdBloodyPalace>();
 		m_mods["DmdLevelAi"_hash] = std::make_unique<DmdLevelAi>();
-		m_mods["OneHitKill"_hash] = std::make_unique<OneHitKill>();
 		m_mods["ManualTwosomeTime"_hash] = std::make_unique<ManualTwosomeTime>();
 		m_mods["HeightRestrictionDante"_hash] = std::make_unique<HeightRestrictionDante>();
 		m_mods["InfFaustCloak"_hash] = std::make_unique<InfFaustCloak>();
@@ -112,7 +123,7 @@ Mods::Mods() {
 		m_mods["CameraSettings"_hash] = std::make_unique<CameraSettings>();
 		m_mods["FreezeEnemies"_hash] = std::make_unique<FreezeEnemies>();
 		m_mods["FreeJc"_hash] = std::make_unique<FreeJc>();
-		m_mods["NoDeath"_hash] = std::make_unique<NoDeath>();
+		m_mods["OneHitKill"_hash] = std::make_unique<OneHitKill>();
 		m_mods["EnemySpawn"_hash] = std::make_unique<EnemySpawn>();
 		m_mods["KnockbackEdits"_hash] = std::make_unique<KnockbackEdits>();
 		m_mods["NoDtCooldown"_hash] = std::make_unique<NoDtCooldown>();
@@ -136,7 +147,6 @@ Mods::Mods() {
         m_mods["BpPortal"_hash] = std::make_unique<BpPortal>();
 		m_mods["FastPandora"_hash] = std::make_unique<FastPandora>();
         m_mods["InfAirHikes"_hash] = std::make_unique<InfAirHikes>();
-		m_mods["BpBossRush"_hash] = std::make_unique<BpBossRush>();
         m_mods["InfRevive"_hash] = std::make_unique<InfRevive>();
 		m_mods["CharacterSwap"_hash] = std::make_unique<CharacterSwap>();
         m_mods["DisableDarkslayer"_hash] = std::make_unique<DisableDarkslayer>();
@@ -151,6 +161,39 @@ Mods::Mods() {
 		m_mods["BpJumpHook"_hash] = std::make_unique<BpJumpHook>();
         m_mods["NoAutomaticCharacters"_hash] = std::make_unique<NoAutomaticCharacters>();
 		m_mods["DisableChimeraBlades"_hash] = std::make_unique<DisableChimeraBlades>();
+		m_mods["Quicksilver"_hash] = std::make_unique<Quicksilver>();
+		m_mods["TwCmdHolyWater"_hash] = std::make_unique<TwCmdHolyWater>();
+		m_mods["BigHeadMode"_hash] = std::make_unique<BigHeadMode>();
+		m_mods["TwCmdPlayerTransforms"_hash] = std::make_unique<TwCmdPlayerTransforms>();
+		m_mods["ModTwCmdSuperhot"_hash] = std::make_unique<ModTwCmdSuperhot>();
+		m_mods["InfCalibur"_hash] = std::make_unique<InfCalibur>();
+		m_mods["RgMultiplier"_hash] = std::make_unique<RgMultiplier>();
+		m_mods["DeltaTime"_hash] = std::make_unique<DeltaTime>();
+		m_mods["ActiveBlock"_hash] = std::make_unique<ActiveBlock>();
+		m_mods["NeroFullHouse"_hash] = std::make_unique<NeroFullHouse>();
+		m_mods["FrostsDontJump"_hash] = std::make_unique<FrostsDontJump>();
+		m_mods["MessageDisplayMod"_hash] = std::make_unique<MessageDisplayMod>();
+}
+
+std::optional<std::string> Mods::onSlowInitialize() const {
+	for (auto& umod : m_slowMods) {
+		auto& mod = umod.second;
+		HL_LOG_RAW("%s::onSlowInitialize()\n", mod->getModName().data());
+
+		if (auto e = mod->onInitialize(); e != std::nullopt) {
+			HL_LOG_RAW("%s::onSlowInitialize() has failed: %s\n", mod->getModName().data(), *e);
+			return e;
+		}
+	}
+
+	utils::Config cfg{ "dmc4_hook.cfg" };
+
+	for (auto& umod : m_slowMods) {
+		auto& mod = umod.second;
+		HL_LOG_RAW("%s::onConfigLoad()\n", mod->getModName().data());
+		mod->onConfigLoad(cfg);
+	}
+	return std::nullopt;
 }
 
 // Initializes mods, checks for errors
@@ -164,29 +207,22 @@ std::optional<std::string> Mods::onInitialize() const {
 			return e;
 		}
 	}
-// @TODO: use this version once all the mods are converted to muh c++
-#if 0
-	auto cwd = hl::GetCurrentModulePath();
-	cwd = cwd.substr(0, cwd.find_last_of("\\/"));
-	std::string m_confPath = cwd + "\\dmc4_hook.cfg";
-	utils::Config cfg{ m_confPath };
+
+	utils::Config cfg{ "dmc4_hook.cfg" };
 
 	for (auto& umod : m_mods) {
 		auto& mod = umod.second;
 		HL_LOG_RAW("%s::onConfigLoad()\n", mod->getModName().data());
 		mod->onConfigLoad(cfg);
 	}
-#endif
+
 	return std::nullopt;
 }
 // @TODO: use this version once all the mods are converted to muh c++
-#if 0
+#if 1
 void Mods::onConfigSave() {
 	HL_LOG_RAW("Saving config to dmc4_hook.cfg\n");
 
-	auto cwd = hl::GetCurrentModulePath();
-	cwd = cwd.substr(0, cwd.find_last_of("\\/"));
-	std::string m_confPath = cwd + "\\dmc4_hook.cfg";
 	utils::Config cfg{};
 
 	for (auto& umod : m_mods) {
@@ -194,8 +230,14 @@ void Mods::onConfigSave() {
 		HL_LOG_RAW("%s::onConfigSave()\n", mod->getModName().data());
 		mod->onConfigSave(cfg);
 	}
-	if (!cfg.save(m_confPath)) {
-		HL_LOG_RAW("Failed to save the config %s\n", m_confPath);
+	// this might be really dumb pls fix if so, background rendering wasn't saving
+	for (auto& umod : m_slowMods) {
+		auto& mod = umod.second;
+		HL_LOG_RAW("%s::onConfigSave()\n", mod->getModName().data());
+		mod->onConfigSave(cfg);
+	}
+	if (!cfg.save("dmc4_hook.cfg")) {
+		HL_LOG_RAW("Failed to save the config\n");
 	}
 }
 #else
@@ -237,10 +279,10 @@ bool Mods::onMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	return true;
 }
 // Called on every frame for mods that override this method
-void Mods::onFrame() {
+void Mods::onFrame(fmilliseconds& dt) {
 	for (auto& umod : m_mods) {
 		auto& mod = umod.second;
-		mod->onFrame();
+		mod->onFrame(dt);
 	}
 }
 // Called when drawing the gui
@@ -248,3 +290,24 @@ void Mods::onDrawUI(uint32_t hash) {
 	m_mods[hash]->onGUIframe();
 }
 
+// Called when drawing the gui
+void Mods::onDrawSlowUI(uint32_t hash) {
+	m_slowMods[hash]->onGUIframe();
+}
+
+// this is terrible atm
+void Mods::onChatCommand(const std::string& message) {
+	std::size_t hash = std::hash<std::string>{}(message);
+	HL_LOG_RAW("[TwitchCommand] hash:%d message:%s", hash, message.c_str());
+	for (auto& umod : m_mods) {
+		auto& mod = umod.second;
+		mod->onTwitchCommand(hash);
+	}
+}
+
+void Mods::onUpdateInput(hl::Input& input) {
+    for (auto& umod : m_mods) {
+        auto& mod = umod.second;
+        mod->onUpdateInput(input);
+    }
+}

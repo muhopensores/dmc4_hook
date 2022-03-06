@@ -121,14 +121,14 @@ namespace glm
 
         // HACKLIB PATCH BEGIN
         // This is mainly for backwards compatibility of hacklib code. Might be removed in the future.
-        #ifdef _WIN32
+        /*#ifdef _WIN32
             tmat4x4(const D3DXMATRIX& m) : glm::tmat4x4<T, P>(m._11, m._12, m._13, m._14, m._21, m._22, m._23, m._24, m._31, m._32, m._33, m._34, m._41, m._42, m._43, m._44) { }
 
             operator D3DXMATRIX() const
             {
                 return *reinterpret_cast<const D3DXMATRIX*>(this);
             }
-        #endif
+        #endif*/
         // HACKLIB PATCH END
 
 		// -- Accesses --

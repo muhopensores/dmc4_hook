@@ -5,7 +5,7 @@
 class DamageMultiplier : public Mod
 {
 public:
-    DamageMultiplier();
+    DamageMultiplier() = default;
 
     static bool modEnabled;
     static uintptr_t jmp_ret;
@@ -20,6 +20,7 @@ public:
     void onConfigSave(utils::Config& cfg) override;
 
     void onGUIframe() override;
+	void onFrame(fmilliseconds& dt) override;
 
 private:
     hl::Hooker hook;

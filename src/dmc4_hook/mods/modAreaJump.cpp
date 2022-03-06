@@ -6,12 +6,12 @@ uintptr_t  AreaJump::jmp_return{ NULL };
 cAreaJump* AreaJump::cAreaJumpPtr{ NULL };
 
 constexpr std::array room_items {
-	"Berial",                             // 503
-	"Bael",                               // 504
-	"Echidna",                            // 505
-	"Credo",                              // 502
-	"Agnus",                              // 501
-	"Dante",                              // 700
+	"Berial",                             // 503 // DevilMayCry4_DX9.exe+A56768
+	"Bael",                               // 504 // DevilMayCry4_DX9.exe+A56528
+	"Echidna",                            // 505 // DevilMayCry4_DX9.exe+A55FE8
+	"Credo",                              // 507 // DevilMayCry4_DX9.exe+A55F88
+	"Agnus",                              // 506 // DevilMayCry4_DX9.exe+A56728 
+	"Dante",                              // 700 // DevilMayCry4_DX9.exe+A56508
 	"Opera House",                        // 0
 	"Opera House Plaza",                  // 1
 	"Storehouse",                         // 2
@@ -108,7 +108,7 @@ AreaJump::AreaJump() {
 
 std::optional<std::string> AreaJump::onInitialize() {
 
-	uintptr_t address = hl::FindPattern("8B 92 30 38 00 00", "DevilMayCry4_DX9.exe"); // DevilMayCry4_DX9.exe+E1F6 
+	// uintptr_t address = hl::FindPattern("8B 92 30 38 00 00", "DevilMayCry4_DX9.exe"); // DevilMayCry4_DX9.exe+E1F6 
     if (!install_hook_offset(0x00E1F6, hook, &detour, &AreaJump::jmp_return, 6))
         {
             HL_LOG_ERR("Failed to init AreaJump mod\n");

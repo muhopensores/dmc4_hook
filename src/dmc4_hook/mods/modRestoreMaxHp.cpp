@@ -31,8 +31,27 @@ naked void restoreMaxHpScarecrow_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+
+
+		// cmp byte ptr [InputStates::inputpressed], 24
+        // jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [ebx+1548h]               // Max HP
         fstp dword ptr [ebx+1544h]              // Current HP
@@ -48,8 +67,23 @@ naked void restoreMaxHpFrost_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [esi+1520h] // Max HP
         fstp dword ptr [esi+151Ch] // Current HP
@@ -65,8 +99,23 @@ naked void restoreMaxHpArmour_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [esi+1520h]
         fstp dword ptr [esi+151Ch]
@@ -83,8 +132,23 @@ naked void restoreMaxHpGhosts_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [edi+151Ch]
         fstp dword ptr [edi+1518h]
@@ -100,8 +164,23 @@ naked void restoreMaxHpSwordFly_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [esi+151Ch]
         fstp dword ptr [esi+1518h]
@@ -117,8 +196,23 @@ naked void restoreMaxHpSwordFish_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [esi+1524h]
         fstp dword ptr [esi+1520h]
@@ -134,8 +228,23 @@ naked void restoreMaxHpSeed_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [ebx+32A0h]
         fstp dword ptr [ebx+329Ch]
@@ -151,8 +260,23 @@ naked void restoreMaxHpRiot_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [esi+151Ch]
         fstp dword ptr [esi+1518h]
@@ -169,8 +293,23 @@ naked void restoreMaxHpBlitz_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [esi+1520h]
         fstp dword ptr [esi+151Ch]
@@ -186,8 +325,23 @@ naked void restoreMaxHpDog_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [edi+7FE0h]
         fstp dword ptr [edi+7FDCh]
@@ -204,8 +358,23 @@ naked void restoreMaxHpBerial_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [esi+1520h]
         fstp dword ptr [esi+151Ch]
@@ -221,8 +390,23 @@ naked void restoreMaxHpFrog_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [esi+1520h]
         fstp dword ptr [esi+151Ch]
@@ -238,8 +422,23 @@ naked void restoreMaxHpEchidna_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [esi+1520h]
         fstp dword ptr [esi+151Ch]
@@ -255,8 +454,23 @@ naked void restoreMaxHpCredo_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [esi+1520h]
         fstp dword ptr [esi+151Ch]
@@ -272,8 +486,23 @@ naked void restoreMaxHpAgnus_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [esi+1520h]
         fstp dword ptr [esi+151Ch]
@@ -289,8 +518,23 @@ naked void restoreMaxHpSanctus_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [esi+1D0Ch]
         fstp dword ptr [esi+1D08h]
@@ -306,8 +550,23 @@ naked void restoreMaxHpDante_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         fld dword ptr [edi+15D0h]
         fstp dword ptr [edi+15CCh]
@@ -323,8 +582,23 @@ naked void resetTimer_proc(void)
     _asm {
         cmp byte ptr [resetTimer], 0
         je code
-		cmp byte ptr [InputStates::inputpressed], 24
-        jne code
+        push eax
+        push edx
+        mov eax, 0x10
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        jne check2
+        pop edx
+        pop eax
+        jmp code
+
+    check2:
+        mov eax, 0x08
+        mov dl, byte ptr [InputStates::inputpressed] // edx
+        test al, dl
+        pop edx
+        pop eax
+        je code
 
         movss xmm3, [twoMinutesTimer]
         movss [esi+00000250h], xmm3
@@ -452,7 +726,7 @@ void RestoreMaxHp::onGUIframe()
 {
     // from main.cpp
     // line 2221 -> main->getMods()->onDrawUI("RestoreMaxHp"_hash);
-    ImGui::Checkbox("Restore Max HP", &modEnabled);
+    ImGui::Checkbox("Restore Enemy HP", &modEnabled);
     ImGui::SameLine(0, 1);
     HelpMarker("Press Lock On + Taunt to restore Max HP to enemies");
     ImGui::SameLine(205);

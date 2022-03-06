@@ -23,8 +23,6 @@ void NoDtCooldown::toggle(bool enable)
 
 void NoDtCooldown::onGUIframe()
 {
-    // from main.cpp
-    // line 905 -> main->getMods()->onDrawUI("InfDreadnought"_hash);
     if (ImGui::Checkbox("No DT Cooldown", &modEnabled))
     {
         toggle(modEnabled);

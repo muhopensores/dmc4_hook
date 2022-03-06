@@ -1,8 +1,11 @@
 #include "../mods.h"
 #include "modInfDT.hpp"
+#include "../utils/MessageDisplay.hpp"
+#include "modEnemySpawn.hpp"
 
 bool InfDT::modEnabled{ false };
 uintptr_t InfDT::jmp_ret{ NULL };
+int InfDT::hotkey{ NULL };
 
 InfDT::InfDT()
 {
@@ -40,8 +43,29 @@ void InfDT::onGUIframe() {
 
 void InfDT::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("infinite_dt").value_or(false);
+    hotkey = cfg.get<int>("inf_dt_hotkey").value_or(0x71);
 };
 
 void InfDT::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("infinite_dt", modEnabled);
+    cfg.set<int>("inf_dt_hotkey", hotkey);
 };
+
+void InfDT::onUpdateInput(hl::Input& input)
+{
+    if (!input.isDown(EnemySpawn::hotkeySpawnModifier))
+    {
+        if (input.wentDown(hotkey))
+        {
+            if (modEnabled)
+            {
+                DISPLAY_MESSAGE("Infinite DT Off");
+            }
+            else
+            {
+                DISPLAY_MESSAGE("Infinite DT On");
+            }
+            modEnabled = !modEnabled;
+        }
+    }
+}
