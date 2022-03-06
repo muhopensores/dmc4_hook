@@ -311,7 +311,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("LdkWithDmd"_hash);
 
-                main->getMods()->onDrawUI("EnemyAttackOffScreen"_hash);
+                main->getMods()->onDrawUI("DisableChimeraBlades"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("FrostsDontJump"_hash);
+
+                main->getMods()->onDrawUI("EnemyAttackOffScreen"_hash); // needs its own line
 
                 main->getMods()->onDrawUI("EnemySlotting"_hash); // needs its own line
 
@@ -347,11 +351,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("FreezeEnemies"_hash);
 
-                main->getMods()->onDrawUI("DisableChimeraBlades"_hash);
-                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("BerialDaze"_hash);
-
-                main->getMods()->onDrawUI("FrostsDontJump"_hash);
 
                 ImGui::Spacing();
                 ImGui::EndTabItem();
