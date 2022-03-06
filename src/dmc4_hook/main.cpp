@@ -554,13 +554,13 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
                 ImGui::Spacing();
 
-				main->getMods()->onDrawUI("TwCmdPlayerTransforms"_hash); // empty
-
-				main->getMods()->onDrawUI("FastStart"_hash); // needs its own line
-
                 main->getMods()->onDrawSlowUI("BackgroundRendering"_hash);
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("MessageDisplayMod"_hash);
+
+				main->getMods()->onDrawUI("TwCmdPlayerTransforms"_hash); // empty
+
+				main->getMods()->onDrawUI("FastStart"_hash); // needs its own line
 
                 main->getMods()->onDrawUI("FpsLimit"_hash); // needs its own line
 

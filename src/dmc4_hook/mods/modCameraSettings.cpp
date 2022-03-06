@@ -380,7 +380,7 @@ void CameraSettings::onGUIframe()
     if (ImGui::CollapsingHeader("Camera"))
     {
         ImGui::Checkbox("Custom Camera Variables", &modEnabled);
-
+        ImGui::PushItemWidth(217);
         ImGui::InputFloat("Camera Height", &CameraSettings::cameraHeight, 1.0f, 1.0f, "%.0f");
 
         ImGui::Spacing();
@@ -389,7 +389,7 @@ void CameraSettings::onGUIframe()
 
         ImGui::Spacing();
 
-        ImGui::InputFloat("Camera Distance \n(Lockon)", &CameraSettings::cameraDistanceLockon, 1.0f, 10.0f, "%.0f%");
+        ImGui::InputFloat("Camera Distance (Lockon)", &CameraSettings::cameraDistanceLockon, 1.0f, 10.0f, "%.0f%");
 
         ImGui::Spacing();
 
@@ -397,7 +397,7 @@ void CameraSettings::onGUIframe()
 
         ImGui::Spacing();
 
-        ImGui::InputFloat("Camera Angle \n(Lockon)", &CameraSettings::cameraAngleLockon, 0.1f, 0.5f, "%.1f%");
+        ImGui::InputFloat("Camera Angle (Lockon)", &CameraSettings::cameraAngleLockon, 0.1f, 0.5f, "%.1f%");
 
         ImGui::Spacing();
 
@@ -405,8 +405,8 @@ void CameraSettings::onGUIframe()
 
         ImGui::Spacing();
 
-        ImGui::InputFloat("Camera FOV \n(In Battle)", &CameraSettings::cameraFovInBattle, 1.0f, 10.0f, "%.0f%");
-
+        ImGui::InputFloat("Camera FOV (In Battle)", &CameraSettings::cameraFovInBattle, 1.0f, 10.0f, "%.0f%");
+        ImGui::PopItemWidth();
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();

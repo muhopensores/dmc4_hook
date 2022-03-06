@@ -73,7 +73,7 @@ void ModTwCmdSuperhot::onGUIframe() {
 	ImGui::Checkbox("SUPERHOT Mode", &mod_enabled);
     if (mod_enabled)
     {
-        ImGui::PushItemWidth(216);
+        ImGui::PushItemWidth(217);
 		ImGui::InputFloat("Velocity Factor", &tiny, 0.01f);
         ImGui::PopItemWidth();
 	}

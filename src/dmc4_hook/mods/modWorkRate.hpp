@@ -15,8 +15,8 @@ public:
 	void onConfigSave(utils::Config& cfg) override;
 	void onGUIframe() override;
 	void onGamePause(bool toggle) override;
+	void onFrame(fmilliseconds& dt) override;
 private:
 	//hl::Hooker hook;
-	float m_globalSpeed = 1.0f;
 	bool checkWorkRatePtr(sWorkRate* wr);
 };
