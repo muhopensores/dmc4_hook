@@ -89,6 +89,7 @@
 Mods::Mods() {
 	    m_slowMods["BackgroundRendering"_hash] = std::make_unique<BackgroundRendering>();
 		m_slowMods["Borderless"_hash] = std::make_unique<Borderless>();
+		m_slowMods["TwitchClient"_hash] = std::make_unique<TwitchClient>();
 		//add mods here
 		//m_mods["ModName"_hash] = std::make_unique<ModName>();
 		m_mods["FastStart"_hash] = std::make_unique<FastStart>();
@@ -159,7 +160,6 @@ Mods::Mods() {
 		m_mods["BpJumpHook"_hash] = std::make_unique<BpJumpHook>();
         m_mods["NoAutomaticCharacters"_hash] = std::make_unique<NoAutomaticCharacters>();
 		m_mods["DisableChimeraBlades"_hash] = std::make_unique<DisableChimeraBlades>();
-		m_mods["TwitchClient"_hash] = std::make_unique<TwitchClient>();
 		m_mods["Quicksilver"_hash] = std::make_unique<Quicksilver>();
 		m_mods["TwCmdHolyWater"_hash] = std::make_unique<TwCmdHolyWater>();
 		m_mods["BigHeadMode"_hash] = std::make_unique<BigHeadMode>();

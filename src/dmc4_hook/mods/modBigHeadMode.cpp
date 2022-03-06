@@ -33,15 +33,18 @@ static void scaleHeadJoint(uModel__Joint* joint) {
 
 static int isHeadJoint(uModel__Joint* joint) {
 	uPlayer* uPlr = Devil4SDK::getLocalPlayer();
-	if (g_swole_mode) {
-		uModel__Joint* torso = &uPlr->jointArray->joint[2]; // seems to be torso for both chars
-		return joint == torso;
+    if (uPlr) {
+        if (g_swole_mode) {
+            uModel__Joint* torso = &uPlr->jointArray->joint[2]; // seems to be torso for both chars
+            return joint == torso;
+        }
+        else {
+            uModel__Joint* head = &uPlr->jointArray->joint[4]; // seems to be heads for both chars
+            return joint == head;
+        }
+        return 0;
 	}
-	else {
-		uModel__Joint* head = &uPlr->jointArray->joint[4]; // seems to be heads for both chars
-		return joint == head;
-	}
-	return 0;
+    return 0;
 }
 
 naked void JointSizeDetour1() {
@@ -138,7 +141,10 @@ std::optional<std::string> BigHeadMode::onInitialize()
 
 void BigHeadMode::onGUIframe()
 {
-	ImGui::Checkbox("Big Head Mode", &g_enable_mod);
+    if (ImGui::Checkbox("Big Head Mode", &g_enable_mod)) {
+        if (g_swole_mode == true)
+            g_swole_mode = false;
+	}
 	if (ImGui::Checkbox("Swole Mode", &g_swole_mode)) {
 		g_enable_mod = g_swole_mode;
 	}

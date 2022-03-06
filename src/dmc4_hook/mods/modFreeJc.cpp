@@ -31,7 +31,7 @@ void FreeJc::onGUIframe()
         toggle(modEnabled);
     }
     ImGui::SameLine(0, 1);
-    HelpMarker("JC anywhere in the room with an enemy");
+    HelpMarker("Enemy Step anywhere in the room with an enemy");
 }
 
 void FreeJc::onConfigLoad(const utils::Config& cfg)

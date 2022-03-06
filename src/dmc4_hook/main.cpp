@@ -568,7 +568,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
 				main->getMods()->onDrawUI("CameraSettings"_hash);
 				
-				main->getMods()->onDrawUI("TwitchClient"_hash);
+				main->getMods()->onDrawSlowUI("TwitchClient"_hash);
                 ImGui::Spacing();
                 ImGui::EndTabItem();
             }
