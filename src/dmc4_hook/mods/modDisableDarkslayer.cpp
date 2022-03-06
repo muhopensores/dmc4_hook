@@ -60,14 +60,14 @@ void DisableDarkslayer::onGUIframe()
     ImGui::Text("Disable Darkslayer Inputs");
 
     ImGui::Spacing();
-    ImGui::Text("                        ");
+    ImGui::Text("                       ");
     ImGui::SameLine();
     if (ImGui::Checkbox("Trickster", &modEnabledUp))
     {
         toggleUp(modEnabledUp);
     }
 
-    ImGui::Text("                 ");
+    ImGui::Text("                ");
     ImGui::SameLine();
     if (ImGui::Checkbox("Gunslinger", &modEnabledLeft))
     {
@@ -79,7 +79,7 @@ void DisableDarkslayer::onGUIframe()
         toggleRight(modEnabledRight);
     }
 
-    ImGui::Text("                        ");
+    ImGui::Text("                       ");
     ImGui::SameLine();
     if (ImGui::Checkbox("Royal Guard", &modEnabledDown))
     {

@@ -123,6 +123,8 @@ void TwitchClient::onGUIframe()
 			disconnect();
 		}
         ImGui::Checkbox("Log In On Game Boot Automatically", &twitchLoginOnBoot);
+		ImGui::SameLine();
+        HelpMarker("This sometimes doesn't work, just come back here and hit disconnect > connect to reconnect");
 		// ImGui::SameLine();
 		// FIXME not implemented lmao use config
 		/*if ( ImGui::Button( "Save login info" ) ) {

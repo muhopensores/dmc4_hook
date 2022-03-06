@@ -5,7 +5,7 @@
 #include "imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
 
-#define GUI_VERSION "DMC4Hook 1.3.5" // 1.4 soon :)
+#define GUI_VERSION "DMC4Hook 1.4.0"
 
 //gui function definitions
 

@@ -178,8 +178,8 @@ void CreditsDrawing()
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
-        ImGui::Text("For more info visit the wiki:\n");
-        ImGui::TextColored(color, "https://github.com/muhopensores/dmc4_hook/wiki");
+        ImGui::Text("For more info and updates visit the github:");
+        ImGui::TextColored(color, "https://github.com/muhopensores/dmc4_hook");
 		if (ImGui::IsItemHovered()) {
 			color = ImVec4(0.356f, 0.764f, 0.960f, 1.0f);
 		}
@@ -187,7 +187,7 @@ void CreditsDrawing()
 			color = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
 		}
 		if (ImGui::IsItemClicked()) {
-			ShellExecuteA( NULL, "open", "https://github.com/muhopensores/dmc4_hook/wiki", NULL, NULL, SW_SHOWNORMAL );
+			ShellExecuteA( NULL, "open", "https://github.com/muhopensores/dmc4_hook", NULL, NULL, SW_SHOWNORMAL );
 		}
 		UnderLine(color);
 
