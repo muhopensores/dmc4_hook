@@ -553,22 +553,27 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::Text("System");
 
                 ImGui::Spacing();
-				main->getMods()->onDrawUI("TwCmdPlayerTransforms"_hash);
-				main->getMods()->onDrawUI("FastStart"_hash);
+
+				main->getMods()->onDrawUI("TwCmdPlayerTransforms"_hash); // empty
+
+				main->getMods()->onDrawUI("FastStart"_hash); // needs its own line
 
                 main->getMods()->onDrawSlowUI("BackgroundRendering"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("MessageDisplayMod"_hash);
 
-                main->getMods()->onDrawUI("FpsLimit"_hash);
+                main->getMods()->onDrawUI("FpsLimit"_hash); // needs its own line
 
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
 
-                main->getMods()->onDrawUI("WorkRate"_hash);
+                main->getMods()->onDrawUI("WorkRate"_hash); // needs its own line
 
-				main->getMods()->onDrawUI("CameraSettings"_hash);
+				main->getMods()->onDrawUI("CameraSettings"_hash); // needs its own line
 				
-				main->getMods()->onDrawSlowUI("TwitchClient"_hash);
+				main->getMods()->onDrawSlowUI("TwitchClient"_hash); // needs its own line
+
                 ImGui::Spacing();
                 ImGui::EndTabItem();
             }

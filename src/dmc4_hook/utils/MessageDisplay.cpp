@@ -1,7 +1,11 @@
 #include "MessageDisplay.hpp"
 
+bool shouldDisplay = true;
+
 void message::show() {
-	ImGui::TextWrapped("%s (%f)",m_message.c_str(), m_time);
+    if (shouldDisplay){
+		ImGui::TextWrapped("%s (%f)",m_message.c_str(), m_time);
+    }
 }
 
 bool message::update(float dt) {
@@ -34,3 +38,25 @@ void MessageDisplay::update_messages()
 		}
 	}
 }
+
+std::optional<std::string> MessageDisplayMod::onInitialize()
+{
+    return Mod::onInitialize();
+}
+
+void MessageDisplayMod::onGUIframe()
+{
+    ImGui::Checkbox("Display Messages", &shouldDisplay);
+    ImGui::SameLine();
+    HelpMarker("Show/Hide popups at the top left such as \"Infinite Health On\"");
+}
+
+void MessageDisplayMod::onConfigLoad(const utils::Config& cfg)
+{
+    shouldDisplay = cfg.get<bool>("display_messages").value_or(true);
+};
+
+void MessageDisplayMod::onConfigSave(utils::Config& cfg)
+{
+    cfg.set<bool>("display_messages", shouldDisplay);
+};

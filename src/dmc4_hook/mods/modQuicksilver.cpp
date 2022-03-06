@@ -1,5 +1,4 @@
 #include "modQuicksilver.hpp"
-#include "../gui_functions.h"
 #include "glm/gtx/compatibility.hpp"
 
 // Found out that the game does not load anything

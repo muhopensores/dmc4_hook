@@ -98,6 +98,7 @@ std::optional<std::string> FastStart::onInitialize()
 void FastStart::onGUIframe()
 {
 	ImGui::Checkbox("Fast Game Load", &modEnabled);
+    ImGui::SameLine(205);
 	ImGui::Checkbox("Fast Menu Fades", &skipFades);
 }
 
