@@ -276,11 +276,11 @@ void CreditsDrawing()
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
-        ImGui::Text("socks");
         ImGui::Text("Mstislav Capusta");
         ImGui::Text("SSSiyan");
         ImGui::Spacing();
         ImGui::Text("Special Thanks:");
+        ImGui::Text("socks");
         ImGui::Text("Whirling");
         ImGui::Text("Terrutas");
         ImGui::Text("Boey");
