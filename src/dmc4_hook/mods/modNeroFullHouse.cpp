@@ -31,10 +31,8 @@ naked void detour1(void) // redirect helm splitter to full house function
     _asm {
             cmp byte ptr [NeroFullHouse::modEnabled], 1
             jne code
-			cmp dword ptr [MoveIdsNero::moveIDNero], 0 // making do
-			je code
-            // cmp byte ptr [PlayerTracker::playerID], 1
-            // jne code
+            cmp [esi+0x1494], 1 // nero
+            jne code
         //cheatcode:
 			jmp dword ptr [NeroFullHouse::full_house]
         code:
@@ -47,10 +45,8 @@ naked void detour2(void) // select full house start animation
     _asm {
             cmp byte ptr [NeroFullHouse::modEnabled], 1
             jne code
-			cmp dword ptr [MoveIdsNero::moveIDNero], 0   // making do
-			je code
-            // cmp byte ptr [PlayerTracker::playerID], 1
-            // jne code
+            cmp [esi+0x1494], 1 // nero, seems to read 2 for boss dante
+            jne code
         //cheatcode:
             push 0x0000032C
             jmp dword ptr [NeroFullHouse::jmp_ret2]
@@ -65,10 +61,8 @@ naked void detour3(void) // select full house landing animation
     _asm {
             cmp byte ptr [NeroFullHouse::modEnabled], 1
             jne code
-			cmp dword ptr [MoveIdsNero::moveIDNero], 0   // making do
-			je code
-            // cmp byte ptr [PlayerTracker::playerID], 1
-            // jne code
+            cmp [esi+0x1494], 1 // nero
+            jne code
         //cheatcode:
             push 0x00000020 // 20 is shmove right, 351/2/3 is payline
             jmp dword ptr [NeroFullHouse::jmp_ret3]
@@ -89,11 +83,8 @@ naked void detour4(void) // set frame of animation
     _asm {
             cmp byte ptr [NeroFullHouse::modEnabled], 1
             jne code
-			cmp dword ptr [MoveIdsNero::moveIDNero], 0 // making do
-			je code
-            // cmp byte ptr [PlayerTracker::playerID], 0
-            // jne code
-            // player is in ecx
+            cmp [ecx+0x1494], 1 // nero
+            jne code
             push eax
             mov eax, [staticMediatorPtr]
             mov eax, [eax]

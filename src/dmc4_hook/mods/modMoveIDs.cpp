@@ -23,7 +23,7 @@ naked void detour() {
         jne code
 
 		mov [MoveIds::moveID], ecx
-		mov [MoveIdsNero::moveIDNero], 0
+		mov [MoveIdsNero::moveIDNero], 0 // for hb knockback
 	code:
 		mov [esi+0x0000225C], ecx
 		jmp dword ptr [MoveIds::jmp_return]

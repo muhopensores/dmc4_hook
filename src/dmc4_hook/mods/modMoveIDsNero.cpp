@@ -14,7 +14,7 @@ naked void detour()
 {
     _asm {
 		mov [MoveIdsNero::moveIDNero], esi
-        mov [MoveIds::moveID], 0
+        mov [MoveIds::moveID], 0 // for hb knockback
         mov [ecx+295Ch], esi
 		jmp dword ptr [MoveIdsNero::jmp_return]
     }
