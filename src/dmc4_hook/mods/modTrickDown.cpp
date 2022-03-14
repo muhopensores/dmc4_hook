@@ -13,7 +13,7 @@ TrickDown::TrickDown()
 	//onInitialize();
 }
 
-naked void trickDownDetour(void)
+naked void trickDownDetour(void) // not gonna player compare because the idea of boss dante using down trick on you is kinda funny
 {
 	_asm {
 			cmp byte ptr [TrickDown::modEnabled], 0

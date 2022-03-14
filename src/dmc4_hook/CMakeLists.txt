@@ -168,6 +168,8 @@ SET (MODS
   mods/modNeroFullHouse.cpp
   mods/modFrostsDontJump.hpp
   mods/modFrostsDontJump.cpp
+  mods/modNeroSnatchLength.hpp
+  mods/modNeroSnatchLength.cpp
 )
 
 SET (HEADERS

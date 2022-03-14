@@ -327,7 +327,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
                 ImGui::Spacing();
 
-                main->getMods()->onDrawUI("BpJumpHook"_hash);
+                main->getMods()->onDrawUI("BpJumpHook"_hash); // needs its own line
 
                 main->getMods()->onDrawUI("DmdBloodyPalace"_hash);
 
@@ -365,7 +365,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
                 ImGui::Spacing();
 
-                main->getMods()->onDrawUI("LimitAdjust"_hash);
+                main->getMods()->onDrawUI("LimitAdjust"_hash); // needs its own line
 
                 ImGui::Spacing();
                 ImGui::Separator();
@@ -421,6 +421,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("InputStates"_hash); // Taunt Ecstasy
 
+                main->getMods()->onDrawUI("NeroSnatchLength"_hash);
+
                 // main->getMods()->onDrawUI("KnockbackEdits"_hash); // currently empty
 
                 main->getMods()->onDrawUI("Quicksilver"_hash);
@@ -441,9 +443,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("InfAirHikes"_hash);
 
-				main->getMods()->onDrawUI("BigHeadMode"_hash);
+				main->getMods()->onDrawUI("BigHeadMode"_hash); // needs its own line
 				
-				main->getMods()->onDrawUI("ModTwCmdSuperhot"_hash);
+				main->getMods()->onDrawUI("ModTwCmdSuperhot"_hash); // needs its own line
 
                 ImGui::Spacing();
                 ImGui::Separator();
@@ -477,9 +479,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::Separator();
                 ImGui::Spacing();
 
-                main->getMods()->onDrawUI("SelectiveCancels"_hash);
+                main->getMods()->onDrawUI("SelectiveCancels"_hash); // needs its own line
 
-                main->getMods()->onDrawUI("DisableDarkslayer"_hash);
+                main->getMods()->onDrawUI("DisableDarkslayer"_hash); // needs its own line
 
                 ImGui::Spacing();
                 ImGui::EndTabItem();
@@ -489,19 +491,19 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
             {
                 ImGui::Spacing();
 
-				main->getMods()->onDrawUI("AreaJump"_hash);
+				main->getMods()->onDrawUI("AreaJump"_hash); // needs its own line
 
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
 
-				main->getMods()->onDrawUI("EnemySpawn"_hash);
+				main->getMods()->onDrawUI("EnemySpawn"_hash); // needs its own line
 
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
 
-                main->getMods()->onDrawUI("EnemyReplace"_hash);
+                main->getMods()->onDrawUI("EnemyReplace"_hash); // needs its own line
 
                 ImGui::Spacing();
                 ImGui::EndTabItem();
@@ -517,7 +519,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("HpInOrbsDisplay"_hash);
 
-                main->getMods()->onDrawUI("HideHud"_hash);
+                main->getMods()->onDrawUI("HideHud"_hash); // needs its own line
 
                 ImGui::Spacing();
                 ImGui::Separator();

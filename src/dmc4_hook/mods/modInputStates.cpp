@@ -163,7 +163,7 @@ void InputStates::onFrame(fmilliseconds& dt) { // the game does buffers on tick 
             // input
             if (roseInput) // if touchpad is pressed
             {
-                if (grounded == 3) // aerial?
+                if (grounded == 2) // aerial?
                 {
                     if (cancellable == 0x10) // if in free frames
                     {
@@ -181,7 +181,7 @@ void InputStates::onFrame(fmilliseconds& dt) { // the game does buffers on tick 
             // buffer
             if (bufferedRose)
             {
-                if (grounded == 3) // aerial?
+                if (grounded == 2) // aerial?
                 {
                     if (cancellable == 0x10) // if in free frames
                     {

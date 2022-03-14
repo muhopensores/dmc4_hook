@@ -6,7 +6,8 @@
 
 bool TimerMem::instantHoneycombEnabled{ false };
 uintptr_t TimerMem::timer_jmp_ret{ NULL };
-uintptr_t TimerMem::back_forward_jmp_ret{ 0x00805A60 }; // maybe
+uintptr_t TimerMem::back_forward_jmp_ret{ 0x00805A60 };
+constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
 float TimerMem::timerMem = 0.0f;
 float timerMemTick = 2.0f;
@@ -17,18 +18,34 @@ TimerMem::TimerMem()
 	//onInitialize();
 }
 
-naked void timerDetour(void) {
+naked void timerDetour(void) { // ticks timer, player in ecx
 	_asm {
 			cmp byte ptr [TrickDown::modEnabled], 1
 			je timerstart
 			cmp byte ptr [TimerMem::instantHoneycombEnabled], 1
 			je timerstart
-			jmp originalcode                     // if nothing is using the timer, skip it
+			jmp originalcode // if nothing is using the timer, skip it
 
 		timerstart:
+			push eax
+			mov eax, [staticMediatorPtr]
+			mov eax, [eax]
+			mov eax, [eax+0x24]
+			cmp eax,ecx
+			pop eax
+			jne originalcode
+			cmp [ecx+0x1494], 0 // dante controller id
+			jne originalcode
+			push eax
+			mov eax, [staticMediatorPtr]
+			mov eax, [eax]
+			mov eax, [eax+0x24]
+			cmp ecx,eax
+			pop eax
+			jne originalcode // only inc timer if player
 			movss xmm5, [TimerMem::timerMem]
 			movss [xmmbackup], xmm6
-			movss xmm6, [timerMemTick]           // Timer starts at 0, has a 1 added to it every tick and is reset every time a backforward input is made
+			movss xmm6, [timerMemTick] // Timer starts at 0, has a 1 added to it every tick and is reset every time a backforward input is made
 			mulss xmm6, [DeltaTime::currentDeltaTime]
 			addss xmm5, xmm6
 			movss xmm6, [xmmbackup]
@@ -89,14 +106,25 @@ naked void timerDetour(void) {
 			pop eax
 
 		originalcode:
+			test bl,01
 			mov [ecx+0x00000EA8], 00000000
 			jmp dword ptr [TimerMem::timer_jmp_ret]
 	}
 }
 
-naked void backForwardDetour(void) {
+naked void backForwardDetour(void) { // resets timer, player in ebx
 	_asm {
         // trick compare
+			push eax
+			mov eax, [staticMediatorPtr]
+			mov eax, [eax]
+			mov eax, [eax+0x24]
+			cmp ebx, eax
+			pop eax
+			jne originalcode // filter out any non player and checks if valid, crashes without
+			cmp [ebx+0x1494], 0 // dante controller id
+			jne originalcode
+
 			cmp byte ptr [TrickDown::modEnabled], 0
 			je honeycombcompare
 
@@ -126,14 +154,15 @@ naked void backForwardDetour(void) {
 
 std::optional<std::string> TimerMem::onInitialize() {
 
-	if (!install_hook_offset(0x003AD76A, timerHook, &timerDetour, &timer_jmp_ret, 10)) {
+	if (!install_hook_offset(0x003AD767, timerHook, &timerDetour, &timer_jmp_ret, 13))
+    {
 		HL_LOG_ERR("Failed to init TimerMem mod\n");
 		return "Failed to init TimerMem mod";
 	}
 	if (!install_hook_offset(0x00405BC1, backForwardHook, &backForwardDetour, 0, 8)) {
 		HL_LOG_ERR("Failed to init TimerMem mod\n");
 		return "Failed to init TimerMem mod";
-	}
+    }
 	return Mod::onInitialize();
 }
 
