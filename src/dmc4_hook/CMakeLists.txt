@@ -170,6 +170,8 @@ SET (MODS
   mods/modFrostsDontJump.cpp
   mods/modNeroSnatchLength.hpp
   mods/modNeroSnatchLength.cpp
+  mods/modChargeChecker.hpp
+  mods/modChargeChecker.cpp
 )
 
 SET (HEADERS

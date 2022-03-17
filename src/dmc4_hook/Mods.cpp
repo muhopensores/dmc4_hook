@@ -84,6 +84,7 @@
 #include "mods/modNeroFullHouse.hpp"
 #include "mods/modFrostsDontJump.hpp"
 #include "mods/modNeroSnatchLength.hpp"
+#include "mods/modChargeChecker.hpp"
 #include "./utils/MessageDisplay.hpp"
 
 //#include "mods/modSample.hpp"
@@ -174,6 +175,7 @@ Mods::Mods() {
 		m_mods["NeroFullHouse"_hash] = std::make_unique<NeroFullHouse>();
 		m_mods["FrostsDontJump"_hash] = std::make_unique<FrostsDontJump>();
 		m_mods["NeroSnatchLength"_hash] = std::make_unique<NeroSnatchLength>();
+		m_mods["ChargeChecker"_hash] = std::make_unique<ChargeChecker>();
 		m_mods["MessageDisplayMod"_hash] = std::make_unique<MessageDisplayMod>();
 }
 

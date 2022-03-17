@@ -461,6 +461,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("RgMultiplier"_hash);
 
+                main->getMods()->onDrawUI("ChargeChecker"_hash); // currently just faster roundtrip
+
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();

@@ -58,6 +58,8 @@ naked void detour() // inputpressed // ActiveBlock & touchpad ectasy, called on 
         movss [InputStates::inputTimer], xmm0
 
     TouchpadRoseCheck:
+        cmp byte ptr [InputStates::touchpadRoseEnabled], 0
+        je code
         pushad
         call InputStates::RoseBuffer
         popad
