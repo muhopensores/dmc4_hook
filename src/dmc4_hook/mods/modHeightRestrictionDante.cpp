@@ -26,7 +26,7 @@ void HeightRestrictionDante::toggle(bool enable)
 
 void HeightRestrictionDante::onGUIframe()
 {
-    if (ImGui::Checkbox("Dante", &modEnabled))
+    if (ImGui::Checkbox("Remove Dante's Height Restriction", &modEnabled))
     {
         toggle(modEnabled);
     }

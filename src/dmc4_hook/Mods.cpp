@@ -47,7 +47,7 @@
 #include "mods/modDamageMultiplier.hpp"
 #include "mods/modHpInOrbsDisplay.hpp"
 #include "mods/modInfDT.hpp"
-#include "mods/modInfPlayerHealth.hpp"
+// #include "mods/modInfPlayerHealth.hpp"
 #include "mods/modBerialDaze.hpp"
 #include "mods/modRoseRemovesPins.hpp"
 #include "mods/modStunAnything.hpp"
@@ -138,7 +138,7 @@ Mods::Mods() {
         m_mods["DamageMultiplier"_hash] = std::make_unique<DamageMultiplier>();
 		m_mods["HpInOrbsDisplay"_hash] = std::make_unique<HpInOrbsDisplay>();
         m_mods["InfDT"_hash] = std::make_unique<InfDT>();
-		m_mods["InfPlayerHealth"_hash] = std::make_unique<InfPlayerHealth>();
+		// m_mods["InfPlayerHealth"_hash] = std::make_unique<InfPlayerHealth>();
         m_mods["BerialDaze"_hash] = std::make_unique<BerialDaze>();
 		m_mods["RoseRemovesPins"_hash] = std::make_unique<RoseRemovesPins>();
         m_mods["StunAnything"_hash] = std::make_unique<StunAnything>();

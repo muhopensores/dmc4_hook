@@ -289,12 +289,20 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
                 main->getMods()->onDrawUI("DamageMultiplier"_hash); // needs its own line
 
-                main->getMods()->onDrawUI("InfAllHealth"_hash);
+                main->getMods()->onDrawUI("InfAllHealth"_hash); // needs its own line
 
                 main->getMods()->onDrawUI("OneHitKill"_hash); // needs its own line
 
+                // main->getMods()->onDrawUI("InfPlayerHealth"_hash);
+                
+                main->getMods()->onDrawUI("InfDT"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("InfRevive"_hash);
+                
                 main->getMods()->onDrawUI("RestoreMaxHp"_hash); // needs its own line
 
+                
+                
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
@@ -367,17 +375,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
                 main->getMods()->onDrawUI("LimitAdjust"_hash); // needs its own line
 
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
+                main->getMods()->onDrawUI("HeightRestrictionNero"_hash); // needs its own line
 
-                (ImGui::Text("Height Restriction Removal"));
-
-                ImGui::Spacing();
-
-                main->getMods()->onDrawUI("HeightRestrictionDante"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("HeightRestrictionNero"_hash);
+                main->getMods()->onDrawUI("HeightRestrictionDante"_hash); // needs its own line
 
                 ImGui::Spacing();
                 ImGui::Separator();
@@ -399,7 +399,29 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("NoClip"_hash);
 
+                main->getMods()->onDrawUI("InfAirHikes"_hash);
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("Quicksilver"_hash);
+
+                main->getMods()->onDrawUI("BigHeadMode"_hash); // needs its own line
+
+                main->getMods()->onDrawUI("ModTwCmdSuperhot"_hash); // needs its own line
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                ImGui::Text("Nero Abilities");
+
+                ImGui::Spacing();
+
+                main->getMods()->onDrawUI("NeroFullHouse"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("NeroSnatchLength"_hash);
+
+                main->getMods()->onDrawUI("InfTableHopper"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("InfCalibur"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();
@@ -431,46 +453,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("KnockbackEdits"_hash); // currently just release stun
 
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
-
-                ImGui::Text("Nero Abilities");
-
-                ImGui::Spacing();
-
-                main->getMods()->onDrawUI("NeroFullHouse"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("NeroSnatchLength"_hash);
-
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
-
-                ImGui::Text("Shared Cheats");
-
-                ImGui::Spacing();
-
-                main->getMods()->onDrawUI("InfRevive"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("InfPlayerHealth"_hash);
-
-                main->getMods()->onDrawUI("InfDT"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("InfAirHikes"_hash);
-
-				main->getMods()->onDrawUI("BigHeadMode"_hash); // needs its own line
-				
-				main->getMods()->onDrawUI("ModTwCmdSuperhot"_hash); // needs its own line
-
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
-
-                ImGui::Text("Dante Cheats");
-
-                ImGui::Spacing();
-
                 main->getMods()->onDrawUI("InfTrickRange"_hash);
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("InfSkyStars"_hash);
@@ -478,18 +460,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 main->getMods()->onDrawUI("InfDreadnaught"_hash);
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("RgMultiplier"_hash);
-
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
-
-                ImGui::Text("Nero Cheats");
-
-                ImGui::Spacing();
-
-                main->getMods()->onDrawUI("InfTableHopper"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("InfCalibur"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();

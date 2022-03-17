@@ -11,8 +11,12 @@ public:
     static uintptr_t jmp_return2;
     static uint32_t inputpressed;
     static float inputTimer;
+    static float inputTimer2;
     static bool touchpadRoseEnabled;
+    void RoseInput();
+    void RoseBuffer();
     void PlayRose();
+    void onTimerCallback();
 
     std::string getModName() override { return "InputStates"; };
 
@@ -20,10 +24,8 @@ public:
     void onConfigLoad(const utils::Config& cfg) override;
     void onConfigSave(utils::Config& cfg) override;
     void onGUIframe() override;
-    void onFrame(fmilliseconds& dt) override;
 
 private:
     hl::Hooker hook;
     hl::Hooker hook2;
-    utils::Timer* m_timer;
 };

@@ -36,7 +36,7 @@ void HeightRestrictionNero::toggle(bool enable)
 
 void HeightRestrictionNero::onGUIframe()
 {
-    if (ImGui::Checkbox("Nero", &modEnabled))
+    if (ImGui::Checkbox("Remove Nero's Height Restriction", &modEnabled))
     {
         toggle(modEnabled);
     }

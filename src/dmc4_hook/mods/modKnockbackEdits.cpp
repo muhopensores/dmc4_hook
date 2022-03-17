@@ -22,7 +22,7 @@ public:
     __int32 unkInt00; // 0x0010
     float   damage;   // 0x0014
     __int32 unkInt01; // 0x0018
-    __int32 unkInt02; // 0x001C // level 2 release changes this to from 0 to 2 to make it stun the enemy
+    __int32 unkInt02; // 0x001C // level 2 release changes this from 0 to 2 to make it stun the enemy
     __int32 isGround; // 0x0020
     __int32 unkInt04; // 0x0024
     __int32 unkInt05; // 0x0028
