@@ -357,7 +357,7 @@ void CreditsDrawing()
 
         ImGui::Spacing();
 
-        ImGui::Text("%s = Infinite Health", &HotkeyName(InfAllHealth::hotkey));
+        ImGui::Text("%s = Infinite Health (All)", &HotkeyName(InfAllHealth::hotkey));
 
         ImGui::Text("%s = Inf DT", &HotkeyName(InfDT::hotkey));
 

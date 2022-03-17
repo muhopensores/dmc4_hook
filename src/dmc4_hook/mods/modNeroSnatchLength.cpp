@@ -3,7 +3,7 @@
 
 bool NeroSnatchLength::modEnabled{ false };
 uintptr_t NeroSnatchLength::jmp_ret{ NULL };
-float desiredSnatchLength = 8500.0f; // 10x lv3
+float desiredSnatchLength = 2550.0f; // 3x lv3
 
 NeroSnatchLength::NeroSnatchLength()
 {

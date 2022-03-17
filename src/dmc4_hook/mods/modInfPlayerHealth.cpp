@@ -34,7 +34,7 @@ std::optional<std::string> InfPlayerHealth::onInitialize() {
 }
 
 void InfPlayerHealth::onGUIframe() {
-    ImGui::Checkbox("Infinite Player Health", &modEnabled);
+    ImGui::Checkbox("Freeze Player HP To Max", &modEnabled);
 }
 
 void InfPlayerHealth::onConfigLoad(const utils::Config& cfg) {

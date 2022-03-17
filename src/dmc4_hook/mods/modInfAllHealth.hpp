@@ -7,9 +7,9 @@ public:
 
 	InfAllHealth() = default;
 
+	static uintptr_t jmp_return;
 	static bool modEnabled;
 	static int hotkey;
-	void toggle(bool enable);
 
 	std::string getModName() override { return "InfAllHealth"; };
 	std::optional<std::string> onInitialize() override;
@@ -21,6 +21,5 @@ public:
     void onUpdateInput(hl::Input& input) override;
 
 private:
-	hl::Patch patchAllHealth;
-
+    hl::Hooker hook;
 };

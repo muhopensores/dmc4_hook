@@ -4,60 +4,114 @@
 #include "iostream"
 #if 1
 bool InfAllHealth::modEnabled{ false };
+bool playerInvincible{ false };
+bool enemyInvincible{ false };
 int InfAllHealth::hotkey{ NULL };
-float inputLockoutTimer = 0.0f;
+uintptr_t InfAllHealth::jmp_return{ NULL };
+
+constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
+
+naked void detour() {
+    _asm {
+        cmp byte ptr [InfAllHealth::modEnabled], 1
+        je retcode
+
+    // playercheck:
+        push ecx
+        mov ecx, [staticMediatorPtr]
+        mov ecx, [ecx]
+        mov ecx, [ecx+0x24]
+        lea ecx, [ecx+0x15B4]
+        cmp ecx, esi
+        pop ecx
+        jne enemycheck // not player
+    // player:
+        cmp byte ptr [playerInvincible], 1
+        je retcode
+        jmp code
+
+    enemycheck:
+        cmp byte ptr [enemyInvincible], 1
+        je retcode
+        jmp code
+
+    code:
+        subss xmm0,xmm1
+        // comiss xmm2,xmm0 // we have a copy of this in damage mult so don't need it here
+    retcode:
+        jmp dword ptr [InfAllHealth::jmp_return]
+    }
+}
 
 std::optional<std::string> InfAllHealth::onInitialize() {
+    if (!install_hook_offset(0x11BFD9, hook, &detour, &jmp_return, 7)) {
+        HL_LOG_ERR("Failed to init KnockbackEdits mod\n");
+        return "Failed to init KnockbackEdits mod";
+    }
 
     return Mod::onInitialize();
 }
 
-void InfAllHealth::toggle(bool enable)
-{
-    if (enable)
-    {
-        install_patch_offset(0x11BFD9, patchAllHealth, "\xF3\x0F\x5C\xC9", 4);
+void InfAllHealth::onGUIframe() {
+    if (ImGui::Checkbox("Infinite Health (All)", &modEnabled)) {
+        if (modEnabled) {
+            playerInvincible = true;
+            enemyInvincible = true;
+        }
+        else {
+            playerInvincible = false;
+            enemyInvincible = false;
+        }
     }
-    else
-    {
-        patchAllHealth.revert();
+
+    if (ImGui::Checkbox("Infinite Health (Player)", &playerInvincible)) {
+        if (playerInvincible && enemyInvincible)
+            modEnabled = true;
+        else
+            modEnabled = false;
+    }
+    ImGui::SameLine(205);
+    if (ImGui::Checkbox("Infinite Health (Enemy)", &enemyInvincible)) {
+        if (playerInvincible && enemyInvincible)
+            modEnabled = true;
+        else
+            modEnabled = false;
     }
 }
 
-void InfAllHealth::onGUIframe()
-{
-    if (ImGui::Checkbox("Infinite Health", &modEnabled))
-    {
-        toggle(modEnabled);
-    }
-}
-
-void InfAllHealth::onConfigLoad(const utils::Config& cfg)
-{
+void InfAllHealth::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("infinite_health_all").value_or(false);
+    playerInvincible = cfg.get<bool>("infinite_health_player").value_or(false);
+    enemyInvincible = cfg.get<bool>("infinite_health_enemy").value_or(false);
     hotkey = cfg.get<int>("inf_hp_hotkey").value_or(0x70);
-    toggle(modEnabled);
+    if (modEnabled) {
+        playerInvincible = true;
+        enemyInvincible = true;
+    }
 };
 
-void InfAllHealth::onConfigSave(utils::Config& cfg)
-{
+void InfAllHealth::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("infinite_health_all", modEnabled);
+    cfg.set<bool>("infinite_health_player", playerInvincible);
+    cfg.set<bool>("infinite_health_enemy", enemyInvincible);
     cfg.set<int>("inf_hp_hotkey", hotkey);
 };
 
-void InfAllHealth::onUpdateInput(hl::Input& input)
-{
-    if (!input.isDown(EnemySpawn::hotkeySpawnModifier))
-    {
+void InfAllHealth::onUpdateInput(hl::Input& input) {
+    if (!input.isDown(EnemySpawn::hotkeySpawnModifier)) {
         if (input.wentDown(hotkey)) {
             if (modEnabled) {
-                DISPLAY_MESSAGE("Infinite Health Off"); // lmao no format strings for almost a year or when i wrote that shit
+                DISPLAY_MESSAGE("Infinite Health (All) Off");
+                modEnabled = false;
+                playerInvincible = false;
+                enemyInvincible = false;
             }
             else {
-                DISPLAY_MESSAGE("Infinite Health On");
+                DISPLAY_MESSAGE("Infinite Health (All) On");
+                modEnabled = true;
+                playerInvincible = true;
+                enemyInvincible = true;
             }
-            modEnabled = !modEnabled;
-            toggle(modEnabled);
         }
     }
 }

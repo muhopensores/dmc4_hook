@@ -33,19 +33,14 @@ naked void timerDetour(void) { // ticks timer, player in ecx
 			mov eax, [eax+0x24]
 			cmp eax,ecx
 			pop eax
-			jne originalcode
+			jne originalcode // only inc timer if player
 			cmp [ecx+0x1494], 0 // dante controller id
 			jne originalcode
-			push eax
-			mov eax, [staticMediatorPtr]
-			mov eax, [eax]
-			mov eax, [eax+0x24]
-			cmp ecx,eax
-			pop eax
-			jne originalcode // only inc timer if player
+
+		// inc timer
 			movss xmm5, [TimerMem::timerMem]
 			movss [xmmbackup], xmm6
-			movss xmm6, [timerMemTick] // Timer starts at 0, has a 1 added to it every tick and is reset every time a backforward input is made
+			movss xmm6, [timerMemTick] // Timer starts at 0, has x added to it every tick and is reset every time a backforward input is made
 			mulss xmm6, [DeltaTime::currentDeltaTime]
 			addss xmm5, xmm6
 			movss xmm6, [xmmbackup]
@@ -65,19 +60,19 @@ naked void timerDetour(void) { // ticks timer, player in ecx
             cmp byte ptr [PlayerTracker::lockOnAlloc], 0
 			je dontreplacetrick
 			push eax
-			mov eax, 0x00C413A4        // Trickster Dash
-			mov dword ptr [eax], 0x5D  // Trick
-			mov eax, 0x00C413DC        // Sky Star
-			mov dword ptr [eax], 0x5D  // Trick
+			mov eax, 0x00C413A4        // Trickster Dash Address
+			mov dword ptr [eax], 0x5D  // Trick ID
+			mov eax, 0x00C413DC        // Sky Star Address
+			mov dword ptr [eax], 0x5D  // Trick ID
 			pop eax
 			jmp honeycombcheck
 
 		dontreplacetrick:
 			push eax
-			mov eax, 0x00C413A4        // Trickster Dash
-			mov dword ptr [eax], 0x5B  // Trickster Dash
-			mov eax, 0x00C413DC        // Sky Star
-			mov dword ptr [eax], 0x5C  // Sky Star
+			mov eax, 0x00C413A4        // Trickster Dash Address
+			mov dword ptr [eax], 0x5B  // Trickster Dash ID
+			mov eax, 0x00C413DC        // Sky Star Address
+			mov dword ptr [eax], 0x5C  // Sky Star ID
 			pop eax
 
 		honeycombcheck:
@@ -94,15 +89,15 @@ naked void timerDetour(void) { // ticks timer, player in ecx
             cmp byte ptr [PlayerTracker::lockOnAlloc], 0
 			je dontreplacetwosome
 			push eax
-			mov eax, 0x00C40DBC       // Twosome Time
-			mov dword ptr [eax], 0x45 // Honeycomb Fire
+			mov eax, 0x00C40DBC       // Twosome Time Address
+			mov dword ptr [eax], 0x45 // Honeycomb Fire ID
 			pop eax
 			jmp originalcode
 
 		dontreplacetwosome:
 			push eax
-			mov eax, 0x00C40DBC       // Twosome Time
-			mov dword ptr [eax],0x44  // Twosome Time
+			mov eax, 0x00C40DBC       // Twosome Time Address
+			mov dword ptr [eax],0x44  // Twosome Time ID
 			pop eax
 
 		originalcode:

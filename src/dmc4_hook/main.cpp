@@ -383,7 +383,29 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::Separator();
                 ImGui::Spacing();
 
-                ImGui::Text("Character Abilities");
+                ImGui::Text("Shared Abilities");
+
+                ImGui::Spacing();
+
+                main->getMods()->onDrawUI("FastSprint"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("NoHbKnockback"_hash); // needs to be on the right
+
+                main->getMods()->onDrawUI("EasyJc"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("FreeJc"_hash);
+
+                main->getMods()->onDrawUI("NoDtCooldown"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("NoClip"_hash);
+
+                main->getMods()->onDrawUI("Quicksilver"_hash);
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                ImGui::Text("Dante Abilities");
 
                 ImGui::Spacing();
 
@@ -399,33 +421,27 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
                 main->getMods()->onDrawUI("ManualTwosomeTime"_hash);
                 ImGui::SameLine(205);
-                main->getMods()->onDrawUI("NoHbKnockback"_hash); // needs to be on the right
-
-                main->getMods()->onDrawUI("NoDtCooldown"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("NoClip"_hash);
-
-                main->getMods()->onDrawUI("EasyJc"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("FreeJc"_hash);
-
                 main->getMods()->onDrawUI("FastPandora"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("FastSprint"_hash);
-
-                main->getMods()->onDrawUI("ActiveBlock"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("NeroFullHouse"_hash);
-
+                
                 main->getMods()->onDrawUI("TimerMem"_hash); // instant honeycomb
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("InputStates"_hash); // Taunt Ecstasy
 
+                main->getMods()->onDrawUI("ActiveBlock"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("KnockbackEdits"_hash); // currently just release stun
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                ImGui::Text("Nero Abilities");
+
+                ImGui::Spacing();
+
+                main->getMods()->onDrawUI("NeroFullHouse"_hash);
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("NeroSnatchLength"_hash);
-
-                // main->getMods()->onDrawUI("KnockbackEdits"_hash); // currently empty
-
-                main->getMods()->onDrawUI("Quicksilver"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();

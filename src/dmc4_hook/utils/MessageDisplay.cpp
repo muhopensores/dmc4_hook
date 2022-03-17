@@ -48,7 +48,7 @@ void MessageDisplayMod::onGUIframe()
 {
     ImGui::Checkbox("Display Messages", &shouldDisplay);
     ImGui::SameLine();
-    HelpMarker("Show/Hide popups at the top left such as \"Infinite Health On\"");
+    HelpMarker("Show/Hide popups at the top left such as \"Infinite Health (All) On\"");
 }
 
 void MessageDisplayMod::onConfigLoad(const utils::Config& cfg)

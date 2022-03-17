@@ -69,14 +69,14 @@ std::optional<std::string> OneHitKill::onInitialize()
 
 void OneHitKill::onGUIframe()
 {
-    if (ImGui::Checkbox("No Death", &cantDie))
+    if (ImGui::Checkbox("No Death (All)", &cantDie))
     {
         oneHitKill = false;
         //toggle2(oneHitKill);
         NoDeathToggle(cantDie);
     }
     ImGui::SameLine(0, 1);
-    HelpMarker("Disables dying while still allowing hp to drop");
+    HelpMarker("Disables dying while still allowing hp to drop. Also stops Omen killing enemies.");
     ImGui::SameLine(205);
     if (ImGui::Checkbox("One Hit Kill", &oneHitKill))
     {
