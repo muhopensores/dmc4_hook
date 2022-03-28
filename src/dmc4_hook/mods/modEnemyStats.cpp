@@ -93,8 +93,7 @@ void EnemyStats::onGUIframe() {
                     enemyMovePart = (uint8_t)0;
                 }
 
-                if (ImGui::Button("Replay Saved Move ID & Position"))
-                {
+                if (ImGui::Button("Replay Saved Move ID & Position")) {
                     *enemyPosXYZ[0] = savedEnemyPosXYZ[0];
                     *enemyPosXYZ[1] = savedEnemyPosXYZ[1];
                     *enemyPosXYZ[2] = savedEnemyPosXYZ[2];
@@ -139,66 +138,68 @@ void EnemyStats::onGUIframe() {
 
 void EnemyStats::onUpdateInput(hl::Input& input) {
     if (!input.isDown(EnemySpawn::hotkeySpawnModifier)) {
-        if (input.wentDown(hotkey1)) {
-            sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
-            if (sMedPtr) {
-                uintptr_t* enemyPtr = (uintptr_t*)((uintptr_t)sMedPtr + 0x164 + whichEnemy * 4);
-                uintptr_t enemyBase = *enemyPtr;
-                if (enemyBase) {
-                    // get stats
-                    uint8_t& enemyMoveID = *(uint8_t*)(enemyBase + 0x14);
-                    int& enemyMoveID2 = *(int*)(enemyBase + 0x334);
-                    uint8_t& enemyMovePart = *(uint8_t*)(enemyBase + 0x15);
-                    float* enemyPosXYZ[3];
-                    enemyPosXYZ[0] = (float*)(enemyBase + 0x30);
-                    enemyPosXYZ[1] = (float*)(enemyBase + 0x34);
-                    enemyPosXYZ[2] = (float*)(enemyBase + 0x38);
-                    float* enemyVelocityXYZ[3];
-                    enemyVelocityXYZ[0] = (float*)(enemyBase + 0x1B40);
-                    enemyVelocityXYZ[1] = (float*)(enemyBase + 0x1B44);
-                    enemyVelocityXYZ[2] = (float*)(enemyBase + 0x1B48);
+        if (hotkeyEnabled) {
+            if (input.wentDown(hotkey1)) {
+                sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
+                if (sMedPtr) {
+                    uintptr_t* enemyPtr = (uintptr_t*)((uintptr_t)sMedPtr + 0x164 + whichEnemy * 4);
+                    uintptr_t enemyBase = *enemyPtr;
+                    if (enemyBase) {
+                        // get stats
+                        uint8_t& enemyMoveID = *(uint8_t*)(enemyBase + 0x14);
+                        int& enemyMoveID2 = *(int*)(enemyBase + 0x334);
+                        uint8_t& enemyMovePart = *(uint8_t*)(enemyBase + 0x15);
+                        float* enemyPosXYZ[3];
+                        enemyPosXYZ[0] = (float*)(enemyBase + 0x30);
+                        enemyPosXYZ[1] = (float*)(enemyBase + 0x34);
+                        enemyPosXYZ[2] = (float*)(enemyBase + 0x38);
+                        float* enemyVelocityXYZ[3];
+                        enemyVelocityXYZ[0] = (float*)(enemyBase + 0x1B40);
+                        enemyVelocityXYZ[1] = (float*)(enemyBase + 0x1B44);
+                        enemyVelocityXYZ[2] = (float*)(enemyBase + 0x1B48);
 
-                    savedEnemyPosXYZ[0] = *enemyPosXYZ[0];
-                    savedEnemyPosXYZ[1] = *enemyPosXYZ[1];
-                    savedEnemyPosXYZ[2] = *enemyPosXYZ[2];
-                    savedEnemyVelocityXYZ[0] = *enemyVelocityXYZ[0];
-                    savedEnemyVelocityXYZ[1] = *enemyVelocityXYZ[1];
-                    savedEnemyVelocityXYZ[2] = *enemyVelocityXYZ[2];
-                    // savedEnemyGrounded = enemyGrounded;
-                    savedEnemyMoveID = enemyMoveID;
-                    savedEnemyMoveID2 = enemyMoveID2;
-                    savedEnemyMovePart = enemyMovePart;
+                        savedEnemyPosXYZ[0] = *enemyPosXYZ[0];
+                        savedEnemyPosXYZ[1] = *enemyPosXYZ[1];
+                        savedEnemyPosXYZ[2] = *enemyPosXYZ[2];
+                        savedEnemyVelocityXYZ[0] = *enemyVelocityXYZ[0];
+                        savedEnemyVelocityXYZ[1] = *enemyVelocityXYZ[1];
+                        savedEnemyVelocityXYZ[2] = *enemyVelocityXYZ[2];
+                        // savedEnemyGrounded = enemyGrounded;
+                        savedEnemyMoveID = enemyMoveID;
+                        savedEnemyMoveID2 = enemyMoveID2;
+                        savedEnemyMovePart = enemyMovePart;
+                    }
                 }
             }
-        }
-        if (input.wentDown(hotkey2)) {
-            sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
-            if (sMedPtr) {
-                uintptr_t* enemyPtr = (uintptr_t*)((uintptr_t)sMedPtr + 0x164 + whichEnemy * 4);
-                uintptr_t enemyBase = *enemyPtr;
-                if (enemyBase) {
-                    // get stats
-                    uint8_t& enemyMoveID = *(uint8_t*)(enemyBase + 0x14);
-                    int& enemyMoveID2 = *(int*)(enemyBase + 0x334);
-                    uint8_t& enemyMovePart = *(uint8_t*)(enemyBase + 0x15);
-                    float* enemyPosXYZ[3];
-                    enemyPosXYZ[0] = (float*)(enemyBase + 0x30);
-                    enemyPosXYZ[1] = (float*)(enemyBase + 0x34);
-                    enemyPosXYZ[2] = (float*)(enemyBase + 0x38);
-                    float* enemyVelocityXYZ[3];
-                    enemyVelocityXYZ[0] = (float*)(enemyBase + 0x1B40);
-                    enemyVelocityXYZ[1] = (float*)(enemyBase + 0x1B44);
-                    enemyVelocityXYZ[2] = (float*)(enemyBase + 0x1B48);
-                    // apply stats
-                    *enemyPosXYZ[0] = savedEnemyPosXYZ[0];
-                    *enemyPosXYZ[1] = savedEnemyPosXYZ[1];
-                    *enemyPosXYZ[2] = savedEnemyPosXYZ[2];
-                    *enemyVelocityXYZ[0] = savedEnemyVelocityXYZ[0];
-                    *enemyVelocityXYZ[1] = savedEnemyVelocityXYZ[1];
-                    *enemyVelocityXYZ[2] = savedEnemyVelocityXYZ[2];
-                    enemyMoveID = savedEnemyMoveID;
-                    enemyMoveID2 = savedEnemyMoveID2;
-                    enemyMovePart = (uint8_t)0;
+            if (input.wentDown(hotkey2)) {
+                sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
+                if (sMedPtr) {
+                    uintptr_t* enemyPtr = (uintptr_t*)((uintptr_t)sMedPtr + 0x164 + whichEnemy * 4);
+                    uintptr_t enemyBase = *enemyPtr;
+                    if (enemyBase) {
+                        // get stats
+                        uint8_t& enemyMoveID = *(uint8_t*)(enemyBase + 0x14);
+                        int& enemyMoveID2 = *(int*)(enemyBase + 0x334);
+                        uint8_t& enemyMovePart = *(uint8_t*)(enemyBase + 0x15);
+                        float* enemyPosXYZ[3];
+                        enemyPosXYZ[0] = (float*)(enemyBase + 0x30);
+                        enemyPosXYZ[1] = (float*)(enemyBase + 0x34);
+                        enemyPosXYZ[2] = (float*)(enemyBase + 0x38);
+                        float* enemyVelocityXYZ[3];
+                        enemyVelocityXYZ[0] = (float*)(enemyBase + 0x1B40);
+                        enemyVelocityXYZ[1] = (float*)(enemyBase + 0x1B44);
+                        enemyVelocityXYZ[2] = (float*)(enemyBase + 0x1B48);
+                        // apply stats
+                        *enemyPosXYZ[0] = savedEnemyPosXYZ[0];
+                        *enemyPosXYZ[1] = savedEnemyPosXYZ[1];
+                        *enemyPosXYZ[2] = savedEnemyPosXYZ[2];
+                        *enemyVelocityXYZ[0] = savedEnemyVelocityXYZ[0];
+                        *enemyVelocityXYZ[1] = savedEnemyVelocityXYZ[1];
+                        *enemyVelocityXYZ[2] = savedEnemyVelocityXYZ[2];
+                        enemyMoveID = savedEnemyMoveID;
+                        enemyMoveID2 = savedEnemyMoveID2;
+                        enemyMovePart = (uint8_t)0;
+                    }
                 }
             }
         }
