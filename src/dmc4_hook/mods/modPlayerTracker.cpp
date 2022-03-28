@@ -7,9 +7,6 @@ uintptr_t PlayerTracker::jmp_return{ NULL };
 // uintptr_t* PlayerTracker::player_base_ptr{ (uintptr_t*)(0x00E558B8) }; // DevilMayCry4_DX9.exe+A558B8
 uPlayer* PlayerTracker::player_ptr{ NULL };
 bool PlayerTracker::lockOnAlloc{ false };
-float* playerXYZ[3]{ NULL, NULL, NULL };
-float* playerRotation[4]{ NULL, NULL, NULL, NULL };
-float* playerScale[3]{ NULL, NULL, NULL };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 bool displayPlayerStats = false;
 
@@ -75,30 +72,42 @@ void PlayerTracker::onGUIframe() {
     ImGui::Checkbox("Display Player Stats", &displayPlayerStats);
     if (displayPlayerStats) {
         sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
-        uPlayer* uLocalPlr = sMedPtr->playerPtr;
-        if (uLocalPlr)
+        uintptr_t* playerPtr = (uintptr_t*)((uintptr_t)sMedPtr + 0x24);
+        uintptr_t playerBase = *playerPtr;
+        if (playerBase)
         {
-            playerXYZ[0] = &uLocalPlr->mPos[0];
-            playerXYZ[1] = &uLocalPlr->mPos[1];
-            playerXYZ[2] = &uLocalPlr->mPos[2];
+            float* playerXYZ[3];
+            playerXYZ[0] = (float*)(playerBase + 0x30);
+            playerXYZ[1] = (float*)(playerBase + 0x34);
+            playerXYZ[2] = (float*)(playerBase + 0x38);
 
-            playerRotation[0] = &uLocalPlr->mQuat[0];
-            playerRotation[1] = &uLocalPlr->mQuat[1];
-            playerRotation[2] = &uLocalPlr->mQuat[2];
-            playerRotation[3] = &uLocalPlr->mQuat[3];
+            float* playerRotation[4];
+            playerRotation[0] = (float*)(playerBase + 0x40);
+            playerRotation[1] = (float*)(playerBase + 0x44);
+            playerRotation[2] = (float*)(playerBase + 0x48);
+            playerRotation[3] = (float*)(playerBase + 0x4C);
 
-            playerScale[0] = &uLocalPlr->mScale[0];
-            playerScale[1] = &uLocalPlr->mScale[1];
-            playerScale[2] = &uLocalPlr->mScale[2];
+            float* playerScale[3];
+            playerScale[0] = (float*)(playerBase + 0x50);
+            playerScale[1] = (float*)(playerBase + 0x54);
+            playerScale[2] = (float*)(playerBase + 0x58);
 
-            float& animationFrame = *(float*)((uintptr_t)uLocalPlr + 0x348);
-            float& playerCurrentHP = *(float*)((uintptr_t)uLocalPlr + 0x15CC);
-            float& playerMaxHP = *(float*)((uintptr_t)uLocalPlr + 0x15D0);
-            int8_t& playerWeight = *(int8_t*)((uintptr_t)uLocalPlr + 0x1E7D);
+            float& animationFrame = *(float*)(playerBase + 0x348);
+            float& playerCurrentHP = *(float*)(playerBase + 0x15CC);
+            float& playerMaxHP = *(float*)(playerBase + 0x15D0);
+            int8_t& playerWeight = *(int8_t*)(playerBase + 0x1E7D);
+
+            float* playerVelocityXYZ[3];
+            playerVelocityXYZ[0] = (float*)(playerBase + 0x1E50);
+            playerVelocityXYZ[1] = (float*)(playerBase + 0x1E54);
+            playerVelocityXYZ[2] = (float*)(playerBase + 0x1E58);
+            float& playerMagnitude = *(float*)(playerBase + 0x1E60);
 
             ImGui::InputFloat3("XYZ Position ##1", *playerXYZ);
             ImGui::InputFloat4("Rotation ##1", *playerRotation);
             ImGui::InputFloat3("XYZ Scale ##1", *playerScale);
+            ImGui::InputFloat3("XYZ Velocity ##1", *playerVelocityXYZ);
+            ImGui::InputFloat("Inertia ##1", &playerMagnitude);
             ImGui::InputFloat("Animation Frame ##1", &animationFrame);
             ImGui::InputFloat("HP ##1", &playerCurrentHP);
             ImGui::InputFloat("Max HP ##1", &playerMaxHP);
@@ -109,15 +118,3 @@ void PlayerTracker::onGUIframe() {
 }
 
 #endif
-
-/*
-            // sub esp, 0x10
-            // movss [esp], xmm3
-            // movss [esp+0x4], xmm0
-            // movss [esp+0x8], xmm1
-            // etc
-            // movss xmm3, [esp]
-            // movss xmm0, [esp+0x4]
-            // movss xmm1, [esp+0x8]
-            // add esp, 0x10
-*/

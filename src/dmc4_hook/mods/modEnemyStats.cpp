@@ -32,6 +32,7 @@ void EnemyStats::onGUIframe() {
             int8_t& enemyCount = *(int8_t*)((uintptr_t)sMedPtr + 0x1E0);
             ImGui::SliderInt("Enemy Count", (int*)&enemyCount, 0, 0);
             ImGui::SliderInt("Enemy Select", &whichEnemy, 1, enemyCount);
+            ImGui::Spacing();
             uintptr_t* enemyPtr = (uintptr_t*)((uintptr_t)sMedPtr + 0x164 + whichEnemy * 4);
             uintptr_t enemyBase = *enemyPtr;
             if (enemyBase) {
