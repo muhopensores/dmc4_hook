@@ -60,16 +60,16 @@ void EnemyStats::onGUIframe() {
                 //int& launchThing2 = *(int*)(enemyBase + 0xEA8);
 
                 // imgui
-                ImGui::InputFloat3("XYZ Position", *enemyPosXYZ);
-                ImGui::InputFloat3("XYZ Velocity", *enemyVelocityXYZ);
-                //ImGui::InputScalar("Grounded", ImGuiDataType_U8, &enemyGrounded);
-                ImGui::InputScalar("Move ID", ImGuiDataType_U8, &enemyMoveID);
-                ImGui::InputInt("Move ID 2", &enemyMoveID2);
-                ImGui::InputScalar("Move Part", ImGuiDataType_U8, &enemyMovePart);
-                ImGui::InputFloat("Animation Frame", &enemyFrame);
-                ImGui::InputFloat3("XYZ Scale", *enemyScaleXYZ);
-                ImGui::InputFloat("HP", &enemyHP);
-                ImGui::InputFloat("Max HP", &enemyMaxHP);
+                ImGui::InputFloat3("XYZ Position ##2", *enemyPosXYZ);
+                ImGui::InputFloat3("XYZ Velocity ##2", *enemyVelocityXYZ);
+                ImGui::InputScalar("Grounded ##2", ImGuiDataType_U8, &enemyGrounded);
+                ImGui::InputScalar("Move ID ##2", ImGuiDataType_U8, &enemyMoveID);
+                ImGui::InputInt("Move ID 2 ##2", &enemyMoveID2);
+                ImGui::InputScalar("Move Part ##2", ImGuiDataType_U8, &enemyMovePart);
+                ImGui::InputFloat("Animation Frame ##2", &enemyFrame);
+                ImGui::InputFloat3("XYZ Scale ##2", *enemyScaleXYZ);
+                ImGui::InputFloat("HP ##2", &enemyHP);
+                ImGui::InputFloat("Max HP ##2", &enemyMaxHP);
 
                 if (ImGui::Button("Save Selected Enemy Info")) {
                     savedEnemyPosXYZ[0] = *enemyPosXYZ[0];
@@ -81,8 +81,8 @@ void EnemyStats::onGUIframe() {
                     //savedEnemyGrounded = enemyGrounded;
                     savedEnemyMoveID = enemyMoveID;
                     savedEnemyMoveID2 = enemyMoveID2;
-                    savedEnemyMovePart = enemyMovePart;
-                    savedEnemyAnimationFrame = enemyFrame;
+                    //savedEnemyMovePart = enemyMovePart;
+                    //savedEnemyAnimationFrame = enemyFrame;
                 }
                 ImGui::SameLine();
                 HelpMarker("Hotkey is HOME by default");
@@ -108,8 +108,7 @@ void EnemyStats::onGUIframe() {
                 ImGui::SameLine();
                 HelpMarker("Hotkey is END by default");
 
-                /*
-                if (ImGui::Button("Restore Saved Move ID, Position & Frame")) {
+                /*if (ImGui::Button("Restore Saved Move ID, Position & Frame")) {
                     *enemyPosXYZ[0] = savedEnemyPosXYZ[0];
                     *enemyPosXYZ[1] = savedEnemyPosXYZ[1];
                     *enemyPosXYZ[2] = savedEnemyPosXYZ[2];
@@ -120,19 +119,19 @@ void EnemyStats::onGUIframe() {
                     enemyMoveID2 = savedEnemyMoveID2;
                     enemyMovePart = (uint8_t)0; // this writes animation frame 0 after I do so I can't set frame myself :(
                     enemyFrame = savedEnemyAnimationFrame;
-                }
-                */
+                }*/
+                
                 ImGui::Checkbox("Enable Save/Load hotkeys", &hotkeyEnabled);
 
-                if (ImGui::CollapsingHeader("Saved Info"))
-                {
-                    ImGui::InputFloat3("Saved XYZ Position", savedEnemyPosXYZ);
-                    ImGui::InputFloat3("Saved XYZ Velocity", savedEnemyVelocityXYZ);
-                    ImGui::InputScalar("Saved Move ID", ImGuiDataType_U8, &savedEnemyMoveID);
-                    ImGui::InputInt("Saved Move ID 2", &savedEnemyMoveID2);
-                    ImGui::InputScalar("Saved Move Part", ImGuiDataType_U8, &savedEnemyMovePart);
-                    ImGui::InputFloat("Saved Anim Frame", &savedEnemyAnimationFrame);
-                }
+                ImGui::Spacing();
+
+                ImGui::Text("Saved Info");
+                ImGui::InputScalar("Saved Move ID", ImGuiDataType_U8, &savedEnemyMoveID);
+                ImGui::InputInt("Saved Move ID 2", &savedEnemyMoveID2);
+                ImGui::InputFloat3("Saved XYZ Position", savedEnemyPosXYZ);
+                ImGui::InputFloat3("Saved XYZ Velocity", savedEnemyVelocityXYZ);
+                //ImGui::InputScalar("Saved Move Part", ImGuiDataType_U8, &savedEnemyMovePart);
+                //ImGui::InputFloat("Saved Anim Frame", &savedEnemyAnimationFrame);
             }
         }
     }

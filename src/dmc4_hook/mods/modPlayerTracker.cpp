@@ -63,10 +63,13 @@ std::optional<std::string> PlayerTracker::onInitialize()
     return Mod::onInitialize();
 }
 
-void PlayerTracker::onGUIframe()
-{
+void PlayerTracker::onGUIframe() {
+    ImGui::Spacing();
+
     ImGui::Checkbox("Disable Game Pause When Opening The Trainer", &WorkRate::disableTrainerPause);
 
+    ImGui::Spacing();
+    ImGui::Separator();
     ImGui::Spacing();
 
     ImGui::Checkbox("Display Player Stats", &displayPlayerStats);
@@ -88,17 +91,19 @@ void PlayerTracker::onGUIframe()
             playerScale[1] = &uLocalPlr->mScale[1];
             playerScale[2] = &uLocalPlr->mScale[2];
 
-            ImGui::InputFloat3("Player Position", *playerXYZ);
-            ImGui::InputFloat4("Player Rotation", *playerRotation);
-            ImGui::InputFloat3("Player Scale", *playerScale);
-            ImGui::Checkbox("Lock On", &PlayerTracker::lockOnAlloc);
-
             float& animationFrame = *(float*)((uintptr_t)uLocalPlr + 0x348);
-            ImGui::InputFloat("Animation Frame", &animationFrame);
-        }
-        else
-        {
-            ImGui::Text("Load into an area and debug info might pop up");
+            float& playerCurrentHP = *(float*)((uintptr_t)uLocalPlr + 0x15CC);
+            float& playerMaxHP = *(float*)((uintptr_t)uLocalPlr + 0x15D0);
+            int8_t& playerWeight = *(int8_t*)((uintptr_t)uLocalPlr + 0x1E7D);
+
+            ImGui::InputFloat3("XYZ Position ##1", *playerXYZ);
+            ImGui::InputFloat4("Rotation ##1", *playerRotation);
+            ImGui::InputFloat3("XYZ Scale ##1", *playerScale);
+            ImGui::InputFloat("Animation Frame ##1", &animationFrame);
+            ImGui::InputFloat("HP ##1", &playerCurrentHP);
+            ImGui::InputFloat("Max HP ##1", &playerMaxHP);
+            ImGui::InputScalar("Weight ##1", ImGuiDataType_U8, &playerWeight);
+            ImGui::Checkbox("Lock On ##1", &PlayerTracker::lockOnAlloc);
         }
     }
 }
