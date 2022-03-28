@@ -145,8 +145,7 @@ void InputStates::onTimerCallback() // hide lucifer after rose if weaponid is no
 {
     sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
     uPlayer* uLocalPlr = sMedPtr->playerPtr;
-    if (uLocalPlr)
-    {
+    if (uLocalPlr) {
         uPlayer* uLocalPlr = sMedPtr->playerPtr;
         uint8_t& weaponID = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1DB4);
         uintptr_t* luciferPtr = (uintptr_t*)((uintptr_t)uLocalPlr + 0x1D98);
@@ -160,63 +159,56 @@ void InputStates::onTimerCallback() // hide lucifer after rose if weaponid is no
 }
 
 void InputStates::RoseInput(void) {
-    if (touchpadRoseEnabled) // if cheat is enabled
-    {
-        sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
-        uPlayer* uLocalPlr = sMedPtr->playerPtr;
-        if (uLocalPlr)
+    sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
+    uPlayer* uLocalPlr = sMedPtr->playerPtr;
+    if (uLocalPlr) {
+        uint8_t& grounded = *(uint8_t*)((uintptr_t)uLocalPlr + 0xEA8);
+        uint8_t& cancellable = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1E15);
+        // input
+        if (roseInput) // if touchpad is pressed
         {
-            uint8_t& grounded = *(uint8_t*)((uintptr_t)uLocalPlr + 0xEA8);
-            uint8_t& cancellable = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1E15);
-            // input
-            if (roseInput) // if touchpad is pressed
+            if (grounded == 2) // aerial?
             {
-                if (grounded == 2) // aerial?
+                if (cancellable == 0x10) // if in free frames
                 {
-                    if (cancellable == 0x10) // if in free frames
-                    {
-                        InputStates::PlayRose();
-                    }
-                    if (cancellable == 0x30) // if in buffer frames
-                    {
-                        bufferedRose = true;
-                    }
-                    roseInput = false; // in active frames
+                    InputStates::PlayRose();
                 }
-                else
-                    roseInput = false; // grounded.
+                if (cancellable == 0x30) // if in buffer frames
+                {
+                    bufferedRose = true;
+                }
+                roseInput = false; // in active frames
             }
+            else
+                roseInput = false; // grounded.
         }
     }
 }
-void InputStates::RoseBuffer(void)
-{
-    if (touchpadRoseEnabled) // if cheat is enabled
+
+void InputStates::RoseBuffer(void) {
+    sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
+    uPlayer* uLocalPlr = sMedPtr->playerPtr;
+    if (uLocalPlr)
     {
-        sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
-        uPlayer* uLocalPlr = sMedPtr->playerPtr;
-        if (uLocalPlr)
+        uint8_t& grounded = *(uint8_t*)((uintptr_t)uLocalPlr + 0xEA8);
+        uint8_t& cancellable = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1E15);
+        // buffer
+        if (bufferedRose)
         {
-            uint8_t& grounded = *(uint8_t*)((uintptr_t)uLocalPlr + 0xEA8);
-            uint8_t& cancellable = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1E15);
-            // buffer
-            if (bufferedRose)
+            if (grounded == 2) // aerial?
             {
-                if (grounded == 2) // aerial?
+                if (cancellable == 0x10) // if in free frames
                 {
-                    if (cancellable == 0x10) // if in free frames
-                    {
-                        bufferedRose = false;
-                        InputStates::PlayRose();
-                    }
-                    if (cancellable == 0x00) // if another attack starts, kill the buffer
-                    {
-                        bufferedRose = false;
-                    }
+                    bufferedRose = false;
+                    InputStates::PlayRose();
                 }
-                else
-                    bufferedRose = false; // grounded.
+                if (cancellable == 0x00) // if another attack starts, kill the buffer
+                {
+                    bufferedRose = false;
+                }
             }
+            else
+                bufferedRose = false; // grounded.
         }
     }
 }

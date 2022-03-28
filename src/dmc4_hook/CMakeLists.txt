@@ -172,6 +172,8 @@ SET (MODS
   mods/modNeroSnatchLength.cpp
   mods/modChargeChecker.hpp
   mods/modChargeChecker.cpp
+  mods/modEnemyStats.hpp
+  mods/modEnemyStats.cpp
 )
 
 SET (HEADERS

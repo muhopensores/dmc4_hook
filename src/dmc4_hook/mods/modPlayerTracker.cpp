@@ -11,6 +11,7 @@ float* playerXYZ[3]{ NULL, NULL, NULL };
 float* playerRotation[4]{ NULL, NULL, NULL, NULL };
 float* playerScale[3]{ NULL, NULL, NULL };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
+bool displayPlayerStats = false;
 
 PlayerTracker::PlayerTracker()
 {
@@ -18,30 +19,14 @@ PlayerTracker::PlayerTracker()
 }
 
 void update_player_info(void) {
-    // sMediator* b = (sMediator*)*PlayerTracker::player_base_ptr;
-
-    sMediator* sMedPtr = (sMediator*)*(uintptr_t*)staticMediatorPtr;
+    sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
     uPlayer* uLocalPlr = sMedPtr->playerPtr;
-
-    PlayerTracker::player_ptr = uLocalPlr; // used for valid check
-    playerXYZ[0] = &uLocalPlr->mPos[0];
-    playerXYZ[1] = &uLocalPlr->mPos[1];
-    playerXYZ[2] = &uLocalPlr->mPos[2];
-
-    playerRotation[0] = &uLocalPlr->mQuat[0];
-    playerRotation[1] = &uLocalPlr->mQuat[1];
-    playerRotation[2] = &uLocalPlr->mQuat[2];
-    playerRotation[3] = &uLocalPlr->mQuat[3];
-
-    playerScale[0] = &uLocalPlr->mScale[0];
-    playerScale[1] = &uLocalPlr->mScale[1];
-    playerScale[2] = &uLocalPlr->mScale[2];
-
-    PlayerTracker::lockOnAlloc = uLocalPlr->lockontoggle;
+    if (uLocalPlr) {
+        PlayerTracker::lockOnAlloc = uLocalPlr->lockontoggle;
+    }
 }
 
-naked void detour()
-{
+naked void detour() {
     _asm {
             movss [esi+0x30], xmm3 // originalcode
             push ecx
@@ -84,16 +69,37 @@ void PlayerTracker::onGUIframe()
 
     ImGui::Spacing();
 
-    if (PlayerTracker::player_ptr != NULL)
-    {
-        ImGui::InputFloat3("Player Position", *playerXYZ);
-        ImGui::InputFloat4("Player Rotation", *playerRotation);
-        ImGui::InputFloat3("Player Scale", *playerScale);
-        ImGui::Checkbox("Lock On", &PlayerTracker::lockOnAlloc);
-    }
-    else
-    {
-        ImGui::Text("Load into an area and debug info might pop up");
+    ImGui::Checkbox("Display Player Stats", &displayPlayerStats);
+    if (displayPlayerStats) {
+        sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
+        uPlayer* uLocalPlr = sMedPtr->playerPtr;
+        if (uLocalPlr)
+        {
+            playerXYZ[0] = &uLocalPlr->mPos[0];
+            playerXYZ[1] = &uLocalPlr->mPos[1];
+            playerXYZ[2] = &uLocalPlr->mPos[2];
+
+            playerRotation[0] = &uLocalPlr->mQuat[0];
+            playerRotation[1] = &uLocalPlr->mQuat[1];
+            playerRotation[2] = &uLocalPlr->mQuat[2];
+            playerRotation[3] = &uLocalPlr->mQuat[3];
+
+            playerScale[0] = &uLocalPlr->mScale[0];
+            playerScale[1] = &uLocalPlr->mScale[1];
+            playerScale[2] = &uLocalPlr->mScale[2];
+
+            ImGui::InputFloat3("Player Position", *playerXYZ);
+            ImGui::InputFloat4("Player Rotation", *playerRotation);
+            ImGui::InputFloat3("Player Scale", *playerScale);
+            ImGui::Checkbox("Lock On", &PlayerTracker::lockOnAlloc);
+
+            float& animationFrame = *(float*)((uintptr_t)uLocalPlr + 0x348);
+            ImGui::InputFloat("Animation Frame", &animationFrame);
+        }
+        else
+        {
+            ImGui::Text("Load into an area and debug info might pop up");
+        }
     }
 }
 

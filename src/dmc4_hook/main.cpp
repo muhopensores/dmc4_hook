@@ -574,6 +574,12 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 main->getMods()->onDrawUI("PlayerTracker"_hash); // needs its own line
 
                 ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                main->getMods()->onDrawUI("EnemyStats"_hash); // needs its own line
+
+                ImGui::Spacing();
                 ImGui::EndTabItem();
             }
             CreditsDrawing();

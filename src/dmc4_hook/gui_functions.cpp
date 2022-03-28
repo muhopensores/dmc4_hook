@@ -10,6 +10,7 @@
 #include "./mods/modNoClip.hpp"
 #include "./mods/modEnemySpawn.hpp"
 #include "./mods/modQuicksilver.hpp"
+#include "./mods/modEnemyStats.hpp"
 
 std::string HotkeyName(int hotkey) {
     switch (hotkey)
@@ -18,6 +19,10 @@ std::string HotkeyName(int hotkey) {
         return "Shift";
     case 0x11: // 17
         return "Ctrl";
+    case 0x23: // 35
+        return "End";
+    case 0x24: // 36
+        return "Home";
     case 0x70: // 112
         return "F1";
     case 0x71: // 113
@@ -372,6 +377,10 @@ void CreditsDrawing()
         HelpMarker("Only if \"Restore Enemy HP\" is checked in the General tab");
 
         ImGui::Text("%s = Quicksilver", &HotkeyName(Quicksilver::hotkey));
+
+        ImGui::Text("%s = Load Enemy Stats", &HotkeyName(EnemyStats::hotkey1));
+
+        ImGui::Text("%s = Apply Enemy Stats", &HotkeyName(EnemyStats::hotkey2));
 
         ImGui::Spacing();
         ImGui::Separator();

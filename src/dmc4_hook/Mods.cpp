@@ -85,6 +85,7 @@
 #include "mods/modFrostsDontJump.hpp"
 #include "mods/modNeroSnatchLength.hpp"
 #include "mods/modChargeChecker.hpp"
+#include "mods/modEnemyStats.hpp"
 #include "./utils/MessageDisplay.hpp"
 
 //#include "mods/modSample.hpp"
@@ -177,6 +178,7 @@ Mods::Mods() {
 		m_mods["NeroSnatchLength"_hash] = std::make_unique<NeroSnatchLength>();
 		m_mods["ChargeChecker"_hash] = std::make_unique<ChargeChecker>();
 		m_mods["MessageDisplayMod"_hash] = std::make_unique<MessageDisplayMod>();
+		m_mods["EnemyStats"_hash] = std::make_unique<EnemyStats>();
 }
 
 std::optional<std::string> Mods::onSlowInitialize() const {

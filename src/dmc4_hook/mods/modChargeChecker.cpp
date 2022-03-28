@@ -48,7 +48,7 @@ std::optional<std::string> ChargeChecker::onInitialize()
 
 void ChargeChecker::onGUIframe()
 {
-    ImGui::Checkbox("Faster Round Trip", &modEnabled);
+    ImGui::Checkbox("Faster Round Trip Charge", &modEnabled);
 }
 
 void ChargeChecker::onConfigLoad(const utils::Config& cfg)
