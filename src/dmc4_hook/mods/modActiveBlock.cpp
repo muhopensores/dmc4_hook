@@ -17,43 +17,7 @@ ActiveBlock::ActiveBlock()
     // onInitialize();
 }
 
-naked void detour()
-{
-    _asm {
-        cmp [ActiveBlock::modEnabled], 0
-        jmp code
-
-        cmp dword ptr [InputStates::inputTimer], 0x40a00000 // 0x41200000 = 10 // 0x40a00000 = 5
-        ja code
-        cmp dword ptr [InputStates::inputTimer], 0x00000000
-        je code
-        // cmp dword ptr [currentStyle], 3
-        jne code
-        push edi
-        jmp dword ptr [ActiveBlock::alt_ret]
-
-    code:
-        cmp byte ptr [esi+0x00014CD4], bl
-		jmp dword ptr [ActiveBlock::jmp_return]
-    }
-}
-
-naked void detour2()
-{
-    _asm {
-        mov eax,[esi+0x00014D98] // set up a PlayerTracker already
-        cmp [ActiveBlock::modEnabled], 0
-        je retcode
-
-        // mov dword ptr [currentStyle], eax
-
-    retcode:
-		jmp dword ptr [ActiveBlock::jmp_return2]
-    }
-}
-
-naked void detour3()
-{
+naked void detour3() {
     _asm {
         cmp [ActiveBlock::modEnabled], 0
         je code
@@ -66,11 +30,11 @@ naked void detour3()
         pop ecx
         jne code
 
-        cmp dword ptr [InputStates::inputTimer], 0x40a00000
+        cmp dword ptr [InputStates::inputTimer], 0x40a00000 // 5.0f
         ja code
         cmp dword ptr [InputStates::inputTimer], 0x00000000
         je code
-        cmp dword ptr [esi+0x00014D98], 3 //[currentStyle], 3
+        cmp dword ptr [esi+0x00014D98], 3 // [currentStyle], 3
         jne code
         jmp dword ptr [ActiveBlock::alt_ret3]
 
@@ -82,16 +46,6 @@ naked void detour3()
 
 std::optional<std::string> ActiveBlock::onInitialize()
 {
-    /* if (!install_hook_offset(0x3BBE36, hook, &detour, &jmp_return, 6))
-    {
-        HL_LOG_ERR("Failed to init ActiveBlock mod\n");
-        return "Failed to init ActiveBlock mod";
-    }
-    if (!install_hook_offset(0x3B6DCD, hook2, &detour2, &jmp_return2, 6))
-    {
-        HL_LOG_ERR("Failed to init ActiveBlock2 mod\n");
-        return "Failed to init ActiveBlock2 mod";
-    }*/
     if (!install_hook_offset(0x3BBAAE, hook3, &detour3, &jmp_return3, 7))
     {
         HL_LOG_ERR("Failed to init ActiveBlock3 mod\n");

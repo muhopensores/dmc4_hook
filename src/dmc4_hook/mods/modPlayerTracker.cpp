@@ -9,6 +9,7 @@ uPlayer* PlayerTracker::player_ptr{ NULL };
 bool PlayerTracker::lockOnAlloc{ false };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 bool displayPlayerStats = false;
+bool potentiallyDumb = false;
 
 PlayerTracker::PlayerTracker()
 {
@@ -19,7 +20,7 @@ void update_player_info(void) {
     sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
     uPlayer* uLocalPlr = sMedPtr->playerPtr;
     if (uLocalPlr) {
-        PlayerTracker::lockOnAlloc = uLocalPlr->lockontoggle;
+        PlayerTracker::lockOnAlloc = uLocalPlr->lockontoggle; // 16D0
     }
 }
 
@@ -113,6 +114,13 @@ void PlayerTracker::onGUIframe() {
             ImGui::InputFloat("Max HP ##1", &playerMaxHP);
             ImGui::InputScalar("Weight ##1", ImGuiDataType_U8, &playerWeight);
             ImGui::Checkbox("Lock On ##1", &PlayerTracker::lockOnAlloc);
+
+            ImGui::Checkbox("why", &potentiallyDumb);
+            if (potentiallyDumb) {
+                float& magnitudeDirection = *(float*)(playerBase + 0x1E64);
+                float& stickDirection = *(float*)(playerBase + 0x1420);
+                magnitudeDirection = stickDirection;
+            }
         }
     }
 }
