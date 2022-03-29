@@ -110,17 +110,10 @@ void PlayerTracker::onGUIframe() {
             ImGui::InputFloat3("XYZ Velocity ##1", *playerVelocityXYZ);
             ImGui::InputFloat("Inertia ##1", &playerMagnitude);
             ImGui::InputFloat("Animation Frame ##1", &animationFrame);
+            ImGui::InputScalar("Weight ##1", ImGuiDataType_U8, &playerWeight);
             ImGui::InputFloat("HP ##1", &playerCurrentHP);
             ImGui::InputFloat("Max HP ##1", &playerMaxHP);
-            ImGui::InputScalar("Weight ##1", ImGuiDataType_U8, &playerWeight);
             ImGui::Checkbox("Lock On ##1", &PlayerTracker::lockOnAlloc);
-
-            ImGui::Checkbox("why", &potentiallyDumb);
-            if (potentiallyDumb) {
-                float& magnitudeDirection = *(float*)(playerBase + 0x1E64);
-                float& stickDirection = *(float*)(playerBase + 0x1420);
-                magnitudeDirection = stickDirection;
-            }
         }
     }
 }
