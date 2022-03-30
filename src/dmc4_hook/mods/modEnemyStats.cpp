@@ -19,8 +19,7 @@ float savedEnemyPosXYZ[3]{ 0.0f, 0.0f, 0.0f };
 float savedEnemyAnimationFrame = 0.0f;
 float savedEnemyVelocityXYZ[3]{ 0.0f, 0.0f, 0.0f };
 
-std::optional<std::string> EnemyStats::onInitialize()
-{
+std::optional<std::string> EnemyStats::onInitialize() {
     return Mod::onInitialize();
 }
 
@@ -269,15 +268,12 @@ void EnemyStats::onUpdateInput(hl::Input& input) {
     }
     else {
         if (hotkeyEnabled) {
-            if (input.wentDown(hotkey1))
-            {
+            if (input.wentDown(hotkey1)) {
                 sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
-                if (sMedPtr)
-                {
+                if (sMedPtr) {
                     uintptr_t* bossPtr = (uintptr_t*)((uintptr_t)sMedPtr + 0xB0);
                     uintptr_t bossBase = *bossPtr;
-                    if (bossBase)
-                    {
+                    if (bossBase) {
                         // get stats
                         uint8_t& enemyMoveID = *(uint8_t*)(bossBase + 0x14);
                         int& enemyMoveID2 = *(int*)(bossBase + 0x334);
@@ -296,15 +292,12 @@ void EnemyStats::onUpdateInput(hl::Input& input) {
                 }
             }
 
-            if (input.wentDown(hotkey2))
-            {
+            if (input.wentDown(hotkey2)) {
                 sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
-                if (sMedPtr)
-                {
+                if (sMedPtr) {
                     uintptr_t* bossPtr = (uintptr_t*)((uintptr_t)sMedPtr + 0xB0);
                     uintptr_t bossBase = *bossPtr;
-                    if (bossBase)
-                    {
+                    if (bossBase) {
                         // get stats
                         uint8_t& enemyMoveID = *(uint8_t*)(bossBase + 0x14);
                         int& enemyMoveID2 = *(int*)(bossBase + 0x334);

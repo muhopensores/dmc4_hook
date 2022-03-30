@@ -13,8 +13,11 @@ naked void detour(void) // player in edi
         cmp byte ptr [ChargeChecker::modEnabled], 0
         je code
 
-        cmp eax, 1 // melee input
-        jne code
+        push ebx
+        mov ebx, 1
+        test eax, ebx
+        pop ebx
+        je code
 
         push edx
         mov edx, [staticMediatorPtr] // only get player (thanks boss dante)

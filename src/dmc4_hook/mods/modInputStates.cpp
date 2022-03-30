@@ -18,8 +18,7 @@ bool roseInput{ false };
 bool bufferedRose{ false };
 bool roseTimerActive{ false };
 
-naked void detour() // inputpressed // ActiveBlock & touchpad ectasy, called on tick
-{
+naked void detour() { // inputpressed // inputs are edx // ActiveBlock & touchpad ectasy, called on tick
     _asm {
         push ecx
         mov ecx, [staticMediatorPtr] // only get player inputs (thanks boss dante)
@@ -87,26 +86,21 @@ naked void detour() // inputpressed // ActiveBlock & touchpad ectasy, called on 
     }
 }
 
-naked void detour2() // inputonpress // no keyboard support whoops // touchpad ecstasy // player is in esi // called on button press
-{
+naked void detour2() { // inputonpress // touchpad ecstasy // player is in edx // called on button press
     _asm {
-        mov [esi+0x00001410], eax // originalcode
+        mov [edx+0x00001410], eax // originalcode
         cmp byte ptr [InputStates::touchpadRoseEnabled], 0
         je jmpret
+
         push ecx
         mov ecx, [staticMediatorPtr] // only get player inputs (thanks boss dante)
         mov ecx, [ecx]
         mov ecx, [ecx+0x24]
-        cmp dword ptr [ecx+0x1494], 0 // playerid hopefully
-        pop ecx
-        jne jmpret
-        push ecx
-        mov ecx, [staticMediatorPtr] // only get player inputs (thanks boss dante)
-        mov ecx, [ecx]
-        mov ecx, [ecx+0x24]
-        cmp esi, ecx
+        cmp edx, ecx
         pop ecx
         jne jmpret // if not player, jump
+        cmp dword ptr [edx+0x1494], 0 // playerid hopefully
+        jne jmpret
 
     // checkrose
         push edx
@@ -126,23 +120,19 @@ naked void detour2() // inputonpress // no keyboard support whoops // touchpad e
     }
 }
 
-std::optional<std::string> InputStates::onInitialize()
-{
-    if (!install_hook_offset(0x3B0844, hook, &detour, &jmp_return, 6)) // ActiveBlock
-    {
+std::optional<std::string> InputStates::onInitialize() {
+    if (!install_hook_offset(0x3B0844, hook, &detour, &jmp_return, 6)) { // ActiveBlock
         HL_LOG_ERR("Failed to init InputStates mod\n");
         return "Failed to init InputStates mod";
     } 
-    if (!install_hook_offset(0x3A9329, hook2, &detour2, &jmp_return2, 6)) // TauntEcstasy
-    {
+    if (!install_hook_offset(0x3AA002, hook2, &detour2, &jmp_return2, 6)) { // TauntEcstasy
         HL_LOG_ERR("Failed to init InputStates2 mod\n");
         return "Failed to init InputStates2 mod";
     }
     return Mod::onInitialize();
 }
 
-void InputStates::onTimerCallback() // hide lucifer after rose if weaponid is not lucifer
-{
+void InputStates::onTimerCallback() { // hide lucifer after rose if weaponid is not lucifer
     sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
     uPlayer* uLocalPlr = sMedPtr->playerPtr;
     if (uLocalPlr) {
@@ -151,8 +141,7 @@ void InputStates::onTimerCallback() // hide lucifer after rose if weaponid is no
         uintptr_t* luciferPtr = (uintptr_t*)((uintptr_t)uLocalPlr + 0x1D98);
         uintptr_t luciferBase = *luciferPtr;
         bool& showLucifer = *(bool*)(luciferBase + 0x137C);
-        if (showLucifer == true && weaponID != 6 && !ForceLucifer::modEnabled)
-        {
+        if (showLucifer == true && weaponID != 6 && !ForceLucifer::modEnabled) {
             showLucifer = false;
         }
     }
@@ -164,17 +153,14 @@ void InputStates::RoseInput(void) {
     if (uLocalPlr) {
         uint8_t& grounded = *(uint8_t*)((uintptr_t)uLocalPlr + 0xEA8);
         uint8_t& cancellable = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1E15);
+        int& moveID = *(int*)((uintptr_t)uLocalPlr + 0x295C); // i hate myself
         // input
-        if (roseInput) // if touchpad is pressed
-        {
-            if (grounded == 2) // aerial?
-            {
-                if (cancellable == 0x10) // if in free frames
-                {
+        if (roseInput) { // if touchpad is pressed
+            if (grounded == 2) { // aerial?
+                if (cancellable == 0x10 || moveID == 0x10) { // if in free frames
                     InputStates::PlayRose();
                 }
-                if (cancellable == 0x30) // if in buffer frames
-                {
+                if (cancellable == 0x30) { // if in buffer frames
                     bufferedRose = true;
                 }
                 roseInput = false; // in active frames
@@ -188,22 +174,17 @@ void InputStates::RoseInput(void) {
 void InputStates::RoseBuffer(void) {
     sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
     uPlayer* uLocalPlr = sMedPtr->playerPtr;
-    if (uLocalPlr)
-    {
+    if (uLocalPlr) {
         uint8_t& grounded = *(uint8_t*)((uintptr_t)uLocalPlr + 0xEA8);
         uint8_t& cancellable = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1E15);
         // buffer
-        if (bufferedRose)
-        {
-            if (grounded == 2) // aerial?
-            {
-                if (cancellable == 0x10) // if in free frames
-                {
+        if (bufferedRose) {
+            if (grounded == 2) { // aerial?
+                if (cancellable == 0x10) { // if in free frames
                     bufferedRose = false;
                     InputStates::PlayRose();
                 }
-                if (cancellable == 0x00) // if another attack starts, kill the buffer
-                {
+                if (cancellable == 0x00) { // if another attack starts, kill the buffer
                     bufferedRose = false;
                 }
             }
@@ -213,8 +194,7 @@ void InputStates::RoseBuffer(void) {
     }
 }
 
-void InputStates::PlayRose(void)
-{
+void InputStates::PlayRose(void) {
     sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
     uPlayer* uLocalPlr = sMedPtr->playerPtr;
     uint8_t& moveBank = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1500);
@@ -234,18 +214,15 @@ void InputStates::PlayRose(void)
     roseTimerActive = true;
 }
 
-void InputStates::onConfigLoad(const utils::Config& cfg)
-{
+void InputStates::onConfigLoad(const utils::Config& cfg) {
     touchpadRoseEnabled = cfg.get<bool>("taunt_ectasy").value_or(false);
 };
 
-void InputStates::onConfigSave(utils::Config& cfg)
-{
+void InputStates::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("taunt_ectasy", touchpadRoseEnabled);
 };
 
-void InputStates::onGUIframe()
-{
+void InputStates::onGUIframe() {
     ImGui::Checkbox("Taunt Ecstasy", &touchpadRoseEnabled);
     ImGui::SameLine();
     HelpMarker("Consider using this with selective cancellable ecstasy to make it feel more like 5");
