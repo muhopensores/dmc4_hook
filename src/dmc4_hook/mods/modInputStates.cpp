@@ -17,6 +17,10 @@ bool InputStates::touchpadRoseEnabled{ false };
 bool roseInput{ false };
 bool bufferedRose{ false };
 bool roseTimerActive{ false };
+bool enabledNoDespawnChangeToLucifer = false;
+bool enabledNoDespawnEnemy = false;
+bool enabledNoDespawnObject = false;
+bool roseInfiniteTimer = false;
 
 naked void detour() { // inputpressed // inputs are edx // ActiveBlock & touchpad ectasy, called on tick
     _asm {
@@ -217,28 +221,93 @@ void InputStates::PlayRose(void) {
     roseTimerActive = true;
 }
 
+void InputStates::toggleDisableRoseDespawnOnChangingToLucifer(bool enabled) {
+    if (enabled) {
+        install_patch_offset(0x043600F, patch1, "\x90\x90\x90\x90\x90", 5);
+    }
+    else {
+        patch1.revert();
+    }
+}
+
+void InputStates::toggleDisableRoseDespawnOnHittingEnemy(bool enabled) {
+    if (enabled) {
+        install_patch_offset(0x0435944, patch2, "\x90\x90\x90\x90\x90\x90", 6);
+    }
+    else {
+        patch2.revert();
+    }
+}
+
+void InputStates::toggleDisableRoseDespawnOnHittingObject(bool enabled) {
+    if (enabled) {
+        install_patch_offset(0x0435922, patch3, "\x90\x90\x90\x90\x90\x90", 6);
+    }
+    else {
+        patch3.revert();
+    }
+}
+
+void InputStates::toggleRoseInfiniteTimer(bool enabled)
+{
+    if (enabled)
+    {
+        install_patch_offset(0x0435937, patch4, "\x90\x90\x90\x90\x90\x90", 6);
+    }
+    else
+    {
+        patch4.revert();
+    }
+}
+
 void InputStates::onConfigLoad(const utils::Config& cfg) {
     touchpadRoseEnabled = cfg.get<bool>("taunt_ectasy").value_or(false);
+    enabledNoDespawnChangeToLucifer = cfg.get<bool>("no_despawn_rose_lucifer").value_or(false);
+    toggleDisableRoseDespawnOnChangingToLucifer(enabledNoDespawnChangeToLucifer);
+    enabledNoDespawnEnemy = cfg.get<bool>("no_despawn_rose_enemy").value_or(false);
+    toggleDisableRoseDespawnOnHittingEnemy(enabledNoDespawnEnemy);
+    enabledNoDespawnObject = cfg.get<bool>("no_despawn_rose_object").value_or(false);
+    toggleDisableRoseDespawnOnHittingObject(enabledNoDespawnObject);
+    roseInfiniteTimer = cfg.get<bool>("rose_infinite_timer").value_or(false);
+    toggleRoseInfiniteTimer(roseInfiniteTimer);
 };
 
 void InputStates::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("taunt_ectasy", touchpadRoseEnabled);
+    cfg.set<bool>("no_despawn_rose_lucifer", enabledNoDespawnChangeToLucifer);
+    cfg.set<bool>("no_despawn_rose_enemy", enabledNoDespawnEnemy);
+    cfg.set<bool>("no_despawn_rose_object", enabledNoDespawnObject);
+    cfg.set<bool>("rose_infinite_timer", roseInfiniteTimer);
 };
 
 void InputStates::onGUIframe() {
     ImGui::Checkbox("Taunt Ecstasy", &touchpadRoseEnabled);
     ImGui::SameLine();
     HelpMarker("Consider using this with selective cancellable ecstasy to make it feel more like 5");
+    ImGui::SameLine(205);
+    if (ImGui::Checkbox("Rose Survives Lucifer", &enabledNoDespawnChangeToLucifer)) {
+        toggleDisableRoseDespawnOnChangingToLucifer(enabledNoDespawnChangeToLucifer);
+    }
+    ImGui::SameLine();
+    HelpMarker("Rose will not get destroyed when swapping to Lucifer");
+
+    if (ImGui::Checkbox("Rose Survives Enemies", &enabledNoDespawnEnemy)) {
+        toggleDisableRoseDespawnOnHittingEnemy(enabledNoDespawnEnemy);
+    }
+    ImGui::SameLine();
+    HelpMarker("Rose will hit the enemy and then continue past the enemy");
+    ImGui::SameLine(205);
+    if (ImGui::Checkbox("Rose Survives Objects", &enabledNoDespawnObject)) {
+        toggleDisableRoseDespawnOnHittingObject(enabledNoDespawnObject);
+    }
+    ImGui::SameLine();
+    HelpMarker("Rose will sit on whatever surface it lands on until its timer expires");
+
+    if (ImGui::Checkbox("Infinite Rose Timer", &roseInfiniteTimer)) {
+        toggleRoseInfiniteTimer(roseInfiniteTimer);
+    }
+    ImGui::SameLine();
+    HelpMarker("Rose will only despawn when colliding with something or having another placed");
 }
 
 #endif
-
-/*
-        push edx
-        mov edx, [eax+0x1D98] // lucifer
-        mov [edx+0x137C], 1 // show lucifer
-        pop edx
-        mov [eax+0x1500], 12 // move bank
-        mov [eax+0x1564], 55 // moveid
-        mov [eax+0x1504], 0 // part of move
-*/

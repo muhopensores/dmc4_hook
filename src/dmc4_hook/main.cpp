@@ -435,10 +435,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("TrickDown"_hash);
 
-                main->getMods()->onDrawUI("RoseRemovesPins"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("ForceLucifer"_hash);
-
                 main->getMods()->onDrawUI("SkipWeapons"_hash); // needs its own line
 
                 main->getMods()->onDrawUI("ManualTwosomeTime"_hash);
@@ -447,7 +443,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 
                 main->getMods()->onDrawUI("TimerMem"_hash); // instant honeycomb
                 ImGui::SameLine(205);
-                main->getMods()->onDrawUI("InputStates"_hash); // Taunt Ecstasy
+                main->getMods()->onDrawUI("ChargeChecker"_hash); // currently just faster roundtrip
 
                 main->getMods()->onDrawUI("ActiveBlock"_hash);
                 ImGui::SameLine(205);
@@ -461,7 +457,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("RgMultiplier"_hash);
 
-                main->getMods()->onDrawUI("ChargeChecker"_hash); // currently just faster roundtrip
+                main->getMods()->onDrawUI("ForceLucifer"_hash);
+                ImGui::SameLine(205);
+                main->getMods()->onDrawUI("RoseRemovesPins"_hash);
+
+                main->getMods()->onDrawUI("InputStates"_hash); // Taunt Ecstasy, needs its own line
 
                 ImGui::Spacing();
                 ImGui::Separator();
