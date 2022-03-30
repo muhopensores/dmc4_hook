@@ -13,6 +13,8 @@ public:
     static float inputTimer;
     static float inputTimer2;
     static bool touchpadRoseEnabled;
+    static bool roseTimerActive;
+
     void RoseInput();
     void RoseBuffer();
     void PlayRose();

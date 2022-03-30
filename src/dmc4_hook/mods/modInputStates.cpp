@@ -14,13 +14,15 @@ float InputStates::inputTimer2{ 0.0f };
 float TimerTick{ 1.0f };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 bool InputStates::touchpadRoseEnabled{ false };
-bool roseInput{ false };
-bool bufferedRose{ false };
-bool roseTimerActive{ false };
-bool enabledNoDespawnChangeToLucifer = false;
-bool enabledNoDespawnEnemy = false;
-bool enabledNoDespawnObject = false;
-bool roseInfiniteTimer = false;
+bool InputStates::roseTimerActive{ false };
+
+static bool roseInput{ false };
+static bool bufferedRose{ false };
+
+static bool enabledNoDespawnChangeToLucifer = false;
+static bool enabledNoDespawnEnemy = false;
+static bool enabledNoDespawnObject = false;
+static bool roseInfiniteTimer = false;
 
 naked void detour() { // inputpressed // inputs are edx // ActiveBlock & touchpad ectasy, called on tick
     _asm {
@@ -66,7 +68,7 @@ naked void detour() { // inputpressed // inputs are edx // ActiveBlock & touchpa
         pushad
         call InputStates::RoseBuffer
         popad
-        cmp byte ptr [roseTimerActive], 1
+        cmp byte ptr [InputStates::roseTimerActive], 1
         je IncRoseTimer
         jmp code
 
@@ -78,7 +80,7 @@ naked void detour() { // inputpressed // inputs are edx // ActiveBlock & touchpa
         movss [InputStates::inputTimer2], xmm0
         cmp dword ptr [InputStates::inputTimer2], 0x43480000 // 200.0f
         jl code
-        mov byte ptr [roseTimerActive], 0
+        mov byte ptr [InputStates::roseTimerActive], 0
         pushad
         call InputStates::onTimerCallback
         popad
@@ -146,8 +148,14 @@ void InputStates::onTimerCallback() { // hide lucifer after rose if weaponid is 
         uintptr_t* luciferPtr = (uintptr_t*)((uintptr_t)uLocalPlr + 0x1D98);
         uintptr_t luciferBase = *luciferPtr;
         bool& showLucifer = *(bool*)(luciferBase + 0x137C);
-        if (showLucifer == true && equippedWeapon != 6 && !ForceLucifer::modEnabled) {
-            showLucifer = false;
+        if (showLucifer == true && equippedWeapon != 6) {
+            if (!ForceLucifer::modEnabled){
+                if (ForceLucifer::enableForceEcstasyTimer) {
+                    showLucifer = false;
+                }
+                showLucifer = false;
+            }
+
         }
     }
 }
@@ -218,7 +226,7 @@ void InputStates::PlayRose(void) {
     weaponChangeDisable = 12;
     // m_timer->start();
     InputStates::inputTimer2 = 0.0f;
-    roseTimerActive = true;
+    InputStates::roseTimerActive = true;
 }
 
 void InputStates::toggleDisableRoseDespawnOnChangingToLucifer(bool enabled) {
@@ -284,19 +292,31 @@ void InputStates::onGUIframe() {
     ImGui::Checkbox("Taunt Ecstasy", &touchpadRoseEnabled);
     ImGui::SameLine();
     HelpMarker("Pressing Taunt in the air will perform Ecstasy. Consider using this with Selective Cancellable Ecstasy to make it feel more like 5");
-    ImGui::SameLine(205);
-    if (ImGui::Checkbox("Rose Survives Lucifer", &enabledNoDespawnChangeToLucifer)) {
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    ImGui::Spacing();
+    ImGui::Text("Rose Life Options");
+    ImGui::Spacing();
+
+    if (ImGui::Checkbox("Rose Survives Swapping To Lucifer", &enabledNoDespawnChangeToLucifer)) {
         toggleDisableRoseDespawnOnChangingToLucifer(enabledNoDespawnChangeToLucifer);
     }
     ImGui::SameLine();
     HelpMarker("Rose will not get destroyed when swapping to Lucifer");
+
+    ImGui::Checkbox("Taunt Rose Survives Swapping Off Of Lucifer", &ForceLucifer::enableForceEcstasyTimer);
+    ImGui::SameLine();
+    HelpMarker("Taunt Rose will not get destroyed when swapping off of Lucifer");
 
     if (ImGui::Checkbox("Rose Survives Enemies", &enabledNoDespawnEnemy)) {
         toggleDisableRoseDespawnOnHittingEnemy(enabledNoDespawnEnemy);
     }
     ImGui::SameLine();
     HelpMarker("Rose will hit the enemy and then continue past the enemy");
-    ImGui::SameLine(205);
+
     if (ImGui::Checkbox("Rose Survives Objects", &enabledNoDespawnObject)) {
         toggleDisableRoseDespawnOnHittingObject(enabledNoDespawnObject);
     }
