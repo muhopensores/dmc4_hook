@@ -157,7 +157,7 @@ void InputStates::RoseInput(void) {
         // input
         if (roseInput) { // if touchpad is pressed
             if (grounded == 2) { // aerial?
-                if (cancellable == 0x10 || moveID == 0x10) { // if in free frames
+                if (cancellable == 0x10 || moveID == 0x10 || moveID == 0x11) { // if in free frames (cancellable, post trick, airhike)
                     InputStates::PlayRose();
                 }
                 if (cancellable == 0x30) { // if in buffer frames
