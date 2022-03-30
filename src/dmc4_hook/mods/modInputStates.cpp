@@ -153,7 +153,7 @@ void InputStates::RoseInput(void) {
     if (uLocalPlr) {
         uint8_t& grounded = *(uint8_t*)((uintptr_t)uLocalPlr + 0xEA8);
         uint8_t& cancellable = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1E15);
-        int& moveID = *(int*)((uintptr_t)uLocalPlr + 0x295C); // i hate myself
+        int& moveID = *(int*)((uintptr_t)uLocalPlr + 0x2998); // i hate myself
         // input
         if (roseInput) { // if touchpad is pressed
             if (grounded == 2) { // aerial?
