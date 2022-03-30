@@ -283,7 +283,7 @@ void InputStates::onConfigSave(utils::Config& cfg) {
 void InputStates::onGUIframe() {
     ImGui::Checkbox("Taunt Ecstasy", &touchpadRoseEnabled);
     ImGui::SameLine();
-    HelpMarker("Consider using this with selective cancellable ecstasy to make it feel more like 5");
+    HelpMarker("Pressing Taunt in the air will perform Ecstasy. Consider using this with Selective Cancellable Ecstasy to make it feel more like 5");
     ImGui::SameLine(205);
     if (ImGui::Checkbox("Rose Survives Lucifer", &enabledNoDespawnChangeToLucifer)) {
         toggleDisableRoseDespawnOnChangingToLucifer(enabledNoDespawnChangeToLucifer);

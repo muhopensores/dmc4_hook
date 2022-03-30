@@ -5,7 +5,7 @@ bool ChargeChecker::modEnabled{ false };
 uintptr_t ChargeChecker::jmp_ret{ NULL };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
-float roundTripChargeMult{ 2.0f };
+float roundTripChargeMult{ 3.0f };
 
 naked void detour(void) // player in edi
 {
@@ -13,17 +13,12 @@ naked void detour(void) // player in edi
         cmp byte ptr [ChargeChecker::modEnabled], 0
         je code
 
-        push ebx
-        mov ebx, 1
-        test eax, ebx
-        pop ebx
-        je code
-
         push edx
         mov edx, [staticMediatorPtr] // only get player (thanks boss dante)
         mov edx, [edx]
         mov edx, [edx+0x24]
-        cmp edx, edi
+        lea edx, [edx+0x23E8]
+        cmp edx, ecx // 0x23D8 == Round Trip charge
         pop edx
         jne code
         cmp dword ptr [edi+0x1494], 0 // controller id
