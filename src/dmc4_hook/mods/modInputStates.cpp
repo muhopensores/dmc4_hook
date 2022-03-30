@@ -200,6 +200,7 @@ void InputStates::PlayRose(void) {
     uint8_t& moveBank = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1500);
     uint8_t& moveID = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1564);
     uint8_t& movePart = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1504);
+    uint8_t& weaponChangeDisable = *(uint8_t*)((uintptr_t)uLocalPlr + 0x14F0);
 
     uintptr_t* luciferPtr = (uintptr_t*)((uintptr_t)uLocalPlr + 0x1D98);
     uintptr_t luciferBase = *luciferPtr;
@@ -209,6 +210,7 @@ void InputStates::PlayRose(void) {
     moveBank = 12;
     moveID = 55;
     movePart = 00;
+    weaponChangeDisable = 12;
     // m_timer->start();
     InputStates::inputTimer2 = 0.0f;
     roseTimerActive = true;

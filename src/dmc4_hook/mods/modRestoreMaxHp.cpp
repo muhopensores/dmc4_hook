@@ -26,13 +26,32 @@ uintptr_t RestoreMaxHp::_resetTimerContinue{ NULL };
 float twoMinutesTimer = 7200.0f;
 bool resetTimer = false;
 
+constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
+bool resetHp = false;
+
+void ShouldResetHP(void) {
+    sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
+    uPlayer* uLocalPlr = sMedPtr->playerPtr;
+    if (uLocalPlr) {
+        uint8_t& grounded = *(uint8_t*)((uintptr_t)uLocalPlr + 0xEA8);
+        uint8_t& desiredInput = *(uint8_t*)((uintptr_t)uLocalPlr + 0x140C);
+
+        if (grounded == 1 && desiredInput & 0x10 && desiredInput & 0x08) {
+            resetHp = true;
+        }
+        else {
+            resetHp = false;
+        }
+    }
+}
+
 naked void restoreMaxHpScarecrow_proc(void)
 {
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-
+        /*
 		// cmp byte ptr [InputStates::inputpressed], 24
         // jne code
         push eax
@@ -52,6 +71,13 @@ naked void restoreMaxHpScarecrow_proc(void)
         pop edx
         pop eax
         je code
+        */
+
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
+        je code
 
         fld dword ptr [ebx+1548h]               // Max HP
         fstp dword ptr [ebx+1544h]              // Current HP
@@ -67,22 +93,11 @@ naked void restoreMaxHpFrost_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         fld dword ptr [esi+1520h] // Max HP
@@ -99,22 +114,11 @@ naked void restoreMaxHpArmour_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         fld dword ptr [esi+1520h]
@@ -132,22 +136,11 @@ naked void restoreMaxHpGhosts_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         fld dword ptr [edi+151Ch]
@@ -164,22 +157,11 @@ naked void restoreMaxHpSwordFly_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         fld dword ptr [esi+151Ch]
@@ -196,22 +178,11 @@ naked void restoreMaxHpSwordFish_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         fld dword ptr [esi+1524h]
@@ -228,22 +199,11 @@ naked void restoreMaxHpSeed_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         fld dword ptr [ebx+32A0h]
@@ -260,22 +220,11 @@ naked void restoreMaxHpRiot_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         fld dword ptr [esi+151Ch]
@@ -293,22 +242,11 @@ naked void restoreMaxHpBlitz_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         fld dword ptr [esi+1520h]
@@ -325,22 +263,11 @@ naked void restoreMaxHpDog_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         fld dword ptr [edi+7FE0h]
@@ -358,22 +285,11 @@ naked void restoreMaxHpBerial_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         fld dword ptr [esi+1520h]
@@ -390,22 +306,11 @@ naked void restoreMaxHpFrog_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         fld dword ptr [esi+1520h]
@@ -422,22 +327,11 @@ naked void restoreMaxHpEchidna_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         fld dword ptr [esi+1520h]
@@ -454,22 +348,11 @@ naked void restoreMaxHpCredo_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         fld dword ptr [esi+1520h]
@@ -486,22 +369,11 @@ naked void restoreMaxHpAgnus_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         fld dword ptr [esi+1520h]
@@ -518,22 +390,11 @@ naked void restoreMaxHpSanctus_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         fld dword ptr [esi+1D0Ch]
@@ -550,22 +411,11 @@ naked void restoreMaxHpDante_proc(void)
     _asm {
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         fld dword ptr [edi+15D0h]
@@ -582,22 +432,11 @@ naked void resetTimer_proc(void)
     _asm {
         cmp byte ptr [resetTimer], 0
         je code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
 
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
+        pushad
+        call ShouldResetHP
+        popad
+        cmp byte ptr [resetHp], 0
         je code
 
         movss xmm3, [twoMinutesTimer]
