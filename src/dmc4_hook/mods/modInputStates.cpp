@@ -137,11 +137,12 @@ void InputStates::onTimerCallback() { // hide lucifer after rose if weaponid is 
     uPlayer* uLocalPlr = sMedPtr->playerPtr;
     if (uLocalPlr) {
         uPlayer* uLocalPlr = sMedPtr->playerPtr;
-        uint8_t& weaponID = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1DB4);
+        // uint8_t& weaponID = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1DB4);
+        uint8_t& equippedWeapon = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1DC0); // might fix a small bug might break everything
         uintptr_t* luciferPtr = (uintptr_t*)((uintptr_t)uLocalPlr + 0x1D98);
         uintptr_t luciferBase = *luciferPtr;
         bool& showLucifer = *(bool*)(luciferBase + 0x137C);
-        if (showLucifer == true && weaponID != 6 && !ForceLucifer::modEnabled) {
+        if (showLucifer == true && equippedWeapon != 6 && !ForceLucifer::modEnabled) {
             showLucifer = false;
         }
     }
@@ -157,7 +158,7 @@ void InputStates::RoseInput(void) {
         // input
         if (roseInput) { // if touchpad is pressed
             if (grounded == 2) { // aerial?
-                if (cancellable == 0x10 || moveID == 0x10 || moveID == 0x11) { // if in free frames (cancellable, post trick, airhike)
+                if (cancellable == 0x10 || moveID == 0x10 || moveID == 0x11) { // if in free frames, post trick, airhike
                     InputStates::PlayRose();
                 }
                 if (cancellable == 0x30) { // if in buffer frames
