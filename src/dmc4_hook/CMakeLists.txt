@@ -174,6 +174,8 @@ SET (MODS
   mods/modChargeChecker.cpp
   mods/modEnemyStats.hpp
   mods/modEnemyStats.cpp
+  mods/modFasterFastDrive.hpp
+  mods/modFasterFastDrive.cpp
 )
 
 SET (HEADERS

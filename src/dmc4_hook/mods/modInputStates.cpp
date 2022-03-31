@@ -2,12 +2,13 @@
 #include "modDeltaTime.hpp"
 #include "modActiveBlock.hpp"
 #include "modMoveIDs.hpp"
-#include "modForceLucifer.hpp"
+#include "modForceLucifer.hpp" // used to stop rose despawning when leaving lucifer
 #include "../utils/MessageDisplay.hpp"
 #if 1
 
 uintptr_t InputStates::jmp_return{ NULL };
 uintptr_t InputStates::jmp_return2{ NULL };
+uintptr_t InputStates::jmp_return3{ NULL };
 uint32_t InputStates::inputpressed{ 0 };
 float InputStates::inputTimer{ 0.0f };
 float InputStates::inputTimer2{ 0.0f };
@@ -19,10 +20,11 @@ bool InputStates::roseTimerActive{ false };
 static bool roseInput{ false };
 static bool bufferedRose{ false };
 
-static bool enabledNoDespawnChangeToLucifer = false;
 static bool enabledNoDespawnEnemy = false;
 static bool enabledNoDespawnObject = false;
 static bool roseInfiniteTimer = false;
+
+constexpr uintptr_t changeToLuciferCall = 0x00836190;
 
 naked void detour() { // inputpressed // inputs are edx // ActiveBlock & touchpad ectasy, called on tick
     _asm {
@@ -126,15 +128,34 @@ naked void detour2() { // inputonpress // touchpad ecstasy // player is in edx /
     }
 }
 
+naked void detourChangingToLucifer() {
+    _asm {
+        cmp byte ptr [InputStates::roseTimerActive], 1
+        jne code
+        jmp dword ptr [InputStates::jmp_return3]
+
+    code:
+        call [changeToLuciferCall]
+		jmp dword ptr [InputStates::jmp_return3]
+    }
+}
+
 std::optional<std::string> InputStates::onInitialize() {
     if (!install_hook_offset(0x3B0844, hook, &detour, &jmp_return, 6)) { // ActiveBlock
         HL_LOG_ERR("Failed to init InputStates mod\n");
         return "Failed to init InputStates mod";
     } 
+
     if (!install_hook_offset(0x3AA002, hook2, &detour2, &jmp_return2, 6)) { // TauntEcstasy
         HL_LOG_ERR("Failed to init InputStates2 mod\n");
         return "Failed to init InputStates2 mod";
     }
+
+    if (!install_hook_offset(0x43600F, hook3, &detourChangingToLucifer, &jmp_return3, 5)) { // Changing To Lucifer 
+        HL_LOG_ERR("Failed to init InputStates3 mod\n");
+        return "Failed to init InputStates3 mod";
+    }
+
     return Mod::onInitialize();
 }
 
@@ -150,12 +171,8 @@ void InputStates::onTimerCallback() { // hide lucifer after rose if weaponid is 
         bool& showLucifer = *(bool*)(luciferBase + 0x137C);
         if (showLucifer == true && equippedWeapon != 6) {
             if (!ForceLucifer::modEnabled){
-                if (ForceLucifer::enableForceEcstasyTimer) {
                     showLucifer = false;
-                }
-                showLucifer = false;
             }
-
         }
     }
 }
@@ -229,49 +246,36 @@ void InputStates::PlayRose(void) {
     InputStates::roseTimerActive = true;
 }
 
-void InputStates::toggleDisableRoseDespawnOnChangingToLucifer(bool enabled) {
+void InputStates::toggleDisableRoseDespawnOnHittingEnemy(bool enabled) {
     if (enabled) {
-        install_patch_offset(0x043600F, patch1, "\x90\x90\x90\x90\x90", 5);
+        install_patch_offset(0x0435944, patch1, "\x90\x90\x90\x90\x90\x90", 6);
     }
     else {
         patch1.revert();
     }
 }
 
-void InputStates::toggleDisableRoseDespawnOnHittingEnemy(bool enabled) {
+void InputStates::toggleDisableRoseDespawnOnHittingObject(bool enabled) {
     if (enabled) {
-        install_patch_offset(0x0435944, patch2, "\x90\x90\x90\x90\x90\x90", 6);
+        install_patch_offset(0x0435922, patch2, "\x90\x90\x90\x90\x90\x90", 6);
     }
     else {
         patch2.revert();
     }
 }
 
-void InputStates::toggleDisableRoseDespawnOnHittingObject(bool enabled) {
+void InputStates::toggleRoseInfiniteTimer(bool enabled)
+{
     if (enabled) {
-        install_patch_offset(0x0435922, patch3, "\x90\x90\x90\x90\x90\x90", 6);
+        install_patch_offset(0x0435937, patch3, "\x90\x90\x90\x90\x90\x90", 6);
     }
     else {
         patch3.revert();
     }
 }
 
-void InputStates::toggleRoseInfiniteTimer(bool enabled)
-{
-    if (enabled)
-    {
-        install_patch_offset(0x0435937, patch4, "\x90\x90\x90\x90\x90\x90", 6);
-    }
-    else
-    {
-        patch4.revert();
-    }
-}
-
 void InputStates::onConfigLoad(const utils::Config& cfg) {
     touchpadRoseEnabled = cfg.get<bool>("taunt_ectasy").value_or(false);
-    enabledNoDespawnChangeToLucifer = cfg.get<bool>("no_despawn_rose_lucifer").value_or(false);
-    toggleDisableRoseDespawnOnChangingToLucifer(enabledNoDespawnChangeToLucifer);
     enabledNoDespawnEnemy = cfg.get<bool>("no_despawn_rose_enemy").value_or(false);
     toggleDisableRoseDespawnOnHittingEnemy(enabledNoDespawnEnemy);
     enabledNoDespawnObject = cfg.get<bool>("no_despawn_rose_object").value_or(false);
@@ -282,7 +286,6 @@ void InputStates::onConfigLoad(const utils::Config& cfg) {
 
 void InputStates::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("taunt_ectasy", touchpadRoseEnabled);
-    cfg.set<bool>("no_despawn_rose_lucifer", enabledNoDespawnChangeToLucifer);
     cfg.set<bool>("no_despawn_rose_enemy", enabledNoDespawnEnemy);
     cfg.set<bool>("no_despawn_rose_object", enabledNoDespawnObject);
     cfg.set<bool>("rose_infinite_timer", roseInfiniteTimer);
@@ -300,16 +303,6 @@ void InputStates::onGUIframe() {
     ImGui::Spacing();
     ImGui::Text("Rose Life Options");
     ImGui::Spacing();
-
-    if (ImGui::Checkbox("Rose Survives Swapping To Lucifer", &enabledNoDespawnChangeToLucifer)) {
-        toggleDisableRoseDespawnOnChangingToLucifer(enabledNoDespawnChangeToLucifer);
-    }
-    ImGui::SameLine();
-    HelpMarker("Rose will not get destroyed when swapping to Lucifer");
-
-    ImGui::Checkbox("Taunt Rose Survives Swapping Off Of Lucifer", &ForceLucifer::enableForceEcstasyTimer);
-    ImGui::SameLine();
-    HelpMarker("Taunt Rose will not get destroyed when swapping off of Lucifer");
 
     if (ImGui::Checkbox("Rose Survives Enemies", &enabledNoDespawnEnemy)) {
         toggleDisableRoseDespawnOnHittingEnemy(enabledNoDespawnEnemy);

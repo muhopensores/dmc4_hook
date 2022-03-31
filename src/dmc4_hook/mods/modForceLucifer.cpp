@@ -12,11 +12,9 @@ naked void forceLucifer_proc(void) {
         cmp [ForceLucifer::modEnabled], 1
         je ForceLuci
     // check2: // disables turning off lucifer when swapping off of the weapon
-        cmp byte ptr [ForceLucifer::enableForceEcstasyTimer], 1
+        cmp byte ptr [InputStates::roseTimerActive], 1
         jne code
         cmp [esi+1370h], 6 // ID (this accesses gilg etc too)
-        jne code
-        cmp byte ptr [InputStates::roseTimerActive], 1
         jne code
         cmp al, 1
         je code
@@ -25,7 +23,7 @@ naked void forceLucifer_proc(void) {
     ForceLuci:
         cmp [esi+0x1370], 6 // ID (this accesses gilg etc too)
         jne code
-        mov [esi+0x137C], 1
+        mov [esi+0x137C], 1 // Only force Lucifer
         jmp code
 
     code:

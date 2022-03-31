@@ -9,6 +9,8 @@ public:
 
     static uintptr_t jmp_return;
     static uintptr_t jmp_return2;
+    static uintptr_t jmp_return3;
+
     static uint32_t inputpressed;
     static float inputTimer;
     static float inputTimer2;
@@ -34,8 +36,8 @@ public:
 private:
     hl::Hooker hook;
     hl::Hooker hook2;
+    hl::Hooker hook3;
     hl::Patch patch1;
     hl::Patch patch2;
     hl::Patch patch3;
-    hl::Patch patch4;
 };

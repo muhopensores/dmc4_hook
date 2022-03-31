@@ -457,11 +457,13 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("RgMultiplier"_hash);
 
+                main->getMods()->onDrawUI("FasterFastDrive"_hash);
+
                 main->getMods()->onDrawUI("RoseRemovesPins"_hash); // tacked on to taunt ecstasy
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("ForceLucifer"_hash);
 
-                main->getMods()->onDrawUI("InputStates"_hash); // Taunt Ecstasy, needs its own line
+                main->getMods()->onDrawUI("InputStates"_hash);
 
                 ImGui::Spacing();
                 ImGui::Separator();

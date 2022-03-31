@@ -2,16 +2,16 @@
 
 #include "../mod.hpp"
 
-class InfSkyStars : public Mod
+class FasterFastDrive : public Mod
 {
 public:
-    InfSkyStars() = default;
+    FasterFastDrive() = default;
 
     static bool modEnabled;
 
     void toggle(bool enable);
 
-    std::string getModName() override { return "InfSkyStars"; };
+    std::string getModName() override { return "FasterFastDrive"; };
 
     std::optional<std::string> onInitialize() override;
 
