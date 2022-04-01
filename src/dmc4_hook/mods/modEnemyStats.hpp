@@ -13,6 +13,8 @@ public:
 
     static int hotkey1;
     static int hotkey2;
+    static int hotkey3;
+    static int hotkey4;
 
     void onGUIframe() override;
     void onUpdateInput(hl::Input& input) override;

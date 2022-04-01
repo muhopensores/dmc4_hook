@@ -19,6 +19,10 @@ std::string HotkeyName(int hotkey) {
         return "Shift";
     case 0x11: // 17
         return "Ctrl";
+    case 0x21: // 33
+        return "Page Up";
+    case 0x22: // 34
+        return "Page Down";
     case 0x23: // 35
         return "End";
     case 0x24: // 36
@@ -363,36 +367,30 @@ void CreditsDrawing()
         ImGui::Spacing();
 
         ImGui::Text("%s = Infinite Health (All)", &HotkeyName(InfAllHealth::hotkey));
-
         ImGui::Text("%s = Inf DT", &HotkeyName(InfDT::hotkey));
-
         ImGui::Text("%s = One Hit Kill", &HotkeyName(OneHitKill::hotkey));
-
         ImGui::Text("%s = Open BP Portal / Red Seal", &HotkeyName(BpPortal::hotkey));
-
         ImGui::Text("%s = NoClip", &HotkeyName(NoClip::hotkey));
-
         ImGui::Text("Lock On + Taunt = Restore Enemy HP");
         ImGui::SameLine();
         HelpMarker("Only if \"Restore Enemy HP\" is checked in the General tab");
-
         ImGui::Text("%s = Quicksilver", &HotkeyName(Quicksilver::hotkey));
-
         ImGui::Text("%s = Load Enemy Stats", &HotkeyName(EnemyStats::hotkey1));
-
         ImGui::Text("%s = Apply Enemy Stats", &HotkeyName(EnemyStats::hotkey2));
+        ImGui::Text("%s = Load Boss Stats", &HotkeyName(EnemyStats::hotkey3));
+        ImGui::Text("%s = Apply Boss Stats", &HotkeyName(EnemyStats::hotkey4));
 
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
 
         ImGui::Text("Spawn Hotkeys:");
+
         ImGui::Spacing();
 
         ImGui::Text("%s = Spawn Modifier", &HotkeyName(EnemySpawn::hotkeySpawnModifier));
         ImGui::SameLine();
         HelpMarker("The following hotkeys will only be activated if this modifier is held");
-
         ImGui::Text("%s = Spawn Scarecrow Arm", &HotkeyName(EnemySpawn::hotkeySpawnScarecrowArm));
         ImGui::Text("%s = Spawn Scarecrow Leg", &HotkeyName(EnemySpawn::hotkeySpawnScarecrowLeg));
         ImGui::Text("%s = Spawn Mega", &HotkeyName(EnemySpawn::hotkeySpawnMega));

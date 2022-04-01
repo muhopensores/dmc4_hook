@@ -1,23 +1,25 @@
 #include "modEnemyStats.hpp"
 #include "modEnemySpawn.hpp"
 #if 1
-
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 int EnemyStats::hotkey1{ NULL };
 int EnemyStats::hotkey2{ NULL };
+int EnemyStats::hotkey3{ NULL };
+int EnemyStats::hotkey4{ NULL };
 
-bool displayEnemyStats = false;
-bool displayBossStats = false;
-int whichEnemy = 1;
-bool freezeMoveID = false;
-bool hotkeyEnabled = false;
+static bool displayEnemyStats = false;
+static bool displayBossStats = false;
+static int whichEnemy = 1;
+static bool freezeMoveID = false;
+static bool hotkeyEnabled = false;
 
-int8_t savedEnemyMoveID = 0;
-int savedEnemyMoveID2 = 0;
-int8_t savedEnemyMovePart = 0;
-float savedEnemyPosXYZ[3]{ 0.0f, 0.0f, 0.0f };
-float savedEnemyAnimationFrame = 0.0f;
-float savedEnemyVelocityXYZ[3]{ 0.0f, 0.0f, 0.0f };
+static int8_t savedEnemyMoveID = 0;
+static int savedEnemyMoveID2 = 0;
+static int8_t savedEnemyMovePart = 0;
+static int8_t savedEnemyGrounded = 0;
+static float savedEnemyPosXYZ[3]{ 0.0f, 0.0f, 0.0f };
+static float savedEnemyVelocityXYZ[3]{ 0.0f, 0.0f, 0.0f };
+// static float savedEnemyAnimationFrame = 0.0f;
 
 std::optional<std::string> EnemyStats::onInitialize() {
     return Mod::onInitialize();
@@ -39,6 +41,7 @@ void EnemyStats::onGUIframe() {
                 uint8_t& enemyMoveID = *(uint8_t*)(enemyBase + 0x14);
                 int& enemyMoveID2 = *(int*)(enemyBase + 0x334);
                 uint8_t& enemyMovePart = *(uint8_t*)(enemyBase + 0x15);
+                int8_t& enemyGrounded = *(int8_t*)(enemyBase + 0x161C);
                 float* enemyPosXYZ[3];
                 enemyPosXYZ[0] = (float*)(enemyBase + 0x30);
                 enemyPosXYZ[1] = (float*)(enemyBase + 0x34);
@@ -55,9 +58,6 @@ void EnemyStats::onGUIframe() {
                 enemyVelocityXYZ[1] = (float*)(enemyBase + 0x1B44);
                 enemyVelocityXYZ[2] = (float*)(enemyBase + 0x1B48);
 
-                //int& launchThing = *(int*)(enemyBase + 0xEA0); // written by DevilMayCry4_DX9.exe+1503B7 
-                //int& launchThing2 = *(int*)(enemyBase + 0xEA8);
-
                 // imgui
                 ImGui::InputFloat3("XYZ Position ##2", *enemyPosXYZ);
                 ImGui::InputFloat3("XYZ Velocity ##2", *enemyVelocityXYZ);
@@ -67,6 +67,7 @@ void EnemyStats::onGUIframe() {
                 ImGui::InputScalar("Move ID ##2", ImGuiDataType_U8, &enemyMoveID);
                 ImGui::InputInt("Move ID 2 ##2", &enemyMoveID2);
                 ImGui::InputScalar("Move Part ##2", ImGuiDataType_U8, &enemyMovePart);
+                ImGui::InputScalar("Grounded ##2", ImGuiDataType_U8, &enemyGrounded);
                 ImGui::InputFloat("Animation Frame ##2", &enemyFrame);
 
                 if (ImGui::Button("Save Selected Enemy Info")) {
@@ -78,6 +79,7 @@ void EnemyStats::onGUIframe() {
                     savedEnemyVelocityXYZ[2] = *enemyVelocityXYZ[2];
                     savedEnemyMoveID = enemyMoveID;
                     savedEnemyMoveID2 = enemyMoveID2;
+                    savedEnemyGrounded = enemyGrounded;
                 }
                 ImGui::SameLine();
                 HelpMarker("Hotkey is HOME by default");
@@ -85,6 +87,7 @@ void EnemyStats::onGUIframe() {
                 if (ImGui::Button("Replay Saved Move ID")) {
                     enemyMoveID = savedEnemyMoveID;
                     enemyMoveID2 = savedEnemyMoveID2;
+                    enemyGrounded = savedEnemyGrounded;
                     enemyMovePart = (uint8_t)0;
                 }
 
@@ -97,6 +100,7 @@ void EnemyStats::onGUIframe() {
                     *enemyVelocityXYZ[2] = savedEnemyVelocityXYZ[2];
                     enemyMoveID = savedEnemyMoveID;
                     enemyMoveID2 = savedEnemyMoveID2;
+                    enemyGrounded = savedEnemyGrounded;
                     enemyMovePart = (uint8_t)0;
                 }
                 ImGui::SameLine();
@@ -198,6 +202,7 @@ void EnemyStats::onGUIframe() {
     ImGui::InputInt("Saved Move ID 2", &savedEnemyMoveID2);
     ImGui::InputFloat3("Saved XYZ Position", savedEnemyPosXYZ);
     ImGui::InputFloat3("Saved XYZ Velocity", savedEnemyVelocityXYZ);
+    ImGui::InputScalar("Saved Grounded", ImGuiDataType_U8, &savedEnemyGrounded);
 }
 
 void EnemyStats::onUpdateInput(hl::Input& input) {
@@ -213,6 +218,7 @@ void EnemyStats::onUpdateInput(hl::Input& input) {
                         uint8_t& enemyMoveID = *(uint8_t*)(enemyBase + 0x14);
                         int& enemyMoveID2 = *(int*)(enemyBase + 0x334);
                         uint8_t& enemyMovePart = *(uint8_t*)(enemyBase + 0x15);
+                        int8_t& enemyGrounded = *(int8_t*)(enemyBase + 0x161C);
                         float* enemyPosXYZ[3];
                         enemyPosXYZ[0] = (float*)(enemyBase + 0x30);
                         enemyPosXYZ[1] = (float*)(enemyBase + 0x34);
@@ -230,6 +236,7 @@ void EnemyStats::onUpdateInput(hl::Input& input) {
                         savedEnemyVelocityXYZ[2] = *enemyVelocityXYZ[2];
                         savedEnemyMoveID = enemyMoveID;
                         savedEnemyMoveID2 = enemyMoveID2;
+                        savedEnemyGrounded = enemyGrounded;
                     }
                 }
             }
@@ -243,6 +250,7 @@ void EnemyStats::onUpdateInput(hl::Input& input) {
                         uint8_t& enemyMoveID = *(uint8_t*)(enemyBase + 0x14);
                         int& enemyMoveID2 = *(int*)(enemyBase + 0x334);
                         uint8_t& enemyMovePart = *(uint8_t*)(enemyBase + 0x15);
+                        int8_t& enemyGrounded = *(int8_t*)(enemyBase + 0x161C);
                         float* enemyPosXYZ[3];
                         enemyPosXYZ[0] = (float*)(enemyBase + 0x30);
                         enemyPosXYZ[1] = (float*)(enemyBase + 0x34);
@@ -261,14 +269,11 @@ void EnemyStats::onUpdateInput(hl::Input& input) {
                         enemyMoveID = savedEnemyMoveID;
                         enemyMoveID2 = savedEnemyMoveID2;
                         enemyMovePart = (uint8_t)0;
+                        enemyGrounded = savedEnemyGrounded;
                     }
                 }
             }
-        }
-    }
-    else {
-        if (hotkeyEnabled) {
-            if (input.wentDown(hotkey1)) {
+            if (input.wentDown(hotkey3)) {
                 sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
                 if (sMedPtr) {
                     uintptr_t* bossPtr = (uintptr_t*)((uintptr_t)sMedPtr + 0xB0);
@@ -291,8 +296,7 @@ void EnemyStats::onUpdateInput(hl::Input& input) {
                     }
                 }
             }
-
-            if (input.wentDown(hotkey2)) {
+            if (input.wentDown(hotkey4)) {
                 sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
                 if (sMedPtr) {
                     uintptr_t* bossPtr = (uintptr_t*)((uintptr_t)sMedPtr + 0xB0);
@@ -324,12 +328,16 @@ void EnemyStats::onConfigLoad(const utils::Config& cfg) {
     hotkeyEnabled = cfg.get<bool>("enable_enemy_stats_hotkeys").value_or(true);
     hotkey1 = cfg.get<int>("load_enemy_stats_hotkey").value_or(0x24); // HOME
     hotkey2 = cfg.get<int>("apply_enemy_stats_hotkey").value_or(0x23); // END
+    hotkey3 = cfg.get<int>("load_boss_stats_hotkey").value_or(0x21);  // PAGE UP
+    hotkey4 = cfg.get<int>("apply_boss_stats_hotkey").value_or(0x22); // PAGE DOWN
 }
 
 void EnemyStats::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("enable_enemy_stats_hotkeys", hotkeyEnabled);
     cfg.set<int>("load_enemy_stats_hotkey", hotkey1);
     cfg.set<int>("apply_enemy_stats_hotkey", hotkey2);
+    cfg.set<int>("load_boss_stats_hotkey", hotkey3);
+    cfg.set<int>("apply_boss_stats_hotkey", hotkey4);
 }
 
 #endif
