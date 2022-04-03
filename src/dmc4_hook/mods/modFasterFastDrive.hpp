@@ -8,6 +8,7 @@ public:
     FasterFastDrive() = default;
 
     static bool modEnabled;
+    static bool easyFastDriveEnabled;
 
     void toggle(bool enable);
 

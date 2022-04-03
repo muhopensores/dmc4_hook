@@ -3,28 +3,50 @@
 #include "modActiveBlock.hpp"
 #include "modMoveIDs.hpp"
 #include "modForceLucifer.hpp" // used to stop rose despawning when leaving lucifer
+#include "modFasterFastDrive.hpp" // for easy fast drive
 #include "../utils/MessageDisplay.hpp"
 #if 1
 
 uintptr_t InputStates::jmp_return{ NULL };
 uintptr_t InputStates::jmp_return2{ NULL };
 uintptr_t InputStates::jmp_return3{ NULL };
+
 uint32_t InputStates::inputpressed{ 0 };
 float InputStates::inputTimer{ 0.0f };
 float InputStates::inputTimer2{ 0.0f };
 float TimerTick{ 1.0f };
+
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
+
 bool InputStates::touchpadRoseEnabled{ false };
 bool InputStates::roseTimerActive{ false };
 
 static bool roseInput{ false };
 static bool bufferedRose{ false };
-
 static bool enabledNoDespawnEnemy = false;
 static bool enabledNoDespawnObject = false;
 static bool roseInfiniteTimer = false;
 
 constexpr uintptr_t changeToLuciferCall = 0x00836190;
+
+void EasyFastDriveCheck(void) {
+    sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
+    uintptr_t* playerPtr = (uintptr_t*)((uintptr_t)sMedPtr + 0x24);
+    uintptr_t playerBase = *playerPtr;
+    if (playerBase) {
+        int8_t& controllerID = *(int8_t*)(playerBase + 0x1494);
+        int& moveID = *(int*)(playerBase + 0x2998);
+        int8_t& meleeInputOnPress = *(int8_t*)(playerBase + 0x1410);
+        int8_t& styleInputOnHold = *(int8_t*)(playerBase + 0x140D);
+        int8_t& cancelToMelee = *(int8_t*)(playerBase + 0x1E13);
+        float& animationFrame = *(float*)(playerBase + 0x348);
+        float cancellableFrame = 10.0f;
+        if (controllerID == 0 && moveID == 0x232 && styleInputOnHold & 0x6 && meleeInputOnPress & 0x1 && animationFrame < 10.0f)
+        {
+            cancelToMelee = 0x10;
+        }
+    }
+}
 
 naked void detour() { // inputpressed // inputs are edx // ActiveBlock & touchpad ectasy, called on tick
     _asm {
@@ -97,6 +119,12 @@ naked void detour() { // inputpressed // inputs are edx // ActiveBlock & touchpa
 naked void detour2() { // inputonpress // touchpad ecstasy // player is in edx // called on button press
     _asm {
         mov [edx+0x00001410], eax // originalcode
+        cmp byte ptr [FasterFastDrive::easyFastDriveEnabled], 1
+        jne check2
+        pushad // only needs eax but im scared
+        call EasyFastDriveCheck
+        popad
+    check2:
         cmp byte ptr [InputStates::touchpadRoseEnabled], 0
         je jmpret
 

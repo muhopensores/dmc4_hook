@@ -43,7 +43,7 @@ void InfDT::onGUIframe() {
 
 void InfDT::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("infinite_dt").value_or(false);
-    hotkey = cfg.get<int>("inf_dt_hotkey").value_or(0x71);
+    hotkey = cfg.get<int>("inf_dt_hotkey").value_or(0x71); // F2
 };
 
 void InfDT::onConfigSave(utils::Config& cfg) {

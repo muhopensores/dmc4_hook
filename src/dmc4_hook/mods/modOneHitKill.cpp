@@ -90,7 +90,7 @@ void OneHitKill::onConfigLoad(const utils::Config& cfg)
 {
     cantDie = cfg.get<bool>("no_death").value_or(false);
     oneHitKill = cfg.get<bool>("one_hit_kill").value_or(false);
-    hotkey = cfg.get<int>("one_hit_kill_hotkey").value_or(0x72);
+    hotkey = cfg.get<int>("one_hit_kill_hotkey").value_or(0x72); // F3
     NoDeathToggle(cantDie);
 };
 
