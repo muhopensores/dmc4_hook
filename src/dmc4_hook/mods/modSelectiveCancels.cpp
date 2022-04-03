@@ -1,6 +1,7 @@
 #include "../mods.h"
 #include "modSelectiveCancels.hpp"
 #include "modMoveIDs.hpp"
+#include "modMoveIDsNero.hpp"
 
 #if 1
 bool       SelectiveCancels::selectiveCancelsEnable = false;
@@ -42,6 +43,8 @@ naked void selectiveCancels_proc()
 		je cancellableepidemic
 		cmp [MoveIds::moveID],0x410						// DT Pin Up part 2
 		je cancellableDTPinUp
+		cmp [MoveIdsNero::moveIDNero],0x33B // Showdown
+		je cancellableShowdown
 		jmp originalcode
 
 			cancellableecstasy:
@@ -91,6 +94,11 @@ naked void selectiveCancels_proc()
 
 			cancellableDTPinUp:
 			test [SelectiveCancels::cancels], DT_PIN_UP_P2
+			jg cancellable
+			jmp originalcode
+
+			cancellableShowdown:
+			test [SelectiveCancels::cancels], SHOWDOWN
 			jg cancellable
 			jmp originalcode
 
@@ -154,6 +162,8 @@ void SelectiveCancels::onGUIframe() {
 			drawCheckboxSimple("Slash Dimension", SLASH_DIMENSION);
 			ImGui::SameLine(205);
 			drawCheckboxSimple("DT Pin Up Part 2", DT_PIN_UP_P2);
+
+			drawCheckboxSimple("Showdown", SHOWDOWN);
 
 			ImGui::Spacing();
 			ImGui::Text("Guns");
