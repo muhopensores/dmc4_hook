@@ -25,6 +25,8 @@ void RemoveLaunchArmour::onGUIframe()
     {
         toggle(modEnabled);
     }
+    ImGui::SameLine();
+    HelpMarker("Removes the armour enemies gain when downed, allowing you to relaunch for practice instantly");
 }
 
 void RemoveLaunchArmour::onConfigLoad(const utils::Config& cfg)

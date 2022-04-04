@@ -55,7 +55,7 @@ void EasyJc::onGUIframe()
 {
     // from main.cpp
     // line 899 -> if (ImGui::Checkbox("Easy JCs", &checkEasyJc))
-    if (ImGui::Checkbox("Easy JC", &modEnabled))
+    if (ImGui::Checkbox("Easy Enemy Step", &modEnabled))
     {
         toggle(modEnabled);
     }

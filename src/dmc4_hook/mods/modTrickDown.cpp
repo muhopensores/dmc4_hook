@@ -66,6 +66,8 @@ std::optional<std::string> TrickDown::onInitialize() {
 
 void TrickDown::onGUIframe() {
     ImGui::Checkbox("Trick Down", &modEnabled);
+    ImGui::SameLine();
+    HelpMarker("Map Trick Down to backforward + trick");
 }
 
 void TrickDown::onConfigLoad(const utils::Config& cfg) {

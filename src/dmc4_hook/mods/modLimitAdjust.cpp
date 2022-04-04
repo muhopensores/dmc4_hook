@@ -76,7 +76,7 @@ void LimitAdjust::onGUIframe()
     {
         SwordAndGun(gunSword);
     }
-    if (ImGui::Checkbox("Remove JC Limit", &enemyStep))
+    if (ImGui::Checkbox("Remove Enemy Step Limit", &enemyStep))
     {
         EnemyStep(enemyStep);
     }

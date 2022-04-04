@@ -145,6 +145,8 @@ void SelectiveCancels::onGUIframe() {
 	ImGui::Text("Selective Cancels");
 	ImGui::Spacing();
 	ImGui::Checkbox("Enable", &selectiveCancelsEnable);
+	ImGui::SameLine();
+	HelpMarker("Allows cancelling out of selected moves with evasive actions");
 
 	if (ImGui::CollapsingHeader("Selective Cancel Toggles")){
 			ImGui::Spacing();

@@ -46,6 +46,8 @@ std::optional<std::string> RoseRemovesPins::onInitialize()
 
 void RoseRemovesPins::onGUIframe() {
     ImGui::Checkbox("Rose Removes Pins", &modEnabled);
+    ImGui::SameLine();
+    HelpMarker("Rose despawns pins rather than detonating them");
 }
 
 void RoseRemovesPins::onConfigLoad(const utils::Config& cfg) {

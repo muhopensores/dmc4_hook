@@ -27,6 +27,8 @@ void NoDtCooldown::onGUIframe()
     {
         toggle(modEnabled);
     }
+    ImGui::SameLine();
+    HelpMarker("Disables the cooldown on leaving DT upon entering");
 }
 
 void NoDtCooldown::onConfigLoad(const utils::Config& cfg)

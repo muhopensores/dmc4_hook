@@ -25,6 +25,8 @@ void FastPandora::onGUIframe()
     {
         toggle(modEnabled);
     }
+    ImGui::SameLine();
+    HelpMarker("Cycle to grounded Pandora moves in DT speed outside of DT");
 }
 
 void FastPandora::onConfigLoad(const utils::Config& cfg)

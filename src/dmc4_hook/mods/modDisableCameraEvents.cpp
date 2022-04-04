@@ -29,7 +29,7 @@ void DisableCameraEvents::onGUIframe()
     }
     ImGui::SameLine(0, 1);
     HelpMarker("Certain missions or parts will cause a black screen when this option is enabled. "
-               "Press the start button then X/A to go into the item menu and the screen will return to normal.");
+               "Press the pause button then confirm to go into the item menu and the screen will return to normal.");
 }
 
 void DisableCameraEvents::onConfigLoad(const utils::Config& cfg)

@@ -567,11 +567,11 @@ void RestoreMaxHp::onGUIframe()
     // line 2221 -> main->getMods()->onDrawUI("RestoreMaxHp"_hash);
     ImGui::Checkbox("Restore Enemy HP", &modEnabled);
     ImGui::SameLine(0, 1);
-    HelpMarker("Press Lock On + Taunt to restore Max HP to enemies");
+    HelpMarker("Press Lock On + Taunt while grounded to restore Max HP to enemies");
     ImGui::SameLine(205);
     ImGui::Checkbox("Reset Timer", &resetTimer);
     ImGui::SameLine(0, 1);
-    HelpMarker("Press Lock On + Taunt to reset the BP timer");
+    HelpMarker("Press Lock On + Taunt while grounded to reset the BP timer");
 }
 
 void RestoreMaxHp::onConfigLoad(const utils::Config& cfg)

@@ -31,9 +31,6 @@ void EnemyStats::onGUIframe() {
         sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
         if (sMedPtr) {
             int8_t& enemyCount = *(int8_t*)((uintptr_t)sMedPtr + 0x1E8);
-            ImGui::SliderInt("Enemy Count", (int*)&enemyCount, 0, 0);
-            ImGui::SliderInt("Enemy Select", &whichEnemy, 1, enemyCount);
-            ImGui::Spacing();
             uintptr_t* enemyPtr = (uintptr_t*)((uintptr_t)sMedPtr + 0x1B4 + whichEnemy * 4);
             uintptr_t enemyBase = *enemyPtr;
             if (enemyBase) {
@@ -59,6 +56,11 @@ void EnemyStats::onGUIframe() {
                 enemyVelocityXYZ[2] = (float*)(enemyBase + 0x1B48);
 
                 // imgui
+                ImGui::SliderInt("Enemy Count", (int*)&enemyCount, 0, 0);
+                ImGui::SliderInt("Enemy Select", &whichEnemy, 1, enemyCount);
+
+                ImGui::Spacing();
+
                 ImGui::InputFloat3("XYZ Position ##2", *enemyPosXYZ);
                 ImGui::InputFloat3("XYZ Velocity ##2", *enemyVelocityXYZ);
                 ImGui::InputFloat3("XYZ Scale ##2", *enemyScaleXYZ);
@@ -197,12 +199,13 @@ void EnemyStats::onGUIframe() {
 
     ImGui::Spacing();
 
-    ImGui::Text("Saved Info");
-    ImGui::InputScalar("Saved Move ID", ImGuiDataType_U8, &savedEnemyMoveID);
-    ImGui::InputInt("Saved Move ID 2", &savedEnemyMoveID2);
-    ImGui::InputFloat3("Saved XYZ Position", savedEnemyPosXYZ);
-    ImGui::InputFloat3("Saved XYZ Velocity", savedEnemyVelocityXYZ);
-    ImGui::InputScalar("Saved Grounded", ImGuiDataType_U8, &savedEnemyGrounded);
+    if (ImGui::CollapsingHeader("Saved Info")) {
+        ImGui::InputScalar("Saved Move ID", ImGuiDataType_U8, &savedEnemyMoveID);
+        ImGui::InputInt("Saved Move ID 2", &savedEnemyMoveID2);
+        ImGui::InputFloat3("Saved XYZ Position", savedEnemyPosXYZ);
+        ImGui::InputFloat3("Saved XYZ Velocity", savedEnemyVelocityXYZ);
+        ImGui::InputScalar("Saved Grounded", ImGuiDataType_U8, &savedEnemyGrounded);
+    }
 }
 
 void EnemyStats::onUpdateInput(hl::Input& input) {

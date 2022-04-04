@@ -371,10 +371,12 @@ void CreditsDrawing()
         ImGui::Text("%s = One Hit Kill", &HotkeyName(OneHitKill::hotkey));
         ImGui::Text("%s = Open BP Portal / Red Seal", &HotkeyName(BpPortal::hotkey));
         ImGui::Text("%s = NoClip", &HotkeyName(NoClip::hotkey));
-        ImGui::Text("Lock On + Taunt = Restore Enemy HP");
+        ImGui::Text("Lock On + Taunt = Restore Enemy HP / BP Timer");
         ImGui::SameLine();
-        HelpMarker("Only if \"Restore Enemy HP\" is checked in the General tab");
+        HelpMarker("Only if \"Restore Enemy HP\" / \"Reset Timer\" are checked in the General tab");
         ImGui::Text("%s = Quicksilver", &HotkeyName(Quicksilver::hotkey));
+        ImGui::SameLine();
+        HelpMarker("Only if \"Quicksilver\" is checked in the Character tab");
         ImGui::Text("%s = Load Enemy Stats", &HotkeyName(EnemyStats::hotkey1));
         ImGui::Text("%s = Apply Enemy Stats", &HotkeyName(EnemyStats::hotkey2));
         ImGui::Text("%s = Load Boss Stats", &HotkeyName(EnemyStats::hotkey3));

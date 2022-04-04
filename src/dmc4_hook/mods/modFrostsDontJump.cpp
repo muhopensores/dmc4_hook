@@ -32,6 +32,8 @@ void FrostsDontJump::onGUIframe()
     {
         toggle(modEnabled);
     }
+    ImGui::SameLine();
+    HelpMarker("Disable Frosts jumping out of combos until they DT");
 }
 
 void FrostsDontJump::onConfigLoad(const utils::Config& cfg)

@@ -29,6 +29,8 @@ void ManualTwosomeTime::onGUIframe()
     {
         toggle(modEnabled);
     }
+    ImGui::SameLine();
+    HelpMarker("Disable Twosome Time's automatic lock-on");
 }
 
 void ManualTwosomeTime::onConfigLoad(const utils::Config& cfg)

@@ -25,6 +25,8 @@ void StunAnything::onGUIframe()
     {
         toggle(modEnabled);
     }
+    ImGui::SameLine();
+    HelpMarker("Allows anything (even Lucifer pins) to stun");
 }
 
 void StunAnything::onConfigLoad(const utils::Config& cfg)

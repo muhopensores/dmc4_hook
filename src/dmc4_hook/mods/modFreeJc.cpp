@@ -26,7 +26,7 @@ void FreeJc::toggle(bool enable)
 
 void FreeJc::onGUIframe()
 {
-    if (ImGui::Checkbox("Free JC", &modEnabled))
+    if (ImGui::Checkbox("Free Enemy Step", &modEnabled))
     {
         toggle(modEnabled);
     }

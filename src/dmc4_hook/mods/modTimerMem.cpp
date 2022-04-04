@@ -164,7 +164,7 @@ std::optional<std::string> TimerMem::onInitialize() {
 void TimerMem::onGUIframe() {
     ImGui::Checkbox("Instant Honeycomb", &instantHoneycombEnabled);
     ImGui::SameLine(0, 1);
-    HelpMarker("Honeycomb Mapped To BackForward + Gunslinger");
+    HelpMarker("Honeycomb Mapped To backforward + Gunslinger");
 }
 
 void TimerMem::onConfigLoad(const utils::Config& cfg) {
