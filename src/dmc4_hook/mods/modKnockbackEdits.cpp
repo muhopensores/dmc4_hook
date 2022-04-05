@@ -22,10 +22,10 @@ public:
     __int32 unkInt00; // 0x0010
     float   damage;   // 0x0014
     __int32 unkInt01; // 0x0018
-    __int32 unkInt02; // 0x001C // level 2 release changes this from 0 to 2 to make it stun the enemy
-    __int32 isGround; // 0x0020
-    __int32 unkInt04; // 0x0024
-    __int32 unkInt05; // 0x0028
+    __int32 unkInt02; // 0x001C // level 2 release changes this from 0 to 2 to make it stun the enemy. Looks like this is stun value - can stun DT enemies instantly with a high enough value
+    __int32 isGround; // 0x0020 // 00 neither 01 applies displacement when enemy is aerial 02 applies displacement when enemy is either air/ground
+    __int32 unkInt04; // 0x0024 // i think 00 == melee, 01 == gun. 01 has different hit vfx and kills ghost blanket quickly
+    __int32 unkInt05; // 0x0028 // hitstop duration
     __int32 unkInt06; // 0x002C
     __int32 unkInt07; // 0x0030
     __int32 kbType;   // 0x0034
@@ -33,7 +33,7 @@ public:
     __int32 unkInt09; // 0x003C
     Vector3 unkVec3;  // 0x0040
     __int32 unkInt10; // 0x004C
-    __int32 unkInt11; // 0x0050
+    __int32 unkInt11; // 0x0050 // setting this to 02 breaks knockback direction and always sends the enemy a certain direction. Shotgun uses 1 and has interesting behaviour
     __int32 end;      // 0x0054
 
 }; // Size=0x0058
@@ -113,7 +113,7 @@ naked void detour() // projectiles?
 
 std::optional<std::string> KnockbackEdits::onInitialize()
 {
-    if (!install_hook_offset(0x1099F8, hook, &detour, &jmp_return, 5))
+    if (!install_hook_offset(0x1099F8, hook, &detour, &jmp_return, 5)) // projectiles?
     {
         HL_LOG_ERR("Failed to init KnockbackEdits mod\n");
         return "Failed to init KnockbackEdits mod";

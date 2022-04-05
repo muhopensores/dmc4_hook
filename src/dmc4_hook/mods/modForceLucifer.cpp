@@ -44,7 +44,7 @@ std::optional<std::string> ForceLucifer::onInitialize() {
 void ForceLucifer::onGUIframe() {
     ImGui::Checkbox("Force Lucifer", &modEnabled);
     ImGui::SameLine();
-    HelpMarker("Useful for disabling the Rose despawns");
+    HelpMarker("Forcing Lucifer to never despawn means never forcefully despawning rose");
 }
 
 void ForceLucifer::onConfigLoad(const utils::Config& cfg) {

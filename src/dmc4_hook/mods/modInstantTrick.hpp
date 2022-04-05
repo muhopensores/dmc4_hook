@@ -2,15 +2,15 @@
 
 #include "../mod.hpp"
 
-class FastSprint : public Mod {
+class InstantTrick : public Mod {
 public:
-    FastSprint() = default;
+    InstantTrick() = default;
 
     static bool modEnabled;
 
     void toggle(bool enable);
 
-    std::string getModName() override { return "FastSprint"; };
+    std::string getModName() override { return "InstantTrick"; };
 
     std::optional<std::string> onInitialize() override;
 

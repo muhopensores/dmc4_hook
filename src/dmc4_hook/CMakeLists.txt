@@ -176,6 +176,10 @@ SET (MODS
   mods/modEnemyStats.cpp
   mods/modFasterFastDrive.hpp
   mods/modFasterFastDrive.cpp
+  mods/modRoseOptions.hpp
+  mods/modRoseOptions.cpp
+  mods/modInstantTrick.hpp
+  mods/modInstantTrick.cpp
 )
 
 SET (HEADERS

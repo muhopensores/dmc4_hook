@@ -49,7 +49,7 @@
 #include "mods/modInfDT.hpp"
 // #include "mods/modInfPlayerHealth.hpp"
 #include "mods/modBerialDaze.hpp"
-#include "mods/modRoseRemovesPins.hpp"
+#include "mods/modRoseRemovesPins.hpp" // taunt ecstasy relies on this
 #include "mods/modStunAnything.hpp"
 #include "mods/modDisableCameraEvents.hpp"
 #include "mods/modHideHud.hpp"
@@ -87,6 +87,8 @@
 #include "mods/modChargeChecker.hpp"
 #include "mods/modEnemyStats.hpp"
 #include "mods/modFasterFastDrive.hpp"
+#include "mods/modRoseOptions.hpp"
+#include "mods/modInstantTrick.hpp"
 #include "./utils/MessageDisplay.hpp"
 
 //#include "mods/modSample.hpp"
@@ -181,6 +183,8 @@ Mods::Mods() {
 		m_mods["MessageDisplayMod"_hash] = std::make_unique<MessageDisplayMod>();
 		m_mods["EnemyStats"_hash] = std::make_unique<EnemyStats>();
 		m_mods["FasterFastDrive"_hash] = std::make_unique<FasterFastDrive>();
+		m_mods["RoseOptions"_hash] = std::make_unique<RoseOptions>();
+		m_mods["InstantTrick"_hash] = std::make_unique<InstantTrick>();
 }
 
 std::optional<std::string> Mods::onSlowInitialize() const {

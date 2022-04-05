@@ -282,9 +282,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
             if (ImGui::BeginTabItem("General"))
             {
                 ImGui::Spacing();
-
                 ImGui::Text("General");
-
                 ImGui::Spacing();
 
                 main->getMods()->onDrawUI("DamageMultiplier"_hash); // needs its own line
@@ -301,14 +299,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 
                 main->getMods()->onDrawUI("RestoreMaxHp"_hash); // needs its own line
 
-                
-                
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
 
                 ImGui::Text("Enemy Difficulty");
-
                 ImGui::Spacing();
 
                 main->getMods()->onDrawUI("DifficultySelect"_hash); // needs its own line
@@ -332,7 +327,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::Spacing();
 
                 ImGui::Text("Bloody Palace");
-
                 ImGui::Spacing();
 
                 main->getMods()->onDrawUI("BpJumpHook"_hash); // needs its own line
@@ -344,7 +338,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::Spacing();
 
                 ImGui::Text("Enemy Options");
-
                 ImGui::Spacing();
 
                 main->getMods()->onDrawUI("StunAnything"_hash);
@@ -368,9 +361,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
             if (ImGui::BeginTabItem("Character"))
             {
                 ImGui::Spacing();
-
                 ImGui::Text("Limit Removal");
-
                 ImGui::Spacing();
 
                 main->getMods()->onDrawUI("LimitAdjust"_hash); // needs its own line
@@ -384,7 +375,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::Spacing();
 
                 ImGui::Text("Shared Abilities");
-
                 ImGui::Spacing();
 
                 main->getMods()->onDrawUI("FastSprint"_hash);
@@ -412,7 +402,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::Spacing();
 
                 ImGui::Text("Nero Abilities");
-
                 ImGui::Spacing();
 
                 main->getMods()->onDrawUI("NeroFullHouse"_hash);
@@ -428,7 +417,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::Spacing();
 
                 ImGui::Text("Dante Abilities");
-
                 ImGui::Spacing();
 
                 main->getMods()->onDrawUI("TrackingFullHouse"_hash);
@@ -451,19 +439,31 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
                 main->getMods()->onDrawUI("InfTrickRange"_hash);
                 ImGui::SameLine(205);
+                main->getMods()->onDrawUI("InstantTrick"_hash);
+                
                 main->getMods()->onDrawUI("InfSkyStars"_hash);
-
-                main->getMods()->onDrawUI("InfDreadnaught"_hash);
                 ImGui::SameLine(205);
+                main->getMods()->onDrawUI("InfDreadnaught"_hash);
+                
+                main->getMods()->onDrawUI("FasterFastDrive"_hash); // needs its own line, has easy fast drive too
+
                 main->getMods()->onDrawUI("RgMultiplier"_hash);
 
-                main->getMods()->onDrawUI("FasterFastDrive"_hash);
+                ImGui::Spacing();
+                ImGui::Text("Lucifer");
+                ImGui::Spacing();
 
-                main->getMods()->onDrawUI("RoseRemovesPins"_hash); // tacked on to taunt ecstasy
+                main->getMods()->onDrawUI("RoseRemovesPins"_hash);
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("ForceLucifer"_hash);
 
-                main->getMods()->onDrawUI("InputStates"_hash);
+                main->getMods()->onDrawUI("InputStates"_hash); // taunt ecstasy
+
+                ImGui::Spacing();
+                ImGui::Text("Rose");
+                ImGui::Spacing();
+
+                main->getMods()->onDrawUI("RoseOptions"_hash); // needs its own line
 
                 ImGui::Spacing();
                 ImGui::Separator();

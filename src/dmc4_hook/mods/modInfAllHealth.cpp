@@ -45,8 +45,8 @@ naked void detour() {
 
 std::optional<std::string> InfAllHealth::onInitialize() {
     if (!install_hook_offset(0x11BFD9, hook, &detour, &jmp_return, 7)) {
-        HL_LOG_ERR("Failed to init KnockbackEdits mod\n");
-        return "Failed to init KnockbackEdits mod";
+        HL_LOG_ERR("Failed to init InfAllHealth mod\n");
+        return "Failed to init InfAllHealth mod";
     }
 
     return Mod::onInitialize();

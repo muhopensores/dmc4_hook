@@ -21,10 +21,6 @@ public:
     void RoseBuffer();
     void PlayRose();
     void onTimerCallback();
-    void toggleDisableRoseDespawnOnHittingEnemy(bool enabled);
-    void toggleDisableRoseDespawnOnHittingObject(bool enabled);
-    void toggleDisableRoseDespawnOnChangingToLucifer(bool enabled);
-    void toggleRoseInfiniteTimer(bool enabled);
 
     std::string getModName() override { return "InputStates"; };
 
@@ -37,7 +33,4 @@ private:
     hl::Hooker hook;
     hl::Hooker hook2;
     hl::Hooker hook3;
-    hl::Patch patch1;
-    hl::Patch patch2;
-    hl::Patch patch3;
 };
