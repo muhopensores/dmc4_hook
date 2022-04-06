@@ -2100,6 +2100,54 @@
                 </CheatEntry>
                 <CheatEntry>
                   <ID>652</ID>
+                  <Description>"+1E78 something to do with attacking"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Byte</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1E78</Offset>
+                    <Offset>24</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1269</ID>
+                  <Description>"+1E79 something to do with attacking"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Byte</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1E79</Offset>
+                    <Offset>24</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1268</ID>
+                  <Description>"+1E7A something to do with attacking"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Byte</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1E7A</Offset>
+                    <Offset>24</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1267</ID>
+                  <Description>"+1E7B something to do with BttBcking"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Byte</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1E7B</Offset>
+                    <Offset>24</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1266</ID>
                   <Description>"+1E7C something to do with attacking"</Description>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>

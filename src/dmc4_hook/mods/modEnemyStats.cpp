@@ -65,13 +65,13 @@ void EnemyStats::onGUIframe() {
 
                 ImGui::InputFloat("HP ##2", &enemyHP);
                 ImGui::InputFloat("Max HP ##2", &enemyMaxHP);
-                // ImGui::InputInt("Stun ##2", &enemyStun);
-                // ImGui::InputInt("Displacement ##2", &enemyDisplacement);
+                // ImGui::InputInt("Stun ##2", &enemyStun, 0, 0);
+                // ImGui::InputInt("Displacement ##2", &enemyDisplacement, 0, 0);
                 ImGui::InputFloat3("XYZ Position ##2", *enemyPosXYZ);
                 ImGui::InputFloat3("XYZ Velocity ##2", *enemyVelocityXYZ);
                 ImGui::InputFloat3("XYZ Scale ##2", *enemyScaleXYZ);
                 ImGui::InputScalar("Move ID ##2", ImGuiDataType_U8, &enemyMoveID);
-                ImGui::InputInt("Move ID 2 ##2", &enemyMoveID2);
+                ImGui::InputInt("Move ID 2 ##2", &enemyMoveID2, 0, 0);
                 ImGui::InputScalar("Move Part ##2", ImGuiDataType_U8, &enemyMovePart);
                 ImGui::InputScalar("Grounded ##2", ImGuiDataType_U8, &enemyGrounded);
                 ImGui::InputFloat("Animation Frame ##2", &enemyFrame);
@@ -161,7 +161,7 @@ void EnemyStats::onGUIframe() {
                 ImGui::InputFloat("HP ##3", &enemyHP);
                 ImGui::InputFloat("Max HP ##3", &enemyMaxHP);
                 ImGui::InputScalar("Move ID ##3", ImGuiDataType_U8, &enemyMoveID);
-                ImGui::InputInt("Move ID 2 ##3", &enemyMoveID2);
+                ImGui::InputInt("Move ID 2 ##3", &enemyMoveID2, 0, 0);
                 ImGui::InputScalar("Move Part ##3", ImGuiDataType_U8, &enemyMovePart);
                 ImGui::InputFloat("Animation Frame ##3", &enemyFrame);
 
@@ -205,7 +205,7 @@ void EnemyStats::onGUIframe() {
 
     if (ImGui::CollapsingHeader("Saved Info")) {
         ImGui::InputScalar("Saved Move ID", ImGuiDataType_U8, &savedEnemyMoveID);
-        ImGui::InputInt("Saved Move ID 2", &savedEnemyMoveID2);
+        ImGui::InputInt("Saved Move ID 2", &savedEnemyMoveID2, 0, 0);
         ImGui::InputFloat3("Saved XYZ Position", savedEnemyPosXYZ);
         ImGui::InputFloat3("Saved XYZ Velocity", savedEnemyVelocityXYZ);
         ImGui::InputScalar("Saved Grounded", ImGuiDataType_U8, &savedEnemyGrounded);

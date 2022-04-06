@@ -2,7 +2,6 @@
 #include "modWorkRate.hpp"
 
 #if 1
-
 uintptr_t PlayerTracker::jmp_return{ NULL };
 // uintptr_t* PlayerTracker::player_base_ptr{ (uintptr_t*)(0x00E558B8) }; // DevilMayCry4_DX9.exe+A558B8
 uPlayer* PlayerTracker::player_ptr{ NULL };
@@ -10,11 +9,6 @@ bool PlayerTracker::lockOnAlloc{ false };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 bool displayPlayerStats = false;
 bool potentiallyDumb = false;
-
-PlayerTracker::PlayerTracker()
-{
-    // onInitialize();
-}
 
 void update_player_info(void) {
     sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
@@ -49,8 +43,7 @@ naked void detour() {
 
 std::optional<std::string> PlayerTracker::onInitialize()
 {
-    if (!install_hook_offset(0x3A88A1, hook, &detour, &jmp_return, 5))
-    {
+    if (!install_hook_offset(0x3A88A1, hook, &detour, &jmp_return, 5)) {
         HL_LOG_ERR("Failed to init PlayerTracker mod\n");
         return "Failed to init PlayerTracker mod";
     }
@@ -94,6 +87,9 @@ void PlayerTracker::onGUIframe() {
             float& playerCurrentHP = *(float*)(playerBase + 0x15CC);
             float& playerMaxHP = *(float*)(playerBase + 0x15D0);
             int8_t& playerWeight = *(int8_t*)(playerBase + 0x1E7D);
+            int& playerMoveID = *(int*)(playerBase + 0x2998);
+            int8_t& playerMovePart = *(int8_t*)(playerBase + 0x1504);
+            int8_t& playerLockOn = *(int8_t*)(playerBase + 0x16D0);
 
             float* playerVelocityXYZ[3];
             playerVelocityXYZ[0] = (float*)(playerBase + 0x1E50);
@@ -101,16 +97,18 @@ void PlayerTracker::onGUIframe() {
             playerVelocityXYZ[2] = (float*)(playerBase + 0x1E58);
             float& playerMagnitude = *(float*)(playerBase + 0x1E60);
 
+            ImGui::InputFloat("HP ##1", &playerCurrentHP);
+            ImGui::InputFloat("Max HP ##1", &playerMaxHP);
             ImGui::InputFloat3("XYZ Position ##1", *playerXYZ);
             ImGui::InputFloat4("Rotation ##1", *playerRotation);
             ImGui::InputFloat3("XYZ Scale ##1", *playerScale);
             ImGui::InputFloat3("XYZ Velocity ##1", *playerVelocityXYZ);
             ImGui::InputFloat("Inertia ##1", &playerMagnitude);
+            ImGui::InputInt("Move ID ##1", &playerMoveID, 0, 0);
+            ImGui::InputScalar("Move Part ##1", ImGuiDataType_U8, &playerMovePart);
             ImGui::InputFloat("Animation Frame ##1", &animationFrame);
             ImGui::InputScalar("Weight ##1", ImGuiDataType_U8, &playerWeight);
-            ImGui::InputFloat("HP ##1", &playerCurrentHP);
-            ImGui::InputFloat("Max HP ##1", &playerMaxHP);
-            ImGui::Checkbox("Lock On ##1", &PlayerTracker::lockOnAlloc);
+            ImGui::InputScalar("Lock On ##1", ImGuiDataType_U8, &playerLockOn);
         }
     }
 }
