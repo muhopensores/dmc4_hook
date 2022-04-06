@@ -2,8 +2,7 @@
 
 #include "../mod.hpp"
 
-class InputStates : public Mod
-{
+class InputStates : public Mod {
 public:
     InputStates() = default;
 

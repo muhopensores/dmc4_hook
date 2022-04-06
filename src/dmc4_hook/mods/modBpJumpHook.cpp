@@ -162,11 +162,13 @@ naked void bpJumpHook_proc(void) // Initial load of BP
         je code
 
         // create randomized numbers
-        pushad
-        pushfd
+        push eax
+        push ecx
+        push edx
         call bp_start
-        popfd
-        popad
+        pop edx
+        pop ecx
+        pop eax
 
         // write floor and area ID
         push edx
@@ -216,11 +218,11 @@ naked void bpJumpHook2_proc(void) // called every time you enter a teleporter
         je code
 
         // update floor and area ID values
-        pushad
-        pushfd
+        push eax
+        push ecx
         call bp_continue
-        popfd
-        popad
+        pop ecx
+        pop eax
 
         // write floor and area ID
         push edx

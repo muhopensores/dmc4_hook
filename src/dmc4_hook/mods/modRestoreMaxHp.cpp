@@ -73,9 +73,9 @@ naked void restoreMaxHpScarecrow_proc(void)
         je code
         */
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -94,9 +94,9 @@ naked void restoreMaxHpFrost_proc(void)
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -115,9 +115,9 @@ naked void restoreMaxHpArmour_proc(void)
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -137,9 +137,9 @@ naked void restoreMaxHpGhosts_proc(void)
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -158,9 +158,9 @@ naked void restoreMaxHpSwordFly_proc(void)
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -179,9 +179,9 @@ naked void restoreMaxHpSwordFish_proc(void)
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -200,9 +200,9 @@ naked void restoreMaxHpSeed_proc(void)
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -221,9 +221,9 @@ naked void restoreMaxHpRiot_proc(void)
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -243,9 +243,9 @@ naked void restoreMaxHpBlitz_proc(void)
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -264,9 +264,9 @@ naked void restoreMaxHpDog_proc(void)
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -286,9 +286,9 @@ naked void restoreMaxHpBerial_proc(void)
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -307,9 +307,9 @@ naked void restoreMaxHpFrog_proc(void)
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -328,9 +328,9 @@ naked void restoreMaxHpEchidna_proc(void)
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -349,9 +349,9 @@ naked void restoreMaxHpCredo_proc(void)
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -370,9 +370,9 @@ naked void restoreMaxHpAgnus_proc(void)
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -391,9 +391,9 @@ naked void restoreMaxHpSanctus_proc(void)
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -412,9 +412,9 @@ naked void restoreMaxHpDante_proc(void)
         cmp byte ptr [RestoreMaxHp::modEnabled],0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 
@@ -433,9 +433,9 @@ naked void resetTimer_proc(void)
         cmp byte ptr [resetTimer], 0
         je code
 
-        pushad
+        push eax
         call ShouldResetHP
-        popad
+        pop eax
         cmp byte ptr [resetHp], 0
         je code
 

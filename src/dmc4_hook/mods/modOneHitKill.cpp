@@ -13,20 +13,17 @@ constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 int oneHitKillHotkey;
 
 void OneHitKill::NoDeathToggle(bool enable){ // no death 
-    if (enable)
-    {
+    if (enable) {
         //install_patch_offset(0x11C11B, patchhp, "\xEB", 1); // used for both
         install_patch_offset(0x11C694, patchomen, "\xEB", 1);
     }
-    else
-    {
+    else {
         //patchhp.revert();
         patchomen.revert();
     }
 }
 
-naked void detour(void)
-{
+naked void detour(void) {
     _asm {
             cmp byte ptr [OneHitKill::oneHitKill], 1
             je playercheck
@@ -56,10 +53,8 @@ naked void detour(void)
     }
 }
 
-std::optional<std::string> OneHitKill::onInitialize()
-{
-    if (!install_hook_offset(0x011C117, hook, &detour, &jmp_ret, 6))
-    {
+std::optional<std::string> OneHitKill::onInitialize() {
+    if (!install_hook_offset(0x011C117, hook, &detour, &jmp_ret, 6)) {
         HL_LOG_ERR("Failed to init OneHitKill mod\n");
         return "Failed to init OneHitKill mod";
     }
@@ -67,10 +62,8 @@ std::optional<std::string> OneHitKill::onInitialize()
     return Mod::onInitialize();
 }
 
-void OneHitKill::onGUIframe()
-{
-    if (ImGui::Checkbox("No Death (All)", &cantDie))
-    {
+void OneHitKill::onGUIframe() {
+    if (ImGui::Checkbox("No Death (All)", &cantDie)) {
         oneHitKill = false;
         //toggle2(oneHitKill);
         NoDeathToggle(cantDie);
@@ -78,41 +71,33 @@ void OneHitKill::onGUIframe()
     ImGui::SameLine(0, 1);
     HelpMarker("Disables dying while still allowing hp to drop. Also stops Omen killing enemies.");
     ImGui::SameLine(205);
-    if (ImGui::Checkbox("One Hit Kill", &oneHitKill))
-    {
+    if (ImGui::Checkbox("One Hit Kill", &oneHitKill)) {
         cantDie = false;
         NoDeathToggle(cantDie);
         //toggle2(oneHitKill);
     }
 }
 
-void OneHitKill::onConfigLoad(const utils::Config& cfg)
-{
+void OneHitKill::onConfigLoad(const utils::Config& cfg) {
     cantDie = cfg.get<bool>("no_death").value_or(false);
     oneHitKill = cfg.get<bool>("one_hit_kill").value_or(false);
     hotkey = cfg.get<int>("one_hit_kill_hotkey").value_or(0x72); // F3
     NoDeathToggle(cantDie);
 };
 
-void OneHitKill::onConfigSave(utils::Config& cfg)
-{
+void OneHitKill::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("no_death", cantDie);
     cfg.set<bool>("one_hit_kill", oneHitKill);
     cfg.set<int>("one_hit_kill_hotkey", hotkey);
 };
 
-void OneHitKill::onUpdateInput(hl::Input& input)
-{
-    if (!input.isDown(EnemySpawn::hotkeySpawnModifier))
-    {
-        if (input.wentDown(hotkey))
-        {
-            if (oneHitKill)
-            {
+void OneHitKill::onUpdateInput(hl::Input& input) {
+    if (!input.isDown(EnemySpawn::hotkeySpawnModifier)) {
+        if (input.wentDown(hotkey)) {
+            if (oneHitKill) {
                 DISPLAY_MESSAGE("One Hit Kill Off");
             }
-            else
-            {
+            else {
                 DISPLAY_MESSAGE("One Hit Kill On");
                 cantDie = false;
                 NoDeathToggle(cantDie);

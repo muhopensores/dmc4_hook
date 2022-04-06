@@ -28,8 +28,7 @@ void RoseOptions::toggleDisableRoseDespawnOnHittingObject(bool enabled) {
     }
 }
 
-void RoseOptions::toggleRoseInfiniteTimer(bool enabled)
-{
+void RoseOptions::toggleRoseInfiniteTimer(bool enabled) {
     if (enabled) {
         install_patch_offset(0x0435937, patch3, "\x90\x90\x90\x90\x90\x90", 6);
     }
@@ -38,8 +37,7 @@ void RoseOptions::toggleRoseInfiniteTimer(bool enabled)
     }
 }
 
-void RoseOptions::onGUIframe()
-{
+void RoseOptions::onGUIframe() {
     if (ImGui::Checkbox("Rose Survives Enemies", &enabledNoDespawnEnemy)) {
         toggleDisableRoseDespawnOnHittingEnemy(enabledNoDespawnEnemy);
     }

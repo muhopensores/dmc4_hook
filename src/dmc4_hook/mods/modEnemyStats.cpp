@@ -35,25 +35,27 @@ void EnemyStats::onGUIframe() {
             uintptr_t enemyBase = *enemyPtr;
             if (enemyBase) {
                 // get stats
+                float& enemyHP = *(float*)(enemyBase + 0x1544);
+                float& enemyMaxHP = *(float*)(enemyBase + 0x1548);
+                // int& enemyStun = *(int*)(enemyBase + 0x1568); // these move per enemy :D
+                // int& enemyDisplacement = *(int*)(enemyBase + 0x157C);
                 uint8_t& enemyMoveID = *(uint8_t*)(enemyBase + 0x14);
                 int& enemyMoveID2 = *(int*)(enemyBase + 0x334);
                 uint8_t& enemyMovePart = *(uint8_t*)(enemyBase + 0x15);
                 int8_t& enemyGrounded = *(int8_t*)(enemyBase + 0x161C);
-                float* enemyPosXYZ[3];
-                enemyPosXYZ[0] = (float*)(enemyBase + 0x30);
-                enemyPosXYZ[1] = (float*)(enemyBase + 0x34);
-                enemyPosXYZ[2] = (float*)(enemyBase + 0x38);
-                float* enemyScaleXYZ[3];
-                enemyScaleXYZ[0] = (float*)(enemyBase + 0x50);
-                enemyScaleXYZ[1] = (float*)(enemyBase + 0x54);
-                enemyScaleXYZ[2] = (float*)(enemyBase + 0x58);
                 float& enemyFrame = *(float*)(enemyBase + 0x348);
-                float& enemyHP = *(float*)(enemyBase + 0x1544);
-                float& enemyMaxHP = *(float*)(enemyBase + 0x1548);
+                float* enemyPosXYZ[3];
+                    enemyPosXYZ[0] = (float*)(enemyBase + 0x30);
+                    enemyPosXYZ[1] = (float*)(enemyBase + 0x34);
+                    enemyPosXYZ[2] = (float*)(enemyBase + 0x38);
+                float* enemyScaleXYZ[3];
+                    enemyScaleXYZ[0] = (float*)(enemyBase + 0x50);
+                    enemyScaleXYZ[1] = (float*)(enemyBase + 0x54);
+                    enemyScaleXYZ[2] = (float*)(enemyBase + 0x58);
                 float* enemyVelocityXYZ[3];
-                enemyVelocityXYZ[0] = (float*)(enemyBase + 0x1B40);
-                enemyVelocityXYZ[1] = (float*)(enemyBase + 0x1B44);
-                enemyVelocityXYZ[2] = (float*)(enemyBase + 0x1B48);
+                    enemyVelocityXYZ[0] = (float*)(enemyBase + 0x1B40);
+                    enemyVelocityXYZ[1] = (float*)(enemyBase + 0x1B44);
+                    enemyVelocityXYZ[2] = (float*)(enemyBase + 0x1B48);
 
                 // imgui
                 ImGui::SliderInt("Enemy Count", (int*)&enemyCount, 0, 0);
@@ -61,11 +63,13 @@ void EnemyStats::onGUIframe() {
 
                 ImGui::Spacing();
 
+                ImGui::InputFloat("HP ##2", &enemyHP);
+                ImGui::InputFloat("Max HP ##2", &enemyMaxHP);
+                // ImGui::InputInt("Stun ##2", &enemyStun);
+                // ImGui::InputInt("Displacement ##2", &enemyDisplacement);
                 ImGui::InputFloat3("XYZ Position ##2", *enemyPosXYZ);
                 ImGui::InputFloat3("XYZ Velocity ##2", *enemyVelocityXYZ);
                 ImGui::InputFloat3("XYZ Scale ##2", *enemyScaleXYZ);
-                ImGui::InputFloat("HP ##2", &enemyHP);
-                ImGui::InputFloat("Max HP ##2", &enemyMaxHP);
                 ImGui::InputScalar("Move ID ##2", ImGuiDataType_U8, &enemyMoveID);
                 ImGui::InputInt("Move ID 2 ##2", &enemyMoveID2);
                 ImGui::InputScalar("Move Part ##2", ImGuiDataType_U8, &enemyMovePart);
@@ -136,20 +140,20 @@ void EnemyStats::onGUIframe() {
             uintptr_t bossBase = *bossPtr;
             if (bossBase) {
                 // get stats
+                float& enemyHP = *(float*)(bossBase + 0x151C);
+                float& enemyMaxHP = *(float*)(bossBase + 0x1520);
                 uint8_t& enemyMoveID = *(uint8_t*)(bossBase + 0x14);
                 int& enemyMoveID2 = *(int*)(bossBase + 0x334);
                 uint8_t& enemyMovePart = *(uint8_t*)(bossBase + 0x15);
-                float* enemyPosXYZ[3];
-                enemyPosXYZ[0] = (float*)(bossBase + 0x30);
-                enemyPosXYZ[1] = (float*)(bossBase + 0x34);
-                enemyPosXYZ[2] = (float*)(bossBase + 0x38);
-                float* enemyScaleXYZ[3];
-                enemyScaleXYZ[0] = (float*)(bossBase + 0x50);
-                enemyScaleXYZ[1] = (float*)(bossBase + 0x54);
-                enemyScaleXYZ[2] = (float*)(bossBase + 0x58);
                 float& enemyFrame = *(float*)(bossBase + 0x348);
-                float& enemyHP = *(float*)(bossBase + 0x151C);
-                float& enemyMaxHP = *(float*)(bossBase + 0x1520);
+                float* enemyPosXYZ[3];
+                    enemyPosXYZ[0] = (float*)(bossBase + 0x30);
+                    enemyPosXYZ[1] = (float*)(bossBase + 0x34);
+                    enemyPosXYZ[2] = (float*)(bossBase + 0x38);
+                float* enemyScaleXYZ[3];
+                    enemyScaleXYZ[0] = (float*)(bossBase + 0x50);
+                    enemyScaleXYZ[1] = (float*)(bossBase + 0x54);
+                    enemyScaleXYZ[2] = (float*)(bossBase + 0x58);
 
                 // imgui
                 ImGui::InputFloat3("XYZ Position ##3", *enemyPosXYZ);
@@ -169,7 +173,7 @@ void EnemyStats::onGUIframe() {
                     savedEnemyMoveID2 = enemyMoveID2;
                 }
                 ImGui::SameLine();
-                HelpMarker("Hotkey is Ctrl + HOME by default");
+                HelpMarker("Hotkey is PAGE UP by default");
 
                 if (ImGui::Button("Replay Saved Move ID ##3")) {
                     enemyMoveID = savedEnemyMoveID;
@@ -186,7 +190,7 @@ void EnemyStats::onGUIframe() {
                     enemyMovePart = (uint8_t)0;
                 }
                 ImGui::SameLine();
-                HelpMarker("Hotkey is Ctrl + END by default");
+                HelpMarker("Hotkey is PAGE DOWN by default");
             }
         }
     }
@@ -223,13 +227,13 @@ void EnemyStats::onUpdateInput(hl::Input& input) {
                         uint8_t& enemyMovePart = *(uint8_t*)(enemyBase + 0x15);
                         int8_t& enemyGrounded = *(int8_t*)(enemyBase + 0x161C);
                         float* enemyPosXYZ[3];
-                        enemyPosXYZ[0] = (float*)(enemyBase + 0x30);
-                        enemyPosXYZ[1] = (float*)(enemyBase + 0x34);
-                        enemyPosXYZ[2] = (float*)(enemyBase + 0x38);
+                            enemyPosXYZ[0] = (float*)(enemyBase + 0x30);
+                            enemyPosXYZ[1] = (float*)(enemyBase + 0x34);
+                            enemyPosXYZ[2] = (float*)(enemyBase + 0x38);
                         float* enemyVelocityXYZ[3];
-                        enemyVelocityXYZ[0] = (float*)(enemyBase + 0x1B40);
-                        enemyVelocityXYZ[1] = (float*)(enemyBase + 0x1B44);
-                        enemyVelocityXYZ[2] = (float*)(enemyBase + 0x1B48);
+                            enemyVelocityXYZ[0] = (float*)(enemyBase + 0x1B40);
+                            enemyVelocityXYZ[1] = (float*)(enemyBase + 0x1B44);
+                            enemyVelocityXYZ[2] = (float*)(enemyBase + 0x1B48);
                         // save stats
                         savedEnemyPosXYZ[0] = *enemyPosXYZ[0];
                         savedEnemyPosXYZ[1] = *enemyPosXYZ[1];
@@ -255,13 +259,13 @@ void EnemyStats::onUpdateInput(hl::Input& input) {
                         uint8_t& enemyMovePart = *(uint8_t*)(enemyBase + 0x15);
                         int8_t& enemyGrounded = *(int8_t*)(enemyBase + 0x161C);
                         float* enemyPosXYZ[3];
-                        enemyPosXYZ[0] = (float*)(enemyBase + 0x30);
-                        enemyPosXYZ[1] = (float*)(enemyBase + 0x34);
-                        enemyPosXYZ[2] = (float*)(enemyBase + 0x38);
+                            enemyPosXYZ[0] = (float*)(enemyBase + 0x30);
+                            enemyPosXYZ[1] = (float*)(enemyBase + 0x34);
+                            enemyPosXYZ[2] = (float*)(enemyBase + 0x38);
                         float* enemyVelocityXYZ[3];
-                        enemyVelocityXYZ[0] = (float*)(enemyBase + 0x1B40);
-                        enemyVelocityXYZ[1] = (float*)(enemyBase + 0x1B44);
-                        enemyVelocityXYZ[2] = (float*)(enemyBase + 0x1B48);
+                            enemyVelocityXYZ[0] = (float*)(enemyBase + 0x1B40);
+                            enemyVelocityXYZ[1] = (float*)(enemyBase + 0x1B44);
+                            enemyVelocityXYZ[2] = (float*)(enemyBase + 0x1B48);
                         // apply stats
                         *enemyPosXYZ[0] = savedEnemyPosXYZ[0];
                         *enemyPosXYZ[1] = savedEnemyPosXYZ[1];
@@ -287,9 +291,9 @@ void EnemyStats::onUpdateInput(hl::Input& input) {
                         int& enemyMoveID2 = *(int*)(bossBase + 0x334);
                         uint8_t& enemyMovePart = *(uint8_t*)(bossBase + 0x15);
                         float* enemyPosXYZ[3];
-                        enemyPosXYZ[0] = (float*)(bossBase + 0x30);
-                        enemyPosXYZ[1] = (float*)(bossBase + 0x34);
-                        enemyPosXYZ[2] = (float*)(bossBase + 0x38);
+                            enemyPosXYZ[0] = (float*)(bossBase + 0x30);
+                            enemyPosXYZ[1] = (float*)(bossBase + 0x34);
+                            enemyPosXYZ[2] = (float*)(bossBase + 0x38);
                         // save stats
                         savedEnemyPosXYZ[0] = *enemyPosXYZ[0];
                         savedEnemyPosXYZ[1] = *enemyPosXYZ[1];
@@ -310,9 +314,9 @@ void EnemyStats::onUpdateInput(hl::Input& input) {
                         int& enemyMoveID2 = *(int*)(bossBase + 0x334);
                         uint8_t& enemyMovePart = *(uint8_t*)(bossBase + 0x15);
                         float* enemyPosXYZ[3];
-                        enemyPosXYZ[0] = (float*)(bossBase + 0x30);
-                        enemyPosXYZ[1] = (float*)(bossBase + 0x34);
-                        enemyPosXYZ[2] = (float*)(bossBase + 0x38);
+                            enemyPosXYZ[0] = (float*)(bossBase + 0x30);
+                            enemyPosXYZ[1] = (float*)(bossBase + 0x34);
+                            enemyPosXYZ[2] = (float*)(bossBase + 0x38);
                         // apply stats
                         *enemyPosXYZ[0] = savedEnemyPosXYZ[0];
                         *enemyPosXYZ[1] = savedEnemyPosXYZ[1];

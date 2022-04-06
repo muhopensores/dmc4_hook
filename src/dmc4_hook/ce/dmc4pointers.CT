@@ -131,6 +131,21 @@
               <CheatEntries>
                 <CheatEntry>
                   <ID>1038</ID>
+                  <Description>"+0"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>String</VariableType>
+                  <Length>30</Length>
+                  <Unicode>0</Unicode>
+                  <CodePage>0</CodePage>
+                  <ZeroTerminate>1</ZeroTerminate>
+                  <Address>DevilMayCry4_DX9.exe+A558AC</Address>
+                  <Offsets>
+                    <Offset>0</Offset>
+                    <Offset>0</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1220</ID>
                   <Description>"+28 string"</Description>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>String</VariableType>
@@ -147,6 +162,16 @@
               </CheatEntries>
             </CheatEntry>
             <CheatEntry>
+              <ID>1237</ID>
+              <Description>"+24 kill count"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>4 Bytes</VariableType>
+              <Address>DevilMayCry4_DX9.exe+A558AC</Address>
+              <Offsets>
+                <Offset>24</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
               <ID>977</ID>
               <Description>"+C4 Enemy Permissions"</Description>
               <ShowAsHex>1</ShowAsHex>
@@ -160,6 +185,7 @@
                 <CheatEntry>
                   <ID>978</ID>
                   <Description>"+0"</Description>
+                  <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>4 Bytes</VariableType>
                   <Address>DevilMayCry4_DX9.exe+A558AC</Address>
@@ -199,6 +225,64 @@
                   <Offsets>
                     <Offset>14</Offset>
                     <Offset>C4</Offset>
+                  </Offsets>
+                </CheatEntry>
+              </CheatEntries>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>1221</ID>
+              <Description>"+140 pointer to some enemy stuff?"</Description>
+              <ShowAsHex>1</ShowAsHex>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>4 Bytes</VariableType>
+              <Address>DevilMayCry4_DX9.exe+A558AC</Address>
+              <Offsets>
+                <Offset>0</Offset>
+              </Offsets>
+              <CheatEntries>
+                <CheatEntry>
+                  <ID>1222</ID>
+                  <Description>"+0"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558AC</Address>
+                  <Offsets>
+                    <Offset>0</Offset>
+                    <Offset>140</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1223</ID>
+                  <Description>"+28 MaxHP"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558AC</Address>
+                  <Offsets>
+                    <Offset>28</Offset>
+                    <Offset>140</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1224</ID>
+                  <Description>"+2C HP"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558AC</Address>
+                  <Offsets>
+                    <Offset>2C</Offset>
+                    <Offset>140</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1225</ID>
+                  <Description>"+30 idk"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558AC</Address>
+                  <Offsets>
+                    <Offset>30</Offset>
+                    <Offset>140</Offset>
                   </Offsets>
                 </CheatEntry>
               </CheatEntries>
@@ -499,6 +583,83 @@
                   </Offsets>
                 </CheatEntry>
                 <CheatEntry>
+                  <ID>1200</ID>
+                  <Description>"+D0 position used for knockback"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>D0</Offset>
+                    <Offset>24</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1201</ID>
+                  <Description>"+D4 position used for knockback"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>D4</Offset>
+                    <Offset>24</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1202</ID>
+                  <Description>"+D8 position used for knockback"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>D8</Offset>
+                    <Offset>24</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1214</ID>
+                  <Description>"+F0 rotation used for knockback"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>F0</Offset>
+                    <Offset>24</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1215</ID>
+                  <Description>"+F4 rotation used for knockback"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>F4</Offset>
+                    <Offset>24</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1216</ID>
+                  <Description>"+F8 rotation used for knockback"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>F8</Offset>
+                    <Offset>24</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1217</ID>
+                  <Description>"+FC rotation used for knockback"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>FC</Offset>
+                    <Offset>24</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
                   <ID>989</ID>
                   <Description>"+130 arm brightness??"</Description>
                   <ShowAsSigned>0</ShowAsSigned>
@@ -623,6 +784,18 @@
                   <Address>DevilMayCry4_DX9.exe+A558B8</Address>
                   <Offsets>
                     <Offset>330</Offset>
+                    <Offset>24</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1189</ID>
+                  <Description>"+334 moveid2"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>334</Offset>
                     <Offset>24</Offset>
                   </Offsets>
                 </CheatEntry>
@@ -1017,6 +1190,17 @@
                   <Address>DevilMayCry4_DX9.exe+A558B8</Address>
                   <Offsets>
                     <Offset>1494</Offset>
+                    <Offset>24</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1168</ID>
+                  <Description>"+14F0 can weapon change? 12 for no"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>14F0</Offset>
                     <Offset>24</Offset>
                   </Offsets>
                 </CheatEntry>
@@ -1459,12 +1643,62 @@
                   <CheatEntries>
                     <CheatEntry>
                       <ID>587</ID>
+                      <Description>"+1370 ID"</Description>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>Byte</VariableType>
+                      <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                      <Offsets>
+                        <Offset>1370</Offset>
+                        <Offset>1D98</Offset>
+                        <Offset>24</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                    <CheatEntry>
+                      <ID>1174</ID>
                       <Description>"+137C shouldShow"</Description>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Byte</VariableType>
                       <Address>DevilMayCry4_DX9.exe+A558B8</Address>
                       <Offsets>
                         <Offset>137C</Offset>
+                        <Offset>1D98</Offset>
+                        <Offset>24</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                    <CheatEntry>
+                      <ID>1170</ID>
+                      <Description>"+13C4 Rose Y axis velocity"</Description>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>Float</VariableType>
+                      <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                      <Offsets>
+                        <Offset>13C4</Offset>
+                        <Offset>1D98</Offset>
+                        <Offset>24</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                    <CheatEntry>
+                      <ID>1172</ID>
+                      <Description>"+13E8 rose alive"</Description>
+                      <ShowAsHex>1</ShowAsHex>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>Byte</VariableType>
+                      <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                      <Offsets>
+                        <Offset>13E8</Offset>
+                        <Offset>1D98</Offset>
+                        <Offset>24</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                    <CheatEntry>
+                      <ID>1173</ID>
+                      <Description>"+13E9"</Description>
+                      <ShowAsHex>1</ShowAsHex>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>Byte</VariableType>
+                      <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                      <Offsets>
+                        <Offset>13E9</Offset>
                         <Offset>1D98</Offset>
                         <Offset>24</Offset>
                       </Offsets>
@@ -1613,6 +1847,18 @@
                   </Offsets>
                 </CheatEntry>
                 <CheatEntry>
+                  <ID>1163</ID>
+                  <Description>"+1DC0 weapon idk"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1DC0</Offset>
+                    <Offset>24</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
                   <ID>760</ID>
                   <Description>"+1DFC start of move stuff"</Description>
                   <ShowAsHex>1</ShowAsHex>
@@ -1637,7 +1883,7 @@
                 </CheatEntry>
                 <CheatEntry>
                   <ID>647</ID>
-                  <Description>"+1E10 something to do with parts of moves"</Description>
+                  <Description>"+1E10 melee cancel permissions"</Description>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>Byte</VariableType>
@@ -1685,7 +1931,7 @@
                 </CheatEntry>
                 <CheatEntry>
                   <ID>1156</ID>
-                  <Description>"+1E14 cancel bytes"</Description>
+                  <Description>"+1E14 jump cancel permissions"</Description>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>Byte</VariableType>
@@ -1925,7 +2171,7 @@
                 </CheatEntry>
                 <CheatEntry>
                   <ID>752</ID>
-                  <Description>"+1E8Ccharacter settings 0"</Description>
+                  <Description>"+1E8Ccharacter settings 1"</Description>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>4 Bytes</VariableType>
@@ -2041,7 +2287,7 @@
                 </CheatEntry>
                 <CheatEntry>
                   <ID>661</ID>
-                  <Description>"+1E9C character settings 1"</Description>
+                  <Description>"+1E9C character settings 2"</Description>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>4 Bytes</VariableType>
@@ -2100,6 +2346,21 @@
                     <Offset>1EA0</Offset>
                     <Offset>24</Offset>
                   </Offsets>
+                  <CheatEntries>
+                    <CheatEntry>
+                      <ID>1186</ID>
+                      <Description>"+0"</Description>
+                      <ShowAsHex>1</ShowAsHex>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>4 Bytes</VariableType>
+                      <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                      <Offsets>
+                        <Offset>0</Offset>
+                        <Offset>1EA0</Offset>
+                        <Offset>24</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                  </CheatEntries>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>659</ID>
@@ -2112,10 +2373,41 @@
                     <Offset>1EA4</Offset>
                     <Offset>24</Offset>
                   </Offsets>
+                  <CheatEntries>
+                    <CheatEntry>
+                      <ID>1187</ID>
+                      <Description>"+0"</Description>
+                      <ShowAsHex>1</ShowAsHex>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>4 Bytes</VariableType>
+                      <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                      <Offsets>
+                        <Offset>0</Offset>
+                        <Offset>1EA4</Offset>
+                        <Offset>24</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                    <CheatEntry>
+                      <ID>1188</ID>
+                      <Description>"+4"</Description>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>String</VariableType>
+                      <Length>20</Length>
+                      <Unicode>0</Unicode>
+                      <CodePage>0</CodePage>
+                      <ZeroTerminate>1</ZeroTerminate>
+                      <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                      <Offsets>
+                        <Offset>4</Offset>
+                        <Offset>1EA4</Offset>
+                        <Offset>24</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                  </CheatEntries>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>658</ID>
-                  <Description>"+1EA8 character settings 2"</Description>
+                  <Description>"+1EA8 character settings 3"</Description>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>4 Bytes</VariableType>
@@ -2127,6 +2419,19 @@
                   <CheatEntries>
                     <CheatEntry>
                       <ID>999</ID>
+                      <Description>"+0"</Description>
+                      <ShowAsHex>1</ShowAsHex>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>4 Bytes</VariableType>
+                      <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                      <Offsets>
+                        <Offset>00</Offset>
+                        <Offset>1EA8</Offset>
+                        <Offset>24</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                    <CheatEntry>
+                      <ID>1182</ID>
                       <Description>"+08 StingerSpeed"</Description>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
@@ -2181,18 +2486,6 @@
                       <Address>DevilMayCry4_DX9.exe+A558B8</Address>
                       <Offsets>
                         <Offset>68</Offset>
-                        <Offset>1EA8</Offset>
-                        <Offset>24</Offset>
-                      </Offsets>
-                    </CheatEntry>
-                    <CheatEntry>
-                      <ID>1018</ID>
-                      <Description>"+15C"</Description>
-                      <ShowAsSigned>0</ShowAsSigned>
-                      <VariableType>Float</VariableType>
-                      <Address>DevilMayCry4_DX9.exe+A558B8</Address>
-                      <Offsets>
-                        <Offset>15C</Offset>
                         <Offset>1EA8</Offset>
                         <Offset>24</Offset>
                       </Offsets>
@@ -2265,6 +2558,42 @@
                       <Address>DevilMayCry4_DX9.exe+A558B8</Address>
                       <Offsets>
                         <Offset>21C</Offset>
+                        <Offset>1EA8</Offset>
+                        <Offset>24</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                    <CheatEntry>
+                      <ID>1183</ID>
+                      <Description>"+22C Snatch Enemy X Offset"</Description>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>Float</VariableType>
+                      <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                      <Offsets>
+                        <Offset>22C</Offset>
+                        <Offset>1EA8</Offset>
+                        <Offset>24</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                    <CheatEntry>
+                      <ID>1184</ID>
+                      <Description>"+230 Snatch Enemy Y Offset"</Description>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>Float</VariableType>
+                      <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                      <Offsets>
+                        <Offset>230</Offset>
+                        <Offset>1EA8</Offset>
+                        <Offset>24</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                    <CheatEntry>
+                      <ID>1185</ID>
+                      <Description>"+234 Snatch Enemy Z Offset"</Description>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>Float</VariableType>
+                      <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                      <Offsets>
+                        <Offset>234</Offset>
                         <Offset>1EA8</Offset>
                         <Offset>24</Offset>
                       </Offsets>
@@ -2500,6 +2829,17 @@
                   </Offsets>
                 </CheatEntry>
                 <CheatEntry>
+                  <ID>1180</ID>
+                  <Description>"+23F8 Round Trip Charge"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>23F8</Offset>
+                    <Offset>24</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
                   <ID>681</ID>
                   <Description>"+28A4 pointer to frame of anim"</Description>
                   <ShowAsHex>1</ShowAsHex>
@@ -2514,11 +2854,25 @@
                     <CheatEntry>
                       <ID>682</ID>
                       <Description>"+0"</Description>
+                      <ShowAsHex>1</ShowAsHex>
                       <ShowAsSigned>0</ShowAsSigned>
-                      <VariableType>Float</VariableType>
+                      <VariableType>4 Bytes</VariableType>
                       <Address>DevilMayCry4_DX9.exe+A558B8</Address>
                       <Offsets>
                         <Offset>0</Offset>
+                        <Offset>28A4</Offset>
+                        <Offset>24</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                    <CheatEntry>
+                      <ID>1190</ID>
+                      <Description>"+4 MoveID2"</Description>
+                      <ShowAsHex>1</ShowAsHex>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>4 Bytes</VariableType>
+                      <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                      <Offsets>
+                        <Offset>4</Offset>
                         <Offset>28A4</Offset>
                         <Offset>24</Offset>
                       </Offsets>
@@ -3071,6 +3425,7 @@
                 <CheatEntry>
                   <ID>954</ID>
                   <Description>"+0"</Description>
+                  <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>4 Bytes</VariableType>
                   <Address>DevilMayCry4_DX9.exe+A558B8</Address>
@@ -3179,10 +3534,87 @@
                   </Offsets>
                 </CheatEntry>
                 <CheatEntry>
+                  <ID>1205</ID>
+                  <Description>"+D0 position used for knockback"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>D0</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1206</ID>
+                  <Description>"+D4 position used for knockback"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>D4</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1207</ID>
+                  <Description>"+D8 position used for knockback"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>D8</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1210</ID>
+                  <Description>"+F0 rotation probably for knockback"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>F0</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1211</ID>
+                  <Description>"+F4 rotation probably for knockback"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>F4</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1212</ID>
+                  <Description>"+F8 rotation probably for knockback"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>F8</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1213</ID>
+                  <Description>"+FC rotation probably for knockback"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>FC</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
                   <ID>1124</ID>
                   <Description>"+1C idk"</Description>
                   <ShowAsSigned>0</ShowAsSigned>
-                  <VariableType>Byte</VariableType>
+                  <VariableType>Float</VariableType>
                   <Address>DevilMayCry4_DX9.exe+A558B8</Address>
                   <Offsets>
                     <Offset>C1</Offset>
@@ -3190,7 +3622,29 @@
                   </Offsets>
                 </CheatEntry>
                 <CheatEntry>
+                  <ID>1219</ID>
+                  <Description>"+134 cause shadow"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>134</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
                   <ID>1130</ID>
+                  <Description>"+324 play anims toggle"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>324</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1218</ID>
                   <Description>"+330 anim stuff"</Description>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
@@ -3203,25 +3657,13 @@
                 </CheatEntry>
                 <CheatEntry>
                   <ID>1132</ID>
-                  <Description>"+334 "</Description>
+                  <Description>"+334 MoveID2"</Description>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>4 Bytes</VariableType>
                   <Address>DevilMayCry4_DX9.exe+A558B8</Address>
                   <Offsets>
                     <Offset>334</Offset>
-                    <Offset>168</Offset>
-                  </Offsets>
-                </CheatEntry>
-                <CheatEntry>
-                  <ID>1131</ID>
-                  <Description>"+33A 4 when grounded"</Description>
-                  <ShowAsHex>1</ShowAsHex>
-                  <ShowAsSigned>0</ShowAsSigned>
-                  <VariableType>4 Bytes</VariableType>
-                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
-                  <Offsets>
-                    <Offset>33A</Offset>
                     <Offset>168</Offset>
                   </Offsets>
                 </CheatEntry>
@@ -3285,6 +3727,140 @@
                   </Offsets>
                 </CheatEntry>
                 <CheatEntry>
+                  <ID>1230</ID>
+                  <Description>"+1404 Battle"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Byte</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1404</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1227</ID>
+                  <Description>"+1405 Active"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Byte</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1405</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1228</ID>
+                  <Description>"+1406"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Byte</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1406</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1229</ID>
+                  <Description>"+1407"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Byte</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1407</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1231</ID>
+                  <Description>"+1410"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1410</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1238</ID>
+                  <Description>"+1450"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1450</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1239</ID>
+                  <Description>"+1454"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1454</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1232</ID>
+                  <Description>"+1418"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1418</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                  <CheatEntries>
+                    <CheatEntry>
+                      <ID>1234</ID>
+                      <Description>"+0 static"</Description>
+                      <ShowAsHex>1</ShowAsHex>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>4 Bytes</VariableType>
+                      <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                      <Offsets>
+                        <Offset>0</Offset>
+                        <Offset>1418</Offset>
+                        <Offset>168</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                  </CheatEntries>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1264</ID>
+                  <Description>"+152C"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>152C</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                  <CheatEntries>
+                    <CheatEntry>
+                      <ID>1265</ID>
+                      <Description>"+0 static"</Description>
+                      <ShowAsHex>1</ShowAsHex>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>4 Bytes</VariableType>
+                      <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                      <Offsets>
+                        <Offset>0</Offset>
+                        <Offset>152C</Offset>
+                        <Offset>168</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                  </CheatEntries>
+                </CheatEntry>
+                <CheatEntry>
                   <ID>963</ID>
                   <Description>"+1544 HP"</Description>
                   <ShowAsSigned>0</ShowAsSigned>
@@ -3307,8 +3883,154 @@
                   </Offsets>
                 </CheatEntry>
                 <CheatEntry>
+                  <ID>1192</ID>
+                  <Description>"+1558 scarecrow damage taken by previous hit"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1558</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1261</ID>
+                  <Description>"+155C"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>155C</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1242</ID>
+                  <Description>"+1560"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1560</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1246</ID>
+                  <Description>"+1564"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1564</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1245</ID>
+                  <Description>"+1568 scarecrow stun"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1568</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1257</ID>
+                  <Description>"+156C"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>156C</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1258</ID>
+                  <Description>"+1570"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1570</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1259</ID>
+                  <Description>"+1574"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1574</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1260</ID>
+                  <Description>"+1578"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1578</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1243</ID>
+                  <Description>"+157C scarecrow displacement"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>157C</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1250</ID>
+                  <Description>"+1580"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1580</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1263</ID>
+                  <Description>"+1584"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1584</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1262</ID>
+                  <Description>"+1588 base used for stun/displacement stuff"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1588</Offset>
+                    <Offset>168</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
                   <ID>965</ID>
-                  <Description>"+1548 isDead (needs damage call)"</Description>
+                  <Description>"+15B8 isDead (needs damage call)"</Description>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>4 Bytes</VariableType>
                   <Address>DevilMayCry4_DX9.exe+A558B8</Address>
@@ -3319,7 +4041,7 @@
                 </CheatEntry>
                 <CheatEntry>
                   <ID>998</ID>
-                  <Description>"+15D8 180float"</Description>
+                  <Description>"+15D8 Stun Reset Timer"</Description>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>Float</VariableType>
                   <Address>DevilMayCry4_DX9.exe+A558B8</Address>
@@ -3396,6 +4118,43 @@
               <Offsets>
                 <Offset>16C</Offset>
               </Offsets>
+              <CheatEntries>
+                <CheatEntry>
+                  <ID>1203</ID>
+                  <Description>"+0"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>0</Offset>
+                    <Offset>16C</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1240</ID>
+                  <Description>"+1404"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1404</Offset>
+                    <Offset>16C</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1241</ID>
+                  <Description>"+1410"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>1410</Offset>
+                    <Offset>16C</Offset>
+                  </Offsets>
+                </CheatEntry>
+              </CheatEntries>
             </CheatEntry>
             <CheatEntry>
               <ID>903</ID>
@@ -3407,6 +4166,20 @@
               <Offsets>
                 <Offset>170</Offset>
               </Offsets>
+              <CheatEntries>
+                <CheatEntry>
+                  <ID>1204</ID>
+                  <Description>"+0"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>DevilMayCry4_DX9.exe+A558B8</Address>
+                  <Offsets>
+                    <Offset>0</Offset>
+                    <Offset>170</Offset>
+                  </Offsets>
+                </CheatEntry>
+              </CheatEntries>
             </CheatEntry>
             <CheatEntry>
               <ID>904</ID>

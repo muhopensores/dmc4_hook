@@ -33,20 +33,17 @@ naked void detour() {
             mov ecx, [ecx]
             mov ecx, [ecx+0x24]
             cmp esi, ecx
-            //je manualplayer
             pop edx
             pop ecx
             je manualplayer
-            jmp jmpret
-
-        manualplayer:
-            //pushad
-            call update_player_info
-            //popad
-            //pop edx
-            //pop ecx
-        jmpret:
+        //jmpret:
 		    jmp dword ptr [PlayerTracker::jmp_return]
+
+            manualplayer:
+            push eax
+            call update_player_info
+            pop eax
+            jmp dword ptr [PlayerTracker::jmp_return]
     }
 }
 

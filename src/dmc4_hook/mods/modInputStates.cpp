@@ -44,16 +44,15 @@ void EasyFastDriveCheck(void) {
     }
 }
 
-naked void detour() { // inputpressed // inputs are edx // ActiveBlock & touchpad ectasy, called on tick
+naked void detour() { // inputpressed // inputs are edx // player is in edi // ActiveBlock & touchpad ectasy, called on tick
     _asm {
-        push ecx
-        mov ecx, [staticMediatorPtr] // only get player inputs (thanks boss dante)
-        mov ecx, [ecx]
-        mov ecx, [ecx+0x24]
-        add ecx, 0x1408 // start of input stuff is at uPlayer+0x1408
-        cmp eax, ecx
-        pop ecx
-        jne code // if not player, jump to code
+        push eax
+        mov eax, [staticMediatorPtr]
+        mov eax, [eax]
+        mov eax, [eax+0x24]
+        cmp eax,edi
+        pop eax
+        jne code
 
         mov [InputStates::inputpressed], edx
 
@@ -67,15 +66,13 @@ naked void detour() { // inputpressed // inputs are edx // ActiveBlock & touchpa
         mov eax, 0x06
         mov dl, byte ptr [InputStates::inputpressed+1] // edx
         test al, dl // ActiveBlock
-        jnz inctimer
-        mov dword ptr [InputStates::inputTimer], 0
         pop edx
         pop eax
+        jnz inctimer
+        mov dword ptr [InputStates::inputTimer], 0
         jmp TouchpadRoseCheck
 
     inctimer: // timer for ActiveBlock
-        pop edx
-        pop eax
         movss xmm0, [InputStates::inputTimer]
         movss xmm1, [TimerTick]
         mulss xmm1, [DeltaTime::currentDeltaTime]
@@ -85,9 +82,9 @@ naked void detour() { // inputpressed // inputs are edx // ActiveBlock & touchpa
     TouchpadRoseCheck:
         cmp byte ptr [InputStates::touchpadRoseEnabled], 0
         je code
-        pushad
+        push eax
         call InputStates::RoseBuffer
-        popad
+        pop eax
         cmp byte ptr [InputStates::roseTimerActive], 1
         je IncRoseTimer
         jmp code
@@ -101,9 +98,11 @@ naked void detour() { // inputpressed // inputs are edx // ActiveBlock & touchpa
         cmp dword ptr [InputStates::inputTimer2], 0x43480000 // 200.0f
         jl code
         mov byte ptr [InputStates::roseTimerActive], 0
-        pushad
+        push eax
+        push ecx
         call InputStates::onTimerCallback
-        popad
+        pop ecx
+        pop eax
 
     code:
         cmp [eax+0x41], cl
@@ -115,39 +114,45 @@ naked void detour() { // inputpressed // inputs are edx // ActiveBlock & touchpa
 naked void detour2() { // inputonpress // touchpad ecstasy // player is in edx // called on button press
     _asm {
         mov [edx+0x00001410], eax // originalcode
+
+        push eax
+        mov eax, [staticMediatorPtr]
+        mov eax, [eax]
+        mov eax, [eax+0x24]
+        cmp eax,edx
+        pop eax
+        jne jmpret
+
+        cmp dword ptr [edx+0x1494], 0 // dante controller id
+        jne jmpret
+
         cmp byte ptr [FasterFastDrive::easyFastDriveEnabled], 1
         jne check2
-        pushad // only needs eax but im scared
+        push eax
         call EasyFastDriveCheck
-        popad
+        pop eax
     check2:
         cmp byte ptr [InputStates::touchpadRoseEnabled], 0
         je jmpret
-
-        push ecx
-        mov ecx, [staticMediatorPtr] // only get player inputs (thanks boss dante)
-        mov ecx, [ecx]
-        mov ecx, [ecx+0x24]
-        cmp edx, ecx
-        pop ecx
-        jne jmpret // if not player, jump
-        cmp dword ptr [edx+0x1494], 0 // playerid hopefully
-        jne jmpret
 
     // checkrose
         push edx
         mov edx, 0x8 // edx has desired input
         test al, dl
         pop edx
-        jnz rosethrow // only send ecstasy input on press rather than hold
+        jnz rosethrow
     jmpret:
 		jmp dword ptr [InputStates::jmp_return2]
 
     rosethrow:
         mov byte ptr [roseInput], 1
-        pushad
+        push ecx
+        push eax
+        push edx
         call InputStates::RoseInput
-        popad
+        pop edx
+        pop eax
+        pop ecx
         jmp jmpret
     }
 }
@@ -162,25 +167,6 @@ naked void detourChangingToLucifer() {
         call [changeToLuciferCall]
 		jmp dword ptr [InputStates::jmp_return3]
     }
-}
-
-std::optional<std::string> InputStates::onInitialize() {
-    if (!install_hook_offset(0x3B0844, hook, &detour, &jmp_return, 6)) { // ActiveBlock
-        HL_LOG_ERR("Failed to init InputStates mod\n");
-        return "Failed to init InputStates mod";
-    } 
-
-    if (!install_hook_offset(0x3AA002, hook2, &detour2, &jmp_return2, 6)) { // TauntEcstasy
-        HL_LOG_ERR("Failed to init InputStates2 mod\n");
-        return "Failed to init InputStates2 mod";
-    }
-
-    if (!install_hook_offset(0x43600F, hook3, &detourChangingToLucifer, &jmp_return3, 5)) { // Changing To Lucifer 
-        HL_LOG_ERR("Failed to init InputStates3 mod\n");
-        return "Failed to init InputStates3 mod";
-    }
-
-    return Mod::onInitialize();
 }
 
 void InputStates::onTimerCallback() { // hide lucifer after rose if weaponid is not lucifer
@@ -270,6 +256,25 @@ void InputStates::PlayRose(void) {
     // m_timer->start();
     InputStates::inputTimer2 = 0.0f;
     InputStates::roseTimerActive = true;
+}
+
+std::optional<std::string> InputStates::onInitialize() {
+    if (!install_hook_offset(0x3B0844, hook, &detour, &jmp_return, 6)) { // ActiveBlock
+        HL_LOG_ERR("Failed to init InputStates mod\n");
+        return "Failed to init InputStates mod";
+    } 
+
+    if (!install_hook_offset(0x3AA002, hook2, &detour2, &jmp_return2, 6)) { // TauntEcstasy
+        HL_LOG_ERR("Failed to init InputStates2 mod\n");
+        return "Failed to init InputStates2 mod";
+    }
+
+    if (!install_hook_offset(0x43600F, hook3, &detourChangingToLucifer, &jmp_return3, 5)) { // Changing To Lucifer 
+        HL_LOG_ERR("Failed to init InputStates3 mod\n");
+        return "Failed to init InputStates3 mod";
+    }
+
+    return Mod::onInitialize();
 }
 
 void InputStates::onConfigLoad(const utils::Config& cfg) {

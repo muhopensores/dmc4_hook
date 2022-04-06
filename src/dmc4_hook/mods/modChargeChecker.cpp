@@ -5,10 +5,9 @@ bool ChargeChecker::modEnabled{ false };
 uintptr_t ChargeChecker::jmp_ret{ NULL };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
-float roundTripChargeMult{ 3.0f };
+float roundTripChargeMult{ 2.0f };
 
-naked void detour(void) // player in edi
-{
+naked void detour(void) { // player in edi 
     _asm {
         cmp byte ptr [ChargeChecker::modEnabled], 0
         je code
@@ -34,27 +33,24 @@ naked void detour(void) // player in edi
     }
 }
 
-std::optional<std::string> ChargeChecker::onInitialize()
-{
-    if (!install_hook_offset(0x0405F97, hook, &detour, &jmp_ret, 5))
-    {
+std::optional<std::string> ChargeChecker::onInitialize() {
+    if (!install_hook_offset(0x0405F97, hook, &detour, &jmp_ret, 5)) {
         HL_LOG_ERR("Failed to init ChargeChecker mod\n");
         return "Failed to init ChargeChecker mod";
     }
     return Mod::onInitialize();
 }
 
-void ChargeChecker::onGUIframe()
-{
+void ChargeChecker::onGUIframe() {
     ImGui::Checkbox("Faster Round Trip Charge", &modEnabled);
+    ImGui::SameLine();
+    HelpMarker("Halves the charge time on Round Trip");
 }
 
-void ChargeChecker::onConfigLoad(const utils::Config& cfg)
-{
+void ChargeChecker::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("faster_roundtrip").value_or(false);
 };
 
-void ChargeChecker::onConfigSave(utils::Config& cfg)
-{
+void ChargeChecker::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("faster_roundtrip", modEnabled);
 };

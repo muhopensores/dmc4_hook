@@ -392,7 +392,7 @@ void CreditsDrawing()
 
         ImGui::Text("%s = Spawn Modifier", &HotkeyName(EnemySpawn::hotkeySpawnModifier));
         ImGui::SameLine();
-        HelpMarker("The following hotkeys will only be activated if this modifier is held");
+        HelpMarker("The following hotkeys will only be activated while this modifier is held");
         ImGui::Text("%s = Spawn Scarecrow Arm", &HotkeyName(EnemySpawn::hotkeySpawnScarecrowArm));
         ImGui::Text("%s = Spawn Scarecrow Leg", &HotkeyName(EnemySpawn::hotkeySpawnScarecrowLeg));
         ImGui::Text("%s = Spawn Mega", &HotkeyName(EnemySpawn::hotkeySpawnMega));
