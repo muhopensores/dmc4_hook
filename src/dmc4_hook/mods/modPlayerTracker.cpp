@@ -68,20 +68,20 @@ void PlayerTracker::onGUIframe() {
         if (playerBase)
         {
             float* playerXYZ[3];
-            playerXYZ[0] = (float*)(playerBase + 0x30);
-            playerXYZ[1] = (float*)(playerBase + 0x34);
-            playerXYZ[2] = (float*)(playerBase + 0x38);
+                playerXYZ[0] = (float*)(playerBase + 0x30);
+                playerXYZ[1] = (float*)(playerBase + 0x34);
+                playerXYZ[2] = (float*)(playerBase + 0x38);
 
             float* playerRotation[4];
-            playerRotation[0] = (float*)(playerBase + 0x40);
-            playerRotation[1] = (float*)(playerBase + 0x44);
-            playerRotation[2] = (float*)(playerBase + 0x48);
-            playerRotation[3] = (float*)(playerBase + 0x4C);
+                playerRotation[0] = (float*)(playerBase + 0x40);
+                playerRotation[1] = (float*)(playerBase + 0x44);
+                playerRotation[2] = (float*)(playerBase + 0x48);
+                playerRotation[3] = (float*)(playerBase + 0x4C);
 
             float* playerScale[3];
-            playerScale[0] = (float*)(playerBase + 0x50);
-            playerScale[1] = (float*)(playerBase + 0x54);
-            playerScale[2] = (float*)(playerBase + 0x58);
+                playerScale[0] = (float*)(playerBase + 0x50);
+                playerScale[1] = (float*)(playerBase + 0x54);
+                playerScale[2] = (float*)(playerBase + 0x58);
 
             float& animationFrame = *(float*)(playerBase + 0x348);
             float& playerCurrentHP = *(float*)(playerBase + 0x15CC);
@@ -93,10 +93,11 @@ void PlayerTracker::onGUIframe() {
             int8_t& playerLockOn = *(int8_t*)(playerBase + 0x16D0);
 
             float* playerVelocityXYZ[3];
-            playerVelocityXYZ[0] = (float*)(playerBase + 0x1E50);
-            playerVelocityXYZ[1] = (float*)(playerBase + 0x1E54);
-            playerVelocityXYZ[2] = (float*)(playerBase + 0x1E58);
-            float& playerMagnitude = *(float*)(playerBase + 0x1E1C);
+                playerVelocityXYZ[0] = (float*)(playerBase + 0x1E50);
+                playerVelocityXYZ[1] = (float*)(playerBase + 0x1E54);
+                playerVelocityXYZ[2] = (float*)(playerBase + 0x1E58);
+            float& playerSpeed = *(float*)(playerBase + 0x1E60);
+            float& playerInertia = *(float*)(playerBase + 0x1E1C);
 
             ImGui::InputFloat("HP ##1", &playerCurrentHP);
             ImGui::InputFloat("Max HP ##1", &playerMaxHP);
@@ -104,11 +105,15 @@ void PlayerTracker::onGUIframe() {
             ImGui::InputFloat4("Rotation ##1", *playerRotation);
             ImGui::InputFloat3("XYZ Scale ##1", *playerScale);
             ImGui::InputFloat3("XYZ Velocity ##1", *playerVelocityXYZ);
-            ImGui::InputFloat("Inertia ##1", &playerMagnitude);
+            ImGui::InputFloat("Movement Speed ##1", &playerSpeed);
+            ImGui::InputFloat("Inertia ##1", &playerInertia);
             ImGui::InputScalar("Move Bank ##1", ImGuiDataType_U8, &playerMoveBank);
             ImGui::InputScalar("Move ID ##1", ImGuiDataType_U8, &playerMoveID);
             ImGui::InputScalar("Move Part ##1", ImGuiDataType_U8, &playerMovePart);
             ImGui::InputFloat("Animation Frame ##1", &animationFrame);
+            if (ImGui::Button("Replay Current Move")) {
+                playerMovePart = 0;
+            }
             ImGui::InputScalar("Weight ##1", ImGuiDataType_U8, &playerWeight);
             ImGui::InputScalar("Lock On ##1", ImGuiDataType_U8, &playerLockOn);
         }

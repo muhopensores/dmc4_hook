@@ -27,7 +27,7 @@ void FasterFastDrive::onGUIframe() {
     ImGui::SameLine(205);
     ImGui::Checkbox("Easy Quick Drive", &easyFastDriveEnabled);
     ImGui::SameLine();
-    HelpMarker("Prop is cancellable into quick drive until frame 5");
+    HelpMarker("Prop is cancellable into quick drive until frame 7");
 }
 
 void FasterFastDrive::onConfigLoad(const utils::Config& cfg) {

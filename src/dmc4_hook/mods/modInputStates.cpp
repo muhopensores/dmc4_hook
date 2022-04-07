@@ -37,7 +37,7 @@ void EasyFastDriveCheck(void) {
         int8_t& styleInputOnHold = *(int8_t*)(playerBase + 0x140D);
         int8_t& cancelToMelee = *(int8_t*)(playerBase + 0x1E13);
         float& animationFrame = *(float*)(playerBase + 0x348);
-        if (meleeInputOnPress & 0x1 && styleInputOnHold & 0x6 && controllerID == 0 && moveID == 0x232 && animationFrame < 5.0f) {
+        if (meleeInputOnPress & 0x1 && styleInputOnHold & 0x6 && controllerID == 0 && moveID == 0x232 && animationFrame < 7.0f) {
             cancelToMelee = 0x10;
         }
     }
