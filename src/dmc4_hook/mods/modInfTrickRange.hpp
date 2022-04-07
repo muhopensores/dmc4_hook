@@ -2,10 +2,9 @@
 
 #include "../mod.hpp"
 
-class InfTrickRange : public Mod
-{
+class InfTrickRange : public Mod {
 public:
-    InfTrickRange();
+    InfTrickRange() = default;
 
     static bool modEnabled;
 

@@ -96,7 +96,7 @@ void PlayerTracker::onGUIframe() {
             playerVelocityXYZ[0] = (float*)(playerBase + 0x1E50);
             playerVelocityXYZ[1] = (float*)(playerBase + 0x1E54);
             playerVelocityXYZ[2] = (float*)(playerBase + 0x1E58);
-            float& playerMagnitude = *(float*)(playerBase + 0x1E60);
+            float& playerMagnitude = *(float*)(playerBase + 0x1E1C);
 
             ImGui::InputFloat("HP ##1", &playerCurrentHP);
             ImGui::InputFloat("Max HP ##1", &playerMaxHP);

@@ -3,30 +3,23 @@
 
 bool InfTrickRange::modEnabled{ false };
 
-InfTrickRange::InfTrickRange()
-{
-	//onInitialize();
-}
-
-std::optional<std::string> InfTrickRange::onInitialize()
-{
+std::optional<std::string> InfTrickRange::onInitialize() {
 	return Mod::onInitialize();
 }
 
-void InfTrickRange::toggle(bool enable)
-{
-    if (enable)
-    {
+void InfTrickRange::toggle(bool enable) {
+    if (enable) {
         install_patch_offset(0x003CB0A8, patch, "\x90\x90\x90", 3);
     }
-    else
-    {
+    else {
         patch.revert();
     }
 }
 
 void InfTrickRange::onGUIframe() {
-    ImGui::Checkbox("Infinite Trick Range", &modEnabled);
+    if (ImGui::Checkbox("Infinite Trick Range", &modEnabled)) {
+        toggle(modEnabled);
+    }
 }
 
 void InfTrickRange::onConfigLoad(const utils::Config& cfg) {

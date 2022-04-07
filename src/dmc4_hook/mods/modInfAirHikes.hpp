@@ -2,8 +2,7 @@
 
 #include "../mod.hpp"
 
-class InfAirHikes : public Mod
-{
+class InfAirHikes : public Mod {
 public:
     InfAirHikes() = default;
 
@@ -19,5 +18,7 @@ public:
     void onGUIframe() override;
 
 private:
-    hl::Patch patch;
+    hl::Patch patch1;
+    hl::Patch patch2;
+    hl::Patch patch3;
 };
