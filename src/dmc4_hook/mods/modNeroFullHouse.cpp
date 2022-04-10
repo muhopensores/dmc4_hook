@@ -39,10 +39,12 @@ float currentFrame = 0.0f;
 naked void detour1(void) { // redirect streak 1 to full house function
     _asm {
             cmp byte ptr [NeroFullHouse::modEnabled], 1
-            je fullhouse
-        // originalcode
+            je fullhousecheck
+        originalcode:
             jmp dword ptr [NeroFullHouse::nero_streak_1]
-        fullhouse:
+        fullhousecheck:
+            cmp [eax+0x1564], 28
+            jne originalcode
 			jmp dword ptr [NeroFullHouse::full_house]
     }
 }
@@ -54,6 +56,7 @@ naked void detour2(void) { // select full house start animation
             cmp [esi+0x1494], 1 // nero
             jne code
         //cheatcode:
+            // push 0x00000351
             push 0x0000032C
             jmp dword ptr [NeroFullHouse::jmp_ret2]
         code:
