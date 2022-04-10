@@ -7,18 +7,19 @@
 bool      NoHbKnockback::modEnabled{ false };
 uintptr_t NoHbKnockback::_noHelmBreakerKnockbackContinue{ NULL }; // 0x0051C389
 uintptr_t NoHbKnockback::_noHelmBreakerKnockbackJE{ 0x0051C367 };
+constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
 NoHbKnockback::NoHbKnockback() {
 	//onInitialize();
 }
 
-naked void noHelmBreakerKnockback_proc(void)
+naked void noHelmBreakerKnockback_proc(void) // ebx+0x98 = player + CE20 // ebx+0xA4 = damage id stuff (e.g. RED-Split_00)
 {
 	_asm {
 			cmp byte ptr [NoHbKnockback::modEnabled], 1
 			je cheatcode
 			cmp byte ptr [NeroFullHouse::modEnabled], 1
-			je nerocheatcode
+			je nerocheatcode2
 		originalcode:
 			cmp ecx,0x05
 			jl nohelmbreakerknockbackje
@@ -38,7 +39,23 @@ naked void noHelmBreakerKnockback_proc(void)
 			je newcode
 			cmp [MoveIdsNero::moveIDNero], 812  // Double Down
 			je newcode
+			cmp [MoveIdsNero::moveIDNero], 814 // Double Down 3 exceed
+			je newcode
 			jmp originalcode
+
+		nerocheatcode2:
+			cmp [MoveIdsNero::moveIDNero], 812
+			jne originalcode
+
+			push eax
+			mov eax, [staticMediatorPtr]
+			mov eax, [eax]
+			mov eax, [eax+0x24]
+			cmp [eax+0x1564], 28 // check streak 1 was pushed to get this moveid
+			pop eax
+			je newcode
+			jmp originalcode
+
 
 		newcode:
 			cmp ecx,0x05
