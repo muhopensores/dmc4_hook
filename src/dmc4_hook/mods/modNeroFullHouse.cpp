@@ -73,7 +73,7 @@ naked void detour3(void) { // select full house landing animation
             jne code
         //cheatcode:
             push 0x00000351 // 20 is shmove right, 351/2/3 is payline
-            mov byte ptr [esi+0x1E15], 0x10 // jump cancellable
+            //mov byte ptr [esi+0x1E15], 0x10 // jump cancellable
             jmp dword ptr [NeroFullHouse::jmp_ret3]
         code:
             push 0x0000030D
@@ -82,7 +82,7 @@ naked void detour3(void) { // select full house landing animation
 }
 
 float firstFrame = 24.0f;
-float firstFrame2 = 30.0f;
+float firstFrame2 = 10.0f;
 // 20 - 25 hits quickly
 // 22 - 25 hits but has dumb leg
 // 23 - 25 hits and has less dumb leg
@@ -117,10 +117,10 @@ naked void detour4(void) { // set frame of animation, player in ecx
 
         // payline ending
         test2:
-            cmp dword ptr [MoveIdsNero::moveIDNero], 0x341
+            cmp dword ptr [MoveIdsNero::moveIDNero], 0x351
             jne nerocode
             movss [currentFrame], xmm0
-            cmp [currentFrame], 0x41f00000         // 30.0f
+            cmp [currentFrame], 0x41200000 // 10.0f
             ja nerocode
             movss xmm0, [firstFrame2]
             jmp nerocode
@@ -194,15 +194,15 @@ std::optional<std::string> NeroFullHouse::onInitialize() {
 }
 
 void NeroFullHouse::onGUIframe() {
-    if (ImGui::Checkbox("Nero Full House", &modEnabled)) {
+    if (ImGui::Checkbox("Payline", &modEnabled)) {
         if (modEnabled) {
-            *(uintptr_t*)helmSplitterDirectional = 4;
-            *(uintptr_t*)doubleDownDirectional = 4;
+            *(uintptr_t*)helmSplitterDirectional = 4; // back
+            *(uintptr_t*)doubleDownDirectional = 4; // back
             *(uintptr_t*)0xC3EFB0 = 2; // streak 1 can be used in air
         }
         else {
-            *(uintptr_t*)helmSplitterDirectional = 9;
-            *(uintptr_t*)doubleDownDirectional = 9;
+            *(uintptr_t*)helmSplitterDirectional = 9; // forward
+            *(uintptr_t*)doubleDownDirectional = 9; // forward
             *(uintptr_t*)0xC3EFB0 = 1; // streak 1 can be used on ground
         }
     }
