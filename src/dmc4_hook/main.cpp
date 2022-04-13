@@ -404,12 +404,13 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::Text("Nero Abilities");
                 ImGui::Spacing();
 
-                main->getMods()->onDrawUI("NeroFullHouse"_hash);
-                ImGui::SameLine(205);
-                main->getMods()->onDrawUI("NeroSnatchLength"_hash);
+                main->getMods()->onDrawUI("NeroFullHouse"_hash); // needs its own line
+                
 
-                main->getMods()->onDrawUI("InfTableHopper"_hash);
+                main->getMods()->onDrawUI("NeroSnatchLength"_hash);
                 ImGui::SameLine(205);
+                main->getMods()->onDrawUI("InfTableHopper"_hash);
+                
                 main->getMods()->onDrawUI("InfCalibur"_hash);
 
                 ImGui::Spacing();

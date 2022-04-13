@@ -8,6 +8,7 @@ public:
     NeroFullHouse() = default;
 
     static bool modEnabled;
+    static bool helmSplitterRemap;
 
     static uintptr_t full_house;
     static uintptr_t nero_rave;
