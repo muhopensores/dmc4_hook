@@ -13,6 +13,65 @@ std::optional<std::string> RestoreMaxHp::onInitialize() {
     return Mod::onInitialize();
 }
 
+/*
+I don't think there's a pointer chain in common, they just set up esi before calling damage, e.g.
+frost has
+DevilMayCry4_DX9.exe+1AD0ED - lea esi,[ebx+00001504] 
+[...]
+call damage
+
+scarecrow has
+DevilMayCry4_DX9.exe+157D9F - lea eax,[ebx+0000152C]
+DevilMayCry4_DX9.exe+157E4D - mov esi,eax
+[...]
+call damage
+*/
+
+int RestoreMaxHp::getEnemySpecificDamageOffset(int enemyID) {
+    switch (enemyID)
+    {
+    // 0x152C
+    case 0x0: // Scarecrow Leg
+        return 0x152C;
+    case 0x1: // Scarecrow Arm
+        return 0x152C;
+    case 0x3: // Scarecrow Mega
+        return 0x152C;
+
+    // 0x1500
+    case 0x8: // mephisto
+        return 0x1500;
+    case 0x9: // faust
+        return 0x1500;
+    case 0xB: // assault
+        return 0x1500;
+    case 0x10: // gladius
+        return 0x1500;
+
+
+    // 0x1504
+    case 0x5: // Alto
+        return 0x1504;
+    case 0x6: // Bianco
+        return 0x1504;
+    case 0xA: // Frost
+        return 0x1504;
+    case 0xC: // Blitz
+        return 0x1504;
+
+    // 1508
+    case 0xF: // Cutlass
+        return 0x1508;
+
+    // 7FC4
+    case 0x11: // Basilisk
+        return 0x7FC4;
+    }
+    return NULL;
+    // seeds aren't on the enemy list
+    // i am too lazy to find a fault but they probably aren't either
+}
+
 void RestoreMaxHp::onFrame(fmilliseconds& dt) {
     // uintptr_t* sMedPtr = *(uintptr_t**)staticMediatorPtr;
     // uintptr_t* uLocalPlr = *(uintptr_t**)((uintptr_t)sMedPtr + 0x24);
@@ -31,33 +90,12 @@ void RestoreMaxHp::onFrame(fmilliseconds& dt) {
                     uintptr_t enemyBase = *enemyPtr;
                     if (enemyBase) {
                         int& enemyID = *(int*)(enemyBase + 0x1410);
-                        if (enemyID == SCARECROW_ARM || enemyID == SCARECROW_LEG || enemyID == SCARECROW_MEGA) {
-                            float& enemyHP = *(float*)(enemyBase + 0x1544);
-                            float& enemyMaxHP = *(float*)(enemyBase + 0x1548);
+                        int damageInfoOffset = getEnemySpecificDamageOffset(enemyID);
+                        if (damageInfoOffset != NULL) {
+                            float& enemyHP = *(float*)(enemyBase + damageInfoOffset + 0x18);
+                            float& enemyMaxHP = *(float*)(enemyBase + damageInfoOffset + 0x1C);
                             enemyHP = enemyMaxHP;
                         }
-                        if (enemyID == FROST || enemyID == ANGELO_ALTO || enemyID == ANGELO_BIANCO || enemyID == BLITZ) {
-                            float& enemyHP = *(float*)(enemyBase + 0x151C);
-                            float& enemyMaxHP = *(float*)(enemyBase + 0x1520);
-                            enemyHP = enemyMaxHP;
-                        }
-                        if (enemyID == MEPHISTO || enemyID == FAUST || enemyID == GLADIUS || enemyID == ASSAULT) {
-                            float& enemyHP = *(float*)(enemyBase + 0x1518);
-                            float& enemyMaxHP = *(float*)(enemyBase + 0x151C);
-                            enemyHP = enemyMaxHP;
-                        }
-                        if (enemyID == BASILISK) {
-                            float& enemyHP = *(float*)(enemyBase + 0x7FDC);
-                            float& enemyMaxHP = *(float*)(enemyBase + 0x7FE0);
-                            enemyHP = enemyMaxHP;
-                        }
-                        if (enemyID == CUTLASS) {
-                            float& enemyHP = *(float*)(enemyBase + 0x1520);
-                            float& enemyMaxHP = *(float*)(enemyBase + 0x1524);
-                            enemyHP = enemyMaxHP;
-                        }
-                        // seeds aren't on the enemy list
-                        // i am too lazy to find a fault but they probably aren't either
                     }
                 }
                 uintptr_t* bossPtr = (uintptr_t*)(sMediator + 0xB0);

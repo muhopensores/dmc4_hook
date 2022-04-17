@@ -12,6 +12,8 @@ public:
 
     std::optional<std::string> onInitialize() override;
 
+    int getEnemySpecificDamageOffset(int enemyID);
+
     void onConfigLoad(const utils::Config& cfg) override;
     void onConfigSave(utils::Config& cfg) override;
 

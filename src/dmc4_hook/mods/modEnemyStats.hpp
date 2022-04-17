@@ -11,6 +11,8 @@ public:
 
     std::optional<std::string> onInitialize() override;
 
+    int getEnemySpecificDamageOffset(int enemyID);
+
     static int hotkey1;
     static int hotkey2;
     static int hotkey3;

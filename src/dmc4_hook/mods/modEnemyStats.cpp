@@ -25,6 +25,49 @@ std::optional<std::string> EnemyStats::onInitialize() {
     return Mod::onInitialize();
 }
 
+int EnemyStats::getEnemySpecificDamageOffset(int enemyID) {
+    switch (enemyID)
+    {
+    // 0x152C
+    case 0x0: // Scarecrow Leg
+        return 0x152C;
+    case 0x1: // Scarecrow Arm
+        return 0x152C;
+    case 0x3: // Scarecrow Mega
+        return 0x152C;
+
+    // 0x1500
+    case 0x8: // mephisto
+        return 0x1500;
+    case 0x9: // faust
+        return 0x1500;
+    case 0xB: // assault
+        return 0x1500;
+    case 0x10: // gladius
+        return 0x1500;
+
+
+    // 0x1504
+    case 0x5: // Alto
+        return 0x1504;
+    case 0x6: // Bianco
+        return 0x1504;
+    case 0xA: // Frost
+        return 0x1504;
+    case 0xC: // Blitz
+        return 0x1504;
+
+    // 1508
+    case 0xF: // Cutlass
+        return 0x1508;
+
+    // 7FC4
+    case 0x11: // Basilisk
+        return 0x7FC4;
+    }
+    return NULL;
+}
+
 void EnemyStats::onGUIframe() {
     ImGui::Checkbox("Display Enemy Stats", &displayEnemyStats);
     if (displayEnemyStats) {
@@ -35,10 +78,51 @@ void EnemyStats::onGUIframe() {
             uintptr_t enemyBase = *enemyPtr;
             if (enemyBase) {
                 // get stats
-                float& enemyHP = *(float*)(enemyBase + 0x1544);
-                float& enemyMaxHP = *(float*)(enemyBase + 0x1548);
-                // int& enemyStun = *(int*)(enemyBase + 0x1568); // these move per enemy :D
-                // int& enemyDisplacement = *(int*)(enemyBase + 0x157C);
+                int& enemyID = *(int*)(enemyBase + 0x1410);
+                int damageInfoOffset = getEnemySpecificDamageOffset(enemyID);
+                if (damageInfoOffset != NULL) {
+                    float& enemyHP = *(float*)(enemyBase + damageInfoOffset + 0x18);
+                    float& enemyMaxHP = *(float*)(enemyBase + damageInfoOffset + 0x1C);
+                    int& enemyStun1 = *(int*)(enemyBase + damageInfoOffset + 0x3C);
+                    int& enemyStun2 = *(int*)(enemyBase + damageInfoOffset + 0x40);
+                    int& enemyStun3 = *(int*)(enemyBase + damageInfoOffset + 0x44);
+                    int& enemyStun4 = *(int*)(enemyBase + damageInfoOffset + 0x48);
+                    int& enemyStun5 = *(int*)(enemyBase + damageInfoOffset + 0x4C);
+                    int& enemyDisplacement1 = *(int*)(enemyBase + damageInfoOffset + 0x50);
+                    int& enemyDisplacement2 = *(int*)(enemyBase + damageInfoOffset + 0x54);
+                    int& enemyDisplacement3 = *(int*)(enemyBase + damageInfoOffset + 0x58);
+                    int& enemyDisplacement4 = *(int*)(enemyBase + damageInfoOffset + 0x5C);
+                    int& enemyDisplacement5 = *(int*)(enemyBase + damageInfoOffset + 0x60);
+                    int& Unknown1 = *(int*)(enemyBase + damageInfoOffset + 0x64);
+                    int& Unknown2 = *(int*)(enemyBase + damageInfoOffset + 0x68);
+                    int& Unknown3 = *(int*)(enemyBase + damageInfoOffset + 0x6C);
+                    int& Unknown4 = *(int*)(enemyBase + damageInfoOffset + 0x70);
+                    int& Unknown5 = *(int*)(enemyBase + damageInfoOffset + 0x74);
+                    int& Unknown6 = *(int*)(enemyBase + damageInfoOffset + 0x78);
+                    int& Unknown7 = *(int*)(enemyBase + damageInfoOffset + 0x7C);
+                    int& Unknown8 = *(int*)(enemyBase + damageInfoOffset + 0x80);
+
+                    ImGui::InputFloat("HP ##2", &enemyHP);
+                    ImGui::InputFloat("Max HP ##2", &enemyMaxHP);
+                    ImGui::InputInt("Stun 1 ##2", &enemyStun1, 0, 0);
+                    ImGui::InputInt("Stun 2 ##2", &enemyStun2, 0, 0);
+                    ImGui::InputInt("Stun 3 ##2", &enemyStun3, 0, 0);
+                    ImGui::InputInt("Stun 4 ##2", &enemyStun4, 0, 0);
+                    ImGui::InputInt("Stun 5 ##2", &enemyStun5, 0, 0);
+                    ImGui::InputInt("Displacement 1 ##2", &enemyDisplacement1, 0, 0);
+                    ImGui::InputInt("Displacement 2 ##2", &enemyDisplacement2, 0, 0);
+                    ImGui::InputInt("Displacement 3 ##2", &enemyDisplacement3, 0, 0);
+                    ImGui::InputInt("Displacement 4 ##2", &enemyDisplacement4, 0, 0);
+                    ImGui::InputInt("Displacement 5 ##2", &enemyDisplacement5, 0, 0);
+                    ImGui::InputInt("Unknown 1 ##2", &Unknown1, 0, 0);
+                    ImGui::InputInt("Unknown 2 ##2", &Unknown2, 0, 0);
+                    ImGui::InputInt("Unknown 3 ##2", &Unknown3, 0, 0);
+                    ImGui::InputInt("Unknown 4 ##2", &Unknown4, 0, 0);
+                    ImGui::InputInt("Unknown 5 ##2", &Unknown5, 0, 0);
+                    ImGui::InputInt("Unknown 6 ##2", &Unknown6, 0, 0);
+                    ImGui::InputInt("Unknown 7 ##2", &Unknown7, 0, 0);
+                    ImGui::InputInt("Unknown 8 ##2", &Unknown8, 0, 0);
+                }
                 uint8_t& enemyMoveID = *(uint8_t*)(enemyBase + 0x14);
                 int& enemyMoveID2 = *(int*)(enemyBase + 0x334);
                 uint8_t& enemyMovePart = *(uint8_t*)(enemyBase + 0x15);
@@ -62,11 +146,6 @@ void EnemyStats::onGUIframe() {
                 ImGui::SliderInt("Enemy Select", &whichEnemy, 1, enemyCount);
 
                 ImGui::Spacing();
-
-                ImGui::InputFloat("HP ##2", &enemyHP);
-                ImGui::InputFloat("Max HP ##2", &enemyMaxHP);
-                // ImGui::InputInt("Stun ##2", &enemyStun, 0, 0);
-                // ImGui::InputInt("Displacement ##2", &enemyDisplacement, 0, 0);
                 ImGui::InputFloat3("XYZ Position ##2", *enemyPosXYZ);
                 ImGui::InputFloat3("XYZ Velocity ##2", *enemyVelocityXYZ);
                 ImGui::InputFloat3("XYZ Scale ##2", *enemyScaleXYZ);
