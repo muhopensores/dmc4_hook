@@ -7,17 +7,11 @@ uintptr_t TrackingFullHouse::jmp_ret{ NULL };
 uintptr_t TrackingFullHouse::jmp_out{ 0x007D348A };
 float fullHouseAngle{ 65.0 };
 
-TrackingFullHouse::TrackingFullHouse()
-{
-	//onInitialize();
-}
-
-naked void detour(void)
-{
+naked void detour(void) { // player in ebx
 	_asm {
 			cmp byte ptr [TrackingFullHouse::modEnabled], 0
 			je originalcode
-			cmp byte ptr [PlayerTracker::lockOnAlloc], 1
+			cmp byte ptr [ebx+0x16D0], 1 // lockon
 			je cheatcode
 
 		originalcode:
@@ -33,7 +27,6 @@ naked void detour(void)
 }
 
 std::optional<std::string> TrackingFullHouse::onInitialize() {
-
 	if (!install_hook_offset(0x003D3471, hook, &detour, &jmp_ret, 7)) {
 		HL_LOG_ERR("Failed to init TrackingFullHouse mod\n");
 		return "Failed to init TrackingFullHouse mod";
@@ -47,8 +40,8 @@ void TrackingFullHouse::onGUIframe() {
 
 void TrackingFullHouse::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("tracking_full_house").value_or(false);
-};
+}
 
 void TrackingFullHouse::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("tracking_full_house", modEnabled);
-};
+}

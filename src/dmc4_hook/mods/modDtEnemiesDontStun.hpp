@@ -2,8 +2,7 @@
 
 #include "../mod.hpp"
 
-class DtEnemiesDontStun : public Mod
-{
+class DtEnemiesDontStun : public Mod {
 public:
     DtEnemiesDontStun() = default;
 

@@ -2,10 +2,9 @@
 
 #include "../mod.hpp"
 
-class DisableChimeraBlades : public Mod
-{
+class DisableChimeraBlades : public Mod {
 public:
-    DisableChimeraBlades();
+    DisableChimeraBlades() = default;
 
     static bool modEnabled;
     static uintptr_t jmp_ret;

@@ -216,12 +216,12 @@ void NeroFullHouse::onGUIframe() {
     ImGui::SameLine(205);
     if (ImGui::Checkbox("Remap Helm Splitter", &helmSplitterRemap)) {
         if (helmSplitterRemap) {
-            *(uintptr_t*)helmSplitterDirectional = LOCKON_BACK_MELEE; // back
-            *(uintptr_t*)doubleDownDirectional = LOCKON_BACK_MELEE;   // back
+            *(uintptr_t*)helmSplitterDirectional = LOCKON_BACK_MELEE;
+            *(uintptr_t*)doubleDownDirectional = LOCKON_BACK_MELEE;
         }
         else {
-            *(uintptr_t*)helmSplitterDirectional = LOCKON_FORWARD_MELEE2; // forward
-            *(uintptr_t*)doubleDownDirectional = LOCKON_FORWARD_MELEE2;   // forward
+            *(uintptr_t*)helmSplitterDirectional = LOCKON_FORWARD_MELEE2;
+            *(uintptr_t*)doubleDownDirectional = LOCKON_FORWARD_MELEE2;
         }
     }
     ImGui::SameLine();

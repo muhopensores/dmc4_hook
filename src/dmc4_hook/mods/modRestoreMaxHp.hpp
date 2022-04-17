@@ -2,31 +2,11 @@
 
 #include "../mod.hpp"
 
-class RestoreMaxHp : public Mod
-{
+class RestoreMaxHp : public Mod {
 public:
     RestoreMaxHp() = default;
 
     static bool modEnabled;
-    static uintptr_t _restoreMaxHpContinueScarecrow;
-    static uintptr_t _restoreMaxHpContinueFrost;
-    static uintptr_t _restoreMaxHpContinueArmour;
-    static uintptr_t _restoreMaxHpContinueGhosts;
-    static uintptr_t _restoreMaxHpContinueSwordFly;
-    static uintptr_t _restoreMaxHpContinueSwordFish;
-    static uintptr_t _restoreMaxHpContinueSeed;
-    static uintptr_t _restoreMaxHpContinueRiot;
-    static uintptr_t _restoreMaxHpContinueBlitz;
-    static uintptr_t _restoreMaxHpContinueDog;
-    static uintptr_t _restoreMaxHpContinueBerial;
-    static uintptr_t _restoreMaxHpContinueFrog;
-    static uintptr_t _restoreMaxHpContinueEchidna;
-    static uintptr_t _restoreMaxHpContinueCredo;
-    static uintptr_t _restoreMaxHpContinueAgnus;
-    static uintptr_t _restoreMaxHpContinueSanctus;
-    static uintptr_t _restoreMaxHpContinueDante;
-
-    static uintptr_t _resetTimerContinue;
 
     std::string getModName() override { return "RestoreMaxHp"; };
 
@@ -36,24 +16,37 @@ public:
     void onConfigSave(utils::Config& cfg) override;
 
     void onGUIframe() override;
+    void onFrame(fmilliseconds& dt) override;
 
 private:
-    hl::Hooker hookScarecrow;
-    hl::Hooker hookFrost;
-    hl::Hooker hookArmour;
-    hl::Hooker hookGhosts;
-    hl::Hooker hookSwordFly;
-    hl::Hooker hookSwordFish;
-    hl::Hooker hookSeed;
-    hl::Hooker hookRiot;
-    hl::Hooker hookBlitz;
-    hl::Hooker hookDog;
-    hl::Hooker hookBerial;
-    hl::Hooker hookFrog;
-    hl::Hooker hookEchidna;
-    hl::Hooker hookCredo;
-    hl::Hooker hookAgnus;
-    hl::Hooker hookSanctus;
-    hl::Hooker hookDante;
-    hl::Hooker hookTimer;
+};
+
+enum ENEMY_ID_NAMES : __int32 {
+    SCARECROW_LEG = 0x0, // EM000
+    SCARECROW_ARM = 0x1, // EM001
+    EM002 = 0x2,
+    SCARECROW_MEGA = 0x3, // EM003
+    EM004 = 0x4,
+    ANGELO_ALTO = 0x5, // EM005 (silver armour)
+    ANGELO_BIANCO = 0x6, // EM006 (gold armour)
+    EM007 = 0x7,
+    MEPHISTO = 0x8, // EM008
+    FAUST = 0x9, // EM009
+    FROST = 0xA, // EM010
+    ASSAULT = 0xB, // EM011
+    BLITZ = 0xC, // EM012
+    EM013 = 0xD,
+    EM014 = 0xE,
+    CUTLASS = 0xF, // EM015 (swimming sword)
+    GLADIUS = 0x10, // EM016 (flying sword)
+    BASILISK = 0x11, // EM017 (hellhound)
+    EM018 = 0x12,
+    EM019 = 0x13,
+    EM020 = 0x14,
+    EM021 = 0x15,
+    EM022 = 0x16,
+    EM023 = 0x17,
+    EM024 = 0x18,
+    EM025 = 0x19,
+    EMDUMMY = 0x1A,
 };

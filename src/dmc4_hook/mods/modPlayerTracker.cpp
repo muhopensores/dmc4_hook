@@ -3,22 +3,20 @@
 
 #if 1
 uintptr_t PlayerTracker::jmp_return{ NULL };
-// uintptr_t* PlayerTracker::player_base_ptr{ (uintptr_t*)(0x00E558B8) }; // DevilMayCry4_DX9.exe+A558B8
 uPlayer* PlayerTracker::player_ptr{ NULL };
 bool PlayerTracker::lockOnAlloc{ false };
-constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
+constexpr uintptr_t staticMediatorPtr = 0x00E558B8; // DevilMayCry4_DX9.exe+A558B8
 bool displayPlayerStats = false;
-bool potentiallyDumb = false;
 
-void update_player_info(void) {
+/*void update_player_info(void) {
     sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
     uPlayer* uLocalPlr = sMedPtr->playerPtr;
     if (uLocalPlr) {
         PlayerTracker::lockOnAlloc = uLocalPlr->lockontoggle; // 16D0
     }
-}
+}*/
 
-naked void detour() {
+/*naked void detour() {
     _asm {
             movss [esi+0x30], xmm3 // originalcode
             push ecx
@@ -39,14 +37,13 @@ naked void detour() {
             pop eax
             jmp dword ptr [PlayerTracker::jmp_return]
     }
-}
+}*/
 
-std::optional<std::string> PlayerTracker::onInitialize()
-{
-    if (!install_hook_offset(0x3A88A1, hook, &detour, &jmp_return, 5)) {
+std::optional<std::string> PlayerTracker::onInitialize() {
+    /*if (!install_hook_offset(0x3A88A1, hook, &detour, &jmp_return, 5)) {
         HL_LOG_ERR("Failed to init PlayerTracker mod\n");
         return "Failed to init PlayerTracker mod";
-    }
+    }*/
 
     return Mod::onInitialize();
 }

@@ -57,7 +57,7 @@ naked void timerDetour(void) { // ticks timer, player in ecx
 			jmp dontreplacetrick						   // By putting replacements on a timer you make a buffer for the input and have a convenient off state
 
 		replacetrick:
-            cmp byte ptr [PlayerTracker::lockOnAlloc], 0
+            cmp byte ptr [ecx+0x16D0], 0 // lockon
 			je dontreplacetrick
 			push eax
 			mov eax, 0x00C413A4        // Trickster Dash Address
@@ -86,7 +86,7 @@ naked void timerDetour(void) { // ticks timer, player in ecx
 			jmp dontreplacetwosome
 
 		replacetwosome:
-            cmp byte ptr [PlayerTracker::lockOnAlloc], 0
+            cmp byte ptr [ecx+0x16D0], 0 // lockon
 			je dontreplacetwosome
 			push eax
 			mov eax, 0x00C40DBC       // Twosome Time Address

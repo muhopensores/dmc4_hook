@@ -3,585 +3,97 @@
 #include "modInputStates.hpp"
 
 bool RestoreMaxHp::modEnabled{ false };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueScarecrow{ NULL };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueFrost{ NULL };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueArmour{ NULL };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueGhosts{ NULL };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueSwordFly{ NULL };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueSwordFish{ NULL };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueSeed{ NULL };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueRiot{ NULL };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueBlitz{ NULL };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueDog{ NULL };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueBerial{ NULL };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueFrog{ NULL };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueEchidna{ NULL };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueCredo{ NULL };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueAgnus{ NULL };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueSanctus{ NULL };
-uintptr_t RestoreMaxHp::_restoreMaxHpContinueDante{ NULL };
-
-uintptr_t RestoreMaxHp::_resetTimerContinue{ NULL };
 
 float twoMinutesTimer = 7200.0f;
 bool resetTimer = false;
 
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
-bool resetHp = false;
 
-void ShouldResetHP(void) {
-    sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
-    uPlayer* uLocalPlr = sMedPtr->playerPtr;
-    if (uLocalPlr) {
-        uint8_t& grounded = *(uint8_t*)((uintptr_t)uLocalPlr + 0xEA8);
-        uint8_t& desiredInput = *(uint8_t*)((uintptr_t)uLocalPlr + 0x140C);
-
-        if (grounded == 1 && desiredInput & 0x10 && desiredInput & 0x08) {
-            resetHp = true;
-        }
-        else {
-            resetHp = false;
-        }
-    }
-}
-
-naked void restoreMaxHpScarecrow_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        /*
-		// cmp byte ptr [InputStates::inputpressed], 24
-        // jne code
-        push eax
-        push edx
-        mov eax, 0x10
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        jne check2
-        pop edx
-        pop eax
-        jmp code
-
-    check2:
-        mov eax, 0x08
-        mov dl, byte ptr [InputStates::inputpressed] // edx
-        test al, dl
-        pop edx
-        pop eax
-        je code
-        */
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [ebx+1548h]               // Max HP
-        fstp dword ptr [ebx+1544h]              // Current HP
-
-    code:
-        fld dword ptr [ebx+1548h]
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueScarecrow]
-    }
-}
-
-naked void restoreMaxHpFrost_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [esi+1520h] // Max HP
-        fstp dword ptr [esi+151Ch] // Current HP
-
-    code:
-        fld dword ptr [esi+1520h]
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueFrost]
-    }
-}
-
-naked void restoreMaxHpArmour_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [esi+1520h]
-        fstp dword ptr [esi+151Ch]
-
-    code:
-        fld dword ptr [esi+1520h]
-        test byte ptr [esi+0EA8h],-80h
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueArmour]
-    }
-}
-
-naked void restoreMaxHpGhosts_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [edi+151Ch]
-        fstp dword ptr [edi+1518h]
-
-    code:
-        fld dword ptr [edi+151Ch]
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueGhosts]
-    }
-}
-
-naked void restoreMaxHpSwordFly_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [esi+151Ch]
-        fstp dword ptr [esi+1518h]
-
-    code:
-        fld dword ptr [esi+151Ch]
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueSwordFly]
-    }
-}
-
-naked void restoreMaxHpSwordFish_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [esi+1524h]
-        fstp dword ptr [esi+1520h]
-
-    code:
-        fld dword ptr [esi+1524h]
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueSwordFish]
-    }
-}
-
-naked void restoreMaxHpSeed_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [ebx+32A0h]
-        fstp dword ptr [ebx+329Ch]
-
-    code:
-        fld dword ptr [ebx+32A0h]
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueSeed]
-    }
-}
-
-naked void restoreMaxHpRiot_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [esi+151Ch]
-        fstp dword ptr [esi+1518h]
-
-    code:
-        fld dword ptr [esi+151Ch]
-        cmp byte ptr [esi+1438h],00
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueRiot]
-    }
-}
-
-naked void restoreMaxHpBlitz_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [esi+1520h]
-        fstp dword ptr [esi+151Ch]
-
-    code:
-        fld dword ptr [esi+1520h]
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueBlitz]
-    }
-}
-
-naked void restoreMaxHpDog_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [edi+7FE0h]
-        fstp dword ptr [edi+7FDCh]
-
-    code:
-        fld dword ptr [edi+7FE0h]
-        test byte ptr [edi+0EA8h], -80h
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueDog]
-    }
-}
-
-naked void restoreMaxHpBerial_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [esi+1520h]
-        fstp dword ptr [esi+151Ch]
-
-    code:
-        fld dword ptr [esi+1520h]
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueBerial]
-    }
-}
-
-naked void restoreMaxHpFrog_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [esi+1520h]
-        fstp dword ptr [esi+151Ch]
-
-    code:
-        fld dword ptr [esi+1520h]
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueFrog]
-    }
-}
-
-naked void restoreMaxHpEchidna_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [esi+1520h]
-        fstp dword ptr [esi+151Ch]
-
-    code:
-        fld dword ptr [esi+1520h]
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueEchidna]
-    }
-}
-
-naked void restoreMaxHpCredo_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [esi+1520h]
-        fstp dword ptr [esi+151Ch]
-
-    code:
-        fld dword ptr [esi+1520h]
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueCredo]
-    }
-}
-
-naked void restoreMaxHpAgnus_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [esi+1520h]
-        fstp dword ptr [esi+151Ch]
-
-    code:
-        fld dword ptr [esi+1520h]
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueAgnus]
-    }
-}
-
-naked void restoreMaxHpSanctus_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [esi+1D0Ch]
-        fstp dword ptr [esi+1D08h]
-
-    code:
-        fld dword ptr [esi+1D0Ch]
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueSanctus]
-    }
-}
-
-naked void restoreMaxHpDante_proc(void)
-{
-    _asm {
-        cmp byte ptr [RestoreMaxHp::modEnabled],0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        fld dword ptr [edi+15D0h]
-        fstp dword ptr [edi+15CCh]
-
-    code:
-        fld dword ptr [edi+15D0h]
-		jmp dword ptr [RestoreMaxHp::_restoreMaxHpContinueDante]
-    }
-}
-
-naked void resetTimer_proc(void)
-{
-    _asm {
-        cmp byte ptr [resetTimer], 0
-        je code
-
-        push eax
-        call ShouldResetHP
-        pop eax
-        cmp byte ptr [resetHp], 0
-        je code
-
-        movss xmm3, [twoMinutesTimer]
-        movss [esi+00000250h], xmm3
-
-    code:
-        movss xmm3, [esi+00000250h]
-		jmp dword ptr [RestoreMaxHp::_resetTimerContinue]
-    }
-}
-
-std::optional<std::string> RestoreMaxHp::onInitialize()
-{
-    if (!install_hook_offset(0x143BC1, hookScarecrow, &restoreMaxHpScarecrow_proc, &RestoreMaxHp::_restoreMaxHpContinueScarecrow, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0x1A6042, hookFrost, &restoreMaxHpFrost_proc, &RestoreMaxHp::_restoreMaxHpContinueFrost, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0x1653F5, hookArmour, &restoreMaxHpArmour_proc, &RestoreMaxHp::_restoreMaxHpContinueArmour, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0x183ACF, hookGhosts, &restoreMaxHpGhosts_proc, &RestoreMaxHp::_restoreMaxHpContinueGhosts, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0x20DFB6, hookSwordFly, &restoreMaxHpSwordFly_proc, &RestoreMaxHp::_restoreMaxHpContinueSwordFly, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0x1F902F, hookSwordFish, &restoreMaxHpSwordFish_proc, &RestoreMaxHp::_restoreMaxHpContinueSwordFish, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0x1E08D8, hookSeed, &restoreMaxHpSeed_proc, &RestoreMaxHp::_restoreMaxHpContinueSeed, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0x1B6FDC, hookRiot, &restoreMaxHpRiot_proc, &RestoreMaxHp::_restoreMaxHpContinueRiot, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0x1D3603, hookBlitz, &restoreMaxHpBlitz_proc, &RestoreMaxHp::_restoreMaxHpContinueBlitz, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0x21D971, hookDog, &restoreMaxHpDog_proc, &RestoreMaxHp::_restoreMaxHpContinueDog, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0x235FF9, hookBerial, &restoreMaxHpBerial_proc, &RestoreMaxHp::_restoreMaxHpContinueBerial, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0x24E6A3, hookFrog, &restoreMaxHpFrog_proc, &RestoreMaxHp::_restoreMaxHpContinueFrog, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0x28A431, hookEchidna, &restoreMaxHpEchidna_proc, &RestoreMaxHp::_restoreMaxHpContinueEchidna, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0x2ACE60, hookCredo, &restoreMaxHpCredo_proc, &RestoreMaxHp::_restoreMaxHpContinueCredo, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0x2C1D77, hookAgnus, &restoreMaxHpAgnus_proc, &RestoreMaxHp::_restoreMaxHpContinueAgnus, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0x305702, hookSanctus, &restoreMaxHpSanctus_proc, &RestoreMaxHp::_restoreMaxHpContinueSanctus, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0xBE16E, hookDante, &restoreMaxHpDante_proc, &RestoreMaxHp::_restoreMaxHpContinueDante, 6))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
-    if (!install_hook_offset(0x94D60, hookTimer, &resetTimer_proc, &RestoreMaxHp::_resetTimerContinue, 8))
-    {
-        HL_LOG_ERR("Failed to init RestoreMaxHp mod\n");
-        return "Failed to init RestoreMaxHp mod";
-    }
-
+std::optional<std::string> RestoreMaxHp::onInitialize() {
     return Mod::onInitialize();
 }
 
-void RestoreMaxHp::onGUIframe()
-{
-    // from main.cpp
-    // line 2221 -> main->getMods()->onDrawUI("RestoreMaxHp"_hash);
+void RestoreMaxHp::onFrame(fmilliseconds& dt) {
+    // uintptr_t* sMedPtr = *(uintptr_t**)staticMediatorPtr;
+    // uintptr_t* uLocalPlr = *(uintptr_t**)((uintptr_t)sMedPtr + 0x24);
+    uintptr_t* sMedPtr = (uintptr_t*)staticMediatorPtr;
+    uintptr_t sMediator = *sMedPtr;
+    uintptr_t* playerPtr = (uintptr_t*)(sMediator + 0x24);
+    uintptr_t uLocalPlr = *playerPtr;
+    if (uLocalPlr) {
+        uint8_t& grounded = *(uint8_t*)(uLocalPlr + 0xEA8);
+        uint8_t& desiredInput = *(uint8_t*)(uLocalPlr + 0x140C);
+        if (modEnabled) {
+            if (grounded == 1 && desiredInput & 0x10 && desiredInput & 0x08) {
+                int8_t& enemyCount = *(int8_t*)(sMediator + 0x1E8);
+                for (int i = 1; i <= enemyCount; i++) {
+                    uintptr_t* enemyPtr = (uintptr_t*)(sMediator + 0x1B4 + i * 4);
+                    uintptr_t enemyBase = *enemyPtr;
+                    if (enemyBase) {
+                        int& enemyID = *(int*)(enemyBase + 0x1410);
+                        if (enemyID == SCARECROW_ARM || enemyID == SCARECROW_LEG || enemyID == SCARECROW_MEGA) {
+                            float& enemyHP = *(float*)(enemyBase + 0x1544);
+                            float& enemyMaxHP = *(float*)(enemyBase + 0x1548);
+                            enemyHP = enemyMaxHP;
+                        }
+                        if (enemyID == FROST || enemyID == ANGELO_ALTO || enemyID == ANGELO_BIANCO || enemyID == BLITZ) {
+                            float& enemyHP = *(float*)(enemyBase + 0x151C);
+                            float& enemyMaxHP = *(float*)(enemyBase + 0x1520);
+                            enemyHP = enemyMaxHP;
+                        }
+                        if (enemyID == MEPHISTO || enemyID == FAUST || enemyID == GLADIUS || enemyID == ASSAULT) {
+                            float& enemyHP = *(float*)(enemyBase + 0x1518);
+                            float& enemyMaxHP = *(float*)(enemyBase + 0x151C);
+                            enemyHP = enemyMaxHP;
+                        }
+                        if (enemyID == BASILISK) {
+                            float& enemyHP = *(float*)(enemyBase + 0x7FDC);
+                            float& enemyMaxHP = *(float*)(enemyBase + 0x7FE0);
+                            enemyHP = enemyMaxHP;
+                        }
+                        if (enemyID == CUTLASS) {
+                            float& enemyHP = *(float*)(enemyBase + 0x1520);
+                            float& enemyMaxHP = *(float*)(enemyBase + 0x1524);
+                            enemyHP = enemyMaxHP;
+                        }
+                        // seeds aren't on the enemy list
+                        // i am too lazy to find a fault but they probably aren't either
+                    }
+                }
+                uintptr_t* bossPtr = (uintptr_t*)(sMediator + 0xB0);
+                uintptr_t bossBase = *bossPtr;
+                if (bossBase) {
+                    float& bossHP = *(float*)(bossBase + 0x151C);
+                    float& bossMaxHP = *(float*)(bossBase + 0x1520);
+                    bossHP = bossMaxHP;
+                }
+            }
+        }
+        if (resetTimer) {
+            if (grounded == 1 && desiredInput & 0x10 && desiredInput & 0x08) {
+                float& bpTimer = *(float*)(sMediator + 0x250);
+                bpTimer = twoMinutesTimer;
+            }
+        }
+    }
+}
+
+void RestoreMaxHp::onGUIframe() {
     ImGui::Checkbox("Restore Enemy HP", &modEnabled);
-    ImGui::SameLine(0, 1);
+    ImGui::SameLine();
     HelpMarker("Press Lock On + Taunt while grounded to restore Max HP to enemies");
     ImGui::SameLine(205);
     ImGui::Checkbox("Reset Timer", &resetTimer);
-    ImGui::SameLine(0, 1);
+    ImGui::SameLine();
     HelpMarker("Press Lock On + Taunt while grounded to reset the BP timer");
 }
 
-void RestoreMaxHp::onConfigLoad(const utils::Config& cfg)
-{
+void RestoreMaxHp::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("restore_max_hp").value_or(false);
     resetTimer = cfg.get<bool>("reset_bp_timer").value_or(false);
-};
+}
 
-void RestoreMaxHp::onConfigSave(utils::Config& cfg)
-{
+void RestoreMaxHp::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("restore_max_hp", modEnabled);
     cfg.set<bool>("reset_bp_timer", resetTimer);
-};
+}

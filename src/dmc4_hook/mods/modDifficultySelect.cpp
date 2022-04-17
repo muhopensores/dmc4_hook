@@ -125,7 +125,7 @@ void DifficultySelect::setGMD()
 {
     // the below are copied from CE, remember hex
     // DevilMayCry4_DX9.exe+
-    install_patch_offset(0x004D6C7, patch1, "\x05\xa8\xcd\xde\x00", 3);   // `fld dword ptr [edi+DevilMayCry4_DX9.exe+9EC778]` to `fld dword ptr `fld dword ptr [DevilMayCry4_DX9.exe+9ECDA8]` (1000.0f)
+    install_patch_offset(0x004D6C7, patch1, "\x05\xa8\xcd\xde\x00", 3);       // `fld dword ptr [edi+DevilMayCry4_DX9.exe+9EC778]` to `fld dword ptr `fld dword ptr [DevilMayCry4_DX9.exe+9ECDA8]` (1000.0f)
     install_patch_offset(0x0094AE7, patch2,  "\x00\x77\x14", 2);              // `cmp eax, 14` to `cmp eax, 00`
     install_patch_offset(0x0094B02, patch3,  "\x50\xb9\xcb\x00\x8b\xc7", 6);  // `movss xmm0,[DevilMayCry4_DX9.exe+8BAD28]` (500.0f) to `movss xmm0,[DevilMayCry4_DX9.exe+8BB950]` (1000.0f)
     install_patch_offset(0x00B5689, patch4,  "\xc4\xcd\xde\x00", 3);          // `subss xmm0,[DevilMayCry4_DX9.exe+80F324]` (7200.0f) to `subss xmm0,[DevilMayCry4_DX9.exe+8C0170]` (10800.0f)
@@ -145,7 +145,7 @@ void DifficultySelect::setGMD()
     install_patch_offset(0x02DA9EB, patch18, "\x05\x74", 2);                  // `jne DevilMayCry4_DX9.exe+2DAA12` to `je DevilMayCry4_DX9.exe+2DAA12`
     install_patch_offset(0x02FAD4E, patch19, "\x44\x01\x00\x00\x77", 5);      // `cmp [eax+00000140],edx` & `jne DevilMayCry4_DX9.exe+2FAD84` to `cmp [eax+00000144],edx` & `ja DevilMayCry4_DX9.exe+2FAD84`
     install_patch_offset(0x0304E9E, patch20, "\x44\x01\x00\x00\x77", 5);      // `cmp [eax+00000140],edx` & `jne DevilMayCry4_DX9.exe+304ED4` to `cmp [eax+0000014],edx` & `ja DevilMayCry4_DX9.exe+304ED4`
-    install_patch_offset(0x03309A0, patch21, "\x05\xEB\x1F", 3); // jmp instead of jne                  // `cmp dword ptr [eax+00000140],03` & `je DevilMayCry4_DX9.exe+3309C2` to `cmp dword ptr [eax+00000140],05` & `jne DevilMayCry4_DX9.exe+3309C2`
+    install_patch_offset(0x03309A0, patch21, "\x05\xEB\x1F", 3);              // jmp instead of jne                  // `cmp dword ptr [eax+00000140],03` & `je DevilMayCry4_DX9.exe+3309C2` to `cmp dword ptr [eax+00000140],05` & `jne DevilMayCry4_DX9.exe+3309C2`
     install_patch_offset(0x0343B6A, patch22, "\xc4\xcd\xde", 3);              // `subss xmm0,[DevilMayCry4_DX9.exe+80F324]` (7200.0f) changes per difficulty, GMD's is `subss xmm0,[DevilMayCry4_DX9.exe+9ECDC4]` (18000.0f)
     install_patch_offset(0x04AB93C, patch23, "\xc4\xcd\xde", 3);              // `movss xmm0,[DevilMayCry4_DX9.exe+80F324]` (7200.0f) changes per difficulty, GMD's is `movss xmm0,[DevilMayCry4_DX9.exe+9ECDC4]` (18000.0f)
     install_patch_offset(0x0837A5F, patch24, "\x50\x46", 2);                  // `7200.0f` changes per difficulty, GMD's is `18000.0f` idk why its 2 bytes and not aligned
