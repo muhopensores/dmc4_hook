@@ -26,7 +26,6 @@
 #include "mods/modManualTwosomeTime.hpp"
 #include "mods/modHeightRestrictionDante.hpp"
 #include "mods/modInfFaustCloak.hpp"
-#include "mods/modPassiveEnemies.hpp"
 #include "mods/modHeightRestrictionNero.hpp"
 #include "mods/modInfiniteTime.hpp"
 #include "mods/modInfAllHealth.hpp"
@@ -122,7 +121,6 @@ Mods::Mods() {
 		m_mods["ManualTwosomeTime"_hash] = std::make_unique<ManualTwosomeTime>();
 		m_mods["HeightRestrictionDante"_hash] = std::make_unique<HeightRestrictionDante>();
 		m_mods["InfFaustCloak"_hash] = std::make_unique<InfFaustCloak>();
-		m_mods["PassiveEnemies"_hash] = std::make_unique<PassiveEnemies>();
 		m_mods["HeightRestrictionNero"_hash] = std::make_unique<HeightRestrictionNero>();
 		m_mods["InfiniteTime"_hash] = std::make_unique<InfiniteTime>();
 		m_mods["InfAllHealth"_hash] = std::make_unique<InfAllHealth>();

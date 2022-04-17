@@ -6,30 +6,33 @@
 bool ForceLucifer::modEnabled{ false };
 uintptr_t ForceLucifer::_forceLuciferContinue{ NULL };
 bool ForceLucifer::enableForceEcstasyTimer{ false };
+constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
 naked void forceLucifer_proc(void) {
     _asm {
-        cmp [esi+0x1494], 0 // controller id
+        push eax
+        mov eax, [staticMediatorPtr]
+        mov eax, [eax]
+        mov eax, [eax+0x24]
+        cmp [eax+0x1494], 0 // controller id in case Nero uses this
+        pop eax
         jne code
         cmp byte ptr [ForceLucifer::modEnabled], 1
         je ForceLuci
-    // check2: // disables turning off lucifer when swapping off of the weapon
+
+    // check2:
         cmp byte ptr [InputStates::roseTimerActive], 1
         jne code
-        cmp [esi+1370h], 6 // ID (this accesses gilg etc too)
-        jne code
-        cmp al, 1
-        je code
-        jmp dword ptr [ForceLucifer::_forceLuciferContinue]
-
     ForceLuci:
-        cmp [esi+0x1370], 6 // ID (this accesses gilg etc too)
+        cmp edi, 6 // ID (this accesses gilg etc too)
         jne code
-        mov al, 1 // Only force Lucifer
+        cmp al,0 // on/off
+        je retcode
         jmp code
 
     code:
         mov [esi+0x0000137C], al
+    retcode:
 		jmp dword ptr [ForceLucifer::_forceLuciferContinue]
     }
 }
@@ -46,7 +49,7 @@ std::optional<std::string> ForceLucifer::onInitialize() {
 void ForceLucifer::onGUIframe() {
     ImGui::Checkbox("Force Lucifer", &modEnabled);
     ImGui::SameLine();
-    HelpMarker("Forcing Lucifer to never despawn means never forcefully despawning rose");
+    HelpMarker("Forcing Lucifer means never forcefully despawning rose");
 }
 
 void ForceLucifer::onConfigLoad(const utils::Config& cfg) {

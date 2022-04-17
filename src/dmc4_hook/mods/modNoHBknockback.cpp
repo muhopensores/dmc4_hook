@@ -33,7 +33,6 @@ naked void noHelmBreakerKnockback_proc(void) // ebx+0x98 = player + CE20 // ebx+
 			je newcode
 			cmp [MoveIds::moveID],0x214			// 532 // High
 			je newcode
-		nerocheatcode:
 			// Nero:
 			cmp [MoveIdsNero::moveIDNero], 786  // Split
 			je newcode

@@ -2,45 +2,33 @@
 #include "modEnemySlotting.hpp"
 
 bool      EnemySlotting::modEnabled{ false };
-uintptr_t EnemySlotting::jmp_ret{ NULL }; // 0x00737732
-int enemyslotlimit{};
+uintptr_t EnemySlotting::jmp_ret{ NULL };
+int newEnemySlotLimit = NULL;
 
 // static uintptr_t enemySlottingMov{ 0x14EF4C40 }; // mov ecx,[DevilMayCry4_DX9.exe+A558AC] // mov ecx,[00E558AC]
 
-EnemySlotting::EnemySlotting() {
-	//onInitialize();
-}
-
-naked void detour(void)
-{
+naked void detour(void) {
 	_asm {
-		cmp byte ptr [EnemySlotting::modEnabled],0
+		cmp byte ptr [EnemySlotting::modEnabled], 0
 		je originalcode
 
+		push eax
+		mov eax, [newEnemySlotLimit]
+		mov [esi+0x04], eax
+		pop eax
+
 	originalcode:
-		test eax,eax
-		jne jnecode // DevilMayCry4_DX9.exe+337729
-		mov eax, [esi]
-		mov edx, [eax+30h]
-		mov ecx, esi
-		pop esi
-		jmp edx
-
-	jnecode:
-		cmp byte ptr [EnemySlotting::modEnabled], 1
-		je cheatcode
-		mov eax, [esi+28h]
+		cmp dword ptr [esi+0x04], 00
+		jng jngcode
 		jmp dword ptr [EnemySlotting::jmp_ret]
 
-	cheatcode:
-		mov eax, [enemyslotlimit]
-		jmp dword ptr [EnemySlotting::jmp_ret]
+	jngcode: // usually jumps to the ret of the function
+		ret
 	}
 }
 
 std::optional<std::string> EnemySlotting::onInitialize() {
-
-	if (!install_hook_offset(0x33771B, hook, &detour, &jmp_ret, 17)) {
+	if (!install_hook_offset(0x55850, hook, &detour, &jmp_ret, 10)) {
 		HL_LOG_ERR("Failed to init EnemySlotting mod\n");
 		return "Failed to init EnemySlotting mod";
 	}
@@ -50,109 +38,21 @@ std::optional<std::string> EnemySlotting::onInitialize() {
 
 void EnemySlotting::onGUIframe() {
 	ImGui::Checkbox("Custom Enemy Slot Limit", &modEnabled);
-    ImGui::SameLine(0, 1);
-    HelpMarker("Set how many enemies can attack at the same time.\nDefault is usually 1");
+    ImGui::SameLine();
+    HelpMarker("Set how many enemies can attack at the same time. Default is usually 1.\n"
+				"After unchecking this option, the original value will only be restored after entering a new room");
     ImGui::PushItemWidth(217);
-    ImGui::InputInt("Slot Limit ", &enemyslotlimit, 1, 10, ImGuiInputTextFlags_AllowTabInput);
+    ImGui::InputInt("Slot Limit", &newEnemySlotLimit, 1, 10);
     ImGui::PopItemWidth();
     ImGui::Spacing();
 }
 
 void EnemySlotting::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("enemy_slot_enable").value_or(false);
-    enemyslotlimit = cfg.get<int>("enemy_slot_limit").value_or(1);
+    newEnemySlotLimit = cfg.get<int>("enemy_slot_limit").value_or(10);
 };
 
 void EnemySlotting::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("enemy_slot_enable", modEnabled);
-    cfg.set<int>("enemy_slot_limit", enemyslotlimit);
+    cfg.set<int>("enemy_slot_limit", newEnemySlotLimit);
 };
-
-/*
-naked void detour(void)
-{
-	_asm {
-		cmp byte ptr [EnemySlotting::modEnabled],0
-		je originalcode
-
-		mov eax, [enemyslotlimit]
-		// lea ecx, enemySlottingMov
-		mov ecx, [enemySlottingMov] // mov ecx, [0x00E558AC] compiles as mov ecx,00E558AC rather than mov ecx,[00E558AC]
-		jmp dword ptr [EnemySlotting::jmp_ret]
-
-	originalcode:
-		mov eax, [esi+0x28]
-		mov ecx, [0x00E558AC] // mov ecx, [enemySlottingMov] compiles as mov ecx,7B7CB1E8 rather than mov ecx,[00E558AC]
-		jmp dword ptr [EnemySlotting::jmp_ret]
-	}
-}
-
-std::optional<std::string> EnemySlotting::onInitialize() {
-
-	if (!install_hook_offset(0x337729, hook, &detour, &jmp_ret, 9)) {
-		HL_LOG_ERR("Failed to init EnemySlotting mod\n");
-		return "Failed to init EnemySlotting mod";
-	}
-    
-	return Mod::onInitialize();
-}
-
-void EnemySlotting::onGUIframe() {
-	// ImGui::Checkbox("Custom Enemy Slot Limit", &modEnabled);
-    ImGui::SameLine(0, 1);
-    HelpMarker("Set how many enemies can attack at the same time.\nDefault is usually 1");
-    ImGui::PushItemWidth(217);
-    ImGui::InputInt("Slot Limit ", &enemyslotlimit, 1, 10, ImGuiInputTextFlags_AllowTabInput);
-    ImGui::PopItemWidth();
-}
-
-void EnemySlotting::onConfigLoad(const utils::Config& cfg) {
-    modEnabled = cfg.get<bool>("enemy_slot_enable").value_or(false);
-    enemyslotlimit = cfg.get<int>("enemy_slot_limit").value_or(1);
-};
-
-void EnemySlotting::onConfigSave(utils::Config& cfg) {
-    cfg.set<bool>("enemy_slot_enable", modEnabled);
-    cfg.set<int>("enemy_slot_limit", enemyslotlimit);
-};
-
-
-
-
-[ENABLE]
-//aobscanmodule(Slotting,DevilMayCry4_DX9.exe,8B 46 28 8B 0D AC 58 E5 00) // should be unique
-define(Slotting,"DevilMayCry4_DX9.exe"+337729)
-alloc(newmem,$1000)
-label(code)
-label(return)
-
-newmem:
-
-code:
-  mov eax,1 //[esi+28]
-  mov ecx,[DevilMayCry4_DX9.exe+A558AC] // mov ecx,[00E558AC]
-  jmp return
-
-Slotting:
-  jmp newmem
-  nop
-  nop
-  nop
-  nop
-return:
-registersymbol(Slotting)
-
-[DISABLE]
-Slotting:
-  db 8B 46 28 8B 0D AC 58 E5 00
-unregistersymbol(Slotting)
-dealloc(newmem)
-
-"DevilMayCry4_DX9.exe"+337727: FF E2                 -  jmp edx
-// ---------- INJECTING HERE ----------
-"DevilMayCry4_DX9.exe"+337729: 8B 46 28              -  mov eax,[esi+28]
-"DevilMayCry4_DX9.exe"+33772C: 8B 0D AC 58 E5 00     -  mov ecx,[DevilMayCry4_DX9.exe+A558AC]
-// ---------- DONE INJECTING  ----------
-"DevilMayCry4_DX9.exe"+337732: 50                    -  push eax
-
-*/

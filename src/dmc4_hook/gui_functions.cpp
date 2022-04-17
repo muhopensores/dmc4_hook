@@ -250,13 +250,12 @@ void DefaultDarkTheme()
 }
 */
 // draw function with parameters for the gui overlay
+
 void DrawWindow()
 {
     ImGuiIO& io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(445, 550), ImGuiCond_FirstUseEver);
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 }
 
 // imgui::being seperated into function (required to make gui overlay work, see imgui example and documentation

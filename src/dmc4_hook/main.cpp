@@ -235,8 +235,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
         //main->ToggleStuff();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
         ImGui_ImplWin32_Init(getMainWindow());
         ImGui_ImplDX9_Init(m_pDevice);
 		DarkTheme();
@@ -348,10 +346,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("InfFaustCloak"_hash);
 
-                main->getMods()->onDrawUI("PassiveEnemies"_hash);
-                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("FreezeEnemies"_hash);
-
+                ImGui::SameLine(205);
                 main->getMods()->onDrawUI("BerialDaze"_hash);
 
                 ImGui::Spacing();

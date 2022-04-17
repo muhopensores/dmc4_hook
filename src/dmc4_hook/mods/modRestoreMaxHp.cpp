@@ -1,6 +1,5 @@
 #include "../mods.h"
 #include "modRestoreMaxHp.hpp"
-#include "modInputStates.hpp"
 
 bool RestoreMaxHp::modEnabled{ false };
 

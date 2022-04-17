@@ -4,42 +4,34 @@
 #if 1
 bool DmdLevelAi::modEnabled{ false };
 
-std::optional<std::string> DmdLevelAi::onInitialize()
-{
+std::optional<std::string> DmdLevelAi::onInitialize() {
     return Mod::onInitialize();
 }
 
-void DmdLevelAi::toggle(bool enable)
-{
-    if (enable)
-    {
+void DmdLevelAi::toggle(bool enable) {
+    if (enable) {
         install_patch_offset(0x05D598, patch, "\x74", 1);
     }
-    else
-    {
+    else {
         patch.revert();
     }
 }
 
-void DmdLevelAi::onGUIframe()
-{
-    if (ImGui::Checkbox("DMD Level AI", &modEnabled))
-    {
+void DmdLevelAi::onGUIframe() {
+    if (ImGui::Checkbox("DMD Level AI", &modEnabled)) {
         toggle(modEnabled);
     }
     ImGui::SameLine(0, 1);
     HelpMarker("Forces enemies to use the ingame DMD AI, even on non DMD difficulties");
 }
 
-void DmdLevelAi::onConfigLoad(const utils::Config& cfg)
-{
+void DmdLevelAi::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("dmd_level_ai").value_or(false);
     toggle(modEnabled);
-};
+}
 
-void DmdLevelAi::onConfigSave(utils::Config& cfg)
-{
+void DmdLevelAi::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("dmd_level_ai", modEnabled);
-};
+}
 
 #endif
