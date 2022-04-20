@@ -78,6 +78,30 @@ void EnemyStats::onGUIframe() {
             uintptr_t enemyBase = *enemyPtr;
             if (enemyBase) {
                 // get stats
+                uint8_t& enemyMoveID = *(uint8_t*)(enemyBase + 0x14);
+                int& enemyMoveID2 = *(int*)(enemyBase + 0x334);
+                uint8_t& enemyMovePart = *(uint8_t*)(enemyBase + 0x15);
+                int8_t& enemyGrounded = *(int8_t*)(enemyBase + 0x161C);
+                float& enemyFrame = *(float*)(enemyBase + 0x348);
+                float* enemyPosXYZ[3];
+                    enemyPosXYZ[0] = (float*)(enemyBase + 0x30);
+                    enemyPosXYZ[1] = (float*)(enemyBase + 0x34);
+                    enemyPosXYZ[2] = (float*)(enemyBase + 0x38);
+                float* enemyScaleXYZ[3];
+                    enemyScaleXYZ[0] = (float*)(enemyBase + 0x50);
+                    enemyScaleXYZ[1] = (float*)(enemyBase + 0x54);
+                    enemyScaleXYZ[2] = (float*)(enemyBase + 0x58);
+                float* enemyVelocityXYZ[3];
+                    enemyVelocityXYZ[0] = (float*)(enemyBase + 0x1B40);
+                    enemyVelocityXYZ[1] = (float*)(enemyBase + 0x1B44);
+                    enemyVelocityXYZ[2] = (float*)(enemyBase + 0x1B48);
+
+                // imgui
+                ImGui::SliderInt("Enemy Count", (int*)&enemyCount, 0, 0);
+                ImGui::SliderInt("Enemy Select", &whichEnemy, 1, enemyCount);
+
+                ImGui::Spacing();
+
                 int& enemyID = *(int*)(enemyBase + 0x1410);
                 int damageInfoOffset = getEnemySpecificDamageOffset(enemyID);
                 if (damageInfoOffset != NULL) {
@@ -123,29 +147,6 @@ void EnemyStats::onGUIframe() {
                     ImGui::InputInt("Unknown 7 ##2", &Unknown7, 0, 0);
                     ImGui::InputInt("Unknown 8 ##2", &Unknown8, 0, 0);
                 }
-                uint8_t& enemyMoveID = *(uint8_t*)(enemyBase + 0x14);
-                int& enemyMoveID2 = *(int*)(enemyBase + 0x334);
-                uint8_t& enemyMovePart = *(uint8_t*)(enemyBase + 0x15);
-                int8_t& enemyGrounded = *(int8_t*)(enemyBase + 0x161C);
-                float& enemyFrame = *(float*)(enemyBase + 0x348);
-                float* enemyPosXYZ[3];
-                    enemyPosXYZ[0] = (float*)(enemyBase + 0x30);
-                    enemyPosXYZ[1] = (float*)(enemyBase + 0x34);
-                    enemyPosXYZ[2] = (float*)(enemyBase + 0x38);
-                float* enemyScaleXYZ[3];
-                    enemyScaleXYZ[0] = (float*)(enemyBase + 0x50);
-                    enemyScaleXYZ[1] = (float*)(enemyBase + 0x54);
-                    enemyScaleXYZ[2] = (float*)(enemyBase + 0x58);
-                float* enemyVelocityXYZ[3];
-                    enemyVelocityXYZ[0] = (float*)(enemyBase + 0x1B40);
-                    enemyVelocityXYZ[1] = (float*)(enemyBase + 0x1B44);
-                    enemyVelocityXYZ[2] = (float*)(enemyBase + 0x1B48);
-
-                // imgui
-                ImGui::SliderInt("Enemy Count", (int*)&enemyCount, 0, 0);
-                ImGui::SliderInt("Enemy Select", &whichEnemy, 1, enemyCount);
-
-                ImGui::Spacing();
                 ImGui::InputFloat3("XYZ Position ##2", *enemyPosXYZ);
                 ImGui::InputFloat3("XYZ Velocity ##2", *enemyVelocityXYZ);
                 ImGui::InputFloat3("XYZ Scale ##2", *enemyScaleXYZ);

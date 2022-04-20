@@ -18,6 +18,8 @@ std::array<uint32_t, 5> bossArray;
 int bossRoomID = 0;
 int bossAreaID = 0;
 
+constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
+
 BpJumpHook::BpJumpHook()
 {
     // onInitialize();
@@ -211,6 +213,12 @@ naked void bpJumpHook_proc(void) // Initial load of BP
 naked void bpJumpHook2_proc(void) // called every time you enter a teleporter
 {
     _asm {
+        push eax
+        mov eax, [staticMediatorPtr]
+        mov eax, [eax]
+        cmp [eax+0xE0], 50
+        pop eax
+        jne code
         cmp byte ptr [bpBossRush], 1
         je bossrush
 
