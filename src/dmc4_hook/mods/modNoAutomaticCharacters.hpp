@@ -5,7 +5,7 @@
 class NoAutomaticCharacters : public Mod
 {
 public:
-    NoAutomaticCharacters();
+    NoAutomaticCharacters() = default;
 
     static bool modEnabled;
     static uintptr_t jmp_ret;

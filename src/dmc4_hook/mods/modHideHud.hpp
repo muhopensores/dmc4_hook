@@ -28,6 +28,9 @@ public:
 
 private:
     hl::Patch patchhealth;
+
+    hl::Patch patchstyle;
+
     hl::Patch patchorbs1;
     hl::Patch patchorbs2;
     hl::Patch patchorbs3;
@@ -39,8 +42,6 @@ private:
     hl::Patch patchorbs9;
     hl::Patch patchorbs10;
 
-    hl::Patch patchstyle;
-
     // timer
     hl::Patch patchbp;
     hl::Patch patchbpplus;
@@ -48,7 +49,7 @@ private:
     hl::Patch patchbpstageclearbonus1;
     hl::Patch patchbpstageclearbonus2;
     // hl::Patch patchm12flash;
-    // 
+
     // boey
     hl::Patch patchboey01;
     hl::Patch patchboey02;

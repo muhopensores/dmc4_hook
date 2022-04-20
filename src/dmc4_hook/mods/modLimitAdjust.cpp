@@ -9,8 +9,7 @@ bool LimitAdjust::target = false;
 
 float LimitAdjust::limit = 0.0f;
 
-std::optional<std::string> LimitAdjust::onInitialize()
-{
+std::optional<std::string> LimitAdjust::onInitialize() {
     return Mod::onInitialize();
 }
 
@@ -20,78 +19,60 @@ naked void limitadjust_patch(void) {
 	}
 }
 
-void LimitAdjust::SwordAndGun(bool enable)
-{
-    if (enable)
-    {
+void LimitAdjust::SwordAndGun(bool enable) {
+    if (enable) {
         install_patch_offset(0x04045DE, patchsword, (char*)&limitadjust_patch, 6);
         install_patch_offset(0x0404625, patchgun, (char*)&limitadjust_patch, 6);
     }
-    else
-    {
+    else {
         patchsword.revert();
         patchgun.revert();
     }
 }
 
-void LimitAdjust::EnemyStep(bool enable)
-{
-    if (enable)
-    {
+void LimitAdjust::EnemyStep(bool enable) {
+    if (enable) {
         install_patch_offset(0x0404A8E, patchenemystep, (char*)&limitadjust_patch, 6);
     }
-    else
-    {
+    else {
         patchenemystep.revert();
     }
 }
 
-void LimitAdjust::Style(bool enable)
-{
-    if (enable)
-    {
+void LimitAdjust::Style(bool enable) {
+    if (enable) {
         install_patch_offset(0x03B6DC7, patchstyle, "\x90\x90\x90\x90\x90\x90", 6);
     }
-    else
-    {
+    else {
         patchstyle.revert();
     }
 }
 
-void LimitAdjust::Target(bool enable)
-{
-    if (enable)
-    {
+void LimitAdjust::Target(bool enable) {
+    if (enable) {
         install_patch_offset(0x04208D7, patchtarget, "\x90\x90", 2);
     }
-    else
-    {
+    else {
         patchtarget.revert();
     }
 }
 
-void LimitAdjust::onGUIframe()
-{
-    if (ImGui::Checkbox("Remove Sword & Gun Switch Limit", &gunSword))
-    {
+void LimitAdjust::onGUIframe() {
+    if (ImGui::Checkbox("Remove Sword & Gun Switch Limit", &gunSword)) {
         SwordAndGun(gunSword);
     }
-    if (ImGui::Checkbox("Remove Enemy Step Limit", &enemyStep))
-    {
+    if (ImGui::Checkbox("Remove Enemy Step Limit", &enemyStep)) {
         EnemyStep(enemyStep);
     }
-    if (ImGui::Checkbox("Remove Style Switch Limit", &style))
-    {
+    if (ImGui::Checkbox("Remove Style Switch Limit", &style)) {
         Style(style);
     }
-    if (ImGui::Checkbox("Remove Target Switch Limit", &target))
-    {
+    if (ImGui::Checkbox("Remove Target Switch Limit", &target)) {
         Target(target);
     }
 }
 
-void LimitAdjust::onConfigLoad(const utils::Config& cfg)
-{
+void LimitAdjust::onConfigLoad(const utils::Config& cfg) {
     gunSword = cfg.get<bool>("sword_switch_limits_removed").value_or(false);
     SwordAndGun(gunSword);
     enemyStep = cfg.get<bool>("jc_limits_removed").value_or(false);
@@ -100,15 +81,14 @@ void LimitAdjust::onConfigLoad(const utils::Config& cfg)
     Style(style);
     target = cfg.get<bool>("target_change_limit_removed").value_or(false);
     Target(target);
-};
+}
 
-void LimitAdjust::onConfigSave(utils::Config& cfg)
-{
+void LimitAdjust::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("sword_switch_limits_removed", gunSword);
     cfg.set<bool>("jc_limits_removed", enemyStep);
     cfg.set<bool>("style_switch_limits_removed", style);
     cfg.set<bool>("target_change_limit_removed", target);
-};
+}
 
 #else
 float LimitAdjust::limit{ 0.0f };

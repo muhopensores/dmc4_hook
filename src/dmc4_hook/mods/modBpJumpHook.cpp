@@ -5,9 +5,10 @@
 #include "numeric"
 
 bool BpJumpHook::modEnabled{ false };
-bool bpBossRush{ false };
+constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 uintptr_t BpJumpHook::_bpJumpHookContinue{ NULL };
 uintptr_t BpJumpHook::_bpJumpHook2Continue{ NULL };
+bool bpBossRush{ false };
 int bpFloor = 0;
 int areaJumpID = 0;
 int numberOfCompleteFloors = 0;
@@ -18,15 +19,8 @@ std::array<uint32_t, 5> bossArray;
 int bossRoomID = 0;
 int bossAreaID = 0;
 
-constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
-BpJumpHook::BpJumpHook()
-{
-    // onInitialize();
-}
-
-const char BossStartIDs[][7]
-{
+const char BossStartIDs[][7] {
     "\x68\x65\xE5",   // const char* BerialFloor  = "\x68\x65\xE5";
     "\x28\x65\xE5",   // const char* BaelFloor    = "\x28\x65\xE5";
     "\xE8\x5F\xE5",   // const char* EchidnaFloor = "\xE8\x5F\xE5";
@@ -36,8 +30,7 @@ const char BossStartIDs[][7]
     "\x68\x67\xE5"    // const char* DefaultFloor = "\x68\x67\xE5";
 };
 
-int bpStageArea(int floor) 
-{
+int bpStageArea(int floor) {
 	auto in_range = [](int value, int low, int high) {return (value >= low) && (value <= high); };
 	
 	if (in_range(floor,  1, 19)) { return  6; }
@@ -64,10 +57,8 @@ int bpStageArea(int floor)
 	return -1;
 }
 
-int jumpToStage(int stage)
-{
-    switch (stage)
-    {
+int jumpToStage(int stage) {
+    switch (stage) {
     case 0:
         return 503; // "Bloody Palace 20"
     case 1:
@@ -94,8 +85,7 @@ int jumpToStage(int stage)
     return -1;
 }
 
-void randomize_bp_floors()
-{
+void randomize_bp_floors() {
     numberOfCompleteFloors = 0;
     std::iota(bpArray.begin(), bpArray.end(), 2); // fill the list starting from 2
     std::random_device rd;                        // random device for shuffle
@@ -103,8 +93,7 @@ void randomize_bp_floors()
     std::shuffle(bpArray.begin(), bpArray.end(), g);
 }
 
-void randomize_bp_bosses()
-{
+void randomize_bp_bosses() {
     numberOfCompleteBosses = 0;
     bossArray[0] = 20;
     bossArray[1] = 40;
@@ -116,15 +105,13 @@ void randomize_bp_bosses()
     std::shuffle(bossArray.begin(), bossArray.end(), g);
 }
 
-void randomize_bp_bosses_area_id(void)
-{
+void randomize_bp_bosses_area_id(void) {
     bossRoomID = bossArray[numberOfCompleteBosses];
     bossAreaID = jumpToStage(bpStageArea(bossRoomID));
     numberOfCompleteBosses++;
 }
 
-void bp_start() // first bp detour
-{
+void bp_start() { // first bp detour
     // randomize bp floors
     randomize_bp_floors();
 
@@ -135,10 +122,8 @@ void bp_start() // first bp detour
     areaJumpID = 705;
 }
 
-void bp_continue() // other bp detours
-{
-    if (numberOfCompleteFloors == 100) // + 1
-    {
+void bp_continue() { // other bp detours
+    if (numberOfCompleteFloors == 100) { // + 1
         bpFloor = 101;
         areaJumpID = -1;
         return;
@@ -154,8 +139,7 @@ void bp_continue() // other bp detours
     numberOfCompleteFloors++;
 }
 
-naked void bpJumpHook_proc(void) // Initial load of BP
-{
+naked void bpJumpHook_proc(void) { // Initial load of BP
     _asm {
         cmp byte ptr [bpBossRush], 1
         je bossrush
@@ -210,8 +194,7 @@ naked void bpJumpHook_proc(void) // Initial load of BP
     }
 }
 
-naked void bpJumpHook2_proc(void) // called every time you enter a teleporter
-{
+naked void bpJumpHook2_proc(void) { // called every time you enter a teleporter
     _asm {
         push eax
         mov eax, [staticMediatorPtr]
@@ -277,51 +260,42 @@ naked void bpJumpHook2_proc(void) // called every time you enter a teleporter
     }
 }
 
-void BpJumpHook::toggle(bool enable) // randomized bp
-{
-    if (enable)
-    {
+void BpJumpHook::toggle(bool enable) { // randomized bp
+    if (enable) {
         install_patch_offset(0x04B808, patch, "\x90\x90\x90\x90", 4);
         install_patch_offset(0x04C200, patch2, "\x90\x90\x90\x90\x90", 5);
     }
-    else
-    {
+    else {
         patch.revert();
         patch2.revert();
     }
 }
 
-void BpJumpHook::toggle2(bool enable) // boss rush
-{
-    if (enable)
-    {
+void BpJumpHook::toggle2(bool enable) { // boss rush
+    if (enable) {
+        // swap the first loaded stage with a boss stage
+        // iirc this was written before stage randomizing which is why I didn't randomize stage 1
         install_patch_offset(0x04AB8E2, patch3, BossStartIDs[0], 3);
     }
-    else
-    {
+    else {
         install_patch_offset(0x04AB8E2, patch3, BossStartIDs[6], 3);
     }
 }
 
-std::optional<std::string> BpJumpHook::onInitialize()
-{
-    if (!install_hook_offset(0x4AB8FA, hook, &bpJumpHook_proc, &BpJumpHook::_bpJumpHookContinue, 7))
-    {
+std::optional<std::string> BpJumpHook::onInitialize() {
+    if (!install_hook_offset(0x4AB8FA, hook, &bpJumpHook_proc, &BpJumpHook::_bpJumpHookContinue, 7)) {
         HL_LOG_ERR("Failed to init BpJumpHook mod\n");
         return "Failed to init BpJumpHook mod";
     }
-    if (!install_hook_offset(0x04A974, hook2, &bpJumpHook2_proc, &BpJumpHook::_bpJumpHook2Continue, 6))
-    {
+    if (!install_hook_offset(0x04A974, hook2, &bpJumpHook2_proc, &BpJumpHook::_bpJumpHook2Continue, 6)) {
         HL_LOG_ERR("Failed to init BpJumpHook mod\n");
         return "Failed to init BpJumpHook2 mod";
     }
     return Mod::onInitialize();
 }
 
-void BpJumpHook::onGUIframe()
-{
-    if (ImGui::Checkbox("Randomize BP", &modEnabled))
-    {
+void BpJumpHook::onGUIframe() {
+    if (ImGui::Checkbox("Randomize BP", &modEnabled)) {
         toggle(modEnabled);
         //bp_start();
 
@@ -331,8 +305,7 @@ void BpJumpHook::onGUIframe()
     ImGui::SameLine(0, 1);
     HelpMarker("Enable before starting BP");
     ImGui::SameLine(205);
-    if (ImGui::Checkbox("Boss Rush", &bpBossRush))
-    {
+    if (ImGui::Checkbox("Boss Rush", &bpBossRush)) {
         toggle2(bpBossRush);
 
         modEnabled = false;
@@ -340,9 +313,8 @@ void BpJumpHook::onGUIframe()
     }
     ImGui::SameLine(0, 1);
     HelpMarker("Enable before starting BP");
-    /*
-    if (ImGui::CollapsingHeader("[debug] What stages did you roll?"))
-    {
+    
+    /*if (ImGui::CollapsingHeader("[debug] What stages did you roll?")) {
         ImGui::Text("Stage Number");
         ImGui::SameLine(205);
         ImGui::Text("Random Stage");
@@ -352,28 +324,24 @@ void BpJumpHook::onGUIframe()
         ImGui::Text("1");
 
         int stageCount = 2; 
-        for (int i : bpArray)
-        {
+        for (int i : bpArray) {
             ImGui::Text("%i",stageCount);
             stageCount++;
             ImGui::SameLine(205);
             ImGui::Text("%i", i);
         }
         ImGui::Separator();
-    }
-    */
+    }*/
 }
 
-void BpJumpHook::onConfigLoad(const utils::Config& cfg)
-{
+void BpJumpHook::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("randomize_bp").value_or(false);
     bpBossRush = cfg.get<bool>("bp_boss_rush").value_or(false);
     toggle(modEnabled);
     toggle2(bpBossRush);
 }
 
-void BpJumpHook::onConfigSave(utils::Config& cfg)
-{
+void BpJumpHook::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("randomize_bp", modEnabled);
     cfg.set<bool>("bp_boss_rush", bpBossRush);
 }

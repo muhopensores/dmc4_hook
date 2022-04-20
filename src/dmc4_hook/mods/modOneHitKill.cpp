@@ -83,13 +83,13 @@ void OneHitKill::onConfigLoad(const utils::Config& cfg) {
     oneHitKill = cfg.get<bool>("one_hit_kill").value_or(false);
     hotkey = cfg.get<int>("one_hit_kill_hotkey").value_or(0x72); // F3
     NoDeathToggle(cantDie);
-};
+}
 
 void OneHitKill::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("no_death", cantDie);
     cfg.set<bool>("one_hit_kill", oneHitKill);
     cfg.set<int>("one_hit_kill_hotkey", hotkey);
-};
+}
 
 void OneHitKill::onUpdateInput(hl::Input& input) {
     if (!input.isDown(EnemySpawn::hotkeySpawnModifier)) {

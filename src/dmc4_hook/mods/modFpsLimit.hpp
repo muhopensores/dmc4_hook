@@ -5,7 +5,7 @@
 class FpsLimit : public Mod
 {
 public:
-    FpsLimit();
+    FpsLimit() = default;
 
     static bool modEnabled;
     static uintptr_t jmp_return;

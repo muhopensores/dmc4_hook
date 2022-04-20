@@ -5,7 +5,7 @@
 class TrickDown : public Mod
 {
 public:
-    TrickDown();
+    TrickDown() = default;
 
     static bool modEnabled;
     static uintptr_t trick_down_jmp_ret;

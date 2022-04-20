@@ -17,8 +17,7 @@ void FastSprint::toggle(bool enable) {
     }
 }
 
-void FastSprint::onGUIframe()
-{
+void FastSprint::onGUIframe() {
     if (ImGui::Checkbox("Fast Sprint", &modEnabled)) {
         toggle(modEnabled);
     }
@@ -27,10 +26,10 @@ void FastSprint::onGUIframe()
 void FastSprint::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("fast_sprint").value_or(false);
     toggle(modEnabled);
-};
+}
 
 void FastSprint::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("fast_sprint", modEnabled);
-};
+}
 
 #endif

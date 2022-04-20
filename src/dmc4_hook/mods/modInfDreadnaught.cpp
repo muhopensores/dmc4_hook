@@ -5,8 +5,7 @@
 bool InfDreadnaught::modEnabled{ false };
 uintptr_t InfDreadnaught::_infDreadnaughtContinue{ NULL };
 
-naked void infDreadnaught_proc(void)
-{
+naked void infDreadnaught_proc(void) {
     _asm {
 		cmp byte ptr [InfDreadnaught::modEnabled], 0
         je code
@@ -25,10 +24,8 @@ naked void infDreadnaught_proc(void)
     }
 }
 
-std::optional<std::string> InfDreadnaught::onInitialize()
-{
-    if (!install_hook_offset(0x3BDB76, hook, &infDreadnaught_proc, &InfDreadnaught::_infDreadnaughtContinue, 6))
-    {
+std::optional<std::string> InfDreadnaught::onInitialize() {
+    if (!install_hook_offset(0x3BDB76, hook, &infDreadnaught_proc, &InfDreadnaught::_infDreadnaughtContinue, 6)) {
         HL_LOG_ERR("Failed to init InfDreadnaught mod\n");
         return "Failed to init InfDreadnaught mod";
     }
@@ -36,38 +33,29 @@ std::optional<std::string> InfDreadnaught::onInitialize()
     return Mod::onInitialize();
 }
 
-void InfDreadnaught::toggle(bool enable)
-{
-    if (enable)
-    {
+void InfDreadnaught::toggle(bool enable) {
+    if (enable) {
         install_patch_offset(0x3BDCE2, patch, "\x90\x90\x90\x90\x90\x90", 6);
     }
-    else
-    {
+    else {
         patch.revert();
     }
 }
 
-void InfDreadnaught::onGUIframe()
-{
-    // from main.cpp
-    // line 905 -> main->getMods()->onDrawUI("InfDreadnaught"_hash);
-    if (ImGui::Checkbox("Infinite Dreadnaught", &modEnabled))
-    {
+void InfDreadnaught::onGUIframe() {
+    if (ImGui::Checkbox("Infinite Dreadnaught", &modEnabled)) {
         toggle(modEnabled);
     }
 }
 
-void InfDreadnaught::onConfigLoad(const utils::Config& cfg)
-{
+void InfDreadnaught::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("inf_dreadnaught").value_or(false);
     toggle(modEnabled);
-};
+}
 
-void InfDreadnaught::onConfigSave(utils::Config& cfg)
-{
+void InfDreadnaught::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("inf_Dreadnaught", modEnabled);
-};
+}
 
 #endif
 

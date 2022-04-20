@@ -5,7 +5,7 @@
 class NoHbKnockback : public Mod {
 public:
 
-	NoHbKnockback();
+	NoHbKnockback() = default;
 
 	static bool      modEnabled;
 	static uintptr_t _noHelmBreakerKnockbackContinue;// = 0x0051C389;

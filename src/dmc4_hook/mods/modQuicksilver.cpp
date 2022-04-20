@@ -241,7 +241,7 @@ void Quicksilver::onFrame(fmilliseconds& dt) {
     if (m_timer) {
         m_timer->tick(dt);
     }
-};
+}
 
 void Quicksilver::onGUIframe() {
     ImGui::Checkbox("Quicksilver", &quicksilverEnabled);
@@ -285,9 +285,9 @@ void Quicksilver::onUpdateInput(hl::Input& input) {
 void Quicksilver::onConfigLoad(const utils::Config& cfg) {
     quicksilverEnabled = cfg.get<bool>("quicksilver_enabled").value_or(false);
     hotkey = cfg.get<int>("quicksilver_hotkey").value_or(0xBB); // =
-};
+}
 
 void Quicksilver::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("quicksilver_enabled", quicksilverEnabled);
     cfg.set<int>("quicksilver_hotkey", hotkey);
-};
+}

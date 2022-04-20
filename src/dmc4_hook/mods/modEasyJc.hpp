@@ -5,7 +5,7 @@
 class EasyJc : public Mod
 {
 public:
-    EasyJc();
+    EasyJc()= default;
 
     static bool modEnabled;
     static uintptr_t _easyJcContinue;

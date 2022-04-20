@@ -278,11 +278,11 @@ std::optional<std::string> InputStates::onInitialize() {
 
 void InputStates::onConfigLoad(const utils::Config& cfg) {
     touchpadRoseEnabled = cfg.get<bool>("taunt_ectasy").value_or(false);
-};
+}
 
 void InputStates::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("taunt_ectasy", touchpadRoseEnabled);
-};
+}
 
 void InputStates::onGUIframe() {
     ImGui::Checkbox("Taunt Ecstasy", &touchpadRoseEnabled);

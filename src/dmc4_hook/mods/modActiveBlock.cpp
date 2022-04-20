@@ -6,16 +6,10 @@ bool ActiveBlock::modEnabled{ false };
 uintptr_t ActiveBlock::alt_ret{ 0x007BBE76 };
 
 uintptr_t ActiveBlock::jmp_return2{ NULL };
-// int currentStyle = 0;
 
 uintptr_t ActiveBlock::jmp_return3{ NULL };
 uintptr_t ActiveBlock::alt_ret3{ 0x007BBAC1 };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
-
-ActiveBlock::ActiveBlock()
-{
-    // onInitialize();
-}
 
 naked void detour3() {
     _asm {
@@ -44,29 +38,24 @@ naked void detour3() {
     }
 }
 
-std::optional<std::string> ActiveBlock::onInitialize()
-{
-    if (!install_hook_offset(0x3BBAAE, hook3, &detour3, &jmp_return3, 7))
-    {
+std::optional<std::string> ActiveBlock::onInitialize() {
+    if (!install_hook_offset(0x3BBAAE, hook3, &detour3, &jmp_return3, 7)) {
         HL_LOG_ERR("Failed to init ActiveBlock3 mod\n");
         return "Failed to init ActiveBlock3 mod";
     }
     return Mod::onInitialize();
 }
 
-void ActiveBlock::onGUIframe()
-{
+void ActiveBlock::onGUIframe() {
     ImGui::Checkbox("Active Block", &modEnabled);
     ImGui::SameLine(0, 1);
     HelpMarker("Block during uncancellable frames");
 }
 
-void ActiveBlock::onConfigLoad(const utils::Config& cfg)
-{
+void ActiveBlock::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("active_block").value_or(false);
-};
+}
 
-void ActiveBlock::onConfigSave(utils::Config& cfg)
-{
+void ActiveBlock::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("active_block", modEnabled);
-};
+}

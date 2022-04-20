@@ -8,8 +8,7 @@ bool       SelectiveCancels::selectiveCancelsEnable = false;
 uint32_t   SelectiveCancels::cancels = 0;
 uintptr_t  SelectiveCancels::_selectiveCancelsContinue = 0x0080332F;
 
-naked void selectiveCancels_proc()
-{
+naked void selectiveCancels_proc() {
 	_asm {
 		cmp byte ptr [SelectiveCancels::selectiveCancelsEnable], 0
 		je originalcode
@@ -111,10 +110,6 @@ naked void selectiveCancels_proc()
 	}
 }
 
-SelectiveCancels::SelectiveCancels() {
-	//onInitialize();
-}
-
 std::optional<std::string> SelectiveCancels::onInitialize() {
 	if (!install_hook_offset(0x40332A, detour, &selectiveCancels_proc, 0, 6)) {
 		HL_LOG_ERR("Failed to init SelectiveCancels\n");
@@ -126,8 +121,7 @@ std::optional<std::string> SelectiveCancels::onInitialize() {
 inline void SelectiveCancels::drawCheckboxSimple(const char* name, CANCEL_MOVES move) {
 	// bitwise [AND cancels, move] to extract the bit that matters to us.
 	bool check = (cancels & move) > 0;
-	if (ImGui::Checkbox(name, &check))
-	{
+	if (ImGui::Checkbox(name, &check)) {
 		if (check) {
 			// checking checkboxes in GUI applies bitwise [OR cancels, move] to set the bit.
 			cancels |= move;
@@ -139,7 +133,7 @@ inline void SelectiveCancels::drawCheckboxSimple(const char* name, CANCEL_MOVES 
 			cancels ^= move;
 		}
 	}
-};
+}
 
 void SelectiveCancels::onGUIframe() {
 	ImGui::Text("Selective Cancels");
@@ -182,17 +176,17 @@ void SelectiveCancels::onGUIframe() {
 	ImGui::Spacing();
 	ImGui::Separator();
 	ImGui::Spacing();
-};
+}
 
 void SelectiveCancels::onConfigSave(utils::Config& cfg) {
 	cfg.set<bool>("selective_cancels", selectiveCancelsEnable);
 	cfg.set<uint32_t>("cancels", cancels);
-};
+}
 
 void SelectiveCancels::onConfigLoad(const utils::Config& cfg) {
 	selectiveCancelsEnable = cfg.get<bool>("selective_cancels").value_or(false);
 	cancels = cfg.get<uint32_t>("cancels").value_or(0);
-};
+}
 
 #else
 // using variable external to the module. In this case moveID.

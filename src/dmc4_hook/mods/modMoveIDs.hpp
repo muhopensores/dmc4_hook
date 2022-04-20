@@ -4,7 +4,7 @@
 
 class MoveIds : public Mod {
 public:
-	MoveIds();
+	MoveIds() = default;
 
 	static uintptr_t jmp_return;
 	static uint32_t  moveID;

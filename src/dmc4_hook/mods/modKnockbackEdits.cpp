@@ -77,13 +77,8 @@ public:
 
 }; // Size=0x1840
 */
-KnockbackEdits::KnockbackEdits()
-{
-    // onInitialize();
-}
 
-naked void detour() // projectiles?
-{
+naked void detour() { // projectiles?
     _asm {
         mov esi, edx // edx = string of move at the start of info
         repe movsd // esi incs 4 every repe movsd starting at edx
@@ -111,10 +106,8 @@ naked void detour() // projectiles?
     }
 }
 
-std::optional<std::string> KnockbackEdits::onInitialize()
-{
-    if (!install_hook_offset(0x1099F8, hook, &detour, &jmp_return, 5)) // projectiles?
-    {
+std::optional<std::string> KnockbackEdits::onInitialize() {
+    if (!install_hook_offset(0x1099F8, hook, &detour, &jmp_return, 5)) { // projectiles?
         HL_LOG_ERR("Failed to init KnockbackEdits mod\n");
         return "Failed to init KnockbackEdits mod";
     }
@@ -122,22 +115,19 @@ std::optional<std::string> KnockbackEdits::onInitialize()
     return Mod::onInitialize();
 }
 
-void KnockbackEdits::onGUIframe()
-{
+void KnockbackEdits::onGUIframe() {
     //ImGui::Checkbox("Stun/Knockback Edits", &modEnabled);
     ImGui::Checkbox("Release Always Stuns", &releaseStuns);
 }
 
-void KnockbackEdits::onConfigLoad(const utils::Config& cfg)
-{
+void KnockbackEdits::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("knockback_edits").value_or(false);
     releaseStuns = cfg.get<bool>("release_always_stuns").value_or(false);
-};
+}
 
-void KnockbackEdits::onConfigSave(utils::Config& cfg)
-{
+void KnockbackEdits::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("knockback_edits", modEnabled);
     cfg.set<bool>("release_always_stuns", releaseStuns);
-};
+}
 
 #endif

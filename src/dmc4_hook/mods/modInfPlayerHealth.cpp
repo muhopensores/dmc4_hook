@@ -4,13 +4,7 @@
 bool InfPlayerHealth::modEnabled{ false };
 uintptr_t InfPlayerHealth::jmp_ret{ NULL };
 
-InfPlayerHealth::InfPlayerHealth()
-{
-	//onInitialize();
-}
-
-naked void detour(void)
-{
+naked void detour(void) {
 	_asm {
 			cmp byte ptr [InfPlayerHealth::modEnabled], 0
 			je originalcode
@@ -24,9 +18,7 @@ naked void detour(void)
 }
 
 std::optional<std::string> InfPlayerHealth::onInitialize() {
-
-	if (!install_hook_offset(0x00FF282, hook, &detour, &jmp_ret, 8))
-    {
+	if (!install_hook_offset(0x00FF282, hook, &detour, &jmp_ret, 8)) {
 		HL_LOG_ERR("Failed to init InfPlayerHealth mod\n");
 		return "Failed to init InfPlayerHealth mod";
 	}
@@ -39,8 +31,8 @@ void InfPlayerHealth::onGUIframe() {
 
 void InfPlayerHealth::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("infinite_player_health").value_or(false);
-};
+}
 
 void InfPlayerHealth::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("infinite_player_health", modEnabled);
-};
+}

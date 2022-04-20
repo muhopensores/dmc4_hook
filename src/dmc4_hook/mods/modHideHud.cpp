@@ -278,7 +278,6 @@ void HideHud::toggleStyle(bool enable) {
 }
 void HideHud::toggleTimer(bool enable) {
     if (enable) {
-        
         install_patch_offset(0x0FDE2A, patchbp, "\x00", 1);
         install_patch_offset(0x0FE088, patchbpplus, "\x90\x90\x90\x90", 4);
         install_patch_offset(0x102DF7, patchbpstageclearbonus1, "\x90\x90\x90\x90", 4);

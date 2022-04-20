@@ -5,7 +5,7 @@
 class InfPlayerHealth : public Mod
 {
 public:
-    InfPlayerHealth();
+    InfPlayerHealth() = default;
 
     static bool modEnabled;
     static uintptr_t jmp_ret;

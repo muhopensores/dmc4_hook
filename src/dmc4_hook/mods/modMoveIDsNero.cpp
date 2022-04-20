@@ -5,13 +5,7 @@
 uintptr_t MoveIdsNero::jmp_return{ NULL };
 uint32_t MoveIdsNero::moveIDNero{ 0 };
 
-MoveIdsNero::MoveIdsNero()
-{
-    // onInitialize();
-}
-
-naked void detour()
-{
+naked void detour() {
     _asm {
 		mov [MoveIdsNero::moveIDNero], esi
         mov [MoveIds::moveID], 0 // for hb knockback
@@ -20,8 +14,7 @@ naked void detour()
     }
 }
 
-std::optional<std::string> MoveIdsNero::onInitialize()
-{
+std::optional<std::string> MoveIdsNero::onInitialize() {
     if (!install_hook_offset(0x4212B6, hook, &detour, &jmp_return, 6))
     {
         HL_LOG_ERR("Failed to init MoveIdsNero mod\n");
@@ -30,4 +23,5 @@ std::optional<std::string> MoveIdsNero::onInitialize()
 
     return Mod::onInitialize();
 }
+
 #endif

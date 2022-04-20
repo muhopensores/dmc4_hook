@@ -5,13 +5,7 @@ bool NeroSnatchLength::modEnabled{ false };
 uintptr_t NeroSnatchLength::jmp_ret{ NULL };
 float desiredSnatchLength = 2550.0f; // 3x lv3
 
-NeroSnatchLength::NeroSnatchLength()
-{
-	//onInitialize();
-}
-
-naked void detour(void)
-{
+naked void detour(void) {
 	_asm {
 			cmp byte ptr [NeroSnatchLength::modEnabled], 0
 			je originalcode
@@ -26,9 +20,7 @@ naked void detour(void)
 }
 
 std::optional<std::string> NeroSnatchLength::onInitialize() {
-
-	if (!install_hook_offset(0x03E7CBE, hook, &detour, &jmp_ret, 9))
-    {
+	if (!install_hook_offset(0x03E7CBE, hook, &detour, &jmp_ret, 9)) {
 		HL_LOG_ERR("Failed to init NeroSnatchLength mod\n");
 		return "Failed to init NeroSnatchLength mod";
 	}
@@ -41,8 +33,8 @@ void NeroSnatchLength::onGUIframe() {
 
 void NeroSnatchLength::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("nero_increased_snatch_range").value_or(false);
-};
+}
 
 void NeroSnatchLength::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("nero_increased_snatch_range", modEnabled);
-};
+}

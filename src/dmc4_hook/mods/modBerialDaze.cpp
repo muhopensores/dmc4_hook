@@ -4,13 +4,7 @@
 bool BerialDaze::modEnabled{ false };
 uintptr_t BerialDaze::jmp_ret{ NULL };
 
-BerialDaze::BerialDaze()
-{
-	//onInitialize();
-}
-
-naked void detour(void)
-{
+naked void detour(void) {
 	_asm {
 			cmp byte ptr [BerialDaze::modEnabled], 0
 			je originalcode
@@ -26,22 +20,17 @@ naked void detour(void)
 	}
 }
 
-void BerialDaze::toggle(bool enable)
-{
-    if (enable)
-    {
+void BerialDaze::toggle(bool enable) {
+    if (enable) {
         install_patch_offset(0x23515B, patch, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
     }
-    else
-    {
+    else {
         patch.revert();
     }
 }
 
 std::optional<std::string> BerialDaze::onInitialize() {
-
-	if (!install_hook_offset(0x024271A, hook, &detour, &jmp_ret, 8))
-    {
+	if (!install_hook_offset(0x024271A, hook, &detour, &jmp_ret, 8)) {
 		HL_LOG_ERR("Failed to init BerialDaze mod\n");
 		return "Failed to init BerialDaze mod";
 	}
@@ -49,9 +38,7 @@ std::optional<std::string> BerialDaze::onInitialize() {
 }
 
 void BerialDaze::onGUIframe() {
-
-    if (ImGui::Checkbox("Berial Daze", &modEnabled))
-    {
+    if (ImGui::Checkbox("Berial Daze", &modEnabled)) {
         toggle(modEnabled);
     }
 }
@@ -59,8 +46,8 @@ void BerialDaze::onGUIframe() {
 void BerialDaze::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("berial_practice").value_or(false);
     toggle(modEnabled);
-};
+}
 
 void BerialDaze::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("berial_practice", modEnabled);
-};
+}

@@ -7,8 +7,7 @@ bool LdkWithDmd::modEnabled{ false };
 uintptr_t LdkWithDmd::_ldkWithDmdContinue{ NULL };
 
 
-naked void ldkWithDmd_proc(void)
-{
+naked void ldkWithDmd_proc(void) {
     _asm {
         cmp [LdkWithDmd::modEnabled], 0
         je code
@@ -53,8 +52,7 @@ void LdkWithDmd::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("ldk_with_dmd").value_or(false);
 }
 
-void LdkWithDmd::onConfigSave(utils::Config& cfg)
-{
+void LdkWithDmd::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("ldk_with_dmd", modEnabled);
 }
 

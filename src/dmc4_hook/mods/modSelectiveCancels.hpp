@@ -19,7 +19,7 @@ enum CANCEL_MOVES {       // bits table
 
 class SelectiveCancels : public Mod {
 public:
-	SelectiveCancels();
+	SelectiveCancels() = default;
 
 	static bool      selectiveCancelsEnable;// = false;
 	static uint32_t  cancels;// = 0;

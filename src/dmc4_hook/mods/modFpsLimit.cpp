@@ -5,13 +5,7 @@ bool FpsLimit::modEnabled{ false };
 uintptr_t FpsLimit::jmp_return{ NULL };
 float FpsLimit::newfpslimit{ 120.0f };
 
-FpsLimit::FpsLimit()
-{
-    // onInitialize();
-}
-
-naked void detour()
-{
+naked void detour() {
     _asm {
         cmp byte ptr [FpsLimit::modEnabled], 0
         je code
@@ -25,10 +19,8 @@ naked void detour()
     }
 }
 
-std::optional<std::string> FpsLimit::onInitialize()
-{
-    if (!install_hook_offset(0x50D89C, hook, &detour, &jmp_return, 5))
-    {
+std::optional<std::string> FpsLimit::onInitialize() {
+    if (!install_hook_offset(0x50D89C, hook, &detour, &jmp_return, 5)) {
         HL_LOG_ERR("Failed to init FpsLimit mod\n");
         return "Failed to init FpsLimit mod";
     }
@@ -36,10 +28,7 @@ std::optional<std::string> FpsLimit::onInitialize()
     return Mod::onInitialize();
 }
 
-void FpsLimit::onGUIframe()
-{
-    // from main.cpp
-    // line 907 -> main->getMods()->onDrawUI("NoClip"_hash);
+void FpsLimit::onGUIframe() {
     ImGui::Checkbox("Override FPS Limit", &modEnabled);
     ImGui::PushItemWidth(217);
     ImGui::InputFloat("New FPS Limit", &newfpslimit, 1.0f, 1.0f, "%.0f");
@@ -47,16 +36,14 @@ void FpsLimit::onGUIframe()
     ImGui::Spacing();
 }
 
-void FpsLimit::onConfigLoad(const utils::Config& cfg)
-{
+void FpsLimit::onConfigLoad(const utils::Config& cfg) {
     modEnabled  = cfg.get<bool>("fps_limit").value_or(false);
 	newfpslimit = cfg.get<float>("new_fps_limit").value_or(120.0f);
-};
+}
 
-void FpsLimit::onConfigSave(utils::Config& cfg)
-{
+void FpsLimit::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("fps_limit", modEnabled);
     cfg.set<float>("new_fps_limit", newfpslimit);
-};
+}
 
 #endif

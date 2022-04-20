@@ -4,7 +4,7 @@
 
 class AreaJump : public Mod {
 public:
-	AreaJump();
+	AreaJump() = default;
 
 	static uintptr_t jmp_return;
 	static cAreaJump* cAreaJumpPtr;

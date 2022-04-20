@@ -8,8 +8,7 @@ std::optional<std::string> FreezeEnemies::onInitialize() {
     return Mod::onInitialize();
 }
 
-void FreezeEnemies::toggle(bool enable)
-{
+void FreezeEnemies::toggle(bool enable) {
     if (enable) {
         install_patch_offset(0x14256D, scarecrowPatch, "\x90\x90\x90", 3);
         install_patch_offset(0x1A5AAD, frostPatch, "\xEB", 1);

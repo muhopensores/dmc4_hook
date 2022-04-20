@@ -9,12 +9,7 @@ uintptr_t NoHbKnockback::_noHelmBreakerKnockbackContinue{ NULL }; // 0x0051C389
 uintptr_t NoHbKnockback::_noHelmBreakerKnockbackJE{ 0x0051C367 };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
-NoHbKnockback::NoHbKnockback() {
-	//onInitialize();
-}
-
-naked void noHelmBreakerKnockback_proc(void) // ebx+0x98 = player + CE20 // ebx+0xA4 = damage id stuff (e.g. RED-Split_00)
-{
+naked void noHelmBreakerKnockback_proc(void) { // ebx+0x98 = player + CE20 // ebx+0xA4 = damage id stuff (e.g. RED-Split_00)
 	_asm {
 			cmp byte ptr [NoHbKnockback::modEnabled], 1
 			je cheatcode
@@ -55,7 +50,6 @@ naked void noHelmBreakerKnockback_proc(void) // ebx+0x98 = player + CE20 // ebx+
 			je newcode
 			jmp originalcode
 
-
 		newcode:
 			cmp ecx,0x05
 			je nohelmbreakerknockbackje
@@ -67,9 +61,7 @@ naked void noHelmBreakerKnockback_proc(void) // ebx+0x98 = player + CE20 // ebx+
 }
 
 std::optional<std::string> NoHbKnockback::onInitialize() {
-
-	if (!install_hook_offset(0x11C384, hook, &noHelmBreakerKnockback_proc, &_noHelmBreakerKnockbackContinue, 5))
-    {
+	if (!install_hook_offset(0x11C384, hook, &noHelmBreakerKnockback_proc, &_noHelmBreakerKnockbackContinue, 5)) {
 		HL_LOG_ERR("Failed to init NoHelmBreakerKnockback mod\n");
 		return "Failed to init NoHelmBreakerKnockback mod";
 	}
@@ -78,15 +70,13 @@ std::optional<std::string> NoHbKnockback::onInitialize() {
 }
 
 void NoHbKnockback::onGUIframe() {
-	// from main.cpp
-	// line 1352 -> if (ImGui::Checkbox("No Helm Breaker Knockback", &checkNoHelmBreakerKnockback))
 	ImGui::Checkbox("No Helm Breaker Knockdown", &modEnabled);
 }
 
 void NoHbKnockback::onConfigLoad(const utils::Config& cfg) {
 	modEnabled = cfg.get<bool>("no_helmbreaker_knockback").value_or(false);
-};
+}
 
 void NoHbKnockback::onConfigSave(utils::Config& cfg) {
 	cfg.set<bool>("no_helmbreaker_knockback", modEnabled);
-};
+}

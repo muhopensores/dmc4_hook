@@ -27,26 +27,16 @@ call damage
 */
 
 int RestoreMaxHp::getEnemySpecificDamageOffset(int enemyID) {
-    switch (enemyID)
-    {
-    // 0x152C
-    case 0x0: // Scarecrow Leg
-        return 0x152C;
-    case 0x1: // Scarecrow Arm
-        return 0x152C;
-    case 0x3: // Scarecrow Mega
-        return 0x152C;
-
+    switch (enemyID) {
     // 0x1500
-    case 0x8: // mephisto
+    case 0x8: // Mephisto
         return 0x1500;
-    case 0x9: // faust
+    case 0x9: // Faust
         return 0x1500;
-    case 0xB: // assault
+    case 0xB: // Assault
         return 0x1500;
-    case 0x10: // gladius
+    case 0x10: // Gladius
         return 0x1500;
-
 
     // 0x1504
     case 0x5: // Alto
@@ -61,6 +51,14 @@ int RestoreMaxHp::getEnemySpecificDamageOffset(int enemyID) {
     // 1508
     case 0xF: // Cutlass
         return 0x1508;
+
+    // 0x152C
+    case 0x0: // Scarecrow Leg
+        return 0x152C;
+    case 0x1: // Scarecrow Arm
+        return 0x152C;
+    case 0x3: // Scarecrow Mega
+        return 0x152C;
 
     // 7FC4
     case 0x11: // Basilisk

@@ -17,8 +17,7 @@ void InstantTrick::toggle(bool enable) {
     }
 }
 
-void InstantTrick::onGUIframe()
-{
+void InstantTrick::onGUIframe() {
     if (ImGui::Checkbox("Instant Trick", &modEnabled)) {
         toggle(modEnabled);
     }
@@ -27,10 +26,10 @@ void InstantTrick::onGUIframe()
 void InstantTrick::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("instant_trick").value_or(false);
     toggle(modEnabled);
-};
+}
 
 void InstantTrick::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("instant_trick", modEnabled);
-};
+}
 
 #endif

@@ -25,8 +25,8 @@ void InfTrickRange::onGUIframe() {
 void InfTrickRange::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("infinite_trick_range").value_or(false);
     toggle(modEnabled);
-};
+}
 
 void InfTrickRange::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("infinite_trick_range", modEnabled);
-};
+}

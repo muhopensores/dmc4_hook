@@ -5,7 +5,7 @@
 class BpJumpHook : public Mod
 {
 public:
-    BpJumpHook();
+    BpJumpHook() = default;
 
     static bool modEnabled;
     static uintptr_t _bpJumpHookContinue;

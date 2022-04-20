@@ -5,7 +5,7 @@
 class NeroSnatchLength : public Mod
 {
 public:
-    NeroSnatchLength();
+    NeroSnatchLength() = default;
 
     static bool modEnabled;
     static uintptr_t jmp_ret;

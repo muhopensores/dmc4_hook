@@ -13,11 +13,6 @@ float TimerMem::timerMem = 0.0f;
 float timerMemTick = 2.0f;
 float xmmbackup = 0.0f;
 
-TimerMem::TimerMem()
-{
-	//onInitialize();
-}
-
 naked void timerDetour(void) { // ticks timer, player in ecx
 	_asm {
 			cmp byte ptr [TrickDown::modEnabled], 1
@@ -149,8 +144,7 @@ naked void backForwardDetour(void) { // resets timer, player in ebx
 
 std::optional<std::string> TimerMem::onInitialize() {
 
-	if (!install_hook_offset(0x003AD767, timerHook, &timerDetour, &timer_jmp_ret, 13))
-    {
+	if (!install_hook_offset(0x003AD767, timerHook, &timerDetour, &timer_jmp_ret, 13)) {
 		HL_LOG_ERR("Failed to init TimerMem mod\n");
 		return "Failed to init TimerMem mod";
 	}
@@ -169,8 +163,8 @@ void TimerMem::onGUIframe() {
 
 void TimerMem::onConfigLoad(const utils::Config& cfg) {
     instantHoneycombEnabled = cfg.get<bool>("instant_honeycomb").value_or(false);
-};
+}
 
 void TimerMem::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("instant_honeycomb", instantHoneycombEnabled);
-};
+}

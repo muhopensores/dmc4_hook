@@ -26,8 +26,7 @@ std::optional<std::string> EnemyStats::onInitialize() {
 }
 
 int EnemyStats::getEnemySpecificDamageOffset(int enemyID) {
-    switch (enemyID)
-    {
+    switch (enemyID) {
     // 0x152C
     case 0x0: // Scarecrow Leg
         return 0x152C;
@@ -45,7 +44,6 @@ int EnemyStats::getEnemySpecificDamageOffset(int enemyID) {
         return 0x1500;
     case 0x10: // gladius
         return 0x1500;
-
 
     // 0x1504
     case 0x5: // Alto
