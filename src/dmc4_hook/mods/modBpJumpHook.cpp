@@ -192,16 +192,15 @@ naked void bpJumpHook1_proc(void) { // Initial load of BP, picks stage to load
         pop edx
         pop ecx
         pop eax
-
         cmp byte ptr [bpBossRush], 1
         je bossrush
-
         push [stageStartID]
         jmp retcode
 
     bossrush:
         cmp byte ptr [BpJumpHook::modEnabled], 1
         je randombossrushstart
+    // if boss rush isn't randomized
         push [0x00E56568] // berial
         jmp retcode
 
@@ -249,7 +248,6 @@ naked void bpJumpHook2_proc(void) { // Initial load of BP
         mov edx, [bossAreaID]
         mov [eax+6Ch], edx
         pop edx
-
         jmp retcode
 
     code:
@@ -375,11 +373,11 @@ void BpJumpHook::onGUIframe() {
     if (ImGui::Checkbox("Randomize BP", &modEnabled)) {
         toggle(modEnabled);
     }
-    ImGui::SameLine(0, 1);
+    ImGui::SameLine();
     HelpMarker("Enable before starting BP");
     ImGui::SameLine(205);
     ImGui::Checkbox("Boss Rush", &bpBossRush);
-    ImGui::SameLine(0, 1);
+    ImGui::SameLine();
     HelpMarker("Enable before starting BP");
 
     if (modEnabled) {

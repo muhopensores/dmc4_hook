@@ -6,7 +6,7 @@ uintptr_t PlayerTracker::jmp_return{ NULL };
 uPlayer* PlayerTracker::player_ptr{ NULL };
 bool PlayerTracker::lockOnAlloc{ false };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8; // DevilMayCry4_DX9.exe+A558B8
-bool displayPlayerStats = false;
+static bool displayPlayerStats = false;
 
 /*void update_player_info(void) {
     sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;

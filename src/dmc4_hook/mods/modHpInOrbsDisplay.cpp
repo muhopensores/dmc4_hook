@@ -4,7 +4,7 @@
 
 bool HpInOrbsDisplay::modEnabled{ false };
 uintptr_t HpInOrbsDisplay::jmp_ret{ NULL };
-float xmm0backup{ NULL };
+static float xmm0backup{ NULL };
 
 naked void detour(void) {
     _asm {
@@ -39,7 +39,7 @@ std::optional<std::string> HpInOrbsDisplay::onInitialize() {
 
 void HpInOrbsDisplay::onGUIframe() {
     ImGui::Checkbox("Enemy HP Red Orb Display", &modEnabled);
-    ImGui::SameLine(0, 1);
+    ImGui::SameLine();
     HelpMarker("Display the last hit enemy's HP in the Red Orb count");
 }
 

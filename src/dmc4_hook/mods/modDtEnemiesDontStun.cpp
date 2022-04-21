@@ -4,8 +4,7 @@
 #if 1
 bool DtEnemiesDontStun::modEnabled{ false };
 
-std::optional<std::string> DtEnemiesDontStun::onInitialize()
-{
+std::optional<std::string> DtEnemiesDontStun::onInitialize() {
     return Mod::onInitialize();
 }
 
@@ -29,8 +28,7 @@ void DtEnemiesDontStun::onConfigLoad(const utils::Config& cfg) {
     toggle(modEnabled);
 }
 
-void DtEnemiesDontStun::onConfigSave(utils::Config& cfg)
-{
+void DtEnemiesDontStun::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("dt_enemies_dont_stun", modEnabled);
 }
 

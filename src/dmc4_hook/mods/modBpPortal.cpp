@@ -5,7 +5,7 @@
 
 bool BpPortal::modEnabled{ false };
 int BpPortal::hotkey{ NULL };
-BpPortal* g_mod{ nullptr };
+static BpPortal* g_mod{ nullptr };
 
 static void onTimerCallback()
 {
@@ -42,7 +42,7 @@ void BpPortal::onGUIframe()
     {
         toggle(modEnabled);
     }
-    ImGui::SameLine(0, 1);
+    ImGui::SameLine();
     HelpMarker("Sealed doors and portals open instantly");
 }
 

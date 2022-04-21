@@ -3,7 +3,7 @@
 
 bool DisableChimeraBlades::modEnabled{ false };
 uintptr_t DisableChimeraBlades::jmp_ret{ NULL };
-uintptr_t jmp_jne{ 0x05F1B0F };
+constexpr uintptr_t jmp_jne{ 0x05F1B0F };
 
 naked void detour(void) {
 	_asm {

@@ -3,7 +3,7 @@
 
 bool NeroSnatchLength::modEnabled{ false };
 uintptr_t NeroSnatchLength::jmp_ret{ NULL };
-float desiredSnatchLength = 2550.0f; // 3x lv3
+static float desiredSnatchLength = 2550.0f; // 3x lv3
 
 naked void detour(void) {
 	_asm {

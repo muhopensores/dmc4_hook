@@ -4,8 +4,8 @@
 #include "iostream"
 #if 1
 bool InfAllHealth::modEnabled{ false };
-bool playerInvincible{ false };
-bool enemyInvincible{ false };
+static bool playerInvincible{ false };
+static bool enemyInvincible{ false };
 int InfAllHealth::hotkey{ NULL };
 uintptr_t InfAllHealth::jmp_return{ NULL };
 

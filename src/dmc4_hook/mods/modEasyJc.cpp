@@ -5,7 +5,7 @@
 #if 1
 bool EasyJc::modEnabled{ false };
 uintptr_t EasyJc::_easyJcContinue{ NULL };
-float jcScale{1.5f};
+static float jcScale{1.5f};
 
 naked void easyJc_proc(void) {
     _asm {
@@ -44,7 +44,7 @@ void EasyJc::onGUIframe() {
     if (ImGui::Checkbox("Easy Enemy Step", &modEnabled)) {
         toggle(modEnabled);
     }
-    ImGui::SameLine(0, 1);
+    ImGui::SameLine();
     HelpMarker("50% bigger Enemy Step hitspheres");
 }
 

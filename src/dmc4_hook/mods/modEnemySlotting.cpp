@@ -3,7 +3,7 @@
 
 bool      EnemySlotting::modEnabled{ false };
 uintptr_t EnemySlotting::jmp_ret{ NULL };
-int newEnemySlotLimit = NULL;
+static int newEnemySlotLimit = NULL;
 
 // static uintptr_t enemySlottingMov{ 0x14EF4C40 }; // mov ecx,[DevilMayCry4_DX9.exe+A558AC] // mov ecx,[00E558AC]
 

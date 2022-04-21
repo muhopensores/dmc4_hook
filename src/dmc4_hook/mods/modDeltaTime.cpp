@@ -5,11 +5,6 @@ uintptr_t DeltaTime::jmp_return{ NULL };
 float DeltaTime::currentDeltaTime{ 0.0f };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
-DeltaTime::DeltaTime()
-{
-    // onInitialize();
-}
-
 naked void detour()
 {
     _asm {

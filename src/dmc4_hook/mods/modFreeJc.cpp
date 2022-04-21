@@ -24,7 +24,7 @@ void FreeJc::onGUIframe() {
     if (ImGui::Checkbox("Free Enemy Step", &modEnabled)) {
         toggle(modEnabled);
     }
-    ImGui::SameLine(0, 1);
+    ImGui::SameLine();
     HelpMarker("Enemy Step anywhere in the room with an enemy");
 }
 

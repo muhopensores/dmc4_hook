@@ -2,8 +2,7 @@
 
 bool SlowWalk::modEnabled{ false };
 
-std::optional<std::string> SlowWalk::onInitialize()
-{
+std::optional<std::string> SlowWalk::onInitialize() {
     return Mod::onInitialize();
 }
 
@@ -22,7 +21,7 @@ void SlowWalk::onGUIframe() {
     if (ImGui::Checkbox("Slow Walk", &modEnabled)) {
         toggle(modEnabled);
     }
-    ImGui::SameLine(0, 1);
+    ImGui::SameLine();
     HelpMarker("Walk slowly while holding the jump button");
 }
 

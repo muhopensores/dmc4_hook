@@ -2,15 +2,13 @@
 
 // bool DifficultySelect::modEnabled{ false };
 
-int gameDifficulty = 0;
+static int gameDifficulty = 0;
 
-std::optional<std::string> DifficultySelect::onInitialize()
-{
+std::optional<std::string> DifficultySelect::onInitialize() {
     return Mod::onInitialize();
 }
 
-void DifficultySelect::setDefault()
-{
+void DifficultySelect::setDefault() {
     install_patch_offset(0x004D6C7, patch1,  "\x87\x78\xc7", 3);
     install_patch_offset(0x0094AE7, patch2,  "\x14\x77", 2);
     install_patch_offset(0x0094B02, patch3,  "\x28\xad\xcb\x00\x8b\xc7", 6);
@@ -65,8 +63,7 @@ void DifficultySelect::setDefault()
 
 }
 
-void DifficultySelect::setDMD()
-{
+void DifficultySelect::setDMD() {
     // 1-29 are different on DMD compared to default, the rest are unchanged.
     install_patch_offset(0x004D6C7, patch1, "\x05\xa8\xcd\xde\x00", 3); // frosts jump out of combos outside of DT
     install_patch_offset(0x0094AE7, patch2,  "\x00\x77\x14", 2);
@@ -121,8 +118,7 @@ void DifficultySelect::setDMD()
                                              "\x00\x00\xe1\x44\x00\x00\x78\x30\x00\x00\x61\x45\x00\xc0\x28\x45\x00\xc0\x28\x45", 72);
 }
 
-void DifficultySelect::setGMD()
-{
+void DifficultySelect::setGMD() {
     // the below are copied from CE, remember hex
     // DevilMayCry4_DX9.exe+
     install_patch_offset(0x004D6C7, patch1, "\x05\xa8\xcd\xde\x00", 3);       // `fld dword ptr [edi+DevilMayCry4_DX9.exe+9EC778]` to `fld dword ptr `fld dword ptr [DevilMayCry4_DX9.exe+9ECDA8]` (1000.0f)
@@ -199,13 +195,10 @@ void DifficultySelect::setGMD()
     */
 }
 
-void DifficultySelect::onConfigLoad(const utils::Config& cfg)
-{
+void DifficultySelect::onConfigLoad(const utils::Config& cfg) {
     gameDifficulty = cfg.get<int>("game_difficulty").value_or(0);
-    if (gameDifficulty)
-    {
-        switch (gameDifficulty)
-        {
+    if (gameDifficulty) {
+        switch (gameDifficulty) {
         case 0:
             // setDefault(); // no need to set default on load
             break;
@@ -219,16 +212,13 @@ void DifficultySelect::onConfigLoad(const utils::Config& cfg)
     }
 }
 
-void DifficultySelect::onConfigSave(utils::Config& cfg)
-{
+void DifficultySelect::onConfigSave(utils::Config& cfg) {
     cfg.set<int>("game_difficulty", gameDifficulty);
 }
 
-void DifficultySelect::onGUIframe()
-{
+void DifficultySelect::onGUIframe() {
     ImGui::PushItemWidth(217);
-    if (ImGui::Combo("Game Mode", &gameDifficulty, "Default\0Dante Must Die\0God Must Die\0"))
-    {
+    if (ImGui::Combo("Game Mode", &gameDifficulty, "Default\0Dante Must Die\0God Must Die\0")) {
         switch (gameDifficulty)
         {
         case 0:

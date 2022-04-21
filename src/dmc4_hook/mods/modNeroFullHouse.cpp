@@ -22,7 +22,7 @@ uintptr_t NeroFullHouse::jmp_ret4{ NULL };
 uintptr_t NeroFullHouse::jmp_ret5{ NULL };
 uintptr_t NeroFullHouse::jmp_jne5{ 0X0042BA72 };
 
-float currentFrame = 0.0f;
+static float currentFrame = 0.0f;
 
 // DevilMayCry4_DX9.exe + 3B0300 - movss[esi+08] // xmm0 left + right stick rotation
 // DevilMayCry4_DX9.exe + 5B8C - mov[esp+10], DevilMayCry4_DX9.exe + 790C18 // "PlayerID"

@@ -10,7 +10,7 @@ uintptr_t OneHitKill::jmp_ret{ NULL };
 uintptr_t OneHitKill::jmp_out{ 0x0051C129 };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
-int oneHitKillHotkey;
+static int oneHitKillHotkey;
 
 void OneHitKill::NoDeathToggle(bool enable){ // no death 
     if (enable) {
@@ -68,7 +68,7 @@ void OneHitKill::onGUIframe() {
         //toggle2(oneHitKill);
         NoDeathToggle(cantDie);
     }
-    ImGui::SameLine(0, 1);
+    ImGui::SameLine();
     HelpMarker("Disables dying while still allowing hp to drop. Also stops Omen killing enemies.");
     ImGui::SameLine(205);
     if (ImGui::Checkbox("One Hit Kill", &oneHitKill)) {

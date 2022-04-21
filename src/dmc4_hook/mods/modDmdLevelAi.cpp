@@ -21,7 +21,7 @@ void DmdLevelAi::onGUIframe() {
     if (ImGui::Checkbox("DMD Level AI", &modEnabled)) {
         toggle(modEnabled);
     }
-    ImGui::SameLine(0, 1);
+    ImGui::SameLine();
     HelpMarker("Forces enemies to use the ingame DMD AI, even on non DMD difficulties");
 }
 

@@ -1,9 +1,9 @@
 #include "MessageDisplay.hpp"
 
-bool shouldDisplay = true;
+static bool shouldDisplay = true;
 
-bool enableGamepadNavigation = false;
-bool enableKeyboardNavigation = false;
+static bool enableGamepadNavigation = false;
+static bool enableKeyboardNavigation = false;
 
 void message::show() {
     if (shouldDisplay){

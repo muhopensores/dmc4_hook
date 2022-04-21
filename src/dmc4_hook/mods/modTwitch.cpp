@@ -6,7 +6,7 @@
 #include "hacklib/Logging.h" // TODO: log's not working for some reason idk
 
 static hlMain* g_main{};
-bool twitchLoginOnBoot = false;
+static bool twitchLoginOnBoot = false;
 
 #if 1
 // initialization

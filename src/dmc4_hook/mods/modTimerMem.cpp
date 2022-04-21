@@ -10,8 +10,8 @@ uintptr_t TimerMem::back_forward_jmp_ret{ 0x00805A60 };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
 float TimerMem::timerMem = 0.0f;
-float timerMemTick = 2.0f;
-float xmmbackup = 0.0f;
+static float timerMemTick = 2.0f;
+static float xmmbackup = 0.0f;
 
 naked void timerDetour(void) { // ticks timer, player in ecx
 	_asm {
@@ -143,7 +143,6 @@ naked void backForwardDetour(void) { // resets timer, player in ebx
 }
 
 std::optional<std::string> TimerMem::onInitialize() {
-
 	if (!install_hook_offset(0x003AD767, timerHook, &timerDetour, &timer_jmp_ret, 13)) {
 		HL_LOG_ERR("Failed to init TimerMem mod\n");
 		return "Failed to init TimerMem mod";
@@ -157,7 +156,7 @@ std::optional<std::string> TimerMem::onInitialize() {
 
 void TimerMem::onGUIframe() {
     ImGui::Checkbox("Instant Honeycomb", &instantHoneycombEnabled);
-    ImGui::SameLine(0, 1);
+    ImGui::SameLine();
     HelpMarker("Honeycomb Mapped To backforward + Gunslinger");
 }
 

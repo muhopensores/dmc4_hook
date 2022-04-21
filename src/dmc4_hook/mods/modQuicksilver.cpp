@@ -1,7 +1,7 @@
 #include "modQuicksilver.hpp"
 #include "glm/gtx/compatibility.hpp"
 
-bool quicksilverEnabled = false;
+static bool quicksilverEnabled = false;
 
 // Found out that the game does not load anything
 // not related to current stage, after writing

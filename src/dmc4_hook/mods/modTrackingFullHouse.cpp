@@ -5,7 +5,7 @@
 bool TrackingFullHouse::modEnabled{ false };
 uintptr_t TrackingFullHouse::jmp_ret{ NULL };
 uintptr_t TrackingFullHouse::jmp_out{ 0x007D348A };
-float fullHouseAngle{ 65.0 };
+static float fullHouseAngle{ 65.0 };
 
 naked void detour(void) { // player in ebx
 	_asm {

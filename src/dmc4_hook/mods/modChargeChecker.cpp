@@ -5,7 +5,7 @@ bool ChargeChecker::modEnabled{ false };
 uintptr_t ChargeChecker::jmp_ret{ NULL };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
-float roundTripChargeMult{ 2.0f };
+static float roundTripChargeMult{ 2.0f };
 
 naked void detour(void) { // player in edi 
     _asm {

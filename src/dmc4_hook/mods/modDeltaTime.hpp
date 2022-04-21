@@ -5,7 +5,7 @@
 class DeltaTime : public Mod
 {
 public:
-    DeltaTime();
+    DeltaTime() = default;
 
     static uintptr_t jmp_return;
     static float currentDeltaTime;

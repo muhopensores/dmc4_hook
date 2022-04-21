@@ -2,10 +2,10 @@
 
 static uintptr_t PlayerTransformsDetourContinue = NULL;
 
-bool  g_modEnable = false;
-float tWorkrate   = 1.2f;
-float oWorkrate   = 0.0f;
-uPlayer* plr = nullptr;
+static bool  g_modEnable = false;
+static float tWorkrate   = 1.2f;
+static float oWorkrate   = 0.0f;
+static uPlayer* plr = nullptr;
 
 naked void PlayerTransformsDetour() {
 	__asm {

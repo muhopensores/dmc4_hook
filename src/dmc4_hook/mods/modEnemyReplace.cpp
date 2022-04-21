@@ -1,26 +1,25 @@
 #include "modEnemyReplace.hpp"
 
 bool EnemyReplace::modEnabled{ false };
-uintptr_t modBase = (uintptr_t)GetModuleHandle(NULL);
-// uintptr_t modBase = 0;
-uintptr_t replaceScarecrowLeg = modBase + 0x13F810;
-uintptr_t replaceScarecrowArm = modBase + 0x15E710;
-uintptr_t replaceMegaScarecrow = modBase + 0x15F7E0;
-uintptr_t replacementAddressTwo = modBase + 0x24B77B;
-uintptr_t replaceBiancoAngelo = modBase + 0x161A10;
-uintptr_t replaceAltoAngelo = modBase + 0x176C80;
-uintptr_t replaceMephisto = modBase + 0x17F1E0;
-uintptr_t replaceFaust = modBase + 0x195810;
-uintptr_t replaceFrost = modBase + 0x1A3F60;
-uintptr_t replaceAssault = modBase + 0x1B3170;
-uintptr_t replaceBlitz = modBase + 0x1D1760;
-uintptr_t replaceChimera = modBase + 0x1DC160;
-uintptr_t replaceBasilisk = modBase + 0x21A7B0;
-uintptr_t replaceBerial = modBase + 0x230AC0;
-uintptr_t replaceBael = modBase + 0x249CB0;
-uintptr_t replaceEchidna = modBase + 0x285340;
-uintptr_t replaceCredo = modBase + 0x2AA2C0;
-uintptr_t replaceAgnus = modBase + 0x2BDE60;
+static uintptr_t modBase = (uintptr_t)GetModuleHandle(NULL);
+static uintptr_t replaceScarecrowLeg = modBase + 0x13F810;
+static uintptr_t replaceScarecrowArm = modBase + 0x15E710;
+static uintptr_t replaceMegaScarecrow = modBase + 0x15F7E0;
+static uintptr_t replacementAddressTwo = modBase + 0x24B77B;
+static uintptr_t replaceBiancoAngelo = modBase + 0x161A10;
+static uintptr_t replaceAltoAngelo = modBase + 0x176C80;
+static uintptr_t replaceMephisto = modBase + 0x17F1E0;
+static uintptr_t replaceFaust = modBase + 0x195810;
+static uintptr_t replaceFrost = modBase + 0x1A3F60;
+static uintptr_t replaceAssault = modBase + 0x1B3170;
+static uintptr_t replaceBlitz = modBase + 0x1D1760;
+static uintptr_t replaceChimera = modBase + 0x1DC160;
+static uintptr_t replaceBasilisk = modBase + 0x21A7B0;
+static uintptr_t replaceBerial = modBase + 0x230AC0;
+static uintptr_t replaceBael = modBase + 0x249CB0;
+static uintptr_t replaceEchidna = modBase + 0x285340;
+static uintptr_t replaceCredo = modBase + 0x2AA2C0;
+static uintptr_t replaceAgnus = modBase + 0x2BDE60;
 
 std::optional<std::string> EnemyReplace::onInitialize()
 {
@@ -1559,7 +1558,7 @@ void EnemyReplace::onGUIframe()
         ImGui::Spacing();
 
         ImGui::Text("No Cyclical Replacements!");
-        ImGui::SameLine(0, 1);
+        ImGui::SameLine();
         HelpMarker("Example: Don't replace Mephisto with Faust and Faust with Mephisto at the same time. "
                    "The game will get stuck in a loop and cause undesired behaviour.");
 

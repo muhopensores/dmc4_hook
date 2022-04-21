@@ -5,7 +5,7 @@ bool RgMultiplier::modEnabled{ false };
 uintptr_t RgMultiplier::jmp_ret{ NULL };
 uintptr_t RgMultiplier::jmp_ret2{ NULL };
 
-float rgmultfloat{ 3.3333f };
+static float rgmultfloat{ 3.3333f };
 
 naked void detour(void)
 {

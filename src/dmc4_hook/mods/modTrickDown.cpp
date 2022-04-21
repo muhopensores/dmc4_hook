@@ -6,7 +6,7 @@ bool TrickDown::modEnabled{ false };
 uintptr_t TrickDown::trick_down_jmp_ret{ NULL };
 uintptr_t TrickDown::floor_touch_jmp_ret{ NULL };
 
-float downFloat{ -200.0f };
+static float downFloat{ -200.0f };
 
 naked void trickDownDetour(void) { // not gonna player compare because the idea of boss dante using down trick on you is kinda funny
 	_asm {

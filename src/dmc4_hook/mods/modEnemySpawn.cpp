@@ -7,11 +7,10 @@
 // 00738AA2 calls spawns
 // scarecrow arm can be spawned via twitch chat with "\SpawnScarecrowArm"
 
-
 // TODO(): move this somewhere maybe
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
-sMediator* sMedPtr = nullptr;
-uPlayer* uLocalPlr = nullptr;
+static sMediator* sMedPtr = nullptr;
+static uPlayer* uLocalPlr = nullptr;
 
 int EnemySpawn::hotkeySpawnModifier{ NULL };
 

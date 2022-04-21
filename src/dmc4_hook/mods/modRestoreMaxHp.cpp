@@ -3,8 +3,8 @@
 
 bool RestoreMaxHp::modEnabled{ false };
 
-float twoMinutesTimer = 7200.0f;
-bool resetTimer = false;
+static float twoMinutesTimer = 7200.0f;
+static bool resetTimer = false;
 
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 

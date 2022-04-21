@@ -39,7 +39,7 @@ void FreezeEnemies::onGUIframe() {
     if (ImGui::Checkbox("Freeze Enemies", &modEnabled)) {
         toggle(modEnabled);
     }
-    ImGui::SameLine(0, 1);
+    ImGui::SameLine();
     HelpMarker("Freezes enemies, even if they're midair. Best used with infinite enemy hp");
 }
 
