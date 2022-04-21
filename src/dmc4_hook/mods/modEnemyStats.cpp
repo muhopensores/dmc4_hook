@@ -27,14 +27,6 @@ std::optional<std::string> EnemyStats::onInitialize() {
 
 int EnemyStats::getEnemySpecificDamageOffset(int enemyID) {
     switch (enemyID) {
-    // 0x152C
-    case 0x0: // Scarecrow Leg
-        return 0x152C;
-    case 0x1: // Scarecrow Arm
-        return 0x152C;
-    case 0x3: // Scarecrow Mega
-        return 0x152C;
-
     // 0x1500
     case 0x8: // mephisto
         return 0x1500;
@@ -59,6 +51,14 @@ int EnemyStats::getEnemySpecificDamageOffset(int enemyID) {
     case 0xF: // Cutlass
         return 0x1508;
 
+    // 0x152C
+    case 0x0: // Scarecrow Leg
+        return 0x152C;
+    case 0x1: // Scarecrow Arm
+        return 0x152C;
+    case 0x3: // Scarecrow Mega
+        return 0x152C;
+
     // 7FC4
     case 0x11: // Basilisk
         return 0x7FC4;
@@ -73,6 +73,8 @@ void EnemyStats::onGUIframe() {
         if (sMedPtr) {
             int8_t& enemyCount = *(int8_t*)((uintptr_t)sMedPtr + 0x1E8);
             uintptr_t* enemyPtr = (uintptr_t*)((uintptr_t)sMedPtr + 0x1B4 + whichEnemy * 4);
+            ImGui::SliderInt("Enemy Count", (int*)&enemyCount, 0, 0);
+            ImGui::SliderInt("Enemy Select", &whichEnemy, 1, enemyCount);
             uintptr_t enemyBase = *enemyPtr;
             if (enemyBase) {
                 // get stats
@@ -95,9 +97,6 @@ void EnemyStats::onGUIframe() {
                     enemyVelocityXYZ[2] = (float*)(enemyBase + 0x1B48);
 
                 // imgui
-                ImGui::SliderInt("Enemy Count", (int*)&enemyCount, 0, 0);
-                ImGui::SliderInt("Enemy Select", &whichEnemy, 1, enemyCount);
-
                 ImGui::Spacing();
 
                 int& enemyID = *(int*)(enemyBase + 0x1410);
