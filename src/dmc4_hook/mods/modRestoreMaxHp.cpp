@@ -102,6 +102,13 @@ void RestoreMaxHp::onFrame(fmilliseconds& dt) {
                         }
                     }
                 }
+                uintptr_t* bossPtr = (uintptr_t*)(sMediator + 0xB0);
+                uintptr_t bossBase = *bossPtr;
+                if (bossBase) {
+                    float& bossHP = *(float*)(bossBase + 0x151C);
+                    float& bossMaxHP = *(float*)(bossBase + 0x1520);
+                    bossHP = bossMaxHP;
+                }
                 if (resetTimer) {
                     if (grounded == 1 && desiredInput & 0x10 && desiredInput & 0x08) {
                         float& bpTimer = *(float*)(sMediator + 0x250);
