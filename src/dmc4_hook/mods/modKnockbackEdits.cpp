@@ -3,15 +3,8 @@
 
 bool KnockbackEdits::modEnabled{ false };
 uintptr_t KnockbackEdits::jmp_return{ NULL };
-constexpr auto shottySwap =
-    "4E 52 4D 4C 5F 45 54 43 5F 4C 56 31 00 00 00 00"
-    "2C 00 00 00 00 00 70 41 00 00 00 00 01 00 00 00"
-    "02 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00" // First byte selects if it should work when grounded // Originally 1
-    "00 00 00 00 04 00 00 00 52 00 00 00 0B 00 00 00" // Fifth byte selects knockback type // Originally 2
-    "52 00 00 00 0B 00 00 00 00 00 C8 41 00 00 16 43"
-    "00 00 B4 41 00 00 00 00 01 00 00 00 00 00 00 00";
 
-bool releaseStuns{ false };
+static bool releaseStuns{ false };
 
 /*
 class attackDataEntry

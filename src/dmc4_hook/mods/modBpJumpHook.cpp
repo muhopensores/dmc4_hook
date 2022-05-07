@@ -1,6 +1,6 @@
 #include "../mods.h"
 #include "modBpJumpHook.hpp"
-#include "modAreaJump.hpp"
+// #include "modAreaJump.hpp"
 #include "random"
 #include "numeric"
 
@@ -317,8 +317,8 @@ naked void bpJumpHook3_proc(void) { // called every time you enter a teleporter
         mov dword ptr [ecx+6Ch], 506
         jmp retcode
 
-    randombossrushcontinue:
     // update floor and area ID values
+    randombossrushcontinue:
         push eax
         push ecx
         call boss_continue
@@ -403,9 +403,9 @@ void BpJumpHook::onGUIframe() {
                     ImGui::Text("%i", i);
                 }
             }
+            ImGui::Separator();
         }
     }
-    ImGui::Separator();
 }
 
 void BpJumpHook::onConfigLoad(const utils::Config& cfg) {
