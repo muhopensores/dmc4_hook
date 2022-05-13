@@ -167,6 +167,13 @@ bool hlMain::init()
 	Sleep(2000);
 	m_mods->onSlowInitialize();
 
+#ifndef NDEBUG
+    /*AllocConsole();
+    freopen("CONIN$", "r", stdin);
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);*/
+#endif
+
     return true;
 }
 
@@ -584,6 +591,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 main->getMods()->onDrawUI("PlayerTracker"_hash); // needs its own line
 
                 ImGui::Spacing();
+                main->getMods()->onDrawUI("ShaderEditor"_hash);
                 ImGui::EndTabItem();
             }
             CreditsDrawing();

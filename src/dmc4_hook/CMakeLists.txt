@@ -2,6 +2,10 @@ PROJECT(dmc4_hook)
 
 #add mods here, modName.cpp and modName.hpp
 SET (MODS
+  mods/modLoadOrder.hpp
+  mods/modLoadOrder.cpp
+  mods/modShaderEditor.hpp
+  mods/modShaderEditor.cpp
   mods/modTwCmdSuperhot.hpp
   mods/modTwCmdSuperhot.cpp
   mods/modSample.cpp
