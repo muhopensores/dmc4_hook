@@ -12,23 +12,17 @@
 //visual theme of the gui, can be changed to change the look
 void DarkTheme();
 
-//draw function with parameters for the gui overlay
-void DrawWindow();
-
-//imgui::being seperated into function (required to make gui overlay work, see imgui example and documentation
-void BeginDrawing();
-
-//function that draws the fps onto the gui
-void FPSDrawing();
-
-//function that draws a "misc." text onto the gui, made because misc is used frequently, so to avoid typing extra stuff every time
-void Misc();
-
 //function for putting credits specific things in the gui
-void CreditsDrawing();
+void CreditsDrawing(const char* page);
 
 //helpmarker function, to avoid typing it every time in the gui section
 void HelpMarker(const char* desc);
 
+// enable docking on imgui windows
+void DockingSetup(float gui_split);
 
+// make space to the right of the trainer to see into game
+void RightWindow(void);
 
+// make space below the trainer to see into game
+void LowerWindow(void);

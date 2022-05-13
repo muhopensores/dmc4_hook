@@ -249,35 +249,16 @@ void DefaultDarkTheme()
     colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 }
 */
-// draw function with parameters for the gui overlay
-
-void DrawWindow()
-{
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(445, 550), ImGuiCond_FirstUseEver);
-}
-
-// imgui::being seperated into function (required to make gui overlay work, see imgui example and documentation
-void BeginDrawing()
-{
-    ImGui::Begin(version, NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-}
-
-// function that draws the fps onto the gui
-void FPSDrawing()
-{
-    ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-}
 
 // function for putting credits specific things in the gui
-void CreditsDrawing()
+void CreditsDrawing(const char* page)
 {
 	static ImVec4 color1 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
     static ImVec4 color2 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
     static ImVec4 color3 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
     static ImVec4 color4 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
-    if (ImGui::BeginTabItem("About"))
+    //if (ImGui::BeginTabItem("About"))
+    ImGui::Begin(page);
     {
         ImGui::Spacing();
         ImGui::Text("DMC4Hook - Devil May Cry 4 Trainer");
@@ -404,7 +385,8 @@ void CreditsDrawing()
         ImGui::Text("%s = Spawn Faust", &HotkeyName(EnemySpawn::hotkeySpawnFaust));
         ImGui::Text("%s = Spawn Bianco", &HotkeyName(EnemySpawn::hotkeySpawnBianco));
         ImGui::Text("%s = Spawn Alto", &HotkeyName(EnemySpawn::hotkeySpawnAlto));
-        ImGui::EndTabItem();
+        //ImGui::EndTabItem();
+        ImGui::End();
     }
 }
 
@@ -420,4 +402,66 @@ void HelpMarker(const char* desc)
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
+}
+
+// set up docking window
+void DockingSetup(float gui_split) {
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(ImVec2(gui_split, viewport->Pos[1]));
+    ImGui::SetNextWindowSize(ImVec2(viewport->Size[0] - gui_split, viewport->Size[1]));
+    ImGui::SetNextWindowViewport(viewport->ID);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    // the background window that contains the dockable windows
+    // even though you can enable docking on the window with
+    // ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+    ImGui::Begin("InvisibleWindow", NULL,
+          ImGuiWindowFlags_NoDocking 
+        | ImGuiWindowFlags_NoTitleBar 
+        | ImGuiWindowFlags_NoCollapse
+        | ImGuiWindowFlags_NoResize 
+        | ImGuiWindowFlags_NoMove 
+        | ImGuiWindowFlags_NoBringToFrontOnFocus 
+        | ImGuiWindowFlags_NoNavFocus 
+        | ImGuiWindowFlags_NoBackground);
+    ImGui::PopStyleVar(3);
+
+    ImGuiID invisibleWindow = ImGui::GetID("InvisibleWindow"); // InvisibleWindowDockSpace
+    /*
+    if (!ImGui::DockBuilderGetNode(invisibleWindow))
+    {
+        ImGui::DockBuilderAddNode(invisibleWindow, ImGuiDockNodeFlags_DockSpace);
+        ImGui::DockBuilderSetNodeSize(invisibleWindow, viewport->Size);
+        ImGuiID dockMainId = invisibleWindow;
+        ImGuiID dockRightId = ImGui::DockBuilderSplitNode(dockMainId, ImGuiDir_Right, 0.65f, nullptr, &dockMainId);
+        // ImGuiID dockDownId = ImGui::DockBuilderSplitNode(dockMainId, ImGuiDir_Down, 0.6f, nullptr, &dockMainId);
+
+        ImGui::DockBuilderDockWindow(GUI_VERSION, dockMainId);
+        ImGui::DockBuilderDockWindow("Right Window", dockRightId);
+        // ImGui::DockBuilderDockWindow("Lower Window", dockDownId);
+
+        ImGui::DockBuilderFinish(dockMainId);
+    }
+    */
+    // create dockspace + remove tab bars from all windows
+    ImGui::DockSpace(invisibleWindow,
+                     ImVec2(ImGui::GetMainViewport()->Size[0] - 445, ImGui::GetMainViewport()->Size[1]),
+                     ImGuiDockNodeFlags_PassthruCentralNode);
+              
+    ImGui::End();
+}
+
+void RightWindow(void) {
+    ImGui::SetNextWindowPos(ImVec2(445, 0));
+    ImGui::SetNextWindowSize(ImVec2(ImGui::GetMainViewport()->Size[0] - 445, ImGui::GetMainViewport()->Size[1]));
+    ImGui::Begin("Right Window", NULL, ImGuiWindowFlags_NoBackground);
+    ImGui::End();
+}
+
+// unused, was for space under the trainer
+void LowerWindow(void) {
+    ImGui::Begin("Lower Window", NULL, ImGuiWindowFlags_NoBackground);
+    ImGui::End();
 }

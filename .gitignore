@@ -16,3 +16,4 @@ minhook.pdb
 minhookd.lib
 tracy_clientd.lib
 tracy_client.lib
+lib/hacklibd.pdb

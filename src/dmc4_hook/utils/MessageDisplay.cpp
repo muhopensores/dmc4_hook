@@ -49,20 +49,21 @@ void MessageDisplayMod::onGUIframe() {
     ImGui::Checkbox("Keyboard Navigation", &enableKeyboardNavigation);
     ImGui::SameLine(205);
     ImGui::Checkbox("Gamepad Navigation", &enableGamepadNavigation);
-
+    
     // I would do this not on tick but idk how to use getIO in onConfigLoad without crashing
     if (enableKeyboardNavigation) {
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     }
     else {
-        ImGui::GetIO().ConfigFlags &= ImGuiConfigFlags_NavEnableKeyboard;
+        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
     }
     if (enableGamepadNavigation) {
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     }
     else {
-        ImGui::GetIO().ConfigFlags &= ImGuiConfigFlags_NavEnableGamepad;
+        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
     }
+    
 }
 
 void MessageDisplayMod::onConfigLoad(const utils::Config& cfg) {
