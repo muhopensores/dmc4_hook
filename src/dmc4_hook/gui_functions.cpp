@@ -254,8 +254,8 @@ void DefaultDarkTheme()
 void DrawWindow()
 {
     ImGuiIO& io = ImGui::GetIO();
-    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(445, 550), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(450, io.DisplaySize[1] * 0.9));
 }
 
 // imgui::being seperated into function (required to make gui overlay work, see imgui example and documentation
@@ -279,6 +279,7 @@ void CreditsDrawing()
     static ImVec4 color4 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
     if (ImGui::BeginTabItem("About"))
     {
+        ImGui::BeginChild("AboutChild");
         ImGui::Spacing();
         ImGui::Text("DMC4Hook - Devil May Cry 4 Trainer");
         ImGui::Spacing();
@@ -404,6 +405,7 @@ void CreditsDrawing()
         ImGui::Text("%s = Spawn Faust", &HotkeyName(EnemySpawn::hotkeySpawnFaust));
         ImGui::Text("%s = Spawn Bianco", &HotkeyName(EnemySpawn::hotkeySpawnBianco));
         ImGui::Text("%s = Spawn Alto", &HotkeyName(EnemySpawn::hotkeySpawnAlto));
+        ImGui::EndChild();
         ImGui::EndTabItem();
     }
 }

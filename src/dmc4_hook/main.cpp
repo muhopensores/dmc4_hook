@@ -276,7 +276,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
             ToggleBorderless(g_borderless);
         }*/
 		// TODO(): properly position this?
-        ImGui::SameLine(340.0f);
+        ImGui::SameLine(350.0f);
 		if (ImGui::Button("Save Config"))
 		{
 			main->saveSettings();
@@ -287,6 +287,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
             if (ImGui::BeginTabItem("General"))
             {
                 ImGui::BeginChild("GeneralChild");
+                ImGui::Spacing();
                 ImGui::Text("General");
                 ImGui::Spacing();
 
@@ -364,6 +365,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
             if (ImGui::BeginTabItem("Character"))
             {
                 ImGui::BeginChild("CharacterChild");
+                ImGui::Spacing();
                 ImGui::Text("Limit Removal");
                 ImGui::Spacing();
 
@@ -484,7 +486,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
             if (ImGui::BeginTabItem("Environment"))
             {
                 ImGui::BeginChild("EnvironmentChild");
-
+                ImGui::Spacing();
 				main->getMods()->onDrawUI("AreaJump"_hash); // needs its own line
 
                 ImGui::Spacing();
@@ -506,7 +508,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
             if (ImGui::BeginTabItem("System"))
             {
                 ImGui::BeginChild("SystemChild");
-
+                ImGui::Spacing();
                 ImGui::Text("HUD");
 
                 ImGui::Spacing();
@@ -580,7 +582,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
             if (ImGui::BeginTabItem("Debug"))
             {
                 ImGui::BeginChild("DebugChild");
-
+                ImGui::Spacing();
                 main->getMods()->onDrawUI("PlayerTracker"_hash); // needs its own line
 
                 ImGui::Spacing();
