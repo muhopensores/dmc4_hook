@@ -286,7 +286,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
         {
             if (ImGui::BeginTabItem("General"))
             {
-                ImGui::Spacing();
+                ImGui::BeginChild("GeneralChild");
                 ImGui::Text("General");
                 ImGui::Spacing();
 
@@ -357,13 +357,13 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("BerialDaze"_hash);
 
-                ImGui::Spacing();
+                ImGui::EndChild();
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("Character"))
             {
-                ImGui::Spacing();
+                ImGui::BeginChild("CharacterChild");
                 ImGui::Text("Limit Removal");
                 ImGui::Spacing();
 
@@ -477,13 +477,13 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
                 main->getMods()->onDrawUI("DisableDarkslayer"_hash); // needs its own line
 
-                ImGui::Spacing();
+                ImGui::EndChild();
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("Environment"))
             {
-                ImGui::Spacing();
+                ImGui::BeginChild("EnvironmentChild");
 
 				main->getMods()->onDrawUI("AreaJump"_hash); // needs its own line
 
@@ -499,12 +499,14 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 
                 main->getMods()->onDrawUI("EnemyReplace"_hash); // needs its own line
 
-                ImGui::Spacing();
+                ImGui::EndChild();
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("System"))
             {
+                ImGui::BeginChild("SystemChild");
+
                 ImGui::Text("HUD");
 
                 ImGui::Spacing();
@@ -571,12 +573,14 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 				
 				main->getMods()->onDrawSlowUI("TwitchClient"_hash); // needs its own line
 
-                ImGui::Spacing();
+                ImGui::EndChild();
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("Debug"))
             {
+                ImGui::BeginChild("DebugChild");
+
                 main->getMods()->onDrawUI("PlayerTracker"_hash); // needs its own line
 
                 ImGui::Spacing();
@@ -589,8 +593,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::Spacing();
 
 
-                main->getMods()->onDrawUI("ShaderEditor"_hash);
+                // main->getMods()->onDrawUI("ShaderEditor"_hash);
 
+                ImGui::EndChild();
                 ImGui::EndTabItem();
             }
             CreditsDrawing();
