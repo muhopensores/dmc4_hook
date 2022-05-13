@@ -5,7 +5,7 @@
 class PlayerTracker : public Mod
 {
 public:
-    PlayerTracker();
+    PlayerTracker() = default;
 
     static uintptr_t jmp_return;
     // static uintptr_t* player_base_ptr;

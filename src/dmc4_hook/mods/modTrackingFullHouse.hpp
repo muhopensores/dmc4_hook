@@ -2,10 +2,9 @@
 
 #include "../mod.hpp"
 
-class TrackingFullHouse : public Mod
-{
+class TrackingFullHouse : public Mod {
 public:
-    TrackingFullHouse();
+    TrackingFullHouse() = default;
 
     static bool modEnabled;
     static uintptr_t jmp_ret;

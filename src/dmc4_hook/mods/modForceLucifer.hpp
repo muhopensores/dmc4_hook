@@ -5,10 +5,11 @@
 class ForceLucifer : public Mod
 {
 public:
-    ForceLucifer();
+    ForceLucifer() = default;
 
     static bool modEnabled;
     static uintptr_t _forceLuciferContinue;
+    static bool enableForceEcstasyTimer;
 
     std::string getModName() override { return "ForceLucifer"; };
 

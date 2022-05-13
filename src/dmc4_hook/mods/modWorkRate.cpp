@@ -51,30 +51,29 @@ void WorkRate::onConfigSave(utils::Config & cfg) {
 }
 
 void WorkRate::onGUIframe() {
-		if (ImGui::CollapsingHeader("Speed"))
-		{
-			sWorkRate* sWorkRatePtr = Devil4SDK::getWorkRate();
-			if (!checkWorkRatePtr(sWorkRatePtr)) {
-				ImGui::TextWrapped("Speed adjustments are not initialized yet, load into the stage to access them.");
-				ImGui::Spacing();
-				return;
-			}
-			ImGui::PushItemWidth(217);
-			ImGui::InputFloat("Turbo Value", &sWorkRatePtr->turboSpeed, 0.1f, 0.5f, "%.1f%");
+	if (ImGui::CollapsingHeader("Speed")) {
+		sWorkRate* sWorkRatePtr = Devil4SDK::getWorkRate();
+		if (!checkWorkRatePtr(sWorkRatePtr)) {
+			ImGui::TextWrapped("Speed adjustments are not initialized yet, load into the stage to access them.");
 			ImGui::Spacing();
-            ImGui::InputFloat("Global Speed", &m_globalSpeed, 0.1f, 0.5f, "%.1f%");
-			ImGui::Spacing();
-            ImGui::InputFloat("Room Speed", &sWorkRatePtr->roomSpeed, 0.1f, 0.5f, "%.1f%");
-			ImGui::Spacing();
-            ImGui::InputFloat("Player Speed", &sWorkRatePtr->playerSpeed, 0.1f, 0.5f, "%.1f%");
-			ImGui::Spacing();
-            ImGui::InputFloat("Enemy Speed", &sWorkRatePtr->enemySpeed, 0.1f, 0.5f, "%.1f%");
-			ImGui::PopItemWidth();
-			ImGui::Checkbox("Disable Game Pause when opening the trainer", &disableTrainerPause);
+			return;
 		}
+		ImGui::PushItemWidth(217);
+		ImGui::InputFloat("Turbo Value", &sWorkRatePtr->turboSpeed, 0.1f, 0.5f, "%.1f%");
+		ImGui::Spacing();
+        ImGui::InputFloat("Global Speed", &m_globalSpeed, 0.1f, 0.5f, "%.1f%");
+		ImGui::Spacing();
+        ImGui::InputFloat("Room Speed", &sWorkRatePtr->roomSpeed, 0.1f, 0.5f, "%.1f%");
+		ImGui::Spacing();
+        ImGui::InputFloat("Player Speed", &sWorkRatePtr->playerSpeed, 0.1f, 0.5f, "%.1f%");
+		ImGui::Spacing();
+        ImGui::InputFloat("Enemy Speed", &sWorkRatePtr->enemySpeed, 0.1f, 0.5f, "%.1f%");
+		ImGui::PopItemWidth();
+		ImGui::Checkbox("Disable Game Pause when opening the trainer", &disableTrainerPause);
+	}
 }
-void WorkRate::onGamePause(bool toggle) {
 
+void WorkRate::onGamePause(bool toggle) {
 	sWorkRate* sWorkRatePtr = Devil4SDK::getWorkRate();
 	if (!checkWorkRatePtr(sWorkRatePtr)) {
 		return;

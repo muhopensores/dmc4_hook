@@ -5,7 +5,7 @@
 class RgMultiplier : public Mod
 {
 public:
-    RgMultiplier();
+    RgMultiplier() = default;
 
     static bool modEnabled;
     static uintptr_t jmp_ret;

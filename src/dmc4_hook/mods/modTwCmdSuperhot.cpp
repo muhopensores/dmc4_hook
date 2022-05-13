@@ -7,30 +7,25 @@
 static bool mod_enabled{ false };
 
 // Modeled after the exponential function y = 2^(10(x - 1))
-float ExponentialEaseIn(float p)
-{
+float ExponentialEaseIn(float p) {
 	return (p == 0.0f) ? p : pow(2.0f, 10.0f * (p - 1.0f));
 }
 
 // Modeled after the exponential function y = -2^(-10x) + 1
-float ExponentialEaseOut(float p)
-{
+float ExponentialEaseOut(float p) {
 	return (p == 1.0f) ? p : 1.0f - pow(2.0f, -10.0f * p);
 }
 
 // Modeled after the piecewise exponential
 // y = (1/2)2^(10(2x - 1))         ; [0,0.5)
 // y = -(1/2)*2^(-10(2x - 1))) + 1 ; [0.5,1]
-float ExponentialEaseInOut(float p)
-{
+float ExponentialEaseInOut(float p) {
 	if(p == 0.0f || p == 1.0f) return p;
 
-	if(p < 0.5f)
-	{
+	if(p < 0.5f) {
 		return 0.5f * pow(2.0f, (20.0f * p) - 10.0f);
 	}
-	else
-	{
+	else {
 		return -0.5f * pow(2.0f, (-20.0f * p) + 10.0f) + 1.0f;
 	}
 }
@@ -71,13 +66,12 @@ void ModTwCmdSuperhot::onFrame(fmilliseconds& dt) {
 // draw your imgui widgets here, you are inside imgui context.
 void ModTwCmdSuperhot::onGUIframe() { 
 	ImGui::Checkbox("SUPERHOT Mode", &mod_enabled);
-    if (mod_enabled)
-    {
+    if (mod_enabled) {
         ImGui::PushItemWidth(217);
 		ImGui::InputFloat("Velocity Factor", &tiny, 0.01f);
         ImGui::PopItemWidth();
 	}
-};
+}
 
 // onGamePause()
 // do something when toggling a gui

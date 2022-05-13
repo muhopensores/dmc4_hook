@@ -5,7 +5,7 @@
 class InfDT : public Mod
 {
 public:
-    InfDT();
+    InfDT() = default;
 
     static bool modEnabled;
     static uintptr_t jmp_ret;

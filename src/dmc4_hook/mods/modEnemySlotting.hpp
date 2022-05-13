@@ -5,10 +5,10 @@
 class EnemySlotting : public Mod
 {
 public:
-    EnemySlotting();
+    EnemySlotting() = default;
 
     static bool modEnabled;
-    static uintptr_t jmp_ret; // = 0x00337729;
+    static uintptr_t jmp_ret;
 
     std::string getModName() override { return "EnemySlotting"; };
 

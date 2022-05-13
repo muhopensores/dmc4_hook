@@ -20,5 +20,4 @@ public:
 	
 private:
 	hl::Patch patch;
-	
 };

@@ -6,7 +6,7 @@
 #include "hacklib/Logging.h" // TODO: log's not working for some reason idk
 
 static hlMain* g_main{};
-bool twitchLoginOnBoot = false;
+static bool twitchLoginOnBoot = false;
 
 #if 1
 // initialization
@@ -29,8 +29,7 @@ void TwitchClient::makeInstance() {
 		return;
 	}
 
-	if (!twitch) 
-	{
+	if (!twitch) {
 		twitch = new Twitch();
 
 		twitch->OnConnected = [this] {
@@ -68,15 +67,13 @@ void TwitchClient::makeInstance() {
 	auto password = std::string{ twitch_chat_oauth_password };
 	if ( !login.empty() && !password.empty() ) {
 		HL_LOG_RAW("[TwitchClient] Connecting to Twitch chat...\n");
-
 		twitch_thread = twitch->Connect( login, password);
 		twitch_thread.detach();
 		twitchStatus = TWITCH_CONNECTING;
 	}
 }
 
-void TwitchClient::disconnect()
-{
+void TwitchClient::disconnect() {
 	if (twitch) {
 		twitch->Disconnect();
 		delete twitch;
@@ -86,8 +83,7 @@ void TwitchClient::disconnect()
 
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
-void TwitchClient::onGUIframe() 
-{ 
+void TwitchClient::onGUIframe() { 
 	if (!libirc_loaded) {
 		ImGui::Text("libircclient.dll not found, twitch support disabled");
 		return;
@@ -146,27 +142,26 @@ void TwitchClient::onGUIframe()
 		if ( ImGui::Checkbox( "Relay Twitch Chat To Devil May Cry 4", &mirror_chat_checkbox ) ) {
 		}
 	}
-};
+}
 
 void TwitchClient::onConfigSave(utils::Config& cfg)
 {
     cfg.set("twitch_login", twitch_login);
     cfg.set("twitch_oauth", twitch_chat_oauth_password);
     cfg.set<bool>("twitch_login_on_boot", twitchLoginOnBoot);
-};
+}
+
 // onConfigLoad
 // load data into variables from config structure.
-void TwitchClient::onConfigLoad(const utils::Config& cfg)
-{
+void TwitchClient::onConfigLoad(const utils::Config& cfg) {
     auto cfg_login = cfg.get("twitch_login").value_or("");
     auto cfg_oauth = cfg.get("twitch_oauth").value_or("");
     strcpy(twitch_login, cfg_login.c_str());
     strcpy(twitch_chat_oauth_password, cfg_oauth.c_str());
     twitchLoginOnBoot = cfg.get<bool>("twitch_login_on_boot").value_or(false);
-    if (twitchLoginOnBoot)
-    {
+    if (twitchLoginOnBoot) {
         makeInstance(); // sometimes gets stuck on connecting, says "IRC session terminated" 
     }
-};
+}
 
 #endif

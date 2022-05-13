@@ -101,19 +101,12 @@ naked void detour() {
 	}
 }
 
-AreaJump::AreaJump() {
-	//m_exeType = i;
-	//onInitialize();
-}
-
 std::optional<std::string> AreaJump::onInitialize() {
-
 	// uintptr_t address = hl::FindPattern("8B 92 30 38 00 00", "DevilMayCry4_DX9.exe"); // DevilMayCry4_DX9.exe+E1F6 
-    if (!install_hook_offset(0x00E1F6, hook, &detour, &AreaJump::jmp_return, 6))
-        {
+    if (!install_hook_offset(0x00E1F6, hook, &detour, &AreaJump::jmp_return, 6)){
             HL_LOG_ERR("Failed to init AreaJump mod\n");
             return "Failed to init AreaJump mod";
-        }
+    }
 
 	return Mod::onInitialize();
 }
@@ -146,8 +139,7 @@ int bpStage(int floor) {
 }
 
 void AreaJump::jumpToStage(int stage) {
-    switch (stage)
-    {
+    switch (stage) {
     case 0:
         cAreaJumpPtr->roomId = 503; // "Bloody Palace 20"
         break;
@@ -403,8 +395,7 @@ void AreaJump::jumpToStage(int stage) {
 
 void AreaJump::onGUIframe() 
 {
-	if (IsBadWritePtr(cAreaJumpPtr, sizeof(uint32_t)) || IsBadReadPtr(cAreaJumpPtr,sizeof(uint32_t)))
-    {
+	if (IsBadWritePtr(cAreaJumpPtr, sizeof(uint32_t)) || IsBadReadPtr(cAreaJumpPtr,sizeof(uint32_t))) {
 		ImGui::TextWrapped("Area Jump is not initialized.\nLoad into a stage to access it.");
 		return;
 	}
@@ -413,19 +404,16 @@ void AreaJump::onGUIframe()
 
     ImGui::Spacing();
 
-	if (cAreaJumpPtr->bpFloorStage)
-    {
+	if (cAreaJumpPtr->bpFloorStage) {
 		if (ImGui::InputInt("##BP Floor ", &cAreaJumpPtr->bpFloorStage, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
 			cAreaJumpPtr->bpFloorStage = std::clamp(cAreaJumpPtr->bpFloorStage, 1, 101);
 		}
 
-        if (ImGui::Button("Go", ImVec2(290, 20)))
-        {
+        if (ImGui::Button("Go", ImVec2(290, 20))) {
 			jumpToStage(bpStage(cAreaJumpPtr->bpFloorStage));
 		}
 	}
-    else
-    {
+    else {
         ImGui::TextWrapped("BP Floor Jump is not initialized.\nLoad into BP to access it.");
     }
 
@@ -438,8 +426,7 @@ void AreaJump::onGUIframe()
     ImGui::Spacing();
 
 	int room_item_current = 0;
-	if (ImGui::ListBox("##Room Codes Listbox", &room_item_current, room_items.data(), room_items.size(), 10))
-	{
+	if (ImGui::ListBox("##Room Codes Listbox", &room_item_current, room_items.data(), room_items.size(), 10)) {
 		jumpToStage(room_item_current);
 	}
 }

@@ -1,9 +1,8 @@
 #include "../mods.h"
 #include "modCameraSettings.hpp"
 
-bool cameraSensEnabled{ false };
-bool cameraAutoCorrectTowardsCamEnabled{ false };
-
+static bool cameraSensEnabled{ false };
+static bool cameraAutoCorrectTowardsCamEnabled{ false };
 bool CameraSettings::modEnabled{ false };
 float CameraSettings::cameraHeight{ 0 };
 float CameraSettings::cameraDistance{ 0 };
@@ -35,8 +34,8 @@ uintptr_t CameraSettings::cameraSensClockwiseContinue{ NULL };
 uintptr_t CameraSettings::cameraSensAntiClockwiseContinue{ NULL };
 uintptr_t CameraSettings::cameraSensBrakesContinue{ NULL };
 
-float degrees{ 1.57f };
-float doubleCameraSens{ 2.0f };
+static float degrees{ 1.57f };
+static float doubleCameraSens{ 2.0f };
 
 naked void cameraHeight_proc(void)
 {
@@ -427,28 +426,28 @@ void CameraSettings::onGUIframe()
         {
             toggleFreeCam(freeCamEnabled);
         }
-        ImGui::SameLine(0, 1);
+        ImGui::SameLine();
         HelpMarker("Activate this before starting a level! Forces Free Cam and allows it to pass through walls");
         ImGui::SameLine(205);
         if (ImGui::Checkbox("Camera Lookdown", &cameraLookdownEnabled))
         {
             toggleCameraLookdown(cameraLookdownEnabled);
         }
-        ImGui::SameLine(0, 1);
+        ImGui::SameLine();
         HelpMarker("When above the locked on enemy the camera will look down");
 
         if (ImGui::Checkbox("Left Side Reset", &cameraResetEnabled))
         {
             camRight = 0;
         }
-        ImGui::SameLine(0, 1);
+        ImGui::SameLine();
         HelpMarker("When pressing the button that resets the camera behind Dante, the camera will instead be set to Dante's left");
         ImGui::SameLine(205);
         if (ImGui::Checkbox("Right Side Reset", &camRight))
         {
             cameraResetEnabled = 0;
         }
-        ImGui::SameLine(0, 1);
+        ImGui::SameLine();
         HelpMarker("Set the camera to the right instead");
     }
 }

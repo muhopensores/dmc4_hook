@@ -7,11 +7,11 @@
 // 00738AA2 calls spawns
 // scarecrow arm can be spawned via twitch chat with "\SpawnScarecrowArm"
 
-
 // TODO(): move this somewhere maybe
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
-sMediator* sMedPtr = nullptr;
-uPlayer* uLocalPlr = nullptr;
+static sMediator* sMedPtr = nullptr;
+static uPlayer* uLocalPlr = nullptr;
+static int enemySpawning = 0;
 
 int EnemySpawn::hotkeySpawnModifier{ NULL };
 
@@ -139,8 +139,6 @@ glm::vec3 getPlayerPosition() {
 		return { 0.0f, 0.0f, 0.0f };
 	}
 }
-
-int enemySpawning = 0;
 
 void setEnemyPosition(uEnemySomething* em) {
 	em->mSpawnCoords = getPlayerPosition() + glm::vec3{ 0.0f, 300.0f, 0.0f };

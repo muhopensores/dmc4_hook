@@ -5,13 +5,7 @@ bool NoAutomaticCharacters::modEnabled{ false };
 uintptr_t NoAutomaticCharacters::jmp_ret{ NULL };
 uintptr_t NoAutomaticCharacters::jmp_ret2{ NULL };
 
-NoAutomaticCharacters::NoAutomaticCharacters()
-{
-	//onInitialize();
-}
-
-naked void detour(void)
-{
+naked void detour(void) {
 	_asm {
 			cmp byte ptr [NoAutomaticCharacters::modEnabled], 0
 			je code
@@ -73,8 +67,7 @@ naked void detour(void)
 	}
 }
 
-naked void detour2(void)
-{
+naked void detour2(void) {
     _asm {
 			cmp byte ptr [NoAutomaticCharacters::modEnabled], 0
 			je code
@@ -112,33 +105,26 @@ naked void detour2(void)
     }
 }
 
-std::optional<std::string> NoAutomaticCharacters::onInitialize()
-{
-
-	if (!install_hook_offset(0x0378E75, hook, &detour, &jmp_ret, 6))
-    {
+std::optional<std::string> NoAutomaticCharacters::onInitialize() {
+	if (!install_hook_offset(0x0378E75, hook, &detour, &jmp_ret, 6)){
 		HL_LOG_ERR("Failed to init NoAutomaticCharacters mod\n");
 		return "Failed to init NoAutomaticCharacters mod";
 	}
-    if (!install_hook_offset(0x0379082, hook2, &detour2, &jmp_ret2, 6))
-    {
+    if (!install_hook_offset(0x0379082, hook2, &detour2, &jmp_ret2, 6)) {
         HL_LOG_ERR("Failed to init NoAutomaticCharacters2 mod\n");
         return "Failed to init NoAutomaticCharacters2 mod";
     }
 	return Mod::onInitialize();
 }
 
-void NoAutomaticCharacters::onGUIframe()
-{
+void NoAutomaticCharacters::onGUIframe() {
     ImGui::Checkbox("No Auto Characters", &modEnabled);
 }
 
-void NoAutomaticCharacters::onConfigLoad(const utils::Config& cfg)
-{
+void NoAutomaticCharacters::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("no_automatic_characters").value_or(false);
-};
+}
 
-void NoAutomaticCharacters::onConfigSave(utils::Config& cfg)
-{
+void NoAutomaticCharacters::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("no_automatic_characters", modEnabled);
-};
+}

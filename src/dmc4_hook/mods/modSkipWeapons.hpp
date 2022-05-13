@@ -5,7 +5,7 @@
 class SkipWeapons : public Mod
 {
 public:
-    SkipWeapons();
+    SkipWeapons() = default;
 
 	static bool skipPandora;
     static bool skipLucifer;

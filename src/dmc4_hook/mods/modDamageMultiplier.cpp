@@ -5,11 +5,11 @@
 #include "glm/gtx/compatibility.hpp"
 
 bool DamageMultiplier::modEnabled{ false };
-bool g_mustStyle{ false };
+static bool g_mustStyle{ false };
 uintptr_t DamageMultiplier::jmp_ret{ NULL };
 float DamageMultiplier::enemyHPDisplay{ NULL };
-float damagemultiplier{ 1.0f };
-float xmm4backup{ NULL };
+static float damagemultiplier{ 1.0f };
+static float xmm4backup{ NULL };
 
 static float getCurrentStyleRank() {
 

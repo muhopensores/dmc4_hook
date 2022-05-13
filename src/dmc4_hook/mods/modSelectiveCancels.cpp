@@ -1,14 +1,14 @@
 #include "../mods.h"
 #include "modSelectiveCancels.hpp"
 #include "modMoveIDs.hpp"
+#include "modMoveIDsNero.hpp"
 
 #if 1
 bool       SelectiveCancels::selectiveCancelsEnable = false;
 uint32_t   SelectiveCancels::cancels = 0;
 uintptr_t  SelectiveCancels::_selectiveCancelsContinue = 0x0080332F;
 
-naked void selectiveCancels_proc()
-{
+naked void selectiveCancels_proc() {
 	_asm {
 		cmp byte ptr [SelectiveCancels::selectiveCancelsEnable], 0
 		je originalcode
@@ -42,6 +42,8 @@ naked void selectiveCancels_proc()
 		je cancellableepidemic
 		cmp [MoveIds::moveID],0x410						// DT Pin Up part 2
 		je cancellableDTPinUp
+		cmp [MoveIdsNero::moveIDNero],0x33B // Showdown
+		je cancellableShowdown
 		jmp originalcode
 
 			cancellableecstasy:
@@ -94,6 +96,11 @@ naked void selectiveCancels_proc()
 			jg cancellable
 			jmp originalcode
 
+			cancellableShowdown:
+			test [SelectiveCancels::cancels], SHOWDOWN
+			jg cancellable
+			jmp originalcode
+
 			cancellable:
 		mov dword ptr [esi+0x8C],0x02					// only movs to [esi+8C] after filtering out anything that doesn't have [esi+13C],FFFFFFFF and [esi+144],FFFFFFFF
 														// a change of cmps would allow for different types of cancels such as cancelling an animation with walking or another attack
@@ -101,10 +108,6 @@ naked void selectiveCancels_proc()
 			mov edi,0x00000008							// originalcode has nothing to do with our newmem, just a convenient jmp point so always run
 			jmp dword ptr [SelectiveCancels::_selectiveCancelsContinue]
 	}
-}
-
-SelectiveCancels::SelectiveCancels() {
-	//onInitialize();
 }
 
 std::optional<std::string> SelectiveCancels::onInitialize() {
@@ -118,8 +121,7 @@ std::optional<std::string> SelectiveCancels::onInitialize() {
 inline void SelectiveCancels::drawCheckboxSimple(const char* name, CANCEL_MOVES move) {
 	// bitwise [AND cancels, move] to extract the bit that matters to us.
 	bool check = (cancels & move) > 0;
-	if (ImGui::Checkbox(name, &check))
-	{
+	if (ImGui::Checkbox(name, &check)) {
 		if (check) {
 			// checking checkboxes in GUI applies bitwise [OR cancels, move] to set the bit.
 			cancels |= move;
@@ -131,12 +133,14 @@ inline void SelectiveCancels::drawCheckboxSimple(const char* name, CANCEL_MOVES 
 			cancels ^= move;
 		}
 	}
-};
+}
 
 void SelectiveCancels::onGUIframe() {
 	ImGui::Text("Selective Cancels");
 	ImGui::Spacing();
 	ImGui::Checkbox("Enable", &selectiveCancelsEnable);
+	ImGui::SameLine();
+	HelpMarker("Allows cancelling out of selected moves with evasive actions");
 
 	if (ImGui::CollapsingHeader("Selective Cancel Toggles")){
 			ImGui::Spacing();
@@ -155,6 +159,8 @@ void SelectiveCancels::onGUIframe() {
 			ImGui::SameLine(205);
 			drawCheckboxSimple("DT Pin Up Part 2", DT_PIN_UP_P2);
 
+			drawCheckboxSimple("Showdown", SHOWDOWN);
+
 			ImGui::Spacing();
 			ImGui::Text("Guns");
 			ImGui::Spacing();
@@ -170,17 +176,17 @@ void SelectiveCancels::onGUIframe() {
 	ImGui::Spacing();
 	ImGui::Separator();
 	ImGui::Spacing();
-};
+}
 
 void SelectiveCancels::onConfigSave(utils::Config& cfg) {
 	cfg.set<bool>("selective_cancels", selectiveCancelsEnable);
 	cfg.set<uint32_t>("cancels", cancels);
-};
+}
 
 void SelectiveCancels::onConfigLoad(const utils::Config& cfg) {
 	selectiveCancelsEnable = cfg.get<bool>("selective_cancels").value_or(false);
 	cancels = cfg.get<uint32_t>("cancels").value_or(0);
-};
+}
 
 #else
 // using variable external to the module. In this case moveID.

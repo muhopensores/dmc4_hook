@@ -1,6 +1,8 @@
 #include "modQuicksilver.hpp"
 #include "glm/gtx/compatibility.hpp"
 
+static bool quicksilverEnabled = false;
+
 // Found out that the game does not load anything
 // not related to current stage, after writing
 // all this nonsence
@@ -225,8 +227,7 @@ static void onTimerCallback() {
     pps.cc->bitfield ^= 2048;
 }
 
-std::optional<std::string> Quicksilver::onInitialize()
-{
+std::optional<std::string> Quicksilver::onInitialize() {
 	m_command = std::hash<std::string>{}("\\Quicksilver");
 	m_shorthand = std::hash<std::string>{}("\\qs");
 
@@ -236,35 +237,19 @@ std::optional<std::string> Quicksilver::onInitialize()
 	return Mod::onInitialize();
 }
 
-void Quicksilver::onFrame(fmilliseconds& dt)
-{
-    if (m_timer)
-    {
+void Quicksilver::onFrame(fmilliseconds& dt) {
+    if (m_timer) {
         m_timer->tick(dt);
     }
-};
-
-void Quicksilver::onGUIframe()
-{
-	if (ImGui::Button("Quicksilver Test")) {
-        if (m_timer) {
-			// would like to reset the timer of both stage slow + fx on press rather than disabling it until timer has finished
-            if (m_timer->m_active == false) {
-                sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
-                uPlayer* uLocalPlr = sMedPtr->playerPtr;
-                if (uLocalPlr) {
-                    //m_timer->m_time = (fseconds)0;
-                    qsOperatorNew();
-                    m_timer->start();
-                }
-            }
-        }
-	}
-	// TODO(): not twitch shit
 }
 
-void Quicksilver::onTwitchCommand(std::size_t hash)
-{
+void Quicksilver::onGUIframe() {
+    ImGui::Checkbox("Quicksilver", &quicksilverEnabled);
+    ImGui::SameLine();
+    HelpMarker("Enables the hotkey for Quicksilver. By default this is = / +");
+}
+
+void Quicksilver::onTwitchCommand(std::size_t hash) {
 	//if (!m_timer->m_active) { return; }
 	if (hash == m_command || hash == m_shorthand) {
 		if (m_timer) {
@@ -280,29 +265,29 @@ void Quicksilver::onTwitchCommand(std::size_t hash)
 	}
 }
 
-void Quicksilver::onUpdateInput(hl::Input& input)
-{
-    if (input.wentDown(hotkey)) {
-        if (m_timer) {
-            if (m_timer->m_active == false) {
-                sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
-                uPlayer* uLocalPlr = sMedPtr->playerPtr;
-                if (uLocalPlr)
-                {
-                    qsOperatorNew();
-                    m_timer->start();
-                }
-            }
-        }
+void Quicksilver::onUpdateInput(hl::Input& input) {
+    if (quicksilverEnabled) {
+		if (input.wentDown(hotkey)) {
+			if (m_timer) {
+				if (m_timer->m_active == false) {
+					sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
+					uPlayer* uLocalPlr = sMedPtr->playerPtr;
+					if (uLocalPlr) {
+						qsOperatorNew();
+						m_timer->start();
+					}
+				}
+			}
+		}
     }
 }
 
-void Quicksilver::onConfigLoad(const utils::Config& cfg)
-{
+void Quicksilver::onConfigLoad(const utils::Config& cfg) {
+    quicksilverEnabled = cfg.get<bool>("quicksilver_enabled").value_or(false);
     hotkey = cfg.get<int>("quicksilver_hotkey").value_or(0xBB); // =
-};
+}
 
-void Quicksilver::onConfigSave(utils::Config& cfg)
-{
+void Quicksilver::onConfigSave(utils::Config& cfg) {
+    cfg.set<bool>("quicksilver_enabled", quicksilverEnabled);
     cfg.set<int>("quicksilver_hotkey", hotkey);
-};
+}

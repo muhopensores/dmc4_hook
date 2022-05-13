@@ -5,13 +5,13 @@
 class BpJumpHook : public Mod
 {
 public:
-    BpJumpHook();
+    BpJumpHook() = default;
 
     static bool modEnabled;
-    static uintptr_t _bpJumpHookContinue;
+    static uintptr_t _bpJumpHook1Continue;
     static uintptr_t _bpJumpHook2Continue;
+    static uintptr_t _bpJumpHook3Continue;
     void toggle(bool enable);
-    void toggle2(bool enable);
     std::string getModName() override { return "BpJumpHook"; };
 
     std::optional<std::string> onInitialize() override;
@@ -22,9 +22,9 @@ public:
     void onGUIframe() override;
 
 private:
-    hl::Hooker hook;
+    hl::Hooker hook1;
     hl::Hooker hook2;
-    hl::Patch patch;
+    hl::Hooker hook3;
+    hl::Patch patch1;
     hl::Patch patch2;
-    hl::Patch patch3;
 };

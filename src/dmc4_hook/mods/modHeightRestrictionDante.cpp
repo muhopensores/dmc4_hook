@@ -8,39 +8,31 @@ bool HeightRestrictionDante::modEnabled{ false };
 // initialization
 // return Mod::onInitialize(); on success or error string on failure.
 std::optional<std::string> HeightRestrictionDante::onInitialize() {
-
 	return Mod::onInitialize();
 }
 
-void HeightRestrictionDante::toggle(bool enable)
-{
-    if (enable)
-    {
+void HeightRestrictionDante::toggle(bool enable) {
+    if (enable) {
         install_patch_offset(0x3B764E, patch, "\x0F\x84\x7B\x03\x00\x00", 6);
     }
-    else
-    {
+    else {
         patch.revert();
     }
 }
 
-void HeightRestrictionDante::onGUIframe()
-{
-    if (ImGui::Checkbox("Dante", &modEnabled))
-    {
+void HeightRestrictionDante::onGUIframe() {
+    if (ImGui::Checkbox("Remove Dante's Height Restriction", &modEnabled)) {
         toggle(modEnabled);
     }
 }
 
-void HeightRestrictionDante::onConfigLoad(const utils::Config& cfg)
-{
+void HeightRestrictionDante::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("dante_height_restriction_removed").value_or(false);
     toggle(modEnabled);
-};
+}
 
-void HeightRestrictionDante::onConfigSave(utils::Config& cfg)
-{
+void HeightRestrictionDante::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("dante_height_restriction_removed", modEnabled);
-};
+}
 
 #endif

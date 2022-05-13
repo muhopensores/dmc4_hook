@@ -26,7 +26,6 @@
 #include "mods/modManualTwosomeTime.hpp"
 #include "mods/modHeightRestrictionDante.hpp"
 #include "mods/modInfFaustCloak.hpp"
-#include "mods/modPassiveEnemies.hpp"
 #include "mods/modHeightRestrictionNero.hpp"
 #include "mods/modInfiniteTime.hpp"
 #include "mods/modInfAllHealth.hpp"
@@ -47,9 +46,9 @@
 #include "mods/modDamageMultiplier.hpp"
 #include "mods/modHpInOrbsDisplay.hpp"
 #include "mods/modInfDT.hpp"
-#include "mods/modInfPlayerHealth.hpp"
+// #include "mods/modInfPlayerHealth.hpp"
 #include "mods/modBerialDaze.hpp"
-#include "mods/modRoseRemovesPins.hpp"
+#include "mods/modRoseRemovesPins.hpp" // taunt ecstasy relies on this
 #include "mods/modStunAnything.hpp"
 #include "mods/modDisableCameraEvents.hpp"
 #include "mods/modHideHud.hpp"
@@ -83,6 +82,12 @@
 #include "mods/modActiveBlock.hpp"
 #include "mods/modNeroFullHouse.hpp"
 #include "mods/modFrostsDontJump.hpp"
+#include "mods/modNeroSnatchLength.hpp"
+#include "mods/modChargeChecker.hpp"
+#include "mods/modEnemyStats.hpp"
+#include "mods/modFasterFastDrive.hpp"
+#include "mods/modRoseOptions.hpp"
+#include "mods/modInstantTrick.hpp"
 #include "./utils/MessageDisplay.hpp"
 #include "mods/modShaderEditor.hpp"
 #include "mods/modLoadOrder.hpp"
@@ -118,7 +123,6 @@ Mods::Mods() {
 		m_mods["ManualTwosomeTime"_hash] = std::make_unique<ManualTwosomeTime>();
 		m_mods["HeightRestrictionDante"_hash] = std::make_unique<HeightRestrictionDante>();
 		m_mods["InfFaustCloak"_hash] = std::make_unique<InfFaustCloak>();
-		m_mods["PassiveEnemies"_hash] = std::make_unique<PassiveEnemies>();
 		m_mods["HeightRestrictionNero"_hash] = std::make_unique<HeightRestrictionNero>();
 		m_mods["InfiniteTime"_hash] = std::make_unique<InfiniteTime>();
 		m_mods["InfAllHealth"_hash] = std::make_unique<InfAllHealth>();
@@ -139,7 +143,7 @@ Mods::Mods() {
         m_mods["DamageMultiplier"_hash] = std::make_unique<DamageMultiplier>();
 		m_mods["HpInOrbsDisplay"_hash] = std::make_unique<HpInOrbsDisplay>();
         m_mods["InfDT"_hash] = std::make_unique<InfDT>();
-		m_mods["InfPlayerHealth"_hash] = std::make_unique<InfPlayerHealth>();
+		// m_mods["InfPlayerHealth"_hash] = std::make_unique<InfPlayerHealth>();
         m_mods["BerialDaze"_hash] = std::make_unique<BerialDaze>();
 		m_mods["RoseRemovesPins"_hash] = std::make_unique<RoseRemovesPins>();
         m_mods["StunAnything"_hash] = std::make_unique<StunAnything>();
@@ -174,9 +178,15 @@ Mods::Mods() {
 		m_mods["ActiveBlock"_hash] = std::make_unique<ActiveBlock>();
 		m_mods["NeroFullHouse"_hash] = std::make_unique<NeroFullHouse>();
 		m_mods["FrostsDontJump"_hash] = std::make_unique<FrostsDontJump>();
+		m_mods["NeroSnatchLength"_hash] = std::make_unique<NeroSnatchLength>();
+		m_mods["ChargeChecker"_hash] = std::make_unique<ChargeChecker>();
 		m_mods["MessageDisplayMod"_hash] = std::make_unique<MessageDisplayMod>();
-		m_mods["ShaderEditor"_hash] = std::make_unique<ShaderEditor>();
-		m_mods["LoadOrder"_hash] = std::make_unique<LoadOrder>();
+		m_mods["EnemyStats"_hash] = std::make_unique<EnemyStats>();
+		m_mods["FasterFastDrive"_hash] = std::make_unique<FasterFastDrive>();
+		m_mods["RoseOptions"_hash] = std::make_unique<RoseOptions>();
+		m_mods["InstantTrick"_hash] = std::make_unique<InstantTrick>();
+        //m_mods["ShaderEditor"_hash] = std::make_unique<ShaderEditor>(); // unfinished
+        //m_mods["LoadOrder"_hash] = std::make_unique<LoadOrder>(); //broken
 }
 
 std::optional<std::string> Mods::onSlowInitialize() const {

@@ -5,7 +5,7 @@
 class BerialDaze : public Mod
 {
 public:
-    BerialDaze();
+    BerialDaze() = default;
 
     static bool modEnabled;
     static uintptr_t jmp_ret;

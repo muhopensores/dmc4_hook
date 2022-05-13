@@ -108,25 +108,20 @@ naked void JointSizeDetour2() {
 
 	bail:
 		jmp dword ptr [JointSizeDetour2Continue]
-
 	}
 }
 
 
-std::optional<std::string> BigHeadMode::onInitialize()
-{
-
+std::optional<std::string> BigHeadMode::onInitialize(){
 #if 1
 	// DevilMayCry4_DX9.exe+5E9774 
-	if (!install_hook_offset(0x5E9774 , hook1, &JointSizeDetour1, &JointSizeDetour1Continue, 0x1B))
-	{
+	if (!install_hook_offset(0x5E9774 , hook1, &JointSizeDetour1, &JointSizeDetour1Continue, 0x1B)) {
 		HL_LOG_ERR("Failed to init BigHeadMode mod\n");
 		return "Failed to init BigHeadMode mod";
 	}
 	// DevilMayCry4_DX9.exe+5FC978 
 
-	if (!install_hook_offset(0x5FC978 , hook2, &JointSizeDetour2, &JointSizeDetour2Continue, 0x21))
-	{
+	if (!install_hook_offset(0x5FC978 , hook2, &JointSizeDetour2, &JointSizeDetour2Continue, 0x21)) {
 		HL_LOG_ERR("Failed to init BigHeadMode mod\n");
 		return "Failed to init BigHeadMode mod";
 	}
@@ -135,12 +130,7 @@ std::optional<std::string> BigHeadMode::onInitialize()
 	return Mod::onInitialize();
 }
 
-/*void BigHeadMode::onFrame(fmilliseconds & dt)
-{
-}*/
-
-void BigHeadMode::onGUIframe()
-{
+void BigHeadMode::onGUIframe() {
     if (ImGui::Checkbox("Big Head Mode", &g_enable_mod)) {
         if (g_swole_mode == true)
             g_swole_mode = false;
@@ -151,8 +141,7 @@ void BigHeadMode::onGUIframe()
 	}
 }
 
-void BigHeadMode::onTwitchCommand(std::size_t hash)
-{
+void BigHeadMode::onTwitchCommand(std::size_t hash) {
 	if (hash == m_command) {
 		g_enable_mod = !g_enable_mod;
 	}

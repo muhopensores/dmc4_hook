@@ -98,8 +98,12 @@ std::optional<std::string> FastStart::onInitialize()
 void FastStart::onGUIframe()
 {
 	ImGui::Checkbox("Fast Game Load", &modEnabled);
+    ImGui::SameLine();
+    HelpMarker("The game will skip all opening screens and load the first save slot");
     ImGui::SameLine(205);
 	ImGui::Checkbox("Fast Menu Fades", &skipFades);
+    ImGui::SameLine();
+    HelpMarker("Skip the fades between some menus");
 }
 
 void FastStart::onConfigLoad(const utils::Config& cfg)

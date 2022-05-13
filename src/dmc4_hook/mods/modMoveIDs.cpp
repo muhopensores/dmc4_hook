@@ -6,14 +6,8 @@ uintptr_t  MoveIds::jmp_return{ NULL };
 uint32_t   MoveIds::moveID{ 0 };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
-MoveIds::MoveIds() {
-	//onInitialize();
-}
-
 naked void detour() {
 	_asm {
-		// edi has uPlayer
-		// esi is a pointer to uPlayer + 0x42EF0
         push ecx
         mov ecx, [staticMediatorPtr]
         mov ecx, [ecx]
@@ -23,7 +17,7 @@ naked void detour() {
         jne code
 
 		mov [MoveIds::moveID], ecx
-		mov [MoveIdsNero::moveIDNero], 0
+		mov [MoveIdsNero::moveIDNero], 0 // for hb knockback
 	code:
 		mov [esi+0x0000225C], ecx
 		jmp dword ptr [MoveIds::jmp_return]
@@ -31,7 +25,6 @@ naked void detour() {
 }
 
 std::optional<std::string> MoveIds::onInitialize() {
-
 	if (!install_hook_offset(0x43EBD6, hook, &detour, &jmp_return, 6)) {
 		HL_LOG_ERR("Failed to init MoveIds mod\n");
 		return "Failed to init MoveIds mod";
@@ -39,7 +32,6 @@ std::optional<std::string> MoveIds::onInitialize() {
 
 	return Mod::onInitialize();
 }
-
 
 #else
 // making this variable external so that the other modules can link against it.

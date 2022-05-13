@@ -2,46 +2,21 @@
 #include "modWorkRate.hpp"
 
 #if 1
-
 uintptr_t PlayerTracker::jmp_return{ NULL };
-// uintptr_t* PlayerTracker::player_base_ptr{ (uintptr_t*)(0x00E558B8) }; // DevilMayCry4_DX9.exe+A558B8
 uPlayer* PlayerTracker::player_ptr{ NULL };
 bool PlayerTracker::lockOnAlloc{ false };
-float* playerXYZ[3]{ NULL, NULL, NULL };
-float* playerRotation[4]{ NULL, NULL, NULL, NULL };
-float* playerScale[3]{ NULL, NULL, NULL };
-constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
+constexpr uintptr_t staticMediatorPtr = 0x00E558B8; // DevilMayCry4_DX9.exe+A558B8
+static bool displayPlayerStats = false;
 
-PlayerTracker::PlayerTracker()
-{
-    // onInitialize();
-}
-
-void update_player_info(void) {
-    // sMediator* b = (sMediator*)*PlayerTracker::player_base_ptr;
-
-    sMediator* sMedPtr = (sMediator*)*(uintptr_t*)staticMediatorPtr;
+/*void update_player_info(void) {
+    sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
     uPlayer* uLocalPlr = sMedPtr->playerPtr;
+    if (uLocalPlr) {
+        PlayerTracker::lockOnAlloc = uLocalPlr->lockontoggle; // 16D0
+    }
+}*/
 
-    PlayerTracker::player_ptr = uLocalPlr; // used for valid check
-    playerXYZ[0] = &uLocalPlr->mPos[0];
-    playerXYZ[1] = &uLocalPlr->mPos[1];
-    playerXYZ[2] = &uLocalPlr->mPos[2];
-
-    playerRotation[0] = &uLocalPlr->mQuat[0];
-    playerRotation[1] = &uLocalPlr->mQuat[1];
-    playerRotation[2] = &uLocalPlr->mQuat[2];
-    playerRotation[3] = &uLocalPlr->mQuat[3];
-
-    playerScale[0] = &uLocalPlr->mScale[0];
-    playerScale[1] = &uLocalPlr->mScale[1];
-    playerScale[2] = &uLocalPlr->mScale[2];
-
-    PlayerTracker::lockOnAlloc = uLocalPlr->lockontoggle;
-}
-
-naked void detour()
-{
+/*naked void detour() {
     _asm {
             movss [esi+0x30], xmm3 // originalcode
             push ecx
@@ -50,63 +25,96 @@ naked void detour()
             mov ecx, [ecx]
             mov ecx, [ecx+0x24]
             cmp esi, ecx
-            //je manualplayer
             pop edx
             pop ecx
             je manualplayer
-            jmp jmpret
-
-        manualplayer:
-            //pushad
-            call update_player_info
-            //popad
-            //pop edx
-            //pop ecx
-        jmpret:
+        //jmpret:
 		    jmp dword ptr [PlayerTracker::jmp_return]
-    }
-}
 
-std::optional<std::string> PlayerTracker::onInitialize()
-{
-    if (!install_hook_offset(0x3A88A1, hook, &detour, &jmp_return, 5))
-    {
+            manualplayer:
+            push eax
+            call update_player_info
+            pop eax
+            jmp dword ptr [PlayerTracker::jmp_return]
+    }
+}*/
+
+std::optional<std::string> PlayerTracker::onInitialize() {
+    /*if (!install_hook_offset(0x3A88A1, hook, &detour, &jmp_return, 5)) {
         HL_LOG_ERR("Failed to init PlayerTracker mod\n");
         return "Failed to init PlayerTracker mod";
-    }
+    }*/
 
     return Mod::onInitialize();
 }
 
-void PlayerTracker::onGUIframe()
-{
+void PlayerTracker::onGUIframe() {
+    ImGui::Spacing();
+
     ImGui::Checkbox("Disable Game Pause When Opening The Trainer", &WorkRate::disableTrainerPause);
 
     ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
 
-    if (PlayerTracker::player_ptr != NULL)
-    {
-        ImGui::InputFloat3("Player Position", *playerXYZ);
-        ImGui::InputFloat4("Player Rotation", *playerRotation);
-        ImGui::InputFloat3("Player Scale", *playerScale);
-        ImGui::Checkbox("Lock On", &PlayerTracker::lockOnAlloc);
-    }
-    else
-    {
-        ImGui::Text("Load into an area and debug info might pop up");
+    ImGui::Checkbox("Display Player Stats", &displayPlayerStats);
+    if (displayPlayerStats) {
+        sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
+        uintptr_t* playerPtr = (uintptr_t*)((uintptr_t)sMedPtr + 0x24);
+        uintptr_t playerBase = *playerPtr;
+        if (playerBase)
+        {
+            float* playerXYZ[3];
+                playerXYZ[0] = (float*)(playerBase + 0x30);
+                playerXYZ[1] = (float*)(playerBase + 0x34);
+                playerXYZ[2] = (float*)(playerBase + 0x38);
+
+            float* playerRotation[4];
+                playerRotation[0] = (float*)(playerBase + 0x40);
+                playerRotation[1] = (float*)(playerBase + 0x44);
+                playerRotation[2] = (float*)(playerBase + 0x48);
+                playerRotation[3] = (float*)(playerBase + 0x4C);
+
+            float* playerScale[3];
+                playerScale[0] = (float*)(playerBase + 0x50);
+                playerScale[1] = (float*)(playerBase + 0x54);
+                playerScale[2] = (float*)(playerBase + 0x58);
+
+            float& animationFrame = *(float*)(playerBase + 0x348);
+            float& playerCurrentHP = *(float*)(playerBase + 0x15CC);
+            float& playerMaxHP = *(float*)(playerBase + 0x15D0);
+            int8_t& playerWeight = *(int8_t*)(playerBase + 0x1E7D);
+            int8_t& playerMoveBank = *(int8_t*)(playerBase + 0x1500);
+            int8_t& playerMoveID = *(int8_t*)(playerBase + 0x1564);
+            int8_t& playerMovePart = *(int8_t*)(playerBase + 0x1504);
+            int8_t& playerLockOn = *(int8_t*)(playerBase + 0x16D0);
+
+            float* playerVelocityXYZ[3];
+                playerVelocityXYZ[0] = (float*)(playerBase + 0x1E50);
+                playerVelocityXYZ[1] = (float*)(playerBase + 0x1E54);
+                playerVelocityXYZ[2] = (float*)(playerBase + 0x1E58);
+            float& playerSpeed = *(float*)(playerBase + 0x1E60);
+            float& playerInertia = *(float*)(playerBase + 0x1E1C);
+
+            ImGui::InputFloat("HP ##1", &playerCurrentHP);
+            ImGui::InputFloat("Max HP ##1", &playerMaxHP);
+            ImGui::InputFloat3("XYZ Position ##1", *playerXYZ);
+            ImGui::InputFloat4("Rotation ##1", *playerRotation);
+            ImGui::InputFloat3("XYZ Scale ##1", *playerScale);
+            ImGui::InputFloat3("XYZ Velocity ##1", *playerVelocityXYZ);
+            ImGui::InputFloat("Movement Speed ##1", &playerSpeed);
+            ImGui::InputFloat("Inertia ##1", &playerInertia);
+            ImGui::InputScalar("Move Bank ##1", ImGuiDataType_U8, &playerMoveBank);
+            ImGui::InputScalar("Move ID ##1", ImGuiDataType_U8, &playerMoveID);
+            ImGui::InputScalar("Move Part ##1", ImGuiDataType_U8, &playerMovePart);
+            ImGui::InputFloat("Animation Frame ##1", &animationFrame);
+            if (ImGui::Button("Replay Current Move")) {
+                playerMovePart = 0;
+            }
+            ImGui::InputScalar("Weight ##1", ImGuiDataType_U8, &playerWeight);
+            ImGui::InputScalar("Lock On ##1", ImGuiDataType_U8, &playerLockOn);
+        }
     }
 }
 
 #endif
-
-/*
-            // sub esp, 0x10
-            // movss [esp], xmm3
-            // movss [esp+0x4], xmm0
-            // movss [esp+0x8], xmm1
-            // etc
-            // movss xmm3, [esp]
-            // movss xmm0, [esp+0x4]
-            // movss xmm1, [esp+0x8]
-            // add esp, 0x10
-*/

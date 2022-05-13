@@ -2,10 +2,9 @@
 
 #include "../mod.hpp"
 
-class TimerMem : public Mod
-{
+class TimerMem : public Mod {
 public:
-    TimerMem();
+    TimerMem() = default;
 
     static bool instantHoneycombEnabled;
     static uintptr_t timer_jmp_ret;

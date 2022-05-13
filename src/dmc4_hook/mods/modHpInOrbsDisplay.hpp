@@ -5,7 +5,7 @@
 class HpInOrbsDisplay : public Mod
 {
 public:
-    HpInOrbsDisplay();
+    HpInOrbsDisplay() = default;
 
     static bool modEnabled;
     static uintptr_t jmp_ret;

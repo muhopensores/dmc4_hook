@@ -71,11 +71,11 @@ std::optional<std::string> BackgroundRendering::onInitialize() {
 
 void BackgroundRendering::onConfigLoad(const utils::Config& cfg) {
 	modEnabled = cfg.get<bool>("enable_focus_patch").value_or(false);
-};
+}
 
 void BackgroundRendering::onConfigSave(utils::Config& cfg) {
 	cfg.set<bool>("enable_focus_patch", modEnabled);
-};
+}
 
 void BackgroundRendering::onGUIframe() {
 	ImGui::Checkbox("Background Input", &modEnabled);

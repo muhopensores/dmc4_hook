@@ -5,7 +5,7 @@
 class KnockbackEdits : public Mod
 {
 public:
-    KnockbackEdits();
+    KnockbackEdits() = default;
 
     static bool modEnabled;
     static uintptr_t jmp_return;

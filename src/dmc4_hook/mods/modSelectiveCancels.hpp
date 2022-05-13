@@ -13,12 +13,13 @@ enum CANCEL_MOVES {       // bits table
 	OMEN            = 64, // 0100 0000
 	GUNSTINGER		= 128,
 	EPIDEMIC        = 256,
-	DT_PIN_UP_P2	= 512
+	DT_PIN_UP_P2	= 512,
+	SHOWDOWN        = 1024
 };
 
 class SelectiveCancels : public Mod {
 public:
-	SelectiveCancels();
+	SelectiveCancels() = default;
 
 	static bool      selectiveCancelsEnable;// = false;
 	static uint32_t  cancels;// = 0;

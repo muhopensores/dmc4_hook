@@ -82,15 +82,12 @@ bool HideHud::modEnabledBoey{ false };
 // DevilMayCry4_DX9.exe+108F19 nero dt blobs (4 nops)
 
 
-std::optional<std::string> HideHud::onInitialize()
-{
+std::optional<std::string> HideHud::onInitialize() {
     return Mod::onInitialize();
 }
 
-void HideHud::toggleBoey(bool enable)
-{
-    if (enable)
-    {
+void HideHud::toggleBoey(bool enable) {
+    if (enable) {
         install_patch_offset(0x00FF7AD, patchboey01, "\x90\x90\x90\x90", 4); // first 10 hp segments
         install_patch_offset(0x00FF68A, patchboey02, "\x90\x90\x90\x90", 4); // first bar of green
         install_patch_offset(0x00FF5A6, patchboey03, "\x90\x90\x90\x90", 4); // first bar of red
@@ -163,8 +160,7 @@ void HideHud::toggleBoey(bool enable)
         install_patch_offset(0x010519A, patchboey70, "\x90\x90\x90\x90", 4); // full rg bar
         install_patch_offset(0x0108F19, patchboey71, "\x90\x90\x90\x90", 4); // nero dt blobs
     }
-    else
-    {
+    else {
         patchboey01.revert();
         patchboey02.revert();
         patchboey03.revert();
@@ -239,52 +235,49 @@ void HideHud::toggleBoey(bool enable)
     }
 }
 
-void HideHud::toggleHealth(bool enable)
-{
-    if (enable)
-    {
+void HideHud::toggleHealth(bool enable) {
+    if (enable) {
         install_patch_offset(0x00FEFE5, patchhealth, "\x73\x2E", 2); // Hides health
     }
-    else
-    {
+    else {
         patchhealth.revert();
     }
 }
-void HideHud::toggleOrbs(bool enable)
-{
-    if (enable)
-    {
-        install_patch_offset(0x1008A2, patchorbs1, "\x90\x90\x90",     3); // Hide Orbs icon
-        install_patch_offset(0x0FD952, patchorbs2, "\x90\x90\x90\x90", 4); // Hide Orbs text
-        install_patch_offset(0x0FDD80, patchorbs3, "\x90\x90\x90\x90", 4); // Hide Orbs text
-        install_patch_offset(0x0FDC8F, patchorbs4, "\x90\x90\x90\x90", 4); // Hide Orbs text
-        install_patch_offset(0x0FDD16, patchorbs5, "\x90\x90\x90\x90", 4); // Hide Orbs text
+void HideHud::toggleOrbs(bool enable) {
+    if (enable){
+        install_patch_offset(0x1008A2, patchorbs1,  "\x90\x90\x90",     3); // Hide Orbs icon
+        install_patch_offset(0x0FD952, patchorbs2,  "\x90\x90\x90\x90", 4); // Hide Orbs text
+        install_patch_offset(0x0FDD80, patchorbs3,  "\x90\x90\x90\x90", 4); // Hide Orbs text
+        install_patch_offset(0x0FDC8F, patchorbs4,  "\x90\x90\x90\x90", 4); // Hide Orbs text
+        install_patch_offset(0x0FDD16, patchorbs5,  "\x90\x90\x90\x90", 4); // Hide Orbs text
+        install_patch_offset(0x100F21, patchorbs6,  "\x90\x90\x90\x90", 4); // Hide Orbs blood
+        install_patch_offset(0x10134E, patchorbs8,  "\x90\x90\x90\x90", 4); // Hide Orbs icon outline
+        install_patch_offset(0x101240, patchorbs9,  "\x90\x90\x90\x90", 4); // Hide Orbs icon speed lines
+        install_patch_offset(0x100B24, patchorbs10, "\xC6\x40\x04\x00", 4); // Hide Orbs icon star // needs to be written 0 very cool
     }
-    else
-    {
+    else {
         patchorbs1.revert();
         patchorbs2.revert();
         patchorbs3.revert();
         patchorbs4.revert();
         patchorbs5.revert();
+        patchorbs6.revert();
+        patchorbs7.revert();
+        patchorbs8.revert();
+        patchorbs9.revert();
+        patchorbs10.revert();
     }
 }
-void HideHud::toggleStyle(bool enable)
-{
-    if (enable)
-    {
+void HideHud::toggleStyle(bool enable) {
+    if (enable) {
         install_patch_offset(0x1017F8, patchstyle, "\x0F\x83\x5B\x03\x00\x00", 6); // Hide Style
     }
-    else
-    {
+    else {
         patchstyle.revert();
     }
 }
-void HideHud::toggleTimer(bool enable)
-{
-    if (enable)
-    {
-        
+void HideHud::toggleTimer(bool enable) {
+    if (enable) {
         install_patch_offset(0x0FDE2A, patchbp, "\x00", 1);
         install_patch_offset(0x0FE088, patchbpplus, "\x90\x90\x90\x90", 4);
         install_patch_offset(0x102DF7, patchbpstageclearbonus1, "\x90\x90\x90\x90", 4);
@@ -292,8 +285,7 @@ void HideHud::toggleTimer(bool enable)
         install_patch_offset(0x0FE298, patchm12, "\x00", 1);
         // install_patch_offset(0x50A8E6, patchm12flash, "\x90\x90\x90\x90\x90", 5);
     }
-    else
-    {
+    else {
         patchbp.revert();
         patchbpplus.revert();
         patchbpstageclearbonus1.revert();
@@ -303,37 +295,30 @@ void HideHud::toggleTimer(bool enable)
     }
 }
 
-void HideHud::onGUIframe()
-{
-    if (ImGui::Checkbox("Hide Timer", &modEnabledTimer))
-    {
+void HideHud::onGUIframe() {
+    if (ImGui::Checkbox("Hide Timer", &modEnabledTimer)) {
         toggleTimer(modEnabledTimer);
     }
     ImGui::SameLine(205);
-    if (ImGui::Checkbox("Hide HP HUD", &modEnabledHealth))
-    {
+    if (ImGui::Checkbox("Hide HP HUD", &modEnabledHealth)) {
         toggleHealth(modEnabledHealth);
     }
 
-    if (ImGui::Checkbox("Hide Orbs HUD", &modEnabledOrbs))
-    {
+    if (ImGui::Checkbox("Hide Orbs HUD", &modEnabledOrbs)) {
         toggleOrbs(modEnabledOrbs);
     }
     ImGui::SameLine(205);
-    if (ImGui::Checkbox("Hide Style HUD", &modEnabledStyle))
-    {
+    if (ImGui::Checkbox("Hide Style HUD", &modEnabledStyle)) {
         toggleStyle(modEnabledStyle);
     }
 
-    if (ImGui::Checkbox("Style Dial Only", &modEnabledBoey))
-    {
+    if (ImGui::Checkbox("Style Dial Only", &modEnabledBoey)) {
         toggleBoey(modEnabledBoey);
     }
 
 }
 
-void HideHud::onConfigLoad(const utils::Config& cfg)
-{
+void HideHud::onConfigLoad(const utils::Config& cfg) {
     modEnabledHealth = cfg.get<bool>("hide_hp_hud").value_or(false);
     toggleHealth(modEnabledHealth);
     modEnabledOrbs = cfg.get<bool>("hide_orbs_hud").value_or(false);
@@ -344,13 +329,12 @@ void HideHud::onConfigLoad(const utils::Config& cfg)
     toggleTimer(modEnabledTimer);
     modEnabledBoey = cfg.get<bool>("hide_boey_hud").value_or(false);
     toggleBoey(modEnabledBoey);
-};
+}
 
-void HideHud::onConfigSave(utils::Config& cfg)
-{
+void HideHud::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("hide_hp_hud", modEnabledHealth);
     cfg.set<bool>("hide_orbs_hud", modEnabledOrbs);
     cfg.set<bool>("hide_style_hud", modEnabledStyle);
     cfg.set<bool>("hide_timer_hud", modEnabledTimer);
     cfg.set<bool>("hide_boey_hud", modEnabledBoey);
-};
+}

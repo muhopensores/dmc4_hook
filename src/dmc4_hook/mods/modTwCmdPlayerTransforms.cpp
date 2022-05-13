@@ -2,10 +2,10 @@
 
 static uintptr_t PlayerTransformsDetourContinue = NULL;
 
-bool  g_modEnable = false;
-float tWorkrate   = 1.2f;
-float oWorkrate   = 0.0f;
-uPlayer* plr = nullptr;
+static bool  g_modEnable = false;
+static float tWorkrate   = 1.2f;
+static float oWorkrate   = 0.0f;
+static uPlayer* plr = nullptr;
 
 naked void PlayerTransformsDetour() {
 	__asm {
@@ -24,8 +24,7 @@ void onTimerCallback() {
 	g_modEnable = false;
 }
 
-std::optional<std::string> TwCmdPlayerTransforms::onInitialize()
-{
+std::optional<std::string> TwCmdPlayerTransforms::onInitialize() {
 	// DevilMayCry4_DX9.exe+3ACEF0 
 	if (!install_hook_offset(0x3ACEF0 , m_hook, &PlayerTransformsDetour, &PlayerTransformsDetourContinue, 5))
 	{
@@ -41,8 +40,7 @@ std::optional<std::string> TwCmdPlayerTransforms::onInitialize()
 	return Mod::onInitialize();
 }
 
-void TwCmdPlayerTransforms::onFrame(fmilliseconds & dt)
-{
+void TwCmdPlayerTransforms::onFrame(fmilliseconds & dt) {
 	m_timer->tick(dt);
 }
 
@@ -62,8 +60,7 @@ void TwCmdPlayerTransforms::onGUIframe()
 }
 #endif
 
-void TwCmdPlayerTransforms::onTwitchCommand(std::size_t hash)
-{
+void TwCmdPlayerTransforms::onTwitchCommand(std::size_t hash) {
 	// TODO(): send a message if shit is already active?
 
 	if (m_timer->m_active) { return; } // lmao forgot about this

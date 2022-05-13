@@ -5,7 +5,7 @@
 class RoseRemovesPins : public Mod
 {
 public:
-    RoseRemovesPins();
+    RoseRemovesPins() = default;
 
     static bool modEnabled;
     static uintptr_t jmp_ret;

@@ -4,14 +4,11 @@
 bool HeightRestrictionNero::modEnabled{ false };
 
 std::optional<std::string> HeightRestrictionNero::onInitialize() {
-
     return Mod::onInitialize();
 }
 
-void HeightRestrictionNero::toggle(bool enable)
-{
-    if (enable)
-    {
+void HeightRestrictionNero::toggle(bool enable) {
+    if (enable) {
         install_patch_offset(0x3E614B, patchBuster, "\x90\x90\x90\x90\x90\x90", 6);
         install_patch_offset(0x3E5F8D, patchSplit, "\x90\x90\x90\x90\x90\x90", 6);
         install_patch_offset(0x3E6248, patchCalibur, "\x90\x90\x90\x90\x90\x90", 6);
@@ -21,8 +18,7 @@ void HeightRestrictionNero::toggle(bool enable)
         install_patch_offset(0x3E5FE1, patchDoubleDown, "\x90\x90\x90\x90\x90\x90", 6);
         install_patch_offset(0x3E4B12, patchRev, "\x90\x90", 2);
     }
-    else
-    {
+    else {
         patchBuster.revert();
         patchSplit.revert();
         patchCalibur.revert();
@@ -34,23 +30,19 @@ void HeightRestrictionNero::toggle(bool enable)
     }
 }
 
-void HeightRestrictionNero::onGUIframe()
-{
-    if (ImGui::Checkbox("Nero", &modEnabled))
-    {
+void HeightRestrictionNero::onGUIframe() {
+    if (ImGui::Checkbox("Remove Nero's Height Restriction", &modEnabled)) {
         toggle(modEnabled);
     }
 }
 
-void HeightRestrictionNero::onConfigLoad(const utils::Config& cfg)
-{
+void HeightRestrictionNero::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("nero_height_restriction_removed").value_or(false);
     toggle(modEnabled);
-};
+}
 
-void HeightRestrictionNero::onConfigSave(utils::Config& cfg)
-{
+void HeightRestrictionNero::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("nero_height_restriction_removed", modEnabled);
-};
+}
 
 #endif

@@ -9,7 +9,6 @@ uPlayer* getLocalPayer() {
 }
 
 void useHwAsmCall(){
-
 	constexpr uintptr_t useHolyWaterFptr = 0x00827D10;
 
 	uPlayer* uPlr = getLocalPayer();
@@ -27,9 +26,7 @@ void onCooldownEnd() {
 	m_alowCmd = true;
 }
 
-std::optional<std::string> TwCmdHolyWater::onInitialize()
-{
-	
+std::optional<std::string> TwCmdHolyWater::onInitialize() {
 	m_command = std::hash<std::string>{}("\\HolyWater");
 	m_shorthand = std::hash<std::string>{}("\\hw");
 	
@@ -38,16 +35,11 @@ std::optional<std::string> TwCmdHolyWater::onInitialize()
 	return Mod::onInitialize();
 }
 
-void TwCmdHolyWater::onFrame(fmilliseconds & dt)
-{
+void TwCmdHolyWater::onFrame(fmilliseconds & dt) {
 	if (!m_alowCmd) { m_cooldown->tick(dt); }
 }
 
-/*void TwCmdHolyWater::onGUIframe() {
-}*/
-
-void TwCmdHolyWater::onTwitchCommand(std::size_t hash)
-{
+void TwCmdHolyWater::onTwitchCommand(std::size_t hash) {
 	if ((hash == m_command || hash == m_shorthand ) && m_alowCmd) {
 		useHwAsmCall();
 		m_cooldown->start();

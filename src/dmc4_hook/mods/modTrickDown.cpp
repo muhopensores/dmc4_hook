@@ -6,15 +6,9 @@ bool TrickDown::modEnabled{ false };
 uintptr_t TrickDown::trick_down_jmp_ret{ NULL };
 uintptr_t TrickDown::floor_touch_jmp_ret{ NULL };
 
-float downFloat{ -200.0f };
+static float downFloat{ -200.0f };
 
-TrickDown::TrickDown()
-{
-	//onInitialize();
-}
-
-naked void trickDownDetour(void)
-{
+naked void trickDownDetour(void) { // not gonna player compare because the idea of boss dante using down trick on you is kinda funny
 	_asm {
 			cmp byte ptr [TrickDown::modEnabled], 0
 			je originalcode
@@ -32,8 +26,7 @@ naked void trickDownDetour(void)
 	}
 }
 
-naked void floorTouchDetour(void)
-{
+naked void floorTouchDetour(void) {
 	_asm {
 			cmp byte ptr [TrickDown::modEnabled], 0
 			je originalcode
@@ -49,14 +42,11 @@ naked void floorTouchDetour(void)
 }
 
 std::optional<std::string> TrickDown::onInitialize() {
-
-	if (!install_hook_offset(0x003CB119, trickDownHook, &trickDownDetour, &trick_down_jmp_ret, 8))
-    {
+	if (!install_hook_offset(0x003CB119, trickDownHook, &trickDownDetour, &trick_down_jmp_ret, 8)) {
 		HL_LOG_ERR("Failed to init TrickDown1 mod\n");
 		return "Failed to init TrickDown1 mod";
 	}
-    if (!install_hook_offset(0x003CB33D, floorTouchHook, &floorTouchDetour, &floor_touch_jmp_ret, 8))
-    {
+    if (!install_hook_offset(0x003CB33D, floorTouchHook, &floorTouchDetour, &floor_touch_jmp_ret, 8)) {
         HL_LOG_ERR("Failed to init TrickDown2 mod\n");
         return "Failed to init TrickDown2 mod";
     }
@@ -66,12 +56,14 @@ std::optional<std::string> TrickDown::onInitialize() {
 
 void TrickDown::onGUIframe() {
     ImGui::Checkbox("Trick Down", &modEnabled);
+    ImGui::SameLine();
+    HelpMarker("Map Trick Down to backforward + trick");
 }
 
 void TrickDown::onConfigLoad(const utils::Config& cfg) {
     modEnabled = cfg.get<bool>("trick_down").value_or(false);
-};
+}
 
 void TrickDown::onConfigSave(utils::Config& cfg) {
     cfg.set<bool>("trick_down", modEnabled);
-};
+}

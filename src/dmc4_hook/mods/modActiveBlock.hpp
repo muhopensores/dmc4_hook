@@ -5,7 +5,7 @@
 class ActiveBlock : public Mod
 {
 public:
-    ActiveBlock();
+    ActiveBlock() = default;
     static bool modEnabled;
     static uintptr_t jmp_return;
     static uint32_t inputpressed;

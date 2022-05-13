@@ -2,16 +2,15 @@
 
 #include "../mod.hpp"
 
-class PassiveEnemies : public Mod
+class NeroSnatchLength : public Mod
 {
 public:
-    PassiveEnemies() = default;
+    NeroSnatchLength() = default;
 
     static bool modEnabled;
+    static uintptr_t jmp_ret;
 
-    void toggle(bool enable);
-
-    std::string getModName() override { return "PassiveEnemies"; };
+    std::string getModName() override { return "NeroSnatchLength"; };
 
     std::optional<std::string> onInitialize() override;
 
@@ -21,5 +20,5 @@ public:
     void onGUIframe() override;
 
 private:
-    hl::Patch patch;
+    hl::Hooker hook;
 };

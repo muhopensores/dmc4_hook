@@ -2,8 +2,7 @@
 
 #include "../mod.hpp"
 
-class FastSprint : public Mod
-{
+class FastSprint : public Mod {
 public:
     FastSprint() = default;
 

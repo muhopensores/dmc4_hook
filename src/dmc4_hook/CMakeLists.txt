@@ -58,8 +58,6 @@ SET (MODS
   mods/modHeightRestrictionDante.hpp
   mods/modInfFaustCloak.cpp
   mods/modInfFaustCloak.hpp
-  mods/modPassiveEnemies.cpp
-  mods/modPassiveEnemies.hpp
   mods/modHeightRestrictionNero.cpp
   mods/modHeightRestrictionNero.hpp
   mods/modInfiniteTime.cpp
@@ -172,6 +170,18 @@ SET (MODS
   mods/modNeroFullHouse.cpp
   mods/modFrostsDontJump.hpp
   mods/modFrostsDontJump.cpp
+  mods/modNeroSnatchLength.hpp
+  mods/modNeroSnatchLength.cpp
+  mods/modChargeChecker.hpp
+  mods/modChargeChecker.cpp
+  mods/modEnemyStats.hpp
+  mods/modEnemyStats.cpp
+  mods/modFasterFastDrive.hpp
+  mods/modFasterFastDrive.cpp
+  mods/modRoseOptions.hpp
+  mods/modRoseOptions.cpp
+  mods/modInstantTrick.hpp
+  mods/modInstantTrick.cpp
 )
 
 SET (HEADERS
