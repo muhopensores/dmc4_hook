@@ -405,7 +405,7 @@ void EnemyReplace::ReplaceEnemyThree(uintptr_t address)
 
     if (address == replaceChimera)
     {
-        replaceChimera_patch.apply(replaceChimera, "\xe9\x7b\x36\xf8\ff", 5);
+        replaceChimera_patch.apply(replaceChimera, "\xe9\x7b\x36\xf8\xff", 5);
         replacementAddressTwo_patch.apply(replacementAddressTwo, "\x74\x12", 2);
     }
 

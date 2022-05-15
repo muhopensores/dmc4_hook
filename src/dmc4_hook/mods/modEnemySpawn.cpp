@@ -12,6 +12,7 @@ constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 static sMediator* sMedPtr = nullptr;
 static uPlayer* uLocalPlr = nullptr;
 static int enemySpawning = 0;
+static bool enableTwitchSpecialSpawns = false;
 
 int EnemySpawn::hotkeySpawnModifier{ NULL };
 
@@ -28,7 +29,7 @@ int EnemySpawn::hotkeySpawnFaust{ NULL };
 int EnemySpawn::hotkeySpawnBianco{ NULL };
 int EnemySpawn::hotkeySpawnAlto{ NULL };
 
-constexpr std::array<uintptr_t, 19> fptrEmFactories{
+constexpr std::array<uintptr_t, 21> fptrEmFactories{
 	0x0055E710,			// Arm Scarecrow em01
 	0x0053F810,			// Leg Scarecrow em02
     0x0055F7E0,			// Mega Scarecrow em03
@@ -56,43 +57,45 @@ constexpr std::array<uintptr_t, 19> fptrEmFactories{
 						// The Savior bo08
 						// The False Savior bo09
     0x006F81E0,			// Sanctus bo10
-    0x007022F0			// Sanctus Diabolica bo11
-						// Dante bo12
+    0x007022F0, 		// Sanctus Diabolica bo11
+    0x007BF980,         // Dante bo12                   
+    0x00723C00          // Kyrie
 };
 
-constexpr std::array<const char*, 19> enemyNames{
-	"Scarecrow (Arm)",	// em01 //  0
-	"Scarecrow (Leg)",	// em02 //  1
-	"Mega Scarecrow",	// em03 //  2
-	"Frost",			// em04 //  3
-	"Assault",			// em05 //  4
-	"Blitz",			// em06 //  5
-	// "Gladius",		// em07
-	// "Cutlass",		// em08
-	"Basilisk",			// em09 //  6
-	"Chimera Seed",		// em10 //  7
-	// Chimera			// em11
-    "Mephisto",			// em12 //  8
-    "Faust",			// em13 //  9
-	"Bianco Angelo",	// em14 // 10
-	"Alto Angelo",		// em15 // 11
-	// Fault			// em16
-//--------------------------------
-	"Berial",			// bo01 // 12
-	"Bael",				// bo02 // 13
-	// Dagon			// bo03
-	"Echidna",			// bo04 // 14
-	// Agnus			// bo05
-	"Angelo Agnus",		// bo06 // 15
-	"Angelo Credo",		// bo07 // 16
-	// The Savior		// bo08
-	// The False Savior	// bo09
-	"Sanctus",			// bo10 // 17
-	"Sanctus Diabolica"	// bo11 // 18
-	// Dante			// bo12
+constexpr std::array<const char*, 21> enemyNames{
+	"Scarecrow (Arm)",	 // em01 //  0
+	"Scarecrow (Leg)",	 // em02 //  1
+	"Mega Scarecrow",	 // em03 //  2
+	"Frost",			 // em04 //  3
+	"Assault",			 // em05 //  4
+	"Blitz",			 // em06 //  5
+	// "Gladius",		 // em07
+	// "Cutlass",		 // em08
+	"Basilisk",			 // em09 //  6
+	"Chimera Seed",		 // em10 //  7
+	// Chimera			 // em11
+    "Mephisto",			 // em12 //  8
+    "Faust",			 // em13 //  9
+	"Bianco Angelo",	 // em14 // 10
+	"Alto Angelo",		 // em15 // 11
+	// Fault			 // em16
+//------------------------------------
+	"Berial",			 // bo01 // 12
+	"Bael",				 // bo02 // 13
+	// Dagon			 // bo03
+	"Echidna",			 // bo04 // 14
+	// Agnus			 // bo05
+	"Angelo Agnus",		 // bo06 // 15
+	"Angelo Credo",		 // bo07 // 16
+	// The Savior		 // bo08
+	// The False Savior	 // bo09
+	"Sanctus",			 // bo10 // 17
+	"Sanctus Diabolica", // bo11 // 18
+    "Dante",             // bo12 // 19
+    "Kyrie"              // kyrie// 20
 };
 
-constexpr std::array<int, 19> EnemySpawnType{
+constexpr std::array<int, 21> EnemySpawnType{
     4,  // "Scarecrow Arm"     // em01 //  0
     4,  // "Scarecrow Leg"     // em02 //  1
     4,  // "Mega Scarecrow",   // em03 //  2
@@ -119,8 +122,9 @@ constexpr std::array<int, 19> EnemySpawnType{
         // "The Savior",	   // bo08
         // "The False Savior", // bo09
     4,  // "Sanctus",          // bo10 // 17
-    4   // "Sanctus Diabolica" // bo11 // 18
-        // "Dante"			   // bo12
+    4,  // "Sanctus Diabolica" // bo11 // 18
+    4,  // "Dante"			   // bo12
+    4   // "Kyrie"
 };
 
 static uintptr_t fptrUpdateActorList{ 0x008DC540 }; // Spawns shit
@@ -230,6 +234,14 @@ std::optional<std::string> EnemySpawn::onInitialize()
     m_spawnFaustCommand = std::hash<std::string>{}("\\SpawnFaust");
     m_spawnBiancoCommand = std::hash<std::string>{}("\\SpawnBianco");
     m_spawnAltoCommand = std::hash<std::string>{}("\\SpawnAlto");
+    m_spawnBerialCommand = std::hash<std::string>{}("\\SpawnBerial");
+    m_spawnBaelCommand = std::hash<std::string>{}("\\SpawnBael");
+    m_spawnEchidnaCommand = std::hash<std::string>{}("\\SpawnEchidna");
+    m_spawnAgnusCommand = std::hash<std::string>{}("\\SpawnAgnus");
+    m_spawnCredoCommand = std::hash<std::string>{}("\\SpawnCredo");
+    m_spawnSanctusDiaCommand = std::hash<std::string>{}("\\SpawnSanctus");
+    m_spawnDanteCommand = std::hash<std::string>{}("\\SpawnDante");
+    m_spawnKyrieCommand = std::hash<std::string>{}("\\SpawnKyrie");
 
 	return Mod::onInitialize(); 
 }
@@ -245,10 +257,12 @@ void EnemySpawn::onGUIframe()
 	ImGui::Text("Enemy Spawner");
 
 	int enemyNames_current = 0;
-	if (ImGui::ListBox("##Enemy Spawn Listbox", &enemyNames_current, enemyNames.data(), enemyNames.size(), 19))
+	if (ImGui::ListBox("##Enemy Spawn Listbox", &enemyNames_current, enemyNames.data(), enemyNames.size(), 21))
     {
             spawnEm00x(enemyNames_current);
     }
+
+    ImGui::Checkbox("Twitch Can Spawn Special Enemies", &enableTwitchSpecialSpawns);
 }
 
 void EnemySpawn::onTwitchCommand(std::size_t hash)
@@ -313,6 +327,48 @@ void EnemySpawn::onTwitchCommand(std::size_t hash)
     {
         spawnEm00x(11);
     }
+    if (enableTwitchSpecialSpawns) {
+        HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnBerialCommand);
+        if (hash == m_spawnBerialCommand)
+        {
+            spawnEm00x(12);
+        }
+        HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnBaelCommand);
+        if (hash == m_spawnBaelCommand)
+        {
+            spawnEm00x(13);
+        }
+        HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnEchidnaCommand);
+        if (hash == m_spawnEchidnaCommand)
+        {
+            spawnEm00x(14);
+        }
+        HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnAgnusCommand);
+        if (hash == m_spawnAgnusCommand)
+        {
+            spawnEm00x(15);
+        }
+        HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnCredoCommand);
+        if (hash == m_spawnCredoCommand)
+        {
+            spawnEm00x(16);
+        }
+        HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnSanctusDiaCommand);
+        if (hash == m_spawnSanctusDiaCommand)
+        {
+            spawnEm00x(18); // skipping non diabolica sanctus
+        }
+        HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnDanteCommand);
+        if (hash == m_spawnDanteCommand)
+        {
+            spawnEm00x(19);
+        }
+        HL_LOG_RAW("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawnKyrieCommand);
+        if (hash == m_spawnKyrieCommand)
+        {
+            spawnEm00x(20);
+        }
+    }
 }
 
 void EnemySpawn::onConfigLoad(const utils::Config& cfg)
@@ -331,6 +387,8 @@ void EnemySpawn::onConfigLoad(const utils::Config& cfg)
     hotkeySpawnFaust = cfg.get<int>("hotkey_spawn_faust").value_or(0x79);                // F10
     hotkeySpawnBianco = cfg.get<int>("hotkey_spawn_bianco").value_or(0x7A);              // F11
     hotkeySpawnAlto = cfg.get<int>("hotkey_spawn_alto").value_or(0x7B);                  // F12
+
+    enableTwitchSpecialSpawns = cfg.get<bool>("enable_twitch_special_spawns").value_or(true);
 };
 
 void EnemySpawn::onConfigSave(utils::Config& cfg)
@@ -349,6 +407,8 @@ void EnemySpawn::onConfigSave(utils::Config& cfg)
     cfg.set<int>("hotkey_spawn_faust", hotkeySpawnFaust);
     cfg.set<int>("hotkey_spawn_bianco", hotkeySpawnBianco);
     cfg.set<int>("hotkey_spawn_alto", hotkeySpawnAlto);
+
+    cfg.set<bool>("enable_twitch_special_spawns", enableTwitchSpecialSpawns);
 };
 
 void EnemySpawn::onUpdateInput(hl::Input& input)

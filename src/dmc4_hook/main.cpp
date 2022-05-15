@@ -499,7 +499,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::Separator();
                 ImGui::Spacing();
 
-                main->getMods()->onDrawUI("EnemyReplace"_hash); // needs its own line
+                //main->getMods()->onDrawUI("EnemyReplace"_hash); // needs its own line
+                main->getMods()->onDrawUI("EnemyReplaceAgain"_hash); // needs its own line
 
                 ImGui::EndChild();
                 ImGui::EndTabItem();
@@ -593,7 +594,6 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 main->getMods()->onDrawUI("EnemyStats"_hash); // needs its own line
 
                 ImGui::Spacing();
-
 
                 // main->getMods()->onDrawUI("ShaderEditor"_hash);
 
