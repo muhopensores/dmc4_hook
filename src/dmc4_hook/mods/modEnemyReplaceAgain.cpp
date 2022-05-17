@@ -4,33 +4,30 @@ bool EnemyReplaceAgain::modEnabled{ false };
 static uintptr_t modBase = (uintptr_t)GetModuleHandle(NULL);
 static uintptr_t replacementAddressTwo = modBase + 0x24B77B;
 
-static uintptr_t ScarecrowLegAddress   = modBase + 0x13F810; // 0x53F810;
-static uintptr_t ScarecrowArmAddress   = modBase + 0x15E710; // 0x55E710;
-static uintptr_t ScarecrowMegaAddress  = modBase + 0x15F7E0; // 0x55F7E0;
-static uintptr_t AngeloBiancoAddress   = modBase + 0x161A10; // 0x561A10;
-static uintptr_t AngeloAltoAddress     = modBase + 0x176C80; // 0x576C80;
-static uintptr_t MephistoAddress       = modBase + 0x17F1E0; // 0x57F1E0;
-static uintptr_t FaustAddress          = modBase + 0x195810; // 0x595810;
-static uintptr_t FrostAddress          = modBase + 0x1A3F60; // 0x5A3F60;
-static uintptr_t AssaultAddress        = modBase + 0x1B3170; // 0x5B3170;
-static uintptr_t BlitzAddress          = modBase + 0x1D1760; // 0x5D1760;
-static uintptr_t ChimeraSeedAddress    = modBase + 0x1DC160; // 0x5DC160;
-static uintptr_t BasiliskAddress       = modBase + 0x21A7B0; // 0x61A7B0;
-static uintptr_t BerialAddress         = modBase + 0x230AC0; // 0x630AC0;
-static uintptr_t BaelAddress           = modBase + 0x249CB0; // 0x649CB0;
-static uintptr_t EchidnaAddress        = modBase + 0x285340; // 0x685340;
-static uintptr_t CredoAddress          = modBase + 0x2AA2C0; // 0x6AA2C0;
-static uintptr_t AgnusAddress          = modBase + 0x2BDE60; // 0x6BDE60;
-static uintptr_t SanctusAddress        = modBase + 0x2F81E0; // 0x6F81E0; // diabolical sanctus
-static uintptr_t KyrieAddress          = modBase + 0x323C00; // 0x723C00;
-static uintptr_t DanteAddress          = modBase + 0x3BF980; // 0x7BF980;
-// static uintptr_t Sanctus2Address       = modBase + 0x2F81E0; // 0x6F81E0
+static uintptr_t ScarecrowLegAddress  = modBase + 0x13F810; // 0x53F810;
+static uintptr_t ScarecrowArmAddress  = modBase + 0x15E710; // 0x55E710;
+static uintptr_t ScarecrowMegaAddress = modBase + 0x15F7E0; // 0x55F7E0;
+static uintptr_t AngeloBiancoAddress  = modBase + 0x161A10; // 0x561A10;
+static uintptr_t AngeloAltoAddress    = modBase + 0x176C80; // 0x576C80;
+static uintptr_t MephistoAddress      = modBase + 0x17F1E0; // 0x57F1E0;
+static uintptr_t FaustAddress         = modBase + 0x195810; // 0x595810;
+static uintptr_t FrostAddress         = modBase + 0x1A3F60; // 0x5A3F60;
+static uintptr_t AssaultAddress       = modBase + 0x1B3170; // 0x5B3170;
+static uintptr_t BlitzAddress         = modBase + 0x1D1760; // 0x5D1760;
+static uintptr_t ChimeraSeedAddress   = modBase + 0x1DC160; // 0x5DC160;
+static uintptr_t BasiliskAddress      = modBase + 0x21A7B0; // 0x61A7B0;
+static uintptr_t BerialAddress        = modBase + 0x230AC0; // 0x630AC0;
+static uintptr_t BaelAddress          = modBase + 0x249CB0; // 0x649CB0;
+static uintptr_t EchidnaAddress       = modBase + 0x285340; // 0x685340;
+static uintptr_t CredoAddress         = modBase + 0x2AA2C0; // 0x6AA2C0;
+static uintptr_t AgnusAddress         = modBase + 0x2BDE60; // 0x6BDE60;
+static uintptr_t SanctusAddress       = modBase + 0x2F81E0; // 0x6F81E0; // diabolical sanctus
+static uintptr_t KyrieAddress         = modBase + 0x323C00; // 0x723C00;
+static uintptr_t DanteAddress         = modBase + 0x3BF980; // 0x7BF980;
+// static uintptr_t Sanctus2Address      = modBase + 0x2F81E0; // 0x6F81E0
 // crash:
-// static uintptr_t CutlassAddress        = modBase + 0x209C20; // 0x609C20;
-// static uintptr_t GladiusAddress        = modBase + 0x218460; // 0x618460;
-
-int EnemyReplaceAgain::default_enemy[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 };
-int EnemyReplaceAgain::desired_enemy[IM_ARRAYSIZE(default_enemy)];
+// static uintptr_t CutlassAddress       = modBase + 0x209C20; // 0x609C20;
+// static uintptr_t GladiusAddress       = modBase + 0x218460; // 0x618460;
 
 // id:         name & notes:                        file spawn bytes
 // em000    // Scarecrow (Leg Type)              // B3D5241C
@@ -251,6 +248,29 @@ const char* combo_lists[] = {
     "Replace Dante with:"            // 19
 };
 
+const char* combo_items[] = {
+    "Scarecrow (Leg)",               // 00
+    "Scarecrow (Arm)",               // 01
+    "Mega Scarecrow",                // 02
+    "Bianco Angelo",                 // 03
+    "Alto Angelo",                   // 04
+    "Mephisto",                      // 05
+    "Faust",                         // 06
+    "Frost",                         // 07
+    "Assault",                       // 08
+    "Blitz",                         // 09
+    "Chimera Seed",                  // 10
+    "Basilisk",                      // 11
+    "Berial",                        // 12
+    "Bael",                          // 13
+    "Echidna",                       // 14
+    "Credo",                         // 15
+    "Agnus",                         // 16
+    "Sanctus",                       // 17
+    "Kyrie",                         // 18
+    "Dante"                          // 19
+};
+
 // combo list text doesn't seem to like format text
 const char* combo_list_IDs[] = {
     "##ReplaceScarecrowLeg",         // 00
@@ -299,50 +319,31 @@ const char* save_load_IDs[] = {
     "ReplaceDante"                   // 19
 };
 
-const char* combo_items[] = {
-    "Scarecrow (Leg)",               // 00
-    "Scarecrow (Arm)",               // 01
-    "Mega Scarecrow",                // 02
-    "Bianco Angelo",                 // 03
-    "Alto Angelo",                   // 04
-    "Mephisto",                      // 05
-    "Faust",                         // 06
-    "Frost",                         // 07
-    "Assault",                       // 08
-    "Blitz",                         // 09
-    "Chimera Seed",                  // 10
-    "Basilisk",                      // 11
-    "Berial",                        // 12
-    "Bael",                          // 13
-    "Echidna",                       // 14
-    "Credo",                         // 15
-    "Agnus",                         // 16
-    "Sanctus",                       // 17
-    "Kyrie",                         // 18
-    "Dante"                          // 19
-};
+int EnemyReplaceAgain::default_enemy[IM_ARRAYSIZE(combo_lists)] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 };
+int EnemyReplaceAgain::desired_enemy[IM_ARRAYSIZE(combo_items)];
 
 void EnemyReplaceAgain::onGUIframe() {
-    //if (ImGui::CollapsingHeader("Enemy Replacement")) {
-    ImGui::Text("Enemy Replacement - No Cyclical Replacements!");
-    ImGui::SameLine();
-    HelpMarker("Example: Don't replace Mephisto with Faust and Faust with Mephisto at the same time. The game will crash.\n"
-        "Many of these are untested and may also crash; I thought I'd leave them in just in case there's something that works that we had disabled before.");
-    ImGui::Spacing();
-    if (ImGui::Button("Reset")) {
-        for (int i = 0; i < IM_ARRAYSIZE(default_enemy); i++) {
-            desired_enemy[i] = i;
-            ReplaceEnemyWith(default_enemy[i], desired_enemy[i]);
-        }
-    }
-    ImGui::Spacing();
-    for (int i = 0; i < IM_ARRAYSIZE(default_enemy); i++) {
-        ImGui::Text(combo_lists[i]);
-        if (ImGui::Combo(combo_list_IDs[i], &desired_enemy[i], combo_items, IM_ARRAYSIZE(combo_items))) {
-            ReplaceEnemyWith(default_enemy[i], desired_enemy[i]);
+    // if (ImGui::CollapsingHeader("Enemy Replacement")) {
+        ImGui::Text("Enemy Replacement - No Cyclical Replacements!");
+        ImGui::SameLine();
+        HelpMarker("Example: Don't replace Mephisto with Faust and Faust with Mephisto at the same time. The game will crash.\n"
+            "Many of these are untested and may also crash; I thought I'd leave them in just in case there's something that works that we had disabled before.");
+        ImGui::Spacing();
+        if (ImGui::Button("Reset")) {
+            for (int i = 0; i < IM_ARRAYSIZE(default_enemy); i++) {
+                desired_enemy[i] = i;
+                ReplaceEnemyWith(default_enemy[i], desired_enemy[i]);
+            }
         }
         ImGui::Spacing();
-    }
+        for (int i = 0; i < IM_ARRAYSIZE(default_enemy); i++) {
+            ImGui::Text(combo_lists[i]);
+            if (ImGui::Combo(combo_list_IDs[i], &desired_enemy[i], combo_items, IM_ARRAYSIZE(combo_items))) {
+                ReplaceEnemyWith(default_enemy[i], desired_enemy[i]);
+            }
+            ImGui::Spacing();
+        }
+    // }
 }
 
 void EnemyReplaceAgain::onConfigLoad(const utils::Config& cfg) {

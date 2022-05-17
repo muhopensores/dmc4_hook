@@ -4,7 +4,6 @@
 #include "modEnemySpawn.hpp"
 #include "modAreaJump.hpp" // for cAreaJumpPtr
 
-
 // TODO(): move this somewhere maybe
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 static uintptr_t fptrUpdateActorList{ 0x008DC540 }; // Spawns shit
@@ -148,6 +147,52 @@ constexpr std::array<int, 21> EnemySpawnType {
     // 4                       // // The False Savior
 };
 
+/*
+spawn animations:
+if not listed, 4 was used
+5 is broken on most, T POSE BABYYYYY
+
+scarecrow:
+2 built by ants, looks bad coming from the air
+3 fall out of horizontal portal while lying down
+4 fall out of horizontal portal
+
+armour:
+1 horizontal portal
+4 vertical portal
+
+mephisto/faust:
+2 down, usually through the floor
+3 goes up
+4 goes up
+
+frost:
+2 frost spawns in ice
+3 frost jump far horizontally
+4 frost falls, looks good
+
+assault:
+0 under the player
+1 long jump
+2 through wall portal
+3 do tiny jump towards camera
+4 long jump
+
+blitz:
+1 under player explosion
+2 on player explosion
+4 teleporting around
+
+chimera:
+2 in seed, falls from much higher up
+3 in seed, falls
+
+basilisk:
+2 hops forward from air
+3 horizontal portal ground
+4 attacking random spot
+*/
+
 glm::vec3 getPlayerPosition() {
 	// TODO(): move this into somewhere general since
 	// this player ptr might be useful in other places
@@ -185,6 +230,7 @@ void spawnEm00x(int index) {
 		call setEnemyPosition
 		pop esi
 		popa
+
         mov ecx, 0Fh
         mov eax, [someStruct] // static
 		mov eax, [eax]
@@ -391,48 +437,6 @@ void EnemySpawn::onUpdateInput(hl::Input& input) {
         }
     }
 }
-
-/*
-scarecrow:
-2 scarecrow built by ants (also for mega), looks weird coming from the air
-3 scarecrows fall out of horizontal portal while lying down
-4 scarecrows fall out of horizontal portal
-5 broken on most, T POSE BABYYYYY
-
-frost:
-2 frost spawns in ice
-3 frost jump far horizontally
-4 frost falls, looks good
-
-blitz:
-1 blitz spawns under player explosion
-2 blitz spawns on player explosion
-4 blitz spawns teleporting around
-
-mephisto/faust:
-2 makes mephisto+faust spawn down, usually through the floor
-3 mephisto faust spawns and goes up
-4 mephisto faust spawns and goes up
-
-assault:
-0 assualt spawns under the player
-2 assault spawns through wall portal
-3 assault do tiny jump towards camera
-4 assault long jump
-
-armour:
-1 bianco spawns through horizontal portal
-4 bianco spawns through vertical portal
-
-basilisk:
-2 basilisk hops forward from air
-3 basilisk horizontal portal ground
-4 basilisk spawns attacking random spot
-
-seed:
-2 chimera seed spawns in seed and falls from much higher up
-3 chimera seed spawns in seed and falls
-*/
 
 #if 0
 [ENABLE]
