@@ -12,6 +12,7 @@ bool        resetCalled = false;
 HWND        hWindow = NULL;
 static bool once = false;
 hl::Hooker  d3d_hook;
+static hl::Patch d3d_hook_fixup;
 int32_t width;
 int32_t height;
 
@@ -106,6 +107,9 @@ void hookD3D9(uintptr_t modBase) {
 	// another reset call
 	// DevilMayCry4_DX9.exe+4F135D - FF D0                 - call eax
 	uintptr_t resetCall2 = modBase + 0x4F135D;
+    uintptr_t fixupLC = 0x08F1383;
+    char fixupData[] = "\xEB\x0A";
+    d3d_hook_fixup.apply(fixupLC, fixupData, 2);
 	d3d_hook.hookDetour(resetCall2, 7, &resetCallDetour);
 }
 

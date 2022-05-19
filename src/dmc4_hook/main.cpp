@@ -282,10 +282,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
 			main->saveSettings();
 		}
 
-        if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyScroll))
+        if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyMask_ ^ ImGuiTabBarFlags_FittingPolicyScroll))
         {
             if (ImGui::BeginTabItem("General"))
             {
+                ImGui::BeginChild("bleh", ImVec2(0,0), false, ImGuiWindowFlags_NoBackground);
                 ImGui::Spacing();
                 ImGui::Text("General");
                 ImGui::Spacing();
@@ -358,9 +359,9 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 main->getMods()->onDrawUI("BerialDaze"_hash);
 
                 ImGui::Spacing();
+                ImGui::EndChild();
                 ImGui::EndTabItem();
             }
-
             if (ImGui::BeginTabItem("Character"))
             {
                 ImGui::Spacing();
