@@ -21,14 +21,8 @@ void BeginDrawing();
 //function that draws the fps onto the gui
 void FPSDrawing();
 
-//function that draws a "misc." text onto the gui, made because misc is used frequently, so to avoid typing extra stuff every time
-void Misc();
-
 //function for putting credits specific things in the gui
 void CreditsDrawing();
 
 //helpmarker function, to avoid typing it every time in the gui section
 void HelpMarker(const char* desc);
-
-
-

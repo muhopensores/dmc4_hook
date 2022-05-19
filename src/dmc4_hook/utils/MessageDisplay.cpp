@@ -55,13 +55,13 @@ void MessageDisplayMod::onGUIframe() {
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     }
     else {
-        ImGui::GetIO().ConfigFlags &= ImGuiConfigFlags_NavEnableKeyboard;
+        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
     }
     if (enableGamepadNavigation) {
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     }
     else {
-        ImGui::GetIO().ConfigFlags &= ImGuiConfigFlags_NavEnableGamepad;
+        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
     }
 }
 

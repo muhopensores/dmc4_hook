@@ -182,6 +182,9 @@ SET (MODS
   mods/modRoseOptions.cpp
   mods/modInstantTrick.hpp
   mods/modInstantTrick.cpp
+  mods/modEnemyReplaceAgain.hpp
+  mods/modEnemyReplaceAgain.cpp
+
 )
 
 SET (HEADERS

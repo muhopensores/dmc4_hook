@@ -66,7 +66,8 @@
 #include "mods/modEnemyAttackOffScreen.hpp"
 #include "mods/modSlowWalk.hpp"
 #include "mods/modDifficultySelect.hpp"
-#include "mods/modEnemyReplace.hpp"
+//#include "mods/modEnemyReplace.hpp"
+#include "mods/modEnemyReplaceAgain.hpp"
 #include "mods/modBpJumpHook.hpp"
 #include "mods/modNoAutomaticCharacters.hpp"
 #include "mods/modDisableChimeraBlades.hpp"
@@ -163,7 +164,8 @@ Mods::Mods() {
 		m_mods["EnemyAttackOffScreen"_hash] = std::make_unique<EnemyAttackOffScreen>();
         m_mods["SlowWalk"_hash] = std::make_unique<SlowWalk>();
 		m_mods["DifficultySelect"_hash] = std::make_unique<DifficultySelect>();
-        m_mods["EnemyReplace"_hash] = std::make_unique<EnemyReplace>();
+        //m_mods["EnemyReplace"_hash] = std::make_unique<EnemyReplace>();
+		m_mods["EnemyReplaceAgain"_hash] = std::make_unique<EnemyReplaceAgain>();
 		m_mods["BpJumpHook"_hash] = std::make_unique<BpJumpHook>();
         m_mods["NoAutomaticCharacters"_hash] = std::make_unique<NoAutomaticCharacters>();
 		m_mods["DisableChimeraBlades"_hash] = std::make_unique<DisableChimeraBlades>();
