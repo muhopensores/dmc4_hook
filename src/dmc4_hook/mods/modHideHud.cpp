@@ -243,6 +243,7 @@ void HideHud::toggleHealth(bool enable) {
         patchhealth.revert();
     }
 }
+
 void HideHud::toggleOrbs(bool enable) {
     if (enable){
         install_patch_offset(0x1008A2, patchorbs1,  "\x90\x90\x90",     3); // Hide Orbs icon
@@ -268,6 +269,7 @@ void HideHud::toggleOrbs(bool enable) {
         patchorbs10.revert();
     }
 }
+
 void HideHud::toggleStyle(bool enable) {
     if (enable) {
         install_patch_offset(0x1017F8, patchstyle, "\x0F\x83\x5B\x03\x00\x00", 6); // Hide Style
@@ -276,6 +278,7 @@ void HideHud::toggleStyle(bool enable) {
         patchstyle.revert();
     }
 }
+
 void HideHud::toggleTimer(bool enable) {
     if (enable) {
         install_patch_offset(0x0FDE2A, patchbp, "\x00", 1);
@@ -315,7 +318,6 @@ void HideHud::onGUIframe() {
     if (ImGui::Checkbox("Style Dial Only", &modEnabledBoey)) {
         toggleBoey(modEnabledBoey);
     }
-
 }
 
 void HideHud::onConfigLoad(const utils::Config& cfg) {
