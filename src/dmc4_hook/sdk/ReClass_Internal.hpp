@@ -80,7 +80,7 @@ public:
 	virtual void Function9(); //
 
 	char pad_0x0004[0x1C]; //0x0004
-	float unkFloat; //0x0020 
+	float gameSpeed; //0x0020 
 	float unkFloat2; //0x0024 
 	float globalSpeed; //0x0028 
 	float playerSpeed; //0x002C 

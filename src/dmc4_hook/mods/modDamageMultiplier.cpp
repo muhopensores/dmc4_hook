@@ -79,7 +79,7 @@ std::optional<std::string> DamageMultiplier::onInitialize() {
 
 void DamageMultiplier::onGUIframe() {
     ImGui::Checkbox("Player Damage Multiplier", &modEnabled);
-    ImGui::PushItemWidth(217);
+    ImGui::PushItemWidth(224);
     ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
     ImGui::PopItemWidth();
     ImGui::Spacing();

@@ -42,6 +42,7 @@ private:
               replaceCredo_patch,
               replaceAgnus_patch,
               replaceSanctus_patch,
+              replaceSanctusDia_patch,
               replaceKyrie_patch,
               replaceDante_patch;
 };

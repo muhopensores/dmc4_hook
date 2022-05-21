@@ -58,10 +58,16 @@ void WorkRate::onGUIframe() {
 			ImGui::Spacing();
 			return;
 		}
-		ImGui::PushItemWidth(217);
+		ImGui::PushItemWidth(224);
 		ImGui::InputFloat("Turbo Value", &sWorkRatePtr->turboSpeed, 0.1f, 0.5f, "%.1f%");
 		ImGui::Spacing();
+        ImGui::InputFloat("Game Speed", &sWorkRatePtr->gameSpeed, 0.1f, 0.5f, "%.1f%");
+        ImGui::SameLine();
+        HelpMarker("Enemies, players, room, bullets, pins, camera");
+		ImGui::Spacing();
         ImGui::InputFloat("Global Speed", &m_globalSpeed, 0.1f, 0.5f, "%.1f%");
+		ImGui::SameLine();
+        HelpMarker("Enemies, players, room");
 		ImGui::Spacing();
         ImGui::InputFloat("Room Speed", &sWorkRatePtr->roomSpeed, 0.1f, 0.5f, "%.1f%");
 		ImGui::Spacing();

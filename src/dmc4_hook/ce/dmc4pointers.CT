@@ -346,6 +346,7 @@
                 <CheatEntry>
                   <ID>690</ID>
                   <Description>"+0"</Description>
+                  <Options moManualExpandCollapse="1"/>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>4 Bytes</VariableType>
@@ -4579,6 +4580,26 @@
                     </CheatEntry>
                     <CheatEntry>
                       <ID>1054</ID>
+                      <Description>"+20"</Description>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>Float</VariableType>
+                      <Address>0xe558d0</Address>
+                      <Offsets>
+                        <Offset>20</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                    <CheatEntry>
+                      <ID>1442</ID>
+                      <Description>"+24"</Description>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>Float</VariableType>
+                      <Address>0xe558d0</Address>
+                      <Offsets>
+                        <Offset>24</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                    <CheatEntry>
+                      <ID>1441</ID>
                       <Description>"+28 Global Speed"</Description>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
@@ -4625,6 +4646,16 @@
                       <Address>0xe558d0</Address>
                       <Offsets>
                         <Offset>38</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                    <CheatEntry>
+                      <ID>1443</ID>
+                      <Description>"+3C"</Description>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>Float</VariableType>
+                      <Address>0xe558d0</Address>
+                      <Offsets>
+                        <Offset>3C</Offset>
                       </Offsets>
                     </CheatEntry>
                   </CheatEntries>

@@ -8,9 +8,9 @@ public:
 	FastStart() = default;
 
 	std::string getModName() override { return "FastStart"; };
-
 	std::optional<std::string> onInitialize() override;
 
+	void toggle(bool enable);
 	void onConfigLoad(const utils::Config& cfg) override;
 	void onConfigSave(utils::Config& cfg) override;
 
@@ -19,4 +19,6 @@ public:
 private:
 	hl::Hooker hook_dti;
 	hl::Hooker hook_uFade;
+	hl::Patch bpFadePatch1;
+	hl::Patch bpFadePatch2;
 };

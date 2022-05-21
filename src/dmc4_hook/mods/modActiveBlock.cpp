@@ -1,17 +1,12 @@
 #include "modActiveBlock.hpp"
 #include "modInputStates.hpp"
 
-uintptr_t ActiveBlock::jmp_return{ NULL };
 bool ActiveBlock::modEnabled{ false };
-uintptr_t ActiveBlock::alt_ret{ 0x007BBE76 };
-
-uintptr_t ActiveBlock::jmp_return2{ NULL };
-
-uintptr_t ActiveBlock::jmp_return3{ NULL };
-uintptr_t ActiveBlock::alt_ret3{ 0x007BBAC1 };
+uintptr_t ActiveBlock::jmp_return{ NULL };
+uintptr_t ActiveBlock::alt_ret{ 0x007BBAC1 };
 constexpr uintptr_t staticMediatorPtr = 0x00E558B8;
 
-naked void detour3() {
+naked void detour() {
     _asm {
         cmp [ActiveBlock::modEnabled], 0
         je code
@@ -30,18 +25,18 @@ naked void detour3() {
         je code
         cmp dword ptr [esi+0x00014D98], 3 // [currentStyle], 3
         jne code
-        jmp dword ptr [ActiveBlock::alt_ret3]
+        jmp dword ptr [ActiveBlock::alt_ret]
 
     code:
         cmp dword ptr [esi+0x000152A0],00
-		jmp dword ptr [ActiveBlock::jmp_return3]
+		jmp dword ptr [ActiveBlock::jmp_return]
     }
 }
 
 std::optional<std::string> ActiveBlock::onInitialize() {
-    if (!install_hook_offset(0x3BBAAE, hook3, &detour3, &jmp_return3, 7)) {
-        HL_LOG_ERR("Failed to init ActiveBlock3 mod\n");
-        return "Failed to init ActiveBlock3 mod";
+    if (!install_hook_offset(0x3BBAAE, hook, &detour, &jmp_return, 7)) {
+        HL_LOG_ERR("Failed to init ActiveBlock mod\n");
+        return "Failed to init ActiveBlock mod";
     }
     return Mod::onInitialize();
 }

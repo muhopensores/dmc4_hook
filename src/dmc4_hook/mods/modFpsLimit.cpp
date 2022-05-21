@@ -30,7 +30,7 @@ std::optional<std::string> FpsLimit::onInitialize() {
 
 void FpsLimit::onGUIframe() {
     ImGui::Checkbox("Override FPS Limit", &modEnabled);
-    ImGui::PushItemWidth(217);
+    ImGui::PushItemWidth(224);
     ImGui::InputFloat("New FPS Limit", &newfpslimit, 1.0f, 1.0f, "%.0f");
     ImGui::PopItemWidth();
     ImGui::Spacing();
