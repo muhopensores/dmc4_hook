@@ -255,7 +255,7 @@ const char* combo_lists[] = {
     "Replace Credo with:",              // 15
     "Replace Agnus with:",              // 16
     "Replace Sanctus with:",            // 17
-    "Replace Diabolical Sanctus with:", // 18
+    "Replace Sanctus Diabolica with:",  // 18
     "Replace Kyrie with:",              // 19
     "Replace Dante with:"               // 20
 };
@@ -279,7 +279,7 @@ const char* combo_items[] = {
     "Credo",              // 15
     "Agnus",              // 16
     "Sanctus",            // 17
-    "Diabolical Sanctus", // 18
+    "Sanctus Diabolica",  // 18
     "Kyrie",              // 19
     "Dante"               // 20
 };
