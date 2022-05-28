@@ -22,16 +22,16 @@ public:
 	
 	// onConfigLoad() gets called on load during hl::init()
 	// override this method if you want to load settings from config.
-	//void onConfigLoad(const utils::Config& cfg) override;
+	void onConfigLoad(const utils::Config& cfg) override;
 	
 	// onConfigSave() gets called on save when pressing save config button in gui.
 	// override this method if you want to save settings to config.
-	//void onConfigSave(utils::Config& cfg) override;
+	void onConfigSave(utils::Config& cfg) override;
 	
 	// onGUIframe() gets called when imgui window is on the screen.
 	// override this method if you want to display something in the gui.
-	//void onGUIframe() override;
-	
+	void onGUIframe() override;
+    void toggle(bool enable);
 	// onGamePause() gets called from hl::Main when toggling a gui.
 	// override this method if you want to do something when toggling a gui.
 	// (only used by workrate mod atm)
@@ -44,7 +44,9 @@ public:
 	//bool onMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) override;
 private:
 	// hook instance if you need to apply detours
-	hl::Hooker m_hook;
+    hl::Hooker       m_hook;
+    const hl::IHook *m_hook_iface = nullptr;
+    bool m_enabled;
 	// patch instance if you need to apply patch
 	//hl::Patch patch;
 	// random variable

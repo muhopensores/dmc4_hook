@@ -286,11 +286,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
         {
             if (ImGui::BeginTabItem("General"))
             {
-<<<<<<< HEAD
-                ImGui::BeginChild("bleh", ImVec2(0,0), false, ImGuiWindowFlags_NoBackground);
-=======
                 ImGui::BeginChild("GeneralChild");
->>>>>>> 32c703c3642c62624178bb1e0a0a509babdbc701
                 ImGui::Spacing();
                 ImGui::Text("General");
                 ImGui::Spacing();
@@ -362,10 +358,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("BerialDaze"_hash);
 
-<<<<<<< HEAD
-                ImGui::Spacing();
-=======
->>>>>>> 32c703c3642c62624178bb1e0a0a509babdbc701
+
                 ImGui::EndChild();
                 ImGui::EndTabItem();
             }
@@ -590,6 +583,8 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
             if (ImGui::BeginTabItem("Debug"))
             {
                 ImGui::BeginChild("DebugChild");
+                main->getMods()->onDrawUI("LoadOrder"_hash);
+
                 ImGui::Spacing();
                 main->getMods()->onDrawUI("PlayerTracker"_hash); // needs its own line
 
