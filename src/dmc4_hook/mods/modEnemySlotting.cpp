@@ -41,7 +41,7 @@ void EnemySlotting::onGUIframe() {
     ImGui::SameLine();
     HelpMarker("Set how many enemies can attack at the same time. Default is usually 1.\n"
 				"After unchecking this option, the original value will only be restored after entering a new room");
-    ImGui::PushItemWidth(217);
+    ImGui::PushItemWidth(224);
     ImGui::InputInt("Slot Limit", &newEnemySlotLimit, 1, 10);
     ImGui::PopItemWidth();
     ImGui::Spacing();

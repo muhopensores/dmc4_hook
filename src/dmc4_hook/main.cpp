@@ -51,13 +51,11 @@ void failed() {
 }
 
 
-uintptr_t readMemoryPointer(uintptr_t address)
-{
+uintptr_t readMemoryPointer(uintptr_t address) {
     auto result = 0;
     hl::CrashHandler([address, &result] { result = IsBadReadPtr((const void*)address, sizeof(uintptr_t)); },
                      [](uint32_t code) { HL_LOG_ERR("Crash prevented: %p\n", code); });
-    if (result)
-    {
+    if (result) {
         HL_LOG_ERR("IsBadReadPtr: %p\n", address);
         return 0;
     }
@@ -65,15 +63,13 @@ uintptr_t readMemoryPointer(uintptr_t address)
         return *((uintptr_t*)address);
 }
 template <typename T>
-T ReadPointerPath(std::vector<uintptr_t> offsets)
-{
+T ReadPointerPath(std::vector<uintptr_t> offsets) {
     auto len = offsets.size();
     auto ret = readMemoryPointer(offsets[0]);
     if (!ret)
         // return (T)&uninit_value;
         return NULL;
-    for (uint8_t i = 1; i < len - 1; i++)
-    {
+    for (uint8_t i = 1; i < len - 1; i++) {
         auto offset = offsets[i];
         ret = readMemoryPointer(ret + offset);
         if (!ret)
@@ -91,15 +87,13 @@ bool g_borderless = false;
 
 hl::StaticInit<class hlMain> g_main;
 
-hlMain* GetMain()
-{
+hlMain* GetMain() {
     return g_main.getMain();
 }
 
 // toggle functions to call from imgui to apply cheats
 
-void hlMain::GamePause()
-{
+void hlMain::GamePause() {
 	m_mods->onGamePause(g_drawGUI);
 }
 
@@ -117,8 +111,7 @@ void hlMain::saveSettings() {
 	//cfg->save(m_confPath);
 }
 
-bool hlMain::init()
-{
+bool hlMain::init() {
 	wchar_t buffer[MAX_PATH]{ 0 };
 	if (GetSystemDirectoryW(buffer, MAX_PATH) != 0) {
 		// Load the original dinput8.dll
@@ -177,8 +170,7 @@ bool hlMain::init()
     return true;
 }
 
-bool hlMain::step()
-{
+bool hlMain::step() {
     input.update();
     if (getMainWindow() == GetForegroundWindow()) {
         m_mods->onUpdateInput(input);
@@ -215,7 +207,6 @@ struct message_handler {
 
 
 void RenderBackgroundWindow() {
-
 	if (g_bWasInitialized) { return; }
 
 	ImGuiIO& io = ImGui::GetIO();
@@ -233,11 +224,9 @@ void RenderBackgroundWindow() {
 }
 
 // function to render the gui onto screen
-void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
-{
+void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw) {
     auto main = GetMain(); // get ptr to hacklib main
-    if (g_bWasInitialized)
-    {
+    if (g_bWasInitialized) {
         g_bWasInitialized = false;
         //main->ToggleStuff();
         ImGui::CreateContext();
@@ -277,8 +266,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
         }*/
 		// TODO(): properly position this?
         ImGui::SameLine(350.0f);
-		if (ImGui::Button("Save Config"))
-		{
+		if (ImGui::Button("Save Config")) {
 			main->saveSettings();
 		}
 
@@ -358,12 +346,11 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::SameLine(205);
                 main->getMods()->onDrawUI("BerialDaze"_hash);
 
-
                 ImGui::EndChild();
                 ImGui::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Character"))
-            {
+
+            if (ImGui::BeginTabItem("Character")) {
                 ImGui::BeginChild("CharacterChild");
                 ImGui::Spacing();
                 ImGui::Text("Limit Removal");
@@ -483,8 +470,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::EndTabItem();
             }
 
-            if (ImGui::BeginTabItem("Environment"))
-            {
+            if (ImGui::BeginTabItem("Environment")) {
                 ImGui::BeginChild("EnvironmentChild");
                 ImGui::Spacing();
 				main->getMods()->onDrawUI("AreaJump"_hash); // needs its own line
@@ -506,8 +492,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::EndTabItem();
             }
 
-            if (ImGui::BeginTabItem("System"))
-            {
+            if (ImGui::BeginTabItem("System")) {
                 ImGui::BeginChild("SystemChild");
                 ImGui::Spacing();
                 ImGui::Text("HUD");
@@ -580,8 +565,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw)
                 ImGui::EndTabItem();
             }
 
-            if (ImGui::BeginTabItem("Debug"))
-            {
+            if (ImGui::BeginTabItem("Debug")) {
                 ImGui::BeginChild("DebugChild");
                 main->getMods()->onDrawUI("LoadOrder"_hash);
 

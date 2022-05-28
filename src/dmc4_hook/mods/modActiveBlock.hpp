@@ -7,13 +7,10 @@ class ActiveBlock : public Mod
 public:
     ActiveBlock() = default;
     static bool modEnabled;
-    static uintptr_t jmp_return;
     static uint32_t inputpressed;
-    static uint32_t alt_ret;
 
-    static uintptr_t jmp_return2;
-    static uintptr_t jmp_return3;
-    static uintptr_t alt_ret3;
+    static uintptr_t jmp_return;
+    static uintptr_t alt_ret;
 
     std::string getModName() override { return "ActiveBlock"; };
 
@@ -24,6 +21,4 @@ public:
 
 private:
     hl::Hooker hook;
-    hl::Hooker hook2;
-    hl::Hooker hook3;
 };

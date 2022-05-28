@@ -4,30 +4,31 @@ bool EnemyReplaceAgain::modEnabled{ false };
 static uintptr_t modBase = (uintptr_t)GetModuleHandle(NULL);
 static uintptr_t replacementAddressTwo = modBase + 0x24B77B;
 
-static uintptr_t ScarecrowLegAddress  = modBase + 0x13F810; // 0x53F810;
-static uintptr_t ScarecrowArmAddress  = modBase + 0x15E710; // 0x55E710;
-static uintptr_t ScarecrowMegaAddress = modBase + 0x15F7E0; // 0x55F7E0;
-static uintptr_t AngeloBiancoAddress  = modBase + 0x161A10; // 0x561A10;
-static uintptr_t AngeloAltoAddress    = modBase + 0x176C80; // 0x576C80;
-static uintptr_t MephistoAddress      = modBase + 0x17F1E0; // 0x57F1E0;
-static uintptr_t FaustAddress         = modBase + 0x195810; // 0x595810;
-static uintptr_t FrostAddress         = modBase + 0x1A3F60; // 0x5A3F60;
-static uintptr_t AssaultAddress       = modBase + 0x1B3170; // 0x5B3170;
-static uintptr_t BlitzAddress         = modBase + 0x1D1760; // 0x5D1760;
-static uintptr_t ChimeraSeedAddress   = modBase + 0x1DC160; // 0x5DC160;
-static uintptr_t BasiliskAddress      = modBase + 0x21A7B0; // 0x61A7B0;
-static uintptr_t BerialAddress        = modBase + 0x230AC0; // 0x630AC0;
-static uintptr_t BaelAddress          = modBase + 0x249CB0; // 0x649CB0;
-static uintptr_t EchidnaAddress       = modBase + 0x285340; // 0x685340;
-static uintptr_t CredoAddress         = modBase + 0x2AA2C0; // 0x6AA2C0;
-static uintptr_t AgnusAddress         = modBase + 0x2BDE60; // 0x6BDE60;
-static uintptr_t SanctusAddress       = modBase + 0x2F81E0; // 0x6F81E0; // diabolical sanctus
-static uintptr_t KyrieAddress         = modBase + 0x323C00; // 0x723C00;
-static uintptr_t DanteAddress         = modBase + 0x3BF980; // 0x7BF980;
-// static uintptr_t Sanctus2Address      = modBase + 0x2F81E0; // 0x6F81E0
-// crash:
-// static uintptr_t CutlassAddress       = modBase + 0x209C20; // 0x609C20;
-// static uintptr_t GladiusAddress       = modBase + 0x218460; // 0x618460;
+static uintptr_t ScarecrowLegAddress   = modBase + 0x13F810; // 0x53F810;
+static uintptr_t ScarecrowArmAddress   = modBase + 0x15E710; // 0x55E710;
+static uintptr_t ScarecrowMegaAddress  = modBase + 0x15F7E0; // 0x55F7E0;
+static uintptr_t AngeloBiancoAddress   = modBase + 0x161A10; // 0x561A10;
+static uintptr_t AngeloAltoAddress     = modBase + 0x176C80; // 0x576C80;
+static uintptr_t MephistoAddress       = modBase + 0x17F1E0; // 0x57F1E0;
+static uintptr_t FaustAddress          = modBase + 0x195810; // 0x595810;
+static uintptr_t FrostAddress          = modBase + 0x1A3F60; // 0x5A3F60;
+static uintptr_t AssaultAddress        = modBase + 0x1B3170; // 0x5B3170;
+static uintptr_t BlitzAddress          = modBase + 0x1D1760; // 0x5D1760;
+static uintptr_t ChimeraSeedAddress    = modBase + 0x1DC160; // 0x5DC160;
+static uintptr_t BasiliskAddress       = modBase + 0x21A7B0; // 0x61A7B0;
+static uintptr_t BerialAddress         = modBase + 0x230AC0; // 0x630AC0;
+static uintptr_t BaelAddress           = modBase + 0x249CB0; // 0x649CB0;
+static uintptr_t EchidnaAddress        = modBase + 0x285340; // 0x685340;
+static uintptr_t CredoAddress          = modBase + 0x2AA2C0; // 0x6AA2C0;
+static uintptr_t AgnusAddress          = modBase + 0x2BDE60; // 0x6BDE60;
+static uintptr_t SanctusAddress        = modBase + 0x2F81E0; // 0x6F81E0;
+static uintptr_t SanctusDiaAddress     = modBase + 0x3022F0; // 0x7022F0;
+static uintptr_t KyrieAddress          = modBase + 0x323C00; // 0x723C00;
+static uintptr_t DanteAddress          = modBase + 0x3BF980; // 0x7BF980;
+// modBase = 400000
+// crash:                                 
+// static uintptr_t CutlassAddress        = modBase + 0x209C20; // 0x609C20;
+// static uintptr_t GladiusAddress        = modBase + 0x218460; // 0x618460;
 
 // id:         name & notes:                        file spawn bytes
 // em000    // Scarecrow (Leg Type)              // B3D5241C
@@ -118,6 +119,10 @@ naked void AgnusNaked(void) {
 naked void SanctusNaked(void) {
     _asm { jmp dword ptr [SanctusAddress] }
 }
+naked void SanctusDiaNaked(void)
+{
+    _asm { jmp dword ptr [SanctusDiaAddress] }
+}
 naked void KyrieNaked(void) {
     _asm { jmp dword ptr [KyrieAddress] }
 }
@@ -151,8 +156,10 @@ const char* GetBytesToPatch(int desiredEnemyID) {
         case 15: return (char*)&CredoNaked;
         case 16: return (char*)&AgnusNaked;
         case 17: return (char*)&SanctusNaked;
-        case 18: return (char*)&KyrieNaked;
-        case 19: return (char*)&DanteNaked;
+        case 18: return (char*)&SanctusDiaNaked;
+        case 19: return (char*)&KyrieNaked;
+        case 20: return (char*)&DanteNaked;
+        default: return NULL;
     }
 }
 const char* ReplacementAddressTwo74 = "\x74"; // default, written when 73 isn't needed
@@ -160,26 +167,28 @@ const char* ReplacementAddressTwo73 = "\x73";
 
 hl::Patch* EnemyReplaceAgain::GetPatch(int enemyID) {
     switch (enemyID) {
-        case  0: return &replaceScarecrowLeg_patch; break;
-        case  1: return &replaceScarecrowArm_patch; break;
-        case  2: return &replaceScarecrowMega_patch; break;
-        case  3: return &replaceAngeloBianco_patch; break;
-        case  4: return &replaceAngeloAlto_patch; break;
-        case  5: return &replaceMephisto_patch; break;
-        case  6: return &replaceFaust_patch; break;
-        case  7: return &replaceFrost_patch; break;
-        case  8: return &replaceAssault_patch; break;
-        case  9: return &replaceBlitz_patch; break;
-        case 10: return &replaceChimera_patch; break;
-        case 11: return &replaceBasilisk_patch; break;
-        case 12: return &replaceBerial_patch; break;
-        case 13: return &replaceBael_patch; break;
-        case 14: return &replaceEchidna_patch; break;
-        case 15: return &replaceCredo_patch; break;
-        case 16: return &replaceAgnus_patch; break;
-        case 17: return &replaceSanctus_patch; break;
-        case 18: return &replaceKyrie_patch; break;
-        case 19: return &replaceDante_patch; break;
+        case  0: return &replaceScarecrowLeg_patch;
+        case  1: return &replaceScarecrowArm_patch;
+        case  2: return &replaceScarecrowMega_patch;
+        case  3: return &replaceAngeloBianco_patch;
+        case  4: return &replaceAngeloAlto_patch;
+        case  5: return &replaceMephisto_patch;
+        case  6: return &replaceFaust_patch;
+        case  7: return &replaceFrost_patch;
+        case  8: return &replaceAssault_patch;
+        case  9: return &replaceBlitz_patch;
+        case 10: return &replaceChimera_patch;
+        case 11: return &replaceBasilisk_patch;
+        case 12: return &replaceBerial_patch;
+        case 13: return &replaceBael_patch;
+        case 14: return &replaceEchidna_patch;
+        case 15: return &replaceCredo_patch;
+        case 16: return &replaceAgnus_patch;
+        case 17: return &replaceSanctus_patch;
+        case 18: return &replaceSanctusDia_patch;
+        case 19: return &replaceKyrie_patch;
+        case 20: return &replaceDante_patch;
+        default: return NULL;
     }
 }
 
@@ -203,8 +212,10 @@ uintptr_t EnemyReplaceAgain::GetEnemyAddress(int enemyID) {
         case 15: return CredoAddress;
         case 16: return AgnusAddress;
         case 17: return SanctusAddress;
-        case 18: return KyrieAddress;
-        case 19: return DanteAddress;
+        case 18: return SanctusDiaAddress;
+        case 19: return KyrieAddress;
+        case 20: return DanteAddress;
+        default: return NULL;
     }
 }
 
@@ -226,100 +237,104 @@ void EnemyReplaceAgain::ReplaceEnemyWith(int currentEnemyID, int desiredEnemyID)
 }
 
 const char* combo_lists[] = {
-    "Replace Scarecrow (Leg) with:", // 00
-    "Replace Scarecrow (Arm) with:", // 01
-    "Replace Mega Scarecrow with:",  // 02
-    "Replace Bianco Angelo with:",   // 03
-    "Replace Alto Angelo with:",     // 04
-    "Replace Mephisto with:",        // 05
-    "Replace Faust with:",           // 06
-    "Replace Frost with:",           // 07
-    "Replace Assault with:",         // 08
-    "Replace Blitz with:",           // 09
-    "Replace Chimera Seed with:",    // 10
-    "Replace Basilisk with:",        // 11
-    "Replace Berial with:",          // 12
-    "Replace Bael with:",            // 13
-    "Replace Echidna with:",         // 14
-    "Replace Credo with:",           // 15
-    "Replace Agnus with:",           // 16
-    "Replace Sanctus with:",         // 17
-    "Replace Kyrie with:",           // 18
-    "Replace Dante with:"            // 19
+    "Replace Scarecrow (Leg) with:",    // 00
+    "Replace Scarecrow (Arm) with:",    // 01
+    "Replace Mega Scarecrow with:",     // 02
+    "Replace Bianco Angelo with:",      // 03
+    "Replace Alto Angelo with:",        // 04
+    "Replace Mephisto with:",           // 05
+    "Replace Faust with:",              // 06
+    "Replace Frost with:",              // 07
+    "Replace Assault with:",            // 08
+    "Replace Blitz with:",              // 09
+    "Replace Chimera Seed with:",       // 10
+    "Replace Basilisk with:",           // 11
+    "Replace Berial with:",             // 12
+    "Replace Bael with:",               // 13
+    "Replace Echidna with:",            // 14
+    "Replace Credo with:",              // 15
+    "Replace Agnus with:",              // 16
+    "Replace Sanctus with:",            // 17
+    "Replace Sanctus Diabolica with:",  // 18
+    "Replace Kyrie with:",              // 19
+    "Replace Dante with:"               // 20
 };
 
 const char* combo_items[] = {
-    "Scarecrow (Leg)",               // 00
-    "Scarecrow (Arm)",               // 01
-    "Mega Scarecrow",                // 02
-    "Bianco Angelo",                 // 03
-    "Alto Angelo",                   // 04
-    "Mephisto",                      // 05
-    "Faust",                         // 06
-    "Frost",                         // 07
-    "Assault",                       // 08
-    "Blitz",                         // 09
-    "Chimera Seed",                  // 10
-    "Basilisk",                      // 11
-    "Berial",                        // 12
-    "Bael",                          // 13
-    "Echidna",                       // 14
-    "Credo",                         // 15
-    "Agnus",                         // 16
-    "Sanctus",                       // 17
-    "Kyrie",                         // 18
-    "Dante"                          // 19
+    "Scarecrow (Leg)",    // 00
+    "Scarecrow (Arm)",    // 01
+    "Mega Scarecrow",     // 02
+    "Bianco Angelo",      // 03
+    "Alto Angelo",        // 04
+    "Mephisto",           // 05
+    "Faust",              // 06
+    "Frost",              // 07
+    "Assault",            // 08
+    "Blitz",              // 09
+    "Chimera Seed",       // 10
+    "Basilisk",           // 11
+    "Berial",             // 12
+    "Bael",               // 13
+    "Echidna",            // 14
+    "Credo",              // 15
+    "Agnus",              // 16
+    "Sanctus",            // 17
+    "Sanctus Diabolica",  // 18
+    "Kyrie",              // 19
+    "Dante"               // 20
 };
 
 // combo list text doesn't seem to like format text
 const char* combo_list_IDs[] = {
-    "##ReplaceScarecrowLeg",         // 00
-    "##ReplaceScarecrowArm",         // 01
-    "##ReplaceMegaScarecrow",        // 02
-    "##ReplaceBiancoAngelo",         // 03
-    "##ReplaceAltoAngelo",           // 04
-    "##ReplaceMephisto",             // 05
-    "##ReplaceFaust",                // 06
-    "##ReplaceFrost",                // 07
-    "##ReplaceAssault",              // 08
-    "##ReplaceBlitz",                // 09
-    "##ReplaceChimeraSeed",          // 10
-    "##ReplaceBasilisk",             // 11
-    "##ReplaceBerial",               // 12
-    "##ReplaceBael",                 // 13
-    "##ReplaceEchidna",              // 14
-    "##ReplaceCredo",                // 15
-    "##ReplaceAgnus",                // 16
-    "##ReplaceSanctus",              // 17
-    "##ReplaceKyrie",                // 18
-    "##ReplaceDante"                 // 19
+    "##ReplaceScarecrowLeg",  // 00
+    "##ReplaceScarecrowArm",  // 01
+    "##ReplaceMegaScarecrow", // 02
+    "##ReplaceBiancoAngelo",  // 03
+    "##ReplaceAltoAngelo",    // 04
+    "##ReplaceMephisto",      // 05
+    "##ReplaceFaust",         // 06
+    "##ReplaceFrost",         // 07
+    "##ReplaceAssault",       // 08
+    "##ReplaceBlitz",         // 09
+    "##ReplaceChimeraSeed",   // 10
+    "##ReplaceBasilisk",      // 11
+    "##ReplaceBerial",        // 12
+    "##ReplaceBael",          // 13
+    "##ReplaceEchidna",       // 14
+    "##ReplaceCredo",         // 15
+    "##ReplaceAgnus",         // 16
+    "##ReplaceSanctus",       // 17
+    "##ReplaceDiaSanctus",    // 18
+    "##ReplaceKyrie",         // 19
+    "##ReplaceDante"          // 20
 };
 
 // neither does save/loading
 const char* save_load_IDs[] = {
-    "ReplaceScarecrowLeg",           // 00
-    "ReplaceScarecrowArm",           // 01
-    "ReplaceMegaScarecrow",          // 02
-    "ReplaceBiancoAngelo",           // 03
-    "ReplaceAltoAngelo",             // 04
-    "ReplaceMephisto",               // 05
-    "ReplaceFaust",                  // 06
-    "ReplaceFrost",                  // 07
-    "ReplaceAssault",                // 08
-    "ReplaceBlitz",                  // 09
-    "ReplaceChimeraSeed",            // 10
-    "ReplaceBasilisk",               // 11
-    "ReplaceBerial",                 // 12
-    "ReplaceBael",                   // 13
-    "ReplaceEchidna",                // 14
-    "ReplaceCredo",                  // 15
-    "ReplaceAgnus",                  // 16
-    "ReplaceSanctus",                // 17
-    "ReplaceKyrie",                  // 18
-    "ReplaceDante"                   // 19
+    "ReplaceScarecrowLeg",  // 00
+    "ReplaceScarecrowArm",  // 01
+    "ReplaceMegaScarecrow", // 02
+    "ReplaceBiancoAngelo",  // 03
+    "ReplaceAltoAngelo",    // 04
+    "ReplaceMephisto",      // 05
+    "ReplaceFaust",         // 06
+    "ReplaceFrost",         // 07
+    "ReplaceAssault",       // 08
+    "ReplaceBlitz",         // 09
+    "ReplaceChimeraSeed",   // 10
+    "ReplaceBasilisk",      // 11
+    "ReplaceBerial",        // 12
+    "ReplaceBael",          // 13
+    "ReplaceEchidna",       // 14
+    "ReplaceCredo",         // 15
+    "ReplaceAgnus",         // 16
+    "ReplaceSanctus",       // 17
+    "ReplaceDiaSanctus",    // 18
+    "ReplaceKyrie",         // 19
+    "ReplaceDante"          // 20
 };
 
-int EnemyReplaceAgain::default_enemy[IM_ARRAYSIZE(combo_lists)] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 };
+int EnemyReplaceAgain::default_enemy[IM_ARRAYSIZE(combo_lists)] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
 int EnemyReplaceAgain::desired_enemy[IM_ARRAYSIZE(combo_items)];
 
 void EnemyReplaceAgain::onGUIframe() {

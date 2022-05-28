@@ -3,6 +3,7 @@
 
 static bool modEnabled{ false };
 static bool skipFades { false };
+static bool skipMoreFades{ false };
 
 static uintptr_t jmp_ret;
 static uintptr_t jmp_ret_uFade;
@@ -25,8 +26,7 @@ static void loadSaveSlot() {
 	}
 }
 
-naked void detour(void)
-{
+naked void detour(void) {
 	_asm {
 		cmp byte ptr[modEnabled], 0
 		je originalCode
@@ -61,7 +61,6 @@ naked void detour(void)
 }
 
 naked void detour_uFade() {
-	
 	__asm {
 		cmp byte ptr[skipFades], 0
 		je originalCode
@@ -86,17 +85,25 @@ naked void detour_uFade() {
 	}
 }
 
-std::optional<std::string> FastStart::onInitialize()
-{
+std::optional<std::string> FastStart::onInitialize() {
 	install_hook_absolute(0x008DB77D, hook_dti, detour, &jmp_ret, 5);
 	install_hook_absolute(0x00739632, hook_uFade, detour_uFade, &jmp_ret_uFade, 5);
 
 	return Mod::onInitialize();
 }
 
+void FastStart::toggle(bool enable) {
+    if (enable) {
+        install_patch_offset(0xBC96F, bpFadePatch1, "\x90\x90", 2);
+        install_patch_offset(0xBCB91, bpFadePatch2, "\x90\x90", 2);
+    }
+    else {
+        bpFadePatch1.revert();
+        bpFadePatch2.revert();
+    }
+}
 
-void FastStart::onGUIframe()
-{
+void FastStart::onGUIframe() {
 	ImGui::Checkbox("Fast Game Load", &modEnabled);
     ImGui::SameLine();
     HelpMarker("The game will skip all opening screens and load the first save slot");
@@ -104,16 +111,24 @@ void FastStart::onGUIframe()
 	ImGui::Checkbox("Fast Menu Fades", &skipFades);
     ImGui::SameLine();
     HelpMarker("Skip the fades between some menus");
+
+    if (ImGui::Checkbox("Fast BP Fade", &skipMoreFades)) {
+        toggle(skipMoreFades);
+    }
+    ImGui::SameLine();
+    HelpMarker("Mostly untested, should skip fade on BP load and nothing else");
 }
 
-void FastStart::onConfigLoad(const utils::Config& cfg)
-{
+void FastStart::onConfigLoad(const utils::Config& cfg) {
 	modEnabled = cfg.get<bool>("fast_load").value_or(false);
 	skipFades  = cfg.get<bool>("skip_fades").value_or(false);
-};
+	skipMoreFades  = cfg.get<bool>("skip_more_fades").value_or(false);
+    if (skipMoreFades)
+        toggle(skipMoreFades);
+}
 
-void FastStart::onConfigSave(utils::Config& cfg)
-{
+void FastStart::onConfigSave(utils::Config& cfg) {
 	cfg.set<bool>("fast_load", modEnabled);
 	cfg.set<bool>("skip_fades", skipFades);
-};
+	cfg.set<bool>("skip_more_fades", skipMoreFades);
+}

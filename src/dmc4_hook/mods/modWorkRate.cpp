@@ -2,7 +2,8 @@
 #include "../sdk/Devil4.hpp"
 
 bool WorkRate::disableTrainerPause = false;
-
+static bool forceCustomTurbo = false;
+static float customTurbo = 1.2f;
 #if 0
 uintptr_t  WorkRate::jmp_return{ NULL };
 sWorkRate* WorkRate::sWorkRatePtr{ NULL };
@@ -30,9 +31,6 @@ std::optional<std::string> WorkRate::onInitialize() {
 	return Mod::onInitialize();
 }
 
-/*void WorkRate::onFrame(fmilliseconds& dt) {
-}*/
-
 inline bool WorkRate::checkWorkRatePtr(sWorkRate* wr) {
 	if (IsBadWritePtr(wr, sizeof(uint32_t))) {
 		return false;
@@ -40,14 +38,6 @@ inline bool WorkRate::checkWorkRatePtr(sWorkRate* wr) {
 	else {
 		return true;
 	}
-}
-
-void WorkRate::onConfigLoad(const utils::Config & cfg) {
-    disableTrainerPause = cfg.get<bool>("disable_trainer_pause").value_or(false);
-}
-
-void WorkRate::onConfigSave(utils::Config & cfg) {
-    cfg.set<bool>("disable_trainer_pause", disableTrainerPause);
 }
 
 void WorkRate::onGUIframe() {
@@ -58,10 +48,16 @@ void WorkRate::onGUIframe() {
 			ImGui::Spacing();
 			return;
 		}
-		ImGui::PushItemWidth(217);
+		ImGui::PushItemWidth(224);
 		ImGui::InputFloat("Turbo Value", &sWorkRatePtr->turboSpeed, 0.1f, 0.5f, "%.1f%");
 		ImGui::Spacing();
+        ImGui::InputFloat("Game Speed", &sWorkRatePtr->gameSpeed, 0.1f, 0.5f, "%.1f%");
+        ImGui::SameLine();
+        HelpMarker("Enemies, players, room, bullets, pins, camera");
+		ImGui::Spacing();
         ImGui::InputFloat("Global Speed", &m_globalSpeed, 0.1f, 0.5f, "%.1f%");
+		ImGui::SameLine();
+        HelpMarker("Enemies, players, room");
 		ImGui::Spacing();
         ImGui::InputFloat("Room Speed", &sWorkRatePtr->roomSpeed, 0.1f, 0.5f, "%.1f%");
 		ImGui::Spacing();
@@ -70,6 +66,21 @@ void WorkRate::onGUIframe() {
         ImGui::InputFloat("Enemy Speed", &sWorkRatePtr->enemySpeed, 0.1f, 0.5f, "%.1f%");
 		ImGui::PopItemWidth();
 		ImGui::Checkbox("Disable Game Pause when opening the trainer", &disableTrainerPause);
+        ImGui::Checkbox("Force Custom Turbo", &forceCustomTurbo);
+        ImGui::SameLine();
+        HelpMarker("This turbo won't be reverted on room change");
+		if (forceCustomTurbo) {
+			ImGui::PushItemWidth(224);
+			ImGui::InputFloat("Custom Turbo", &customTurbo, 0.1f, 0.5f, "%.1f%");
+			ImGui::PopItemWidth();
+		}
+	}
+}
+
+void WorkRate::onFrame(fmilliseconds& dt) {
+	if (forceCustomTurbo) {
+		sWorkRate* sWorkRatePtr = Devil4SDK::getWorkRate();
+		sWorkRatePtr->turboSpeed = customTurbo;
 	}
 }
 
@@ -84,4 +95,16 @@ void WorkRate::onGamePause(bool toggle) {
 	if (toggle == false) {
 		sWorkRatePtr->globalSpeed = m_globalSpeed;
 	}
+}
+
+void WorkRate::onConfigLoad(const utils::Config & cfg) {
+    disableTrainerPause = cfg.get<bool>("disable_trainer_pause").value_or(false);
+    forceCustomTurbo = cfg.get<bool>("force_custom_turbo").value_or(false);
+    customTurbo = cfg.get<float>("custom_turbo").value_or(1.2f);
+}
+
+void WorkRate::onConfigSave(utils::Config & cfg) {
+    cfg.set<bool>("disable_trainer_pause", disableTrainerPause);
+    cfg.set<bool>("force_custom_turbo", forceCustomTurbo);
+    cfg.set<float>("custom_turbo", customTurbo);
 }

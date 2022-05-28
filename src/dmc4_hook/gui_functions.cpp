@@ -13,8 +13,7 @@
 #include "./mods/modEnemyStats.hpp"
 
 std::string HotkeyName(int hotkey) {
-    switch (hotkey)
-    {
+    switch (hotkey) {
     case 0x10: // 16
         return "Shift";
     case 0x11: // 17
@@ -57,8 +56,7 @@ std::string HotkeyName(int hotkey) {
     return "Siyan Moment";
 }
 
-inline void UnderLine( ImColor col_ )
-{
+inline void UnderLine( ImColor col_ ) {
 	ImVec2 min = ImGui::GetItemRectMin();
 	ImVec2 max = ImGui::GetItemRectMax();
 	min.y = max.y;
@@ -77,8 +75,7 @@ constexpr const char* version{ GUI_VERSION };
 
 // visual theme of the gui, can be changed to change the look
 
-void DarkTheme()
-{
+void DarkTheme() {
     ImGui::GetStyle().FrameRounding = 2.5f;
     ImGui::GetStyle().GrabRounding = 3.0f;
    
@@ -137,8 +134,7 @@ void DarkTheme()
     colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.4588f, 0.45880f, 0.4588f, 0.35f);
 }
 /*
-void SockTheme()
-{
+void SockTheme() {
     ImGui::GetStyle().FrameRounding = 2.5f;
     ImGui::GetStyle().GrabRounding = 3.0f;
 
@@ -196,8 +192,7 @@ void SockTheme()
     colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
     colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.4588f, 0.45880f, 0.4588f, 0.35f);
 }
-void DefaultDarkTheme()
-{
+void DefaultDarkTheme() {
     ImVec4* colors = ImGui::GetStyle().Colors;
     colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
@@ -251,34 +246,29 @@ void DefaultDarkTheme()
 */
 // draw function with parameters for the gui overlay
 
-void DrawWindow()
-{
+void DrawWindow() {
     ImGuiIO& io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Once);
-    ImGui::SetNextWindowSize(ImVec2(450, io.DisplaySize[1] * 0.9));
+    ImGui::SetNextWindowSize(ImVec2(450.0f, io.DisplaySize[1] * 0.9f));
 }
 
 // imgui::being seperated into function (required to make gui overlay work, see imgui example and documentation
-void BeginDrawing()
-{
+void BeginDrawing() {
     ImGui::Begin(version, NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 }
 
 // function that draws the fps onto the gui
-void FPSDrawing()
-{
+void FPSDrawing() {
     ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 }
 
 // function for putting credits specific things in the gui
-void CreditsDrawing()
-{
+void CreditsDrawing() {
 	static ImVec4 color1 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
     static ImVec4 color2 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
     static ImVec4 color3 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
     static ImVec4 color4 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
-    if (ImGui::BeginTabItem("About"))
-    {
+    if (ImGui::BeginTabItem("About")) {
         ImGui::BeginChild("AboutChild");
         ImGui::Spacing();
         ImGui::Text("DMC4Hook - Devil May Cry 4 Trainer");
@@ -411,11 +401,9 @@ void CreditsDrawing()
 }
 
 // helpmarker function, to avoid typing it every time in the gui section
-void HelpMarker(const char* desc)
-{
+void HelpMarker(const char* desc) {
     ImGui::TextDisabled("(?)");
-    if (ImGui::IsItemHovered())
-    {
+    if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
         ImGui::TextUnformatted(desc);
