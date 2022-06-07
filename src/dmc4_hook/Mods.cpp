@@ -92,6 +92,7 @@
 #include "./utils/MessageDisplay.hpp"
 #include "mods/modShaderEditor.hpp"
 #include "mods/modLoadOrder.hpp"
+#include "mods/modRoomRespawn.hpp"
 
 //#include "mods/modSample.hpp"
 // mods constructor
@@ -189,6 +190,7 @@ Mods::Mods() {
 		m_mods["InstantTrick"_hash] = std::make_unique<InstantTrick>();
         //m_mods["ShaderEditor"_hash] = std::make_unique<ShaderEditor>(); // unfinished
         m_mods["LoadOrder"_hash] = std::make_unique<LoadOrder>(); // in debug tab for now until i figure out how to get rid of SEH exceptions
+        m_mods["RoomRespawn"_hash] = std::make_unique<RoomRespawn>();
 }
 
 std::optional<std::string> Mods::onSlowInitialize() const {

@@ -567,6 +567,7 @@ void RenderImgui(IDirect3DDevice9* m_pDevice, bool draw) {
 
             if (ImGui::BeginTabItem("Debug")) {
                 ImGui::BeginChild("DebugChild");
+                main->getMods()->onDrawUI("RoomRespawn"_hash);
                 main->getMods()->onDrawUI("LoadOrder"_hash);
 
                 ImGui::Spacing();

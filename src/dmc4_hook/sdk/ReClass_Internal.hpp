@@ -170,7 +170,6 @@ public:
 class MtObject
 {
 public:
-
 	virtual void vecDelDtor(unsigned int i);
 	virtual void createUI(void* prop);
 	virtual bool isEnableInstance();
@@ -580,3 +579,17 @@ public:
 	char pad_17B7[57]; //0x17B7
 }; //Size: 0x17F0
 static_assert(sizeof(uEm003Shl) == 0x17F0);
+
+/* 8554 */
+struct __declspec(align(4)) MtStringSTRING
+{
+    int ref;
+    unsigned int length;
+    char str[1];
+};
+
+/* 8555 */
+struct MtString
+{
+    MtStringSTRING *value;
+};

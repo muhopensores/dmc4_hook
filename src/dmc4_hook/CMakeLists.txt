@@ -2,6 +2,8 @@ PROJECT(dmc4_hook)
 
 #add mods here, modName.cpp and modName.hpp
 SET (MODS
+  mods/modRoomRespawn.hpp
+  mods/modRoomRespawn.cpp
   mods/modLoadOrder.hpp
   mods/modLoadOrder.cpp
   mods/modShaderEditor.hpp

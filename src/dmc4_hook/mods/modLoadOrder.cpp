@@ -24,7 +24,6 @@ struct MtDTIVtbl;
 struct MtUI;
 struct MtProperty;
 struct MtStream;
-struct MtStringSTRING;
 struct MtPropertyCustomPARAM;
 struct MtPropertyCustomVtbl;
 
@@ -47,12 +46,6 @@ struct __cppobj sResourceTypeInfo : MtObject
     unsigned int mAttr;
     const char *mExt;
     const MtDTI *mpDTI;
-};
-
-/* 8555 */
-struct __cppobj MtString
-{
-    MtStringSTRING *value;
 };
 
 /* 8663 */
@@ -147,16 +140,6 @@ struct __cppobj __declspec(align(8)) sResource : cSystem
     unsigned int mDecodeThreadID[3];
     void *mDecodeEvent[3];
     void *mDecodeSync[3];
-};
-
-
-
-/* 8554 */
-struct __declspec(align(4)) MtStringSTRING
-{
-    int ref;
-    unsigned int length;
-    char str[1];
 };
 
 /* 8665 */
