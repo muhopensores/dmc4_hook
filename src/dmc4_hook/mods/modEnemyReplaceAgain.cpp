@@ -334,6 +334,7 @@ const char* save_load_IDs[] = {
     "ReplaceDante"          // 20
 };
 
+// TODO Mapにして下さい
 int EnemyReplaceAgain::default_enemy[IM_ARRAYSIZE(combo_lists)] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
 int EnemyReplaceAgain::desired_enemy[IM_ARRAYSIZE(combo_items)];
 
@@ -361,16 +362,24 @@ void EnemyReplaceAgain::onGUIframe() {
     // }
 }
 
+// TODO cfg整形
+/* 現在：
+enemy_replace_id_0=0
+enemy_replace_id_1=1
+enemy_replace_id_10=10
+っての感じ
+インラインで直すのはやりづらい
+*/
 void EnemyReplaceAgain::onConfigLoad(const utils::Config& cfg) {
     for (int i = 0; i < IM_ARRAYSIZE(default_enemy); i++) {
-        desired_enemy[i] = cfg.get<int>(save_load_IDs[i]).value_or(i);
+        desired_enemy[i] = cfg.get<int>("enemy_replace_id_"+std::to_string(i)).value_or(i);
         ReplaceEnemyWith(default_enemy[i], desired_enemy[i]);
     }
 }
 
 void EnemyReplaceAgain::onConfigSave(utils::Config& cfg) {
     for (int i = 0; i < IM_ARRAYSIZE(default_enemy); i++) {
-        cfg.set<int>(save_load_IDs[i], desired_enemy[i]);
+        cfg.set<int>("enemy_replace_id_"+std::to_string(i), desired_enemy[i]);
     }
 }
 
