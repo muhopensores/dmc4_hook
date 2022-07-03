@@ -286,7 +286,6 @@ void CreditsDrawing() {
         ImGui::Text("DelusionaryKiller");
         ImGui::Text("DJMalice");
         ImGui::Text("cheburrat0r");
-        ImGui::Text("LightFeline");
         ImGui::Text("endneo");
         ImGui::Text("CrazyMelody");
         ImGui::Text("Dlupx");
