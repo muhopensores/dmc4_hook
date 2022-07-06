@@ -1,0 +1,5 @@
+#cmakedefine LOG_FILENAME "@LOG_FILENAME@"
+#cmakedefine LOG_ENTRY "@LOG_ENTRY@"
+#cmakedefine CONFIG_FILENAME "@CONFIG_FILENAME@"
+#cmakedefine GIT_HASH @GIT_HASH@
+#cmakedefine GIT_DATE @GIT_DATE@

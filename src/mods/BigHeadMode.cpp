@@ -1,0 +1,152 @@
+#include "BigHeadMode.hpp"
+
+#include "glm/gtx/compatibility.hpp"
+#include "../sdk/Devil4.hpp"
+
+bool g_enable_mod = false;
+bool g_swole_mode = false;
+static uintptr_t joint_size_detour1_continue = NULL;
+static uintptr_t joint_size_detour2_continue = NULL;
+
+glm::vec3 size{ 0.5f, 0.5f, 0.5f };
+glm::vec3 size_torso{ 0.9f, 0.8f, 0.8f };
+
+static float get_current_style_rank() {
+	SStylishCount* sc = devil4_sdk::get_stylish_count();
+	uint32_t rank = sc->current_style_tier;
+	//float normalizedRank = glm::smoothstep(0.0f, 7.0f, (float)(rank+1)); // no style no head
+	//                                    edge0 edge1        x
+	// smoothstep Returns 0.0 if x <= edge0 and 1.0 if x >= edge1 and performs smooth
+	// Hermite interpolation between 0 and 1 when edge0 < x < edge1.
+	//return normalizedRank;
+	return (float)(rank + 1);
+}
+
+static void scale_head_joint(UModelJoint* joint) {
+	if (g_swole_mode) {
+		joint->size = size * (glm::clamp(get_current_style_rank(),1.5f,3.0f));
+	}
+	else {
+		joint->size = size * get_current_style_rank();
+	}
+}
+
+static int is_head_joint(UModelJoint* joint) {
+	uPlayer* u_plr = devil4_sdk::get_local_player();
+    if (u_plr) {
+        if (g_swole_mode) {
+            UModelJoint* torso = &u_plr->joint_array->joint[2]; // seems to be torso for both chars
+            return joint == torso;
+        }
+        else {
+            UModelJoint* head = &u_plr->joint_array->joint[4]; // seems to be heads for both chars
+            return joint == head;
+        }
+        return 0;
+	}
+    return 0;
+}
+
+naked void joint_size_detour1() {
+	__asm {
+		pushf
+		cmp byte ptr [g_enable_mod], 1
+		jne originalCode1
+		pusha
+		push esi
+		call is_head_joint
+		test eax, eax
+		pop esi
+		popa
+	    je originalCode1
+		pusha
+		push esi
+		call scale_head_joint
+		pop esi
+		popa
+		popf
+		jmp bail
+	originalCode1:
+		popf
+		movss [esi+30h],xmm0
+		movss xmm0,[esp+54h]
+		movss [esi+34h],xmm0
+		movss xmm0,[esp+58h]
+		movss [esi+38h],xmm0
+	bail:
+		jmp dword ptr [joint_size_detour1_continue]
+	}
+}
+
+naked void joint_size_detour2() {
+	__asm {
+		pushf
+		cmp byte ptr [g_enable_mod], 1
+		jne originalCode2
+		pusha
+		push esi
+		call is_head_joint
+		test eax, eax
+		pop esi
+		popa
+		je originalCode2
+		pusha
+		push esi
+		call scale_head_joint
+		pop esi
+		popa
+		popf
+		jmp bail
+
+	originalCode2:
+		popf
+		movss [esi+30h], xmm0
+		movss xmm0, [esp+1C4h]
+		movss [esi+34h],xmm0
+		movss xmm0,[esp+1C8h]
+		movss [esi+38h],xmm0
+
+	bail:
+		jmp dword ptr [joint_size_detour2_continue]
+	}
+}
+
+
+std::optional<std::string> BigHeadMode::on_initialize(){
+#if 1
+	// DevilMayCry4_DX9.exe+5E9774 
+	if (!install_hook_offset(0x5E9774 , hook1, &joint_size_detour1, &joint_size_detour1_continue, 0x1B)) {
+		spdlog::error("Failed to init BigHeadMode mod\n");
+		return "Failed to init BigHeadMode mod";
+	}
+	// DevilMayCry4_DX9.exe+5FC978 
+
+	if (!install_hook_offset(0x5FC978 , hook2, &joint_size_detour2, &joint_size_detour2_continue, 0x21)) {
+		spdlog::error("Failed to init BigHeadMode mod\n");
+		return "Failed to init BigHeadMode mod";
+	}
+#endif
+	m_command = std::hash<std::string>{}("\\" + get_mod_name());
+	return Mod::on_initialize();
+}
+
+void BigHeadMode::on_gui_frame() {
+    if (ImGui::Checkbox("Big Head Mode", &g_enable_mod)) {
+        if (g_swole_mode == true)
+            g_swole_mode = false;
+	}
+    ImGui::SameLine(205);
+	if (ImGui::Checkbox("Swole Mode", &g_swole_mode)) {
+		g_enable_mod = g_swole_mode;
+	}
+}
+
+void BigHeadMode::on_twitch_command(std::size_t hash) {
+	if (hash == m_command) {
+		g_enable_mod = !g_enable_mod;
+	}
+	if (hash == m_sw_command) {
+		g_enable_mod = !g_enable_mod;
+		g_swole_mode = !g_swole_mode;
+	}
+}
