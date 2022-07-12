@@ -16,8 +16,7 @@ struct Message {
 	std::string m_message;
 	float m_time = 100.0f;
 
-
-	void show();
+	//void show();
 	// would be too fast for people playing on uncapped framerate
 	// change m_time or fuck with deltaTime
 	bool update(float dt);
@@ -34,13 +33,13 @@ struct MessageDisplay {
 	}
 
 	void add_message(std::string msg);
-	void show_messages();
+	//void show_messages();
 	void update_messages();
 
 private:
 	MessageDisplay() {};
 };
 
-#define SHOW_MESSAGES()  MessageDisplay::instance().show_messages();
+//#define SHOW_MESSAGES()  MessageDisplay::instance().show_messages();
 #define UPDATE_MESSAGE()  MessageDisplay::instance().update_messages();
 #define DISPLAY_MESSAGE(format) MessageDisplay::instance().add_message(format);

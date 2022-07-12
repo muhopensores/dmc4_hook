@@ -21,8 +21,10 @@ void MessageDisplayMod::custom_imgui_window() {
     ImGui::SetNextWindowSize(io.DisplaySize);
 
     ImGui::Begin("Overlay", &should_display_messages, window_flags);
-    SHOW_MESSAGES();
+    // pls someone with some taste help me pick better colors for this shit
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 201, 0, 255));
     UPDATE_MESSAGE();
+    ImGui::PopStyleColor();
     ImGui::End();
 }
 

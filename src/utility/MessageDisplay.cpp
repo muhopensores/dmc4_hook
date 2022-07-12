@@ -24,15 +24,15 @@ using imgui_message_sink_st = imgui_message_sink<spdlog::details::null_mutex>;
 
 #endif
 
-void Message::show() {
-	ImGui::TextWrapped("%s",m_message.c_str());
-}
-
 bool Message::update(float dt) {
 	m_time -= dt;
 	if (m_time <= 0.0f) {
 		return false;
 	}
+    ImGui::TextWrapped("%s",m_message.c_str());
+    ImVec2 min = ImGui::GetItemRectMin();
+    ImVec2 max = ImGui::GetItemRectMax();
+    ImGui::GetBackgroundDrawList()->AddRectFilled(min, max, IM_COL32(64, 64, 64, 128));
 	return true;
 }
 
@@ -40,11 +40,11 @@ void MessageDisplay::add_message(std::string msg) {
 	m_messages.push_front(Message{ msg });
 }
 
-void MessageDisplay::show_messages()  {
+/*void MessageDisplay::show_messages()  {
 	for (Message& m : m_messages) {
 		m.show();
 	}
-}
+}*/
 
 void MessageDisplay::update_messages() {
 	for (Message& m : m_messages)  {
