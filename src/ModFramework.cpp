@@ -67,7 +67,6 @@ ModFramework::ModFramework()
     m_d3d9_hook = std::make_unique<D3D9Hook>();
 
 	m_d3d9_hook->on_reset    ([this](D3D9Hook& hook) { on_reset(); });
-	m_d3d9_hook->on_end_scene([this](D3D9Hook& hook) { on_frame(); });
 	m_d3d9_hook->on_present  ([this](D3D9Hook& hook) { on_frame(); });
 
     m_valid = m_d3d9_hook->hook();
@@ -126,7 +125,7 @@ void ModFramework::on_frame() {
 
     m_input->update();
     m_mods->on_update_input(*m_input);
-    if (m_menu_key && m_menu_key->check(*m_input) /*m_input->wentDown(VK_DELETE)*/) {
+    if (m_input->went_down(VK_DELETE) || m_menu_key->check(*m_input)) {
         m_draw_ui = !m_draw_ui;
         m_mods->on_game_pause(m_draw_ui);
     }
