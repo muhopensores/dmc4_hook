@@ -25,7 +25,7 @@ std::optional<std::string> InfDT::on_initialize() {
 		spdlog::error("Failed to init InfDT mod\n");
 		return "Failed to init InfDT mod";
 	}
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_F2, "Inf DT", "inf_dt_hotkey"));
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_F2, "Inf DT", "inf_dt_key"));
 	return Mod::on_initialize();
 }
 

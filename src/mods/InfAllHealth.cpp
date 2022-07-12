@@ -49,7 +49,7 @@ std::optional<std::string> InfAllHealth::on_initialize() {
     }
 
     m_hotkeys.emplace_back(
-        std::make_unique<utility::Hotkey>(VK_F1, "Infinite Health (All)", "inf_hp_hotkey"));
+        std::make_unique<utility::Hotkey>(VK_F1, "Infinite Health (All)", "inf_hp_key"));
     return Mod::on_initialize();
 }
 

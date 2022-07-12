@@ -57,7 +57,7 @@ std::optional<std::string> OneHitKill::on_initialize() {
         spdlog::error("Failed to init OneHitKill mod\n");
         return "Failed to init OneHitKill mod";
     }
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_F3, "One Hit Kill", "one_hit_kill_hotkey"));
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_F3, "One Hit Kill", "one_hit_kill_key"));
     return Mod::on_initialize();
 }
 

@@ -16,7 +16,7 @@ static void on_timer_callback() {
 std::optional<std::string> BpPortal::on_initialize() {
     g_mod    = this;
     m_timer  = new utility::Timer(0.5f, on_timer_callback);
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_F4, "Open BP Portal / Red Seal", "red_seal_and_bp_portal_hotkey"));
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_F4, "Open BP Portal / Red Seal", "red_seal_and_bp_portal_key"));
     return Mod::on_initialize();
 }
 

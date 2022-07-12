@@ -47,7 +47,7 @@ namespace utility
             m_description(description),
             m_config_entry(config_entry) {}
         // key combo one
-        Hotkey(std::vector<uint32_t> default_keys, const char* description, const char* config_entry) :
+        Hotkey(std::vector<uint32_t>& default_keys, const char* description, const char* config_entry) :
             m_default_keys(default_keys),
             m_description(description),
             m_config_entry(config_entry) {}

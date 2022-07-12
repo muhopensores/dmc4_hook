@@ -11,7 +11,7 @@ static void on_timer_callback() {
 std::optional<std::string> NoClip::on_initialize() {
     m_timer      = new utility::Timer(5.0f, on_timer_callback);
     m_command    = std::hash<std::string>{}("\\" + get_mod_name());
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_F5, "NoClip", "noclip_hotkey"));
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_F5, "NoClip", "noclip_key"));
     return Mod::on_initialize();
 }
 
