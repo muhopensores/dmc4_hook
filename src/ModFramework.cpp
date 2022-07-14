@@ -1,5 +1,10 @@
-#include <spdlog/sinks/basic_file_sink.h>
 
+// TODO(low priority): merge spdlog sinks or something fun
+#ifndef NDEBUG
+#include <spdlog/sinks/stdout_color_sinks.h>
+#else
+#include <spdlog/sinks/basic_file_sink.h>
+#endif
 #include <imgui/imgui.h>
 
 #include <Windows.h>
@@ -26,23 +31,27 @@ std::unique_ptr<ModFramework> g_framework{};
 
 ModFramework::ModFramework()
     : m_game_module{ GetModuleHandle(0) },
+#ifndef NDEBUG
+    m_logger{ spdlog::stdout_color_mt("ModFramework") }
+#else
     m_logger{ spdlog::basic_logger_mt("ModFramework", LOG_FILENAME, true) }
+#endif
 {
     spdlog::set_default_logger(m_logger);
     spdlog::flush_on(spdlog::level::info);
     spdlog::info(LOG_ENTRY);
 
-#ifdef DEBUG
+#ifndef NDEBUG
     spdlog::set_level(spdlog::level::debug);
 #endif
 
     // SteamStub shit
     // wait until steam drm unpacks itself
-    uintptr_t code_ptr = 0x008DB650; // random .code section ptr
-    int data = *(int*)(code_ptr);
+    uintptr_t codePtr = 0x008DB650;
+    int data = *(int*)(codePtr);
     while (data != 0x5324EC83) {
-        data = *(int*)(code_ptr);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        data = *(int*)(codePtr);
+        Sleep(1);
     }
 
     std::queue<DWORD> tr = utility::suspend_all_other_threads();

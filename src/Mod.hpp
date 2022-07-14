@@ -47,7 +47,7 @@ public:
 	}
 
     void install_patch_absolute(uintptr_t location, std::unique_ptr<Patch>& patch, const char* patch_bytes, uint8_t length) {
-        spdlog::info("[%s]: Installing patch at %p.\n", get_mod_name().c_str(), location);
+        spdlog::info("{}: Installing patch at {:x}.\n", get_mod_name().c_str(), location);
 
         std::vector<int16_t> bytes;
         while (length > 0) {
@@ -61,7 +61,7 @@ public:
 	void install_patch_offset(ptrdiff_t offset, std::unique_ptr<Patch>& patch, const char* patch_bytes, uint8_t length) {
         uintptr_t base = g_framework->get_module().as<uintptr_t>();
         uintptr_t location = base + offset;
-		spdlog::info("[%s]: Installing patch at %p.\n", get_mod_name().c_str(), location);
+		spdlog::info("{}: Installing patch at {:x}.\n", get_mod_name().c_str(), location);
 
         std::vector<int16_t> bytes;
         while (length > 0) {
@@ -76,7 +76,7 @@ public:
         uintptr_t base = g_framework->get_module().as<uintptr_t>();
         uintptr_t location = base + offset;
 
-		spdlog::info("[%s]: Installing hook at %p.\n", get_mod_name().c_str(), location);
+		spdlog::info("{}: Installing hook at {:x}.\n", get_mod_name().c_str(), location);
         assert(!hook);
         
         hook = std::make_unique<FunctionHook>(location, detour);
@@ -100,7 +100,7 @@ public:
     
     inline bool install_hook_absolute(uintptr_t location, std::unique_ptr<FunctionHook>& hook, void* detour, uintptr_t* ret, ptrdiff_t next_instruction_offset = 0) {
         assert(!hook);
-		spdlog::info("[%s]: Installing hook at %p.\n", get_mod_name().c_str(), location);
+		spdlog::info("{}: Installing hook at {:x}.\n", get_mod_name().c_str(), location);
         hook = std::make_unique<FunctionHook>(location, detour);
         if (!hook->create()) {
             spdlog::error("Failed to create hook!");

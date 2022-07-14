@@ -286,7 +286,7 @@ void Mods::on_frame(fmilliseconds& dt) {
 
 // Called when drawing the gui
 void Mods::on_draw_ui(uint32_t hash) {
-    std::vector<uint32_t>::iterator itr = std::find(m_hash.begin(), m_hash.end(), hash);
+    auto itr = std::find(m_hash.begin(), m_hash.end(), hash);
     if (itr != m_hash.cend()) {
         m_mods[std::distance(m_hash.begin(), itr)]->on_gui_frame();
     }
@@ -314,6 +314,24 @@ void Mods::on_update_input(utility::Input& input) {
 void Mods::on_draw_custom_imgui_window() {
     MessageDisplayMod* m = dynamic_cast<MessageDisplayMod*>(m_mods[0].get());
     m->custom_imgui_window();
+#if 0
+    ImGui::Begin("utility::Input debugger");
+    auto& input = g_framework->get_input_struct();
+    for (size_t i = 0; i < input->get_keys_size(); i++) {
+        char b[32];
+        _itoa_s(i, b, sizeof(b), 10);
+        if (input->is_down(i)) { ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0,255,209,255)); }
+        else if (input->went_down(i)) { ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0,0,255,255)); }
+        else if (input->went_up(i)) { ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255,0,0,255)); }
+        else { ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255,255,255,255)); }
+        ImGui::Button(b, ImVec2(30, 30));
+        if ((i % 32) != 0) {
+            ImGui::SameLine();
+        }
+        ImGui::PopStyleColor(1);
+    }
+    ImGui::End();
+#endif
 }
 
 void Mods::on_hotkey_tab(utility::Input& input)
