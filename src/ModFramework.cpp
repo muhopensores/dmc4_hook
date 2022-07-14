@@ -47,11 +47,12 @@ ModFramework::ModFramework()
 
     // SteamStub shit
     // wait until steam drm unpacks itself
-    uintptr_t codePtr = 0x008DB650;
-    int data = *(int*)(codePtr);
-    while (data != 0x5324EC83) {
-        data = *(int*)(codePtr);
-        Sleep(1);
+    uintptr_t code_ptr = 0x00B84120;
+    int data = *(int*)(code_ptr);
+    while (data != 0xF6A005C7) {
+        data = *(int*)(code_ptr);
+        //Sleep(1);
+        std::this_thread::sleep_for(std::chrono::milliseconds(4));
     }
 
     std::queue<DWORD> tr = utility::suspend_all_other_threads();

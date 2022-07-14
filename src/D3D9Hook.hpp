@@ -41,8 +41,9 @@ protected:
 
     //std::unique_ptr<FunctionHook> m_end_scene_hook{};
     std::unique_ptr<FunctionHook> m_reset_hook{};
-    std::unique_ptr<FunctionHook> m_present_hook{};
+    std::unique_ptr<FunctionHook> m_reset_hook2{};
 
+    std::unique_ptr<FunctionHook> m_present_hook{};
     //static HRESULT WINAPI end_scene(LPDIRECT3DDEVICE9 p_device);
     static HRESULT WINAPI reset(IDirect3DDevice9 *p_device, D3DPRESENT_PARAMETERS *p_presentation_parameters);
     static HRESULT WINAPI present(IDirect3DDevice9 *p_device, RECT* p_source_rect, RECT* p_dest_rect, HWND h_dest_window_override, RGNDATA* p_dirty_region);

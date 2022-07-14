@@ -74,14 +74,18 @@ bool D3D9Hook::hook() {
 	m_device = d3d9_device;
 #endif
 
-	uintptr_t reset_fn   = 0x008F1387;
-    uintptr_t present_fn = 0x008F33F5;
+	uintptr_t reset_fn     = 0x008F1387;
+	uintptr_t reset2_fn    = 0x008F135A;
+    uintptr_t present_fn   = 0x008F33F5;
+    //m_reset_fixup = Patch::create(reset_fixup, { 0xEB, 0x0A });
 	//uintptr_t end_scene_fn = (*(uintptr_t**)d3d9_device)[42];
 
-    m_reset_hook = std::make_unique<FunctionHook>(reset_fn, (uintptr_t)&reset_wrapper);
+    m_reset_hook   = std::make_unique<FunctionHook>(reset_fn, (uintptr_t)&reset_wrapper);
+    m_reset_hook2  = std::make_unique<FunctionHook>(reset2_fn, (uintptr_t)&reset_wrapper);
+
     m_present_hook = std::make_unique<FunctionHook>(present_fn, (uintptr_t)&present_wrapper);
 
-    m_hooked = m_present_hook->create() && m_reset_hook->create();
+    m_hooked = m_present_hook->create() && m_reset_hook->create() && m_reset_hook2->create();
 
     return m_hooked;
 }
@@ -90,7 +94,7 @@ bool D3D9Hook::unhook() {
 
     if (!m_hooked) { return true; }
 
-    if (m_present_hook->remove() && m_reset_hook->remove()) {
+    if (m_present_hook->remove() && m_reset_hook->remove() &&  m_reset_hook2->remove()) {
         m_hooked = false;
         return true;
     }

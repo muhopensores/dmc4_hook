@@ -1,7 +1,7 @@
 # DMC4Hook #
 
 ## Info
-A trainer for the original DX9 version of Devil May Cry 4 made based on [reframework](https://github.com/praydog/REFramework/), using [minhook](https://github.com/TsudaKageyu/minhook), [glm](https://github.com/g-truc/glm) and [Dear ImGui](https://github.com/ocornut/imgui).
+A trainer for the original DX9 version of Devil May Cry 4 based on [reframework](https://github.com/praydog/REFramework/), using [minhook](https://github.com/TsudaKageyu/minhook), [glm](https://github.com/g-truc/glm) and [Dear ImGui](https://github.com/ocornut/imgui).
 
 This dll will give you access to training, gameplay, and quality of life options without ever needing to open anything alongside your exe.
 
