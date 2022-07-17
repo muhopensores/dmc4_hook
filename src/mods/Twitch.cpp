@@ -8,7 +8,8 @@ static bool twitch_login_on_boot = false;
 // initialization
 // return Mod::onInitialize(); on success or error string on failure.
 std::optional<std::string> TwitchClient::on_initialize() {
-	if (!dyn_link_lib_irc_client()) {
+    m_libirc = (HMODULE)dyn_link_lib_irc_client();
+	if (!m_libirc) {
 		//DISPLAY_MESSAGE("[TwitchClient] libircclient.dll not found, skipping.");
 		spdlog::info("[TwitchClient] libircclient.dll not found, skipping.");
 	}

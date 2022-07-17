@@ -25,9 +25,8 @@ namespace utility {
     }
 
     Pattern::Pattern(const string& pattern)
-        : m_pattern{}
+        : m_pattern{move(build_pattern(pattern))}
     {
-        m_pattern = move(build_pattern(pattern));
     }
 
     optional<uintptr_t> Pattern::find(uintptr_t start, size_t length) {

@@ -199,9 +199,8 @@ namespace utility {
 
         uint32_t last = m_vk_vec.back();
 
-        bool is_modifier = false;
-
         if (vk_vec_size == 1) {
+            bool is_modifier = false;
             // FIXME(deep): hacky shit so i dont have to check for cases like when one
             // mod binds f1 and other one ctrl + f1 and both get activated
             // fixing this properly is for the next refuqtor im tired

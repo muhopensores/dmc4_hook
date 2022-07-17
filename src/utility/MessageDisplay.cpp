@@ -37,7 +37,7 @@ bool Message::update(float dt) {
 }
 
 void MessageDisplay::add_message(std::string msg) {
-	m_messages.push_front(Message{ msg });
+	m_messages.push_front(std::move(msg));
 }
 
 /*void MessageDisplay::show_messages()  {
@@ -47,9 +47,13 @@ void MessageDisplay::add_message(std::string msg) {
 }*/
 
 void MessageDisplay::update_messages() {
-	for (Message& m : m_messages)  {
-		if (!m.update(0.1f)) {
-			m_messages.pop_back();
-		}
-	}
+    bool pop = false;
+    for (Message& m : m_messages) {
+        if (!m.update(0.1f)) {
+            pop = true;
+        }
+    }
+    if (pop) {
+        m_messages.pop_back();
+    }
 }

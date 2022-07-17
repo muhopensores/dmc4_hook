@@ -26,7 +26,8 @@
 #define GUI_VERSION "DMC4Hook 1.4.2"
 
 static constexpr char* version{GUI_VERSION};
-
+static float g_window_height_hack{ 1080.0f };
+static float g_max{ 0.0f };
 namespace gui {
 
     inline void under_line(ImColor col) {
@@ -212,6 +213,7 @@ namespace gui {
         ImGuiIO& io = ImGui::GetIO();
         io.IniFilename = NULL;
         ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Once);
+        g_max = io.DisplaySize[1] * 0.9f;
         ImGui::SetNextWindowSize(ImVec2(450.0f, io.DisplaySize[1] * 0.9f));
     }
 
@@ -323,7 +325,7 @@ namespace gui {
 
                 ImGui::TreePop();
             }
-
+            g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
             ImGui::EndChild();
             ImGui::EndTabItem();
         }
@@ -345,6 +347,7 @@ namespace gui {
         // specific imgui functions, can be looked up in examples or the documentation
         // references/ points to other functions to apply logic behind the gui toggles/ objects
         {
+            ImGui::SetNextWindowSize(ImVec2(450.0f, g_window_height_hack));
             begin_drawing();
             ImGui::SameLine(0, 0);
             fps_drawing();
@@ -354,7 +357,6 @@ namespace gui {
             if (ImGui::Button("Save Config")) {
                 pmods->on_config_save();
             }
-
             if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyMask_ ^ ImGuiTabBarFlags_FittingPolicyScroll)) {
                 if (ImGui::BeginTabItem("General")) {
                     ImGui::BeginChild("GeneralChild");
@@ -428,7 +430,7 @@ namespace gui {
                     pmods->on_draw_ui("FreezeEnemies"_hash);
                     ImGui::SameLine(205);
                     pmods->on_draw_ui("BerialDaze"_hash);
-
+                    g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
                     ImGui::EndChild();
                     ImGui::EndTabItem();
                 }
@@ -547,7 +549,7 @@ namespace gui {
                     pmods->on_draw_ui("SelectiveCancels"_hash); // needs its own line
 
                     pmods->on_draw_ui("DisableDarkslayer"_hash); // needs its own line
-
+                    g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
                     ImGui::EndChild();
                     ImGui::EndTabItem();
                 }
@@ -570,12 +572,14 @@ namespace gui {
                     // pmods->onDrawUI("EnemyReplace"_hash); // needs its own line
                     pmods->on_draw_ui("EnemyReplaceAgain"_hash); // needs its own line
 
+                    g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
                     ImGui::EndChild();
                     ImGui::EndTabItem();
                 }
 
                 if (ImGui::BeginTabItem("System")) {
                     ImGui::BeginChild("SystemChild");
+
                     ImGui::Spacing();
                     ImGui::Text("HUD");
 
@@ -642,13 +646,14 @@ namespace gui {
                     pmods->on_draw_ui("CameraSettings"_hash); // needs its own line
 
                     pmods->on_draw_ui("TwitchClient"_hash); // needs its own line
-
+                    g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
                     ImGui::EndChild();
                     ImGui::EndTabItem();
                 }
 
                 if (ImGui::BeginTabItem("Debug")) {
                     ImGui::BeginChild("DebugChild");
+
                     pmods->on_draw_ui("RoomRespawn"_hash);
                     pmods->on_draw_ui("LoadOrder"_hash);
 
@@ -665,15 +670,18 @@ namespace gui {
                     ImGui::Spacing();
 
                     // pmods->onDrawUI("ShaderEditor"_hash);
-
+                    g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
                     ImGui::EndChild();
                     ImGui::EndTabItem();
                 }
                 if (ImGui::BeginTabItem("Hotkeys")) {
                     ImGui::BeginChild("HotkeysChild");
+
                     ImGui::Spacing();
                     pmods->on_hotkey_tab(*g_framework->get_input_struct());
                     ImGui::Spacing();
+
+                    g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
                     ImGui::EndChild();
                     ImGui::EndTabItem();
                 }

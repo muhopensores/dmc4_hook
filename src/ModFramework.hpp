@@ -40,10 +40,6 @@ public:
         return m_game_data_initialized;
     }
 
-	const bool get_window_focus() const {
-		return m_window_focused;
-	}
-
     const auto get_window_handle() const {
         return m_wnd;
     }
@@ -71,8 +67,7 @@ private:
     bool m_valid{ false };
     bool m_initialized{ false };
     bool m_draw_ui{ false };
-	bool m_draw_cursor{ true };
-	bool m_window_focused{ true };
+
     std::atomic<bool> m_game_data_initialized{ false };
     
     HWND m_wnd{ 0 };

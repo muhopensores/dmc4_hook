@@ -7,7 +7,7 @@ namespace utility {
 		m_time = fseconds{ 0 };
 	}
 
-	void Timer::tick(fmilliseconds& dt) {
+	void Timer::tick(const fmilliseconds& dt) {
 		if (!m_active) { return; }
 		if (m_time.count() >= m_duration) {
 			m_callback();

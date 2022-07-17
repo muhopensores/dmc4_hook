@@ -59,7 +59,7 @@ void MessageDisplayMod::on_config_load(const utility::Config& cfg) {
 }
 
 void MessageDisplayMod::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("display_messages",    &should_display_messages);
+    cfg.set<bool>("display_messages",    should_display_messages);
     cfg.set<bool>("gamepad_navigation",  enable_gamepad_navigation);
     cfg.set<bool>("keyboard_navigation", enable_keyboard_navigation);
 }

@@ -6,7 +6,7 @@
 #include <map>
 #include <cctype>
 
-#include <assert.h>
+#include <cassert>
 
 #include "libircclient.h"
 #include "libirc_rfcnumeric.h"
@@ -142,7 +142,7 @@ static irc_option_set_ *IRCOptionSet_ = IRCOptionSetStub;
 #define irc_option_set IRCOptionSet_
 
 // dynamically link irc functions
-int dyn_link_lib_irc_client() {
+size_t dyn_link_lib_irc_client() {
 	HMODULE library = LoadLibraryA("libircclient.dll");
 	if (library) {
 		irc_create_session = (irc_create_session_ *)GetProcAddress(library, "irc_create_session");
@@ -168,9 +168,9 @@ int dyn_link_lib_irc_client() {
 		irc_option_set = (irc_option_set_ *)GetProcAddress(library, "irc_option_set");
 		assert(irc_option_set != NULL);
 
-		return 1; //success, not sucks ass
+		return (size_t)library; //success, not sucks ass
 	}
-	return 0; // sucks ass
+	return NULL; // sucks ass
 }
 
 void event_connect( irc_session_t *session, const char *event, const char *origin, const char **params, unsigned int count ) {
@@ -197,7 +197,7 @@ void event_channel( irc_session_t *session, const char *event, const char *origi
 
 	std::string original_message = params[1];
 	ctx->twitch->on_message( origin, original_message );
-	ctx->twitch->messages.push_back( { original_message, origin } );
+	ctx->twitch->messages.emplace_back( std::pair{ original_message, origin } );
 
 }
 
@@ -218,16 +218,15 @@ void event_numeric( irc_session_t * session, unsigned int event, const char * or
 		ctx->twitch->on_error( event, fulltext );
 	}
 }
-
+/*
 Twitch::Twitch() {
 }
+*/
 
 Twitch::~Twitch() {
 	if ( session ) {
 		TwitchContext *ctx = ( TwitchContext * ) irc_get_ctx( session );
-		if ( ctx ) {
-			delete ctx;
-		}
+        delete ctx;
 
 		disconnect();
 	}

@@ -8,7 +8,7 @@ using HANDLE = void *;
 class AutoHandle : public CHandle
 {
 public:
-	AutoHandle (HANDLE h_handle) noexcept : CHandle (h_handle) { };
+	explicit AutoHandle (HANDLE h_handle) noexcept : CHandle (h_handle) { };
 	~AutoHandle (void)           noexcept
 	{
 		if ((intptr_t)m_h < (intptr_t)nullptr)

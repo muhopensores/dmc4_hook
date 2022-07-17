@@ -67,4 +67,4 @@ void resume_threads (std::queue<DWORD> threads) {
   }
   g_suspend_mutex.unlock();
 }
-}
+} // namespace utility

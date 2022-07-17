@@ -34,5 +34,7 @@ public:
 private:
     char twitch_login[128]{};
     char twitch_chat_oauth_password[128]{};
+
+    HMODULE m_libirc{ NULL };
 };
 #endif

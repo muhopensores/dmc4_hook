@@ -23,6 +23,6 @@ namespace utility {
 
 		void start();
 
-		void tick(fmilliseconds& dt);
+		void tick(const fmilliseconds& dt);
 	};
-};
+}; // namespace utility

@@ -6,7 +6,7 @@
 #include <thread>
 #include <list>
 
-int dyn_link_lib_irc_client();
+size_t dyn_link_lib_irc_client();
 
 typedef struct irc_session_s irc_session_t;
 struct TwitchContext;
@@ -19,7 +19,7 @@ enum TwitchConnectionStatus {
 
 class Twitch {
 public:
-	Twitch();
+	Twitch() = default;
 	~Twitch();
 
 	std::thread connect( const std::string &user, const std::string &password);

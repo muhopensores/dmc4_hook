@@ -11,7 +11,7 @@ namespace utility {
         Pattern() = delete;
         Pattern(const Pattern& other) = default;
         Pattern(Pattern&& other) = default;
-        Pattern(const std::string& pattern);
+        explicit Pattern(const std::string& pattern);
         ~Pattern() = default;
 
         std::optional<uintptr_t> find(uintptr_t start, size_t length);

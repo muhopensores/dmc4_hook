@@ -90,8 +90,7 @@ ModFramework::~ModFramework() {
     // TODO(): clean dll unload
 }
 
-void set_visible_cursor_winapi(bool visible)
-{
+void set_visible_cursor_winapi(bool visible) {
 
 	CURSORINFO info = { sizeof(CURSORINFO), 0, nullptr, {} };
 	if (!GetCursorInfo(&info))
@@ -138,9 +137,8 @@ void ModFramework::on_frame() {
     if (m_input->went_down(VK_DELETE) || m_menu_key->check(*m_input)) {
         m_draw_ui = !m_draw_ui;
         m_mods->on_game_pause(m_draw_ui);
+        set_visible_cursor_winapi(m_draw_ui);
     }
-
-	//SetVisibleCursorWINAPI(m_draw_ui);
 
 	ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -149,7 +147,6 @@ void ModFramework::on_frame() {
     if (m_error.empty() && m_game_data_initialized) {
         m_mods->on_frame(delta);
         m_mods->on_draw_custom_imgui_window();
-		//m_mods->on_draw_custom_imgui_window();
     }
 
     draw_ui();
@@ -301,7 +298,7 @@ bool ModFramework::initialize() {
     spdlog::info("Initializing ImGui D3D9");
 
     if (!ImGui_ImplDX9_Init(device)) {
-        spdlog::error("Failed to initialize ImGui.");
+        spdlog::error("Failed to initialize ImGui DX9.");
         return false;
     }
 
