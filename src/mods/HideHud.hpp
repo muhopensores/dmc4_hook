@@ -11,12 +11,14 @@ public:
     static bool mod_enabled_style;
     static bool mod_enabled_timer;
     static bool mod_enabled_boey;
+    static bool mod_enabled_weapon_selected;
 
     void toggle_health(bool enable);
     void toggle_orbs(bool enable);
     void toggle_style(bool enable);
     void toggle_timer(bool enable);
     void toggle_boey(bool enable);
+    void toggle_weapon_display(bool enable);
 
     std::string get_mod_name() override { return "HideHud"; };
     std::optional<std::string> on_initialize() override;
@@ -121,4 +123,8 @@ private:
     std::unique_ptr<Patch> patchboey69;
     std::unique_ptr<Patch> patchboey70;
     std::unique_ptr<Patch> patchboey71;
+
+    // weapon selected display
+    std::unique_ptr<Patch> patchswordhud;
+    std::unique_ptr<Patch> patchgunhud;
 };
