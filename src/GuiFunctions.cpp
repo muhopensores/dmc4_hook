@@ -530,10 +530,10 @@ namespace gui {
                     ImGui::Text("Lucifer");
                     ImGui::Spacing();
 
-                    pmods->on_draw_ui("RoseRemovesPins"_hash);
-                    ImGui::SameLine(205);
+                    pmods->on_draw_ui("RoseRemovesPins"_hash); // needs its own line
+                    
                     pmods->on_draw_ui("ForceLucifer"_hash);
-
+                    ImGui::SameLine(205);
                     pmods->on_draw_ui("InputStates"_hash); // taunt ecstasy
 
                     ImGui::Spacing();
