@@ -27,7 +27,7 @@ public:
     bool libirc_loaded        = false;
     int voting_result         = 0;
 
-    Twitch* twitch;
+    Twitch* twitch{ nullptr };
     std::thread twitch_thread;
     TwitchConnectionStatus twitch_status = TWITCH_DISCONNECTED;
 

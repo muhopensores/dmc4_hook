@@ -130,7 +130,7 @@ namespace utility {
                     0x11, // ctrl
                     0x12, // alt
                 };
-                if (std::count(ignored_keycodes.begin(), ignored_keycodes.end(), i)) { continue; }
+                if (std::find(ignored_keycodes.begin(), ignored_keycodes.end(), i) != ignored_keycodes.end()) { continue; }
                 if (input.went_down(i)) {
                     m_vk_vec.push_back(i);
                 }

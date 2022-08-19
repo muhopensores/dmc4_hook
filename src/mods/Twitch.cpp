@@ -43,7 +43,7 @@ void TwitchClient::make_instance() {
 		twitch->on_error = [this](int error_code, const std::string& error) {
 			//spdlog::info("[TwitchClient]: Twitch Chat error %d: %s\n", errorCode, error.c_str());
 
-			DISPLAY_MESSAGE(error.c_str());
+			DISPLAY_MESSAGE(error);
 		};
 
 		twitch->on_message = [this](const std::string& sender, const std::string& message) {
@@ -51,7 +51,7 @@ void TwitchClient::make_instance() {
 			if (mirror_chat_checkbox) {
 				DISPLAY_MESSAGE(std::string{ sender + ": " + message });
 			}
-			std::size_t found = message.find("\\");
+			std::size_t found = message.find('\\');
 			if (found != std::string::npos) {
                 auto& mods = g_framework->get_mods();
 				mods->on_chat_command(message);

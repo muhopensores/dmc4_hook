@@ -17,6 +17,6 @@ public:
 };
 
 namespace utility {
-	void resume_threads(std::queue<DWORD> threads);
+	void resume_threads(std::queue<DWORD>& threads);
 	std::queue<DWORD> suspend_all_other_threads(void);
 }

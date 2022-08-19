@@ -57,7 +57,7 @@ public:
     }
 
     bool operator ==(bool val) {
-        return ((m_ptr && val) || (!m_ptr && !val));
+        return (bool(m_ptr) == bool(val));
     }
 
     bool operator !=(bool val) {

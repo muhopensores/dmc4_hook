@@ -8,11 +8,11 @@ public:
     ShaderEditor() = default;
 
     // override getModName() method with your mod name for logging.
-    std::string getModName() override { return "ShaderEditor"; };
+    std::string get_mod_name() override { return "ShaderEditor"; };
 
     // override onInitialize() method with routines required to initialize the
     // mod. return Mod::onInitialize() on success or error string on failure.
-    std::optional<std::string> onInitialize() override;
+    std::optional<std::string> on_initialize() override;
 
     // callbacks
 
@@ -30,9 +30,9 @@ public:
 
     // onGUIframe() gets called when imgui window is on the screen.
     // override this method if you want to display something in the gui.
-    void onGUIframe() override;
+    void on_gui_frame() override;
 
-    char m_own_shader[16384];
+    char m_own_shader[1048575];
     char m_error_string[1024];
 
     // onGamePause() gets called from hl::Main when toggling a gui.

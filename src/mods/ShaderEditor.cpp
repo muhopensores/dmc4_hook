@@ -103,7 +103,7 @@ void ShaderEditor::create_shader_program(const char* shader_program) {
     return;
 }
 
-std::optional<std::string> ShaderEditor::onInitialize() {
+std::optional<std::string> ShaderEditor::on_initialize() {
     if (!install_hook_absolute(0x00A61640, hook, &detour, &jmp_return, 8))
     {
         spdlog::error("Failed to init sheder mod\n");
@@ -111,78 +111,181 @@ std::optional<std::string> ShaderEditor::onInitialize() {
     }
     const char* default_shader = R"(
 ps_3_0
-def c10, 1, 0, 0.00392156886, 0
-def c11, 1, -0.517647088, -0.509803951, -0.5
-dcl_texcoord_pp v0
-dcl_texcoord1 v1.xyz
-dcl_texcoord2_pp v2.xy
-dcl_texcoord3_pp v3.xyz
-dcl_texcoord4_pp v4.xyz
-dcl_texcoord5_pp v5.xyz
-dcl_2d s0
-dcl_2d s1
-dcl_2d s2
-dcl_cube s3
-mov r0.xw, c11
-add r0.x, r0.x, -c6.w
-texld_pp r1, v0, s0
-max_pp r2.x, r1.w, r0.x
-mul_pp oC0.w, r2.x, v0.z
-texld_pp r2, v2, s1
-add r0.xyz, r2.xyww, c11.yzww
-add_pp r0.xyz, r0, r0
-mul_pp r0.x, r0.z, r0.x
-mad r0.z, r0.x, -r0.x, c11.x
-mad r0.z, r0.y, -r0.y, r0.z
-mul_pp r2.xyz, r0.y, v4
-rsq r0.y, r0.z
-rcp_pp r0.y, r0.y
-mad_pp r2.xyz, r0.x, v3, r2
-mad_pp r0.xyz, r0.y, v5, r2
-nrm_pp r2.xyz, r0
-add r0.xyz, -c0, v1
-dp3 r2.w, r0, r0
-rsq r2.w, r2.w
-mul r0.xyz, r0, r2.w
-rcp r2.w, r2.w
-dp3 r3.x, r0, r2
-add r3.y, r3.x, r3.x
-add r3.x, -r3.x, c11.x
-mad_pp r4.xyz, r2, -r3.y, r0
-mov_pp r4.w, c9.x
-texldl_pp r4, r4, s3
-max_pp r0.x, r4.w, c10.z
-rcp r0.x, r0.x
-mul_pp r0.xyz, r4, r0.x
-mul_pp r0.xyz, r0, c8.w
-mul r2.x, r3.x, r3.x
-mul r2.x, r2.x, r2.x
-mul r2.x, r3.x, r2.x
-mad_sat r2.x, r2.x, c8.x, c8.y
-add r2.x, -r2.x, c11.x
-mul_pp r2.x, r2.x, v0.w
-texld_pp r3, v2, s2
-mul_pp r2.xyz, r2.x, r3
-mul_pp r0.xyz, r0, r2
-max r2.x, r1.w, c6.w
-mul r2.xyz, r2.x, c6
-mad_pp r0.xyz, r1, r2, r0
-add r1.x, r2.w, -c3.x
-mul r1.x, r1.x, c3.z
-mad r2, v1.xyzx, c10.xxxy, c10.yyyx
-dp4 r1.y, c4, r2
-mul r1.y, r1.y, c3.w
-max r2.x, r1.x, r1.y
-min r1.x, c5.w, r2.x
-max r2.x, r1.x, c10.y
-mul_pp r1.x, r2.x, c7.x
-mov r1.y, c10.y
-cmp_pp r1.x, -c2.x, r1.y, r1.x
-lrp_pp r2.xyz, r1.x, c5, r0
-mad_pp oC0.xyz, r2, -r0.w, c1.x
+    def c12, 0, 1, -1, -0
+    def c13, 0.25, 0.5, 0, 0
+    dcl_texcoord v0
+    dcl_texcoord1_pp v1.xyz
+    dcl_texcoord2 v2
+    dcl_texcoord3 v3
+    dcl_texcoord4 v4
+    dcl_2d s0
+    dcl_2d s1
+    dcl_2d s2
+    add r0, c9.z, -v0.w
+    texkill r0
+    nrm_pp r0.xyz, v1
+    dp3_pp r0.x, r0, -c7
+    if_lt v0.w, c9.x
+      rcp r0.y, v2.w
+      mul r0.zw, r0.y, v2.xyxy
+      mad r1.xy, v2, r0.y, -c8.x
+      mov r1.z, c12.x
+      texldl r2, r1.xyzz, s0
+      mov r1.w, r0.w
+      texldl r3, r1.xwzz, s0
+      mad r4.y, v2.y, r0.y, c8.x
+      mov r4.xzw, r1.xyzz
+      texldl r5, r4, s0
+      mov r1.x, r0.z
+      texldl r6, r1.xyzz, s0
+      texldl r7, r1.xwzz, s0
+      mov r4.xzw, r1.xyzz
+      texldl r8, r4, s0
+      mad r1.x, v2.x, r0.y, c8.x
+      texldl r9, r1.xyzz, s0
+      texldl r10, r1.xwzz, s0
+      mov r4.xzw, r1.xyzz
+      texldl r1, r4, s0
+      mov r2.y, r3.x
+      mov r2.z, r5.x
+      mad r1.yzw, v2.z, r0.y, -r2.xxyz
+      cmp_pp r2.xyz, r1.yzww, c12.y, c12.x
+      mov r6.y, r7.x
+      mov r6.z, r8.x
+      mad r3.xyz, v2.z, r0.y, -r6
+      cmp_pp r3.xyz, r3, c12.y, c12.x
+      mov r9.y, r10.x
+      mov r9.z, r1.x
+      mad r4.xyz, v2.z, r0.y, -r9
+      cmp_pp r4.xyz, r4, c12.y, c12.x
+      mul r0.yz, r0.xzww, c8.y
+      frc r0.yz, r0
+      add_pp r2.xyz, r2, r3
+      cmp_pp r1.xyz, r1.yzww, c12.z, c12.w
+      add_pp r1.xyz, r4, r1
+      mad_pp r1.xyz, r1, r0.y, r2
+      add_pp r0.y, r1.y, r1.x
+      add_pp r0.w, -r1.x, r1.z
+      mad r0.y, r0.w, r0.z, r0.y
+      mul_pp r0.y, r0.y, c13.x
+      mov_pp r0.z, c6.w
+    else
+      if_lt v0.w, c9.y
+        rcp r0.w, v3.w
+        mul r1.xy, r0.w, v3
+        mad r2.xy, v3, r0.w, -c8.x
+        mov r2.z, c12.x
+        texldl r3, r2.xyzz, s1
+        mov r2.w, r1.y
+        texldl r4, r2.xwzz, s1
+        mad r5.y, v3.y, r0.w, c8.x
+        mov r5.xzw, r2.xyzz
+        texldl r6, r5, s1
+        mov r2.x, r1.x
+        texldl r7, r2.xyzz, s1
+        texldl r8, r2.xwzz, s1
+        mov r5.xzw, r2.xyzz
+        texldl r9, r5, s1
+        mad r2.x, v3.x, r0.w, c8.x
+        texldl r10, r2.xyzz, s1
+        texldl r11, r2.xwzz, s1
+        mov r5.xzw, r2.xyzz
+        texldl r2, r5, s1
+        mov r3.y, r4.x
+        mov r3.z, r6.x
+        mad r2.yzw, v3.z, r0.w, -r3.xxyz
+        cmp_pp r3.xyz, r2.yzww, c12.y, c12.x
+        mov r7.y, r8.x
+        mov r7.z, r9.x
+        mad r4.xyz, v3.z, r0.w, -r7
+        cmp_pp r4.xyz, r4, c12.y, c12.x
+        mov r10.y, r11.x
+        mov r10.z, r2.x
+        mad r5.xyz, v3.z, r0.w, -r10
+        cmp_pp r5.xyz, r5, c12.y, c12.x
+        mul r1.xy, r1, c8.y
+        frc r1.xy, r1
+        add_pp r3.xyz, r3, r4
+        cmp_pp r2.xyz, r2.yzww, c12.z, c12.w
+        add_pp r2.xyz, r5, r2
+        mad_pp r1.xzw, r2.xyyz, r1.x, r3.xyyz
+        add_pp r0.w, r1.z, r1.x
+        add_pp r1.x, -r1.x, r1.w
+        mad r0.w, r1.x, r1.y, r0.w
+        mul_pp r0.y, r0.w, c13.x
+        mov_pp r0.z, c6.w
+      else
+        rcp r0.w, v4.w
+        mul r1.xy, r0.w, v4
+        mad r2.xy, v4, r0.w, -c8.x
+        mov r2.z, c12.x
+        texldl r3, r2.xyzz, s2
+        mov r2.w, r1.y
+        texldl r4, r2.xwzz, s2
+        mad r5.y, v4.y, r0.w, c8.x
+        mov r5.xzw, r2.xyzz
+        texldl r6, r5, s2
+        mov r2.x, r1.x
+        texldl r7, r2.xyzz, s2
+        texldl r8, r2.xwzz, s2
+        mov r5.xzw, r2.xyzz
+        texldl r9, r5, s2
+        mad r2.x, v4.x, r0.w, c8.x
+        texldl r10, r2.xyzz, s2
+        texldl r11, r2.xwzz, s2
+        mov r5.xzw, r2.xyzz
+        texldl r2, r5, s2
+        mov r3.y, r4.x
+        mov r3.z, r6.x
+        mad r2.yzw, v4.z, r0.w, -r3.xxyz
+        cmp_pp r3.xyz, r2.yzww, c12.y, c12.x
+        mov r7.y, r8.x
+        mov r7.z, r9.x
+        mad r4.xyz, v4.z, r0.w, -r7
+        cmp_pp r4.xyz, r4, c12.y, c12.x
+        mov r10.y, r11.x
+        mov r10.z, r2.x
+        mad r5.xyz, v4.z, r0.w, -r10
+        cmp_pp r5.xyz, r5, c12.y, c12.x
+        mul r1.xy, r1, c8.y
+        frc r1.xy, r1
+        add_pp r3.xyz, r3, r4
+        cmp_pp r2.xyz, r2.yzww, c12.z, c12.w
+        add_pp r2.xyz, r5, r2
+        mad_pp r1.xzw, r2.xyyz, r1.x, r3.xyyz
+        add_pp r0.w, r1.z, r1.x
+        add_pp r1.x, -r1.x, r1.w
+        mad r0.w, r1.x, r1.y, r0.w
+        mul_pp r0.y, r0.w, c13.x
+        mad_sat_pp r0.w, v0.w, c10.x, c10.y
+        mad_pp r0.z, r0.w, -c6.w, c6.w
+      endif
+    endif
+    mul_sat r0.x, r0.x, c11.x
+    add_pp r0.x, -r0.x, c12.y
+    max_pp r1.x, r0.y, r0.x
+    mul_pp oC0.w, r0.z, r1.x
+    add r0.xyz, c0, -v0
+    dp3 r0.x, r0, r0
+    rsq r0.x, r0.x
+    rcp r0.x, r0.x
+    add r0.x, r0.x, -c3.x
+    mul r0.x, r0.x, c3.z
+    mad r1, v0.xyzx, c12.yyyx, c12.xxxy
+    dp4 r0.y, c4, r1
+    mul r0.y, r0.y, c3.w
+    max r1.x, r0.x, r0.y
+    min r0.x, c5.w, r1.x
+    max r1.x, r0.x, c12.x
+    mov r0.xyz, c6
+    add r1.yzw, -r0.xxyz, c5.xxyz
+    mad_pp r1.xyz, r1.x, r1.yzww, c6
+    cmp_pp r0.xyz, -c2.x, r0, r1
+    mov r1.y, c13.y
+    mad_pp oC0.xyz, r0, r1.y, c1.x
 )";
         strcpy(m_own_shader, default_shader);
-	return Mod::onInitialize();
+	return Mod::on_initialize();
 }
 
 // onFrame()
@@ -199,7 +302,7 @@ mad_pp oC0.xyz, r2, -r0.w, c1.x
 
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
-void ShaderEditor::onGUIframe() { 
+void ShaderEditor::on_gui_frame() { 
     if (ImGui::Button("clear")) {
         g_mats.clear();
     }

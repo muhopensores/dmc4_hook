@@ -48,7 +48,7 @@ naked void skip_dante_sword_proc(void) {
 std::optional<std::string> SkipWeapons::on_initialize() {
 	// bad fix for crashing on securom exe
 	const unsigned char bytes[5] = { 0x89, 0x47, 0x30, 0xB0, 0x01 };
-	if (memcmp((void*)0x7B122F, bytes, sizeof(bytes))) {
+	if (memcmp((void*)0x7B122F, bytes, sizeof(bytes))) { // TODO(): might be an error dont remember
 		hooked = false;
 		return Mod::on_initialize();
 	}

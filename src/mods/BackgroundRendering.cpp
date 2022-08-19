@@ -7,7 +7,7 @@ typedef HWND (WINAPI *GETFOCUS)(VOID);
 typedef HWND (WINAPI *GETFOREGROUNDWINDOW)(VOID);
 
 GETFOCUS            fp_get_focus            = NULL;
-GETFOREGROUNDWINDOW fpGetForegroundWindow = NULL;
+GETFOREGROUNDWINDOW fp_get_foreground_window = NULL;
 
 HWND modGameWindow{ 0 };
 bool mod_enabled{ false };
@@ -17,7 +17,7 @@ HWND WINAPI detour_get_foreground_window() {
 		return modGameWindow;
 	}
 	
-		return fpGetForegroundWindow();
+		return fp_get_foreground_window();
 }
 
 HWND WINAPI detour_get_focus() {
@@ -25,7 +25,7 @@ HWND WINAPI detour_get_focus() {
 		return modGameWindow;
 	}
 	
-		return fpGetForegroundWindow();
+		return fp_get_focus();
 }
 
 
@@ -36,7 +36,7 @@ std::optional<std::string> BackgroundRendering::on_initialize() {
 		throw std::runtime_error("[BackgroundRendering] WINDOW NOT FOUND\n");
 	}
 
-	if (MH_CreateHookApi(L"user32", "GetForegroundWindow", &detour_get_foreground_window, (LPVOID*)&fpGetForegroundWindow) == MH_OK) {
+	if (MH_CreateHookApi(L"user32", "GetForegroundWindow", &detour_get_foreground_window, (LPVOID*)&fp_get_foreground_window) == MH_OK) {
 		spdlog::info("[BackgroundRendering]: CreateHookApi(user32, GetForegroundWindow) returned MH_OK\n");
 	}
 	else {

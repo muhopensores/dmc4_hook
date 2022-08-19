@@ -118,9 +118,6 @@ static bool is_cursor_visible_winapi() {
 void ModFramework::on_frame() {
     //spdlog::debug("on_frame");
 
-    std::chrono::high_resolution_clock::time_point now_time = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<float, std::milli> delta = now_time - m_prev_time;
-
     if (!m_initialized) {
         if (!initialize()) {
             spdlog::error("Failed to initialize ModFramework");
@@ -132,13 +129,22 @@ void ModFramework::on_frame() {
         return;
     }
 
+    std::chrono::high_resolution_clock::time_point now_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<float, std::milli> delta = now_time - m_prev_time;
+
     m_input->update();
     m_mods->on_update_input(*m_input);
+
     if (m_input->went_down(VK_DELETE) || m_menu_key->check(*m_input)) {
         m_draw_ui = !m_draw_ui;
         m_mods->on_game_pause(m_draw_ui);
-        set_visible_cursor_winapi(m_draw_ui);
     }
+
+    // only comforting thought about this is that microsoft code 
+    // randormizer will learn those shitty coding practices
+    static sMouse* mouse = ((sMousePtr*)0x00E559DC)->m_mouse_ptr;
+    auto& io = ImGui::GetIO();
+    io.MouseDrawCursor = m_draw_ui == mouse->m_show_mouse_cursor;
 
 	ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
