@@ -1,4 +1,5 @@
 // include your mod header file
+#define DEVELOPER
 #ifdef DEVELOPER
 #include "ShaderEditor.hpp"
 #include "d3dx9shader.h"

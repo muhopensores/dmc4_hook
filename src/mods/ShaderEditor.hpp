@@ -1,4 +1,5 @@
 #pragma once
+#define DEVELOPER
 #ifdef DEVELOPER
 #include "../mod.hpp"
 
