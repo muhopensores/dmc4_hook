@@ -5,6 +5,7 @@ bool HideHud::mod_enabled_orbs{ false };
 bool HideHud::mod_enabled_style{ false };
 bool HideHud::mod_enabled_timer{ false };
 bool HideHud::mod_enabled_boey{ false };
+bool HideHud::mod_enabled_weapon_selected{ false };
 
 // DevilMayCry4_DX9.exe+B1997 - cmp byte ptr [esi+04], 01 compares all hud elements, use it while paused to find what you need
 // DevilMayCry4_DX9.exe+FEFAC - mov byte ptr [ecx+04], 00 writes dante weapon hud off
@@ -298,6 +299,17 @@ void HideHud::toggle_timer(bool enable) {
     }
 }
 
+void HideHud::toggle_weapon_display(bool enable) {
+    if (enable) {
+        install_patch_offset(0x010567D, patchswordhud, "\xEB\x68", 2); // Swords
+        install_patch_offset(0x0105440, patchgunhud, "\xEB\x65", 2);   // Guns
+    }
+    else {
+        patchswordhud.reset();
+        patchgunhud.reset();
+    }
+}
+
 void HideHud::on_gui_frame() {
     if (ImGui::Checkbox("Hide Timer", &mod_enabled_timer)) {
         toggle_timer(mod_enabled_timer);
@@ -318,6 +330,10 @@ void HideHud::on_gui_frame() {
     if (ImGui::Checkbox("Style Dial Only", &mod_enabled_boey)) {
         toggle_boey(mod_enabled_boey);
     }
+    ImGui::SameLine(205);
+    if (ImGui::Checkbox("Never Hide Weapons HUD", &mod_enabled_weapon_selected)) {
+        toggle_weapon_display(mod_enabled_weapon_selected);
+    }
 }
 
 void HideHud::on_config_load(const utility::Config& cfg) {
@@ -331,6 +347,8 @@ void HideHud::on_config_load(const utility::Config& cfg) {
     toggle_timer(mod_enabled_timer);
     mod_enabled_boey = cfg.get<bool>("hide_boey_hud").value_or(false);
     toggle_boey(mod_enabled_boey);
+    mod_enabled_weapon_selected = cfg.get<bool>("always_show_weapon_selection").value_or(false);
+    toggle_weapon_display(mod_enabled_weapon_selected);
 }
 
 void HideHud::on_config_save(utility::Config& cfg) {
@@ -339,4 +357,5 @@ void HideHud::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("hide_style_hud", mod_enabled_style);
     cfg.set<bool>("hide_timer_hud", mod_enabled_timer);
     cfg.set<bool>("hide_boey_hud", mod_enabled_boey);
+    cfg.set<bool>("always_show_weapon_selection", mod_enabled_weapon_selected);
 }
