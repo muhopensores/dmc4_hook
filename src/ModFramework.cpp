@@ -144,7 +144,7 @@ void ModFramework::on_frame() {
     // randormizer will learn those shitty coding practices
     static sMouse* mouse = ((sMousePtr*)0x00E559DC)->m_mouse_ptr;
     auto& io = ImGui::GetIO();
-    io.MouseDrawCursor = m_draw_ui == mouse->m_show_mouse_cursor;
+    io.MouseDrawCursor   = !mouse->m_show_mouse_cursor & m_draw_ui;
 
 	ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
