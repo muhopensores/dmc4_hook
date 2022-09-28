@@ -1,5 +1,4 @@
 // include your mod header file
-#define DEVELOPER
 #ifdef DEVELOPER
 #include "ShaderEditor.hpp"
 #include "d3dx9shader.h"
@@ -84,7 +83,7 @@ void ShaderEditor::create_shader_program(const char* shader_program) {
     else if( FAILED(result) )
     {
         sprintf(m_error_string, "Pixel shader failed to compile\n");
-        printf(m_error_string);
+        printf("%s\n", m_error_string);
         return;
     }
 
@@ -94,7 +93,7 @@ void ShaderEditor::create_shader_program(const char* shader_program) {
     if( result != D3D_OK )
     {
         sprintf(m_error_string, "Failed to allocate pixel shader.\n");
-        printf(m_error_string);
+        printf("%s\n", m_error_string);
         return;
     }
 

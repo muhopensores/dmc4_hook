@@ -6,6 +6,34 @@ static MtHeapAllocator** mt_heap_alloc_static_ptr = (MtHeapAllocator**)0x00E1434
 static uintptr_t fptr_update_actor_list{ 0x008DC540 }; // Spawns shit
 static uintptr_t some_struct{ 0x00E552CC };
 
+
+class sAreaStaticPtr
+{
+public:
+    class sArea *sAreaPtr; //0x0000
+    char pad_0004[60]; //0x0004
+}; //Size: 0x0040
+static_assert(sizeof(sAreaStaticPtr) == 0x40);
+
+class sArea
+{
+public:
+    char pad_0000[14384]; //0x0000
+    class aGame *aGamePtr; //0x3830
+    char pad_3834[16]; //0x3834
+}; //Size: 0x3844
+static_assert(sizeof(sArea) == 0x3844);
+
+class aGame
+{
+public:
+    char pad_0000[464]; //0x0000
+    int8_t unk; //0x01D0
+    int8_t m_paused; //0x01D1
+    char pad_01D2[2]; //0x01D2
+}; //Size: 0x01D4
+static_assert(sizeof(aGame) == 0x1D4);
+
 namespace devil4_sdk {
 
 	void* mt_allocate_heap(size_t size, int a2) {
@@ -90,4 +118,20 @@ namespace devil4_sdk {
 		static sWorkRate* sw = (sWorkRate*)*(uintptr_t*)s_work_rate_ptr;
 		return sw;
 	}
+    bool is_paused() {
+
+        static sAreaStaticPtr* ptr = (sAreaStaticPtr*)0x00E552C8;
+        __try {
+            return ptr->sAreaPtr->aGamePtr->m_paused;
+        }
+        __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ?
+            EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+            return true;
+        }
+        
+    }
+
+    bool is_not_in_gameplay() {
+        return devil4_sdk::is_paused() || (!devil4_sdk::get_local_player());
+    }
 }

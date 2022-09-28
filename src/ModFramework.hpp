@@ -52,6 +52,10 @@ public:
         return m_menu_key;
     }
 
+    const auto& get_custom_imgui_font() const {
+        return m_custom_font;
+    }
+
     void on_frame();
     void on_reset();
     bool on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param);
@@ -85,6 +89,7 @@ private:
 
     // Game-specific stuff
     std::unique_ptr<Mods> m_mods;
+    ImFont* m_custom_font{};
 };
 
 extern std::unique_ptr<ModFramework> g_framework;

@@ -17,11 +17,8 @@ public:
 
     /*void onFrame(fmilliseconds& dt) override;*/
     void on_gui_frame() override;
-    void on_twitch_command(std::size_t hash) override;
 
 private:
-    std::size_t m_command;
-    std::size_t m_sw_command;
     std::unique_ptr<FunctionHook> hook1;
     std::unique_ptr<FunctionHook> hook2;
 };

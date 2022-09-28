@@ -265,6 +265,8 @@ set(FRAMEWORK_SRC
   GuiFunctions.hpp
   GuiFunctions.cpp
   Mods.cpp
+  Mutators.hpp
+  Mutators.cpp
 )
 
 source_group("imgui"   FILES ${IMGUI_SRC})

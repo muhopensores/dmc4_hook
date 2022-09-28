@@ -8,6 +8,10 @@ std::unique_ptr<Patch> Patch::create(uintptr_t addr, const std::vector<int16_t>&
     return std::make_unique<Patch>(addr, b, should_enable);
 }
 
+Patch* Patch::create_raw(uintptr_t addr, const std::vector<int16_t>& b, bool should_enable) {
+    return new Patch(addr, b, should_enable);
+}
+
 
 std::unique_ptr<Patch> Patch::create_nop(uintptr_t addr, uint32_t length, bool should_enable) {
     std::vector<decltype(m_bytes)::value_type> bytes; bytes.resize(length);

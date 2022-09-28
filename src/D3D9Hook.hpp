@@ -6,7 +6,7 @@
 
 #include "utility/FunctionHook.hpp"
 #include "utility/Patch.hpp"
-#include "../sdk/ReClass.hpp"
+#include "sdk/ReClass.hpp"
 
 class D3D9Hook {
 public:

@@ -38,11 +38,8 @@ static int is_head_joint(UModelJoint* joint) {
             UModelJoint* torso = &u_plr->joint_array->joint[2]; // seems to be torso for both chars
             return joint == torso;
         }
-        else {
-            UModelJoint* head = &u_plr->joint_array->joint[4]; // seems to be heads for both chars
-            return joint == head;
-        }
-        return 0;
+        UModelJoint* head = &u_plr->joint_array->joint[4]; // seems to be heads for both chars
+        return joint == head;
 	}
     return 0;
 }
@@ -114,6 +111,22 @@ naked void joint_size_detour2() {
 
 std::optional<std::string> BigHeadMode::on_initialize(){
 #if 1
+    MutatorRegistry::define("BigHeadMode")
+        .on_init( []() {
+        g_enable_mod = !g_enable_mod;
+    }).set_timer(300.0, []() {
+        g_enable_mod = false;
+    });
+
+    MutatorRegistry::define("SwoleMode")
+        .on_init( []() {
+        g_enable_mod = !g_enable_mod;
+        g_swole_mode = true;
+    }).set_timer(300.0, []() {
+        g_enable_mod = false;
+        g_swole_mode = false;
+    });
+
 	// DevilMayCry4_DX9.exe+5E9774 
 	if (!install_hook_offset(0x5E9774 , hook1, &joint_size_detour1, &joint_size_detour1_continue, 0x1B)) {
 		spdlog::error("Failed to init BigHeadMode mod\n");
@@ -126,7 +139,7 @@ std::optional<std::string> BigHeadMode::on_initialize(){
 		return "Failed to init BigHeadMode mod";
 	}
 #endif
-	m_command = std::hash<std::string>{}("\\" + get_mod_name());
+
 	return Mod::on_initialize();
 }
 
@@ -138,15 +151,5 @@ void BigHeadMode::on_gui_frame() {
     ImGui::SameLine(205);
 	if (ImGui::Checkbox("Swole Mode", &g_swole_mode)) {
 		g_enable_mod = g_swole_mode;
-	}
-}
-
-void BigHeadMode::on_twitch_command(std::size_t hash) {
-	if (hash == m_command) {
-		g_enable_mod = !g_enable_mod;
-	}
-	if (hash == m_sw_command) {
-		g_enable_mod = !g_enable_mod;
-		g_swole_mode = !g_swole_mode;
 	}
 }

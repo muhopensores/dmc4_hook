@@ -3,7 +3,7 @@
 
 #include "EnemySpawn.hpp"
 #include "AreaJump.hpp" // for cAreaJumpPtr
-
+#include "Mutators.hpp"
 // TODO(): move this somewhere maybe
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 static uintptr_t fptr_update_actor_list{0x008DC540}; // Spawns shit
@@ -243,7 +243,128 @@ void spawn_em00x(int index) {
 }
 
 std::optional<std::string> EnemySpawn::on_initialize() {
-    m_spawn_scarecrow_leg_command = std::hash<std::string>{}("\\SpawnScarecrowLeg");
+
+    MutatorRegistry::define("SpawnScarecrowLeg")
+        .description("Spawns ScarecrowLeg")
+        .on_init([&]() {
+        spawn_em00x(0);
+    });
+
+    MutatorRegistry::define("SpawnScarecrowArm")
+        .description("Spawns ScarecrowArm")
+        .on_init([&]() {
+        spawn_em00x(1);
+    });
+
+    MutatorRegistry::define("SpawnMega")
+        .description("Spawns a Mega")
+        .on_init([&]() {
+        spawn_em00x(2);
+    });
+
+    MutatorRegistry::define("SpawnBianco")
+        .description("Spawns Bianco Angelo")
+        .on_init([&]() {
+        spawn_em00x(3);
+    });
+
+    MutatorRegistry::define("SpawnAlto")
+        .description("Spawns Alto Angelo")
+        .on_init([&]() {
+        spawn_em00x(4);
+    });
+
+    MutatorRegistry::define("SpawnMephisto")
+        .description("Spawns Mephisto")
+        .on_init([&]() {
+        spawn_em00x(5);
+    });
+
+    MutatorRegistry::define("SpawnFaust")
+        .description("Spawns Faust")
+        .on_init([&]() {
+        spawn_em00x(6);
+    });
+
+    MutatorRegistry::define("SpawnFrost")
+        .description("Spawns Frost")
+        .on_init([&]() {
+        spawn_em00x(7);
+    });
+
+    MutatorRegistry::define("SpawnAssault")
+        .description("Spawns Assault")
+        .on_init([&]() {
+        spawn_em00x(8);
+    });
+
+    MutatorRegistry::define("SpawnBlitz")
+        .description("Spawns Blitz")
+        .on_init([&]() {
+        spawn_em00x(9);
+    });
+
+    MutatorRegistry::define("SpawnChimera")
+        .description("Spawns Chimera Seed")
+        .on_init([&]() {
+        spawn_em00x(10);
+    });
+
+    MutatorRegistry::define("SpawnBasilisk")
+        .description("Spawns Basilisk")
+        .on_init([&]() {
+        spawn_em00x(11);
+    });
+
+    MutatorRegistry::define("SpawnBerial")
+        .description("Spawns Berial")
+        .on_init([&]() {
+        spawn_em00x(12);
+    });
+
+    MutatorRegistry::define("SpawnBael")
+        .description("Spawns Bael")
+        .on_init([&]() {
+        spawn_em00x(13);
+    });
+
+    MutatorRegistry::define("SpawnEchidna")
+        .description("Spawns Echidna")
+        .on_init([&]() {
+        spawn_em00x(14);
+    });
+
+    MutatorRegistry::define("SpawnCredo")
+        .description("Spawns Angelo Credo")
+        .on_init([&]() {
+        spawn_em00x(15);
+    });
+
+    MutatorRegistry::define("SpawnAgnus")
+        .description("Spawns Angelo Agnus")
+        .on_init([&]() {
+        spawn_em00x(16);
+    });
+
+    MutatorRegistry::define("SpawnSanctus")
+        .description("Spawns Sanctus Diabolica")
+        .on_init([&]() {
+        spawn_em00x(18);
+    });
+
+    MutatorRegistry::define("SpawnKyrie")
+        .description("Spawns Kyrie")
+        .on_init([&]() {
+        spawn_em00x(19);
+    });
+
+    MutatorRegistry::define("SpawnDante")
+        .description("Spawns Dante")
+        .on_init([&]() {
+        spawn_em00x(20);
+    });
+
+    /*m_spawn_scarecrow_leg_command = std::hash<std::string>{}("\\SpawnScarecrowLeg");
     m_spawn_scarecrow_arm_command = std::hash<std::string>{}("\\SpawnScarecrowArm");
     m_spawn_mega_command         = std::hash<std::string>{}("\\SpawnMega");
     m_spawn_bianco_command       = std::hash<std::string>{}("\\SpawnBianco");
@@ -262,7 +383,7 @@ std::optional<std::string> EnemySpawn::on_initialize() {
     m_spawn_agnus_command        = std::hash<std::string>{}("\\SpawnAgnus");
     m_spawn_sanctus_dia_command   = std::hash<std::string>{}("\\SpawnSanctus");
     m_spawn_kyrie_command        = std::hash<std::string>{}("\\SpawnKyrie");
-    m_spawn_dante_command        = std::hash<std::string>{}("\\SpawnDante");
+    m_spawn_dante_command        = std::hash<std::string>{}("\\SpawnDante");*/
 
     using v_key = std::vector<uint32_t>;
     m_hotkeys.reserve(HOTKEY_MAX);
@@ -298,6 +419,7 @@ void EnemySpawn::on_gui_frame() {
     ImGui::Checkbox("Twitch Can Spawn Special Enemies", &enable_twitch_special_spawns);
 }
 
+#if 0
 void EnemySpawn::on_twitch_command(std::size_t hash) {
     spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_scarecrow_leg_command);
     if (hash == m_spawn_scarecrow_leg_command) {
@@ -382,6 +504,7 @@ void EnemySpawn::on_twitch_command(std::size_t hash) {
         }
     }
 }
+#endif
 
 void EnemySpawn::on_config_load(const utility::Config& cfg) {
     enable_twitch_special_spawns = cfg.get<bool>("enable_twitch_special_spawns").value_or(true);

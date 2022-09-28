@@ -8,7 +8,60 @@ std::optional<std::string> DifficultySelect::on_initialize() {
     return Mod::on_initialize();
 }
 
+void DifficultySelect::reset_patches() {
+    patch1.reset(nullptr);
+    patch2.reset(nullptr);
+    patch3.reset(nullptr);
+    patch4.reset(nullptr);
+    patch5.reset(nullptr);
+    patch6.reset(nullptr);
+    patch7.reset(nullptr);
+    patch8.reset(nullptr);
+    patch9.reset(nullptr);
+    patch10.reset(nullptr);
+    patch11.reset(nullptr);
+    patch12.reset(nullptr);
+    patch13.reset(nullptr);
+    patch14.reset(nullptr);
+    patch15.reset(nullptr);
+    patch16.reset(nullptr);
+    patch17.reset(nullptr);
+    patch18.reset(nullptr);
+    patch19.reset(nullptr);
+    patch20.reset(nullptr);
+    patch21.reset(nullptr);
+    patch22.reset(nullptr);
+    patch23.reset(nullptr);
+    patch24.reset(nullptr);
+    patch25.reset(nullptr);
+    patch26.reset(nullptr);
+    patch27.reset(nullptr);
+    patch28.reset(nullptr);
+    patch29.reset(nullptr);
+    patch30.reset(nullptr);
+    patch31.reset(nullptr);
+    patch32.reset(nullptr);
+    patch33.reset(nullptr);
+    patch34.reset(nullptr);
+    patch35.reset(nullptr);
+    patch36.reset(nullptr);
+    patch37.reset(nullptr);
+    patch38.reset(nullptr);
+    patch39.reset(nullptr);
+    patch40.reset(nullptr);
+    patch41.reset(nullptr);
+    patch42.reset(nullptr);
+    patch43.reset(nullptr);
+    patch44.reset(nullptr);
+    patch45.reset(nullptr);
+    patch46.reset(nullptr);
+    patch47.reset(nullptr);
+    patch48.reset(nullptr);
+    patch49.reset(nullptr);
+}
+
 void DifficultySelect::set_default() {
+    //reset_patches();
     // DMD & GMD share most of these, default does not:
     install_patch_offset(0x004D6C7, patch1,  "\x87\x78\xc7", 3);
     install_patch_offset(0x0094AE7, patch2,  "\x14\x77", 2);
@@ -66,6 +119,7 @@ void DifficultySelect::set_default() {
 }
 
 void DifficultySelect::set_dmd() {
+    //reset_patches();
     // DMD & GMD share most of these, default does not:
     install_patch_offset(0x004D6C7, patch1, "\x05\xa8\xcd\xde\x00", 3);
     install_patch_offset(0x0094AE7, patch2,  "\x00\x77\x14", 2);
@@ -122,6 +176,7 @@ void DifficultySelect::set_dmd() {
 }
 
 void DifficultySelect::set_gmd() {
+    //reset_patches();
     // DMD & GMD share most of these, default does not:
     install_patch_offset(0x004D6C7, patch1, "\x05\xa8\xcd\xde\x00", 3);      //  frosts jump out of combos outside of DT // `fld dword ptr [edi+DevilMayCry4_DX9.exe+9EC778]` to `fld dword ptr [DevilMayCry4_DX9.exe+9ECDA8]` (1000.0f)
     install_patch_offset(0x0094AE7, patch2,  "\x00\x77\x14", 2);             // `cmp eax, 14` to `cmp eax, 00`

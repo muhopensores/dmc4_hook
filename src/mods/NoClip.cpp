@@ -1,6 +1,6 @@
 #include "NoClip.hpp"
 #include "utility/MessageDisplay.hpp"
-
+#include "Mutators.hpp"
 #if 1
 bool NoClip::mod_enabled{false};
 
@@ -9,8 +9,16 @@ static void on_timer_callback() {
 }
 
 std::optional<std::string> NoClip::on_initialize() {
-    m_timer      = new utility::Timer(5.0f, on_timer_callback);
-    m_command    = std::hash<std::string>{}("\\" + get_mod_name());
+    MutatorRegistry::define("NoClip")
+        .description("hehe")
+        .on_init([&] {
+            mod_enabled = true;
+            toggle(mod_enabled);
+        })
+        .set_timer(30.0, [&] {
+            mod_enabled = false;
+            toggle(mod_enabled);
+        });
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_F5, "NoClip", "noclip_key"));
     return Mod::on_initialize();
 }
@@ -31,6 +39,7 @@ void NoClip::on_gui_frame() {
     }
 }
 
+#if 0
 void NoClip::on_twitch_command(std::size_t hash) {
     spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_command);
     if (hash == m_command) {
@@ -38,6 +47,7 @@ void NoClip::on_twitch_command(std::size_t hash) {
         toggle(mod_enabled);
     }
 }
+#endif
 
 void NoClip::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("noclip").value_or(false);
@@ -49,7 +59,7 @@ void NoClip::on_config_save(utility::Config& cfg) {
 }
 
 void NoClip::on_frame(fmilliseconds& dt) {
-    m_timer->tick(dt);
+    //m_timer->tick(dt);
 }
 
 void NoClip::on_update_input(utility::Input& input) {

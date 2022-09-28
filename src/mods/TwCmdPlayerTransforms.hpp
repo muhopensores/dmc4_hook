@@ -17,7 +17,6 @@ public:
 
     void on_frame(fmilliseconds& dt) override;
     // void onGUIframe() override;
-    void on_twitch_command(std::size_t hash) override;
 
 private:
     utility::Timer* m_timer;

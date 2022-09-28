@@ -13,7 +13,7 @@ struct Message {
 	Message(std::string msg) : m_message(std::move(msg)) {
 	}
     
-    Message(Message&& src) : m_message(std::move(src.m_message)) {
+    Message(Message&& src) noexcept : m_message(std::move(src.m_message)) {
     }
 
 	std::string m_message;

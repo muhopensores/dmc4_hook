@@ -11,6 +11,7 @@ class Patch {
 public:
     using Ptr = std::unique_ptr<Patch>;
     static Ptr create(uintptr_t addr, const std::vector<int16_t>& b, bool should_enable = true);
+    static Patch* create_raw(uintptr_t addr, const std::vector<int16_t>& b, bool should_enable);
     static Ptr create_nop(uintptr_t addr, uint32_t length, bool should_enable = true);
 
     static bool patch(uintptr_t address, const std::vector<int16_t>& bytes);

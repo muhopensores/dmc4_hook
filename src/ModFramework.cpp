@@ -308,6 +308,10 @@ bool ModFramework::initialize() {
         return false;
     }
 
+    auto io = ImGui::GetIO();
+    io.Fonts->AddFontDefault();
+    m_custom_font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\ariali.ttf", 24.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+
     spdlog::info("Initializing Input system");
     m_input = std::make_unique<utility::Input>();
 
@@ -320,7 +324,6 @@ bool ModFramework::initialize() {
 
         // Game specific initialization stuff
         std::thread init_thread([this]() {
-
             auto e = m_mods->on_initialize(Mod::ModType::SLOW);
 
             if (e) {

@@ -104,63 +104,63 @@ void screenBlinkEffect() {
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 struct PostProcessingEffects {
-	UTvNoiseFilter* tv;
-	UColorCorrectFilter* cc;
+    UTvNoiseFilter* tv;
+    UColorCorrectFilter* cc;
 };
 
 PostProcessingEffects pps;
 UStageSetTimeSlow* g_ss;
 
 void tv_noise_constructor_params(UTvNoiseFilter* tv) {
-	tv->m_priority ^= 2048;
-	tv->m_noise_power = 0.06f;
-	tv->m_shock_noise_freq = 0.02f;
-	tv->m_v_sync_noise_amplitude = 0.005f;
+    tv->m_priority ^= 2048;
+    tv->m_noise_power            = 0.06f;
+    tv->m_shock_noise_freq       = 0.02f;
+    tv->m_v_sync_noise_amplitude = 0.005f;
 }
 
 void u_color_correct_constructor_params(UColorCorrectFilter* cc) {
-	cc->m_priority ^= 2048;
-	
-	/*cc->correctors[0].mType = CC_TYPE::TYPE_NEGA2;
-	cc->correctors[0].mEnable = true;*/
+    cc->m_priority ^= 2048;
 
-	cc->correctors[0].m_type = CcType::TYPE_CHROMA;
-	cc->correctors[0].m_factor = glm::vec4{ 1.0f, 0.1f, 0.1f, 0.1f };
-	cc->correctors[0].m_enable = true;
+    /*cc->correctors[0].mType = CC_TYPE::TYPE_NEGA2;
+    cc->correctors[0].mEnable = true;*/
+
+    cc->correctors[0].m_type   = CcType::TYPE_CHROMA;
+    cc->correctors[0].m_factor = glm::vec4{1.0f, 0.1f, 0.1f, 0.1f};
+    cc->correctors[0].m_enable = true;
 }
 
 void u_stage_set_time_slow_constructor_params(UStageSetTimeSlow* ss) {
-	g_ss = ss;
-	ss->m_duration = 1100.0f; // hardcoded for now idk what they used
+    g_ss           = ss;
+    ss->m_duration = 1100.0f; // hardcoded for now idk what they used
 }
 bool start_interpolating = false;
 
 void qs_operator_new() {
 
-	constexpr uintptr_t u_stage_slow_constructor = 0x00887440;
-	constexpr uintptr_t u_some_glob = 0x00E552CC;
-	constexpr uintptr_t spawn_shit = 0x008DC540;
-	constexpr uintptr_t u_color_correct_filter_constructor = 0x0093D9A0;
-	constexpr uintptr_t u_tv_noise_filter_constructor = 0x00922290;
-	float tv_noise_arg1 = 0.06f;
-	float tv_noise_arg2 = 0.02f;
-	float tv_n_oise_arg3 = 0.005f;
-	start_interpolating = true;
+    constexpr uintptr_t u_stage_slow_constructor           = 0x00887440;
+    constexpr uintptr_t u_some_glob                        = 0x00E552CC;
+    constexpr uintptr_t spawn_shit                         = 0x008DC540;
+    constexpr uintptr_t u_color_correct_filter_constructor = 0x0093D9A0;
+    constexpr uintptr_t u_tv_noise_filter_constructor      = 0x00922290;
+    float tv_noise_arg1                                    = 0.06f;
+    float tv_noise_arg2                                    = 0.02f;
+    float tv_n_oise_arg3                                   = 0.005f;
+    start_interpolating                                    = true;
 
-	__asm {
+    __asm {
 		pusha
 		pushf
-		//call screenBlinkEffect // not working on 4 lmao
-		// noise
+            // call screenBlinkEffect // not working on 4 lmao
+            // noise
 		call u_tv_noise_filter_constructor
-		/*xor [eax+0x4], 0x00000800
-		mov edx, [tvNoiseArg1]
-		mov [eax+0x34], edx
-		mov edx, [tvNoiseArg2]
-		mov [eax+0x68], edx
-		mov edx, [tvNOiseArg3]
-		mov [eax+0x6C], edx
-		mov [eax+0x44], 0x00000000*/
+                /*xor [eax+0x4], 0x00000800
+                mov edx, [tvNoiseArg1]
+                mov [eax+0x34], edx
+                mov edx, [tvNoiseArg2]
+                mov [eax+0x68], edx
+                mov edx, [tvNOiseArg3]
+                mov [eax+0x6C], edx
+                mov [eax+0x44], 0x00000000*/
 		push eax
 		call tv_noise_constructor_params
 		pop eax
@@ -174,21 +174,21 @@ void qs_operator_new() {
 		push 0x1D
 		call spawn_shit
 
-		// cc
+            // cc
 		call u_color_correct_filter_constructor
 		pusha
 		push eax
 		call u_color_correct_constructor_params
 		pop eax
 		popa
-		/*mov ecx, 00000800h
-		xor DWORD PTR [eax+0x4], ecx
-		mov ecx, 16
-		mov DWORD PTR [eax+0x58], ecx
-		mov [eax+0x74], 0x00000004
-		mov [eax+0x80], 0x00000000
-		mov [eax+0x84], 0x00000000
-		mov [eax+0x88], 0x00000000*/
+                /*mov ecx, 00000800h
+                xor DWORD PTR [eax+0x4], ecx
+                mov ecx, 16
+                mov DWORD PTR [eax+0x58], ecx
+                mov [eax+0x74], 0x00000004
+                mov [eax+0x80], 0x00000000
+                mov [eax+0x84], 0x00000000
+                mov [eax+0x88], 0x00000000*/
 
 		mov esi, eax
 		test esi, esi
@@ -199,7 +199,7 @@ void qs_operator_new() {
 		push 0x1D
 		call spawn_shit
 
-		// slowdown
+            // slowdown
 
 		call u_stage_slow_constructor
 		pusha
@@ -217,7 +217,7 @@ void qs_operator_new() {
 	bounce:
 		popf
 		popa
-	}
+    }
 }
 
 static void on_timer_callback() {
@@ -227,13 +227,23 @@ static void on_timer_callback() {
 }
 
 std::optional<std::string> Quicksilver::on_initialize() {
-	m_command = std::hash<std::string>{}("\\Quicksilver");
-	m_shorthand = std::hash<std::string>{}("\\qs");
+    /*m_command = std::hash<std::string>{}("\\Quicksilver");
+    m_shorthand = std::hash<std::string>{}("\\qs");*/
+    MutatorRegistry::define("Quicksilver")
+        .alias("qs")
+        .on_init([]() {
+            SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
+            uPlayer* u_local_plr = s_med_ptr->player_ptr;
+            if (u_local_plr) {
+                qs_operator_new();
+            }
+        })
+        .set_timer(15.0f, []() { on_timer_callback(); });
 
-	// timer duration in float and callback function once it finishes
-	m_timer = new utility::Timer(15.0f, on_timer_callback);
+    // timer duration in float and callback function once it finishes
+    m_timer = new utility::Timer(15.0f, on_timer_callback);
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_OEM_PLUS, "QuickSilver", "quicksilver_key"));
-	return Mod::on_initialize();
+    return Mod::on_initialize();
 }
 
 void Quicksilver::on_frame(fmilliseconds& dt) {
@@ -247,11 +257,11 @@ void Quicksilver::on_gui_frame() {
     ImGui::SameLine();
     help_marker("Enables the hotkey for Quicksilver. By default this is = / +");
 }
-
+#if 0
 void Quicksilver::on_twitch_command(std::size_t hash) {
-	//if (!m_timer->m_active) { return; }
-	if (hash == m_command || hash == m_shorthand) {
-		if (m_timer) {
+    // if (!m_timer->m_active) { return; }
+    if (hash == m_command || hash == m_shorthand) {
+        if (m_timer) {
             if (m_timer->m_active == false) {
                 SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
                 uPlayer* u_local_plr = s_med_ptr->player_ptr;
@@ -260,24 +270,24 @@ void Quicksilver::on_twitch_command(std::size_t hash) {
                     m_timer->start();
                 }
             }
-		}
-	}
+        }
+    }
 }
-
+#endif
 void Quicksilver::on_update_input(utility::Input& input) {
     if (quicksilver_enabled) {
-		if (m_hotkeys[0]->check(input)) {
-			if (m_timer) {
-				if (m_timer->m_active == false) {
-					SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
-					uPlayer* u_local_plr = s_med_ptr->player_ptr;
-					if (u_local_plr) {
-						qs_operator_new();
-						m_timer->start();
-					}
-				}
-			}
-		}
+        if (m_hotkeys[0]->check(input)) {
+            if (m_timer) {
+                if (m_timer->m_active == false) {
+                    SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
+                    uPlayer* u_local_plr = s_med_ptr->player_ptr;
+                    if (u_local_plr) {
+                        qs_operator_new();
+                        m_timer->start();
+                    }
+                }
+            }
+        }
     }
 }
 

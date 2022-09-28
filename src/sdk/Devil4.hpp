@@ -6,4 +6,6 @@ namespace devil4_sdk {
 	uPlayer* get_local_player();
 	SStylishCount* get_stylish_count();
 	sWorkRate* get_work_rate();
+    bool is_paused();
+    bool is_not_in_gameplay();
 };

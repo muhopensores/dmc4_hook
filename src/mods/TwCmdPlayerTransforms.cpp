@@ -59,7 +59,7 @@ void TwCmdPlayerTransforms::onGUIframe()
 	}
 }
 #endif
-
+#if 0
 void TwCmdPlayerTransforms::on_twitch_command(std::size_t hash) {
 	// TODO(): send a message if shit is already active?
 
@@ -76,3 +76,4 @@ void TwCmdPlayerTransforms::on_twitch_command(std::size_t hash) {
 		t_workrate = plr->m_delta_time * 1.27f;
 	}
 }
+#endif

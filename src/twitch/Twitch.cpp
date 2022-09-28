@@ -10,8 +10,9 @@
 
 #include "libircclient.h"
 #include "libirc_rfcnumeric.h"
+#include "..\mods\Twitch.hpp"
 
-
+#define TWITCH_DEBUG
 // Function Types
 
 // those are done to remove dependency on libircclient.dll
@@ -260,8 +261,12 @@ std::thread Twitch::connect( const std::string &user, const std::string &passwor
 		irc_option_set( session, LIBIRC_OPTION_STRIPNICKS );
 
 		status = TWITCH_CONNECTING;
-
+#ifdef TWITCH_DEBUG
+        std::string tuser = "dobsmith"; std::string tpassword = "hehe";
+        if (irc_connect(session, "127.0.0.1", 6667, tpassword.c_str(), tuser.c_str(), tuser.c_str(), tuser.c_str())) {
+#else
 		if (irc_connect(session, "irc.chat.twitch.tv", 6667, password.c_str(), user.c_str(), user.c_str(), user.c_str())) {
+#endif
 			on_error(irc_errno(session), irc_strerror(irc_errno(session)));
 			status = TWITCH_DISCONNECTED;
 			return;
@@ -293,4 +298,3 @@ void Twitch::send_chat_message( const std::string &message ) {
 		on_error( irc_errno( session ), irc_strerror( irc_errno( session ) ) );
 	}
 }
-

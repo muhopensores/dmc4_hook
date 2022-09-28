@@ -95,6 +95,8 @@
 #include "mods/Twitch.hpp"
 #include "mods/MessageDisplay.hpp"
 
+constexpr size_t MODS_NUM{ 256 };
+
 #define ADD_MOD(name)                                  \
     do {                                               \
         m_mods.emplace_back(std::make_unique<name>()); \
@@ -104,6 +106,8 @@
 //#include "mods/Sample.hpp"
 // mods constructor
 Mods::Mods() {
+    m_mods.reserve(MODS_NUM);
+    m_hash.reserve(MODS_NUM);
     // slow mods
     ADD_MOD(MessageDisplayMod); // keep this one at the 0 index for overlay;
     ADD_MOD(BackgroundRendering);
@@ -295,7 +299,7 @@ void Mods::on_draw_ui(uint32_t hash) {
         __debugbreak();
     }
 }
-
+#if 0
 // this is terrible atm
 void Mods::on_chat_command(const std::string& message) {
     std::size_t hash = std::hash<std::string>{}(message);
@@ -304,6 +308,7 @@ void Mods::on_chat_command(const std::string& message) {
         mod->on_twitch_command(hash);
     }
 }
+#endif
 
 void Mods::on_update_input(utility::Input& input) {
     for (auto& mod : m_mods) {
@@ -314,6 +319,8 @@ void Mods::on_update_input(utility::Input& input) {
 void Mods::on_draw_custom_imgui_window() {
     MessageDisplayMod* m = dynamic_cast<MessageDisplayMod*>(m_mods[0].get());
     m->custom_imgui_window();
+    TwitchClient* tw = dynamic_cast<TwitchClient*>(m_mods[3].get());
+    tw->custom_imgui_window();
 #if 0
     ImGui::Begin("utility::Input debugger");
     auto& input = g_framework->get_input_struct();

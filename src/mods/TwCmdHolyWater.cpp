@@ -1,5 +1,5 @@
 #include "TwCmdHolyWater.hpp"
-
+#include "Mutators.hpp"
 // TODO(): move this into somewhere general
 uPlayer* get_local_payer() {
 	constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
@@ -27,10 +27,17 @@ void on_cooldown_end() {
 }
 
 std::optional<std::string> TwCmdHolyWater::on_initialize() {
-	m_command = std::hash<std::string>{}("\\HolyWater");
+    MutatorRegistry::define("HolyWater")
+        .description("Use a holy water even in places where its not allowed")
+        .alias("hw")
+        .on_init([] {
+        use_hw_asm_call();
+    });
+
+	/*m_command = std::hash<std::string>{}("\\HolyWater");
 	m_shorthand = std::hash<std::string>{}("\\hw");
 	
-	m_cooldown = new utility::Timer(30.0f, on_cooldown_end);
+	m_cooldown = new utility::Timer(30.0f, on_cooldown_end);*/
 
 	return Mod::on_initialize();
 }
@@ -38,7 +45,7 @@ std::optional<std::string> TwCmdHolyWater::on_initialize() {
 void TwCmdHolyWater::on_frame(fmilliseconds & dt) {
 	if (!m_alow_cmd) { m_cooldown->tick(dt); }
 }
-
+#if 0
 void TwCmdHolyWater::on_twitch_command(std::size_t hash) {
 	if ((hash == m_command || hash == m_shorthand ) && m_alow_cmd) {
 		use_hw_asm_call();
@@ -46,3 +53,4 @@ void TwCmdHolyWater::on_twitch_command(std::size_t hash) {
 		m_alow_cmd = false;
 	}
 }
+#endif

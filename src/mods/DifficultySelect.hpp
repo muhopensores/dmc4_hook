@@ -8,6 +8,7 @@ public:
 
     // static bool modEnabled;
 
+    void reset_patches();
     void set_default();
     void set_dmd();
     void set_gmd();

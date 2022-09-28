@@ -1,14 +1,117 @@
 // include your mod header file
 #include "Twitch.hpp"
 #include "../Mods.hpp"
+#include <thread>
+#include <random>
 
 static bool twitch_login_on_boot = false;
 
-#if 1
-// initialization
-// return Mod::onInitialize(); on success or error string on failure.
+static TwitchClient* g_twc;
+//static std::mutex g_mut{};
+
+void VoteManager::on_chat_message(const std::string& sender, const std::string& msg) {
+    if (msg.length() != 1) { return; }
+    size_t sender_hash = std::hash<std::string>{}(sender);
+
+    if (std::any_of(m_voters.begin(), m_voters.end(), [sender_hash](size_t i) { return i == sender_hash; })) {
+        return;
+    }
+
+    m_voters.emplace_back(sender_hash);
+
+    char fchar = msg.front();
+    size_t index = 0;
+
+    const std::array<std::pair<char, char>, 6> vote_tokens{
+        std::make_pair('1','0'),
+        std::make_pair('2','0'),
+        std::make_pair('3','0'),
+        std::make_pair('e', 'e'),
+        std::make_pair('f', 'e'),
+        std::make_pair('g', 'e') 
+    };
+
+    for (size_t i = 0; i <= vote_tokens.size(); i++) {
+        if (vote_tokens[i].first == fchar) {
+            index = (vote_tokens[i].first - vote_tokens[i].second);
+        }
+    }
+    m_vote_entries[index].m_votes++;
+
+    m_vote_distribution_display = m_vote_entries;
+    std::sort(m_vote_distribution_display.begin(), m_vote_distribution_display.end(), [](VoteEntry a, VoteEntry b) { return a.m_votes > b.m_votes; });
+}
+
+static void twitch_voting_start() {
+    //std::lock_guard <std::mutex> lock(g_mut);
+    auto vmgr = g_twc->m_vote_manager;
+    auto& gamemodes = MutatorRegistry::inst().m_mutators;
+    std::vector<Mutator*> out;
+    size_t n_elem = 3;
+    std::sample(gamemodes.begin(), gamemodes.end(), std::back_inserter(out), n_elem, std::mt19937{ std::random_device{}() });
+    // it was too late i remembered there was std::partial_sort ;_;
+
+    for (size_t i = 0; i < out.size(); ++i) {
+        spdlog::info("index: {}, name: {}");
+
+        vmgr->m_vote_entries.push_back(VoteEntry(out[i]));
+    }
+    g_twc->twitch->send_chat_message("VOTE FOR NEXT MOD");
+
+    for (size_t i = 0; i < vmgr->m_vote_entries.size(); i++) {
+        if (vmgr->m_anti_anti_spam) {
+            g_twc->twitch->send_chat_message(fmt::format("{}: {}", i, vmgr->m_vote_entries[i].m_mod->m_name));
+        }
+        else {
+            constexpr static std::array<char, 3> chars{'e', 'f', 'g' };
+            g_twc->twitch->send_chat_message(fmt::format("{}: {}", chars[i], vmgr->m_vote_entries[i].m_mod->m_name));
+        }
+    }
+    vmgr->m_vote_distribution_display = vmgr->m_vote_entries;
+    g_twc->twitch_vote_state = TwitchClient::STATE_IDLE;
+    g_twc->m_idle_timer->start();
+    vmgr->m_anti_anti_spam = !(vmgr->m_anti_anti_spam);
+}
+
+static void twitch_voting_end() {
+    //std::lock_guard <std::mutex> lock(g_mut);
+    auto vmgr = g_twc->m_vote_manager;
+
+    auto res = std::max_element(vmgr->m_vote_entries.begin(), vmgr->m_vote_entries.end(), [](VoteEntry a, VoteEntry b) { return a.m_votes < b.m_votes; });
+    g_twc->twitch->send_chat_message(fmt::format("VOTE ENDED : {}", (*res).m_mod->m_name));
+    /*auto& res = vmgr->m_vote_entries[0];
+    g_twc->twitch->send_chat_message(fmt::format("VOTE ENDED : {}", res.m_mod->m_name));*/
+    MutatorRegistry::inst().activate_mod((*res).m_mod);
+
+    vmgr->m_vote_entries.clear();
+    vmgr->m_voters.clear();
+
+    g_twc->twitch_vote_state = TwitchClient::STATE_VOTING;
+    g_twc->m_voting_timer->start();
+
+}
+
+void TwitchModeChaos::parse_message(const std::string & sender, const std::string & message) {
+    //std::size_t found = message.find('\\');
+    char fchar = message.front();
+    if (fchar == '\\') {
+        std::string s = std::string(std::begin(message) + 1, std::end(message));//message.substr(1, 64);
+        spdlog::info("parse_msg: {}\n", s);
+        MutatorRegistry::inst().activate_mod(s);
+        //auto& mods = g_framework->get_mods();
+        //mods->on_chat_command(message);
+    }
+}
+
+void TwitchModeVoting::parse_message(const std::string & sender, const std::string & message) {
+    if (m_twc->twitch_vote_state == TwitchClient::STATE_IDLE) {
+        m_twc->m_vote_manager->on_chat_message(sender, message);
+    }
+}
+
 std::optional<std::string> TwitchClient::on_initialize() {
     m_libirc = (HMODULE)dyn_link_lib_irc_client();
+
 	if (!m_libirc) {
 		//DISPLAY_MESSAGE("[TwitchClient] libircclient.dll not found, skipping.");
 		spdlog::info("[TwitchClient] libircclient.dll not found, skipping.");
@@ -16,6 +119,7 @@ std::optional<std::string> TwitchClient::on_initialize() {
 	libirc_loaded = true;
 	//DISPLAY_MESSAGE("[TwitchClient] libircclient.dll loaded.");
 	spdlog::info("[TwitchClient] libircclient.dll loaded.");
+    g_twc = this;
 	return Mod::on_initialize();
 }
 
@@ -26,12 +130,21 @@ void TwitchClient::make_instance() {
 	}
 
 	if (!twitch) {
+
+        delete m_twitch_mode;
+        if (voting_result == TwitchClient::TWITCH_MODE::VOTING) { m_twitch_mode = new TwitchModeVoting(this); }
+        else { m_twitch_mode = new TwitchModeChaos(this); }
+
 		twitch = new Twitch();
 
 		twitch->on_connected = [this] {
 			//spdlog::info("[TwitchClient]: Connected to Twitch chat\n");
 			DISPLAY_MESSAGE("[TwitchClient]: Connected to Twitch chat");
 			twitch_status = TWITCH_CONNECTED;
+            // TODO: user controlled timings
+            m_voting_timer = new utility::Timer(15.0f, twitch_voting_start);
+            m_idle_timer = new utility::Timer(30.0f, twitch_voting_end);
+            m_vote_manager = new VoteManager();
 		};
 
 		twitch->on_disconnected = [this] {
@@ -51,11 +164,7 @@ void TwitchClient::make_instance() {
 			if (mirror_chat_checkbox) {
 				DISPLAY_MESSAGE(std::string{ sender + ": " + message });
 			}
-			std::size_t found = message.find('\\');
-			if (found != std::string::npos) {
-                auto& mods = g_framework->get_mods();
-				mods->on_chat_command(message);
-			}
+            m_twitch_mode->parse_message(sender, message);
 		};
 	}
 
@@ -72,9 +181,14 @@ void TwitchClient::make_instance() {
 void TwitchClient::disconnect() {
 	if (twitch) {
 		twitch->disconnect();
-		delete twitch;
-		twitch = nullptr;
+        twitch_status = TWITCH_DISCONNECTED;
 	}
+    delete twitch;
+    twitch = nullptr;
+    delete m_voting_timer;
+    m_voting_timer = nullptr;
+    delete m_idle_timer;
+    m_idle_timer = nullptr;
 }
 
 // onGUIframe()
@@ -117,34 +231,80 @@ void TwitchClient::on_gui_frame() {
         ImGui::Checkbox("Log In On Game Boot Automatically", &twitch_login_on_boot);
 		ImGui::SameLine();
         help_marker("This sometimes doesn't work, just come back here and hit disconnect > connect to reconnect");
-		// ImGui::SameLine();
-		// FIXME not implemented lmao use config
-		/*if ( ImGui::Button( "Save login info" ) ) {
-		}*/
-		/*
-		ImGui::Text( "\n" );
-		// FIXME not implemented
-		if ( ImGui::Checkbox( "Viewers Can Vote On Random Gameplay Mods", &vote_checkbox ) ) {
 
-		}
-		// FIXME not implemented
-		if ( vote_checkbox ) {
-			if ( ImGui::RadioButton( "Voting Affects Which Mod WILL BE Activated Next", &voting_result, 0 ) ) {
-			}
-			if ( ImGui::RadioButton( "Voting Affects Which Mod IS MORE LIKELY To Be Activated next", &voting_result, 1 ) ) {
-			}
-		}*/
-		// FIXME you guessed it
-		if ( ImGui::Checkbox( "Relay Twitch Chat To Devil May Cry 4", &mirror_chat_checkbox ) ) {
-		}
+        ImGui::Text("Twitch Mode FAQ");
+        ImGui::TextWrapped("Chaos - viewers can activate twitch mods directly through chat commands.");
+        ImGui::TextWrapped("Vote mode - viewers can vote on what mods to activate next.");
+
+        ImGui::RadioButton("Chaos mode", &voting_result, TwitchClient::TWITCH_MODE::CHAOS);
+        ImGui::RadioButton("Vote mode", &voting_result, TwitchClient::TWITCH_MODE::VOTING);
+
+        ImGui::Checkbox("Relay Twitch Chat To Devil May Cry 4", &mirror_chat_checkbox);
 	}
 }
 
-void TwitchClient::on_config_save(utility::Config& cfg)
-{
+void TwitchClient::custom_imgui_window() {
+    if (!libirc_loaded) { return; }
+
+    bool should_display_messages = (twitch_vote_state == STATE_IDLE);
+    if (!should_display_messages || !(m_vote_manager)) {
+        return;
+    }
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuiWindowFlags window_flags =
+        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize |
+        ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+    ImVec2 window_size = ImVec2(io.DisplaySize.x * 0.2f, io.DisplaySize.y * 0.35f);
+
+    ImVec2 window_pos = ImVec2(io.DisplaySize.x - window_size.x - 128.0f, 128.0f);
+
+    ImGui::SetNextWindowPos(window_pos);
+
+    ImGui::Begin("Vote results", &should_display_messages, window_flags);
+    ImGui::PushFont(g_framework->get_custom_imgui_font());
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(104,239,239,255));
+    for (auto& entry : m_vote_manager->m_vote_distribution_display) {
+        ImGui::Text("%s:\t%d", entry.m_mod->m_name.c_str(), entry.m_votes);
+    }
+    ImGui::PopStyleColor();
+    ImGui::PopFont();
+    ImGui::End();
+}
+
+void TwitchClient::on_config_save(utility::Config& cfg) {
     cfg.set("twitch_login", twitch_login);
     cfg.set("twitch_oauth", twitch_chat_oauth_password);
     cfg.set<bool>("twitch_login_on_boot", twitch_login_on_boot);
+}
+bool g_previos_gameplay_state = false;
+
+void TwitchClient::on_frame(fmilliseconds & dt) {
+    if (twitch_status != TWITCH_CONNECTED) { return; }
+    MutatorRegistry::inst().update(dt);
+    
+    bool current_gameplay_state = devil4_sdk::is_not_in_gameplay();
+    if (g_previos_gameplay_state != current_gameplay_state) {
+        if (current_gameplay_state) {
+            twitch_vote_state = STATE_NONE;
+            m_vote_manager->m_vote_entries.clear();
+            m_vote_manager->m_voters.clear();
+            m_idle_timer->m_time = fseconds{ 0.0f };
+            m_voting_timer->m_time = fseconds{ 0.0f };
+            g_previos_gameplay_state = current_gameplay_state;
+            return;
+        }
+        twitch_vote_state = STATE_VOTING;
+        m_voting_timer->start();
+    }
+    if (twitch_vote_state == STATE_VOTING) {
+        m_voting_timer->tick(dt);
+    }
+    if (twitch_vote_state == STATE_IDLE) {
+        m_idle_timer->tick(dt);
+    }
+    g_previos_gameplay_state = current_gameplay_state;
 }
 
 // onConfigLoad
@@ -156,8 +316,11 @@ void TwitchClient::on_config_load(const utility::Config& cfg) {
     strcpy_s(twitch_chat_oauth_password, sizeof(twitch_chat_oauth_password), cfg_oauth.c_str());
     twitch_login_on_boot = cfg.get<bool>("twitch_login_on_boot").value_or(false);
     if (twitch_login_on_boot) {
-        make_instance(); // sometimes gets stuck on connecting, says "IRC session terminated" 
+        //make_instance(); // sometimes gets stuck on connecting, says "IRC session terminated" 
+        std::thread hehe([&] { 
+            std::this_thread::sleep_for(std::chrono::seconds(4));
+            make_instance(); // lets add an insult to injury and throw it into std::thread
+        });
+        hehe.detach(); // idk might help or make things worse
     }
 }
-
-#endif
