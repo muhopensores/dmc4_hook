@@ -12,7 +12,7 @@
 #include "libirc_rfcnumeric.h"
 #include "..\mods\Twitch.hpp"
 
-#define TWITCH_DEBUG
+//#define TWITCH_DEBUG
 // Function Types
 
 // those are done to remove dependency on libircclient.dll

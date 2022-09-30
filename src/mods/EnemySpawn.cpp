@@ -3,7 +3,6 @@
 
 #include "EnemySpawn.hpp"
 #include "AreaJump.hpp" // for cAreaJumpPtr
-#include "Mutators.hpp"
 // TODO(): move this somewhere maybe
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 static uintptr_t fptr_update_actor_list{0x008DC540}; // Spawns shit

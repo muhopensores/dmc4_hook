@@ -3,7 +3,6 @@
 #if 1
 #include "../mod.hpp"
 #include "../twitch/twitch.hpp"
-#include "Mutators.hpp"
 
 struct VoteEntry {
     Mutator* m_mod;
