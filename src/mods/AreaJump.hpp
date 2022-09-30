@@ -14,6 +14,7 @@ public:
     std::optional<std::string> on_initialize() override;
 
     void on_gui_frame() override;
+    void on_update_input(utility::Input& input) override;
 
 private:
     void jump_to_stage(int stage);

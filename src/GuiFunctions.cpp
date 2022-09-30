@@ -30,7 +30,7 @@ static float g_window_height_hack{ 1080.0f };
 static float g_max{ 0.0f };
 namespace gui {
 
-    inline void under_line(ImColor col) {
+    inline void under_line(const ImColor& col) {
         ImVec2 min = ImGui::GetItemRectMin();
         ImVec2 max = ImGui::GetItemRectMax();
         min.y = max.y;

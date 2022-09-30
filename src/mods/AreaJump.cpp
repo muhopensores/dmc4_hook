@@ -103,6 +103,9 @@ naked void detour() {
 
 std::optional<std::string> AreaJump::on_initialize() {
 	// uintptr_t address = hl::FindPattern("8B 92 30 38 00 00", "DevilMayCry4_DX9.exe"); // DevilMayCry4_DX9.exe+E1F6 
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_OEM_6 }, "Next BP stage", "bp_next_stage_hotkey"));
+
     if (!install_hook_offset(0x00E1F6, hook, &detour, &AreaJump::jmp_return, 6)){
             spdlog::error("Failed to init AreaJump mod\n");
             return "Failed to init AreaJump mod";
@@ -429,4 +432,14 @@ void AreaJump::on_gui_frame()
 	if (ImGui::ListBox("##Room Codes Listbox", &room_item_current, room_items.data(), room_items.size(), 10)) {
 		jump_to_stage(room_item_current);
 	}
+}
+
+void AreaJump::on_update_input(utility::Input & input) {
+
+    if (m_hotkeys[0]->check(input)) {
+        if (IsBadWritePtr(c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(c_area_jump_ptr,sizeof(uint32_t))) {
+            return;
+        }
+        jump_to_stage(bp_stage(++(c_area_jump_ptr->bp_floor_stage)));
+    }
 }
