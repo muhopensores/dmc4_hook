@@ -242,147 +242,90 @@ void spawn_em00x(int index) {
 }
 
 std::optional<std::string> EnemySpawn::on_initialize() {
-
+    //srand((uint32_t)this);
     MutatorRegistry::define("SpawnScarecrowLeg")
         .description("Spawns ScarecrowLeg")
-        .on_init([&]() {
-        spawn_em00x(0);
-    });
+        .on_init([&]() { spawn_em00x(0); });
 
     MutatorRegistry::define("SpawnScarecrowArm")
         .description("Spawns ScarecrowArm")
-        .on_init([&]() {
-        spawn_em00x(1);
-    });
+        .on_init([&]() { spawn_em00x(1); });
 
     MutatorRegistry::define("SpawnMega")
         .description("Spawns a Mega")
-        .on_init([&]() {
-        spawn_em00x(2);
-    });
+        .on_init([&]() { spawn_em00x(2); });
 
     MutatorRegistry::define("SpawnBianco")
         .description("Spawns Bianco Angelo")
-        .on_init([&]() {
-        spawn_em00x(3);
-    });
+        .on_init([&]() { spawn_em00x(3); });
 
     MutatorRegistry::define("SpawnAlto")
         .description("Spawns Alto Angelo")
-        .on_init([&]() {
-        spawn_em00x(4);
-    });
+        .on_init([&]() { spawn_em00x(4); });
 
     MutatorRegistry::define("SpawnMephisto")
         .description("Spawns Mephisto")
-        .on_init([&]() {
-        spawn_em00x(5);
-    });
+        .on_init([&]() { spawn_em00x(5); });
 
     MutatorRegistry::define("SpawnFaust")
         .description("Spawns Faust")
-        .on_init([&]() {
-        spawn_em00x(6);
-    });
+        .on_init([&]() { spawn_em00x(6); });
 
     MutatorRegistry::define("SpawnFrost")
         .description("Spawns Frost")
-        .on_init([&]() {
-        spawn_em00x(7);
-    });
+        .on_init([&]() { spawn_em00x(7); });
 
     MutatorRegistry::define("SpawnAssault")
         .description("Spawns Assault")
-        .on_init([&]() {
-        spawn_em00x(8);
-    });
+        .on_init([&]() { spawn_em00x(8); });
 
     MutatorRegistry::define("SpawnBlitz")
         .description("Spawns Blitz")
-        .on_init([&]() {
-        spawn_em00x(9);
-    });
+        .on_init([&]() { spawn_em00x(9); });
 
     MutatorRegistry::define("SpawnChimera")
         .description("Spawns Chimera Seed")
-        .on_init([&]() {
-        spawn_em00x(10);
-    });
+        .on_init([&]() { spawn_em00x(10); });
 
     MutatorRegistry::define("SpawnBasilisk")
         .description("Spawns Basilisk")
-        .on_init([&]() {
-        spawn_em00x(11);
-    });
+        .on_init([&]() { spawn_em00x(11); });
 
     MutatorRegistry::define("SpawnBerial")
         .description("Spawns Berial")
-        .on_init([&]() {
-        spawn_em00x(12);
-    });
+        .on_init([&]() { spawn_em00x(12); });
 
     MutatorRegistry::define("SpawnBael")
         .description("Spawns Bael")
-        .on_init([&]() {
-        spawn_em00x(13);
-    });
+        .on_init([&]() { spawn_em00x(13); });
 
     MutatorRegistry::define("SpawnEchidna")
         .description("Spawns Echidna")
-        .on_init([&]() {
-        spawn_em00x(14);
-    });
+        .on_init([&]() { spawn_em00x(14); });
 
     MutatorRegistry::define("SpawnCredo")
         .description("Spawns Angelo Credo")
-        .on_init([&]() {
-        spawn_em00x(15);
-    });
+        .on_init([&]() { spawn_em00x(15); });
 
     MutatorRegistry::define("SpawnAgnus")
         .description("Spawns Angelo Agnus")
-        .on_init([&]() {
-        spawn_em00x(16);
-    });
+        .on_init([&]() { spawn_em00x(16); });
 
     MutatorRegistry::define("SpawnSanctus")
         .description("Spawns Sanctus Diabolica")
-        .on_init([&]() {
-        spawn_em00x(18);
-    });
+        .on_init([&]() { spawn_em00x(18); });
 
     MutatorRegistry::define("SpawnKyrie")
         .description("Spawns Kyrie")
-        .on_init([&]() {
-        spawn_em00x(19);
-    });
+        .on_init([&]() { spawn_em00x(19); });
 
     MutatorRegistry::define("SpawnDante")
         .description("Spawns Dante")
-        .on_init([&]() {
-        spawn_em00x(20);
-    });
+        .on_init([&]() { spawn_em00x(20); });
 
-    /*m_spawn_scarecrow_leg_command = std::hash<std::string>{}("\\SpawnScarecrowLeg");
-    m_spawn_scarecrow_arm_command = std::hash<std::string>{}("\\SpawnScarecrowArm");
-    m_spawn_mega_command         = std::hash<std::string>{}("\\SpawnMega");
-    m_spawn_bianco_command       = std::hash<std::string>{}("\\SpawnBianco");
-    m_spawn_alto_command         = std::hash<std::string>{}("\\SpawnAlto");
-    m_spawn_mephisto_command     = std::hash<std::string>{}("\\SpawnMephisto");
-    m_spawn_faust_command        = std::hash<std::string>{}("\\SpawnFaust");
-    m_spawn_frost_command        = std::hash<std::string>{}("\\SpawnFrost");
-    m_spawn_assault_command      = std::hash<std::string>{}("\\SpawnAssault");
-    m_spawn_blitz_command        = std::hash<std::string>{}("\\SpawnBlitz");
-    m_spawn_chimera_command      = std::hash<std::string>{}("\\SpawnChimera");
-    m_spawn_basilisk_command     = std::hash<std::string>{}("\\SpawnBasilisk");
-    m_spawn_berial_command       = std::hash<std::string>{}("\\SpawnBerial");
-    m_spawn_bael_command         = std::hash<std::string>{}("\\SpawnBael");
-    m_spawn_echidna_command      = std::hash<std::string>{}("\\SpawnEchidna");
-    m_spawn_credo_command        = std::hash<std::string>{}("\\SpawnCredo");
-    m_spawn_agnus_command        = std::hash<std::string>{}("\\SpawnAgnus");
-    m_spawn_sanctus_dia_command   = std::hash<std::string>{}("\\SpawnSanctus");
-    m_spawn_kyrie_command        = std::hash<std::string>{}("\\SpawnKyrie");
-    m_spawn_dante_command        = std::hash<std::string>{}("\\SpawnDante");*/
+    MutatorRegistry::define("SpawnRandom")
+        .description("Spawns random enemy")
+        .on_init([]() { spawn_em00x(rand() % 21); });
 
     using v_key = std::vector<uint32_t>;
     m_hotkeys.reserve(HOTKEY_MAX);
