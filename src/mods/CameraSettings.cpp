@@ -101,7 +101,7 @@ naked void camera_angle_proc(void) {
 
 naked void camera_angle_lockon_proc(void) {
     _asm {
-            cmp byte ptr [CameraSettings::camera_lookdown_enabled],0
+            cmp byte ptr [CameraSettings::mod_enabled],0
             je code
 
 			movss xmm0,[ebx+0x000000D4]
