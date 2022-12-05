@@ -4,24 +4,43 @@
 #if 1
 static bool hooked{ false };
 
+bool SkipWeapons::skip_shotgun{ false };
 bool SkipWeapons::skip_pandora{ false };
+bool SkipWeapons::skip_gilgamesh{false};
 bool SkipWeapons::skip_lucifer{ false };
 uintptr_t SkipWeapons::skip_dante_gun_continue{ NULL };
 uintptr_t SkipWeapons::skip_dante_sword_continue{ NULL };
 
 naked void skip_dante_gun_proc(void) {
 	_asm {
-		cmp byte ptr [SkipWeapons::skip_pandora], 1
-		jne originalcode
-		cmp eax, 8
-		je pandora
-	originalcode:
-		mov [edi+30h], eax
+		cmp eax, 7 // shotgun?
+		je checkshotgun
+		cmp eax, 8 // pandora
+		je checkpandora
+		jmp originalcode
+
+	checkshotgun:
+		cmp byte ptr [SkipWeapons::skip_shotgun], 1
+		je skipshotgun
+		jmp originalcode
+
+	skipshotgun:
+		mov [edi+30h], 8
 		mov al, 01
 		jmp dword ptr [SkipWeapons::skip_dante_gun_continue]
 
-	pandora:
+	checkpandora:
+		cmp byte ptr [SkipWeapons::skip_pandora], 1
+		je skippandora
+		jmp originalcode
+
+	skippandora:
 		mov [edi+30h], 9
+		mov al, 01
+		jmp dword ptr [SkipWeapons::skip_dante_gun_continue]
+
+	originalcode:
+		mov [edi+30h], eax
 		mov al, 01
 		jmp dword ptr [SkipWeapons::skip_dante_gun_continue]
 	}
@@ -29,17 +48,34 @@ naked void skip_dante_gun_proc(void) {
 
 naked void skip_dante_sword_proc(void) {
     _asm {
-		cmp byte ptr [SkipWeapons::skip_lucifer], 1
-		jne originalcode
+		cmp eax, 5
+		je checkgilgamesh
 		cmp eax, 6
-		je rebellion
-	originalcode:
-		mov [edi+2Ch], eax
+		je checklucifer
+		jmp originalcode
+
+	checkgilgamesh:
+		cmp byte ptr [SkipWeapons::skip_gilgamesh], 1
+		je skipgilgamesh
+		jmp originalcode
+
+	skipgilgamesh:
+		mov [edi+2Ch], 6
 		mov al, 01
 		jmp dword ptr [SkipWeapons::skip_dante_sword_continue]
 
-	rebellion:
+	checklucifer:
+		cmp byte ptr [SkipWeapons::skip_lucifer], 1
+		je skiplucifer
+		jmp originalcode
+
+	skiplucifer:
 		mov [edi+2Ch], 4
+		mov al, 01
+		jmp dword ptr [SkipWeapons::skip_dante_sword_continue]
+
+	originalcode:
+		mov [edi+2Ch], eax
 		mov al, 01
 		jmp dword ptr [SkipWeapons::skip_dante_sword_continue]
     }
@@ -67,18 +103,30 @@ std::optional<std::string> SkipWeapons::on_initialize() {
 
 void SkipWeapons::on_gui_frame() {
 	if (!hooked) { return; }
-	ImGui::Checkbox("Skip Pandora", &skip_pandora);
+    if (ImGui::Checkbox("Skip Shotgun", &skip_shotgun))
+		skip_pandora = false;
     ImGui::SameLine(205);
-	ImGui::Checkbox("Skip Lucifer", &skip_lucifer);
+    if (ImGui::Checkbox("Skip Gilgamesh", &skip_gilgamesh))
+        skip_lucifer = false;
+
+    if (ImGui::Checkbox("Skip Pandora", &skip_pandora))
+        skip_shotgun = false;
+    ImGui::SameLine(205);
+    if (ImGui::Checkbox("Skip Lucifer", &skip_lucifer))
+        skip_gilgamesh = false;
 }
 
 void SkipWeapons::on_config_load(const utility::Config& cfg) {
+    skip_shotgun = cfg.get<bool>("skip_shotgun").value_or(false);
     skip_pandora = cfg.get<bool>("skip_pandora").value_or(false);
+    skip_gilgamesh = cfg.get<bool>("skip_gilgamesh").value_or(false);
 	skip_lucifer = cfg.get<bool>("skip_lucifer").value_or(false);
 }
 
 void SkipWeapons::on_config_save(utility::Config& cfg) {
+    cfg.set<bool>("skip_shotgun", skip_shotgun);
     cfg.set<bool>("skip_pandora", skip_pandora);
+    cfg.set<bool>("skip_gilgamesh", skip_gilgamesh);
     cfg.set<bool>("skip_lucifer", skip_lucifer);
 }
 

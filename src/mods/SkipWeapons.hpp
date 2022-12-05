@@ -6,7 +6,9 @@ class SkipWeapons : public Mod {
 public:
     SkipWeapons() = default;
 
+    static bool skip_shotgun;
     static bool skip_pandora;
+    static bool skip_gilgamesh;
     static bool skip_lucifer;
     static uintptr_t skip_dante_gun_continue;
     static uintptr_t skip_dante_sword_continue;
