@@ -52,7 +52,7 @@ static void twitch_voting_start() {
     // it was too late i remembered there was std::partial_sort ;_;
 
     for (size_t i = 0; i < out.size(); ++i) {
-        spdlog::info("index: {}, name: {}");
+        spdlog::info("index: {}, name: {}", i, gamemodes[i]->m_name);
 
         vmgr->m_vote_entries.push_back(VoteEntry(out[i]));
     }
@@ -85,6 +85,7 @@ static void twitch_voting_end() {
 
     vmgr->m_vote_entries.clear();
     vmgr->m_voters.clear();
+    vmgr->m_vote_distribution_display.clear();
 
     g_twc->twitch_vote_state = TwitchClient::STATE_VOTING;
     g_twc->m_voting_timer->start();
@@ -119,7 +120,7 @@ std::optional<std::string> TwitchClient::on_initialize() {
 	libirc_loaded = true;
 	//DISPLAY_MESSAGE("[TwitchClient] libircclient.dll loaded.");
 	spdlog::info("[TwitchClient] libircclient.dll loaded.");
-    g_twc = this;
+
 	return Mod::on_initialize();
 }
 
@@ -130,22 +131,24 @@ void TwitchClient::make_instance() {
 	}
 
 	if (!twitch) {
-
+        g_twc = this;
         delete m_twitch_mode;
-        if (voting_result == TwitchClient::TWITCH_MODE::VOTING) { m_twitch_mode = new TwitchModeVoting(this); }
+
+        if (voting_result == TwitchClient::TWITCH_MODE::VOTING) { m_twitch_mode = new TwitchModeVoting(this); m_vote_disabled = false; }
         else { m_twitch_mode = new TwitchModeChaos(this); }
 
 		twitch = new Twitch();
 
-		twitch->on_connected = [this] {
-			//spdlog::info("[TwitchClient]: Connected to Twitch chat\n");
-			DISPLAY_MESSAGE("[TwitchClient]: Connected to Twitch chat");
-			twitch_status = TWITCH_CONNECTED;
-            // TODO: user controlled timings
-            m_voting_timer = new utility::Timer(15.0f, twitch_voting_start);
-            m_idle_timer = new utility::Timer(30.0f, twitch_voting_end);
-            m_vote_manager = new VoteManager();
-		};
+        twitch->on_connected = [this] {
+            // spdlog::info("[TwitchClient]: Connected to Twitch chat\n");
+            DISPLAY_MESSAGE("[TwitchClient]: Connected to Twitch chat");
+            twitch_status = TWITCH_CONNECTED;
+            if (voting_result == TwitchClient::TWITCH_MODE::VOTING) {
+                m_voting_timer = new utility::Timer(float(m_idle_time), twitch_voting_start);
+                m_idle_timer   = new utility::Timer(float(m_vote_time), twitch_voting_end);
+                m_vote_manager = new VoteManager();
+            }
+        };
 
 		twitch->on_disconnected = [this] {
 			//spdlog::info("[TwitchClient]: Disconnected from Twitch chat\n");
@@ -164,13 +167,16 @@ void TwitchClient::make_instance() {
 			if (mirror_chat_checkbox) {
 				DISPLAY_MESSAGE(std::string{ sender + ": " + message });
 			}
-            m_twitch_mode->parse_message(sender, message);
+            if (m_twitch_mode) {
+                m_twitch_mode->parse_message(sender, message);
+            }
 		};
 	}
 
 	auto login = std::string{ twitch_login };
 	auto password = std::string{ twitch_chat_oauth_password };
 	if ( !login.empty() && !password.empty() ) {
+        const std::lock_guard<std::mutex> lock(m_twitch_thread_lock);
 		spdlog::info("[TwitchClient] Connecting to Twitch chat...\n");
 		twitch_thread = twitch->connect( login, password);
 		twitch_thread.detach();
@@ -179,6 +185,7 @@ void TwitchClient::make_instance() {
 }
 
 void TwitchClient::disconnect() {
+    const std::lock_guard<std::mutex> lock(m_twitch_thread_lock);
 	if (twitch) {
 		twitch->disconnect();
         twitch_status = TWITCH_DISCONNECTED;
@@ -189,7 +196,30 @@ void TwitchClient::disconnect() {
     m_voting_timer = nullptr;
     delete m_idle_timer;
     m_idle_timer = nullptr;
+    delete m_twitch_mode;
+    m_twitch_mode = nullptr;
+    delete m_vote_manager;
+    m_vote_manager = nullptr;
+    g_twc = nullptr;
+    m_vote_disabled = true;
 }
+
+void TwitchClient::stop_voting() {
+    twitch_vote_state = STATE_NONE;
+    m_vote_manager->m_vote_entries.clear();
+    m_vote_manager->m_voters.clear();
+    m_vote_manager->m_vote_distribution_display.clear();
+    m_idle_timer->m_time = fseconds{ 0.0f };
+    m_voting_timer->m_time = fseconds{ 0.0f };
+}
+
+void TwitchClient::start_voting() {
+    if (!devil4_sdk::is_not_in_gameplay()) {
+        twitch_vote_state = STATE_VOTING;
+        m_voting_timer->start();
+    }
+}
+
 
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
@@ -228,9 +258,36 @@ void TwitchClient::on_gui_frame() {
 		if (ImGui::Button("Disconnect From Twitch")) {
 			disconnect();
 		}
+
+        if (voting_result == VOTING) {
+            if (twitch_status == TWITCH_CONNECTED) {
+                if (!m_vote_disabled) {
+                    if (ImGui::Button("Stop voting")) {
+                        stop_voting();
+                        m_vote_disabled = true;
+                    }
+                }
+                else {
+                    if (ImGui::Button("Start voting")) {
+                        m_vote_disabled = false;
+                        start_voting();
+                    }
+                }
+            }
+            ImGui::Text("Set those before connecting:");
+            if (ImGui::InputInt("Voting timer (seconds)", &m_vote_time, 1, 10)) {
+                m_vote_time = std::clamp<int32_t>(m_vote_time, 5, INT_MAX);
+            }
+            if (ImGui::InputInt("Idle timer (seconds)", &m_idle_time, 1, 10)) {
+                m_idle_time = std::clamp<int32_t>(m_idle_time, 5, INT_MAX);
+            }
+        }
+
         ImGui::Checkbox("Log In On Game Boot Automatically", &twitch_login_on_boot);
 		ImGui::SameLine();
         help_marker("This sometimes doesn't work, just come back here and hit disconnect > connect to reconnect");
+
+        ImGui::Checkbox("Show debug info in vote window", &m_twitch_vote_debug);
 
         ImGui::Text("Twitch Mode FAQ");
         ImGui::TextWrapped("Chaos - viewers can activate twitch mods directly through chat commands.");
@@ -238,6 +295,7 @@ void TwitchClient::on_gui_frame() {
 
         ImGui::RadioButton("Chaos mode", &voting_result, TwitchClient::TWITCH_MODE::CHAOS);
         ImGui::RadioButton("Vote mode", &voting_result, TwitchClient::TWITCH_MODE::VOTING);
+        
 
         ImGui::Checkbox("Relay Twitch Chat To Devil May Cry 4", &mirror_chat_checkbox);
 	}
@@ -246,7 +304,7 @@ void TwitchClient::on_gui_frame() {
 void TwitchClient::custom_imgui_window() {
     if (!libirc_loaded) { return; }
 
-    bool should_display_messages = (twitch_vote_state == STATE_IDLE);
+    bool should_display_messages = (twitch_vote_state == STATE_IDLE) || m_twitch_vote_debug;
     if (!should_display_messages || !(m_vote_manager)) {
         return;
     }
@@ -262,7 +320,14 @@ void TwitchClient::custom_imgui_window() {
 
     ImGui::SetNextWindowPos(window_pos);
 
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(20, 20, 20, 128));
     ImGui::Begin("Vote results", &should_display_messages, window_flags);
+    if (m_twitch_vote_debug) {
+        ImGui::Text("TWITCH_VOTING_STATE: %d", twitch_vote_state);
+        ImGui::Text("TWITCH_VOTE_TIMER: %f", m_idle_timer->m_time.count());
+        ImGui::Text("TWITCH_IDLE_TIMER: %f", m_voting_timer->m_time.count());
+    }
+
     ImGui::PushFont(g_framework->get_custom_imgui_font());
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(104,239,239,255));
     for (auto& entry : m_vote_manager->m_vote_distribution_display) {
@@ -271,6 +336,7 @@ void TwitchClient::custom_imgui_window() {
     ImGui::PopStyleColor();
     ImGui::PopFont();
     ImGui::End();
+    ImGui::PopStyleColor();
 }
 
 void TwitchClient::on_config_save(utility::Config& cfg) {
@@ -283,15 +349,15 @@ bool g_previos_gameplay_state = false;
 void TwitchClient::on_frame(fmilliseconds & dt) {
     if (twitch_status != TWITCH_CONNECTED) { return; }
     MutatorRegistry::inst().update(dt);
+    if ((voting_result == TwitchClient::TWITCH_MODE::CHAOS) || 
+        m_vote_disabled) {
+        return;
+    }
     
     bool current_gameplay_state = devil4_sdk::is_not_in_gameplay();
     if (g_previos_gameplay_state != current_gameplay_state) {
         if (current_gameplay_state) {
-            twitch_vote_state = STATE_NONE;
-            m_vote_manager->m_vote_entries.clear();
-            m_vote_manager->m_voters.clear();
-            m_idle_timer->m_time = fseconds{ 0.0f };
-            m_voting_timer->m_time = fseconds{ 0.0f };
+            stop_voting();
             g_previos_gameplay_state = current_gameplay_state;
             return;
         }

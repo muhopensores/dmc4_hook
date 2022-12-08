@@ -57,11 +57,17 @@ ModFramework::ModFramework()
 
     std::queue<DWORD> tr = utility::suspend_all_other_threads();
 
+    // NOTE(): hack to avoid rare dealocks if minhook tries to suspend while we already did
+    // also faster startup time probably
+    FunctionHook::set_mh_skip_locks(TRUE);
+
     m_mods = std::make_unique<Mods>();
     
     auto e = m_mods->on_initialize(Mod::ModType::REGULAR);
 
     utility::resume_threads(tr);
+    
+    FunctionHook::set_mh_skip_locks(FALSE);
 
     if (e) {
         if (e->empty()) {
@@ -88,6 +94,7 @@ ModFramework::ModFramework()
 
 ModFramework::~ModFramework() {
     // TODO(): clean dll unload
+    FunctionHook::set_mh_skip_locks(TRUE); // dont care if we crash at this point
 }
 
 void set_visible_cursor_winapi(bool visible) {
@@ -120,7 +127,7 @@ void ModFramework::on_frame() {
 
     if (!m_initialized) {
         if (!initialize()) {
-            spdlog::error("Failed to initialize ModFramework");
+            spdlog::error("Failed to initialize ModFramework. Probably due to D3DDevice null, will reinitialize");
             return;
         }
 
@@ -262,7 +269,7 @@ bool ModFramework::initialize() {
 
     // Wait.
     if (device == nullptr) {
-        spdlog::info("Device is null.");
+        spdlog::info("Device is null. Will try to initialize once again");
         return false;
     }
 
@@ -270,7 +277,7 @@ bool ModFramework::initialize() {
 	auto hr = device->GetCreationParameters(&dev_params);
 	if (SUCCEEDED(hr)) {
 		if (dev_params.hFocusWindow) {
-			spdlog::info("[D3D Device init] D3DDEVICE_CREATION_PARAMETERS hFocusWindow={0:x}\n", (void*)dev_params.hFocusWindow);
+			spdlog::info("[D3D Device init] D3DDEVICE_CREATION_PARAMETERS hFocusWindow={0}\n", (void*)dev_params.hFocusWindow);
 			m_wnd = dev_params.hFocusWindow;
 		}
 		else {

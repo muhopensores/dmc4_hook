@@ -25,6 +25,7 @@ using imgui_message_sink_st = imgui_message_sink<spdlog::details::null_mutex>;
 #endif
 
 bool Message::update(float dt) {
+    if (!this) { return false; }
 	m_time -= dt;
 	if (m_time <= 0.0f) {
 		return false;

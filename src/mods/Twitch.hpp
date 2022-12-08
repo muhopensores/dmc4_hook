@@ -71,16 +71,21 @@ public:
     ITwitchMode* m_twitch_mode{ nullptr };
 
     Twitch* twitch{ nullptr };
+    std::mutex m_twitch_thread_lock;
     std::thread twitch_thread;
     TwitchConnectionStatus twitch_status = TWITCH_DISCONNECTED;
     
     VoteManager* m_vote_manager{ nullptr };
     TWITCH_VOTING_STATE twitch_vote_state = STATE_NONE;
 
+    int32_t m_vote_time{30};
+    int32_t m_idle_time{15};
 
     utility::Timer* m_voting_timer{ nullptr };
     utility::Timer* m_idle_timer{ nullptr };
 
+    bool m_vote_disabled{ false };
+    bool m_twitch_vote_debug{ false };
 private:
     char twitch_login[128]{};
     char twitch_chat_oauth_password[128]{};
@@ -88,6 +93,9 @@ private:
     ImFont* custom_window_font{};
 
     HMODULE m_libirc{ NULL };
+
+    void stop_voting();
+    void start_voting();
 
 };
 

@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  MinHook - The Minimalistic API Hooking Library for x64/x86
  *  Copyright (C) 2009-2017 Tsuda Kageyu.
  *  All rights reserved.
@@ -180,6 +180,7 @@ extern "C" {
     // Translates the MH_STATUS to its name as a string.
     const char * WINAPI MH_StatusToString(MH_STATUS status);
 
+    void WINAPI MH_SetSkipLocking(BOOL b);
 #ifdef __cplusplus
 }
 #endif

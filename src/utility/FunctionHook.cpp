@@ -65,6 +65,10 @@ bool FunctionHook::disable() {
 	return true;
 }
 
+void FunctionHook::set_mh_skip_locks(BOOL b) {
+    MH_SetSkipLocking(b);
+}
+
 bool FunctionHook::remove() {
     // Don't try to remove invalid hooks.
     if (m_original == 0) {

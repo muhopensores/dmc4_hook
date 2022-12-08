@@ -33,6 +33,8 @@ public:
         return m_original != 0;
     }
 
+    static void set_mh_skip_locks(BOOL b);
+
     FunctionHook& operator=(const FunctionHook& other) = delete;
     FunctionHook& operator=(FunctionHook&& other) = delete;
 

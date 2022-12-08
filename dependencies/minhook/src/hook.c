@@ -91,7 +91,7 @@ volatile LONG g_isLocked = FALSE;
 
 // Private heap handle. If not NULL, this library is initialized.
 HANDLE g_hHeap = NULL;
-
+static BOOL g_skipLocks = FALSE;
 // Hook entries.
 struct
 {
@@ -100,7 +100,14 @@ struct
     UINT        size;       // Actual number of data items
 } g_hooks;
 
+
+
 //-------------------------------------------------------------------------
+// NOTE(edit): hacks to avoid deadlocks when we already froze threads from outside
+void WINAPI MH_SetSkipLocking(BOOL b) {
+    g_skipLocks = b;
+}
+    //-------------------------------------------------------------------------
 // Returns INVALID_HOOK_POS if not found.
 static UINT FindHookEntry(LPVOID pTarget)
 {
@@ -306,6 +313,10 @@ static VOID EnumerateThreads(PFROZEN_THREADS pThreads)
 //-------------------------------------------------------------------------
 static VOID Freeze(PFROZEN_THREADS pThreads, UINT pos, UINT action)
 {
+    // NOTE(edit): deadlock hack
+    if (g_skipLocks) {
+        return;
+    }
     pThreads->pItems   = NULL;
     pThreads->capacity = 0;
     pThreads->size     = 0;
@@ -330,6 +341,10 @@ static VOID Freeze(PFROZEN_THREADS pThreads, UINT pos, UINT action)
 //-------------------------------------------------------------------------
 static VOID Unfreeze(PFROZEN_THREADS pThreads)
 {
+    // NOTE(edit): deadlock hack
+    if (g_skipLocks) {
+        return;
+    }
     if (pThreads->pItems != NULL)
     {
         UINT i;
@@ -435,6 +450,7 @@ static MH_STATUS EnableAllHooksLL(BOOL enable)
 //-------------------------------------------------------------------------
 static VOID EnterSpinLock(VOID)
 {
+
     SIZE_T spinCount = 0;
 
     // Wait until the flag is FALSE.
