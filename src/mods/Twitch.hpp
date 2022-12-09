@@ -22,6 +22,8 @@ struct VoteManager {
     void on_chat_message(const std::string& sender, const std::string& msg);
 };
 
+struct Voting;
+
 struct ITwitchMode {
     virtual void parse_message(const std::string& sender, const std::string& message) = 0;
 
@@ -76,7 +78,8 @@ public:
     TwitchConnectionStatus twitch_status = TWITCH_DISCONNECTED;
     
     VoteManager* m_vote_manager{ nullptr };
-    TWITCH_VOTING_STATE twitch_vote_state = STATE_NONE;
+    //TWITCH_VOTING_STATE twitch_vote_state = STATE_NONE;
+    Voting* twitch_vote_state;
 
     int32_t m_vote_time{30};
     int32_t m_idle_time{15};

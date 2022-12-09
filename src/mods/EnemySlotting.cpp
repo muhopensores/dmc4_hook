@@ -4,6 +4,7 @@
 bool      EnemySlotting::mod_enabled{ false };
 uintptr_t EnemySlotting::jmp_ret{ NULL };
 static int new_enemy_slot_limit = NULL;
+static int backup_enemy_slot_limit = NULL;
 
 // static uintptr_t enemySlottingMov{ 0x14EF4C40 }; // mov ecx,[DevilMayCry4_DX9.exe+A558AC] // mov ecx,[00E558AC]
 
@@ -32,7 +33,12 @@ std::optional<std::string> EnemySlotting::on_initialize() {
 		spdlog::error("Failed to init EnemySlotting mod\n");
 		return "Failed to init EnemySlotting mod";
 	}
-    
+
+	MutatorRegistry::define("EnemySlotting")
+		.description("hehe")
+		.on_init([&] { mod_enabled = true; backup_enemy_slot_limit = new_enemy_slot_limit; new_enemy_slot_limit = 32; })
+		.set_timer(35.0, [&] { mod_enabled = false; new_enemy_slot_limit = backup_enemy_slot_limit; });
+
 	return Mod::on_initialize();
 }
 

@@ -44,6 +44,12 @@ std::optional<std::string> RgMultiplier::on_initialize() {
         spdlog::error("Failed to init RgMultiplier mod 2\n");
         return "Failed to init RgMultiplier mod 2";
     }
+
+    MutatorRegistry::define("IncreasedRGgain")
+        .description("hehe")
+        .on_init([&] { mod_enabled = true; })
+        .set_timer(35.0, [&] { mod_enabled = false; });
+
     return Mod::on_initialize();
 }
 

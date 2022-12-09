@@ -5,6 +5,14 @@
 static int game_difficulty = 0;
 
 std::optional<std::string> DifficultySelect::on_initialize() {
+    MutatorRegistry::define("DanteMustDieDifficulty").alias("SetDMD")
+        .description("hehe")
+        .on_init([&] { set_dmd(); })
+        .set_timer(35.0, [&] {set_default(); });
+    MutatorRegistry::define("GodMustDie").alias("SetGMD")
+        .description("hehe")
+        .on_init([&] { set_dmd(); })
+        .set_timer(35.0, [&] {set_default(); });
     return Mod::on_initialize();
 }
 

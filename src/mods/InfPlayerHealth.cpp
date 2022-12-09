@@ -22,6 +22,12 @@ std::optional<std::string> InfPlayerHealth::on_initialize() {
 		spdlog::error("Failed to init InfPlayerHealth mod\n");
 		return "Failed to init InfPlayerHealth mod";
 	}
+
+	MutatorRegistry::define("Godmode")
+		.description("hehe")
+		.on_init([&] { mod_enabled = true; })
+		.set_timer(30.0, [&] { mod_enabled = false; });
+
 	return Mod::on_initialize();
 }
 

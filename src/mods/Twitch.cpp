@@ -9,6 +9,35 @@ static bool twitch_login_on_boot = false;
 static TwitchClient* g_twc;
 //static std::mutex g_mut{};
 
+struct Voting {
+    virtual ~Voting() {};
+    virtual void tick(fmilliseconds& dt) {};
+    virtual void pause(bool p) {};
+    virtual TwitchClient::TWITCH_VOTING_STATE get_type() { return TwitchClient::TWITCH_VOTING_STATE::STATE_NONE; }
+};
+
+struct VotingState : public Voting {
+    VotingState() { g_twc->m_voting_timer->start(); }
+    void tick(fmilliseconds& dt) override {
+        if (paused) { return; }
+        g_twc->m_voting_timer->tick(dt);
+    };
+    void pause(bool p) override { paused = p; }
+    virtual TwitchClient::TWITCH_VOTING_STATE get_type() { return TwitchClient::TWITCH_VOTING_STATE::STATE_VOTING; }
+    bool paused{ false };
+};
+
+struct IdleState : public Voting {
+    IdleState() { g_twc->m_idle_timer->start(); }
+    void tick(fmilliseconds& dt) override {
+        if (paused) { return; }
+        g_twc->m_idle_timer->tick(dt);
+    }
+    void pause(bool p) override { paused = p; }
+    virtual TwitchClient::TWITCH_VOTING_STATE get_type() { return TwitchClient::TWITCH_VOTING_STATE::STATE_IDLE; }
+    bool paused{ false };
+};
+
 void VoteManager::on_chat_message(const std::string& sender, const std::string& msg) {
     if (msg.length() != 1) { return; }
     size_t sender_hash = std::hash<std::string>{}(sender);
@@ -68,8 +97,7 @@ static void twitch_voting_start() {
         }
     }
     vmgr->m_vote_distribution_display = vmgr->m_vote_entries;
-    g_twc->twitch_vote_state = TwitchClient::STATE_IDLE;
-    g_twc->m_idle_timer->start();
+    g_twc->twitch_vote_state = new IdleState();
     vmgr->m_anti_anti_spam = !(vmgr->m_anti_anti_spam);
 }
 
@@ -87,8 +115,9 @@ static void twitch_voting_end() {
     vmgr->m_voters.clear();
     vmgr->m_vote_distribution_display.clear();
 
-    g_twc->twitch_vote_state = TwitchClient::STATE_VOTING;
-    g_twc->m_voting_timer->start();
+    //g_twc->twitch_vote_state = TwitchClient::STATE_VOTING;
+    //g_twc->m_voting_timer->start();
+    g_twc->twitch_vote_state = new VotingState();
 
 }
 
@@ -105,7 +134,7 @@ void TwitchModeChaos::parse_message(const std::string & sender, const std::strin
 }
 
 void TwitchModeVoting::parse_message(const std::string & sender, const std::string & message) {
-    if (m_twc->twitch_vote_state == TwitchClient::STATE_IDLE) {
+    if (m_twc->twitch_vote_state->get_type() == TwitchClient::STATE_IDLE) {
         m_twc->m_vote_manager->on_chat_message(sender, message);
     }
 }
@@ -205,7 +234,8 @@ void TwitchClient::disconnect() {
 }
 
 void TwitchClient::stop_voting() {
-    twitch_vote_state = STATE_NONE;
+    delete twitch_vote_state;
+    twitch_vote_state = nullptr;
     m_vote_manager->m_vote_entries.clear();
     m_vote_manager->m_voters.clear();
     m_vote_manager->m_vote_distribution_display.clear();
@@ -215,8 +245,7 @@ void TwitchClient::stop_voting() {
 
 void TwitchClient::start_voting() {
     if (!devil4_sdk::is_not_in_gameplay()) {
-        twitch_vote_state = STATE_VOTING;
-        m_voting_timer->start();
+        twitch_vote_state = new VotingState();
     }
 }
 
@@ -303,8 +332,15 @@ void TwitchClient::on_gui_frame() {
 
 void TwitchClient::custom_imgui_window() {
     if (!libirc_loaded) { return; }
+    
+    bool should_display_messages{ false };
+    if (!twitch_vote_state) {
+        should_display_messages = m_twitch_vote_debug;
+    }
+    else {
+        should_display_messages = (twitch_vote_state->get_type() == STATE_IDLE) || m_twitch_vote_debug;
+    }
 
-    bool should_display_messages = (twitch_vote_state == STATE_IDLE) || m_twitch_vote_debug;
     if (!should_display_messages || !(m_vote_manager)) {
         return;
     }
@@ -323,7 +359,9 @@ void TwitchClient::custom_imgui_window() {
     ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(20, 20, 20, 128));
     ImGui::Begin("Vote results", &should_display_messages, window_flags);
     if (m_twitch_vote_debug) {
-        ImGui::Text("TWITCH_VOTING_STATE: %d", twitch_vote_state);
+        if (twitch_vote_state) {
+            ImGui::Text("TWITCH_VOTING_STATE: %d", twitch_vote_state->get_type());
+        }
         ImGui::Text("TWITCH_VOTE_TIMER: %f", m_idle_timer->m_time.count());
         ImGui::Text("TWITCH_IDLE_TIMER: %f", m_voting_timer->m_time.count());
     }
@@ -344,7 +382,7 @@ void TwitchClient::on_config_save(utility::Config& cfg) {
     cfg.set("twitch_oauth", twitch_chat_oauth_password);
     cfg.set<bool>("twitch_login_on_boot", twitch_login_on_boot);
 }
-bool g_previos_gameplay_state = false;
+static bool g_previos_gameplay_state = false;
 
 void TwitchClient::on_frame(fmilliseconds & dt) {
     if (twitch_status != TWITCH_CONNECTED) { return; }
@@ -353,16 +391,21 @@ void TwitchClient::on_frame(fmilliseconds & dt) {
         m_vote_disabled) {
         return;
     }
-    
+#if 0
     bool current_gameplay_state = devil4_sdk::is_not_in_gameplay();
     if (g_previos_gameplay_state != current_gameplay_state) {
         if (current_gameplay_state) {
-            stop_voting();
+            //stop_voting();
+            twitch_vote_state = STATE_NONE;
             g_previos_gameplay_state = current_gameplay_state;
             return;
         }
-        twitch_vote_state = STATE_VOTING;
-        m_voting_timer->start();
+        else {
+            twitch_vote_state = g_previos_twitch_state;
+            if (m_voting_timer->m_time.count() <= 0.0001f) {
+                m_voting_timer->start();
+            }
+        }
     }
     if (twitch_vote_state == STATE_VOTING) {
         m_voting_timer->tick(dt);
@@ -370,6 +413,24 @@ void TwitchClient::on_frame(fmilliseconds & dt) {
     if (twitch_vote_state == STATE_IDLE) {
         m_idle_timer->tick(dt);
     }
+    g_previos_gameplay_state = current_gameplay_state;
+    g_previos_twitch_state = twitch_vote_state;
+#endif
+    bool current_gameplay_state = devil4_sdk::is_not_in_gameplay();
+    if (!twitch_vote_state) {
+        if (g_previos_gameplay_state != current_gameplay_state) {
+            if (!current_gameplay_state) {
+                twitch_vote_state = new VotingState();
+           }
+        }
+        g_previos_gameplay_state = current_gameplay_state;
+        return;
+    }
+
+    if (g_previos_gameplay_state != current_gameplay_state) {
+        twitch_vote_state->pause(current_gameplay_state);
+    }
+    twitch_vote_state->tick(dt);
     g_previos_gameplay_state = current_gameplay_state;
 }
 

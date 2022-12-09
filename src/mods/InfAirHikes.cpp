@@ -3,6 +3,10 @@
 bool InfAirHikes::mod_enabled{ false };
 
 std::optional<std::string> InfAirHikes::on_initialize() {
+    MutatorRegistry::define("InfiniteAirHikes")
+        .description("hehe")
+        .on_init([&] {toggle(true); })
+        .set_timer(15.0, [&] { toggle(false); });
     return Mod::on_initialize();
 }
 
