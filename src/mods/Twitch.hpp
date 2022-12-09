@@ -89,6 +89,9 @@ public:
 
     bool m_vote_disabled{ false };
     bool m_twitch_vote_debug{ false };
+    bool m_current_gameplay_state{ false };
+    bool m_disable_overlay{ false };
+    char m_winner[256]{ 0 };
 private:
     char twitch_login[128]{};
     char twitch_chat_oauth_password[128]{};
@@ -99,7 +102,6 @@ private:
 
     void stop_voting();
     void start_voting();
-
 };
 
 struct TwitchModeChaos : public ITwitchMode {

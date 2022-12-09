@@ -110,6 +110,7 @@ static void twitch_voting_end() {
     /*auto& res = vmgr->m_vote_entries[0];
     g_twc->twitch->send_chat_message(fmt::format("VOTE ENDED : {}", res.m_mod->m_name));*/
     MutatorRegistry::inst().activate_mod((*res).m_mod);
+    strncpy_s(g_twc->m_winner, (*res).m_mod->m_name.c_str(), (*res).m_mod->m_name.length());
 
     vmgr->m_vote_entries.clear();
     vmgr->m_voters.clear();
@@ -134,7 +135,7 @@ void TwitchModeChaos::parse_message(const std::string & sender, const std::strin
 }
 
 void TwitchModeVoting::parse_message(const std::string & sender, const std::string & message) {
-    if (m_twc->twitch_vote_state->get_type() == TwitchClient::STATE_IDLE) {
+    if ((m_twc->twitch_vote_state->get_type() == TwitchClient::STATE_IDLE) && m_twc->m_current_gameplay_state) {
         m_twc->m_vote_manager->on_chat_message(sender, message);
     }
 }
@@ -219,6 +220,7 @@ void TwitchClient::disconnect() {
 		twitch->disconnect();
         twitch_status = TWITCH_DISCONNECTED;
 	}
+    memset(m_winner, 0, sizeof(m_winner));
     delete twitch;
     twitch = nullptr;
     delete m_voting_timer;
@@ -234,6 +236,7 @@ void TwitchClient::disconnect() {
 }
 
 void TwitchClient::stop_voting() {
+    memset(m_winner, 0, sizeof(m_winner));
     delete twitch_vote_state;
     twitch_vote_state = nullptr;
     m_vote_manager->m_vote_entries.clear();
@@ -310,6 +313,7 @@ void TwitchClient::on_gui_frame() {
             if (ImGui::InputInt("Idle timer (seconds)", &m_idle_time, 1, 10)) {
                 m_idle_time = std::clamp<int32_t>(m_idle_time, 5, INT_MAX);
             }
+            ImGui::Checkbox("Disable voting overlay", &m_disable_overlay);
         }
 
         ImGui::Checkbox("Log In On Game Boot Automatically", &twitch_login_on_boot);
@@ -322,17 +326,20 @@ void TwitchClient::on_gui_frame() {
         ImGui::TextWrapped("Chaos - viewers can activate twitch mods directly through chat commands.");
         ImGui::TextWrapped("Vote mode - viewers can vote on what mods to activate next.");
 
-        ImGui::RadioButton("Chaos mode", &voting_result, TwitchClient::TWITCH_MODE::CHAOS);
-        ImGui::RadioButton("Vote mode", &voting_result, TwitchClient::TWITCH_MODE::VOTING);
-        
-
+        if (ImGui::RadioButton("Chaos mode", &voting_result, TwitchClient::TWITCH_MODE::CHAOS)) {
+            stop_voting();
+            disconnect();
+        }
+        if (ImGui::RadioButton("Vote mode", &voting_result, TwitchClient::TWITCH_MODE::VOTING)) {
+            disconnect();
+        }
         ImGui::Checkbox("Relay Twitch Chat To Devil May Cry 4", &mirror_chat_checkbox);
 	}
 }
 
 void TwitchClient::custom_imgui_window() {
-    if (!libirc_loaded) { return; }
-    
+    if (!libirc_loaded || m_disable_overlay) { return; }
+
     bool should_display_messages{ false };
     if (!twitch_vote_state) {
         should_display_messages = m_twitch_vote_debug;
@@ -346,15 +353,13 @@ void TwitchClient::custom_imgui_window() {
     }
 
     ImGuiIO& io = ImGui::GetIO();
-    ImGuiWindowFlags window_flags =
-        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize |
-        ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBringToFrontOnFocus;
 
     ImVec2 window_size = ImVec2(io.DisplaySize.x * 0.2f, io.DisplaySize.y * 0.35f);
 
     ImVec2 window_pos = ImVec2(io.DisplaySize.x - window_size.x - 128.0f, 128.0f);
 
-    ImGui::SetNextWindowPos(window_pos);
+    ImGui::SetNextWindowPos(window_pos, ImGuiCond_Once);
 
     ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(20, 20, 20, 128));
     ImGui::Begin("Vote results", &should_display_messages, window_flags);
@@ -367,9 +372,20 @@ void TwitchClient::custom_imgui_window() {
     }
 
     ImGui::PushFont(g_framework->get_custom_imgui_font());
-    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(104,239,239,255));
+    if (m_current_gameplay_state) {
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(239, 211, 104, 255));
+        ImGui::Text("VOTING PAUSED");
+    }
+    else {
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(104, 239, 239, 255));
+    }
     for (auto& entry : m_vote_manager->m_vote_distribution_display) {
         ImGui::Text("%s:\t%d", entry.m_mod->m_name.c_str(), entry.m_votes);
+    }
+    if (m_winner[0]) {
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(104, 239, 11, 255));
+        ImGui::Text("%s", m_winner);
+        ImGui::PopStyleColor();
     }
     ImGui::PopStyleColor();
     ImGui::PopFont();
@@ -391,47 +407,22 @@ void TwitchClient::on_frame(fmilliseconds & dt) {
         m_vote_disabled) {
         return;
     }
-#if 0
-    bool current_gameplay_state = devil4_sdk::is_not_in_gameplay();
-    if (g_previos_gameplay_state != current_gameplay_state) {
-        if (current_gameplay_state) {
-            //stop_voting();
-            twitch_vote_state = STATE_NONE;
-            g_previos_gameplay_state = current_gameplay_state;
-            return;
-        }
-        else {
-            twitch_vote_state = g_previos_twitch_state;
-            if (m_voting_timer->m_time.count() <= 0.0001f) {
-                m_voting_timer->start();
-            }
-        }
-    }
-    if (twitch_vote_state == STATE_VOTING) {
-        m_voting_timer->tick(dt);
-    }
-    if (twitch_vote_state == STATE_IDLE) {
-        m_idle_timer->tick(dt);
-    }
-    g_previos_gameplay_state = current_gameplay_state;
-    g_previos_twitch_state = twitch_vote_state;
-#endif
-    bool current_gameplay_state = devil4_sdk::is_not_in_gameplay();
+    m_current_gameplay_state = devil4_sdk::is_not_in_gameplay();
     if (!twitch_vote_state) {
-        if (g_previos_gameplay_state != current_gameplay_state) {
-            if (!current_gameplay_state) {
+        if (g_previos_gameplay_state != m_current_gameplay_state) {
+            if (!m_current_gameplay_state) {
                 twitch_vote_state = new VotingState();
            }
         }
-        g_previos_gameplay_state = current_gameplay_state;
+        g_previos_gameplay_state = m_current_gameplay_state;
         return;
     }
 
-    if (g_previos_gameplay_state != current_gameplay_state) {
-        twitch_vote_state->pause(current_gameplay_state);
+    if (g_previos_gameplay_state != m_current_gameplay_state) {
+        twitch_vote_state->pause(m_current_gameplay_state);
     }
     twitch_vote_state->tick(dt);
-    g_previos_gameplay_state = current_gameplay_state;
+    g_previos_gameplay_state = m_current_gameplay_state;
 }
 
 // onConfigLoad
