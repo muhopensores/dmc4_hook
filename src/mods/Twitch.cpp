@@ -85,6 +85,22 @@ static void twitch_voting_start() {
 
         vmgr->m_vote_entries.push_back(VoteEntry(out[i]));
     }
+
+    for (size_t i = 0; i < vmgr->m_vote_entries.size(); i++) {
+        if (vmgr->m_anti_anti_spam) {
+            constexpr static std::array<char, 3> nums{ '0', '1', '2' };
+            vmgr->m_vote_entries[i].m_token = nums[i];
+        }
+        else {
+            constexpr static std::array<char, 3> chars{ 'e', 'f', 'g' };
+            vmgr->m_vote_entries[i].m_token = chars[i];
+        }
+    }
+
+    if (!g_twc->m_relay_voting_messages) {
+        goto skip_messages;
+    }
+
     g_twc->twitch->send_chat_message("VOTE FOR NEXT MOD");
 
     for (size_t i = 0; i < vmgr->m_vote_entries.size(); i++) {
@@ -96,6 +112,7 @@ static void twitch_voting_start() {
             g_twc->twitch->send_chat_message(fmt::format("{}: {}", chars[i], vmgr->m_vote_entries[i].m_mod->m_name));
         }
     }
+skip_messages:
     vmgr->m_vote_distribution_display = vmgr->m_vote_entries;
     g_twc->twitch_vote_state = new IdleState();
     vmgr->m_anti_anti_spam = !(vmgr->m_anti_anti_spam);
@@ -106,7 +123,15 @@ static void twitch_voting_end() {
     auto vmgr = g_twc->m_vote_manager;
 
     auto res = std::max_element(vmgr->m_vote_entries.begin(), vmgr->m_vote_entries.end(), [](VoteEntry a, VoteEntry b) { return a.m_votes < b.m_votes; });
-    g_twc->twitch->send_chat_message(fmt::format("VOTE ENDED : {}", (*res).m_mod->m_name));
+
+    if (g_twc->m_relay_voting_messages) {
+        g_twc->twitch->send_chat_message(fmt::format("VOTE ENDED : {}", (*res).m_mod->m_name));
+    }
+
+    if (g_twc->m_standalone) {
+        DISPLAY_MESSAGE(fmt::format("ACTIVATING RANDOM MOD : {}", (*res).m_mod->m_name))
+    }
+    
     /*auto& res = vmgr->m_vote_entries[0];
     g_twc->twitch->send_chat_message(fmt::format("VOTE ENDED : {}", res.m_mod->m_name));*/
     MutatorRegistry::inst().activate_mod((*res).m_mod);
@@ -135,7 +160,7 @@ void TwitchModeChaos::parse_message(const std::string & sender, const std::strin
 }
 
 void TwitchModeVoting::parse_message(const std::string & sender, const std::string & message) {
-    if ((m_twc->twitch_vote_state->get_type() == TwitchClient::STATE_IDLE) && m_twc->m_current_gameplay_state) {
+    if ((m_twc->twitch_vote_state->get_type() == TwitchClient::STATE_IDLE) && !m_twc->m_current_gameplay_state) {
         m_twc->m_vote_manager->on_chat_message(sender, message);
     }
 }
@@ -154,12 +179,25 @@ std::optional<std::string> TwitchClient::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void TwitchClient::make_instance() {
+void TwitchClient::make_instance(bool standalone) {
 
 	if ((twitch_status == TWITCH_CONNECTING) || (twitch_status == TWITCH_CONNECTED)) {
 		return;
 	}
+    if (standalone) {
 
+        voting_result = TwitchClient::TWITCH_MODE::VOTING;
+        
+        m_vote_disabled = false;
+        m_vote_manager = new VoteManager();
+        m_voting_timer = new utility::Timer(float(2.0f), twitch_voting_start);
+        m_idle_timer = new utility::Timer(float(m_vote_time), twitch_voting_end);
+
+        m_relay_voting_messages = false;
+        m_standalone = true;
+        g_twc = this;
+        return;
+    }
 	if (!twitch) {
         g_twc = this;
         delete m_twitch_mode;
@@ -233,15 +271,18 @@ void TwitchClient::disconnect() {
     m_vote_manager = nullptr;
     g_twc = nullptr;
     m_vote_disabled = true;
+    m_standalone = false;
 }
 
 void TwitchClient::stop_voting() {
     memset(m_winner, 0, sizeof(m_winner));
     delete twitch_vote_state;
     twitch_vote_state = nullptr;
-    m_vote_manager->m_vote_entries.clear();
-    m_vote_manager->m_voters.clear();
-    m_vote_manager->m_vote_distribution_display.clear();
+    if (m_vote_manager) {
+        m_vote_manager->m_vote_entries.clear();
+        m_vote_manager->m_voters.clear();
+        m_vote_manager->m_vote_distribution_display.clear();
+    }
     m_idle_timer->m_time = fseconds{ 0.0f };
     m_voting_timer->m_time = fseconds{ 0.0f };
 }
@@ -260,6 +301,42 @@ void TwitchClient::on_gui_frame() {
 		ImGui::Text("libircclient.dll not found, twitch support disabled");
 		return;
 	}
+
+    if (ImGui::CollapsingHeader("Random timed gameplay mods")) {
+        if (m_standalone) {
+            ImGui::Text("Random gameplay mods active");
+            ImGui::Text("TIMER: %f", m_idle_timer->m_time.count());
+            if (m_current_gameplay_state) {
+                ImGui::Text("Not in gameplay");
+            }
+        }
+        ImGui::Text("Set those before starting:");
+        if (ImGui::InputInt("Mod timer (seconds)", &m_vote_time, 1, 10)) {
+            m_vote_time = std::clamp<int32_t>(m_vote_time, 5, INT_MAX);
+        }
+
+        if (ImGui::Button("Random mutator mode")) {
+            voting_result = VOTING;
+            make_instance(true);
+        } ImGui::SameLine();
+        help_marker("Activate random spicy gameplay mods on timer without connecting to twitch");
+        if (ImGui::Button("Stop random mode")) {
+            disconnect();
+        }
+        if (!m_vote_disabled) {
+            if (ImGui::Button("Stop timers")) {
+                stop_voting();
+                m_vote_disabled = true;
+            }
+        }
+        else {
+            if (ImGui::Button("Start timers")) {
+                m_vote_disabled = false;
+                start_voting();
+            }
+        }
+
+    }
 
 	if ( ImGui::CollapsingHeader( "Twitch Integration" ) ) {
 		ImGui::TextWrapped(
@@ -306,21 +383,24 @@ void TwitchClient::on_gui_frame() {
                     }
                 }
             }
-            ImGui::Text("Set those before connecting:");
+
+            ImGui::Checkbox("Show debug info in vote window", &m_twitch_vote_debug);
+            ImGui::Checkbox("Send voting messages in chat", &m_relay_voting_messages);
+            ImGui::Checkbox("Disable voting overlay", &m_disable_overlay);
+
+;           ImGui::Text("Set those before connecting:");
             if (ImGui::InputInt("Voting timer (seconds)", &m_vote_time, 1, 10)) {
                 m_vote_time = std::clamp<int32_t>(m_vote_time, 5, INT_MAX);
             }
             if (ImGui::InputInt("Idle timer (seconds)", &m_idle_time, 1, 10)) {
                 m_idle_time = std::clamp<int32_t>(m_idle_time, 5, INT_MAX);
             }
-            ImGui::Checkbox("Disable voting overlay", &m_disable_overlay);
         }
 
         ImGui::Checkbox("Log In On Game Boot Automatically", &twitch_login_on_boot);
 		ImGui::SameLine();
         help_marker("This sometimes doesn't work, just come back here and hit disconnect > connect to reconnect");
 
-        ImGui::Checkbox("Show debug info in vote window", &m_twitch_vote_debug);
 
         ImGui::Text("Twitch Mode FAQ");
         ImGui::TextWrapped("Chaos - viewers can activate twitch mods directly through chat commands.");
@@ -348,7 +428,7 @@ void TwitchClient::custom_imgui_window() {
         should_display_messages = (twitch_vote_state->get_type() == STATE_IDLE) || m_twitch_vote_debug;
     }
 
-    if (!should_display_messages || !(m_vote_manager)) {
+    if (!should_display_messages || !(m_vote_manager) || m_standalone) {
         return;
     }
 
@@ -379,9 +459,13 @@ void TwitchClient::custom_imgui_window() {
     else {
         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(104, 239, 239, 255));
     }
+
+    ImGui::Text("Vote in chat");
+    ImGui::Text("Token is in []");
     for (auto& entry : m_vote_manager->m_vote_distribution_display) {
-        ImGui::Text("%s:\t%d", entry.m_mod->m_name.c_str(), entry.m_votes);
+        ImGui::Text("[%c] - %s:\t%d", entry.m_token, entry.m_mod->m_name.c_str(), entry.m_votes);
     }
+
     if (m_winner[0]) {
         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(104, 239, 11, 255));
         ImGui::Text("%s", m_winner);
@@ -401,7 +485,7 @@ void TwitchClient::on_config_save(utility::Config& cfg) {
 static bool g_previos_gameplay_state = false;
 
 void TwitchClient::on_frame(fmilliseconds & dt) {
-    if (twitch_status != TWITCH_CONNECTED) { return; }
+    if (twitch_status != TWITCH_CONNECTED && !m_standalone) { return; }
     MutatorRegistry::inst().update(dt);
     if ((voting_result == TwitchClient::TWITCH_MODE::CHAOS) || 
         m_vote_disabled) {

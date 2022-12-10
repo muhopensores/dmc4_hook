@@ -7,7 +7,8 @@
 struct VoteEntry {
     Mutator* m_mod;
     size_t m_votes;
-    VoteEntry(Mutator* mod) : m_mod(mod), m_votes(0) {};
+    char m_token;
+    VoteEntry(Mutator* mod) : m_mod(mod), m_votes(0), m_token(0) {};
 };
 
 struct VoteManager {
@@ -62,7 +63,7 @@ public:
     void on_gui_frame() override;
     void custom_imgui_window();
 
-    void make_instance();
+    void make_instance(bool standalone = false);
     void disconnect();
 
     bool vote_checkbox        = false;
@@ -91,6 +92,8 @@ public:
     bool m_twitch_vote_debug{ false };
     bool m_current_gameplay_state{ false };
     bool m_disable_overlay{ false };
+    bool m_relay_voting_messages{ true };
+    bool m_standalone{ false };
     char m_winner[256]{ 0 };
 private:
     char twitch_login[128]{};
