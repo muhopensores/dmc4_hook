@@ -1,4 +1,5 @@
 #include "MessageDisplay.hpp"
+#include <mutex>
 #if 0
 #include "spdlog/sinks/base_sink.h"
 
@@ -24,6 +25,8 @@ using imgui_message_sink_st = imgui_message_sink<spdlog::details::null_mutex>;
 
 #endif
 
+std::mutex g_msg_mutex;
+
 bool Message::update(float dt) {
     if (!this) { return false; }
 	m_time -= dt;
@@ -38,6 +41,7 @@ bool Message::update(float dt) {
 }
 
 void MessageDisplay::add_message(std::string msg) {
+    const std::lock_guard<std::mutex> lock(g_msg_mutex);
 	m_messages.push_front(std::move(msg));
 }
 
@@ -55,6 +59,7 @@ void MessageDisplay::update_messages() {
         }
     }
     if (pop) {
+        const std::lock_guard<std::mutex> lock(g_msg_mutex);
         m_messages.pop_back();
     }
 }

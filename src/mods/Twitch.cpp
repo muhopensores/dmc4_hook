@@ -283,8 +283,12 @@ void TwitchClient::stop_voting() {
         m_vote_manager->m_voters.clear();
         m_vote_manager->m_vote_distribution_display.clear();
     }
-    m_idle_timer->m_time = fseconds{ 0.0f };
-    m_voting_timer->m_time = fseconds{ 0.0f };
+    if (m_idle_timer) {
+        m_idle_timer->m_time = fseconds{ 0.0f };
+    }
+    if (m_voting_timer) {
+        m_voting_timer->m_time = fseconds{ 0.0f };
+    }
 }
 
 void TwitchClient::start_voting() {
