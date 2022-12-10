@@ -133,7 +133,7 @@ constexpr std::array<int, 21> enemy_spawn_type{
     3, // 10 Chimera Seed
     3, // 11 Basilisk
     4, // 12 Berial
-    4, // 13 Bael
+    0, // 13 Bael
     4, // 14 Echidna
     4, // 16 Angelo Credo
     4, // 15 Angelo Agnus
