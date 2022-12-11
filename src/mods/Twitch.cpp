@@ -144,7 +144,6 @@ static void twitch_voting_end() {
     //g_twc->twitch_vote_state = TwitchClient::STATE_VOTING;
     //g_twc->m_voting_timer->start();
     g_twc->twitch_vote_state = new VotingState();
-
 }
 
 void TwitchModeChaos::parse_message(const std::string & sender, const std::string & message) {
@@ -190,8 +189,8 @@ void TwitchClient::make_instance(bool standalone) {
         
         m_vote_disabled = false;
         m_vote_manager = new VoteManager();
-        m_voting_timer = new utility::Timer(float(2.0f), twitch_voting_start);
-        m_idle_timer = new utility::Timer(float(m_vote_time), twitch_voting_end);
+        m_voting_timer  = new utility::Timer(float(2.0f), twitch_voting_start);
+        m_idle_timer    = new utility::Timer(float(m_vote_time), twitch_voting_end);
 
         m_relay_voting_messages = false;
         m_standalone = true;
@@ -464,8 +463,9 @@ void TwitchClient::custom_imgui_window() {
         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(104, 239, 239, 255));
     }
 
-    ImGui::Text("Vote in chat");
-    ImGui::Text("Token is in []");
+    if (m_idle_timer->m_active)
+        ImGui::Text("Vote in chat");
+    //ImGui::Text("Token is in []");
     for (auto& entry : m_vote_manager->m_vote_distribution_display) {
         ImGui::Text("[%c] - %s:\t%d", entry.m_token, entry.m_mod->m_name.c_str(), entry.m_votes);
     }
@@ -485,6 +485,13 @@ void TwitchClient::on_config_save(utility::Config& cfg) {
     cfg.set("twitch_login", twitch_login);
     cfg.set("twitch_oauth", twitch_chat_oauth_password);
     cfg.set<bool>("twitch_login_on_boot", twitch_login_on_boot);
+    cfg.set<int>("twitch_voting_mode", voting_result); // chaos, voting
+    cfg.set<bool>("twitch_vote_debug_display", m_twitch_vote_debug);
+    cfg.set<bool>("twitch_vote_relay_messages", m_relay_voting_messages);
+    cfg.set<bool>("twitch_vote_disable_overlay", m_disable_overlay);
+    cfg.set<float>("twitch_vote_time", m_vote_time);
+    cfg.set<float>("twitch_idle_time", m_idle_time);
+
 }
 static bool g_previos_gameplay_state = false;
 
@@ -520,12 +527,20 @@ void TwitchClient::on_config_load(const utility::Config& cfg) {
     auto cfg_oauth = cfg.get("twitch_oauth").value_or("");
     strcpy_s(twitch_login, sizeof(twitch_login), cfg_login.c_str());
     strcpy_s(twitch_chat_oauth_password, sizeof(twitch_chat_oauth_password), cfg_oauth.c_str());
+    m_twitch_vote_debug = cfg.get<bool>("twitch_vote_debug_display").value_or(false);
+    m_relay_voting_messages = cfg.get<bool>("twitch_vote_relay_messages").value_or(false);
+    m_disable_overlay = cfg.get<bool>("twitch_vote_disable_overlay").value_or(false);
+    voting_result = cfg.get<int>("twitch_voting_mode").value_or(1); // chaos, voting
+    m_vote_time = cfg.get<float>("twitch_vote_time").value_or(30.0f);
+    m_idle_time = cfg.get<float>("twitch_idle_time").value_or(15.0f);
     twitch_login_on_boot = cfg.get<bool>("twitch_login_on_boot").value_or(false);
     if (twitch_login_on_boot) {
         //make_instance(); // sometimes gets stuck on connecting, says "IRC session terminated" 
         std::thread hehe([&] { 
-            std::this_thread::sleep_for(std::chrono::seconds(4));
+            std::this_thread::sleep_for(std::chrono::seconds(1));
             make_instance(); // lets add an insult to injury and throw it into std::thread
+                             // still gets stuck on CONNECTING sometimes, now just takes longer to try
+                             // shortened timer because you could get into gameplay in 4 secs
         });
         hehe.detach(); // idk might help or make things worse
     }
