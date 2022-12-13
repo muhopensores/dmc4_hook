@@ -23,8 +23,8 @@ naked void detour() {
         ja code
         cmp dword ptr [InputStates::input_timer], 0x00000000
         je code
-        cmp dword ptr [esi+0x00014D98], 3 // [currentStyle], 3
-        jne code
+        //cmp dword ptr [esi+0x00014D98], 3 // [currentStyle], 3
+        //jne code
         jmp dword ptr [ActiveBlock::alt_ret]
 
     code:

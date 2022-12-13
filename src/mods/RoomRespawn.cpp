@@ -7,7 +7,7 @@ static uintptr_t  script_mission_jmp_return { NULL };
 
 static uint32_t   g_spawn_index_cache{};
 
-static bool g_reset_manager { false };
+bool RoomRespawn::g_reset_manager { false };
 
 struct RPlacement : CResource {};
 
@@ -75,7 +75,7 @@ static void try_respawn() {
 
     UEnemySetCtrl* u_sc_ptr = nullptr;
     //uint32_t rPlacementXmlRet = 0;
-    g_reset_manager = true;
+    RoomRespawn::g_reset_manager = true;
     _asm {
         //allocate memory for uEnemySetCtrl
         mov ecx, 0E1434Ch // ptr to MtHeapAllocator
@@ -129,7 +129,7 @@ static void try_respawn() {
 naked void detour() 
 {
 	__asm {
-        cmp [g_reset_manager], 1
+        cmp byte ptr [RoomRespawn::g_reset_manager], 1
         jne originalCode
         mov al, 1
         ret 4
@@ -188,11 +188,15 @@ std::optional<std::string> RoomRespawn::on_initialize() {
 
 // onConfigSave
 // save your data into cfg structure.
-//void RoomRespawn::onConfigSave(utility::Config& cfg) { cfg.set<variable_type>("config_string",variable_name); };
+void RoomRespawn::on_config_save(utility::Config& cfg) {
+    cfg.set<bool>("respawn_enemies_when_revisiting_rooms", g_reset_manager);
+};
 
 // onConfigLoad
 // load data into variables from config structure.
-//void RoomRespawn::onConfigLoad(const utility::Config& cfg) { //variable_name = cfg.get<variable_type>("config_string").value_or(default_value); };
+void RoomRespawn::on_config_load(const utility::Config& cfg) {
+    g_reset_manager = cfg.get<bool>("respawn_enemies_when_revisiting_rooms").value_or(false);
+};
 
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
