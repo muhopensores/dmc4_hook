@@ -146,7 +146,7 @@ void DifficultySelect::set_dmd() {
     install_patch_offset(0x024D80D, patch19, "\x05\x74", 2);
     install_patch_offset(0x024D81C, patch20, "\x44", 1);
     install_patch_offset(0x0254383, patch21, "\x24\x5b", 2);
-    install_patch_offset(0x02892AB, patch22, "\x03\x74", 2);
+    install_patch_offset(0x02892AB, patch22, "\x05\x74", 2);
     install_patch_offset(0x02892BA, patch23, "\x44", 1);
     install_patch_offset(0x02949A4, patch24, "\x02", 1);
     install_patch_offset(0x02ABB41, patch25, "\x05\x74", 2);
