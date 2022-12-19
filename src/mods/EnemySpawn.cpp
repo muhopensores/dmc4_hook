@@ -215,8 +215,8 @@ void set_enemy_position(UEnemySomething* em) {
 void spawn_em00x(int index) {
     uintptr_t em_function_pointer = fptr_em_factories.at(index);
     __asm {
-		pusha
-		pushf
+		pushad
+		pushfd
 		call em_function_pointer // make actor
         mov esi, eax
 
@@ -225,19 +225,19 @@ void spawn_em00x(int index) {
         mov [enemy_spawning], edx
         pop edx
 
-		pusha
+		pushad
 		push esi
 		call set_enemy_position
 		pop esi
-		popa
+		popad
 
         mov ecx, 0Fh
         mov eax, [some_struct] // static
 		mov eax, [eax]
         push 0Fh
         call fptr_update_actor_list
-		popf
-		popa
+		popfd
+		popad
     }
 }
 
