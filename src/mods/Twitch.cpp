@@ -3,6 +3,7 @@
 #include "../Mods.hpp"
 #include <thread>
 #include <random>
+#include "EnemySpawn.hpp"
 
 static bool twitch_login_on_boot = false;
 
@@ -172,9 +173,12 @@ std::optional<std::string> TwitchClient::on_initialize() {
 		//DISPLAY_MESSAGE("[TwitchClient] libircclient.dll not found, skipping.");
 		spdlog::info("[TwitchClient] libircclient.dll not found, skipping.");
 	}
-	libirc_loaded = true;
-	//DISPLAY_MESSAGE("[TwitchClient] libircclient.dll loaded.");
-	spdlog::info("[TwitchClient] libircclient.dll loaded.");
+    else {
+        libirc_loaded = true;
+        //DISPLAY_MESSAGE("[TwitchClient] libircclient.dll loaded.");
+        spdlog::info("[TwitchClient] libircclient.dll loaded.");
+    }
+
 
 	return Mod::on_initialize();
 }
@@ -400,7 +404,6 @@ void TwitchClient::on_gui_frame() {
                 m_idle_time = std::clamp<int32_t>(m_idle_time, 5, INT_MAX);
             }
         }
-
         ImGui::Checkbox("Log In On Game Boot Automatically", &twitch_login_on_boot);
 		ImGui::SameLine();
         help_marker("This sometimes doesn't work, just come back here and hit disconnect > connect to reconnect");
@@ -417,6 +420,7 @@ void TwitchClient::on_gui_frame() {
         if (ImGui::RadioButton("Vote mode", &voting_result, TwitchClient::TWITCH_MODE::VOTING)) {
             disconnect();
         }
+        ImGui::Checkbox("Twitch can spawn special enemies", &g_enable_twitch_special_spawns);
         ImGui::Checkbox("Relay Twitch Chat To Devil May Cry 4", &mirror_chat_checkbox);
 	}
 }

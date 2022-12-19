@@ -12,7 +12,7 @@ static uintptr_t some_struct{0x00E552CC};
 static SMediator* s_med_ptr             = nullptr;
 static uPlayer* u_local_plr             = nullptr;
 static int enemy_spawning              = 0;
-static bool enable_twitch_special_spawns = false;
+bool g_enable_twitch_special_spawns = false;
 
 enum {
     HOTKEY_SPAWN_SCARECROW_LEG,
@@ -280,11 +280,11 @@ std::optional<std::string> EnemySpawn::on_initialize() {
         .on_init([&]() { spawn_em00x(8); });
 
     MutatorRegistry::define("SpawnBlitz")
-        .description("Spawns Blitz")
+        .description("Spawns Blitz").special_arg(&g_enable_twitch_special_spawns)
         .on_init([&]() { spawn_em00x(9); });
 
     MutatorRegistry::define("SpawnChimera")
-        .description("Spawns Chimera Seed")
+        .description("Spawns Chimera Seed").special_arg(&g_enable_twitch_special_spawns)
         .on_init([&]() { spawn_em00x(10); });
 
     MutatorRegistry::define("SpawnBasilisk")
@@ -292,27 +292,27 @@ std::optional<std::string> EnemySpawn::on_initialize() {
         .on_init([&]() { spawn_em00x(11); });
 
     MutatorRegistry::define("SpawnBerial")
-        .description("Spawns Berial")
+        .description("Spawns Berial").special_arg(&g_enable_twitch_special_spawns)
         .on_init([&]() { spawn_em00x(12); });
 
     MutatorRegistry::define("SpawnBael")
-        .description("Spawns Bael")
+        .description("Spawns Bael").special_arg(&g_enable_twitch_special_spawns)
         .on_init([&]() { spawn_em00x(13); });
 
     MutatorRegistry::define("SpawnEchidna")
-        .description("Spawns Echidna")
+        .description("Spawns Echidna").special_arg(&g_enable_twitch_special_spawns)
         .on_init([&]() { spawn_em00x(14); });
 
     MutatorRegistry::define("SpawnCredo")
-        .description("Spawns Angelo Credo")
+        .description("Spawns Angelo Credo").special_arg(&g_enable_twitch_special_spawns)
         .on_init([&]() { spawn_em00x(15); });
 
     MutatorRegistry::define("SpawnAgnus")
-        .description("Spawns Angelo Agnus")
+        .description("Spawns Angelo Agnus").special_arg(&g_enable_twitch_special_spawns)
         .on_init([&]() { spawn_em00x(16); });
 
     MutatorRegistry::define("SpawnSanctus")
-        .description("Spawns Sanctus Diabolica")
+        .description("Spawns Sanctus Diabolica").special_arg(&g_enable_twitch_special_spawns)
         .on_init([&]() { spawn_em00x(18); });
 
     MutatorRegistry::define("SpawnKyrie")
@@ -320,11 +320,11 @@ std::optional<std::string> EnemySpawn::on_initialize() {
         .on_init([&]() { spawn_em00x(19); });
 
     MutatorRegistry::define("SpawnDante")
-        .description("Spawns Dante")
+        .description("Spawns Dante").special_arg(&g_enable_twitch_special_spawns)
         .on_init([&]() { spawn_em00x(20); });
 
     MutatorRegistry::define("SpawnRandom")
-        .description("Spawns random enemy")
+        .description("Spawns random enemy").special_arg(&g_enable_twitch_special_spawns)
         .on_init([]() { spawn_em00x(rand() % 21); });
 
     using v_key = std::vector<uint32_t>;
@@ -358,7 +358,6 @@ void EnemySpawn::on_gui_frame() {
     if (ImGui::ListBox("##Enemy Spawn Listbox", &enemy_names_current, enemy_names.data(), enemy_names.size(), 21)) {
         spawn_em00x(enemy_names_current);
     }
-    ImGui::Checkbox("Twitch Can Spawn Special Enemies", &enable_twitch_special_spawns);
 }
 
 #if 0
@@ -449,11 +448,11 @@ void EnemySpawn::on_twitch_command(std::size_t hash) {
 #endif
 
 void EnemySpawn::on_config_load(const utility::Config& cfg) {
-    enable_twitch_special_spawns = cfg.get<bool>("enable_twitch_special_spawns").value_or(true);
+    g_enable_twitch_special_spawns = cfg.get<bool>("enable_twitch_special_spawns").value_or(true);
 };
 
 void EnemySpawn::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("enable_twitch_special_spawns", enable_twitch_special_spawns);
+    cfg.set<bool>("enable_twitch_special_spawns", g_enable_twitch_special_spawns);
 }
 
 void EnemySpawn::on_update_input(utility::Input& input) {

@@ -30,11 +30,27 @@ Mutator* MutatorRegistry::get_ptr(size_t hash) {
     if (itr != m_hashes.cend()) {
         return m_mutators[std::distance(m_hashes.begin(), itr)];
     }
+
+    for (Mutator* mut : m_mutators) {
+        for (const auto& alias : mut->m_aliases) {
+            if (hash == alias) {
+#ifndef _NDEBUG
+                std::printf("activating %s\n", mut->m_name.c_str());
+#endif
+                return mut;
+            }
+        }
+    }
     return nullptr;
 }
 
 void MutatorRegistry::activate_mod(Mutator* m) {
     if (devil4_sdk::is_not_in_gameplay()) { return; }
+    if (m->m_extra_arg) {
+        if (!(*m->m_extra_arg)) { return; }
+    }
+
+
     m->m_init();
     if (m->m_timer) {
         m->m_timer->start();
@@ -63,7 +79,7 @@ void MutatorRegistry::update(const fmilliseconds dt) {
 }
 
 Mutator& Mutator::description(const std::string&& description) {
-    m_description = std::move(description);
+    m_description = description;
     return *this;
 }
 
@@ -80,6 +96,11 @@ Mutator& Mutator::set_timer(float seconds, TimeExpiredFunction on_timer_expired)
 Mutator& Mutator::alias(const std::string& alias)
 {
     m_aliases.emplace_back(std::hash<std::string>{}(alias));
+    return *this;
+}
+
+Mutator& Mutator::special_arg(bool* arg) {
+    m_extra_arg = arg;
     return *this;
 }
 

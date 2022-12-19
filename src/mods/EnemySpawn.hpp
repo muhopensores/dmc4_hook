@@ -37,3 +37,5 @@ private:
     std::size_t m_spawn_kyrie_command;
     std::size_t m_spawn_dante_command;*/
 };
+
+extern bool g_enable_twitch_special_spawns;
