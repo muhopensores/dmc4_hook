@@ -205,7 +205,10 @@ void TwitchClient::make_instance(bool standalone) {
         g_twc = this;
         delete m_twitch_mode;
 
-        if (voting_result == TwitchClient::TWITCH_MODE::VOTING) { m_twitch_mode = new TwitchModeVoting(this); m_vote_disabled = false; }
+        if (voting_result == TwitchClient::TWITCH_MODE::VOTING) { m_twitch_mode = new TwitchModeVoting(this);
+        m_vote_disabled = false;
+        // TODO(): sampling only allowed enemy spawns for voting
+        g_enable_twitch_special_spawns = true; }
         else { m_twitch_mode = new TwitchModeChaos(this); }
 
 		twitch = new Twitch();
@@ -419,7 +422,9 @@ void TwitchClient::on_gui_frame() {
         if (ImGui::RadioButton("Vote mode", &voting_result, TwitchClient::TWITCH_MODE::VOTING)) {
             disconnect();
         }
-        ImGui::Checkbox("Twitch can spawn special enemies", &g_enable_twitch_special_spawns);
+        if (voting_result == CHAOS) { // TODO(): figure out how to sample this in voting properly
+            ImGui::Checkbox("Twitch can spawn special enemies", &g_enable_twitch_special_spawns);
+        }
         ImGui::Checkbox("Relay Twitch Chat To Devil May Cry 4", &mirror_chat_checkbox);
 	}
 }

@@ -325,7 +325,11 @@ std::optional<std::string> EnemySpawn::on_initialize() {
 
     MutatorRegistry::define("SpawnRandom")
         .description("Spawns random enemy").special_arg(&g_enable_twitch_special_spawns)
-        .on_init([]() { spawn_em00x(rand() % 21); });
+        .on_init([]() {
+            auto now = std::chrono::system_clock::now();
+            srand((uint32_t)now.time_since_epoch().count());
+            spawn_em00x(rand() % 21); 
+        });
 
     using v_key = std::vector<uint32_t>;
     m_hotkeys.reserve(HOTKEY_MAX);
