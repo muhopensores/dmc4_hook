@@ -215,6 +215,7 @@ void TwitchClient::make_instance(bool standalone) {
                 m_voting_timer = new utility::Timer(float(m_idle_time), twitch_voting_start);
                 m_idle_timer   = new utility::Timer(float(m_vote_time), twitch_voting_end);
                 m_vote_manager = new VoteManager();
+                twitch_vote_state = new Voting();
                 //twitch_vote_state = new Voting();
             }
         };
@@ -507,7 +508,7 @@ void TwitchClient::on_frame(fmilliseconds & dt) {
         return;
     }
     m_current_gameplay_state = devil4_sdk::is_not_in_gameplay();
-    if (!twitch_vote_state) {
+    if (!twitch_vote_state->get_type()) {
         if (g_previos_gameplay_state != m_current_gameplay_state) {
             if (!m_current_gameplay_state) {
                 twitch_vote_state = new VotingState();
