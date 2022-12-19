@@ -53,9 +53,9 @@ void VoteManager::on_chat_message(const std::string& sender, const std::string& 
     size_t index = 0;
 
     const std::array<std::pair<char, char>, 6> vote_tokens{
-        std::make_pair('1','0'),
-        std::make_pair('2','0'),
-        std::make_pair('3','0'),
+        std::make_pair('1','1'),
+        std::make_pair('2','1'),
+        std::make_pair('3','1'),
         std::make_pair('e', 'e'),
         std::make_pair('f', 'e'),
         std::make_pair('g', 'e') 
@@ -89,7 +89,7 @@ static void twitch_voting_start() {
 
     for (size_t i = 0; i < vmgr->m_vote_entries.size(); i++) {
         if (vmgr->m_anti_anti_spam) {
-            constexpr static std::array<char, 3> nums{ '0', '1', '2' };
+            constexpr static std::array<char, 3> nums{ '1', '2', '3' };
             vmgr->m_vote_entries[i].m_token = nums[i];
         }
         else {
@@ -105,13 +105,7 @@ static void twitch_voting_start() {
     g_twc->twitch->send_chat_message("VOTE FOR NEXT MOD");
 
     for (size_t i = 0; i < vmgr->m_vote_entries.size(); i++) {
-        if (vmgr->m_anti_anti_spam) {
-            g_twc->twitch->send_chat_message(fmt::format("{}: {}", i, vmgr->m_vote_entries[i].m_mod->m_name));
-        }
-        else {
-            constexpr static std::array<char, 3> chars{'e', 'f', 'g' };
-            g_twc->twitch->send_chat_message(fmt::format("{}: {}", chars[i], vmgr->m_vote_entries[i].m_mod->m_name));
-        }
+        g_twc->twitch->send_chat_message(fmt::format("{}: {}", vmgr->m_vote_entries[i].m_token, vmgr->m_vote_entries[i].m_mod->m_name));
     }
 skip_messages:
     vmgr->m_vote_distribution_display = vmgr->m_vote_entries;
@@ -221,6 +215,7 @@ void TwitchClient::make_instance(bool standalone) {
                 m_voting_timer = new utility::Timer(float(m_idle_time), twitch_voting_start);
                 m_idle_timer   = new utility::Timer(float(m_vote_time), twitch_voting_end);
                 m_vote_manager = new VoteManager();
+                //twitch_vote_state = new Voting();
             }
         };
 
