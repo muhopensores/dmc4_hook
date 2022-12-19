@@ -81,9 +81,13 @@ naked void detour() { // inputpressed // inputs are edx // player is in edi // A
     TouchpadRoseCheck:
         cmp byte ptr [InputStates::touchpad_rose_enabled], 0
         je code
+        push ecx
         push eax
+        push edx
         call InputStates::rose_buffer
+        pop edx
         pop eax
+        pop ecx
         cmp byte ptr [InputStates::rose_timer_active], 1
         je IncRoseTimer
         jmp code
@@ -97,11 +101,13 @@ naked void detour() { // inputpressed // inputs are edx // player is in edi // A
         cmp dword ptr [InputStates::input_timer2], 0x43480000 // 200.0f
         jl code
         mov byte ptr [InputStates::rose_timer_active], 0
-        push eax
         push ecx
+        push eax
+        push edx
         call InputStates::on_timer_callback
-        pop ecx
+        pop edx
         pop eax
+        pop ecx
 
     code:
         cmp [eax+0x41], cl
@@ -127,9 +133,13 @@ naked void detour2() { // inputonpress // touchpad ecstasy // player is in edx /
 
         cmp byte ptr [FasterFastDrive::easy_fast_drive_enabled], 1
         jne check2
+        push ecx
         push eax
+        push edx
         call easy_fast_drive_check
+        pop edx
         pop eax
+        pop ecx
     check2:
         cmp byte ptr [InputStates::touchpad_rose_enabled], 0
         je jmpret

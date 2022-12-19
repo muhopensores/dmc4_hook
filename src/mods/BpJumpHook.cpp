@@ -272,11 +272,13 @@ naked void bp_jump_hook3_proc(void) { // called every time you enter a teleporte
         je code
 
     // update floor and area ID values
-        push eax
         push ecx
+        push eax
+        push edx
         call bp_continue
-        pop ecx
+        pop edx
         pop eax
+        pop ecx
 
     // write bp floor
         push edx
@@ -319,11 +321,13 @@ naked void bp_jump_hook3_proc(void) { // called every time you enter a teleporte
 
     // update floor and area ID values
     randombossrushcontinue:
-        push eax
         push ecx
+        push eax
+        push edx
         call boss_continue
-        pop ecx
+        pop edx
         pop eax
+        pop ecx
 
     // write boss floor
         push edx
