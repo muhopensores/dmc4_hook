@@ -69,122 +69,173 @@ void DifficultySelect::reset_patches() {
 }
 
 void DifficultySelect::set_default() {
-    //reset_patches();
-    // DMD & GMD share most of these, default does not:
-    install_patch_offset(0x004D6C7, patch1,  "\x87\x78\xc7", 3);
-    install_patch_offset(0x0094AE7, patch2,  "\x14\x77", 2);
-    install_patch_offset(0x0094B02, patch3,  "\x28\xad\xcb\x00\x8b\xc7", 6);
-    install_patch_offset(0x00B5689, patch4,  "\x24\xf3\xc0\x00", 3);
-    install_patch_offset(0x011B9B6, patch5,  "\x74\x0e", 2);
-    install_patch_offset(0x011B9BE, patch6,  "\x14\x74\x05\xba\x02", 5);
-    install_patch_offset(0x011B9DB, patch7,  "\xfc", 1);
-    install_patch_offset(0x011B9E4, patch8,  "\xe8\xbe", 1);
-    install_patch_offset(0x011BAFA, patch9,  "\x74", 1);
-    install_patch_offset(0x011BB02, patch10, "\x14\x74\x05\xb9\x02", 5);
-    install_patch_offset(0x011BB19, patch11, "\x24\xbf", 2);
-    install_patch_offset(0x011BB21, patch12, "\x10\xbf", 2);
-    install_patch_offset(0x0234D4C, patch13, "\x03\x75", 2);
-    install_patch_offset(0x024D80D, patch14, "\x03\x75", 2);
-    install_patch_offset(0x02892AB, patch15, "\x03\x75", 2);
-    install_patch_offset(0x02ABB41, patch16, "\x03\x75", 2);
-    install_patch_offset(0x02C0435, patch17, "\x40\x01\x00\x00\x75", 5);
-    install_patch_offset(0x02DA9EB, patch18, "\x03\x75", 2);
-    install_patch_offset(0x02FAD4E, patch19, "\x40\x01\x00\x00\x75", 5);
-    install_patch_offset(0x0304E9E, patch20, "\x40\x01\x00\x00\x75", 5);
-    install_patch_offset(0x03309A0, patch21, "\x03\x74\x1F", 3);
-    install_patch_offset(0x0343B6A, patch22, "\x24\xf3\xc0", 3);
-    install_patch_offset(0x04AB93C, patch23, "\x24\xf3\xc0", 3);
-    install_patch_offset(0x0837A5F, patch24, "\x20\x1c", 2);
-    install_patch_offset(0x09EC8B4, patch25, "\x00\x00\xe1\x45", 5);
-    install_patch_offset(0x09EC9F4, patch26, "\x00\x00\xe1\x45", 5);
-    install_patch_offset(0x09ECB34, patch27, "\x00\x00\xe1\x45", 5);
-    install_patch_offset(0x09ECC74, patch28, "\x00\x00\xe1\x45", 5);
-    install_patch_offset(0x09ECDB4, patch29, "\x00\x00\xe1\x45", 5);
-    // different only on GMD:
-    install_patch_offset(0x011BA85, patch30, "\xc4\xbf", 2);
-    install_patch_offset(0x011BA90, patch31, "\xb0\xbf", 2);
-    install_patch_offset(0x01D2197, patch32, "\xd0\x28", 2);
-    install_patch_offset(0x0234D5B, patch33, "\x44", 1);
-    install_patch_offset(0x024D6F6, patch34, "\x24\x5b", 2);
-    install_patch_offset(0x024D81C, patch35, "\x44", 1);
-    install_patch_offset(0x0254383, patch36, "\x24\x5b", 2);
-    install_patch_offset(0x02892BA, patch37, "\x44", 1);
-    install_patch_offset(0x02949A4, patch38, "\x02\x00", 2);
-    install_patch_offset(0x02ABB50, patch39, "\x44", 1);
-    install_patch_offset(0x02C0445, patch40, "\x14", 1);
-    install_patch_offset(0x02DA9CA, patch41, "\x5c\xa0", 1);
-    install_patch_offset(0x02FAD60, patch42, "\x44", 1);
-    install_patch_offset(0x0304EB0, patch43, "\x44", 1);
-    install_patch_offset(0x03BFD41, patch44, "\xa8\x27\xd6", 3);
-    install_patch_offset(0x03BFD72, patch45, "\xf0\xf2", 2);
-    install_patch_offset(0x03C0309, patch46, "\x88\x9f", 2);
-    install_patch_offset(0x0378D60, patch47, "\x01", 1);
-    install_patch_offset(0x03A7B09, patch48, "\x40", 1);
-    install_patch_offset(0x09EC0E0, patch49, "\x00\xc0\x28\x45\x00\xc0\x28\x45\x00\x00\x80\xbf\x00\xc0\xa8\x45\x00\x00\xc0\xa8\x00\x00\x61\x45\x00\x00"
-                                             "\xe1\x45\x78\x30\x30\x00\x00\xc0\x28\x45\x00\xa0\x0c\x46\x00\xa0\x8c\x45\x00\x00\x61\x45\x00\xa0\x0c\x46"
-                                             "\x00\x00\xe1\x44\x00\x00\x78\x30\x00\x00\x61\x45\x00\xc0\x28\x45\x00\xc0\x28\x45", 72);
-
+    install_patch_offset(0x004D6C7, patch1, "\x87\x78\xC7", 3);
+    install_patch_offset(0x0094AE7, patch2, "\x14", 1);
+    install_patch_offset(0x0094B02, patch3, "\x28\xAD", 2);
+    install_patch_offset(0x00B5689, patch4, "\x24\xF3\xC0\x00", 4);
+    install_patch_offset(0x011B9B6, patch5, "\x74", 1);
+    install_patch_offset(0x011B9BE, patch6, "\x14\x74\x05\xBA\x02", 5);
+    install_patch_offset(0x011B9DB, patch7, "\xFC\xBE", 2);
+    install_patch_offset(0x011B9E4, patch8, "\xE8\xBE", 2);
+    install_patch_offset(0x011BA85, patch9, "\xC4\xBF", 2);
+    install_patch_offset(0x011BA90, patch10, "\xB0\xBF", 2);
+    install_patch_offset(0x011BAFA, patch11, "\x74", 1);
+    install_patch_offset(0x011BB02, patch12, "\x14\x74\x05\xB9\x02", 5);
+    install_patch_offset(0x011BB19, patch13, "\x24\xBF", 2);
+    install_patch_offset(0x011BB21, patch14, "\x10\xBF", 2);
+    install_patch_offset(0x01D2197, patch15, "\xD0\x28", 2);
+    install_patch_offset(0x0234D4C, patch16, "\x03\x75", 2);
+    install_patch_offset(0x0234D5B, patch17, "\x44", 1);
+    install_patch_offset(0x024D6F6, patch18, "\x24\x5B", 2);
+    install_patch_offset(0x024D80D, patch19, "\x03\x75", 2);
+    install_patch_offset(0x024D81C, patch20, "\x44", 1);
+    install_patch_offset(0x0254383, patch21, "\x24\x5b", 2);
+    install_patch_offset(0x02892AB, patch22, "\x03\x75", 2);
+    install_patch_offset(0x02892BA, patch23, "\x44", 1);
+    install_patch_offset(0x02949A4, patch24, "\x02", 1);
+    install_patch_offset(0x02ABB41, patch25, "\x03\x75", 2);
+    install_patch_offset(0x02ABB50, patch26, "\x44", 1);
+    install_patch_offset(0x02C0435, patch27, "\x40\x01\x00\x00\x75", 5);
+    install_patch_offset(0x02C0445, patch28, "\x14", 1);
+    install_patch_offset(0x02DA9CA, patch29, "\x5C\xA0", 2);
+    install_patch_offset(0x02DA9EB, patch30, "\x03\x75", 2);
+    install_patch_offset(0x02FAD4E, patch31, "\x40\x01\x00\x00\x75", 5);
+    install_patch_offset(0x02FAD60, patch32, "\x44", 1);
+    install_patch_offset(0x0304E9E, patch33, "\x40\x01\x00\x00\x75", 5);
+    install_patch_offset(0x0304EB0, patch34, "\x44", 1);
+    install_patch_offset(0x03309A0, patch35, "\x03\x74", 2);
+    install_patch_offset(0x0343B6A, patch36, "\x24\xF3\xC0\x00", 4);
+    install_patch_offset(0x03BFD41, patch37, "\xA8\x27\xD6", 3);
+    install_patch_offset(0x03BFD72, patch38, "\xF0\xF2", 2);
+    install_patch_offset(0x03C0309, patch39, "\x88\x9F", 2);
+    install_patch_offset(0x0378D60, patch40, "\x01", 1);
+    install_patch_offset(0x03A7B09, patch41, "\x40", 1);
+    install_patch_offset(0x04AB93C, patch42, "\x24\xF3\xC0\x00", 4);
+    install_patch_offset(0x0837A5F, patch43, "\x20\x1C", 2);
+    install_patch_offset(0x09EC0E0, patch44,
+        "\x00\xc0\x28\x45\x00\xc0\x28\x45\x00\x00\x80\xbf\x00\xc0\xa8\x45\x00\x00\x80\xBF\x00\x00\x61\x45\x00\x00"
+        "\xe1\x45\x00\x00\x80\xBF\x00\xc0\x28\x45\x00\xa0\x0c\x46\x00\xa0\x8c\x45\x00\x00\x61\x45\x00\xa0\x0c\x46"
+        "\x00\x00\xe1\x44\x00\x00\x80\xBF\x00\x00\x61\x45\x00\xc0\x28\x45\x00\xc0\x28\x45",
+        72);
+    install_patch_offset(0x09EC8B4, patch45, "\x00\x00\xe1\x45", 4);
+    install_patch_offset(0x09EC9F4, patch46, "\x00\x00\xe1\x45", 4);
+    install_patch_offset(0x09ECB34, patch47, "\x00\x00\xe1\x45", 4);
+    install_patch_offset(0x09ECC74, patch48, "\x00\x00\xe1\x45", 4);
+    install_patch_offset(0x09ECDB4, patch49, "\x00\x00\xe1\x45", 4);
 }
 
 void DifficultySelect::set_dmd() {
-    //reset_patches();
-    // DMD & GMD share most of these, default does not:
-    install_patch_offset(0x004D6C7, patch1, "\x05\xa8\xcd\xde\x00", 3);
-    install_patch_offset(0x0094AE7, patch2,  "\x00\x77\x14", 2);
-    install_patch_offset(0x0094B02, patch3,  "\x50\xb9\xcb\x00\x8b\xc7", 6);
-    install_patch_offset(0x00B5689, patch4,  "\x70\x01\xcc\x00", 3);
-    install_patch_offset(0x011B9B6, patch5,  "\x72\x0e", 2);
-    install_patch_offset(0x011B9BE, patch6,  "\x00\x74\x05\xba\x00", 5);
-    install_patch_offset(0x011B9DB, patch7,  "\xf4", 1);
-    install_patch_offset(0x011B9E4, patch8,  "\xf4\xbe", 1);
-    install_patch_offset(0x011BAFA, patch9,  "\x72", 1);
-    install_patch_offset(0x011BB02, patch10, "\x00\x74\x05\xb9\x00", 5);
-    install_patch_offset(0x011BB19, patch11, "\x40\xbd", 2);
-    install_patch_offset(0x011BB21, patch12, "\x40\xbd", 2);
-    install_patch_offset(0x0234D4C, patch13, "\x05\x74", 2);
-    install_patch_offset(0x024D80D, patch14, "\x05\x74", 2);
-    install_patch_offset(0x02892AB, patch15, "\x05\x74", 2);
-    install_patch_offset(0x02ABB41, patch16, "\x05\x74", 2);
-    install_patch_offset(0x02C0435, patch17, "\x44\x01\x00\x00\x77", 5);
-    install_patch_offset(0x02DA9EB, patch18, "\x05\x74", 2);
-    install_patch_offset(0x02FAD4E, patch19, "\x44\x01\x00\x00\x77", 5);
-    install_patch_offset(0x0304E9E, patch20, "\x44\x01\x00\x00\x77", 5);
-    install_patch_offset(0x03309A0, patch21, "\x03\xEB\x1F", 3);
-    install_patch_offset(0x0343B6A, patch22, "\x70\x01\xcc", 3);
-    install_patch_offset(0x04AB93C, patch23, "\x70\x01\xcc", 3);
-    install_patch_offset(0x0837A5F, patch24, "\x30\x2a", 2);
-    install_patch_offset(0x09EC8B4, patch25, "\x00\xc0\x28\x46", 5);
-    install_patch_offset(0x09EC9F4, patch26, "\x00\xc0\x28\x46", 5);
-    install_patch_offset(0x09ECB34, patch27, "\x00\xc0\x28\x46", 5);
-    install_patch_offset(0x09ECC74, patch28, "\x00\xc0\x28\x46", 5);
-    install_patch_offset(0x09ECDB4, patch29, "\x00\xc0\x28\x46", 5);
-    // different only on GMD:
-    install_patch_offset(0x011BA85, patch30, "\xc4\xbf", 2);
-    install_patch_offset(0x011BA90, patch31, "\xb0\xbf", 2);
-    install_patch_offset(0x01D2197, patch32, "\xd0\x28", 2);
-    install_patch_offset(0x0234D5B, patch33, "\x44", 1);
-    install_patch_offset(0x024D6F6, patch34, "\x24\x5b", 2);
-    install_patch_offset(0x024D81C, patch35, "\x44", 1);
-    install_patch_offset(0x0254383, patch36, "\x24\x5b", 2);
-    install_patch_offset(0x02892BA, patch37, "\x44", 1);
-    install_patch_offset(0x02949A4, patch38, "\x02\x00", 2);
-    install_patch_offset(0x02ABB50, patch39, "\x44", 1);
-    install_patch_offset(0x02C0445, patch40, "\x14", 1);
-    install_patch_offset(0x02DA9CA, patch41, "\x5c\xa0", 1);
-    install_patch_offset(0x02FAD60, patch42, "\x44", 1);
-    install_patch_offset(0x0304EB0, patch43, "\x44", 1);
-    install_patch_offset(0x03BFD41, patch44, "\xa8\x27\xd6", 3);
-    install_patch_offset(0x03BFD72, patch45, "\xf0\xf2", 2);
-    install_patch_offset(0x03C0309, patch46, "\x88\x9f", 2);
-    install_patch_offset(0x0378D60, patch47, "\x01", 1);
-    install_patch_offset(0x03A7B09, patch48, "\x40", 1);
-    install_patch_offset(0x09EC0E0, patch49, "\x00\xc0\x28\x45\x00\xc0\x28\x45\x00\x00\x80\xbf\x00\xc0\xa8\x45\x00\x00\xc0\xa8\x00\x00\x61\x45\x00\x00"
-                                             "\xe1\x45\x78\x30\x30\x00\x00\xc0\x28\x45\x00\xa0\x0c\x46\x00\xa0\x8c\x45\x00\x00\x61\x45\x00\xa0\x0c\x46"
-                                             "\x00\x00\xe1\x44\x00\x00\x78\x30\x00\x00\x61\x45\x00\xc0\x28\x45\x00\xc0\x28\x45", 72);
+    install_patch_offset(0x004D6C7, patch1, "\x05\xA8\xCD", 3);
+    install_patch_offset(0x0094AE7, patch2, "\x00", 1);
+    install_patch_offset(0x0094B02, patch3, "\x50\xB9", 2);
+    install_patch_offset(0x00B5689, patch4, "\x70\x01\xCC\x00", 4);
+    install_patch_offset(0x011B9B6, patch5, "\x72", 1);
+    install_patch_offset(0x011B9BE, patch6, "\x00\x74\x05\xBA\x00", 5);
+    install_patch_offset(0x011B9DB, patch7, "\xF4\xBE", 2);
+    install_patch_offset(0x011B9E4, patch8, "\xF4\xBE", 2);
+    install_patch_offset(0x011BA85, patch9, "\xC4\xBF", 2);
+    install_patch_offset(0x011BA90, patch10, "\xB0\xBF", 2);
+    install_patch_offset(0x011BAFA, patch11, "\x72", 1);
+    install_patch_offset(0x011BB02, patch12, "\x00\x74\x05\xB9\x00", 5);
+    install_patch_offset(0x011BB19, patch13, "\x40\xBD", 2);
+    install_patch_offset(0x011BB21, patch14, "\x40\xBD", 2);
+    install_patch_offset(0x01D2197, patch15, "\xD0\x28", 2);
+    install_patch_offset(0x0234D4C, patch16, "\x05\x74", 2);
+    install_patch_offset(0x0234D5B, patch17, "\x44", 1);
+    install_patch_offset(0x024D6F6, patch18, "\x24\x5B", 2);
+    install_patch_offset(0x024D80D, patch19, "\x05\x74", 2);
+    install_patch_offset(0x024D81C, patch20, "\x44", 1);
+    install_patch_offset(0x0254383, patch21, "\x24\x5b", 2);
+    install_patch_offset(0x02892AB, patch22, "\x05\x74", 2);
+    install_patch_offset(0x02892BA, patch23, "\x44", 1);
+    install_patch_offset(0x02949A4, patch24, "\x02", 1);
+    install_patch_offset(0x02ABB41, patch25, "\x05\x74", 2);
+    install_patch_offset(0x02ABB50, patch26, "\x44", 1);
+    install_patch_offset(0x02C0435, patch27, "\x44\x01\x00\x00\x77", 5);
+    install_patch_offset(0x02C0445, patch28, "\x14", 1);
+    install_patch_offset(0x02DA9CA, patch29, "\x5C\xA0", 2);
+    install_patch_offset(0x02DA9EB, patch30, "\x05\x74", 2);
+    install_patch_offset(0x02FAD4E, patch31, "\x44\x01\x00\x00\x77", 5);
+    install_patch_offset(0x02FAD60, patch32, "\x44", 1);
+    install_patch_offset(0x0304E9E, patch33, "\x44\x01\x00\x00\x77", 5);
+    install_patch_offset(0x0304EB0, patch34, "\x44", 1);
+    install_patch_offset(0x03309A0, patch35, "\x05\x75", 2);
+    install_patch_offset(0x0343B6A, patch36, "\x70\x01\xCC\x00", 4);
+    install_patch_offset(0x03BFD41, patch37, "\xA8\x27\xD6", 3);
+    install_patch_offset(0x03BFD72, patch38, "\xF0\xF2", 2);
+    install_patch_offset(0x03C0309, patch39, "\x88\x9F", 2);
+    install_patch_offset(0x0378D60, patch40, "\x01", 1);
+    install_patch_offset(0x03A7B09, patch41, "\x40", 1);
+    install_patch_offset(0x04AB93C, patch42, "\x70\x01\xCC\x00", 4);
+    install_patch_offset(0x0837A5F, patch43, "\x30\x2A", 2);
+    install_patch_offset(0x09EC0E0, patch44,
+        "\x00\xc0\x28\x45\x00\xc0\x28\x45\x00\x00\x80\xbf\x00\xc0\xa8\x45\x00\x00\x80\xBF\x00\x00\x61\x45\x00\x00"
+        "\xe1\x45\x00\x00\x80\xBF\x00\xc0\x28\x45\x00\xa0\x0c\x46\x00\xa0\x8c\x45\x00\x00\x61\x45\x00\xa0\x0c\x46"
+        "\x00\x00\xe1\x44\x00\x00\x80\xBF\x00\x00\x61\x45\x00\xc0\x28\x45\x00\xc0\x28\x45",
+        72);
+    install_patch_offset(0x09EC8B4, patch45, "\x00\xC0\x28\x46", 4);
+    install_patch_offset(0x09EC9F4, patch46, "\x00\xC0\x28\x46", 4);
+    install_patch_offset(0x09ECB34, patch47, "\x00\xC0\x28\x46", 4);
+    install_patch_offset(0x09ECC74, patch48, "\x00\xC0\x28\x46", 4);
+    install_patch_offset(0x09ECDB4, patch49, "\x00\xC0\x28\x46", 4);
 }
 
 void DifficultySelect::set_gmd() {
+    install_patch_offset(0x004D6C7, patch1, "\x05\xA8\xCD", 3);
+    install_patch_offset(0x0094AE7, patch2, "\x00", 1);
+    install_patch_offset(0x0094B02, patch3, "\x50\xB9", 2);
+    install_patch_offset(0x00B5689, patch4, "\xC4\xCD\xDE\x00", 4);
+    install_patch_offset(0x011B9B6, patch5, "\x72", 1);
+    install_patch_offset(0x011B9BE, patch6, "\x00\x74\x05\xBA\x00", 5);
+    install_patch_offset(0x011B9DB, patch7, "\x10\xBF", 2);
+    install_patch_offset(0x011B9E4, patch8, "\x10\xBF", 2);
+    install_patch_offset(0x011BA85, patch9, "\x04\xC0", 2);
+    install_patch_offset(0x011BA90, patch10, "\x04\xC0", 2);
+    install_patch_offset(0x011BAFA, patch11, "\x72", 1);
+    install_patch_offset(0x011BB02, patch12, "\x00\x74\x05\xB9\x00", 5);
+    install_patch_offset(0x011BB19, patch13, "\x48\xBD", 2);
+    install_patch_offset(0x011BB21, patch14, "\x48\xBD", 2);
+    install_patch_offset(0x01D2197, patch15, "\x14\x2E", 2);
+    install_patch_offset(0x0234D4C, patch16, "\x05\x74", 2);
+    install_patch_offset(0x0234D5B, patch17, "\x48", 1);
+    install_patch_offset(0x024D6F6, patch18, "\xA4\x3E", 2);
+    install_patch_offset(0x024D80D, patch19, "\x05\x74", 2);
+    install_patch_offset(0x024D81C, patch20, "\x48", 1);
+    install_patch_offset(0x0254383, patch21, "\xA4\x3E", 2);
+    install_patch_offset(0x02892AB, patch22, "\x05\x74", 2);
+    install_patch_offset(0x02892BA, patch23, "\x48", 1);
+    install_patch_offset(0x02949A4, patch24, "\x01", 1);
+    install_patch_offset(0x02ABB41, patch25, "\x05\x74", 2);
+    install_patch_offset(0x02ABB50, patch26, "\x48", 1);
+    install_patch_offset(0x02C0435, patch27, "\x44\x01\x00\x00\x77", 5);
+    install_patch_offset(0x02C0445, patch28, "\x5A", 1);
+    install_patch_offset(0x02DA9CA, patch29, "\xA8\x9E", 2);
+    install_patch_offset(0x02DA9EB, patch30, "\x05\x74", 2);
+    install_patch_offset(0x02FAD4E, patch31, "\x44\x01\x00\x00\x77", 5);
+    install_patch_offset(0x02FAD60, patch32, "\x48", 1);
+    install_patch_offset(0x0304E9E, patch33, "\x44\x01\x00\x00\x77", 5);
+    install_patch_offset(0x0304EB0, patch34, "\x48", 1);
+    install_patch_offset(0x03309A0, patch35, "\x05\x75", 2);
+    install_patch_offset(0x0343B6A, patch36, "\xC4\xCD\xDE\x00", 4);
+    install_patch_offset(0x03BFD41, patch37, "\xF0\xF2\xC0", 3);
+    install_patch_offset(0x03BFD72, patch38, "\xFC\xEE", 2);
+    install_patch_offset(0x03C0309, patch39, "\xFF\x87", 2);
+    install_patch_offset(0x0378D60, patch40, "\x00", 1);
+    install_patch_offset(0x03A7B09, patch41, "\x3C", 1);
+    install_patch_offset(0x04AB93C, patch42, "\xC4\xCD\xDE\x00", 4);
+    install_patch_offset(0x0837A5F, patch43, "\x50\x46", 2);
+    install_patch_offset(0x09EC0E0, patch44,
+        "\x00\xC0\xA8\x44\x00\xC0\xA8\x44\x00\x00\x80\xbf\x00\xC0\x28\x45\x00\x00\x80\xBF\x00\x00\xE1\x44\x00\x00"
+        "\x61\x45\x00\x00\x80\xBF\x00\xc0\xA8\x44\x00\xA0\x8C\x45\x00\xA0\x0C\x45\x00\x00\xE1\x44\x00\xA0\x8C\x45"
+        "\x00\x00\x61\x44\x00\x00\x80\xBF\x00\x00\xE1\x44\x00\xC0\xA8\x44\x00\xC0\xA8\x44",
+        72);
+    install_patch_offset(0x09EC8B4, patch45, "\x00\xA0\x8C\x46", 4);
+    install_patch_offset(0x09EC9F4, patch46, "\x00\xA0\x8C\x46", 4);
+    install_patch_offset(0x09ECB34, patch47, "\x00\xA0\x8C\x46", 4);
+    install_patch_offset(0x09ECC74, patch48, "\x00\xA0\x8C\x46", 4);
+    install_patch_offset(0x09ECDB4, patch49, "\x00\xA0\x8C\x46", 4);
     //reset_patches();
+    /*
     // DMD & GMD share most of these, default does not:
     install_patch_offset(0x004D6C7, patch1, "\x05\xa8\xcd\xde\x00", 3);      //  frosts jump out of combos outside of DT // `fld dword ptr [edi+DevilMayCry4_DX9.exe+9EC778]` to `fld dword ptr [DevilMayCry4_DX9.exe+9ECDA8]` (1000.0f)
     install_patch_offset(0x0094AE7, patch2,  "\x00\x77\x14", 2);             // `cmp eax, 14` to `cmp eax, 00`
@@ -238,6 +289,7 @@ void DifficultySelect::set_gmd() {
     install_patch_offset(0x09EC0E0, patch49, "\x00\xc0\xa8\x44\x00\xc0\xa8\x44\x00\x00\x80\xbf\x00\xc0\x28\x45\x00\x00\xc0\xa8\x00\x00\xe1\x44\x00\x00"
                                              "\x61\x45\x78\x30\x30\x00\x00\xc0\xa8\x44\x00\xa0\x8c\x45\x00\xa0\x0c\x45\x00\x00\xe1\x44\x00\xa0\x8c\x45"
                                              "\x00\x00\x61\x44\x00\x00\x78\x30\x00\x00\xe1\x44\x00\xc0\xa8\x44\x00\xc0\xa8\x44", 72);
+    */
     /*       0x09EC0E0:
              DEFAULT / DMD & GMD
     00 float // 2700 / 1350
