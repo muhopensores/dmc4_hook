@@ -78,8 +78,12 @@ static void twitch_voting_start() {
     auto vmgr = g_twc->m_vote_manager;
     auto& gamemodes = MutatorRegistry::inst().m_mutators;
     std::vector<Mutator*> out;
+#if MAX_CUM
+    out = { gamemodes[0xd],gamemodes[0xd],gamemodes[0xd] };
+#else
     size_t n_elem = 3;
     std::sample(gamemodes.begin(), gamemodes.end(), std::back_inserter(out), n_elem, std::mt19937{ std::random_device{}() });
+#endif
     // it was too late i remembered there was std::partial_sort ;_;
 
     for (size_t i = 0; i < out.size(); ++i) {
@@ -194,6 +198,7 @@ void TwitchClient::make_instance(bool standalone) {
         m_relay_voting_messages = false;
         m_standalone = true;
         g_twc = this;
+        twitch_vote_state = new Voting();
         return;
     }
 	if (!twitch) {
@@ -206,7 +211,7 @@ void TwitchClient::make_instance(bool standalone) {
             m_vote_disabled = false;
             // TODO(): sampling only allowed enemy spawns for voting
             g_enable_twitch_special_spawns = true; 
-            g_forbid_cumrain = true;
+            g_forbid_cumrain = false;
         }
         else { m_twitch_mode = new TwitchModeChaos(this); }
 
@@ -426,9 +431,9 @@ void TwitchClient::on_gui_frame() {
         if (voting_result == CHAOS) { // TODO(): figure out how to sample this in voting properly
             ImGui::Checkbox("Twitch can spawn special enemies", &g_enable_twitch_special_spawns);
 
+        }
             if (g_show_cum && g_enable_twitch_special_spawns)
                 ImGui::Checkbox("I'm scared of cum, save me ToT", &g_forbid_cumrain);
-        }
         ImGui::Checkbox("Relay Twitch Chat To Devil May Cry 4", &mirror_chat_checkbox);
 	}
 }
