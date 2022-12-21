@@ -18,7 +18,7 @@ Mutator& MutatorRegistry::define(const std::string& name) {
 
     if (!g_mutator_registry) { MutatorRegistry::inst(); }
     auto nameLower = utility::to_lower(name);
-    auto* mod = new Mutator(nameLower);
+    auto* mod = new Mutator(name);
 
     g_mutator_registry->m_mutators.push_back(mod);
     g_mutator_registry->m_hashes.emplace_back(std::hash<std::string>{}(nameLower));
@@ -50,7 +50,7 @@ void MutatorRegistry::activate_mod(Mutator* m) {
     if (m->m_extra_arg) {
         if (!(*m->m_extra_arg)) { return; }
 
-        else if ( m->m_scared_of_cum && m->m_name == utility::to_lower("SummonThePunishment") )
+        else if ( m->m_scared_of_cum && (m->m_name == "SummonThePunishment") )
         {
             if (*m->m_scared_of_cum)
                 return;
