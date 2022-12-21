@@ -6,6 +6,7 @@
 #include "EnemySpawn.hpp"
 
 static bool twitch_login_on_boot = false;
+// bool g_show_cum = false;
 
 static TwitchClient* g_twc;
 //static std::mutex g_mut{};
@@ -199,10 +200,14 @@ void TwitchClient::make_instance(bool standalone) {
         g_twc = this;
         delete m_twitch_mode;
 
-        if (voting_result == TwitchClient::TWITCH_MODE::VOTING) { m_twitch_mode = new TwitchModeVoting(this);
-        m_vote_disabled = false;
-        // TODO(): sampling only allowed enemy spawns for voting
-        g_enable_twitch_special_spawns = true; }
+        if (voting_result == TwitchClient::TWITCH_MODE::VOTING) 
+        { 
+            m_twitch_mode = new TwitchModeVoting(this);
+            m_vote_disabled = false;
+            // TODO(): sampling only allowed enemy spawns for voting
+            g_enable_twitch_special_spawns = true; 
+            g_forbid_cumrain = true;
+        }
         else { m_twitch_mode = new TwitchModeChaos(this); }
 
 		twitch = new Twitch();
@@ -420,6 +425,9 @@ void TwitchClient::on_gui_frame() {
         }
         if (voting_result == CHAOS) { // TODO(): figure out how to sample this in voting properly
             ImGui::Checkbox("Twitch can spawn special enemies", &g_enable_twitch_special_spawns);
+
+            if (g_show_cum && g_enable_twitch_special_spawns)
+                ImGui::Checkbox("I'm scared of cum, save me ToT", &g_forbid_cumrain);
         }
         ImGui::Checkbox("Relay Twitch Chat To Devil May Cry 4", &mirror_chat_checkbox);
 	}
@@ -496,6 +504,7 @@ void TwitchClient::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("twitch_vote_disable_overlay", m_disable_overlay);
     cfg.set<float>("twitch_vote_time", m_vote_time);
     cfg.set<float>("twitch_idle_time", m_idle_time);
+    cfg.set<bool>("show_cum", g_show_cum);
 
 }
 static bool g_previos_gameplay_state = false;
@@ -539,6 +548,7 @@ void TwitchClient::on_config_load(const utility::Config& cfg) {
     m_vote_time = cfg.get<float>("twitch_vote_time").value_or(30.0f);
     m_idle_time = cfg.get<float>("twitch_idle_time").value_or(15.0f);
     twitch_login_on_boot = cfg.get<bool>("twitch_login_on_boot").value_or(false);
+
     if (twitch_login_on_boot) {
         //make_instance(); // sometimes gets stuck on connecting, says "IRC session terminated" 
         std::thread hehe([&] { 
@@ -549,4 +559,6 @@ void TwitchClient::on_config_load(const utility::Config& cfg) {
         });
         hehe.detach(); // idk might help or make things worse
     }
+
+    g_show_cum = cfg.get<bool>("show_cum").value_or(false);
 }

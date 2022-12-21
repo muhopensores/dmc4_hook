@@ -20,6 +20,7 @@ public:
     // TODO(): enable mutators in ui or some shit like that
     bool m_enabled{ false };
     bool* m_extra_arg{ nullptr }; // TODO(): std::variant crazyness maybe?
+    bool* m_scared_of_cum{ nullptr };
     //bool m_is_active;
 
     InitFunction m_init = []{};
@@ -33,6 +34,7 @@ public:
     Mutator& set_timer(float seconds, TimeExpiredFunction on_timer_expired);
     Mutator& alias(const std::string& alias);
     Mutator& special_arg(bool* arg);
+    Mutator& cumrain_arg(bool* arg);
 };
 
 struct MutatorRegistry {

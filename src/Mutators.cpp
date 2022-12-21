@@ -49,6 +49,12 @@ void MutatorRegistry::activate_mod(Mutator* m) {
     if (devil4_sdk::is_not_in_gameplay()) { return; }
     if (m->m_extra_arg) {
         if (!(*m->m_extra_arg)) { return; }
+
+        else if ( m->m_scared_of_cum && m->m_name == utility::to_lower("SummonThePunishment") )
+        {
+            if (*m->m_scared_of_cum)
+                return;
+        }
     }
 
 
@@ -108,3 +114,7 @@ Mutator& Mutator::special_arg(bool* arg) {
     return *this;
 }
 
+Mutator& Mutator::cumrain_arg(bool* arg) {
+    m_scared_of_cum = arg;
+    return *this;
+}

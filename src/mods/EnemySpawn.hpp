@@ -39,3 +39,5 @@ private:
 };
 
 extern bool g_enable_twitch_special_spawns;
+extern bool g_show_cum;
+extern bool g_forbid_cumrain;

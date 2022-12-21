@@ -13,6 +13,8 @@ static SMediator* s_med_ptr             = nullptr;
 static uPlayer* u_local_plr             = nullptr;
 static int enemy_spawning              = 0;
 bool g_enable_twitch_special_spawns = false;
+bool g_forbid_cumrain = false;
+bool g_show_cum = false;
 
 enum {
     HOTKEY_SPAWN_SCARECROW_LEG,
@@ -293,8 +295,15 @@ std::optional<std::string> EnemySpawn::on_initialize() {
         
     MutatorRegistry::define("SummonThePunishment")
         .description("Rain Down The God's Wrath").special_arg(&g_enable_twitch_special_spawns)
+<<<<<<< HEAD
+        .cumrain_arg(&g_forbid_cumrain)
         .alias("CUMRAIN")
         .on_init([]() { 
+            g_show_cum = true;
+=======
+        .alias("CUMRAIN")
+        .on_init([]() { 
+>>>>>>> b46877dc246cf9edd62f203964e44f132736a757
             for(int i = 0; i < 50; i++) 
                 spawn_em00x(10);
         });
@@ -311,8 +320,14 @@ std::optional<std::string> EnemySpawn::on_initialize() {
 
     MutatorRegistry::define("SpawnBael")
         .description("Spawns Bael").special_arg(&g_enable_twitch_special_spawns)
+<<<<<<< HEAD
+        .alias("Bael").alias("frog").alias("froggy").alias("frogeh")
+        .alias("froggeh").alias("toad").alias("runkiller")
+        .alias("widepeepoHappy").alias("жаба")
+=======
         .alias("Bael").alias("frog").alias("froggy").alias("frogeh").alias("toad")
         .alias("runkiller").alias("widepeepoHappy").alias("жаба")
+>>>>>>> b46877dc246cf9edd62f203964e44f132736a757
         .on_init([&]() { spawn_em00x(13); });
 
     MutatorRegistry::define("SpawnEchidna")
@@ -475,10 +490,12 @@ void EnemySpawn::on_twitch_command(std::size_t hash) {
 
 void EnemySpawn::on_config_load(const utility::Config& cfg) {
     g_enable_twitch_special_spawns = cfg.get<bool>("enable_twitch_special_spawns").value_or(true);
+    g_forbid_cumrain = cfg.get<bool>("forbid_cumrain").value_or(false);
 };
 
 void EnemySpawn::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("enable_twitch_special_spawns", g_enable_twitch_special_spawns);
+    cfg.set<bool>("forbid_cumrain", g_forbid_cumrain);
 }
 
 void EnemySpawn::on_update_input(utility::Input& input) {
