@@ -11,6 +11,7 @@ static uintptr_t joint_size_detour2_continue = NULL;
 glm::vec3 size{ 0.5f, 0.5f, 0.5f };
 glm::vec3 size_torso{ 0.9f, 0.8f, 0.8f };
 
+
 static float get_current_style_rank() {
 	SStylishCount* sc = devil4_sdk::get_stylish_count();
 	uint32_t rank = sc->current_style_tier;

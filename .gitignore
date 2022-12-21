@@ -3,3 +3,4 @@ lsp/
 compile_commands.json
 .clangd/
 src/Config.hpp
+.vscode/
