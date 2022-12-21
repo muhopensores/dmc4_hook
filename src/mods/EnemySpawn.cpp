@@ -295,15 +295,10 @@ std::optional<std::string> EnemySpawn::on_initialize() {
         
     MutatorRegistry::define("SummonThePunishment")
         .description("Rain Down The God's Wrath").special_arg(&g_enable_twitch_special_spawns)
-<<<<<<< HEAD
         .cumrain_arg(&g_forbid_cumrain)
         .alias("CUMRAIN")
         .on_init([]() { 
             g_show_cum = true;
-=======
-        .alias("CUMRAIN")
-        .on_init([]() { 
->>>>>>> b46877dc246cf9edd62f203964e44f132736a757
             for(int i = 0; i < 50; i++) 
                 spawn_em00x(10);
         });
@@ -320,14 +315,9 @@ std::optional<std::string> EnemySpawn::on_initialize() {
 
     MutatorRegistry::define("SpawnBael")
         .description("Spawns Bael").special_arg(&g_enable_twitch_special_spawns)
-<<<<<<< HEAD
         .alias("Bael").alias("frog").alias("froggy").alias("frogeh")
         .alias("froggeh").alias("toad").alias("runkiller")
         .alias("widepeepoHappy").alias("жаба")
-=======
-        .alias("Bael").alias("frog").alias("froggy").alias("frogeh").alias("toad")
-        .alias("runkiller").alias("widepeepoHappy").alias("жаба")
->>>>>>> b46877dc246cf9edd62f203964e44f132736a757
         .on_init([&]() { spawn_em00x(13); });
 
     MutatorRegistry::define("SpawnEchidna")
