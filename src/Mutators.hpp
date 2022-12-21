@@ -2,6 +2,7 @@
 
 #include <functional>
 #include "utility/Timer.hpp"
+#include "utility/String.hpp"
 
 class Mutator {
 

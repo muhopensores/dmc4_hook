@@ -48,4 +48,10 @@ namespace utility {
 
         return buffer;
     }
+
+    string to_lower(string str) {
+        transform(str.begin(), str.end(), str.begin(), tolower);
+
+        return str;
+    };
 }

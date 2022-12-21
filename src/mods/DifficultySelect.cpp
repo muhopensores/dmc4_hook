@@ -9,10 +9,12 @@ std::optional<std::string> DifficultySelect::on_initialize() {
         .description("hehe")
         .on_init([&] { set_dmd(); })
         .set_timer(35.0, [&] {set_default(); });
+
     MutatorRegistry::define("GodMustDie").alias("SetGMD")
         .description("hehe")
         .on_init([&] { set_gmd(); })
         .set_timer(35.0, [&] {set_default(); });
+        
     return Mod::on_initialize();
 }
 

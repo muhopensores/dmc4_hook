@@ -17,10 +17,11 @@ Mutator& MutatorRegistry::define(const std::string& name) {
     assert(name.length() < 64);
 
     if (!g_mutator_registry) { MutatorRegistry::inst(); }
-    auto* mod = new Mutator(name);
+    auto nameLower = utility::to_lower(name);
+    auto* mod = new Mutator(nameLower);
 
     g_mutator_registry->m_mutators.push_back(mod);
-    g_mutator_registry->m_hashes.emplace_back(std::hash<std::string>{}(name));
+    g_mutator_registry->m_hashes.emplace_back(std::hash<std::string>{}(nameLower));
 
     return *mod;
 }
@@ -66,7 +67,9 @@ void MutatorRegistry::activate_mod(size_t hash) {
 
 void MutatorRegistry::activate_mod(const std::string& name) {
     /*assert(g_mutator_registry);*/
-    auto hash = std::hash<std::string>{}(name);
+    auto nameLower = utility::to_lower(name);
+    auto hash = std::hash<std::string>{}(nameLower);
+
     activate_mod(hash);
 }
 
@@ -95,7 +98,8 @@ Mutator& Mutator::set_timer(float seconds, TimeExpiredFunction on_timer_expired)
 
 Mutator& Mutator::alias(const std::string& alias)
 {
-    m_aliases.emplace_back(std::hash<std::string>{}(alias));
+    auto aliasLower = utility::to_lower(alias);
+    m_aliases.emplace_back(std::hash<std::string>{}(aliasLower));
     return *this;
 }
 

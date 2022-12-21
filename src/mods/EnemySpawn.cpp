@@ -130,7 +130,7 @@ constexpr std::array<int, 21> enemy_spawn_type{
     4, // 07 Frost
     0, // 08 Assault
     4, // 09 Blitz
-    3, // 10 Chimera Seed
+    2, // 10 Chimera Seed
     3, // 11 Basilisk
     4, // 12 Berial
     0, // 13 Bael
@@ -244,87 +244,109 @@ void spawn_em00x(int index) {
 std::optional<std::string> EnemySpawn::on_initialize() {
     //srand((uint32_t)this);
     MutatorRegistry::define("SpawnScarecrowLeg")
-        .description("Spawns ScarecrowLeg")
+        .description("Spawns ScarecrowLeg").alias("Leg")
         .on_init([&]() { spawn_em00x(0); });
 
     MutatorRegistry::define("SpawnScarecrowArm")
-        .description("Spawns ScarecrowArm")
+        .description("Spawns ScarecrowArm").alias("Arm")
         .on_init([&]() { spawn_em00x(1); });
 
     MutatorRegistry::define("SpawnMega")
-        .description("Spawns a Mega")
+        .description("Spawns a Mega").alias("Mega")
         .on_init([&]() { spawn_em00x(2); });
 
     MutatorRegistry::define("SpawnBianco")
-        .description("Spawns Bianco Angelo")
+        .description("Spawns Bianco Angelo").alias("Bianco").alias("BA")
         .on_init([&]() { spawn_em00x(3); });
 
     MutatorRegistry::define("SpawnAlto")
-        .description("Spawns Alto Angelo")
+        .description("Spawns Alto Angelo").alias("Alto").alias("AA")
         .on_init([&]() { spawn_em00x(4); });
 
     MutatorRegistry::define("SpawnMephisto")
-        .description("Spawns Mephisto")
+        .description("Spawns Mephisto").alias("Mephisto").alias("FlyingRat")
         .on_init([&]() { spawn_em00x(5); });
 
     MutatorRegistry::define("SpawnFaust")
-        .description("Spawns Faust")
+        .description("Spawns Faust").alias("FlyingRatDaddy").alias("EdwardScissorhands")
         .on_init([&]() { spawn_em00x(6); });
 
     MutatorRegistry::define("SpawnFrost")
-        .description("Spawns Frost")
+        .description("Spawns Frost").alias("Frost").alias("frot").alias("iWantIcecream")
+        .alias("Icecube")
         .on_init([&]() { spawn_em00x(7); });
 
     MutatorRegistry::define("SpawnAssault")
-        .description("Spawns Assault")
+        .description("Spawns Assault").alias("Assault").alias("Lizard")
         .on_init([&]() { spawn_em00x(8); });
 
     MutatorRegistry::define("SpawnBlitz")
         .description("Spawns Blitz").special_arg(&g_enable_twitch_special_spawns)
+        .alias("Blitz").alias("Mark").alias("Zuck")
         .on_init([&]() { spawn_em00x(9); });
 
     MutatorRegistry::define("SpawnChimera")
         .description("Spawns Chimera Seed").special_arg(&g_enable_twitch_special_spawns)
+        .alias("Chimera").alias("seed").alias("eg").alias("egg").alias("gregg")
+        .alias("cum")
         .on_init([&]() { spawn_em00x(10); });
+        
+    MutatorRegistry::define("SummonThePunishment")
+        .description("Rain Down The God's Wrath").special_arg(&g_enable_twitch_special_spawns)
+        .alias("CUMRAIN")
+        .on_init([]() { 
+            for(int i = 0; i < 50; i++) 
+                spawn_em00x(10);
+        });
 
     MutatorRegistry::define("SpawnBasilisk")
-        .description("Spawns Basilisk")
+        .description("Spawns Basilisk").alias("Basilisk").alias("dog").alias("doggo")
+        .alias("doge").alias("dogg").alias("puppy")
         .on_init([&]() { spawn_em00x(11); });
 
     MutatorRegistry::define("SpawnBerial")
         .description("Spawns Berial").special_arg(&g_enable_twitch_special_spawns)
+        .alias("Berial").alias("FirePony")
         .on_init([&]() { spawn_em00x(12); });
 
     MutatorRegistry::define("SpawnBael")
         .description("Spawns Bael").special_arg(&g_enable_twitch_special_spawns)
+        .alias("Bael").alias("frog").alias("froggy").alias("frogeh").alias("toad")
+        .alias("runkiller").alias("widepeepoHappy").alias("жаба")
         .on_init([&]() { spawn_em00x(13); });
 
     MutatorRegistry::define("SpawnEchidna")
         .description("Spawns Echidna").special_arg(&g_enable_twitch_special_spawns)
+        .alias("Echidna").alias("HentaiWaifu")
         .on_init([&]() { spawn_em00x(14); });
 
     MutatorRegistry::define("SpawnCredo")
         .description("Spawns Angelo Credo").special_arg(&g_enable_twitch_special_spawns)
+        .alias("Credo").alias("NoCavIsNotAGoodBoss").alias("BiggusDickus")
         .on_init([&]() { spawn_em00x(15); });
 
     MutatorRegistry::define("SpawnAgnus")
         .description("Spawns Angelo Agnus").special_arg(&g_enable_twitch_special_spawns)
+        .alias("Agnus").alias("Agnis").alias("Ragnis").alias("moth").alias("mothman")
         .on_init([&]() { spawn_em00x(16); });
 
     MutatorRegistry::define("SpawnSanctus")
         .description("Spawns Sanctus Diabolica").special_arg(&g_enable_twitch_special_spawns)
+        .alias("Sanctus").alias("OldFart").alias("pope").alias("Sanctussy")
         .on_init([&]() { spawn_em00x(18); });
 
     MutatorRegistry::define("SpawnKyrie")
-        .description("Spawns Kyrie")
+        .description("Spawns Kyrie").alias("Kyrie")
         .on_init([&]() { spawn_em00x(19); });
 
     MutatorRegistry::define("SpawnDante")
         .description("Spawns Dante").special_arg(&g_enable_twitch_special_spawns)
+        .alias("Dante").alias("Donny").alias("Donte").alias("DonterKebab")
         .on_init([&]() { spawn_em00x(20); });
 
     MutatorRegistry::define("SpawnRandom")
         .description("Spawns random enemy").special_arg(&g_enable_twitch_special_spawns)
+        .alias("Random")
         .on_init([]() {
             auto now = std::chrono::system_clock::now();
             srand((uint32_t)now.time_since_epoch().count());
