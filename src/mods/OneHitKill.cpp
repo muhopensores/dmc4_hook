@@ -95,17 +95,17 @@ void OneHitKill::on_config_save(utility::Config& cfg) {
 }
 
 void OneHitKill::on_update_input(utility::Input& input) {
-        if (m_hotkeys[0]->check(input)) {
-            if (one_hit_kill) {
-                DISPLAY_MESSAGE("One Hit Kill Off");
-            }
-            else {
-                DISPLAY_MESSAGE("One Hit Kill On");
-                cant_die = false;
-                no_death_toggle(cant_die);
-            }
-            one_hit_kill = !one_hit_kill;
-            // toggle2(oneHitKill);
+    if (m_hotkeys[0]->check(input)) {
+        if (one_hit_kill) {
+            DISPLAY_MESSAGE("One Hit Kill Off");
         }
+        else {
+            DISPLAY_MESSAGE("One Hit Kill On");
+            cant_die = false;
+            no_death_toggle(cant_die);
+        }
+        one_hit_kill = !one_hit_kill;
+        // toggle2(oneHitKill);
+    }
 }
 #endif

@@ -6,44 +6,10 @@ uintptr_t PlayerTracker::jmp_return{ NULL };
 uPlayer* PlayerTracker::player_ptr{ NULL };
 bool PlayerTracker::lock_on_alloc{ false };
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8; // DevilMayCry4_DX9.exe+A558B8
+bool PlayerTracker::pin_imgui_enabled = false;
 static bool display_player_stats = false;
 
-/*void update_player_info(void) {
-    sMediator* sMedPtr = *(sMediator**)staticMediatorPtr;
-    uPlayer* uLocalPlr = sMedPtr->playerPtr;
-    if (uLocalPlr) {
-        PlayerTracker::lockOnAlloc = uLocalPlr->lockontoggle; // 16D0
-    }
-}*/
-
-/*naked void detour() {
-    _asm {
-            movss [esi+0x30], xmm3 // originalcode
-            push ecx
-            push edx
-            mov ecx, [staticMediatorPtr]
-            mov ecx, [ecx]
-            mov ecx, [ecx+0x24]
-            cmp esi, ecx
-            pop edx
-            pop ecx
-            je manualplayer
-        //jmpret:
-		    jmp dword ptr [PlayerTracker::jmp_return]
-
-            manualplayer:
-            push eax
-            call update_player_info
-            pop eax
-            jmp dword ptr [PlayerTracker::jmp_return]
-    }
-}*/
-
 std::optional<std::string> PlayerTracker::on_initialize() {
-    /*if (!install_hook_offset(0x3A88A1, hook, &detour, &jmp_return, 5)) {
-        spdlog::error("Failed to init PlayerTracker mod\n");
-        return "Failed to init PlayerTracker mod";
-    }*/
     MutatorRegistry::define("PocketKing").on_init([] {
         auto player = devil4_sdk::get_local_player();
         if (player) {
@@ -79,6 +45,7 @@ void PlayerTracker::on_gui_frame() {
     ImGui::Separator();
     ImGui::Spacing();
 
+    ImGui::Checkbox("Show Pin Timers", &PlayerTracker::pin_imgui_enabled);
     ImGui::Checkbox("Display Player Stats", &display_player_stats);
     if (display_player_stats) {
         SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
@@ -139,4 +106,49 @@ void PlayerTracker::on_gui_frame() {
     }
 }
 
+void PlayerTracker::custom_imgui_window() {
+    if (pin_imgui_enabled) {
+        SMediator* s_med_ptr  = *(SMediator**)static_mediator_ptr;
+        uintptr_t* player_ptr = (uintptr_t*)((uintptr_t)s_med_ptr + 0x24);
+        uintptr_t player_base = *player_ptr;
+        if (player_base) {
+            uintptr_t* pin_ptr    = (uintptr_t*)((uintptr_t)player_base + 0x14DBC); // 0x14DBC
+            uintptr_t pin_base    = *pin_ptr;
+            if (pin_base) {
+                ImGuiIO& io = ImGui::GetIO();
+                ImGuiWindowFlags window_flags =
+                    ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBringToFrontOnFocus;
+                ImVec2 window_size = ImVec2(io.DisplaySize.x * 0.2f, io.DisplaySize.y * 0.35f);
+                ImVec2 window_pos  = ImVec2(io.DisplaySize.x - window_size.x - 128.0f, 128.0f);
+                ImGui::SetNextWindowPos(window_pos, ImGuiCond_Once);
+                ImGui::Begin("Lucifer Pin Timers", NULL, window_flags);
+
+                for (int i = 0; i < 15; i++) {
+                    uintptr_t* pin_ptr = (uintptr_t*)((uintptr_t)player_base + 0x14DBC + i * 4); // 0x14DBC
+                    uintptr_t pin_base = *pin_ptr;
+                    if (pin_base) {
+                        float& pin_timer = *(float*)(pin_base + 0x1790);
+                        bool& pin_penetrated = *(bool*)(pin_base + 0x17B4);
+                        if (pin_penetrated) {
+                            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+                        } else {
+                            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
+                        }
+                        ImGui::Text("Pin %i = %.0f", i+1, pin_timer);
+                        ImGui::PopStyleColor();
+                    }
+                }
+                ImGui::End();
+            }
+        }
+    }
+}
+
+void PlayerTracker::on_config_save(utility::Config& cfg) {
+    cfg.set<bool>("pin_imgui_enabled", pin_imgui_enabled);
+}
+
+void PlayerTracker::on_config_load(const utility::Config& cfg) {
+    pin_imgui_enabled = cfg.get<bool>("pin_imgui_enabled").value_or(false);
+}
 #endif

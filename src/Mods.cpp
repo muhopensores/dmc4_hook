@@ -116,6 +116,7 @@ Mods::Mods() {
     // regular mods
     // add mods here
     // m_mods["ModName"_hash] = std::make_unique<ModName>();
+    ADD_MOD(PlayerTracker);
     ADD_MOD(FastStart);
     ADD_MOD(AreaJump);
     ADD_MOD(LimitAdjust);
@@ -151,7 +152,6 @@ Mods::Mods() {
     ADD_MOD(NoDtCooldown);
     ADD_MOD(DtEnemiesDontStun);
     ADD_MOD(EnemySlotting);
-    ADD_MOD(PlayerTracker);
     ADD_MOD(TrackingFullHouse);
     ADD_MOD(InfTrickRange);
     ADD_MOD(TimerMem);
@@ -321,6 +321,8 @@ void Mods::on_draw_custom_imgui_window() {
     m->custom_imgui_window();
     TwitchClient* tw = dynamic_cast<TwitchClient*>(m_mods[3].get());
     tw->custom_imgui_window();
+    PlayerTracker* pt = dynamic_cast<PlayerTracker*>(m_mods[4].get());
+    pt->custom_imgui_window();
 #if 0
     ImGui::Begin("utility::Input debugger");
     auto& input = g_framework->get_input_struct();
