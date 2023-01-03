@@ -174,8 +174,6 @@ void ModFramework::on_frame() {
 void ModFramework::on_reset() {
     spdlog::info("Reset!");
 	if (!m_initialized) { return; }
-	ImGui_ImplDX9_Shutdown();
-	ImGui_ImplWin32_Shutdown();
 	ImGui_ImplDX9_InvalidateDeviceObjects();
     // Crashes if we don't release it at this point.
     //cleanup_render_target();
@@ -273,59 +271,61 @@ bool ModFramework::initialize() {
         return false;
     }
 
-	D3DDEVICE_CREATION_PARAMETERS dev_params{ 0 };
-	auto hr = device->GetCreationParameters(&dev_params);
-	if (SUCCEEDED(hr)) {
-		if (dev_params.hFocusWindow) {
-			spdlog::info("[D3D Device init] D3DDEVICE_CREATION_PARAMETERS hFocusWindow={0}\n", (void*)dev_params.hFocusWindow);
-			m_wnd = dev_params.hFocusWindow;
-		}
-		else {
-			spdlog::info("[D3D Device present] D3DDEVICE_CREATION_PARAMETERS hFocusWindow= is NULL\n");
-			return false;
-		}
-	}
+    D3DDEVICE_CREATION_PARAMETERS dev_params{ 0 };
+    auto hr = device->GetCreationParameters(&dev_params);
+    if (SUCCEEDED(hr)) {
+        if (dev_params.hFocusWindow) {
+            spdlog::info("[D3D Device init] D3DDEVICE_CREATION_PARAMETERS hFocusWindow={0}\n", (void*)dev_params.hFocusWindow);
+            m_wnd = dev_params.hFocusWindow;
+        }
+        else {
+            spdlog::info("[D3D Device present] D3DDEVICE_CREATION_PARAMETERS hFocusWindow= is NULL\n");
+            return false;
+        }
+    }
 
     // Explicitly call destructor first
-    m_windows_message_hook.reset();
-    m_windows_message_hook = std::make_unique<WindowsMessageHook>(m_wnd);
-    m_windows_message_hook->on_message = [this](auto wnd, auto msg, auto w_param, auto l_param) {
-        return on_message(wnd, msg, w_param, l_param);
-    };
+    //m_windows_message_hook.reset();
+    if (!m_windows_message_hook) {
+        m_windows_message_hook = std::make_unique<WindowsMessageHook>(m_wnd);
+        m_windows_message_hook->on_message = [this](auto wnd, auto msg, auto w_param, auto l_param) {
+            return on_message(wnd, msg, w_param, l_param);
+        };
+    }
 
     m_menu_key = std::make_unique<utility::Hotkey>(VK_DELETE, "Menu Key", "menu_key");
-
-    spdlog::info("Window Handle: 0x{0:x}", (uintptr_t)m_wnd);
-    spdlog::info("Initializing ImGui");
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-
-    spdlog::info("Initializing ImGui Win32");
-
-    if (!ImGui_ImplWin32_Init(m_wnd)) {
-        spdlog::error("Failed to initialize ImGui.");
-        return false;
-    }
-
-    spdlog::info("Initializing ImGui D3D9");
-
-    if (!ImGui_ImplDX9_Init(device)) {
-        spdlog::error("Failed to initialize ImGui DX9.");
-        return false;
-    }
-
-    auto io = ImGui::GetIO();
-    io.Fonts->AddFontDefault();
-    m_custom_font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\ariali.ttf", 24.0f, NULL, io.Fonts->GetGlyphRangesDefault());
-
-    spdlog::info("Initializing Input system");
-    m_input = std::make_unique<utility::Input>();
-
-    gui::dark_theme();
-
+    ImGui_ImplDX9_CreateDeviceObjects();
     if (m_first_frame) {
         m_first_frame = false;
+
+        spdlog::info("Window Handle: 0x{0:x}", (uintptr_t)m_wnd);
+        spdlog::info("Initializing ImGui");
+
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+
+        spdlog::info("Initializing ImGui Win32");
+
+        if (!ImGui_ImplWin32_Init(m_wnd)) {
+            spdlog::error("Failed to initialize ImGui.");
+            return false;
+        }
+
+        spdlog::info("Initializing ImGui D3D9");
+
+        if (!ImGui_ImplDX9_Init(device)) {
+            spdlog::error("Failed to initialize ImGui DX9.");
+            return false;
+        }
+
+        auto io = ImGui::GetIO();
+        io.Fonts->AddFontDefault();
+        m_custom_font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\ariali.ttf", 24.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+
+        spdlog::info("Initializing Input system");
+        m_input = std::make_unique<utility::Input>();
+
+        gui::dark_theme();
 
         spdlog::info("Starting game data initialization thread");
 

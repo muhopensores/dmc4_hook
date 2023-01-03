@@ -5,6 +5,7 @@
 #include "sdk/ReClass.hpp"
 
 static D3D9Hook* g_d3d9_hook = nullptr;
+static FunctionHook* g_reset_hook_vtable = nullptr;
 
 D3D9Hook::~D3D9Hook() {
     unhook();
@@ -85,7 +86,7 @@ bool D3D9Hook::hook() {
 
     m_present_hook = std::make_unique<FunctionHook>(present_fn, (uintptr_t)&present_wrapper);
 
-    m_hooked = m_present_hook->create() && m_reset_hook->create() && m_reset_hook2->create();
+    m_hooked = m_present_hook->create() /* && m_reset_hook->create() && m_reset_hook2->create()*/;
 
     return m_hooked;
 }
@@ -108,6 +109,11 @@ HRESULT WINAPI D3D9Hook::present(IDirect3DDevice9 *p_device, RECT* p_source_rect
 {
     if (g_d3d9_hook->m_on_present) {
         g_d3d9_hook->m_on_present(*g_d3d9_hook);
+    }
+    if (!g_reset_hook_vtable) {
+        uintptr_t reset_vtable_ptr = (*(uintptr_t**)p_device)[16];
+        g_reset_hook_vtable = new FunctionHook(reset_vtable_ptr, reset_vtable);
+        g_reset_hook_vtable->create();
     }
     /*auto present_fn = d3d9->m_present_hook->get_original<decltype(D3D9Hook::present)>();*/
 
@@ -148,4 +154,20 @@ HRESULT WINAPI D3D9Hook::reset(IDirect3DDevice9 *p_device, D3DPRESENT_PARAMETERS
 	}
 
 	return p_device->Reset(p_presentation_parameters);
+}
+
+HRESULT WINAPI  D3D9Hook::reset_vtable(IDirect3DDevice9* p_device, D3DPRESENT_PARAMETERS* p_presentation_parameters) {
+
+    g_d3d9_hook->m_device = p_device;
+    g_d3d9_hook->m_presentation_params = p_presentation_parameters;
+
+    if (g_d3d9_hook->m_on_reset) {
+        g_d3d9_hook->m_on_reset(*g_d3d9_hook);
+    }
+
+    //return S_OK;
+    auto reset_fn =
+        g_reset_hook_vtable->get_original<decltype(D3D9Hook::reset_vtable)>();
+
+    return reset_fn(p_device, p_presentation_parameters);
 }
