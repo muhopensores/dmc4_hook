@@ -58,7 +58,7 @@ void Borderless::apply() {
     m_change_style = true;
     m_change_pos   = true;
 
-    spdlog::info("[BorderlessWindow] Trying to set style: %ld\n", m_style);
+    spdlog::info("[BorderlessWindow] Trying to set style: {}\n", m_style);
 
     const auto is_style_set     = SetWindowLong(wnd, GWL_STYLE, m_style) == m_style;
     const auto is_style_pos_set = SetWindowPos(wnd, HWND_TOP, m_x, m_y, m_w, m_h, SWP_FRAMECHANGED) != FALSE;
@@ -72,7 +72,7 @@ void Borderless::apply() {
     m_change_style = false;
 
     if (m_change_pos) {
-        spdlog::info("[BorderlessWindow] Trying to move to x:%d y:%d w:%d h:%d\n", m_x, m_y, m_w, m_h);
+        spdlog::info("[BorderlessWindow] Trying to move to x:{} y:{} w:{} h:{}\n", m_x, m_y, m_w, m_h);
 
         const auto was_window_moved = MoveWindow(wnd, m_x, m_y, m_w, m_h, TRUE) != FALSE;
 

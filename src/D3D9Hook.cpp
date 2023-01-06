@@ -86,7 +86,7 @@ bool D3D9Hook::hook() {
 
     m_present_hook = std::make_unique<FunctionHook>(present_fn, (uintptr_t)&present_wrapper);
 
-    m_hooked = m_present_hook->create() /* && m_reset_hook->create() && m_reset_hook2->create()*/;
+    m_hooked = m_present_hook->create() && m_reset_hook->create() && m_reset_hook2->create();
 
     return m_hooked;
 }
@@ -95,7 +95,7 @@ bool D3D9Hook::unhook() {
 
     if (!m_hooked) { return true; }
 
-    if (m_present_hook->remove() && m_reset_hook->remove() &&  m_reset_hook2->remove()) {
+    if (m_present_hook->remove() && m_reset_hook->remove() &&  m_reset_hook2->remove() && g_reset_hook_vtable->remove()) {
         m_hooked = false;
         return true;
     }
@@ -156,7 +156,7 @@ HRESULT WINAPI D3D9Hook::reset(IDirect3DDevice9 *p_device, D3DPRESENT_PARAMETERS
 	return p_device->Reset(p_presentation_parameters);
 }
 
-HRESULT WINAPI  D3D9Hook::reset_vtable(IDirect3DDevice9* p_device, D3DPRESENT_PARAMETERS* p_presentation_parameters) {
+HRESULT WINAPI D3D9Hook::reset_vtable(IDirect3DDevice9* p_device, D3DPRESENT_PARAMETERS* p_presentation_parameters) {
 
     g_d3d9_hook->m_device = p_device;
     g_d3d9_hook->m_presentation_params = p_presentation_parameters;
