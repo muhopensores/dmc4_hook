@@ -67,7 +67,7 @@ void ModTwCmdSuperhot::on_frame(fmilliseconds& dt) {
 void ModTwCmdSuperhot::on_gui_frame() { 
 	ImGui::Checkbox("SUPERHOT Mode", &mod_enabled);
     if (mod_enabled) {
-        ImGui::PushItemWidth(224);
+        ImGui::PushItemWidth(sameLineItemWidth);
 		ImGui::InputFloat("Velocity Factor", &tiny, 0.01f);
         ImGui::PopItemWidth();
 	}

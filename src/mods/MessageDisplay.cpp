@@ -34,7 +34,7 @@ void MessageDisplayMod::on_gui_frame() {
     help_marker("Show/Hide popups at the top left such as \"Infinite Health (All) On\"");
 
     ImGui::Checkbox("Keyboard Navigation", &enable_keyboard_navigation);
-    ImGui::SameLine(205);
+    ImGui::SameLine(sameLineWidth);
     ImGui::Checkbox("Gamepad Navigation", &enable_gamepad_navigation);
 
     // I would do this not on tick but idk how to use getIO in onConfigLoad without crashing

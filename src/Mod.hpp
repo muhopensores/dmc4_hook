@@ -26,6 +26,8 @@ public:
         REGULAR,
         SLOW
     };
+    float sameLineWidth = 250.0f;
+    float sameLineItemWidth = 150.0f;
 
     //std::unique_ptr<utility::Hotkey> m_hotkey;
     std::vector<std::unique_ptr<utility::Hotkey>> m_hotkeys;

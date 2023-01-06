@@ -43,7 +43,7 @@ void RoseOptions::on_gui_frame() {
     }
     ImGui::SameLine();
     help_marker("Rose will hit the enemy and then continue past the enemy");
-
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Rose Survives Objects", &enabled_no_despawn_object)) {
         toggle_disable_rose_despawn_on_hitting_object(enabled_no_despawn_object);
     }

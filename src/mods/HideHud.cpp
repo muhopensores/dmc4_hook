@@ -314,7 +314,7 @@ void HideHud::on_gui_frame() {
     if (ImGui::Checkbox("Hide Timer", &mod_enabled_timer)) {
         toggle_timer(mod_enabled_timer);
     }
-    ImGui::SameLine(205);
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Hide HP HUD", &mod_enabled_health)) {
         toggle_health(mod_enabled_health);
     }
@@ -322,7 +322,7 @@ void HideHud::on_gui_frame() {
     if (ImGui::Checkbox("Hide Orbs HUD", &mod_enabled_orbs)) {
         toggle_orbs(mod_enabled_orbs);
     }
-    ImGui::SameLine(205);
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Hide Style HUD", &mod_enabled_style)) {
         toggle_style(mod_enabled_style);
     }
@@ -330,7 +330,7 @@ void HideHud::on_gui_frame() {
     if (ImGui::Checkbox("Style Dial Only", &mod_enabled_boey)) {
         toggle_boey(mod_enabled_boey);
     }
-    ImGui::SameLine(205);
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Never Hide Weapons HUD", &mod_enabled_weapon_selected)) {
         toggle_weapon_display(mod_enabled_weapon_selected);
     }

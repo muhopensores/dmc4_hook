@@ -107,7 +107,7 @@ void FastStart::on_gui_frame() {
 	ImGui::Checkbox("Fast Game Load", &mod_enabled);
     ImGui::SameLine();
     help_marker("The game will skip all opening screens and load the first save slot");
-    ImGui::SameLine(205);
+    ImGui::SameLine(sameLineWidth);
 	ImGui::Checkbox("Fast Menu Fades", &skip_fades);
     ImGui::SameLine();
     help_marker("Skip the fades between some menus");

@@ -48,7 +48,7 @@ void WorkRate::on_gui_frame() {
 			ImGui::Spacing();
 			return;
 		}
-		ImGui::PushItemWidth(224);
+		ImGui::PushItemWidth(sameLineItemWidth);
 		ImGui::InputFloat("Turbo Value", &s_work_rate_ptr->turbo_speed, 0.1f, 0.5f, "%.1f%");
 		ImGui::Spacing();
         ImGui::InputFloat("Game Speed", &s_work_rate_ptr->game_speed, 0.1f, 0.5f, "%.1f%");
@@ -68,9 +68,9 @@ void WorkRate::on_gui_frame() {
 		ImGui::Checkbox("Disable Game Pause when opening the trainer", &disable_trainer_pause);
         ImGui::Checkbox("Force Custom Turbo", &force_custom_turbo);
         ImGui::SameLine();
-        help_marker("This turbo won't be disableed on room change");
+        help_marker("This turbo won't be disabled on room change");
 		if (force_custom_turbo) {
-			ImGui::PushItemWidth(224);
+			ImGui::PushItemWidth(sameLineItemWidth);
 			ImGui::InputFloat("Custom Turbo", &custom_turbo, 0.1f, 0.5f, "%.1f%");
 			ImGui::PopItemWidth();
 		}

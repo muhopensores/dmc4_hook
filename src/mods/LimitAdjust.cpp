@@ -57,16 +57,18 @@ void LimitAdjust::f_target(bool enable) {
 }
 
 void LimitAdjust::on_gui_frame() {
-    if (ImGui::Checkbox("Remove Sword & Gun Switch Limit", &gun_sword)) {
+    if (ImGui::Checkbox("Sword & Gun Switch Limit", &gun_sword)) {
         f_sword_and_gun(gun_sword);
     }
-    if (ImGui::Checkbox("Remove Enemy Step Limit", &enemy_step)) {
+    ImGui::SameLine(sameLineWidth);
+    if (ImGui::Checkbox("Enemy Step Limit", &enemy_step)) {
         f_enemy_step(enemy_step);
     }
-    if (ImGui::Checkbox("Remove Style Switch Limit", &style)) {
+    if (ImGui::Checkbox("Style Switch Limit", &style)) {
         f_style(style);
     }
-    if (ImGui::Checkbox("Remove Target Switch Limit", &target)) {
+    ImGui::SameLine(sameLineWidth);
+    if (ImGui::Checkbox("Target Switch Limit", &target)) {
         f_target(target);
     }
 }

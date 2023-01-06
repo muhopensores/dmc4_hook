@@ -70,7 +70,7 @@ void InfAllHealth::on_gui_frame() {
         else
             mod_enabled = false;
     }
-    ImGui::SameLine(205);
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Infinite Health (Enemy)", &enemy_invincible)) {
         if (player_invincible && enemy_invincible)
             mod_enabled = true;
