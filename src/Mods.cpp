@@ -112,11 +112,11 @@ Mods::Mods() {
     ADD_MOD(MessageDisplayMod); // keep this one at the 0 index for overlay;
     ADD_MOD(BackgroundRendering);
     ADD_MOD(Borderless);
-    ADD_MOD(TwitchClient);
+    ADD_MOD(TwitchClient); // keep as 3
     // regular mods
     // add mods here
     // m_mods["ModName"_hash] = std::make_unique<ModName>();
-    ADD_MOD(PlayerTracker);
+    ADD_MOD(PlayerTracker); // keep as 4
     ADD_MOD(FastStart);
     ADD_MOD(AreaJump);
     ADD_MOD(LimitAdjust);
