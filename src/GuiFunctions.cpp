@@ -530,6 +530,8 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("TurnSpeedEdits"_hash);
 
+                    pmods->on_draw_ui("TrackingSkyStar"_hash);
+
                     ImGui::Spacing();
                     ImGui::Text("Lucifer");
                     ImGui::Spacing();

@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/TrackingSkyStar.hpp
+  mods/TrackingSkyStar.cpp
   mods/TurnSpeedEdits.hpp
   mods/TurnSpeedEdits.cpp
   mods/LoadOrder.hpp

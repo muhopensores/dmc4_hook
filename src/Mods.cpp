@@ -89,6 +89,7 @@
 #include "mods/RoomRespawn.hpp"
 #include "mods/RoseOptions.hpp"
 #include "mods/TurnSpeedEdits.hpp"
+#include "mods/TrackingSkyStar.hpp"
 #include "mods/ShaderEditor.hpp"
 #include "mods/TwCmdHolyWater.hpp"
 #include "mods/TwCmdPlayerTransforms.hpp"
@@ -202,6 +203,7 @@ Mods::Mods() {
     ADD_MOD(FasterFastDrive);
     ADD_MOD(RoseOptions);
     ADD_MOD(TurnSpeedEdits);
+    ADD_MOD(TrackingSkyStar);
     ADD_MOD(InstantTrick);
     //ADD_MOD(ShaderEditor); // unfinished
     ADD_MOD(LoadOrder); // in debug tab for now until i figure out how to get rid of SEH exceptions
