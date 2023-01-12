@@ -22,4 +22,5 @@ public:
 private:
     std::unique_ptr<FunctionHook> hook;
     std::unique_ptr<Patch> patch;
+    std::unique_ptr<Patch> patch2;
 };

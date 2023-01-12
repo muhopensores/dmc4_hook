@@ -13,12 +13,12 @@ naked void tracking_sky_star_proc(void) {
 
         cmp dword ptr [esi+0x0000141C],00 // how far is stick held
         ja originalcode
-        //cmp dword ptr [esi+000016D0],00 // locked off?
-        //je originalcode
+        // cmp dword ptr [esi+000016D0],00 // locked off?
+        // je originalcode
         pushad
         mov ebx, 1
         mov ecx, 4
-        //mov edx,3 // unused
+        // mov edx,3 // unused
         fld dword ptr [turn_speed]
         mov edx, [esi]
         mov eax, [edx+0x000002B4]

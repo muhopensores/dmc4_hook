@@ -53,6 +53,7 @@ void PlayerTracker::on_gui_frame() {
         uintptr_t player_base = *player_ptr;
         if (player_base)
         {
+            int& controller_id = *(int*)(player_base + 0x1494);
             float* player_xyz[3];
                 player_xyz[0] = (float*)(player_base + 0x30);
                 player_xyz[1] = (float*)(player_base + 0x34);
@@ -103,7 +104,6 @@ void PlayerTracker::on_gui_frame() {
                         "fucking meteor or some shit then it's inertia isn't changing. Get it right NERD");
             ImGui::InputScalar("Weight ##1", ImGuiDataType_U8, &player_weight);
             ImGui::InputScalar("Lock On ##1", ImGuiDataType_U8, &player_lock_on);
-            int& controller_id = *(int*)(player_base + 0x1494);
             if (controller_id == 0) { // dante
                 ImGui::InputFloat("Disaster Gauge ##1", &player_disaster);
             } else { // nero

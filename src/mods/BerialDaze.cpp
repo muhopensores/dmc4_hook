@@ -11,7 +11,7 @@ naked void detour(void) {
 
 			movss xmm0, [esi+0x00001B70]
 			addss xmm0, [esi+0x00001B70]
-			movss [esi+0x1B80], xmm0
+			movss [esi+0x00001B80], xmm0
 			jmp dword ptr [BerialDaze::jmp_ret]
 		
 		originalcode:
@@ -23,9 +23,11 @@ naked void detour(void) {
 void BerialDaze::toggle(bool enable) {
     if (enable) {
         install_patch_offset(0x23515B, patch, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+        install_patch_offset(0x234FE2, patch2, "\xEB\x7D", 2); // jmp
     }
     else {
         patch.reset();
+        patch2.reset(); // jna
     }
 }
 
