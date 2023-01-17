@@ -175,7 +175,7 @@ void CharacterSwap::on_gui_frame()
         toggle_dante(dante_enabled);
         toggle_nero(nero_enabled);
     }
-    ImGui::SameLine(205);
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Force Dante", &dante_enabled))
     {
         nero_enabled = false;

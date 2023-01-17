@@ -23,11 +23,13 @@
 #include "fw-imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
 
-#define GUI_VERSION "DMC4Hook 1.4.2"
+#define GUI_VERSION "DMC4Hook 1.4.3"
 
 static constexpr char* version{GUI_VERSION};
 static float g_window_height_hack{ 1080.0f };
 static float g_max{ 0.0f };
+static float windowWidth   = 550.0f;
+static float sameLineWidth = 250.0f; // another copy of this is in mod.hpp, I was too scared to include that here
 namespace gui {
 
     inline void under_line(const ImColor& col) {
@@ -214,7 +216,7 @@ namespace gui {
         io.IniFilename = NULL;
         ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Once);
         g_max = io.DisplaySize[1] * 0.9f;
-        ImGui::SetNextWindowSize(ImVec2(450.0f, io.DisplaySize[1] * 0.9f));
+        ImGui::SetNextWindowSize(ImVec2(windowWidth, io.DisplaySize[1] * 0.9f));
     }
 
     // imgui::being seperated into function (required to make gui overlay work, see imgui example and documentation
@@ -347,13 +349,13 @@ namespace gui {
         // specific imgui functions, can be looked up in examples or the documentation
         // references/ points to other functions to apply logic behind the gui toggles/ objects
         {
-            ImGui::SetNextWindowSize(ImVec2(450.0f, g_window_height_hack));
+            ImGui::SetNextWindowSize(ImVec2(windowWidth, g_window_height_hack));
             begin_drawing();
             ImGui::SameLine(0, 0);
             fps_drawing();
             ImGui::Spacing();
             pmods->on_draw_ui("Borderless"_hash);
-            ImGui::SameLine(350.0f);
+            ImGui::SameLine(windowWidth-100.0f);
             if (ImGui::Button("Save Config")) {
                 pmods->on_config_save();
             }
@@ -373,7 +375,7 @@ namespace gui {
                     // pmods->onDrawUI("InfPlayerHealth"_hash);
 
                     pmods->on_draw_ui("InfDT"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("InfRevive"_hash);
 
                     pmods->on_draw_ui("RestoreMaxHp"_hash); // needs its own line
@@ -390,11 +392,11 @@ namespace gui {
                     pmods->on_draw_ui("EnemyDT"_hash);
 
                     pmods->on_draw_ui("DmdLevelAi"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("LdkWithDmd"_hash);
 
                     pmods->on_draw_ui("DisableChimeraBlades"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("FrostsDontJump"_hash);
 
                     pmods->on_draw_ui("EnemyAttackOffScreen"_hash); // needs its own line
@@ -420,15 +422,15 @@ namespace gui {
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("StunAnything"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("RemoveLaunchArmour"_hash);
 
                     pmods->on_draw_ui("DtEnemiesDontStun"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("InfFaustCloak"_hash);
 
                     pmods->on_draw_ui("FreezeEnemies"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("BerialDaze"_hash);
                     g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
                     ImGui::EndChild();
@@ -443,9 +445,9 @@ namespace gui {
 
                     pmods->on_draw_ui("LimitAdjust"_hash); // needs its own line
 
-                    pmods->on_draw_ui("HeightRestrictionNero"_hash); // needs its own line
-
-                    pmods->on_draw_ui("HeightRestrictionDante"_hash); // needs its own line
+                    pmods->on_draw_ui("HeightRestrictionNero"_hash);
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("HeightRestrictionDante"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -455,19 +457,19 @@ namespace gui {
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("FastSprint"_hash);
-                    ImGui::SameLine(205);
-                    pmods->on_draw_ui("NoHbKnockback"_hash); // needs to be on the right
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("NoHbKnockback"_hash);
 
                     pmods->on_draw_ui("EasyJc"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("FreeJc"_hash);
 
                     pmods->on_draw_ui("NoDtCooldown"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("NoClip"_hash);
 
                     pmods->on_draw_ui("InfAirHikes"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("Quicksilver"_hash);
 
                     pmods->on_draw_ui("BigHeadMode"_hash); // needs its own line
@@ -484,7 +486,7 @@ namespace gui {
                     pmods->on_draw_ui("NeroFullHouse"_hash); // needs its own line
 
                     pmods->on_draw_ui("NeroSnatchLength"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("InfTableHopper"_hash);
 
                     pmods->on_draw_ui("InfCalibur"_hash);
@@ -497,34 +499,38 @@ namespace gui {
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("TrackingFullHouse"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("TrickDown"_hash);
 
                     pmods->on_draw_ui("SkipWeapons"_hash); // needs its own line
 
                     pmods->on_draw_ui("ManualTwosomeTime"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("FastPandora"_hash);
 
                     pmods->on_draw_ui("TimerMem"_hash); // instant honeycomb
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("ChargeChecker"_hash); // currently just faster roundtrip
 
                     pmods->on_draw_ui("ActiveBlock"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("KnockbackEdits"_hash); // currently just release stun
 
                     pmods->on_draw_ui("InfTrickRange"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("InstantTrick"_hash);
 
                     pmods->on_draw_ui("InfSkyStars"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("InfDreadnaught"_hash);
 
                     pmods->on_draw_ui("FasterFastDrive"_hash); // needs its own line, has easy fast drive too
 
                     pmods->on_draw_ui("RgMultiplier"_hash);
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("TurnSpeedEdits"_hash);
+
+                    pmods->on_draw_ui("TrackingSkyStar"_hash);
 
                     ImGui::Spacing();
                     ImGui::Text("Lucifer");
@@ -533,7 +539,7 @@ namespace gui {
                     pmods->on_draw_ui("RoseRemovesPins"_hash); // needs its own line
                     
                     pmods->on_draw_ui("ForceLucifer"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("InputStates"_hash); // taunt ecstasy
 
                     ImGui::Spacing();
@@ -586,7 +592,7 @@ namespace gui {
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("InfiniteTime"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("HpInOrbsDisplay"_hash);
 
                     pmods->on_draw_ui("HideHud"_hash); // needs its own line
@@ -614,7 +620,7 @@ namespace gui {
                     pmods->on_draw_ui("CharacterSwap"_hash); // needs its own line
 
                     pmods->on_draw_ui("NoAutomaticCharacters"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("SlowWalk"_hash);
 
                     pmods->on_draw_ui("BpPortal"_hash); // needs its own line
@@ -628,7 +634,7 @@ namespace gui {
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("BackgroundRendering"_hash);
-                    ImGui::SameLine(205);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("MessageDisplayMod"_hash);
 
                     pmods->on_draw_ui("TwCmdPlayerTransforms"_hash); // empty

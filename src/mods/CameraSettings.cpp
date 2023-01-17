@@ -340,7 +340,7 @@ void CameraSettings::toggle_disable_last_enemy_zoom(bool toggle) {
 void CameraSettings::on_gui_frame() {
     if (ImGui::CollapsingHeader("Camera")) {
         ImGui::Checkbox("Custom Camera Variables", &mod_enabled);
-        ImGui::PushItemWidth(224);
+        ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::InputFloat("Camera Height", &CameraSettings::camera_height, 1.0f, 1.0f, "%.0f");
         ImGui::Spacing();
         ImGui::InputFloat("Camera Distance", &CameraSettings::camera_distance, 1.0f, 10.0f, "%.0f%");
@@ -363,7 +363,7 @@ void CameraSettings::on_gui_frame() {
         }
 
         ImGui::Checkbox("Increased Sensitivity", &camera_sens_enabled);
-        ImGui::SameLine(205);
+        ImGui::SameLine(sameLineWidth);
         if (ImGui::Checkbox("Disable Last Enemy Zoom", &disable_last_enemy_zoom)) {
             toggle_disable_last_enemy_zoom(disable_last_enemy_zoom);
         }
@@ -373,7 +373,7 @@ void CameraSettings::on_gui_frame() {
         }
         ImGui::SameLine();
         help_marker("Activate this before starting a level! Forces Free Cam and allows it to pass through walls");
-        ImGui::SameLine(205);
+        ImGui::SameLine(sameLineWidth);
         if (ImGui::Checkbox("Camera Lookdown", &camera_lookdown_enabled)) {
             toggle_camera_lookdown(camera_lookdown_enabled);
         }
@@ -385,7 +385,7 @@ void CameraSettings::on_gui_frame() {
         }
         ImGui::SameLine();
         help_marker("When pressing the button that resets the camera behind Dante, the camera will instead be set to Dante's left");
-        ImGui::SameLine(205);
+        ImGui::SameLine(sameLineWidth);
         if (ImGui::Checkbox("Right Side Reset", &cam_right)) {
             camera_reset_enabled = 0;
         }

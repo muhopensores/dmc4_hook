@@ -148,15 +148,15 @@ void SelectiveCancels::on_gui_frame() {
 			ImGui::Spacing();
 
 			draw_checkbox_simple("Ecstasy", ECSTASY);
-			ImGui::SameLine(205);
+			ImGui::SameLine(sameLineWidth);
 			draw_checkbox_simple("Kick 13", KICK13);
 
 			draw_checkbox_simple("Prop", PROP);
-			ImGui::SameLine(205);
+			ImGui::SameLine(sameLineWidth);
 			draw_checkbox_simple("Shock", SHOCK);
 
 			draw_checkbox_simple("Slash Dimension", SLASH_DIMENSION);
-			ImGui::SameLine(205);
+			ImGui::SameLine(sameLineWidth);
 			draw_checkbox_simple("DT Pin Up Part 2", DT_PIN_UP_P2);
 
 			draw_checkbox_simple("Showdown", SHOWDOWN);
@@ -166,11 +166,11 @@ void SelectiveCancels::on_gui_frame() {
 			ImGui::Spacing();
 
 			draw_checkbox_simple("Omen", OMEN);
-			ImGui::SameLine(205);
+			ImGui::SameLine(sameLineWidth);
 			draw_checkbox_simple("Epidemic", EPIDEMIC);
 
 			draw_checkbox_simple("Argument", ARGUMENT);
-			ImGui::SameLine(205);
+			ImGui::SameLine(sameLineWidth);
 			draw_checkbox_simple("Gun Stinger", GUNSTINGER);
 	}
 	ImGui::Spacing();

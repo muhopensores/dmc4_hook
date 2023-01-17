@@ -28,7 +28,7 @@ void CutsceneSkip::on_gui_frame() {
     if (ImGui::Checkbox("Skip Mission Intros", &mod_enabled_intro)) {
         toggle_intro(mod_enabled_intro);
     }
-    ImGui::SameLine(205);
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Skip Mission Outros", &mod_enabled_outro)) {
         toggle_outro(mod_enabled_outro);
     }

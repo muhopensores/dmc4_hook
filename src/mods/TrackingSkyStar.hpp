@@ -2,15 +2,14 @@
 
 #include "../mod.hpp"
 
-class BerialDaze : public Mod {
+class TrackingSkyStar : public Mod {
 public:
-    BerialDaze() = default;
+    TrackingSkyStar() = default;
 
     static bool mod_enabled;
-    static uintptr_t jmp_ret;
-    void toggle(bool enable);
+    static uintptr_t tracking_sky_star_continue;
 
-    std::string get_mod_name() override { return "BerialDaze"; };
+    std::string get_mod_name() override { return "TrackingSkyStar"; };
 
     std::optional<std::string> on_initialize() override;
 
@@ -21,6 +20,4 @@ public:
 
 private:
     std::unique_ptr<FunctionHook> hook;
-    std::unique_ptr<Patch> patch;
-    std::unique_ptr<Patch> patch2;
 };

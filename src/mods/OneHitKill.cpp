@@ -75,7 +75,7 @@ void OneHitKill::on_gui_frame() {
     }
     ImGui::SameLine();
     help_marker("Disables dying while still allowing hp to drop. Also stops Omen killing enemies.");
-    ImGui::SameLine(205);
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("One Hit Kill", &one_hit_kill)) {
         cant_die = false;
         no_death_toggle(cant_die);

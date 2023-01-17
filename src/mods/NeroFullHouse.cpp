@@ -213,7 +213,7 @@ void NeroFullHouse::on_gui_frame() {
     }
     ImGui::SameLine();
     help_marker("Very work in progress");
-    ImGui::SameLine(205);
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Remap Helm Splitter", &helm_splitter_remap)) {
         if (helm_splitter_remap) {
             *(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE;

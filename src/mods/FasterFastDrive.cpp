@@ -24,7 +24,7 @@ void FasterFastDrive::on_gui_frame() {
     }
     ImGui::SameLine();
     help_marker("Quick Drive skips the initial slash");
-    ImGui::SameLine(205);
+    ImGui::SameLine(sameLineWidth);
     ImGui::Checkbox("Easy Quick Drive", &easy_fast_drive_enabled);
     ImGui::SameLine();
     help_marker("Prop is cancellable into quick drive until frame 7");

@@ -149,7 +149,7 @@ void BigHeadMode::on_gui_frame() {
         if (g_swole_mode == true)
             g_swole_mode = false;
 	}
-    ImGui::SameLine(205);
+    ImGui::SameLine(sameLineWidth);
 	if (ImGui::Checkbox("Swole Mode", &g_swole_mode)) {
 		g_enable_mod = g_swole_mode;
 	}

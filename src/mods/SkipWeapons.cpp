@@ -105,13 +105,13 @@ void SkipWeapons::on_gui_frame() {
 	if (!hooked) { return; }
     if (ImGui::Checkbox("Skip Shotgun", &skip_shotgun))
 		skip_pandora = false;
-    ImGui::SameLine(205);
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Skip Gilgamesh", &skip_gilgamesh))
         skip_lucifer = false;
 
     if (ImGui::Checkbox("Skip Pandora", &skip_pandora))
         skip_shotgun = false;
-    ImGui::SameLine(205);
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Skip Lucifer", &skip_lucifer))
         skip_gilgamesh = false;
 }
