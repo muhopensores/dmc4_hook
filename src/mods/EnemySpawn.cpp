@@ -11,7 +11,8 @@ static uintptr_t some_struct{0x00E552CC};
 
 static SMediator* s_med_ptr             = nullptr;
 static uPlayer* u_local_plr             = nullptr;
-static int enemy_spawning              = 0;
+static int enemy_spawning               = 0;
+static std::recursive_mutex g_recursive_mutex;
 bool g_enable_twitch_special_spawns = false;
 bool g_forbid_cumrain = false;
 bool g_show_cum = false;
@@ -215,6 +216,7 @@ void set_enemy_position(UEnemySomething* em) {
 }
 
 void spawn_em00x(int index) {
+    std::lock_guard<std::recursive_mutex> lk(g_recursive_mutex);
     uintptr_t em_function_pointer = fptr_em_factories.at(index);
     __asm {
 		pushad

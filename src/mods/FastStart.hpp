@@ -20,4 +20,5 @@ private:
     std::unique_ptr<FunctionHook> hook_u_fade;
     std::unique_ptr<Patch> bp_fade_patch1;
     std::unique_ptr<Patch> bp_fade_patch2;
+    std::unique_ptr<Patch> shaderlog_patch;
 };

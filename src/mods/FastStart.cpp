@@ -86,6 +86,23 @@ naked void detour_u_fade() {
 }
 
 std::optional<std::string> FastStart::on_initialize() {
+
+#if 0 // DIDNT WORK LMAOO
+	// invalidate shaderlog.sig filename
+	static constexpr uintptr_t slog_ptr = 0x00C0070C;
+	static constexpr size_t slog_strlen = 14;
+	auto old_protect = Patch::protect(slog_ptr, slog_strlen, PAGE_EXECUTE_READWRITE);
+	if (old_protect) {
+		memset((void*)slog_ptr, 0, slog_strlen);
+		Patch::protect(slog_ptr, slog_strlen, old_protect.value());
+	}
+#else
+	if (DeleteFileA("nativePC\\shaderlog.slg")) {
+		DISPLAY_MESSAGE("[FastStart]: Deleted shaderlog.sig, restart the game for faster loads");
+	}
+#endif
+
+
 	install_hook_absolute(0x008DB77D, hook_dti, detour, &jmp_ret, 5);
 	install_hook_absolute(0x00739632, hook_u_fade, detour_u_fade, &jmp_ret_u_fade, 5);
 
