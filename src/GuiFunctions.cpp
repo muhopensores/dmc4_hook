@@ -464,10 +464,10 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("FreeJc"_hash);
 
-                    pmods->on_draw_ui("NoDtCooldown"_hash);
+                    pmods->on_draw_ui("NoClip"_hash); // own line
                     ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("NoClip"_hash);
-
+                    pmods->on_draw_ui("NoDtCooldown"_hash);
+                    
                     pmods->on_draw_ui("InfAirHikes"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("Quicksilver"_hash);

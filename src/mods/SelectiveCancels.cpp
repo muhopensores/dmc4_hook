@@ -19,7 +19,7 @@ naked void selective_cancels_proc() {
 		jne originalcode
 
 		cmp [MoveIds::move_id],0x411						// Grounded Ecstasy	// Checks move id like usual every tick
-		je cancellableecstasy							// If correct moveid, check against Gui:
+		je cancellableecstasy								// If correct moveid, check against Gui:
 		cmp [MoveIds::move_id],0x412						// Aerial Ecstasy
 		je cancellableecstasy
 		cmp [MoveIds::move_id],0x732						// Argument
@@ -42,14 +42,14 @@ naked void selective_cancels_proc() {
 		je cancellableepidemic
 		cmp [MoveIds::move_id],0x410						// DT Pin Up part 2
 		je cancellableDTPinUp
-		cmp [MoveIdsNero::move_id_nero],0x33B // Showdown
+		cmp [MoveIdsNero::move_id_nero],0x33B				// Showdown
 		je cancellableShowdown
 		jmp originalcode
 
 			cancellableecstasy:
 			test [SelectiveCancels::cancels], ECSTASY	// If Gui is ticked,
-			jg cancellable						    // make the move cancellable
-			jmp originalcode						// if not, don't make it cancellable
+			jg cancellable								// make the move cancellable
+			jmp originalcode							// if not, don't make it cancellable
 
 			cancellableargument:
 			test [SelectiveCancels::cancels], ARGUMENT

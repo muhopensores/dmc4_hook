@@ -250,9 +250,9 @@ void InputStates::play_rose(void) {
     uint8_t& move_id = *(uint8_t*)((uintptr_t)u_local_plr + 0x1564);
     uint8_t& move_part = *(uint8_t*)((uintptr_t)u_local_plr + 0x1504);
     uint8_t& move_cancel_byte_1 = *(uint8_t*)((uintptr_t)u_local_plr + 0x1550);
-    uint8_t& move_cancel_byte_2     = *(uint8_t*)((uintptr_t)u_local_plr + 0x1551);
-    uint8_t& move_cancel_byte_3    = *(uint8_t*)((uintptr_t)u_local_plr + 0x1552);
-    uint8_t& move_cancel_byte_4     = *(uint8_t*)((uintptr_t)u_local_plr + 0x1553);
+    uint8_t& move_cancel_byte_2 = *(uint8_t*)((uintptr_t)u_local_plr + 0x1551);
+    uint8_t& move_cancel_byte_3 = *(uint8_t*)((uintptr_t)u_local_plr + 0x1552);
+    uint8_t& move_cancel_byte_4 = *(uint8_t*)((uintptr_t)u_local_plr + 0x1553);
     uint8_t& weight = *(uint8_t*)((uintptr_t)u_local_plr + 0x1E7D);
     uint8_t& weapon_change_disable = *(uint8_t*)((uintptr_t)u_local_plr + 0x14F0);
 

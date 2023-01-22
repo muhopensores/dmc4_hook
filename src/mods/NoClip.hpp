@@ -9,8 +9,10 @@ public:
     NoClip() = default;
 
     static bool mod_enabled;
+    static bool mod_enabled_2;
 
     void toggle(bool enable);
+    void toggle2(bool enable);
 
     std::string get_mod_name() override { return "NoClip"; };
 
@@ -29,4 +31,5 @@ private:
     std::size_t m_command;
     std::unique_ptr<Patch> patch1;
     std::unique_ptr<Patch> patch2;
+    std::unique_ptr<Patch> patch3;
 };
