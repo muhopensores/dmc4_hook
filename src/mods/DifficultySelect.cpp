@@ -5,15 +5,19 @@
 static int game_difficulty = 0;
 
 std::optional<std::string> DifficultySelect::on_initialize() {
+
+  m_diffs[def] = &DifficultySelect::set_default;
+  m_diffs[dmd] = &DifficultySelect::set_dmd;
+  m_diffs[gmd] = &DifficultySelect::set_gmd;
     MutatorRegistry::define("DanteMustDieDifficulty").alias("SetDMD")
         .description("hehe")
-        .on_init([&] { set_dmd(); })
-        .set_timer(35.0, [&] {set_default(); });
+        .on_init([&] { m_diffs[dmd](this); })
+        .set_timer(120.0, [&] { m_diffs[game_difficulty](this); });
 
     MutatorRegistry::define("GodMustDie").alias("SetGMD")
         .description("hehe")
-        .on_init([&] { set_gmd(); })
-        .set_timer(35.0, [&] {set_default(); });
+        .on_init([&] { m_diffs[gmd](this); })
+        .set_timer(120.0, [&] { m_diffs[game_difficulty](this); });
         
     return Mod::on_initialize();
 }
@@ -317,6 +321,7 @@ void DifficultySelect::set_gmd() {
 
 void DifficultySelect::on_config_load(const utility::Config& cfg) {
     game_difficulty = cfg.get<int>("game_difficulty").value_or(0);
+#if 0
     if (game_difficulty) {
         switch (game_difficulty) {
         case 0:
@@ -330,6 +335,11 @@ void DifficultySelect::on_config_load(const utility::Config& cfg) {
             break;
         }
     }
+#else
+    if (game_difficulty != 0) {
+        m_diffs[game_difficulty](this);
+    }
+#endif
 }
 
 void DifficultySelect::on_config_save(utility::Config& cfg) {
@@ -339,6 +349,7 @@ void DifficultySelect::on_config_save(utility::Config& cfg) {
 void DifficultySelect::on_gui_frame() {
     ImGui::PushItemWidth(sameLineItemWidth);
     if (ImGui::Combo("Game Mode", &game_difficulty, "Default\0Dante Must Die\0God Must Die\0")) {
+#if 0
         switch (game_difficulty)
         {
         case 0:
@@ -351,6 +362,9 @@ void DifficultySelect::on_gui_frame() {
             set_gmd();
             break;
         }
+#else
+        m_diffs[game_difficulty](this);
+#endif
     }
     ImGui::PopItemWidth();
     ImGui::Spacing();

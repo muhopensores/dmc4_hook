@@ -313,11 +313,6 @@ void TwitchClient::start_voting() {
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
 void TwitchClient::on_gui_frame() { 
-	if (!libirc_loaded) {
-		ImGui::Text("libircclient.dll not found, twitch support disabled");
-		return;
-	}
-
     if (ImGui::CollapsingHeader("Random timed gameplay mods")) {
         if (m_standalone) {
             ImGui::Text("Random gameplay mods active");
@@ -354,6 +349,10 @@ void TwitchClient::on_gui_frame() {
 
     }
 
+	  if (!libirc_loaded) {
+		  ImGui::Text("libircclient.dll not found, twitch support disabled");
+		  return;
+	  }
 	if ( ImGui::CollapsingHeader( "Twitch Integration" ) ) {
 		ImGui::TextWrapped(
 			"Filling both fields and enabling one of the options below will allow "
