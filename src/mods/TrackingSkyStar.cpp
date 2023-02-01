@@ -49,7 +49,7 @@ std::optional<std::string> TrackingSkyStar::on_initialize() {
 }
 
 void TrackingSkyStar::on_gui_frame() {
-    ImGui::Checkbox("Tracking Sky Star", &mod_enabled);
+    ImGui::Checkbox("Auto Facing Sky Star", &mod_enabled);
 }
 
 void TrackingSkyStar::on_config_load(const utility::Config& cfg) {
