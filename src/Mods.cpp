@@ -315,6 +315,9 @@ void Mods::on_chat_command(const std::string& message) {
 #endif
 
 void Mods::on_update_input(utility::Input& input) {
+    if (g_framework->get_window_handle() != GetForegroundWindow()) {
+        return;
+    }
     for (auto& mod : m_mods) {
         mod->on_update_input(input);
     }

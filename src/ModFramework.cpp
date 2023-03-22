@@ -142,9 +142,11 @@ void ModFramework::on_frame() {
     m_input->update();
     m_mods->on_update_input(*m_input);
 
-    if (m_input->went_down(VK_DELETE) || m_menu_key->check(*m_input)) {
-        m_draw_ui = !m_draw_ui;
-        m_mods->on_game_pause(m_draw_ui);
+    if (g_framework->get_window_handle() == GetForegroundWindow()) {
+        if (m_input->went_down(VK_DELETE) || m_menu_key->check(*m_input)) {
+            m_draw_ui = !m_draw_ui;
+            m_mods->on_game_pause(m_draw_ui);
+        }
     }
 
     // only comforting thought about this is that microsoft code 

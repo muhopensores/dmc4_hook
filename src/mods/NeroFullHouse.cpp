@@ -86,8 +86,8 @@ naked void detour3(void) { // select full house landing animation // player in e
     }
 }
 
-float first_frame = 24.0f;
-float first_frame2 = 10.0f;
+float first_frame = 24.0f; // aerial
+float first_frame2 = 10.0f; // landing
 // 20 - 25 hits quickly
 // 22 - 25 hits but has dumb leg
 // 23 - 25 hits and has less dumb leg
