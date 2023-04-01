@@ -401,7 +401,8 @@ void CameraSettings::on_config_load(const utility::Config& cfg) {
     camera_distance_lockon = cfg.get<float>("camera_distance_lockon").value_or(0.0f);
     camera_angle = cfg.get<float>("camera_angle").value_or(0.0f);
     camera_angle_lockon = cfg.get<float>("camera_angle_lockon").value_or(0.0f);
-    camera_fov = cfg.get<float>("camera_fov_battle").value_or(0.0f);
+    camera_fov = cfg.get<float>("camera_fov").value_or(0.0f);
+    camera_fov_in_battle = cfg.get<float>("camera_fov_battle").value_or(0.0f);
     camera_sens_enabled = cfg.get<bool>("increased_camera_sensitivity").value_or(false);
     camera_auto_correct_towards_cam_enabled = cfg.get<bool>("disable_camera_autocorrect_towards_camera").value_or(false);
     toggle_attack_towards_cam(camera_auto_correct_towards_cam_enabled);
@@ -422,7 +423,8 @@ void CameraSettings::on_config_save(utility::Config& cfg) {
     cfg.set<float>("camera_distance_lockon", camera_distance_lockon);
     cfg.set<float>("camera_angle", camera_angle);
     cfg.set<float>("camera_angle_lockon", camera_angle_lockon);
-    cfg.set<float>("camera_fov_battle", camera_fov);
+    cfg.set<float>("camera_fov", camera_fov);
+    cfg.set<float>("camera_fov_battle", camera_fov_in_battle);
     cfg.set<bool>("increased_camera_sensitivity", camera_sens_enabled);
     cfg.set<bool>("disable_camera_autocorrect_towards_camera", camera_auto_correct_towards_cam_enabled);
     cfg.set<bool>("free_cam", free_cam_enabled);

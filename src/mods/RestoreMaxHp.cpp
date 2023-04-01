@@ -123,14 +123,16 @@ void RestoreMaxHp::on_frame(fmilliseconds& dt) {
 void RestoreMaxHp::on_gui_frame() {
     ImGui::Checkbox("Restore Enemy HP", &mod_enabled);
     ImGui::SameLine();
-    help_marker("Press Lock On + Taunt while grounded to restore Max HP to enemies");
+    help_marker("Press Lock On + Taunt to restore Max HP to enemies");
     ImGui::SameLine(sameLineWidth);
     ImGui::Checkbox("Reset Timer", &reset_timer);
     ImGui::SameLine();
-    help_marker("Press Lock On + Taunt while grounded to reset the BP timer");
-    ImGui::Checkbox("Disable Aerial Resets", &limit_to_ground);
-    ImGui::SameLine();
-    help_marker("Disable \"Restore Enemy HP\" and \"Reset Timer\" while aerial (Useful for Taunt Ecstasy)");
+    help_marker("Press Lock On + Taunt to reset the BP timer");
+    if (mod_enabled || reset_timer) {
+        ImGui::Checkbox("Disable Aerial Resets", &limit_to_ground);
+        ImGui::SameLine();
+        help_marker("Disable \"Restore Enemy HP\" and \"Reset Timer\" while aerial (Useful for Taunt Ecstasy)");
+    }
 }
 
 void RestoreMaxHp::on_config_load(const utility::Config& cfg) {
