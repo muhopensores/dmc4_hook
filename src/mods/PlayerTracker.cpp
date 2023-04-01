@@ -15,7 +15,7 @@ std::optional<std::string> PlayerTracker::on_initialize() {
         if (player) {
             player->m_scale = glm::vec3(0.5f, 0.5f, 0.5f);
         }
-    }).set_timer(60.0f, [] {
+    }).set_timer(30.0f, [] {
         auto player = devil4_sdk::get_local_player();
         if (player) {
             player->m_scale = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -27,7 +27,7 @@ std::optional<std::string> PlayerTracker::on_initialize() {
         if (player) {
             player->m_scale = glm::vec3(1.35f, 1.35f, 1.35f);
         }
-    }).set_timer(60.0f, [] {
+    }).set_timer(30.0f, [] {
         auto player = devil4_sdk::get_local_player();
         if (player) {
             player->m_scale = glm::vec3(1.0f, 1.0f, 1.0f);

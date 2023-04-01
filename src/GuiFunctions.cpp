@@ -7,7 +7,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #undef WIN32_LEAN_AND_MEAN
-#include "Shellapi.h"
 
 #include "./mods/BpPortal.hpp"
 #include "./mods/EnemySpawn.hpp"
@@ -18,7 +17,7 @@
 #include "./mods/OneHitKill.hpp"
 #include "./mods/Quicksilver.hpp"
 
-#include "imgui/imgui.h"
+
 #include "fw-imgui/imgui_impl_dx9.h"
 #include "fw-imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
@@ -31,13 +30,6 @@ static float g_max{ 0.0f };
 static float windowWidth   = 550.0f;
 static float sameLineWidth = 250.0f; // another copy of this is in mod.hpp, I was too scared to include that here
 namespace gui {
-
-    inline void under_line(const ImColor& col) {
-        ImVec2 min = ImGui::GetItemRectMin();
-        ImVec2 max = ImGui::GetItemRectMax();
-        min.y = max.y;
-        ImGui::GetWindowDrawList()->AddLine(min, max, col, 1.0f);
-    }
 
     // visual theme of the gui, can be changed to change the look
 
@@ -260,24 +252,6 @@ namespace gui {
             ImGui::Separator();
             ImGui::Spacing();
             ImGui::Text("For more info and updates visit the github:");
-
-            struct ImGuiURL {
-                std::string text;
-                std::string url;
-                const ImVec4 color_hover   { 0.356f, 0.764f, 0.960f, 1.00f };
-                const ImVec4 color_regular { 0.950f, 0.960f, 0.980f, 1.00f };
-
-                void draw() {
-
-                    ImGui::TextColored(color_regular, text.c_str());
-                    if (ImGui::IsItemHovered()) {
-                        under_line(color_hover);
-                    }
-                    if (ImGui::IsItemClicked()) {
-                        ShellExecuteA(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
-                    }
-                }
-            };
 
             ImGuiURL repo{ "https://github.com/muhopensores/dmc4_hook", "https://github.com/muhopensores/dmc4_hook" };
             repo.draw();

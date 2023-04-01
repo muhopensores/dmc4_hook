@@ -239,6 +239,7 @@ std::optional<std::string> Mods::on_initialize(Mod::ModType type) const {
     }
 
     if (type == Mod::ModType::SLOW) { g_framework->get_menu_key_struct()->on_config_load(cfg); }
+    MutatorRegistry::inst().load_config(cfg);
     return std::nullopt;
 }
 
@@ -260,6 +261,7 @@ void Mods::on_config_save() {
     }
 
     g_framework->get_menu_key_struct()->on_config_save(cfg);
+    MutatorRegistry::inst().save_config(cfg);
 
     if (!cfg.save(CONFIG_FILENAME)) {
         spdlog::info("Failed to save config");

@@ -134,4 +134,12 @@ namespace devil4_sdk {
     bool is_not_in_gameplay() {
         return devil4_sdk::is_paused() || (!devil4_sdk::get_local_player());
     }
+
+	bool was_gameplay_state_toggled() {
+		static bool state = false;
+		bool curr_state = is_not_in_gameplay();
+		bool ret = curr_state != state;
+		state = curr_state;
+		return ret;
+	}
 }

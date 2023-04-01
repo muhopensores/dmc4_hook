@@ -203,7 +203,7 @@ void event_channel( irc_session_t *session, const char *event, const char *origi
 }
 
 void event_numeric( irc_session_t * session, unsigned int event, const char * origin, const char ** params, unsigned int count ) {
-	if ( event > 400 ) {
+	//if ( event > 400 ) {
 		std::string fulltext;
 		for ( unsigned int i = 0; i < count; i++ ) {
 			if ( i > 0 )
@@ -216,8 +216,8 @@ void event_numeric( irc_session_t * session, unsigned int event, const char * or
 		if ( !ctx ) {
 			return;
 		}
-		ctx->twitch->on_error( event, fulltext );
-	}
+		ctx->twitch->on_error( event, fulltext.c_str() );
+	//}
 }
 /*
 Twitch::Twitch() {
@@ -226,10 +226,9 @@ Twitch::Twitch() {
 
 Twitch::~Twitch() {
 	if ( session ) {
+		disconnect();
 		TwitchContext *ctx = ( TwitchContext * ) irc_get_ctx( session );
         delete ctx;
-
-		disconnect();
 	}
 }
 
@@ -258,7 +257,7 @@ std::thread Twitch::connect( const std::string &user, const std::string &passwor
 		ctx->twitch = this;
 		irc_set_ctx( session, ctx );
 
-		irc_option_set( session, LIBIRC_OPTION_STRIPNICKS );
+		irc_option_set( session, LIBIRC_OPTION_STRIPNICKS | LIBIRC_OPTION_DEBUG);
 
 		status = TWITCH_CONNECTING;
 #ifdef TWITCH_DEBUG
@@ -273,7 +272,8 @@ std::thread Twitch::connect( const std::string &user, const std::string &passwor
 		}
 
 		if ( irc_run( session ) ) {
-			on_error( irc_errno( session ), irc_strerror( irc_errno( session ) ) );
+			if (on_error) { on_error(irc_errno(session), irc_strerror(irc_errno(session))); }
+			else { return; }
 			status = TWITCH_DISCONNECTED;
 			return;
 		}

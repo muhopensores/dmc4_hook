@@ -11,26 +11,38 @@ struct VoteEntry {
     VoteEntry(Mutator* mod) : m_mod(mod), m_votes(0), m_token(0) {};
 };
 
+using VoteTimer = std::pair<float, std::function<void()>>;
+using IdleTimer = std::pair<float, std::function<void()>>;
+
 struct VoteManager {
-    std::vector<Mutator*> m_previous_mods;
+
+    explicit VoteManager(VoteTimer&& voting_timer, IdleTimer&&idle_timer) {
+            m_voting_timer = std::make_unique<utility::Timer>((float)voting_timer.first, voting_timer.second);
+            m_idle_timer = std::make_unique<utility::Timer>((float)idle_timer.first, idle_timer.second);
+    };
+
+    std::unique_ptr<utility::Timer> m_voting_timer;
+    std::unique_ptr<utility::Timer> m_idle_timer;
+
+    std::unique_ptr<VoteEntry> m_previous_winner;
 
     std::vector<VoteEntry> m_vote_entries;
     std::vector<VoteEntry> m_vote_distribution_display;
     std::vector<size_t> m_voters;
 
+    size_t m_prev_mod_idx{ 0 };
     bool m_anti_anti_spam{ false };
-
     void on_chat_message(const std::string& sender, const std::string& msg);
+
+    inline void stop_timers() {
+        m_voting_timer->stop();
+        m_idle_timer->stop();
+    };
+
+    
 };
 
 struct Voting;
-
-struct ITwitchMode {
-    virtual void parse_message(const std::string& sender, const std::string& message) = 0;
-
-
-    virtual ~ITwitchMode() {};
-};
 
 // Define ModName class that is a Mod
 class TwitchClient : public Mod {
@@ -46,6 +58,7 @@ public:
     enum TWITCH_MODE {
         CHAOS,
         VOTING,
+        LOCAL,
         MAX
     };
 
@@ -66,12 +79,10 @@ public:
     void make_instance(bool standalone = false);
     void disconnect();
 
-    bool vote_checkbox        = false;
-    bool mirror_chat_checkbox = true; // always forget to set this when testing shit
-    bool libirc_loaded        = false;
-    int  voting_result         = 0;
-
-    ITwitchMode* m_twitch_mode{ nullptr };
+    bool   vote_checkbox        = false;
+    bool   mirror_chat_checkbox = true; // always forget to set this when testing shit
+    bool   libirc_loaded        = false;
+    int    voting_result        = 0;
 
     Twitch* twitch{ nullptr };
     std::mutex m_twitch_thread_lock;
@@ -85,16 +96,9 @@ public:
     int32_t m_vote_time{30};
     int32_t m_idle_time{15};
 
-    utility::Timer* m_voting_timer{ nullptr };
-    utility::Timer* m_idle_timer{ nullptr };
-
-    bool m_vote_disabled{ false };
     bool m_twitch_vote_debug{ false };
-    bool m_current_gameplay_state{ false };
     bool m_disable_overlay{ false };
     bool m_relay_voting_messages{ true };
-    bool m_standalone{ false };
-    char m_winner[256]{ 0 };
 private:
     char twitch_login[128]{};
     char twitch_chat_oauth_password[128]{};
@@ -107,15 +111,4 @@ private:
     void start_voting();
 };
 
-struct TwitchModeChaos : public ITwitchMode {
-    TwitchModeChaos(TwitchClient* twc) : m_twc(twc) {}
-    TwitchClient* m_twc{ nullptr };
-    void parse_message(const std::string& sender, const std::string& message) override;
-};
-
-struct TwitchModeVoting : public ITwitchMode {
-    TwitchModeVoting(TwitchClient* twc) : m_twc(twc) {}
-    TwitchClient* m_twc{ nullptr };
-    void parse_message(const std::string& sender, const std::string& message) override;
-};
 #endif

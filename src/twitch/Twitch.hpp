@@ -36,7 +36,7 @@ public:
 
 	std::function<void( const std::string &, const std::string & )> on_message = []( const std::string &, const std::string & ) {};
 	std::function<void()> on_connected = []{};
-	std::function<void( int, const std::string & )> on_error = []( int, const std::string & ){};
+	std::function<void( int, const char* )> on_error = []( int, const char* ){};
 	std::function<void()> on_disconnected = []{};
 
 private:

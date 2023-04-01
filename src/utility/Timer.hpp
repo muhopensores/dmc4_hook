@@ -22,6 +22,7 @@ namespace utility {
 		std::function<void()> m_callback;
 
 		void start();
+		void stop();
 
 		void tick(const fmilliseconds& dt);
 	};

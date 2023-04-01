@@ -12,10 +12,7 @@ static uintptr_t some_struct{0x00E552CC};
 static SMediator* s_med_ptr             = nullptr;
 static uPlayer* u_local_plr             = nullptr;
 static int enemy_spawning               = 0;
-static std::recursive_mutex g_recursive_mutex;
-bool g_enable_twitch_special_spawns = false;
-bool g_forbid_cumrain = false;
-bool g_show_cum = false;
+static std::mutex g_mutex;
 
 enum {
     HOTKEY_SPAWN_SCARECROW_LEG,
@@ -216,7 +213,7 @@ void set_enemy_position(UEnemySomething* em) {
 }
 
 void spawn_em00x(int index) {
-    std::lock_guard<std::recursive_mutex> lk(g_recursive_mutex);
+    std::lock_guard<std::mutex> lk(g_mutex);
     uintptr_t em_function_pointer = fptr_em_factories.at(index);
     __asm {
 		pushad
@@ -247,112 +244,112 @@ void spawn_em00x(int index) {
 
 std::optional<std::string> EnemySpawn::on_initialize() {
     //srand((uint32_t)this);
-    MutatorRegistry::define("SpawnScarecrowLeg")
+    MutatorRegistry::define("SpawnScarecrowLeg").weight(8)
         .description("Spawns ScarecrowLeg").alias("Leg")
         .on_init([&]() { spawn_em00x(0); });
 
-    MutatorRegistry::define("SpawnScarecrowArm")
+    MutatorRegistry::define("SpawnScarecrowArm").weight(7)
         .description("Spawns ScarecrowArm").alias("Arm")
         .on_init([&]() { spawn_em00x(1); });
 
-    MutatorRegistry::define("SpawnMega")
+    MutatorRegistry::define("SpawnMega").weight(6)
         .description("Spawns a Mega").alias("Mega")
         .on_init([&]() { spawn_em00x(2); });
 
-    MutatorRegistry::define("SpawnBianco")
+    MutatorRegistry::define("SpawnBianco").weight(10)
         .description("Spawns Bianco Angelo").alias("Bianco").alias("BA")
         .on_init([&]() { spawn_em00x(3); });
 
-    MutatorRegistry::define("SpawnAlto")
+    MutatorRegistry::define("SpawnAlto").weight(10)
         .description("Spawns Alto Angelo").alias("Alto").alias("AA")
         .on_init([&]() { spawn_em00x(4); });
 
-    MutatorRegistry::define("SpawnMephisto")
+    MutatorRegistry::define("SpawnMephisto").weight(10)
         .description("Spawns Mephisto").alias("Mephisto").alias("FlyingRat")
         .on_init([&]() { spawn_em00x(5); });
 
-    MutatorRegistry::define("SpawnFaust")
+    MutatorRegistry::define("SpawnFaust").weight(10)
         .description("Spawns Faust").alias("FlyingRatDaddy").alias("EdwardScissorhands")
         .on_init([&]() { spawn_em00x(6); });
 
-    MutatorRegistry::define("SpawnFrost")
+    MutatorRegistry::define("SpawnFrost").weight(10)
         .description("Spawns Frost").alias("Frost").alias("frot").alias("iWantIcecream")
         .alias("Icecube")
         .on_init([&]() { spawn_em00x(7); });
 
-    MutatorRegistry::define("SpawnAssault")
+    MutatorRegistry::define("SpawnAssault").weight(10)
         .description("Spawns Assault").alias("Assault").alias("Lizard")
         .on_init([&]() { spawn_em00x(8); });
 
     MutatorRegistry::define("SpawnBlitz")
-        .description("Spawns Blitz").special_arg(&g_enable_twitch_special_spawns)
+        .description("Spawns Blitz").weight(1)
         .alias("Blitz").alias("Mark").alias("Zuck")
         .on_init([&]() { spawn_em00x(9); });
 
     MutatorRegistry::define("SpawnChimera")
-        .description("Spawns Chimera Seed").special_arg(&g_enable_twitch_special_spawns)
+        .description("Spawns Chimera Seed").weight(2)/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Chimera").alias("seed").alias("eg").alias("egg").alias("gregg")
         .alias("cum")
         .on_init([&]() { spawn_em00x(10); });
         
     MutatorRegistry::define("SummonThePunishment")
-        .description("Rain Down The God's Wrath").special_arg(&g_enable_twitch_special_spawns)
-        .cumrain_arg(&g_forbid_cumrain)
-        .alias("CUMRAIN")
+        .description("Rain Down The God's Wrath")/*.special_arg(&g_enable_twitch_special_spawns)*/
+        /*.cumrain_arg(&g_forbid_cumrain)*/
+        .alias("CUMRAIN").weight(4)
         .on_init([]() { 
-            g_show_cum = true;
+            /*g_show_cum = true;*/
             for(int i = 0; i < 50; i++) 
                 spawn_em00x(10);
         });
 
-    MutatorRegistry::define("SpawnBasilisk")
+    MutatorRegistry::define("SpawnBasilisk").weight(10)
         .description("Spawns Basilisk").alias("Basilisk").alias("dog").alias("doggo")
         .alias("doge").alias("dogg").alias("puppy")
         .on_init([&]() { spawn_em00x(11); });
 
-    MutatorRegistry::define("SpawnBerial")
-        .description("Spawns Berial").special_arg(&g_enable_twitch_special_spawns)
+    MutatorRegistry::define("SpawnBerial").weight(1)
+        .description("Spawns Berial")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Berial").alias("FirePony")
         .on_init([&]() { spawn_em00x(12); });
 
-    MutatorRegistry::define("SpawnBael")
-        .description("Spawns Bael").special_arg(&g_enable_twitch_special_spawns)
+    MutatorRegistry::define("SpawnBael").weight(1)
+        .description("Spawns Bael")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Bael").alias("frog").alias("froggy").alias("frogeh")
         .alias("froggeh").alias("toad").alias("runkiller")
         .alias("widepeepoHappy").alias("жаба")
         .on_init([&]() { spawn_em00x(13); });
 
-    MutatorRegistry::define("SpawnEchidna")
-        .description("Spawns Echidna").special_arg(&g_enable_twitch_special_spawns)
+    MutatorRegistry::define("SpawnEchidna").weight(1)
+        .description("Spawns Echidna")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Echidna").alias("HentaiWaifu")
         .on_init([&]() { spawn_em00x(14); });
 
-    MutatorRegistry::define("SpawnCredo")
-        .description("Spawns Angelo Credo").special_arg(&g_enable_twitch_special_spawns)
+    MutatorRegistry::define("SpawnCredo").weight(2)
+        .description("Spawns Angelo Credo")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Credo").alias("NoCavIsNotAGoodBoss").alias("BiggusDickus")
         .on_init([&]() { spawn_em00x(15); });
 
-    MutatorRegistry::define("SpawnAgnus")
-        .description("Spawns Angelo Agnus").special_arg(&g_enable_twitch_special_spawns)
+    MutatorRegistry::define("SpawnAgnus").weight(1)
+        .description("Spawns Angelo Agnus")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Agnus").alias("Agnis").alias("Ragnis").alias("moth").alias("mothman")
         .on_init([&]() { spawn_em00x(16); });
 
-    MutatorRegistry::define("SpawnSanctus")
-        .description("Spawns Sanctus Diabolica").special_arg(&g_enable_twitch_special_spawns)
+    MutatorRegistry::define("SpawnSanctus").weight(0) // broken iirc
+        .description("Spawns Sanctus Diabolica")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Sanctus").alias("OldFart").alias("pope").alias("Sanctussy")
         .on_init([&]() { spawn_em00x(18); });
 
-    MutatorRegistry::define("SpawnKyrie")
+    MutatorRegistry::define("SpawnKyrie").weight(10)
         .description("Spawns Kyrie").alias("Kyrie")
         .on_init([&]() { spawn_em00x(19); });
 
-    MutatorRegistry::define("SpawnDante")
-        .description("Spawns Dante").special_arg(&g_enable_twitch_special_spawns)
+    MutatorRegistry::define("SpawnDante").weight(0) // broken
+        .description("Spawns Dante")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Dante").alias("Donny").alias("Donte").alias("DonterKebab")
         .on_init([&]() { spawn_em00x(20); });
 
-    MutatorRegistry::define("SpawnRandom")
-        .description("Spawns random enemy").special_arg(&g_enable_twitch_special_spawns)
+    MutatorRegistry::define("SpawnRandom").weight(8)
+        .description("Spawns random enemy")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Random")
         .on_init([]() {
             auto now = std::chrono::system_clock::now();
@@ -481,13 +478,13 @@ void EnemySpawn::on_twitch_command(std::size_t hash) {
 #endif
 
 void EnemySpawn::on_config_load(const utility::Config& cfg) {
-    g_enable_twitch_special_spawns = cfg.get<bool>("enable_twitch_special_spawns").value_or(true);
-    g_forbid_cumrain = cfg.get<bool>("forbid_cumrain").value_or(false);
+    //g_enable_twitch_special_spawns = cfg.get<bool>("enable_twitch_special_spawns").value_or(true);
+    //g_forbid_cumrain = cfg.get<bool>("forbid_cumrain").value_or(false);
 };
 
 void EnemySpawn::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("enable_twitch_special_spawns", g_enable_twitch_special_spawns);
-    cfg.set<bool>("forbid_cumrain", g_forbid_cumrain);
+    //cfg.set<bool>("enable_twitch_special_spawns", g_enable_twitch_special_spawns);
+    //cfg.set<bool>("forbid_cumrain", g_forbid_cumrain);
 }
 
 void EnemySpawn::on_update_input(utility::Input& input) {

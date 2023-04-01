@@ -66,7 +66,7 @@ extern "C" {
  * This structure describes an IRC session. Its members are internal to 
  * libircclient, and should not be used directly.
  */
-typedef struct irc_session_s	IrcSessionT;
+typedef struct irc_session_s	irc_session_t;
 
 /*! \brief A libircclient DCC session.
  *

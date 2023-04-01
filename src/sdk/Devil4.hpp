@@ -8,4 +8,5 @@ namespace devil4_sdk {
 	sWorkRate* get_work_rate();
     bool is_paused();
     bool is_not_in_gameplay();
+	bool was_gameplay_state_toggled();
 };
