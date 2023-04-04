@@ -108,9 +108,9 @@ void MutatorSelfAdvertisement::custom_imgui_window() {
         }
         frame++;
     }
-    else {
-        ImGui::Text("Achived with: ");
-    }
+    //else {
+    //    ImGui::Text("Achived with: ");
+    //}
     ImGui::SetNextWindowSize(size);
     ImGui::SetNextWindowPos(m_pos);
     ImGui::Begin("DirectX9 Texture Test", nullptr, window_flags);

@@ -388,6 +388,11 @@ void EnemySpawn::on_gui_frame() {
     if (ImGui::ListBox("##Enemy Spawn Listbox", &enemy_names_current, enemy_names.data(), enemy_names.size(), 21)) {
         spawn_em00x(enemy_names_current);
     }
+    if (ImGui::Button("Random")) {
+        auto now = std::chrono::system_clock::now();
+        srand((uint32_t)now.time_since_epoch().count());
+        spawn_em00x(rand() % 21);
+    }
 }
 
 #if 0

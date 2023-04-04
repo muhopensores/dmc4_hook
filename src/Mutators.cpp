@@ -174,7 +174,8 @@ void mutator_draw_mod_table(MutatorRegistry& registry) {
             ImGui::Text("Name");
 
             ImGui::TableSetColumnIndex(1);
-            ImGui::Text("Enabled?");
+            ImGui::Text("Enabled?"); ImGui::SameLine();
+            gui::help_marker("Toggle commands for chaos mode");
 
             ImGui::TableSetColumnIndex(2);
             ImGui::Text("Weight"); ImGui::SameLine();

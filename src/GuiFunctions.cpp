@@ -264,9 +264,10 @@ namespace gui {
 
             static std::array<ImGuiURL, 5> links {
                 ImGuiURL { "REFramework https://github.com/praydog/REFramework", "https://github.com/praydog/REFramework" },
-                ImGuiURL { "MinHook https://github.com/TsudaKageyu/minhook", "https://github.com/TsudaKageyu/minhook" },
-                ImGuiURL { "Dear ImGui https://github.com/ocornut/imgui", "https://github.com/ocornut/imgui" },
                 ImGuiURL { "GLM https://github.com/g-truc/glm", "https://github.com/g-truc/glm"},
+                ImGuiURL { "Dear ImGui https://github.com/ocornut/imgui", "https://github.com/ocornut/imgui" },
+                ImGuiURL { "MinHook https://github.com/TsudaKageyu/minhook", "https://github.com/TsudaKageyu/minhook" },
+                ImGuiURL { "spdlog https://github.com/gabime/spdlog", "https://github.com/gabime/spdlog" }
             };
             for (auto& link: links) {
                 link.draw();
@@ -276,7 +277,6 @@ namespace gui {
             ImGui::Separator();
             ImGui::Spacing();
 
-            ImGui::Text("Boring license stuff");
             if (ImGui::CollapsingHeader("Licenses")) {
                 ImGui::TreePush("Licenses");
 
@@ -286,10 +286,10 @@ namespace gui {
                 };
 
                 static std::array<License, 5> licenses{
-                    License{ "reframework", license::reframework},
-                    License{ "glm", license::glm },
-                    License{ "imgui", license::imgui },
-                    License{ "minhook", license::minhook },
+                    License{ "REFramework", license::reframework},
+                    License{ "GLM", license::glm },
+                    License{ "ImGui", license::imgui },
+                    License{ "MinHook", license::minhook },
                     License{ "spdlog", license::spdlog },
                 };
 

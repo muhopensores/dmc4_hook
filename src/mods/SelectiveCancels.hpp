@@ -14,7 +14,8 @@ enum CancelMoves {       // bits table
     GUNSTINGER      = 128,
     EPIDEMIC        = 256,
     DT_PIN_UP_P2    = 512,
-    SHOWDOWN        = 1024
+    SHOWDOWN        = 1024,
+    //BEAST_UPPERCUT  = 2048
 };
 
 class SelectiveCancels : public Mod {

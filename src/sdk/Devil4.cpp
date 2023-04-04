@@ -123,7 +123,7 @@ namespace devil4_sdk {
 		// smoothstep Returns 0.0 if x <= edge0 and 1.0 if x >= edge1 and performs smooth
 		// Hermite interpolation between 0 and 1 when edge0 < x < edge1.
 		//return normalizedRank;
-		return (float)(rank + 1);
+		return (float)(rank); // + 1
 	}
 
 	sWorkRate* get_work_rate() {
