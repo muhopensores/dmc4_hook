@@ -1,5 +1,4 @@
-// include your mod header file
-#include "TwCmdSuperhot.hpp"
+#include "MutatorSuperhot.hpp"
 #include "../sdk/Devil4.hpp"
 
 #include "glm/gtx/compatibility.hpp"
@@ -30,14 +29,23 @@ float exponential_ease_in_out(float p) {
 
 }
 
-std::optional<std::string> ModTwCmdSuperhot::on_initialize() {
+std::optional<std::string> MutatorSuperhot::on_initialize() {
+	MutatorRegistry::define("SuperHot")
+		.description("Superhot mode")
+		.alias("hw")
+		.on_init([] { mod_enabled = true; })
+		.set_timer(20.0f, [] {
+		sWorkRate* sw = devil4_sdk::get_work_rate();
+		if (!sw) { return; }
+		sw->room_speed = 1.0f;
+		sw->enemy_speed = 1.0f; });
 	return Mod::on_initialize();
 }
 
 float previous{ 0.0f };
 // onFrame()
 // do something each frame example
-void ModTwCmdSuperhot::on_frame(fmilliseconds& dt) {
+void MutatorSuperhot::on_frame(fmilliseconds& dt) {
 	
 	if (!mod_enabled) { return; }
 
@@ -64,7 +72,7 @@ void ModTwCmdSuperhot::on_frame(fmilliseconds& dt) {
 
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
-void ModTwCmdSuperhot::on_gui_frame() { 
+void MutatorSuperhot::on_gui_frame() {
 	ImGui::Checkbox("SUPERHOT Mode", &mod_enabled);
     if (mod_enabled) {
         ImGui::PushItemWidth(sameLineItemWidth);

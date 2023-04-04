@@ -27,7 +27,7 @@ public:
         return m_mods;
     }
 
-	const auto& get_d3d9_device() const {
+	const auto get_d3d9_device() const {
 		return m_d3d9_hook->get_device();
 	}
 

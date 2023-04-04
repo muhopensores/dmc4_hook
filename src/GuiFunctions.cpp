@@ -448,7 +448,7 @@ namespace gui {
 
                     pmods->on_draw_ui("BigHeadMode"_hash); // needs its own line
 
-                    pmods->on_draw_ui("ModTwCmdSuperhot"_hash); // needs its own line
+                    pmods->on_draw_ui("MutatorSuperhot"_hash); // needs its own line
 
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -611,7 +611,7 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("MessageDisplayMod"_hash);
 
-                    pmods->on_draw_ui("TwCmdPlayerTransforms"_hash); // empty
+                    //pmods->on_draw_ui("TwCmdPlayerTransforms"_hash); // empty // broken
 
                     pmods->on_draw_ui("FastStart"_hash); // needs its own line
 
@@ -647,6 +647,10 @@ namespace gui {
 
                     pmods->on_draw_ui("EnemyStats"_hash); // needs its own line
 
+                    ImGui::Spacing();
+
+                    pmods->on_draw_ui("MutatorSelfAdvertisement"_hash);
+                    
                     ImGui::Spacing();
 
                     // pmods->onDrawUI("ShaderEditor"_hash);

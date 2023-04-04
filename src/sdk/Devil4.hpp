@@ -9,4 +9,5 @@ namespace devil4_sdk {
     bool is_paused();
     bool is_not_in_gameplay();
 	bool was_gameplay_state_toggled();
+	float get_current_style_rank();
 };

@@ -113,6 +113,19 @@ namespace devil4_sdk {
 		return sc;
 	}
 
+	float get_current_style_rank() {
+		SStylishCount* sc = get_stylish_count();
+		if (!sc) { return 1.0f; }
+
+		uint32_t rank = sc->current_style_tier;
+		//float normalizedRank = glm::smoothstep(0.0f, 7.0f, (float)(rank+1)); // no style no head
+		//                                    edge0 edge1        x
+		// smoothstep Returns 0.0 if x <= edge0 and 1.0 if x >= edge1 and performs smooth
+		// Hermite interpolation between 0 and 1 when edge0 < x < edge1.
+		//return normalizedRank;
+		return (float)(rank + 1);
+	}
+
 	sWorkRate* get_work_rate() {
 		constexpr uintptr_t s_work_rate_ptr = 0x00E558D0;
 		static sWorkRate* sw = (sWorkRate*)*(uintptr_t*)s_work_rate_ptr;

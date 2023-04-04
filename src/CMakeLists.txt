@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/MutatorSelfAdvertisement.hpp
+  mods/MutatorSelfAdvertisement.cpp
   mods/TrackingSkyStar.hpp
   mods/TrackingSkyStar.cpp
   mods/TurnSpeedEdits.hpp
@@ -10,8 +12,8 @@ set(MODS_SRC
   mods/LoadOrder.cpp
   mods/ShaderEditor.hpp
   mods/ShaderEditor.cpp
-  mods/TwCmdSuperhot.hpp
-  mods/TwCmdSuperhot.cpp
+  mods/MutatorSuperhot.hpp
+  mods/MutatorSuperhot.cpp
   mods/Sample.cpp
   mods/Sample.hpp
   mods/Borderless.cpp
@@ -156,12 +158,12 @@ set(MODS_SRC
   mods/Twitch.cpp
   mods/Quicksilver.hpp
   mods/Quicksilver.cpp
-  mods/TwCmdHolyWater.hpp
-  mods/TwCmdHolyWater.cpp
+  mods/MutatorHolyWater.hpp
+  mods/MutatorHolyWater.cpp
   mods/BigHeadMode.hpp
   mods/BigHeadMode.cpp
-  mods/TwCmdPlayerTransforms.hpp
-  mods/TwCmdPlayerTransforms.cpp
+  mods/MutatorPlayerTransforms.hpp
+  mods/MutatorPlayerTransforms.cpp
   mods/InfCalibur.hpp
   mods/InfCalibur.cpp
   mods/RgMultiplier.hpp
@@ -246,6 +248,8 @@ set(UTILITY_SRC
   utility/Scan.cpp
   utility/Input.hpp
   utility/Input.cpp
+  utility/Compressed.hpp
+  utility/Compressed.cpp
 )
 
 set(TWITCH_SRC
@@ -273,12 +277,17 @@ set(FRAMEWORK_SRC
   Mutators.cpp
 )
 
+set(MISC
+  misc/CompressedDrawing.cpp
+)
+
 source_group("imgui"   FILES ${IMGUI_SRC})
 source_group("Hooks"   FILES ${HOOKS_SRC})
 source_group("Mods"    FILES ${MODS_SRC})
 source_group("Utility" FILES ${UTILITY_SRC})
 source_group("SDK"     FILES ${SDK_SRC})
 source_group("Twitch"  FILES ${TWITCH_SRC})
+source_group("misc"    FILES ${MISC})
 
 #if(GIT_COMMIT_HASH)
 #  message("GIT_COMMIT_HASH: ${GIT_COMMIT_HASH}")
@@ -296,6 +305,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
             ${UTILITY_SRC}
             ${SDK_SRC}
             ${TWITCH_SRC}
+            ${MISC}
             ${FRAMEWORK_SRC}
 )
 

@@ -12,23 +12,12 @@ glm::vec3 size{ 0.5f, 0.5f, 0.5f };
 glm::vec3 size_torso{ 0.9f, 0.8f, 0.8f };
 
 
-static float get_current_style_rank() {
-	SStylishCount* sc = devil4_sdk::get_stylish_count();
-	uint32_t rank = sc->current_style_tier;
-	//float normalizedRank = glm::smoothstep(0.0f, 7.0f, (float)(rank+1)); // no style no head
-	//                                    edge0 edge1        x
-	// smoothstep Returns 0.0 if x <= edge0 and 1.0 if x >= edge1 and performs smooth
-	// Hermite interpolation between 0 and 1 when edge0 < x < edge1.
-	//return normalizedRank;
-	return (float)(rank + 1);
-}
-
 static void scale_head_joint(UModelJoint* joint) {
 	if (g_swole_mode) {
-		joint->size = size * (glm::clamp(get_current_style_rank(),1.5f,3.0f));
+		joint->size = size * (glm::clamp(devil4_sdk::get_current_style_rank(), 1.5f, 3.0f));
 	}
 	else {
-		joint->size = size * get_current_style_rank();
+		joint->size = size * devil4_sdk::get_current_style_rank();
 	}
 }
 

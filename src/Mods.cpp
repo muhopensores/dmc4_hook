@@ -91,11 +91,12 @@
 #include "mods/TurnSpeedEdits.hpp"
 #include "mods/TrackingSkyStar.hpp"
 #include "mods/ShaderEditor.hpp"
-#include "mods/TwCmdHolyWater.hpp"
-#include "mods/TwCmdPlayerTransforms.hpp"
-#include "mods/TwCmdSuperhot.hpp"
+#include "mods/MutatorHolyWater.hpp"
+#include "mods/MutatorPlayerTransforms.hpp"
+#include "mods/MutatorSuperhot.hpp"
 #include "mods/Twitch.hpp"
 #include "mods/MessageDisplay.hpp"
+#include "mods/MutatorSelfAdvertisement.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -115,10 +116,11 @@ Mods::Mods() {
     ADD_MOD(BackgroundRendering);
     ADD_MOD(Borderless);
     ADD_MOD(TwitchClient); // keep as 3
+    ADD_MOD(MutatorSelfAdvertisement); // keep as 4
     // regular mods
     // add mods here
     // m_mods["ModName"_hash] = std::make_unique<ModName>();
-    ADD_MOD(PlayerTracker); // keep as 4
+    ADD_MOD(PlayerTracker); // keep as 5
     ADD_MOD(FastStart);
     ADD_MOD(AreaJump);
     ADD_MOD(LimitAdjust);
@@ -187,10 +189,10 @@ Mods::Mods() {
     ADD_MOD(NoAutomaticCharacters);
     ADD_MOD(DisableChimeraBlades);
     ADD_MOD(Quicksilver);
-    ADD_MOD(TwCmdHolyWater);
+    ADD_MOD(MutatorHolyWater);
     ADD_MOD(BigHeadMode);
-    ADD_MOD(TwCmdPlayerTransforms);
-    ADD_MOD(ModTwCmdSuperhot);
+    //ADD_MOD(MutatorPlayerTransforms); // BROKEN
+    ADD_MOD(MutatorSuperhot);
     ADD_MOD(InfCalibur);
     ADD_MOD(RgMultiplier);
     ADD_MOD(DeltaTime);
@@ -330,7 +332,9 @@ void Mods::on_draw_custom_imgui_window() {
     m->custom_imgui_window();
     TwitchClient* tw = dynamic_cast<TwitchClient*>(m_mods[3].get());
     tw->custom_imgui_window();
-    PlayerTracker* pt = dynamic_cast<PlayerTracker*>(m_mods[4].get());
+    MutatorSelfAdvertisement* dv = dynamic_cast<MutatorSelfAdvertisement*>(m_mods[4].get());
+    dv->custom_imgui_window();
+    PlayerTracker* pt = dynamic_cast<PlayerTracker*>(m_mods[5].get());
     pt->custom_imgui_window();
 #if 0
     ImGui::Begin("utility::Input debugger");

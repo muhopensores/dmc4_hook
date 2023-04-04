@@ -1,4 +1,4 @@
-#include "TwCmdHolyWater.hpp"
+#include "MutatorHolyWater.hpp"
 // TODO(): move this into somewhere general
 uPlayer* get_local_payer() {
 	constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
@@ -25,7 +25,7 @@ void on_cooldown_end() {
 	m_alow_cmd = true;
 }
 
-std::optional<std::string> TwCmdHolyWater::on_initialize() {
+std::optional<std::string> MutatorHolyWater::on_initialize() {
     MutatorRegistry::define("HolyWater")
         .description("Use a holy water even in places where its not allowed")
         .alias("hw")
@@ -41,7 +41,7 @@ std::optional<std::string> TwCmdHolyWater::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void TwCmdHolyWater::on_frame(fmilliseconds & dt) {
+void MutatorHolyWater::on_frame(fmilliseconds & dt) {
 	if (!m_alow_cmd) { m_cooldown->tick(dt); }
 }
 #if 0
