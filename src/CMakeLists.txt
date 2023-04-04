@@ -217,6 +217,7 @@ set(IMGUI_SRC
 )
 
 set(UTILITY_SRC
+  utility/StackTrace.hpp
   utility/ExceptionHandler.hpp
   utility/ExceptionHandler.cpp
   utility/ChronoAlias.hpp

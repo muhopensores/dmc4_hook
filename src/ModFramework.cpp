@@ -24,6 +24,7 @@
 
 #include "utility/Thread.hpp"
 #include "GuiFunctions.hpp"
+#include "utility/ExceptionHandler.hpp"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -90,6 +91,8 @@ ModFramework::ModFramework()
     if (m_valid) {
         spdlog::info("Hooked D3D9");
     }
+
+    reframework::setup_exception_handler();
 }
 
 ModFramework::~ModFramework() {
