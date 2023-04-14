@@ -365,15 +365,15 @@ namespace gui {
 
                     pmods->on_draw_ui("EnemyDT"_hash);
 
-                    pmods->on_draw_ui("DmdLevelAi"_hash);
-                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("DmdLevelAi"_hash); // needs its own line
+                    
                     pmods->on_draw_ui("LdkWithDmd"_hash);
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("EnemyAttackOffScreen"_hash);
 
                     pmods->on_draw_ui("DisableChimeraBlades"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("FrostsDontJump"_hash);
-
-                    pmods->on_draw_ui("EnemyAttackOffScreen"_hash); // needs its own line
 
                     pmods->on_draw_ui("EnemySlotting"_hash); // needs its own line
 
