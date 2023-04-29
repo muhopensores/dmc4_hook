@@ -90,6 +90,7 @@
 #include "mods/RoseOptions.hpp"
 #include "mods/TurnSpeedEdits.hpp"
 #include "mods/TrackingSkyStar.hpp"
+#include "mods/DisableDTStinger.hpp"
 #include "mods/ShaderEditor.hpp"
 #include "mods/MutatorHolyWater.hpp"
 #include "mods/MutatorPlayerTransforms.hpp"
@@ -206,6 +207,7 @@ Mods::Mods() {
     ADD_MOD(RoseOptions);
     ADD_MOD(TurnSpeedEdits);
     ADD_MOD(TrackingSkyStar);
+    ADD_MOD(DisableDTStinger);
     ADD_MOD(InstantTrick);
     //ADD_MOD(ShaderEditor); // unfinished
     ADD_MOD(LoadOrder); // in debug tab for now until i figure out how to get rid of SEH exceptions
