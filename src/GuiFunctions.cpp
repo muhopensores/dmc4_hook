@@ -609,10 +609,6 @@ namespace gui {
 
                     ImGui::Spacing();
 
-                    pmods->on_draw_ui("BackgroundRendering"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("DisableKeyboard"_hash);
-
                     pmods->on_draw_ui("MessageDisplayMod"_hash);
 
                     //pmods->on_draw_ui("TwCmdPlayerTransforms"_hash); // empty // broken
@@ -624,6 +620,10 @@ namespace gui {
                     ImGui::Text("System");
 
                     ImGui::Spacing();
+
+                    pmods->on_draw_ui("BackgroundRendering"_hash);
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("DisableKeyboard"_hash);
 
                     pmods->on_draw_ui("FastStart"_hash); // needs its own line
 
