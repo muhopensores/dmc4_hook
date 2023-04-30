@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/DisableKeyboard.hpp
+  mods/DisableKeyboard.cpp
   mods/DisableDTStinger.hpp
   mods/DisableDTStinger.cpp
   mods/MutatorSelfAdvertisement.hpp

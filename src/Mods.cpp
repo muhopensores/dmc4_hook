@@ -91,6 +91,7 @@
 #include "mods/TurnSpeedEdits.hpp"
 #include "mods/TrackingSkyStar.hpp"
 #include "mods/DisableDTStinger.hpp"
+#include "mods/DisableKeyboard.hpp"
 #include "mods/ShaderEditor.hpp"
 #include "mods/MutatorHolyWater.hpp"
 #include "mods/MutatorPlayerTransforms.hpp"
@@ -208,6 +209,7 @@ Mods::Mods() {
     ADD_MOD(TurnSpeedEdits);
     ADD_MOD(TrackingSkyStar);
     ADD_MOD(DisableDTStinger);
+    ADD_MOD(DisableKeyboard);
     ADD_MOD(InstantTrick);
     //ADD_MOD(ShaderEditor); // unfinished
     ADD_MOD(LoadOrder); // in debug tab for now until i figure out how to get rid of SEH exceptions

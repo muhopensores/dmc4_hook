@@ -605,15 +605,25 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("System");
+                    ImGui::Text("dmc4_hook");
 
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("BackgroundRendering"_hash);
                     ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("DisableKeyboard"_hash);
+
                     pmods->on_draw_ui("MessageDisplayMod"_hash);
 
                     //pmods->on_draw_ui("TwCmdPlayerTransforms"_hash); // empty // broken
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    ImGui::Text("System");
+
+                    ImGui::Spacing();
 
                     pmods->on_draw_ui("FastStart"_hash); // needs its own line
 
