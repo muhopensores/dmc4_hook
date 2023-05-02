@@ -225,7 +225,7 @@ void ModFramework::draw_ui() {
         char buffer[MAX_PATH];
         sprintf_s(buffer, sizeof(buffer), "ModFramework error: %s", m_error.c_str());
         MessageBoxA(m_wnd, buffer, "DMC4 mod error", MB_ICONERROR);
-        std::exit(ERROR_ARENA_TRASHED); // funne errno name
+        std::abort(); // funne errno name
     }
 #if 0
     auto& io = ImGui::GetIO();
@@ -268,7 +268,7 @@ bool ModFramework::initialize() {
 
     spdlog::info("Attempting to initialize");
 
-    auto device = m_d3d9_hook->get_device();
+    auto *device = m_d3d9_hook->get_device();
 
     // Wait.
     if (device == nullptr) {
@@ -323,9 +323,9 @@ bool ModFramework::initialize() {
             return false;
         }
 
-        auto io = ImGui::GetIO();
+        auto& io = ImGui::GetIO();
         io.Fonts->AddFontDefault();
-        m_custom_font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\ariali.ttf", 24.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+        //m_custom_font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\ariali.ttf", 24.0f, NULL, io.Fonts->GetGlyphRangesDefault());
 
         spdlog::info("Initializing Input system");
         m_input = std::make_unique<utility::Input>();

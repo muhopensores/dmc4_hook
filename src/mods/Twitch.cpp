@@ -557,11 +557,12 @@ void TwitchClient::custom_imgui_window() {
     ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(20, 20, 20, 100));
 
     ImGui::Begin("Vote results", nullptr, window_flags);
-    ImGui::PushFont(g_framework->get_custom_imgui_font());
+    //ImGui::PushFont(g_framework->get_custom_imgui_font());
+
     if (twitch_vote_state) {
         twitch_vote_state->on_imgui(m_twitch_vote_debug);
     }
-    ImGui::PopFont();
+    //ImGui::PopFont();
     ImGui::End();
 
     ImGui::PopStyleColor();
