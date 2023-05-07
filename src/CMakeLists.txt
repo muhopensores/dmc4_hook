@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/HighTimeWeaponSwitch.hpp
+  mods/HighTimeWeaponSwitch.cpp
   mods/DisableKeyboard.hpp
   mods/DisableKeyboard.cpp
   mods/DisableDTStinger.hpp

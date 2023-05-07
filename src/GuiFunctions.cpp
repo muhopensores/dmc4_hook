@@ -508,6 +508,8 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("DisableDTStinger"_hash);
 
+                    pmods->on_draw_ui("HighTimeWeaponSwitch"_hash); // taunt ecstasy
+
                     ImGui::Spacing();
                     ImGui::Text("Lucifer");
                     ImGui::Spacing();
