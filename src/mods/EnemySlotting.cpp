@@ -36,7 +36,7 @@ std::optional<std::string> EnemySlotting::on_initialize() {
 
 	MutatorRegistry::define("EnemySlotting")
 		.description("hehe")
-		.on_init([&] { mod_enabled = true; backup_enemy_slot_limit = new_enemy_slot_limit; new_enemy_slot_limit = 32; })
+		.on_init([&] { mod_enabled = true; backup_enemy_slot_limit = new_enemy_slot_limit; new_enemy_slot_limit = 12; })
 		.set_timer(35.0, [&] { mod_enabled = false; new_enemy_slot_limit = backup_enemy_slot_limit; });
 
 	return Mod::on_initialize();
@@ -48,14 +48,14 @@ void EnemySlotting::on_gui_frame() {
     help_marker("Set how many enemies can attack at the same time. Default is usually 1.\n"
 				"After unchecking this option, the original value will only be restored after entering a new room");
     ImGui::PushItemWidth(sameLineItemWidth);
-    ImGui::InputInt("Slot Limit", &new_enemy_slot_limit, 1, 10);
+    ImGui::SliderInt("Slot Limit", &new_enemy_slot_limit, 0, 12);
     ImGui::PopItemWidth();
     ImGui::Spacing();
 }
 
 void EnemySlotting::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("enemy_slot_enable").value_or(false);
-    new_enemy_slot_limit = cfg.get<int>("enemy_slot_limit").value_or(10);
+    new_enemy_slot_limit = cfg.get<int>("enemy_slot_limit").value_or(12);
 };
 
 void EnemySlotting::on_config_save(utility::Config& cfg) {
