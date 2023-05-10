@@ -6,6 +6,8 @@ bool HideHud::mod_enabled_style{ false };
 bool HideHud::mod_enabled_timer{ false };
 bool HideHud::mod_enabled_boey{ false };
 bool HideHud::mod_enabled_weapon_selected{ false };
+bool HideHud::mod_enabled_hide_weapon_selected{false};
+bool HideHud::mod_enabled_map{ false };
 
 // DevilMayCry4_DX9.exe+B1997 - cmp byte ptr [esi+04], 01 compares all hud elements, use it while paused to find what you need
 // DevilMayCry4_DX9.exe+FEFAC - mov byte ptr [ecx+04], 00 writes dante weapon hud off
@@ -310,6 +312,26 @@ void HideHud::toggle_weapon_display(bool enable) {
     }
 }
 
+void HideHud::toggle_weapon_hide(bool enable) {
+    if (enable) {
+        install_patch_offset(0x0106D42, patchswordhidehud, "\xEB\x22", 2); // Swords
+        install_patch_offset(0x0106D18, patchgunhidehud, "\xEB\x22", 2);   // Guns
+
+    }
+    else {
+        patchswordhidehud.reset();
+        patchgunhidehud.reset();
+    }
+}
+
+void HideHud::toggle_map(bool enable) {
+    if (enable) {
+        install_patch_offset(0x037619F, patchmaphud, "\xE9\x57\x07\x00\x00\x90", 6); // jmp
+    } else {
+        patchmaphud.reset(); // je
+    }
+}
+
 void HideHud::on_gui_frame() {
     if (ImGui::Checkbox("Hide Timer", &mod_enabled_timer)) {
         toggle_timer(mod_enabled_timer);
@@ -331,8 +353,20 @@ void HideHud::on_gui_frame() {
         toggle_boey(mod_enabled_boey);
     }
     ImGui::SameLine(sameLineWidth);
+    if (ImGui::Checkbox("Hide Map HUD", &mod_enabled_map)) {
+        toggle_map(mod_enabled_map);
+    }
+
     if (ImGui::Checkbox("Never Hide Weapons HUD", &mod_enabled_weapon_selected)) {
+        mod_enabled_hide_weapon_selected = false;
+        toggle_weapon_hide(mod_enabled_hide_weapon_selected);
         toggle_weapon_display(mod_enabled_weapon_selected);
+    }
+    ImGui::SameLine(sameLineWidth);
+    if (ImGui::Checkbox("Always Hide Weapons HUD", &mod_enabled_hide_weapon_selected)) {
+        mod_enabled_weapon_selected = false;
+        toggle_weapon_display(mod_enabled_weapon_selected);
+        toggle_weapon_hide(mod_enabled_hide_weapon_selected);
     }
 }
 
@@ -349,6 +383,10 @@ void HideHud::on_config_load(const utility::Config& cfg) {
     toggle_boey(mod_enabled_boey);
     mod_enabled_weapon_selected = cfg.get<bool>("always_show_weapon_selection").value_or(false);
     toggle_weapon_display(mod_enabled_weapon_selected);
+    mod_enabled_hide_weapon_selected = cfg.get<bool>("always_hide_weapon_selection").value_or(false);
+    toggle_weapon_hide(mod_enabled_hide_weapon_selected);
+    mod_enabled_map = cfg.get<bool>("hide_map_hud").value_or(false);
+    toggle_map(mod_enabled_map);
 }
 
 void HideHud::on_config_save(utility::Config& cfg) {
@@ -358,4 +396,6 @@ void HideHud::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("hide_timer_hud", mod_enabled_timer);
     cfg.set<bool>("hide_boey_hud", mod_enabled_boey);
     cfg.set<bool>("always_show_weapon_selection", mod_enabled_weapon_selected);
+    cfg.set<bool>("always_hide_weapon_selection", mod_enabled_hide_weapon_selected);
+    cfg.set<bool>("hide_map_hud", mod_enabled_map);
 }
