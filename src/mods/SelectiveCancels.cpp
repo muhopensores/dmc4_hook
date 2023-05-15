@@ -44,6 +44,8 @@ naked void selective_cancels_proc() { // player in eax + edi
 		je cancellableDTPinUp
 		cmp [MoveIdsNero::move_id_nero],0x33B				// Showdown
 		je cancellableShowdown
+		cmp [MoveIds::move_id],0x310                         // Draw
+		je cancellableDraw
 		//cmp [MoveIds::move_id],0x332						// Beast Uppercut
 		//je cancellableBeastUppercut
 		jmp originalcode
@@ -100,6 +102,11 @@ naked void selective_cancels_proc() { // player in eax + edi
 
 			cancellableShowdown:
 			test [SelectiveCancels::cancels], SHOWDOWN
+			jg cancellable
+			jmp originalcode
+
+			cancellableDraw:
+			test [SelectiveCancels::cancels], DRAW
 			jg cancellable
 			jmp originalcode
 
@@ -170,6 +177,8 @@ void SelectiveCancels::on_gui_frame() {
 
 			//draw_checkbox_simple("Beast Uppercut", BEAST_UPPERCUT);
 
+			draw_checkbox_simple("Draw", DRAW);
+			ImGui::SameLine(sameLineWidth);
 			draw_checkbox_simple("Showdown", SHOWDOWN);
 
 			ImGui::Spacing();

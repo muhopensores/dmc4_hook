@@ -34,7 +34,7 @@ naked void detour() {
 }
 
 std::optional<std::string> ActiveBlock::on_initialize() {
-    if (!install_hook_offset(0x3BBAAE, hook, &detour, &jmp_return, 7)) {
+    if (!install_hook_offset(0x3BBAAE, hook, &detour, &jmp_return, 7)) { // 007BBAAE
         spdlog::error("Failed to init ActiveBlock mod\n");
         return "Failed to init ActiveBlock mod";
     }
