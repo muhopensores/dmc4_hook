@@ -92,6 +92,7 @@
 #include "mods/TrackingSkyStar.hpp"
 #include "mods/DisableDTStinger.hpp"
 #include "mods/HighTimeWeaponSwitch.hpp"
+#include "mods/AlwaysRoyalRelease.hpp"
 #include "mods/DisableKeyboard.hpp"
 #include "mods/ShaderEditor.hpp"
 #include "mods/MutatorHolyWater.hpp"
@@ -211,6 +212,7 @@ Mods::Mods() {
     ADD_MOD(TrackingSkyStar);
     ADD_MOD(DisableDTStinger);
     ADD_MOD(HighTimeWeaponSwitch);
+    ADD_MOD(AlwaysRoyalRelease);
     ADD_MOD(DisableKeyboard);
     ADD_MOD(InstantTrick);
     //ADD_MOD(ShaderEditor); // unfinished
