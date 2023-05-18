@@ -381,17 +381,6 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("Bloody Palace");
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("BpJumpHook"_hash); // needs its own line
-
-                    pmods->on_draw_ui("DmdBloodyPalace"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
                     ImGui::Text("Enemy Options");
                     ImGui::Spacing();
 
@@ -406,6 +395,17 @@ namespace gui {
                     pmods->on_draw_ui("FreezeEnemies"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("BerialDaze"_hash);
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    ImGui::Text("Bloody Palace");
+                    ImGui::Spacing();
+
+                    pmods->on_draw_ui("BpJumpHook"_hash); // needs its own line
+
+                    pmods->on_draw_ui("DmdBloodyPalace"_hash);
                     g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
                     ImGui::EndChild();
                     ImGui::EndTabItem();
