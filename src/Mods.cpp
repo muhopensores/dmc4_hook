@@ -330,6 +330,16 @@ void Mods::on_update_input(utility::Input& input) {
     if (g_framework->get_window_handle() != GetForegroundWindow()) {
         return;
     }
+    if (input.went_down(VK_OEM_3)) {
+        g_framework->m_draw_console = !g_framework->m_draw_console;
+        if (g_framework->m_draw_console) {
+            console->SetDisplayFraction(0.5f);
+        }
+        else {
+            console->SetDisplayFraction(0.0f);
+        }
+        
+    }
     for (auto& mod : m_mods) {
         mod->on_update_input(input);
     }

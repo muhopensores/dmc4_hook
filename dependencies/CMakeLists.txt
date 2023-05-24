@@ -3,6 +3,8 @@ add_subdirectory(spdlog)
 SET(GLM_TEST_ENABLE OFF CACHE BOOL "Build unit tests" FORCE)
 add_subdirectory(glm)
 
+add_subdirectory(csys)
+
 project(minhook)
 set(CompilerFlags
         CMAKE_CXX_FLAGS_RELEASE

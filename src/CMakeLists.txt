@@ -259,6 +259,8 @@ set(UTILITY_SRC
   utility/Input.cpp
   utility/Compressed.hpp
   utility/Compressed.cpp
+  utility/Dx9Utils.hpp
+  utility/Dx9Utils.cpp
 )
 
 set(TWITCH_SRC
@@ -284,10 +286,13 @@ set(FRAMEWORK_SRC
   Mods.cpp
   Mutators.hpp
   Mutators.cpp
+  Console.hpp
+  Console.cpp
 )
 
 set(MISC
   misc/CompressedDrawing.cpp
+  misc/BgTexture.cpp
 )
 
 source_group("imgui"   FILES ${IMGUI_SRC})
@@ -319,7 +324,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME dinput8)
-target_link_libraries(${PROJECT_NAME} imgui minhook glm_static shlwapi D3dx9 d3d9)
+target_link_libraries(${PROJECT_NAME} imgui minhook glm_static shlwapi D3dx9 d3d9 csys::csys Winmm)
 target_compile_features(${CMAKE_PROJECT_NAME} PUBLIC cxx_std_17)
 
 include_directories(${CMAKE_PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})

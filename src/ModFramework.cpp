@@ -26,6 +26,9 @@
 #include "GuiFunctions.hpp"
 #include "utility/ExceptionHandler.hpp"
 
+#include <timeapi.h> // timeGetTime()
+#include "Console.hpp"
+
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 std::unique_ptr<ModFramework> g_framework{};
@@ -33,9 +36,11 @@ std::unique_ptr<ModFramework> g_framework{};
 ModFramework::ModFramework()
     : m_game_module{ GetModuleHandle(0) },
 #ifndef NDEBUG
-    m_logger{ spdlog::stdout_color_mt("ModFramework") }
+    //m_logger{ spdlog::stdout_color_mt("ModFramework") }
+    m_logger{ std::make_shared<spdlog::logger>("ConsoleLog", std::make_shared<ConsoleSink<std::mutex>>() ) }
 #else
-    m_logger{ spdlog::basic_logger_mt("ModFramework", LOG_FILENAME, true) }
+    m_logger{ std::make_shared<spdlog::logger>("ConsoleLog", std::make_shared<ConsoleSink<std::mutex>>() ) }
+    //m_logger{ spdlog::basic_logger_mt("ModFramework", LOG_FILENAME, true) }
 #endif
 {
     spdlog::set_default_logger(m_logger);
@@ -100,6 +105,12 @@ ModFramework::~ModFramework() {
     FunctionHook::set_mh_skip_locks(TRUE); // dont care if we crash at this point
 }
 
+int ModFramework::sys_ms()
+{
+    static DWORD sys_timeBase = timeGetTime();
+    return timeGetTime() - sys_timeBase;
+}
+
 void set_visible_cursor_winapi(bool visible) {
 
 	CURSORINFO info = { sizeof(CURSORINFO), 0, nullptr, {} };
@@ -162,6 +173,8 @@ void ModFramework::on_frame() {
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
+    console->Draw(m_draw_console);
+
     if (m_error.empty() && m_game_data_initialized) {
         m_mods->on_frame(delta);
         m_mods->on_draw_custom_imgui_window();
@@ -186,14 +199,14 @@ void ModFramework::on_reset() {
 }
 
 bool ModFramework::on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param) {
-    
+
     if (!m_initialized) {
         return true;
     }
 
     if (!m_mods->on_message(wnd, message, w_param, l_param)) { return false; }
 
-    if (m_draw_ui && ImGui_ImplWin32_WndProcHandler(wnd, message, w_param, l_param) != 0) {
+    if ((m_draw_ui || m_draw_console) && ImGui_ImplWin32_WndProcHandler(wnd, message, w_param, l_param) != 0) {
         // If the user is interacting with the UI we block the message from going to the game.
         auto& io = ImGui::GetIO();
 
@@ -326,7 +339,9 @@ bool ModFramework::initialize() {
         auto& io = ImGui::GetIO();
         io.Fonts->AddFontDefault();
         //m_custom_font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\ariali.ttf", 24.0f, NULL, io.Fonts->GetGlyphRangesDefault());
-
+        //console = new ImGuiConsole();
+        spdlog::info("Initializing Console system");
+        console->InitImgui();
         spdlog::info("Initializing Input system");
         m_input = std::make_unique<utility::Input>();
 

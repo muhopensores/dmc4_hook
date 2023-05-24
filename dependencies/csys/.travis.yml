@@ -1,0 +1,146 @@
+# Adapted from:
+# https://github.com/gabime/spdlog
+
+os: linux
+language: cpp
+dist: bionic
+sudo: false
+
+addons: &gcc8
+  apt:
+    source:
+      - ubuntu-toolchain-r-test
+    packages:
+      - libc++-8-dev
+      - g++-8
+
+addons: &clang8
+  apt:
+    source:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-8
+    packages:
+      - libstdc++-8-dev
+      - clang-8
+
+# gcc 7.0
+addons: &gcc7
+  apt:
+    packages:
+      - g++-7
+    sources:
+      - ubuntu-toolchain-r-test
+
+addons: &clang5
+  apt:
+    source:
+      - llvm-toolchain-trusty-5.0
+      - ubuntu-toolchain-r-test
+      - sourceline: 'deb https://apt.llvm.org/trusty/ llvm-toolchain-trusty-7 main'
+        key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
+    packages:
+      - clang-5.0
+      - libstdc++-7-dev
+
+addons: &clang7
+  apt:
+    source:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-7
+    packages:
+      - libstdc++-7-dev
+      - clang-7
+
+addons: &clang10
+  apt:
+    packages:
+      - clang-10
+      - lldb-10
+      - lld-10
+    sources:
+      - sourceline: "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main"
+        key_url: "https://apt.llvm.org/llvm-snapshot.gpg.key"
+
+ #TODO: Add shared tests.
+ #Build matrix
+matrix:
+  fast_finish: true
+  include:
+    # Test GCC 7, C++17, Build Debug/Release
+    - os: linux
+      addons: *gcc7
+      env: GCC_VERSION=7 BUILD_TYPE=Debug BUILD_SHARED=false
+
+    - os: linux
+      addons: *gcc7
+      env: GCC_VERSION=7 BUILD_TYPE=Release BUILD_SHARED=false
+
+    # Test GCC 8, C++17, Build Debug/Release
+    - os: linux
+      addons: *gcc8
+      env: GCC_VERSION=8 BUILD_TYPE=Debug BUILD_SHARED=false
+
+    - os: linux
+      addons: *gcc8
+      env: GCC_VERSION=8 BUILD_TYPE=Release BUILD_SHARED=false
+
+    # Test Clang 5, C++17, Build Debug/Release
+    - os: linux
+      dist: trusty
+      addons: *clang5
+      env: CLANG_VERSION=5.0 BUILD_TYPE=Debug BUILD_SHARED=false
+
+    - os: linux
+      dist: trusty
+      addons: *clang5
+      env: CLANG_VERSION=5.0 BUILD_TYPE=Release BUILD_SHARED=false
+
+    # Test Clang 7, C++17, Build Debug/Release
+    - os: linux
+      dist: bionic
+      addons: *clang7
+      env: CLANG_VERSION=7 BUILD_TYPE=Debug BUILD_SHARED=false
+
+    - os: linux
+      dist: bionic
+      addons: *clang7
+      env: CLANG_VERSION=7 BUILD_TYPE=Release BUILD_SHARED=false
+
+    # Test Clang 8, C++17, Build Debug/Release
+    - os: linux
+      dist: bionic
+      addons: *clang8
+      env: CLANG_VERSION=8 BUILD_TYPE=Debug BUILD_SHARED=false
+
+    - os: linux
+      dist: bionic
+      addons: *clang8
+      env: CLANG_VERSION=8 BUILD_TYPE=Release BUILD_SHARED=false
+
+    # Test Clang 10, C++17, Build Debug/Release
+    - os: linux
+      dist: bionic
+      addons: *clang10
+      env: CLANG_VERSION=10 BUILD_TYPE=Debug BUILD_SHARED=false
+
+    - os: linux
+      dist: bionic
+      addons: *clang10
+      env: CLANG_VERSION=10 BUILD_TYPE=Release BUILD_SHARED=false
+
+# Setup cmake.
+before_script:
+  - if [ -n "$GCC_VERSION" ]; then export CXX="g++-${GCC_VERSION}" CC="gcc-${GCC_VERSION}"; fi
+  - if [ -n "$CLANG_VERSION" ]; then export CXX="clang++-${CLANG_VERSION}" CC="clang-${CLANG_VERSION}"; fi
+  - which $CXX
+  - which $CC
+  - $CXX --version
+  - cmake --version
+  - mkdir build
+  - cd build
+  - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCSYS_BUILD_SHARED=${BUILD_SHARED} -DCSYS_BUILD_EXAMPLES=ON -DCSYS_BUILD_TESTS=ON -DCSYS_BUILD_WARNINGS=ON
+
+# Build.
+script:
+  - cmake --build ./ -- -j2
+  - ctest -j2 -V --output-on-failure --verbose

@@ -9,6 +9,10 @@
 #include "ExceptionHandler.hpp"
 #include "StackTrace.hpp"
 
+#include "Console.hpp"
+
+#include "../Config.hpp"
+
 static const char* get_exception_code_info(UINT code) {
     switch (code) {
     case EXCEPTION_ACCESS_VIOLATION:
@@ -108,7 +112,7 @@ LONG WINAPI reframework::global_exception_handler(struct _EXCEPTION_POINTERS* ei
         const auto mod_dir = utility::get_module_directory(GetModuleHandle(0));
         const auto real_mod_dir = mod_dir ? (*mod_dir + "\\") : "";
         const auto final_path = real_mod_dir + "dmc4hook_crash.dmp";
-
+        const auto final_path_log = real_mod_dir + LOG_FILENAME;
         spdlog::error("Attempting to write dump to {}", final_path);
 
         auto f = CreateFile(final_path.c_str(), 
@@ -141,7 +145,9 @@ LONG WINAPI reframework::global_exception_handler(struct _EXCEPTION_POINTERS* ei
             nullptr, 
             nullptr
         );
-
+        if (!console->dump_file(final_path_log)) {
+            spdlog::error("Could not dump log file");
+        }
         MessageBoxA(NULL, err_msg_buf.str().c_str(), "Caught exception", MB_ICONINFORMATION);
         
         CloseHandle(f);

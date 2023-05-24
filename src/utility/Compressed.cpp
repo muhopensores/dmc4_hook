@@ -132,14 +132,14 @@ static unsigned int stb_decompress(unsigned char *output, const unsigned char *i
 
 namespace utility {
 
-	void* DecompressFileFromMemory(const void* compressed_file_data, int compressed_file_size) 
+	void* decompress_file_from_memory(const void* compressed_file_data, int compressed_file_size) 
 	{
 		const unsigned int buf_decompressed_size = stb_decompress_length((const unsigned char*)compressed_file_data);
 		unsigned char* buf_decompressed_data = (unsigned char*)malloc(buf_decompressed_size);
 		stb_decompress(buf_decompressed_data, (const unsigned char*)compressed_file_data, (unsigned int)compressed_file_size);
 		return buf_decompressed_data;
 	}
-	std::tuple<void*, const unsigned int> DecompressFileFromMemoryWithSize(const void* compressed_file_data, int compressed_file_size) 
+	std::tuple<void*, const unsigned int> decompress_file_from_memory_with_size(const void* compressed_file_data, int compressed_file_size) 
 	{
 		const unsigned int buf_decompressed_size = stb_decompress_length((const unsigned char*)compressed_file_data);
 		unsigned char* buf_decompressed_data = (unsigned char*)malloc(buf_decompressed_size);
@@ -147,12 +147,12 @@ namespace utility {
 		return std::make_tuple(buf_decompressed_data, buf_decompressed_size);
 	}
 
-	void* DecompressFileFromMemoryBase85(const char* compressed_file_data_base85)
+	std::tuple<void*, const unsigned int> decompress_file_from_memory_base85(const char* compressed_file_data_base85)
 	{
 		int compressed_file_size = (((int)strlen(compressed_file_data_base85) + 4) / 5) * 4;
 		void* compressed_file = malloc((size_t)compressed_file_size);
 		Decode85((const unsigned char*)compressed_file_data_base85, (unsigned char*)compressed_file);
-		void* ret = DecompressFileFromMemory(compressed_file, compressed_file_size);
+		auto ret = decompress_file_from_memory_with_size(compressed_file, compressed_file_size);
 		free(compressed_file);
 		return ret;
 	}

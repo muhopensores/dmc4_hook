@@ -11,6 +11,7 @@
 #include "sdk/Devil4.hpp"
 
 #include "Mutators.hpp"
+#include "Console.hpp"
 
 #define naked static __declspec(naked)
 

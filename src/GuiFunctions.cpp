@@ -285,12 +285,14 @@ namespace gui {
                     std::string text;
                 };
 
-                static std::array<License, 5> licenses{
+                static std::array<License, 7> licenses{
                     License{ "REFramework", license::reframework},
                     License{ "GLM", license::glm },
                     License{ "ImGui", license::imgui },
                     License{ "MinHook", license::minhook },
                     License{ "spdlog", license::spdlog },
+                    License{ "csys", license::csys },
+                    License{ "imgui_console", license::imgui_console },
                 };
 
                 for (const auto& license : licenses) {

@@ -3,6 +3,7 @@
 #include <spdlog/spdlog.h>
 
 class Mods;
+class ImGuiConsole;
 namespace utility {
     class  Input;
     struct Hotkey;
@@ -41,6 +42,8 @@ public:
         //return m_game_module;
     }
 
+    static int sys_ms();
+
     bool is_ready() const {
         return m_game_data_initialized;
     }
@@ -60,6 +63,7 @@ public:
     // const auto& get_custom_imgui_font() const {
     //     return m_custom_font;
     // }
+    bool m_draw_console{ false };
 
     void on_frame();
     void on_reset();
@@ -76,7 +80,7 @@ private:
     bool m_valid{ false };
     bool m_initialized{ false };
     bool m_draw_ui{ false };
-
+    
     std::atomic<bool> m_game_data_initialized{ false };
     
     HWND m_wnd{ nullptr };
