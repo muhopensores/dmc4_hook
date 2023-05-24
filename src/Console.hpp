@@ -24,29 +24,29 @@ public:
 	/*!
 	 * \brief Render the Dear ImGui Console
 	 */
-	void Draw(bool& open);
+	void draw(bool& open);
 
 	/*!
 	 * \brief Console system which handles the console functionality (Logging, Commands, History, Scripts, etc).
 	 * \return System Obj
 	 */
-	csys::System& System();
+	csys::System& system();
 
 	// could be done in constructor but we need to defer till imgui init :(
-	void InitImgui();
+	void init_imgui();
 
-	float displayFrac;	             // approaches finalFrac at con_speed
-	float finalFrac;	             // 0.0 to 1.0 lines of console to display
-	int	  fracTime;		             // time of last displayFrac update
+	float display_frac;	             // approaches final_frac at con_speed
+	float final_frac;	             // 0.0 to 1.0 lines of console to display
+	int	  frac_time;		         // time of last display_frac update
 
-	void SetDisplayFraction(float frac);
-	void UpdateDisplayFraction();
+	void set_display_fraction(float frac);
+	void update_display_fraction();
 
 	bool dump_file(const std::string& filename);
 
 #if 0
 	template <typename... Param> static void print(std::string_view format, Param && ... param) {
-		console->m_ConsoleSystem.Log() << fmt::format(format, std::forward<Param>(param)...);
+		console->m_console_system.Log() << fmt::format(format, std::forward<Param>(param)...);
 	}
 #else
 	void print(const char* cstr, spdlog::level::level_enum log_lvl);
@@ -57,37 +57,37 @@ protected:
 
 	// Console ////////////////////////////////////////////////////////////////
 
-	csys::System m_ConsoleSystem;            //!< Main console system.
-	size_t m_HistoryIndex;                   //!< Command history index.
+	csys::System m_console_system;            //!< Main console system.
+	size_t m_history_index;                   //!< Command history index.
 
 	// Dear ImGui  ////////////////////////////////////////////////////////////
 
 	// Main
 
-	std::string m_Buffer;            //!< Input buffer.
-	std::string m_ConsoleName;       //!< Console name string buffer.
-	ImGuiTextFilter m_TextFilter;    //!< Logging filer.
-	bool m_AutoScroll;               //!< Auto scroll flag.
-	bool m_ColoredOutput;            //!< Colored output flag.
-	bool m_ScrollToBottom;           //!< Scroll to bottom after is command is ran
-	bool m_FilterBar;                //!< Filter bar flag.
-	bool m_TimeStamps;                 //!< Display time stamps flag
-	bool m_WasOpen{ false };
+	std::string m_buffer;            //!< Input buffer.
+	std::string m_console_name;       //!< Console name string buffer.
+	ImGuiTextFilter m_text_filter;    //!< Logging filer.
+	bool m_auto_scroll;               //!< Auto scroll flag.
+	bool m_colored_output;            //!< Colored output flag.
+	bool m_scroll_to_bottom;           //!< Scroll to bottom after is command is ran
+	bool m_filter_bar;                //!< Filter bar flag.
+	bool m_time_stamps;                 //!< Display time stamps flag
+	bool m_was_open{ false };
 
-	void InitIniSettings();             //!< Initialize Ini Settings handler
-	void DefaultSettings();             //!< Restore console default settings
-	void RegisterConsoleCommands();     //!< Register built-in console commands
+	void init_ini_settings();             //!< Initialize Ini Settings handler
+	void default_settings();             //!< Restore console default settings
+	void register_console_commands();     //!< Register built-in console commands
 
-	void MenuBar();                     //!< Console menu bar
-	void FilterBar();                 //!< Console filter bar
-	void InputBar();                 //!< Console input bar
-	void LogWindow();                 //!< Console log
+	void menu_bar();                     //!< Console menu bar
+	void filter_bar();                 //!< Console filter bar
+	void input_bar();                 //!< Console input bar
+	void log_window();                 //!< Console log
 
 	static void HelpMaker(const char* desc);
 
 	// Window appearance.
 
-	float m_WindowAlpha;             //!< Window transparency
+	float m_window_alpha;             //!< Window transparency
 
 	enum COLOR_PALETTE
 	{
@@ -104,31 +104,31 @@ protected:
 		COL_COUNT            //!< For bookkeeping purposes
 	};
 
-	std::array<ImVec4, COL_COUNT> m_ColorPalette;                //!< Container for all available colors
+	std::array<ImVec4, COL_COUNT> m_color_palette;                //!< Container for all available colors
 
 	// ImGui Console Window.
 
-	static int InputCallback(ImGuiInputTextCallbackData* data);    //!< Console input callback
-	bool m_WasPrevFrameTabCompletion = false;                    //!< Flag to determine if previous input was a tab completion
+	static int input_callback(ImGuiInputTextCallbackData* data);    //!< Console input callback
+	bool m_was_prev_frame_tab_completion = false;                    //!< Flag to determine if previous input was a tab completion
 	// TODO(): popup with suggestions
-	std::vector<std::string> m_CmdSuggestions;                    //!< Holds command suggestions from partial completion
+	std::vector<std::string> m_cmd_suggestions;                    //!< Holds command suggestions from partial completion
 
 #if 0
 	// Save data inside .ini
 
-	bool m_LoadedFromIni = false;
+	bool m_loaded_from_ini = false;
 
-	static void SettingsHandler_ClearALl(ImGuiContext* ctx, ImGuiSettingsHandler* handler);
+	static void settings_handler_clear_all(ImGuiContext* ctx, ImGuiSettingsHandler* handler);
 
-	static void SettingsHandler_ReadInit(ImGuiContext* ctx, ImGuiSettingsHandler* handler);
+	static void settings_handler_read_init(ImGuiContext* ctx, ImGuiSettingsHandler* handler);
 
-	static void* SettingsHandler_ReadOpen(ImGuiContext* ctx, ImGuiSettingsHandler* handler, const char* name);
+	static void* settings_handler_read_open(ImGuiContext* ctx, ImGuiSettingsHandler* handler, const char* name);
 
-	static void SettingsHandler_ReadLine(ImGuiContext* ctx, ImGuiSettingsHandler* handler, void* entry, const char* line);
+	static void settings_handler_read_line(ImGuiContext* ctx, ImGuiSettingsHandler* handler, void* entry, const char* line);
 
-	static void SettingsHandler_ApplyAll(ImGuiContext* ctx, ImGuiSettingsHandler* handler);
+	static void settings_handler_apply_all(ImGuiContext* ctx, ImGuiSettingsHandler* handler);
 
-	static void SettingsHandler_WriteAll(ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* buf);
+	static void settings_handler_write_all(ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* buf);
 	///////////////////////////////////////////////////////////////////////////
 #endif
 	private:

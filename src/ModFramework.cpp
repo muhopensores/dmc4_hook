@@ -173,7 +173,7 @@ void ModFramework::on_frame() {
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    console->Draw(m_draw_console);
+    console->draw(m_draw_console);
 
     if (m_error.empty() && m_game_data_initialized) {
         m_mods->on_frame(delta);
@@ -341,7 +341,7 @@ bool ModFramework::initialize() {
         //m_custom_font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\ariali.ttf", 24.0f, NULL, io.Fonts->GetGlyphRangesDefault());
         //console = new ImGuiConsole();
         spdlog::info("Initializing Console system");
-        console->InitImgui();
+        console->init_imgui();
         spdlog::info("Initializing Input system");
         m_input = std::make_unique<utility::Input>();
 

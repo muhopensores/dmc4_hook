@@ -18,27 +18,27 @@
 static ImGuiConsole console_local("imgui-console", 256U);
 ImGuiConsole* console = &console_local;
 
-static float CONSPEED_FLOAT = 3.0f;
+static float conspeed_float = 3.0f;
 
-static int CON_BG_RED_INT   = 53;
-static int CON_BG_GREEN_INT = 30;
-static int CON_BG_BLUE_INT  = 186;
-static int CON_BG_ALPHA_INT = 250;
+static int con_bg_red_int   = 53;
+static int con_bg_green_int = 30;
+static int con_bg_blue_int  = 186;
+static int con_bg_alpha_int = 250;
 
 // The following three functions (InputTextCallback_UserData, InputTextCallback, InputText) are obtained from misc/cpp/imgui_stdlib.h
 // Which are licensed under MIT License (https://github.com/ocornut/imgui/blob/master/LICENSE.txt)
 namespace ImGui
 {
-	struct InputTextCallback_UserData
+	struct InputTextCallbackUserData
 	{
-		std::string* Str;
-		ImGuiInputTextCallback ChainCallback;
-		void* ChainCallbackUserData;
+		std::string* str;
+		ImGuiInputTextCallback chain_callback;
+		void* chain_callback_user_data;
 	};
 
-	static int InputTextCallback(ImGuiInputTextCallbackData* data)
+	static int input_text_callback(ImGuiInputTextCallbackData* data)
 	{
-		auto* user_data = (InputTextCallback_UserData*)data->UserData;
+		auto* user_data = (InputTextCallbackUserData*)data->UserData;
 		if (data->EventChar < 256 && data->EventChar == '`') { // NOTE(): skip tilde key press
 			return 1;
 		}
@@ -46,59 +46,59 @@ namespace ImGui
 		{
 			// Resize string callback
 			// If for some reason we refuse the new length (BufTextLen) and/or capacity (BufSize) we need to set them back to what we want.
-			std::string* str = user_data->Str;
+			std::string* str = user_data->str;
 			IM_ASSERT(data->Buf == str->c_str());
 			str->resize(data->BufTextLen);
 			data->Buf = (char*)str->c_str();
 		}
-		else if (user_data->ChainCallback)
+		else if (user_data->chain_callback)
 		{
 			// Forward to user callback, if any
-			data->UserData = user_data->ChainCallbackUserData;
-			return user_data->ChainCallback(data);
+			data->UserData = user_data->chain_callback_user_data;
+			return user_data->chain_callback(data);
 		}
 		return 0;
 	}
 
-	bool InputText(const char* label, std::string* str, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
+	bool input_text(const char* label, std::string* str, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
 	{
 		IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
 		flags |= ImGuiInputTextFlags_CallbackResize;
 
-		InputTextCallback_UserData cb_user_data;
-		cb_user_data.Str = str;
-		cb_user_data.ChainCallback = callback;
-		cb_user_data.ChainCallbackUserData = user_data;
-		return InputText(label, (char*)str->c_str(), str->capacity() + 1, flags, InputTextCallback, &cb_user_data);
+		InputTextCallbackUserData cb_user_data;
+		cb_user_data.str = str;
+		cb_user_data.chain_callback = callback;
+		cb_user_data.chain_callback_user_data = user_data;
+		return InputText(label, (char*)str->c_str(), str->capacity() + 1, flags, input_text_callback, &cb_user_data);
 	}
 }
 
-ImGuiConsole::ImGuiConsole(std::string c_name, size_t inputBufferSize) : m_ConsoleName(std::move(c_name))
+ImGuiConsole::ImGuiConsole(std::string c_name, size_t input_buffer_size) : m_console_name(std::move(c_name))
 {
 	// Set input buffer size.
-	m_Buffer.resize(inputBufferSize);
-	m_HistoryIndex = std::numeric_limits<size_t>::min();
+	m_buffer.resize(input_buffer_size);
+	m_history_index = std::numeric_limits<size_t>::min();
 
 	// Custom functions.
-	RegisterConsoleCommands();
+	register_console_commands();
 }
 
-void ImGuiConsole::Draw(bool& open)
+void ImGuiConsole::draw(bool& open)
 {
-	if (!open && displayFrac <= 0.001f ) { return; }
+	if (!open && display_frac <= 0.001f ) { return; }
 
 	// TODO(): block keyboard inputs
 
-	UpdateDisplayFraction();
+	update_display_fraction();
 
 	///////////////////////////////////////////////////////////////////////////
 	// Window and Settings ////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////
 	// Begin Console Window.
-	ImGui::SetNextWindowBgAlpha(m_WindowAlpha);
-	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, m_WindowAlpha));
-	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.0f, 0.0f, 0.0f, m_WindowAlpha));
-	ImGui::Begin(m_ConsoleName.c_str(), nullptr, ImGuiWindowFlags_NoDecoration);
+	ImGui::SetNextWindowBgAlpha(m_window_alpha);
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, m_window_alpha));
+	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.0f, 0.0f, 0.0f, m_window_alpha));
+	ImGui::Begin(m_console_name.c_str(), nullptr, ImGuiWindowFlags_NoDecoration);
 	
 	// bg texture
 	if (m_texture_handle != nullptr) {
@@ -108,7 +108,7 @@ void ImGuiConsole::Draw(bool& open)
 		glm::vec2 region_min = ImVec2(0.0f, 0.0f);
 		glm::vec2 region_max = ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
 		// imguing all over the floor
-		dl->AddImage(m_texture_handle, region_min, region_max * i_resolution.x, ImVec2(0, 0), i_resolution, ImColor::ImColor(CON_BG_RED_INT, CON_BG_GREEN_INT, CON_BG_BLUE_INT, CON_BG_ALPHA_INT));
+		dl->AddImage(m_texture_handle, region_min, region_max * i_resolution.x, ImVec2(0, 0), i_resolution, ImColor::ImColor(con_bg_red_int, con_bg_green_int, con_bg_blue_int, con_bg_alpha_int));
 		// clockwise from top right
 		//dl->AddQuadFilled(region_min, ImVec2(region_max.x, region_min.y), ImVec2(region_max.x, region_max.y), ImVec2(region_min.y, region_max.x), ImColor::ImColor(0.0f, 0.0f, 0.0f, 0.42f));
 	}
@@ -116,20 +116,20 @@ void ImGuiConsole::Draw(bool& open)
 	///////////////
 	// Menu bar  //
 	///////////////
-	//MenuBar();
+	//menu_bar();
 
 	////////////////
 	// Filter bar //
 	////////////////
-	//if (m_FilterBar)
+	//if (m_filter_bar)
 	//{
-	//	FilterBar();
+	//	filter_bar();
 	//}
 
 	//////////////////
 	// Console Logs //
 	//////////////////
-	LogWindow();
+	log_window();
 
 	// Section off.
 	ImGui::Separator();
@@ -138,7 +138,7 @@ void ImGuiConsole::Draw(bool& open)
 	// Command-line ///////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////
 
-	InputBar();
+	input_bar();
 
 	ImGui::End();
 	ImGui::PopStyleColor();
@@ -146,24 +146,24 @@ void ImGuiConsole::Draw(bool& open)
 
 }
 
-csys::System& ImGuiConsole::System()
+csys::System& ImGuiConsole::system()
 {
-	return m_ConsoleSystem;
+	return m_console_system;
 }
 
-void ImGuiConsole::InitImgui()
+void ImGuiConsole::init_imgui()
 {
 #if 0
 	// Specify custom data to be store/loaded from imgui.ini
-	InitIniSettings();
+	init_ini_settings();
 
 	// Set Console ImGui default settings
-	if (!m_LoadedFromIni)
+	if (!m_loaded_from_ini)
 	{
-		DefaultSettings();
+		default_settings();
 	}
 #else
-	DefaultSettings();
+	default_settings();
 
 	auto [data, size] = utility::decompress_file_from_memory_base85(menu_bg_compressed_data_base85);
 	if (!utility::dx9::load_texture_from_file(data, size, &m_texture_handle, &m_texture_width, &m_texture_height)) {
@@ -176,38 +176,38 @@ void ImGuiConsole::InitImgui()
 #endif
 }
 
-void ImGuiConsole::SetDisplayFraction(float frac)
+void ImGuiConsole::set_display_fraction(float frac)
 {
-	finalFrac = frac;
-	fracTime = g_framework->sys_ms();
+	final_frac = frac;
+	frac_time = g_framework->sys_ms();
 }
 
-void ImGuiConsole::UpdateDisplayFraction() {
+void ImGuiConsole::update_display_fraction() {
 
 	auto ms = g_framework->sys_ms();
 	// scroll towards the destination height
-	if (finalFrac < displayFrac)
+	if (final_frac < display_frac)
 	{
-		displayFrac -= CONSPEED_FLOAT * (ms - fracTime) * 0.001f;
-		if (finalFrac > displayFrac)
+		display_frac -= conspeed_float * (ms - frac_time) * 0.001f;
+		if (final_frac > display_frac)
 		{
-			displayFrac = finalFrac;
+			display_frac = final_frac;
 		}
-		fracTime = ms;
+		frac_time = ms;
 	}
-	else if (finalFrac > displayFrac)
+	else if (final_frac > display_frac)
 	{
-		displayFrac += CONSPEED_FLOAT * (ms - fracTime) * 0.001f;
-		if (finalFrac < displayFrac)
+		display_frac += conspeed_float * (ms - frac_time) * 0.001f;
+		if (final_frac < display_frac)
 		{
-			displayFrac = finalFrac;
+			display_frac = final_frac;
 		}
-		fracTime = ms;
+		frac_time = ms;
 	}
 
 	auto& io = ImGui::GetIO();
-	ImVec2 new_pos = ImVec2(0.0f, (io.DisplaySize.y * displayFrac) - (io.DisplaySize.y / 2.0f));
-	ImVec2 new_size = ImVec2(io.DisplaySize.x, io.DisplaySize.y * finalFrac);
+	ImVec2 new_pos = ImVec2(0.0f, (io.DisplaySize.y * display_frac) - (io.DisplaySize.y / 2.0f));
+	ImVec2 new_size = ImVec2(io.DisplaySize.x, io.DisplaySize.y * final_frac);
 	ImGui::SetNextWindowPos(new_pos);
 	ImGui::SetNextWindowSize(new_size);
 }
@@ -219,7 +219,7 @@ bool ImGuiConsole::dump_file(const std::string& filename) {
 		return false;
 	}
 
-	for (const auto& item : m_ConsoleSystem.Items()) {
+	for (const auto& item : m_console_system.Items()) {
 		
 		if (item.m_Type == csys::ItemType::COMMAND) {
 			continue;
@@ -236,28 +236,28 @@ void ImGuiConsole::print(const char* cstr, spdlog::level::level_enum log_lvl) {
 		csys::ItemType::LOG, csys::ItemType::LOG, csys::ItemType::LOG, csys::ItemType::WARNING,
 		csys::ItemType::CSYS_ERROR, csys::ItemType::CSYS_ERROR, csys::ItemType::NONE };
 
-	console->m_ConsoleSystem.Log(type[log_lvl]) << cstr;
-	console->m_ScrollToBottom = true;
+	console->m_console_system.Log(type[log_lvl]) << cstr;
+	console->m_scroll_to_bottom = true;
 }
 
 #if 0 // TODO(remove?)
-void ImGuiConsole::InitIniSettings()
+void ImGuiConsole::init_ini_settings()
 {
 
 	ImGuiContext& g = *ImGui::GetCurrentContext();
 
 	// Load from .ini
-	if (g.Initialized && !g.SettingsLoaded && !m_LoadedFromIni)
+	if (g.Initialized && !g.SettingsLoaded && !m_loaded_from_ini)
 	{
 		ImGuiSettingsHandler console_ini_handler;
 		console_ini_handler.TypeName = "imgui-console";
 		console_ini_handler.TypeHash = ImHashStr("imgui-console");
-		console_ini_handler.ClearAllFn = SettingsHandler_ClearALl;
-		console_ini_handler.ApplyAllFn = SettingsHandler_ApplyAll;
-		console_ini_handler.ReadInitFn = SettingsHandler_ReadInit;
-		console_ini_handler.ReadOpenFn = SettingsHandler_ReadOpen;
-		console_ini_handler.ReadLineFn = SettingsHandler_ReadLine;
-		console_ini_handler.WriteAllFn = SettingsHandler_WriteAll;
+		console_ini_handler.ClearAllFn = settings_handler_clear_all;
+		console_ini_handler.ApplyAllFn = settings_handler_apply_all;
+		console_ini_handler.ReadInitFn = settings_handler_read_init;
+		console_ini_handler.ReadOpenFn = settings_handler_read_open;
+		console_ini_handler.ReadLineFn = settings_handler_read_line;
+		console_ini_handler.WriteAllFn = settings_handler_write_all;
 		console_ini_handler.UserData = this;
 		g.SettingsHandlers.push_back(console_ini_handler);
 	}
@@ -265,80 +265,80 @@ void ImGuiConsole::InitIniSettings()
 }
 #endif
 
-void ImGuiConsole::DefaultSettings()
+void ImGuiConsole::default_settings()
 {
 	// Settings
-	m_AutoScroll = true;
-	m_ScrollToBottom = false;
-	m_ColoredOutput = true;
-	m_FilterBar = true;
-	m_TimeStamps = true;
+	m_auto_scroll = true;
+	m_scroll_to_bottom = false;
+	m_colored_output = true;
+	m_filter_bar = true;
+	m_time_stamps = true;
 
 	// Style
-	m_WindowAlpha = 0.2f;
-	m_ColorPalette[COL_COMMAND] = ImVec4(1.f, 1.f, 1.f, 1.f);
-	//m_ColorPalette[COL_LOG] = ImVec4(1.f, 1.f, 1.f, 0.5f);
-	m_ColorPalette[COL_LOG] = ImVec4(0.0f, 1.0f, 1.0f, 1.0f);
-	m_ColorPalette[COL_WARNING] = ImVec4(1.0f, 0.87f, 0.37f, 1.f);
-	m_ColorPalette[COL_ERROR] = ImVec4(1.f, 0.365f, 0.365f, 1.f);
-	m_ColorPalette[COL_INFO] = ImVec4(0.46f, 0.96f, 0.46f, 1.f);
-	m_ColorPalette[COL_TIMESTAMP] = ImVec4(1.f, 1.f, 1.f, 0.5f);
+	m_window_alpha = 0.2f;
+	m_color_palette[COL_COMMAND] = ImVec4(1.f, 1.f, 1.f, 1.f);
+	//m_color_palette[COL_LOG] = ImVec4(1.f, 1.f, 1.f, 0.5f);
+	m_color_palette[COL_LOG] = ImVec4(0.0f, 1.0f, 1.0f, 1.0f);
+	m_color_palette[COL_WARNING] = ImVec4(1.0f, 0.87f, 0.37f, 1.f);
+	m_color_palette[COL_ERROR] = ImVec4(1.f, 0.365f, 0.365f, 1.f);
+	m_color_palette[COL_INFO] = ImVec4(0.46f, 0.96f, 0.46f, 1.f);
+	m_color_palette[COL_TIMESTAMP] = ImVec4(1.f, 1.f, 1.f, 0.5f);
 }
 
-void ImGuiConsole::RegisterConsoleCommands()
+void ImGuiConsole::register_console_commands()
 {
-	m_ConsoleSystem.RegisterCommand("clear", "Clear console log", [this]()
+	m_console_system.RegisterCommand("clear", "Clear console log", [this]()
 		{
-			m_ConsoleSystem.Items().clear();
+			m_console_system.Items().clear();
 		});
 
-	m_ConsoleSystem.RegisterCommand("filter", "Set screen filter", [this](const csys::String& filter)
+	m_console_system.RegisterCommand("filter", "Set screen filter", [this](const csys::String& filter)
 		{
 			// Reset filter buffer.
-			std::memset(m_TextFilter.InputBuf, '\0', 256);
+			std::memset(m_text_filter.InputBuf, '\0', 256);
 
 			// Copy filter input buffer from client.
-			std::copy(filter.m_String.c_str(), filter.m_String.c_str() + std::min(static_cast<int>(filter.m_String.length()), 255), m_TextFilter.InputBuf);
+			std::copy(filter.m_String.c_str(), filter.m_String.c_str() + std::min(static_cast<int>(filter.m_String.length()), 255), m_text_filter.InputBuf);
 
 			// Build text filter.
-			m_TextFilter.Build();
+			m_text_filter.Build();
 
 		}, csys::Arg<csys::String>("filter_str"));
 
-	m_ConsoleSystem.RegisterCommand("run", "Run given script", [this](const csys::String& filter)
+	m_console_system.RegisterCommand("run", "Run given script", [this](const csys::String& filter)
 		{
 			// Logs command.
-			m_ConsoleSystem.RunScript(filter.m_String);
+			m_console_system.RunScript(filter.m_String);
 		}, csys::Arg<csys::String>("script_name"));
 
 	
-	m_ConsoleSystem.RegisterCommand("quit", "Quit the application", [this]()
+	m_console_system.RegisterCommand("quit", "Quit the application", [this]()
 		{
 			std::exit(EXIT_SUCCESS);
 		});
 
-	m_ConsoleSystem.RegisterCommand("con_dump", "Dump contents of the console into a file", [this](const csys::String& filter)
+	m_console_system.RegisterCommand("con_dump", "Dump contents of the console into a file", [this](const csys::String& filter)
 		{
 			dump_file(filter.m_String);
 		}, csys::Arg<csys::String>("filename"));
 
-	m_ConsoleSystem.RegisterVariable("con_speed",    CONSPEED_FLOAT,   csys::Arg<float>("Float"));
-	m_ConsoleSystem.RegisterVariable("con_bg_alpha", CON_BG_ALPHA_INT, csys::Arg<int>("Int [0,255]"));
-	m_ConsoleSystem.RegisterVariable("con_bg_red",   CON_BG_RED_INT,   csys::Arg<int>("Int [0,255]"));
-	m_ConsoleSystem.RegisterVariable("con_bg_green", CON_BG_GREEN_INT, csys::Arg<int>("Int [0,255]"));
-	m_ConsoleSystem.RegisterVariable("con_bg_blue",  CON_BG_BLUE_INT,  csys::Arg<int>("Int [0,255]"));
+	m_console_system.RegisterVariable("con_speed",    conspeed_float,   csys::Arg<float>("Float"));
+	m_console_system.RegisterVariable("con_bg_alpha", con_bg_alpha_int, csys::Arg<int>("Int [0,255]"));
+	m_console_system.RegisterVariable("con_bg_red",   con_bg_red_int,   csys::Arg<int>("Int [0,255]"));
+	m_console_system.RegisterVariable("con_bg_green", con_bg_green_int, csys::Arg<int>("Int [0,255]"));
+	m_console_system.RegisterVariable("con_bg_blue",  con_bg_blue_int,  csys::Arg<int>("Int [0,255]"));
 }
 
-void ImGuiConsole::FilterBar()
+void ImGuiConsole::filter_bar()
 {
-	m_TextFilter.Draw("Filter", ImGui::GetWindowWidth() * 0.25f);
+	m_text_filter.Draw("Filter", ImGui::GetWindowWidth() * 0.25f);
 	ImGui::Separator();
 }
 
-void ImGuiConsole::LogWindow()
+void ImGuiConsole::log_window()
 {
-	const float footerHeightToReserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
-	if (ImGui::BeginChild("ScrollRegion##", ImVec2(0, -footerHeightToReserve), false, 0))
+	const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
+	if (ImGui::BeginChild("ScrollRegion##", ImVec2(0, -footer_height_to_reserve), false, 0))
 	{
 		// Display colored command output.
 		static const float timestamp_width = ImGui::CalcTextSize("00:00:00:0000").x;    // Timestamp.
@@ -348,23 +348,23 @@ void ImGuiConsole::LogWindow()
 		ImGui::PushTextWrapPos();
 
 		// Display items.
-		for (const auto& item : m_ConsoleSystem.Items())
+		for (const auto& item : m_console_system.Items())
 		{
 			// Exit if word is filtered.
-			if (!m_TextFilter.PassFilter(item.Get().c_str()))
+			if (!m_text_filter.PassFilter(item.Get().c_str()))
 				continue;
 
 			// Spacing between commands.
 			if (item.m_Type == csys::COMMAND)
 			{
-				if (m_TimeStamps) ImGui::PushTextWrapPos(ImGui::GetColumnWidth() - timestamp_width);    // Wrap before timestamps start.
+				if (m_time_stamps) ImGui::PushTextWrapPos(ImGui::GetColumnWidth() - timestamp_width);    // Wrap before timestamps start.
 				if (count++ != 0) ImGui::Dummy(ImVec2(-1, ImGui::GetFontSize()));                            // No space for the first command.
 			}
 
 			// Items.
-			if (m_ColoredOutput)
+			if (m_colored_output)
 			{
-				ImGui::PushStyleColor(ImGuiCol_Text, m_ColorPalette[item.m_Type]);
+				ImGui::PushStyleColor(ImGuiCol_Text, m_color_palette[item.m_Type]);
 				ImGui::TextUnformatted(item.Get().data());
 				ImGui::PopStyleColor();
 			}
@@ -375,7 +375,7 @@ void ImGuiConsole::LogWindow()
 
 
 			// Time stamp.
-			if (item.m_Type == csys::COMMAND && m_TimeStamps)
+			if (item.m_Type == csys::COMMAND && m_time_stamps)
 			{
 				// No wrap for timestamps
 				ImGui::PopTextWrapPos();
@@ -384,7 +384,7 @@ void ImGuiConsole::LogWindow()
 				ImGui::SameLine(ImGui::GetColumnWidth(-1) - timestamp_width);
 
 				// Draw time stamp.
-				ImGui::PushStyleColor(ImGuiCol_Text, m_ColorPalette[COL_TIMESTAMP]);
+				ImGui::PushStyleColor(ImGuiCol_Text, m_color_palette[COL_TIMESTAMP]);
 				ImGui::Text("%02d:%02d:%02d:%04d", ((item.m_TimeStamp / 1000 / 3600) % 24), ((item.m_TimeStamp / 1000 / 60) % 60),
 					((item.m_TimeStamp / 1000) % 60), item.m_TimeStamp % 1000);
 				ImGui::PopStyleColor();
@@ -396,54 +396,54 @@ void ImGuiConsole::LogWindow()
 		ImGui::PopTextWrapPos();
 
 		// Auto-scroll logs.
-		if ((m_ScrollToBottom && (ImGui::GetScrollY() >= ImGui::GetScrollMaxY() || m_AutoScroll)))
+		if ((m_scroll_to_bottom && (ImGui::GetScrollY() >= ImGui::GetScrollMaxY() || m_auto_scroll)))
 			ImGui::SetScrollHereY(1.0f);
-		m_ScrollToBottom = false;
+		m_scroll_to_bottom = false;
 
 		// Loop through command string vector.
 	}
 		ImGui::EndChild();
 }
 
-void ImGuiConsole::InputBar()
+void ImGuiConsole::input_bar()
 {
 	// Variables.
-	ImGuiInputTextFlags inputTextFlags =
+	ImGuiInputTextFlags input_text_flags =
 		ImGuiInputTextFlags_CallbackHistory | ImGuiInputTextFlags_CallbackCharFilter | ImGuiInputTextFlags_CallbackCompletion |
 		ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackAlways;
 
 	// Input widget. (Width an always fixed width)
 	ImGui::PushItemWidth(-ImGui::GetStyle().ItemSpacing.x * 7);
-	if (ImGui::InputText("Input", &m_Buffer, inputTextFlags, InputCallback, this))
+	if (ImGui::input_text("Input", &m_buffer, input_text_flags, input_callback, this))
 	{
 		// Validate.
-		if (!m_Buffer.empty())
+		if (!m_buffer.empty())
 		{
 			// Run command line input.
-			m_ConsoleSystem.RunCommand(m_Buffer);
+			m_console_system.RunCommand(m_buffer);
 
 			// Scroll to bottom after its ran.
-			m_ScrollToBottom = true;
+			m_scroll_to_bottom = true;
 		}
 
 		// Clear command line.
-		m_Buffer.clear();
+		m_buffer.clear();
 	}
 	ImGui::PopItemWidth();
 
 	// Reset suggestions when client provides char input.
-	if (ImGui::IsItemEdited() && !m_WasPrevFrameTabCompletion)
+	if (ImGui::IsItemEdited() && !m_was_prev_frame_tab_completion)
 	{
-		m_CmdSuggestions.clear();
+		m_cmd_suggestions.clear();
 	}
-	m_WasPrevFrameTabCompletion = false;
+	m_was_prev_frame_tab_completion = false;
 
 	// Auto-focus on window apparition
 	ImGui::SetItemDefaultFocus();
 	ImGui::SetKeyboardFocusHere(-1);
 }
 
-void ImGuiConsole::MenuBar()
+void ImGuiConsole::menu_bar()
 {
 	if (ImGui::BeginMenuBar())
 	{
@@ -451,22 +451,22 @@ void ImGuiConsole::MenuBar()
 		if (ImGui::BeginMenu("Settings"))
 		{
 			// Colored output
-			ImGui::Checkbox("Colored Output", &m_ColoredOutput);
+			ImGui::Checkbox("Colored Output", &m_colored_output);
 			ImGui::SameLine();
 			HelpMaker("Enable colored command output");
 
 			// Auto Scroll
-			ImGui::Checkbox("Auto Scroll", &m_AutoScroll);
+			ImGui::Checkbox("Auto Scroll", &m_auto_scroll);
 			ImGui::SameLine();
 			HelpMaker("Automatically scroll to bottom of console log");
 
 			// Filter bar
-			ImGui::Checkbox("Filter Bar", &m_FilterBar);
+			ImGui::Checkbox("Filter Bar", &m_filter_bar);
 			ImGui::SameLine();
 			HelpMaker("Enable console filter bar");
 
 			// Time stamp
-			ImGui::Checkbox("Time Stamps", &m_TimeStamps);
+			ImGui::Checkbox("Time Stamps", &m_time_stamps);
 			ImGui::SameLine();
 			HelpMaker("Display command execution timestamps");
 
@@ -482,7 +482,7 @@ void ImGuiConsole::MenuBar()
 
 				if (ImGui::Button("Reset", ImVec2(120, 0)))
 				{
-					DefaultSettings();
+					default_settings();
 					ImGui::CloseCurrentPopup();
 				}
 
@@ -507,19 +507,19 @@ void ImGuiConsole::MenuBar()
 
 			ImGui::TextUnformatted("Color Palette");
 			ImGui::Indent();
-			ImGui::ColorEdit4("Command##", (float*)&m_ColorPalette[COL_COMMAND], flags);
-			ImGui::ColorEdit4("Log##", (float*)&m_ColorPalette[COL_LOG], flags);
-			ImGui::ColorEdit4("Warning##", (float*)&m_ColorPalette[COL_WARNING], flags);
-			ImGui::ColorEdit4("Error##", (float*)&m_ColorPalette[COL_ERROR], flags);
-			ImGui::ColorEdit4("Info##", (float*)&m_ColorPalette[COL_INFO], flags);
-			ImGui::ColorEdit4("Time Stamp##", (float*)&m_ColorPalette[COL_TIMESTAMP], flags);
+			ImGui::ColorEdit4("Command##", (float*)&m_color_palette[COL_COMMAND], flags);
+			ImGui::ColorEdit4("Log##", (float*)&m_color_palette[COL_LOG], flags);
+			ImGui::ColorEdit4("Warning##", (float*)&m_color_palette[COL_WARNING], flags);
+			ImGui::ColorEdit4("Error##", (float*)&m_color_palette[COL_ERROR], flags);
+			ImGui::ColorEdit4("Info##", (float*)&m_color_palette[COL_INFO], flags);
+			ImGui::ColorEdit4("Time Stamp##", (float*)&m_color_palette[COL_TIMESTAMP], flags);
 			ImGui::Unindent();
 
 			ImGui::Separator();
 
 			// Window transparency.
 			ImGui::TextUnformatted("Background");
-			ImGui::SliderFloat("Transparency##", &m_WindowAlpha, 0.1f, 1.f);
+			ImGui::SliderFloat("Transparency##", &m_window_alpha, 0.1f, 1.f);
 
 			ImGui::EndMenu();
 		}
@@ -528,12 +528,12 @@ void ImGuiConsole::MenuBar()
 		if (ImGui::BeginMenu("Scripts"))
 		{
 			// Show registered scripts.
-			for (const auto& scr_pair : m_ConsoleSystem.Scripts())
+			for (const auto& scr_pair : m_console_system.Scripts())
 			{
 				if (ImGui::MenuItem(scr_pair.first.c_str()))
 				{
-					m_ConsoleSystem.RunScript(scr_pair.first);
-					m_ScrollToBottom = true;
+					m_console_system.RunScript(scr_pair.first);
+					m_scroll_to_bottom = true;
 				}
 			}
 
@@ -541,7 +541,7 @@ void ImGuiConsole::MenuBar()
 			ImGui::Separator();
 			if (ImGui::Button("Reload Scripts", ImVec2(ImGui::GetColumnWidth(), 0)))
 			{
-				for (const auto& scr_pair : m_ConsoleSystem.Scripts())
+				for (const auto& scr_pair : m_console_system.Scripts())
 				{
 					scr_pair.second->Reload();
 				}
@@ -567,7 +567,7 @@ void ImGuiConsole::HelpMaker(const char* desc)
 	}
 }
 
-int ImGuiConsole::InputCallback(ImGuiInputTextCallbackData* data)
+int ImGuiConsole::input_callback(ImGuiInputTextCallbackData* data)
 {
 
 	// Exit if no buffer.
@@ -581,73 +581,73 @@ int ImGuiConsole::InputCallback(ImGuiInputTextCallbackData* data)
 
 	// Optimize by only using positions.
 	// Trim start and end spaces.
-	size_t startPos = console->m_Buffer.find_first_not_of(' ');
-	size_t endPos = console->m_Buffer.find_last_not_of(' ');
+	size_t start_pos = console->m_buffer.find_first_not_of(' ');
+	size_t end_pos = console->m_buffer.find_last_not_of(' ');
 
 	// Get trimmed string.
-	if (startPos != std::string::npos && endPos != std::string::npos)
-		trim_str = console->m_Buffer.substr(startPos, endPos + 1);
+	if (start_pos != std::string::npos && end_pos != std::string::npos)
+		trim_str = console->m_buffer.substr(start_pos, end_pos + 1);
 	else
-		trim_str = console->m_Buffer;
+		trim_str = console->m_buffer;
 
 	switch (data->EventFlag)
 	{
 	case ImGuiInputTextFlags_CallbackCompletion:
 	{
 		// Find last word.
-		size_t startSubtrPos = trim_str.find_last_of(' ');
+		size_t start_subtr_pos = trim_str.find_last_of(' ');
 		csys::AutoComplete* console_autocomplete;
 
 		// Command line is an entire word/string (No whitespace)
 		// Determine which autocomplete tree to use.
-		if (startSubtrPos == std::string::npos)
+		if (start_subtr_pos == std::string::npos)
 		{
-			startSubtrPos = 0;
-			console_autocomplete = &console->m_ConsoleSystem.CmdAutocomplete();
+			start_subtr_pos = 0;
+			console_autocomplete = &console->m_console_system.CmdAutocomplete();
 		}
 		else
 		{
-			startSubtrPos += 1;
-			console_autocomplete = &console->m_ConsoleSystem.VarAutocomplete();
+			start_subtr_pos += 1;
+			console_autocomplete = &console->m_console_system.VarAutocomplete();
 		}
 
 		// Validate str
 		if (!trim_str.empty())
 		{
 			// Display suggestions on console.
-			if (!console->m_CmdSuggestions.empty())
+			if (!console->m_cmd_suggestions.empty())
 			{
-				console->m_ConsoleSystem.Log(csys::COMMAND) << "Suggestions: " << csys::endl;
+				console->m_console_system.Log(csys::COMMAND) << "Suggestions: " << csys::endl;
 
-				for (const auto& suggestion : console->m_CmdSuggestions)
-					console->m_ConsoleSystem.Log(csys::LOG) << suggestion << csys::endl;
+				for (const auto& suggestion : console->m_cmd_suggestions)
+					console->m_console_system.Log(csys::LOG) << suggestion << csys::endl;
 
-				console->m_CmdSuggestions.clear();
+				console->m_cmd_suggestions.clear();
 			}
 
 			// Get partial completion and suggestions.
-			std::string partial = console_autocomplete->Suggestions(trim_str.substr(startSubtrPos, endPos + 1), console->m_CmdSuggestions);
+			std::string partial = console_autocomplete->Suggestions(trim_str.substr(start_subtr_pos, end_pos + 1), console->m_cmd_suggestions);
 
 			// Autocomplete only when one work is available.
-			if (!console->m_CmdSuggestions.empty() && console->m_CmdSuggestions.size() == 1)
+			if (!console->m_cmd_suggestions.empty() && console->m_cmd_suggestions.size() == 1)
 			{
-				data->DeleteChars(static_cast<int>(startSubtrPos), static_cast<int>(data->BufTextLen - startSubtrPos));
-				data->InsertChars(static_cast<int>(startSubtrPos), console->m_CmdSuggestions[0].data());
-				console->m_CmdSuggestions.clear();
+				data->DeleteChars(static_cast<int>(start_subtr_pos), static_cast<int>(data->BufTextLen - start_subtr_pos));
+				data->InsertChars(static_cast<int>(start_subtr_pos), console->m_cmd_suggestions[0].data());
+				console->m_cmd_suggestions.clear();
 			}
 			else
 			{
 				// Partially complete word.
 				if (!partial.empty())
 				{
-					data->DeleteChars(static_cast<int>(startSubtrPos), static_cast<int>(data->BufTextLen - startSubtrPos));
-					data->InsertChars(static_cast<int>(startSubtrPos), partial.data());
+					data->DeleteChars(static_cast<int>(start_subtr_pos), static_cast<int>(data->BufTextLen - start_subtr_pos));
+					data->InsertChars(static_cast<int>(start_subtr_pos), partial.data());
 				}
 			}
 		}
 
 		// We have performed the completion event.
-		console->m_WasPrevFrameTabCompletion = true;
+		console->m_was_prev_frame_tab_completion = true;
 	}
 	break;
 
@@ -657,24 +657,24 @@ int ImGuiConsole::InputCallback(ImGuiInputTextCallbackData* data)
 		data->DeleteChars(0, data->BufTextLen);
 
 		// Init history index
-		if (console->m_HistoryIndex == std::numeric_limits<size_t>::min())
-			console->m_HistoryIndex = console->m_ConsoleSystem.History().GetNewIndex();
+		if (console->m_history_index == std::numeric_limits<size_t>::min())
+			console->m_history_index = console->m_console_system.History().GetNewIndex();
 
 		// Traverse history.
 		if (data->EventKey == ImGuiKey_UpArrow)
 		{
-			if (console->m_HistoryIndex) --(console->m_HistoryIndex);
+			if (console->m_history_index) --(console->m_history_index);
 		}
 		else
 		{
-			if (console->m_HistoryIndex < console->m_ConsoleSystem.History().Size()) ++(console->m_HistoryIndex);
+			if (console->m_history_index < console->m_console_system.History().Size()) ++(console->m_history_index);
 		}
 
 		// Get history.
-		std::string prevCommand = console->m_ConsoleSystem.History()[console->m_HistoryIndex];
+		std::string prev_command = console->m_console_system.History()[console->m_history_index];
 
 		// Insert commands.
-		data->InsertChars(data->CursorPos, prevCommand.data());
+		data->InsertChars(data->CursorPos, prev_command.data());
 	}
 	break;
 
@@ -687,27 +687,27 @@ int ImGuiConsole::InputCallback(ImGuiInputTextCallbackData* data)
 }
 
 #if 0 // TODO(): we dont really need those i think
-void ImGuiConsole::SettingsHandler_ClearALl(ImGuiContext* ctx, ImGuiSettingsHandler* handler)
+void ImGuiConsole::settings_handler_clear_all(ImGuiContext* ctx, ImGuiSettingsHandler* handler)
 {
 }
 
-void ImGuiConsole::SettingsHandler_ReadInit(ImGuiContext* ctx, ImGuiSettingsHandler* handler)
+void ImGuiConsole::settings_handler_read_init(ImGuiContext* ctx, ImGuiSettingsHandler* handler)
 {
 }
 
-void* ImGuiConsole::SettingsHandler_ReadOpen(ImGuiContext* ctx, ImGuiSettingsHandler* handler, const char* name)
+void* ImGuiConsole::settings_handler_read_open(ImGuiContext* ctx, ImGuiSettingsHandler* handler, const char* name)
 {
 	if (!handler->UserData)
 		return nullptr;
 
 	auto console = static_cast<ImGuiConsole*>(handler->UserData);
 
-	if (strcmp(name, console->m_ConsoleName.c_str()) != 0)
+	if (strcmp(name, console->m_console_name.c_str()) != 0)
 		return nullptr;
 	return (void*)1;
 }
 
-void ImGuiConsole::SettingsHandler_ReadLine(ImGuiContext* ctx, ImGuiSettingsHandler* handler, void* entry, const char* line)
+void ImGuiConsole::settings_handler_read_line(ImGuiContext* ctx, ImGuiSettingsHandler* handler, void* entry, const char* line)
 {
 	if (!handler->UserData)
 		return;
@@ -716,13 +716,13 @@ void ImGuiConsole::SettingsHandler_ReadLine(ImGuiContext* ctx, ImGuiSettingsHand
 	auto console = static_cast<ImGuiConsole*>(handler->UserData);
 
 	// Ensure console doesn't reset variables.
-	console->m_LoadedFromIni = true;
+	console->m_loaded_from_ini = true;
 
 	// Disable warning regarding sscanf when using MVSC
 #pragma warning( push )
 #pragma warning( disable:4996 )
 
-#define INI_CONSOLE_LOAD_COLOR(type) (std::sscanf(line, #type"=%i,%i,%i,%i", &r, &g, &b, &a) == 4) { console->m_ColorPalette[type] = ImColor(r, g, b, a); }
+#define INI_CONSOLE_LOAD_COLOR(type) (std::sscanf(line, #type"=%i,%i,%i,%i", &r, &g, &b, &a) == 4) { console->m_color_palette[type] = ImColor(r, g, b, a); }
 #define INI_CONSOLE_LOAD_FLOAT(var) (std::sscanf(line, #var"=%f", &f) == 1) { console->var = f; }
 #define INI_CONSOLE_LOAD_BOOL(var) (std::sscanf(line, #var"=%i", &b) == 1) {console->var = b == 1;}
 
@@ -736,25 +736,25 @@ void ImGuiConsole::SettingsHandler_ReadLine(ImGuiContext* ctx, ImGuiSettingsHand
 	else if INI_CONSOLE_LOAD_COLOR(COL_ERROR)
 	else if INI_CONSOLE_LOAD_COLOR(COL_INFO)
 	else if INI_CONSOLE_LOAD_COLOR(COL_TIMESTAMP)
-	else if INI_CONSOLE_LOAD_FLOAT(m_WindowAlpha)
+	else if INI_CONSOLE_LOAD_FLOAT(m_window_alpha)
 
 		// Window settings
-	else if INI_CONSOLE_LOAD_BOOL(m_AutoScroll)
-	else if INI_CONSOLE_LOAD_BOOL(m_ScrollToBottom)
-	else if INI_CONSOLE_LOAD_BOOL(m_ColoredOutput)
-	else if INI_CONSOLE_LOAD_BOOL(m_FilterBar)
-	else if INI_CONSOLE_LOAD_BOOL(m_TimeStamps)
+	else if INI_CONSOLE_LOAD_BOOL(m_auto_scroll)
+	else if INI_CONSOLE_LOAD_BOOL(m_scroll_to_bottom)
+	else if INI_CONSOLE_LOAD_BOOL(m_colored_output)
+	else if INI_CONSOLE_LOAD_BOOL(m_filter_bar)
+	else if INI_CONSOLE_LOAD_BOOL(m_time_stamps)
 
 #pragma warning( pop )
 }
 
-void ImGuiConsole::SettingsHandler_ApplyAll(ImGuiContext* ctx, ImGuiSettingsHandler* handler)
+void ImGuiConsole::settings_handler_apply_all(ImGuiContext* ctx, ImGuiSettingsHandler* handler)
 {
 	if (!handler->UserData)
 		return;
 }
 
-void ImGuiConsole::SettingsHandler_WriteAll(ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* buf)
+void ImGuiConsole::settings_handler_write_all(ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* buf)
 {
 	if (!handler->UserData)
 		return;
@@ -762,26 +762,26 @@ void ImGuiConsole::SettingsHandler_WriteAll(ImGuiContext* ctx, ImGuiSettingsHand
 	// Get console.
 	auto console = static_cast<ImGuiConsole*>(handler->UserData);
 
-#define INI_CONSOLE_SAVE_COLOR(type) buf->appendf(#type"=%i,%i,%i,%i\n", (int)(console->m_ColorPalette[type].x * 255),\
-                                                                         (int)(console->m_ColorPalette[type].y * 255),\
-                                                                         (int)(console->m_ColorPalette[type].z * 255),\
-                                                                         (int)(console->m_ColorPalette[type].w * 255))
+#define INI_CONSOLE_SAVE_COLOR(type) buf->appendf(#type"=%i,%i,%i,%i\n", (int)(console->m_color_palette[type].x * 255),\
+                                                                         (int)(console->m_color_palette[type].y * 255),\
+                                                                         (int)(console->m_color_palette[type].z * 255),\
+                                                                         (int)(console->m_color_palette[type].w * 255))
 
 #define INI_CONSOLE_SAVE_FLOAT(var) buf->appendf(#var"=%.3f\n", console->var)
 #define INI_CONSOLE_SAVE_BOOL(var) buf->appendf(#var"=%i\n", console->var)
 
 	// Set header for CONSOLE Console.
-	buf->appendf("[%s][%s]\n", handler->TypeName, console->m_ConsoleName.data());
+	buf->appendf("[%s][%s]\n", handler->TypeName, console->m_console_name.data());
 
 	// Window settings.
-	INI_CONSOLE_SAVE_BOOL(m_AutoScroll);
-	INI_CONSOLE_SAVE_BOOL(m_ScrollToBottom);
-	INI_CONSOLE_SAVE_BOOL(m_ColoredOutput);
-	INI_CONSOLE_SAVE_BOOL(m_FilterBar);
-	INI_CONSOLE_SAVE_BOOL(m_TimeStamps);
+	INI_CONSOLE_SAVE_BOOL(m_auto_scroll);
+	INI_CONSOLE_SAVE_BOOL(m_scroll_to_bottom);
+	INI_CONSOLE_SAVE_BOOL(m_colored_output);
+	INI_CONSOLE_SAVE_BOOL(m_filter_bar);
+	INI_CONSOLE_SAVE_BOOL(m_time_stamps);
 
 	// Window style/visuals
-	INI_CONSOLE_SAVE_FLOAT(m_WindowAlpha);
+	INI_CONSOLE_SAVE_FLOAT(m_window_alpha);
 	INI_CONSOLE_SAVE_COLOR(COL_COMMAND);
 	INI_CONSOLE_SAVE_COLOR(COL_LOG);
 	INI_CONSOLE_SAVE_COLOR(COL_WARNING);
