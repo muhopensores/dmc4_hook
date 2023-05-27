@@ -20,9 +20,9 @@ ImGuiConsole* console = &console_local;
 
 static float conspeed_float = 3.0f;
 
-static int con_bg_red_int   = 53;
-static int con_bg_green_int = 30;
-static int con_bg_blue_int  = 186;
+static int con_bg_red_int   = 0;
+static int con_bg_green_int = 186;
+static int con_bg_blue_int  = 250;
 static int con_bg_alpha_int = 250;
 
 // The following three functions (InputTextCallback_UserData, InputTextCallback, InputText) are obtained from misc/cpp/imgui_stdlib.h
