@@ -18,3 +18,5 @@ Run build_debug.bat/build_release.bat edit bat files according to your visual st
 
 ## Linux proton support
 Should work fine with `WINEDLLOVERRIDES="dinput8=n,b" %command%` in Steams launch options. Game may freeze up on exit if you quit through menu, might want to `pkill` it or something
+
+Steam Deck save file location is `/home/deck/.local/share/Steam/steamapps/compatdata/45700/pfx/drive_c/users/steamuser/Documents/CAPCOM/DEVILMAYCRY4/`
