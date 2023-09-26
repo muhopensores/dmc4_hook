@@ -6,9 +6,11 @@ class InfFaustCloak : public Mod {
 public:
     InfFaustCloak() = default;
 
-    static bool mod_enabled;
+    static bool always_cloak;
+    static bool no_cloak;
 
-    void toggle(bool enable);
+    void toggle1(bool enable);
+    void toggle2(bool enable);
 
     std::string get_mod_name() override { return "InfFaustCloak"; };
 
@@ -20,5 +22,6 @@ public:
     void on_gui_frame() override;
 
 private:
-    std::unique_ptr<Patch> patch;
+    std::unique_ptr<Patch> patch1;
+    std::unique_ptr<Patch> patch2;
 };

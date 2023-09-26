@@ -392,11 +392,13 @@ namespace gui {
 
                     pmods->on_draw_ui("DtEnemiesDontStun"_hash);
                     ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("InfFaustCloak"_hash);
+                    pmods->on_draw_ui("BerialDaze"_hash);
+
+
+                    pmods->on_draw_ui("InfFaustCloak"_hash); // needs its own line
 
                     pmods->on_draw_ui("FreezeEnemies"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("BerialDaze"_hash);
+                    //ImGui::SameLine(sameLineWidth);
 
                     ImGui::Spacing();
                     ImGui::Separator();
