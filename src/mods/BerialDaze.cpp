@@ -1,6 +1,6 @@
-
 #include "BerialDaze.hpp"
 
+#if 1
 bool BerialDaze::mod_enabled{ false };
 uintptr_t BerialDaze::jmp_ret{ NULL };
 
@@ -53,3 +53,4 @@ void BerialDaze::on_config_load(const utility::Config& cfg) {
 void BerialDaze::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("berial_practice", mod_enabled);
 }
+#endif
