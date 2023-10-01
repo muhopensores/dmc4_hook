@@ -193,9 +193,6 @@ void SelectiveCancels::on_gui_frame() {
 			ImGui::SameLine(sameLineWidth);
 			draw_checkbox_simple("Gun Stinger", GUNSTINGER);
 	}
-	ImGui::Spacing();
-	ImGui::Separator();
-	ImGui::Spacing();
 }
 
 void SelectiveCancels::on_config_save(utility::Config& cfg) {
