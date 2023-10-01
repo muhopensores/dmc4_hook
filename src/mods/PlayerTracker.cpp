@@ -37,8 +37,6 @@ std::optional<std::string> PlayerTracker::on_initialize() {
 }
 
 void PlayerTracker::on_gui_frame() {
-    ImGui::Spacing();
-
     ImGui::Checkbox("Disable Game Pause When Opening The Trainer", &WorkRate::disable_trainer_pause);
 
     ImGui::Spacing();
@@ -46,6 +44,11 @@ void PlayerTracker::on_gui_frame() {
     ImGui::Spacing();
 
     ImGui::Checkbox("Show Pin Timers", &PlayerTracker::pin_imgui_enabled);
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
     ImGui::Checkbox("Display Player Stats", &display_player_stats);
     if (display_player_stats) {
         SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;

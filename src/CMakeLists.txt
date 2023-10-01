@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/DebugDraw.hpp
+  mods/DebugDraw.cpp
   mods/AlwaysRoyalRelease.hpp
   mods/AlwaysRoyalRelease.cpp
   mods/HighTimeWeaponSwitch.hpp

@@ -56,6 +56,7 @@ void EnemySlotting::on_gui_frame() {
 void EnemySlotting::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("enemy_slot_enable").value_or(false);
     new_enemy_slot_limit = cfg.get<int>("enemy_slot_limit").value_or(12);
+    // old versions used to allow out of range values, this will correct configs
     if (new_enemy_slot_limit > 12)
 		new_enemy_slot_limit = 12;
 };

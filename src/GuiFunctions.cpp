@@ -655,23 +655,36 @@ namespace gui {
                     ImGui::BeginChild("DebugChild");
 
                     pmods->on_draw_ui("RoomRespawn"_hash);
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
                     pmods->on_draw_ui("LoadOrder"_hash);
 
                     ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    pmods->on_draw_ui("DebugDraw"_hash);
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
                     pmods->on_draw_ui("PlayerTracker"_hash); // needs its own line
 
                     ImGui::Spacing();
-
                     ImGui::Separator();
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("EnemyStats"_hash); // needs its own line
 
                     ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
 
                     pmods->on_draw_ui("MutatorSelfAdvertisement"_hash);
-                    
-                    ImGui::Spacing();
 
                     // pmods->onDrawUI("ShaderEditor"_hash);
                     g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);

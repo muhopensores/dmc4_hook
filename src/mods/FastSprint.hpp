@@ -9,7 +9,6 @@ public:
     static uintptr_t jmp_ret;
     static bool mod_enabled;
     static float newSprintTimer;
-    void toggle(bool enable);
 
     std::string get_mod_name() override { return "FastSprint"; };
 

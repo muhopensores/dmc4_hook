@@ -101,6 +101,7 @@
 #include "mods/Twitch.hpp"
 #include "mods/MessageDisplay.hpp"
 #include "mods/MutatorSelfAdvertisement.hpp"
+#include "mods/DebugDraw.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -218,6 +219,7 @@ Mods::Mods() {
     //ADD_MOD(ShaderEditor); // unfinished
     ADD_MOD(LoadOrder); // in debug tab for now until i figure out how to get rid of SEH exceptions
     ADD_MOD(RoomRespawn);
+    ADD_MOD(DebugDraw);
 }
 
 // Initializes mods, checks for errors
