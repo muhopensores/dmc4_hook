@@ -103,6 +103,7 @@
 #include "mods/MutatorSelfAdvertisement.hpp"
 #include "mods/DebugDraw.hpp"
 #include "mods/DoubleTapDarkslayer.hpp"
+#include "mods/TargetChangeDarkslayer.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -222,6 +223,7 @@ Mods::Mods() {
     ADD_MOD(RoomRespawn);
     ADD_MOD(DebugDraw);
     ADD_MOD(DoubleTapDarkslayer);
+    ADD_MOD(TargetChangeDarkslayer);
 }
 
 // Initializes mods, checks for errors

@@ -3,7 +3,7 @@
 #if 1
 uintptr_t FastSprint::jmp_ret{NULL};
 bool FastSprint::mod_enabled{ false };
-float FastSprint::newSprintTimer{50.0f};
+float FastSprint::newSprintTimer{50.0f}; // 225
 
 naked void detour(void) {
     _asm {

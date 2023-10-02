@@ -516,9 +516,23 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("AlwaysRoyalRelease"_hash);
 
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    ImGui::Text("Darkslayer");
+                    ImGui::Spacing();
+
                     pmods->on_draw_ui("DoubleTapDarkslayer"_hash); // needs its own line
 
+                    pmods->on_draw_ui("TargetChangeDarkslayer"_hash);
+
+                    pmods->on_draw_ui("DisableDarkslayer"_hash); // needs its own line
+
                     ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
                     ImGui::Text("Lucifer");
                     ImGui::Spacing();
 
@@ -537,8 +551,6 @@ namespace gui {
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();
-
-                    pmods->on_draw_ui("DisableDarkslayer"_hash); // needs its own line
 
                     pmods->on_draw_ui("SelectiveCancels"_hash); // needs its own line
 

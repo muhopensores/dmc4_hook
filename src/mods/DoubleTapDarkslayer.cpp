@@ -153,6 +153,8 @@ std::optional<std::string> DoubleTapDarkslayer::on_initialize() {
 
 void DoubleTapDarkslayer::on_gui_frame() {
     ImGui::Checkbox("Double Tap Darkslayer", &mod_enabled);
+    ImGui::SameLine();
+    help_marker("Darkslayer is accessed by quickly pressing one style twice");
     ImGui::SameLine(sameLineWidth);
     ImGui::PushItemWidth(sameLineItemWidth);
     ImGui::SliderFloat("Double Tap Timer", &darkslayerTimerFill, 6.0f, 32.0f, "%.0f");
