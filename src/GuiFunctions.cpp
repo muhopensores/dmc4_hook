@@ -520,24 +520,11 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("Darkslayer");
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("DoubleTapDarkslayer"_hash); // needs its own line
-
-                    pmods->on_draw_ui("TargetChangeDarkslayer"_hash);
-
-                    pmods->on_draw_ui("DisableDarkslayer"_hash); // needs its own line
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
                     ImGui::Text("Lucifer");
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("RoseRemovesPins"_hash); // needs its own line
-                    
+
                     pmods->on_draw_ui("ForceLucifer"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("InputStates"_hash); // taunt ecstasy
@@ -547,6 +534,19 @@ namespace gui {
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("RoseOptions"_hash); // needs its own line
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    ImGui::Text("Darkslayer");
+                    ImGui::Spacing();
+
+                    pmods->on_draw_ui("DoubleTapDarkslayer"_hash); // needs its own line
+
+                    pmods->on_draw_ui("TargetChangeDarkslayer"_hash);
+
+                    pmods->on_draw_ui("DisableDarkslayer"_hash); // needs its own line
 
                     ImGui::Spacing();
                     ImGui::Separator();

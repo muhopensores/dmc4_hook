@@ -43,6 +43,7 @@ void DisableDarkslayer::toggle_right(bool enable) {
 }
 
 void DisableDarkslayer::on_gui_frame() {
+    ImGui::Spacing();
     ImGui::Text("Disable Darkslayer Inputs");
 
     ImGui::Spacing();
