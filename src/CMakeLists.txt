@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/CustomModelFix.hpp
+  mods/CustomModelFix.cpp
   mods/TargetChangeDarkslayer.hpp
   mods/TargetChangeDarkslayer.cpp
   mods/DoubleTapDarkslayer.hpp

@@ -394,7 +394,6 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("BerialDaze"_hash);
 
-
                     pmods->on_draw_ui("InfFaustCloak"_hash); // needs its own line
 
                     pmods->on_draw_ui("FreezeEnemies"_hash);
@@ -621,6 +620,8 @@ namespace gui {
                     pmods->on_draw_ui("NoAutomaticCharacters"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("SlowWalk"_hash);
+                    
+                    pmods->on_draw_ui("CustomModelFix"_hash); // needs its own line
 
                     pmods->on_draw_ui("BpPortal"_hash); // needs its own line
 
@@ -681,7 +682,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    pmods->on_draw_ui("DebugDraw"_hash);
+                    // pmods->on_draw_ui("DebugDraw"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();

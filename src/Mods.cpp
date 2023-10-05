@@ -104,6 +104,7 @@
 #include "mods/DebugDraw.hpp"
 #include "mods/DoubleTapDarkslayer.hpp"
 #include "mods/TargetChangeDarkslayer.hpp"
+#include "mods/CustomModelFix.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -224,6 +225,7 @@ Mods::Mods() {
     ADD_MOD(DebugDraw);
     ADD_MOD(DoubleTapDarkslayer);
     ADD_MOD(TargetChangeDarkslayer);
+    ADD_MOD(CustomModelFix);
 }
 
 // Initializes mods, checks for errors
