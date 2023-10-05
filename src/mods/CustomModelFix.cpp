@@ -9,7 +9,7 @@ constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 bool CustomModelFix::char_nero{false};
 bool CustomModelFix::char_dante{false};
 
-naked void detour1(void) {
+naked void detour1(void) { // player in edx
     _asm {
             cmp byte ptr [CustomModelFix::char_nero], 0
             jne detourcode

@@ -1,6 +1,7 @@
 #include "DoubleTapDarkslayer.hpp"
 
 #if 1
+constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 uintptr_t DoubleTapDarkslayer::jmp_ret1{NULL};
 
 uintptr_t DoubleTapDarkslayer::jmp_ret2{NULL};
@@ -23,10 +24,18 @@ float DoubleTapDarkslayer::darkslayerTimer{0.0f};
 float DoubleTapDarkslayer::darkslayerTimerFill{0.0f};
 float DoubleTapDarkslayer::zeroFloat{0.0f};
 
-naked void detour1(void) { // ticks and resets the timer
+naked void detour1(void) { // ticks and resets the timer // player in esi
     _asm {
             cmp byte ptr [DoubleTapDarkslayer::mod_enabled], 0
             je originalcode
+
+            push ecx
+            mov ecx, [static_mediator_ptr]
+            mov ecx, [ecx]
+            mov ecx, [ecx+0x24]
+            cmp esi, ecx
+            pop ecx
+            jne originalcode
 
             test dword ptr [esi+0x00001410],0x00001000
             jne timerreset
