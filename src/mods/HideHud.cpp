@@ -8,6 +8,7 @@ bool HideHud::mod_enabled_boey{ false };
 bool HideHud::mod_enabled_weapon_selected{ false };
 bool HideHud::mod_enabled_hide_weapon_selected{false};
 bool HideHud::mod_enabled_map{ false };
+bool HideHud::mod_enabled_boss{false};
 
 // DevilMayCry4_DX9.exe+B1997 - cmp byte ptr [esi+04], 01 compares all hud elements, use it while paused to find what you need
 // DevilMayCry4_DX9.exe+FEFAC - mov byte ptr [ecx+04], 00 writes dante weapon hud off
@@ -332,6 +333,27 @@ void HideHud::toggle_map(bool enable) {
     }
 }
 
+void HideHud::toggle_boss_hp(bool enable) {
+    if (enable) {
+        // left in case cheat is enabled while boss is spawned
+        install_patch_offset(0x00BE3A4, patchbosshud1, "\xC6\x40\x04\x00", 4); // left
+        install_patch_offset(0x00BE40A, patchbosshud2, "\xC6\x40\x04\x00", 4); // middle
+        install_patch_offset(0x00BE470, patchbosshud3, "\xC6\x40\x04\x00", 4); // right
+        install_patch_offset(0x00BE4D6, patchbosshud4, "\xC6\x40\x04\x00", 4); // hp
+        install_patch_offset(0x00BE53C, patchbosshud5, "\xC6\x40\x04\x00", 4); // red
+        // stops initial hp spawn animation
+        install_patch_offset(0x00BD734, patchbosshud6, "\x90\x90\x90\x90\x90\x90\x90", 7); // startup 
+
+    } else {
+        patchbosshud1.reset(); 
+        patchbosshud2.reset(); 
+        patchbosshud3.reset(); 
+        patchbosshud4.reset(); 
+        patchbosshud5.reset(); 
+        patchbosshud6.reset(); // "\xC7\x47\x2C\x03\x00\x00\x00"
+    }
+}
+
 void HideHud::on_gui_frame() {
     if (ImGui::Checkbox("Hide Timer", &mod_enabled_timer)) {
         toggle_timer(mod_enabled_timer);
@@ -357,12 +379,16 @@ void HideHud::on_gui_frame() {
         toggle_map(mod_enabled_map);
     }
 
+    if (ImGui::Checkbox("Hide Boss HP HUD", &mod_enabled_boss)) {
+        toggle_boss_hp(mod_enabled_boss);
+    }
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Never Hide Weapons HUD", &mod_enabled_weapon_selected)) {
         mod_enabled_hide_weapon_selected = false;
         toggle_weapon_hide(mod_enabled_hide_weapon_selected);
         toggle_weapon_display(mod_enabled_weapon_selected);
     }
-    ImGui::SameLine(sameLineWidth);
+    
     if (ImGui::Checkbox("Always Hide Weapons HUD", &mod_enabled_hide_weapon_selected)) {
         mod_enabled_weapon_selected = false;
         toggle_weapon_display(mod_enabled_weapon_selected);
@@ -387,6 +413,8 @@ void HideHud::on_config_load(const utility::Config& cfg) {
     toggle_weapon_hide(mod_enabled_hide_weapon_selected);
     mod_enabled_map = cfg.get<bool>("hide_map_hud").value_or(false);
     toggle_map(mod_enabled_map);
+    mod_enabled_boss = cfg.get<bool>("hide_boss_hud").value_or(false);
+    toggle_boss_hp(mod_enabled_boss);
 }
 
 void HideHud::on_config_save(utility::Config& cfg) {
@@ -398,4 +426,5 @@ void HideHud::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("always_show_weapon_selection", mod_enabled_weapon_selected);
     cfg.set<bool>("always_hide_weapon_selection", mod_enabled_hide_weapon_selected);
     cfg.set<bool>("hide_map_hud", mod_enabled_map);
+    cfg.set<bool>("hide_boss_hud", mod_enabled_boss);
 }

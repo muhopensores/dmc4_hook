@@ -14,6 +14,7 @@ public:
     static bool mod_enabled_weapon_selected;
     static bool mod_enabled_hide_weapon_selected;
     static bool mod_enabled_map;
+    static bool mod_enabled_boss;
 
     void toggle_health(bool enable);
     void toggle_orbs(bool enable);
@@ -23,6 +24,7 @@ public:
     void toggle_weapon_display(bool enable);
     void toggle_weapon_hide(bool enable);
     void toggle_map(bool enable);
+    void toggle_boss_hp(bool enable);
 
     std::string get_mod_name() override { return "HideHud"; };
     std::optional<std::string> on_initialize() override;
@@ -46,6 +48,13 @@ private:
     std::unique_ptr<Patch> patchorbs8;
     std::unique_ptr<Patch> patchorbs9;
     std::unique_ptr<Patch> patchorbs10;
+
+    std::unique_ptr<Patch> patchbosshud1;
+    std::unique_ptr<Patch> patchbosshud2;
+    std::unique_ptr<Patch> patchbosshud3;
+    std::unique_ptr<Patch> patchbosshud4;
+    std::unique_ptr<Patch> patchbosshud5;
+    std::unique_ptr<Patch> patchbosshud6;
 
     // timer
     std::unique_ptr<Patch> patchbp;
