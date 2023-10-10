@@ -12,6 +12,9 @@ public:
 
   void custom_imgui_window();
 
+  void on_config_load(const utility::Config& cfg) override;
+  void on_config_save(utility::Config& cfg) override;
+
   void on_gui_frame() override;
 private:
 

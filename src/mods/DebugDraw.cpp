@@ -282,6 +282,7 @@ void DebugDraw::custom_imgui_window()
 {
 	if (!g_enabled) { return; }
 	CPlDante* pl = get_pl_dante();
+    if (!pl) { return; }
 	// keeping capcom traditions of typoing member fields like a motehfckure // nah 
 	auto screen = world_to_screen(pl->Position);
 	if (!screen.has_value()) { return; }
@@ -290,6 +291,14 @@ void DebugDraw::custom_imgui_window()
 	dd::sphere(dd_context, origin, dd::colors::Blue, 50.0f);
 	//dd::point(dd_context, origin, dd::colors::Crimson, 15.0f); //
 	dd::flush(dd_context, ImGui::GetIO().DeltaTime);
+}
+
+void DebugDraw::on_config_load(const utility::Config& cfg) {
+    g_enabled = cfg.get<bool>("draw_hitspheres").value_or(false);
+}
+
+void DebugDraw::on_config_save(utility::Config& cfg) {
+    cfg.set<bool>("draw_hitspheres", g_enabled);
 }
 
 void DebugDraw::on_gui_frame() {
