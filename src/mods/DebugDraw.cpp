@@ -11,111 +11,68 @@
 #include <glm/glm.hpp> //basic vector/matrix math and defs
 #include <glm/gtc/matrix_transform.hpp> //we will use this to make tranformation matrices
 
-////////////////////////////////////////////////////////////////////////
-
-class cCameraCtrl {
-public:
-    Vector3 upVector;    // 0x0004
-    float fltUnused0;    // 0x0010
-    float FOV;           // 0x0014
-    float roll_radians;  // 0x0018
-    Matrix4x4 transform; // 0x001C
-    Vector4 pos;         // 0x005C
-    Vector4 lookat;      // 0x006C
-    friend static int cCameraCtrl__something_idk_sub_416880(cCameraCtrl& this_ptr);
-    virtual void Function0();
-    virtual void Function1();
-    virtual void Function2();
-    virtual void Function3();
-    virtual void Function4();
-    virtual void Function5();
-    virtual void Function6();
-    virtual void Function7();
-    virtual void Function8();
-    virtual void Function9();
-}; // Size: 0x007C
-static_assert(sizeof(cCameraCtrl) == 0x7C);
-
 class CPlDante {
 public:
-    int pad_0000;                              // 0x0000
-    uint8_t unkFlag;                           // 0x0004
-    char pad_0005[11];                         // 0x0005
-    float workrate;                            // 0x0010
-    float speed;                               // 0x0014
-    char pad_0018[52];                         // 0x0018
-    Vector4 Poistion;                          // 0x004C
-    Vector4 DeltaP;                            // 0x005C
-    char pad_006C[4];                          // 0x006C
-    float weightMaybe;                         // 0x0070
-    char pad_0074[24];                         // 0x0074
-    uint16_t angle;                            // 0x008C
-    char pad_008E[110];                        // 0x008E
-    Vector4 somePosVector;                     // 0x00FC
-    Vector4 somePrevPosVector;                 // 0x010C
-    Matrix4x4 TransformMatrix;                 // 0x011C
-    float momentumMagnitude;                   // 0x015C cm
-    float momentumDelta;                       // 0x0160
-    char pad_0164[9736];                       // 0x0164
-    class VelLookupTable* velocityLookupTable; // 0x276C 0x276c zeroesUpMomentum_sub_5A4CB20
-    char pad_2770[32];                         // 0x2770
-    uint32_t animationStatus01;                // 0x2790
-    char pad_2794[4];                          // 0x2794
-    uint32_t animationStatusPrev;              // 0x2798
-    char pad_279C[4];                          // 0x279C
-    uint8_t animationFlagUnk;                  // 0x27A0
-    char pad_27A1[35];                         // 0x27A1
-    float someAnimationVelocityFloat;          // 0x27C4 walking when below 2
-    char pad_27C8[144];                        // 0x27C8
-    uint16_t stickDirection;                   // 0x2858
-    uint16_t someOtherDirection;               // 0x285A
-    uint16_t anotherDirection;                 // 0x285C
-    uint16_t idkDirection;                     // 0x285E
-    uint16_t viewDirection;                    // 0x2860
-    char pad_2862[22];                         // 0x2862
-    uint8_t N00000AD3;                         // 0x2878
-    uint8_t N00000FDA;                         // 0x2879
-    char pad_287A[2];                          // 0x287A
-    uint32_t N00000AD4;                        // 0x287C 0x287c edx at start zeroesUpMomentum_sub_5A4CB0ú
-    char pad_2880[5044];                       // 0x2880
-    uint32_t rg_meter_uint;                    // 0x3C34
-    float rg_meter_flt;                        // 0x3C38
-    float block_timer;                         // 0x3C3C
-    float release_timer;                       // 0x3C40
-    char pad_3C44[108];                        // 0x3C44
-};                                             // Size: 0x3CB0
-static_assert(sizeof(CPlDante) == 0x3CB0);
+    char pad_0000[0x30]; // 0x00
+    Vector4 Position;  // 0x30
+};
 
-namespace Devil3SDK {
-CPlDante* get_pl_dante();
-cCameraCtrl* get_cam_ctrl();
-Vector2f get_window_dimensions();
-} // namespace Devil3SDK
+/* class cCameraCtrl { // this used first camera ptr
+public:
+    char pad_0000[0x24];  // 0x00-24
+    float FOV;            // 0x24-28
+    char pad_0028[0x208]; // 0x28-230 // 0x208
+    Matrix4x4 transform;  // 0x230
+}; */
 
-CPlDante* Devil3SDK::get_pl_dante() {
-    return (CPlDante*)0x1C8A600;
+class cCameraCtrl { // this uses the inner camera ptr
+public:
+    char pad_0000[0xE4];  // 0x00-e4
+    float FOV;            // 0xE4-e8
+    char pad_00E8[0x118]; // 0x28-200 // 0x1D8 // 148 was close
+    Matrix4x4 transform; // 0x200
+};
+
+constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
+
+CPlDante* get_pl_dante() { // DevilMayCry4_DX9.exe+A558B8 +24
+    // static uintptr_t* s_med_ptr = (uintptr_t*)0x00E558B8;
+    uintptr_t* s_med_ptr = *(uintptr_t**)static_mediator_ptr;
+
+    CPlDante* player_ptr = (CPlDante*)((uintptr_t)s_med_ptr + 0x24);
+    player_ptr           = *(CPlDante**)player_ptr;
+
+    return (CPlDante*)player_ptr;
 }
 
-cCameraCtrl* Devil3SDK::get_cam_ctrl() {
-    static cCameraCtrl** camera_ptr_ptr = (cCameraCtrl**)0x00B6BAAC;
-    return *camera_ptr_ptr;
+cCameraCtrl* get_cam_ctrl() { // DevilMayCry4_DX9.exe+A558B8 +D0 +490
+    uintptr_t* s_med_ptr = *(uintptr_t**)static_mediator_ptr;
+
+    cCameraCtrl* camera_ptr_ptr = (cCameraCtrl*)((uintptr_t)s_med_ptr + 0xD0);
+	camera_ptr_ptr = *(cCameraCtrl**)camera_ptr_ptr;
+
+    camera_ptr_ptr = (cCameraCtrl*)((uintptr_t)camera_ptr_ptr + 0x490); // inner ptr
+	camera_ptr_ptr = *(cCameraCtrl**)camera_ptr_ptr;
+
+    return (cCameraCtrl*)camera_ptr_ptr;
 }
 
-Vector2f Devil3SDK::get_window_dimensions() {
-    return Vector2f{*(float*)0x00832914, *(float*)0x00832918};
+Vector2f get_window_dimensions() {
+    //return Vector2f{*(float*)0x00832914, *(float*)0x00832918};
+    float x = 1920.0f;
+    float y = 1080.0f; // these aren't in static memory and I'm yet to get a pointer
+    return Vector2f(x, y);
 }
-
-////////////////////////////////////////////////////////////////////////
 
 bool g_enabled = false;
 constexpr int STRIDE_MAGIC = 6;
 using Microsoft::WRL::ComPtr;
 
 std::optional<Vector2> world_to_screen(const Vector3f& world_pos) {
-	cCameraCtrl* camera = Devil3SDK::get_cam_ctrl();
+    cCameraCtrl* camera = get_cam_ctrl();
 	if (!camera || camera == (cCameraCtrl*)-1) { return Vector2{ 0.0f, 0.0f }; };
 
-	Vector2f window = Devil3SDK::get_window_dimensions();
+	Vector2f window = get_window_dimensions();
 	
 	float near_plane = 0.1f; //nearest distance from which you can see
 	float far_plane  = 100.f; //you cant see more
@@ -125,7 +82,7 @@ std::optional<Vector2> world_to_screen(const Vector3f& world_pos) {
 	glm::mat4 projection = glm::perspective(camera->FOV*-1.0f, aspect, near_plane, far_plane);
 
 	glm::mat4 model = camera->transform;
-	auto res = glm::project(world_pos, model, projection, Vector4{ 0.0f, 0.0f, window.x, window.y });
+auto res = glm::project(world_pos, model, projection, Vector4{ 0.0f, 0.0f, window.x, window.y });
 	return Vector2{ res.x, res.y };
 }
 
@@ -254,6 +211,7 @@ public:
 static RenderInterfaceD3D9* dd_render_iface = nullptr;
 static dd::ContextHandle dd_context = nullptr;
 
+// unused
 class colisioni
 {
 public:
@@ -277,12 +235,13 @@ public:
 }; //Size: 0x02B4
 static_assert(sizeof(colisioni) == 0x2B4);
 
-
+// unused
 static void draw_sphere_maybe(colisioni* col) {
 	if (!g_enabled) { return; }
 
 	/*auto origin = Vector4f{ col->tranform01[3][0], col->tranform01[3][1], col->tranform01[3][2], 1.0f };
 	auto pos = rot * origin;*/
+
 	auto right = Vector3f{ col->tranform01[0][0], col->tranform01[0][1], col->tranform01[0][2] };
 	auto up = Vector3f{ col->tranform01[1][0], col->tranform01[1][1], col->tranform01[1][2] };
 	auto forward = Vector3f{ col->tranform01[2][0], col->tranform01[2][1], col->tranform01[2][2] };
@@ -292,19 +251,19 @@ static void draw_sphere_maybe(colisioni* col) {
 	dd::circle(dd_context, *(ddVec3*)&col->pos01, *(ddVec3*)&forward, dd::colors::Crimson, col->radius_maybe, 8, 32);
 }
 
+// unused
 static uintptr_t g_detour_jmp = NULL;
 // clang-format off
 naked void detour(void) {
     _asm {
-		fstp dword ptr [esi+10h]
-		pushad
-		push esi
-		call draw_sphere_maybe
-		pop esi
-		popad
-		pop esi
-		pop ebp
-
+		// pushad
+		// push esi
+		// call draw_sphere_maybe
+		// pop esi
+		// popad
+		// pop esi
+		// pop ebp
+		cmp [edi+0x16D0], esi // originalcode
 		jmp DWORD PTR [g_detour_jmp]
 	}
 }
@@ -313,23 +272,23 @@ naked void detour(void) {
 std::optional<std::string> DebugDraw::on_initialize() {
 	dd_render_iface = new RenderInterfaceD3D9;
 	dd::initialize(&dd_context, dd_render_iface);
-	if (!install_hook_absolute(0x006617B4, m_function_hook, &detour, &g_detour_jmp, 5)) {
-		return "error";
-	}
+	// if (!install_hook_offset(0x3A82F3, m_function_hook, &detour, &g_detour_jmp, 6)) { // this address just compares lockon, threw something in that will only tick when player is loaded
+	// 	return "error";
+	// }
   return Mod::on_initialize();
 }
 
 void DebugDraw::custom_imgui_window()
 {
 	if (!g_enabled) { return; }
-	CPlDante* pl = Devil3SDK::get_pl_dante();
-	// keeping capcom traditions of typoing member fields like a motehfckure
-	auto screen = world_to_screen(pl->Poistion);
+	CPlDante* pl = get_pl_dante();
+	// keeping capcom traditions of typoing member fields like a motehfckure // nah 
+	auto screen = world_to_screen(pl->Position);
 	if (!screen.has_value()) { return; }
-	//dd::xzSquareGrid(dd_context, -5000, 5000, pl->Poistion.y, 1.5f, dd::colors::Green);
-	ddVec3 origin = { pl->Poistion.x, pl->Poistion.y, pl->Poistion.z };
+	dd::xzSquareGrid(dd_context, -5000, 5000, pl->Position.y, 1.5f, dd::colors::Green); //
+	ddVec3 origin = { pl->Position.x, pl->Position.y, pl->Position.z };
 	dd::sphere(dd_context, origin, dd::colors::Blue, 10.0f);
-	//dd::point(dd_context, origin, dd::colors::Crimson, 15.0f);
+	dd::point(dd_context, origin, dd::colors::Crimson, 15.0f); //
 	dd::flush(dd_context, ImGui::GetIO().DeltaTime);
 }
 

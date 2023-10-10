@@ -682,7 +682,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    // pmods->on_draw_ui("DebugDraw"_hash);
+                    pmods->on_draw_ui("DebugDraw"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();
