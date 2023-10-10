@@ -17,21 +17,21 @@ public:
     Vector4 Position;  // 0x30
 };
 
-/* class cCameraCtrl { // this used first camera ptr
+class cCameraCtrl { // this used first camera ptr
 public:
     char pad_0000[0x24];  // 0x00-24
     float FOV;            // 0x24-28
-    char pad_0028[0x208]; // 0x28-230 // 0x208
+    char pad_0028[0x188]; // 0x28-230 // 0x208 // 0x188 is best yet
     Matrix4x4 transform;  // 0x230
-}; */
+};
 
-class cCameraCtrl { // this uses the inner camera ptr
+/* class cCameraCtrl { // this uses the inner camera ptr
 public:
     char pad_0000[0xE4];  // 0x00-e4
     float FOV;            // 0xE4-e8
-    char pad_00E8[0x118]; // 0x28-200 // 0x1D8 // 148 was close
+    char pad_00E8[0x1D8]; // 0x28-200 // 0x1D8 // 148 was close
     Matrix4x4 transform; // 0x200
-};
+}; */
 
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
@@ -51,8 +51,8 @@ cCameraCtrl* get_cam_ctrl() { // DevilMayCry4_DX9.exe+A558B8 +D0 +490
     cCameraCtrl* camera_ptr_ptr = (cCameraCtrl*)((uintptr_t)s_med_ptr + 0xD0);
 	camera_ptr_ptr = *(cCameraCtrl**)camera_ptr_ptr;
 
-    camera_ptr_ptr = (cCameraCtrl*)((uintptr_t)camera_ptr_ptr + 0x490); // inner ptr
-	camera_ptr_ptr = *(cCameraCtrl**)camera_ptr_ptr;
+    // camera_ptr_ptr = (cCameraCtrl*)((uintptr_t)camera_ptr_ptr + 0x490); // inner ptr
+	// camera_ptr_ptr = *(cCameraCtrl**)camera_ptr_ptr;
 
     return (cCameraCtrl*)camera_ptr_ptr;
 }
@@ -285,10 +285,10 @@ void DebugDraw::custom_imgui_window()
 	// keeping capcom traditions of typoing member fields like a motehfckure // nah 
 	auto screen = world_to_screen(pl->Position);
 	if (!screen.has_value()) { return; }
-	dd::xzSquareGrid(dd_context, -5000, 5000, pl->Position.y, 1.5f, dd::colors::Green); //
+	//dd::xzSquareGrid(dd_context, -5000, 5000, pl->Position.y, 1.5f, dd::colors::Green); //
 	ddVec3 origin = { pl->Position.x, pl->Position.y, pl->Position.z };
-	dd::sphere(dd_context, origin, dd::colors::Blue, 10.0f);
-	dd::point(dd_context, origin, dd::colors::Crimson, 15.0f); //
+	dd::sphere(dd_context, origin, dd::colors::Blue, 50.0f);
+	//dd::point(dd_context, origin, dd::colors::Crimson, 15.0f); //
 	dd::flush(dd_context, ImGui::GetIO().DeltaTime);
 }
 
