@@ -635,6 +635,8 @@ namespace gui {
 
                     pmods->on_draw_ui("MessageDisplayMod"_hash);
 
+                    pmods->on_draw_ui("PsychoMantis"_hash); // needs its own line
+
                     //pmods->on_draw_ui("TwCmdPlayerTransforms"_hash); // empty // broken
 
                     ImGui::Spacing();

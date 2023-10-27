@@ -105,6 +105,7 @@
 #include "mods/DoubleTapDarkslayer.hpp"
 #include "mods/TargetChangeDarkslayer.hpp"
 #include "mods/CustomModelFix.hpp"
+#include "mods/PsychoMantis.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -226,6 +227,7 @@ Mods::Mods() {
     ADD_MOD(DoubleTapDarkslayer);
     ADD_MOD(TargetChangeDarkslayer);
     ADD_MOD(CustomModelFix);
+    ADD_MOD(PsychoMantis);
 }
 
 // Initializes mods, checks for errors

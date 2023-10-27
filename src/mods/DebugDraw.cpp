@@ -17,11 +17,18 @@ public:
     Vector4 Position;  // 0x30
 };
 
+/* class cCameraCtrl { // this used first camera ptr, this is best yet
+public:
+    char pad_0000[0x24];  // 0x00-24
+    float FOV;            // 0x24-28
+    char pad_0028[0x188]; // 0x188
+    Matrix4x4 transform;  // 0x1B0
+};*/
 class cCameraCtrl { // this used first camera ptr
 public:
     char pad_0000[0x24];  // 0x00-24
     float FOV;            // 0x24-28
-    char pad_0028[0x188]; // 0x28-230 // 0x208 // 0x188 is best yet
+    char pad_0028[0x188]; // 0x208
     Matrix4x4 transform;  // 0x230
 };
 
@@ -74,7 +81,7 @@ std::optional<Vector2> world_to_screen(const Vector3f& world_pos) {
 
 	Vector2f window = get_window_dimensions();
 	
-	float near_plane = 0.1f; //nearest distance from which you can see
+	float near_plane = 0.1f; //nearest distance from which you can see // 12.0f from camera + 0x1C
 	float far_plane  = 100.f; //you cant see more
 	float aspect = window.x / window.y;
 
@@ -303,5 +310,7 @@ void DebugDraw::on_config_save(utility::Config& cfg) {
 
 void DebugDraw::on_gui_frame() {
 	ImGui::Checkbox("Draw Hitspheres", &g_enabled);
+	ImGui::SameLine();
+    help_marker("WIP");
 }
 #endif
