@@ -47,7 +47,6 @@ void PsychoMantis::Controller::vibrate(uint16_t left, uint16_t right) {
 
 std::optional<std::string> PsychoMantis::on_initialize() {
     // this should probably happen on checkbox tick and be detroyed after but siyan is here
-    PsychoMantis::_controller = new Controller();
     return Mod::on_initialize();
 }
 
@@ -77,6 +76,10 @@ void PsychoMantis::on_gui_frame() {
 }
 void PsychoMantis::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
+        //PsychoMantis::_controller = new Controller();
+        PsychoMantis::_controller = new Controller();
+        //controllerAddr = devil4_sdk::get_local_player()->playerController;
+        //PsychoMantis::gameController = controllerAddr;
         if (!devil4_sdk::is_paused() && devil4_sdk::get_work_rate()->global_speed != 0.0f) {
             uint16_t lpower = 65535 / 14; // apparently 65535 is the limit but there isn't much difference if any from half the amount
             uint16_t rpower = 65535 / 14; // so we're divibing by double so its smoother
@@ -108,6 +111,8 @@ void PsychoMantis::on_frame(fmilliseconds& dt) {
                 }
             }
         }
+    } else {
+        PsychoMantis::_controller->~Controller();
     }
 }
 

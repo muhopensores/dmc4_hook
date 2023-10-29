@@ -19,7 +19,6 @@ public:
     std::string get_mod_name() override { return "PsychoMantis"; };
 
     std::optional<std::string> on_initialize() override;
-    void CreateDestroyController(bool shouldExist);
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
 
@@ -41,4 +40,5 @@ public:
 
 private:
     Controller* _controller;
+    Controller* gameController;
 };

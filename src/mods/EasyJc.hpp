@@ -7,7 +7,9 @@ public:
     EasyJc() = default;
 
     static bool mod_enabled;
+    static bool mod_enabled2;
     static uintptr_t easy_jc_continue;
+    static uintptr_t easy_jc_continue2;
 
     void toggle(bool enable);
 
@@ -22,5 +24,7 @@ public:
 
 private:
     std::unique_ptr<FunctionHook> hook;
+    std::unique_ptr<FunctionHook> hook2;
     std::unique_ptr<Patch> patch;
+    std::unique_ptr<Patch> patch2;
 };
