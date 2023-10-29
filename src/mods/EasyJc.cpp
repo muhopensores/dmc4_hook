@@ -48,6 +48,8 @@ naked void easy_jc_proc2(void) {
         je originalcode
         cmp dword ptr [eax+0x00002998], 0x132
         jne originalcode
+        cmp dword ptr [eax+0x0000141C], 0 // stick threshold
+        je originalcode
 
         // I don't think a grounded inertia direction value exists??
         // For air you can just feed an xmm stick value
@@ -55,11 +57,12 @@ naked void easy_jc_proc2(void) {
         movss [startX], xmm1
 
         // if people start getting random teles to credo, back up more xmms
+        push ebp
         mov ebp, esp
-        sub esp, 3*8
-        movss [esp+0x10], xmm2
-        movss [esp+0x18], xmm3
-        movss [esp+0x20], xmm4
+        sub esp, 3*4
+        movss [esp], xmm2
+        movss [esp+0x4], xmm3
+        movss [esp+0x8], xmm4
         // movss [esp+0x28], xmm5
         // movss [esp+0x30], xmm6
         // movss [esp+0x38], xmm7
@@ -75,14 +78,14 @@ naked void easy_jc_proc2(void) {
 
         movss xmm0, [newY]
         movss xmm1, [newX]
-        
-        movss xmm2, [esp+0x10]
-        movss xmm3, [esp+0x18]
-        movss xmm4, [esp+0x20]
+        movss xmm2, [esp]
+        movss xmm3, [esp+0x4]
+        movss xmm4, [esp+0x8]
         // movss xmm5, [esp+0x28]
         // movss xmm6, [esp+0x30]
         // movss xmm7, [esp+0x38]
         mov esp, ebp
+        pop ebp
 
         originalcode:
         comiss xmm4,xmm3 // whoops
@@ -92,8 +95,8 @@ naked void easy_jc_proc2(void) {
 }
 /* // This was actual steering
     void LetsDoThisInC(void) {
-        newX = startX * cos(playerfacing) + startZ * sin(playerfacing);
-        newZ = startX * sin(playerfacing) - startZ * cos(playerfacing);
+        newX = startX * cos(playerfacing) + startY * sin(playerfacing);
+        newY = startX * sin(playerfacing) - startY * cos(playerfacing);
     }
 
     naked void easy_jc_proc2(void) {
@@ -102,7 +105,7 @@ naked void easy_jc_proc2(void) {
 		    cmp byte ptr [EasyJc::mod_enabled2], 0
             je originalcode
 
-            movss [startZ], xmm0
+            movss [startY], xmm0
             movss [startX], xmm1
             movss [xmm5backup], xmm5
             movss xmm5, [eax+0x000013C4] // StickFacing
@@ -119,7 +122,7 @@ naked void easy_jc_proc2(void) {
             call letsdothisinc
             popad
 
-            movss xmm0, [newZ]
+            movss xmm0, [newY]
             movss xmm1, [newX]
             movss xmm2, [xmm2backup]
             movss xmm3, [xmm3backup]
