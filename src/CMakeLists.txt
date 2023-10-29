@@ -2,6 +2,12 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/GuardSteer.hpp
+  mods/GuardSteer.cpp
+  mods/PsychoMantis.hpp
+  mods/PsychoMantis.cpp
+  mods/PlayerRotation.hpp
+  mods/PlayerRotation.cpp
   mods/CustomModelFix.hpp
   mods/CustomModelFix.cpp
   mods/TargetChangeDarkslayer.hpp

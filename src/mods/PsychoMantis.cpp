@@ -46,7 +46,6 @@ void PsychoMantis::Controller::vibrate(uint16_t left, uint16_t right) {
 }
 
 std::optional<std::string> PsychoMantis::on_initialize() {
-    // this should probably happen on checkbox tick and be detroyed after but siyan is here
     return Mod::on_initialize();
 }
 

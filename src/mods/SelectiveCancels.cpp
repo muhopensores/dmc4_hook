@@ -158,41 +158,39 @@ void SelectiveCancels::on_gui_frame() {
 	ImGui::SameLine();
 	help_marker("Allows cancelling out of selected moves with evasive actions");
 
-	if (ImGui::CollapsingHeader("Selective Cancel Toggles")){
-			ImGui::Spacing();
-			ImGui::Text("Swords");
-			ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Text("Swords");
+	ImGui::Spacing();
 
-			draw_checkbox_simple("Ecstasy", ECSTASY);
-			ImGui::SameLine(sameLineWidth);
-			draw_checkbox_simple("Kick 13", KICK13);
+	draw_checkbox_simple("Ecstasy", ECSTASY);
+	ImGui::SameLine(sameLineWidth);
+	draw_checkbox_simple("Kick 13", KICK13);
 
-			draw_checkbox_simple("Prop", PROP);
-			ImGui::SameLine(sameLineWidth);
-			draw_checkbox_simple("Shock", SHOCK);
+	draw_checkbox_simple("Prop", PROP);
+	ImGui::SameLine(sameLineWidth);
+	draw_checkbox_simple("Shock", SHOCK);
 
-			draw_checkbox_simple("Slash Dimension", SLASH_DIMENSION);
-			ImGui::SameLine(sameLineWidth);
-			draw_checkbox_simple("DT Pin Up Part 2", DT_PIN_UP_P2);
+	draw_checkbox_simple("Slash Dimension", SLASH_DIMENSION);
+	ImGui::SameLine(sameLineWidth);
+	draw_checkbox_simple("DT Pin Up Part 2", DT_PIN_UP_P2);
 
-			//draw_checkbox_simple("Beast Uppercut", BEAST_UPPERCUT);
+	//draw_checkbox_simple("Beast Uppercut", BEAST_UPPERCUT);
 
-			draw_checkbox_simple("Draw", DRAW);
-			ImGui::SameLine(sameLineWidth);
-			draw_checkbox_simple("Showdown", SHOWDOWN);
+	draw_checkbox_simple("Draw", DRAW);
+	ImGui::SameLine(sameLineWidth);
+	draw_checkbox_simple("Showdown", SHOWDOWN);
 
-			ImGui::Spacing();
-			ImGui::Text("Guns");
-			ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Text("Guns");
+	ImGui::Spacing();
 
-			draw_checkbox_simple("Omen", OMEN);
-			ImGui::SameLine(sameLineWidth);
-			draw_checkbox_simple("Epidemic", EPIDEMIC);
+	draw_checkbox_simple("Omen", OMEN);
+	ImGui::SameLine(sameLineWidth);
+	draw_checkbox_simple("Epidemic", EPIDEMIC);
 
-			draw_checkbox_simple("Argument", ARGUMENT);
-			ImGui::SameLine(sameLineWidth);
-			draw_checkbox_simple("Gun Stinger", GUNSTINGER);
-	}
+	draw_checkbox_simple("Argument", ARGUMENT);
+	ImGui::SameLine(sameLineWidth);
+	draw_checkbox_simple("Gun Stinger", GUNSTINGER);
 }
 
 void SelectiveCancels::on_config_save(utility::Config& cfg) {

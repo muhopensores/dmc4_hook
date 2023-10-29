@@ -2,16 +2,14 @@
 
 #include "../mod.hpp"
 
-class EasyJc : public Mod {
+class GuardSteer : public Mod {
 public:
-    EasyJc() = default;
+    GuardSteer() = default;
 
     static bool mod_enabled;
-    static uintptr_t easy_jc_continue;
+    static uintptr_t guard_steer_continue;
 
-    void toggle(bool enable);
-
-    std::string get_mod_name() override { return "EasyJc"; };
+    std::string get_mod_name() override { return "GuardSteer"; };
 
     std::optional<std::string> on_initialize() override;
 
@@ -22,5 +20,4 @@ public:
 
 private:
     std::unique_ptr<FunctionHook> hook;
-    std::unique_ptr<Patch> patch;
 };

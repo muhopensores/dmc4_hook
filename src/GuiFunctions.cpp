@@ -453,6 +453,8 @@ namespace gui {
 
                     pmods->on_draw_ui("MutatorSuperhot"_hash); // needs its own line
 
+                    pmods->on_draw_ui("PlayerRotation"_hash);
+
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();
@@ -514,6 +516,8 @@ namespace gui {
                     pmods->on_draw_ui("HighTimeWeaponSwitch"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("AlwaysRoyalRelease"_hash);
+
+                    pmods->on_draw_ui("GuardSteer"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();

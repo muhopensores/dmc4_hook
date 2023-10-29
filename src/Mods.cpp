@@ -106,6 +106,8 @@
 #include "mods/TargetChangeDarkslayer.hpp"
 #include "mods/CustomModelFix.hpp"
 #include "mods/PsychoMantis.hpp"
+#include "mods/GuardSteer.hpp"
+#include "mods/PlayerRotation.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -228,6 +230,8 @@ Mods::Mods() {
     ADD_MOD(TargetChangeDarkslayer);
     ADD_MOD(CustomModelFix);
     ADD_MOD(PsychoMantis);
+    ADD_MOD(GuardSteer);
+    ADD_MOD(PlayerRotation);
 }
 
 // Initializes mods, checks for errors
