@@ -35,7 +35,7 @@ naked void guard_steer_proc(void) {
         movss [startY], xmm0
         movss [startX], xmm1
 
-        // if people start getting random teles to credo, back up more xmms
+        // if people start getting random teles to credo, back up more xmm / movsd
         push ebp
         mov ebp, esp
         sub esp, 3*4
