@@ -28,6 +28,10 @@ std::optional<std::string> WorkRate::on_initialize() {
 		return "Failed to init WorkRate mod";
 	}*/
 
+	//  hotkeys
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_DECIMAL}, "Pause Game", "pause_game"));
+
 	return Mod::on_initialize();
 }
 
@@ -95,6 +99,20 @@ void WorkRate::on_game_pause(bool toggle) {
 	if (toggle == false) {
 		s_work_rate_ptr->global_speed = m_global_speed;
 	}
+}
+
+void WorkRate::on_update_input(utility::Input& input) {
+    sWorkRate* s_work_rate_ptr = devil4_sdk::get_work_rate();
+    if (!check_work_rate_ptr(s_work_rate_ptr)) {
+        return;
+    }
+    if (m_hotkeys[0]->check(input)) {
+        if (s_work_rate_ptr->global_speed == 0.0f){
+			s_work_rate_ptr->global_speed = m_global_speed;
+        } else {
+			s_work_rate_ptr->global_speed = 0.0f;
+        }
+    }
 }
 
 void WorkRate::on_config_load(const utility::Config & cfg) {
