@@ -85,11 +85,6 @@ bool HideHud::mod_enabled_boss{false};
 // DevilMayCry4_DX9.exe+10519A guard gauge is full (4 nops)
 // DevilMayCry4_DX9.exe+108F19 nero dt blobs (4 nops)
 
-
-std::optional<std::string> HideHud::on_initialize() {
-    return Mod::on_initialize();
-}
-
 void HideHud::toggle_boey(bool enable) {
     if (enable) {
         install_patch_offset(0x00FF7AD, patchboey01, "\x90\x90\x90\x90", 4); // first 10 hp segments
@@ -239,6 +234,26 @@ void HideHud::toggle_boey(bool enable) {
     }
 }
 
+uintptr_t HideHud::boey_hud_15_continue{NULL};
+
+naked void boey_hud_15_proc(void) {
+    _asm {
+        cmp byte ptr [HideHud::mod_enabled_boey], 1
+        jne originalcode
+
+        cmp edi, 0x1B
+        jne originalcode
+        mov byte ptr [eax+0x04],0x00
+        jmp returncode
+
+        originalcode:
+        mov byte ptr [eax+0x04],0x01
+        returncode:
+        mov [eax+0x23], dl
+        jmp dword ptr [HideHud::boey_hud_15_continue]
+    }
+}
+
 void HideHud::toggle_health(bool enable) {
     if (enable) {
         install_patch_offset(0x00FEFE5, patchhealth, "\x73\x2E", 2); // Hides health
@@ -352,6 +367,14 @@ void HideHud::toggle_boss_hp(bool enable) {
         patchbosshud5.reset(); 
         patchbosshud6.reset(); // "\xC7\x47\x2C\x03\x00\x00\x00"
     }
+}
+
+std::optional<std::string> HideHud::on_initialize() {
+    if (!install_hook_offset(0x1036BB, boey_hud_15_hook, &boey_hud_15_proc, &HideHud::boey_hud_15_continue, 7)) {
+        spdlog::error("Failed to init boey_hud_15 mod\n");
+        return "Failed to init boey_hud_15 mod";
+    }
+    return Mod::on_initialize();
 }
 
 void HideHud::on_gui_frame() {

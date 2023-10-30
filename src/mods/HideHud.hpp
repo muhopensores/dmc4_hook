@@ -16,6 +16,8 @@ public:
     static bool mod_enabled_map;
     static bool mod_enabled_boss;
 
+    static uintptr_t boey_hud_15_continue;
+
     void toggle_health(bool enable);
     void toggle_orbs(bool enable);
     void toggle_style(bool enable);
@@ -136,6 +138,8 @@ private:
     std::unique_ptr<Patch> patchboey69;
     std::unique_ptr<Patch> patchboey70;
     std::unique_ptr<Patch> patchboey71;
+
+    std::unique_ptr<FunctionHook> boey_hud_15_hook;
 
     // weapon selected display
     std::unique_ptr<Patch> patchswordhud;

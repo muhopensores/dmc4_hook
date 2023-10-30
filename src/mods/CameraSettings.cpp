@@ -11,11 +11,12 @@ float CameraSettings::camera_angle{ 0 };
 float CameraSettings::camera_angle_lockon{ 0 };
 float CameraSettings::camera_fov_in_battle{ 0 };
 float CameraSettings::camera_fov{ 0 };
-bool  CameraSettings::free_cam_enabled{ false };
+bool  CameraSettings::noclip_cam_enabled{ false };
 bool CameraSettings::camera_lookdown_enabled{ false };
 bool CameraSettings::camera_reset_enabled{ false };
 bool CameraSettings::cam_right{ false };
-bool CameraSettings::disable_last_enemy_zoom{ false };
+bool CameraSettings::disable_last_enemy_zoom{false};
+bool CameraSettings::pause_camera_enabled{false};
 
 constexpr ptrdiff_t camera_towards_auto_correct1 = 0x195A5;
 constexpr ptrdiff_t camera_towards_auto_correct2 = 0x195F7;
@@ -229,6 +230,115 @@ naked void camera_sens_brakes_proc(void) {
     }
 }
 
+void CameraSettings::toggle_attack_towards_cam(bool toggle) {
+    if (toggle) {
+        install_patch_offset(camera_towards_auto_correct1, attack_towards_cam_patch1, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+        install_patch_offset(camera_towards_auto_correct2, attack_towards_cam_patch2, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+        install_patch_offset(camera_towards_auto_correct3, attack_towards_cam_patch3, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+    }
+    else {
+        attack_towards_cam_patch1.reset();
+        attack_towards_cam_patch2.reset();
+        attack_towards_cam_patch3.reset();
+    }
+}
+
+void CameraSettings::toggle_noclip_cam(bool toggle) {
+    if (toggle) {
+        install_patch_offset(0xF9318, patch_noclip_cam1, "\x90\x90\x90\x90\x90\x90", 6);
+        install_patch_offset(0xF9334, patch_noclip_cam2, "\x90\x90\x90\x90\x90\x90", 6);
+        install_patch_offset(0x180C1, patch_noclip_cam3, "\x90\x90\x90\x90\x90", 5);
+    }
+    else {
+        patch_noclip_cam1.reset();
+        patch_noclip_cam2.reset();
+        patch_noclip_cam3.reset();
+    }
+}
+
+void CameraSettings::toggle_camera_lookdown(bool toggle) {
+    if (toggle) {
+        install_patch_offset(0x132483, patch_camera_lookdown, "\x90\x90\x90\x90\x90\x90", 6);
+    }
+    else {
+        patch_camera_lookdown.reset();
+    }
+}
+
+void CameraSettings::toggle_disable_last_enemy_zoom(bool toggle) {
+    if (toggle) {
+        install_patch_offset(0x01A4C1, camera_disable_last_enemy_zoom_patch, "\xEB", 1);
+    }
+    else {
+        camera_disable_last_enemy_zoom_patch.reset();
+    }
+}
+
+void CameraSettings::toggle_pause_camera(bool toggle) {
+    if (toggle) {
+        install_patch_offset(0xF960A, patch_pause_camera, "\x90\x90", 2); // nops a call
+    } else {
+        patch_pause_camera.reset();
+    }
+}
+
+void CameraSettings::on_gui_frame() {
+    if (ImGui::CollapsingHeader("Camera")) {
+        ImGui::Checkbox("Custom Camera Variables", &mod_enabled);
+        ImGui::PushItemWidth(sameLineItemWidth);
+        ImGui::InputFloat("Camera Height", &CameraSettings::camera_height, 1.0f, 1.0f, "%.0f");
+        ImGui::Spacing();
+        ImGui::InputFloat("Camera Distance", &CameraSettings::camera_distance, 1.0f, 10.0f, "%.0f%");
+        ImGui::Spacing();
+        ImGui::InputFloat("Camera Distance (Lockon)", &CameraSettings::camera_distance_lockon, 1.0f, 10.0f, "%.0f%");
+        ImGui::Spacing();
+        ImGui::InputFloat("Camera Angle", &CameraSettings::camera_angle, 0.1f, 0.5f, "%.1f%");
+        ImGui::Spacing();
+        ImGui::InputFloat("Camera Angle (Lockon)", &CameraSettings::camera_angle_lockon, 0.1f, 0.5f, "%.1f%");
+        ImGui::Spacing();
+        ImGui::InputFloat("Camera FOV", &CameraSettings::camera_fov, 1.0f, 10.0f, "%.0f%");
+        ImGui::Spacing();
+        ImGui::InputFloat("Camera FOV (In Battle)", &CameraSettings::camera_fov_in_battle, 1.0f, 10.0f, "%.0f%");
+        ImGui::PopItemWidth();
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        if (ImGui::Checkbox("Disable Autocorrect When Attacking Camera Direction", &camera_auto_correct_towards_cam_enabled)) {
+            toggle_attack_towards_cam(camera_auto_correct_towards_cam_enabled);
+        } // needs own line
+
+        ImGui::Checkbox("Increased Sensitivity", &camera_sens_enabled);
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox("Disable Last Enemy Zoom", &disable_last_enemy_zoom)) {
+            toggle_disable_last_enemy_zoom(disable_last_enemy_zoom);
+        }
+
+        if (ImGui::Checkbox("Noclip Cam", &noclip_cam_enabled)) {
+            toggle_noclip_cam(noclip_cam_enabled);
+        }
+        ImGui::SameLine();
+        help_marker("Activate this before starting a level!");
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox("Camera Lookdown", &camera_lookdown_enabled)) {
+            toggle_camera_lookdown(camera_lookdown_enabled);
+        }
+        ImGui::SameLine();
+        help_marker("When above the locked on enemy the camera will look down");
+
+        if (ImGui::Checkbox("Left Side Reset", &camera_reset_enabled)) {
+            cam_right = 0;
+        }
+        ImGui::SameLine();
+        help_marker("When pressing the button that resets the camera behind Dante, the camera will instead be set to Dante's left");
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox("Right Side Reset", &cam_right)) {
+            camera_reset_enabled = 0;
+        }
+        ImGui::SameLine();
+        help_marker("Set the camera to the right instead");
+    }
+}
+
 std::optional<std::string> CameraSettings::on_initialize() {
     if (!install_hook_offset(0x0191C5, hook1, &camera_height_proc, &CameraSettings::camera_height_continue, 8)) {
         spdlog::error("Failed to init CameraSettings mod\n");
@@ -269,130 +379,112 @@ std::optional<std::string> CameraSettings::on_initialize() {
         spdlog::error("Failed to init CameraReset mod\n");
         return "Failed to init CameraReset mod";
     }
-    
-    if (!install_hook_offset(0x022681, camera_reset_keyboard_hook, &camera_reset_keyboard_proc, &CameraSettings::camera_reset_keyboard_continue, 8)) {
+
+    if (!install_hook_offset(
+            0x022681, camera_reset_keyboard_hook, &camera_reset_keyboard_proc, &CameraSettings::camera_reset_keyboard_continue, 8)) {
         spdlog::error("Failed to init CameraReset2 mod\n");
         return "Failed to init CameraReset2 mod";
     }
 
-    if (!install_hook_offset(0x0225A4, camera_sens_clockwise_hook, &camera_sens_clockwise_proc, &CameraSettings::camera_sens_clockwise_continue, 8)) {
+    if (!install_hook_offset(
+            0x0225A4, camera_sens_clockwise_hook, &camera_sens_clockwise_proc, &CameraSettings::camera_sens_clockwise_continue, 8)) {
         spdlog::error("Failed to init CameraSens mod\n");
         return "Failed to init CameraSens mod";
     }
 
-    if (!install_hook_offset(0x0225BB, camera_sens_anti_clockwise_hook, &camera_sens_anti_clockwise_proc, &CameraSettings::camera_sens_anti_clockwise_continue, 8)) {
+    if (!install_hook_offset(0x0225BB, camera_sens_anti_clockwise_hook, &camera_sens_anti_clockwise_proc,
+            &CameraSettings::camera_sens_anti_clockwise_continue, 8)) {
         spdlog::error("Failed to init CameraSens2 mod\n");
         return "Failed to init CameraSens2 mod";
     }
 
-    if (!install_hook_offset(0x022575, camera_sens_brakes_hook, &camera_sens_brakes_proc, &CameraSettings::camera_sens_brakes_continue, 12)) {
+    if (!install_hook_offset(
+            0x022575, camera_sens_brakes_hook, &camera_sens_brakes_proc, &CameraSettings::camera_sens_brakes_continue, 12)) {
         spdlog::error("Failed to init CameraSens3 mod\n");
         return "Failed to init CameraSens3 mod";
     }
 
+    //  hotkeys
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD0}, "Pause Camera", "pause_camera"));
+
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD1}, "Pan Camera Down", "pan_camera_down"));
+
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD2}, "Tilt Camera Down", "tilt_camera_down"));
+
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD3}, "Dolly Camera In", "dolly_camera_in"));
+
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD4}, "Zoom Camera In", "zoom_camera_in"));
+
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD5}, "Reset Camera", "reset_camera"));
+
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD6}, "Zoom Camera Out", "zoom_camera_out"));
+
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD7}, "Pan Camera Up", "pan_camera_up"));
+
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD8}, "Tilt Camera Up", "tilt_camera_up"));
+
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD9}, "Dolly Camera Out", "dolly_camera_out"));
+
     return Mod::on_initialize();
 }
 
-void CameraSettings::toggle_attack_towards_cam(bool toggle) {
-    if (toggle) {
-        install_patch_offset(camera_towards_auto_correct1, attack_towards_cam_patch1, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-        install_patch_offset(camera_towards_auto_correct2, attack_towards_cam_patch2, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-        install_patch_offset(camera_towards_auto_correct3, attack_towards_cam_patch3, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+void CameraSettings::on_update_input(utility::Input& input) {
+    
+    if (m_hotkeys[0]->check(input)) {
+        CameraSettings::pause_camera_enabled = !CameraSettings::pause_camera_enabled;
+        toggle_pause_camera(pause_camera_enabled);
     }
-    else {
-        attack_towards_cam_patch1.reset();
-        attack_towards_cam_patch2.reset();
-        attack_towards_cam_patch3.reset();
+    if (m_hotkeys[1]->check(input)) {
+        CameraSettings::camera_height -= 10.0f;
     }
-}
-
-void CameraSettings::toggle_free_cam(bool toggle) {
-    if (toggle) {
-        install_patch_offset(0xF9318, patch_free_cam1, "\x90\x90\x90\x90\x90\x90", 6);
-        install_patch_offset(0xF9334, patch_free_cam2, "\x90\x90\x90\x90\x90\x90", 6);
-        install_patch_offset(0x180C1, patch_free_cam3, "\x90\x90\x90\x90\x90", 5);
+    if (m_hotkeys[2]->check(input)) {
+        CameraSettings::camera_angle -= 0.1f;
+        CameraSettings::camera_angle_lockon -= 0.1f;
     }
-    else {
-        patch_free_cam1.reset();
-        patch_free_cam2.reset();
-        patch_free_cam3.reset();
+    if (m_hotkeys[3]->check(input)) {
+        CameraSettings::camera_distance -= 100.0f;
+        CameraSettings::camera_distance_lockon += 100.0f;
     }
-}
-
-void CameraSettings::toggle_camera_lookdown(bool toggle) {
-    if (toggle) {
-        install_patch_offset(0x132483, patch_camera_lookdown, "\x90\x90\x90\x90\x90\x90", 6);
+    if (m_hotkeys[4]->check(input)) {
+        CameraSettings::camera_fov -= 10.0f;
+        CameraSettings::camera_fov_in_battle -= 10.0f;
     }
-    else {
-        patch_camera_lookdown.reset();
+    if (m_hotkeys[5]->check(input)) {
+        CameraSettings::camera_height          = 0.0f;
+        CameraSettings::camera_distance        = 0.0f;
+        CameraSettings::camera_distance_lockon = 0.0f;
+        CameraSettings::camera_angle           = 0.0f;
+        CameraSettings::camera_angle_lockon    = 0.0f;
+        CameraSettings::camera_fov_in_battle   = 0.0f;
+        CameraSettings::camera_fov             = 0.0f;
     }
-}
-
-void CameraSettings::toggle_disable_last_enemy_zoom(bool toggle) {
-    if (toggle) {
-        install_patch_offset(0x01A4C1, camera_disable_last_enemy_zoom_patch, "\xEB", 1);
+    if (m_hotkeys[6]->check(input)) {
+        CameraSettings::camera_fov += 10.0f;
+        CameraSettings::camera_fov_in_battle += 10.0f;
     }
-    else {
-        camera_disable_last_enemy_zoom_patch.reset();
+    if (m_hotkeys[7]->check(input)) {
+        CameraSettings::camera_height += 10.0f;
     }
-}
-
-void CameraSettings::on_gui_frame() {
-    if (ImGui::CollapsingHeader("Camera")) {
-        ImGui::Checkbox("Custom Camera Variables", &mod_enabled);
-        ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::InputFloat("Camera Height", &CameraSettings::camera_height, 1.0f, 1.0f, "%.0f");
-        ImGui::Spacing();
-        ImGui::InputFloat("Camera Distance", &CameraSettings::camera_distance, 1.0f, 10.0f, "%.0f%");
-        ImGui::Spacing();
-        ImGui::InputFloat("Camera Distance (Lockon)", &CameraSettings::camera_distance_lockon, 1.0f, 10.0f, "%.0f%");
-        ImGui::Spacing();
-        ImGui::InputFloat("Camera Angle", &CameraSettings::camera_angle, 0.1f, 0.5f, "%.1f%");
-        ImGui::Spacing();
-        ImGui::InputFloat("Camera Angle (Lockon)", &CameraSettings::camera_angle_lockon, 0.1f, 0.5f, "%.1f%");
-        ImGui::Spacing();
-        ImGui::InputFloat("Camera FOV", &CameraSettings::camera_fov, 1.0f, 10.0f, "%.0f%");
-        ImGui::Spacing();
-        ImGui::InputFloat("Camera FOV (In Battle)", &CameraSettings::camera_fov_in_battle, 1.0f, 10.0f, "%.0f%");
-        ImGui::PopItemWidth();
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-        if (ImGui::Checkbox("Disable Autocorrect When Attacking Camera Direction", &camera_auto_correct_towards_cam_enabled)) {
-            toggle_attack_towards_cam(camera_auto_correct_towards_cam_enabled);
-        }
-
-        ImGui::Checkbox("Increased Sensitivity", &camera_sens_enabled);
-        ImGui::SameLine(sameLineWidth);
-        if (ImGui::Checkbox("Disable Last Enemy Zoom", &disable_last_enemy_zoom)) {
-            toggle_disable_last_enemy_zoom(disable_last_enemy_zoom);
-        }
-
-        if (ImGui::Checkbox("Free Cam", &free_cam_enabled)) {
-            toggle_free_cam(free_cam_enabled);
-        }
-        ImGui::SameLine();
-        help_marker("Activate this before starting a level! Forces Free Cam and allows it to pass through walls");
-        ImGui::SameLine(sameLineWidth);
-        if (ImGui::Checkbox("Camera Lookdown", &camera_lookdown_enabled)) {
-            toggle_camera_lookdown(camera_lookdown_enabled);
-        }
-        ImGui::SameLine();
-        help_marker("When above the locked on enemy the camera will look down");
-
-        if (ImGui::Checkbox("Left Side Reset", &camera_reset_enabled)) {
-            cam_right = 0;
-        }
-        ImGui::SameLine();
-        help_marker("When pressing the button that resets the camera behind Dante, the camera will instead be set to Dante's left");
-        ImGui::SameLine(sameLineWidth);
-        if (ImGui::Checkbox("Right Side Reset", &cam_right)) {
-            camera_reset_enabled = 0;
-        }
-        ImGui::SameLine();
-        help_marker("Set the camera to the right instead");
+    if (m_hotkeys[8]->check(input)) {
+        CameraSettings::camera_angle += 0.1f;
+        CameraSettings::camera_angle_lockon += 0.1f;
+    }
+    if (m_hotkeys[9]->check(input)) {
+        CameraSettings::camera_distance += 100.0f;
+        CameraSettings::camera_distance_lockon += 100.0f;
     }
 }
+
 
 void CameraSettings::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("camera_settings").value_or(false);
@@ -406,14 +498,16 @@ void CameraSettings::on_config_load(const utility::Config& cfg) {
     camera_sens_enabled = cfg.get<bool>("increased_camera_sensitivity").value_or(false);
     camera_auto_correct_towards_cam_enabled = cfg.get<bool>("disable_camera_autocorrect_towards_camera").value_or(false);
     toggle_attack_towards_cam(camera_auto_correct_towards_cam_enabled);
-    free_cam_enabled = cfg.get<bool>("free_cam").value_or(false);
-    toggle_free_cam(free_cam_enabled);
+    noclip_cam_enabled = cfg.get<bool>("noclip_cam").value_or(false);
+    toggle_noclip_cam(noclip_cam_enabled);
     camera_lookdown_enabled = cfg.get<bool>("camera_lookdown").value_or(false);
     toggle_camera_lookdown(camera_lookdown_enabled);
     camera_reset_enabled = cfg.get<bool>("camera_reset").value_or(false);
     cam_right = cfg.get<bool>("right_side_reset").value_or(false);
     disable_last_enemy_zoom = cfg.get<bool>("disable_last_enemy_zoom").value_or(false);
     toggle_disable_last_enemy_zoom(disable_last_enemy_zoom);
+    pause_camera_enabled = cfg.get<bool>("pause_camera_enabled").value_or(false);
+    toggle_pause_camera(pause_camera_enabled);
 }
 
 void CameraSettings::on_config_save(utility::Config& cfg) {
@@ -427,9 +521,10 @@ void CameraSettings::on_config_save(utility::Config& cfg) {
     cfg.set<float>("camera_fov_battle", camera_fov_in_battle);
     cfg.set<bool>("increased_camera_sensitivity", camera_sens_enabled);
     cfg.set<bool>("disable_camera_autocorrect_towards_camera", camera_auto_correct_towards_cam_enabled);
-    cfg.set<bool>("free_cam", free_cam_enabled);
+    cfg.set<bool>("noclip_cam", noclip_cam_enabled);
     cfg.set<bool>("camera_lookdown", camera_lookdown_enabled);
     cfg.set<bool>("camera_reset", camera_reset_enabled);
     cfg.set<bool>("right_side_reset", cam_right);
     cfg.set<bool>("disable_last_enemy_zoom", disable_last_enemy_zoom);
+    cfg.set<bool>("pause_camera_enabled", pause_camera_enabled);
 }
