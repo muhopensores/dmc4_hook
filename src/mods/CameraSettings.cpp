@@ -294,67 +294,67 @@ void CameraSettings::toggle_camera_lockon_corrects(bool toggle) {
 }
 
 void CameraSettings::on_gui_frame() {
-    if (ImGui::CollapsingHeader("Camera")) {
-        ImGui::Checkbox("Custom Camera Variables", &mod_enabled);
+    if (ImGui::Checkbox("Disable Lockon Autocorrects", &camera_lockon_corrects)) {
+        toggle_camera_lockon_corrects(camera_lockon_corrects);
+    }
+    ImGui::SameLine();
+    help_marker("Attempts to stop the camera spinning behind Dante when enemies are more than like 2ft away");
+    ImGui::SameLine(sameLineWidth);
+    if (ImGui::Checkbox("Disable Last Enemy Zoom", &disable_last_enemy_zoom)) {
+        toggle_disable_last_enemy_zoom(disable_last_enemy_zoom);
+    }
+
+    if (ImGui::Checkbox("Left Side Reset", &camera_reset_enabled)) {
+        cam_right = 0;
+    }
+    ImGui::SameLine();
+    help_marker("When pressing the button that resets the camera behind Dante, the camera will instead be set to Dante's left");
+    ImGui::SameLine(sameLineWidth);
+    if (ImGui::Checkbox("Right Side Reset", &cam_right)) {
+        camera_reset_enabled = 0;
+    }
+    ImGui::SameLine();
+    help_marker("Set the camera to the right instead");
+
+    ImGui::Checkbox("Increased Sensitivity", &camera_sens_enabled);
+    ImGui::SameLine();
+    help_marker("Activate this before starting a level!");
+    ImGui::SameLine(sameLineWidth);
+    if (ImGui::Checkbox("Camera Lookdown", &camera_lookdown_enabled)) {
+        toggle_camera_lookdown(camera_lookdown_enabled);
+    }
+    ImGui::SameLine();
+    help_marker("When above the locked on enemy the camera will look down");
+
+    if (ImGui::Checkbox("Noclip Cam", &noclip_cam_enabled)) {
+        toggle_noclip_cam(noclip_cam_enabled);
+    }
+    ImGui::SameLine(sameLineWidth);
+    if (ImGui::Checkbox("Disable Attack Corrects", &camera_auto_correct_towards_cam_enabled)) {
+        toggle_attack_towards_cam(camera_auto_correct_towards_cam_enabled);
+    }
+    ImGui::SameLine();
+    help_marker("Attempts to stop the camera rotating when the player attacks towards the camera, intended for comparison purposes");
+
+    ImGui::Checkbox("Use Custom Camera Variables", &mod_enabled);
+    ImGui::SameLine();
+    help_marker("Also enables the editing of these values via hotkeys");
+    if (ImGui::CollapsingHeader("Camera Variables")) {
         ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::InputFloat("Camera Height", &CameraSettings::camera_height, 1.0f, 1.0f, "%.0f");
+        ImGui::InputFloat("Height", &CameraSettings::camera_height, 1.0f, 1.0f, "%.0f");
         ImGui::Spacing();
-        ImGui::InputFloat("Camera Distance", &CameraSettings::camera_distance, 1.0f, 10.0f, "%.0f%");
+        ImGui::InputFloat("Distance", &CameraSettings::camera_distance, 1.0f, 10.0f, "%.0f%");
         ImGui::Spacing();
-        ImGui::InputFloat("Camera Distance (Lockon)", &CameraSettings::camera_distance_lockon, 1.0f, 10.0f, "%.0f%");
+        ImGui::InputFloat("Distance (Lockon)", &CameraSettings::camera_distance_lockon, 1.0f, 10.0f, "%.0f%");
         ImGui::Spacing();
-        ImGui::InputFloat("Camera Angle", &CameraSettings::camera_angle, 0.1f, 0.5f, "%.1f%");
+        ImGui::InputFloat("Angle", &CameraSettings::camera_angle, 0.1f, 0.5f, "%.1f%");
         ImGui::Spacing();
-        ImGui::InputFloat("Camera Angle (Lockon)", &CameraSettings::camera_angle_lockon, 0.1f, 0.5f, "%.1f%");
+        ImGui::InputFloat("Angle (Lockon)", &CameraSettings::camera_angle_lockon, 0.1f, 0.5f, "%.1f%");
         ImGui::Spacing();
-        ImGui::InputFloat("Camera FOV", &CameraSettings::camera_fov, 1.0f, 10.0f, "%.0f%");
+        ImGui::InputFloat("FOV", &CameraSettings::camera_fov, 1.0f, 10.0f, "%.0f%");
         ImGui::Spacing();
-        ImGui::InputFloat("Camera FOV (In Battle)", &CameraSettings::camera_fov_in_battle, 1.0f, 10.0f, "%.0f%");
+        ImGui::InputFloat("FOV (In Battle)", &CameraSettings::camera_fov_in_battle, 1.0f, 10.0f, "%.0f%");
         ImGui::PopItemWidth();
-
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        if (ImGui::Checkbox("Disable Autocorrect When Attacking Camera Direction", &camera_auto_correct_towards_cam_enabled)) {
-            toggle_attack_towards_cam(camera_auto_correct_towards_cam_enabled);
-        } // needs own line
-
-        ImGui::Checkbox("Increased Sensitivity", &camera_sens_enabled);
-        ImGui::SameLine(sameLineWidth);
-        if (ImGui::Checkbox("Disable Last Enemy Zoom", &disable_last_enemy_zoom)) {
-            toggle_disable_last_enemy_zoom(disable_last_enemy_zoom);
-        }
-
-        if (ImGui::Checkbox("Noclip Cam", &noclip_cam_enabled)) {
-            toggle_noclip_cam(noclip_cam_enabled);
-        }
-        ImGui::SameLine();
-        help_marker("Activate this before starting a level!");
-        ImGui::SameLine(sameLineWidth);
-        if (ImGui::Checkbox("Camera Lookdown", &camera_lookdown_enabled)) {
-            toggle_camera_lookdown(camera_lookdown_enabled);
-        }
-        ImGui::SameLine();
-        help_marker("When above the locked on enemy the camera will look down");
-
-        if (ImGui::Checkbox("Left Side Reset", &camera_reset_enabled)) {
-            cam_right = 0;
-        }
-        ImGui::SameLine();
-        help_marker("When pressing the button that resets the camera behind Dante, the camera will instead be set to Dante's left");
-        ImGui::SameLine(sameLineWidth);
-        if (ImGui::Checkbox("Right Side Reset", &cam_right)) {
-            camera_reset_enabled = 0;
-        }
-        ImGui::SameLine();
-        help_marker("Set the camera to the right instead");
-
-        if (ImGui::Checkbox("Disable Lockon Autocorrects", &camera_lockon_corrects)) {
-            toggle_camera_lockon_corrects(camera_lockon_corrects);
-        }
-        ImGui::SameLine();
-        help_marker("Attempts to stop the camera spinning behind Dante when enemies are more than like 2ft away");
     }
 }
 

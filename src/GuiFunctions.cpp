@@ -663,11 +663,16 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    pmods->on_draw_ui("WorkRate"_hash); // needs its own line
+                    ImGui::Text("Camera");
+
+                    ImGui::Spacing();
 
                     pmods->on_draw_ui("CameraSettings"_hash); // needs its own line
 
+                    pmods->on_draw_ui("WorkRate"_hash); // needs its own line
+
                     pmods->on_draw_ui("TwitchClient"_hash); // needs its own line
+
                     g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
                     ImGui::EndChild();
                     ImGui::EndTabItem();
