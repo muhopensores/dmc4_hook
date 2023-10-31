@@ -32,6 +32,7 @@ public:
     static bool cam_right;
     static bool disable_last_enemy_zoom;
     static bool pause_camera_enabled;
+    static bool camera_lockon_corrects;
 
     std::string get_mod_name() override { return "CameraSettings"; };
 
@@ -47,6 +48,7 @@ public:
     void toggle_camera_lookdown(bool toggle);
     void toggle_disable_last_enemy_zoom(bool toggle);
     void toggle_pause_camera(bool toggle);
+    void toggle_camera_lockon_corrects(bool toggle);
 
 private:
     std::unique_ptr<FunctionHook> hook1;
@@ -70,4 +72,6 @@ private:
     std::unique_ptr<Patch> patch_camera_lookdown;
     std::unique_ptr<Patch> camera_disable_last_enemy_zoom_patch;
     std::unique_ptr<Patch> patch_pause_camera;
+    std::unique_ptr<Patch> camera_lockon_corrects_patch1;
+    std::unique_ptr<Patch> camera_lockon_corrects_patch2;
 };

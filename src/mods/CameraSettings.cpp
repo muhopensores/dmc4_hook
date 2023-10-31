@@ -17,6 +17,7 @@ bool CameraSettings::camera_reset_enabled{ false };
 bool CameraSettings::cam_right{ false };
 bool CameraSettings::disable_last_enemy_zoom{false};
 bool CameraSettings::pause_camera_enabled{false};
+bool CameraSettings::camera_lockon_corrects{false};
 
 constexpr ptrdiff_t camera_towards_auto_correct1 = 0x195A5;
 constexpr ptrdiff_t camera_towards_auto_correct2 = 0x195F7;
@@ -282,6 +283,16 @@ void CameraSettings::toggle_pause_camera(bool toggle) {
     }
 }
 
+void CameraSettings::toggle_camera_lockon_corrects(bool toggle) {
+    if (toggle) {
+        install_patch_offset(0x1A402, camera_lockon_corrects_patch1, "\x90\x90\x90\x90\x90\x90", 6);
+        install_patch_offset(0x1A27B, camera_lockon_corrects_patch2, "\xEB\x09", 2);
+    } else {
+        camera_lockon_corrects_patch1.reset();
+        camera_lockon_corrects_patch2.reset();
+    }
+}
+
 void CameraSettings::on_gui_frame() {
     if (ImGui::CollapsingHeader("Camera")) {
         ImGui::Checkbox("Custom Camera Variables", &mod_enabled);
@@ -300,9 +311,11 @@ void CameraSettings::on_gui_frame() {
         ImGui::Spacing();
         ImGui::InputFloat("Camera FOV (In Battle)", &CameraSettings::camera_fov_in_battle, 1.0f, 10.0f, "%.0f%");
         ImGui::PopItemWidth();
+
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
+
         if (ImGui::Checkbox("Disable Autocorrect When Attacking Camera Direction", &camera_auto_correct_towards_cam_enabled)) {
             toggle_attack_towards_cam(camera_auto_correct_towards_cam_enabled);
         } // needs own line
@@ -336,6 +349,12 @@ void CameraSettings::on_gui_frame() {
         }
         ImGui::SameLine();
         help_marker("Set the camera to the right instead");
+
+        if (ImGui::Checkbox("Disable Lockon Autocorrects", &camera_lockon_corrects)) {
+            toggle_camera_lockon_corrects(camera_lockon_corrects);
+        }
+        ImGui::SameLine();
+        help_marker("Attempts to stop the camera spinning behind Dante when enemies are more than like 2ft away");
     }
 }
 
@@ -508,6 +527,8 @@ void CameraSettings::on_config_load(const utility::Config& cfg) {
     toggle_disable_last_enemy_zoom(disable_last_enemy_zoom);
     pause_camera_enabled = cfg.get<bool>("pause_camera_enabled").value_or(false);
     toggle_pause_camera(pause_camera_enabled);
+    camera_lockon_corrects = cfg.get<bool>("camera_lockon_corrects").value_or(false);
+    toggle_camera_lockon_corrects(camera_lockon_corrects);
 }
 
 void CameraSettings::on_config_save(utility::Config& cfg) {
@@ -527,4 +548,5 @@ void CameraSettings::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("right_side_reset", cam_right);
     cfg.set<bool>("disable_last_enemy_zoom", disable_last_enemy_zoom);
     cfg.set<bool>("pause_camera_enabled", pause_camera_enabled);
+    cfg.set<bool>("camera_lockon_corrects", camera_lockon_corrects);
 }
