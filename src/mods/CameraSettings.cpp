@@ -472,7 +472,7 @@ void CameraSettings::on_update_input(utility::Input& input) {
     }
     if (m_hotkeys[3]->check(input)) {
         CameraSettings::camera_distance -= 100.0f;
-        CameraSettings::camera_distance_lockon += 100.0f;
+        CameraSettings::camera_distance_lockon -= 100.0f;
     }
     if (m_hotkeys[4]->check(input)) {
         CameraSettings::camera_fov -= 10.0f;
