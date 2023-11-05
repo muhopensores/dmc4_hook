@@ -313,7 +313,6 @@ public:
 	class cTransTexture *c_tans_texture; //0x0430
 }; //Size: 0x0434
 
-
 class UEnemySomething
 {
 public:
@@ -454,9 +453,9 @@ public:
     char pad_3c[0x14];
     Vector3f lookAt; // 0x50
     char pad_5c[0x154];
-    Vector4f usedMatrix; // 0x1b0
-    char pad_1c0[0x2d0];
-    class EditableCamera* editableCameraPtr; // 0x490
+    Matrix4x4 usedMatrix; // 0x1b0
+    char pad_1f0[0x2a0];
+    EditableCamera* editableCameraPtr; // 0x490
 }; // Size: 0x494
 
 class SMediator {
@@ -582,13 +581,12 @@ public:
 
 class CharacterSettingsTwo {
 public:
-    char pad_0[0xd0];
+    char pad_0[0xC8];
+    float sprintTimer; // 0xc8
     float sprintSpeedMultiplier; // 0xd0
     char pad_d4[0xa4];
     float fallSpeed; // 0x178
-    char pad_17c[0xa9];
-    float sprintTimer; // 0x225
-}; // Size: 0x229
+}; // Size: 0x17C
 
 class CharacterSettingsThree {
 public:
@@ -882,7 +880,6 @@ public:
 	float m_h_sync_noise_offset; //0x00A8
 	char pad_00_ac[1992]; //0x00AC
 }; //Size: 0x0874
-
 
 class SStylishCount
 {

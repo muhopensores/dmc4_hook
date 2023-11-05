@@ -141,9 +141,9 @@ class CharacterSettingsOne {
 };
 
 class CharacterSettingsTwo {
+	float sprintTimer @ 0xC8
 	float sprintSpeedMultiplier @ 0xD0
 	float fallSpeed @ 0x178
-	float sprintTimer @ 0x225
 };
 
 class CharacterSettingsThree {
@@ -282,7 +282,7 @@ class Camera {
 	float FOV @ 0x24
 	Vector3f position @ 0x30
 	Vector3f lookAt @ 0x50
-	Vector4f usedMatrix @ 0x1B0
+	Matrix4x4 usedMatrix @ 0x1B0
 	class EditableCamera* editableCameraPtr @ 0x490
 };
 

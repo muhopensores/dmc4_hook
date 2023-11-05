@@ -217,7 +217,7 @@ public:
 
 static RenderInterfaceD3D9* dd_render_iface = nullptr;
 static dd::ContextHandle dd_context = nullptr;
-
+#if 0
 // unused
 class colisioni
 {
@@ -275,7 +275,7 @@ naked void detour(void) {
 	}
 }
 // clang-format on
-
+#endif
 std::optional<std::string> DebugDraw::on_initialize() {
 	dd_render_iface = new RenderInterfaceD3D9;
 	dd::initialize(&dd_context, dd_render_iface);
