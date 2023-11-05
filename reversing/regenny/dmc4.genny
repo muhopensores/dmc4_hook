@@ -1,0 +1,332 @@
+// How to use:
+// - open regenny x86
+// - open dmc4 dx9
+// - file > open > this file
+// - view > hide undefined nodes
+// - action > attach > DevilMayCry4_DX9.exe
+// - typename > sMediator
+// - open CE, copy the hex value of DevilMayCry4_DX9.exe+A558B8
+// - paste value into regenny's address field and throw an 0x in front, .e.g 0x161C64E0
+// - browse and edit values, right click addresses to look in Cheat Engine
+
+type void 0
+type bool 1 [[bool]]
+type uint8_t 1 [[u8]]
+type uint16_t 2 [[u16]]
+type uint32_t 4 [[u32]]
+type float 4 [[f32]]
+type wchar_t 2 [[u16]]
+type char 1 [[u8]]
+type uintptr_t 4 [[u32]]
+type virtual 4 [[u32]]
+
+enum class GameDifficulty : uint32_t {
+	HUMAN = 0,
+	DEVIL_HUNTER = 1,
+	SON_OF_SPARDA_HOH_HAH = 2,
+	DANTE_MUST_DIE = 3,
+	LEGENDARY_DARK_KNIGHT = 4,
+};
+
+enum class GameMode : uint32_t {
+	DEFAULT = 0,
+	HEAVEN_OR_HELL = 0,
+	HELL_AND_HELL = 0,
+};
+
+class Vector3f {
+	float x;
+	float y;
+	float z;
+};
+
+class Vector4f : Vector3f {
+	float w;
+};
+
+class Matrix4x4 {
+	Vector4f m1;
+	Vector4f m2;
+	Vector4f m3;
+	Vector4f m4;
+};
+
+class DebugStrings {
+	char string1[14] @ 0x28 [[utf8*]]
+	char string2[14] @ 0x3C [[utf8*]]
+};
+
+class EnemyPermissions {
+	uint32_t enemyAttackSlots @ 0x4
+	uint32_t enemyIsAttacking @ 0x8
+	float enemyAttackCooldown @ 0x14
+};
+
+class PreMediator {
+	class DebugStrings* debugStrings1
+	uint32_t killCount @ 0x24
+	uint32_t holyWaterCount @ 0x3F0
+	uint32_t proudSoulsCount @ 0x49C
+};
+
+class uBoss {
+	uint8_t moveID @ 0x14
+	uint8_t movePart @ 0x15
+	Vector3f position @ 0x30
+	Vector3f scale @ 0x50
+	uint8_t moveID2 @ 0x334
+	uint32_t inputHold @ 0x140C
+	uint32_t inputPress @ 0x1410
+	float HP @ 0x151C
+	float HPMax @ 0x1520
+	float DT @ 0x1F24
+	float DTMax @ 0x1F28
+};
+
+class uEnemy {
+	float delta @ 0x10
+	uint8_t moveID @ 0x14
+	uint8_t movePart @ 0x15
+	Vector3f position @ 0x30
+	Vector3f scale @ 0x50
+	Vector3f positionKnockback @ 0xD0
+	Vector3f rotationKnockback @ 0xF0
+	bool isLit @ 0x130
+	bool causeShadow @ 0x134
+	bool playAnims @ 0x324
+	uint8_t moveID2 @ 0x334
+	float animFrame @ 0x348
+	uint16_t launchStateThing1 @ 0xEA0
+	uint16_t launchStateThing2 @ 0xEA8 // enemy doesn't take air stun without OA set
+	bool inBattle @ 0x1404
+	bool isActive @ 0x1405
+	uint32_t ID @ 0x1410
+	float scarecrowHP @ 0x1544
+	float scarecrowHpTaken @ 0x1558
+	uint32_t scarecrowStun @ 0x1568
+	uint32_t scarecrowDisplace @ 0x157C
+	bool isDead @ 0x15B8
+	float stunResetTimer @ 0x15D8
+	bool grounded @ 0x161C
+	Vector3f velocity @ 0x1B40
+};
+
+////////////////////uPlayer start
+class MotionData {
+	uint32_t hitboxStartTime @ 0x04
+	uint32_t passThroughEnemiesIdk @ 0x14
+	uint32_t sfxTiming @ 0x3C
+	uint32_t sfxToPlay @ 0x50
+};
+
+class InnerMotionPtr {
+	class MotionData motionData[100] @ 0x00
+};
+
+class MotionPtr {
+	char motionString1[30] @ 0x4
+	class InnerMotionPtr* innerMotionPtr1 @ 0x1A0
+};
+
+class DevilArm {
+	uint8_t ID @ 0x1370
+	bool visible @ 0x137C
+	float roseYAxisVelocity @ 0x13C4
+	bool roseAlive @ 0x13E8
+};
+
+class CharacterSettingsOne {
+	bool groundedActual @ 0x1C
+	float offsetFromGround @ 0x160
+};
+
+class CharacterSettingsTwo {
+	float sprintSpeedMultiplier @ 0xD0
+	float fallSpeed @ 0x178
+	float sprintTimer @ 0x225
+};
+
+class CharacterSettingsThree {
+	float stingerSpeed @ 0x08
+	float stingerLength @ 0x0C
+	float firstShotEbonyIvoryBounce @ 0x24
+	float rainstormBounce @ 0x68
+	float trickTravelSpeed @ 0x134
+	float trickTravelDistance @ 0x138
+	float rainstormHeightRestriction @ 0x154
+	float crossunderBanDistance @ 0x178
+	float jealousyBounce @ 0x208
+	float snatchLengthLv1 @ 0x214
+	float snatchLengthLv2 @ 0x218
+	float snatchLengthLv3 @ 0x21C
+	Vector3f snatchEnemyOffset @ 0x22C
+	float funshipDrainRate @ 0x39C
+	float funshipBounce @ 0x3E0
+	float funshipUnbounce @ 0x3E4
+};
+
+class LuciferPin {
+	Vector3f scale @ 0x50
+	float timer @ 0x1790
+	float timerMax @ 0x1794
+	bool penetrated @ 0x17B4
+};
+
+class UCoord{}; //Size: 0x00DC
+
+class uPlayer : public UCoord{
+	Vector4f rotationKnockback @ 0xF0
+	uint8_t armShadows @ 0x130
+	uint8_t causeShadows @ 0x134
+	uint8_t bodyShadows @ 0x138
+	uint32_t boneMapping[5] @ 0x17C
+	uint32_t meshCount @ 0x27C
+	class uPlayer* player_ptr @ 0x2A4
+	uint32_t m_joint_array_size @ 0x2E0
+	class UModelJointArr* joint_array @ 0x2E4
+	float speedUnsettable @ 0xCF4
+	float animFrame @ 0x348
+	class MotionPtr* motionPtr1 @ 0xA38
+	class MotionPtr* motionPtr2 @ 0xA3C
+	bool grounded @ 0xEA8
+	float groundInertiaX @ 0xEC0
+	float inertiaY @ 0xEC4
+	float groundInertiaZ @ 0xEC8
+	bool hitstop @ 0x1201
+	float facingDirection @ 0x1210
+	float stickDirection @ 0x13C4
+	uint32_t inputHold @ 0x140C
+	uint32_t inputPress @ 0x1410
+	uint32_t inputRelease @ 0x1414
+	uint32_t stickThreshold @ 0x141C
+	float stickFacingWorldAdjusted @ 0x1420
+	bool stickPastThreshold @ 0x1424
+	float characterSpeed @ 0x1464
+	uint32_t controllerID @ 0x1494
+	uint32_t canWeaponChange @ 0x14F0
+	uint32_t switchMoveID @ 0x1500
+	uint32_t movePart @ 0x1504
+	bool cancels1[4] @ 0x1550
+	bool cancels2[4] @ 0x1554
+	uint32_t moveID2 @ 0x1564
+	float HP @ 0x15CC
+	float HPMax @ 0x15D0
+	bool isDead @ 0x1640
+	uint32_t walkType @ 0x16AC
+	float inertiaDirectionReal @ 0x16C0
+	bool lockedOn @ 0x16D0
+	float rotation2 @ 0x1710
+	float groundInertia @ 0x1780
+	uintptr_t* collisionPtr1 @ 0x17A0
+	class DevilArm* gilgamesh @ 0x1D94
+	class DevilArm* lucifer @ 0x1D98
+	class DevilArm* ebonyIvory @ 0x1D98
+	class DevilArm* coyoteA @ 0x1DA0
+	class DevilArm* pandora @ 0x1DA4
+	uint32_t currentSword @ 0x1DB4
+	uint32_t currentGun @ 0x1DB8
+	bool meleeCancelPermissions[4] @ 0x1E10
+	bool jumpCancelPermissions[4] @ 0x1E14
+	float inertia @ 0x1E1C
+	float rotation3 @ 0x1E24
+	Vector3f m_d_velocity @ 0x1E50
+	float m_d_vel_magnitude @ 0x1E60
+	float directionOfMagnitude @ 0x1E64
+	float hitstopTimer @ 0x1E68
+	uint8_t airAttackCount @ 0x1E7B
+	uint8_t weight @ 0x1E7D
+	uint8_t airHikeCount @ 0x1E7E
+	bool canAirHike @ 0x1E7F
+	class CharacterSettingsOne* characterSettingsOne @ 0x1E8C
+	class CharacterSettingsTwo* charactersettingsTwo @ 0x1E9C
+	class CharacterSettingsThree* charactersettingsThree @ 0x1EA8
+	float DT @ 0x1F24
+	float maxDT @ 0x1F28
+	bool fullHouseSomething1 @ 0x1F50
+	class uEnemy* lockOnTargetPtr1 @ 0x2000
+	bool grounded2 @ 0x2008
+	Vector3f location2 @ 0x2170
+	bool tiltForward @ 0x21CC
+	bool tiltBack @ 0x21E0
+	float roundTripCharge @ 0x23F8
+	bool tiltBackForward @ 0x27F8
+	uintptr_t* animFrameInfo @ 0x28A4
+	uint32_t moveID3 @ 0x295C
+	uint32_t moveIDBest @ 0x2998
+	class uEnemy* lockOnTargetPtr2 @ 0x3080
+	uint8_t bufferPermissions @ 0x30C4
+	uint8_t meleeCancelPermissions @ 0x30F0
+	uint8_t jumpCancelPermissions @ 0x3174
+	uint8_t bufferedJump @ 0x3178
+	uint8_t gunCancelPermissions @ 0x31CC
+	uint8_t exceedLevel @ 0xCCE8
+	uint32_t currentStyle @ 0x14D98
+	class LuciferPin luciferPins[15] @ 0x14DBC
+	class uEnemy* lockOnTargetPtr3 @ 0x15A68
+	float exceedRev @ 0xCDBC
+	float disasterGauge @ 0x151F4
+};
+
+class EditableCamera {
+	Vector3f position @ 0x10
+	Vector3f lookAt @ 0x20
+	float angle @ 0xD4
+	float distance @ 0xD8
+	float distanceLockon @ 0xDC
+	float FOV @ 0xE4
+	float FOVBattle @ 0xE8
+};
+
+class Camera {
+	float nearClipPlane @ 0x1C
+	float FOV @ 0x24
+	Vector3f position @ 0x30
+	Vector3f lookAt @ 0x50
+	Vector4f usedMatrix @ 0x1B0
+	class EditableCamera* editableCameraPtr @ 0x490
+};
+
+class sWorkRate {
+	float game_speed @ 0x20
+	float unk_float2 @ 0x24
+	float global_speed @ 0x28
+	float player_speed @ 0x2C
+	float enemy_speed @ 0x30
+	float room_speed @ 0x34
+	float turbo_speed @ 0x38
+	float unk_float3 @ 0x3C
+	class unkClass* unk_class_ptr @ 0x50
+}; //Size=0x0058
+
+class SMediator {
+	class uPlayer* player_ptr @ 0x24
+	class uBoss* uBoss1 @ 0xB0
+	uint32_t missionID @ 0xE0
+	uint32_t roomID @ 0xE4
+	class Camera* camera1 @ 0xD0
+	uint32_t orbCount @ 0x114
+	float enemyDifficulty @ 0x134
+	uint32_t hellGoldOrbCount @ 0x13C
+	class GameDifficulty gameDifficulty @ 0x140
+	class GameMode gameMode @ 0x144
+	class uEnemy* uEnemy1 @ 0x1B8
+	class uEnemy* uEnemy2
+	class uEnemy* uEnemy3
+	class uEnemy* uEnemy4
+	class uEnemy* uEnemy5
+	class uEnemy* uEnemy6
+	class uEnemy* uEnemy7
+	class uEnemy* uEnemy8
+	class uEnemy* uEnemy9
+	class uEnemy* uEnemy10
+	uint32_t enemyCount[3] @ 0x1E0
+	float bpTimer @ 0x250
+	bool hasUnlockedDT @ 0x368
+	bool hasUnlockedAirHike @ 0x369
+	bool hasUnlockedSprint @ 0x36B
+	bool hasUnlockedHold @ 0x3A2
+	bool hasUnlockedMaxAct @ 0x3A3
+	bool displayDisasterGauge @ 0x3A9
+	bool turboEnabled @ 0x494
+	class sWorkRate workRate @ 0x820
+};

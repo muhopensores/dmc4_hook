@@ -11,6 +11,21 @@ using Vector4 = glm::vec4;
 
 // Generated using ReClass 2016
 #include <cstdint>*/
+
+enum class GameDifficulty : uint32_t {
+    HUMAN                 = 0,
+    DEVIL_HUNTER          = 1,
+    SON_OF_SPARDA_HOH_HAH = 2,
+    DANTE_MUST_DIE        = 3,
+    LEGENDARY_DARK_KNIGHT = 4,
+};
+
+enum class GameMode : uint32_t {
+    DEFAULT        = 0,
+    HEAVEN_OR_HELL = 0,
+    HELL_AND_HELL  = 0,
+};
+
 class cAreaJump;
 class roomInfo;
 
@@ -340,16 +355,158 @@ public:
 	char pad_152_f[4409]; //0x152F
 }; //Size: 0x2668
 
-class SMediator
-{
+class uEnemy {
 public:
-	char pad_0000[36]; //0x0000
-	class uPlayer* player_ptr; //0x0024
-	char pad_0028[24]; //0x0028
+    char pad_0[0x10];
+    float delta; // 0x10
+    uint8_t moveID; // 0x14
+    uint8_t movePart; // 0x15
+    char pad_16[0x1a];
+    Vector3f position; // 0x30
+    char pad_3c[0x14];
+    Vector3f scale; // 0x50
+    char pad_5c[0x74];
+    Vector3f positionKnockback; // 0xd0
+    char pad_dc[0x14];
+    Vector3f rotationKnockback; // 0xf0
+    char pad_fc[0x34];
+    bool isLit; // 0x130
+    char pad_131[0x3];
+    bool causeShadow; // 0x134
+    char pad_135[0x1ef];
+    bool playAnims; // 0x324
+    char pad_325[0xf];
+    uint8_t moveID2; // 0x334
+    char pad_335[0x13];
+    float animFrame; // 0x348
+    char pad_34c[0xb54];
+    uint16_t launchStateThing1; // 0xea0
+    char pad_ea2[0x6];
+    uint16_t launchStateThing2; // 0xea8
+    char pad_eaa[0x55a];
+    bool inBattle; // 0x1404
+    bool isActive; // 0x1405
+    char pad_1406[0xa];
+    uint32_t ID; // 0x1410
+    char pad_1414[0x130];
+    float scarecrowHP; // 0x1544
+    char pad_1548[0x10];
+    float scarecrowHpTaken; // 0x1558
+    char pad_155c[0xc];
+    uint32_t scarecrowStun; // 0x1568
+    char pad_156c[0x10];
+    uint32_t scarecrowDisplace; // 0x157c
+    char pad_1580[0x38];
+    bool isDead; // 0x15b8
+    char pad_15b9[0x1f];
+    float stunResetTimer; // 0x15d8
+    char pad_15dc[0x40];
+    bool grounded; // 0x161c
+    char pad_161d[0x523];
+    Vector3f velocity; // 0x1b40
+}; // Size: 0x1b4c
 
-	// TODO(): make it into methods for this shit?
-	//uPlayer* getLocalPlayer();
-}; //Size: 0x0040
+class uBoss {
+public:
+    char pad_0[0x14];
+    uint8_t moveID; // 0x14
+    uint8_t movePart; // 0x15
+    char pad_16[0x1a];
+    Vector3f position; // 0x30
+    char pad_3c[0x14];
+    Vector3f scale; // 0x50
+    char pad_5c[0x2d8];
+    uint8_t moveID2; // 0x334
+    char pad_335[0x10d7];
+    uint32_t inputHold; // 0x140c
+    uint32_t inputPress; // 0x1410
+    char pad_1414[0x108];
+    float HP; // 0x151c
+    float HPMax; // 0x1520
+    char pad_1524[0xa00];
+    float DT; // 0x1f24
+    float DTMax; // 0x1f28
+}; // Size: 0x1f2c
+
+class EditableCamera {
+public:
+    char pad_0[0x10];
+    Vector3f position; // 0x10
+    char pad_1c[0x4];
+    Vector3f lookAt; // 0x20
+    char pad_2c[0xa8];
+    float angle; // 0xd4
+    float distance; // 0xd8
+    float distanceLockon; // 0xdc
+    char pad_e0[0x4];
+    float FOV; // 0xe4
+    float FOVBattle; // 0xe8
+}; // Size: 0xec
+
+class Camera {
+public:
+    char pad_0[0x1c];
+    float nearClipPlane; // 0x1c
+    char pad_20[0x4];
+    float FOV; // 0x24
+    char pad_28[0x8];
+    Vector3f position; // 0x30
+    char pad_3c[0x14];
+    Vector3f lookAt; // 0x50
+    char pad_5c[0x154];
+    Vector4f usedMatrix; // 0x1b0
+    char pad_1c0[0x2d0];
+    class EditableCamera* editableCameraPtr; // 0x490
+}; // Size: 0x494
+
+class SMediator {
+public:
+    char pad_0[0x24];
+    class uPlayer* player_ptr; // 0x24
+    char pad_28[0x88];
+    class uBoss* uBoss1; // 0xb0
+    char pad_b4[0x1c];
+    class Camera* camera1; // 0xd0
+    char pad_d4[0xc];
+    uint32_t missionID; // 0xe0
+    uint32_t roomID; // 0xe4
+    char pad_e8[0x2c];
+    uint32_t orbCount; // 0x114
+    char pad_118[0x1c];
+    float enemyDifficulty; // 0x134
+    char pad_138[0x4];
+    uint32_t hellGoldOrbCount; // 0x13c
+    GameDifficulty gameDifficulty; // 0x140
+    GameMode gameMode; // 0x144
+    char pad_148[0x70];
+    class uEnemy* uEnemy1; // 0x1b8
+    class uEnemy* uEnemy2; // 0x1bc
+    class uEnemy* uEnemy3; // 0x1c0
+    class uEnemy* uEnemy4; // 0x1c4
+    class uEnemy* uEnemy5; // 0x1c8
+    class uEnemy* uEnemy6; // 0x1cc
+    class uEnemy* uEnemy7; // 0x1d0
+    class uEnemy* uEnemy8; // 0x1d4
+    class uEnemy* uEnemy9; // 0x1d8
+    class uEnemy* uEnemy10; // 0x1dc
+    uint32_t enemyCount[3]; // 0x1e0
+    char pad_1ec[0x64];
+    float bpTimer; // 0x250
+    char pad_254[0x114];
+    bool hasUnlockedDT; // 0x368
+    bool hasUnlockedAirHike; // 0x369
+    char pad_36a[0x1];
+    bool hasUnlockedSprint; // 0x36b
+    char pad_36c[0x36];
+    bool hasUnlockedHold; // 0x3a2
+    bool hasUnlockedMaxAct; // 0x3a3
+    char pad_3a4[0x5];
+    bool displayDisasterGauge; // 0x3a9
+    char pad_3aa[0xea];
+    bool turboEnabled; // 0x494
+    char pad_495[0x38b];
+    sWorkRate workRate; // 0x820
+}; // Size: 0x874
 
 class UModelJoint
 {
@@ -367,82 +524,257 @@ public:
 }; //Size: 0x2A30
 static_assert(sizeof(UModelJointArr) == 0x2A30);
 
-class uPlayer : public UCoord
-{
+class MotionData {
 public:
-    char pad_00_dc[0x204]; //0x00DC
-	uint32_t m_joint_array_size; //0x02E0
-	class UModelJointArr *joint_array; //0x02E4
-	char pad_02_e8[0x13E8]; //0x02E8
-	bool lockontoggle; //0x16D0
-    char pad_16_d1[0x77F]; //0x16D1
-	Vector3f m_d_velocity; //0x1E50
-	char pad_1_e5_c[0x4]; //0x1E5C
-	float m_d_vel_magnitude; //0x1E60
-	char pad_1_e64[0xA04]; //0x1E64
-}; //Size: 0x2868
-static_assert(sizeof(uPlayer) == 0x2868);
+    char pad_0[0x4];
+    uint32_t hitboxStartTime; // 0x4
+    char pad_8[0xc];
+    uint32_t passThroughEnemiesIdk; // 0x14
+    char pad_18[0x24];
+    uint32_t sfxTiming; // 0x3c
+    char pad_40[0x10];
+    uint32_t sfxToPlay; // 0x50
+}; // Size: 0x54
 
-//I tried adding this in through reclass but it drives me crazy when you screw up later offsets by editing earlier stuff
-//also I swear there's no goto shortcut im not scrolling to 14D98
-//0x00330 start of animation stuff (also a pointer)
-//0x00348 float animationFrame
-//0x00EA8 uint32_t grounded (3 = aerial)
-//0x01201 bool isHitstop
-//0x01408 start of inputs stuff (also a pointer)
-//0x0140C bool*4 inputs on hold
-//0x01410 bool*4 inputs on press?
-//0x01414 bool*4 inputs on release?
-//0x01494 uint32_t playerID
-//0x01500 uint32_t moveid pushed to move selection switch
-//0x01504 uint32_t movePart
-//0x01554 uint32_t attackState (jumping, doing an action etc)
-//0x01564 uint32_t moveID
-//0x01568 uint32_t prevMoveID
-//0x015CC float currentHP
-//0x015D0 float maxHP
-//0x01640 bool isDead
-//0x01660 float 180float (some float that starts at 0, incs to 180, then resets?)
-//0x016AC uint32_t movementType (0=still, 1=walking, 2=running)
-//0x019B8 pointer to uPlayer
-//0x01D94 dante gilgamesh pointer
-//->0x0137C bool shouldShow
-//0x01D98 dante lucifer pointer
-//->0x0137C bool shouldShow
-//0x01D9C dante ebony+ivory pointer
-//->0x0137C bool shouldShow
-//0x01DA0 dante shotgun pointer
-//->0x0137C bool shouldShow
-//0x01DA4 dante pandora pointer
-//->0x0137C bool shouldShow
-//0x01DA8 pointer only in dantes char, contains what I used for moveid
-//->0x0225C uint32_t moveiddante (should replace this with uPlayer+0x295C moveid)
-//0x01DB4 uint32_t danteSwordID
-//0x01DB8 uint32_t danteGunID
-//0x01DBC uint32_t standing pose
-//0x01DFC start of move properties stuff (also a pointer)
-//0x01E14 uint8_t*4 canCancel (0x00 in active frames, 0x10 in cancellable frames, 0x30 in buffer frames)
-//0x01E68 float hitStopTimer
-//0x01E64 float direction of magnitude?
-//0x01E7B uint8_t airAttackCount
-//0x01E7D uint8_t weight
-//0x01E7E uint8_t airHikeCount
-//0x01E8C pointer used by every air move
-//->0x0001C bool compared to in air moves, no idea what it does
-//0x01F24 float currentDT
-//0x01F28 float maxDT
-//0x01F50 uint8_t everyMoveWrites (no clue what this is, every move seems to mov 1 to it)
-//0x01FF4 float some jump timer
-//0x01FF8 float another jump timer
-//0x028A4 pointer to uPlayer+330 for animation stuff, e.g. uPlayer + 0x28A4->0x18 = frame of animation = uPlayer + 348
-//0x02008 bool groundedbad
-//0x0295C uint32_t moveid
-//0x03080 pointer to locked on enemy
-//0x03084 pointer to a later part of locked on enemy
-//0x030C4 uint8_t canBuffer (0=can't act, 1=can buffer, 2=can act) (probably int8 didn't check)
-//0x03178 bool isJumpBuffered (1 will make the player jump on the first available frame)
-//0x0CCE8 uint32_t exceedLevel
-//0x14D98 uint32_t currentStyle (wtf is that offset DevilMayCry4_DX9.exe+3B6C92 - mov [esi+00014D98],00000004)
+class InnerMotionPtr {
+public:
+    MotionData motionData[100]; // 0x0
+}; // Size: 0x20d0
+
+class MotionPtr {
+public:
+    char pad_0[0x4];
+    char motionString1[30]; // 0x4
+    char pad_22[0x17e];
+    class InnerMotionPtr* innerMotionPtr1; // 0x1a0
+}; // Size: 0x1a4
+
+class LuciferPin {
+public:
+    char pad_0[0x50];
+    Vector3f scale; // 0x50
+    char pad_5c[0x1734];
+    float timer; // 0x1790
+    float timerMax; // 0x1794
+    char pad_1798[0x1c];
+    bool penetrated; // 0x17b4
+}; // Size: 0x17b5
+
+class DevilArm {
+public:
+    char pad_0[0x1370];
+    uint8_t ID; // 0x1370
+    char pad_1371[0xb];
+    bool visible; // 0x137c
+    char pad_137d[0x47];
+    float roseYAxisVelocity; // 0x13c4
+    char pad_13c8[0x20];
+    bool roseAlive; // 0x13e8
+}; // Size: 0x13e9
+
+class CharacterSettingsOne {
+public:
+    char pad_0[0x1c];
+    bool groundedActual; // 0x1c
+    char pad_1d[0x143];
+    float offsetFromGround; // 0x160
+}; // Size: 0x164
+
+class CharacterSettingsTwo {
+public:
+    char pad_0[0xd0];
+    float sprintSpeedMultiplier; // 0xd0
+    char pad_d4[0xa4];
+    float fallSpeed; // 0x178
+    char pad_17c[0xa9];
+    float sprintTimer; // 0x225
+}; // Size: 0x229
+
+class CharacterSettingsThree {
+public:
+    char pad_0[0x8];
+    float stingerSpeed; // 0x8
+    float stingerLength; // 0xc
+    char pad_10[0x14];
+    float firstShotEbonyIvoryBounce; // 0x24
+    char pad_28[0x40];
+    float rainstormBounce; // 0x68
+    char pad_6c[0xc8];
+    float trickTravelSpeed; // 0x134
+    float trickTravelDistance; // 0x138
+    char pad_13c[0x18];
+    float rainstormHeightRestriction; // 0x154
+    char pad_158[0x20];
+    float crossunderBanDistance; // 0x178
+    char pad_17c[0x8c];
+    float jealousyBounce; // 0x208
+    char pad_20c[0x8];
+    float snatchLengthLv1; // 0x214
+    float snatchLengthLv2; // 0x218
+    float snatchLengthLv3; // 0x21c
+    char pad_220[0xc];
+    Vector3f snatchEnemyOffset; // 0x22c
+    char pad_238[0x164];
+    float funshipDrainRate; // 0x39c
+    char pad_3a0[0x40];
+    float funshipBounce; // 0x3e0
+    float funshipUnbounce; // 0x3e4
+}; // Size: 0x3e8
+
+class uPlayer : public UCoord {
+public:
+    char pad_0[0xf0];
+    Vector4f rotationKnockback; // 0xf0
+    char pad_100[0x30];
+    uint8_t armShadows; // 0x130
+    char pad_131[0x3];
+    uint8_t causeShadows; // 0x134
+    char pad_135[0x3];
+    uint8_t bodyShadows; // 0x138
+    char pad_139[0x43];
+    uint32_t boneMapping[5]; // 0x17c
+    char pad_190[0xec];
+    uint32_t meshCount; // 0x27c
+    char pad_280[0x24];
+    class uPlayer* player_ptr; // 0x2a4
+    char pad_2a8[0x38];
+    uint32_t m_joint_array_size; // 0x2e0
+    class UModelJointArr* joint_array; // 0x2e4
+    char pad_2e8[0x60];
+    float animFrame; // 0x348
+    char pad_34c[0x6ec];
+    class MotionPtr* motionPtr1; // 0xa38
+    class MotionPtr* motionPtr2; // 0xa3c
+    char pad_a40[0x2b4];
+    float speedUnsettable; // 0xcf4
+    char pad_cf8[0x1b0];
+    bool grounded; // 0xea8
+    char pad_ea9[0x17];
+    float groundInertiaX; // 0xec0
+    float inertiaY; // 0xec4
+    float groundInertiaZ; // 0xec8
+    char pad_ecc[0x335];
+    bool hitstop; // 0x1201
+    char pad_1202[0xe];
+    float facingDirection; // 0x1210
+    char pad_1214[0x1b0];
+    float stickDirection; // 0x13c4
+    char pad_13c8[0x44];
+    uint32_t inputHold; // 0x140c
+    uint32_t inputPress; // 0x1410
+    uint32_t inputRelease; // 0x1414
+    char pad_1418[0x4];
+    uint32_t stickThreshold; // 0x141c
+    float stickFacingWorldAdjusted; // 0x1420
+    bool stickPastThreshold; // 0x1424
+    char pad_1425[0x3f];
+    float characterSpeed; // 0x1464
+    char pad_1468[0x2c];
+    uint32_t controllerID; // 0x1494
+    char pad_1498[0x58];
+    uint32_t canWeaponChange; // 0x14f0
+    char pad_14f4[0xc];
+    uint32_t switchMoveID; // 0x1500
+    uint32_t movePart; // 0x1504
+    char pad_1508[0x48];
+    bool cancels1[4]; // 0x1550
+    bool cancels2[4]; // 0x1554
+    char pad_1558[0xc];
+    uint32_t moveID2; // 0x1564
+    char pad_1568[0x64];
+    float HP; // 0x15cc
+    float HPMax; // 0x15d0
+    char pad_15d4[0x6c];
+    bool isDead; // 0x1640
+    char pad_1641[0x6b];
+    uint32_t walkType; // 0x16ac
+    char pad_16b0[0x10];
+    float inertiaDirectionReal; // 0x16c0
+    char pad_16c4[0xc];
+    bool lockedOn; // 0x16d0
+    char pad_16d1[0x3f];
+    float rotation2; // 0x1710
+    char pad_1714[0x6c];
+    float groundInertia; // 0x1780
+    char pad_1784[0x1c];
+    uintptr_t* collisionPtr1; // 0x17a0
+    char pad_17a4[0x5f0];
+    class DevilArm* gilgamesh; // 0x1d94
+    class DevilArm* ebonyIvory; // 0x1d98
+    char pad_1d9c[0x4];
+    class DevilArm* coyoteA; // 0x1da0
+    class DevilArm* pandora; // 0x1da4
+    char pad_1da8[0xc];
+    uint32_t currentSword; // 0x1db4
+    uint32_t currentGun; // 0x1db8
+    char pad_1dbc[0x60];
+    float inertia; // 0x1e1c
+    char pad_1e20[0x4];
+    float rotation3; // 0x1e24
+    char pad_1e28[0x28];
+    Vector3f m_d_velocity; // 0x1e50
+    char pad_1e5c[0x4];
+    float m_d_vel_magnitude; // 0x1e60
+    float directionOfMagnitude; // 0x1e64
+    float hitstopTimer; // 0x1e68
+    char pad_1e6c[0xf];
+    uint8_t airAttackCount; // 0x1e7b
+    char pad_1e7c[0x1];
+    uint8_t weight; // 0x1e7d
+    uint8_t airHikeCount; // 0x1e7e
+    bool canAirHike; // 0x1e7f
+    char pad_1e80[0xc];
+    class CharacterSettingsOne* characterSettingsOne; // 0x1e8c
+    char pad_1e90[0xc];
+    class CharacterSettingsTwo* charactersettingsTwo; // 0x1e9c
+    char pad_1ea0[0x8];
+    class CharacterSettingsThree* charactersettingsThree; // 0x1ea8
+    char pad_1eac[0x78];
+    float DT; // 0x1f24
+    float maxDT; // 0x1f28
+    char pad_1f2c[0x24];
+    bool fullHouseSomething1; // 0x1f50
+    char pad_1f51[0xaf];
+    class uEnemy* lockOnTargetPtr1; // 0x2000
+    char pad_2004[0x4];
+    bool grounded2; // 0x2008
+    char pad_2009[0x167];
+    Vector3f location2; // 0x2170
+    char pad_217c[0x50];
+    bool tiltForward; // 0x21cc
+    char pad_21cd[0x13];
+    bool tiltBack; // 0x21e0
+    char pad_21e1[0x217];
+    float roundTripCharge; // 0x23f8
+    char pad_23fc[0x3fc];
+    bool tiltBackForward; // 0x27f8
+    char pad_27f9[0xab];
+    uintptr_t* animFrameInfo; // 0x28a4
+    char pad_28a8[0xb4];
+    uint32_t moveID3; // 0x295c
+    char pad_2960[0x38];
+    uint32_t moveIDBest; // 0x2998
+    char pad_299c[0x6e4];
+    class uEnemy* lockOnTargetPtr2; // 0x3080
+    char pad_3084[0x40];
+    uint8_t bufferPermissions; // 0x30c4
+    char pad_30c5[0x2b];
+    uint8_t meleeCancelPermissions; // 0x30f0
+    char pad_30f1[0x83];
+    uint8_t jumpCancelPermissions; // 0x3174
+    char pad_3175[0x3];
+    uint8_t bufferedJump; // 0x3178
+    char pad_3179[0x53];
+    uint8_t gunCancelPermissions; // 0x31cc
+    char pad_31cd[0x9b1b];
+    uint8_t exceedLevel; // 0xcce8
+    char pad_cce9[0xd3];
+    float exceedRev; // 0xcdbc
+    char pad_cdc0[0x7fd8];
+    uint32_t currentStyle; // 0x14d98
+    char pad_14d9c[0x20];
+    LuciferPin luciferPins[15]; // 0x14dbc
+}; // Size: 0x2b157
 
 class UStageSetTimeSlow
 {
