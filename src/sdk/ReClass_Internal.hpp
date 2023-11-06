@@ -621,7 +621,7 @@ public:
 
 class uPlayer : public UCoord {
 public:
-    char pad_0[0xf0];
+    char pad_dc[0x14];
     Vector4f rotationKnockback; // 0xf0
     char pad_100[0x30];
     uint8_t armShadows; // 0x130

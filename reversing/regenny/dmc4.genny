@@ -172,7 +172,9 @@ class LuciferPin {
 	bool penetrated @ 0x17B4
 };
 
-class UCoord{}; //Size: 0x00DC
+class UCoord{
+	char pad00[0xDC] @ 0x00
+};
 
 class uPlayer : public UCoord{
 	Vector4f rotationKnockback @ 0xF0
@@ -243,6 +245,7 @@ class uPlayer : public UCoord{
 	float DT @ 0x1F24
 	float maxDT @ 0x1F28
 	bool fullHouseSomething1 @ 0x1F50
+	bool canWallHike @ 0x1F7F
 	class uEnemy* lockOnTargetPtr1 @ 0x2000
 	bool grounded2 @ 0x2008
 	Vector3f location2 @ 0x2170
