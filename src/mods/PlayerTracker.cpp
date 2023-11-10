@@ -49,9 +49,17 @@ void PlayerTracker::on_gui_frame() {
     ImGui::Separator();
     ImGui::Spacing();
 
+    SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
+    ImGui::PushItemWidth(sameLineItemWidth);
+    ImGui::InputInt("s_med_ptr", (int*)&s_med_ptr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_ReadOnly);
+    ImGui::PopItemWidth();
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
     ImGui::Checkbox("Display Player Stats", &display_player_stats);
     if (display_player_stats) {
-        SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
         uintptr_t* player_ptr = (uintptr_t*)((uintptr_t)s_med_ptr + 0x24);
         uintptr_t player_base = *player_ptr;
         if (player_base)

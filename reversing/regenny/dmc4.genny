@@ -5,9 +5,9 @@
 // - view > hide undefined nodes
 // - action > attach > DevilMayCry4_DX9.exe
 // - typename > sMediator
-// - open CE, copy the hex value of DevilMayCry4_DX9.exe+A558B8
+// - copy s_med_ptr from dmc4hook's debug page
 // - paste value into regenny's address field and throw an 0x in front, .e.g 0x161C64E0
-// - browse and edit values, right click addresses to look in Cheat Engine
+// - browse and edit values, right click > copy addresses to get to them in Cheat Engine
 
 type void 0
 type bool 1 [[bool]]
@@ -172,9 +172,32 @@ class LuciferPin {
 	bool penetrated @ 0x17B4
 };
 
-class UCoord{
-	char pad00[0xDC] @ 0x00
-};
+class MtObject{}
+
+class MtDTI {
+	char pad_00[0x20] @ 0x00
+}; //Size: 0x0020
+
+class MtObject {
+	char pad_00[0x4] @ 0x00
+}; //Size: 0x0004
+
+class CUnit : public MtObject {
+	uint32_t bitfield @ 0x04
+	class CUnit *mp_next_unit @ 0x08
+	class CUnit *mp_prev_unit @ 0x0C
+	float m_delta_time @ 0x10
+	uint32_t some_union @ 0x14
+}; //Size: 0x0018
+
+class UCoord : public MtObject{
+	class UCoord *mp_parent @ 0x18
+	Vector3f m_pos @ 0x30
+	Vector4f m_quat @ 0x40
+	Vector3f m_scale @ 0x50
+	Matrix4x4 m_lmat @ 0x5C
+	Matrix4x4 m_wmat @ 0x9C
+}; //Size: 0x00DC
 
 class uPlayer : public UCoord{
 	Vector4f rotationKnockback @ 0xF0
