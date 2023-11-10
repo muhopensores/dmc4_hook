@@ -84,6 +84,21 @@ class uBoss {
 	float DTMax @ 0x1F28
 };
 
+class uEnemyDamage {
+	float HP @ 0x18
+	float HPMax @ 0x1C
+	float HPTaken @ 0x2C
+	int stun[5] @ 0x3C
+	int displacement[5] @ 0x50
+	int unknown[8] @ 0x64
+	bool isDead @ 0x8C
+	float stunResetTimer @ 0xAC
+};
+
+class uEnemyDamagePossibility {
+	char pad_00[0x4] @ 0x00
+};
+
 class uEnemy {
 	float delta @ 0x10
 	uint8_t moveID @ 0x14
@@ -102,14 +117,13 @@ class uEnemy {
 	bool inBattle @ 0x1404
 	bool isActive @ 0x1405
 	uint32_t ID @ 0x1410
-	float scarecrowHP @ 0x1544
-	float scarecrowHpTaken @ 0x1558
-	uint32_t scarecrowStun @ 0x1568
-	uint32_t scarecrowDisplace @ 0x157C
-	bool isDead @ 0x15B8
-	float stunResetTimer @ 0x15D8
+	class uEnemyDamagePossibility DamagePtrMephistoFaustAssaultGladius @ 0x1500
+	class uEnemyDamagePossibility DamagePtrAltoBiancoFrostBlitz @ 0x1504
+	class uEnemyDamagePossibility DamagePtrCutlass @ 0x1508
+	class uEnemyDamagePossibility DamagePtrScarecrowLegArmMega @ 0x152C
 	bool grounded @ 0x161C
 	Vector3f velocity @ 0x1B40
+	class uEnemyDamagePossibility DamagePtrBasilisk @ 0x7FC4
 };
 
 ////////////////////uPlayer start
@@ -337,16 +351,7 @@ class SMediator {
 	uint32_t hellGoldOrbCount @ 0x13C
 	class GameDifficulty gameDifficulty @ 0x140
 	class GameMode gameMode @ 0x144
-	class uEnemy* uEnemy1 @ 0x1B8
-	class uEnemy* uEnemy2
-	class uEnemy* uEnemy3
-	class uEnemy* uEnemy4
-	class uEnemy* uEnemy5
-	class uEnemy* uEnemy6
-	class uEnemy* uEnemy7
-	class uEnemy* uEnemy8
-	class uEnemy* uEnemy9
-	class uEnemy* uEnemy10
+	class uEnemy* uEnemies[10] @ 0x1B8
 	uint32_t enemyCount[3] @ 0x1E0
 	float bpTimer @ 0x250
 	bool hasUnlockedDT @ 0x368

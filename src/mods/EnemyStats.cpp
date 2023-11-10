@@ -136,37 +136,41 @@ void EnemyStats::on_gui_frame() {
             ImGui::SliderInt("Enemy Select", &which_enemy, 0, s_med_ptr->enemyCount[2] - 1);
             if (s_med_ptr->uEnemies[0]) {
                 ImGui::Spacing();
-                int damage_info_offset = get_enemy_specific_damage_offset(s_med_ptr->uEnemies[which_enemy]->ID);
-                if (damage_info_offset != NULL) {
-                    ImGui::InputFloat("HP ##2", (float*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x18));
-                    ImGui::InputFloat("Max HP ##2", (float*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x1C));
-                    ImGui::InputInt("Stun 1 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x3C));
-                    ImGui::InputInt("Stun 2 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x40));
-                    ImGui::InputInt("Stun 3 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x44));
-                    ImGui::InputInt("Stun 4 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x48));
-                    ImGui::InputInt("Stun 5 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x4C));
-                    ImGui::InputInt("Displacement 1 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x50));
-                    ImGui::InputInt("Displacement 2 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x54));
-                    ImGui::InputInt("Displacement 3 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x58));
-                    ImGui::InputInt("Displacement 4 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x5C));
-                    ImGui::InputInt("Displacement 5 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x60));
-                    ImGui::InputInt("Unknown 1 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x64));
-                    ImGui::InputInt("Unknown 2 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x68));
-                    ImGui::InputInt("Unknown 3 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x6C));
-                    ImGui::InputInt("Unknown 4 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x70));
-                    ImGui::InputInt("Unknown 5 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x74));
-                    ImGui::InputInt("Unknown 6 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x78));
-                    ImGui::InputInt("Unknown 7 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x7C));
-                    ImGui::InputInt("Unknown 8 ##2", (int*)(s_med_ptr->uEnemies[which_enemy]->pad_0 + damage_info_offset + 0x80));
+                uEnemy* currentEnemy      = s_med_ptr->uEnemies[which_enemy];
+                int damage_info_offset    = get_enemy_specific_damage_offset(currentEnemy->ID);
+                // i hate this, game accesses them from base ptr, e.g. [uEnemy+1544] for scarecrow hp
+                uEnemyDamage currentEnemyDamage = *(uEnemyDamage*)((char*)currentEnemy + damage_info_offset);
+                if (currentEnemy != NULL) {
+                    ImGui::InputFloat("HP ##2", &currentEnemyDamage.HP);
+                    ImGui::InputFloat("Max HP ##2", &currentEnemyDamage.HPMax);
+                    ImGui::InputFloat("HP Taken ##2", &currentEnemyDamage.HPTaken);
+                    ImGui::InputInt("Stun 1 ##2", &currentEnemyDamage.stun[0]);
+                    ImGui::InputInt("Stun 2 ##2", &currentEnemyDamage.stun[1]);
+                    ImGui::InputInt("Stun 3 ##2", &currentEnemyDamage.stun[2]);
+                    ImGui::InputInt("Stun 4 ##2", &currentEnemyDamage.stun[3]);
+                    ImGui::InputInt("Stun 5 ##2", &currentEnemyDamage.stun[4]);
+                    ImGui::InputInt("Displacement 1 ##2", &currentEnemyDamage.displacement[0]);
+                    ImGui::InputInt("Displacement 2 ##2", &currentEnemyDamage.displacement[1]);
+                    ImGui::InputInt("Displacement 3 ##2", &currentEnemyDamage.displacement[2]);
+                    ImGui::InputInt("Displacement 4 ##2", &currentEnemyDamage.displacement[3]);
+                    ImGui::InputInt("Displacement 5 ##2", &currentEnemyDamage.displacement[4]);
+                    ImGui::InputInt("Unknown 1 ##2", &currentEnemyDamage.unknown[0]);
+                    ImGui::InputInt("Unknown 2 ##2", &currentEnemyDamage.unknown[1]);
+                    ImGui::InputInt("Unknown 3 ##2", &currentEnemyDamage.unknown[2]);
+                    ImGui::InputInt("Unknown 4 ##2", &currentEnemyDamage.unknown[3]);
+                    ImGui::InputInt("Unknown 5 ##2", &currentEnemyDamage.unknown[4]);
+                    ImGui::InputInt("Unknown 6 ##2", &currentEnemyDamage.unknown[5]);
+                    ImGui::InputInt("Unknown 7 ##2", &currentEnemyDamage.unknown[6]);
+                    ImGui::InputInt("Unknown 8 ##2", &currentEnemyDamage.unknown[7]);
                 }
-                ImGui::InputFloat3("XYZ Position ##2", (float*)&s_med_ptr->uEnemies[which_enemy]->position);
-                ImGui::InputFloat3("XYZ Velocity ##2", (float*)&s_med_ptr->uEnemies[which_enemy]->velocity);
-                ImGui::InputFloat3("XYZ Scale ##2", (float*)&s_med_ptr->uEnemies[which_enemy]->scale);
-                ImGui::InputScalar("Move ID ##2", ImGuiDataType_U8, &s_med_ptr->uEnemies[which_enemy]->moveID);
-                ImGui::InputScalar("Move ID 2 ##2", ImGuiDataType_U8, &s_med_ptr->uEnemies[which_enemy]->moveID2, 0, 0);
-                ImGui::InputScalar("Move Part ##2", ImGuiDataType_U8, &s_med_ptr->uEnemies[which_enemy]->movePart);
-                ImGui::InputScalar("Grounded ##2", ImGuiDataType_U8, &s_med_ptr->uEnemies[which_enemy]->grounded);
-                ImGui::InputFloat("Animation Frame ##2", &s_med_ptr->uEnemies[which_enemy]->animFrame);
+                ImGui::InputFloat3("XYZ Position ##2", (float*)&currentEnemy->position);
+                ImGui::InputFloat3("XYZ Velocity ##2", (float*)&currentEnemy->velocity);
+                ImGui::InputFloat3("XYZ Scale ##2", (float*)&currentEnemy->scale);
+                ImGui::InputScalar("Move ID ##2", ImGuiDataType_U8, &currentEnemy->moveID);
+                ImGui::InputScalar("Move ID 2 ##2", ImGuiDataType_U8, &currentEnemy->moveID2, 0, 0);
+                ImGui::InputScalar("Move Part ##2", ImGuiDataType_U8, &currentEnemy->movePart);
+                ImGui::InputScalar("Grounded ##2", ImGuiDataType_U8, &currentEnemy->grounded);
+                ImGui::InputFloat("Animation Frame ##2", &currentEnemy->animFrame);
 
                 if (ImGui::Button("Save Selected Enemy Info")) {
                     save_load_enemy_info(true);

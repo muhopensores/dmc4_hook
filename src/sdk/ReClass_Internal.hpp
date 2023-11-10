@@ -354,6 +354,28 @@ public:
 	char pad_152_f[4409]; //0x152F
 }; //Size: 0x2668
 
+class uEnemyDamagePossibility {
+public:
+    char pad_00[4]; // 0x0
+}; // Size: 0x4
+
+class uEnemyDamage {
+public:
+    char pad_0[0x18];
+    float HP; // 0x18
+    float HPMax; // 0x1c
+    char pad_20[0xc];
+    float HPTaken; // 0x2c
+    char pad_30[0xc];
+    int stun[5]; // 0x3c
+    int displacement[5]; // 0x50
+    int unknown[8]; // 0x64
+    char pad_84[0x8];
+    bool isDead; // 0x8c
+    char pad_8d[0x1f];
+    float stunResetTimer; // 0xac
+}; // Size: 0xb0
+
 class uEnemy {
 public:
     char pad_0[0x10];
@@ -387,23 +409,19 @@ public:
     bool isActive; // 0x1405
     char pad_1406[0xa];
     uint32_t ID; // 0x1410
-    char pad_1414[0x130];
-    float scarecrowHP; // 0x1544
-    char pad_1548[0x10];
-    float scarecrowHpTaken; // 0x1558
-    char pad_155c[0xc];
-    uint32_t scarecrowStun; // 0x1568
-    char pad_156c[0x10];
-    uint32_t scarecrowDisplace; // 0x157c
-    char pad_1580[0x38];
-    bool isDead; // 0x15b8
-    char pad_15b9[0x1f];
-    float stunResetTimer; // 0x15d8
-    char pad_15dc[0x40];
+    char pad_1414[0xec];
+    class uEnemyDamagePossibility DamagePtrMephistoFaustAssaultGladius; // 0x1500
+    class uEnemyDamagePossibility DamagePtrAltoBiancoFrostBlitz; // 0x1504
+    class uEnemyDamagePossibility DamagePtrCutlass; // 0x1508
+    char pad_150c[0x20];
+    class uEnemyDamagePossibility DamagePtrScarecrowLegArmMega; // 0x152c
+    char pad_1530[0xec];
     bool grounded; // 0x161c
     char pad_161d[0x523];
     Vector3f velocity; // 0x1b40
-}; // Size: 0x1b4c
+    char pad_1b4c[0x6478];
+    class uEnemyDamagePossibility DamagePtrBasilisk; // 0x7fc4
+}; // Size: 0x7fc8
 
 class uBoss {
 public:
