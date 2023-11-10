@@ -54,16 +54,20 @@ void NoClip::on_gui_frame() {
         toggle2(mod_enabled_2);
     }
     if (ImGui::Checkbox("Lock Y Pos", &player_lock_y_pos)) {
-        SMediator* s_med_ptr  = *(SMediator**)static_mediator_ptr;
-        uintptr_t* player_ptr = (uintptr_t*)((uintptr_t)s_med_ptr + 0x24);
-        uintptr_t player_base = *player_ptr;
-        if (player_base) {
-            int& controller_id = *(int*)(player_base + 0x1494);
-            float* player_xyz[3];
-            player_xyz[0]   = (float*)(player_base + 0x30);
-            player_xyz[1]   = (float*)(player_base + 0x34);
-            player_xyz[2]   = (float*)(player_base + 0x38);
-            player_y_backup = *player_xyz[1];
+        if (player_lock_y_pos) {
+            uPlayer* player = devil4_sdk::get_local_player();
+            if (player) {
+                player_y_backup = player->m_pos[1];
+            }
+        }
+    }
+}
+
+void NoClip::on_frame(fmilliseconds& dt) {
+    if (player_lock_y_pos) {
+        uPlayer* player = devil4_sdk::get_local_player();
+        if (player) {
+            player->m_pos[1] = player_y_backup;
         }
     }
 }
@@ -78,8 +82,6 @@ void NoClip::on_twitch_command(std::size_t hash) {
 }
 #endif
 
-
-
 void NoClip::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("noclip").value_or(false);
     toggle(mod_enabled);
@@ -90,23 +92,6 @@ void NoClip::on_config_load(const utility::Config& cfg) {
 void NoClip::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("noclip", mod_enabled);
     cfg.set<bool>("disable_teleport_planes", mod_enabled_2);
-}
-
-void NoClip::on_frame(fmilliseconds& dt) {
-    //m_timer->tick(dt);
-    if (player_lock_y_pos) {
-        SMediator* s_med_ptr  = *(SMediator**)static_mediator_ptr;
-        uintptr_t* player_ptr = (uintptr_t*)((uintptr_t)s_med_ptr + 0x24);
-        uintptr_t player_base = *player_ptr;
-        if (player_base) {
-            int& controller_id = *(int*)(player_base + 0x1494);
-            float* player_xyz[3];
-            player_xyz[0]  = (float*)(player_base + 0x30);
-            player_xyz[1]  = (float*)(player_base + 0x34);
-            player_xyz[2]  = (float*)(player_base + 0x38);
-            *player_xyz[1] = player_y_backup;
-        }
-    }
 }
 
 void NoClip::on_update_input(utility::Input& input) {

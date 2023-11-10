@@ -27,18 +27,10 @@ static bool b_buffered_rose{ false };
 constexpr uintptr_t change_to_lucifer_call = 0x00836190;
 
 void easy_fast_drive_check(void) {
-    SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
-    uintptr_t* player_ptr = (uintptr_t*)((uintptr_t)s_med_ptr + 0x24);
-    uintptr_t player_base = *player_ptr;
-    if (player_base) {
-        int8_t& controller_id = *(int8_t*)(player_base + 0x1494);
-        int& move_id = *(int*)(player_base + 0x2998);
-        int8_t& melee_input_on_press = *(int8_t*)(player_base + 0x1410);
-        int8_t& style_input_on_hold = *(int8_t*)(player_base + 0x140D);
-        int8_t& cancel_to_melee = *(int8_t*)(player_base + 0x1E13);
-        float& animation_frame = *(float*)(player_base + 0x348);
-        if (melee_input_on_press & 0x1 && style_input_on_hold & 0x6 && controller_id == 0 && move_id == 0x232 && animation_frame < 7.0f) {
-            cancel_to_melee = 0x10;
+    uPlayer* player = devil4_sdk::get_local_player();
+    if (player) {
+        if (player->inputPress[0] & 0x1 && player->inputHold[1] & 0x6 && player->controllerID == 0 && player->moveIDBest == 0x232 && player->animFrame < 7.0f) {
+            player->meleeCancelPermissions1[3] = (uint8_t)0x10;
         }
     }
 }
@@ -179,100 +171,68 @@ naked void detour_changing_to_lucifer() {
 }
 
 void InputStates::on_timer_callback() { // hide lucifer after rose if weaponid is not lucifer
-    SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
-    uPlayer* u_local_plr = s_med_ptr->player_ptr;
-    if (u_local_plr) {
-        uPlayer* u_local_plr = s_med_ptr->player_ptr;
-        // uint8_t& weaponID = *(uint8_t*)((uintptr_t)uLocalPlr + 0x1DB4);
-        uint8_t& equipped_weapon = *(uint8_t*)((uintptr_t)u_local_plr + 0x1DC0); // might fix a small bug might break everything
-        uintptr_t* lucifer_ptr = (uintptr_t*)((uintptr_t)u_local_plr + 0x1D98);
-        uintptr_t lucifer_base = *lucifer_ptr;
-        bool& show_lucifer = *(bool*)(lucifer_base + 0x137C);
-        if (show_lucifer == true && equipped_weapon != 6) {
-            if (!ForceLucifer::mod_enabled){
-                    show_lucifer = false;
+    uPlayer* player = devil4_sdk::get_local_player();
+    if (player) {
+        if (player->lucifer->visible == true && player->currentSword != 6) {
+            if (!ForceLucifer::mod_enabled) {
+                player->lucifer->visible = false;
             }
         }
     }
 }
 
 void InputStates::rose_input(void) {
-    SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
-    uPlayer* u_local_plr = s_med_ptr->player_ptr;
-    if (u_local_plr) {
-        uint8_t& grounded = *(uint8_t*)((uintptr_t)u_local_plr + 0xEA8);
-        uint8_t& cancellable = *(uint8_t*)((uintptr_t)u_local_plr + 0x1E15);
-        int& move_id = *(int*)((uintptr_t)u_local_plr + 0x2998); // i hate myself
-        // input
+    uPlayer* player = devil4_sdk::get_local_player();
+    if (player) {
         if (b_rose_input) { // if touchpad is pressed
-            if (grounded == 2) { // aerial?
-                if (cancellable == 0x10 || move_id == 0x10 || move_id == 0x11) { // if in free frames, post trick, airhike
+            if (player->grounded == 2) {
+                if (player->jumpCancelPermissions1[1] == 0x10 || player->moveIDBest == 0x10 || player->moveIDBest == 0x11) { // if (in free frames, post trick, airhike)
                     InputStates::play_rose();
                 }
-                if (cancellable == 0x30) { // if in buffer frames
+                if (player->jumpCancelPermissions1[1] == 0x30) { // if in buffer frames
                     b_buffered_rose = true;
                 }
                 b_rose_input = false; // in active frames
-            }
-            else
+            } else
                 b_rose_input = false; // grounded.
         }
     }
 }
 
 void InputStates::rose_buffer(void) {
-    SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
-    uPlayer* u_local_plr = s_med_ptr->player_ptr;
-    if (u_local_plr) {
-        uint8_t& grounded = *(uint8_t*)((uintptr_t)u_local_plr + 0xEA8);
-        uint8_t& cancellable = *(uint8_t*)((uintptr_t)u_local_plr + 0x1E15);
-        // buffer
+    uPlayer* player = devil4_sdk::get_local_player();
+    if (player) {
         if (b_buffered_rose) {
-            if (grounded == 2) { // aerial?
-                if (cancellable == 0x10) { // if in free frames
+            if (player->grounded == 2) { // aerial?
+                if (player->jumpCancelPermissions1[1] == 0x10) { // if in free frames
                     b_buffered_rose = false;
                     InputStates::play_rose();
                 }
-                if (cancellable == 0x00) { // if another attack starts, kill the buffer
+                if (player->jumpCancelPermissions1[1] == 0x00) { // if another attack starts, kill the buffer
                     b_buffered_rose = false;
                 }
-            }
-            else
+            } else
                 b_buffered_rose = false; // grounded.
         }
     }
 }
 
 void InputStates::play_rose(void) {
-    SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
-    uPlayer* u_local_plr = s_med_ptr->player_ptr;
-    uint8_t& move_bank = *(uint8_t*)((uintptr_t)u_local_plr + 0x1500);
-    uint8_t& move_id = *(uint8_t*)((uintptr_t)u_local_plr + 0x1564);
-    uint8_t& move_part = *(uint8_t*)((uintptr_t)u_local_plr + 0x1504);
-    uint8_t& move_cancel_byte_1 = *(uint8_t*)((uintptr_t)u_local_plr + 0x1550);
-    uint8_t& move_cancel_byte_2 = *(uint8_t*)((uintptr_t)u_local_plr + 0x1551);
-    uint8_t& move_cancel_byte_3 = *(uint8_t*)((uintptr_t)u_local_plr + 0x1552);
-    uint8_t& move_cancel_byte_4 = *(uint8_t*)((uintptr_t)u_local_plr + 0x1553);
-    uint8_t& weight = *(uint8_t*)((uintptr_t)u_local_plr + 0x1E7D);
-    uint8_t& weapon_change_disable = *(uint8_t*)((uintptr_t)u_local_plr + 0x14F0);
-
-    uintptr_t* lucifer_ptr = (uintptr_t*)((uintptr_t)u_local_plr + 0x1D98);
-    uintptr_t lucifer_base = *lucifer_ptr;
-    bool& show_lucifer = *(bool*)(lucifer_base + 0x137C);
-
-    show_lucifer = true;
-    move_bank = 12;
-    move_id = 55;
-    move_part = 00;
-    move_cancel_byte_1 = 0;
-    move_cancel_byte_2 = 0;
-    move_cancel_byte_3 = 0;
-    move_cancel_byte_4 = 0;
-    weapon_change_disable = 12;
-    weight ++; // we miss out on a weight+1 because we miss initial call at DevilMayCry4_DX9.exe+3AAD35
-    // m_timer->start();
-    InputStates::input_timer2 = 0.0f;
-    InputStates::rose_timer_active = true;
+    uPlayer* player = devil4_sdk::get_local_player();
+    if (player) {
+        player->lucifer->visible = true;
+        player->moveBank         = 12;
+        player->moveID2          = 55;
+        player->movePart         = 00;
+        player->cancels1[0]      = 0;
+        player->cancels1[1]      = 0;
+        player->cancels1[2]      = 0;
+        player->cancels1[3]      = 0;
+        player->canWeaponChange  = 12;
+        player->weight++; // we miss out on a weight+1 because we miss initial call at DevilMayCry4_DX9.exe+3AAD35
+        InputStates::input_timer2      = 0.0f;
+        InputStates::rose_timer_active = true;
+    }
 }
 
 std::optional<std::string> InputStates::on_initialize() {

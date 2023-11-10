@@ -416,7 +416,9 @@ public:
     Vector3f scale; // 0x50
     char pad_5c[0x2d8];
     uint8_t moveID2; // 0x334
-    char pad_335[0x10d7];
+    char pad_335[0x13];
+    float animFrame; // 0x348
+    char pad_34c[0x10c0];
     uint32_t inputHold; // 0x140c
     uint32_t inputPress; // 0x1410
     char pad_1414[0x108];
@@ -478,16 +480,7 @@ public:
     GameDifficulty gameDifficulty; // 0x140
     GameMode gameMode; // 0x144
     char pad_148[0x70];
-    class uEnemy* uEnemy1; // 0x1b8
-    class uEnemy* uEnemy2; // 0x1bc
-    class uEnemy* uEnemy3; // 0x1c0
-    class uEnemy* uEnemy4; // 0x1c4
-    class uEnemy* uEnemy5; // 0x1c8
-    class uEnemy* uEnemy6; // 0x1cc
-    class uEnemy* uEnemy7; // 0x1d0
-    class uEnemy* uEnemy8; // 0x1d4
-    class uEnemy* uEnemy9; // 0x1d8
-    class uEnemy* uEnemy10; // 0x1dc
+    class uEnemy* uEnemies[10]; // 0x1b8
     uint32_t enemyCount[3]; // 0x1e0
     char pad_1ec[0x64];
     float bpTimer; // 0x250
@@ -646,7 +639,7 @@ public:
     char pad_a40[0x2b4];
     float speedUnsettable; // 0xcf4
     char pad_cf8[0x1b0];
-    bool grounded; // 0xea8
+    uint8_t grounded; // 0xea8
     char pad_ea9[0x17];
     float groundInertiaX; // 0xec0
     float inertiaY; // 0xec4
@@ -658,9 +651,9 @@ public:
     char pad_1214[0x1b0];
     float stickDirection; // 0x13c4
     char pad_13c8[0x44];
-    uint32_t inputHold; // 0x140c
-    uint32_t inputPress; // 0x1410
-    uint32_t inputRelease; // 0x1414
+    uint8_t inputHold[4];  // 0x140c
+    uint8_t inputPress[4];    // 0x1410
+    uint8_t inputRelease[4];  // 0x1414
     char pad_1418[0x4];
     uint32_t stickThreshold; // 0x141c
     float stickFacingWorldAdjusted; // 0x1420
@@ -672,11 +665,11 @@ public:
     char pad_1498[0x58];
     uint32_t canWeaponChange; // 0x14f0
     char pad_14f4[0xc];
-    uint32_t switchMoveID; // 0x1500
+    uint32_t moveBank; // 0x1500
     uint32_t movePart; // 0x1504
     char pad_1508[0x48];
-    bool cancels1[4]; // 0x1550
-    bool cancels2[4]; // 0x1554
+    uint8_t cancels1[4]; // 0x1550
+    uint8_t cancels2[4]; // 0x1554
     char pad_1558[0xc];
     uint32_t moveID2; // 0x1564
     char pad_1568[0x64];
@@ -698,14 +691,19 @@ public:
     uintptr_t* collisionPtr1; // 0x17a0
     char pad_17a4[0x5f0];
     class DevilArm* gilgamesh; // 0x1d94
-    class DevilArm* ebonyIvory; // 0x1d98
-    char pad_1d9c[0x4];
+    class DevilArm* lucifer; // 0x1d98
+    class DevilArm* ebonyIvory; // 0x1d9c
     class DevilArm* coyoteA; // 0x1da0
     class DevilArm* pandora; // 0x1da4
     char pad_1da8[0xc];
-    uint32_t currentSword; // 0x1db4
-    uint32_t currentGun; // 0x1db8
-    char pad_1dbc[0x60];
+    uint32_t currentSwordUI; // 0x1db4
+    uint32_t currentGunUI; // 0x1db8
+    char pad_1dbc[0x4];
+    uint32_t currentSword; // 0x1dc0
+    char pad_1dc4[0x4c];
+    uint8_t meleeCancelPermissions1[4]; // 0x1e10
+    uint8_t jumpCancelPermissions1[4]; // 0x1e14
+    char pad_1e18[0x4];
     float inertia; // 0x1e1c
     char pad_1e20[0x4];
     float rotation3; // 0x1e24
@@ -732,7 +730,9 @@ public:
     float maxDT; // 0x1f28
     char pad_1f2c[0x24];
     bool fullHouseSomething1; // 0x1f50
-    char pad_1f51[0xaf];
+    char pad_1f51[0x2e];
+    bool canWallHike; // 0x1f7f
+    char pad_1f80[0x80];
     class uEnemy* lockOnTargetPtr1; // 0x2000
     char pad_2004[0x4];
     bool grounded2; // 0x2008
@@ -757,22 +757,26 @@ public:
     char pad_3084[0x40];
     uint8_t bufferPermissions; // 0x30c4
     char pad_30c5[0x2b];
-    uint8_t meleeCancelPermissions; // 0x30f0
+    uint8_t meleeCancelPermissions2; // 0x30f0
     char pad_30f1[0x83];
-    uint8_t jumpCancelPermissions; // 0x3174
+    uint8_t jumpCancelPermissions2; // 0x3174
     char pad_3175[0x3];
     uint8_t bufferedJump; // 0x3178
     char pad_3179[0x53];
-    uint8_t gunCancelPermissions; // 0x31cc
+    uint8_t gunCancelPermissions2; // 0x31cc
     char pad_31cd[0x9b1b];
     uint8_t exceedLevel; // 0xcce8
     char pad_cce9[0xd3];
-    float exceedRev; // 0xcdbc
+    float exceedTimer; // 0xcdbc
     char pad_cdc0[0x7fd8];
     uint32_t currentStyle; // 0x14d98
     char pad_14d9c[0x20];
-    LuciferPin luciferPins[15]; // 0x14dbc
-}; // Size: 0x2b157
+    class LuciferPin* luciferPins[15]; // 0x14dbc
+    char pad_14df8[0x3fc];
+    float disasterGauge; // 0x151f4
+    char pad_151f8[0x870];
+    class uEnemy* lockOnTargetPtr3; // 0x15a68
+}; // Size: 0x15a6c
 
 class UStageSetTimeSlow
 {

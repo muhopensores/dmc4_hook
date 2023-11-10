@@ -60,85 +60,47 @@ void PlayerTracker::on_gui_frame() {
 
     ImGui::Checkbox("Display Player Stats", &display_player_stats);
     if (display_player_stats) {
-        uintptr_t* player_ptr = (uintptr_t*)((uintptr_t)s_med_ptr + 0x24);
-        uintptr_t player_base = *player_ptr;
-        if (player_base)
-        {
-            int& controller_id = *(int*)(player_base + 0x1494);
-            float* player_xyz[3];
-                player_xyz[0] = (float*)(player_base + 0x30);
-                player_xyz[1] = (float*)(player_base + 0x34);
-                player_xyz[2] = (float*)(player_base + 0x38);
-
-            float* player_rotation[4];
-                player_rotation[0] = (float*)(player_base + 0x40);
-                player_rotation[1] = (float*)(player_base + 0x44);
-                player_rotation[2] = (float*)(player_base + 0x48);
-                player_rotation[3] = (float*)(player_base + 0x4C);
-
-            float* player_scale[3];
-                player_scale[0] = (float*)(player_base + 0x50);
-                player_scale[1] = (float*)(player_base + 0x54);
-                player_scale[2] = (float*)(player_base + 0x58);
-
-            float& animation_frame = *(float*)(player_base + 0x348);
-            float& player_current_hp = *(float*)(player_base + 0x15CC);
-            float& player_max_hp = *(float*)(player_base + 0x15D0);
-            int8_t& player_weight = *(int8_t*)(player_base + 0x1E7D);
-            int8_t& player_move_bank = *(int8_t*)(player_base + 0x1500);
-            int8_t& player_move_id = *(int8_t*)(player_base + 0x1564);
-            int8_t& player_move_part = *(int8_t*)(player_base + 0x1504);
-            uint8_t& weapon_change_disable = *(uint8_t*)(player_base + 0x14F0);
-            int8_t& player_lock_on = *(int8_t*)(player_base + 0x16D0);
-            float& exceed_timer = *(float*)(player_base + 0xCDBC);
-
-            float* player_velocity_xyz[3];
-                player_velocity_xyz[0] = (float*)(player_base + 0x1E50);
-                player_velocity_xyz[1] = (float*)(player_base + 0x1E54);
-                player_velocity_xyz[2] = (float*)(player_base + 0x1E58);
-            float& player_speed = *(float*)(player_base + 0x1E60);
-            float& player_inertia = *(float*)(player_base + 0x1E1C);
-            float& player_disaster = *(float*)(player_base + 0x151F4);
-
-            ImGui::InputFloat("HP ##1", &player_current_hp);
-            ImGui::InputFloat("Max HP ##1", &player_max_hp);
-            ImGui::InputFloat3("XYZ Position ##1", *player_xyz);
-            ImGui::InputFloat4("Rotation ##1", *player_rotation);
-            ImGui::InputFloat3("XYZ Scale ##1", *player_scale);
-            ImGui::InputFloat3("XYZ Velocity ##1", *player_velocity_xyz);
-            ImGui::InputFloat("Movement Speed ##1", &player_speed);
-            ImGui::InputFloat("Inertia ##1", &player_inertia);
+        uPlayer* player = devil4_sdk::get_local_player();
+        if (player) {
+            ImGui::InputFloat("HP ##1", &player->HP);
+            ImGui::InputFloat("Max HP ##1", &player->HPMax);
+            ImGui::InputFloat3("XYZ Position ##1", (float*)&player->m_pos);
+            ImGui::InputFloat4("Rotation ##1", &player->rotation2);
+            ImGui::InputFloat3("XYZ Scale ##1", (float*)&player->m_scale);
+            ImGui::InputFloat3("XYZ Velocity ##1", (float*)&player->m_d_velocity);
+            ImGui::InputFloat("Movement Speed ##1", &player->m_d_vel_magnitude);
+            ImGui::InputFloat("Inertia ##1", &player->inertia);
             ImGui::SameLine();
             help_marker("Uhm, ehm, akshually, internia isn't a thing, it's a property of a thing, the shit you're showing is velocity, the "
                         "measure of inertia is mass, resistance to acceleration (slowing down is also acceleration just in the opposite "
                         "direction), if the thing that got yeeted doesn't like burn off it's layers in flight due to air friction like a "
                         "fucking meteor or some shit then it's inertia isn't changing. Get it right NERD");
-            ImGui::InputScalar("Weight ##1", ImGuiDataType_U8, &player_weight);
-            ImGui::InputScalar("Lock On ##1", ImGuiDataType_U8, &player_lock_on);
-            if (controller_id == 0) { // dante
-                ImGui::InputFloat("Disaster Gauge ##1", &player_disaster);
+            ImGui::InputScalar("Weight ##1", ImGuiDataType_U8, &player->weight);
+            ImGui::InputScalar("Lock On ##1", ImGuiDataType_U8, &player->lockedOn);
+            if (player->controllerID == 0) { // dante
+                ImGui::InputFloat("Disaster Gauge ##1", &player->disasterGauge);
             } else { // nero
-                ImGui::InputFloat("Exceed Timer ##1", &exceed_timer);
+                ImGui::InputFloat("Exceed Timer ##1", &player->exceedTimer);
                 ImGui::SameLine();
                 help_marker("If you press exceed while this timer is between 0 and 1, you'll get MAX-Act.");
             }
-            ImGui::InputFloat("Animation Frame ##1", &animation_frame);
-            ImGui::InputScalar("Move Part ##1", ImGuiDataType_U8, &player_move_part);
-            ImGui::InputScalar("Move Bank ##1", ImGuiDataType_U8, &player_move_bank);
-            ImGui::InputScalar("Move ID ##1", ImGuiDataType_U8, &player_move_id);
+            ImGui::InputFloat("Animation Frame ##1", &player->animFrame);
+            ImGui::InputScalar("Move Part ##1", ImGuiDataType_U8, &player->movePart);
+            ImGui::InputScalar("Move Bank ##1", ImGuiDataType_U8, &player->moveBank);
+            ImGui::InputScalar("Move ID ##1", ImGuiDataType_U8, &player->moveID2);
             static int8_t tempMoveBank = 0;
             static int8_t tempMoveID   = 0;
             if (ImGui::Button("Save Current Move")) {
-                tempMoveBank = player_move_bank;
-                tempMoveID   = player_move_id;
+                tempMoveBank = player->moveBank;
+                tempMoveID   = player->moveID2;
             }
             ImGui::InputScalar("Saved Move Bank ##1", ImGuiDataType_U8, &tempMoveBank);
             ImGui::InputScalar("Saved Move ID ##1", ImGuiDataType_U8, &tempMoveID);
             if (ImGui::Button("Play Saved Move")) {
-                player_move_bank = tempMoveBank;
-                player_move_id   = tempMoveID;
-                player_move_part = 0;
-                weapon_change_disable = 12;
+                player->moveBank = tempMoveBank;
+                player->moveID2  = tempMoveID;
+                player->movePart = 0;
+                player->canWeaponChange = 12;
             }
         }
     }
@@ -146,15 +108,10 @@ void PlayerTracker::on_gui_frame() {
 
 void PlayerTracker::custom_imgui_window() {
     if (pin_imgui_enabled) {
-        SMediator* s_med_ptr  = *(SMediator**)static_mediator_ptr;
-        uintptr_t* player_ptr = (uintptr_t*)((uintptr_t)s_med_ptr + 0x24);
-        uintptr_t player_base = *player_ptr;
-        if (player_base) {
-            int& controller_id = *(int*)(player_base + 0x1494);
-            if (controller_id == 0) { // 0 = dante, some were crashing with nero and this might:tm: fix it
-                uintptr_t* pin_ptr = (uintptr_t*)((uintptr_t)player_base + 0x14DBC); // 0x14DBC
-                uintptr_t pin_base = *pin_ptr;
-                if (pin_base) {
+        uPlayer* player = devil4_sdk::get_local_player();
+        if (player) {
+            if (player->controllerID == 0) { // dante
+                if (player->luciferPins[0]) {
                     ImGuiIO& io = ImGui::GetIO();
                     ImGuiWindowFlags window_flags =
                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBringToFrontOnFocus;
@@ -164,20 +121,15 @@ void PlayerTracker::custom_imgui_window() {
                     ImGui::Begin("Lucifer Pin Timers", NULL, window_flags);
 
                     for (int i = 0; i < 15; i++) {
-                        uintptr_t* pin_ptr = (uintptr_t*)((uintptr_t)player_base + 0x14DBC + i * 4); // 0x14DBC
-                        uintptr_t pin_base = *pin_ptr;
-                        if (pin_base) {
-                            float& pin_timer     = *(float*)(pin_base + 0x1790);
-                            float& pin_timer_max = *(float*)(pin_base + 0x1794);
-                            bool& pin_penetrated = *(bool*)(pin_base + 0x17B4);
-                            if (pin_penetrated) {
+                        if (player->luciferPins[i]) {
+                            if (player->luciferPins[i]->penetrated) {
                                 ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
                             } else {
                                 ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
                             }
-                            ImGui::Text("Pin %i = %.0f", i + 1, pin_timer);
+                            ImGui::Text("Pin %i = %.0f", i + 1, player->luciferPins[i]->timer);
                             ImGui::SameLine();
-                            ImGui::Text("/ %.0f", pin_timer_max);
+                            ImGui::Text("/ %.0f", player->luciferPins[i]->timerMax);
                             ImGui::PopStyleColor();
                         }
                     }

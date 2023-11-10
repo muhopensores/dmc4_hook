@@ -75,6 +75,7 @@ class uBoss {
 	Vector3f position @ 0x30
 	Vector3f scale @ 0x50
 	uint8_t moveID2 @ 0x334
+	float animFrame @ 0x348
 	uint32_t inputHold @ 0x140C
 	uint32_t inputPress @ 0x1410
 	float HP @ 0x151C
@@ -213,26 +214,26 @@ class uPlayer : public UCoord{
 	float animFrame @ 0x348
 	class MotionPtr* motionPtr1 @ 0xA38
 	class MotionPtr* motionPtr2 @ 0xA3C
-	bool grounded @ 0xEA8
+	uint8_t grounded @ 0xEA8
 	float groundInertiaX @ 0xEC0
 	float inertiaY @ 0xEC4
 	float groundInertiaZ @ 0xEC8
 	bool hitstop @ 0x1201
 	float facingDirection @ 0x1210
 	float stickDirection @ 0x13C4
-	uint32_t inputHold @ 0x140C
-	uint32_t inputPress @ 0x1410
-	uint32_t inputRelease @ 0x1414
+	uint8_t inputHold[4] @ 0x140C
+	uint8_t inputPress[4] @ 0x1410
+	uint8_t inputRelease[4] @ 0x1414
 	uint32_t stickThreshold @ 0x141C
 	float stickFacingWorldAdjusted @ 0x1420
 	bool stickPastThreshold @ 0x1424
 	float characterSpeed @ 0x1464
 	uint32_t controllerID @ 0x1494
 	uint32_t canWeaponChange @ 0x14F0
-	uint32_t switchMoveID @ 0x1500
+	uint32_t moveBank @ 0x1500
 	uint32_t movePart @ 0x1504
-	bool cancels1[4] @ 0x1550
-	bool cancels2[4] @ 0x1554
+	uint8_t cancels1[4] @ 0x1550
+	uint8_t cancels2[4] @ 0x1554
 	uint32_t moveID2 @ 0x1564
 	float HP @ 0x15CC
 	float HPMax @ 0x15D0
@@ -245,13 +246,14 @@ class uPlayer : public UCoord{
 	uintptr_t* collisionPtr1 @ 0x17A0
 	class DevilArm* gilgamesh @ 0x1D94
 	class DevilArm* lucifer @ 0x1D98
-	class DevilArm* ebonyIvory @ 0x1D98
+	class DevilArm* ebonyIvory @ 0x1D9C
 	class DevilArm* coyoteA @ 0x1DA0
 	class DevilArm* pandora @ 0x1DA4
-	uint32_t currentSword @ 0x1DB4
-	uint32_t currentGun @ 0x1DB8
-	bool meleeCancelPermissions[4] @ 0x1E10
-	bool jumpCancelPermissions[4] @ 0x1E14
+	uint32_t currentSwordUI @ 0x1DB4
+	uint32_t currentGunUI @ 0x1DB8
+	uint32_t currentSword @ 0x1DC0
+	uint8_t meleeCancelPermissions1[4] @ 0x1E10
+	uint8_t jumpCancelPermissions1[4] @ 0x1E14
 	float inertia @ 0x1E1C
 	float rotation3 @ 0x1E24
 	Vector3f m_d_velocity @ 0x1E50
@@ -281,15 +283,15 @@ class uPlayer : public UCoord{
 	uint32_t moveIDBest @ 0x2998
 	class uEnemy* lockOnTargetPtr2 @ 0x3080
 	uint8_t bufferPermissions @ 0x30C4
-	uint8_t meleeCancelPermissions @ 0x30F0
-	uint8_t jumpCancelPermissions @ 0x3174
+	uint8_t meleeCancelPermissions2 @ 0x30F0
+	uint8_t jumpCancelPermissions2 @ 0x3174
 	uint8_t bufferedJump @ 0x3178
-	uint8_t gunCancelPermissions @ 0x31CC
+	uint8_t gunCancelPermissions2 @ 0x31CC
 	uint8_t exceedLevel @ 0xCCE8
 	uint32_t currentStyle @ 0x14D98
-	class LuciferPin luciferPins[15] @ 0x14DBC
+	class LuciferPin* luciferPins[15] @ 0x14DBC
 	class uEnemy* lockOnTargetPtr3 @ 0x15A68
-	float exceedRev @ 0xCDBC
+	float exceedTimer @ 0xCDBC
 	float disasterGauge @ 0x151F4
 };
 
