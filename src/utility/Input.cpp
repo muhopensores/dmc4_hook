@@ -88,6 +88,8 @@ namespace utility {
             return "F12";
         case 0xBB: // 187
             return "=/+";
+        case 0x91:
+            return "Scroll Lock";
         case 0xA0:
             return "LShift";
         case 0xA1:

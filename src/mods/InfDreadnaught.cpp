@@ -1,8 +1,8 @@
-
 #include "InfDreadnaught.hpp"
 
 #if 1
 bool InfDreadnaught::mod_enabled{ false };
+bool InfDreadnaught::mod_enabled2{false};
 uintptr_t InfDreadnaught::inf_dreadnaught_continue{ NULL };
 
 naked void inf_dreadnaught_proc(void) {
@@ -42,64 +42,35 @@ void InfDreadnaught::toggle(bool enable) {
     }
 }
 
+void InfDreadnaught::toggle2(bool enable) {
+    if (enable) {
+        install_patch_offset(0x3BA568, patch2, "\xEB\x5A", 2);
+    } else {
+        patch2.reset();
+    }
+}
+
 void InfDreadnaught::on_gui_frame() {
     if (ImGui::Checkbox("Infinite Dreadnaught", &mod_enabled)) {
         toggle(mod_enabled);
+    }
+    ImGui::SameLine(sameLineWidth);
+    if (ImGui::Checkbox("Run in Dreadnaught", &mod_enabled2)) {
+        toggle2(mod_enabled2);
     }
 }
 
 void InfDreadnaught::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("inf_dreadnaught").value_or(false);
     toggle(mod_enabled);
+    mod_enabled2 = cfg.get<bool>("run_in_dreadnaught").value_or(false);
+    toggle2(mod_enabled2);
+
 }
 
 void InfDreadnaught::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("inf_Dreadnaught", mod_enabled);
+    cfg.set<bool>("inf_dreadnaught", mod_enabled);
+    cfg.set<bool>("run_in_dreadnaught", mod_enabled2);
 }
 
 #endif
-
-/*
-[ENABLE]
-//aobscanmodule(Dreadnaught2,DevilMayCry4_DX9.exe,8B 87 A0 52 01 00) // should be unique
-define(Dreadnaught2,DevilMayCry4_DX9.exe+3BDB76)
-alloc(newmem,$1000)
-label(code)
-label(return)
-
-newmem:
-  cmp [edi+000152A0],0
-  je mov1
-  jmp code
-
-mov1:
-  mov [edi+000152A0],1
-  jmp code
-
-code:
-  mov eax,[edi+000152A0]
-  jmp return
-
-Dreadnaught2:
-  jmp newmem
-  nop
-return:
-registersymbol(Dreadnaught2)
-
-{DevilMayCry4_DX9.exe+3BDCE2:
-nop
-nop
-nop
-nop
-nop
-nop
-}
-[DISABLE]
-Dreadnaught2:
-  db 8B 87 A0 52 01 00
-unregistersymbol(Dreadnaught2)
-dealloc(newmem)
-
-DevilMayCry4_DX9.exe+3BDCE2:
-mov [edi+000152A0],eax
-*/

@@ -505,7 +505,9 @@ namespace gui {
 
                     pmods->on_draw_ui("InfSkyStars"_hash);
                     ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("InfDreadnaught"_hash);
+                    pmods->on_draw_ui("AlwaysRoyalRelease"_hash);
+
+                    pmods->on_draw_ui("InfDreadnaught"_hash); // needs its own line
 
                     pmods->on_draw_ui("FasterFastDrive"_hash); // needs its own line, has easy fast drive too
 
@@ -519,8 +521,6 @@ namespace gui {
 
                     pmods->on_draw_ui("HighTimeWeaponSwitch"_hash);
                     ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("AlwaysRoyalRelease"_hash);
-
                     pmods->on_draw_ui("GuardSteer"_hash);
 
                     ImGui::Spacing();
@@ -625,13 +625,13 @@ namespace gui {
 
                     pmods->on_draw_ui("CharacterSwap"_hash); // needs its own line
 
-                    pmods->on_draw_ui("NoAutomaticCharacters"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("SlowWalk"_hash);
+                    pmods->on_draw_ui("NoAutomaticCharacters"_hash); // needs its own line
                     
                     pmods->on_draw_ui("CustomModelFix"_hash); // needs its own line
 
                     pmods->on_draw_ui("BpPortal"_hash); // needs its own line
+
+                    pmods->on_draw_ui("SlowWalk"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();

@@ -4,6 +4,9 @@
 bool DisableKeyboard::mod_enabled{false};
 
 std::optional<std::string> DisableKeyboard::on_initialize() {
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_SCROLL}, "Disable Keyboard Inputs", "disable_keyboard_inputs_hotkey"));
+
     return Mod::on_initialize();
 }
 
@@ -16,6 +19,13 @@ void DisableKeyboard::toggle(bool enable) {
 }
 void DisableKeyboard::on_gui_frame() {
     if (ImGui::Checkbox("Disable Keyboard Input", &mod_enabled)) {
+        toggle(mod_enabled);
+    }
+}
+
+void DisableKeyboard::on_update_input(utility::Input& input) {
+    if (m_hotkeys[0]->check(input)) {
+        DisableKeyboard::mod_enabled = !DisableKeyboard::mod_enabled;
         toggle(mod_enabled);
     }
 }

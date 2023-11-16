@@ -7,6 +7,54 @@ uintptr_t KnockbackEdits::jmp_return{ NULL };
 static bool release_stuns{ false };
 
 /*
+// looks like its this
+struct kAttackStatus
+{
+  MT_CHAR mAsName[16];
+  f32 mDamageValue; // 0x16
+  s32 mAttackLv;
+  s32 mAttackLvI;
+  s32 mAttackLvB;
+  s32 mRangeType;
+  s32 mHitStopTimer;
+  s32 mDamageType;
+  s32 mDamageTypeI;
+  s32 mDamageTypeB;
+  s32 mHitMarkAngle;
+  u32 mHitSE;
+  f32 mStylishPoint;
+  f32 mStylishTimer;
+};
+
+// leaving this here because relevant
+struct kDefendStatus
+{
+  MT_CHAR mAsName[16];
+  f32 mResist[3];
+  s16 mMaxInterrupt[5];
+  s16 mMaxBlown[5];
+};
+
+// leaving this here because relevant
+struct cCollisionGroup {
+    u32 mKind;
+    u32 mAttr;
+    u32 mVsAttr;
+    u32 mUniqueID;
+    s32 mNum;
+    uCollisionMgr* mpCollisionMgr;
+    cCollision** mppCollision;
+    cCollGroup* mpCollGroup;
+    kAttackStatus mAttackStatus;
+    kDefendStatus mDefendStatus;
+    cCollisionGroup* mpNext[4];
+    MtMatrix* mpRefMat;
+    f32 mTimer;
+    f32 mOffset;
+    f32 mLife;
+    __attribute__((aligned(16))) MtVector3 mHitPos;
+};
+
 class attackDataEntry
 {
 public:
@@ -26,7 +74,7 @@ public:
     __int32 unkInt09; // 0x003C
     Vector3 unkVec3;  // 0x0040
     __int32 unkInt10; // 0x004C
-    __int32 unkInt11; // 0x0050 // setting this to 02 breaks knockback direction and always sends the enemy a certain direction. Shotgun uses 1 and has interesting behaviour
+    __int32 unkInt11; // 0x0050 // setting this to 02 breaks knockback direction and always sends the enemy a certain direction like SE trish. Shotgun uses 1
     __int32 end;      // 0x0054
 
 }; // Size=0x0058

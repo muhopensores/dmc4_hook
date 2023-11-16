@@ -2,14 +2,38 @@
 #include "NoAutomaticCharacters.hpp"
 
 bool NoAutomaticCharacters::mod_enabled{ false };
+bool NoAutomaticCharacters::mod_enabled2{false};
+
 uintptr_t NoAutomaticCharacters::jmp_ret{ NULL };
 uintptr_t NoAutomaticCharacters::jmp_ret2{ NULL };
 
+enum class CharPortraitNums : int {
+    DANTE = 0,
+    DANTE_AUTO = 1,
+    DANTE_SUPER = 2,
+    DANTE_SUPER_AUTO = 3,
+    NERO = 4,
+    NERO_AUTO = 5,
+    NERO_SUPER = 6,
+    NERO_SUPER_AUTO = 7,
+};
+
 naked void detour(void) {
 	_asm {
-			cmp byte ptr [NoAutomaticCharacters::mod_enabled], 0
-			je code
+            cmp byte ptr [NoAutomaticCharacters::mod_enabled2], 1
+			je NoSupersOrAutos
+			cmp byte ptr [NoAutomaticCharacters::mod_enabled], 1
+			je NoAutos
+            jmp code
 
+        NoSupersOrAutos:
+            cmp [ebp+0000008Ch], 0 // dante
+            je dante2
+            cmp [ebp+0000008Ch], 4 // nero
+            je nero2
+            jmp code
+
+        NoAutos:
             cmp [ebp+0000008Ch], 0 // dante
             je dante
             cmp [ebp+0000008Ch], 2 // super dante
@@ -27,6 +51,13 @@ naked void detour(void) {
             je mov2
             jmp code
 
+        dante2:
+            cmp eax, 7
+            je mov4
+            cmp eax, 1
+            je mov4
+            jmp code
+
         superdante:
             cmp eax, 1
             je mov0
@@ -39,6 +70,13 @@ naked void detour(void) {
             je mov2
             cmp eax, 5
             je mov6
+            jmp code
+
+        nero2:
+            cmp eax, 3
+            je mov0
+            cmp eax, 5
+            je mov0
             jmp code
 
         supernero:
@@ -61,7 +99,7 @@ naked void detour(void) {
             mov eax, 6
             jmp code
 
-			code:
+		code:
 			mov [ebp+0000008Ch], eax
 			jmp dword ptr [NoAutomaticCharacters::jmp_ret]
 	}
@@ -69,9 +107,13 @@ naked void detour(void) {
 
 naked void detour2(void) {
     _asm {
-			cmp byte ptr [NoAutomaticCharacters::mod_enabled], 0
-			je code
+            cmp byte ptr [NoAutomaticCharacters::mod_enabled2], 1
+			je NoAutos
+			cmp byte ptr [NoAutomaticCharacters::mod_enabled], 1
+			je NoAutos
+            jmp code
 
+        NoAutos:
             cmp [ebp+0000008Ch], 0 // nero
             je nero
             cmp [ebp+0000008Ch], 2 // super nero
@@ -99,7 +141,7 @@ naked void detour2(void) {
             mov eax, 2
             jmp code
 
-			code:
+		code:
 			mov [ebp+0000008Ch], eax
 			jmp dword ptr [NoAutomaticCharacters::jmp_ret2]
     }
@@ -118,13 +160,21 @@ std::optional<std::string> NoAutomaticCharacters::on_initialize() {
 }
 
 void NoAutomaticCharacters::on_gui_frame() {
-    ImGui::Checkbox("No Auto Characters", &mod_enabled);
+    if (ImGui::Checkbox("No Auto Characters", &mod_enabled)) {
+        mod_enabled2 = false;
+    }
+    ImGui::SameLine(sameLineWidth);
+    if (ImGui::Checkbox("No Auto Or Super Characters", &mod_enabled2)) {
+        mod_enabled = false;
+    }
 }
 
 void NoAutomaticCharacters::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("no_automatic_characters").value_or(false);
+    mod_enabled2 = cfg.get<bool>("no_automatic_or_super_characters").value_or(false);
 }
 
 void NoAutomaticCharacters::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("no_automatic_characters", mod_enabled);
+    cfg.set<bool>("no_automatic_or_super_characters", mod_enabled2);
 }
