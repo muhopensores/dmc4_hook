@@ -422,6 +422,10 @@ namespace gui {
 
                     pmods->on_draw_ui("LimitAdjust"_hash); // needs its own line
 
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
                     pmods->on_draw_ui("HeightRestrictionNero"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("HeightRestrictionDante"_hash);

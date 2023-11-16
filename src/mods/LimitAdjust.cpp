@@ -5,7 +5,7 @@ bool LimitAdjust::gun_sword = false;
 bool LimitAdjust::enemy_step = false;
 bool LimitAdjust::style = false;
 bool LimitAdjust::target = false;
-
+bool LimitAdjust::same_tick_style_change = false;
 float LimitAdjust::limit = 0.0f;
 
 std::optional<std::string> LimitAdjust::on_initialize() {
@@ -56,6 +56,14 @@ void LimitAdjust::f_target(bool enable) {
     }
 }
 
+void LimitAdjust::f_same_tick_style_change(bool enable) {
+    if (enable) {
+        install_patch_offset(0x03B726F, patchsametickstylechange, "\x90\x90\x90\x90", 4);
+    } else {
+        patchsametickstylechange.reset();
+    }
+}
+
 void LimitAdjust::on_gui_frame() {
     if (ImGui::Checkbox("Sword & Gun Switch Limit", &gun_sword)) {
         f_sword_and_gun(gun_sword);
@@ -71,6 +79,11 @@ void LimitAdjust::on_gui_frame() {
     if (ImGui::Checkbox("Target Switch Limit", &target)) {
         f_target(target);
     }
+    if (ImGui::Checkbox("Same Tick Style Change", &same_tick_style_change)) {
+        f_same_tick_style_change(same_tick_style_change);
+    }
+    ImGui::SameLine();
+    help_marker("Style changes registered on the same tick as other inputs are ignored by default");
 }
 
 void LimitAdjust::on_config_load(const utility::Config& cfg) {
@@ -82,6 +95,8 @@ void LimitAdjust::on_config_load(const utility::Config& cfg) {
     f_style(style);
     target = cfg.get<bool>("target_change_limit_removed").value_or(false);
     f_target(target);
+    same_tick_style_change = cfg.get<bool>("same_tick_style_change_limit_removed").value_or(false);
+    f_same_tick_style_change(same_tick_style_change);
 }
 
 void LimitAdjust::on_config_save(utility::Config& cfg) {
@@ -89,4 +104,5 @@ void LimitAdjust::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("jc_limits_removed", enemy_step);
     cfg.set<bool>("style_switch_limits_removed", style);
     cfg.set<bool>("target_change_limit_removed", target);
+    cfg.set<bool>("same_tick_style_change_limit_removed", same_tick_style_change);
 }

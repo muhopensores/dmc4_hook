@@ -10,6 +10,7 @@ public:
     static bool enemy_step;
     static bool style;
     static bool target;
+    static bool same_tick_style_change;
 
     static float limit;
 
@@ -17,6 +18,7 @@ public:
     void f_enemy_step(bool enable);
     void f_style(bool enable);
     void f_target(bool enable);
+    void f_same_tick_style_change(bool enable);
 
     std::string get_mod_name() override { return "LimitAdjust"; };
 
@@ -33,4 +35,5 @@ private:
     std::unique_ptr<Patch> patchenemystep;
     std::unique_ptr<Patch> patchstyle;
     std::unique_ptr<Patch> patchtarget;
+    std::unique_ptr<Patch> patchsametickstylechange;
 };

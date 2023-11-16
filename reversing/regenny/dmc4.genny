@@ -1,6 +1,6 @@
 // How to use:
-// - open regenny x86
 // - open dmc4 dx9
+// - open regenny x86
 // - file > open > this file
 // - view > hide undefined nodes
 // - action > attach > DevilMayCry4_DX9.exe
@@ -228,7 +228,8 @@ class uPlayer : public UCoord{
 	float animFrame @ 0x348
 	class MotionPtr* motionPtr1 @ 0xA38
 	class MotionPtr* motionPtr2 @ 0xA3C
-	uint8_t grounded @ 0xEA8
+	uint8_t damageIDMaybe @ 0xEA4 // boss dante is 3, player is 1 sometimes 9
+	uint8_t grounded @ 0xEA8 // this is definitely not grounded, damage stuff
 	float groundInertiaX @ 0xEC0
 	float inertiaY @ 0xEC4
 	float groundInertiaZ @ 0xEC8
