@@ -107,6 +107,18 @@ namespace devil4_sdk {
 		return s_mediator_ptr->player_ptr;
 	}
 
+	uCameraCtrl* get_local_camera() {
+        constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
+        static SMediator* s_mediator_ptr        = (SMediator*)*(uintptr_t*)static_mediator_ptr;
+        return s_mediator_ptr->camera1;
+    }
+
+    cCameraPlayer* get_player_camera() {
+        constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
+        static SMediator* s_mediator_ptr        = (SMediator*)*(uintptr_t*)static_mediator_ptr;
+        return s_mediator_ptr->camera1->cCameraPlayer1;
+    }
+
 	SStylishCount* get_stylish_count() {
 		constexpr uintptr_t s_stylish_count_ptr = 0x00E558CC;
 		static SStylishCount* sc = (SStylishCount*)*(uintptr_t*)s_stylish_count_ptr;

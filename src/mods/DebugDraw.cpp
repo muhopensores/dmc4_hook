@@ -11,58 +11,7 @@
 #include <glm/glm.hpp> //basic vector/matrix math and defs
 #include <glm/gtc/matrix_transform.hpp> //we will use this to make tranformation matrices
 
-class CPlDante {
-public:
-    char pad_0000[0x30]; // 0x00
-    Vector4 Position;  // 0x30
-};
-
-/* class cCameraCtrl { // this used first camera ptr, this is best yet
-public:
-    char pad_0000[0x24];  // 0x00-24
-    float FOV;            // 0x24-28
-    char pad_0028[0x188]; // 0x188
-    Matrix4x4 transform;  // 0x1B0
-};*/
-class cCameraCtrl { // this used first camera ptr
-public:
-    char pad_0000[0x24];  // 0x00-24
-    float FOV;            // 0x24-28
-    char pad_0028[0x188]; // 0x208
-    Matrix4x4 transform;  // 0x230
-};
-
-/* class cCameraCtrl { // this uses the inner camera ptr
-public:
-    char pad_0000[0xE4];  // 0x00-e4
-    float FOV;            // 0xE4-e8
-    char pad_00E8[0x1D8]; // 0x28-200 // 0x1D8 // 148 was close
-    Matrix4x4 transform; // 0x200
-}; */
-
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-
-CPlDante* get_pl_dante() { // DevilMayCry4_DX9.exe+A558B8 +24
-    // static uintptr_t* s_med_ptr = (uintptr_t*)0x00E558B8;
-    uintptr_t* s_med_ptr = *(uintptr_t**)static_mediator_ptr;
-
-    CPlDante* player_ptr = (CPlDante*)((uintptr_t)s_med_ptr + 0x24);
-    player_ptr           = *(CPlDante**)player_ptr;
-
-    return (CPlDante*)player_ptr;
-}
-
-cCameraCtrl* get_cam_ctrl() { // DevilMayCry4_DX9.exe+A558B8 +D0 +490
-    uintptr_t* s_med_ptr = *(uintptr_t**)static_mediator_ptr;
-
-    cCameraCtrl* camera_ptr_ptr = (cCameraCtrl*)((uintptr_t)s_med_ptr + 0xD0);
-	camera_ptr_ptr = *(cCameraCtrl**)camera_ptr_ptr;
-
-    // camera_ptr_ptr = (cCameraCtrl*)((uintptr_t)camera_ptr_ptr + 0x490); // inner ptr
-	// camera_ptr_ptr = *(cCameraCtrl**)camera_ptr_ptr;
-
-    return (cCameraCtrl*)camera_ptr_ptr;
-}
 
 Vector2f get_window_dimensions() {
     //return Vector2f{*(float*)0x00832914, *(float*)0x00832918};
@@ -76,8 +25,8 @@ constexpr int STRIDE_MAGIC = 6;
 using Microsoft::WRL::ComPtr;
 
 std::optional<Vector2> world_to_screen(const Vector3f& world_pos) {
-    cCameraCtrl* camera = get_cam_ctrl();
-	if (!camera || camera == (cCameraCtrl*)-1) { return Vector2{ 0.0f, 0.0f }; };
+    uCameraCtrl* camera = devil4_sdk::get_local_camera();
+	if (!camera || camera == (uCameraCtrl*)-1) { return Vector2{ 0.0f, 0.0f }; };
 
 	Vector2f window = get_window_dimensions();
 	
@@ -88,7 +37,7 @@ std::optional<Vector2> world_to_screen(const Vector3f& world_pos) {
 	//the perspective matrix
 	glm::mat4 projection = glm::perspective(camera->FOV*-1.0f, aspect, near_plane, far_plane);
 
-	glm::mat4 model = camera->transform;
+	glm::mat4 model = camera->possibleMat5;
 auto res = glm::project(world_pos, model, projection, Vector4{ 0.0f, 0.0f, window.x, window.y });
 	return Vector2{ res.x, res.y };
 }
@@ -288,16 +237,28 @@ std::optional<std::string> DebugDraw::on_initialize() {
 void DebugDraw::custom_imgui_window()
 {
 	if (!g_enabled) { return; }
-	CPlDante* pl = get_pl_dante();
+	uPlayer* pl = devil4_sdk::get_local_player();
     if (!pl) { return; }
 	// keeping capcom traditions of typoing member fields like a motehfckure // nah 
-	auto screen = world_to_screen(pl->Position);
+	auto screen = world_to_screen(pl->m_pos);
 	if (!screen.has_value()) { return; }
 	//dd::xzSquareGrid(dd_context, -5000, 5000, pl->Position.y, 1.5f, dd::colors::Green); //
-	ddVec3 origin = { pl->Position.x, pl->Position.y, pl->Position.z };
+    ddVec3 origin = {pl->m_pos.x, pl->m_pos.y, pl->m_pos.z};
 	dd::sphere(dd_context, origin, dd::colors::Blue, 50.0f);
 	//dd::point(dd_context, origin, dd::colors::Crimson, 15.0f); //
 	dd::flush(dd_context, ImGui::GetIO().DeltaTime);
+
+	// can I make an imgui inside an imgui? ooh i can cool
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::Begin("Yo");
+
+    Vector3f playerPos                     = (Vector3f)(pl->m_pos.x, pl->m_pos.y, pl->m_pos.z);
+    std::optional<Vector2> playerPosScreen = world_to_screen(playerPos);
+    ImVec2 playerPosScreenIm               = ImVec2(playerPosScreen.value().x, playerPosScreen.value().y);
+
+    ImGui::SetWindowPos(playerPosScreenIm);
+    ImGui::SetWindowSize(ImVec2(200, 200));
+    ImGui::End();
 }
 
 void DebugDraw::on_config_load(const utility::Config& cfg) {

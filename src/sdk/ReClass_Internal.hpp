@@ -447,35 +447,42 @@ public:
     float DTMax; // 0x1f28
 }; // Size: 0x1f2c
 
-class EditableCamera {
+class cCameraPlayer {
 public:
     char pad_0[0x10];
-    Vector3f position; // 0x10
+    Vector3f eye; // 0x10
     char pad_1c[0x4];
-    Vector3f lookAt; // 0x20
-    char pad_2c[0xa8];
+    Vector3f lookat; // 0x20
+    char pad_2c[0x14];
+    float nearClipPlane; // 0x40
+    char pad_44[0x90];
     float angle; // 0xd4
     float distance; // 0xd8
     float distanceLockon; // 0xdc
     char pad_e0[0x4];
     float FOV; // 0xe4
     float FOVBattle; // 0xe8
-}; // Size: 0xec
+    char pad_ec[0x114];
+    Matrix4x4 possibleMat1; // 0x200 // buncha possibilities up til 230
+}; // Size: 0x240
 
-class Camera {
+// sMediator + D0 camera, had a more useable glm mat but less settable values
+class uCameraCtrl {
 public:
     char pad_0[0x1c];
     float nearClipPlane; // 0x1c
     char pad_20[0x4];
     float FOV; // 0x24
     char pad_28[0x8];
-    Vector3f position; // 0x30
-    char pad_3c[0x14];
-    Vector3f lookAt; // 0x50
-    char pad_5c[0x154];
-    Matrix4x4 usedMatrix; // 0x1b0
+    Vector3f eye; // 0x30
+    char pad_3c[0x4];
+    Vector3f up; // 0x40
+    char pad_4c[0x4];
+    Vector4f lookat; // 0x50
+    char pad_60[0x150];
+    Matrix4x4 possibleMat5; // 0x1b0
     char pad_1f0[0x2a0];
-    EditableCamera* editableCameraPtr; // 0x490
+    cCameraPlayer* cCameraPlayer1; // 0x490
 }; // Size: 0x494
 
 class SMediator {
@@ -485,7 +492,7 @@ public:
     char pad_28[0x88];
     class uBoss* uBoss1; // 0xb0
     char pad_b4[0x1c];
-    class Camera* camera1; // 0xd0
+    class uCameraCtrl* camera1; // 0xd0
     char pad_d4[0xc];
     uint32_t missionID; // 0xe0
     uint32_t roomID; // 0xe4
