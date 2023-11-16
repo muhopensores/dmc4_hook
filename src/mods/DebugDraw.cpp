@@ -1,68 +1,28 @@
 #if 1
+// #define DEBUG_DRAW_IMPLEMENTATION
 #include "DebugDraw.hpp"
-#define DEBUG_DRAW_IMPLEMENTATION
-#define DEBUG_DRAW_EXPLICIT_CONTEXT
-#include "../dependencies/DebugDraw/debug_draw.hpp"
-#include <DirectXMath.h>
-#include <d3d9.h>
-#include <wrl.h>
-#include <D3dx9math.h>
+#include "../dependencies/debug-draw/samples/vectormath/vectormath.h"
 
-#include <glm/glm.hpp> //basic vector/matrix math and defs
-#include <glm/gtc/matrix_transform.hpp> //we will use this to make tranformation matrices
+// #include <cstdlib>
+// #include <tuple>
 
-class CPlDante {
-public:
-    char pad_0000[0x30]; // 0x00
-    Vector4 Position;  // 0x30
-};
+// #define NOIME
+// #define NOMINMAX
+// #define WIN32_LEAN_AND_MEAN
+// #include <ShellScalingAPI.h>
+// #include <windows.h>
 
-/* class cCameraCtrl { // this used first camera ptr, this is best yet
-public:
-    char pad_0000[0x24];  // 0x00-24
-    float FOV;            // 0x24-28
-    char pad_0028[0x188]; // 0x188
-    Matrix4x4 transform;  // 0x1B0
-};*/
-class cCameraCtrl { // this used first camera ptr
-public:
-    char pad_0000[0x24];  // 0x00-24
-    float FOV;            // 0x24-28
-    char pad_0028[0x188]; // 0x208
-    Matrix4x4 transform;  // 0x230
-};
+// #include <DirectXMath.h>
+// #include <d3d9.h>
+// #include <d3dcompiler.h>
+// #include <dxgi.h> // redefs
 
-/* class cCameraCtrl { // this uses the inner camera ptr
-public:
-    char pad_0000[0xE4];  // 0x00-e4
-    float FOV;            // 0xE4-e8
-    char pad_00E8[0x1D8]; // 0x28-200 // 0x1D8 // 148 was close
-    Matrix4x4 transform; // 0x200
-}; */
+// #pragma comment(lib, "Shcore")
+// #pragma comment(lib, "d3d9")
+// #pragma comment(lib, "dxguid")
+// #pragma comment(lib, "d3dcompiler")
 
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-
-CPlDante* get_pl_dante() { // DevilMayCry4_DX9.exe+A558B8 +24
-    // static uintptr_t* s_med_ptr = (uintptr_t*)0x00E558B8;
-    uintptr_t* s_med_ptr = *(uintptr_t**)static_mediator_ptr;
-
-    CPlDante* player_ptr = (CPlDante*)((uintptr_t)s_med_ptr + 0x24);
-    player_ptr           = *(CPlDante**)player_ptr;
-
-    return (CPlDante*)player_ptr;
-}
-
-cCameraCtrl* get_cam_ctrl() { // DevilMayCry4_DX9.exe+A558B8 +D0 +490
-    uintptr_t* s_med_ptr = *(uintptr_t**)static_mediator_ptr;
-
-    cCameraCtrl* camera_ptr_ptr = (cCameraCtrl*)((uintptr_t)s_med_ptr + 0xD0);
-	camera_ptr_ptr = *(cCameraCtrl**)camera_ptr_ptr;
-
-    // camera_ptr_ptr = (cCameraCtrl*)((uintptr_t)camera_ptr_ptr + 0x490); // inner ptr
-	// camera_ptr_ptr = *(cCameraCtrl**)camera_ptr_ptr;
-
-    return (cCameraCtrl*)camera_ptr_ptr;
-}
+static bool g_enabled = false;
 
 Vector2f get_window_dimensions() {
     //return Vector2f{*(float*)0x00832914, *(float*)0x00832918};
@@ -71,194 +31,124 @@ Vector2f get_window_dimensions() {
     return Vector2f(x, y);
 }
 
-bool g_enabled = false;
-constexpr int STRIDE_MAGIC = 6;
-using Microsoft::WRL::ComPtr;
+// Math.hpp defines Vector4 so I use the full name here and in the vectormath hpp file :harold:
 
-std::optional<Vector2> world_to_screen(const Vector3f& world_pos) {
-    cCameraCtrl* camera = get_cam_ctrl();
-	if (!camera || camera == (cCameraCtrl*)-1) { return Vector2{ 0.0f, 0.0f }; };
+// ========================================================
+// DebugDraw Camera
+// ========================================================
 
-	Vector2f window = get_window_dimensions();
-	
-	float near_plane = 0.1f; //nearest distance from which you can see // 12.0f from camera + 0x1C
-	float far_plane  = 100.f; //you cant see more
-	float aspect = window.x / window.y;
-
-	//the perspective matrix
-	glm::mat4 projection = glm::perspective(camera->FOV*-1.0f, aspect, near_plane, far_plane);
-
-	glm::mat4 model = camera->transform;
-auto res = glm::project(world_pos, model, projection, Vector4{ 0.0f, 0.0f, window.x, window.y });
-	return Vector2{ res.x, res.y };
+// Angle in degrees to angle in radians for sin/cos/etc.
+static inline float degToRad(const float degrees) {
+    return (degrees * 3.1415926535897931f / 180.0f);
 }
 
-class RenderInterfaceD3D9 final
-	: public dd::RenderInterface
-{
-public:
-	void setCameraFrame(const Vector3 & up, const Vector3 & right, const Vector3 & origin)
-	{
-		camUp = up; camRight = right; camOrigin = origin;
-	}
+struct Camera {
+    //
+    // Camera Axes:
+    //
+    //    (up)
+    //    +Y   +Z (forward)
+    //    |   /
+    //    |  /
+    //    | /
+    //    + ------ +X (right)
+    //  (eye)
+    //
+    Vectormath::Aos::Vector3 right;
+    Vectormath::Aos::Vector3 up;
+    Vectormath::Aos::Vector3 forward;
+    Vectormath::Aos::Vector3 eye;
+    Matrix4 viewMatrix;
+    Matrix4 projMatrix;
+    Matrix4 vpMatrix;
+    float windowDims[2];
 
-	void beginDraw() override
-	{
-		ImGui::SetNextWindowBgAlpha(0.0f);
-		ImGui::SetNextWindowPos(ImVec2{ 0, 0 });
-		ImGui::SetNextWindowSize(ImVec2{1920,1080});
-		auto imgui_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing;
-		ImGui::Begin("WEW", 0, imgui_flags);
-		draw_list = ImGui::GetWindowDrawList();
-	}
+    // Frustum planes for clipping:
+    enum { A, B, C, D };
+    Vectormath::Aos::Vector4 planes[6];
 
-	void endDraw() override
-	{
-		ImGui::End();
-		// No work done here at the moment.
-	}
+    // Tunable values:
+    float movementSpeed = 3.0f;
+    float lookSpeed     = 6.0f;
 
-	void drawPointList(const dd::DrawVertex * points, int count, bool depthEnabled) override
-	{
-		(void)depthEnabled; // TODO: not implemented yet - not required by this sample
+    enum MoveDir {
+        Forward, // Move forward relative to the camera's space
+        Back,    // Move backward relative to the camera's space
+        Left,    // Move left relative to the camera's space
+        Right    // Move right relative to the camera's space
+    };
+    Camera() = delete;
+    Camera(float WindowWidth, float WindowHeight) {
+        right      = Vectormath::Aos::Vector3(1.0f, 0.0f, 0.0f);
+        up         = Vectormath::Aos::Vector3(0.0f, 1.0f, 0.0f);
+        forward    = Vectormath::Aos::Vector3(0.0f, 0.0f, 1.0f);
+        eye        = Vectormath::Aos::Vector3(0.0f, 0.0f, 0.0f);
+        viewMatrix = Matrix4::identity();
+        vpMatrix   = Matrix4::identity();
 
-							// Emulating points as billboarded quads, so each point will use 6 vertexes.
-							// D3D11 doesn't support "point sprites" like OpenGL (gl_PointSize).
-		const int maxVerts = DEBUG_DRAW_VERTEX_BUFFER_SIZE / 6;
+        windowDims[0] = WindowWidth;
+        windowDims[1] = WindowHeight;
 
-		const float D3DPointSpriteScalingFactor = 1.0f;
+        for (int i = 0; i < 6; ++i) {
+            planes[i] = Vectormath::Aos::Vector4(0.0f);
+        }
+    }
 
-		assert(points != nullptr);
-		assert(count > 0 && count <= maxVerts);
+    void updateMatrices(uCameraCtrl* devil3cam) {
+        const float fovY   = devil3cam->FOV;
+        const float aspect = windowDims[0] / windowDims[1];
+        projMatrix         = Matrix4::perspective(fovY, aspect, 0.1f, 100.0f);
 
-		// Map the vertex buffer:
+        // wtf do you mean theres 3 vectors to ID
+        //viewMatrix = Matrix4::lookAt(toPoint3(devil3cam->eye), toPoint3(devil3cam->lookat), devil3cam->up);
+        vpMatrix   = projMatrix * viewMatrix; // Vectormath lib uses column-major OGL style, so multiply P*V*M
 
-		const int numVerts = count * 6;
-		//const int indexes[6] = {0, 1, 2, 2, 3, 0};
+        // Compute and normalize the 6 frustum planes:
+        const float* const m = toFloatPtr(vpMatrix);
+        planes[0][A]         = m[3] - m[0];
+        planes[0][B]         = m[7] - m[4];
+        planes[0][C]         = m[11] - m[8];
+        planes[0][D]         = m[15] - m[12];
+        planes[0]            = normalize(planes[0]);
+        planes[1][A]         = m[3] + m[0];
+        planes[1][B]         = m[7] + m[4];
+        planes[1][C]         = m[11] + m[8];
+        planes[1][D]         = m[15] + m[12];
+        planes[1]            = normalize(planes[1]);
+        planes[2][A]         = m[3] + m[1];
+        planes[2][B]         = m[7] + m[5];
+        planes[2][C]         = m[11] + m[9];
+        planes[2][D]         = m[15] + m[13];
+        planes[2]            = normalize(planes[2]);
+        planes[3][A]         = m[3] - m[1];
+        planes[3][B]         = m[7] - m[5];
+        planes[3][C]         = m[11] - m[9];
+        planes[3][D]         = m[15] - m[13];
+        planes[3]            = normalize(planes[3]);
+        planes[4][A]         = m[3] - m[2];
+        planes[4][B]         = m[7] - m[6];
+        planes[4][C]         = m[11] - m[10];
+        planes[4][D]         = m[15] - m[14];
+        planes[4]            = normalize(planes[4]);
+        planes[5][A]         = m[3] + m[2];
+        planes[5][B]         = m[7] + m[6];
+        planes[5][C]         = m[11] + m[10];
+        planes[5][D]         = m[15] + m[14];
+        planes[5]            = normalize(planes[5]);
+    }
 
-		// Expand each point into a quad:
-		for (int p = 0; p < count; ++p)
-		{
-			const float ptSize      = points[p].point.size * D3DPointSpriteScalingFactor;
-			const Vector2 halfWidth = (ptSize * 0.5f) * Vector2f(1.0f, 0.0f); // X
-			const Vector2 halfHeigh = (ptSize * 0.5f) * Vector2f(0.0f, -1.0f);//camUp;    // Y
-			const Vector3 origin    = Vector3{ points[p].point.x, points[p].point.y, points[p].point.z };
-			const Vector2 sorigin   = world_to_screen(origin).value();
+    Point3 getTarget() const { return Point3(eye[0] + forward[0], eye[1] + forward[1], eye[2] + forward[2]); }
 
-			Vector2 corners[4];
-			corners[0] = sorigin + halfWidth + halfHeigh;
-			corners[1] = sorigin - halfWidth + halfHeigh;
-			corners[2] = sorigin - halfWidth - halfHeigh;
-			corners[3] = sorigin + halfWidth - halfHeigh;
-
-			Vector2 center = world_to_screen(origin).value();
-			draw_list->AddQuadFilled(corners[0], corners[1], corners[2], corners[3],
-				ImColor((int)(points[p].point.r * 255.0f), (int)(points[p].point.g * 255.0f), (int)(points[p].point.b * 255.0f)));
-		}
-	}
-
-	void drawLineList(const dd::DrawVertex * lines, int count, bool depthEnabled) override
-	{
-		(void)depthEnabled; // TODO: not implemented yet - not required by this sample
-
-		assert(lines != nullptr);
-		assert(count > 0 && count <= DEBUG_DRAW_VERTEX_BUFFER_SIZE);
-
-		for (int v = 1; v < count; ++v)
-		{
-			Vector3 pp1; 
-			Vector3 pp2;
-			Vector2 p1, p2;
-			pp1 = *(Vector3*)&lines[v - 1];
-			pp2 = *(Vector3*)&lines[v];
-			p1 = world_to_screen(pp1).value();
-			p2 = world_to_screen(pp2).value();
-
-            draw_list->PathLineTo(p1);
-            if (v % STRIDE_MAGIC != 0) {
-                draw_list->PathLineTo(p2);
+    bool isPointInsideFrustum(const float x, const float y, const float z) const {
+        for (int i = 0; i < 6; ++i) {
+            if ((planes[i][A] * x + planes[i][B] * y + planes[i][C] * z + planes[i][D]) <= 0.0f) {
+                return false;
             }
-            
-                draw_list->PathStroke(
-                    ImColor(
-                    (int)(lines[v].line.r * 255.0f),
-                        (int)(lines[v].line.g * 255.0f),
-                        (int)(lines[v].line.b * 255.0f), 64), 0, 0.5f);
-		}
-		
-	}
-
-	struct ConstantBufferData
-	{
-		DirectX::XMMATRIX mvpMatrix        = DirectX::XMMatrixIdentity();
-	};
-
-	struct Vertex
-	{
-		DirectX::XMFLOAT4A pos;   // 3D position
-		DirectX::XMFLOAT4A uv;    // Texture coordinates
-		DirectX::XMFLOAT4A color; // RGBA float
-	};
-
-	//
-	// Members:
-	//
-
-	ImDrawList* draw_list = nullptr;
-
-	ComPtr<IDirect3DDevice9>          p_device;
-
-	// Camera vectors for the emulated point sprites
-	Vector3                       camUp     = Vector3{0.0f};
-	Vector3                       camRight  = Vector3{0.0f};
-	Vector3                       camOrigin = Vector3{0.0f};
-
+        }
+        return true;
+    }
 };
 
-static RenderInterfaceD3D9* dd_render_iface = nullptr;
-static dd::ContextHandle dd_context = nullptr;
-#if 0
-// unused
-class colisioni
-{
-public:
-	uint32_t flags_maybe; //0x0000
-	uint32_t idk01; //0x0004
-	uint32_t idk02; //0x0008
-	uint32_t idk03; //0x000C
-	float radius_maybe; //0x0010
-	float idk_float; //0x0014
-	char pad_0018[4]; //0x0018
-	Matrix4x4 tranform01; //0x001C
-	Matrix4x4 tranform02; //0x005C
-	char pad_009C[32]; //0x009C
-	Vector4 pos01; //0x00BC
-	Vector4 pos02; //0x00CC
-	Vector4 pos03; //0x00DC
-	char pad_00EC[24]; //0x00EC
-	Vector4 pos04; //0x0104
-	float rad01; //0x0114
-	char pad_0118[412]; //0x0118
-}; //Size: 0x02B4
-static_assert(sizeof(colisioni) == 0x2B4);
-
-// unused
-static void draw_sphere_maybe(colisioni* col) {
-	if (!g_enabled) { return; }
-
-	/*auto origin = Vector4f{ col->tranform01[3][0], col->tranform01[3][1], col->tranform01[3][2], 1.0f };
-	auto pos = rot * origin;*/
-
-	auto right = Vector3f{ col->tranform01[0][0], col->tranform01[0][1], col->tranform01[0][2] };
-	auto up = Vector3f{ col->tranform01[1][0], col->tranform01[1][1], col->tranform01[1][2] };
-	auto forward = Vector3f{ col->tranform01[2][0], col->tranform01[2][1], col->tranform01[2][2] };
-
-	dd::circle(dd_context, *(ddVec3*)&col->pos01, *(ddVec3*)&up, dd::colors::Coral, col->radius_maybe, 8, 32);
-	dd::circle(dd_context, *(ddVec3*)&col->pos01, *(ddVec3*)&right, dd::colors::Chartreuse, col->radius_maybe, 8, 32);
-	dd::circle(dd_context, *(ddVec3*)&col->pos01, *(ddVec3*)&forward, dd::colors::Crimson, col->radius_maybe, 8, 32);
-}
-
-// unused
 static uintptr_t g_detour_jmp = NULL;
 // clang-format off
 naked void detour(void) {
@@ -275,29 +165,43 @@ naked void detour(void) {
 	}
 }
 // clang-format on
-#endif
+
 std::optional<std::string> DebugDraw::on_initialize() {
-	dd_render_iface = new RenderInterfaceD3D9;
-	dd::initialize(&dd_context, dd_render_iface);
+	// dd_render_iface = new RenderInterfaceD3D9;
+	// dd::initialize(&dd_context, dd_render_iface);
 	// if (!install_hook_offset(0x3A82F3, m_function_hook, &detour, &g_detour_jmp, 6)) { // this address just compares lockon, threw something in that will only tick when player is loaded
 	// 	return "error";
 	// }
   return Mod::on_initialize();
 }
 
-void DebugDraw::custom_imgui_window()
-{
-	if (!g_enabled) { return; }
-	CPlDante* pl = get_pl_dante();
+void DebugDraw::custom_imgui_window() {
+    /*
+    if (!g_enabled) { return; }
+    uPlayer* pl = devil4_sdk::get_local_player();
     if (!pl) { return; }
-	// keeping capcom traditions of typoing member fields like a motehfckure // nah 
-	auto screen = world_to_screen(pl->Position);
-	if (!screen.has_value()) { return; }
-	//dd::xzSquareGrid(dd_context, -5000, 5000, pl->Position.y, 1.5f, dd::colors::Green); //
-	ddVec3 origin = { pl->Position.x, pl->Position.y, pl->Position.z };
-	dd::sphere(dd_context, origin, dd::colors::Blue, 50.0f);
-	//dd::point(dd_context, origin, dd::colors::Crimson, 15.0f); //
-	dd::flush(dd_context, ImGui::GetIO().DeltaTime);
+    auto screen = world_to_screen(pl->m_pos);
+    if (!screen.has_value()) { return; }
+    //dd::xzSquareGrid(dd_context, -5000, 5000, pl->Position.y, 1.5f, dd::colors::Green);
+    ddVec3 origin = {pl->m_pos.x, pl->m_pos.y, pl->m_pos.z};
+    dd::sphere(dd_context, origin, dd::colors::Blue, 50.0f);
+    //dd::point(dd_context, origin, dd::colors::Crimson, 15.0f);
+    dd::flush(dd_context, ImGui::GetIO().DeltaTime);
+    */
+
+    /*
+    // can I make an imgui inside an imgui? ooh i can cool
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::Begin("Yo");
+
+    Vector3f playerPos = (Vector3f)(pl->m_pos.x, pl->m_pos.y, pl->m_pos.z);
+    std::optional<Vector2> playerPosScreen = world_to_screen(playerPos);
+    ImVec2 playerPosScreenIm = ImVec2(playerPosScreen.value().x, playerPosScreen.value().y);
+
+    ImGui::SetWindowPos(playerPosScreenIm);
+    ImGui::SetWindowSize(ImVec2(200, 200));
+    ImGui::End();
+    */
 }
 
 void DebugDraw::on_config_load(const utility::Config& cfg) {

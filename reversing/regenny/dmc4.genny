@@ -88,9 +88,9 @@ class uEnemyDamage {
 	float HP @ 0x18
 	float HPMax @ 0x1C
 	float HPTaken @ 0x2C
-	int stun[5] @ 0x3C
-	int displacement[5] @ 0x50
-	int unknown[8] @ 0x64
+	uint32_t stun[5] @ 0x3C
+	uint32_t displacement[5] @ 0x50
+	uint32_t unknown[8] @ 0x64
 	bool isDead @ 0x8C
 	float stunResetTimer @ 0xAC
 };
@@ -310,24 +310,46 @@ class uPlayer : public UCoord{
 	float disasterGauge @ 0x151F4
 };
 
-class EditableCamera {
-	Vector3f position @ 0x10
-	Vector3f lookAt @ 0x20
+class cCameraPlayer {
+	Vector3f eye @ 0x10
+	Vector3f lookat @ 0x20
+	float nearClipPlane @ 0x40
 	float angle @ 0xD4
 	float distance @ 0xD8
 	float distanceLockon @ 0xDC
 	float FOV @ 0xE4
 	float FOVBattle @ 0xE8
+	Matrix4x4 possibleMat1 @ 0x200
+	//Matrix4x4 possibleMat2 @ 0x210
+	//Matrix4x4 possibleMat3 @ 0x220
+	//Matrix4x4 possibleMat4 @ 0x230
 };
 
-class Camera {
+class uCameraCtrl {
 	float nearClipPlane @ 0x1C
 	float FOV @ 0x24
-	Vector3f position @ 0x30
-	Vector3f lookAt @ 0x50
-	Matrix4x4 usedMatrix @ 0x1B0
-	class EditableCamera* editableCameraPtr @ 0x490
-};
+	Vector3f eye @ 0x30 // assuming this is xyz pos
+	Vector3f up @ 0x40 // assuming up is meant to be 0,1,0?
+	// float roll @ 0x40 // isn't this also up
+	float idkFloat @ 0x44
+	// float roll2 @ 0x48 // isn't this also up
+	Vector4f lookat @ 0x50
+	Matrix4x4 possibleMat1 @ 0xD0
+	// Matrix4x4 possibleMat2 @ 0xE0
+	// Matrix4x4 possibleMat3 @ 0xF0
+	// Matrix4x4 possibleMat4 @ 0x100
+	// Matrix4x4 possibleMat5 @ 0x1B0 // this is the mat i had best luck with
+	// Matrix4x4 possibleMat6 @ 0x1C0
+	// Matrix4x4 possibleMat7 @ 0x1D0
+	// Matrix4x4 possibleMat8 @ 0x1E0
+	// Matrix4x4 possibleMat9 @ 0x1F0
+	// Matrix4x4 possibleMat10 @ 0x200
+	// Matrix4x4 possibleMat11 @ 0x210
+	// Matrix4x4 possibleMat12 @ 0x220
+	// Matrix4x4 possibleMat13 @ 0x230
+	// Matrix4x4 possibleMat13 @ 0x240
+	class cCameraPlayer* cCameraPlayer1 @ 0x490
+}
 
 class sWorkRate {
 	float game_speed @ 0x20

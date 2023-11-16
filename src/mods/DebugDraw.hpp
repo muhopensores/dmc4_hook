@@ -1,5 +1,6 @@
 #pragma once
-
+#define DEBUG_DRAW_EXPLICIT_CONTEXT
+#include "../dependencies/debug-draw/debug_draw.hpp"
 #include "../mod.hpp"
 
 class DebugDraw : public Mod {

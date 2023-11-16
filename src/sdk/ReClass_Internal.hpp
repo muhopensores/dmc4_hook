@@ -201,10 +201,10 @@ public:
 class MtMatrix
 {
 public:
-	Vector4 m1; //0x0000
-	Vector4 m2; //0x0010
-	Vector4 m3; //0x0020
-	Vector4 m4; //0x0030
+	glm::vec4 m1; //0x0000
+	glm::vec4 m2; //0x0010
+	glm::vec4 m3; //0x0020
+	glm::vec4 m4; //0x0030
 }; //Size: 0x0040
 
 class CUnit : public MtObject
@@ -225,7 +225,7 @@ public:
 	char pad_001_c[20]; //0x001C
 	Vector3f m_pos; //0x0030
 	char pad_003_c[4]; //0x003C
-	Vector4 m_quat; //0x0040
+	glm::vec4 m_quat; //0x0040
 	Vector3f m_scale; //0x0050
 	Matrix4x4 m_lmat; //0x005C
 	Matrix4x4 m_wmat; //0x009C
@@ -284,8 +284,8 @@ public:
 	/*uint16_t N00002DAF; //0x0005
 	uint8_t N00002DB0; //0x0007*/
 	CcType m_type; //0x0008
-	Vector4 m_factor; //0x000C
-	Vector4 m_factor2; //0x001C
+	glm::vec4 m_factor; //0x000C
+	glm::vec4 m_factor2; //0x001C
 	char pad_002_c[4]; //0x002C
 
 	virtual void function0();
@@ -309,7 +309,7 @@ public:
 	class MtHermiteCurve m_tone_curve_r; //0x0360
 	class MtHermiteCurve m_tone_curve_g; //0x03A0
 	class MtHermiteCurve m_tone_curve_b; //0x03E0
-	Vector4 m_gamma; //0x0420
+	glm::vec4 m_gamma; //0x0420
 	class cTransTexture *c_tans_texture; //0x0430
 }; //Size: 0x0434
 
@@ -447,35 +447,42 @@ public:
     float DTMax; // 0x1f28
 }; // Size: 0x1f2c
 
-class EditableCamera {
+class cCameraPlayer {
 public:
     char pad_0[0x10];
-    Vector3f position; // 0x10
+    Vector3f eye; // 0x10
     char pad_1c[0x4];
-    Vector3f lookAt; // 0x20
-    char pad_2c[0xa8];
+    Vector3f lookat; // 0x20
+    char pad_2c[0x14];
+    float nearClipPlane; // 0x40
+    char pad_44[0x90];
     float angle; // 0xd4
     float distance; // 0xd8
     float distanceLockon; // 0xdc
     char pad_e0[0x4];
     float FOV; // 0xe4
     float FOVBattle; // 0xe8
-}; // Size: 0xec
+    char pad_ec[0x114];
+    Matrix4x4 possibleMat1; // 0x200 // buncha possibilities up til 230
+}; // Size: 0x240
 
-class Camera {
+// sMediator + D0 camera, had a more useable glm mat but less settable values
+class uCameraCtrl {
 public:
     char pad_0[0x1c];
     float nearClipPlane; // 0x1c
     char pad_20[0x4];
     float FOV; // 0x24
     char pad_28[0x8];
-    Vector3f position; // 0x30
-    char pad_3c[0x14];
-    Vector3f lookAt; // 0x50
-    char pad_5c[0x154];
-    Matrix4x4 usedMatrix; // 0x1b0
-    char pad_1f0[0x2a0];
-    EditableCamera* editableCameraPtr; // 0x490
+    Vector3f eye; // 0x30
+    char pad_3c[0x4];
+    Vector3f up; // 0x40
+    char pad_4c[0x4];
+    Vector4f lookat; // 0x50
+    char pad_60[0x70];
+    Matrix4x4 possibleMat1; // 0xd0 // buncha possibilities up til 240, best luck I had in glm was with +230
+    char pad_110[0x380];
+    cCameraPlayer* cCameraPlayer1; // 0x490
 }; // Size: 0x494
 
 class SMediator {
@@ -485,7 +492,7 @@ public:
     char pad_28[0x88];
     class uBoss* uBoss1; // 0xb0
     char pad_b4[0x1c];
-    class Camera* camera1; // 0xd0
+    class uCameraCtrl* camera1; // 0xd0
     char pad_d4[0xc];
     uint32_t missionID; // 0xe0
     uint32_t roomID; // 0xe4
@@ -892,7 +899,7 @@ public:
 	float m_shock_detail_reduction; //0x0074
 	float m_h_sync_blank_width; //0x0078
 	float m_v_sync_blank_width; //0x007C
-	Vector4 m_v_sync_blank_color; //0x0080
+	glm::vec4 m_v_sync_blank_color; //0x0080
 	uint32_t m_shock_noise_time; //0x0090
 	float m_h_sync_noise_value; //0x0094
 	float m_v_sync_noise_value; //0x0098
