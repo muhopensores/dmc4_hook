@@ -22,8 +22,8 @@ enum class GameDifficulty : uint32_t {
 
 enum class GameMode : uint32_t {
     DEFAULT        = 0,
-    HEAVEN_OR_HELL = 0,
-    HELL_AND_HELL  = 0,
+    HEAVEN_OR_HELL = 1,
+    HELL_AND_HELL  = 2,
 };
 
 class cAreaJump;

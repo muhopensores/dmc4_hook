@@ -1,12 +1,12 @@
 // How to use:
 // - open dmc4 dx9
+// - copy s_med_ptr from dmc4hook's debug page
 // - open regenny x86
 // - file > open > this file
 // - view > hide undefined nodes
 // - action > attach > DevilMayCry4_DX9.exe
 // - typename > sMediator
-// - copy s_med_ptr from dmc4hook's debug page
-// - paste value into regenny's address field and throw an 0x in front, .e.g 0x161C64E0
+// - paste s_med_ptr into regenny's address field and throw an 0x in front, .e.g 0x161C64E0
 // - browse and edit values, right click > copy addresses to get to them in Cheat Engine
 
 type void 0
