@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/AssaultsDontJump.hpp
+  mods/AssaultsDontJump.cpp
   mods/GuardSteer.hpp
   mods/GuardSteer.cpp
   mods/PsychoMantis.hpp

@@ -35,7 +35,7 @@ void EasyJc::toggle(bool enable) {
         install_patch_offset(0x427999, patch, "\x90\x90\x90\x90\x90", 5);
     }
     else {
-        install_patch_offset(0x427999, patch, "\xBF\x02\x00\x00\x00", 5);
+        install_patch_offset(0x427999, patch, "\xBF\x02\x00\x00\x00", 5); // because FreeJC uses same addr
     }
 }
 

@@ -50,7 +50,7 @@ std::optional<std::string> PsychoMantis::on_initialize() {
 }
 
 void PsychoMantis::on_gui_frame() {
-    ImGui::Checkbox("Finally... DMC4 2", &mod_enabled);
+    ImGui::Checkbox("Vibe", &mod_enabled);
     ImGui::SameLine();
     help_marker("Put your controller on the floor. Put it down as flat as you can..."
         "that's good. Now I will move your controller by the power of my style alone!!");

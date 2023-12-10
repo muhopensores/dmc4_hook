@@ -8,7 +8,6 @@ static BpPortal* g_mod{nullptr};
 static void on_timer_callback() {
     BpPortal::mod_enabled = !BpPortal::mod_enabled;
     g_mod->toggle(BpPortal::mod_enabled);
-    // DISPLAY_MESSAGE("BP Portal / Red Seals Closed"); // debug
     BpPortal::mod_enabled = false;
     g_mod->toggle(BpPortal::mod_enabled);
 }
@@ -25,7 +24,6 @@ void BpPortal::toggle(bool enable) {
         install_patch_offset(0x004E1E0, patch, "\x75\x07", 2);
     } else {
         patch.reset();
-        // install_patch_offset(0x004E1E0, patch, "\x74\x07", 2);
     }
 }
 

@@ -373,10 +373,6 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("EnemyAttackOffScreen"_hash);
 
-                    pmods->on_draw_ui("DisableChimeraBlades"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("FrostsDontJump"_hash);
-
                     pmods->on_draw_ui("EnemySlotting"_hash); // needs its own line
 
                     ImGui::Spacing();
@@ -397,7 +393,12 @@ namespace gui {
                     pmods->on_draw_ui("InfFaustCloak"_hash); // needs its own line
 
                     pmods->on_draw_ui("FreezeEnemies"_hash);
-                    //ImGui::SameLine(sameLineWidth);
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("DisableChimeraBlades"_hash);
+
+                    pmods->on_draw_ui("FrostsDontJump"_hash);
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("AssaultsDontJump"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();
