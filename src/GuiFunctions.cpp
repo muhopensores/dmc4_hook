@@ -720,45 +720,6 @@ namespace gui {
 
                     // pmods->onDrawUI("ShaderEditor"_hash);
 
-                    const float TEXT_BASE_WIDTH  = ImGui::CalcTextSize("A").x;
-                    const float TEXT_BASE_HEIGHT = ImGui::GetTextLineHeightWithSpacing();
-
-                    const char* column_names[] = { "Track", "cabasa", "ride", "smash", "tom-hi", "tom-mid", "tom-low", "hihat-o", "hihat-c", "snare-s", "snare-c", "clap", "rim", "kick" };
-                    const int columns_count = IM_ARRAYSIZE(column_names);
-                    const int rows_count = 12;
-
-                    static ImGuiTableFlags table_flags = ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_HighlightHoveredColumn;
-                    static int frozen_cols = 1;
-                    static int frozen_rows = 2;
-
-                    static bool bools[columns_count * rows_count] = {}; // Dummy storage selection storage
-                    if (ImGui::BeginTable("table_angled_headers", columns_count, table_flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 12))) {
-                        ImGui::TableSetupColumn(column_names[0], ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_NoReorder);
-                        for (int n = 1; n < columns_count; n++)
-                            ImGui::TableSetupColumn(column_names[n], ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed);
-                        ImGui::TableSetupScrollFreeze(frozen_cols, frozen_rows);
-
-                        ImGui::TableAngledHeadersRow(); // Draw angled headers for all columns with the ImGuiTableColumnFlags_AngledHeader
-                                                        // flag.
-                        ImGui::TableHeadersRow();       // Draw remaining headers and allow access to context-menu and other functions.
-                        for (int row = 0; row < rows_count; row++) {
-                            ImGui::PushID(row);
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::AlignTextToFramePadding();
-                            ImGui::Text("Track %d", row);
-                            for (int column = 1; column < columns_count; column++)
-                                if (ImGui::TableSetColumnIndex(column)) {
-                                    ImGui::PushID(column);
-                                    ImGui::Checkbox("", &bools[row * columns_count + column]);
-                                    ImGui::PopID();
-                                }
-                            ImGui::PopID();
-                        }
-                        ImGui::EndTable();
-                    }
-                    ImGui::TreePop();
-
                     g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
                     ImGui::EndChild();
                     ImGui::EndTabItem();

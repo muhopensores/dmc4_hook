@@ -27,15 +27,14 @@ public:
 
     class Controller {
     public:
-        Controller();
-        ~Controller();
+        Controller() = default;
+        ~Controller() = default;
         XINPUT_STATE getState();
         bool isConnected();
         void vibrate(uint16_t left = 0, uint16_t right = 0);
+        static int _controllerNum;
     private:
-        XINPUT_STATE _controllerState;
-        int _controllerNum;
-
+        XINPUT_STATE _controllerState{};
     };
 
 private:
