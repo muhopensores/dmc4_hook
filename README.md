@@ -14,6 +14,10 @@ Releases can be found [here.](https://github.com/muhopensores/dmc4_hook/releases
 For help regarding usage of the trainer, check our [wiki.](https://github.com/muhopensores/dmc4_hook/wiki)
 
 ## How to build
+Install the [Legacy DirectX SDK](https://www.microsoft.com/en-us/download/details.aspx?id=6812). This will require you first uninstall the following:
+- Microsoft Visual C++ 2010 x86 Redistributable
+- Microsoft Visual C++ 2010 x64 Redistributable
+
 Run build_debug.bat/build_release.bat edit bat files according to your visual studio version if needed.
 
 ## Linux proton support
