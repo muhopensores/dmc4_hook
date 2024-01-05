@@ -9,7 +9,7 @@ public:
     static bool mod_enabled;
     static uintptr_t jmp_ret;
     static uintptr_t jmp_conditional;
-    void toggle(bool enable);
+    static uintptr_t jmp_ret2;
 
     std::string get_mod_name() override { return "TargetChangeDarkslayer"; };
 
@@ -22,5 +22,5 @@ public:
 
 private:
     std::unique_ptr<FunctionHook> hook;
-    std::unique_ptr<Patch> patch;
+    std::unique_ptr<FunctionHook> hook2;
 };
