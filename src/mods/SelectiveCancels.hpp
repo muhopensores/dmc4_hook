@@ -15,7 +15,8 @@ enum CancelMoves {       // bits table
     EPIDEMIC        = 256,
     DT_PIN_UP_P2    = 512,
     SHOWDOWN        = 1024,
-    DRAW            = 2048
+    DRAW            = 2048,
+    DTGROUND        = 4096
     //BEAST_UPPERCUT  = 2048
 };
 
