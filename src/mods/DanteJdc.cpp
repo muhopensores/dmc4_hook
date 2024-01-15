@@ -297,11 +297,11 @@ naked void detour8(void) {
 			cmp byte ptr [DanteJdc::mod_enabled], 0
 			je originalcode
 
-            push 0x00000900
+            push 0x00000905
             jmp jmp_return
 
 		originalcode:
-            push 0x00000905
+            push 0x00000900
         jmp_return:
 			jmp dword ptr [DanteJdc::jmp_ret8]
     }
