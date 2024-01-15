@@ -522,6 +522,8 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("GuardSteer"_hash);
 
+                    pmods->on_draw_ui("DanteJdc"_hash);
+
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();

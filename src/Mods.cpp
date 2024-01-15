@@ -109,6 +109,7 @@
 #include "mods/GuardSteer.hpp"
 #include "mods/PlayerRotation.hpp"
 #include "mods/AssaultsDontJump.hpp"
+#include "mods/DanteJdc.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -234,6 +235,7 @@ Mods::Mods() {
     ADD_MOD(GuardSteer);
     ADD_MOD(PlayerRotation);
     ADD_MOD(AssaultsDontJump);
+    ADD_MOD(DanteJdc);
 }
 
 // Initializes mods, checks for errors
