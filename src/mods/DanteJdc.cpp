@@ -8,28 +8,28 @@ uintptr_t DanteJdc::jmp_ret1{NULL};
 constexpr uintptr_t detour1_push1 = 0x00486640;
 constexpr uintptr_t detour1_mov1  = 0x00E559D8;
 constexpr uintptr_t detour1_call1 = 0x00A47AA0;
-bool flag    = 0;
-float xcoord = 0.0f;
-float ycoord = 0.0f;
-float zcoord = 0.0f;
+bool jdcFlag    = 0;
+float jdcXCoord = 0.0f;
+float jdcYCoord = 0.0f;
+float jdcZCoord = 0.0f;
 
 uintptr_t DanteJdc::jmp_ret2{NULL};
 constexpr uintptr_t detour2_call1 = 0x0081F970;
 constexpr uintptr_t detour2_jne   = 0x007E134D;
-float timer1 = 5.0f;
-float timer2 = 6.5f;
+float jdcTimer2 = 6.5f;
+float jdcTimer1 = 5.0f;
 
 uintptr_t DanteJdc::jmp_ret3{NULL};
 
 uintptr_t DanteJdc::jmp_ret4{NULL};
 constexpr uintptr_t detour4_mov1 = 0x00C3C6EC;
-float delay = 0.0f;
+float jdcDelay = 0.0f;
 
 uintptr_t DanteJdc::jmp_ret5{NULL};
-float jdcoffset = 0.0f;
-float offsetadd = 4.0f;
-int hitcountdefault = 5;
-int hitcount        = 5;
+float jdcOffset = 0.0f;
+float jdcOffsetAdd = 4.0f;
+int jdcHitcountDefault = 5;
+int jdcHitcount        = 5;
 
 uintptr_t DanteJdc::jmp_ret6{NULL};
 constexpr uintptr_t detour6_call1 = 0x0050CB80;
@@ -39,12 +39,12 @@ uintptr_t DanteJdc::jmp_ret7{NULL};
 uintptr_t DanteJdc::jmp_ret8{NULL};
 
 uintptr_t DanteJdc::jmp_ret9{NULL};
-float SDprojectileDelay = 40.0f;
+float jdcSDprojectileDelay = 40.0f;
 constexpr uintptr_t detour9_comiss1 = 0x00E163C8;
 
 uintptr_t DanteJdc::jmp_ret10{NULL};
-float bounce = 7.0f;
-float epsilon = 0.001f;
+float jdcBounce = 7.0f;
+float jdcEpsilon = 0.001f;
 constexpr uintptr_t detour10_call1 = 0x007BA210;
 
 uintptr_t DanteJdc::jmp_ret11{NULL};
@@ -63,27 +63,23 @@ naked void detour1(void) {
             mov eax,[ebp+0x16D0]
             test eax,eax
             je handler
-            mov [flag],1
+            mov [jdcFlag],1
             mov eax,[ebp+0x15A68]
             test eax,eax
             je handler
             fld [eax+0x40]
-            fstp [xcoord]
+            fstp [jdcXCoord]
             fld [eax+0x44]
-            fstp [ycoord]
+            fstp [jdcYCoord]
             fld [eax+0x48]
-            fstp [zcoord]
-            //push eax
-            //mov eax,detour1_push1 // might be necessary idk
-            //push [eax]
-            //pop eax
+            fstp [jdcZCoord]
             push detour1_push1
             mov ecx,[ebp+0x00001D64]
             mov edx,[detour1_mov1] // 00E559D8
             mov edx,[edx] // added this so we don't mov our addr
             push 01
             push 01
-            lea eax,[xcoord]
+            lea eax,[jdcXCoord]
             push eax
             push ebp
             push 0x000000D3 // sound id
@@ -94,12 +90,12 @@ naked void detour1(void) {
             jmp originalcode
 
         handler:
-            mov [flag],0
+            mov [jdcFlag],0
             popad
 		originalcode:
             mov ecx,esi
             fstp dword ptr [esp+0x04]
-        //jmp_ret:
+        // jmp_ret:
 			jmp dword ptr [DanteJdc::jmp_ret1]
     }
 }
@@ -114,21 +110,16 @@ naked void detour2(void) {
             mov ebp,[static_mediator_ptr]
             mov ebp,[ebp]
             mov ebp,[ebp+0x24]
-            mov al,[flag]
+            mov al,[jdcFlag]
             test eax, eax
             je handler
             mov eax,[ebp+0x000028A4]
             movss xmm0,[eax+0x18]
-            comiss xmm0,[timer1]
+            comiss xmm0,[jdcTimer1]
             jb handler
-            comiss xmm0,[timer2]
+            comiss xmm0,[jdcTimer2]
             jnb handler
             mov eax,[ebp+0x15A68]
-            // test eax, eax
-            // je handler
-            // movss xmm0,[eax+40]
-            // movss xmm1,[eax+44]
-            // movss xmm2,[eax+48]
             call detour2_call1 // Spawn effect + hitbox // DevilMayCry4_DX9.exe+41F970
             popad
             jmp originalcode
@@ -161,14 +152,9 @@ naked void detour3(void) {
             cmp dword ptr [ebp+0x00001564],0x6C
             je handler
             mov eax,[ebp+0x15A68]
-            //  test eax, eax
-            //  je handler
-            //  movss xmm0,[eax+0x40]
-            //  movss xmm1,[eax+0x44]
-            //  movss xmm2,[eax+0x48]
-            movss xmm0,[xcoord]
-            movss xmm1,[ycoord]
-            movss xmm2,[zcoord]
+            movss xmm0,[jdcXCoord]
+            movss xmm1,[jdcYCoord]
+            movss xmm2,[jdcZCoord]
             movss [esi+0x30],xmm0
             movss [esi+0x34],xmm1
             movss [esi+0x38],xmm2
@@ -195,7 +181,7 @@ naked void detour4(void) {
 			cmp byte ptr [DanteJdc::mod_enabled], 0
 			je originalcode
 
-            movss xmm0,[delay]
+            movss xmm0,[jdcDelay]
             jmp jmp_return
 
 		originalcode:
@@ -218,22 +204,22 @@ naked void detour5(void) {
             mov ebp,esi
             movss xmm0,[ebp+0x10]
             addss xmm0,[ebp+0x1790]
-            comiss xmm0, [jdcoffset]
+            comiss xmm0, [jdcOffset]
             jb handler
-            mov eax,[hitcount]
+            mov eax,[jdcHitcount]
             cmp eax,1
             dec eax
-            mov [hitcount],eax
+            mov [jdcHitcount],eax
             je handler2
-            movss xmm1,[jdcoffset]
-            addss xmm1,[offsetadd]
-            movss [jdcoffset],xmm1
+            movss xmm1,[jdcOffset]
+            addss xmm1,[jdcOffsetAdd]
+            movss [jdcOffset],xmm1
             mov byte ptr [esi+0x15],00
             jmp handler
 
         handler2:
             xorps xmm1,xmm1
-            movss [jdcoffset],xmm1
+            movss [jdcOffset],xmm1
         handler:
             pop eax
             pop ebp
@@ -251,7 +237,7 @@ naked void detour6(void) {
 			je originalcode
 
             push eax
-            mov eax,[hitcount]
+            mov eax,[jdcHitcount]
             test eax,eax
             je handler
             mov byte ptr [esi+0x14],00
@@ -260,8 +246,8 @@ naked void detour6(void) {
 
         handler:
             push ecx
-            mov ecx,[hitcountdefault]
-            mov [hitcount],ecx
+            mov ecx,[jdcHitcountDefault]
+            mov [jdcHitcount],ecx
             pop ecx
             mov byte ptr [esi+0x14],02
             pop eax
@@ -312,7 +298,7 @@ naked void detour9(void) {
 			cmp byte ptr [DanteJdc::mod_enabled], 0
 			je originalcode
 
-            comiss xmm0,[SDprojectileDelay]
+            comiss xmm0,[jdcSDprojectileDelay]
             jmp jmp_return
 		originalcode:
             push eax
@@ -330,11 +316,11 @@ naked void detour10(void) {
 			je originalcode
 
             push eax
-            mov al,[flag]
+            mov al,[jdcFlag]
             test al,al
             je handler
             movss xmm6,[esi+0x1E1C]
-            comiss xmm6,[epsilon]
+            comiss xmm6,[jdcEpsilon]
             jb handler
             mov eax,esi
             call detour10_call1
@@ -343,7 +329,7 @@ naked void detour10(void) {
             fstp [esi+0x00000EC0]
             fld [esi+0x1E38]
             fstp [esi+0xEC8]
-            fld [bounce]
+            fld [jdcBounce]
             fstp [esi+0xEC4]
             jmp jmp_return
 
@@ -362,7 +348,7 @@ naked void detour11(void) {
 			je originalcode
 
             push eax
-            mov al,[flag]
+            mov al,[jdcFlag]
             test al,al
             je handler
             pop eax
@@ -439,7 +425,7 @@ std::optional<std::string> DanteJdc::on_initialize() {
 void DanteJdc::on_gui_frame() {
     ImGui::Checkbox("Dante JdC", &mod_enabled);
     ImGui::SameLine();
-    help_marker("yea");
+    help_marker("Enable before entering a stage to load alternate animations");
 }
 
 void DanteJdc::on_config_load(const utility::Config& cfg) {
