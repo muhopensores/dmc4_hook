@@ -2,10 +2,8 @@
 
 bool RevFlying::mod_enabled{false};
 bool RevFlying::mod_enabled2{false};
-
-std::optional<std::string> RevFlying::on_initialize() {
-    return Mod::on_initialize();
-}
+uintptr_t RevFlying::jmp_ret1{false};
+uintptr_t RevFlying::jmp_ret2{false};
 
 void RevFlying::toggle(bool enable) {
     if (enable) {
@@ -25,6 +23,42 @@ void RevFlying::toggle2(bool enable) {
     }
 }
 
+naked void detour1(void) { // non exceed
+    _asm {
+			cmp byte ptr [RevFlying::mod_enabled2], 0
+			je originalcode
+
+            mov dword ptr [esi+0x00001E1C],0x0
+		originalcode:
+            mov dword ptr [esi+0x00001504],0x00000004
+			jmp dword ptr [RevFlying::jmp_ret1]
+    }
+}
+
+naked void detour2(void) { // exceed
+    _asm {
+			cmp byte ptr [RevFlying::mod_enabled2], 0
+			je originalcode
+
+            mov dword ptr [ebx+0x00001E1C],0x0
+		originalcode:
+            mov dword ptr [ebx+0x00001504],0x00000004
+			jmp dword ptr [RevFlying::jmp_ret2]
+    }
+}
+
+std::optional<std::string> RevFlying::on_initialize() {
+    if (!install_hook_offset(0x3FDFF9, hook1, &detour1, &jmp_ret1, 10)) {
+        spdlog::error("Failed to init RevFlying mod\n");
+        return "Failed to init RevFlying mod";
+    }
+    if (!install_hook_offset(0x400549, hook2, &detour2, &jmp_ret2, 10)) {
+        spdlog::error("Failed to init RevFlying mod2\n");
+        return "Failed to init RevFlying mod2";
+    }
+    return Mod::on_initialize();
+}
+
 void RevFlying::on_gui_frame() {
     if (ImGui::Checkbox("Rev Flying", &mod_enabled)) {
         toggle(mod_enabled);
@@ -42,7 +76,7 @@ void RevFlying::on_gui_frame() {
 void RevFlying::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("rev_flying").value_or(false);
     toggle(mod_enabled);
-    mod_enabled = cfg.get<bool>("calibur_inertia").value_or(false);
+    mod_enabled2 = cfg.get<bool>("calibur_inertia").value_or(false);
     toggle2(mod_enabled2);
 }
 
