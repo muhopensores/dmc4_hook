@@ -62,7 +62,7 @@ naked void detour1(void) {
             mov eax,[ebp+0x16D0]
             test eax,eax
             je handler
-            mov [jdcFlag],1
+            mov byte ptr [jdcFlag],1
             mov eax,[ebp+0x15A68]
             test eax,eax
             je handler

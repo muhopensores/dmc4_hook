@@ -7,8 +7,10 @@ public:
     RevFlying() = default;
 
     static bool mod_enabled;
+    static bool mod_enabled2;
 
     void toggle(bool enable);
+    void toggle2(bool enable);
 
     std::string get_mod_name() override { return "RevFlying"; };
     std::optional<std::string> on_initialize() override;

@@ -471,9 +471,9 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("InfTableHopper"_hash);
 
+                    pmods->on_draw_ui("RevFlying"_hash); // needs its own line
+
                     pmods->on_draw_ui("InfCalibur"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("RevFlying"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();
