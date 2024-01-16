@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/AngelSnatch.hpp
+  mods/AngelSnatch.cpp
   mods/RevFlying.hpp
   mods/RevFlying.cpp
   mods/DanteJdc.hpp
