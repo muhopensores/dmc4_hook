@@ -110,6 +110,7 @@
 #include "mods/PlayerRotation.hpp"
 #include "mods/AssaultsDontJump.hpp"
 #include "mods/DanteJdc.hpp"
+#include "mods/RevFlying.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -236,6 +237,7 @@ Mods::Mods() {
     ADD_MOD(PlayerRotation);
     ADD_MOD(AssaultsDontJump);
     ADD_MOD(DanteJdc);
+    ADD_MOD(RevFlying);
 }
 
 // Initializes mods, checks for errors

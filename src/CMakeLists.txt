@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/RevFlying.hpp
+  mods/RevFlying.cpp
   mods/DanteJdc.hpp
   mods/DanteJdc.cpp
   mods/AssaultsDontJump.hpp

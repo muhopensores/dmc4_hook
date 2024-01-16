@@ -59,7 +59,6 @@ naked void detour1(void) {
             mov ebp,[static_mediator_ptr] // 0x00E558B8
             mov ebp,[ebp]
             mov ebp,[ebp+0x24]
-            // mov eax,[ebp+2260]
             mov eax,[ebp+0x16D0]
             test eax,eax
             je handler
@@ -90,7 +89,7 @@ naked void detour1(void) {
             jmp originalcode
 
         handler:
-            mov [jdcFlag],0
+            mov byte ptr [jdcFlag],0
             popad
 		originalcode:
             mov ecx,esi
