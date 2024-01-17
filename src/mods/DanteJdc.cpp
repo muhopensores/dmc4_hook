@@ -184,7 +184,7 @@ naked void detour4(void) {
             jmp jmp_return
 
 		originalcode:
-            push eax // movss xmm0,[detour_mov1] movs our addr rather than the value
+            push eax // movss xmm0, [detour_mov1] movs our addr rather than the value
             mov eax,[detour4_mov1]
             movss xmm0, [eax] // DevilMayCry4_DX9.exe+83C6EC
             pop eax
@@ -422,7 +422,7 @@ std::optional<std::string> DanteJdc::on_initialize() {
 }
 
 void DanteJdc::on_gui_frame() {
-    ImGui::Checkbox("Dante JdC", &mod_enabled);
+    ImGui::Checkbox("Judgement Cut", &mod_enabled);
     ImGui::SameLine();
     help_marker("Enable before entering a stage to load alternate animations");
 }

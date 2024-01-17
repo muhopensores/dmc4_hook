@@ -236,6 +236,11 @@ namespace gui {
             ImGui::Spacing();
             ImGui::Text("Mstislav Capusta");
             ImGui::Text("SSSiyan");
+            ImGui::Text("Vieris");
+            ImGui::Text("CrazyMelody");
+            ImGui::Text("Dlupx");
+            ImGui::Text("cheburrat0r");
+            ImGui::Text("endneo");
             ImGui::Spacing();
             ImGui::Text("Special Thanks:");
             ImGui::Text("socks");
@@ -244,10 +249,6 @@ namespace gui {
             ImGui::Text("Boey");
             ImGui::Text("DelusionaryKiller");
             ImGui::Text("DJMalice");
-            ImGui::Text("cheburrat0r");
-            ImGui::Text("endneo");
-            ImGui::Text("CrazyMelody");
-            ImGui::Text("Dlupx");
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
@@ -475,9 +476,9 @@ namespace gui {
 
                     pmods->on_draw_ui("AngelSnatch"_hash);
                     ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("DtKnuckle"_hash);
-
                     pmods->on_draw_ui("InfCalibur"_hash);
+
+                    pmods->on_draw_ui("DtKnuckle"_hash); // needs its own line
 
                     ImGui::Spacing();
                     ImGui::Separator();
