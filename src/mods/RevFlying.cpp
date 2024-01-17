@@ -2,8 +2,8 @@
 
 bool RevFlying::mod_enabled{false};
 bool RevFlying::mod_enabled2{false};
-uintptr_t RevFlying::jmp_ret1{false};
-uintptr_t RevFlying::jmp_ret2{false};
+uintptr_t RevFlying::jmp_ret1{NULL};
+uintptr_t RevFlying::jmp_ret2{NULL};
 
 void RevFlying::toggle(bool enable) {
     if (enable) {

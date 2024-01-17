@@ -112,6 +112,7 @@
 #include "mods/DanteJdc.hpp"
 #include "mods/RevFlying.hpp"
 #include "mods/AngelSnatch.hpp"
+#include "mods/DtKnuckle.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -240,6 +241,7 @@ Mods::Mods() {
     ADD_MOD(DanteJdc);
     ADD_MOD(RevFlying);
     ADD_MOD(AngelSnatch);
+    ADD_MOD(DtKnuckle);
 }
 
 // Initializes mods, checks for errors

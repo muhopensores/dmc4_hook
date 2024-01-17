@@ -1,13 +1,15 @@
 #include "AngelSnatch.hpp"
 
 bool AngelSnatch::mod_enabled{false};
+bool snatchFlag = false;
+
 uintptr_t AngelSnatch::jmp_ret1{false};
 constexpr uintptr_t detour1_call1 = 0x007FA190;
 
 uintptr_t AngelSnatch::jmp_ret2{false};
 constexpr uintptr_t detour2_call1 = 0x007F9FA0;
+
 uintptr_t AngelSnatch::jmp_ret3{false};
-bool snatchFlag = false;
 
 naked void detour1(void) {
     _asm {
