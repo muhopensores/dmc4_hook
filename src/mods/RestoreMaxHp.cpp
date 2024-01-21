@@ -71,47 +71,33 @@ int RestoreMaxHp::get_enemy_specific_damage_offset(int enemy_id) {
 }
 
 void RestoreMaxHp::on_frame(fmilliseconds& dt) {
-    // uintptr_t* sMedPtr = *(uintptr_t**)staticMediatorPtr;
-    // uintptr_t* uLocalPlr = *(uintptr_t**)((uintptr_t)sMedPtr + 0x24);
-    uintptr_t* s_med_ptr = (uintptr_t*)static_mediator_ptr;
-    uintptr_t s_mediator = *s_med_ptr;
-    uintptr_t* player_ptr = (uintptr_t*)(s_mediator + 0x24);
-    uintptr_t u_local_plr = *player_ptr;
-    if (u_local_plr) {
-        uint8_t& grounded = *(uint8_t*)(u_local_plr + 0xEA8);
-        uint8_t& desired_input = *(uint8_t*)(u_local_plr + 0x140C);
+    uPlayer* player = devil4_sdk::get_local_player();
+    SMediator* s_med_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
+    if (player) {
         if (mod_enabled) {
-            if (grounded == 1) {
+            if (player->grounded == 1) {
                 goto reset_hp_and_timer;
             }
-            else if (!limit_to_ground) {
+            if (!limit_to_ground) {
                 reset_hp_and_timer:
-                if (desired_input & 0x10 && desired_input & 0x08) {
-                    int8_t& enemy_count = *(int8_t*)(s_mediator + 0x1E8);
-                    for (int i = 1; i <= enemy_count; i++) {
-                        uintptr_t* enemy_ptr = (uintptr_t*)(s_mediator + 0x1B4 + i * 4);
-                        uintptr_t enemy_base = *enemy_ptr;
+                if (player->inputHold[0] & 0x10 && player->inputHold[0] & 0x08) {
+                    for (uint32_t i = 1; i <= s_med_ptr->enemyCount[2]; i++) {
+                        uintptr_t enemy_base = (uintptr_t)s_med_ptr->uEnemies[i-1];
                         if (enemy_base) {
-                            int& enemy_id = *(int*)(enemy_base + 0x1410);
-                            int damage_info_offset = get_enemy_specific_damage_offset(enemy_id);
+                            int damage_info_offset = get_enemy_specific_damage_offset(s_med_ptr->uEnemies[i-1]->ID);
                             if (damage_info_offset != NULL) {
-                                float& enemy_hp = *(float*)(enemy_base + damage_info_offset + 0x18);
+                                float& enemy_hp     = *(float*)(enemy_base + damage_info_offset + 0x18);
                                 float& enemy_max_hp = *(float*)(enemy_base + damage_info_offset + 0x1C);
-                                enemy_hp = enemy_max_hp;
+                                enemy_hp            = enemy_max_hp;
                             }
                         }
                     }
-                    uintptr_t* boss_ptr = (uintptr_t*)(s_mediator + 0xB0);
-                    uintptr_t boss_base = *boss_ptr;
-                    if (boss_base) {
-                        float& boss_hp = *(float*)(boss_base + 0x151C);
-                        float& boss_max_hp = *(float*)(boss_base + 0x1520);
-                        boss_hp = boss_max_hp;
+                    if (s_med_ptr->uBoss1) {
+                        s_med_ptr->uBoss1->HP = s_med_ptr->uBoss1->HPMax;
                     }
                     if (reset_timer) {
-                        if (grounded == 1 && desired_input & 0x10 && desired_input & 0x08) {
-                            float& bp_timer = *(float*)(s_mediator + 0x250);
-                            bp_timer = two_minutes_timer;
+                        if (player->grounded == 1 && player->inputHold[0] & 0x10 && player->inputHold[0] & 0x08) {
+                            s_med_ptr->bpTimer = two_minutes_timer;
                         }
                     }
                 }

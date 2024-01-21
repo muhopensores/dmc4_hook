@@ -5,7 +5,7 @@ constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 uintptr_t DtKnuckle::jmp_ret1{NULL};
 int moveID                        = 0x31C;
-int inputCheck                    = 0;
+int inputCooldown                 = 0;
 bool spectreFlag                  = 0;
 int desiredInput                  = 0;
 int previousInput                 = 0;
@@ -60,16 +60,16 @@ naked void detour1(void) { // Input check and initialize spectre
             test eax, eax
             je handler
 
-            mov edx, [inputCheck]
+            mov edx, [inputCooldown]
             test edx, edx
-            jne handler2
+            jne handler2 // cooldown has value != 0, jump out
             
             test eax, [desiredInput]
             je handler // incorrect input, jump out
             cmp eax, [previousInput]
             je handler
 
-            mov dword ptr [inputCheck], 0x10 // correct input
+            mov dword ptr [inputCooldown], 0x10 // set timer
         // ForwardCheck:
             mov eax, [ebp+0x21CC]
             cmp al, 01
@@ -97,17 +97,17 @@ naked void detour1(void) { // Input check and initialize spectre
             mov eax, [ebp+0x0000CDF8]
             mov ebx, [eax+0x1370]
             mov dword ptr [ebx+0x14F0], 0x0C
-            movq xmm0, qword ptr [esp+0x0C] // changed movq
+            movq xmm0, qword ptr [esp+0x0C]
             mov ecx, [esp+0x14]
             add eax, 0x000022B4
-            movq qword ptr [eax], xmm0 // changed movq
+            movq qword ptr [eax], xmm0
             mov [eax+0x08], ecx
             popad
             jmp code
                 
         handler2:
             dec edx
-            mov [inputCheck], edx
+            mov [inputCooldown], edx
         handler:
             popad
             mov [previousInput], eax
@@ -222,11 +222,11 @@ std::pair<uint16_t, const char*> getButtonInfo(uint16_t buttonNum) {
 }
 
 void DtKnuckle::on_gui_frame() {
-    if (ImGui::Checkbox("DT Knuckle", &mod_enabled)) {
+    if (ImGui::Checkbox("Guardian Devil", &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Triggers a stand attack when you input the selected button.\nLockon+forward/back for other moves");
+    help_marker("Triggers a stand attack when you input the selected button.\nLockon+forward/back for other attacks");
     ImGui::SameLine(sameLineWidth);
     ImGui::PushItemWidth(sameLineItemWidth);
     if (ImGui::BeginCombo("Knuckle Input", getButtonInfo(desiredInput).second)) {
