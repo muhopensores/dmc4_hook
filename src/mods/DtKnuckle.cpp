@@ -4,20 +4,32 @@ bool DtKnuckle::mod_enabled{false};
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 uintptr_t DtKnuckle::jmp_ret1{NULL};
-int moveID                        = 0x31C;
-int inputCooldown                 = 0;
-bool spectreFlag                  = 0;
-int desiredInput                  = 0;
-int previousInput                 = 0;
-constexpr uintptr_t detour1_call1 = 0x00829BE0;
-
+    int moveID                        = 0x31C;
+    int inputCooldown                 = 0;
+    bool spectreFlag                  = 0;
+    bool endFlag                      = 0;
+    int desiredInput                  = 0;
+    int previousInput                 = 0;
+    constexpr uintptr_t detour1_call1 = 0x00829BE0;
 uintptr_t DtKnuckle::jmp_ret2{NULL};
-
 uintptr_t DtKnuckle::jmp_ret3{NULL};
-constexpr uintptr_t detour3_conditional1 = 0x0082A9D5;
-
+    constexpr uintptr_t detour3_conditional1 = 0x0082A9D5;
 uintptr_t DtKnuckle::jmp_ret4{NULL};
-constexpr uintptr_t detour4_conditional1 = 0x00829671;
+    constexpr uintptr_t detour4_conditional1 = 0x00829671;
+uintptr_t DtKnuckle::jmp_ret5{NULL};
+    constexpr uintptr_t detour5_jmp1 = 0x0082A8E5;
+    constexpr uintptr_t detour5_mov1 = 0x00E1657C;
+uintptr_t DtKnuckle::jmp_ret6{NULL};
+uintptr_t DtKnuckle::jmp_ret7{NULL};
+uintptr_t DtKnuckle::jmp_ret8{NULL};
+uintptr_t DtKnuckle::jmp_ret9{NULL};
+uintptr_t DtKnuckle::jmp_ret10{NULL};
+    constexpr uintptr_t detour10_conditional1 = 0x007E6E8D;
+uintptr_t DtKnuckle::jmp_ret11{NULL};
+    float decrement = 30.0f;
+uintptr_t DtKnuckle::jmp_ret12{NULL};
+    constexpr uintptr_t detour12_conditional1 = 0x00829BD8;
+uintptr_t DtKnuckle::jmp_ret13{NULL};
 
 void DtKnuckle::toggle(bool enable) {
     if (enable) {
@@ -33,6 +45,16 @@ void DtKnuckle::toggle(bool enable) {
         install_patch_offset(0x428FD9, patch5, "\xEB\x08", 2);
         install_patch_offset(0x428EEE, patch6, "\xEB\x08", 2);
         install_patch_offset(0x428E8B, patch7, "\xEB\x08", 2);
+
+        // Fix height reset on landing patch
+        install_patch_offset(0x428E00, patch8, "\x90\x90\x90\x90\x90", 5);
+
+        // Enable efx for guardian
+        install_patch_offset(0x4298D3, patch9, "\x90\x90", 2);
+        install_patch_offset(0x4299B9, patch10, "\x90\x90", 2);
+
+        // Timely spectre culling
+        install_patch_offset(0x429B40, patch11, "\xEB\x2E", 2);
     } else {
         patch1.reset();
         patch2.reset();
@@ -41,6 +63,10 @@ void DtKnuckle::toggle(bool enable) {
         patch5.reset();
         patch6.reset();
         patch7.reset();
+        patch8.reset();
+        patch9.reset();
+        patch10.reset();
+        patch11.reset();
     }
 }
 
@@ -126,9 +152,19 @@ naked void detour2(void) { // better flag remove
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
 
+            push eax
+            xor eax, eax // because mov al
+            mov al, [spectreFlag]
+            test eax, eax
+            je handler
             mov byte ptr [spectreFlag], 00
+            mov byte ptr [endFlag], 1
+            jmp originalcode // we skip popping eax here not sure if correct
+
+        handler:
+            pop eax
         originalcode:
-            mov dword ptr [esi+0x000022C4], 0x28
+            mov dword ptr [esi+0x000022C4],00000000
 			jmp dword ptr [DtKnuckle::jmp_ret2]
     }
 }
@@ -172,12 +208,221 @@ naked void detour4(void) { // motion check bypass
     }
 }
 
+naked void detour5(void) { // Disjoint
+    _asm {
+			cmp byte ptr [DtKnuckle::mod_enabled], 0
+			je originalcode
+
+            push eax
+            xor eax, eax // because mov al
+            mov al, [spectreFlag]
+            test eax, eax
+            je handler
+            pop eax
+            jmp jmp_jmp1
+            
+        handler:
+            pop eax
+        originalcode:
+            cmp eax, esi
+            je jmp_jmp1
+            mov eax, [ecx*0x4+detour5_mov1] // might need 0x00E1657C
+        // jmp_ret:
+			jmp dword ptr [DtKnuckle::jmp_ret5]
+
+        jmp_jmp1:
+            jmp dword ptr [detour5_jmp1]
+    }
+}
+
+naked void detour6(void) { // Fix height reset on landing
+    _asm {
+			cmp byte ptr [DtKnuckle::mod_enabled], 0
+			je originalcode
+
+            fld dword ptr [esi+0x34]
+            fstp dword ptr [esi+0x34]
+            jmp jmp_ret
+
+        originalcode:
+            fld dword ptr [eax+0x34]
+            fstp dword ptr [esi+0x34]
+        jmp_ret:
+			jmp dword ptr [DtKnuckle::jmp_ret6]
+    }
+}
+
+naked void detour7(void) { // rotation fix 1
+    _asm {
+			cmp byte ptr [DtKnuckle::mod_enabled], 0
+			je originalcode
+
+            push eax
+            xor eax, eax
+            mov al, [spectreFlag]
+            test eax,eax
+            je handler
+            pop eax
+            jmp jmp_ret
+
+        handler:
+            pop eax
+            movss [edi+0x44], xmm1
+            jmp jmp_ret
+
+        originalcode:
+            movss [edi+0x44], xmm1
+        jmp_ret:
+			jmp dword ptr [DtKnuckle::jmp_ret7]
+    }
+}
+
+naked void detour8(void) { // rotation fix 2
+    _asm {
+			cmp byte ptr [DtKnuckle::mod_enabled], 0
+			je originalcode
+
+            push eax
+            xor eax, eax
+            mov al, [spectreFlag]
+            test eax,eax
+            je handler
+            pop eax
+            jmp jmp_ret
+
+        handler:
+            pop eax
+            movss [esi+0x44], xmm1
+            jmp jmp_ret
+
+        originalcode:
+            movss [esi+0x44], xmm1
+        jmp_ret:
+			jmp dword ptr [DtKnuckle::jmp_ret8]
+    }
+}
+
+naked void detour9(void) { // rotation fix 3
+    _asm {
+			cmp byte ptr [DtKnuckle::mod_enabled], 0
+			je originalcode
+
+            fld dword ptr [edx+0x44]
+            fstp dword ptr [edi+0x44]
+            jmp jmp_ret
+
+        originalcode:
+            fld dword ptr [eax+0x44]
+            fstp dword ptr [edi+0x44]
+        jmp_ret:
+			jmp dword ptr [DtKnuckle::jmp_ret9]
+    }
+}
+
+naked void detour10(void) { // Prevent DT moves from cancelling guardian
+    _asm {
+			cmp byte ptr [DtKnuckle::mod_enabled], 0
+			je originalcode
+
+            push ecx
+            xor ecx, ecx
+            mov cl, [spectreFlag]
+            test ecx, ecx
+            je handler
+            pop ecx
+            mov al, 0
+            jmp originalcode
+
+        handler:
+            pop ecx
+        originalcode:
+            cmp al, 01
+            jne jmp_jne
+            push edi
+        // jmp_ret:
+			jmp dword ptr [DtKnuckle::jmp_ret10]
+        jmp_jne:
+            jmp dword ptr [detour10_conditional1]
+    }
+}
+
+naked void detour11(void) { // Decrease height
+    _asm {
+			cmp byte ptr [DtKnuckle::mod_enabled], 0
+			je originalcode
+
+            push eax
+            xor eax, eax
+            mov al,[spectreFlag]
+            test eax, eax
+            je handler
+            pop eax
+            movss xmm1, [edi+0x34]
+            subss xmm1, [decrement]
+            movss [edi+0x34], xmm1
+            jmp originalcode
+
+        handler:
+            pop eax
+        originalcode:
+            fld dword ptr [edx+0x00001358]
+        // jmp_ret:
+			jmp dword ptr [DtKnuckle::jmp_ret11]
+    }
+}
+
+naked void detour12(void) { // Prevent guardian visible time from being extended
+    _asm {
+			cmp byte ptr [DtKnuckle::mod_enabled], 0
+			je originalcode
+
+            push ecx
+            mov ecx,[edi+0x22A8]
+            cmp ecx, 0x4
+            jne handler
+            xor ecx, ecx // for cl
+            mov cl, [endFlag]
+            cmp ecx, 1
+            jne handler
+            mov ecx, [edi+0x22C4]
+            cmp ecx, 00
+            jne handler
+            pop ecx
+            xor eax, eax
+            jmp originalcode
+
+        handler:
+            pop ecx
+        originalcode:
+            test eax, eax
+            je jmp_je
+            lea esp, [esp+0x00000000]
+        // jmp_ret:
+			jmp dword ptr [DtKnuckle::jmp_ret12]
+        jmp_je:
+            jmp dword ptr [detour12_conditional1]
+    }
+}
+
+naked void detour13(void) { // remove endFlag
+    _asm {
+			cmp byte ptr [DtKnuckle::mod_enabled], 0
+			je originalcode
+
+            mov byte ptr [endFlag],00
+        originalcode:
+            mov [edi+0x000022A8],ebx
+        // jmp_ret:
+			jmp dword ptr [DtKnuckle::jmp_ret13]
+    }
+}
+
 std::optional<std::string> DtKnuckle::on_initialize() {
     if (!install_hook_offset(0x3A92BF, hook1, &detour1, &jmp_ret1, 6)) {
         spdlog::error("Failed to init DtKnuckle mod\n");
         return "Failed to init DtKnuckle mod";
     }
-    if (!install_hook_offset(0x429739, hook2, &detour2, &jmp_ret2, 10)) {
+    if (!install_hook_offset(0x4297D1, hook2, &detour2, &jmp_ret2, 10)) {
         spdlog::error("Failed to init DtKnuckle mod2\n");
         return "Failed to init DtKnuckle mod2";
     }
@@ -189,28 +434,44 @@ std::optional<std::string> DtKnuckle::on_initialize() {
         spdlog::error("Failed to init DtKnuckle mod4\n");
         return "Failed to init DtKnuckle mod4";
     }
+    if (!install_hook_offset(0x42A8D0, hook5, &detour5, &jmp_ret5, 11)) {
+        spdlog::error("Failed to init DtKnuckle mod5\n");
+        return "Failed to init DtKnuckle mod5";
+    }
+    if (!install_hook_offset(0x428E19, hook6, &detour6, &jmp_ret6, 6)) {
+        spdlog::error("Failed to init DtKnuckle mod6\n");
+        return "Failed to init DtKnuckle mod6";
+    }
+    if (!install_hook_offset(0x5FB7F7, hook7, &detour7, &jmp_ret7, 5)) {
+        spdlog::error("Failed to init DtKnuckle mod7\n");
+        return "Failed to init DtKnuckle mod7";
+    }
+    if (!install_hook_offset(0x428E6F, hook8, &detour8, &jmp_ret8, 5)) {
+        spdlog::error("Failed to init DtKnuckle mod8\n");
+        return "Failed to init DtKnuckle mod8";
+    }
+    if (!install_hook_offset(0x42A91A, hook9, &detour9, &jmp_ret9, 6)) {
+        spdlog::error("Failed to init DtKnuckle mod9\n");
+        return "Failed to init DtKnuckle mod9";
+    }
+    if (!install_hook_offset(0x3E6E2C, hook10, &detour10, &jmp_ret10, 5)) {
+        spdlog::error("Failed to init DtKnuckle mod10\n");
+        return "Failed to init DtKnuckle mod10";
+    }
+    if (!install_hook_offset(0x42A8FD, hook11, &detour11, &jmp_ret11, 6)) {
+        spdlog::error("Failed to init DtKnuckle mod11\n");
+        return "Failed to init DtKnuckle mod11";
+    }
+    if (!install_hook_offset(0x429BB5, hook12, &detour12, &jmp_ret12, 11)) {
+        spdlog::error("Failed to init DtKnuckle mod12\n");
+        return "Failed to init DtKnuckle mod12";
+    }
+    if (!install_hook_offset(0x42AA1E, hook13, &detour13, &jmp_ret13, 6)) {
+        spdlog::error("Failed to init DtKnuckle mod13\n");
+        return "Failed to init DtKnuckle mod13";
+    }
     return Mod::on_initialize();
 }
-
-// siy stuff to be moved //
-static const std::vector<std::pair<uint16_t, const char*>> buttonPairs = {
-    {0x00000400, "Left Trigger"},
-    {0x00000800, "Right Trigger"},
-    {0x00000100, "Left Shoulder"},
-    {0x00000200, "Right Shoulder"},
-    {0x00001000, "Y"},
-    {0x00002000, "B"},
-    {0x00004000, "A"},
-    {0x00008000, "X"},
-    {0x00000001, "Back"},
-    {0x00000002, "Left Thumb"},
-    {0x00000004, "Right Thumb"},
-    {0x00000008, "Start"},
-    {0x00000010, "Dpad Up"},
-    {0x00000020, "Dpad Right"},
-    {0x00000040, "Dpad Down"},
-    {0x00000080, "Dpad Left"}
-};
 
 std::pair<uint16_t, const char*> getButtonInfo(uint16_t buttonNum) {
     for (const auto& pair : buttonPairs) {

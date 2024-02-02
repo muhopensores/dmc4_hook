@@ -4,14 +4,15 @@ bool AngelSnatch::mod_enabled{false};
 bool snatchFlag = false;
 
 uintptr_t AngelSnatch::jmp_ret1{false};
-constexpr uintptr_t detour1_call1 = 0x007FA190;
-
+    constexpr uintptr_t detour1_call1 = 0x007FA190;
 uintptr_t AngelSnatch::jmp_ret2{false};
-constexpr uintptr_t detour2_call1 = 0x007F9FA0;
-
+    constexpr uintptr_t detour2_call1 = 0x007F9FA0;
 uintptr_t AngelSnatch::jmp_ret3{false};
+uintptr_t AngelSnatch::jmp_ret4{false};
+uintptr_t AngelSnatch::jmp_ret5{false};
+uintptr_t AngelSnatch::jmp_ret6{false};
 
-naked void detour1(void) {
+naked void detour1(void) { // Air Angel Snatch flag
     _asm {
 			cmp byte ptr [AngelSnatch::mod_enabled], 0
 			je originalcode
@@ -35,7 +36,7 @@ naked void detour1(void) {
     }
 }
 
-naked void detour2(void) {
+naked void detour2(void) { // Ground Angel Snatch flag
     _asm {
 			cmp byte ptr [AngelSnatch::mod_enabled], 0
 			je originalcode
@@ -59,7 +60,7 @@ naked void detour2(void) {
     }
 }
 
-naked void detour3(void) {
+naked void detour3(void) { // Invalidate enemy pull, change snatch reaction
     _asm {
 			cmp byte ptr [AngelSnatch::mod_enabled], 0
 			je originalcode
@@ -88,6 +89,78 @@ naked void detour3(void) {
     }
 }
 
+naked void detour4(void) { // Angel Snatch on Dante
+    _asm {
+			cmp byte ptr [AngelSnatch::mod_enabled], 0
+			je originalcode
+
+            push eax
+            xor eax, eax // for al
+            mov al,[snatchFlag]
+            test eax, eax
+            je handler
+            pop eax
+            mov edi, 0x00000004
+            jmp jmp_ret
+        handler:
+            pop eax
+        originalcode:
+            mov edi, 0x00000003
+        jmp_ret:
+			jmp dword ptr [AngelSnatch::jmp_ret4]
+    }
+}
+
+naked void detour5(void) { // Change Dante's reaction to Angel Snatch
+    _asm {
+			cmp byte ptr [AngelSnatch::mod_enabled], 0
+			je originalcode
+
+            push eax
+            xor eax, eax // for al
+            mov al, [snatchFlag]
+            test eax, eax
+            je handler
+            pop eax
+            push 0x32
+            jmp skipcode
+
+        handler:
+            pop eax
+            
+        originalcode:
+            push 0x36
+        skipcode:
+            mov ecx,esi
+            mov [esi+0x0001616C], ebx
+        // jmp_ret:
+			jmp dword ptr [AngelSnatch::jmp_ret5]
+    }
+}
+
+naked void detour6(void) { //
+    _asm {
+			cmp byte ptr [AngelSnatch::mod_enabled], 0
+			je originalcode
+
+            push eax
+            xor eax, eax // for al
+            mov al,[snatchFlag]
+            test eax, eax
+            je handler
+            pop eax
+            mov [esi+0x000160B4], 01
+            jmp jmp_ret
+
+        handler:
+            pop eax
+        originalcode:
+            mov [esi+0x000160B4], ebx
+        jmp_ret:
+			jmp dword ptr [AngelSnatch::jmp_ret6]
+    }
+}
+
 std::optional<std::string> AngelSnatch::on_initialize() {
     if (!install_hook_offset(0x3F9CF2, hook1, &detour1, &jmp_ret1, 6)) {
         spdlog::error("Failed to init AngelSnatch mod\n");
@@ -100,6 +173,18 @@ std::optional<std::string> AngelSnatch::on_initialize() {
     if (!install_hook_offset(0x334F9D, hook3, &detour3, &jmp_ret3, 7)) {
         spdlog::error("Failed to init AngelSnatch mod3\n");
         return "Failed to init AngelSnatch mod3";
+    }
+    if (!install_hook_offset(0x3C5D98, hook4, &detour4, &jmp_ret4, 5)) {
+        spdlog::error("Failed to init AngelSnatch mod4\n");
+        return "Failed to init AngelSnatch mod4";
+    }
+    if (!install_hook_offset(0x3C5D33, hook5, &detour5, &jmp_ret5, 10)) {
+        spdlog::error("Failed to init AngelSnatch mod5\n");
+        return "Failed to init AngelSnatch mod5";
+    }
+    if (!install_hook_offset(0x3C5D65, hook6, &detour6, &jmp_ret6, 6)) {
+        spdlog::error("Failed to init AngelSnatch mod6\n");
+        return "Failed to init AngelSnatch mod6";
     }
     return Mod::on_initialize();
 }
