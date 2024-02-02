@@ -70,7 +70,8 @@ void DtKnuckle::toggle(bool enable) {
     }
 }
 
-naked void detour1(void) { // Input check and initialize spectre
+// Input check and initialize spectre
+naked void detour1(void) {
     _asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
@@ -147,7 +148,8 @@ naked void detour1(void) { // Input check and initialize spectre
     }
 }
 
-naked void detour2(void) { // better flag remove
+// better flag remove
+naked void detour2(void) {
     _asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
@@ -169,7 +171,8 @@ naked void detour2(void) { // better flag remove
     }
 }
 
-naked void detour3(void) { // animation check bypass
+// animation check bypass
+naked void detour3(void) {
     _asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
@@ -188,7 +191,8 @@ naked void detour3(void) { // animation check bypass
     }
 }
 
-naked void detour4(void) { // motion check bypass
+// motion check bypass
+naked void detour4(void) {
     _asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
@@ -207,8 +211,8 @@ naked void detour4(void) { // motion check bypass
             jmp dword ptr [detour4_conditional1]
     }
 }
-
-naked void detour5(void) { // Disjoint
+// Disjoint
+naked void detour5(void) {
     _asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
@@ -235,7 +239,8 @@ naked void detour5(void) { // Disjoint
     }
 }
 
-naked void detour6(void) { // Fix height reset on landing
+// Fix height reset on landing
+naked void detour6(void) {
     _asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
@@ -252,7 +257,8 @@ naked void detour6(void) { // Fix height reset on landing
     }
 }
 
-naked void detour7(void) { // rotation fix 1
+// rotation fix 1
+naked void detour7(void) {
     _asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
@@ -277,7 +283,8 @@ naked void detour7(void) { // rotation fix 1
     }
 }
 
-naked void detour8(void) { // rotation fix 2
+// rotation fix 2
+naked void detour8(void) {
     _asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
@@ -302,7 +309,8 @@ naked void detour8(void) { // rotation fix 2
     }
 }
 
-naked void detour9(void) { // rotation fix 3
+// rotation fix 3
+naked void detour9(void) {
     _asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
@@ -319,7 +327,8 @@ naked void detour9(void) { // rotation fix 3
     }
 }
 
-naked void detour10(void) { // Prevent DT moves from cancelling guardian
+// Prevent DT moves from cancelling guardian
+naked void detour10(void) {
     _asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
@@ -346,7 +355,8 @@ naked void detour10(void) { // Prevent DT moves from cancelling guardian
     }
 }
 
-naked void detour11(void) { // Decrease height
+// Decrease height
+naked void detour11(void) {
     _asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
@@ -371,7 +381,8 @@ naked void detour11(void) { // Decrease height
     }
 }
 
-naked void detour12(void) { // Prevent guardian visible time from being extended
+// Prevent guardian visible time from being extended
+naked void detour12(void) {
     _asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
@@ -404,7 +415,8 @@ naked void detour12(void) { // Prevent guardian visible time from being extended
     }
 }
 
-naked void detour13(void) { // remove endFlag
+// remove endFlag
+naked void detour13(void) {
     _asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode

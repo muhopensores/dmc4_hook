@@ -12,7 +12,8 @@ uintptr_t AngelSnatch::jmp_ret4{false};
 uintptr_t AngelSnatch::jmp_ret5{false};
 uintptr_t AngelSnatch::jmp_ret6{false};
 
-naked void detour1(void) { // Air Angel Snatch flag
+// Air Angel Snatch flag
+naked void detour1(void) {
     _asm {
 			cmp byte ptr [AngelSnatch::mod_enabled], 0
 			je originalcode
@@ -36,7 +37,8 @@ naked void detour1(void) { // Air Angel Snatch flag
     }
 }
 
-naked void detour2(void) { // Ground Angel Snatch flag
+// Ground Angel Snatch flag
+naked void detour2(void) {
     _asm {
 			cmp byte ptr [AngelSnatch::mod_enabled], 0
 			je originalcode
@@ -60,7 +62,8 @@ naked void detour2(void) { // Ground Angel Snatch flag
     }
 }
 
-naked void detour3(void) { // Invalidate enemy pull, change snatch reaction
+// Invalidate enemy pull, change snatch reaction
+naked void detour3(void) {
     _asm {
 			cmp byte ptr [AngelSnatch::mod_enabled], 0
 			je originalcode
@@ -89,7 +92,8 @@ naked void detour3(void) { // Invalidate enemy pull, change snatch reaction
     }
 }
 
-naked void detour4(void) { // Angel Snatch on Dante
+// Angel Snatch on Dante
+naked void detour4(void) {
     _asm {
 			cmp byte ptr [AngelSnatch::mod_enabled], 0
 			je originalcode
@@ -111,7 +115,8 @@ naked void detour4(void) { // Angel Snatch on Dante
     }
 }
 
-naked void detour5(void) { // Change Dante's reaction to Angel Snatch
+// Change Dante's reaction to Angel Snatch
+naked void detour5(void) {
     _asm {
 			cmp byte ptr [AngelSnatch::mod_enabled], 0
 			je originalcode
@@ -138,7 +143,8 @@ naked void detour5(void) { // Change Dante's reaction to Angel Snatch
     }
 }
 
-naked void detour6(void) { //
+// Enable Dante's AI during Angel Snatch
+naked void detour6(void) {
     _asm {
 			cmp byte ptr [AngelSnatch::mod_enabled], 0
 			je originalcode
