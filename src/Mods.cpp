@@ -113,6 +113,7 @@
 #include "mods/RevFlying.hpp"
 #include "mods/AngelSnatch.hpp"
 #include "mods/DtKnuckle.hpp"
+#include "mods/EffectColours.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -242,6 +243,7 @@ Mods::Mods() {
     ADD_MOD(RevFlying);
     ADD_MOD(AngelSnatch);
     ADD_MOD(DtKnuckle);
+    ADD_MOD(EffectColours);
 }
 
 // Initializes mods, checks for errors
