@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/CharSwitcher.hpp
+  mods/CharSwitcher.cpp
   mods/EffectColours.hpp
   mods/EffectColours.cpp
   mods/DtKnuckle.hpp

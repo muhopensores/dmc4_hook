@@ -2,7 +2,7 @@
 
 bool      EffectColours::mod_enabled{ false };
 uintptr_t EffectColours::jmp_ret{ NULL };
-int8_t coloursPicked[4]{255, 255, 0, 255}; //bgra
+int8_t coloursPicked[4]{(int8_t)255, (int8_t)255, (int8_t)0, (int8_t)255}; // bgra
 float coloursPickedFloat[4]{0.0f, 1.0f, 1.0f, 1.0f}; //rgba
 
 naked void detour(void) {
@@ -33,15 +33,17 @@ std::optional<std::string> EffectColours::on_initialize() {
 }
 
 void EffectColours::on_gui_frame() {
-	ImGui::Checkbox("Custom Colours", &mod_enabled);
-    ImGui::SameLine();
-    help_marker("I haven't figured this out yet");
-    if (ImGui::ColorPicker4("Colours", coloursPickedFloat)) {
-        coloursPicked[2] = (int8_t)(coloursPickedFloat[0] * 255.0f); // Red
-        coloursPicked[1] = (int8_t)(coloursPickedFloat[1] * 255.0f); // Green
-        coloursPicked[0] = (int8_t)(coloursPickedFloat[2] * 255.0f); // Blue
-        coloursPicked[3] = (int8_t)(coloursPickedFloat[3] * 255.0f); // Alpha
-    }
+	if (ImGui::CollapsingHeader("Colours")) {
+		ImGui::Checkbox("Custom Colours", &mod_enabled);
+		ImGui::SameLine();
+		help_marker("I haven't figured this out yet");
+		if (ImGui::ColorPicker4("Colours", coloursPickedFloat)) {
+			coloursPicked[2] = (int8_t)(coloursPickedFloat[0] * 255.0f); // Red
+			coloursPicked[1] = (int8_t)(coloursPickedFloat[1] * 255.0f); // Green
+			coloursPicked[0] = (int8_t)(coloursPickedFloat[2] * 255.0f); // Blue
+			coloursPicked[3] = (int8_t)(coloursPickedFloat[3] * 255.0f); // Alpha
+		}
+	}
 }
 
 void EffectColours::on_config_load(const utility::Config& cfg) {

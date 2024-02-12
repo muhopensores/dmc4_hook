@@ -114,6 +114,7 @@
 #include "mods/AngelSnatch.hpp"
 #include "mods/DtKnuckle.hpp"
 #include "mods/EffectColours.hpp"
+#include "mods/CharSwitcher.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -244,6 +245,7 @@ Mods::Mods() {
     ADD_MOD(AngelSnatch);
     ADD_MOD(DtKnuckle);
     ADD_MOD(EffectColours);
+    ADD_MOD(CharSwitcher);
 }
 
 // Initializes mods, checks for errors

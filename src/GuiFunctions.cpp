@@ -731,6 +731,12 @@ namespace gui {
 
                     pmods->on_draw_ui("EffectColours"_hash);
 
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    pmods->on_draw_ui("CharSwitcher"_hash);
+
                     // pmods->onDrawUI("ShaderEditor"_hash);
 
                     g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
