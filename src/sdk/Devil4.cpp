@@ -167,4 +167,13 @@ namespace devil4_sdk {
 		state = curr_state;
 		return ret;
 	}
+
+	std::pair<uint16_t, const char*> getButtonInfo(uint16_t buttonNum) {
+        for (const auto& pair : buttonPairs) {
+			if (pair.first == buttonNum) {
+            return pair;
+			}
+        }
+            return buttonPairs[0];
+    }
 }

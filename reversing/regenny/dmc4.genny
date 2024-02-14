@@ -235,6 +235,7 @@ class uPlayer : public UCoord{
 	float groundInertiaZ @ 0xEC8
 	bool hitstop @ 0x1201
 	float facingDirection @ 0x1210
+	uint32_t inputHoldRaw @ 0x1374
 	float stickDirection @ 0x13C4
 	uint8_t inputHold[4] @ 0x140C
 	uint8_t inputPress[4] @ 0x1410

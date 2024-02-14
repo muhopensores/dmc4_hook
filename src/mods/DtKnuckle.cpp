@@ -90,8 +90,8 @@ naked void detour1(void) {
 			movss [inputCooldown], xmm0
 
 			mov eax, [ebp+0x1374] // raw controller input
-			test eax, eax
-			je handler3 // no input, jump out
+			//test eax, eax
+			//je handler3 // no input, jump out
 
 			cmp dword ptr [inputCooldown], 0
 			jg handler3 // cooldown has value != 0, jump out
@@ -489,15 +489,6 @@ std::optional<std::string> DtKnuckle::on_initialize() {
 	return Mod::on_initialize();
 }
 
-std::pair<uint16_t, const char*> getButtonInfo(uint16_t buttonNum) {
-	for (const auto& pair : buttonPairs) {
-		if (pair.first == buttonNum) {
-			return pair;
-		}
-	}
-	return buttonPairs[0];
-}
-
 void DtKnuckle::on_gui_frame() {
 	if (ImGui::Checkbox("Guardian Devil", &mod_enabled)) {
 		toggle(mod_enabled);
@@ -506,7 +497,7 @@ void DtKnuckle::on_gui_frame() {
 	help_marker("Triggers a stand attack when you input the selected button.\nLockon+forward/back for other attacks");
 	ImGui::SameLine(sameLineWidth);
 	ImGui::PushItemWidth(sameLineItemWidth);
-	if (ImGui::BeginCombo("Guardian Input", getButtonInfo(desiredInput).second)) {
+	if (ImGui::BeginCombo("Guardian Input", devil4_sdk::getButtonInfo(desiredInput).second)) {
 		for (const auto& buttonPair : buttonPairs) {
 			bool is_selected = (desiredInput == buttonPair.first);
 			if (ImGui::Selectable(buttonPair.second, is_selected)) {
@@ -524,10 +515,10 @@ void DtKnuckle::on_gui_frame() {
 void DtKnuckle::on_config_load(const utility::Config& cfg) {
 	mod_enabled = cfg.get<bool>("dt_knuckle").value_or(false);
 	toggle(mod_enabled);
-	desiredInput = cfg.get<int>("knuckle_input").value_or(0x100); // L1 default
+	desiredInput = cfg.get<int16_t>("knuckle_input").value_or(0x100); // L1 default
 }
 
 void DtKnuckle::on_config_save(utility::Config& cfg) {
 	cfg.set<bool>("dt_knuckle", mod_enabled);
-	cfg.set<int>("knuckle_input", desiredInput);
+	cfg.set<int16_t>("knuckle_input", desiredInput);
 }

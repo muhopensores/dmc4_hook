@@ -18,10 +18,13 @@ constexpr uintptr_t spawnNero_call2 = 0x008DC540;
 constexpr uintptr_t spawnDante_call1 = 0x007B2150;
 constexpr uintptr_t spawnDante_call2 = 0x008DC540; // same as nero
 
-uintptr_t uPlAddr1 = 0;
-uintptr_t uPlAddr2 = 0;
-float swapGrav     = 0.0f;
-uintptr_t tempAddr = 0;
+uintptr_t uPlAddr1    = 0;
+uintptr_t uPlAddr2    = 0;
+float swapGrav        = 0.0f;
+uintptr_t tempAddr    = 0;
+float ySpawn          = 0.0f;
+uint16_t desiredInput = 0;
+uint16_t prevInput    = 0;
 
 constexpr uintptr_t detour2_mov1 = 0;
 
@@ -34,6 +37,7 @@ naked void detour1(void) {
             jmp jnecode
 
 		originalcode:
+            test eax,eax
             jne jnecode
             lea esi, [eax+0x000001D8]
 			jmp dword ptr [CharSwitcher::jmp_ret1]
@@ -51,7 +55,8 @@ naked void SetUPlayerAddresses(void) {
             mov ebp, [ebp] //
             mov ebp, [ebp+0x24]
             mov [uPlAddr2], ebp
-            mov [swapGrav], 0xbdcccccd // -0.1
+            mov dword ptr [swapGrav], 0xbdcccccd // -0.1
+            mov dword ptr [ySpawn], 0xc4fa0000 // -2000.0f
             popad
             ret
     }
@@ -146,48 +151,97 @@ naked void SwapActor(void) {
 
         // To-be main actor
         mov [uPlAddr1], ecx
-        mov dword ptr [ecx+0x1509], 1
+        mov dword ptr [ecx+0x1509], 1 //input
 
-        // Collision
-        mov esi, [ecx+0x1E8C]
-        mov dword ptr [esi+0xD4], 0
-        mov dword ptr [esi+0x1C], 1
-
+        // Position, rotation
         fld [eax+0x30] // X pos
         fstp [ecx+0x30]
         fld [eax+0x34] // Y pos
         fstp [ecx+0x34]
         fld [eax+0x38] // Z pos
         fstp [ecx+0x38]
+        fld [ecx+0x30]
+        fstp dword ptr [ecx+0x000014A0]
+        fld dword ptr [ecx+0x34]
+        fstp dword ptr [ecx+0x000014A4]
+        fld dword ptr [ecx+0x38]
+        fstp dword ptr [ecx+0x000014A8]
+        fld dword ptr [ecx+0x30]
+        fstp dword ptr [ecx+0x00002170]
+        fld dword ptr [ecx+0x34]
+        fstp dword ptr [ecx+0x00002174]
+        fld dword ptr [ecx+0x38]
+        fstp dword ptr [ecx+0x00002178]
         fld [eax+0x44] // facing direction
         fstp [ecx+0x44]
+        fld [eax+0x4C]
+        fstp [ecx+0x4C]
+        fld [eax+0x1710]
+        fstp [ecx+0x1710]
+
+        // Collision
+        mov [ecx+0x150C], 1
+        mov [ecx+0x150D], 1
+        mov [ecx+0x150E], 1
+        mov [ecx+0x150F], 1
+        //  mov edi,[eax+0x1E8C]
+        mov esi,[ecx+0x1E8C]
+        mov [esi+0xD4], 0
+        mov [esi+0x1C], 0
 
         // Inertia, gravity
-        fld [eax+0xEC4]
-        fstp [ecx+0xEC4]
+        xorps xmm0, xmm0
+        movss [ecx+0xEC4], xmm0
         movss xmm0, [swapGrav]
         movss [ecx+0xED4], xmm0
-        fld [eax+0x1E18]
-        fstp [ecx+0x1E18]
+        //  fld [eax+0xED4]
+        //  fstp [ecx+0xED4]
+        mov byte ptr [ecx+0x2A57], 00
         fld [eax+0x1E1C] // inertia
         fstp [ecx+0x1E1C]
         fld [eax+0x1E30] // X-axis inertia
         fstp [ecx+0x1E30]
         fld [eax+0x1E38] // Z-axis inertia
         fstp [ecx+0x1E38]
+        fld [eax+0x1E50]
+        fstp [ecx+0x1E50]
+        fld [eax+0x1E54]
+        fstp [ecx+0x1E54]
+        fld [eax+0x1E58]
+        fstp [ecx+0x1E58]
+        fld [eax+0x1E60]
+        fstp [ecx+0x1E60]
+        fld [eax+0x1E64]
+        fstp [ecx+0x1E64]
+        mov [ecx+0x1504], 0
+        mov [ecx+0x1550], 01
+        mov edx,[ecx+0x1554]
+        or edx, 0x02
+        mov [ecx+0x1554], edx
 
         // Previous main actor
-        mov [uPlAddr2],eax
-        mov dword ptr [eax+0x1509], 0 // input
-        mov esi, [eax+0x1E8C]
-        mov dword ptr [esi+0xD4], 1 // collision
+        mov [uPlAddr2], eax
+        mov [eax+0x1509], 0 // input
+        mov esi,[eax+0x1E8C]
+        mov [esi+0xD4], 1 // collision
 
-        xorps xmm0,xmm0
+        // Position
+        fld dword ptr [ebp+0x60]
+        fstp dword ptr [eax+0x30]
+        fld dword ptr [ySpawn]
+        fstp dword ptr [eax+0x34]
+        fld dword ptr [ebp+0x68]
+        fstp dword ptr [eax+0x38]
+        //  mov [esi+0x1C], 0
+        mov [eax+0x1504], 5
+        //  mov [eax+0x150C], 0
+        //  mov [eax+0x150D], 1
+        xorps xmm0, xmm0
+        movss [eax+0x1E1C], xmm0
         movss [eax+0xEC4], xmm0
         movss [eax+0xED0], xmm0
         movss [eax+0xED4], xmm0
         movss [eax+0xED8], xmm0
-        movss [eax+0x1E1C], xmm0
         popad
         ret
     }
@@ -201,7 +255,19 @@ std::optional<std::string> CharSwitcher::on_initialize() {
     return Mod::on_initialize();
 }
 
-void CharSwitcher::on_gui_frame() {
+void CharSwitcher::on_frame(fmilliseconds& dt) {
+    if (mod_enabled) {
+        uPlayer* player = devil4_sdk::get_local_player();
+        if (player) {
+            if (player->buttonInputRaw != prevInput && player->buttonInputRaw & desiredInput) {
+                SwapActor();
+            }
+            prevInput = player->buttonInputRaw;
+        }
+    }
+}
+
+void CharSwitcher::on_gui_frame() { 
     ImGui::Checkbox("Char Switcher", &mod_enabled);
     ImGui::SameLine();
     help_marker("Enable before loading into a stage");
@@ -211,27 +277,47 @@ void CharSwitcher::on_gui_frame() {
     }
     ImGui::SameLine();
     help_marker("Click after loading into a stage");
+
     if (ImGui::Button("3.a. Load Nero arc")) {
         LoadNeroArc();
     }
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Button("3.b. Load Dante arc")) {
         LoadDanteArc();
     }
-    if (ImGui::Button("4.a. Spawn Nero (load arc file first if not main actor)")) {
+    if (ImGui::Button("4.a. Spawn Nero")) {
         SpawnNero();
     }
-    if (ImGui::Button("4.b. Spawn Dante(load arc file first if not main actor)")) {
+    ImGui::SameLine(sameLineWidth);
+    if (ImGui::Button("4.b. Spawn Dante")) {
         SpawnDante();
     }
     if (ImGui::Button("swap actor")) {
         SwapActor();
     }
+    ImGui::SameLine(sameLineWidth);
+    ImGui::PushItemWidth(sameLineItemWidth);
+    if (ImGui::BeginCombo("Char Swap Input", devil4_sdk::getButtonInfo(desiredInput).second)) {
+        for (const auto& buttonPair : buttonPairs) {
+            bool is_selected = (desiredInput == buttonPair.first);
+            if (ImGui::Selectable(buttonPair.second, is_selected)) {
+                desiredInput = buttonPair.first;
+            }
+            if (is_selected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+    ImGui::PopItemWidth();
 }
 
 void CharSwitcher::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("char_switcher").value_or(true);
+    desiredInput = cfg.get<int16_t>("char_swap_input").value_or(0x1); // Select default
 }
 
 void CharSwitcher::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("char_switcher", mod_enabled);
+    cfg.set<int16_t>("char_swap_input", desiredInput);
 }

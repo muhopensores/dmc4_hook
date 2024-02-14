@@ -11,5 +11,6 @@ namespace devil4_sdk {
     bool is_paused();
     bool is_not_in_gameplay();
 	bool was_gameplay_state_toggled();
+	std::pair<uint16_t, const char*> getButtonInfo(uint16_t buttonNum);
 	float get_current_style_rank();
 };
