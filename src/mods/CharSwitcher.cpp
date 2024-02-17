@@ -6,7 +6,6 @@ constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 uintptr_t CharSwitcher::jmp_ret1{NULL};
     constexpr uintptr_t detour1_jmp1 = 0x00494B70;
 uintptr_t CharSwitcher::jmp_ret2{NULL};
-    constexpr uintptr_t detour2_jmp1  = 0x00405F68;
     constexpr uintptr_t detour2_call1 = 0x008DF530;
 uintptr_t CharSwitcher::jmp_ret3{NULL};
 uintptr_t CharSwitcher::jmp_ret4{NULL};
@@ -20,12 +19,11 @@ uintptr_t CharSwitcher::jmp_ret6{NULL};
 
 uintptr_t primaryActor   = NULL;
 uintptr_t secondaryActor = NULL;
-bool ender               = false;
 float swapGrav           = -0.5f;
 float ySpawn             = -3000.0f;
-int desiredInput1        = 0; // 0x40 default
-int desiredInput2        = 0; // 0x20 default
-int prevInput            = 0;
+int16_t desiredInput1    = 0x40; // 0x40 default
+int16_t desiredInput2    = 0x20; // 0x20 default
+int16_t prevInput        = 0;
 
 void CharSwitcher::toggle(bool enable) {
     if (enable) {
@@ -69,16 +67,34 @@ naked void detour2(void) {
 			cmp byte ptr [CharSwitcher::mod_enabled], 0
 			je originalcode
 
-            mov eax, [0x00B90CE8]
+            push ecx
+            mov ecx, [0x00E552C8]
+            mov ecx, [ecx+0x3834]
+            mov ecx, [ecx+0x28]
+            test cl,cl
+            pop ecx
+            je NeroArc
+        // DanteArc:
+            pushad
+            push 0x00008002
+            push 0x00B90CE8
+            mov eax, [0x00E552D0]
             push 0x00EAD4A0
             call dword ptr [detour2_call1]
-            mov ebp, 0x00008002
-            push ebp
-            push 0x00B90CE8
-            jmp dword ptr [CharSwitcher::jmp_ret1]
+            popad
+            jmp originalcode
 
+        NeroArc:
+            pushad
+            push 0x00008002
+            push 0x00B90CD0
+            mov eax, [0x00E552D0]
+            push 0x00EAD4A0
+            call dword ptr [detour2_call1]
+            popad
         originalcode:
-            jmp dword ptr [detour2_jmp1]
+            mov ecx, [0x00E14344]
+            jmp dword ptr [CharSwitcher::jmp_ret2]
     }
 }
 
@@ -237,20 +253,22 @@ naked void SwapActor(void) {
             test ebp,ebp
             je loopend
             mov ecx, [ebp+0x1374]
-            mov edx, [desiredInput1]
-            add edx, [desiredInput2]
+            xor edx,edx
+            mov dx, [desiredInput1]
+            add dx, [desiredInput2]
             and ecx, edx
             cmp ecx, edx
             je loop2
-            mov [prevInput], ecx
+            mov [prevInput], cx
             jmp loopend
 
         loop2:
-            mov esi, [prevInput]
+            xor esi, esi
+            mov si, [prevInput]
             xor esi, ecx
             test esi, esi
             je loopend
-            mov [prevInput], edx
+            mov [prevInput], dx
             call swapActor
             jmp loopend
 
@@ -357,7 +375,7 @@ std::optional<std::string> CharSwitcher::on_initialize() {
         spdlog::error("Failed to init CharSwitcher1 mod\n");
         return "Failed to init CharSwitcher1 mod";
     }
-    if (!install_hook_offset(0x005F60, hook2, &detour2, &jmp_ret2, 8)) { // Load both Dante's & Nero's arc files // hmm
+    if (!install_hook_offset(0x007320, hook2, &detour2, &jmp_ret2, 6)) { // Load both Dante's & Nero's arc files // AAAAAAA
         spdlog::error("Failed to init CharSwitcher2 mod\n");
         return "Failed to init CharSwitcher2 mod";
     }
@@ -393,7 +411,7 @@ void CharSwitcher::on_frame(fmilliseconds& dt) {
     }
     */
     if (mod_enabled) {
-        SwapActor();
+        //SwapActor();
     }
 }
 
@@ -406,7 +424,6 @@ void CharSwitcher::on_gui_frame() {
     if (ImGui::Button("swap actor")) {
         SwapActor();
     }
-    ImGui::SameLine(sameLineWidth);
     ImGui::PushItemWidth(sameLineItemWidth);
     if (ImGui::BeginCombo("Char Swap Input 1", devil4_sdk::getButtonInfo(desiredInput1).second)) {
         for (const auto& buttonPair : buttonPairs) {
@@ -438,12 +455,12 @@ void CharSwitcher::on_gui_frame() {
 void CharSwitcher::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("char_switcher").value_or(false);
     toggle(mod_enabled);
-    desiredInput1 = cfg.get<int>("char_swap_input1").value_or(0x40);
-    desiredInput2 = cfg.get<int>("char_swap_input2").value_or(0x20);
+    desiredInput1 = cfg.get<int16_t>("char_swap_input1").value_or(0x40);
+    desiredInput2 = cfg.get<int16_t>("char_swap_input2").value_or(0x20);
 }
 
 void CharSwitcher::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("char_switcher", mod_enabled);
-    cfg.set<int>("char_swap_input1", desiredInput1);
-    cfg.set<int>("char_swap_input2", desiredInput1);
+    cfg.set<int16_t>("char_swap_input1", desiredInput1);
+    cfg.set<int16_t>("char_swap_input2", desiredInput1);
 }

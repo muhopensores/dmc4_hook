@@ -135,7 +135,6 @@ Mods::Mods() {
     ADD_MOD(Borderless);
     ADD_MOD(TwitchClient); // keep as 3
     ADD_MOD(MutatorSelfAdvertisement); // keep as 4
-    ADD_MOD(CharSwitcher);
     // regular mods
     // add mods here
     // m_mods["ModName"_hash] = std::make_unique<ModName>();
@@ -246,6 +245,7 @@ Mods::Mods() {
     ADD_MOD(AngelSnatch);
     ADD_MOD(DtKnuckle);
     ADD_MOD(EffectColours);
+    //ADD_MOD(CharSwitcher);
 }
 
 // Initializes mods, checks for errors
