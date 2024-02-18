@@ -164,16 +164,23 @@ void ImGuiConsole::init_imgui()
 	}
 #else
 	default_settings();
-
-	auto [data, size] = utility::decompress_file_from_memory_base85(menu_bg_compressed_data_base85);
-	if (!utility::dx9::load_texture_from_file(data, size, &m_texture_handle, &m_texture_width, &m_texture_height)) {
-		spdlog::error("Failed to load console background texture");
-		m_texture_handle = nullptr;
-	}
-
-
-
+    load_texture();
 #endif
+}
+
+void ImGuiConsole::on_reset() {
+    if (m_texture_handle != nullptr) {
+        m_texture_handle->Release();
+        m_texture_handle = nullptr;
+    }
+}
+
+void ImGuiConsole::load_texture() {
+    auto [data, size] = utility::decompress_file_from_memory_base85(menu_bg_compressed_data_base85);
+    if (!utility::dx9::load_texture_from_file(data, size, &m_texture_handle, &m_texture_width, &m_texture_height)) {
+        spdlog::error("Failed to load console background texture");
+        m_texture_handle = nullptr;
+    }
 }
 
 void ImGuiConsole::set_display_fraction(float frac)

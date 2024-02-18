@@ -67,6 +67,7 @@ public:
 
     void on_frame();
     void on_reset();
+    void on_after_reset();
     bool on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param);
 
 private:

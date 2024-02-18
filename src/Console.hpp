@@ -34,6 +34,8 @@ public:
 
 	// could be done in constructor but we need to defer till imgui init :(
 	void init_imgui();
+    void on_reset();
+    void load_texture();
 
 	float display_frac;	             // approaches final_frac at con_speed
 	float final_frac;	             // 0.0 to 1.0 lines of console to display
