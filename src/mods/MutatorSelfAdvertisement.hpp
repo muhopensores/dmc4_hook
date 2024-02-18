@@ -13,6 +13,8 @@ public:
 	void custom_imgui_window();
 	void on_gui_frame() override;
 	void on_frame(fmilliseconds& dt) override;
+    void on_reset() override;
+    void after_reset() override;
 
 private:
 	PDIRECT3DTEXTURE9 m_texture_handle{ nullptr };

@@ -13,14 +13,7 @@ static bool dvd_mode{ false };
 static float gdt{ 0.0f };
 
 std::optional<std::string> MutatorSelfAdvertisement::on_initialize() {
-    auto [data, size] = utility::decompress_file_from_memory_with_size(drawing_compressed_data, drawing_compressed_size);
-
-    if (!utility::dx9::load_texture_from_file(data, size, &m_texture_handle, &m_texture_width, &m_texture_height)) {
-        spdlog::error("Failed to unpack and load compressed texture");
-        mod_enabled = false;
-    }
-    free(data);
-
+    after_reset();
     MutatorRegistry::define("SelfAdvertisement")
         .description("hehe").weight(5)
         .on_init([&] {
@@ -109,5 +102,23 @@ void MutatorSelfAdvertisement::on_gui_frame() {
 
 void MutatorSelfAdvertisement::on_frame(fmilliseconds& dt) {
     gdt = dt.count();
+}
+
+void MutatorSelfAdvertisement::on_reset() {
+    if(m_texture_handle != nullptr) {
+        m_texture_handle->Release();
+        m_texture_handle = nullptr;
+    }
+
+}
+
+void MutatorSelfAdvertisement::after_reset() {
+    auto [data, size] = utility::decompress_file_from_memory_with_size(drawing_compressed_data, drawing_compressed_size);
+
+    if (!utility::dx9::load_texture_from_file(data, size, &m_texture_handle, &m_texture_width, &m_texture_height)) {
+        spdlog::error("Failed to unpack and load compressed texture");
+        mod_enabled = false;
+    }
+    free(data);
 }
 

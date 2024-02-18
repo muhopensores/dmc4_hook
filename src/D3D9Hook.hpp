@@ -13,6 +13,7 @@ public:
     //typedef std::function<void(D3D9Hook&)> OnEndSceneFn;
     typedef std::function<void(D3D9Hook&)> OnPresentFn;
     typedef std::function<void(D3D9Hook&)> OnResetFn;
+    typedef std::function<void(D3D9Hook&)> OnAfterResetFn;
 
 	D3D9Hook() = default;
     virtual ~D3D9Hook();
@@ -21,8 +22,9 @@ public:
     bool unhook();
 
     //void on_end_scene(OnEndSceneFn fn) { m_on_end_scene = fn; }
-    void on_reset(OnResetFn fn)        { m_on_reset     = fn; }
-    void on_present(OnPresentFn fn)    { m_on_present   = fn; }
+    void on_reset(OnResetFn fn)         { m_on_reset       = fn; }
+    void on_present(OnPresentFn fn)     { m_on_present     = fn; }
+    void after_reset(OnAfterResetFn fn) { m_on_after_reset = fn; }
 
 	IDirect3DDevice9* get_device() { return m_device; }
 	void set_device(IDirect3DDevice9* p_device) { m_device = p_device; }
@@ -32,6 +34,7 @@ public:
 	//OnEndSceneFn m_on_end_scene{ nullptr };
     OnPresentFn m_on_present{ nullptr };
 	OnResetFn m_on_reset{ nullptr };
+    OnAfterResetFn m_on_after_reset{ nullptr };
 
     IDirect3DDevice9* m_device{ nullptr };
     D3DPRESENT_PARAMETERS* m_presentation_params{ nullptr };
