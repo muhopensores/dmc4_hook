@@ -17,6 +17,7 @@ uintptr_t CharSwitcher::jmp_ret5{NULL};
 uintptr_t CharSwitcher::jmp_ret6{NULL};
     constexpr uintptr_t detour6_call1 = 0x007ACEE0;
 
+    constexpr uintptr_t DrawUI_call1 = 0x00507370;
 uintptr_t primaryActor   = NULL;
 uintptr_t secondaryActor = NULL;
 float swapGrav           = -0.5f;
@@ -27,21 +28,19 @@ int16_t prevInput        = 0;
 
 void CharSwitcher::toggle(bool enable) {
     if (enable) {
-        install_patch_offset(0x005F3D, patch1, "\xEB\x1B", 2); // Load both Dante's & Nero's arc files 1
-        install_patch_offset(0x005F2C, patch2, "\x90\x90", 2); // Load both Dante's & Nero's arc files 2
-        install_patch_offset(0x3AA5D6, patch3, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 1
-        install_patch_offset(0x3AA5E0, patch4, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 2
-        install_patch_offset(0x3AA61E, patch5, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 3
+        install_patch_offset(0x094B55, patch1, "\xEB\x19", 2);                          // Load Dante's Save
+        install_patch_offset(0x3AA5D6, patch2, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 1
+        install_patch_offset(0x3AA5E0, patch3, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 2
+        install_patch_offset(0x3AA61E, patch4, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 3
 
     } else {
         patch1.reset();
         patch2.reset();
         patch3.reset();
         patch4.reset();
-        patch5.reset();
     }
 }
-
+/*
 // Always load Dante's save (enable out of mission to spawn Dante while playing as Nero, no effect on Nero spawn)
 naked void detour1(void) {
     _asm {
@@ -51,7 +50,7 @@ naked void detour1(void) {
             jmp jnecode
 
 		originalcode:
-            test eax,eax
+            cmp byte ptr [ecx+0x28], 01
             jne jnecode
             lea esi, [eax+0x000001D8]
 			jmp dword ptr [CharSwitcher::jmp_ret1]
@@ -60,8 +59,8 @@ naked void detour1(void) {
             jmp dword ptr [detour1_jmp1]
     }
 }
-
-// Load both Dante's & Nero's arc files
+*/
+// Arc file load mk4
 naked void detour2(void) {
     _asm {
 			cmp byte ptr [CharSwitcher::mod_enabled], 0
@@ -71,7 +70,7 @@ naked void detour2(void) {
             mov ecx, [0x00E552C8]
             mov ecx, [ecx+0x3834]
             mov ecx, [ecx+0x28]
-            test cl,cl
+            test cl, cl
             pop ecx
             je NeroArc
         // DanteArc:
@@ -93,7 +92,10 @@ naked void detour2(void) {
             call dword ptr [detour2_call1]
             popad
         originalcode:
-            mov ecx, [0x00E14344]
+            push ebx
+            push esi
+            push edi
+            mov edi, [0x00E558B8]
             jmp dword ptr [CharSwitcher::jmp_ret2]
     }
 }
@@ -228,8 +230,7 @@ naked void detour6(void) {
 
             push ebp
             mov ebp, [0x00E558B8]
-            mov ebp, [ebp+0x24]
-            cmp ebp, edi
+            cmp [ebp+0x24], edi
             jne handler
             pop ebp
         originalcode:
@@ -237,39 +238,103 @@ naked void detour6(void) {
             jmp jmp_ret
 
         handler:
+            cmp [ebp+0xB0], edi
+            jne handler2
+            pop ebp
+            jmp originalcode
+
+        handler2:
             pop ebp
         jmp_ret:
 			jmp dword ptr [CharSwitcher::jmp_ret6]
     }
 }
 
+// Draw UI
+naked void DrawUI(void) {
+    _asm {
+            pushad
+            mov ebp, [0x00E552CC]
+            mov ecx, [ebp+0x284]
+            test ecx, ecx
+            jne jmp_ret
+            mov ecx, [0x00E1434C]
+            mov edx, [ecx]
+            mov eax, [edx+0x14]
+            push 0x10
+            push 0x20
+            call eax
+            mov edi,eax
+            call dword ptr [DrawUI_call1]
+            mov esi,eax
+            mov eax, [0x00E552CC]
+            push 0x19
+            call dword ptr [detour4_call3]
+        jmp_ret:
+            popad
+            ret
+    }
+}
+
+// Wipe UI
+naked void WipeUI(void) {
+    _asm {
+        // WipeUI:
+            pushad
+            mov ebp, [0x00E552CC]
+            mov esi, [ebp+0x284]
+            test esi, esi
+            je jmp_ret
+            mov edx, [esi]
+            mov eax, [edx+0x30]
+            mov ecx, esi
+            call eax
+        jmp_ret:
+            popad
+            ret
+    }
+}
+
 // Swap actor
 naked void SwapActor(void) {
     _asm {
-        pushad
-
+        // loop1:
+            pushad
             mov ebp, [0x00E558B8]
             mov ebp, [ebp+0x24]
             test ebp,ebp
             je loopend
-            mov ecx, [ebp+0x1374]
-            xor edx,edx
-            mov dx, [desiredInput1]
-            add dx, [desiredInput2]
-            and ecx, edx
-            cmp ecx, edx
-            je loop2
-            mov [prevInput], cx
-            jmp loopend
+            call DrawUI
+            cmp byte ptr [ebp+0xCDF8], 00
+            je loop3
+            mov ebp, [ebp+0xCDF8]
+            mov edx, [ebp+0x22A8]
+            cmp edx, 07 // DT hold
+            je loopend
+            cmp edx, 03
+            je loopend
+            jmp loop3
 
         loop2:
-            xor esi, esi
+            xor esi, esi //
             mov si, [prevInput]
             xor esi, ecx
             test esi, esi
             je loopend
             mov [prevInput], dx
             call swapActor
+            jmp loopend
+
+        loop3:
+            mov ebx, [0x00E559C4]
+            mov ecx, [ebx+0x5E4]
+            xor edx, edx //
+            mov dx, [desiredInput1]
+            add dx, [desiredInput2]
+            and ecx, edx
+            cmp ecx, edx
+            je loop2
+            mov [prevInput], cx
             jmp loopend
 
         swapActor:
@@ -279,19 +344,20 @@ naked void SwapActor(void) {
             mov ebp, [0x00E552C8]
             mov ebp, [ebp+0x3834]
             xor [ebp+0x28], 1
+            call WipeUI
             mov ebp, [0x00E558B8]
             mov [ebp+0x24], ecx
             // To-be main actor
-            mov [primaryActor], ecx
-            mov [ecx+1509], 1 // input
+            mov [primaryActor],ecx
+            mov [ecx+0x1509], 1 // input
             // Position, rotation
-            fld [eax+30] // X pos
-            fstp [ecx+30]
-            fld [eax+34] // Y pos
-            fstp [ecx+34]
-            fld [eax+38] // Z pos
-            fstp [ecx+38]
-            fld [ecx+30]
+            fld [eax+0x30] // X pos
+            fstp [ecx+0x30]
+            fld [eax+0x34] // Y pos
+            fstp [ecx+0x34]
+            fld [eax+0x38] // Z pos
+            fstp [ecx+0x38]
+            fld [ecx+0x30]
             fstp dword ptr [ecx+0x000014A0]
             fld dword ptr [ecx+0x34]
             fstp dword ptr [ecx+0x000014A4]
@@ -317,12 +383,16 @@ naked void SwapActor(void) {
             mov edi, [eax+0x1E8C]
             mov esi, [ecx+0x1E8C]
             mov [esi+0xD4], 0
-            mov [esi+0x1C], 0
+            push [edi+0x1C]
+            pop [esi+0x1C]
+            //  mov [esi+0x1C], 1
             // Inertia, gravity
             xorps xmm0, xmm0
             movss [ecx+0xEC4], xmm0
             movss xmm0, [swapGrav]
             movss [ecx+0xED4], xmm0
+            //  fld [eax+0xED4]
+            //  fstp [ecx+0xED4]
             mov byte ptr [ecx+0x2A57], 00
             fld [eax+0x1E1C] // inertia
             fstp [ecx+0x1E1C]
@@ -340,22 +410,35 @@ naked void SwapActor(void) {
             fstp [ecx+0x1E60]
             fld [eax+0x1E64]
             fstp [ecx+0x1E64]
+            fld [eax+0x16C0]
+            fstp [ecx+0x16C0]
             // Motion
-            mov [ecx+0x1550], 01
+            //  mov [ecx+0x1550], 1
+            //  mov [ecx+0x2008], 1
+            //  mov [ecx+0x1500], 1
+
             // Previous main actor
             mov [secondaryActor], eax
             mov [eax+0x1509], 0 // input
-            mov esi,[eax+0x1E8C]
-            mov [esi+0xD4], 1 // collision
+            mov esi, [eax+0x1E8C]
+            mov [esi+0xD4], 1   // collision
             // Position
-            fld dword ptr [ebp+0x60]
-            fstp dword ptr [eax+0x30]
-            fld dword ptr [ySpawn]
-            fstp dword ptr [eax+0x34]
-            fld dword ptr [ebp+0x68]
-            fstp dword ptr [eax+0x38]
+            mov ebp, [0x00E552C8]
+            mov ebp, [ebp+0x3830]
+            //  fld dword ptr [ebp+0x50]
+            //  fstp dword ptr [eax+0x30]
+            movss xmm0, [eax+0x34]
+            addss xmm0, [ySpawn]
+            movss [eax+0x34], xmm0
+            //  fld dword ptr [ebp+0x58]
+            //  fstp dword ptr [eax+0x38]
             mov [eax+0x1550], 1
             mov [esi+0x1C], 0
+            //  mov [eax+0x1500], 0
+            //  mov [eax+0x1504], 5
+            //  mov [eax+0x1505], 0
+            //  mov [eax+0x150C], 0
+            //  mov [eax+0x150D], 1
             xorps xmm0, xmm0
             movss [eax+0x1E1C], xmm0
             movss [eax+0xEC4], xmm0
@@ -371,11 +454,11 @@ naked void SwapActor(void) {
 }
 
 std::optional<std::string> CharSwitcher::on_initialize() {
-    if (!install_hook_offset(0x094B55, hook1, &detour1, &jmp_ret1, 8)) { // Always load Dante's save
+    /*if (!install_hook_offset(0x094B55, hook1, &detour1, &jmp_ret1, 8)) { // Always load Dante's save
         spdlog::error("Failed to init CharSwitcher1 mod\n");
         return "Failed to init CharSwitcher1 mod";
-    }
-    if (!install_hook_offset(0x007320, hook2, &detour2, &jmp_ret2, 6)) { // Load both Dante's & Nero's arc files // AAAAAAA
+    }*/
+    if (!install_hook_offset(0x007580, hook2, &detour2, &jmp_ret2, 9)) { // Arc file load mk4
         spdlog::error("Failed to init CharSwitcher2 mod\n");
         return "Failed to init CharSwitcher2 mod";
     }
@@ -383,11 +466,11 @@ std::optional<std::string> CharSwitcher::on_initialize() {
         spdlog::error("Failed to init CharSwitcher3 mod\n");
         return "Failed to init CharSwitcher3 mod";
     }
-    if (!install_hook_offset(0x3A91CC, hook4, &detour4, &jmp_ret4, 5)) { // Spawn secondary actor
+    if (!install_hook_offset(0x3A91CC, hook4, &detour4, &jmp_ret4, 8)) { // Spawn secondary actor
         spdlog::error("Failed to init CharSwitcher4 mod\n");
         return "Failed to init CharSwitcher4 mod";
     }
-    if (!install_hook_offset(0x3A7C12, hook5, &detour5, &jmp_ret5, 8)) { // Initial 2nd char conditions
+    if (!install_hook_offset(0x3A7C12, hook5, &detour5, &jmp_ret5, 5)) { // Initial 2nd char conditions
         spdlog::error("Failed to init CharSwitcher5 mod\n");
         return "Failed to init CharSwitcher5 mod";
     }
