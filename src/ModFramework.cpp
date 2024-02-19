@@ -90,7 +90,7 @@ ModFramework::ModFramework()
 
 	m_d3d9_hook->on_reset    ([this](D3D9Hook& hook) { on_reset(); });
 	m_d3d9_hook->on_present  ([this](D3D9Hook& hook) { on_frame(); });
-
+    m_d3d9_hook->after_reset ([this](D3D9Hook& hook) { on_after_reset(); });
     m_valid = m_d3d9_hook->hook();
 
     if (m_valid) {
@@ -193,9 +193,24 @@ void ModFramework::on_reset() {
     spdlog::info("Reset!");
 	if (!m_initialized) { return; }
 	ImGui_ImplDX9_InvalidateDeviceObjects();
+    auto& mods = m_mods->get_mods();
+    for (const auto& mod : mods) {
+        mod->on_reset();
+    }
+    console->on_reset();
     // Crashes if we don't release it at this point.
     //cleanup_render_target();
     m_initialized = false;
+}
+
+void ModFramework::on_after_reset() {
+    spdlog::info("After reset");
+    if (!m_initialized) { return; }
+    auto& mods = m_mods->get_mods();
+    for (const auto& mod: mods) {
+        mod->after_reset();
+    }
+    console->load_texture();
 }
 
 bool ModFramework::on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param) {
@@ -313,6 +328,7 @@ bool ModFramework::initialize() {
 
     m_menu_key = std::make_unique<utility::Hotkey>(VK_DELETE, "Menu Key", "menu_key");
     ImGui_ImplDX9_CreateDeviceObjects();
+    on_after_reset();
     if (m_first_frame) {
         m_first_frame = false;
 

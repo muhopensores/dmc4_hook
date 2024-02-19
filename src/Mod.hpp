@@ -141,6 +141,9 @@ public:
 	virtual void on_game_pause(bool toggle) {};
 	virtual bool on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param) { return true; };
 
+    // texture stuff
+    virtual void on_reset() {};
+    virtual void after_reset() {};
 	// twitch
 	//virtual void on_twitch_command(std::size_t hash) {};
 };
