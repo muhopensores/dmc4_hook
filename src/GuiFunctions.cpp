@@ -705,12 +705,6 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    pmods->on_draw_ui("DebugDraw"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
                     pmods->on_draw_ui("PlayerTracker"_hash); // needs its own line
 
                     ImGui::Spacing();

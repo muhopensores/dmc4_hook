@@ -101,7 +101,6 @@
 #include "mods/Twitch.hpp"
 #include "mods/MessageDisplay.hpp"
 #include "mods/MutatorSelfAdvertisement.hpp"
-#include "mods/DebugDraw.hpp"
 #include "mods/DoubleTapDarkslayer.hpp"
 #include "mods/TargetChangeDarkslayer.hpp"
 #include "mods/CustomModelFix.hpp"
@@ -139,7 +138,6 @@ Mods::Mods() {
     // add mods here
     // m_mods["ModName"_hash] = std::make_unique<ModName>();
     ADD_MOD(PlayerTracker); // keep as 5
-    ADD_MOD(DebugDraw); // keep as 6
     ADD_MOD(FastStart);
     ADD_MOD(AreaJump);
     ADD_MOD(LimitAdjust);
@@ -382,9 +380,6 @@ void Mods::on_draw_custom_imgui_window() {
     dv->custom_imgui_window();
     PlayerTracker* pt = dynamic_cast<PlayerTracker*>(m_mods[5].get());
     pt->custom_imgui_window();
-    DebugDraw* dd = dynamic_cast<DebugDraw*>(m_mods[6].get());
-    dd->custom_imgui_window();
-
 #if 0
     ImGui::Begin("utility::Input debugger");
     auto& input = g_framework->get_input_struct();

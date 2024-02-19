@@ -28,8 +28,6 @@ set(MODS_SRC
   mods/TargetChangeDarkslayer.cpp
   mods/DoubleTapDarkslayer.hpp
   mods/DoubleTapDarkslayer.cpp
-  mods/DebugDraw.hpp
-  mods/DebugDraw.cpp
   mods/AlwaysRoyalRelease.hpp
   mods/AlwaysRoyalRelease.cpp
   mods/HighTimeWeaponSwitch.hpp
