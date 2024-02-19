@@ -3,20 +3,10 @@
 // https://gist.github.com/stroum
 bool PsychoMantis::mod_enabled{false};
 bool PsychoMantis::psycho_mantis_slot_2{false};
-
 bool PsychoMantis::mod_debugEnabled{false};
 int PsychoMantis::mod_debugAmount{0};
 int PsychoMantis::mod_debugLR{0};
-
-PsychoMantis::Controller::Controller() {
-    if (PsychoMantis::psycho_mantis_slot_2)
-        _controllerNum = 1;
-    else
-        _controllerNum = 0;
-}
-
-PsychoMantis::Controller::~Controller() {
-}
+int PsychoMantis::Controller::_controllerNum = 0;
 
 XINPUT_STATE PsychoMantis::Controller::getState() {
     ZeroMemory(&_controllerState, sizeof(XINPUT_STATE));
@@ -46,18 +36,24 @@ void PsychoMantis::Controller::vibrate(uint16_t left, uint16_t right) {
 }
 
 std::optional<std::string> PsychoMantis::on_initialize() {
+    PsychoMantis::_controller = new Controller();
     return Mod::on_initialize();
 }
 
 void PsychoMantis::on_gui_frame() {
-    ImGui::Checkbox("Finally... DMC4 2", &mod_enabled);
+    ImGui::Checkbox("Vibe", &mod_enabled);
     ImGui::SameLine();
     help_marker("Put your controller on the floor. Put it down as flat as you can..."
         "that's good. Now I will move your controller by the power of my style alone!!");
     ImGui::SameLine(sameLineWidth);
-    ImGui::PushItemWidth(sameLineItemWidth);
-    ImGui::Checkbox("Use Slot 2", &psycho_mantis_slot_2);
-    ImGui::PopItemWidth();
+    if (ImGui::Checkbox("Vibe Slot 2", &psycho_mantis_slot_2)) {
+        if (psycho_mantis_slot_2)
+            PsychoMantis::Controller::_controllerNum = 1;
+        else
+            PsychoMantis::Controller::_controllerNum = 0;
+    }
+    ImGui::SameLine();
+    help_marker("Tick the Vibe checkbox too");
 #ifndef NDEBUG
     if (mod_enabled) {
         ImGui::Checkbox("...debug", &mod_debugEnabled);
@@ -75,10 +71,6 @@ void PsychoMantis::on_gui_frame() {
 }
 void PsychoMantis::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
-        //PsychoMantis::_controller = new Controller();
-        PsychoMantis::_controller = new Controller();
-        //controllerAddr = devil4_sdk::get_local_player()->playerController;
-        //PsychoMantis::gameController = controllerAddr;
         if (!devil4_sdk::is_paused() && devil4_sdk::get_work_rate()->global_speed != 0.0f) {
             uint16_t lpower = 65535 / 14; // apparently 65535 is the limit but there isn't much difference if any from half the amount
             uint16_t rpower = 65535 / 14; // so we're divibing by double so its smoother
@@ -110,14 +102,16 @@ void PsychoMantis::on_frame(fmilliseconds& dt) {
                 }
             }
         }
-    } else {
-        PsychoMantis::_controller->~Controller();
     }
 }
 
 void PsychoMantis::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("psycho_mantis_toggle").value_or(false);
     psycho_mantis_slot_2 = cfg.get<bool>("psycho_mantis_slot_2").value_or(false);
+    if (psycho_mantis_slot_2)
+        PsychoMantis::Controller::_controllerNum = 1;
+    else
+        PsychoMantis::Controller::_controllerNum = 0;
 }
 
 void PsychoMantis::on_config_save(utility::Config& cfg) {

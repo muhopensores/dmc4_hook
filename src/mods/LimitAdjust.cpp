@@ -83,7 +83,7 @@ void LimitAdjust::on_gui_frame() {
         f_same_tick_style_change(same_tick_style_change);
     }
     ImGui::SameLine();
-    help_marker("Style changes registered on the same tick as other inputs are ignored by default");
+    help_marker("Style changes registered on the same tick as other inputs are ignored by default.\nOne bug has been found with this cheat so far: Every other time you perform Climax you'll spawn Discipline pins too");
 }
 
 void LimitAdjust::on_config_load(const utility::Config& cfg) {

@@ -22,7 +22,7 @@
 #include "fw-imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
 
-#define GUI_VERSION "DMC4Hook 1.4.3"
+#define GUI_VERSION "DMC4Hook 1.4.4"
 
 static constexpr char* version{GUI_VERSION};
 static float g_window_height_hack{ 1080.0f };
@@ -236,6 +236,11 @@ namespace gui {
             ImGui::Spacing();
             ImGui::Text("Mstislav Capusta");
             ImGui::Text("SSSiyan");
+            ImGui::Text("Vieris");
+            ImGui::Text("CrazyMelody");
+            ImGui::Text("Dlupx");
+            ImGui::Text("cheburrat0r");
+            ImGui::Text("endneo");
             ImGui::Spacing();
             ImGui::Text("Special Thanks:");
             ImGui::Text("socks");
@@ -244,10 +249,6 @@ namespace gui {
             ImGui::Text("Boey");
             ImGui::Text("DelusionaryKiller");
             ImGui::Text("DJMalice");
-            ImGui::Text("cheburrat0r");
-            ImGui::Text("endneo");
-            ImGui::Text("CrazyMelody");
-            ImGui::Text("Dlupx");
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
@@ -373,10 +374,6 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("EnemyAttackOffScreen"_hash);
 
-                    pmods->on_draw_ui("DisableChimeraBlades"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("FrostsDontJump"_hash);
-
                     pmods->on_draw_ui("EnemySlotting"_hash); // needs its own line
 
                     ImGui::Spacing();
@@ -397,7 +394,12 @@ namespace gui {
                     pmods->on_draw_ui("InfFaustCloak"_hash); // needs its own line
 
                     pmods->on_draw_ui("FreezeEnemies"_hash);
-                    //ImGui::SameLine(sameLineWidth);
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("DisableChimeraBlades"_hash);
+
+                    pmods->on_draw_ui("FrostsDontJump"_hash);
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("AssaultsDontJump"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -422,8 +424,6 @@ namespace gui {
 
                     pmods->on_draw_ui("LimitAdjust"_hash); // needs its own line
 
-                    ImGui::Spacing();
-                    ImGui::Separator();
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("HeightRestrictionNero"_hash);
@@ -472,7 +472,13 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("InfTableHopper"_hash);
 
+                    pmods->on_draw_ui("RevFlying"_hash); // needs its own line
+
+                    pmods->on_draw_ui("AngelSnatch"_hash);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("InfCalibur"_hash);
+
+                    pmods->on_draw_ui("DtKnuckle"_hash); // needs its own line
 
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -522,6 +528,8 @@ namespace gui {
                     pmods->on_draw_ui("HighTimeWeaponSwitch"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("GuardSteer"_hash);
+
+                    pmods->on_draw_ui("DanteJdc"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -716,6 +724,18 @@ namespace gui {
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("MutatorSelfAdvertisement"_hash);
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    pmods->on_draw_ui("EffectColours"_hash);
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    //pmods->on_draw_ui("CharSwitcher"_hash);
 
                     // pmods->onDrawUI("ShaderEditor"_hash);
 

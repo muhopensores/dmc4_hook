@@ -2,16 +2,17 @@
 
 #include "../mod.hpp"
 
-class TargetChangeDarkslayer : public Mod {
+class AssaultsDontJump : public Mod {
 public:
-    TargetChangeDarkslayer() = default;
+    AssaultsDontJump() = default;
 
     static bool mod_enabled;
-    static uintptr_t jmp_ret;
-    static uintptr_t jmp_conditional;
-    static uintptr_t jmp_ret2;
 
-    std::string get_mod_name() override { return "TargetChangeDarkslayer"; };
+    static uintptr_t jmp_ret;
+    static uintptr_t jmp_out;
+    //void toggle(bool enable);
+
+    std::string get_mod_name() override { return "AssaultsDontJump"; };
 
     std::optional<std::string> on_initialize() override;
 
@@ -21,6 +22,6 @@ public:
     void on_gui_frame() override;
 
 private:
+    //std::unique_ptr<Patch> patch1;
     std::unique_ptr<FunctionHook> hook;
-    std::unique_ptr<FunctionHook> hook2;
 };

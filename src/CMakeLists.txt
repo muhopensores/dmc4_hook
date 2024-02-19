@@ -2,6 +2,20 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/CharSwitcher.hpp
+  mods/CharSwitcher.cpp
+  mods/EffectColours.hpp
+  mods/EffectColours.cpp
+  mods/DtKnuckle.hpp
+  mods/DtKnuckle.cpp
+  mods/AngelSnatch.hpp
+  mods/AngelSnatch.cpp
+  mods/RevFlying.hpp
+  mods/RevFlying.cpp
+  mods/DanteJdc.hpp
+  mods/DanteJdc.cpp
+  mods/AssaultsDontJump.hpp
+  mods/AssaultsDontJump.cpp
   mods/GuardSteer.hpp
   mods/GuardSteer.cpp
   mods/PsychoMantis.hpp

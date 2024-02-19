@@ -2,16 +2,14 @@
 
 #include "../mod.hpp"
 
-class TargetChangeDarkslayer : public Mod {
+class EffectColours : public Mod {
 public:
-    TargetChangeDarkslayer() = default;
+    EffectColours() = default;
 
     static bool mod_enabled;
     static uintptr_t jmp_ret;
-    static uintptr_t jmp_conditional;
-    static uintptr_t jmp_ret2;
 
-    std::string get_mod_name() override { return "TargetChangeDarkslayer"; };
+    std::string get_mod_name() override { return "EffectColours"; };
 
     std::optional<std::string> on_initialize() override;
 
@@ -22,5 +20,4 @@ public:
 
 private:
     std::unique_ptr<FunctionHook> hook;
-    std::unique_ptr<FunctionHook> hook2;
 };

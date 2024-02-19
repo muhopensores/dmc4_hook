@@ -108,6 +108,13 @@
 #include "mods/PsychoMantis.hpp"
 #include "mods/GuardSteer.hpp"
 #include "mods/PlayerRotation.hpp"
+#include "mods/AssaultsDontJump.hpp"
+#include "mods/DanteJdc.hpp"
+#include "mods/RevFlying.hpp"
+#include "mods/AngelSnatch.hpp"
+#include "mods/DtKnuckle.hpp"
+#include "mods/EffectColours.hpp"
+#include "mods/CharSwitcher.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -232,6 +239,13 @@ Mods::Mods() {
     ADD_MOD(PsychoMantis);
     ADD_MOD(GuardSteer);
     ADD_MOD(PlayerRotation);
+    ADD_MOD(AssaultsDontJump);
+    ADD_MOD(DanteJdc);
+    ADD_MOD(RevFlying);
+    ADD_MOD(AngelSnatch);
+    ADD_MOD(DtKnuckle);
+    ADD_MOD(EffectColours);
+    //ADD_MOD(CharSwitcher);
 }
 
 // Initializes mods, checks for errors

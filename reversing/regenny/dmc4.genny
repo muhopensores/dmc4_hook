@@ -1,12 +1,12 @@
 // How to use:
 // - open dmc4 dx9
+// - copy s_med_ptr from dmc4hook's debug page
 // - open regenny x86
 // - file > open > this file
 // - view > hide undefined nodes
 // - action > attach > DevilMayCry4_DX9.exe
 // - typename > sMediator
-// - copy s_med_ptr from dmc4hook's debug page
-// - paste value into regenny's address field and throw an 0x in front, .e.g 0x161C64E0
+// - paste s_med_ptr into regenny's address field and throw an 0x in front, .e.g 0x161C64E0
 // - browse and edit values, right click > copy addresses to get to them in Cheat Engine
 
 type void 0
@@ -235,6 +235,7 @@ class uPlayer : public UCoord{
 	float groundInertiaZ @ 0xEC8
 	bool hitstop @ 0x1201
 	float facingDirection @ 0x1210
+	uint32_t inputHoldRaw @ 0x1374
 	float stickDirection @ 0x13C4
 	uint8_t inputHold[4] @ 0x140C
 	uint8_t inputPress[4] @ 0x1410
@@ -334,11 +335,11 @@ class uCameraCtrl {
 	float idkFloat @ 0x44
 	// float roll2 @ 0x48 // isn't this also up
 	Vector4f lookat @ 0x50
-	Matrix4x4 possibleMat1 @ 0xD0
+	// Matrix4x4 possibleMat1 @ 0xD0
 	// Matrix4x4 possibleMat2 @ 0xE0
 	// Matrix4x4 possibleMat3 @ 0xF0
 	// Matrix4x4 possibleMat4 @ 0x100
-	// Matrix4x4 possibleMat5 @ 0x1B0 // this is the mat i had best luck with
+	Matrix4x4 possibleMat5 @ 0x1B0 // this is the mat i had best luck with
 	// Matrix4x4 possibleMat6 @ 0x1C0
 	// Matrix4x4 possibleMat7 @ 0x1D0
 	// Matrix4x4 possibleMat8 @ 0x1E0

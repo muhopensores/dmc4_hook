@@ -108,16 +108,16 @@ namespace devil4_sdk {
 	}
 
 	uCameraCtrl* get_local_camera() {
-		constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-		static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
-		return s_mediator_ptr->camera1;
-	}
+        constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
+        static SMediator* s_mediator_ptr        = (SMediator*)*(uintptr_t*)static_mediator_ptr;
+        return s_mediator_ptr->camera1;
+    }
 
-	cCameraPlayer* get_player_camera() {
-		constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-		static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
-		return s_mediator_ptr->camera1->cCameraPlayer1;
-	}
+    cCameraPlayer* get_player_camera() {
+        constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
+        static SMediator* s_mediator_ptr        = (SMediator*)*(uintptr_t*)static_mediator_ptr;
+        return s_mediator_ptr->camera1->cCameraPlayer1;
+    }
 
 	SStylishCount* get_stylish_count() {
 		constexpr uintptr_t s_stylish_count_ptr = 0x00E558CC;
@@ -167,4 +167,13 @@ namespace devil4_sdk {
 		state = curr_state;
 		return ret;
 	}
+
+	std::pair<uint16_t, const char*> getButtonInfo(uint16_t buttonNum) {
+        for (const auto& pair : buttonPairs) {
+			if (pair.first == buttonNum) {
+            return pair;
+			}
+        }
+            return buttonPairs[0];
+    }
 }

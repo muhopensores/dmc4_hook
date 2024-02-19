@@ -12,6 +12,8 @@ using Vector4 = glm::vec4;
 // Generated using ReClass 2016
 #include <cstdint>*/
 
+#include <vector>
+
 enum class GameDifficulty : uint32_t {
     HUMAN                 = 0,
     DEVIL_HUNTER          = 1,
@@ -22,8 +24,28 @@ enum class GameDifficulty : uint32_t {
 
 enum class GameMode : uint32_t {
     DEFAULT        = 0,
-    HEAVEN_OR_HELL = 0,
-    HELL_AND_HELL  = 0,
+    HEAVEN_OR_HELL = 1,
+    HELL_AND_HELL  = 2,
+};
+
+static const std::vector<std::pair<uint16_t, const char*>> buttonPairs = {
+    {0x0000, "None"},
+    {0x0001, "Back"},
+    {0x0002, "Left Thumb"},
+    {0x0004, "Right Thumb"},
+    {0x0008, "Start"},
+    {0x0010, "Dpad Up"},
+    {0x0020, "Dpad Right"},
+    {0x0040, "Dpad Down"},
+    {0x0080, "Dpad Left"},
+    {0x0100, "Left Shoulder"},
+    {0x0200, "Right Shoulder"},
+    {0x0400, "Left Trigger"},
+    {0x0800, "Right Trigger"},
+    {0x1000, "Y"},
+    {0x2000, "B"},
+    {0x4000, "A"},
+    {0x8000, "X"}
 };
 
 class cAreaJump;
@@ -201,10 +223,10 @@ public:
 class MtMatrix
 {
 public:
-	glm::vec4 m1; //0x0000
-	glm::vec4 m2; //0x0010
-	glm::vec4 m3; //0x0020
-	glm::vec4 m4; //0x0030
+	Vector4 m1; //0x0000
+	Vector4 m2; //0x0010
+	Vector4 m3; //0x0020
+	Vector4 m4; //0x0030
 }; //Size: 0x0040
 
 class CUnit : public MtObject
@@ -225,7 +247,7 @@ public:
 	char pad_001_c[20]; //0x001C
 	Vector3f m_pos; //0x0030
 	char pad_003_c[4]; //0x003C
-	glm::vec4 m_quat; //0x0040
+	Vector4 m_quat; //0x0040
 	Vector3f m_scale; //0x0050
 	Matrix4x4 m_lmat; //0x005C
 	Matrix4x4 m_wmat; //0x009C
@@ -284,8 +306,8 @@ public:
 	/*uint16_t N00002DAF; //0x0005
 	uint8_t N00002DB0; //0x0007*/
 	CcType m_type; //0x0008
-	glm::vec4 m_factor; //0x000C
-	glm::vec4 m_factor2; //0x001C
+	Vector4 m_factor; //0x000C
+	Vector4 m_factor2; //0x001C
 	char pad_002_c[4]; //0x002C
 
 	virtual void function0();
@@ -309,7 +331,7 @@ public:
 	class MtHermiteCurve m_tone_curve_r; //0x0360
 	class MtHermiteCurve m_tone_curve_g; //0x03A0
 	class MtHermiteCurve m_tone_curve_b; //0x03E0
-	glm::vec4 m_gamma; //0x0420
+	Vector4 m_gamma; //0x0420
 	class cTransTexture *c_tans_texture; //0x0430
 }; //Size: 0x0434
 
@@ -479,9 +501,9 @@ public:
     Vector3f up; // 0x40
     char pad_4c[0x4];
     Vector4f lookat; // 0x50
-    char pad_60[0x70];
-    Matrix4x4 possibleMat1; // 0xd0 // buncha possibilities up til 240, best luck I had in glm was with +230
-    char pad_110[0x380];
+    char pad_60[0x150];
+    Matrix4x4 possibleMat5; // 0x1b0
+    char pad_1f0[0x2a0];
     cCameraPlayer* cCameraPlayer1; // 0x490
 }; // Size: 0x494
 
@@ -673,7 +695,10 @@ public:
     bool hitstop; // 0x1201
     char pad_1202[0xe];
     float facingDirection; // 0x1210
-    char pad_1214[0x1b0];
+    char pad_1214[0x160];
+    uint16_t buttonInputRaw; // 0x1374
+    uint16_t stickInputRaw; // 0x1376
+    char pad_1378[0x4c];
     float stickDirection; // 0x13c4
     char pad_13c8[0x44];
     uint8_t inputHold[4];  // 0x140c
@@ -899,7 +924,7 @@ public:
 	float m_shock_detail_reduction; //0x0074
 	float m_h_sync_blank_width; //0x0078
 	float m_v_sync_blank_width; //0x007C
-	glm::vec4 m_v_sync_blank_color; //0x0080
+	Vector4 m_v_sync_blank_color; //0x0080
 	uint32_t m_shock_noise_time; //0x0090
 	float m_h_sync_noise_value; //0x0094
 	float m_v_sync_noise_value; //0x0098
