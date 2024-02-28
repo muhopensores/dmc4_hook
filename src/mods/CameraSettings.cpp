@@ -317,8 +317,6 @@ void CameraSettings::on_gui_frame() {
     help_marker("Set the camera to the right instead");
 
     ImGui::Checkbox("Increased Sensitivity", &camera_sens_enabled);
-    ImGui::SameLine();
-    help_marker("Activate this before starting a level!");
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Camera Lookdown", &camera_lookdown_enabled)) {
         toggle_camera_lookdown(camera_lookdown_enabled);
@@ -335,10 +333,10 @@ void CameraSettings::on_gui_frame() {
     }
     ImGui::SameLine();
     help_marker("Attempts to stop the camera rotating when the player attacks towards the camera, intended for comparison purposes");
-
     ImGui::Checkbox("Use Custom Camera Variables", &mod_enabled);
     ImGui::SameLine();
     help_marker("Also enables the editing of these values via hotkeys");
+    if (mod_enabled) {
     if (ImGui::CollapsingHeader("Camera Variables")) {
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::InputFloat("Height", &CameraSettings::camera_height, 10.0f, 20.0f, "%.0f");
@@ -355,6 +353,7 @@ void CameraSettings::on_gui_frame() {
         ImGui::Spacing();
         ImGui::InputFloat("FOV (In Battle)", &CameraSettings::camera_fov_in_battle, 10.0f, 20.0f, "%.0f%");
         ImGui::PopItemWidth();
+    }
     }
 }
 

@@ -561,40 +561,46 @@ void CharSwitcher::on_frame(fmilliseconds& dt) {
 }
 
 void CharSwitcher::on_gui_frame() { 
-    if (ImGui::Checkbox("Char Switcher", &mod_enabled)) {
+    if (mod_enabled) {
+        ImGui::Separator();
+    }
+    if (ImGui::Checkbox("Character Switcher", &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
     help_marker("Enable before loading into a stage");
-    if (ImGui::Button("swap actor")) {
-        SwapActor();
-    }
-    ImGui::PushItemWidth(sameLineItemWidth);
-    if (ImGui::BeginCombo("Char Swap Input 1", devil4_sdk::getButtonInfo(desiredInput1).second)) {
-        for (const auto& buttonPair : buttonPairs) {
-            bool is_selected = (desiredInput1 == buttonPair.first);
-            if (ImGui::Selectable(buttonPair.second, is_selected)) {
-                desiredInput1 = buttonPair.first;
+    if (mod_enabled) {
+        ImGui::PushItemWidth(sameLineItemWidth);
+        if (ImGui::BeginCombo("Input 1", devil4_sdk::getButtonInfo(desiredInput1).second)) {
+            for (const auto& buttonPair : buttonPairs) {
+                bool is_selected = (desiredInput1 == buttonPair.first);
+                if (ImGui::Selectable(buttonPair.second, is_selected)) {
+                    desiredInput1 = buttonPair.first;
+                }
+                if (is_selected) {
+                    ImGui::SetItemDefaultFocus();
+                }
             }
-            if (is_selected) {
-                ImGui::SetItemDefaultFocus();
-            }
+            ImGui::EndCombo();
         }
-        ImGui::EndCombo();
-    }
-    if (ImGui::BeginCombo("Char Swap Input 2", devil4_sdk::getButtonInfo(desiredInput2).second)) {
-        for (const auto& buttonPair : buttonPairs) {
-            bool is_selected = (desiredInput2 == buttonPair.first);
-            if (ImGui::Selectable(buttonPair.second, is_selected)) {
-                desiredInput2 = buttonPair.first;
+        ImGui::SameLine();
+        help_marker("Set a button combo to trigger the switch");
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::BeginCombo("Input 2", devil4_sdk::getButtonInfo(desiredInput2).second)) {
+            for (const auto& buttonPair : buttonPairs) {
+                bool is_selected = (desiredInput2 == buttonPair.first);
+                if (ImGui::Selectable(buttonPair.second, is_selected)) {
+                    desiredInput2 = buttonPair.first;
+                }
+                if (is_selected) {
+                    ImGui::SetItemDefaultFocus();
+                }
             }
-            if (is_selected) {
-                ImGui::SetItemDefaultFocus();
-            }
+            ImGui::EndCombo();
         }
-        ImGui::EndCombo();
+        ImGui::PopItemWidth();
+        // ImGui::Separator(); // uncomment if something comes after this
     }
-    ImGui::PopItemWidth();
 }
 
 void CharSwitcher::on_config_load(const utility::Config& cfg) {

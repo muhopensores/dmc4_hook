@@ -107,6 +107,9 @@ void RestoreMaxHp::on_frame(fmilliseconds& dt) {
 }
 
 void RestoreMaxHp::on_gui_frame() {
+    if (mod_enabled || reset_timer) {
+        ImGui::Separator();
+    }
     ImGui::Checkbox("Restore Enemy HP", &mod_enabled);
     ImGui::SameLine();
     help_marker("Press Lock On + Taunt to restore Max HP to enemies");
@@ -118,6 +121,7 @@ void RestoreMaxHp::on_gui_frame() {
         ImGui::Checkbox("Disable Aerial Resets", &limit_to_ground);
         ImGui::SameLine();
         help_marker("Disable \"Restore Enemy HP\" and \"Reset Timer\" while aerial (Useful for Taunt Ecstasy)");
+        ImGui::Separator();
     }
 }
 

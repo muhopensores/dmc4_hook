@@ -47,10 +47,10 @@ void EnemySlotting::on_gui_frame() {
     ImGui::SameLine();
     help_marker("Set how many enemies can attack at the same time. Default is usually 1\n"
 				"After unchecking this option, the original value will only be restored after entering a new room");
+    ImGui::SameLine(sameLineWidth);
     ImGui::PushItemWidth(sameLineItemWidth);
     ImGui::SliderInt("Slot Limit", &new_enemy_slot_limit, 0, 12);
     ImGui::PopItemWidth();
-    ImGui::Spacing();
 }
 
 void EnemySlotting::on_config_load(const utility::Config& cfg) {

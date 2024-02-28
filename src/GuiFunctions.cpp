@@ -345,7 +345,11 @@ namespace gui {
 
                     pmods->on_draw_ui("DamageMultiplier"_hash); // needs its own line
 
+                    ImGui::Separator();
+
                     pmods->on_draw_ui("InfAllHealth"_hash); // needs its own line
+
+                    ImGui::Separator();
 
                     pmods->on_draw_ui("OneHitKill"_hash); // needs its own line
 
@@ -356,6 +360,8 @@ namespace gui {
                     pmods->on_draw_ui("InfRevive"_hash);
 
                     pmods->on_draw_ui("RestoreMaxHp"_hash); // needs its own line
+
+                    pmods->on_draw_ui("CharSwitcher"_hash); // needs its own line
 
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -728,8 +734,6 @@ namespace gui {
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();
-
-                    pmods->on_draw_ui("CharSwitcher"_hash);
 
                     // pmods->onDrawUI("ShaderEditor"_hash);
 
