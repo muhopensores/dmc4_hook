@@ -13,7 +13,7 @@ uintptr_t DanteJdc::jmp_ret1{NULL};
     float jdcYCoord = 0.0f;
     float jdcZCoord = 0.0f;
 uintptr_t DanteJdc::jmp_ret2{NULL};
-    constexpr uintptr_t detour2_call1 = 0x008DF530;
+    constexpr uintptr_t detour2_call1 = 0x0081F970;
     constexpr uintptr_t detour2_jne   = 0x007E134D;
     float jdcTimer2 = 6.5f;
     float jdcTimer1 = 5.0f;
@@ -92,9 +92,10 @@ naked void detour1(void) {
 // spawn jdc
 naked void detour2(void) {
     _asm {
+        pushfd
 			cmp byte ptr [DanteJdc::mod_enabled], 0
 			je originalcode
-
+        
             pushad
             mov ebp, [static_mediator_ptr]
             mov ebp, [ebp]
@@ -108,7 +109,7 @@ naked void detour2(void) {
             jb handler
             comiss xmm0, [jdcTimer2]
             jnb handler
-            mov eax, [ebp+0x15A68]
+            mov eax, [ebp+0x3080]
             call detour2_call1 // Spawn effect + hitbox // DevilMayCry4_DX9.exe+41F970
             popad
             jmp originalcode
@@ -116,8 +117,8 @@ naked void detour2(void) {
         handler:
             popad
 		originalcode:
+            popfd
             sub eax, 01
-            cmp eax, 00 // complete guess of originalcode idk
             jne jmp_jne
         //jmp_return:
 			jmp dword ptr [DanteJdc::jmp_ret2]
@@ -141,7 +142,7 @@ naked void detour3(void) {
             je handler
             cmp dword ptr [ebp+0x00001564], 0x6C
             je handler
-            mov eax, [ebp+0x15A68]
+            mov eax, [ebp+0x3080]
             movss xmm0, [jdcXCoord]
             movss xmm1, [jdcYCoord]
             movss xmm2, [jdcZCoord]
