@@ -90,17 +90,21 @@ naked void detour1(void) {
 			movss [inputCooldown], xmm0
 
 			mov eax, [ebp+0x1374] // raw controller input
-			//test eax, eax
-			//je handler3 // no input, jump out
+
+			mov dx, [desiredInput]
+			and ax, dx
+			cmp ax, dx
+			jne handler3 // incorrect input, jump out and set previousInput
+
+			mov si, [previousInput]
+			xor si, ax
+			test si, si
+			je handler3 // stale input, jump out and set previousInput
 
 			cmp dword ptr [inputCooldown], 0
-			jg handler3 // cooldown has value != 0, jump out
-			
-			test ax, [desiredInput]
-			je handler3 // incorrect input, jump out
-			cmp ax, [previousInput]
-			je handler3 // stale input, jump out
+			jg handler3 // cooldown has value != 0, jump out and set previousInput
 
+			mov [previousInput], ax // set previousInput
 			mov dword ptr [inputCooldown], 0x42480000 // 50.0f // set input cooldown
 
 		// ForwardCheck:

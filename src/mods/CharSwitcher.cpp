@@ -8,8 +8,8 @@ uintptr_t primaryHUD                    = NULL;
 uintptr_t secondaryHUD                  = NULL;
 float swapGrav                          = -1.0f;
 float ySpawn                            = -9000.0f;
-int16_t desiredInput1                   = 0x1000; // 0x40 default
-int16_t desiredInput2                   = 0x8000; // 0x20 default
+int16_t desiredInput1                   = 0;
+int16_t desiredInput2                   = 0;
 int16_t prevInput                       = 0;
 
 uintptr_t CharSwitcher::jmp_ret1{NULL};
@@ -372,7 +372,7 @@ naked void SwapActor(void) {
         loop3:
             mov ebx, [0x00E559C4]
             mov ebx, [ebx] //
-            mov ecx, [ebx+0x5E4]
+            mov ecx, [ebx+0x5E4] // inputs
             xor edx, edx //
             mov dx, [desiredInput1]
             add dx, [desiredInput2]
@@ -393,7 +393,6 @@ naked void SwapActor(void) {
 
         swapActor:
             pushad
-
             mov eax, [primaryActor]
             mov ecx, [secondaryActor]
             mov ebp, [0x00E552C8]
