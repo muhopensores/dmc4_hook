@@ -34,6 +34,7 @@ uintptr_t CharSwitcher::jmp_ret4{NULL};
 uintptr_t CharSwitcher::jmp_ret5{NULL};
 uintptr_t CharSwitcher::jmp_ret6{NULL};
     constexpr uintptr_t detour6_call1 = 0x007ACEE0;
+uintptr_t CharSwitcher::jmp_ret7{NULL};
 
 void CharSwitcher::toggle(bool enable) {
     if (enable) {
@@ -332,6 +333,26 @@ naked void detour6(void) {
     }
 }
 
+// Prevent crash when switching to Dante during Neros SS
+naked void detour7(void) {
+    _asm {
+
+            cmp byte ptr [CharSwitcher::mod_enabled], 0
+			je originalcode
+
+            cmp byte ptr [esi+0xCDF8],00
+            jne originalcode
+
+            xor eax,eax
+            jmp jmp_ret
+
+        originalcode:
+            mov eax,[edx+0x00002444]
+        jmp_ret:
+			jmp dword ptr [CharSwitcher::jmp_ret7]
+    }
+}
+
 // Swap HUD
 naked void SwapHUD(void) {
     _asm {
@@ -528,7 +549,7 @@ std::optional<std::string> CharSwitcher::on_initialize() {
         spdlog::error("Failed to init CharSwitcher3 mod\n");
         return "Failed to init CharSwitcher3 mod";
     }
-    if (!install_hook_offset(0x3A91CC, hook4, &detour4, &jmp_ret4, 8)) { // Spawn secondary actor
+    if (!install_hook_offset(0x3A91CC, hook4, &detour4, &jmp_ret4, 8)) { // Spawn Secondary Actor and HUD
         spdlog::error("Failed to init CharSwitcher4 mod\n");
         return "Failed to init CharSwitcher4 mod";
     }
@@ -537,6 +558,10 @@ std::optional<std::string> CharSwitcher::on_initialize() {
         return "Failed to init CharSwitcher5 mod";
     }
     if (!install_hook_offset(0x3A853F, hook6, &detour6, &jmp_ret6, 5)) { // Suspend inactive actor
+        spdlog::error("Failed to init CharSwitcher6 mod\n");
+        return "Failed to init CharSwitcher6 mod";
+    }
+    if (!install_hook_offset(0x42F0A6, hook7, &detour7, &jmp_ret7, 6)) { // Prevent crash when switching to Dante during Neros SS
         spdlog::error("Failed to init CharSwitcher6 mod\n");
         return "Failed to init CharSwitcher6 mod";
     }
