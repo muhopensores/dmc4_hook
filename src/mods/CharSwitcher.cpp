@@ -1,7 +1,16 @@
 #include "CharSwitcher.hpp"
 
 bool CharSwitcher::mod_enabled{false};
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
+//constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
+uintptr_t primaryActor                  = NULL;
+uintptr_t secondaryActor                = NULL;
+uintptr_t primaryHUD                    = NULL;
+uintptr_t secondaryHUD                  = NULL;
+float swapGrav                          = -1.0f;
+float ySpawn                            = -9000.0f;
+int16_t desiredInput1                   = 0x1000; // 0x40 default
+int16_t desiredInput2                   = 0x8000; // 0x20 default
+int16_t prevInput                       = 0;
 
 uintptr_t CharSwitcher::jmp_ret1{NULL};
     constexpr uintptr_t detour1_jmp1 = 0x00494B70;
@@ -9,26 +18,26 @@ uintptr_t CharSwitcher::jmp_ret2{NULL};
     constexpr uintptr_t detour2_call1 = 0x008DF530;
 uintptr_t CharSwitcher::jmp_ret3{NULL};
 uintptr_t CharSwitcher::jmp_ret4{NULL};
-    constexpr uintptr_t detour4_call1 = 0x007B2150;
-    constexpr uintptr_t detour4_call2 = 0x007E1B30;
-    constexpr uintptr_t detour4_call3 = 0x008DC540;
-    constexpr uintptr_t detour4_call4 = 0x004A5AA0;
+    // Dante
+    constexpr uintptr_t detour4_call1  = 0x00503240;
+    constexpr uintptr_t detour4_call2  = 0x0076F200;
+    constexpr uintptr_t detour4_call3  = 0x005079D0;
+    constexpr uintptr_t detour4_call4  = 0x007B2150;
+    // Nero                            
+    constexpr uintptr_t detour4_call5  = 0x00507A90;
+    constexpr uintptr_t detour4_call6  = 0x0076E790;
+    constexpr uintptr_t detour4_call7  = 0x005079D0;
+    constexpr uintptr_t detour4_call8  = 0x007E1B30;
+    constexpr uintptr_t detour4_call9  = 0x008DC540;
+    // Originalcode
+    constexpr uintptr_t detour4_call10 = 0x004A5AA0;
 uintptr_t CharSwitcher::jmp_ret5{NULL};
 uintptr_t CharSwitcher::jmp_ret6{NULL};
     constexpr uintptr_t detour6_call1 = 0x007ACEE0;
 
-    constexpr uintptr_t DrawUI_call1 = 0x00507370;
-uintptr_t primaryActor   = NULL;
-uintptr_t secondaryActor = NULL;
-float swapGrav           = -0.5f;
-float ySpawn             = -3000.0f;
-int16_t desiredInput1    = 0x40; // 0x40 default
-int16_t desiredInput2    = 0x20; // 0x20 default
-int16_t prevInput        = 0;
-
 void CharSwitcher::toggle(bool enable) {
     if (enable) {
-        install_patch_offset(0x094B55, patch1, "\xEB\x19", 2);                          // Load Dante's Save
+        install_patch_offset(0x094B55, patch1, "\xEB\x19", 2);                         // Load Dante's Save
         install_patch_offset(0x3AA5D6, patch2, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 1
         install_patch_offset(0x3AA5E0, patch3, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 2
         install_patch_offset(0x3AA61E, patch4, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 3
@@ -42,6 +51,7 @@ void CharSwitcher::toggle(bool enable) {
 }
 /*
 // Always load Dante's save (enable out of mission to spawn Dante while playing as Nero, no effect on Nero spawn)
+// This is a patch now
 naked void detour1(void) {
     _asm {
 			cmp byte ptr [CharSwitcher::mod_enabled], 0
@@ -68,6 +78,7 @@ naked void detour2(void) {
 
             push ecx
             mov ecx, [0x00E552C8]
+            mov ecx, [ecx] //
             mov ecx, [ecx+0x3834]
             mov ecx, [ecx+0x28]
             test cl, cl
@@ -78,6 +89,7 @@ naked void detour2(void) {
             push 0x00008002
             push 0x00B90CE8
             mov eax, [0x00E552D0]
+            mov eax, [eax] //
             push 0x00EAD4A0
             call dword ptr [detour2_call1]
             popad
@@ -88,6 +100,7 @@ naked void detour2(void) {
             push 0x00008002
             push 0x00B90CD0
             mov eax, [0x00E552D0]
+            mov eax, [eax] //
             push 0x00EAD4A0
             call dword ptr [detour2_call1]
             popad
@@ -96,6 +109,7 @@ naked void detour2(void) {
             push esi
             push edi
             mov edi, [0x00E558B8]
+            mov edi, [edi] //
             jmp dword ptr [CharSwitcher::jmp_ret2]
     }
 }
@@ -110,11 +124,12 @@ naked void detour3(void) {
 
         originalcode:
             mov eax, [0x00E552CC]
+            mov eax, [eax] //
             jmp dword ptr [CharSwitcher::jmp_ret3]
     }
 }
 
-// Spawn secondary actor
+// Spawn Secondary Actor and HUD
 naked void detour4(void) {
     _asm {
             cmp byte ptr [CharSwitcher::mod_enabled], 0
@@ -124,37 +139,100 @@ naked void detour4(void) {
             mov eax, [primaryActor]
             cmp eax, ecx
             jne handler
+            mov ebp, [0x00E552CC]
+            mov ebp, [ebp] //
+            mov ebp, [ebp+0x284]
+            push dword ptr [ebp+0x18]
+            pop [primaryHUD]
             mov ebp, [0x00E552C8]
+            mov ebp, [ebp] //
             mov ebp, [ebp+0x3834]
             mov ecx, [ebp+0x28]
             test ecx, ecx
             je NeroInit
-            jmp DanteInit
-
-        DanteInit:
+        // DanteInit:
+            // Create HUD
             mov ecx, [0x00E1434C]
+            mov ecx, [ecx] //
+            mov edx, [ecx]
+            mov eax, [edx+0x14]
+            push 0x10
+            push 0x0000025C
+            call eax
+            mov esi, eax
+            call dword ptr [detour4_call1]
+            // Lock-on
+            mov [secondaryHUD], eax
+            mov ecx, [0x00E1434C]
+            mov ecx, [ecx] //
+            mov edx, [ecx]
+            mov eax, [edx+0x14]
+            push 0x10
+            push 0x58
+            call eax
+            call dword ptr [detour4_call2]
+            mov ecx, [secondaryHUD]
+            mov [ecx+0x28], eax
+            mov edx, [eax]
+            mov ecx, eax
+            mov eax, [edx+0x14]
+            call eax
+            call [detour4_call3]
+            // Spawn character
+            mov ecx, [0x00E1434C]
+            mov ecx, [ecx] //
             mov eax, [ecx]
             mov edx, [eax+0x14]
             push 0x10
             push 0x000152F0
             call edx
-            call dword ptr [detour4_call1]
+            call dword ptr [detour4_call4]
             jmp Spawn
 
         NeroInit:
+            // Create HUD
             mov ecx, [0x00E1434C]
+            mov ecx, [ecx] //
+            mov eax, [ecx]
+            mov edx, [eax+0x14]
+            push 0x10
+            push 0x0000023C
+            call edx
+            mov esi, eax
+            call dword ptr [detour4_call5]
+            mov [secondaryHUD], eax
+            // Lock-on
+            mov ecx, [0x00E1434C]
+            mov ecx, [ecx] //
+            mov edx, [ecx]
+            mov eax, [edx+0x14]
+            push 0x10
+            push 0x70
+            call eax
+            call dword ptr [detour4_call6]
+            mov ecx, [secondaryHUD]
+            mov [ecx+0x28], eax
+            mov edx, [eax]
+            mov ecx, eax
+            mov eax, [edx+0x14]
+            call eax
+            call dword ptr [detour4_call7]
+            //Spawn character
+            mov ecx, [0x00E1434C]
+            mov ecx, [ecx] //
             mov eax, [ecx]
             mov edx, [eax+0x14]
             push 0x10
             push 0x0000D680
             call edx
             mov esi, eax
-            call dword ptr [detour4_call2]
+            call dword ptr [detour4_call8]
         Spawn:
-            mov esi,eax
+            mov esi, eax
             mov eax, [0x00E552CC]
+            mov eax, [eax] //
             push 0x0F
-            call dword ptr [detour4_call3]
+            call dword ptr [detour4_call9]
             mov [secondaryActor], esi
             popad
             jmp code
@@ -165,7 +243,7 @@ naked void detour4(void) {
             mov ecx, [primaryActor]
         originalcode:
             mov [eax+0x24], ecx
-            call dword ptr [detour4_call4]
+            call dword ptr [detour4_call10]
         // jmp_ret:
 			jmp dword ptr [CharSwitcher::jmp_ret4]
     }                   
@@ -186,9 +264,10 @@ naked void detour5(void) {
             push ebp
             mov eax, esi
             mov ebp, [0x00E558B8]
-            mov [eax+0x1509], 0 // input
+            mov ebp, [ebp] //
+            mov dword ptr [eax+0x1509], 0 // input
             mov esi, [eax+0x1E8C]
-            mov [esi+0xD4], 1 // collision
+            mov dword ptr [esi+0xD4], 1 // collision
         // Position
             fld dword ptr [ebp+0x60]
             fstp dword ptr [eax+0x30]
@@ -196,8 +275,8 @@ naked void detour5(void) {
             fstp dword ptr [eax+0x34]
             fld dword ptr [ebp+0x68]
             fstp dword ptr [eax+0x38]
-            mov [eax+0x1550], 1
-            mov [esi+0x1C], 0
+            mov dword ptr [eax+0x1550], 1
+            mov dword ptr [esi+0x1C], 0
             xorps xmm0, xmm0
             movss [eax+0x1E1C], xmm0
             movss [eax+0xEC4], xmm0
@@ -230,14 +309,17 @@ naked void detour6(void) {
 
             push ebp
             mov ebp, [0x00E558B8]
+            mov ebp, [ebp] //
             cmp [ebp+0x24], edi
-            jne handler
+            jne handler1
+            mov ebp, [ebp+0x24]
+            mov byte ptr [ebp+0x150C], 1
             pop ebp
         originalcode:
             call dword ptr [detour6_call1]
             jmp jmp_ret
 
-        handler:
+        handler1:
             cmp [ebp+0xB0], edi
             jne handler2
             pop ebp
@@ -250,46 +332,18 @@ naked void detour6(void) {
     }
 }
 
-// Draw UI
-naked void DrawUI(void) {
+// Swap HUD
+naked void SwapHUD(void) {
     _asm {
             pushad
+            mov eax, [primaryHUD]
+            mov ecx, [secondaryHUD]
             mov ebp, [0x00E552CC]
-            mov ecx, [ebp+0x284]
-            test ecx, ecx
-            jne jmp_ret
-            mov ecx, [0x00E1434C]
-            mov edx, [ecx]
-            mov eax, [edx+0x14]
-            push 0x10
-            push 0x20
-            call eax
-            mov edi,eax
-            call dword ptr [DrawUI_call1]
-            mov esi,eax
-            mov eax, [0x00E552CC]
-            push 0x19
-            call dword ptr [detour4_call3]
-        jmp_ret:
-            popad
-            ret
-    }
-}
-
-// Wipe UI
-naked void WipeUI(void) {
-    _asm {
-        // WipeUI:
-            pushad
-            mov ebp, [0x00E552CC]
-            mov esi, [ebp+0x284]
-            test esi, esi
-            je jmp_ret
-            mov edx, [esi]
-            mov eax, [edx+0x30]
-            mov ecx, esi
-            call eax
-        jmp_ret:
+            mov ebp, [ebp] //
+            mov ebp, [ebp+0x284]
+            mov [ebp+0x18], ecx
+            mov [primaryHUD], ecx
+            mov [secondaryHUD], eax
             popad
             ret
     }
@@ -301,10 +355,10 @@ naked void SwapActor(void) {
         // loop1:
             pushad
             mov ebp, [0x00E558B8]
+            mov ebp, [ebp] //
             mov ebp, [ebp+0x24]
             test ebp,ebp
             je loopend
-            call DrawUI
             cmp byte ptr [ebp+0xCDF8], 00
             je loop3
             mov ebp, [ebp+0xCDF8]
@@ -315,18 +369,9 @@ naked void SwapActor(void) {
             je loopend
             jmp loop3
 
-        loop2:
-            xor esi, esi //
-            mov si, [prevInput]
-            xor esi, ecx
-            test esi, esi
-            je loopend
-            mov [prevInput], dx
-            call swapActor
-            jmp loopend
-
         loop3:
             mov ebx, [0x00E559C4]
+            mov ebx, [ebx] //
             mov ecx, [ebx+0x5E4]
             xor edx, edx //
             mov dx, [desiredInput1]
@@ -337,27 +382,37 @@ naked void SwapActor(void) {
             mov [prevInput], cx
             jmp loopend
 
+        loop2:
+            xor esi, esi //
+            mov si, [prevInput]
+            xor esi, ecx
+            test esi, esi
+            je loopend
+            mov [prevInput], dx
+            jmp swapActor
+
         swapActor:
             pushad
+
             mov eax, [primaryActor]
             mov ecx, [secondaryActor]
             mov ebp, [0x00E552C8]
+            mov ebp, [ebp] //
             mov ebp, [ebp+0x3834]
-            xor [ebp+0x28], 1
-            call WipeUI
-            mov ebp, [0x00E558B8]
-            mov [ebp+0x24], ecx
+            xor dword ptr [ebp+0x28], 1
             // To-be main actor
-            mov [primaryActor],ecx
-            mov [ecx+0x1509], 1 // input
+            mov ebp, [0x00E558B8]
+            mov ebp, [ebp] //
+            mov ebp, [ebp+0x24]
+            mov dword ptr [ecx+0x1509], 1 // input
             // Position, rotation
-            fld [eax+0x30] // X pos
-            fstp [ecx+0x30]
-            fld [eax+0x34] // Y pos
-            fstp [ecx+0x34]
-            fld [eax+0x38] // Z pos
-            fstp [ecx+0x38]
-            fld [ecx+0x30]
+            fld dword ptr [ebp+0x1350] //X pos
+            fstp dword ptr [ecx+0x30]
+            fld dword ptr [ebp+0x1354] // Y pos
+            fstp dword ptr [ecx+0x34]
+            fld dword ptr [ebp+0x1358] // Z pos
+            fstp dword ptr [ecx+0x38]
+            fld dword ptr [ecx+0x30]
             fstp dword ptr [ecx+0x000014A0]
             fld dword ptr [ecx+0x34]
             fstp dword ptr [ecx+0x000014A4]
@@ -376,23 +431,21 @@ naked void SwapActor(void) {
             fld [eax+0x1710]
             fstp [ecx+0x1710]
             // Collision
-            mov [ecx+0x150C], 1
-            mov [ecx+0x150D], 1
-            mov [ecx+0x150E], 1
-            mov [ecx+0x150F], 1
+            mov byte ptr [ecx+0x150C], 0
+            mov byte ptr [ecx+0x150D], 1
             mov edi, [eax+0x1E8C]
             mov esi, [ecx+0x1E8C]
-            mov [esi+0xD4], 0
-            push [edi+0x1C]
-            pop [esi+0x1C]
-            //  mov [esi+0x1C], 1
+            mov dword ptr [esi+0xD4], 0
+            push dword ptr [edi+0x1C]
+            pop dword ptr [esi+0x1C]
+            //  mov dword ptr [esi+0x1C], 1
             // Inertia, gravity
             xorps xmm0, xmm0
             movss [ecx+0xEC4], xmm0
             movss xmm0, [swapGrav]
             movss [ecx+0xED4], xmm0
-            //  fld [eax+0xED4]
-            //  fstp [ecx+0xED4]
+            // fld [eax+0xED4]
+            // fstp [ecx+0xED4]
             mov byte ptr [ecx+0x2A57], 00
             fld [eax+0x1E1C] // inertia
             fstp [ecx+0x1E1C]
@@ -412,39 +465,49 @@ naked void SwapActor(void) {
             fstp [ecx+0x1E64]
             fld [eax+0x16C0]
             fstp [ecx+0x16C0]
-            // Motion
-            //  mov [ecx+0x1550], 1
-            //  mov [ecx+0x2008], 1
-            //  mov [ecx+0x1500], 1
-
-            // Previous main actor
+            //Lockon
+            push dword ptr [eax+0x3080]
+            pop dword ptr [ecx+0x3080]
+            //Motion
+            //  mov dword ptr [ecx+0x1550],01
+            //  mov dword ptr [ecx+0x2008],1
+            //  mov dword ptr [ecx+0x1500],1
+            
+            //Previous main actor
             mov [secondaryActor], eax
-            mov [eax+0x1509], 0 // input
+            mov dword ptr [eax+0x1509], 0 // input
             mov esi, [eax+0x1E8C]
-            mov [esi+0xD4], 1   // collision
-            // Position
+            mov dword ptr [esi+0xD4], 1 // collision
+            //Position
             mov ebp, [0x00E552C8]
+            mov ebp, [ebp] //
             mov ebp, [ebp+0x3830]
             //  fld dword ptr [ebp+0x50]
             //  fstp dword ptr [eax+0x30]
             movss xmm0, [eax+0x34]
             addss xmm0, [ySpawn]
-            movss [eax+0x34], xmm0
+            movss dword ptr [eax+0x34], xmm0
             //  fld dword ptr [ebp+0x58]
             //  fstp dword ptr [eax+0x38]
-            mov [eax+0x1550], 1
-            mov [esi+0x1C], 0
-            //  mov [eax+0x1500], 0
-            //  mov [eax+0x1504], 5
-            //  mov [eax+0x1505], 0
-            //  mov [eax+0x150C], 0
-            //  mov [eax+0x150D], 1
+            mov dword ptr [eax+0x1550], 1
+            mov dword ptr [esi+0x1C], 1
+            //  mov dword ptr [eax+0x1500], 0
+            //  mov dword ptr [eax+0x1504], 5
+            //  mov dword ptr [eax+0x1505], 0
+            mov byte ptr [eax+0x150C], 0
+            mov byte ptr [eax+0x150D], 0
             xorps xmm0, xmm0
-            movss [eax+0x1E1C], xmm0
+            movss [eax+0x1E1C],xmm0
             movss [eax+0xEC4], xmm0
             movss [eax+0xED0], xmm0
             movss [eax+0xED4], xmm0
             movss [eax+0xED8], xmm0
+            mov ebp, [0x00E558B8]
+            mov ebp, [ebp] //
+            mov [ebp+0x24], ecx
+            mov [primaryActor], ecx
+            call SwapHUD
+            
             popad
 
         loopend:
@@ -494,7 +557,7 @@ void CharSwitcher::on_frame(fmilliseconds& dt) {
     }
     */
     if (mod_enabled) {
-        //SwapActor();
+        SwapActor();
     }
 }
 
@@ -538,8 +601,8 @@ void CharSwitcher::on_gui_frame() {
 void CharSwitcher::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("char_switcher").value_or(false);
     toggle(mod_enabled);
-    desiredInput1 = cfg.get<int16_t>("char_swap_input1").value_or(0x40);
-    desiredInput2 = cfg.get<int16_t>("char_swap_input2").value_or(0x20);
+    desiredInput1 = cfg.get<int16_t>("char_swap_input1").value_or(0x8000);
+    desiredInput2 = cfg.get<int16_t>("char_swap_input2").value_or(0x1000);
 }
 
 void CharSwitcher::on_config_save(utility::Config& cfg) {

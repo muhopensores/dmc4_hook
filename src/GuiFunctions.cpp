@@ -729,7 +729,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    //pmods->on_draw_ui("CharSwitcher"_hash);
+                    pmods->on_draw_ui("CharSwitcher"_hash);
 
                     // pmods->onDrawUI("ShaderEditor"_hash);
 

@@ -243,7 +243,7 @@ Mods::Mods() {
     ADD_MOD(AngelSnatch);
     ADD_MOD(DtKnuckle);
     ADD_MOD(EffectColours);
-    //ADD_MOD(CharSwitcher);
+    ADD_MOD(CharSwitcher);
 }
 
 // Initializes mods, checks for errors

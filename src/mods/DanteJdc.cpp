@@ -13,7 +13,7 @@ uintptr_t DanteJdc::jmp_ret1{NULL};
     float jdcYCoord = 0.0f;
     float jdcZCoord = 0.0f;
 uintptr_t DanteJdc::jmp_ret2{NULL};
-    constexpr uintptr_t detour2_call1 = 0x0081F970;
+    constexpr uintptr_t detour2_call1 = 0x008DF530;
     constexpr uintptr_t detour2_jne   = 0x007E134D;
     float jdcTimer2 = 6.5f;
     float jdcTimer1 = 5.0f;
