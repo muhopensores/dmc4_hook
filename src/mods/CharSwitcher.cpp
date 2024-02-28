@@ -613,5 +613,5 @@ void CharSwitcher::on_config_load(const utility::Config& cfg) {
 void CharSwitcher::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("char_switcher", mod_enabled);
     cfg.set<int16_t>("char_swap_input1", desiredInput1);
-    cfg.set<int16_t>("char_swap_input2", desiredInput1);
+    cfg.set<int16_t>("char_swap_input2", desiredInput2);
 }
