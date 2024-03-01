@@ -1,7 +1,10 @@
 #include "CharSwitcher.hpp"
 
 bool CharSwitcher::mod_enabled{false};
-//constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
+bool CharSwitcher::inertia_enabled{true};
+constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
+constexpr uintptr_t sArea = 0x00E552C8;
+constexpr uintptr_t sSave = 0x00E558C8;
 uintptr_t primaryActor                  = NULL;
 uintptr_t secondaryActor                = NULL;
 uintptr_t primaryHUD                    = NULL;
@@ -12,8 +15,6 @@ int16_t desiredInput1                   = 0;
 int16_t desiredInput2                   = 0;
 int16_t prevInput                       = 0;
 
-uintptr_t CharSwitcher::jmp_ret1{NULL};
-    constexpr uintptr_t detour1_jmp1 = 0x00494B70;
 uintptr_t CharSwitcher::jmp_ret2{NULL};
     constexpr uintptr_t detour2_call1 = 0x008DF530;
 uintptr_t CharSwitcher::jmp_ret3{NULL};
@@ -35,42 +36,31 @@ uintptr_t CharSwitcher::jmp_ret5{NULL};
 uintptr_t CharSwitcher::jmp_ret6{NULL};
     constexpr uintptr_t detour6_call1 = 0x007ACEE0;
 uintptr_t CharSwitcher::jmp_ret7{NULL};
+uintptr_t CharSwitcher::jmp_ret8{NULL};
+
 
 void CharSwitcher::toggle(bool enable) {
     if (enable) {
-        install_patch_offset(0x094B55, patch1, "\xEB\x19", 2);                         // Load Dante's Save
-        install_patch_offset(0x3AA5D6, patch2, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 1
-        install_patch_offset(0x3AA5E0, patch3, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 2
-        install_patch_offset(0x3AA61E, patch4, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 3
+        install_patch_offset(0x094B55, patch1, "\xEB\x19", 2); // Load Dante's Save
 
     } else {
         patch1.reset();
+    }
+}
+
+void CharSwitcher::toggle2(bool enable) {
+    if (enable)
+    {
+        install_patch_offset(0x3AA5D6, patch2, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 1
+        install_patch_offset(0x3AA5E0, patch3, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 2
+        install_patch_offset(0x3AA61E, patch4, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 3
+    } else {
         patch2.reset();
         patch3.reset();
         patch4.reset();
     }
 }
-/*
-// Always load Dante's save (enable out of mission to spawn Dante while playing as Nero, no effect on Nero spawn)
-// This is a patch now
-naked void detour1(void) {
-    _asm {
-			cmp byte ptr [CharSwitcher::mod_enabled], 0
-			je originalcode
 
-            jmp jnecode
-
-		originalcode:
-            cmp byte ptr [ecx+0x28], 01
-            jne jnecode
-            lea esi, [eax+0x000001D8]
-			jmp dword ptr [CharSwitcher::jmp_ret1]
-
-        jnecode:
-            jmp dword ptr [detour1_jmp1]
-    }
-}
-*/
 // Arc file load mk4
 naked void detour2(void) {
     _asm {
@@ -87,8 +77,8 @@ naked void detour2(void) {
             je NeroArc
         // DanteArc:
             pushad
-            push 0x00008002
-            push 0x00B90CE8
+            push 0x00008002 
+            push 0x00B90CE8 
             mov eax, [0x00E552D0]
             mov eax, [eax] //
             push 0x00EAD4A0
@@ -370,6 +360,43 @@ naked void SwapHUD(void) {
     }
 }
 
+naked void SaveWrite(void) {
+    _asm{
+            push eax
+            mov eax, [sArea] //sArea
+            mov eax, [eax]
+            mov eax, [eax+0x3834]
+            cmp byte ptr [eax+0x28], 01
+            pop eax
+            je NeroSave
+            jmp DanteSave
+        DanteSave:
+            pushad
+            mov eax, [sSave]
+            mov eax, [eax]
+            mov edx, [static_mediator_ptr]
+            mov edx, [edx]
+            lea esi, [eax+0xD8]
+            mov ecx, 0x40
+            lea edi, [edx+0x368]
+            repe movsd
+            popad
+            ret
+        NeroSave:
+            pushad
+            mov eax, [sSave]
+            mov eax, [eax]
+            mov edx, [static_mediator_ptr]
+            mov edx, [edx]
+            lea esi, [eax+0x1D8]
+            mov ecx, 0x3A
+            lea edi, [edx+0x368]
+            repe movsd
+            popad
+            ret
+    }
+}
+
 // Swap actor
 naked void SwapActor(void) {
     _asm {
@@ -380,6 +407,7 @@ naked void SwapActor(void) {
             mov ebp, [ebp+0x24]
             test ebp,ebp
             je loopend
+            call SaveWrite
             cmp byte ptr [ebp+0xCDF8], 00
             je loop3
             mov ebp, [ebp+0xCDF8]
@@ -485,6 +513,8 @@ naked void SwapActor(void) {
             fstp [ecx+0x1E64]
             fld [eax+0x16C0]
             fstp [ecx+0x16C0]
+            fld [eax+0x170C]
+            fstp [ecx+0x170C]
             //Lockon
             push dword ptr [eax+0x3080]
             pop dword ptr [ecx+0x3080]
@@ -527,20 +557,34 @@ naked void SwapActor(void) {
             mov [ebp+0x24], ecx
             mov [primaryActor], ecx
             call SwapHUD
-            
             popad
-
         loopend:
             popad
             ret
     }
 }
+//Reload Dante Save
+naked void detour8(void){
+    _asm {
+            cmp byte ptr [CharSwitcher::mod_enabled], 0
+            je originalcode
+            pushad
+            mov eax, [sSave]
+            mov eax, [eax]
+            mov edx, [static_mediator_ptr]
+            mov edx, [edx]
+            lea esi, [eax+0xD8]
+            mov ecx, 0x40
+            lea edi, [edx+0x368]
+            repe movsd
+            popad
+        originalcode:
+            mov ecx, [esi+0x000000E8]
+            jmp [CharSwitcher::jmp_ret8]
+    }
+}
 
 std::optional<std::string> CharSwitcher::on_initialize() {
-    /*if (!install_hook_offset(0x094B55, hook1, &detour1, &jmp_ret1, 8)) { // Always load Dante's save
-        spdlog::error("Failed to init CharSwitcher1 mod\n");
-        return "Failed to init CharSwitcher1 mod";
-    }*/
     if (!install_hook_offset(0x007580, hook2, &detour2, &jmp_ret2, 9)) { // Arc file load mk4
         spdlog::error("Failed to init CharSwitcher2 mod\n");
         return "Failed to init CharSwitcher2 mod";
@@ -565,21 +609,14 @@ std::optional<std::string> CharSwitcher::on_initialize() {
         spdlog::error("Failed to init CharSwitcher6 mod\n");
         return "Failed to init CharSwitcher6 mod";
     }
+    if (!install_hook_offset(0x00DCE0, hook8, &detour8, &jmp_ret8, 6)) { // Reload Dante Save
+        spdlog::error("Failed to init CharSwitcher7 mod\n");
+        return "Failed to init CharSwitcher7 mod";
+    }
     return Mod::on_initialize();
 }
 
 void CharSwitcher::on_frame(fmilliseconds& dt) {
-    /*
-    if (mod_enabled) {
-        uPlayer* player = devil4_sdk::get_local_player();
-        if (player) {
-            if (player->buttonInputRaw != prevInput && player->buttonInputRaw & desiredInput) {
-                SwapActor();
-            }
-            prevInput = player->buttonInputRaw;
-        }
-    }
-    */
     if (mod_enabled) {
         SwapActor();
     }
@@ -624,7 +661,14 @@ void CharSwitcher::on_gui_frame() {
             ImGui::EndCombo();
         }
         ImGui::PopItemWidth();
-        // ImGui::Separator(); // uncomment if something comes after this
+        //ImGui::Separator(); // uncomment if something comes after this
+        ImGui::PushItemWidth(sameLineItemWidth);
+        if (ImGui::Checkbox("Inertia carryover", &inertia_enabled)) {
+            toggle2(inertia_enabled);
+        }
+        ImGui::SameLine();
+        help_marker("Enable inertia carryover on switching");
+        ImGui::PopItemWidth();
     }
 }
 

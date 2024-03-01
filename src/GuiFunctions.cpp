@@ -372,7 +372,9 @@ namespace gui {
 
                     pmods->on_draw_ui("DifficultySelect"_hash); // needs its own line
 
-                    pmods->on_draw_ui("EnemyDT"_hash);
+                    pmods->on_draw_ui("EnemySlotting"_hash); // needs its own line
+
+                    pmods->on_draw_ui("EnemyDT"_hash); // needs its own line
 
                     pmods->on_draw_ui("DmdLevelAi"_hash); // needs its own line
                     
@@ -380,13 +382,17 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("EnemyAttackOffScreen"_hash);
 
-                    pmods->on_draw_ui("EnemySlotting"_hash); // needs its own line
+                    pmods->on_draw_ui("FrostsDontJump"_hash);
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("AssaultsDontJump"_hash);
+
+                    pmods->on_draw_ui("DisableChimeraBlades"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("Enemy Options");
+                    ImGui::Text("Enemy Training");
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("StunAnything"_hash);
@@ -400,12 +406,6 @@ namespace gui {
                     pmods->on_draw_ui("InfFaustCloak"_hash); // needs its own line
 
                     pmods->on_draw_ui("FreezeEnemies"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("DisableChimeraBlades"_hash);
-
-                    pmods->on_draw_ui("FrostsDontJump"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("AssaultsDontJump"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();

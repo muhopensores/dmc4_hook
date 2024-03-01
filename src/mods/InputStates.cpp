@@ -173,7 +173,7 @@ naked void detour_changing_to_lucifer() {
 void InputStates::on_timer_callback() { // hide lucifer after rose if weaponid is not lucifer
     uPlayer* player = devil4_sdk::get_local_player();
     if (player) {
-        if (player->lucifer->visible == true && player->currentSword != 6) {
+        if (player->lucifer->visible == true && player->currentSword != 6 && player->controllerID == 0) {
             if (!ForceLucifer::mod_enabled) {
                 player->lucifer->visible = false;
             }
