@@ -138,6 +138,7 @@ Mods::Mods() {
     // add mods here
     // m_mods["ModName"_hash] = std::make_unique<ModName>();
     ADD_MOD(PlayerTracker); // keep as 5
+    ADD_MOD(LoadOrder); // in debug tab for now until i figure out how to get rid of SEH exceptions
     ADD_MOD(FastStart);
     ADD_MOD(AreaJump);
     ADD_MOD(LimitAdjust);
@@ -229,7 +230,6 @@ Mods::Mods() {
     ADD_MOD(DisableKeyboard);
     ADD_MOD(InstantTrick);
     //ADD_MOD(ShaderEditor); // unfinished
-    ADD_MOD(LoadOrder); // in debug tab for now until i figure out how to get rid of SEH exceptions
     ADD_MOD(RoomRespawn);
     ADD_MOD(DoubleTapDarkslayer);
     ADD_MOD(TargetChangeDarkslayer);
