@@ -413,7 +413,17 @@ std::optional<std::string> DanteJdc::on_initialize() {
 void DanteJdc::on_gui_frame() {
     ImGui::Checkbox("Judgement Cut", &mod_enabled);
     ImGui::SameLine();
-    help_marker("Enable before entering a stage to load alternate animations");
+    help_marker("This mod requires external files found on the dmc4_hook repo.\n"
+            "The button to the right of this cheat will take you to the download page.\n"
+            "- Install the extra files (via fluffy's mod manager or manually).\n"
+            "- Enable both this and the \"HDD Priority\" mod in the Debug page.\n"
+            "- Save your config and load into a level.");
+    ImGui::SameLine(sameLineWidth);
+    if (ImGui::Button("Download JDC Files")) {
+        ShellExecuteA(NULL, "open", "https://github.com/muhopensores/dmc4_hook/releases", NULL, NULL, SW_SHOWNORMAL);
+    }
+    ImGui::SameLine();
+    help_marker("Download JDC Files in the Assets section of the latest release and install manually or using Fluffy's Mod Manager");
 }
 
 void DanteJdc::on_config_load(const utility::Config& cfg) {

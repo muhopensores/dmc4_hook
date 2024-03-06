@@ -31,7 +31,6 @@ public:
     // onGUIframe() gets called when imgui window is on the screen.
     // override this method if you want to display something in the gui.
     void on_gui_frame() override;
-    void toggle(bool enable);
     // onGamePause() gets called from hl::Main when toggling a gui.
     // override this method if you want to do something when toggling a gui.
     // (only used by workrate mod atm)
@@ -45,7 +44,7 @@ public:
     // override;
 private:
     // hook instance if you need to apply detours
-    std::unique_ptr<FunctionHook> m_hook, m_hook1, m_hook2;
+    std::unique_ptr<FunctionHook> m_hook, m_hook1, m_hook2, m_hook3;
     //const hl::IHook* m_hook_iface = nullptr;
     bool m_enabled;
     // patch instance if you need to apply patch
