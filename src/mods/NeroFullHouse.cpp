@@ -49,7 +49,7 @@ naked void detour1(void) { // redirect streak 1 to full house function // player
         originalcode:
             jmp dword ptr [NeroFullHouse::nero_streak_1]
         fullhousecheck:
-            cmp [eax+0x1564], 28 // was streak 1 pushed?
+            cmp byte ptr [eax+0x1564], 28 // was streak 1 pushed?
             jne originalcode
 			jmp dword ptr [NeroFullHouse::full_house]
     }
@@ -59,7 +59,7 @@ naked void detour2(void) { // select full house start animation // player in esi
     _asm {
             cmp byte ptr [NeroFullHouse::mod_enabled], 1
             jne code
-            cmp [esi+0x1494], 1 // nero
+            cmp byte ptr [esi+0x1494], 1 // nero
             jne code
         //cheatcode:
             // push 0x00000351 // payline
@@ -75,7 +75,7 @@ naked void detour3(void) { // select full house landing animation // player in e
     _asm {
             cmp byte ptr [NeroFullHouse::mod_enabled], 1
             jne code
-            cmp [esi+0x1494], 1 // nero
+            cmp byte ptr [esi+0x1494], 1 // nero
             jne code
         //cheatcode:
             push 0x00000351 // 20 is shmove right, 351/2/3 is payline
@@ -97,7 +97,7 @@ naked void detour4(void) { // set frame of animation, player in ecx, this should
     _asm {
             cmp byte ptr [NeroFullHouse::mod_enabled], 1
             jne code
-            cmp [ecx+0x1494], 1 // nero
+            cmp byte ptr [ecx+0x1494], 1 // nero
             jne code
 
             push eax
@@ -115,7 +115,7 @@ naked void detour4(void) { // set frame of animation, player in ecx, this should
             cmp byte ptr [ecx+0x2008], 1 // grounded
             je code
             movss [current_frame], xmm0
-            cmp [current_frame], 0x41c80000 // 25.0f
+            cmp dword ptr [current_frame], 0x41c80000 // 25.0f
             jl code
             movss xmm0, [first_frame] // 24.0f
             jmp code
@@ -125,7 +125,7 @@ naked void detour4(void) { // set frame of animation, player in ecx, this should
             cmp dword ptr [ecx+0x2998], 0x351
             jne code
             movss [current_frame], xmm0
-            cmp [current_frame], 0x41200000 // 10.0f
+            cmp dword ptr [current_frame], 0x41200000 // 10.0f
             ja code
             movss xmm0, [first_frame2] // 10.0f
             jmp code
@@ -140,7 +140,7 @@ naked void detour5(void) { // cancellable payline ending // player in esi
     _asm {
             cmp byte ptr [NeroFullHouse::mod_enabled], 1
             jne code
-            cmp [esi+0x1494], 1 // nero
+            cmp byte ptr [esi+0x1494], 1 // nero
             jne code
             push eax
             mov eax, [static_mediator_ptr]

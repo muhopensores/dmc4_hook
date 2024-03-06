@@ -9,7 +9,7 @@ uintptr_t LdkWithDmd::ldk_with_dmd_continue{ NULL };
 
 naked void ldk_with_dmd_proc(void) {
     _asm {
-        cmp [LdkWithDmd::mod_enabled], 0
+        cmp byte ptr [LdkWithDmd::mod_enabled], 0
         je code
 
 		add eax,[edi+00000140h]

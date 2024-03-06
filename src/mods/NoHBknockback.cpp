@@ -22,30 +22,30 @@ naked void no_helm_breaker_knockback_proc(void) { // ebx+0x98 = player + CE20 //
 
 		cheatcode:
 			// Dante:
-			cmp [MoveIds::move_id],0x20A			// 522 // Low
+			cmp dword ptr [MoveIds::move_id],0x20A			// 522 // Low
 			je newcode
-			cmp [MoveIds::move_id],0x213			// 531 // Mid
+			cmp dword ptr [MoveIds::move_id],0x213 // 531 // Mid
 			je newcode
-			cmp [MoveIds::move_id],0x214			// 532 // High
+			cmp dword ptr [MoveIds::move_id],0x214 // 532 // High
 			je newcode
 			// Nero:
-			cmp [MoveIdsNero::move_id_nero], 786  // Split
+			cmp dword ptr [MoveIdsNero::move_id_nero], 786 // Split
 			je newcode
-			cmp [MoveIdsNero::move_id_nero], 812  // Double Down
+			cmp dword ptr [MoveIdsNero::move_id_nero], 812 // Double Down
 			je newcode
-			cmp [MoveIdsNero::move_id_nero], 814 // Double Down 3 exceed
+			cmp dword ptr [MoveIdsNero::move_id_nero], 814 // Double Down 3 exceed
 			je newcode
 			jmp originalcode
 
 		nerocheatcode2:
-			cmp [MoveIdsNero::move_id_nero], 812
+			cmp dword ptr [MoveIdsNero::move_id_nero], 812
 			jne originalcode
 
 			push eax
 			mov eax, [static_mediator_ptr]
 			mov eax, [eax]
 			mov eax, [eax+0x24]
-			cmp [eax+0x1564], 28 // check streak 1 was pushed to get this moveid
+			cmp dword ptr [eax+0x1564], 28    // check streak 1 was pushed to get this moveid
 			pop eax
 			je newcode
 			jmp originalcode

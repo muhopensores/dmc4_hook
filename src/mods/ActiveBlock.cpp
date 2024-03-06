@@ -8,7 +8,7 @@ constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 naked void detour() {
     _asm {
-        cmp [ActiveBlock::mod_enabled], 0
+        cmp byte ptr [ActiveBlock::mod_enabled], 0
         je code
 
         push ecx

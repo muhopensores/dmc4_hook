@@ -29,7 +29,7 @@ naked void timer_detour(void) { // ticks timer, player in ecx
 			cmp eax,ecx
 			pop eax
 			jne originalcode // only inc timer if player
-			cmp [ecx+0x1494], 0 // dante controller id
+			cmp byte ptr [ecx+0x1494], 0 // dante controller id
 			jne originalcode
 
 		// inc timer
@@ -112,13 +112,13 @@ naked void back_forward_detour(void) { // resets timer, player in ebx
 			cmp ebx, eax
 			pop eax
 			jne originalcode // filter out any non player and checks if valid, crashes without
-			cmp [ebx+0x1494], 0 // dante controller id
+			cmp byte ptr [ebx+0x1494], 0 // dante controller id
 			jne originalcode
 
 			cmp byte ptr [TrickDown::mod_enabled], 0
 			je honeycombcompare
 
-			cmp [TimerMem::timer_mem],0x41200000 // = 10 // If timer is less than 10, don't reset. With this, timer is only reset once per backforward.
+			cmp dword ptr [TimerMem::timer_mem],0x41200000 // = 10 // If timer is less than 10, don't reset. With this, timer is only reset once per backforward.
 			jl originalcode                     // 10 is over before the moves can finish, so no worry them not being available
 			cmp al,0x3
 			je resettimer
@@ -127,7 +127,7 @@ naked void back_forward_detour(void) { // resets timer, player in ebx
 			cmp byte ptr [TimerMem::instant_honeycomb_enabled], 0
 			je originalcode
 
-			cmp [TimerMem::timer_mem], 0x41200000 // = 10
+			cmp dword ptr [TimerMem::timer_mem], 0x41200000 // = 10
 			jl originalcode
 			cmp al,0x3
 			je resettimer

@@ -38,6 +38,8 @@ uintptr_t DanteJdc::jmp_ret10{NULL};
     float jdcEpsilon = 0.001f;
     constexpr uintptr_t detour10_call1 = 0x007BA210;
 uintptr_t DanteJdc::jmp_ret11{NULL};
+uintptr_t DanteJdc::jmp_ret12{NULL};
+
 
 // set jdc vars
 naked void detour1(void) {
@@ -257,6 +259,23 @@ naked void detour6(void) {
     }
 }
 
+//Reduce screenshake
+naked void detour12(void) {
+    _asm {
+            mov eax, [edx+0x000000D0] // org code
+			cmp byte ptr [DanteJdc::mod_enabled], 0
+			je originalcode
+
+            cmp dword ptr [jdcHitcount], 1
+            je originalcode
+
+            xor eax, eax
+
+        originalcode:
+            jmp [DanteJdc::jmp_ret12]
+    }
+}
+
 // Change SD effect
 naked void detour7(void) {
     _asm {
@@ -406,6 +425,10 @@ std::optional<std::string> DanteJdc::on_initialize() {
     if (!install_hook_offset(0x3E12AD, hook11, &detour11, &jmp_ret11, 16)) {
         spdlog::error("Failed to init DanteJdc mod11\n");
         return "Failed to init DanteJdc mod11";
+    }
+    if (!install_hook_offset(0x41F932, hook12, &detour12, &jmp_ret12, 6)) {
+        spdlog::error("Failed to init DanteJdc mod12\n");
+        return "Failed to init DanteJdc mod12";
     }
     return Mod::on_initialize();
 }

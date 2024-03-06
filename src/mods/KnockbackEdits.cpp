@@ -130,12 +130,12 @@ naked void detour() { // projectiles?
         cmp byte ptr [release_stuns], 1
         jne retcode
 
-        cmp [eax+0xA4+0x00], 1162626386 // RELE(ASE) // get any release
+        cmp dword ptr [eax+0xA4+0x00], 1162626386 // RELE(ASE) // get any release
         je releaseCheck2
         jmp retcode
 
     releaseCheck2:
-        cmp [eax+0xA4+0x08], 3145793 // A 0 // get level 1 release
+        cmp dword ptr [eax+0xA4+0x08], 3145793 // A 0 // get level 1 release
         jne retcode
         // cmp byte ptr [releaseStuns], 1
         // jne retcode

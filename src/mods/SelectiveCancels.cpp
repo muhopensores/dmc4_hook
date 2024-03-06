@@ -18,37 +18,37 @@ naked void selective_cancels_proc() { // player in eax + edi
 		cmp byte ptr [esi+0x144],0xFFFFFFFF
 		jne originalcode
 
-		cmp [MoveIds::move_id],0x411						// Grounded Ecstasy	// Checks move id like usual every tick
+		cmp dword ptr [MoveIds::move_id],0x411 // Grounded Ecstasy	// Checks move id like usual every tick
 		je cancellableecstasy								// If correct moveid, check against Gui:
-		cmp [MoveIds::move_id],0x412						// Aerial Ecstasy
+		cmp dword ptr [MoveIds::move_id],0x412 // Aerial Ecstasy
 		je cancellableecstasy
-		cmp [MoveIds::move_id],0x732						// Argument
+		cmp dword ptr [MoveIds::move_id],0x732 // Argument
 		je cancellableargument
-		cmp [MoveIds::move_id],0x30E						// Kick 13
+		cmp dword ptr [MoveIds::move_id],0x30E // Kick 13
 		je cancellablekickthirteen
-		cmp [MoveIds::move_id],0x30F						// DT Kick 13
+		cmp dword ptr [MoveIds::move_id],0x30F // DT Kick 13
 		je cancellablekickthirteen
-		cmp [MoveIds::move_id],0x900						// Slash Dimension
+		cmp dword ptr [MoveIds::move_id],0x900 // Slash Dimension
 		je cancellableslashdimension
-		cmp [MoveIds::move_id],0x232						// Prop
+		cmp dword ptr [MoveIds::move_id],0x232 // Prop
 		je cancellableprop
-		cmp [MoveIds::move_id],0x333						// Shock
+		cmp dword ptr [MoveIds::move_id],0x333 // Shock
 		je cancellableshock
-		cmp [MoveIds::move_id],0x735						// Omen
+		cmp dword ptr [MoveIds::move_id],0x735 // Omen
 		je cancellableomen
-		cmp [MoveIds::move_id],0x635						// Gunstinger
+		cmp dword ptr [MoveIds::move_id],0x635 // Gunstinger
 		je cancellablegunstinger
-		cmp [MoveIds::move_id],0x706						// Epidemic
+		cmp dword ptr [MoveIds::move_id],0x706 // Epidemic
 		je cancellableepidemic
-		cmp [MoveIds::move_id],0x410						// DT Pin Up part 2
+		cmp dword ptr [MoveIds::move_id],0x410 // DT Pin Up part 2
 		je cancellableDTPinUp
-		cmp [MoveIdsNero::move_id_nero],0x33B				// Showdown
+		cmp dword ptr [MoveIdsNero::move_id_nero],0x33B // Showdown
 		je cancellableShowdown
-		cmp [MoveIdsNero::move_id_nero],0x32				// DT Ground
+		cmp dword ptr [MoveIdsNero::move_id_nero],0x32 // DT Ground
 		je cancellableDTGround
-		cmp [MoveIds::move_id],0x310                        // Draw
+		cmp dword ptr [MoveIds::move_id],0x310 // Draw
 		je cancellableDraw
-		//cmp [MoveIds::move_id],0x332						// Beast Uppercut
+		//cmp dword ptr [MoveIds::move_id],0x332 // Beast Uppercut
 		//je cancellableBeastUppercut
 		jmp originalcode
 
@@ -120,7 +120,7 @@ naked void selective_cancels_proc() { // player in eax + edi
 			//cancellableBeastUppercut:
 			//test [SelectiveCancels::cancels], BEAST_UPPERCUT
 			//je originalcode
-			//cmp [eax+0x348], 0x42040000 // (float)34 // address only writes when moves start so can't compare frames here rip
+			//cmp dword ptr [eax+0x348], 0x42040000 // (float)34 // address only writes when moves start so can't compare frames here rip
 			//ja cancellable
 			//jmp originalcode
 

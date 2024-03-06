@@ -27,20 +27,20 @@ naked void detour(void) {
             jmp code
 
         NoSupersOrAutos:
-            cmp [ebp+0000008Ch], 0 // dante
+            cmp byte ptr [ebp+0000008Ch], 0 // dante
             je dante2
-            cmp [ebp+0000008Ch], 4 // nero
+            cmp byte ptr [ebp+0000008Ch], 4 // nero
             je nero2
             jmp code
 
         NoAutos:
-            cmp [ebp+0000008Ch], 0 // dante
+            cmp byte ptr [ebp+0000008Ch], 0 // dante
             je dante
-            cmp [ebp+0000008Ch], 2 // super dante
+            cmp byte ptr [ebp+0000008Ch], 2 // super dante
             je superdante
-            cmp [ebp+0000008Ch], 4 // nero
+            cmp byte ptr [ebp+0000008Ch], 4 // nero
             je nero
-            cmp [ebp+0000008Ch], 6 // super nero
+            cmp byte ptr [ebp+0000008Ch], 6 // super nero
             je supernero
             jmp code
 
@@ -114,9 +114,9 @@ naked void detour2(void) {
             jmp code
 
         NoAutos:
-            cmp [ebp+0000008Ch], 0 // nero
+            cmp byte ptr [ebp+0000008Ch], 0 // nero
             je nero
-            cmp [ebp+0000008Ch], 2 // super nero
+            cmp byte ptr [ebp+0000008Ch], 2 // super nero
             je supernero
             jmp code
 

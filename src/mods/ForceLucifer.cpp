@@ -14,7 +14,7 @@ naked void force_lucifer_proc(void) {
         mov eax, [static_mediator_ptr]
         mov eax, [eax]
         mov eax, [eax+0x24]
-        cmp [eax+0x1494], 0 // controller id in case Nero uses this
+        cmp byte ptr [eax+0x1494], 0 // controller id in case Nero uses this
         pop eax
         jne code
         cmp byte ptr [ForceLucifer::mod_enabled], 1
