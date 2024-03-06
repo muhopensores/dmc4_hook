@@ -41,7 +41,7 @@ static float double_camera_sens{ 2.0f };
 
 naked void camera_height_proc(void) {
     _asm {
-            cmp byte ptr [CameraSettings::mod_enabled],0
+            cmp byte ptr [CameraSettings::mod_enabled], 0
             je code
 
 			movss xmm0,[edi+0x000000D0]
@@ -56,7 +56,7 @@ naked void camera_height_proc(void) {
 
 naked void camera_distance_proc(void) {
     _asm {
-            cmp byte ptr [CameraSettings::mod_enabled],0
+            cmp byte ptr [CameraSettings::mod_enabled], 0
             je code
 
 			movss xmm0,[edi+0x000000E0]
@@ -71,7 +71,7 @@ naked void camera_distance_proc(void) {
 
 naked void camera_distance_lockon_proc(void) {
     _asm {
-            cmp byte ptr [CameraSettings::mod_enabled],0
+            cmp byte ptr [CameraSettings::mod_enabled], 0
             je code
 
 			movss xmm0,[ebx+0x000000DC]
@@ -86,7 +86,7 @@ naked void camera_distance_lockon_proc(void) {
 
 naked void camera_angle_proc(void) {
     _asm {
-            cmp byte ptr [CameraSettings::mod_enabled],0
+            cmp byte ptr [CameraSettings::mod_enabled], 0
             je code
 
 			movss xmm2,[edi+0x000000D4]
@@ -103,7 +103,7 @@ naked void camera_angle_proc(void) {
 
 naked void camera_angle_lockon_proc(void) {
     _asm {
-            cmp byte ptr [CameraSettings::mod_enabled],0
+            cmp byte ptr [CameraSettings::mod_enabled], 0
             je code
 
 			movss xmm0,[ebx+0x000000D4]
@@ -118,7 +118,7 @@ naked void camera_angle_lockon_proc(void) {
 
 naked void camera_fov_in_battle_proc(void) {
     _asm {
-            cmp byte ptr [CameraSettings::mod_enabled],0
+            cmp byte ptr [CameraSettings::mod_enabled], 0
             je code
 
 			movss xmm0,[esi+0x000000E8]
@@ -133,7 +133,7 @@ naked void camera_fov_in_battle_proc(void) {
 
 naked void camera_fov_proc(void) {
     _asm {
-            cmp byte ptr [CameraSettings::mod_enabled],0
+            cmp byte ptr [CameraSettings::mod_enabled], 0
             je code
 
 			movss xmm0,[esi+0x000000E4]
@@ -422,7 +422,7 @@ std::optional<std::string> CameraSettings::on_initialize() {
         return "Failed to init CameraSens3 mod";
     }
 
-    //  hotkeys
+    // hotkeys
     using v_key = std::vector<uint32_t>;
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD0}, "Pause Camera", "pause_camera"));
 

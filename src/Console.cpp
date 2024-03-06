@@ -121,10 +121,10 @@ void ImGuiConsole::draw(bool& open)
 	////////////////
 	// Filter bar //
 	////////////////
-	//if (m_filter_bar)
-	//{
-	//	filter_bar();
-	//}
+	// if (m_filter_bar)
+	// {
+	//     filter_bar();
+	// }
 
 	//////////////////
 	// Console Logs //

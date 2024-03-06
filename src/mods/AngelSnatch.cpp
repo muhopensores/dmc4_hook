@@ -77,7 +77,7 @@ naked void detour3(void) {
             pop ebx
             pop eax
             mov eax, 0x4
-            mov byte ptr [snatchFlag],0
+            mov byte ptr [snatchFlag], 0
             jmp code
 
         handle:
@@ -100,7 +100,7 @@ naked void detour4(void) {
 
             push eax
             xor eax, eax // for al
-            mov al,[snatchFlag]
+            mov al, [snatchFlag]
             test eax, eax
             je handler
             pop eax
@@ -151,7 +151,7 @@ naked void detour6(void) {
 
             push eax
             xor eax, eax // for al
-            mov al,[snatchFlag]
+            mov al, [snatchFlag]
             test eax, eax
             je handler
             pop eax

@@ -22,11 +22,11 @@ naked void no_helm_breaker_knockback_proc(void) { // ebx+0x98 = player + CE20 //
 
 		cheatcode:
 			// Dante:
-			cmp dword ptr [MoveIds::move_id],0x20A			// 522 // Low
+			cmp dword ptr [MoveIds::move_id], 0x20A			// 522 // Low
 			je newcode
-			cmp dword ptr [MoveIds::move_id],0x213 // 531 // Mid
+			cmp dword ptr [MoveIds::move_id], 0x213 // 531 // Mid
 			je newcode
-			cmp dword ptr [MoveIds::move_id],0x214 // 532 // High
+			cmp dword ptr [MoveIds::move_id], 0x214 // 532 // High
 			je newcode
 			// Nero:
 			cmp dword ptr [MoveIdsNero::move_id_nero], 786 // Split

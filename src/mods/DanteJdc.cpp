@@ -54,7 +54,7 @@ naked void detour1(void) {
             mov eax, [ebp+0x16D0]
             test eax, eax
             je handler
-            mov byte ptr [jdcFlag],1
+            mov byte ptr [jdcFlag], 1
             mov eax, [ebp+0x3080]
             test eax,eax
             je handler
@@ -81,7 +81,7 @@ naked void detour1(void) {
             jmp originalcode
 
         handler:
-            mov byte ptr [jdcFlag],0
+            mov byte ptr [jdcFlag], 0
             popad
 		originalcode:
             mov ecx,esi
@@ -233,7 +233,7 @@ naked void detour6(void) {
 			je originalcode
 
             push eax
-            mov eax,[jdcHitcount]
+            mov eax, [jdcHitcount]
             test eax,eax
             je handler
             mov byte ptr [esi+0x14], 00
@@ -242,7 +242,7 @@ naked void detour6(void) {
 
         handler:
             push ecx
-            mov ecx,[jdcHitcountDefault]
+            mov ecx, [jdcHitcountDefault]
             mov [jdcHitcount], ecx
             pop ecx
             mov byte ptr [esi+0x14], 02

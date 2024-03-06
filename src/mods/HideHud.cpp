@@ -243,11 +243,11 @@ naked void boey_hud_15_proc(void) {
 
         cmp edi, 0x1B
         jne originalcode
-        mov byte ptr [eax+0x04],0x00
+        mov byte ptr [eax+0x04], 0x00
         jmp returncode
 
         originalcode:
-        mov byte ptr [eax+0x04],0x01
+        mov byte ptr [eax+0x04], 0x01
         returncode:
         mov [eax+0x23], dl
         jmp dword ptr [HideHud::boey_hud_15_continue]

@@ -11,9 +11,9 @@ naked void tracking_sky_star_proc(void) {
 		cmp byte ptr [TrackingSkyStar::mod_enabled], 0
         je originalcode
 
-        cmp dword ptr [esi+0x0000141C],00 // how far is stick held
+        cmp dword ptr [esi+0x0000141C], 00 // how far is stick held
         ja originalcode
-        cmp dword ptr [esi+0x000016D0],00 // locked off?
+        cmp dword ptr [esi+0x000016D0], 00 // locked off?
         je originalcode
         pushad
         mov ebx, 1

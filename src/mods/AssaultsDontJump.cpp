@@ -15,11 +15,11 @@ naked void detour(void) {
             je newcode
 
         originalcode:
-            mov eax,[esi+0x00001F70]
+            mov eax, [esi+0x00001F70]
 			jmp dword ptr [AssaultsDontJump::jmp_ret]
 
         newcode:
-            mov eax,[esi+0x0000B9E0]
+            mov eax, [esi+0x0000B9E0]
             jmp dword ptr [AssaultsDontJump::jmp_out]
     }
 }

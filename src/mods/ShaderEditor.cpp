@@ -53,7 +53,7 @@ void wew() {
 // naked is defined to __declspec(naked)
 naked void detour() {
 	__asm {
-        mov [ecx],00C087DCh
+        mov [ecx], 00C087DCh
         mov [g_arg], ecx
         pushad
         call wew

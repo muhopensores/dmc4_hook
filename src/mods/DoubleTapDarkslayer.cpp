@@ -37,13 +37,13 @@ naked void detour1(void) { // ticks and resets the timer // player in esi
             pop ecx
             jne originalcode
 
-            test dword ptr [esi+0x00001410],0x00001000
+            test dword ptr [esi+0x00001410], 0x00001000
             jne timerreset
-            test dword ptr [esi+0x00001410],0x00002000
+            test dword ptr [esi+0x00001410], 0x00002000
             jne timerreset
-            test dword ptr [esi+0x00001410],0x00004000
+            test dword ptr [esi+0x00001410], 0x00004000
             jne timerreset
-            test dword ptr [esi+0x00001410],0x00008000
+            test dword ptr [esi+0x00001410], 0x00008000
             jne timerreset
             jmp timertick
         timerreset:

@@ -6,7 +6,7 @@ static uintptr_t  jmp_return01 { NULL };
 static uintptr_t  jmp_return02 { NULL };
 static uintptr_t  jmp_return03 { NULL };
 constexpr uintptr_t detour2_conditional = 0x8DF5C0;
-static bool mod_enabled{ true };
+static bool mod_enabled{ false };
 //uintptr_t  ModLoadOrder::some_shared_ptr{ NULL };
 static bool exists{false};
 static bool ArcInit{false};
@@ -304,7 +304,7 @@ naked void detour() {
     originalCode:
         mov esi, eax
         test esi, esi
-        //je dword ptr [jmp_far]
+        // je dword ptr [jmp_far]
         jmp dword ptr [jmp_return]
 	}
 #endif
@@ -394,7 +394,7 @@ void LoadOrder::on_config_save(utility::Config& cfg)
 // load data into variables from config structure.
 void LoadOrder::on_config_load(const utility::Config& cfg) 
 { 
-    mod_enabled = cfg.get<bool>("LoadOrderHDD").value_or(false);
+    mod_enabled = cfg.get<bool>("LoadOrderHDD").value_or(true);
 };
 
 // onGUIframe()
@@ -411,4 +411,4 @@ void LoadOrder::on_gui_frame()
 // onMessage()
 // handle some window message, return true to pass to the game window
 // or false to drop it.
-//bool ModName::onMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) { return true; };
+// bool ModName::onMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) { return true; };

@@ -92,7 +92,7 @@ naked void timer_detour(void) { // ticks timer, player in ecx
 		dontreplacetwosome:
 			push eax
 			mov eax, 0x00C40DBC       // Twosome Time Address
-			mov dword ptr [eax],0x44  // Twosome Time ID
+			mov dword ptr [eax], 0x44 // Twosome Time ID
 			pop eax
 
 		originalcode:
@@ -118,8 +118,8 @@ naked void back_forward_detour(void) { // resets timer, player in ebx
 			cmp byte ptr [TrickDown::mod_enabled], 0
 			je honeycombcompare
 
-			cmp dword ptr [TimerMem::timer_mem],0x41200000 // = 10 // If timer is less than 10, don't reset. With this, timer is only reset once per backforward.
-			jl originalcode                     // 10 is over before the moves can finish, so no worry them not being available
+			cmp dword ptr [TimerMem::timer_mem], 0x41200000 // = 10 // If timer is less than 10, don't reset. With this, timer is only reset once per backforward.
+			jl originalcode // 10 is over before the moves can finish, so no worry them not being available
 			cmp al,0x3
 			je resettimer
 

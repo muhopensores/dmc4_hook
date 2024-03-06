@@ -3,8 +3,8 @@
 bool CharSwitcher::mod_enabled{false};
 bool CharSwitcher::inertia_enabled{true};
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-constexpr uintptr_t sArea = 0x00E552C8;
-constexpr uintptr_t sSave = 0x00E558C8;
+constexpr uintptr_t sArea               = 0x00E552C8;
+constexpr uintptr_t sSave               = 0x00E558C8;
 uintptr_t primaryActor                  = NULL;
 uintptr_t secondaryActor                = NULL;
 uintptr_t primaryHUD                    = NULL;
@@ -330,14 +330,14 @@ naked void detour7(void) {
             cmp byte ptr [CharSwitcher::mod_enabled], 0
 			je originalcode
 
-            cmp byte ptr [esi+0xCDF8],00
+            cmp byte ptr [esi+0xCDF8], 00
             jne originalcode
 
             xor eax,eax
             jmp jmp_ret
 
         originalcode:
-            mov eax,[edx+0x00002444]
+            mov eax, [edx+0x00002444]
         jmp_ret:
 			jmp dword ptr [CharSwitcher::jmp_ret7]
     }
@@ -486,7 +486,7 @@ naked void SwapActor(void) {
             mov dword ptr [esi+0xD4], 0
             push dword ptr [edi+0x1C]
             pop dword ptr [esi+0x1C]
-            //  mov dword ptr [esi+0x1C], 1
+            // mov dword ptr [esi+0x1C], 1
             // Inertia, gravity
             xorps xmm0, xmm0
             movss [ecx+0xEC4], xmm0
@@ -519,9 +519,9 @@ naked void SwapActor(void) {
             push dword ptr [eax+0x3080]
             pop dword ptr [ecx+0x3080]
             //Motion
-            //  mov dword ptr [ecx+0x1550],01
-            //  mov dword ptr [ecx+0x2008],1
-            //  mov dword ptr [ecx+0x1500],1
+            // mov dword ptr [ecx+0x1550], 1
+            // mov dword ptr [ecx+0x2008], 1
+            // mov dword ptr [ecx+0x1500], 1
             
             //Previous main actor
             mov [secondaryActor], eax
@@ -532,18 +532,18 @@ naked void SwapActor(void) {
             mov ebp, [0x00E552C8]
             mov ebp, [ebp] //
             mov ebp, [ebp+0x3830]
-            //  fld dword ptr [ebp+0x50]
-            //  fstp dword ptr [eax+0x30]
+            // fld dword ptr [ebp+0x50]
+            // fstp dword ptr [eax+0x30]
             movss xmm0, [eax+0x34]
             addss xmm0, [ySpawn]
             movss dword ptr [eax+0x34], xmm0
-            //  fld dword ptr [ebp+0x58]
-            //  fstp dword ptr [eax+0x38]
+            // fld dword ptr [ebp+0x58]
+            // fstp dword ptr [eax+0x38]
             mov dword ptr [eax+0x1550], 1
             mov dword ptr [esi+0x1C], 1
-            //  mov dword ptr [eax+0x1500], 0
-            //  mov dword ptr [eax+0x1504], 5
-            //  mov dword ptr [eax+0x1505], 0
+            // mov dword ptr [eax+0x1500], 0
+            // mov dword ptr [eax+0x1504], 5
+            // mov dword ptr [eax+0x1505], 0
             mov byte ptr [eax+0x150C], 0
             mov byte ptr [eax+0x150D], 0
             xorps xmm0, xmm0
@@ -563,7 +563,7 @@ naked void SwapActor(void) {
             ret
     }
 }
-//Reload Dante Save
+// Reload Dante Save
 naked void detour8(void){
     _asm {
             cmp byte ptr [CharSwitcher::mod_enabled], 0
@@ -661,7 +661,7 @@ void CharSwitcher::on_gui_frame() {
             ImGui::EndCombo();
         }
         ImGui::PopItemWidth();
-        //ImGui::Separator(); // uncomment if something comes after this
+        // ImGui::Separator(); // uncomment if something comes after this
         ImGui::PushItemWidth(sameLineItemWidth);
         if (ImGui::Checkbox("Inertia carryover", &inertia_enabled)) {
             toggle2(inertia_enabled);

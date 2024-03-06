@@ -174,7 +174,7 @@ naked void detour2(void) {
 		handler:
 			pop eax
 		originalcode:
-			mov dword ptr [esi+0x000022C4],00000000
+			mov dword ptr [esi+0x000022C4], 00000000
 			jmp dword ptr [DtKnuckle::jmp_ret2]
 	}
 }
@@ -371,7 +371,7 @@ naked void detour11(void) {
 
 			push eax
 			xor eax, eax
-			mov al,[spectreFlag]
+			mov al, [spectreFlag]
 			test eax, eax
 			je handler
 			pop eax
@@ -396,7 +396,7 @@ naked void detour12(void) {
 			je originalcode
 
 			push ecx
-			mov ecx,[edi+0x22A8]
+			mov ecx, [edi+0x22A8]
 			cmp ecx, 0x4
 			jne handler
 			xor ecx, ecx // for cl
@@ -429,9 +429,9 @@ naked void detour13(void) {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
 
-			mov byte ptr [endFlag],00
+			mov byte ptr [endFlag], 00
 		originalcode:
-			mov [edi+0x000022A8],ebx
+			mov [edi+0x000022A8], ebx
 		// jmp_ret:
 			jmp dword ptr [DtKnuckle::jmp_ret13]
 	}

@@ -10,11 +10,11 @@ naked void detour(void) {
 			cmp byte ptr [DisableChimeraBlades::mod_enabled], 0
 			je originalcode
 
-			cmp byte ptr [esi+00001438h],00
+			cmp byte ptr [esi+00001438h], 00
 			jmp jnecode
 
 		originalcode:
-			cmp byte ptr [esi+00001438h],00
+			cmp byte ptr [esi+00001438h], 00
 			jne jnecode
 			jmp dword ptr [DisableChimeraBlades::jmp_ret]
 

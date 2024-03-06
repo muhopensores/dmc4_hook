@@ -12,11 +12,11 @@ naked void detour(void) {
 			cmp byte ptr [TargetChangeDarkslayer::mod_enabled], 0
 			je originalcode
 
-			test dword ptr [esi+0x00001410],0x00010000
+			test dword ptr [esi+0x00001410], 0x00010000
             jne jmp_conditional
 
 		originalcode:
-            test dword ptr [esi+0x00001410],0x00002000
+            test dword ptr [esi+0x00001410], 0x00002000
 			jmp dword ptr [TargetChangeDarkslayer::jmp_ret]
 
         jmp_conditional:

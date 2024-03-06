@@ -93,8 +93,8 @@ constexpr std::array room_items {
 };
 
 naked void detour() {
-	// steam   DevilMayCry4_DX9.exe+E1F6   - 8B 92 30380000        - mov edx,[edx+00003830]
-	// nosteam DevilMayCry4_DX9.exe+546E76 - 8B 92 30380000        - mov edx,[edx+00003830]
+	// steam   DevilMayCry4_DX9.exe+E1F6   - 8B 92 30380000        - mov edx, [edx+00003830]
+	// nosteam DevilMayCry4_DX9.exe+546E76 - 8B 92 30380000        - mov edx, [edx+00003830]
 	__asm {
 		mov edx, [edx+3830h]
 		mov DWORD PTR [AreaJump::c_area_jump_ptr], edx

@@ -17,11 +17,11 @@ void EnemyDT::toggle_no_dt(bool enable) {
 }
 void EnemyDT::toggle_instant_dt(bool enable) {
     if (enable) {
-        //install_patch_offset(0x03309A1, patch2, "\xEB\x1f", 2); // forces DT on any difficulty
+        // install_patch_offset(0x03309A1, patch2, "\xEB\x1f", 2); // forces DT on any difficulty
         install_patch_offset(0x03309DF, patch3, "\x0f\x57\xc0\x90\x90", 5);
     }
     else {
-        //patch2.reset();
+        // patch2.reset();
         patch3.reset();
     }
 }

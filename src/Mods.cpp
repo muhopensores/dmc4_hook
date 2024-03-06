@@ -181,7 +181,7 @@ Mods::Mods() {
     ADD_MOD(DamageMultiplier);
     ADD_MOD(HpInOrbsDisplay);
     ADD_MOD(InfDT);
-    //ADD_MOD(InfPlayerHealth);
+    // ADD_MOD(InfPlayerHealth);
     ADD_MOD(BerialDaze);
     ADD_MOD(RoseRemovesPins);
     ADD_MOD(StunAnything);
@@ -201,7 +201,7 @@ Mods::Mods() {
     ADD_MOD(EnemyAttackOffScreen);
     ADD_MOD(SlowWalk);
     ADD_MOD(DifficultySelect);
-    //ADD_MOD(EnemyReplace);
+    // ADD_MOD(EnemyReplace);
     ADD_MOD(EnemyReplaceAgain);
     ADD_MOD(BpJumpHook);
     ADD_MOD(NoAutomaticCharacters);
@@ -209,7 +209,7 @@ Mods::Mods() {
     ADD_MOD(Quicksilver);
     ADD_MOD(MutatorHolyWater);
     ADD_MOD(BigHeadMode);
-    //ADD_MOD(MutatorPlayerTransforms); // BROKEN
+    // ADD_MOD(MutatorPlayerTransforms); // BROKEN
     ADD_MOD(MutatorSuperhot);
     ADD_MOD(InfCalibur);
     ADD_MOD(RgMultiplier);
@@ -229,7 +229,7 @@ Mods::Mods() {
     ADD_MOD(AlwaysRoyalRelease);
     ADD_MOD(DisableKeyboard);
     ADD_MOD(InstantTrick);
-    //ADD_MOD(ShaderEditor); // unfinished
+    // ADD_MOD(ShaderEditor); // unfinished
     ADD_MOD(RoomRespawn);
     ADD_MOD(DoubleTapDarkslayer);
     ADD_MOD(TargetChangeDarkslayer);

@@ -28,9 +28,9 @@ naked void detour1(void) { // non exceed
 			cmp byte ptr [RevFlying::mod_enabled2], 0
 			je originalcode
 
-            mov dword ptr [esi+0x00001E1C],0x0
+            mov dword ptr [esi+0x00001E1C], 0x0
 		originalcode:
-            mov dword ptr [esi+0x00001504],0x00000004
+            mov dword ptr [esi+0x00001504], 0x00000004
 			jmp dword ptr [RevFlying::jmp_ret1]
     }
 }
@@ -40,9 +40,9 @@ naked void detour2(void) { // exceed
 			cmp byte ptr [RevFlying::mod_enabled2], 0
 			je originalcode
 
-            mov dword ptr [ebx+0x00001E1C],0x0
+            mov dword ptr [ebx+0x00001E1C], 0x0
 		originalcode:
-            mov dword ptr [ebx+0x00001504],0x00000004
+            mov dword ptr [ebx+0x00001504], 0x00000004
 			jmp dword ptr [RevFlying::jmp_ret2]
     }
 }

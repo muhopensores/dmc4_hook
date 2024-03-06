@@ -11,7 +11,7 @@ naked void detour(void) {
 			cmp byte ptr [HpInOrbsDisplay::mod_enabled], 0
 			je originalcode
 
-            // cmp dword ptr [enemyHPDisplay],0x00000000		// Check to see if enemy is dead
+            // cmp dword ptr [enemyHPDisplay], 0x00000000		// Check to see if enemy is dead
             // checking to see if enemyHP >= 0
             // this clobbers xmm0 register but it does
             // not seem to affect the game? not sure.

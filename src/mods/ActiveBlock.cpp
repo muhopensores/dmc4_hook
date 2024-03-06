@@ -28,7 +28,7 @@ naked void detour() {
         jmp dword ptr [ActiveBlock::alt_ret]
 
     code:
-        cmp dword ptr [esi+0x000152A0],00
+        cmp dword ptr [esi+0x000152A0], 00
 		jmp dword ptr [ActiveBlock::jmp_return]
     }
 }

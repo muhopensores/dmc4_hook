@@ -45,7 +45,7 @@ public:
 private:
     // hook instance if you need to apply detours
     std::unique_ptr<FunctionHook> m_hook, m_hook1, m_hook2, m_hook3;
-    //const hl::IHook* m_hook_iface = nullptr;
+    // const hl::IHook* m_hook_iface = nullptr;
     bool m_enabled;
     // patch instance if you need to apply patch
     // std::unique_ptr<Patch> patch;
