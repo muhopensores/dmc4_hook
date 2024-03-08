@@ -227,31 +227,31 @@ naked void bp_jump_hook2_proc(void) { // Initial load of BP
     // write randomized floor and area ID
         push edx
         mov edx, [bp_floor]
-        mov [eax+74h], edx
+        mov [eax+0x74], edx
         mov edx, [bp_area_id]
-        mov [eax+6Ch], edx
+        mov [eax+0x6C], edx
         pop edx
         jmp retcode
 
     bossrush:
         cmp byte ptr [BpJumpHook::mod_enabled], 1 // should randomize?
         je randombossrushstart
-        mov dword ptr [eax+74h], 20 // room id
-        mov dword ptr [eax+6Ch], 503 // area id
+        mov dword ptr [eax+0x74], 20 // room id
+        mov dword ptr [eax+0x6C], 503 // area id
         jmp retcode
 
     // write randomized boss stage and area id
     randombossrushstart:
         push edx
         mov edx, [boss_floor]
-        mov [eax+74h], edx
+        mov [eax+0x74], edx
         mov edx, [boss_area_id]
-        mov [eax+6Ch], edx
+        mov [eax+0x6C], edx
         pop edx
         jmp retcode
 
     code:
-        mov dword ptr [eax+74h], 00000001
+        mov dword ptr [eax+0x74], 00000001
     retcode:
 		jmp dword ptr [BpJumpHook::bp_jump_hook2_continue]
     }
@@ -283,40 +283,40 @@ naked void bp_jump_hook3_proc(void) { // called every time you enter a teleporte
     // write bp floor
         push edx
         mov edx, [bp_floor]
-        mov [ecx+74h], edx
+        mov [ecx+0x74], edx
         mov edx, [bp_area_id]
-        mov [ecx+6Ch], edx
+        mov [ecx+0x6C], edx
         pop edx
         jmp retcode
 
     bossrush:
         cmp byte ptr [BpJumpHook::mod_enabled], 1 // should randomize?
         je randombossrushcontinue
-        cmp dword ptr [ecx+74h], 21
+        cmp dword ptr [ecx+0x74], 21
         je stage40
-        cmp dword ptr [ecx+74h], 41
+        cmp dword ptr [ecx+0x74], 41
         je stage60
-        cmp dword ptr [ecx+74h], 61
+        cmp dword ptr [ecx+0x74], 61
         je stage80
-        cmp dword ptr [ecx+74h], 81
+        cmp dword ptr [ecx+0x74], 81
         je stage100
         jmp code
 
     stage40:
-        mov dword ptr [ecx+74h], 40
-        mov dword ptr [ecx+6Ch], 504
+        mov dword ptr [ecx+0x74], 40
+        mov dword ptr [ecx+0x6C], 504
         jmp retcode
     stage60:
-        mov dword ptr [ecx+74h], 60
-        mov dword ptr [ecx+6Ch], 505
+        mov dword ptr [ecx+0x74], 60
+        mov dword ptr [ecx+0x6C], 505
         jmp retcode
     stage80:
-        mov dword ptr [ecx+74h], 80
-        mov dword ptr [ecx+6Ch], 507
+        mov dword ptr [ecx+0x74], 80
+        mov dword ptr [ecx+0x6C], 507
         jmp retcode
     stage100:
-        mov dword ptr [ecx+74h], 100
-        mov dword ptr [ecx+6Ch], 506
+        mov dword ptr [ecx+0x74], 100
+        mov dword ptr [ecx+0x6C], 506
         jmp retcode
 
     // update floor and area ID values
@@ -332,14 +332,14 @@ naked void bp_jump_hook3_proc(void) { // called every time you enter a teleporte
     // write boss floor
         push edx
         mov edx, [boss_floor]
-        mov [ecx+74h], edx
+        mov [ecx+0x74], edx
         mov edx, [boss_area_id]
-        mov [ecx+6Ch], edx
+        mov [ecx+0x6C], edx
         pop edx
         jmp retcode
 
     code:
-        mov dword ptr [ecx+6Ch], edx
+        mov dword ptr [ecx+0x6C], edx
     retcode:
         mov edx, [ebx+04h]
 		jmp dword ptr [BpJumpHook::bp_jump_hook3_continue]

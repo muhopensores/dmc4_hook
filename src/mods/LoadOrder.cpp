@@ -283,7 +283,7 @@ naked void detour() {
         push edi
         pushad  // call our shitty hacks
         push eax // path is passed in eax
-        mov ecx, [esp+3Ch] // dti is on the stack 
+        mov ecx, [esp+0x3C] // dti is on the stack 
         push ecx
         call wew
         popad
@@ -292,7 +292,7 @@ naked void detour() {
 #if 0
 	__asm {
         push eax
-        mov eax, [esp+0Ch]
+        mov eax, [esp+0x0C]
         push eax
         call FileExists
         test al, al
@@ -333,12 +333,12 @@ naked void detour3()
         jne originalcode
 
         pushad
-        lea eax, [ebx+4h]
+        lea eax, [ebx+0x4]
         push eax
         call Filter
         popad
     originalcode:
-        mov esi, [esp+14h]
+        mov esi, [esp+0x14]
         add esi, 0x48
         jmp [jmp_return02]
     }
@@ -350,7 +350,7 @@ naked void detour4()
         mov byte ptr [ArcInit], 0
     // originalcode:
         test al, al
-        mov [esp+13h], al
+        mov [esp+0x13], al
         jmp [jmp_return03]
     }
 }

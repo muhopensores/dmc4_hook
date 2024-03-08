@@ -15,8 +15,8 @@ naked void detour() {
 	//DevilMayCry4_DX9.exe+A948 - 89 48 20              - mov [eax+20],ecx
 	__asm {
 		mov DWORD PTR [WorkRate::sWorkRatePtr], eax
-		mov [eax+20h],ecx
-		mov [eax+24h],ecx
+		mov [eax+0x20],ecx
+		mov [eax+0x24],ecx
 		jmp DWORD PTR [WorkRate::jmp_return]
 	}
 }
@@ -39,9 +39,7 @@ inline bool WorkRate::check_work_rate_ptr(sWorkRate* wr) {
 	if (IsBadWritePtr(wr, sizeof(uint32_t))) {
 		return false;
 	}
-	
-		return true;
-
+	return true;
 }
 
 void WorkRate::on_gui_frame() {

@@ -55,11 +55,11 @@ naked void joint_size_detour1() {
 		jmp bail
 	originalCode1:
 		popf
-		movss [esi+30h],xmm0
-		movss xmm0,[esp+54h]
-		movss [esi+34h],xmm0
-		movss xmm0,[esp+58h]
-		movss [esi+38h],xmm0
+		movss [esi+0x30],xmm0
+		movss xmm0,[esp+0x54]
+		movss [esi+0x34],xmm0
+		movss xmm0,[esp+0x58]
+		movss [esi+0x38],xmm0
 	bail:
 		jmp dword ptr [joint_size_detour1_continue]
 	}
@@ -87,11 +87,11 @@ naked void joint_size_detour2() {
 
 	originalCode2:
 		popf
-		movss [esi+30h], xmm0
+		movss [esi+0x30], xmm0
 		movss xmm0, [esp+1C4h]
-		movss [esi+34h],xmm0
+		movss [esi+0x34],xmm0
 		movss xmm0,[esp+1C8h]
-		movss [esi+38h],xmm0
+		movss [esi+0x38],xmm0
 
 	bail:
 		jmp dword ptr [joint_size_detour2_continue]

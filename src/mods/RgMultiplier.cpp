@@ -17,7 +17,7 @@ naked void detour(void)
 
         originalcode:
         addss xmm1, xmm0
-        movss [esi+00014DACh], xmm1
+        movss [esi+0x00014DAC], xmm1
         jmp dword ptr [RgMultiplier::jmp_ret]
     }
 }
@@ -31,7 +31,7 @@ naked void detour2(void) {
 
         originalcode:
         addss xmm1, xmm0
-        movss [esi+00014DACh], xmm1
+        movss [esi+0x00014DAC], xmm1
         jmp dword ptr [RgMultiplier::jmp_ret2]
     }
 }

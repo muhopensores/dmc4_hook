@@ -82,7 +82,7 @@ static void try_respawn() {
         mov eax, [ecx]
         mov ecx, eax // MtHeapAllocator this ptr
         mov edx, [ecx] 
-        mov eax, [edx + 14h] // vtable MtAlloc ptr
+        mov eax, [edx + 0x14] // vtable MtAlloc ptr
         push 10h // dont remember some flags or something
         push 70h // size iirc
         call eax

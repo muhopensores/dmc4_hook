@@ -10,16 +10,16 @@ naked void inf_dreadnaught_proc(void) {
 		cmp byte ptr [InfDreadnaught::mod_enabled], 0
         je code
 
-        cmp byte ptr [edi+152A0h], 0
+        cmp byte ptr [edi+0x152A0], 0
         je mov1
         jmp code
 
     mov1:
-        mov byte ptr [edi+152A0h], 1
+        mov byte ptr [edi+0x152A0], 1
         jmp code
 
     code:
-        mov eax, [edi+152A0h]
+        mov eax, [edi+0x152A0]
 		jmp dword ptr [InfDreadnaught::inf_dreadnaught_continue]
     }
 }

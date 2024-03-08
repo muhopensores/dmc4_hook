@@ -155,17 +155,17 @@ naked void camera_reset_keyboard_proc(void) {
             jmp originalcode
 
         camleft:
-            movss xmm0, [edx+00001210h]
+            movss xmm0, [edx+0x00001210]
             subss xmm0, [degrees] // 90 degrees left
             jmp [CameraSettings::camera_reset_keyboard_continue]
 
         camright:
-            movss xmm0, [edx+00001210h]
+            movss xmm0, [edx+0x00001210]
             addss xmm0, [degrees] // 90 degrees right
             jmp [CameraSettings::camera_reset_keyboard_continue]
 
         originalcode:
-            movss xmm0, [edx+00001210h]
+            movss xmm0, [edx+0x00001210]
             jmp [CameraSettings::camera_reset_keyboard_continue]
     }
 }
@@ -179,17 +179,17 @@ naked void camera_reset_proc(void) {
             jmp originalcode
 
         camleft:
-            movss xmm0, [edx+00001210h]
+            movss xmm0, [edx+0x00001210]
             subss xmm0, [degrees] // 90 degrees left
             jmp [CameraSettings::camera_reset_continue]
 
         camright:
-            movss xmm0, [edx+00001210h]
+            movss xmm0, [edx+0x00001210]
             addss xmm0, [degrees] // 90 degrees right
             jmp [CameraSettings::camera_reset_continue]
 
         originalcode:
-            movss xmm0,[edx+00001210h]
+            movss xmm0,[edx+0x00001210]
             jmp [CameraSettings::camera_reset_continue]
     }
 }
@@ -201,7 +201,7 @@ naked void camera_sens_clockwise_proc(void) {
 
             mulss xmm4, [double_camera_sens]
         code:
-            movss [esi+00000268h], xmm4
+            movss [esi+0x00000268], xmm4
             jmp dword ptr [CameraSettings::camera_sens_clockwise_continue]
     }
 }
@@ -213,7 +213,7 @@ naked void camera_sens_anti_clockwise_proc(void) {
 
             mulss xmm6, [double_camera_sens]
         code:
-            movss [esi+00000268h], xmm6
+            movss [esi+0x00000268], xmm6
             jmp dword ptr [CameraSettings::camera_sens_anti_clockwise_continue]
     }
 }
@@ -226,7 +226,7 @@ naked void camera_sens_brakes_proc(void) {
             mulss xmm6, [double_camera_sens]
         code:
             subss xmm0, xmm6
-            movss [esi+00000268h], xmm0
+            movss [esi+0x00000268], xmm0
             jmp dword ptr [CameraSettings::camera_sens_brakes_continue]
     }
 }

@@ -66,18 +66,18 @@ naked void detour_u_fade() {
 		je originalCode
 
 		movss xmm0, dword ptr [fade_ammount]
-		movss dword ptr [esi+24h], xmm0
-		movss dword ptr [esi+1Ch], xmm0
+		movss dword ptr [esi+0x24], xmm0
+		movss dword ptr [esi+0x1C], xmm0
 		pop edi
 		pop esi
 		add esp, 10h
 		ret
 	
 	originalCode:
-		movss dword ptr [esi+24h], xmm0
-		movss xmm0, dword ptr [esi+1Ch]
-		addss xmm0, dword ptr [esp+0Ch]
-		movss dword ptr [esi+1Ch],xmm0
+		movss dword ptr [esi+0x24], xmm0
+		movss xmm0, dword ptr [esi+0x1C]
+		addss xmm0, dword ptr [esp+0x0C]
+		movss dword ptr [esi+0x1C],xmm0
 		pop edi
 		pop esi
 		add esp,10h

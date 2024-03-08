@@ -96,7 +96,7 @@ naked void detour() {
 	// steam   DevilMayCry4_DX9.exe+E1F6   - 8B 92 30380000        - mov edx, [edx+00003830]
 	// nosteam DevilMayCry4_DX9.exe+546E76 - 8B 92 30380000        - mov edx, [edx+00003830]
 	__asm {
-		mov edx, [edx+3830h]
+		mov edx, [edx+0x3830]
 		mov DWORD PTR [AreaJump::c_area_jump_ptr], edx
 		jmp DWORD PTR [AreaJump::jmp_return]
 	}

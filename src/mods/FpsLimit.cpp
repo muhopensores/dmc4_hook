@@ -14,7 +14,7 @@ naked void detour() {
         jmp dword ptr [FpsLimit::jmp_return]
 
     code:
-        divss xmm1, [esi+3Ch]
+        divss xmm1, [esi+0x3C]
 		jmp dword ptr [FpsLimit::jmp_return]
     }
 }
