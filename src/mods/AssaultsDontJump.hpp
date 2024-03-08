@@ -10,7 +10,7 @@ public:
 
     static uintptr_t jmp_ret;
     static uintptr_t jmp_out;
-    //void toggle(bool enable);
+    // void toggle(bool enable);
 
     std::string get_mod_name() override { return "AssaultsDontJump"; };
 
@@ -22,6 +22,6 @@ public:
     void on_gui_frame() override;
 
 private:
-    //std::unique_ptr<Patch> patch1;
+    // std::unique_ptr<Patch> patch1;
     std::unique_ptr<FunctionHook> hook;
 };

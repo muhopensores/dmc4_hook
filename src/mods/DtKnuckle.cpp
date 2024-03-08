@@ -30,6 +30,8 @@ uintptr_t DtKnuckle::jmp_ret11{NULL};
 uintptr_t DtKnuckle::jmp_ret12{NULL};
 	constexpr uintptr_t detour12_conditional1 = 0x00829BD8;
 uintptr_t DtKnuckle::jmp_ret13{NULL};
+uintptr_t DtKnuckle::jmp_ret14{NULL};
+
 
 void DtKnuckle::toggle(bool enable) {
 	if (enable) {
@@ -174,7 +176,7 @@ naked void detour2(void) {
 		handler:
 			pop eax
 		originalcode:
-			mov dword ptr [esi+0x000022C4], 00000000
+			mov dword ptr [esi+0x000022C4],00000000
 			jmp dword ptr [DtKnuckle::jmp_ret2]
 	}
 }
@@ -323,8 +325,9 @@ naked void detour9(void) {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
 
-			fld dword ptr [edx+0x44]
+			fld dword ptr [edx+0x1334]
 			fstp dword ptr [edi+0x44]
+
 			jmp jmp_ret
 
 		originalcode:
@@ -371,7 +374,7 @@ naked void detour11(void) {
 
 			push eax
 			xor eax, eax
-			mov al, [spectreFlag]
+			mov al,[spectreFlag]
 			test eax, eax
 			je handler
 			pop eax
@@ -396,7 +399,7 @@ naked void detour12(void) {
 			je originalcode
 
 			push ecx
-			mov ecx, [edi+0x22A8]
+			mov ecx,[edi+0x22A8]
 			cmp ecx, 0x4
 			jne handler
 			xor ecx, ecx // for cl
@@ -434,6 +437,17 @@ naked void detour13(void) {
 			mov [edi+0x000022A8], ebx
 		// jmp_ret:
 			jmp dword ptr [DtKnuckle::jmp_ret13]
+	}
+}
+
+naked void detour14(void) {
+	_asm {
+			cmp byte ptr [spectreFlag], 1
+			je originalcode
+
+			movss [esi+0x4C], xmm0
+		originalcode:
+			jmp [DtKnuckle::jmp_ret14]
 	}
 }
 
@@ -489,6 +503,10 @@ std::optional<std::string> DtKnuckle::on_initialize() {
 	if (!install_hook_offset(0x42AA1E, hook13, &detour13, &jmp_ret13, 6)) {
 		spdlog::error("Failed to init DtKnuckle mod13\n");
 		return "Failed to init DtKnuckle mod13";
+	}
+	if (!install_hook_offset(0x428E42, hook14, &detour14, &jmp_ret14, 5)) {
+		spdlog::error("Failed to init DtKnuckle mod14\n");
+		return "Failed to init DtKnuckle mod14";
 	}
 	return Mod::on_initialize();
 }

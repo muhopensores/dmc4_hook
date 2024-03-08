@@ -138,7 +138,7 @@ Mods::Mods() {
     // add mods here
     // m_mods["ModName"_hash] = std::make_unique<ModName>();
     ADD_MOD(PlayerTracker); // keep as 5
-    ADD_MOD(LoadOrder); // in debug tab for now until i figure out how to get rid of SEH exceptions
+    ADD_MOD(LoadOrder);
     ADD_MOD(FastStart);
     ADD_MOD(AreaJump);
     ADD_MOD(LimitAdjust);
@@ -252,10 +252,10 @@ std::optional<std::string> Mods::on_initialize(Mod::ModType type) const {
         if (mod->get_mod_type() != type) {
             continue;
         }
-        //spdlog::info("%s::onInitialize()\n", mod->getModName().data());
+        // spdlog::info("%s::onInitialize()\n", mod->getModName().data());
 
         if (auto e = mod->on_initialize(); e != std::nullopt) {
-            //spdlog::info("%s::onInitialize() has failed: %s\n", mod->getModName().data(), *e);
+            // spdlog::info("%s::onInitialize() has failed: %s\n", mod->getModName().data(), *e);
             return e;
         }
     }
@@ -265,7 +265,7 @@ std::optional<std::string> Mods::on_initialize(Mod::ModType type) const {
         if (mod->get_mod_type() != type) {
             continue;
         }
-        //spdlog::info("%s::onConfigLoad()\n", mod->getModName().data());
+        // spdlog::info("%s::onConfigLoad()\n", mod->getModName().data());
         mod->on_config_load(cfg);
         auto& hks = mod->m_hotkeys;
         if (hks.empty()) { continue; }

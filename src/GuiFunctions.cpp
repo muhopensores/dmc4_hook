@@ -22,7 +22,7 @@
 #include "fw-imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
 
-#define GUI_VERSION "DMC4Hook 1.4.4"
+#define GUI_VERSION "DMC4Hook 1.4.5"
 
 static constexpr char* version{GUI_VERSION};
 static float g_window_height_hack{ 1080.0f };

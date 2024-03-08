@@ -381,7 +381,7 @@ std::optional<std::string> LoadOrder::on_initialize() {
 
 // onFrame()
 // do something each frame example
-//void ModLoadOrder::onFrame(fmilliseconds& dt) {}
+// void ModLoadOrder::onFrame(fmilliseconds& dt) {}
 
 // onConfigSave
 // save your data into cfg structure.
@@ -406,7 +406,7 @@ void LoadOrder::on_gui_frame()
 
 // onGamePause()
 // do something when toggling a gui
-//void ModName::onGamePause(bool toggle) { };
+// void ModName::onGamePause(bool toggle) { };
 
 // onMessage()
 // handle some window message, return true to pass to the game window

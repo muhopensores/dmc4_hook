@@ -208,7 +208,7 @@ naked void detour4(void) {
             mov eax, [edx+0x14]
             call eax
             call dword ptr [detour4_call7]
-            //Spawn character
+            // Spawn character
             mov ecx, [0x00E1434C]
             mov ecx, [ecx] //
             mov eax, [ecx]
@@ -363,7 +363,7 @@ naked void SwapHUD(void) {
 naked void SaveWrite(void) {
     _asm{
             push eax
-            mov eax, [sArea] //sArea
+            mov eax, [sArea] // sArea
             mov eax, [eax]
             mov eax, [eax+0x3834]
             cmp byte ptr [eax+0x28], 01
