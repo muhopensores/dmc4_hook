@@ -205,7 +205,7 @@ void ModFramework::on_reset() {
 
 void ModFramework::on_after_reset() {
     spdlog::info("After reset");
-    if (!m_initialized) { return; }
+    if (m_initialized) { return; }
     auto& mods = m_mods->get_mods();
     for (const auto& mod: mods) {
         mod->after_reset();

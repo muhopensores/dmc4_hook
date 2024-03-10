@@ -154,7 +154,7 @@ HRESULT WINAPI D3D9Hook::reset(IDirect3DDevice9 *p_device, D3DPRESENT_PARAMETERS
 	}
 
 	HRESULT ret = p_device->Reset(p_presentation_parameters);
-    #if 0
+    #if 0 // NOTE(): called in ModFramework::intialize() instead, maybe refuqtor?
     if (g_d3d9_hook->m_on_after_reset) {
         g_d3d9_hook->m_on_after_reset(*g_d3d9_hook);
     }
