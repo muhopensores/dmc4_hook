@@ -4,22 +4,19 @@
 #include "MoveIDsNero.hpp"
 
 #if 1
-bool       SelectiveCancels::selective_cancels_enable = false;
-uint32_t   SelectiveCancels::cancels = 0;
-uintptr_t  SelectiveCancels::selective_cancels_continue = 0x0080332F;
+bool      SelectiveCancels::selective_cancels_enable = false;
+uint32_t  SelectiveCancels::cancels = 0;
+uintptr_t SelectiveCancels::selective_cancels_continue = 0x0080332F;
+uintptr_t SelectiveCancels::jmp_ret2 = NULL;
+bool fixGuardInertia = false;
 
-naked void selective_cancels_proc() { // player in eax + edi
+naked void detour1() { // player in eax + edi
 	_asm {
 		cmp byte ptr [SelectiveCancels::selective_cancels_enable], 0
 		je originalcode
 
-		cmp byte ptr [esi+0x13C], 0xFFFFFFFF
-		jne originalcode
-		cmp byte ptr [esi+0x144], 0xFFFFFFFF
-		jne originalcode
-
-		cmp dword ptr [MoveIds::move_id], 0x411 // Grounded Ecstasy	// Checks move id like usual every tick
-		je cancellableecstasy								// If correct moveid, check against Gui:
+		cmp dword ptr [MoveIds::move_id], 0x411 // Grounded Ecstasy
+		je cancellableecstasy
 		cmp dword ptr [MoveIds::move_id], 0x412 // Aerial Ecstasy
 		je cancellableecstasy
 		cmp dword ptr [MoveIds::move_id], 0x732 // Argument
@@ -48,93 +45,119 @@ naked void selective_cancels_proc() { // player in eax + edi
 		je cancellableDTGround
 		cmp dword ptr [MoveIds::move_id], 0x310 // Draw
 		je cancellableDraw
-		//cmp dword ptr [MoveIds::move_id], 0x332 // Beast Uppercut
-		//je cancellableBeastUppercut
+		cmp dword ptr [MoveIds::move_id], 0x7 // Roll left
+		je cancellableRoll
+		cmp dword ptr [MoveIds::move_id], 0x8 // Roll right
+		je CancellableRoll
+		cmp dword ptr [MoveIdsNero::move_id_nero], 0x7 // Roll left
+		je CancellableRoll
+		cmp dword ptr [MoveIdsNero::move_id_nero], 0x8 // Roll right
+		je CancellableRoll
 		jmp originalcode
 
-			cancellableecstasy:
-			test [SelectiveCancels::cancels], ECSTASY	// If Gui is ticked,
-			jg cancellable								// make the move cancellable
-			jmp originalcode							// if not, don't make it cancellable
+		cancellableecstasy:
+		test [SelectiveCancels::cancels], ECSTASY
+		jg cancellable
+		jmp originalcode
 
-			cancellableargument:
-			test [SelectiveCancels::cancels], ARGUMENT
-			jg cancellable
-			jmp originalcode
+		cancellableargument:
+		test [SelectiveCancels::cancels], ARGUMENT
+		jg cancellable
+		jmp originalcode
 
-			cancellablekickthirteen:
-			test [SelectiveCancels::cancels], KICK13
-			jg cancellable
-			jmp originalcode
+		cancellablekickthirteen:
+		test [SelectiveCancels::cancels], KICK13
+		jg cancellable
+		jmp originalcode
 
-			cancellableslashdimension:
-			test [SelectiveCancels::cancels], SLASH_DIMENSION
-			jg cancellable
-			jmp originalcode
+		cancellableslashdimension:
+		test [SelectiveCancels::cancels], SLASH_DIMENSION
+		jg cancellable
+		jmp originalcode
 
-			cancellableprop:
-			test [SelectiveCancels::cancels], PROP
-			jg cancellable
-			jmp originalcode
+		cancellableprop:
+		test [SelectiveCancels::cancels], PROP
+		jg cancellable
+		jmp originalcode
 
-			cancellableshock:
-			test [SelectiveCancels::cancels], SHOCK
-			jg cancellable
-			jmp originalcode
+		cancellableshock:
+		test [SelectiveCancels::cancels], SHOCK
+		jg cancellable
+		jmp originalcode
 
-			cancellableomen:
-			test [SelectiveCancels::cancels], OMEN
-			jg cancellable
-			jmp originalcode
+		cancellableomen:
+		test [SelectiveCancels::cancels], OMEN
+		jg cancellable
+		jmp originalcode
 
-			cancellablegunstinger:
-			test [SelectiveCancels::cancels], GUNSTINGER
-			jg cancellable
-			jmp originalcode
+		cancellablegunstinger:
+		test [SelectiveCancels::cancels], GUNSTINGER
+		jg cancellable
+		jmp originalcode
 
-			cancellableepidemic:
-			test [SelectiveCancels::cancels], EPIDEMIC
-			jg cancellable
-			jmp originalcode
+		cancellableepidemic:
+		test [SelectiveCancels::cancels], EPIDEMIC
+		jg cancellable
+		jmp originalcode
 
-			cancellableDTPinUp:
-			test [SelectiveCancels::cancels], DT_PIN_UP_P2
-			jg cancellable
-			jmp originalcode
+		cancellableDTPinUp:
+		test [SelectiveCancels::cancels], DT_PIN_UP_P2
+		jg cancellable
+		jmp originalcode
 
-			cancellableShowdown:
-			test [SelectiveCancels::cancels], SHOWDOWN
-			jg cancellable
-			jmp originalcode
+		cancellableShowdown:
+		test [SelectiveCancels::cancels], SHOWDOWN
+		jg cancellable
+		jmp originalcode
 
-			cancellableDTGround:
-			test [SelectiveCancels::cancels], DTGROUND
-			jg cancellable
-			jmp originalcode
+		cancellableDTGround:
+		test [SelectiveCancels::cancels], DTGROUND
+		jg cancellable
+		jmp originalcode
 
-			cancellableDraw:
-			test [SelectiveCancels::cancels], DRAW
-			jg cancellable
-			jmp originalcode
+		cancellableDraw:
+		test [SelectiveCancels::cancels], DRAW
+		jg cancellable
+		jmp originalcode
 
-			//cancellableBeastUppercut:
-			//test [SelectiveCancels::cancels], BEAST_UPPERCUT
-			//je originalcode
-			//cmp dword ptr [eax+0x348], 0x42040000 // (float)34 // address only writes when moves start so can't compare frames here rip
-			//ja cancellable
-			//jmp originalcode
+		cancellableRoll:
+		// cmp dword ptr [eax+0x348], 0x41200000 // 10.0f // timer example
+		// jb originalcode
+		test [SelectiveCancels::cancels], ROLL
+		jg cancellable
+		jmp originalcode
 
-			cancellable:
-			mov dword ptr [esi+0x8C], 0x02				// only movs to [esi+8C] after filtering out anything that doesn't have [esi+13C],FFFFFFFF and [esi+144],FFFFFFFF
-														// a change of cmps would allow for different types of cancels such as cancelling an animation with walking or another attack
-			originalcode:								// buffers are also used around this area - the je a few bytes down used to be an inconvenience
-			mov edi,0x00000008							// originalcode has nothing to do with our newmem, just a convenient jmp point so always run
-			jmp dword ptr [SelectiveCancels::selective_cancels_continue]
+		cancellable:
+		mov dword ptr [eax+0x3174], 0x02 // [+0x3174] is jumps + trickster + guard // 2 is cancellable, 1 sets a buffer
+			
+		originalcode:
+		mov edi,0x00000008
+		jmp dword ptr [SelectiveCancels::selective_cancels_continue]
 	}
 }
 
+naked void detour2() { // player in eax + edi
+	_asm {
+			cmp byte ptr [SelectiveCancels::selective_cancels_enable], 0
+			je originalcode
+			cmp byte ptr [fixGuardInertia], 0
+			je originalcode
+
+			mov dword ptr [ecx+0xec0], 0 // x
+			mov dword ptr [ecx+0xec8], 0 // z
+
+		originalcode:
+			push 0x00000132
+			jmp dword ptr [SelectiveCancels::jmp_ret2]
+    }
+}
+
 std::optional<std::string> SelectiveCancels::on_initialize() {
-	if (!install_hook_offset(0x40332A, detour, &selective_cancels_proc, 0, 6)) {
+	if (!install_hook_offset(0x40332A, hook1, &detour1, 0, 6)) {
+		spdlog::error("Failed to init SelectiveCancels\n");
+		return "Failed to init SelectiveCancels";
+	}
+	if (!install_hook_offset(0x3CBA06, hook2, &detour2, &jmp_ret2, 5)) {
 		spdlog::error("Failed to init SelectiveCancels\n");
 		return "Failed to init SelectiveCancels";
 	}
@@ -164,8 +187,18 @@ void SelectiveCancels::on_gui_frame() {
 	ImGui::Checkbox("Enable", &selective_cancels_enable);
 	ImGui::SameLine();
 	help_marker("Allows cancelling out of selected moves with evasive actions");
+	ImGui::SameLine(sameLineWidth);
+	ImGui::Checkbox("Disable Guardslide", &fixGuardInertia);
+	ImGui::SameLine();
+	help_marker("Guarding a move with momentum will halt your movement");
 
 	ImGui::Spacing();
+	
+	ImGui::Separator();
+    ImGui::Text("Shared");
+    ImGui::Spacing();
+	
+	draw_checkbox_simple("Roll", ROLL);
 
 	ImGui::Separator();
     ImGui::Text("Nero");
@@ -217,11 +250,13 @@ void SelectiveCancels::on_gui_frame() {
 void SelectiveCancels::on_config_save(utility::Config& cfg) {
 	cfg.set<bool>("selective_cancels", selective_cancels_enable);
 	cfg.set<uint32_t>("cancels", cancels);
+	cfg.set<bool>("fix_guard_inertia", fixGuardInertia);
 }
 
 void SelectiveCancels::on_config_load(const utility::Config& cfg) {
 	selective_cancels_enable = cfg.get<bool>("selective_cancels").value_or(false);
 	cancels = cfg.get<uint32_t>("cancels").value_or(0);
+	fixGuardInertia = cfg.get<bool>("fix_guard_inertia").value_or(false);
 }
 
 #endif

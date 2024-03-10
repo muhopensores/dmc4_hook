@@ -155,7 +155,7 @@ naked void detour6(void) {
             test eax, eax
             je handler
             pop eax
-            mov [esi+0x000160B4], 01
+            mov dword ptr [esi+0x000160B4], 01
             jmp jmp_ret
 
         handler:

@@ -97,7 +97,7 @@ naked void timer_detour(void) { // ticks timer, player in ecx
 
 		originalcode:
 			test bl,01
-			mov [ecx+0x00000EA8], 00000000
+			mov dword ptr [ecx+0x00000EA8], 00000000
 			jmp dword ptr [TimerMem::timer_jmp_ret]
 	}
 }

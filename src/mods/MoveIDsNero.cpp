@@ -8,7 +8,7 @@ uint32_t MoveIdsNero::move_id_nero{ 0 };
 naked void detour() {
     _asm {
 		mov [MoveIdsNero::move_id_nero], esi
-        mov [MoveIds::move_id], 0 // for hb knockback
+        mov dword ptr [MoveIds::move_id], 0 // for hb knockback
         mov [ecx+0x295C], esi
 		jmp dword ptr [MoveIdsNero::jmp_return]
     }

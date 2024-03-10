@@ -25,7 +25,7 @@ naked void skip_dante_gun_proc(void) {
 		jmp originalcode
 
 	skipshotgun:
-		mov [edi+0x30], 8
+		mov dword ptr [edi+0x30], 8
 		mov al, 01
 		jmp dword ptr [SkipWeapons::skip_dante_gun_continue]
 
@@ -35,7 +35,7 @@ naked void skip_dante_gun_proc(void) {
 		jmp originalcode
 
 	skippandora:
-		mov [edi+0x30], 9
+		mov dword ptr [edi+0x30], 9
 		mov al, 01
 		jmp dword ptr [SkipWeapons::skip_dante_gun_continue]
 
@@ -60,7 +60,7 @@ naked void skip_dante_sword_proc(void) {
 		jmp originalcode
 
 	skipgilgamesh:
-		mov [edi+0x2C], 6
+		mov dword ptr [edi+0x2C], 6
 		mov al, 01
 		jmp dword ptr [SkipWeapons::skip_dante_sword_continue]
 
@@ -70,7 +70,7 @@ naked void skip_dante_sword_proc(void) {
 		jmp originalcode
 
 	skiplucifer:
-		mov [edi+0x2C], 4
+		mov dword ptr [edi+0x2C], 4
 		mov al, 01
 		jmp dword ptr [SkipWeapons::skip_dante_sword_continue]
 
