@@ -7,6 +7,8 @@ This dll will give you access to training, gameplay, and quality of life options
 
 Builds are intended for use on the Steam DX9 version of the game and will crash on other versions. Might want to unpack steam drm from `DevilMayCry4_DX9.exe` with [steamless](https://github.com/atom0s/Steamless)
 
+If you are using the retail (disc) release, you'll need to swap your exe. @ me on Discord (sssiyan) or [Twitter](https://twitter.com/SSSiyan) and I'll send you one that will work. 
+
 ## Download
 Releases can be found [here.](https://github.com/muhopensores/dmc4_hook/releases)
 
