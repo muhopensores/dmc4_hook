@@ -18,6 +18,7 @@ public:
 
     static uintptr_t boey_hud_15_continue;
 
+    void hide_all_hud(bool enable);
     void toggle_health(bool enable);
     void toggle_orbs(bool enable);
     void toggle_style(bool enable);
@@ -30,6 +31,7 @@ public:
 
     std::string get_mod_name() override { return "HideHud"; };
     std::optional<std::string> on_initialize() override;
+    void on_update_input(utility::Input& input) override;
 
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;

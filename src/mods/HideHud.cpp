@@ -374,44 +374,90 @@ std::optional<std::string> HideHud::on_initialize() {
         spdlog::error("Failed to init boey_hud_15 mod\n");
         return "Failed to init boey_hud_15 mod";
     }
+
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_OEM_MINUS}, "Hide All HUD", "hide_all_hud"));
+
     return Mod::on_initialize();
 }
 
+void HideHud::hide_all_hud(bool enable) {
+    if (enable) {
+        mod_enabled_health               = true;
+        mod_enabled_orbs                 = true;
+        mod_enabled_style                = true;
+        mod_enabled_timer                = true;
+        mod_enabled_weapon_selected      = true;
+        mod_enabled_hide_weapon_selected = true;
+        mod_enabled_map                  = true;
+        mod_enabled_boss                 = true;
+    } else {
+        mod_enabled_health               = false;
+        mod_enabled_orbs                 = false;
+        mod_enabled_style                = false;
+        mod_enabled_timer                = false;
+        mod_enabled_weapon_selected      = false;
+        mod_enabled_hide_weapon_selected = false;
+        mod_enabled_map                  = false;
+        mod_enabled_boss                 = false;
+    }
+
+    toggle_health(mod_enabled_health);
+    toggle_orbs(mod_enabled_orbs);
+    toggle_style(mod_enabled_style);
+    toggle_timer(mod_enabled_timer);
+    toggle_weapon_display(mod_enabled_weapon_selected);
+    toggle_weapon_hide(mod_enabled_hide_weapon_selected);
+    toggle_map(mod_enabled_map);
+    toggle_boss_hp(mod_enabled_boss);
+}
+
+void HideHud::on_update_input(utility::Input& input) {
+    if (m_hotkeys[0]->check(input)) {
+        mod_enabled_health = !mod_enabled_health;
+        hide_all_hud(mod_enabled_health);
+    }
+}
+
 void HideHud::on_gui_frame() {
+    if (ImGui::Checkbox("Hide All HUD", &mod_enabled_health)) {
+        hide_all_hud(mod_enabled_health);
+    }
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Hide Timer", &mod_enabled_timer)) {
         toggle_timer(mod_enabled_timer);
     }
-    ImGui::SameLine(sameLineWidth);
+
     if (ImGui::Checkbox("Hide HP HUD", &mod_enabled_health)) {
         toggle_health(mod_enabled_health);
     }
-
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Hide Orbs HUD", &mod_enabled_orbs)) {
         toggle_orbs(mod_enabled_orbs);
     }
-    ImGui::SameLine(sameLineWidth);
+    
     if (ImGui::Checkbox("Hide Style HUD", &mod_enabled_style)) {
         toggle_style(mod_enabled_style);
     }
-
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Style Dial Only", &mod_enabled_boey)) {
         toggle_boey(mod_enabled_boey);
     }
-    ImGui::SameLine(sameLineWidth);
+    
     if (ImGui::Checkbox("Hide Map HUD", &mod_enabled_map)) {
         toggle_map(mod_enabled_map);
     }
-
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Hide Boss HP HUD", &mod_enabled_boss)) {
         toggle_boss_hp(mod_enabled_boss);
     }
-    ImGui::SameLine(sameLineWidth);
+    
     if (ImGui::Checkbox("Never Hide Weapons HUD", &mod_enabled_weapon_selected)) {
         mod_enabled_hide_weapon_selected = false;
         toggle_weapon_hide(mod_enabled_hide_weapon_selected);
         toggle_weapon_display(mod_enabled_weapon_selected);
     }
-    
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Always Hide Weapons HUD", &mod_enabled_hide_weapon_selected)) {
         mod_enabled_weapon_selected = false;
         toggle_weapon_display(mod_enabled_weapon_selected);

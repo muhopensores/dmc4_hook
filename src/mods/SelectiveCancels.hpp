@@ -2,7 +2,7 @@
 
 #include "../mod.hpp"
 
-// using powers of two here to avoid making alot of bool variables
+// using powers of two here to avoid making a lot of bool variables
 enum CancelMoves {          // bits table
     ECSTASY         = 1,    // 0000 0000 0000 0000 0000 0000 0000 0001
     ARGUMENT        = 2,    // 0000 0000 0000 0000 0000 0000 0000 0010
@@ -24,9 +24,9 @@ class SelectiveCancels : public Mod {
 public:
     SelectiveCancels() = default;
 
-    static bool selective_cancels_enable;
+    static bool mod_enabled;
     static uint32_t cancels;
-    static uintptr_t selective_cancels_continue;
+    static uintptr_t jmp_ret1;
     static uintptr_t jmp_ret2;
 
     std::string get_mod_name() override { return "SelectiveCancels"; };
