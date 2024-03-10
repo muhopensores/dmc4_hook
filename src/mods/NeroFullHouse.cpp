@@ -154,7 +154,7 @@ naked void detour5(void) { // cancellable payline ending // player in esi
             je retcode
 
         code:
-            cmp ecx,0x0000FFFF
+            cmp ecx, 0x0000FFFF
             jne jnecode
 			jmp dword ptr [NeroFullHouse::jmp_ret5]
         jnecode:

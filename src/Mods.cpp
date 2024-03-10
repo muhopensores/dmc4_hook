@@ -33,8 +33,6 @@
 #include "mods/LdkWithDmd.hpp"
 #include "mods/LimitAdjust.hpp"
 #include "mods/ManualTwosomeTime.hpp"
-#include "mods/MoveIDs.hpp"
-#include "mods/MoveIDsNero.hpp"
 #include "mods/NoClip.hpp"
 #include "mods/NoDtCooldown.hpp"
 #include "mods/NoHBknockback.hpp"
@@ -142,7 +140,6 @@ Mods::Mods() {
     ADD_MOD(FastStart);
     ADD_MOD(AreaJump);
     ADD_MOD(LimitAdjust);
-    ADD_MOD(MoveIds);
     ADD_MOD(NoHbKnockback);
     ADD_MOD(EasyJc);
     ADD_MOD(SelectiveCancels);
@@ -153,7 +150,6 @@ Mods::Mods() {
     ADD_MOD(RestoreMaxHp);
     ADD_MOD(InputStates);
     ADD_MOD(FpsLimit);
-    ADD_MOD(MoveIdsNero);
     ADD_MOD(InfSkyStars);
     ADD_MOD(ForceLucifer);
     ADD_MOD(LdkWithDmd);

@@ -120,7 +120,7 @@ naked void back_forward_detour(void) { // resets timer, player in ebx
 
 			cmp dword ptr [TimerMem::timer_mem], 0x41200000 // = 10 // If timer is less than 10, don't reset. With this, timer is only reset once per backforward.
 			jl originalcode // 10 is over before the moves can finish, so no worry them not being available
-			cmp al,0x3
+			cmp al, 0x3
 			je resettimer
 
 		honeycombcompare:
@@ -129,7 +129,7 @@ naked void back_forward_detour(void) { // resets timer, player in ebx
 
 			cmp dword ptr [TimerMem::timer_mem], 0x41200000 // = 10
 			jl originalcode
-			cmp al,0x3
+			cmp al, 0x3
 			je resettimer
 			jmp originalcode
 

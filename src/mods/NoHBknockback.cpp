@@ -1,7 +1,4 @@
-
 #include "NoHBknockback.hpp"
-#include "MoveIDs.hpp"
-#include "MoveIDsNero.hpp"
 #include "NeroFullHouse.hpp"
 
 bool      NoHbKnockback::mod_enabled{ false };
@@ -16,42 +13,59 @@ naked void no_helm_breaker_knockback_proc(void) { // ebx+0x98 = player + CE20 //
 			cmp byte ptr [NeroFullHouse::mod_enabled], 1
 			je nerocheatcode2
 		originalcode:
-			cmp ecx,0x05
+			cmp ecx, 0x05
 			jl nohelmbreakerknockbackje
 			jmp dword ptr [NoHbKnockback::no_helm_breaker_knockback_continue]
 
 		cheatcode:
-			// Dante:
-			cmp dword ptr [MoveIds::move_id], 0x20A			// 522 // Low
-			je newcode
-			cmp dword ptr [MoveIds::move_id], 0x213 // 531 // Mid
-			je newcode
-			cmp dword ptr [MoveIds::move_id], 0x214 // 532 // High
-			je newcode
-			// Nero:
-			cmp dword ptr [MoveIdsNero::move_id_nero], 786 // Split
-			je newcode
-			cmp dword ptr [MoveIdsNero::move_id_nero], 812 // Double Down
-			je newcode
-			cmp dword ptr [MoveIdsNero::move_id_nero], 814 // Double Down 3 exceed
-			je newcode
-			jmp originalcode
-
-		nerocheatcode2:
-			cmp dword ptr [MoveIdsNero::move_id_nero], 812
-			jne originalcode
-
+			// load eax with player 1
 			push eax
 			mov eax, [static_mediator_ptr]
 			mov eax, [eax]
 			mov eax, [eax+0x24]
-			cmp dword ptr [eax+0x1564], 28    // check streak 1 was pushed to get this moveid
-			pop eax
+
+			// Dante:
+			cmp dword ptr [eax+0x2998], 0x20A // 522 // Low
 			je newcode
+			cmp dword ptr [eax+0x2998], 0x213 // 531 // Mid
+			je newcode
+			cmp dword ptr [eax+0x2998], 0x214 // 532 // High
+			je newcode
+			// Nero:
+			cmp dword ptr [eax+0x2998], 786 // Split
+			je newcode
+			cmp dword ptr [eax+0x2998], 812 // Double Down
+			je newcode
+			cmp dword ptr [eax+0x2998], 814 // Double Down 3 exceed
+			je newcode
+			pop eax
+			jmp originalcode
+
+		nerocheatcode2:
+            // load eax with player 1
+			push eax
+			mov eax, [static_mediator_ptr]
+			mov eax, [eax]
+			mov eax, [eax+0x24]
+
+			cmp dword ptr [eax+0x2998], 812
+			pop eax
+			jne originalcode
+
+			// load eax with player 1
+			push eax
+			mov eax, [static_mediator_ptr]
+			mov eax, [eax]
+			mov eax, [eax+0x24]
+
+			cmp dword ptr [eax+0x1564], 28    // check streak 1 was pushed to get this moveid
+			je newcode
+			pop eax
 			jmp originalcode
 
 		newcode:
-			cmp ecx,0x05
+			pop eax
+			cmp ecx, 0x05
 			je nohelmbreakerknockbackje
 			jmp dword ptr [NoHbKnockback::no_helm_breaker_knockback_continue]
 

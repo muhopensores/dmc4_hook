@@ -1,13 +1,12 @@
-
 #include "SelectiveCancels.hpp"
-#include "MoveIDs.hpp"
-#include "MoveIDsNero.hpp"
 
 #if 1
 bool      SelectiveCancels::selective_cancels_enable = false;
-uint32_t  SelectiveCancels::cancels = 0;
 uintptr_t SelectiveCancels::selective_cancels_continue = 0x0080332F;
 uintptr_t SelectiveCancels::jmp_ret2 = NULL;
+
+constexpr uintptr_t static_mediator_ptr  = 0x00E558B8;
+uint32_t  SelectiveCancels::cancels = 0;
 bool fixGuardInertia = false;
 
 naked void detour1() { // player in eax + edi
@@ -15,136 +14,148 @@ naked void detour1() { // player in eax + edi
 		cmp byte ptr [SelectiveCancels::selective_cancels_enable], 0
 		je originalcode
 
-		cmp dword ptr [MoveIds::move_id], 0x411 // Grounded Ecstasy
-		je cancellableecstasy
-		cmp dword ptr [MoveIds::move_id], 0x412 // Aerial Ecstasy
-		je cancellableecstasy
-		cmp dword ptr [MoveIds::move_id], 0x732 // Argument
-		je cancellableargument
-		cmp dword ptr [MoveIds::move_id], 0x30E // Kick 13
-		je cancellablekickthirteen
-		cmp dword ptr [MoveIds::move_id], 0x30F // DT Kick 13
-		je cancellablekickthirteen
-		cmp dword ptr [MoveIds::move_id], 0x900 // Slash Dimension
-		je cancellableslashdimension
-		cmp dword ptr [MoveIds::move_id], 0x232 // Prop
-		je cancellableprop
-		cmp dword ptr [MoveIds::move_id], 0x333 // Shock
-		je cancellableshock
-		cmp dword ptr [MoveIds::move_id], 0x735 // Omen
-		je cancellableomen
-		cmp dword ptr [MoveIds::move_id], 0x635 // Gunstinger
-		je cancellablegunstinger
-		cmp dword ptr [MoveIds::move_id], 0x706 // Epidemic
-		je cancellableepidemic
-		cmp dword ptr [MoveIds::move_id], 0x410 // DT Pin Up part 2
-		je cancellableDTPinUp
-		cmp dword ptr [MoveIdsNero::move_id_nero], 0x33B // Showdown
-		je cancellableShowdown
-		cmp dword ptr [MoveIdsNero::move_id_nero], 0x32 // DT Ground
-		je cancellableDTGround
-		cmp dword ptr [MoveIds::move_id], 0x310 // Draw
-		je cancellableDraw
-		cmp dword ptr [MoveIds::move_id], 0x7 // Roll left
-		je cancellableRoll
-		cmp dword ptr [MoveIds::move_id], 0x8 // Roll right
+		// validate this is player 1
+        push ecx
+        mov ecx, [static_mediator_ptr]
+        mov ecx, [ecx]
+        mov ecx, [ecx+0x24]
+        cmp eax, ecx
+        pop ecx
+        jne originalcode
+
+		// Dante
+		cmp dword ptr [eax+0x2998], 0x411 // Grounded Ecstasy
+		je CancellableEcstasy
+		cmp dword ptr [eax+0x2998], 0x412 // Aerial Ecstasy
+		je CancellableEcstasy
+		cmp dword ptr [eax+0x2998], 0x732 // Argument
+		je CancellableArgument
+		cmp dword ptr [eax+0x2998], 0x30E // Kick 13
+		je CancellableKickThirteen
+		cmp dword ptr [eax+0x2998], 0x30F // DT Kick 13
+		je CancellableKickThirteen
+		cmp dword ptr [eax+0x2998], 0x900 // Slash Dimension
+		je CancellableSlashDimension
+		cmp dword ptr [eax+0x2998], 0x232 // Prop
+		je CancellableProp
+		cmp dword ptr [eax+0x2998], 0x333 // Shock
+		je CancellableShock
+		cmp dword ptr [eax+0x2998], 0x735 // Omen
+		je CancellableOmen
+		cmp dword ptr [eax+0x2998], 0x635 // Gunstinger
+		je CancellableGunstinger
+		cmp dword ptr [eax+0x2998], 0x706 // Epidemic
+		je CancellableEpidemic
+		cmp dword ptr [eax+0x2998], 0x410 // DT Pin Up part 2
+		je CancellableDTPinUp
+		cmp dword ptr [eax+0x2998], 0x310 // Draw
+		je CancellableDraw
+		cmp dword ptr [eax+0x2998], 0x007 // Roll left
 		je CancellableRoll
-		cmp dword ptr [MoveIdsNero::move_id_nero], 0x7 // Roll left
+		cmp dword ptr [eax+0x2998], 0x008 // Roll right
 		je CancellableRoll
-		cmp dword ptr [MoveIdsNero::move_id_nero], 0x8 // Roll right
+		// Nero
+		cmp dword ptr [eax+0x2998], 0x33B // Nero Showdown
+		je CancellableShowdown
+		cmp dword ptr [eax+0x2998], 0x032 // Nero DT Ground
+		je CancellableDTGround
+		cmp dword ptr [eax+0x2998], 0x007 // Nero Roll left
+		je CancellableRoll
+		cmp dword ptr [eax+0x2998], 0x008 // Nero Roll right
 		je CancellableRoll
 		jmp originalcode
 
-		cancellableecstasy:
-		test [SelectiveCancels::cancels], ECSTASY
-		jg cancellable
-		jmp originalcode
+		CancellableEcstasy:
+			test [SelectiveCancels::cancels], ECSTASY
+			jg JumpCancellable
+			jmp originalcode
 
-		cancellableargument:
-		test [SelectiveCancels::cancels], ARGUMENT
-		jg cancellable
-		jmp originalcode
+		CancellableArgument:
+			test [SelectiveCancels::cancels], ARGUMENT
+			jg JumpCancellable
+			jmp originalcode
 
-		cancellablekickthirteen:
-		test [SelectiveCancels::cancels], KICK13
-		jg cancellable
-		jmp originalcode
+		CancellableKickThirteen:
+			test [SelectiveCancels::cancels], KICK13
+			jg JumpCancellable
+			jmp originalcode
 
-		cancellableslashdimension:
-		test [SelectiveCancels::cancels], SLASH_DIMENSION
-		jg cancellable
-		jmp originalcode
+		CancellableSlashDimension:
+			test [SelectiveCancels::cancels], SLASH_DIMENSION
+			jg JumpCancellable
+			jmp originalcode
 
-		cancellableprop:
-		test [SelectiveCancels::cancels], PROP
-		jg cancellable
-		jmp originalcode
+		CancellableProp:
+			test [SelectiveCancels::cancels], PROP
+			jg JumpCancellable
+			jmp originalcode
 
-		cancellableshock:
-		test [SelectiveCancels::cancels], SHOCK
-		jg cancellable
-		jmp originalcode
+		CancellableShock:
+			test [SelectiveCancels::cancels], SHOCK
+			jg JumpCancellable
+			jmp originalcode
 
-		cancellableomen:
-		test [SelectiveCancels::cancels], OMEN
-		jg cancellable
-		jmp originalcode
+		CancellableOmen:
+			test [SelectiveCancels::cancels], OMEN
+			jg JumpCancellable
+			jmp originalcode
 
-		cancellablegunstinger:
-		test [SelectiveCancels::cancels], GUNSTINGER
-		jg cancellable
-		jmp originalcode
+		CancellableGunStinger:
+			test [SelectiveCancels::cancels], GUNSTINGER
+			jg JumpCancellable
+			jmp originalcode
 
-		cancellableepidemic:
-		test [SelectiveCancels::cancels], EPIDEMIC
-		jg cancellable
-		jmp originalcode
+		CancellableEpidemic:
+			test [SelectiveCancels::cancels], EPIDEMIC
+			jg JumpCancellable
+			jmp originalcode
 
-		cancellableDTPinUp:
-		test [SelectiveCancels::cancels], DT_PIN_UP_P2
-		jg cancellable
-		jmp originalcode
+		CancellableDTPinUp:
+			test [SelectiveCancels::cancels], DT_PIN_UP_P2
+			jg JumpCancellable
+			jmp originalcode
 
-		cancellableShowdown:
-		test [SelectiveCancels::cancels], SHOWDOWN
-		jg cancellable
-		jmp originalcode
+		CancellableShowdown:
+			test [SelectiveCancels::cancels], SHOWDOWN
+			jg JumpCancellable
+			jmp originalcode
 
-		cancellableDTGround:
-		test [SelectiveCancels::cancels], DTGROUND
-		jg cancellable
-		jmp originalcode
+		CancellableDTGround:
+			test [SelectiveCancels::cancels], DTGROUND
+			jg JumpCancellable
+			jmp originalcode
 
-		cancellableDraw:
-		test [SelectiveCancels::cancels], DRAW
-		jg cancellable
-		jmp originalcode
+		CancellableDraw:
+			test [SelectiveCancels::cancels], DRAW
+			jg JumpCancellable
+			jmp originalcode
 
-		cancellableRoll:
-		// cmp dword ptr [eax+0x348], 0x41200000 // 10.0f // timer example
-		// jb originalcode
-		test [SelectiveCancels::cancels], ROLL
-		jg cancellable
-		jmp originalcode
+		CancellableRoll:
+			// cmp dword ptr [eax+0x348], 0x41200000 // 10.0f // timer example
+			// jb originalcode
+			test [SelectiveCancels::cancels], ROLL
+			jg JumpCancellable
+			jmp originalcode
 
-		cancellable:
-		mov dword ptr [eax+0x3174], 0x02 // [+0x3174] is jumps + trickster + guard // 2 is cancellable, 1 sets a buffer
+		JumpCancellable:
+			mov dword ptr [eax+0x3174], 0x02 // [+0x3174] is jumps + trickster + guard // 2 is cancellable, 1 sets a buffer
+			// jmp originalcode
 			
 		originalcode:
-		mov edi,0x00000008
-		jmp dword ptr [SelectiveCancels::selective_cancels_continue]
+			mov edi, 0x00000008
+			jmp dword ptr [SelectiveCancels::selective_cancels_continue]
 	}
 }
 
-naked void detour2() { // player in eax + edi
+naked void detour2() { // only called on ground guard
 	_asm {
 			cmp byte ptr [SelectiveCancels::selective_cancels_enable], 0
 			je originalcode
 			cmp byte ptr [fixGuardInertia], 0
 			je originalcode
 
-			mov dword ptr [ecx+0xec0], 0 // x
-			mov dword ptr [ecx+0xec8], 0 // z
+			mov dword ptr [ecx+0xEC0], 0 // x
+			mov dword ptr [ecx+0xEC8], 0 // z
 
 		originalcode:
 			push 0x00000132

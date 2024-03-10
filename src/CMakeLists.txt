@@ -54,8 +54,6 @@ set(MODS_SRC
   mods/Borderless.hpp
   mods/AreaJump.cpp
   mods/AreaJump.hpp
-  mods/MoveIDs.cpp
-  mods/MoveIDs.hpp
   mods/WorkRate.cpp
   mods/WorkRate.hpp
   mods/SelectiveCancels.hpp
@@ -80,8 +78,6 @@ set(MODS_SRC
   mods/InputStates.hpp
   mods/FpsLimit.cpp
   mods/FpsLimit.hpp
-  mods/MoveIDsNero.cpp
-  mods/MoveIDsNero.hpp
   mods/InfSkyStars.cpp
   mods/InfSkyStars.hpp
   mods/ForceLucifer.cpp
