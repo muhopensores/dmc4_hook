@@ -382,25 +382,14 @@ std::optional<std::string> HideHud::on_initialize() {
 }
 
 void HideHud::hide_all_hud(bool enable) {
-    if (enable) {
-        mod_enabled_health               = true;
-        mod_enabled_orbs                 = true;
-        mod_enabled_style                = true;
-        mod_enabled_timer                = true;
-        mod_enabled_weapon_selected      = true;
-        mod_enabled_hide_weapon_selected = true;
-        mod_enabled_map                  = true;
-        mod_enabled_boss                 = true;
-    } else {
-        mod_enabled_health               = false;
-        mod_enabled_orbs                 = false;
-        mod_enabled_style                = false;
-        mod_enabled_timer                = false;
-        mod_enabled_weapon_selected      = false;
-        mod_enabled_hide_weapon_selected = false;
-        mod_enabled_map                  = false;
-        mod_enabled_boss                 = false;
-    }
+        mod_enabled_health               = enable;
+        mod_enabled_orbs                 = enable;
+        mod_enabled_style                = enable;
+        mod_enabled_timer                = enable;
+        mod_enabled_weapon_selected      = enable;
+        mod_enabled_hide_weapon_selected = enable;
+        mod_enabled_map                  = enable;
+        mod_enabled_boss                 = enable;
 
     toggle_health(mod_enabled_health);
     toggle_orbs(mod_enabled_orbs);

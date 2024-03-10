@@ -56,6 +56,10 @@ naked void detour1() { // player in eax + edi
 			je CancellableRoll
 			cmp dword ptr [eax+0x2998], 0x008 // Roll right
 			je CancellableRoll
+			cmp dword ptr [eax+0x2998], 0x20F // Stinger max level
+			je CancellableStinger
+			cmp dword ptr [eax+0x2998], 0x335 // Real Impact
+			je CancellableRealImpact
 			jmp originalcode
 
 		CheckNero:
@@ -122,6 +126,16 @@ naked void detour1() { // player in eax + edi
 
 		CancellableDraw:
 			test [SelectiveCancels::cancels], DRAW
+			jne JumpCancellable
+			jmp originalcode
+
+		CancellableStinger:
+			test [SelectiveCancels::cancels], STINGER
+			jne JumpCancellable
+			jmp originalcode
+
+		CancellableRealImpact:
+			test [SelectiveCancels::cancels], REAL_IMPACT
 			jne JumpCancellable
 			jmp originalcode
 
@@ -235,19 +249,21 @@ void SelectiveCancels::on_gui_frame() {
 	ImGui::Text("Swords");
 	ImGui::Spacing();
 
-	draw_checkbox_simple("Ecstasy", ECSTASY);
+	draw_checkbox_simple("Stinger", STINGER);
+    ImGui::SameLine(sameLineWidth);
+	draw_checkbox_simple("Prop", PROP);
+
+	draw_checkbox_simple("Real Impact", REAL_IMPACT);
 	ImGui::SameLine(sameLineWidth);
 	draw_checkbox_simple("Kick 13", KICK13);
 
-	draw_checkbox_simple("Prop", PROP);
-	ImGui::SameLine(sameLineWidth);
 	draw_checkbox_simple("Shock", SHOCK);
-
+	ImGui::SameLine(sameLineWidth);
+	draw_checkbox_simple("Ecstasy", ECSTASY);
+	
 	draw_checkbox_simple("Slash Dimension", SLASH_DIMENSION);
 	ImGui::SameLine(sameLineWidth);
 	draw_checkbox_simple("DT Pin Up Part 2", DT_PIN_UP_P2);
-
-	//draw_checkbox_simple("Beast Uppercut", BEAST_UPPERCUT);
 
 	draw_checkbox_simple("Draw", DRAW);
 	
