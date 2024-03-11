@@ -178,6 +178,7 @@ naked void detour4(void) {
             push 0x000152F0
             call edx
             call dword ptr [detour4_call4]
+            push 0x0F
             jmp Spawn
 
         NeroInit:
@@ -218,11 +219,11 @@ naked void detour4(void) {
             call edx
             mov esi, eax
             call dword ptr [detour4_call8]
+            push 0x0D
         Spawn:
             mov esi, eax
             mov eax, [0x00E552CC]
             mov eax, [eax] //
-            push 0x0F
             call dword ptr [detour4_call9]
             mov [secondaryActor], esi
             popad

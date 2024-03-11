@@ -6,6 +6,7 @@ class HideHud : public Mod {
 public:
     HideHud() = default;
 
+    static bool mod_enabled_hide_all_hud;
     static bool mod_enabled_health;
     static bool mod_enabled_orbs;
     static bool mod_enabled_style;

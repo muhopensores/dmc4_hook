@@ -1,5 +1,6 @@
 #include "HideHud.hpp"
 
+bool HideHud::mod_enabled_hide_all_hud{ false };
 bool HideHud::mod_enabled_health{ false };
 bool HideHud::mod_enabled_orbs{ false };
 bool HideHud::mod_enabled_style{ false };
@@ -403,14 +404,14 @@ void HideHud::hide_all_hud(bool enable) {
 
 void HideHud::on_update_input(utility::Input& input) {
     if (m_hotkeys[0]->check(input)) {
-        mod_enabled_health = !mod_enabled_health;
-        hide_all_hud(mod_enabled_health);
+        mod_enabled_hide_all_hud = !mod_enabled_hide_all_hud;
+        hide_all_hud(mod_enabled_hide_all_hud);
     }
 }
 
 void HideHud::on_gui_frame() {
-    if (ImGui::Checkbox("Hide All HUD", &mod_enabled_health)) {
-        hide_all_hud(mod_enabled_health);
+    if (ImGui::Checkbox("Hide All HUD", &mod_enabled_hide_all_hud)) {
+        hide_all_hud(mod_enabled_hide_all_hud);
     }
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Hide Timer", &mod_enabled_timer)) {

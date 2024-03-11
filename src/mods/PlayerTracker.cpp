@@ -64,6 +64,7 @@ void PlayerTracker::on_gui_frame() {
         if (player) {
             ImGui::InputFloat("HP ##1", &player->HP);
             ImGui::InputFloat("Max HP ##1", &player->HPMax);
+            ImGui::InputScalar("Move ID Debug ##1", ImGuiDataType_U8, &player->moveIDBest);
             ImGui::InputFloat3("XYZ Position ##1", (float*)&player->m_pos);
             ImGui::InputFloat4("Rotation ##1", &player->rotation2);
             ImGui::InputFloat3("XYZ Scale ##1", (float*)&player->m_scale);
