@@ -4,7 +4,7 @@ bool DtKnuckle::mod_enabled{false};
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 uintptr_t DtKnuckle::jmp_ret1{NULL};
-	int moveID                        = 0x31C;
+	int moveID                        = 0;
 	float inputCooldown               = 0.0f;
 	bool spectreFlag                  = 0;
 	bool endFlag                      = 0;
@@ -31,7 +31,6 @@ uintptr_t DtKnuckle::jmp_ret12{NULL};
 	constexpr uintptr_t detour12_conditional1 = 0x00829BD8;
 uintptr_t DtKnuckle::jmp_ret13{NULL};
 uintptr_t DtKnuckle::jmp_ret14{NULL};
-
 
 void DtKnuckle::toggle(bool enable) {
 	if (enable) {
@@ -107,7 +106,7 @@ naked void detour1(void) {
 			jg handler3 // cooldown has value != 0, jump out and set previousInput
 
 			mov [previousInput], ax // set previousInput
-			mov dword ptr [inputCooldown], 0x42480000 // 50.0f // set input cooldown
+			mov dword ptr [inputCooldown], 0x41f00000 // 30.0f // set input cooldown
 
 		// ForwardCheck:
 			mov eax, [ebp+0x21CC]

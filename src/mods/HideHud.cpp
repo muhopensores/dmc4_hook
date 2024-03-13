@@ -11,6 +11,15 @@ bool HideHud::mod_enabled_hide_weapon_selected{false};
 bool HideHud::mod_enabled_map{ false };
 bool HideHud::mod_enabled_boss{false};
 
+bool mod_enabled_health_backup               = false;
+bool mod_enabled_orbs_backup                 = false;
+bool mod_enabled_style_backup                = false;
+bool mod_enabled_timer_backup                = false;
+bool mod_enabled_weapon_selected_backup      = false;
+bool mod_enabled_hide_weapon_selected_backup = false;
+bool mod_enabled_map                         = false;
+bool mod_enabled_boss_backup                 = false;
+
 // DevilMayCry4_DX9.exe+B1997 - cmp byte ptr [esi+04], 01 compares all hud elements, use it while paused to find what you need
 // DevilMayCry4_DX9.exe+FEFAC - mov byte ptr [ecx+04], 00 writes dante weapon hud off
 
@@ -383,6 +392,16 @@ std::optional<std::string> HideHud::on_initialize() {
 }
 
 void HideHud::hide_all_hud(bool enable) {
+    if (enable) {
+        mod_enabled_health_backup               = mod_enabled_health;
+        mod_enabled_orbs_backup                 = mod_enabled_orbs;
+        mod_enabled_style_backup                = mod_enabled_style;
+        mod_enabled_timer_backup                = mod_enabled_timer;
+        mod_enabled_weapon_selected_backup      = mod_enabled_weapon_selected;
+        mod_enabled_hide_weapon_selected_backup = mod_enabled_hide_weapon_selected;
+        mod_enabled_map                         = mod_enabled_map;
+        mod_enabled_boss_backup                 = mod_enabled_boss;
+
         mod_enabled_health               = enable;
         mod_enabled_orbs                 = enable;
         mod_enabled_style                = enable;
@@ -391,6 +410,16 @@ void HideHud::hide_all_hud(bool enable) {
         mod_enabled_hide_weapon_selected = enable;
         mod_enabled_map                  = enable;
         mod_enabled_boss                 = enable;
+    } else {
+        mod_enabled_health               = mod_enabled_health_backup;
+        mod_enabled_orbs                 = mod_enabled_orbs_backup;
+        mod_enabled_style                = mod_enabled_style_backup;
+        mod_enabled_timer                = mod_enabled_timer_backup;
+        mod_enabled_weapon_selected      = mod_enabled_weapon_selected_backup;
+        mod_enabled_hide_weapon_selected = mod_enabled_hide_weapon_selected_backup;
+        mod_enabled_map                  = mod_enabled_map;
+        mod_enabled_boss                 = mod_enabled_boss_backup;
+    }
 
     toggle_health(mod_enabled_health);
     toggle_orbs(mod_enabled_orbs);
