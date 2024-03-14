@@ -398,6 +398,22 @@ naked void SaveWrite(void) {
     }
 }
 
+naked void ResetCam(void) {
+    _asm {
+            pushad
+            mov eax, [static_mediator_ptr]
+            mov eax, [eax]
+            mov eax, [eax+0xD0] //uCameraCtrl
+            cmp byte ptr [eax+0x490], 0
+            je return
+            mov ecx, [eax+0x490] //cCameraPlayer
+            mov byte ptr [ecx+0x60], 1
+        return:
+            popad
+            ret
+    }
+}
+
 // Swap actor
 naked void SwapActor(void) {
     _asm {
@@ -558,6 +574,7 @@ naked void SwapActor(void) {
             mov [ebp+0x24], ecx
             mov [primaryActor], ecx
             call SwapHUD
+            call ResetCam
             popad
         loopend:
             popad
