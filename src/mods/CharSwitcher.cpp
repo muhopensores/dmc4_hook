@@ -13,6 +13,8 @@ float swapGrav                          = -1.0f;
 float ySpawn                            = -9000.0f;
 int16_t desiredInput1                   = 0;
 int16_t desiredInput2                   = 0;
+uint32_t kbInput                        = 70;
+bool kbInputPressed                     = false;
 int16_t prevInput                       = 0;
 
 uintptr_t CharSwitcher::jmp_ret2{NULL};
@@ -414,50 +416,8 @@ naked void ResetCam(void) {
     }
 }
 
-// Swap actor
-naked void SwapActor(void) {
+naked void Switch(void) {
     _asm {
-        // loop1:
-            pushad
-            mov ebp, [0x00E558B8]
-            mov ebp, [ebp] //
-            mov ebp, [ebp+0x24]
-            test ebp,ebp
-            je loopend
-            call SaveWrite
-            cmp byte ptr [ebp+0xCDF8], 00
-            je loop3
-            mov ebp, [ebp+0xCDF8]
-            mov edx, [ebp+0x22A8]
-            cmp edx, 07 // DT hold
-            je loopend
-            cmp edx, 03
-            je loopend
-            jmp loop3
-
-        loop3:
-            mov ebx, [0x00E559C4]
-            mov ebx, [ebx] //
-            mov ecx, [ebx+0x5E4] // inputs
-            xor edx, edx //
-            mov dx, [desiredInput1]
-            add dx, [desiredInput2]
-            and ecx, edx
-            cmp ecx, edx
-            je loop2
-            mov [prevInput], cx
-            jmp loopend
-
-        loop2:
-            xor esi, esi //
-            mov si, [prevInput]
-            xor esi, ecx
-            test esi, esi
-            je loopend
-            mov [prevInput], dx
-            jmp swapActor
-
-        swapActor:
             pushad
             mov eax, [primaryActor]
             mov ecx, [secondaryActor]
@@ -576,11 +536,96 @@ naked void SwapActor(void) {
             call SwapHUD
             call ResetCam
             popad
+            ret
+    }
+}
+
+// Swap actor
+naked void SwapActor_Controller(void) {
+    _asm {
+        // loop1:
+            pushad
+            mov ebp, [0x00E558B8]
+            mov ebp, [ebp] //
+            mov ebp, [ebp+0x24]
+            test ebp,ebp
+            je loopend
+            call SaveWrite
+            cmp byte ptr [ebp+0xCDF8], 00
+            je loop3
+            mov ebp, [ebp+0xCDF8]
+            mov edx, [ebp+0x22A8]
+            cmp edx, 07 // DT hold
+            je loopend
+            cmp edx, 03
+            je loopend
+            jmp loop3
+
+        loop3:
+            mov ebx, [0x00E559C4]
+            mov ebx, [ebx] //
+            mov ecx, [ebx+0x5E4] // inputs
+            xor edx, edx //
+            mov dx, [desiredInput1]
+            add dx, [desiredInput2]
+            and ecx, edx
+            cmp ecx, edx
+            je loop2
+            mov [prevInput], cx
+            jmp loopend
+
+        loop2:
+            xor esi, esi //
+            mov si, [prevInput]
+            xor esi, ecx
+            test esi, esi
+            je loopend
+            mov [prevInput], dx
+            call Switch
         loopend:
             popad
             ret
     }
 }
+
+naked void SwapActor_KB(void) {
+    _asm {
+        //Restrictions
+            pushad
+            mov ebp, [0x00E558B8]
+            mov ebp, [ebp] //
+            mov ebp, [ebp+0x24]
+            test ebp,ebp
+            je loopend
+            call SaveWrite
+            cmp byte ptr [ebp+0xCDF8], 00
+            je inputCheck
+            mov ebp, [ebp+0xCDF8]
+            mov edx, [ebp+0x22A8]
+            cmp edx, 07 // DT hold
+            je loopend
+            cmp edx, 03
+            je loopend
+            jmp inputCheck
+        inputCheck:
+            push [kbInput]
+            xor eax,eax
+            call devil4_sdk::internal_kb_check
+            test al,al
+            je inputFail
+            cmp byte ptr [kbInputPressed],1
+            je loopend
+            mov byte ptr [kbInputPressed],1
+            call Switch
+            jmp loopend
+        inputFail:
+            mov byte ptr [kbInputPressed],0
+        loopend:
+            popad
+            ret
+    }
+}
+
 // Reload Dante Save
 naked void detour8(void){
     _asm {
@@ -636,7 +681,8 @@ std::optional<std::string> CharSwitcher::on_initialize() {
 
 void CharSwitcher::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
-        SwapActor();
+        SwapActor_Controller();
+        SwapActor_KB();
     }
 }
 

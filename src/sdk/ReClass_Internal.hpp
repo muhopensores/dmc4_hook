@@ -212,7 +212,7 @@ public:
 	virtual void create_property(void* prop);
 	virtual MtDTI* get_dti();
 	virtual MtObject* allocate(size_t size, int a2);
-	virtual void function6();
+	virtual uint16_t deallocate(MtObject* object);//0x0018
 	virtual void function7();
 	virtual void function8();
 	virtual void function9();

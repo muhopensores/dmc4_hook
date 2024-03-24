@@ -5,6 +5,7 @@ static MtHeapAllocator** mt_heap_alloc_static_ptr = (MtHeapAllocator**)0x00E1434
 
 static uintptr_t fptr_update_actor_list{ 0x008DC540 }; // Spawns shit
 static uintptr_t some_struct{ 0x00E552CC };
+static uintptr_t sKeyboard{ 0x00E559C0 };
 
 
 class sAreaStaticPtr
@@ -176,4 +177,23 @@ namespace devil4_sdk {
         }
             return buttonPairs[0];
     }
+
+	bool __stdcall internal_kb_check(uint32_t input) {
+        _asm{
+                mov eax,[sKeyboard]
+				mov eax,[eax]
+                lea esi,[eax+0x120]
+                mov ecx,input //KB scan code
+                mov edx,ecx
+                and ecx,0x1F
+                mov ebx,0x00000001
+                shr edx,0x05
+                shl ebx,cl
+                lea edx,[esi+edx*4]
+				mov ecx,[edx]
+				and ecx,ebx
+				xor eax,eax
+				cmp ecx,ebx
+				sete al
+                        }	}
 }

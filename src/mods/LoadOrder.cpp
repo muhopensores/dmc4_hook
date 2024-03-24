@@ -245,6 +245,13 @@ void __stdcall wew(MtDTI* dti, char* path) {
         case 0x66664572: extension = "efl"; break;
         case 0x68635372: extension = "sdl"; break;
         case 0x746F4D72: extension = "lmt"; break;
+        case 0x616C5072: extension = "pla"; break;
+        case 0x72705372:
+            if (std::strstr(name,"rSprLayout"))
+                extension = "rSprLayout";
+            else
+                extension = "rSprAnm";
+            break;
     }
 
     // GetFileAttributes needs a full path iirc, unfortunate
