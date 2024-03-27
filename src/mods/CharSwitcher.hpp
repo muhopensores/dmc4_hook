@@ -16,6 +16,8 @@ public:
     static uintptr_t jmp_ret6;
     static uintptr_t jmp_ret7;
     static uintptr_t jmp_ret8;
+    static uintptr_t jmp_ret9;
+    static uintptr_t jmp_ret10;
 	
     void toggle(bool enable);
     void toggle2(bool enable);
@@ -30,5 +32,5 @@ public:
 
 private:
     std::unique_ptr<Patch> patch1, patch2, patch3, patch4;
-    std::unique_ptr<FunctionHook> hook2, hook3, hook4, hook5, hook6, hook7, hook8;
+    std::unique_ptr<FunctionHook> hook2, hook3, hook4, hook5, hook6, hook7, hook8, hook9, hook10;
 };

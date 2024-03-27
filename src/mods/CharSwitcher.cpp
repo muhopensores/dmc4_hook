@@ -16,6 +16,7 @@ int16_t desiredInput2                   = 0;
 uint32_t kbInput                        = 70;
 bool kbInputPressed                     = false;
 int16_t prevInput                       = 0;
+float SSwordRange                       = 26.0f;
 
 uintptr_t CharSwitcher::jmp_ret2{NULL};
     constexpr uintptr_t detour2_call1 = 0x008DF530;
@@ -39,6 +40,9 @@ uintptr_t CharSwitcher::jmp_ret6{NULL};
     constexpr uintptr_t detour6_call1 = 0x007ACEE0;
 uintptr_t CharSwitcher::jmp_ret7{NULL};
 uintptr_t CharSwitcher::jmp_ret8{NULL};
+uintptr_t CharSwitcher::jmp_ret9{NULL};
+uintptr_t CharSwitcher::jmp_ret10{NULL};
+
 
 
 void CharSwitcher::toggle(bool enable) {
@@ -647,6 +651,28 @@ naked void detour8(void){
     }
 }
 
+naked void detour9(void){
+    _asm {
+            push eax
+            mov eax, [static_mediator_ptr]
+            mov eax, [eax]
+            mov eax, [eax+0x24]
+            mov [esi+0x18],eax
+            pop eax
+        originalcode:
+            mov ebx, [ebp+0x08]
+            mov eax, [ebx+0x17E4]
+            jmp [CharSwitcher::jmp_ret9]
+    }
+}
+
+naked void detour10(void){
+    _asm {
+            fld dword ptr [SSwordRange]
+            jmp [CharSwitcher::jmp_ret10]
+    }
+}
+
 std::optional<std::string> CharSwitcher::on_initialize() {
     if (!install_hook_offset(0x007580, hook2, &detour2, &jmp_ret2, 9)) { // Arc file load mk4
         spdlog::error("Failed to init CharSwitcher2 mod\n");
@@ -675,6 +701,14 @@ std::optional<std::string> CharSwitcher::on_initialize() {
     if (!install_hook_offset(0x00DCE0, hook8, &detour8, &jmp_ret8, 6)) { // Reload Dante Save
         spdlog::error("Failed to init CharSwitcher7 mod\n");
         return "Failed to init CharSwitcher7 mod";
+    }
+    if (!install_hook_offset(0x42EB13, hook9, &detour9, &jmp_ret9, 9)) { // SSword carryover fix
+        spdlog::error("Failed to init CharSwitcher8 mod\n");
+        return "Failed to init CharSwitcher8 mod";
+    }
+    if (!install_hook_offset(0x42EB84, hook10, &detour10, &jmp_ret10, 6)) { // Reload Dante Save
+        spdlog::error("Failed to init CharSwitcher9 mod\n");
+        return "Failed to init CharSwitcher9 mod";
     }
     return Mod::on_initialize();
 }
