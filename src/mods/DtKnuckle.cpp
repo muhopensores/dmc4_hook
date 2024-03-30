@@ -10,6 +10,7 @@ uintptr_t DtKnuckle::jmp_ret1{NULL};
 	bool endFlag                      = 0;
 	int16_t desiredInput              = 0;
 	int16_t previousInput             = 0;
+	uint32_t key					  = 82;
 	constexpr uintptr_t detour1_call1 = 0x00829BE0;
 uintptr_t DtKnuckle::jmp_ret2{NULL};
 uintptr_t DtKnuckle::jmp_ret3{NULL};
@@ -90,6 +91,11 @@ naked void detour1(void) {
 			subss xmm0, [edx+0x10] // delta
 			movss [inputCooldown], xmm0
 
+			push [key]
+			call devil4_sdk::internal_kb_check
+			test al, al
+			jne handler4
+
 			mov eax, [ebp+0x1374] // raw controller input
 
 			mov dx, [desiredInput]
@@ -108,7 +114,7 @@ naked void detour1(void) {
 			mov [previousInput], ax // set previousInput
 			mov dword ptr [inputCooldown], 0x41f00000 // 30.0f // set input cooldown
 
-		// ForwardCheck:
+		ForwardCheck:
 			mov eax, [ebp+0x21CC]
 			cmp al, 01
 			jne BackCheck
@@ -142,7 +148,11 @@ naked void detour1(void) {
 			mov [eax+0x08], ecx
 			popad
 			jmp code
-				
+		handler4:
+			cmp dword ptr [inputCooldown],0
+			jg handler
+			mov dword ptr [inputCooldown], 0x41f00000
+			jmp ForwardCheck
 		handler3:
 			mov [previousInput], ax
 		handler:

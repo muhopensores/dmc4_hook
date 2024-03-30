@@ -2,6 +2,8 @@
 
 #if 1
 bool DanteJdc::mod_enabled{false};
+bool DanteJdc::alt_input_enabled{false};
+bool DanteJdc::inertia_enabled{true};
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 uintptr_t DanteJdc::jmp_ret1{NULL};
@@ -52,6 +54,10 @@ naked void detour1(void) {
             mov ebp, [ebp]
             mov ebp, [ebp+0x24]
             mov eax, [ebp+0x16D0]
+            cmp byte ptr [DanteJdc::alt_input_enabled], 0
+            je flagset
+            mov eax, [ebp+0x2260]
+        flagset:
             test eax, eax
             je handler
             mov byte ptr [jdcFlag], 1
@@ -331,6 +337,8 @@ naked void detour10(void) {
     _asm {
 			cmp byte ptr [DanteJdc::mod_enabled], 0
 			je originalcode
+            cmp byte ptr [DanteJdc::inertia_enabled], 0
+            je originalcode
 
             push eax
             mov al, [jdcFlag]
@@ -364,6 +372,8 @@ naked void detour11(void) {
     _asm {
 			cmp byte ptr [DanteJdc::mod_enabled], 0
 			je originalcode
+            cmp byte ptr [DanteJdc::inertia_enabled], 0
+            je originalcode
 
             push eax
             mov al, [jdcFlag]
@@ -436,7 +446,9 @@ std::optional<std::string> DanteJdc::on_initialize() {
 void DanteJdc::on_gui_frame() {
     ImGui::Checkbox("Judgement Cut", &mod_enabled);
     ImGui::SameLine();
-    help_marker("This mod requires external files found on the dmc4_hook repo.\n"
+    help_marker("Activate judgement cut when performing Yamato aerial rave with lock-on."
+            "Perform normal inertia-less Yamato rave on lock-off.\n"
+            "This mod requires external files found on the dmc4_hook repo.\n"
             "The button to the right of this cheat will take you to the download page.\n"
             "- Install the extra files (via fluffy's mod manager or manually).\n"
             "- Enable both this and the \"HDD Priority\" mod in the Debug page.\n"
@@ -447,13 +459,26 @@ void DanteJdc::on_gui_frame() {
     }
     ImGui::SameLine();
     help_marker("Download JDC Files in the Assets section of the latest release and install manually or using Fluffy's Mod Manager");
+    if (mod_enabled) {
+        ImGui::PushItemWidth(sameLineItemWidth);
+        ImGui::Checkbox("Lock-on + back input", &alt_input_enabled);
+        ImGui::SameLine();
+        help_marker("Bind jdc activation to lock-on + back");
+        ImGui::SameLine(sameLineWidth);
+        ImGui::Checkbox("Inertia enable", &DanteJdc::inertia_enabled);
+        ImGui::PopItemWidth();
+    }
 }
 
 void DanteJdc::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("dante_jdc").value_or(false);
+    alt_input_enabled = cfg.get<bool>("jdc_alt_input").value_or(false);
+    DanteJdc::inertia_enabled = cfg.get<bool>("jdc_inertia").value_or(true);
 }
 
 void DanteJdc::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("dante_jdc", mod_enabled);
+    cfg.set<bool>("jdc_alt_input", alt_input_enabled);
+    cfg.set<bool>("jdc_inertia", DanteJdc::inertia_enabled);
 }
 #endif

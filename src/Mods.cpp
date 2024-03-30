@@ -112,6 +112,7 @@
 #include "mods/DtKnuckle.hpp"
 #include "mods/EffectColours.hpp"
 #include "mods/CharSwitcher.hpp"
+#include "mods/RisingSun.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -240,6 +241,7 @@ Mods::Mods() {
     ADD_MOD(DtKnuckle);
     ADD_MOD(EffectColours);
     ADD_MOD(CharSwitcher);
+    ADD_MOD(RisingSun);
 }
 
 // Initializes mods, checks for errors

@@ -198,6 +198,8 @@ set(MODS_SRC
   mods/InfCalibur.cpp
   mods/RgMultiplier.hpp
   mods/RgMultiplier.cpp
+  mods/RisingSun.hpp
+  mods/RisingSun.cpp
   mods/DeltaTime.hpp
   mods/DeltaTime.cpp
   mods/ActiveBlock.hpp

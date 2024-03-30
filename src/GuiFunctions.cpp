@@ -537,6 +537,7 @@ namespace gui {
 
                     pmods->on_draw_ui("DanteJdc"_hash);
 
+                    pmods->on_draw_ui("RisingSun"_hash);
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();
