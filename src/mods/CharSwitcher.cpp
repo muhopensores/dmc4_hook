@@ -409,12 +409,12 @@ naked void ResetCam(void) {
             pushad
             mov eax, [static_mediator_ptr]
             mov eax, [eax]
-            mov eax, [eax+0xD0] //uCameraCtrl
+            mov eax, [eax+0xD0] // uCameraCtrl
             cmp byte ptr [eax+0x490], 0
-            je return
-            mov ecx, [eax+0x490] //cCameraPlayer
-            mov byte ptr [ecx+0x60], 1
-        return:
+            je retcode
+            mov ecx, [eax+0x490] // cCameraPlayer
+            mov byte ptr [ecx+0x60], 0
+        retcode:
             popad
             ret
     }
@@ -659,7 +659,7 @@ naked void detour9(void){
             mov eax, [eax+0x24]
             mov [esi+0x18],eax
             pop eax
-        originalcode:
+        // originalcode:
             mov ebx, [ebp+0x08]
             mov eax, [ebx+0x17E4]
             jmp [CharSwitcher::jmp_ret9]

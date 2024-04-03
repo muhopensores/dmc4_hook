@@ -208,6 +208,8 @@ void NeroFullHouse::on_gui_frame() {
         else {
             helm_splitter_remap = false;
             *(uintptr_t*)0xC3EFB0 = 1; // streak 1 can only be used when grounded
+            *(uintptr_t*)helm_splitter_directional = LOCKON_FORWARD_MELEE2;
+            *(uintptr_t*)double_down_directional   = LOCKON_FORWARD_MELEE2;
         }
     }
     ImGui::SameLine();

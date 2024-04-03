@@ -39,5 +39,4 @@ public:
 
 private:
     Controller* _controller;
-    Controller* gameController;
 };

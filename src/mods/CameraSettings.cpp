@@ -337,23 +337,23 @@ void CameraSettings::on_gui_frame() {
     ImGui::SameLine();
     help_marker("Also enables the editing of these values via hotkeys");
     if (mod_enabled) {
-    if (ImGui::CollapsingHeader("Camera Variables")) {
-        ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::InputFloat("Height", &CameraSettings::camera_height, 10.0f, 20.0f, "%.0f");
-        ImGui::Spacing();
-        ImGui::InputFloat("Distance", &CameraSettings::camera_distance, 100.0f, 200.0f, "%.0f%");
-        ImGui::Spacing();
-        ImGui::InputFloat("Distance (Lockon)", &CameraSettings::camera_distance_lockon, 100.0f, 200.0f, "%.0f%");
-        ImGui::Spacing();
-        ImGui::InputFloat("Angle", &CameraSettings::camera_angle, 0.1f, 0.2f, "%.1f%");
-        ImGui::Spacing();
-        ImGui::InputFloat("Angle (Lockon)", &CameraSettings::camera_angle_lockon, 0.1f, 0.2f, "%.1f%");
-        ImGui::Spacing();
-        ImGui::InputFloat("FOV", &CameraSettings::camera_fov, 10.0f, 20.0f, "%.0f%");
-        ImGui::Spacing();
-        ImGui::InputFloat("FOV (In Battle)", &CameraSettings::camera_fov_in_battle, 10.0f, 20.0f, "%.0f%");
-        ImGui::PopItemWidth();
-    }
+        if (ImGui::CollapsingHeader("Camera Variables")) {
+            ImGui::PushItemWidth(sameLineItemWidth);
+            ImGui::InputFloat("Height", &CameraSettings::camera_height, 10.0f, 20.0f, "%.0f");
+            ImGui::Spacing();
+            ImGui::InputFloat("Distance", &CameraSettings::camera_distance, 100.0f, 200.0f, "%.0f%");
+            ImGui::Spacing();
+            ImGui::InputFloat("Distance (Lockon)", &CameraSettings::camera_distance_lockon, 100.0f, 200.0f, "%.0f%");
+            ImGui::Spacing();
+            ImGui::InputFloat("Angle", &CameraSettings::camera_angle, 0.1f, 0.2f, "%.1f%");
+            ImGui::Spacing();
+            ImGui::InputFloat("Angle (Lockon)", &CameraSettings::camera_angle_lockon, 0.1f, 0.2f, "%.1f%");
+            ImGui::Spacing();
+            ImGui::InputFloat("FOV", &CameraSettings::camera_fov, 10.0f, 20.0f, "%.0f%");
+            ImGui::Spacing();
+            ImGui::InputFloat("FOV (In Battle)", &CameraSettings::camera_fov_in_battle, 10.0f, 20.0f, "%.0f%");
+            ImGui::PopItemWidth();
+        }
     }
 }
 
