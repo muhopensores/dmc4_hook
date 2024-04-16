@@ -5,13 +5,14 @@ bool RisingSun::mod_enabled{ false };
 
 uintptr_t RisingSun::jmp_ret1{NULL};
     constexpr uintptr_t detour1_call = 0x007D36A0;
+    constexpr uintptr_t detour1_org_call = 0x007D4970;
     bool kickFlag = false;
 uintptr_t RisingSun::jmp_ret2{NULL};
     float RS_start_frame = 135.0f;
 uintptr_t RisingSun::jmp_ret3{NULL};
     constexpr uintptr_t detour3_jmp1 = 0x007D3733;
 uintptr_t RisingSun::jmp_ret4{NULL};
-    float kickGrav = -1.5f;
+    float kickGrav = -1.0f;
 uintptr_t RisingSun::jmp_ret5{NULL};
     constexpr uintptr_t detour5_call = 0x7BA210;
     float epsilon = 0.001f;
@@ -33,15 +34,25 @@ void RisingSun::toggle(bool enable) {
 
 naked void detour1 () {
     _asm {
+            cmp byte ptr [RisingSun::mod_enabled],1
+            jne originalcode
+
             mov byte ptr [kickFlag],1
             call [detour1_call]
             mov byte ptr [kickFlag],0
+            jmp [RisingSun::jmp_ret1]
+
+            originalcode:
+            call [detour1_org_call]
             jmp [RisingSun::jmp_ret1]
     }
 }
 
 naked void detour2 () {
     _asm {
+            cmp byte ptr [RisingSun::mod_enabled],1
+            jne handler
+
             cmp byte ptr [kickFlag],1
             jne handler
             fld dword ptr [RS_start_frame];
@@ -58,6 +69,9 @@ naked void detour2 () {
 
 naked void detour3 () {
     _asm {
+            cmp byte ptr [RisingSun::mod_enabled],1
+            jne originalcode
+
             cmp byte ptr [kickFlag],1
             jne originalcode
             jmp dword ptr [detour3_jmp1]
@@ -74,6 +88,9 @@ naked void detour3 () {
 
 naked void detour4 () {
     _asm {
+            cmp byte ptr [RisingSun::mod_enabled],1
+            jne handler
+
             cmp byte ptr [kickFlag],1
             jne handler
             fld dword ptr [kickGrav]
@@ -89,6 +106,9 @@ naked void detour4 () {
 
 naked void detour5 () {
     _asm {
+            cmp byte ptr [RisingSun::mod_enabled],1
+            jne handler
+
             cmp byte ptr [kickFlag],1
             jne handler
 
@@ -118,6 +138,9 @@ naked void detour5 () {
 
 naked void detour6 () {
     _asm {
+            cmp byte ptr [RisingSun::mod_enabled],1
+            jne originalcode
+
             cmp byte ptr [kickFlag],1
             jne originalcode
 
@@ -133,6 +156,9 @@ naked void detour6 () {
 
 naked void detour7 () {
     _asm {
+            cmp byte ptr [RisingSun::mod_enabled],1
+            jne originalcode
+
             cmp byte ptr [kickFlag],1
             jne originalcode
 
