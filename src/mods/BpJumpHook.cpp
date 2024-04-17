@@ -378,11 +378,11 @@ void BpJumpHook::on_gui_frame() {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Enable before starting BP");
+    help_marker("All stages will be randomized. Enable before starting BP");
     ImGui::SameLine(sameLineWidth);
     ImGui::Checkbox("Boss Rush", &bp_boss_rush);
     ImGui::SameLine();
-    help_marker("Enable before starting BP");
+    help_marker("Only boss stages will be played. Enable before starting BP");
 
     if (mod_enabled) {
         if (ImGui::CollapsingHeader("View Randomized Stages")) {

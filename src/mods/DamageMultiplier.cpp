@@ -105,11 +105,17 @@ std::optional<std::string> DamageMultiplier::on_initialize() {
 
 void DamageMultiplier::on_gui_frame() {
     ImGui::Checkbox("Player Damage Multiplier", &mod_enabled);
+    ImGui::SameLine();
+    help_marker("Enables or disables a damage multiplier");
 	ImGui::SameLine(sameLineWidth);
     ImGui::PushItemWidth(sameLineItemWidth);
     ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
     ImGui::PopItemWidth();
+    ImGui::SameLine();
+    help_marker("Less than 1 = you deal less damage than default\nMore than 1 = you deal more");
 	ImGui::Checkbox("Must style mode", &g_must_style);
+    ImGui::SameLine();
+    help_marker("Damage scales with Style - 0 damage at no rank to 1.0 damage at SSS");
 }
 
 /*void DamageMultiplier::onFrame(fmilliseconds & dt) {

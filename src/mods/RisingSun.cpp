@@ -32,14 +32,14 @@ void RisingSun::toggle(bool enable) {
     }
 }
 
-naked void detour1 () {
+naked void detour1() {
     _asm {
-            cmp byte ptr [RisingSun::mod_enabled],1
+            cmp byte ptr [RisingSun::mod_enabled], 1
             jne originalcode
 
-            mov byte ptr [kickFlag],1
+            mov byte ptr [kickFlag], 1
             call [detour1_call]
-            mov byte ptr [kickFlag],0
+            mov byte ptr [kickFlag], 0
             jmp [RisingSun::jmp_ret1]
 
             originalcode:
@@ -48,36 +48,36 @@ naked void detour1 () {
     }
 }
 
-naked void detour2 () {
+naked void detour2() {
     _asm {
-            cmp byte ptr [RisingSun::mod_enabled],1
+            cmp byte ptr [RisingSun::mod_enabled], 1
             jne handler
 
-            cmp byte ptr [kickFlag],1
+            cmp byte ptr [kickFlag], 1
             jne handler
-            fld dword ptr [RS_start_frame];
+            fld dword ptr [RS_start_frame]
 
         originalcode:
             jmp [RisingSun::jmp_ret2]
 
         handler:
             fldz
-            or [ebp+0x1550],ebx
+            or [ebp+0x1550], ebx
             jmp originalcode
     }
 }
 
-naked void detour3 () {
+naked void detour3() {
     _asm {
-            cmp byte ptr [RisingSun::mod_enabled],1
+            cmp byte ptr [RisingSun::mod_enabled], 1
             jne originalcode
 
-            cmp byte ptr [kickFlag],1
+            cmp byte ptr [kickFlag], 1
             jne originalcode
             jmp dword ptr [detour3_jmp1]
 
         originalcode:
-            cmp dword ptr [ebp+0x14D34],0
+            cmp dword ptr [ebp+0x14D34], 0
             jne jmp_jne
             push 0x30E
             jmp [RisingSun::jmp_ret3]
@@ -86,12 +86,12 @@ naked void detour3 () {
     }
 }
 
-naked void detour4 () {
+naked void detour4() {
     _asm {
-            cmp byte ptr [RisingSun::mod_enabled],1
+            cmp byte ptr [RisingSun::mod_enabled], 1
             jne handler
 
-            cmp byte ptr [kickFlag],1
+            cmp byte ptr [kickFlag], 1
             jne handler
             fld dword ptr [kickGrav]
             
@@ -104,20 +104,20 @@ naked void detour4 () {
     }
 }
 
-naked void detour5 () {
+naked void detour5() {
     _asm {
-            cmp byte ptr [RisingSun::mod_enabled],1
+            cmp byte ptr [RisingSun::mod_enabled], 1
             jne handler
 
-            cmp byte ptr [kickFlag],1
+            cmp byte ptr [kickFlag], 1
             jne handler
 
-            movss xmm0,[ebp+0x1E1C]
-            comiss xmm0,[epsilon]
+            movss xmm0, [ebp+0x1E1C]
+            comiss xmm0, [epsilon]
             jb handler
 
             push eax
-            mov eax,ebp
+            mov eax, ebp
             call [detour5_call]
             pop eax
 
@@ -136,16 +136,16 @@ naked void detour5 () {
     }
 }
 
-naked void detour6 () {
+naked void detour6() {
     _asm {
-            cmp byte ptr [RisingSun::mod_enabled],1
+            cmp byte ptr [RisingSun::mod_enabled], 1
             jne originalcode
 
-            cmp byte ptr [kickFlag],1
+            cmp byte ptr [kickFlag], 1
             jne originalcode
 
-            movss [ebp+0xEC0],xmm0
-            movss [ebp+0xEC8],xmm0
+            movss [ebp+0xEC0], xmm0
+            movss [ebp+0xEC8], xmm0
 
         originalcode:
             fld1
@@ -154,19 +154,19 @@ naked void detour6 () {
     }
 }
 
-naked void detour7 () {
+naked void detour7() {
     _asm {
-            cmp byte ptr [RisingSun::mod_enabled],1
+            cmp byte ptr [RisingSun::mod_enabled], 1
             jne originalcode
 
-            cmp byte ptr [kickFlag],1
+            cmp byte ptr [kickFlag], 1
             jne originalcode
 
-            movss [ebp+0xEC0],xmm0
-            movss [ebp+0xEC8],xmm0
+            movss [ebp+0xEC0], xmm0
+            movss [ebp+0xEC8], xmm0
 
         originalcode:
-            movss [ebp+0xEC4],xmm0
+            movss [ebp+0xEC4], xmm0
             jmp [RisingSun::jmp_ret7]
     }
 }
@@ -200,7 +200,6 @@ std::optional<std::string> RisingSun::on_initialize() {
 		spdlog::error("Failed to init RisingSun mod7\n");
 		return "Failed to init RisingSun mod7";
 	}
-
     return Mod::on_initialize();
 }
 
@@ -211,7 +210,6 @@ void RisingSun::on_gui_frame() {
     ImGui::SameLine();
     help_marker("Replace Dante's Shocking with the last 2 kicks of DT Kick 13");
 }
-
 
 void RisingSun::on_config_load(const utility::Config& cfg) {
 	mod_enabled = cfg.get<bool>("rising_sun").value_or(false);

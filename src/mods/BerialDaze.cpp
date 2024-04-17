@@ -43,6 +43,8 @@ void BerialDaze::on_gui_frame() {
     if (ImGui::Checkbox("Berial Daze", &mod_enabled)) {
         toggle(mod_enabled);
     }
+    ImGui::SameLine();
+    help_marker("Sets Berial to his fireless Dazed state");
 }
 
 void BerialDaze::on_config_load(const utility::Config& cfg) {

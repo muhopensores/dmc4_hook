@@ -63,6 +63,8 @@ void InfAllHealth::on_gui_frame() {
             enemy_invincible  = false;
         }
     }
+    ImGui::SameLine();
+    help_marker("Disables any entity's health decreasing. By default this is hotkeyed to F1");
 
     if (ImGui::Checkbox("Infinite Health (Player)", &player_invincible)) {
         if (player_invincible && enemy_invincible)
@@ -70,6 +72,9 @@ void InfAllHealth::on_gui_frame() {
         else
             mod_enabled = false;
     }
+    ImGui::SameLine();
+    help_marker("Disables the player's health decreasing");
+
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Infinite Health (Enemy)", &enemy_invincible)) {
         if (player_invincible && enemy_invincible)
@@ -77,6 +82,8 @@ void InfAllHealth::on_gui_frame() {
         else
             mod_enabled = false;
     }
+    ImGui::SameLine();
+    help_marker("Disables enemy's health decreasing");
 }
 
 void InfAllHealth::on_config_load(const utility::Config& cfg) {

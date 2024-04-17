@@ -364,5 +364,7 @@ void DifficultySelect::on_gui_frame() {
 #endif
     }
     ImGui::PopItemWidth();
+    ImGui::SameLine();
+    help_marker("Changes current difficulty - allows forced Dante Must Die or God Must Die");
     ImGui::Spacing();
 }

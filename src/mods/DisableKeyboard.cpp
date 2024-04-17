@@ -21,6 +21,8 @@ void DisableKeyboard::on_gui_frame() {
     if (ImGui::Checkbox("Disable Keyboard Input", &mod_enabled)) {
         toggle(mod_enabled);
     }
+    ImGui::SameLine();
+    help_marker("Disables your keyboard, useful when using background input");
 }
 
 void DisableKeyboard::on_update_input(utility::Input& input) {

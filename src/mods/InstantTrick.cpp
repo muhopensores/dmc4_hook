@@ -21,6 +21,8 @@ void InstantTrick::on_gui_frame() {
     if (ImGui::Checkbox("Instant Trick", &mod_enabled)) {
         toggle(mod_enabled);
     }
+    ImGui::SameLine();
+    help_marker("Skips one part of the trick animation");
 }
 
 void InstantTrick::on_config_load(const utility::Config& cfg) {

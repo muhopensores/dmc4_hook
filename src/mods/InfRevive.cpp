@@ -25,6 +25,8 @@ void InfRevive::on_gui_frame() {
     if (ImGui::Checkbox("Infinite Revives", &mod_enabled)) {
         toggle(mod_enabled);
     }
+    ImGui::SameLine();
+    help_marker("Revive on the spot whenever you die for free");
 }
 
 void InfRevive::on_config_load(const utility::Config& cfg) {

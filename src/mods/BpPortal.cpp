@@ -32,7 +32,7 @@ void BpPortal::on_gui_frame() {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Sealed doors and portals open instantly");
+    help_marker("Forces the BP Portal to appear and lets you pass Red Seals without killing enemies");
 }
 
 void BpPortal::on_config_load(const utility::Config& cfg) {

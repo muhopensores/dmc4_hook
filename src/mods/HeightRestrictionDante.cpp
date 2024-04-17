@@ -33,6 +33,7 @@ void HeightRestrictionDante::on_gui_frame() {
     if (ImGui::Checkbox("Dante Height Restriction", &mod_enabled)) {
         toggle(mod_enabled);
     }
+ 
     if (ImGui::Checkbox("Air Hike Height Restriction", &mod_airhike)) {
         toggle2(mod_airhike);
     }

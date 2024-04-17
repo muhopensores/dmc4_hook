@@ -85,6 +85,8 @@ std::optional<std::string> NoHbKnockback::on_initialize() {
 
 void NoHbKnockback::on_gui_frame() {
 	ImGui::Checkbox("No Helm Breaker Knockdown", &mod_enabled);
+        ImGui::SameLine();
+        help_marker("Helm Breaker + Helm Splitter deal no knockback or knockdown and instead only stun the enemy");
 }
 
 void NoHbKnockback::on_config_load(const utility::Config& cfg) {

@@ -29,6 +29,8 @@ std::optional<std::string> FastSprint::on_initialize() {
 
 void FastSprint::on_gui_frame() {
     ImGui::Checkbox("Fast Sprint", &mod_enabled);
+    ImGui::SameLine();
+    help_marker("Go from Run to Speed faster, even if you're in battle");
 }
 
 void FastSprint::on_config_load(const utility::Config& cfg) {

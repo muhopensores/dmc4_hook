@@ -133,7 +133,7 @@ void FastStart::on_gui_frame() {
         toggle(skip_more_fades);
     }
     ImGui::SameLine();
-    help_marker("Mostly untested, should skip fade on BP load and nothing else");
+    help_marker("Skips the BP load fade");
 }
 
 void FastStart::on_config_load(const utility::Config& cfg) {

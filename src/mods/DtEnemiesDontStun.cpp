@@ -21,6 +21,8 @@ void DtEnemiesDontStun::on_gui_frame() {
     if (ImGui::Checkbox("DT Enemies Don't Stun", &mod_enabled)) {
         toggle(mod_enabled);
     }
+    ImGui::SameLine();
+    help_marker("Stops enemies from receiving stun from most attacks");
 }
 
 void DtEnemiesDontStun::on_config_load(const utility::Config& cfg) {

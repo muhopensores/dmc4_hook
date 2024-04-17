@@ -213,7 +213,7 @@ void NeroFullHouse::on_gui_frame() {
         }
     }
     ImGui::SameLine();
-    help_marker("Very work in progress");
+    help_marker("Gives Nero a divekick action like in DMC5");
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Remap Helm Splitter", &helm_splitter_remap)) {
         if (helm_splitter_remap) {

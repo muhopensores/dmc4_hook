@@ -440,15 +440,19 @@ void TwitchClient::on_gui_frame() {
         if (ImGui::InputInt("Mod timer (seconds)", &m_vote_time, 1, 10)) {
             m_vote_time = std::clamp<int32_t>(m_vote_time, 5, INT_MAX);
         }
+        ImGui::SameLine();
+        help_marker("How long the random mod will last");
         if (ImGui::InputInt("Cooldown timer (seconds)", &m_idle_time, 1, 10)) {
             m_idle_time = std::clamp<int32_t>(m_idle_time, 5, INT_MAX);
         }
+        ImGui::SameLine();
+        help_marker("How long before the next mod starts");
         if (ImGui::Button("Random mutator mode")) {
             voting_result = TwitchClient::TWITCH_MODE::LOCAL;
             make_instance(true);
         }
         ImGui::SameLine();
-        help_marker("Activate random spicy gameplay mods on timer without connecting to twitch");
+        help_marker("Activate random spicy gameplay mods on a timer without connecting to Twitch");
         if (ImGui::Button("Stop random mode")) {
             disconnect();
         }
@@ -512,7 +516,7 @@ void TwitchClient::on_gui_frame() {
         ImGui::Checkbox("Disable voting overlay", &m_disable_overlay);
 
         ;
-        ImGui::Text("Set those before connecting:");
+        ImGui::Text("Set these before connecting:");
         if (ImGui::InputInt("Voting timer (seconds)", &m_vote_time, 1, 10)) {
             m_vote_time = std::clamp<int32_t>(m_vote_time, 5, INT_MAX);
         }

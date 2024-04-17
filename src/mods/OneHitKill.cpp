@@ -74,6 +74,9 @@ void OneHitKill::on_gui_frame() {
         no_death_toggle(cant_die);
     }
     ImGui::SameLine();
+    help_marker("Disables any entity dying while still allowing HP to drop. For practicing against enemies who have AI changes at different levels of HP");
+
+    ImGui::SameLine();
     help_marker("Disables dying while still allowing hp to drop. Also stops Omen killing enemies.");
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("One Hit Kill", &one_hit_kill)) {
@@ -81,6 +84,8 @@ void OneHitKill::on_gui_frame() {
         no_death_toggle(cant_die);
         //toggle2(oneHitKill);
     }
+    ImGui::SameLine();
+    help_marker("Enables one hit kill. This overrides the damage multiplier. By default this is hotkeyed to F3");
 }
 
 void OneHitKill::on_config_load(const utility::Config& cfg) {

@@ -20,6 +20,8 @@ void InfiniteTime::on_gui_frame() {
     if (ImGui::Checkbox("Disable Timer", &mod_enabled)) {
         toggle(mod_enabled);
     }
+    ImGui::SameLine();
+    help_marker("Stops the BP, Secret Mission and Mission 12 timers from decreasing over time");
 }
 
 void InfiniteTime::on_config_load(const utility::Config& cfg) {

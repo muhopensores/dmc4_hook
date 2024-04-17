@@ -13,7 +13,7 @@ float swapGrav                          = -1.0f;
 float ySpawn                            = -9000.0f;
 int16_t desiredInput1                   = 0;
 int16_t desiredInput2                   = 0;
-uint32_t kbInput                        = 70;
+uint32_t kbInput                        = 70; // F
 bool kbInputPressed                     = false;
 int16_t prevInput                       = 0;
 float SSwordRange                       = 26.0f;
@@ -37,7 +37,7 @@ uintptr_t CharSwitcher::jmp_ret4{NULL};
     constexpr uintptr_t detour4_call10 = 0x004A5AA0;
 uintptr_t CharSwitcher::jmp_ret5{NULL};
 uintptr_t CharSwitcher::jmp_ret6{NULL};
-    constexpr uintptr_t detour6_call1 = 0x007ACEE0;
+    constexpr uintptr_t detour6_call1  = 0x007ACEE0;
 uintptr_t CharSwitcher::jmp_ret7{NULL};
 uintptr_t CharSwitcher::jmp_ret8{NULL};
 uintptr_t CharSwitcher::jmp_ret9{NULL};
@@ -75,7 +75,7 @@ naked void detour2(void) {
 
             push ecx
             mov ecx, [0x00E552C8]
-            mov ecx, [ecx] //
+            mov ecx, [ecx]
             mov ecx, [ecx+0x3834]
             mov ecx, [ecx+0x28]
             test cl, cl
@@ -86,7 +86,7 @@ naked void detour2(void) {
             push 0x00008002 
             push 0x00B90CE8 
             mov eax, [0x00E552D0]
-            mov eax, [eax] //
+            mov eax, [eax]
             push 0x00EAD4A0
             call dword ptr [detour2_call1]
             popad
@@ -97,7 +97,7 @@ naked void detour2(void) {
             push 0x00008002
             push 0x00B90CD0
             mov eax, [0x00E552D0]
-            mov eax, [eax] //
+            mov eax, [eax]
             push 0x00EAD4A0
             call dword ptr [detour2_call1]
             popad
@@ -106,7 +106,7 @@ naked void detour2(void) {
             push esi
             push edi
             mov edi, [0x00E558B8]
-            mov edi, [edi] //
+            mov edi, [edi]
             jmp dword ptr [CharSwitcher::jmp_ret2]
     }
 }
@@ -121,7 +121,7 @@ naked void detour3(void) {
 
         originalcode:
             mov eax, [0x00E552CC]
-            mov eax, [eax] //
+            mov eax, [eax]
             jmp dword ptr [CharSwitcher::jmp_ret3]
     }
 }
@@ -137,12 +137,12 @@ naked void detour4(void) {
             cmp eax, ecx
             jne handler
             mov ebp, [0x00E552CC]
-            mov ebp, [ebp] //
+            mov ebp, [ebp]
             mov ebp, [ebp+0x284]
             push dword ptr [ebp+0x18]
             pop [primaryHUD]
             mov ebp, [0x00E552C8]
-            mov ebp, [ebp] //
+            mov ebp, [ebp]
             mov ebp, [ebp+0x3834]
             mov ecx, [ebp+0x28]
             test ecx, ecx
@@ -150,7 +150,7 @@ naked void detour4(void) {
         // DanteInit:
             // Create HUD
             mov ecx, [0x00E1434C]
-            mov ecx, [ecx] //
+            mov ecx, [ecx]
             mov edx, [ecx]
             mov eax, [edx+0x14]
             push 0x10
@@ -161,7 +161,7 @@ naked void detour4(void) {
             // Lock-on
             mov [secondaryHUD], eax
             mov ecx, [0x00E1434C]
-            mov ecx, [ecx] //
+            mov ecx, [ecx]
             mov edx, [ecx]
             mov eax, [edx+0x14]
             push 0x10
@@ -177,7 +177,7 @@ naked void detour4(void) {
             call [detour4_call3]
             // Spawn character
             mov ecx, [0x00E1434C]
-            mov ecx, [ecx] //
+            mov ecx, [ecx]
             mov eax, [ecx]
             mov edx, [eax+0x14]
             push 0x10
@@ -190,7 +190,7 @@ naked void detour4(void) {
         NeroInit:
             // Create HUD
             mov ecx, [0x00E1434C]
-            mov ecx, [ecx] //
+            mov ecx, [ecx]
             mov eax, [ecx]
             mov edx, [eax+0x14]
             push 0x10
@@ -201,7 +201,7 @@ naked void detour4(void) {
             mov [secondaryHUD], eax
             // Lock-on
             mov ecx, [0x00E1434C]
-            mov ecx, [ecx] //
+            mov ecx, [ecx]
             mov edx, [ecx]
             mov eax, [edx+0x14]
             push 0x10
@@ -217,7 +217,7 @@ naked void detour4(void) {
             call dword ptr [detour4_call7]
             // Spawn character
             mov ecx, [0x00E1434C]
-            mov ecx, [ecx] //
+            mov ecx, [ecx]
             mov eax, [ecx]
             mov edx, [eax+0x14]
             push 0x10
@@ -229,7 +229,7 @@ naked void detour4(void) {
         Spawn:
             mov esi, eax
             mov eax, [0x00E552CC]
-            mov eax, [eax] //
+            mov eax, [eax]
             call dword ptr [detour4_call9]
             mov [secondaryActor], esi
             popad
@@ -262,7 +262,7 @@ naked void detour5(void) {
             push ebp
             mov eax, esi
             mov ebp, [0x00E558B8]
-            mov ebp, [ebp] //
+            mov ebp, [ebp]
             mov dword ptr [eax+0x1509], 0 // input
             mov esi, [eax+0x1E8C]
             mov dword ptr [esi+0xD4], 1 // collision
@@ -307,7 +307,7 @@ naked void detour6(void) {
 
             push ebp
             mov ebp, [0x00E558B8]
-            mov ebp, [ebp] //
+            mov ebp, [ebp]
             cmp [ebp+0x24], edi
             jne handler1
             mov ebp, [ebp+0x24]
@@ -337,7 +337,7 @@ naked void detour7(void) {
             cmp byte ptr [CharSwitcher::mod_enabled], 0
 			je originalcode
 
-            cmp byte ptr [esi+0xCDF8], 00
+            cmp byte ptr [esi+0xCDF8], 0
             jne originalcode
 
             xor eax,eax
@@ -357,7 +357,7 @@ naked void SwapHUD(void) {
             mov eax, [primaryHUD]
             mov ecx, [secondaryHUD]
             mov ebp, [0x00E552CC]
-            mov ebp, [ebp] //
+            mov ebp, [ebp]
             mov ebp, [ebp+0x284]
             mov [ebp+0x18], ecx
             mov [primaryHUD], ecx
@@ -426,12 +426,12 @@ naked void Switch(void) {
             mov eax, [primaryActor]
             mov ecx, [secondaryActor]
             mov ebp, [0x00E552C8]
-            mov ebp, [ebp] //
+            mov ebp, [ebp]
             mov ebp, [ebp+0x3834]
             xor dword ptr [ebp+0x28], 1
             // To-be main actor
             mov ebp, [0x00E558B8]
-            mov ebp, [ebp] //
+            mov ebp, [ebp]
             mov ebp, [ebp+0x24]
             mov dword ptr [ecx+0x1509], 1 // input
             // Position, rotation
@@ -511,7 +511,7 @@ naked void Switch(void) {
             mov dword ptr [esi+0xD4], 1 // collision
             //Position
             mov ebp, [0x00E552C8]
-            mov ebp, [ebp] //
+            mov ebp, [ebp]
             mov ebp, [ebp+0x3830]
             // fld dword ptr [ebp+0x50]
             // fstp dword ptr [eax+0x30]
@@ -550,7 +550,7 @@ naked void SwapActor_Controller(void) {
         // loop1:
             pushad
             mov ebp, [0x00E558B8]
-            mov ebp, [ebp] //
+            mov ebp, [ebp]
             mov ebp, [ebp+0x24]
             test ebp,ebp
             je loopend
@@ -567,9 +567,9 @@ naked void SwapActor_Controller(void) {
 
         loop3:
             mov ebx, [0x00E559C4]
-            mov ebx, [ebx] //
+            mov ebx, [ebx]
             mov ecx, [ebx+0x5E4] // inputs
-            xor edx, edx //
+            xor edx, edx
             mov dx, [desiredInput1]
             add dx, [desiredInput2]
             and ecx, edx
@@ -579,7 +579,7 @@ naked void SwapActor_Controller(void) {
             jmp loopend
 
         loop2:
-            xor esi, esi //
+            xor esi, esi
             mov si, [prevInput]
             xor esi, ecx
             test esi, esi
@@ -597,18 +597,18 @@ naked void SwapActor_KB(void) {
         //Restrictions
             pushad
             mov ebp, [0x00E558B8]
-            mov ebp, [ebp] //
+            mov ebp, [ebp]
             mov ebp, [ebp+0x24]
-            test ebp,ebp
+            test ebp, ebp
             je loopend
             call SaveWrite
-            cmp byte ptr [ebp+0xCDF8], 00
+            cmp byte ptr [ebp+0xCDF8], 0
             je inputCheck
             mov ebp, [ebp+0xCDF8]
             mov edx, [ebp+0x22A8]
-            cmp edx, 07 // DT hold
+            cmp edx, 7 // DT hold
             je loopend
-            cmp edx, 03
+            cmp edx, 3
             je loopend
             jmp inputCheck
         inputCheck:
@@ -617,13 +617,13 @@ naked void SwapActor_KB(void) {
             call devil4_sdk::internal_kb_check
             test al,al
             je inputFail
-            cmp byte ptr [kbInputPressed],1
+            cmp byte ptr [kbInputPressed], 1
             je loopend
-            mov byte ptr [kbInputPressed],1
+            mov byte ptr [kbInputPressed], 1
             call Switch
             jmp loopend
         inputFail:
-            mov byte ptr [kbInputPressed],0
+            mov byte ptr [kbInputPressed], 0
         loopend:
             popad
             ret

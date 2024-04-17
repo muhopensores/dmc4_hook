@@ -175,6 +175,8 @@ void CharacterSwap::on_gui_frame()
         toggle_dante(dante_enabled);
         toggle_nero(nero_enabled);
     }
+    ImGui::SameLine();
+    help_marker("At the start of a level, you will spawn as whichever character is checked. Does not work for M1");
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Force Dante", &dante_enabled))
     {

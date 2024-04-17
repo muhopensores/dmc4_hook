@@ -79,6 +79,8 @@ void MutatorSuperhot::on_gui_frame() {
 		ImGui::InputFloat("Velocity Factor", &tiny, 0.01f);
         ImGui::PopItemWidth();
 	}
+    ImGui::SameLine();
+    help_marker("Enemy speed scales with your movement speed");
 }
 
 // onGamePause()

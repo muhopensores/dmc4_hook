@@ -303,6 +303,8 @@ void CameraSettings::on_gui_frame() {
     if (ImGui::Checkbox("Disable Last Enemy Zoom", &disable_last_enemy_zoom)) {
         toggle_disable_last_enemy_zoom(disable_last_enemy_zoom);
     }
+    ImGui::SameLine();
+    help_marker("Disables the zoom-in that happens when you're fighting the last enemy of a room");
 
     if (ImGui::Checkbox("Left Side Reset", &camera_reset_enabled)) {
         cam_right = 0;
@@ -317,6 +319,8 @@ void CameraSettings::on_gui_frame() {
     help_marker("Set the camera to the right instead");
 
     ImGui::Checkbox("Increased Sensitivity", &camera_sens_enabled);
+    ImGui::SameLine();
+    help_marker("Increases the camera rotation speed");
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Camera Lookdown", &camera_lookdown_enabled)) {
         toggle_camera_lookdown(camera_lookdown_enabled);
@@ -327,6 +331,8 @@ void CameraSettings::on_gui_frame() {
     if (ImGui::Checkbox("Noclip Cam", &noclip_cam_enabled)) {
         toggle_noclip_cam(noclip_cam_enabled);
     }
+    ImGui::SameLine();
+    help_marker("Remove camera presets and instead use a camera that can move through walls\nEnable before entering a stage");
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Disable Attack Corrects", &camera_auto_correct_towards_cam_enabled)) {
         toggle_attack_towards_cam(camera_auto_correct_towards_cam_enabled);

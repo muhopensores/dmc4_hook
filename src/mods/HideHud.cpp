@@ -446,10 +446,13 @@ void HideHud::on_gui_frame() {
     if (ImGui::Checkbox("Hide Timer", &mod_enabled_timer)) {
         toggle_timer(mod_enabled_timer);
     }
+    ImGui::SameLine();
+    help_marker("Hides the BP and M12 timer");
 
     if (ImGui::Checkbox("Hide HP HUD", &mod_enabled_health)) {
         toggle_health(mod_enabled_health);
     }
+
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Hide Orbs HUD", &mod_enabled_orbs)) {
         toggle_orbs(mod_enabled_orbs);
@@ -462,6 +465,8 @@ void HideHud::on_gui_frame() {
     if (ImGui::Checkbox("Style Dial Only", &mod_enabled_boey)) {
         toggle_boey(mod_enabled_boey);
     }
+    ImGui::SameLine();
+    help_marker("Hides every element of the HP HUD other than the style dial");
     
     if (ImGui::Checkbox("Hide Map HUD", &mod_enabled_map)) {
         toggle_map(mod_enabled_map);
@@ -476,6 +481,8 @@ void HideHud::on_gui_frame() {
         toggle_weapon_hide(mod_enabled_hide_weapon_selected);
         toggle_weapon_display(mod_enabled_weapon_selected);
     }
+    ImGui::SameLine();
+    help_marker("Disables the fade out on the weapon switch UI");
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Always Hide Weapons HUD", &mod_enabled_hide_weapon_selected)) {
         mod_enabled_weapon_selected = false;

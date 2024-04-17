@@ -19,6 +19,8 @@ void EnemyAttackOffScreen::on_gui_frame() {
     if (ImGui::Checkbox("Enemies Attack Offscreen", &mod_enabled)) {
         toggle(mod_enabled);
     }
+    ImGui::SameLine();
+    help_marker("By default, most enemies won't start attacks unless they're being viewed by the camera. This disables that check");
 }
 
 void EnemyAttackOffScreen::on_config_load(const utility::Config& cfg) {

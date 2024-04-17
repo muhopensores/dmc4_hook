@@ -149,7 +149,7 @@ naked void detour1(void) {
 			popad
 			jmp code
 		handler4:
-			cmp dword ptr [inputCooldown],0
+			cmp dword ptr [inputCooldown], 0
 			jg handler
 			mov dword ptr [inputCooldown], 0x41f00000
 			jmp ForwardCheck
