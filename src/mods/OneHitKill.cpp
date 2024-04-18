@@ -74,10 +74,8 @@ void OneHitKill::on_gui_frame() {
         no_death_toggle(cant_die);
     }
     ImGui::SameLine();
-    help_marker("Disables any entity dying while still allowing HP to drop. For practicing against enemies who have AI changes at different levels of HP");
-
-    ImGui::SameLine();
-    help_marker("Disables dying while still allowing hp to drop. Also stops Omen killing enemies.");
+    help_marker("Disables any entity dying while still allowing HP to drop.\nFor practicing against enemies who have AI changes at "
+                "different levels of HP\nAlso stops Omen killing enemies.");
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("One Hit Kill", &one_hit_kill)) {
         cant_die = false;

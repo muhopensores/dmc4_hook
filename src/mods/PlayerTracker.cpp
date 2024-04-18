@@ -44,6 +44,8 @@ void PlayerTracker::on_gui_frame() {
     ImGui::Spacing();
 
     ImGui::Checkbox("Show Pin Timers", &PlayerTracker::pin_imgui_enabled);
+    ImGui::SameLine();
+    help_marker("Opens up a UI when pins are placed that shows the time remaining on each pin");
 
     ImGui::Spacing();
     ImGui::Separator();
@@ -59,6 +61,8 @@ void PlayerTracker::on_gui_frame() {
     ImGui::Spacing();
 
     ImGui::Checkbox("Display Player Stats", &display_player_stats);
+    ImGui::SameLine();
+    help_marker("View various details about the player character");
     if (display_player_stats) {
         uPlayer* player = devil4_sdk::get_local_player();
         if (player) {

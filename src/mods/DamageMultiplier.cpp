@@ -115,7 +115,7 @@ void DamageMultiplier::on_gui_frame() {
     help_marker("Less than 1 = you deal less damage than default\nMore than 1 = you deal more");
 	ImGui::Checkbox("Must style mode", &g_must_style);
     ImGui::SameLine();
-    help_marker("Damage scales with Style - 0 damage at no rank to 1.0 damage at SSS");
+    help_marker("Damage scales with Style\n0 damage at no rank to 1.0 damage at SSS");
 }
 
 /*void DamageMultiplier::onFrame(fmilliseconds & dt) {

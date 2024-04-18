@@ -459,12 +459,6 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("Quicksilver"_hash);
 
-                    pmods->on_draw_ui("BigHeadMode"_hash); // needs its own line
-
-                    pmods->on_draw_ui("MutatorSuperhot"_hash); // needs its own line
-
-                    pmods->on_draw_ui("PlayerRotation"_hash);
-
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();
@@ -575,6 +569,19 @@ namespace gui {
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("SelectiveCancels"_hash); // needs its own line
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    ImGui::Text("Memes");
+                    ImGui::Spacing();
+
+                    pmods->on_draw_ui("BigHeadMode"_hash); // needs its own line
+
+                    pmods->on_draw_ui("MutatorSuperhot"_hash); // needs its own line
+
+                    pmods->on_draw_ui("PlayerRotation"_hash);
 
                     g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
                     ImGui::EndChild();

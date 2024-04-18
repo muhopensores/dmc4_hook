@@ -437,14 +437,18 @@ void TwitchClient::on_gui_frame() {
         }
 #endif
         ImGui::Text("Set those before starting:");
+        ImGui::PushItemWidth(sameLineItemWidth);
         if (ImGui::InputInt("Mod timer (seconds)", &m_vote_time, 1, 10)) {
             m_vote_time = std::clamp<int32_t>(m_vote_time, 5, INT_MAX);
         }
+        ImGui::PopItemWidth();
         ImGui::SameLine();
         help_marker("How long the random mod will last");
+        ImGui::PushItemWidth(sameLineItemWidth);
         if (ImGui::InputInt("Cooldown timer (seconds)", &m_idle_time, 1, 10)) {
             m_idle_time = std::clamp<int32_t>(m_idle_time, 5, INT_MAX);
         }
+        ImGui::PopItemWidth();
         ImGui::SameLine();
         help_marker("How long before the next mod starts");
         if (ImGui::Button("Random mutator mode")) {
@@ -517,12 +521,14 @@ void TwitchClient::on_gui_frame() {
 
         ;
         ImGui::Text("Set these before connecting:");
+        ImGui::PushItemWidth(sameLineItemWidth);
         if (ImGui::InputInt("Voting timer (seconds)", &m_vote_time, 1, 10)) {
             m_vote_time = std::clamp<int32_t>(m_vote_time, 5, INT_MAX);
         }
         if (ImGui::InputInt("Idle timer (seconds)", &m_idle_time, 1, 10)) {
             m_idle_time = std::clamp<int32_t>(m_idle_time, 5, INT_MAX);
         }
+        ImGui::PopItemWidth();
         ImGui::Checkbox("Log In On Game Boot Automatically", &twitch_login_on_boot);
         ImGui::SameLine();
         help_marker("This sometimes doesn't work, just come back here and hit disconnect > connect to reconnect");

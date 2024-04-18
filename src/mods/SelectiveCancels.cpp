@@ -218,66 +218,66 @@ void SelectiveCancels::on_gui_frame() {
 	ImGui::Checkbox("Enable", &mod_enabled);
 	ImGui::SameLine();
 	help_marker("Allows cancelling out of selected moves with evasive actions");
-	ImGui::SameLine(sameLineWidth);
-	ImGui::Checkbox("Disable Guardslide", &fixGuardInertia);
-	ImGui::SameLine();
-	help_marker("Guarding a move with momentum will halt your movement");
-
-	ImGui::Spacing();
-	
-	ImGui::Separator();
-    ImGui::Text("Shared");
-    ImGui::Spacing();
-	
-	draw_checkbox_simple("Roll", ROLL);
-
-	ImGui::Separator();
-    ImGui::Text("Nero");
-    ImGui::Spacing();
-
-	draw_checkbox_simple("Grounded DT Activation", DTGROUND);
     ImGui::SameLine(sameLineWidth);
-    draw_checkbox_simple("Showdown", SHOWDOWN);
+    ImGui::Checkbox("Disable Guardslide", &fixGuardInertia);
+    ImGui::SameLine();
+    help_marker("Guarding a move with momentum will halt your movement");
 
-	ImGui::Spacing();
-	ImGui::Separator();
+    if (mod_enabled) {
+        ImGui::Spacing();
+        ImGui::Text("Shared Abilities");
+        ImGui::Spacing();
 
-	ImGui::Spacing();
-    ImGui::Text("Dante");
+        draw_checkbox_simple("Roll", ROLL);
 
-    ImGui::Spacing();
-	ImGui::Text("Swords");
-	ImGui::Spacing();
+        ImGui::Spacing();
+        ImGui::Text("Nero Abilities");
+        ImGui::Spacing();
 
-	draw_checkbox_simple("Stinger", STINGER);
-    ImGui::SameLine(sameLineWidth);
-	draw_checkbox_simple("Prop", PROP);
+        draw_checkbox_simple("Grounded DT Activation", DTGROUND);
+        ImGui::SameLine(sameLineWidth);
+        draw_checkbox_simple("Showdown", SHOWDOWN);
 
-	draw_checkbox_simple("Real Impact", REAL_IMPACT);
-	ImGui::SameLine(sameLineWidth);
-	draw_checkbox_simple("Kick 13", KICK13);
+        ImGui::Spacing();
+        ImGui::Text("Dante - Swords");
+        ImGui::Spacing();
 
-	draw_checkbox_simple("Shock", SHOCK);
-	ImGui::SameLine(sameLineWidth);
-	draw_checkbox_simple("Ecstasy", ECSTASY);
-	
-	draw_checkbox_simple("Slash Dimension", SLASH_DIMENSION);
-	ImGui::SameLine(sameLineWidth);
-	draw_checkbox_simple("DT Pin Up Part 2", DT_PIN_UP_P2);
+        draw_checkbox_simple("Stinger", STINGER);
+        ImGui::SameLine(sameLineWidth);
+        draw_checkbox_simple("Prop", PROP);
 
-	draw_checkbox_simple("Draw", DRAW);
-	
-	ImGui::Spacing();
-	ImGui::Text("Guns");
-	ImGui::Spacing();
+        draw_checkbox_simple("Real Impact", REAL_IMPACT);
+        ImGui::SameLine(sameLineWidth);
+        draw_checkbox_simple("Kick 13", KICK13);
 
-	draw_checkbox_simple("Omen", OMEN);
-	ImGui::SameLine(sameLineWidth);
-	draw_checkbox_simple("Epidemic", EPIDEMIC);
+        draw_checkbox_simple("Shock", SHOCK);
+        ImGui::SameLine(sameLineWidth);
+        draw_checkbox_simple("Ecstasy", ECSTASY);
 
-	draw_checkbox_simple("Argument", ARGUMENT);
-	ImGui::SameLine(sameLineWidth);
-	draw_checkbox_simple("Gun Stinger", GUNSTINGER);
+        draw_checkbox_simple("Slash Dimension", SLASH_DIMENSION);
+        ImGui::SameLine(sameLineWidth);
+        draw_checkbox_simple("DT Pin Up Part 2", DT_PIN_UP_P2);
+
+        draw_checkbox_simple("Draw", DRAW);
+
+        ImGui::Spacing();
+        ImGui::Text("Dante - Guns");
+        ImGui::Spacing();
+
+        draw_checkbox_simple("Omen", OMEN);
+        ImGui::SameLine();
+        help_marker("Opening Pandora");
+        ImGui::SameLine(sameLineWidth);
+        draw_checkbox_simple("Epidemic", EPIDEMIC);
+        ImGui::SameLine();
+        help_marker("Ground shot");
+
+        draw_checkbox_simple("Argument", ARGUMENT);
+        ImGui::SameLine();
+        help_marker("Gunship");
+        ImGui::SameLine(sameLineWidth);
+        draw_checkbox_simple("Gun Stinger", GUNSTINGER);
+	}
 }
 
 void SelectiveCancels::on_config_save(utility::Config& cfg) {

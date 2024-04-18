@@ -447,7 +447,7 @@ void HideHud::on_gui_frame() {
         toggle_timer(mod_enabled_timer);
     }
     ImGui::SameLine();
-    help_marker("Hides the BP and M12 timer");
+    help_marker("Hides the BP, Secret Mission and M12 timers");
 
     if (ImGui::Checkbox("Hide HP HUD", &mod_enabled_health)) {
         toggle_health(mod_enabled_health);
@@ -475,6 +475,8 @@ void HideHud::on_gui_frame() {
     if (ImGui::Checkbox("Hide Boss HP HUD", &mod_enabled_boss)) {
         toggle_boss_hp(mod_enabled_boss);
     }
+    ImGui::SameLine();
+    help_marker("Enable before the boss spawns");
     
     if (ImGui::Checkbox("Never Hide Weapons HUD", &mod_enabled_weapon_selected)) {
         mod_enabled_hide_weapon_selected = false;
