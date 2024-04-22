@@ -106,14 +106,7 @@ void RestoreMaxHp::on_frame(fmilliseconds& dt) {
     }
 }
 void RestoreMaxHp::on_gui_frame() {
-    static bool childShouldExist = false;
-    if (mod_enabled || reset_timer) {
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, childColor);
-        ImGui::BeginChild("RestoreMaxHpChild", ImVec2(0,0), ImGuiChildFlags_AutoResizeY);
-        childShouldExist = true;
-    } else {
-        childShouldExist = false;
-    }
+
     ImGui::Checkbox("Restore Enemy HP", &mod_enabled);
     ImGui::SameLine();
     help_marker("Press Lock On + Taunt to restore Max HP to enemies");
@@ -122,13 +115,11 @@ void RestoreMaxHp::on_gui_frame() {
     ImGui::SameLine();
     help_marker("Press Lock On + Taunt to reset the BP timer");
     if (mod_enabled || reset_timer) {
+        ImGui::Indent(lineIndent);
         ImGui::Checkbox("Disable Aerial Resets", &limit_to_ground);
         ImGui::SameLine();
         help_marker("Disable \"Restore Enemy HP\" and \"Reset Timer\" while aerial (Useful for Taunt Ecstasy)");
-    }
-    if (childShouldExist) {
-        ImGui::EndChild();
-        ImGui::PopStyleColor();
+        ImGui::Unindent(lineIndent);
     }
 }
 

@@ -436,7 +436,7 @@ void TwitchClient::on_gui_frame() {
             }
         }
 #endif
-        ImGui::Text("Set those before starting:");
+        ImGui::Text("Set these before starting:");
         ImGui::PushItemWidth(sameLineItemWidth);
         if (ImGui::InputInt("Mod timer (seconds)", &m_vote_time, 1, 10)) {
             m_vote_time = std::clamp<int32_t>(m_vote_time, 5, INT_MAX);

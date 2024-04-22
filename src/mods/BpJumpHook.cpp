@@ -383,8 +383,8 @@ void BpJumpHook::on_gui_frame() {
     ImGui::Checkbox("Boss Rush", &bp_boss_rush);
     ImGui::SameLine();
     help_marker("Only boss stages will be played. Enable before starting BP\nCan be used with Randomize BP");
-
     if (mod_enabled) {
+        ImGui::Indent(lineIndent);
         if (ImGui::CollapsingHeader("View Randomized Stages")) {
                 ImGui::Text("Stage Number");
                 ImGui::SameLine(sameLineWidth);
@@ -409,6 +409,7 @@ void BpJumpHook::on_gui_frame() {
             }
             ImGui::Separator();
         }
+        ImGui::Unindent(lineIndent);
     }
 }
 

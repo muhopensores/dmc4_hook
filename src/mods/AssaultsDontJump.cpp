@@ -48,7 +48,7 @@ void AssaultsDontJump::on_gui_frame() {
     ImGui::Checkbox("No DTless Assault Escape", &mod_enabled);
     //toggle(mod_enabled);
     ImGui::SameLine();
-    help_marker("Disable Assaults jumping out of combos until they DT");
+    help_marker("Disable Assaults jumping out of combos until they Devil Trigger");
 }
 
 void AssaultsDontJump::on_config_load(const utility::Config& cfg) {

@@ -43,28 +43,17 @@ std::optional<std::string> EnemySlotting::on_initialize() {
 }
 
 void EnemySlotting::on_gui_frame() {
-    static bool childShouldExist = false;
-    if (mod_enabled) {
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, childColor);
-        ImGui::BeginChild("EnemySlottingChild", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY);
-        childShouldExist = true;
-    } else {
-        childShouldExist = false;
-    }
 	ImGui::Checkbox("Custom Enemy Slot Limit", &mod_enabled);
     ImGui::SameLine();
     help_marker("Set how many enemies can attack at the same time. Default is usually 1\n"
 				"After unchecking this option, the original value will only be restored after entering a new room");
     if (mod_enabled) {
-        ImGui::SameLine(sameLineWidth);
+		ImGui::Indent(lineIndent);
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::SliderInt("Slot Limit", &new_enemy_slot_limit, 0, 12);
         ImGui::PopItemWidth();
+        ImGui::Unindent(lineIndent);
 	}
-    if (childShouldExist) {
-        ImGui::EndChild();
-        ImGui::PopStyleColor();
-    }
 }
 
 void EnemySlotting::on_config_load(const utility::Config& cfg) {

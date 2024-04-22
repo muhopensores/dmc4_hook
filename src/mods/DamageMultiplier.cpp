@@ -50,8 +50,7 @@ static __m128 xxmm2;
 static __m128 xxmm3;
 static __m128 xxmm4;
 
-naked void detour(void)
-{
+naked void detour(void) {
 	_asm {
 			cmp byte ptr [DamageMultiplier::mod_enabled], 0
 			je originalcode
@@ -95,7 +94,6 @@ naked void detour(void)
 }
 
 std::optional<std::string> DamageMultiplier::on_initialize() {
-
 	if (!install_hook_offset(0x0011BFE5, hook, &detour, &jmp_ret, 5)) { // "F3 0F 11 46 18 76 ?? F3 0F 58 ??"
 		spdlog::error("Failed to init DamageMultiplier mod\n");
 		return "Failed to init DamageMultiplier mod";
@@ -104,14 +102,6 @@ std::optional<std::string> DamageMultiplier::on_initialize() {
 }
 
 void DamageMultiplier::on_gui_frame() {
-    static bool childShouldExist = false;
-    if (mod_enabled) {
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, childColor);
-        ImGui::BeginChild("DamageMultiplierChild", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY);
-        childShouldExist = true;
-    } else {
-        childShouldExist = false;
-    }
     if (ImGui::Checkbox("Player Damage Multiplier", &mod_enabled)) {
         if (!mod_enabled) g_must_style = false;
     }
@@ -125,15 +115,13 @@ void DamageMultiplier::on_gui_frame() {
     help_marker("Damage scales with Style\n0 damage at no rank to 1.0 damage at SSS\nDue to the way this is coded, it cannot currently be used with Damage Multiplier");
 
     if (mod_enabled && !g_must_style) {
+        ImGui::Indent(lineIndent);
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
         ImGui::PopItemWidth();
         ImGui::SameLine();
         help_marker("Less than 1 = you deal less damage than default\nMore than 1 = you deal more");
-    }
-    if (childShouldExist) {
-        ImGui::EndChild();
-        ImGui::PopStyleColor();
+        ImGui::Unindent(lineIndent);
     }
 }
 
@@ -150,6 +138,6 @@ void DamageMultiplier::on_config_load(const utility::Config& cfg) {
 
 void DamageMultiplier::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("damage_multiplier", mod_enabled);
-    cfg.set < float > ("damage_multiplier_float", damagemultiplier);
+    cfg.set<float>("damage_multiplier_float", damagemultiplier);
     cfg.set<bool>("must_style", g_must_style);
 }

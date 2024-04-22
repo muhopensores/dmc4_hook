@@ -343,6 +343,7 @@ void CameraSettings::on_gui_frame() {
     ImGui::SameLine();
     help_marker("Also enables the editing of these values via hotkeys");
     if (mod_enabled) {
+        ImGui::Indent(lineIndent);
         if (ImGui::CollapsingHeader("Camera Variables")) {
             ImGui::PushItemWidth(sameLineItemWidth);
             ImGui::InputFloat("Height", &CameraSettings::camera_height, 10.0f, 20.0f, "%.0f");
@@ -360,6 +361,7 @@ void CameraSettings::on_gui_frame() {
             ImGui::InputFloat("FOV (In Battle)", &CameraSettings::camera_fov_in_battle, 10.0f, 20.0f, "%.0f%");
             ImGui::PopItemWidth();
         }
+        ImGui::Unindent(lineIndent);
     }
 }
 

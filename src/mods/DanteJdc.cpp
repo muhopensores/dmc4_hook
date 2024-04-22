@@ -444,14 +444,6 @@ std::optional<std::string> DanteJdc::on_initialize() {
 }
 
 void DanteJdc::on_gui_frame() {
-    static bool childShouldExist = false;
-    if (mod_enabled) {
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, childColor);
-        ImGui::BeginChild("JudgementCutChild", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY);
-        childShouldExist = true;
-    } else {
-        childShouldExist = false;
-    }
     ImGui::Checkbox("Judgement Cut", &mod_enabled);
     ImGui::SameLine();
     help_marker("Activate judgement cut when performing Yamato aerial rave with lock-on."
@@ -462,23 +454,18 @@ void DanteJdc::on_gui_frame() {
             "- Enable both this and the \"HDD Priority\" mod in the Debug page.\n"
             "- Save your config and load into a level.");
     if (mod_enabled) {
-        ImGui::SameLine(sameLineWidth);
+        ImGui::Indent();
         if (ImGui::Button("Download JDC Files")) {
             ShellExecuteA(NULL, "open", "https://github.com/muhopensores/dmc4_hook/releases", NULL, NULL, SW_SHOWNORMAL);
         }
         ImGui::SameLine();
         help_marker("Download JDC Files in the Assets section of the latest release and install manually or using Fluffy's Mod Manager");
-        ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::Checkbox("Lock-on + back input", &alt_input_enabled);
         ImGui::SameLine();
         help_marker("Bind jdc activation to lock-on + back");
-        ImGui::SameLine(sameLineWidth);
+        ImGui::SameLine(sameLineWidth + lineIndent);
         ImGui::Checkbox("Inertia enable", &DanteJdc::inertia_enabled);
-        ImGui::PopItemWidth();
-    }
-    if (childShouldExist) {
-        ImGui::EndChild();
-        ImGui::PopStyleColor();
+        ImGui::Unindent(lineIndent);
     }
 }
 

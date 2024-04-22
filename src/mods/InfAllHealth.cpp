@@ -1,6 +1,7 @@
 #include "InfAllHealth.hpp"
 #include "EnemySpawn.hpp"
 #include "iostream"
+
 #if 1
 bool InfAllHealth::mod_enabled{false};
 static bool player_invincible{false};
@@ -15,7 +16,7 @@ naked void detour() {
         cmp byte ptr [InfAllHealth::mod_enabled], 1
         je retcode
 
-            // playercheck:
+    // playercheck:
         push ecx
         mov ecx, [static_mediator_ptr]
         mov ecx, [ecx]
@@ -24,7 +25,7 @@ naked void detour() {
         cmp ecx, esi
         pop ecx
         jne enemycheck // not player
-            // player:
+    // player:
         cmp byte ptr [player_invincible], 1
         je retcode
         jmp code
@@ -36,7 +37,7 @@ naked void detour() {
 
     code:
         subss xmm0,xmm1
-            // comiss xmm2,xmm0 // we have a copy of this in damage mult so don't need it here
+        // comiss xmm2,xmm0 // we have a copy of this in damage mult so don't need it here
     retcode:
         jmp dword ptr [InfAllHealth::jmp_return]
     }
@@ -65,7 +66,7 @@ void InfAllHealth::on_gui_frame() {
     }
     ImGui::SameLine();
     help_marker("Disables any entity's health decreasing. By default this is hotkeyed to F1");
-
+    ImGui::Indent(lineIndent);
     if (ImGui::Checkbox("Infinite Health (Player)", &player_invincible)) {
         if (player_invincible && enemy_invincible)
             mod_enabled = true;
@@ -75,7 +76,7 @@ void InfAllHealth::on_gui_frame() {
     ImGui::SameLine();
     help_marker("Disables the player's health decreasing");
 
-    ImGui::SameLine(sameLineWidth);
+    ImGui::SameLine(sameLineWidth + lineIndent);
     if (ImGui::Checkbox("Infinite Health (Enemy)", &enemy_invincible)) {
         if (player_invincible && enemy_invincible)
             mod_enabled = true;
@@ -84,6 +85,7 @@ void InfAllHealth::on_gui_frame() {
     }
     ImGui::SameLine();
     help_marker("Disables enemy's health decreasing");
+    ImGui::Unindent(lineIndent);
 }
 
 void InfAllHealth::on_config_load(const utility::Config& cfg) {

@@ -45,7 +45,7 @@ void LdkWithDmd::on_gui_frame() {
     // line 907 -> main->getMods()->onDrawUI("NoClip"_hash);
     ImGui::Checkbox("LDK With DMD", &mod_enabled);
 	ImGui::SameLine();
-	help_marker("When playing a mission on Legendary Dark Knight, enemies will be on DMD Difficulty instead of SOS");
+	help_marker("When playing a mission on Legendary Dark Knight, enemies will be on Dante Must Die Difficulty instead of Son Of Sparda");
 }
 
 void LdkWithDmd::on_config_load(const utility::Config& cfg) {

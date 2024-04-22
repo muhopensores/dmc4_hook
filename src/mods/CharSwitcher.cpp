@@ -721,20 +721,13 @@ void CharSwitcher::on_frame(fmilliseconds& dt) {
 }
 
 void CharSwitcher::on_gui_frame() {
-    static bool childShouldExist = false;
-    if (mod_enabled) {
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, childColor);
-        ImGui::BeginChild("CharSwitcherChild", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY);
-        childShouldExist = true;
-    } else {
-        childShouldExist = false;
-    }
     if (ImGui::Checkbox("Character Switcher", &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
     help_marker("Enable before loading into a stage");
     if (mod_enabled) {
+        ImGui::Indent(lineIndent);
         ImGui::PushItemWidth(sameLineItemWidth);
         if (ImGui::BeginCombo("Input 1", devil4_sdk::getButtonInfo(desiredInput1).second)) {
             for (const auto& buttonPair : buttonPairs) {
@@ -750,7 +743,7 @@ void CharSwitcher::on_gui_frame() {
         }
         ImGui::SameLine();
         help_marker("Set a button combo to trigger the switch");
-        ImGui::SameLine(sameLineWidth);
+        ImGui::SameLine(sameLineWidth + lineIndent);
         if (ImGui::BeginCombo("Input 2", devil4_sdk::getButtonInfo(desiredInput2).second)) {
             for (const auto& buttonPair : buttonPairs) {
                 bool is_selected = (desiredInput2 == buttonPair.first);
@@ -764,7 +757,6 @@ void CharSwitcher::on_gui_frame() {
             ImGui::EndCombo();
         }
         ImGui::PopItemWidth();
-        // ImGui::Separator(); // uncomment if something comes after this
         ImGui::PushItemWidth(sameLineItemWidth);
         if (ImGui::Checkbox("Inertia carryover", &inertia_enabled)) {
             toggle2(inertia_enabled);
@@ -772,10 +764,7 @@ void CharSwitcher::on_gui_frame() {
         ImGui::SameLine();
         help_marker("Enable inertia carryover on switching");
         ImGui::PopItemWidth();
-    }
-    if (childShouldExist) {
-        ImGui::EndChild();
-        ImGui::PopStyleColor();
+        ImGui::Unindent(lineIndent);
     }
 }
 

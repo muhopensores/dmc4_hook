@@ -37,6 +37,8 @@ void HeightRestrictionDante::on_gui_frame() {
     if (ImGui::Checkbox("Air Hike Height Restriction", &mod_airhike)) {
         toggle2(mod_airhike);
     }
+    ImGui::SameLine();
+    help_marker("Double Jump Height Restriction");
 }
 
 void HeightRestrictionDante::on_config_load(const utility::Config& cfg) {

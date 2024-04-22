@@ -47,13 +47,12 @@ void PsychoMantis::on_gui_frame() {
         "that's good. Now I will move your controller by the power of my style alone!!");
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Vibe Slot 2", &psycho_mantis_slot_2)) {
-        if (psycho_mantis_slot_2)
+        if (psycho_mantis_slot_2){
+            mod_enabled = true;
             PsychoMantis::Controller::_controllerNum = 1;
-        else
+        } else
             PsychoMantis::Controller::_controllerNum = 0;
     }
-    ImGui::SameLine();
-    help_marker("Tick the Vibe checkbox too");
 #ifndef NDEBUG
     if (mod_enabled) {
         ImGui::Checkbox("...debug", &mod_debugEnabled);

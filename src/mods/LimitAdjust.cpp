@@ -70,7 +70,7 @@ void LimitAdjust::on_gui_frame() {
     }
     ImGui::SameLine();
     help_marker("By default, there are short timers that must end before two sword or gun switches can be made consecutively. Without this "
-                "timer, you can swap to distant weapons quickly and more easily do strings like Shotgun > JC > Ebony & Ivory shot");
+                "timer, you can swap to distant weapons quickly and more easily do strings like Shotgun > Enemy Step > Ebony & Ivory shot");
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Enemy Step Limit", &enemy_step)) {
         f_enemy_step(enemy_step);

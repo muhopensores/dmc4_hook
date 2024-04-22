@@ -29,15 +29,28 @@ std::optional<std::string> FpsLimit::on_initialize() {
 }
 
 void FpsLimit::on_gui_frame() {
+    static bool childShouldExist = true;
+    if (mod_enabled) {
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, childColor);
+        ImGui::BeginChild("FpsLimitChild", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY);
+        childShouldExist = true;
+    } else {
+        childShouldExist = false;
+    }
     ImGui::Checkbox("Override FPS Limit", &mod_enabled);
     ImGui::SameLine();
     help_marker(
         "If your FPS is set to unlocked, this will allow you to change the cap. Some things work differently at certain framerates");
-    ImGui::SameLine(sameLineWidth);
-    ImGui::PushItemWidth(sameLineItemWidth);
-    ImGui::InputFloat("New FPS Limit", &newfpslimit, 1.0f, 1.0f, "%.0f");
-    ImGui::PopItemWidth();
-    ImGui::Spacing();
+    if (mod_enabled) {
+        ImGui::SameLine(sameLineWidth);
+        ImGui::PushItemWidth(sameLineItemWidth);
+        ImGui::InputFloat("New FPS Limit", &newfpslimit, 1.0f, 1.0f, "%.0f");
+        ImGui::PopItemWidth();
+    }
+    if (childShouldExist) {
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+    }
 }
 
 void FpsLimit::on_config_load(const utility::Config& cfg) {

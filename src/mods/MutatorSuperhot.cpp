@@ -72,27 +72,17 @@ void MutatorSuperhot::on_frame(fmilliseconds& dt) {
 
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
+
 void MutatorSuperhot::on_gui_frame() {
-    static bool childShouldExist = false;
-    if (mod_enabled) {
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, childColor);
-        ImGui::BeginChild("SuperHotGroup", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY);
-        childShouldExist = true;
-    } else {
-        childShouldExist = false;
-    }
 	ImGui::Checkbox("SUPERHOT Mode", &mod_enabled);
 	ImGui::SameLine();
     help_marker("Enemy speed scales with your movement speed");
     if (mod_enabled) {
-		ImGui::SameLine(sameLineWidth);
+		ImGui::Indent(lineIndent);
         ImGui::PushItemWidth(sameLineItemWidth);
 		ImGui::InputFloat("Velocity Factor", &tiny, 0.01f);
         ImGui::PopItemWidth();
-    }
-    if (childShouldExist) {
-        ImGui::EndChild();
-        ImGui::PopStyleColor();
+		ImGui::Unindent(lineIndent);
     }
 }
 
@@ -104,4 +94,3 @@ void MutatorSuperhot::on_gui_frame() {
 // handle some window message, return true to pass to the game window
 // or false to drop it.
 //bool ModName::onMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) { return true; };
-
