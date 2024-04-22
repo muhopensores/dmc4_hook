@@ -161,13 +161,27 @@ std::optional<std::string> DoubleTapDarkslayer::on_initialize() {
 }
 
 void DoubleTapDarkslayer::on_gui_frame() {
+    static bool childShouldExist = false;
+    if (mod_enabled) {
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, childColor);
+        ImGui::BeginChild("DoubleTapDarkslayerChild", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY);
+        childShouldExist = true;
+    } else {
+        childShouldExist = false;
+    }
     ImGui::Checkbox("Double Tap Darkslayer", &mod_enabled);
     ImGui::SameLine();
     help_marker("Darkslayer is accessed by quickly pressing one style twice");
-    ImGui::SameLine(sameLineWidth);
-    ImGui::PushItemWidth(sameLineItemWidth);
-    ImGui::SliderFloat("Double Tap Timer", &darkslayerTimerFill, 6.0f, 32.0f, "%.0f");
-    ImGui::PopItemWidth();
+    if (mod_enabled) {
+        ImGui::SameLine(sameLineWidth);
+        ImGui::PushItemWidth(sameLineItemWidth);
+        ImGui::SliderFloat("Double Tap Timer", &darkslayerTimerFill, 6.0f, 32.0f, "%.0f");
+        ImGui::PopItemWidth();
+    }
+    if (childShouldExist) {
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+    }
 }
 
 void DoubleTapDarkslayer::on_config_load(const utility::Config& cfg) {

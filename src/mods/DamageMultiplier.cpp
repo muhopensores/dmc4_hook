@@ -66,16 +66,16 @@ naked void detour(void)
 			subss xmm4, xmm0					 // subtract the current life to the new life ( = currentHitDamage)
             movss xmm0, [esi+0x18]				 // set new life to old life
 
-            movdqa [xxmm0], xmm0                // simd i
+            movdqa [xxmm0], xmm0                 // simd i
             movdqa [xxmm1], xmm1
             movdqa [xxmm2], xmm2
             movdqa [xxmm3], xmm3
             movdqa [xxmm4], xmm4
             push eax                             // save reg
-            call must_style_multiplier             // moved must style update here for micro-optimizations because
+            call must_style_multiplier           // moved must style update here for micro-optimizations because
                                                  // DamageMultiplier::OnFrame() showed up on luke stackwalker once
-            pop  eax                             // restore reg
-            movdqa xmm0, [xxmm0]                // simd o
+            pop eax                              // restore reg
+            movdqa xmm0, [xxmm0]                 // simd o
             movdqa xmm1, [xxmm1]   
             movdqa xmm2, [xxmm2]   
             movdqa xmm3, [xxmm3]   
@@ -88,8 +88,8 @@ naked void detour(void)
 
 		originalcode:
             movss [esi+0x18], xmm0
-			movss [DamageMultiplier::enemy_hp_display], xmm0  // writes to an address we'll use for orb display. In originalcode so its not dependent on this checkbox
-			comiss xmm2, xmm0					            // lost in cmps
+			movss [DamageMultiplier::enemy_hp_display], xmm0 // writes to an address we'll use for orb display. In originalcode so its not dependent on this checkbox
+			comiss xmm2, xmm0					             // lost in cmps
 			jmp dword ptr [DamageMultiplier::jmp_ret]
 	}
 }
@@ -104,18 +104,37 @@ std::optional<std::string> DamageMultiplier::on_initialize() {
 }
 
 void DamageMultiplier::on_gui_frame() {
-    ImGui::Checkbox("Player Damage Multiplier", &mod_enabled);
+    static bool childShouldExist = false;
+    if (mod_enabled) {
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, childColor);
+        ImGui::BeginChild("DamageMultiplierChild", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY);
+        childShouldExist = true;
+    } else {
+        childShouldExist = false;
+    }
+    if (ImGui::Checkbox("Player Damage Multiplier", &mod_enabled)) {
+        if (!mod_enabled) g_must_style = false;
+    }
     ImGui::SameLine();
     help_marker("Enables or disables a damage multiplier");
-	ImGui::SameLine(sameLineWidth);
-    ImGui::PushItemWidth(sameLineItemWidth);
-    ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
-    ImGui::PopItemWidth();
+    ImGui::SameLine(sameLineWidth);
+    if (ImGui::Checkbox("Must style mode", &g_must_style)) {
+        mod_enabled = true;
+    }
     ImGui::SameLine();
-    help_marker("Less than 1 = you deal less damage than default\nMore than 1 = you deal more");
-	ImGui::Checkbox("Must style mode", &g_must_style);
-    ImGui::SameLine();
-    help_marker("Damage scales with Style\n0 damage at no rank to 1.0 damage at SSS");
+    help_marker("Damage scales with Style\n0 damage at no rank to 1.0 damage at SSS\nDue to the way this is coded, it cannot currently be used with Damage Multiplier");
+
+    if (mod_enabled && !g_must_style) {
+        ImGui::PushItemWidth(sameLineItemWidth);
+        ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
+        ImGui::PopItemWidth();
+        ImGui::SameLine();
+        help_marker("Less than 1 = you deal less damage than default\nMore than 1 = you deal more");
+    }
+    if (childShouldExist) {
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+    }
 }
 
 /*void DamageMultiplier::onFrame(fmilliseconds & dt) {

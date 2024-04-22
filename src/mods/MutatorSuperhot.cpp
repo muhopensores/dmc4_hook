@@ -74,13 +74,14 @@ void MutatorSuperhot::on_frame(fmilliseconds& dt) {
 // draw your imgui widgets here, you are inside imgui context.
 void MutatorSuperhot::on_gui_frame() {
 	ImGui::Checkbox("SUPERHOT Mode", &mod_enabled);
+	ImGui::SameLine();
+    help_marker("Enemy speed scales with your movement speed");
     if (mod_enabled) {
+		ImGui::SameLine(sameLineWidth);
         ImGui::PushItemWidth(sameLineItemWidth);
 		ImGui::InputFloat("Velocity Factor", &tiny, 0.01f);
         ImGui::PopItemWidth();
 	}
-    ImGui::SameLine();
-    help_marker("Enemy speed scales with your movement speed");
 }
 
 // onGamePause()

@@ -720,9 +720,14 @@ void CharSwitcher::on_frame(fmilliseconds& dt) {
     }
 }
 
-void CharSwitcher::on_gui_frame() { 
+void CharSwitcher::on_gui_frame() {
+    static bool childShouldExist = false;
     if (mod_enabled) {
-        ImGui::Separator();
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, childColor);
+        ImGui::BeginChild("CharSwitcherChild", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY);
+        childShouldExist = true;
+    } else {
+        childShouldExist = false;
     }
     if (ImGui::Checkbox("Character Switcher", &mod_enabled)) {
         toggle(mod_enabled);
@@ -767,6 +772,10 @@ void CharSwitcher::on_gui_frame() {
         ImGui::SameLine();
         help_marker("Enable inertia carryover on switching");
         ImGui::PopItemWidth();
+    }
+    if (childShouldExist) {
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
     }
 }
 

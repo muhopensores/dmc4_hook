@@ -521,26 +521,40 @@ std::optional<std::string> DtKnuckle::on_initialize() {
 }
 
 void DtKnuckle::on_gui_frame() {
+    static bool childShouldExist = false;
+    if (mod_enabled) {
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, childColor);
+            ImGui::BeginChild("DtKnuckleChild", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY);
+            childShouldExist = true;
+    } else {
+            childShouldExist = false;
+    }
 	if (ImGui::Checkbox("Guardian Devil", &mod_enabled)) {
 		toggle(mod_enabled);
 	}
 	ImGui::SameLine();
 	help_marker("Triggers a stand attack when you input the selected button.\nLockon+forward/back for other attacks");
-	ImGui::SameLine(sameLineWidth);
-	ImGui::PushItemWidth(sameLineItemWidth);
-	if (ImGui::BeginCombo("Guardian Input", devil4_sdk::getButtonInfo(desiredInput).second)) {
-		for (const auto& buttonPair : buttonPairs) {
-			bool is_selected = (desiredInput == buttonPair.first);
-			if (ImGui::Selectable(buttonPair.second, is_selected)) {
-				desiredInput = buttonPair.first;
-			}
-			if (is_selected) {
-				ImGui::SetItemDefaultFocus();
-			}
-		}
-		ImGui::EndCombo();
-	}
-	ImGui::PopItemWidth();
+    if (mod_enabled) {
+        ImGui::SameLine(sameLineWidth);
+        ImGui::PushItemWidth(sameLineItemWidth);
+        if (ImGui::BeginCombo("Guardian Input", devil4_sdk::getButtonInfo(desiredInput).second)) {
+            for (const auto& buttonPair : buttonPairs) {
+                bool is_selected = (desiredInput == buttonPair.first);
+                if (ImGui::Selectable(buttonPair.second, is_selected)) {
+                    desiredInput = buttonPair.first;
+                }
+                if (is_selected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::PopItemWidth();
+    }
+    if (childShouldExist) {
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+    }
 }
 
 void DtKnuckle::on_config_load(const utility::Config& cfg) {
