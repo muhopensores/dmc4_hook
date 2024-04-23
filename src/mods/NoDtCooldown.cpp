@@ -22,7 +22,7 @@ void NoDtCooldown::on_gui_frame() {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Disables the cooldown on leaving DT upon entering");
+    help_marker("Disables the cooldown on leaving Devil Trigger upon entering");
 }
 
 void NoDtCooldown::on_config_load(const utility::Config& cfg) {

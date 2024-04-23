@@ -72,9 +72,11 @@ void WorkRate::on_gui_frame() {
         ImGui::SameLine();
         help_marker("This turbo won't be disabled on room change");
 		if (force_custom_turbo) {
+			ImGui::Indent(lineIndent);
 			ImGui::PushItemWidth(sameLineItemWidth);
 			ImGui::InputFloat("Custom Turbo", &custom_turbo, 0.1f, 0.5f, "%.1f%");
 			ImGui::PopItemWidth();
+			ImGui::Unindent(lineIndent);
 		}
 	}
 }

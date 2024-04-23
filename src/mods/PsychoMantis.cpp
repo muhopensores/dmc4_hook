@@ -55,6 +55,7 @@ void PsychoMantis::on_gui_frame() {
     }
 #ifndef NDEBUG
     if (mod_enabled) {
+        ImGui::Indent(lineIndent);
         ImGui::Checkbox("...debug", &mod_debugEnabled);
         ImGui::SameLine();
         ImGui::PushItemWidth(sameLineItemWidth);
@@ -65,6 +66,7 @@ void PsychoMantis::on_gui_frame() {
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::SliderInt("##mod_enabled2LRSliderInt", &mod_debugLR, 0, 2);
         ImGui::PopItemWidth();
+        ImGui::Unindent(lineIndent);
     }
 #endif
 }

@@ -106,7 +106,7 @@ void DamageMultiplier::on_gui_frame() {
         if (!mod_enabled) g_must_style = false;
     }
     ImGui::SameLine();
-    help_marker("Enables or disables a damage multiplier");
+    help_marker("Add a multiplier to outgoing damage");
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox("Must style mode", &g_must_style)) {
         mod_enabled = true;

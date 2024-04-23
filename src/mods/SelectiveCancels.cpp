@@ -270,7 +270,7 @@ void SelectiveCancels::on_gui_frame() {
         ImGui::SameLine(sameLineWidth);
         draw_checkbox_simple("Epidemic", EPIDEMIC);
         ImGui::SameLine();
-        help_marker("Ground shot");
+        help_marker("Pandora Ground shot 1");
 
         draw_checkbox_simple("Argument", ARGUMENT);
         ImGui::SameLine();
