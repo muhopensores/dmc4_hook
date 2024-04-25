@@ -38,7 +38,7 @@ std::optional<std::string> PlayerRotation::on_initialize() {
 }
 
 void PlayerRotation::on_gui_frame() {
-    ImGui::Checkbox("Unlock rotation", &mod_enabled);
+    ImGui::Checkbox(_("Unlock rotation"), &mod_enabled);
 }
 
 void PlayerRotation::on_config_load(const utility::Config& cfg) {

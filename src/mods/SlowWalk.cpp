@@ -18,11 +18,11 @@ void SlowWalk::toggle(bool enable) {
 }
 
 void SlowWalk::on_gui_frame() {
-    if (ImGui::Checkbox("Slow Walk", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Slow Walk"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Walk slowly while holding the jump button");
+    help_marker(_("Walk slowly while holding the jump button"));
 }
 
 void SlowWalk::on_config_load(const utility::Config& cfg) {

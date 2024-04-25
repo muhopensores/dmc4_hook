@@ -90,12 +90,12 @@ void MutatorSelfAdvertisement::custom_imgui_window() {
 }
 
 void MutatorSelfAdvertisement::on_gui_frame() {
-    if (ImGui::CollapsingHeader("Self advertisement")) {
-        ImGui::Checkbox("Show self advertisement?", &mod_enabled);
-        ImGui::Checkbox("Dvd screensaver", &dvd_mode);
+    if (ImGui::CollapsingHeader(_("Self advertisement"))) {
+        ImGui::Checkbox(_("Show self advertisement?"), &mod_enabled);
+        ImGui::Checkbox(_("Dvd screensaver"), &dvd_mode);
         if (!dvd_mode) {
-            ImGui::DragFloat2("Image pos:", (float*)&m_pos, 1.0f, 0.0f, 4096.0f, "%.1f");
-            ImGui::ColorEdit4("Tint color:", (float*)&m_tint_color);
+            ImGui::DragFloat2(_("Image pos:"), (float*)&m_pos, 1.0f, 0.0f, 4096.0f, "%.1f");
+            ImGui::ColorEdit4(_("Tint color:"), (float*)&m_tint_color);
         }
     }
 }

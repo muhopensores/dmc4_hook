@@ -77,7 +77,7 @@ void BackgroundRendering::on_config_save(utility::Config& cfg) {
 }
 
 void BackgroundRendering::on_gui_frame() {
-	ImGui::Checkbox("Background Input", &mod_enabled);
+	ImGui::Checkbox(_("Background Input"), &mod_enabled);
 }
 
 namespace background_rendering {

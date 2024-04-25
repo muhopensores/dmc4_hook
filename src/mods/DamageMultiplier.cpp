@@ -104,12 +104,12 @@ std::optional<std::string> DamageMultiplier::on_initialize() {
 }
 
 void DamageMultiplier::on_gui_frame() {
-    ImGui::Checkbox("Player Damage Multiplier", &mod_enabled);
+    ImGui::Checkbox(_("Player Damage Multiplier"), &mod_enabled);
 	ImGui::SameLine(sameLineWidth);
     ImGui::PushItemWidth(sameLineItemWidth);
-    ImGui::InputFloat("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f");
+    ImGui::InputFloat(_("Multiplier"), &damagemultiplier, 0.1f, 1.0f, "%.1f");
     ImGui::PopItemWidth();
-	ImGui::Checkbox("Must style mode", &g_must_style);
+	ImGui::Checkbox(_("Must style mode"), &g_must_style);
 }
 
 /*void DamageMultiplier::onFrame(fmilliseconds & dt) {

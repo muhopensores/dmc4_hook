@@ -29,17 +29,17 @@ void MessageDisplayMod::custom_imgui_window() {
 }
 
 void MessageDisplayMod::on_gui_frame() {
-    ImGui::Checkbox("Keyboard Navigation", &enable_keyboard_navigation);
+    ImGui::Checkbox(_("Keyboard Navigation"), &enable_keyboard_navigation);
     ImGui::SameLine();
-    help_marker("Keyboard navigation throughout dmc4_hook");
+    help_marker(_("Keyboard navigation throughout dmc4_hook"));
     ImGui::SameLine(sameLineWidth);
-    ImGui::Checkbox("Gamepad Navigation", &enable_gamepad_navigation);
+    ImGui::Checkbox(_("Gamepad Navigation"), &enable_gamepad_navigation);
     ImGui::SameLine();
-    help_marker("Gamepad navigation throughout dmc4_hook");
+    help_marker(_("Gamepad navigation throughout dmc4_hook"));
 
-    ImGui::Checkbox("Display Messages", &should_display_messages);
+    ImGui::Checkbox(_("Display Messages"), &should_display_messages);
     ImGui::SameLine();
-    help_marker("Show/Hide popups at the top left such as \"Infinite Health (All) On\"");
+    help_marker(_("Show/Hide popups at the top left such as \"Infinite Health (All) On\""));
 
     // I would do this not on tick but idk how to use getIO in onConfigLoad without crashing
     if (enable_keyboard_navigation) {

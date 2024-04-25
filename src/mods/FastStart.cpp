@@ -121,19 +121,19 @@ void FastStart::toggle(bool enable) {
 }
 
 void FastStart::on_gui_frame() {
-	ImGui::Checkbox("Fast Game Load", &mod_enabled);
+	ImGui::Checkbox(_("Fast Game Load"), &mod_enabled);
     ImGui::SameLine();
-    help_marker("The game will skip all opening screens and load the first save slot");
+    help_marker(_("The game will skip all opening screens and load the first save slot"));
     ImGui::SameLine(sameLineWidth);
-	ImGui::Checkbox("Fast Menu Fades", &skip_fades);
+	ImGui::Checkbox(_("Fast Menu Fades"), &skip_fades);
     ImGui::SameLine();
-    help_marker("Skip the fades between some menus");
+    help_marker(_("Skip the fades between some menus"));
 
-    if (ImGui::Checkbox("Fast BP Fade", &skip_more_fades)) {
+    if (ImGui::Checkbox(_("Fast BP Fade"), &skip_more_fades)) {
         toggle(skip_more_fades);
     }
     ImGui::SameLine();
-    help_marker("Mostly untested, should skip fade on BP load and nothing else");
+    help_marker(_("Mostly untested, should skip fade on BP load and nothing else"));
 }
 
 void FastStart::on_config_load(const utility::Config& cfg) {

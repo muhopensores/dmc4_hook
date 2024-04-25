@@ -46,14 +46,14 @@ void NoClip::toggle2(bool enable) {
 }
 
 void NoClip::on_gui_frame() {
-    if (ImGui::Checkbox("Noclip", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Noclip"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox("Disable Teleport Planes", &mod_enabled_2)) {
+    if (ImGui::Checkbox(_("Disable Teleport Planes"), &mod_enabled_2)) {
         toggle2(mod_enabled_2);
     }
-    if (ImGui::Checkbox("Lock Y Pos", &player_lock_y_pos)) {
+    if (ImGui::Checkbox(_("Lock Y Pos"), &player_lock_y_pos)) {
         if (player_lock_y_pos) {
             uPlayer* player = devil4_sdk::get_local_player();
             if (player) {

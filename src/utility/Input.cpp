@@ -151,8 +151,10 @@ namespace utility {
         }
         ImGui::TextWrapped("%s %s - %s", prompt, ss.str().c_str(), m_description.c_str());
 
+        static ImVec2 btn_size{ ImGui::GetTextLineHeight() * 4.0f , ImGui::GetTextLineHeight() * 1.5f };
         // samelines for algning buttons neatly
-        ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 44.0f * 3.0f);
+        float x_offset = ImGui::GetWindowContentRegionMax().x - ((btn_size.x * 1.1f));
+        ImGui::SameLine(x_offset);
 
         // hsv sine undeline
         if (m_setting) {
@@ -165,8 +167,6 @@ namespace utility {
 
         ImGui::PopTextWrapPos();
 
-        static ImVec2 btn_size{ 40.0f ,15.0f };
-
         std::string label_hashed { "set###" + m_config_entry };
         ImGui::PushID(std::hash<std::string>{}(label_hashed));
         if (ImGui::Button("set", btn_size))
@@ -174,14 +174,18 @@ namespace utility {
             m_setting = true;
             m_vk_vec.clear();
 
-        } ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 44.0f*2.0f);
+        }
+        x_offset -= btn_size.x * 1.1f;
+        ImGui::SameLine(x_offset);
         ImGui::PopID();
 
         std::string slabel_hashed{ "save###" + m_config_entry };
         ImGui::PushID(std::hash<std::string>{}(slabel_hashed));
         if (ImGui::Button("save", btn_size)) {
             m_setting = false;
-        } ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 44.0f);
+        }
+        x_offset -= btn_size.x * 1.1f;
+        ImGui::SameLine(x_offset);
         ImGui::PopID();
 
         std::string clabel_hashed{ "clear1###" + m_config_entry };

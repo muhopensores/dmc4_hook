@@ -253,9 +253,9 @@ void Quicksilver::on_frame(fmilliseconds& dt) {
 }
 
 void Quicksilver::on_gui_frame() {
-    ImGui::Checkbox("Quicksilver", &quicksilver_enabled);
+    ImGui::Checkbox(_("Quicksilver"), &quicksilver_enabled);
     ImGui::SameLine();
-    help_marker("Enables the hotkey for Quicksilver. By default this is = / +");
+    help_marker(_("Enables the hotkey for Quicksilver. By default this is = / +"));
 }
 #if 0
 void Quicksilver::on_twitch_command(std::size_t hash) {

@@ -179,11 +179,11 @@ std::optional<std::string> RisingSun::on_initialize() {
 }
 
 void RisingSun::on_gui_frame() {
-    if (ImGui::Checkbox("Aerial Rising Sun", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Aerial Rising Sun"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Replace Dante's Shocking with the last 2 kicks of DT Kick 13");
+    help_marker(_("Replace Dante's Shocking with the last 2 kicks of DT Kick 13"));
 }
 
 

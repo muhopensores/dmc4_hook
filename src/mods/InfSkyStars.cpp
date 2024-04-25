@@ -17,7 +17,7 @@ void InfSkyStars::toggle(bool enable) {
 }
 
 void InfSkyStars::on_gui_frame() {
-    if (ImGui::Checkbox("Infinite Sky Stars", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Infinite Sky Stars"), &mod_enabled)) {
         toggle(mod_enabled);
     }
 }

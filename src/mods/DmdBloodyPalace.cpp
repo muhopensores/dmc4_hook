@@ -18,11 +18,11 @@ void DmdBloodyPalace::toggle(bool enable) {
 }
 
 void DmdBloodyPalace::on_gui_frame() {
-    if (ImGui::Checkbox("DMD Bloody Palace", &mod_enabled)) {
+    if (ImGui::Checkbox(_("DMD Bloody Palace"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Forces the ingame version of DMD. Enemies will take longer to DT than with the 'Game Mode' option");
+    help_marker(_("Forces the ingame version of DMD. Enemies will take longer to DT than with the 'Game Mode' option"));
 }
 
 void DmdBloodyPalace::on_config_load(const utility::Config& cfg) {

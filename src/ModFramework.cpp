@@ -22,14 +22,18 @@
 
 #include "Config.hpp"
 
-#include "utility/Thread.hpp"
 #include "GuiFunctions.hpp"
+
+#include "utility/Thread.hpp"
 #include "utility/ExceptionHandler.hpp"
+#include "utility/MoFile.hpp"
+#include "mods/LocalizationManager.hpp"
 
 #include <timeapi.h> // timeGetTime()
 #include "Console.hpp"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+//extern IMGUI_IMPL_API void ImGui_ImplWin32_EnableDpiAwareness();
 
 std::unique_ptr<ModFramework> g_framework{};
 
@@ -61,16 +65,14 @@ ModFramework::ModFramework()
         std::this_thread::sleep_for(std::chrono::milliseconds(4));
     }
 
-    std::queue<DWORD> tr = utility::suspend_all_other_threads();
-
-    // NOTE(): hack to avoid rare dealocks if minhook tries to suspend while we already did
-    // also faster startup time probably
-    FunctionHook::set_mh_skip_locks(TRUE);
-
-    m_mods = std::make_unique<Mods>();
-    
-    auto e = m_mods->on_initialize(Mod::ModType::REGULAR);
-
+    std::optional<std::string> e;
+    std::queue<DWORD> tr = utility::suspend_all_other_threads(); {
+        // NOTE(): hack to avoid rare dealocks if minhook tries to suspend while we already did
+        // also faster startup time probably
+        FunctionHook::set_mh_skip_locks(TRUE);
+        m_mods = std::make_unique<Mods>();
+        e = m_mods->on_initialize(Mod::ModType::REGULAR);
+    }
     utility::resume_threads(tr);
     
     FunctionHook::set_mh_skip_locks(FALSE);
@@ -87,17 +89,19 @@ ModFramework::ModFramework()
     }
 
     m_d3d9_hook = std::make_unique<D3D9Hook>();
-
-	m_d3d9_hook->on_reset    ([this](D3D9Hook& hook) { on_reset(); });
-	m_d3d9_hook->on_present  ([this](D3D9Hook& hook) { on_frame(); });
-    m_d3d9_hook->after_reset ([this](D3D9Hook& hook) { on_after_reset(); });
+    m_d3d9_hook->on_reset([this](D3D9Hook& hook)    { on_reset(); });
+    m_d3d9_hook->on_present([this](D3D9Hook& hook)  { on_frame(); });
+    m_d3d9_hook->after_reset([this](D3D9Hook& hook) { on_after_reset(); });
+    
     m_valid = m_d3d9_hook->hook();
 
     if (m_valid) {
         spdlog::info("Hooked D3D9");
     }
 
+#ifndef NDEBUG
     reframework::setup_exception_handler();
+#endif
 }
 
 ModFramework::~ModFramework() {
@@ -187,6 +191,15 @@ void ModFramework::on_frame() {
 
 	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
     m_prev_time = now_time;
+
+    // need to to this cause font atlas is locked between ImGui::NewFrame / ImGui::Render :(
+    if(m_imfont_queue_reload_flag) {
+        m_imfont_main = load_locale_and_imfont(m_glob_locale);
+        if(m_imfont_main) {
+            ImGui_ImplDX9_InvalidateDeviceObjects();
+            m_imfont_queue_reload_flag = false;
+        }
+    }
 }
 
 void ModFramework::on_reset() {
@@ -213,6 +226,14 @@ void ModFramework::on_after_reset() {
     console->load_texture();
 }
 
+void ModFramework::on_locale_update(const char* country_code) {
+    if (strncmp(m_glob_locale, country_code, sizeof(m_glob_locale)) == 0) {
+        return;
+    }
+    strcpy_s(m_glob_locale, sizeof(m_glob_locale), country_code);
+    m_imfont_queue_reload_flag = true;
+}
+
 bool ModFramework::on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param) {
 
     if (!m_initialized) {
@@ -235,7 +256,7 @@ bool ModFramework::on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_p
 
 void ModFramework::draw_ui() {
     //std::lock_guard _{ m_input_mutex };
-    if (!m_draw_ui) {
+    if (!m_draw_ui || !(ImGui::GetIO().Fonts->IsBuilt())) {
         //m_dinput_hook->acknowledge_input();
         //ImGui::GetIO().MouseDrawCursor = false;
         return;
@@ -253,7 +274,7 @@ void ModFramework::draw_ui() {
         char buffer[MAX_PATH];
         sprintf_s(buffer, sizeof(buffer), "ModFramework error: %s", m_error.c_str());
         MessageBoxA(m_wnd, buffer, "DMC4 mod error", MB_ICONERROR);
-        std::abort(); // funne errno name
+        std::exit(ERROR_APP_INIT_FAILURE); // do we need to call proper destructors here?
     }
 #if 0
     auto& io = ImGui::GetIO();
@@ -353,7 +374,14 @@ bool ModFramework::initialize() {
         }
 
         auto& io = ImGui::GetIO();
+#if 0
         io.Fonts->AddFontDefault();
+        utility::Config cfg{CONFIG_FILENAME};
+        auto country_code = cfg.get("locale").value_or("en");
+#endif
+        load_locale_and_imfont(m_glob_locale); // load SOMETHING into io.Fonts so we dont crash
+
+        //io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\arial.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesDefault());
         //m_custom_font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\ariali.ttf", 24.0f, NULL, io.Fonts->GetGlyphRangesDefault());
         //console = new ImGuiConsole();
         spdlog::info("Initializing Console system");
@@ -368,7 +396,6 @@ bool ModFramework::initialize() {
         // Game specific initialization stuff
         std::thread init_thread([this]() {
             auto e = m_mods->on_initialize(Mod::ModType::SLOW);
-
             if (e) {
                 if (e->empty()) {
                     m_error = "An unknown error has occurred during slow mods initialization.";

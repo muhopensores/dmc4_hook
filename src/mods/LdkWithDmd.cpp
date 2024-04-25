@@ -43,9 +43,9 @@ void LdkWithDmd::toggle(bool enable) {
 void LdkWithDmd::on_gui_frame() {
     // from main.cpp
     // line 907 -> main->getMods()->onDrawUI("NoClip"_hash);
-    ImGui::Checkbox("LDK With DMD", &mod_enabled);
+    ImGui::Checkbox(_("LDK With DMD"), &mod_enabled);
 	ImGui::SameLine();
-	help_marker("When playing a mission on Legendary Dark Knight, enemies will be on DMD Difficulty instead of SOS");
+	help_marker(_("When playing a mission on Legendary Dark Knight, enemies will be on DMD Difficulty instead of SOS"));
 }
 
 void LdkWithDmd::on_config_load(const utility::Config& cfg) {

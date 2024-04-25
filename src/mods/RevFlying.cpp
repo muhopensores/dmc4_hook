@@ -60,17 +60,17 @@ std::optional<std::string> RevFlying::on_initialize() {
 }
 
 void RevFlying::on_gui_frame() {
-    if (ImGui::Checkbox("Rev Flying", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Rev Flying"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Kills inertia brakes on Rev");
+    help_marker(_("Kills inertia brakes on Rev"));
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox("Calibur Inertia", &mod_enabled2)) {
+    if (ImGui::Checkbox(_("Calibur Inertia"), &mod_enabled2)) {
         toggle2(mod_enabled2);
     }
     ImGui::SameLine();
-    help_marker("Kills inertia brakes on Calibur");
+    help_marker(_("Kills inertia brakes on Calibur"));
 }
 
 void RevFlying::on_config_load(const utility::Config& cfg) {

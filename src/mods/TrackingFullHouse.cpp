@@ -35,7 +35,7 @@ std::optional<std::string> TrackingFullHouse::on_initialize() {
 }
 
 void TrackingFullHouse::on_gui_frame() {
-    ImGui::Checkbox("Tracking Full House", &mod_enabled);
+    ImGui::Checkbox(_("Tracking Full House"), &mod_enabled);
 }
 
 void TrackingFullHouse::on_config_load(const utility::Config& cfg) {

@@ -38,23 +38,23 @@ void RoseOptions::toggle_rose_infinite_timer(bool enabled) {
 }
 
 void RoseOptions::on_gui_frame() {
-    if (ImGui::Checkbox("Rose Survives Enemies", &enabled_no_despawn_enemy)) {
+    if (ImGui::Checkbox(_("Rose Survives Enemies"), &enabled_no_despawn_enemy)) {
         toggle_disable_rose_despawn_on_hitting_enemy(enabled_no_despawn_enemy);
     }
     ImGui::SameLine();
-    help_marker("Rose will hit the enemy and then continue past the enemy");
+    help_marker(_("Rose will hit the enemy and then continue past the enemy"));
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox("Rose Survives Objects", &enabled_no_despawn_object)) {
+    if (ImGui::Checkbox(_("Rose Survives Objects"), &enabled_no_despawn_object)) {
         toggle_disable_rose_despawn_on_hitting_object(enabled_no_despawn_object);
     }
     ImGui::SameLine();
-    help_marker("Rose will sit on whatever surface it lands on until its timer expires");
+    help_marker(_("Rose will sit on whatever surface it lands on until its timer expires"));
 
-    if (ImGui::Checkbox("Infinite Rose Timer", &rose_infinite_timer)) {
+    if (ImGui::Checkbox(_("Infinite Rose Timer"), &rose_infinite_timer)) {
         toggle_rose_infinite_timer(rose_infinite_timer);
     }
     ImGui::SameLine();
-    help_marker("Rose will only despawn when colliding with something or having another placed");
+    help_marker(_("Rose will only despawn when colliding with something or having another placed"));
 }
 
 void RoseOptions::on_config_load(const utility::Config& cfg) {

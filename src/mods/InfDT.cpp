@@ -36,7 +36,7 @@ std::optional<std::string> InfDT::on_initialize() {
 }
 
 void InfDT::on_gui_frame() {
-    ImGui::Checkbox("Infinite DT", &mod_enabled);
+    ImGui::Checkbox(_("Infinite DT"), &mod_enabled);
 }
 
 void InfDT::on_config_load(const utility::Config& cfg) {

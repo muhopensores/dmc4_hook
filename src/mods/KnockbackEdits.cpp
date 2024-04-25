@@ -158,7 +158,7 @@ std::optional<std::string> KnockbackEdits::on_initialize() {
 
 void KnockbackEdits::on_gui_frame() {
     //ImGui::Checkbox("Stun/Knockback Edits", &modEnabled);
-    ImGui::Checkbox("Release Always Stuns", &release_stuns);
+    ImGui::Checkbox(_("Release Always Stuns"), &release_stuns);
 }
 
 void KnockbackEdits::on_config_load(const utility::Config& cfg) {

@@ -18,7 +18,7 @@ void DisableKeyboard::toggle(bool enable) {
     }
 }
 void DisableKeyboard::on_gui_frame() {
-    if (ImGui::Checkbox("Disable Keyboard Input", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Disable Keyboard Input"), &mod_enabled)) {
         toggle(mod_enabled);
     }
 }

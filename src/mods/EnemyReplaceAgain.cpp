@@ -342,12 +342,12 @@ int EnemyReplaceAgain::desired_enemy[IM_ARRAYSIZE(combo_items)];
 
 void EnemyReplaceAgain::on_gui_frame() {
     // if (ImGui::CollapsingHeader("Enemy Replacement")) {
-        ImGui::Text("Enemy Replacement - No Cyclical Replacements!");
+        ImGui::Text(_("Enemy Replacement - No Cyclical Replacements!"));
         ImGui::SameLine();
-        help_marker("Example: Don't replace Mephisto with Faust and Faust with Mephisto at the same time. The game will crash.\n"
-            "Many of these are untested and may also crash; I thought I'd leave them in just in case there's something that works that we had disabled before.");
+        help_marker(_("Example: Don't replace Mephisto with Faust and Faust with Mephisto at the same time. The game will crash.\n"
+            "Many of these are untested and may also crash; I thought I'd leave them in just in case there's something that works that we had disabled before."));
         ImGui::Spacing();
-        if (ImGui::Button("Reset")) {
+        if (ImGui::Button(_("Reset"))) {
             for (int i = 0; i < IM_ARRAYSIZE(default_enemy); i++) {
                 desired_enemy[i] = i;
                 replace_enemy_with(default_enemy[i], desired_enemy[i]);

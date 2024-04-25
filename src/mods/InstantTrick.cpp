@@ -18,7 +18,7 @@ void InstantTrick::toggle(bool enable) {
 }
 
 void InstantTrick::on_gui_frame() {
-    if (ImGui::Checkbox("Instant Trick", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Instant Trick"), &mod_enabled)) {
         toggle(mod_enabled);
     }
 }

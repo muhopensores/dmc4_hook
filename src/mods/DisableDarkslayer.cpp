@@ -44,28 +44,28 @@ void DisableDarkslayer::toggle_right(bool enable) {
 
 void DisableDarkslayer::on_gui_frame() {
     ImGui::Spacing();
-    ImGui::Text("Disable Darkslayer Inputs");
+    ImGui::Text(_("Disable Darkslayer Inputs"));
 
     ImGui::Spacing();
     ImGui::Text("                         ");
     ImGui::SameLine();
-    if (ImGui::Checkbox("Trickster", &mod_enabled_up)) {
+    if (ImGui::Checkbox(_("Trickster"), &mod_enabled_up)) {
         toggle_up(mod_enabled_up);
     }
 
     ImGui::Text("                  ");
     ImGui::SameLine();
-    if (ImGui::Checkbox("Gunslinger", &mod_enabled_left)) {
+    if (ImGui::Checkbox(_("Gunslinger"), &mod_enabled_left)) {
         toggle_left(mod_enabled_left);
     }
     ImGui::SameLine();
-    if (ImGui::Checkbox("Sword Master", &mod_enabled_right)) {
+    if (ImGui::Checkbox(_("Sword Master"), &mod_enabled_right)) {
         toggle_right(mod_enabled_right);
     }
 
     ImGui::Text("                         ");
     ImGui::SameLine();
-    if (ImGui::Checkbox("Royal Guard", &mod_enabled_down)) {
+    if (ImGui::Checkbox(_("Royal Guard"), &mod_enabled_down)) {
         toggle_down(mod_enabled_down);
     }
 }

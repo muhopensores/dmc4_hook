@@ -128,12 +128,12 @@ void save_load_boss_info(bool isSave) {
 }
 
 void EnemyStats::on_gui_frame() {
-    ImGui::Checkbox("Display Enemy Stats", &display_enemy_stats);
+    ImGui::Checkbox(_("Display Enemy Stats"), &display_enemy_stats);
     if (display_enemy_stats) {
         SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
         if (s_med_ptr) {
-            ImGui::SliderInt("Enemy Count", (int*)&s_med_ptr->enemyCount[2], 0, 0);
-            ImGui::SliderInt("Enemy Select", &which_enemy, 0, s_med_ptr->enemyCount[2] - 1);
+            ImGui::SliderInt(_("Enemy Count"), (int*)&s_med_ptr->enemyCount[2], 0, 0);
+            ImGui::SliderInt(_("Enemy Select"), &which_enemy, 0, s_med_ptr->enemyCount[2] - 1);
             if (s_med_ptr->uEnemies[0]) {
                 ImGui::Spacing();
                 uEnemy* currentEnemy      = s_med_ptr->uEnemies[which_enemy];
@@ -141,48 +141,48 @@ void EnemyStats::on_gui_frame() {
                 // i hate this, game accesses them from base ptr, e.g. [uEnemy+1544] for scarecrow hp
                 uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)currentEnemy + damage_info_offset);
                 if (currentEnemy != NULL) {
-                    ImGui::InputFloat("HP ##2", &currentEnemyDamage->HP);
-                    ImGui::InputFloat("Max HP ##2", &currentEnemyDamage->HPMax);
-                    ImGui::InputFloat("HP Taken ##2", &currentEnemyDamage->HPTaken);
-                    ImGui::InputInt("Stun 1 ##2", &currentEnemyDamage->stun[0]);
-                    ImGui::InputInt("Stun 2 ##2", &currentEnemyDamage->stun[1]);
-                    ImGui::InputInt("Stun 3 ##2", &currentEnemyDamage->stun[2]);
-                    ImGui::InputInt("Stun 4 ##2", &currentEnemyDamage->stun[3]);
-                    ImGui::InputInt("Stun 5 ##2", &currentEnemyDamage->stun[4]);
-                    ImGui::InputInt("Displacement 1 ##2", &currentEnemyDamage->displacement[0]);
-                    ImGui::InputInt("Displacement 2 ##2", &currentEnemyDamage->displacement[1]);
-                    ImGui::InputInt("Displacement 3 ##2", &currentEnemyDamage->displacement[2]);
-                    ImGui::InputInt("Displacement 4 ##2", &currentEnemyDamage->displacement[3]);
-                    ImGui::InputInt("Displacement 5 ##2", &currentEnemyDamage->displacement[4]);
-                    ImGui::InputInt("Unknown 1 ##2", &currentEnemyDamage->unknown[0]);
-                    ImGui::InputInt("Unknown 2 ##2", &currentEnemyDamage->unknown[1]);
-                    ImGui::InputInt("Unknown 3 ##2", &currentEnemyDamage->unknown[2]);
-                    ImGui::InputInt("Unknown 4 ##2", &currentEnemyDamage->unknown[3]);
-                    ImGui::InputInt("Unknown 5 ##2", &currentEnemyDamage->unknown[4]);
-                    ImGui::InputInt("Unknown 6 ##2", &currentEnemyDamage->unknown[5]);
-                    ImGui::InputInt("Unknown 7 ##2", &currentEnemyDamage->unknown[6]);
-                    ImGui::InputInt("Unknown 8 ##2", &currentEnemyDamage->unknown[7]);
+                    ImGui::InputFloat(_("HP ##2"), &currentEnemyDamage->HP);
+                    ImGui::InputFloat(_("Max HP ##2"), &currentEnemyDamage->HPMax);
+                    ImGui::InputFloat(_("HP Taken ##2"), &currentEnemyDamage->HPTaken);
+                    ImGui::InputInt(_("Stun 1 ##2"), &currentEnemyDamage->stun[0]);
+                    ImGui::InputInt(_("Stun 2 ##2"), &currentEnemyDamage->stun[1]);
+                    ImGui::InputInt(_("Stun 3 ##2"), &currentEnemyDamage->stun[2]);
+                    ImGui::InputInt(_("Stun 4 ##2"), &currentEnemyDamage->stun[3]);
+                    ImGui::InputInt(_("Stun 5 ##2"), &currentEnemyDamage->stun[4]);
+                    ImGui::InputInt(_("Displacement 1 ##2"), &currentEnemyDamage->displacement[0]);
+                    ImGui::InputInt(_("Displacement 2 ##2"), &currentEnemyDamage->displacement[1]);
+                    ImGui::InputInt(_("Displacement 3 ##2"), &currentEnemyDamage->displacement[2]);
+                    ImGui::InputInt(_("Displacement 4 ##2"), &currentEnemyDamage->displacement[3]);
+                    ImGui::InputInt(_("Displacement 5 ##2"), &currentEnemyDamage->displacement[4]);
+                    ImGui::InputInt(_("Unknown 1 ##2"), &currentEnemyDamage->unknown[0]);
+                    ImGui::InputInt(_("Unknown 2 ##2"), &currentEnemyDamage->unknown[1]);
+                    ImGui::InputInt(_("Unknown 3 ##2"), &currentEnemyDamage->unknown[2]);
+                    ImGui::InputInt(_("Unknown 4 ##2"), &currentEnemyDamage->unknown[3]);
+                    ImGui::InputInt(_("Unknown 5 ##2"), &currentEnemyDamage->unknown[4]);
+                    ImGui::InputInt(_("Unknown 6 ##2"), &currentEnemyDamage->unknown[5]);
+                    ImGui::InputInt(_("Unknown 7 ##2"), &currentEnemyDamage->unknown[6]);
+                    ImGui::InputInt(_("Unknown 8 ##2"), &currentEnemyDamage->unknown[7]);
                 }
-                ImGui::InputFloat3("XYZ Position ##2", (float*)&currentEnemy->position);
-                ImGui::InputFloat3("XYZ Velocity ##2", (float*)&currentEnemy->velocity);
-                ImGui::InputFloat3("XYZ Scale ##2", (float*)&currentEnemy->scale);
-                ImGui::InputScalar("Move ID ##2", ImGuiDataType_U8, &currentEnemy->moveID);
-                ImGui::InputScalar("Move ID 2 ##2", ImGuiDataType_U8, &currentEnemy->moveID2, 0, 0);
-                ImGui::InputScalar("Move Part ##2", ImGuiDataType_U8, &currentEnemy->movePart);
-                ImGui::InputScalar("Grounded ##2", ImGuiDataType_U8, &currentEnemy->grounded);
-                ImGui::InputFloat("Animation Frame ##2", &currentEnemy->animFrame);
+                ImGui::InputFloat3(_("XYZ Position ##2"), (float*)&currentEnemy->position);
+                ImGui::InputFloat3(_("XYZ Velocity ##2"), (float*)&currentEnemy->velocity);
+                ImGui::InputFloat3(_("XYZ Scale ##2"), (float*)&currentEnemy->scale);
+                ImGui::InputScalar(_("Move ID ##2"), ImGuiDataType_U8, &currentEnemy->moveID);
+                ImGui::InputScalar(_("Move ID 2 ##2"), ImGuiDataType_U8, &currentEnemy->moveID2, 0, 0);
+                ImGui::InputScalar(_("Move Part ##2"), ImGuiDataType_U8, &currentEnemy->movePart);
+                ImGui::InputScalar(_("Grounded ##2"), ImGuiDataType_U8, &currentEnemy->grounded);
+                ImGui::InputFloat(_("Animation Frame ##2"), &currentEnemy->animFrame);
 
-                if (ImGui::Button("Save Selected Enemy Info")) {
+                if (ImGui::Button(_("Save Selected Enemy Info"))) {
                     save_load_enemy_info(true);
                 }
                 ImGui::SameLine();
-                help_marker("Hotkey is HOME by default");
+                help_marker(_("Hotkey is HOME by default"));
 
-                if (ImGui::Button("Replay Saved Move ID & Position")) {
+                if (ImGui::Button(_("Replay Saved Move ID & Position"))) {
                     save_load_enemy_info(false);
                 }
                 ImGui::SameLine();
-                help_marker("Hotkey is END by default");
+                help_marker(_("Hotkey is END by default"));
             }
         }
     }
@@ -191,7 +191,7 @@ void EnemyStats::on_gui_frame() {
     ImGui::Separator();
     ImGui::Spacing();
 
-    ImGui::Checkbox("Display Boss Stats", &display_boss_stats);
+    ImGui::Checkbox(_("Display Boss Stats"), &display_boss_stats);
     if (display_boss_stats) {
         SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
         if (s_med_ptr) {
@@ -199,26 +199,26 @@ void EnemyStats::on_gui_frame() {
             uintptr_t boss_base = *boss_ptr;
             if (s_med_ptr->uBoss1) {
                 ImGui::Spacing();
-                ImGui::InputFloat3("XYZ Position ##3", (float*)&s_med_ptr->uBoss1->position);
-                ImGui::InputFloat3("XYZ Scale ##3", (float*)&s_med_ptr->uBoss1->scale);
-                ImGui::InputFloat("HP ##3", &s_med_ptr->uBoss1->HP);
-                ImGui::InputFloat("Max HP ##3", &s_med_ptr->uBoss1->HPMax);
-                ImGui::InputScalar("Move ID ##3", ImGuiDataType_U8, &s_med_ptr->uBoss1->moveID);
-                ImGui::InputScalar("Move ID 2 ##3", ImGuiDataType_U8, &s_med_ptr->uBoss1->moveID2);
-                ImGui::InputScalar("Move Part ##3", ImGuiDataType_U8, &s_med_ptr->uBoss1->movePart);
-                ImGui::InputFloat("Animation Frame ##3", &s_med_ptr->uBoss1->animFrame);
+                ImGui::InputFloat3(_("XYZ Position ##3"), (float*)&s_med_ptr->uBoss1->position);
+                ImGui::InputFloat3(_("XYZ Scale ##3"), (float*)&s_med_ptr->uBoss1->scale);
+                ImGui::InputFloat(_("HP ##3"), &s_med_ptr->uBoss1->HP);
+                ImGui::InputFloat(_("Max HP ##3"), &s_med_ptr->uBoss1->HPMax);
+                ImGui::InputScalar(_("Move ID ##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->moveID);
+                ImGui::InputScalar(_("Move ID 2 ##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->moveID2);
+                ImGui::InputScalar(_("Move Part ##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->movePart);
+                ImGui::InputFloat(_("Animation Frame ##3"), &s_med_ptr->uBoss1->animFrame);
 
-                if (ImGui::Button("Save Boss Info ##3")) {
+                if (ImGui::Button(_("Save Boss Info ##3"))) {
                     save_load_boss_info(true);
                 }
                 ImGui::SameLine();
-                help_marker("Hotkey is PAGE UP by default");
+                help_marker(_("Hotkey is PAGE UP by default"));
 
-                if (ImGui::Button("Replay Saved Move ID & Position ##3")) {
+                if (ImGui::Button(_("Replay Saved Move ID & Position ##3"))) {
                     save_load_boss_info(false);
                 }
                 ImGui::SameLine();
-                help_marker("Hotkey is PAGE DOWN by default");
+                help_marker(_("Hotkey is PAGE DOWN by default"));
             }
         }
     }
@@ -227,16 +227,16 @@ void EnemyStats::on_gui_frame() {
     ImGui::Separator();
     ImGui::Spacing();
 
-    ImGui::Checkbox("Enable Save/Load hotkeys", &hotkey_enabled);
+    ImGui::Checkbox(_("Enable Save/Load hotkeys"), &hotkey_enabled);
 
     ImGui::Spacing();
 
-    if (ImGui::CollapsingHeader("Saved Info")) {
-        ImGui::InputScalar("Saved Move ID", ImGuiDataType_U8, &saved_enemy_move_id);
-        ImGui::InputScalar("Saved Move ID 2", ImGuiDataType_U8, &saved_enemy_move_i_d2, 0, 0);
-        ImGui::InputFloat3("Saved XYZ Position", saved_enemy_pos_xyz);
-        ImGui::InputFloat3("Saved XYZ Velocity", saved_enemy_velocity_xyz);
-        ImGui::InputScalar("Saved Grounded", ImGuiDataType_U8, &saved_enemy_grounded);
+    if (ImGui::CollapsingHeader(_("Saved Info"))) {
+        ImGui::InputScalar(_("Saved Move ID"), ImGuiDataType_U8, &saved_enemy_move_id);
+        ImGui::InputScalar(_("Saved Move ID 2"), ImGuiDataType_U8, &saved_enemy_move_i_d2, 0, 0);
+        ImGui::InputFloat3(_("Saved XYZ Position"), saved_enemy_pos_xyz);
+        ImGui::InputFloat3(_("Saved XYZ Velocity"), saved_enemy_velocity_xyz);
+        ImGui::InputScalar(_("Saved Grounded"), ImGuiDataType_U8, &saved_enemy_grounded);
     }
 }
 

@@ -84,7 +84,7 @@ std::optional<std::string> NoHbKnockback::on_initialize() {
 }
 
 void NoHbKnockback::on_gui_frame() {
-	ImGui::Checkbox("No Helm Breaker Knockdown", &mod_enabled);
+	ImGui::Checkbox(_("No Helm Breaker Knockdown"), &mod_enabled);
 }
 
 void NoHbKnockback::on_config_load(const utility::Config& cfg) {

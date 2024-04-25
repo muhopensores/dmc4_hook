@@ -5,6 +5,8 @@
 #include "utility/Patch.hpp"
 #include "utility/Input.hpp"
 #include "utility/MessageDisplay.hpp"
+#include "utility/MoFile.hpp"
+
 #include "sdk/ReClass.hpp"
 
 #include "ModFramework.hpp"
@@ -14,6 +16,7 @@
 #include "Console.hpp"
 
 #define naked static __declspec(naked)
+#define _(string) utility::text_lookup(string)
 
 #include <chrono>
 

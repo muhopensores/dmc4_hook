@@ -27,13 +27,13 @@ void EnemyDT::toggle_instant_dt(bool enable) {
 }
 
 void EnemyDT::on_gui_frame() {
-    if (ImGui::Checkbox("Enemies Don't DT", &mod_enabled_no_dt)) {
+    if (ImGui::Checkbox(_("Enemies Don't DT"), &mod_enabled_no_dt)) {
         mod_enabled_instant_dt = 0;              // turn off other mod
         toggle_instant_dt(mod_enabled_instant_dt); // update other mod
         toggle_no_dt(mod_enabled_no_dt);
     }
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox("Enemies DT Instantly", &mod_enabled_instant_dt)) {
+    if (ImGui::Checkbox(_("Enemies DT Instantly"), &mod_enabled_instant_dt)) {
         mod_enabled_no_dt = 0;                   // turn off other mod
         toggle_no_dt(mod_enabled_no_dt);           // update other mod
         toggle_instant_dt(mod_enabled_instant_dt);

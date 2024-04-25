@@ -521,14 +521,14 @@ std::optional<std::string> DtKnuckle::on_initialize() {
 }
 
 void DtKnuckle::on_gui_frame() {
-	if (ImGui::Checkbox("Guardian Devil", &mod_enabled)) {
+	if (ImGui::Checkbox(_("Guardian Devil"), &mod_enabled)) {
 		toggle(mod_enabled);
 	}
 	ImGui::SameLine();
-	help_marker("Triggers a stand attack when you input the selected button.\nLockon+forward/back for other attacks");
+	help_marker(_("Triggers a stand attack when you input the selected button.\nLockon+forward/back for other attacks"));
 	ImGui::SameLine(sameLineWidth);
 	ImGui::PushItemWidth(sameLineItemWidth);
-	if (ImGui::BeginCombo("Guardian Input", devil4_sdk::getButtonInfo(desiredInput).second)) {
+	if (ImGui::BeginCombo(_("Guardian Input"), devil4_sdk::getButtonInfo(desiredInput).second)) {
 		for (const auto& buttonPair : buttonPairs) {
 			bool is_selected = (desiredInput == buttonPair.first);
 			if (ImGui::Selectable(buttonPair.second, is_selected)) {

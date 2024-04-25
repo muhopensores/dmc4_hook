@@ -196,7 +196,7 @@ std::optional<std::string> AngelSnatch::on_initialize() {
 }
 
 void AngelSnatch::on_gui_frame() {
-    ImGui::Checkbox("Angel Snatch", &mod_enabled);
+    ImGui::Checkbox(_("Angel Snatch"), &mod_enabled);
     ImGui::SameLine();
     help_marker("Mapped to forward + snatch");
 }

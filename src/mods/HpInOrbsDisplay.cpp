@@ -38,9 +38,9 @@ std::optional<std::string> HpInOrbsDisplay::on_initialize() {
 }
 
 void HpInOrbsDisplay::on_gui_frame() {
-    ImGui::Checkbox("Enemy HP Red Orb Display", &mod_enabled);
+    ImGui::Checkbox(_("Enemy HP Red Orb Display"), &mod_enabled);
     ImGui::SameLine();
-    help_marker("Display the last hit enemy's HP in the Red Orb count");
+    help_marker(_("Display the last hit enemy's HP in the Red Orb count"));
 }
 
 void HpInOrbsDisplay::on_config_load(const utility::Config& cfg) {

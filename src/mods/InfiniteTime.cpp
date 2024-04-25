@@ -17,7 +17,7 @@ void InfiniteTime::toggle(bool enable) {
 }
 
 void InfiniteTime::on_gui_frame() {
-    if (ImGui::Checkbox("Disable Timer", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Disable Timer"), &mod_enabled)) {
         toggle(mod_enabled);
     }
 }

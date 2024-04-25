@@ -32,7 +32,7 @@ std::optional<std::string> DisableChimeraBlades::on_initialize() {
 }
 
 void DisableChimeraBlades::on_gui_frame() {
-    ImGui::Checkbox("Disable Chimera Blades", &mod_enabled);
+    ImGui::Checkbox(_("Disable Chimera Blades"), &mod_enabled);
 }
 
 void DisableChimeraBlades::on_config_load(const utility::Config& cfg) {

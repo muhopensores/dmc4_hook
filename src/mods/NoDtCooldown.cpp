@@ -18,11 +18,11 @@ void NoDtCooldown::toggle(bool enable) {
 }
 
 void NoDtCooldown::on_gui_frame() {
-    if (ImGui::Checkbox("No DT Cooldown", &mod_enabled)) {
+    if (ImGui::Checkbox(_("No DT Cooldown"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Disables the cooldown on leaving DT upon entering");
+    help_marker(_("Disables the cooldown on leaving DT upon entering"));
 }
 
 void NoDtCooldown::on_config_load(const utility::Config& cfg) {

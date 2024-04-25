@@ -42,13 +42,13 @@ void DmdLevelAi::frenzied_toggle(bool enable) {
 }
 
 void DmdLevelAi::on_gui_frame() {
-    if (ImGui::Checkbox("DMD Level AI", &mod_enabled)) {
+    if (ImGui::Checkbox(_("DMD Level AI"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Forces enemies to use the ingame DMD AI, even on non DMD difficulties");
+    help_marker(_("Forces enemies to use the ingame DMD AI, even on non DMD difficulties"));
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox("Frenzied Boss AI", &frenzied_enabled)) {
+    if (ImGui::Checkbox(_("Frenzied Boss AI"), &frenzied_enabled)) {
         frenzied_toggle(frenzied_enabled);
     }
 }

@@ -54,13 +54,13 @@ std::optional<std::string> CustomModelFix::on_initialize() {
 }
 
 void CustomModelFix::on_gui_frame() {
-    ImGui::Checkbox("Custom Nero Model Fix", &char_nero);
+    ImGui::Checkbox(_("Custom Nero Model Fix"), &char_nero);
     ImGui::SameLine();
-    help_marker("Remove exploding shadows on Nero mods");
+    help_marker(_("Remove exploding shadows on Nero mods"));
     ImGui::SameLine(sameLineWidth);
-    ImGui::Checkbox("Custom Dante Model Fix", &char_dante);
+    ImGui::Checkbox(_("Custom Dante Model Fix"), &char_dante);
     ImGui::SameLine();
-    help_marker("Remove exploding shadows on Dante mods");
+    help_marker(_("Remove exploding shadows on Dante mods"));
 }
 
 void CustomModelFix::on_config_load(const utility::Config& cfg) {

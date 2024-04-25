@@ -73,10 +73,10 @@ void MutatorSuperhot::on_frame(fmilliseconds& dt) {
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
 void MutatorSuperhot::on_gui_frame() {
-	ImGui::Checkbox("SUPERHOT Mode", &mod_enabled);
+	ImGui::Checkbox(_("SUPERHOT Mode"), &mod_enabled);
     if (mod_enabled) {
         ImGui::PushItemWidth(sameLineItemWidth);
-		ImGui::InputFloat("Velocity Factor", &tiny, 0.01f);
+		ImGui::InputFloat(_("Velocity Factor"), &tiny, 0.01f);
         ImGui::PopItemWidth();
 	}
 }

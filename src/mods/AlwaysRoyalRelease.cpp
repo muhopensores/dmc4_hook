@@ -17,7 +17,7 @@ void AlwaysRoyalRelease::toggle(bool enable) {
     }
 }
 void AlwaysRoyalRelease::on_gui_frame() {
-    if (ImGui::Checkbox("Always Royal Release", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Always Royal Release"), &mod_enabled)) {
         toggle(mod_enabled);
     }
 }

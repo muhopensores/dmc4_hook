@@ -65,25 +65,25 @@ void LimitAdjust::f_same_tick_style_change(bool enable) {
 }
 
 void LimitAdjust::on_gui_frame() {
-    if (ImGui::Checkbox("Sword & Gun Switch Limit", &gun_sword)) {
+    if (ImGui::Checkbox(_("Sword & Gun Switch Limit"), &gun_sword)) {
         f_sword_and_gun(gun_sword);
     }
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox("Enemy Step Limit", &enemy_step)) {
+    if (ImGui::Checkbox(_("Enemy Step Limit"), &enemy_step)) {
         f_enemy_step(enemy_step);
     }
-    if (ImGui::Checkbox("Style Switch Limit", &style)) {
+    if (ImGui::Checkbox(_("Style Switch Limit"), &style)) {
         f_style(style);
     }
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox("Target Switch Limit", &target)) {
+    if (ImGui::Checkbox(_("Target Switch Limit"), &target)) {
         f_target(target);
     }
-    if (ImGui::Checkbox("Same Tick Style Change", &same_tick_style_change)) {
+    if (ImGui::Checkbox(_("Same Tick Style Change"), &same_tick_style_change)) {
         f_same_tick_style_change(same_tick_style_change);
     }
     ImGui::SameLine();
-    help_marker("Style changes registered on the same tick as other inputs are ignored by default.\nOne bug has been found with this cheat so far: Every other time you perform Climax you'll spawn Discipline pins too");
+    help_marker(_("Style changes registered on the same tick as other inputs are ignored by default.\nOne bug has been found with this cheat so far: Every other time you perform Climax you'll spawn Discipline pins too"));
 }
 
 void LimitAdjust::on_config_load(const utility::Config& cfg) {

@@ -18,11 +18,11 @@ void ManualTwosomeTime::toggle(bool enable) {
 }
 
 void ManualTwosomeTime::on_gui_frame() {
-    if (ImGui::Checkbox("Manual Twosome Time", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Manual Twosome Time"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Disable Twosome Time's automatic lock-on");
+    help_marker(_("Disable Twosome Time's automatic lock-on"));
 }
 
 void ManualTwosomeTime::on_config_load(const utility::Config& cfg) {

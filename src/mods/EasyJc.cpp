@@ -40,11 +40,11 @@ void EasyJc::toggle(bool enable) {
 }
 
 void EasyJc::on_gui_frame() {
-    if (ImGui::Checkbox("Easy Enemy Step", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Easy Enemy Step"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("50% bigger Enemy Step hitspheres");
+    help_marker(_("50% bigger Enemy Step hitspheres"));
 }
 
 void EasyJc::on_config_load(const utility::Config& cfg) {
