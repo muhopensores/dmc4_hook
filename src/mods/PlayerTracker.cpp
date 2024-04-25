@@ -37,15 +37,15 @@ std::optional<std::string> PlayerTracker::on_initialize() {
 }
 
 void PlayerTracker::on_gui_frame() {
-    ImGui::Checkbox("Disable Game Pause When Opening The Trainer", &WorkRate::disable_trainer_pause);
+    ImGui::Checkbox(_("Disable Game Pause When Opening The Trainer"), &WorkRate::disable_trainer_pause);
 
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
 
-    ImGui::Checkbox("Show Pin Timers", &PlayerTracker::pin_imgui_enabled);
+    ImGui::Checkbox(_("Show Pin Timers", &PlayerTracker::pin_imgui_enabled));
     ImGui::SameLine();
-    help_marker("Opens up a UI when pins are placed that shows the time remaining on each pin");
+    help_marker(_("Opens up a UI when pins are placed that shows the time remaining on each pin"));
 
     ImGui::Spacing();
     ImGui::Separator();
@@ -60,49 +60,49 @@ void PlayerTracker::on_gui_frame() {
     ImGui::Separator();
     ImGui::Spacing();
 
-    ImGui::Checkbox("Display Player Stats", &display_player_stats);
+    ImGui::Checkbox(_("Display Player Stats", &display_player_stats));
     ImGui::SameLine();
-    help_marker("View various details about the player character");
+    help_marker(_("View various details about the player character"));
     if (display_player_stats) {
         ImGui::Indent(lineIndent);
         uPlayer* player = devil4_sdk::get_local_player();
         if (player) {
-            ImGui::InputFloat("HP ##1", &player->HP);
-            ImGui::InputFloat("Max HP ##1", &player->HPMax);
-            ImGui::InputScalar("Move ID Debug ##1", ImGuiDataType_U8, &player->moveIDBest);
-            ImGui::InputFloat3("XYZ Position ##1", (float*)&player->m_pos);
-            ImGui::InputFloat4("Rotation ##1", &player->rotation2);
-            ImGui::InputFloat3("XYZ Scale ##1", (float*)&player->m_scale);
-            ImGui::InputFloat3("XYZ Velocity ##1", (float*)&player->m_d_velocity);
-            ImGui::InputFloat("Movement Speed ##1", &player->m_d_vel_magnitude);
-            ImGui::InputFloat("Inertia ##1", &player->inertia);
+            ImGui::InputFloat(_("HP ##1"), &player->HP);
+            ImGui::InputFloat(_("Max HP ##1"), &player->HPMax);
+            ImGui::InputScalar(_("Move ID Debug ##1"), ImGuiDataType_U8, &player->moveIDBest);
+            ImGui::InputFloat3(_("XYZ Position ##1"), (float*)&player->m_pos);
+            ImGui::InputFloat4(_("Rotation ##1"), &player->rotation2);
+            ImGui::InputFloat3(_("XYZ Scale ##1"), (float*)&player->m_scale);
+            ImGui::InputFloat3(_("XYZ Velocity ##1"), (float*)&player->m_d_velocity);
+            ImGui::InputFloat(_("Movement Speed ##1"), &player->m_d_vel_magnitude);
+            ImGui::InputFloat(_("Inertia ##1"), &player->inertia);
             ImGui::SameLine();
-            help_marker("Uhm, ehm, akshually, internia isn't a thing, it's a property of a thing, the shit you're showing is velocity, the "
+            help_marker(_("Uhm, ehm, akshually, internia isn't a thing, it's a property of a thing, the shit you're showing is velocity, the "
                         "measure of inertia is mass, resistance to acceleration (slowing down is also acceleration just in the opposite "
                         "direction), if the thing that got yeeted doesn't like burn off it's layers in flight due to air friction like a "
-                        "fucking meteor or some shit then it's inertia isn't changing. Get it right NERD");
-            ImGui::InputScalar("Weight ##1", ImGuiDataType_U8, &player->weight);
-            ImGui::InputScalar("Lock On ##1", ImGuiDataType_U8, &player->lockedOn);
+                        "fucking meteor or some shit then it's inertia isn't changing. Get it right NERD"));
+            ImGui::InputScalar(_("Weight ##1"), ImGuiDataType_U8, &player->weight);
+            ImGui::InputScalar(_("Lock On ##1"), ImGuiDataType_U8, &player->lockedOn);
             if (player->controllerID == 0) { // dante
-                ImGui::InputFloat("Disaster Gauge ##1", &player->disasterGauge);
+                ImGui::InputFloat(_("Disaster Gauge ##1"), &player->disasterGauge);
             } else { // nero
-                ImGui::InputFloat("Exceed Timer ##1", &player->exceedTimer);
+                ImGui::InputFloat(_("Exceed Timer ##1"), &player->exceedTimer);
                 ImGui::SameLine();
-                help_marker("If you press exceed while this timer is between 0 and 1, you'll get MAX-Act.");
+                help_marker(_("If you press exceed while this timer is between 0 and 1, you'll get MAX-Act."));
             }
-            ImGui::InputFloat("Animation Frame ##1", &player->animFrame);
-            ImGui::InputScalar("Move Part ##1", ImGuiDataType_U8, &player->movePart);
-            ImGui::InputScalar("Move Bank ##1", ImGuiDataType_U8, &player->moveBank);
-            ImGui::InputScalar("Move ID ##1", ImGuiDataType_U8, &player->moveID2);
+            ImGui::InputFloat(_("Animation Frame ##1"), &player->animFrame);
+            ImGui::InputScalar(_("Move Part ##1"), ImGuiDataType_U8, &player->movePart);
+            ImGui::InputScalar(_("Move Bank ##1"), ImGuiDataType_U8, &player->moveBank);
+            ImGui::InputScalar(_("Move ID ##1"), ImGuiDataType_U8, &player->moveID2);
             static int8_t tempMoveBank = 0;
             static int8_t tempMoveID   = 0;
-            if (ImGui::Button("Save Current Move")) {
+            if (ImGui::Button(_("Save Current Move"))) {
                 tempMoveBank = player->moveBank;
                 tempMoveID   = player->moveID2;
             }
-            ImGui::InputScalar("Saved Move Bank ##1", ImGuiDataType_U8, &tempMoveBank);
-            ImGui::InputScalar("Saved Move ID ##1", ImGuiDataType_U8, &tempMoveID);
-            if (ImGui::Button("Play Saved Move")) {
+            ImGui::InputScalar(_("Saved Move Bank ##1"), ImGuiDataType_U8, &tempMoveBank);
+            ImGui::InputScalar(_("Saved Move ID ##1"), ImGuiDataType_U8, &tempMoveID);
+            if (ImGui::Button(_("Play Saved Move"))) {
                 player->moveBank = tempMoveBank;
                 player->moveID2  = tempMoveID;
                 player->movePart = 0;

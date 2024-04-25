@@ -6,13 +6,13 @@ add_subdirectory(glm)
 add_subdirectory(csys)
 
 project(minhook)
-set(CompilerFlags
-        CMAKE_CXX_FLAGS_RELEASE
-        CMAKE_C_FLAGS_RELEASE
-        )
-foreach(CompilerFlag ${CompilerFlags})
-  string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
-endforeach()
+#set(CompilerFlags
+#        CMAKE_CXX_FLAGS_RELEASE
+#        CMAKE_C_FLAGS_RELEASE
+#        )
+#foreach(CompilerFlag ${CompilerFlags})
+#  string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+#endforeach()
 
 add_library(minhook STATIC
             minhook/src/buffer.c

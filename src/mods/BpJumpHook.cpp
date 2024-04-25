@@ -374,21 +374,21 @@ std::optional<std::string> BpJumpHook::on_initialize() {
 }
 
 void BpJumpHook::on_gui_frame() {
-    if (ImGui::Checkbox("Randomize BP", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Randomize BP"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("All stages will be randomized. Enable before starting BP");
+    help_marker(_("All stages will be randomized. Enable before starting BP"));
     ImGui::SameLine(sameLineWidth);
-    ImGui::Checkbox("Boss Rush", &bp_boss_rush);
+    ImGui::Checkbox(_("Boss Rush"), &bp_boss_rush);
     ImGui::SameLine();
-    help_marker("Only boss stages will be played. Enable before starting BP\nCan be used with Randomize BP");
+    help_marker(_("Only boss stages will be played. Enable before starting BP\nCan be used with Randomize BP");
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
         if (ImGui::CollapsingHeader("View Randomized Stages")) {
-                ImGui::Text("Stage Number");
+                ImGui::Text(_("Stage Number"));
                 ImGui::SameLine(sameLineWidth);
-                ImGui::Text("Random Stage");
+                ImGui::Text(_("Random Stage"));
             if (!bp_boss_rush) {
                 int stage_count = 1;
                 for (int i : bp_array) {

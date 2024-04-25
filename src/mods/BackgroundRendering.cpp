@@ -77,9 +77,9 @@ void BackgroundRendering::on_config_save(utility::Config& cfg) {
 }
 
 void BackgroundRendering::on_gui_frame() {
-	ImGui::Checkbox("Background Input", &mod_enabled);
+	ImGui::Checkbox(_("Background Input", &mod_enabled));
     ImGui::SameLine();
-    help_marker("The game will accept controller and keyboard inputs while tabbed out");
+    help_marker(_("The game will accept controller and keyboard inputs while tabbed out");
 }
 
 namespace background_rendering {

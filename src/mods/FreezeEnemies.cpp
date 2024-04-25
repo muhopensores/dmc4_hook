@@ -36,11 +36,11 @@ void FreezeEnemies::toggle(bool enable) {
 }
 
 void FreezeEnemies::on_gui_frame() {
-    if (ImGui::Checkbox("Freeze Enemies", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Freeze Enemies"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Freezes enemies, even if they're midair. Best used with infinite enemy hp");
+    help_marker(_("Freezes enemies, even if they're midair. Best used with infinite enemy hp"));
 }
 
 void FreezeEnemies::on_config_load(const utility::Config& cfg) {

@@ -403,40 +403,40 @@ void AreaJump::jump_to_stage(int stage) {
 void AreaJump::on_gui_frame() 
 {
 	if (IsBadWritePtr(c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(c_area_jump_ptr,sizeof(uint32_t))) {
-		ImGui::TextWrapped("Area Jump is not initialized.\nLoad into a stage to access it.");
+		ImGui::TextWrapped(_("Area Jump is not initialized.\nLoad into a stage to access it."));
 		return;
 	}
 
-    ImGui::Text("Bloody Palace Floor Teleports");
+    ImGui::Text(_("Bloody Palace Floor Teleports"));
     ImGui::SameLine();
-    help_marker("Type in which BP floor you want to teleport to then hit Go to be teleported to that stage");
+    help_marker(_("Type in which BP floor you want to teleport to then hit Go to be teleported to that stage");
     ImGui::Spacing();
 
 	if (c_area_jump_ptr->bp_floor_stage) {
-		if (ImGui::InputInt("##BP Floor ", &c_area_jump_ptr->bp_floor_stage, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
+		if (ImGui::InputInt(_("##BP Floor "), &c_area_jump_ptr->bp_floor_stage, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
 			c_area_jump_ptr->bp_floor_stage = std::clamp(c_area_jump_ptr->bp_floor_stage, 1, 101);
 		}
 
-        if (ImGui::Button("Go", ImVec2(290, 20))) {
+        if (ImGui::Button(_("Go"), ImVec2(290, 20))) {
 			jump_to_stage(bp_stage(c_area_jump_ptr->bp_floor_stage));
 		}
 	}
     else {
-        ImGui::TextWrapped("BP Floor Jump is not initialized.\nLoad into BP to access it.");
+        ImGui::TextWrapped(_("BP Floor Jump is not initialized.\nLoad into BP to access it."));
     }
 
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
 
-    ImGui::Text("Mission Area Teleports");
+    ImGui::Text(_("Mission Area Teleports"));
     ImGui::SameLine();
-    help_marker("Teleport to any area by clicking its name");
+    help_marker(_("Teleport to any area by clicking its name");
 
     ImGui::Spacing();
 
 	int room_item_current = 0;
-	if (ImGui::ListBox("##Room Codes Listbox", &room_item_current, room_items.data(), room_items.size(), 10)) {
+	if (ImGui::ListBox(_("##Room Codes Listbox"), &room_item_current, room_items.data(), room_items.size(), 10)) {
 		jump_to_stage(room_item_current);
 	}
 }

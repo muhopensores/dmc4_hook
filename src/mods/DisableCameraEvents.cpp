@@ -18,12 +18,12 @@ void DisableCameraEvents::toggle(bool enable) {
 }
 
 void DisableCameraEvents::on_gui_frame() {
-    if (ImGui::Checkbox("Disable Camera Events", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Disable Camera Events"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Certain missions or parts will cause a black screen when this option is enabled. "
-               "Press the pause button then confirm to go into the item menu and the screen will return to normal.");
+    help_marker(_("Certain missions or parts will cause a black screen when this option is enabled. "
+               "Press the pause button then confirm to go into the item menu and the screen will return to normal."));
 }
 
 void DisableCameraEvents::on_config_load(const utility::Config& cfg) {

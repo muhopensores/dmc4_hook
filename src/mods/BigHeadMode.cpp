@@ -134,14 +134,14 @@ std::optional<std::string> BigHeadMode::on_initialize(){
 }
 
 void BigHeadMode::on_gui_frame() {
-    if (ImGui::Checkbox("Big Head Mode", &g_enable_mod)) {
+    if (ImGui::Checkbox(_("Big Head Mode"), &g_enable_mod)) {
         if (g_swole_mode == true)
             g_swole_mode = false;
 	}
     ImGui::SameLine();
     help_marker("Head size scales with style");
     ImGui::SameLine(sameLineWidth);
-	if (ImGui::Checkbox("Swole Mode", &g_swole_mode)) {
+	if (ImGui::Checkbox(_("Swole Mode"), &g_swole_mode)) {
 		g_enable_mod = g_swole_mode;
 	}
 	ImGui::SameLine();

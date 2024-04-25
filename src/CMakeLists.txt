@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/LocalizationManager.hpp
+  mods/LocalizationManager.cpp
   mods/CharSwitcher.hpp
   mods/CharSwitcher.cpp
   mods/EffectColours.hpp
@@ -285,6 +287,10 @@ set(UTILITY_SRC
   utility/Compressed.cpp
   utility/Dx9Utils.hpp
   utility/Dx9Utils.cpp
+  utility/MoFile.hpp
+  utility/MoFile.cpp
+  utility/Locales.hpp
+  utility/Locales.cpp
 )
 
 set(TWITCH_SRC
@@ -317,6 +323,12 @@ set(FRAMEWORK_SRC
 set(MISC
   misc/CompressedDrawing.cpp
   misc/BgTexture.cpp
+  misc/FontRoboto.cpp
+)
+
+set(LANG
+  i18n/en_dmc4hook.hpp
+  i18n/ru_dmc4hook.hpp
 )
 
 source_group("imgui"   FILES ${IMGUI_SRC})
@@ -326,6 +338,7 @@ source_group("Utility" FILES ${UTILITY_SRC})
 source_group("SDK"     FILES ${SDK_SRC})
 source_group("Twitch"  FILES ${TWITCH_SRC})
 source_group("misc"    FILES ${MISC})
+source_group("lang"    FILES ${LANG})
 
 #if(GIT_COMMIT_HASH)
 #  message("GIT_COMMIT_HASH: ${GIT_COMMIT_HASH}")
@@ -344,6 +357,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
             ${SDK_SRC}
             ${TWITCH_SRC}
             ${MISC}
+            ${LANG}          
             ${FRAMEWORK_SRC}
 )
 
@@ -353,7 +367,7 @@ target_compile_features(${CMAKE_PROJECT_NAME} PUBLIC cxx_std_17)
 
 include_directories(${CMAKE_PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME dinput8)
-target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC DINPUT_HOOK)
+target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC DINPUT_HOOK _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING)
 if(DEVELOPER_MODE)
     target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC DEVELOPER)
     target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC /EHa)

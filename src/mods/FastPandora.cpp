@@ -16,11 +16,11 @@ void FastPandora::toggle(bool enable) {
 }
 
 void FastPandora::on_gui_frame() {
-    if (ImGui::Checkbox("Fast Pandora", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Fast Pandora"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Cycle to grounded Pandora moves in DT speed outside of DT");
+    help_marker(_("Cycle to grounded Pandora moves in DT speed outside of DT"));
 }
 
 void FastPandora::on_config_load(const utility::Config& cfg){

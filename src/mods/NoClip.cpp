@@ -46,18 +46,18 @@ void NoClip::toggle2(bool enable) {
 }
 
 void NoClip::on_gui_frame() {
-    if (ImGui::Checkbox("Noclip", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Noclip"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("You and enemies will ignore walls");
+    help_marker(_("You and enemies will ignore walls");
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox("Disable Teleport Planes", &mod_enabled_2)) {
+    if (ImGui::Checkbox(_("Disable Teleport Planes"), &mod_enabled_2)) {
         toggle2(mod_enabled_2);
     }
     ImGui::SameLine();
-    help_marker("Disable the planes that teleport you back to the stage when you noclip out of bounds");
-    if (ImGui::Checkbox("Lock Y Pos", &player_lock_y_pos)) {
+    help_marker(_("Disable the planes that teleport you back to the stage when you noclip out of bounds"));
+    if (ImGui::Checkbox(_("Lock Y Pos", &player_lock_y_pos))) {
         if (player_lock_y_pos) {
             uPlayer* player = devil4_sdk::get_local_player();
             if (player) {
@@ -66,7 +66,7 @@ void NoClip::on_gui_frame() {
         }
     }
     ImGui::SameLine();
-    help_marker("Lock your height to explore beyond the environment more efficiently");
+    help_marker(_("Lock your height to explore beyond the environment more efficiently");
 }
 
 void NoClip::on_frame(fmilliseconds& dt) {

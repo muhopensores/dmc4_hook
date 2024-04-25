@@ -22,7 +22,7 @@ void InfRevive::toggle(bool enable) {
 }
 
 void InfRevive::on_gui_frame() {
-    if (ImGui::Checkbox("Infinite Revives", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Infinite Revives"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();

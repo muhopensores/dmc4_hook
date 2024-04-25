@@ -16,7 +16,7 @@ void EnemyAttackOffScreen::toggle(bool enable) {
 }
 
 void EnemyAttackOffScreen::on_gui_frame() {
-    if (ImGui::Checkbox("Enemies Attack Offscreen", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Enemies Attack Offscreen"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();

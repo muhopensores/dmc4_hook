@@ -23,11 +23,11 @@ void FrostsDontJump::toggle(bool enable) {
 
 void FrostsDontJump::on_gui_frame() {
 
-    if (ImGui::Checkbox("No DTless Frost Escape", &mod_enabled)) {
+    if (ImGui::Checkbox(_("No DTless Frost Escape"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Disable Frosts jumping out of combos until they DT");
+    help_marker(_("Disable Frosts jumping out of combos until they DT"));
 }
 
 void FrostsDontJump::on_config_load(const utility::Config& cfg) {

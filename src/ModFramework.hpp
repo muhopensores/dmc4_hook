@@ -14,6 +14,7 @@ namespace utility {
 #include "utility/ChronoAlias.hpp"
 #include "imgui.h"
 
+
 // Global facilitator
 class ModFramework {
 public:
@@ -65,9 +66,17 @@ public:
     // }
     bool m_draw_console{ false };
 
+    // NOTE(): locale stuff
+    bool m_imfont_queue_reload_flag {false};
+    ImFont* m_imfont_main {};
+    char m_glob_locale[3] = "en"; // two chars and null terminator
+
     void on_frame();
     void on_reset();
     void on_after_reset();
+    // NOTE(): need to delay updating font atlas till after 
+    // frame is done through a flag at the end of on_frame();
+    void on_locale_update(const char* contry_code);
     bool on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param);
 
 private:

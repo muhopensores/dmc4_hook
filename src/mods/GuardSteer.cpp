@@ -87,12 +87,12 @@ std::optional<std::string> GuardSteer::on_initialize() {
 }
 
 void GuardSteer::on_gui_frame() {
-    ImGui::Checkbox("Guardsteer", &mod_enabled);
+    ImGui::Checkbox(_("Guardsteer"), &mod_enabled);
     ImGui::SameLine();
-    help_marker("See your body into the moonlight\n"
+    help_marker(_("See your body into the moonlight\n"
                 "Even if I try to cancel\n"
                 "All the pictures into the mind\n"
-                "There's a flashing in my eyes");
+                "There's a flashing in my eyes"));
 }
 
 void GuardSteer::on_config_load(const utility::Config& cfg) {

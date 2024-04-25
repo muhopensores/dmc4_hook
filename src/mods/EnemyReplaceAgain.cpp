@@ -341,27 +341,25 @@ int EnemyReplaceAgain::default_enemy[IM_ARRAYSIZE(combo_lists)] = { 0, 1, 2, 3, 
 int EnemyReplaceAgain::desired_enemy[IM_ARRAYSIZE(combo_items)];
 
 void EnemyReplaceAgain::on_gui_frame() {
-    // if (ImGui::CollapsingHeader("Enemy Replacement")) {
-        ImGui::Text("Enemy Replacement");
-        ImGui::SameLine();
-        help_marker("Replace almost any enemy type by clicking the original enemy followed by the desired swapped enemy in the "
-                    "dropdown\nDo not replace Mephisto with Faust and Faust with Mephisto at the same time. The game will crash");
-        ImGui::Spacing();
-        if (ImGui::Button("Reset")) {
-            for (int i = 0; i < IM_ARRAYSIZE(default_enemy); i++) {
-                desired_enemy[i] = i;
-                replace_enemy_with(default_enemy[i], desired_enemy[i]);
-            }
-        }
-        ImGui::Spacing();
+    ImGui::Text("Enemy Replacement");
+    ImGui::SameLine();
+    help_marker(_("Replace almost any enemy type by clicking the original enemy followed by the desired swapped enemy in the "
+                "dropdown\nDo not replace Mephisto with Faust and Faust with Mephisto at the same time. The game will crash"));
+    ImGui::Spacing();
+    if (ImGui::Button(_("Reset"))) {
         for (int i = 0; i < IM_ARRAYSIZE(default_enemy); i++) {
-            ImGui::Text(combo_lists[i]);
-            if (ImGui::Combo(combo_list_i_ds[i], &desired_enemy[i], combo_items, IM_ARRAYSIZE(combo_items))) {
-                replace_enemy_with(default_enemy[i], desired_enemy[i]);
-            }
-            ImGui::Spacing();
+            desired_enemy[i] = i;
+            replace_enemy_with(default_enemy[i], desired_enemy[i]);
         }
-    // }
+    }
+    ImGui::Spacing();
+    for (int i = 0; i < IM_ARRAYSIZE(default_enemy); i++) {
+        ImGui::Text(combo_lists[i]);
+        if (ImGui::Combo(combo_list_i_ds[i], &desired_enemy[i], combo_items, IM_ARRAYSIZE(combo_items))) {
+            replace_enemy_with(default_enemy[i], desired_enemy[i]);
+        }
+        ImGui::Spacing();
+    }
 }
 // TODO cfg??
 /* ??:

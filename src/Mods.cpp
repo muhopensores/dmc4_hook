@@ -1,6 +1,8 @@
 #include "Mods.hpp"
 #include "utility/Hash.hpp"
+#include "utility/Locales.hpp"
 #include "Config.hpp"
+#include "mods/LocalizationManager.hpp"
 // include mod headers here
 #include "mods/AreaJump.hpp"
 #include "mods/BackgroundRendering.hpp"
@@ -242,6 +244,7 @@ Mods::Mods() {
     ADD_MOD(EffectColours);
     ADD_MOD(CharSwitcher);
     ADD_MOD(RisingSun);
+    ADD_MOD(LocalizationManager);
 }
 
 // Initializes mods, checks for errors
@@ -250,7 +253,7 @@ std::optional<std::string> Mods::on_initialize(Mod::ModType type) const {
         if (mod->get_mod_type() != type) {
             continue;
         }
-        // spdlog::info("%s::onInitialize()\n", mod->getModName().data());
+        //spdlog::info("%s::onInitialize()\n", mod->getModName().data());
 
         if (auto e = mod->on_initialize(); e != std::nullopt) {
             // spdlog::info("%s::onInitialize() has failed: %s\n", mod->getModName().data(), *e);
@@ -272,8 +275,11 @@ std::optional<std::string> Mods::on_initialize(Mod::ModType type) const {
         }
     }
 
-    if (type == Mod::ModType::SLOW) { g_framework->get_menu_key_struct()->on_config_load(cfg); }
+    if (type == Mod::ModType::SLOW)
+        g_framework->get_menu_key_struct()->on_config_load(cfg);
+
     MutatorRegistry::inst().load_config(cfg);
+
     return std::nullopt;
 }
 

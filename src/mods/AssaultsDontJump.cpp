@@ -45,10 +45,10 @@ std::optional<std::string> AssaultsDontJump::on_initialize() {
 
 void AssaultsDontJump::on_gui_frame() {
 
-    ImGui::Checkbox("No DTless Assault Escape", &mod_enabled);
+    ImGui::Checkbox(_("No DTless Assault Escape"), &mod_enabled);
     //toggle(mod_enabled);
     ImGui::SameLine();
-    help_marker("Disable Assaults jumping out of combos until they Devil Trigger");
+    help_marker(_("Disable Assaults jumping out of combos until they Devil Trigger"));
 }
 
 void AssaultsDontJump::on_config_load(const utility::Config& cfg) {

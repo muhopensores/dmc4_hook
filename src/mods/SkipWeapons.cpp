@@ -103,24 +103,24 @@ std::optional<std::string> SkipWeapons::on_initialize() {
 
 void SkipWeapons::on_gui_frame() {
 	if (!hooked) { return; }
-    if (ImGui::Checkbox("Skip Shotgun", &skip_shotgun))
+    if (ImGui::Checkbox(_("Skip Shotgun"), &skip_shotgun))
 		skip_pandora = false;
     ImGui::SameLine();
-    help_marker("Skips over Shotgun when Gun switching");
+    help_marker(_("Skips over Shotgun when Gun switching"));
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox("Skip Gilgamesh", &skip_gilgamesh))
+    if (ImGui::Checkbox(_("Skip Gilgamesh"), &skip_gilgamesh))
         skip_lucifer = false;
     ImGui::SameLine();
-    help_marker("Skips over Gilgamesh when Weapon switching");
+    help_marker(_("Skips over Gilgamesh when Weapon switching"));
     if (ImGui::Checkbox("Skip Pandora", &skip_pandora))
         skip_shotgun = false;
     ImGui::SameLine();
-    help_marker("Skips over Pandora when Gun switching");
+    help_marker(_("Skips over Pandora when Gun switching"));
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox("Skip Lucifer", &skip_lucifer))
+    if (ImGui::Checkbox(_("Skip Lucifer"), &skip_lucifer))
         skip_gilgamesh = false;
     ImGui::SameLine();
-    help_marker("Skips over Lucifer when Gun switching");
+    help_marker(_("Skips over Lucifer when Gun switching"));
 }
 
 void SkipWeapons::on_config_load(const utility::Config& cfg) {

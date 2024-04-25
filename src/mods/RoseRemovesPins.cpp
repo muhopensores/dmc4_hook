@@ -49,11 +49,11 @@ std::optional<std::string> RoseRemovesPins::on_initialize() {
 }
 
 void RoseRemovesPins::on_gui_frame() {
-    ImGui::Checkbox("Rose Removes Pins", &mod_enabled);
+    ImGui::Checkbox(_("Rose Removes Pins"), &mod_enabled);
     ImGui::SameLine();
-    help_marker("Rose despawns pins rather than detonating them");
+    help_marker(_("Rose despawns pins rather than detonating them"));
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox("Infinite Pin Timer", &mod_enabled2)) {
+    if (ImGui::Checkbox(_("Infinite Pin Timer"), &mod_enabled2)) {
         no_pin_timer(mod_enabled2);
     }
 }

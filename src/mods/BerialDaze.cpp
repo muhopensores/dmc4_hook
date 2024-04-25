@@ -40,7 +40,7 @@ std::optional<std::string> BerialDaze::on_initialize() {
 }
 
 void BerialDaze::on_gui_frame() {
-    if (ImGui::Checkbox("Berial Daze", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Berial Daze"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();

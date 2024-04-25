@@ -19,7 +19,7 @@ void InfCalibur::toggle(bool enable) {
 }
 
 void InfCalibur::on_gui_frame() {
-    if (ImGui::Checkbox("Infinite Calibur", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Infinite Calibur"), &mod_enabled)) {
         toggle(mod_enabled);
     }
 }

@@ -21,11 +21,11 @@ void FreeJc::toggle(bool enable) {
 }
 
 void FreeJc::on_gui_frame() {
-    if (ImGui::Checkbox("Free Enemy Step", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Free Enemy Step"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Enemy Step anywhere in the room with an enemy");
+    help_marker(_("Enemy Step anywhere in the room with an enemy"));
 }
 
 void FreeJc::on_config_load(const utility::Config& cfg) {

@@ -54,9 +54,9 @@ std::optional<std::string> RgMultiplier::on_initialize() {
 }
 
 void RgMultiplier::on_gui_frame() {
-    ImGui::Checkbox("Increased RG Gain", &mod_enabled);
+    ImGui::Checkbox(_("Increased RG Gain"), &mod_enabled);
     ImGui::SameLine();
-    help_marker("Intended to match DMC3's Royal Guard meter gain");
+    help_marker(_("Intended to match DMC3's Royal Guard meter gain"));
 }
 
 void RgMultiplier::on_config_load(const utility::Config& cfg) {

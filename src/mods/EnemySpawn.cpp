@@ -380,17 +380,17 @@ std::optional<std::string> EnemySpawn::on_initialize() {
 
 void EnemySpawn::on_gui_frame() {
     if (IsBadWritePtr(AreaJump::c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(AreaJump::c_area_jump_ptr, sizeof(uint32_t))) {
-        ImGui::TextWrapped("Enemy Spawner is not initialized.\nLoad into a stage to access it.");
+        ImGui::TextWrapped(_("Enemy Spawner is not initialized.\nLoad into a stage to access it."));
         return;
     }
-    ImGui::Text("Enemy Spawner");
+    ImGui::Text(_("Enemy Spawner"));
     ImGui::SameLine();
-    help_marker("Any clicked enemy will spawn above player coords");
+    help_marker(_("Any clicked enemy will spawn above player coords"));
     int enemy_names_current = 0;
     if (ImGui::ListBox("##Enemy Spawn Listbox", &enemy_names_current, enemy_names.data(), enemy_names.size(), 21)) {
         spawn_em00x(enemy_names_current);
     }
-    if (ImGui::Button("Random")) {
+    if (ImGui::Button(_("Random"))) {
         auto now = std::chrono::system_clock::now();
         srand((uint32_t)now.time_since_epoch().count());
         spawn_em00x(rand() % 21);

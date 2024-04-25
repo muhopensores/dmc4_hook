@@ -24,11 +24,11 @@ void TurnSpeedEdits::backslide_toggle(bool enable) {
 
 
 void TurnSpeedEdits::on_gui_frame() {
-    if (ImGui::Checkbox("Decreased Backslide Turn Speed", &backslide_enable)) {
+    if (ImGui::Checkbox(_("Decreased Backslide Turn Speed"), &backslide_enable)) {
         backslide_toggle(backslide_enable);
     }
     ImGui::SameLine();
-    help_marker("Reduces turn speed on backslide to make it easier to land without the need of a buffer");
+    help_marker(_("Reduces turn speed on backslide to make it easier to land without the need of a buffer"));
 }
 
 void TurnSpeedEdits::on_config_load(const utility::Config& cfg) {

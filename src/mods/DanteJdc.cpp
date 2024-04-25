@@ -444,9 +444,9 @@ std::optional<std::string> DanteJdc::on_initialize() {
 }
 
 void DanteJdc::on_gui_frame() {
-    ImGui::Checkbox("Judgement Cut", &mod_enabled);
+    ImGui::Checkbox(_("Judgement Cut"), &mod_enabled);
     ImGui::SameLine();
-    help_marker("Activate judgement cut when performing Yamato aerial rave with lock-on."
+    help_marker(_("Activate judgement cut when performing Yamato aerial rave with lock-on."
             "Perform normal inertia-less Yamato rave on lock-off.\n"
             "This mod requires external files found on the dmc4_hook repo.\n"
             "The button to the right of this cheat will take you to the download page.\n"
@@ -459,13 +459,29 @@ void DanteJdc::on_gui_frame() {
             ShellExecuteA(NULL, "open", "https://github.com/muhopensores/dmc4_hook/releases", NULL, NULL, SW_SHOWNORMAL);
         }
         ImGui::SameLine();
-        help_marker("Download JDC Files in the Assets section of the latest release and install manually or using Fluffy's Mod Manager");
+        help_marker(_("Download JDC Files in the Assets section of the latest release and install manually or using Fluffy's Mod Manager"));
         ImGui::Checkbox("Lock-on + back input", &alt_input_enabled);
         ImGui::SameLine();
-        help_marker("Bind jdc activation to lock-on + back");
+        help_marker(_("Bind jdc activation to lock-on + back"));
         ImGui::SameLine(sameLineWidth + lineIndent);
         ImGui::Checkbox("Inertia enable", &DanteJdc::inertia_enabled);
         ImGui::Unindent(lineIndent);
+        help_marker(_("- Save your config and load into a level."));
+    }
+    ImGui::SameLine(sameLineWidth);
+    if (ImGui::Button(_("Download JDC Files"))) {
+        ShellExecuteA(NULL, "open", "https://github.com/muhopensores/dmc4_hook/releases", NULL, NULL, SW_SHOWNORMAL);
+    }
+    ImGui::SameLine();
+    help_marker(_("Download JDC Files in the Assets section of the latest release and install manually or using Fluffy's Mod Manager"));
+    if (mod_enabled) {
+        ImGui::PushItemWidth(sameLineItemWidth);
+        ImGui::Checkbox(_("Lock-on + back input"), &alt_input_enabled);
+        ImGui::SameLine();
+        help_marker(_("Bind jdc activation to lock-on + back"));
+        ImGui::SameLine(sameLineWidth);
+        ImGui::Checkbox(_("Inertia enable"), &DanteJdc::inertia_enabled);
+        ImGui::PopItemWidth();
     }
 }
 

@@ -26,13 +26,13 @@ void InfFaustCloak::toggle2(bool enable) {
 }
 
 void InfFaustCloak::on_gui_frame() {
-    if (ImGui::Checkbox("Infinite Faust Cloak", &always_cloak)) {
+    if (ImGui::Checkbox(_("Infinite Faust Cloak"), &always_cloak)) {
         toggle1(always_cloak);
     }
     ImGui::SameLine();
     help_marker("Gives Faust Cloaks infinite HP");
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox("Disable Faust Cloak", &no_cloak)) {
+    if (ImGui::Checkbox(_("Disable Faust Cloak"), &no_cloak)) {
         toggle2(no_cloak);
     }
     ImGui::SameLine();

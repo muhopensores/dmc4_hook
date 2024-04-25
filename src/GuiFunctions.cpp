@@ -1,6 +1,7 @@
 #include "GuiFunctions.hpp"
 #include "Config.hpp"
 #include "utility/Hash.hpp"
+#include "utility/Locales.hpp"
 #include <string>
 #include "LicenseStrings.hpp"
 
@@ -218,7 +219,7 @@ namespace gui {
 
     // function that draws the fps onto the gui
     void fps_drawing() {
-        ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::Text(_("Average %.3f ms/frame (%.1f FPS)"), 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     }
 
     // function for putting credits specific things in the gui
@@ -227,10 +228,10 @@ namespace gui {
         static ImVec4 color2 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
         static ImVec4 color3 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
         static ImVec4 color4 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
-        if (ImGui::BeginTabItem("About")) {
+        if (ImGui::BeginTabItem(_("About"))) {
             ImGui::BeginChild("AboutChild");
             ImGui::Spacing();
-            ImGui::Text("DMC4Hook - Devil May Cry 4 Trainer");
+            ImGui::Text(_("DMC4Hook - Devil May Cry 4 Trainer"));
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
@@ -242,7 +243,7 @@ namespace gui {
             ImGui::Text("cheburrat0r");
             ImGui::Text("endneo");
             ImGui::Spacing();
-            ImGui::Text("Special Thanks:");
+            ImGui::Text(_("Special Thanks:"));
             ImGui::Text("socks");
             ImGui::Text("Whirling");
             ImGui::Text("Terrutas");
@@ -252,7 +253,7 @@ namespace gui {
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
-            ImGui::Text("For more info and updates visit the github:");
+            ImGui::Text(_("For more info and updates visit the github:"));
 
             ImGuiURL repo{ "https://github.com/muhopensores/dmc4_hook", "https://github.com/muhopensores/dmc4_hook" };
             repo.draw();
@@ -261,14 +262,17 @@ namespace gui {
             ImGui::Separator();
             ImGui::Spacing();
 
-            ImGui::Text("This trainer was made using:");
+            ImGui::Text(_("This trainer was made using:"));
 
-            static std::array<ImGuiURL, 5> links {
-                ImGuiURL { "REFramework https://github.com/praydog/REFramework", "https://github.com/praydog/REFramework" },
-                ImGuiURL { "GLM https://github.com/g-truc/glm", "https://github.com/g-truc/glm"},
-                ImGuiURL { "Dear ImGui https://github.com/ocornut/imgui", "https://github.com/ocornut/imgui" },
-                ImGuiURL { "MinHook https://github.com/TsudaKageyu/minhook", "https://github.com/TsudaKageyu/minhook" },
-                ImGuiURL { "spdlog https://github.com/gabime/spdlog", "https://github.com/gabime/spdlog" }
+            // NOTE(): oops forgot cpp17 has CTAD hehe
+            static std::array links {
+                ImGuiURL { "REFramework -> https://github.com/praydog/REFramework", "https://github.com/praydog/REFramework" },
+                ImGuiURL { "GLM -> https://github.com/g-truc/glm", "https://github.com/g-truc/glm"},
+                ImGuiURL { "Dear ImGui -> https://github.com/ocornut/imgui", "https://github.com/ocornut/imgui" },
+                ImGuiURL { "MinHook -> https://github.com/TsudaKageyu/minhook", "https://github.com/TsudaKageyu/minhook" },
+                ImGuiURL { "spdlog -> https://github.com/gabime/spdlog", "https://github.com/gabime/spdlog" },
+                ImGuiURL { "GNU gettext -> https://www.gnu.org/software/gettext/", "https://www.gnu.org/software/gettext/" },
+                ImGuiURL { "mo_file.zip -> http://number-none.com/blow/code/mo_file/index.html", "http://number-none.com/blow/code/mo_file/index.html" },
             };
             for (auto& link: links) {
                 link.draw();
@@ -278,22 +282,24 @@ namespace gui {
             ImGui::Separator();
             ImGui::Spacing();
 
-            if (ImGui::CollapsingHeader("Licenses")) {
-                ImGui::TreePush("Licenses");
+            if (ImGui::CollapsingHeader(_("Licenses"))) {
+                ImGui::TreePush(_("Licenses"));
 
                 struct License {
                     std::string name;
                     std::string text;
                 };
 
-                static std::array<License, 7> licenses{
-                    License{ "REFramework", license::reframework},
-                    License{ "GLM", license::glm },
-                    License{ "ImGui", license::imgui },
-                    License{ "MinHook", license::minhook },
-                    License{ "spdlog", license::spdlog },
-                    License{ "csys", license::csys },
+                static std::array licenses{
+                    License{ "REFramework",   license::reframework },
+                    License{ "GLM",           license::glm },
+                    License{ "ImGui",         license::imgui },
+                    License{ "MinHook",       license::minhook },
+                    License{ "spdlog",        license::spdlog },
+                    License{ "csys",          license::csys },
                     License{ "imgui_console", license::imgui_console },
+                    License{ "GNU gettext",   license::gnu_gettext },
+                    License{ "mo_file.zip",   license::naysayer_gettext },
                 };
 
                 for (const auto& license : licenses) {
@@ -332,15 +338,20 @@ namespace gui {
             fps_drawing();
             ImGui::Spacing();
             pmods->on_draw_ui("Borderless"_hash);
-            ImGui::SameLine(windowWidth-100.0f);
-            if (ImGui::Button("Save Config")) {
+            // calculate button width first
+            const char* save_config_label = _("Save Config");
+            const ImVec2 btn_size = ImGui::CalcTextSize(save_config_label);
+            ImGui::SameLine(windowWidth-(btn_size.x) - 30.0f);
+            if (ImGui::Button(save_config_label)) {
                 pmods->on_config_save();
             }
+            pmods->on_draw_ui("LocalizationManager"_hash);
+
             if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyMask_ ^ ImGuiTabBarFlags_FittingPolicyScroll)) {
-                if (ImGui::BeginTabItem("General")) {
+                if (ImGui::BeginTabItem(_("General"))) {
                     ImGui::BeginChild("GeneralChild");
                     ImGui::Spacing();
-                    ImGui::Text("General");
+                    ImGui::Text(_("General"));
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("DamageMultiplier"_hash); // needs its own line
@@ -367,7 +378,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("Enemy Difficulty");
+                    ImGui::Text(_("Enemy Difficulty"));
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("DifficultySelect"_hash); // needs its own line
@@ -392,7 +403,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("Enemy Training");
+                    ImGui::Text(_("Enemy Training"));
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("StunAnything"_hash);
@@ -411,7 +422,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("Bloody Palace");
+                    ImGui::Text(_("Bloody Palace"));
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("BpJumpHook"_hash); // needs its own line
@@ -422,10 +433,10 @@ namespace gui {
                     ImGui::EndTabItem();
                 }
 
-                if (ImGui::BeginTabItem("Character")) {
+                if (ImGui::BeginTabItem(_("Character"))) {
                     ImGui::BeginChild("CharacterChild");
                     ImGui::Spacing();
-                    ImGui::Text("Limit Removal");
+                    ImGui::Text(_("Limit Removal"));
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("LimitAdjust"_hash); // needs its own line
@@ -440,7 +451,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("Shared Abilities");
+                    ImGui::Text(_("Shared Abilities"));
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("FastSprint"_hash);
@@ -463,7 +474,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("Nero Abilities");
+                    ImGui::Text(_("Nero Abilities"));
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("NeroFullHouse"_hash); // needs its own line
@@ -484,7 +495,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("Dante Abilities");
+                    ImGui::Text(_("Dante Abilities"));
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("TrackingFullHouse"_hash);
@@ -536,7 +547,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("Lucifer");
+                    ImGui::Text(_("Lucifer"));
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("RoseRemovesPins"_hash); // needs its own line
@@ -546,7 +557,7 @@ namespace gui {
                     pmods->on_draw_ui("InputStates"_hash); // taunt ecstasy
 
                     ImGui::Spacing();
-                    ImGui::Text("Rose");
+                    ImGui::Text(_("Rose"));
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("RoseOptions"_hash); // needs its own line
@@ -555,7 +566,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("Darkslayer");
+                    ImGui::Text(_("Darkslayer"));
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("DoubleTapDarkslayer"_hash); // needs its own line
@@ -588,7 +599,7 @@ namespace gui {
                     ImGui::EndTabItem();
                 }
 
-                if (ImGui::BeginTabItem("Environment")) {
+                if (ImGui::BeginTabItem(_("Environment"))) {
                     ImGui::BeginChild("EnvironmentChild");
                     ImGui::Spacing();
                     pmods->on_draw_ui("AreaJump"_hash); // needs its own line
@@ -611,11 +622,11 @@ namespace gui {
                     ImGui::EndTabItem();
                 }
 
-                if (ImGui::BeginTabItem("System")) {
+                if (ImGui::BeginTabItem(_("System"))) {
                     ImGui::BeginChild("SystemChild");
 
                     ImGui::Spacing();
-                    ImGui::Text("HUD");
+                    ImGui::Text(_("HUD"));
 
                     ImGui::Spacing();
 
@@ -629,7 +640,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("Cutscenes");
+                    ImGui::Text(_("Cutscenes"));
 
                     ImGui::Spacing();
 
@@ -641,7 +652,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("Misc");
+                    ImGui::Text(_("Misc"));
 
                     ImGui::Spacing();
 
@@ -659,7 +670,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("dmc4_hook");
+                    ImGui::Text(_("dmc4_hook"));
 
                     ImGui::Spacing();
 
@@ -673,7 +684,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("System");
+                    ImGui::Text(_("System"));
 
                     ImGui::Spacing();
 
@@ -689,7 +700,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("Camera");
+                    ImGui::Text(_("Camera"));
 
                     ImGui::Spacing();
 
@@ -704,7 +715,7 @@ namespace gui {
                     ImGui::EndTabItem();
                 }
 
-                if (ImGui::BeginTabItem("Debug")) {
+                if (ImGui::BeginTabItem(_("Debug"))) {
                     ImGui::BeginChild("DebugChild");
 
                     pmods->on_draw_ui("RoomRespawn"_hash);
@@ -749,7 +760,7 @@ namespace gui {
                     ImGui::EndChild();
                     ImGui::EndTabItem();
                 }
-                if (ImGui::BeginTabItem("Hotkeys")) {
+                if (ImGui::BeginTabItem(_("Hotkeys"))) {
                     ImGui::BeginChild("HotkeysChild");
 
                     ImGui::Spacing();

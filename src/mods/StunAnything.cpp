@@ -17,11 +17,11 @@ void StunAnything::toggle(bool enable) {
 }
 
 void StunAnything::on_gui_frame() {
-    if (ImGui::Checkbox("Stun Anything", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Stun Anything"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Allows anything (even Lucifer pins) to stun");
+    help_marker(_("Allows anything (even Lucifer pins) to stun"));
 }
 
 void StunAnything::on_config_load(const utility::Config& cfg) {

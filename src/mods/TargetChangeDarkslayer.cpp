@@ -58,9 +58,9 @@ std::optional<std::string> TargetChangeDarkslayer::on_initialize() {
 }
 
 void TargetChangeDarkslayer::on_gui_frame() {
-    ImGui::Checkbox("Target Change Darkslayer", &mod_enabled);
+    ImGui::Checkbox(_("Target Change Darkslayer"), &mod_enabled);
     ImGui::SameLine();
-    help_marker("Darkslayer is accessed by pressing the target change button");
+    help_marker(_("Darkslayer is accessed by pressing the target change button"));
 }
 
 void TargetChangeDarkslayer::on_config_load(const utility::Config& cfg) {

@@ -41,12 +41,12 @@ std::optional<std::string> PsychoMantis::on_initialize() {
 }
 
 void PsychoMantis::on_gui_frame() {
-    ImGui::Checkbox("Vibe", &mod_enabled);
+    ImGui::Checkbox(_("Vibe"), &mod_enabled);
     ImGui::SameLine();
-    help_marker("Put your controller on the floor. Put it down as flat as you can..."
-        "that's good. Now I will move your controller by the power of my style alone!!");
+    help_marker(_("Put your controller on the floor. Put it down as flat as you can..."
+        "that's good. Now I will move your controller by the power of my style alone!!"));
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox("Vibe Slot 2", &psycho_mantis_slot_2)) {
+    if (ImGui::Checkbox(_("Vibe Slot 2", &psycho_mantis_slot_2))) {
         if (psycho_mantis_slot_2){
             mod_enabled = true;
             PsychoMantis::Controller::_controllerNum = 1;
@@ -56,15 +56,17 @@ void PsychoMantis::on_gui_frame() {
 #ifndef NDEBUG
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
-        ImGui::Checkbox("...debug", &mod_debugEnabled);
+        ImGui::Checkbox(_("...debug", &mod_debugEnabled));
+        ImGui::SameLine();
+        help_marker(_("Tick the Vibe checkbox too"));
         ImGui::SameLine();
         ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::SliderInt("##mod_enabled2AmountSliderInt", &mod_debugAmount, 0, 65535);
+        ImGui::SliderInt(_("##mod_enabled2AmountSliderInt"), &mod_debugAmount, 0, 65535);
         ImGui::PopItemWidth();
 
         ImGui::SameLine(sameLineWidth);
         ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::SliderInt("##mod_enabled2LRSliderInt", &mod_debugLR, 0, 2);
+        ImGui::SliderInt(_("##mod_enabled2LRSliderInt"), &mod_debugLR, 0, 2);
         ImGui::PopItemWidth();
         ImGui::Unindent(lineIndent);
     }

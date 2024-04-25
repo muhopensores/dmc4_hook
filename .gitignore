@@ -1,8 +1,9 @@
 build86/
 lsp/
-compile_commands.json
+i18n/mo
 .clangd/
 .cache
-src/Config.hpp
 .vscode/
 lsp.bat
+src/Config.hpp
+compile_commands.json

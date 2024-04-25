@@ -198,7 +198,7 @@ std::optional<std::string> NeroFullHouse::on_initialize() {
 }
 
 void NeroFullHouse::on_gui_frame() {
-    if (ImGui::Checkbox("Payline", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Payline"), &mod_enabled)) {
         if (mod_enabled) {
             helm_splitter_remap = true;
             *(uintptr_t*)0xC3EFB0 = 2; // streak 1 can be used in air
@@ -213,9 +213,9 @@ void NeroFullHouse::on_gui_frame() {
         }
     }
     ImGui::SameLine();
-    help_marker("Gives Nero a divekick action like in DMC5");
+    help_marker(_("Gives Nero a divekick action like in DMC5"));
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox("Remap Helm Splitter", &helm_splitter_remap)) {
+    if (ImGui::Checkbox(_("Remap Helm Splitter"), &helm_splitter_remap)) {
         if (helm_splitter_remap) {
             *(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE;
             *(uintptr_t*)double_down_directional = LOCKON_BACK_MELEE;
@@ -226,7 +226,7 @@ void NeroFullHouse::on_gui_frame() {
         }
     }
     ImGui::SameLine();
-    help_marker("Remap Helm Splitter and Double Down to lockon+back+melee");
+    help_marker(_("Remap Helm Splitter and Double Down to lockon+back+melee"));
 }
 
 void NeroFullHouse::on_config_load(const utility::Config& cfg) {

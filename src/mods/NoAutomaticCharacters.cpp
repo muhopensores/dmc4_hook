@@ -160,13 +160,13 @@ std::optional<std::string> NoAutomaticCharacters::on_initialize() {
 }
 
 void NoAutomaticCharacters::on_gui_frame() {
-    if (ImGui::Checkbox("No Auto Characters", &mod_enabled)) {
+    if (ImGui::Checkbox(_("No Auto Characters"), &mod_enabled)) {
         mod_enabled2 = false;
     }
     ImGui::SameLine();
     help_marker("Disables the Auto variants on the character select screen");
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox("No Auto Or Super Characters", &mod_enabled2)) {
+    if (ImGui::Checkbox(_("No Auto Or Super Characters"), &mod_enabled2)) {
         mod_enabled = false;
     }
 }

@@ -36,19 +36,17 @@ std::optional<std::string> InfDT::on_initialize() {
 }
 
 void InfDT::on_gui_frame() {
-    ImGui::Checkbox("Infinite DT", &mod_enabled);
+    ImGui::Checkbox(_("Infinite DT", &mod_enabled));
     ImGui::SameLine();
-    help_marker("Fills your Devil Trigger Gauge and stops it from decreasing. By default this is hotkeyed to F2");
+    help_marker(_("Fills your Devil Trigger Gauge and stops it from decreasing. By default this is hotkeyed to F2"));
 }
 
 void InfDT::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("infinite_dt").value_or(false);
-    //m_hotkey->on_config_load(cfg, getModName());
 }
 
 void InfDT::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("infinite_dt", mod_enabled);
-    //m_hotkey->on_config_save(cfg, getModName());
 }
 
 void InfDT::on_update_input(utility::Input& input) {

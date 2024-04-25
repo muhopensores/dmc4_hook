@@ -18,11 +18,11 @@ void RemoveLaunchArmour::toggle(bool enable) {
 }
 
 void RemoveLaunchArmour::on_gui_frame() {
-    if (ImGui::Checkbox("Remove Launch Armour", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Remove Launch Armour"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Removes the armour enemies gain when downed, allowing you to relaunch for practice instantly");
+    help_marker(_("Removes the armour enemies gain when downed, allowing you to relaunch for practice instantly"));
 }
 
 void RemoveLaunchArmour::on_config_load(const utility::Config& cfg) {
