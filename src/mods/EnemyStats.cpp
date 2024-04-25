@@ -130,6 +130,7 @@ void save_load_boss_info(bool isSave) {
 void EnemyStats::on_gui_frame() {
     ImGui::Checkbox("Display Enemy Stats", &display_enemy_stats);
     if (display_enemy_stats) {
+        ImGui::Indent(lineIndent);
         SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
         if (s_med_ptr) {
             ImGui::SliderInt("Enemy Count", (int*)&s_med_ptr->enemyCount[2], 0, 0);
@@ -185,6 +186,7 @@ void EnemyStats::on_gui_frame() {
                 help_marker("Hotkey is END by default");
             }
         }
+        ImGui::Unindent(lineIndent);
     }
 
     ImGui::Spacing();
@@ -193,6 +195,7 @@ void EnemyStats::on_gui_frame() {
 
     ImGui::Checkbox("Display Boss Stats", &display_boss_stats);
     if (display_boss_stats) {
+        ImGui::Indent(lineIndent);
         SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
         if (s_med_ptr) {
             uintptr_t* boss_ptr = (uintptr_t*)((uintptr_t)s_med_ptr + 0xB0);
@@ -221,6 +224,7 @@ void EnemyStats::on_gui_frame() {
                 help_marker("Hotkey is PAGE DOWN by default");
             }
         }
+        ImGui::Unindent(lineIndent);
     }
 
     ImGui::Spacing();

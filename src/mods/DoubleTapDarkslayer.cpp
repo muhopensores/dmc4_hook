@@ -166,7 +166,6 @@ void DoubleTapDarkslayer::on_gui_frame() {
     help_marker("Darkslayer is accessed by quickly pressing one style twice");
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
-        ImGui::SameLine(sameLineWidth);
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::SliderFloat("Double Tap Timer", &darkslayerTimerFill, 6.0f, 32.0f, "%.0f");
         ImGui::PopItemWidth();

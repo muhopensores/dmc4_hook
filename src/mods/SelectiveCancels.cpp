@@ -224,6 +224,7 @@ void SelectiveCancels::on_gui_frame() {
     help_marker("Guarding a move with momentum will halt your movement");
 
     if (mod_enabled) {
+		ImGui::Indent(lineIndent);
         ImGui::Spacing();
         ImGui::Text("Shared Abilities");
         ImGui::Spacing();
@@ -235,7 +236,7 @@ void SelectiveCancels::on_gui_frame() {
         ImGui::Spacing();
 
         draw_checkbox_simple("Grounded DT Activation", DTGROUND);
-        ImGui::SameLine(sameLineWidth);
+        ImGui::SameLine(sameLineWidth + lineIndent);
         draw_checkbox_simple("Showdown", SHOWDOWN);
 
         ImGui::Spacing();
@@ -243,19 +244,19 @@ void SelectiveCancels::on_gui_frame() {
         ImGui::Spacing();
 
         draw_checkbox_simple("Stinger", STINGER);
-        ImGui::SameLine(sameLineWidth);
+        ImGui::SameLine(sameLineWidth + lineIndent);
         draw_checkbox_simple("Prop", PROP);
 
         draw_checkbox_simple("Real Impact", REAL_IMPACT);
-        ImGui::SameLine(sameLineWidth);
+        ImGui::SameLine(sameLineWidth + lineIndent);
         draw_checkbox_simple("Kick 13", KICK13);
 
         draw_checkbox_simple("Shock", SHOCK);
-        ImGui::SameLine(sameLineWidth);
+        ImGui::SameLine(sameLineWidth + lineIndent);
         draw_checkbox_simple("Ecstasy", ECSTASY);
 
         draw_checkbox_simple("Slash Dimension", SLASH_DIMENSION);
-        ImGui::SameLine(sameLineWidth);
+        ImGui::SameLine(sameLineWidth + lineIndent);
         draw_checkbox_simple("DT Pin Up Part 2", DT_PIN_UP_P2);
 
         draw_checkbox_simple("Draw", DRAW);
@@ -267,7 +268,7 @@ void SelectiveCancels::on_gui_frame() {
         draw_checkbox_simple("Omen", OMEN);
         ImGui::SameLine();
         help_marker("Opening Pandora");
-        ImGui::SameLine(sameLineWidth);
+        ImGui::SameLine(sameLineWidth + lineIndent);
         draw_checkbox_simple("Epidemic", EPIDEMIC);
         ImGui::SameLine();
         help_marker("Pandora Ground shot 1");
@@ -275,8 +276,9 @@ void SelectiveCancels::on_gui_frame() {
         draw_checkbox_simple("Argument", ARGUMENT);
         ImGui::SameLine();
         help_marker("Gunship");
-        ImGui::SameLine(sameLineWidth);
+        ImGui::SameLine(sameLineWidth + lineIndent);
         draw_checkbox_simple("Gun Stinger", GUNSTINGER);
+		ImGui::Unindent(lineIndent);
 	}
 }
 

@@ -64,6 +64,7 @@ void PlayerTracker::on_gui_frame() {
     ImGui::SameLine();
     help_marker("View various details about the player character");
     if (display_player_stats) {
+        ImGui::Indent(lineIndent);
         uPlayer* player = devil4_sdk::get_local_player();
         if (player) {
             ImGui::InputFloat("HP ##1", &player->HP);
@@ -108,6 +109,7 @@ void PlayerTracker::on_gui_frame() {
                 player->canWeaponChange = 12;
             }
         }
+        ImGui::Unindent(lineIndent);
     }
 }
 
