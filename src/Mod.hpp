@@ -30,7 +30,7 @@ public:
         REGULAR,
         SLOW
     };
-    float sameLineWidth     = 250.0f;
+    float sameLineWidth     = 300.0f;
     float sameLineItemWidth = 150.0f;
     float lineIndent        = 20.0f;
     ImVec4 childColor       = {0.0f, 0.1f, 0.2f, 1.0f};

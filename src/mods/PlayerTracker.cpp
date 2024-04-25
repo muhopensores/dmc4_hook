@@ -53,7 +53,7 @@ void PlayerTracker::on_gui_frame() {
 
     SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
     ImGui::PushItemWidth(sameLineItemWidth);
-    ImGui::InputInt(_("s_med_ptr"), (int*)&s_med_ptr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputInt("s_med_ptr", (int*)&s_med_ptr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_ReadOnly);
     ImGui::PopItemWidth();
 
     ImGui::Spacing();

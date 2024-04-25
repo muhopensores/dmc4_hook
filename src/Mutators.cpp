@@ -187,7 +187,7 @@ void mutator_draw_mod_table(MutatorRegistry& registry) {
                 ImGui::TableNextRow();
 
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Text(_("%s"), mod->m_name.c_str());
+                ImGui::Text("%s", mod->m_name.c_str());
 
                 char modhash[64];
                 sprintf_s(modhash, sizeof(modhash), "##e%d", registry.m_hashes[hash_index]);

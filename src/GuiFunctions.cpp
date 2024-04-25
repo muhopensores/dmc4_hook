@@ -28,8 +28,8 @@
 static constexpr char* version{GUI_VERSION};
 static float g_window_height_hack{ 1080.0f };
 static float g_max{ 0.0f };
-static float windowWidth   = 550.0f;
-static float sameLineWidth = 250.0f; // another copy of this is in mod.hpp, I was too scared to include that here
+static float windowWidth   = 600.0f;
+static float sameLineWidth = 300.0f; // redef in mod.hpp, I was too scared to include that here
 namespace gui {
 
     // visual theme of the gui, can be changed to change the look
@@ -235,21 +235,21 @@ namespace gui {
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
-            ImGui::Text(_("Mstislav Capusta"));
-            ImGui::Text(_("SSSiyan"));
-            ImGui::Text(_("Vieris"));
-            ImGui::Text(_("CrazyMelody"));
-            ImGui::Text(_("Dlupx"));
-            ImGui::Text(_("cheburrat0r"));
-            ImGui::Text(_("endneo"));
+            ImGui::Text("Mstislav Capusta");
+            ImGui::Text("SSSiyan");
+            ImGui::Text("Vieris");
+            ImGui::Text("CrazyMelody");
+            ImGui::Text("Dlupx");
+            ImGui::Text("cheburrat0r");
+            ImGui::Text("endneo");
             ImGui::Spacing();
-            ImGui::Text(_("Special Thanks:"));
-            ImGui::Text(_("socks"));
-            ImGui::Text(_("Whirling"));
-            ImGui::Text(_("Terrutas"));
-            ImGui::Text(_("Boey"));
-            ImGui::Text(_("DelusionaryKiller"));
-            ImGui::Text(_("DJMalice"));
+            ImGui::Text("Special Thanks:");
+            ImGui::Text("socks");
+            ImGui::Text("Whirling");
+            ImGui::Text("Terrutas");
+            ImGui::Text("Boey");
+            ImGui::Text("DelusionaryKiller");
+            ImGui::Text("DJMalice");
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
