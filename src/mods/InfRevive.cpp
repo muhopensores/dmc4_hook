@@ -26,7 +26,7 @@ void InfRevive::on_gui_frame() {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Revive on the spot whenever you die for free");
+    help_marker(_("Revive on the spot whenever you die for free"));
 }
 
 void InfRevive::on_config_load(const utility::Config& cfg) {

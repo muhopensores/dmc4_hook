@@ -529,7 +529,7 @@ void DtKnuckle::on_gui_frame() {
     if (mod_enabled) {
 		ImGui::Indent(lineIndent);
         ImGui::PushItemWidth(sameLineItemWidth);
-        if (ImGui::BeginCombo(_("Guardian Input", devil4_sdk::getButtonInfo(desiredInput).second))) {
+        if (ImGui::BeginCombo(_("Guardian Input"), devil4_sdk::getButtonInfo(desiredInput).second)) {
             for (const auto& buttonPair : buttonPairs) {
                 bool is_selected = (desiredInput == buttonPair.first);
                 if (ImGui::Selectable(buttonPair.second, is_selected)) {

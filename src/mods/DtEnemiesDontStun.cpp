@@ -22,7 +22,7 @@ void DtEnemiesDontStun::on_gui_frame() {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Stops enemies from receiving stun from most attacks");
+    help_marker(_("Stops enemies from receiving stun from most attacks"));
 }
 
 void DtEnemiesDontStun::on_config_load(const utility::Config& cfg) {

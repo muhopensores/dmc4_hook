@@ -409,7 +409,7 @@ void AreaJump::on_gui_frame()
 
     ImGui::Text(_("Bloody Palace Floor Teleports"));
     ImGui::SameLine();
-    help_marker(_("Type in which BP floor you want to teleport to then hit Go to be teleported to that stage");
+    help_marker(_("Type in which BP floor you want to teleport to then hit Go to be teleported to that stage"));
     ImGui::Spacing();
 
 	if (c_area_jump_ptr->bp_floor_stage) {
@@ -431,7 +431,7 @@ void AreaJump::on_gui_frame()
 
     ImGui::Text(_("Mission Area Teleports"));
     ImGui::SameLine();
-    help_marker(_("Teleport to any area by clicking its name");
+    help_marker(_("Teleport to any area by clicking its name"));
 
     ImGui::Spacing();
 

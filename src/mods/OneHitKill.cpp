@@ -83,7 +83,7 @@ void OneHitKill::on_gui_frame() {
         //toggle2(oneHitKill);
     }
     ImGui::SameLine();
-    help_marker(_("Enables one hit kill. This overrides the damage multiplier. By default this is hotkeyed to F3");
+    help_marker(_("Enables one hit kill. This overrides the damage multiplier. By default this is hotkeyed to F3"));
 }
 
 void OneHitKill::on_config_load(const utility::Config& cfg) {

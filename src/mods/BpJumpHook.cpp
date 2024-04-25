@@ -382,29 +382,29 @@ void BpJumpHook::on_gui_frame() {
     ImGui::SameLine(sameLineWidth);
     ImGui::Checkbox(_("Boss Rush"), &bp_boss_rush);
     ImGui::SameLine();
-    help_marker(_("Only boss stages will be played. Enable before starting BP\nCan be used with Randomize BP");
+    help_marker(_("Only boss stages will be played. Enable before starting BP\nCan be used with Randomize BP"));
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
-        if (ImGui::CollapsingHeader("View Randomized Stages")) {
+        if (ImGui::CollapsingHeader(_("View Randomized Stages"))) {
                 ImGui::Text(_("Stage Number"));
                 ImGui::SameLine(sameLineWidth);
                 ImGui::Text(_("Random Stage"));
             if (!bp_boss_rush) {
                 int stage_count = 1;
                 for (int i : bp_array) {
-                    ImGui::Text("%i", stage_count);
+                    ImGui::Text(_("%i"), stage_count);
                     stage_count++;
                     ImGui::SameLine(sameLineWidth);
-                    ImGui::Text("%i", i);
+                    ImGui::Text(_("%i"), i);
                 }
             }
             else {
                 int stage_count = 1;
                 for (int i : boss_array) {
-                    ImGui::Text("%i", stage_count);
+                    ImGui::Text(_("%i"), stage_count);
                     stage_count++;
                     ImGui::SameLine(sameLineWidth);
-                    ImGui::Text("%i", i);
+                    ImGui::Text(_("%i"), i);
                 }
             }
             ImGui::Separator();

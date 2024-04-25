@@ -102,25 +102,25 @@ std::optional<std::string> DamageMultiplier::on_initialize() {
 }
 
 void DamageMultiplier::on_gui_frame() {
-    if (ImGui::Checkbox("Player Damage Multiplier", &mod_enabled)) {
+    if (ImGui::Checkbox(_("Player Damage Multiplier"), &mod_enabled)) {
         if (!mod_enabled) g_must_style = false;
     }
     ImGui::SameLine();
     help_marker(_("Add a multiplier to outgoing damage"));
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox("Must style mode", &g_must_style)) {
+    if (ImGui::Checkbox(_("Must style mode"), &g_must_style)) {
         mod_enabled = true;
     }
     ImGui::SameLine();
-    help_marker(_("Damage scales with Style\n0 damage at no rank to 1.0 damage at SSS\nDue to the way this is coded, it cannot currently be used with Damage Multiplier");
+    help_marker(_("Damage scales with Style\n0 damage at no rank to 1.0 damage at SSS\nDue to the way this is coded, it cannot currently be used with Damage Multiplier"));
 
     if (mod_enabled && !g_must_style) {
         ImGui::Indent(lineIndent);
         ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::InputFloat(_("Multiplier", &damagemultiplier, 0.1f, 1.0f, "%.1f"));
+        ImGui::InputFloat(_("Multiplier"), &damagemultiplier, 0.1f, 1.0f, "%.1f");
         ImGui::PopItemWidth();
         ImGui::SameLine();
-        help_marker(_("Less than 1 = you deal less damage than default\nMore than 1 = you deal more");
+        help_marker(_("Less than 1 = you deal less damage than default\nMore than 1 = you deal more"));
         ImGui::Unindent(lineIndent);
     }
 }

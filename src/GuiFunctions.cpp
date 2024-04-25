@@ -235,21 +235,21 @@ namespace gui {
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
-            ImGui::Text("Mstislav Capusta");
-            ImGui::Text("SSSiyan");
-            ImGui::Text("Vieris");
-            ImGui::Text("CrazyMelody");
-            ImGui::Text("Dlupx");
-            ImGui::Text("cheburrat0r");
-            ImGui::Text("endneo");
+            ImGui::Text(_("Mstislav Capusta"));
+            ImGui::Text(_("SSSiyan"));
+            ImGui::Text(_("Vieris"));
+            ImGui::Text(_("CrazyMelody"));
+            ImGui::Text(_("Dlupx"));
+            ImGui::Text(_("cheburrat0r"));
+            ImGui::Text(_("endneo"));
             ImGui::Spacing();
             ImGui::Text(_("Special Thanks:"));
-            ImGui::Text("socks");
-            ImGui::Text("Whirling");
-            ImGui::Text("Terrutas");
-            ImGui::Text("Boey");
-            ImGui::Text("DelusionaryKiller");
-            ImGui::Text("DJMalice");
+            ImGui::Text(_("socks"));
+            ImGui::Text(_("Whirling"));
+            ImGui::Text(_("Terrutas"));
+            ImGui::Text(_("Boey"));
+            ImGui::Text(_("DelusionaryKiller"));
+            ImGui::Text(_("DJMalice"));
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
@@ -585,7 +585,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text("Memes");
+                    ImGui::Text(_("Memes"));
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("BigHeadMode"_hash); // needs its own line

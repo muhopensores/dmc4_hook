@@ -167,7 +167,7 @@ void DoubleTapDarkslayer::on_gui_frame() {
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
         ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::SliderFloat(_("Double Tap Timer", &darkslayerTimerFill, 6.0f, 32.0f, "%.0f"));
+        ImGui::SliderFloat(_("Double Tap Timer"), &darkslayerTimerFill, 6.0f, 32.0f, "%.0f");
         ImGui::PopItemWidth();
         ImGui::Unindent(lineIndent);
     }

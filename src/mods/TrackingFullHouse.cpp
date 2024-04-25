@@ -35,7 +35,7 @@ std::optional<std::string> TrackingFullHouse::on_initialize() {
 }
 
 void TrackingFullHouse::on_gui_frame() {
-    ImGui::Checkbox(_("Tracking Full House", &mod_enabled));
+    ImGui::Checkbox(_("Tracking Full House"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("If the lock on target is below you (more than 65 degrees), Full House will adjust vertically like in DMC3 or 5"));
 }

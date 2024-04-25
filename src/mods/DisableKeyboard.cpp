@@ -22,7 +22,7 @@ void DisableKeyboard::on_gui_frame() {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Disables your keyboard, useful when using background input");
+    help_marker(_("Disables your keyboard, useful when using background input"));
 }
 
 void DisableKeyboard::on_update_input(utility::Input& input) {

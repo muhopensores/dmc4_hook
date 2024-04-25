@@ -139,11 +139,11 @@ void BigHeadMode::on_gui_frame() {
             g_swole_mode = false;
 	}
     ImGui::SameLine();
-    help_marker("Head size scales with style");
+    help_marker(_("Head size scales with style"));
     ImGui::SameLine(sameLineWidth);
 	if (ImGui::Checkbox(_("Swole Mode"), &g_swole_mode)) {
 		g_enable_mod = g_swole_mode;
 	}
 	ImGui::SameLine();
-	help_marker("Body size scales with style");
+	help_marker(_("Body size scales with style"));
 }

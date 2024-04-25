@@ -70,7 +70,7 @@ void LimitAdjust::on_gui_frame() {
     }
     ImGui::SameLine();
     help_marker(_("By default, there are short timers that must end before two sword or gun switches can be made consecutively. Without this "
-                "timer, you can swap to distant weapons quickly and more easily do strings like Shotgun > Enemy Step > Ebony & Ivory shot");
+                "timer, you can swap to distant weapons quickly and more easily do strings like Shotgun > Enemy Step > Ebony & Ivory shot"));
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Enemy Step Limit"), &enemy_step)) {
         f_enemy_step(enemy_step);
@@ -79,20 +79,20 @@ void LimitAdjust::on_gui_frame() {
     help_marker(_("By default, there is a short timer that must end before two Jump Cancels can be made consecutively. This cheat removes "
                 "that timer and allows you to Jump Cancel as often as you want\nThis makes certain sequences much easier. If you're "
                 "learning the game, I recommend not using this to save getting into bad habits"));
-    if (ImGui::Checkbox(_("Style Switch Limit", &style))) {
+    if (ImGui::Checkbox(_("Style Switch Limit"), &style)) {
         f_style(style);
     }
     ImGui::SameLine();
     help_marker(_("By default, there is a short timer that must end before two style switches can be made consecutively. This cheat removes "
                 "that timer and allows you to Style Switch as often as you want"));
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Target Switch Limit"), &target))) {
+    if (ImGui::Checkbox(_("Target Switch Limit"), &target)) {
         f_target(target);
     }
     ImGui::SameLine();
     help_marker(_("By default, the Target Switch button does nothing while holding the left stick (or WASD) in a direction. This removes "
-                "that limit and allows you to target switch whenever");
-    if (ImGui::Checkbox("Same Tick Style Change", &same_tick_style_change)) {
+                "that limit and allows you to target switch whenever"));
+    if (ImGui::Checkbox(_("Same Tick Style Change"), &same_tick_style_change)) {
         f_same_tick_style_change(same_tick_style_change);
     }
     ImGui::SameLine();

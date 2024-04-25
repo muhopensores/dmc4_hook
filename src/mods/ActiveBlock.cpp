@@ -44,7 +44,7 @@ std::optional<std::string> ActiveBlock::on_initialize() {
 void ActiveBlock::on_gui_frame() {
     ImGui::Checkbox(_("Active Block"), &mod_enabled);
     ImGui::SameLine();
-    help_marker("Block during uncancellable frames");
+    help_marker(_("Block during uncancellable frames"));
 }
 
 void ActiveBlock::on_config_load(const utility::Config& cfg) {

@@ -341,7 +341,7 @@ int EnemyReplaceAgain::default_enemy[IM_ARRAYSIZE(combo_lists)] = { 0, 1, 2, 3, 
 int EnemyReplaceAgain::desired_enemy[IM_ARRAYSIZE(combo_items)];
 
 void EnemyReplaceAgain::on_gui_frame() {
-    ImGui::Text("Enemy Replacement");
+    ImGui::Text(_("Enemy Replacement"));
     ImGui::SameLine();
     help_marker(_("Replace almost any enemy type by clicking the original enemy followed by the desired swapped enemy in the "
                 "dropdown\nDo not replace Mephisto with Faust and Faust with Mephisto at the same time. The game will crash"));

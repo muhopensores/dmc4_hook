@@ -447,7 +447,7 @@ void HideHud::on_gui_frame() {
         toggle_timer(mod_enabled_timer);
     }
     ImGui::SameLine();
-    help_marker("Hides the BP, Secret Mission and M12 timers");
+    help_marker(_("Hides the BP, Secret Mission and M12 timers"));
 
     if (ImGui::Checkbox(_("Hide HP HUD"), &mod_enabled_health)) {
         toggle_health(mod_enabled_health);
@@ -466,7 +466,7 @@ void HideHud::on_gui_frame() {
         toggle_boey(mod_enabled_boey);
     }
     ImGui::SameLine();
-    help_marker("Hides every element of the HP HUD other than the style dial");
+    help_marker(_("Hides every element of the HP HUD other than the style dial"));
     
     if (ImGui::Checkbox(_("Hide Map HUD"), &mod_enabled_map)) {
         toggle_map(mod_enabled_map);
@@ -476,7 +476,7 @@ void HideHud::on_gui_frame() {
         toggle_boss_hp(mod_enabled_boss);
     }
     ImGui::SameLine();
-    help_marker("Enable before the boss spawns");
+    help_marker(_("Enable before the boss spawns"));
     
     if (ImGui::Checkbox(_("Never Hide Weapons HUD"), &mod_enabled_weapon_selected)) {
         mod_enabled_hide_weapon_selected = false;
@@ -484,7 +484,7 @@ void HideHud::on_gui_frame() {
         toggle_weapon_display(mod_enabled_weapon_selected);
     }
     ImGui::SameLine();
-    help_marker("Disables the fade out on the weapon switch UI");
+    help_marker(_("Disables the fade out on the weapon switch UI"));
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Always Hide Weapons HUD"), &mod_enabled_hide_weapon_selected)) {
         mod_enabled_weapon_selected = false;

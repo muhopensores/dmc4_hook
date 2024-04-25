@@ -30,13 +30,13 @@ void InfFaustCloak::on_gui_frame() {
         toggle1(always_cloak);
     }
     ImGui::SameLine();
-    help_marker("Gives Faust Cloaks infinite HP");
+    help_marker(_("Gives Faust Cloaks infinite HP"));
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Disable Faust Cloak"), &no_cloak)) {
         toggle2(no_cloak);
     }
     ImGui::SameLine();
-    help_marker("Disable Faust's recloak function");
+    help_marker(_("Disable Faust's recloak function"));
 }
 
 void InfFaustCloak::on_config_load(const utility::Config& cfg) {

@@ -44,7 +44,7 @@ void BerialDaze::on_gui_frame() {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Sets Berial to his fireless Dazed state");
+    help_marker(_("Sets Berial to his fireless Dazed state"));
 }
 
 void BerialDaze::on_config_load(const utility::Config& cfg) {

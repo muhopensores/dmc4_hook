@@ -721,7 +721,7 @@ void CharSwitcher::on_frame(fmilliseconds& dt) {
 }
 
 void CharSwitcher::on_gui_frame() {
-    if (ImGui::Checkbox(_("Character Switcher", &mod_enabled))) {
+    if (ImGui::Checkbox(_("Character Switcher"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
@@ -744,7 +744,7 @@ void CharSwitcher::on_gui_frame() {
         ImGui::SameLine();
         help_marker(_("Set a button combo to trigger the switch"));
         ImGui::SameLine(sameLineWidth + lineIndent);
-        if (ImGui::BeginCombo(_("Input 2", devil4_sdk::getButtonInfo(desiredInput2).second))) {
+        if (ImGui::BeginCombo(_("Input 2"), devil4_sdk::getButtonInfo(desiredInput2).second)) {
             for (const auto& buttonPair : buttonPairs) {
                 bool is_selected = (desiredInput2 == buttonPair.first);
                 if (ImGui::Selectable(buttonPair.second, is_selected)) {

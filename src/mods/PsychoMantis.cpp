@@ -46,7 +46,7 @@ void PsychoMantis::on_gui_frame() {
     help_marker(_("Put your controller on the floor. Put it down as flat as you can..."
         "that's good. Now I will move your controller by the power of my style alone!!"));
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Vibe Slot 2", &psycho_mantis_slot_2))) {
+    if (ImGui::Checkbox(_("Vibe Slot 2"), &psycho_mantis_slot_2)) {
         if (psycho_mantis_slot_2){
             mod_enabled = true;
             PsychoMantis::Controller::_controllerNum = 1;
@@ -56,7 +56,7 @@ void PsychoMantis::on_gui_frame() {
 #ifndef NDEBUG
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
-        ImGui::Checkbox(_("...debug", &mod_debugEnabled));
+        ImGui::Checkbox(_("...debug"), &mod_debugEnabled);
         ImGui::SameLine();
         help_marker(_("Tick the Vibe checkbox too"));
         ImGui::SameLine();

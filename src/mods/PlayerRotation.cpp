@@ -38,7 +38,7 @@ std::optional<std::string> PlayerRotation::on_initialize() {
 }
 
 void PlayerRotation::on_gui_frame() {
-    ImGui::Checkbox(_("Unlock rotation", &mod_enabled));
+    ImGui::Checkbox(_("Unlock rotation"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Meme mode that locks player rotation to stick direction"));
 }

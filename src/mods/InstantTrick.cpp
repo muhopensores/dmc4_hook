@@ -22,7 +22,7 @@ void InstantTrick::on_gui_frame() {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("Skips one part of the trick animation");
+    help_marker(_("Skips one part of the trick animation"));
 }
 
 void InstantTrick::on_config_load(const utility::Config& cfg) {

@@ -49,7 +49,7 @@ std::optional<std::string> TrackingSkyStar::on_initialize() {
 }
 
 void TrackingSkyStar::on_gui_frame() {
-    ImGui::Checkbox("Auto Facing Sky Star", &mod_enabled);
+    ImGui::Checkbox(_("Auto Facing Sky Star"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Sky star will auto face the enemy you're locked on to"));
 }

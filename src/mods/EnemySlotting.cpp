@@ -50,7 +50,7 @@ void EnemySlotting::on_gui_frame() {
     if (mod_enabled) {
 		ImGui::Indent(lineIndent);
         ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::SliderInt(_("Slot Limit", &new_enemy_slot_limit, 0, 12));
+        ImGui::SliderInt(_("Slot Limit"), &new_enemy_slot_limit, 0, 12);
         ImGui::PopItemWidth();
         ImGui::Unindent(lineIndent);
 	}

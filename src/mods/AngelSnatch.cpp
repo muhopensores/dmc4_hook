@@ -198,7 +198,7 @@ std::optional<std::string> AngelSnatch::on_initialize() {
 void AngelSnatch::on_gui_frame() {
     ImGui::Checkbox(_("Angel Snatch"), &mod_enabled);
     ImGui::SameLine();
-    help_marker("Mapped to forward + snatch");
+    help_marker(_("Mapped to forward + snatch"));
 }
 
 void AngelSnatch::on_config_load(const utility::Config& cfg) {

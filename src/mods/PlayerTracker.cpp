@@ -43,7 +43,7 @@ void PlayerTracker::on_gui_frame() {
     ImGui::Separator();
     ImGui::Spacing();
 
-    ImGui::Checkbox(_("Show Pin Timers", &PlayerTracker::pin_imgui_enabled));
+    ImGui::Checkbox(_("Show Pin Timers"), &PlayerTracker::pin_imgui_enabled);
     ImGui::SameLine();
     help_marker(_("Opens up a UI when pins are placed that shows the time remaining on each pin"));
 
@@ -53,14 +53,14 @@ void PlayerTracker::on_gui_frame() {
 
     SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
     ImGui::PushItemWidth(sameLineItemWidth);
-    ImGui::InputInt("s_med_ptr", (int*)&s_med_ptr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputInt(_("s_med_ptr"), (int*)&s_med_ptr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_ReadOnly);
     ImGui::PopItemWidth();
 
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
 
-    ImGui::Checkbox(_("Display Player Stats", &display_player_stats));
+    ImGui::Checkbox(_("Display Player Stats"), &display_player_stats);
     ImGui::SameLine();
     help_marker(_("View various details about the player character"));
     if (display_player_stats) {
@@ -134,9 +134,9 @@ void PlayerTracker::custom_imgui_window() {
                             } else {
                                 ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
                             }
-                            ImGui::Text("Pin %i = %.0f", i + 1, player->luciferPins[i]->timer);
+                            ImGui::Text(_("Pin %i = %.0f"), i + 1, player->luciferPins[i]->timer);
                             ImGui::SameLine();
-                            ImGui::Text("/ %.0f", player->luciferPins[i]->timerMax);
+                            ImGui::Text(_("/ %.0f"), player->luciferPins[i]->timerMax);
                             ImGui::PopStyleColor();
                         }
                     }

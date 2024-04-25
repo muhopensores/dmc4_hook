@@ -164,29 +164,30 @@ Mutator& Mutator::special_arg(bool* arg) {
 }
 
 void mutator_draw_mod_table(MutatorRegistry& registry) {
-
-    if (ImGui::CollapsingHeader("Gameplay mutators configuration")) {
+    if (ImGui::CollapsingHeader(_("Gameplay mutators configuration"))) {
         if (ImGui::BeginTable("table1", 3))
         {
             ImGui::TableNextRow();
 
             ImGui::TableSetColumnIndex(0);
-            ImGui::Text("Name");
+            ImGui::Text(_("Name"));
 
             ImGui::TableSetColumnIndex(1);
-            ImGui::Text("Enabled?"); ImGui::SameLine();
-            gui::help_marker("Toggle commands for chaos mode");
+            ImGui::Text(_("Enabled?"));
+            ImGui::SameLine();
+            gui::help_marker(_("Toggle commands for chaos mode"));
 
             ImGui::TableSetColumnIndex(2);
-            ImGui::Text("Weight"); ImGui::SameLine();
-            gui::help_marker("How often mod will randomly appear during voting");
+            ImGui::Text(_("Weight"));
+            ImGui::SameLine();
+            gui::help_marker(_("How often mod will randomly appear during voting"));
             
             size_t hash_index{ 0 };
             for (const auto& mod : registry.m_mutators) {
                 ImGui::TableNextRow();
 
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Text("%s", mod->m_name.c_str());
+                ImGui::Text(_("%s"), mod->m_name.c_str());
 
                 char modhash[64];
                 sprintf_s(modhash, sizeof(modhash), "##e%d", registry.m_hashes[hash_index]);

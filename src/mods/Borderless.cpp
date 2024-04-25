@@ -130,6 +130,6 @@ void Borderless::on_gui_frame() {
         apply();
     }
     ImGui::SameLine();
-    help_marker("Only applies if already in fullscreen. Hit Alt+Enter to toggle fullscreen");
+    help_marker(_("Only applies if already in fullscreen. Hit Alt+Enter to toggle fullscreen"));
 }
 #endif

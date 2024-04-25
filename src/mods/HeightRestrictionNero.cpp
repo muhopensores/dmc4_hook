@@ -35,8 +35,8 @@ void HeightRestrictionNero::on_gui_frame() {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker("By default, certain moves are locked behind a height threshold. If you're below that threshold, they cannot be started. "
-                "This removes that limit");
+    help_marker(_("By default, certain moves are locked behind a height threshold. If you're below that threshold, they cannot be started. "
+                "This removes that limit"));
 }
 
 void HeightRestrictionNero::on_config_load(const utility::Config& cfg) {

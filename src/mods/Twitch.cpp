@@ -19,7 +19,7 @@ struct Voting {
     virtual void on_message(const std::string& sender, const std::string& message) {};
     virtual void on_imgui(bool draw_debug_info) {
         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 139, 0, 255));
-        ImGui::TextWrapped("STATE_NONE. Enter gameplay or pause/unpause the game to start.");
+        ImGui::TextWrapped(_("STATE_NONE. Enter gameplay or pause/unpause the game to start."));
         ImGui::PopStyleColor();
     };
     static void imgui_draw_winner(VoteManager* vote_manager) {
@@ -30,12 +30,11 @@ struct Voting {
         }
         auto winner_raw_ptr = vote_manager->m_previous_winner.get();
 
-        ImGui::TextWrapped("Winner: %s", winner_raw_ptr->m_mod->m_name.c_str());
-        //ImGui::Text("%s", winner_raw_ptr->m_mod->m_description.c_str());
-        ImGui::Text("with %d votes", winner_raw_ptr->m_votes);
+        ImGui::TextWrapped(_("Winner: %s"), winner_raw_ptr->m_mod->m_name.c_str());
+        ImGui::Text(_("with %d votes"), winner_raw_ptr->m_votes);
         float time_left = mutator_is_mod_active(winner_raw_ptr->m_mod);
         if (time_left >= 0.0f) {
-            ImGui::TextWrapped("currently active. time left: %.2f", time_left);
+            ImGui::TextWrapped(_("currently active. time left: %.2f"), time_left);
         }
         ImGui::PopStyleColor();
     }
@@ -81,16 +80,16 @@ struct VotingState : public Voting {
     };
     void on_imgui(bool draw_debug_info) override {
         if (draw_debug_info) {
-            ImGui::Text("TWITCH_VOTE_TIMER: %f", m_timer->m_time.count());
+            ImGui::Text(_("TWITCH_VOTE_TIMER: %f"), m_timer->m_time.count());
         }
         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(104, 239, 239, 255));
 
         auto vote_distribution = m_vote_manager->m_vote_distribution_display;
         for (auto& entry : vote_distribution) {
-            ImGui::Text("[%c] - %s:\t%d", entry.m_token, entry.m_mod->m_name.c_str(), entry.m_votes);
+            ImGui::Text(_("[%c] - %s:\t%d"), entry.m_token, entry.m_mod->m_name.c_str(), entry.m_votes);
         }
 
-        ImGui::Text("Vote in chat.");
+        ImGui::Text(_("Vote in chat."));
         imgui_draw_winner(m_vote_manager);
         ImGui::PopStyleColor();
 
@@ -119,7 +118,7 @@ struct IdleState : public Voting {
     TwitchClient::TWITCH_VOTING_STATE get_type() override { return TwitchClient::TWITCH_VOTING_STATE::STATE_IDLE; }
     void on_imgui(bool draw_debug_info) override {
         if (draw_debug_info) {
-            ImGui::Text("TWITCH_IDLE_TIMER: %f", m_timer->m_time.count());
+            ImGui::Text(_("TWITCH_IDLE_TIMER: %f"), m_timer->m_time.count());
         }
         imgui_draw_winner(m_vote_manager);
 
@@ -429,23 +428,23 @@ void TwitchClient::on_gui_frame() {
     if (ImGui::CollapsingHeader(_("Random timed gameplay mods"))) {
 #if 0
         if (twitch_vote_state) {
-            ImGui::Text("Random gameplay mods active");
-            ImGui::Text("TIMER: %f", m_idle_timer->m_time.count());
+            ImGui::Text(_("Random gameplay mods active"));
+            ImGui::Text(_("TIMER: %f"), m_idle_timer->m_time.count());
             if (m_current_gameplay_state) {
-                ImGui::Text("Not in gameplay");
+                ImGui::Text(_("Not in gameplay"));
             }
         }
 #endif
-        ImGui::Text("Set these before starting:");
+        ImGui::Text(_("Set these before starting:"));
         ImGui::PushItemWidth(sameLineItemWidth);
-        if (ImGui::InputInt(_("Mod timer (seconds)", &m_vote_time, 1, 10))) {
+        if (ImGui::InputInt(_("Mod timer (seconds)"), &m_vote_time, 1, 10)) {
             m_vote_time = std::clamp<int32_t>(m_vote_time, 5, INT_MAX);
         }
         ImGui::PopItemWidth();
         ImGui::SameLine();
         help_marker(_("How long the random mod will last"));
         ImGui::PushItemWidth(sameLineItemWidth);
-        if (ImGui::InputInt(_("Cooldown timer (seconds)", &m_idle_time, 1, 10))) {
+        if (ImGui::InputInt(_("Cooldown timer (seconds)"), &m_idle_time, 1, 10)) {
             m_idle_time = std::clamp<int32_t>(m_idle_time, 5, INT_MAX);
         }
         ImGui::PopItemWidth();
@@ -520,14 +519,14 @@ void TwitchClient::on_gui_frame() {
         ImGui::Checkbox(_("Disable voting overlay"), &m_disable_overlay);
         ImGui::Text(_("Set these before connecting:"));
         ImGui::PushItemWidth(sameLineItemWidth);
-        if (ImGui::InputInt("Voting timer (seconds)", &m_vote_time, 1, 10)) {
+        if (ImGui::InputInt(_("Voting timer (seconds)"), &m_vote_time, 1, 10)) {
             m_vote_time = std::clamp<int32_t>(m_vote_time, 5, INT_MAX);
         }
         if (ImGui::InputInt(_("Idle timer (seconds)"), &m_idle_time, 1, 10)) {
             m_idle_time = std::clamp<int32_t>(m_idle_time, 5, INT_MAX);
         }
         ImGui::PopItemWidth();
-        ImGui::Checkbox("Log In On Game Boot Automatically", &twitch_login_on_boot));
+        ImGui::Checkbox(_("Log In On Game Boot Automatically"), &twitch_login_on_boot);
         ImGui::SameLine();
         help_marker(_("This sometimes doesn't work, just come back here and hit disconnect > connect to reconnect"));
 

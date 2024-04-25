@@ -52,7 +52,7 @@ void DmdLevelAi::on_gui_frame() {
         frenzied_toggle(frenzied_enabled);
     }
     ImGui::SameLine();
-    help_marker(_("Forces bosses to use the AI they usually use when low HP");
+    help_marker(_("Forces bosses to use the AI they usually use when low HP"));
 }
 
 void DmdLevelAi::on_config_load(const utility::Config& cfg) {

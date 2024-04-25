@@ -67,7 +67,7 @@ void InfAllHealth::on_gui_frame() {
     ImGui::SameLine();
     help_marker(_("Disables any entity's health decreasing. By default this is hotkeyed to F1"));
     ImGui::Indent(lineIndent);
-    if (ImGui::Checkbox("Infinite Health (Player)", &player_invincible)) {
+    if (ImGui::Checkbox(_("Infinite Health (Player)"), &player_invincible)) {
         if (player_invincible && enemy_invincible)
             mod_enabled = true;
         else
@@ -77,14 +77,14 @@ void InfAllHealth::on_gui_frame() {
     help_marker(_("Disables the player's health decreasing"));
 
     ImGui::SameLine(sameLineWidth + lineIndent);
-    if (ImGui::Checkbox(_("Infinite Health (Enemy)", &enemy_invincible))) {
+    if (ImGui::Checkbox(_("Infinite Health (Enemy)"), &enemy_invincible)) {
         if (player_invincible && enemy_invincible)
             mod_enabled = true;
         else
             mod_enabled = false;
     }
     ImGui::SameLine();
-    help_marker(_("Disables enemy's health decreasing");
+    help_marker(_("Disables enemy's health decreasing"));
     ImGui::Unindent(lineIndent);
 }
 

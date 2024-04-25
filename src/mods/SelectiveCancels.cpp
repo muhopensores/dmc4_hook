@@ -232,7 +232,7 @@ void SelectiveCancels::on_gui_frame() {
 	draw_checkbox_simple(_("Roll"), ROLL);
 
 	ImGui::Separator();
-    ImGui::Text("Nero");
+    ImGui::Text(_("Nero"));
     ImGui::Spacing();
 
 	draw_checkbox_simple(_("Grounded DT Activation"), DTGROUND);
@@ -245,55 +245,55 @@ void SelectiveCancels::on_gui_frame() {
         ImGui::Text(_("Shared Abilities"));
         ImGui::Spacing();
 
-        draw_checkbox_simple(_("Roll", ROLL));
+        draw_checkbox_simple(_("Roll"), ROLL);
 
         ImGui::Spacing();
         ImGui::Text(_("Nero Abilities"));
         ImGui::Spacing();
 
-        draw_checkbox_simple(_("Grounded DT Activation", DTGROUND));
+        draw_checkbox_simple(_("Grounded DT Activation"), DTGROUND);
         ImGui::SameLine(sameLineWidth + lineIndent);
-        draw_checkbox_simple(_("Showdown", SHOWDOWN));
+        draw_checkbox_simple(_("Showdown"), SHOWDOWN);
 
         ImGui::Spacing();
         ImGui::Text(_("Dante - Swords"));
         ImGui::Spacing();
 
-        draw_checkbox_simple(_("Stinger", STINGER));
+        draw_checkbox_simple(_("Stinger"), STINGER);
         ImGui::SameLine(sameLineWidth + lineIndent);
-        draw_checkbox_simple(_("Prop", PROP));
+        draw_checkbox_simple(_("Prop"), PROP);
 
-        draw_checkbox_simple(_("Real Impact", REAL_IMPACT));
+        draw_checkbox_simple(_("Real Impact"), REAL_IMPACT);
         ImGui::SameLine(sameLineWidth + lineIndent);
-        draw_checkbox_simple(_("Kick 13", KICK13));
+        draw_checkbox_simple(_("Kick 13"), KICK13);
 
-        draw_checkbox_simple(_("Shock", SHOCK));
+        draw_checkbox_simple(_("Shock"), SHOCK);
         ImGui::SameLine(sameLineWidth + lineIndent);
-        draw_checkbox_simple(_("Ecstasy", ECSTASY));
+        draw_checkbox_simple(_("Ecstasy"), ECSTASY);
 
-        draw_checkbox_simple(_("Slash Dimension", SLASH_DIMENSION));
+        draw_checkbox_simple(_("Slash Dimension"), SLASH_DIMENSION);
         ImGui::SameLine(sameLineWidth + lineIndent);
-        draw_checkbox_simple(_("DT Pin Up Part 2", DT_PIN_UP_P2));
+        draw_checkbox_simple(_("DT Pin Up Part 2"), DT_PIN_UP_P2);
 
-        draw_checkbox_simple(_("Draw", DRAW));
+        draw_checkbox_simple(_("Draw"), DRAW);
 
         ImGui::Spacing();
         ImGui::Text(_("Dante - Guns"));
         ImGui::Spacing();
 
-        draw_checkbox_simple(_("Omen", OMEN));
+        draw_checkbox_simple(_("Omen"), OMEN);
         ImGui::SameLine();
         help_marker(_("Opening Pandora"));
         ImGui::SameLine(sameLineWidth + lineIndent);
-        draw_checkbox_simple(_("Epidemic", EPIDEMIC));
+        draw_checkbox_simple(_("Epidemic"), EPIDEMIC);
         ImGui::SameLine();
         help_marker(_("Pandora Ground shot 1"));
 
-        draw_checkbox_simple(_("Argument", ARGUMENT));
+        draw_checkbox_simple(_("Argument"), ARGUMENT);
         ImGui::SameLine();
-        help_marker(_("Gunship");
+        help_marker(_("Gunship"));
         ImGui::SameLine(sameLineWidth + lineIndent);
-        draw_checkbox_simple(_("Gun Stinger", GUNSTINGER));
+        draw_checkbox_simple(_("Gun Stinger"), GUNSTINGER);
 		ImGui::Unindent(lineIndent);
 	}
 }

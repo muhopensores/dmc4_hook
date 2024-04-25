@@ -79,9 +79,6 @@ void MutatorSelfAdvertisement::custom_imgui_window() {
         }
         frame++;
     }
-    //else {
-    //    ImGui::Text("Achived with: ");
-    //}
     ImGui::SetNextWindowSize(size);
     ImGui::SetNextWindowPos(m_pos);
     ImGui::Begin("DirectX9 Texture Test", nullptr, window_flags);
@@ -91,10 +88,10 @@ void MutatorSelfAdvertisement::custom_imgui_window() {
 
 void MutatorSelfAdvertisement::on_gui_frame() {
     if (ImGui::CollapsingHeader(_("Self advertisement"))) {
-        ImGui::Checkbox(_("Show self advertisement?", &mod_enabled));
+        ImGui::Checkbox(_("Show self advertisement?"), &mod_enabled);
         ImGui::SameLine();
         help_marker(_("Thank you for supporting dmc4_hook"));
-        ImGui::Checkbox(_("Dvd screensaver", &dvd_mode));
+        ImGui::Checkbox(_("Dvd screensaver"), &dvd_mode);
         if (!dvd_mode) {
             ImGui::DragFloat2(_("Image pos:"), (float*)&m_pos, 1.0f, 0.0f, 4096.0f, "%.1f");
             ImGui::ColorEdit4(_("Tint color:"), (float*)&m_tint_color);

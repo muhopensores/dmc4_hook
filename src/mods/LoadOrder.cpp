@@ -408,7 +408,7 @@ void LoadOrder::on_config_load(const utility::Config& cfg)
 // draw your imgui widgets here, you are inside imgui context.
 void LoadOrder::on_gui_frame() 
 { 
-    ImGui::Checkbox(_("HDD File Priority", &mod_enabled));
+    ImGui::Checkbox(_("HDD File Priority"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("The game will look for files outside of arcs before looking inside"));
 };

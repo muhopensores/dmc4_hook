@@ -112,7 +112,7 @@ void SkipWeapons::on_gui_frame() {
         skip_lucifer = false;
     ImGui::SameLine();
     help_marker(_("Skips over Gilgamesh when Weapon switching"));
-    if (ImGui::Checkbox("Skip Pandora", &skip_pandora))
+    if (ImGui::Checkbox(_("Skip Pandora"), &skip_pandora))
         skip_shotgun = false;
     ImGui::SameLine();
     help_marker(_("Skips over Pandora when Gun switching"));
