@@ -18,12 +18,12 @@ extern "C" {
 }
 #endif
 
-void failed() {
+static void failed() {
 	MessageBox(0, "DMC4 ModFramework: Unable to load the original version.dll. Please report this to the developer.", "ModFramework", 0);
 	ExitProcess(0);
 }
 
-void startup_thread() {
+static DWORD WINAPI startup_thread([[maybe_unused]] LPVOID parameter) {
 #ifndef NDEBUG
 	AllocConsole();
 	HANDLE handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -33,9 +33,13 @@ void startup_thread() {
     console_mode |= DISABLE_NEWLINE_AUTO_RETURN;            
 	SetConsoleMode( handle_out , console_mode );
 
-	freopen("CONIN$", "r", stdin);
-	freopen("CONOUT$", "w", stdout);
-	freopen("CONOUT$", "w", stderr);
+	FILE* new_stdin  = nullptr;
+	FILE* new_stdout = nullptr;
+	FILE* new_stderr = nullptr;
+
+	freopen_s(&new_stdin,  "CONIN$",  "r", stdin);
+	freopen_s(&new_stdout, "CONOUT$", "w", stdout);
+	freopen_s(&new_stderr, "CONOUT$", "w", stderr);
 #endif
 #if 1
 	wchar_t buffer[MAX_PATH]{ 0 };
@@ -52,6 +56,8 @@ void startup_thread() {
 #else
 	g_framework = std::make_unique<ModFramework>();
 #endif
+
+	return ERROR_SUCCESS;
 }
 
 BOOL APIENTRY DllMain(HMODULE handle, DWORD reason, LPVOID reserved) {
