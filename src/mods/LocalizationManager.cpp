@@ -57,7 +57,10 @@ ImFont* load_locale_and_imfont(const char* country_code) noexcept {
         }
     }
 
-    return atlas->AddFontFromMemoryCompressedBase85TTF(roboto_medium_compressed_data_base85, 18.0f, NULL, glyph_range);
+    ImFont* result = atlas->AddFontFromMemoryCompressedBase85TTF(roboto_medium_compressed_data_base85, 18.0f, NULL, glyph_range);
+    g_framework->m_imfont_main = result;
+
+    return result;
 }
 
 //void LocalizationManager::on_frame(fmilliseconds& dt) {}

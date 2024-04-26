@@ -287,6 +287,7 @@ set(UTILITY_SRC
   utility/Compressed.cpp
   utility/Dx9Utils.hpp
   utility/Dx9Utils.cpp
+  utility/TextureAtlas.hpp
   utility/MoFile.hpp
   utility/MoFile.cpp
   utility/Locales.hpp
@@ -324,6 +325,7 @@ set(MISC
   misc/CompressedDrawing.cpp
   misc/BgTexture.cpp
   misc/FontRoboto.cpp
+  misc/PinTimerAtlas.cpp
 )
 
 set(LANG
