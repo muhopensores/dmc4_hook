@@ -9,9 +9,7 @@
 
 static float G_WINDOW_HEIGHT_HACK_IDK{ 270.0f }; // fresh from my ass
 
-#ifndef NDEBUG
 static bool CON_PIN_UI_DEBUG{ false };
-#endif
 
 // hopefully mister compiler calculates those at compile time, we dont have consteval from c++20
 // cba to switch to newer standards
@@ -157,15 +155,10 @@ void PlayerTracker::on_gui_frame() {
 
 void PlayerTracker::custom_imgui_window() {
     if (pin_imgui_enabled || CON_PIN_UI_DEBUG ) {
-        SMediator* s_med_ptr  = *(SMediator**)static_mediator_ptr;
-        uintptr_t* player_ptr = (uintptr_t*)((uintptr_t)s_med_ptr + 0x24);
-        uintptr_t player_base = *player_ptr;
-        if (player_base) {
-            int& controller_id = *(int*)(player_base + 0x1494);
-            if (controller_id == 0) { // 0 = dante, some were crashing with nero and this might:tm: fix it
-                uintptr_t* pin_ptr = (uintptr_t*)((uintptr_t)player_base + 0x14DBC); // 0x14DBC
-                uintptr_t pin_base = *pin_ptr;
-                 if (pin_base) {
+        uPlayer* player = devil4_sdk::get_local_player();
+        if (player) {
+            if (player->controllerID == 0) { // 0 = dante, some were crashing with nero and this might:tm: fix it
+                 if (player->luciferPins[0]) {
                     // this should be played every time someone 
                     // scrolls through the section below
                     // https://youtu.be/nmEX1rlt4pk
@@ -222,17 +215,10 @@ void PlayerTracker::custom_imgui_window() {
 
                     ImGui::BeginTable("pin_table", 2);
                     for (int i = 0; i < 15; i++) {
-                        pin_ptr = (uintptr_t*)((uintptr_t)player_base + 0x14DBC + i * 4); // 0x14DBC
-                        pin_base = *pin_ptr;
-                        if(!pin_base) { continue; }
-
-                        float& pin_timer      = *(float*)(pin_base + 0x1790);
-                        float& pin_timer_max  = *(float*)(pin_base + 0x1794);
-                        bool&  pin_penetrated = *(bool*) (pin_base + 0x17B4);
-
+                        if(!player->luciferPins[i]->pad_0) { continue; }
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
-                        if (pin_penetrated) {
+                        if (player->luciferPins[i]->penetrated) {
                             glm::vec2 pos = ImGui::GetCursorScreenPos();
                             const float window_content_region_width = (window_size.x);
                             dl->AddImage(pui::texture_handle, glm::vec2(pos.x,pos.y), glm::vec2(pos.x + (window_content_region_width * 0.8), pos.y + (ImGui::GetTextLineHeight())), pui::red_highlight.uv0, pui::red_highlight.uv1);
@@ -240,7 +226,7 @@ void PlayerTracker::custom_imgui_window() {
                         ImGui::Image(pui::texture_handle, ImVec2(pui::pin_text.size_.x, ImGui::GetTextLineHeight()), pui::pin_text.uv0, pui::pin_text.uv1); ImGui::SameLine();
                         ImGui::Text("%d", i + 1);
                         ImGui::TableNextColumn();
-                        ImGui::Text("%.0f / %.0f", pin_timer, pin_timer_max);
+                        ImGui::Text("%.0f / %.0f", player->luciferPins[i]->timer, player->luciferPins[i]->timerMax);
 #if 0 // old menu
                         uintptr_t* pin_ptr = (uintptr_t*)((uintptr_t)player_base + 0x14DBC + i * 4); // 0x14DBC
                         uintptr_t pin_base = *pin_ptr;
