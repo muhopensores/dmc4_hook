@@ -103,32 +103,6 @@ naked void detour() {
 	}
 }
 
-std::optional<std::string> AreaJump::on_initialize() {
-	// uintptr_t address = hl::FindPattern("8B 92 30 38 00 00", "DevilMayCry4_DX9.exe"); // DevilMayCry4_DX9.exe+E1F6 
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_OEM_4 }, "Restart BP stage", "bp_restart_stage_hotkey"));
-
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_OEM_6 }, "Next BP stage", "bp_next_stage_hotkey"));
-
-    if (!install_hook_offset(0x00E1F6, hook, &detour, &AreaJump::jmp_return, 6)){
-            spdlog::error("Failed to init AreaJump mod\n");
-            return "Failed to init AreaJump mod";
-    }
-
-    console->system().RegisterCommand("skip", "Skip current BP stage", [/*this*/]() {
-        if (!IsBadWritePtr(c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(c_area_jump_ptr,sizeof(uint32_t))) {
-            static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
-            if (s_mediator_ptr->missionID == 50){ // always shows 50 for BP
-                c_area_jump_ptr->bp_floor_stage = c_area_jump_ptr->bp_floor_stage++;
-                c_area_jump_ptr->init_jump = true;
-            }
-	    }
-    });
-
-	return Mod::on_initialize();
-}
-
 int bp_stage(int floor) {
 	auto in_range = [](int value, int low, int high) {return (value >= low) && (value <= high); };
 	
@@ -409,6 +383,31 @@ void AreaJump::jump_to_stage(int stage) {
         break;
     }
 	c_area_jump_ptr->init_jump = 1;
+}
+
+std::optional<std::string> AreaJump::on_initialize() {
+	// uintptr_t address = hl::FindPattern("8B 92 30 38 00 00", "DevilMayCry4_DX9.exe"); // DevilMayCry4_DX9.exe+E1F6 
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_OEM_4 }, "Restart BP stage", "bp_restart_stage_hotkey"));
+
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_OEM_6 }, "Next BP stage", "bp_next_stage_hotkey"));
+
+    if (!install_hook_offset(0x00E1F6, hook, &detour, &AreaJump::jmp_return, 6)){
+            spdlog::error("Failed to init AreaJump mod\n");
+            return "Failed to init AreaJump mod";
+    }
+
+    console->system().RegisterCommand("skip", "Skip current BP stage", [this]() {
+        if (!IsBadWritePtr(c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(c_area_jump_ptr,sizeof(uint32_t))) {
+            static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
+            if (s_mediator_ptr->missionID == 50){ // always shows 50 for BP
+                jump_to_stage(bp_stage(++(c_area_jump_ptr->bp_floor_stage)));
+            }
+	    }
+    });
+
+	return Mod::on_initialize();
 }
 
 void AreaJump::on_gui_frame() 
