@@ -23,7 +23,19 @@ std::optional<std::string> NoClip::on_initialize() {
             mod_enabled = false;
             toggle(mod_enabled);
         });
+
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_F5, "NoClip", "noclip_key"));
+
+    console->system().RegisterCommand("noclip", "You and enemies will ignore walls", [this]() {
+        NoClip::mod_enabled = !NoClip::mod_enabled;
+        this->toggle(NoClip::mod_enabled);
+    });
+
+    console->system().RegisterCommand("triggers", "Disable the areas that teleport the player, activate fights, activate cutscenes etc", [this]() {
+        NoClip::mod_enabled_2 = !NoClip::mod_enabled_2;
+        this->toggle2(NoClip::mod_enabled_2);
+    });
+
     return Mod::on_initialize();
 }
 
@@ -52,11 +64,11 @@ void NoClip::on_gui_frame() {
     ImGui::SameLine();
     help_marker(_("You and enemies will ignore walls"));
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Disable Teleport Planes"), &mod_enabled_2)) {
+    if (ImGui::Checkbox(_("Disable Room Triggers"), &mod_enabled_2)) {
         toggle2(mod_enabled_2);
     }
     ImGui::SameLine();
-    help_marker(_("Disable the planes that teleport you back to the stage when you noclip out of bounds"));
+    help_marker(_("Disable the areas that teleport the player, activate fights, activate cutscenes etc"));
     if (ImGui::Checkbox(_("Lock Y Pos"), &player_lock_y_pos)) {
         if (player_lock_y_pos) {
             uPlayer* player = devil4_sdk::get_local_player();

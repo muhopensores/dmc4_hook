@@ -18,7 +18,22 @@ std::optional<std::string> DifficultySelect::on_initialize() {
         .description("hehe")
         .on_init([&] { m_diffs[gmd](this); })
         .set_timer(120.0, [&] { m_diffs[game_difficulty](this); });
-        
+
+    console->system().RegisterCommand("difficultyreset", "Set difficulty to default", [this]() {
+        game_difficulty = 0; // for 4hook ui update
+        this->set_default();
+    });    
+
+    console->system().RegisterCommand("dmd", "Set difficulty to DMD", [this]() {
+        game_difficulty = 1;
+        this->set_dmd();
+    });
+
+    console->system().RegisterCommand("gmd", "Set difficulty to GMD", [this]() {
+        game_difficulty = 2;
+        this->set_gmd();
+    });    
+
     return Mod::on_initialize();
 }
 

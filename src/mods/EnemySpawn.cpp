@@ -359,21 +359,82 @@ std::optional<std::string> EnemySpawn::on_initialize() {
 
     using v_key = std::vector<uint32_t>;
     m_hotkeys.reserve(HOTKEY_MAX);
-    m_hotkeys.emplace_back(
-        std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F1 }, "Spawn Scarecrow Leg", "spawn_scarecrow_leg_key"));
-    m_hotkeys.emplace_back(
-        std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F2 }, "Spawn Scarecrow Arm", "spawn_scarecrow_arm_key"));
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F1 }, "Spawn Scarecrow Leg", "spawn_scarecrow_leg_key"));
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F2 }, "Spawn Scarecrow Arm", "spawn_scarecrow_arm_key"));
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F3 }, "Spawn Mega", "spawn_mega_key"));
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F4 }, "Spawn Bianco", "spawn_bianco_key"));
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F5 }, "Spawn Alto", "spawn_alto_key"));
-    m_hotkeys.emplace_back(
-        std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F6 }, "Spawn Mephisto", "spawn_mephisto_key"));
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F6 }, "Spawn Mephisto", "spawn_mephisto_key"));
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F7 }, "Spawn Faust", "spawn_faust_key"));
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F8 }, "Spawn Frost", "spawn_frost_key"));
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F9 }, "Spawn Assault", "spawn_assault_key"));
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F10 }, "Spawn Blitz", "spawn_blitz_key"));
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F11 }, "Spawn Chimera", "spawn_chimera_key"));
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F12 }, "Spawn Basilisk", "spawn_basilisk_key"));
+
+    console->system().RegisterCommand("scarecrowleg", "Spawn a Scarecrow Leg", [/*this*/]() {
+        spawn_em00x(0);
+    });
+    console->system().RegisterCommand("scarecrowarm", "Spawn a Scarecrow Arm", [/*this*/]() {
+        spawn_em00x(1);
+    });
+    console->system().RegisterCommand("mega", "Spawn a Mega Scarecrow", [/*this*/]() {
+        spawn_em00x(2);
+    });
+    console->system().RegisterCommand("bianco", "Spawn a Bianco Angelo", [/*this*/]() {
+        spawn_em00x(3);
+    });
+    console->system().RegisterCommand("alto", "Spawn an Alto Angelo", [/*this*/]() {
+        spawn_em00x(4);
+    });
+    console->system().RegisterCommand("mephisto", "Spawn a Mephisto", [/*this*/]() {
+        spawn_em00x(5);
+    });
+    console->system().RegisterCommand("faust", "Spawn a Faust", [/*this*/]() {
+        spawn_em00x(6);
+    });
+    console->system().RegisterCommand("frost", "Spawn a Frost", [/*this*/]() {
+        spawn_em00x(7);
+    });
+    console->system().RegisterCommand("assault", "Spawn an Assault", [/*this*/]() {
+        spawn_em00x(8);
+    });
+    console->system().RegisterCommand("blitz", "Spawn a Blitz", [/*this*/]() {
+        spawn_em00x(9);
+    });
+    console->system().RegisterCommand("seed", "Spawn a Chimera Seed", [/*this*/]() {
+        spawn_em00x(10);
+    });
+    console->system().RegisterCommand("basilisk", "Spawn a Basilisk", [/*this*/]() {
+        spawn_em00x(11);
+    });
+    console->system().RegisterCommand("berial", "Spawn a Berial", [/*this*/]() {
+        spawn_em00x(12);
+    });
+    console->system().RegisterCommand("bael", "Spawn a Bael", [/*this*/]() {
+        spawn_em00x(13);
+    });
+    console->system().RegisterCommand("echidna", "Spawn an Echidna", [/*this*/]() {
+        spawn_em00x(14);
+    });
+    console->system().RegisterCommand("agnus", "Spawn an Agnus", [/*this*/]() {
+        spawn_em00x(15);
+    });
+    console->system().RegisterCommand("credo", "Spawn a Credo", [/*this*/]() {
+        spawn_em00x(16);
+    });
+    console->system().RegisterCommand("sanctus", "Spawn a Sanctus", [/*this*/]() {
+        spawn_em00x(17);
+    });
+    console->system().RegisterCommand("sanctus2", "Spawn a Sanctus Diabolica", [/*this*/]() {
+        spawn_em00x(18);
+    });
+    console->system().RegisterCommand("kyrie", "Spawn a Kyrie", [/*this*/]() {
+        spawn_em00x(19);
+    });
+    console->system().RegisterCommand("dante", "Spawn a Dante", [/*this*/]() {
+        spawn_em00x(20);
+    });
 
     return Mod::on_initialize();
 }

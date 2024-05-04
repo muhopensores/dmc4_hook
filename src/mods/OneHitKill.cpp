@@ -63,6 +63,10 @@ std::optional<std::string> OneHitKill::on_initialize() {
         .on_init([&] { one_hit_kill = true; })
         .set_timer(15.0, [&] { one_hit_kill = false; });
 
+    console->system().RegisterCommand("onehitkill", "Enables one hit kill", [this]() {
+        OneHitKill::one_hit_kill = !OneHitKill::one_hit_kill;
+    });    
+
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_F3, "One Hit Kill", "one_hit_kill_key"));
     return Mod::on_initialize();
 }

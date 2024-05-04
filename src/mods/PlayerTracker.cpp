@@ -73,6 +73,10 @@ std::optional<std::string> PlayerTracker::on_initialize() {
     console->system().RegisterVariable("pin_ui_debug", CON_PIN_UI_DEBUG, csys::Arg<bool>("bool"));
 #endif
 
+    console->system().RegisterCommand("pintimer", "Enable pin timer HUD", [this]() {
+        PlayerTracker::pin_imgui_enabled = !PlayerTracker::pin_imgui_enabled;
+    });    
+
     return Mod::on_initialize();
 }
 
@@ -215,7 +219,7 @@ void PlayerTracker::custom_imgui_window() {
 
                     ImGui::BeginTable("pin_table", 2);
                     for (int i = 0; i < 15; i++) {
-                        if(!player->luciferPins[i]->pad_0) { continue; }
+                        if (!player->luciferPins[i]) { continue; }
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
                         if (player->luciferPins[i]->penetrated) {
@@ -228,20 +232,15 @@ void PlayerTracker::custom_imgui_window() {
                         ImGui::TableNextColumn();
                         ImGui::Text("%.0f / %.0f", player->luciferPins[i]->timer, player->luciferPins[i]->timerMax);
 #if 0 // old menu
-                        uintptr_t* pin_ptr = (uintptr_t*)((uintptr_t)player_base + 0x14DBC + i * 4); // 0x14DBC
-                        uintptr_t pin_base = *pin_ptr;
-                        if (pin_base) {
-                            float& pin_timer     = *(float*)(pin_base + 0x1790);
-                            float& pin_timer_max = *(float*)(pin_base + 0x1794);
-                            bool& pin_penetrated = *(bool*)(pin_base + 0x17B4);
-                            if (pin_penetrated) {
+                        if (!player->luciferPins[i]) {
+                            if (player->luciferPins[i]->penetrated) {
                                 ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
                             } else {
                                 ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
                             }
-                            ImGui::Text("Pin %i = %.0f", i + 1, pin_timer);
+                            ImGui::Text("Pin %i = %.0f", i + 1, player->luciferPins[i]->timer);
                             ImGui::SameLine();
-                            ImGui::Text("/ %.0f", pin_timer_max);
+                            ImGui::Text("/ %.0f", player->luciferPins[i]->timerMax);
                             ImGui::PopStyleColor();
                         }
 #endif

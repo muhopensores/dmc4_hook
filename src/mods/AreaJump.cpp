@@ -5,6 +5,7 @@
 
 uintptr_t  AreaJump::jmp_return{ NULL };
 cAreaJump* AreaJump::c_area_jump_ptr{ NULL };
+constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 constexpr std::array room_items {
 	"Berial",                             // 503 // DevilMayCry4_DX9.exe+A56768
@@ -114,6 +115,16 @@ std::optional<std::string> AreaJump::on_initialize() {
             spdlog::error("Failed to init AreaJump mod\n");
             return "Failed to init AreaJump mod";
     }
+
+    console->system().RegisterCommand("skip", "Skip current BP stage", [/*this*/]() {
+        if (!IsBadWritePtr(c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(c_area_jump_ptr,sizeof(uint32_t))) {
+            static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
+            if (s_mediator_ptr->missionID == 50){ // always shows 50 for BP
+                c_area_jump_ptr->bp_floor_stage = c_area_jump_ptr->bp_floor_stage++;
+                c_area_jump_ptr->init_jump = true;
+            }
+	    }
+    });
 
 	return Mod::on_initialize();
 }
