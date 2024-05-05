@@ -31,6 +31,18 @@ bool PlayerTracker::lock_on_alloc{ false };
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8; // DevilMayCry4_DX9.exe+A558B8
 bool PlayerTracker::pin_imgui_enabled = false;
 static bool display_player_stats = false;
+Vector3f playerXYZBackup{ 0.0f, 0.0f, 0.0f };
+
+void SavePlayerXYZ() {
+    uPlayer* player = devil4_sdk::get_local_player();
+    if (player)
+        playerXYZBackup = player->m_pos;
+}
+void LoadPlayerXYZ() {
+    uPlayer* player = devil4_sdk::get_local_player();
+    if (player)
+        player->m_pos = playerXYZBackup;
+}
 
 std::optional<std::string> PlayerTracker::on_initialize() {
     MutatorRegistry::define("PocketKing").on_init([] {
@@ -75,10 +87,23 @@ std::optional<std::string> PlayerTracker::on_initialize() {
 
     console->system().RegisterCommand("pintimer", "Enable pin timer HUD", [this]() {
         PlayerTracker::pin_imgui_enabled = !PlayerTracker::pin_imgui_enabled;
-    });    
+    });
+
+    using v_key = std::vector<uint32_t>;
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_SHIFT, VK_F11 }, "Save Player XYZ", "save_player_xyz_hotkey"));
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_SHIFT, VK_F12 }, "Load Player XYZ", "load_player_xyz_hotkey"));
 
     return Mod::on_initialize();
 }
+
+/*void PlayerTracker::on_update_input(utility::Input & input) {
+    if (m_hotkeys[0]->check(input)) {
+        SavePlayerXYZ();
+    }
+    if (m_hotkeys[1]->check(input)) {
+        LoadPlayerXYZ();
+    }
+}*/
 
 void PlayerTracker::on_gui_frame() {
     ImGui::Checkbox(_("Disable Game Pause When Opening The Trainer"), &WorkRate::disable_trainer_pause);
@@ -155,6 +180,14 @@ void PlayerTracker::on_gui_frame() {
         }
         ImGui::Unindent(lineIndent);
     }
+    if (ImGui::Button(_("Save Player XYZ"))) {
+        SavePlayerXYZ();
+    }
+    ImGui::SameLine(sameLineWidth);
+    if (ImGui::Button(_("Load Player XYZ"))) {
+        LoadPlayerXYZ();
+    }
+    ImGui::InputFloat3(_("Saved Player XYZ"), &playerXYZBackup[0]);
 }
 
 void PlayerTracker::custom_imgui_window() {

@@ -462,13 +462,11 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("FreeJc"_hash);
 
-                    pmods->on_draw_ui("NoClip"_hash); // 1.5 lines
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("NoDtCooldown"_hash);
-                    
                     pmods->on_draw_ui("InfAirHikes"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("Quicksilver"_hash);
+
+                    pmods->on_draw_ui("NoDtCooldown"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -731,6 +729,8 @@ namespace gui {
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("PlayerTracker"_hash); // needs its own line
+
+                    pmods->on_draw_ui("NoClip"_hash); // 1.5 lines
 
                     ImGui::Spacing();
                     ImGui::Separator();
