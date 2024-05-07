@@ -516,7 +516,7 @@ public:
     char pad_b4[0x1c];
     class uCameraCtrl* camera1; // 0xd0
     char pad_d4[0xc];
-    uint32_t missionID; // 0xe0
+    uint32_t missionID; // 0xe0 // always shows 50 for BP
     uint32_t roomID; // 0xe4
     char pad_e8[0x2c];
     uint32_t orbCount; // 0x114

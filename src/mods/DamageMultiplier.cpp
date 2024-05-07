@@ -98,6 +98,15 @@ std::optional<std::string> DamageMultiplier::on_initialize() {
 		spdlog::error("Failed to init DamageMultiplier mod\n");
 		return "Failed to init DamageMultiplier mod";
 	}
+
+    console->system().RegisterCommand("damagemult", "Set outgoing damage multiplier", 
+        [](float value) {
+            g_must_style = false;
+            DamageMultiplier::mod_enabled = true;
+            damagemultiplier = value;
+        }, 
+        csys::Arg<float>("1.0 default"));    
+
 	return Mod::on_initialize();
 }
 

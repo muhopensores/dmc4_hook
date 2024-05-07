@@ -95,7 +95,15 @@ std::optional<std::string> PlayerTracker::on_initialize() {
                 pl_ptr->DT = value;
             }
         }, 
-        csys::Arg<float>("Float [0.0 - 6969.0]"));
+        csys::Arg<float>("0.0 - 10000.0"));
+
+    console->system().RegisterCommand("playerhp", "Set hp value", 
+        [](float value) {
+            if (uPlayer* pl_ptr = devil4_sdk::get_local_player()) {
+                pl_ptr->HP = value;
+            }
+        }, 
+        csys::Arg<float>("0.0 - 20000.0"));
 
     using v_key = std::vector<uint32_t>;
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_SHIFT, VK_F11 }, "Save Player XYZ", "save_player_xyz_hotkey"));

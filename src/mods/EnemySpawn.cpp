@@ -215,6 +215,7 @@ void set_enemy_position(UEnemySomething* em) {
 void spawn_em00x(int index) {
     std::lock_guard<std::mutex> lk(g_mutex);
     uintptr_t em_function_pointer = fptr_em_factories.at(index);
+    if (!devil4_sdk::get_local_player()) return;
     __asm {
 		pushad
 		pushfd
@@ -240,6 +241,12 @@ void spawn_em00x(int index) {
 		popfd
 		popad
     }
+}
+
+void spawn_random_enemy() {
+    auto now = std::chrono::system_clock::now();
+    srand((uint32_t)now.time_since_epoch().count());
+    spawn_em00x(rand() % 21);
 }
 
 std::optional<std::string> EnemySpawn::on_initialize() {
@@ -352,9 +359,7 @@ std::optional<std::string> EnemySpawn::on_initialize() {
         .description("Spawns random enemy")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Random")
         .on_init([]() {
-            auto now = std::chrono::system_clock::now();
-            srand((uint32_t)now.time_since_epoch().count());
-            spawn_em00x(rand() % 21); 
+            spawn_random_enemy();
         });
 
     using v_key = std::vector<uint32_t>;
@@ -372,68 +377,71 @@ std::optional<std::string> EnemySpawn::on_initialize() {
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F11 }, "Spawn Chimera", "spawn_chimera_key"));
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F12 }, "Spawn Basilisk", "spawn_basilisk_key"));
 
-    console->system().RegisterCommand("scarecrowleg", "Spawn a Scarecrow Leg", [/*this*/]() {
+    console->system().RegisterCommand("spawnscarecrowleg", "Spawn a Scarecrow Leg", [/*this*/]() {
         spawn_em00x(0);
     });
-    console->system().RegisterCommand("scarecrowarm", "Spawn a Scarecrow Arm", [/*this*/]() {
+    console->system().RegisterCommand("spawnscarecrowarm", "Spawn a Scarecrow Arm", [/*this*/]() {
         spawn_em00x(1);
     });
-    console->system().RegisterCommand("mega", "Spawn a Mega Scarecrow", [/*this*/]() {
+    console->system().RegisterCommand("spawnmega", "Spawn a Mega Scarecrow", [/*this*/]() {
         spawn_em00x(2);
     });
-    console->system().RegisterCommand("bianco", "Spawn a Bianco Angelo", [/*this*/]() {
+    console->system().RegisterCommand("spawnbianco", "Spawn a Bianco Angelo", [/*this*/]() {
         spawn_em00x(3);
     });
-    console->system().RegisterCommand("alto", "Spawn an Alto Angelo", [/*this*/]() {
+    console->system().RegisterCommand("spawnalto", "Spawn an Alto Angelo", [/*this*/]() {
         spawn_em00x(4);
     });
-    console->system().RegisterCommand("mephisto", "Spawn a Mephisto", [/*this*/]() {
+    console->system().RegisterCommand("spawnmephisto", "Spawn a Mephisto", [/*this*/]() {
         spawn_em00x(5);
     });
-    console->system().RegisterCommand("faust", "Spawn a Faust", [/*this*/]() {
+    console->system().RegisterCommand("spawnfaust", "Spawn a Faust", [/*this*/]() {
         spawn_em00x(6);
     });
-    console->system().RegisterCommand("frost", "Spawn a Frost", [/*this*/]() {
+    console->system().RegisterCommand("spawnfrost", "Spawn a Frost", [/*this*/]() {
         spawn_em00x(7);
     });
-    console->system().RegisterCommand("assault", "Spawn an Assault", [/*this*/]() {
+    console->system().RegisterCommand("spawnassault", "Spawn an Assault", [/*this*/]() {
         spawn_em00x(8);
     });
-    console->system().RegisterCommand("blitz", "Spawn a Blitz", [/*this*/]() {
+    console->system().RegisterCommand("spawnblitz", "Spawn a Blitz", [/*this*/]() {
         spawn_em00x(9);
     });
-    console->system().RegisterCommand("seed", "Spawn a Chimera Seed", [/*this*/]() {
+    console->system().RegisterCommand("spawnseed", "Spawn a Chimera Seed", [/*this*/]() {
         spawn_em00x(10);
     });
-    console->system().RegisterCommand("basilisk", "Spawn a Basilisk", [/*this*/]() {
+    console->system().RegisterCommand("spawnbasilisk", "Spawn a Basilisk", [/*this*/]() {
         spawn_em00x(11);
     });
-    console->system().RegisterCommand("berial", "Spawn a Berial", [/*this*/]() {
+    console->system().RegisterCommand("spawnberial", "Spawn a Berial", [/*this*/]() {
         spawn_em00x(12);
     });
-    console->system().RegisterCommand("bael", "Spawn a Bael", [/*this*/]() {
+    console->system().RegisterCommand("spawnbael", "Spawn a Bael", [/*this*/]() {
         spawn_em00x(13);
     });
-    console->system().RegisterCommand("echidna", "Spawn an Echidna", [/*this*/]() {
+    console->system().RegisterCommand("spawnechidna", "Spawn an Echidna", [/*this*/]() {
         spawn_em00x(14);
     });
-    console->system().RegisterCommand("agnus", "Spawn an Agnus", [/*this*/]() {
+    console->system().RegisterCommand("spawnagnus", "Spawn an Agnus", [/*this*/]() {
         spawn_em00x(15);
     });
-    console->system().RegisterCommand("credo", "Spawn a Credo", [/*this*/]() {
+    console->system().RegisterCommand("spawncredo", "Spawn a Credo", [/*this*/]() {
         spawn_em00x(16);
     });
-    console->system().RegisterCommand("sanctus", "Spawn a Sanctus", [/*this*/]() {
+    console->system().RegisterCommand("spawnsanctus", "Spawn a Sanctus", [/*this*/]() {
         spawn_em00x(17);
     });
-    console->system().RegisterCommand("sanctus2", "Spawn a Sanctus Diabolica", [/*this*/]() {
+    console->system().RegisterCommand("spawnsanctus2", "Spawn a Sanctus Diabolica", [/*this*/]() {
         spawn_em00x(18);
     });
-    console->system().RegisterCommand("kyrie", "Spawn a Kyrie", [/*this*/]() {
+    console->system().RegisterCommand("spawnkyrie", "Spawn a Kyrie", [/*this*/]() {
         spawn_em00x(19);
     });
-    console->system().RegisterCommand("dante", "Spawn a Dante", [/*this*/]() {
+    console->system().RegisterCommand("spawndante", "Spawn a Dante", [/*this*/]() {
         spawn_em00x(20);
+    });
+    console->system().RegisterCommand("spawnrandom", "Spawn a random enemy", [/*this*/]() {
+        spawn_random_enemy();
     });
 
     return Mod::on_initialize();
@@ -452,9 +460,7 @@ void EnemySpawn::on_gui_frame() {
         spawn_em00x(enemy_names_current);
     }
     if (ImGui::Button(_("Random"))) {
-        auto now = std::chrono::system_clock::now();
-        srand((uint32_t)now.time_since_epoch().count());
-        spawn_em00x(rand() % 21);
+        spawn_random_enemy();
     }
 }
 
