@@ -85,9 +85,17 @@ std::optional<std::string> PlayerTracker::on_initialize() {
     console->system().RegisterVariable("pin_ui_debug", CON_PIN_UI_DEBUG, csys::Arg<bool>("bool"));
 #endif
 
-    console->system().RegisterCommand("pintimer", "Enable pin timer HUD", [this]() {
+    console->system().RegisterCommand("pintimer", "Enable pin timer HUD", []() {
         PlayerTracker::pin_imgui_enabled = !PlayerTracker::pin_imgui_enabled;
     });
+
+    console->system().RegisterCommand("playerdt", "Set dt value", 
+        [](float value) {
+            if (uPlayer* pl_ptr = devil4_sdk::get_local_player()) {
+                pl_ptr->DT = value;
+            }
+        }, 
+        csys::Arg<float>("Float [0.0 - 6969.0]"));
 
     using v_key = std::vector<uint32_t>;
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_SHIFT, VK_F11 }, "Save Player XYZ", "save_player_xyz_hotkey"));
