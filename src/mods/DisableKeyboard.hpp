@@ -7,8 +7,7 @@ public:
     DisableKeyboard() = default;
 
     static bool mod_enabled;
-
-    void toggle(bool enable);
+    static uintptr_t jmp_ret;
 
     std::string get_mod_name() override { return "DisableKeyboard"; };
 
@@ -21,6 +20,6 @@ public:
     void on_gui_frame() override;
 
 private:
-    // std::unique_ptr<FunctionHook> hook;
-    std::unique_ptr<Patch> patch;
+    std::unique_ptr<FunctionHook> hook;
+    // std::unique_ptr<Patch> patch;
 };

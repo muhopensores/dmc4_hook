@@ -24,6 +24,7 @@ static int con_bg_red_int   = 0;
 static int con_bg_green_int = 186;
 static int con_bg_blue_int  = 250;
 static int con_bg_alpha_int = 250;
+bool ImGuiConsole::is_open = false;
 
 // The following three functions (InputTextCallback_UserData, InputTextCallback, InputText) are obtained from misc/cpp/imgui_stdlib.h
 // Which are licensed under MIT License (https://github.com/ocornut/imgui/blob/master/LICENSE.txt)
@@ -85,9 +86,10 @@ ImGuiConsole::ImGuiConsole(std::string c_name, size_t input_buffer_size) : m_con
 
 void ImGuiConsole::draw(bool& open)
 {
-	if (!open && display_frac <= 0.001f ) { return; }
+	is_open = open;
+	if (!open && display_frac <= 0.001f ) {return; }
 
-	// TODO(): block keyboard inputs
+	// TODO(): block keyboard inputs -> done via including this in DisableKeyboard.cpp
 
 	update_display_fraction();
 

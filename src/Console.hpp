@@ -40,6 +40,7 @@ public:
 	float display_frac;	             // approaches final_frac at con_speed
 	float final_frac;	             // 0.0 to 1.0 lines of console to display
 	int	  frac_time;		         // time of last display_frac update
+	static bool is_open;
 
 	void set_display_fraction(float frac);
 	void update_display_fraction();
