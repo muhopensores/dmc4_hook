@@ -326,8 +326,16 @@ void PlayerTracker::custom_imgui_window() {
 
         ImGui::Text(_("Found Orbs: %i"), sMediatorPtr->orbMissionCurrent);
         ImGui::Text(_("Potential Orbs: %i"), sMediatorPtr->orbMissionPotential);
-        if (sMediatorPtr->orbMissionPotential && sMediatorPtr->orbMissionCurrent)
-            ImGui::Text(_("%.0f%% Orbs found up to current point"), ((float)sMediatorPtr->orbMissionCurrent) / (float)sMediatorPtr->orbMissionPotential * 100.0f);
+        static float orbsFoundPercent = 0.0f;
+        if (sMediatorPtr->orbMissionPotential && sMediatorPtr->orbMissionCurrent) {
+            orbsFoundPercent = ((float)sMediatorPtr->orbMissionCurrent / (float)sMediatorPtr->orbMissionPotential) * 100.0f;
+            ImGui::Text(_("%.0f%% Orbs found up to current point"), orbsFoundPercent);
+            if (orbsFoundPercent < 45.0f) ImGui::Text(_("D"));
+            else if (orbsFoundPercent < 60.0f) ImGui::Text(_("C"));
+            else if (orbsFoundPercent < 75.0f) ImGui::Text(_("B"));
+            else if (orbsFoundPercent < 95.0f) ImGui::Text(_("A"));
+            else ImGui::Text(_("S"));
+        }
 
         G_WINDOW_HEIGHT_HACK_IDK = ImGui::GetCursorPosY();
         ImGui::End();
