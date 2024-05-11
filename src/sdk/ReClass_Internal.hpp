@@ -520,7 +520,9 @@ public:
     uint32_t roomID; // 0xe4
     char pad_e8[0x2c];
     uint32_t orbCount; // 0x114
-    char pad_118[0x1c];
+    uint32_t orbMissionCurrent; // 0x118
+    uint32_t orbMissionPotential; // 0x11C
+    char pad_118[0x14];
     float enemyDifficulty; // 0x134
     char pad_138[0x4];
     uint32_t hellGoldOrbCount; // 0x13c

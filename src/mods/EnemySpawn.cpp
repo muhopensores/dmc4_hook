@@ -215,7 +215,7 @@ void set_enemy_position(UEnemySomething* em) {
 void spawn_em00x(int index) {
     std::lock_guard<std::mutex> lk(g_mutex);
     uintptr_t em_function_pointer = fptr_em_factories.at(index);
-    if (!devil4_sdk::get_local_player()) return;
+    if (!devil4_sdk::get_local_player()) return; // only work while character is loaded
     __asm {
 		pushad
 		pushfd
@@ -246,6 +246,10 @@ void spawn_em00x(int index) {
 void spawn_random_enemy() {
     auto now = std::chrono::system_clock::now();
     srand((uint32_t)now.time_since_epoch().count());
+    // I thought this would stop crashes but no
+    // if (devil4_sdk::get_sMediator()->uBoss1)
+    //    spawn_em00x(rand() % 11); // do not spawn a boss if a boss already exists
+    // else
     spawn_em00x(rand() % 21);
 }
 

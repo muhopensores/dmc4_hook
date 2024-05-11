@@ -31,6 +31,7 @@ bool PlayerTracker::lock_on_alloc{ false };
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8; // DevilMayCry4_DX9.exe+A558B8
 bool PlayerTracker::pin_imgui_enabled = false;
 static bool display_player_stats = false;
+static bool red_orb_completion_enabled = false;
 Vector3f playerXYZBackup{ 0.0f, 0.0f, 0.0f };
 
 void SavePlayerXYZ() {
@@ -123,6 +124,7 @@ std::optional<std::string> PlayerTracker::on_initialize() {
 
 void PlayerTracker::on_gui_frame() {
     ImGui::Checkbox(_("Disable Game Pause When Opening The Trainer"), &WorkRate::disable_trainer_pause);
+    ImGui::Checkbox(_("Show Red Orb Completion %"), &red_orb_completion_enabled);
 
     ImGui::Spacing();
     ImGui::Separator();
@@ -302,14 +304,44 @@ void PlayerTracker::custom_imgui_window() {
             }
         }
     }
+
+    if (red_orb_completion_enabled) {
+        SMediator* sMediatorPtr = devil4_sdk::get_sMediator();
+        if (!sMediatorPtr) return;
+        ImGuiIO& io = ImGui::GetIO();
+        ImGuiWindowFlags window_flags =
+            ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoBackground;
+
+        // bandaid
+        const float text_height = ImGui::GetTextLineHeightWithSpacing();
+        const glm::vec2 margin = glm::vec2(text_height * 1.666f, text_height * 5.6f);
+        glm::vec2 window_size = glm::vec2(pui::backdrop.size_.x + margin.x, G_WINDOW_HEIGHT_HACK_IDK/*pui::backdrop.size_.y + margin.y*/);
+        glm::vec2 window_pos = glm::vec2(io.DisplaySize.x - window_size.x - 128.0f, 128.0f);
+        const float fucktor = glm::smoothstep(window_pos.y, window_pos.y + window_size.y + 150.0f, G_WINDOW_HEIGHT_HACK_IDK);
+
+        ImGui::SetNextWindowPos(window_pos, ImGuiCond_Once);
+        ImGui::SetNextWindowSize(window_size);
+        ImGui::Begin("Red Orb Completion HUD", NULL, window_flags);
+        ImGui::NewLine();
+
+        ImGui::Text(_("Found Orbs: %i"), sMediatorPtr->orbMissionCurrent);
+        ImGui::Text(_("Potential Orbs: %i"), sMediatorPtr->orbMissionPotential);
+        if (sMediatorPtr->orbMissionPotential && sMediatorPtr->orbMissionCurrent)
+            ImGui::Text(_("%.0f%% Orbs found up to current point"), ((float)sMediatorPtr->orbMissionCurrent) / (float)sMediatorPtr->orbMissionPotential * 100.0f);
+
+        G_WINDOW_HEIGHT_HACK_IDK = ImGui::GetCursorPosY();
+        ImGui::End();
+    }
 }
 
 
 void PlayerTracker::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("pin_imgui_enabled", pin_imgui_enabled);
+    cfg.set<bool>("red_orb_completion_imgui_enabled", red_orb_completion_enabled);
 }
 
 void PlayerTracker::on_config_load(const utility::Config& cfg) {
     pin_imgui_enabled = cfg.get<bool>("pin_imgui_enabled").value_or(false);
+    red_orb_completion_enabled = cfg.get<bool>("red_orb_completion_imgui_enabled").value_or(false);
 }
 #endif

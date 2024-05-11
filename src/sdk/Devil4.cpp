@@ -102,6 +102,12 @@ namespace devil4_sdk {
 		shell->m_required_some_byte_idk = 0;
 	}
 
+	SMediator* get_sMediator() {
+		constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
+		static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
+		return s_mediator_ptr;
+	}
+
 	uPlayer* get_local_player() {
 		constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 		static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;

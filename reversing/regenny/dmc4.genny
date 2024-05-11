@@ -371,6 +371,8 @@ class SMediator {
 	uint32_t roomID @ 0xE4
 	class Camera* camera1 @ 0xD0
 	uint32_t orbCount @ 0x114
+	uint32_t orbMissionCurrent @ 0x118
+	uint32_t orbMissionPotential @ 0x11C
 	float enemyDifficulty @ 0x134
 	uint32_t hellGoldOrbCount @ 0x13C
 	class GameDifficulty gameDifficulty @ 0x140
