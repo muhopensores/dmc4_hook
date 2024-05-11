@@ -308,6 +308,7 @@ void PlayerTracker::custom_imgui_window() {
     if (red_orb_completion_enabled) {
         SMediator* sMediatorPtr = devil4_sdk::get_sMediator();
         if (!sMediatorPtr) return;
+        if (!devil4_sdk::get_local_player()) return;
         ImGuiIO& io = ImGui::GetIO();
         ImGuiWindowFlags window_flags =
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoBackground;
@@ -315,9 +316,8 @@ void PlayerTracker::custom_imgui_window() {
         // bandaid
         const float text_height = ImGui::GetTextLineHeightWithSpacing();
         const glm::vec2 margin = glm::vec2(text_height * 1.666f, text_height * 5.6f);
-        glm::vec2 window_size = glm::vec2(pui::backdrop.size_.x + margin.x, G_WINDOW_HEIGHT_HACK_IDK/*pui::backdrop.size_.y + margin.y*/);
+        glm::vec2 window_size = glm::vec2(400 + margin.x, G_WINDOW_HEIGHT_HACK_IDK/*pui::backdrop.size_.y + margin.y*/);
         glm::vec2 window_pos = glm::vec2(io.DisplaySize.x - window_size.x - 128.0f, 128.0f);
-        const float fucktor = glm::smoothstep(window_pos.y, window_pos.y + window_size.y + 150.0f, G_WINDOW_HEIGHT_HACK_IDK);
 
         ImGui::SetNextWindowPos(window_pos, ImGuiCond_Once);
         ImGui::SetNextWindowSize(window_size);
