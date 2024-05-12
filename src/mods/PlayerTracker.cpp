@@ -124,6 +124,11 @@ std::optional<std::string> PlayerTracker::on_initialize() {
 
 void PlayerTracker::on_gui_frame() {
     ImGui::Checkbox(_("Disable Game Pause When Opening The Trainer"), &WorkRate::disable_trainer_pause);
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
     ImGui::Checkbox(_("Show Red Orb Completion %"), &red_orb_completion_enabled);
 
     ImGui::Spacing();
@@ -306,9 +311,8 @@ void PlayerTracker::custom_imgui_window() {
     }
 
     if (red_orb_completion_enabled) {
-        SMediator* sMediatorPtr = devil4_sdk::get_sMediator();
-        if (!sMediatorPtr) return;
         if (!devil4_sdk::get_local_player()) return;
+        SMediator* sMediatorPtr = devil4_sdk::get_sMediator();
         ImGuiIO& io = ImGui::GetIO();
         ImGuiWindowFlags window_flags =
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoBackground;
@@ -316,7 +320,7 @@ void PlayerTracker::custom_imgui_window() {
         // bandaid
         const float text_height = ImGui::GetTextLineHeightWithSpacing();
         const glm::vec2 margin = glm::vec2(text_height * 1.666f, text_height * 5.6f);
-        glm::vec2 window_size = glm::vec2(400 + margin.x, G_WINDOW_HEIGHT_HACK_IDK/*pui::backdrop.size_.y + margin.y*/);
+        glm::vec2 window_size = glm::vec2(400 + margin.x, G_WINDOW_HEIGHT_HACK_IDK);
         glm::vec2 window_pos = glm::vec2(io.DisplaySize.x - window_size.x - 128.0f, 128.0f);
 
         ImGui::SetNextWindowPos(window_pos, ImGuiCond_Once);
@@ -330,18 +334,17 @@ void PlayerTracker::custom_imgui_window() {
         if (sMediatorPtr->orbMissionPotential && sMediatorPtr->orbMissionCurrent) {
             orbsFoundPercent = ((float)sMediatorPtr->orbMissionCurrent / (float)sMediatorPtr->orbMissionPotential) * 100.0f;
             ImGui::Text(_("%.0f%% Orbs found up to current point"), orbsFoundPercent);
-            if (orbsFoundPercent < 45.0f) ImGui::Text(_("D"));
-            else if (orbsFoundPercent < 60.0f) ImGui::Text(_("C"));
-            else if (orbsFoundPercent < 75.0f) ImGui::Text(_("B"));
-            else if (orbsFoundPercent < 95.0f) ImGui::Text(_("A"));
-            else ImGui::Text(_("S"));
+            if (orbsFoundPercent < 45.0f) ImGui::Text("D");
+            else if (orbsFoundPercent < 60.0f) ImGui::Text("C");
+            else if (orbsFoundPercent < 75.0f) ImGui::Text("B");
+            else if (orbsFoundPercent < 95.0f) ImGui::Text("A");
+            else ImGui::Text("S");
         }
 
         G_WINDOW_HEIGHT_HACK_IDK = ImGui::GetCursorPosY();
         ImGui::End();
     }
 }
-
 
 void PlayerTracker::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("pin_imgui_enabled", pin_imgui_enabled);

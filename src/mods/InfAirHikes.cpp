@@ -7,6 +7,12 @@ std::optional<std::string> InfAirHikes::on_initialize() {
         .description("hehe")
         .on_init([&] {toggle(true); })
         .set_timer(15.0, [&] { toggle(false); });
+
+    console->system().RegisterCommand("infjumps", "Toggle infinite Air Hikes", [this]() {
+        InfAirHikes::mod_enabled = !InfAirHikes::mod_enabled;
+        this->toggle(InfAirHikes::mod_enabled);
+    });
+
     return Mod::on_initialize();
 }
 

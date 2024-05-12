@@ -1,4 +1,3 @@
-
 #include "FreeJc.hpp"
 #include "EasyJc.hpp"
 
@@ -6,6 +5,11 @@
 bool FreeJc::mod_enabled{ false };
 
 std::optional<std::string> FreeJc::on_initialize() {
+    console->system().RegisterCommand("freejc", "Enemy Step anywhere in the room with an enemy", [this]() {
+    FreeJc::mod_enabled = !FreeJc::mod_enabled;
+    this->toggle(FreeJc::mod_enabled);
+});
+
     return Mod::on_initialize();
 }
 
