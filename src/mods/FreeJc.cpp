@@ -5,7 +5,7 @@
 bool FreeJc::mod_enabled{ false };
 
 std::optional<std::string> FreeJc::on_initialize() {
-    console->system().RegisterCommand("freejc", "Enemy Step anywhere in the room with an enemy", [this]() {
+    console->system().RegisterCommand("freejc", "Enemy Step anywhere", [this]() {
     FreeJc::mod_enabled = !FreeJc::mod_enabled;
     this->toggle(FreeJc::mod_enabled);
 });
@@ -15,7 +15,7 @@ std::optional<std::string> FreeJc::on_initialize() {
 
 void FreeJc::toggle(bool enable) {
     if (enable) {
-        install_patch_offset(0x404A26, patch1, "\x90\x90", 2);
+        install_patch_offset(0x404A06, patch1, "\xE9\x83\x00\x00\x00\x90\x90\x90\x90\x90", 10);
         install_patch_offset(0x427999, patch2, "\x90\x90\x90\x90\x90", 5);
     }
     else {
@@ -29,7 +29,7 @@ void FreeJc::on_gui_frame() {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker(_("Enemy Step anywhere in the room with an enemy"));
+    help_marker(_("Enemy Step anywhere"));
 }
 
 void FreeJc::on_config_load(const utility::Config& cfg) {
