@@ -15,7 +15,7 @@ std::optional<std::string> FreeJc::on_initialize() {
 
 void FreeJc::toggle(bool enable) {
     if (enable) {
-        install_patch_offset(0x404A06, patch1, "\xE9\x83\x00\x00\x00\x90\x90\x90\x90\x90", 10);
+        install_patch_offset(0x404A06, patch1, "\xE9\x7D\x00\x00\x00\x90\x90\x90\x90\x90", 10);
         install_patch_offset(0x427999, patch2, "\x90\x90\x90\x90\x90", 5);
     }
     else {
