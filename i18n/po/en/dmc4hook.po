@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-25 20:54+0300\n"
+"POT-Creation-Date: 2024-05-08 23:33+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,10 +28,6 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:234
 msgid "DMC4Hook - Devil May Cry 4 Trainer"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:246
-msgid "Special Thanks:"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:256
@@ -77,68 +73,102 @@ msgid "Limit Removal"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:454
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:230
 msgid "Shared Abilities"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:483
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:475
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:236
 msgid "Nero Abilities"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:504
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:496
 msgid "Dante Abilities"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:556
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:548
 msgid "Lucifer"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:566
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:558
 msgid "Rose"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:575
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:567
 msgid "Darkslayer"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:595
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:586
+msgid "Memes"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:600
 msgid "Environment"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:618
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:680
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:623
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:685
 msgid "System"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:622
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:627
 msgid "HUD"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:636
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:641
 msgid "Cutscenes"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:648
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:653
 msgid "Misc"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:666
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:671
 msgid "dmc4_hook"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:696
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:701
 msgid "Camera"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:711
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:716
 msgid "Debug"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:756
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:763
 msgid "Hotkeys"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\Mutators.cpp:167
+msgid "Gameplay mutators configuration"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\Mutators.cpp:173
+msgid "Name"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\Mutators.cpp:176
+msgid "Enabled?"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\Mutators.cpp:178
+msgid "Toggle commands for chaos mode"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\Mutators.cpp:181
+msgid "Weight"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\Mutators.cpp:183
+msgid "How often mod will randomly appear during voting"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\ActiveBlock.cpp:45
 msgid "Active Block"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\ActiveBlock.cpp:47
+msgid "Block during uncancellable frames"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AlwaysRoyalRelease.cpp:20
@@ -149,35 +179,49 @@ msgstr ""
 msgid "Angel Snatch"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:406
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AngelSnatch.cpp:201
+msgid "Mapped to forward + snatch"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:416
 msgid ""
 "Area Jump is not initialized.\n"
 "Load into a stage to access it."
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:410
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:420
 msgid "Bloody Palace Floor Teleports"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:415
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:422
+msgid ""
+"Type in which BP floor you want to teleport to then hit Go to be teleported "
+"to that stage"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:426
 msgid "##BP Floor "
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:419
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:430
 msgid "Go"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:424
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:435
 msgid ""
 "BP Floor Jump is not initialized.\n"
 "Load into BP to access it."
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:431
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:442
 msgid "Mission Area Teleports"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:436
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:444
+msgid "Teleport to any area by clicking its name"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:449
 msgid "##Room Codes Listbox"
 msgstr ""
 
@@ -186,15 +230,23 @@ msgid "No DTless Assault Escape"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AssaultsDontJump.cpp:51
-msgid "Disable Assaults jumping out of combos until they DT"
+msgid "Disable Assaults jumping out of combos until they Devil Trigger"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BackgroundRendering.cpp:80
 msgid "Background Input"
 msgstr ""
 
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BackgroundRendering.cpp:82
+msgid "The game will accept controller and keyboard inputs while tabbed out"
+msgstr ""
+
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BerialDaze.cpp:43
 msgid "Berial Daze"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BerialDaze.cpp:47
+msgid "Sets Berial to his fireless Dazed state"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BigHeadMode.cpp:137
@@ -202,11 +254,24 @@ msgid "Big Head Mode"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BigHeadMode.cpp:142
+msgid "Head size scales with style"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BigHeadMode.cpp:144
 msgid "Swole Mode"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BigHeadMode.cpp:148
+msgid "Body size scales with style"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Borderless.cpp:129
 msgid "Borderless Window"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Borderless.cpp:133
+msgid ""
+"Only applies if already in fullscreen. Hit Alt+Enter to toggle fullscreen"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BpJumpHook.cpp:377
@@ -214,12 +279,17 @@ msgid "Randomize BP"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BpJumpHook.cpp:381
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BpJumpHook.cpp:385
-msgid "Enable before starting BP"
+msgid "All stages will be randomized. Enable before starting BP"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BpJumpHook.cpp:383
 msgid "Boss Rush"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BpJumpHook.cpp:385
+msgid ""
+"Only boss stages will be played. Enable before starting BP\n"
+"Can be used with Randomize BP"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BpJumpHook.cpp:388
@@ -239,7 +309,9 @@ msgid "Ignore Red Seal Kill Requirements"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BpPortal.cpp:35
-msgid "Sealed doors and portals open instantly"
+msgid ""
+"Forces the BP Portal to appear and lets you pass Red Seals without killing "
+"enemies"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:297
@@ -257,86 +329,102 @@ msgid "Disable Last Enemy Zoom"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:307
+msgid ""
+"Disables the zoom-in that happens when you're fighting the last enemy of a "
+"room"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:309
 msgid "Left Side Reset"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:311
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:313
 msgid ""
 "When pressing the button that resets the camera behind Dante, the camera will "
 "instead be set to Dante's left"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:313
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:315
 msgid "Right Side Reset"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:317
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:319
 msgid "Set the camera to the right instead"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:319
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:321
 msgid "Increased Sensitivity"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:321
-msgid "Camera Lookdown"
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:323
+msgid "Increases the camera rotation speed"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:325
+msgid "Camera Lookdown"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:329
 msgid "When above the locked on enemy the camera will look down"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:327
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:331
 msgid "Noclip Cam"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:331
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:335
+msgid ""
+"Remove camera presets and instead use a camera that can move through walls\n"
+"Enable before entering a stage"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:337
 msgid "Disable Attack Corrects"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:335
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:341
 msgid ""
 "Attempts to stop the camera rotating when the player attacks towards the "
 "camera, intended for comparison purposes"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:336
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:342
 msgid "Use Custom Camera Variables"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:338
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:344
 msgid "Also enables the editing of these values via hotkeys"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:340
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:347
 msgid "Camera Variables"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:342
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:349
 msgid "Height"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:344
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:351
 msgid "Distance"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:346
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:353
 msgid "Distance (Lockon)"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:348
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:355
 msgid "Angle"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:350
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:357
 msgid "Angle (Lockon)"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:352
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:359
 msgid "FOV"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:354
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:361
 msgid "FOV (In Battle)"
 msgstr ""
 
@@ -345,6 +433,12 @@ msgid "Force Nero"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharacterSwap.cpp:179
+msgid ""
+"At the start of a level, you will spawn as whichever character is checked.\n"
+"Does not work for M1"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharacterSwap.cpp:181
 msgid "Force Dante"
 msgstr ""
 
@@ -356,31 +450,31 @@ msgstr ""
 msgid "Halves the charge time on Round Trip"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:727
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:724
 msgid "Character Switcher"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:731
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:728
 msgid "Enable before loading into a stage"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:734
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:732
 msgid "Input 1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:747
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:745
 msgid "Set a button combo to trigger the switch"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:749
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:747
 msgid "Input 2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:764
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:761
 msgid "Inertia carryover"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:768
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:765
 msgid "Enable inertia carryover on switching"
 msgstr ""
 
@@ -408,16 +502,34 @@ msgstr ""
 msgid "Skip Mission Outros"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DamageMultiplier.cpp:107
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DamageMultiplier.cpp:105
 msgid "Player Damage Multiplier"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DamageMultiplier.cpp:110
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DamageMultiplier.cpp:109
+msgid "Add a multiplier to outgoing damage"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DamageMultiplier.cpp:111
+msgid "Must style mode"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DamageMultiplier.cpp:115
+msgid ""
+"Damage scales with Style\n"
+"0 damage at no rank to 1.0 damage at SSS\n"
+"Due to the way this is coded, it cannot currently be used with Damage "
+"Multiplier"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DamageMultiplier.cpp:120
 msgid "Multiplier"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DamageMultiplier.cpp:112
-msgid "Must style mode"
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DamageMultiplier.cpp:123
+msgid ""
+"Less than 1 = you deal less damage than default\n"
+"More than 1 = you deal more"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:447
@@ -435,34 +547,39 @@ msgid ""
 "- Save your config and load into a level."
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:457
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:458
 msgid "Download JDC Files"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:461
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:462
 msgid ""
 "Download JDC Files in the Assets section of the latest release and install "
 "manually or using Fluffy's Mod Manager"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:464
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:463
 msgid "Lock-on + back input"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:466
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:465
 msgid "Bind jdc activation to lock-on + back"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:468
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:467
 msgid "Inertia enable"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DifficultySelect.cpp:348
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DifficultySelect.cpp:363
 msgid "Game Mode"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DifficultySelect.cpp:348
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DifficultySelect.cpp:363
 msgid "Default"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DifficultySelect.cpp:383
+msgid ""
+"Changes current difficulty - allows forced Dante Must Die or God Must Die"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableCameraEvents.cpp:21
@@ -478,6 +595,10 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableChimeraBlades.cpp:35
 msgid "Disable Chimera Blades"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableChimeraBlades.cpp:37
+msgid "Stops the blades on chimera infected enemies from attacking"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableDarkslayer.cpp:47
@@ -504,8 +625,12 @@ msgstr ""
 msgid "Disable DT Stinger"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableKeyboard.cpp:21
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableKeyboard.cpp:39
 msgid "Disable Keyboard Input"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableKeyboard.cpp:41
+msgid "Disables your keyboard, useful when using background input"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DmdBloodyPalace.cpp:21
@@ -523,11 +648,17 @@ msgid "DMD Level AI"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DmdLevelAi.cpp:49
-msgid "Forces enemies to use the ingame DMD AI, even on non DMD difficulties"
+msgid ""
+"Forces enemies to use the ingame Dante Must Die AI, even on non Dante Must "
+"Die difficulties"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DmdLevelAi.cpp:51
 msgid "Frenzied Boss AI"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DmdLevelAi.cpp:55
+msgid "Forces bosses to use the AI they usually use when low HP"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:164
@@ -538,12 +669,16 @@ msgstr ""
 msgid "Darkslayer is accessed by quickly pressing one style twice"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:169
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:170
 msgid "Double Tap Timer"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DtEnemiesDontStun.cpp:21
 msgid "DT Enemies Don't Stun"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DtEnemiesDontStun.cpp:25
+msgid "Stops enemies from receiving stun from most attacks"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DtKnuckle.cpp:524
@@ -556,7 +691,7 @@ msgid ""
 "Lockon+forward/back for other attacks"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DtKnuckle.cpp:531
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DtKnuckle.cpp:532
 msgid "Guardian Input"
 msgstr ""
 
@@ -586,27 +721,43 @@ msgstr ""
 msgid "Enemies Attack Offscreen"
 msgstr ""
 
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyAttackOffScreen.cpp:23
+msgid ""
+"By default, most enemies won't start attacks unless they're being viewed by "
+"the camera. This disables that check"
+msgstr ""
+
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyDT.cpp:30
 msgid "Enemies Don't DT"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyDT.cpp:36
+msgid "Disables enemy Devil Trigger on every difficulty"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyDT.cpp:38
 msgid "Enemies DT Instantly"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyReplaceAgain.cpp:345
-msgid "Enemy Replacement - No Cyclical Replacements!"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyReplaceAgain.cpp:347
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyDT.cpp:44
 msgid ""
-"Example: Don't replace Mephisto with Faust and Faust with Mephisto at the "
-"same time. The game will crash.\n"
-"Many of these are untested and may also crash; I thought I'd leave them in "
-"just in case there's something that works that we had disabled before."
+"If you're playing a difficulty where enemies have access to Devil Trigger, "
+"they will activate it instantly"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyReplaceAgain.cpp:350
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyReplaceAgain.cpp:344
+msgid "Enemy Replacement"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyReplaceAgain.cpp:346
+msgid ""
+"Replace almost any enemy type by clicking the original enemy followed by the "
+"desired swapped enemy in the dropdown\n"
+"Do not replace Mephisto with Faust and Faust with Mephisto at the same time. "
+"The game will crash"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyReplaceAgain.cpp:349
 msgid "Reset"
 msgstr ""
 
@@ -621,17 +772,25 @@ msgid ""
 "entering a new room"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:383
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySlotting.cpp:53
+msgid "Slot Limit"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:444
 msgid ""
 "Enemy Spawner is not initialized.\n"
 "Load into a stage to access it."
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:386
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:447
 msgid "Enemy Spawner"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:391
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:449
+msgid "Any clicked enemy will spawn above player coords"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:454
 msgid "Random"
 msgstr ""
 
@@ -639,223 +798,223 @@ msgstr ""
 msgid "Display Enemy Stats"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:135
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:136
 msgid "Enemy Count"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:136
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:137
 msgid "Enemy Select"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:144
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:145
 msgid "HP ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:145
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:146
 msgid "Max HP ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:146
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:147
 msgid "HP Taken ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:147
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:148
 msgid "Stun 1 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:148
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:149
 msgid "Stun 2 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:149
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:150
 msgid "Stun 3 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:150
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:151
 msgid "Stun 4 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:151
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:152
 msgid "Stun 5 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:152
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:153
 msgid "Displacement 1 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:153
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:154
 msgid "Displacement 2 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:154
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:155
 msgid "Displacement 3 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:155
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:156
 msgid "Displacement 4 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:156
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:157
 msgid "Displacement 5 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:157
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:158
 msgid "Unknown 1 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:158
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:159
 msgid "Unknown 2 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:159
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:160
 msgid "Unknown 3 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:160
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:161
 msgid "Unknown 4 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:161
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:162
 msgid "Unknown 5 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:162
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:163
 msgid "Unknown 6 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:163
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:164
 msgid "Unknown 7 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:164
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:165
 msgid "Unknown 8 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:166
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:167
 msgid "XYZ Position ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:167
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:168
 msgid "XYZ Velocity ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:168
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:169
 msgid "XYZ Scale ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:169
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:170
 msgid "Move ID ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:170
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:171
 msgid "Move ID 2 ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:171
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:172
 msgid "Move Part ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:172
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:173
 msgid "Grounded ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:173
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:174
 msgid "Animation Frame ##2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:175
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:176
 msgid "Save Selected Enemy Info"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:179
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:180
 msgid "Hotkey is HOME by default"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:181
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:182
 msgid "Replay Saved Move ID & Position"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:185
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:186
 msgid "Hotkey is END by default"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:194
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:196
 msgid "Display Boss Stats"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:202
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:205
 msgid "XYZ Position ##3"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:203
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:206
 msgid "XYZ Scale ##3"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:204
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:207
 msgid "HP ##3"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:205
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:208
 msgid "Max HP ##3"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:206
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:209
 msgid "Move ID ##3"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:207
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:210
 msgid "Move ID 2 ##3"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:208
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:211
 msgid "Move Part ##3"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:209
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:212
 msgid "Animation Frame ##3"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:211
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:214
 msgid "Save Boss Info ##3"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:215
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:218
 msgid "Hotkey is PAGE UP by default"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:217
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:220
 msgid "Replay Saved Move ID & Position ##3"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:221
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:224
 msgid "Hotkey is PAGE DOWN by default"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:230
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:234
 msgid "Enable Save/Load hotkeys"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:234
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:238
 msgid "Saved Info"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:235
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:239
 msgid "Saved Move ID"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:236
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:240
 msgid "Saved Move ID 2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:237
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:241
 msgid "Saved XYZ Position"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:238
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:242
 msgid "Saved XYZ Velocity"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:239
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyStats.cpp:243
 msgid "Saved Grounded"
 msgstr ""
 
@@ -887,6 +1046,10 @@ msgstr ""
 msgid "Fast Sprint"
 msgstr ""
 
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FastSprint.cpp:33
+msgid "Go from Run to Speed faster, even if you're in battle"
+msgstr ""
+
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FastStart.cpp:124
 msgid "Fast Game Load"
 msgstr ""
@@ -908,7 +1071,7 @@ msgid "Fast BP Fade"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FastStart.cpp:136
-msgid "Mostly untested, should skip fade on BP load and nothing else"
+msgid "Skips the BP load fade"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\ForceLucifer.cpp:50
@@ -923,7 +1086,13 @@ msgstr ""
 msgid "Override FPS Limit"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FpsLimit.cpp:35
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FpsLimit.cpp:34
+msgid ""
+"If your FPS is set to unlocked, this will allow you to change the cap. Some "
+"things work differently at certain framerates"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FpsLimit.cpp:39
 msgid "New FPS Limit"
 msgstr ""
 
@@ -968,51 +1137,77 @@ msgstr ""
 msgid "Dante Height Restriction"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HeightRestrictionDante.cpp:36
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HeightRestrictionDante.cpp:37
 msgid "Air Hike Height Restriction"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HeightRestrictionDante.cpp:41
+msgid "Double Jump Height Restriction"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HeightRestrictionNero.cpp:34
 msgid "Nero Height Restriction"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:442
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HeightRestrictionNero.cpp:38
+msgid ""
+"By default, certain moves are locked behind a height threshold. If you're "
+"below that threshold, they cannot be started. This removes that limit"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:447
 msgid "Hide All HUD"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:446
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:451
 msgid "Hide Timer"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:450
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:455
+msgid "Hides the BP, Secret Mission and M12 timers"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:457
 msgid "Hide HP HUD"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:454
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:462
 msgid "Hide Orbs HUD"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:458
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:466
 msgid "Hide Style HUD"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:462
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:470
 msgid "Style Dial Only"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:466
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:474
+msgid "Hides every element of the HP HUD other than the style dial"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:476
 msgid "Hide Map HUD"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:470
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:480
 msgid "Hide Boss HP HUD"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:474
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:484
+msgid "Enable before the boss spawns"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:486
 msgid "Never Hide Weapons HUD"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:480
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:492
+msgid "Disables the fade out on the weapon switch UI"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:494
 msgid "Always Hide Weapons HUD"
 msgstr ""
 
@@ -1038,16 +1233,29 @@ msgstr ""
 msgid "Infinite Air Hikes"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:57
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:66
 msgid "Infinite Health (All)"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:67
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:76
+msgid ""
+"Disables any entity's health decreasing. By default this is hotkeyed to F1"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:78
 msgid "Infinite Health (Player)"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:74
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:85
+msgid "Disables the player's health decreasing"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:88
 msgid "Infinite Health (Enemy)"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:95
+msgid "Disables enemy's health decreasing"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfCalibur.cpp:22
@@ -1062,8 +1270,14 @@ msgstr ""
 msgid "Run in Dreadnaught"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfDT.cpp:39
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfDT.cpp:44
 msgid "Infinite DT"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfDT.cpp:46
+msgid ""
+"Fills your Devil Trigger Gauge and stops it from decreasing. By default this "
+"is hotkeyed to F2"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfFaustCloak.cpp:29
@@ -1071,11 +1285,24 @@ msgid "Infinite Faust Cloak"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfFaustCloak.cpp:33
+msgid "Gives Faust Cloaks infinite HP"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfFaustCloak.cpp:35
 msgid "Disable Faust Cloak"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfFaustCloak.cpp:39
+msgid "Disable Faust's recloak function"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfiniteTime.cpp:20
 msgid "Disable Timer"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfiniteTime.cpp:24
+msgid ""
+"Stops the BP, Secret Mission and Mission 12 timers from decreasing over time"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfPlayerHealth.cpp:35
@@ -1084,6 +1311,10 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfRevive.cpp:25
 msgid "Infinite Revives"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfRevive.cpp:29
+msgid "Revive on the spot whenever you die for free"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfSkyStars.cpp:20
@@ -1102,12 +1333,26 @@ msgstr ""
 msgid "Taunt Ecstasy"
 msgstr ""
 
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InputStates.cpp:267
+msgid ""
+"Pressing Taunt in the air will perform Ecstasy. Consider using this with "
+"Selective Cancellable Ecstasy to make it feel more like 5"
+msgstr ""
+
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InstantTrick.cpp:21
 msgid "Instant Trick"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\KnockbackEdits.cpp:161
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InstantTrick.cpp:25
+msgid "Skips one part of the trick animation"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\KnockbackEdits.cpp:160
 msgid "Release Always Stuns"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\KnockbackEdits.cpp:162
+msgid "Release with no meter will stun the enemy"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LdkWithDmd.cpp:46
@@ -1116,8 +1361,8 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LdkWithDmd.cpp:48
 msgid ""
-"When playing a mission on Legendary Dark Knight, enemies will be on DMD "
-"Difficulty instead of SOS"
+"When playing a mission on Legendary Dark Knight, enemies will be on Dante "
+"Must Die Difficulty instead of Son Of Sparda"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:68
@@ -1125,22 +1370,53 @@ msgid "Sword & Gun Switch Limit"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:72
-msgid "Enemy Step Limit"
+msgid ""
+"By default, there are short timers that must end before two sword or gun "
+"switches can be made consecutively. Without this timer, you can swap to "
+"distant weapons quickly and more easily do strings like Shotgun > Enemy Step "
+"> Ebony & Ivory shot"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:75
-msgid "Style Switch Limit"
+msgid "Enemy Step Limit"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:79
-msgid "Target Switch Limit"
+msgid ""
+"By default, there is a short timer that must end before two Jump Cancels can "
+"be made consecutively. This cheat removes that timer and allows you to Jump "
+"Cancel as often as you want\n"
+"This makes certain sequences much easier. If you're learning the game, I "
+"recommend not using this to save getting into bad habits"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:82
-msgid "Same Tick Style Change"
+msgid "Style Switch Limit"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:86
+msgid ""
+"By default, there is a short timer that must end before two style switches "
+"can be made consecutively. This cheat removes that timer and allows you to "
+"Style Switch as often as you want"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:89
+msgid "Target Switch Limit"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:93
+msgid ""
+"By default, the Target Switch button does nothing while holding the left "
+"stick (or WASD) in a direction. This removes that limit and allows you to "
+"target switch whenever"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:95
+msgid "Same Tick Style Change"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:99
 msgid ""
 "Style changes registered on the same tick as other inputs are ignored by "
 "default.\n"
@@ -1152,12 +1428,18 @@ msgstr ""
 msgid "HDD File Priority"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LocalizationManager.cpp:77
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LoadOrder.cpp:413
+msgid "The game will look for files outside of arcs before looking inside"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LocalizationManager.cpp:80
 msgid "Language"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LocalizationManager.cpp:95
-msgid "Save config to load language settings on start"
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LocalizationManager.cpp:98
+msgid ""
+"Save config to load language settings on start.\n"
+"Please submit your translations for dmc4hook :pray:"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\ManualTwosomeTime.cpp:21
@@ -1192,31 +1474,39 @@ msgstr ""
 msgid "Show/Hide popups at the top left such as \"Infinite Health (All) On\""
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:93
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:90
 msgid "Self advertisement"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:94
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:91
 msgid "Show self advertisement?"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:95
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:93
+msgid "Thank you for supporting dmc4_hook"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:94
 msgid "Dvd screensaver"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:97
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:96
 msgid "Image pos:"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:98
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:97
 msgid "Tint color:"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSuperhot.cpp:76
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSuperhot.cpp:77
 msgid "SUPERHOT Mode"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSuperhot.cpp:79
+msgid "Enemy speed scales with your movement speed"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSuperhot.cpp:83
 msgid "Velocity Factor"
 msgstr ""
 
@@ -1225,7 +1515,7 @@ msgid "Payline"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NeroFullHouse.cpp:216
-msgid "Very work in progress"
+msgid "Gives Nero a divekick action like in DMC5"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NeroFullHouse.cpp:218
@@ -1240,24 +1530,46 @@ msgstr ""
 msgid "Increased Snatch Range"
 msgstr ""
 
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NeroSnatchLength.cpp:33
+msgid "Triple the reach on Snatch"
+msgstr ""
+
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoAutomaticCharacters.cpp:163
 msgid "No Auto Characters"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoAutomaticCharacters.cpp:167
+msgid "Disables the Auto variants on the character select screen"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoAutomaticCharacters.cpp:169
 msgid "No Auto Or Super Characters"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoClip.cpp:49
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoClip.cpp:61
 msgid "Noclip"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoClip.cpp:53
-msgid "Disable Teleport Planes"
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoClip.cpp:65
+msgid "You and enemies will ignore walls"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoClip.cpp:56
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoClip.cpp:67
+msgid "Disable Room Triggers"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoClip.cpp:71
+msgid ""
+"Disable the areas that teleport the player, activate fights, activate "
+"cutscenes etc"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoClip.cpp:72
 msgid "Lock Y Pos"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoClip.cpp:81
+msgid "Lock your height to explore beyond the environment more efficiently"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoDtCooldown.cpp:21
@@ -1265,80 +1577,106 @@ msgid "No DT Cooldown"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoDtCooldown.cpp:25
-msgid "Disables the cooldown on leaving DT upon entering"
+msgid "Disables the cooldown on leaving Devil Trigger upon entering"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoHBknockback.cpp:87
 msgid "No Helm Breaker Knockdown"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\OneHitKill.cpp:71
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoHBknockback.cpp:89
+msgid ""
+"Helm Breaker + Helm Splitter deal no knockback or knockdown and instead only "
+"stun the enemy"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\OneHitKill.cpp:75
 msgid "No Death (All)"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\OneHitKill.cpp:77
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\OneHitKill.cpp:81
 msgid ""
-"Disables dying while still allowing hp to drop. Also stops Omen killing "
-"enemies."
+"Disables any entity dying while still allowing HP to drop.\n"
+"For practicing against enemies who have AI changes at different levels of HP\n"
+"Also stops Omen killing enemies."
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\OneHitKill.cpp:79
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\OneHitKill.cpp:84
 msgid "One Hit Kill"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\OneHitKill.cpp:90
+msgid ""
+"Enables one hit kill. This overrides the damage multiplier. By default this "
+"is hotkeyed to F3"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerRotation.cpp:41
 msgid "Unlock rotation"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:40
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerRotation.cpp:43
+msgid "Meme mode that locks player rotation to stick direction"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:117
 msgid "Disable Game Pause When Opening The Trainer"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:46
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:123
 msgid "Show Pin Timers"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:61
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:125
+msgid ""
+"Opens up a UI when pins are placed that shows the time remaining on each pin"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:140
 msgid "Display Player Stats"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:65
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:142
+msgid "View various details about the player character"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:147
 msgid "HP ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:66
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:148
 msgid "Max HP ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:67
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:149
 msgid "Move ID Debug ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:68
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:150
 msgid "XYZ Position ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:69
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:151
 msgid "Rotation ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:70
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:152
 msgid "XYZ Scale ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:71
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:153
 msgid "XYZ Velocity ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:72
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:154
 msgid "Movement Speed ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:73
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:155
 msgid "Inertia ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:75
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:157
 msgid ""
 "Uhm, ehm, akshually, internia isn't a thing, it's a property of a thing, the "
 "shit you're showing is velocity, the measure of inertia is mass, resistance "
@@ -1348,57 +1686,69 @@ msgid ""
 "inertia isn't changing. Get it right NERD"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:79
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:161
 msgid "Weight ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:80
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:162
 msgid "Lock On ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:82
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:164
 msgid "Disaster Gauge ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:84
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:166
 msgid "Exceed Timer ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:86
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:168
 msgid ""
 "If you press exceed while this timer is between 0 and 1, you'll get MAX-Act."
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:88
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:170
 msgid "Animation Frame ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:89
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:171
 msgid "Move Part ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:90
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:172
 msgid "Move Bank ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:91
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:173
 msgid "Move ID ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:94
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:176
 msgid "Save Current Move"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:98
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:180
 msgid "Saved Move Bank ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:99
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:181
 msgid "Saved Move ID ##1"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:100
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:182
 msgid "Play Saved Move"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:191
+msgid "Save Player XYZ"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:195
+msgid "Load Player XYZ"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:198
+msgid "Saved Player XYZ"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PsychoMantis.cpp:44
@@ -1415,19 +1765,19 @@ msgstr ""
 msgid "Vibe Slot 2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PsychoMantis.cpp:56
-msgid "Tick the Vibe checkbox too"
-msgstr ""
-
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PsychoMantis.cpp:59
 msgid "...debug"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PsychoMantis.cpp:62
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PsychoMantis.cpp:61
+msgid "Tick the Vibe checkbox too"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PsychoMantis.cpp:64
 msgid "##mod_enabled2AmountSliderInt"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PsychoMantis.cpp:67
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PsychoMantis.cpp:69
 msgid "##mod_enabled2LRSliderInt"
 msgstr ""
 
@@ -1449,27 +1799,27 @@ msgid ""
 "practice instantly"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:113
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:109
 msgid "Restore Enemy HP"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:115
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:111
 msgid "Press Lock On + Taunt to restore Max HP to enemies"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:117
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:113
 msgid "Reset Timer"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:119
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:115
 msgid "Press Lock On + Taunt to reset the BP timer"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:121
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:118
 msgid "Disable Aerial Resets"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:123
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:120
 msgid ""
 "Disable \"Restore Enemy HP\" and \"Reset Timer\" while aerial (Useful for "
 "Taunt Ecstasy)"
@@ -1496,14 +1846,14 @@ msgid "Increased RG Gain"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RgMultiplier.cpp:59
-msgid "Intended to match DMC3's meter gain"
+msgid "Intended to match DMC3's Royal Guard meter gain"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RisingSun.cpp:182
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RisingSun.cpp:207
 msgid "Aerial Rising Sun"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RisingSun.cpp:186
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RisingSun.cpp:211
 msgid "Replace Dante's Shocking with the last 2 kicks of DT Kick 13"
 msgstr ""
 
@@ -1576,75 +1926,89 @@ msgstr ""
 msgid "Guarding a move with momentum will halt your movement"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:229
-msgid "Shared"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:232
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:233
 msgid "Roll"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:238
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:239
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:243
 msgid "Grounded DT Activation"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:240
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:241
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:245
 msgid "Showdown"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:252
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:248
+msgid "Dante Swords"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:251
 msgid "Stinger"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:254
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:253
 msgid "Prop"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:256
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:255
 msgid "Real Impact"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:258
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:257
 msgid "Kick 13"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:260
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:259
 msgid "Shock"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:262
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:261
 msgid "Ecstasy"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:264
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:263
 msgid "Slash Dimension"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:266
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:265
 msgid "DT Pin Up Part 2"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:268
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:267
 msgid "Draw"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:271
-msgid "Guns"
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:270
+msgid "Dante Guns"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:274
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:273
 msgid "Omen"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:276
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:275
+msgid "Opening Pandora"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:277
 msgid "Epidemic"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:278
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:279
+msgid "Pandora Ground shot 1"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:281
 msgid "Argument"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:280
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:283
+msgid "Gunship"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:285
 msgid "Gun Stinger"
 msgstr ""
 
@@ -1653,15 +2017,31 @@ msgid "Skip Shotgun"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SkipWeapons.cpp:109
+msgid "Skips over Shotgun when Gun switching"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SkipWeapons.cpp:111
 msgid "Skip Gilgamesh"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SkipWeapons.cpp:112
-msgid "Skip Pandora"
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SkipWeapons.cpp:114
+msgid "Skips over Gilgamesh when Weapon switching"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SkipWeapons.cpp:115
+msgid "Skip Pandora"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SkipWeapons.cpp:118
+msgid "Skips over Pandora when Gun switching"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SkipWeapons.cpp:120
 msgid "Skip Lucifer"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SkipWeapons.cpp:123
+msgid "Skips over Lucifer when Gun switching"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SlowWalk.cpp:21
@@ -1700,8 +2080,18 @@ msgstr ""
 msgid "Tracking Full House"
 msgstr ""
 
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrackingFullHouse.cpp:40
+msgid ""
+"If the lock on target is below you (more than 65 degrees), Full House will "
+"adjust vertically like in DMC3 or 5"
+msgstr ""
+
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrackingSkyStar.cpp:52
 msgid "Auto Facing Sky Star"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrackingSkyStar.cpp:54
+msgid "Sky star will auto face the enemy you're locked on to"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrickDown.cpp:58
@@ -1709,7 +2099,10 @@ msgid "Trick Down"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrickDown.cpp:60
-msgid "Map Trick Down to backforward + trick"
+msgid ""
+"Map Trick Down to backforward + trick\n"
+"If an enemy is directly above Dante, it may register your forward input as a "
+"back input and so queue a trick down"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TurnSpeedEdits.cpp:27
@@ -1722,67 +2115,126 @@ msgid ""
 "a buffer"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:429
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:22
+msgid "STATE_NONE. Enter gameplay or pause/unpause the game to start."
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:33
+#, c-format
+msgid "Winner: %s"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:34
+#, c-format
+msgid "with %d votes"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:37
+#, c-format
+msgid "currently active. time left: %.2f"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:83
+#, c-format
+msgid "TWITCH_VOTE_TIMER: %f"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:89
+#, c-format
+msgid "[%c] - %s:\t%d"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:92
+msgid "Vote in chat."
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:121
+#, c-format
+msgid "TWITCH_IDLE_TIMER: %f"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:428
 msgid "Random timed gameplay mods"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:439
-msgid "Set those before starting:"
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:431
+msgid "Random gameplay mods active"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:432
+#, c-format
+msgid "TIMER: %f"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:434
+msgid "Not in gameplay"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:438
+msgid "Set these before starting:"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:440
 msgid "Mod timer (seconds)"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:443
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:445
+msgid "How long the random mod will last"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:447
 msgid "Cooldown timer (seconds)"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:446
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:452
+msgid "How long before the next mod starts"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:453
 msgid "Random mutator mode"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:451
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:458
 msgid ""
-"Activate random spicy gameplay mods on timer without connecting to twitch"
+"Activate random spicy gameplay mods on a timer without connecting to Twitch"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:452
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:459
 msgid "Stop random mode"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:457
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:464
 msgid "Twitch Integration"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:460
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:467
 msgid "libircclient.dll not found, twitch support disabled"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:461
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:468
 msgid "Download libircclient-1.10-win32-dll.zip from the link below"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:462
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:469
 msgid ""
 "Extract libircclient.dll from zip file libircclient-1.10\\bin\\ to DMC4 root"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:463
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:470
 msgid "for example:"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:464
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:471
 msgid ""
 "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Devil May Cry "
 "4\\libircclient.dll"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:465
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:472
 msgid "and restart the game to enable twitch support"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:471
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:478
 msgid ""
 "Filling both fields and enabling one of the options below will allow your "
 "Twitch viewers to affect your gameplay.\n"
@@ -1790,101 +2242,101 @@ msgid ""
 "Dont send your config with twitch data saved to other people\n"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:477
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:484
 msgid "Twitch status: TWITCH_CONNECTING"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:480
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:487
 msgid "Twitch status: TWITCH_CONNECTED"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:483
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:490
 msgid "Twitch status: TWITCH_DISCONNECTED"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:486
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:493
 msgid "Get OAuth Password..."
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:489
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:496
 msgid "Twitch Username"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:490
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:497
 msgid "Twitch OAuth"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:491
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:498
 msgid "Connect To Twitch"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:495
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:502
 msgid "Disconnect From Twitch"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:501
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:508
 msgid "Stop voting"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:504
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:511
 msgid "Start voting"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:510
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:517
 msgid "Show debug info in vote window"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:511
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:518
 msgid "Send voting messages in chat"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:512
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:519
 msgid "Disable voting overlay"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:515
-msgid "Set those before connecting:"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:516
-msgid "Voting timer (seconds)"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:519
-msgid "Idle timer (seconds)"
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:520
+msgid "Set these before connecting:"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:522
+msgid "Voting timer (seconds)"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:525
+msgid "Idle timer (seconds)"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:529
 msgid "Log In On Game Boot Automatically"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:524
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:531
 msgid ""
 "This sometimes doesn't work, just come back here and hit disconnect > connect "
 "to reconnect"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:526
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:533
 msgid "Twitch Mode FAQ"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:527
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:534
 msgid "Chaos - viewers can activate twitch mods directly through chat commands."
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:528
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:535
 msgid "Vote mode - viewers can vote on what mods to activate next."
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:530
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:537
 msgid "Chaos mode"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:534
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:541
 msgid "Vote mode"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:538
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:545
 msgid "Relay Twitch Chat To Devil May Cry 4"
 msgstr ""
 
@@ -1941,6 +2393,6 @@ msgstr ""
 msgid "This turbo won't be disabled on room change"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:76
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:77
 msgid "Custom Turbo"
 msgstr ""
