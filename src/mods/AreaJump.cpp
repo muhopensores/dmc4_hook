@@ -8,101 +8,124 @@ cAreaJump* AreaJump::c_area_jump_ptr{ NULL };
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 struct Room {
-  const char* name;
   int id;
+  const char* name;
 };
 
-static constexpr std::array room_items = {
-    Room {"Berial", 503},                    // DevilMayCry4_DX9.exe+A56768
-    Room {"Bael", 504},                      // DevilMayCry4_DX9.exe+A56528
-    Room {"Echidna", 505},                   // DevilMayCry4_DX9.exe+A55FE8
-    Room {"Agnus", 506},                     // DevilMayCry4_DX9.exe+A55F88
-    Room {"Credo", 507},                     // DevilMayCry4_DX9.exe+A56728
-    Room {"Dante", 700},                     // DevilMayCry4_DX9.exe+A56508
-    Room {"Opera House", 0},
-    Room {"Opera House Plaza", 1},
-    Room {"Storehouse", 2},
-    Room {"Cathedral", 3},
-    Room {"Terrace / Business District", 4},
-    Room {"Residential District", 5},
-    Room {"Port Caerula", 6},
-    Room {"Customs House", 7},
-    Room {"First Mining Area", 8},
-    Room {"Ferrum Hills", 9},
-    Room {"M17 Opera House", 10},
-    Room {"M17 Opera House Plaza", 11},
-    Room {"Business District / Terrace", 12},
-    Room {"M20 Opera House Plaza", 13},
-    Room {"Second Mining Area", 100},
-    Room {"Fortuna Castle Gate", 105},
-    Room {"Grand Hall - Fortuna Castle", 200},
-    Room {"Large Hall", 201},
-    Room {"Dining Room", 202},
-    Room {"Torture Chamber", 203},
-    Room {"Central Courtyard", 204},
-    Room {"Foris Falls - Bridge Area", 205},
-    Room {"Gallery", 206},
-    Room {"Library", 207},
-    Room {"Soldier's Graveyard", 209},
-    Room {"Master's Chamber", 210},
-    Room {"Spiral Well", 211},
-    Room {"Underground Laboratory", 212},
-    Room {"R&D Access", 213},
-    Room {"Game Room", 214},
-    Room {"Containment Room", 215},
-    Room {"Angel Creation", 216},
-    Room {"Foris Falls - Detour Area", 217},
-    Room {"Forest Entrance", 300},
-    Room {"Windswept Valley", 301},
-    Room {"Ruined Church", 302},
-    Room {"Ruined Valley", 303},
-    Room {"Ancient Training Ground", 304},
-    Room {"Lapis River", 305},
-    Room {"Ancient Plaza", 306},
-    Room {"Den of the She-Viper", 307},
-    Room {"Forgotten Ruins", 308},
-    Room {"Hidden Pit", 309},
-    Room {"Ruined Lowlands", 310},
-    Room {"Lost Woods", 311},
-    Room {"Gran Album Bridge", 400},
-    Room {"Grand Hall - Order of the Sword HQ", 401},
-    Room {"Key Chamber", 402},
-    Room {"The Gauntlet", 403},
-    Room {"Agnus' Room", 404},
-    Room {"Security Corridor", 405},
-    Room {"Experiment Disposal", 406},
-    Room {"Meeting Room", 407},
-    Room {"Ascension Chamber", 408},
-    Room {"Advent Chamber", 409},
-    Room {"Machina Ex Deus", 500},
-    Room {"Stairway to Heaven", 501},
-    Room {"Sacred Heart", 502},
-    Room {"M18", 510},
-    Room {"Sky Above Fortuna", 512},
-    Room {"Secret Mission 1", 800},
-    Room {"Secret Mission 2", 801},
-    Room {"Secret Mission 3", 802},
-    Room {"Secret Mission 4", 803},
-    Room {"Secret Mission 5", 804},
-    Room {"Secret Mission 6", 805},
-    Room {"Secret Mission 7", 806},
-    Room {"Secret Mission 8", 807},
-    Room {"Secret Mission 9", 808},
-    Room {"Secret Mission 10", 809},
-    Room {"Secret Mission 11", 810},
-    Room {"Secret Mission 12", 811},
-    Room {"Bloody Palace 1-19", 705},
-    Room {"Bloody Palace 21-39", 704},
-    Room {"Bloody Palace 41-59", 703},
-    Room {"Bloody Palace 61-79", 701},
-    Room {"Bloody Palace 81-99", 702}
+static constexpr std::array<Room, 83> room_items = {
+    Room {503, "Berial"},                    // DevilMayCry4_DX9.exe+A56768
+    Room {504, "Bael"},                      // DevilMayCry4_DX9.exe+A56528
+    Room {505, "Echidna"},                   // DevilMayCry4_DX9.exe+A55FE8
+    Room {506, "Agnus"},                     // DevilMayCry4_DX9.exe+A55F88
+    Room {507, "Credo"},                     // DevilMayCry4_DX9.exe+A56728
+    Room {700, "Dante"},                     // DevilMayCry4_DX9.exe+A56508
+    Room {0,   "Opera House"},
+    Room {1,   "Opera House Plaza"},
+    Room {2,   "Storehouse"},
+    Room {3,   "Cathedral"},
+    Room {4,   "Terrace / Business District"},
+    Room {5,   "Residential District"},
+    Room {6,   "Port Caerula"},
+    Room {7,   "Customs House"},
+    Room {8,   "First Mining Area"},
+    Room {9,   "Ferrum Hills"},
+    Room {10,  "M17 Opera House"},
+    Room {11,  "M17 Opera House Plaza"},
+    Room {12,  "Business District / Terrace"},
+    Room {13,  "M20 Opera House Plaza"},
+    Room {100, "Second Mining Area"},
+    Room {105, "Fortuna Castle Gate"},
+    Room {200, "Grand Hall - Fortuna Castle"},
+    Room {201, "Large Hall"},
+    Room {202, "Dining Room"},
+    Room {203, "Torture Chamber"},
+    Room {204, "Central Courtyard"},
+    Room {205, "Foris Falls - Bridge Area"},
+    Room {206, "Gallery"},
+    Room {207, "Library"},
+    Room {209, "Soldier's Graveyard"},
+    Room {210, "Master's Chamber"},
+    Room {211, "Spiral Well"},
+    Room {212, "Underground Laboratory"},
+    Room {213, "R&D Access"},
+    Room {214, "Game Room"},
+    Room {215, "Containment Room"},
+    Room {216, "Angel Creation"},
+    Room {217, "Foris Falls - Detour Area"},
+    Room {300, "Forest Entrance"},
+    Room {301, "Windswept Valley"},
+    Room {302, "Ruined Church"},
+    Room {303, "Ruined Valley"},
+    Room {304, "Ancient Training Ground"},
+    Room {305, "Lapis River"},
+    Room {306, "Ancient Plaza"},
+    Room {307, "Den of the She-Viper"},
+    Room {308, "Forgotten Ruins"},
+    Room {309, "Hidden Pit"},
+    Room {310, "Ruined Lowlands"},
+    Room {311, "Lost Woods"},
+    Room {400, "Gran Album Bridge"},
+    Room {401, "Grand Hall - Order of the Sword HQ"},
+    Room {402, "Key Chamber"},
+    Room {403, "The Gauntlet"},
+    Room {404, "Agnus' Room"},
+    Room {405, "Security Corridor"},
+    Room {406, "Experiment Disposal"},
+    Room {407, "Meeting Room"},
+    Room {408, "Ascension Chamber"},
+    Room {409, "Advent Chamber"},
+    Room {500, "Machina Ex Deus"},
+    Room {501, "Stairway to Heaven"},
+    Room {502, "Sacred Heart"},
+    Room {510, "M18"},
+    Room {512, "Sky Above Fortuna"},
+    Room {800, "Secret Mission 1"},
+    Room {801, "Secret Mission 2"},
+    Room {802, "Secret Mission 3"},
+    Room {803, "Secret Mission 4"},
+    Room {804, "Secret Mission 5"},
+    Room {805, "Secret Mission 6"},
+    Room {806, "Secret Mission 7"},
+    Room {807, "Secret Mission 8"},
+    Room {808, "Secret Mission 9"},
+    Room {809, "Secret Mission 10"},
+    Room {810, "Secret Mission 11"},
+    Room {811, "Secret Mission 12"},
+    Room {705, "Bloody Palace 1-19"},
+    Room {704, "Bloody Palace 21-39"},
+    Room {703, "Bloody Palace 41-59"},
+    Room {701, "Bloody Palace 61-79"},
+    Room {702, "Bloody Palace 81-99"}
 };
 
-auto is_valid_room_id = [](int id) {
+static bool is_valid_room_id(int id) {
     return std::any_of(room_items.begin(), room_items.end(), [id](const Room& room) { 
         return room.id == id; 
     });
 };
+
+static const Room* find_room_by_id(int id) {
+    auto it = std::find_if(room_items.begin(), room_items.end(), [id](const Room& room) { return room.id == id; });
+    IM_ASSERT(it != room_items.end()); // crash if we passed wrong index
+    size_t index = std::distance(room_items.begin(), it);
+    IM_ASSERT(index > 0);
+    return &room_items[index];
+};
+
+// cba to add hash lookups at this moment, sorry che
+static const Room* find_room_by_name(const csys::String& name) {
+    auto it = std::find_if(room_items.begin(), room_items.end(), [name](const Room& room) {
+        if(_stricmp(room.name, name.m_String.c_str()) == 0) {
+            return true;
+        }
+        return false;
+    });
+    if (it != room_items.end()) {
+        size_t index = std::distance(room_items.begin(), it);
+        return &room_items[index];
+    }
+    return nullptr;
+}
 
 naked void detour() {
 	// steam   DevilMayCry4_DX9.exe+E1F6   - 8B 92 30380000        - mov edx, [edx+00003830]
@@ -114,285 +137,35 @@ naked void detour() {
 	}
 }
 
-int bp_stage(int floor) {
+static const Room* bp_stage(int floor) {
 	auto in_range = [](int value, int low, int high) {return (value >= low) && (value <= high); };
 	
-	if (in_range(floor, 1, 19)) { return 78; }
-	if (in_range(floor, 21, 39)) { return 79; }
-	if (in_range(floor, 41, 59)) { return 80; }
-	if (in_range(floor, 61, 79)) { return 81; }
-	if (in_range(floor, 81, 99)) { return 82; }
+	if (in_range(floor, 1, 19))  { return find_room_by_id(705); }
+	if (in_range(floor, 21, 39)) { return find_room_by_id(704); }
+	if (in_range(floor, 41, 59)) { return find_room_by_id(703); }
+	if (in_range(floor, 61, 79)) { return find_room_by_id(701); }
+	if (in_range(floor, 81, 99)) { return find_room_by_id(702); }
 	switch (floor) {
 	case 20:
-		return 0;
+		return find_room_by_id(503);
 	case 40:
-		return 1;
+		return find_room_by_id(504);
 	case 60:
-		return 2;
+		return find_room_by_id(505);
 	case 80:
-		return 3;
+		return find_room_by_id(507);
 	case 100:
-		return 4;
+		return find_room_by_id(506);
 	case 101:
-		return 5;
+		return find_room_by_id(700);
 	default:
 		break;
 	}
-	return -1;
+	return nullptr;
 }
 
-void AreaJump::jump_to_stage(int stage) {
-    switch (stage) {
-    case 0:
-        c_area_jump_ptr->room_id = 503; // "Bloody Palace 20"
-        break;
-    case 1:
-        c_area_jump_ptr->room_id = 504; // "Bloody Palace 40"
-        break;
-    case 2:
-        c_area_jump_ptr->room_id = 505; // "Bloody Palace 60"
-        break;
-    case 3:
-        c_area_jump_ptr->room_id = 507; // "Bloody Palace 80"
-        break;
-    case 4:
-        c_area_jump_ptr->room_id = 506; // "Bloody Palace 100"
-        break;
-    case 5:
-        c_area_jump_ptr->room_id = 700; // "Bloody Palace 101"
-        break;
-    case 6:
-        c_area_jump_ptr->room_id = 0; // "Opera House"
-        break;
-    case 7:
-        c_area_jump_ptr->room_id = 1; // "Opera House Plaza"
-        break;
-    case 8:
-        c_area_jump_ptr->room_id = 2; // "Storehouse"
-        break;
-    case 9:
-        c_area_jump_ptr->room_id = 3; // "Cathedral"
-        break;
-    case 10:
-        c_area_jump_ptr->room_id = 4; // "Terrace / Business District"
-        break;
-    case 11:
-        c_area_jump_ptr->room_id = 5; // "Residential District"
-        break;
-    case 12:
-        c_area_jump_ptr->room_id = 6; // "Port Caerula"
-        break;
-    case 13:
-        c_area_jump_ptr->room_id = 7; // "Customs House"
-        break;
-    case 14:
-        c_area_jump_ptr->room_id = 8; // "First Mining Area"
-        break;
-    case 15:
-        c_area_jump_ptr->room_id = 9; // "Ferrum Hills"
-        break;
-    case 16:
-        c_area_jump_ptr->room_id = 10; // "M17 Opera House"
-        break;
-    case 17:
-        c_area_jump_ptr->room_id = 11; // "M17 Opera House Plaza"
-        break;
-    case 18:
-        c_area_jump_ptr->room_id = 12; // "Business District / Terrace"
-        break;
-    case 19:
-        c_area_jump_ptr->room_id = 13; // "M20 Opera House Plaza"
-        break;
-    case 20:
-        c_area_jump_ptr->room_id = 100; // "Second Mining Area"
-        break;
-    case 21:
-        c_area_jump_ptr->room_id = 105; // "Fortuna Castle Gate"
-        break;
-    case 22:
-        c_area_jump_ptr->room_id = 200; // "Grand Hall (Fortuna Castle)"
-        break;
-    case 23:
-        c_area_jump_ptr->room_id = 201; // "Large Hall"
-        break;
-    case 24:
-        c_area_jump_ptr->room_id = 202; // "Dining Room"
-        break;
-    case 25:
-        c_area_jump_ptr->room_id = 203; // "Torture Chamber"
-        break;
-    case 26:
-        c_area_jump_ptr->room_id = 204; // "Central Courtyard"
-        break;
-    case 27:
-        c_area_jump_ptr->room_id = 205; // "Foris Falls (Bridge Area)
-        break;
-    case 28:
-        c_area_jump_ptr->room_id = 206; // "Gallery"
-        break;
-    case 29:
-        c_area_jump_ptr->room_id = 207; // "Library"
-        break;
-    case 30:
-        c_area_jump_ptr->room_id = 209; // "Soldier's Graveyard"
-        break;
-    case 31:
-        c_area_jump_ptr->room_id = 210; // "Master's Chamber"
-        break;
-    case 32:
-        c_area_jump_ptr->room_id = 211; // "Spiral Wall"
-        break;
-    case 33:
-        c_area_jump_ptr->room_id = 212; // "Underground Labratory"
-        break;
-    case 34:
-        c_area_jump_ptr->room_id = 213; // "R&D Access"
-        break;
-    case 35:
-        c_area_jump_ptr->room_id = 214; // "Game Room"
-        break;
-    case 36:
-        c_area_jump_ptr->room_id = 215; // "Containment Room"
-        break;
-    case 37:
-        c_area_jump_ptr->room_id = 216; // "Angel Creation"
-        break;
-    case 38:
-        c_area_jump_ptr->room_id = 217; // "Foris Falls (Detour Area)"
-        break;
-    case 39:
-        c_area_jump_ptr->room_id = 300; // "Forest Entrance"
-        break;
-    case 40:
-        c_area_jump_ptr->room_id = 301; // "Windswept Valley"
-        break;
-    case 41:
-        c_area_jump_ptr->room_id = 302; // "Ruined Church"
-        break;
-    case 42:
-        c_area_jump_ptr->room_id = 303; // "Ruined Valley"
-        break;
-    case 43:
-        c_area_jump_ptr->room_id = 304; // "Ancient Training Ground"
-        break;
-    case 44:
-        c_area_jump_ptr->room_id = 305; // "Lapis River"
-        break;
-    case 45:
-        c_area_jump_ptr->room_id = 306; // "Ancient Plaza"
-        break;
-    case 46:
-        c_area_jump_ptr->room_id = 307; // "Den of the She-Viper"
-        break;
-    case 47:
-        c_area_jump_ptr->room_id = 308; // "Forgotten Ruins"
-        break;
-    case 48:
-        c_area_jump_ptr->room_id = 309; // "Hidden Pit"
-        break;
-    case 49:
-        c_area_jump_ptr->room_id = 310; // "Ruined Lowlands"
-        break;
-    case 50:
-        c_area_jump_ptr->room_id = 311; // "Lost Woods"
-        break;
-    case 51:
-        c_area_jump_ptr->room_id = 400; // "Gran Album Bridge"
-        break;
-    case 52:
-        c_area_jump_ptr->room_id = 401; // "Grand Hall (Order of the Sword HQ)"
-        break;
-    case 53:
-        c_area_jump_ptr->room_id = 402; // "Key Chamber"
-        break;
-    case 54:
-        c_area_jump_ptr->room_id = 403; // "The Gauntlet"
-        break;
-    case 55:
-        c_area_jump_ptr->room_id = 404; // "Agnus' Room"
-        break;
-    case 56:
-        c_area_jump_ptr->room_id = 405; // "Security Corridor"
-        break;
-    case 57:
-        c_area_jump_ptr->room_id = 406; // "Experiment Disposal"
-        break;
-    case 58:
-        c_area_jump_ptr->room_id = 407; // "Meeting Room"
-        break;
-    case 59:
-        c_area_jump_ptr->room_id = 408; // "Ascension Chamber"
-        break;
-    case 60:
-        c_area_jump_ptr->room_id = 409; // "Advent Chamber"
-        break;
-    case 61:
-        c_area_jump_ptr->room_id = 500; // "Machina Ex Deus"
-        break;
-    case 62:
-        c_area_jump_ptr->room_id = 501; // "Stairway to Heaven"
-        break;
-    case 63:
-        c_area_jump_ptr->room_id = 502; // "Sacred Heart"
-        break;
-    case 64:
-        c_area_jump_ptr->room_id = 510; // "M18"
-        break;
-    case 65:
-        c_area_jump_ptr->room_id = 512; // "Sky Above Fortuna"
-        break;
-    case 66:
-        c_area_jump_ptr->room_id = 800; // "Secret Mission 1"
-        break;
-    case 67:
-        c_area_jump_ptr->room_id = 801; // "Secret Mission 2"
-        break;
-    case 68:
-        c_area_jump_ptr->room_id = 802; // "Secret Mission 3"
-        break;
-    case 69:
-        c_area_jump_ptr->room_id = 803; // "Secret Mission 4"
-        break;
-    case 70:
-        c_area_jump_ptr->room_id = 804; // "Secret Mission 5"
-        break;
-    case 71:
-        c_area_jump_ptr->room_id = 805; // "Secret Mission 6"
-        break;
-    case 72:
-        c_area_jump_ptr->room_id = 806; // "Secret Mission 7"
-        break;
-    case 73:
-        c_area_jump_ptr->room_id = 807; // "Secret Mission 8"
-        break;
-    case 74:
-        c_area_jump_ptr->room_id = 808; // "Secret Mission 9"
-        break;
-    case 75:
-        c_area_jump_ptr->room_id = 809; // "Secret Mission 10"
-        break;
-    case 76:
-        c_area_jump_ptr->room_id = 810; // "Secret Mission 11"
-        break;
-    case 77:
-        c_area_jump_ptr->room_id = 811; // "Secret Mission 12"
-        break;
-    case 78:
-        c_area_jump_ptr->room_id = 705; // "Bloody Palace 1-19"
-        break;
-    case 79:
-        c_area_jump_ptr->room_id = 704; // "Bloody Palace 21-39"
-        break;
-    case 80:
-        c_area_jump_ptr->room_id = 703; // "Bloody Palace 41-59"
-        break;
-    case 81:
-        c_area_jump_ptr->room_id = 701; // "Bloody Palace 61-79"
-        break;
-    case 82:
-        c_area_jump_ptr->room_id = 702; // "Bloody Palace 81-99"
-        break;
-    }
+void AreaJump::jump_to_stage(const Room* stage) {
+    c_area_jump_ptr->room_id = stage->id;
 	c_area_jump_ptr->init_jump = 1;
 }
 
@@ -434,7 +207,8 @@ std::optional<std::string> AreaJump::on_initialize() {
         }, 
         csys::Arg<int>("0-101"));
 
-    console->system().RegisterCommand("room", "Jump to room ID",
+    // damn cant overload commands distingueshed by arguments alone 
+    console->system().RegisterCommand("roomi", "Jump to room ID",
         [this](int value) {
         static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
         if (!IsBadWritePtr(c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(c_area_jump_ptr, sizeof(uint32_t))) {
@@ -448,6 +222,20 @@ std::optional<std::string> AreaJump::on_initialize() {
         }
         }, 
         csys::Arg<int>("0-811"));
+
+    console->system().RegisterCommand("rooma", "Jump to room name", 
+        [this](csys::String value) {
+        static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
+        if (!IsBadWritePtr(c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(c_area_jump_ptr, sizeof(uint32_t))) {
+            if (const Room* proom = find_room_by_name(value)) {
+                c_area_jump_ptr->room_id = proom->id;
+                c_area_jump_ptr->init_jump = 1;
+            }
+            else {
+                spdlog::error("Invalid Room Name");
+            }
+        }
+        }, csys::Arg<csys::String>("ASCI room name, case insensitive"));
 
 	return Mod::on_initialize();
 }
@@ -487,7 +275,30 @@ void AreaJump::on_gui_frame()
 
     ImGui::Spacing();
 
-	int room_item_current = 0;
+	int item_current_idx = 0;
+    if (ImGui::BeginListBox("##Room Codes Listbox")) {
+        for (size_t n = 0; n < room_items.size(); n++) {
+            const bool is_selected = (item_current_idx == n);
+
+            // sigh
+            char buffer[MAX_PATH];
+            int result = snprintf(buffer, sizeof(buffer), "%s - %d", room_items[n].name, room_items[n].id);
+            IM_ASSERT(result > 0); // encoding error
+            IM_ASSERT(result < MAX_PATH); // output was truncated or null terminator didnt fit in
+
+            if (ImGui::Selectable(buffer, is_selected)) {
+                item_current_idx = n;
+                jump_to_stage(&room_items[n]);
+            }
+
+            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            if (is_selected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndListBox();
+    }
+
 	/*if (ImGui::ListBox(_("##Room Codes Listbox"), &room_item_current, room_items.data(), room_items.size(), 10)) {
 		jump_to_stage(room_item_current);
 	}*/

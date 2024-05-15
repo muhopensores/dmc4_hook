@@ -2,6 +2,8 @@
 
 #include "../mod.hpp"
 
+struct Room;
+
 class AreaJump : public Mod {
 public:
     AreaJump() = default;
@@ -17,6 +19,7 @@ public:
     void on_update_input(utility::Input& input) override;
 
 private:
-    void jump_to_stage(int stage);
+    void jump_to_stage(const Room* stage);
+
     std::unique_ptr<FunctionHook> hook;
 };
