@@ -90,7 +90,7 @@ std::optional<std::string> PlayerTracker::on_initialize() {
         PlayerTracker::pin_imgui_enabled = !PlayerTracker::pin_imgui_enabled;
     });
 
-    console->system().RegisterCommand("playerdt", "Set dt value", 
+    console->system().RegisterCommand("playerdt", "Set DT value", 
         [](float value) {
             if (uPlayer* pl_ptr = devil4_sdk::get_local_player()) {
                 pl_ptr->DT = value;
@@ -98,7 +98,7 @@ std::optional<std::string> PlayerTracker::on_initialize() {
         }, 
         csys::Arg<float>("0.0 - 10000.0"));
 
-    console->system().RegisterCommand("playerhp", "Set hp value", 
+    console->system().RegisterCommand("playerhp", "Set HP value", 
         [](float value) {
             if (uPlayer* pl_ptr = devil4_sdk::get_local_player()) {
                 pl_ptr->HP = value;
@@ -331,7 +331,7 @@ void PlayerTracker::custom_imgui_window() {
         ImGui::Text(_("Found Orbs: %i"), sMediatorPtr->orbMissionCurrent);
         ImGui::Text(_("Potential Orbs: %i"), sMediatorPtr->orbMissionPotential);
         static float orbsFoundPercent = 0.0f;
-        if (sMediatorPtr->orbMissionPotential && sMediatorPtr->orbMissionCurrent) {
+        if (sMediatorPtr->orbMissionPotential && sMediatorPtr->orbMissionCurrent && sMediatorPtr->missionID != 50) { // always shows 50 for BP)
             orbsFoundPercent = ((float)sMediatorPtr->orbMissionCurrent / (float)sMediatorPtr->orbMissionPotential) * 100.0f;
             ImGui::Text(_("%.0f%% Orbs found up to current point"), orbsFoundPercent);
             if (orbsFoundPercent < 45.0f) ImGui::Text("D");

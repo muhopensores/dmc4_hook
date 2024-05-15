@@ -7,90 +7,101 @@ uintptr_t  AreaJump::jmp_return{ NULL };
 cAreaJump* AreaJump::c_area_jump_ptr{ NULL };
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
-constexpr std::array room_items {
-    "Berial - 503",                              // 503 // DevilMayCry4_DX9.exe+A56768
-    "Bael - 504",                                // 504 // DevilMayCry4_DX9.exe+A56528
-    "Echidna - 505",                             // 505 // DevilMayCry4_DX9.exe+A55FE8
-    "Credo - 507",                               // 507 // DevilMayCry4_DX9.exe+A55F88
-    "Agnus - 506",                               // 506 // DevilMayCry4_DX9.exe+A56728
-    "Dante - 700",                               // 700 // DevilMayCry4_DX9.exe+A56508
-    "Opera House - 0",                           // 0
-    "Opera House Plaza - 1",                     // 1
-    "Storehouse - 2",                            // 2
-    "Cathedral - 3",                             // 3
-    "Terrace / Business District - 4",           // 4
-    "Residential District - 5",                  // 5
-    "Port Caerula - 6",                          // 6
-    "Customs House - 7",                         // 7
-    "First Mining Area - 8",                     // 8
-    "Ferrum Hills - 9",                          // 9
-    "M17 Opera House - 10",                      // 10
-    "M17 Opera House Plaza - 11",                // 11
-    "Business District / Terrace - 12",          // 12
-    "M20 Opera House Plaza - 13",                // 13
-    "Second Mining Area - 100",                  // 100
-    "Fortuna Castle Gate - 105",                 // 105
-    "Grand Hall - Fortuna Castle) - 200",         // 200
-    "Large Hall - 201",                          // 201
-    "Dining Room - 202",                         // 202
-    "Torture Chamber - 203",                     // 203
-    "Central Courtyard - 204",                   // 204
-    "Foris Falls - Bridge Area) - 205",           // 205
-    "Gallery - 206",                             // 206
-    "Library - 207",                             // 207
-    "Soldier's Graveyard - 209",                 // 209
-    "Master's Chamber - 210",                    // 210
-    "Spiral Well - 211",                         // 211
-    "Underground Laboratory - 212",              // 212
-    "R&D Access - 213",                          // 213
-    "Game Room - 214",                           // 214
-    "Containment Room - 215",                    // 215
-    "Angel Creation - 216",                      // 216
-    "Foris Falls - Detour Area) - 217",           // 217
-    "Forest Entrance - 300",                     // 300
-    "Windswept Valley - 301",                    // 301
-    "Ruined Church - 302",                       // 302
-    "Ruined Valley - 303",                       // 303
-    "Ancient Training Ground - 304",             // 304
-    "Lapis River - 305",                         // 305
-    "Ancient Plaza - 306",                       // 306
-    "Den of the She-Viper - 307",                // 307
-    "Forgotten Ruins - 308",                     // 308
-    "Hidden Pit - 309",                          // 309
-    "Ruined Lowlands - 310",                     // 310
-    "Lost Woods - 311",                          // 311
-    "Gran Album Bridge - 400",                   // 400
-    "Grand Hall - Order of the Sword HQ) - 401", // 401
-    "Key Chamber - 402",                         // 402
-    "The Gauntlet - 403",                        // 403
-    "Agnus' Room - 404",                         // 404
-    "Security Corridor - 405",                   // 405
-    "Experiment Disposal - 406",                 // 406
-    "Meeting Room - 407",                        // 407
-    "Ascension Chamber - 408",                   // 408
-    "Advent Chamber - 409",                      // 409
-    "Machina Ex Deus - 500",                     // 500
-    "Stairway to Heaven - 501",                  // 501
-    "Sacred Heart - 502",                        // 502
-    "M18 - 510",                                 // 510
-    "Sky Above Fortuna - 512",                   // 512
-    "Secret Mission 1 - 800",                    // 800
-    "Secret Mission 2 - 801",                    // 801
-    "Secret Mission 3 - 802",                    // 802
-    "Secret Mission 4 - 803",                    // 803
-    "Secret Mission 5 - 804",                    // 804
-    "Secret Mission 6 - 805",                    // 805
-    "Secret Mission 7 - 806",                    // 806
-    "Secret Mission 8 - 807",                    // 807
-    "Secret Mission 9 - 808",                    // 808
-    "Secret Mission 10 - 809",                   // 809
-    "Secret Mission 11 - 810",                   // 810
-    "Secret Mission 12 - 811",                   // 811
-    "Bloody Palace 1-19 - 705",                  // 705
-    "Bloody Palace 21-39 - 704",                 // 704
-    "Bloody Palace 41-59 - 703",                 // 703
-    "Bloody Palace 61-79 - 701",                 // 701
-    "Bloody Palace 81-99 - 702",                 // 702
+struct Room {
+  const char* name;
+  int id;
+};
+
+static constexpr std::array room_items = {
+    Room {"Berial", 503},                    // DevilMayCry4_DX9.exe+A56768
+    Room {"Bael", 504},                      // DevilMayCry4_DX9.exe+A56528
+    Room {"Echidna", 505},                   // DevilMayCry4_DX9.exe+A55FE8
+    Room {"Agnus", 506},                     // DevilMayCry4_DX9.exe+A55F88
+    Room {"Credo", 507},                     // DevilMayCry4_DX9.exe+A56728
+    Room {"Dante", 700},                     // DevilMayCry4_DX9.exe+A56508
+    Room {"Opera House", 0},
+    Room {"Opera House Plaza", 1},
+    Room {"Storehouse", 2},
+    Room {"Cathedral", 3},
+    Room {"Terrace / Business District", 4},
+    Room {"Residential District", 5},
+    Room {"Port Caerula", 6},
+    Room {"Customs House", 7},
+    Room {"First Mining Area", 8},
+    Room {"Ferrum Hills", 9},
+    Room {"M17 Opera House", 10},
+    Room {"M17 Opera House Plaza", 11},
+    Room {"Business District / Terrace", 12},
+    Room {"M20 Opera House Plaza", 13},
+    Room {"Second Mining Area", 100},
+    Room {"Fortuna Castle Gate", 105},
+    Room {"Grand Hall - Fortuna Castle", 200},
+    Room {"Large Hall", 201},
+    Room {"Dining Room", 202},
+    Room {"Torture Chamber", 203},
+    Room {"Central Courtyard", 204},
+    Room {"Foris Falls - Bridge Area", 205},
+    Room {"Gallery", 206},
+    Room {"Library", 207},
+    Room {"Soldier's Graveyard", 209},
+    Room {"Master's Chamber", 210},
+    Room {"Spiral Well", 211},
+    Room {"Underground Laboratory", 212},
+    Room {"R&D Access", 213},
+    Room {"Game Room", 214},
+    Room {"Containment Room", 215},
+    Room {"Angel Creation", 216},
+    Room {"Foris Falls - Detour Area", 217},
+    Room {"Forest Entrance", 300},
+    Room {"Windswept Valley", 301},
+    Room {"Ruined Church", 302},
+    Room {"Ruined Valley", 303},
+    Room {"Ancient Training Ground", 304},
+    Room {"Lapis River", 305},
+    Room {"Ancient Plaza", 306},
+    Room {"Den of the She-Viper", 307},
+    Room {"Forgotten Ruins", 308},
+    Room {"Hidden Pit", 309},
+    Room {"Ruined Lowlands", 310},
+    Room {"Lost Woods", 311},
+    Room {"Gran Album Bridge", 400},
+    Room {"Grand Hall - Order of the Sword HQ", 401},
+    Room {"Key Chamber", 402},
+    Room {"The Gauntlet", 403},
+    Room {"Agnus' Room", 404},
+    Room {"Security Corridor", 405},
+    Room {"Experiment Disposal", 406},
+    Room {"Meeting Room", 407},
+    Room {"Ascension Chamber", 408},
+    Room {"Advent Chamber", 409},
+    Room {"Machina Ex Deus", 500},
+    Room {"Stairway to Heaven", 501},
+    Room {"Sacred Heart", 502},
+    Room {"M18", 510},
+    Room {"Sky Above Fortuna", 512},
+    Room {"Secret Mission 1", 800},
+    Room {"Secret Mission 2", 801},
+    Room {"Secret Mission 3", 802},
+    Room {"Secret Mission 4", 803},
+    Room {"Secret Mission 5", 804},
+    Room {"Secret Mission 6", 805},
+    Room {"Secret Mission 7", 806},
+    Room {"Secret Mission 8", 807},
+    Room {"Secret Mission 9", 808},
+    Room {"Secret Mission 10", 809},
+    Room {"Secret Mission 11", 810},
+    Room {"Secret Mission 12", 811},
+    Room {"Bloody Palace 1-19", 705},
+    Room {"Bloody Palace 21-39", 704},
+    Room {"Bloody Palace 41-59", 703},
+    Room {"Bloody Palace 61-79", 701},
+    Room {"Bloody Palace 81-99", 702}
+};
+
+auto is_valid_room_id = [](int id) {
+    return std::any_of(room_items.begin(), room_items.end(), [id](const Room& room) { 
+        return room.id == id; 
+    });
 };
 
 naked void detour() {
@@ -101,180 +112,6 @@ naked void detour() {
 		mov DWORD PTR [AreaJump::c_area_jump_ptr], edx
 		jmp DWORD PTR [AreaJump::jmp_return]
 	}
-}
-
-bool isValidRoomID(int number) {
-    switch (number) {
-    case 0:
-        break;
-    case 1:
-        break;
-    case 2:
-        break;
-    case 3:
-        break;
-    case 4:
-        break;
-    case 5:
-        break;
-    case 6:
-        break;
-    case 7:
-        break;
-    case 8:
-        break;
-    case 9:
-        break;
-    case 10:
-        break;
-    case 11:
-        break;
-    case 12:
-        break;
-    case 13:
-        break;
-    case 100:
-        break;
-    case 105:
-        break;
-    case 200:
-        break;
-    case 201:
-        break;
-    case 202:
-        break;
-    case 203:
-        break;
-    case 204:
-        break;
-    case 205:
-        break;
-    case 206:
-        break;
-    case 207:
-        break;
-    case 209:
-        break;
-    case 210:
-        break;
-    case 211:
-        break;
-    case 212:
-        break;
-    case 213:
-        break;
-    case 214:
-        break;
-    case 215:
-        break;
-    case 216:
-        break;
-    case 217:
-        break;
-    case 300:
-        break;
-    case 301:
-        break;
-    case 302:
-        break;
-    case 303:
-        break;
-    case 304:
-        break;
-    case 305:
-        break;
-    case 306:
-        break;
-    case 307:
-        break;
-    case 308:
-        break;
-    case 309:
-        break;
-    case 310:
-        break;
-    case 311:
-        break;
-    case 400:
-        break;
-    case 401:
-        break;
-    case 402:
-        break;
-    case 403:
-        break;
-    case 404:
-        break;
-    case 405:
-        break;
-    case 406:
-        break;
-    case 407:
-        break;
-    case 408:
-        break;
-    case 409:
-        break;
-    case 500:
-        break;
-    case 501:
-        break;
-    case 502:
-        break;
-    case 503:
-        break;
-    case 504:
-        break;
-    case 505:
-        break;
-    case 506:
-        break;
-    case 507:
-        break;
-    case 510:
-        break;
-    case 512:
-        break;
-    case 700:
-        break;
-    case 701:
-        break;
-    case 702:
-        break;
-    case 703:
-        break;
-    case 704:
-        break;
-    case 705:
-        break;
-    case 800:
-        break;
-    case 801:
-        break;
-    case 802:
-        break;
-    case 803:
-        break;
-    case 804:
-        break;
-    case 805:
-        break;
-    case 806:
-        break;
-    case 807:
-        break;
-    case 808:
-        break;
-    case 809:
-        break;
-    case 810:
-        break;
-    case 811:
-        break;
-    default:
-        return false;
-    }
-    return true;
 }
 
 int bp_stage(int floor) {
@@ -590,7 +427,7 @@ std::optional<std::string> AreaJump::on_initialize() {
                     jump_to_stage(bp_stage(c_area_jump_ptr->bp_floor_stage = value));
                 }
                 else {
-                spdlog::error("%i is invalid Stage ID", value);
+                spdlog::error("Invalid Stage ID");
                 }
             }
         }
@@ -601,16 +438,16 @@ std::optional<std::string> AreaJump::on_initialize() {
         [this](int value) {
         static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
         if (!IsBadWritePtr(c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(c_area_jump_ptr, sizeof(uint32_t))) {
-            if (isValidRoomID(value)) {
+            if (is_valid_room_id(value)) {
                 c_area_jump_ptr->room_id = value;
                 c_area_jump_ptr->init_jump = 1;
             }
             else {
-                spdlog::error("%i is invalid Room ID", value);
+                spdlog::error("Invalid Room ID");
             }
         }
         }, 
-        csys::Arg<int>("1-811"));
+        csys::Arg<int>("0-811"));
 
 	return Mod::on_initialize();
 }
@@ -651,9 +488,9 @@ void AreaJump::on_gui_frame()
     ImGui::Spacing();
 
 	int room_item_current = 0;
-	if (ImGui::ListBox(_("##Room Codes Listbox"), &room_item_current, room_items.data(), room_items.size(), 10)) {
+	/*if (ImGui::ListBox(_("##Room Codes Listbox"), &room_item_current, room_items.data(), room_items.size(), 10)) {
 		jump_to_stage(room_item_current);
-	}
+	}*/
 }
 
 void AreaJump::on_update_input(utility::Input & input) {

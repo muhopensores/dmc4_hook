@@ -248,6 +248,11 @@ class uPlayer : public UCoord{
 	uint32_t canWeaponChange @ 0x14F0
 	uint32_t moveBank @ 0x1500
 	uint32_t movePart @ 0x1504
+	bool isActive @ 0x1509 // completely disables the character, probably for cutscenes
+	bool roomCollision @ 0x150D
+	bool enemyCollision @ 0x150F
+	bool triggerBigJump @ 0x1510
+	bool triggerStingerJump @ 0x1511
 	uint8_t cancels1[4] @ 0x1550
 	uint8_t cancels2[4] @ 0x1554
 	uint32_t moveID2 @ 0x1564
