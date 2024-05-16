@@ -1,6 +1,4 @@
 #include "BpPortal.hpp"
-#include "DeltaTime.hpp"
-#include "EnemySpawn.hpp"
 
 bool BpPortal::mod_enabled{false};
 static BpPortal* g_mod{nullptr};

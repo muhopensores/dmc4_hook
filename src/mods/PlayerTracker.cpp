@@ -28,21 +28,49 @@ namespace pui {
 uintptr_t PlayerTracker::jmp_return{ NULL };
 uPlayer* PlayerTracker::player_ptr{ NULL };
 bool PlayerTracker::lock_on_alloc{ false };
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8; // DevilMayCry4_DX9.exe+A558B8
 bool PlayerTracker::pin_imgui_enabled = false;
+
+constexpr uintptr_t static_mediator_ptr = 0x00E558B8; // DevilMayCry4_DX9.exe+A558B8
 static bool display_player_stats = false;
 static bool red_orb_completion_enabled = false;
-Vector3f playerXYZBackup{ 0.0f, 0.0f, 0.0f };
+static Vector3f playerXYZBackup{ 0.0f, 0.0f, 0.0f };
+static float playerRotationBackup = 0.0f;
+static int8_t tempMoveBank = 0;
+static int8_t tempMoveID   = 0;
 
 void SavePlayerXYZ() {
     uPlayer* player = devil4_sdk::get_local_player();
-    if (player)
+    if (player) {
         playerXYZBackup = player->m_pos;
+        playerRotationBackup = player->rotation2;
+    }
 }
 void LoadPlayerXYZ() {
     uPlayer* player = devil4_sdk::get_local_player();
-    if (player)
+    if (player) {
         player->m_pos = playerXYZBackup;
+        player->rotation2 = playerRotationBackup;
+    }
+}
+
+void SavePlayerMove() {
+    uPlayer* player = devil4_sdk::get_local_player();
+    if (player) {
+        tempMoveBank = player->moveBank;
+        tempMoveID = player->moveID2;
+        SavePlayerXYZ();
+    }
+}
+
+void LoadPlayerMove() {
+    uPlayer* player = devil4_sdk::get_local_player();
+    if (player) {
+        player->moveBank = tempMoveBank;
+        player->moveID2 = tempMoveID;
+        player->movePart = 0;
+        player->canWeaponChange = 12;
+        LoadPlayerXYZ();
+    }
 }
 
 std::optional<std::string> PlayerTracker::on_initialize() {
@@ -107,20 +135,21 @@ std::optional<std::string> PlayerTracker::on_initialize() {
         csys::Arg<float>("0.0 - 20000.0"));
 
     using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_SHIFT, VK_F11 }, "Save Player XYZ", "save_player_xyz_hotkey"));
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_SHIFT, VK_F12 }, "Load Player XYZ", "load_player_xyz_hotkey"));
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_F11, VK_TAB  }, "Save Player XYZ", "save_player_xyz_hotkey"));
+    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_F12, VK_TAB  }, "Load Player XYZ", "load_player_xyz_hotkey"));
 
     return Mod::on_initialize();
 }
 
-/*void PlayerTracker::on_update_input(utility::Input & input) {
-    if (m_hotkeys[0]->check(input)) {
-        SavePlayerXYZ();
+void PlayerTracker::on_update_input(utility::Input & input) {
+    /*if (m_hotkeys[0]->check(input)) { // why tf do you crash
+        SavePlayerMove();
     }
+
     if (m_hotkeys[1]->check(input)) {
-        LoadPlayerXYZ();
-    }
-}*/
+        LoadPlayerMove();
+    }*/
+}
 
 void PlayerTracker::on_gui_frame() {
     ImGui::Checkbox(_("Disable Game Pause When Opening The Trainer"), &WorkRate::disable_trainer_pause);
@@ -186,29 +215,18 @@ void PlayerTracker::on_gui_frame() {
             ImGui::InputScalar(_("Move Part ##1"), ImGuiDataType_U8, &player->movePart);
             ImGui::InputScalar(_("Move Bank ##1"), ImGuiDataType_U8, &player->moveBank);
             ImGui::InputScalar(_("Move ID ##1"), ImGuiDataType_U8, &player->moveID2);
-            static int8_t tempMoveBank = 0;
-            static int8_t tempMoveID   = 0;
-            if (ImGui::Button(_("Save Current Move"))) {
-                tempMoveBank = player->moveBank;
-                tempMoveID   = player->moveID2;
-            }
             ImGui::InputScalar(_("Saved Move Bank ##1"), ImGuiDataType_U8, &tempMoveBank);
             ImGui::InputScalar(_("Saved Move ID ##1"), ImGuiDataType_U8, &tempMoveID);
-            if (ImGui::Button(_("Play Saved Move"))) {
-                player->moveBank = tempMoveBank;
-                player->moveID2  = tempMoveID;
-                player->movePart = 0;
-                player->canWeaponChange = 12;
-            }
+
         }
         ImGui::Unindent(lineIndent);
     }
-    if (ImGui::Button(_("Save Player XYZ"))) {
-        SavePlayerXYZ();
+    if (ImGui::Button(_("Save Current Move"))) {
+        SavePlayerMove();
     }
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Button(_("Load Player XYZ"))) {
-        LoadPlayerXYZ();
+    if (ImGui::Button(_("Play Saved Move"))) {
+        LoadPlayerMove();
     }
     ImGui::InputFloat3(_("Saved Player XYZ"), &playerXYZBackup[0]);
 }

@@ -1,7 +1,4 @@
-
 #include "TimerMem.hpp"
-#include "DeltaTime.hpp"
-#include "PlayerTracker.hpp"
 #include "TrickDown.hpp"
 
 bool TimerMem::instant_honeycomb_enabled{ false };
@@ -36,7 +33,7 @@ naked void timer_detour(void) { // ticks timer, player in ecx
 			movss xmm5, [TimerMem::timer_mem]
 			movss [xmmbackup], xmm6
 			movss xmm6, [timer_mem_tick] // Timer starts at 0, has x added to it every tick and is reset every time a backforward input is made
-			mulss xmm6, [DeltaTime::current_delta_time]
+			mulss xmm6, [ecx+0x10]
 			addss xmm5, xmm6
 			movss xmm6, [xmmbackup]
 			movss [TimerMem::timer_mem], xmm5

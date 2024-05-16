@@ -1,5 +1,4 @@
 #include "InputStates.hpp"
-#include "DeltaTime.hpp"
 #include "ActiveBlock.hpp"
 #include "ForceLucifer.hpp" // used to stop rose despawning when leaving lucifer
 #include "FasterFastDrive.hpp" // for easy fast drive
@@ -65,7 +64,7 @@ naked void detour() { // inputpressed // inputs are edx // player is in edi // A
     inctimer: // timer for ActiveBlock
         movss xmm0, [InputStates::input_timer]
         movss xmm1, [timer_tick]
-        mulss xmm1, [DeltaTime::current_delta_time]
+        mulss xmm1, [edi+0x10]
         addss xmm0, xmm1
         movss [InputStates::input_timer], xmm0
 
@@ -86,7 +85,7 @@ naked void detour() { // inputpressed // inputs are edx // player is in edi // A
     IncRoseTimer: // timer for HideLucifer
         movss xmm0, [InputStates::input_timer2]
         movss xmm1, [timer_tick]
-        mulss xmm1, [DeltaTime::current_delta_time]
+        mulss xmm1, [edi+0x10]
         addss xmm0, xmm1
         movss [InputStates::input_timer2], xmm0
         cmp dword ptr [InputStates::input_timer2], 0x43480000 // 200.0f

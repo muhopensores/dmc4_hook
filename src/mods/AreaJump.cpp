@@ -298,10 +298,6 @@ void AreaJump::on_gui_frame()
         }
         ImGui::EndListBox();
     }
-
-	/*if (ImGui::ListBox(_("##Room Codes Listbox"), &room_item_current, room_items.data(), room_items.size(), 10)) {
-		jump_to_stage(room_item_current);
-	}*/
 }
 
 void AreaJump::on_update_input(utility::Input & input) {

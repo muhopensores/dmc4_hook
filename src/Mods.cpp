@@ -72,7 +72,6 @@
 #include "mods/BigHeadMode.hpp"
 #include "mods/BpJumpHook.hpp"
 #include "mods/ChargeChecker.hpp"
-#include "mods/DeltaTime.hpp"
 #include "mods/DisableChimeraBlades.hpp"
 #include "mods/EnemyReplaceAgain.hpp"
 #include "mods/EnemyStats.hpp"
@@ -212,7 +211,6 @@ Mods::Mods() {
     ADD_MOD(MutatorSuperhot);
     ADD_MOD(InfCalibur);
     ADD_MOD(RgMultiplier);
-    ADD_MOD(DeltaTime);
     ADD_MOD(ActiveBlock);
     ADD_MOD(NeroFullHouse);
     ADD_MOD(FrostsDontJump);

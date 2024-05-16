@@ -1,6 +1,4 @@
-
 #include "TrackingFullHouse.hpp"
-#include "PlayerTracker.hpp"
 
 bool TrackingFullHouse::mod_enabled{ false };
 uintptr_t TrackingFullHouse::jmp_ret{ NULL };
