@@ -4,6 +4,7 @@
 bool WorkRate::disable_trainer_pause = false;
 static bool force_custom_turbo = false;
 static float custom_turbo = 1.2f;
+static bool hotkey_paused = false;
 #if 0
 uintptr_t  WorkRate::jmp_return{ NULL };
 sWorkRate* WorkRate::sWorkRatePtr{ NULL };
@@ -105,7 +106,8 @@ void WorkRate::on_game_pause(bool toggle) {
 		s_work_rate_ptr->global_speed = 0.0f;
 	}
 	if (toggle == false) {
-		s_work_rate_ptr->global_speed = m_global_speed;
+		if (!hotkey_paused)
+			s_work_rate_ptr->global_speed = m_global_speed;
 	}
 }
 
@@ -115,10 +117,12 @@ void WorkRate::on_update_input(utility::Input& input) {
         return;
     }
     if (m_hotkeys[0]->check(input)) {
-        if (s_work_rate_ptr->global_speed == 0.0f){
+        if (hotkey_paused){
 			s_work_rate_ptr->global_speed = m_global_speed;
+			hotkey_paused = false;
         } else {
 			s_work_rate_ptr->global_speed = 0.0f;
+			hotkey_paused = true;
         }
     }
 }
