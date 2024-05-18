@@ -98,7 +98,7 @@ std::optional<std::string> FastStart::on_initialize() {
 	}
 #else
 	if (DeleteFileA("nativePC\\shaderlog.slg")) {
-		DISPLAY_MESSAGE("[FastStart]: Deleted shaderlog.sig, restart the game for faster loads");
+		DISPLAY_MESSAGE("[FastStart]: Deleted shaderlog.sig for faster loads");
 	}
 #endif
 
