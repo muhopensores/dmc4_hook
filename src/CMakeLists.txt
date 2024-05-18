@@ -202,8 +202,6 @@ set(MODS_SRC
   mods/RgMultiplier.cpp
   mods/RisingSun.hpp
   mods/RisingSun.cpp
-  mods/DeltaTime.hpp
-  mods/DeltaTime.cpp
   mods/ActiveBlock.hpp
   mods/ActiveBlock.cpp
   mods/NeroFullHouse.hpp

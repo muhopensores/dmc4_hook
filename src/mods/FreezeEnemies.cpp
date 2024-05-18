@@ -24,7 +24,7 @@ void FreezeEnemies::toggle(bool enable) {
         install_patch_offset(0x1DE9C0, seed_patch, "\x90\x90\x90\x90", 4);
         install_patch_offset(0x1B668D, assault_patch, "\xE9\x45\x03\x00\x00\x90", 6);
         install_patch_offset(0x21CE8D, dog_patch, "\x90\x90\x90", 3);
-        install_patch_offset(0x1D3268, blitz_patch, "\x90\x90\x90\x90", 4);
+        install_patch_offset(0x1D3268, blitz_patch, "\xEB\x21", 2);
     }
     else {
         scarecrow_patch.reset();

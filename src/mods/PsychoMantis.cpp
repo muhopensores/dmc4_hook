@@ -79,7 +79,7 @@ void PsychoMantis::on_frame(fmilliseconds& dt) {
             uint16_t rpower = 65535 / 14; // so we're divibing by double so its smoother
             if (PsychoMantis::_controller->isConnected()) {
                 PsychoMantis::_controller->vibrate(
-                    lpower * devil4_sdk::get_current_style_rank(), rpower * devil4_sdk::get_current_style_rank());
+                    lpower * (uint16_t)devil4_sdk::get_current_style_rank(), rpower * (uint16_t)devil4_sdk::get_current_style_rank());
             }
             /* if (c->getState().Gamepad.wButtons & XINPUT_GAMEPAD_A) {
                 c->vibrate(65535, 65535);
