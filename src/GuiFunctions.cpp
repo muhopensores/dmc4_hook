@@ -29,7 +29,7 @@ static constexpr char* version{GUI_VERSION};
 static float g_window_height_hack{ 1080.0f };
 static float g_max{ 0.0f };
 static float windowWidth   = 600.0f;
-static float sameLineWidth = 300.0f; // redef in mod.hpp, I was too scared to include that here
+static float sameLineWidth = windowWidth / 2; // redef in mod.hpp, I was too scared to include that here
 namespace gui {
 
     // visual theme of the gui, can be changed to change the look

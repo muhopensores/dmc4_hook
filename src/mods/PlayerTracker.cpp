@@ -8,6 +8,7 @@
 #include "misc/PinTimerAtlas.cpp"
 
 static float G_WINDOW_HEIGHT_HACK_IDK{ 270.0f }; // fresh from my ass
+static float G_WINDOW_HEIGHT_HACK_IDK_ORBS{ 270.0f };
 
 static bool CON_PIN_UI_DEBUG{ false };
 
@@ -338,7 +339,7 @@ void PlayerTracker::custom_imgui_window() {
         // bandaid
         const float text_height = ImGui::GetTextLineHeightWithSpacing();
         const glm::vec2 margin = glm::vec2(text_height * 1.666f, text_height * 5.6f);
-        glm::vec2 window_size = glm::vec2(400 + margin.x, G_WINDOW_HEIGHT_HACK_IDK);
+        glm::vec2 window_size = glm::vec2(400 + margin.x, G_WINDOW_HEIGHT_HACK_IDK_ORBS);
         glm::vec2 window_pos = glm::vec2(io.DisplaySize.x - window_size.x - 128.0f, 128.0f);
 
         ImGui::SetNextWindowPos(window_pos, ImGuiCond_Once);
@@ -359,7 +360,7 @@ void PlayerTracker::custom_imgui_window() {
             else ImGui::Text("S");
         }
 
-        G_WINDOW_HEIGHT_HACK_IDK = ImGui::GetCursorPosY();
+        G_WINDOW_HEIGHT_HACK_IDK_ORBS = ImGui::GetCursorPosY();
         ImGui::End();
     }
 }

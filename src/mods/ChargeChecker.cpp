@@ -24,9 +24,7 @@ naked void detour(void) { // player in edi
         jne code
         cmp dword ptr [edi+0x1DB4], 4 // rebellion
         jne code
-
         mulss xmm0, [round_trip_charge_mult]
-
     code:
         addss xmm0, [ecx+0x10]
         jmp dword ptr [ChargeChecker::jmp_ret]

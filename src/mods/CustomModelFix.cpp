@@ -15,7 +15,6 @@ naked void detour1(void) { // player in edx
             jne detourcode
             cmp byte ptr [CustomModelFix::char_dante], 0
             je originalcode
-
         detourcode:
             push ecx
             mov ecx, [static_mediator_ptr]
@@ -24,7 +23,6 @@ naked void detour1(void) { // player in edx
             cmp edx, ecx
             pop ecx
             je charcheck // is player character
-
 	    originalcode:
 		    test [edx+0x00000138], eax
 		    jmp dword ptr [CustomModelFix::jmp_ret1]
@@ -35,11 +33,10 @@ naked void detour1(void) { // player in edx
             cmp byte ptr [CustomModelFix::char_nero], 1
             jne originalcode
             jmp jecode
+
         IsDante:
             cmp byte ptr [CustomModelFix::char_dante], 1
             jne originalcode
-            jmp jecode
-
         jecode:
             jmp dword ptr [CustomModelFix::jmp_jb1]
     }

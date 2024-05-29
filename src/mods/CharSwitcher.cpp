@@ -55,8 +55,7 @@ void CharSwitcher::toggle(bool enable) {
 }
 
 void CharSwitcher::toggle2(bool enable) {
-    if (enable)
-    {
+    if (enable) {
         install_patch_offset(0x3AA5D6, patch2, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 1
         install_patch_offset(0x3AA5E0, patch3, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 2
         install_patch_offset(0x3AA61E, patch4, "\x90\x90\x90\x90\x90\x90\x90\x90", 8); // Disable transitioning inertia dampener 3

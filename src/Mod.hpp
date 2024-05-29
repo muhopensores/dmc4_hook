@@ -31,9 +31,8 @@ public:
         SLOW
     };
     float sameLineWidth     = 300.0f;
-    float sameLineItemWidth = 150.0f;
+    float sameLineItemWidth = sameLineWidth / 2;
     float lineIndent        = 20.0f;
-    ImVec4 childColor       = {0.0f, 0.1f, 0.2f, 1.0f};
 
     //std::unique_ptr<utility::Hotkey> m_hotkey;
     std::vector<std::unique_ptr<utility::Hotkey>> m_hotkeys;
