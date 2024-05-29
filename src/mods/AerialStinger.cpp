@@ -6,23 +6,25 @@ bool AerialStinger::mod_enabled{ false };
 uintptr_t AerialStinger::jmp_ret1{NULL};
     bool aerialFlag = false;
 uintptr_t AerialStinger::jmp_ret2{NULL};
-    float multiplier = 0.3f;
+    float multiplier = 0.4f;
     float gravity = -0.7f; 
 uintptr_t AerialStinger::jmp_ret3{NULL};
 uintptr_t AerialStinger::jmp_ret4{NULL};
 uintptr_t AerialStinger::jmp_ret5{NULL};
+uintptr_t AerialStinger::jmp_ret6{NULL};
+    constexpr uintptr_t detour6_jmp = 0x007CE861;
 
 void AerialStinger::toggle(bool enable) {
     if (enable) {
-        install_patch_absolute(0x00C3FEF8, patch1, "\x03", 2);
-        install_patch_offset(0x3CE6FA, patch2, "\x90\x90\x90\x90\x90\x90\x90\x90",8);
+        install_patch_absolute(0x00C3FEF8, patch1, "\x03", 2);//Move class aerial lock
+        install_patch_offset(0x3CE6FA, patch2, "\x90\x90\x90\x90\x90\x90\x90\x90",8);//stinger inertia
     }
     else {
         patch1.reset();
         patch2.reset();
     }
 }
-
+//Aerial Stinger init
 naked void detour1() {
     _asm {
         push eax
@@ -37,7 +39,7 @@ naked void detour1() {
         jmp originalcode
     }
 }
-
+//X-axis velocity
 naked void detour2() {
     _asm {
         cmp byte ptr [ebp+0x1550], 1
@@ -50,7 +52,7 @@ naked void detour2() {
         jmp [AerialStinger::jmp_ret2]
     }
 }
-
+//Z-axis velocity + grav
 naked void detour3() {
     _asm {
         cmp byte ptr [ebp+0x1550], 1
@@ -65,13 +67,12 @@ naked void detour3() {
         jmp [AerialStinger::jmp_ret3]
     }
 }
-
+//Landing cancel
 naked void detour4() {
     _asm {
         cmp byte ptr [ebp+0x1550],1
         je originalcode
         push eax
-        //landing cancel
         mov eax,[ebp+0x1E8C]
         cmp byte ptr [eax+0x1C],1
         jne handler
@@ -85,7 +86,7 @@ naked void detour4() {
         jmp originalcode
     }
 }
-
+//Inertia brake
 naked void detour5() {
     _asm {
         cmp [ebp+0x30C4],01
@@ -95,6 +96,17 @@ naked void detour5() {
     originalcode:
         cmp [ebp+0x2A54],bl
         jmp [AerialStinger::jmp_ret5]
+    }
+}
+//Suppress MS input in the air
+naked void detour6() {
+    _asm {
+        cmp byte ptr [ebp+0x1550],1
+        je originalcode
+        jmp [detour6_jmp]
+    originalcode:
+        cmp dword ptr [ebp+0x0000141C],00
+        jmp [AerialStinger::jmp_ret6]
     }
 }
 
@@ -118,6 +130,10 @@ std::optional<std::string> AerialStinger::on_initialize() {
     if (!install_hook_offset(0x3CE861, hook5, &detour5, &jmp_ret5, 6)) {
 		spdlog::error("Failed to init AerialStinger mod\n");
 		return "Failed to init AerialStinger mod5";
+	}
+    if (!install_hook_offset(0x3CE7F6, hook6, &detour6, &jmp_ret6, 7)) {
+		spdlog::error("Failed to init AerialStinger mod\n");
+		return "Failed to init AerialStinger mod6";
 	}
     return Mod::on_initialize();
 }
