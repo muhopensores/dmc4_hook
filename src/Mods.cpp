@@ -114,6 +114,7 @@
 #include "mods/EffectColours.hpp"
 #include "mods/CharSwitcher.hpp"
 #include "mods/RisingSun.hpp"
+#include "mods/AerialStinger.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -243,6 +244,7 @@ Mods::Mods() {
     ADD_MOD(CharSwitcher);
     ADD_MOD(RisingSun);
     ADD_MOD(LocalizationManager);
+    ADD_MOD(AerialStinger);
 }
 
 // Initializes mods, checks for errors

@@ -224,6 +224,8 @@ set(MODS_SRC
   mods/EnemyReplaceAgain.cpp
   mods/MessageDisplay.hpp
   mods/MessageDisplay.cpp
+  mods/AerialStinger.hpp
+  mods/AerialStinger.cpp
 )
 
 set(HOOKS_SRC
