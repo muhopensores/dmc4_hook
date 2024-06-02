@@ -8,6 +8,7 @@ uintptr_t AerialStinger::jmp_ret1{NULL};
 uintptr_t AerialStinger::jmp_ret2{NULL};
     float multiplier = 0.4f;
     float gravity = -0.7f; 
+    float ASBounce = 5.0f; 
 uintptr_t AerialStinger::jmp_ret3{NULL};
 uintptr_t AerialStinger::jmp_ret4{NULL};
 uintptr_t AerialStinger::jmp_ret5{NULL};
@@ -29,8 +30,10 @@ naked void detour1() {
     _asm {
         push eax
         mov eax,[ebp+0x1E8C]
-        cmp byte ptr [eax+0x1C],0
+        cmp byte ptr [eax+0x1C],0 // grounded check
         jne handler
+        fld [ebp+0x1710]
+        fstp [ebp+0x16C0]
     originalcode:
         pop eax
         jmp [AerialStinger::jmp_ret1]
@@ -59,6 +62,8 @@ naked void detour3() {
         je originalcode
         movss xmm0, [ebp+0xEC8]
         mulss xmm0, [multiplier]
+        fld [ASBounce]
+        fstp [ebp+0xEC4]
         fld [gravity]
         fstp [ebp+0xED4]
     originalcode:

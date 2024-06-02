@@ -19,16 +19,23 @@ uintptr_t RisingSun::jmp_ret5{NULL};
     float bounce = 10.0f;
 uintptr_t RisingSun::jmp_ret6{NULL};
 uintptr_t RisingSun::jmp_ret7{NULL};
+uintptr_t RisingSun::jmp_ret8{NULL};
+    float speed = 1.1f;
+// uintptr_t RisingSun::jmp_ret9{NULL};
+//     constexpr uintptr_t detour9_call = 0x00820060;
+
 
 
 void RisingSun::toggle(bool enable) {
     if (enable) {
         install_patch_offset(0x3D37E6, patch1, "\x90\x90\x90\x90\x90\x90", 6);
         install_patch_offset(0x3D37F3, patch2, "\x90\x90\x90\x90\x90\x90", 6);
+        install_patch_offset(0x3D3748, patch3, "\x90\x90\x90\x90\x90", 5); //remove grounded collision check for efx
     }
     else {
         patch1.reset();
         patch2.reset();
+        patch3.reset();
     }
 }
 
@@ -170,6 +177,40 @@ naked void detour7() {
             jmp [RisingSun::jmp_ret7]
     }
 }
+//Speed up animation
+naked void detour8() {
+    _asm {
+        cmp byte ptr [RisingSun::mod_enabled], 1
+        jne handler
+        
+        cmp byte ptr [kickFlag],1
+        jne handler
+
+        fld [speed]
+    originalcode:
+        sub esp,0x0C
+        jmp [RisingSun::jmp_ret8]
+    handler:
+        fld1
+        jmp originalcode
+    }
+}
+
+// naked void detour9() {
+//     _asm {
+//         cmp byte ptr [RisingSun::mod_enabled], 1
+//         jne handler
+
+//         cmp byte ptr [kickFlag],1
+//         jne handler
+
+//     originalcode:
+//         jmp [RisingSun::jmp_ret9]
+//     handler:
+//         call [detour9_call]
+//         jmp originalcode
+//     }
+// }
 
 std::optional<std::string> RisingSun::on_initialize() {
     if (!install_hook_offset(0x3CD359, hook1, &detour1, &jmp_ret1, 5)) {
@@ -200,6 +241,14 @@ std::optional<std::string> RisingSun::on_initialize() {
 		spdlog::error("Failed to init RisingSun mod7\n");
 		return "Failed to init RisingSun mod7";
 	}
+    if (!install_hook_offset(0x3D36C9, hook8, &detour8, &jmp_ret8, 5)) {
+		spdlog::error("Failed to init RisingSun mod8\n");
+		return "Failed to init RisingSun mod8";
+	}
+    // if (!install_hook_offset(0x3D3748, hook9, &detour9, &jmp_ret9, 5)) {
+	// 	spdlog::error("Failed to init RisingSun mod8\n");
+	// 	return "Failed to init RisingSun mod8";
+	// }
     return Mod::on_initialize();
 }
 

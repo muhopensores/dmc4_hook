@@ -7,6 +7,10 @@ public:
     FastPandora() = default;
 
     static bool mod_enabled;
+    static bool mod2_enabled;
+    static uintptr_t jmp_ret1;
+    static uintptr_t jmp_ret2;
+    static uintptr_t jmp_ret3;
 
     void toggle(bool enable);
 
@@ -19,4 +23,5 @@ public:
 
 private:
     std::unique_ptr<Patch> patch;
+    std::unique_ptr<FunctionHook> hook1, hook2, hook3;
 };

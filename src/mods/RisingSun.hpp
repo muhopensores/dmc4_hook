@@ -14,6 +14,8 @@ public:
     static uintptr_t jmp_ret5;
     static uintptr_t jmp_ret6;
     static uintptr_t jmp_ret7;
+    static uintptr_t jmp_ret8;
+    static uintptr_t jmp_ret9;
 
     void toggle(bool enable);
 
@@ -25,6 +27,6 @@ public:
     void on_gui_frame() override;
 
 private:
-    std::unique_ptr<Patch> patch1, patch2;
-    std::unique_ptr<FunctionHook> hook1, hook2, hook3, hook4, hook5, hook6, hook7;
+    std::unique_ptr<Patch> patch1, patch2, patch3;
+    std::unique_ptr<FunctionHook> hook1, hook2, hook3, hook4, hook5, hook6, hook7, hook8;
 };
