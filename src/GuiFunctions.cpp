@@ -543,6 +543,8 @@ namespace gui {
                     pmods->on_draw_ui("RisingSun"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("AerialStinger"_hash);
+
+                    pmods->on_draw_ui("AirMustang"_hash);
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();

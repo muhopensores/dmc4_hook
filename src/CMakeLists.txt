@@ -226,6 +226,8 @@ set(MODS_SRC
   mods/MessageDisplay.cpp
   mods/AerialStinger.hpp
   mods/AerialStinger.cpp
+  mods/AirMustang.hpp
+  mods/AirMustang.cpp
 )
 
 set(HOOKS_SRC

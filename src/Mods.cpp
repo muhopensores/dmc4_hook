@@ -115,6 +115,7 @@
 #include "mods/CharSwitcher.hpp"
 #include "mods/RisingSun.hpp"
 #include "mods/AerialStinger.hpp"
+#include "mods/AirMustang.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -245,6 +246,7 @@ Mods::Mods() {
     ADD_MOD(RisingSun);
     ADD_MOD(LocalizationManager);
     ADD_MOD(AerialStinger);
+    ADD_MOD(AirMustang);
 }
 
 // Initializes mods, checks for errors
