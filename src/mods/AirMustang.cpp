@@ -7,7 +7,8 @@ uintptr_t AirMustang::jmp_ret1{ NULL };
     long long WriteMem = 0;
     bool flag = false;
 uintptr_t AirMustang::jmp_ret2{ NULL };
-    float MustangBounce = 3.0f;
+    float MustangBounce = 0.0f;
+    float MustangInertia = 12.0f;
 uintptr_t AirMustang::jmp_ret3{ NULL };
 
 naked void detour1() {
@@ -65,6 +66,8 @@ naked void detour2() {
 
             fld [MustangBounce]
             fstp [ebp+0xEC4]
+            fld [MustangInertia]
+            fstp [ebp+0x1E1C]
             mov byte ptr [flag],0
         
         originalcode:
@@ -84,7 +87,7 @@ naked void detour3() {
             mov byte ptr [ebp+0x3174],2//movement abilities cancel
             mov byte ptr [ebp+0x30C4],2//melee cancel
             mov byte ptr [ebp+0x31CC],2//gun cancel
-            mov byte ptr [ebp+0x3148],2//gun cancel
+            mov byte ptr [ebp+0x3148],2//directional melee cancel
             mov byte ptr [ebp+0x30F0],2
 
         originalcode:
