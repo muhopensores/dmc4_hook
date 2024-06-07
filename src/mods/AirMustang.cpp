@@ -8,20 +8,25 @@ uintptr_t AirMustang::jmp_ret1{ NULL };
     bool flag = false;
 uintptr_t AirMustang::jmp_ret2{ NULL };
     float MustangBounce = 0.0f;
-    float MustangInertia = 12.0f;
+    float MustangInertia = 15.0f;
+    float MustangGrav = -2.0f;
 uintptr_t AirMustang::jmp_ret3{ NULL };
+    float InertiaMultiplier = 0.8f;
 
 naked void detour1() {
     _asm {
             cmp byte ptr [AirMustang::mod_enabled],1
             jne originalcode
 
+            cmp byte ptr [esi+0x14D95],1
+            jne originalcode
+
             cmp byte ptr [esi+0x1504],2 //Part of move
             jb originalcode
 
-            mov eax,[esi+0x1E8C]
-            cmp byte ptr [eax+0x1A],1 //Enemy contact
-            jne originalcode
+            //mov eax,[esi+0x1E8C]
+            //cmp byte ptr [eax+0x1A],1 //Enemy contact
+            //jne originalcode
 
             mov edx,[esi]
             mov edx,[edx+0x2D4]
@@ -33,7 +38,9 @@ naked void detour1() {
             jne originalcode
 
 
-            test byte ptr [esi+0x1415], 0x2 //input release
+            //test byte ptr [esi+0x1415], 0x2 //input release
+            test byte ptr [esi+0x140D],0x2 //input held
+            //test byte ptr [esi+0x1411], 0x2 //input press
             je originalcode
 
             mov eax,[esi]
@@ -66,6 +73,8 @@ naked void detour2() {
 
             fld [MustangBounce]
             fstp [ebp+0xEC4]
+            fld [MustangGrav]
+            fstp [ebp+0xED4]
             fld [MustangInertia]
             fstp [ebp+0x1E1C]
             mov byte ptr [flag],0
@@ -77,13 +86,18 @@ naked void detour2() {
 }
 
 naked void detour3() {
+    float buffer;
     _asm {
             cmp byte ptr [AirMustang::mod_enabled],1
             jne originalcode
 
             //cmp byte ptr [flag],1
             //jne originalcode
-
+            movss [buffer],xmm0
+            movss xmm0,[ebp+0x1E1C]
+            mulss xmm0, [InertiaMultiplier]
+            movss [ebp+0x1E1C],xmm0
+            movss xmm0,[buffer]
             mov byte ptr [ebp+0x3174],2//movement abilities cancel
             mov byte ptr [ebp+0x30C4],2//melee cancel
             mov byte ptr [ebp+0x31CC],2//gun cancel
@@ -116,7 +130,7 @@ std::optional<std::string> AirMustang::on_initialize() {
 void AirMustang::on_gui_frame() {
     ImGui::Checkbox(_("Air Mustang"), &mod_enabled);
     ImGui::SameLine();
-    help_marker(_("Release the style button as you make contact with the enemy during Sky Star to quickly descent"));
+    help_marker(_("Release the style button as you make contact with the enemy during Sky Star to quickly descend"));
 }
 
 void AirMustang::on_config_load(const utility::Config& cfg) {
