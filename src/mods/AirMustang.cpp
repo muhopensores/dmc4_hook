@@ -18,48 +18,53 @@ naked void detour1() {
             cmp byte ptr [AirMustang::mod_enabled],1
             jne originalcode
 
-            cmp byte ptr [esi+0x14D95],1
-            jne originalcode
-
             cmp byte ptr [esi+0x1504],2 //Part of move
             jb originalcode
 
+            cmp byte ptr [esi+0x14D98],2//current style = trickster
+            jne originalcode
+
+            cmp byte ptr [esi+0x14D95],1
+            jne noLMTcheck
             //mov eax,[esi+0x1E8C]
             //cmp byte ptr [eax+0x1A],1 //Enemy contact
             //jne originalcode
 
-            mov edx,[esi]
-            mov edx,[edx+0x2D4]
-            lea eax,[WriteMem]
-            push eax
-            mov ecx,esi
-            call edx
-            cmp byte ptr [eax+0x01],01
-            jne originalcode
+            // mov edx,[esi]
+            // mov edx,[edx+0x2D4]
+            // lea eax,[WriteMem]
+            // push eax
+            // mov ecx,esi
+            // call edx
+            // cmp byte ptr [eax+0x01],01
+            // jne originalcode
 
-
+        
             //test byte ptr [esi+0x1415], 0x2 //input release
             test byte ptr [esi+0x140D],0x2 //input held
             //test byte ptr [esi+0x1411], 0x2 //input press
             je originalcode
 
+        redirect:
             mov eax,[esi]
             mov edx,[eax+0x194]
             mov byte ptr [flag],1
             push 0x28
             mov ecx,esi
             call edx
-            // pop edi
-            // pop esi
-            // mov esp,ebp
-            // pop ebp
-            // ret
+        
         originalcode:
             pop edi
             pop esi
             mov esp,ebp
             pop ebp
             jmp [AirMustang::jmp_ret1]
+
+        noLMTcheck:
+            mov eax,[esi+0x1E8C]
+            cmp byte ptr [eax+0x1A],1 //Enemy contact
+            jne originalcode
+            jmp redirect
     }
 }
 

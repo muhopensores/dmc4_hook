@@ -116,6 +116,7 @@
 #include "mods/RisingSun.hpp"
 #include "mods/AerialStinger.hpp"
 #include "mods/AirMustang.hpp"
+#include "mods/GoodGrief.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -247,6 +248,7 @@ Mods::Mods() {
     ADD_MOD(LocalizationManager);
     ADD_MOD(AerialStinger);
     ADD_MOD(AirMustang);
+    ADD_MOD(GoodGrief);
 }
 
 // Initializes mods, checks for errors

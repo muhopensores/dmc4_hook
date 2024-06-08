@@ -228,6 +228,8 @@ set(MODS_SRC
   mods/AerialStinger.cpp
   mods/AirMustang.hpp
   mods/AirMustang.cpp
+  mods/GoodGrief.hpp
+  mods/GoodGrief.cpp
 )
 
 set(HOOKS_SRC
