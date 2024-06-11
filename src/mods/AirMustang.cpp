@@ -10,6 +10,7 @@ uintptr_t AirMustang::jmp_ret2{ NULL };
     float MustangBounce = 0.0f;
     float MustangInertia = 15.0f;
     float MustangGrav = -2.0f;
+    float AMstFrame = 8.0f;
 uintptr_t AirMustang::jmp_ret3{ NULL };
     float InertiaMultiplier = 0.8f;
 
@@ -39,13 +40,13 @@ naked void detour1() {
             // cmp byte ptr [eax+0x01],01
             // jne originalcode
 
-        
+
+        redirect:
             //test byte ptr [esi+0x1415], 0x2 //input release
             test byte ptr [esi+0x140D],0x2 //input held
             //test byte ptr [esi+0x1411], 0x2 //input press
             je originalcode
 
-        redirect:
             mov eax,[esi]
             mov edx,[eax+0x194]
             mov byte ptr [flag],1
@@ -61,6 +62,10 @@ naked void detour1() {
             jmp [AirMustang::jmp_ret1]
 
         noLMTcheck:
+            movss xmm6, [esi+0x348]//current frame
+            comiss xmm6, [AMstFrame]
+            jb originalcode
+
             mov eax,[esi+0x1E8C]
             cmp byte ptr [eax+0x1A],1 //Enemy contact
             jne originalcode
@@ -135,7 +140,7 @@ std::optional<std::string> AirMustang::on_initialize() {
 void AirMustang::on_gui_frame() {
     ImGui::Checkbox(_("Air Mustang"), &mod_enabled);
     ImGui::SameLine();
-    help_marker(_("Release the style button as you make contact with the enemy during Sky Star to quickly descend"));
+    help_marker(_("Hold/Tap the style button while making contact with the enemy during Sky Star to quickly descend"));
 }
 
 void AirMustang::on_config_load(const utility::Config& cfg) {

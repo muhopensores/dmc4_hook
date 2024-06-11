@@ -41,7 +41,24 @@ uintptr_t DanteJdc::jmp_ret10{NULL};
     constexpr uintptr_t detour10_call1 = 0x007BA210;
 uintptr_t DanteJdc::jmp_ret11{NULL};
 uintptr_t DanteJdc::jmp_ret12{NULL};
+uintptr_t DanteJdc::jmp_ret13{NULL};
+    constexpr uintptr_t detour13_jmp = 0x007E191A;
+    constexpr uintptr_t detour13_call1 = 0x00821450;
+    constexpr uintptr_t detour13_call2 = 0x008213B0;
+    constexpr uintptr_t detour13_vfx_call = 0x480480;
+    constexpr uintptr_t fld_addr = 0x00B9A238;
+    float sheatheFrame = 91.0f;
 
+void DanteJdc::toggle(bool enable) {
+    if (enable) {
+        install_patch_offset(0x3E15D1, patch1, "\x90\x90\x90\x90\x90\x90", 6);
+        install_patch_offset(0x3E18A7, patch1, "\xBA\x92\x00\x00\x00", 5);
+    }
+    else {
+        patch1.reset();
+        patch2.reset();
+    }
+}
 
 // set jdc vars
 naked void detour1(void) {
@@ -265,23 +282,6 @@ naked void detour6(void) {
     }
 }
 
-//Reduce screenshake
-naked void detour12(void) {
-    _asm {
-            mov eax, [edx+0x000000D0] // org code
-			cmp byte ptr [DanteJdc::mod_enabled], 0
-			je originalcode
-
-            cmp dword ptr [jdcHitcount], 1
-            je originalcode
-
-            xor eax, eax
-
-        originalcode:
-            jmp [DanteJdc::jmp_ret12]
-    }
-}
-
 // Change SD effect
 naked void detour7(void) {
     _asm {
@@ -391,6 +391,71 @@ naked void detour11(void) {
     }
 }
 
+//Reduce screenshake
+naked void detour12(void) {
+    _asm {
+            mov eax, [edx+0x000000D0] // org code
+			cmp byte ptr [DanteJdc::mod_enabled], 0
+			je originalcode
+
+            cmp dword ptr [jdcHitcount], 1
+            je originalcode
+
+            xor eax, eax
+
+        originalcode:
+            jmp [DanteJdc::jmp_ret12]
+    }
+}
+
+naked void detour13() {
+    _asm {
+            cmp byte ptr [esi+0x00002A54],01
+            je code
+
+            cmp word ptr [esi+0x334],0x0908
+            je conditional_jump
+
+            movss xmm0, [esi+0x348]
+            comiss xmm0, [sheatheFrame]
+            jb conditional_jump
+
+            fld1
+            sub esp,0x0C
+            fstp dword ptr [esp+0x08]
+            mov al,0x01
+            fldz
+            mov ecx,esi
+            fstp dword ptr [esp+0x04]
+            fld dword ptr [fld_addr]
+            fstp dword ptr [esp]
+            push 0x00
+            push 0x00000908
+            call [detour13_call1]
+            push esi
+            push edi
+            mov esi,0x00000004
+            xor edi,edi
+            call [detour13_call2]
+            pop edi
+            pop esi
+            push esi
+            push 0x14
+            push -0x01
+            push 0x08
+            push esi
+            mov edx,0xA2
+            mov eax,2
+            call [detour13_vfx_call]
+
+            jmp [detour13_jmp]
+        code:
+            jmp [DanteJdc::jmp_ret13]
+        conditional_jump:
+            jmp [detour13_jmp]
+    }
+}
+
 std::optional<std::string> DanteJdc::on_initialize() {
     if (!install_hook_offset(0x3E1189, hook1, &detour1, &jmp_ret1, 6)) {
         spdlog::error("Failed to init DanteJdc mod\n");
@@ -440,11 +505,16 @@ std::optional<std::string> DanteJdc::on_initialize() {
         spdlog::error("Failed to init DanteJdc mod12\n");
         return "Failed to init DanteJdc mod12";
     }
+    if (!install_hook_offset(0x3E15CA, hook13, &detour13, &jmp_ret13, 7)) {
+        spdlog::error("Failed to init DanteJdc mod13\n");
+        return "Failed to init DanteJdc mod13";
+    }
     return Mod::on_initialize();
 }
 
 void DanteJdc::on_gui_frame() {
-    ImGui::Checkbox(_("Judgement Cut"), &mod_enabled);
+    if (ImGui::Checkbox(_("Judgement Cut"), &mod_enabled))
+        toggle(mod_enabled);
     ImGui::SameLine();
     help_marker(_("Activate judgement cut when performing Yamato aerial rave with lock-on."
             "Perform normal inertia-less Yamato rave on lock-off.\n"
@@ -471,6 +541,7 @@ void DanteJdc::on_gui_frame() {
 
 void DanteJdc::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("dante_jdc").value_or(false);
+    toggle(mod_enabled);
     alt_input_enabled = cfg.get<bool>("jdc_alt_input").value_or(false);
     DanteJdc::inertia_enabled = cfg.get<bool>("jdc_inertia").value_or(true);
 }

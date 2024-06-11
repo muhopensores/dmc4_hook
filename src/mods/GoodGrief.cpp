@@ -29,12 +29,12 @@ naked void detour1() {
             mov byte ptr [ebp+0x3148],2//directional melee cancel
             mov byte ptr [ebp+0x30F0],2
         originalcode:
-            mov ecx,[ebp+0x000028A4]
+            movss xmm0,[ebp+0x0000177C]
             jmp [GoodGrief::jmp_ret1]
     }
 }
 
-naked void detour2() {
+naked void detour2() { //janky as all hell, but it works
     _asm {
             cmp byte ptr [GoodGrief::mod_enabled],1
             jne originalcode
@@ -71,7 +71,7 @@ naked void detour2() {
 }
 
 std::optional<std::string> GoodGrief::on_initialize() {
-    if (!install_hook_offset(0x3DF6C9, hook1, &detour1, &jmp_ret1, 6)) {
+    if (!install_hook_offset(0x3DF715, hook1, &detour1, &jmp_ret1, 8)) {
 		spdlog::error("Failed to init GoodGrief mod\n");
 		return "Failed to init GoodGrief mod";
 	}
