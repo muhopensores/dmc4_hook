@@ -13,14 +13,14 @@ type void 0
 type bool 1 [[bool]]
 type uint8_t 1 [[u8]]
 type uint16_t 2 [[u16]]
-type uint32_t 4 [[u32]]
+type int 4 [[u32]]
 type float 4 [[f32]]
 type wchar_t 2 [[u16]]
 type char 1 [[u8]]
 type uintptr_t 4 [[u32]]
 type virtual 4 [[u32]]
 
-enum class GameDifficulty : uint32_t {
+enum class GameDifficulty : int {
 	HUMAN = 0,
 	DEVIL_HUNTER = 1,
 	SON_OF_SPARDA_HOH_HAH = 2,
@@ -28,7 +28,7 @@ enum class GameDifficulty : uint32_t {
 	LEGENDARY_DARK_KNIGHT = 4,
 };
 
-enum class GameMode : uint32_t {
+enum class GameMode : int {
 	DEFAULT = 0,
 	HEAVEN_OR_HELL = 0,
 	HELL_AND_HELL = 0,
@@ -51,43 +51,31 @@ class Matrix4x4 {
 	Vector4f m4;
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
 class roomInfo{};
 
 class aGame {
-	virtual functions1To9 @ 0x00
+	//virtual functions1To9 @ 0x00
 	roomInfo* roomInfoPtr1 @ 0x2C
 	Vector3f unk_vec @ 0x50
 	Vector3f unk_vec2 @ 0x5C
-	uint32_t init_jump @ 0x68
-	uint32_t room_id @ 0x6C
-	uint32_t mission_id @ 0x70
-	uint32_t bp_floor @ 0x74
+	int init_jump @ 0x68
+	int room_id @ 0x6C
+	int mission_id @ 0x70
+	int bp_floor @ 0x74
 	bool m_paused @ 0x1D1
 };
 
 class currentMission {
-	uint32_t restart @ 0x20
-	uint32_t currentCharacter @ 0x28
-	uint32_t roomNumber @ 0x108
-	uint32_t roomNumber2 @ 0x10C
+	int restart @ 0x20
+	int currentCharacter @ 0x28
+	int roomNumber @ 0x108
+	int roomNumber2 @ 0x10C
 };
 
 class currentRoom {
 	bool allowPause @ 0x20
 	bool isPaused @ 0x31
-	uint32_t restartLastEvent @ 0x3C
+	int restartLastEvent @ 0x3C
 };
 
 class sArea {
@@ -101,17 +89,24 @@ class DebugStrings {
 	char string2[14] @ 0x3C [[utf8*]]
 };
 
-class EnemyPermissions {
-	uint32_t enemyAttackSlots @ 0x4
-	uint32_t enemyIsAttacking @ 0x8
+class cPermitAttack {
+	int enemyAttackSlots @ 0x4
+	int enemyIsAttacking @ 0x8
 	float enemyAttackCooldown @ 0x14
 };
 
-class PreMediator {
+class sEnemyCtrl {
+	float maxHP @ 0x28
+	float HP @ 0x2C
+};
+
+class enemyPermissions {
 	class DebugStrings* debugStrings1
-	uint32_t killCount @ 0x24
-	uint32_t holyWaterCount @ 0x3F0
-	uint32_t proudSoulsCount @ 0x49C
+	int killCount @ 0x24
+	cPermitAttack* cPermitAttackPtr @ 0xC4
+	sEnemyCtrl* sEnemyCtrlPtr @ 0x140
+	int holyWaterCount @ 0x3F0
+	int proudSoulsCount @ 0x49C
 };
 
 class uBoss {
@@ -121,8 +116,8 @@ class uBoss {
 	Vector3f scale @ 0x50
 	uint8_t moveID2 @ 0x334
 	float animFrame @ 0x348
-	uint32_t inputHold @ 0x140C
-	uint32_t inputPress @ 0x1410
+	int inputHold @ 0x140C
+	int inputPress @ 0x1410
 	float HP @ 0x151C
 	float HPMax @ 0x1520
 	float DT @ 0x1F24
@@ -133,9 +128,9 @@ class uEnemyDamage {
 	float HP @ 0x18
 	float HPMax @ 0x1C
 	float HPTaken @ 0x2C
-	uint32_t stun[5] @ 0x3C
-	uint32_t displacement[5] @ 0x50
-	uint32_t unknown[8] @ 0x64
+	int stun[5] @ 0x3C
+	int displacement[5] @ 0x50
+	int unknown[8] @ 0x64
 	bool isDead @ 0x8C
 	float stunResetTimer @ 0xAC
 };
@@ -161,7 +156,7 @@ class uEnemy {
 	uint16_t launchStateThing2 @ 0xEA8 // enemy doesn't take air stun without OA set
 	bool inBattle @ 0x1404
 	bool isActive @ 0x1405
-	uint32_t ID @ 0x1410
+	int ID @ 0x1410
 	class uEnemyDamagePossibility DamagePtrMephistoFaustAssaultGladius @ 0x1500
 	class uEnemyDamagePossibility DamagePtrAltoBiancoFrostBlitz @ 0x1504
 	class uEnemyDamagePossibility DamagePtrCutlass @ 0x1508
@@ -173,10 +168,10 @@ class uEnemy {
 
 ////////////////////uPlayer start
 class MotionData {
-	uint32_t hitboxStartTime @ 0x04
-	uint32_t passThroughEnemiesIdk @ 0x14
-	uint32_t sfxTiming @ 0x3C
-	uint32_t sfxToPlay @ 0x50
+	int hitboxStartTime @ 0x04
+	int passThroughEnemiesIdk @ 0x14
+	int sfxTiming @ 0x3C
+	int sfxToPlay @ 0x50
 };
 
 class InnerMotionPtr {
@@ -243,11 +238,11 @@ class MtObject {
 }; //Size: 0x0004
 
 class CUnit : public MtObject {
-	uint32_t bitfield @ 0x04
+	int bitfield @ 0x04
 	class CUnit *mp_next_unit @ 0x08
 	class CUnit *mp_prev_unit @ 0x0C
 	float m_delta_time @ 0x10
-	uint32_t some_union @ 0x14
+	int some_union @ 0x14
 }; //Size: 0x0018
 
 class UCoord : public MtObject{
@@ -264,10 +259,10 @@ class uPlayer : public UCoord{
 	uint8_t armShadows @ 0x130
 	uint8_t causeShadows @ 0x134
 	uint8_t bodyShadows @ 0x138
-	uint32_t boneMapping[5] @ 0x17C
-	uint32_t meshCount @ 0x27C
+	int boneMapping[5] @ 0x17C
+	int meshCount @ 0x27C
 	class uPlayer* player_ptr @ 0x2A4
-	uint32_t m_joint_array_size @ 0x2E0
+	int m_joint_array_size @ 0x2E0
 	class UModelJointArr* joint_array @ 0x2E4
 	float speedUnsettable @ 0xCF4
 	float animFrame @ 0x348
@@ -280,19 +275,19 @@ class uPlayer : public UCoord{
 	float groundInertiaZ @ 0xEC8
 	bool hitstop @ 0x1201
 	float facingDirection @ 0x1210
-	uint32_t inputHoldRaw @ 0x1374
+	int inputHoldRaw @ 0x1374
 	float stickDirection @ 0x13C4
 	uint8_t inputHold[4] @ 0x140C
 	uint8_t inputPress[4] @ 0x1410
 	uint8_t inputRelease[4] @ 0x1414
-	uint32_t stickThreshold @ 0x141C
+	int stickThreshold @ 0x141C
 	float stickFacingWorldAdjusted @ 0x1420
 	bool stickPastThreshold @ 0x1424
 	float characterSpeed @ 0x1464
-	uint32_t controllerID @ 0x1494
-	uint32_t canWeaponChange @ 0x14F0
-	uint32_t moveBank @ 0x1500
-	uint32_t movePart @ 0x1504
+	int controllerID @ 0x1494
+	int canWeaponChange @ 0x14F0
+	int moveBank @ 0x1500
+	int movePart @ 0x1504
 	bool isActive @ 0x1509 // completely disables the character, probably for cutscenes
 	bool roomCollision @ 0x150D
 	bool enemyCollision @ 0x150F
@@ -300,11 +295,11 @@ class uPlayer : public UCoord{
 	bool triggerStingerJump @ 0x1511
 	uint8_t cancels1[4] @ 0x1550
 	uint8_t cancels2[4] @ 0x1554
-	uint32_t moveID2 @ 0x1564
+	int moveID2 @ 0x1564
 	float HP @ 0x15CC
 	float HPMax @ 0x15D0
 	bool isDead @ 0x1640
-	uint32_t walkType @ 0x16AC
+	int walkType @ 0x16AC
 	float inertiaDirectionReal @ 0x16C0
 	bool lockedOn @ 0x16D0
 	float rotation2 @ 0x1710
@@ -315,9 +310,9 @@ class uPlayer : public UCoord{
 	class DevilArm* ebonyIvory @ 0x1D9C
 	class DevilArm* coyoteA @ 0x1DA0
 	class DevilArm* pandora @ 0x1DA4
-	uint32_t currentSwordUI @ 0x1DB4
-	uint32_t currentGunUI @ 0x1DB8
-	uint32_t currentSword @ 0x1DC0
+	int currentSwordUI @ 0x1DB4
+	int currentGunUI @ 0x1DB8
+	int currentSword @ 0x1DC0
 	uint8_t meleeCancelPermissions1[4] @ 0x1E10
 	uint8_t jumpCancelPermissions1[4] @ 0x1E14
 	float inertia @ 0x1E1C
@@ -345,8 +340,8 @@ class uPlayer : public UCoord{
 	float roundTripCharge @ 0x23F8
 	bool tiltBackForward @ 0x27F8
 	uintptr_t* animFrameInfo @ 0x28A4
-	uint32_t moveID3 @ 0x295C
-	uint32_t moveIDBest @ 0x2998
+	int moveID3 @ 0x295C
+	int moveIDBest @ 0x2998
 	class uEnemy* lockOnTargetPtr2 @ 0x3080
 	uint8_t bufferPermissions @ 0x30C4
 	uint8_t meleeCancelPermissions2 @ 0x30F0
@@ -354,11 +349,12 @@ class uPlayer : public UCoord{
 	uint8_t bufferedJump @ 0x3178
 	uint8_t gunCancelPermissions2 @ 0x31CC
 	uint8_t exceedLevel @ 0xCCE8
-	uint32_t currentStyle @ 0x14D98
-	class LuciferPin* luciferPins[15] @ 0x14DBC
-	class uEnemy* lockOnTargetPtr3 @ 0x15A68
 	float exceedTimer @ 0xCDBC
+	int currentStyle @ 0x14D98
+	class LuciferPin* luciferPins[15] @ 0x14DBC
 	float disasterGauge @ 0x151F4
+	int dreadnaught @ 0x152A0
+	class uEnemy* lockOnTargetPtr3 @ 0x15A68
 };
 
 class cCameraPlayer {
@@ -417,18 +413,19 @@ class sWorkRate {
 class SMediator {
 	class uPlayer* player_ptr @ 0x24
 	class uBoss* uBoss1 @ 0xB0
-	uint32_t missionID @ 0xE0
-	uint32_t roomID @ 0xE4
+	int missionID @ 0xE0
+	int roomID @ 0xE4
 	class Camera* camera1 @ 0xD0
-	uint32_t orbCount @ 0x114
-	uint32_t orbMissionCurrent @ 0x118
-	uint32_t orbMissionPotential @ 0x11C
+	int orbCount @ 0x114
+	int orbMissionCurrent @ 0x118
+	int orbMissionPotential @ 0x11C
 	float enemyDifficulty @ 0x134
-	uint32_t hellGoldOrbCount @ 0x13C
+	int hellGoldOrbCount @ 0x13C
 	class GameDifficulty gameDifficulty @ 0x140
 	class GameMode gameMode @ 0x144
+	float stylePoints @ 0x14C
 	class uEnemy* uEnemies[10] @ 0x1B8
-	uint32_t enemyCount[3] @ 0x1E0
+	int enemyCount[3] @ 0x1E0
 	float bpTimer @ 0x250
 	bool hasUnlockedDT @ 0x368
 	bool hasUnlockedAirHike @ 0x369

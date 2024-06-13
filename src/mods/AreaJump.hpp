@@ -8,8 +8,6 @@ class AreaJump : public Mod {
 public:
     AreaJump() = default;
 
-    static uintptr_t jmp_return;
-
     std::string get_mod_name() override { return "AreaJump"; };
 
     std::optional<std::string> on_initialize() override;

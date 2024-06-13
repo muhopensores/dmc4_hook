@@ -31,7 +31,6 @@ uPlayer* PlayerTracker::player_ptr{ NULL };
 bool PlayerTracker::lock_on_alloc{ false };
 bool PlayerTracker::pin_imgui_enabled = false;
 
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8; // DevilMayCry4_DX9.exe+A558B8
 static bool display_player_stats = false;
 static bool red_orb_completion_enabled = false;
 static Vector3f playerXYZBackup{ 0.0f, 0.0f, 0.0f };
@@ -173,7 +172,7 @@ void PlayerTracker::on_gui_frame() {
     ImGui::Separator();
     ImGui::Spacing();
 
-    SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
+    SMediator* s_med_ptr = devil4_sdk::get_sMediator();
     ImGui::PushItemWidth(sameLineItemWidth);
     ImGui::InputInt("s_med_ptr", (int*)&s_med_ptr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_ReadOnly);
     ImGui::PopItemWidth();

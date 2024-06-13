@@ -3,9 +3,6 @@
 #include <algorithm>
 #include "RoomRespawn.hpp"
 
-uintptr_t  AreaJump::jmp_return{ NULL };
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-
 static int savedBPFloor = 0;
 static float savedBPTimer = 0.0f;
 static int savedOrbs = 0;
@@ -176,8 +173,7 @@ std::optional<std::string> AreaJump::on_initialize() {
 
     console->system().RegisterCommand("skip", "Skip current BP stage", [this, s_area_ptr]() {
         if (devil4_sdk::get_local_player()) {
-            static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
-            if (s_mediator_ptr->missionID == 50){ // always shows 50 for BP
+            if (devil4_sdk::get_sMediator()->missionID == 50){ // always shows 50 for BP
                 jump_to_stage(bp_stage(++(s_area_ptr->aGamePtr->bp_floor)));
             }
 	    }
@@ -185,9 +181,8 @@ std::optional<std::string> AreaJump::on_initialize() {
 
     console->system().RegisterCommand("bp", "Jump to BP stage",
         [this, s_area_ptr](int value) {
-        static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
         if (devil4_sdk::get_local_player()) {
-            if (s_mediator_ptr->missionID == 50) { // always shows 50 for BP
+            if (devil4_sdk::get_sMediator()->missionID == 50) { // always shows 50 for BP
                 if (value <= 101 && value >= 1){
                     jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor = value));
                 }
@@ -201,7 +196,6 @@ std::optional<std::string> AreaJump::on_initialize() {
 
     // damn cant overload commands distingueshed by arguments alone 
     console->system().RegisterCommand("roomi", "Jump to room ID", [s_area_ptr](int value) {
-        static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
         if (devil4_sdk::get_local_player()) {
             if (is_valid_room_id(value)) {
                 s_area_ptr->aGamePtr->room_id = value;
@@ -215,7 +209,6 @@ std::optional<std::string> AreaJump::on_initialize() {
         csys::Arg<int>("0-811"));
 
     console->system().RegisterCommand("rooma", "Jump to room name", [s_area_ptr](csys::String value) {
-        static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
         if (devil4_sdk::get_local_player()) {
             if (const Room* proom = find_room_by_name(value)) {
                 s_area_ptr->aGamePtr->room_id = proom->id;
