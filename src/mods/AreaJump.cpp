@@ -161,7 +161,6 @@ static const Room* bp_stage(int floor) {
 
 void AreaJump::jump_to_stage(const Room* stage) {
     sArea* s_area_ptr = devil4_sdk::get_sArea();
-    s_area_ptr->aGamePtr->room_id;
     s_area_ptr->aGamePtr->room_id = stage->id;
 	s_area_ptr->aGamePtr->init_jump = 1;
 }
@@ -233,12 +232,13 @@ std::optional<std::string> AreaJump::on_initialize() {
 
 void AreaJump::on_gui_frame() {
     sArea* s_area_ptr = devil4_sdk::get_sArea();
+    SMediator* s_med_ptr = devil4_sdk::get_sMediator();
 	if (!devil4_sdk::get_local_player()) {
 		ImGui::TextWrapped(_("Area Jump is not initialized.\nLoad into a stage to access it."));
 		return;
 	}
 
-	if (s_area_ptr->aGamePtr->bp_floor) {
+	if (s_med_ptr->missionID == 50) {
         ImGui::Text(_("Bloody Palace Floor Teleports"));
         ImGui::SameLine();
         help_marker(_("Type in which BP floor you want to teleport to then hit Go to be teleported to that stage"));
@@ -251,13 +251,7 @@ void AreaJump::on_gui_frame() {
         if (ImGui::Button(_("Go"), ImVec2(290, 20))) {
 			jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
 		}
-	}
-    else {
-        ImGui::TextWrapped(_("BP Floor Jump is not initialized.\nLoad into BP to access it."));
-    }
 
-    SMediator* s_med_ptr = devil4_sdk::get_sMediator();
-    if (s_med_ptr->missionID == 50) { // if current mission is BP
         if (ImGui::Button(_("Save BP Progress"))) {
             sArea* s_area_ptr = devil4_sdk::get_sArea();
             SMediator* s_med_ptr = devil4_sdk::get_sMediator();
@@ -285,6 +279,9 @@ void AreaJump::on_gui_frame() {
         }
         ImGui::SameLine();
         help_marker(_("Press Save Config after saving BP progress as this writes the file\nSaves floor, timer, orbs, hp, dt"));
+	}
+    else {
+        ImGui::TextWrapped(_("BP Floor Jump is not initialized.\nLoad into BP to access it."));
     }
 
     ImGui::Spacing();
