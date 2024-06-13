@@ -17,7 +17,7 @@ bool mod_enabled_style_backup                = false;
 bool mod_enabled_timer_backup                = false;
 bool mod_enabled_weapon_selected_backup      = false;
 bool mod_enabled_hide_weapon_selected_backup = false;
-bool mod_enabled_map                         = false;
+bool mod_enabled_map_backup                  = false;
 bool mod_enabled_boss_backup                 = false;
 
 // DevilMayCry4_DX9.exe+B1997 - cmp byte ptr [esi+04], 01 compares all hud elements, use it while paused to find what you need
@@ -404,14 +404,14 @@ void HideHud::hide_all_hud(bool enable) {
         mod_enabled_timer_backup                = mod_enabled_timer;
         mod_enabled_weapon_selected_backup      = mod_enabled_weapon_selected;
         mod_enabled_hide_weapon_selected_backup = mod_enabled_hide_weapon_selected;
-        mod_enabled_map                         = mod_enabled_map;
+        mod_enabled_map_backup                  = mod_enabled_map;
         mod_enabled_boss_backup                 = mod_enabled_boss;
 
         mod_enabled_health               = enable;
         mod_enabled_orbs                 = enable;
         mod_enabled_style                = enable;
         mod_enabled_timer                = enable;
-        mod_enabled_weapon_selected      = enable;
+        //mod_enabled_weapon_selected      = enable;
         mod_enabled_hide_weapon_selected = enable;
         mod_enabled_map                  = enable;
         mod_enabled_boss                 = enable;
@@ -422,7 +422,7 @@ void HideHud::hide_all_hud(bool enable) {
         mod_enabled_timer                = mod_enabled_timer_backup;
         mod_enabled_weapon_selected      = mod_enabled_weapon_selected_backup;
         mod_enabled_hide_weapon_selected = mod_enabled_hide_weapon_selected_backup;
-        mod_enabled_map                  = mod_enabled_map;
+        mod_enabled_map                  = mod_enabled_map_backup;
         mod_enabled_boss                 = mod_enabled_boss_backup;
     }
 
