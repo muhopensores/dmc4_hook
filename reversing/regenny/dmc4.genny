@@ -51,6 +51,51 @@ class Matrix4x4 {
 	Vector4f m4;
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+class roomInfo{};
+
+class aGame {
+	virtual functions1To9 @ 0x00
+	roomInfo* roomInfoPtr1 @ 0x2C
+	Vector3f unk_vec @ 0x50
+	Vector3f unk_vec2 @ 0x5C
+	uint32_t init_jump @ 0x68
+	uint32_t room_id @ 0x6C
+	uint32_t mission_id @ 0x70
+	uint32_t bp_floor @ 0x74
+	bool m_paused @ 0x1D1
+};
+
+class currentMission {
+	uint32_t restart @ 0x20
+	uint32_t currentCharacter @ 0x28
+	uint32_t roomNumber @ 0x108
+	uint32_t roomNumber2 @ 0x10C
+};
+
+class currentRoom {
+	bool allowPause @ 0x20
+	bool isPaused @ 0x31
+	uint32_t restartLastEvent @ 0x3C
+};
+
+class sArea {
+	aGame* aGamePtr1 @ 0x3830
+	currentMission* currentMissionPtr1 @ 0x3834
+	currentRoom* currentRoomPtr1 @ 0x3838
+};
+
 class DebugStrings {
 	char string1[14] @ 0x28 [[utf8*]]
 	char string2[14] @ 0x3C [[utf8*]]

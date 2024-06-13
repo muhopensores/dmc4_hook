@@ -9,7 +9,6 @@ public:
     AreaJump() = default;
 
     static uintptr_t jmp_return;
-    static cAreaJump* c_area_jump_ptr;
 
     std::string get_mod_name() override { return "AreaJump"; };
 
@@ -18,8 +17,9 @@ public:
     void on_gui_frame() override;
     void on_update_input(utility::Input& input) override;
 
+    void on_config_load(const utility::Config& cfg) override;
+    void on_config_save(utility::Config& cfg) override;
+
 private:
     void jump_to_stage(const Room* stage);
-
-    std::unique_ptr<FunctionHook> hook;
 };

@@ -51,7 +51,7 @@ static const std::vector<std::pair<uint16_t, const char*>> buttonPairs = {
 class cAreaJump;
 class roomInfo;
 
-class cAreaJump
+class aGame
 {
 public:
 	virtual void function0(); //
@@ -65,18 +65,50 @@ public:
 	virtual void function8(); //
 	virtual void function9(); //
 
-	char pad_0x0004[0x28]; //0x0004
-	roomInfo* room_info_ptr; //0x002C 
-	char pad_0x0030[0x20]; //0x0030
-	Vector3f unk_vec; //0x0050 
-	Vector3f unk_vec2; //0x005C 
-	__int32 init_jump; //0x0068 
-	__int32 room_id; //0x006C 
-	__int32 mission; //0x0070 
-	__int32 bp_floor_stage; //0x0074 
-	char pad_0x0078[0x48]; //0x0078
+    char pad_4[0x28];
+    roomInfo* roomInfoPtr1; // 0x2c
+    char pad_30[0x20];
+    Vector3f unk_vec; // 0x50
+    Vector3f unk_vec2; // 0x5c
+    int init_jump; // 0x68
+    int room_id; // 0x6c
+    int mission_id; // 0x70
+    int bp_floor; // 0x74
+    char pad_78[0x159];
+    bool m_paused; // 0x1d1
+}; // Size: 0x1d2
 
-}; //Size=0x00C0
+class currentMission
+{
+public:
+    char pad_0[0x20];
+    int restart; // 0x20
+    char pad_24[0x4];
+    int currentCharacter; // 0x28
+    char pad_2c[0xdc];
+    int roomNumber; // 0x108
+    int roomNumber2; // 0x10c
+}; // Size: 0x110
+
+class currentRoom
+{
+public:
+    char pad_0[0x20];
+    bool allowPause; // 0x20
+    char pad_21[0x10];
+    bool isPaused; // 0x31
+    char pad_32[0xa];
+    uint32_t restartLastEvent; // 0x3c
+}; // Size: 0x40
+
+class sArea
+{
+public:
+    char pad_0x0000[0x3830]; // 0x0000
+    aGame* aGamePtr; // 0x3830 aGame
+    currentMission* currentMissionPtr; // 0x3834
+    currentRoom* currentRoomPtr; // x03838
+};
 
 class roomInfo
 {

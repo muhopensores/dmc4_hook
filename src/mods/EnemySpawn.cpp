@@ -1,10 +1,5 @@
-
-//#include "../sdk/ReClass_Internal.hpp"
-
 #include "EnemySpawn.hpp"
-#include "AreaJump.hpp" // for cAreaJumpPtr
-// TODO(): move this somewhere maybe
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
+
 static uintptr_t fptr_update_actor_list{0x008DC540}; // Spawns shit
 static uintptr_t some_struct{0x00E552CC};
 // DevilMayCry4_DX9.exe+338AA2 // 00738AA2 // calls most enemy spawns
@@ -195,16 +190,12 @@ basilisk:
 */
 
 glm::vec3 get_player_position() {
-    // TODO(): move this into somewhere general since
-    // this player ptr might be useful in other places
-    s_med_ptr   = (SMediator*)*(uintptr_t*)static_mediator_ptr;
-    u_local_plr = s_med_ptr->player_ptr;
+    u_local_plr = devil4_sdk::get_local_player();
     // not sure if this check is needed
     if (u_local_plr) {
         return u_local_plr->m_pos;
     } 
-        return {0.0f, 0.0f, 0.0f};
-   
+    return {0.0f, 0.0f, 0.0f};
 }
 
 void set_enemy_position(UEnemySomething* em) {
@@ -452,7 +443,8 @@ std::optional<std::string> EnemySpawn::on_initialize() {
 }
 
 void EnemySpawn::on_gui_frame() {
-    if (IsBadWritePtr(AreaJump::c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(AreaJump::c_area_jump_ptr, sizeof(uint32_t))) {
+    sArea* s_area_ptr = devil4_sdk::get_sArea();
+    if (!devil4_sdk::get_local_player()) {
         ImGui::TextWrapped(_("Enemy Spawner is not initialized.\nLoad into a stage to access it."));
         return;
     }

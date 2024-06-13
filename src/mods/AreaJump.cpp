@@ -4,8 +4,13 @@
 #include "RoomRespawn.hpp"
 
 uintptr_t  AreaJump::jmp_return{ NULL };
-cAreaJump* AreaJump::c_area_jump_ptr{ NULL };
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
+
+static int savedBPFloor = 0;
+static float savedBPTimer = 0.0f;
+static int savedOrbs = 0;
+static float savedHP = 0.0f;
+static float savedDT = 0.0f;
 
 struct Room {
   int id;
@@ -127,16 +132,6 @@ static const Room* find_room_by_name(const csys::String& name) {
     return nullptr;
 }
 
-naked void detour() {
-	// steam   DevilMayCry4_DX9.exe+E1F6   - 8B 92 30380000        - mov edx, [edx+00003830]
-	// nosteam DevilMayCry4_DX9.exe+546E76 - 8B 92 30380000        - mov edx, [edx+00003830]
-	__asm {
-		mov edx, [edx+0x3830]
-		mov DWORD PTR [AreaJump::c_area_jump_ptr], edx
-		jmp DWORD PTR [AreaJump::jmp_return]
-	}
-}
-
 static const Room* bp_stage(int floor) {
 	auto in_range = [](int value, int low, int high) {return (value >= low) && (value <= high); };
 	
@@ -165,11 +160,14 @@ static const Room* bp_stage(int floor) {
 }
 
 void AreaJump::jump_to_stage(const Room* stage) {
-    c_area_jump_ptr->room_id = stage->id;
-	c_area_jump_ptr->init_jump = 1;
+    sArea* s_area_ptr = devil4_sdk::get_sArea();
+    s_area_ptr->aGamePtr->room_id;
+    s_area_ptr->aGamePtr->room_id = stage->id;
+	s_area_ptr->aGamePtr->init_jump = 1;
 }
 
 std::optional<std::string> AreaJump::on_initialize() {
+    sArea* s_area_ptr = devil4_sdk::get_sArea();
 	// uintptr_t address = hl::FindPattern("8B 92 30 38 00 00", "DevilMayCry4_DX9.exe"); // DevilMayCry4_DX9.exe+E1F6 
     using v_key = std::vector<uint32_t>;
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_OEM_4 }, "Restart BP stage", "bp_restart_stage_hotkey"));
@@ -177,27 +175,22 @@ std::optional<std::string> AreaJump::on_initialize() {
     using v_key = std::vector<uint32_t>;
     m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_OEM_6 }, "Next BP stage", "bp_next_stage_hotkey"));
 
-    if (!install_hook_offset(0x00E1F6, hook, &detour, &AreaJump::jmp_return, 6)){
-            spdlog::error("Failed to init AreaJump mod\n");
-            return "Failed to init AreaJump mod";
-    }
-
-    console->system().RegisterCommand("skip", "Skip current BP stage", [this]() {
-        if (!IsBadWritePtr(c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(c_area_jump_ptr,sizeof(uint32_t))) {
+    console->system().RegisterCommand("skip", "Skip current BP stage", [this, s_area_ptr]() {
+        if (devil4_sdk::get_local_player()) {
             static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
             if (s_mediator_ptr->missionID == 50){ // always shows 50 for BP
-                jump_to_stage(bp_stage(++(c_area_jump_ptr->bp_floor_stage)));
+                jump_to_stage(bp_stage(++(s_area_ptr->aGamePtr->bp_floor)));
             }
 	    }
     });
 
     console->system().RegisterCommand("bp", "Jump to BP stage",
-        [this](int value) {
+        [this, s_area_ptr](int value) {
         static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
-        if (!IsBadWritePtr(c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(c_area_jump_ptr, sizeof(uint32_t))) {
+        if (devil4_sdk::get_local_player()) {
             if (s_mediator_ptr->missionID == 50) { // always shows 50 for BP
                 if (value <= 101 && value >= 1){
-                    jump_to_stage(bp_stage(c_area_jump_ptr->bp_floor_stage = value));
+                    jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor = value));
                 }
                 else {
                 spdlog::error("Invalid Stage ID");
@@ -208,13 +201,12 @@ std::optional<std::string> AreaJump::on_initialize() {
         csys::Arg<int>("0-101"));
 
     // damn cant overload commands distingueshed by arguments alone 
-    console->system().RegisterCommand("roomi", "Jump to room ID",
-        [this](int value) {
+    console->system().RegisterCommand("roomi", "Jump to room ID", [s_area_ptr](int value) {
         static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
-        if (!IsBadWritePtr(c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(c_area_jump_ptr, sizeof(uint32_t))) {
+        if (devil4_sdk::get_local_player()) {
             if (is_valid_room_id(value)) {
-                c_area_jump_ptr->room_id = value;
-                c_area_jump_ptr->init_jump = 1;
+                s_area_ptr->aGamePtr->room_id = value;
+                s_area_ptr->aGamePtr->init_jump = 1;
             }
             else {
                 spdlog::error("Invalid Room ID");
@@ -223,13 +215,12 @@ std::optional<std::string> AreaJump::on_initialize() {
         }, 
         csys::Arg<int>("0-811"));
 
-    console->system().RegisterCommand("rooma", "Jump to room name", 
-        [this](csys::String value) {
+    console->system().RegisterCommand("rooma", "Jump to room name", [s_area_ptr](csys::String value) {
         static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;
-        if (!IsBadWritePtr(c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(c_area_jump_ptr, sizeof(uint32_t))) {
+        if (devil4_sdk::get_local_player()) {
             if (const Room* proom = find_room_by_name(value)) {
-                c_area_jump_ptr->room_id = proom->id;
-                c_area_jump_ptr->init_jump = 1;
+                s_area_ptr->aGamePtr->room_id = proom->id;
+                s_area_ptr->aGamePtr->init_jump = 1;
             }
             else {
                 spdlog::error("Invalid Room Name");
@@ -240,9 +231,9 @@ std::optional<std::string> AreaJump::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void AreaJump::on_gui_frame() 
-{
-	if (IsBadWritePtr(c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(c_area_jump_ptr,sizeof(uint32_t))) {
+void AreaJump::on_gui_frame() {
+    sArea* s_area_ptr = devil4_sdk::get_sArea();
+	if (!devil4_sdk::get_local_player()) {
 		ImGui::TextWrapped(_("Area Jump is not initialized.\nLoad into a stage to access it."));
 		return;
 	}
@@ -252,18 +243,46 @@ void AreaJump::on_gui_frame()
     help_marker(_("Type in which BP floor you want to teleport to then hit Go to be teleported to that stage"));
     ImGui::Spacing();
 
-	if (c_area_jump_ptr->bp_floor_stage) {
-		if (ImGui::InputInt(_("##BP Floor "), &c_area_jump_ptr->bp_floor_stage, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
-			c_area_jump_ptr->bp_floor_stage = std::clamp(c_area_jump_ptr->bp_floor_stage, 1, 101);
+	if (s_area_ptr->aGamePtr->bp_floor) {
+		if (ImGui::InputInt(_("##BP Floor "), &s_area_ptr->aGamePtr->bp_floor, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
+			s_area_ptr->aGamePtr->bp_floor = std::clamp(s_area_ptr->aGamePtr->bp_floor, 1, 101);
 		}
 
         if (ImGui::Button(_("Go"), ImVec2(290, 20))) {
-			jump_to_stage(bp_stage(c_area_jump_ptr->bp_floor_stage));
+			jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
 		}
 	}
     else {
         ImGui::TextWrapped(_("BP Floor Jump is not initialized.\nLoad into BP to access it."));
     }
+
+    if (ImGui::Button(_("Save BP Progress"))) {
+        sArea* s_area_ptr = devil4_sdk::get_sArea();
+        SMediator* s_med_ptr = devil4_sdk::get_sMediator();
+        if (devil4_sdk::get_local_player()) {
+            savedBPFloor = s_area_ptr->aGamePtr->bp_floor;
+            savedBPTimer = s_med_ptr->bpTimer;
+            savedOrbs = s_med_ptr->orbMissionCurrent;
+            savedHP = s_med_ptr->player_ptr->HP;
+            savedDT = s_med_ptr->player_ptr->DT;
+        }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(_("Load BP Progress"))) {
+        sArea* s_area_ptr = devil4_sdk::get_sArea();
+        SMediator* s_med_ptr = devil4_sdk::get_sMediator();
+        if (devil4_sdk::get_local_player()) {
+            s_area_ptr->aGamePtr->bp_floor = savedBPFloor;
+            jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
+            s_med_ptr->bpTimer = savedBPTimer;
+            s_med_ptr->orbMissionCurrent = savedOrbs;
+            s_med_ptr->player_ptr->HP = savedHP;
+            s_med_ptr->player_ptr->DT = savedDT;
+            s_area_ptr->aGamePtr->init_jump = 1;
+        }
+    }
+    ImGui::SameLine();
+    help_marker(_("Press Save Config after saving BP progress as this writes the file\nSaves floor, timer, orbs, hp, dt"));
 
     ImGui::Spacing();
     ImGui::Separator();
@@ -302,17 +321,35 @@ void AreaJump::on_gui_frame()
 
 void AreaJump::on_update_input(utility::Input & input) {
     if (m_hotkeys[0]->check(input)) {
-        if (IsBadWritePtr(c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(c_area_jump_ptr, sizeof(uint32_t))) {
+        sArea* s_area_ptr = devil4_sdk::get_sArea();
+        if (devil4_sdk::get_local_player()) {
             return;
         }
         RoomRespawn::g_reset_manager = true;
-        jump_to_stage(bp_stage(c_area_jump_ptr->bp_floor_stage));
+        jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
     }
 
     if (m_hotkeys[1]->check(input)) {
-        if (IsBadWritePtr(c_area_jump_ptr, sizeof(uint32_t)) || IsBadReadPtr(c_area_jump_ptr,sizeof(uint32_t))) {
+        sArea* s_area_ptr = devil4_sdk::get_sArea();
+        if (devil4_sdk::get_local_player()) {
             return;
         }
-        jump_to_stage(bp_stage(++(c_area_jump_ptr->bp_floor_stage)));
+        jump_to_stage(bp_stage(++(s_area_ptr->aGamePtr->bp_floor)));
     }
+}
+
+void AreaJump::on_config_save(utility::Config& cfg) {
+    cfg.set<int>("saved_bp_floor", savedBPFloor);
+    cfg.set<float>("saved_bp_timer", savedBPTimer);
+    cfg.set<int>("saved_orbs", savedOrbs);
+    cfg.set<float>("saved_hp", savedHP);
+    cfg.set<float>("saved_dt", savedDT);
+}
+
+void AreaJump::on_config_load(const utility::Config& cfg) {
+    savedBPFloor = cfg.get<int>("saved_bp_floor").value_or(0);
+    savedBPTimer = cfg.get<float>("saved_bp_timer").value_or(0.0f);
+    savedOrbs = cfg.get<int>("saved_orbs").value_or(0);
+    savedHP = cfg.get<float>("saved_hp").value_or(0.0f);
+    savedDT = cfg.get<float>("saved_dt").value_or(0.0f);
 }
