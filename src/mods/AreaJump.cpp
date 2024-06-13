@@ -238,12 +238,12 @@ void AreaJump::on_gui_frame() {
 		return;
 	}
 
-    ImGui::Text(_("Bloody Palace Floor Teleports"));
-    ImGui::SameLine();
-    help_marker(_("Type in which BP floor you want to teleport to then hit Go to be teleported to that stage"));
-    ImGui::Spacing();
-
 	if (s_area_ptr->aGamePtr->bp_floor) {
+        ImGui::Text(_("Bloody Palace Floor Teleports"));
+        ImGui::SameLine();
+        help_marker(_("Type in which BP floor you want to teleport to then hit Go to be teleported to that stage"));
+        ImGui::Spacing();
+
 		if (ImGui::InputInt(_("##BP Floor "), &s_area_ptr->aGamePtr->bp_floor, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
 			s_area_ptr->aGamePtr->bp_floor = std::clamp(s_area_ptr->aGamePtr->bp_floor, 1, 101);
 		}
@@ -256,33 +256,36 @@ void AreaJump::on_gui_frame() {
         ImGui::TextWrapped(_("BP Floor Jump is not initialized.\nLoad into BP to access it."));
     }
 
-    if (ImGui::Button(_("Save BP Progress"))) {
-        sArea* s_area_ptr = devil4_sdk::get_sArea();
-        SMediator* s_med_ptr = devil4_sdk::get_sMediator();
-        if (devil4_sdk::get_local_player()) {
-            savedBPFloor = s_area_ptr->aGamePtr->bp_floor;
-            savedBPTimer = s_med_ptr->bpTimer;
-            savedOrbs = s_med_ptr->orbMissionCurrent;
-            savedHP = s_med_ptr->player_ptr->HP;
-            savedDT = s_med_ptr->player_ptr->DT;
+    SMediator* s_med_ptr = devil4_sdk::get_sMediator();
+    if (s_med_ptr->missionID == 50) { // if current mission is BP
+        if (ImGui::Button(_("Save BP Progress"))) {
+            sArea* s_area_ptr = devil4_sdk::get_sArea();
+            SMediator* s_med_ptr = devil4_sdk::get_sMediator();
+            if (devil4_sdk::get_local_player()) {
+                savedBPFloor = s_area_ptr->aGamePtr->bp_floor;
+                savedBPTimer = s_med_ptr->bpTimer;
+                savedOrbs = s_med_ptr->orbMissionCurrent;
+                savedHP = s_med_ptr->player_ptr->HP;
+                savedDT = s_med_ptr->player_ptr->DT;
+            }
         }
-    }
-    ImGui::SameLine();
-    if (ImGui::Button(_("Load BP Progress"))) {
-        sArea* s_area_ptr = devil4_sdk::get_sArea();
-        SMediator* s_med_ptr = devil4_sdk::get_sMediator();
-        if (devil4_sdk::get_local_player()) {
-            s_area_ptr->aGamePtr->bp_floor = savedBPFloor;
-            jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
-            s_med_ptr->bpTimer = savedBPTimer;
-            s_med_ptr->orbMissionCurrent = savedOrbs;
-            s_med_ptr->player_ptr->HP = savedHP;
-            s_med_ptr->player_ptr->DT = savedDT;
-            s_area_ptr->aGamePtr->init_jump = 1;
+        ImGui::SameLine();
+        if (ImGui::Button(_("Load BP Progress"))) {
+            sArea* s_area_ptr = devil4_sdk::get_sArea();
+        
+            if (devil4_sdk::get_local_player()) {
+                s_area_ptr->aGamePtr->bp_floor = savedBPFloor;
+                jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
+                s_med_ptr->bpTimer = savedBPTimer;
+                s_med_ptr->orbMissionCurrent = savedOrbs;
+                s_med_ptr->player_ptr->HP = savedHP;
+                s_med_ptr->player_ptr->DT = savedDT;
+                s_area_ptr->aGamePtr->init_jump = 1;
+            }
         }
+        ImGui::SameLine();
+        help_marker(_("Press Save Config after saving BP progress as this writes the file\nSaves floor, timer, orbs, hp, dt"));
     }
-    ImGui::SameLine();
-    help_marker(_("Press Save Config after saving BP progress as this writes the file\nSaves floor, timer, orbs, hp, dt"));
 
     ImGui::Spacing();
     ImGui::Separator();

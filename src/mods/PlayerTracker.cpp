@@ -188,11 +188,13 @@ void PlayerTracker::on_gui_frame() {
     if (display_player_stats) {
         ImGui::Indent(lineIndent);
         uPlayer* player = devil4_sdk::get_local_player();
+        SMediator* s_med_ptr = devil4_sdk::get_sMediator();
         if (player) {
             ImGui::InputFloat(_("HP ##1"), &player->HP);
             ImGui::InputFloat(_("Max HP ##1"), &player->HPMax);
             ImGui::InputFloat(_("DT ##1"), &player->DT);
             ImGui::InputFloat(_("Max DT ##1"), &player->maxDT);
+            ImGui::InputFloat(_("BP Timer ##1"), &s_med_ptr->bpTimer);
             ImGui::InputScalar(_("Move ID Debug ##1"), ImGuiDataType_U8, &player->moveIDBest);
             ImGui::InputFloat3(_("XYZ Position ##1"), (float*)&player->m_pos);
             ImGui::InputFloat4(_("Rotation ##1"), &player->rotation2);
