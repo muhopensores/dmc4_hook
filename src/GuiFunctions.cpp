@@ -762,6 +762,10 @@ namespace gui {
 
                     // pmods->onDrawUI("ShaderEditor"_hash);
 
+                    if (ImGui::Button("Spawn Dog Fireball Test (pls dont press this)")) {
+                        devil4_sdk::dog_fireball_new();
+                    }
+
                     g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
                     ImGui::EndChild();
                     ImGui::EndTabItem();

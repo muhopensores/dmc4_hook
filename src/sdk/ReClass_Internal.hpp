@@ -995,6 +995,22 @@ public:
 }; //Size: 0x17F0
 static_assert(sizeof(UEm003Shl) == 0x17F0);
 
+// @dog
+class DogData {};
+class dogFireball : public MtObject {
+public:
+    private: char pad_4[0x11]; public:
+    int fireballWasShot; // 0x15
+    private: char pad_19[0x17]; public:
+    Vector3f posMaybe; // 0x30
+    private: char pad_3c[0x1478]; public:
+    uPlayer* playerPtr1; // 0x14b4
+    private: char pad_14b8[0x48]; public:
+    DogData* dogData; // 0x1500
+    private: char pad_1504[0x72cc]; public:
+    int unkn1; // 0x87d0
+}; // Size: 0x87d4
+
 /* 8554 */
 struct __declspec(align(4)) MtStringSTRING
 {

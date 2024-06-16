@@ -27,6 +27,18 @@ namespace devil4_sdk {
 		return ret_val;
 	}
 
+	// @dog
+	MtObject* dog_fireball_consturctor_sub(void* mem) {
+		MtObject* ret_val = 0;
+		constexpr uintptr_t dog_fireball_constructor = 0x0062D4E0; // ?? from DevilMayCry4_DX9.exe+225BB4 // crashes in 0x0062D6D0
+		__asm {
+			mov eax, mem
+			call dog_fireball_constructor
+			mov [ret_val], eax
+		}
+		return ret_val;
+	}
+
 	//char __userpurge spawnOrSomething_sub_8DC540@<al>(int sUnitMaybe@<eax>, _DWORD *mtObjectToSpawn@<esi>, int someIndex)
 	void spawn_or_something(void* a1, MtObject* obj_to_spawn, int a3) {
 		constexpr uintptr_t fptr_spawn_or_something = 0x008DC540;
@@ -72,6 +84,30 @@ namespace devil4_sdk {
 		shell->m_required_idk_wtf_is_this_needs_to_be2 = 2;
 		shell->m_required_idk_wtf_is_this_needs_to_be6 = 0;
 		shell->m_required_some_byte_idk = 0;
+	}
+
+	// @dog
+	void dog_fireball_new() {
+		void* mem = mt_allocate_heap(sizeof(dogFireball), 0x10);
+		if (!mem) {
+			return;
+		}
+		
+		dogFireball* shell = (dogFireball*)dog_fireball_consturctor_sub(mem);
+		if (!shell) {
+			return;
+		}
+
+		spawn_or_something((void*)0x00E552CC, shell, 0x12);
+
+		// shell->m_some_float_vec = glm::vec3(0.0f, 0.0f, 0.0f);
+		
+		auto lp = devil4_sdk::get_local_player();
+		shell->posMaybe = lp->m_pos;
+
+		shell->fireballWasShot = 0;
+		shell->playerPtr1 = lp;
+		shell->unkn1 = 0;
 	}
 
 	sArea* get_sArea() {

@@ -357,6 +357,14 @@ class uPlayer : public UCoord{
 	class uEnemy* lockOnTargetPtr3 @ 0x15A68
 };
 
+class dogFireball : public MtObject {
+	int fireballWasShot @ 0x15
+	Vector3f posMaybe @ 0x30
+	uPlayer* playerPtr1 @ 0x14B4 // this might just be target ptr
+	class DogData* dogData @ 0x1500
+	int unkn1 @ 0x87D0 // this offset contains 0 but is definitely used
+};
+
 class cCameraPlayer {
 	Vector3f eye @ 0x10
 	Vector3f lookat @ 0x20
