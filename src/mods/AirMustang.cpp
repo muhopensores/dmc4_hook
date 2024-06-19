@@ -112,7 +112,7 @@ naked void detour3() {
             mov byte ptr [ebp+0x30C4],2//melee cancel
             mov byte ptr [ebp+0x31CC],2//gun cancel
             mov byte ptr [ebp+0x3148],2//directional melee cancel
-            mov byte ptr [ebp+0x30F0],2
+            mov byte ptr [ebp+0x30F0],2//can melee cancel, again(?)
 
         originalcode:
             cmp byte ptr [ebp+0x1D7E],02

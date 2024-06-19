@@ -12,6 +12,7 @@ uintptr_t DtKnuckle::jmp_ret1{NULL};
 	int16_t previousInput             = 0;
 	uint32_t key					  = 82;
 	constexpr uintptr_t detour1_call1 = 0x00829BE0;
+	constexpr uintptr_t cancel_call = 0x82A9D5;
 uintptr_t DtKnuckle::jmp_ret2{NULL};
 uintptr_t DtKnuckle::jmp_ret3{NULL};
 	constexpr uintptr_t detour3_conditional1 = 0x0082A9D5;
@@ -32,6 +33,8 @@ uintptr_t DtKnuckle::jmp_ret12{NULL};
 	constexpr uintptr_t detour12_conditional1 = 0x00829BD8;
 uintptr_t DtKnuckle::jmp_ret13{NULL};
 uintptr_t DtKnuckle::jmp_ret14{NULL};
+uintptr_t DtKnuckle::jmp_ret15{NULL};
+	float rushFrame = 135.0f;
 
 void DtKnuckle::toggle(bool enable) {
 	if (enable) {
@@ -69,6 +72,15 @@ void DtKnuckle::toggle(bool enable) {
 		patch9.reset();
 		patch10.reset();
 		patch11.reset();
+	}
+}
+
+naked void DTcancel(void) {
+	_asm {
+			push ebx
+			push esi
+			push edi
+			jmp cancel_call
 	}
 }
 
@@ -114,6 +126,13 @@ naked void detour1(void) {
 			mov [previousInput], ax // set previousInput
 			mov dword ptr [inputCooldown], 0x41f00000 // 30.0f // set input cooldown
 
+		TauntCheck:
+			mov eax, [ebp+0x140C]
+			test al, 0x8
+			je ForwardCheck
+			mov dword ptr [moveID],0x35F
+			jmp SpawnSpectre
+
 		ForwardCheck:
 			mov eax, [ebp+0x21CC]
 			cmp al, 01
@@ -128,6 +147,9 @@ naked void detour1(void) {
 			mov dword ptr [moveID], 0x330
 		SpawnSpectre:
 			mov edi, [ebp+0xCDF8]
+			//pushad
+			//call DTcancel
+			//popad
 			mov eax, [edi+0x22A8]
 			cmp eax, 0x7
 			je handler
@@ -152,7 +174,7 @@ naked void detour1(void) {
 			cmp dword ptr [inputCooldown], 0
 			jg handler
 			mov dword ptr [inputCooldown], 0x41f00000
-			jmp ForwardCheck
+			jmp TauntCheck
 		handler3:
 			mov [previousInput], ax
 		handler:
@@ -460,6 +482,18 @@ naked void detour14(void) {
 	}
 }
 
+naked void detour15(void) {
+	_asm {
+			cmp ecx,0x035F
+			jne originalcode
+
+			movss xmm5,[rushFrame]
+		originalcode:
+			movss [esi+edi+0x00002250],xmm5
+			jmp [DtKnuckle::jmp_ret15]
+	}
+}
+
 std::optional<std::string> DtKnuckle::on_initialize() {
 	if (!install_hook_offset(0x3A92BF, hook1, &detour1, &jmp_ret1, 6)) {
 		spdlog::error("Failed to init DtKnuckle mod\n");
@@ -514,6 +548,10 @@ std::optional<std::string> DtKnuckle::on_initialize() {
 		return "Failed to init DtKnuckle mod13";
 	}
 	if (!install_hook_offset(0x428E42, hook14, &detour14, &jmp_ret14, 5)) {
+		spdlog::error("Failed to init DtKnuckle mod14\n");
+		return "Failed to init DtKnuckle mod14";
+	}
+	if (!install_hook_offset(0x42B6D9, hook15, &detour15, &jmp_ret15, 9)) {
 		spdlog::error("Failed to init DtKnuckle mod14\n");
 		return "Failed to init DtKnuckle mod14";
 	}

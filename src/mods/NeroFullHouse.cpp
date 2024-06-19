@@ -20,9 +20,19 @@ uintptr_t NeroFullHouse::jmp_ret3{ NULL };
 uintptr_t NeroFullHouse::jmp_ret4{ NULL };
 uintptr_t NeroFullHouse::jmp_ret5{ NULL };
 uintptr_t NeroFullHouse::jmp_jne5{ 0X0042BA72 };
+uintptr_t NeroFullHouse::jmp_ret6{ NULL };
+uintptr_t NeroFullHouse::jmp_ret7{ NULL };
+uintptr_t NeroFullHouse::jmp_ret8{ NULL };
+uintptr_t NeroFullHouse::jmp_ret9{ NULL };
 
 static float current_frame = 0.0f;
-
+    float payline_bounce = 10.0f;
+static float payline_startup_frame = 8.0f;
+static float payline_buffer_frame = 25.0f;
+static float payline_recovery_frame = 35.0f;
+static float payline_can_walk_frame = 55.0f;
+static float detour6_float = 20.0f;
+constexpr uintptr_t effect_call = 0x480480;
 // DevilMayCry4_DX9.exe + 3B0300 - movss[esi+08] // xmm0 left + right stick rotation
 // DevilMayCry4_DX9.exe + 5B8C - mov[esp+10], DevilMayCry4_DX9.exe + 790C18 // "PlayerID"
 // player + 30C4 = buffers (from DevilMayCry4_DX9.exe+3AB8C8 - mov [ecx+esi+000030C4], 00000001)
@@ -39,7 +49,14 @@ static float current_frame = 0.0f;
 // DevilMayCry4_DX9.exe+3AC911 accesses moveids for directionals
 // DevilMayCry4_DX9.exe+403CAA might be better
 
-
+// void NeroFullHouse::toggle(bool enable) {
+//     if (enable) {
+//         install_patch_offset(0x3D33D9, patch1, "\x090\x90\x90\x090\x90\x90\x90\x90", 8);//Move class aerial lock
+//     }
+//     else {
+//         patch1.reset();
+//     }
+// }
 
 naked void detour1(void) { // redirect streak 1 to full house function // player in eax
     _asm {
@@ -62,7 +79,9 @@ naked void detour2(void) { // select full house start animation // player in esi
             jne code
         //cheatcode:
             // push 0x00000351 // payline
-            push 0x0000032C // double down
+            fld [payline_bounce]
+            fstp [esi+0xEC4]
+            push 0x00000352 // double down
             jmp dword ptr [NeroFullHouse::jmp_ret2]
         code:
             push 0x0000030C // full house
@@ -167,6 +186,97 @@ naked void detour5(void) { // cancellable payline ending // player in esi
 // 1024 = sound effect for part 1
 // 320 = sound effect for part 2
 
+naked void detour6(void) {
+    _asm {
+        cmp byte ptr [NeroFullHouse::mod_enabled], 1
+        jne code
+        cmp byte ptr [ebx+0x1494], 1 // nero
+        jne code
+        comiss xmm0, [payline_startup_frame]
+        jmp [NeroFullHouse::jmp_ret6]
+    code:
+        comiss xmm0, [detour6_float]
+        jmp [NeroFullHouse::jmp_ret6]
+    }
+}
+
+naked void detour7(void) {
+    _asm {
+        cmp byte ptr [NeroFullHouse::mod_enabled], 1
+        jne code
+        cmp byte ptr [ebx+0x1494], 1 // nero
+        jne code
+
+        movss xmm0, [ebx+0x348]
+        comiss xmm0, [payline_buffer_frame]
+        jb code
+
+        mov byte ptr [ebx+0x30C4],1
+        mov byte ptr [ebx+0x3174],1//movement abilities cancel
+        mov byte ptr [ebx+0x30C4],1//melee cancel
+        mov byte ptr [ebx+0x31CC],1//gun cancel
+        mov byte ptr [ebx+0x3148],1//directional melee cancel
+        mov byte ptr [ebx+0x30F0],1//can melee cancel, again
+
+        comiss xmm0, [payline_recovery_frame]
+        jb code
+
+        mov byte ptr [ebx+0x30C4],2
+        mov byte ptr [ebx+0x3174],2//movement abilities cancel
+        mov byte ptr [ebx+0x30C4],2//melee cancel
+        mov byte ptr [ebx+0x31CC],2//gun cancel
+        mov byte ptr [ebx+0x3148],2//directional melee cancel
+        mov byte ptr [ebx+0x30F0],2//can melee cancel, again
+
+        comiss xmm0, [payline_can_walk_frame]
+        jb code
+
+        mov byte ptr [ebx+0x31F8],2//can walk cancel
+    code:
+        cmp byte ptr [ebx+0x00002A54],01
+        jmp [NeroFullHouse::jmp_ret7]
+    }
+}
+
+naked void detour8(void) {
+    _asm {
+            cmp byte ptr [NeroFullHouse::mod_enabled], 1
+            jne code
+            cmp byte ptr [ebx+0x1494], 1 // nero
+            jne code
+
+            jmp [NeroFullHouse::jmp_ret8]
+
+        code:
+            movss [ebx+0xEC4],xmm0
+            jmp [NeroFullHouse::jmp_ret8]
+
+    }
+}
+
+naked void detour9(void) {//effect
+    _asm {
+            cmp byte ptr [NeroFullHouse::mod_enabled], 1
+            jne handler
+            cmp byte ptr [ebx+0x1494], 1 // nero
+            jne handler
+
+            mov edx,0x12
+            mov eax,0x01 //1-Nero efx, 2-Dante efx
+
+            cmp eax, [ebx+0xCCE8]
+            ja originalcode
+
+            mov edx,0x4D
+        originalcode:
+            call effect_call
+            jmp [NeroFullHouse::jmp_ret9]
+        handler:
+            lea edx,[esi+0x3E]
+            lea eax,[esi-0x02]
+            jmp originalcode
+    }
+}
 
 std::optional<std::string> NeroFullHouse::on_initialize() {
     if (!install_hook_offset(0x03F9D82, hook1, &detour1, &jmp_ret1, 5)) { // streak
@@ -193,12 +303,28 @@ std::optional<std::string> NeroFullHouse::on_initialize() {
         spdlog::error("Failed to init NeroFullHouse5 mod\n");
         return "Failed to init NeroFullHouse5 mod";
     }
-
+    if (!install_hook_offset(0x3D3404, hook6, &detour6, &jmp_ret6, 7)) { // faster startup
+        spdlog::error("Failed to init NeroFullHouse6 mod\n");
+        return "Failed to init NeroFullHouse6 mod";
+    }
+    if (!install_hook_offset(0x3D3665, hook7, &detour7, &jmp_ret7, 7)) { // cancellable payline ending 
+        spdlog::error("Failed to init NeroFullHouse7 mod\n");
+        return "Failed to init NeroFullHouse7 mod";
+    }
+    if (!install_hook_offset(0x3D33D9, hook8, &detour8, &jmp_ret8, 8)) { // cancellable payline ending 
+        spdlog::error("Failed to init NeroFullHouse8 mod\n");
+        return "Failed to init NeroFullHouse8 mod";
+    }
+    if (!install_hook_offset(0x3D3369, hook9, &detour9, &jmp_ret9, 8)) { // cancellable payline ending 
+        spdlog::error("Failed to init NeroFullHouse8 mod\n");
+        return "Failed to init NeroFullHouse8 mod";
+    }
     return Mod::on_initialize();
 }
 
 void NeroFullHouse::on_gui_frame() {
     if (ImGui::Checkbox(_("Payline"), &mod_enabled)) {
+       // toggle(mod_enabled);
         if (mod_enabled) {
             helm_splitter_remap = true;
             *(uintptr_t*)0xC3EFB0 = 2; // streak 1 can be used in air
@@ -231,6 +357,7 @@ void NeroFullHouse::on_gui_frame() {
 
 void NeroFullHouse::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("nero_full_house").value_or(false);
+    //toggle(mod_enabled);
     helm_splitter_remap = cfg.get<bool>("helm_splitter_remap").value_or(false);
     if (mod_enabled) {
         helm_splitter_remap = true;
