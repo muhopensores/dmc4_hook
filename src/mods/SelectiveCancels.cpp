@@ -7,6 +7,7 @@ uintptr_t SelectiveCancels::jmp_ret2 = NULL;
 uintptr_t SelectiveCancels::grief_jmp_ret1 = NULL;
 uintptr_t SelectiveCancels::grief_jmp_ret2 = NULL;
 constexpr uintptr_t grief_detour2_jmp = 0x836FCF;
+bool good_grief = false;
 
 constexpr uintptr_t static_mediator_ptr  = 0x00E558B8;
 uint32_t  SelectiveCancels::cancels = 0;
@@ -192,7 +193,7 @@ naked void grief_detour1() {
     _asm {
             cmp byte ptr [SelectiveCancels::mod_enabled], 0
             je originalcode
-			test [SelectiveCancels::cancels], GRIEF
+			cmp byte ptr [good_grief], 0
 			je originalcode
 
             mov byte ptr [ebp+0x3174], 2 // movement abilities cancel
@@ -210,7 +211,7 @@ naked void grief_detour2() { // janky as all hell, but it works
     _asm {
 			cmp byte ptr [SelectiveCancels::mod_enabled], 0
 			je originalcode
-            test [SelectiveCancels::cancels], GRIEF
+            cmp byte ptr [good_grief], 0
 			je originalcode
             
             cmp dword ptr [eax+0x1564], 0x59
@@ -240,6 +241,17 @@ naked void grief_detour2() { // janky as all hell, but it works
             cmp dword ptr [eax+0x1DB8], 8 // weapon
             jne handler
             jmp originalcode
+    }
+}
+
+void SelectiveCancels::griefToggle(bool enable) {
+    if (enable) {
+        install_patch_offset(0x436FAF, patch1, "\x90\x90",2);
+        install_patch_offset(0x436FB8, patch2, "\x90\x90",2);
+    }
+    else {
+        patch1.reset();
+        patch2.reset();
     }
 }
 
@@ -352,7 +364,9 @@ void SelectiveCancels::on_gui_frame() {
 		ImGui::SameLine();
 		help_marker(_("Gunship"));
 		ImGui::SameLine(sameLineWidth + lineIndent);
-		draw_checkbox_simple(_("Grief"), GRIEF);
+		if (ImGui::Checkbox(_("Grief"), &good_grief)) {
+			griefToggle(good_grief);
+		}
 		
 		draw_checkbox_simple(_("Gun Stinger"), GUNSTINGER);
 
@@ -364,12 +378,15 @@ void SelectiveCancels::on_config_save(utility::Config& cfg) {
 	cfg.set<bool>("selective_cancels", mod_enabled);
 	cfg.set<uint32_t>("cancels", cancels);
 	cfg.set<bool>("fix_guard_inertia", fixGuardInertia);
+	cfg.set<bool>("good_grief", good_grief);
 }
 
 void SelectiveCancels::on_config_load(const utility::Config& cfg) {
 	mod_enabled = cfg.get<bool>("selective_cancels").value_or(false);
 	cancels = cfg.get<uint32_t>("cancels").value_or(0);
 	fixGuardInertia = cfg.get<bool>("fix_guard_inertia").value_or(false);
+	good_grief = cfg.get<bool>("good_grief").value_or(false);
+	griefToggle(good_grief);
 }
 
 #endif

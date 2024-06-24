@@ -20,7 +20,7 @@ enum CancelMoves {                              // bits table
     ROLL            = 0x2000,     // 0000 0000 0000 0000 0010 0000 0000 0000
     STINGER         = 0x4000,     // 0000 0000 0000 0000 0100 0000 0000 0000
     REAL_IMPACT     = 0x8000,     // 0000 0000 0000 0000 1000 0000 0000 0000
-    GRIEF           = 0x10000,    // 0000 0000 0000 0001 0000 0000 0000 0000
+    // ?            = 0x10000,    // 0000 0000 0000 0001 0000 0000 0000 0000
     // ?            = 0x20000,    // 0000 0000 0000 0010 0000 0000 0000 0000
     // ?            = 0x40000,    // 0000 0000 0000 0100 0000 0000 0000 0000
     // ?            = 0x80000,    // 0000 0000 0000 1000 0000 0000 0000 0000
@@ -53,6 +53,8 @@ public:
 
     std::optional<std::string> on_initialize() override;
 
+    void griefToggle(bool enable);
+
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
 
@@ -63,4 +65,5 @@ public:
 private:
     std::unique_ptr<FunctionHook> hook1, hook2;
     std::unique_ptr<FunctionHook> hookGrief, hookGrief2;
+    std::unique_ptr<Patch> patch1, patch2;
 };
