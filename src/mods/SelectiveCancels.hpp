@@ -20,7 +20,7 @@ enum CancelMoves {                              // bits table
     ROLL            = 0x2000,     // 0000 0000 0000 0000 0010 0000 0000 0000
     STINGER         = 0x4000,     // 0000 0000 0000 0000 0100 0000 0000 0000
     REAL_IMPACT     = 0x8000,     // 0000 0000 0000 0000 1000 0000 0000 0000
-    // ?            = 0x10000,    // 0000 0000 0000 0001 0000 0000 0000 0000
+    GRIEF           = 0x10000,    // 0000 0000 0000 0001 0000 0000 0000 0000
     // ?            = 0x20000,    // 0000 0000 0000 0010 0000 0000 0000 0000
     // ?            = 0x40000,    // 0000 0000 0000 0100 0000 0000 0000 0000
     // ?            = 0x80000,    // 0000 0000 0000 1000 0000 0000 0000 0000
@@ -46,6 +46,8 @@ public:
     static uint32_t cancels;
     static uintptr_t jmp_ret1;
     static uintptr_t jmp_ret2;
+    static uintptr_t grief_jmp_ret1;
+    static uintptr_t grief_jmp_ret2;
 
     std::string get_mod_name() override { return "SelectiveCancels"; };
 
@@ -60,4 +62,5 @@ public:
 
 private:
     std::unique_ptr<FunctionHook> hook1, hook2;
+    std::unique_ptr<FunctionHook> hookGrief, hookGrief2;
 };

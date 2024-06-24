@@ -512,7 +512,7 @@ namespace gui {
 
                     pmods->on_draw_ui("ActiveBlock"_hash);
                     ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("KnockbackEdits"_hash); // currently just release stun
+                    pmods->on_draw_ui("KnockbackEdits"_hash);
 
                     pmods->on_draw_ui("InfTrickRange"_hash);
                     ImGui::SameLine(sameLineWidth);
@@ -545,8 +545,6 @@ namespace gui {
                     pmods->on_draw_ui("AerialStinger"_hash);
 
                     pmods->on_draw_ui("AirMustang"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("GoodGrief"_hash);
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();

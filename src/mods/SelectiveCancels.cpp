@@ -4,6 +4,9 @@
 bool      SelectiveCancels::mod_enabled = false;
 uintptr_t SelectiveCancels::jmp_ret1 = 0x0080332F;
 uintptr_t SelectiveCancels::jmp_ret2 = NULL;
+uintptr_t SelectiveCancels::grief_jmp_ret1 = NULL;
+uintptr_t SelectiveCancels::grief_jmp_ret2 = NULL;
+constexpr uintptr_t grief_detour2_jmp = 0x836FCF;
 
 constexpr uintptr_t static_mediator_ptr  = 0x00E558B8;
 uint32_t  SelectiveCancels::cancels = 0;
@@ -183,6 +186,62 @@ naked void detour2() { // only called on ground guard
     }
 }
 
+naked void grief_detour1() {
+    _asm {
+            cmp byte ptr [SelectiveCancels::mod_enabled], 0
+            je originalcode
+			test [SelectiveCancels::cancels], GRIEF
+			je originalcode
+
+            mov byte ptr [ebp+0x3174], 2 // movement abilities cancel
+            mov byte ptr [ebp+0x30C4], 2 // melee cancel
+            mov byte ptr [ebp+0x31CC], 2 // gun cancel
+            mov byte ptr [ebp+0x3148], 2 // directional melee cancel
+            mov byte ptr [ebp+0x30F0], 2
+        originalcode:
+            movss xmm0, [ebp+0x0000177C]
+            jmp [SelectiveCancels::grief_jmp_ret1]
+    }
+}
+
+naked void grief_detour2() { // janky as all hell, but it works
+    _asm {
+			cmp byte ptr [SelectiveCancels::mod_enabled], 0
+			je originalcode
+            test [SelectiveCancels::cancels], GRIEF
+			je originalcode
+            
+            cmp dword ptr [eax+0x1564], 0x59
+            je originalcode
+
+            test word ptr [eax+0x140C], 0x2 // input held
+            jne handler2
+
+            cmp dword ptr [eax+0x1DB8],8 // weapon
+            jne handler
+
+            test word ptr [eax+0x140C], 0x200 // input held
+            je handler
+
+            cmp byte ptr [eax+0x14D98], 1 // style
+            jne handler
+            
+            jmp [SelectiveCancels::grief_jmp_ret2]
+
+        originalcode:
+            cmp dword ptr [eax+0x1564], 0x59
+            je handler 
+            jmp [SelectiveCancels::grief_jmp_ret2]
+        handler:
+            jmp [grief_detour2_jmp]
+        handler2:
+            cmp dword ptr [eax+0x1DB8], 8 // weapon
+            jne handler
+            jmp originalcode
+
+    }
+}
+
 std::optional<std::string> SelectiveCancels::on_initialize() {
 	if (!install_hook_offset(0x40332A, hook1, &detour1, 0, 6)) {
 		spdlog::error("Failed to init SelectiveCancels\n");
@@ -191,6 +250,14 @@ std::optional<std::string> SelectiveCancels::on_initialize() {
 	if (!install_hook_offset(0x3CBA06, hook2, &detour2, &jmp_ret2, 5)) {
 		spdlog::error("Failed to init SelectiveCancels\n");
 		return "Failed to init SelectiveCancels";
+	}
+	if (!install_hook_offset(0x3DF715, hookGrief, &grief_detour1, &grief_jmp_ret1, 8)) {
+		spdlog::error("Failed to init GoodGrief mod\n");
+		return "Failed to init GoodGrief mod";
+	}
+    if (!install_hook_offset(0x436FB1, hookGrief2, &grief_detour2, &grief_jmp_ret2, 7)) {
+		spdlog::error("Failed to init GoodGrief mod\n");
+		return "Failed to init GoodGrief mod2";
 	}
 	return Mod::on_initialize();
 }
@@ -282,6 +349,8 @@ void SelectiveCancels::on_gui_frame() {
 		ImGui::SameLine();
 		help_marker(_("Gunship"));
 		ImGui::SameLine(sameLineWidth + lineIndent);
+		draw_checkbox_simple(_("Grief"), GRIEF);
+		
 		draw_checkbox_simple(_("Gun Stinger"), GUNSTINGER);
 
 		ImGui::Unindent(lineIndent);

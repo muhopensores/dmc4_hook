@@ -8,6 +8,7 @@ public:
 
     static bool mod_enabled;
     static uintptr_t jmp_return;
+    static uintptr_t jmp_return2;
 
     std::string get_mod_name() override { return "KnockbackEdits"; };
 
@@ -19,5 +20,5 @@ public:
     void on_gui_frame() override;
 
 private:
-    std::unique_ptr<FunctionHook> hook;
+    std::unique_ptr<FunctionHook> hook, hook2;
 };

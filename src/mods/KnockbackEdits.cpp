@@ -3,8 +3,10 @@
 
 bool KnockbackEdits::mod_enabled{ false };
 uintptr_t KnockbackEdits::jmp_return{ NULL };
+uintptr_t KnockbackEdits::jmp_return2{ NULL };
 
 static bool release_stuns{ false };
+static bool volcano_launches{ false };
 
 /*
 // looks like its this
@@ -147,12 +149,32 @@ naked void detour() { // projectiles?
     }
 }
 
+naked void detour2() { // melee?
+    _asm {
+		//cmp byte ptr [KnockbackEdits::modEnabled], 0
+		//je retcode
+        cmp byte ptr [volcano_launches], 1
+        jne originalcode
+
+        cmp dword ptr [edx+0xA4+0x8], 0x346F6E72 // GIL-infe"rno4"751
+        jne retcode
+        mov word ptr [edx+0xA4+0x34], 4 // make it launch
+    originalcode:
+        mov byte ptr [edx+0x000000B3],00
+    retcode:
+		jmp dword ptr [KnockbackEdits::jmp_return2]
+    }
+}
+
 std::optional<std::string> KnockbackEdits::on_initialize() {
     if (!install_hook_offset(0x1099F8, hook, &detour, &jmp_return, 5)) { // projectiles?
         spdlog::error("Failed to init KnockbackEdits mod\n");
         return "Failed to init KnockbackEdits mod";
     }
-
+    if (!install_hook_offset(0x10CA35, hook2, &detour2, &jmp_return2, 7)) { // melee?
+        spdlog::error("Failed to init KnockbackEdits mod\n");
+        return "Failed to init KnockbackEdits mod";
+    }
     return Mod::on_initialize();
 }
 
@@ -160,16 +182,19 @@ void KnockbackEdits::on_gui_frame() {
     ImGui::Checkbox(_("Release Always Stuns"), &release_stuns);
     ImGui::SameLine();
     help_marker(_("Release with no meter will stun the enemy"));
+    ImGui::Checkbox(_("Shock Launches"), &volcano_launches);
 }
 
 void KnockbackEdits::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("knockback_edits").value_or(false);
     release_stuns = cfg.get<bool>("release_always_stuns").value_or(false);
+    volcano_launches = cfg.get<bool>("volcano_launches").value_or(false);
 }
 
 void KnockbackEdits::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("knockback_edits", mod_enabled);
     cfg.set<bool>("release_always_stuns", release_stuns);
+    cfg.set<bool>("volcano_launches", volcano_launches);
 }
 
 #endif
