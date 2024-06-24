@@ -49,7 +49,7 @@ void DtKnuckle::toggle(bool enable) {
 		install_patch_offset(0x428E8B, patch7, "\xEB\x08", 2);
 
 		// Fix height reset on landing patch
-		install_patch_offset(0x428E00, patch8, "\x90\x90\x90\x90\x90", 5);
+		install_patch_offset(0x428DFB, patch8, "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 15);
 
 		// Enable efx for guardian
 		install_patch_offset(0x4298D3, patch9, "\x90\x90", 2);

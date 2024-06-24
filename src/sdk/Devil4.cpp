@@ -242,7 +242,7 @@ namespace devil4_sdk {
 		}
 	}
 
-	void __stdcall moreInit(MtObject* sEffect, MtObject* rEffectL, void* uActor) {
+	void __stdcall moreEfctInit(MtObject* sEffect, MtObject* rEffectL, void* uActor) {
         float dummy1 = 0.0f;
         float dummy2 = 1.0f;
         constexpr uintptr_t call1 = 0x0096A0A0;
@@ -298,7 +298,7 @@ namespace devil4_sdk {
 		MtObject* eflObject = read_efl_file(efl_path);
         MtObject* uDevil4Effect = uDevil4Effect_constructor(mt_allocate_heap(0x200, 0x10));
         spawn_or_something((void*)0x00E552CC, uDevil4Effect, op);
-        moreInit(uDevil4Effect, eflObject, uPlayer);
+        moreEfctInit(uDevil4Effect, eflObject, uPlayer);
 		return uDevil4Effect;
 	}
 }
