@@ -4,10 +4,12 @@
 static MtHeapAllocator** mt_heap_alloc_static_ptr = (MtHeapAllocator**)0x00E1434C;
 
 static uintptr_t fptr_update_actor_list{ 0x008DC540 }; // Spawns shit
-static uintptr_t some_struct{ 0x00E552CC };
+static uintptr_t sUnit { 0x00E552CC };
 static uintptr_t sKeyboard{ 0x00E559C0 };
+static uintptr_t sDevil4Resource { 0x00E552D0 };
 
 namespace devil4_sdk {
+
 
 	void* mt_allocate_heap(size_t size, int a2) {
 		static MtHeapAllocator* mt_heap_alloc = *mt_heap_alloc_static_ptr;
@@ -197,6 +199,7 @@ namespace devil4_sdk {
             return buttonPairs[0];
     }
 
+	//https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
 	bool __stdcall internal_kb_check(uint32_t input) {
         _asm{
                 mov eax,[sKeyboard]
@@ -214,5 +217,88 @@ namespace devil4_sdk {
 				xor eax,eax
 				cmp ecx,ebx
 				sete al
-                        }	}
+        }	
+	}
+		
+	MtObject* __stdcall read_efl_file(char* efl_path) {
+        constexpr uintptr_t file_read_call = 0x008DF530;
+		constexpr uintptr_t eflMtDTI = 0x00EADE88;
+		_asm {
+				//get efl file
+				push 01
+				push efl_path
+				push eflMtDTI
+				mov eax,sDevil4Resource
+				mov eax,[eax]
+				call file_read_call
+		}
+	}
+
+	MtObject* __stdcall uDevil4Effect_constructor(void* MtObject) {
+        constexpr uintptr_t efct_init = 0x521890;
+		_asm {
+				mov eax,MtObject
+				call efct_init
+		}
+	}
+
+	void __stdcall moreInit(MtObject* sEffect, MtObject* rEffectL, void* uActor) {
+        float dummy1 = 0.0f;
+        float dummy2 = 1.0f;
+        constexpr uintptr_t call1 = 0x0096A0A0;
+        constexpr uintptr_t call2 = 0x008DDA00;
+        char reserved[100];
+		_asm {
+				mov eax, uActor
+				push eax
+				lea ecx,reserved
+				fld dummy1
+				fstp [reserved + 0x24]
+				fld dummy1
+				fstp [reserved + 0x28]
+				fld dummy1
+				fstp [reserved + 0x2C]
+				push ecx
+				fld dummy1
+				fstp [reserved]
+				fld dummy1
+				fstp [reserved + 0x4]
+				fld dummy1
+				fstp [reserved + 0x8]
+				fld dummy2
+				fstp [reserved + 0xC]
+				push -1
+				push -1
+				mov ebx,rEffectL
+				push ebx
+				mov esi,sEffect
+				push esi
+				mov eax,0x4
+				lea edi,[reserved+0x10]
+				or ecx,-1
+				call call1
+
+				mov ecx,uActor
+				mov al,01
+				mov byte ptr [esi+0x1D4],al
+				mov byte ptr [esi+0x1D5],al
+				mov eax,[sDevil4Resource]
+				mov eax,[eax]
+				mov edi,ebx
+				mov [esi+0x1D0],ecx
+				call call2
+				mov edx,[esi+0xE0]
+				and edx, 0xFFFFFF7F
+				or edx,0x800
+				mov [esi+0xE0],edx
+		}
+	}
+
+	MtObject* __stdcall effect_generator(char* efl_path, void* uPlayer, uint8_t op) {
+		MtObject* eflObject = read_efl_file(efl_path);
+        MtObject* uDevil4Effect = uDevil4Effect_constructor(mt_allocate_heap(0x200, 0x10));
+        spawn_or_something((void*)0x00E552CC, uDevil4Effect, op);
+        moreInit(uDevil4Effect, eflObject, uPlayer);
+		return uDevil4Effect;
+	}
 }

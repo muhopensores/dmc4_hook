@@ -240,17 +240,28 @@ void __stdcall wew(MtDTI* dti, char* path) {
         case 0x6C6F4372:
             if (std::strstr(name,"rCollisionShape"))
                 extension = "col";
+            else
+                extension = "idx"; //rename from ".rCollisionIdxData"
             break;
         case 0x78655472: extension = "tex"; break;
         case 0x66664572: extension = "efl"; break;
         case 0x68635372: extension = "sdl"; break;
-        case 0x746F4D72: extension = "lmt"; break;
+        case 0x746F4D72: //rMot
+            if (std::strstr(name,"rMotionList")) 
+                extension = "lmt";
+            else if (std::strstr(name,"rMotionSe"))
+                extension = "msse";
+            break;
         case 0x616C5072: extension = "pla"; break;
         case 0x72705372:
             if (std::strstr(name,"rSprLayout"))
                 extension = "rSprLayout";
             else
                 extension = "rSprAnm";
+            break;
+        case 0x756F5372:
+            if (std::strstr(name, "rSoundRequest"))
+                extension = "sreq";
             break;
     }
 
