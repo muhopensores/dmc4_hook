@@ -3,6 +3,7 @@ lsp/
 i18n/mo
 .clangd/
 .cache
+.vs/
 .vscode/
 lsp.bat
 src/Config.hpp

@@ -367,6 +367,8 @@ void SelectiveCancels::on_gui_frame() {
 		if (ImGui::Checkbox(_("Grief"), &good_grief)) {
 			griefToggle(good_grief);
 		}
+		ImGui::SameLine();
+		help_marker(_("Cancel out of Grief mid-throw animation without recalling Pandora"));
 		
 		draw_checkbox_simple(_("Gun Stinger"), GUNSTINGER);
 

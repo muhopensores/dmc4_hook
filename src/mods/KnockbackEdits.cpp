@@ -157,11 +157,10 @@ naked void detour2() { // melee?
         jne originalcode
 
         cmp dword ptr [edx+0xA4+0x8], 0x346F6E72 // GIL-infe"rno4"751
-        jne retcode
+        jne originalcode
         mov word ptr [edx+0xA4+0x34], 4 // make it launch
     originalcode:
         mov byte ptr [edx+0x000000B3],00
-    retcode:
 		jmp dword ptr [KnockbackEdits::jmp_return2]
     }
 }
