@@ -103,6 +103,8 @@ naked void detour1() { // player in eax + edi
 			jmp originalcode
 
 		CancellableShock:
+			cmp dword ptr [eax+0x348], 0x42200000 // 40.0f
+			jb originalcode
 			test [SelectiveCancels::cancels], SHOCK
 			jne JumpCancellable
 			jmp originalcode
@@ -238,7 +240,6 @@ naked void grief_detour2() { // janky as all hell, but it works
             cmp dword ptr [eax+0x1DB8], 8 // weapon
             jne handler
             jmp originalcode
-
     }
 }
 
@@ -324,6 +325,8 @@ void SelectiveCancels::on_gui_frame() {
 		draw_checkbox_simple(_("Kick 13"), KICK13);
 
 		draw_checkbox_simple(_("Shock"), SHOCK);
+		ImGui::SameLine();
+		help_marker(_("Cancellable from frame 40"));
 		ImGui::SameLine(sameLineWidth + lineIndent);
 		draw_checkbox_simple(_("Ecstasy"), ECSTASY);
 
