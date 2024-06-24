@@ -1,5 +1,7 @@
 #include "DtKnuckle.hpp"
 
+//#define EFCT_PATH "effect\\efl\\ene\\ee018_90v5"
+
 bool DtKnuckle::mod_enabled{false};
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
@@ -10,7 +12,7 @@ uintptr_t DtKnuckle::jmp_ret1{NULL};
 	bool endFlag                      = 0;
 	int16_t desiredInput              = 0;
 	int16_t previousInput             = 0;
-	uint32_t key					  = 82;
+	uint32_t key					  = 84;
 	constexpr uintptr_t detour1_call1 = 0x00829BE0;
 	constexpr uintptr_t cancel_call = 0x82A9D5;
 uintptr_t DtKnuckle::jmp_ret2{NULL};
@@ -35,6 +37,8 @@ uintptr_t DtKnuckle::jmp_ret13{NULL};
 uintptr_t DtKnuckle::jmp_ret14{NULL};
 uintptr_t DtKnuckle::jmp_ret15{NULL};
 	float rushFrame = 135.0f;
+constexpr uintptr_t effect_call = 0x480480;
+	char* EFCT_PATH = "effect\\efl\\vie\\vi020_00v0";
 
 void DtKnuckle::toggle(bool enable) {
 	if (enable) {
@@ -130,6 +134,22 @@ naked void detour1(void) {
 			mov eax, [ebp+0x140C]
 			test al, 0x8
 			je ForwardCheck
+
+			pushad //effect call
+			push [ebp+0xCDF8]
+			push 0x14
+			push -0x01
+			push -0x01
+			push [ebp+0xCDF8]
+			mov edx, 0x41
+			mov eax, 0x13
+			call effect_call
+			//push 0x14
+			//push [ebp+0xCDF8]
+			//push EFCT_PATH
+			//call devil4_sdk::bind_effect
+			popad
+
 			mov dword ptr [moveID],0x35F
 			jmp SpawnSpectre
 
@@ -147,11 +167,20 @@ naked void detour1(void) {
 			mov dword ptr [moveID], 0x330
 		SpawnSpectre:
 			mov edi, [ebp+0xCDF8]
-			//pushad
-			//call DTcancel
-			//popad
+			mov byte ptr [edi+0x22C8],01
+
+			fld [ebp+0x30] // X-pos
+			fstp [edi+0x30]
+			fld [ebp+0x34] // Y-pos
+			fstp [edi+0x34]
+			fld [ebp+0x38] // Z-pos
+			fstp [edi+0x38]
+			// pushad
+			// call DTcancel
+			// popad
+
 			mov eax, [edi+0x22A8]
-			cmp eax, 0x7
+			cmp eax, 0x7 //Check if stand is mid snatch
 			je handler
 			mov eax, 0x00000004
 			mov esi, [moveID]
@@ -212,15 +241,18 @@ naked void detour2(void) {
 	}
 }
 
-// animation check bypass
+// animation check bypass (cancel)
 naked void detour3(void) {
 	_asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
+			
+			cmp byte ptr [spectreFlag],1
+			jne handler
 
-			cmp byte ptr [spectreFlag], 01
-			jne originalcode
+		thing:
 			mov al, 01
+			
 		originalcode:
 			test al, al
 			je jmp_je
@@ -229,6 +261,11 @@ naked void detour3(void) {
 
 		jmp_je:
 			jmp dword ptr [detour3_conditional1]
+
+		handler:
+			cmp byte ptr [endFlag], 01
+			je originalcode
+			jmp thing
 	}
 }
 
@@ -253,30 +290,47 @@ naked void detour4(void) {
 	}
 }
 // Disjoint
+// naked void detour5(void) {
+// 	_asm {
+// 			cmp byte ptr [DtKnuckle::mod_enabled], 0
+// 			je originalcode
+
+// 			push eax
+// 			xor eax, eax // because mov al
+// 			mov al, [spectreFlag]
+// 			test eax, eax
+// 			je handler
+// 			pop eax
+// 			jmp jmp_jmp1
+			
+// 		handler:
+// 			pop eax
+// 		originalcode:
+// 			cmp eax, esi
+// 			je jmp_jmp1
+// 			mov eax, [ecx*0x4+detour5_mov1] // might need 0x00E1657C
+// 		// jmp_ret:
+// 			jmp dword ptr [DtKnuckle::jmp_ret5]
+
+// 		jmp_jmp1:
+// 			jmp dword ptr [detour5_jmp1]
+// 	}
+// }
+
+//Alt disjoint, unset follow player flag instead
 naked void detour5(void) {
 	_asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
 
-			push eax
-			xor eax, eax // because mov al
-			mov al, [spectreFlag]
-			test eax, eax
-			je handler
-			pop eax
-			jmp jmp_jmp1
-			
-		handler:
-			pop eax
-		originalcode:
-			cmp eax, esi
-			je jmp_jmp1
-			mov eax, [ecx*0x4+detour5_mov1] // might need 0x00E1657C
-		// jmp_ret:
-			jmp dword ptr [DtKnuckle::jmp_ret5]
+			cmp byte ptr [spectreFlag], 01
+			jne originalcode
 
-		jmp_jmp1:
-			jmp dword ptr [detour5_jmp1]
+			mov byte ptr [edi+0x22C8],00
+
+		originalcode:
+			mov ecx, 0xFFFFFFFB
+  			jmp dword ptr [DtKnuckle::jmp_ret5]
 	}
 }
 
@@ -464,6 +518,7 @@ naked void detour13(void) {
 			je originalcode
 
 			mov byte ptr [endFlag], 00
+			mov byte ptr [edi+0x22C8],01
 		originalcode:
 			mov [edi+0x000022A8], ebx
 		// jmp_ret:
@@ -482,6 +537,7 @@ naked void detour14(void) {
 	}
 }
 
+//Skip startup frames
 naked void detour15(void) {
 	_asm {
 			cmp ecx,0x035F
@@ -511,7 +567,11 @@ std::optional<std::string> DtKnuckle::on_initialize() {
 		spdlog::error("Failed to init DtKnuckle mod4\n");
 		return "Failed to init DtKnuckle mod4";
 	}
-	if (!install_hook_offset(0x42A8D0, hook5, &detour5, &jmp_ret5, 11)) {
+	// if (!install_hook_offset(0x42A8D0, hook5, &detour5, &jmp_ret5, 11)) {
+	// 	spdlog::error("Failed to init DtKnuckle mod5\n");
+	// 	return "Failed to init DtKnuckle mod5";
+	// }
+	if (!install_hook_offset(0x42A948, hook5, &detour5, &jmp_ret5, 5)) {
 		spdlog::error("Failed to init DtKnuckle mod5\n");
 		return "Failed to init DtKnuckle mod5";
 	}

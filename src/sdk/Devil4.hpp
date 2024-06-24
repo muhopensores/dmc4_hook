@@ -17,4 +17,5 @@ namespace devil4_sdk {
 	std::pair<uint16_t, const char*> getButtonInfo(uint16_t buttonNum);
 	float get_current_style_rank();
 	bool __stdcall internal_kb_check(uint32_t input);
+	MtObject* __stdcall effect_generator(char* efl_path, void* uPlayer, uint8_t op);
 };
