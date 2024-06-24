@@ -505,13 +505,13 @@ namespace gui {
                     pmods->on_draw_ui("ManualTwosomeTime"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("FastPandora"_hash);
-
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("TimerMem"_hash); // instant honeycomb
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("ChargeChecker"_hash); // currently just faster roundtrip
 
-                    pmods->on_draw_ui("ActiveBlock"_hash);
+                    pmods->on_draw_ui("ChargeChecker"_hash); // currently just faster roundtrip
                     ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("ActiveBlock"_hash);
+
                     pmods->on_draw_ui("KnockbackEdits"_hash);
 
                     pmods->on_draw_ui("InfTrickRange"_hash);

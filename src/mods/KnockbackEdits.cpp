@@ -181,6 +181,7 @@ void KnockbackEdits::on_gui_frame() {
     ImGui::Checkbox(_("Release Always Stuns"), &release_stuns);
     ImGui::SameLine();
     help_marker(_("Release with no meter will stun the enemy"));
+    ImGui::SameLine(sameLineWidth);
     ImGui::Checkbox(_("Shock Launches"), &volcano_launches);
 }
 
