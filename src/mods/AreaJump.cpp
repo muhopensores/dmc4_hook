@@ -165,11 +165,8 @@ void AreaJump::jump_to_stage(const Room* stage) {
 std::optional<std::string> AreaJump::on_initialize() {
     sArea* s_area_ptr = devil4_sdk::get_sArea();
 	// uintptr_t address = hl::FindPattern("8B 92 30 38 00 00", "DevilMayCry4_DX9.exe"); // DevilMayCry4_DX9.exe+E1F6 
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_OEM_4 }, "Restart BP stage", "bp_restart_stage_hotkey"));
-
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_OEM_6 }, "Next BP stage", "bp_next_stage_hotkey"));
+    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_OEM_4 }, "Restart BP stage", "bp_restart_stage_hotkey");
+    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_OEM_6 }, "Next BP stage", "bp_next_stage_hotkey");
 
     console->system().RegisterCommand("skip", "Skip current BP stage", [this, s_area_ptr]() {
         if (devil4_sdk::get_local_player()) {

@@ -31,7 +31,7 @@ std::optional<std::string> InfDT::on_initialize() {
         .on_init([&] { mod_enabled = true; })
         .set_timer(30.0, [&] { mod_enabled = false; });
 
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_F2, "Inf DT", "inf_dt_key"));
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_F2}, "Inf DT", "inf_dt_key");
 
     console->system().RegisterCommand("infdt", "Infinite DT", [/*this*/]() {
         InfDT::mod_enabled = !InfDT::mod_enabled;

@@ -431,35 +431,16 @@ std::optional<std::string> CameraSettings::on_initialize() {
     }
 
     // hotkeys
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD0}, "Pause Camera", "pause_camera"));
-
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD1}, "Pan Camera Down", "pan_camera_down"));
-
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD2}, "Tilt Camera Down", "tilt_camera_down"));
-
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD3}, "Dolly Camera In", "dolly_camera_in"));
-
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD4}, "Zoom Camera In", "zoom_camera_in"));
-
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD5}, "Reset Camera", "reset_camera"));
-
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD6}, "Zoom Camera Out", "zoom_camera_out"));
-
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD7}, "Pan Camera Up", "pan_camera_up"));
-
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD8}, "Tilt Camera Up", "tilt_camera_up"));
-
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_NUMPAD9}, "Dolly Camera Out", "dolly_camera_out"));
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD0}, "Pause Camera", "pause_camera");
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD1}, "Pan Camera Down", "pan_camera_down");
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD2}, "Tilt Camera Down", "tilt_camera_down");
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD3}, "Dolly Camera In", "dolly_camera_in");
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD4}, "Zoom Camera In", "zoom_camera_in");
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD5}, "Reset Camera", "reset_camera");
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD6}, "Zoom Camera Out", "zoom_camera_out");
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD7}, "Pan Camera Up", "pan_camera_up");
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD8}, "Tilt Camera Up", "tilt_camera_up");
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD9}, "Dolly Camera Out", "dolly_camera_out");
 
     return Mod::on_initialize();
 }

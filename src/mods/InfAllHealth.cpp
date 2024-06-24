@@ -49,7 +49,7 @@ std::optional<std::string> InfAllHealth::on_initialize() {
         return "Failed to init InfAllHealth mod";
     }
 
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_F1, "Infinite Health (All)", "inf_hp_key"));
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_F1}, "Infinite Health (All)", "inf_hp_key");
 
     console->system().RegisterCommand("god", "Infinite player HP", [/*this*/]() {
         player_invincible = !player_invincible;

@@ -40,7 +40,7 @@ struct MessageDisplay {
 	void update_messages();
 
 private:
-	MessageDisplay() {};
+	MessageDisplay() = default;
 };
 
 //#define SHOW_MESSAGES()  MessageDisplay::instance().show_messages();
