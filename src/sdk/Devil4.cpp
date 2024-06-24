@@ -248,28 +248,25 @@ namespace devil4_sdk {
         constexpr uintptr_t call1 = 0x0096A0A0;
         constexpr uintptr_t call2 = 0x008DDA00;
         char reserved[100];
-        char reserved2[100];
 		_asm {
 				mov eax, uActor
 				push eax
-				lea ecx,[reserved]
-				lea edi,reserved
+				lea ecx,reserved
 				fld dummy1
-				fstp [edi]
+				fstp [reserved + 0x24]
 				fld dummy1
-				fstp [edi + 0x4]
+				fstp [reserved + 0x28]
 				fld dummy1
-				fstp [edi + 0x8]
+				fstp [reserved + 0x2C]
 				push ecx
-				lea edi,reserved2
 				fld dummy1
-				fstp [edi]
+				fstp [reserved]
 				fld dummy1
-				fstp [edi + 0x4]
+				fstp [reserved + 0x4]
 				fld dummy1
-				fstp [edi + 0x8]
+				fstp [reserved + 0x8]
 				fld dummy2
-				fstp [edi + 0xC]
+				fstp [reserved + 0xC]
 				push -1
 				push -1
 				mov ebx,rEffectL
@@ -277,7 +274,7 @@ namespace devil4_sdk {
 				mov esi,sEffect
 				push esi
 				mov eax,0x4
-				lea edi,[reserved2]
+				lea edi,[reserved+0x10]
 				or ecx,-1
 				call call1
 

@@ -136,18 +136,18 @@ naked void detour1(void) {
 			je ForwardCheck
 
 			pushad //effect call
-			// push [ebp+0xCDF8]
-			// push 0x14
-			// push -0x01
-			// push -0x01
-			// push [ebp+0xCDF8]
-			// mov edx, 0x41
-			// mov eax, 0x13
-			// call effect_call
-			push 0x14
 			push [ebp+0xCDF8]
-			push EFCT_PATH
-			call devil4_sdk::effect_generator
+			push 0x14
+			push -0x01
+			push -0x01
+			push [ebp+0xCDF8]
+			mov edx, 0x41
+			mov eax, 0x13
+			call effect_call
+			//push 0x14
+			//push [ebp+0xCDF8]
+			//push EFCT_PATH
+			//call devil4_sdk::bind_effect
 			popad
 
 			mov dword ptr [moveID],0x35F
