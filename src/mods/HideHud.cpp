@@ -385,8 +385,7 @@ std::optional<std::string> HideHud::on_initialize() {
         return "Failed to init boey_hud_15 mod";
     }
 
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_OEM_MINUS}, "Hide All HUD", "hide_all_hud"));
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_OEM_MINUS}, "Hide All HUD", "hide_all_hud");
 
     console->system().RegisterCommand("hud", "Toggle all HUD", [this]() {
         mod_enabled_hide_all_hud = !mod_enabled_hide_all_hud;

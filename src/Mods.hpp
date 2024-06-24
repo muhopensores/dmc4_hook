@@ -6,7 +6,7 @@
 class Mods {
 public:
 	Mods();
-    ~Mods() {};
+    ~Mods() = default;
 	//virtual ~Mods() {};
 
 	std::optional<std::string> on_initialize(Mod::ModType type) const;

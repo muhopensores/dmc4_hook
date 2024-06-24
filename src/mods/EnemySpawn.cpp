@@ -357,20 +357,19 @@ std::optional<std::string> EnemySpawn::on_initialize() {
             spawn_random_enemy();
         });
 
-    using v_key = std::vector<uint32_t>;
     m_hotkeys.reserve(HOTKEY_MAX);
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F1 }, "Spawn Scarecrow Leg", "spawn_scarecrow_leg_key"));
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F2 }, "Spawn Scarecrow Arm", "spawn_scarecrow_arm_key"));
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F3 }, "Spawn Mega", "spawn_mega_key"));
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F4 }, "Spawn Bianco", "spawn_bianco_key"));
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F5 }, "Spawn Alto", "spawn_alto_key"));
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F6 }, "Spawn Mephisto", "spawn_mephisto_key"));
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F7 }, "Spawn Faust", "spawn_faust_key"));
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F8 }, "Spawn Frost", "spawn_frost_key"));
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F9 }, "Spawn Assault", "spawn_assault_key"));
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F10 }, "Spawn Blitz", "spawn_blitz_key"));
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F11 }, "Spawn Chimera", "spawn_chimera_key"));
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_CONTROL, VK_F12 }, "Spawn Basilisk", "spawn_basilisk_key"));
+    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F1 }, "Spawn Scarecrow Leg", "spawn_scarecrow_leg_key");
+    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F2 }, "Spawn Scarecrow Arm", "spawn_scarecrow_arm_key");
+    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F3 }, "Spawn Mega", "spawn_mega_key");
+    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F4 }, "Spawn Bianco", "spawn_bianco_key");
+    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F5 }, "Spawn Alto", "spawn_alto_key");
+    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F6 }, "Spawn Mephisto", "spawn_mephisto_key");
+    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F7 }, "Spawn Faust", "spawn_faust_key");
+    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F8 }, "Spawn Frost", "spawn_frost_key");
+    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F9 }, "Spawn Assault", "spawn_assault_key");
+    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F10 }, "Spawn Blitz", "spawn_blitz_key");
+    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F11 }, "Spawn Chimera", "spawn_chimera_key");
+    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F12 }, "Spawn Basilisk", "spawn_basilisk_key");
 
     console->system().RegisterCommand("spawnscarecrowleg", "Spawn a Scarecrow Leg", [/*this*/]() {
         spawn_em00x(0);

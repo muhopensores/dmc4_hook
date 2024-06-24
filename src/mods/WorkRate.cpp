@@ -29,9 +29,7 @@ std::optional<std::string> WorkRate::on_initialize() {
 		return "Failed to init WorkRate mod";
 	}*/
 
-	//  hotkeys
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_DECIMAL}, "Pause Game", "pause_game"));
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_DECIMAL}, "Pause Game", "pause_game");
 
 	console->system().RegisterCommand("turbo", "Set turbo speed for current room", 
         [](float value) {

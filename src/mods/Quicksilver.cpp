@@ -242,7 +242,8 @@ std::optional<std::string> Quicksilver::on_initialize() {
 
     // timer duration in float and callback function once it finishes
     m_timer = new utility::Timer(15.0f, on_timer_callback);
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_OEM_PLUS, "QuickSilver", "quicksilver_key"));
+	utility::create_keyboard_hotkey(m_hotkeys, {VK_OEM_PLUS}, "QuickSilver", "quicksilver_key");
+
     return Mod::on_initialize();
 }
 

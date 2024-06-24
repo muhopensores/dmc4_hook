@@ -235,6 +235,8 @@ set(HOOKS_SRC
     D3D9Hook.cpp
     WindowsMessageHook.hpp
     WindowsMessageHook.cpp
+    XInputHook.hpp
+    XInputHook.cpp
 )
 
 set(SDK_SRC

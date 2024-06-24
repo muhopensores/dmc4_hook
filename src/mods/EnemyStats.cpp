@@ -24,10 +24,10 @@ enum HotkeyIndexes {
 
 std::optional<std::string> EnemyStats::on_initialize() {
 
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_HOME, "Save Enemy Stats", "save_enemy_stats_key"));
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_END, "Apply Enemy Stats","apply_enemy_stats_key"));
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_PRIOR, "Save Boss Stats", "save_boss_stats_key"));
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(VK_NEXT, "Apply Boss Stats", "apply_boss_stats_key"));
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_HOME},  "Save Enemy Stats",  "save_enemy_stats_key");
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_END},   "Apply Enemy Stats", "apply_enemy_stats_key");
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_PRIOR}, "Save Boss Stats",   "save_boss_stats_key");
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_NEXT},  "Apply Boss Stats",  "apply_boss_stats_key");
     
     return Mod::on_initialize();
 }

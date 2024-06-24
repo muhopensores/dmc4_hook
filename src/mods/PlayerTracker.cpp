@@ -134,9 +134,8 @@ std::optional<std::string> PlayerTracker::on_initialize() {
         }, 
         csys::Arg<float>("0.0 - 20000.0"));
 
-    using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_F11, VK_TAB  }, "Save Player XYZ", "save_player_xyz_hotkey"));
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{ VK_F12, VK_TAB  }, "Load Player XYZ", "load_player_xyz_hotkey"));
+    utility::create_keyboard_hotkey(m_hotkeys, { VK_F11, VK_TAB  }, "Save Player XYZ", "save_player_xyz_hotkey");
+    utility::create_keyboard_hotkey(m_hotkeys, { VK_F12, VK_TAB  }, "Load Player XYZ", "load_player_xyz_hotkey");
 
     return Mod::on_initialize();
 }

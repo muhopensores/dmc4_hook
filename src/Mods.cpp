@@ -277,8 +277,11 @@ std::optional<std::string> Mods::on_initialize(Mod::ModType type) const {
         }
     }
 
-    if (type == Mod::ModType::SLOW)
-        g_framework->get_menu_key_struct()->on_config_load(cfg);
+    if (type == Mod::ModType::SLOW) {
+        ModFramework* framework = g_framework.get();
+        framework->get_menu_key_struct()->on_config_load(cfg);
+        framework->get_menu_button_struct()->on_config_load(cfg);
+    }
 
     MutatorRegistry::inst().load_config(cfg);
 
@@ -302,7 +305,11 @@ void Mods::on_config_save() {
         }
     }
 
-    g_framework->get_menu_key_struct()->on_config_save(cfg);
+    ModFramework* framework = g_framework.get();
+    framework->get_menu_key_struct()->on_config_save(cfg);
+    framework->get_menu_button_struct()->on_config_save(cfg);
+    
+
     MutatorRegistry::inst().save_config(cfg);
 
     if (!cfg.save(CONFIG_FILENAME)) {
@@ -418,7 +425,9 @@ void Mods::on_hotkey_tab(utility::Input& input)
     ImGui::Spacing();
 
     auto& menu = g_framework->get_menu_key_struct();
-    if (menu) { menu->draw(input); ImGui::Separator(); }
+    { menu->draw(input); ImGui::Separator(); }
+    auto& menu_gamepad = g_framework->get_menu_button_struct();
+    { menu_gamepad->draw(input); ImGui::Separator(); }
 
     for (auto& mod : m_mods) {
         // it was too late i realized some shit binds multiple hotkeys

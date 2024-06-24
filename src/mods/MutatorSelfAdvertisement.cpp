@@ -39,7 +39,7 @@ static float Hash21(glm::vec2 p) {
     return glm::fract(p.x * p.y);
 }
 
-static ImColor rnd_hue(glm::vec2 p) {
+static ImColor rnd_hue(const glm::vec2& p) {
     return ImColor::HSV(Hash21(p), 1.0f, 1.0, 1.0f);
 }
 

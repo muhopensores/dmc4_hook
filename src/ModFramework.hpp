@@ -10,6 +10,7 @@ namespace utility {
 }
 
 #include "D3D9Hook.hpp"
+#include "XInputHook.hpp"
 #include "WindowsMessageHook.hpp"
 #include "utility/ChronoAlias.hpp"
 #include "imgui.h"
@@ -61,6 +62,10 @@ public:
         return m_menu_key;
     }
 
+    const auto& get_menu_button_struct() const {
+        return m_menu_xinput_buttons;
+    }
+
     // const auto& get_custom_imgui_font() const {
     //     return m_custom_font;
     // }
@@ -99,12 +104,14 @@ private:
     std::chrono::high_resolution_clock::time_point m_prev_time;
 
     std::unique_ptr<D3D9Hook> m_d3d9_hook{};
+    std::unique_ptr<XInputHook> m_xinput_hook{};
     std::unique_ptr<WindowsMessageHook> m_windows_message_hook;
     std::shared_ptr<spdlog::logger> m_logger;
     std::string m_error;
 
-    std::unique_ptr<utility::Input> m_input;
+    std::unique_ptr<utility::Input>  m_input;
     std::unique_ptr<utility::Hotkey> m_menu_key;
+    std::unique_ptr<utility::Hotkey> m_menu_xinput_buttons;
 
     // Game-specific stuff
     std::unique_ptr<Mods> m_mods;

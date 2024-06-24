@@ -30,7 +30,7 @@ std::optional<std::string> DisableKeyboard::on_initialize() {
 	}
 
     using v_key = std::vector<uint32_t>;
-    m_hotkeys.emplace_back(std::make_unique<utility::Hotkey>(v_key{VK_SCROLL}, "Disable Keyboard Inputs", "disable_keyboard_inputs_hotkey"));
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_SCROLL}, "Disable Keyboard Inputs", "disable_keyboard_inputs_hotkey");
 
     return Mod::on_initialize();
 }

@@ -99,9 +99,19 @@ ModFramework::ModFramework()
         spdlog::info("Hooked D3D9");
     }
 
+    m_xinput_hook = std::make_unique<XInputHook>();
+    if(m_xinput_hook->hook()) {
+        spdlog::info("Hooked XInput");
+        utility::gamepads::set_gamepad_callbacks(); // needs xinput hook initialized
+    }
+    else {
+        spdlog::error("Failed to hook XInput!");
+    }
+
 #ifndef NDEBUG
     reframework::setup_exception_handler();
 #endif
+
 }
 
 ModFramework::~ModFramework() {
@@ -155,13 +165,12 @@ void ModFramework::on_frame() {
     }
 
     std::chrono::high_resolution_clock::time_point now_time = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<float, std::milli> delta = now_time - m_prev_time;
 
     m_input->update();
     m_mods->on_update_input(*m_input);
 
     if (g_framework->get_window_handle() == GetForegroundWindow()) {
-        if (m_input->went_down(VK_DELETE) || m_menu_key->check(*m_input)) {
+        if (m_input->went_down(VK_DELETE) || m_menu_key->check(*m_input) || m_menu_xinput_buttons->check(*m_input)) {
             m_draw_ui = !m_draw_ui;
             m_mods->on_game_pause(m_draw_ui);
         }
@@ -180,6 +189,7 @@ void ModFramework::on_frame() {
     console->draw(m_draw_console);
 
     if (m_error.empty() && m_game_data_initialized) {
+        std::chrono::duration<float, std::milli> delta = now_time - m_prev_time;
         m_mods->on_frame(delta);
         m_mods->on_draw_custom_imgui_window();
     }
@@ -347,7 +357,18 @@ bool ModFramework::initialize() {
         };
     }
 
-    m_menu_key = std::make_unique<utility::Hotkey>(VK_DELETE, "Menu Key", "menu_key");
+    // WARNING(): bandaid for some wack heap corruption
+    // keyboard menu toggle key
+    m_menu_key.reset();
+    m_menu_key = utility::create_keyboard_hotkey({ VK_DELETE }, "Menu Key", "menu_key_keyboard");//std::make_unique<utility::Hotkey>(VK_DELETE, "Menu Key", "menu_key");
+
+    // gamepad menu toggle button
+    m_menu_xinput_buttons.reset();
+    // example
+    m_menu_xinput_buttons = utility::create_gamepad_hotkey(
+        { XIBtn::LEFT_TRIGGER, XIBtn::LEFT_THUMB, XIBtn::RIGHT_TRIGGER, XIBtn::RIGHT_THUMB },
+        "Menu Gamepad Button", "menu_gamepad_button");
+
     ImGui_ImplDX9_CreateDeviceObjects();
     on_after_reset();
     if (m_first_frame) {
