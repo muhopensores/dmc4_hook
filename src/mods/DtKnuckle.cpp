@@ -38,7 +38,7 @@ uintptr_t DtKnuckle::jmp_ret14{NULL};
 uintptr_t DtKnuckle::jmp_ret15{NULL};
 	float rushFrame = 135.0f;
 constexpr uintptr_t effect_call = 0x480480;
-	char* EFCT_PATH = "effect\\efl\\vie\\vi020_00v0";
+	char* EFCT_PATH_35F = "effect\\efl\\vie\\vi020_00v0";
 
 void DtKnuckle::toggle(bool enable) {
 	if (enable) {
@@ -63,7 +63,7 @@ void DtKnuckle::toggle(bool enable) {
 		install_patch_offset(0x4299B9, patch10, "\x90\x90", 2);
 
 		// Timely spectre culling
-		install_patch_offset(0x429B40, patch11, "\xEB\x2E", 2);
+		install_patch_offset(0x429B40, patch11, "\x90\x90", 2);//\x90\x90 supposedly makes input more consistent than \xEB\x2E
 	} else {
 		patch1.reset();
 		patch2.reset();
@@ -85,6 +85,16 @@ naked void DTcancel(void) {
 			push esi
 			push edi
 			jmp cancel_call
+	}
+}
+
+void __stdcall make_effect(uint32_t ID, void* uActor) {
+	switch (ID) {
+		case 0x35F:
+            devil4_sdk::effect_generator(EFCT_PATH_35F, uActor, 0x14);
+            break;
+		default:
+			break;
 	}
 }
 
@@ -135,20 +145,12 @@ naked void detour1(void) {
 			test al, 0x8
 			je ForwardCheck
 
-			pushad //effect call
-			// push [ebp+0xCDF8]
-			// push 0x14
-			// push -0x01
-			// push -0x01
-			// push [ebp+0xCDF8]
-			// mov edx, 0x41
-			// mov eax, 0x13
-			// call effect_call
-			push 0x14
-			push [ebp+0xCDF8]
-			push EFCT_PATH
-			call devil4_sdk::effect_generator
-			popad
+			//pushad //effect call
+			//push 0x14
+			//push [ebp+0xCDF8]
+			//push EFCT_PATH
+			//call devil4_sdk::effect_generator
+			//popad
 
 			mov dword ptr [moveID],0x35F
 			jmp SpawnSpectre
@@ -167,27 +169,36 @@ naked void detour1(void) {
 			mov dword ptr [moveID], 0x330
 		SpawnSpectre:
 			mov edi, [ebp+0xCDF8]
-			mov byte ptr [edi+0x22C8],01
 
+			// Check if stand is mid snatch
+			mov eax, [edi+0x22A8]
+			cmp eax, 0x7 
+			je handler
+
+
+            //Stand positioning
+			mov byte ptr [edi+0x22C8],01//follow player flag
 			fld [ebp+0x30] // X-pos
 			fstp [edi+0x30]
 			fld [ebp+0x34] // Y-pos
 			fstp [edi+0x34]
 			fld [ebp+0x38] // Z-pos
 			fstp [edi+0x38]
-			// pushad
-			// call DTcancel
-			// popad
+			fld [ebp+0x44]
+			fstp [edi+0x44]
+			//effect
+			push edi
+			push [moveID]
+			call make_effect
 
-			mov eax, [edi+0x22A8]
-			cmp eax, 0x7 //Check if stand is mid snatch
-			je handler
-			mov eax, 0x00000004
+			mov [edi+0x22C4],0
+			mov eax, 0x00000004//stand attack flag
 			mov esi, [moveID]
 			mov [esp+0x0C], esi
 			mov dword ptr [esp+0x10], 0x04
 			movss [esp+0x14], xmm0
 			mov byte ptr [spectreFlag], 0x01
+			mov byte ptr [ebp+0x22A8], 0
 			call detour1_call1
 			mov eax, [ebp+0x0000CDF8]
 			mov ebx, [eax+0x1370]
