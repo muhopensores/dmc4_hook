@@ -369,7 +369,7 @@ void Mods::on_update_input(utility::Input& input) {
     if (g_framework->get_window_handle() != GetForegroundWindow()) {
         return;
     }
-    if (input.went_down(VK_OEM_3)) {
+    if (input.went_down(VK_OEM_3, false)) {
         g_framework->m_draw_console = !g_framework->m_draw_console;
         if (g_framework->m_draw_console) {
             console->set_display_fraction(0.5f);

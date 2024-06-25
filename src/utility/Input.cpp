@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <utility>
 #include <sstream>
+#include <algorithm>
 
 #include "imgui.h"
 #include "glm/trigonometric.hpp" // is this any different that cmath one, no idea
@@ -68,13 +69,28 @@ namespace utility {
     }
 
     void Input::update_gamepads(/*size_t index*/) { // TODO(): add index for all 4 gamepad sampling
+        static constexpr std::array<WORD,14> xinput_button_bits = {
+            XINPUT_GAMEPAD_DPAD_UP,
+            XINPUT_GAMEPAD_DPAD_DOWN,
+            XINPUT_GAMEPAD_DPAD_LEFT,
+            XINPUT_GAMEPAD_DPAD_RIGHT,
+            XINPUT_GAMEPAD_START,
+            XINPUT_GAMEPAD_BACK,
+            XINPUT_GAMEPAD_LEFT_THUMB,
+            XINPUT_GAMEPAD_RIGHT_THUMB,
+            XINPUT_GAMEPAD_LEFT_SHOULDER,
+            XINPUT_GAMEPAD_RIGHT_SHOULDER,
+            XINPUT_GAMEPAD_A,
+            XINPUT_GAMEPAD_B,
+            XINPUT_GAMEPAD_X,
+            XINPUT_GAMEPAD_Y
+        };
         // buttons
         WORD btn_bit = 1;
-        size_t btn_range = XIBtn::Y; // from 0 (DPAD_UP) to 14 BUTTON_Y;
-        for (size_t i = 0; i <= btn_range; i++) {
-            bool btn_down = g_xinput_buttons[0] & btn_bit; // only first gamepad for now
+        size_t btn_range = XIBtn::LEFT_TRIGGER; // from 0 (DPAD_UP) to 14 BUTTON_Y;
+        for (size_t i = 0; i < btn_range; i++) {
+            bool btn_down = g_xinput_buttons[0] & xinput_button_bits[i]; // only first gamepad for now
             Input::get_state(btn_down, m_gpad_status[i]);
-            btn_bit = btn_bit << 1;
         }
         // left trigger
         Input::get_state(
@@ -98,26 +114,26 @@ namespace utility {
         update_gamepads();
     }
 
-    bool Input::is_down(int vkey) const {
+    bool Input::is_down(int vkey, bool is_gamepad) const {
         assert(vkey >= 0);
-        if ((unsigned)vkey < Input::get_btns_size()) {
-            return m_status[vkey].is_down || m_gpad_status[vkey].is_down;
+        if (is_gamepad) {
+            return m_gpad_status[vkey].is_down;
         }
         return m_status[vkey].is_down;
     }
 
-    bool Input::went_down(int vkey) const {
+    bool Input::went_down(int vkey, bool is_gamepad) const {
         assert(vkey >= 0);
-        if ((unsigned)vkey < Input::get_btns_size()) {
-            return m_status[vkey].state == InputState::WENT_DOWN || m_gpad_status[vkey].state == InputState::WENT_DOWN;
+        if (is_gamepad) {
+            return m_gpad_status[vkey].state == InputState::WENT_DOWN;
         }
         return m_status[vkey].state == InputState::WENT_DOWN;
     }
 
-    bool Input::went_up(int vkey) const {
+    bool Input::went_up(int vkey, bool is_gamepad) const {
         assert(vkey >= 0);
-        if ((unsigned)vkey < Input::get_btns_size()) {
-            return m_status[vkey].state == InputState::WENT_UP || m_gpad_status[vkey].state == InputState::WENT_UP;
+        if (is_gamepad) {
+            return m_gpad_status[vkey].state == InputState::WENT_UP;
         }
         return m_status[vkey].state == InputState::WENT_UP;
     }
@@ -263,8 +279,13 @@ namespace utility {
             // gamepad path
             if (m_is_gamepad) {
                 for (WORD i = 0; i < input.get_btns_size(); i++) {
-                    if(input.went_down(i))
-                        m_binds.push_back(i);
+                    if(input.went_down(i, m_is_gamepad)) {
+                        auto predicate =[i](uint32_t elem) { return elem == i; };
+                        bool should_add = std::none_of(m_binds.begin(), m_binds.end(), predicate);
+                        if (should_add) {
+                            m_binds.push_back(i);
+                        }
+                    }
                 }
             }
             // keyboard path
@@ -281,7 +302,7 @@ namespace utility {
                     if (std::find(ignored_keycodes.begin(), ignored_keycodes.end(), i) != ignored_keycodes.end()) {
                         continue;
                     }
-                    if (input.went_down(i)) {
+                    if (input.went_down(i, m_is_gamepad)) {
                         m_binds.push_back(i);
                     }
                 }
@@ -375,7 +396,7 @@ namespace utility {
 
         if (binds_size == 1) {
             if (m_is_gamepad) {
-                return input.went_down((int)last);
+                return input.went_down((int)last, m_is_gamepad);
             }
             bool is_modifier = false;
             // FIXME(deep): hacky shit so i dont have to check for cases like when one
@@ -396,20 +417,20 @@ namespace utility {
             };
 
             for (const auto key : modifiers) {
-                is_modifier |= input.is_down(key); 
+                is_modifier |= input.is_down(key, m_is_gamepad); 
             }
 
-            return input.went_down(last) && !is_modifier; 
+            return input.went_down(last, m_is_gamepad) && !is_modifier; 
         }
 
         bool is_down = true;
         for (size_t i = 0; i < (binds_size - 1); i++) {
             // use bitwise AND to make sure all the keys are down
             // this is done in case hotkey is not a button combo
-            is_down &= input.is_down(m_binds[i]);
+            is_down &= input.is_down(m_binds[i], m_is_gamepad);
         }
 
-        return is_down && input.went_down(last);
+        return is_down && input.went_down(last, m_is_gamepad);
     }
 
     void Hotkey::on_config_load(const utility::Config& cfg) {

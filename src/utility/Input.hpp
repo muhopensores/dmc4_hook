@@ -42,9 +42,9 @@ namespace utility
 
         void update();
 
-        bool is_down(int vkey) const;
-        bool went_down(int vkey) const;
-        bool went_up(int vkey) const;
+        bool is_down(int vkey, bool is_gamepad) const;
+        bool went_down(int vkey, bool is_gamepad) const;
+        bool went_up(int vkey, bool is_gamepad) const;
 
         inline const auto get_keys_size() const { return m_status.size(); };
         inline const auto get_btns_size() const { return m_gpad_status.size(); };
