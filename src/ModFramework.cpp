@@ -360,14 +360,14 @@ bool ModFramework::initialize() {
     // WARNING(): bandaid for some wack heap corruption
     // keyboard menu toggle key
     m_menu_key.reset();
-    m_menu_key = utility::create_keyboard_hotkey({ VK_DELETE }, "Menu Key", "menu_key_keyboard");//std::make_unique<utility::Hotkey>(VK_DELETE, "Menu Key", "menu_key");
+    m_menu_key = utility::create_keyboard_hotkey({ VK_DELETE }, "dmc4_hook (Keyboard)", "menu_key_keyboard");//std::make_unique<utility::Hotkey>(VK_DELETE, "Menu Key", "menu_key");
 
     // gamepad menu toggle button
     m_menu_xinput_buttons.reset();
     // example
     m_menu_xinput_buttons = utility::create_gamepad_hotkey(
         { XIBtn::LEFT_TRIGGER, XIBtn::LEFT_THUMB, XIBtn::RIGHT_TRIGGER, XIBtn::RIGHT_THUMB },
-        "Menu Gamepad Button", "menu_gamepad_button");
+        "dmc4_hook (Pad)", "menu_gamepad_button");
 
     ImGui_ImplDX9_CreateDeviceObjects();
     on_after_reset();

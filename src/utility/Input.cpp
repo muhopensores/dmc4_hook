@@ -128,83 +128,117 @@ namespace utility {
         if (m_is_gamepad) {
             assert(hotkey >= 0 && hotkey <= XIBtn::RIGHT_TRIGGER);
             static constexpr std::array names = {
-                "XI_DPAD_UP",
-                "XI_DPAD_DOWN",
-                "XI_DPAD_LEFT",
-                "XI_DPAD_RIGHT",
-                "XI_START",
-                "XI_BACK",
-                "XI_LEFT_THUMB",
-                "XI_RIGHT_THUMB",
-                "XI_LEFT_SHOULDER",
-                "XI_RIGHT_SHOULDER",
-                "XI_A",
-                "XI_B",
-                "XI_X",
-                "XI_Y",
-                "XI_LT",
-                "XI_RT",
+                "DPAD_UP",
+                "DPAD_DOWN",
+                "DPAD_LEFT",
+                "DPAD_RIGHT",
+                "START",
+                "BACK",
+                "L3",
+                "R3",
+                "L1",
+                "R1",
+                "A",
+                "B",
+                "X",
+                "Y",
+                "LT",
+                "RT",
             };
             return names.at(hotkey);
         }
 
         // keyboard path
         switch (hotkey) {
-        case 0x10: // 16
-            return "Shift";
-        case 0x11: // 17
-            return "Ctrl";
-        case 0x21: // 33
+        case VK_BACK:
+            return "Backspace";
+        case VK_TAB:
+            return "Tab";
+        case VK_RETURN:
+            return "Enter";
+        case VK_PAUSE:
+            return "Pause";
+        case VK_CAPITAL:
+            return "Caps Lock";
+        case VK_PRIOR:
             return "Page Up";
-        case 0x22: // 34
+        case VK_NEXT:
             return "Page Down";
-        case 0x23: // 35
+        case VK_END:
             return "End";
-        case 0x24: // 36
+        case VK_HOME:
             return "Home";
-        case 0x2D:
+        case VK_PRINT:
+            return "PrintScreen";
+        case VK_INSERT:
             return "Insert";
-        case 0x2E:
+        case VK_DELETE:
             return "Delete";
-        case 0x70: // 112
+        case VK_LWIN:
+            return "LWindows";
+        case VK_RWIN:
+            return "RWindows";
+        case VK_APPS:
+            return "Apps";
+        case VK_NUMPAD0:
+            return "Numpad 0";
+        case VK_NUMPAD1:
+            return "Numpad 1";
+        case VK_NUMPAD2:
+            return "Numpad 2";
+        case VK_NUMPAD3:
+            return "Numpad 3";
+        case VK_NUMPAD4:
+            return "Numpad 4";
+        case VK_NUMPAD5:
+            return "Numpad 5";
+        case VK_NUMPAD6:
+            return "Numpad 6";
+        case VK_NUMPAD7:
+            return "Numpad 7";
+        case VK_NUMPAD8:
+            return "Numpad 8";
+        case VK_NUMPAD9:
+            return "Numpad 9";
+        case VK_F1:
             return "F1";
-        case 0x71: // 113
+        case VK_F2:
             return "F2";
-        case 0x72: // 114
+        case VK_F3:
             return "F3";
-        case 0x73: // 115
+        case VK_F4:
             return "F4";
-        case 0x74: // 116
+        case VK_F5:
             return "F5";
-        case 0x75: // 117
+        case VK_F6:
             return "F6";
-        case 0x76: // 118
+        case VK_F7:
             return "F7";
-        case 0x77: // 119
+        case VK_F8:
             return "F8";
-        case 0x78: // 120
+        case VK_F9:
             return "F9";
-        case 0x79: // 121
+        case VK_F10:
             return "F10";
-        case 0x7A: // 122
+        case VK_F11:
             return "F11";
-        case 0x7B: // 123
+        case VK_F12:
             return "F12";
-        case 0xBB: // 187
-            return "=/+";
-        case 0x91:
+        case VK_NUMLOCK:
+            return "NumLock";
+        case VK_SCROLL:
             return "Scroll Lock";
-        case 0xA0:
+        case VK_LSHIFT:
             return "LShift";
-        case 0xA1:
+        case VK_RSHIFT:
             return "RShift";
-        case 0xA2:
+        case VK_LCONTROL:
             return "LCtrl";
-        case 0xA3:
+        case VK_RCONTROL:
             return "RCtrl";
-        case 0xA4:
+        case VK_LMENU:
             return "LAlt";
-        case 0xA5:
+        case VK_RMENU:
             return "RAlt";
         }
         // TODO(): probably wont work on non us keyboard layouts?
@@ -265,7 +299,7 @@ namespace utility {
             }
         }
 
-        ImGui::TextWrapped("%s %s - %s", prompt, ss.str().c_str(), m_description.c_str());
+        ImGui::TextWrapped("%s %s - %s", prompt, m_description.c_str(), ss.str().c_str());
 
         static ImVec2 btn_size{ ImGui::GetTextLineHeight() * 4.0f , ImGui::GetTextLineHeight() * 1.5f };
         // samelines for algning buttons neatly
