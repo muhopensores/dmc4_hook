@@ -36,9 +36,12 @@ uintptr_t DtKnuckle::jmp_ret12{NULL};
 uintptr_t DtKnuckle::jmp_ret13{NULL};
 uintptr_t DtKnuckle::jmp_ret14{NULL};
 uintptr_t DtKnuckle::jmp_ret15{NULL};
+uintptr_t DtKnuckle::jmp_ret16{NULL};
+	constexpr uintptr_t detour16_conditional = 0x829B4B;
 	float rushFrame = 135.0f;
 constexpr uintptr_t effect_call = 0x480480;
 	char* EFCT_PATH_35F = "effect\\efl\\vie\\vi020_00v0";
+
 
 void DtKnuckle::toggle(bool enable) {
 	if (enable) {
@@ -64,6 +67,7 @@ void DtKnuckle::toggle(bool enable) {
 
 		// Timely spectre culling
 		install_patch_offset(0x429B40, patch11, "\x90\x90", 2);//\x90\x90 supposedly makes input more consistent than \xEB\x2E
+        install_patch_offset(0x429B49, patch12, "\x90\x90", 2);
 	} else {
 		patch1.reset();
 		patch2.reset();
@@ -76,6 +80,7 @@ void DtKnuckle::toggle(bool enable) {
 		patch9.reset();
 		patch10.reset();
 		patch11.reset();
+        patch12.reset();
 	}
 }
 
@@ -184,8 +189,12 @@ naked void detour1(void) {
 			fstp [edi+0x34]
 			fld [ebp+0x38] // Z-pos
 			fstp [edi+0x38]
+			fld [ebp+0x1210]//uPlayer forward facing
+			fstp [edi+0x22E0]//Stand forward facing
 			fld [ebp+0x44]
 			fstp [edi+0x44]
+			fld [ebp+0x4C]
+			fstp [edi+0x4C]
 			//effect
 			push edi
 			push [moveID]
@@ -560,6 +569,18 @@ naked void detour15(void) {
 			jmp [DtKnuckle::jmp_ret15]
 	}
 }
+
+//naked void detour16(void) {
+//	_asm {
+//			cmp byte ptr [endFlag],1
+//			je originalcode
+//			jmp dword ptr [detour16_conditional]
+//		originalcode:
+//			cmp byte ptr [eax+0x000022C9],01
+//			jmp [DtKnuckle::jmp_ret16]
+//
+//	}
+//}
 
 std::optional<std::string> DtKnuckle::on_initialize() {
 	if (!install_hook_offset(0x3A92BF, hook1, &detour1, &jmp_ret1, 6)) {
