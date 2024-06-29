@@ -112,10 +112,7 @@ void __stdcall extend_rush(void) {
 				}
 				else{
 					if (effect_ptr) {
-						uintptr_t methods = (uintptr_t)*(uintptr_t*)effect_ptr;
-						uintptr_t func = (uintptr_t)*(uintptr_t*)(methods + 0x30);//effect culling
-						void* (__fastcall *pFunc)(uintptr_t a) = (void* (__fastcall *)(uintptr_t))func;
-						pFunc(effect_ptr);
+						devil4_sdk::effect_cleanup(effect_ptr);
 						devil4_sdk::effect_generator(EFCT_PATH_35F_END, (void*)uPlNeroDevil, 0x14);
 						effect_ptr = 0;
 					}
@@ -124,10 +121,7 @@ void __stdcall extend_rush(void) {
 	}
 	else {
 		if ((effect_ptr) && (*currentFrameDevil >= 2.0f)) {
-			uintptr_t methods = (uintptr_t)*(uintptr_t*)effect_ptr;
-			uintptr_t func = (uintptr_t)*(uintptr_t*)(methods + 0x30);//effect culling
-			void* (__fastcall *pFunc)(uintptr_t a) = (void* (__fastcall *)(uintptr_t))func;
-			pFunc(effect_ptr);
+			devil4_sdk::effect_cleanup(effect_ptr);
 			effect_ptr = 0;
 		}
 	}
@@ -137,6 +131,8 @@ void __stdcall extend_rush(void) {
 void __stdcall make_effect(uint32_t ID, void* uActor) {
 	switch (ID) {
 		case 0x35F:
+			if (effect_ptr)
+				devil4_sdk::effect_cleanup(effect_ptr);
             effect_ptr = (uintptr_t)devil4_sdk::effect_generator(EFCT_PATH_35F_LONG, uActor, 0x14);
             break;
 		default:
