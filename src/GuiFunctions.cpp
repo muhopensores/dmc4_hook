@@ -547,6 +547,8 @@ namespace gui {
                     pmods->on_draw_ui("AirMustang"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("GoodGrief"_hash);
+
+                    pmods->on_draw_ui("AerialDrive"_hash);
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();

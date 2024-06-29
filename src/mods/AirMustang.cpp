@@ -10,7 +10,7 @@ uintptr_t AirMustang::jmp_ret2{ NULL };
     float MustangBounce = 0.0f;
     float MustangInertia = 15.0f;
     float MustangGrav = -2.0f;
-    float AMstFrame = 8.0f;
+    float AMstFrame = 13.0f;
 uintptr_t AirMustang::jmp_ret3{ NULL };
     float InertiaMultiplier = 0.8f;
 
@@ -95,6 +95,7 @@ naked void detour2() {
     }
 }
 
+//Cancel
 naked void detour3() {
     float buffer;
     _asm {

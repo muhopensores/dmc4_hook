@@ -230,6 +230,8 @@ set(MODS_SRC
   mods/AirMustang.cpp
   mods/GoodGrief.hpp
   mods/GoodGrief.cpp
+  mods/AerialDrive.hpp
+  mods/AerialDrive.cpp
 )
 
 set(HOOKS_SRC

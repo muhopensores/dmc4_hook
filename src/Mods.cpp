@@ -117,6 +117,7 @@
 #include "mods/AerialStinger.hpp"
 #include "mods/AirMustang.hpp"
 #include "mods/GoodGrief.hpp"
+#include "mods/AerialDrive.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -249,6 +250,7 @@ Mods::Mods() {
     ADD_MOD(AerialStinger);
     ADD_MOD(AirMustang);
     ADD_MOD(GoodGrief);
+    ADD_MOD(AerialDrive);
 }
 
 // Initializes mods, checks for errors
