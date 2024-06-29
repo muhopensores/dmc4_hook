@@ -39,8 +39,11 @@ uintptr_t DtKnuckle::jmp_ret15{NULL};
 uintptr_t DtKnuckle::jmp_ret16{NULL};
 	constexpr uintptr_t detour16_conditional = 0x829B4B;
 	float rushFrame = 135.0f;
+	float rushStart = 150.f;
 constexpr uintptr_t effect_call = 0x480480;
-	char* EFCT_PATH_35F = "effect\\efl\\vie\\vi020_00v0";
+	char* EFCT_PATH_35F_LONG = "effect\\efl\\vie\\vi020_00v0";
+	char* EFCT_PATH_35F_END = "effect\\efl\\vie\\vi020_00v1";
+	uintptr_t effect_ptr = 0;
 
 
 void DtKnuckle::toggle(bool enable) {
@@ -66,8 +69,8 @@ void DtKnuckle::toggle(bool enable) {
 		install_patch_offset(0x4299B9, patch10, "\x90\x90", 2);
 
 		// Timely spectre culling
-		install_patch_offset(0x429B40, patch11, "\x90\x90", 2);//\x90\x90 supposedly makes input more consistent than \xEB\x2E
-        install_patch_offset(0x429B49, patch12, "\x90\x90", 2);
+		//install_patch_offset(0x429B40, patch11, "\x90\x90", 2);//\x90\x90 supposedly makes input more consistent than \xEB\x2E
+        //install_patch_offset(0x429B49, patch12, "\x90\x90", 2);
 	} else {
 		patch1.reset();
 		patch2.reset();
@@ -79,8 +82,8 @@ void DtKnuckle::toggle(bool enable) {
 		patch8.reset();
 		patch9.reset();
 		patch10.reset();
-		patch11.reset();
-        patch12.reset();
+		//patch11.reset();
+        //patch12.reset();
 	}
 }
 
@@ -93,10 +96,48 @@ naked void DTcancel(void) {
 	}
 }
 
+void __stdcall extend_rush(void) {
+	uintptr_t uPlayer = (uintptr_t)devil4_sdk::get_local_player();
+	uintptr_t uPlNeroDevil = *(uintptr_t*)(uPlayer+0xCDF8);
+	uintptr_t uPlWpRightHand = *(uintptr_t*)(uPlNeroDevil+0x1374);
+	float* currentFrameDevil = (float*)(uPlNeroDevil+0x348);
+	float* currentFrameHand = (float*)(uPlWpRightHand+0x348);
+	uint16_t moveID = (uint16_t)*(uintptr_t*)(uPlNeroDevil+0x334);
+	uint8_t keyPress = (uint8_t)*(uintptr_t*)(uPlayer+0x140C);
+	if (moveID == 0x35F) {
+		if ((*currentFrameDevil >= 170.0f) && (*currentFrameDevil <= 172.0f)) {
+				if (keyPress & 8) {
+					memcpy(currentFrameDevil, &rushStart,4);
+					memcpy(currentFrameHand, &rushStart,4);
+				}
+				else{
+					if (effect_ptr) {
+						uintptr_t methods = (uintptr_t)*(uintptr_t*)effect_ptr;
+						uintptr_t func = (uintptr_t)*(uintptr_t*)(methods + 0x30);//effect culling
+						void* (__fastcall *pFunc)(uintptr_t a) = (void* (__fastcall *)(uintptr_t))func;
+						pFunc(effect_ptr);
+						devil4_sdk::effect_generator(EFCT_PATH_35F_END, (void*)uPlNeroDevil, 0x14);
+						effect_ptr = 0;
+					}
+				}
+			}
+	}
+	else {
+		if ((effect_ptr) && (*currentFrameDevil >= 2.0f)) {
+			uintptr_t methods = (uintptr_t)*(uintptr_t*)effect_ptr;
+			uintptr_t func = (uintptr_t)*(uintptr_t*)(methods + 0x30);//effect culling
+			void* (__fastcall *pFunc)(uintptr_t a) = (void* (__fastcall *)(uintptr_t))func;
+			pFunc(effect_ptr);
+			effect_ptr = 0;
+		}
+	}
+	return;
+}
+
 void __stdcall make_effect(uint32_t ID, void* uActor) {
 	switch (ID) {
 		case 0x35F:
-            devil4_sdk::effect_generator(EFCT_PATH_35F, uActor, 0x14);
+            effect_ptr = (uintptr_t)devil4_sdk::effect_generator(EFCT_PATH_35F_LONG, uActor, 0x14);
             break;
 		default:
 			break;
@@ -117,7 +158,9 @@ naked void detour1(void) {
 			jne handler
 			cmp dword ptr [ebp], 0xBE4FA0 // is Nero ?
 			jne handler
-
+			pushad
+			call extend_rush
+			popad
 			movss xmm0, [inputCooldown] // reduce input cooldown
 			subss xmm0, [edx+0x10] // delta
 			movss [inputCooldown], xmm0
@@ -582,6 +625,22 @@ naked void detour15(void) {
 //	}
 //}
 
+naked void detour16(void) {
+	_asm {
+			cmp byte ptr [spectreFlag],1
+			jne originalcode
+			jmp bypass
+		check2:
+			cmp byte ptr [endFlag],1
+			jne originalcode
+		bypass:
+			jmp detour16_conditional
+		originalcode:
+			cmp byte ptr [eax+0x000022C9],01
+			jmp [DtKnuckle::jmp_ret16]
+	}
+}
+
 std::optional<std::string> DtKnuckle::on_initialize() {
 	if (!install_hook_offset(0x3A92BF, hook1, &detour1, &jmp_ret1, 6)) {
 		spdlog::error("Failed to init DtKnuckle mod\n");
@@ -644,8 +703,12 @@ std::optional<std::string> DtKnuckle::on_initialize() {
 		return "Failed to init DtKnuckle mod14";
 	}
 	if (!install_hook_offset(0x42B6D9, hook15, &detour15, &jmp_ret15, 9)) {
-		spdlog::error("Failed to init DtKnuckle mod14\n");
-		return "Failed to init DtKnuckle mod14";
+		spdlog::error("Failed to init DtKnuckle mod15\n");
+		return "Failed to init DtKnuckle mod15";
+	}
+	if (!install_hook_offset(0x429B39, hook16, &detour16, &jmp_ret16, 7)) {
+		spdlog::error("Failed to init DtKnuckle mod16\n");
+		return "Failed to init DtKnuckle mod16";
 	}
 	return Mod::on_initialize();
 }
