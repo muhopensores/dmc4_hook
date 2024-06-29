@@ -103,10 +103,10 @@ void __stdcall extend_rush(void) {
 	float* currentFrameDevil = (float*)(uPlNeroDevil+0x348);
 	float* currentFrameHand = (float*)(uPlWpRightHand+0x348);
 	uint16_t moveID = (uint16_t)*(uintptr_t*)(uPlNeroDevil+0x334);
-	uint8_t keyPress = (uint8_t)*(uintptr_t*)(uPlayer+0x140C);
+	uint16_t keyPress = (uint16_t)*(uintptr_t*)(uPlayer+0x1374);
 	if (moveID == 0x35F) {
 		if ((*currentFrameDevil >= 170.0f) && (*currentFrameDevil <= 172.0f)) {
-				if (keyPress & 8) {
+				if (keyPress & desiredInput) {
 					memcpy(currentFrameDevil, &rushStart,4);
 					memcpy(currentFrameHand, &rushStart,4);
 				}
