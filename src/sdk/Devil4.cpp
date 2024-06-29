@@ -304,4 +304,11 @@ namespace devil4_sdk {
         moreEfctInit(uDevil4Effect, eflObject, uPlayer);
 		return uDevil4Effect;
 	}
+
+	void __stdcall effect_cleanup(uintptr_t effect_ptr) {
+            uintptr_t methods = *(uintptr_t*)effect_ptr;
+            uintptr_t func = *(uintptr_t*)(methods + 0x30); // effect culling
+            void*(__fastcall * pFunc)(uintptr_t a) = (void*(__fastcall*)(uintptr_t))func;
+            pFunc((uintptr_t)effect_ptr);
+    }
 }

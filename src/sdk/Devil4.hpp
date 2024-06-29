@@ -18,4 +18,5 @@ namespace devil4_sdk {
 	float get_current_style_rank();
 	bool __stdcall internal_kb_check(uint32_t input);
 	MtObject* __stdcall effect_generator(char* efl_path, void* uPlayer, uint8_t op);
+	void __stdcall effect_cleanup(uintptr_t effect_ptr);
 };
