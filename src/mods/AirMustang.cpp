@@ -62,6 +62,10 @@ naked void detour1() {
             jmp [AirMustang::jmp_ret1]
 
         noLMTcheck:
+
+            cmp dword ptr [esi+0x334], 0x10B
+            jne originalcode
+
             movss xmm6, [esi+0x348]//current frame
             comiss xmm6, [AMstFrame]
             jb originalcode

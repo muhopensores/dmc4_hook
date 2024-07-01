@@ -96,7 +96,7 @@ naked void DTcancel(void) {
 	}
 }
 
-void __stdcall extend_rush(void) {
+void __stdcall hold_extend(void) {
 	uintptr_t uPlayer = (uintptr_t)devil4_sdk::get_local_player();
 	uintptr_t uPlNeroDevil = *(uintptr_t*)(uPlayer+0xCDF8);
 	uintptr_t uPlWpRightHand = *(uintptr_t*)(uPlNeroDevil+0x1374);
@@ -104,27 +104,49 @@ void __stdcall extend_rush(void) {
 	float* currentFrameHand = (float*)(uPlWpRightHand+0x348);
 	uint16_t moveID = (uint16_t)*(uintptr_t*)(uPlNeroDevil+0x334);
 	uint16_t keyPress = (uint16_t)*(uintptr_t*)(uPlayer+0x1374);
-	if (moveID == 0x35F) {
-		if ((*currentFrameDevil >= 170.0f) && (*currentFrameDevil <= 172.0f)) {
-				if (keyPress & desiredInput) {
-					memcpy(currentFrameDevil, &rushStart,4);
-					memcpy(currentFrameHand, &rushStart,4);
-				}
-				else{
-					if (effect_ptr) {
-						devil4_sdk::effect_cleanup(effect_ptr);
-						devil4_sdk::effect_generator(EFCT_PATH_35F_END, (void*)uPlNeroDevil, 0x14);
-						effect_ptr = 0;
-					}
-				}
-			}
+	switch (moveID) {
+		case 0x35F: //punch rush
+            if ((*currentFrameDevil >= 170.0f) && (*currentFrameDevil <= 172.0f)) {
+                if (keyPress & desiredInput) {
+                    memcpy(currentFrameDevil, &rushStart, 4);
+                    memcpy(currentFrameHand, &rushStart, 4);
+                } else {
+                    if (effect_ptr) {
+                        devil4_sdk::effect_cleanup(effect_ptr);
+                        devil4_sdk::effect_generator(EFCT_PATH_35F_END, (void*)uPlNeroDevil, 0x14);
+                        effect_ptr = 0;
+                    }
+                }
+            }
+            break;
+		default:
+            if ((effect_ptr) && (*currentFrameDevil >= 2.0f)) {
+                devil4_sdk::effect_cleanup(effect_ptr);
+                effect_ptr = 0;
+            }
+			break;
 	}
-	else {
-		if ((effect_ptr) && (*currentFrameDevil >= 2.0f)) {
-			devil4_sdk::effect_cleanup(effect_ptr);
-			effect_ptr = 0;
-		}
-	}
+	//if (moveID == 0x35F) {
+	//	if ((*currentFrameDevil >= 170.0f) && (*currentFrameDevil <= 172.0f)) {
+	//			if (keyPress & desiredInput) {
+	//				memcpy(currentFrameDevil, &rushStart,4);
+	//				memcpy(currentFrameHand, &rushStart,4);
+	//			}
+	//			else{
+	//				if (effect_ptr) {
+	//					devil4_sdk::effect_cleanup(effect_ptr);
+	//					devil4_sdk::effect_generator(EFCT_PATH_35F_END, (void*)uPlNeroDevil, 0x14);
+	//					effect_ptr = 0;
+	//				}
+	//			}
+	//		}
+	//}
+	//else {
+	//	if ((effect_ptr) && (*currentFrameDevil >= 2.0f)) {
+	//		devil4_sdk::effect_cleanup(effect_ptr);
+	//		effect_ptr = 0;
+	//	}
+	//}
 	return;
 }
 
@@ -155,7 +177,7 @@ naked void detour1(void) {
 			cmp dword ptr [ebp], 0xBE4FA0 // is Nero ?
 			jne handler
 			pushad
-			call extend_rush
+			call hold_extend
 			popad
 			movss xmm0, [inputCooldown] // reduce input cooldown
 			subss xmm0, [edx+0x10] // delta
