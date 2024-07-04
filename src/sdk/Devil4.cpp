@@ -311,4 +311,29 @@ namespace devil4_sdk {
             void*(__fastcall * pFunc)(uintptr_t a) = (void*(__fastcall*)(uintptr_t))func;
             pFunc((uintptr_t)effect_ptr);
     }
+
+	void __stdcall indexed_anim_call(uint16_t id, uPlayer* actor, uint16_t mode = 0, float speed = 1.0f, float startFrame = 0.0f) {
+        uintptr_t anim_call = 0x00821450;
+		float idk = 3.0f;
+		uintptr_t curr_esp;
+		_asm {
+				mov [curr_esp],esp
+				sub esp,0x0C
+
+				fld speed
+				fstp dword ptr [esp+0x8]
+				fld startFrame
+				fstp dword ptr [esp+0x4]
+				fld idk
+				fstp dword ptr [esp]
+
+				mov al,1
+				mov ecx,[actor]
+				push mode
+				push id
+
+				call anim_call
+				mov esp,[curr_esp]
+		}
+	}
 }
