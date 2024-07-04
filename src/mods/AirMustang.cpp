@@ -19,8 +19,12 @@ naked void detour1() {
             cmp byte ptr [AirMustang::mod_enabled],1
             jne originalcode
 
+
             cmp byte ptr [esi+0x1504],2 //Part of move
             jb originalcode
+
+            cmp dword ptr [esi+0x334], 0x10B
+            jne originalcode
 
             cmp byte ptr [esi+0x14D98],2//current style = trickster
             jne originalcode
@@ -62,10 +66,6 @@ naked void detour1() {
             jmp [AirMustang::jmp_ret1]
 
         noLMTcheck:
-
-            cmp dword ptr [esi+0x334], 0x10B
-            jne originalcode
-
             movss xmm6, [esi+0x348]//current frame
             comiss xmm6, [AMstFrame]
             jb originalcode

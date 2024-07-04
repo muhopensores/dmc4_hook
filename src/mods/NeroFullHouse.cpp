@@ -24,6 +24,8 @@ uintptr_t NeroFullHouse::jmp_ret6{ NULL };
 uintptr_t NeroFullHouse::jmp_ret7{ NULL };
 uintptr_t NeroFullHouse::jmp_ret8{ NULL };
 uintptr_t NeroFullHouse::jmp_ret9{ NULL };
+uintptr_t NeroFullHouse::jmp_ret10{ NULL };
+
 
 static float current_frame = 0.0f;
     float payline_bounce = 10.0f;
@@ -95,6 +97,7 @@ naked void detour3(void) { // select full house landing animation // player in e
             jne code
             cmp byte ptr [esi+0x1494], 1 // nero
             jne code
+            mov byte ptr [esi+0x1D7F],1
         //cheatcode:
             push 0x00000351 // 20 is shmove right, 351/2/3 is payline
             jmp dword ptr [NeroFullHouse::jmp_ret3]
@@ -200,12 +203,32 @@ naked void detour6(void) {
     }
 }
 
+void __stdcall exceed_handling(uintptr_t NeroPtr) {
+
+    float currentFrame = *(float*)(NeroPtr + 0x348);
+    uint16_t moveID    = *(uint16_t*)(NeroPtr + 0x334);
+    uint8_t* exceedLvl          = (uint8_t*)(NeroPtr + 0xCCE8);
+    uint8_t isExceeding = *(uint8_t*)(NeroPtr + 0x1448);
+    uint8_t* Exceedable          = (uint8_t*)(NeroPtr + 0x1D7F);
+    if (moveID == 0x351) {
+        //if (isExceeding)
+            if ((currentFrame > 16.0f) && (currentFrame < 18.0f)) {
+                *Exceedable = 1;
+            } else if (currentFrame > 24.0f) {
+                *Exceedable = 2;
+            }
+    }
+}
+
 naked void detour7(void) {
     _asm {
         cmp byte ptr [NeroFullHouse::mod_enabled], 1
         jne code
         cmp byte ptr [ebx+0x1494], 1 // nero
         jne code
+
+        push ebx
+        call exceed_handling
 
         movss xmm0, [ebx+0x348]
         comiss xmm0, [payline_buffer_frame]
@@ -254,7 +277,7 @@ naked void detour8(void) {
     }
 }
 
-naked void detour9(void) {//effect
+naked void detour9(void) {//looped effect
     _asm {
             cmp byte ptr [NeroFullHouse::mod_enabled], 1
             jne handler
@@ -273,6 +296,30 @@ naked void detour9(void) {//effect
             jmp [NeroFullHouse::jmp_ret9]
         handler:
             lea edx,[esi+0x3E]
+            lea eax,[esi-0x02]
+            jmp originalcode
+    }
+}
+
+
+naked void detour10(void) { //landing effect
+    _asm {
+            cmp byte ptr [NeroFullHouse::mod_enabled], 1
+            jne handler
+            cmp byte ptr [ebx+0x1494], 1 // nero
+            jne handler
+
+            mov edx,0x25
+            mov eax,0x01               // 1-Nero efx, 2-Dante efx
+
+            cmp eax, [ebx+0xCCE8]
+            ja originalcode
+
+            mov edx,0x31
+        originalcode:
+            jmp [NeroFullHouse::jmp_ret10]
+        handler:
+            lea edx,[esi+0x3F]
             lea eax,[esi-0x02]
             jmp originalcode
     }
@@ -315,9 +362,13 @@ std::optional<std::string> NeroFullHouse::on_initialize() {
         spdlog::error("Failed to init NeroFullHouse8 mod\n");
         return "Failed to init NeroFullHouse8 mod";
     }
-    if (!install_hook_offset(0x3D3369, hook9, &detour9, &jmp_ret9, 8)) { // cancellable payline ending 
-        spdlog::error("Failed to init NeroFullHouse8 mod\n");
-        return "Failed to init NeroFullHouse8 mod";
+    if (!install_hook_offset(0x3D3369, hook9, &detour9, &jmp_ret9, 8)) { // looped effect 
+        spdlog::error("Failed to init NeroFullHouse9 mod\n");
+        return "Failed to init NeroFullHouse9 mod";
+    }
+    if (!install_hook_offset(0x3D35C6, hook10, &detour10, &jmp_ret10, 6)) { // landing effect
+        spdlog::error("Failed to init NeroFullHouse10 mod\n");
+        return "Failed to init NeroFullHouse10 mod";
     }
     return Mod::on_initialize();
 }
