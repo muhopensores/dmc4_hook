@@ -72,11 +72,26 @@ naked void detour3() {
         jmp [AerialStinger::jmp_ret3]
     }
 }
+
+void __stdcall stinger_recovery_anim_call(uPlayer* actor) {
+    float currFrame = (float)*(uintptr_t*)(actor+0x348);
+    uint16_t motionID = (uint16_t)*(uintptr_t*)(actor+0x334);
+    if (motionID == 0x235)
+        return;
+    else if (motionID == 0x210)
+        if (currFrame > 18.0f)
+            devil4_sdk::indexed_anim_call(0x235, actor, 0, 1.0f, 37.0f);
+}
+
 //Landing cancel
 naked void detour4() {
     _asm {
         cmp byte ptr [ebp+0x1550],1
         je originalcode
+
+        push ebp
+        call stinger_recovery_anim_call
+
         push eax
         mov eax,[ebp+0x1E8C]
         cmp byte ptr [eax+0x1C],1
