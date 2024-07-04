@@ -13,52 +13,67 @@ uintptr_t AngelSnatch::jmp_ret5{false};
 uintptr_t AngelSnatch::jmp_ret6{false};
 
 // Air Angel Snatch flag
+//naked void detour1(void) {
+//    _asm {
+//			cmp byte ptr [AngelSnatch::mod_enabled], 0
+//			je originalcode
+//
+//            push ecx
+//            mov ecx, [eax+0x21CC]
+//            test cl, cl
+//            je handle
+//            mov byte ptr [snatchFlag], 1
+//            pop ecx
+//            jmp originalcode
+//
+//        handle:
+//            mov byte ptr [snatchFlag], 0
+//            pop ecx
+//		originalcode:
+//            push eax
+//            call detour1_call1
+//        // jmp_ret:
+//			jmp dword ptr [AngelSnatch::jmp_ret1]
+//    }
+//}
+//
+//// Ground Angel Snatch flag
+//naked void detour2(void) {
+//    _asm {
+//			cmp byte ptr [AngelSnatch::mod_enabled], 0
+//			je originalcode
+//
+//            push ecx
+//            mov ecx, [eax+0x21CC]
+//            test cl, cl
+//            je handle
+//            mov byte ptr [snatchFlag], 1
+//            pop ecx
+//            jmp originalcode
+//
+//        handle:
+//            mov byte ptr [snatchFlag], 0
+//            pop ecx
+//		originalcode:
+//            push eax
+//            call detour2_call1
+//        // jmp_ret:
+//			jmp dword ptr [AngelSnatch::jmp_ret2]
+//    }
+//}
+
+//Alternate trigger straight from the input check
 naked void detour1(void) {
     _asm {
-			cmp byte ptr [AngelSnatch::mod_enabled], 0
-			je originalcode
+            cmp byte ptr [esi+0x21CC],1
+            jne originalcode
 
-            push ecx
-            mov ecx, [eax+0x21CC]
-            test cl, cl
-            je handle
-            mov byte ptr [snatchFlag], 1
-            pop ecx
-            jmp originalcode
+            mov byte ptr [snatchFlag],1
 
-        handle:
-            mov byte ptr [snatchFlag], 0
-            pop ecx
-		originalcode:
-            push eax
-            call detour1_call1
-        // jmp_ret:
-			jmp dword ptr [AngelSnatch::jmp_ret1]
-    }
-}
-
-// Ground Angel Snatch flag
-naked void detour2(void) {
-    _asm {
-			cmp byte ptr [AngelSnatch::mod_enabled], 0
-			je originalcode
-
-            push ecx
-            mov ecx, [eax+0x21CC]
-            test cl, cl
-            je handle
-            mov byte ptr [snatchFlag], 1
-            pop ecx
-            jmp originalcode
-
-        handle:
-            mov byte ptr [snatchFlag], 0
-            pop ecx
-		originalcode:
-            push eax
-            call detour2_call1
-        // jmp_ret:
-			jmp dword ptr [AngelSnatch::jmp_ret2]
+        originalcode:
+            mov edx,[esi]
+            mov eax,[ebp+0x1C]
+            jmp dword ptr [AngelSnatch::jmp_ret1]
     }
 }
 
@@ -168,14 +183,18 @@ naked void detour6(void) {
 }
 
 std::optional<std::string> AngelSnatch::on_initialize() {
-    if (!install_hook_offset(0x3F9CF2, hook1, &detour1, &jmp_ret1, 6)) {
+    //if (!install_hook_offset(0x3F9CF2, hook1, &detour1, &jmp_ret1, 6)) {
+    //    spdlog::error("Failed to init AngelSnatch mod\n");
+    //    return "Failed to init AngelSnatch mod";
+    //}
+    if (!install_hook_offset(0x3E5BD5, hook1, &detour1, &jmp_ret1, 5)) { //Alternate angel snatch trigger at input check
         spdlog::error("Failed to init AngelSnatch mod\n");
         return "Failed to init AngelSnatch mod";
     }
-    if (!install_hook_offset(0x3F9CEB, hook2, &detour2, &jmp_ret2, 6)) {
-        spdlog::error("Failed to init AngelSnatch mod2\n");
-        return "Failed to init AngelSnatch mod2";
-    }
+    //if (!install_hook_offset(0x3F9CEB, hook2, &detour2, &jmp_ret2, 6)) {
+    //    spdlog::error("Failed to init AngelSnatch mod2\n");
+    //    return "Failed to init AngelSnatch mod2";
+    //}
     if (!install_hook_offset(0x334F9D, hook3, &detour3, &jmp_ret3, 7)) {
         spdlog::error("Failed to init AngelSnatch mod3\n");
         return "Failed to init AngelSnatch mod3";
