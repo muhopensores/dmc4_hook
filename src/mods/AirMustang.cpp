@@ -87,6 +87,7 @@ naked void detour2() {
             fstp [ebp+0xED4]
             fld [MustangInertia]
             fstp [ebp+0x1E1C]
+            add byte ptr [ebp+0x1E7D],15
             mov byte ptr [flag],0
         
         originalcode:
