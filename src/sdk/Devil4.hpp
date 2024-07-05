@@ -19,5 +19,6 @@ namespace devil4_sdk {
 	bool __stdcall internal_kb_check(uint32_t input);
 	MtObject* __stdcall effect_generator(char* efl_path, void* uPlayer, uint8_t op);
 	void __stdcall effect_cleanup(uintptr_t effect_ptr);
-	void __stdcall indexed_anim_call(uint16_t id, uPlayer* actor, uint16_t mode, float speed, float startFrame);
+        void __stdcall indexed_anim_call(uint32_t id, uPlayer* actor, uint32_t mode, float speed, float startFrame);
+	void __stdcall neutral_air_transition(uPlayer* uActor);
 };

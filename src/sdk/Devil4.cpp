@@ -312,7 +312,7 @@ namespace devil4_sdk {
             pFunc((uintptr_t)effect_ptr);
     }
 
-	void __stdcall indexed_anim_call(uint16_t id, uPlayer* actor, uint16_t mode = 0, float speed = 1.0f, float startFrame = 0.0f) {
+	void __stdcall indexed_anim_call(uint32_t id, uPlayer* actor, uint32_t mode = 0, float speed = 1.0f, float startFrame = 0.0f) {
         uintptr_t anim_call = 0x00821450;
 		float idk = 3.0f;
 		uintptr_t curr_esp;
@@ -333,7 +333,37 @@ namespace devil4_sdk {
 				push id
 
 				call anim_call
-				mov esp,[curr_esp]
+				//mov esp,[curr_esp]
 		}
 	}
+
+	void __stdcall neutral_air_transition(uPlayer* uActor) {
+            float float_val1 = 0.98f;
+            float float_val2 = 1000000.0f;
+            float float_val3 = 20.0f;
+
+            uintptr_t neutral_air_recovery_call = 0x7AA410;
+			uintptr_t curr_esp = 0;
+			_asm {
+					mov eax,uActor
+					mov [curr_esp],esp
+
+					fld dword ptr [float_val1]
+					movss xmm1,[float_val2]
+
+					sub esp,30
+					mov [esp+0xC],1
+					fld dword ptr [eax+0xEC4]
+					fstp dword ptr [esp+0x20]
+					fstp dword ptr [esp+0x8]
+					mov edi,8
+					fld dword ptr [esp+0x20]
+					fstp dword ptr[esp+0x4]
+					fld dword ptr [float_val3]
+					fstp dword ptr [esp]
+					call neutral_air_recovery_call
+					mov esp,[curr_esp]
+			}
+    }
+
 }
