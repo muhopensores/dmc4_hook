@@ -73,14 +73,12 @@ naked void detour3() {
     }
 }
 
-void __stdcall stinger_recovery_anim_call(uPlayer* actor) {
-    float currFrame = (float)*(uintptr_t*)(actor+0x348);
-    uint16_t motionID = (uint16_t)*(uintptr_t*)(actor+0x334);
-    if (motionID == 0x235)
-        return;
-    else if (motionID == 0x210)
-        if (currFrame > 18.0f)
-            devil4_sdk::indexed_anim_call(0x235, actor, 0, 1.0f, 37.0f);
+void __stdcall stinger_recovery_anim_call(uintptr_t actor) {
+    float currFrame = *(float*)(actor+0x348);
+    uint16_t motionID = (uint16_t)*(uint16_t*)(actor+0x334);
+    if (motionID == 0x210)
+        if (currFrame > 25.0f) 
+            devil4_sdk::indexed_anim_call(0x235, (uPlayer*)actor, 0, 0.3f, 37.0f);
 }
 
 //Landing cancel
@@ -113,6 +111,17 @@ naked void detour5() {
         jb originalcode
         fldz
         fstp [ebp+0x1E1C]
+
+        cmp [ebp+0x2A54],bl
+        jne originalcode
+
+        cmp byte ptr [ebp+0x1550],1
+        je originalcode
+
+        push ebp
+        call devil4_sdk::neutral_air_transition
+        mov bl,1
+
     originalcode:
         cmp [ebp+0x2A54],bl
         jmp [AerialStinger::jmp_ret5]
