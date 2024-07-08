@@ -56,7 +56,11 @@ void DtKnuckle::toggle(bool enable) {
 		install_patch_offset(0x4299B9, patch10, "\x90\x90", 2);
 
 		// Timely spectre culling
-		install_patch_offset(0x429B40, patch11, "\xEB\x2E", 2);
+		//install_patch_offset(0x429B40, patch11, "\x90\x90", 2);//\x90\x90 supposedly makes input more consistent than \xEB\x2E
+        //install_patch_offset(0x429B49, patch12, "\x90\x90", 2);
+
+		//Fix stand persisting after jc'ing Double down/Helm breaker
+		install_patch_offset(0x42B857, patch11, "\xEB\x48", 2);
 	} else {
 		patch1.reset();
 		patch2.reset();
