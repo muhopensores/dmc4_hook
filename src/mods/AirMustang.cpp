@@ -23,7 +23,7 @@ naked void detour1() {
             cmp byte ptr [esi+0x1504],2 //Part of move
             jb originalcode
 
-            cmp dword ptr [esi+0x334], 0x10B
+            cmp word ptr [esi+0x334], 0x10B
             jne originalcode
 
             cmp byte ptr [esi+0x14D98],2//current style = trickster

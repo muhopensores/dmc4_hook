@@ -114,7 +114,7 @@ naked void detour4(void) {
 //Recovery
 naked void detour5(void) {
     uintptr_t esp_addr;
-    char buffer[1000];
+    //char buffer[1000];
     _asm {
             cmp byte ptr [aerialDrive],1
             jne originalcode
