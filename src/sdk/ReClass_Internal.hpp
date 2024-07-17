@@ -624,7 +624,15 @@ public:
 
 class LuciferPin {
 public:
-    char pad_0[0x50];
+    char pad_0[0x14];
+    char pin_state;//0x14 (3-pinned, 4-primed, 7-climax)
+    char pop_state;//0x15
+    char pad_15[2];
+    uintptr_t PinnedTarget;//0x18
+    char pad_1C[0x14];
+    Vector3f position;
+    char pad_38[8];
+    Vector4 rotation;
     Vector3f scale; // 0x50
     char pad_5c[0x1734];
     float timer; // 0x1790

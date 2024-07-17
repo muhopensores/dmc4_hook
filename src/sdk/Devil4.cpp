@@ -242,7 +242,7 @@ namespace devil4_sdk {
 		}
 	}
 
-	void __stdcall AttachedEfctInit(MtObject* sEffect, MtObject* rEffectL, void* uActor) {
+	void __stdcall TrackingEfxInit(MtObject* sEffect, MtObject* rEffectL, void* uActor, uint32_t Group, uint32_t Material) {
         float dummy1 = 0.0f;
         float dummy2 = 1.0f;
         constexpr uintptr_t call1 = 0x0096A0A0;
@@ -252,6 +252,7 @@ namespace devil4_sdk {
 		_asm {
 				mov eax, uActor
 				push eax
+				//Position buffer
 				lea ecx,[reserved]
 				lea edi,reserved
 				fld dummy1
@@ -261,6 +262,7 @@ namespace devil4_sdk {
 				fld dummy1
 				fstp [edi + 0x8]
 				push ecx
+				//Rotation buffer
 				lea edi,reserved2
 				fld dummy1
 				fstp [edi]
@@ -270,15 +272,20 @@ namespace devil4_sdk {
 				fstp [edi + 0x8]
 				fld dummy2
 				fstp [edi + 0xC]
-				push -1
-				push -1
+
+				push Material
+				push Group
+				//push rEffectList
 				mov ebx,rEffectL
 				push ebx
+				//push uDevil4Effect
 				mov esi,sEffect
 				push esi
+
 				mov eax,0x4
 				lea edi,[reserved2]
 				or ecx,-1
+
 				call call1
 
 				mov ecx,uActor
@@ -297,13 +304,42 @@ namespace devil4_sdk {
 		}
 	}
 
+	void __stdcall StationaryEfxInit(MtObject* sEffect, MtObject* rEffectL, void* uActor, uint32_t Group, uint32_t Material, float* PosBuffer, float* RotBuffer) {
+		uintptr_t call1 = 0x0096A100;
+		uintptr_t call2 = 0x008DDA00;
+		_asm {
+			mov edx,RotBuffer
+			mov eax,Material
+			mov ecx,Group
+			mov edi,PosBuffer
+			
+			push edx
+			push eax
+			push ecx
+			push rEffectL
+			mov eax,4
+			mov ecx,sEffect
 
+			mov ecx,uActor
+			mov byte ptr [esi+0x1D4],1
+			mov byte ptr [esi+0x1D5],1
+			mov eax,[sDevil4Resource]
+			mov eax,[eax]
+			mov edi,rEffectL
+			mov [esi+0x1D0],ecx
+			call call2
+		}
+	}
 
-	MtObject* __stdcall effect_generator(char* efl_path, void* uPlayer, uint8_t op) {
+	MtObject* __stdcall effect_generator(char* efl_path, void* uPlayer, uint8_t op = 0x14, uint32_t Group = -1, uint32_t Material = -1, bool isStationary = false,
+            float* PosBuffer = nullptr, float* RotBuffer = nullptr) {
 		MtObject* eflObject = read_efl_file(efl_path);
         MtObject* uDevil4Effect = uDevil4Effect_constructor(mt_allocate_heap(0x200, 0x10));
         spawn_or_something((void*)0x00E552CC, uDevil4Effect, op);
-        AttachedEfctInit(uDevil4Effect, eflObject, uPlayer);
+        if (isStationary)
+			TrackingEfxInit(uDevil4Effect, eflObject, uPlayer, Group, Material);
+		else
+            StationaryEfxInit(uDevil4Effect, eflObject, uPlayer, Group, Material, PosBuffer, RotBuffer);
 		return uDevil4Effect;
 	}
 
@@ -331,7 +367,7 @@ namespace devil4_sdk {
 
 				mov al,1
 				mov ecx,[actor]
-				push mode
+				push mode //00-normal,0x15-looped
 				push id
 
 				call anim_call
