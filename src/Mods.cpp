@@ -118,6 +118,8 @@
 #include "mods/AirMustang.hpp"
 #include "mods/GoodGrief.hpp"
 #include "mods/AerialDrive.hpp"
+#include "mods/PinTrick.hpp"
+#include "mods/LMTSlotFix.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -251,6 +253,8 @@ Mods::Mods() {
     ADD_MOD(AirMustang);
     ADD_MOD(GoodGrief);
     ADD_MOD(AerialDrive);
+    ADD_MOD(PinTrick);
+    ADD_MOD(LMTSlotFix);
 }
 
 // Initializes mods, checks for errors

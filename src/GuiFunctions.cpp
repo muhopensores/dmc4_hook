@@ -549,6 +549,9 @@ namespace gui {
                     pmods->on_draw_ui("GoodGrief"_hash);
 
                     pmods->on_draw_ui("AerialDrive"_hash);
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("PinTrick"_hash);
+                    
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();
@@ -731,7 +734,9 @@ namespace gui {
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("LoadOrder"_hash);
-
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("LMTSlotFix"_hash);
+                    
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();

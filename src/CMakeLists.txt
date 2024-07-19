@@ -232,6 +232,10 @@ set(MODS_SRC
   mods/GoodGrief.cpp
   mods/AerialDrive.hpp
   mods/AerialDrive.cpp
+  mods/PinTrick.hpp
+  mods/PinTrick.cpp
+  mods/LMTSlotFix.hpp
+  mods/LMTSlotFix.cpp
 )
 
 set(HOOKS_SRC

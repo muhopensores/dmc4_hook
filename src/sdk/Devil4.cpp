@@ -331,8 +331,8 @@ namespace devil4_sdk {
 		}
 	}
 
-	MtObject* __stdcall effect_generator(char* efl_path, void* uPlayer, uint8_t op = 0x14, uint32_t Group = -1, uint32_t Material = -1, bool isStationary = false,
-            float* PosBuffer = nullptr, float* RotBuffer = nullptr) {
+	MtObject* __stdcall effect_generator(char* efl_path, void* uPlayer, uint8_t op, uint32_t Group, uint32_t Material, bool isStationary,
+            float* PosBuffer, float* RotBuffer) {
 		MtObject* eflObject = read_efl_file(efl_path);
         MtObject* uDevil4Effect = uDevil4Effect_constructor(mt_allocate_heap(0x200, 0x10));
         spawn_or_something((void*)0x00E552CC, uDevil4Effect, op);
