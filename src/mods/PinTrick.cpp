@@ -1,7 +1,7 @@
 #include "PinTrick.hpp"
 
 bool PinTrick::mod_enabled{false};
-bool PinTrickFlag{ false };
+static bool PinTrickFlag{ false };
 uintptr_t PinPtr { NULL };
 
 uintptr_t PinTrick::jmp_ret1{ NULL };

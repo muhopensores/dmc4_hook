@@ -264,7 +264,9 @@ public:
 class CUnit : public MtObject
 {
 public:
-	uint32_t bitfield; //0x0004
+	uint16_t pad0;
+    uint8_t mTransMode;
+    uint8_t mTransView;
 	class CUnit *mp_next_unit; //0x0008
 	class CUnit *mp_prev_unit; //0x000C
 	float m_delta_time; //0x0010
@@ -276,7 +278,9 @@ class UCoord : public CUnit
 {
 public:
 	class UCoord *mp_parent; //0x0018
-	char pad_001_c[20]; //0x001C
+	uint32_t mParentNo;
+    uint32_t mOrder;//Used in some randomizer func
+    char pad_024_c[0xC];
 	Vector3f m_pos; //0x0030
 	char pad_003_c[4]; //0x003C
 	Vector4 m_quat; //0x0040
@@ -885,6 +889,10 @@ static_assert(sizeof(UStageSetTimeSlow) == 0x2068);
 class CResource : public MtObject
 {
 public:
+    virtual void callDestructor(); //0x0
+    virtual void getMtFileInfo();//0x14
+    virtual void getExtension(); //0x18
+
 	char path[64]; //0x0004
 	uint32_t m_ref_count; //0x0044
 	uint32_t m_attr; //0x0048

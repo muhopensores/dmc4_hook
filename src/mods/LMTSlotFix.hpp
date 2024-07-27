@@ -8,6 +8,8 @@ public:
 
     static bool mod_enabled;
 
+    static uintptr_t jmp_ret1;
+
     void toggle(bool enable);
 
     std::string get_mod_name() override { return "LMTSlotFix"; };
@@ -19,4 +21,5 @@ public:
 
 private:
     std::unique_ptr<Patch> patch1;
+    std::unique_ptr<FunctionHook> hook1;
 };
