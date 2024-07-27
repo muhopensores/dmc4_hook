@@ -240,8 +240,10 @@ void __stdcall wew(MtDTI* dti, char* path) {
         case 0x6C6F4372:
             if (std::strstr(name,"rCollisionShape"))
                 extension = "col";
-            else
+            else if (std::strstr(name, "rCollisionIdxData"))
                 extension = "idx"; //rename from ".rCollisionIdxData"
+            else
+                extension = "sbc";
             break;
         case 0x78655472: extension = "tex"; break;
         case 0x66664572: extension = "efl"; break;
@@ -263,6 +265,7 @@ void __stdcall wew(MtDTI* dti, char* path) {
             if (std::strstr(name, "rSoundRequest"))
                 extension = "sreq";
             break;
+        //case 0x6C6F4373:extension = "sbc"; break;
     }
 
     // GetFileAttributes needs a full path iirc, unfortunate

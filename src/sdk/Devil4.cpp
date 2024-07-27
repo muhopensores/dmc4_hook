@@ -336,7 +336,7 @@ namespace devil4_sdk {
 		MtObject* eflObject = read_efl_file(efl_path);
         MtObject* uDevil4Effect = uDevil4Effect_constructor(mt_allocate_heap(0x200, 0x10));
         spawn_or_something((void*)0x00E552CC, uDevil4Effect, op);
-        if (isStationary)
+        if (!isStationary)
 			TrackingEfxInit(uDevil4Effect, eflObject, uPlayer, Group, Material);
 		else
             StationaryEfxInit(uDevil4Effect, eflObject, uPlayer, Group, Material, PosBuffer, RotBuffer);
