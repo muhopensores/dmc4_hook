@@ -120,7 +120,7 @@
 #include "mods/AerialDrive.hpp"
 #include "mods/PinTrick.hpp"
 #include "mods/LMTSlotFix.hpp"
-
+#include "mods/MoveTable.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -255,6 +255,7 @@ Mods::Mods() {
     ADD_MOD(AerialDrive);
     ADD_MOD(PinTrick);
     ADD_MOD(LMTSlotFix);
+    ADD_MOD(MoveTable);
 }
 
 // Initializes mods, checks for errors

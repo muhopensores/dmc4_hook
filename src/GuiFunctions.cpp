@@ -768,6 +768,11 @@ namespace gui {
                     ImGui::Spacing();
 
                     // pmods->onDrawUI("ShaderEditor"_hash);
+                    pmods->on_draw_ui("MoveTable"_hash);
+                    
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
 
                     if (ImGui::Button("Spawn Dog Fireball Test (pls dont press this)")) {
                         devil4_sdk::dog_fireball_new();

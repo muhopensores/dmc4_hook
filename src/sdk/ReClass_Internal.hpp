@@ -264,9 +264,14 @@ public:
 class CUnit : public MtObject
 {
 public:
-	uint16_t pad0;
-    uint8_t mTransMode;
-    uint8_t mTransView;
+    union {
+        uint32_t bitfield;
+        struct {
+        uint16_t pad0;
+        uint8_t mTransMode;
+        uint8_t mTransView;
+        };
+    };
 	class CUnit *mp_next_unit; //0x0008
 	class CUnit *mp_prev_unit; //0x000C
 	float m_delta_time; //0x0010

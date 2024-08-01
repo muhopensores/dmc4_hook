@@ -236,6 +236,8 @@ set(MODS_SRC
   mods/PinTrick.cpp
   mods/LMTSlotFix.hpp
   mods/LMTSlotFix.cpp
+  mods/MoveTable.hpp
+  mods/MoveTable.cpp
 )
 
 set(HOOKS_SRC
