@@ -312,7 +312,7 @@ void AreaJump::on_gui_frame() {
 void AreaJump::on_update_input(utility::Input & input) {
     if (m_hotkeys[0]->check(input)) {
         sArea* s_area_ptr = devil4_sdk::get_sArea();
-        if (devil4_sdk::get_local_player()) {
+        if (!devil4_sdk::get_local_player()) {
             return;
         }
         RoomRespawn::g_reset_manager = true;
@@ -321,7 +321,7 @@ void AreaJump::on_update_input(utility::Input & input) {
 
     if (m_hotkeys[1]->check(input)) {
         sArea* s_area_ptr = devil4_sdk::get_sArea();
-        if (devil4_sdk::get_local_player()) {
+        if (!devil4_sdk::get_local_player()) {
             return;
         }
         jump_to_stage(bp_stage(++(s_area_ptr->aGamePtr->bp_floor)));

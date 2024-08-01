@@ -170,7 +170,7 @@ void ModFramework::on_frame() {
     m_mods->on_update_input(*m_input);
 
     if (g_framework->get_window_handle() == GetForegroundWindow()) {
-        if (m_input->went_down(VK_DELETE, false) || m_menu_key->check(*m_input) || m_menu_xinput_buttons->check(*m_input)) {
+        if (m_menu_key->check(*m_input) || m_menu_xinput_buttons->check(*m_input)) {
             m_draw_ui = !m_draw_ui;
             m_mods->on_game_pause(m_draw_ui);
         }

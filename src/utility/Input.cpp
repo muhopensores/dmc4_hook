@@ -158,8 +158,8 @@ namespace utility {
                 "B",
                 "X",
                 "Y",
-                "LT",
-                "RT",
+                "L2",
+                "R2",
             };
             return names.at(hotkey);
         }
