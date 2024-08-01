@@ -21,4 +21,5 @@ namespace devil4_sdk {
 	void __stdcall effect_cleanup(uintptr_t effect_ptr);
         void __stdcall indexed_anim_call(uint32_t id, uPlayer* actor, uint32_t mode, float speed, float startFrame);
 	void __stdcall neutral_air_transition(uPlayer* uActor);
+	MtObject* __stdcall get_stuff_from_files(MtDTI* dti, char* path, uint32_t mode = 1);
 };

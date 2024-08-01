@@ -367,3 +367,15 @@ namespace devil4_sdk {
     }
 
 }
+
+MtObject* __stdcall get_stuffs_from_files(MtDTI* dti, char* path, uint32_t mode) {
+    constexpr uintptr_t file_read_call = 0x008DF530;
+	_asm {
+			push mode
+			push path
+			push dti
+			mov eax,sDevil4Resource
+			mov eax,[eax]
+			call file_read_call
+	}
+}

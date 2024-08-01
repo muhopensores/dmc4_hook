@@ -116,7 +116,10 @@
 #include "mods/RisingSun.hpp"
 #include "mods/AerialStinger.hpp"
 #include "mods/AirMustang.hpp"
-
+#include "mods/GoodGrief.hpp"
+#include "mods/PinTrick.hpp"
+#include "mods/LMTSlotFix.hpp"
+#include "mods/MoveTable.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -247,6 +250,10 @@ Mods::Mods() {
     ADD_MOD(LocalizationManager);
     ADD_MOD(AerialStinger);
     ADD_MOD(AirMustang);
+    ADD_MOD(GoodGrief);
+    ADD_MOD(PinTrick);
+    ADD_MOD(LMTSlotFix);
+    ADD_MOD(MoveTable);
 }
 
 // Initializes mods, checks for errors
