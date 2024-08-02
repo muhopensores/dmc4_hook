@@ -17,15 +17,20 @@ struct kAtckDefTbl {
     uint32_t atckId;
     uint32_t atckLevel;
     uint32_t atckInfo;
-    uint8_t atckCommand;
-    uint8_t atckCommandNo;
-    uint8_t atckCondition;
-    uint8_t ukn;
+    union command{
+        uint32_t commandBits;
+        struct {
+            uint8_t atckCommand;
+            uint8_t atckCommandNo;
+            uint8_t atckCondition;
+            uint8_t ukn;
+        };
+    };
     uint32_t atckConditionWp;
     uint32_t atckConditionStyle;
     uint32_t atckAs;
     uint32_t cancelId[5];
-}
+};
 
 void __stdcall move_switch(uint32_t moveID) {
     switch (moveID + 1) {
