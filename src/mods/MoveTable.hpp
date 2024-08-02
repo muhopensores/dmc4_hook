@@ -11,6 +11,9 @@ public:
     static uintptr_t jmp_ret3;
 
     MoveTable() = default;
+
+    void toggle(bool enable);
+
     std::string get_mod_name() override { return "MoveTable"; };
     std::optional<std::string> on_initialize() override;
     void on_config_load(const utility::Config& cfg) override;
@@ -18,4 +21,5 @@ public:
     void on_gui_frame() override;
 private:
     std::unique_ptr<FunctionHook> hook1, hook2, hook3;
+    std::unique_ptr<Patch> patch1;
 };
