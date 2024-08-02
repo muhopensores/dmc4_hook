@@ -16,7 +16,7 @@ naked void detour1(void) {//Explode on contact
             jne originalcode
 
             cmp byte ptr [esi+0x17B4],1 //contact flag
-            jne code
+            jne originalcode
             pushad
             mov eax,[esi]
             fldz
@@ -52,7 +52,7 @@ naked void detour2(void) {//Keep pin moving
 naked void detour3(void) {//Slow down pinned enemies
     _asm {
             cmp [ecx+0xEA8],3
-            je originalcode
+            jne originalcode
             push eax
             mov eax,[ecx+0x18]
             fld [PinSlowDownSpeed]
@@ -60,7 +60,7 @@ naked void detour3(void) {//Slow down pinned enemies
             pop eax
         originalcode:
             addss xmm0,[ecx+0x1790]
-            jmp
+            jmp [PinProperties::jmp_ret3]
     }
 }
 
@@ -75,6 +75,7 @@ naked void detour4(void) {//Reset enemies' speed
             pop eax
         originalcode:
             movss [esi+0x1790],xmm0
+            jmp [PinProperties::jmp_ret4]
     }
 }
 
