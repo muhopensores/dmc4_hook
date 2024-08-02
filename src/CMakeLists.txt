@@ -236,6 +236,8 @@ set(MODS_SRC
   mods/LMTSlotFix.cpp
   mods/MoveTable.hpp
   mods/MoveTable.cpp
+  mods/PinProperties.hpp
+  mods/PinProperties.cpp
 )
 
 set(HOOKS_SRC
