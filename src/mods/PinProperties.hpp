@@ -10,6 +10,7 @@ public:
     static uintptr_t jmp_ret2;
     static uintptr_t jmp_ret3;
     static uintptr_t jmp_ret4;
+    static uintptr_t jmp_ret5;
 
     PinProperties() = default;
     std::string get_mod_name() override { return "PinProperties"; };
@@ -18,5 +19,5 @@ public:
     // void on_config_save(utility::Config& cfg) override;
     // void on_gui_frame() override;
 private:
-    std::unique_ptr<FunctionHook> hook1, hook2, hook3, hook4;
+    std::unique_ptr<FunctionHook> hook1, hook2, hook3, hook4, hook5;
 };
