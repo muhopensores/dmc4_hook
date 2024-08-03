@@ -551,6 +551,8 @@ namespace gui {
                     pmods->on_draw_ui("AerialDrive"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("PinTrick"_hash);
+
+                    pmods->on_draw_ui("LuciAirThrow"_hash);
                     
                     ImGui::Spacing();
                     ImGui::Separator();

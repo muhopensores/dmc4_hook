@@ -122,6 +122,7 @@
 #include "mods/LMTSlotFix.hpp"
 #include "mods/MoveTable.hpp"
 #include "mods/PinProperties.hpp"
+#include "mods/LuciAirThrow.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -258,6 +259,7 @@ Mods::Mods() {
     ADD_MOD(LMTSlotFix);
     ADD_MOD(MoveTable);
     ADD_MOD(PinProperties);
+    ADD_MOD(LuciAirThrow);
 }
 
 // Initializes mods, checks for errors

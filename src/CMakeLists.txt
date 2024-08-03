@@ -240,6 +240,8 @@ set(MODS_SRC
   mods/MoveTable.cpp
   mods/PinProperties.hpp
   mods/PinProperties.cpp
+  mods/LuciAirThrow.hpp
+  mods/LuciAirThrow.cpp
 )
 
 set(HOOKS_SRC

@@ -5,18 +5,27 @@ bool PinProperties::mod_enabled { false };
 uintptr_t  PinProperties::jmp_ret1 { NULL };
 uintptr_t  PinProperties::jmp_ret2 { NULL };
     float PinSpeedMultiplier = 0.0f;
-    float PinSlowDownSpeed = 0.5f;
+    float PinSlowDownSpeed = 0.3f;
 uintptr_t  PinProperties::jmp_ret3 { NULL };
 uintptr_t  PinProperties::jmp_ret4 { NULL };
+uintptr_t  PinProperties::jmp_ret5  {NULL};
 
 
-naked void detour1(void) {//Explode on contact
+naked void detour1(void) {//Explode on contact, 2nd bit
     _asm {
-            cmp [esi+0xEA8],1 //Unused uActor flags
-            jne originalcode
+            test [esi+0xEA8],2 //Unused uActor flags
+            je originalcode
 
-            cmp byte ptr [esi+0x17B4],1 //contact flag
-            jne originalcode
+            cmp byte ptr [esi+0x17B4],1 //enemy contact flag
+            je pinExplode
+
+            cmp byte ptr [esi+0x17B5],1 //wall, ground contact flag
+            je pinExplode
+
+        originalcode:
+            movss xmm2,[esi+0xEC0]
+            jmp [PinProperties::jmp_ret1]
+        pinExplode:
             pushad
             mov eax,[esi]
             fldz
@@ -31,13 +40,10 @@ naked void detour1(void) {//Explode on contact
             mov esp,ebp
             pop ebp
             ret
-        originalcode:
-            movss xmm2,[esi+0xEC0]
-            jmp [PinProperties::jmp_ret1]
     }
 }
 
-naked void detour2(void) {//Keep pin moving
+naked void detour2(void) {//Keep pin moving, 1st bit
     _asm {
             test [esi+0xEA8],1
             je originalcode
@@ -49,10 +55,10 @@ naked void detour2(void) {//Keep pin moving
     }
 }
 
-naked void detour3(void) {//Slow down pinned enemies
+naked void detour3(void) {//Slow down pinned enemies, 3rd bit
     _asm {
-            cmp [ecx+0xEA8],3
-            jne originalcode
+            test [ecx+0xEA8],4
+            je originalcode
             push eax
             mov eax,[ecx+0x18]
             fld [PinSlowDownSpeed]
@@ -79,6 +85,19 @@ naked void detour4(void) {//Reset enemies' speed
     }
 }
 
+naked void detour5(void) { // Arcing explision knockback
+    _asm {
+            test [esi+0xEA8],8
+            je originalcode
+            mov byte ptr [eax+0xA4+0x34],8
+            mov byte ptr [eax+0xA4+0x20],2
+            mov byte ptr [eax+0xA4+0x1C],2
+        originalcode:
+            movss [eax+0x14C],xmm0
+            jmp [PinProperties::jmp_ret5]
+    }
+}
+
 
 std::optional<std::string> PinProperties::on_initialize() {
     if (!install_hook_offset(0x4131B0, hook1, &detour1, &jmp_ret1, 8)) {
@@ -97,5 +116,9 @@ std::optional<std::string> PinProperties::on_initialize() {
 		spdlog::error("Failed to init PinProperties mod4\n");
 		return "Failed to init PinProperties mod4";
 	}
+    if (!install_hook_offset(0x4136F9, hook5, &detour5, &jmp_ret5, 8)) {
+        spdlog::error("Failed to init PinProperties mod5\n");
+        return "Failed to init PinProperties mod5";
+    }
     return Mod::on_initialize();
 }
