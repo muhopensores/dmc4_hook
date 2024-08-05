@@ -228,8 +228,6 @@ set(MODS_SRC
   mods/AerialStinger.cpp
   mods/AirMustang.hpp
   mods/AirMustang.cpp
-  mods/GoodGrief.hpp
-  mods/GoodGrief.cpp
   mods/PinTrick.hpp
   mods/PinTrick.cpp
   mods/LMTSlotFix.hpp

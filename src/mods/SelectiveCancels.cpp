@@ -320,10 +320,6 @@ void SelectiveCancels::on_gui_frame() {
 		ImGui::SameLine(sameLineWidth + lineIndent);
 		draw_checkbox_simple(_("Showdown"), SHOWDOWN);
 
-		draw_checkbox_simple(_("Grounded DT Activation"), DTGROUND);
-		ImGui::SameLine(sameLineWidth + lineIndent);
-		draw_checkbox_simple(_("Showdown"), SHOWDOWN);
-
 		ImGui::Spacing();
 		ImGui::Text(_("Dante Swords"));
 		ImGui::Spacing();

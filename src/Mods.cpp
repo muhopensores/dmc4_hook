@@ -116,7 +116,6 @@
 #include "mods/RisingSun.hpp"
 #include "mods/AerialStinger.hpp"
 #include "mods/AirMustang.hpp"
-#include "mods/GoodGrief.hpp"
 #include "mods/PinTrick.hpp"
 #include "mods/LMTSlotFix.hpp"
 #include "mods/MoveTable.hpp"
@@ -252,7 +251,6 @@ Mods::Mods() {
     ADD_MOD(LocalizationManager);
     ADD_MOD(AerialStinger);
     ADD_MOD(AirMustang);
-    ADD_MOD(GoodGrief);
     ADD_MOD(PinTrick);
     ADD_MOD(LMTSlotFix);
     ADD_MOD(MoveTable);
