@@ -1,14 +1,15 @@
 #include "PinProperties.hpp"
 
 bool PinProperties::mod_enabled { false };
-
-uintptr_t  PinProperties::jmp_ret1 { NULL };
-uintptr_t  PinProperties::jmp_ret2 { NULL };
+bool PinProperties::pin_gs_passive_enabled { false };
+uintptr_t PinProperties::jmp_ret1 { NULL };
+uintptr_t PinProperties::jmp_ret2 { NULL };
     float PinSpeedMultiplier = 0.0f;
     float PinSlowDownSpeed = 0.3f;
-uintptr_t  PinProperties::jmp_ret3 { NULL };
-uintptr_t  PinProperties::jmp_ret4 { NULL };
-uintptr_t  PinProperties::jmp_ret5  {NULL};
+uintptr_t PinProperties::jmp_ret3 { NULL };
+uintptr_t PinProperties::jmp_ret4 { NULL };
+uintptr_t PinProperties::jmp_ret5 { NULL };
+uintptr_t PinProperties::jmp_ret6 { NULL };
 
 
 naked void detour1(void) {//Explode on contact, 2nd bit
@@ -98,6 +99,25 @@ naked void detour5(void) { // Arcing explision knockback
     }
 }
 
+void __stdcall pin_conditional_properties(uintptr_t player, uintptr_t pin) {
+    uint32_t* PinStat = (uint32_t*)(pin+0xEA8);
+    float *PinSpeed = (float*)(pin+0x17D0);
+    if (PinProperties::pin_gs_passive_enabled)
+        if ((uint8_t)*(uintptr_t*)(player + 0x156C) == 1) { //Style check: gunslinger
+            *PinStat = *PinStat | 3;
+        }
+}
+
+naked void detour6(void) { // Arcing explision knockback
+    _asm {
+            push esi
+            push edi
+            call pin_conditional_properties
+        //originalcode:
+            mov [edi+ebx*4+0x14DBC],esi
+            jmp [PinProperties::jmp_ret6]
+    }
+}
 
 std::optional<std::string> PinProperties::on_initialize() {
     if (!install_hook_offset(0x4131B0, hook1, &detour1, &jmp_ret1, 8)) {
@@ -120,5 +140,23 @@ std::optional<std::string> PinProperties::on_initialize() {
         spdlog::error("Failed to init PinProperties mod5\n");
         return "Failed to init PinProperties mod5";
     }
+    if (!install_hook_offset(0x3BC5CD, hook6, &detour6, &jmp_ret6, 7)) {
+        spdlog::error("Failed to init PinProperties mod6\n");
+        return "Failed to init PinProperties mod6";
+    }
     return Mod::on_initialize();
 }
+
+void PinProperties::on_gui_frame() {
+    ImGui::Checkbox(_("Gunslinger passive"), &pin_gs_passive_enabled);
+    ImGui::SameLine();
+    help_marker(_("Thrown lucifer pins continue moving and explode on contact in Gunslinger style."));
+}
+
+void PinProperties::on_config_load(const utility::Config& cfg) {
+    pin_gs_passive_enabled = cfg.get<bool>("pin_gs_passive").value_or(false);
+};
+
+void PinProperties::on_config_save(utility::Config& cfg) {
+    cfg.set<bool>("pin_gs_passive", pin_gs_passive_enabled);
+};

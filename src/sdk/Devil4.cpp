@@ -417,3 +417,12 @@ MtObject* __stdcall get_stuffs_from_files(MtDTI* dti, char* path, uint32_t mode)
 			call file_read_call
 	}
 }
+
+void __stdcall release_resource(CResource* rsrc) {
+	uintptr_t release_call = 0x8DDA00;
+	_asm {
+			push rsrc
+			mov eax,[sDevil4Resource]
+			call release_call
+	}
+}
