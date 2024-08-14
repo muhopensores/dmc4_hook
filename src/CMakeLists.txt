@@ -242,6 +242,12 @@ set(MODS_SRC
   mods/PinProperties.cpp
   mods/LuciAirThrow.hpp
   mods/LuciAirThrow.cpp
+  mods/CustomAllocatorMem.hpp
+  mods/CustomAllocatorMem.cpp
+  mods/uPlayerParamsEdit.hpp
+  mods/uPlayerParamsEdit.cpp
+  mods/PullKnockback.hpp
+  mods/PullKnockback.cpp
 )
 
 set(HOOKS_SRC

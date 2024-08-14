@@ -123,6 +123,9 @@
 #include "mods/MoveTable.hpp"
 #include "mods/PinProperties.hpp"
 #include "mods/LuciAirThrow.hpp"
+#include "mods/CustomAllocatorMem.hpp"
+#include "mods/uPlayerParamsEdit.hpp"
+#include "mods/PullKnockback.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -137,15 +140,18 @@ Mods::Mods() {
     m_mods.reserve(MODS_NUM);
     m_hash.reserve(MODS_NUM);
     // slow mods
+    
     ADD_MOD(MessageDisplayMod); // keep this one at the 0 index for overlay;
     ADD_MOD(BackgroundRendering);
     ADD_MOD(Borderless);
     ADD_MOD(TwitchClient); // keep as 3
     ADD_MOD(MutatorSelfAdvertisement); // keep as 4
+    //ADD_MOD(CustomAllocatorMem);
     // regular mods
     // add mods here
     // m_mods["ModName"_hash] = std::make_unique<ModName>();
     ADD_MOD(PlayerTracker); // keep as 5
+    
     ADD_MOD(LoadOrder);
     ADD_MOD(FastStart);
     ADD_MOD(AreaJump);
@@ -260,6 +266,8 @@ Mods::Mods() {
     ADD_MOD(MoveTable);
     ADD_MOD(PinProperties);
     ADD_MOD(LuciAirThrow);
+    ADD_MOD(uPlayerParamsEdit);
+    ADD_MOD(PullKnockback);
 }
 
 // Initializes mods, checks for errors

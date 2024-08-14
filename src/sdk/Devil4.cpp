@@ -404,25 +404,51 @@ namespace devil4_sdk {
 			}
     }
 
-}
-
-MtObject* __stdcall get_stuffs_from_files(MtDTI* dti, char* path, uint32_t mode) {
-    constexpr uintptr_t file_read_call = 0x008DF530;
-	_asm {
-			push mode
-			push path
-			push dti
-			mov eax,sDevil4Resource
-			mov eax,[eax]
-			call file_read_call
+	MtObject* __stdcall get_stuffs_from_files(MtDTI* dti, char* path, uint32_t mode) {
+		constexpr uintptr_t file_read_call = 0x008DF530;
+		_asm {
+				push mode
+				push path
+				push dti
+				mov eax,sDevil4Resource
+				mov eax,[eax]
+				call file_read_call
+		}
 	}
-}
 
-void __stdcall release_resource(CResource* rsrc) {
-	uintptr_t release_call = 0x8DDA00;
-	_asm {
-			push rsrc
-			mov eax,[sDevil4Resource]
-			call release_call
+	void __stdcall release_resource(CResource* rsrc) {
+		uintptr_t release_call = 0x8DDA00;
+		_asm {
+				push rsrc
+				mov eax,[sDevil4Resource]
+				call release_call
+		}
 	}
+
+	MtObject* __stdcall uEm010ShlCtrl_constructor_sub(void* projectile) {
+		uintptr_t constructor_call = 0x4A7E80;
+		uintptr_t uEm010ShlCtrl_methods_ptr = 0xBCE648;
+		_asm {
+				mov esi,projectile
+				call constructor_call
+				mov [esi+0x1370],0
+				push uEm010ShlCtrl_methods_ptr
+				pop [esi]
+				mov [esi+0xEA4],5
+		}
+		return (MtObject*)projectile;
+	}
+
+	//uintptr_t __stdcall player_uEm010ShlCtrl_spawner(uPlayer* actor, uint32_t mode) { //0-pillars, 1-wave
+	//	float WaveRange = 220.0f;
+	//	float WaveInterval = 3.0f;
+	//	float WaveAngle = 0.04;
+	//	float WaveAngleAlt = 0.0f;
+	//	float WaveSpeed = 25.0f;
+	//	float WaveSpread = 55.0f;
+	//	float PillarRange = 240.0f;
+	//	float PillarAngle = 0.7;
+	//	float PillarSpread = 60.0f;
+	//	void* mem = mt_allocate_heap(sizeof(UEm003Shl), 0x10);
+	//}
 }
