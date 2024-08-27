@@ -20,7 +20,7 @@ uintptr_t RisingSun::jmp_ret5{NULL};
 uintptr_t RisingSun::jmp_ret6{NULL};
 uintptr_t RisingSun::jmp_ret7{NULL};
 uintptr_t RisingSun::jmp_ret8{NULL};
-    float speed = 1.1f;
+    float speed = 0.9f;
 // uintptr_t RisingSun::jmp_ret9{NULL};
 //     constexpr uintptr_t detour9_call = 0x00820060;
 

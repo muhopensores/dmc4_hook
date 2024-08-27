@@ -350,9 +350,9 @@ namespace devil4_sdk {
             pFunc((uintptr_t)effect_ptr);
     }
 
-	void __stdcall indexed_anim_call(uint32_t id, uPlayer* actor, uint32_t mode = 0, float speed = 1.0f, float startFrame = 0.0f) {
+	void __stdcall indexed_anim_call(uint32_t id, uPlayer* actor, uint32_t mode, float speed,
+									float startFrame, float interpolationFrame) {
         uintptr_t anim_call = 0x00821450;
-		float idk = 3.0f;
 		uintptr_t curr_esp;
 		_asm {
 				mov [curr_esp],esp
@@ -362,7 +362,7 @@ namespace devil4_sdk {
 				fstp dword ptr [esp+0x8]
 				fld startFrame
 				fstp dword ptr [esp+0x4]
-				fld idk
+				fld interpolationFrame
 				fstp dword ptr [esp]
 
 				mov al,1
@@ -389,7 +389,7 @@ namespace devil4_sdk {
 					fld dword ptr [float_val1]
 					movss xmm1,[float_val2]
 
-					sub esp,30
+					sub esp,0x10
 					mov [esp+0xC],1
 					fld dword ptr [eax+0xEC4]
 					fstp dword ptr [esp+0x20]
@@ -451,4 +451,5 @@ namespace devil4_sdk {
 	//	float PillarSpread = 60.0f;
 	//	void* mem = mt_allocate_heap(sizeof(UEm003Shl), 0x10);
 	//}
+
 }

@@ -451,6 +451,15 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
+                    ImGui::Text(_("Parameter edits"));
+                    ImGui::Spacing();
+
+                    pmods->on_draw_ui("uPlayerParamsEdit"_hash);
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
                     ImGui::Text(_("Shared Abilities"));
                     ImGui::Spacing();
 

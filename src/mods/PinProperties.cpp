@@ -14,7 +14,7 @@ uintptr_t PinProperties::jmp_ret6 { NULL };
 
 naked void detour1(void) {//Explode on contact, 2nd bit
     _asm {
-            test [esi+0xEA8],2 //Unused uActor flags
+            test [esi+0xEAC],2 //Unused uActor flags
             je originalcode
 
             cmp byte ptr [esi+0x17B4],1 //enemy contact flag
@@ -46,7 +46,7 @@ naked void detour1(void) {//Explode on contact, 2nd bit
 
 naked void detour2(void) {//Keep pin moving, 1st bit
     _asm {
-            test [esi+0xEA8],1
+            test [esi+0xEAC],1
             je originalcode
             mulss xmm2,[PinSpeedMultiplier]
         originalcode:
@@ -58,7 +58,7 @@ naked void detour2(void) {//Keep pin moving, 1st bit
 
 naked void detour3(void) {//Slow down pinned enemies, 3rd bit
     _asm {
-            test [ecx+0xEA8],4
+            test [ecx+0xEAC],4
             je originalcode
             push eax
             mov eax,[ecx+0x18]
@@ -86,13 +86,17 @@ naked void detour4(void) {//Reset enemies' speed
     }
 }
 
-naked void detour5(void) { // Arcing explision knockback
+naked void detour5(void) { // Arcing explision knockback (4), pull enemy towards player (5)
     _asm {
-            test [esi+0xEA8],8
-            je originalcode
+            test [esi+0xEAC],8
+            je PullTest
             mov byte ptr [eax+0xA4+0x34],8
             mov byte ptr [eax+0xA4+0x20],2
             mov byte ptr [eax+0xA4+0x1C],2
+        PullTest:
+            test [esi+0xEAC],0x10
+            je originalcode
+            mov byte ptr [eax+0xA4+0x50],2
         originalcode:
             movss [eax+0x14C],xmm0
             jmp [PinProperties::jmp_ret5]
@@ -100,7 +104,7 @@ naked void detour5(void) { // Arcing explision knockback
 }
 
 void __stdcall pin_conditional_properties(uintptr_t player, uintptr_t pin) {
-    uint32_t* PinStat = (uint32_t*)(pin+0xEA8);
+    uint32_t* PinStat = (uint32_t*)(pin+0xEAC);
     float *PinSpeed = (float*)(pin+0x17D0);
     if (PinProperties::pin_gs_passive_enabled)
         if ((uint8_t)*(uintptr_t*)(player + 0x156C) == 1) { //Style check: gunslinger

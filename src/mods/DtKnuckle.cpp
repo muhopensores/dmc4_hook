@@ -165,6 +165,57 @@ void __stdcall make_effect(uint32_t ID, void* uActor) {
 	}
 }
 
+void __stdcall stand_action_setup(uintptr_t stand, int mode) {
+    uintptr_t stand_action_setup_func = 0x00829BE0;
+	_asm {
+			mov eax,mode
+			mov edi,stand
+			call stand_action_setup_func
+	}
+}
+
+void __stdcall stand_follows_target(uintptr_t player) {
+    uintptr_t stand_aim_func = 0x00829CE0;
+	uintptr_t target = *(uintptr_t*)(player+0x3080);
+	uintptr_t uPlNeroDevil = *(uintptr_t*)(player+0xCDF8);
+    if (!target)
+		return;
+	_asm {
+			push uPlNeroDevil
+			xor dl,dl
+			mov ecx,target
+			call stand_aim_func
+	}
+}
+
+void __stdcall set_nero_stand_attack(int motID, uintptr_t player, bool follow_player = false) {
+    if (*(uintptr_t*)player != 0xBE4FA0)
+		return;
+    uintptr_t uPlNeroDevil = *(uintptr_t*)(player + 0xCDF8);
+    int* StandActMode = (int*)(uPlNeroDevil + 0x22A8);
+    int* StandActStat = (int*)(uPlNeroDevil + 0x22C4);
+	int* BufferedStandMotId = (int*)(uPlNeroDevil + 0x22B4);
+    int* BufferedStandMode = (int*)(uPlNeroDevil + 0x22B8);
+	float* StartingMotFrame = (float*)(uPlNeroDevil + 0x22BC);
+    bool* DtTrackPlayerFlag = (bool*)(uPlNeroDevil + 0x22C8);
+
+    if (*StandActMode == 7)
+		return;
+    *DtTrackPlayerFlag = follow_player;
+
+    memcpy((void*)(uPlNeroDevil + 0x30), (void*)(player + 0x30), 0xC);//Position
+    memcpy((void*)(uPlNeroDevil + 0x22E0), (void*)(player + 0x1210), 4); // direction
+    memcpy((void*)(uPlNeroDevil + 0x44), (void*)(player + 0x44), 4);     // direction
+    memcpy((void*)(uPlNeroDevil + 0x4C), (void*)(player + 0x4C), 4);     // direction
+
+	make_effect(motID, (void*)uPlNeroDevil);
+    stand_action_setup(uPlNeroDevil,4);
+	*StandActStat = 0;
+    *BufferedStandMotId = motID;
+	*BufferedStandMode = 4;
+    *StartingMotFrame = 0.0f;
+}
+
 // Input check and initialize spectre
 naked void detour1(void) {
 	_asm {
@@ -237,50 +288,56 @@ naked void detour1(void) {
 			jne SpawnSpectre
 			mov dword ptr [moveID], 0x330
 		SpawnSpectre:
-			mov edi, [ebp+0xCDF8]
+			//mov edi, [ebp+0xCDF8]
 
-			// Check if stand is mid snatch
-			mov eax, [edi+0x22A8]
-			cmp eax, 0x7 
-			je handler
+			//// Check if stand is mid snatch
+			//mov eax, [edi+0x22A8]
+			//cmp eax, 0x7 
+			//je handler
 
 
-            //Stand positioning
-			mov byte ptr [edi+0x22C8],01//follow player flag
-			fld [ebp+0x30] // X-pos
-			fstp [edi+0x30]
-			fld [ebp+0x34] // Y-pos
-			fstp [edi+0x34]
-			fld [ebp+0x38] // Z-pos
-			fstp [edi+0x38]
-			fld [ebp+0x1210]//uPlayer forward facing
-			fstp [edi+0x22E0]//Stand forward facing
-			fld [ebp+0x44]
-			fstp [edi+0x44]
-			fld [ebp+0x4C]
-			fstp [edi+0x4C]
-			//effect
-			push edi
-			push [moveID]
-			call make_effect
+   //         //Stand positioning
+			//mov byte ptr [edi+0x22C8],01//follow player flag
+			//fld [ebp+0x30] // X-pos
+			//fstp [edi+0x30]
+			//fld [ebp+0x34] // Y-pos
+			//fstp [edi+0x34]
+			//fld [ebp+0x38] // Z-pos
+			//fstp [edi+0x38]
+			//fld [ebp+0x1210]//uPlayer forward facing
+			//fstp [edi+0x22E0]//Stand forward facing
+			//fld [ebp+0x44]
+			//fstp [edi+0x44]
+			//fld [ebp+0x4C]
+			//fstp [edi+0x4C]
+			////effect
+			//push edi
+			//push [moveID]
+			//call make_effect
 
-			mov [edi+0x22C4],0
-			mov eax, 0x00000004//stand attack flag
-			mov esi, [moveID]
-			mov [esp+0x0C], esi
-			mov dword ptr [esp+0x10], 0x04
-			movss [esp+0x14], xmm0
+			//mov [edi+0x22C4],0
+			//mov eax, 0x00000004//stand attack flag
+			//mov esi, [moveID]
+			//mov [esp+0x0C], esi
+			//mov dword ptr [esp+0x10], 0x04
+			//movss [esp+0x14], xmm0
 			mov byte ptr [spectreFlag], 0x01
-			mov byte ptr [ebp+0x22A8], 0
-			call detour1_call1
-			mov eax, [ebp+0x0000CDF8]
-			mov ebx, [eax+0x1370]
-			mov dword ptr [ebx+0x14F0], 0x0C
-			movq xmm0, qword ptr [esp+0x0C]
-			mov ecx, [esp+0x14]
-			add eax, 0x000022B4
-			movq qword ptr [eax], xmm0
-			mov [eax+0x08], ecx
+			push 00
+			push ebp
+			push [moveID]
+			call set_nero_stand_attack
+			//mov byte ptr [ebp+0x22A8], 0
+			//call detour1_call1
+			//mov eax, [ebp+0x0000CDF8]
+			//mov ebx, [eax+0x1370]
+			//mov dword ptr [ebx+0x14F0], 0x0C
+			//movq xmm0, qword ptr [esp+0x0C]
+			//mov ecx, [esp+0x14]
+			//add eax, 0x000022B4
+			//movq qword ptr [eax], xmm0
+			//mov [eax+0x08], ecx
+			push ebp
+			call stand_follows_target
 			popad
 			jmp code
 		handler4:

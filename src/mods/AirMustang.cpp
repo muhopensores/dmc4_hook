@@ -10,7 +10,7 @@ uintptr_t AirMustang::jmp_ret2{ NULL };
     float MustangBounce = 0.0f;
     float MustangInertia = 15.0f;
     float MustangGrav = -2.0f;
-    float AMstFrame = 13.0f;
+    float AMstFrame = 6.0f;
 uintptr_t AirMustang::jmp_ret3{ NULL };
     float InertiaMultiplier = 0.8f;
 
@@ -29,7 +29,11 @@ naked void detour1() {
             cmp byte ptr [esi+0x14D98],2//current style = trickster
             jne originalcode
 
-            cmp byte ptr [esi+0x14D95],1
+            movss xmm6, [esi+0x348] // current frame
+            comiss xmm6, [AMstFrame]
+            jb originalcode
+
+            cmp byte ptr [esi+0x14D95],1//Hit
             jne noLMTcheck
             //mov eax,[esi+0x1E8C]
             //cmp byte ptr [eax+0x1A],1 //Enemy contact

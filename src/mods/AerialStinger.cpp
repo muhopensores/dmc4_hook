@@ -78,7 +78,7 @@ void __stdcall stinger_recovery_anim_call(uintptr_t actor) {
     uint16_t motionID = (uint16_t)*(uint16_t*)(actor+0x334);
     if (motionID == 0x210)
         if (currFrame > 25.0f) 
-            devil4_sdk::indexed_anim_call(0x235, (uPlayer*)actor, 0, 0.3f, 35.0f);
+            devil4_sdk::indexed_anim_call(0x235, (uPlayer*)actor, 0, 0.3f, 35.0f, 10.0f);
 }
 
 //Landing cancel
