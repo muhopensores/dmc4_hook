@@ -359,15 +359,19 @@ bool ModFramework::initialize() {
 
     // WARNING(): bandaid for some wack heap corruption
     // keyboard menu toggle key
-    m_menu_key.reset();
-    m_menu_key = utility::create_keyboard_hotkey({ VK_DELETE }, "dmc4_hook (Keyboard)", "menu_key_keyboard");//std::make_unique<utility::Hotkey>(VK_DELETE, "Menu Key", "menu_key");
-
+    //m_menu_key.reset();
+    if (!m_menu_key) {
+        m_menu_key = utility::create_keyboard_hotkey({VK_DELETE}, "dmc4_hook (Keyboard)",
+            "menu_key_keyboard"); // std::make_unique<utility::Hotkey>(VK_DELETE, "Menu Key", "menu_key");
+    }
     // gamepad menu toggle button
-    m_menu_xinput_buttons.reset();
+    //m_menu_xinput_buttons.reset();
     // example
-    m_menu_xinput_buttons = utility::create_gamepad_hotkey(
+    if (!m_menu_xinput_buttons) {
+        m_menu_xinput_buttons = utility::create_gamepad_hotkey(
         { XIBtn::LEFT_TRIGGER, XIBtn::LEFT_THUMB, XIBtn::RIGHT_TRIGGER, XIBtn::RIGHT_THUMB },
         "dmc4_hook (Pad)", "menu_gamepad_button");
+    }
 
     ImGui_ImplDX9_CreateDeviceObjects();
     on_after_reset();
@@ -416,19 +420,20 @@ bool ModFramework::initialize() {
 
         // Game specific initialization stuff
         std::thread init_thread([this]() {
-            auto e = m_mods->on_initialize(Mod::ModType::SLOW);
-            if (e) {
-                if (e->empty()) {
-                    m_error = "An unknown error has occurred during slow mods initialization.";
-                    spdlog::error(m_error);
+            if (!m_game_data_initialized) {
+                auto e = m_mods->on_initialize(Mod::ModType::SLOW);
+                if (e) {
+                    if (e->empty()) {
+                        m_error = "An unknown error has occurred during slow mods initialization.";
+                        spdlog::error(m_error);
+                    } else {
+                        m_error = *e;
+                        spdlog::error(m_error);
+                    }
                 }
-                else {
-                    m_error = *e;
-                    spdlog::error(m_error);
-                }
-            }
 
-            m_game_data_initialized = true;
+                m_game_data_initialized = true;
+            }
         });
 
         init_thread.detach();
