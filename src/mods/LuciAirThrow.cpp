@@ -12,7 +12,7 @@ uintptr_t  LuciAirThrow::jmp_ret4 { NULL };
 naked void detour1(void) {//Character frame skip
     _asm {
             cmp byte ptr [LuciAirThrow::mod_enabled],1
-            jne originalcode
+            jne handler
             cmp byte ptr [ebp+0x1564],0x6D
             jne handler
             fld [SplashThrowAnimSpeed]
