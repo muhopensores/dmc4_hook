@@ -10,7 +10,7 @@ uintptr_t AirMustang::jmp_ret2{ NULL };
     float MustangBounce = 0.0f;
     float MustangInertia = 15.0f;
     float MustangGrav = -2.0f;
-    float AMstFrame = 6.0f;
+    float AMstFrame = 10.0f;
 uintptr_t AirMustang::jmp_ret3{ NULL };
     float InertiaMultiplier = 0.8f;
 

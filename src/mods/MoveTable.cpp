@@ -78,8 +78,8 @@ naked void detour2(void) { //Assign Nero's kAtckDefTbl
 }
 
 
-// Handle new move ids
-void __stdcall move_switch(uint32_t moveID, uintptr_t actor) {
+// Handle Dante's new move ids
+void __stdcall dante_move_switch(uint32_t moveID, uintptr_t actor) {
     switch (moveID + 1) {
         case 0x6D: {
             uintptr_t splash_func = 0x007D6ED0;
@@ -97,7 +97,7 @@ naked void detour3(void) { //handle Dante's move call
             pushad
             push eax //uPlayerDante
             push ecx //moveID
-            call move_switch
+            call dante_move_switch
             popad
             pop edi
             pop esi
@@ -111,7 +111,7 @@ naked void detour3(void) { //handle Dante's move call
 
 
 void updateKDATbl() {
-    //Put stuffs here, IDs must be > 0x6B
+    //Put stuff here, IDs must be > 0x6B
     DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {2, 0x6D, 7, 1, 3, 6, (unsigned long)-1, 0, 2, 1, 0, 0, 0, 0x05000007}); //New splash
 
     //Terminate

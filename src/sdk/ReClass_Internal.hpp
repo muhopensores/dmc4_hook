@@ -252,6 +252,34 @@ public:
 	virtual void function11();
 }; //Size: 0x0004
 
+class uActor {
+    virtual void destructor();
+    virtual void getTypeInfo();
+    virtual void ukn1();
+    virtual void ukn2();
+    virtual void getDTI();
+    virtual void setup();//0x14
+    virtual void ukn3(); //0x18
+    virtual void ukn4(); //0x1C
+    virtual void ukn5(); //0x20
+    virtual void ukn6(); // 0x24
+    virtual void ukn7(); // 0x28
+    virtual void ukn8(); // 0x2C
+    virtual void die(); // 0x30
+    virtual void updateLmat();//0x34
+    virtual void updateWmat();//0x38
+    virtual void getJointMatrix(int jntInd);//0x3C
+    virtual void LoadrModel(CResource* mdl);//0x40
+    virtual void lifecycle();//0x78
+    virtual void getCenterPos();//0x84
+    virtual void getCenterJointInd(int index);//0x88
+    virtual void DamageReaction();//0x90
+    virtual void AtckHitCallback();//0x94
+
+    uintptr_t vtable;
+    int transFlags;
+};
+
 class MtMatrix
 {
 public:
