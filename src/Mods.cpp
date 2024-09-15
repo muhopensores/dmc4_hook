@@ -126,6 +126,7 @@
 #include "mods/CustomAllocatorMem.hpp"
 #include "mods/uPlayerParamsEdit.hpp"
 #include "mods/PullKnockback.hpp"
+#include "mods/SwordSpin.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -268,6 +269,7 @@ Mods::Mods() {
     ADD_MOD(LuciAirThrow);
     ADD_MOD(uPlayerParamsEdit);
     ADD_MOD(PullKnockback);
+    ADD_MOD(SwordSpin);
 }
 
 // Initializes mods, checks for errors

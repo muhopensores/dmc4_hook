@@ -248,6 +248,8 @@ set(MODS_SRC
   mods/uPlayerParamsEdit.cpp
   mods/PullKnockback.hpp
   mods/PullKnockback.cpp
+  mods/SwordSpin.hpp
+  mods/SwordSpin.cpp
 )
 
 set(HOOKS_SRC

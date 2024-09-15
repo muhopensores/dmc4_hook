@@ -10,7 +10,7 @@ uintptr_t PinProperties::jmp_ret3 { NULL };
 uintptr_t PinProperties::jmp_ret4 { NULL };
 uintptr_t PinProperties::jmp_ret5 { NULL };
 uintptr_t PinProperties::jmp_ret6 { NULL };
-
+uintptr_t PinProperties::jmp_ret7 {NULL};
 
 naked void detour1(void) {//Explode on contact, 2nd bit
     _asm {
@@ -86,7 +86,7 @@ naked void detour4(void) {//Reset enemies' speed
     }
 }
 
-naked void detour5(void) { // Arcing explision knockback (4), pull enemy towards player (5)
+naked void detour5(void) { // Arcing explosion knockback (4), pull enemy towards player (5)
     _asm {
             test [esi+0xEAC],8
             je PullTest
@@ -123,6 +123,87 @@ naked void detour6(void) { // Arcing explision knockback
     }
 }
 
+void __stdcall getCenterPos(void* Target, float* reserved) {
+    _asm {
+            mov eax,[Target]
+            mov eax,[eax]
+            mov edx,[eax+0x84]
+            push reserved
+            mov ecx,[Target]
+            call edx
+    }
+}
+
+void __stdcall Quat2Euler(void* pin, float* reserved) {
+    uintptr_t convert2Euler = 0x00A32CC0;
+    _asm {
+            mov ecx,[pin]
+            push reserved
+            call convert2Euler
+    }
+}
+
+void __stdcall SetRotAngle(float* pinPos, float* eulerAngle, float* TargetPos, float* reserved) {
+    float turnRate = 0.5f;
+    uintptr_t turnFunc = 0x004A99A0;
+    _asm {
+            mov ecx,[pinPos]
+            mov eax,[TargetPos]
+            mov edi,[reserved]
+            push eax
+            push eax
+            fld [turnRate]
+            fstp [esp+4]
+            fld [turnRate]
+            fstp [esp]
+            push eulerAngle
+            call turnFunc
+    }
+}
+
+void __stdcall rotate(void* pin, float* angle) {
+    uintptr_t rotateCall = 0x00A32930;
+    _asm {
+            mov eax,angle
+            push pin
+            call rotateCall
+    }
+}
+
+void __stdcall rotate_to_target(void* pin, void* target) {
+    float TargetCenterPos[3];
+    float EulerAngle[3];
+    float EulerSetAngle[3];
+    getCenterPos(target, TargetCenterPos);
+    Quat2Euler(pin, EulerAngle);
+    SetRotAngle((float*)((uintptr_t)pin + 0x30), EulerAngle, TargetCenterPos, EulerSetAngle);
+    rotate(pin, EulerSetAngle);
+}
+
+naked void detour7(void) {//discipline track target
+    _asm {
+            pushad
+            test [esi+0xEAC],0x20
+            je PullTest
+            mov edx,[esi+0x3080]
+            test edx,edx
+            je handler
+            mov edx,[edx+8]
+            push edx
+            push ebx
+            call rotate_to_target
+            popad
+        originalcode:
+            movss xmm0,[esi+0x30]
+            jmp [PinProperties::jmp_ret7]
+        handler:
+            popad
+            jmp originalcode
+    }
+}
+
+
+
 std::optional<std::string> PinProperties::on_initialize() {
     if (!install_hook_offset(0x4131B0, hook1, &detour1, &jmp_ret1, 8)) {
 		spdlog::error("Failed to init PinProperties mod1\n");
@@ -145,6 +226,10 @@ std::optional<std::string> PinProperties::on_initialize() {
         return "Failed to init PinProperties mod5";
     }
     if (!install_hook_offset(0x3BC5CD, hook6, &detour6, &jmp_ret6, 7)) {
+        spdlog::error("Failed to init PinProperties mod6\n");
+        return "Failed to init PinProperties mod6";
+    }
+    if (!install_hook_offset(0x4141D9, hook7, &detour7, &jmp_ret7, 5)) {
         spdlog::error("Failed to init PinProperties mod6\n");
         return "Failed to init PinProperties mod6";
     }
