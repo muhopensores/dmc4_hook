@@ -10,7 +10,7 @@ uintptr_t AirMustang::jmp_ret2{ NULL };
     float MustangBounce = 0.0f;
     float MustangInertia = 15.0f;
     float MustangGrav = -2.0f;
-    float AMstFrame = 8.0f;
+    float AMstFrame = 10.0f;
 uintptr_t AirMustang::jmp_ret3{ NULL };
     float InertiaMultiplier = 0.8f;
 
@@ -19,13 +19,21 @@ naked void detour1() {
             cmp byte ptr [AirMustang::mod_enabled],1
             jne originalcode
 
+
             cmp byte ptr [esi+0x1504],2 //Part of move
             jb originalcode
+
+            cmp word ptr [esi+0x334], 0x10B
+            jne originalcode
 
             cmp byte ptr [esi+0x14D98],2//current style = trickster
             jne originalcode
 
-            cmp byte ptr [esi+0x14D95],1
+            movss xmm6, [esi+0x348] // current frame
+            comiss xmm6, [AMstFrame]
+            jb originalcode
+
+            cmp byte ptr [esi+0x14D95],1//Hit
             jne noLMTcheck
             //mov eax,[esi+0x1E8C]
             //cmp byte ptr [eax+0x1A],1 //Enemy contact
@@ -96,6 +104,7 @@ naked void detour2() {
     }
 }
 
+//Cancel
 naked void detour3() {
     float buffer;
     _asm {
@@ -113,7 +122,7 @@ naked void detour3() {
             mov byte ptr [ebp+0x30C4],2//melee cancel
             mov byte ptr [ebp+0x31CC],2//gun cancel
             mov byte ptr [ebp+0x3148],2//directional melee cancel
-            mov byte ptr [ebp+0x30F0],2
+            mov byte ptr [ebp+0x30F0],2//can melee cancel, again(?)
 
         originalcode:
             cmp byte ptr [ebp+0x1D7E],02
