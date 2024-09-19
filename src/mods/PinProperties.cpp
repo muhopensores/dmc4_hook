@@ -1,7 +1,13 @@
 #include "PinProperties.hpp"
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+
 
 bool PinProperties::mod_enabled { false };
 bool PinProperties::pin_gs_passive_enabled { false };
+bool PinProperties::consistent_embed_enabled{false};
+
 uintptr_t PinProperties::jmp_ret1 { NULL };
 uintptr_t PinProperties::jmp_ret2 { NULL };
     float PinSpeedMultiplier = 0.0f;
@@ -11,6 +17,8 @@ uintptr_t PinProperties::jmp_ret4 { NULL };
 uintptr_t PinProperties::jmp_ret5 { NULL };
 uintptr_t PinProperties::jmp_ret6 { NULL };
 uintptr_t PinProperties::jmp_ret7 {NULL};
+uintptr_t PinProperties::jmp_ret8{NULL};
+uintptr_t PinProperties::jmp_ret9{NULL};
 
 naked void detour1(void) {//Explode on contact, 2nd bit
     _asm {
@@ -143,7 +151,7 @@ void __stdcall Quat2Euler(void* pin, float* reserved) {
     }
 }
 
-void __stdcall SetRotAngle(float* pinPos, float* eulerAngle, float* TargetPos, float* reserved) {
+void __stdcall set_incremental_rotation(float* pinPos, float* eulerAngle, float* TargetPos, float* reserved) {
     float turnRate = 0.5f;
     uintptr_t turnFunc = 0x004A99A0;
     _asm {
@@ -176,7 +184,7 @@ void __stdcall rotate_to_target(void* pin, void* target) {
     float EulerSetAngle[3];
     getCenterPos(target, TargetCenterPos);
     Quat2Euler(pin, EulerAngle);
-    SetRotAngle((float*)((uintptr_t)pin + 0x30), EulerAngle, TargetCenterPos, EulerSetAngle);
+    set_incremental_rotation((float*)((uintptr_t)pin + 0x30), EulerAngle, TargetCenterPos, EulerSetAngle);
     rotate(pin, EulerSetAngle);
 }
 
@@ -184,7 +192,7 @@ naked void detour7(void) {//discipline track target
     _asm {
             pushad
             test [esi+0xEAC],0x20
-            je PullTest
+            je handler
             mov edx,[esi+0x3080]
             test edx,edx
             je handler
@@ -202,7 +210,79 @@ naked void detour7(void) {//discipline track target
     }
 }
 
+void __stdcall set_rotation(float* DispVal, float* RotBuffer) {
+    
+    RotBuffer[1] = atan2(DispVal[0], DispVal[2]);
+    RotBuffer[0] = -atan2(DispVal[1], sqrt(DispVal[0] * DispVal[0] + DispVal[2] * DispVal[2]));
+    RotBuffer[2] = 0;
+}
 
+void __stdcall set_relative_pos(float* Wmat, float* TargetWmat, float* res) {
+    Matrix4x4 TargetMat = glm::make_mat4x4(TargetWmat);
+    Matrix4x4 ObjMat = glm::make_mat4x4(Wmat);
+    ObjMat = glm::translate(ObjMat,glm::vec3(0.0f, -0.0f, -20.0f));
+    //tempMat           = glm::translate(tempMat, glm::vec3(Wpos[0] - tempMat[3].x, Wpos[1] - tempMat[3].y, Wpos[2] - tempMat[3].z));
+    Vector3f resVec = glm::inverse(TargetMat) * glm::vec4(ObjMat[3].x, ObjMat[3].y, ObjMat[3].z, 1.0f);
+    res[0] = resVec.x;
+    res[1] = resVec.y;
+    res[2] = resVec.z;
+    if (sqrt(res[0] * res[0] + res[1] * res[1] + res[2] * res[2]) > 170.0f) {
+        res[0] *= 0.6f;
+        res[1] *= 0.6f;
+        res[2] *= 0.6f;
+    }
+}
+
+
+naked void detour8(void) {
+    _asm {
+            cmp byte ptr [PinProperties::consistent_embed_enabled],1
+            jne originalcode
+
+            push edi
+            push eax
+            push edx
+
+            mov [esp+0x18],1 //hip joint index
+            lea edi,[esp+0x1C]
+            push edi
+            
+            mov eax,[ebx]
+            mov edx,[eax+0x3C]//Get joint wmat from index
+            push 01
+            mov ecx,ebx
+            call edx
+            push eax
+
+            lea edi,[esi+0xF0]//Pin PrevWmat
+            push edi
+            call set_relative_pos
+            pop edx
+            pop eax
+            pop edi
+        originalcode:
+            movss xmm4,[esp+0x18]
+            jmp [PinProperties::jmp_ret8]
+    }
+}
+
+void __stdcall negrad_to_2rad(float* v) {
+
+    v[0] += (float)M_PI;
+    //v[1] -= (float)M_PI;
+}
+
+naked void detour9(void) {
+    _asm {
+            movss [esi+0x1818],xmm0
+            push edi
+            lea edi,[esi+0x1810]
+            push edi
+            call negrad_to_2rad
+            pop edi
+            jmp [PinProperties::jmp_ret9]
+    }
+}
 
 std::optional<std::string> PinProperties::on_initialize() {
     if (!install_hook_offset(0x4131B0, hook1, &detour1, &jmp_ret1, 8)) {
@@ -233,6 +313,14 @@ std::optional<std::string> PinProperties::on_initialize() {
         spdlog::error("Failed to init PinProperties mod6\n");
         return "Failed to init PinProperties mod6";
     }
+    if (!install_hook_offset(0x4144A7, hook8, &detour8, &jmp_ret8, 6)) {
+        spdlog::error("Failed to init PinProperties mod8\n");
+        return "Failed to init PinProperties mod8";
+    }
+    //if (!install_hook_offset(0x414596, hook9, &detour9, &jmp_ret9, 8)) {
+    //    spdlog::error("Failed to init PinProperties mod8\n");
+    //    return "Failed to init PinProperties mod8";
+    //}
     return Mod::on_initialize();
 }
 
@@ -240,12 +328,18 @@ void PinProperties::on_gui_frame() {
     ImGui::Checkbox(_("Gunslinger passive"), &pin_gs_passive_enabled);
     ImGui::SameLine();
     help_marker(_("Thrown lucifer pins continue moving and explode on contact in Gunslinger style."));
+    ImGui::SameLine(sameLineWidth);
+    ImGui::Checkbox(_("Consistent embedding"), &consistent_embed_enabled);
+    ImGui::SameLine();
+    help_marker(_("Remove random pin placement. Embedded pin accurately attaches to hit location."));
 }
 
 void PinProperties::on_config_load(const utility::Config& cfg) {
     pin_gs_passive_enabled = cfg.get<bool>("pin_gs_passive").value_or(false);
+    consistent_embed_enabled       = cfg.get<bool>("consistent_embed").value_or(false);
 };
 
 void PinProperties::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("pin_gs_passive", pin_gs_passive_enabled);
+    cfg.set<bool>("consistent_embed", consistent_embed_enabled);
 };
