@@ -649,7 +649,7 @@ naked void detour8(void){
             jmp [CharSwitcher::jmp_ret8]
     }
 }
-
+//Nero's summoned sword carryover
 naked void detour9(void){
     _asm {
             push eax

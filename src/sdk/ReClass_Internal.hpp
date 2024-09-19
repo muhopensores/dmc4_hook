@@ -269,7 +269,7 @@ class uActor {
     virtual void updateLmat();//0x34
     virtual void updateWmat();//0x38
     virtual void getJointMatrix(int jntInd);//0x3C
-    virtual void LoadrModel(CResource* mdl);//0x40
+   // virtual void LoadrModel(CResource* mdl);//0x40
     virtual void lifecycle();//0x78
     virtual void getCenterPos();//0x84
     virtual void getCenterJointInd(int index);//0x88
