@@ -567,6 +567,12 @@ namespace gui {
                     pmods->on_draw_ui("RoseOptions"_hash); // needs its own line
 
                     ImGui::Spacing();
+                    ImGui::Text(_("Pins"));
+                    ImGui::Spacing();
+
+                    pmods->on_draw_ui("PinProperties"_hash); // needs its own line
+
+                    ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();
 
