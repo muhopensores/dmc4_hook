@@ -48,7 +48,7 @@ naked void detour3(void) {//Modify luci unused actor flags
             jne originalcode
             cmp byte ptr [ebp+0x1564],0x6D
             jne originalcode
-            mov [eax+0xEA8],0xB//unused actor flags
+            mov [eax+0xEAC],0xB//unused actor flags
         originalcode:
             add dword ptr [ebp+0x1504],01
             jmp [LuciAirThrow::jmp_ret3]
@@ -61,7 +61,7 @@ naked void detour4(void) {//Wp frame skip
             jne originalcode
             cmp byte ptr [ebp+0x1564],0x6D
             jne originalcode
-            mov [eax+0xEA8],0xB
+            mov [eax+0xEAC],0xB
         originalcode:
             mov edx,[ebp+00]
             fld dword ptr [esp+0x14]
