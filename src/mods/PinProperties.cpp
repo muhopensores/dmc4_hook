@@ -191,8 +191,8 @@ void __stdcall rotate_to_target(void* pin, void* target) {
 naked void detour7(void) {//discipline track target
     _asm {
             pushad
-            test [esi+0xEAC],0x20
-            je handler
+            test [esi+0xEAC],0x20 // baller
+            je handler            // baller pt2
             mov edx,[esi+0x3080]
             test edx,edx
             je handler

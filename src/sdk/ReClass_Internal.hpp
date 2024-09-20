@@ -54,16 +54,16 @@ class roomInfo;
 class aGame
 {
 public:
-	virtual void function0(); //
-	virtual void function1(); //
-	virtual void function2(); //
-	virtual void function3(); //
-	virtual void function4(); //
-	virtual void function5(); //
-	virtual void function6(); //
-	virtual void function7(); //
-	virtual void function8(); //
-	virtual void function9(); //
+	virtual void function0(); //0+0x00
+	virtual void function1(); //0+0x04
+	virtual void function2(); //0+0x08
+	virtual void function3(); //0+0x0C
+	virtual void function4(); //0+0x10
+	virtual void function5(); //0+0x14
+	virtual void function6(); //0+0x18
+	virtual void function7(); //0+0x1C
+	virtual void function8(); //0+0x20
+	virtual void function9(); //0+0x24
 
     char pad_4[0x28];
     roomInfo* roomInfoPtr1; // 0x2c
@@ -72,11 +72,12 @@ public:
     Vector3f unk_vec2; // 0x5c
     int init_jump; // 0x68
     int room_id; // 0x6c
-    int mission_id; // 0x70
+    int door_entered; // 0x70
     int bp_floor; // 0x74
     char pad_78[0x159];
     bool m_paused; // 0x1d1
 }; // Size: 0x1d2
+static_assert(sizeof(aGame) == 0x1d2);
 
 class currentMission
 {
@@ -89,6 +90,7 @@ public:
     int roomNumber; // 0x108
     int roomNumber2; // 0x10c
 }; // Size: 0x110
+static_assert(sizeof(currentMission) == 0x110);
 
 class currentRoom
 {
@@ -100,6 +102,7 @@ public:
     char pad_32[0xa];
     uint32_t restartLastEvent; // 0x3c
 }; // Size: 0x40
+static_assert(sizeof(currentRoom) == 0x40);
 
 class sArea
 {
@@ -108,26 +111,28 @@ public:
     aGame* aGamePtr; // 0x3830 aGame
     currentMission* currentMissionPtr; // 0x3834
     currentRoom* currentRoomPtr; // x03838
-};
+}; // Size: 0x383C
+static_assert(sizeof(sArea) == 0x383C);
 
 class roomInfo
 {
 public:
-	virtual void function0(); //
-	virtual void function1(); //
-	virtual void function2(); //
-	virtual void function3(); //
-	virtual void function4(); //
-	virtual void function5(); //
-	virtual void function6(); //
-	virtual void function7(); //
-	virtual void function8(); //
-	virtual void function9(); //
+	virtual void function0(); //0+0x00
+	virtual void function1(); //0+0x04
+	virtual void function2(); //0+0x08
+	virtual void function3(); //0+0x0C
+	virtual void function4(); //0+0x10
+	virtual void function5(); //0+0x14
+	virtual void function6(); //0+0x18
+	virtual void function7(); //0+0x1C
+	virtual void function8(); //0+0x20
+	virtual void function9(); //0+0x24
 
 	char n0000127_e[20]; //0x11E5888 
 	char pad_0x0018[0x3EC]; //0x0018
 
 }; //Size=0x0404
+static_assert(sizeof(roomInfo) == 0x404);
 
 class sWorkRate;
 class unkClass;
@@ -136,16 +141,16 @@ class unkClass2;
 class sWorkRate
 {
 public:
-	virtual void function0(); //
-	virtual void function1(); //
-	virtual void function2(); //
-	virtual void function3(); //
-	virtual void function4(); //
-	virtual void function5(); //
-	virtual void function6(); //
-	virtual void function7(); //
-	virtual void function8(); //
-	virtual void function9(); //
+	virtual void function0(); //0+0x00
+	virtual void function1(); //0+0x04
+	virtual void function2(); //0+0x08
+	virtual void function3(); //0+0x0C
+	virtual void function4(); //0+0x10
+	virtual void function5(); //0+0x14
+	virtual void function6(); //0+0x18
+	virtual void function7(); //0+0x1C
+	virtual void function8(); //0+0x20
+	virtual void function9(); //0+0x24
 
 	char pad_0x0004[0x1C]; //0x0004
 	float game_speed; //0x0020 
@@ -161,6 +166,7 @@ public:
 	char pad_0x0054[0x4]; //0x0054
 
 }; //Size=0x0058
+static_assert(sizeof(sWorkRate) == 0x58);
 
 class unkClass
 {
@@ -174,6 +180,7 @@ public:
 	char pad_0x0024[0x8]; //0x0024
 
 }; //Size=0x002C
+static_assert(sizeof(unkClass) == 0x2C);
 
 class unkClass2
 {
@@ -182,20 +189,21 @@ public:
 	char pad_0x0004[0x400]; //0x0004
 
 }; //Size=0x0404
+static_assert(sizeof(unkClass2) == 0x404);
 
 class Inputs
 {
 public:
-	virtual void function0(); //
-	virtual void function1(); //
-	virtual void function2(); //
-	virtual void function3(); //
-	virtual void function4(); //
-	virtual void function5(); //
-	virtual void function6(); //
-	virtual void function7(); //
-	virtual void function8(); //
-	virtual void function9(); //
+	virtual void function0(); //0+0x00
+	virtual void function1(); //0+0x04
+	virtual void function2(); //0+0x08
+	virtual void function3(); //0+0x0C
+	virtual void function4(); //0+0x10
+	virtual void function5(); //0+0x14
+	virtual void function6(); //0+0x18
+	virtual void function7(); //0+0x1C
+	virtual void function8(); //0+0x20
+	virtual void function9(); //0+0x24
 
 	__int32 button_pressed; //0x0004 
 	__int32 button_released; //0x0008 
@@ -206,12 +214,24 @@ public:
 	char pad_0x001_c[0x18]; //0x001C
 
 }; //Size=0x0034
+static_assert(sizeof(Inputs) == 0x34);
 
 class MtObject;
 
 class MtDTI
 {
 public:
+	virtual void vec_del_dtor(unsigned int x); //0+0x00
+	virtual MtObject* new_instance(); //0+0x04
+	virtual void function2(); //0+0x08
+	virtual void function3(); //0+0x0C
+	virtual void function4(); //0+0x10
+	virtual void function5(); //0+0x14
+	virtual void function6(); //0+0x18
+	virtual void function7(); //0+0x1C
+	virtual void function8(); //0+0x20
+	virtual void function9(); //0+0x24
+
 	char *m_name; //0x0004
 	class MtDTI *mp_next; //0x0008
 	class MtDTI *mp_child; //0x000C
@@ -220,65 +240,94 @@ public:
 	uint32_t mp_link1; //0x0018
 	uint32_t m_id; //0x001C
 	// hope it's fucking thiscall
-	//virtual void vecDelDtor(MtDTI* this, unsigned int x)();
-	//virtual void MtObject* newInstance(MtDTI *this)();
-
-	virtual void vec_del_dtor(unsigned int x);
-	virtual MtObject* new_instance();
-	virtual void function2();
-	virtual void function3();
-	virtual void function4();
-	virtual void function5();
-	virtual void function6();
-	virtual void function7();
-	virtual void function8();
-	virtual void function9();
+	// virtual void vecDelDtor(MtDTI* this, unsigned int x)();
+	// virtual void MtObject* newInstance(MtDTI *this)();
 }; //Size: 0x0020
+static_assert(sizeof(MtDTI) == 0x20);
 
 class MtObject
 {
 public:
-	virtual void vec_del_dtor(unsigned int i);
-	virtual void create_ui(void* prop);
-	virtual bool is_enable_instance();
-	virtual void create_property(void* prop);
-	virtual MtDTI* get_dti();
-	virtual MtObject* allocate(size_t size, int a2);
-	virtual uint16_t deallocate(MtObject* object);//0x0018
-	virtual void function7();
-	virtual void function8();
-	virtual void function9();
-	virtual void function10();
-	virtual void function11();
+	virtual void vec_del_dtor(unsigned int i); //0+0x00
+	virtual void create_ui(void* prop); //0+0x04
+	virtual bool is_enable_instance(); //0+0x08
+	virtual void create_property(void* prop); //0+0x0C
+	virtual MtDTI* get_dti(); //0+0x10
+	virtual MtObject* allocate(size_t size, int a2); //0+0x14
+	virtual uint16_t deallocate(MtObject* object); //0+0x18
+	virtual void function7(); //0+0x1C
+	virtual void function8(); //0+0x20
+	virtual void function9(); //0+0x24
+	virtual void function10(); //0+0x28
+	virtual void function11(); //0+0x2C
 }; //Size: 0x0004
+static_assert(sizeof(MtObject) == 0x04);
+
+class CResource : public MtObject
+{
+public:
+    virtual void callDestructor(); //0+0x00
+    virtual void unkn1(); //0+0x04
+    virtual void unkn2(); //0+0x08
+    virtual void unkn3(); //0+0x0C
+    virtual void unkn4(); //0+ox10
+    virtual void getMtFileInfo(); //0+0x14
+    virtual void getExtension(); //0+0x18
+
+	char path[0x40]; //0x0004
+	uint32_t m_ref_count; //0x0044
+	uint32_t m_attr; //0x0048
+	uint32_t m_flags_something; //0x004C
+	uint32_t m_size; //0x0050
+	int64_t m_id; //0x0054
+    char pad_05C[0x4]; //0x5C
+}; //Size: 0x0060
+static_assert(sizeof(CResource) == 0x60);
 
 class uActor {
-    virtual void destructor();
-    virtual void getTypeInfo();
-    virtual void ukn1();
-    virtual void ukn2();
-    virtual void getDTI();
-    virtual void setup();//0x14
-    virtual void ukn3(); //0x18
-    virtual void ukn4(); //0x1C
-    virtual void ukn5(); //0x20
-    virtual void ukn6(); // 0x24
-    virtual void ukn7(); // 0x28
-    virtual void ukn8(); // 0x2C
-    virtual void die(); // 0x30
-    virtual void updateLmat();//0x34
-    virtual void updateWmat();//0x38
-    virtual void getJointMatrix(int jntInd);//0x3C
-   // virtual void LoadrModel(CResource* mdl);//0x40
-    virtual void lifecycle();//0x78
-    virtual void getCenterPos();//0x84
-    virtual void getCenterJointInd(int index);//0x88
-    virtual void DamageReaction();//0x90
-    virtual void AtckHitCallback();//0x94
+    virtual void destructor(); //0+0x00
+    virtual void getTypeInfo(); //0+0x04
+    virtual void ukn1(); //0+0x08
+    virtual void ukn2(); //0+0x0C
+    virtual void getDTI(); //0+0x10
+    virtual void setup(); //0+0x14
+    virtual void ukn3(); //0+0x18
+    virtual void ukn4(); //0+0x1C
+    virtual void ukn5(); //0+0x20
+    virtual void ukn6(); //0+0x24
+    virtual void ukn7(); //0+0x28
+    virtual void ukn8(); //0+0x2C
+    virtual void die(); //0+0x30
+    virtual void updateLmat(); //0+0x34
+    virtual void updateWmat(); //0+0x38
+    virtual void getJointMatrix(int jntInd); //0+0x3C
+    virtual void LoadrModel(CResource* mdl); //0+0x40
+	virtual void ukn9(); //0+0x44
+	virtual void ukn10(); //0+0x48
+	virtual void ukn11(); //0+0x4C
+	virtual void ukn12(); //0+0x50
+	virtual void ukn13(); //0+0x54
+	virtual void ukn14(); //0+0x58
+	virtual void ukn15(); //0+0x5C
+	virtual void ukn16(); //0+0x60
+	virtual void ukn17(); //0+0x64
+	virtual void ukn18(); //0+0x68
+	virtual void ukn19(); //0+0x6C
+    virtual void ukn20(); //0+0x70
+    virtual void ukn21(); //0+0x74
+    virtual void lifecycle(); //0+0x78
+    virtual void ukn22(); //0+0x7C
+    virtual void ukn23(); //0+0x80
+    virtual void getCenterPos(); //0+0x84
+    virtual void getCenterJointInd(int index); //0+0x88
+    virtual void unkn24(); //0+0x8C
+    virtual void DamageReaction(); //0+0x90
+    virtual void AtckHitCallback(); //0+0x94
 
-    uintptr_t vtable;
-    int transFlags;
-};
+    // uintptr_t vtable;
+    int transFlags; // 0x04
+}; //Size: 0x0008
+static_assert(sizeof(uActor) == 0x08);
 
 class MtMatrix
 {
@@ -288,6 +337,7 @@ public:
 	Vector4 m3; //0x0020
 	Vector4 m4; //0x0030
 }; //Size: 0x0040
+static_assert(sizeof(MtMatrix) == 0x40);
 
 class CUnit : public MtObject
 {
@@ -370,26 +420,27 @@ enum class CcType : int32_t
 class UColorCorrectFilterCorrector
 {
 public:
+	virtual void function0(); //0+0x00
+	virtual void function1(); //0+0x04
+	virtual void function2(); //0+0x08
+	virtual void function3(); //0+0x0C
+	virtual void function4(); //0+0x10
+	virtual void function5(); //0+0x14
+	virtual void function6(); //0+0x18
+	virtual void function7(); //0+0x1C
+	virtual void function8(); //0+0x20
+	virtual void function9(); //0+0x24
 
 	bool m_enable; //0x0004
+    char pad_05[3]; //0x0005
 	/*uint16_t N00002DAF; //0x0005
 	uint8_t N00002DB0; //0x0007*/
 	CcType m_type; //0x0008
 	Vector4 m_factor; //0x000C
 	Vector4 m_factor2; //0x001C
 	char pad_002_c[4]; //0x002C
-
-	virtual void function0();
-	virtual void function1();
-	virtual void function2();
-	virtual void function3();
-	virtual void function4();
-	virtual void function5();
-	virtual void function6();
-	virtual void function7();
-	virtual void function8();
-	virtual void function9();
 }; //Size: 0x0030
+static_assert(sizeof(UColorCorrectFilterCorrector) == 0x30);
 
 class UColorCorrectFilter : public UFilter
 {
@@ -403,6 +454,7 @@ public:
 	Vector4 m_gamma; //0x0420
 	class cTransTexture *c_tans_texture; //0x0430
 }; //Size: 0x0434
+static_assert(sizeof(UColorCorrectFilter) == 0x434);
 
 class UEnemySomething
 {
@@ -444,6 +496,7 @@ public:
 	bool n00003_f_e0; //0x152E
 	char pad_152_f[4409]; //0x152F
 }; //Size: 0x2668
+static_assert(sizeof(UEnemySomething) == 0x2668);
 
 class uEnemyDamagePossibility {
 public:
@@ -464,8 +517,9 @@ public:
     char pad_84[0x8];
     bool isDead; // 0x8c
     char pad_8d[0x1f];
-    float stunResetTimer; // 0xac
+    float stunResetTimer; // 0xAC
 }; // Size: 0xb0
+static_assert(sizeof(uEnemyDamage) == 0xb0);
 
 class uEnemy {
 public:
@@ -513,6 +567,7 @@ public:
     char pad_1b4c[0x6478];
     class uEnemyDamagePossibility DamagePtrBasilisk; // 0x7fc4
 }; // Size: 0x7fc8
+static_assert(sizeof(uEnemy) == 0x7fc8);
 
 class uBoss {
 public:
@@ -537,10 +592,11 @@ public:
     float DT; // 0x1f24
     float DTMax; // 0x1f28
 }; // Size: 0x1f2c
+static_assert(sizeof(uBoss) == 0x1f2c);
 
 class cCameraPlayer {
 public:
-    char pad_0[0x10];
+    char pad_0[0x10]; //0x00
     Vector3f eye; // 0x10
     char pad_1c[0x4];
     Vector3f lookat; // 0x20
@@ -556,6 +612,7 @@ public:
     char pad_ec[0x114];
     Matrix4x4 possibleMat1; // 0x200 // buncha possibilities up til 230
 }; // Size: 0x240
+static_assert(sizeof(cCameraPlayer) == 0x240);
 
 // sMediator + D0 camera, had a more useable glm mat but less settable values
 class uCameraCtrl {
@@ -575,6 +632,7 @@ public:
     char pad_1f0[0x2a0];
     cCameraPlayer* cCameraPlayer1; // 0x490
 }; // Size: 0x494
+static_assert(sizeof(uCameraCtrl) == 0x494);
 
 class SMediator {
 public:
@@ -616,7 +674,8 @@ public:
     bool turboEnabled; // 0x494
     char pad_495[0x38b];
     sWorkRate workRate; // 0x820
-}; // Size: 0x874
+}; // Size: 0x878
+static_assert(sizeof(SMediator) == 0x878);
 
 class UModelJoint
 {
@@ -645,11 +704,13 @@ public:
     char pad_40[0x10];
     uint32_t sfxToPlay; // 0x50
 }; // Size: 0x54
+static_assert(sizeof(MotionData) == 0x54);
 
 class InnerMotionPtr {
 public:
     MotionData motionData[100]; // 0x0
 }; // Size: 0x20d0
+static_assert(sizeof(InnerMotionPtr) == 0x20d0);
 
 class MotionPtr {
 public:
@@ -658,37 +719,40 @@ public:
     char pad_22[0x17e];
     class InnerMotionPtr* innerMotionPtr1; // 0x1a0
 }; // Size: 0x1a4
+static_assert(sizeof(MotionPtr) == 0x1a4);
 
 class LuciferPin {
 public:
-    char pad_0[0x14];
-    char pin_state;//0x14 (3-pinned, 4-primed, 7-climax)
-    char pop_state;//0x15
-    char pad_15[2];
-    uintptr_t PinnedTarget;//0x18
-    char pad_1C[0x14];
-    Vector3f position;
-    char pad_38[8];
-    Vector4 rotation;
-    Vector3f scale; // 0x50
-    char pad_5c[0x1734];
+    uint8_t pad_0[0x14];
+    uint8_t pin_state; //0x14 (3-pinned, 4-primed, 7-climax)
+    uint8_t pop_state; //0x15
+    char pad_15[2]; //0x16
+    uintptr_t PinnedTarget; //0x18
+    char pad_1C[0x14]; //0x1C
+    Vector3f position; //0x30
+    char pad_3C[4]; //0x3C
+    Vector4 rotation; //0x40
+    Vector3f scale; //0x50
+    char pad_5c[0x1734]; //0x5C
     float timer; // 0x1790
     float timerMax; // 0x1794
     char pad_1798[0x1c];
     bool penetrated; // 0x17b4
 }; // Size: 0x17b5
+static_assert(sizeof(LuciferPin) == 0x17b5);
 
 class DevilArm {
 public:
     char pad_0[0x1370];
     uint8_t ID; // 0x1370
-    char pad_1371[0xb];
+    char pad_1374[0xb];
     bool visible; // 0x137c
     char pad_137d[0x47];
     float roseYAxisVelocity; // 0x13c4
     char pad_13c8[0x20];
     bool roseAlive; // 0x13e8
 }; // Size: 0x13e9
+static_assert(sizeof(DevilArm) == 0x13e9);
 
 class CharacterSettingsOne {
 public:
@@ -697,6 +761,7 @@ public:
     char pad_1d[0x143];
     float offsetFromGround; // 0x160
 }; // Size: 0x164
+static_assert(sizeof(CharacterSettingsOne) == 0x164);
 
 class CharacterSettingsTwo {
 public:
@@ -704,8 +769,9 @@ public:
     float sprintTimer; // 0xc8
     float sprintSpeedMultiplier; // 0xd0
     char pad_d4[0xa4];
-    float fallSpeed; // 0x178
-}; // Size: 0x17C
+    float fallSpeed; // 0x174
+}; // Size: 0x178
+static_assert(sizeof(CharacterSettingsTwo) == 0x178);
 
 class CharacterSettingsThree {
 public:
@@ -737,6 +803,7 @@ public:
     float funshipBounce; // 0x3e0
     float funshipUnbounce; // 0x3e4
 }; // Size: 0x3e8
+static_assert(sizeof(CharacterSettingsThree) == 0x3e8);
 
 class uPlayer : public UCoord {
 public:
@@ -906,6 +973,7 @@ public:
     char pad_151f8[0x870];
     class uEnemy* lockOnTargetPtr3; // 0x15a68
 }; // Size: 0x15a6c
+static_assert(sizeof(uPlayer) == 0x15a6c);
 
 class UStageSetTimeSlow
 {
@@ -918,22 +986,6 @@ public:
 	char pad_1390[3288]; //0x1390
 }; //Size: 0x2068
 static_assert(sizeof(UStageSetTimeSlow) == 0x2068);
-
-class CResource : public MtObject
-{
-public:
-    virtual void callDestructor(); //0x0
-    virtual void getMtFileInfo();//0x14
-    virtual void getExtension(); //0x18
-
-	char path[64]; //0x0004
-	uint32_t m_ref_count; //0x0044
-	uint32_t m_attr; //0x0048
-	uint32_t m_flags_something; //0x004C
-	uint32_t m_size; //0x0050
-	int64_t m_id; //0x0054
-	char pad_005_c[4]; //0x005C
-}; //Size: 0x0060
 
 class N00002D7A
 {
@@ -954,6 +1006,7 @@ public:
 	uint32_t m_resource_ptr; //0x0078
 	uint32_t m_resource_info_num; //0x007C
 }; //Size: 0x0080
+static_assert(sizeof(REffectList) == 0x0080);
 
 class MtAllocator : public MtObject
 {
@@ -967,12 +1020,14 @@ public:
 	uint32_t m_owner; //0x0018
 	class MtCriticalSection *m_cs; //0x001C
 }; //Size: 0x0020
+static_assert(sizeof(MtAllocator) == 0x0020);
 
 class MtHeapAllocator : public MtAllocator
 {
 public:
 	char pad_0020[60]; //0x0020
 }; //Size: 0x005C
+static_assert(sizeof(MtHeapAllocator) == 0x005C);
 
 class UEfctCam
 {
@@ -980,6 +1035,7 @@ public:
 	char pad_0000[512]; //0x0000
 	uint32_t some_field; //0x0200
 }; //Size: 0x0204
+static_assert(sizeof(UEfctCam) == 0x0204);
 
 class UTvNoiseFilter : public UFilter
 {
@@ -1017,6 +1073,7 @@ public:
 	float m_h_sync_noise_offset; //0x00A8
 	char pad_00_ac[1992]; //0x00AC
 }; //Size: 0x0874
+static_assert(sizeof(UTvNoiseFilter) == 0x0874);
 
 class SStylishCount
 {
@@ -1059,6 +1116,7 @@ public:
     private: char pad_1504[0x72cc]; public:
     int unkn1; // 0x87d0
 }; // Size: 0x87d4
+static_assert(sizeof(dogFireball) == 0x87d4);
 
 /* 8554 */
 struct __declspec(align(4)) MtStringSTRING
@@ -1086,6 +1144,7 @@ class CSystem : public MtObject
 public:
     class MtCriticalSection critical_section; //0x0004
 }; //Size: 0x0020
+static_assert(sizeof(CSystem) == 0x0020);
 
 class SRender : public CSystem
 {
@@ -1094,6 +1153,7 @@ public:
     IDirect3DDevice9* mp_device; //0x0034
     char pad_0038[40]; //0x0038
 }; //Size: 0x0060
+static_assert(sizeof(SRender) == 0x0060);
 
 class SDevil4Main
 {
