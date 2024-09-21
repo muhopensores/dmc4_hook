@@ -595,6 +595,12 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
+                    pmods->on_draw_ui("TauntSelect"_hash); // needs its own line
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
                     ImGui::Text(_("Memes"));
                     ImGui::Spacing();
 

@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/TauntSelect.hpp
+  mods/TauntSelect.cpp
   mods/LocalizationManager.hpp
   mods/LocalizationManager.cpp
   mods/CharSwitcher.hpp

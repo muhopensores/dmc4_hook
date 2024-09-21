@@ -121,6 +121,7 @@
 #include "mods/MoveTable.hpp"
 #include "mods/PinProperties.hpp"
 #include "mods/LuciAirThrow.hpp"
+#include "mods/TauntSelect.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -256,6 +257,7 @@ Mods::Mods() {
     ADD_MOD(MoveTable);
     ADD_MOD(PinProperties);
     ADD_MOD(LuciAirThrow);
+    ADD_MOD(TauntSelect);
 }
 
 // Initializes mods, checks for errors
