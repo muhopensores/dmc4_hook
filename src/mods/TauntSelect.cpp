@@ -163,7 +163,7 @@ const char* danteTauntNames[] = {
   "0x96 One handed cmon",
   "0x97 2 handed cmon",
   "0x98 Shrug",
-  "0x99 Step back cmon",
+  "0x99 Step back alright baby",
   "0x9A Cut bow",
   "0x9B Clap for doggo lean forward",
   "0x9C Dust off hands",
@@ -183,7 +183,7 @@ const char* danteTauntNames[] = {
   "0xAA Cut shotty taunt",
   "0xAB Shoot sky",
   "0xAC Cmon, broken root motion",
-  "0xAD Lean forward showdown",
+  "0xAD Lean forward cmon",
   "0xAE Turn around hands up",
   "0xAF Darkslayer",
   "0xB0",
@@ -586,9 +586,12 @@ std::optional<std::string> TauntSelect::on_initialize() {
 	return Mod::on_initialize();
 }
 void TauntSelect::on_gui_frame() {
+	ImGui::Text(_("Taunt Select"));
+	ImGui::Spacing();
 	ImGui::Checkbox(_("Dante Taunt Select"), &mod_enabled);
 	ImGui::SameLine();
 	help_marker(_("Unknown slots may crash. Test at your own risk.\nIf you get stuck, use character switch to free yourself"));
+	ImGui::Indent(lineIndent);
 	if (ImGui::BeginCombo("##DanteTauntSelectComboBox", danteTauntNames[danteSelectedTauntID])) {
         for (int n = 0; n < IM_ARRAYSIZE(danteTauntNames); n++) {
             const bool is_selected = (danteSelectedTauntID == n);
@@ -600,10 +603,12 @@ void TauntSelect::on_gui_frame() {
         }
         ImGui::EndCombo();
 	}
+	ImGui::Unindent(lineIndent);
 
 	ImGui::Checkbox(_("Nero Taunt Select"), &mod_enabled2);
 	ImGui::SameLine();
 	help_marker(_("Unknown slots may crash. Test at your own risk.\nIf you get stuck, use character switch to free yourself"));
+	ImGui::Indent(lineIndent);
 	if (ImGui::BeginCombo("##NeroTauntSelectComboBox", neroTauntNames[neroSelectedTauntID])) {
         for (int n = 0; n < IM_ARRAYSIZE(neroTauntNames); n++) {
             const bool is_selected = (neroSelectedTauntID == n);
@@ -615,6 +620,7 @@ void TauntSelect::on_gui_frame() {
         }
         ImGui::EndCombo();
 	}
+	ImGui::Unindent(lineIndent);
 }
 
 void TauntSelect::on_config_load(const utility::Config& cfg) {

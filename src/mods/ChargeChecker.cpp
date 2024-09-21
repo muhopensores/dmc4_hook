@@ -1,30 +1,90 @@
-
 #include "ChargeChecker.hpp"
 
-bool ChargeChecker::mod_enabled{ false };
+bool ChargeChecker::roundTripCharge_enabled{ false };
+bool ChargeChecker::blueRoseCharge_enabled{ false };
 uintptr_t ChargeChecker::jmp_ret{ NULL };
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 static float round_trip_charge_mult{ 2.0f };
+static float blue_rose_charge_mult_1{ 2.0f };
+static float blue_rose_charge_mult_2{ 2.0f };
 
 naked void detour(void) { // player in edi 
     _asm {
-        cmp byte ptr [ChargeChecker::mod_enabled], 0
-        je code
+        cmp byte ptr [ChargeChecker::roundTripCharge_enabled], 1
+        je DanteChecks
+        jmp NeroChecks
 
-        push edx
-        mov edx, [static_mediator_ptr] // only get player (thanks boss dante)
-        mov edx, [edx]
-        mov edx, [edx+0x24]
-        lea edx, [edx+0x23E8]
-        cmp edx, ecx // 0x23D8 == Round Trip charge
+        DanteChecks:
+        push eax // keep player in eax
+        push edx // put compares in edx
+        mov eax, [static_mediator_ptr] // only get player (thanks boss dante)
+        mov eax, [eax]
+        mov eax, [eax+0x24]
+        cmp dword ptr [edi+0x1494], 0 // controller id (0 Dante 1 Nero)
+        je GotDante
         pop edx
-        jne code
-        cmp dword ptr [edi+0x1494], 0 // controller id
-        jne code
-        cmp dword ptr [edi+0x1DB4], 4 // rebellion
-        jne code
+        pop eax
+        jmp NeroChecks
+
+        ////////// Dante //////////
+
+        GotDante:
+        // cmp dword ptr [edi+0x1DB4], 4 // rebellion
+        // je RoundTrip
+        jmp RoundTrip
+
+        RoundTrip:
+        lea edx, [eax+0x23E8]  // 0x23F8 == Round Trip charge
+        cmp edx, ecx // ecx = affected address
+        jne popcode
         mulss xmm0, [round_trip_charge_mult]
+        jmp popcode
+
+        ////////// Nero //////////
+
+        NeroChecks:
+        cmp byte ptr [ChargeChecker::blueRoseCharge_enabled], 0
+        je code
+        push eax // keep player in eax
+        push edx // put compares in edx
+        mov eax, [static_mediator_ptr] // only get player (thanks boss dante)
+        mov eax, [eax]
+        mov eax, [eax+0x24]
+        cmp dword ptr [edi+0x1494], 1 // Nero
+        je GotNero
+
+        GotNero:
+        jmp BlueRose
+            
+        BlueRose:
+        // lea edx, [eax+0x2420] // unkn
+        // lea edx, [eax+0x2434] // 0
+        // lea edx, [eax+0x2448] // unkn
+        // lea edx, [eax+0x245C] // unkn
+        lea edx, [eax+0x2470]    // 1 to 2
+        sub edx, 0x10
+        cmp edx, ecx             // ecx = affected address
+        je BlueRoseCharge1to2
+        // lea edx, [eax+0x2484] // unkn
+        lea edx, [eax+0x2498]    // 2 to max
+        sub edx, 0x10
+        cmp edx, ecx             // ecx = affected address
+        je BlueRoseCharge2to3
+        // lea edx, [eax+0x24AC] // unkn
+        jmp popcode
+
+        BlueRoseCharge1to2:
+        mulss xmm0, [blue_rose_charge_mult_1]
+        jmp popcode
+
+        BlueRoseCharge2to3:
+        mulss xmm0, [blue_rose_charge_mult_2]
+        jmp popcode
+
+    popcode:
+        pop edx
+        pop eax
     code:
         addss xmm0, [ecx+0x10]
         jmp dword ptr [ChargeChecker::jmp_ret]
@@ -40,15 +100,42 @@ std::optional<std::string> ChargeChecker::on_initialize() {
 }
 
 void ChargeChecker::on_gui_frame() {
-    ImGui::Checkbox(_("Faster Round Trip Charge"), &mod_enabled);
+    ImGui::Checkbox(_("Custom Round Trip Charge Time"), &roundTripCharge_enabled);
     ImGui::SameLine();
-    help_marker(_("Halves the charge time on Round Trip"));
+    help_marker(_("Edit the charge time on Round Trip"));
+    if (roundTripCharge_enabled) {
+        ImGui::Indent(lineIndent);
+        ImGui::PushItemWidth(sameLineItemWidth);
+        ImGui::SliderFloat("##RoundTripDragFloat", &round_trip_charge_mult, 0.1f, 10.0f, "%.1f");
+        ImGui::PopItemWidth();
+        ImGui::Unindent(lineIndent);
+    }
+    ImGui::Checkbox(_("Custom Blue Rose Charge Time"), &blueRoseCharge_enabled);
+    ImGui::SameLine();
+    help_marker(_("Edit the charge time on Blue Rose"));
+    if (blueRoseCharge_enabled){
+        ImGui::Indent(lineIndent);
+        ImGui::PushItemWidth(sameLineItemWidth);
+        ImGui::SliderFloat("1 to 2", &blue_rose_charge_mult_1, 0.1f, 10.0f, "%.1f");
+        ImGui::SameLine(sameLineWidth + lineIndent);
+        ImGui::SliderFloat("2 to max", &blue_rose_charge_mult_2, 0.1f, 10.0f, "%.1f");
+        ImGui::PopItemWidth();
+        ImGui::Unindent(lineIndent);
+    }
 }
 
 void ChargeChecker::on_config_load(const utility::Config& cfg) {
-    mod_enabled = cfg.get<bool>("faster_roundtrip").value_or(false);
+    roundTripCharge_enabled = cfg.get<bool>("faster_roundtrip").value_or(false);
+    round_trip_charge_mult = cfg.get<float>("roundtrip_charge_mult_1").value_or(2.0f);
+    blueRoseCharge_enabled = cfg.get<bool>("faster_bluerose").value_or(false);
+    blue_rose_charge_mult_1 = cfg.get<float>("blue_rose_charge_mult_1").value_or(2.0f);
+    blue_rose_charge_mult_2 = cfg.get<float>("blue_rose_charge_mult_2").value_or(2.0f);
 };
 
 void ChargeChecker::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("faster_roundtrip", mod_enabled);
+    cfg.set<bool>("faster_roundtrip", roundTripCharge_enabled);
+    cfg.set<float>("roundtrip_charge_mult_1", round_trip_charge_mult);
+    cfg.set<bool>("faster_bluerose", blueRoseCharge_enabled);
+    cfg.set<float>("blue_rose_charge_mult_1", blue_rose_charge_mult_1);
+    cfg.set<float>("blue_rose_charge_mult_2", blue_rose_charge_mult_2);
 };

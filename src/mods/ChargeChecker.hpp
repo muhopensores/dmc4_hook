@@ -6,7 +6,8 @@ class ChargeChecker : public Mod {
 public:
     ChargeChecker() = default;
 
-    static bool mod_enabled;
+    static bool roundTripCharge_enabled;
+    static bool blueRoseCharge_enabled;
     static uintptr_t jmp_ret;
     static uintptr_t jmp_ret2;
 

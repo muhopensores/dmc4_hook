@@ -441,11 +441,11 @@ namespace gui {
 
                     pmods->on_draw_ui("LimitAdjust"_hash); // needs its own line
 
-                    ImGui::Spacing();
-
                     pmods->on_draw_ui("HeightRestrictionNero"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("HeightRestrictionDante"_hash);
+
+                    pmods->on_draw_ui("ChargeChecker"_hash); // needs its own line
 
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -508,8 +508,6 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("TimerMem"_hash); // instant honeycomb
 
-                    pmods->on_draw_ui("ChargeChecker"_hash); // currently just faster roundtrip
-                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("ActiveBlock"_hash);
 
                     pmods->on_draw_ui("KnockbackEdits"_hash);
