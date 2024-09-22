@@ -3,7 +3,7 @@
 bool LMTSlotFix::mod_enabled { true };
 
 uintptr_t LMTSlotFix::jmp_ret1{ NULL };
-    constexpr uintptr_t detour1_default_jmp = 0x42B932;
+    constexpr uintptr_t detour1_default_jmp = 0x42B936;
     constexpr uintptr_t detour1_jmp = 0x42B936;
 
 void LMTSlotFix::toggle(bool enable) {
