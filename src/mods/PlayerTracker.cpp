@@ -193,7 +193,6 @@ void PlayerTracker::on_gui_frame() {
             ImGui::InputFloat(_("DT ##1"), &player->DT);
             ImGui::InputFloat(_("Max DT ##1"), &player->maxDT);
             ImGui::InputFloat(_("BP Timer ##1"), &s_med_ptr->bpTimer);
-            ImGui::InputScalar(_("Move ID Debug ##1"), ImGuiDataType_U8, &player->moveIDBest);
             ImGui::InputFloat3(_("XYZ Position ##1"), (float*)&player->m_pos);
             ImGui::InputFloat4(_("Rotation ##1"), &player->rotation2);
             ImGui::InputFloat3(_("XYZ Scale ##1"), (float*)&player->m_scale);
@@ -215,9 +214,10 @@ void PlayerTracker::on_gui_frame() {
                 help_marker(_("If you press exceed while this timer is between 0 and 1, you'll get MAX-Act."));
             }
             ImGui::InputFloat(_("Animation Frame ##1"), &player->animFrame);
-            ImGui::InputScalar(_("Move Part ##1"), ImGuiDataType_U8, &player->movePart);
+            ImGui::InputScalar(_("Move ID ##1"), ImGuiDataType_U8, &player->moveIDBest);
+            ImGui::InputScalar(_("Move ID2 ##1"), ImGuiDataType_U8, &player->moveID2);
             ImGui::InputScalar(_("Move Bank ##1"), ImGuiDataType_U8, &player->moveBank);
-            ImGui::InputScalar(_("Move ID ##1"), ImGuiDataType_U8, &player->moveID2);
+            ImGui::InputScalar(_("Move Part ##1"), ImGuiDataType_U8, &player->movePart);
             ImGui::InputScalar(_("Saved Move Bank ##1"), ImGuiDataType_U8, &tempMoveBank);
             ImGui::InputScalar(_("Saved Move ID ##1"), ImGuiDataType_U8, &tempMoveID);
         }

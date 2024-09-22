@@ -824,7 +824,9 @@ public:
     char pad_2a8[0x38];
     uint32_t m_joint_array_size; // 0x2e0
     class UModelJointArr* joint_array; // 0x2e4
-    char pad_2e8[0x60];
+    char pad_2e8[0x4C];
+    uint16_t animID; // 0x334
+    char pad_336[0x12];
     float animFrame; // 0x348
     char pad_34c[0x6ec];
     class MotionPtr* motionPtr1; // 0xa38
