@@ -39,13 +39,11 @@ namespace utility {
     // for mods that have std::vector of hotkeys in them already
     void create_keyboard_hotkey(std::vector<std::unique_ptr<utility::Hotkey>>& mod_hotkeys, 
         std::vector<uint32_t>&& default_keys, const char* desc, const char* cfg_entry) {
-        auto& key = mod_hotkeys.emplace_back(std::make_unique<Hotkey>(default_keys, desc, cfg_entry, Hotkey::HkType::Keyboard));
-        key->m_binds = key->m_default_keys;
+        mod_hotkeys.emplace_back(std::make_unique<Hotkey>(default_keys, desc, cfg_entry, Hotkey::HkType::Keyboard));
     }
     void create_gamepad_hotkey(std::vector<std::unique_ptr<utility::Hotkey>>& mod_hotkeys, 
         std::vector<uint32_t>&& default_keys, const char* desc, const char* cfg_entry) {
-        auto& button = mod_hotkeys.emplace_back(std::make_unique<Hotkey>(default_keys, desc, cfg_entry, Hotkey::HkType::Gamepad));
-        button->m_binds = button->m_default_keys;
+        mod_hotkeys.emplace_back(std::make_unique<Hotkey>(default_keys, desc, cfg_entry, Hotkey::HkType::Gamepad));
     }
     
     // new functions that return hotkey smart-pointers

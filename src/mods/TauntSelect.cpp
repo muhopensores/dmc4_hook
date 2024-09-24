@@ -527,7 +527,7 @@ const char* neroTauntNames[] = {
   "0xFF"
 };
 
-naked void detour1(void) { // Dante Taunt Switch
+naked void detour1(void) { // Dante Taunt Style Switch
 	_asm {
 		cmp byte ptr [TauntSelect::mod_enabled], 0
 		je originalcode
@@ -585,6 +585,7 @@ std::optional<std::string> TauntSelect::on_initialize() {
 
 	return Mod::on_initialize();
 }
+
 void TauntSelect::on_gui_frame() {
 	ImGui::Text(_("Taunt Select"));
 	ImGui::Spacing();
