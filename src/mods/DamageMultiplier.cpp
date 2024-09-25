@@ -55,9 +55,8 @@ naked void detour(void) {
 			cmp byte ptr [DamageMultiplier::mod_enabled], 0
 			je originalcode
 
-			cmp dword ptr [esi+0x1C], 0x469C4000 // ignore if player
+			cmp dword ptr [esi+0x1C], 0x469C4000 // ignore if player // bruh straight up 20k max hp compare all balls no brain
 			je originalcode
-			//movss dword ptr [ebp-4],xmm4		 // Maybe this was the reason m17 was crashing? testing now
 			movss [xmm4backup], xmm4
 
 			movss xmm4, [esi+0x18]				 // get the current life
@@ -71,8 +70,10 @@ naked void detour(void) {
             movdqa [xxmm3], xmm3
             movdqa [xxmm4], xmm4
             push eax                             // save reg
+            push ecx
             call must_style_multiplier           // moved must style update here for micro-optimizations because
-                                                 // DamageMultiplier::OnFrame() showed up on luke stackwalker once
+                                                 // DamageMultiplier::OnFrame() showed up on luke stackwalker once, fucks eax+ecx on debug
+            pop ecx
             pop eax                              // restore reg
             movdqa xmm0, [xxmm0]                 // simd o
             movdqa xmm1, [xxmm1]   
@@ -83,7 +84,6 @@ naked void detour(void) {
             subss xmm0, xmm4					 // subss to new life current hit dammage
 
 			movss xmm4, [xmm4backup]
-			//movss xmm4, dword ptr [ebp-4]
 
 		originalcode:
             movss [esi+0x18], xmm0

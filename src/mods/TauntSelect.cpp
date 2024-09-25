@@ -284,7 +284,7 @@ const char* neroTauntNames[] = {
   "0x0C Roll forward",
   "0x0D Land from stingerjump",
   "0x0E Stingerjump",
-  "0x0F NULL",
+  "0x0F 180 twirl",
   "0x10 Rise, prob midair anim",
   "0x11 Tele right",
   "0x12 Rise, prob midair anim",

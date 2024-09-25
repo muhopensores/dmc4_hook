@@ -150,6 +150,27 @@ void PlayerTracker::on_update_input(utility::Input & input) {
     }*/
 }
 
+uintptr_t moveIDCallAddr{ 0x7AAC80 };
+void PlayMoveID(int moveID) {
+    auto player = devil4_sdk::get_local_player();
+    _asm {
+        mov eax, [player]
+        push -1
+        mov ecx, [moveID]
+        call dword ptr [moveIDCallAddr]
+    }
+}
+
+uintptr_t animIDCallAddr{ 0x7AA030 };
+void PlayAnimID(int animID) {
+    auto player = devil4_sdk::get_local_player();
+    _asm {
+        mov ecx, [player]
+        push dword ptr [animID]
+        call dword ptr [animIDCallAddr]
+    }
+}
+
 void PlayerTracker::on_gui_frame() {
     ImGui::Checkbox(_("Disable Game Pause When Opening The Trainer"), &WorkRate::disable_trainer_pause);
 
@@ -194,7 +215,7 @@ void PlayerTracker::on_gui_frame() {
             ImGui::InputFloat(_("Max DT ##1"), &player->maxDT);
             ImGui::InputFloat(_("BP Timer ##1"), &s_med_ptr->bpTimer);
             ImGui::InputFloat3(_("XYZ Position ##1"), (float*)&player->m_pos);
-            ImGui::InputFloat4(_("Rotation ##1"), &player->rotation2);
+            ImGui::InputFloat(_("Rotation ##1"), &player->rotation2);
             ImGui::InputFloat3(_("XYZ Scale ##1"), (float*)&player->m_scale);
             ImGui::InputFloat3(_("XYZ Velocity ##1"), (float*)&player->m_d_velocity);
             ImGui::InputFloat(_("Movement Speed ##1"), &player->m_d_vel_magnitude);
@@ -226,11 +247,31 @@ void PlayerTracker::on_gui_frame() {
     if (ImGui::Button(_("Save Current Move"))) {
         SavePlayerMove();
     }
-    ImGui::SameLine(sameLineWidth);
+    ImGui::SameLine();
     if (ImGui::Button(_("Play Saved Move"))) {
         LoadPlayerMove();
     }
     ImGui::InputFloat3(_("Saved Player XYZ"), &playerXYZBackup[0]);
+
+    static int inputMoveID = 0;
+    ImGui::PushItemWidth(sameLineItemWidth);
+    ImGui::InputInt("##InputMoveIDInputInt ##1", &inputMoveID, 1, 10, ImGuiInputTextFlags_CharsHexadecimal);
+    ImGui::PopItemWidth();
+    ImGui::SameLine();
+    if (ImGui::Button("PlayMoveID")) {
+        PlayMoveID(inputMoveID);
+    }
+
+    static int inputAnimID = 0;
+    ImGui::PushItemWidth(sameLineItemWidth);
+    ImGui::InputInt("##InputAnimIDInputInt ##1", &inputAnimID, 1,10, ImGuiInputTextFlags_CharsHexadecimal);
+    ImGui::PopItemWidth();
+    ImGui::SameLine();
+    if (ImGui::Button("PlayAnimID")) {
+        PlayAnimID(inputAnimID);
+    }
+    ImGui::SameLine();
+    help_marker("uhh this only plays things that don't require a certain player state idk why");
 }
 
 void PlayerTracker::custom_imgui_window() {

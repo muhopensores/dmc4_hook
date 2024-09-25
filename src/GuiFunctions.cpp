@@ -777,10 +777,6 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    if (ImGui::Button("Spawn Dog Fireball Test (pls dont press this)")) {
-                        devil4_sdk::dog_fireball_new();
-                    }
-
                     g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
                     ImGui::EndChild();
                     ImGui::EndTabItem();
