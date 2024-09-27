@@ -75,32 +75,30 @@ int EnemyTracker::get_enemy_specific_damage_offset(int enemy_id) {
 }
 
 // call with true to save, call with false to load
-void save_load_enemy_info(bool isSave) {
-    SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
-    if (isSave) {
-        if (s_med_ptr->uEnemies[which_enemy]) {
-            saved_enemy_pos_xyz[0]      = s_med_ptr->uEnemies[which_enemy]->position[0];
-            saved_enemy_pos_xyz[1]      = s_med_ptr->uEnemies[which_enemy]->position[1];
-            saved_enemy_pos_xyz[2]      = s_med_ptr->uEnemies[which_enemy]->position[2];
-            saved_enemy_velocity_xyz[0] = s_med_ptr->uEnemies[which_enemy]->velocity[0];
-            saved_enemy_velocity_xyz[1] = s_med_ptr->uEnemies[which_enemy]->velocity[1];
-            saved_enemy_velocity_xyz[2] = s_med_ptr->uEnemies[which_enemy]->velocity[2];
-            saved_enemy_move_id         = s_med_ptr->uEnemies[which_enemy]->moveID;
-            saved_enemy_move_i_d2       = s_med_ptr->uEnemies[which_enemy]->moveID2;
-            saved_enemy_grounded        = s_med_ptr->uEnemies[which_enemy]->grounded;
+void save_load_enemy_info(bool isSave, uEnemy* enemy) {
+    if (enemy) {
+        if (isSave) {
+            saved_enemy_pos_xyz[0] = enemy->position[0];
+            saved_enemy_pos_xyz[1] = enemy->position[1];
+            saved_enemy_pos_xyz[2] = enemy->position[2];
+            saved_enemy_velocity_xyz[0] = enemy->velocity[0];
+            saved_enemy_velocity_xyz[1] = enemy->velocity[1];
+            saved_enemy_velocity_xyz[2] = enemy->velocity[2];
+            saved_enemy_move_id = enemy->moveID;
+            saved_enemy_move_i_d2 = enemy->moveID2;
+            saved_enemy_grounded = enemy->grounded;
         }
-    } else {
-        if (s_med_ptr->uEnemies[which_enemy]) {
-            s_med_ptr->uEnemies[which_enemy]->position[0] = saved_enemy_pos_xyz[0];
-            s_med_ptr->uEnemies[which_enemy]->position[1] = saved_enemy_pos_xyz[1];
-            s_med_ptr->uEnemies[which_enemy]->position[2] = saved_enemy_pos_xyz[2];
-            s_med_ptr->uEnemies[which_enemy]->velocity[0] = saved_enemy_velocity_xyz[0];
-            s_med_ptr->uEnemies[which_enemy]->velocity[1] = saved_enemy_velocity_xyz[1];
-            s_med_ptr->uEnemies[which_enemy]->velocity[2] = saved_enemy_velocity_xyz[2];
-            s_med_ptr->uEnemies[which_enemy]->moveID      = saved_enemy_move_id;
-            s_med_ptr->uEnemies[which_enemy]->moveID2     = saved_enemy_move_i_d2;
-            s_med_ptr->uEnemies[which_enemy]->grounded    = saved_enemy_grounded;
-            s_med_ptr->uEnemies[which_enemy]->movePart    = (uint8_t)0;
+        else {
+            enemy->position[0] = saved_enemy_pos_xyz[0];
+            enemy->position[1] = saved_enemy_pos_xyz[1];
+            enemy->position[2] = saved_enemy_pos_xyz[2];
+            enemy->velocity[0] = saved_enemy_velocity_xyz[0];
+            enemy->velocity[1] = saved_enemy_velocity_xyz[1];
+            enemy->velocity[2] = saved_enemy_velocity_xyz[2];
+            enemy->moveID = saved_enemy_move_id;
+            enemy->moveID2 = saved_enemy_move_i_d2;
+            enemy->grounded = saved_enemy_grounded;
+            enemy->movePart = 0;
         }
     }
 }
@@ -108,112 +106,120 @@ void save_load_enemy_info(bool isSave) {
 // call with true to save, call with false to load
 void save_load_boss_info(bool isSave) {
     SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
-    if (isSave) {
-        if (s_med_ptr->uBoss1) {
+    if (s_med_ptr->uBoss1) {
+        if (isSave) {
             saved_enemy_pos_xyz[0] = s_med_ptr->uBoss1->position[0];
             saved_enemy_pos_xyz[1] = s_med_ptr->uBoss1->position[1];
             saved_enemy_pos_xyz[2] = s_med_ptr->uBoss1->position[2];
-            saved_enemy_move_id    = s_med_ptr->uBoss1->moveID;
-            saved_enemy_move_i_d2  = s_med_ptr->uBoss1->moveID2;
+            saved_enemy_move_id = s_med_ptr->uBoss1->moveID;
+            saved_enemy_move_i_d2 = s_med_ptr->uBoss1->moveID2;
         }
-    } else {
-        if (s_med_ptr->uBoss1) {
+        else {
             s_med_ptr->uBoss1->position[0] = saved_enemy_pos_xyz[0];
             s_med_ptr->uBoss1->position[1] = saved_enemy_pos_xyz[1];
             s_med_ptr->uBoss1->position[2] = saved_enemy_pos_xyz[2];
-            s_med_ptr->uBoss1->moveID      = saved_enemy_move_id;
-            s_med_ptr->uBoss1->moveID2     = saved_enemy_move_i_d2;
-            s_med_ptr->uBoss1->movePart    = (uint8_t)0;
+            s_med_ptr->uBoss1->moveID = saved_enemy_move_id;
+            s_med_ptr->uBoss1->moveID2 = saved_enemy_move_i_d2;
+            s_med_ptr->uBoss1->movePart = 0;
         }
     }
+}
+
+uEnemy* GetDesiredEnemy(bool useLockon) {
+    SMediator* s_med_ptr = devil4_sdk::get_sMediator();
+    uEnemy* enemy = NULL;
+    if (useLockon) {
+        if (uPlayer* player = devil4_sdk::get_local_player()) {
+            if (player->lockOnTargetPtr3) {
+                if ((uintptr_t)player->lockOnTargetPtr3 != (uintptr_t)s_med_ptr->uBoss1) {
+                    enemy = player->lockOnTargetPtr3;
+                }
+            }
+        }
+    }
+    else {
+        enemy = s_med_ptr->uEnemies[which_enemy];
+    }
+    return enemy;
 }
 
 void EnemyTracker::on_gui_frame() {
     ImGui::Checkbox(_("Display Enemy Stats"), &display_enemy_stats);
     if (display_enemy_stats) {
         ImGui::Indent(lineIndent);
-        SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
-        if (s_med_ptr) {
-            static uEnemy* currentEnemy = NULL;
-            ImGui::Checkbox("Use Locked On Enemy Instead Of Picking", &useLockedOnEnemyInstead);
-            if (useLockedOnEnemyInstead) {
-                if (uPlayer* player = devil4_sdk::get_local_player()) {
-                    if (player->lockOnTargetPtr3) {
-                        if ((uintptr_t)player->lockOnTargetPtr3 != (uintptr_t)s_med_ptr->uBoss1) {
-                            currentEnemy = player->lockOnTargetPtr3;
-                        }
-                        else currentEnemy = NULL;
-                    }
-                }
-            }
-            else {
-                currentEnemy = s_med_ptr->uEnemies[which_enemy];
-                ImGui::SliderInt(_("Enemy Count"), (int*)&s_med_ptr->enemyCount[2], 0, 0);
-                ImGui::SliderInt(_("Enemy Select"), &which_enemy, 0, s_med_ptr->enemyCount[2] - 1);
-                if (s_med_ptr->enemyCount[0] > 0) {
-                    if (ImGui::Button(_("Find Locked On Enemy In List"))) {
-                        if (uPlayer* player = devil4_sdk::get_local_player()) {
-                            uEnemy* TestAddr = player->lockOnTargetPtr3;
-                            for (uint32_t i = 0; i < s_med_ptr->enemyCount[2]; ++i) {
-                                if (s_med_ptr->uEnemies[i] && s_med_ptr->uEnemies[i] == TestAddr) {
-                                    which_enemy = i;
-                                    break;
-                                }
+        ImGui::Checkbox("Use Locked On Enemy Instead Of Picking", &useLockedOnEnemyInstead);
+
+        ImGui::Spacing();
+
+        SMediator* s_med_ptr = devil4_sdk::get_sMediator();
+
+        if (ImGui::Button(_("Save Selected Enemy Info"))) {
+            if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
+                save_load_enemy_info(true, enemy);
+        }
+        ImGui::SameLine();
+        help_marker(_("Hotkey is HOME by default"));
+
+        if (ImGui::Button(_("Replay Saved Move ID & Position"))) {
+            if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
+                save_load_enemy_info(false, enemy);
+        }
+        ImGui::SameLine();
+        help_marker(_("Hotkey is END by default"));
+        ImGui::Unindent(lineIndent);
+
+        if (!useLockedOnEnemyInstead) {
+            ImGui::SliderInt(_("Enemy Count"), (int*)&s_med_ptr->enemyCount[2], 0, 0);
+            ImGui::SliderInt(_("Enemy Select"), &which_enemy, 0, s_med_ptr->enemyCount[2] - 1);
+            if (s_med_ptr->enemyCount[0] > 0) {
+                if (ImGui::Button(_("Find Locked On Enemy In List"))) {
+                    if (uPlayer* player = devil4_sdk::get_local_player()) {
+                        for (uint32_t i = 0; i < s_med_ptr->enemyCount[2]; ++i) {
+                            if (s_med_ptr->uEnemies[i] && s_med_ptr->uEnemies[i] == player->lockOnTargetPtr3) {
+                                which_enemy = i;
+                                break;
                             }
                         }
                     }
                 }
             }
-            ImGui::Spacing();
-            if (currentEnemy) {
-                // i hate this, game accesses them from base ptr, e.g. [uEnemy+1544] for scarecrow hp
-                int damage_info_offset = get_enemy_specific_damage_offset(currentEnemy->ID);
-                uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)currentEnemy + damage_info_offset);
-                ImGui::InputFloat(_("HP ##2"), &currentEnemyDamage->HP);
-                ImGui::InputFloat(_("Max HP ##2"), &currentEnemyDamage->HPMax);
-                ImGui::InputFloat(_("Previous Hit Dealt"), &currentEnemyDamage->HPTaken);
-                ImGui::InputInt(_("Stun 1 ##2"), &currentEnemyDamage->stun[0]);
-                ImGui::InputInt(_("Stun 2 ##2"), &currentEnemyDamage->stun[1]);
-                ImGui::InputInt(_("Stun 3 ##2"), &currentEnemyDamage->stun[2]);
-                ImGui::InputInt(_("Stun 4 ##2"), &currentEnemyDamage->stun[3]);
-                ImGui::InputInt(_("Stun 5 ##2"), &currentEnemyDamage->stun[4]);
-                ImGui::InputInt(_("Displacement 1 ##2"), &currentEnemyDamage->displacement[0]);
-                ImGui::InputInt(_("Displacement 2 ##2"), &currentEnemyDamage->displacement[1]);
-                ImGui::InputInt(_("Displacement 3 ##2"), &currentEnemyDamage->displacement[2]);
-                ImGui::InputInt(_("Displacement 4 ##2"), &currentEnemyDamage->displacement[3]);
-                ImGui::InputInt(_("Displacement 5 ##2"), &currentEnemyDamage->displacement[4]);
-                ImGui::InputInt(_("Unknown 1 ##2"), &currentEnemyDamage->unknown[0]);
-                ImGui::InputInt(_("Unknown 2 ##2"), &currentEnemyDamage->unknown[1]);
-                ImGui::InputInt(_("Unknown 3 ##2"), &currentEnemyDamage->unknown[2]);
-                ImGui::InputInt(_("Unknown 4 ##2"), &currentEnemyDamage->unknown[3]);
-                ImGui::InputInt(_("Unknown 5 ##2"), &currentEnemyDamage->unknown[4]);
-                ImGui::InputInt(_("Unknown 6 ##2"), &currentEnemyDamage->unknown[5]);
-                ImGui::InputInt(_("Unknown 7 ##2"), &currentEnemyDamage->unknown[6]);
-                ImGui::InputInt(_("Unknown 8 ##2"), &currentEnemyDamage->unknown[7]);
-                
-                ImGui::InputFloat3(_("XYZ Position ##2"), (float*)&currentEnemy->position);
-                ImGui::InputFloat3(_("XYZ Velocity ##2"), (float*)&currentEnemy->velocity);
-                ImGui::InputFloat3(_("XYZ Scale ##2"), (float*)&currentEnemy->scale);
-                ImGui::InputScalar(_("Move ID ##2"), ImGuiDataType_U8, &currentEnemy->moveID);
-                ImGui::InputScalar(_("Move ID 2 ##2"), ImGuiDataType_U8, &currentEnemy->moveID2, 0, 0);
-                ImGui::InputScalar(_("Move Part ##2"), ImGuiDataType_U8, &currentEnemy->movePart);
-                ImGui::InputScalar(_("Grounded ##2"), ImGuiDataType_U8, &currentEnemy->grounded);
-                ImGui::InputFloat(_("Animation Frame ##2"), &currentEnemy->animFrame);
-
-                if (ImGui::Button(_("Save Selected Enemy Info"))) {
-                    save_load_enemy_info(true);
-                }
-                ImGui::SameLine();
-                help_marker(_("Hotkey is HOME by default"));
-
-                if (ImGui::Button(_("Replay Saved Move ID & Position"))) {
-                    save_load_enemy_info(false);
-                }
-                ImGui::SameLine();
-                help_marker(_("Hotkey is END by default"));
-            }
         }
-        ImGui::Unindent(lineIndent);
+
+        if (auto currentEnemy = GetDesiredEnemy(useLockedOnEnemyInstead)) {
+            // i hate this, game accesses them from base ptr, e.g. [uEnemy+1544] for scarecrow hp
+            int damage_info_offset = get_enemy_specific_damage_offset(currentEnemy->ID);
+            uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)currentEnemy + damage_info_offset);
+            ImGui::InputFloat(_("HP ##2"), &currentEnemyDamage->HP);
+            ImGui::InputFloat(_("Max HP ##2"), &currentEnemyDamage->HPMax);
+            ImGui::InputFloat(_("Previous Hit Dealt"), &currentEnemyDamage->HPTaken);
+            ImGui::InputInt(_("Stun 1 ##2"), &currentEnemyDamage->stun[0]);
+            ImGui::InputInt(_("Stun 2 ##2"), &currentEnemyDamage->stun[1]);
+            ImGui::InputInt(_("Stun 3 ##2"), &currentEnemyDamage->stun[2]);
+            ImGui::InputInt(_("Stun 4 ##2"), &currentEnemyDamage->stun[3]);
+            ImGui::InputInt(_("Stun 5 ##2"), &currentEnemyDamage->stun[4]);
+            ImGui::InputInt(_("Displacement 1 ##2"), &currentEnemyDamage->displacement[0]);
+            ImGui::InputInt(_("Displacement 2 ##2"), &currentEnemyDamage->displacement[1]);
+            ImGui::InputInt(_("Displacement 3 ##2"), &currentEnemyDamage->displacement[2]);
+            ImGui::InputInt(_("Displacement 4 ##2"), &currentEnemyDamage->displacement[3]);
+            ImGui::InputInt(_("Displacement 5 ##2"), &currentEnemyDamage->displacement[4]);
+            ImGui::InputInt(_("Unknown 1 ##2"), &currentEnemyDamage->unknown[0]);
+            ImGui::InputInt(_("Unknown 2 ##2"), &currentEnemyDamage->unknown[1]);
+            ImGui::InputInt(_("Unknown 3 ##2"), &currentEnemyDamage->unknown[2]);
+            ImGui::InputInt(_("Unknown 4 ##2"), &currentEnemyDamage->unknown[3]);
+            ImGui::InputInt(_("Unknown 5 ##2"), &currentEnemyDamage->unknown[4]);
+            ImGui::InputInt(_("Unknown 6 ##2"), &currentEnemyDamage->unknown[5]);
+            ImGui::InputInt(_("Unknown 7 ##2"), &currentEnemyDamage->unknown[6]);
+            ImGui::InputInt(_("Unknown 8 ##2"), &currentEnemyDamage->unknown[7]);
+                
+            ImGui::InputFloat3(_("XYZ Position ##2"), (float*)&currentEnemy->position);
+            ImGui::InputFloat3(_("XYZ Velocity ##2"), (float*)&currentEnemy->velocity);
+            ImGui::InputFloat3(_("XYZ Scale ##2"), (float*)&currentEnemy->scale);
+            ImGui::InputScalar(_("Move ID ##2"), ImGuiDataType_U8, &currentEnemy->moveID);
+            ImGui::InputScalar(_("Move ID 2 ##2"), ImGuiDataType_U8, &currentEnemy->moveID2, 0, 0);
+            ImGui::InputScalar(_("Move Part ##2"), ImGuiDataType_U8, &currentEnemy->movePart);
+            ImGui::InputScalar(_("Grounded ##2"), ImGuiDataType_U8, &currentEnemy->grounded);
+            ImGui::InputFloat(_("Animation Frame ##2"), &currentEnemy->animFrame);
+        }
     }
 
     ImGui::Spacing();
@@ -276,10 +282,12 @@ void EnemyTracker::on_gui_frame() {
 void EnemyTracker::on_update_input(utility::Input& input) {
     if (hotkey_enabled) {
         if (m_hotkeys[SAVE_ENEMY_STATS_HOTKEY]->check(input)) {
-            save_load_enemy_info(true);
+            if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
+                save_load_enemy_info(true, enemy);
         }
         if (m_hotkeys[APPLY_ENEMY_STATS_HOTKEY]->check(input)) {
-            save_load_enemy_info(false);
+            if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
+                save_load_enemy_info(false, enemy);
         }
         if (m_hotkeys[SAVE_BOSS_STATS_HOTKEY]->check(input)) {
             save_load_boss_info(true);
@@ -292,10 +300,12 @@ void EnemyTracker::on_update_input(utility::Input& input) {
 
 void EnemyTracker::on_config_load(const utility::Config& cfg) {
     hotkey_enabled = cfg.get<bool>("enable_enemy_stats_hotkeys").value_or(true);
+    useLockedOnEnemyInstead = cfg.get<bool>("enable_enemy_stats_lockon").value_or(false);
 }
 
 void EnemyTracker::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("enable_enemy_stats_hotkeys", hotkey_enabled);
+    cfg.set<bool>("enable_enemy_stats_lockon", useLockedOnEnemyInstead);
 }
 
 #endif
