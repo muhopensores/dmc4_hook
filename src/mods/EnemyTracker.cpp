@@ -138,8 +138,12 @@ void EnemyTracker::on_gui_frame() {
             ImGui::Checkbox("Use Locked On Enemy Instead Of Picking", &useLockedOnEnemyInstead);
             if (useLockedOnEnemyInstead) {
                 if (uPlayer* player = devil4_sdk::get_local_player()) {
-                    if (player->lockOnTargetPtr3)
-                        currentEnemy = player->lockOnTargetPtr3;
+                    if (player->lockOnTargetPtr3) {
+                        if ((uintptr_t)player->lockOnTargetPtr3 != (uintptr_t)s_med_ptr->uBoss1) {
+                            currentEnemy = player->lockOnTargetPtr3;
+                        }
+                        else currentEnemy = NULL;
+                    }
                 }
             }
             else {
@@ -167,7 +171,7 @@ void EnemyTracker::on_gui_frame() {
                 uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)currentEnemy + damage_info_offset);
                 ImGui::InputFloat(_("HP ##2"), &currentEnemyDamage->HP);
                 ImGui::InputFloat(_("Max HP ##2"), &currentEnemyDamage->HPMax);
-                ImGui::InputFloat(_("HP Taken ##2"), &currentEnemyDamage->HPTaken);
+                ImGui::InputFloat(_("Previous Hit Dealt"), &currentEnemyDamage->HPTaken);
                 ImGui::InputInt(_("Stun 1 ##2"), &currentEnemyDamage->stun[0]);
                 ImGui::InputInt(_("Stun 2 ##2"), &currentEnemyDamage->stun[1]);
                 ImGui::InputInt(_("Stun 3 ##2"), &currentEnemyDamage->stun[2]);
