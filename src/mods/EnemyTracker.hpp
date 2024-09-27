@@ -2,11 +2,11 @@
 
 #include "../mod.hpp"
 
-class EnemyStats : public Mod {
+class EnemyTracker : public Mod {
 public:
-    EnemyStats() = default;
+    EnemyTracker() = default;
 
-    std::string get_mod_name() override { return "EnemyStats"; };
+    std::string get_mod_name() override { return "EnemyTracker"; };
 
     std::optional<std::string> on_initialize() override;
 

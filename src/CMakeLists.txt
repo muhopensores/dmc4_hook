@@ -214,8 +214,8 @@ set(MODS_SRC
   mods/NeroSnatchLength.cpp
   mods/ChargeChecker.hpp
   mods/ChargeChecker.cpp
-  mods/EnemyStats.hpp
-  mods/EnemyStats.cpp
+  mods/EnemyTracker.hpp
+  mods/EnemyTracker.cpp
   mods/FasterFastDrive.hpp
   mods/FasterFastDrive.cpp
   mods/RoseOptions.hpp

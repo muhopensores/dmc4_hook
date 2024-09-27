@@ -9,15 +9,15 @@
 #include <Windows.h>
 #undef WIN32_LEAN_AND_MEAN
 
-#include "./mods/BpPortal.hpp"
-#include "./mods/EnemySpawn.hpp"
-#include "./mods/EnemyStats.hpp"
-#include "./mods/InfAllHealth.hpp"
-#include "./mods/InfDT.hpp"
-#include "./mods/NoClip.hpp"
-#include "./mods/OneHitKill.hpp"
-#include "./mods/Quicksilver.hpp"
-
+// idk why these are here so I'm commenting them out rather than deleting them beacuse I am SCARED
+// #include "./mods/BpPortal.hpp"
+// #include "./mods/EnemySpawn.hpp"
+// #include "./mods/EnemyTracker.hpp"
+// #include "./mods/InfAllHealth.hpp"
+// #include "./mods/InfDT.hpp"
+// #include "./mods/NoClip.hpp"
+// #include "./mods/OneHitKill.hpp"
+// #include "./mods/Quicksilver.hpp"
 
 #include "fw-imgui/imgui_impl_dx9.h"
 #include "fw-imgui/imgui_impl_win32.h"
@@ -752,7 +752,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    pmods->on_draw_ui("EnemyStats"_hash); // needs its own line
+                    pmods->on_draw_ui("EnemyTracker"_hash); // needs its own line
 
                     ImGui::Spacing();
                     ImGui::Separator();

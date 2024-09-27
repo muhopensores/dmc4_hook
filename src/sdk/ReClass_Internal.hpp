@@ -952,7 +952,8 @@ public:
     uint32_t moveIDBest; // 0x2998
     char pad_299c[0x6e4];
     class uEnemy* lockOnTargetPtr2; // 0x3080
-    char pad_3084[0x40];
+    class uEnemy* lockOnTargetPtr3; // 0x3084
+    char pad_3084[0x3C];
     uint8_t bufferPermissions; // 0x30c4
     char pad_30c5[0x2b];
     uint8_t meleeCancelPermissions2; // 0x30f0
@@ -973,7 +974,7 @@ public:
     char pad_14df8[0x3fc];
     float disasterGauge; // 0x151f4
     char pad_151f8[0x870];
-    class uEnemy* lockOnTargetPtr3; // 0x15a68
+    class uEnemy* lockOnTargetPtr4; // 0x15a68
 }; // Size: 0x15a6c
 static_assert(sizeof(uPlayer) == 0x15a6c);
 

@@ -150,8 +150,8 @@ void PlayerTracker::on_update_input(utility::Input & input) {
     }*/
 }
 
-uintptr_t moveIDCallAddr{ 0x7AAC80 };
-void PlayMoveID(int moveID) {
+static uintptr_t moveIDCallAddr{ 0x7AAC80 };
+static void PlayMoveID(int moveID) {
     auto player = devil4_sdk::get_local_player();
     _asm {
         mov eax, [player]
@@ -161,8 +161,8 @@ void PlayMoveID(int moveID) {
     }
 }
 
-uintptr_t animIDCallAddr{ 0x7AA030 };
-void PlayAnimID(int animID) {
+static uintptr_t animIDCallAddr{ 0x7AA030 };
+static void PlayAnimID(int animID) {
     auto player = devil4_sdk::get_local_player();
     _asm {
         mov ecx, [player]

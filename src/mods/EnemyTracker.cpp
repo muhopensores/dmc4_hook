@@ -1,4 +1,4 @@
-#include "EnemyStats.hpp"
+#include "EnemyTracker.hpp"
 #if 1
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
@@ -7,6 +7,7 @@ static bool display_boss_stats = false;
 static bool freeze_move_id = false;
 static bool hotkey_enabled = false;
 static int which_enemy = 0;
+static bool useLockedOnEnemyInstead = 0;
 static int8_t saved_enemy_move_id = 0;
 static int8_t saved_enemy_move_i_d2 = 0;
 static int8_t saved_enemy_move_part = 0;
@@ -22,7 +23,7 @@ enum HotkeyIndexes {
     APPLY_BOSS_STATS_HOTKEY
 };
 
-std::optional<std::string> EnemyStats::on_initialize() {
+std::optional<std::string> EnemyTracker::on_initialize() {
 
     utility::create_keyboard_hotkey(m_hotkeys, {VK_HOME},  "Save Enemy Stats",  "save_enemy_stats_key");
     utility::create_keyboard_hotkey(m_hotkeys, {VK_END},   "Apply Enemy Stats", "apply_enemy_stats_key");
@@ -32,7 +33,7 @@ std::optional<std::string> EnemyStats::on_initialize() {
     return Mod::on_initialize();
 }
 
-int EnemyStats::get_enemy_specific_damage_offset(int enemy_id) {
+int EnemyTracker::get_enemy_specific_damage_offset(int enemy_id) {
     switch (enemy_id) {
     // 0x1500
     case 0x8: // mephisto
@@ -127,43 +128,65 @@ void save_load_boss_info(bool isSave) {
     }
 }
 
-void EnemyStats::on_gui_frame() {
+void EnemyTracker::on_gui_frame() {
     ImGui::Checkbox(_("Display Enemy Stats"), &display_enemy_stats);
     if (display_enemy_stats) {
         ImGui::Indent(lineIndent);
         SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
         if (s_med_ptr) {
-            ImGui::SliderInt(_("Enemy Count"), (int*)&s_med_ptr->enemyCount[2], 0, 0);
-            ImGui::SliderInt(_("Enemy Select"), &which_enemy, 0, s_med_ptr->enemyCount[2] - 1);
-            if (s_med_ptr->uEnemies[0]) {
-                ImGui::Spacing();
-                uEnemy* currentEnemy      = s_med_ptr->uEnemies[which_enemy];
-                int damage_info_offset    = get_enemy_specific_damage_offset(currentEnemy->ID);
-                // i hate this, game accesses them from base ptr, e.g. [uEnemy+1544] for scarecrow hp
-                uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)currentEnemy + damage_info_offset);
-                if (currentEnemy != NULL) {
-                    ImGui::InputFloat(_("HP ##2"), &currentEnemyDamage->HP);
-                    ImGui::InputFloat(_("Max HP ##2"), &currentEnemyDamage->HPMax);
-                    ImGui::InputFloat(_("HP Taken ##2"), &currentEnemyDamage->HPTaken);
-                    ImGui::InputInt(_("Stun 1 ##2"), &currentEnemyDamage->stun[0]);
-                    ImGui::InputInt(_("Stun 2 ##2"), &currentEnemyDamage->stun[1]);
-                    ImGui::InputInt(_("Stun 3 ##2"), &currentEnemyDamage->stun[2]);
-                    ImGui::InputInt(_("Stun 4 ##2"), &currentEnemyDamage->stun[3]);
-                    ImGui::InputInt(_("Stun 5 ##2"), &currentEnemyDamage->stun[4]);
-                    ImGui::InputInt(_("Displacement 1 ##2"), &currentEnemyDamage->displacement[0]);
-                    ImGui::InputInt(_("Displacement 2 ##2"), &currentEnemyDamage->displacement[1]);
-                    ImGui::InputInt(_("Displacement 3 ##2"), &currentEnemyDamage->displacement[2]);
-                    ImGui::InputInt(_("Displacement 4 ##2"), &currentEnemyDamage->displacement[3]);
-                    ImGui::InputInt(_("Displacement 5 ##2"), &currentEnemyDamage->displacement[4]);
-                    ImGui::InputInt(_("Unknown 1 ##2"), &currentEnemyDamage->unknown[0]);
-                    ImGui::InputInt(_("Unknown 2 ##2"), &currentEnemyDamage->unknown[1]);
-                    ImGui::InputInt(_("Unknown 3 ##2"), &currentEnemyDamage->unknown[2]);
-                    ImGui::InputInt(_("Unknown 4 ##2"), &currentEnemyDamage->unknown[3]);
-                    ImGui::InputInt(_("Unknown 5 ##2"), &currentEnemyDamage->unknown[4]);
-                    ImGui::InputInt(_("Unknown 6 ##2"), &currentEnemyDamage->unknown[5]);
-                    ImGui::InputInt(_("Unknown 7 ##2"), &currentEnemyDamage->unknown[6]);
-                    ImGui::InputInt(_("Unknown 8 ##2"), &currentEnemyDamage->unknown[7]);
+            static uEnemy* currentEnemy = NULL;
+            ImGui::Checkbox("Use Locked On Enemy Instead Of Picking", &useLockedOnEnemyInstead);
+            if (useLockedOnEnemyInstead) {
+                if (uPlayer* player = devil4_sdk::get_local_player()) {
+                    if (player->lockOnTargetPtr3)
+                        currentEnemy = player->lockOnTargetPtr3;
                 }
+            }
+            else {
+                currentEnemy = s_med_ptr->uEnemies[which_enemy];
+                ImGui::SliderInt(_("Enemy Count"), (int*)&s_med_ptr->enemyCount[2], 0, 0);
+                ImGui::SliderInt(_("Enemy Select"), &which_enemy, 0, s_med_ptr->enemyCount[2] - 1);
+                if (s_med_ptr->enemyCount[0] > 0) {
+                    if (ImGui::Button(_("Find Locked On Enemy In List"))) {
+                        if (uPlayer* player = devil4_sdk::get_local_player()) {
+                            uEnemy* TestAddr = player->lockOnTargetPtr3;
+                            for (uint32_t i = 0; i < s_med_ptr->enemyCount[2]; ++i) {
+                                if (s_med_ptr->uEnemies[i] && s_med_ptr->uEnemies[i] == TestAddr) {
+                                    which_enemy = i;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            ImGui::Spacing();
+            if (currentEnemy) {
+                // i hate this, game accesses them from base ptr, e.g. [uEnemy+1544] for scarecrow hp
+                int damage_info_offset = get_enemy_specific_damage_offset(currentEnemy->ID);
+                uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)currentEnemy + damage_info_offset);
+                ImGui::InputFloat(_("HP ##2"), &currentEnemyDamage->HP);
+                ImGui::InputFloat(_("Max HP ##2"), &currentEnemyDamage->HPMax);
+                ImGui::InputFloat(_("HP Taken ##2"), &currentEnemyDamage->HPTaken);
+                ImGui::InputInt(_("Stun 1 ##2"), &currentEnemyDamage->stun[0]);
+                ImGui::InputInt(_("Stun 2 ##2"), &currentEnemyDamage->stun[1]);
+                ImGui::InputInt(_("Stun 3 ##2"), &currentEnemyDamage->stun[2]);
+                ImGui::InputInt(_("Stun 4 ##2"), &currentEnemyDamage->stun[3]);
+                ImGui::InputInt(_("Stun 5 ##2"), &currentEnemyDamage->stun[4]);
+                ImGui::InputInt(_("Displacement 1 ##2"), &currentEnemyDamage->displacement[0]);
+                ImGui::InputInt(_("Displacement 2 ##2"), &currentEnemyDamage->displacement[1]);
+                ImGui::InputInt(_("Displacement 3 ##2"), &currentEnemyDamage->displacement[2]);
+                ImGui::InputInt(_("Displacement 4 ##2"), &currentEnemyDamage->displacement[3]);
+                ImGui::InputInt(_("Displacement 5 ##2"), &currentEnemyDamage->displacement[4]);
+                ImGui::InputInt(_("Unknown 1 ##2"), &currentEnemyDamage->unknown[0]);
+                ImGui::InputInt(_("Unknown 2 ##2"), &currentEnemyDamage->unknown[1]);
+                ImGui::InputInt(_("Unknown 3 ##2"), &currentEnemyDamage->unknown[2]);
+                ImGui::InputInt(_("Unknown 4 ##2"), &currentEnemyDamage->unknown[3]);
+                ImGui::InputInt(_("Unknown 5 ##2"), &currentEnemyDamage->unknown[4]);
+                ImGui::InputInt(_("Unknown 6 ##2"), &currentEnemyDamage->unknown[5]);
+                ImGui::InputInt(_("Unknown 7 ##2"), &currentEnemyDamage->unknown[6]);
+                ImGui::InputInt(_("Unknown 8 ##2"), &currentEnemyDamage->unknown[7]);
+                
                 ImGui::InputFloat3(_("XYZ Position ##2"), (float*)&currentEnemy->position);
                 ImGui::InputFloat3(_("XYZ Velocity ##2"), (float*)&currentEnemy->velocity);
                 ImGui::InputFloat3(_("XYZ Scale ##2"), (float*)&currentEnemy->scale);
@@ -232,6 +255,8 @@ void EnemyStats::on_gui_frame() {
     ImGui::Spacing();
 
     ImGui::Checkbox(_("Enable Save/Load hotkeys"), &hotkey_enabled);
+    ImGui::SameLine();
+    help_marker("Assuming default hotkeys,\nHome+End will save and load enemy attacks\nPage Up+Page Down will save and load boss attacks");
 
     ImGui::Spacing();
 
@@ -244,7 +269,7 @@ void EnemyStats::on_gui_frame() {
     }
 }
 
-void EnemyStats::on_update_input(utility::Input& input) {
+void EnemyTracker::on_update_input(utility::Input& input) {
     if (hotkey_enabled) {
         if (m_hotkeys[SAVE_ENEMY_STATS_HOTKEY]->check(input)) {
             save_load_enemy_info(true);
@@ -261,11 +286,11 @@ void EnemyStats::on_update_input(utility::Input& input) {
     }
 }
 
-void EnemyStats::on_config_load(const utility::Config& cfg) {
+void EnemyTracker::on_config_load(const utility::Config& cfg) {
     hotkey_enabled = cfg.get<bool>("enable_enemy_stats_hotkeys").value_or(true);
 }
 
-void EnemyStats::on_config_save(utility::Config& cfg) {
+void EnemyTracker::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("enable_enemy_stats_hotkeys", hotkey_enabled);
 }
 

@@ -74,7 +74,7 @@
 #include "mods/ChargeChecker.hpp"
 #include "mods/DisableChimeraBlades.hpp"
 #include "mods/EnemyReplaceAgain.hpp"
-#include "mods/EnemyStats.hpp"
+#include "mods/EnemyTracker.hpp"
 #include "mods/FasterFastDrive.hpp"
 #include "mods/FrostsDontJump.hpp"
 #include "mods/InfCalibur.hpp"
@@ -223,7 +223,7 @@ Mods::Mods() {
     ADD_MOD(FrostsDontJump);
     ADD_MOD(NeroSnatchLength);
     ADD_MOD(ChargeChecker);
-    ADD_MOD(EnemyStats);
+    ADD_MOD(EnemyTracker);
     ADD_MOD(FasterFastDrive);
     ADD_MOD(RoseOptions);
     ADD_MOD(TurnSpeedEdits);

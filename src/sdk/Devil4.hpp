@@ -3,7 +3,6 @@
 
 namespace devil4_sdk {
 	void u_em003_shl_new();
-	void dog_fireball_new();
 	sArea* get_sArea();
 	SMediator* get_sMediator();
 	uPlayer* get_local_player();
