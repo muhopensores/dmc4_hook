@@ -10,7 +10,7 @@ public:
 
     std::optional<std::string> on_initialize() override;
 
-    int get_enemy_specific_damage_offset(int enemy_id);
+    static int get_enemy_specific_damage_offset(int enemy_id);
 
     static int hotkey2;
     static int hotkey3;

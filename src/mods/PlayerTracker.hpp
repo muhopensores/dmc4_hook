@@ -11,6 +11,24 @@ public:
     static bool lock_on_alloc;
     static bool pin_imgui_enabled;
 
+    static Vector3f savedPlayerPosition;
+    static float savedPlayerRotation;
+    static int8_t savedPlayerWeight;
+    static float savedPlayerInertia;
+    static int8_t savedPlayerMoveBank;
+    static int8_t savedPlayerMoveID;
+    static uint32_t savedPlayerCancels2;
+    static uint32_t savedPlayerSword;
+    static uint32_t savedPlayerGun;
+    static uint32_t savedPlayerStyle;
+    static uint32_t savedPlayerLockonAnimation;
+    static uint32_t savedPlayerCanWeaponChange;
+
+    static void SavePlayerXYZ();
+    static void LoadPlayerXYZ();
+    static void SavePlayerMove();
+    static void LoadPlayerMove();
+
     std::string  get_mod_name() override { return "PlayerTracker"; };
     Mod::ModType get_mod_type() override { return SLOW; };
 

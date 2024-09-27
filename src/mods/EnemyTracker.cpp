@@ -1,4 +1,5 @@
 #include "EnemyTracker.hpp"
+#include "PlayerTracker.hpp"
 #if 1
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
@@ -8,13 +9,25 @@ static bool freeze_move_id = false;
 static bool hotkey_enabled = false;
 static int which_enemy = 0;
 static bool useLockedOnEnemyInstead = 0;
-static int8_t saved_enemy_move_id = 0;
-static int8_t saved_enemy_move_i_d2 = 0;
-static int8_t saved_enemy_move_part = 0;
-static int8_t saved_enemy_grounded = 0;
-static float saved_enemy_pos_xyz[3]{ 0.0f, 0.0f, 0.0f };
-static float saved_enemy_velocity_xyz[3]{ 0.0f, 0.0f, 0.0f };
+
+static int8_t savedEnemyMoveID = 0;
+static int8_t savedEnemyMoveID2 = 0;
+static int8_t savedEnemyGrounded = 0;
+static float savedEnemyHP = 0;
+static int8_t savedEnemyStun = 0;
+static float savedEnemyPosition[3]{ 0.0f, 0.0f, 0.0f };
+static float savedEnemyVelocity[3]{ 0.0f, 0.0f, 0.0f };
+static float savedEnemyRotation = 0.0f;
+// static int8_t savedEnemyMovePart = 0;
 // static float savedEnemyAnimationFrame = 0.0f;
+
+static int8_t savedPlayerMoveID = 0;
+static float savedPlayerPosition[3]{ 0.0f, 0.0f, 0.0f };
+static float savedPlayerInertia = 0.0f;
+static float savedPlayerRotation = 0.0f;
+static int8_t savedPlayerGrounded = 0;
+// static int8_t savedPlayerMovePart = 0;
+// static float savedPlayerAnimationFrame = 0.0f;
 
 enum HotkeyIndexes {
     SAVE_ENEMY_STATS_HOTKEY,
@@ -78,26 +91,34 @@ int EnemyTracker::get_enemy_specific_damage_offset(int enemy_id) {
 void save_load_enemy_info(bool isSave, uEnemy* enemy) {
     if (enemy) {
         if (isSave) {
-            saved_enemy_pos_xyz[0] = enemy->position[0];
-            saved_enemy_pos_xyz[1] = enemy->position[1];
-            saved_enemy_pos_xyz[2] = enemy->position[2];
-            saved_enemy_velocity_xyz[0] = enemy->velocity[0];
-            saved_enemy_velocity_xyz[1] = enemy->velocity[1];
-            saved_enemy_velocity_xyz[2] = enemy->velocity[2];
-            saved_enemy_move_id = enemy->moveID;
-            saved_enemy_move_i_d2 = enemy->moveID2;
-            saved_enemy_grounded = enemy->grounded;
+            savedEnemyPosition[0] = enemy->position[0];
+            savedEnemyPosition[1] = enemy->position[1];
+            savedEnemyPosition[2] = enemy->position[2];
+            savedEnemyRotation = enemy->rotation[1];
+            savedEnemyVelocity[0] = enemy->velocity[0];
+            savedEnemyVelocity[1] = enemy->velocity[1];
+            savedEnemyVelocity[2] = enemy->velocity[2];
+            savedEnemyMoveID = enemy->moveID;
+            savedEnemyMoveID2 = enemy->moveID2;
+            savedEnemyGrounded = enemy->grounded;
+            uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+            savedEnemyHP = currentEnemyDamage->HP;
+            savedEnemyStun = currentEnemyDamage->stun[0];
         }
         else {
-            enemy->position[0] = saved_enemy_pos_xyz[0];
-            enemy->position[1] = saved_enemy_pos_xyz[1];
-            enemy->position[2] = saved_enemy_pos_xyz[2];
-            enemy->velocity[0] = saved_enemy_velocity_xyz[0];
-            enemy->velocity[1] = saved_enemy_velocity_xyz[1];
-            enemy->velocity[2] = saved_enemy_velocity_xyz[2];
-            enemy->moveID = saved_enemy_move_id;
-            enemy->moveID2 = saved_enemy_move_i_d2;
-            enemy->grounded = saved_enemy_grounded;
+            enemy->position[0] = savedEnemyPosition[0];
+            enemy->position[1] = savedEnemyPosition[1];
+            enemy->position[2] = savedEnemyPosition[2];
+            enemy->rotation[1] = savedEnemyRotation;
+            enemy->velocity[0] = savedEnemyVelocity[0];
+            enemy->velocity[1] = savedEnemyVelocity[1];
+            enemy->velocity[2] = savedEnemyVelocity[2];
+            enemy->moveID = savedEnemyMoveID;
+            enemy->moveID2 = savedEnemyMoveID2;
+            uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+            currentEnemyDamage->HP = savedEnemyHP;
+            currentEnemyDamage->stun[0] = savedEnemyStun;
+            enemy->grounded = savedEnemyGrounded;
             enemy->movePart = 0;
         }
     }
@@ -108,18 +129,20 @@ void save_load_boss_info(bool isSave) {
     SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
     if (s_med_ptr->uBoss1) {
         if (isSave) {
-            saved_enemy_pos_xyz[0] = s_med_ptr->uBoss1->position[0];
-            saved_enemy_pos_xyz[1] = s_med_ptr->uBoss1->position[1];
-            saved_enemy_pos_xyz[2] = s_med_ptr->uBoss1->position[2];
-            saved_enemy_move_id = s_med_ptr->uBoss1->moveID;
-            saved_enemy_move_i_d2 = s_med_ptr->uBoss1->moveID2;
+            savedEnemyPosition[0] = s_med_ptr->uBoss1->position[0];
+            savedEnemyPosition[1] = s_med_ptr->uBoss1->position[1];
+            savedEnemyPosition[2] = s_med_ptr->uBoss1->position[2];
+            savedEnemyRotation = s_med_ptr->uBoss1->rotation[1];
+            savedEnemyMoveID = s_med_ptr->uBoss1->moveID;
+            savedEnemyMoveID2 = s_med_ptr->uBoss1->moveID2;
         }
         else {
-            s_med_ptr->uBoss1->position[0] = saved_enemy_pos_xyz[0];
-            s_med_ptr->uBoss1->position[1] = saved_enemy_pos_xyz[1];
-            s_med_ptr->uBoss1->position[2] = saved_enemy_pos_xyz[2];
-            s_med_ptr->uBoss1->moveID = saved_enemy_move_id;
-            s_med_ptr->uBoss1->moveID2 = saved_enemy_move_i_d2;
+            s_med_ptr->uBoss1->position[0] = savedEnemyPosition[0];
+            s_med_ptr->uBoss1->position[1] = savedEnemyPosition[1];
+            s_med_ptr->uBoss1->position[2] = savedEnemyPosition[2];
+            s_med_ptr->uBoss1->rotation[1] = savedEnemyRotation;
+            s_med_ptr->uBoss1->moveID = savedEnemyMoveID;
+            s_med_ptr->uBoss1->moveID2 = savedEnemyMoveID2;
             s_med_ptr->uBoss1->movePart = 0;
         }
     }
@@ -141,6 +164,17 @@ uEnemy* GetDesiredEnemy(bool useLockon) {
         enemy = s_med_ptr->uEnemies[which_enemy];
     }
     return enemy;
+}
+
+void SaveStateWithCurrentEnemy() {
+    if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
+        save_load_enemy_info(true, enemy);
+    PlayerTracker::SavePlayerMove();
+}
+void LoadStateWithCurrentEnemy() {
+    if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
+        save_load_enemy_info(false, enemy);
+    PlayerTracker::LoadPlayerMove();
 }
 
 void EnemyTracker::on_gui_frame() {
@@ -166,6 +200,18 @@ void EnemyTracker::on_gui_frame() {
         }
         ImGui::SameLine();
         help_marker(_("Hotkey is END by default"));
+
+        if (ImGui::Button(_("Save State"))) {
+            SaveStateWithCurrentEnemy();
+        }
+
+        if (ImGui::Button(_("Load State"))) {
+            LoadStateWithCurrentEnemy();
+        }
+
+        ImGui::SameLine();
+        help_marker(_("Hotkey is END by default"));
+
         ImGui::Unindent(lineIndent);
 
         if (!useLockedOnEnemyInstead) {
@@ -212,6 +258,7 @@ void EnemyTracker::on_gui_frame() {
             ImGui::InputInt(_("Unknown 8 ##2"), &currentEnemyDamage->unknown[7]);
                 
             ImGui::InputFloat3(_("XYZ Position ##2"), (float*)&currentEnemy->position);
+            ImGui::InputFloat3(_("XYZ Rotation ##2"), (float*)&currentEnemy->rotation);
             ImGui::InputFloat3(_("XYZ Velocity ##2"), (float*)&currentEnemy->velocity);
             ImGui::InputFloat3(_("XYZ Scale ##2"), (float*)&currentEnemy->scale);
             ImGui::InputScalar(_("Move ID ##2"), ImGuiDataType_U8, &currentEnemy->moveID);
@@ -236,6 +283,7 @@ void EnemyTracker::on_gui_frame() {
             if (s_med_ptr->uBoss1) {
                 ImGui::Spacing();
                 ImGui::InputFloat3(_("XYZ Position ##3"), (float*)&s_med_ptr->uBoss1->position);
+                ImGui::InputFloat4(_("XYZ Rotation ##3"), (float*)&s_med_ptr->uBoss1->rotation);
                 ImGui::InputFloat3(_("XYZ Scale ##3"), (float*)&s_med_ptr->uBoss1->scale);
                 ImGui::InputFloat(_("HP ##3"), &s_med_ptr->uBoss1->HP);
                 ImGui::InputFloat(_("Max HP ##3"), &s_med_ptr->uBoss1->HPMax);
@@ -271,23 +319,26 @@ void EnemyTracker::on_gui_frame() {
     ImGui::Spacing();
 
     if (ImGui::CollapsingHeader(_("Saved Info"))) {
-        ImGui::InputScalar(_("Saved Move ID"), ImGuiDataType_U8, &saved_enemy_move_id);
-        ImGui::InputScalar(_("Saved Move ID 2"), ImGuiDataType_U8, &saved_enemy_move_i_d2, 0, 0);
-        ImGui::InputFloat3(_("Saved XYZ Position"), saved_enemy_pos_xyz);
-        ImGui::InputFloat3(_("Saved XYZ Velocity"), saved_enemy_velocity_xyz);
-        ImGui::InputScalar(_("Saved Grounded"), ImGuiDataType_U8, &saved_enemy_grounded);
+        ImGui::InputScalar(_("Enemy Move ID"), ImGuiDataType_U8, &savedEnemyMoveID);
+        ImGui::InputScalar(_("Enemy Move ID 2"), ImGuiDataType_U8, &savedEnemyMoveID2, 0, 0);
+        ImGui::InputFloat3(_("Enemy Position"), savedEnemyPosition);
+        ImGui::InputFloat(_("Enemy Rotation"), &savedEnemyRotation);
+        ImGui::InputFloat3(_("Enemy Velocity"), savedEnemyVelocity);
+        ImGui::InputScalar(_("Enemy Grounded"), ImGuiDataType_U8, &savedEnemyGrounded);
     }
 }
 
 void EnemyTracker::on_update_input(utility::Input& input) {
     if (hotkey_enabled) {
         if (m_hotkeys[SAVE_ENEMY_STATS_HOTKEY]->check(input)) {
-            if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
-                save_load_enemy_info(true, enemy);
+            //if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
+                //save_load_enemy_info(true, enemy);
+            SaveStateWithCurrentEnemy();
         }
         if (m_hotkeys[APPLY_ENEMY_STATS_HOTKEY]->check(input)) {
-            if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
-                save_load_enemy_info(false, enemy);
+            //if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
+                //save_load_enemy_info(false, enemy);
+            LoadStateWithCurrentEnemy();
         }
         if (m_hotkeys[SAVE_BOSS_STATS_HOTKEY]->check(input)) {
             save_load_boss_info(true);

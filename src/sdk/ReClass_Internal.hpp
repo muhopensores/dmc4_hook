@@ -529,7 +529,9 @@ public:
     uint8_t movePart; // 0x15
     char pad_16[0x1a];
     Vector3f position; // 0x30
-    char pad_3c[0x14];
+    char pad_3c[0x4]; // 0x3C
+    Vector3f rotation; // 0x40
+    float behindRotation; // 0x4C
     Vector3f scale; // 0x50
     char pad_5c[0x74];
     Vector3f positionKnockback; // 0xd0
@@ -576,7 +578,9 @@ public:
     uint8_t movePart; // 0x15
     char pad_16[0x1a];
     Vector3f position; // 0x30
-    char pad_3c[0x14];
+    char pad_3c[0x4];
+    Vector3f rotation; // 0x40
+    float behindRotation; // 0x4C
     Vector3f scale; // 0x50
     char pad_5c[0x2d8];
     uint8_t moveID2; // 0x334
@@ -862,12 +866,14 @@ public:
     uint32_t controllerID; // 0x1494
     char pad_1498[0x58];
     uint32_t canWeaponChange; // 0x14f0
-    char pad_14f4[0xc];
+    char pad_14f4[0x4];
+    uint32_t isLockonAnimation; // 0x14f8 1 if off
+    char pad_14fC[0x4];
     uint32_t moveBank; // 0x1500
     uint32_t movePart; // 0x1504
     char pad_1508[0x48];
     uint8_t cancels1[4]; // 0x1550
-    uint8_t cancels2[4]; // 0x1554
+    uint32_t cancels2; // 0x1554
     char pad_1558[0xc];
     uint32_t moveID2; // 0x1564
     char pad_1568[0x64];
@@ -894,11 +900,12 @@ public:
     class DevilArm* coyoteA; // 0x1da0
     class DevilArm* pandora; // 0x1da4
     char pad_1da8[0xc];
-    uint32_t currentSwordUI; // 0x1db4
-    uint32_t currentGunUI; // 0x1db8
+    uint32_t nextSword; // 0x1db4
+    uint32_t nextGun; // 0x1db8
     char pad_1dbc[0x4];
     uint32_t currentSword; // 0x1dc0
-    char pad_1dc4[0x4c];
+    uint32_t currentGun; // 0x1dc4
+    char pad_1dc4[0x48];
     uint8_t meleeCancelPermissions1[4]; // 0x1e10
     uint8_t jumpCancelPermissions1[4]; // 0x1e14
     char pad_1e18[0x4];

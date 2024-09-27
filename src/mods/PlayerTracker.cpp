@@ -33,42 +33,73 @@ bool PlayerTracker::pin_imgui_enabled = false;
 
 static bool display_player_stats = false;
 static bool red_orb_completion_enabled = false;
-static Vector3f playerXYZBackup{ 0.0f, 0.0f, 0.0f };
-static float playerRotationBackup = 0.0f;
-static int8_t tempMoveBank = 0;
-static int8_t tempMoveID   = 0;
+Vector3f PlayerTracker::savedPlayerPosition{ 0.0f, 0.0f, 0.0f };
+float PlayerTracker::savedPlayerRotation = 0.0f;
+int8_t PlayerTracker::savedPlayerWeight = 0;
+float PlayerTracker::savedPlayerInertia = 0;
+int8_t PlayerTracker::savedPlayerMoveID   = 0;
+int8_t PlayerTracker::savedPlayerMoveBank = 0;
+uint32_t PlayerTracker::savedPlayerCancels2 = 0;
+uint32_t PlayerTracker::savedPlayerSword = 0;
+uint32_t PlayerTracker::savedPlayerGun = 0;
+uint32_t PlayerTracker::savedPlayerStyle = 0;
+uint32_t PlayerTracker::savedPlayerLockonAnimation = 0;
+uint32_t PlayerTracker::savedPlayerCanWeaponChange = 0;
 
-void SavePlayerXYZ() {
+void PlayerTracker::SavePlayerXYZ() {
     uPlayer* player = devil4_sdk::get_local_player();
     if (player) {
-        playerXYZBackup = player->m_pos;
-        playerRotationBackup = player->rotation2;
+        savedPlayerPosition = player->m_pos;
+        savedPlayerRotation = player->rotation2;
     }
 }
-void LoadPlayerXYZ() {
+void PlayerTracker::LoadPlayerXYZ() {
     uPlayer* player = devil4_sdk::get_local_player();
     if (player) {
-        player->m_pos = playerXYZBackup;
-        player->rotation2 = playerRotationBackup;
+        player->m_pos = savedPlayerPosition;
+        player->rotation2 = savedPlayerRotation;
     }
 }
 
-void SavePlayerMove() {
+void PlayerTracker::SavePlayerMove() {
     uPlayer* player = devil4_sdk::get_local_player();
     if (player) {
-        tempMoveBank = player->moveBank;
-        tempMoveID = player->moveID2;
+        savedPlayerMoveBank = player->moveBank;
+        savedPlayerMoveID = player->moveID2;
+        savedPlayerWeight = player->weight;
+        savedPlayerInertia = player->inertia;
+        savedPlayerCancels2 = player->cancels2;
+        savedPlayerSword = player->currentSword;
+        savedPlayerGun = player->currentGun;
+        savedPlayerStyle = player->currentStyle;
+        savedPlayerLockonAnimation = player->isLockonAnimation;
+        savedPlayerCanWeaponChange = player->canWeaponChange;
         SavePlayerXYZ();
     }
 }
 
-void LoadPlayerMove() {
+void PlayerTracker::LoadPlayerMove() {
     uPlayer* player = devil4_sdk::get_local_player();
     if (player) {
-        player->moveBank = tempMoveBank;
-        player->moveID2 = tempMoveID;
-        player->movePart = 0;
-        player->canWeaponChange = 12;
+        player->nextSword = savedPlayerSword;
+        player->nextGun = savedPlayerGun;
+        player->currentStyle = savedPlayerStyle;
+        player->moveBank = savedPlayerMoveBank;
+        player->moveID2 = savedPlayerMoveID;
+        player->weight = savedPlayerWeight;
+        player->inertia = savedPlayerInertia;
+        player->movePart    = 0;
+        player->cancels1[0] = 0;
+        player->cancels1[1] = 0;
+        player->cancels1[2] = 0;
+        player->cancels1[3] = 0;
+        player->isLockonAnimation = savedPlayerLockonAnimation;
+        player->canWeaponChange = savedPlayerCanWeaponChange;
+        player->cancels2 = savedPlayerCancels2;
+
+        // player->characterSettingsOne->groundedActual = 0;
+        // player->grounded = 0;
+        // player->grounded2 = 0;
         LoadPlayerXYZ();
     }
 }
@@ -239,8 +270,8 @@ void PlayerTracker::on_gui_frame() {
             ImGui::InputScalar(_("Move ID2 ##1"), ImGuiDataType_U8, &player->moveID2);
             ImGui::InputScalar(_("Move Bank ##1"), ImGuiDataType_U8, &player->moveBank);
             ImGui::InputScalar(_("Move Part ##1"), ImGuiDataType_U8, &player->movePart);
-            ImGui::InputScalar(_("Saved Move Bank ##1"), ImGuiDataType_U8, &tempMoveBank);
-            ImGui::InputScalar(_("Saved Move ID ##1"), ImGuiDataType_U8, &tempMoveID);
+            ImGui::InputScalar(_("Saved Move Bank ##1"), ImGuiDataType_U8, &savedPlayerMoveBank);
+            ImGui::InputScalar(_("Saved Move ID ##1"), ImGuiDataType_U8, &savedPlayerMoveID);
         }
         ImGui::Unindent(lineIndent);
     }
@@ -251,7 +282,7 @@ void PlayerTracker::on_gui_frame() {
     if (ImGui::Button(_("Play Saved Move"))) {
         LoadPlayerMove();
     }
-    ImGui::InputFloat3(_("Saved Player XYZ"), &playerXYZBackup[0]);
+    ImGui::InputFloat3(_("Saved Player Position"), &savedPlayerPosition[0]);
 
     static int inputMoveID = 0;
     ImGui::PushItemWidth(sameLineItemWidth);
