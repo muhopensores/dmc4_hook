@@ -34,7 +34,6 @@ void FpsLimit::on_gui_frame() {
     help_marker(_("If your FPS is set to unlocked, this will allow you to change the cap. Some things work differently at certain framerates"));
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
-        ImGui::SameLine(sameLineWidth);
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::InputFloat(_("New FPS Limit"), &newfpslimit, 1.0f, 1.0f, "%.0f");
         ImGui::PopItemWidth();

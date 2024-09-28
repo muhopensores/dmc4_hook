@@ -12,7 +12,8 @@ int8_t PlayerTracker::savedPlayerWeight = 0;
 float PlayerTracker::savedPlayerInertia = 0;
 int8_t PlayerTracker::savedPlayerMoveID   = 0;
 int8_t PlayerTracker::savedPlayerMoveBank = 0;
-uint32_t PlayerTracker::savedPlayerCancels2 = 0;
+uint8_t PlayerTracker::savedPlayerCancels1[]{ 0, 0, 0, 0 };
+uint32_t PlayerTracker::savedPlayerCancels2[]{ 0, 0, 0, 0 };
 uint32_t PlayerTracker::savedPlayerSword = 0;
 uint32_t PlayerTracker::savedPlayerGun = 0;
 uint32_t PlayerTracker::savedPlayerStyle = 0;
@@ -37,14 +38,22 @@ void PlayerTracker::LoadPlayerXYZ() {
 void PlayerTracker::SavePlayerMove() {
     uPlayer* player = devil4_sdk::get_local_player();
     if (player) {
+        savedPlayerSword = player->currentSword;
+        savedPlayerGun = player->currentGun;
+        savedPlayerStyle = player->currentStyle;
         savedPlayerMoveBank = player->moveBank;
         savedPlayerMoveID = player->moveID2;
         savedPlayerWeight = player->weight;
         savedPlayerInertia = player->inertia;
-        savedPlayerCancels2 = player->cancels2;
-        savedPlayerSword = player->currentSword;
-        savedPlayerGun = player->currentGun;
-        savedPlayerStyle = player->currentStyle;
+        savedPlayerCancels1[0] = player->cancels1[0];
+        savedPlayerCancels1[1] = player->cancels1[1];
+        savedPlayerCancels1[2] = player->cancels1[2];
+        savedPlayerCancels1[3] = player->cancels1[3];
+
+        savedPlayerCancels2[0] = player->cancels2[0];
+        savedPlayerCancels2[1] = player->cancels2[1];
+        savedPlayerCancels2[2] = player->cancels2[2];
+        savedPlayerCancels2[3] = player->cancels2[3];
         savedPlayerLockonAnimation = player->isLockonAnimation;
         savedPlayerCanWeaponChange = player->canWeaponChange;
         SavePlayerXYZ();
@@ -53,7 +62,7 @@ void PlayerTracker::SavePlayerMove() {
 
 void PlayerTracker::LoadPlayerMove() {
     uPlayer* player = devil4_sdk::get_local_player();
-    if (player) {
+    if (player && savedPlayerSword) { // verify at least 1 save has happened
         player->nextSword = savedPlayerSword;
         player->nextGun = savedPlayerGun;
         player->currentStyle = savedPlayerStyle;
@@ -62,14 +71,19 @@ void PlayerTracker::LoadPlayerMove() {
         player->weight = savedPlayerWeight;
         player->inertia = savedPlayerInertia;
         player->movePart    = 0;
-        player->cancels1[0] = 0;
-        player->cancels1[1] = 0;
-        player->cancels1[2] = 0;
-        player->cancels1[3] = 0;
+        player->cancels1[0] = savedPlayerCancels1[0];
+        player->cancels1[1] = savedPlayerCancels1[1];
+        player->cancels1[2] = savedPlayerCancels1[2];
+        player->cancels1[3] = savedPlayerCancels1[3];
+
+        player->cancels2[0] = savedPlayerCancels2[0];
+        player->cancels2[1] = savedPlayerCancels2[1];
+        player->cancels2[2] = savedPlayerCancels2[2];
+        player->cancels2[3] = savedPlayerCancels2[3];
         player->isLockonAnimation = savedPlayerLockonAnimation;
         player->canWeaponChange = savedPlayerCanWeaponChange;
-        player->cancels2 = savedPlayerCancels2;
 
+        // grounded does not need to be set
         // player->characterSettingsOne->groundedActual = 0;
         // player->grounded = 0;
         // player->grounded2 = 0;
@@ -118,20 +132,10 @@ std::optional<std::string> PlayerTracker::on_initialize() {
         }, 
         csys::Arg<float>("0.0 - 20000.0"));
 
-    utility::create_keyboard_hotkey(m_hotkeys, { VK_F11, VK_TAB  }, "Save Player XYZ", "save_player_xyz_hotkey");
-    utility::create_keyboard_hotkey(m_hotkeys, { VK_F12, VK_TAB  }, "Load Player XYZ", "load_player_xyz_hotkey");
-
     return Mod::on_initialize();
 }
 
 void PlayerTracker::on_update_input(utility::Input & input) {
-    /*if (m_hotkeys[0]->check(input)) { // why tf do you crash
-        SavePlayerMove();
-    }
-
-    if (m_hotkeys[1]->check(input)) {
-        LoadPlayerMove();
-    }*/
 }
 
 static uintptr_t moveIDCallAddr{ 0x7AAC80 };

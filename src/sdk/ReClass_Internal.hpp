@@ -873,7 +873,7 @@ public:
     uint32_t movePart; // 0x1504
     char pad_1508[0x48];
     uint8_t cancels1[4]; // 0x1550
-    uint32_t cancels2; // 0x1554
+    uint8_t cancels2[4]; // 0x1554
     char pad_1558[0xc];
     uint32_t moveID2; // 0x1564
     char pad_1568[0x64];

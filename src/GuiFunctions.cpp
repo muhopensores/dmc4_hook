@@ -509,6 +509,8 @@ namespace gui {
                     pmods->on_draw_ui("TimerMem"_hash); // instant honeycomb
 
                     pmods->on_draw_ui("ActiveBlock"_hash);
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("GuardSteer"_hash);
 
                     pmods->on_draw_ui("KnockbackEdits"_hash);
 
@@ -533,8 +535,6 @@ namespace gui {
                     pmods->on_draw_ui("DisableDTStinger"_hash);
 
                     pmods->on_draw_ui("HighTimeWeaponSwitch"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("GuardSteer"_hash);
 
                     pmods->on_draw_ui("DanteJdc"_hash);
 
@@ -680,8 +680,8 @@ namespace gui {
                     
                     pmods->on_draw_ui("CustomModelFix"_hash); // needs its own line
 
-                    pmods->on_draw_ui("BpPortal"_hash); // needs its own line
-
+                    pmods->on_draw_ui("BpPortal"_hash);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("SlowWalk"_hash);
 
                     ImGui::Spacing();

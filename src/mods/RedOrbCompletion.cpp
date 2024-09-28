@@ -15,9 +15,9 @@ std::optional<std::string> RedOrbCompletion::on_initialize() {
 void RedOrbCompletion::custom_imgui_window() {
     if (RedOrbCompletion::mod_enabled) {
         if (devil4_sdk::get_local_player()) {
-            static float orbsFoundPercent = 0.0f;
             SMediator* sMediatorPtr = devil4_sdk::get_sMediator();
-            if (sMediatorPtr->orbMissionPotential && sMediatorPtr->orbMissionCurrent && sMediatorPtr->missionID != 50) { // always shows 50 for BP)
+            if (sMediatorPtr && sMediatorPtr->missionID != 50) { // always shows 50 for BP)
+                static float orbsFoundPercent = 0.0f;
                 ImGuiIO& io = ImGui::GetIO();
                 ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoBackground;
 

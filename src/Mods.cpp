@@ -143,10 +143,10 @@ Mods::Mods() {
     ADD_MOD(Borderless);
     ADD_MOD(TwitchClient); // keep as 3
     ADD_MOD(MutatorSelfAdvertisement); // keep as 4
+    ADD_MOD(PinTimer); // keep as 5
     // regular mods
     // add mods here
     // m_mods["ModName"_hash] = std::make_unique<ModName>();
-    ADD_MOD(PinTimer); // keep as 5
     ADD_MOD(RedOrbCompletion); // keep as 6
     ADD_MOD(PlayerTracker);
     ADD_MOD(LoadOrder);
