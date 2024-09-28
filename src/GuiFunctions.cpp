@@ -650,6 +650,10 @@ namespace gui {
 
                     pmods->on_draw_ui("HideHud"_hash); // needs its own line
 
+                    pmods->on_draw_ui("PinTimer"_hash);
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("RedOrbCompletion"_hash);
+
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();

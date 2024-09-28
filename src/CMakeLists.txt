@@ -2,6 +2,10 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/RedOrbCompletion.hpp
+  mods/RedOrbCompletion.cpp
+  mods/PinTimer.hpp
+  mods/PinTimer.cpp
   mods/TauntSelect.hpp
   mods/TauntSelect.cpp
   mods/LocalizationManager.hpp

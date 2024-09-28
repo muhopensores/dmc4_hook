@@ -8,8 +8,7 @@ public:
 
     static uintptr_t jmp_return;
     static uPlayer* player_ptr;
-    static bool lock_on_alloc;
-    static bool pin_imgui_enabled;
+    static bool display_player_stats;
 
     static Vector3f savedPlayerPosition;
     static float savedPlayerRotation;
@@ -30,10 +29,8 @@ public:
     static void LoadPlayerMove();
 
     std::string  get_mod_name() override { return "PlayerTracker"; };
-    Mod::ModType get_mod_type() override { return SLOW; };
 
     std::optional<std::string> on_initialize() override;
-    void custom_imgui_window();
     void on_gui_frame() override;
     void on_update_input(utility::Input& input) override;
 
