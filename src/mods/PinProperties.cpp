@@ -234,7 +234,7 @@ void __stdcall set_relative_pos(float* Wmat, float* TargetWmat, float* res) {
 }
 
 
-naked void detour8(void) {
+naked void detour8(void) {//Set pin attachment point
     _asm {
             cmp byte ptr [PinProperties::consistent_embed_enabled],1
             jne originalcode

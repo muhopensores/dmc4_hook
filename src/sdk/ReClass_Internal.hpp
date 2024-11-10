@@ -303,7 +303,7 @@ public:
 	class CUnit *mp_next_unit; //0x0008
 	class CUnit *mp_prev_unit; //0x000C
 	float m_delta_time; //0x0010
-	uint32_t some_union; //0x0014
+	char reserved_state_flags[4]; //0x0014
 }; //Size: 0x0018
 static_assert(sizeof(CUnit) == 0x18);
 
@@ -311,17 +311,25 @@ class UCoord : public CUnit
 {
 public:
 	class UCoord *mp_parent; //0x0018
-	uint32_t mParentNo;
-    uint32_t mOrder;//Used in some randomizer func
+	uint32_t mParentNo;//attached entity's joint index
+    uint32_t mOrder;//axis order
     char pad_024_c[0xC];
 	Vector3f m_pos; //0x0030
 	char pad_003_c[4]; //0x003C
 	Vector4 m_quat; //0x0040
 	Vector3f m_scale; //0x0050
-	Matrix4x4 m_lmat; //0x005C
-	Matrix4x4 m_wmat; //0x009C
-}; //Size: 0x00DC
-static_assert(sizeof(UCoord) == 0xDC);
+    char pad_05C_c[4];
+	Matrix4x4 m_lmat; //0x0060
+	Matrix4x4 m_wmat; //0x00A0
+}; //Size: 0x00E0
+static_assert(sizeof(UCoord) == 0xE0);
+
+class uModel : public UCoord
+{
+public:
+    Matrix4x4 mPrevWmat;
+    uint32_t mLightGroup;
+};
 
 class UFilter : public CUnit
 {

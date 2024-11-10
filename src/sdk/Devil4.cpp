@@ -11,10 +11,10 @@ static uintptr_t sDevil4Resource { 0x00E552D0 };
 namespace devil4_sdk {
 
 
-	void* mt_allocate_heap(size_t size, int a2) {
+	void* mt_allocate_heap(size_t size, int alignment) {
 		static MtHeapAllocator* mt_heap_alloc = *mt_heap_alloc_static_ptr;
 
-		return (void*)mt_heap_alloc->allocate(size, a2);
+		return (void*)mt_heap_alloc->allocate(size, alignment);
 	}
 
 	//_DWORD *__usercall uEm003Shl_ConstructorMaybe_sub_560330@<eax>(int a1@<eax>)
@@ -404,7 +404,7 @@ namespace devil4_sdk {
 			}
     }
 
-	MtObject* __stdcall get_stuffs_from_files(MtDTI* dti, char* path, uint32_t mode) {
+	MtObject* __stdcall get_stuff_from_files(MtDTI* dti, char* path, uint32_t mode) {
 		constexpr uintptr_t file_read_call = 0x008DF530;
 		_asm {
 				push mode
