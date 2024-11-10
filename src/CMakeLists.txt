@@ -250,6 +250,8 @@ set(MODS_SRC
   mods/PullKnockback.cpp
   mods/SwordSpin.hpp
   mods/SwordSpin.cpp
+  mods/CustomProjectile.hpp
+  mods/CustomProjectile.cpp
 )
 
 set(HOOKS_SRC
