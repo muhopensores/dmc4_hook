@@ -207,8 +207,6 @@ public:
 
 }; //Size=0x0034
 
-class MtObject;
-
 class MtDTI
 {
 public:
@@ -224,7 +222,7 @@ public:
 	//virtual void MtObject* newInstance(MtDTI *this)();
 
 	virtual void vec_del_dtor(unsigned int x);
-	virtual MtObject* new_instance();
+	virtual void* new_instance();
 	virtual void function2();
 	virtual void function3();
 	virtual void function4();
@@ -238,18 +236,11 @@ public:
 class MtObject
 {
 public:
-	virtual void vec_del_dtor(unsigned int i);
-	virtual void create_ui(void* prop);
-	virtual bool is_enable_instance();
-	virtual void create_property(void* prop);
-	virtual MtDTI* get_dti();
-	virtual MtObject* allocate(size_t size, int allign_mask);
-	virtual uint16_t deallocate(MtObject* object);//0x0018
-	virtual void function7();
-	virtual void function8();
-	virtual void function9();
-	virtual void function10();
-	virtual void function11();
+	virtual void vec_del_dtor(unsigned int i) {};
+	virtual void create_ui(void* prop) {};
+	virtual bool is_enable_instance() {return 1;};
+	virtual void create_property(void* prop) {};
+	virtual MtDTI* get_dti() {return (MtDTI*)0x00E5C5A8;};
 }; //Size: 0x0004
 
 class uActor {
@@ -974,6 +965,9 @@ public:
 	uint16_t m_attr; //0x0016
 	uint32_t m_owner; //0x0018
 	class MtCriticalSection *m_cs; //0x001C
+    virtual MtObject* allocate(size_t size, int align_mask);
+    virtual uint16_t deallocate(MtObject* object); // 0x0018
+
 }; //Size: 0x0020
 
 class MtHeapAllocator : public MtAllocator

@@ -2,7 +2,6 @@
 
 #include "../mod.hpp"
 
-
 class SwordSpin: public Mod {
 public:
     static uintptr_t jmp_ret1;

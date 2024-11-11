@@ -1,9 +1,5 @@
 #include "CustomProjectile.hpp"
 
-#define MODEL_PATH "model\\game\\em010\\em010"
-#define ATK_PATH ""
-#define COL_PATH ""
-
 uintptr_t CustomProjectile::jmp_ret1 { NULL };
 uintptr_t CustomProjectile::jmp_ret2{ NULL };
 constexpr uintptr_t rModelDTI = 0x00EADF48;
@@ -13,6 +9,7 @@ constexpr uintptr_t rDfdStatDTI = 0x00E57638;
 constexpr uintptr_t sDevil4Resource_ptr = 0x00E552D0;
 constexpr uintptr_t uActorVtablePtr = 0x00BC4B78;
 constexpr size_t uActorVtableSize = 79;
+char* MODEL_PATH = "model\\game\\em010\\em010";
 std::unique_ptr<CustomProjectileVtable> CustomVtable;
 typedef void(__thiscall* rModelLoad)(void*, void*);
 
@@ -43,18 +40,20 @@ void __stdcall load_atk_col(void* rAtck, void* rCol, void* ColMgr, void*Obj) {
     }
 }
 
-CustomProjectileVtable::CustomProjectileVtable(void* vtable, size_t size) : ProjectileVtable(vtable, size) {
+CustomProjectileVtable::CustomProjectileVtable(void* vtable, size_t size) {
+    this->size                = size;
+    this->my_vtable           = std::make_unique<uintptr_t[]>(size);
     this->my_vtable[0x14/4] = (uintptr_t)MemberFuncToPtr(&CustomProjectileProp::startup_override);
     //this->my_vtable[0x14/4] = (uintptr_t)MemberFuncToPtr(&CustomProjectile::startup_override)
     //this->my_vtable[0x14/4] = (uintptr_t)MemberFuncToPtr(&CustomProjectile::startup_override)
 }
 
 void CustomProjectileProp::startup_override() {
-    //void* model = devil4_sdk::get_stuff_from_files((void*)rModelDTI, MODEL_PATH, 1);
-    //(*(rModelLoad)(&(this->uModelBase.uCoordBase.cUnitBase.vtable_ptr)+0x40))(this, model);
-    //if (&model) {
-    //    bring_assert(model);
-    //}
+    void* model = devil4_sdk::get_stuff_from_files((MtDTI*)(uintptr_t)rModelDTI, MODEL_PATH, 1);
+    //(*(rModelLoad)(&(this->actor.uModelBase.uCoordBase.cUnitBase.vtable_ptr) + 0x40))(this, model);
+    if (&model) {
+        bring_assert(model);
+    }
     ////void* rAtck = devil4_sdk::get_stuff_from_files(rAtckStatDTI, ATK_PATH, 1);
     ////void* rCol = devil4_sdk::get_stuff_from_files(rColShapeDTI, COL_PATH, 1);
 }
@@ -64,9 +63,9 @@ void CustomProjectileProp::startup_override() {
 CustomProjectileProp::CustomProjectileProp(float keepAlive, float force, void* parent = 0, int parentJoint = 0) {
     this->keepAliveTime = keepAliveTime;
     this->force = force;
-    this->uModelBase.uCoordBase.vtable_ptr = (void*)parent;
-    this->uModelBase.ParentJoint = parentJoint;
-    this->uModelBase.vtable_ptr              = (void*)&CustomVtable->my_vtable;
+    //this->actor.uModelBase.uCoordBase.vtable_ptr = (void*)parent;
+    //this->actor.uModelBase.ParentJoint           = parentJoint;
+    //this->actor.uModelBase.vtable_ptr            = (void*)&CustomVtable->my_vtable;
 }
 
 void sUnit_spawn_call(void* sUnit, void* obj_to_spawn, int moveline) {

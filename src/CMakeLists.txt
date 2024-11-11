@@ -266,6 +266,7 @@ set(HOOKS_SRC
 set(SDK_SRC
     sdk/ReClass.hpp
     sdk/ReClass_Internal.hpp
+    sdk/uActor.hpp
     sdk/Math.hpp
     sdk/Devil4.cpp
     sdk/Devil4.hpp

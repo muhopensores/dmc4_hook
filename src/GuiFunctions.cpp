@@ -17,7 +17,6 @@
 #include "./mods/NoClip.hpp"
 #include "./mods/OneHitKill.hpp"
 #include "./mods/Quicksilver.hpp"
-#include "./mods/CustomProjectile.hpp"
 
 
 #include "fw-imgui/imgui_impl_dx9.h"
@@ -563,9 +562,7 @@ namespace gui {
                     pmods->on_draw_ui("PinTrick"_hash);
 
                     pmods->on_draw_ui("LuciAirThrow"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("SwordSpin"_hash);
-
+                    
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();
@@ -796,10 +793,6 @@ namespace gui {
 
                     if (ImGui::Button("Spawn Dog Fireball Test (pls dont press this)")) {
                         devil4_sdk::dog_fireball_new();
-                    }
-
-                    if (ImGui::Button("Test custom actor")) {
-                        CustomProjectile::SpawnProjectile();
                     }
 
                     g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);

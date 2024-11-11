@@ -127,8 +127,6 @@
 #include "mods/uPlayerParamsEdit.hpp"
 #include "mods/PullKnockback.hpp"
 #include "mods/SwordSpin.hpp"
-#include "mods/CustomProjectile.hpp"
-
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -272,7 +270,6 @@ Mods::Mods() {
     ADD_MOD(uPlayerParamsEdit);
     ADD_MOD(PullKnockback);
     ADD_MOD(SwordSpin);
-    ADD_MOD(CustomProjectile);
 }
 
 // Initializes mods, checks for errors
