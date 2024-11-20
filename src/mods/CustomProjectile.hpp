@@ -5,27 +5,33 @@
 
 typedef uActorMain::uActor::uActor uActor_t;
 typedef uActorMain::uModelMain::uModel uModel_t;
-
+typedef uActorMain::uCollisionMgr uCollisionMgr;
 
 class CustomProjectileVtable {
 public:
-    std::unique_ptr<uintptr_t[]> my_vtable;
+    std::vector<uintptr_t> my_vtable;
     size_t size;
     CustomProjectileVtable() = default;
     CustomProjectileVtable(void* vtable, size_t size);
 };
 
-class CustomProjectileProp{
+struct CustomProjectileProp{
 public:
     uActor_t actor;
-    void* CollMgr;
+    uCollisionMgr CollMgr;
     float keepAliveTime;
+    float HitTimer;
+    float KeepAliveTimer;
     float force;
     CustomProjectileProp() = default;
-    CustomProjectileProp(float keepAlive, float force, void* parent, int parentJoint);
+    CustomProjectileProp(float keepAlive, float force, uActorMain::uCoord* parent, int parentJoint);
+    void destructor(uint32_t flag);
+    void die();
     void startup_override();
     void lifecycle_override();
     void onhit_override(void* atk_param, void* dfd_param);
+    void render(void* smth);
+    MtDTI* getDTI();
 };
 
 

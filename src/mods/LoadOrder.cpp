@@ -1,5 +1,6 @@
 // include your mod header file
 #include "LoadOrder.hpp"
+#include "../misc/extension.cpp"
 
 static uintptr_t  jmp_return   { NULL };
 static uintptr_t  jmp_return01 { NULL };
@@ -220,10 +221,19 @@ void __stdcall really_unsafe_string_write(char* path) {
     }
 }
 
+struct SResourceDict {
+    uintptr_t ukn;
+    uint32_t attr;
+    char* extension;
+    MtDTI* DTI;
+};
+
 // we'll try to break the string passed to specialized
 // path lookup function in sResource and hope it works
 void __stdcall wew(MtDTI* dti, char* path) {
     static SResource* s_devil4_resource = *s_devil4_resource_ptr;
+    SResourceDict* res_dict = (SResourceDict*)(s_devil4_resource_ptr + 0x20);
+    uint32_t res_num = *(uint32_t*)(s_devil4_resource_ptr + 0x1020);
     char buf[MAX_PATH];
     memset(buf, 0, sizeof(buf));
     exists = false;
@@ -234,39 +244,47 @@ void __stdcall wew(MtDTI* dti, char* path) {
     char* name = dti->m_name;
     char key[3];
     memcpy(key,path,sizeof(key));
-    switch (type) { // TODO(): more types? too much rWhatever classes ;_;
-        case 0x646F4D72: extension = "mod"; break;
-        case 0x74744172: extension = "atk"; break;
-        case 0x6C6F4372:
-            if (std::strstr(name,"rCollisionShape"))
-                extension = "col";
-            else if (std::strstr(name, "rCollisionIdxData"))
-                extension = "idx"; //rename from ".rCollisionIdxData"
-            else
-                extension = "sbc";
-            break;
-        case 0x78655472: extension = "tex"; break;
-        case 0x66664572: extension = "efl"; break;
-        case 0x68635372: extension = "sdl"; break;
-        case 0x746F4D72: //rMot
-            if (std::strstr(name,"rMotionList")) 
-                extension = "lmt";
-            else if (std::strstr(name,"rMotionSe"))
-                extension = "msse";
-            break;
-        case 0x616C5072: extension = "pla"; break;
-        case 0x72705372:
-            if (std::strstr(name,"rSprLayout"))
-                extension = "rSprLayout";
-            else
-                extension = "rSprAnm";
-            break;
-        case 0x756F5372:
-            if (std::strstr(name, "rSoundRequest"))
-                extension = "sreq";
-            break;
-        //case 0x6C6F4373:extension = "sbc"; break;
-    }
+    //for (int i = 0; i < 97; i++) {
+    //    if ((uint32_t)res_dict[i].DTI == (uint32_t)dti) {
+    //        extension = res_dict[i].extension;
+    //        break;
+    //    }
+    //}
+
+    extension = extensionMap.find(name)->second;
+    //switch (type) { // TODO(): more types? too much rWhatever classes ;_;
+    //    case 0x646F4D72: extension = "mod"; break;
+    //    case 0x74744172: extension = "atk"; break;
+    //    case 0x6C6F4372:
+    //        if (std::strstr(name,"rCollisionShape"))
+    //            extension = "col";
+    //        else if (std::strstr(name, "rCollisionIdxData"))
+    //            extension = "idx"; //rename from ".rCollisionIdxData"
+    //        else
+    //            extension = "sbc";
+    //        break;
+    //    case 0x78655472: extension = "tex"; break;
+    //    case 0x66664572: extension = "efl"; break;
+    //    case 0x68635372: extension = "sdl"; break;
+    //    case 0x746F4D72: //rMot
+    //        if (std::strstr(name,"rMotionList")) 
+    //            extension = "lmt";
+    //        else if (std::strstr(name,"rMotionSe"))
+    //            extension = "msse";
+    //        break;
+    //    case 0x616C5072: extension = "pla"; break;
+    //    case 0x72705372:
+    //        if (std::strstr(name,"rSprLayout"))
+    //            extension = "rSprLayout";
+    //        else
+    //            extension = "rSprAnm";
+    //        break;
+    //    case 0x756F5372:
+    //        if (std::strstr(name, "rSoundRequest"))
+    //            extension = "sreq";
+    //        break;
+    //    //case 0x6C6F4373:extension = "sbc"; break;
+    //}
 
     // GetFileAttributes needs a full path iirc, unfortunate
     sprintf_s(buf, "%s\\%s.%s", s_devil4_resource->m_native_path.value->str, path, extension.c_str());

@@ -81,8 +81,9 @@ namespace uActorMain {
         float x;
         float y;
         float z;
-        int padding;
+        uint32_t padding;
     };
+    static_assert(sizeof(MtVector3) == 0x10);
 
     struct MtEaseCurve {
         float p1;
@@ -95,14 +96,22 @@ namespace uActorMain {
         float z;
         float w;
     };
+    static_assert(sizeof(MtVector4)==0x10);
 
     struct MtMatrix { /* MtFramework matrix */
         struct MtVector4 vectors[4];
     };
+    static_assert(sizeof(MtMatrix) == 0x40);
 
+    struct MtCapsule {
+        struct MtVector3 p0;
+        struct MtVector3 p1;
+        float r;
+        uint32_t padding[3];
+    };
 
     struct cUnit {
-        void *vtable_ptr;
+        uintptr_t* vtable_ptr;
         uint8_t uknFlag1;
         uint8_t uknFlag2;
         uint8_t mTransMode;
@@ -112,19 +121,21 @@ namespace uActorMain {
         float m_delta_time;
         uint8_t reserved_state_flags[4];
     };
+    static_assert(sizeof(cUnit) == 0x18);
 
-    struct uCoord : public cUnit {
+    struct uCoord {
         struct cUnit cUnitBase;
         uintptr_t mParent;
-        int ParentJoint;
-        int mOrder;
-        int padding24[3];
+        uint32_t ParentJoint;
+        uint32_t mOrder;
+        uint32_t padding24[3];
         struct MtVector3 mPos;
         struct MtVector4 mQuat;
         struct MtVector3 mScale;
         struct MtMatrix mLmat;
         struct MtMatrix mWmat;
     };
+    static_assert(sizeof(uCoord) == 0xe0);
 
     namespace cShape {
         struct WeightNode {
@@ -152,6 +163,7 @@ namespace uActorMain {
             uintptr_t mpModel;
             uint mPause;
         };
+        static_assert(sizeof(cShape) == 0xe0);
     };
 
     namespace uModelMain {
@@ -162,6 +174,7 @@ namespace uActorMain {
             uintptr_t pcur_param;
             float weight;
         };
+        static_assert(sizeof(MPARAM_WORK)==0x10);
 
         struct Motion {
             void* vtable;
@@ -194,6 +207,7 @@ namespace uActorMain {
             uintptr_t mJoint;
             int paddingdc;
         };
+        static_assert(sizeof(Motion) == 0xE0);
 
         struct RenderInfo {
             void* vtable;
@@ -208,13 +222,16 @@ namespace uActorMain {
             uintptr_t mpModel;
             int padding28[2];
         };
+        static_assert(sizeof(RenderInfo) == 0x30);
 
         struct MaterialGroup {
             void* vtable;
             struct uModelMain::uModel* owner;
             uint index;
         };
-        struct uModel : public uCoord {
+        static_assert(sizeof(MaterialGroup) == 0xC);
+
+        struct uModel {
             struct uCoord uCoordBase;
             uint8_t UknChainFlag;
             uint8_t padding0[15];
@@ -257,6 +274,7 @@ namespace uActorMain {
             struct cShape::cShape mShape; /* Created by retype action */
             char paddingce4[12];
         };
+        static_assert(sizeof(MaterialGroup) * 32 == 0x180);
     };
 
 
@@ -291,7 +309,7 @@ namespace uActorMain {
         uint padding84[3];
     };
 
-    struct uDevil4Model : public uModel {
+    struct uDevil4Model {
         struct uModelMain::uModel uModelBase;
         struct cWorkRate mWorkRate;
         uint mCameraTransparencyType;
@@ -342,7 +360,7 @@ namespace uActorMain {
             struct MtVector3 offsetpos;
         };
 
-        struct uActor : public uDevil4Model { /* Actor class */
+        struct uActor { /* Actor class */
             struct uDevil4Model uActorBase;
             uint UknActorFlag1;
             uint mActorType; /* Created by retype action */
@@ -357,9 +375,9 @@ namespace uActorMain {
             struct MtVector3 CenterJointPos;
             uint muaLockonSphereNum;
             char paddingef4[12];
-            struct uActor::LOCKONSPHERE_DAT field14_0xf00[16];
-            uint8_t field15_0x1200;
-            uint8_t field16_0x1201;
+            struct uActor::LOCKONSPHERE_DAT LockonSpheres[16];
+            uint8_t HitStopEndFlag;
+            uint8_t isHitStop;
             short padding1202;
             uintptr_t mpSoundRequest;
             uint8_t UknEnemyDtSfxFlg;
@@ -386,5 +404,122 @@ namespace uActorMain {
             struct MtVector3 CurrPos;
             struct MtVector3 PrevPos;
         };
+        static_assert(sizeof(uActor) == 0x1370);
+    }; // namespace uActor
+
+    struct uCollisionMgr {
+        struct cUnit base;
+        byte mHit;
+        byte mGrab;
+        byte mDamage;
+        byte mPsh;
+        byte mLand;
+        byte mTimedForceLand;
+        byte mSetLand;
+        byte mWall;
+        byte mCeilling;
+        byte padding21[2];
+        byte mNoLandTimerEnable;
+        float mNoLandTimer;
+        float mNoLandTime;
+        byte ForceLandFlag;
+        byte mOldLand;
+        byte mOldSetLand;
+        byte mOldWall;
+        byte mOldCeilling;
+        byte mCheckWallEnable;
+        byte mCheckGroundEnable;
+        char padding33[9];
+        byte mFall;
+        byte NoLandTimerType;
+        byte NoLandDTSwitch;
+        byte field25_0x3f;
+        byte NoLandTimerType2;
+        float DamageValueCorrect;
+        uint32_t EnemyCollisionToggle;
+        uint32_t padding4c;
+        struct MtVector3 LockonTargetPos;
+        uintptr_t LockonTarget;
+        uint32_t padding64[3];
+        struct MtVector3 uknFixedVec1;
+        struct MtMatrix GroundMat;
+        struct MtVector3 uknFixedVec2;
+        uint32_t mWeightType;
+        uint32_t mModelID;
+        struct uActorMain::uActor::uActor* mpReportActor;
+        struct uActorMain::uActor::uActor* mpDstModel; /* Created by retype action */
+        struct uActorMain::uActor::uActor* mpSrcModel;
+        uintptr_t uknSrcModelPtr;
+        uint32_t paddinge8[17];
+        uint32_t mPushType;
+        uintptr_t mpPushModel;
+        uint32_t padding134[3];
+        struct MtCapsule mPushCap;
+        struct MtCapsule mPushCap1;
+        struct MtVector3 mPushPos;
+        struct MtVector3 mPushPosOld;
+        struct MtMatrix field50_0x1c0;
+        struct MtMatrix field51_0x200;
+        char padding240[64];
+        uint32_t uknToggle;
+        uintptr_t mpCollisionIdxData;
+        uintptr_t mpCollisionShape;
+        uintptr_t mpAttackStatusData;
+        uintptr_t mpDefendStatusData;
+        uint32_t mInDamageMessage;
+        uint32_t currentMotBuffer;
+        uint32_t MotSeq1;
+        uint32_t MotSeq2;
+        byte HitCheckFlag;
+        byte HitConfirm;
+        byte mSelfCollision;
+        byte padding2a7;
+        struct uCollisionMgr* uknCollMgrPtr;
+        uint32_t mMode;
+        uint32_t mVsAttrPlAtk;
+        uint32_t mVsAttrPlDmg;
+        uint32_t mVsAttrPlPsh;
+        uint32_t mVsAttrPlGrb;
+        uint32_t mVsAttrPsAtk;
+        uint32_t mVsAttrPsDmg;
+        uint32_t mVsAttrPsPsh;
+        uint32_t mVsAttrPsGrb;
+        uint32_t mVsAttrEmAtk;
+        uint32_t mVsAttrEmDmg;
+        uint32_t mVsAttrEmPsh;
+        uint32_t mVsAttrEmGrb;
+        uint32_t mVsAttrEsAtk;
+        uint32_t mVsAttrEsDmg;
+        uint32_t mVsAttrEsPsh;
+        uint32_t mVsAttrEsGrb;
+        uint32_t mVsAttrSetAtk;
+        uint32_t mVsAttrSetDmg;
+        uint32_t mVsAttrSetPsh;
+        uint32_t mVsAttrSetGrb;
+        uint32_t mVsAttrStgAtk;
+        uint32_t mVsAttrStgDmg;
+        uint32_t mVsAttrStgPsh;
+        uint32_t mVsAttrStgGrb;
+        uint32_t UknVsAttrAtk1;
+        uint32_t UknVsAttrDmg1;
+        uint32_t UknVsAttrPsh1;
+        uint32_t UknVsAttrGrb1;
+        uint32_t UknVsAttrAtk2;
+        uint32_t UknVsAttrDmg2;
+        uint32_t UknVsAttrPsh2;
+        uint32_t UknVsAttrGrb2;
+        uint32_t UknVsAttrAtk3;
+        uint32_t UknVsAttrDmg3;
+        uint32_t UknVsAttrPsh3;
+        uint32_t UknVsAttrGrb3;
+        uint32_t UknVsAttrAtk4;
+        uint32_t UknVsAttrDmg4;
+        uint32_t UknVsAttrPsh4;
+        uint32_t UknVsAttrGrb4;
+        uint32_t UknCollisionToggle;
+        uint32_t mCollisionGroupNum;
+        uintptr_t mppCollisionGroup[32];
+        uint32_t padding3d8[6];
     };
+    //static_assert(sizeof(uCollisionMgr) == 0x3f0);
 };

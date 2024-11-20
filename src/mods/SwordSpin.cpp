@@ -103,7 +103,7 @@ naked void detour2(void) {
             push eax
             call set_spin_vars
             popad
-        originalcode:
+        //originalcode:
             or word ptr [edi+0x000028BE],04
             jmp [SwordSpin::jmp_ret2]
     }

@@ -215,22 +215,14 @@ public:
 	class MtDTI *mp_child; //0x000C
 	class MtDTI *mp_parent; //0x0010
 	class MtDTI *mp_link; //0x0014
-	uint32_t mp_link1; //0x0018
+	size_t m_size; //0x0018
 	uint32_t m_id; //0x001C
 	// hope it's fucking thiscall
 	//virtual void vecDelDtor(MtDTI* this, unsigned int x)();
 	//virtual void MtObject* newInstance(MtDTI *this)();
 
-	virtual void vec_del_dtor(unsigned int x);
-	virtual void* new_instance();
-	virtual void function2();
-	virtual void function3();
-	virtual void function4();
-	virtual void function5();
-	virtual void function6();
-	virtual void function7();
-	virtual void function8();
-	virtual void function9();
+	virtual void vec_del_dtor(unsigned int x) {};
+	virtual void* new_instance() {return nullptr;};
 }; //Size: 0x0020
 
 class MtObject
@@ -250,10 +242,10 @@ class uActor {
     virtual void ukn2();
     virtual void getDTI();
     virtual void setup();//0x14
-    virtual void ukn3(); //0x18
+    virtual void freeze(); //0x18, as in literally frosted over
     virtual void ukn4(); //0x1C
     virtual void ukn5(); //0x20
-    virtual void ukn6(); // 0x24
+    virtual void render(void* mtrans); // 0x24
     virtual void ukn7(); // 0x28
     virtual void ukn8(); // 0x2C
     virtual void die(); // 0x30

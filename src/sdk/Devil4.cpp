@@ -16,6 +16,11 @@ namespace devil4_sdk {
 
 		return (void*)mt_heap_alloc->allocate(size, alignment);
 	}
+    void* unit_deallocate(MtObject* obj) {
+        static MtHeapAllocator* unit_heap_alloc = *mt_heap_alloc_static_ptr;
+
+        return (void*)unit_heap_alloc->deallocate(obj);
+    }
 
 	//_DWORD *__usercall uEm003Shl_ConstructorMaybe_sub_560330@<eax>(int a1@<eax>)
 	MtObject* u_em003_shl_consturctor_sub(void* mem) {
