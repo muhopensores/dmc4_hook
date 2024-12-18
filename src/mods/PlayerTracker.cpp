@@ -38,22 +38,21 @@ void PlayerTracker::LoadPlayerXYZ() {
 void PlayerTracker::SavePlayerMove() {
     uPlayer* player = devil4_sdk::get_local_player();
     if (player) {
-        savedPlayerSword = player->currentSword;
-        savedPlayerGun = player->currentGun;
-        savedPlayerStyle = player->currentStyle;
-        savedPlayerMoveBank = player->moveBank;
-        savedPlayerMoveID = player->moveID2;
-        savedPlayerWeight = player->weight;
-        savedPlayerInertia = player->inertia;
-        savedPlayerCancels1[0] = player->cancels1[0];
-        savedPlayerCancels1[1] = player->cancels1[1];
-        savedPlayerCancels1[2] = player->cancels1[2];
-        savedPlayerCancels1[3] = player->cancels1[3];
-
-        savedPlayerCancels2[0] = player->cancels2[0];
-        savedPlayerCancels2[1] = player->cancels2[1];
-        savedPlayerCancels2[2] = player->cancels2[2];
-        savedPlayerCancels2[3] = player->cancels2[3];
+        savedPlayerSword           = player->currentSword;
+        savedPlayerGun             = player->currentGun;
+        savedPlayerStyle           = player->currentStyle;
+        savedPlayerMoveBank        = player->moveBank;
+        savedPlayerMoveID          = player->moveID2;
+        savedPlayerWeight          = player->weight;
+        savedPlayerInertia         = player->inertia;
+        savedPlayerCancels1[0]     = player->cancels1[0];
+        savedPlayerCancels1[1]     = player->cancels1[1];
+        savedPlayerCancels1[2]     = player->cancels1[2];
+        savedPlayerCancels1[3]     = player->cancels1[3];
+        savedPlayerCancels2[0]     = player->cancels2[0];
+        savedPlayerCancels2[1]     = player->cancels2[1];
+        savedPlayerCancels2[2]     = player->cancels2[2];
+        savedPlayerCancels2[3]     = player->cancels2[3];
         savedPlayerLockonAnimation = player->isLockonAnimation;
         savedPlayerCanWeaponChange = player->canWeaponChange;
         SavePlayerXYZ();
@@ -63,25 +62,24 @@ void PlayerTracker::SavePlayerMove() {
 void PlayerTracker::LoadPlayerMove() {
     uPlayer* player = devil4_sdk::get_local_player();
     if (player && savedPlayerSword) { // verify at least 1 save has happened
-        player->nextSword = savedPlayerSword;
-        player->nextGun = savedPlayerGun;
-        player->currentStyle = savedPlayerStyle;
-        player->moveBank = savedPlayerMoveBank;
-        player->moveID2 = savedPlayerMoveID;
-        player->weight = savedPlayerWeight;
-        player->inertia = savedPlayerInertia;
-        player->movePart    = 0;
-        player->cancels1[0] = savedPlayerCancels1[0];
-        player->cancels1[1] = savedPlayerCancels1[1];
-        player->cancels1[2] = savedPlayerCancels1[2];
-        player->cancels1[3] = savedPlayerCancels1[3];
-
-        player->cancels2[0] = savedPlayerCancels2[0];
-        player->cancels2[1] = savedPlayerCancels2[1];
-        player->cancels2[2] = savedPlayerCancels2[2];
-        player->cancels2[3] = savedPlayerCancels2[3];
-        player->isLockonAnimation = savedPlayerLockonAnimation;
-        player->canWeaponChange = savedPlayerCanWeaponChange;
+        player->nextSword         = savedPlayerSword;
+        player->nextGun           = savedPlayerGun;
+        player->currentStyle      = savedPlayerStyle;
+        player->moveBank          = savedPlayerMoveBank;
+        player->moveID2           = savedPlayerMoveID;
+        player->weight            = savedPlayerWeight;
+        player->inertia           = savedPlayerInertia;
+        player->movePart          = 0;
+        player->cancels1[0]       = savedPlayerCancels1[0];
+        player->cancels1[1]       = savedPlayerCancels1[1];
+        player->cancels1[2]       = savedPlayerCancels1[2];
+        player->cancels1[3]       = savedPlayerCancels1[3];
+        player->cancels2[0]       = savedPlayerCancels2[0]; // fixes grounded saves not being loaded in the air correctly
+        player->cancels2[1]       = savedPlayerCancels2[1];
+        player->cancels2[2]       = savedPlayerCancels2[2];
+        player->cancels2[3]       = savedPlayerCancels2[3];
+        player->isLockonAnimation = savedPlayerLockonAnimation; // fixes not being able to load aerial animations while in the grounded lockon animation
+        player->canWeaponChange   = savedPlayerCanWeaponChange;
 
         // grounded does not need to be set
         // player->characterSettingsOne->groundedActual = 0;
@@ -249,7 +247,6 @@ void PlayerTracker::on_gui_frame() {
 }
 
 void PlayerTracker::on_config_save(utility::Config& cfg) {
-
 }
 
 void PlayerTracker::on_config_load(const utility::Config& cfg) {

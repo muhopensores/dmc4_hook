@@ -9,15 +9,12 @@ static float jc_scale{1.5f};
 
 naked void easy_jc_proc(void) {
     _asm {
+        movss xmm3, dword ptr [esi-0x10]
 		cmp byte ptr [EasyJc::mod_enabled], 0
         je originalcode
 
-        movss xmm3, dword ptr [esi-0x10]
         mulss xmm3, dword ptr [jc_scale]
-        jmp dword ptr [EasyJc::easy_jc_continue]
-
 		originalcode:
-        movss xmm3, dword ptr [esi-0x10]
 		jmp dword ptr [EasyJc::easy_jc_continue]
     }
 }

@@ -254,6 +254,8 @@ void AreaJump::on_gui_frame() {
             }
         }
         ImGui::SameLine();
+        help_marker(_("Press Save Config after saving BP progress as this writes the file\nSaves floor, timer, orbs, hp, dt"));
+        ImGui::SameLine();
         if (ImGui::Button(_("Load BP Progress"))) {
             sArea* s_area_ptr = devil4_sdk::get_sArea();
         
@@ -268,7 +270,7 @@ void AreaJump::on_gui_frame() {
             }
         }
         ImGui::SameLine();
-        help_marker(_("Press Save Config after saving BP progress as this writes the file\nSaves floor, timer, orbs, hp, dt"));
+        help_marker(_("Press Load after getting into BP\nRestores saved floor, timer, orbs, hp, dt"));
 	}
     else {
         ImGui::TextWrapped(_("BP Floor Jump is not initialized.\nLoad into BP to access it."));
