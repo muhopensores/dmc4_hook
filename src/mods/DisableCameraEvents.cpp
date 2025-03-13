@@ -8,8 +8,8 @@ std::optional<std::string> DisableCameraEvents::on_initialize() {
 
 void DisableCameraEvents::toggle(bool enable) {
     if (enable) {
-        install_patch_offset(0x000BEF1, patch1, "\x31\xC0\xB8\x06\x00\x00\x00", 7);
-        install_patch_offset(0x000C6C1, patch2, "\xEB\x17", 2);
+        install_patch_offset(0x000BEF1, patch1, "\xB8\x07\x00\x00\x00\x90\x90", 7); // skips to part 7 of cutscene
+        install_patch_offset(0x000C9DD, patch2, "\x90\x90\x90", 3); // accesses 00B9A27C for screen dim
     }
     else {
         patch1.reset();

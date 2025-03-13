@@ -354,13 +354,13 @@ namespace devil4_sdk {
 					movss xmm1,[float_val2]
 
 					sub esp,30
-					mov [esp+0xC],1
+					mov dword ptr [esp+0xC],1
 					fld dword ptr [eax+0xEC4]
 					fstp dword ptr [esp+0x20]
 					fstp dword ptr [esp+0x8]
 					mov edi,8
 					fld dword ptr [esp+0x20]
-					fstp dword ptr[esp+0x4]
+					fstp dword ptr [esp+0x4]
 					fld dword ptr [float_val3]
 					fstp dword ptr [esp]
 					call neutral_air_recovery_call
