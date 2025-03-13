@@ -234,7 +234,6 @@ naked void detour7(void) {
         comiss xmm0, [payline_buffer_frame]
         jb code
 
-        mov byte ptr [ebx+0x30C4],1
         mov byte ptr [ebx+0x3174],1//movement abilities cancel
         mov byte ptr [ebx+0x30C4],1//melee cancel
         mov byte ptr [ebx+0x31CC],1//gun cancel
@@ -244,7 +243,6 @@ naked void detour7(void) {
         comiss xmm0, [payline_recovery_frame]
         jb code
 
-        mov byte ptr [ebx+0x30C4],2
         mov byte ptr [ebx+0x3174],2//movement abilities cancel
         mov byte ptr [ebx+0x30C4],2//melee cancel
         mov byte ptr [ebx+0x31CC],2//gun cancel

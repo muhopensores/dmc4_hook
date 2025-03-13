@@ -28,6 +28,9 @@ void AerialStinger::toggle(bool enable) {
 //Aerial Stinger init
 naked void detour1() {
     _asm {
+        cmp byte ptr [AerialStinger::mod_enabled], 0
+        je originalcode
+
         push eax
         mov eax,[ebp+0x1E8C]
         cmp byte ptr [eax+0x1C],0 // grounded check
@@ -45,6 +48,9 @@ naked void detour1() {
 //X-axis velocity
 naked void detour2() {
     _asm {
+        cmp byte ptr [AerialStinger::mod_enabled], 0
+        je originalcode
+
         cmp byte ptr [ebp+0x1550], 1
         je originalcode
         movss xmm0, [ebp+0xEC0]
@@ -58,6 +64,9 @@ naked void detour2() {
 //Z-axis velocity + grav
 naked void detour3() {
     _asm {
+        cmp byte ptr [AerialStinger::mod_enabled], 0
+        je originalcode
+
         cmp byte ptr [ebp+0x1550], 1
         je originalcode
         movss xmm0, [ebp+0xEC8]
@@ -84,6 +93,9 @@ void __stdcall stinger_recovery_anim_call(uintptr_t actor) {
 //Landing cancel
 naked void detour4() {
     _asm {
+        cmp byte ptr [AerialStinger::mod_enabled], 0
+        je originalcode
+
         cmp byte ptr [ebp+0x1550],1
         je originalcode
 
@@ -107,6 +119,9 @@ naked void detour4() {
 //Inertia brake
 naked void detour5() {
     _asm {
+        cmp byte ptr [AerialStinger::mod_enabled], 0
+        je originalcode
+
         cmp [ebp+0x30C4],01
         jb originalcode
         fldz
@@ -130,6 +145,9 @@ naked void detour5() {
 //Suppress MS input in the air
 naked void detour6() {
     _asm {
+        cmp byte ptr [AerialStinger::mod_enabled], 0
+        je originalcode
+
         cmp byte ptr [ebp+0x1550],1
         je originalcode
         jmp [detour6_jmp]

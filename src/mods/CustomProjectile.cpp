@@ -11,7 +11,7 @@ constexpr uintptr_t sDevil4Resource_ptr = 0x00E552D0;
 constexpr uintptr_t uActorVtablePtr = 0x00BC4B78; //uActor
 constexpr uintptr_t JavelinVtablePtr = 0x0BD4270;//uEmShl022Javelin
 constexpr size_t uActorVtableSize = 79;
-char* MODEL_PATH = "model\\game\\em010\\em010";
+char* MODEL_PATH = "model\\game\\wp023\\wp023_06";
 char* ATK_PATH = "Collision\\vieris";
 char* COL_PATH = "Collision\\vieris";
 char* EFL_PATH = "effect\\efl\\ene\\ee006_40v0";
@@ -137,7 +137,7 @@ void __stdcall collide(void* CollMgr) {
 
 void __stdcall hitbox_call(void* CollMgr, int id) {
     uintptr_t hitbox_call_func = 0x0050CA60;
-    float timer = 10.0f;
+    float timer = 5.0f;
     _asm {
             pushad
             push 00
@@ -195,16 +195,19 @@ void CustomProjectileProp::die() {
 }
 
 void CustomProjectileProp::startup_override() {
-    //void* model = devil4_sdk::get_stuff_from_files((MtDTI*)(uintptr_t)rModelDTI, MODEL_PATH, 1);
+    //Get model
+    void* model = devil4_sdk::get_stuff_from_files((MtDTI*)(uintptr_t)rModelDTI, MODEL_PATH, 1);
+    get_model(this, model);
+    if (&model) {
+        bring_assert(model);
+    }
+
     void* atk_file = devil4_sdk::get_stuff_from_files((MtDTI*)(uintptr_t)rAtckStatDTI, ATK_PATH, 1);
     void* col_file = devil4_sdk::get_stuff_from_files((MtDTI*)(uintptr_t)rColShapeDTI, COL_PATH, 1);
     uActorMain::uCoord* ThisCoord = &this->actor.uActorBase.uModelBase.uCoordBase;
     void* efx = devil4_sdk::effect_generator(EFL_PATH, this, 0x14);
-    //(*(rModelLoad)((&this->actor.uActorBase.uModelBase.uCoordBase.cUnitBase.vtable_ptr) + 0x40))(this, model);
-    //get_model(this, model);
-    //if (&model) {
-    //    bring_assert(model);
-    //}
+
+
     load_atk_col(atk_file, col_file, &this->CollMgr, this);
     if (&atk_file)
         bring_assert(atk_file);
@@ -223,7 +226,7 @@ void CustomProjectileProp::lifecycle_override() {
     this->keepAliveTime += tick;
     if (this->keepAliveTime > this->KeepAliveTimer)
         this->die();
-    if (this->HitTimer > 15.0f) {
+    if (this->HitTimer > 5.0f) {
         hitbox_call(&this->CollMgr, 0);
         collide(&this->CollMgr);
         this->HitTimer = 0;
@@ -248,7 +251,8 @@ void CustomProjectileProp::onhit_override(void* atk_param, void* dfd_param) {
     Vector3f glmTargetVec = *(Vector3f*)&target->uActorBase.uModelBase.uCoordBase.mPos;
     Vector3f forceVec = glm::normalize(glmThisVec - glmTargetVec);
     float dist = glm::distance(glmThisVec, glmTargetVec);
-    float TrueForce = std::clamp(this->force * pow(dist * 0.02f + 0.1f, -0.9f), 0.0f, this->force * 3.0f);
+    float TrueForce = std::clamp(this->force * pow(dist * 0.007f + 0.70f, -1.0f), 15.0f, this->force * 1.3f);
+    Vector3f* this_coord  = (Vector3f*)&this->actor.uActorBase.uModelBase.uCoordBase.mPos;
     target->mVel.x = TrueForce * forceVec.x;
     target->mVel.z = TrueForce * forceVec.z;
     target->mVel.y = TrueForce * forceVec.y;
@@ -299,7 +303,7 @@ void sUnit_spawn_call(void* sUnit, void* obj_to_spawn, int moveline) {
 void CustomProjectile::SpawnProjectile() {
     void* projptr = devil4_sdk::mt_allocate_heap(sizeof(CustomProjectileProp),16);
     //void* projptr              = devil4_sdk::mt_allocate_heap(0x18D0, 16);
-    CustomProjectileProp *proj = new (projptr) CustomProjectileProp(120.0f, 100.0f,(uActorMain::uCoord*)devil4_sdk::get_local_player(),0);
+    CustomProjectileProp *proj = new (projptr) CustomProjectileProp(120.0f, 30.0f,(uActorMain::uCoord*)devil4_sdk::get_local_player(),0);
     sUnit_spawn_call((void*)0x00E552CC, (void*)proj, 1);
 }
 

@@ -522,4 +522,28 @@ namespace uActorMain {
         uint32_t padding3d8[6];
     };
     //static_assert(sizeof(uCollisionMgr) == 0x3f0);
+
+    struct uCamera {
+        struct cUnit base;
+        float mFarPlane;
+        float mNearPlane;
+        float mAspect;
+        float mFov;
+        long padding28[2];
+        MtVector3 mCameraPos;
+        MtVector3 mTargetPos;
+        MtVector3 mCameraUp;
+        MtVector4 mFrustum[6];
+    };
+
+    struct uFreeCamera {
+        struct uCamera uCameraBase;
+        struct uCoord* mpParent;
+        long mParentNo;
+        struct uCoord* mpTarget;
+        long mTargetNo;
+        long mControlPad;
+        char paddingd4[12];
+        MtVector3 mControlSpeed;
+    };
 };
