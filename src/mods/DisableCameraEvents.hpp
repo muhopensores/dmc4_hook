@@ -7,6 +7,7 @@ public:
     DisableCameraEvents() = default;
 
     static bool mod_enabled;
+    static uintptr_t jmp_ret1;
 
     void toggle(bool enable);
 
@@ -20,4 +21,5 @@ public:
 private:
     std::unique_ptr<Patch> patch1;
     std::unique_ptr<Patch> patch2;
+    std::unique_ptr<FunctionHook> hook1;
 };

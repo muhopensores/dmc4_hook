@@ -28,6 +28,9 @@ void AerialStinger::toggle(bool enable) {
 //Aerial Stinger init
 naked void detour1() {
     _asm {
+        cmp byte ptr [AerialStinger::mod_enabled], 0
+        je actualoriginalcode // ogcode is `or [ebp+00001550],ebx`
+
         push eax
         mov eax,[ebp+0x1E8C]
         cmp byte ptr [eax+0x1C],0 // grounded check
@@ -36,28 +39,39 @@ naked void detour1() {
         fstp [ebp+0x16C0]
     originalcode:
         pop eax
+    retcode:
         jmp [AerialStinger::jmp_ret1]
     handler:
         or [ebp+0x1550],ebx
         jmp originalcode
+
+    actualoriginalcode:
+        or [ebp+0x1550],ebx
+        jmp retcode
     }
 }
 //X-axis velocity
 naked void detour2() {
     _asm {
+        cmp byte ptr [AerialStinger::mod_enabled], 0
+        je originalcode
+
         cmp byte ptr [ebp+0x1550], 1
         je originalcode
         movss xmm0, [ebp+0xEC0]
         mulss xmm0, [multiplier]
     originalcode:
         movss [ebp+0xEC0],xmm0
-        xorps xmm0,xmm0
+        // xorps xmm0,xmm0 // you return to an address that does movss xmm0,0
         jmp [AerialStinger::jmp_ret2]
     }
 }
 //Z-axis velocity + grav
 naked void detour3() {
     _asm {
+        cmp byte ptr [AerialStinger::mod_enabled], 0
+        je originalcode
+
         cmp byte ptr [ebp+0x1550], 1
         je originalcode
         movss xmm0, [ebp+0xEC8]
@@ -68,7 +82,7 @@ naked void detour3() {
         fstp [ebp+0xED4]
     originalcode:
         movss [ebp+0xEC8],xmm0
-        xorps xmm0,xmm0
+        xorps xmm0,xmm0 // xmm0 was 0 so this is restoring it
         jmp [AerialStinger::jmp_ret3]
     }
 }
@@ -78,12 +92,15 @@ void __stdcall stinger_recovery_anim_call(uintptr_t actor) {
     uint16_t motionID = (uint16_t)*(uint16_t*)(actor+0x334);
     if (motionID == 0x210)
         if (currFrame > 25.0f) 
-            devil4_sdk::indexed_anim_call(0x235, (uPlayer*)actor, 0, 0.3f, 37.0f);
+            devil4_sdk::indexed_anim_call(0x235, (uPlayer*)actor, 0, 0.3f, 35.0f, 10.0f);
 }
 
 //Landing cancel
 naked void detour4() {
     _asm {
+        cmp byte ptr [AerialStinger::mod_enabled], 0
+        je originalcode
+
         cmp byte ptr [ebp+0x1550],1
         je originalcode
 
@@ -94,7 +111,7 @@ naked void detour4() {
         mov eax,[ebp+0x1E8C]
         cmp byte ptr [eax+0x1C],1
         jne handler
-        or [ebp+0x02A54],1
+        or [ebp+0x02A54],1 // byte ptr?
         jmp handler
     originalcode:
         mov al,[ebp+0x1D7E]
@@ -107,6 +124,9 @@ naked void detour4() {
 //Inertia brake
 naked void detour5() {
     _asm {
+        cmp byte ptr [AerialStinger::mod_enabled], 0
+        je originalcode
+
         cmp [ebp+0x30C4],01
         jb originalcode
         fldz
@@ -130,6 +150,9 @@ naked void detour5() {
 //Suppress MS input in the air
 naked void detour6() {
     _asm {
+        cmp byte ptr [AerialStinger::mod_enabled], 0
+        je originalcode
+
         cmp byte ptr [ebp+0x1550],1
         je originalcode
         jmp [detour6_jmp]

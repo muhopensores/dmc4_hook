@@ -11,11 +11,16 @@ static uintptr_t sDevil4Resource { 0x00E552D0 };
 namespace devil4_sdk {
 
 
-	void* mt_allocate_heap(size_t size, int a2) {
+	void* mt_allocate_heap(size_t size, int alignment) {
 		static MtHeapAllocator* mt_heap_alloc = *mt_heap_alloc_static_ptr;
 
-		return (void*)mt_heap_alloc->allocate(size, a2);
+		return (void*)mt_heap_alloc->allocate(size, alignment);
 	}
+    void* unit_deallocate(MtObject* obj) {
+        static MtHeapAllocator* unit_heap_alloc = *mt_heap_alloc_static_ptr;
+
+        return (void*)unit_heap_alloc->deallocate(obj);
+    }
 
 	//_DWORD *__usercall uEm003Shl_ConstructorMaybe_sub_560330@<eax>(int a1@<eax>)
 	MtObject* u_em003_shl_consturctor_sub(void* mem) {
@@ -314,9 +319,9 @@ namespace devil4_sdk {
             pFunc((uintptr_t)effect_ptr);
     }
 
-	void __stdcall indexed_anim_call(uint32_t id, uPlayer* actor, uint32_t mode = 0, float speed = 1.0f, float startFrame = 0.0f) {
+	void __stdcall indexed_anim_call(uint32_t id, uPlayer* actor, uint32_t mode, float speed,
+									float startFrame, float interpolationFrame) {
         uintptr_t anim_call = 0x00821450;
-		float idk = 3.0f;
 		uintptr_t curr_esp;
 		_asm {
 				mov [curr_esp],esp
@@ -326,7 +331,7 @@ namespace devil4_sdk {
 				fstp dword ptr [esp+0x8]
 				fld startFrame
 				fstp dword ptr [esp+0x4]
-				fld idk
+				fld interpolationFrame
 				fstp dword ptr [esp]
 
 				mov al,1
@@ -353,14 +358,14 @@ namespace devil4_sdk {
 					fld dword ptr [float_val1]
 					movss xmm1,[float_val2]
 
-					sub esp,30
-					mov dword ptr [esp+0xC],1
+					sub esp,0x10
+					mov [esp+0xC],1
 					fld dword ptr [eax+0xEC4]
 					fstp dword ptr [esp+0x20]
 					fstp dword ptr [esp+0x8]
 					mov edi,8
 					fld dword ptr [esp+0x20]
-					fstp dword ptr [esp+0x4]
+					fstp dword ptr[esp+0x4]
 					fld dword ptr [float_val3]
 					fstp dword ptr [esp]
 					call neutral_air_recovery_call
@@ -368,16 +373,52 @@ namespace devil4_sdk {
 			}
     }
 
-}
-
-MtObject* __stdcall get_stuffs_from_files(MtDTI* dti, char* path, uint32_t mode) {
-    constexpr uintptr_t file_read_call = 0x008DF530;
-	_asm {
-			push mode
-			push path
-			push dti
-			mov eax,sDevil4Resource
-			mov eax,[eax]
-			call file_read_call
+	MtObject* __stdcall get_stuff_from_files(MtDTI* dti, char* path, uint32_t mode) {
+		constexpr uintptr_t file_read_call = 0x008DF530;
+		_asm {
+				push mode
+				push path
+				push dti
+				mov eax,sDevil4Resource
+				mov eax,[eax]
+				call file_read_call
+		}
 	}
+
+	void __stdcall release_resource(CResource* rsrc) {
+		uintptr_t release_call = 0x8DDA00;
+		_asm {
+				push rsrc
+				mov eax,[sDevil4Resource]
+				call release_call
+		}
+	}
+
+	MtObject* __stdcall uEm010ShlCtrl_constructor_sub(void* projectile) {
+		uintptr_t constructor_call = 0x4A7E80;
+		uintptr_t uEm010ShlCtrl_methods_ptr = 0xBCE648;
+		_asm {
+				mov esi,projectile
+				call constructor_call
+				mov [esi+0x1370],0
+				push uEm010ShlCtrl_methods_ptr
+				pop [esi]
+				mov [esi+0xEA4],5
+		}
+		return (MtObject*)projectile;
+	}
+
+	//uintptr_t __stdcall player_uEm010ShlCtrl_spawner(uPlayer* actor, uint32_t mode) { //0-pillars, 1-wave
+	//	float WaveRange = 220.0f;
+	//	float WaveInterval = 3.0f;
+	//	float WaveAngle = 0.04;
+	//	float WaveAngleAlt = 0.0f;
+	//	float WaveSpeed = 25.0f;
+	//	float WaveSpread = 55.0f;
+	//	float PillarRange = 240.0f;
+	//	float PillarAngle = 0.7;
+	//	float PillarSpread = 60.0f;
+	//	void* mem = mt_allocate_heap(sizeof(UEm003Shl), 0x10);
+	//}
+
 }
