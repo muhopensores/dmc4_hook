@@ -261,6 +261,8 @@ set(SDK_SRC
     sdk/Math.hpp
     sdk/Devil4.cpp
     sdk/Devil4.hpp
+    sdk/uActor.hpp
+    sdk/uCollisionMgr.hpp
 )
 
 set(IMGUI_SRC
@@ -346,6 +348,7 @@ set(MISC
   misc/BgTexture.cpp
   misc/FontRoboto.cpp
   misc/PinTimerAtlas.cpp
+  misc/kAtckDefTbl.cpp
 )
 
 set(LANG

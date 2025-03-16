@@ -5,8 +5,13 @@ uintptr_t DisableCameraEvents::jmp_ret1{NULL};
 
 void DisableCameraEvents::toggle(bool enable) {
     if (enable) {
-        install_patch_offset(0x000BEF1, patch1, "\xB8\x06\x00\x00\x00\x90\x90", 7); // skips to part x of cutscene
+        install_patch_offset(0x000BEF1, patch1, "\xB8\x07\x00\x00\x00\x90\x90", 7); // skips to part x of cutscene
         install_patch_offset(0x0093BE0, patch2, "\xEB\x13", 2); // disables fade to black flash but breaks move list + map
+        // install_patch_offset(0x000C6C1, patch2, "\xEB\x17", 2); // old version
+        // skip to 6 + old version is best, skips all fades but has start of mission bug
+        // try setting that one value in aGame to 4 when old version is called
+        // DevilMayCry4_DX9.exe+C9DD starting first forest fight or castle demo
+        // DevilMayCry4_DX9.exe+14C3A8 ending first forest fight
     }
     else {
         patch1.reset();

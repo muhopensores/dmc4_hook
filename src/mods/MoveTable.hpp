@@ -2,6 +2,8 @@
 
 #include "../mod.hpp"
 
+extern uintptr_t HookDanteKADTbl;
+extern uintptr_t HookNeroKADTbl;
 
 class MoveTable: public Mod {
 public:

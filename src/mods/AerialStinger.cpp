@@ -1,4 +1,6 @@
 #include "AerialStinger.hpp"
+#include "misc/kAtckDefTbl.cpp"
+#include "MoveTable.hpp"
 
 #if 1
 bool AerialStinger::mod_enabled{ false };
@@ -191,8 +193,16 @@ std::optional<std::string> AerialStinger::on_initialize() {
 }
 
 void AerialStinger::on_gui_frame() {
-    if (ImGui::Checkbox(_("Aerial Stinger"), &mod_enabled)) {
+   if (ImGui::Checkbox(_("Aerial Stinger"), &mod_enabled)) {
         toggle(mod_enabled);
+        kAtckDefTbl* DanteAtkTbl = (kAtckDefTbl*)HookDanteKADTbl;
+        kAtckDefTbl* stinger_param = &DanteAtkTbl[2];
+        if (mod_enabled) {
+            stinger_param->atckAs = 3;
+        }
+        else {
+            stinger_param->atckAs = 1;
+        }
     }
     ImGui::SameLine();
     help_marker(_("Allow Dante to use stinger in the air"));
@@ -201,6 +211,11 @@ void AerialStinger::on_gui_frame() {
 void AerialStinger::on_config_load(const utility::Config& cfg) {
 	mod_enabled = cfg.get<bool>("aerial_stinger").value_or(false);
 	toggle(mod_enabled);
+    if (mod_enabled) {
+        kAtckDefTbl* DanteAtkTbl = (kAtckDefTbl*)HookDanteKADTbl;
+        kAtckDefTbl* stinger_param = &DanteAtkTbl[2];
+        stinger_param->atckAs = 3;
+    }
 };
 
 void AerialStinger::on_config_save(utility::Config& cfg) {

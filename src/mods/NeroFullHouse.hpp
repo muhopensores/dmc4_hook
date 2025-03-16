@@ -21,6 +21,13 @@ public:
     static uintptr_t jmp_ret4;
     static uintptr_t jmp_ret5;
     static uintptr_t jmp_jne5;
+    static uintptr_t jmp_ret6;
+    static uintptr_t jmp_ret7;
+    static uintptr_t jmp_ret8;
+    static uintptr_t jmp_ret9;
+    static uintptr_t jmp_ret10;
+
+    // void toggle(bool enable);
 
     std::string get_mod_name() override { return "NeroFullHouse"; };
 
@@ -32,11 +39,8 @@ public:
     // void onUpdateInput(utility::Input& input) override;
 
 private:
-    std::unique_ptr<FunctionHook> hook1;
-    std::unique_ptr<FunctionHook> hook2;
-    std::unique_ptr<FunctionHook> hook3;
-    std::unique_ptr<FunctionHook> hook4;
-    std::unique_ptr<FunctionHook> hook5;
+    std::unique_ptr<Patch> patch1;
+    std::unique_ptr<FunctionHook> hook1, hook2, hook3, hook4, hook5, hook6, hook7, hook8, hook9, hook10;
 };
 
 // for che

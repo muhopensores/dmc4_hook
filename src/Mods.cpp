@@ -150,6 +150,7 @@ Mods::Mods() {
     ADD_MOD(RedOrbCompletion); // keep as 6
     ADD_MOD(PlayerTracker);
     ADD_MOD(LoadOrder);
+    ADD_MOD(MoveTable);
     ADD_MOD(FastStart);
     ADD_MOD(AreaJump);
     ADD_MOD(LimitAdjust);
@@ -258,7 +259,6 @@ Mods::Mods() {
     ADD_MOD(AirMustang);
     ADD_MOD(PinTrick);
     ADD_MOD(LMTSlotFix);
-    ADD_MOD(MoveTable);
     ADD_MOD(PinProperties);
     ADD_MOD(LuciAirThrow);
     ADD_MOD(TauntSelect);
