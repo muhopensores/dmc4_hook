@@ -395,7 +395,7 @@ void NeroFullHouse::on_gui_frame() {
             //*(uintptr_t*)0xC3EFB0 = 1; // streak 1 can only be used when grounded
             //*(uintptr_t*)helm_splitter_directional = LOCKON_FORWARD_MELEE2;
             //*(uintptr_t*)double_down_directional   = LOCKON_FORWARD_MELEE2;
-            payline_params->ukn                    = 1;
+            payline_params->atckAs                 = 1;
             hb_params->command.buffer              = LOCKON_FORWARD_MELEE2;
             dd_params->command.buffer              = LOCKON_FORWARD_MELEE2;
         }

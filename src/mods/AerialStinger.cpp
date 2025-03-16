@@ -188,11 +188,14 @@ std::optional<std::string> AerialStinger::on_initialize() {
 }
 
 void AerialStinger::on_gui_frame() {
+    kAtckDefTbl* DanteAtkTbl   = (kAtckDefTbl*)HookDanteKADTbl;
+    kAtckDefTbl* stinger_param = &DanteAtkTbl[2];
     if (ImGui::Checkbox(_("Aerial Stinger"), &mod_enabled)) {
         toggle(mod_enabled);
-        kAtckDefTbl* DanteAtkTbl   = (kAtckDefTbl*)HookDanteKADTbl;
-        kAtckDefTbl* stinger_param = &DanteAtkTbl[2];
-        stinger_param->atckAs      = 3;
+        if (mod_enabled)
+            stinger_param->atckAs = 3;
+        else
+            stinger_param->atckAs = 1;
     }
     ImGui::SameLine();
     help_marker(_("Allow Dante to use stinger in the air"));

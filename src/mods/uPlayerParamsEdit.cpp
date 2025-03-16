@@ -6,8 +6,8 @@ static bool fast_gilg_charge { false };
 
 void __stdcall dante_param_edit(uintptr_t param_table) {
     if (fast_gilg_charge) {
-        *(float*)(param_table+0x31C) = 15.0f;
-        *(float*)(param_table+0x320) = 45.0f;
+        *(float*)(param_table+0x31C) = 15.0f; //lvl 1
+        *(float*)(param_table+0x320) = 45.0f; //lvl 2
     }
 }
 
