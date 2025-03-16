@@ -1123,3 +1123,25 @@ public:
     class sMouse *m_mouse_ptr; //0x0000
 }; //Size: 0x0004
 static_assert(sizeof(sMousePtr) == 0x4);
+
+
+struct kAtckDefTbl {
+    uint32_t atckAttr;
+    uint32_t atckId;
+    uint32_t atckLevel;
+    uint32_t atckInfo;
+    union {
+        uint32_t buffer;
+        struct {
+            uint8_t atckCommand;
+            uint8_t atckCommandNo;
+            uint8_t atckCondition;
+            uint8_t ukn;
+        };
+    } command;
+    uint32_t atckConditionWp;
+    uint32_t atckConditionStyle;
+    uint32_t ukn; // aerial lock
+    uint32_t atckAs;
+    uint32_t cancelId[5];
+};

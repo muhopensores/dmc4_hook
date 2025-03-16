@@ -243,7 +243,7 @@ namespace uActorMain {
             uint SkinRemap[64];
             uint SkinRemapNum;
             struct RenderInfo Render;
-            struct MtVector4 uknJointVector1;
+            struct MtVector4 uknJointVector1;//bsphere
             struct MtVector3 uknJointVector2;
             struct MtVector3 uknJointVector3;
             uint mJointNum;

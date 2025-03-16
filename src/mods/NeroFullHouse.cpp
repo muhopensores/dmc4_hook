@@ -1,4 +1,7 @@
 #include "NeroFullHouse.hpp"
+#include "misc/kAtckDefTbl.cpp"
+#include "SDK/ReClass.hpp"
+#include "MoveTable.hpp"
 //#include "MoveIDsNero.hpp"
 
 #if 1
@@ -372,19 +375,29 @@ std::optional<std::string> NeroFullHouse::on_initialize() {
 }
 
 void NeroFullHouse::on_gui_frame() {
+    kAtckDefTbl* NeroAtkTbl     = (kAtckDefTbl*)HookNeroKADTbl;
+    kAtckDefTbl* payline_params = &NeroAtkTbl[6];
+    kAtckDefTbl* hb_params      = &NeroAtkTbl[21];
+    kAtckDefTbl* dd_params      = &NeroAtkTbl[22];
     if (ImGui::Checkbox(_("Payline"), &mod_enabled)) {
        // toggle(mod_enabled);
         if (mod_enabled) {
             helm_splitter_remap = true;
-            *(uintptr_t*)0xC3EFB0 = 2; // streak 1 can be used in air
-            *(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE; // back
-            *(uintptr_t*)double_down_directional = LOCKON_BACK_MELEE;   // back
+            payline_params->atckAs = 2;
+            //*(uintptr_t*)0xC3EFB0 = 2; // streak 1 can be used in air
+            hb_params->command.buffer = LOCKON_BACK_MELEE;
+            dd_params->command.buffer = LOCKON_BACK_MELEE;
+            //*(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE; // back
+            //*(uintptr_t*)double_down_directional = LOCKON_BACK_MELEE;   // back
         }
         else {
             helm_splitter_remap = false;
-            *(uintptr_t*)0xC3EFB0 = 1; // streak 1 can only be used when grounded
-            *(uintptr_t*)helm_splitter_directional = LOCKON_FORWARD_MELEE2;
-            *(uintptr_t*)double_down_directional   = LOCKON_FORWARD_MELEE2;
+            //*(uintptr_t*)0xC3EFB0 = 1; // streak 1 can only be used when grounded
+            //*(uintptr_t*)helm_splitter_directional = LOCKON_FORWARD_MELEE2;
+            //*(uintptr_t*)double_down_directional   = LOCKON_FORWARD_MELEE2;
+            payline_params->ukn                    = 1;
+            hb_params->command.buffer              = LOCKON_FORWARD_MELEE2;
+            dd_params->command.buffer              = LOCKON_FORWARD_MELEE2;
         }
     }
     ImGui::SameLine();
@@ -392,12 +405,16 @@ void NeroFullHouse::on_gui_frame() {
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Remap Helm Splitter"), &helm_splitter_remap)) {
         if (helm_splitter_remap) {
-            *(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE;
-            *(uintptr_t*)double_down_directional = LOCKON_BACK_MELEE;
+            //*(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE;
+            //*(uintptr_t*)double_down_directional = LOCKON_BACK_MELEE;
+            hb_params->command.buffer              = LOCKON_BACK_MELEE;
+            dd_params->command.buffer              = LOCKON_BACK_MELEE;
         }
         else {
-            *(uintptr_t*)helm_splitter_directional = LOCKON_FORWARD_MELEE2;
-            *(uintptr_t*)double_down_directional = LOCKON_FORWARD_MELEE2;
+            //*(uintptr_t*)helm_splitter_directional = LOCKON_FORWARD_MELEE2;
+            //*(uintptr_t*)double_down_directional = LOCKON_FORWARD_MELEE2;
+            hb_params->command.buffer = LOCKON_FORWARD_MELEE2;
+            dd_params->command.buffer = LOCKON_FORWARD_MELEE2;
         }
     }
     ImGui::SameLine();
@@ -405,16 +422,24 @@ void NeroFullHouse::on_gui_frame() {
 }
 
 void NeroFullHouse::on_config_load(const utility::Config& cfg) {
+    kAtckDefTbl* NeroAtkTbl     = (kAtckDefTbl*)HookNeroKADTbl;
+    kAtckDefTbl* payline_params = &NeroAtkTbl[6];
+    kAtckDefTbl* hb_params      = &NeroAtkTbl[21];
+    kAtckDefTbl* dd_params      = &NeroAtkTbl[22];
     mod_enabled = cfg.get<bool>("nero_full_house").value_or(false);
     //toggle(mod_enabled);
     helm_splitter_remap = cfg.get<bool>("helm_splitter_remap").value_or(false);
     if (mod_enabled) {
         helm_splitter_remap = true;
-        *(uintptr_t*)0xC3EFB0 = 2; // streak 1 can only be used when aerial
+        //*(uintptr_t*)0xC3EFB0 = 2; // streak 1 can only be used when aerial
+        payline_params->atckAs = 2;
     }
     if (helm_splitter_remap) {
-        *(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE;
-        *(uintptr_t*)double_down_directional = LOCKON_BACK_MELEE;
+        //*(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE;
+        //*(uintptr_t*)double_down_directional = LOCKON_BACK_MELEE;
+
+        hb_params->command.buffer = LOCKON_BACK_MELEE;
+        dd_params->command.buffer = LOCKON_BACK_MELEE;
     }
 };
 

@@ -1,4 +1,6 @@
 #include "AerialStinger.hpp"
+#include "misc/kAtckDefTbl.cpp"
+#include "MoveTable.hpp"
 
 #if 1
 bool AerialStinger::mod_enabled{ false };
@@ -28,10 +30,10 @@ void AerialStinger::toggle(bool enable) {
 //Aerial Stinger init
 naked void detour1() {
     _asm {
-        cmp byte ptr [AerialStinger::mod_enabled], 0
-        je originalcode
-
         push eax
+        cmp byte ptr [AerialStinger::mod_enabled], 0
+        je handler
+
         mov eax,[ebp+0x1E8C]
         cmp byte ptr [eax+0x1C],0 // grounded check
         jne handler
@@ -188,6 +190,9 @@ std::optional<std::string> AerialStinger::on_initialize() {
 void AerialStinger::on_gui_frame() {
     if (ImGui::Checkbox(_("Aerial Stinger"), &mod_enabled)) {
         toggle(mod_enabled);
+        kAtckDefTbl* DanteAtkTbl   = (kAtckDefTbl*)HookDanteKADTbl;
+        kAtckDefTbl* stinger_param = &DanteAtkTbl[2];
+        stinger_param->atckAs      = 3;
     }
     ImGui::SameLine();
     help_marker(_("Allow Dante to use stinger in the air"));
@@ -196,6 +201,11 @@ void AerialStinger::on_gui_frame() {
 void AerialStinger::on_config_load(const utility::Config& cfg) {
 	mod_enabled = cfg.get<bool>("aerial_stinger").value_or(false);
 	toggle(mod_enabled);
+    if (mod_enabled) {
+        kAtckDefTbl* DanteAtkTbl = (kAtckDefTbl*)HookDanteKADTbl;
+        kAtckDefTbl* stinger_param = &DanteAtkTbl[2];
+        stinger_param->atckAs = 3;
+    }
 };
 
 void AerialStinger::on_config_save(utility::Config& cfg) {

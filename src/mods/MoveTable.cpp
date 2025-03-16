@@ -13,26 +13,26 @@ uintptr_t HookDanteKADTbl { NULL };
 uintptr_t HookNeroKADTbl { NULL };
 static bool display_move_table { false };
 
-struct kAtckDefTbl {
-    uint32_t atckAttr;
-    uint32_t atckId;
-    uint32_t atckLevel;
-    uint32_t atckInfo;
-    union {
-        uint32_t buffer;
-        struct {
-            uint8_t atckCommand;
-            uint8_t atckCommandNo;
-            uint8_t atckCondition;
-            uint8_t ukn;
-        };
-    } command;
-    uint32_t atckConditionWp;
-    uint32_t atckConditionStyle;
-    uint32_t ukn;
-    uint32_t atckAs;
-    uint32_t cancelId[5];
-};
+//struct kAtckDefTbl {
+//    uint32_t atckAttr;
+//    uint32_t atckId;
+//    uint32_t atckLevel;
+//    uint32_t atckInfo;
+//    union {
+//        uint32_t buffer;
+//        struct {
+//            uint8_t atckCommand;
+//            uint8_t atckCommandNo;
+//            uint8_t atckCondition;
+//            uint8_t ukn;
+//        };
+//    } command;
+//    uint32_t atckConditionWp;
+//    uint32_t atckConditionStyle;
+//    uint32_t ukn; //aerial lock
+//    uint32_t atckAs;
+//    uint32_t cancelId[5];
+//};
 
 void MoveTable::toggle(bool enable) {
     if (enable) {
@@ -155,9 +155,12 @@ void MoveTable::on_gui_frame() {
             uint32_t currentMoveId   = (uint32_t) * (uintptr_t*)(player + 0x1564);
             ImGui::InputScalar(_("Player move ID"), ImGuiDataType_U32, &currentMoveId);
             kAtckDefTbl* TblEntry = (kAtckDefTbl*)(kAtckDefTblPtr);
+            int EntryCount = 0;
             while ((currentMoveId != TblEntry->atckId) && (TblEntry->atckAttr != 3)) {
+                EntryCount++;
                 TblEntry++;
             }
+            ImGui::InputScalar(_("Entry count"), ImGuiDataType_U32, &EntryCount, 0, 0, 0, ImGuiInputTextFlags_ReadOnly);
             ImGui::InputScalar(_("Move Attribute"), ImGuiDataType_U32, &TblEntry->atckAttr);
             ImGui::InputScalar(_("Table move ID"), ImGuiDataType_U32, &TblEntry->atckId);
             ImGui::InputScalar(_("Move Level"), ImGuiDataType_U32, &TblEntry->atckLevel);
