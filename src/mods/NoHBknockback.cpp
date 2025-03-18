@@ -9,15 +9,19 @@ constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 naked void no_helm_breaker_knockback_proc(void) { // ebx+0x98 = player + CE20 // ebx+0xA4 = damage id stuff (e.g. RED-Split_00)
 	_asm {
 			cmp byte ptr [NoHbKnockback::mod_enabled], 1
-			je cheatcode
+			je helmbreakercode
 			cmp byte ptr [NeroFullHouse::mod_enabled], 1
-			je nerocheatcode2
+			je paylinecode
+			jmp originalcode
+
+		poporiginalcode:
+			pop eax
 		originalcode:
 			cmp ecx, 0x05
 			jl nohelmbreakerknockbackje
 			jmp dword ptr [NoHbKnockback::no_helm_breaker_knockback_continue]
 
-		cheatcode:
+		helmbreakercode:
 			// load eax with player 1
 			push eax
 			mov eax, [static_mediator_ptr]
@@ -26,42 +30,37 @@ naked void no_helm_breaker_knockback_proc(void) { // ebx+0x98 = player + CE20 //
 
 			// Dante:
 			cmp dword ptr [eax+0x2998], 0x20A // 522 // Low
-			je newcode
+			je helmbreakeractive
 			cmp dword ptr [eax+0x2998], 0x213 // 531 // Mid
-			je newcode
+			je helmbreakeractive
 			cmp dword ptr [eax+0x2998], 0x214 // 532 // High
-			je newcode
+			je helmbreakeractive
 			// Nero:
 			cmp dword ptr [eax+0x2998], 786 // Split
-			je newcode
+			je helmbreakeractive
 			cmp dword ptr [eax+0x2998], 812 // Double Down
-			je newcode
+			je helmbreakeractive
 			cmp dword ptr [eax+0x2998], 814 // Double Down 3 exceed
-			je newcode
-			pop eax
-			jmp originalcode
+			je helmbreakeractive
+			jmp poporiginalcode
 
-		nerocheatcode2:
-            // load eax with player 1
-			push eax
-			mov eax, [static_mediator_ptr]
-			mov eax, [eax]
-			mov eax, [eax+0x24]
+		helmbreakeractive:
+			cmp byte ptr [eax+0x1504],4 // move part, make the grounded part still knock back
+			jl newcode
+			jmp poporiginalcode
 
-			cmp dword ptr [eax+0x2998], 812
-			pop eax
-			jne originalcode
-
+		paylinecode:
 			// load eax with player 1
 			push eax
 			mov eax, [static_mediator_ptr]
 			mov eax, [eax]
 			mov eax, [eax+0x24]
 
+			cmp dword ptr [eax+0x2998], 812
+			jne poporiginalcode
 			cmp dword ptr [eax+0x1564], 28    // check streak 1 was pushed to get this moveid
 			je newcode
-			pop eax
-			jmp originalcode
+			jmp poporiginalcode
 
 		newcode:
 			pop eax

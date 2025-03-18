@@ -418,7 +418,7 @@ void NeroFullHouse::on_gui_frame() {
         }
     }
     ImGui::SameLine();
-    help_marker(_("Remap Helm Splitter and Double Down to lockon+back+melee"));
+    help_marker(_("Remap Helm Splitter and Double Down to lockon+back+melee\nRequires \"Move Table\" at the bottom of the Debug page, which applies at the start of a level"));
 }
 
 void NeroFullHouse::on_config_load(const utility::Config& cfg) {

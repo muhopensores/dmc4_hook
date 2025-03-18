@@ -13,10 +13,9 @@ static float newX;
 static float newY;
 
 void LetsNotTryThisInAsm(void) {
-    float newDirectionRadians = stickDirectionAdjusted;
     float magnitude           = std::sqrt(startX * startX + startY * startY);
-    newX                      = magnitude * std::cos(newDirectionRadians);
-    newY                      = magnitude * std::sin(newDirectionRadians);
+    newX                      = magnitude * std::cos(stickDirectionAdjusted);
+    newY                      = magnitude * std::sin(stickDirectionAdjusted);
 }
 
 naked void guard_steer_proc(void) {
@@ -42,12 +41,7 @@ naked void guard_steer_proc(void) {
         movss [esp], xmm2
         movss [esp+0x4], xmm3
         movss [esp+0x8], xmm4
-        // movss [esp+0x28], xmm5
-        // movss [esp+0x30], xmm6
-        // movss [esp+0x38], xmm7
 
-        // movss xmm5, [eax+0x000013C4]
-        // movss [stickDirection] , xmm5
         movss xmm5, [eax+0x00001420]
         movss [stickDirectionAdjusted], xmm5
 
@@ -58,16 +52,14 @@ naked void guard_steer_proc(void) {
         movss xmm0, [newY]
         movss xmm1, [newX]
         movss xmm2, [esp]
+        // restore xmms
         movss xmm3, [esp+0x4]
         movss xmm4, [esp+0x8]
-        // movss xmm5, [esp+0x28]
-        // movss xmm6, [esp+0x30]
-        // movss xmm7, [esp+0x38]
         mov esp, ebp
         pop ebp
 
         originalcode:
-        comiss xmm4,xmm3 // whoops
+        comiss xmm4,xmm3
         movss [eax+0x00000EC0], xmm0
 		jmp dword ptr [GuardSteer::guard_steer_continue]
     }

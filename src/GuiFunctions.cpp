@@ -570,6 +570,8 @@ namespace gui {
 
                     pmods->on_draw_ui("PinProperties"_hash); // needs its own line
 
+                    pmods->on_draw_ui("PinTrick"_hash); // needs its own line
+
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();
@@ -776,6 +778,7 @@ namespace gui {
 
                     // pmods->onDrawUI("ShaderEditor"_hash);
                     pmods->on_draw_ui("MoveTable"_hash);
+                    pmods->on_draw_ui("LMTSlotFix"_hash);
                     
                     ImGui::Spacing();
                     ImGui::Separator();

@@ -205,7 +205,7 @@ void AerialStinger::on_gui_frame() {
         }
     }
     ImGui::SameLine();
-    help_marker(_("Allow Dante to use stinger in the air"));
+    help_marker(_("Allow Dante to use stinger in the air\nRequires \"Move Table\" at the bottom of the Debug page, which applies at the start of a level"));
 }
 
 void AerialStinger::on_config_load(const utility::Config& cfg) {
