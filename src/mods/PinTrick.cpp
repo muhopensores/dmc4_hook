@@ -158,7 +158,7 @@ naked void detour4() {
 
 naked void detour5() {
     _asm {
-            movss xmm1,[DefaultTrickRange]
+            movss xmm1,[DefaultTrickRange] // doesn't screw inf trick range cheat
             cmp byte ptr [PinTrick::mod_enabled],1
             jne originalcode
 

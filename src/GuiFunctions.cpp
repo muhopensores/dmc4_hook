@@ -9,17 +9,6 @@
 #include <Windows.h>
 #undef WIN32_LEAN_AND_MEAN
 
-// idk why these are here so I'm commenting them out rather than deleting them beacuse I am SCARED
-// #include "./mods/BpPortal.hpp"
-// #include "./mods/EnemySpawn.hpp"
-// #include "./mods/EnemyTracker.hpp"
-// #include "./mods/InfAllHealth.hpp"
-// #include "./mods/InfDT.hpp"
-// #include "./mods/NoClip.hpp"
-// #include "./mods/OneHitKill.hpp"
-// #include "./mods/Quicksilver.hpp"
-// #include "./mods/CustomProjectile.hpp"
-
 #include "fw-imgui/imgui_impl_dx9.h"
 #include "fw-imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
@@ -545,6 +534,8 @@ namespace gui {
                     pmods->on_draw_ui("DisableDTStinger"_hash);
 
                     pmods->on_draw_ui("HighTimeWeaponSwitch"_hash);
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("SwordSpin"_hash);
 
                     pmods->on_draw_ui("DanteJdc"_hash); // needs its own line
 

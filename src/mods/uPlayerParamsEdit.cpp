@@ -5,9 +5,13 @@ uintptr_t uPlayerParamsEdit::jmp_ret2{ NULL };
 static bool fast_gilg_charge { false };
 
 void __stdcall dante_param_edit(uintptr_t param_table) {
-    if (fast_gilg_charge) {
-        *(float*)(param_table+0x31C) = 15.0f; //lvl 1
-        *(float*)(param_table+0x320) = 45.0f; //lvl 2
+    if (fast_gilg_charge) { // I'd like to keep charge time edits standardized
+        *(float*)(param_table+0x31C) = 15.0f; // gilg lvl 1 = 45.0f / 3.0f
+        *(float*)(param_table+0x320) = 50.0f; // gilg lvl 2 = 150.0f / 3.0f
+        // wtf where is lvl 3
+        *(float*)(param_table+0x228) = 20.0f; // gilg lvl 1 rising = 60.0f / 3.0f
+        *(float*)(param_table+0x234) = 50.0f; // gilg lvl 2 rising = 150.0f / 3.0f
+        // wtf where is lvl 3
     }
 }
 
@@ -57,9 +61,9 @@ std::optional<std::string> uPlayerParamsEdit::on_initialize() {
 }
 
 void uPlayerParamsEdit::on_gui_frame() {
-    ImGui::Checkbox(_("Fast Gilg charge"), &fast_gilg_charge);
+    ImGui::Checkbox(_("Faster Gilgamesh Charges"), &fast_gilg_charge);
     ImGui::SameLine();
-    help_marker(_("Reduce gilgamesh charge time"));
+    help_marker(_("3x faster Gilgamesh charges\nThis change applies when loading into a stage"));
 }
 
 void uPlayerParamsEdit::on_config_load(const utility::Config& cfg) {
