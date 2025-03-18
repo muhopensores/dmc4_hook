@@ -320,3 +320,9 @@ std::optional<std::string> CustomProjectile::on_initialize() {
     
     return Mod::on_initialize();
 }
+
+void CustomProjectile::on_gui_frame() {
+    if (ImGui::Button("Custom actor")) {
+        CustomProjectile::SpawnProjectile();
+    }
+}

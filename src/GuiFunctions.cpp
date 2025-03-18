@@ -18,7 +18,7 @@
 // #include "./mods/NoClip.hpp"
 // #include "./mods/OneHitKill.hpp"
 // #include "./mods/Quicksilver.hpp"
-#include "./mods/CustomProjectile.hpp"
+// #include "./mods/CustomProjectile.hpp"
 
 #include "fw-imgui/imgui_impl_dx9.h"
 #include "fw-imgui/imgui_impl_win32.h"
@@ -546,7 +546,11 @@ namespace gui {
 
                     pmods->on_draw_ui("HighTimeWeaponSwitch"_hash);
 
-                    pmods->on_draw_ui("DanteJdc"_hash);
+                    pmods->on_draw_ui("DanteJdc"_hash); // needs its own line
+
+                    ImGui::Spacing();
+                    ImGui::Text("Aerial grounded moves");
+                    ImGui::Spacing();
 
                     pmods->on_draw_ui("RisingSun"_hash);
                     ImGui::SameLine(sameLineWidth);
@@ -559,9 +563,6 @@ namespace gui {
                     pmods->on_draw_ui("AerialDrive"_hash);
 
                     ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
                     ImGui::Text(_("Lucifer"));
                     ImGui::Spacing();
 
@@ -799,9 +800,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    if (ImGui::Button("Custom actor")) {
-                        CustomProjectile::SpawnProjectile();
-                    }
+                    pmods->on_draw_ui("CustomProjectile"_hash);
 
                     g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
                     ImGui::EndChild();
