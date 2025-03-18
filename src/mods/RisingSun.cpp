@@ -8,7 +8,7 @@ uintptr_t RisingSun::jmp_ret1{NULL};
     constexpr uintptr_t detour1_org_call = 0x007D4970;
     bool kickFlag = false;
 uintptr_t RisingSun::jmp_ret2{NULL};
-    float RS_start_frame = 135.0f;
+    float RS_start_frame = 130.0f;
 uintptr_t RisingSun::jmp_ret3{NULL};
     constexpr uintptr_t detour3_jmp1 = 0x007D3733;
 uintptr_t RisingSun::jmp_ret4{NULL};
@@ -20,7 +20,7 @@ uintptr_t RisingSun::jmp_ret5{NULL};
 uintptr_t RisingSun::jmp_ret6{NULL};
 uintptr_t RisingSun::jmp_ret7{NULL};
 uintptr_t RisingSun::jmp_ret8{NULL};
-    float speed = 1.1f;
+    float speed = 0.9f;
 // uintptr_t RisingSun::jmp_ret9{NULL};
 //     constexpr uintptr_t detour9_call = 0x00820060;
 

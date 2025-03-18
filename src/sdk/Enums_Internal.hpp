@@ -1,0 +1,11 @@
+enum AllocatorEnum {
+	DEFAULT,
+	GLOBAL,
+	TEMP,
+	SYSTEM,
+	UNIT,
+	AREA,
+	TRANS,
+	ARRAY,
+	SOUND
+};

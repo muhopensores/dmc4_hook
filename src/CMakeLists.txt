@@ -234,6 +234,8 @@ set(MODS_SRC
   mods/AerialStinger.cpp
   mods/AirMustang.hpp
   mods/AirMustang.cpp
+  mods/AerialDrive.hpp
+  mods/AerialDrive.cpp
   mods/PinTrick.hpp
   mods/PinTrick.cpp
   mods/LMTSlotFix.hpp
@@ -244,6 +246,16 @@ set(MODS_SRC
   mods/PinProperties.cpp
   mods/LuciAirThrow.hpp
   mods/LuciAirThrow.cpp
+  mods/CustomAllocatorMem.hpp
+  mods/CustomAllocatorMem.cpp
+  mods/uPlayerParamsEdit.hpp
+  mods/uPlayerParamsEdit.cpp
+  mods/PullKnockback.hpp
+  mods/PullKnockback.cpp
+  mods/SwordSpin.hpp
+  mods/SwordSpin.cpp
+  mods/CustomProjectile.hpp
+  mods/CustomProjectile.cpp
 )
 
 set(HOOKS_SRC
@@ -258,6 +270,7 @@ set(HOOKS_SRC
 set(SDK_SRC
     sdk/ReClass.hpp
     sdk/ReClass_Internal.hpp
+    sdk/uActor.hpp
     sdk/Math.hpp
     sdk/Devil4.cpp
     sdk/Devil4.hpp

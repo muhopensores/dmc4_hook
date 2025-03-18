@@ -117,13 +117,19 @@
 #include "mods/RisingSun.hpp"
 #include "mods/AerialStinger.hpp"
 #include "mods/AirMustang.hpp"
+#include "mods/AerialDrive.hpp"
 #include "mods/PinTrick.hpp"
 #include "mods/LMTSlotFix.hpp"
 #include "mods/MoveTable.hpp"
 #include "mods/PinProperties.hpp"
 #include "mods/LuciAirThrow.hpp"
-#include "mods/TauntSelect.hpp"
+#include "mods/CustomAllocatorMem.hpp"
+#include "mods/uPlayerParamsEdit.hpp"
+#include "mods/PullKnockback.hpp" // no gui
+#include "mods/SwordSpin.hpp"
+#include "mods/CustomProjectile.hpp"
 #include "mods/RedOrbCompletion.hpp"
+#include "mods/TauntSelect.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -139,14 +145,12 @@ Mods::Mods() {
     m_hash.reserve(MODS_NUM);
     // slow mods
     ADD_MOD(MessageDisplayMod); // keep this one at the 0 index for overlay;
-    ADD_MOD(BackgroundRendering);
-    ADD_MOD(Borderless);
+    ADD_MOD(BackgroundRendering); // keep as 1
+    ADD_MOD(Borderless); // keep as 2
     ADD_MOD(TwitchClient); // keep as 3
     ADD_MOD(MutatorSelfAdvertisement); // keep as 4
     ADD_MOD(PinTimer); // keep as 5
     // regular mods
-    // add mods here
-    // m_mods["ModName"_hash] = std::make_unique<ModName>();
     ADD_MOD(RedOrbCompletion); // keep as 6
     ADD_MOD(PlayerTracker);
     ADD_MOD(LoadOrder);
@@ -191,7 +195,6 @@ Mods::Mods() {
     ADD_MOD(DamageMultiplier);
     ADD_MOD(HpInOrbsDisplay);
     ADD_MOD(InfDT);
-    // ADD_MOD(InfPlayerHealth);
     ADD_MOD(BerialDaze);
     ADD_MOD(RoseRemovesPins);
     ADD_MOD(StunAnything);
@@ -211,7 +214,6 @@ Mods::Mods() {
     ADD_MOD(EnemyAttackOffScreen);
     ADD_MOD(SlowWalk);
     ADD_MOD(DifficultySelect);
-    // ADD_MOD(EnemyReplace);
     ADD_MOD(EnemyReplaceAgain);
     ADD_MOD(BpJumpHook);
     ADD_MOD(NoAutomaticCharacters);
@@ -257,10 +259,15 @@ Mods::Mods() {
     ADD_MOD(LocalizationManager);
     ADD_MOD(AerialStinger);
     ADD_MOD(AirMustang);
+    ADD_MOD(AerialDrive);
     ADD_MOD(PinTrick);
     ADD_MOD(LMTSlotFix);
     ADD_MOD(PinProperties);
     ADD_MOD(LuciAirThrow);
+    ADD_MOD(uPlayerParamsEdit);
+    ADD_MOD(PullKnockback); // no gui
+    ADD_MOD(SwordSpin);
+    ADD_MOD(CustomProjectile);
     ADD_MOD(TauntSelect);
 }
 

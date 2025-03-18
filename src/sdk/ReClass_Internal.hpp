@@ -221,113 +221,90 @@ class MtObject;
 class MtDTI
 {
 public:
-	virtual void vec_del_dtor(unsigned int x); //0+0x00
-	virtual MtObject* new_instance(); //0+0x04
-	virtual void function2(); //0+0x08
-	virtual void function3(); //0+0x0C
-	virtual void function4(); //0+0x10
-	virtual void function5(); //0+0x14
-	virtual void function6(); //0+0x18
-	virtual void function7(); //0+0x1C
-	virtual void function8(); //0+0x20
-	virtual void function9(); //0+0x24
-
 	char *m_name; //0x0004
 	class MtDTI *mp_next; //0x0008
 	class MtDTI *mp_child; //0x000C
 	class MtDTI *mp_parent; //0x0010
 	class MtDTI *mp_link; //0x0014
-	uint32_t mp_link1; //0x0018
+	size_t m_size; //0x0018
 	uint32_t m_id; //0x001C
 	// hope it's fucking thiscall
-	// virtual void vecDelDtor(MtDTI* this, unsigned int x)();
-	// virtual void MtObject* newInstance(MtDTI *this)();
+	//virtual void vecDelDtor(MtDTI* this, unsigned int x)();
+	//virtual void MtObject* newInstance(MtDTI *this)();
+
+	virtual void vec_del_dtor(unsigned int x) {};
+	virtual void* new_instance() {return nullptr;};
 }; //Size: 0x0020
-static_assert(sizeof(MtDTI) == 0x20);
 
 class MtObject
 {
 public:
-	virtual void vec_del_dtor(unsigned int i); //0+0x00
-	virtual void create_ui(void* prop); //0+0x04
-	virtual bool is_enable_instance(); //0+0x08
-	virtual void create_property(void* prop); //0+0x0C
-	virtual MtDTI* get_dti(); //0+0x10
-	virtual MtObject* allocate(size_t size, int a2); //0+0x14
-	virtual uint16_t deallocate(MtObject* object); //0+0x18
-	virtual void function7(); //0+0x1C
-	virtual void function8(); //0+0x20
-	virtual void function9(); //0+0x24
-	virtual void function10(); //0+0x28
-	virtual void function11(); //0+0x2C
+	virtual void vec_del_dtor(unsigned int i) {}; // 0x00
+	virtual void create_ui(void* prop) {}; // 0x04
+	virtual bool is_enable_instance() {return 1;}; // 0x08
+    virtual void create_property(void* prop) {}; // 0x0C
+    virtual MtDTI* get_dti() { return (MtDTI*)0x00E5C5A8; }; // 0x10
 }; //Size: 0x0004
 static_assert(sizeof(MtObject) == 0x04);
 
 class CResource : public MtObject
 {
 public:
-    virtual void callDestructor(); //0+0x00
-    virtual void unkn1(); //0+0x04
-    virtual void unkn2(); //0+0x08
-    virtual void unkn3(); //0+0x0C
-    virtual void unkn4(); //0+ox10
-    virtual void getMtFileInfo(); //0+0x14
-    virtual void getExtension(); //0+0x18
+    virtual void callDestructor(); //0x0
+    virtual void getMtFileInfo();//0x14
+    virtual void getExtension(); //0x18
 
-	char path[0x40]; //0x0004
+	char path[64]; //0x0004
 	uint32_t m_ref_count; //0x0044
 	uint32_t m_attr; //0x0048
 	uint32_t m_flags_something; //0x004C
 	uint32_t m_size; //0x0050
 	int64_t m_id; //0x0054
-    char pad_05C[0x4]; //0x5C
+	char pad_005_c[4]; //0x005C
 }; //Size: 0x0060
 static_assert(sizeof(CResource) == 0x60);
 
-class uActor {
-    virtual void destructor(); //0+0x00
-    virtual void getTypeInfo(); //0+0x04
-    virtual void ukn1(); //0+0x08
-    virtual void ukn2(); //0+0x0C
-    virtual void getDTI(); //0+0x10
-    virtual void setup(); //0+0x14
-    virtual void ukn3(); //0+0x18
-    virtual void ukn4(); //0+0x1C
-    virtual void ukn5(); //0+0x20
-    virtual void ukn6(); //0+0x24
-    virtual void ukn7(); //0+0x28
-    virtual void ukn8(); //0+0x2C
-    virtual void die(); //0+0x30
-    virtual void updateLmat(); //0+0x34
-    virtual void updateWmat(); //0+0x38
-    virtual void getJointMatrix(int jntInd); //0+0x3C
-    virtual void LoadrModel(CResource* mdl); //0+0x40
-	virtual void ukn9(); //0+0x44
-	virtual void ukn10(); //0+0x48
-	virtual void ukn11(); //0+0x4C
-	virtual void ukn12(); //0+0x50
-	virtual void ukn13(); //0+0x54
-	virtual void ukn14(); //0+0x58
-	virtual void ukn15(); //0+0x5C
-	virtual void ukn16(); //0+0x60
-	virtual void ukn17(); //0+0x64
-	virtual void ukn18(); //0+0x68
-	virtual void ukn19(); //0+0x6C
-    virtual void ukn20(); //0+0x70
-    virtual void ukn21(); //0+0x74
-    virtual void lifecycle(); //0+0x78
-    virtual void ukn22(); //0+0x7C
-    virtual void ukn23(); //0+0x80
-    virtual void getCenterPos(); //0+0x84
-    virtual void getCenterJointInd(int index); //0+0x88
-    virtual void unkn24(); //0+0x8C
-    virtual void DamageReaction(); //0+0x90
-    virtual void AtckHitCallback(); //0+0x94
+class REffectList : public CResource
+{
+public:
+	float m_base_fps; //0x0060
+	char *m_param_buf; //0x0064
+	uint32_t m_param_buff_size; //0x0068
+	uint32_t m_list_num; //0x006C
+	uint32_t n00002_d88; //0x0070
+	uint32_t n00002_d89; //0x0074
+	uint32_t m_resource_ptr; //0x0078
+	uint32_t m_resource_info_num; //0x007C
+}; //Size: 0x0080
+static_assert(sizeof(REffectList) == 0x0080);
 
-    // uintptr_t vtable;
-    int transFlags; // 0x04
-}; //Size: 0x0008
-static_assert(sizeof(uActor) == 0x08);
+class uActor {
+    virtual void destructor();//0x00
+    virtual void getTypeInfo();//0x04
+    virtual void ukn1();//0x08
+    virtual void ukn2();//0x0C
+    virtual void getDTI();//0x10
+    virtual void setup();//0x14                                      
+    virtual void freeze(); //0x18, as in literally frosted over
+    virtual void ukn4(); //0x1C
+    virtual void ukn5(); //0x20
+    virtual void render(void* mtrans); // 0x24
+    virtual void ukn7(); // 0x28
+    virtual void ukn8(); // 0x2C
+    virtual void die(); // 0x30
+    virtual void updateLmat();//0x34
+    virtual void updateWmat();//0x38
+    virtual void getJointMatrix(int jntInd);//0x3C
+   // virtual void LoadrModel(CResource* mdl);//0x40
+    virtual void lifecycle();//0x78
+    virtual void getCenterPos();//0x84
+    virtual void getCenterJointInd(int index);//0x88
+    virtual void DamageReaction();//0x90
+    virtual void AtckHitCallback();//0x94
+
+    uintptr_t vtable;
+    int transFlags;
+};
 
 class MtMatrix
 {
@@ -353,7 +330,7 @@ public:
 	class CUnit *mp_next_unit; //0x0008
 	class CUnit *mp_prev_unit; //0x000C
 	float m_delta_time; //0x0010
-	uint32_t some_union; //0x0014
+	char reserved_state_flags[4]; //0x0014
 }; //Size: 0x0018
 static_assert(sizeof(CUnit) == 0x18);
 
@@ -361,17 +338,25 @@ class UCoord : public CUnit
 {
 public:
 	class UCoord *mp_parent; //0x0018
-	uint32_t mParentNo;
-    uint32_t mOrder;//Used in some randomizer func
+	uint32_t mParentNo;//attached entity's joint index
+    uint32_t mOrder;//axis order
     char pad_024_c[0xC];
 	Vector3f m_pos; //0x0030
 	char pad_003_c[4]; //0x003C
 	Vector4 m_quat; //0x0040
 	Vector3f m_scale; //0x0050
-	Matrix4x4 m_lmat; //0x005C
-	Matrix4x4 m_wmat; //0x009C
-}; //Size: 0x00DC
-static_assert(sizeof(UCoord) == 0xDC);
+    char pad_05C_c[4];
+	Matrix4x4 m_lmat; //0x0060
+	Matrix4x4 m_wmat; //0x00A0
+}; //Size: 0x00E0
+static_assert(sizeof(UCoord) == 0xE0);
+
+class uModel : public UCoord
+{
+public:
+    Matrix4x4 mPrevWmat;
+    uint32_t mLightGroup;
+};
 
 class UFilter : public CUnit
 {
@@ -983,7 +968,7 @@ public:
     char pad_151f8[0x870];
     class uEnemy* lockOnTargetPtr4; // 0x15a68
 }; // Size: 0x15a6c
-static_assert(sizeof(uPlayer) == 0x15a6c);
+
 
 class UStageSetTimeSlow
 {
@@ -1004,20 +989,6 @@ public:
 }; //Size: 0x0004
 static_assert(sizeof(N00002D7A) == 0x4);
 
-class REffectList : public CResource
-{
-public:
-	float m_base_fps; //0x0060
-	char *m_param_buf; //0x0064
-	uint32_t m_param_buff_size; //0x0068
-	uint32_t m_list_num; //0x006C
-	uint32_t n00002_d88; //0x0070
-	uint32_t n00002_d89; //0x0074
-	uint32_t m_resource_ptr; //0x0078
-	uint32_t m_resource_info_num; //0x007C
-}; //Size: 0x0080
-static_assert(sizeof(REffectList) == 0x0080);
-
 class MtAllocator : public MtObject
 {
 public:
@@ -1029,6 +1000,9 @@ public:
 	uint16_t m_attr; //0x0016
 	uint32_t m_owner; //0x0018
 	class MtCriticalSection *m_cs; //0x001C
+    virtual MtObject* allocate(size_t size, int align_mask);
+    virtual uint16_t deallocate(MtObject* object); // 0x0018
+
 }; //Size: 0x0020
 static_assert(sizeof(MtAllocator) == 0x0020);
 
@@ -1182,7 +1156,7 @@ public:
     class sMouse *m_mouse_ptr; //0x0000
 }; //Size: 0x0004
 static_assert(sizeof(sMousePtr) == 0x4);
-static_assert(sizeof(sMousePtr) == 0x4);
+
 
 struct kAtckDefTbl {
     uint32_t atckAttr;

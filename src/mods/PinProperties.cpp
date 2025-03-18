@@ -191,8 +191,8 @@ void __stdcall rotate_to_target(void* pin, void* target) {
 naked void detour7(void) {//discipline track target
     _asm {
             pushad
-            test [esi+0xEAC],0x20 // baller
-            je handler            // baller pt2
+            test [esi+0xEAC],0x20
+            je handler
             mov edx,[esi+0x3080]
             test edx,edx
             je handler
@@ -234,7 +234,7 @@ void __stdcall set_relative_pos(float* Wmat, float* TargetWmat, float* res) {
 }
 
 
-naked void detour8(void) {
+naked void detour8(void) {//Set pin attachment point
     _asm {
             cmp byte ptr [PinProperties::consistent_embed_enabled],1
             jne originalcode

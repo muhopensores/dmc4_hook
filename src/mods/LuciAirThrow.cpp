@@ -48,7 +48,7 @@ naked void detour3(void) {//Modify luci unused actor flags
             jne originalcode
             cmp byte ptr [ebp+0x1564],0x6D
             jne originalcode
-            mov [eax+0xEAC],0xB//unused actor flags
+            mov [eax+0xEAC],0x1B//unused actor flags
         originalcode:
             add dword ptr [ebp+0x1504],01
             jmp [LuciAirThrow::jmp_ret3]
@@ -61,7 +61,7 @@ naked void detour4(void) {//Wp frame skip
             jne originalcode
             cmp byte ptr [ebp+0x1564],0x6D
             jne originalcode
-            mov [eax+0xEAC],0xB
+            mov [eax+0xEAC],0x1B
         originalcode:
             mov edx,[ebp+00]
             fld dword ptr [esp+0x14]
@@ -92,7 +92,7 @@ std::optional<std::string> LuciAirThrow::on_initialize() {
 void LuciAirThrow::on_gui_frame() {
     ImGui::Checkbox(_("Lucifer Air Throw"), &mod_enabled);
     ImGui::SameLine();
-    help_marker(_("Add new move mimicking V5rgil's air taunt mapped to forward + melee\nRequires \"Move Table\" at the bottom of the Debug page, which applies at the start of a level"));
+    help_marker(_("Add new move mimicking V5rgil's air taunt. Mapped to forward + melee"));
 }
 
 void LuciAirThrow::on_config_load(const utility::Config& cfg) {

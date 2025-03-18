@@ -34,6 +34,9 @@ naked void detour1() {
         je actualoriginalcode // ogcode is `or [ebp+00001550],ebx`
 
         push eax
+        cmp byte ptr [AerialStinger::mod_enabled], 0
+        je handler
+
         mov eax,[ebp+0x1E8C]
         cmp byte ptr [eax+0x1C],0 // grounded check
         jne handler

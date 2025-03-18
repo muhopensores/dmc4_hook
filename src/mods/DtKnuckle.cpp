@@ -1,5 +1,7 @@
 #include "DtKnuckle.hpp"
 
+//#define EFCT_PATH "effect\\efl\\ene\\ee018_90v5"
+
 bool DtKnuckle::mod_enabled{false};
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
@@ -10,8 +12,9 @@ uintptr_t DtKnuckle::jmp_ret1{NULL};
 	bool endFlag                      = 0;
 	int16_t desiredInput              = 0;
 	int16_t previousInput             = 0;
-	uint32_t key					  = 82;
+	uint32_t key					  = 84;
 	constexpr uintptr_t detour1_call1 = 0x00829BE0;
+	constexpr uintptr_t cancel_call = 0x82A9D5;
 uintptr_t DtKnuckle::jmp_ret2{NULL};
 uintptr_t DtKnuckle::jmp_ret3{NULL};
 	constexpr uintptr_t detour3_conditional1 = 0x0082A9D5;
@@ -32,6 +35,16 @@ uintptr_t DtKnuckle::jmp_ret12{NULL};
 	constexpr uintptr_t detour12_conditional1 = 0x00829BD8;
 uintptr_t DtKnuckle::jmp_ret13{NULL};
 uintptr_t DtKnuckle::jmp_ret14{NULL};
+uintptr_t DtKnuckle::jmp_ret15{NULL};
+uintptr_t DtKnuckle::jmp_ret16{NULL};
+	constexpr uintptr_t detour16_conditional = 0x829B4B;
+	float rushFrame = 135.0f;
+	float rushStart = 150.f;
+constexpr uintptr_t effect_call = 0x480480;
+	char* EFCT_PATH_35F_LONG = "effect\\efl\\vie\\vi020_00v0";
+	char* EFCT_PATH_35F_END = "effect\\efl\\vie\\vi020_00v1";
+	uintptr_t effect_ptr = 0;
+
 
 void DtKnuckle::toggle(bool enable) {
 	if (enable) {
@@ -73,7 +86,134 @@ void DtKnuckle::toggle(bool enable) {
 		patch9.reset();
 		patch10.reset();
 		patch11.reset();
+        //patch12.reset();
 	}
+}
+
+naked void DTcancel(void) {
+	_asm {
+			push ebx
+			push esi
+			push edi
+			jmp cancel_call
+	}
+}
+
+void __stdcall hold_extend(void) {
+	uintptr_t uPlayer = (uintptr_t)devil4_sdk::get_local_player();
+	uintptr_t uPlNeroDevil = *(uintptr_t*)(uPlayer+0xCDF8);
+	uintptr_t uPlWpRightHand = *(uintptr_t*)(uPlNeroDevil+0x1374);
+	float* currentFrameDevil = (float*)(uPlNeroDevil+0x348);
+	float* currentFrameHand = (float*)(uPlWpRightHand+0x348);
+	uint16_t moveID = (uint16_t)*(uintptr_t*)(uPlNeroDevil+0x334);
+	uint16_t keyPress = (uint16_t)*(uintptr_t*)(uPlayer+0x1374);
+	switch (moveID) {
+		case 0x35F: //punch rush
+            if ((*currentFrameDevil >= 170.0f) && (*currentFrameDevil <= 172.0f)) {
+                if (keyPress & desiredInput) {
+                    memcpy(currentFrameDevil, &rushStart, 4);
+                    memcpy(currentFrameHand, &rushStart, 4);
+                } else {
+                    if (effect_ptr) {
+                        devil4_sdk::effect_cleanup(effect_ptr);
+                        devil4_sdk::effect_generator(EFCT_PATH_35F_END, (void*)uPlNeroDevil, 0x14);
+                        effect_ptr = 0;
+                    }
+                }
+            }
+            break;
+		default:
+            if ((effect_ptr) && (*currentFrameDevil >= 2.0f)) {
+                devil4_sdk::effect_cleanup(effect_ptr);
+                effect_ptr = 0;
+            }
+			break;
+	}
+	//if (moveID == 0x35F) {
+	//	if ((*currentFrameDevil >= 170.0f) && (*currentFrameDevil <= 172.0f)) {
+	//			if (keyPress & desiredInput) {
+	//				memcpy(currentFrameDevil, &rushStart,4);
+	//				memcpy(currentFrameHand, &rushStart,4);
+	//			}
+	//			else{
+	//				if (effect_ptr) {
+	//					devil4_sdk::effect_cleanup(effect_ptr);
+	//					devil4_sdk::effect_generator(EFCT_PATH_35F_END, (void*)uPlNeroDevil, 0x14);
+	//					effect_ptr = 0;
+	//				}
+	//			}
+	//		}
+	//}
+	//else {
+	//	if ((effect_ptr) && (*currentFrameDevil >= 2.0f)) {
+	//		devil4_sdk::effect_cleanup(effect_ptr);
+	//		effect_ptr = 0;
+	//	}
+	//}
+	return;
+}
+
+void __stdcall make_effect(uint32_t ID, void* uActor) {
+	switch (ID) {
+		case 0x35F:
+			if (effect_ptr)
+				devil4_sdk::effect_cleanup(effect_ptr);
+            effect_ptr = (uintptr_t)devil4_sdk::effect_generator(EFCT_PATH_35F_LONG, uActor, 0x14);
+            break;
+		default:
+			break;
+	}
+}
+
+void __stdcall stand_action_setup(uintptr_t stand, int mode) {
+    uintptr_t stand_action_setup_func = 0x00829BE0;
+	_asm {
+			mov eax,mode
+			mov edi,stand
+			call stand_action_setup_func
+	}
+}
+
+void __stdcall stand_follows_target(uintptr_t player) {
+    uintptr_t stand_aim_func = 0x00829CE0;
+	uintptr_t target = *(uintptr_t*)(player+0x3080);
+	uintptr_t uPlNeroDevil = *(uintptr_t*)(player+0xCDF8);
+    if (!target)
+		return;
+	_asm {
+			push uPlNeroDevil
+			xor dl,dl
+			mov ecx,target
+			call stand_aim_func
+	}
+}
+
+void __stdcall set_nero_stand_attack(int motID, uintptr_t player, bool follow_player = false) {
+    if (*(uintptr_t*)player != 0xBE4FA0)
+		return;
+    uintptr_t uPlNeroDevil = *(uintptr_t*)(player + 0xCDF8);
+    int* StandActMode = (int*)(uPlNeroDevil + 0x22A8);
+    int* StandActStat = (int*)(uPlNeroDevil + 0x22C4);
+	int* BufferedStandMotId = (int*)(uPlNeroDevil + 0x22B4);
+    int* BufferedStandMode = (int*)(uPlNeroDevil + 0x22B8);
+	float* StartingMotFrame = (float*)(uPlNeroDevil + 0x22BC);
+    bool* DtTrackPlayerFlag = (bool*)(uPlNeroDevil + 0x22C8);
+
+    if (*StandActMode == 7)
+		return;
+    *DtTrackPlayerFlag = follow_player;
+
+    memcpy((void*)(uPlNeroDevil + 0x30), (void*)(player + 0x30), 0xC);//Position
+    memcpy((void*)(uPlNeroDevil + 0x22E0), (void*)(player + 0x1210), 4); // direction
+    memcpy((void*)(uPlNeroDevil + 0x44), (void*)(player + 0x44), 4);     // direction
+    memcpy((void*)(uPlNeroDevil + 0x4C), (void*)(player + 0x4C), 4);     // direction
+
+	make_effect(motID, (void*)uPlNeroDevil);
+    stand_action_setup(uPlNeroDevil,4);
+	*StandActStat = 0;
+    *BufferedStandMotId = motID;
+	*BufferedStandMode = 4;
+    *StartingMotFrame = 0.0f;
 }
 
 // Input check and initialize spectre
@@ -90,7 +230,9 @@ naked void detour1(void) {
 			jne handler
 			cmp dword ptr [ebp], 0xBE4FA0 // is Nero ?
 			jne handler
-
+			pushad
+			call hold_extend
+			popad
 			movss xmm0, [inputCooldown] // reduce input cooldown
 			subss xmm0, [edx+0x10] // delta
 			movss [inputCooldown], xmm0
@@ -118,6 +260,21 @@ naked void detour1(void) {
 			mov [previousInput], ax // set previousInput
 			mov dword ptr [inputCooldown], 0x41f00000 // 30.0f // set input cooldown
 
+		TauntCheck:
+			mov eax, [ebp+0x140C]
+			test al, 0x8
+			je ForwardCheck
+
+			//pushad //effect call
+			//push 0x14
+			//push [ebp+0xCDF8]
+			//push EFCT_PATH
+			//call devil4_sdk::effect_generator
+			//popad
+
+			mov dword ptr [moveID],0x35F
+			jmp SpawnSpectre
+
 		ForwardCheck:
 			mov eax, [ebp+0x21CC]
 			cmp al, 01
@@ -131,32 +288,63 @@ naked void detour1(void) {
 			jne SpawnSpectre
 			mov dword ptr [moveID], 0x330
 		SpawnSpectre:
-			mov edi, [ebp+0xCDF8]
-			mov eax, [edi+0x22A8]
-			cmp eax, 0x7
-			je handler
-			mov eax, 0x00000004
-			mov esi, [moveID]
-			mov [esp+0x0C], esi
-			mov dword ptr [esp+0x10], 0x04
-			movss [esp+0x14], xmm0
+			//mov edi, [ebp+0xCDF8]
+
+			//// Check if stand is mid snatch
+			//mov eax, [edi+0x22A8]
+			//cmp eax, 0x7 
+			//je handler
+
+
+   //         //Stand positioning
+			//mov byte ptr [edi+0x22C8],01//follow player flag
+			//fld [ebp+0x30] // X-pos
+			//fstp [edi+0x30]
+			//fld [ebp+0x34] // Y-pos
+			//fstp [edi+0x34]
+			//fld [ebp+0x38] // Z-pos
+			//fstp [edi+0x38]
+			//fld [ebp+0x1210]//uPlayer forward facing
+			//fstp [edi+0x22E0]//Stand forward facing
+			//fld [ebp+0x44]
+			//fstp [edi+0x44]
+			//fld [ebp+0x4C]
+			//fstp [edi+0x4C]
+			////effect
+			//push edi
+			//push [moveID]
+			//call make_effect
+
+			//mov [edi+0x22C4],0
+			//mov eax, 0x00000004//stand attack flag
+			//mov esi, [moveID]
+			//mov [esp+0x0C], esi
+			//mov dword ptr [esp+0x10], 0x04
+			//movss [esp+0x14], xmm0
 			mov byte ptr [spectreFlag], 0x01
-			call detour1_call1
-			mov eax, [ebp+0x0000CDF8]
-			mov ebx, [eax+0x1370]
-			mov dword ptr [ebx+0x14F0], 0x0C
-			movq xmm0, qword ptr [esp+0x0C]
-			mov ecx, [esp+0x14]
-			add eax, 0x000022B4
-			movq qword ptr [eax], xmm0
-			mov [eax+0x08], ecx
+			push 00
+			push ebp
+			push [moveID]
+			call set_nero_stand_attack
+			//mov byte ptr [ebp+0x22A8], 0
+			//call detour1_call1
+			//mov eax, [ebp+0x0000CDF8]
+			//mov ebx, [eax+0x1370]
+			//mov dword ptr [ebx+0x14F0], 0x0C
+			//movq xmm0, qword ptr [esp+0x0C]
+			//mov ecx, [esp+0x14]
+			//add eax, 0x000022B4
+			//movq qword ptr [eax], xmm0
+			//mov [eax+0x08], ecx
+			push ebp
+			call stand_follows_target
 			popad
 			jmp code
 		handler4:
 			cmp dword ptr [inputCooldown], 0
 			jg handler
 			mov dword ptr [inputCooldown], 0x41f00000
-			jmp ForwardCheck
+			jmp TauntCheck
 		handler3:
 			mov [previousInput], ax
 		handler:
@@ -194,15 +382,18 @@ naked void detour2(void) {
 	}
 }
 
-// animation check bypass
+// animation check bypass (cancel)
 naked void detour3(void) {
 	_asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
+			
+			cmp byte ptr [spectreFlag],1
+			jne handler
 
-			cmp byte ptr [spectreFlag], 01
-			jne originalcode
+		thing:
 			mov al, 01
+			
 		originalcode:
 			test al, al
 			je jmp_je
@@ -211,6 +402,11 @@ naked void detour3(void) {
 
 		jmp_je:
 			jmp dword ptr [detour3_conditional1]
+
+		handler:
+			cmp byte ptr [endFlag], 01
+			je originalcode
+			jmp thing
 	}
 }
 
@@ -235,30 +431,47 @@ naked void detour4(void) {
 	}
 }
 // Disjoint
+// naked void detour5(void) {
+// 	_asm {
+// 			cmp byte ptr [DtKnuckle::mod_enabled], 0
+// 			je originalcode
+
+// 			push eax
+// 			xor eax, eax // because mov al
+// 			mov al, [spectreFlag]
+// 			test eax, eax
+// 			je handler
+// 			pop eax
+// 			jmp jmp_jmp1
+			
+// 		handler:
+// 			pop eax
+// 		originalcode:
+// 			cmp eax, esi
+// 			je jmp_jmp1
+// 			mov eax, [ecx*0x4+detour5_mov1] // might need 0x00E1657C
+// 		// jmp_ret:
+// 			jmp dword ptr [DtKnuckle::jmp_ret5]
+
+// 		jmp_jmp1:
+// 			jmp dword ptr [detour5_jmp1]
+// 	}
+// }
+
+//Alt disjoint, unset follow player flag instead
 naked void detour5(void) {
 	_asm {
 			cmp byte ptr [DtKnuckle::mod_enabled], 0
 			je originalcode
 
-			push eax
-			xor eax, eax // because mov al
-			mov al, [spectreFlag]
-			test eax, eax
-			je handler
-			pop eax
-			jmp jmp_jmp1
-			
-		handler:
-			pop eax
-		originalcode:
-			cmp eax, esi
-			je jmp_jmp1
-			mov eax, [ecx*0x4+detour5_mov1] // might need 0x00E1657C
-		// jmp_ret:
-			jmp dword ptr [DtKnuckle::jmp_ret5]
+			cmp byte ptr [spectreFlag], 01
+			jne originalcode
 
-		jmp_jmp1:
-			jmp dword ptr [detour5_jmp1]
+			mov byte ptr [edi+0x22C8],00
+
+		originalcode:
+			mov ecx, 0xFFFFFFFB
+  			jmp dword ptr [DtKnuckle::jmp_ret5]
 	}
 }
 
@@ -446,6 +659,7 @@ naked void detour13(void) {
 			je originalcode
 
 			mov byte ptr [endFlag], 00
+			mov byte ptr [edi+0x22C8],01
 		originalcode:
 			mov [edi+0x000022A8], ebx
 		// jmp_ret:
@@ -461,6 +675,47 @@ naked void detour14(void) {
 			movss [esi+0x4C], xmm0
 		originalcode:
 			jmp [DtKnuckle::jmp_ret14]
+	}
+}
+
+//Skip startup frames
+naked void detour15(void) {
+	_asm {
+			cmp ecx,0x035F
+			jne originalcode
+
+			movss xmm5,[rushFrame]
+		originalcode:
+			movss [esi+edi+0x00002250],xmm5
+			jmp [DtKnuckle::jmp_ret15]
+	}
+}
+
+//naked void detour16(void) {
+//	_asm {
+//			cmp byte ptr [endFlag],1
+//			je originalcode
+//			jmp dword ptr [detour16_conditional]
+//		originalcode:
+//			cmp byte ptr [eax+0x000022C9],01
+//			jmp [DtKnuckle::jmp_ret16]
+//
+//	}
+//}
+
+naked void detour16(void) {
+	_asm {
+			cmp byte ptr [spectreFlag],1
+			jne originalcode
+			jmp bypass
+		//check2:
+			cmp byte ptr [endFlag],1
+			jne originalcode
+		bypass:
+			jmp detour16_conditional
+		originalcode:
+			cmp byte ptr [eax+0x000022C9],01
+			jmp [DtKnuckle::jmp_ret16]
 	}
 }
 
@@ -481,7 +736,11 @@ std::optional<std::string> DtKnuckle::on_initialize() {
 		spdlog::error("Failed to init DtKnuckle mod4\n");
 		return "Failed to init DtKnuckle mod4";
 	}
-	if (!install_hook_offset(0x42A8D0, hook5, &detour5, &jmp_ret5, 11)) {
+	// if (!install_hook_offset(0x42A8D0, hook5, &detour5, &jmp_ret5, 11)) {
+	// 	spdlog::error("Failed to init DtKnuckle mod5\n");
+	// 	return "Failed to init DtKnuckle mod5";
+	// }
+	if (!install_hook_offset(0x42A948, hook5, &detour5, &jmp_ret5, 5)) {
 		spdlog::error("Failed to init DtKnuckle mod5\n");
 		return "Failed to init DtKnuckle mod5";
 	}
@@ -520,6 +779,14 @@ std::optional<std::string> DtKnuckle::on_initialize() {
 	if (!install_hook_offset(0x428E42, hook14, &detour14, &jmp_ret14, 5)) {
 		spdlog::error("Failed to init DtKnuckle mod14\n");
 		return "Failed to init DtKnuckle mod14";
+	}
+	if (!install_hook_offset(0x42B6D9, hook15, &detour15, &jmp_ret15, 9)) {
+		spdlog::error("Failed to init DtKnuckle mod15\n");
+		return "Failed to init DtKnuckle mod15";
+	}
+	if (!install_hook_offset(0x429B39, hook16, &detour16, &jmp_ret16, 7)) {
+		spdlog::error("Failed to init DtKnuckle mod16\n");
+		return "Failed to init DtKnuckle mod16";
 	}
 	return Mod::on_initialize();
 }

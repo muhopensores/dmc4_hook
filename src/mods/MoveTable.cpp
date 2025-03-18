@@ -160,6 +160,7 @@ void MoveTable::on_gui_frame() {
                 EntryCount++;
                 TblEntry++;
             }
+            ImGui::InputScalar(_("Entry count"), ImGuiDataType_U32, &EntryCount, 0, 0, 0, ImGuiInputTextFlags_ReadOnly);
             ImGui::InputScalar(_("Move Attribute"), ImGuiDataType_U32, &TblEntry->atckAttr);
             ImGui::InputScalar(_("Table move ID"), ImGuiDataType_U32, &TblEntry->atckId);
             ImGui::InputScalar(_("Move Level"), ImGuiDataType_U32, &TblEntry->atckLevel);
