@@ -29,10 +29,9 @@ uintptr_t NeroFullHouse::jmp_ret8{ NULL };
 uintptr_t NeroFullHouse::jmp_ret9{ NULL };
 uintptr_t NeroFullHouse::jmp_ret10{ NULL };
 
-
-static float current_frame = 0.0f;
-    float payline_bounce = 10.0f;
-static float payline_startup_frame = 8.0f;
+static float payline_loop_frame = 8.0f; // landing
+static float payline_bounce = 10.0f; // how much bounce
+//static float payline_startup_frame = 10.0f; // using loop frame
 static float payline_buffer_frame = 25.0f;
 static float payline_recovery_frame = 35.0f;
 static float payline_can_walk_frame = 55.0f;
@@ -82,11 +81,15 @@ naked void detour2(void) { // select full house start animation // player in esi
             jne code
             cmp byte ptr [esi+0x1494], 1 // nero
             jne code
-        //cheatcode:
-            // push 0x00000351 // payline
+
+        // cheatcode:
+            // movss [backup],xmm0 // turns out this was not an issue :)
+            // movss xmm0,[payline_bounce]
+            // movss [esi+0xEC4],xmm0
+            // movss xmm0,[backup]
             fld [payline_bounce]
             fstp [esi+0xEC4]
-            push 0x00000352 // double down
+            push 0x00000352 // payline
             jmp dword ptr [NeroFullHouse::jmp_ret2]
         code:
             push 0x0000030C // full house
@@ -101,7 +104,7 @@ naked void detour3(void) { // select full house landing animation // player in e
             cmp byte ptr [esi+0x1494], 1 // nero
             jne code
             mov byte ptr [esi+0x1D7F],1 // exceedable
-        //cheatcode:
+        // cheatcode:
             push 0x00000351 // 20 is shmove right, 351/2/3 is payline
             jmp dword ptr [NeroFullHouse::jmp_ret3]
         code:
@@ -109,13 +112,6 @@ naked void detour3(void) { // select full house landing animation // player in e
 			jmp dword ptr [NeroFullHouse::jmp_ret3]
     }
 }
-
-float first_frame = 24.0f; // aerial
-float first_frame2 = 10.0f; // landing
-// 20 - 25 hits quickly
-// 22 - 25 hits but has dumb leg
-// 23 - 25 hits and has less dumb leg
-// 24 - 25 seems good
 
 naked void detour4(void) { // set frame of animation, player in ecx, this should not be here
     _asm {
@@ -132,26 +128,24 @@ naked void detour4(void) { // set frame of animation, player in ecx, this should
             pop eax
             jne code
 
-        // payline loop - loop frames 24-25 while aerial
+        // payline loop - loop frame 10 while aerial
         // nerotest1:
-            cmp dword ptr [ecx+0x2998], 0x32C
+            cmp dword ptr [ecx+0x2998], 0x352 // was 0x32C but we use payline anim now!
             jne nerotest2
             cmp byte ptr [ecx+0x2008], 1 // grounded
             je code
-            movss [current_frame], xmm0
-            cmp dword ptr [current_frame], 0x41c80000 // 25.0f
-            jl code
-            movss xmm0, [first_frame] // 24.0f
+            comiss xmm0, [payline_loop_frame]
+            jb code
+            movss xmm0, [payline_loop_frame] 
             jmp code
 
-        // payline ending, start at frame 10
+        // payline ending, start at same frame as the loop for smooth transition
         nerotest2:
             cmp dword ptr [ecx+0x2998], 0x351
             jne code
-            movss [current_frame], xmm0
-            cmp dword ptr [current_frame], 0x41200000 // 10.0f
+            comiss xmm0, [payline_loop_frame]
             ja code
-            movss xmm0, [first_frame2] // 10.0f
+            movss xmm0, [payline_loop_frame]
             jmp code
 
         code:
@@ -192,14 +186,15 @@ naked void detour5(void) { // cancellable payline ending // player in esi
 // 1024 = sound effect for part 1
 // 320 = sound effect for part 2
 
-naked void detour6(void) {
+naked void detour6(void) { // how many frames to wait before starting loop
     _asm {
         cmp byte ptr [NeroFullHouse::mod_enabled], 1
         jne code
         cmp byte ptr [ebx+0x1494], 1 // nero
         jne code
-        comiss xmm0, [payline_startup_frame]
+        comiss xmm0, [payline_loop_frame]
         jmp [NeroFullHouse::jmp_ret6]
+        // next instruction is jb so comiss loop frame is ok
     code:
         comiss xmm0, [detour6_float]
         jmp [NeroFullHouse::jmp_ret6]
@@ -214,7 +209,7 @@ void __stdcall exceed_handling(uintptr_t NeroPtr) {
     uint8_t isExceeding = *(uint8_t*)(NeroPtr + 0x1448);
     uint8_t* Exceedable          = (uint8_t*)(NeroPtr + 0x1D7F);
     if (moveID == 0x351) {
-        //if (isExceeding)
+        // if (isExceeding)
             if ((currentFrame > 16.0f) && (currentFrame < 18.0f)) {
                 *Exceedable = 1;
             } else if (currentFrame > 24.0f) {
@@ -237,25 +232,25 @@ naked void detour7(void) {
         comiss xmm0, [payline_buffer_frame]
         jb code
 
-        mov byte ptr [ebx+0x3174],1//movement abilities cancel
-        mov byte ptr [ebx+0x30C4],1//melee cancel
-        mov byte ptr [ebx+0x31CC],1//gun cancel
-        mov byte ptr [ebx+0x3148],1//directional melee cancel
-        mov byte ptr [ebx+0x30F0],1//can melee cancel, again
+        mov byte ptr [ebx+0x3174],1 // movement abilities cancel
+        mov byte ptr [ebx+0x30C4],1 // melee cancel
+        mov byte ptr [ebx+0x31CC],1 // gun cancel
+        mov byte ptr [ebx+0x3148],1 // directional melee cancel
+        mov byte ptr [ebx+0x30F0],1 // can melee cancel, again
 
         comiss xmm0, [payline_recovery_frame]
         jb code
 
-        mov byte ptr [ebx+0x3174],2//movement abilities cancel
-        mov byte ptr [ebx+0x30C4],2//melee cancel
-        mov byte ptr [ebx+0x31CC],2//gun cancel
-        mov byte ptr [ebx+0x3148],2//directional melee cancel
-        mov byte ptr [ebx+0x30F0],2//can melee cancel, again
+        mov byte ptr [ebx+0x3174],2 // movement abilities cancel
+        mov byte ptr [ebx+0x30C4],2 // melee cancel
+        mov byte ptr [ebx+0x31CC],2 // gun cancel
+        mov byte ptr [ebx+0x3148],2 // directional melee cancel
+        mov byte ptr [ebx+0x30F0],2 // can melee cancel, again
 
         comiss xmm0, [payline_can_walk_frame]
         jb code
 
-        mov byte ptr [ebx+0x31F8],2//can walk cancel
+        mov byte ptr [ebx+0x31F8],2 // can walk cancel
     code:
         cmp byte ptr [ebx+0x00002A54],01
         jmp [NeroFullHouse::jmp_ret7]
@@ -278,7 +273,7 @@ naked void detour8(void) {
     }
 }
 
-naked void detour9(void) {//looped effect
+naked void detour9(void) { // looped effect
     _asm {
             cmp byte ptr [NeroFullHouse::mod_enabled], 1
             jne handler
@@ -286,7 +281,7 @@ naked void detour9(void) {//looped effect
             jne handler
 
             mov edx,0x12
-            mov eax,0x01 //1-Nero efx, 2-Dante efx
+            mov eax,0x01 // 1-Nero efx, 2-Dante efx
 
             cmp eax, [ebx+0xCCE8]
             ja originalcode
@@ -303,7 +298,7 @@ naked void detour9(void) {//looped effect
 }
 
 
-naked void detour10(void) { //landing effect
+naked void detour10(void) { // landing effect
     _asm {
             cmp byte ptr [NeroFullHouse::mod_enabled], 1
             jne handler
@@ -351,7 +346,7 @@ std::optional<std::string> NeroFullHouse::on_initialize() {
         spdlog::error("Failed to init NeroFullHouse5 mod\n");
         return "Failed to init NeroFullHouse5 mod";
     }
-    if (!install_hook_offset(0x3D3404, hook6, &detour6, &jmp_ret6, 7)) { // faster startup
+    if (!install_hook_offset(0x3D3404, hook6, &detour6, &jmp_ret6, 7)) { // how many frames to wait before starting loop
         spdlog::error("Failed to init NeroFullHouse6 mod\n");
         return "Failed to init NeroFullHouse6 mod";
     }
@@ -384,17 +379,17 @@ void NeroFullHouse::on_gui_frame() {
         if (mod_enabled) {
             helm_splitter_remap = true;
             payline_params->atckAs = 2;
-            //*(uintptr_t*)0xC3EFB0 = 2; // streak 1 can be used in air
+            // *(uintptr_t*)0xC3EFB0 = 2; // streak 1 can be used in air
             hb_params->command.buffer = LOCKON_BACK_MELEE;
             dd_params->command.buffer = LOCKON_BACK_MELEE;
-            //*(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE; // back
-            //*(uintptr_t*)double_down_directional = LOCKON_BACK_MELEE;   // back
+            // *(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE; // back
+            // *(uintptr_t*)double_down_directional = LOCKON_BACK_MELEE;   // back
         }
         else {
             helm_splitter_remap = false;
-            //*(uintptr_t*)0xC3EFB0 = 1; // streak 1 can only be used when grounded
-            //*(uintptr_t*)helm_splitter_directional = LOCKON_FORWARD_MELEE2;
-            //*(uintptr_t*)double_down_directional   = LOCKON_FORWARD_MELEE2;
+            // *(uintptr_t*)0xC3EFB0 = 1; // streak 1 can only be used when grounded
+            // *(uintptr_t*)helm_splitter_directional = LOCKON_FORWARD_MELEE2;
+            // *(uintptr_t*)double_down_directional   = LOCKON_FORWARD_MELEE2;
             payline_params->atckAs                    = 1;
             hb_params->command.buffer              = LOCKON_FORWARD_MELEE2;
             dd_params->command.buffer              = LOCKON_FORWARD_MELEE2;
@@ -405,14 +400,14 @@ void NeroFullHouse::on_gui_frame() {
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Remap Helm Splitter"), &helm_splitter_remap)) {
         if (helm_splitter_remap) {
-            //*(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE;
-            //*(uintptr_t*)double_down_directional = LOCKON_BACK_MELEE;
+            // *(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE;
+            // *(uintptr_t*)double_down_directional = LOCKON_BACK_MELEE;
             hb_params->command.buffer              = LOCKON_BACK_MELEE;
             dd_params->command.buffer              = LOCKON_BACK_MELEE;
         }
         else {
-            //*(uintptr_t*)helm_splitter_directional = LOCKON_FORWARD_MELEE2;
-            //*(uintptr_t*)double_down_directional = LOCKON_FORWARD_MELEE2;
+            // *(uintptr_t*)helm_splitter_directional = LOCKON_FORWARD_MELEE2;
+            // *(uintptr_t*)double_down_directional = LOCKON_FORWARD_MELEE2;
             hb_params->command.buffer = LOCKON_FORWARD_MELEE2;
             dd_params->command.buffer = LOCKON_FORWARD_MELEE2;
         }
@@ -427,16 +422,16 @@ void NeroFullHouse::on_config_load(const utility::Config& cfg) {
     kAtckDefTbl* hb_params      = &NeroAtkTbl[21];
     kAtckDefTbl* dd_params      = &NeroAtkTbl[22];
     mod_enabled = cfg.get<bool>("nero_full_house").value_or(false);
-    //toggle(mod_enabled);
+    // toggle(mod_enabled);
     helm_splitter_remap = cfg.get<bool>("helm_splitter_remap").value_or(false);
     if (mod_enabled) {
         helm_splitter_remap = true;
-        //*(uintptr_t*)0xC3EFB0 = 2; // streak 1 can only be used when aerial
+        // *(uintptr_t*)0xC3EFB0 = 2; // streak 1 can only be used when aerial
         payline_params->atckAs = 2;
     }
     if (helm_splitter_remap) {
-        //*(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE;
-        //*(uintptr_t*)double_down_directional = LOCKON_BACK_MELEE;
+        // *(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE;
+        // *(uintptr_t*)double_down_directional = LOCKON_BACK_MELEE;
 
         hb_params->command.buffer = LOCKON_BACK_MELEE;
         dd_params->command.buffer = LOCKON_BACK_MELEE;
