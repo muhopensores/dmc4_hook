@@ -283,6 +283,7 @@ class uPlayer : public UCoord{
 	int stickThreshold @ 0x141C
 	float stickFacingWorldAdjusted @ 0x1420
 	bool stickPastThreshold @ 0x1424
+	uint8_t isExceeding @ 0x1448
 	float characterSpeed @ 0x1464
 	int controllerID @ 0x1494
 	int canWeaponChange @ 0x14F0
@@ -305,6 +306,7 @@ class uPlayer : public UCoord{
 	float rotation2 @ 0x1710
 	float groundInertia @ 0x1780
 	uintptr_t* collisionPtr1 @ 0x17A0
+	uint8_t canExceed @ 0x1d7f
 	class DevilArm* gilgamesh @ 0x1D94
 	class DevilArm* lucifer @ 0x1D98
 	class DevilArm* ebonyIvory @ 0x1D9C

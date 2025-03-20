@@ -796,7 +796,7 @@ static_assert(sizeof(CharacterSettingsThree) == 0x3e8);
 
 class uPlayer : public UCoord {
 public:
-    char pad_dc[0x10];
+    char pad_e0[0x10];
     Vector4f rotationKnockback; // 0xf0
     char pad_100[0x30];
     uint8_t armShadows; // 0x130
@@ -845,7 +845,9 @@ public:
     uint32_t stickThreshold; // 0x141c
     float stickFacingWorldAdjusted; // 0x1420
     bool stickPastThreshold; // 0x1424
-    char pad_1425[0x3f];
+    char pad_1425[0x23];
+    uint8_t isExceeding; // 0x1448
+    char pad_1449[0x1B];
     float characterSpeed; // 0x1464
     char pad_1468[0x2c];
     uint32_t controllerID; // 0x1494
@@ -878,7 +880,9 @@ public:
     float groundInertia; // 0x1780
     char pad_1784[0x1c];
     uintptr_t* collisionPtr1; // 0x17a0
-    char pad_17a4[0x5f0];
+    char pad_17A4[0x5db];
+    uint8_t canExceed;  // 0x1d7f // 1 = exact, 2 = rev
+    char pad_1D80[0x14];
     class DevilArm* gilgamesh; // 0x1d94
     class DevilArm* lucifer; // 0x1d98
     class DevilArm* ebonyIvory; // 0x1d9c

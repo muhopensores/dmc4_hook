@@ -201,24 +201,17 @@ naked void detour6(void) { // how many frames to wait before starting loop
     }
 }
 
-void __stdcall exceed_handling(uintptr_t NeroPtr) {
-
-    float currentFrame = *(float*)(NeroPtr + 0x348);
-    uint16_t moveID    = *(uint16_t*)(NeroPtr + 0x334);
-    uint8_t* exceedLvl          = (uint8_t*)(NeroPtr + 0xCCE8);
-    uint8_t isExceeding = *(uint8_t*)(NeroPtr + 0x1448);
-    uint8_t* Exceedable          = (uint8_t*)(NeroPtr + 0x1D7F);
-    if (moveID == 0x351) {
-        // if (isExceeding)
-            if ((currentFrame > 16.0f) && (currentFrame < 18.0f)) {
-                *Exceedable = 1;
-            } else if (currentFrame > 24.0f) {
-                *Exceedable = 2;
-            }
+static void __stdcall exceed_handling(uPlayer& neroBase) {
+    if (neroBase.animID == 0x351) {
+        if ((neroBase.animFrame > payline_loop_frame + 2.0f) && (neroBase.animFrame < payline_loop_frame + 4.0f)) {
+            neroBase.canExceed = 1;
+        } else if (neroBase.animFrame > 24.0f) {
+            neroBase.canExceed = 2;
+        }
     }
 }
 
-naked void detour7(void) {
+naked void detour7(void) { // cancellable payline ending    
     _asm {
         cmp byte ptr [NeroFullHouse::mod_enabled], 1
         jne code
@@ -232,32 +225,32 @@ naked void detour7(void) {
         comiss xmm0, [payline_buffer_frame]
         jb code
 
-        mov byte ptr [ebx+0x3174],1 // movement abilities cancel
-        mov byte ptr [ebx+0x30C4],1 // melee cancel
-        mov byte ptr [ebx+0x31CC],1 // gun cancel
-        mov byte ptr [ebx+0x3148],1 // directional melee cancel
-        mov byte ptr [ebx+0x30F0],1 // can melee cancel, again
+        mov byte ptr [ebx+0x3174], 1 // movement abilities cancel
+        mov byte ptr [ebx+0x30C4], 1 // melee cancel
+        mov byte ptr [ebx+0x31CC], 1 // gun cancel
+        mov byte ptr [ebx+0x3148], 1 // directional melee cancel
+        mov byte ptr [ebx+0x30F0], 1 // can melee cancel, again
 
         comiss xmm0, [payline_recovery_frame]
         jb code
 
-        mov byte ptr [ebx+0x3174],2 // movement abilities cancel
-        mov byte ptr [ebx+0x30C4],2 // melee cancel
-        mov byte ptr [ebx+0x31CC],2 // gun cancel
-        mov byte ptr [ebx+0x3148],2 // directional melee cancel
-        mov byte ptr [ebx+0x30F0],2 // can melee cancel, again
+        mov byte ptr [ebx+0x3174], 2 // movement abilities cancel
+        mov byte ptr [ebx+0x30C4], 2 // melee cancel
+        mov byte ptr [ebx+0x31CC], 2 // gun cancel
+        mov byte ptr [ebx+0x3148], 2 // directional melee cancel
+        mov byte ptr [ebx+0x30F0], 2 // can melee cancel, again
 
         comiss xmm0, [payline_can_walk_frame]
         jb code
 
         mov byte ptr [ebx+0x31F8],2 // can walk cancel
     code:
-        cmp byte ptr [ebx+0x00002A54],01
+        cmp byte ptr [ebx+0x00002A54], 01
         jmp [NeroFullHouse::jmp_ret7]
     }
 }
 
-naked void detour8(void) {
+naked void detour8(void) { // cancellable payline ending 
     _asm {
             cmp byte ptr [NeroFullHouse::mod_enabled], 1
             jne code
@@ -280,8 +273,8 @@ naked void detour9(void) { // looped effect
             cmp byte ptr [ebx+0x1494], 1 // nero
             jne handler
 
-            mov edx,0x12
-            mov eax,0x01 // 1-Nero efx, 2-Dante efx
+            mov edx, 0x12
+            mov eax, 0x01 // 1-Nero efx, 2-Dante efx
 
             cmp eax, [ebx+0xCCE8]
             ja originalcode
@@ -291,12 +284,11 @@ naked void detour9(void) { // looped effect
             call effect_call
             jmp [NeroFullHouse::jmp_ret9]
         handler:
-            lea edx,[esi+0x3E]
-            lea eax,[esi-0x02]
+            lea edx, [esi+0x3E]
+            lea eax, [esi-0x02]
             jmp originalcode
     }
 }
-
 
 naked void detour10(void) { // landing effect
     _asm {
@@ -305,8 +297,8 @@ naked void detour10(void) { // landing effect
             cmp byte ptr [ebx+0x1494], 1 // nero
             jne handler
 
-            mov edx,0x25
-            mov eax,0x01               // 1-Nero efx, 2-Dante efx
+            mov edx, 0x25
+            mov eax, 0x01               // 1-Nero efx, 2-Dante efx
 
             cmp eax, [ebx+0xCCE8]
             ja originalcode
@@ -315,8 +307,8 @@ naked void detour10(void) { // landing effect
         originalcode:
             jmp [NeroFullHouse::jmp_ret10]
         handler:
-            lea edx,[esi+0x3F]
-            lea eax,[esi-0x02]
+            lea edx, [esi+0x3F]
+            lea eax, [esi-0x02]
             jmp originalcode
     }
 }
