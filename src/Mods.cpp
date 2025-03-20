@@ -130,6 +130,7 @@
 #include "mods/CustomProjectile.hpp"
 #include "mods/RedOrbCompletion.hpp"
 #include "mods/TauntSelect.hpp"
+#include "mods/StylePoints.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -269,6 +270,7 @@ Mods::Mods() {
     ADD_MOD(SwordSpin);
     ADD_MOD(CustomProjectile);
     ADD_MOD(TauntSelect);
+    ADD_MOD(StylePoints);
 }
 
 // Initializes mods, checks for errors

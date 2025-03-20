@@ -262,7 +262,6 @@ naked void detour8(void) { // cancellable payline ending
         code:
             movss [ebx+0xEC4],xmm0
             jmp [NeroFullHouse::jmp_ret8]
-
     }
 }
 

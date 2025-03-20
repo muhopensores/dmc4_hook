@@ -691,6 +691,8 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("SlowWalk"_hash);
 
+                    pmods->on_draw_ui("StylePoints"_hash);
+
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();

@@ -87,6 +87,12 @@ namespace devil4_sdk {
 		return s_area_ptr;
 	}
 
+	sRender* get_sRender() {
+		constexpr uintptr_t static_render_ptr = 0x00E552D8;
+		sRender* s_render_ptr = (sRender*)*(uintptr_t*)static_render_ptr;
+		return s_render_ptr;
+	}	
+
 	SMediator* get_sMediator() {
 		constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 		static SMediator* s_mediator_ptr = (SMediator*)*(uintptr_t*)static_mediator_ptr;

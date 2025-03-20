@@ -75,18 +75,19 @@ void PsychoMantis::on_gui_frame() {
 void PsychoMantis::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
         if (!devil4_sdk::is_paused() && devil4_sdk::get_work_rate()->global_speed != 0.0f) {
-            uint16_t lpower = 65535 / 14; // apparently 65535 is the limit but there isn't much difference if any from half the amount
-            uint16_t rpower = 65535 / 14; // so we're divibing by double so its smoother
+            constexpr uint16_t maxPower = UINT16_MAX;
+            constexpr uint16_t halfPower = UINT16_MAX / 2;
+    
+            uint16_t styleRank = devil4_sdk::get_stylish_count()->current_style_tier;
+            uint16_t finalPower;
+            if (styleRank < 5)
+                finalPower = (halfPower * styleRank) / 4; // higher values are more gradual
+            else
+                finalPower = maxPower;
+
             if (PsychoMantis::_controller->isConnected()) {
-                PsychoMantis::_controller->vibrate(
-                    lpower * (uint16_t)devil4_sdk::get_current_style_rank(), rpower * (uint16_t)devil4_sdk::get_current_style_rank());
+                PsychoMantis::_controller->vibrate(finalPower, 0);
             }
-            /* if (c->getState().Gamepad.wButtons & XINPUT_GAMEPAD_A) {
-                c->vibrate(65535, 65535);
-            }
-            if (c->getState().Gamepad.wButtons & XINPUT_GAMEPAD_Y) {
-                c->vibrate(65535 / 2, 65535 / 2);
-            }*/
         }
         if (mod_debugEnabled) {
             if (PsychoMantis::_controller->isConnected()) {

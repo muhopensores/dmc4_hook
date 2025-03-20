@@ -114,6 +114,14 @@ public:
 }; // Size: 0x383C
 static_assert(sizeof(sArea) == 0x383C);
 
+class sRender
+{
+public:
+    char pad_0x0000[0x44]; // 0x00
+    int xRes; // 0x44
+    int yRes; // 0x48
+};
+
 class roomInfo
 {
 public:

@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/StylePoints.hpp
+  mods/StylePoints.cpp
   mods/RedOrbCompletion.hpp
   mods/RedOrbCompletion.cpp
   mods/PinTimer.hpp
