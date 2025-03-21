@@ -8,6 +8,7 @@ public:
 
     static bool mod_enabled;
     static uintptr_t jmp_ret1;
+    static bool tonyHawk;
 
     std::string get_mod_name() override { return "StylePoints"; };
     std::optional<std::string> on_initialize() override;
