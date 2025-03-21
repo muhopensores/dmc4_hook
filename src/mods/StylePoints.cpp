@@ -131,7 +131,7 @@ naked void detour1(void) {
         movss [esp], xmm2 // multiplier
         push [esp+0x18+0x8+0x4] // score
         push ebx // text
-        call AddTrickScore
+        call AddTrickScore // fucks eax, ecx, edx
         add esp,0x10 // 4 args
 
         pop edi

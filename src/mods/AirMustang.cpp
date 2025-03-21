@@ -55,12 +55,18 @@ naked void detour1() {
             //test byte ptr [esi+0x1411], 0x2 //input press
             je originalcode
 
+            push eax
+
             mov eax,[esi]
             mov edx,[eax+0x194]
+
+            pop eax
+
             mov byte ptr [flag],1
             push 0x28
             mov ecx,esi
             call edx
+
         
         originalcode:
             pop edi

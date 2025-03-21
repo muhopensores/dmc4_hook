@@ -217,8 +217,14 @@ naked void detour7(void) { // cancellable payline ending
         cmp byte ptr [ebx+0x1494], 1 // nero
         jne code
 
+        push eax
+        push ecx
+
         push ebx
-        call exceed_handling
+        call exceed_handling // fucks eax,ecx
+
+        pop ecx
+        pop eax
 
         movss xmm0, [ebx+0x348]
         comiss xmm0, [payline_buffer_frame]
@@ -279,7 +285,7 @@ naked void detour9(void) { // looped effect
 
             mov edx,0x4D
         originalcode:
-            call effect_call
+            call effect_call // fucks eax, ecx, edx but it's originalcode so I assume it's cool
             jmp [Payline::jmp_ret9]
         handler:
             lea edx, [esi+0x3E]

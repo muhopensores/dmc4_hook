@@ -752,8 +752,6 @@ namespace gui {
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("LoadOrder"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("LMTSlotFix"_hash);
                     
                     ImGui::Spacing();
                     ImGui::Separator();

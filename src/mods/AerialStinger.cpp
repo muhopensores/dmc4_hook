@@ -109,8 +109,14 @@ naked void detour4() {
         cmp byte ptr [ebp+0x1550],1
         je originalcode
 
+        push eax
+        push ecx
+
         push ebp
-        call stinger_recovery_anim_call
+        call stinger_recovery_anim_call // fucks eax, ecx
+
+        pop ecx
+        pop eax
 
         push eax
         mov eax,[ebp+0x1E8C]
@@ -143,9 +149,17 @@ naked void detour5() {
         cmp byte ptr [ebp+0x1550],1
         je originalcode
 
+        push eax
+        push ecx
+        push edx
+
         push ebp
-        call devil4_sdk::neutral_air_transition
+        call devil4_sdk::neutral_air_transition // fucks eax, ecx, edx
         mov bl,1
+
+        pop edx
+        pop ecx
+        pop eax
 
     originalcode:
         cmp [ebp+0x2A54],bl
@@ -208,7 +222,7 @@ void AerialStinger::on_gui_frame() {
         }
     }
     ImGui::SameLine();
-    help_marker(_("Allow Dante to use stinger in the air\nRequires \"Move Table\" at the bottom of the Debug page, which applies at the start of a level"));
+    help_marker(_("Allow Dante to use Stinger in the air\nRequires \"Move Table\" at the bottom of the Debug page, which applies at the start of a level"));
 }
 
 void AerialStinger::on_config_load(const utility::Config& cfg) {

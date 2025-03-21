@@ -42,6 +42,7 @@ void AerialDrive::toggle(bool enable) {
     else {
         patch1.reset();
         patch2.reset();
+        patch3.reset(); // do we not reset patch 3??????
     }
 }
 //Check
@@ -203,7 +204,6 @@ naked void detour8(void) {
 //Landing cancel, wew
 naked void detour9(void) {
     _asm {
-
             cmp byte ptr [aerialDrive],1
             jne originalcode
 
@@ -269,7 +269,7 @@ void AerialDrive::on_gui_frame() {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker(_("Allow Dante to use stinger in the air"));
+    help_marker(_("Allow Dante to use Drive in the air"));
 }
 
 void AerialDrive::on_config_load(const utility::Config& cfg) {
