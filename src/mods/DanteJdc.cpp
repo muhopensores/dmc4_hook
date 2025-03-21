@@ -520,36 +520,61 @@ std::optional<std::string> DanteJdc::on_initialize() {
     return Mod::on_initialize();
 }
 
+static bool fileExists = false;
+
+/*static void SeeIfFileExists() {
+    FILE* file = nullptr;
+    errno_t errorCheck = fopen_s(&file, ".\\nativePC\\Collision\\wp002.col", "r");
+    if (errorCheck == 0 && file != nullptr) {
+        fileExists = true;
+        fclose(file);
+    } else {
+        fileExists = false;
+        DanteJdc::mod_enabled = false;
+    }
+}*/
+
+#include <filesystem>
+static void SeeIfFileExists() {
+    fileExists = std::filesystem::exists(".\\nativePC\\Collision\\wp002.col");
+    if (!fileExists) {
+        DanteJdc::mod_enabled = false;
+    }
+}
+
 void DanteJdc::on_gui_frame() {
-    if (ImGui::Checkbox(_("Judgement Cut"), &mod_enabled))
-        toggle(mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Activate judgement cut when performing Yamato aerial rave with lock-on."
-            "Perform normal inertia-less Yamato rave on lock-off.\n"
-            "This mod requires external files found on the dmc4_hook repo.\n"
-            "The button to the right of this cheat will take you to the download page.\n"
-            "- Install the extra files (via fluffy's mod manager or manually).\n"
-            "- Enable both this and the \"HDD Priority\" mod in the Debug page.\n"
-            "- Save your config and load into a level."));
-    if (mod_enabled) {
-        ImGui::Indent();
-        if (ImGui::Button(_("Download JDC Files"))) {
+    if (!fileExists) {
+        if (ImGui::Button(_("Download Judgement Cut Files"))) {
             ShellExecuteA(NULL, "open", "https://github.com/muhopensores/dmc4_hook/releases", NULL, NULL, SW_SHOWNORMAL);
         }
         ImGui::SameLine();
-        help_marker(_("Download JDC Files in the Assets section of the latest release and install manually or using Fluffy's Mod Manager"));
-        ImGui::Checkbox(_("Lock-on + back input"), &alt_input_enabled);
+        help_marker(_("Clicking this button will open https://github.com/muhopensores/dmc4_hook/releases\n"
+            "From here you can download optional files for mods that require them, found in the Assets section of each dmc4_hook release\n"
+            "Once you've downloadeded and installed these files (I recommend using Fluffy Mod Manager), restart the game\n"
+            "This mod gives Dante Judgement Cut"));
+        }
+    else {
+        if (ImGui::Checkbox(_("Judgement Cut"), &mod_enabled))
+            toggle(mod_enabled);
         ImGui::SameLine();
-        help_marker(_("Bind jdc activation to lock-on + back"));
-        ImGui::SameLine(sameLineWidth + lineIndent);
-        ImGui::Checkbox(_("Inertia enable"), &DanteJdc::inertia_enabled);
-        ImGui::Unindent(lineIndent);
+        help_marker(_("Activate judgement cut when performing Yamato aerial rave with lock-on."
+            "Perform normal inertia-less Yamato rave on lock-off"));
+        if (mod_enabled) {
+            ImGui::Indent();
+                ImGui::Checkbox(_("Lock-on + back input"), &alt_input_enabled);
+                ImGui::SameLine();
+                help_marker(_("Bind jdc activation to lock-on + back"));
+                ImGui::SameLine(sameLineWidth + lineIndent);
+                ImGui::Checkbox(_("Inertia enable"), &DanteJdc::inertia_enabled);
+            ImGui::Unindent(lineIndent);
+        }
     }
 }
 
 void DanteJdc::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("dante_jdc").value_or(false);
-    toggle(mod_enabled);
+    SeeIfFileExists();
+    if (mod_enabled) toggle(mod_enabled);
     alt_input_enabled = cfg.get<bool>("jdc_alt_input").value_or(false);
     DanteJdc::inertia_enabled = cfg.get<bool>("jdc_inertia").value_or(true);
 }

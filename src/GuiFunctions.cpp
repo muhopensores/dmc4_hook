@@ -474,7 +474,7 @@ namespace gui {
                     ImGui::Text(_("Nero Abilities"));
                     ImGui::Spacing();
 
-                    pmods->on_draw_ui("NeroFullHouse"_hash); // needs its own line
+                    pmods->on_draw_ui("Payline"_hash); // needs its own line
 
                     pmods->on_draw_ui("NeroSnatchLength"_hash);
                     ImGui::SameLine(sameLineWidth);

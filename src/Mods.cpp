@@ -81,7 +81,7 @@
 #include "mods/InfCalibur.hpp"
 #include "mods/InstantTrick.hpp"
 #include "mods/LoadOrder.hpp"
-#include "mods/NeroFullHouse.hpp"
+#include "mods/Payline.hpp"
 #include "mods/NeroSnatchLength.hpp"
 #include "mods/NoAutomaticCharacters.hpp"
 #include "mods/Quicksilver.hpp"
@@ -227,7 +227,7 @@ Mods::Mods() {
     ADD_MOD(InfCalibur);
     ADD_MOD(RgMultiplier);
     ADD_MOD(ActiveBlock);
-    ADD_MOD(NeroFullHouse);
+    ADD_MOD(Payline);
     ADD_MOD(FrostsDontJump);
     ADD_MOD(NeroSnatchLength);
     ADD_MOD(ChargeChecker);

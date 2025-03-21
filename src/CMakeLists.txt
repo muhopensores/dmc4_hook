@@ -212,8 +212,8 @@ set(MODS_SRC
   mods/RisingSun.cpp
   mods/ActiveBlock.hpp
   mods/ActiveBlock.cpp
-  mods/NeroFullHouse.hpp
-  mods/NeroFullHouse.cpp
+  mods/Payline.hpp
+  mods/Payline.cpp
   mods/FrostsDontJump.hpp
   mods/FrostsDontJump.cpp
   mods/NeroSnatchLength.hpp

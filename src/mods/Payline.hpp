@@ -2,9 +2,9 @@
 
 #include "../mod.hpp"
 
-class NeroFullHouse : public Mod {
+class Payline : public Mod {
 public:
-    NeroFullHouse() = default;
+    Payline() = default;
 
     static bool mod_enabled;
     static bool helm_splitter_remap;
@@ -28,8 +28,10 @@ public:
     static uintptr_t jmp_ret10;
 
     // void toggle(bool enable);
+    static void Payline_Toggle();
+    static void Helm_Splitter_Toggle();
 
-    std::string get_mod_name() override { return "NeroFullHouse"; };
+    std::string get_mod_name() override { return "Payline"; };
 
     std::optional<std::string> on_initialize() override;
 

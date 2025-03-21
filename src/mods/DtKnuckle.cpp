@@ -791,35 +791,70 @@ std::optional<std::string> DtKnuckle::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void DtKnuckle::on_gui_frame() {
-	if (ImGui::Checkbox(_("Guardian Devil"), &mod_enabled)) {
-		toggle(mod_enabled);
-	}
-	ImGui::SameLine();
-	help_marker(_("Triggers a stand attack when you input the selected button.\nLockon+forward/back for other attacks"));
-    if (mod_enabled) {
-		ImGui::Indent(lineIndent);
-        ImGui::PushItemWidth(sameLineItemWidth);
-        if (ImGui::BeginCombo(_("Guardian Input"), devil4_sdk::getButtonInfo(desiredInput).second)) {
-            for (const auto& buttonPair : buttonPairs) {
-                bool is_selected = (desiredInput == buttonPair.first);
-                if (ImGui::Selectable(buttonPair.second, is_selected)) {
-                    desiredInput = buttonPair.first;
-                }
-                if (is_selected) {
-                    ImGui::SetItemDefaultFocus();
-                }
-            }
-            ImGui::EndCombo();
-        }
-        ImGui::PopItemWidth();
-        ImGui::Unindent(lineIndent);
+static bool fileExists = false;
+
+/*static void SeeIfFileExists() {
+    FILE* file = nullptr;
+    errno_t errorCheck = fopen_s(&file, ".\\nativePC\\Collision\\wp024.col", "r");
+    if (errorCheck == 0 && file != nullptr) {
+        fileExists = true;
+        fclose(file);
+    } else {
+        fileExists = false;
+        DtKnuckle::mod_enabled = false;
     }
+}*/
+
+#include <filesystem>
+static void SeeIfFileExists() {
+    fileExists = std::filesystem::exists(".\\nativePC\\Collision\\wp024.col");
+    if (!fileExists) {
+        DtKnuckle::mod_enabled = false;
+    }
+}
+
+void DtKnuckle::on_gui_frame() {
+    if (!fileExists) {
+        if (ImGui::Button(_("Download Guardian Devil Files"))) {
+            ShellExecuteA(NULL, "open", "https://github.com/muhopensores/dmc4_hook/releases", NULL, NULL, SW_SHOWNORMAL);
+        }
+        ImGui::SameLine();
+        help_marker(_("Clicking this button will open https://github.com/muhopensores/dmc4_hook/releases\n"
+            "From here you can download optional files for mods that require them, found in the Assets section of each dmc4_hook release\n"
+            "Once you've downloadeded and installed these files (I recommend using Fluffy Mod Manager), restart the game\n"
+			"This mod lets you trigger an attack from Nero's Stand when you input the selected button"));
+        }
+	else {
+		if (ImGui::Checkbox(_("Guardian Devil"), &mod_enabled)) {
+			toggle(mod_enabled);
+		}
+		ImGui::SameLine();
+		help_marker(_("Triggers a stand attack when you input the selected button.\nLockon+forward/back for other attacks"));
+		if (mod_enabled) {
+			ImGui::Indent(lineIndent);
+			ImGui::PushItemWidth(sameLineItemWidth);
+			if (ImGui::BeginCombo(_("Guardian Input"), devil4_sdk::getButtonInfo(desiredInput).second)) {
+				for (const auto& buttonPair : buttonPairs) {
+					bool is_selected = (desiredInput == buttonPair.first);
+					if (ImGui::Selectable(buttonPair.second, is_selected)) {
+						desiredInput = buttonPair.first;
+					}
+					if (is_selected) {
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::PopItemWidth();
+			ImGui::Unindent(lineIndent);
+		}
+	}
 }
 
 void DtKnuckle::on_config_load(const utility::Config& cfg) {
 	mod_enabled = cfg.get<bool>("dt_knuckle").value_or(false);
-	toggle(mod_enabled);
+	SeeIfFileExists();
+	if (mod_enabled) toggle(mod_enabled);
 	desiredInput = cfg.get<int16_t>("knuckle_input").value_or(0x100); // L1 default
 }
 

@@ -1,5 +1,5 @@
 #include "NoHBknockback.hpp"
-#include "NeroFullHouse.hpp"
+#include "Payline.hpp"
 
 bool      NoHbKnockback::mod_enabled{ false };
 uintptr_t NoHbKnockback::no_helm_breaker_knockback_continue{ NULL }; // 0x0051C389
@@ -10,7 +10,7 @@ naked void no_helm_breaker_knockback_proc(void) { // ebx+0x98 = player + CE20 //
 	_asm {
 			cmp byte ptr [NoHbKnockback::mod_enabled], 1
 			je helmbreakercode
-			cmp byte ptr [NeroFullHouse::mod_enabled], 1
+			cmp byte ptr [Payline::mod_enabled], 1
 			je paylinecode
 			jmp originalcode
 

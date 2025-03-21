@@ -1,33 +1,33 @@
-#include "NeroFullHouse.hpp"
+#include "Payline.hpp"
 #include "misc/kAtckDefTbl.cpp"
 #include "SDK/ReClass.hpp"
 #include "MoveTable.hpp"
 //#include "MoveIDsNero.hpp"
 
 #if 1
-bool NeroFullHouse::mod_enabled{ false };
-bool NeroFullHouse::helm_splitter_remap{ false };
+bool Payline::mod_enabled{ false };
+bool Payline::helm_splitter_remap{ false };
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-uintptr_t NeroFullHouse::full_house{ 0x007D3300 };
-uintptr_t NeroFullHouse::nero_streak_1{ 0x007FDA80 };
-uintptr_t NeroFullHouse::helm_splitter_directional{ 0x00C3F320 };
-uintptr_t NeroFullHouse::double_down_directional{ 0x00C3F2E8 };
+uintptr_t Payline::full_house{ 0x007D3300 };
+uintptr_t Payline::nero_streak_1{ 0x007FDA80 };
+uintptr_t Payline::helm_splitter_directional{ 0x00C3F320 };
+uintptr_t Payline::double_down_directional{ 0x00C3F2E8 };
 
 // jmp to double down is DevilMayCry4_DX9.exe+3F9DC7 jmp DevilMayCry4_DX9.exe+400810
 // call to rave is DevilMayCry4_DX9.exe+3F9D62 call DevilMayCry4_DX9.exe+3FCF10
 // move switch is DevilMayCry4_DX9.exe+3F9CE4 jmp dword ptr [ecx*4+007F9DE0]
 
-uintptr_t NeroFullHouse::jmp_ret1{ NULL };
-uintptr_t NeroFullHouse::jmp_ret2{ NULL };
-uintptr_t NeroFullHouse::jmp_ret3{ NULL };
-uintptr_t NeroFullHouse::jmp_ret4{ NULL };
-uintptr_t NeroFullHouse::jmp_ret5{ NULL };
-uintptr_t NeroFullHouse::jmp_jne5{ 0X0042BA72 };
-uintptr_t NeroFullHouse::jmp_ret6{ NULL };
-uintptr_t NeroFullHouse::jmp_ret7{ NULL };
-uintptr_t NeroFullHouse::jmp_ret8{ NULL };
-uintptr_t NeroFullHouse::jmp_ret9{ NULL };
-uintptr_t NeroFullHouse::jmp_ret10{ NULL };
+uintptr_t Payline::jmp_ret1{ NULL };
+uintptr_t Payline::jmp_ret2{ NULL };
+uintptr_t Payline::jmp_ret3{ NULL };
+uintptr_t Payline::jmp_ret4{ NULL };
+uintptr_t Payline::jmp_ret5{ NULL };
+uintptr_t Payline::jmp_jne5{ 0X0042BA72 };
+uintptr_t Payline::jmp_ret6{ NULL };
+uintptr_t Payline::jmp_ret7{ NULL };
+uintptr_t Payline::jmp_ret8{ NULL };
+uintptr_t Payline::jmp_ret9{ NULL };
+uintptr_t Payline::jmp_ret10{ NULL };
 
 static float payline_loop_frame = 8.0f; // landing
 static float payline_bounce = 10.0f; // how much bounce
@@ -44,16 +44,15 @@ constexpr uintptr_t effect_call = 0x480480;
 // DevilMayCry4_DX9.exe + 2B963 - movss xmm1, [edx+18] references frame of animation for cancel frames
 // DevilMayCry4_DX9.exe + 5FD40A - movss xmm0, [esi+18] references frame of animation for hitbox timing
 // DevilMayCry4_DX9.exe+5FCF53 - movss xmm1,[esi+18] references frame of animation to know when to restart loop anims
-// DevilMayCry4_DX9.exe + 5FBA28 - movss xmm5, [eax+18] possible twitch mode, disables animations but motion functions normally
+// DevilMayCry4_DX9.exe + 5FBA28 - movss xmm5, [eax+18] possible twitch mode, disables animations but motion and attacks function normally
 
 // DevilMayCry4_DX9.exe+3AC911 accesses move ids, call after it writes player+1564 for switch
 // DevilMayCry4_DX9.exe+403C2D bans new move ids
 
-
 // DevilMayCry4_DX9.exe+3AC911 accesses moveids for directionals
 // DevilMayCry4_DX9.exe+403CAA might be better
 
-// void NeroFullHouse::toggle(bool enable) {
+// void Payline::toggle(bool enable) {
 //     if (enable) {
 //         install_patch_offset(0x3D33D9, patch1, "\x090\x90\x90\x090\x90\x90\x90\x90", 8);//Move class aerial lock
 //     }
@@ -64,20 +63,20 @@ constexpr uintptr_t effect_call = 0x480480;
 
 naked void detour1(void) { // redirect streak 1 to full house function // player in eax
     _asm {
-            cmp byte ptr [NeroFullHouse::mod_enabled], 1
+            cmp byte ptr [Payline::mod_enabled], 1
             je fullhousecheck
         originalcode:
-            jmp dword ptr [NeroFullHouse::nero_streak_1]
+            jmp dword ptr [Payline::nero_streak_1]
         fullhousecheck:
             cmp byte ptr [eax+0x1564], 28 // was streak 1 pushed?
             jne originalcode
-			jmp dword ptr [NeroFullHouse::full_house]
+			jmp dword ptr [Payline::full_house]
     }
 }
 
 naked void detour2(void) { // select full house start animation // player in esi
     _asm {
-            cmp byte ptr [NeroFullHouse::mod_enabled], 1
+            cmp byte ptr [Payline::mod_enabled], 1
             jne code
             cmp byte ptr [esi+0x1494], 1 // nero
             jne code
@@ -90,32 +89,32 @@ naked void detour2(void) { // select full house start animation // player in esi
             fld [payline_bounce]
             fstp [esi+0xEC4]
             push 0x00000352 // payline
-            jmp dword ptr [NeroFullHouse::jmp_ret2]
+            jmp dword ptr [Payline::jmp_ret2]
         code:
             push 0x0000030C // full house
-			jmp dword ptr [NeroFullHouse::jmp_ret2]
+			jmp dword ptr [Payline::jmp_ret2]
     }
 }
 
 naked void detour3(void) { // select full house landing animation // player in esi
     _asm {
-            cmp byte ptr [NeroFullHouse::mod_enabled], 1
+            cmp byte ptr [Payline::mod_enabled], 1
             jne code
             cmp byte ptr [esi+0x1494], 1 // nero
             jne code
             mov byte ptr [esi+0x1D7F],1 // exceedable
         // cheatcode:
             push 0x00000351 // 20 is shmove right, 351/2/3 is payline
-            jmp dword ptr [NeroFullHouse::jmp_ret3]
+            jmp dword ptr [Payline::jmp_ret3]
         code:
             push 0x0000030D // full house landing
-			jmp dword ptr [NeroFullHouse::jmp_ret3]
+			jmp dword ptr [Payline::jmp_ret3]
     }
 }
 
 naked void detour4(void) { // set frame of animation, player in ecx, this should not be here
     _asm {
-            cmp byte ptr [NeroFullHouse::mod_enabled], 1
+            cmp byte ptr [Payline::mod_enabled], 1
             jne code
             cmp byte ptr [ecx+0x1494], 1 // nero
             jne code
@@ -150,13 +149,13 @@ naked void detour4(void) { // set frame of animation, player in ecx, this should
 
         code:
             movss [esi+0x18], xmm0
-			jmp dword ptr [NeroFullHouse::jmp_ret4]
+			jmp dword ptr [Payline::jmp_ret4]
     }
 }
 
 naked void detour5(void) { // cancellable payline ending // player in esi
     _asm {
-            cmp byte ptr [NeroFullHouse::mod_enabled], 1
+            cmp byte ptr [Payline::mod_enabled], 1
             jne code
             cmp byte ptr [esi+0x1494], 1 // nero
             jne code
@@ -174,9 +173,9 @@ naked void detour5(void) { // cancellable payline ending // player in esi
         code:
             cmp ecx, 0x0000FFFF
             jne jnecode
-			jmp dword ptr [NeroFullHouse::jmp_ret5]
+			jmp dword ptr [Payline::jmp_ret5]
         jnecode:
-            jmp dword ptr [NeroFullHouse::jmp_jne5]
+            jmp dword ptr [Payline::jmp_jne5]
         retcode:
             ret
     }
@@ -188,16 +187,16 @@ naked void detour5(void) { // cancellable payline ending // player in esi
 
 naked void detour6(void) { // how many frames to wait before starting loop
     _asm {
-        cmp byte ptr [NeroFullHouse::mod_enabled], 1
+        cmp byte ptr [Payline::mod_enabled], 1
         jne code
         cmp byte ptr [ebx+0x1494], 1 // nero
         jne code
         comiss xmm0, [payline_loop_frame]
-        jmp [NeroFullHouse::jmp_ret6]
+        jmp [Payline::jmp_ret6]
         // next instruction is jb so comiss loop frame is ok
     code:
         comiss xmm0, [detour6_float]
-        jmp [NeroFullHouse::jmp_ret6]
+        jmp [Payline::jmp_ret6]
     }
 }
 
@@ -213,7 +212,7 @@ static void __stdcall exceed_handling(uPlayer& neroBase) {
 
 naked void detour7(void) { // cancellable payline ending    
     _asm {
-        cmp byte ptr [NeroFullHouse::mod_enabled], 1
+        cmp byte ptr [Payline::mod_enabled], 1
         jne code
         cmp byte ptr [ebx+0x1494], 1 // nero
         jne code
@@ -246,28 +245,28 @@ naked void detour7(void) { // cancellable payline ending
         mov byte ptr [ebx+0x31F8],2 // can walk cancel
     code:
         cmp byte ptr [ebx+0x00002A54], 01
-        jmp [NeroFullHouse::jmp_ret7]
+        jmp [Payline::jmp_ret7]
     }
 }
 
 naked void detour8(void) { // cancellable payline ending 
     _asm {
-            cmp byte ptr [NeroFullHouse::mod_enabled], 1
+            cmp byte ptr [Payline::mod_enabled], 1
             jne code
             cmp byte ptr [ebx+0x1494], 1 // nero
             jne code
 
-            jmp [NeroFullHouse::jmp_ret8]
+            jmp [Payline::jmp_ret8]
 
         code:
             movss [ebx+0xEC4],xmm0
-            jmp [NeroFullHouse::jmp_ret8]
+            jmp [Payline::jmp_ret8]
     }
 }
 
 naked void detour9(void) { // looped effect
     _asm {
-            cmp byte ptr [NeroFullHouse::mod_enabled], 1
+            cmp byte ptr [Payline::mod_enabled], 1
             jne handler
             cmp byte ptr [ebx+0x1494], 1 // nero
             jne handler
@@ -281,7 +280,7 @@ naked void detour9(void) { // looped effect
             mov edx,0x4D
         originalcode:
             call effect_call
-            jmp [NeroFullHouse::jmp_ret9]
+            jmp [Payline::jmp_ret9]
         handler:
             lea edx, [esi+0x3E]
             lea eax, [esi-0x02]
@@ -291,7 +290,7 @@ naked void detour9(void) { // looped effect
 
 naked void detour10(void) { // landing effect
     _asm {
-            cmp byte ptr [NeroFullHouse::mod_enabled], 1
+            cmp byte ptr [Payline::mod_enabled], 1
             jne handler
             cmp byte ptr [ebx+0x1494], 1 // nero
             jne handler
@@ -304,7 +303,7 @@ naked void detour10(void) { // landing effect
 
             mov edx,0x31
         originalcode:
-            jmp [NeroFullHouse::jmp_ret10]
+            jmp [Payline::jmp_ret10]
         handler:
             lea edx, [esi+0x3F]
             lea eax, [esi-0x02]
@@ -312,124 +311,141 @@ naked void detour10(void) { // landing effect
     }
 }
 
-std::optional<std::string> NeroFullHouse::on_initialize() {
+std::optional<std::string> Payline::on_initialize() {
     if (!install_hook_offset(0x03F9D82, hook1, &detour1, &jmp_ret1, 5)) { // streak
-        spdlog::error("Failed to init NeroFullHouse1 mod\n");
-        return "Failed to init NeroFullHouse1 mod";
+        spdlog::error("Failed to init Payline1 mod\n");
+        return "Failed to init Payline1 mod";
     }
-
     if (!install_hook_offset(0x03D3341, hook2, &detour2, &jmp_ret2, 5)) { // full house start animation
-        spdlog::error("Failed to init NeroFullHouse2 mod\n");
-        return "Failed to init NeroFullHouse2 mod";
+        spdlog::error("Failed to init Payline2 mod\n");
+        return "Failed to init Payline2 mod";
     }
-    
     if (!install_hook_offset(0x03D358B, hook3, &detour3, &jmp_ret3, 5)) { // full house end animation
-        spdlog::error("Failed to init NeroFullHouse3 mod\n");
-        return "Failed to init NeroFullHouse3 mod";
+        spdlog::error("Failed to init Payline3 mod\n");
+        return "Failed to init Payline3 mod";
     }
-    
     if (!install_hook_offset(0x05FCF43, hook4, &detour4, &jmp_ret4, 5)) { // set frame of animation
-        spdlog::error("Failed to init NeroFullHouse4 mod\n");
-        return "Failed to init NeroFullHouse4 mod";
+        spdlog::error("Failed to init Payline4 mod\n");
+        return "Failed to init Payline4 mod";
     }
-
     if (!install_hook_offset(0x002BA57, hook5, &detour5, &jmp_ret5, 6)) { // cancellable payline ending 
-        spdlog::error("Failed to init NeroFullHouse5 mod\n");
-        return "Failed to init NeroFullHouse5 mod";
+        spdlog::error("Failed to init Payline5 mod\n");
+        return "Failed to init Payline5 mod";
     }
     if (!install_hook_offset(0x3D3404, hook6, &detour6, &jmp_ret6, 7)) { // how many frames to wait before starting loop
-        spdlog::error("Failed to init NeroFullHouse6 mod\n");
-        return "Failed to init NeroFullHouse6 mod";
+        spdlog::error("Failed to init Payline6 mod\n");
+        return "Failed to init Payline6 mod";
     }
     if (!install_hook_offset(0x3D3665, hook7, &detour7, &jmp_ret7, 7)) { // cancellable payline ending 
-        spdlog::error("Failed to init NeroFullHouse7 mod\n");
-        return "Failed to init NeroFullHouse7 mod";
+        spdlog::error("Failed to init Payline7 mod\n");
+        return "Failed to init Payline7 mod";
     }
     if (!install_hook_offset(0x3D33D9, hook8, &detour8, &jmp_ret8, 8)) { // cancellable payline ending 
-        spdlog::error("Failed to init NeroFullHouse8 mod\n");
-        return "Failed to init NeroFullHouse8 mod";
+        spdlog::error("Failed to init Payline8 mod\n");
+        return "Failed to init Payline8 mod";
     }
     if (!install_hook_offset(0x3D3369, hook9, &detour9, &jmp_ret9, 8)) { // looped effect 
-        spdlog::error("Failed to init NeroFullHouse9 mod\n");
-        return "Failed to init NeroFullHouse9 mod";
+        spdlog::error("Failed to init Payline9 mod\n");
+        return "Failed to init Payline9 mod";
     }
     if (!install_hook_offset(0x3D35C6, hook10, &detour10, &jmp_ret10, 6)) { // landing effect
-        spdlog::error("Failed to init NeroFullHouse10 mod\n");
-        return "Failed to init NeroFullHouse10 mod";
+        spdlog::error("Failed to init Payline10 mod\n");
+        return "Failed to init Payline10 mod";
     }
     return Mod::on_initialize();
 }
 
-void NeroFullHouse::on_gui_frame() {
+void Payline::Payline_Toggle() {
     kAtckDefTbl* NeroAtkTbl     = (kAtckDefTbl*)HookNeroKADTbl;
     kAtckDefTbl* payline_params = &NeroAtkTbl[6];
     kAtckDefTbl* hb_params      = &NeroAtkTbl[21];
     kAtckDefTbl* dd_params      = &NeroAtkTbl[22];
-    if (ImGui::Checkbox(_("Payline"), &mod_enabled)) {
-       // toggle(mod_enabled);
-        if (mod_enabled) {
-            helm_splitter_remap = true;
-            payline_params->atckAs = 2;
-            // *(uintptr_t*)0xC3EFB0 = 2; // streak 1 can be used in air
-            hb_params->command.buffer = LOCKON_BACK_MELEE;
-            dd_params->command.buffer = LOCKON_BACK_MELEE;
-            // *(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE; // back
-            // *(uintptr_t*)double_down_directional = LOCKON_BACK_MELEE;   // back
-        }
-        else {
-            helm_splitter_remap = false;
-            // *(uintptr_t*)0xC3EFB0 = 1; // streak 1 can only be used when grounded
-            // *(uintptr_t*)helm_splitter_directional = LOCKON_FORWARD_MELEE2;
-            // *(uintptr_t*)double_down_directional   = LOCKON_FORWARD_MELEE2;
-            payline_params->atckAs                    = 1;
-            hb_params->command.buffer              = LOCKON_FORWARD_MELEE2;
-            dd_params->command.buffer              = LOCKON_FORWARD_MELEE2;
-        }
+    if (mod_enabled) {
+        helm_splitter_remap = true;
+        payline_params->atckAs    = 2;
+        hb_params->command.buffer = LOCKON_BACK_MELEE;
+        dd_params->command.buffer = LOCKON_BACK_MELEE;
     }
-    ImGui::SameLine();
-    help_marker(_("Gives Nero a divekick action like in DMC5"));
+    else {
+        helm_splitter_remap = false;
+        payline_params->atckAs    = 1;
+        hb_params->command.buffer = LOCKON_FORWARD_MELEE2;
+        dd_params->command.buffer = LOCKON_FORWARD_MELEE2;
+    }
+}
+
+void Payline::Helm_Splitter_Toggle() {
+    kAtckDefTbl* NeroAtkTbl     = (kAtckDefTbl*)HookNeroKADTbl;
+    kAtckDefTbl* hb_params      = &NeroAtkTbl[21];
+    kAtckDefTbl* dd_params      = &NeroAtkTbl[22];
+    if (helm_splitter_remap) {
+        hb_params->command.buffer = LOCKON_BACK_MELEE;
+        dd_params->command.buffer = LOCKON_BACK_MELEE;
+    }
+    else {
+        hb_params->command.buffer = LOCKON_FORWARD_MELEE2;
+        dd_params->command.buffer = LOCKON_FORWARD_MELEE2;
+    }
+}
+
+static bool fileExists = false;
+
+/*static void SeeIfFileExists() {
+    FILE* file = nullptr;
+    errno_t errorCheck = fopen_s(&file, ".\\nativePC\\motion\\pl000\\pl000_04.lmt", "r");
+    if (errorCheck == 0 && file != nullptr) {
+        fileExists = true;
+        fclose(file);
+    } else {
+        fileExists = false;
+        Payline::mod_enabled = false;
+    }
+}*/
+
+#include <filesystem>
+static void SeeIfFileExists() {
+    fileExists = std::filesystem::exists(".\\nativePC\\motion\\pl000\\pl000_04.lmt");
+    if (!fileExists) {
+        Payline::mod_enabled = false;
+    }
+}
+
+void Payline::on_gui_frame() {
+    if (!fileExists) {
+        if (ImGui::Button(_("Download Payline Files"))) {
+            ShellExecuteA(NULL, "open", "https://github.com/muhopensores/dmc4_hook/releases", NULL, NULL, SW_SHOWNORMAL);
+        }
+        ImGui::SameLine();
+        help_marker(_("Clicking this button will open https://github.com/muhopensores/dmc4_hook/releases\n"
+            "From here you can download optional files for mods that require them, found in the Assets section of each dmc4_hook release\n"
+            "Once you've downloadeded and installed these files (I recommend using Fluffy Mod Manager), restart the game\n"
+            "This mod gives Nero a divekick action like he has in DMC5"));
+    }
+    else {
+        if (ImGui::Checkbox(_("Payline"), &mod_enabled)) {
+            Payline_Toggle();
+        }
+        ImGui::SameLine();
+        help_marker(_("Give Nero a divekick action like he has in DMC5"));
+    }
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Remap Helm Splitter"), &helm_splitter_remap)) {
-        if (helm_splitter_remap) {
-            // *(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE;
-            // *(uintptr_t*)double_down_directional = LOCKON_BACK_MELEE;
-            hb_params->command.buffer              = LOCKON_BACK_MELEE;
-            dd_params->command.buffer              = LOCKON_BACK_MELEE;
-        }
-        else {
-            // *(uintptr_t*)helm_splitter_directional = LOCKON_FORWARD_MELEE2;
-            // *(uintptr_t*)double_down_directional = LOCKON_FORWARD_MELEE2;
-            hb_params->command.buffer = LOCKON_FORWARD_MELEE2;
-            dd_params->command.buffer = LOCKON_FORWARD_MELEE2;
-        }
+        Helm_Splitter_Toggle();
     }
     ImGui::SameLine();
     help_marker(_("Remap Helm Splitter and Double Down to lockon+back+melee\nRequires \"Move Table\" at the bottom of the Debug page, which applies at the start of a level"));
 }
 
-void NeroFullHouse::on_config_load(const utility::Config& cfg) {
-    kAtckDefTbl* NeroAtkTbl     = (kAtckDefTbl*)HookNeroKADTbl;
-    kAtckDefTbl* payline_params = &NeroAtkTbl[6];
-    kAtckDefTbl* hb_params      = &NeroAtkTbl[21];
-    kAtckDefTbl* dd_params      = &NeroAtkTbl[22];
+void Payline::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("nero_full_house").value_or(false);
-    // toggle(mod_enabled);
     helm_splitter_remap = cfg.get<bool>("helm_splitter_remap").value_or(false);
-    if (mod_enabled) {
-        helm_splitter_remap = true;
-        // *(uintptr_t*)0xC3EFB0 = 2; // streak 1 can only be used when aerial
-        payline_params->atckAs = 2;
-    }
-    if (helm_splitter_remap) {
-        // *(uintptr_t*)helm_splitter_directional = LOCKON_BACK_MELEE;
-        // *(uintptr_t*)double_down_directional = LOCKON_BACK_MELEE;
+    SeeIfFileExists();
+    if (mod_enabled) Payline_Toggle();
+    if (helm_splitter_remap) Helm_Splitter_Toggle();
 
-        hb_params->command.buffer = LOCKON_BACK_MELEE;
-        dd_params->command.buffer = LOCKON_BACK_MELEE;
-    }
 };
 
-void NeroFullHouse::on_config_save(utility::Config& cfg) {
+void Payline::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("nero_full_house", mod_enabled);
     cfg.set<bool>("helm_splitter_remap", helm_splitter_remap);
 };
