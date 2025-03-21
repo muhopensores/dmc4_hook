@@ -349,8 +349,7 @@ naked void detour() {
 #endif
 }
 
-naked void detour2()
-{
+naked void detour2() {
     __asm{
         cmp byte ptr [mod_enabled], 1
         jne code
@@ -365,8 +364,7 @@ naked void detour2()
         jmp [jmp_return01]
     }
 }
-naked void detour3()
-{
+naked void detour3() {
     __asm{
         cmp byte ptr [mod_enabled], 1
         jne originalcode
@@ -383,8 +381,7 @@ naked void detour3()
     }
 }
 
-naked void detour4()
-{
+naked void detour4() {
     __asm{
         mov byte ptr [ArcInit], 0
     // originalcode:
@@ -395,23 +392,19 @@ naked void detour4()
 }
 
 std::optional<std::string> LoadOrder::on_initialize() {
-    if (!install_hook_absolute(0x8DFCF0, m_hook, &detour, &jmp_return, 5))
-    {
+    if (!install_hook_absolute(0x8DFCF0, m_hook, &detour, &jmp_return, 5)) {
         spdlog::error("Failed to init LoadOrder mod\n");
         return "Failed to init LoadOrder mod";
     }
-    if (!install_hook_absolute(0x8DF2C2, m_hook1, &detour2, &jmp_return01, 9))
-    {
+    if (!install_hook_absolute(0x8DF2C2, m_hook1, &detour2, &jmp_return01, 9)) {
        spdlog::error("Failed to init LoadOrder mod\n");
        return "Failed to init LoadOrder mod";
     }
-    if (!install_hook_offset(0x4E18F2, m_hook2, &detour3, &jmp_return02, 7))
-     {
+    if (!install_hook_offset(0x4E18F2, m_hook2, &detour3, &jmp_return02, 7)) {
          spdlog::error("Failed to init LoadOrder mod\n");
          return "Failed to init LoadOrder mod";
-     }
-    if (!install_hook_offset(0x4E19A0, m_hook3, &detour4, &jmp_return03, 6))
-    {
+    }
+    if (!install_hook_offset(0x4E19A0, m_hook3, &detour4, &jmp_return03, 6)) {
         spdlog::error("Failed to init LoadOrder mod\n");
         return "Failed to init LoadOrder mod";
     }
@@ -424,25 +417,23 @@ std::optional<std::string> LoadOrder::on_initialize() {
 
 // onConfigSave
 // save your data into cfg structure.
-void LoadOrder::on_config_save(utility::Config& cfg) 
-{ 
+void LoadOrder::on_config_save(utility::Config& cfg)  { 
     cfg.set<bool>("LoadOrderHDD", mod_enabled); 
 };
 
 // onConfigLoad
 // load data into variables from config structure.
-void LoadOrder::on_config_load(const utility::Config& cfg) 
-{ 
+void LoadOrder::on_config_load(const utility::Config& cfg)  { 
     mod_enabled = cfg.get<bool>("LoadOrderHDD").value_or(true);
 };
 
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
-void LoadOrder::on_gui_frame() 
-{ 
+void LoadOrder::on_gui_frame() { 
     ImGui::Checkbox(_("HDD File Priority"), &mod_enabled);
     ImGui::SameLine();
-    help_marker(_("The game will look for files outside of arcs before looking inside"));
+    help_marker(_("The game will look for files outside of arcs before looking inside\n"
+    "This is required for dmc4_hook mods that require external files"));
 };
 
 // onGamePause()

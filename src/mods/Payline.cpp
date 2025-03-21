@@ -418,7 +418,8 @@ void Payline::on_gui_frame() {
         ImGui::SameLine();
         help_marker(_("Clicking this button will open https://github.com/muhopensores/dmc4_hook/releases\n"
             "From here you can download optional files for mods that require them, found in the Assets section of each dmc4_hook release\n"
-            "Once you've downloadeded and installed these files (I recommend using Fluffy Mod Manager), restart the game\n"
+            "Once you've downloadeded and installed these files (I recommend using Fluffy Mod Manager), "
+            "restart the game and tick \"HDD File Priority\" in the Debug tab before you load into a stage\n"
             "This mod gives Nero a divekick action like he has in DMC5"));
     }
     else {
