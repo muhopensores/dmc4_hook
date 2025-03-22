@@ -825,7 +825,8 @@ public:
     uint16_t animID; // 0x334
     char pad_336[0x12];
     float animFrame; // 0x348
-    char pad_34c[0x6ec];
+    float animFrameMax; // 0x34c
+    char pad_350[0x6e8];
     class MotionPtr* motionPtr1; // 0xa38
     class MotionPtr* motionPtr2; // 0xa3c
     char pad_a40[0x2b4];
@@ -973,7 +974,9 @@ public:
     float exceedTimer; // 0xcdbc
     char pad_cdc0[0x7fd8];
     uint32_t currentStyle; // 0x14d98
-    char pad_14d9c[0x20];
+    char pad_14d9c[0x10];
+    float revengeGauge; // 0x14dac
+    char pad_14db0[0xC];
     class LuciferPin* luciferPins[15]; // 0x14dbc
     char pad_14df8[0x3fc];
     float disasterGauge; // 0x151f4

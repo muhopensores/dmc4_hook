@@ -181,13 +181,13 @@ void PlayerTracker::on_gui_frame() {
         uPlayer* player = devil4_sdk::get_local_player();
         SMediator* s_med_ptr = devil4_sdk::get_sMediator();
         if (player) {
-            ImGui::InputFloat(_("HP ##1"), &player->HP);
-            ImGui::InputFloat(_("Max HP ##1"), &player->HPMax);
-            ImGui::InputFloat(_("DT ##1"), &player->DT);
-            ImGui::InputFloat(_("Max DT ##1"), &player->maxDT);
+            ImGui::SliderFloat(_("HP ##1"), &player->HP, 0.0f, 20000.0f, "%.0f");
+            ImGui::SliderFloat(_("Max HP ##1"), &player->HPMax, 0.0f, 20000.0f, "%.0f");
+            ImGui::SliderFloat(_("DT ##1"), &player->DT, 0.0f, 10000.0f, "%.0f");
+            ImGui::SliderFloat(_("Max DT ##1"), &player->maxDT, 0.0f, 10000.0f, "%.0f");
             ImGui::InputFloat(_("BP Timer ##1"), &s_med_ptr->bpTimer);
             ImGui::InputFloat3(_("XYZ Position ##1"), (float*)&player->m_pos);
-            ImGui::InputFloat(_("Rotation ##1"), &player->rotation2);
+            ImGui::SliderFloat(_("Rotation ##1"), &player->rotation2, -3.14f, 3.14f, "%.2f");
             ImGui::InputFloat3(_("XYZ Scale ##1"), (float*)&player->m_scale);
             ImGui::InputFloat3(_("XYZ Velocity ##1"), (float*)&player->m_d_velocity);
             ImGui::InputFloat(_("Movement Speed ##1"), &player->m_d_vel_magnitude);
@@ -200,13 +200,14 @@ void PlayerTracker::on_gui_frame() {
             ImGui::InputScalar(_("Weight ##1"), ImGuiDataType_U8, &player->weight);
             ImGui::InputScalar(_("Lock On ##1"), ImGuiDataType_U8, &player->lockedOn);
             if (player->controllerID == 0) { // dante
-                ImGui::InputFloat(_("Disaster Gauge ##1"), &player->disasterGauge);
+                ImGui::SliderFloat(_("Disaster Gauge ##1"), &player->disasterGauge, 0.0f, 10000.0f, "%.0f");
+                ImGui::SliderFloat(_("Revenge Gauge ##1"), &player->revengeGauge, 0.0f, 30000.0f, "%.0f");
             } else { // nero
-                ImGui::InputFloat(_("Exceed Timer ##1"), &player->exceedTimer);
+                ImGui::InputFloat(_("Exceed Timer ##1"), &player->exceedTimer, 0.0f, 16.0f, "%.1f");
                 ImGui::SameLine();
                 help_marker(_("If you press exceed while this timer is between 0 and 1, you'll get MAX-Act."));
             }
-            ImGui::InputFloat(_("Animation Frame ##1"), &player->animFrame);
+            ImGui::SliderFloat(_("Animation Frame ##1"), &player->animFrame, 0.0f, player->animFrameMax, "%.1f");
             ImGui::InputScalar(_("Move ID ##1"), ImGuiDataType_U8, &player->moveIDBest);
             ImGui::InputScalar(_("Move ID2 ##1"), ImGuiDataType_U8, &player->moveID2);
             ImGui::InputScalar(_("Move Bank ##1"), ImGuiDataType_U8, &player->moveBank);

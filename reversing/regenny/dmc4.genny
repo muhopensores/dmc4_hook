@@ -116,6 +116,7 @@ class uBoss {
 	Vector3f scale @ 0x50
 	uint8_t moveID2 @ 0x334
 	float animFrame @ 0x348
+	float animFrameMax @ 0x34C
 	int inputHold @ 0x140C
 	int inputPress @ 0x1410
 	float HP @ 0x151C
@@ -353,6 +354,7 @@ class uPlayer : public UCoord{
 	uint8_t exceedLevel @ 0xCCE8
 	float exceedTimer @ 0xCDBC
 	int currentStyle @ 0x14D98
+	float revengeGauge @ 0x14dac
 	class LuciferPin* luciferPins[15] @ 0x14DBC
 	float disasterGauge @ 0x151F4
 	int dreadnaught @ 0x152A0
