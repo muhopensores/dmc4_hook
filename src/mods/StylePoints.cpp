@@ -6,6 +6,7 @@ uintptr_t StylePoints::jmp_ret1 = NULL;
 
 struct TrickScore {
     std::string text;
+    bool isAlreadyRenamed = false;
     float score = 0.0f;
     float multiplier = 0.0f;
     int styleLetter = 0;
@@ -64,22 +65,23 @@ std::unordered_map<std::string, std::string> textLookupTable = {
     // trickster
     {"TS-ehsuc",        "Mustang"},
     // rebellion
-    {"REBE-combo303",   "Rebellion A"},
-    {"REBE-combo304",   "Rebellion A"},
-    {"REBE-combo305",   "Rebellion A"},
+    {"REBE-combo303",   "Rebellion Combo A"},
+    {"REBE-combo304",   "Rebellion Combo A"},
+    {"REBE-combo305",   "Rebellion Combo A"},
     {"REBE-stings",     "Stinger"},
     {"REBE-sting",      "Stinger Hit"},
     {"REBE-stab",       "Million Stab"},
 	{"REBE-roundt",     "Round Trip"},
     {"REBE-hightime",   "High Time"},
-    {"REBE-combo306-1", "Rebellion B"},
-    {"REBE-combo306-2", "Rebellion B"},
-    {"REBE-combo306-3", "Rebellion B"},
+    {"REBE-combo306-1", "Rebellion Combo B"},
+    {"REBE-combo306-2", "Rebellion Combo B"},
+    {"REBE-combo306-3", "Rebellion Combo B"},
+    {"REBE-combo306-1", "Rebellion Combo B"},
     {"REBE-stabf",      "Million Stab End"},
-    {"REBE-helmbrkLV1", "Low Helm Breaker"},
-    {"REBE-helmbrkLV2", "Mid Helm Breaker"},
-    {"REBE-helmbrkLV3", "High Helm Breaker"},
-    {"REBE-helmbrkf",   "Helm Breaker Landing"},
+    {"REBE-helmbrkLV1", "Helm Breaker Lv.1"},
+    {"REBE-helmbrkLV2", "Helm Breaker Lv.2"},
+    {"REBE-helmbrkLV3", "Helm Breaker Lv.3"},
+    {"REBE-helmbrkf",   "Helm Breaker"},
     {"REBE-DTstg1",     "DT Stinger"},
     {"REBE-DTstg2",     "DT Stinger"},
     {"REBE-DTstg3",     "DT Stinger"},
@@ -107,29 +109,29 @@ std::unordered_map<std::string, std::string> textLookupTable = {
     {"REBE-arial356",   "Aerial Rave"},
 	{"REBE-drivesw1",	"Drive"},
 	{"REBE-drive1",		"Drive"},
-	{"REBE-drive1-2",	"Drive"},
-	{"REBE-drive1-3",	"Drive"},
+	{"REBE-drive1-2",	"Drive Lv.2"},
+	{"REBE-drive1-3",	"Drive Lv.3"},
 	{"REBE-drivesw2",	"Overdrive"},
 	{"REBE-drive2",		"Overdrive"},
-	{"REBE-drive2-2",	"Overdrive"},
-	{"REBE-drive2-3",	"Overdrive"},
+	{"REBE-drive2-2",	"Overdrive Lv.2"},
+	{"REBE-drive2-3",	"Overdrive Lv.3"},
 	{"REBE-drivesw3",	"Drive"},
 	{"REBE-drive3",		"Overdrive"},
-	{"REBE-drive3-2",	"Overdrive"},
-	{"REBE-drive3-3",	"Overdrive"},
+	{"REBE-drive3-2",	"Overdrive Lv.2"},
+	{"REBE-drive3-3",	"Overdrive Lv.3"},
 	{"REBE-qdrive",		"Quick Drive"},
     // gilgamesh
 	{"GIL-rblaze",      "Flush"},
 	{"GIL-rblaze-f",    "Flush"},
 	{"GIL-rblaze-b",    "Flush"},
     {"GIL-klbe",        "Full House"},
-	{"GIL-combo403",    "Gilgamesh A"},
-	{"GIL-combo404",    "Gilgamesh A"},
-	{"GIL-combo405",    "Gilgamesh A"},
-	{"GIL-combo406",    "Gilgamesh A"},
-	{"GIL-combo407",    "Gilgamesh B"},
-	{"GIL-combo409-1",  "Gilgamesh B"},
-	{"GIL-combo409-2",  "Gilgamesh B"},
+	{"GIL-combo403",    "Gilgamesh Combo A"},
+	{"GIL-combo404",    "Gilgamesh Combo A"},
+	{"GIL-combo405",    "Gilgamesh Combo A"},
+	{"GIL-combo406",    "Gilgamesh Combo A"},
+	{"GIL-combo407",    "Gilgamesh Combo B"},
+	{"GIL-combo409-1",  "Gilgamesh Combo B"},
+	{"GIL-combo409-2",  "Gilgamesh Combo B"},
 	{"GIL-straight422", "Straight"},
 	{"GIL-straight2",   "Straight Lv.2"},
 	{"GIL-straight3",   "Straight Lv.3"},
@@ -149,6 +151,7 @@ std::unordered_map<std::string, std::string> textLookupTable = {
 	{"GIL-rgdg460",  	"Rising Dragon"},
 	{"GIL-dvdg461",  	"Divine Dragon"},
 	{"GIL-dvdg462",  	"Divine Dragon"},
+	{"GIL-dvdg462",  	"Divine Dragon"},
 	{"GIL-rlimpct-01",  "Real Impact"},
 	{"GIL-rlimpct-02",  "Real Impact"},
 	{"GIL-rlimpct-03",  "Real Impact"},
@@ -160,17 +163,17 @@ std::unordered_map<std::string, std::string> textLookupTable = {
     {"NORMAL",          "Embed"}, // pins and pandora's normal shot
     {"Bomb",            "Pin Explosion"},
     {"ROSE",            "Rose"},
-	{"LUCI-combo503",   "Lucifer A"},
-	{"LUCI-combo504",   "Lucifer A"},
-	{"LUCI-combo505",   "Lucifer A"},
-	{"LUCI-combo506",   "Lucifer A"},
-	{"LUCI-combo506-2", "Lucifer A"},
-	{"LUCI-combo519", 	"Lucifer B"},
-	{"LUCI-combo519-2", "Lucifer B"},
-	{"LUCI-combo508", 	"Lucifer E"},
-	{"LUCI-combo509", 	"Lucifer E"},
-	{"LUCI-combo510-1", "Lucifer E"},
-	{"LUCI-combo510-2", "Lucifer E"},
+	{"LUCI-combo503",   "Lucifer A1"},
+	{"LUCI-combo504",   "Lucifer A2"},
+	{"LUCI-combo505",   "Lucifer A3"},
+	{"LUCI-combo506",   "Lucifer A4"},
+	{"LUCI-combo506-2", "Lucifer A4"},
+	{"LUCI-combo519-1", "Lucifer B1"},
+	{"LUCI-combo519-2", "Lucifer B1"},
+	{"LUCI-combo508", 	"Lucifer E1"},
+	{"LUCI-combo509", 	"Lucifer E2"},
+	{"LUCI-combo510-1", "Lucifer E3"},
+	{"LUCI-combo510-2", "Lucifer E3"},
     {"LUCI-combo514-1", "Splash"},
     {"LUCI-combo514-2", "Splash"},
     {"LUCI-combo514-3", "Splash"},
@@ -179,24 +182,25 @@ std::unordered_map<std::string, std::string> textLookupTable = {
 	{"Stand",  			"Climax"},
 	{"BombBariier",  	"Climax"},
 
+
     // e&i
-    {"SHL000",          "E&I Shot"},
-    {"SHL00-LEN2",      "E&I Shot"},
-    {"SHL00_LEN3",      "E&I Shot"},
-    {"CHARGE",          "Charged E&I Shot"},
-    {"CHARGE_LEN2",     "Charged E&I Shot"},
-    {"CHARGE_LEN3",     "Charged E&I Shot"},
+    {"SHL000",          "E&I"},
+    {"SHL00-LEN2",      "E&I"},
+    {"SHL00_LEN3",      "E&I"},
+    {"CHARGE",          "Charged E&I"},
+    {"CHARGE_LEN2",     "Charged E&I"},
+    {"CHARGE_LEN3",     "Charged E&I"},
 
     // e&i gunslinger
     {"RAIN_STORM",      "Rainstorm"},
     {"RAIN_STORM_LEN2", "Rainstorm"},
     {"RAIN_STORM_LEN3", "Rainstorm"},
-    {"DT_RAIN_STORM",   "DT Rainstorm"},
-    {"DT_RAIN_STORM_L", "DT Rainstorm"},
+    {"DT_RAIN_STORM",   "Rainstorm DT"},
+    {"DT_RAIN_STORM_L", "Rainstorm DT"},
 	{"TWO_SOMETIME",    "Twosome Time"},
     {"TWO_SOMETIME_L2", "Twosome Time"},
     {"TWO_SOMETIME_L3", "Twosome Time"},
-	{"DT_TWO_SOMETIME", "DT Twosome Time"},
+	{"DT_TWO_SOMETIME", "Twosome Time DT"},
 
     // coyote
     {"NRML_ETC_LV1",    "Coyote"},
@@ -205,21 +209,48 @@ std::unordered_map<std::string, std::string> textLookupTable = {
     {"NRML_CEN_LV2",    "Coyote"},
     {"NRML_ETC_LV3",    "Coyote"},
     {"NRML_CEN_LV3",    "Coyote"},
+	{"CHRG_ETC_LV1",    "Coyote DT"},
+    {"CHRG_CEN_LV1",    "Coyote DT"},
+    {"CHRG_ETC_LV2",    "Coyote DT"},
+    {"CHRG_CEN_LV2",    "Coyote DT"},
+    {"CHRG_ETC_LV3",    "Coyote DT"},
+    {"CHRG_CEN_LV3",    "Coyote DT"},
+
+    // coyote gunslinger
 	{"BACK_ETC_LV1",    "Backslide"},
 	{"BACK_CEN_LV1",    "Backslide"},
 	{"BACK_ETC_LV2",    "Backslide"},
 	{"BACK_CEN_LV2",    "Backslide"},
 	{"BACK_ETC_LV3",    "Backslide"},
 	{"BACK_CEN_LV3",    "Backslide"},
-    // coyote gunslinger
+	{"NCHA_STR_LVL1",   "Fireworks"},
+	{"NCHA_STR_LVL2",   "Fireworks"},
+	{"NCHA_STR_LVL3",   "Fireworks"},
+	{"NCHA_WEK_LVL1",   "Fireworks"},
+	{"NCHA_WEK_LVL2",   "Fireworks"},
+	{"NCHA_WEK_LVL3",   "Fireworks"},
+	{"STG-gunstinger",  "Gun Stinger"},
+	{"STNG_ETC_LV1",    "Gun Stinger"},
+	{"STNG_CEN_LV1",    "Gun Stinger"},
+	{"STNG_ETC_LV2",    "Gun Stinger"},
+	{"STNG_CEN_LV2",    "Gun Stinger"},
+	{"STNG_ETC_LV3",    "Gun Stinger"},
+	{"STNG_CEN_LV3",    "Gun Stinger"},
+	{"DTST_ETC_LV1",    "Gun Stinger DT"},
+	{"DTST_CEN_LV1",    "Gun Stinger DT"},
+	{"DTST_ETC_LV2",    "Gun Stinger DT"},
+	{"DTST_CEN_LV2",    "Gun Stinger DT"},
+	{"DTST_ETC_LV3",    "Gun Stinger DT"},
+	{"DTST_CEN_LV3",    "Gun Stinger DT"},
 
     // pandora
     {"MACHINEGUN",      "Jealousy"},
     {"MACHINEGUN_LV2",  "Jealousy"},
     {"MACHINEGUN_LV3",  "Jealousy"},
-    {"DT_MGUN",         "DT Jealousy"},
-    {"DT_MGUN_LV2",     "DT Jealousy"},
-    {"DT_MGUN_LV3",     "DT Jealousy"},
+    {"DT_MGUN",         "Jealousy DT"},
+    {"DT_MGUN_LV2",     "Jealousy DT"},
+    {"DT_MGUN_LV3",     "Jealousy DT"},
+	{"PDR-ma666s",  	"Omen"},
 	{"PDR-ma666s",  	"Omen"},
 	{"BOM_NOR",         "Epidemic"},
 	{"BOM_NOR2",        "Hatred"},
@@ -231,27 +262,30 @@ std::unordered_map<std::string, std::string> textLookupTable = {
     // pandora gunslinger
 
     // yamato
-	{"YMT-combo1003",   "Yamato A"},
-	{"YMT-combo1004",   "Yamato A"},
-	{"YMT-combo1005",   "Yamato A"},
-    {"YMT-combo1006-1", "Yamato Rave"},
-    {"YMT-combo1006-2", "Yamato Rave"},
-    {"YMT-combo1007",   "Yamato Rave"},
+	{"YMT-combo1003",   "Yamato Combo A"},
+	{"YMT-combo1004",   "Yamato Combo A"},
+	{"YMT-combo1005",   "Yamato Combo A"},
+    {"YMT-combo1006-1", "Yamato Aerial Rave V"},
+    {"YMT-combo1006-2", "Yamato Aerial Rave V"},
+    {"YMT-combo1007",   "Yamato Aerial Rave V"},
 	{"kuukan",   		"Slash Dimension"},
 };
 
+static const size_t MAX_TRICK_HISTORY = 12; // Only check the last 12 entries
 static const std::map<std::vector<std::string>, std::string> comboNames = {
     {{"High Time", "Aerial Rave", "Aerial Rave", "Aerial Rave", "Aerial Rave"}, "Very Creative!"},
-    {{"E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot"}, "Ok Man!"},
+    {{"E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I"}, "Ok Man!"},
 };
 
 // update names on visual thread rather than have the game wait on lookups i think this is better
 static void UpdateTrickScores() {
-    for (auto& score : trickScores) { // can't get just the most recent because it might change mid call
-        std::string scoreText = score.text;
-        auto it = textLookupTable.find(scoreText);
-        if (it != textLookupTable.end()) {
-            score.text = it->second.c_str();
+    for (auto& score : trickScores) {
+        if (!score.isAlreadyRenamed) {
+            auto it = textLookupTable.find(score.text);
+            if (it != textLookupTable.end()) {
+                score.text = it->second;
+            }
+            score.isAlreadyRenamed = true;
         }
     }
 }
@@ -432,23 +466,27 @@ static void DrawTonyScores() {
     ImGui::End();
 
     // Combo recognition
-    float elapsedSinceLastMatch = std::chrono::duration<float>(now - lastMatchTime).count();
-    float fadeAlpha = 1.0f - (elapsedSinceLastMatch * speedMultiplier);
+float elapsedSinceLastMatch = std::chrono::duration<float>(now - lastMatchTime).count();
+float fadeAlpha = 1.0f - (elapsedSinceLastMatch * speedMultiplier);
 
-    if (!trickScores.empty()) {
-        const std::string& latestTrick = trickScores.back().text;
-        if (lastProcessedTrick != latestTrick) {
-            lastProcessedTrick = latestTrick;
-        }
+if (!trickScores.empty()) {
+    const std::string& latestTrick = trickScores.back().text;
+    if (lastProcessedTrick != latestTrick) {
+        lastProcessedTrick = latestTrick;
     }
+}
+
+if (!trickScores.empty()) {
     for (const auto& combo : comboNames) {
         const std::vector<std::string>& comboSequence = combo.first;
         size_t comboLength = comboSequence.size();
+        size_t trickScoresSize = trickScores.size();
 
-        if (trickScores.size() >= comboLength) {
+        if (trickScoresSize >= comboLength) {
             bool match = true;
             for (size_t i = 0; i < comboLength; ++i) {
-                if (trickScores[trickScores.size() - comboLength + i].text != comboSequence[i]) {
+                const auto& trick = trickScores[trickScoresSize - comboLength + i].text;
+                if (trick != comboSequence[i]) {
                     match = false;
                     break;
                 }
@@ -462,6 +500,7 @@ static void DrawTonyScores() {
             }
         }
     }
+}
     ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.1f, screenSize.y * 0.6f));
     ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.5f, screenSize.y * 0.5f));
     ImGui::Begin("ScoreRecognitionWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
@@ -483,6 +522,7 @@ static void AddTrickScore(const char* text, float score, float multiplier, int s
     newScore.multiplier = multiplier;
     newScore.styleLetter = styleLetter;
     newScore.timePerformed = std::chrono::steady_clock::now();
+    newScore.isAlreadyRenamed = false;
 
     if (StylePoints::tonyHawk) {
         lastTrickTime = newScore.timePerformed;
