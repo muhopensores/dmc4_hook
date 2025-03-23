@@ -1,4 +1,4 @@
-#include "StylePoints.hpp"
+﻿#include "StylePoints.hpp"
 
 bool StylePoints::mod_enabled = false;
 bool StylePoints::tonyHawk = false;
@@ -17,11 +17,20 @@ std::vector<TrickScore> trickScores;
 static const float displayDuration = 1.0f;
 static const uint32_t maxScores = 5;
 
+// trick recognition
 static const uint32_t maxTonyScores = UINT32_MAX;
 static const int maxPerRow = 7;
 static const int maxRows = 5;
 static float comboScore = 0.0f;
 static std::chrono::steady_clock::time_point lastTrickTime = std::chrono::steady_clock::now();
+
+// combo recognition
+static std::string lastProcessedTrick = "";
+static const float trickDisplayDuration = 2.0f;
+static std::string detectedCombo = "";
+static float comboPopupFade = 0.0f;
+static bool comboMatched = false;
+static std::chrono::steady_clock::time_point lastMatchTime = std::chrono::steady_clock::now();
 
 const char* GetStyleChar(int styleNum) {
     switch (styleNum) {
@@ -55,21 +64,22 @@ std::unordered_map<std::string, std::string> textLookupTable = {
     // trickster
     {"TS-ehsuc",        "Mustang"},
     // rebellion
-    {"REBE-combo303",   "Reb A1"},
-    {"REBE-combo304",   "Reb A2"},
-    {"REBE-combo305",   "Reb A3"},
+    {"REBE-combo303",   "Rebellion A1"},
+    {"REBE-combo304",   "Rebellion A2"},
+    {"REBE-combo305",   "Rebellion A3"},
     {"REBE-stings",     "Stinger"},
     {"REBE-sting",      "Stinger Hit"},
     {"REBE-stab",       "Million Stab"},
+	{"REBE-roundt",     "Round Trip"},
     {"REBE-hightime",   "High Time"},
     {"REBE-combo306-1", "Reb B1-1"},
     {"REBE-combo306-2", "Reb B1-2"},
     {"REBE-combo306-3", "Reb B1-3"},
     {"REBE-combo306-1", "Reb B1-1"},
-    {"REBE-stabf",      "Reb B2"},
-    {"REBE-helmbrkLV1", "Low Helm Breaker"},
-    {"REBE-helmbrkLV2", "Medium Helm Breaker"},
-    {"REBE-helmbrkLV3", "High Helm Breaker"},
+    {"REBE-stabf",      "Million Stab End"},
+    {"REBE-helmbrkLV1", "Helm Breaker Lv.1"},
+    {"REBE-helmbrkLV2", "Helm Breaker Lv.2"},
+    {"REBE-helmbrkLV3", "Helm Breaker Lv.3"},
     {"REBE-helmbrkf",   "Helm Breaker Landing"},
     {"REBE-DTstg1",     "DT Stinger"},
     {"REBE-DTstg2",     "DT Stinger"},
@@ -80,34 +90,96 @@ std::unordered_map<std::string, std::string> textLookupTable = {
     {"REBE-props1",     "Prop"},
     {"REBE-props20",    "Shredder"},
     {"REBE-props21",    "Shredder"},
-    {"REBE-dm363",      "Macabre 1"},
-    {"REBE-dm365",      "Macabre 2"},
-    {"REBE-dm366",      "Macabre 3"},
-    {"REBE-dm367",      "Macabre 4"},
-    {"REBE-dm368-1",    "Macabre 5-1"},
-    {"REBE-dm368-2",    "Macabre 5-2"},
-    {"REBE-dm368-3",    "Macabre 5-3"},
-    {"REBE-dm369",      "Macabre Stab"},
-    {"REBE-dm370",      "Macabre 7"},
-    {"REBE-dm371",      "Macabre 8"},
-    {"REBE-dm372-1",    "Macabre 9"},
-    {"REBE-dm364",      "Macabre End"},
-    {"REBE-arial353",   "Rave 1"},
-    {"REBE-arial354",   "Rave 2"},
-    {"REBE-arial355",   "Rave 3"},
-    {"REBE-arial356",   "Rave 4"},
+    {"REBE-dm363",      "Dance Macabre 1"},
+    {"REBE-dm365",      "Dance Macabre 2"},
+    {"REBE-dm366",      "Dance Macabre 3"},
+    {"REBE-dm367",      "Dance Macabre 4"},
+    {"REBE-dm368-1",    "Dance Macabre 5-1"},
+    {"REBE-dm368-2",    "Dance Macabre 5-2"},
+    {"REBE-dm368-3",    "Dance Macabre 5-3"},
+    {"REBE-dm369",      "Dance Macabre Stab"},
+    {"REBE-dm370",      "Dance Macabre 7"},
+    {"REBE-dm371",      "Dance Macabre 8"},
+    {"REBE-dm372-1",    "Dance Macabre 9"},
+    {"REBE-dm364",      "Dance Macabre End"},
+    {"REBE-arial353",   "Aerial Rave 1"},
+    {"REBE-arial354",   "Aerial Rave 2"},
+    {"REBE-arial355",   "Aerial Rave 3"},
+    {"REBE-arial356",   "Aerial Rave 4"},
+	{"REBE-drivesw1",	"Drive"},
+	{"REBE-drive1",		"Drive"},
+	{"REBE-drive1-2",	"Drive Lv.2"},
+	{"REBE-drive1-3",	"Drive Lv.3"},
+	{"REBE-drivesw2",	"Overdrive"},
+	{"REBE-drive2",		"Overdrive"},
+	{"REBE-drive2-2",	"Overdrive Lv.2"},
+	{"REBE-drive2-3",	"Overdrive Lv.3"},
+	{"REBE-drivesw3",	"Drive"},
+	{"REBE-drive3",		"Overdrive"},
+	{"REBE-drive3-2",	"Overdrive Lv.2"},
+	{"REBE-drive3-3",	"Overdrive Lv.3"},
+	{"REBE-qdrive",		"Quick Drive"},
     // gilgamesh
+	{"GIL-rblaze",      "Flush"},
+	{"GIL-rblaze-f",    "Flush"},
+	{"GIL-rblaze-b",    "Flush"},
     {"GIL-klbe",        "Full House"},
+	{"GIL-combo403",    "Gilgamesh A1"},
+	{"GIL-combo404",    "Gilgamesh A2"},
+	{"GIL-combo405",    "Gilgamesh A3"},
+	{"GIL-combo406",    "Gilgamesh A4"},
+	{"GIL-combo407",    "Gilgamesh B1"},
+	{"GIL-combo409-1",  "Gilgamesh B2"},
+	{"GIL-combo409-2",  "Gilgamesh B2"},
+	{"GIL-straight422", "Straight"},
+	{"GIL-straight2",   "Straight Lv.2"},
+	{"GIL-straight3",   "Straight Lv.3"},
+	{"GIL-k13r-01",     "Kick 13"},
+	{"GIL-k13r-02",     "Kick 13"},
+	{"GIL-k13r-03",     "Kick 13"},
+	{"GIL-k13r-04",     "Kick 13"},
+	{"GIL-k13r-05",     "Kick 13"},
+	{"GIL-k13rDT-01",   "Kick 13 DT"},
+	{"GIL-k13rDT-02",   "Kick 13 DT"},
+	{"GIL-k13rDT-03",   "Kick 13 DT"},
+	{"GIL-k13rDT-04",   "Kick 13 DT"},
+	{"GIL-k13rDT-05",   "Kick 13 DT"},
+	{"GIL-k13rDT-06",   "Kick 13 DT"},
     // gilgamesh swordmaster
+	{"GIL-mgdv450",  	"Beast Uppercut"},
+	{"GIL-rgdg460",  	"Rising Dragon"},
+	{"GIL-dvdg461",  	"Divine Dragon"},
+	{"GIL-dvdg462",  	"Divine Dragon"},
+	{"GIL-dvdg462",  	"Divine Dragon"},
+	{"GIL-rlimpct-01",  "Real Impact"},
+	{"GIL-rlimpct-02",  "Real Impact"},
+	{"GIL-rlimpct-03",  "Real Impact"},
+	{"GIL-inferno451",  "Shock"},
+	{"GIL-inferno470",  "Shock Lv.1"},
+	{"GIL-inferno471",  "Shock Lv.2"},
 
     // lucifer
     {"NORMAL",          "Embed"}, // pins and pandora's normal shot
     {"Bomb",            "Pin Explosion"},
     {"ROSE",            "Rose"},
+	{"LUCI-combo503",   "Lucifer A1"},
+	{"LUCI-combo504",   "Lucifer A2"},
+	{"LUCI-combo505",   "Lucifer A3"},
+	{"LUCI-combo506",   "Lucifer A4"},
+	{"LUCI-combo506-2", "Lucifer A4"},
+	{"LUCI-combo519", 	"Lucifer B1"},
+	{"LUCI-combo519-2", "Lucifer B1"},
+	{"LUCI-combo508", 	"Lucifer E1"},
+	{"LUCI-combo509", 	"Lucifer E2"},
+	{"LUCI-combo510-1", "Lucifer E3"},
+	{"LUCI-combo510-2", "Lucifer E3"},
     {"LUCI-combo514-1", "Splash"},
     {"LUCI-combo514-2", "Splash"},
     {"LUCI-combo514-3", "Splash"},
     // lucifer swordmaster
+	{"funnel", 			"Discipline & Bondage"},
+	{"Stand",  			"Climax"},
+	{"BombBariier",  	"Climax"},
 
     // e&i
     {"SHL000",          "E&I Shot"},
@@ -123,52 +195,67 @@ std::unordered_map<std::string, std::string> textLookupTable = {
     {"RAIN_STORM_LEN3", "Rainstorm"},
     {"DT_RAIN_STORM",   "DT Rainstorm"},
     {"DT_RAIN_STORM_L", "DT Rainstorm"},
+	{"TWO_SOMETIME",    "Twosome Time"},
+    {"TWO_SOMETIME_L2", "Twosome Time"},
+    {"TWO_SOMETIME_L3", "Twosome Time"},
+	{"DT_TWO_SOMETIME", "DT Twosome Time"},
 
     // coyote
-    {"NRML_ETC_LV1",    "Coyote Pellet"},
-    {"NRML_CEN_LV1",    "Coyote Pellet"},
-    {"NRML_ETC_LV2",    "Coyote Pellet"},
-    {"NRML_CEN_LV2",    "Coyote Pellet"},
-    {"NRML_ETC_LV3",    "Coyote Pellet"},
-    {"NRML_CEN_LV3",    "Coyote Pellet"},
+    {"NRML_ETC_LV1",    "Coyote"},
+    {"NRML_CEN_LV1",    "Coyote"},
+    {"NRML_ETC_LV2",    "Coyote"},
+    {"NRML_CEN_LV2",    "Coyote"},
+    {"NRML_ETC_LV3",    "Coyote"},
+    {"NRML_CEN_LV3",    "Coyote"},
+	{"BACK_ETC_LV1",    "Backslide"},
+	{"BACK_CEN_LV1",    "Backslide"},
+	{"BACK_ETC_LV2",    "Backslide"},
+	{"BACK_CEN_LV2",    "Backslide"},
+	{"BACK_ETC_LV3",    "Backslide"},
+	{"BACK_CEN_LV3",    "Backslide"},
     // coyote gunslinger
 
     // pandora
-    {"MACHINEGUN",      "Gatling Shot"},
-    {"MACHINEGUN_LV2",  "Gatling Shot"},
-    {"MACHINEGUN_LV3",  "Gatling Shot"},
-    {"DT_MGUN",         "Gatling Shot"},
-    {"DT_MGUN_LV2",     "Gatling Shot"},
-    {"DT_MGUN_LV3",     "Gatling Shot"},
+    {"MACHINEGUN",      "Jealousy"},
+    {"MACHINEGUN_LV2",  "Jealousy"},
+    {"MACHINEGUN_LV3",  "Jealousy"},
+    {"DT_MGUN",         "DT Jealousy"},
+    {"DT_MGUN_LV2",     "DT Jealousy"},
+    {"DT_MGUN_LV3",     "DT Jealousy"},
+	{"PDR-ma666s",  	"Omen"},
+	{"PDR-ma666s",  	"Omen"},
+	{"BOM_NOR",         "Epidemic"},
+	{"BOM_NOR2",        "Hatred"},
+	{"NORMAL03",        "Revenge"},
+	{"BOOMERANG",       "Grief"},
+	{"METEOR",        	"Argument"},
+	{"BOM_METEOR",      "Argument"},
+	
     // pandora gunslinger
 
     // yamato
+	{"YMT-combo1003",   "Yamato A1"},
+	{"YMT-combo1004",   "Yamato A2"},
+	{"YMT-combo1005",   "Yamato A3"},
     {"YMT-combo1006-1", "Yamato Rave 1"},
     {"YMT-combo1006-2", "Yamato Rave 1"},
     {"YMT-combo1007",   "Yamato Rave 2"},
+	{"kuukan",   		"Slash Dimension"},
 };
 
-bool newTrickAdded() {
-    static size_t lastSize = 0;
-    size_t currentSize = trickScores.size();
-
-    if (currentSize != lastSize) {
-        lastSize = currentSize;
-        return true;
-    }
-    return false;
-}
+static const std::map<std::vector<std::string>, std::string> comboNames = {
+    {{"High Time", "Aerial Rave 1", "Aerial Rave 2", "Aerial Rave 3", "Aerial Rave 4"}, "Very Creative!"},
+    {{"E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot", "E&I Shot"}, "Ok Man!"},
+};
 
 // update names on visual thread rather than have the game wait on lookups i think this is better
 static void UpdateTrickScores() {
     size_t previousSize = trickScores.size();
-    if (newTrickAdded()) {
-        for (auto& score : trickScores) { // can't get just the most recent because it might change mid call
-            std::string scoreText = score.text;
-            auto it = textLookupTable.find(scoreText);
-            if (it != textLookupTable.end()) {
-                score.text = it->second.c_str();
-            }
+    for (auto& score : trickScores) { // can't get just the most recent because it might change mid call
+        std::string scoreText = score.text;
+        auto it = textLookupTable.find(scoreText);
+        if (it != textLookupTable.end()) {
+            score.text = it->second.c_str();
         }
     }
 }
@@ -176,12 +263,13 @@ static void UpdateTrickScores() {
 static void DrawTrickScores() {
     if (devil4_sdk::get_local_player()) {
         UpdateTrickScores();
-        ImGui::SetNextWindowPos(ImVec2(devil4_sdk::get_sRender()->xRes * 0.6f, devil4_sdk::get_sRender()->yRes * 0.4f));
-        ImGui::SetNextWindowSize(ImVec2(devil4_sdk::get_sRender()->xRes * 0.3f, devil4_sdk::get_sRender()->yRes * 0.3f));
+        auto now = std::chrono::steady_clock::now();
+        ImVec2 screenSize = ImVec2((float)devil4_sdk::get_sRender()->xRes, (float)devil4_sdk::get_sRender()->yRes);
+        ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.6f, screenSize.y * 0.4f));
+        ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.3f, screenSize.y * 0.3f));
         ImGui::Begin("TrickScoresWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
         ImGui::SetWindowFontScale(2.0f);
         float fontSize = ImGui::GetFontSize();
-        auto now = std::chrono::steady_clock::now();
 
         for (uint16_t i = 0; i < trickScores.size(); ++i) {
             TrickScore& score = trickScores[i];
@@ -229,25 +317,24 @@ static void DrawTrickScores() {
 static void DrawTonyScores() {
     auto* player = devil4_sdk::get_local_player();
     if (!player) return;
-
+    ImVec2 screenSize = ImVec2((float)devil4_sdk::get_sRender()->xRes, (float)devil4_sdk::get_sRender()->yRes);
     UpdateTrickScores();
     auto now = std::chrono::steady_clock::now();
-    
+
+    // trick recognition
     float elapsedSinceLastTrick = std::chrono::duration<float>(now - lastTrickTime).count();
     bool turbo = devil4_sdk::get_sMediator()->turboEnabled;
     float speedMultiplier = turbo ? 1.2f : 1.0f; // why is true first its 0 1 ffs
-    
+
     float fade = 1.0f - (elapsedSinceLastTrick * speedMultiplier);
 
     if (fade <= 0.0f) {
         trickScores.clear();
         comboScore = 0.0f;
-        return;
     }
 
-    if (trickScores.empty()) return;
-    ImGui::SetNextWindowPos(ImVec2(devil4_sdk::get_sRender()->xRes * 0.0f, devil4_sdk::get_sRender()->yRes * 0.8f));
-    ImGui::SetNextWindowSize(ImVec2(devil4_sdk::get_sRender()->xRes * 1.0f, devil4_sdk::get_sRender()->yRes * 0.2f));
+    ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.0f, screenSize.y * 0.8f));
+    ImGui::SetNextWindowSize(ImVec2(screenSize.x * 1.0f, screenSize.y * 0.2f));
     ImGui::Begin("TrickScoresWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
 
     static std::random_device rd;
@@ -280,7 +367,8 @@ static void DrawTonyScores() {
 
         if (score.text == lastTrick) {
             repeatCount++;
-        } else {
+        }
+        else {
             if (!lastTrick.empty()) {
                 orderedTricks.emplace_back(lastTrick, repeatCount);
             }
@@ -312,9 +400,9 @@ static void DrawTonyScores() {
     }
 
     ImVec4 scoreColor(GetStyleColor(lastScore.styleLetter).x,
-                      GetStyleColor(lastScore.styleLetter).y,
-                      GetStyleColor(lastScore.styleLetter).z,
-                      fade);
+        GetStyleColor(lastScore.styleLetter).y,
+        GetStyleColor(lastScore.styleLetter).z,
+        fade);
 
     char scoreText[32];
     snprintf(scoreText, sizeof(scoreText), "%.1f", comboScore);
@@ -351,6 +439,68 @@ static void DrawTonyScores() {
         ImGui::PopStyleColor();
     }
     ImGui::End();
+
+    // Combo recognition
+    float elapsedSinceLastMatch = std::chrono::duration<float>(now - lastMatchTime).count();
+    float fadeAlpha = 1.0f - (elapsedSinceLastMatch * speedMultiplier);
+
+    if (!trickScores.empty()) {
+        const std::string& latestTrick = trickScores.back().text;
+        if (lastProcessedTrick != latestTrick) {
+            lastProcessedTrick = latestTrick;
+        }
+    }
+    for (const auto& combo : comboNames) {
+        const std::vector<std::string>& comboSequence = combo.first;
+        size_t comboLength = comboSequence.size();
+
+        if (trickScores.size() >= comboLength) {
+            bool match = true;
+            for (size_t i = 0; i < comboLength; ++i) {
+                if (trickScores[trickScores.size() - comboLength + i].text != comboSequence[i]) {
+                    match = false;
+                    break;
+                }
+            }
+
+            if (match) {
+                detectedCombo = combo.second;
+                lastMatchTime = std::chrono::steady_clock::now();
+                comboMatched = true;
+                fadeAlpha = 1.0f;
+                break;
+            }
+        }
+    }
+    ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.1f, screenSize.y * 0.6f));
+    ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.5f, screenSize.y * 0.5f));
+    ImGui::Begin("ScoreRecognitionWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
+    ImGui::SetWindowFontScale(1.5f);
+    if (fadeAlpha > 0.0f) {
+        ImVec4 comboColor(1.0f, 1.0f, 0.0f, fadeAlpha);
+        ImGui::PushStyleColor(ImGuiCol_Text, comboColor);
+        ImGui::Text("%s", detectedCombo.c_str());
+        ImGui::PopStyleColor();
+    }
+    else {
+        comboMatched = false;
+    }
+
+    ImGui::End();
+
+    // Debug display for trickScores
+    /*ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+    ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.3f, screenSize.y * 1.0f));
+    ImGui::Begin("TrickScoresDebug", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
+    ImGui::SetWindowFontScale(1.0f);
+
+    ImGui::Text("Trick Scores:");
+    for (const auto& trick : trickScores) {
+        ImGui::Text("%s", trick.text.c_str());
+    }
+    ImGui::Text("Last Trick: %s", lastProcessedTrick.c_str());
+    ImGui::Text("Combo Matched: %s", comboMatched ? "Yes" : "No");
+    ImGui::End();*/
 }
 
 static void AddTrickScore(const char* text, float score, float multiplier, int styleLetter) {
