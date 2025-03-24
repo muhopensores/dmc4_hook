@@ -168,54 +168,51 @@ std::optional<std::string> AreaJump::on_initialize() {
     utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_OEM_4 }, "Restart BP stage", "bp_restart_stage_hotkey");
     utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_OEM_6 }, "Next BP stage", "bp_next_stage_hotkey");
 
-    console->system().RegisterCommand("skip", "Skip current BP stage", [this, s_area_ptr]() {
+    console->system().RegisterCommand("skip", "Skip current BP stage", [this]() {
         if (devil4_sdk::get_local_player()) {
             if (devil4_sdk::get_sMediator()->missionID == 50){ // always shows 50 for BP
-                jump_to_stage(bp_stage(++(s_area_ptr->aGamePtr->bp_floor)));
+                jump_to_stage(bp_stage(++(devil4_sdk::get_sArea()->aGamePtr->bp_floor)));
             }
 	    }
     });
 
-    console->system().RegisterCommand("bp", "Jump to BP stage",
-        [this, s_area_ptr](int value) {
+    console->system().RegisterCommand("bp", "Jump to BP stage", [this](int value) {
         if (devil4_sdk::get_local_player()) {
             if (devil4_sdk::get_sMediator()->missionID == 50) { // always shows 50 for BP
                 if (value <= 101 && value >= 1){
-                    jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor = value));
+                    jump_to_stage(bp_stage(devil4_sdk::get_sArea()->aGamePtr->bp_floor = value));
                 }
                 else {
-                spdlog::error("Invalid Stage ID");
+                    spdlog::error("Invalid Stage ID");
                 }
             }
         }
-        }, 
-        csys::Arg<int>("0-101"));
+    }, csys::Arg<int>("0-101"));
 
     // damn cant overload commands distingueshed by arguments alone 
-    console->system().RegisterCommand("roomi", "Jump to room ID", [s_area_ptr](int value) {
+    console->system().RegisterCommand("roomi", "Jump to room ID", [](int value) {
         if (devil4_sdk::get_local_player()) {
             if (is_valid_room_id(value)) {
-                s_area_ptr->aGamePtr->room_id = value;
-                s_area_ptr->aGamePtr->init_jump = 1;
+                devil4_sdk::get_sArea()->aGamePtr->room_id = value;
+                devil4_sdk::get_sArea()->aGamePtr->init_jump = 1;
             }
             else {
                 spdlog::error("Invalid Room ID");
             }
         }
-        }, 
-        csys::Arg<int>("0-811"));
+    }, csys::Arg<int>("0-811"));
 
-    console->system().RegisterCommand("rooma", "Jump to room name", [s_area_ptr](csys::String value) {
+    console->system().RegisterCommand("rooma", "Jump to room name", [](csys::String value) {
         if (devil4_sdk::get_local_player()) {
             if (const Room* proom = find_room_by_name(value)) {
-                s_area_ptr->aGamePtr->room_id = proom->id;
-                s_area_ptr->aGamePtr->init_jump = 1;
+                devil4_sdk::get_sArea()->aGamePtr->room_id = proom->id;
+                devil4_sdk::get_sArea()->aGamePtr->init_jump = 1;
             }
             else {
                 spdlog::error("Invalid Room Name");
             }
         }
-        }, csys::Arg<csys::String>("ASCI room name, case insensitive"));
+    }, csys::Arg<csys::String>("ASCI room name, case insensitive"));
 
 	return Mod::on_initialize();
 }

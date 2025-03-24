@@ -8,6 +8,7 @@ public:
 
     static bool mod_enabled;
     static uintptr_t jmp_ret1;
+    static uintptr_t jmp_ret2;
     static bool tonyHawk;
 
     std::string get_mod_name() override { return "StylePoints"; };
@@ -19,5 +20,5 @@ public:
     void on_gui_frame() override;
 
 private:
-    std::unique_ptr<FunctionHook> hook1;
+    std::unique_ptr<FunctionHook> hook1, hook2;
 };

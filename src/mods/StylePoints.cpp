@@ -3,6 +3,7 @@
 bool StylePoints::mod_enabled = false;
 bool StylePoints::tonyHawk = false;
 uintptr_t StylePoints::jmp_ret1 = NULL;
+uintptr_t StylePoints::jmp_ret2 = NULL;
 
 struct TrickScore {
     std::string text;
@@ -61,230 +62,616 @@ ImVec4 GetStyleColor(int styleNum) {
     }
 }
 
-std::unordered_map<std::string, std::string> textLookupTable = {
+static std::unordered_map<std::string, std::string> textLookupTable = {
     // trickster
-    {"TS-ehsuc",        "Mustang"},
+    {"TS-ehsuc",         "Mustang"},
+
     // rebellion
-    {"REBE-combo303",   "Rebellion Combo A"},
-    {"REBE-combo304",   "Rebellion Combo A"},
-    {"REBE-combo305",   "Rebellion Combo A"},
-    {"REBE-stings",     "Stinger"},
-    {"REBE-sting",      "Stinger Hit"},
-    {"REBE-stab",       "Million Stab"},
-	{"REBE-roundt",     "Round Trip"},
-    {"REBE-hightime",   "High Time"},
-    {"REBE-combo306-1", "Rebellion Combo B"},
-    {"REBE-combo306-2", "Rebellion Combo B"},
-    {"REBE-combo306-3", "Rebellion Combo B"},
-    {"REBE-combo306-1", "Rebellion Combo B"},
-    {"REBE-stabf",      "Million Stab End"},
-    {"REBE-helmbrkLV1", "Helm Breaker Lv.1"},
-    {"REBE-helmbrkLV2", "Helm Breaker Lv.2"},
-    {"REBE-helmbrkLV3", "Helm Breaker Lv.3"},
-    {"REBE-helmbrkf",   "Helm Breaker"},
-    {"REBE-DTstg1",     "DT Stinger"},
-    {"REBE-DTstg2",     "DT Stinger"},
-    {"REBE-DTstg3",     "DT Stinger"},
-    {"REBE-DTstg4",     "DT Stinger"},
-    {"REBE-DTstg5",     "DT Stinger"},
+    {"REBE-combo303",    "Rebellion Combo A"}, // A1
+    {"REBE-combo304",    "Rebellion Combo A"}, // A2
+    {"REBE-combo305",    "Rebellion Combo A"}, // A3
+    {"REBE-stings",      "Stinger"},
+    {"REBE-sting",       "Stinger Hit"},
+    {"REBE-stab",        "Million Stab"},
+	{"REBE-roundt",      "Round Trip"},
+    {"REBE-hightime",    "High Time"},
+    {"REBE-combo306-1",  "Rebellion Combo B"},
+    {"REBE-combo306-2",  "Rebellion Combo B"},
+    {"REBE-combo306-3",  "Rebellion Combo B"},
+    {"REBE-stabf",       "Million Stab End"},
+    {"REBE-helmbrkLV1",  "Helm Breaker Lv.1"},
+    {"REBE-helmbrkLV2",  "Helm Breaker Lv.2"},
+    {"REBE-helmbrkLV3",  "Helm Breaker Lv.3"},
+    {"REBE-helmbrkf",    "Helm Breaker"},
+    {"REBE-DTstg1",      "DT Stinger"},
+    {"REBE-DTstg2",      "DT Stinger"},
+    {"REBE-DTstg3",      "DT Stinger"},
+    {"REBE-DTstg4",      "DT Stinger"},
+    {"REBE-DTstg5",      "DT Stinger"},
+
     // rebellion swordmaster
-    {"REBE-props1",     "Prop"},
-    {"REBE-props20",    "Shredder"},
-    {"REBE-props21",    "Shredder"},
-    {"REBE-dm363",      "Dance Macabre"},
-    {"REBE-dm365",      "Dance Macabre"},
-    {"REBE-dm366",      "Dance Macabre"},
-    {"REBE-dm367",      "Dance Macabre"},
-    {"REBE-dm368-1",    "Dance Macabre"},
-    {"REBE-dm368-2",    "Dance Macabre"},
-    {"REBE-dm368-3",    "Dance Macabre"},
-    {"REBE-dm369",      "Dance Macabre"},
-    {"REBE-dm370",      "Dance Macabre"},
-    {"REBE-dm371",      "Dance Macabre"},
-    {"REBE-dm372-1",    "Dance Macabre"},
-    {"REBE-dm364",      "Dance Macabre"},
-    {"REBE-arial353",   "Aerial Rave"},
-    {"REBE-arial354",   "Aerial Rave"},
-    {"REBE-arial355",   "Aerial Rave"},
-    {"REBE-arial356",   "Aerial Rave"},
-	{"REBE-drivesw1",	"Drive"},
-	{"REBE-drive1",		"Drive"},
-	{"REBE-drive1-2",	"Drive Lv.2"},
-	{"REBE-drive1-3",	"Drive Lv.3"},
-	{"REBE-drivesw2",	"Overdrive"},
-	{"REBE-drive2",		"Overdrive"},
-	{"REBE-drive2-2",	"Overdrive Lv.2"},
-	{"REBE-drive2-3",	"Overdrive Lv.3"},
-	{"REBE-drivesw3",	"Drive"},
-	{"REBE-drive3",		"Overdrive"},
-	{"REBE-drive3-2",	"Overdrive Lv.2"},
-	{"REBE-drive3-3",	"Overdrive Lv.3"},
-	{"REBE-qdrive",		"Quick Drive"},
+    {"REBE-props1",      "Prop"},
+    {"REBE-props20",     "Shredder"},
+    {"REBE-props21",     "Shredder"},
+    {"REBE-dm363",       "Dance Macabre"}, // 1
+    {"REBE-dm365",       "Dance Macabre"}, // 2
+    {"REBE-dm366",       "Dance Macabre"}, // 3
+    {"REBE-dm367",       "Dance Macabre"}, // 4
+    {"REBE-dm368-1",     "Dance Macabre"}, // 5-1
+    {"REBE-dm368-2",     "Dance Macabre"}, // 5-2
+    {"REBE-dm368-3",     "Dance Macabre"}, // 5-3
+    {"REBE-dm369",       "Dance Macabre"}, // stab
+    {"REBE-dm370",       "Dance Macabre"}, // 7
+    {"REBE-dm371",       "Dance Macabre"}, // 8
+    {"REBE-dm372-1",     "Dance Macabre"}, // 9
+    {"REBE-dm364",       "Dance Macabre"}, // End
+    {"REBE-arial353",    "Aerial Rave"}, // 1
+    {"REBE-arial354",    "Aerial Rave"}, // 2
+    {"REBE-arial355",    "Aerial Rave"}, // 3
+    {"REBE-arial356",    "Aerial Rave"}, // 4
+	{"REBE-drivesw1",	 "Drive"},
+	{"REBE-drive1",		 "Drive"},
+	{"REBE-drive1-2",	 "Drive Lv.2"},
+	{"REBE-drive1-3",	 "Drive Lv.3"},
+	{"REBE-drivesw2",	 "Overdrive"},
+	{"REBE-drive2",		 "Overdrive"},
+	{"REBE-drive2-2",	 "Overdrive Lv.2"},
+	{"REBE-drive2-3",	 "Overdrive Lv.3"},
+	{"REBE-drivesw3",	 "Drive"},
+	{"REBE-drive3",		 "Overdrive"},
+	{"REBE-drive3-2",	 "Overdrive Lv.2"},
+	{"REBE-drive3-3",	 "Overdrive Lv.3"},
+	{"REBE-qdrive",		 "Quick Drive"},
+
     // gilgamesh
-	{"GIL-rblaze",      "Flush"},
-	{"GIL-rblaze-f",    "Flush"},
-	{"GIL-rblaze-b",    "Flush"},
-    {"GIL-klbe",        "Full House"},
-	{"GIL-combo403",    "Gilgamesh Combo A"},
-	{"GIL-combo404",    "Gilgamesh Combo A"},
-	{"GIL-combo405",    "Gilgamesh Combo A"},
-	{"GIL-combo406",    "Gilgamesh Combo A"},
-	{"GIL-combo407",    "Gilgamesh Combo B"},
-	{"GIL-combo409-1",  "Gilgamesh Combo B"},
-	{"GIL-combo409-2",  "Gilgamesh Combo B"},
-	{"GIL-straight422", "Straight"},
-	{"GIL-straight2",   "Straight Lv.2"},
-	{"GIL-straight3",   "Straight Lv.3"},
-	{"GIL-k13r-01",     "Kick 13"},
-	{"GIL-k13r-02",     "Kick 13"},
-	{"GIL-k13r-03",     "Kick 13"},
-	{"GIL-k13r-04",     "Kick 13"},
-	{"GIL-k13r-05",     "Kick 13"},
-	{"GIL-k13rDT-01",   "Kick 13 DT"},
-	{"GIL-k13rDT-02",   "Kick 13 DT"},
-	{"GIL-k13rDT-03",   "Kick 13 DT"},
-	{"GIL-k13rDT-04",   "Kick 13 DT"},
-	{"GIL-k13rDT-05",   "Kick 13 DT"},
-	{"GIL-k13rDT-06",   "Kick 13 DT"},
+	{"GIL-rblaze",       "Flush"},
+	{"GIL-rblaze-f",     "Flush"},
+	{"GIL-rblaze-b",     "Flush"},
+    {"GIL-klbe",         "Full House"},
+	{"GIL-combo403",     "Gilgamesh Combo A"}, // A1
+    {"GIL-combo464",     "Gilgamesh Combo A Lv.2"}, // A1 Lv.2
+    {"GIL-combo465",     "Gilgamesh Combo A Lv.3"}, // A1 Lv.3
+	{"GIL-combo404",     "Gilgamesh Combo A"}, // A2
+    {"GIL-combo466",     "Gilgamesh Combo A Lv.2"}, // A2 Lv.2
+    {"GIL-combo467",     "Gilgamesh Combo A Lv.3"}, // A2 Lv.3
+	{"GIL-combo405",     "Gilgamesh Combo A"}, // A3
+    {"GIL-combo476",     "Gilgamesh Combo A Lv.2"}, // A3 Lv.2
+    {"GIL-combo477",     "Gilgamesh Combo A Lv.3"}, // A3 Lv.3
+	{"GIL-combo406",     "Gilgamesh Combo A"}, // A4
+    {"GIL-combo478",     "Gilgamesh Combo A Lv.2"}, // A4 Lv.2
+    {"GIL-combo479",     "Gilgamesh Combo A Lv.3"}, // A4 Lv.3
+	{"GIL-combo407",     "Gilgamesh Combo B"}, // B1 (kick spam)
+    {"GIL-combo480",     "Gilgamesh Combo B Lv.2"}, // B1 Lv.2
+    {"GIL-combo481",     "Gilgamesh Combo B Lv.3"}, // B1 Lv.3
+	{"GIL-combo409-1",   "Gilgamesh Combo B"}, // B2-1
+	{"GIL-combo409-2",   "Gilgamesh Combo B"}, // B2-2
+    {"GIL-combo482-1",   "Gilgamesh Combo B Lv.2"}, // B2-1 Lv.2
+    {"GIL-combo482-2",   "Gilgamesh Combo B Lv.2"}, // B2-2 Lv.2
+    {"GIL-combo483-1",   "Gilgamesh Combo B Lv.3"}, // B2-1 Lv.3
+    {"GIL-combo483-2",   "Gilgamesh Combo B Lv.3"}, // B2-2 Lv.3
+	{"GIL-straight422",  "Straight"},
+	{"GIL-straight2",    "Straight Lv.2"},
+	{"GIL-straight3",    "Straight Lv.3"},
+	{"GIL-k13r-01",      "Kick 13"},
+	{"GIL-k13r-02",      "Kick 13"},
+	{"GIL-k13r-03",      "Kick 13"},
+	{"GIL-k13r-04",      "Kick 13"},
+	{"GIL-k13r-05",      "Kick 13"},
+	{"GIL-k13rDT-01",    "Kick 13 DT"},
+	{"GIL-k13rDT-02",    "Kick 13 DT"},
+	{"GIL-k13rDT-03",    "Kick 13 DT"},
+	{"GIL-k13rDT-04",    "Kick 13 DT"},
+	{"GIL-k13rDT-05",    "Kick 13 DT"},
+	{"GIL-k13rDT-06",    "Kick 13 DT"},
+
     // gilgamesh swordmaster
-	{"GIL-mgdv450",  	"Beast Uppercut"},
-	{"GIL-rgdg460",  	"Rising Dragon"},
-	{"GIL-dvdg461",  	"Divine Dragon"},
-	{"GIL-dvdg462",  	"Divine Dragon"},
-	{"GIL-dvdg462",  	"Divine Dragon"},
-	{"GIL-rlimpct-01",  "Real Impact"},
-	{"GIL-rlimpct-02",  "Real Impact"},
-	{"GIL-rlimpct-03",  "Real Impact"},
-	{"GIL-inferno451",  "Shock"},
-	{"GIL-inferno470",  "Shock Lv.1"},
-	{"GIL-inferno471",  "Shock Lv.2"},
+	{"GIL-mgdv450",  	 "Beast Uppercut"},
+	{"GIL-rgdg460",  	 "Rising Dragon"},
+	{"GIL-dvdg461",  	 "Divine Dragon"},
+	{"GIL-dvdg462",  	 "Divine Dragon"},
+	{"GIL-rlimpct-01",   "Real Impact"},
+	{"GIL-rlimpct-02",   "Real Impact"},
+	{"GIL-rlimpct-03",   "Real Impact"},
+	{"GIL-inferno451",   "Shock"},
+	{"GIL-inferno470",   "Shock Lv.2"},
+	{"GIL-inferno471",   "Shock Lv.3"},
 
     // lucifer
-    {"NORMAL",          "Embed"}, // pins and pandora's normal shot
-    {"Bomb",            "Pin Explosion"},
-    {"ROSE",            "Rose"},
-	{"LUCI-combo503",   "Lucifer A1"},
-	{"LUCI-combo504",   "Lucifer A2"},
-	{"LUCI-combo505",   "Lucifer A3"},
-	{"LUCI-combo506",   "Lucifer A4"},
-	{"LUCI-combo506-2", "Lucifer A4"},
-	{"LUCI-combo519-1", "Lucifer B1"},
-	{"LUCI-combo519-2", "Lucifer B1"},
-	{"LUCI-combo508", 	"Lucifer E1"},
-	{"LUCI-combo509", 	"Lucifer E2"},
-	{"LUCI-combo510-1", "Lucifer E3"},
-	{"LUCI-combo510-2", "Lucifer E3"},
-    {"LUCI-combo514-1", "Splash"},
-    {"LUCI-combo514-2", "Splash"},
-    {"LUCI-combo514-3", "Splash"},
-    // lucifer swordmaster
-	{"funnel", 			"Discipline & Bondage"},
-	{"Stand",  			"Climax"},
-	{"BombBariier",  	"Climax"},
+    {"NORMAL",           "Embed"}, // pins and pandora's normal shot
+    {"Bomb",             "Pin Explosion"},
+    {"ROSE",             "Rose"},
+	{"LUCI-combo503",    "Lucifer A1"},
+	{"LUCI-combo504",    "Lucifer A2"},
+	{"LUCI-combo505",    "Lucifer A3"},
+	{"LUCI-combo506-1",  "Lucifer A4"},
+    {"LUCI-combo506-2",  "Lucifer A4"},
+	{"LUCI-combo519-1",  "Lucifer B1"},
+	{"LUCI-combo519-2",  "Lucifer B1"},
+	{"LUCI-combo508", 	 "Lucifer E1"},
+	{"LUCI-combo509", 	 "Lucifer E2"},
+	{"LUCI-combo510-1",  "Lucifer E3"},
+	{"LUCI-combo510-2",  "Lucifer E3"},
+    {"LUCI-combo514-1",  "Splash"},
+    {"LUCI-combo514-2",  "Splash"},
+    {"LUCI-combo514-3",  "Splash"},
 
+    // lucifer swordmaster
+	{"Funnel", 			 "Discipline & Bondage"},
+	{"Stand",  			 "Climax"},
+	{"BombBariier",  	 "Climax"},
 
     // e&i
-    {"SHL000",          "E&I"},
-    {"SHL00-LEN2",      "E&I"},
-    {"SHL00_LEN3",      "E&I"},
-    {"CHARGE",          "Charged E&I"},
-    {"CHARGE_LEN2",     "Charged E&I"},
-    {"CHARGE_LEN3",     "Charged E&I"},
+    {"SHL000",           "E&I"},
+    {"SHL00-LEN2",       "E&I"},
+    {"SHL00_LEN3",       "E&I"},
+    {"CHARGE",           "Charged E&I"},
+    {"CHARGE_LEN2",      "Charged E&I"},
+    {"CHARGE_LEN3",      "Charged E&I"},
 
     // e&i gunslinger
-    {"RAIN_STORM",      "Rainstorm"},
-    {"RAIN_STORM_LEN2", "Rainstorm"},
-    {"RAIN_STORM_LEN3", "Rainstorm"},
-    {"DT_RAIN_STORM",   "Rainstorm DT"},
-    {"DT_RAIN_STORM_L", "Rainstorm DT"},
-	{"TWO_SOMETIME",    "Twosome Time"},
-    {"TWO_SOMETIME_L2", "Twosome Time"},
-    {"TWO_SOMETIME_L3", "Twosome Time"},
-	{"DT_TWO_SOMETIME", "Twosome Time DT"},
+    {"RAIN_STORM",       "Rainstorm"},
+    {"RAIN_STORM_LEN2",  "Rainstorm"},
+    {"RAIN_STORM_LEN3",  "Rainstorm"},
+    {"DT_RAIN_STORM",    "Rainstorm DT"},
+    {"DT_RAIN_STORM_L",  "Rainstorm DT"},
+	{"TWO_SOMETIME",     "Twosome Time"},
+    {"TWO_SOMETIME_L2",  "Twosome Time"},
+    {"TWO_SOMETIME_L3",  "Twosome Time"},
+	{"DT_TWO_SOMETIME",  "Twosome Time DT"},
 
     // coyote
-    {"NRML_ETC_LV1",    "Coyote"},
-    {"NRML_CEN_LV1",    "Coyote"},
-    {"NRML_ETC_LV2",    "Coyote"},
-    {"NRML_CEN_LV2",    "Coyote"},
-    {"NRML_ETC_LV3",    "Coyote"},
-    {"NRML_CEN_LV3",    "Coyote"},
-	{"CHRG_ETC_LV1",    "Coyote DT"},
-    {"CHRG_CEN_LV1",    "Coyote DT"},
-    {"CHRG_ETC_LV2",    "Coyote DT"},
-    {"CHRG_CEN_LV2",    "Coyote DT"},
-    {"CHRG_ETC_LV3",    "Coyote DT"},
-    {"CHRG_CEN_LV3",    "Coyote DT"},
+    {"NRML_ETC_LV1",     "Coyote"},
+    {"NRML_CEN_LV1",     "Coyote"},
+    {"NRML_ETC_LV2",     "Coyote"},
+    {"NRML_CEN_LV2",     "Coyote"},
+    {"NRML_ETC_LV3",     "Coyote"},
+    {"NRML_CEN_LV3",     "Coyote"},
+	{"CHRG_ETC_LV1",     "Coyote DT"},
+    {"CHRG_CEN_LV1",     "Coyote DT"},
+    {"CHRG_ETC_LV2",     "Coyote DT"},
+    {"CHRG_CEN_LV2",     "Coyote DT"},
+    {"CHRG_ETC_LV3",     "Coyote DT"},
+    {"CHRG_CEN_LV3",     "Coyote DT"},
 
     // coyote gunslinger
-	{"BACK_ETC_LV1",    "Backslide"},
-	{"BACK_CEN_LV1",    "Backslide"},
-	{"BACK_ETC_LV2",    "Backslide"},
-	{"BACK_CEN_LV2",    "Backslide"},
-	{"BACK_ETC_LV3",    "Backslide"},
-	{"BACK_CEN_LV3",    "Backslide"},
-	{"NCHA_STR_LVL1",   "Fireworks"},
-	{"NCHA_STR_LVL2",   "Fireworks"},
-	{"NCHA_STR_LVL3",   "Fireworks"},
-	{"NCHA_WEK_LVL1",   "Fireworks"},
-	{"NCHA_WEK_LVL2",   "Fireworks"},
-	{"NCHA_WEK_LVL3",   "Fireworks"},
-	{"STG-gunstinger",  "Gun Stinger"},
-	{"STNG_ETC_LV1",    "Gun Stinger"},
-	{"STNG_CEN_LV1",    "Gun Stinger"},
-	{"STNG_ETC_LV2",    "Gun Stinger"},
-	{"STNG_CEN_LV2",    "Gun Stinger"},
-	{"STNG_ETC_LV3",    "Gun Stinger"},
-	{"STNG_CEN_LV3",    "Gun Stinger"},
-	{"DTST_ETC_LV1",    "Gun Stinger DT"},
-	{"DTST_CEN_LV1",    "Gun Stinger DT"},
-	{"DTST_ETC_LV2",    "Gun Stinger DT"},
-	{"DTST_CEN_LV2",    "Gun Stinger DT"},
-	{"DTST_ETC_LV3",    "Gun Stinger DT"},
-	{"DTST_CEN_LV3",    "Gun Stinger DT"},
+	{"BACK_ETC_LV1",     "Backslide"},
+	{"BACK_CEN_LV1",     "Backslide"},
+	{"BACK_ETC_LV2",     "Backslide"},
+	{"BACK_CEN_LV2",     "Backslide"},
+	{"BACK_ETC_LV3",     "Backslide"},
+	{"BACK_CEN_LV3",     "Backslide"},
+    {"DTBC_ETC_LV1",     "Backslide DT"},
+    {"DTBC_CEN_LV1",     "Backslide DT"},
+    {"DTBC_ETC_LV2",     "Backslide DT"},
+    {"DTBC_CEN_LV2",     "Backslide DT"},
+    {"DTBC_ETC_LV3",     "Backslide DT"},
+    {"DTBC_CEN_LV3",     "Backslide DT"},
+	{"NCHA_STR_LV1",     "Fireworks"},
+	{"NCHA_STR_LV2",     "Fireworks"},
+	{"NCHA_STR_LV3",     "Fireworks"},
+	{"NCHA_WEK_LV1",     "Fireworks"},
+	{"NCHA_WEK_LV2",     "Fireworks"},
+	{"NCHA_WEK_LV3",     "Fireworks"},
+	{"DTNC_STR_LV1",     "Fireworks DT"},
+	{"DTNC_STR_LV2",     "Fireworks DT"},
+	{"DTNC_STR_LV3",     "Fireworks DT"},
+	{"DTNC_WEK_LV1",     "Fireworks DT"},
+	{"DTNC_WEK_LV2",     "Fireworks DT"},
+	{"DTNC_WEK_LV3",     "Fireworks DT"},
+	{"STG-gunstinger",   "Gun Stinger"},
+	{"STNG_ETC_LV1",     "Gun Stinger"},
+	{"STNG_CEN_LV1",     "Gun Stinger"},
+	{"STNG_ETC_LV2",     "Gun Stinger"},
+	{"STNG_CEN_LV2",     "Gun Stinger"},
+	{"STNG_ETC_LV3",     "Gun Stinger"},
+	{"STNG_CEN_LV3",     "Gun Stinger"},
+	{"DTST_ETC_LV1",     "Gun Stinger DT"},
+	{"DTST_CEN_LV1",     "Gun Stinger DT"},
+	{"DTST_ETC_LV2",     "Gun Stinger DT"},
+	{"DTST_CEN_LV2",     "Gun Stinger DT"},
+	{"DTST_ETC_LV3",     "Gun Stinger DT"},
+	{"DTST_CEN_LV3",     "Gun Stinger DT"},
 
     // pandora
-    {"MACHINEGUN",      "Jealousy"},
-    {"MACHINEGUN_LV2",  "Jealousy"},
-    {"MACHINEGUN_LV3",  "Jealousy"},
-    {"DT_MGUN",         "Jealousy DT"},
-    {"DT_MGUN_LV2",     "Jealousy DT"},
-    {"DT_MGUN_LV3",     "Jealousy DT"},
-	{"PDR-ma666s",  	"Omen"},
-	{"PDR-ma666s",  	"Omen"},
-	{"BOM_NOR",         "Epidemic"},
-	{"BOM_NOR2",        "Hatred"},
-	{"NORMAL03",        "Revenge"},
-	{"BOOMERANG",       "Grief"},
-	{"METEOR",        	"Argument"},
-	{"BOM_METEOR",      "Argument"},
+    {"MACHINEGUN",       "Jealousy"},
+    {"MACHINEGUN_LV2",   "Jealousy"},
+    {"MACHINEGUN_LV3",   "Jealousy"},
+    {"DT_MGUN",          "Jealousy DT"},
+    {"DT_MGUN_LV2",      "Jealousy DT"},
+    {"DT_MGUN_LV3",      "Jealousy DT"},
+	{"BOM_NOR",          "Epidemic"},
+    {"NORMAL02",         "Hatred"}, // embed
+	{"BOM_NOR02",        "Hatred"},
+	{"NORMAL03",         "Revenge"},
+    {"PDR-lanc3tf",      "Revenge Hit"}, // physical hit
 	
     // pandora gunslinger
+	{"METEOR",        	 "Argument"},
+	{"BOM_METEOR",       "Argument"},
+	{"PDR-ma666s",  	 "Omen Hit"},
+    {"PDR-ma666e",  	 "Omen Back Hit"}, // behind physical hit
+	{"BOOMERANG",        "Grief"},
 
     // yamato
-	{"YMT-combo1003",   "Yamato Combo A"},
-	{"YMT-combo1004",   "Yamato Combo A"},
-	{"YMT-combo1005",   "Yamato Combo A"},
-    {"YMT-combo1006-1", "Yamato Aerial Rave V"},
-    {"YMT-combo1006-2", "Yamato Aerial Rave V"},
-    {"YMT-combo1007",   "Yamato Aerial Rave V"},
-	{"kuukan",   		"Slash Dimension"},
+	{"YMT-combo1003",    "Yamato Combo A"},
+	{"YMT-combo1004",    "Yamato Combo A"},
+	{"YMT-combo1005",    "Yamato Combo A"},
+    {"YMT-combo1006-1",  "Yamato Aerial Rave V"},
+    {"YMT-combo1006-2",  "Yamato Aerial Rave V"},
+    {"YMT-combo1007",    "Yamato Aerial Rave V"},
+	{"kuukan",   		 "Slash Dimension"},
+//};
+
+//std::unordered_map<std::string, std::string> neroLookupTable = { // uh some things can go off after a char switch
+    {"Grab-Attack",      "Collateral"},     // enemy hit by bustered scarecrow
+    {"Grab-Attack-DT",   "Collateral"},     // enemy hit by bustered scarecrow
+    {"makikomi158",      "Collateral"},     // enemy hit by bustered mega
+    {"BusterBlown",      "Collateral"},     // enemy hit by bustered bianco
+    {"BusterExplosion",  "Collateral"},     // enemy hit by bustered bianco
+    {"D_Buster",         "Collateral"},     // enemy hit by bustered bianco
+    {"BusterImpact",     "Collateral"},     // enemy hit by bustered alto
+    {"Blown",            "Collateral"},     // enemy hit by bustered alto
+    {"Em008-rolled",     "Collateral"},     // enemy hit by bustered mephisto
+    {"Em009-rolled",     "Collateral"},     // enemy hit by bustered faust
+    {"Em010Throw",       "Collateral"},     // enemy hit by bustered frost
+    {"grabed-attack",    "Collateral"},     // enemy hit by bustered assault
+    {"grabed-at-fin",    "Collateral"},     // enemy hit by bustered assault
+    {"ShootNero",        "Collateral"},     // enemy hit by bustered basilisk
+    {"ShootNeroAir",     "Collateral"},     // enemy hit by bustered basilisk
+    {"BusterThrow",      "Collateral"},     // enemy hit by bustered gladius
+    {"D_BusterSlash",    "Collateral"},     // enemy hit by bustered gladius (dt)
+
+    {"?O?",              "Hold Block"},     // enemy hit by bustered assault // idk the actual string for this
+
+    // scarecrow
+    {"Em000",            "Scarecrow Buster"}, // non dt
+    {"Em000_1",          "Scarecrow Buster"}, // dt ground
+    {"Em000_2",          "Scarecrow Buster"}, // dt air
+
+    // mega
+    {"Em003",            "Mega Buster"},
+    {"Em003_0",          "Mega Buster"},
+    {"Em003_1",          "Mega Buster"},
+    {"Em003_2",          "Mega Buster"},
+    {"Em003_3",          "Mega Buster"},
+    {"BUS-Em003",        "Mega Buster"},
+
+    // bianco
+    {"Em005",            "Bianco Buster"},
+    {"Em005_2",          "Bianco Buster"},
+    {"Em005_3",          "Bianco Buster"},
+    {"Em005_4",          "Bianco Buster"},
+    {"BusterThrust",     "Bianco Buster"},
+    {"Em005Majin",       "Bianco Buster"},
+    {"Em005Majin_2",     "Bianco Buster"},
+    {"Em005Majin_3",     "Bianco Buster"},
+    {"Em005Majin_4",     "Bianco Buster"},
+
+    // alto
+    {"Em006",            "Alto Buster"},
+    {"Em006_2",          "Alto Buster"},
+    {"Em006Majin",       "Alto Buster"},
+    {"Em006Majin_2",     "Alto Buster"},
+    {"Em006Majin_3",     "Alto Buster"},
+    {"Em006Flip",        "Nice Try"}, // if alto jumps back when you buster
+
+    // mephisto
+    {"Em008",            "Mephisto Buster"},
+    {"Em008_2",          "Mephisto Buster"},
+    {"Em008_3",          "Mephisto Buster"},
+
+    // faust
+    {"Em009",            "Faust Buster"},
+    {"Em009_2",          "Faust Buster"},
+    {"Em009_3",          "Faust Buster"},
+
+    // frost
+    {"Em010Release",     "Frost Buster"},
+    {"Em010WallHit",     "Frost Buster"},
+
+    // assault
+    {"Em011Grab",        "Assault Buster"},
+    {"Em011Grab_Fin",    "Assault Buster"},
+
+    // blitz
+    {"BUS-Em012_Gr_00",  "Blitz Buster"}, // ground
+    {"BUS-Em012_Gr_01",  "Blitz Buster"}, // ground
+    {"BUS-Em012_Gr_02",  "Blitz Buster"}, // ground
+    {"BUS-Em012_Gr_03",  "Blitz Buster"}, // ground
+    {"BUS-Em012_Gr_04",  "Blitz Buster"}, // ground
+    {"BUS-Em012_Gr_05",  "Blitz Buster"}, // ground
+    {"BUS-Em012_Gr_06",  "Blitz Buster"}, // ground
+    {"BUS-Em012_Gr_07",  "Blitz Buster"}, // ground
+    {"BUS-Em012_Ai_01",  "Blitz Buster"}, // air
+    {"BUS-Em012_Ai_02",  "Blitz Buster"}, // air
+    {"BUS-Em012_Ai_03",  "Blitz Buster"}, // air
+    {"BUS-Em012_Ai_04",  "Blitz Buster"}, // air
+    {"BUS-Em012_Ai_05",  "Blitz Buster"}, // air
+    {"BUS-Em012_Ai_06",  "Blitz Buster"}, // air
+    {"BUS-Em012_Ai_07",  "Blitz Buster"}, // air
+
+    // chimera seed
+    {"Em013",            "Chimera Seed Buster"},
+
+    // cutlass
+    {"Em015",            "Cutlass Buster"},
+
+    // gladius
+    {"Em016",            "Gladius Buster"},
+
+    // basilisk
+    {"Em017",            "Basilisk Buster"},
+
+    // berial
+    {"Em018Head",        "Berial Buster"},
+    {"Em018Leg",         "Berial Buster"},
+    {"Em018Leg2",        "Berial Buster"},
+    {"Em018Head_maji",   "Berial Buster"},
+    {"Em018Head_maji2",  "Berial Buster"},
+    {"Em018Down_maji",   "Berial Buster"},
+    {"Em018Down_maji2",  "Berial Buster"},
+
+    // frog
+    {"Em019Tail",        "Frog Buster"},
+    {"Em019Tail2",       "Frog Buster"},
+    {"Em019TailMaj",     "Frog Buster"},
+    {"Em019TailMaj2",    "Frog Buster"},
+    {"Em019Ranbu",       "Frog Buster"},
+    {"Em019Ranbu2",      "Frog Buster"},
+    {"Em019Ranbu3",      "Frog Buster"},
+    {"Em019Ranbu4",      "Frog Buster"},
+    {"Em019Ranbu5",      "Frog Buster"},
+    {"Em019Ranbu6",      "Frog Buster"},
+    {"Em019Ranbu7",      "Frog Buster"},
+    {"Em019Ranbu8",      "Frog Buster"},
+    {"Em019Ranbu9",      "Frog Buster"},
+    {"Em019RanbuMaj",    "Frog Buster"},
+    {"Em019RanbuMaj2",   "Frog Buster"},
+    {"Em019RanbuMaj3",   "Frog Buster"},
+    {"Em019RanbuMaj4",   "Frog Buster"},
+    {"Em019RanbuMaj5",   "Frog Buster"},
+    {"Em019RanbuMaj6",   "Frog Buster"},
+    {"Em019RanbuMaj7",   "Frog Buster"},
+    {"Em019RanbuMaj8",   "Frog Buster"},
+    {"Em019RanbuMaj9",   "Frog Buster"},
+    {"Em019RanbuMaj10",  "Frog Buster"},
+    {"Em019RanbuMaj12",  "Frog Buster"},
+    {"Em019RanbuMaj13",  "Frog Buster"},
+    {"Em019RanbuMaj14",  "Frog Buster"},
+
+    // echidna
+    {"Em021Norm1",       "Echidna Buster"},
+    {"Em021Norm2",       "Echidna Buster"},
+    {"Em021Norm3",       "Echidna Buster"},
+    {"Em021Norm4",       "Echidna Buster"},
+    {"Em021Norm6",       "Echidna Buster"},
+    {"Em021Norm8",       "Echidna Buster"},
+    {"Em021Norm_Ryu1",   "Echidna Buster"},
+    {"Em021Norm_Ryu2",   "Echidna Buster"},
+    {"Em021Norm_Ryu3",   "Echidna Buster"},
+    {"Em021Norm_Ryu4",   "Echidna Buster"},
+    {"Em021Norm_Ryu6",   "Echidna Buster"},
+    {"BUS-Em021_Bl00",   "Echidna Buster"},
+    {"BUS-Em021_Bl01",   "Echidna Buster"},
+    {"BUS-Em021_Bl02",   "Echidna Buster"},
+    {"BUS-Em021_Bl03",   "Echidna Buster"},
+    {"BUS-Em021_Bl04",   "Echidna Buster"},
+    {"BUS-Em021_Bl05",   "Echidna Buster"},
+    {"BUS-Em021_Bl06",   "Echidna Buster"},
+    {"BUS-Em021_Bl07",   "Echidna Buster"},
+    {"Em021Maji1",       "Echidna Buster"},
+    {"Em021Maji2",       "Echidna Buster"},
+    {"Em021Maji3",       "Echidna Buster"},
+    {"Em021Maji4",       "Echidna Buster"},
+    {"Em021Maji6",       "Echidna Buster"},
+    {"Em021Maji8",       "Echidna Buster"},
+
+    // credo
+    {"SpearBuster_PL",   "Credo Buster"},
+    {"BUS-Em022_Flip",   "Credo Buster"},
+    {"BUS-Em022_00",     "Credo Buster"},
+    {"BUS-Em022_01",     "Credo Buster"},
+    {"BUS-Em022_02",     "Credo Buster"},
+    {"BUS-Em022_03",     "Credo Buster"},
+    {"BUS-Em022_04",     "Credo Buster"},
+    {"BUS-Em022_Mj_00",  "Credo Buster"},
+    {"BUS-Em022_Mj_01",  "Credo Buster"},
+    {"BUS-Em022_Mj_02",  "Credo Buster"},
+    {"BUS-Em022_Mj_03",  "Credo Buster"},
+    {"BUS-Em022_Mj_04",  "Credo Buster"},
+
+    // agnus
+    {"BusterLoop",       "Agnus Buster"},
+    {"Sword",            "Agnus Buster"},
+    {"EM023Norm1",       "Agnus Buster"},
+    {"EM023Norm2",       "Agnus Buster"},
+    {"EM023Norm3",       "Agnus Buster"},
+    {"EM023Norm4",       "Agnus Buster"},
+    {"EM023Norm5",       "Agnus Buster"},
+    {"EM023Norm6",       "Agnus Buster"},
+    {"Em023Majin1",      "Agnus Buster"},
+    {"Em023Majin2",      "Agnus Buster"},
+    {"Em023Majin3",      "Agnus Buster"},
+    {"Em023Majin4",      "Agnus Buster"},
+    {"Em023Majin5",      "Agnus Buster"},
+    {"Em023Majin6",      "Agnus Buster"},
+    {"Em023Majin7",      "Agnus Buster"},
+
+    // dante
+    {"EmDanteMaj",       "Agnus Buster"},
+    {"EmDanteMajAir",    "Agnus Buster"},
+    {"EmDanteMajFin",    "Agnus Buster"},
+    {"EmDanteNorm",      "Agnus Buster"},
+
+    // red queen
+    {"RED-ComboA_00",    "Red Queen Combo A"},
+    {"RED-ComboA_01",    "Red Queen Combo A"},
+    {"RED-ComboA_02",    "Red Queen Combo A"},
+    {"RED-ComboA_03",    "Red Queen Combo A"},
+    {"RED-ComboB_00",    "Red Queen Combo B"},
+    {"RED-ComboB_01",    "Red Queen Combo B"},
+    {"RED-ComboB_02_A",  "Red Queen Combo B"},
+    {"RED-ComboB_02_B",  "Red Queen Combo B"},
+    {"RED-ComboB_02_C",  "Red Queen Combo B"},
+    {"RED-ComboB_03",    "Red Queen Combo B"},
+    {"RED-ComboB_04",    "Red Queen Combo B"},
+    {"RED-ComboC_00",    "Red Queen Combo C"},
+    {"RED-ComboC_01",    "Red Queen Combo C"},
+    {"RED-ComboC_02",    "Red Queen Combo C"},
+    {"RED-ComboC_03",    "Red Queen Combo C"},
+    {"RED-ComboC_04",    "Red Queen Combo C"},
+    {"RED-ComboD_00",    "Red Queen Combo D"},
+    {"RED-Streak",       "Streak"},
+    {"RED-StreEX_00",    "EX Streak"},
+    {"RED-StreEX_01",    "EX Streak"},        // no clarification on ex2 or 3
+    {"RED-Highro",       "High Roller"},      
+    {"RED-HighroEX_00",  "EX High Roller"},   // grounded 1, 2, 3
+    {"RED-HighroEX_01",  "EX High Roller"},   // aerial      2
+    {"RED-HighroEX_03",  "EX High Roller"},   // grounded    2, 3
+    {"RED-HighroEX_04",  "EX High Roller"},   // grounded       3
+    {"RED-HighroEX_05",  "EX High Roller"},   // aerial      2, 3
+    {"RED-HighroEX_06",  "EX High Roller"},   // aerial      2
+    {"RED-Split_00",     "Split"},            // aerial
+    {"RED-Split_01",     "Split"},            // grounded
+    {"RED-SplitEX_00",   "EX Split"},         // 1, 2, 3
+    {"RED-SplitEX_01",   "EX Split"},         // 1
+    {"RED-SplitEX_02",   "EX Split"},         //    2
+    {"RED-SplitEX_03",   "EX Split"},         //       3
+    {"RED-Surren_00",    "Shuffle"},
+    {"RED-Surren_01",    "Shuffle"},          // weak hit
+    {"RED-SureenEX_00",  "EX Shuffle"},       // EX1
+    {"RED-SureenEX_02",  "EX Shuffle"},       // EX1
+    {"RED-SureenEX_02",  "EX Shuffle"},       // EX1
+    {"RED-SureenEX_04",  "EX Shuffle"},       // EX2
+    {"RED-SureenEX_06",  "EX Shuffle"},       // EX2
+    {"RED-SureenEX_08",  "EX Shuffle"},       // EX3
+    {"RED-SureenEX_10",  "EX Shuffle"},       // EX3
+    {"RED-AirStre_00",   "Calibur"},         
+    {"RED-AirStEX_00",   "EX Calibur"},       // EX1
+    {"RED-AirStEX_01",   "EX Calibur"},       // EX1
+    {"RED-AirStEX_02",   "EX Calibur"},       // EX2
+    {"RED-AirStEX_03",   "EX Calibur"},       // EX2
+    {"RED-AirStEX_04",   "EX Calibur"},       // EX3
+    {"RED-AirStEX_05",   "EX Calibur"},       // EX3
+    {"RED-AircombA_00",  "Red Queen Aerial"}, // 1
+    {"RED-AircombA_01",  "Red Queen Aerial"}, // 2
+    {"RED-AircombA_02",  "Red Queen Aerial"}, // 3
+    {"RED-RouletteSpi",  "Roulette Spin"},
+
+    // yamato
+    {"YAM-ComboA_00",    "Red Queen Combo A"},
+    {"YAM-ComboA_01",    "Red Queen Combo A"},
+    {"YAM-ComboA_02",    "Red Queen Combo A"},
+    {"YAM-ComboA_03",    "Red Queen Combo A"},
+    {"YAM-ComboB_00",    "Red Queen Combo B"},
+    {"YAM-ComboB_01",    "Red Queen Combo B"},
+    {"YAM-ComboB_02_A",  "Red Queen Combo B"},
+    {"YAM-ComboB_02_B",  "Red Queen Combo B"},
+    {"YAM-ComboB_02_C",  "Red Queen Combo B"},
+    {"YAM-ComboB_03",    "Red Queen Combo B"},
+    {"YAM-ComboB_04",    "Red Queen Combo B"},
+    {"YAM-ComboC_00",    "Red Queen Combo C"},
+    {"YAM-ComboC_01",    "Red Queen Combo C"},
+    {"YAM-ComboC_02",    "Red Queen Combo C"},
+    {"YAM-ComboC_03",    "Red Queen Combo C"},
+    {"YAM-ComboC_04",    "Red Queen Combo C"},
+    {"YAM-ComboD_00",    "Red Queen Combo D"},
+    {"YAM-Streak",       "Streak"},
+    {"YAM-StreEX_00",    "EX Streak"},
+    {"YAM-StreEX_01",    "EX Streak"},
+    {"YAM-Highro",       "High Roller"},
+    {"YAM-HighroEX_01",  "EX High Roller"},
+    {"YAM-HighroEX_03",  "EX High Roller"},
+    {"YAM-HighroEX_04",  "EX High Roller"},
+    {"YAM-HighroEX_05",  "EX High Roller"},
+    {"YAM-HighroEX_06",  "EX High Roller"},
+    {"YAM-AircombA_00",  "Red Queen Aerial"},
+    {"YAM-AircombA_01",  "Red Queen Aerial"},
+    {"YAM-AircombA_02",  "Red Queen Aerial"},
+    {"YAM-RouletteSpi",  "Roulette Spin"},
+    {"YAM-AirStre_00",   "Calibur"},
+    {"YAM-AirStEX_00",   "EX Calibur"},
+    {"YAM-AirStEX_01",   "EX Calibur"},
+    {"YAM-AirStEX_02",   "EX Calibur"},
+    {"YAM-AirStEX_03",   "EX Calibur"},
+    {"YAM-AirStEX_04",   "EX Calibur"},
+    {"YAM-AirStEX_05",   "EX Calibur"},
+    {"YAM-Surren_00",    "Shuffle"},
+    {"YAM-SureenEX_00",  "EX Shuffle"}, // EX1
+    {"YAM-SureenEX_01",  "EX Shuffle"}, // EX1
+    {"YAM-SureenEX_02",  "EX Shuffle"}, // EX1
+    {"YAM-SureenEX_03",  "EX Shuffle"}, // EX2
+    {"YAM-SureenEX_04",  "EX Shuffle"}, // EX2
+    {"YAM-SureenEX_05",  "EX Shuffle"}, // EX2
+    {"YAM-SureenEX_06",  "EX Shuffle"}, // EX3
+    {"YAM-SureenEX_08",  "EX Shuffle"}, // EX3
+    {"YAM-SureenEX_10",  "EX Shuffle"}, // EX3
+    {"YAM-Split_00",     "Split"},
+    {"YAM-SplitEX_00",   "EX Split"}, // EX1
+    {"YAM-SplitEX_01",   "EX Split"}, // EX2
+    {"YAM-SplitEX_03",   "EX Split"}, // EX3
+
+    // blue rose
+    {"Shoot_1st_Short",  "Blue Rose"},
+    {"Shoot_2nd_short",  "Blue Rose"},
+    {"Shoot_1st_Midd",   "Blue Rose"},
+    {"Shoot_2nd_midd",   "Blue Rose"},
+    {"Shoot_1st_Long",   "Blue Rose"},
+    {"Shoot_2nd_Long",   "Blue Rose"},
+    {"CHARGE_Lv1_Shor",  "Charge Shot 1"},
+    {"CHARGE_Lv1_Midd",  "Charge Shot 1"},
+    {"CHARGE_Lv1_Long",  "Charge Shot 1"},
+    {"CHARGE_Lv2_Shor",  "Charge Shot 2"},
+    {"CHARGE_Lv2_Midd",  "Charge Shot 2"},
+    {"CHARGE_Lv2_Long",  "Charge Shot 2"},
+    {"CHARGE_Lv3_Shor",  "Charge Shot 3"},
+    {"CHARGE_Lv3_Midd",  "Charge Shot 3"},
+    {"CHARGE_Lv3_Long",  "Charge Shot 3"},
+    {"BLU-Bomb_00",      "Charge Shot Bomb"},
+
+    // dt
+    {"D.T-Burst_00",     "DT Activation"},
+    {"D.T-Burst_01",     "DT Activation"},     // weak hit
+    {"D.T-AirBurst_00",  "Air DT Activation"},
+    {"D.T-AirBurst_01",  "Air DT Activation"}, // weak hit
+    {"D.T-Showdown_00",  "Showdown"},
+    {"D.T-Showdown_01",  "Showdown"},
+    {"D.T-Showdown_02",  "Showdown"},
+    {"D.T-Showdown_03",  "Showdown"},
+    {"D.T-Showdown_04",  "Showdown"},
+    {"D.T-Showdown_05",  "Showdown"},
+    {"D.T-Showdown_06",  "Showdown"},
+    {"D.T-Maximum_00",   "Maximum Bet"},      // hit
+    {"Drive",            "Maximum Bet"},      // projectile
+    {"D.T-Maximum_01",   "Maximum Bet Lv.2"}, // hit
+    {"Drive02",          "Maximum Bet Lv.2"}, // projectile
+    {"Genei",            "Summoned Sword"},
+    {"Genei02",          "Charged Summoned Sword"},
 };
 
-static const size_t MAX_TRICK_HISTORY = 12; // Only check the last 12 entries
 static const std::map<std::vector<std::string>, std::string> comboNames = {
     {{"High Time", "Aerial Rave", "Aerial Rave", "Aerial Rave", "Aerial Rave"}, "Very Creative!"},
-    {{"E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I"}, "Ok Man!"},
+    // {{"E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I"}, "Ok Man!"},
+    {{"High Time", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I"}, "Kamiya's Vision!"},
+    {{"Guard", "Guard"}, "Is That A Plane?"},
 };
 
 // update names on visual thread rather than have the game wait on lookups i think this is better
-static void UpdateTrickScores() {
+static void UpdateTrickNames() {
     for (auto& score : trickScores) {
         if (!score.isAlreadyRenamed) {
-            auto it = textLookupTable.find(score.text);
-            if (it != textLookupTable.end()) {
-                score.text = it->second;
-            }
+            //if (devil4_sdk::get_local_player()->controllerID == 0) { // dante
+                auto it = textLookupTable.find(score.text);
+                if (it != textLookupTable.end()) {
+                    score.text = it->second;
+                }
+            //}
+            //else {
+            //    auto it = neroLookupTable.find(score.text);
+            //    if (it != neroLookupTable.end()) {
+            //        score.text = it->second;
+            //    }
+            //}
             score.isAlreadyRenamed = true;
         }
     }
@@ -292,7 +679,7 @@ static void UpdateTrickScores() {
 
 static void DrawTrickScores() {
     if (devil4_sdk::get_local_player()) {
-        UpdateTrickScores();
+        UpdateTrickNames();
         auto now = std::chrono::steady_clock::now();
         ImVec2 screenSize = ImVec2((float)devil4_sdk::get_sRender()->xRes, (float)devil4_sdk::get_sRender()->yRes);
         ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.6f, screenSize.y * 0.4f));
@@ -345,7 +732,7 @@ static void DrawTonyScores() {
     auto* player = devil4_sdk::get_local_player();
     if (!player) return;
     ImVec2 screenSize = ImVec2((float)devil4_sdk::get_sRender()->xRes, (float)devil4_sdk::get_sRender()->yRes);
-    UpdateTrickScores();
+    UpdateTrickNames();
     auto now = std::chrono::steady_clock::now();
 
     // trick recognition
@@ -426,7 +813,7 @@ static void DrawTonyScores() {
         countInRow++;
     }
 
-    ImVec4 currentStyleColor = GetStyleColor(lastScore.styleLetter);
+    ImVec4 currentStyleColor = GetStyleColor(devil4_sdk::get_stylish_count()->current_style_tier);
     ImVec4 scoreColor(currentStyleColor.x, currentStyleColor.y, currentStyleColor.z, fade);
 
     char scoreText[32];
@@ -466,41 +853,46 @@ static void DrawTonyScores() {
     ImGui::End();
 
     // Combo recognition
-float elapsedSinceLastMatch = std::chrono::duration<float>(now - lastMatchTime).count();
-float fadeAlpha = 1.0f - (elapsedSinceLastMatch * speedMultiplier);
+    float elapsedSinceLastMatch = std::chrono::duration<float>(now - lastMatchTime).count();
+    float fadeAlpha = 1.0f - (elapsedSinceLastMatch * speedMultiplier);
 
-if (!trickScores.empty()) {
-    const std::string& latestTrick = trickScores.back().text;
-    if (lastProcessedTrick != latestTrick) {
-        lastProcessedTrick = latestTrick;
+    if (!trickScores.empty()) {
+        const std::string& latestTrick = trickScores.back().text;
+        if (lastProcessedTrick != latestTrick) {
+            lastProcessedTrick = latestTrick;
+        }
     }
-}
 
-if (!trickScores.empty()) {
-    for (const auto& combo : comboNames) {
-        const std::vector<std::string>& comboSequence = combo.first;
-        size_t comboLength = comboSequence.size();
-        size_t trickScoresSize = trickScores.size();
+    if (!trickScores.empty()) {
+        for (const auto& combo : comboNames) {
+            const std::vector<std::string>& comboSequence = combo.first;
+            size_t comboLength = comboSequence.size();
+            size_t trickScoresSize = trickScores.size();
 
-        if (trickScoresSize >= comboLength) {
-            bool match = true;
-            for (size_t i = 0; i < comboLength; ++i) {
-                const auto& trick = trickScores[trickScoresSize - comboLength + i].text;
-                if (trick != comboSequence[i]) {
-                    match = false;
+            if (trickScoresSize >= comboLength) {
+                bool match = true;
+                for (size_t i = 0; i < comboLength; ++i) {
+                    const auto& trick = trickScores[trickScoresSize - comboLength + i].text;
+                    if (trick != comboSequence[i]) {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match) {
+                    detectedCombo = combo.second;
+                    if (combo.second == "Is That A Plane?") {
+                        if (devil4_sdk::get_local_player()->inertia < 20.0f) {
+                            break;
+                        }
+                    }
+                    lastMatchTime = std::chrono::steady_clock::now();
+                    fadeAlpha = 1.0f;
                     break;
                 }
             }
-
-            if (match) {
-                detectedCombo = combo.second;
-                lastMatchTime = std::chrono::steady_clock::now();
-                fadeAlpha = 1.0f;
-                break;
-            }
         }
     }
-}
     ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.1f, screenSize.y * 0.6f));
     ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.5f, screenSize.y * 0.5f));
     ImGui::Begin("ScoreRecognitionWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
@@ -580,12 +972,50 @@ naked void detour1(void) {
         jmp dword ptr [StylePoints::jmp_ret1]
     }
 }
+static const char* guardText = "Guard";
+naked void detour2(void) {
+    _asm {
+        cmp byte ptr [StylePoints::mod_enabled], 1
+        jne originalcode
+
+        push eax
+        push ebx
+        push ecx
+        push edx
+        push esi
+        push edi
+
+        push 0 // style letter
+        push 0x3f800000 // multiplier
+        push 0 // score
+        push guardText // name
+        call AddTrickScore // fucks eax, ecx, edx
+        add esp,0x10 // 4 args
+
+        pop edi
+        pop esi
+        pop edx
+        pop ecx
+        pop ebx
+        pop eax
+
+        originalcode:
+        add [ebp+0x00001504],ebx
+        jmp dword ptr [StylePoints::jmp_ret2]
+    }
+}
 
 std::optional<std::string> StylePoints::on_initialize() {
     if (!install_hook_offset(0x5480F, hook1, &detour1, &jmp_ret1, 5)) {
 		spdlog::error("Failed to init StylePoints mod\n");
 		return "Failed to init StylePoints mod";
 	}
+
+    if (!install_hook_offset(0x3CC13B, hook2, &detour2, &jmp_ret2, 6)) { // called once on air guard start
+		spdlog::error("Failed to init StylePoints mod 2\n");
+		return "Failed to init StylePoints mod 2";
+	}
+
     return Mod::on_initialize();
 }
 
