@@ -4,6 +4,8 @@ bool StylePoints::mod_enabled = false;
 bool StylePoints::tonyHawk = false;
 uintptr_t StylePoints::jmp_ret1 = NULL;
 uintptr_t StylePoints::jmp_ret2 = NULL;
+uintptr_t StylePoints::jmp_ret3 = NULL;
+uintptr_t StylePoints::jmp_ret4 = NULL;
 
 struct TrickScore {
     std::string text;
@@ -15,6 +17,8 @@ struct TrickScore {
 };
 
 std::vector<TrickScore> trickScores;
+static const float baseWidth = 1920.0f;
+static float correctedWindowFontScale = 0.0f;
 
 static const float displayDuration = 1.0f;
 static const uint32_t maxScores = 5;
@@ -45,6 +49,20 @@ const char* GetStyleChar(int styleNum) {
         case 6: return "SS";
         case 7: return "SSS";
         default: return "";
+    }
+}
+
+float GetStyleMultiplier(int styleNum) {
+    switch (styleNum) {
+        case 0: return 1.0f; // E
+        case 1: return 1.5f; // D
+        case 2: return 2.0f; // C
+        case 3: return 2.5f; // B
+        case 4: return 3.0f; // A
+        case 5: return 4.0f; // S
+        case 6: return 4.0f; // SS
+        case 7: return 4.0f; // SSS
+        default: return 0.0f;
     }
 }
 
@@ -320,8 +338,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"ShootNeroAir",     "Collateral"},     // enemy hit by bustered basilisk
     {"BusterThrow",      "Collateral"},     // enemy hit by bustered gladius
     {"D_BusterSlash",    "Collateral"},     // enemy hit by bustered gladius (dt)
-
-    {"?O?",              "Hold Block"},     // enemy hit by bustered assault // idk the actual string for this
+    {"\xA0\x4F\xBE",     "Hold Block"},     // held enemy hit, reads �O�
 
     // scarecrow
     {"Em000",            "Scarecrow Buster"}, // non dt
@@ -685,7 +702,7 @@ static void DrawTrickScores() {
         ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.6f, screenSize.y * 0.4f));
         ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.3f, screenSize.y * 0.3f));
         ImGui::Begin("TrickScoresWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
-        ImGui::SetWindowFontScale(2.0f);
+        ImGui::SetWindowFontScale(correctedWindowFontScale * 2.0f);
         float fontSize = ImGui::GetFontSize();
 
         for (uint16_t i = 0; i < trickScores.size(); ++i) {
@@ -728,9 +745,32 @@ static void DrawTrickScores() {
     }
 }
 
+ImVec4 GetColorBasedOnScore(float score, float bound1, float bound2, float bound3) {
+    if (score < bound1) {
+        return ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // white
+    } else if (score < bound2) {
+        return ImVec4(0.0f, 1.0f, 1.0f, 1.0f); // cyan
+    } else if (score < bound3) {
+        return ImVec4(1.0f, 0.0f, 1.0f, 1.0f); // pink
+    } else {
+        return ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // yellow
+    }
+}
+
+// from white to gold
+ImVec4 GetScoreColor(float score, float min, float max) {
+    float normalizedScore = (score - min) / (max - min);
+    normalizedScore = glm::clamp(normalizedScore, 0.0f, 1.0f);
+    float red = 1.0f;
+    float green = 1.0f - 0.157f * normalizedScore;
+    float blue = 1.0f - 1.0f * normalizedScore;
+    return ImVec4(red, green, blue, 1.0f);
+}
+
 static void DrawTonyScores() {
     auto* player = devil4_sdk::get_local_player();
     if (!player) return;
+    
     ImVec2 screenSize = ImVec2((float)devil4_sdk::get_sRender()->xRes, (float)devil4_sdk::get_sRender()->yRes);
     UpdateTrickNames();
     auto now = std::chrono::steady_clock::now();
@@ -760,9 +800,8 @@ static void DrawTonyScores() {
         shakeAmount = dis(gen);
     }
 
-    float scoreFontBaseScale = 2.0f;
-    float trickFontBaseScale = 1.5f;
-
+    float scoreFontBaseScale = correctedWindowFontScale * 2.0f;
+    float trickFontBaseScale = correctedWindowFontScale * 1.5f;
     float scoreFontScale = scoreFontBaseScale + shakeAmount * 0.1f;
     float trickFontScale = trickFontBaseScale; // + shakeAmount * 0.1f;
 
@@ -777,7 +816,7 @@ static void DrawTonyScores() {
     TrickScore lastScore;
 
     for (const TrickScore& score : trickScores) {
-        comboScore += score.score * 0.1f * score.multiplier;
+        comboScore += score.score * 0.1f; // * score.multiplier;
 
         if (score.text == lastTrick) {
             repeatCount++;
@@ -812,21 +851,31 @@ static void DrawTonyScores() {
         trickLines[rowIndex].push_back(displayText);
         countInRow++;
     }
-
-    ImVec4 currentStyleColor = GetStyleColor(devil4_sdk::get_stylish_count()->current_style_tier);
-    ImVec4 scoreColor(currentStyleColor.x, currentStyleColor.y, currentStyleColor.z, fade);
+    int currentStyleTier = devil4_sdk::get_stylish_count()->current_style_tier;
+    ImVec4 currentStyleColor = GetStyleColor(currentStyleTier);
 
     char scoreText[32];
     snprintf(scoreText, sizeof(scoreText), "%.1f", comboScore);
     float scoreWidth = ImGui::CalcTextSize(scoreText).x;
+
+    char styleTierText[32];
+    snprintf(styleTierText, sizeof(styleTierText), "x%.1f", GetStyleMultiplier(currentStyleTier));
+    float styleTierWidth = ImGui::CalcTextSize(styleTierText).x;
+    float totalWidth = scoreWidth + styleTierWidth + ImGui::CalcTextSize(" ").x;
     float windowWidth = ImGui::GetContentRegionAvail().x;
 
     float scoreShakeAmount = shakeAmount * 1.0f;
-    ImVec2 scorePos = ImVec2((windowWidth - scoreWidth) * 0.5f + scoreShakeAmount, 0.0f + scoreShakeAmount);
+    ImVec2 scorePos = ImVec2((windowWidth - totalWidth) * 0.5f + scoreShakeAmount, 0.0f + scoreShakeAmount);
     ImGui::SetCursorPos(scorePos);
 
-    ImGui::PushStyleColor(ImGuiCol_Text, scoreColor);
+    ImVec4 multiplierColor(currentStyleColor.x, currentStyleColor.y, currentStyleColor.z, fade);
+    ImVec4 scoreColor = GetScoreColor(comboScore, 0.0f, 500.0f);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(scoreColor.x, scoreColor.y, scoreColor.z, fade));
     ImGui::Text("%s", scoreText);
+    ImGui::PopStyleColor();
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, multiplierColor);
+    ImGui::Text("%s", styleTierText);
     ImGui::PopStyleColor();
 
     ImGui::SetWindowFontScale(trickFontScale);
@@ -836,20 +885,36 @@ static void DrawTonyScores() {
     for (int row = 0; row < maxRows; ++row) {
         if (trickLines[row].empty()) continue;
 
-        std::string rowText;
+        float totalWidth = 0.0f;
+        std::vector<std::pair<std::string, ImVec4>> textSegments;
+
         for (size_t i = 0; i < trickLines[row].size(); ++i) {
-            rowText += trickLines[row][i];
-            if (i < trickLines[row].size() - 1) rowText += " + ";
+            float trickScore = trickScores[i].score * orderedTricks[i].second * 0.1f;
+
+            ImVec4 textColor = GetColorBasedOnScore(trickScore, 8.5f, 15.0f, 30.0f);
+
+            textSegments.emplace_back(trickLines[row][i], ImVec4(textColor.x, textColor.y, textColor.z, fade));
+            totalWidth += ImGui::CalcTextSize(trickLines[row][i].c_str()).x;
+
+            if (i < trickLines[row].size() - 1) {
+                textSegments.emplace_back(" + ", ImVec4(1.0f, 1.0f, 1.0f, fade));
+                totalWidth += ImGui::CalcTextSize(" + ").x;
+            }
         }
 
-        float textWidth = ImGui::CalcTextSize(rowText.c_str()).x;
-        ImVec2 trickPos = ImVec2((windowWidth - textWidth) * 0.5f + trickShakeAmount, rowStartY + row * ImGui::GetFontSize() * 1.0f + trickShakeAmount);
-        ImGui::SetCursorPos(trickPos);
+        float startX = (windowWidth - totalWidth) * 0.5f + trickShakeAmount;
+        float posY = rowStartY + row * ImGui::GetFontSize() * 1.0f + trickShakeAmount;
+        float cursorX = startX;
 
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, fade));
-        ImGui::Text("%s", rowText.c_str());
-        ImGui::PopStyleColor();
+        for (const auto& [text, color] : textSegments) {
+            ImGui::SetCursorPos(ImVec2(cursorX, posY));
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            ImGui::TextUnformatted(text.c_str());
+            ImGui::PopStyleColor();
+            cursorX += ImGui::CalcTextSize(text.c_str()).x;
+        }
     }
+
     ImGui::End();
 
     // Combo recognition
@@ -896,7 +961,7 @@ static void DrawTonyScores() {
     ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.1f, screenSize.y * 0.6f));
     ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.5f, screenSize.y * 0.5f));
     ImGui::Begin("ScoreRecognitionWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
-    ImGui::SetWindowFontScale(1.5f);
+    ImGui::SetWindowFontScale(correctedWindowFontScale * 1.5f);
     if (fadeAlpha > 0.0f) {
         ImVec4 comboColor(1.0f, 1.0f, 0.0f, fadeAlpha);
         ImGui::PushStyleColor(ImGuiCol_Text, comboColor);
@@ -1005,6 +1070,71 @@ naked void detour2(void) {
     }
 }
 
+static const char* snatchText = "Snatch";
+naked void detour3(void) {
+    _asm {
+        cmp byte ptr [StylePoints::mod_enabled], 1
+        jne originalcode
+
+        push eax
+        push ebx
+        push ecx
+        push edx
+        push esi
+        push edi
+
+        push 0 // style letter
+        push 0x3f800000 // multiplier
+        push 0 // score
+        push snatchText // name
+        call AddTrickScore // fucks eax, ecx, edx
+        add esp,0x10 // 4 args
+
+        pop edi
+        pop esi
+        pop edx
+        pop ecx
+        pop ebx
+        pop eax
+
+        originalcode:
+        mov dword ptr [ebp+0x00001504],00000002
+        jmp dword ptr [StylePoints::jmp_ret3]
+    }
+}
+
+naked void detour4(void) {
+    _asm {
+        cmp byte ptr [StylePoints::mod_enabled], 1
+        jne originalcode
+
+        push eax
+        push ebx
+        push ecx
+        push edx
+        push esi
+        push edi
+
+        push 0 // style letter
+        push 0x3f800000 // multiplier
+        push 0 // score
+        push snatchText // name
+        call AddTrickScore // fucks eax, ecx, edx
+        add esp,0x10 // 4 args
+
+        pop edi
+        pop esi
+        pop edx
+        pop ecx
+        pop ebx
+        pop eax
+
+        originalcode:
+        mov dword ptr [ebp+0x00001504],00000002
+        jmp dword ptr [StylePoints::jmp_ret4]
+    }
+}
+
 std::optional<std::string> StylePoints::on_initialize() {
     if (!install_hook_offset(0x5480F, hook1, &detour1, &jmp_ret1, 5)) {
 		spdlog::error("Failed to init StylePoints mod\n");
@@ -1014,6 +1144,16 @@ std::optional<std::string> StylePoints::on_initialize() {
     if (!install_hook_offset(0x3CC13B, hook2, &detour2, &jmp_ret2, 6)) { // called once on air guard start
 		spdlog::error("Failed to init StylePoints mod 2\n");
 		return "Failed to init StylePoints mod 2";
+	}
+
+    // would be nice to swap these out with "snatch was successful" call so you can't use it outside of combat
+    if (!install_hook_offset(0x3FA0C9, hook3, &detour3, &jmp_ret3, 10)) { // called once on snatch ground
+		spdlog::error("Failed to init StylePoints mod 3\n");
+		return "Failed to init StylePoints mod 3";
+	}
+    if (!install_hook_offset(0x3FA319, hook4, &detour4, &jmp_ret4, 10)) { // called once on snatch air
+		spdlog::error("Failed to init StylePoints mod 4\n");
+		return "Failed to init StylePoints mod 4";
 	}
 
     return Mod::on_initialize();
@@ -1033,7 +1173,11 @@ void StylePoints::on_gui_frame() {
 
 void StylePoints::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
-        if (tonyHawk) DrawTonyScores();
+        ImVec2 screenSize = ImVec2((float)devil4_sdk::get_sRender()->xRes, (float)devil4_sdk::get_sRender()->yRes);
+        correctedWindowFontScale = (screenSize.x / baseWidth);
+        if (tonyHawk) {
+            DrawTonyScores();
+        }
         else DrawTrickScores();
     }
 }
