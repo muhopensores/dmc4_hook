@@ -889,9 +889,33 @@ static void DrawTonyScores() {
         std::vector<std::pair<std::string, ImVec4>> textSegments;
 
         for (size_t i = 0; i < trickLines[row].size(); ++i) {
-            float trickScore = trickScores[i].score * orderedTricks[i].second * 0.1f;
+            // find the trick in orderedTricks that matches the current display text
+            std::string displayText = trickLines[row][i];
+            // remove the "(x#)" part if it exists
+            size_t multPos = displayText.find(" (x");
+            if (multPos != std::string::npos) {
+                displayText = displayText.substr(0, multPos);
+            }
 
-            ImVec4 textColor = GetColorBasedOnScore(trickScore, 8.5f, 15.0f, 30.0f);
+            // find the trick in orderedTricks
+            int repeatCount = 1;
+            float trickScore = 0.0f;
+            for (size_t j = 0; j < orderedTricks.size(); ++j) {
+                if (orderedTricks[j].first == displayText) {
+                    repeatCount = orderedTricks[j].second;
+                    
+                    // find the original trick score in trickScores
+                    for (const TrickScore& score : trickScores) {
+                        if (score.text == displayText) {
+                            trickScore = score.score * 0.1f;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+
+            ImVec4 textColor = GetColorBasedOnScore(trickScore * repeatCount, 8.5f, 15.0f, 30.0f);
 
             textSegments.emplace_back(trickLines[row][i], ImVec4(textColor.x, textColor.y, textColor.z, fade));
             totalWidth += ImGui::CalcTextSize(trickLines[row][i].c_str()).x;
@@ -929,6 +953,7 @@ static void DrawTonyScores() {
     }
 
     if (!trickScores.empty()) {
+        // Combo detection
         for (const auto& combo : comboNames) {
             const std::vector<std::string>& comboSequence = combo.first;
             size_t comboLength = comboSequence.size();
@@ -937,22 +962,18 @@ static void DrawTonyScores() {
             if (trickScoresSize >= comboLength) {
                 bool match = true;
                 for (size_t i = 0; i < comboLength; ++i) {
-                    const auto& trick = trickScores[trickScoresSize - comboLength + i].text;
-                    if (trick != comboSequence[i]) {
+                    if (trickScores[trickScoresSize - comboLength + i].text != comboSequence[i]) {
                         match = false;
                         break;
                     }
                 }
 
                 if (match) {
-                    detectedCombo = combo.second;
-                    if (combo.second == "Is That A Plane?") {
-                        if (devil4_sdk::get_local_player()->inertia < 20.0f) {
-                            break;
-                        }
+                    if (combo.second == "Is That A Plane?" && devil4_sdk::get_local_player()->inertia <= 20.0f) {
+                        continue;
                     }
+                    detectedCombo = combo.second;
                     lastMatchTime = std::chrono::steady_clock::now();
-                    fadeAlpha = 1.0f;
                     break;
                 }
             }
