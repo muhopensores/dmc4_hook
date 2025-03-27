@@ -314,14 +314,14 @@ void CameraSettings::toggle_attack_towards_cam(bool toggle) {
         
         install_patch_offset(camera_towards_auto_correct1, attack_towards_cam_patch1, "\xE9\x21\x03\x00\x00\x90", 6);
 
-        //install_patch_offset(camera_towards_auto_correct1, attack_towards_cam_patch1, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-        //install_patch_offset(camera_towards_auto_correct2, attack_towards_cam_patch2, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-        //install_patch_offset(camera_towards_auto_correct3, attack_towards_cam_patch3, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+        // install_patch_offset(camera_towards_auto_correct1, attack_towards_cam_patch1, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+        // install_patch_offset(camera_towards_auto_correct2, attack_towards_cam_patch2, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+        // install_patch_offset(camera_towards_auto_correct3, attack_towards_cam_patch3, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
     }
     else {
         attack_towards_cam_patch1.reset();
-        //attack_towards_cam_patch2.reset();
-        //attack_towards_cam_patch3.reset();
+        // attack_towards_cam_patch2.reset();
+        // attack_towards_cam_patch3.reset();
     }
 }
 
@@ -378,8 +378,8 @@ void CameraSettings::toggle_camera_lockon_corrects(bool toggle) {
         install_patch_offset(0x1A402, camera_lockon_corrects_patch1, "\x90\x90\x90\x90\x90\x90", 6);
         install_patch_offset(0x1A27B, camera_lockon_corrects_patch2, "\xEB\x09", 2);
     } else {
-        camera_lockon_corrects_patch1.reset();
-        camera_lockon_corrects_patch2.reset();
+        camera_lockon_corrects_patch1.reset(); // push eax, call DevilMayCry4_DX9.exe+1F120
+        camera_lockon_corrects_patch2.reset(); // jna DevilMayCry4_DX9.exe+1A286
     }
 }
 

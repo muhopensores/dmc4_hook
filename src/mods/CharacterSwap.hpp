@@ -9,6 +9,7 @@ public:
     static bool mod_enabled;
     static bool prefer_dante;
     static uintptr_t jmp_ret;
+    static uintptr_t jmp_ret2;
     static uintptr_t jmp_jne;
 
     void toggle(bool enable);
@@ -25,6 +26,6 @@ public:
 private:
     std::unique_ptr<Patch> patch1;
     std::unique_ptr<Patch> patch2;
-    std::unique_ptr<Patch> patch3;
     std::unique_ptr<FunctionHook> hook;
+    std::unique_ptr<FunctionHook> hook2;
 };

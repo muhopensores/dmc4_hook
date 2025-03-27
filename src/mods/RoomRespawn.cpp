@@ -218,4 +218,3 @@ void RoomRespawn::on_gui_frame()
 // handle some window message, return true to pass to the game window
 // or false to drop it.
 //bool ModName::onMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) { return true; };
-

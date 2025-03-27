@@ -665,7 +665,7 @@ static const uint32_t maxScores = 5;
 // trick recognition
 static const uint32_t maxTonyScores = UINT32_MAX;
 static int maxPerRow = 7;
-static int maxRows = 3;
+static int maxRows = 5;
 static float comboScore = 0.0f;
 static std::chrono::steady_clock::time_point lastTrickTime = std::chrono::steady_clock::now();
 
