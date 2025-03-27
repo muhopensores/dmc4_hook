@@ -7,11 +7,13 @@ public:
     StylePoints() = default;
 
     static bool mod_enabled;
+    static bool originalNames;
     static uintptr_t jmp_ret1;
     static uintptr_t jmp_ret2;
     static uintptr_t jmp_ret3;
     static uintptr_t jmp_ret4;
     static bool tonyHawk;
+    static bool moreGrouping;
 
     std::string get_mod_name() override { return "StylePoints"; };
     std::optional<std::string> on_initialize() override;

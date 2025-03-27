@@ -660,6 +660,8 @@ namespace gui {
                     pmods->on_draw_ui("PinTimer"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("RedOrbCompletion"_hash);
+                    
+                    pmods->on_draw_ui("StylePoints"_hash); // needs its own line
 
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -690,8 +692,6 @@ namespace gui {
                     pmods->on_draw_ui("BpPortal"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("SlowWalk"_hash);
-
-                    pmods->on_draw_ui("StylePoints"_hash); // needs its own line
 
                     ImGui::Spacing();
                     ImGui::Separator();

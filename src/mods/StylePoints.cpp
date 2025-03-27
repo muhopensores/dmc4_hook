@@ -2,83 +2,12 @@
 
 bool StylePoints::mod_enabled = false;
 bool StylePoints::tonyHawk = false;
+bool StylePoints::moreGrouping = false; 
+bool StylePoints::originalNames = false;
 uintptr_t StylePoints::jmp_ret1 = NULL;
 uintptr_t StylePoints::jmp_ret2 = NULL;
 uintptr_t StylePoints::jmp_ret3 = NULL;
 uintptr_t StylePoints::jmp_ret4 = NULL;
-
-struct TrickScore {
-    std::string text;
-    bool isAlreadyRenamed = false;
-    float score = 0.0f;
-    float multiplier = 0.0f;
-    int styleLetter = 0;
-    std::chrono::time_point<std::chrono::steady_clock> timePerformed = std::chrono::steady_clock::now();
-};
-
-std::vector<TrickScore> trickScores;
-static const float baseWidth = 1920.0f;
-static float correctedWindowFontScale = 0.0f;
-
-static const float displayDuration = 1.0f;
-static const uint32_t maxScores = 5;
-
-// trick recognition
-static const uint32_t maxTonyScores = UINT32_MAX;
-static const int maxPerRow = 7;
-static const int maxRows = 5;
-static float comboScore = 0.0f;
-static std::chrono::steady_clock::time_point lastTrickTime = std::chrono::steady_clock::now();
-
-// combo recognition
-static std::string lastProcessedTrick = "";
-static const float trickDisplayDuration = 2.0f;
-static std::string detectedCombo = "";
-static float comboPopupFade = 0.0f;
-static bool comboMatched = false;
-static std::chrono::steady_clock::time_point lastMatchTime = std::chrono::steady_clock::now();
-
-const char* GetStyleChar(int styleNum) {
-    switch (styleNum) {
-        case 0: return "E";
-        case 1: return "D";
-        case 2: return "C";
-        case 3: return "B";
-        case 4: return "A";
-        case 5: return "S";
-        case 6: return "SS";
-        case 7: return "SSS";
-        default: return "";
-    }
-}
-
-float GetStyleMultiplier(int styleNum) {
-    switch (styleNum) {
-        case 0: return 1.0f; // E
-        case 1: return 1.5f; // D
-        case 2: return 2.0f; // C
-        case 3: return 2.5f; // B
-        case 4: return 3.0f; // A
-        case 5: return 4.0f; // S
-        case 6: return 4.0f; // SS
-        case 7: return 4.0f; // SSS
-        default: return 0.0f;
-    }
-}
-
-ImVec4 GetStyleColor(int styleNum) {
-    switch (styleNum) {
-    case 0: return { 242 / 255.0f, 242 / 255.0f, 242 / 255.0f, 0.0f }; // E, same as D
-    case 1: return { 242 / 255.0f, 242 / 255.0f, 242 / 255.0f, 0.0f }; // D
-    case 2: return {  53 / 255.0f, 203 / 255.0f, 244 / 255.0f, 0.0f }; // C
-    case 3: return { 213 / 255.0f,  92 / 255.0f,  15 / 255.0f, 0.0f }; // B
-    case 4: return { 245 / 255.0f,  68 / 255.0f,  46 / 255.0f, 0.0f }; // A
-    case 5: return { 234 / 255.0f,  56 / 255.0f,  58 / 255.0f, 0.0f }; // S
-    case 6: return { 234 / 255.0f,  56 / 255.0f,  58 / 255.0f, 0.0f }; // SS
-    case 7: return { 234 / 255.0f,  56 / 255.0f,  58 / 255.0f, 0.0f }; // SSS
-    default: return { 0.0f, 0.0f, 0.0f, 0.0f };
-    }
-}
 
 static std::unordered_map<std::string, std::string> textLookupTable = {
     // trickster
@@ -670,33 +599,148 @@ static const std::map<std::vector<std::string>, std::string> comboNames = {
     {{"High Time", "Aerial Rave", "Aerial Rave", "Aerial Rave", "Aerial Rave"}, "Very Creative!"},
     // {{"E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I"}, "Ok Man!"},
     {{"High Time", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I"}, "Kamiya's Vision!"},
-    {{"Guard", "Guard"}, "Is That A Plane?"},
+    {{"Guardfly", "Guardfly"}, "Is That A Plane?"},
 };
 
-// update names on visual thread rather than have the game wait on lookups i think this is better
+struct TrickScore {
+    std::string text;
+    float score;
+    float multiplier;
+    char styleLetter;
+    std::chrono::steady_clock::time_point timePerformed;
+    bool isAlreadyRenamed;
+
+    // Default constructor
+    TrickScore() 
+        : text(""), 
+          score(0.0f), 
+          multiplier(1.0f), 
+          styleLetter(' '), 
+          timePerformed(std::chrono::steady_clock::now()),
+          isAlreadyRenamed(false) {}
+
+    // Parameterized constructor
+    TrickScore(const std::string& t, float s, int pos, float mult, char letter, bool renamed = false) 
+        : text(t), 
+          score(s), 
+          multiplier(mult), 
+          styleLetter(letter),
+          timePerformed(std::chrono::steady_clock::now()),
+          isAlreadyRenamed(renamed) {}
+};
+
+struct GroupedTrick {
+    TrickScore baseTrick;
+    int repeatCount;
+    float summedScore;
+
+    // Add a default constructor
+    GroupedTrick() : baseTrick(), repeatCount(0), summedScore(0.0f) {}
+
+    // Keep the existing parameterized constructor
+    GroupedTrick(const TrickScore& trick, int count, float totalScore)
+        : baseTrick(trick), repeatCount(count), summedScore(totalScore) {}
+};
+
+std::vector<TrickScore> trickScores;
+static const float baseWidth = 1920.0f;
+static float correctedWindowFontScale = 0.0f;
+
+static const float displayDuration = 1.0f;
+static const uint32_t maxScores = 5;
+
+// trick recognition
+static const uint32_t maxTonyScores = UINT32_MAX;
+static const int maxPerRow = 7;
+static const int maxRows = 5;
+static float comboScore = 0.0f;
+static std::chrono::steady_clock::time_point lastTrickTime = std::chrono::steady_clock::now();
+
+// combo recognition
+static std::string lastProcessedTrick = "";
+static std::string detectedCombo = "";
+static std::chrono::steady_clock::time_point lastMatchTime = std::chrono::steady_clock::now();
+
+const char* GetStyleChar(int styleNum) {
+    switch (styleNum) {
+        case 0: return "E";
+        case 1: return "D";
+        case 2: return "C";
+        case 3: return "B";
+        case 4: return "A";
+        case 5: return "S";
+        case 6: return "SS";
+        case 7: return "SSS";
+        default: return "";
+    }
+}
+
+float GetStyleMultiplier(int styleNum) {
+    switch (styleNum) {
+        case 0: return 1.0f; // E
+        case 1: return 1.5f; // D
+        case 2: return 2.0f; // C
+        case 3: return 2.5f; // B
+        case 4: return 3.0f; // A
+        case 5: return 4.0f; // S
+        case 6: return 4.0f; // SS
+        case 7: return 4.0f; // SSS
+        default: return 0.0f;
+    }
+}
+
+ImVec4 GetStyleColor(int styleNum) {
+    switch (styleNum) {
+    case 0: return { 242 / 255.0f, 242 / 255.0f, 242 / 255.0f, 0.0f }; // E, same as D
+    case 1: return { 242 / 255.0f, 242 / 255.0f, 242 / 255.0f, 0.0f }; // D
+    case 2: return {  53 / 255.0f, 203 / 255.0f, 244 / 255.0f, 0.0f }; // C
+    case 3: return { 213 / 255.0f,  92 / 255.0f,  15 / 255.0f, 0.0f }; // B
+    case 4: return { 245 / 255.0f,  68 / 255.0f,  46 / 255.0f, 0.0f }; // A
+    case 5: return { 234 / 255.0f,  56 / 255.0f,  58 / 255.0f, 0.0f }; // S
+    case 6: return { 234 / 255.0f,  56 / 255.0f,  58 / 255.0f, 0.0f }; // SS
+    case 7: return { 234 / 255.0f,  56 / 255.0f,  58 / 255.0f, 0.0f }; // SSS
+    default: return { 0.0f, 0.0f, 0.0f, 0.0f };
+    }
+}
+
 static void UpdateTrickNames() {
     for (auto& score : trickScores) {
         if (!score.isAlreadyRenamed) {
-            //if (devil4_sdk::get_local_player()->controllerID == 0) { // dante
-                auto it = textLookupTable.find(score.text);
-                if (it != textLookupTable.end()) {
-                    score.text = it->second;
-                }
-            //}
-            //else {
-            //    auto it = neroLookupTable.find(score.text);
-            //    if (it != neroLookupTable.end()) {
-            //        score.text = it->second;
-            //    }
-            //}
+            auto it = textLookupTable.find(score.text);
+            if (it != textLookupTable.end()) {
+                score.text = it->second;
+            }
             score.isAlreadyRenamed = true;
         }
     }
 }
 
+// from white to gold
+ImVec4 GetScoreColor(float score, float min, float max) {
+    float normalizedScore = (score - min) / (max - min);
+    normalizedScore = glm::clamp(normalizedScore, 0.0f, 1.0f);
+    float red = 1.0f;
+    float green = 1.0f - 0.157f * normalizedScore;
+    float blue = 1.0f - 1.0f * normalizedScore;
+    return ImVec4(red, green, blue, 1.0f);
+}
+
+ImVec4 GetTrickColor(float totalScore, float fade) {
+    StylePoints::moreGrouping ? totalScore *= 0.05f : totalScore *= 0.1f;
+    if (totalScore >= 50.0f) {
+        return ImVec4(1.0f, 0.0f, 0.0f, fade);  // Red for high scores
+    } else if (totalScore >= 30.0f) {
+        return ImVec4(1.0f, 0.5f, 0.0f, fade);  // Orange for medium-high scores
+    } else if (totalScore >= 20.0f) {
+        return ImVec4(1.0f, 1.0f, 0.0f, fade);  // Yellow for medium scores
+    } else {
+        return ImVec4(1.0f, 1.0f, 1.0f, fade);  // White for low scores
+    }
+}
+
 static void DrawTrickScores() {
     if (devil4_sdk::get_local_player()) {
-        UpdateTrickNames();
+        if (!StylePoints::originalNames) UpdateTrickNames();
         auto now = std::chrono::steady_clock::now();
         ImVec2 screenSize = ImVec2((float)devil4_sdk::get_sRender()->xRes, (float)devil4_sdk::get_sRender()->yRes);
         ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.6f, screenSize.y * 0.4f));
@@ -745,42 +789,28 @@ static void DrawTrickScores() {
     }
 }
 
-ImVec4 GetColorBasedOnScore(float score, float bound1, float bound2, float bound3) {
-    if (score < bound1) {
-        return ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // white
-    } else if (score < bound2) {
-        return ImVec4(0.0f, 1.0f, 1.0f, 1.0f); // cyan
-    } else if (score < bound3) {
-        return ImVec4(1.0f, 0.0f, 1.0f, 1.0f); // pink
-    } else {
-        return ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // yellow
-    }
-}
-
-// from white to gold
-ImVec4 GetScoreColor(float score, float min, float max) {
-    float normalizedScore = (score - min) / (max - min);
-    normalizedScore = glm::clamp(normalizedScore, 0.0f, 1.0f);
-    float red = 1.0f;
-    float green = 1.0f - 0.157f * normalizedScore;
-    float blue = 1.0f - 1.0f * normalizedScore;
-    return ImVec4(red, green, blue, 1.0f);
-}
-
 static void DrawTonyScores() {
     auto* player = devil4_sdk::get_local_player();
     if (!player) return;
     
     ImVec2 screenSize = ImVec2((float)devil4_sdk::get_sRender()->xRes, (float)devil4_sdk::get_sRender()->yRes);
-    UpdateTrickNames();
+    if (!StylePoints::originalNames) UpdateTrickNames();
     auto now = std::chrono::steady_clock::now();
 
     // trick recognition
     float elapsedSinceLastTrick = std::chrono::duration<float>(now - lastTrickTime).count();
     bool turbo = devil4_sdk::get_sMediator()->turboEnabled;
-    float speedMultiplier = turbo ? 1.2f : 1.0f; // why is true first its 0 1 ffs
+    float speedMultiplier = turbo ? 1.2f : 1.0f;
 
-    float fade = 1.0f - (elapsedSinceLastTrick * speedMultiplier);
+    // Adjust fade max based on the last trick's score
+    float fadeMaxMultiplier = (1.0f * speedMultiplier) + (trickScores.empty() ? 0.0f : trickScores.back().score * 0.001f);
+
+    // Calculate fade effect with the dynamic max
+    float fade = fadeMaxMultiplier - elapsedSinceLastTrick;
+
+    ImGui::Begin("debug", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Text("fade = %.1f", fade);
+    ImGui::End();
 
     if (fade <= 0.0f) {
         trickScores.clear();
@@ -796,61 +826,88 @@ static void DrawTonyScores() {
     std::uniform_real_distribution<float> dis(-1.0f, 1.0f);
 
     float shakeAmount = 0.0f;
-    if (fade > 0.9f) {
+    if (fade > fadeMaxMultiplier * 0.99f) {
         shakeAmount = dis(gen);
     }
 
     float scoreFontBaseScale = correctedWindowFontScale * 2.0f;
     float trickFontBaseScale = correctedWindowFontScale * 1.5f;
     float scoreFontScale = scoreFontBaseScale + shakeAmount * 0.1f;
-    float trickFontScale = trickFontBaseScale; // + shakeAmount * 0.1f;
+    float trickFontScale = trickFontBaseScale;
 
     ImGui::SetWindowFontScale(scoreFontScale);
 
-    std::vector<std::string> trickLines[maxRows];
-    std::vector<std::pair<std::string, int>> orderedTricks;
+    // Select the most recent tricks, not exceeding max display capacity
+    std::vector<TrickScore> latestTricks;
+    if (trickScores.size() > maxTonyScores) {
+        latestTricks = std::vector<TrickScore>(
+            trickScores.end() - maxTonyScores, 
+            trickScores.end()
+        );
+    } else {
+        latestTricks = trickScores;
+    }
 
-    std::string lastTrick = "";
-    int repeatCount = 1;
-    comboScore = 0.0f;
-    TrickScore lastScore;
-
-    for (const TrickScore& score : trickScores) {
-        comboScore += score.score * 0.1f; // * score.multiplier;
-
-        if (score.text == lastTrick) {
-            repeatCount++;
-        }
-        else {
-            if (!lastTrick.empty()) {
-                orderedTricks.emplace_back(lastTrick, repeatCount);
+    // Group consecutive tricks with summed scores
+    std::vector<GroupedTrick> groupedTricks;
+    
+    if (StylePoints::moreGrouping) {
+        // Create a vector to track the order of first appearances
+        std::vector<std::string> firstAppearanceOrder;
+        std::map<std::string, GroupedTrick> trickMap;
+    
+        for (const auto& trick : latestTricks) {
+            auto it = trickMap.find(trick.text);
+            if (it == trickMap.end()) {
+                // First occurrence of this trick
+                trickMap[trick.text] = GroupedTrick(trick, 1, trick.score);
+                firstAppearanceOrder.push_back(trick.text);
+            } else {
+                // Existing trick
+                it->second.repeatCount++;
+                it->second.summedScore += trick.score;
             }
-            lastTrick = score.text;
-            repeatCount = 1;
-            lastScore = score;
+        }
+    
+        // Clear and rebuild groupedTricks in the original order
+        groupedTricks.clear();
+        for (const auto& name : firstAppearanceOrder) {
+            groupedTricks.push_back(trickMap[name]);
+        }
+    } else {
+        // Original grouping logic (consecutive tricks)
+        for (const auto& trick : latestTricks) {
+            if (groupedTricks.empty() || groupedTricks.back().baseTrick.text != trick.text) {
+                // Start a new trick group
+                groupedTricks.emplace_back(trick, 1, trick.score);
+            } else {
+                // Increment count and update total score of the last group
+                auto& lastGroup = groupedTricks.back();
+                lastGroup.repeatCount++;
+                lastGroup.summedScore += trick.score;
+            }
         }
     }
 
-    if (!lastTrick.empty()) {
-        orderedTricks.emplace_back(lastTrick, repeatCount);
-    }
+    // Prepare rows for display
+    std::vector<std::vector<GroupedTrick>> rowTricks(maxRows);
+    comboScore = 0.0f;
 
-    int rowIndex = 0, countInRow = 0;
-    for (const auto& trickPair : orderedTricks) {
-        std::string displayText = trickPair.first;
-        if (trickPair.second > 1) {
-            displayText += " (x" + std::to_string(trickPair.second) + ")";
+    int currentRow = 0;
+    for (const auto& groupedTrick : groupedTricks) {
+        if (currentRow >= maxRows) break;
+
+        // Check if row is full
+        if (rowTricks[currentRow].size() >= maxPerRow) {
+            currentRow++;
         }
 
-        if (countInRow >= maxPerRow) {
-            rowIndex++;
-            countInRow = 0;
+        if (currentRow < maxRows) {
+            rowTricks[currentRow].push_back(groupedTrick);
+            comboScore += groupedTrick.summedScore * 0.1f;
         }
-        if (rowIndex >= maxRows) break;
-
-        trickLines[rowIndex].push_back(displayText);
-        countInRow++;
     }
+
     int currentStyleTier = devil4_sdk::get_stylish_count()->current_style_tier;
     ImVec4 currentStyleColor = GetStyleColor(currentStyleTier);
 
@@ -883,53 +940,53 @@ static void DrawTonyScores() {
     float trickShakeAmount = shakeAmount * 5.0f;
     float rowStartY = ImGui::GetFontSize() * 1.5f;
     for (int row = 0; row < maxRows; ++row) {
-        if (trickLines[row].empty()) continue;
+        if (rowTricks[row].empty()) continue;
 
         float totalWidth = 0.0f;
         std::vector<std::pair<std::string, ImVec4>> textSegments;
 
-        for (size_t i = 0; i < trickLines[row].size(); ++i) {
-            // find the trick in orderedTricks that matches the current display text
-            std::string displayText = trickLines[row][i];
-            // remove the "(x#)" part if it exists
-            size_t multPos = displayText.find(" (x");
-            if (multPos != std::string::npos) {
-                displayText = displayText.substr(0, multPos);
+        // Calculate total width of tricks
+        // Create text segments with separators
+        for (size_t i = 0; i < rowTricks[row].size(); ++i) {
+            const auto& groupedTrick = rowTricks[row][i];
+            
+            // Format trick text with repeat count
+            char trickText[64];
+            if (groupedTrick.repeatCount > 1) {
+                snprintf(trickText, sizeof(trickText), "%s (x%d)", 
+                    groupedTrick.baseTrick.text.c_str(), 
+                    groupedTrick.repeatCount
+                );
+            } else {
+                snprintf(trickText, sizeof(trickText), "%s", 
+                    groupedTrick.baseTrick.text.c_str()
+                );
             }
 
-            // find the trick in orderedTricks
-            int repeatCount = 1;
-            float trickScore = 0.0f;
-            for (size_t j = 0; j < orderedTricks.size(); ++j) {
-                if (orderedTricks[j].first == displayText) {
-                    repeatCount = orderedTricks[j].second;
-                    
-                    // find the original trick score in trickScores
-                    for (const TrickScore& score : trickScores) {
-                        if (score.text == displayText) {
-                            trickScore = score.score * 0.1f;
-                            break;
-                        }
-                    }
-                    break;
-                }
-            }
+            // Color based on the summed score
+            ImVec4 trickColor = GetTrickColor(groupedTrick.summedScore, fade);
+            textSegments.emplace_back(
+                trickText, 
+                trickColor
+            );
 
-            ImVec4 textColor = GetColorBasedOnScore(trickScore * repeatCount, 8.5f, 15.0f, 30.0f);
-
-            textSegments.emplace_back(trickLines[row][i], ImVec4(textColor.x, textColor.y, textColor.z, fade));
-            totalWidth += ImGui::CalcTextSize(trickLines[row][i].c_str()).x;
-
-            if (i < trickLines[row].size() - 1) {
+            // Add separator if not the last item
+            if (i < rowTricks[row].size() - 1) {
                 textSegments.emplace_back(" + ", ImVec4(1.0f, 1.0f, 1.0f, fade));
-                totalWidth += ImGui::CalcTextSize(" + ").x;
             }
         }
 
+        // Calculate total width
+        for (const auto& [text, color] : textSegments) {
+            totalWidth += ImGui::CalcTextSize(text.c_str()).x;
+        }
+
+        // Center the text
         float startX = (windowWidth - totalWidth) * 0.5f + trickShakeAmount;
         float posY = rowStartY + row * ImGui::GetFontSize() * 1.0f + trickShakeAmount;
         float cursorX = startX;
 
+        // Draw the text
         for (const auto& [text, color] : textSegments) {
             ImGui::SetCursorPos(ImVec2(cursorX, posY));
             ImGui::PushStyleColor(ImGuiCol_Text, color);
@@ -953,7 +1010,6 @@ static void DrawTonyScores() {
     }
 
     if (!trickScores.empty()) {
-        // Combo detection
         for (const auto& combo : comboNames) {
             const std::vector<std::string>& comboSequence = combo.first;
             size_t comboLength = comboSequence.size();
@@ -969,9 +1025,6 @@ static void DrawTonyScores() {
                 }
 
                 if (match) {
-                    if (combo.second == "Is That A Plane?" && devil4_sdk::get_local_player()->inertia <= 20.0f) {
-                        continue;
-                    }
                     detectedCombo = combo.second;
                     lastMatchTime = std::chrono::steady_clock::now();
                     break;
@@ -1058,7 +1111,8 @@ naked void detour1(void) {
         jmp dword ptr [StylePoints::jmp_ret1]
     }
 }
-static const char* guardText = "Guard";
+static const char* guardText = "Guardfly";
+static const float slowestGuardfly = 20.0f;
 naked void detour2(void) {
     _asm {
         cmp byte ptr [StylePoints::mod_enabled], 1
@@ -1071,6 +1125,9 @@ naked void detour2(void) {
         push esi
         push edi
 
+        movss xmm0,[ebp+0x1e1c]
+        comiss xmm0, [slowestGuardfly]
+        jb popcode
         push 0 // style letter
         push 0x3f800000 // multiplier
         push 0 // score
@@ -1078,6 +1135,7 @@ naked void detour2(void) {
         call AddTrickScore // fucks eax, ecx, edx
         add esp,0x10 // 4 args
 
+        popcode:
         pop edi
         pop esi
         pop edx
@@ -1185,11 +1243,15 @@ void StylePoints::on_gui_frame() {
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
         ImGui::Checkbox("Tony", &tonyHawk);
+        ImGui::SameLine(sameLineWidth + lineIndent);
+        ImGui::Checkbox("Use Original Names", &originalNames);
+        if (tonyHawk) {
+            ImGui::Indent(lineIndent);
+            ImGui::Checkbox("moreGrouping", &moreGrouping);
+            ImGui::Unindent();
+        }
         ImGui::Unindent();
     }
-    /*if (ImGui::Button("Trigger Action UI")) {
-        AddTrickScore("Rave 1", 50.0f, 1.0f, 5);
-    }*/
 }
 
 void StylePoints::on_frame(fmilliseconds& dt) {
@@ -1199,16 +1261,20 @@ void StylePoints::on_frame(fmilliseconds& dt) {
         if (tonyHawk) {
             DrawTonyScores();
         }
-        else DrawTrickScores();
+        else {
+            DrawTrickScores();
+        }
     }
 }
 
 void StylePoints::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("style_points_display").value_or(false);
     tonyHawk = cfg.get<bool>("hawk_points_display").value_or(false);
+    moreGrouping = cfg.get<bool>("group_points_display").value_or(false);
 }
 
 void StylePoints::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("style_points_display", mod_enabled);
     cfg.set<bool>("hawk_points_display", tonyHawk);
+    cfg.set<bool>("group_points_display", moreGrouping);
 }
