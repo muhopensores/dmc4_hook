@@ -205,7 +205,8 @@ void RoomRespawn::on_gui_frame()
     if (ImGui::Button(_("try respawning stuff"))) {
         try_respawn();
     }
-    ImGui::TextWrapped(_("respawning stuff in areas from wrong mission will freeze the game"));
+    ImGui::SameLine();
+    help_marker(_("respawning stuff in areas from wrong missions will freeze the game"));
     ImGui::Checkbox(_("Respawn enemies when visiting the same room multiple times"), &g_reset_manager);
 };
 

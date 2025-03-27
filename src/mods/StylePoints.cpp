@@ -5,7 +5,7 @@ bool StylePoints::tonyHawk = false;
 bool StylePoints::moreGrouping = false; 
 bool StylePoints::originalNames = false;
 float timerBase = 1.0f;
-float timerComboInfluence = 0.001f;
+float timerComboInfluence = 0.005f;
 float shakeDuration = 0.99f;
 uintptr_t StylePoints::jmp_ret1 = NULL;
 uintptr_t StylePoints::jmp_ret2 = NULL;
@@ -16,11 +16,11 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     // trickster
     {"TS-ehsuc",         "Mustang"},
     // royal guard
-    {"RELEASE-A",        "Release"}, // empty bar
-    {"RELEASE-B",        "Release"}, // any bar
-    {"RELEASE-C",        "Release"}, // 10k or above
-    {"RELEASE-D",        "Release"}, // releasing an attack at 0-10k gauge
-    {"RELEASE-E",        "Release"}, // releasing an attack at 10k or above gauge
+    {"RELEASE_A",        "Release"}, // empty bar
+    {"RELEASE_B",        "Release"}, // any bar
+    {"RELEASE_C",        "Release"}, // 10k or above
+    {"RELEASE_D",        "Release"}, // releasing an attack at 0-10k gauge
+    {"RELEASE_E",        "Release"}, // releasing an attack at 10k or above gauge
 
     // rebellion
     {"REBE-combo303",    "Rebellion Combo A"}, // A1
@@ -60,6 +60,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"REBE-dm370",       "Dance Macabre"}, // 7
     {"REBE-dm371",       "Dance Macabre"}, // 8
     {"REBE-dm372-1",     "Dance Macabre"}, // 9
+    {"REBE-dm373",       "Dance Macabre"}, // Million stab end
     {"REBE-dm364",       "Dance Macabre"}, // End
     {"REBE-arial353",    "Aerial Rave"}, // 1
     {"REBE-arial354",    "Aerial Rave"}, // 2
@@ -274,7 +275,9 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Blown",            "Collateral"},     // enemy hit by bustered alto
     {"Em008-rolled",     "Collateral"},     // enemy hit by bustered mephisto
     {"Em009-rolled",     "Collateral"},     // enemy hit by bustered faust
-    {"Em010Throw",       "Collateral"},     // enemy hit by bustered frost
+    {"em010Throw",       "Collateral"},     // enemy hit by bustered frost
+    {"Buster0Atk",       "Collateral"},     // enemy hit by bustered frost
+    {"Buster1Atk",       "Collateral"},     // enemy hit by bustered frost
     {"grabed-attack",    "Collateral"},     // enemy hit by bustered assault
     {"grabed-at-fin",    "Collateral"},     // enemy hit by bustered assault
     {"ShootNero",        "Collateral"},     // enemy hit by bustered basilisk
@@ -624,7 +627,6 @@ struct TrickScore {
     std::chrono::steady_clock::time_point timePerformed;
     bool isAlreadyRenamed;
 
-    // Default constructor
     TrickScore() 
         : text(""), 
           score(0.0f), 
@@ -633,7 +635,6 @@ struct TrickScore {
           timePerformed(std::chrono::steady_clock::now()),
           isAlreadyRenamed(false) {}
 
-    // Parameterized constructor
     TrickScore(const std::string& t, float s, int pos, float mult, char letter, bool renamed = false) 
         : text(t), 
           score(s), 
@@ -648,10 +649,8 @@ struct GroupedTrick {
     int repeatCount;
     float summedScore;
 
-    // Add a default constructor
     GroupedTrick() : baseTrick(), repeatCount(0), summedScore(0.0f) {}
 
-    // Keep the existing parameterized constructor
     GroupedTrick(const TrickScore& trick, int count, float totalScore)
         : baseTrick(trick), repeatCount(count), summedScore(totalScore) {}
 };
@@ -666,7 +665,7 @@ static const uint32_t maxScores = 5;
 // trick recognition
 static const uint32_t maxTonyScores = UINT32_MAX;
 static int maxPerRow = 7;
-static int maxRows = 5;
+static int maxRows = 3;
 static float comboScore = 0.0f;
 static std::chrono::steady_clock::time_point lastTrickTime = std::chrono::steady_clock::now();
 
@@ -742,13 +741,13 @@ ImVec4 GetScoreColor(float score, float min, float max) {
 ImVec4 GetTrickColor(float totalScore, float fade) {
     StylePoints::moreGrouping ? totalScore *= 0.05f : totalScore *= 0.1f;
     if (totalScore >= 50.0f) {
-        return ImVec4(1.0f, 0.0f, 0.0f, fade);  // Red for high scores
+        return ImVec4(1.0f, 0.0f, 0.0f, fade); // Red for high scores
     } else if (totalScore >= 30.0f) {
-        return ImVec4(1.0f, 0.5f, 0.0f, fade);  // Orange for medium-high scores
+        return ImVec4(1.0f, 0.5f, 0.0f, fade); // Orange for medium-high scores
     } else if (totalScore >= 20.0f) {
-        return ImVec4(1.0f, 1.0f, 0.0f, fade);  // Yellow for medium scores
+        return ImVec4(1.0f, 1.0f, 0.0f, fade); // Yellow for medium scores
     } else {
-        return ImVec4(1.0f, 1.0f, 1.0f, fade);  // White for low scores
+        return ImVec4(1.0f, 1.0f, 1.0f, fade); // White for low scores
     }
 }
 
@@ -816,18 +815,12 @@ static void DrawTonyScores() {
     bool turbo = devil4_sdk::get_sMediator()->turboEnabled;
     float speedMultiplier = turbo ? 1.2f : 1.0f;
 
-    // Calculate fade with a consistent decay rate
+    // fade
     float fadeRate = 1.0f * speedMultiplier; // Base decay rate
     float baseFadeTime = 1.0f / (timerBase * fadeRate); // Inversely proportional to timerBase
     float comboBonus = trickScores.empty() ? 0.0f : trickScores.back().score * timerComboInfluence;
     float fadeMaxMultiplier = baseFadeTime + comboBonus;
-
-    // Calculate fade that considers both the base time and max multiplier
     float fade = std::max(0.0f, 1.0f - (elapsedSinceLastTrick / fadeMaxMultiplier));
-
-    ImGui::Begin("debug", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-    ImGui::Text("fade = %.4f", fade);
-    ImGui::End();
 
     if (fade <= 0.0f) {
         trickScores.clear();
@@ -909,19 +902,22 @@ static void DrawTonyScores() {
     // Prepare rows for display
     std::vector<std::vector<GroupedTrick>> rowTricks(maxRows);
     comboScore = 0.0f;
-
     int currentRow = 0;
+
     for (const auto& groupedTrick : groupedTricks) {
-        if (currentRow >= maxRows) break;
+        // Always calculate score, regardless of row limits
+        comboScore += groupedTrick.summedScore * 0.1f;
+
+        // Visual row display logic remains constrained
+        if (currentRow >= maxRows) continue;
 
         // Check if row is full
-        if (rowTricks[currentRow].size() >= maxPerRow) {
+        if (rowTricks[currentRow].size() >= (uint32_t)maxPerRow) {
             currentRow++;
         }
 
         if (currentRow < maxRows) {
             rowTricks[currentRow].push_back(groupedTrick);
-            comboScore += groupedTrick.summedScore * 0.1f;
         }
     }
 
@@ -1271,7 +1267,7 @@ void StylePoints::on_gui_frame() {
             ImGui::Checkbox("moreGrouping", &moreGrouping);
             ImGui::SameLine();
             help_marker("Group attacks by the order you originally did them");
-            ImGui::Unindent();
+            ImGui::Unindent(lineIndent);
             ImGui::SliderFloat("timerBase", &timerBase, 0.0f, 2.0f, "%.1f");
             ImGui::SameLine();
             help_marker("DEV PLS REMOVE - The base time for how long you have before breaking a combo\n1.0 default");
@@ -1288,7 +1284,7 @@ void StylePoints::on_gui_frame() {
             ImGui::SameLine();
             help_marker("DEV PLS REMOVE - How many rows\n5 default");
         }
-        ImGui::Unindent();
+        ImGui::Unindent(lineIndent);
     }
 }
 
@@ -1309,10 +1305,14 @@ void StylePoints::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("style_points_display").value_or(false);
     tonyHawk = cfg.get<bool>("hawk_points_display").value_or(false);
     moreGrouping = cfg.get<bool>("group_points_display").value_or(false);
+    maxPerRow = cfg.get<int>("maxPerRow_points_display").value_or(7);
+    maxRows = cfg.get<int>("maxRows_points_display").value_or(5);
 }
 
 void StylePoints::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("style_points_display", mod_enabled);
     cfg.set<bool>("hawk_points_display", tonyHawk);
     cfg.set<bool>("group_points_display", moreGrouping);
+    cfg.set<int>("maxPerRow_points_display", maxPerRow);
+    cfg.set<int>("maxRows_points_display", maxRows);
 }

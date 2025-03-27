@@ -561,7 +561,7 @@ void DanteJdc::on_gui_frame() {
         help_marker(_("Activate judgement cut when performing Yamato aerial rave with lock-on."
             "Perform normal inertia-less Yamato rave on lock-off"));
         if (mod_enabled) {
-            ImGui::Indent();
+            ImGui::Indent(lineIndent);
                 ImGui::Checkbox(_("Lock-on + back input"), &alt_input_enabled);
                 ImGui::SameLine();
                 help_marker(_("Bind jdc activation to lock-on + back"));

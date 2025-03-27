@@ -6,11 +6,14 @@ class CharacterSwap : public Mod {
 public:
     CharacterSwap() = default;
 
-    static bool nero_enabled;
-    static bool dante_enabled;
+    static bool mod_enabled;
+    static bool prefer_dante;
+    static uintptr_t jmp_ret;
+    static uintptr_t jmp_jne;
 
-    void toggle_nero(bool enable);
-    void toggle_dante(bool enable);
+    void toggle(bool enable);
+    void Prefer_Dante(bool enable);
+
 
     std::string get_mod_name() override { return "CharacterSwap"; };
     std::optional<std::string> on_initialize() override;
@@ -23,22 +26,5 @@ private:
     std::unique_ptr<Patch> patch1;
     std::unique_ptr<Patch> patch2;
     std::unique_ptr<Patch> patch3;
-    std::unique_ptr<Patch> patch4;
-    std::unique_ptr<Patch> patch5;
-    std::unique_ptr<Patch> patch6;
-    std::unique_ptr<Patch> patch7;
-    std::unique_ptr<Patch> patch8;
-    std::unique_ptr<Patch> patch9;
-    std::unique_ptr<Patch> patch10;
-    std::unique_ptr<Patch> patch11;
-    std::unique_ptr<Patch> patch12;
-    std::unique_ptr<Patch> patch13;
-    std::unique_ptr<Patch> patch14;
-    std::unique_ptr<Patch> patch15;
-    std::unique_ptr<Patch> patch16;
-    std::unique_ptr<Patch> patch17;
-    std::unique_ptr<Patch> patch18;
-    std::unique_ptr<Patch> patch19;
-    std::unique_ptr<Patch> patch20;
-    std::unique_ptr<Patch> patch21;
+    std::unique_ptr<FunctionHook> hook;
 };

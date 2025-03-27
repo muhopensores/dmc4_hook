@@ -1,4 +1,4 @@
-
+﻿
 #include "CameraSettings.hpp"
 
 static bool camera_sens_enabled{ false };
@@ -16,10 +16,11 @@ bool CameraSettings::camera_lookdown_enabled{ false };
 bool CameraSettings::camera_reset_enabled{ false };
 bool CameraSettings::cam_right{ false };
 bool CameraSettings::disable_last_enemy_zoom{false};
+bool CameraSettings::force_last_enemy_zoom{false};
 bool CameraSettings::pause_camera_enabled{false};
 bool CameraSettings::camera_lockon_corrects{false};
 
-constexpr ptrdiff_t camera_towards_auto_correct1 = 0x195A5;
+constexpr ptrdiff_t camera_towards_auto_correct1 = 0x19514; // 0x195A5;
 constexpr ptrdiff_t camera_towards_auto_correct2 = 0x195F7;
 constexpr ptrdiff_t camera_towards_auto_correct3 = 0x19822;
 
@@ -146,51 +147,128 @@ naked void camera_fov_proc(void) {
     }
 }
 
+// I tried and failed, I need to find a better camera rotation value to compare to
+/*bool FindOutIfRightIsCloser(float playerFacing, float cameraFacing) {
+    const float PI = 3.14159265358979323846f;
+    float angleDiff = cameraFacing - playerFacing;
+    
+    // Normalize the angle difference to be within -PI to PI
+    while (angleDiff > PI) angleDiff -= 2 * PI;
+    while (angleDiff < -PI) angleDiff += 2 * PI;
+    
+    // If the absolute difference is positive, right is closer
+    return angleDiff > 0;
+}
+
+naked void camera_reset_keyboard_proc(void) {
+    __asm {
+        cmp byte ptr [CameraSettings::camera_reset_enabled], 0
+        je originalcode
+
+        push eax
+        push dword ptr [edx+0x1210] // player facing
+        push dword ptr [esi+0x268]  // camera facing
+        call FindOutIfRightIsCloser
+        add esp, 8
+        test al, al
+        pop eax
+        jnz RightIsCloser
+
+        movss xmm0, [edx+0x00001210]
+        subss xmm0, [degrees] // 1.57
+        movss [esi+0x260], xmm0
+        jmp retcode
+
+    RightIsCloser:
+        movss xmm0, [edx+0x00001210]
+        addss xmm0, [degrees] // 1.57
+        movss [esi+0x260], xmm0
+        jmp retcode
+
+    originalcode:
+        movss xmm0, [edx+0x00001210]
+    retcode:
+        jmp dword ptr [CameraSettings::camera_reset_keyboard_continue]
+    }
+}
+
+naked void camera_reset_proc(void) {
+    __asm {
+        cmp byte ptr [CameraSettings::camera_reset_enabled], 0
+        je originalcode
+
+        push eax
+        push dword ptr [edx+0x1210] // player facing
+        push dword ptr [esi+0x268]  // camera facing
+        call FindOutIfRightIsCloser
+        add esp, 8
+        test al, al
+        pop eax
+        jnz RightIsCloser
+
+        movss xmm0, [edx+0x00001210]
+        subss xmm0, [degrees] // 1.57
+        jmp retcode
+
+    RightIsCloser:
+        movss xmm0, [edx+0x00001210]
+        addss xmm0, [degrees] // 1.57
+        jmp retcode
+
+    originalcode:
+        movss xmm0, [edx+0x00001210]
+    retcode:
+        jmp dword ptr [CameraSettings::camera_reset_continue]
+    }
+}*/
+
 naked void camera_reset_keyboard_proc(void) {
     _asm {
-		    cmp byte ptr [CameraSettings::camera_reset_enabled], 1
-		    je camleft
+		    cmp byte ptr [CameraSettings::camera_reset_enabled], 0
+		    je originalcode
+
             cmp byte ptr [CameraSettings::cam_right], 1
             je camright
-            jmp originalcode
 
-        camleft:
+        //camleft:
             movss xmm0, [edx+0x00001210]
             subss xmm0, [degrees] // 90 degrees left
-            jmp [CameraSettings::camera_reset_keyboard_continue]
+            jmp retcode
 
         camright:
             movss xmm0, [edx+0x00001210]
             addss xmm0, [degrees] // 90 degrees right
-            jmp [CameraSettings::camera_reset_keyboard_continue]
+            jmp retcode
 
         originalcode:
             movss xmm0, [edx+0x00001210]
-            jmp [CameraSettings::camera_reset_keyboard_continue]
+        retcode:
+            jmp dword ptr [CameraSettings::camera_reset_keyboard_continue]
     }
 }
 
 naked void camera_reset_proc(void) {
     _asm {
-		    cmp byte ptr [CameraSettings::camera_reset_enabled], 1 
-		    je camleft
+		    cmp byte ptr [CameraSettings::camera_reset_enabled], 0
+		    je originalcode
+
             cmp byte ptr [CameraSettings::cam_right], 1
             je camright
-            jmp originalcode
 
-        camleft:
+        //camleft:
             movss xmm0, [edx+0x00001210]
             subss xmm0, [degrees] // 90 degrees left
-            jmp [CameraSettings::camera_reset_continue]
+            jmp retcode
 
         camright:
             movss xmm0, [edx+0x00001210]
             addss xmm0, [degrees] // 90 degrees right
-            jmp [CameraSettings::camera_reset_continue]
+            jmp retcode
 
         originalcode:
-            movss xmm0,[edx+0x00001210]
-            jmp [CameraSettings::camera_reset_continue]
+            movss xmm0, [edx+0x00001210]
+        retcode:
+            jmp dword ptr [CameraSettings::camera_reset_continue]
     }
 }
 
@@ -233,14 +311,17 @@ naked void camera_sens_brakes_proc(void) {
 
 void CameraSettings::toggle_attack_towards_cam(bool toggle) {
     if (toggle) {
-        install_patch_offset(camera_towards_auto_correct1, attack_towards_cam_patch1, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-        install_patch_offset(camera_towards_auto_correct2, attack_towards_cam_patch2, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-        install_patch_offset(camera_towards_auto_correct3, attack_towards_cam_patch3, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+        
+        install_patch_offset(camera_towards_auto_correct1, attack_towards_cam_patch1, "\xE9\x21\x03\x00\x00\x90", 6);
+
+        //install_patch_offset(camera_towards_auto_correct1, attack_towards_cam_patch1, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+        //install_patch_offset(camera_towards_auto_correct2, attack_towards_cam_patch2, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+        //install_patch_offset(camera_towards_auto_correct3, attack_towards_cam_patch3, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
     }
     else {
         attack_towards_cam_patch1.reset();
-        attack_towards_cam_patch2.reset();
-        attack_towards_cam_patch3.reset();
+        //attack_towards_cam_patch2.reset();
+        //attack_towards_cam_patch3.reset();
     }
 }
 
@@ -268,10 +349,19 @@ void CameraSettings::toggle_camera_lookdown(bool toggle) {
 
 void CameraSettings::toggle_disable_last_enemy_zoom(bool toggle) {
     if (toggle) {
-        install_patch_offset(0x01A4C1, camera_disable_last_enemy_zoom_patch, "\xEB", 1);
+        install_patch_offset(0x1A4DA, camera_disable_last_enemy_zoom_patch, "\xEB\x50", 2); // jmp
     }
     else {
-        camera_disable_last_enemy_zoom_patch.reset();
+        install_patch_offset(0x1A4DA, camera_disable_last_enemy_zoom_patch, "\x75\x50", 2); // jne
+    }
+}
+
+void CameraSettings::toggle_force_last_enemy_zoom(bool toggle) {
+    if (toggle) {
+        install_patch_offset(0x1A4DA, camera_disable_last_enemy_zoom_patch, "\x90\x90", 2); // nop nop
+    }
+    else {
+        install_patch_offset(0x1A4DA, camera_disable_last_enemy_zoom_patch, "\x75\x50", 2); // jne
     }
 }
 
@@ -300,23 +390,23 @@ void CameraSettings::on_gui_frame() {
     ImGui::SameLine();
     help_marker(_("Attempts to stop the camera spinning behind Dante when enemies are more than like 2ft away"));
     ImGui::SameLine(sameLineWidth);
+    if (ImGui::Checkbox(_("Disable Attack Corrects"), &camera_auto_correct_towards_cam_enabled)) {
+        toggle_attack_towards_cam(camera_auto_correct_towards_cam_enabled);
+    }
+    ImGui::SameLine();
+    help_marker(_("Attempts to stop the camera rotating when the player attacks towards the camera, intended for comparison purposes"));
+
     if (ImGui::Checkbox(_("Disable Last Enemy Zoom"), &disable_last_enemy_zoom)) {
+        force_last_enemy_zoom = false;
         toggle_disable_last_enemy_zoom(disable_last_enemy_zoom);
     }
     ImGui::SameLine();
     help_marker(_("Disables the zoom-in that happens when you're fighting the last enemy of a room"));
-
-    if (ImGui::Checkbox(_("Left Side Reset"), &camera_reset_enabled)) {
-        cam_right = 0;
-    }
-    ImGui::SameLine();
-    help_marker(_("When pressing the button that resets the camera behind Dante, the camera will instead be set to Dante's left"));
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Right Side Reset"), &cam_right)) {
-        camera_reset_enabled = 0;
+    if (ImGui::Checkbox(_("Force Last Enemy Zoom"), &force_last_enemy_zoom)) {
+        disable_last_enemy_zoom = false;
+        toggle_force_last_enemy_zoom(force_last_enemy_zoom);
     }
-    ImGui::SameLine();
-    help_marker(_("Set the camera to the right instead"));
 
     ImGui::Checkbox(_("Increased Sensitivity"), &camera_sens_enabled);
     ImGui::SameLine();
@@ -328,17 +418,25 @@ void CameraSettings::on_gui_frame() {
     ImGui::SameLine();
     help_marker(_("When above the locked on enemy the camera will look down"));
 
+    ImGui::BeginGroup();
+    ImGui::Checkbox(_("Side Reset"), &camera_reset_enabled);
+    ImGui::SameLine();
+    help_marker(_("When pressing camera reset, the camera will be set to the player's side"));
+    if (camera_reset_enabled) {
+        ImGui::Indent(lineIndent);
+        ImGui::Checkbox(_("Right Side Reset"), &cam_right);
+        ImGui::SameLine();
+        help_marker(_("Set the camera to the right instead"));
+        ImGui::Unindent(lineIndent);
+    }
+    ImGui::EndGroup();
+    ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Noclip Cam"), &noclip_cam_enabled)) {
         toggle_noclip_cam(noclip_cam_enabled);
     }
     ImGui::SameLine();
     help_marker(_("Remove camera presets and instead use a camera that can move through walls\nEnable before entering a stage"));
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Disable Attack Corrects"), &camera_auto_correct_towards_cam_enabled)) {
-        toggle_attack_towards_cam(camera_auto_correct_towards_cam_enabled);
-    }
-    ImGui::SameLine();
-    help_marker(_("Attempts to stop the camera rotating when the player attacks towards the camera, intended for comparison purposes"));
+
     ImGui::Checkbox(_("Use Custom Camera Variables"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Also enables the editing of these values via hotkeys"));
@@ -513,6 +611,8 @@ void CameraSettings::on_config_load(const utility::Config& cfg) {
     cam_right = cfg.get<bool>("right_side_reset").value_or(false);
     disable_last_enemy_zoom = cfg.get<bool>("disable_last_enemy_zoom").value_or(false);
     toggle_disable_last_enemy_zoom(disable_last_enemy_zoom);
+    force_last_enemy_zoom = cfg.get<bool>("force_last_enemy_zoom").value_or(false);
+    toggle_force_last_enemy_zoom(force_last_enemy_zoom);
     pause_camera_enabled = cfg.get<bool>("pause_camera_enabled").value_or(false);
     toggle_pause_camera(pause_camera_enabled);
     camera_lockon_corrects = cfg.get<bool>("camera_lockon_corrects").value_or(false);
@@ -535,6 +635,7 @@ void CameraSettings::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("camera_reset", camera_reset_enabled);
     cfg.set<bool>("right_side_reset", cam_right);
     cfg.set<bool>("disable_last_enemy_zoom", disable_last_enemy_zoom);
+    cfg.set<bool>("force_last_enemy_zoom", force_last_enemy_zoom);
     cfg.set<bool>("pause_camera_enabled", pause_camera_enabled);
     cfg.set<bool>("camera_lockon_corrects", camera_lockon_corrects);
 }

@@ -10,6 +10,7 @@ public:
     static bool mod_enabled2;
     static uintptr_t jmp_ret;
     static uintptr_t jmp_ret2;
+    static int lastPickedCharacter;
 
     std::string get_mod_name() override { return "NoAutomaticCharacters"; };
 

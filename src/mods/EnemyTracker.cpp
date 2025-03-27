@@ -3,8 +3,6 @@
 #if 1
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
-static bool display_enemy_stats = false;
-static bool display_boss_stats = false;
 static bool freeze_move_id = false;
 static bool hotkey_enabled = false;
 static int which_enemy = 0;
@@ -178,8 +176,7 @@ void LoadStateWithCurrentEnemy() {
 }
 
 void EnemyTracker::on_gui_frame() {
-    ImGui::Checkbox(_("Display Enemy Stats"), &display_enemy_stats);
-    if (display_enemy_stats) {
+    if (ImGui::CollapsingHeader(_("Display Enemy Stats"))) {
         ImGui::Indent(lineIndent);
         ImGui::Checkbox("Use Locked On Enemy Instead Of Picking", &useLockedOnEnemyInstead);
 
@@ -273,8 +270,7 @@ void EnemyTracker::on_gui_frame() {
     ImGui::Separator();
     ImGui::Spacing();
 
-    ImGui::Checkbox(_("Display Boss Stats"), &display_boss_stats);
-    if (display_boss_stats) {
+    if (ImGui::CollapsingHeader(_("Display Boss Stats"))) {
         ImGui::Indent(lineIndent);
         SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
         if (s_med_ptr) {

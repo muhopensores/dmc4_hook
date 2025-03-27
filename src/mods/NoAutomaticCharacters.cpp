@@ -3,7 +3,7 @@
 
 bool NoAutomaticCharacters::mod_enabled{ false };
 bool NoAutomaticCharacters::mod_enabled2{false};
-
+int NoAutomaticCharacters::lastPickedCharacter{ 0 };
 uintptr_t NoAutomaticCharacters::jmp_ret{ NULL };
 uintptr_t NoAutomaticCharacters::jmp_ret2{ NULL };
 
@@ -101,6 +101,7 @@ naked void detour(void) {
 
 		code:
 			mov [ebp+0x0000008C], eax
+            mov [NoAutomaticCharacters::lastPickedCharacter], eax
 			jmp dword ptr [NoAutomaticCharacters::jmp_ret]
 	}
 }

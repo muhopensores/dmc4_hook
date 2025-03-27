@@ -45,20 +45,21 @@ void PsychoMantis::on_gui_frame() {
     ImGui::SameLine();
     help_marker(_("Put your controller on the floor. Put it down as flat as you can..."
         "that's good. Now I will move your controller by the power of my style alone!!"));
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Vibe Slot 2"), &psycho_mantis_slot_2)) {
-        if (psycho_mantis_slot_2){
-            mod_enabled = true;
-            PsychoMantis::Controller::_controllerNum = 1;
-        } else
-            PsychoMantis::Controller::_controllerNum = 0;
+    if (mod_enabled) {
+        ImGui::Indent(lineIndent);
+        if (ImGui::Checkbox(_("Vibe Slot 2"), &psycho_mantis_slot_2)) {
+            if (psycho_mantis_slot_2) {
+                PsychoMantis::Controller::_controllerNum = 1;
+            }
+            else
+                PsychoMantis::Controller::_controllerNum = 0;
+        }
+        ImGui::Unindent(lineIndent);
     }
 #ifndef NDEBUG
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
         ImGui::Checkbox(_("...debug"), &mod_debugEnabled);
-        ImGui::SameLine();
-        help_marker(_("Tick the Vibe checkbox too"));
         ImGui::SameLine();
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::SliderInt(_("##mod_enabled2AmountSliderInt"), &mod_debugAmount, 0, 65535);
@@ -114,8 +115,6 @@ void PsychoMantis::on_config_load(const utility::Config& cfg) {
     psycho_mantis_slot_2 = cfg.get<bool>("psycho_mantis_slot_2").value_or(false);
     if (psycho_mantis_slot_2)
         PsychoMantis::Controller::_controllerNum = 1;
-    else
-        PsychoMantis::Controller::_controllerNum = 0;
 }
 
 void PsychoMantis::on_config_save(utility::Config& cfg) {

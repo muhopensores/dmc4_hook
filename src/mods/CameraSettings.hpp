@@ -31,6 +31,7 @@ public:
     static bool camera_reset_enabled;
     static bool cam_right;
     static bool disable_last_enemy_zoom;
+    static bool force_last_enemy_zoom;
     static bool pause_camera_enabled;
     static bool camera_lockon_corrects;
 
@@ -47,6 +48,7 @@ public:
     void toggle_noclip_cam(bool toggle);
     void toggle_camera_lookdown(bool toggle);
     void toggle_disable_last_enemy_zoom(bool toggle);
+    void toggle_force_last_enemy_zoom(bool toggle);
     void toggle_pause_camera(bool toggle);
     void toggle_camera_lockon_corrects(bool toggle);
 
@@ -64,8 +66,8 @@ private:
     std::unique_ptr<FunctionHook> camera_sens_anti_clockwise_hook;
     std::unique_ptr<FunctionHook> camera_sens_brakes_hook;
     std::unique_ptr<Patch> attack_towards_cam_patch1;
-    std::unique_ptr<Patch> attack_towards_cam_patch2;
-    std::unique_ptr<Patch> attack_towards_cam_patch3;
+    // std::unique_ptr<Patch> attack_towards_cam_patch2;
+    // std::unique_ptr<Patch> attack_towards_cam_patch3;
     std::unique_ptr<Patch> patch_noclip_cam1;
     std::unique_ptr<Patch> patch_noclip_cam2;
     std::unique_ptr<Patch> patch_noclip_cam3;

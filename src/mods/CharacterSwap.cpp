@@ -1,201 +1,86 @@
 #include "CharacterSwap.hpp"
+#include "NoAutomaticCharacters.hpp"
 
-bool CharacterSwap::nero_enabled{ false };
-bool CharacterSwap::dante_enabled{ false };
+bool CharacterSwap::mod_enabled{ false };
+bool CharacterSwap::prefer_dante{ false };
+uintptr_t CharacterSwap::jmp_ret{NULL};
+uintptr_t CharacterSwap::jmp_jne{ 0x00405F62 };
 
-std::optional<std::string> CharacterSwap::on_initialize()
-{
+void CharacterSwap::toggle(bool enable) {
+    if (enable) {
+        install_patch_offset(0x378AE9,  patch1, "\xB8\x01\x00\x00\x00\x90\x90", 7); // this stage is actually bp
+        install_patch_offset(0x378ECB,  patch2, "\x90\x90\x90\x90\x90", 5); // leave whatever was left in ecx so it clears all difficulties and bp
+    }
+    else {
+        patch1.reset();
+        patch2.reset();
+    }
+}
+
+void CharacterSwap::Prefer_Dante(bool enable) {
+    if (enable) {
+        // replace 4 (nero, no special costume, no auto) with 0
+        install_patch_offset(0x378EF2, patch3,  "\x00", 1);
+    }
+    else {
+        patch3.reset();
+    }
+}
+
+naked void detourCharSwap(void) { // force which character is picked
+    _asm {
+        //
+            cmp byte ptr [CharacterSwap::mod_enabled], 0
+            je originalcode
+
+            // bruh this gets destroyed before i can grab it
+            // [0x00E552CC]+44]+8C
+
+            // this is disgusting but I'm not sure how else to get portrait picked
+            cmp dword ptr [NoAutomaticCharacters::lastPickedCharacter], 4
+            jb originalcode
+
+        // playNero:
+            mov byte ptr [edi+0x28], 01
+        originalcode:
+            cmp byte ptr [edi+0x28], 01
+            jne jnecode
+            jmp dword ptr [CharacterSwap::jmp_ret]
+        jnecode:
+            jmp dword ptr [CharacterSwap::jmp_jne]
+    }
+}
+
+std::optional<std::string> CharacterSwap::on_initialize() {
+    if (!install_hook_offset(0x5F28, hook, &detourCharSwap, &jmp_ret, 6)) {
+        spdlog::error("Failed to init AssaultsDontJump mod\n");
+        return "Failed to init AssaultsDontJump mod";
+    }
     return Mod::on_initialize();
 }
-/*
-void CharacterSwap::toggle(bool enable)
-{
-    if (enable)
-    {
-        install_patch_offset(0x03790CF, patch1,  "\x74\x46", 2);
-        install_patch_offset(0x087825C, patch2,  "\x01\x00", 2);
-        install_patch_offset(0x04ABC19, patch3,  "\x00\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04ABE59, patch4,  "\x00\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04ABFB9, patch5,  "\x00\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04AC109, patch6,  "\x00\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04AC259, patch7,  "\x00\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04AC3A9, patch8,  "\x00\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04AC4F9, patch9,  "\x00\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04AC649, patch10, "\x00\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04AC769, patch11, "\x00\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04AC889, patch12, "\x00\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04AC999, patch13, "\x01\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04ACAE9, patch14, "\x01\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04ACC39, patch15, "\x01\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04ACD99, patch16, "\x01\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04ACF19, patch17, "\x01\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04AD069, patch18, "\x01\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04AD1D9, patch19, "\x01\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04AD339, patch20, "\x00\x8b\xc6\x5e\xc3\x33", 6);
-        install_patch_offset(0x04AD449, patch21, "\x00\x8b\xc6\x5e\xc3\x33", 6);
-    }
-    else
-    {
-        patch1.reset();
-        patch2.reset();
-        patch3.reset();
-        patch4.reset();
-        patch5.reset();
-        patch6.reset();
-        patch7.reset();
-        patch8.reset();
-        patch9.reset();
-        patch10.reset();
-        patch11.reset();
-        patch12.reset();
-        patch13.reset();
-        patch14.reset();
-        patch15.reset();
-        patch16.reset();
-        patch17.reset();
-        patch18.reset();
-        patch19.reset();
-        patch20.reset();
-        patch21.reset();
-    }
-}
-*/
 
-void CharacterSwap::toggle_nero(bool enable)
-{
-    if (enable)
-    {
-        install_patch_offset(0x03790CF, patch1,  "\x74\x46", 2); // jmp char selection
-        install_patch_offset(0x087825C, patch2,  "\x01", 1);  // mission 01
-        install_patch_offset(0x04ABC19, patch3,  "\x01", 1);  // mission 02
-        install_patch_offset(0x04ABE59, patch4,  "\x01", 1);  // mission 03
-        install_patch_offset(0x04ABFB9, patch5,  "\x01", 1);  // mission 04
-        install_patch_offset(0x04AC109, patch6,  "\x01", 1);  // mission 05
-        install_patch_offset(0x04AC259, patch7,  "\x01", 1);  // mission 06
-        install_patch_offset(0x04AC3A9, patch8,  "\x01", 1);  // mission 07
-        install_patch_offset(0x04AC4F9, patch9,  "\x01", 1);  // mission 08
-        install_patch_offset(0x04AC649, patch10, "\x01", 1);  // mission 09
-        install_patch_offset(0x04AC769, patch11, "\x01", 1);  // mission 10
-        install_patch_offset(0x04AC889, patch12, "\x01", 1);  // mission 11
-        install_patch_offset(0x04AC999, patch13, "\x01", 1);  // mission 12
-        install_patch_offset(0x04ACAE9, patch14, "\x01", 1);  // mission 13
-        install_patch_offset(0x04ACC39, patch15, "\x01", 1);  // mission 14
-        install_patch_offset(0x04ACD99, patch16, "\x01", 1);  // mission 15
-        install_patch_offset(0x04ACF19, patch17, "\x01", 1);  // mission 16
-        install_patch_offset(0x04AD069, patch18, "\x01", 1);  // mission 17
-        install_patch_offset(0x04AD1D9, patch19, "\x01", 1);  // mission 18
-        install_patch_offset(0x04AD339, patch20, "\x01", 1);  // mission 19
-        install_patch_offset(0x04AD449, patch21, "\x01", 1);  // mission 20
-    }
-    else
-    {
-        patch1.reset();
-        patch1.reset();
-        patch2.reset();
-        patch3.reset();
-        patch4.reset();
-        patch5.reset();
-        patch6.reset();
-        patch7.reset();
-        patch8.reset();
-        patch9.reset();
-        patch10.reset();
-        patch11.reset();
-        patch12.reset();
-        patch13.reset();
-        patch14.reset();
-        patch15.reset();
-        patch16.reset();
-        patch17.reset();
-        patch18.reset();
-        patch19.reset();
-        patch20.reset();
-        patch21.reset();
-    }
-}
-
-void CharacterSwap::toggle_dante(bool enable)
-{
-    if (enable)
-    {
-        install_patch_offset(0x03790CF, patch1,  "\x90\x90", 2); // nop 2 char selection
-        install_patch_offset(0x087825C, patch2,  "\x00", 1); // mission 01 does not work :(
-        install_patch_offset(0x04ABC19, patch3,  "\x00", 1); // mission 02
-        install_patch_offset(0x04ABE59, patch4,  "\x00", 1); // mission 03
-        install_patch_offset(0x04ABFB9, patch5,  "\x00", 1); // mission 04
-        install_patch_offset(0x04AC109, patch6,  "\x00", 1); // mission 05
-        install_patch_offset(0x04AC259, patch7,  "\x00", 1); // mission 06
-        install_patch_offset(0x04AC3A9, patch8,  "\x00", 1); // mission 07
-        install_patch_offset(0x04AC4F9, patch9,  "\x00", 1); // mission 08
-        install_patch_offset(0x04AC649, patch10, "\x00", 1); // mission 09
-        install_patch_offset(0x04AC769, patch11, "\x00", 1); // mission 10
-        install_patch_offset(0x04AC889, patch12, "\x00", 1); // mission 11
-        install_patch_offset(0x04AC999, patch13, "\x00", 1); // mission 12
-        install_patch_offset(0x04ACAE9, patch14, "\x00", 1); // mission 13
-        install_patch_offset(0x04ACC39, patch15, "\x00", 1); // mission 14
-        install_patch_offset(0x04ACD99, patch16, "\x00", 1); // mission 15
-        install_patch_offset(0x04ACF19, patch17, "\x00", 1); // mission 16
-        install_patch_offset(0x04AD069, patch18, "\x00", 1); // mission 17
-        install_patch_offset(0x04AD1D9, patch19, "\x00", 1); // mission 18
-        install_patch_offset(0x04AD339, patch20, "\x00", 1); // mission 19
-        install_patch_offset(0x04AD449, patch21, "\x00", 1); // mission 20
-    }
-    else
-    {
-        patch1.reset();
-        patch1.reset();
-        patch2.reset();
-        patch3.reset();
-        patch4.reset();
-        patch5.reset();
-        patch6.reset();
-        patch7.reset();
-        patch8.reset();
-        patch9.reset();
-        patch10.reset();
-        patch11.reset();
-        patch12.reset();
-        patch13.reset();
-        patch14.reset();
-        patch15.reset();
-        patch16.reset();
-        patch17.reset();
-        patch18.reset();
-        patch19.reset();
-        patch20.reset();
-        patch21.reset();
-    }
-}
-
-void CharacterSwap::on_gui_frame()
-{
-    if (ImGui::Checkbox(_("Force Nero"), &nero_enabled))
-    {
-        dante_enabled = false;
-        toggle_dante(dante_enabled);
-        toggle_nero(nero_enabled);
+void CharacterSwap::on_gui_frame() {
+    if (ImGui::Checkbox(_("Character Select in any mission"), &mod_enabled)) {
+        toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker(_("At the start of a level, you will spawn as whichever character is checked.\nDoes not work for M1"));
+    help_marker(_("Does not work for M1"));
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Force Dante"), &dante_enabled))
-    {
-        nero_enabled = false;
-        toggle_nero(nero_enabled);
-        toggle_dante(dante_enabled);
+    if (ImGui::Checkbox(_("Prefer Dante"), &prefer_dante)) {
+        Prefer_Dante(prefer_dante);
     }
+    ImGui::SameLine();
+    help_marker(_("Also works if Character Select isn't enabled, for BP"));
 }
 
-void CharacterSwap::on_config_load(const utility::Config& cfg)
-{
-    nero_enabled = cfg.get<bool>("force_nero").value_or(false);
-    toggle_nero(nero_enabled);
-    dante_enabled = cfg.get<bool>("force_dante").value_or(false);
-    toggle_dante(dante_enabled);
+void CharacterSwap::on_config_load(const utility::Config& cfg) {
+    mod_enabled = cfg.get<bool>("character_select").value_or(false);
+    toggle(mod_enabled);
+    prefer_dante = cfg.get<bool>("prefer_dante").value_or(false);
+    Prefer_Dante(prefer_dante);
 };
 
-void CharacterSwap::on_config_save(utility::Config& cfg)
-{
-    cfg.set<bool>("force_nero", nero_enabled);
-    cfg.set<bool>("force_dante", dante_enabled);
+void CharacterSwap::on_config_save(utility::Config& cfg) {
+    cfg.set<bool>("character_select", mod_enabled);
+    cfg.set<bool>("prefer_dante", prefer_dante);
 };

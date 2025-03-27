@@ -8,7 +8,6 @@ public:
 
     static uintptr_t jmp_return;
     static uPlayer* player_ptr;
-    static bool display_player_stats;
 
     static Vector3f savedPlayerPosition;
     static float savedPlayerRotation;

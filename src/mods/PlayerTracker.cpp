@@ -5,7 +5,6 @@
 uintptr_t PlayerTracker::jmp_return{ NULL };
 uPlayer* PlayerTracker::player_ptr{ NULL };
 
-bool PlayerTracker::display_player_stats = false;
 Vector3f PlayerTracker::savedPlayerPosition{ 0.0f, 0.0f, 0.0f };
 float PlayerTracker::savedPlayerRotation = 0.0f;
 int8_t PlayerTracker::savedPlayerWeight = 0;
@@ -173,10 +172,7 @@ void PlayerTracker::on_gui_frame() {
     ImGui::Separator();
     ImGui::Spacing();
 
-    ImGui::Checkbox(_("Display Player Stats"), &PlayerTracker::display_player_stats);
-    ImGui::SameLine();
-    help_marker(_("View various details about the player character"));
-    if (PlayerTracker::display_player_stats) {
+    if (ImGui::CollapsingHeader(_("Display Player Stats"))) {
         ImGui::Indent(lineIndent);
         uPlayer* player = devil4_sdk::get_local_player();
         SMediator* s_med_ptr = devil4_sdk::get_sMediator();
@@ -194,15 +190,16 @@ void PlayerTracker::on_gui_frame() {
             ImGui::InputFloat(_("Inertia ##1"), &player->inertia);
             ImGui::SameLine();
             help_marker(_("Uhm, ehm, akshually, internia isn't a thing, it's a property of a thing, the shit you're showing is velocity, the "
-                        "measure of inertia is mass, resistance to acceleration (slowing down is also acceleration just in the opposite "
-                        "direction), if the thing that got yeeted doesn't like burn off it's layers in flight due to air friction like a "
-                        "fucking meteor or some shit then it's inertia isn't changing. Get it right NERD"));
+                "measure of inertia is mass, resistance to acceleration (slowing down is also acceleration just in the opposite "
+                "direction), if the thing that got yeeted doesn't like burn off it's layers in flight due to air friction like a "
+                "fucking meteor or some shit then it's inertia isn't changing. Get it right NERD"));
             ImGui::InputScalar(_("Weight ##1"), ImGuiDataType_U8, &player->weight);
             ImGui::InputScalar(_("Lock On ##1"), ImGuiDataType_U8, &player->lockedOn);
             if (player->controllerID == 0) { // dante
                 ImGui::SliderFloat(_("Disaster Gauge ##1"), &player->disasterGauge, 0.0f, 10000.0f, "%.0f");
                 ImGui::SliderFloat(_("Revenge Gauge ##1"), &player->revengeGauge, 0.0f, 30000.0f, "%.0f");
-            } else { // nero
+            }
+            else { // nero
                 ImGui::InputFloat(_("Exceed Timer ##1"), &player->exceedTimer, 0.0f, 16.0f, "%.1f");
                 ImGui::SameLine();
                 help_marker(_("If you press exceed while this timer is between 0 and 1, you'll get MAX-Act."));
@@ -215,36 +212,36 @@ void PlayerTracker::on_gui_frame() {
             ImGui::InputScalar(_("Saved Move Bank ##1"), ImGuiDataType_U8, &savedPlayerMoveBank);
             ImGui::InputScalar(_("Saved Move ID ##1"), ImGuiDataType_U8, &savedPlayerMoveID);
         }
+        if (ImGui::Button(_("Save Current Move"))) {
+            SavePlayerMove();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Play Saved Move"))) {
+            LoadPlayerMove();
+        }
+        ImGui::InputFloat3(_("Saved Player Position"), &savedPlayerPosition[0]);
+
+        static int inputMoveID = 0;
+        ImGui::PushItemWidth(sameLineItemWidth);
+        ImGui::InputInt("##InputMoveIDInputInt ##1", &inputMoveID, 1, 10, ImGuiInputTextFlags_CharsHexadecimal);
+        ImGui::PopItemWidth();
+        ImGui::SameLine();
+        if (ImGui::Button("PlayMoveID")) {
+            PlayMoveID(inputMoveID);
+        }
+
+        static int inputAnimID = 0;
+        ImGui::PushItemWidth(sameLineItemWidth);
+        ImGui::InputInt("##InputAnimIDInputInt ##1", &inputAnimID, 1, 10, ImGuiInputTextFlags_CharsHexadecimal);
+        ImGui::PopItemWidth();
+        ImGui::SameLine();
+        if (ImGui::Button("PlayAnimID")) {
+            PlayAnimID(inputAnimID);
+        }
+        ImGui::SameLine();
+        help_marker("uhh this only plays things that don't require a certain player state idk why");
         ImGui::Unindent(lineIndent);
     }
-    if (ImGui::Button(_("Save Current Move"))) {
-        SavePlayerMove();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button(_("Play Saved Move"))) {
-        LoadPlayerMove();
-    }
-    ImGui::InputFloat3(_("Saved Player Position"), &savedPlayerPosition[0]);
-
-    static int inputMoveID = 0;
-    ImGui::PushItemWidth(sameLineItemWidth);
-    ImGui::InputInt("##InputMoveIDInputInt ##1", &inputMoveID, 1, 10, ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::PopItemWidth();
-    ImGui::SameLine();
-    if (ImGui::Button("PlayMoveID")) {
-        PlayMoveID(inputMoveID);
-    }
-
-    static int inputAnimID = 0;
-    ImGui::PushItemWidth(sameLineItemWidth);
-    ImGui::InputInt("##InputAnimIDInputInt ##1", &inputAnimID, 1,10, ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::PopItemWidth();
-    ImGui::SameLine();
-    if (ImGui::Button("PlayAnimID")) {
-        PlayAnimID(inputAnimID);
-    }
-    ImGui::SameLine();
-    help_marker("uhh this only plays things that don't require a certain player state idk why");
 }
 
 void PlayerTracker::on_config_save(utility::Config& cfg) {

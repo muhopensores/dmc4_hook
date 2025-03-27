@@ -63,7 +63,7 @@ std::optional<std::string> uPlayerParamsEdit::on_initialize() {
 void uPlayerParamsEdit::on_gui_frame() {
     ImGui::Checkbox(_("Faster Gilgamesh Charges"), &fast_gilg_charge);
     ImGui::SameLine();
-    help_marker(_("3x faster Gilgamesh charges\nThis change applies when loading into a stage"));
+    help_marker(_("3x faster Gilgamesh charges\nApplies when loading into a stage"));
 }
 
 void uPlayerParamsEdit::on_config_load(const utility::Config& cfg) {

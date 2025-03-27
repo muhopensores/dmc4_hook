@@ -232,7 +232,11 @@ namespace gui {
             ImGui::Text("Dlupx");
             ImGui::Text("cheburrat0r");
             ImGui::Text("endneo");
+
             ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+
             ImGui::Text("Special Thanks:");
             ImGui::Text("socks");
             ImGui::Text("Whirling");
@@ -647,6 +651,25 @@ namespace gui {
                     ImGui::BeginChild("SystemChild");
 
                     ImGui::Spacing();
+
+                    ImGui::Text(_("Misc"));
+
+                    ImGui::Spacing();
+
+                    pmods->on_draw_ui("CharacterSwap"_hash); // needs its own line
+
+                    pmods->on_draw_ui("NoAutomaticCharacters"_hash); // needs its own line
+                    
+                    pmods->on_draw_ui("CustomModelFix"_hash); // needs its own line
+
+                    pmods->on_draw_ui("BpPortal"_hash);
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("SlowWalk"_hash);
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
                     ImGui::Text(_("HUD"));
 
                     ImGui::Spacing();
@@ -671,27 +694,11 @@ namespace gui {
 
                     ImGui::Spacing();
 
-                    pmods->on_draw_ui("DisableCameraEvents"_hash);
-
                     pmods->on_draw_ui("CutsceneSkip"_hash);
 
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
+                    pmods->on_draw_ui("DisableCameraEvents"_hash);
 
-                    ImGui::Text(_("Misc"));
-
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("CharacterSwap"_hash); // needs its own line
-
-                    pmods->on_draw_ui("NoAutomaticCharacters"_hash); // needs its own line
-                    
-                    pmods->on_draw_ui("CustomModelFix"_hash); // needs its own line
-
-                    pmods->on_draw_ui("BpPortal"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("SlowWalk"_hash);
+                    pmods->on_draw_ui("PsychoMantis"_hash); // needs its own line
 
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -702,8 +709,6 @@ namespace gui {
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("MessageDisplayMod"_hash);
-
-                    pmods->on_draw_ui("PsychoMantis"_hash); // needs its own line
 
                     //pmods->on_draw_ui("TwCmdPlayerTransforms"_hash); // empty // broken
 
@@ -757,9 +762,13 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    pmods->on_draw_ui("PlayerTracker"_hash); // needs its own line
-
                     pmods->on_draw_ui("NoClip"_hash); // 1.5 lines
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    pmods->on_draw_ui("PlayerTracker"_hash); // needs its own line
 
                     ImGui::Spacing();
                     ImGui::Separator();
