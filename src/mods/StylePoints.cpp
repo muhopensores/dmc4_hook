@@ -4,6 +4,9 @@ bool StylePoints::mod_enabled = false;
 bool StylePoints::tonyHawk = false;
 bool StylePoints::moreGrouping = false; 
 bool StylePoints::originalNames = false;
+float timerBase = 1.0f;
+float timerComboInfluence = 0.001f;
+float shakeDuration = 0.99f;
 uintptr_t StylePoints::jmp_ret1 = NULL;
 uintptr_t StylePoints::jmp_ret2 = NULL;
 uintptr_t StylePoints::jmp_ret3 = NULL;
@@ -12,6 +15,12 @@ uintptr_t StylePoints::jmp_ret4 = NULL;
 static std::unordered_map<std::string, std::string> textLookupTable = {
     // trickster
     {"TS-ehsuc",         "Mustang"},
+    // royal guard
+    {"RELEASE-A",        "Release"}, // empty bar
+    {"RELEASE-B",        "Release"}, // any bar
+    {"RELEASE-C",        "Release"}, // 10k or above
+    {"RELEASE-D",        "Release"}, // releasing an attack at 0-10k gauge
+    {"RELEASE-E",        "Release"}, // releasing an attack at 10k or above gauge
 
     // rebellion
     {"REBE-combo303",    "Rebellion Combo A"}, // A1
@@ -104,12 +113,12 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
 	{"GIL-k13r-03",      "Kick 13"},
 	{"GIL-k13r-04",      "Kick 13"},
 	{"GIL-k13r-05",      "Kick 13"},
-	{"GIL-k13rDT-01",    "Kick 13 DT"},
-	{"GIL-k13rDT-02",    "Kick 13 DT"},
-	{"GIL-k13rDT-03",    "Kick 13 DT"},
-	{"GIL-k13rDT-04",    "Kick 13 DT"},
-	{"GIL-k13rDT-05",    "Kick 13 DT"},
-	{"GIL-k13rDT-06",    "Kick 13 DT"},
+	{"GIL-k13rDT-01",    "DT Kick 13"},
+	{"GIL-k13rDT-02",    "DT Kick 13"},
+	{"GIL-k13rDT-03",    "DT Kick 13"},
+	{"GIL-k13rDT-04",    "DT Kick 13"},
+	{"GIL-k13rDT-05",    "DT Kick 13"},
+	{"GIL-k13rDT-06",    "DT Kick 13"},
 
     // gilgamesh swordmaster
 	{"GIL-mgdv450",  	 "Beast Uppercut"},
@@ -159,12 +168,17 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"RAIN_STORM",       "Rainstorm"},
     {"RAIN_STORM_LEN2",  "Rainstorm"},
     {"RAIN_STORM_LEN3",  "Rainstorm"},
-    {"DT_RAIN_STORM",    "Rainstorm DT"},
-    {"DT_RAIN_STORM_L",  "Rainstorm DT"},
+    {"DT_RAIN_STORM",    "DT Rainstorm"},
+    {"DT_RAIN_STORM_L",  "DT Rainstorm"},
 	{"TWO_SOMETIME",     "Twosome Time"},
     {"TWO_SOMETIME_L2",  "Twosome Time"},
     {"TWO_SOMETIME_L3",  "Twosome Time"},
-	{"DT_TWO_SOMETIME",  "Twosome Time DT"},
+	{"DT_TWO_SOMETIME",  "DT Twosome Time"},
+    {"HONEY_COMB",       "Honeycomb Fire"},
+    {"HONEY_COMB_LEN2",  "Honeycomb Fire"},
+    {"HONEY_COMB_LEN3",  "Honeycomb Fire"},
+    {"DT_HONEY_COMB",    "DT Honeycomb Fire"},
+    {"DT_HONEY_COMB_L",  "DT Honeycomb Fire"},
 
     // coyote
     {"NRML_ETC_LV1",     "Coyote"},
@@ -173,12 +187,12 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"NRML_CEN_LV2",     "Coyote"},
     {"NRML_ETC_LV3",     "Coyote"},
     {"NRML_CEN_LV3",     "Coyote"},
-	{"CHRG_ETC_LV1",     "Coyote DT"},
-    {"CHRG_CEN_LV1",     "Coyote DT"},
-    {"CHRG_ETC_LV2",     "Coyote DT"},
-    {"CHRG_CEN_LV2",     "Coyote DT"},
-    {"CHRG_ETC_LV3",     "Coyote DT"},
-    {"CHRG_CEN_LV3",     "Coyote DT"},
+	{"CHRG_ETC_LV1",     "DT Coyote"},
+    {"CHRG_CEN_LV1",     "DT Coyote"},
+    {"CHRG_ETC_LV2",     "DT Coyote"},
+    {"CHRG_CEN_LV2",     "DT Coyote"},
+    {"CHRG_ETC_LV3",     "DT Coyote"},
+    {"CHRG_CEN_LV3",     "DT Coyote"},
 
     // coyote gunslinger
 	{"BACK_ETC_LV1",     "Backslide"},
@@ -187,24 +201,24 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
 	{"BACK_CEN_LV2",     "Backslide"},
 	{"BACK_ETC_LV3",     "Backslide"},
 	{"BACK_CEN_LV3",     "Backslide"},
-    {"DTBC_ETC_LV1",     "Backslide DT"},
-    {"DTBC_CEN_LV1",     "Backslide DT"},
-    {"DTBC_ETC_LV2",     "Backslide DT"},
-    {"DTBC_CEN_LV2",     "Backslide DT"},
-    {"DTBC_ETC_LV3",     "Backslide DT"},
-    {"DTBC_CEN_LV3",     "Backslide DT"},
+    {"DTBC_ETC_LV1",     "DT Backslide"},
+    {"DTBC_CEN_LV1",     "DT Backslide"},
+    {"DTBC_ETC_LV2",     "DT Backslide"},
+    {"DTBC_CEN_LV2",     "DT Backslide"},
+    {"DTBC_ETC_LV3",     "DT Backslide"},
+    {"DTBC_CEN_LV3",     "DT Backslide"},
 	{"NCHA_STR_LV1",     "Fireworks"},
 	{"NCHA_STR_LV2",     "Fireworks"},
 	{"NCHA_STR_LV3",     "Fireworks"},
 	{"NCHA_WEK_LV1",     "Fireworks"},
 	{"NCHA_WEK_LV2",     "Fireworks"},
 	{"NCHA_WEK_LV3",     "Fireworks"},
-	{"DTNC_STR_LV1",     "Fireworks DT"},
-	{"DTNC_STR_LV2",     "Fireworks DT"},
-	{"DTNC_STR_LV3",     "Fireworks DT"},
-	{"DTNC_WEK_LV1",     "Fireworks DT"},
-	{"DTNC_WEK_LV2",     "Fireworks DT"},
-	{"DTNC_WEK_LV3",     "Fireworks DT"},
+	{"DTNC_STR_LV1",     "DT Fireworks"},
+	{"DTNC_STR_LV2",     "DT Fireworks"},
+	{"DTNC_STR_LV3",     "DT Fireworks"},
+	{"DTNC_WEK_LV1",     "DT Fireworks"},
+	{"DTNC_WEK_LV2",     "DT Fireworks"},
+	{"DTNC_WEK_LV3",     "DT Fireworks"},
 	{"STG-gunstinger",   "Gun Stinger"},
 	{"STNG_ETC_LV1",     "Gun Stinger"},
 	{"STNG_CEN_LV1",     "Gun Stinger"},
@@ -212,20 +226,20 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
 	{"STNG_CEN_LV2",     "Gun Stinger"},
 	{"STNG_ETC_LV3",     "Gun Stinger"},
 	{"STNG_CEN_LV3",     "Gun Stinger"},
-	{"DTST_ETC_LV1",     "Gun Stinger DT"},
-	{"DTST_CEN_LV1",     "Gun Stinger DT"},
-	{"DTST_ETC_LV2",     "Gun Stinger DT"},
-	{"DTST_CEN_LV2",     "Gun Stinger DT"},
-	{"DTST_ETC_LV3",     "Gun Stinger DT"},
-	{"DTST_CEN_LV3",     "Gun Stinger DT"},
+	{"DTST_ETC_LV1",     "DT Gun Stinger"},
+	{"DTST_CEN_LV1",     "DT Gun Stinger"},
+	{"DTST_ETC_LV2",     "DT Gun Stinger"},
+	{"DTST_CEN_LV2",     "DT Gun Stinger"},
+	{"DTST_ETC_LV3",     "DT Gun Stinger"},
+	{"DTST_CEN_LV3",     "DT Gun Stinger"},
 
     // pandora
     {"MACHINEGUN",       "Jealousy"},
     {"MACHINEGUN_LV2",   "Jealousy"},
     {"MACHINEGUN_LV3",   "Jealousy"},
-    {"DT_MGUN",          "Jealousy DT"},
-    {"DT_MGUN_LV2",      "Jealousy DT"},
-    {"DT_MGUN_LV3",      "Jealousy DT"},
+    {"DT_MGUN",          "DT Jealousy"},
+    {"DT_MGUN_LV2",      "DT Jealousy"},
+    {"DT_MGUN_LV3",      "DT Jealousy"},
 	{"BOM_NOR",          "Epidemic"},
     {"NORMAL02",         "Hatred"}, // embed
 	{"BOM_NOR02",        "Hatred"},
@@ -576,10 +590,10 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"BLU-Bomb_00",      "Charge Shot Bomb"},
 
     // dt
-    {"D.T-Burst_00",     "DT Activation"},
-    {"D.T-Burst_01",     "DT Activation"},     // weak hit
-    {"D.T-AirBurst_00",  "Air DT Activation"},
-    {"D.T-AirBurst_01",  "Air DT Activation"}, // weak hit
+    {"D.T-Burst_00",     "DT Burst"},
+    {"D.T-Burst_01",     "DT Burst"},     // weak hit
+    {"D.T-AirBurst_00",  "Air DT Burst"},
+    {"D.T-AirBurst_01",  "Air DT Burst"}, // weak hit
     {"D.T-Showdown_00",  "Showdown"},
     {"D.T-Showdown_01",  "Showdown"},
     {"D.T-Showdown_02",  "Showdown"},
@@ -651,8 +665,8 @@ static const uint32_t maxScores = 5;
 
 // trick recognition
 static const uint32_t maxTonyScores = UINT32_MAX;
-static const int maxPerRow = 7;
-static const int maxRows = 5;
+static int maxPerRow = 7;
+static int maxRows = 5;
 static float comboScore = 0.0f;
 static std::chrono::steady_clock::time_point lastTrickTime = std::chrono::steady_clock::now();
 
@@ -802,14 +816,17 @@ static void DrawTonyScores() {
     bool turbo = devil4_sdk::get_sMediator()->turboEnabled;
     float speedMultiplier = turbo ? 1.2f : 1.0f;
 
-    // Adjust fade max based on the last trick's score
-    float fadeMaxMultiplier = (1.0f * speedMultiplier) + (trickScores.empty() ? 0.0f : trickScores.back().score * 0.001f);
+    // Calculate fade with a consistent decay rate
+    float fadeRate = 1.0f * speedMultiplier; // Base decay rate
+    float baseFadeTime = 1.0f / (timerBase * fadeRate); // Inversely proportional to timerBase
+    float comboBonus = trickScores.empty() ? 0.0f : trickScores.back().score * timerComboInfluence;
+    float fadeMaxMultiplier = baseFadeTime + comboBonus;
 
-    // Calculate fade effect with the dynamic max
-    float fade = fadeMaxMultiplier - elapsedSinceLastTrick;
+    // Calculate fade that considers both the base time and max multiplier
+    float fade = std::max(0.0f, 1.0f - (elapsedSinceLastTrick / fadeMaxMultiplier));
 
     ImGui::Begin("debug", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-    ImGui::Text("fade = %.1f", fade);
+    ImGui::Text("fade = %.4f", fade);
     ImGui::End();
 
     if (fade <= 0.0f) {
@@ -826,7 +843,7 @@ static void DrawTonyScores() {
     std::uniform_real_distribution<float> dis(-1.0f, 1.0f);
 
     float shakeAmount = 0.0f;
-    if (fade > fadeMaxMultiplier * 0.99f) {
+    if (fade > shakeDuration) {
         shakeAmount = dis(gen);
     }
 
@@ -1243,12 +1260,33 @@ void StylePoints::on_gui_frame() {
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
         ImGui::Checkbox("Tony", &tonyHawk);
+        ImGui::SameLine();
+        help_marker("Tony");
         ImGui::SameLine(sameLineWidth + lineIndent);
         ImGui::Checkbox("Use Original Names", &originalNames);
+        ImGui::SameLine();
+        help_marker("Instead of using our skill renames, use the developers'. Because there are more unique names, less skills will be grouped");
         if (tonyHawk) {
             ImGui::Indent(lineIndent);
             ImGui::Checkbox("moreGrouping", &moreGrouping);
+            ImGui::SameLine();
+            help_marker("Group attacks by the order you originally did them");
             ImGui::Unindent();
+            ImGui::SliderFloat("timerBase", &timerBase, 0.0f, 2.0f, "%.1f");
+            ImGui::SameLine();
+            help_marker("DEV PLS REMOVE - The base time for how long you have before breaking a combo\n1.0 default");
+            ImGui::SliderFloat("comboInfluence", &timerComboInfluence, 0.0f, 0.1f, "%.4f");
+            ImGui::SameLine();
+            help_marker("DEV PLS REMOVE - How much influence will the score from your last attack have on the timer\n0.0010 default");
+            ImGui::SliderFloat("shakeDuration", &shakeDuration, 0.0f, 1.0f, "%.4f");
+            ImGui::SameLine();
+            help_marker("DEV PLS REMOVE - At what point in the timer should text shake stop\nRemember a faster timer means less shake, so edit this last\n0.99 default");
+            ImGui::SliderInt("maxPerRow", &maxPerRow, 1, 10);
+            ImGui::SameLine();
+            help_marker("DEV PLS REMOVE - How many attacks per row\n7 default");
+            ImGui::SliderInt("maxRows", &maxRows, 1, 10);
+            ImGui::SameLine();
+            help_marker("DEV PLS REMOVE - How many rows\n5 default");
         }
         ImGui::Unindent();
     }
