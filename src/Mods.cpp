@@ -131,6 +131,7 @@
 #include "mods/RedOrbCompletion.hpp"
 #include "mods/TauntSelect.hpp"
 #include "mods/StylePoints.hpp"
+#include "mods/GuardTimer.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -271,6 +272,7 @@ Mods::Mods() {
     ADD_MOD(CustomProjectile);
     ADD_MOD(TauntSelect);
     ADD_MOD(StylePoints);
+    ADD_MOD(GuardTimer);
 }
 
 // Initializes mods, checks for errors

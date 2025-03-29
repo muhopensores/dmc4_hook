@@ -755,7 +755,7 @@ static void DrawTrickScores() {
     if (devil4_sdk::get_local_player()) {
         if (!StylePoints::originalNames) UpdateTrickNames();
         auto now = std::chrono::steady_clock::now();
-        ImVec2 screenSize = ImVec2((float)devil4_sdk::get_sRender()->xRes, (float)devil4_sdk::get_sRender()->yRes);
+        ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;
         ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.6f, screenSize.y * 0.4f));
         ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.3f, screenSize.y * 0.3f));
         ImGui::Begin("TrickScoresWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
@@ -806,17 +806,16 @@ static void DrawTonyScores() {
     auto* player = devil4_sdk::get_local_player();
     if (!player) return;
     
-    ImVec2 screenSize = ImVec2((float)devil4_sdk::get_sRender()->xRes, (float)devil4_sdk::get_sRender()->yRes);
+    ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;
     if (!StylePoints::originalNames) UpdateTrickNames();
     auto now = std::chrono::steady_clock::now();
 
     // trick recognition
     float elapsedSinceLastTrick = std::chrono::duration<float>(now - lastTrickTime).count();
-    bool turbo = devil4_sdk::get_sMediator()->turboEnabled;
-    float speedMultiplier = turbo ? 1.2f : 1.0f;
+    float turboSpeed = devil4_sdk::get_sMediator()->turboEnabled ? devil4_sdk::get_work_rate()->turbo_speed : devil4_sdk::get_work_rate()->game_speed;
 
     // fade
-    float fadeRate = 1.0f * speedMultiplier; // Base decay rate
+    float fadeRate = 1.0f * turboSpeed; // Base decay rate
     float baseFadeTime = 1.0f / (timerBase * fadeRate); // Inversely proportional to timerBase
     float comboBonus = trickScores.empty() ? 0.0f : trickScores.back().score * timerComboInfluence;
     float fadeMaxMultiplier = baseFadeTime + comboBonus;
@@ -1013,7 +1012,7 @@ static void DrawTonyScores() {
 
     // Combo recognition
     float elapsedSinceLastMatch = std::chrono::duration<float>(now - lastMatchTime).count();
-    float fadeAlpha = 1.0f - (elapsedSinceLastMatch * speedMultiplier);
+    float fadeAlpha = 1.0f - (elapsedSinceLastMatch * turboSpeed);
 
     if (!trickScores.empty()) {
         const std::string& latestTrick = trickScores.back().text;
@@ -1290,7 +1289,7 @@ void StylePoints::on_gui_frame() {
 
 void StylePoints::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
-        ImVec2 screenSize = ImVec2((float)devil4_sdk::get_sRender()->xRes, (float)devil4_sdk::get_sRender()->yRes);
+        ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;
         correctedWindowFontScale = (screenSize.x / baseWidth);
         if (tonyHawk) {
             DrawTonyScores();

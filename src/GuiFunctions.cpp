@@ -683,8 +683,10 @@ namespace gui {
                     pmods->on_draw_ui("PinTimer"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("RedOrbCompletion"_hash);
-                    
+
                     pmods->on_draw_ui("StylePoints"_hash); // needs its own line
+                    
+                    pmods->on_draw_ui("GuardTimer"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();

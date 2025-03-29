@@ -110,7 +110,7 @@ static const Room* find_room_by_id(int id) {
     auto it = std::find_if(room_items.begin(), room_items.end(), [id](const Room& room) { return room.id == id; });
     IM_ASSERT(it != room_items.end()); // crash if we passed wrong index
     size_t index = std::distance(room_items.begin(), it);
-    IM_ASSERT(index > 0);
+    //IM_ASSERT(index > 0); // this made tp to berial crash 
     return &room_items[index];
 };
 

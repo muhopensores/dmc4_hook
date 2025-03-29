@@ -353,8 +353,11 @@ class uPlayer : public UCoord{
 	uint8_t gunCancelPermissions2 @ 0x31CC
 	uint8_t exceedLevel @ 0xCCE8
 	float exceedTimer @ 0xCDBC
+	float guardTimer @ 0x14D44
+	bool guardReq1 @ 0x14CD4
+	bool guardReq2 @ 0x14CD5
 	int currentStyle @ 0x14D98
-	float revengeGauge @ 0x14dac
+	float revengeGauge @ 0x14DAC
 	class LuciferPin* luciferPins[15] @ 0x14DBC
 	float disasterGauge @ 0x151F4
 	int dreadnaught @ 0x152A0

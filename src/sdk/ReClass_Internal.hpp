@@ -118,8 +118,7 @@ class sRender
 {
 public:
     char pad_0x0000[0x44]; // 0x00
-    int xRes; // 0x44
-    int yRes; // 0x48
+    glm::ivec2 screenRes; // 0x44
 };
 
 class roomInfo
@@ -972,8 +971,13 @@ public:
     uint8_t exceedLevel; // 0xcce8
     char pad_cce9[0xd3];
     float exceedTimer; // 0xcdbc
-    char pad_cdc0[0x7fd8];
-    uint32_t currentStyle; // 0x14d98
+    char pad_cdc0[0x7f14];
+    bool guardReq1; // 0x14cd4
+    bool guardReq2; // 0x14cd5
+    char pad_14cd6[0x6e];
+    float guardTimer; // 0x14d44
+    char pad_14d48[0x50];
+    int currentStyle; // 0x14d98
     char pad_14d9c[0x10];
     float revengeGauge; // 0x14dac
     char pad_14db0[0xC];

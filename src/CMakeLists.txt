@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/GuardTimer.hpp
+  mods/GuardTimer.cpp
   mods/StylePoints.hpp
   mods/StylePoints.cpp
   mods/RedOrbCompletion.hpp
