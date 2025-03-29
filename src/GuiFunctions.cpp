@@ -490,9 +490,9 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("InfCalibur"_hash);
 
-                    pmods->on_draw_ui("DtKnuckle"_hash); // needs its own line
-
-                    pmods->on_draw_ui("ExceedLimiter"_hash); // needs its own line
+                    pmods->on_draw_ui("DtKnuckle"_hash);
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("ExceedLimiter"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -590,8 +590,8 @@ namespace gui {
                     ImGui::Text(_("Darkslayer"));
                     ImGui::Spacing();
 
-                    pmods->on_draw_ui("DoubleTapDarkslayer"_hash); // needs its own line
-
+                    pmods->on_draw_ui("DoubleTapDarkslayer"_hash);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("TargetChangeDarkslayer"_hash);
 
                     pmods->on_draw_ui("DisableDarkslayer"_hash); // needs its own line
@@ -617,8 +617,8 @@ namespace gui {
 
                     pmods->on_draw_ui("BigHeadMode"_hash); // needs its own line
 
-                    pmods->on_draw_ui("MutatorSuperhot"_hash); // needs its own line
-
+                    pmods->on_draw_ui("MutatorSuperhot"_hash);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("PlayerRotation"_hash);
 
                     g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
@@ -686,8 +686,8 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("RedOrbCompletion"_hash);
 
-                    pmods->on_draw_ui("StylePoints"_hash); // needs its own line
-                    
+                    pmods->on_draw_ui("StylePoints"_hash);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("GuardTimer"_hash);
 
                     ImGui::Spacing();
@@ -728,9 +728,9 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("DisableKeyboard"_hash);
 
-                    pmods->on_draw_ui("FastStart"_hash); // needs its own line
-
-                    pmods->on_draw_ui("FpsLimit"_hash); // needs its own line
+                    pmods->on_draw_ui("FastStart"_hash); // 1.5 lines
+                    //ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("FpsLimit"_hash); // needs to be on the left
 
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -767,6 +767,8 @@ namespace gui {
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("NoClip"_hash); // 1.5 lines
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("FreeJc"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();

@@ -301,7 +301,7 @@ void SelectiveCancels::on_gui_frame() {
 	ImGui::SameLine(sameLineWidth);
 	ImGui::Checkbox(_("Disable Guardslide"), &fixGuardInertia);
 	ImGui::SameLine();
-	help_marker(_("Guarding a move with momentum will halt your movement"));
+	help_marker(_("Guarding a grounded move with momentum will halt your movement"));
 
 	if (mod_enabled) {
 		ImGui::Indent(lineIndent);

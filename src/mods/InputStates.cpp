@@ -12,7 +12,6 @@ uintptr_t InputStates::jmp_return3{ NULL };
 uint32_t InputStates::inputpressed{ 0 };
 float InputStates::input_timer{ 0.0f };
 float InputStates::input_timer2{ 0.0f };
-float timer_tick{ 1.0f };
 
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
@@ -63,9 +62,7 @@ naked void detour() { // inputpressed // inputs are edx // player is in edi // A
 
     inctimer: // timer for ActiveBlock
         movss xmm0, [InputStates::input_timer]
-        movss xmm1, [timer_tick]
-        mulss xmm1, [edi+0x10]
-        addss xmm0, xmm1
+        addss xmm0, [edi+0x10] // add delta to existing timer
         movss [InputStates::input_timer], xmm0
 
     TouchpadRoseCheck:
@@ -84,9 +81,7 @@ naked void detour() { // inputpressed // inputs are edx // player is in edi // A
 
     IncRoseTimer: // timer for HideLucifer
         movss xmm0, [InputStates::input_timer2]
-        movss xmm1, [timer_tick]
-        mulss xmm1, [edi+0x10]
-        addss xmm0, xmm1
+        addss xmm0, [edi+0x10]
         movss [InputStates::input_timer2], xmm0
         cmp dword ptr [InputStates::input_timer2], 0x43480000 // 200.0f
         jl code
@@ -243,7 +238,7 @@ std::optional<std::string> InputStates::on_initialize() {
         spdlog::error("Failed to init InputStates2 mod\n");
         return "Failed to init InputStates2 mod";
     }
-
+        
     if (!install_hook_offset(0x43600F, hook3, &detour_changing_to_lucifer, &jmp_return3, 5)) { // Changing To Lucifer 
         spdlog::error("Failed to init InputStates3 mod\n");
         return "Failed to init InputStates3 mod";

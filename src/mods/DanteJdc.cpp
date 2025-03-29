@@ -565,7 +565,6 @@ void DanteJdc::on_gui_frame() {
                 ImGui::Checkbox(_("Lock-on + back input"), &alt_input_enabled);
                 ImGui::SameLine();
                 help_marker(_("Bind jdc activation to lock-on + back"));
-                ImGui::SameLine(sameLineWidth + lineIndent);
                 ImGui::Checkbox(_("Inertia enable"), &DanteJdc::inertia_enabled);
             ImGui::Unindent(lineIndent);
         }

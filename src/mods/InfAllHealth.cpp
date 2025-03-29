@@ -84,7 +84,6 @@ void InfAllHealth::on_gui_frame() {
     ImGui::SameLine();
     help_marker(_("Disables the player's health decreasing"));
 
-    ImGui::SameLine(sameLineWidth + lineIndent);
     if (ImGui::Checkbox(_("Infinite Health (Enemy)"), &enemy_invincible)) {
         if (player_invincible && enemy_invincible)
             mod_enabled = true;

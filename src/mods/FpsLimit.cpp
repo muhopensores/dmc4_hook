@@ -29,6 +29,7 @@ std::optional<std::string> FpsLimit::on_initialize() {
 }
 
 void FpsLimit::on_gui_frame() {
+    ImGui::BeginGroup();
     ImGui::Checkbox(_("Override FPS Limit"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("If your FPS is set to unlocked, this will allow you to change the cap. Some things work differently at certain framerates"));
@@ -39,6 +40,7 @@ void FpsLimit::on_gui_frame() {
         ImGui::PopItemWidth();
         ImGui::Unindent(lineIndent);
     }
+    ImGui::EndGroup();
 }
 
 void FpsLimit::on_config_load(const utility::Config& cfg) {

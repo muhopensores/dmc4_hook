@@ -592,36 +592,40 @@ void TauntSelect::on_gui_frame() {
 	ImGui::Checkbox(_("Dante Taunt Select"), &mod_enabled);
 	ImGui::SameLine();
 	help_marker(_("Unknown slots may crash. Test at your own risk.\nIf you get stuck, use character switch to free yourself"));
-	ImGui::Indent(lineIndent);
-	if (ImGui::BeginCombo("##DanteTauntSelectComboBox", danteTauntNames[danteSelectedTauntID])) {
-        for (int n = 0; n < IM_ARRAYSIZE(danteTauntNames); n++) {
-            const bool is_selected = (danteSelectedTauntID == n);
-			if (ImGui::Selectable(danteTauntNames[n], is_selected)) {
-				danteSelectedTauntID = n;
+	if (mod_enabled) {
+		ImGui::Indent(lineIndent);
+		if (ImGui::BeginCombo("##DanteTauntSelectComboBox", danteTauntNames[danteSelectedTauntID])) {
+			for (int n = 0; n < IM_ARRAYSIZE(danteTauntNames); n++) {
+				const bool is_selected = (danteSelectedTauntID == n);
+				if (ImGui::Selectable(danteTauntNames[n], is_selected)) {
+					danteSelectedTauntID = n;
+				}
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
 			}
-            if (is_selected)
-                ImGui::SetItemDefaultFocus();
-        }
-        ImGui::EndCombo();
+			ImGui::EndCombo();
+		}
+		ImGui::Unindent(lineIndent);
 	}
-	ImGui::Unindent(lineIndent);
 
 	ImGui::Checkbox(_("Nero Taunt Select"), &mod_enabled2);
 	ImGui::SameLine();
 	help_marker(_("Unknown slots may crash. Test at your own risk.\nIf you get stuck, use character switch to free yourself"));
-	ImGui::Indent(lineIndent);
-	if (ImGui::BeginCombo("##NeroTauntSelectComboBox", neroTauntNames[neroSelectedTauntID])) {
-        for (int n = 0; n < IM_ARRAYSIZE(neroTauntNames); n++) {
-            const bool is_selected = (neroSelectedTauntID == n);
-			if (ImGui::Selectable(neroTauntNames[n], is_selected)) {
-				neroSelectedTauntID = n;
+	if (mod_enabled2) {
+		ImGui::Indent(lineIndent);
+		if (ImGui::BeginCombo("##NeroTauntSelectComboBox", neroTauntNames[neroSelectedTauntID])) {
+			for (int n = 0; n < IM_ARRAYSIZE(neroTauntNames); n++) {
+				const bool is_selected = (neroSelectedTauntID == n);
+				if (ImGui::Selectable(neroTauntNames[n], is_selected)) {
+					neroSelectedTauntID = n;
+				}
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
 			}
-            if (is_selected)
-                ImGui::SetItemDefaultFocus();
-        }
-        ImGui::EndCombo();
+			ImGui::EndCombo();
+		}
+		ImGui::Unindent(lineIndent);
 	}
-	ImGui::Unindent(lineIndent);
 }
 
 void TauntSelect::on_config_load(const utility::Config& cfg) {

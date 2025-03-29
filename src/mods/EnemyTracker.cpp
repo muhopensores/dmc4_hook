@@ -265,11 +265,6 @@ void EnemyTracker::on_gui_frame() {
             ImGui::Unindent(lineIndent);
         }
     }
-
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Spacing();
-
     if (ImGui::CollapsingHeader(_("Display Boss Stats"))) {
         ImGui::Indent(lineIndent);
         SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
@@ -303,10 +298,6 @@ void EnemyTracker::on_gui_frame() {
         }
         ImGui::Unindent(lineIndent);
     }
-
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Spacing();
 
     ImGui::Checkbox(_("Enable Save/Load hotkeys"), &hotkey_enabled);
     ImGui::SameLine();

@@ -161,6 +161,7 @@ std::optional<std::string> DoubleTapDarkslayer::on_initialize() {
 }
 
 void DoubleTapDarkslayer::on_gui_frame() {
+    ImGui::BeginGroup();
     ImGui::Checkbox(_("Double Tap Darkslayer"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Darkslayer is accessed by quickly pressing one style twice"));
@@ -171,6 +172,7 @@ void DoubleTapDarkslayer::on_gui_frame() {
         ImGui::PopItemWidth();
         ImGui::Unindent(lineIndent);
     }
+    ImGui::EndGroup();
 }
 
 void DoubleTapDarkslayer::on_config_load(const utility::Config& cfg) {

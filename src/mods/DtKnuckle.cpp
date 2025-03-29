@@ -814,6 +814,7 @@ static void SeeIfFileExists() {
 }
 
 void DtKnuckle::on_gui_frame() {
+	ImGui::BeginGroup();
     if (!fileExists) {
         if (ImGui::Button(_("Download Guardian Devil Files"))) {
             ShellExecuteA(NULL, "open", "https://github.com/muhopensores/dmc4_hook/releases", NULL, NULL, SW_SHOWNORMAL);
@@ -850,6 +851,7 @@ void DtKnuckle::on_gui_frame() {
 			ImGui::Unindent(lineIndent);
 		}
 	}
+	ImGui::EndGroup();
 }
 
 void DtKnuckle::on_config_load(const utility::Config& cfg) {

@@ -1251,14 +1251,14 @@ std::optional<std::string> StylePoints::on_initialize() {
 }
 
 void StylePoints::on_gui_frame() {
+    ImGui::BeginGroup();
     ImGui::Checkbox("Style Point Display", &mod_enabled);
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
+        ImGui::Checkbox("Use Original Names", &originalNames);
         ImGui::Checkbox("Tony", &tonyHawk);
         ImGui::SameLine();
         help_marker("Tony");
-        ImGui::SameLine(sameLineWidth + lineIndent);
-        ImGui::Checkbox("Use Original Names", &originalNames);
         ImGui::SameLine();
         help_marker("Instead of using our skill renames, use the developers'. Because there are more unique names, less skills will be grouped");
         if (tonyHawk) {
@@ -1266,8 +1266,7 @@ void StylePoints::on_gui_frame() {
             ImGui::Checkbox("moreGrouping", &moreGrouping);
             ImGui::SameLine();
             help_marker("Group attacks by the order you originally did them");
-            ImGui::Unindent(lineIndent);
-            ImGui::SliderFloat("timerBase", &timerBase, 0.0f, 2.0f, "%.1f");
+            /*ImGui::SliderFloat("timerBase", &timerBase, 0.0f, 2.0f, "%.1f");
             ImGui::SameLine();
             help_marker("DEV PLS REMOVE - The base time for how long you have before breaking a combo\n1.0 default");
             ImGui::SliderFloat("comboInfluence", &timerComboInfluence, 0.0f, 0.1f, "%.4f");
@@ -1275,16 +1274,20 @@ void StylePoints::on_gui_frame() {
             help_marker("DEV PLS REMOVE - How much influence will the score from your last attack have on the timer\n0.0010 default");
             ImGui::SliderFloat("shakeDuration", &shakeDuration, 0.0f, 1.0f, "%.4f");
             ImGui::SameLine();
-            help_marker("DEV PLS REMOVE - At what point in the timer should text shake stop\nRemember a faster timer means less shake, so edit this last\n0.99 default");
-            ImGui::SliderInt("maxPerRow", &maxPerRow, 1, 10);
-            ImGui::SameLine();
-            help_marker("DEV PLS REMOVE - How many attacks per row\n7 default");
+            help_marker("DEV PLS REMOVE - At what point in the timer should text shake stop\nRemember a faster timer means less shake, so edit this last\n0.99 default");*/
+            ImGui::PushItemWidth(sameLineItemWidth);
             ImGui::SliderInt("maxRows", &maxRows, 1, 10);
             ImGui::SameLine();
-            help_marker("DEV PLS REMOVE - How many rows\n5 default");
+            help_marker("How many rows\n5 default");
+            ImGui::SliderInt("maxPerRow", &maxPerRow, 1, 10);
+            ImGui::SameLine();
+            help_marker("How many attacks per row\n7 default");
+            ImGui::PopItemWidth();
+            ImGui::Unindent(lineIndent);
         }
         ImGui::Unindent(lineIndent);
     }
+    ImGui::EndGroup();
 }
 
 void StylePoints::on_frame(fmilliseconds& dt) {

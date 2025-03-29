@@ -437,29 +437,25 @@ void CameraSettings::on_gui_frame() {
     ImGui::SameLine();
     help_marker(_("Remove camera presets and instead use a camera that can move through walls\nEnable before entering a stage"));
 
-    ImGui::Checkbox(_("Use Custom Camera Variables"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Also enables the editing of these values via hotkeys"));
-    if (mod_enabled) {
-        ImGui::Indent(lineIndent);
-        if (ImGui::CollapsingHeader(_("Camera Variables"))) {
-            ImGui::PushItemWidth(sameLineItemWidth);
-            ImGui::InputFloat(_("Height"), &CameraSettings::camera_height, 10.0f, 20.0f, "%.0f");
-            ImGui::Spacing();
-            ImGui::InputFloat(_("Distance"), &CameraSettings::camera_distance, 100.0f, 200.0f, "%.0f%");
-            ImGui::Spacing();
-            ImGui::InputFloat(_("Distance (Lockon)"), &CameraSettings::camera_distance_lockon, 100.0f, 200.0f, "%.0f%");
-            ImGui::Spacing();
-            ImGui::InputFloat(_("Angle"), &CameraSettings::camera_angle, 0.1f, 0.2f, "%.1f%");
-            ImGui::Spacing();
-            ImGui::InputFloat(_("Angle (Lockon)"), &CameraSettings::camera_angle_lockon, 0.1f, 0.2f, "%.1f%");
-            ImGui::Spacing();
-            ImGui::InputFloat(_("FOV"), &CameraSettings::camera_fov, 10.0f, 20.0f, "%.0f%");
-            ImGui::Spacing();
-            ImGui::InputFloat(_("FOV (In Battle)"), &CameraSettings::camera_fov_in_battle, 10.0f, 20.0f, "%.0f%");
-            ImGui::PopItemWidth();
-        }
-        ImGui::Unindent(lineIndent);
+    if (ImGui::CollapsingHeader(_("Camera Variables"))) {
+        ImGui::Checkbox(_("Use Custom Camera Variables"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Also enables the editing of these values via hotkeys"));
+        ImGui::PushItemWidth(sameLineItemWidth);
+        ImGui::InputFloat(_("Height"), &CameraSettings::camera_height, 10.0f, 20.0f, "%.0f");
+        ImGui::Spacing();
+        ImGui::InputFloat(_("Distance"), &CameraSettings::camera_distance, 100.0f, 200.0f, "%.0f%");
+        ImGui::Spacing();
+        ImGui::InputFloat(_("Distance (Lockon)"), &CameraSettings::camera_distance_lockon, 100.0f, 200.0f, "%.0f%");
+        ImGui::Spacing();
+        ImGui::InputFloat(_("Angle"), &CameraSettings::camera_angle, 0.1f, 0.2f, "%.1f%");
+        ImGui::Spacing();
+        ImGui::InputFloat(_("Angle (Lockon)"), &CameraSettings::camera_angle_lockon, 0.1f, 0.2f, "%.1f%");
+        ImGui::Spacing();
+        ImGui::InputFloat(_("FOV"), &CameraSettings::camera_fov, 10.0f, 20.0f, "%.0f%");
+        ImGui::Spacing();
+        ImGui::InputFloat(_("FOV (In Battle)"), &CameraSettings::camera_fov_in_battle, 10.0f, 20.0f, "%.0f%");
+        ImGui::PopItemWidth();
     }
 }
 

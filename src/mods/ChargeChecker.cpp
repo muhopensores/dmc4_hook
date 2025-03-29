@@ -117,7 +117,6 @@ void ChargeChecker::on_gui_frame() {
         ImGui::Indent(lineIndent);
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::SliderFloat("1 to 2", &blue_rose_charge_mult_1, 0.1f, 10.0f, "%.1f");
-        ImGui::SameLine(sameLineWidth + lineIndent);
         ImGui::SliderFloat("2 to max", &blue_rose_charge_mult_2, 0.1f, 10.0f, "%.1f");
         ImGui::PopItemWidth();
         ImGui::Unindent(lineIndent);
