@@ -1,8 +1,8 @@
 #include "GuardTimer.hpp"
-static std::chrono::time_point<std::chrono::high_resolution_clock> damageTime = std::chrono::high_resolution_clock::now();
-static std::chrono::time_point<std::chrono::high_resolution_clock> guardTime  = std::chrono::high_resolution_clock::now();
 
 #if 1
+static std::chrono::time_point<std::chrono::high_resolution_clock> damageTime = std::chrono::high_resolution_clock::now();
+static std::chrono::time_point<std::chrono::high_resolution_clock> guardTime  = std::chrono::high_resolution_clock::now();
 uintptr_t GuardTimer::jmp_ret1      = NULL;
 uintptr_t GuardTimer::jmp_ret2      = NULL;
 bool      GuardTimer::mod_enabled   = false;
@@ -96,7 +96,7 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
             ImGui::SliderFloat("## LastRoyalBlock", &lastGuardTime, 5.0f, 0.0f, "%.3f", ImGuiSliderFlags_ReadOnly);
             ImGui::SameLine();
             help_marker("This is the same concept but it's the game's calculation because I don't trust my math\n"
-                "Only includes after guarding.\n"
+                "Only includes after guarding\n"
                 "Any value below 5.0f counts as perfectly timed");
             ImGui::PopItemWidth();
 

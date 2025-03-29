@@ -492,6 +492,8 @@ namespace gui {
 
                     pmods->on_draw_ui("DtKnuckle"_hash); // needs its own line
 
+                    pmods->on_draw_ui("ExceedLimiter"_hash); // needs its own line
+
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();

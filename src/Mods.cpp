@@ -132,6 +132,7 @@
 #include "mods/TauntSelect.hpp"
 #include "mods/StylePoints.hpp"
 #include "mods/GuardTimer.hpp"
+#include "mods/ExceedLimiter.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -273,6 +274,7 @@ Mods::Mods() {
     ADD_MOD(TauntSelect);
     ADD_MOD(StylePoints);
     ADD_MOD(GuardTimer);
+    ADD_MOD(ExceedLimiter);
 }
 
 // Initializes mods, checks for errors
