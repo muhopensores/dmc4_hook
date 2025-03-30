@@ -250,10 +250,18 @@ bool ModFramework::on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_p
         return true;
     }
 
-    if (!m_mods->on_message(wnd, message, w_param, l_param)) { return false; }
+    // get inputs when the main ui is closed for tooltips and other uis
+    bool handled = ImGui_ImplWin32_WndProcHandler(wnd, message, w_param, l_param);
+    if (handled) {
+        return true;
+    }
 
-    if ((m_draw_ui || m_draw_console) && ImGui_ImplWin32_WndProcHandler(wnd, message, w_param, l_param) != 0) {
-        // If the user is interacting with the UI we block the message from going to the game.
+    if (!m_mods->on_message(wnd, message, w_param, l_param)) {
+        return false;
+    }
+
+    // this doesn't seem to do anything
+    if ((m_draw_ui || m_draw_console) && handled) {
         auto& io = ImGui::GetIO();
 
         if (io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput) {

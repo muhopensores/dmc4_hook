@@ -47,9 +47,21 @@ void EffectColours::on_gui_frame() {
 }
 
 void EffectColours::on_config_load(const utility::Config& cfg) {
-    mod_enabled = cfg.get<bool>("enemy_slot_enable").value_or(false);
+    mod_enabled = cfg.get<bool>("effect_colours_enable").value_or(false);
+	coloursPickedFloat[2] = cfg.get<float>("coloursPickedFloat[2]").value_or(0.0f);
+	coloursPickedFloat[1] = cfg.get<float>("coloursPickedFloat[1]").value_or(1.0f);
+	coloursPickedFloat[0] = cfg.get<float>("coloursPickedFloat[0]").value_or(1.0f);
+	coloursPickedFloat[3] = cfg.get<float>("coloursPickedFloat[3]").value_or(1.0f);
+	coloursPicked[2] = (int8_t)(coloursPickedFloat[2] * 255.0f); // Red
+	coloursPicked[1] = (int8_t)(coloursPickedFloat[1] * 255.0f); // Green
+	coloursPicked[0] = (int8_t)(coloursPickedFloat[0] * 255.0f); // Blue
+	coloursPicked[3] = (int8_t)(coloursPickedFloat[3] * 255.0f); // Alpha
 };
 
 void EffectColours::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("enemy_slot_enable", mod_enabled);
+    cfg.set<bool>("effect_colours_enable", mod_enabled);
+	cfg.set<float>("coloursPickedFloat[2]", coloursPickedFloat[2]);
+	cfg.set<float>("coloursPickedFloat[1]", coloursPickedFloat[1]);
+	cfg.set<float>("coloursPickedFloat[0]", coloursPickedFloat[0]);
+	cfg.set<float>("coloursPickedFloat[3]", coloursPickedFloat[3]);
 };

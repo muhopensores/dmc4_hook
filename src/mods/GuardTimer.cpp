@@ -128,11 +128,11 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
             ImGui::PopStyleVar();
             ImGui::PopItemWidth();
             ImGui::SameLine();
-            help_marker("This slider shows just the perfect block window\n"
+            help_marker("This is the perfect block window\n"
                 "Perfect block / release should be 0.0833 seconds for non-turbo\n"
-                "(5 frames * 0.0166 frame time = 0.0833 seconds)\n"
+                "(5 frames * 0.01667 frame time = 0.0833 seconds)\n"
                 "and 0.0694 seconds for turbo\n"
-                "(5 frames / 1.2 turbo * 0.01667 frame time = 0.0694 seconds).");
+                "(5 frames / 1.2 turbo (4.1666) * 0.01667 frame time = 0.0694 seconds).");
 
             ImGui::End();
         }
@@ -156,7 +156,6 @@ std::optional<std::string> GuardTimer::on_initialize() {
 
     return Mod::on_initialize();
 }
-
 
 void GuardTimer::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("guard_timer_display", mod_enabled);

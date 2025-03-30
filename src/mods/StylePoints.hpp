@@ -14,6 +14,9 @@ public:
     static uintptr_t jmp_ret4;
     static bool tonyHawk;
     static bool moreGrouping;
+    static bool showAirTimeDisplay;
+    static bool showHeightChart;
+    static bool showInertiaChart;
 
     std::string get_mod_name() override { return "StylePoints"; };
     std::optional<std::string> on_initialize() override;

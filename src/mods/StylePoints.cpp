@@ -4,9 +4,10 @@ bool StylePoints::mod_enabled = false;
 bool StylePoints::tonyHawk = false;
 bool StylePoints::moreGrouping = false; 
 bool StylePoints::originalNames = false;
-float timerBase = 1.0f;
-float timerComboInfluence = 0.005f;
-float shakeDuration = 0.99f;
+bool StylePoints::showAirTimeDisplay = false;
+bool StylePoints::showHeightChart = false;
+bool StylePoints::showInertiaChart = false;
+
 uintptr_t StylePoints::jmp_ret1 = NULL;
 uintptr_t StylePoints::jmp_ret2 = NULL;
 uintptr_t StylePoints::jmp_ret3 = NULL;
@@ -655,24 +656,22 @@ struct GroupedTrick {
         : baseTrick(trick), repeatCount(count), summedScore(totalScore) {}
 };
 
+// non tony display
 std::vector<TrickScore> trickScores;
 static const float baseWidth = 1920.0f;
 static float correctedWindowFontScale = 0.0f;
-
 static const float displayDuration = 1.0f;
 static const uint32_t maxScores = 5;
 
-// trick recognition
+// tony display
+static std::chrono::steady_clock::time_point lastTrickTime = std::chrono::steady_clock::now();
 static const uint32_t maxTonyScores = UINT32_MAX;
 static int maxPerRow = 7;
 static int maxRows = 5;
 static float comboScore = 0.0f;
-static std::chrono::steady_clock::time_point lastTrickTime = std::chrono::steady_clock::now();
-
-// combo recognition
-static std::string lastProcessedTrick = "";
-static std::string detectedCombo = "";
-static std::chrono::steady_clock::time_point lastMatchTime = std::chrono::steady_clock::now();
+static float timerBase = 1.0f;
+static float timerComboInfluence = 0.005f;
+static float shakeDuration = 0.99f;
 
 const char* GetStyleChar(int styleNum) {
     switch (styleNum) {
@@ -802,10 +801,15 @@ static void DrawTrickScores() {
     }
 }
 
+struct StateSample {
+    float time; // Time since the timer started
+    float state; // 1.0 for aerial, 0.0 for grounded
+};
+
 static void DrawTonyScores() {
     auto* player = devil4_sdk::get_local_player();
     if (!player) return;
-    
+
     ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;
     if (!StylePoints::originalNames) UpdateTrickNames();
     auto now = std::chrono::steady_clock::now();
@@ -826,7 +830,7 @@ static void DrawTonyScores() {
         comboScore = 0.0f;
     }
 
-    ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.0f, screenSize.y * 0.8f));
+    ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.5f, screenSize.y * 0.9f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(ImVec2(screenSize.x * 1.0f, screenSize.y * 0.2f));
     ImGui::Begin("TrickScoresWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
 
@@ -843,54 +847,48 @@ static void DrawTonyScores() {
     float trickFontBaseScale = correctedWindowFontScale * 1.5f;
     float scoreFontScale = scoreFontBaseScale + shakeAmount * 0.1f;
     float trickFontScale = trickFontBaseScale;
-
     ImGui::SetWindowFontScale(scoreFontScale);
 
-    // Select the most recent tricks, not exceeding max display capacity
     std::vector<TrickScore> latestTricks;
     if (trickScores.size() > maxTonyScores) {
         latestTricks = std::vector<TrickScore>(
-            trickScores.end() - maxTonyScores, 
+            trickScores.end() - maxTonyScores,
             trickScores.end()
         );
-    } else {
+    }
+    else {
         latestTricks = trickScores;
     }
 
-    // Group consecutive tricks with summed scores
     std::vector<GroupedTrick> groupedTricks;
-    
+
     if (StylePoints::moreGrouping) {
-        // Create a vector to track the order of first appearances
         std::vector<std::string> firstAppearanceOrder;
         std::map<std::string, GroupedTrick> trickMap;
-    
+
         for (const auto& trick : latestTricks) {
             auto it = trickMap.find(trick.text);
             if (it == trickMap.end()) {
-                // First occurrence of this trick
                 trickMap[trick.text] = GroupedTrick(trick, 1, trick.score);
                 firstAppearanceOrder.push_back(trick.text);
-            } else {
-                // Existing trick
+            }
+            else {
                 it->second.repeatCount++;
                 it->second.summedScore += trick.score;
             }
         }
-    
-        // Clear and rebuild groupedTricks in the original order
+
         groupedTricks.clear();
         for (const auto& name : firstAppearanceOrder) {
             groupedTricks.push_back(trickMap[name]);
         }
-    } else {
-        // Original grouping logic (consecutive tricks)
+    }
+    else {
         for (const auto& trick : latestTricks) {
             if (groupedTricks.empty() || groupedTricks.back().baseTrick.text != trick.text) {
-                // Start a new trick group
                 groupedTricks.emplace_back(trick, 1, trick.score);
-            } else {
-                // Increment count and update total score of the last group
+            }
+            else {
                 auto& lastGroup = groupedTricks.back();
                 lastGroup.repeatCount++;
                 lastGroup.summedScore += trick.score;
@@ -898,19 +896,15 @@ static void DrawTonyScores() {
         }
     }
 
-    // Prepare rows for display
     std::vector<std::vector<GroupedTrick>> rowTricks(maxRows);
     comboScore = 0.0f;
     int currentRow = 0;
 
     for (const auto& groupedTrick : groupedTricks) {
-        // Always calculate score, regardless of row limits
         comboScore += groupedTrick.summedScore * 0.1f;
 
-        // Visual row display logic remains constrained
         if (currentRow >= maxRows) continue;
 
-        // Check if row is full
         if (rowTricks[currentRow].size() >= (uint32_t)maxPerRow) {
             currentRow++;
         }
@@ -925,24 +919,22 @@ static void DrawTonyScores() {
 
     char scoreText[32];
     snprintf(scoreText, sizeof(scoreText), "%.1f", comboScore);
-    float scoreWidth = ImGui::CalcTextSize(scoreText).x;
 
     char styleTierText[32];
     snprintf(styleTierText, sizeof(styleTierText), "x%.1f", GetStyleMultiplier(currentStyleTier));
-    float styleTierWidth = ImGui::CalcTextSize(styleTierText).x;
-    float totalWidth = scoreWidth + styleTierWidth + ImGui::CalcTextSize(" ").x;
-    float windowWidth = ImGui::GetContentRegionAvail().x;
 
+    float totalWidth = ImGui::CalcTextSize(scoreText).x + ImGui::CalcTextSize(styleTierText).x + ImGui::CalcTextSize(" ").x;
     float scoreShakeAmount = shakeAmount * 1.0f;
-    ImVec2 scorePos = ImVec2((windowWidth - totalWidth) * 0.5f + scoreShakeAmount, 0.0f + scoreShakeAmount);
-    ImGui::SetCursorPos(scorePos);
-
-    ImVec4 multiplierColor(currentStyleColor.x, currentStyleColor.y, currentStyleColor.z, fade);
+    ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - totalWidth) * 0.5f + scoreShakeAmount);
+    ImGui::SetCursorPosY(0.0f + scoreShakeAmount);
     ImVec4 scoreColor = GetScoreColor(comboScore, 0.0f, 500.0f);
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(scoreColor.x, scoreColor.y, scoreColor.z, fade));
     ImGui::Text("%s", scoreText);
     ImGui::PopStyleColor();
+
     ImGui::SameLine();
+
+    ImVec4 multiplierColor(currentStyleColor.x, currentStyleColor.y, currentStyleColor.z, fade);
     ImGui::PushStyleColor(ImGuiCol_Text, multiplierColor);
     ImGui::Text("%s", styleTierText);
     ImGui::PopStyleColor();
@@ -951,54 +943,43 @@ static void DrawTonyScores() {
 
     float trickShakeAmount = shakeAmount * 5.0f;
     float rowStartY = ImGui::GetFontSize() * 1.5f;
+
     for (int row = 0; row < maxRows; ++row) {
         if (rowTricks[row].empty()) continue;
 
-        float totalWidth = 0.0f;
         std::vector<std::pair<std::string, ImVec4>> textSegments;
+        float totalRowWidth = 0.0f;
 
-        // Calculate total width of tricks
-        // Create text segments with separators
         for (size_t i = 0; i < rowTricks[row].size(); ++i) {
             const auto& groupedTrick = rowTricks[row][i];
-            
-            // Format trick text with repeat count
             char trickText[64];
             if (groupedTrick.repeatCount > 1) {
-                snprintf(trickText, sizeof(trickText), "%s (x%d)", 
-                    groupedTrick.baseTrick.text.c_str(), 
+                snprintf(trickText, sizeof(trickText), "%s (x%d)",
+                    groupedTrick.baseTrick.text.c_str(),
                     groupedTrick.repeatCount
                 );
-            } else {
-                snprintf(trickText, sizeof(trickText), "%s", 
+            }
+            else {
+                snprintf(trickText, sizeof(trickText), "%s",
                     groupedTrick.baseTrick.text.c_str()
                 );
             }
 
-            // Color based on the summed score
             ImVec4 trickColor = GetTrickColor(groupedTrick.summedScore, fade);
-            textSegments.emplace_back(
-                trickText, 
-                trickColor
-            );
+            textSegments.emplace_back(trickText, trickColor);
 
-            // Add separator if not the last item
             if (i < rowTricks[row].size() - 1) {
                 textSegments.emplace_back(" + ", ImVec4(1.0f, 1.0f, 1.0f, fade));
             }
         }
 
-        // Calculate total width
         for (const auto& [text, color] : textSegments) {
-            totalWidth += ImGui::CalcTextSize(text.c_str()).x;
+            totalRowWidth += ImGui::CalcTextSize(text.c_str()).x;
         }
 
-        // Center the text
-        float startX = (windowWidth - totalWidth) * 0.5f + trickShakeAmount;
         float posY = rowStartY + row * ImGui::GetFontSize() * 1.0f + trickShakeAmount;
-        float cursorX = startX;
+        float cursorX = (ImGui::GetContentRegionAvail().x - totalRowWidth) * 0.5f + trickShakeAmount;
 
-        // Draw the text
         for (const auto& [text, color] : textSegments) {
             ImGui::SetCursorPos(ImVec2(cursorX, posY));
             ImGui::PushStyleColor(ImGuiCol_Text, color);
@@ -1011,8 +992,11 @@ static void DrawTonyScores() {
     ImGui::End();
 
     // Combo recognition
+    static std::string lastProcessedTrick = "";
+    static std::string detectedCombo = "";
+    static std::chrono::steady_clock::time_point lastMatchTime = std::chrono::steady_clock::now();
     float elapsedSinceLastMatch = std::chrono::duration<float>(now - lastMatchTime).count();
-    float fadeAlpha = 1.0f - (elapsedSinceLastMatch * turboSpeed);
+    float comboRecognitionAlpha = 1.0f - (elapsedSinceLastMatch * turboSpeed);
 
     if (!trickScores.empty()) {
         const std::string& latestTrick = trickScores.back().text;
@@ -1044,18 +1028,159 @@ static void DrawTonyScores() {
             }
         }
     }
-    ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.1f, screenSize.y * 0.6f));
+
+    ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.2f, screenSize.y * 0.7f), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
     ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.5f, screenSize.y * 0.5f));
     ImGui::Begin("ScoreRecognitionWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
     ImGui::SetWindowFontScale(correctedWindowFontScale * 1.5f);
-    if (fadeAlpha > 0.0f) {
-        ImVec4 comboColor(1.0f, 1.0f, 0.0f, fadeAlpha);
+    if (comboRecognitionAlpha > 0.0f) {
+        float textWidth = ImGui::CalcTextSize(detectedCombo.c_str()).x;
+        float windowWidth = ImGui::GetContentRegionAvail().x;
+        ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+        ImVec4 comboColor(1.0f, 1.0f, 0.0f, comboRecognitionAlpha);
         ImGui::PushStyleColor(ImGuiCol_Text, comboColor);
         ImGui::Text("%s", detectedCombo.c_str());
         ImGui::PopStyleColor();
     }
-
     ImGui::End();
+
+    // airtime window
+    if (StylePoints::showAirTimeDisplay) {
+        static float airTimer = 0.0f;
+        static float airTimerAlpha = 0.0f;
+        static float displayedAirTime = 0.0f;
+        static bool wasInAir = false;
+        static float timeOnGround = 0.0f;
+        static const float displayStartAirTime = 3.0f;
+        static const float fadeDuration = 1.0f;
+        static bool wasGrounded = true;
+        static bool fadingUp = false;
+        static float fadeUpTimer = 0.0f;
+        static float alphaWhenLanded = 0.0f;
+
+        float deltaTime = player->m_delta_time;
+        float realSeconds = deltaTime / 60.0f;
+        bool isInAir = !player->characterSettingsOne->groundedActual;
+        bool justBecameAirborne = wasGrounded && isInAir;
+        wasGrounded = !isInAir;
+
+        if (isInAir) {
+            if (!wasInAir) {
+                airTimer = 0.0f;
+                wasInAir = true;
+                if (airTimerAlpha > 0.0f) {
+                    fadingUp = true;
+                    fadeUpTimer = 0.0f;
+                }
+            }
+            else if (justBecameAirborne && airTimerAlpha > 0.0f) {
+                fadingUp = true;
+                fadeUpTimer = 0.0f;
+            }
+
+            airTimer += realSeconds;
+            if (fadingUp) {
+                fadeUpTimer += realSeconds;
+                float fadeProgress = fadeUpTimer / fadeDuration;
+                if (fadeProgress >= 1.0f) {
+                    airTimerAlpha = 1.0f;
+                    fadingUp = false;
+                }
+                else {
+                    airTimerAlpha = std::min(1.0f, airTimerAlpha + fadeProgress * (1.0f - airTimerAlpha));
+                }
+            }
+            else if (airTimer >= displayStartAirTime && airTimerAlpha < 1.0f) {
+                float fadeInProgress = (airTimer - displayStartAirTime) / fadeDuration;
+                airTimerAlpha = std::max(airTimerAlpha, std::min(1.0f, fadeInProgress));
+            }
+        }
+        else {
+            if (wasInAir) {
+                displayedAirTime = airTimer;
+                timeOnGround = 0.0f;
+                wasInAir = false;
+                fadingUp = false;
+                alphaWhenLanded = airTimerAlpha;
+            }
+
+            if (airTimerAlpha > 0.0f) {
+                timeOnGround += realSeconds;
+                if (timeOnGround > 1.0f) {
+                    float fadeOutProgress = std::min(1.0f, (timeOnGround - 1.0f) / fadeDuration);
+                    airTimerAlpha = std::max(0.0f, alphaWhenLanded * (1.0f - fadeOutProgress));
+                }
+            }
+        }
+
+        if (airTimerAlpha > 0.0f) {
+            ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.8f, screenSize.y * 0.7f), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
+            ImGui::Begin("AirtimeWindow", nullptr, ImGuiWindowFlags_AlwaysAutoResize |
+                ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
+            ImGui::SetWindowFontScale(correctedWindowFontScale * 1.5f);
+            ImVec4 airtimeColor(1.0f, 1.0f, 1.0f, airTimerAlpha);
+            ImGui::PushStyleColor(ImGuiCol_Text, airtimeColor);
+            float timeToDisplay = isInAir ? airTimer : displayedAirTime;
+            ImGui::Text("Airtime: %.1f", timeToDisplay);
+            ImGui::PopStyleColor();
+            ImGui::End();
+        }
+    }
+
+    // Height & Inertia Chart
+    if (StylePoints::showHeightChart || StylePoints::showInertiaChart) {
+        static std::vector<std::tuple<float, float, float>> heightInertiaTrackerStateHistory;
+        static std::chrono::steady_clock::time_point heightInertiaTrackerStartTime;
+        static bool heightInertiaTrackerTimerActive = false;
+
+        if (!trickScores.empty()) {
+            if (!heightInertiaTrackerTimerActive) {
+                heightInertiaTrackerStartTime = std::chrono::steady_clock::now();
+                heightInertiaTrackerStateHistory.clear();
+                heightInertiaTrackerTimerActive = true;
+            }
+
+            auto now = std::chrono::steady_clock::now();
+            float realElapsed = std::chrono::duration<float>(now - heightInertiaTrackerStartTime).count();
+            float gameElapsed = realElapsed / turboSpeed;
+            heightInertiaTrackerStateHistory.push_back({ gameElapsed, player->m_pos.y, player->inertia });
+            ImVec2 chartSize = ImVec2(screenSize.x * 0.1f, screenSize.y * 0.1f);
+            ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.01f, screenSize.y * 0.5f), ImGuiCond_Always, ImVec2(0.0f, 0.5f));
+            ImGui::Begin("Height & Inertia Chart", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+            static std::vector<float> times, heights, inertias;
+            times.clear();
+            heights.clear();
+            inertias.clear();
+            for (const auto& sample : heightInertiaTrackerStateHistory) {
+                times.push_back(std::get<0>(sample));
+                heights.push_back(std::get<1>(sample));
+                inertias.push_back(std::get<2>(sample));
+            }
+
+            float minTime = times.front();
+            float maxTime = times.back();
+            float minHeight = *std::min_element(heights.begin(), heights.end());
+            float maxHeight = *std::max_element(heights.begin(), heights.end());
+            float minInertia = *std::min_element(inertias.begin(), inertias.end());
+            float maxInertia = *std::max_element(inertias.begin(), inertias.end());
+            float overallMin = std::min(minHeight, minInertia);
+            float overallMax = std::max(maxHeight, maxInertia);
+
+            ImGui::Text("Combo: %.2f", maxTime - minTime);
+            if (StylePoints::showHeightChart) {
+                ImGui::PlotLines("## Height", heights.data(), heights.size(), 0, "Height", minHeight, maxHeight, chartSize);
+                ImGui::Text("Height: %.2f", heights.back());
+            }
+            if (StylePoints::showInertiaChart) {
+                ImGui::PlotLines("## Inertia", inertias.data(), inertias.size(), 0, "Inertia", minInertia, maxInertia, chartSize);
+                ImGui::Text("Inertia: %.2f", inertias.back());
+            }
+            ImGui::End();
+        }
+        else {
+            heightInertiaTrackerTimerActive = false;
+        }
+    }
 }
 
 static void AddTrickScore(const char* text, float score, float multiplier, int styleLetter) {
@@ -1263,9 +1388,13 @@ void StylePoints::on_gui_frame() {
         help_marker("Instead of using our skill renames, use the developers'. Because there are more unique names, less skills will be grouped");
         if (tonyHawk) {
             ImGui::Indent(lineIndent);
-            ImGui::Checkbox("moreGrouping", &moreGrouping);
+            ImGui::Checkbox("Air Time Display", &showAirTimeDisplay);
+            ImGui::Checkbox("Height Display", &showHeightChart);
+            ImGui::Checkbox("Inertia Display", &showInertiaChart);
+            ImGui::Checkbox("Alternate Grouping", &moreGrouping);
             ImGui::SameLine();
-            help_marker("Group attacks by the order you originally did them");
+            help_marker("Group attacks by the order you originally did them\n"
+                "This helps show the variety in a combo over exact input order");
             /*ImGui::SliderFloat("timerBase", &timerBase, 0.0f, 2.0f, "%.1f");
             ImGui::SameLine();
             help_marker("DEV PLS REMOVE - The base time for how long you have before breaking a combo\n1.0 default");
@@ -1307,6 +1436,10 @@ void StylePoints::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("style_points_display").value_or(false);
     tonyHawk = cfg.get<bool>("hawk_points_display").value_or(false);
     moreGrouping = cfg.get<bool>("group_points_display").value_or(false);
+    showAirTimeDisplay = cfg.get<bool>("airtime_points_display").value_or(false);
+    showHeightChart = cfg.get<bool>("height_points_display").value_or(false);
+    showInertiaChart = cfg.get<bool>("inertia_points_display").value_or(false);
+
     maxPerRow = cfg.get<int>("maxPerRow_points_display").value_or(7);
     maxRows = cfg.get<int>("maxRows_points_display").value_or(5);
 }
@@ -1315,6 +1448,10 @@ void StylePoints::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("style_points_display", mod_enabled);
     cfg.set<bool>("hawk_points_display", tonyHawk);
     cfg.set<bool>("group_points_display", moreGrouping);
+    cfg.set<bool>("airtime_points_display", showAirTimeDisplay);
+    cfg.set<bool>("height_points_display", showHeightChart);
+    cfg.set<bool>("inertia_points_display", showInertiaChart);
+
     cfg.set<int>("maxPerRow_points_display", maxPerRow);
     cfg.set<int>("maxRows_points_display", maxRows);
 }
