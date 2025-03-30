@@ -6,9 +6,10 @@ class GuardTimer : public Mod {
 public:
     GuardTimer() = default;
 
+    static bool mod_enabled;
     static uintptr_t jmp_ret1;
     static uintptr_t jmp_ret2;
-    static bool mod_enabled;
+    static uintptr_t jmp_ret3;
     static float lastGuardTime;
 
     std::string  get_mod_name() override { return "GuardTimer"; };
@@ -22,5 +23,5 @@ public:
     void on_config_save(utility::Config& cfg) override;
 
 private:
-    std::unique_ptr<FunctionHook> hook1, hook2;
+    std::unique_ptr<FunctionHook> hook1, hook2, hook3;
 };

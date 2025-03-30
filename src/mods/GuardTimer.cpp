@@ -1,12 +1,13 @@
 #include "GuardTimer.hpp"
 
 #if 1
-static std::chrono::time_point<std::chrono::high_resolution_clock> damageTime = std::chrono::high_resolution_clock::now();
-static std::chrono::time_point<std::chrono::high_resolution_clock> guardTime  = std::chrono::high_resolution_clock::now();
+bool      GuardTimer::mod_enabled   = false;
 uintptr_t GuardTimer::jmp_ret1      = NULL;
 uintptr_t GuardTimer::jmp_ret2      = NULL;
-bool      GuardTimer::mod_enabled   = false;
+uintptr_t GuardTimer::jmp_ret3      = NULL;
 float     GuardTimer::lastGuardTime = 0.0f;
+static std::chrono::time_point<std::chrono::high_resolution_clock> damageTime = std::chrono::high_resolution_clock::now();
+static std::chrono::time_point<std::chrono::high_resolution_clock> guardTime  = std::chrono::high_resolution_clock::now();
 static constexpr float hundredFloat = 100.0f;
 static float playerDelta = 0.0f;
 
@@ -40,7 +41,6 @@ naked void detour1(void) { // called when the player is hit
 
         originalcode:
         mov edx,[eax+0x000002D8]
-        // movss xmm0, dword ptr ds:[0xB9A21C] // omg after all these years all I needed was ds:
         jmp dword ptr [GuardTimer::jmp_ret1]
     }
 }
@@ -61,8 +61,29 @@ naked void detour2(void) { // called when the player presses guard
         pop eax
 
         originalcode:
+        xorps xmm0, xmm0
         movss [edi+0x00014D44],xmm0
         jmp dword ptr [GuardTimer::jmp_ret2]
+    }
+}
+
+naked void detour3(void) { // called when the player presses release
+    _asm {
+        cmp byte ptr [GuardTimer::mod_enabled], 1
+        jne originalcode
+
+        push eax
+        push ecx
+        push edx
+        mov eax, [esi+0x10]
+        call record_guard_time
+        pop edx
+        pop ecx
+        pop eax
+
+        originalcode:
+        movss xmm0, ds:[0x0B9A27C] // omg after all these years all I needed was ds:
+        jmp dword ptr [GuardTimer::jmp_ret3]
     }
 }
 
@@ -82,23 +103,36 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
             ImGui::SetWindowPos(window_pos);
 
             float damageTimeSeconds = std::chrono::duration<float>(guardTime - damageTime).count();
-            // float turboSpeed = devil4_sdk::get_sMediator()->turboEnabled ? devil4_sdk::get_work_rate()->turbo_speed : devil4_sdk::get_work_rate()->game_speed;
-            ImGui::PushItemWidth(screen_res.x * 0.1f);
-            ImGui::SliderFloat("## LateBlockPress", &damageTimeSeconds, -0.2f, 0.2f, "%.3f", ImGuiSliderFlags_ReadOnly);
-            ImGui::SameLine();
-            ImGui::SameLine();
-            help_marker("Guard Time - Damage Time (in seconds)\n"
-                "0.0, the middle, is when damage was applied\n"
-                "The marker location is your block timing\n");
+            float turboSpeed = devil4_sdk::get_sMediator()->turboEnabled ? devil4_sdk::get_work_rate()->turbo_speed : devil4_sdk::get_work_rate()->game_speed;
+            float windowWidth = ImGui::GetWindowSize().x;
 
-            ImGui::PushItemWidth(screen_res.x * 0.05f);
-            float royalBlockCutoff = *(float*)0xB9A21C;
-            ImGui::SliderFloat("## LastRoyalBlock", &lastGuardTime, 5.0f, 0.0f, "%.3f", ImGuiSliderFlags_ReadOnly);
-            ImGui::SameLine();
-            help_marker("This is the same concept but it's the game's calculation because I don't trust my math\n"
-                "Only includes after guarding\n"
-                "Any value below 5.0f counts as perfectly timed");
+            float blockSliderWidth = screen_res.x * 0.4f;
+            float wideLeftX = (windowWidth - blockSliderWidth) * 0.5f;
+            float wideCenterX = wideLeftX + (blockSliderWidth * 0.5f);
+            ImGui::SetCursorPosX(wideLeftX);
+            ImGui::PushItemWidth(blockSliderWidth);
+            ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 2);
+            ImGui::SliderFloat("## Block Timing", &damageTimeSeconds, (-0.0833f / turboSpeed) * 4, (0.0833f / turboSpeed) * 4, "%.4f", ImGuiSliderFlags_ReadOnly);
+            ImGui::PopStyleVar();
             ImGui::PopItemWidth();
+            ImGui::SameLine();
+            help_marker("0.0, the middle, is when damage was applied\n"
+                "The marker location is your block timing");
+
+            float perfectSliderWidth = screen_res.x * 0.05f;
+            float narrowLeftX = wideCenterX - perfectSliderWidth;
+            ImGui::SetCursorPosX(narrowLeftX);
+            ImGui::PushItemWidth(perfectSliderWidth);
+            ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 2);
+            ImGui::SliderFloat("## Royal Block Timing", &damageTimeSeconds, -0.0833f / turboSpeed, 0.0f, "%.4f", ImGuiSliderFlags_ReadOnly);
+            ImGui::PopStyleVar();
+            ImGui::PopItemWidth();
+            ImGui::SameLine();
+            help_marker("This slider shows just the perfect block window\n"
+                "Perfect block / release should be 0.0833 seconds for non-turbo\n"
+                "(5 frames * 0.0166 frame time = 0.0833 seconds)\n"
+                "and 0.0694 seconds for turbo\n"
+                "(5 frames / 1.2 turbo * 0.01667 frame time = 0.0694 seconds).");
 
             ImGui::End();
         }
@@ -107,13 +141,17 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
 
 std::optional<std::string> GuardTimer::on_initialize() {
     // DevilMayCry4_DX9.exe+
-    if (!install_hook_offset(0x3BC185, hook1, &detour1, &jmp_ret1, 6)) {
-		spdlog::error("Failed to init GuardTimer mod\n");
-		return "Failed to init GuardTimer mod";
+    if (!install_hook_offset(0x3BC185, hook1, &detour1, &jmp_ret1, 6)) { // player takes damage
+		spdlog::error("Failed to init GuardTimer mod 1\n");
+		return "Failed to init GuardTimer mod 1";
 	}
-    if (!install_hook_offset(0x3B6FD9, hook2, &detour2, &jmp_ret2, 8)) {
-		spdlog::error("Failed to init GuardTimer mod\n");
-		return "Failed to init GuardTimer mod";
+    if (!install_hook_offset(0x3B6FD6, hook2, &detour2, &jmp_ret2, 11)) { // player blocks
+	    spdlog::error("Failed to init GuardTimer mod 2\n");
+	    return "Failed to init GuardTimer mod 2";
+	}
+    if (!install_hook_offset(0x3B6B3D, hook3, &detour3, &jmp_ret3, 8)) { // player releases
+		spdlog::error("Failed to init GuardTimer mod 3\n");
+		return "Failed to init GuardTimer mod 3";
 	}
 
     return Mod::on_initialize();
