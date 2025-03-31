@@ -40,7 +40,7 @@ namespace ImGui
 	static int input_text_callback(ImGuiInputTextCallbackData* data)
 	{
 		auto* user_data = (InputTextCallbackUserData*)data->UserData;
-		if (data->EventChar < 256 && data->EventChar == '`') { // NOTE(): skip tilde key press
+		if (data->EventChar < 256 && (data->EventChar == '`' || data->EventChar == '\'')) { // NOTE(): skip tilde / ' key press (its ' for me!)
 			return 1;
 		}
 		if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
