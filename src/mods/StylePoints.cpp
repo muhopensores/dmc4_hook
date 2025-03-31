@@ -1077,8 +1077,8 @@ static void DrawTonyScores() {
                 fadingUp = true;
                 fadeUpTimer = 0.0f;
             }
-
-            airTimer += realSeconds;
+            if (!devil4_sdk::get_sArea()->aGamePtr->m_paused)
+                airTimer += realSeconds;
             if (fadingUp) {
                 fadeUpTimer += realSeconds;
                 float fadeProgress = fadeUpTimer / fadeDuration;

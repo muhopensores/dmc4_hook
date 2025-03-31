@@ -19,8 +19,8 @@ naked void detour() {
         pop ecx
         jne code
 
-        cmp dword ptr [InputStates::input_timer], 0x40c00000 // 6.0f
-        ja code
+        cmp dword ptr [InputStates::input_timer], 0x40a00000 // 5.0f to match guard/release
+        jae code
         cmp dword ptr [InputStates::input_timer], 0x00000000
         je code
         // cmp dword ptr [esi+0x00014D98], 3 // [currentStyle], 3

@@ -399,7 +399,7 @@ naked void detour11(void) {
     }
 }
 
-//Reduce screenshake
+// Reduce screenshake
 naked void detour12(void) {
     _asm {
             mov eax, [edx+0x000000D0] // org code
@@ -418,8 +418,11 @@ naked void detour12(void) {
 
 naked void detour13() {
     _asm {
-            cmp byte ptr [esi+0x00002A54],01
-            je code
+			cmp byte ptr [DanteJdc::mod_enabled], 0
+			je code
+
+            cmp byte ptr [esi+0x00002A54], 01
+            je retcode
 
             cmp word ptr [esi+0x334],0x0908
             je conditional_jump
@@ -455,61 +458,63 @@ naked void detour13() {
             mov edx,0xA2
             mov eax,2
             call [detour13_vfx_call]
-
             jmp [detour13_jmp]
+
         code:
-            jmp [DanteJdc::jmp_ret13]
+            cmp byte ptr [esi+0x00002A54],01
+        retcode:
+            jmp [DanteJdc::jmp_ret13] // jumps to jne detour13_jmp
         conditional_jump:
             jmp [detour13_jmp]
     }
 }
 
 std::optional<std::string> DanteJdc::on_initialize() {
-    if (!install_hook_offset(0x3E1189, hook1, &detour1, &jmp_ret1, 6)) {
+    if (!install_hook_offset(0x3E1189, hook1, &detour1, &jmp_ret1, 6)) { // set jdc vars
         spdlog::error("Failed to init DanteJdc mod\n");
         return "Failed to init DanteJdc mod";
     }
-    if (!install_hook_offset(0x3E110C, hook2, &detour2, &jmp_ret2, 9)) {
+    if (!install_hook_offset(0x3E110C, hook2, &detour2, &jmp_ret2, 9)) { // spawn jdc
         spdlog::error("Failed to init DanteJdc mod2\n");
         return "Failed to init DanteJdc mod2";
     }
-    if (!install_hook_offset(0x41F9C2, hook3, &detour3, &jmp_ret3, 6)) {
+    if (!install_hook_offset(0x41F9C2, hook3, &detour3, &jmp_ret3, 6)) { // Tracking slash dimension
         spdlog::error("Failed to init DanteJdc mod3\n");
         return "Failed to init DanteJdc mod3";
     }
-    if (!install_hook_offset(0x41F78B, hook4, &detour4, &jmp_ret4, 8)) {
+    if (!install_hook_offset(0x41F78B, hook4, &detour4, &jmp_ret4, 8)) { // Reduce JDC hitbox delay
         spdlog::error("Failed to init DanteJdc mod4\n");
         return "Failed to init DanteJdc mod4";
     }
-    if (!install_hook_offset(0x41F8A3, hook5, &detour5, &jmp_ret5, 9)) {
+    if (!install_hook_offset(0x41F8A3, hook5, &detour5, &jmp_ret5, 9)) { // Multi-hit jdc
         spdlog::error("Failed to init DanteJdc mod5\n");
         return "Failed to init DanteJdc mod5";
     }
-    if (!install_hook_offset(0x41F95D, hook6, &detour6, &jmp_ret6, 9)) {
+    if (!install_hook_offset(0x41F95D, hook6, &detour6, &jmp_ret6, 9)) { // Stop jdc despawn timer
         spdlog::error("Failed to init DanteJdc mod6\n");
         return "Failed to init DanteJdc mod6";
     }
-    if (!install_hook_offset(0x3E183B, hook7, &detour7, &jmp_ret7, 5)) {
+    if (!install_hook_offset(0x3E183B, hook7, &detour7, &jmp_ret7, 5)) { // Change SD effect
         spdlog::error("Failed to init DanteJdc mod7\n");
         return "Failed to init DanteJdc mod7";
     }
-    if (!install_hook_offset(0x3E17C3, hook8, &detour8, &jmp_ret8, 5)) {
+    if (!install_hook_offset(0x3E17C3, hook8, &detour8, &jmp_ret8, 5)) { // Change SD anim
         spdlog::error("Failed to init DanteJdc mod8\n");
         return "Failed to init DanteJdc mod8";
     }
-    if (!install_hook_offset(0x3E15F9, hook9, &detour9, &jmp_ret9, 7)) {
+    if (!install_hook_offset(0x3E15F9, hook9, &detour9, &jmp_ret9, 7)) { // Reduce SD projectile delay
         spdlog::error("Failed to init DanteJdc mod9\n");
         return "Failed to init DanteJdc mod9";
     }
-    if (!install_hook_offset(0x3E12FE, hook10, &detour10, &jmp_ret10, 8)) {
+    if (!install_hook_offset(0x3E12FE, hook10, &detour10, &jmp_ret10, 8)) { // JDC inertia carry
         spdlog::error("Failed to init DanteJdc mod10\n");
         return "Failed to init DanteJdc mod10";
     }
-    if (!install_hook_offset(0x3E12AD, hook11, &detour11, &jmp_ret11, 16)) {
+    if (!install_hook_offset(0x3E12AD, hook11, &detour11, &jmp_ret11, 16)) { // JDC inertia enable
         spdlog::error("Failed to init DanteJdc mod11\n");
         return "Failed to init DanteJdc mod11";
     }
-    if (!install_hook_offset(0x41F932, hook12, &detour12, &jmp_ret12, 6)) {
+    if (!install_hook_offset(0x41F932, hook12, &detour12, &jmp_ret12, 6)) { // Reduce screenshake
         spdlog::error("Failed to init DanteJdc mod12\n");
         return "Failed to init DanteJdc mod12";
     }
