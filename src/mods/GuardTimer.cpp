@@ -105,35 +105,81 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
             float damageTimeSeconds = std::chrono::duration<float>(guardTime - damageTime).count();
             float turboSpeed = devil4_sdk::get_sMediator()->turboEnabled ? devil4_sdk::get_work_rate()->turbo_speed : devil4_sdk::get_work_rate()->game_speed;
             float windowWidth = ImGui::GetWindowSize().x;
-
             float blockSliderWidth = screen_res.x * 0.4f;
+            static const float frameTime = 1.0f / 60.0f; // 0.01667f
+
+            // centre
             float wideLeftX = (windowWidth - blockSliderWidth) * 0.5f;
             float wideCenterX = wideLeftX + (blockSliderWidth * 0.5f);
-            ImGui::SetCursorPosX(wideLeftX);
-            ImGui::PushItemWidth(blockSliderWidth);
-            ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 2);
-            ImGui::SliderFloat("## Block Timing", &damageTimeSeconds, (-0.0833f / turboSpeed) * 4, (0.0833f / turboSpeed) * 4, "%.4f", ImGuiSliderFlags_ReadOnly);
-            ImGui::PopStyleVar();
-            ImGui::PopItemWidth();
-            ImGui::SameLine();
-            help_marker("0.0, the middle, is when damage was applied\n"
-                "The marker location is your block timing");
 
-            float perfectSliderWidth = screen_res.x * 0.05f;
-            float narrowLeftX = wideCenterX - perfectSliderWidth;
-            ImGui::SetCursorPosX(narrowLeftX);
-            ImGui::PushItemWidth(perfectSliderWidth);
-            ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 2);
-            ImGui::SliderFloat("## Royal Block Timing", &damageTimeSeconds, -0.0833f / turboSpeed, 0.0f, "%.4f", ImGuiSliderFlags_ReadOnly);
-            ImGui::PopStyleVar();
-            ImGui::PopItemWidth();
-            ImGui::SameLine();
-            help_marker("This is the perfect block window\n"
-                "Perfect block / release should be 0.0833 seconds for non-turbo\n"
-                "(5 frames * 0.01667 frame time = 0.0833 seconds)\n"
-                "and 0.0694 seconds for turbo\n"
-                "(5 frames / 1.2 turbo (4.1666) * 0.01667 frame time = 0.0694 seconds).");
+            // adjustment for the perfect slider because imgui moment
+            static float perfectSliderAdjustSize = 1.06f;
+            static float perfectSliderAdjustPlacement = 4.0f;
 
+            float perfectSliderWidth = screen_res.x * 0.05f * perfectSliderAdjustSize; 
+            float perfectSliderLeftX = wideCenterX + (screen_res.x * (perfectSliderAdjustPlacement / 1920.0f) - perfectSliderWidth);
+            {
+                ImGui::SetCursorPosX(wideLeftX);
+                ImGui::PushItemWidth(blockSliderWidth);
+                ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 2);
+                ImGui::SliderFloat("## Block Timing", &damageTimeSeconds, (-0.0833f / turboSpeed) * 4, (0.0833f / turboSpeed) * 4, "%.4fs", ImGuiSliderFlags_ReadOnly);
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::SameLine();
+                help_marker("0.0, the middle, is when damage was applied\n"
+                    "The marker location is your block timing relative to that damage application in seconds");
+            }
+            /*{
+                ImGui::SetCursorPosX(perfectSliderLeftX);
+                ImGui::PushItemWidth(perfectSliderWidth);
+                ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 2);
+                ImGui::SliderFloat("## Royal Block Timing 1", &damageTimeSeconds, -0.0833f / turboSpeed, 0.0f, "%.4fs", ImGuiSliderFlags_ReadOnly);
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::SameLine();
+                help_marker("This is the perfect block window in seconds\n"
+                    "Perfect block / release cutoff is 0.0833 seconds for non-turbo\n"
+                    "and 0.0694 seconds for turbo\n"
+                    "(5 frames * 0.01667 frame time = 0.0833 seconds)\n"
+                    "(5 frames / 1.2 turbo (4.1666) * 0.01667 frame time = 0.0694 seconds)");
+            }*/
+            {
+                float damageTimeFrames = damageTimeSeconds / frameTime;
+                float minFrames = -5.0f / turboSpeed;
+                ImGui::SetCursorPosX(perfectSliderLeftX);
+                ImGui::PushItemWidth(perfectSliderWidth);
+                ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 2);
+                ImGui::SliderFloat("## Royal Block Timing 2", &damageTimeFrames, minFrames, 0.0f, "%.2ff", ImGuiSliderFlags_ReadOnly);
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::SameLine();
+                help_marker("This is the perfect block window\n"
+                    "In turbo, you must guard before 4.1667 frames instead of before 5");
+            }
+            /*{
+                float damageTimeFrames = damageTimeSeconds / (frameTime / turboSpeed);
+                float minFrames = -5.0f;
+                ImGui::SetCursorPosX(perfectSliderLeftX);
+                ImGui::PushItemWidth(perfectSliderWidth);
+                ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 2);
+                ImGui::SliderFloat("## Royal Block Timing 3", &damageTimeFrames, minFrames, 0.0f, "%.2ff", ImGuiSliderFlags_ReadOnly);
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::SameLine();
+                help_marker("This is the perfect block window calculated from real time\n"
+                    "anything above -5 to below or equal 0 is a perfect block / release");
+            }*/
+            /*{
+                ImGui::SetCursorPosX(perfectSliderLeftX);
+                ImGui::PushItemWidth(perfectSliderWidth);
+                ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 2);
+                ImGui::SliderFloat("## Royal Block Timing Game", &lastGuardTime, 5.0f, 0.0f, "%.2ff", ImGuiSliderFlags_ReadOnly);
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::SameLine();
+                help_marker("This is the game's internal calculation of the perfect block window\n"
+                    "anything below 5 is a perfect block");
+            }*/
             ImGui::End();
         }
     }

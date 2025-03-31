@@ -1381,11 +1381,11 @@ void StylePoints::on_gui_frame() {
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
         ImGui::Checkbox("Use Original Names", &originalNames);
+        ImGui::SameLine();
+        help_marker("Instead of using our skill renames, use the developers'. Because there are more unique names, less skills will be grouped");
         ImGui::Checkbox("Tony", &tonyHawk);
         ImGui::SameLine();
         help_marker("Tony");
-        ImGui::SameLine();
-        help_marker("Instead of using our skill renames, use the developers'. Because there are more unique names, less skills will be grouped");
         if (tonyHawk) {
             ImGui::Indent(lineIndent);
             ImGui::Checkbox("Air Time Display", &showAirTimeDisplay);
