@@ -667,7 +667,7 @@ static const uint32_t maxScores = 5;
 static std::chrono::steady_clock::time_point lastTrickTime = std::chrono::steady_clock::now();
 static const uint32_t maxTonyScores = UINT32_MAX;
 static int maxPerRow = 7;
-static int maxRows = 5;
+static int maxRows = 3;
 static float comboScore = 0.0f;
 static float timerBase = 1.0f;
 static float timerComboInfluence = 0.005f;
@@ -1389,12 +1389,12 @@ void StylePoints::on_gui_frame() {
         if (tonyHawk) {
             ImGui::Indent(lineIndent);
             ImGui::Checkbox("Air Time Display", &showAirTimeDisplay);
-            ImGui::Checkbox("Height Display", &showHeightChart);
-            ImGui::Checkbox("Inertia Display", &showInertiaChart);
             ImGui::Checkbox("Alternate Grouping", &moreGrouping);
             ImGui::SameLine();
             help_marker("Group attacks by the order you originally did them\n"
                 "This helps show the variety in a combo over exact input order");
+            ImGui::Checkbox("Height Display", &showHeightChart);
+            ImGui::Checkbox("Inertia Display", &showInertiaChart);
             /*ImGui::SliderFloat("timerBase", &timerBase, 0.0f, 2.0f, "%.1f");
             ImGui::SameLine();
             help_marker("DEV PLS REMOVE - The base time for how long you have before breaking a combo\n1.0 default");
@@ -1434,14 +1434,14 @@ void StylePoints::on_frame(fmilliseconds& dt) {
 
 void StylePoints::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("style_points_display").value_or(false);
-    tonyHawk = cfg.get<bool>("hawk_points_display").value_or(false);
+    tonyHawk = cfg.get<bool>("hawk_points_display").value_or(true);
     moreGrouping = cfg.get<bool>("group_points_display").value_or(false);
-    showAirTimeDisplay = cfg.get<bool>("airtime_points_display").value_or(false);
+    showAirTimeDisplay = cfg.get<bool>("airtime_points_display").value_or(true);
     showHeightChart = cfg.get<bool>("height_points_display").value_or(false);
     showInertiaChart = cfg.get<bool>("inertia_points_display").value_or(false);
 
     maxPerRow = cfg.get<int>("maxPerRow_points_display").value_or(7);
-    maxRows = cfg.get<int>("maxRows_points_display").value_or(5);
+    maxRows = cfg.get<int>("maxRows_points_display").value_or(3);
 }
 
 void StylePoints::on_config_save(utility::Config& cfg) {

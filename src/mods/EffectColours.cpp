@@ -10,6 +10,10 @@ naked void detour(void) {
 		cmp byte ptr [EffectColours::mod_enabled], 0
 		je originalcode
 
+		/*mov al, [esi + 3]
+		mov [coloursPicked+3],al
+		mov eax, dword ptr [coloursPicked]*/
+
 		cmp dword ptr [esi+0x3B], 925982514 // '2_17'
 		jne originalcode
 		mov eax, dword ptr [coloursPicked]

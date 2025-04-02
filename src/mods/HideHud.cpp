@@ -1,24 +1,25 @@
 #include "HideHud.hpp"
 
-bool HideHud::mod_enabled_hide_all_hud{ false };
-bool HideHud::mod_enabled_health{ false };
-bool HideHud::mod_enabled_orbs{ false };
-bool HideHud::mod_enabled_style{ false };
-bool HideHud::mod_enabled_timer{ false };
-bool HideHud::mod_enabled_boey{ false };
-bool HideHud::mod_enabled_weapon_selected{ false };
-bool HideHud::mod_enabled_hide_weapon_selected{false};
-bool HideHud::mod_enabled_map{ false };
-bool HideHud::mod_enabled_boss{false};
+bool HideHud::mod_enabled_hide_all_hud         = false;
+bool HideHud::mod_enabled_health               = false;
+bool HideHud::mod_enabled_orbs                 = false;
+bool HideHud::mod_enabled_style                = false;
+bool HideHud::mod_enabled_timer                = false;
+bool HideHud::mod_enabled_boey                 = false;
+bool HideHud::mod_enabled_weapon_selected      = false;
+bool HideHud::mod_enabled_hide_weapon_selected = false;
+bool HideHud::mod_enabled_map                  = false;
+bool HideHud::mod_enabled_boss                 = false;
+bool HideHud::mod_enabled_style_points         = false;
 
-bool mod_enabled_health_backup               = false;
-bool mod_enabled_orbs_backup                 = false;
-bool mod_enabled_style_backup                = false;
-bool mod_enabled_timer_backup                = false;
-bool mod_enabled_weapon_selected_backup      = false;
-bool mod_enabled_hide_weapon_selected_backup = false;
-bool mod_enabled_map_backup                  = false;
-bool mod_enabled_boss_backup                 = false;
+static bool mod_enabled_health_backup                 = false;
+static bool mod_enabled_orbs_backup                   = false;
+static bool mod_enabled_style_backup                  = false;
+static bool mod_enabled_timer_backup                  = false;
+static bool mod_enabled_weapon_selected_backup        = false;
+static bool mod_enabled_hide_weapon_selected_backup   = false;
+static bool mod_enabled_map_backup                    = false;
+static bool mod_enabled_boss_backup                   = false;
 
 // DevilMayCry4_DX9.exe+B1997 - cmp byte ptr [esi+04], 01 compares all hud elements, use it while paused to find what you need
 // DevilMayCry4_DX9.exe+FEFAC - mov byte ptr [ecx+04], 00 writes dante weapon hud off
@@ -379,6 +380,15 @@ void HideHud::toggle_boss_hp(bool enable) {
     }
 }
 
+void HideHud::toggle_style_points(bool enable) {
+    if (enable) {
+        install_patch_offset(0x101A9D, patchstylepoints, "\x90\x90\x90\x90\x90\x90\x90\x90\x90", 9);
+
+    } else {
+        patchstylepoints.reset(); 
+    }
+}
+
 std::optional<std::string> HideHud::on_initialize() {
     if (!install_hook_offset(0x1036BB, boey_hud_15_hook, &boey_hud_15_proc, &HideHud::boey_hud_15_continue, 7)) {
         spdlog::error("Failed to init boey_hud_15 mod\n");
@@ -495,6 +505,10 @@ void HideHud::on_gui_frame() {
         toggle_weapon_display(mod_enabled_weapon_selected);
         toggle_weapon_hide(mod_enabled_hide_weapon_selected);
     }
+
+    if (ImGui::Checkbox(_("Show Style Points in BP"), &mod_enabled_style_points)) {
+        toggle_style_points(mod_enabled_style_points);
+    }
 }
 
 void HideHud::on_config_load(const utility::Config& cfg) {
@@ -516,6 +530,9 @@ void HideHud::on_config_load(const utility::Config& cfg) {
     toggle_map(mod_enabled_map);
     mod_enabled_boss = cfg.get<bool>("hide_boss_hud").value_or(false);
     toggle_boss_hp(mod_enabled_boss);
+    mod_enabled_style_points = cfg.get<bool>("bp_style_points").value_or(false);
+    toggle_style_points(mod_enabled_style_points);
+
 }
 
 void HideHud::on_config_save(utility::Config& cfg) {
@@ -528,4 +545,5 @@ void HideHud::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("always_hide_weapon_selection", mod_enabled_hide_weapon_selected);
     cfg.set<bool>("hide_map_hud", mod_enabled_map);
     cfg.set<bool>("hide_boss_hud", mod_enabled_boss);
+    cfg.set<bool>("bp_style_points", mod_enabled_style_points);
 }

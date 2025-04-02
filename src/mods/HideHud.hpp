@@ -16,6 +16,7 @@ public:
     static bool mod_enabled_hide_weapon_selected;
     static bool mod_enabled_map;
     static bool mod_enabled_boss;
+    static bool mod_enabled_style_points;
 
     static uintptr_t boey_hud_15_continue;
 
@@ -29,6 +30,7 @@ public:
     void toggle_weapon_hide(bool enable);
     void toggle_map(bool enable);
     void toggle_boss_hp(bool enable);
+    void toggle_style_points(bool enable);
 
     std::string get_mod_name() override { return "HideHud"; };
     std::optional<std::string> on_initialize() override;
@@ -152,4 +154,6 @@ private:
     std::unique_ptr<Patch> patchgunhidehud;
 
     std::unique_ptr<Patch> patchmaphud;
+
+    std::unique_ptr<Patch> patchstylepoints;
 };

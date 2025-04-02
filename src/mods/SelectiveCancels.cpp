@@ -64,6 +64,12 @@ naked void detour1() { // player in eax + edi
 			je CancellableStinger
 			cmp dword ptr [eax+0x2998], 0x335 // Real Impact
 			je CancellableRealImpact
+			cmp dword ptr [eax+0x2998], 0x31E // Flush
+			je CancellableFlush
+			cmp dword ptr [eax+0x2998], 0x31F // Flush forwards
+			je CancellableFlush
+			cmp dword ptr [eax+0x2998], 0x320 // Flush backwards
+			je CancellableFlush
 			jmp originalcode
 
 		CheckNero:
@@ -89,8 +95,10 @@ naked void detour1() { // player in eax + edi
 			jmp originalcode
 
 		CancellableKickThirteen:
+			cmp dword ptr [eax+0x348], 0x41c80000 // 25.0f
+			jb originalcode
 			test [SelectiveCancels::cancels], KICK13
-			jne JumpCancellable
+			jne MeleeCancellable
 			jmp originalcode
 
 		CancellableSlashDimension:
@@ -100,7 +108,7 @@ naked void detour1() { // player in eax + edi
 
 		CancellableProp:
 			test [SelectiveCancels::cancels], PROP
-			jne JumpCancellable
+			jne StyleCancellable
 			jmp originalcode
 
 		CancellableShock:
@@ -145,6 +153,11 @@ naked void detour1() { // player in eax + edi
 			jne JumpCancellable
 			jmp originalcode
 
+		CancellableFlush:
+			test [SelectiveCancels::cancels], FLUSH
+			jne AllCancellable
+			jmp originalcode
+
 	// Nero
 		CancellableShowdown:
 			test [SelectiveCancels::cancels], SHOWDOWN
@@ -158,19 +171,35 @@ naked void detour1() { // player in eax + edi
 
 	// Shared
 		CancellableRoll:
-			// cmp dword ptr [eax+0x348], 0x41200000 // 10.0f // timer example
-			// jb originalcode
 			test [SelectiveCancels::cancels], ROLL
 			jne JumpCancellable
 			jmp originalcode
 
 	// End
-		JumpCancellable:
-			mov dword ptr [eax+0x3174], 0x02 // [+0x3174] is jumps + trickster + guard // 2 is cancellable, 1 sets a buffer
-			// jmp originalcode
+		MeleeCancellable:
+			mov dword ptr [eax+0x30C4], 0x02 // 2 is cancellable, 1 sets a buffer
+			jmp originalcode
+		JumpCancellable: // also trickster dash cancellable etc
+			mov dword ptr [eax+0x3174], 0x02
+			jmp originalcode
+		StyleCancellable:
+			mov dword ptr [eax+0x3148], 0x02
+			jmp originalcode
+		GunCancellable:
+			mov dword ptr [eax+0x31CC], 0x02
+			jmp originalcode
+		Walkancellable:
+			mov dword ptr [eax+0x31F8], 0x02
+			jmp originalcode
+		AllCancellable:
+			mov dword ptr [eax+0x30C4], 0x02 // melee
+			mov dword ptr [eax+0x3148], 0x02 // style
+			mov dword ptr [eax+0x3174], 0x02 // jump / trickster dashes etc
+			jmp originalcode
 		originalcode:
 			mov edi, 0x00000008
 			jmp dword ptr [SelectiveCancels::jmp_ret1]
+			// 0x30F0 // 
 	}
 }
 
@@ -321,6 +350,12 @@ void SelectiveCancels::on_gui_frame() {
 		draw_checkbox_simple(_("Showdown"), SHOWDOWN);
 
 		ImGui::Spacing();
+		ImGui::Text(_("Dante Abilities"));
+		ImGui::Spacing();
+
+		draw_checkbox_simple(_("Flush"), FLUSH);
+
+		ImGui::Spacing();
 		ImGui::Text(_("Dante Swords"));
 		ImGui::Spacing();
 
@@ -331,6 +366,8 @@ void SelectiveCancels::on_gui_frame() {
 		draw_checkbox_simple(_("Real Impact"), REAL_IMPACT);
 		ImGui::SameLine(sameLineWidth + lineIndent);
 		draw_checkbox_simple(_("Kick 13"), KICK13);
+		ImGui::SameLine();
+		help_marker(_("Melee Cancellable from frame 25 (after the first 2 kicks)"));
 
 		draw_checkbox_simple(_("Shock"), SHOCK);
 		ImGui::SameLine();
