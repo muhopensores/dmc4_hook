@@ -108,7 +108,7 @@ naked void detour1() { // player in eax + edi
 
 		CancellableProp:
 			test [SelectiveCancels::cancels], PROP
-			jne StyleCancellable
+			jne JumpCancellable
 			jmp originalcode
 
 		CancellableShock:
@@ -182,13 +182,13 @@ naked void detour1() { // player in eax + edi
 		JumpCancellable: // also trickster dash cancellable etc
 			mov dword ptr [eax+0x3174], 0x02
 			jmp originalcode
-		StyleCancellable:
+		// StyleCancellable:
 			mov dword ptr [eax+0x3148], 0x02
 			jmp originalcode
-		GunCancellable:
+		// GunCancellable:
 			mov dword ptr [eax+0x31CC], 0x02
 			jmp originalcode
-		Walkancellable:
+		// Walkancellable:
 			mov dword ptr [eax+0x31F8], 0x02
 			jmp originalcode
 		AllCancellable:

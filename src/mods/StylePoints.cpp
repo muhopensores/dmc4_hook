@@ -1,18 +1,5 @@
 ﻿#include "StylePoints.hpp"
 
-bool StylePoints::mod_enabled = false;
-bool StylePoints::tonyHawk = false;
-bool StylePoints::moreGrouping = false; 
-bool StylePoints::originalNames = false;
-bool StylePoints::showAirTimeDisplay = false;
-bool StylePoints::showHeightChart = false;
-bool StylePoints::showInertiaChart = false;
-
-uintptr_t StylePoints::jmp_ret1 = NULL;
-uintptr_t StylePoints::jmp_ret2 = NULL;
-uintptr_t StylePoints::jmp_ret3 = NULL;
-uintptr_t StylePoints::jmp_ret4 = NULL;
-
 static std::unordered_map<std::string, std::string> textLookupTable = {
     // trickster
     {"TS-ehsuc",         "Mustang"},
@@ -268,6 +255,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
 //std::unordered_map<std::string, std::string> neroLookupTable = { // uh some things can go off after a char switch
     {"Grab-Attack",      "Collateral"},     // enemy hit by bustered scarecrow
     {"Grab-Attack-DT",   "Collateral"},     // enemy hit by bustered scarecrow
+    {"em000_001_dt_th",  "Collateral"},     // enemy hit by bustered scarecrow (air + dt)
     {"makikomi158",      "Collateral"},     // enemy hit by bustered mega
     {"BusterBlown",      "Collateral"},     // enemy hit by bustered bianco
     {"BusterExplosion",  "Collateral"},     // enemy hit by bustered bianco
@@ -285,7 +273,8 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"ShootNeroAir",     "Collateral"},     // enemy hit by bustered basilisk
     {"BusterThrow",      "Collateral"},     // enemy hit by bustered gladius
     {"D_BusterSlash",    "Collateral"},     // enemy hit by bustered gladius (dt)
-    {"\xA0\x4F\xBE",     "Hold Block"},     // held enemy hit, reads �O�
+    {"\xA0\x4F\xBE",     "Hold Block"},     // held enemy hit by scarecrow, reads �O�
+    {"\x90\x8B\xBA",     "Hold Block"},     // held enemy hit by seed, reads ???
 
     // scarecrow
     {"Em000",            "Scarecrow Buster"}, // non dt
@@ -346,6 +335,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"BUS-Em012_Gr_05",  "Blitz Buster"}, // ground
     {"BUS-Em012_Gr_06",  "Blitz Buster"}, // ground
     {"BUS-Em012_Gr_07",  "Blitz Buster"}, // ground
+    {"BUS-Em012_Ai_00",  "Blitz Buster"}, // air
     {"BUS-Em012_Ai_01",  "Blitz Buster"}, // air
     {"BUS-Em012_Ai_02",  "Blitz Buster"}, // air
     {"BUS-Em012_Ai_03",  "Blitz Buster"}, // air
@@ -415,20 +405,25 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Em021Norm_Ryu3",   "Echidna Buster"},
     {"Em021Norm_Ryu4",   "Echidna Buster"},
     {"Em021Norm_Ryu6",   "Echidna Buster"},
-    {"BUS-Em021_Bl00",   "Echidna Buster"},
-    {"BUS-Em021_Bl01",   "Echidna Buster"},
-    {"BUS-Em021_Bl02",   "Echidna Buster"},
-    {"BUS-Em021_Bl03",   "Echidna Buster"},
-    {"BUS-Em021_Bl04",   "Echidna Buster"},
-    {"BUS-Em021_Bl05",   "Echidna Buster"},
-    {"BUS-Em021_Bl06",   "Echidna Buster"},
-    {"BUS-Em021_Bl07",   "Echidna Buster"},
+    {"Em021Maji_Ryu1",   "Echidna Buster"},
+    {"Em021Maji_Ryu2",   "Echidna Buster"},
+    {"BUS-Em021_Bl_00",  "Echidna Buster"},
+    {"BUS-Em021_Bl_01",  "Echidna Buster"},
+    {"BUS-Em021_Bl_02",  "Echidna Buster"},
+    {"BUS-Em021_Bl_03",  "Echidna Buster"},
+    {"BUS-Em021_Bl_04",  "Echidna Buster"},
+    {"BUS-Em021_Bl_05",  "Echidna Buster"},
+    {"BUS-Em021_Bl_06",  "Echidna Buster"},
+    {"BUS-Em021_Bl_07",  "Echidna Buster"},
     {"Em021Maji1",       "Echidna Buster"},
     {"Em021Maji2",       "Echidna Buster"},
     {"Em021Maji3",       "Echidna Buster"},
     {"Em021Maji4",       "Echidna Buster"},
+    {"Em021Maji5",       "Echidna Buster"},
     {"Em021Maji6",       "Echidna Buster"},
+    {"Em021Maji7",       "Echidna Buster"},
     {"Em021Maji8",       "Echidna Buster"},
+    {"SeedPLAtk",        "Seed Rebound"},
 
     // credo
     {"SpearBuster_PL",   "Credo Buster"},
@@ -485,6 +480,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"RED-ComboC_03",    "Red Queen Combo C"},
     {"RED-ComboC_04",    "Red Queen Combo C"},
     {"RED-ComboD_00",    "Red Queen Combo D"},
+    {"RED-ComboD_01",    "Red Queen Combo D"},
     {"RED-Streak",       "Streak"},
     {"RED-StreEX_00",    "EX Streak"},
     {"RED-StreEX_01",    "EX Streak"},        // no clarification on ex2 or 3
@@ -504,11 +500,15 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"RED-Surren_00",    "Shuffle"},
     {"RED-Surren_01",    "Shuffle"},          // weak hit
     {"RED-SureenEX_00",  "EX Shuffle"},       // EX1
+    {"RED-SureenEX_01",  "EX Shuffle"},       // EX1 // rare, I assume weak hit or back hit
     {"RED-SureenEX_02",  "EX Shuffle"},       // EX1
-    {"RED-SureenEX_02",  "EX Shuffle"},       // EX1
+    {"RED-SureenEX_03",  "EX Shuffle"},       // EX1 // rare, I assume weak hit or back hit
     {"RED-SureenEX_04",  "EX Shuffle"},       // EX2
+    {"RED-SureenEX_05",  "EX Shuffle"},       // EX2 // rare, I assume weak hit or back hit
     {"RED-SureenEX_06",  "EX Shuffle"},       // EX2
+    {"RED-SureenEX_07",  "EX Shuffle"},       // EX2 // rare, I assume weak hit or back hit
     {"RED-SureenEX_08",  "EX Shuffle"},       // EX3
+    {"RED-SureenEX_09",  "EX Shuffle"},       // EX3 // rare, I assume weak hit or back hit
     {"RED-SureenEX_10",  "EX Shuffle"},       // EX3
     {"RED-AirStre_00",   "Calibur"},         
     {"RED-AirStEX_00",   "EX Calibur"},       // EX1
@@ -656,6 +656,25 @@ struct GroupedTrick {
         : baseTrick(trick), repeatCount(count), summedScore(totalScore) {}
 };
 
+struct StateSample {
+    float time;
+    float state;
+};
+
+// system
+bool StylePoints::mod_enabled = false;
+bool StylePoints::tonyHawk = false;
+bool StylePoints::moreGrouping = false; 
+bool StylePoints::originalNames = false;
+bool StylePoints::showAirTimeDisplay = false;
+bool StylePoints::showHeightChart = false;
+bool StylePoints::showInertiaChart = false;
+
+uintptr_t StylePoints::jmp_ret1 = NULL;
+uintptr_t StylePoints::jmp_ret2 = NULL;
+uintptr_t StylePoints::jmp_ret3 = NULL;
+uintptr_t StylePoints::jmp_ret4 = NULL;
+
 // non tony display
 std::vector<TrickScore> trickScores;
 static const float baseWidth = 1920.0f;
@@ -800,11 +819,6 @@ static void DrawTrickScores() {
         ImGui::End();
     }
 }
-
-struct StateSample {
-    float time; // Time since the timer started
-    float state; // 1.0 for aerial, 0.0 for grounded
-};
 
 static void DrawTonyScores() {
     auto* player = devil4_sdk::get_local_player();
