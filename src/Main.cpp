@@ -70,5 +70,23 @@ BOOL APIENTRY DllMain(HMODULE handle, DWORD reason, LPVOID reserved) {
 	if (reason == DLL_PROCESS_DETACH) {
 		FreeLibrary(g_dinput);
 	}
+
+	// increase global, temp, resource mem
+	static DWORD oldProtect;
+	static BYTE* globalMem = (BYTE*)0x8AFB3E; // global
+	static BYTE* tempMem   = (BYTE*)0x8AFB76; // temp
+	static BYTE* resMem    = (BYTE*)0x8AFBAE; // resource
+
+    VirtualProtect(globalMem, 1, PAGE_EXECUTE_READWRITE, &oldProtect);
+    *globalMem = 9; // was push 06000000
+    VirtualProtect(globalMem, 1, oldProtect, &oldProtect);
+
+    VirtualProtect(tempMem, 1, PAGE_EXECUTE_READWRITE, &oldProtect);
+    *tempMem = 3; // was push 02000000
+    VirtualProtect(tempMem, 1, oldProtect, &oldProtect);
+
+    VirtualProtect(resMem, 1, PAGE_EXECUTE_READWRITE, &oldProtect);
+    *resMem = 9; // was push 06000000
+    VirtualProtect(resMem, 1, oldProtect, &oldProtect);
 	return TRUE;
 }
