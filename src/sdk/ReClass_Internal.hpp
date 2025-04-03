@@ -31,17 +31,17 @@ enum class GameMode : uint32_t {
 static const std::vector<std::pair<uint16_t, const char*>> buttonPairs = {
     {0x0000, "None"},
     {0x0001, "Back"},
-    {0x0002, "Left Thumb"},
-    {0x0004, "Right Thumb"},
+    {0x0002, "L3"},
+    {0x0004, "R3"},
     {0x0008, "Start"},
     {0x0010, "Dpad Up"},
     {0x0020, "Dpad Right"},
     {0x0040, "Dpad Down"},
     {0x0080, "Dpad Left"},
-    {0x0100, "Left Shoulder"},
-    {0x0200, "Right Shoulder"},
-    {0x0400, "Left Trigger"},
-    {0x0800, "Right Trigger"},
+    {0x0100, "L1"},
+    {0x0200, "R1"},
+    {0x0400, "L2"},
+    {0x0800, "R2"},
     {0x1000, "Y"},
     {0x2000, "B"},
     {0x4000, "A"},
@@ -593,7 +593,7 @@ static_assert(sizeof(uBoss) == 0x1f2c);
 class cCameraPlayer {
 public:
     char pad_0[0x10]; //0x00
-    Vector3f eye; // 0x10
+    Vector3f pos; // 0x10
     char pad_1c[0x4];
     Vector3f lookat; // 0x20
     char pad_2c[0x14];
@@ -618,12 +618,12 @@ public:
     char pad_20[0x4];
     float FOV; // 0x24
     char pad_28[0x8];
-    Vector3f eye; // 0x30
+    Vector3f pos; // 0x30
     char pad_3c[0x4];
     Vector3f up; // 0x40
     char pad_4c[0x4];
-    Vector4f lookat; // 0x50
-    char pad_60[0x150];
+    Vector3 lookat; // 0x50
+    char pad_60[0x154];
     Matrix4x4 possibleMat5; // 0x1b0
     char pad_1f0[0x2a0];
     cCameraPlayer* cCameraPlayer1; // 0x490

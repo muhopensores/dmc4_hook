@@ -244,10 +244,14 @@ namespace utility {
             return "NumLock";
         case VK_SCROLL:
             return "Scroll Lock";
+        case VK_SHIFT:
+            return "Shift";
         case VK_LSHIFT:
             return "LShift";
         case VK_RSHIFT:
             return "RShift";
+        case VK_CONTROL:
+            return "Ctrl";
         case VK_LCONTROL:
             return "LCtrl";
         case VK_RCONTROL:

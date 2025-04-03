@@ -6,12 +6,19 @@ uintptr_t SelectiveCancels::jmp_ret1 = 0x0080332F;
 uintptr_t SelectiveCancels::jmp_ret2 = NULL;
 uintptr_t SelectiveCancels::grief_jmp_ret1 = NULL;
 uintptr_t SelectiveCancels::grief_jmp_ret2 = NULL;
-constexpr uintptr_t grief_detour2_jmp = 0x836FCF;
-bool good_grief = false;
+static constexpr uintptr_t grief_detour2_jmp = 0x836FCF;
+uint32_t  SelectiveCancels::cancels = 0;
 
 constexpr uintptr_t static_mediator_ptr  = 0x00E558B8;
-uint32_t  SelectiveCancels::cancels = 0;
-bool fixGuardInertia = false;
+static bool good_grief = false;
+static bool fixGuardInertia = false;
+static float xmm0backup = 0.0f;
+
+static float shockBuffer = 30.0f;
+static float shockCancel = 50.0f;
+
+static float kickThirteenBuffer = 20.0f;
+static float kickThirteenCancel = 46.8f;
 
 naked void detour1() { // player in eax + edi
 	_asm {
@@ -27,175 +34,187 @@ naked void detour1() { // player in eax + edi
 			pop ecx
 			jne originalcode
 
+			movss [xmm0backup],xmm0
+			movss xmm0,[eax+0x348]
 		// Dante
 			cmp dword ptr [eax+0x1494], 0 // Dante
 			jne CheckNero
 			cmp dword ptr [eax+0x2998], 0x411 // Grounded Ecstasy
-			je CancellableEcstasy
+			je Ecstasy
 			cmp dword ptr [eax+0x2998], 0x412 // Aerial Ecstasy
-			je CancellableEcstasy
+			je Ecstasy
 			cmp dword ptr [eax+0x2998], 0x732 // Argument
-			je CancellableArgument
+			je Argument
 			cmp dword ptr [eax+0x2998], 0x30E // Kick 13
-			je CancellableKickThirteen
+			je KickThirteen
 			cmp dword ptr [eax+0x2998], 0x30F // DT Kick 13
-			je CancellableKickThirteen
+			je KickThirteen
 			cmp dword ptr [eax+0x2998], 0x900 // Slash Dimension
-			je CancellableSlashDimension
+			je SlashDimension
 			cmp dword ptr [eax+0x2998], 0x232 // Prop
-			je CancellableProp
+			je Prop
 			cmp dword ptr [eax+0x2998], 0x333 // Shock
-			je CancellableShock
+			je Shock
 			cmp dword ptr [eax+0x2998], 0x735 // Omen
-			je CancellableOmen
+			je Omen
 			cmp dword ptr [eax+0x2998], 0x635 // Gunstinger
-			je CancellableGunstinger
+			je Gunstinger
 			cmp dword ptr [eax+0x2998], 0x706 // Epidemic
-			je CancellableEpidemic
+			je Epidemic
 			cmp dword ptr [eax+0x2998], 0x410 // DT Pin Up part 2
-			je CancellableDTPinUp
+			je DTPinUp
 			cmp dword ptr [eax+0x2998], 0x310 // Draw
-			je CancellableDraw
+			je Draw
 			cmp dword ptr [eax+0x2998], 0x007 // Roll left
-			je CancellableRoll
+			je Roll
 			cmp dword ptr [eax+0x2998], 0x008 // Roll right
-			je CancellableRoll
+			je Roll
 			cmp dword ptr [eax+0x2998], 0x20F // Stinger max level
-			je CancellableStinger
+			je Stinger
 			cmp dword ptr [eax+0x2998], 0x335 // Real Impact
-			je CancellableRealImpact
+			je RealImpact
 			cmp dword ptr [eax+0x2998], 0x31E // Flush
-			je CancellableFlush
+			je Flush
 			cmp dword ptr [eax+0x2998], 0x31F // Flush forwards
-			je CancellableFlush
+			je Flush
 			cmp dword ptr [eax+0x2998], 0x320 // Flush backwards
-			je CancellableFlush
-			jmp originalcode
+			je Flush
+			jmp popcode
 
 		CheckNero:
 			cmp dword ptr [eax+0x2998], 0x33B // Nero Showdown
-			je CancellableShowdown
+			je Showdown
 			cmp dword ptr [eax+0x2998], 0x032 // Nero DT Ground
-			je CancellableDTGround
+			je DTGround
 			cmp dword ptr [eax+0x2998], 0x007 // Roll left
-			je CancellableRoll
+			je Roll
 			cmp dword ptr [eax+0x2998], 0x008 // Roll right
-			je CancellableRoll
-			jmp originalcode
+			je Roll
+			jmp popcode
 
 	// Dante
-		CancellableEcstasy:
+		Ecstasy:
 			test [SelectiveCancels::cancels], ECSTASY
-			jne JumpCancellable
-			jmp originalcode
+			jne UsualCancel
+			jmp popcode
 
-		CancellableArgument:
+		Argument:
 			test [SelectiveCancels::cancels], ARGUMENT
-			jne JumpCancellable
-			jmp originalcode
+			jne UsualCancel
+			jmp popcode
 
-		CancellableKickThirteen:
-			cmp dword ptr [eax+0x348], 0x41c80000 // 25.0f
-			jb originalcode
+		KickThirteen:
 			test [SelectiveCancels::cancels], KICK13
-			jne MeleeCancellable
-			jmp originalcode
+			je popcode
+			comiss xmm0, [kickThirteenBuffer]
+			jb popcode
+			comiss xmm0, [kickThirteenCancel]
+			jb UsualBuffer
+			jmp UsualCancel
 
-		CancellableSlashDimension:
+		SlashDimension:
 			test [SelectiveCancels::cancels], SLASH_DIMENSION
-			jne JumpCancellable
-			jmp originalcode
+			jne UsualCancel
+			jmp popcode
 
-		CancellableProp:
+		Prop:
 			test [SelectiveCancels::cancels], PROP
-			jne JumpCancellable
-			jmp originalcode
+			jne UsualCancel
+			jmp popcode
 
-		CancellableShock:
-			cmp dword ptr [eax+0x348], 0x42200000 // 40.0f
-			jb originalcode
+		Shock:
 			test [SelectiveCancels::cancels], SHOCK
-			jne JumpCancellable
-			jmp originalcode
+			je popcode
+			comiss xmm0, [shockBuffer]
+			jb popcode
+			comiss xmm0, [shockCancel]
+			jb UsualBuffer
+			jmp UsualCancel
 
-		CancellableOmen:
+		Omen:
 			test [SelectiveCancels::cancels], OMEN
-			jne JumpCancellable
-			jmp originalcode
+			jne UsualCancel
+			jmp popcode
 
-		CancellableGunStinger:
+		GunStinger:
 			test [SelectiveCancels::cancels], GUNSTINGER
-			jne JumpCancellable
-			jmp originalcode
+			jne UsualCancel
+			jmp popcode
 
-		CancellableEpidemic:
+		Epidemic:
 			test [SelectiveCancels::cancels], EPIDEMIC
-			jne JumpCancellable
-			jmp originalcode
+			jne UsualCancel
+			jmp popcode
 
-		CancellableDTPinUp:
+		DTPinUp:
 			test [SelectiveCancels::cancels], DT_PIN_UP_P2
-			jne JumpCancellable
-			jmp originalcode
+			jne UsualCancel
+			jmp popcode
 
-		CancellableDraw:
+		Draw:
 			test [SelectiveCancels::cancels], DRAW
-			jne JumpCancellable
-			jmp originalcode
+			jne UsualCancel
+			jmp popcode
 
-		CancellableStinger:
+		Stinger:
 			test [SelectiveCancels::cancels], STINGER
-			jne JumpCancellable
-			jmp originalcode
+			jne UsualCancel
+			jmp popcode
 
-		CancellableRealImpact:
+		RealImpact:
 			test [SelectiveCancels::cancels], REAL_IMPACT
-			jne JumpCancellable
-			jmp originalcode
+			jne UsualCancel
+			jmp popcode
 
-		CancellableFlush:
+		Flush:
 			test [SelectiveCancels::cancels], FLUSH
-			jne AllCancellable
-			jmp originalcode
+			jne MostCancel
+			jmp popcode
 
 	// Nero
-		CancellableShowdown:
+		Showdown:
 			test [SelectiveCancels::cancels], SHOWDOWN
-			jne JumpCancellable
-			jmp originalcode
+			jne UsualCancel
+			jmp popcode
 
-		CancellableDTGround:
+		DTGround:
 			test [SelectiveCancels::cancels], DTGROUND
-			jne JumpCancellable
-			jmp originalcode
+			jne UsualCancel
+			jmp popcode
 
 	// Shared
-		CancellableRoll:
+		Roll:
 			test [SelectiveCancels::cancels], ROLL
-			jne JumpCancellable
-			jmp originalcode
+			jne UsualCancel
+			jmp popcode
 
-	// End
-		MeleeCancellable:
+
+		UsualBuffer:
+			mov dword ptr [eax+0x3174], 0x01 // jump / trickster dashes etc
+			jmp popcode
+		// MeleeCancel:
 			mov dword ptr [eax+0x30C4], 0x02 // 2 is cancellable, 1 sets a buffer
-			jmp originalcode
-		JumpCancellable: // also trickster dash cancellable etc
+			jmp popcode
+		UsualCancel: // also trickster dash cancellable etc
 			mov dword ptr [eax+0x3174], 0x02
-			jmp originalcode
-		// StyleCancellable:
+			jmp popcode
+		// StyleCancel:
 			mov dword ptr [eax+0x3148], 0x02
-			jmp originalcode
-		// GunCancellable:
+			jmp popcode
+		// GunCancel:
 			mov dword ptr [eax+0x31CC], 0x02
-			jmp originalcode
-		// Walkancellable:
+			jmp popcode
+		// WalkCancel:
 			mov dword ptr [eax+0x31F8], 0x02
-			jmp originalcode
-		AllCancellable:
+			jmp popcode
+		MostCancel:
 			mov dword ptr [eax+0x30C4], 0x02 // melee
 			mov dword ptr [eax+0x3148], 0x02 // style
 			mov dword ptr [eax+0x3174], 0x02 // jump / trickster dashes etc
-			jmp originalcode
+			jmp popcode
+		
+		popcode:
+			movss xmm0,[xmm0backup]
 		originalcode:
 			mov edi, 0x00000008
 			jmp dword ptr [SelectiveCancels::jmp_ret1]
@@ -367,11 +386,11 @@ void SelectiveCancels::on_gui_frame() {
 		ImGui::SameLine(sameLineWidth + lineIndent);
 		draw_checkbox_simple(_("Kick 13"), KICK13);
 		ImGui::SameLine();
-		help_marker(_("Melee Cancellable from frame 25 (after the first 2 kicks)"));
+		help_marker(_("Cancellable from frame 38 (after the first 2 kicks)"));
 
 		draw_checkbox_simple(_("Shock"), SHOCK);
 		ImGui::SameLine();
-		help_marker(_("Cancellable from frame 40"));
+		help_marker(_("Cancellable from frame 60"));
 		ImGui::SameLine(sameLineWidth + lineIndent);
 		draw_checkbox_simple(_("Ecstasy"), ECSTASY);
 
@@ -404,6 +423,11 @@ void SelectiveCancels::on_gui_frame() {
 		help_marker(_("Cancel out of Grief mid-throw animation without recalling Pandora"));
 		
 		draw_checkbox_simple(_("Gun Stinger"), GUNSTINGER);
+
+		ImGui::InputFloat("Shock Buffer", &shockBuffer);
+		ImGui::InputFloat("Shock Cancel", &shockCancel);
+		ImGui::InputFloat("Kick13 Buffer", &kickThirteenBuffer);
+		ImGui::InputFloat("Kick13 Cancel", &kickThirteenCancel);
 
 		ImGui::Unindent(lineIndent);
 	}

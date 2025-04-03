@@ -373,7 +373,7 @@ class dogFireball : public MtObject {
 };
 
 class cCameraPlayer {
-	Vector3f eye @ 0x10
+	Vector3f pos @ 0x10
 	Vector3f lookat @ 0x20
 	float nearClipPlane @ 0x40
 	float angle @ 0xD4
@@ -390,12 +390,12 @@ class cCameraPlayer {
 class uCameraCtrl {
 	float nearClipPlane @ 0x1C
 	float FOV @ 0x24
-	Vector3f eye @ 0x30 // assuming this is xyz pos
+	Vector3f pos @ 0x30 // assuming this is xyz pos
 	Vector3f up @ 0x40 // assuming up is meant to be 0,1,0?
 	// float roll @ 0x40 // isn't this also up
 	float idkFloat @ 0x44
 	// float roll2 @ 0x48 // isn't this also up
-	Vector4f lookat @ 0x50
+	Vector3f lookat @ 0x50
 	// Matrix4x4 possibleMat1 @ 0xD0
 	// Matrix4x4 possibleMat2 @ 0xE0
 	// Matrix4x4 possibleMat3 @ 0xF0

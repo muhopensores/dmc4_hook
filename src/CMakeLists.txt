@@ -282,6 +282,8 @@ set(SDK_SRC
     sdk/Devil4.hpp
     sdk/uActor.hpp
     sdk/uCollisionMgr.hpp
+    sdk/World2Screen.cpp
+    sdk/World2Screen.hpp
 )
 
 set(IMGUI_SRC

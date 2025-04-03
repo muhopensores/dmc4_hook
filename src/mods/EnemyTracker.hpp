@@ -12,15 +12,25 @@ public:
 
     static int get_enemy_specific_damage_offset(int enemy_id);
 
-    static int hotkey2;
-    static int hotkey3;
-    static int hotkey4;
+    static bool flyingEnemyStats;
+    static bool flyingAd;
+    static bool flyingSpheres;
+    void RenderExample();
 
     void on_gui_frame() override;
+    void on_frame(fmilliseconds& dt) override;
     void on_update_input(utility::Input& input) override;
     void on_config_load(const utility::Config& cfg);
     void on_config_save(utility::Config& cfg);
 
+    Mod::ModType get_mod_type() override { return SLOW; };
+    void on_reset() override;
+    void after_reset() override;
 private:
     std::unique_ptr<FunctionHook> hook;
+
+    LPDIRECT3DDEVICE9 g_pd3dDevice;
+    PDIRECT3DTEXTURE9 m_texture_handle;
+    int m_texture_width{};
+    int m_texture_height{};
 };

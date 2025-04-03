@@ -1,4 +1,3 @@
-
 #include "Devil4.hpp"
 
 static MtHeapAllocator** mt_heap_alloc_static_ptr = (MtHeapAllocator**)0x00E1434C;
@@ -9,8 +8,6 @@ static uintptr_t sKeyboard{ 0x00E559C0 };
 static uintptr_t sDevil4Resource { 0x00E552D0 };
 
 namespace devil4_sdk {
-
-
 	void* mt_allocate_heap(size_t size, int alignment) {
 		static MtHeapAllocator* mt_heap_alloc = *mt_heap_alloc_static_ptr;
 

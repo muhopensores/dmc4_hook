@@ -60,7 +60,7 @@ void PlayerTracker::SavePlayerMove() {
 
 void PlayerTracker::LoadPlayerMove() {
     uPlayer* player = devil4_sdk::get_local_player();
-    if (player && savedPlayerSword) { // verify at least 1 save has happened
+    if (player && savedPlayerMoveID) { // verify at least 1 save has happened
         player->nextSword         = savedPlayerSword;
         player->nextGun           = savedPlayerGun;
         player->currentStyle      = savedPlayerStyle;
