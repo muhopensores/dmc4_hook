@@ -496,6 +496,8 @@ void EnemyTracker::on_frame(fmilliseconds& dt) {
                 w2s::DrawLine3D(playerPos, playerPos + right   * 50.0f, IM_COL32(255, 000, 000, 255), 2.0f);
                 w2s::DrawLine3D(playerPos, playerPos + up      * 50.0f, IM_COL32(000, 255, 000, 255), 2.0f);
 
+                w2s::DrawWireframeCapsule(objectPos, 25.0f, 100.0f, 1.57f, playerRot.y, 0.0f, IM_COL32(255, 255, 000, 255), 16, 1.0f);
+
                 RenderInteractiveModel();
 
                 std::vector<glm::vec3> vertices = {

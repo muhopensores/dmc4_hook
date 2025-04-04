@@ -9,6 +9,9 @@ namespace w2s {
 	float GetDistanceFromCam(const glm::vec3& targetPos);
 	void DrawWireframeCube(const glm::vec3& center, float size, float rotation, ImU32 color, float thickness = 1.0f);
 	void DrawWireframeSphere(const glm::vec3& center, float radius, float rotation, ImU32 color, int segments = 16, float thickness = 1.0f);
+	void DrawWireframeCapsule(const glm::vec3& center, float radius, float height, float rotationX, float rotationY, float rotationZ, ImU32 color, int segments, float thickness);
+	void DrawWireframeCapsule(const glm::vec3& center, float radius, float height, const glm::vec3& rotation, ImU32 color, int segments, float thickness);
+	void DrawWireframeCapsule(const glm::vec3& center, float radius, float height, const glm::quat& quaternion, ImU32 color, int segments, float thickness);
 	void DrawLine3D(const glm::vec3& start, const glm::vec3& end, ImU32 color, float thickness = 1.0f);
 	glm::mat4 CreateRotationMatrix(float pitch, float yaw, float roll);
 

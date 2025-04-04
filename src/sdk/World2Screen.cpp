@@ -122,6 +122,302 @@ namespace w2s {
         }
     }
 
+    // Draw a wireframe capsule with full XYZ rotation support
+    void DrawWireframeCapsule(const glm::vec3& center, float radius, float height, float rotationX, float rotationY, float rotationZ, ImU32 color, int segments, float thickness) {
+        ImDrawList* drawList = ImGui::GetBackgroundDrawList();
+    
+        // Create rotation matrices for each axis
+        glm::mat4 rotationMatrixX = glm::rotate(glm::mat4(1.0f), rotationX, glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 rotationMatrixY = glm::rotate(glm::mat4(1.0f), rotationY, glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 rotationMatrixZ = glm::rotate(glm::mat4(1.0f), rotationZ, glm::vec3(0.0f, 0.0f, 1.0f));
+    
+        // Combine rotation matrices (order: Z * Y * X)
+        glm::mat4 rotationMatrix = rotationMatrixZ * rotationMatrixY * rotationMatrixX;
+    
+        float halfHeight = height * 0.5f;
+        glm::vec3 topCenter(0.0f, halfHeight, 0.0f);
+        glm::vec3 bottomCenter(0.0f, -halfHeight, 0.0f);
+    
+        // Draw the cylinder part (vertical lines connecting the hemispheres)
+        for (int i = 0; i < segments; i++) {
+            float angle = 2.0f * glm::pi<float>() * i / segments;
+        
+            // Calculate points on the top and bottom circles of the cylinder
+            glm::vec3 topPoint(radius * cos(angle), halfHeight, radius * sin(angle));
+            glm::vec3 bottomPoint(radius * cos(angle), -halfHeight, radius * sin(angle));
+        
+            // Transform points with rotation
+            glm::vec3 rotatedTopPoint = glm::vec3(rotationMatrix * glm::vec4(topPoint, 1.0f));
+            glm::vec3 rotatedBottomPoint = glm::vec3(rotationMatrix * glm::vec4(bottomPoint, 1.0f));
+        
+            // Translate to center
+            rotatedTopPoint += center;
+            rotatedBottomPoint += center;
+        
+            // Convert to screen space
+            glm::vec2 screenTopPoint = w2s::WorldToScreen(rotatedTopPoint);
+            glm::vec2 screenBottomPoint = w2s::WorldToScreen(rotatedBottomPoint);
+        
+            // Draw the vertical line
+            drawList->AddLine(ImVec2(screenTopPoint.x, screenTopPoint.y), 
+                             ImVec2(screenBottomPoint.x, screenBottomPoint.y), 
+                             color, thickness);
+        }
+    
+        // Draw the top and bottom circles of the cylinder
+        for (int i = 0; i < segments; i++) {
+            float angle = 2.0f * glm::pi<float>() * i / segments;
+            float nextAngle = 2.0f * glm::pi<float>() * (i + 1) / segments;
+        
+            // Calculate points on the top circle
+            glm::vec3 topPoint1(radius * cos(angle), halfHeight, radius * sin(angle));
+            glm::vec3 topPoint2(radius * cos(nextAngle), halfHeight, radius * sin(nextAngle));
+        
+            // Calculate points on the bottom circle
+            glm::vec3 bottomPoint1(radius * cos(angle), -halfHeight, radius * sin(angle));
+            glm::vec3 bottomPoint2(radius * cos(nextAngle), -halfHeight, radius * sin(nextAngle));
+        
+            // Transform points with rotation
+            glm::vec3 rotatedTopPoint1 = glm::vec3(rotationMatrix * glm::vec4(topPoint1, 1.0f));
+            glm::vec3 rotatedTopPoint2 = glm::vec3(rotationMatrix * glm::vec4(topPoint2, 1.0f));
+            glm::vec3 rotatedBottomPoint1 = glm::vec3(rotationMatrix * glm::vec4(bottomPoint1, 1.0f));
+            glm::vec3 rotatedBottomPoint2 = glm::vec3(rotationMatrix * glm::vec4(bottomPoint2, 1.0f));
+        
+            // Translate to center
+            rotatedTopPoint1 += center;
+            rotatedTopPoint2 += center;
+            rotatedBottomPoint1 += center;
+            rotatedBottomPoint2 += center;
+        
+            // Convert to screen space
+            glm::vec2 screenTopPoint1 = w2s::WorldToScreen(rotatedTopPoint1);
+            glm::vec2 screenTopPoint2 = w2s::WorldToScreen(rotatedTopPoint2);
+            glm::vec2 screenBottomPoint1 = w2s::WorldToScreen(rotatedBottomPoint1);
+            glm::vec2 screenBottomPoint2 = w2s::WorldToScreen(rotatedBottomPoint2);
+        
+            // Draw the horizontal lines
+            drawList->AddLine(ImVec2(screenTopPoint1.x, screenTopPoint1.y), 
+                              ImVec2(screenTopPoint2.x, screenTopPoint2.y), 
+                              color, thickness);
+            drawList->AddLine(ImVec2(screenBottomPoint1.x, screenBottomPoint1.y), 
+                              ImVec2(screenBottomPoint2.x, screenBottomPoint2.y), 
+                              color, thickness);
+        }
+    
+        // Draw the hemispheres caps (partial circles in two additional planes)
+        for (int i = 0; i < segments / 2; i++) {
+            float angle = glm::pi<float>() * i / (segments / 2);
+            float nextAngle = glm::pi<float>() * (i + 1) / (segments / 2);
+        
+            // Top hemisphere - XY plane (front to back)
+            glm::vec3 topFrontXY1(radius * cos(angle), halfHeight + radius * sin(angle), 0);
+            glm::vec3 topFrontXY2(radius * cos(nextAngle), halfHeight + radius * sin(nextAngle), 0);
+        
+            // Top hemisphere - YZ plane (side to side)
+            glm::vec3 topSideYZ1(0, halfHeight + radius * sin(angle), radius * cos(angle));
+            glm::vec3 topSideYZ2(0, halfHeight + radius * sin(nextAngle), radius * cos(nextAngle));
+        
+            // Bottom hemisphere - XY plane (front to back)
+            glm::vec3 bottomFrontXY1(radius * cos(angle), -halfHeight - radius * sin(angle), 0);
+            glm::vec3 bottomFrontXY2(radius * cos(nextAngle), -halfHeight - radius * sin(nextAngle), 0);
+        
+            // Bottom hemisphere - YZ plane (side to side)
+            glm::vec3 bottomSideYZ1(0, -halfHeight - radius * sin(angle), radius * cos(angle));
+            glm::vec3 bottomSideYZ2(0, -halfHeight - radius * sin(nextAngle), radius * cos(nextAngle));
+        
+            // Transform all points with rotation
+            glm::vec3 rotatedTopFrontXY1 = glm::vec3(rotationMatrix * glm::vec4(topFrontXY1, 1.0f));
+            glm::vec3 rotatedTopFrontXY2 = glm::vec3(rotationMatrix * glm::vec4(topFrontXY2, 1.0f));
+            glm::vec3 rotatedTopSideYZ1 = glm::vec3(rotationMatrix * glm::vec4(topSideYZ1, 1.0f));
+            glm::vec3 rotatedTopSideYZ2 = glm::vec3(rotationMatrix * glm::vec4(topSideYZ2, 1.0f));
+            glm::vec3 rotatedBottomFrontXY1 = glm::vec3(rotationMatrix * glm::vec4(bottomFrontXY1, 1.0f));
+            glm::vec3 rotatedBottomFrontXY2 = glm::vec3(rotationMatrix * glm::vec4(bottomFrontXY2, 1.0f));
+            glm::vec3 rotatedBottomSideYZ1 = glm::vec3(rotationMatrix * glm::vec4(bottomSideYZ1, 1.0f));
+            glm::vec3 rotatedBottomSideYZ2 = glm::vec3(rotationMatrix * glm::vec4(bottomSideYZ2, 1.0f));
+        
+            // Translate to center
+            rotatedTopFrontXY1 += center;
+            rotatedTopFrontXY2 += center;
+            rotatedTopSideYZ1 += center;
+            rotatedTopSideYZ2 += center;
+            rotatedBottomFrontXY1 += center;
+            rotatedBottomFrontXY2 += center;
+            rotatedBottomSideYZ1 += center;
+            rotatedBottomSideYZ2 += center;
+        
+            // Convert to screen space
+            glm::vec2 screenTopFrontXY1 = w2s::WorldToScreen(rotatedTopFrontXY1);
+            glm::vec2 screenTopFrontXY2 = w2s::WorldToScreen(rotatedTopFrontXY2);
+            glm::vec2 screenTopSideYZ1 = w2s::WorldToScreen(rotatedTopSideYZ1);
+            glm::vec2 screenTopSideYZ2 = w2s::WorldToScreen(rotatedTopSideYZ2);
+            glm::vec2 screenBottomFrontXY1 = w2s::WorldToScreen(rotatedBottomFrontXY1);
+            glm::vec2 screenBottomFrontXY2 = w2s::WorldToScreen(rotatedBottomFrontXY2);
+            glm::vec2 screenBottomSideYZ1 = w2s::WorldToScreen(rotatedBottomSideYZ1);
+            glm::vec2 screenBottomSideYZ2 = w2s::WorldToScreen(rotatedBottomSideYZ2);
+        
+            // Draw the hemisphere lines
+            drawList->AddLine(ImVec2(screenTopFrontXY1.x, screenTopFrontXY1.y), 
+                             ImVec2(screenTopFrontXY2.x, screenTopFrontXY2.y), 
+                             color, thickness);
+            drawList->AddLine(ImVec2(screenTopSideYZ1.x, screenTopSideYZ1.y), 
+                             ImVec2(screenTopSideYZ2.x, screenTopSideYZ2.y), 
+                             color, thickness);
+            drawList->AddLine(ImVec2(screenBottomFrontXY1.x, screenBottomFrontXY1.y), 
+                             ImVec2(screenBottomFrontXY2.x, screenBottomFrontXY2.y), 
+                             color, thickness);
+            drawList->AddLine(ImVec2(screenBottomSideYZ1.x, screenBottomSideYZ1.y), 
+                             ImVec2(screenBottomSideYZ2.x, screenBottomSideYZ2.y), 
+                             color, thickness);
+        }
+    }
+
+    // Overloaded version that takes a rotation vector
+    void DrawWireframeCapsule(const glm::vec3& center, float radius, float height, const glm::vec3& rotation, ImU32 color, int segments, float thickness) {
+        DrawWireframeCapsule(center, radius, height, rotation.x, rotation.y, rotation.z, color, segments, thickness);
+    }
+
+    // Version that uses quaternions for rotation
+    void DrawWireframeCapsule(const glm::vec3& center, float radius, float height, const glm::quat& quaternion, ImU32 color, int segments, float thickness) {
+        ImDrawList* drawList = ImGui::GetBackgroundDrawList();
+    
+        // Convert quaternion to rotation matrix
+        glm::mat4 rotationMatrix = glm::mat4_cast(quaternion);
+    
+        float halfHeight = height * 0.5f;
+    
+        // Draw the cylinder part (vertical lines connecting the hemispheres)
+        for (int i = 0; i < segments; i++) {
+            float angle = 2.0f * glm::pi<float>() * i / segments;
+        
+            // Calculate points on the top and bottom circles of the cylinder
+            glm::vec3 topPoint(radius * cos(angle), halfHeight, radius * sin(angle));
+            glm::vec3 bottomPoint(radius * cos(angle), -halfHeight, radius * sin(angle));
+        
+            // Transform points with rotation
+            glm::vec3 rotatedTopPoint = glm::vec3(rotationMatrix * glm::vec4(topPoint, 1.0f));
+            glm::vec3 rotatedBottomPoint = glm::vec3(rotationMatrix * glm::vec4(bottomPoint, 1.0f));
+        
+            // Translate to center
+            rotatedTopPoint += center;
+            rotatedBottomPoint += center;
+        
+            // Convert to screen space
+            glm::vec2 screenTopPoint = w2s::WorldToScreen(rotatedTopPoint);
+            glm::vec2 screenBottomPoint = w2s::WorldToScreen(rotatedBottomPoint);
+        
+            // Draw the vertical line
+            drawList->AddLine(ImVec2(screenTopPoint.x, screenTopPoint.y), 
+                             ImVec2(screenBottomPoint.x, screenBottomPoint.y), 
+                             color, thickness);
+        }
+    
+        // Draw the top and bottom circles of the cylinder
+        for (int i = 0; i < segments; i++) {
+            float angle = 2.0f * glm::pi<float>() * i / segments;
+            float nextAngle = 2.0f * glm::pi<float>() * (i + 1) / segments;
+        
+            // Calculate points on the top circle
+            glm::vec3 topPoint1(radius * cos(angle), halfHeight, radius * sin(angle));
+            glm::vec3 topPoint2(radius * cos(nextAngle), halfHeight, radius * sin(nextAngle));
+        
+            // Calculate points on the bottom circle
+            glm::vec3 bottomPoint1(radius * cos(angle), -halfHeight, radius * sin(angle));
+            glm::vec3 bottomPoint2(radius * cos(nextAngle), -halfHeight, radius * sin(nextAngle));
+        
+            // Transform points with rotation
+            glm::vec3 rotatedTopPoint1 = glm::vec3(rotationMatrix * glm::vec4(topPoint1, 1.0f));
+            glm::vec3 rotatedTopPoint2 = glm::vec3(rotationMatrix * glm::vec4(topPoint2, 1.0f));
+            glm::vec3 rotatedBottomPoint1 = glm::vec3(rotationMatrix * glm::vec4(bottomPoint1, 1.0f));
+            glm::vec3 rotatedBottomPoint2 = glm::vec3(rotationMatrix * glm::vec4(bottomPoint2, 1.0f));
+        
+            // Translate to center
+            rotatedTopPoint1 += center;
+            rotatedTopPoint2 += center;
+            rotatedBottomPoint1 += center;
+            rotatedBottomPoint2 += center;
+        
+            // Convert to screen space
+            glm::vec2 screenTopPoint1 = w2s::WorldToScreen(rotatedTopPoint1);
+            glm::vec2 screenTopPoint2 = w2s::WorldToScreen(rotatedTopPoint2);
+            glm::vec2 screenBottomPoint1 = w2s::WorldToScreen(rotatedBottomPoint1);
+            glm::vec2 screenBottomPoint2 = w2s::WorldToScreen(rotatedBottomPoint2);
+        
+            // Draw the horizontal lines
+            drawList->AddLine(ImVec2(screenTopPoint1.x, screenTopPoint1.y), 
+                              ImVec2(screenTopPoint2.x, screenTopPoint2.y), 
+                              color, thickness);
+            drawList->AddLine(ImVec2(screenBottomPoint1.x, screenBottomPoint1.y), 
+                              ImVec2(screenBottomPoint2.x, screenBottomPoint2.y), 
+                              color, thickness);
+        }
+    
+        // Draw the hemispheres caps (partial circles in two additional planes)
+        for (int i = 0; i < segments / 2; i++) {
+            float angle = glm::pi<float>() * i / (segments / 2);
+            float nextAngle = glm::pi<float>() * (i + 1) / (segments / 2);
+        
+            // Top hemisphere - XY plane (front to back)
+            glm::vec3 topFrontXY1(radius * cos(angle), halfHeight + radius * sin(angle), 0);
+            glm::vec3 topFrontXY2(radius * cos(nextAngle), halfHeight + radius * sin(nextAngle), 0);
+        
+            // Top hemisphere - YZ plane (side to side)
+            glm::vec3 topSideYZ1(0, halfHeight + radius * sin(angle), radius * cos(angle));
+            glm::vec3 topSideYZ2(0, halfHeight + radius * sin(nextAngle), radius * cos(nextAngle));
+        
+            // Bottom hemisphere - XY plane (front to back)
+            glm::vec3 bottomFrontXY1(radius * cos(angle), -halfHeight - radius * sin(angle), 0);
+            glm::vec3 bottomFrontXY2(radius * cos(nextAngle), -halfHeight - radius * sin(nextAngle), 0);
+        
+            // Bottom hemisphere - YZ plane (side to side)
+            glm::vec3 bottomSideYZ1(0, -halfHeight - radius * sin(angle), radius * cos(angle));
+            glm::vec3 bottomSideYZ2(0, -halfHeight - radius * sin(nextAngle), radius * cos(nextAngle));
+        
+            // Transform all points with rotation
+            glm::vec3 rotatedTopFrontXY1 = glm::vec3(rotationMatrix * glm::vec4(topFrontXY1, 1.0f));
+            glm::vec3 rotatedTopFrontXY2 = glm::vec3(rotationMatrix * glm::vec4(topFrontXY2, 1.0f));
+            glm::vec3 rotatedTopSideYZ1 = glm::vec3(rotationMatrix * glm::vec4(topSideYZ1, 1.0f));
+            glm::vec3 rotatedTopSideYZ2 = glm::vec3(rotationMatrix * glm::vec4(topSideYZ2, 1.0f));
+            glm::vec3 rotatedBottomFrontXY1 = glm::vec3(rotationMatrix * glm::vec4(bottomFrontXY1, 1.0f));
+            glm::vec3 rotatedBottomFrontXY2 = glm::vec3(rotationMatrix * glm::vec4(bottomFrontXY2, 1.0f));
+            glm::vec3 rotatedBottomSideYZ1 = glm::vec3(rotationMatrix * glm::vec4(bottomSideYZ1, 1.0f));
+            glm::vec3 rotatedBottomSideYZ2 = glm::vec3(rotationMatrix * glm::vec4(bottomSideYZ2, 1.0f));
+        
+            // Translate to center
+            rotatedTopFrontXY1 += center;
+            rotatedTopFrontXY2 += center;
+            rotatedTopSideYZ1 += center;
+            rotatedTopSideYZ2 += center;
+            rotatedBottomFrontXY1 += center;
+            rotatedBottomFrontXY2 += center;
+            rotatedBottomSideYZ1 += center;
+            rotatedBottomSideYZ2 += center;
+        
+            // Convert to screen space
+            glm::vec2 screenTopFrontXY1 = w2s::WorldToScreen(rotatedTopFrontXY1);
+            glm::vec2 screenTopFrontXY2 = w2s::WorldToScreen(rotatedTopFrontXY2);
+            glm::vec2 screenTopSideYZ1 = w2s::WorldToScreen(rotatedTopSideYZ1);
+            glm::vec2 screenTopSideYZ2 = w2s::WorldToScreen(rotatedTopSideYZ2);
+            glm::vec2 screenBottomFrontXY1 = w2s::WorldToScreen(rotatedBottomFrontXY1);
+            glm::vec2 screenBottomFrontXY2 = w2s::WorldToScreen(rotatedBottomFrontXY2);
+            glm::vec2 screenBottomSideYZ1 = w2s::WorldToScreen(rotatedBottomSideYZ1);
+            glm::vec2 screenBottomSideYZ2 = w2s::WorldToScreen(rotatedBottomSideYZ2);
+        
+            // Draw the hemisphere lines
+            drawList->AddLine(ImVec2(screenTopFrontXY1.x, screenTopFrontXY1.y), 
+                             ImVec2(screenTopFrontXY2.x, screenTopFrontXY2.y), 
+                             color, thickness);
+            drawList->AddLine(ImVec2(screenTopSideYZ1.x, screenTopSideYZ1.y), 
+                             ImVec2(screenTopSideYZ2.x, screenTopSideYZ2.y), 
+                             color, thickness);
+            drawList->AddLine(ImVec2(screenBottomFrontXY1.x, screenBottomFrontXY1.y), 
+                             ImVec2(screenBottomFrontXY2.x, screenBottomFrontXY2.y), 
+                             color, thickness);
+            drawList->AddLine(ImVec2(screenBottomSideYZ1.x, screenBottomSideYZ1.y), 
+                             ImVec2(screenBottomSideYZ2.x, screenBottomSideYZ2.y), 
+                             color, thickness);
+        }
+    }
+
     void DrawLine3D(const glm::vec3& start, const glm::vec3& end, ImU32 color, float thickness) {
         ImDrawList* drawList = ImGui::GetBackgroundDrawList();
 
