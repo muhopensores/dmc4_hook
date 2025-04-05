@@ -1,6 +1,8 @@
 #include "VisualizeHitbox.hpp"
 #include "./sdk/World2Screen.hpp"
 #include "../sdk/uActor.hpp"
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 bool VisualizeHitbox::mod_enabled{false};
 
@@ -55,10 +57,15 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
                             Vector3f Pos2 = glm::make_vec3((float*)&prim->Pos1);
                             float length = glm::length(Pos2 - Pos1);
                             length = (length > 0.00001f) ? length : 0.01f;
-                            Vector3f dir = glm::normalize(Pos2 - Pos1);
-                            Matrix4x4 wPos    = glm::translate(wMat, Pos1);
-                            w2s::DrawWireframeCapsule(glm::vec3(wPos[3]), prim->radius, length, dir[0], dir[1], dir[2],
-                            IM_COL32(255, 0, 0, 100), 32, 3.0f);
+                            Matrix4x4 wPos1    = glm::translate(wMat, Pos1);
+                            Matrix4x4 wPos2  = glm::translate(wMat, Pos2);
+                            Vector3f dir       = glm::vec3(wPos2[3]) - glm::vec3(wPos1[3]);
+                            float rotationY = atan2(dir.x, dir.z);
+                            float rotationX    = atan2(sqrt(dir.z * dir.z + dir.x + dir.x), dir.y);
+                            float rotationZ    = 0.0f;
+                            w2s::DrawWireframeCapsule(glm::vec3(wPos1[3]), prim->radius, length,
+                                rotationX, rotationY, rotationZ,
+                                IM_COL32(255, 0, 0, 100), 32, 3.0f);
                         } else {
                             Vector3f Pos  = glm::make_vec3((float*)&prim->Pos0);
                             Matrix4x4 wPos = glm::translate(wMat, Pos);
