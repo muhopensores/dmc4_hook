@@ -1,4 +1,7 @@
 #include "AerialDrive.hpp"
+#include "misc/kAtckDefTbl.cpp"
+#include "SDK/ReClass.hpp"
+#include "MoveTable.hpp"
 
 #if 1
 bool AerialDrive::mod_enabled{ false };
@@ -34,12 +37,16 @@ uintptr_t AerialDrive::jmp_ret9{NULL};
 
 
 void AerialDrive::toggle(bool enable) {
+    kAtckDefTbl* DanteAtkTbl = (kAtckDefTbl*)HookDanteKADTbl;
+    kAtckDefTbl* DriveEntry  = &DanteAtkTbl[5];
     if (enable) {
         install_patch_absolute(0x00C3FFA0, patch1, "\x03", 2);//Move class aerial lock
         install_patch_offset(0x3D0E32, patch2, "\x90\x90\x90\x90\x90\x90",6);//unlock aerial permission
         install_patch_offset(0x3D0B5D, patch3, "\x90\x90\x90\x90\x90\x90",6);//extendable ground qd
+        DriveEntry->atckAs = 3;
     }
     else {
+        DriveEntry->atckAs = 1;
         patch1.reset();
         patch2.reset();
         patch3.reset(); // do we not reset patch 3??????

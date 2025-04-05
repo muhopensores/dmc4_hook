@@ -133,6 +133,7 @@
 #include "mods/StylePoints.hpp"
 #include "mods/GuardTimer.hpp"
 #include "mods/ExceedLimiter.hpp"
+#include "mods/VisualizeHitbox.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -275,6 +276,7 @@ Mods::Mods() {
     ADD_MOD(StylePoints);
     ADD_MOD(GuardTimer);
     ADD_MOD(ExceedLimiter);
+    ADD_MOD(VisualizeHitbox);
 }
 
 // Initializes mods, checks for errors

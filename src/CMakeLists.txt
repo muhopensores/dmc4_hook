@@ -262,6 +262,8 @@ set(MODS_SRC
   mods/SwordSpin.cpp
   mods/CustomProjectile.hpp
   mods/CustomProjectile.cpp
+  mods/VisualizeHitbox.hpp
+  mods/VisualizeHitbox.cpp
 )
 
 set(HOOKS_SRC
