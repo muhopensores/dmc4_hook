@@ -1,6 +1,33 @@
 ﻿#include "StylePoints.hpp"
 #include <Config.hpp>
 
+// texture
+#include "utility/Dx9Utils.hpp"
+#include "utility/String.hpp"
+#include "utility/Compressed.hpp"
+#include "misc/BgTexture.cpp"
+static int bg_red_int   = 150;
+static int bg_green_int = 150;
+static int bg_blue_int  = 150;
+static int bg_alpha_int = 130;
+void StylePoints::load_texture() {
+    spdlog::info("StylePoints::load_texture()");
+    auto [data, size] = utility::decompress_file_from_memory_base85(menu_bg_compressed_data_base85);
+    if (!utility::dx9::load_texture_from_file(data, size, &m_texture_handle, &m_texture_width, &m_texture_height)) {
+        spdlog::error("Failed to load console background texture");
+        m_texture_handle = nullptr;
+    }
+    spdlog::info("StylePoints::load_texture() -> texture loaded");
+}
+void StylePoints::on_reset() {
+    spdlog::info("StylePoints::on_reset()");
+    if (m_texture_handle != nullptr) {
+        m_texture_handle->Release();
+        spdlog::info("StylePoints::m_texture_handle->Release()");
+        m_texture_handle = nullptr;
+    }
+}
+
 static std::unordered_map<std::string, std::string> textLookupTable = {
     // trickster
     {"TS-ehsuc",         "Mustang"},
@@ -1432,6 +1459,7 @@ std::optional<std::string> StylePoints::on_initialize() {
 		return "Failed to init StylePoints mod 4";
 	}
 
+    load_texture();
     return Mod::on_initialize();
 }
 
@@ -1448,10 +1476,22 @@ void StylePoints::DrawHiddenCombos() {
     if (sArea->currentRoomPtr == nullptr || sArea->currentRoomPtr->pauseMenuPtr1 == nullptr || sArea->currentRoomPtr->pauseMenuPtr1->draw != 1)
         return;
     ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;
-    ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.5f, screenSize.y * 0.25f));
-    ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.3f, screenSize.y * 0.2f)); // Kept original size
+    ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.49f, screenSize.y * 0.25f));
+    ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.325f, screenSize.y * 0.2f));
 
-    ImGui::Begin("Hidden Combos Panel", nullptr, ImGuiWindowFlags_NoDecoration);
+    ImGui::Begin("Hidden Combos Panel", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground);
+
+    if (m_texture_handle != nullptr) {
+        auto* dl = ImGui::GetWindowDrawList();
+        ImVec2 window_pos = ImGui::GetWindowPos();
+        float window_width = ImGui::GetWindowWidth();
+        float window_height = ImGui::GetWindowHeight();
+        ImVec2 i_resolution_imgui(ImGui::GetWindowWidth() / 1024.0f, ImGui::GetWindowHeight() / 576.0f);
+        ImVec2 region_min = window_pos;
+        ImVec2 region_max(window_pos.x + window_width, window_pos.y + window_height);
+        dl->AddImage(m_texture_handle, region_min, region_max, ImVec2(0, 0), i_resolution_imgui, ImColor::ImColor(bg_red_int, bg_green_int, bg_blue_int, bg_alpha_int));
+    }
+
     ImGui::Text("Hidden Combos");
     ImGui::SameLine();
 
@@ -1547,7 +1587,6 @@ void StylePoints::DrawHiddenCombos() {
         
         ImGui::NextColumn();
         
-        ImGui::Separator();
         int totalNero = 0;
         int unlockedNero = 0;
         for (const ComboUnlock& combo : unlocked_combos) {
@@ -1597,6 +1636,16 @@ void StylePoints::DrawHiddenCombos() {
     }
     
     ImGui::Columns(1);
+    ImGui::Spacing();
+    ImGui::Spacing();
+    ImGui::Spacing();
+    ImGui::Spacing();
+    ImGui::Spacing();
+    ImGui::Spacing();
+    ImGui::SliderInt("bg_red_int",   &bg_red_int, 0, 255, "Red: %d");
+    ImGui::SliderInt("bg_green_int", &bg_green_int, 0, 255, "Green: %d");
+    ImGui::SliderInt("bg_blue_int",  &bg_blue_int, 0, 255, "Blue: %d");
+    ImGui::SliderInt("bg_alpha_int", &bg_alpha_int, 0, 255, "Alpha: %d");
     ImGui::End();
 }
 

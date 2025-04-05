@@ -22,6 +22,9 @@ public:
 
     std::string get_mod_name() override { return "StylePoints"; };
     std::optional<std::string> on_initialize() override;
+    Mod::ModType get_mod_type() override { return SLOW; };
+    void on_reset();
+    void load_texture();
 
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
@@ -30,4 +33,7 @@ public:
 
 private:
     std::unique_ptr<FunctionHook> hook1, hook2, hook3, hook4;
+	PDIRECT3DTEXTURE9 m_texture_handle{ nullptr };
+	int m_texture_width;
+	int m_texture_height;
 };
