@@ -31,4 +31,10 @@ namespace w2s {
 	};
 	void DrawTextureWithScreenCorners(LPDIRECT3DDEVICE9 device, LPDIRECT3DTEXTURE9 texture, const glm::vec2 corners[4]);
 	void DrawTextureWithPerspective(LPDIRECT3DDEVICE9 g_pd3dDevice, PDIRECT3DTEXTURE9 m_texture_handle, const glm::vec3& worldPos, float width, float height, const glm::mat4& viewMatrix, float yRotationDegrees = 0.0f);
+
+
+    int  dd_init(IDirect3DDevice9* device);
+    void dd_update();
+    void dd_flush();
+    void dd_shutdown();
 };

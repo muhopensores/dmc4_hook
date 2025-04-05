@@ -31,6 +31,7 @@
 
 #include <timeapi.h> // timeGetTime()
 #include "Console.hpp"
+#include "SDK/World2Screen.hpp"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 //extern IMGUI_IMPL_API void ImGui_ImplWin32_EnableDpiAwareness();
@@ -165,6 +166,7 @@ void ModFramework::on_frame() {
     }
 
     std::chrono::high_resolution_clock::time_point now_time = std::chrono::high_resolution_clock::now();
+    w2s::dd_update();
 
     m_input->update();
     m_mods->on_update_input(*m_input);
@@ -200,7 +202,6 @@ void ModFramework::on_frame() {
     ImGui::Render();
 
 	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-    m_prev_time = now_time;
 
     // need to to this cause font atlas is locked between ImGui::NewFrame / ImGui::Render :(
     if(m_imfont_queue_reload_flag) {
@@ -210,6 +211,8 @@ void ModFramework::on_frame() {
             m_imfont_queue_reload_flag = false;
         }
     }
+    m_prev_time = now_time;
+    w2s::dd_flush();
 }
 
 void ModFramework::on_reset() {
@@ -221,6 +224,7 @@ void ModFramework::on_reset() {
         mod->on_reset();
     }
     console->on_reset();
+    w2s::dd_shutdown();
     // Crashes if we don't release it at this point.
     //cleanup_render_target();
     m_initialized = false;
@@ -342,6 +346,7 @@ bool ModFramework::initialize() {
         spdlog::info("Device is null. Will try to initialize once again");
         return false;
     }
+    
 
     D3DDEVICE_CREATION_PARAMETERS dev_params{ 0 };
     auto hr = device->GetCreationParameters(&dev_params);
@@ -445,6 +450,8 @@ bool ModFramework::initialize() {
         });
 
         init_thread.detach();
+
+        w2s::dd_init(device);
     }
 
     return true;
