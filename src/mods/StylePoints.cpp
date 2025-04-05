@@ -288,6 +288,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Em003_2",          "Mega Buster"},
     {"Em003_3",          "Mega Buster"},
     {"BUS-Em003",        "Mega Buster"},
+    {"Em003-roll_coun",  "Mega Counter"},
 
     // bianco
     {"Em005",            "Bianco Buster"},
@@ -1389,6 +1390,117 @@ std::optional<std::string> StylePoints::on_initialize() {
     return Mod::on_initialize();
 }
 
+struct ComboUnlock {
+  int difficultyLevel;
+  int character;
+  const char* name;
+  const char* hint;
+  const char* how;
+  bool unlocked;
+};
+
+static std::array<ComboUnlock, 3> combo_items = {
+    ComboUnlock {1, 0, "Very Creative!", "Welcome to Dante!", "As Dante, Used High Time > Rave 1-4", false},
+    ComboUnlock {1, 0, "Kamiya's Vision!", "Did you know DMC1 was going to be RE4?", "As Dante, Used High Time > E+I Shot x 10", false},
+    ComboUnlock {3, 0, "Is That A Plane?", "I saw a combo video on YouTube once...", "As Dante, Used Guardfly > Guardfly", false},
+};
+
+std::string CensorText(const std::string& text) {
+    return std::string(text.length(), '*');
+}
+
+void UnlockCombo(int comboID) {
+    if (comboID >= 0 && comboID < combo_items.size()) {
+        combo_items[comboID].unlocked = true;
+    }
+}
+    
+void DrawHiddenCombos() {
+    if (!devil4_sdk::get_local_player())
+        return;
+    sArea* sArea = devil4_sdk::get_sArea();
+    if (sArea == nullptr || sArea->aGamePtr == nullptr || sArea->aGamePtr->m_paused == false)
+        return;
+    if (sArea->currentRoomPtr == nullptr || sArea->currentRoomPtr->pauseMenuPtr1 == nullptr || sArea->currentRoomPtr->pauseMenuPtr1->draw != 1)
+        return;
+    ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;
+    ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.5f, screenSize.y * 0.25f), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.3f, screenSize.y * 0.2f), ImGuiCond_Once);
+    ImGui::Begin("Hidden Combos Panel", nullptr, ImGuiWindowFlags_NoDecoration);
+    ImGui::Text("Hidden Combos");
+    int maxDifficulty = 0;
+    for (ComboUnlock& combo : combo_items) {
+        if (combo.difficultyLevel > maxDifficulty)
+            maxDifficulty = combo.difficultyLevel;
+    }
+
+    for (int difficulty = 1; difficulty <= maxDifficulty; ++difficulty) {
+        int total = 0;
+        int unlocked = 0;
+        for (size_t i = 0; i < combo_items.size(); ++i) {
+            if (combo_items[i].difficultyLevel == difficulty) {
+                total++;
+                if (combo_items[i].unlocked) unlocked++;
+            }
+        }
+        if (total == 0) continue;
+
+        ImGui::Separator();
+
+        ImVec4 difficultyColor;
+        if (difficulty == 1) {
+            difficultyColor = ImVec4(0.5f, 1.0f, 0.5f, 1.0f); // Green
+        } else if (difficulty == 2) {
+            difficultyColor = ImVec4(1.0f, 1.0f, 0.5f, 1.0f); // Yellow
+        } else if (difficulty == 3) {
+            difficultyColor = ImVec4(1.0f, 0.6f, 0.2f, 1.0f); // Orange
+        } else if (difficulty == 4) {
+            difficultyColor = ImVec4(1.0f, 0.5f, 0.5f, 1.0f); // Red
+        } else if (difficulty == 5) {
+            difficultyColor = ImVec4(0.8f, 0.5f, 1.0f, 1.0f); // Purp
+        }
+
+        ImGui::TextColored(difficultyColor, "Difficulty %i - %i/%i Unlocked", difficulty, unlocked, total);
+
+        for (size_t i = 0; i < combo_items.size(); ++i) {
+            ComboUnlock& combo = combo_items[i];
+            if (combo.difficultyLevel != difficulty)
+                continue;
+
+            std::string displayText;
+            if (combo.unlocked) {
+                displayText = combo.name;
+            } else {
+                for (const char* p = combo.name; *p != '\0'; ++p) {
+                    char c = *p;
+                    if (c == ' ' || c == '!' || c == '?') {
+                        displayText += c;
+                    } else {
+                        displayText += '*';
+                    }
+                }
+            }
+
+            ImGui::Text("%s", displayText.c_str());
+
+            if (ImGui::IsItemHovered()) {
+                ImGui::BeginTooltip();
+                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+                ImGui::TextUnformatted(combo.hint);
+                if (combo.unlocked) {
+                    ImGui::Text("(%s)", combo.how);
+                }
+                ImGui::PopTextWrapPos();
+                ImGui::EndTooltip();
+            }
+            if (ImGui::IsItemClicked()) {
+                combo.unlocked = !combo.unlocked;
+            }
+        }
+    }
+    ImGui::End();
+}
+
 void StylePoints::on_gui_frame() {
     ImGui::BeginGroup();
     ImGui::Checkbox("Style Point Display", &mod_enabled);
@@ -1407,25 +1519,25 @@ void StylePoints::on_gui_frame() {
             ImGui::SameLine();
             help_marker("Group attacks by the order you originally did them\n"
                 "This helps show the variety in a combo over exact input order");
-            ImGui::Checkbox("Height Display", &showHeightChart);
-            ImGui::Checkbox("Inertia Display", &showInertiaChart);
-            /*ImGui::SliderFloat("timerBase", &timerBase, 0.0f, 2.0f, "%.1f");
-            ImGui::SameLine();
-            help_marker("DEV PLS REMOVE - The base time for how long you have before breaking a combo\n1.0 default");
-            ImGui::SliderFloat("comboInfluence", &timerComboInfluence, 0.0f, 0.1f, "%.4f");
-            ImGui::SameLine();
-            help_marker("DEV PLS REMOVE - How much influence will the score from your last attack have on the timer\n0.0010 default");
-            ImGui::SliderFloat("shakeDuration", &shakeDuration, 0.0f, 1.0f, "%.4f");
-            ImGui::SameLine();
-            help_marker("DEV PLS REMOVE - At what point in the timer should text shake stop\nRemember a faster timer means less shake, so edit this last\n0.99 default");*/
-            ImGui::PushItemWidth(sameLineItemWidth);
-            ImGui::SliderInt("maxRows", &maxRows, 1, 10);
-            ImGui::SameLine();
-            help_marker("How many rows\n5 default");
-            ImGui::SliderInt("maxPerRow", &maxPerRow, 1, 10);
-            ImGui::SameLine();
-            help_marker("How many attacks per row\n7 default");
-            ImGui::PopItemWidth();
+            // ImGui::Checkbox("Height Display", &showHeightChart);
+            // ImGui::Checkbox("Inertia Display", &showInertiaChart);
+            // ImGui::SliderFloat("timerBase", &timerBase, 0.0f, 2.0f, "%.1f");
+            // ImGui::SameLine();
+            // help_marker("DEV PLS REMOVE - The base time for how long you have before breaking a combo\n1.0 default");
+            // ImGui::SliderFloat("comboInfluence", &timerComboInfluence, 0.0f, 0.1f, "%.4f");
+            // ImGui::SameLine();
+            // help_marker("DEV PLS REMOVE - How much influence will the score from your last attack have on the timer\n0.0010 default");
+            // ImGui::SliderFloat("shakeDuration", &shakeDuration, 0.0f, 1.0f, "%.4f");
+            // ImGui::SameLine();
+            // help_marker("DEV PLS REMOVE - At what point in the timer should text shake stop\nRemember a faster timer means less shake, so edit this last\n0.99 default");
+            // ImGui::PushItemWidth(sameLineItemWidth);
+            // ImGui::SliderInt("maxRows", &maxRows, 1, 10);
+            // ImGui::SameLine();
+            // help_marker("How many rows\n5 default");
+            // ImGui::SliderInt("maxPerRow", &maxPerRow, 1, 10);
+            // ImGui::SameLine();
+            // help_marker("How many attacks per row\n7 default");
+            // ImGui::PopItemWidth();
             ImGui::Unindent(lineIndent);
         }
         ImGui::Unindent(lineIndent);
@@ -1439,6 +1551,7 @@ void StylePoints::on_frame(fmilliseconds& dt) {
         correctedWindowFontScale = (screenSize.x / baseWidth);
         if (tonyHawk) {
             DrawTonyScores();
+            DrawHiddenCombos();
         }
         else {
             DrawTrickScores();

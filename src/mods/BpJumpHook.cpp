@@ -146,7 +146,7 @@ void boss_continue() { // used every time you enter a teleporter during randomiz
 
 void random_bp_init() { // used in first bp detour
     // randomize bp floors
-    randomize_bp_floors();
+    // randomize_bp_floors(); // this now happens on boot or when ticking the checkbox
 
     // apply floor
     bp_floor = bp_array[number_of_complete_floors];
@@ -376,6 +376,7 @@ std::optional<std::string> BpJumpHook::on_initialize() {
 void BpJumpHook::on_gui_frame() {
     if (ImGui::Checkbox(_("Randomize BP"), &mod_enabled)) {
         toggle(mod_enabled);
+        randomize_bp_floors();
     }
     ImGui::SameLine();
     help_marker(_("All stages will be randomized. Enable before selecting BP"));
@@ -415,8 +416,11 @@ void BpJumpHook::on_gui_frame() {
 
 void BpJumpHook::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("randomize_bp").value_or(false);
+    if (mod_enabled) {
+        randomize_bp_floors();
+        toggle(mod_enabled);
+    }
     bp_boss_rush = cfg.get<bool>("bp_boss_rush").value_or(false);
-    toggle(mod_enabled);
 }
 
 void BpJumpHook::on_config_save(utility::Config& cfg) {

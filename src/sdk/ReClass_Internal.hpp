@@ -92,6 +92,15 @@ public:
 }; // Size: 0x110
 static_assert(sizeof(currentMission) == 0x110);
 
+class pauseMenu {
+public:
+    char pad_0[0x14];
+    uint8_t draw; // 0x14
+    char pad_15[0x2b];
+    bool optionHovered; // 0x40
+}; // Size: 0x41
+static_assert(sizeof(pauseMenu) == 0x41);
+
 class currentRoom
 {
 public:
@@ -101,8 +110,10 @@ public:
     bool isPaused; // 0x31
     char pad_32[0xa];
     uint32_t restartLastEvent; // 0x3c
-}; // Size: 0x40
-static_assert(sizeof(currentRoom) == 0x40);
+    char pad_40[0xd4];
+    pauseMenu* pauseMenuPtr1; // 0x114
+}; // Size: 0x118
+static_assert(sizeof(currentRoom) == 0x118);
 
 class sArea
 {

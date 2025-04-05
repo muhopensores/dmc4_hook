@@ -72,10 +72,16 @@ class currentMission {
 	int roomNumber2 @ 0x10C
 };
 
+class pauseMenu {
+	uint8_t draw @ 0x14
+    bool optionHovered @ 0x40
+}
+
 class currentRoom {
 	bool allowPause @ 0x20
 	bool isPaused @ 0x31
 	int restartLastEvent @ 0x3C
+	pauseMenu* pauseMenuPtr1 @ 0x114
 };
 
 class sArea {

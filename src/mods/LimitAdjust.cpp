@@ -7,7 +7,7 @@ bool LimitAdjust::style = false;
 bool LimitAdjust::target = false;
 bool LimitAdjust::same_tick_style_change = false;
 float LimitAdjust::limit = 0.0f;
-
+static float limit2 = 14.0f;
 std::optional<std::string> LimitAdjust::on_initialize() {
     return Mod::on_initialize();
 }
@@ -15,6 +15,11 @@ std::optional<std::string> LimitAdjust::on_initialize() {
 naked void limitadjust_patch(void) {
 	_asm {
 		fld dword ptr [LimitAdjust::limit]
+	}
+}
+naked void limitadjust_patch2(void) {
+	_asm {
+		fld dword ptr [limit2]
 	}
 }
 
@@ -79,6 +84,11 @@ void LimitAdjust::on_gui_frame() {
     help_marker(_("By default, there is a short timer that must end before two Jump Cancels can be made consecutively. This cheat removes "
                 "that timer and allows you to Jump Cancel as often as you want\nThis makes certain sequences much easier. If you're "
                 "learning the game, I recommend not using this to save getting into bad habits"));
+    ImGui::PushItemWidth(sameLineItemWidth);
+    ImGui::SliderFloat("Enemy Step Limit", &limit2, 0.0f, 20.0f, "%.0f");
+    ImGui::PopItemWidth();
+    ImGui::SameLine();
+    help_marker(_("20 default, 4hook uses 0 for this cheeat"));
     if (ImGui::Checkbox(_("Style Switch Limit"), &style)) {
         f_style(style);
     }
