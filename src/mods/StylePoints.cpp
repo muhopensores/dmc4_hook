@@ -1,4 +1,5 @@
 ﻿#include "StylePoints.hpp"
+#include <Config.hpp>
 
 static std::unordered_map<std::string, std::string> textLookupTable = {
     // trickster
@@ -307,7 +308,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Em006Majin",       "Alto Buster"},
     {"Em006Majin_2",     "Alto Buster"},
     {"Em006Majin_3",     "Alto Buster"},
-    {"Em006Flip",        "Nice Try"}, // if alto jumps back when you buster
+    {"Em006Flip",        "Alto Buster"}, // if alto jumps back when you buster
 
     // mephisto
     {"Em008",            "Mephisto Buster"},
@@ -621,6 +622,27 @@ static const std::map<std::vector<std::string>, std::string> comboNames = {
     {{"Guardfly", "Guardfly"}, "Is That A Plane?"},
 };
 
+enum characterID {
+    NERO  = 0,
+    DANTE = 1,
+};
+
+struct ComboUnlock {
+  int difficultyLevel;
+  characterID character;
+  const char* name;
+  const char* hint;
+  const char* how;
+  bool unlocked;
+};
+
+// add any new entries to the end of the array because we use the index to check if the combo is unlocked
+static std::array<ComboUnlock, 3> unlocked_combos = {
+    ComboUnlock {1, DANTE, "Very Creative!", "Welcome to Dante!", "As Dante, Used High Time > Rave 1-4", false},
+    ComboUnlock {1, DANTE, "Kamiya's Vision!", "Did you know DMC1 was going to be RE4?", "As Dante, Used High Time > E+I Shot x 10", false},
+    ComboUnlock {3, DANTE, "Is That A Plane?", "I saw a combo video on YouTube once...", "As Dante, Used Guardfly > Guardfly", false},
+};
+
 struct TrickScore {
     std::string text;
     float score;
@@ -768,6 +790,17 @@ ImVec4 GetTrickColor(float totalScore, float fade) {
     } else {
         return ImVec4(1.0f, 1.0f, 1.0f, fade); // White for low scores
     }
+}
+
+void SaveUnlockToConfig() {
+    ModFramework* framework = g_framework.get();
+    utility::Config cfg{};
+    cfg.load(CONFIG_FILENAME);
+    for (const auto& combo : unlocked_combos) {
+        std::string configKey = "combo_unlock_" + std::string(combo.name);
+        cfg.set<bool>(configKey, combo.unlocked);
+    }
+    cfg.save(CONFIG_FILENAME);
 }
 
 static void DrawTrickScores() {
@@ -1025,7 +1058,6 @@ static void DrawTonyScores() {
             const std::vector<std::string>& comboSequence = combo.first;
             size_t comboLength = comboSequence.size();
             size_t trickScoresSize = trickScores.size();
-
             if (trickScoresSize >= comboLength) {
                 bool match = true;
                 for (size_t i = 0; i < comboLength; ++i) {
@@ -1034,8 +1066,21 @@ static void DrawTonyScores() {
                         break;
                     }
                 }
-
                 if (match) {
+                    const std::string& comboName = combo.second;
+                    bool newUnlock = false;
+                    for (auto& unlockCombo : unlocked_combos) {
+                        if (comboName == unlockCombo.name && !unlockCombo.unlocked) {
+                            unlockCombo.unlocked = true;
+                            newUnlock = true;
+                            break;
+                        }
+                    }
+                
+                    if (newUnlock) {
+                        SaveUnlockToConfig();
+                    }
+                
                     detectedCombo = combo.second;
                     lastMatchTime = std::chrono::steady_clock::now();
                     break;
@@ -1390,32 +1435,11 @@ std::optional<std::string> StylePoints::on_initialize() {
     return Mod::on_initialize();
 }
 
-struct ComboUnlock {
-  int difficultyLevel;
-  int character;
-  const char* name;
-  const char* hint;
-  const char* how;
-  bool unlocked;
-};
-
-static std::array<ComboUnlock, 3> combo_items = {
-    ComboUnlock {1, 0, "Very Creative!", "Welcome to Dante!", "As Dante, Used High Time > Rave 1-4", false},
-    ComboUnlock {1, 0, "Kamiya's Vision!", "Did you know DMC1 was going to be RE4?", "As Dante, Used High Time > E+I Shot x 10", false},
-    ComboUnlock {3, 0, "Is That A Plane?", "I saw a combo video on YouTube once...", "As Dante, Used Guardfly > Guardfly", false},
-};
-
 std::string CensorText(const std::string& text) {
     return std::string(text.length(), '*');
 }
-
-void UnlockCombo(int comboID) {
-    if (comboID >= 0 && comboID < combo_items.size()) {
-        combo_items[comboID].unlocked = true;
-    }
-}
-    
-void DrawHiddenCombos() {
+   
+void StylePoints::DrawHiddenCombos() {
     if (!devil4_sdk::get_local_player())
         return;
     sArea* sArea = devil4_sdk::get_sArea();
@@ -1425,28 +1449,43 @@ void DrawHiddenCombos() {
         return;
     ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;
     ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.5f, screenSize.y * 0.25f));
-    ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.3f, screenSize.y * 0.2f));
+    ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.3f, screenSize.y * 0.2f)); // Kept original size
+
     ImGui::Begin("Hidden Combos Panel", nullptr, ImGuiWindowFlags_NoDecoration);
     ImGui::Text("Hidden Combos");
+    ImGui::SameLine();
+
+    const char* clear_unlocks_label = _("Clear Unlocks");
+    ImVec2 btn_size = ImGui::CalcTextSize(clear_unlocks_label);
+    btn_size.x += ImGui::GetStyle().FramePadding.x * 2.0f;
+    btn_size.y += ImGui::GetStyle().FramePadding.y * 2.0f;
+    float rightEdge = ImGui::GetWindowPos().x + ImGui::GetContentRegionMax().x;
+    ImGui::SetCursorPosX(rightEdge - ImGui::GetWindowPos().x - btn_size.x);
+    if (ImGui::Button(clear_unlocks_label, btn_size)) {
+        for (ComboUnlock& combo : unlocked_combos) {
+            combo.unlocked = false;
+        }
+        SaveUnlockToConfig();
+    }
+
     int maxDifficulty = 0;
-    for (ComboUnlock& combo : combo_items) {
+    for (ComboUnlock& combo : unlocked_combos) {
         if (combo.difficultyLevel > maxDifficulty)
             maxDifficulty = combo.difficultyLevel;
     }
 
+    ImGui::Columns(2, "CharacterColumns", true);
+    
+    ImVec4 danteColor = ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
+    ImVec4 neroColor = ImVec4(0.4f, 0.6f, 1.0f, 1.0f);
+    
+    ImGui::Text("Dante");
+    ImGui::NextColumn();
+    
+    ImGui::Text("Nero");
+    ImGui::NextColumn();
+    
     for (int difficulty = 1; difficulty <= maxDifficulty; ++difficulty) {
-        int total = 0;
-        int unlocked = 0;
-        for (size_t i = 0; i < combo_items.size(); ++i) {
-            if (combo_items[i].difficultyLevel == difficulty) {
-                total++;
-                if (combo_items[i].unlocked) unlocked++;
-            }
-        }
-        if (total == 0) continue;
-
-        ImGui::Separator();
-
         ImVec4 difficultyColor;
         if (difficulty == 1) {
             difficultyColor = ImVec4(0.5f, 1.0f, 0.5f, 1.0f); // Green
@@ -1457,14 +1496,25 @@ void DrawHiddenCombos() {
         } else if (difficulty == 4) {
             difficultyColor = ImVec4(1.0f, 0.5f, 0.5f, 1.0f); // Red
         } else if (difficulty == 5) {
-            difficultyColor = ImVec4(0.8f, 0.5f, 1.0f, 1.0f); // Purp
+            difficultyColor = ImVec4(0.8f, 0.5f, 1.0f, 1.0f); // Purple
         }
 
-        ImGui::TextColored(difficultyColor, "Difficulty %i - %i/%i Unlocked", difficulty, unlocked, total);
-
-        for (size_t i = 0; i < combo_items.size(); ++i) {
-            ComboUnlock& combo = combo_items[i];
-            if (combo.difficultyLevel != difficulty)
+        ImGui::Separator();
+        int totalDante = 0;
+        int unlockedDante = 0;
+        for (const ComboUnlock& combo : unlocked_combos) {
+            if (combo.difficultyLevel == difficulty && combo.character == DANTE) {
+                totalDante++;
+                if (combo.unlocked) unlockedDante++;
+            }
+        }
+        
+        ImGui::TextColored(difficultyColor, "Difficulty %i - %i/%i Unlocked", 
+                         difficulty, unlockedDante, totalDante);
+        
+        for (size_t i = 0; i < unlocked_combos.size(); ++i) {
+            ComboUnlock& combo = unlocked_combos[i];
+            if (combo.difficultyLevel != difficulty || combo.character != DANTE)
                 continue;
 
             std::string displayText;
@@ -1473,10 +1523,10 @@ void DrawHiddenCombos() {
             } else {
                 for (const char* p = combo.name; *p != '\0'; ++p) {
                     char c = *p;
-                    if (c == ' ' || c == '!' || c == '?') {
+                    if (c == ' ') {
                         displayText += c;
                     } else {
-                        displayText += '*';
+                        displayText += '?';
                     }
                 }
             }
@@ -1493,11 +1543,60 @@ void DrawHiddenCombos() {
                 ImGui::PopTextWrapPos();
                 ImGui::EndTooltip();
             }
-            if (ImGui::IsItemClicked()) {
-                combo.unlocked = !combo.unlocked;
+        }
+        
+        ImGui::NextColumn();
+        
+        ImGui::Separator();
+        int totalNero = 0;
+        int unlockedNero = 0;
+        for (const ComboUnlock& combo : unlocked_combos) {
+            if (combo.difficultyLevel == difficulty && combo.character == NERO) {
+                totalNero++;
+                if (combo.unlocked) unlockedNero++;
             }
         }
+        
+        ImGui::TextColored(difficultyColor, "Difficulty %i - %i/%i Unlocked", 
+                         difficulty, unlockedNero, totalNero);
+        
+        for (size_t i = 0; i < unlocked_combos.size(); ++i) {
+            ComboUnlock& combo = unlocked_combos[i];
+            if (combo.difficultyLevel != difficulty || combo.character != NERO)
+                continue;
+
+            std::string displayText;
+            if (combo.unlocked) {
+                displayText = combo.name;
+            } else {
+                for (const char* p = combo.name; *p != '\0'; ++p) {
+                    char c = *p;
+                    if (c == ' ') {
+                        displayText += c;
+                    } else {
+                        displayText += '?';
+                    }
+                }
+            }
+
+            ImGui::Text("%s", displayText.c_str());
+
+            if (ImGui::IsItemHovered()) {
+                ImGui::BeginTooltip();
+                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+                ImGui::TextUnformatted(combo.hint);
+                if (combo.unlocked) {
+                    ImGui::Text("(%s)", combo.how);
+                }
+                ImGui::PopTextWrapPos();
+                ImGui::EndTooltip();
+            }
+        }
+        
+        ImGui::NextColumn();
     }
+    
+    ImGui::Columns(1);
     ImGui::End();
 }
 
@@ -1569,6 +1668,11 @@ void StylePoints::on_config_load(const utility::Config& cfg) {
 
     maxPerRow = cfg.get<int>("maxPerRow_points_display").value_or(7);
     maxRows = cfg.get<int>("maxRows_points_display").value_or(3);
+
+    for (auto& combo : unlocked_combos) {
+        std::string configKey = "combo_unlock_" + std::string(combo.name);
+        combo.unlocked = cfg.get<bool>(configKey).value_or(false);
+    }
 }
 
 void StylePoints::on_config_save(utility::Config& cfg) {
@@ -1581,4 +1685,10 @@ void StylePoints::on_config_save(utility::Config& cfg) {
 
     cfg.set<int>("maxPerRow_points_display", maxPerRow);
     cfg.set<int>("maxRows_points_display", maxRows);
+
+    // done automatically now
+    /*for (size_t i = 0; i < unlocked_combos.size(); ++i) {
+        std::string configKey = "combo_unlock_" + std::to_string(i);
+        cfg.set<bool>(configKey, unlocked_combos[i].unlocked);
+    }*/
 }

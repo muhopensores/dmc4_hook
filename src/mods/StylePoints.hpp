@@ -18,6 +18,8 @@ public:
     static bool showHeightChart;
     static bool showInertiaChart;
 
+    void DrawHiddenCombos();
+
     std::string get_mod_name() override { return "StylePoints"; };
     std::optional<std::string> on_initialize() override;
 
