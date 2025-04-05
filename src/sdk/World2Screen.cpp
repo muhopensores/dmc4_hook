@@ -1,13 +1,187 @@
 #include "World2Screen.hpp"
+#include <d3d9.h>
+#define DEBUG_DRAW_IMPLEMENTATION
+#include "debug-draw/debug_draw.hpp"
+#include <d3dx9math.h>
+
+#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZW|D3DFVF_DIFFUSE)
+
+glm::mat4x4 g_vp{};
+
+namespace dd {
+    class RenderInterfaceD3D9 final : public dd::RenderInterface {
+    public:
+        RenderInterfaceD3D9() = delete;
+        RenderInterfaceD3D9(const RenderInterfaceD3D9&) = delete;  // Copy constructor
+        RenderInterfaceD3D9& operator=(const RenderInterfaceD3D9&) = delete;  // Copy assignment operator
+        RenderInterfaceD3D9(RenderInterfaceD3D9&&) = delete;  // Move constructor
+        RenderInterfaceD3D9& operator=(RenderInterfaceD3D9&&) = delete;  // Move assignment operator
+
+        RenderInterfaceD3D9(IDirect3DDevice9* device) {
+            m_ri_data = new RenderInterfaceData;
+            m_ri_data->pd3dDevice = device;
+            m_ri_data->pd3dDevice->AddRef();
+        };
+
+        ~RenderInterfaceD3D9() {
+            if (m_ri_data->pd3dDevice) { m_ri_data->pd3dDevice->Release(); }
+            delete m_ri_data;
+        }
+
+        D3DMATRIX ConvertToD3DMATRIX(const glm::mat4x4& glm_matrix) {
+            D3DMATRIX d3dMatrix;
+
+            auto mat = glm_matrix;//glm::transpose(glm_matrix);
+            // Transpose the GLM matrix to match D3D's row-major layout
+            memcpy(&d3dMatrix, &mat, sizeof(D3DMATRIX));
+#if 0
+            d3dMatrix._11 = glm_matrix[0][0]; d3dMatrix._12 = glm_matrix[1][0]; d3dMatrix._13 = glm_matrix[2][0]; d3dMatrix._14 = glm_matrix[3][0];
+            d3dMatrix._21 = glm_matrix[0][1]; d3dMatrix._22 = glm_matrix[1][1]; d3dMatrix._23 = glm_matrix[2][1]; d3dMatrix._24 = glm_matrix[3][1];
+            d3dMatrix._31 = glm_matrix[0][2]; d3dMatrix._32 = glm_matrix[1][2]; d3dMatrix._33 = glm_matrix[2][2]; d3dMatrix._34 = glm_matrix[3][2];
+            d3dMatrix._41 = glm_matrix[0][3]; d3dMatrix._42 = glm_matrix[1][3]; d3dMatrix._43 = glm_matrix[2][3]; d3dMatrix._44 = glm_matrix[3][3];
+#endif
+
+            return d3dMatrix;
+        }
+
+        void beginDraw() override {
+            auto bd = m_ri_data;
+
+            // Backup the DX9 state
+            if (bd->pd3dDevice->CreateStateBlock(D3DSBT_ALL, &m_d3d9_state_block) < 0)
+                return;
+            if (m_d3d9_state_block->Capture() < 0)
+            {
+                m_d3d9_state_block->Release();
+                return;
+            }
+
+            D3DVIEWPORT9 vp{};
+            vp.X = vp.Y = 0;
+            glm::vec2 screen = glm::vec2(devil4_sdk::get_sRender()->screenRes);
+            vp.Width = (DWORD)screen.x;
+            vp.Height = (DWORD)screen.y;
+            vp.MinZ = 0.0f;
+            vp.MaxZ = 1.0f;
+            bd->pd3dDevice->SetViewport(&vp);
+
+            // Setup render state: fixed-pipeline, alpha-blending, no face culling, no depth testing, shade mode (for gradient), bilinear sampling.
+            bd->pd3dDevice->SetPixelShader(nullptr);
+            bd->pd3dDevice->SetVertexShader(nullptr);
+            
+            bd->pd3dDevice->SetRenderState(D3DRS_FILLMODE, D3DFILL_SOLID);
+            bd->pd3dDevice->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_GOURAUD);
+            bd->pd3dDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+            bd->pd3dDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+            bd->pd3dDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+            bd->pd3dDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
+            bd->pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+            bd->pd3dDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+            bd->pd3dDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+            bd->pd3dDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+            bd->pd3dDevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, TRUE);
+            bd->pd3dDevice->SetRenderState(D3DRS_SRCBLENDALPHA, D3DBLEND_ONE);
+            bd->pd3dDevice->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_INVSRCALPHA);
+            bd->pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+            bd->pd3dDevice->SetRenderState(D3DRS_FOGENABLE, FALSE);
+            bd->pd3dDevice->SetRenderState(D3DRS_RANGEFOGENABLE, FALSE);
+            bd->pd3dDevice->SetRenderState(D3DRS_SPECULARENABLE, FALSE);
+            bd->pd3dDevice->SetRenderState(D3DRS_STENCILENABLE, FALSE);
+            bd->pd3dDevice->SetRenderState(D3DRS_CLIPPING, TRUE);
+            bd->pd3dDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
+            bd->pd3dDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
+            bd->pd3dDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+            bd->pd3dDevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
+            bd->pd3dDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
+            bd->pd3dDevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+            bd->pd3dDevice->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
+            bd->pd3dDevice->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
+            bd->pd3dDevice->SetTextureStageState(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
+            bd->pd3dDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+            bd->pd3dDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+
+            D3DXMATRIX view = ConvertToD3DMATRIX(g_vp);
+            bd->pd3dDevice->SetTransform(D3DTS_PROJECTION, &view);
+        }
+
+        void endDraw() override {
+            // Restore the DX9 state
+            m_d3d9_state_block->Apply();
+            m_d3d9_state_block->Release();
+        }
+
+        void drawLineList(const DrawVertex* lines, int count, bool depthEnabled) {
+            (void)depthEnabled;
+            // Create and grow buffers if needed
+            auto bd = m_ri_data;
+            if (!bd->pVB || bd->VertexBufferSize < count)
+            {
+                if (bd->pVB) { bd->pVB->Release(); bd->pVB = nullptr; }
+                bd->VertexBufferSize = count + 5000;
+                if (bd->pd3dDevice->CreateVertexBuffer(count * sizeof(CUSTOMVERTEX), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_CUSTOMVERTEX, D3DPOOL_DEFAULT, &bd->pVB, nullptr) < 0)
+                    return;
+            }
+
+            // Allocate buffers
+            CUSTOMVERTEX* vtx_dst;
+            unsigned short* idx_dst;
+            if (bd->pVB->Lock(0, (UINT)(count * sizeof(CUSTOMVERTEX)), (void**)&vtx_dst, D3DLOCK_DISCARD) < 0)
+            {
+                //d3d9_state_block->Release();
+                return;
+            }
+            for (int n = 0; n < count; n++)
+            {
+                vtx_dst[n].pos[0] = lines[n].line.x;
+                vtx_dst[n].pos[1] = lines[n].line.y;
+                vtx_dst[n].pos[2] = lines[n].line.z;
+                vtx_dst[n].pos[3] = 1.0f;
+                vtx_dst[n].col = D3DCOLOR_ARGB(
+                    255,
+                    (uint8_t)((lines[n].line.r) * 255.0),
+                    (uint8_t)((lines[n].line.g) * 255.0),
+                    (uint8_t)((lines[n].line.b) * 255.0));
+            }
+            bd->pVB->Unlock();
+            //bd->pIB->Unlock();
+            bd->pd3dDevice->SetStreamSource(0, bd->pVB, 0, sizeof(CUSTOMVERTEX));
+            //bd->pd3dDevice->SetIndices(bd->pIB);
+            bd->pd3dDevice->SetFVF(D3DFVF_CUSTOMVERTEX);
+
+            bd->pd3dDevice->DrawPrimitive(D3DPT_LINELIST, 0, count / 2);
+        }
+        
+    private:
+        // DirectX data
+        struct RenderInterfaceData
+        {
+            LPDIRECT3DDEVICE9           pd3dDevice;
+            LPDIRECT3DVERTEXBUFFER9     pVB;
+            LPDIRECT3DINDEXBUFFER9      pIB;
+            LPDIRECT3DTEXTURE9          FontTexture;
+            int                         VertexBufferSize;
+            int                         IndexBufferSize;
+
+            RenderInterfaceData() { memset((void*)this, 0, sizeof(*this)); VertexBufferSize = 5000; IndexBufferSize = 10000; }
+        };
+        struct CUSTOMVERTEX
+        {
+            float    pos[4];
+            D3DCOLOR col;
+            //float    uv[2];
+        };
+
+        RenderInterfaceData* m_ri_data{ nullptr };
+        IDirect3DStateBlock9* m_d3d9_state_block{ nullptr };
+    };
+} // dd
+
+static dd::RenderInterfaceD3D9* g_debugdraw {nullptr};
+
 namespace w2s {
     glm::vec2 WorldToScreen(const glm::vec3& worldPos) {
-        SMediator* sMed = devil4_sdk::get_sMediator();
-        uCameraCtrl* camera = sMed->camera1;
-        glm::mat4 viewMatrix = glm::lookAt(camera->pos, camera->lookat, camera->up);
         glm::vec2 screen = glm::vec2(devil4_sdk::get_sRender()->screenRes);
-        float aspectRatio = screen.x / screen.y;
-        glm::mat4 projMatrix = glm::perspective(glm::radians(camera->FOV), aspectRatio, 0.1f, 1000.0f);
-        glm::vec4 clipPos = projMatrix * viewMatrix * glm::vec4(worldPos, 1.0f);
+        glm::vec4 clipPos = g_vp * glm::vec4(worldPos, 1.0f);
         if (clipPos.w <= 0.0f) return glm::vec2(-1.0f, -1.0f);
         glm::vec3 ndcPos = glm::vec3(clipPos) / clipPos.w;
         return glm::vec2((ndcPos.x + 1.0f) * 0.5f * screen.x, (1.0f - ndcPos.y) * 0.5f * screen.y);
@@ -22,6 +196,31 @@ namespace w2s {
 
     void DrawWireframeCube(const glm::vec3& center, float size, float rotation, ImU32 color, float thickness) {
         ImDrawList* drawList = ImGui::GetBackgroundDrawList();
+
+#if 0
+        ImColor imcol(color);
+        float col[] = {
+            imcol.Value.x,
+            imcol.Value.y,
+            imcol.Value.z,
+        };
+
+        glm::vec3 vertices[8];
+        float halfSize = size / 2.0f;
+
+        vertices[0] = center + glm::vec3(-halfSize, -halfSize, -halfSize);
+        vertices[1] = center + glm::vec3(halfSize, -halfSize, -halfSize);
+        vertices[2] = center + glm::vec3(halfSize, halfSize, -halfSize);
+        vertices[3] = center + glm::vec3(-halfSize, halfSize, -halfSize);
+        vertices[4] = center + glm::vec3(-halfSize, -halfSize, halfSize);
+        vertices[5] = center + glm::vec3(halfSize, -halfSize, halfSize);
+        vertices[6] = center + glm::vec3(halfSize, halfSize, halfSize);
+        vertices[7] = center + glm::vec3(-halfSize, halfSize, halfSize);
+
+        dd::box((ddVec3*)&vertices, (float*)col);
+        return;
+#else
+#endif
         glm::vec3 vertices[8];
         float halfSize = size / 2.0f;
 
@@ -70,6 +269,18 @@ namespace w2s {
     }
 
     void DrawWireframeSphere(const glm::vec3& center, float radius, float rotation, ImU32 color, int segments, float thickness) {
+#if 0
+        ImColor imcol(color);
+        float col[] = {
+            imcol.Value.x,
+            imcol.Value.y,
+            imcol.Value.z,
+        };
+        ddVec3_In pos { center.x,center.y,center.z };
+        dd::sphere(pos, col, radius);
+        return;
+#endif
+
         ImDrawList* drawList = ImGui::GetBackgroundDrawList();
 
         glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -106,6 +317,13 @@ namespace w2s {
             rotatedXZ2 += center;
             rotatedYZ1 += center;
             rotatedYZ2 += center;
+            ImColor col(color);
+
+#if 0
+            dd::line((float*)&rotatedXY1, (float*)&rotatedXY2,(float*)&col);
+            dd::line((float*)&rotatedXZ1, (float*)&rotatedXZ2,(float*)&col);
+            dd::line((float*)&rotatedYZ1, (float*)&rotatedYZ2,(float*)&col);
+#else
 
             // Convert to screen space
             glm::vec2 screenXY1 = w2s::WorldToScreen(rotatedXY1);
@@ -119,6 +337,7 @@ namespace w2s {
             drawList->AddLine(ImVec2(screenXY1.x, screenXY1.y), ImVec2(screenXY2.x, screenXY2.y), color, thickness);
             drawList->AddLine(ImVec2(screenXZ1.x, screenXZ1.y), ImVec2(screenXZ2.x, screenXZ2.y), color, thickness);
             drawList->AddLine(ImVec2(screenYZ1.x, screenYZ1.y), ImVec2(screenYZ2.x, screenYZ2.y), color, thickness);
+#endif
         }
     }
 
@@ -597,5 +816,37 @@ namespace w2s {
             screenCorners[i] = w2s::WorldToScreen(worldCorners[i]);
         }
         DrawTextureWithScreenCorners(g_pd3dDevice, m_texture_handle, screenCorners);
+    }
+
+    int dd_init(IDirect3DDevice9* device) {
+        g_debugdraw = new dd::RenderInterfaceD3D9(device);
+        if(!dd::initialize(g_debugdraw)) { return -1; }
+        return 0;
+    }
+
+    void dd_update() {
+        SMediator* sMed = devil4_sdk::get_sMediator();
+        if (!sMed) { return; }
+        uCameraCtrl* camera = sMed->camera1;
+        if (!camera) { return; }
+        glm::mat4 viewMatrix = glm::lookAt(camera->pos, camera->lookat, camera->up);
+        glm::vec2 screen = glm::vec2(devil4_sdk::get_sRender()->screenRes);
+        float aspectRatio = screen.x / screen.y;
+        glm::mat4 projMatrix = glm::perspective(glm::radians(camera->FOV), aspectRatio, 0.1f, 9999.0f);
+        g_vp = projMatrix * viewMatrix;
+
+        auto player = devil4_sdk::get_local_player();
+        if (!player) { return; }
+
+        ddVec3 position{ player->m_pos.x, player->m_pos.y + 55.0f, player->m_pos.z };
+    }
+
+    void dd_flush() {
+        dd::flush();
+    }
+
+    void dd_shutdown() {
+        dd::shutdown();
+        delete g_debugdraw;
     }
 }
