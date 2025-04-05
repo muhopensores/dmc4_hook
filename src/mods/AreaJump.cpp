@@ -2,6 +2,7 @@
 #include <array>
 #include <algorithm>
 #include "RoomRespawn.hpp"
+#include <Config.hpp>
 
 static int savedBPFloor = 0;
 static float savedBPTimer = 0.0f;
@@ -248,10 +249,20 @@ void AreaJump::on_gui_frame() {
                 savedOrbs = s_med_ptr->orbMissionCurrent;
                 savedHP = s_med_ptr->player_ptr->HP;
                 savedDT = s_med_ptr->player_ptr->DT;
+                ModFramework* framework = g_framework.get();
+                utility::Config cfg{};
+                cfg.load(CONFIG_FILENAME);
+                cfg.set<int>("saved_bp_floor", savedBPFloor);
+                cfg.set<float>("saved_bp_timer", savedBPTimer);
+                cfg.set<int>("saved_orbs", savedOrbs);
+                cfg.set<float>("saved_hp", savedHP);
+                cfg.set<float>("saved_dt", savedDT);
+                cfg.save(CONFIG_FILENAME);
             }
         }
+    
         ImGui::SameLine();
-        help_marker(_("Press Save Config after saving BP progress as this writes the file\nSaves floor, timer, orbs, hp, dt"));
+        help_marker(_("Saves floor, timer, orbs, hp, dt"));
         ImGui::SameLine();
         if (ImGui::Button(_("Load BP Progress"))) {
             sArea* s_area_ptr = devil4_sdk::get_sArea();
@@ -267,7 +278,7 @@ void AreaJump::on_gui_frame() {
             }
         }
         ImGui::SameLine();
-        help_marker(_("Press Load after getting into BP\nRestores saved floor, timer, orbs, hp, dt"));
+        help_marker(_("Press Load after loading into BP\nRestores saved floor, timer, orbs, hp, dt"));
 	}
     else {
         ImGui::TextWrapped(_("BP Floor Jump is not initialized.\nLoad into BP to access it."));

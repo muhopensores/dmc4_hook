@@ -6,7 +6,7 @@ uintptr_t DisableCameraEvents::jmp_ret1{NULL};
 void DisableCameraEvents::toggle(bool enable) {
     if (enable) {
         install_patch_offset(0x000BEF1, patch1, "\xB8\x07\x00\x00\x00\x90\x90", 7); // skips to part x of cutscene
-        install_patch_offset(0x0093BE0, patch2, "\xEB\x13", 2); // disables fade to black flash but breaks move list + map, has ugly load into bp
+        //install_patch_offset(0x0093BE0, patch2, "\xEB\x13", 2); // disables fade to black flash but breaks move list + map, has ugly load into bp
         // install_patch_offset(0x000C6C1, patch2, "\xEB\x17", 2); // old version
         // try setting that one value in aGame to 4 when old version is called
         // DevilMayCry4_DX9.exe+C9DD starting first forest fight or castle demo
@@ -14,12 +14,13 @@ void DisableCameraEvents::toggle(bool enable) {
     }
     else {
         patch1.reset();
-        patch2.reset();
+        //patch2.reset();
     }
 }
-# if 0
+
 uintptr_t sArea = 0x00E552C8;
 uintptr_t jmpOutAddr = 0x00493BF5;
+
 naked void detour1() {
     _asm {
         cmp byte ptr [DisableCameraEvents::mod_enabled], 0
@@ -27,14 +28,16 @@ naked void detour1() {
 
         push eax
 
-        mov eax, [sArea] // sArea
-        mov eax, [eax]
+        mov eax, ds:[sArea] // sArea
         test eax, eax
         je popcode
-        mov eax, [eax+0x3830] // aGame
+        mov eax, [eax+0x3838] // currentRoom
         test eax, eax
         je popcode
-        cmp byte ptr [eax+0x1d1], 1
+        mov eax, [eax+0x114] // pauseMenu
+        test eax, eax
+        je popcode
+        cmp ebp,[eax+0x1a0] // uSkillListMgr
         je popcode
         jmp skipcode
 
@@ -52,12 +55,12 @@ naked void detour1() {
         jmp dword ptr [jmpOutAddr]
     }
 }
-#endif
+
 std::optional<std::string> DisableCameraEvents::on_initialize() {
-    /*if (!install_hook_offset(0x93BDE, hook1, &detour1, &jmp_ret1, 8)) {
+    if (!install_hook_offset(0x93BDE, hook1, &detour1, &jmp_ret1, 8)) {
 		spdlog::error("Failed to init DisableCameraEvents mod\n");
 		return "Failed to init DisableCameraEvents mod";
-	}*/
+	}
     return Mod::on_initialize();
 }
 
