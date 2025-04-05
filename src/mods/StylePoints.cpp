@@ -1424,8 +1424,8 @@ void DrawHiddenCombos() {
     if (sArea->currentRoomPtr == nullptr || sArea->currentRoomPtr->pauseMenuPtr1 == nullptr || sArea->currentRoomPtr->pauseMenuPtr1->draw != 1)
         return;
     ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;
-    ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.5f, screenSize.y * 0.25f), ImGuiCond_Once);
-    ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.3f, screenSize.y * 0.2f), ImGuiCond_Once);
+    ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.5f, screenSize.y * 0.25f));
+    ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.3f, screenSize.y * 0.2f));
     ImGui::Begin("Hidden Combos Panel", nullptr, ImGuiWindowFlags_NoDecoration);
     ImGui::Text("Hidden Combos");
     int maxDifficulty = 0;
