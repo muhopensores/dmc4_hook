@@ -37,9 +37,11 @@ naked void detourCharSwap(void) { // force which character is picked
 
             // this is disgusting but I'm not sure how else to get portrait picked
             cmp dword ptr [NoAutomaticCharacters::lastPickedCharacter], 4
-            jb originalcode
+            jae playNero
+            mov byte ptr [edi+0x28], 00
+            jmp originalcode
 
-        // playNero:
+        playNero:
             mov byte ptr [edi+0x28], 01
         originalcode:
             cmp byte ptr [edi+0x28], 01
