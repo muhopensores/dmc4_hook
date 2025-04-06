@@ -448,6 +448,7 @@ namespace gui {
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("ChargeChecker"_hash); // needs its own line
+                    pmods->on_draw_ui("NoLockonRestriction"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();

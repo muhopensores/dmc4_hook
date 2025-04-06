@@ -264,6 +264,8 @@ set(MODS_SRC
   mods/CustomProjectile.cpp
   mods/VisualizeHitbox.hpp
   mods/VisualizeHitbox.cpp
+  mods/NoLockonRestriction.hpp
+  mods/NoLockonRestriction.cpp
 )
 
 set(HOOKS_SRC

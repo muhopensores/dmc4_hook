@@ -134,6 +134,7 @@
 #include "mods/GuardTimer.hpp"
 #include "mods/ExceedLimiter.hpp"
 #include "mods/VisualizeHitbox.hpp"
+#include "mods/NoLockonRestriction.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -277,6 +278,7 @@ Mods::Mods() {
     ADD_MOD(GuardTimer);
     ADD_MOD(ExceedLimiter);
     ADD_MOD(VisualizeHitbox);
+    ADD_MOD(NoLockonRestriction);
 }
 
 // Initializes mods, checks for errors
