@@ -11,7 +11,6 @@ float CameraSettings::camera_angle{ 0 };
 float CameraSettings::camera_angle_lockon{ 0 };
 float CameraSettings::camera_fov_in_battle{ 0 };
 float CameraSettings::camera_fov{ 0 };
-bool  CameraSettings::noclip_cam_enabled{ false };
 bool CameraSettings::camera_lookdown_enabled{ false };
 bool CameraSettings::camera_reset_enabled{ false };
 bool CameraSettings::cam_right{ false };
@@ -21,8 +20,8 @@ bool CameraSettings::pause_camera_enabled{false};
 bool CameraSettings::camera_lockon_corrects{false};
 
 constexpr ptrdiff_t camera_towards_auto_correct1 = 0x19514; // 0x195A5;
-constexpr ptrdiff_t camera_towards_auto_correct2 = 0x195F7;
-constexpr ptrdiff_t camera_towards_auto_correct3 = 0x19822;
+// constexpr ptrdiff_t camera_towards_auto_correct2 = 0x195F7;
+// constexpr ptrdiff_t camera_towards_auto_correct3 = 0x19822;
 
 uintptr_t CameraSettings::camera_height_continue{ NULL };
 uintptr_t CameraSettings::camera_distance_continue{ NULL };
@@ -325,19 +324,6 @@ void CameraSettings::toggle_attack_towards_cam(bool toggle) {
     }
 }
 
-void CameraSettings::toggle_noclip_cam(bool toggle) {
-    if (toggle) {
-        install_patch_offset(0xF9318, patch_noclip_cam1, "\x90\x90\x90\x90\x90\x90", 6);
-        install_patch_offset(0xF9334, patch_noclip_cam2, "\x90\x90\x90\x90\x90\x90", 6);
-        install_patch_offset(0x180C1, patch_noclip_cam3, "\x90\x90\x90\x90\x90", 5);
-    }
-    else {
-        patch_noclip_cam1.reset();
-        patch_noclip_cam2.reset();
-        patch_noclip_cam3.reset();
-    }
-}
-
 void CameraSettings::toggle_camera_lookdown(bool toggle) {
     if (toggle) {
         install_patch_offset(0x132483, patch_camera_lookdown, "\x90\x90\x90\x90\x90\x90", 6);
@@ -430,12 +416,6 @@ void CameraSettings::on_gui_frame() {
         ImGui::Unindent(lineIndent);
     }
     ImGui::EndGroup();
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Noclip Cam"), &noclip_cam_enabled)) {
-        toggle_noclip_cam(noclip_cam_enabled);
-    }
-    ImGui::SameLine();
-    help_marker(_("Remove camera presets and instead use a camera that can move through walls\nEnable before entering a stage"));
 
     if (ImGui::CollapsingHeader(_("Camera Variables"))) {
         ImGui::Checkbox(_("Use Custom Camera Variables"), &mod_enabled);
@@ -599,8 +579,6 @@ void CameraSettings::on_config_load(const utility::Config& cfg) {
     camera_sens_enabled = cfg.get<bool>("increased_camera_sensitivity").value_or(false);
     camera_auto_correct_towards_cam_enabled = cfg.get<bool>("disable_camera_autocorrect_towards_camera").value_or(false);
     toggle_attack_towards_cam(camera_auto_correct_towards_cam_enabled);
-    noclip_cam_enabled = cfg.get<bool>("noclip_cam").value_or(false);
-    toggle_noclip_cam(noclip_cam_enabled);
     camera_lookdown_enabled = cfg.get<bool>("camera_lookdown").value_or(false);
     toggle_camera_lookdown(camera_lookdown_enabled);
     camera_reset_enabled = cfg.get<bool>("camera_reset").value_or(false);
@@ -626,7 +604,6 @@ void CameraSettings::on_config_save(utility::Config& cfg) {
     cfg.set<float>("camera_fov_battle", camera_fov_in_battle);
     cfg.set<bool>("increased_camera_sensitivity", camera_sens_enabled);
     cfg.set<bool>("disable_camera_autocorrect_towards_camera", camera_auto_correct_towards_cam_enabled);
-    cfg.set<bool>("noclip_cam", noclip_cam_enabled);
     cfg.set<bool>("camera_lookdown", camera_lookdown_enabled);
     cfg.set<bool>("camera_reset", camera_reset_enabled);
     cfg.set<bool>("right_side_reset", cam_right);

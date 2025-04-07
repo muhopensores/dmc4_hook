@@ -45,7 +45,6 @@ public:
 
     void on_gui_frame() override;
     void toggle_attack_towards_cam(bool toggle);
-    void toggle_noclip_cam(bool toggle);
     void toggle_camera_lookdown(bool toggle);
     void toggle_disable_last_enemy_zoom(bool toggle);
     void toggle_force_last_enemy_zoom(bool toggle);
@@ -66,11 +65,6 @@ private:
     std::unique_ptr<FunctionHook> camera_sens_anti_clockwise_hook;
     std::unique_ptr<FunctionHook> camera_sens_brakes_hook;
     std::unique_ptr<Patch> attack_towards_cam_patch1;
-    // std::unique_ptr<Patch> attack_towards_cam_patch2;
-    // std::unique_ptr<Patch> attack_towards_cam_patch3;
-    std::unique_ptr<Patch> patch_noclip_cam1;
-    std::unique_ptr<Patch> patch_noclip_cam2;
-    std::unique_ptr<Patch> patch_noclip_cam3;
     std::unique_ptr<Patch> patch_camera_lookdown;
     std::unique_ptr<Patch> camera_disable_last_enemy_zoom_patch;
     std::unique_ptr<Patch> patch_pause_camera;

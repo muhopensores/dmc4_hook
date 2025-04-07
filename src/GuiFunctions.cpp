@@ -749,7 +749,9 @@ namespace gui {
 
                     ImGui::Spacing();
 
-                    pmods->on_draw_ui("CameraSettings"_hash); // needs its own line
+                    pmods->on_draw_ui("NoclipCam"_hash);
+
+                    pmods->on_draw_ui("CameraSettings"_hash);
 
                     pmods->on_draw_ui("WorkRate"_hash); // needs its own line
 
@@ -778,6 +780,8 @@ namespace gui {
                     pmods->on_draw_ui("NoClip"_hash); // 1.5 lines
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("FreeJc"_hash);
+
+                    pmods->on_draw_ui("NoclipCam"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();
