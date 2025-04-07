@@ -266,6 +266,8 @@ set(MODS_SRC
   mods/VisualizeHitbox.cpp
   mods/NoLockonRestriction.hpp
   mods/NoLockonRestriction.cpp
+  mods/DebugCam.hpp
+  mods/DebugCam.cpp
 )
 
 set(HOOKS_SRC

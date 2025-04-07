@@ -135,6 +135,7 @@
 #include "mods/ExceedLimiter.hpp"
 #include "mods/VisualizeHitbox.hpp"
 #include "mods/NoLockonRestriction.hpp"
+#include "mods/DebugCam.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -279,6 +280,7 @@ Mods::Mods() {
     ADD_MOD(ExceedLimiter);
     ADD_MOD(VisualizeHitbox);
     ADD_MOD(NoLockonRestriction);
+    ADD_MOD(DebugCam);
 }
 
 // Initializes mods, checks for errors

@@ -809,14 +809,17 @@ namespace gui {
 
                     // pmods->onDrawUI("ShaderEditor"_hash);
                     pmods->on_draw_ui("MoveTable"_hash);
+
                     pmods->on_draw_ui("LMTSlotFix"_hash);
-                    
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("VisualizeHitbox"_hash);
+
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("CustomProjectile"_hash);
-                    pmods->on_draw_ui("VisualizeHitbox"_hash);
+                    pmods->on_draw_ui("DebugCam"_hash);
 
                     g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
                     ImGui::EndChild();

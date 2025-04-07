@@ -531,8 +531,8 @@ namespace uActorMain {
         float mFov;
         long padding28[2];
         MtVector3 mCameraPos;
-        MtVector3 mTargetPos;
         MtVector3 mCameraUp;
+        MtVector3 mTargetPos;
         MtVector4 mFrustum[6];
     };
 
