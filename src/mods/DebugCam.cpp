@@ -119,6 +119,12 @@ void __stdcall freecam_mouse_input(uCamera* camera) {
     glm::mat4 viewMatrix = glm::lookAt(cam_pos, cam_lookat, cam_up);
     glm::mat4 rotateX = glm::rotate(glm::mat4(1.0f), (float)(y_diff * 0.001), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 rotateY    = glm::rotate(glm::mat4(1.0f), (float)(x_diff * 0.001), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 rotateZ    = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+    if (short input = VkKeyScan('Q'); devil4_sdk::internal_kb_check(input & 0xFF))
+        rotateZ = glm::rotate(glm::mat4(1.0f), -0.005f, glm::vec3(0.0f, 0.0f, 1.0f));
+    if (short input = VkKeyScan('E'); devil4_sdk::internal_kb_check(input & 0xFF))
+        rotateZ = glm::rotate(glm::mat4(1.0f), 0.005f, glm::vec3(0.0f, 0.0f, 1.0f));
+    viewMatrix = rotateZ * viewMatrix;
     viewMatrix  = glm::translate(viewMatrix, cam_pos);
     viewMatrix           = viewMatrix * rotateY;
     viewMatrix  = glm::translate(viewMatrix, -cam_pos);
@@ -178,7 +184,6 @@ std::optional<std::string> DebugCam::on_initialize() {
 void DebugCam::on_gui_frame() {
     if (ImGui::Button("Free Cam")) {
         uFreeCamera* cam = (uFreeCamera*)freecam_cons();
-        cam->mControlPad = 0;
         devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)cam, 0x17);
         set_viewport(1, REGION_BOTTOM, (uintptr_t)cam);
         sCamera_ViewPort* first_vp = get_viewport(0);

@@ -25,6 +25,7 @@ public:
     float force;
     CustomProjectileProp() = default;
     CustomProjectileProp(float keepAlive, float force, uActorMain::uCoord* parent, int parentJoint);
+    CustomProjectileProp(float keepAlive, float force, Vector3f* Pos, glm::quat* Quat);
     void destructor(uint32_t flag);
     void die();
     void startup_override();

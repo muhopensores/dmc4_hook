@@ -289,6 +289,31 @@ CustomProjectileProp::CustomProjectileProp(float keepAlive, float force, uActorM
     this->actor.uActorBase.uModelBase.uCoordBase.mQuat.w = parent->mQuat.w;
 }
 
+CustomProjectileProp::CustomProjectileProp(float keepAlive, float force, Vector3f* Pos, glm::quat* Quat) {
+    uActorCons(this);
+    this->KeepAliveTimer = keepAlive;
+    this->HitTimer       = 0.0f;
+    this->keepAliveTime  = 0.0f;
+    this->force          = force;
+    memset(&this->CollMgr, 0, sizeof(uCollisionMgr));
+    uCollisionMgrCons(&this->CollMgr);
+    // this->actor.uActorBase.uModelBase.uCoordBase.mParent = (uintptr_t)parent;
+    // this->actor.uActorBase.uModelBase.uCoordBase.ParentJoint = parentJoint;
+    this->actor.uActorBase.uModelBase.uCoordBase.cUnitBase.vtable_ptr = (uintptr_t*)CustomVtable->my_vtable.data();
+    this->actor.mActorType                                            = 5;
+    this->actor.uActorBase.mWorkRate.mType                            = 0x9;
+    this->actor.mVel.x                                                = 0.0f;
+    this->actor.mVel.y                                                = 0.0f;
+    this->actor.mVel.z                                                = 0.0f;
+    this->actor.uActorBase.uModelBase.uCoordBase.mPos.x               = Pos->x;
+    this->actor.uActorBase.uModelBase.uCoordBase.mPos.y               = Pos->y;
+    this->actor.uActorBase.uModelBase.uCoordBase.mPos.z               = Pos->z;
+    this->actor.uActorBase.uModelBase.uCoordBase.mQuat.x              = Quat->x;
+    this->actor.uActorBase.uModelBase.uCoordBase.mQuat.y              = Quat->y;
+    this->actor.uActorBase.uModelBase.uCoordBase.mQuat.z              = Quat->z;
+    this->actor.uActorBase.uModelBase.uCoordBase.mQuat.w              = Quat->w;
+}
+
 void sUnit_spawn_call(void* sUnit, void* obj_to_spawn, int moveline) {
     constexpr uintptr_t fptr_spawn_or_something = 0x008DC540;
     __asm {
