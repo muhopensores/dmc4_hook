@@ -448,7 +448,6 @@ namespace gui {
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("ChargeChecker"_hash); // needs its own line
-                    pmods->on_draw_ui("NoLockonRestriction"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -552,7 +551,10 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("SwordSpin"_hash);
 
+                    pmods->on_draw_ui("NoLockonRestriction"_hash);
+
                     pmods->on_draw_ui("DanteJdc"_hash); // needs its own line
+
 
                     ImGui::Spacing();
                     ImGui::Text("Aerial grounded moves");
@@ -569,6 +571,9 @@ namespace gui {
                     pmods->on_draw_ui("AerialDrive"_hash);
 
                     ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
                     ImGui::Text(_("Lucifer"));
                     ImGui::Spacing();
 

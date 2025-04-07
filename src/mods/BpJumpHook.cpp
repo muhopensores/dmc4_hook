@@ -115,7 +115,7 @@ void randomize_bp_bosses() {
 
 void random_boss_init(void) {
     // randomize bp bosses
-    randomize_bp_bosses();
+    // randomize_bp_bosses();  // this now happens on boot or when ticking the checkbox
 
     // apply floor
     boss_floor = boss_array[number_of_complete_bosses];
@@ -377,13 +377,14 @@ void BpJumpHook::on_gui_frame() {
     if (ImGui::Checkbox(_("Randomize BP"), &mod_enabled)) {
         toggle(mod_enabled);
         randomize_bp_floors();
+        randomize_bp_bosses();
     }
     ImGui::SameLine();
-    help_marker(_("All stages will be randomized. Enable before selecting BP"));
+    help_marker(_("All stages will be randomized"));
     ImGui::SameLine(sameLineWidth);
     ImGui::Checkbox(_("Boss Rush"), &bp_boss_rush);
     ImGui::SameLine();
-    help_marker(_("Only boss stages will be played. Enable before selecting BP\nCan be used with Randomize BP"));
+    help_marker(_("Only boss stages will be played\nEnable before selecting BP"));
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
         if (ImGui::CollapsingHeader(_("View Randomized Stages"))) {
@@ -418,6 +419,7 @@ void BpJumpHook::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("randomize_bp").value_or(false);
     if (mod_enabled) {
         randomize_bp_floors();
+        randomize_bp_bosses();
         toggle(mod_enabled);
     }
     bp_boss_rush = cfg.get<bool>("bp_boss_rush").value_or(false);

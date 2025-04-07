@@ -742,7 +742,6 @@ void CharSwitcher::on_gui_frame() {
         }
         ImGui::SameLine();
         help_marker(_("Set a button combo to trigger the switch"));
-        ImGui::SameLine(sameLineWidth + lineIndent);
         if (ImGui::BeginCombo(_("Input 2"), devil4_sdk::getButtonInfo(desiredInput2).second)) {
             for (const auto& buttonPair : buttonPairs) {
                 bool is_selected = (desiredInput2 == buttonPair.first);

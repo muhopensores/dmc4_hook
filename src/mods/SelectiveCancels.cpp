@@ -424,10 +424,10 @@ void SelectiveCancels::on_gui_frame() {
 		
 		draw_checkbox_simple(_("Gun Stinger"), GUNSTINGER);
 
-		ImGui::InputFloat("Shock Buffer", &shockBuffer);
-		ImGui::InputFloat("Shock Cancel", &shockCancel);
-		ImGui::InputFloat("Kick13 Buffer", &kickThirteenBuffer);
-		ImGui::InputFloat("Kick13 Cancel", &kickThirteenCancel);
+		// ImGui::InputFloat("Shock Buffer", &shockBuffer);
+		// ImGui::InputFloat("Shock Cancel", &shockCancel);
+		// ImGui::InputFloat("Kick13 Buffer", &kickThirteenBuffer);
+		// ImGui::InputFloat("Kick13 Cancel", &kickThirteenCancel);
 
 		ImGui::Unindent(lineIndent);
 	}
