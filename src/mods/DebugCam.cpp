@@ -124,43 +124,21 @@ void __stdcall freecam_mouse_input(uCamera* camera) {
     viewMatrix  = glm::translate(viewMatrix, -cam_pos);
     viewMatrix = rotateX * viewMatrix;
     glm::mat4 translateMat(1.0f);
-
-    if (short input = VkKeyScan('W'); devil4_sdk::internal_kb_check(input & 0xFF)) {
-        float speed = 10.0f;
-        if (devil4_sdk::internal_kb_check(VK_SHIFT))
-            speed = 1.0f;
+    float speed = 1.0f;
+    if (devil4_sdk::internal_kb_check(VK_SHIFT))
+        speed = 10.0f;
+    if (short input = VkKeyScan('W'); devil4_sdk::internal_kb_check(input & 0xFF))
         translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, speed));
-    }
-    if (short input = VkKeyScan('S'); devil4_sdk::internal_kb_check(input & 0xFF)) {
-        float speed = 10.0f;
-        if (devil4_sdk::internal_kb_check(VK_SHIFT))
-            speed = 1.0f;
+    if (short input = VkKeyScan('S'); devil4_sdk::internal_kb_check(input & 0xFF))
         translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -speed));
-    }
-    if (short input = VkKeyScan('A'); devil4_sdk::internal_kb_check(input & 0xFF)) {
-        float speed = 10.0f;
-        if (devil4_sdk::internal_kb_check(VK_SHIFT))
-            speed = 1.0f;
+    if (short input = VkKeyScan('A'); devil4_sdk::internal_kb_check(input & 0xFF))
         translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(speed, 0.0f, 0.0f));
-    }
-    if (short input = VkKeyScan('D'); devil4_sdk::internal_kb_check(input & 0xFF)) {
-        float speed = 10.0f;
-        if (devil4_sdk::internal_kb_check(VK_SHIFT))
-            speed = 1.0f;
+    if (short input = VkKeyScan('D'); devil4_sdk::internal_kb_check(input & 0xFF))
         translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(-speed, 0.0f, 0.0f));
-    }
-    if (devil4_sdk::internal_kb_check(VK_SPACE)) {
-        float speed = 10.0f;
-        if (devil4_sdk::internal_kb_check(VK_SHIFT))
-            speed = 1.0f;
+    if (devil4_sdk::internal_kb_check(VK_SPACE))
         translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -speed, 0.0f));
-    }
-    if (devil4_sdk::internal_kb_check(VK_CONTROL)) {
-        float speed = 10.0f;
-        if (devil4_sdk::internal_kb_check(VK_SHIFT))
-            speed = 1.0f;
+    if (devil4_sdk::internal_kb_check(VK_CONTROL))
         translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, speed, 0.0f));
-    }
     viewMatrix = translateMat * viewMatrix;
     glm::vec4 target = glm::inverse(viewMatrix) * glm::vec4(0.0f, 0.0f, -700.0f, 1.0f);
     glm::vec4 up = glm::inverse(viewMatrix) * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f); 
