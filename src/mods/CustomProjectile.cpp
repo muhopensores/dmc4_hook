@@ -332,6 +332,12 @@ void CustomProjectile::SpawnProjectile() {
     sUnit_spawn_call((void*)0x00E552CC, (void*)proj, 1);
 }
 
+#include <filesystem>
+static bool fileExists = false;
+static void SeeIfFileExists() {
+    fileExists = std::filesystem::exists(".\\nativePC\\model\\game\\wp023\\wp023_06.mod");
+}
+
 std::optional<std::string> CustomProjectile::on_initialize() {
     CustomDTI.m_size = sizeof(CustomProjectileProp);
     CustomDTI.m_name = "CustomProjectile";
@@ -342,12 +348,15 @@ std::optional<std::string> CustomProjectile::on_initialize() {
     CustomDTI.m_id      = 7;
 
     CustomVtable = std::make_unique<CustomProjectileVtable>((void*)uActorVtablePtr, uActorVtableSize);
-    
+    SeeIfFileExists();
     return Mod::on_initialize();
 }
 
 void CustomProjectile::on_gui_frame() {
     if (ImGui::Button("Custom actor")) {
-        CustomProjectile::SpawnProjectile();
+        if (fileExists)
+            CustomProjectile::SpawnProjectile();
     }
+    ImGui::SameLine();
+    help_marker("I put a file check here so if this suddenly stopped working blame me");
 }
