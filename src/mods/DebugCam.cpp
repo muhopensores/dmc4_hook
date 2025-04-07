@@ -110,24 +110,24 @@ sCamera_ViewPort* get_viewport(uint32_t index) {
 
 void __stdcall freecam_mouse_input(uCamera* camera) {
     uintptr_t sMouse = (uintptr_t)get_sMouse();
-    int x_diff           = *(int*)(*(uintptr_t*)sMouse + 0x2C);
-    int y_diff           = *(int*)(*(uintptr_t*)sMouse + 0x30);
+    int x_diff = *(int*)(*(uintptr_t*)sMouse + 0x2C);
+    int y_diff = *(int*)(*(uintptr_t*)sMouse + 0x30);
     Vector3f cam_pos = *(Vector3f*)&camera->mCameraPos;
-    Vector3f cam_up      = *(Vector3f*)&camera->mCameraUp;
-    Vector3f cam_lookat  = *(Vector3f*)&camera->mTargetPos;
+    Vector3f cam_up = *(Vector3f*)&camera->mCameraUp;
+    Vector3f cam_lookat = *(Vector3f*)&camera->mTargetPos;
 
     glm::mat4 viewMatrix = glm::lookAt(cam_pos, cam_lookat, cam_up);
     glm::mat4 rotateX = glm::rotate(glm::mat4(1.0f), (float)(y_diff * 0.001), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 rotateY    = glm::rotate(glm::mat4(1.0f), (float)(x_diff * 0.001), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 rotateY = glm::rotate(glm::mat4(1.0f), (float)(x_diff * 0.001), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 rotateZ    = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
     if (short input = VkKeyScan('Q'); devil4_sdk::internal_kb_check(input & 0xFF))
         rotateZ = glm::rotate(glm::mat4(1.0f), -0.005f, glm::vec3(0.0f, 0.0f, 1.0f));
     if (short input = VkKeyScan('E'); devil4_sdk::internal_kb_check(input & 0xFF))
         rotateZ = glm::rotate(glm::mat4(1.0f), 0.005f, glm::vec3(0.0f, 0.0f, 1.0f));
     viewMatrix = rotateZ * viewMatrix;
-    viewMatrix  = glm::translate(viewMatrix, cam_pos);
-    viewMatrix           = viewMatrix * rotateY;
-    viewMatrix  = glm::translate(viewMatrix, -cam_pos);
+    viewMatrix = glm::translate(viewMatrix, cam_pos);
+    viewMatrix = viewMatrix * rotateY;
+    viewMatrix = glm::translate(viewMatrix, -cam_pos);
     viewMatrix = rotateX * viewMatrix;
     glm::mat4 translateMat(1.0f);
     float speed = 1.0f;
@@ -147,7 +147,7 @@ void __stdcall freecam_mouse_input(uCamera* camera) {
         translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, speed, 0.0f));
     viewMatrix = translateMat * viewMatrix;
     glm::vec4 target = glm::inverse(viewMatrix) * glm::vec4(0.0f, 0.0f, -700.0f, 1.0f);
-    glm::vec4 up = glm::inverse(viewMatrix) * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f); 
+    glm::vec4 up = glm::inverse(viewMatrix) * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
     glm::vec4 pos = glm::inverse(viewMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     up = glm::normalize(up - pos);
     camera->mCameraPos.x = pos.x;
@@ -156,9 +156,9 @@ void __stdcall freecam_mouse_input(uCamera* camera) {
     camera->mTargetPos.x = target.x;
     camera->mTargetPos.y = target.y;
     camera->mTargetPos.z = target.z;
-    camera->mCameraUp.x  = up.x;
-    camera->mCameraUp.y  = up.y;
-    camera->mCameraUp.z  = up.z;
+    camera->mCameraUp.x = up.x;
+    camera->mCameraUp.y = up.y;
+    camera->mCameraUp.z = up.z;
 }
 
 naked void detour1(void) {
@@ -181,17 +181,126 @@ std::optional<std::string> DebugCam::on_initialize() {
     return Mod::on_initialize();
 }
 
+struct ViewportState {
+    int selectedViewport = 1;
+    REGION_MODE selectedViewportOption = REGION_FULLSCREEN;
+    int selectedViewportOptionComboIndex = 0;
+};
+
+ViewportState states[2];
+
 void DebugCam::on_gui_frame() {
-    if (ImGui::Button("Free Cam")) {
-        uFreeCamera* cam = (uFreeCamera*)freecam_cons();
-        devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)cam, 0x17);
-        set_viewport(1, REGION_BOTTOM, (uintptr_t)cam);
-        sCamera_ViewPort* first_vp = get_viewport(0);
-        first_vp->mMode = REGION_TOP;
+    int numOfViewports = IM_ARRAYSIZE(states);
+    for (int i = 0; i < numOfViewports; i++) {
+        ImGui::PushID(i);
+        ViewportState& state = states[i];
+        
+        if (i == 0) {
+            ImGui::Text("Gameplay Cam");
+            ImGui::SetNextItemWidth(sameLineItemWidth);
+            if (ImGui::Combo("## Location", &state.selectedViewportOptionComboIndex, validViewportsComboStr)) {
+                sCamera_ViewPort* first_vp = get_viewport(0);
+                first_vp->mMode = state.selectedViewportOptionComboIndex;
+            }
+            ImGui::SameLine();
+            help_marker("This is set automatically when setting the extra cam\nIf you want to override it, set this last");
+            if (ImGui::Button("Reset")) {
+                sCamera_ViewPort* first_vp = get_viewport(0);
+                state.selectedViewportOptionComboIndex = REGION_FULLSCREEN;
+                first_vp->mMode = state.selectedViewportOptionComboIndex;
+            }
+        }
+        else {
+            ImGui::Text("Free Cam %i:", i);
+            float buttonSize = 50.0f;
+            float spacing = 5.0f;
+
+            struct RegionButton {
+                REGION_MODE mode;
+                const char* label;
+            };
+
+            RegionButton regionButtons[3][3] = {
+                {
+                    { REGION_TOPLEFT, "Top\nLeft" },
+                    { REGION_TOP, "Top" },
+                    { REGION_TOPRIGHT, "Top\nRight" }
+                },
+                {
+                    { REGION_LEFT, "Left" },
+                    { REGION_FULLSCREEN, "Full" },
+                    { REGION_RIGHT, "Right" }
+                },
+                {
+                    { REGION_BOTTOMLEFT, "Bottom\nLeft" },
+                    { REGION_BOTTOM, "Bottom" },
+                    { REGION_BOTTOMRIGHT, "Bottom\nRight" }
+                }
+            };
+
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 3; col++) {
+                    RegionButton& rb = regionButtons[row][col];
+                    ImGui::PushStyleColor(ImGuiCol_Button, 
+                        (state.selectedViewportOption == rb.mode) ? 
+                        ImVec4(0.4f, 0.6f, 0.8f, 1.0f) : ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+                    if (ImGui::Button(rb.label, ImVec2(buttonSize, buttonSize))) {
+                        state.selectedViewportOption = rb.mode;
+                        state.selectedViewportOptionComboIndex = state.selectedViewportOption;
+                        ViewportState& gameplayViewportOption = states[0];
+                        switch(state.selectedViewportOption) {
+                            case REGION_LEFT:
+                                gameplayViewportOption.selectedViewportOption = REGION_RIGHT;
+                                break;
+                            case REGION_RIGHT:
+                                gameplayViewportOption.selectedViewportOption = REGION_LEFT;
+                                break;
+                            case REGION_TOP:
+                                gameplayViewportOption.selectedViewportOption = REGION_BOTTOM;
+                                break;
+                            case REGION_BOTTOM:
+                                gameplayViewportOption.selectedViewportOption = REGION_TOP;
+                                break;
+                            case REGION_TOPLEFT:
+                                gameplayViewportOption.selectedViewportOption = REGION_BOTTOMRIGHT;
+                                break;
+                            case REGION_TOPRIGHT:
+                                gameplayViewportOption.selectedViewportOption = REGION_BOTTOMLEFT;
+                                break;
+                            case REGION_BOTTOMLEFT:
+                                gameplayViewportOption.selectedViewportOption = REGION_TOPRIGHT;
+                                break;
+                            case REGION_BOTTOMRIGHT:
+                                gameplayViewportOption.selectedViewportOption = REGION_TOPLEFT;
+                                break;
+                            case REGION_FULLSCREEN:
+                                gameplayViewportOption.selectedViewportOption = REGION_TOPRIGHT;
+                                break;
+                            default:
+                                gameplayViewportOption.selectedViewportOption = REGION_FULLSCREEN;
+                                break;
+                        }
+                        gameplayViewportOption.selectedViewportOptionComboIndex = gameplayViewportOption.selectedViewportOption;
+            
+                        // make a new cam every click because idk how to track active cams
+                        uFreeCamera* cam = (uFreeCamera*)freecam_cons();
+                        devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)cam, 0x17);
+                        set_viewport(state.selectedViewport, state.selectedViewportOption, (uintptr_t)cam);
+
+                        // update gameplay cam
+                        sCamera_ViewPort* first_vp = get_viewport(0);
+                        first_vp->mMode = states[0].selectedViewportOption;
+                    }
+                    ImGui::PopStyleColor();
+                    if (col < 2) ImGui::SameLine(0, spacing);
+                }
+            }
+        }
+        ImGui::PopID();
     }
-    ImGui::SameLine();
-    help_marker(_("Remove Dante's lock-on restrictions (grim grip, gyro, etc.)"));
 }
+
+// void DebugCam::on_frame(fmilliseconds& dt) {}
 
 //void DebugCam::on_config_load(const utility::Config& cfg) {
 //    mod_enabled = cfg.get<bool>("debug_cam").value_or(false);
