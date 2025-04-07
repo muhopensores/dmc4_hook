@@ -12,6 +12,8 @@ public:
 
     std::string get_mod_name() override { return "PinTimer"; };
     Mod::ModType get_mod_type() override { return SLOW; };
+    void on_reset();
+    void after_reset();
 
     std::optional<std::string> on_initialize() override;
 

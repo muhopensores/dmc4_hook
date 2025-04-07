@@ -20,6 +20,23 @@ namespace pui {
     static constexpr utility::Texture pin_text(glm::vec2(534.0f, 45.0f), glm::vec2(29.0f, 14.0f), atlas_size);
 }
 
+void PinTimer::on_reset() {
+    spdlog::info("PinTimer::on_reset()");
+    if (pui::texture_handle != nullptr) {
+        pui::texture_handle->Release();
+        spdlog::info("PinTimer::m_texture_handle->Release()");
+        pui::texture_handle = nullptr;
+    }
+}
+void PinTimer::after_reset() {
+    auto [data, size] = utility::decompress_file_from_memory_with_size(pintimer_atlas_compressed_data, pintimer_atlas_compressed_size);
+    int width, height;
+    if (!utility::dx9::load_texture_from_file(data, size, &pui::texture_handle, &width, &height)) {
+        spdlog::error("Failed to unpack and load compressed texture");
+    }
+    free(data);
+}
+
 static float G_WINDOW_HEIGHT_HACK_IDK{ 270.0f }; // fresh from my ass
 static bool CON_PIN_UI_DEBUG{ false };
 bool PinTimer::mod_enabled{ false };

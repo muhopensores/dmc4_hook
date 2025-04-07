@@ -375,6 +375,7 @@ set(MISC
   misc/BgTexture.cpp
   misc/FontRoboto.cpp
   misc/PinTimerAtlas.cpp
+  misc/TonyBg.cpp
   misc/kAtckDefTbl.cpp
 )
 

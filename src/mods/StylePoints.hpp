@@ -24,7 +24,7 @@ public:
     std::optional<std::string> on_initialize() override;
     Mod::ModType get_mod_type() override { return SLOW; };
     void on_reset();
-    void load_texture();
+    void after_reset();
 
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
