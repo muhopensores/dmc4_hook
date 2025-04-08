@@ -61,7 +61,7 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
                             Matrix4x4 wPos2  = glm::translate(wMat, Pos2);
                             Vector3f dir       = glm::vec3(wPos2[3]) - glm::vec3(wPos1[3]);
                             float rotationY = atan2(dir.x, dir.z);
-                            float rotationX    = atan2(sqrt(dir.z * dir.z + dir.x + dir.x), dir.y);
+                            float rotationX    = atan2(sqrt(dir.z * dir.z + dir.x * dir.x), dir.y);
                             float rotationZ    = 0.0f;
                             w2s::DrawWireframeCapsule(glm::vec3(wPos1[3]), prim->radius, length,
                                 rotationX, rotationY, rotationZ,

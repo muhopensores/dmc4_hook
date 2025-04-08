@@ -354,9 +354,12 @@ namespace w2s {
         glm::mat4 rotationMatrix = rotationMatrixZ * rotationMatrixY * rotationMatrixX;
 
         // Define capsule in local space with origin at base
-        glm::vec3 localCenter(0.0f, height * 0.5f, 0.0f);  // Center of capsule in local space
         glm::vec3 topCenter(0.0f, height, 0.0f);           // Top hemisphere center in local space
         glm::vec3 bottomCenter(0.0f, 0.0f, 0.0f);          // Bottom hemisphere center in local space
+
+        // Check if either end of capsule is visible
+        glm::vec3 rotatedTopCenter = glm::vec3(rotationMatrix * glm::vec4(topCenter, 1.0f)) + basePosition;
+        glm::vec3 rotatedBottomCenter = glm::vec3(rotationMatrix * glm::vec4(bottomCenter, 1.0f)) + basePosition;
 
         // Draw the cylinder part (vertical lines connecting the hemispheres)
         for (int i = 0; i < segments; i++) {
@@ -377,6 +380,12 @@ namespace w2s {
             // Convert to screen space
             glm::vec2 screenTopPoint = w2s::WorldToScreen(rotatedTopPoint);
             glm::vec2 screenBottomPoint = w2s::WorldToScreen(rotatedBottomPoint);
+
+            // Check if points are behind the camera
+            if ((screenTopPoint.x == -1.0f && screenTopPoint.y == -1.0f) ||
+                (screenBottomPoint.x == -1.0f && screenBottomPoint.y == -1.0f)) {
+                continue;
+            }
 
             // Draw the vertical line
             drawList->AddLine(ImVec2(screenTopPoint.x, screenTopPoint.y), 
@@ -412,16 +421,27 @@ namespace w2s {
             // Convert to screen space
             glm::vec2 screenTopPoint1 = w2s::WorldToScreen(rotatedTopPoint1);
             glm::vec2 screenTopPoint2 = w2s::WorldToScreen(rotatedTopPoint2);
+        
+            // Check if points are behind the camera
+            if ((screenTopPoint1.x != -1.0f || screenTopPoint1.y != -1.0f) &&
+                (screenTopPoint2.x != -1.0f || screenTopPoint2.y != -1.0f)) {
+                // Draw the top horizontal line
+                drawList->AddLine(ImVec2(screenTopPoint1.x, screenTopPoint1.y), 
+                                  ImVec2(screenTopPoint2.x, screenTopPoint2.y), 
+                                  color, thickness);
+            }
+        
             glm::vec2 screenBottomPoint1 = w2s::WorldToScreen(rotatedBottomPoint1);
             glm::vec2 screenBottomPoint2 = w2s::WorldToScreen(rotatedBottomPoint2);
-
-            // Draw the horizontal lines
-            drawList->AddLine(ImVec2(screenTopPoint1.x, screenTopPoint1.y), 
-                              ImVec2(screenTopPoint2.x, screenTopPoint2.y), 
-                              color, thickness);
-            drawList->AddLine(ImVec2(screenBottomPoint1.x, screenBottomPoint1.y), 
-                              ImVec2(screenBottomPoint2.x, screenBottomPoint2.y), 
-                              color, thickness);
+        
+            // Check if points are behind the camera
+            if ((screenBottomPoint1.x != -1.0f || screenBottomPoint1.y != -1.0f) &&
+                (screenBottomPoint2.x != -1.0f || screenBottomPoint2.y != -1.0f)) {
+                // Draw the bottom horizontal line
+                drawList->AddLine(ImVec2(screenBottomPoint1.x, screenBottomPoint1.y), 
+                                  ImVec2(screenBottomPoint2.x, screenBottomPoint2.y), 
+                                  color, thickness);
+            }
         }
 
         // Draw the hemispheres caps (partial circles in two additional planes)
@@ -465,29 +485,50 @@ namespace w2s {
             rotatedBottomSideYZ1 += basePosition;
             rotatedBottomSideYZ2 += basePosition;
 
-            // Convert to screen space
+            // Convert to screen space and draw lines with checks
+            // Top hemisphere - XY plane
             glm::vec2 screenTopFrontXY1 = w2s::WorldToScreen(rotatedTopFrontXY1);
             glm::vec2 screenTopFrontXY2 = w2s::WorldToScreen(rotatedTopFrontXY2);
+        
+            if ((screenTopFrontXY1.x != -1.0f || screenTopFrontXY1.y != -1.0f) &&
+                (screenTopFrontXY2.x != -1.0f || screenTopFrontXY2.y != -1.0f)) {
+                drawList->AddLine(ImVec2(screenTopFrontXY1.x, screenTopFrontXY1.y), 
+                                 ImVec2(screenTopFrontXY2.x, screenTopFrontXY2.y), 
+                                 color, thickness);
+            }
+
+            // Top hemisphere - YZ plane
             glm::vec2 screenTopSideYZ1 = w2s::WorldToScreen(rotatedTopSideYZ1);
             glm::vec2 screenTopSideYZ2 = w2s::WorldToScreen(rotatedTopSideYZ2);
+        
+            if ((screenTopSideYZ1.x != -1.0f || screenTopSideYZ1.y != -1.0f) &&
+                (screenTopSideYZ2.x != -1.0f || screenTopSideYZ2.y != -1.0f)) {
+                drawList->AddLine(ImVec2(screenTopSideYZ1.x, screenTopSideYZ1.y), 
+                                 ImVec2(screenTopSideYZ2.x, screenTopSideYZ2.y), 
+                                 color, thickness);
+            }
+
+            // Bottom hemisphere - XY plane
             glm::vec2 screenBottomFrontXY1 = w2s::WorldToScreen(rotatedBottomFrontXY1);
             glm::vec2 screenBottomFrontXY2 = w2s::WorldToScreen(rotatedBottomFrontXY2);
+        
+            if ((screenBottomFrontXY1.x != -1.0f || screenBottomFrontXY1.y != -1.0f) &&
+                (screenBottomFrontXY2.x != -1.0f || screenBottomFrontXY2.y != -1.0f)) {
+                drawList->AddLine(ImVec2(screenBottomFrontXY1.x, screenBottomFrontXY1.y), 
+                                 ImVec2(screenBottomFrontXY2.x, screenBottomFrontXY2.y), 
+                                 color, thickness);
+            }
+
+            // Bottom hemisphere - YZ plane
             glm::vec2 screenBottomSideYZ1 = w2s::WorldToScreen(rotatedBottomSideYZ1);
             glm::vec2 screenBottomSideYZ2 = w2s::WorldToScreen(rotatedBottomSideYZ2);
-
-            // Draw the hemisphere lines
-            drawList->AddLine(ImVec2(screenTopFrontXY1.x, screenTopFrontXY1.y), 
-                             ImVec2(screenTopFrontXY2.x, screenTopFrontXY2.y), 
-                             color, thickness);
-            drawList->AddLine(ImVec2(screenTopSideYZ1.x, screenTopSideYZ1.y), 
-                             ImVec2(screenTopSideYZ2.x, screenTopSideYZ2.y), 
-                             color, thickness);
-            drawList->AddLine(ImVec2(screenBottomFrontXY1.x, screenBottomFrontXY1.y), 
-                             ImVec2(screenBottomFrontXY2.x, screenBottomFrontXY2.y), 
-                             color, thickness);
-            drawList->AddLine(ImVec2(screenBottomSideYZ1.x, screenBottomSideYZ1.y), 
-                             ImVec2(screenBottomSideYZ2.x, screenBottomSideYZ2.y), 
-                             color, thickness);
+        
+            if ((screenBottomSideYZ1.x != -1.0f || screenBottomSideYZ1.y != -1.0f) &&
+                (screenBottomSideYZ2.x != -1.0f || screenBottomSideYZ2.y != -1.0f)) {
+                drawList->AddLine(ImVec2(screenBottomSideYZ1.x, screenBottomSideYZ1.y), 
+                                 ImVec2(screenBottomSideYZ2.x, screenBottomSideYZ2.y), 
+                                 color, thickness);
+            }
         }
     }
 
@@ -650,7 +691,7 @@ namespace w2s {
         if (objectRadius > 0.0f) {
             float distFromCamera = GetDistanceFromCam(worldPos);
             // Simple approximation of screen radius
-            screenBuffer = objectRadius * 100.0f / distFromCamera;
+            screenBuffer = objectRadius * 1000.0f / distFromCamera;
         }
 
         // Check if the object is within the screen bounds, with buffer
