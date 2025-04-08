@@ -137,6 +137,7 @@
 #include "mods/NoLockonRestriction.hpp"
 #include "mods/DebugCam.hpp"
 #include "mods/NoclipCam.hpp"
+#include "mods/CutscenePause.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -283,6 +284,7 @@ Mods::Mods() {
     ADD_MOD(NoLockonRestriction);
     ADD_MOD(DebugCam);
     ADD_MOD(NoclipCam);
+    ADD_MOD(CutscenePause);
 }
 
 // Initializes mods, checks for errors
@@ -455,10 +457,10 @@ void Mods::on_hotkey_tab(utility::Input& input)
 {
     ImGui::Spacing();
 
-    ImGui::Text("Keys will probably show up only on US keyboard layouts.");
-    ImGui::Text("We use MapVirtualKeyA();");
-    ImGui::Text("Making sure dear imgui renders unicode properly is complicated");
-    ImGui::Text("please understand. ;_;");
+    ImGui::Text(_("Keys will probably show up only on US keyboard layouts."));
+    ImGui::Text(_("We use MapVirtualKeyA();"));
+    ImGui::Text(_("Making sure dear imgui renders unicode properly is complicated"));
+    ImGui::Text(_("please understand. ;_;"));
 
     ImGui::Spacing();
 

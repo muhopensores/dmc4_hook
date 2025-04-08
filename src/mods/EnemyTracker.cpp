@@ -187,16 +187,16 @@ void LoadStateWithCurrentEnemy() {
 void EnemyTracker::on_gui_frame() {
     if (ImGui::CollapsingHeader(_("Display Enemy Stats"))) {
         ImGui::Indent(lineIndent);
-        ImGui::Checkbox("Flying Enemy Stats", &flyingEnemyStats);
+        ImGui::Checkbox(_("Flying Enemy Stats"), &flyingEnemyStats);
         ImGui::SameLine();
 		help_marker(_("Render ImGui stats on enemies"));
-        ImGui::Checkbox("Flying Spheres", &flyingSpheres);
+        ImGui::Checkbox(_("Flying Spheres"), &flyingSpheres);
         ImGui::SameLine();
 		help_marker(_("Sphere in the middle is clickable!\nSizes on Dante do not represent anything, they're random sizes on his root pos for now"));
-        ImGui::Checkbox("Flying Ad", &flyingAd);
+        ImGui::Checkbox(_("Flying Ad"), &flyingAd);
         ImGui::SameLine();
         help_marker(_("Makes the UI flicker :("));
-        ImGui::Checkbox("Use Locked On Enemy Instead Of Picking", &useLockedOnEnemyInstead);
+        ImGui::Checkbox(_("Use Locked On Enemy Instead Of Picking"), &useLockedOnEnemyInstead);
 
         ImGui::Spacing();
 
@@ -319,7 +319,7 @@ void EnemyTracker::on_gui_frame() {
 
     ImGui::Checkbox(_("Enable Save/Load hotkeys"), &hotkey_enabled);
     ImGui::SameLine();
-    help_marker("Assuming default hotkeys,\nHome+End will save and load enemy attacks\nPage Up+Page Down will save and load boss attacks");
+    help_marker(_("Assuming default hotkeys,\nHome+End will save and load enemy attacks\nPage Up+Page Down will save and load boss attacks"));
 
     ImGui::Spacing();
 

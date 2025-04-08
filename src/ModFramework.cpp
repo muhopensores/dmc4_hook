@@ -308,12 +308,12 @@ void ModFramework::draw_ui() {
     ImGui::Begin("ModFramework", &m_draw_ui);
 
 #ifdef GIT_HASH
-	ImGui::Text("Version: %s", GIT_HASH);
-	ImGui::Text("Date: %s", GIT_DATE);
+	ImGui::Text(_("Version: %s", GIT_HASH));
+	ImGui::Text(_("Date: %s", GIT_DATE));
 #endif
-    ImGui::Text("Menu Key: Insert");
+    ImGui::Text(_("Menu Key: Delete"));
 	
-	if (ImGui::Button("Save config")) {
+	if (ImGui::Button(_("Save config"))) {
 		save_config();
 	}
     draw_about();

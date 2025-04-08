@@ -866,11 +866,11 @@ static void DrawTrickScores() {
 
                 ImGui::SetCursorPosX(rightAlignX - textWidth);
                 ImGui::PushStyleColor(ImGuiCol_Text, color);
-                ImGui::Text("%s", score.text.c_str());
+                ImGui::Text(_("%s"), score.text.c_str());
                 ImGui::PopStyleColor();
                 ImGui::SameLine(leftAlignX);
                 ImGui::PushStyleColor(ImGuiCol_Text, color2);
-                ImGui::Text("%.1f", score.score * 0.1 * score.multiplier);
+                ImGui::Text(_("%.1f"), score.score * 0.1 * score.multiplier);
                 ImGui::PopStyleColor();
             }
         }
@@ -1001,14 +1001,14 @@ static void DrawTonyScores() {
     ImGui::SetCursorPosY(0.0f + scoreShakeAmount);
     ImVec4 scoreColor = GetScoreColor(comboScore, 0.0f, 500.0f);
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(scoreColor.x, scoreColor.y, scoreColor.z, fade));
-    ImGui::Text("%s", scoreText);
+    ImGui::Text(_("%s"), scoreText);
     ImGui::PopStyleColor();
 
     ImGui::SameLine();
 
     ImVec4 multiplierColor(currentStyleColor.x, currentStyleColor.y, currentStyleColor.z, fade);
     ImGui::PushStyleColor(ImGuiCol_Text, multiplierColor);
-    ImGui::Text("%s", styleTierText);
+    ImGui::Text(_("%s"), styleTierText);
     ImGui::PopStyleColor();
 
     ImGui::SetWindowFontScale(trickFontScale);
@@ -1123,7 +1123,7 @@ static void DrawTonyScores() {
         ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
         ImVec4 comboColor(1.0f, 1.0f, 0.0f, comboRecognitionAlpha);
         ImGui::PushStyleColor(ImGuiCol_Text, comboColor);
-        ImGui::Text("%s", detectedCombo.c_str());
+        ImGui::Text(_("%s"), detectedCombo.c_str());
         ImGui::PopStyleColor();
     }
     ImGui::End();
@@ -1205,7 +1205,7 @@ static void DrawTonyScores() {
             ImVec4 airtimeColor(1.0f, 1.0f, 1.0f, airTimerAlpha);
             ImGui::PushStyleColor(ImGuiCol_Text, airtimeColor);
             float timeToDisplay = isInAir ? airTimer : displayedAirTime;
-            ImGui::Text("Airtime: %.1f", timeToDisplay);
+            ImGui::Text(_("Airtime: %.1f"), timeToDisplay);
             ImGui::PopStyleColor();
             ImGui::End();
         }
@@ -1250,14 +1250,14 @@ static void DrawTonyScores() {
             float overallMin = std::min(minHeight, minInertia);
             float overallMax = std::max(maxHeight, maxInertia);
 
-            ImGui::Text("Combo: %.2f", maxTime - minTime);
+            ImGui::Text(_("Combo: %.2f"), maxTime - minTime);
             if (StylePoints::showHeightChart) {
                 ImGui::PlotLines("## Height", heights.data(), heights.size(), 0, "Height", minHeight, maxHeight, chartSize);
-                ImGui::Text("Height: %.2f", heights.back());
+                ImGui::Text(_("Height: %.2f"), heights.back());
             }
             if (StylePoints::showInertiaChart) {
                 ImGui::PlotLines("## Inertia", inertias.data(), inertias.size(), 0, "Inertia", minInertia, maxInertia, chartSize);
-                ImGui::Text("Inertia: %.2f", inertias.back());
+                ImGui::Text(_("Inertia: %.2f"), inertias.back());
             }
             ImGui::End();
         }
@@ -1729,22 +1729,22 @@ void StylePoints::DrawHiddenCombos() {
     ImGui::Spacing();
     ImGui::Spacing();
     ImGui::Spacing();
-    ImGui::SliderInt("bg_red_int",   &bg_red_int, 0, 255, "Red: %d");
-    ImGui::SliderInt("bg_green_int", &bg_green_int, 0, 255, "Green: %d");
-    ImGui::SliderInt("bg_blue_int",  &bg_blue_int, 0, 255, "Blue: %d");
-    ImGui::SliderInt("bg_alpha_int", &bg_alpha_int, 0, 255, "Alpha: %d");
-    ImGui::InputFloat("windowPos.x", &windowPosModifier.x, 0.0f, 1.0f, "%.2f");
-    ImGui::InputFloat("windowPos.y", &windowPosModifier.y, 0.0f, 1.0f, "%.2f");
-    ImGui::InputFloat("windowSize.x", &windowSizeModifier.x, 0.0f, 1.0f, "%.2f");
-    ImGui::InputFloat("windowSize.y", &windowSizeModifier.y, 0.0f, 1.0f, "%.2f");
-    ImGui::InputFloat("windowPadding.x", &windowPaddingModifier.x, 0.0f, 1.0f, "%.2f");
-    ImGui::InputFloat("windowPadding.y", &windowPaddingModifier.y, 0.0f, 1.0f, "%.2f");
-    ImGui::InputFloat("Text r", &TexCol.x);
-    ImGui::InputFloat("Text g", &TexCol.y);
-    ImGui::InputFloat("Text b", &TexCol.z);
-    ImGui::InputFloat("Text a", &TexCol.w);
-    ImGui::InputFloat("fontScale", &fontScale);
-    ImGui::Checkbox("Split Into Difficulties", &splitIntoDifficulties);
+    ImGui::SliderInt(_("bg_red_int"),   &bg_red_int, 0, 255, "Red: %d");
+    ImGui::SliderInt(_("bg_green_int"), &bg_green_int, 0, 255, "Green: %d");
+    ImGui::SliderInt(_("bg_blue_int"),  &bg_blue_int, 0, 255, "Blue: %d");
+    ImGui::SliderInt(_("bg_alpha_int"), &bg_alpha_int, 0, 255, "Alpha: %d");
+    ImGui::InputFloat(_("windowPos.x"), &windowPosModifier.x, 0.0f, 1.0f, "%.2f");
+    ImGui::InputFloat(_("windowPos.y"), &windowPosModifier.y, 0.0f, 1.0f, "%.2f");
+    ImGui::InputFloat(_("windowSize.x"), &windowSizeModifier.x, 0.0f, 1.0f, "%.2f");
+    ImGui::InputFloat(_("windowSize.y"), &windowSizeModifier.y, 0.0f, 1.0f, "%.2f");
+    ImGui::InputFloat(_("windowPadding.x"), &windowPaddingModifier.x, 0.0f, 1.0f, "%.2f");
+    ImGui::InputFloat(_("windowPadding.y"), &windowPaddingModifier.y, 0.0f, 1.0f, "%.2f");
+    ImGui::InputFloat(_("Text r"), &TexCol.x);
+    ImGui::InputFloat(_("Text g"), &TexCol.y);
+    ImGui::InputFloat(_("Text b"), &TexCol.z);
+    ImGui::InputFloat(_("Text a"), &TexCol.w);
+    ImGui::InputFloat(_("fontScale"), &fontScale);
+    ImGui::Checkbox(_("Split Into Difficulties"), &splitIntoDifficulties);
     ImGui::SameLine();
     const char* clear_unlocks_label = _("Clear Unlocks");
     ImVec2 btn_size = ImGui::CalcTextSize(clear_unlocks_label);
@@ -1766,22 +1766,22 @@ void StylePoints::DrawHiddenCombos() {
 
 void StylePoints::on_gui_frame() {
     ImGui::BeginGroup();
-    ImGui::Checkbox("Style Point Display", &mod_enabled);
+    ImGui::Checkbox(_("Style Point Display"), &mod_enabled);
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
-        ImGui::Checkbox("Use Original Names", &originalNames);
+        ImGui::Checkbox(_("Use Original Names"), &originalNames);
         ImGui::SameLine();
-        help_marker("Instead of using our skill renames, use the developers'. Because there are more unique names, less skills will be grouped");
-        ImGui::Checkbox("Tony", &tonyHawk);
+        help_marker(_("Instead of using our skill renames, use the developers'. Because there are more unique names, less skills will be grouped"));
+        ImGui::Checkbox(_("Tony"), &tonyHawk);
         ImGui::SameLine();
-        help_marker("Tony");
+        help_marker(_("Tony"));
         if (tonyHawk) {
             ImGui::Indent(lineIndent);
-            ImGui::Checkbox("Air Time Display", &showAirTimeDisplay);
-            ImGui::Checkbox("Alternate Grouping", &moreGrouping);
+            ImGui::Checkbox(_("Air Time Display"), &showAirTimeDisplay);
+            ImGui::Checkbox(_("Alternate Grouping"), &moreGrouping);
             ImGui::SameLine();
-            help_marker("Group attacks by the order you originally did them\n"
-                "This helps show the variety in a combo over exact input order");
+            help_marker(_("Group attacks by the order you originally did them\n"
+                "This helps show the variety in a combo over exact input order"));
             // ImGui::Checkbox("Height Display", &showHeightChart);
             // ImGui::Checkbox("Inertia Display", &showInertiaChart);
             // ImGui::SliderFloat("timerBase", &timerBase, 0.0f, 2.0f, "%.1f");
@@ -1794,10 +1794,10 @@ void StylePoints::on_gui_frame() {
             // ImGui::SameLine();
             // help_marker("DEV PLS REMOVE - At what point in the timer should text shake stop\nRemember a faster timer means less shake, so edit this last\n0.99 default");
             // ImGui::PushItemWidth(sameLineItemWidth);
-            // ImGui::SliderInt("maxRows", &maxRows, 1, 10);
+            // ImGui::SliderInt(_("maxRows"), &maxRows, 1, 10);
             // ImGui::SameLine();
             // help_marker("How many rows\n5 default");
-            // ImGui::SliderInt("maxPerRow", &maxPerRow, 1, 10);
+            // ImGui::SliderInt(_("maxPerRow"), &maxPerRow, 1, 10);
             // ImGui::SameLine();
             // help_marker("How many attacks per row\n7 default");
             // ImGui::PopItemWidth();

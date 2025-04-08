@@ -136,9 +136,9 @@ void PinTimer::custom_imgui_window() {
                             dl->AddImage(pui::texture_handle, glm::vec2(pos.x,pos.y), glm::vec2(pos.x + (window_content_region_width * 0.8), pos.y + (ImGui::GetTextLineHeight())), pui::red_highlight.uv0, pui::red_highlight.uv1);
                         }
                         ImGui::Image(pui::texture_handle, ImVec2(pui::pin_text.size_.x, ImGui::GetTextLineHeight()), pui::pin_text.uv0, pui::pin_text.uv1); ImGui::SameLine();
-                        ImGui::Text("%d", i + 1);
+                        ImGui::Text(_("%d"), i + 1);
                         ImGui::TableNextColumn();
-                        ImGui::Text("%.0f / %.0f", player->luciferPins[i]->timer, player->luciferPins[i]->timerMax);
+                        ImGui::Text(_("%.0f / %.0f"), player->luciferPins[i]->timer, player->luciferPins[i]->timerMax);
 #if 0 // old menu
                         if (!player->luciferPins[i]) {
                             if (player->luciferPins[i]->penetrated) {
@@ -146,9 +146,9 @@ void PinTimer::custom_imgui_window() {
                             } else {
                                 ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
                             }
-                            ImGui::Text("Pin %i = %.0f", i + 1, player->luciferPins[i]->timer);
+                            ImGui::Text(_("Pin %i = %.0f"), i + 1, player->luciferPins[i]->timer);
                             ImGui::SameLine();
-                            ImGui::Text("/ %.0f", player->luciferPins[i]->timerMax);
+                            ImGui::Text(_("/ %.0f"), player->luciferPins[i]->timerMax);
                             ImGui::PopStyleColor();
                         }
 #endif

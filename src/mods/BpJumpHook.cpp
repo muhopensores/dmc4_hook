@@ -394,19 +394,19 @@ void BpJumpHook::on_gui_frame() {
             if (!bp_boss_rush) {
                 int stage_count = 1;
                 for (int i : bp_array) {
-                    ImGui::Text("%i", stage_count);
+                    ImGui::Text(_("%i"), stage_count);
                     stage_count++;
                     ImGui::SameLine(sameLineWidth);
-                    ImGui::Text("%i", i);
+                    ImGui::Text(_("%i"), i);
                 }
             }
             else {
                 int stage_count = 1;
                 for (int i : boss_array) {
-                    ImGui::Text("%i", stage_count);
+                    ImGui::Text(_("%i"), stage_count);
                     stage_count++;
                     ImGui::SameLine(sameLineWidth);
-                    ImGui::Text("%i", i);
+                    ImGui::Text(_("%i"), i);
                 }
             }
             ImGui::Separator();

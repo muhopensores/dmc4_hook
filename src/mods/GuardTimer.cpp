@@ -88,7 +88,7 @@ naked void detour3(void) { // called when the player presses release
 }
 
 void GuardTimer::on_gui_frame() {
-    ImGui::Checkbox("Royal Guard Timing Display", &mod_enabled);
+    ImGui::Checkbox(_("Royal Guard Timing Display"), &mod_enabled);
 }
 
 void GuardTimer::on_frame(fmilliseconds& dt) {
@@ -126,8 +126,8 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
                 ImGui::PopStyleVar();
                 ImGui::PopItemWidth();
                 ImGui::SameLine();
-                help_marker("0.0, the middle, is when damage was applied\n"
-                    "The marker location is your block timing relative to that damage application in seconds");
+                help_marker(_("0.0, the middle, is when damage was applied\n"
+                    "The marker location is your block timing relative to that damage application in seconds"));
             }
             /*{
                 ImGui::SetCursorPosX(perfectSliderLeftX);
@@ -153,8 +153,8 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
                 ImGui::PopStyleVar();
                 ImGui::PopItemWidth();
                 ImGui::SameLine();
-                help_marker("This is the perfect block window\n"
-                    "In turbo, you must guard before 4.1667 frames instead of before 5");
+                help_marker(_("This is the perfect block window\n"
+                    "In turbo, you must guard before 4.1667 frames instead of before 5"));
             }
             /*{
                 float damageTimeFrames = damageTimeSeconds / (frameTime / turboSpeed);

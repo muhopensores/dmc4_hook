@@ -163,15 +163,6 @@ void PlayerTracker::on_gui_frame() {
     ImGui::Separator();
     ImGui::Spacing();
 
-    SMediator* s_med_ptr = devil4_sdk::get_sMediator();
-    ImGui::PushItemWidth(sameLineItemWidth);
-    ImGui::InputInt("s_med_ptr", (int*)&s_med_ptr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_ReadOnly);
-    ImGui::PopItemWidth();
-
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Spacing();
-
     if (ImGui::CollapsingHeader(_("Display Player Stats"))) {
         ImGui::Indent(lineIndent);
         uPlayer* player = devil4_sdk::get_local_player();
@@ -223,7 +214,7 @@ void PlayerTracker::on_gui_frame() {
 
         static int inputMoveID = 0;
         ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::InputInt("##InputMoveIDInputInt ##1", &inputMoveID, 1, 10, ImGuiInputTextFlags_CharsHexadecimal);
+        ImGui::InputInt(_("##InputMoveIDInputInt ##1"), &inputMoveID, 1, 10, ImGuiInputTextFlags_CharsHexadecimal);
         ImGui::PopItemWidth();
         ImGui::SameLine();
         if (ImGui::Button("PlayMoveID")) {
@@ -232,14 +223,14 @@ void PlayerTracker::on_gui_frame() {
 
         static int inputAnimID = 0;
         ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::InputInt("##InputAnimIDInputInt ##1", &inputAnimID, 1, 10, ImGuiInputTextFlags_CharsHexadecimal);
+        ImGui::InputInt(_("##InputAnimIDInputInt ##1"), &inputAnimID, 1, 10, ImGuiInputTextFlags_CharsHexadecimal);
         ImGui::PopItemWidth();
         ImGui::SameLine();
         if (ImGui::Button("PlayAnimID")) {
             PlayAnimID(inputAnimID);
         }
         ImGui::SameLine();
-        help_marker("uhh this only plays things that don't require a certain player state idk why");
+        help_marker(_("uhh this only plays things that don't require a certain player state idk why"));
         ImGui::Unindent(lineIndent);
     }
 }

@@ -358,5 +358,5 @@ void CustomProjectile::on_gui_frame() {
             CustomProjectile::SpawnProjectile();
     }
     ImGui::SameLine();
-    help_marker("I put a file check here so if this suddenly stopped working blame me");
+    help_marker(_("I put a file check here so if this suddenly stopped working blame me"));
 }

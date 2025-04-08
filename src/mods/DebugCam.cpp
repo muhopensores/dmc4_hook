@@ -196,22 +196,22 @@ void DebugCam::on_gui_frame() {
         ViewportState& state = states[i];
         
         if (i == 0) {
-            ImGui::Text("Gameplay Cam");
+            ImGui::Text(_("Gameplay Cam"));
             ImGui::SetNextItemWidth(sameLineItemWidth);
             if (ImGui::Combo("## Location", &state.selectedViewportOptionComboIndex, validViewportsComboStr)) {
                 sCamera_ViewPort* first_vp = get_viewport(0);
                 first_vp->mMode = state.selectedViewportOptionComboIndex;
             }
             ImGui::SameLine();
-            help_marker("This is set automatically when setting the extra cam\nIf you want to override it, set this last");
-            if (ImGui::Button("Reset")) {
+            help_marker(_("This is set automatically when setting the extra cam\nIf you want to override it, set this last"));
+            if (ImGui::Button(_("Reset"))) {
                 sCamera_ViewPort* first_vp = get_viewport(0);
                 state.selectedViewportOptionComboIndex = REGION_FULLSCREEN;
                 first_vp->mMode = state.selectedViewportOptionComboIndex;
             }
         }
         else {
-            ImGui::Text("Free Cam %i:", i);
+            ImGui::Text(_("Free Cam %i:"), i);
             float buttonSize = 50.0f;
             float spacing = 5.0f;
 
