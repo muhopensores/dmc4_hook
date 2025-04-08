@@ -20,6 +20,7 @@ void DisableCameraEvents::toggle(bool enable) {
 
 uintptr_t sArea = 0x00E552C8;
 uintptr_t jmpOutAddr = 0x00493BF5;
+uintptr_t sMed = 0x0E558B8;
 
 naked void detour1() {
     _asm {
@@ -28,9 +29,15 @@ naked void detour1() {
 
         push eax
 
-        mov eax, [sArea] // sArea addr
+        mov eax, [sMed]
+        mov eax, [eax]
         test eax, eax
-        je popcode // no change, not in a mission
+        je popcode
+        mov eax, [eax+0x24]
+        test eax, eax
+        je popcode // no player, user is in a menu
+
+        mov eax, [sArea] // sArea addr
         mov eax, [eax] // sArea
         test eax, eax
         je popcode // no change
@@ -40,9 +47,6 @@ naked void detour1() {
         mov eax, [eax+0x114] // pauseMenu
         test eax, eax
         je skipcode // pause menu not found, skip fade
-        //cmp ebp,[eax+0x1a0] // uSkillListMgr // this cmp fails
-        //jne skipcode
-        // pause menu found
         popcode:
         pop eax
         originalcode:
