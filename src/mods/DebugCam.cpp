@@ -225,127 +225,81 @@ std::optional<std::string> DebugCam::on_initialize() {
     return Mod::on_initialize();
 }
 
-struct ViewportState {
-    int selectedViewport = 1;
-    REGION_MODE selectedViewportOption = REGION_FULLSCREEN;
-    int selectedViewportOptionComboIndex = 0;
+static const int NUM_VIEWPORTS = 2;
+static const float BUTTON_SIZE = 50.0f;
+static const float BUTTON_SPACING = 5.0f;
+static const ImVec4 SELECTED_BUTTON_COLOR(0.4f, 0.6f, 0.8f, 1.0f);
+static const ImVec4 NORMAL_BUTTON_COLOR(0.2f, 0.2f, 0.2f, 1.0f);
+static REGION_MODE selectedViewportOption[NUM_VIEWPORTS];
+
+struct RegionButton {
+    REGION_MODE mode;
+    const char* label;
 };
 
-ViewportState states[2];
+const RegionButton REGION_BUTTONS[3][3] = {
+    {
+        { REGION_TOPLEFT, "Top\nLeft" },
+        { REGION_TOP, "Top" },
+        { REGION_TOPRIGHT, "Top\nRight" }
+    },
+    {
+        { REGION_LEFT, "Left" },
+        { REGION_FULLSCREEN, "Full" },
+        { REGION_RIGHT, "Right" }
+    },
+    {
+        { REGION_BOTTOMLEFT, "Bottom\nLeft" },
+        { REGION_BOTTOM, "Bottom" },
+        { REGION_BOTTOMRIGHT, "Bottom\nRight" }
+    }
+};
 
 void DebugCam::on_gui_frame() {
     ImGui::Separator();
     ImGui::Text(_("Free Cam"));
     ImGui::Indent(lineIndent);
-    int numOfViewports = IM_ARRAYSIZE(states);
-    for (int i = 0; i < numOfViewports; i++) {
-        ImGui::PushID(i);
-        ImGui::BeginGroup();
-        ViewportState& state = states[i];
-        if (i % 2 != 0) ImGui::SameLine(sameLineWidth + lineIndent);
-        if (i == 0) {
-            ImGui::BeginGroup();
-            ImGui::Text(_("Gameplay Cam"));
-            ImGui::SetNextItemWidth(sameLineItemWidth);
-            float buttonSize = 50.0f;
-            float spacing = 5.0f;
-
-            struct RegionButton {
-                REGION_MODE mode;
-                const char* label;
-            };
-
-            RegionButton regionButtons[3][3] = {
-                {
-                    { REGION_TOPLEFT, "Top\nLeft" },
-                    { REGION_TOP, "Top" },
-                    { REGION_TOPRIGHT, "Top\nRight" }
-                },
-                {
-                    { REGION_LEFT, "Left" },
-                    { REGION_FULLSCREEN, "Full" },
-                    { REGION_RIGHT, "Right" }
-                },
-                {
-                    { REGION_BOTTOMLEFT, "Bottom\nLeft" },
-                    { REGION_BOTTOM, "Bottom" },
-                    { REGION_BOTTOMRIGHT, "Bottom\nRight" }
-                }
-            };
-            if (i == 0) {
-                for (int row = 0; row < 3; row++) {
-                    for (int col = 0; col < 3; col++) {
-                        RegionButton& rb = regionButtons[row][col];
-                        ImGui::PushStyleColor(ImGuiCol_Button, (state.selectedViewportOption == rb.mode) ?
-                            ImVec4(0.4f, 0.6f, 0.8f, 1.0f) : ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-                        if (ImGui::Button(rb.label, ImVec2(buttonSize, buttonSize))) {
-                            state.selectedViewportOption = rb.mode;
-                            state.selectedViewportOptionComboIndex = state.selectedViewportOption;
-                            ViewportState& gameplayViewportOption = states[0];
-                            // update gameplay cam
-                            sCamera_ViewPort* first_vp = get_viewport(0);
-                            first_vp->mMode = states[0].selectedViewportOption;
-                        }
-                        ImGui::PopStyleColor();
-                        if (col < 2) ImGui::SameLine(0, spacing);
-                    }
-                }
-            }
+    for (int viewportId = 0; viewportId < NUM_VIEWPORTS; viewportId++) {
+        if (viewportId % 2 != 0) {
+            ImGui::SameLine(sameLineWidth + lineIndent);
         }
-        else {
-            ImGui::BeginGroup();
-            ImGui::Text(_("Free Cam %i:"), i);
-            float buttonSize = 50.0f;
-            float spacing = 5.0f;
-
-            struct RegionButton {
-                REGION_MODE mode;
-                const char* label;
-            };
-
-            RegionButton regionButtons[3][3] = {
-                {
-                    { REGION_TOPLEFT, "Top\nLeft" },
-                    { REGION_TOP, "Top" },
-                    { REGION_TOPRIGHT, "Top\nRight" }
-                },
-                {
-                    { REGION_LEFT, "Left" },
-                    { REGION_FULLSCREEN, "Full" },
-                    { REGION_RIGHT, "Right" }
-                },
-                {
-                    { REGION_BOTTOMLEFT, "Bottom\nLeft" },
-                    { REGION_BOTTOM, "Bottom" },
-                    { REGION_BOTTOMRIGHT, "Bottom\nRight" }
-                }
-            };
-
-            for (int row = 0; row < 3; row++) {
-                for (int col = 0; col < 3; col++) {
-                    RegionButton& rb = regionButtons[row][col];
-                    ImGui::PushStyleColor(ImGuiCol_Button,
-                        (state.selectedViewportOption == rb.mode) ?
-                        ImVec4(0.4f, 0.6f, 0.8f, 1.0f) : ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-                    if (ImGui::Button(rb.label, ImVec2(buttonSize, buttonSize))) {
-                        state.selectedViewportOption = rb.mode;
-                        state.selectedViewportOptionComboIndex = state.selectedViewportOption;
-                        ViewportState& gameplayViewportOption = states[0];
-                        // make a new cam every click because idk how to track active cams
+        ImGui::PushID(viewportId);
+        ImGui::BeginGroup();
+        if (viewportId == 0) {
+            ImGui::Text(_("Gameplay Cam"));
+        } else {
+            ImGui::Text(_("Extra Cam %i"), viewportId);
+        }
+        ImGui::SetNextItemWidth(sameLineItemWidth);
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                const RegionButton& rb = REGION_BUTTONS[row][col];
+                ImGui::PushStyleColor(ImGuiCol_Button, 
+                    (selectedViewportOption[viewportId] == rb.mode) ? 
+                    SELECTED_BUTTON_COLOR : NORMAL_BUTTON_COLOR);
+                if (ImGui::Button(rb.label, ImVec2(BUTTON_SIZE, BUTTON_SIZE))) {
+                    selectedViewportOption[viewportId] = rb.mode;
+                
+                    if (viewportId == 0) {
+                        sCamera_ViewPort* first_vp = get_viewport(0);
+                        first_vp->mMode = selectedViewportOption[viewportId];
+                    } else {
                         uFreeCamera* cam = (uFreeCamera*)freecam_cons();
-                        if (freecamGamepadControls)
-                            cam->mControlPad = 0;
+                        if (freecamGamepadControls) cam->mControlPad = 0;
                         devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)cam, 0x17);
-                        set_viewport(state.selectedViewport, state.selectedViewportOption, (uintptr_t)cam);
+                        set_viewport(viewportId, selectedViewportOption[viewportId], (uintptr_t)cam);
                     }
-                    ImGui::PopStyleColor();
-                    if (col < 2) ImGui::SameLine(0, spacing);
+                }
+                ImGui::PopStyleColor();
+                if (col < 2) {
+                    ImGui::SameLine(0, BUTTON_SPACING);
                 }
             }
         }
         ImGui::EndGroup();
         ImGui::PopID();
     }
+
     ImGui::Checkbox(_("Mouse Controls"), &freecamMouseControls);
     ImGui::Checkbox(_("Keyboard Controls"), &freecamKeyboardControls);
     ImGui::SameLine();
