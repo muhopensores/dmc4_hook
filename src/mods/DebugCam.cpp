@@ -11,6 +11,7 @@ void* (__stdcall*freecam_cons)() = (void*(__stdcall*)())0x9197A0;
 uintptr_t DebugCam::jmp_ret1 { NULL };
 float DebugCam::freecamSpeed = 1.0f;
 float DebugCam::freecamModifierSpeed = 10.0f;
+bool DebugCam::toggle_gameplay_cam = true;
 bool DebugCam::freecamMouseControls = false;
 bool DebugCam::freecamKeyboardControls = false;
 bool DebugCam::freecamGamepadControls = false;
@@ -300,6 +301,10 @@ void DebugCam::on_gui_frame() {
         ImGui::PopID();
     }
 
+    if (ImGui::Checkbox(_("Toggle Gameplay Cam"), &toggle_gameplay_cam)) {
+        sCamera_ViewPort* vp = get_viewport(0);
+        vp->mActive = toggle_gameplay_cam;
+    }
     ImGui::Checkbox(_("Mouse Controls"), &freecamMouseControls);
     ImGui::Checkbox(_("Keyboard Controls"), &freecamKeyboardControls);
     ImGui::SameLine();
