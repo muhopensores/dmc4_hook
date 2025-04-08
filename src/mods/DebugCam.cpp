@@ -5,10 +5,15 @@
 
 typedef uActorMain::uFreeCamera uFreeCamera;
 typedef uActorMain::uCamera uCamera;
-bool DebugCam::mod_enabled{false};
+// bool DebugCam::mod_enabled{false};
 //constexpr uintptr_t freecam_cons { 0x9197A0 };
 void* (__stdcall*freecam_cons)() = (void*(__stdcall*)())0x9197A0;
 uintptr_t DebugCam::jmp_ret1 { NULL };
+float DebugCam::freecamSpeed = 1.0f;
+float DebugCam::freecamModifierSpeed = 10.0f;
+bool DebugCam::freecamMouseControls = false;
+bool DebugCam::freecamKeyboardControls = false;
+bool DebugCam::freecamGamepadControls = false;
 
 struct MtRect {
     uint32_t l;
@@ -115,41 +120,80 @@ void __stdcall freecam_mouse_input(uCamera* camera) {
     Vector3f cam_pos = *(Vector3f*)&camera->mCameraPos;
     Vector3f cam_up = *(Vector3f*)&camera->mCameraUp;
     Vector3f cam_lookat = *(Vector3f*)&camera->mTargetPos;
-
     glm::mat4 viewMatrix = glm::lookAt(cam_pos, cam_lookat, cam_up);
-    glm::mat4 rotateX = glm::rotate(glm::mat4(1.0f), (float)(y_diff * 0.001), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 rotateY = glm::rotate(glm::mat4(1.0f), (float)(x_diff * 0.001), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 rotateZ    = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+    
+    if (DebugCam::freecamMouseControls) {
+        glm::mat4 rotateX = glm::rotate(glm::mat4(1.0f), (float)(y_diff * 0.001), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 rotateY = glm::rotate(glm::mat4(1.0f), (float)(x_diff * 0.001), glm::vec3(0.0f, 1.0f, 0.0f));
+        
+        viewMatrix = glm::translate(viewMatrix, cam_pos);
+        viewMatrix = viewMatrix * rotateY;
+        viewMatrix = glm::translate(viewMatrix, -cam_pos);
+        
+        viewMatrix = rotateX * viewMatrix;
+    }
+    
+    glm::mat4 rotateZ = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
     if (short input = VkKeyScan('Q'); devil4_sdk::internal_kb_check(input & 0xFF))
         rotateZ = glm::rotate(glm::mat4(1.0f), -0.005f, glm::vec3(0.0f, 0.0f, 1.0f));
     if (short input = VkKeyScan('E'); devil4_sdk::internal_kb_check(input & 0xFF))
         rotateZ = glm::rotate(glm::mat4(1.0f), 0.005f, glm::vec3(0.0f, 0.0f, 1.0f));
     viewMatrix = rotateZ * viewMatrix;
-    viewMatrix = glm::translate(viewMatrix, cam_pos);
-    viewMatrix = viewMatrix * rotateY;
-    viewMatrix = glm::translate(viewMatrix, -cam_pos);
-    viewMatrix = rotateX * viewMatrix;
+    
+    if (DebugCam::freecamKeyboardControls) {
+        if (devil4_sdk::internal_kb_check(VK_UP)) {
+            glm::mat4 rotateUp = glm::rotate(glm::mat4(1.0f), -0.005f, glm::vec3(1.0f, 0.0f, 0.0f));
+            viewMatrix = rotateUp * viewMatrix;
+        }
+        
+        if (devil4_sdk::internal_kb_check(VK_DOWN)) {
+            glm::mat4 rotateDown = glm::rotate(glm::mat4(1.0f), 0.005f, glm::vec3(1.0f, 0.0f, 0.0f));
+            viewMatrix = rotateDown * viewMatrix;
+        }
+        
+        if (devil4_sdk::internal_kb_check(VK_LEFT)) {
+            glm::mat4 rotateLeft = glm::rotate(glm::mat4(1.0f), -0.005f, glm::vec3(0.0f, 1.0f, 0.0f));
+            viewMatrix = glm::translate(viewMatrix, cam_pos);
+            viewMatrix = viewMatrix * rotateLeft;
+            viewMatrix = glm::translate(viewMatrix, -cam_pos);
+        }
+        
+        if (devil4_sdk::internal_kb_check(VK_RIGHT)) {
+            glm::mat4 rotateRight = glm::rotate(glm::mat4(1.0f), 0.005f, glm::vec3(0.0f, 1.0f, 0.0f));
+            viewMatrix = glm::translate(viewMatrix, cam_pos);
+            viewMatrix = viewMatrix * rotateRight;
+            viewMatrix = glm::translate(viewMatrix, -cam_pos);
+        }
+    }
+    
     glm::mat4 translateMat(1.0f);
-    float speed = 1.0f;
-    if (devil4_sdk::internal_kb_check(VK_SHIFT))
-        speed = 10.0f;
-    if (short input = VkKeyScan('W'); devil4_sdk::internal_kb_check(input & 0xFF))
-        translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, speed));
-    if (short input = VkKeyScan('S'); devil4_sdk::internal_kb_check(input & 0xFF))
-        translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -speed));
-    if (short input = VkKeyScan('A'); devil4_sdk::internal_kb_check(input & 0xFF))
-        translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(speed, 0.0f, 0.0f));
-    if (short input = VkKeyScan('D'); devil4_sdk::internal_kb_check(input & 0xFF))
-        translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(-speed, 0.0f, 0.0f));
-    if (devil4_sdk::internal_kb_check(VK_SPACE))
-        translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -speed, 0.0f));
-    if (devil4_sdk::internal_kb_check(VK_CONTROL))
-        translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, speed, 0.0f));
+    
+    if (DebugCam::freecamKeyboardControls) {
+        float speed = DebugCam::freecamSpeed;
+        if (devil4_sdk::internal_kb_check(VK_SHIFT))
+            speed = DebugCam::freecamModifierSpeed;
+        
+        if (short input = VkKeyScan('W'); devil4_sdk::internal_kb_check(input & 0xFF))
+            translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, speed));
+        if (short input = VkKeyScan('S'); devil4_sdk::internal_kb_check(input & 0xFF))
+            translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -speed));
+        if (short input = VkKeyScan('A'); devil4_sdk::internal_kb_check(input & 0xFF))
+            translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(speed, 0.0f, 0.0f));
+        if (short input = VkKeyScan('D'); devil4_sdk::internal_kb_check(input & 0xFF))
+            translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(-speed, 0.0f, 0.0f));
+        if (devil4_sdk::internal_kb_check(VK_SPACE))
+            translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -speed, 0.0f));
+        if (devil4_sdk::internal_kb_check(VK_CONTROL))
+            translateMat *= glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, speed, 0.0f));
+    }
+    
     viewMatrix = translateMat * viewMatrix;
+    
     glm::vec4 target = glm::inverse(viewMatrix) * glm::vec4(0.0f, 0.0f, -700.0f, 1.0f);
     glm::vec4 up = glm::inverse(viewMatrix) * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
     glm::vec4 pos = glm::inverse(viewMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     up = glm::normalize(up - pos);
+    
     camera->mCameraPos.x = pos.x;
     camera->mCameraPos.y = pos.y;
     camera->mCameraPos.z = pos.z;
@@ -190,11 +234,24 @@ struct ViewportState {
 ViewportState states[2];
 
 void DebugCam::on_gui_frame() {
+    ImGui::Separator();
+    ImGui::Text(_("Free Cam"));
+    ImGui::Checkbox(_("Mouse Controls"), &freecamMouseControls);
+    ImGui::Checkbox(_("Keyboard Controls"), &freecamKeyboardControls);
+    ImGui::SameLine();
+    help_marker(_("Controls are:\nW, A, S, D = movement\nArrow keys = Pitch & Yaw\nSpace & Ctrl = Up & Down\nQ & E = roll\nShift = speed modifier\n"));
+    ImGui::Checkbox(_("Gamepad Controls"), &freecamGamepadControls);
+    ImGui::SameLine();
+    help_marker(_("This option applies when selecting a new splitscreen"));
+    ImGui::PushItemWidth(sameLineItemWidth);
+    ImGui::SliderFloat(_("Camera Speed"), &freecamSpeed, 0.0f, 100.0f, "%.0f");
+    ImGui::SliderFloat(_("Camera Modifier Speed"), &freecamModifierSpeed, 0.0f, 200.0f, "%.0f");
+    ImGui::PopItemWidth();
     int numOfViewports = IM_ARRAYSIZE(states);
     for (int i = 0; i < numOfViewports; i++) {
         ImGui::PushID(i);
+        ImGui::BeginGroup();
         ViewportState& state = states[i];
-        
         if (i == 0) {
             ImGui::Text(_("Gameplay Cam"));
             ImGui::SetNextItemWidth(sameLineItemWidth);
@@ -237,7 +294,7 @@ void DebugCam::on_gui_frame() {
                     { REGION_BOTTOMRIGHT, "Bottom\nRight" }
                 }
             };
-
+            
             for (int row = 0; row < 3; row++) {
                 for (int col = 0; col < 3; col++) {
                     RegionButton& rb = regionButtons[row][col];
@@ -284,6 +341,8 @@ void DebugCam::on_gui_frame() {
             
                         // make a new cam every click because idk how to track active cams
                         uFreeCamera* cam = (uFreeCamera*)freecam_cons();
+                        if (freecamGamepadControls)
+                            cam->mControlPad = 0;
                         devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)cam, 0x17);
                         set_viewport(state.selectedViewport, state.selectedViewportOption, (uintptr_t)cam);
 
@@ -296,16 +355,27 @@ void DebugCam::on_gui_frame() {
                 }
             }
         }
+        ImGui::EndGroup();
         ImGui::PopID();
     }
 }
 
 // void DebugCam::on_frame(fmilliseconds& dt) {}
 
-//void DebugCam::on_config_load(const utility::Config& cfg) {
-//    mod_enabled = cfg.get<bool>("debug_cam").value_or(false);
-//};
-//
-//void DebugCam::on_config_save(utility::Config& cfg) {
-//    cfg.set<bool>("debug_cam", mod_enabled);
-//};
+void DebugCam::on_config_load(const utility::Config& cfg) {
+    // mod_enabled = cfg.get<bool>("debug_cam").value_or(false);
+    freecamSpeed = cfg.get<float>("freecamSpeed").value_or(10.0f);
+    freecamModifierSpeed = cfg.get<float>("freecamModifierSpeed").value_or(20.0f);
+    freecamMouseControls = cfg.get<bool>("freecamMouseControls").value_or(true);
+    freecamKeyboardControls = cfg.get<bool>("freecamKeyboardControls").value_or(true);
+    freecamGamepadControls = cfg.get<bool>("freecamGamepadControls").value_or(false);
+};
+
+void DebugCam::on_config_save(utility::Config& cfg) {
+    // cfg.set<bool>("debug_cam", mod_enabled);
+    cfg.set<float>("freecamSpeed", freecamSpeed);
+    cfg.set<float>("freecamModifierSpeed", freecamModifierSpeed);
+    cfg.set<bool>("freecamMouseControls", freecamMouseControls);
+    cfg.set<bool>("freecamKeyboardControls", freecamKeyboardControls);
+    cfg.set<bool>("freecamGamepadControls", freecamGamepadControls);
+};
