@@ -288,7 +288,11 @@ void DebugCam::on_gui_frame() {
                         uFreeCamera* cam = (uFreeCamera*)freecam_cons();
                         if (freecamGamepadControls) cam->mControlPad = 0;
                         devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)cam, 0x17);
+                        sCamera_ViewPort* first_vp = get_viewport(0);
                         set_viewport(viewportId, selectedViewportOption[viewportId], (uintptr_t)cam);
+                        cam->uCameraBase.mCameraPos = ((uCamera*)*(uintptr_t*)&first_vp->mpCamera)->mCameraPos;
+                        cam->uCameraBase.mTargetPos = ((uCamera*)*(uintptr_t*)&first_vp->mpCamera)->mTargetPos;
+                        cam->uCameraBase.mCameraUp  = ((uCamera*)*(uintptr_t*)&first_vp->mpCamera)->mCameraUp;
                     }
                 }
                 ImGui::PopStyleColor();
@@ -300,6 +304,7 @@ void DebugCam::on_gui_frame() {
         ImGui::EndGroup();
         ImGui::PopID();
     }
+
 
     if (ImGui::Checkbox(_("Toggle Gameplay Cam"), &toggle_gameplay_cam)) {
         sCamera_ViewPort* vp = get_viewport(0);
