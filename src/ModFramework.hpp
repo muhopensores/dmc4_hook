@@ -70,6 +70,7 @@ public:
     //     return m_custom_font;
     // }
     bool m_draw_console{ false };
+    bool m_draw_ui{ false };
 
     // NOTE(): locale stuff
     bool m_imfont_queue_reload_flag {false};
@@ -94,7 +95,6 @@ private:
     bool m_first_frame{ true };
     bool m_valid{ false };
     bool m_initialized{ false };
-    bool m_draw_ui{ false };
     
     std::atomic<bool> m_game_data_initialized{ false };
     

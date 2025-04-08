@@ -122,7 +122,7 @@ void __stdcall freecam_mouse_input(uCamera* camera) {
     Vector3f cam_lookat = *(Vector3f*)&camera->mTargetPos;
     glm::mat4 viewMatrix = glm::lookAt(cam_pos, cam_lookat, cam_up);
     
-    if (DebugCam::freecamMouseControls) {
+    if (DebugCam::freecamMouseControls && !g_framework->m_draw_ui) {
         glm::mat4 rotateX = glm::rotate(glm::mat4(1.0f), (float)(y_diff * 0.001), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 rotateY = glm::rotate(glm::mat4(1.0f), (float)(x_diff * 0.001), glm::vec3(0.0f, 1.0f, 0.0f));
         
