@@ -306,12 +306,17 @@ namespace gui {
     void faq_drawing() {
         if (ImGui::CollapsingHeader(_("Frequently Asked Questions"))) {
             ImGui::Indent();
+            if (ImGui::CollapsingHeader(_("Old mods I installed have suddenly turned on"))) {
+                ImGui::TextWrapped(_("\"HDD File Priority\" is ticked on the Debug page. If your DMC4 install contains any files left over from old mods, "
+                    "this will load them. To clean up your directory you'll need to delete files manually as Steam verification does not check "
+                    "newly added files."));
+            }
             if (ImGui::CollapsingHeader(_("My combo points are stuck at 0"))) {
-                ImGui::TextWrapped(_("\"Respawn Enemies when visiting the same room multiple times\" is ticked on the debug screen."
+                ImGui::TextWrapped(_("\"Respawn Enemies when visiting the same room multiple times\" is ticked on the Debug page. "
                     "If you didn't turn this on manually, it would have been auto ticked when you used the reload current room hotkey."));
             }
-            if (ImGui::CollapsingHeader(_(""))) {
-                ImGui::Text(_(""));
+            if (ImGui::CollapsingHeader(_("My camera is frozen"))) {
+                ImGui::TextWrapped(_("The default hotkey for camera settings' freeze camera is Numpad 0"));
             }
             ImGui::Unindent();
         }
@@ -558,15 +563,11 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("SwordSpin"_hash);
 
+                    pmods->on_draw_ui("DanteJdc"_hash);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("NoLockonRestriction"_hash);
 
-                    pmods->on_draw_ui("DanteJdc"_hash); // needs its own line
-
-
                     ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
                     ImGui::Text(_("Aerial grounded moves"));
                     ImGui::Spacing();
 
@@ -792,6 +793,8 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
+                    pmods->on_draw_ui("MoveTable"_hash);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("LoadOrder"_hash);
                     
                     ImGui::Spacing();
@@ -833,7 +836,6 @@ namespace gui {
                     ImGui::Spacing();
 
                     // pmods->onDrawUI("ShaderEditor"_hash);
-                    pmods->on_draw_ui("MoveTable"_hash);
 
                     pmods->on_draw_ui("VisualizeHitbox"_hash);
 
@@ -871,6 +873,11 @@ namespace gui {
                 if (ImGui::BeginTabItem(_("About"))) {
                     ImGui::BeginChild("AboutChild");
                     faq_drawing();
+                    
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
                     credits_drawing();
 
                     g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);

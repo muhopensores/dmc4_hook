@@ -278,8 +278,18 @@ const RegionButton REGION_BUTTONS[3][3] = {
     }
 };
 
+static void ToggleGameplayCam(bool enable) {
+    sCamera_ViewPort* vp = get_viewport(0);
+    vp->mActive = enable;
+}
+
 void DebugCam::on_gui_frame() {
-    ImGui::Checkbox(_("Debug Camera"), &mod_enabled);
+    if (ImGui::Checkbox(_("Debug Camera"), &mod_enabled)) {
+        if (!mod_enabled) {
+            toggle_gameplay_cam = true;
+            ToggleGameplayCam(toggle_gameplay_cam);
+        }
+    }
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
         for (int viewportId = 0; viewportId < NUM_VIEWPORTS; viewportId++) {
@@ -328,10 +338,8 @@ void DebugCam::on_gui_frame() {
             ImGui::EndGroup();
             ImGui::PopID();
         }
-
         if (ImGui::Checkbox(_("Toggle Gameplay Cam"), &toggle_gameplay_cam)) {
-            sCamera_ViewPort* vp = get_viewport(0);
-            vp->mActive = toggle_gameplay_cam;
+            ToggleGameplayCam(toggle_gameplay_cam);
         }
         ImGui::Checkbox(_("Mouse Controls"), &freecamMouseControls);
         ImGui::SameLine();

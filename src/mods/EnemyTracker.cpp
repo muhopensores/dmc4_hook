@@ -280,6 +280,14 @@ void EnemyTracker::on_gui_frame() {
             ImGui::InputScalar(_("Move Part ##2"), ImGuiDataType_U8, &currentEnemy->movePart);
             ImGui::InputScalar(_("Grounded ##2"), ImGuiDataType_U8, &currentEnemy->grounded);
             ImGui::InputFloat(_("Animation Frame ##2"), &currentEnemy->animFrame);
+            if (ImGui::CollapsingHeader(_("Saved Info"))) {
+                ImGui::InputScalar(_("Enemy Move ID"), ImGuiDataType_U8, &savedEnemyMoveID);
+                ImGui::InputScalar(_("Enemy Move ID 2"), ImGuiDataType_U8, &savedEnemyMoveID2, 0, 0);
+                ImGui::InputFloat3(_("Enemy Position"), savedEnemyPosition);
+                ImGui::InputFloat(_("Enemy Rotation"), &savedEnemyRotation);
+                ImGui::InputFloat3(_("Enemy Velocity"), savedEnemyVelocity);
+                ImGui::InputScalar(_("Enemy Grounded"), ImGuiDataType_U8, &savedEnemyGrounded);
+            }
             ImGui::Unindent(lineIndent);
         }
     }
@@ -314,23 +322,20 @@ void EnemyTracker::on_gui_frame() {
                 help_marker(_("Hotkey is PAGE DOWN by default"));
             }
         }
+        if (ImGui::CollapsingHeader(_("Saved Info ##Boss"))) {
+            ImGui::InputScalar(_("Enemy Move ID ##Boss"), ImGuiDataType_U8, &savedEnemyMoveID);
+            ImGui::InputScalar(_("Enemy Move ID 2 ##Boss"), ImGuiDataType_U8, &savedEnemyMoveID2, 0, 0);
+            ImGui::InputFloat3(_("Enemy Position ##Boss"), savedEnemyPosition);
+            ImGui::InputFloat(_("Enemy Rotation ##Boss"), &savedEnemyRotation);
+            ImGui::InputFloat3(_("Enemy Velocity ##Boss"), savedEnemyVelocity);
+            ImGui::InputScalar(_("Enemy Grounded ##Boss"), ImGuiDataType_U8, &savedEnemyGrounded);
+        }
         ImGui::Unindent(lineIndent);
     }
 
     ImGui::Checkbox(_("Enable Save/Load hotkeys"), &hotkey_enabled);
     ImGui::SameLine();
     help_marker(_("Assuming default hotkeys,\nHome+End will save and load enemy attacks\nPage Up+Page Down will save and load boss attacks"));
-
-    ImGui::Spacing();
-
-    if (ImGui::CollapsingHeader(_("Saved Info"))) {
-        ImGui::InputScalar(_("Enemy Move ID"), ImGuiDataType_U8, &savedEnemyMoveID);
-        ImGui::InputScalar(_("Enemy Move ID 2"), ImGuiDataType_U8, &savedEnemyMoveID2, 0, 0);
-        ImGui::InputFloat3(_("Enemy Position"), savedEnemyPosition);
-        ImGui::InputFloat(_("Enemy Rotation"), &savedEnemyRotation);
-        ImGui::InputFloat3(_("Enemy Velocity"), savedEnemyVelocity);
-        ImGui::InputScalar(_("Enemy Grounded"), ImGuiDataType_U8, &savedEnemyGrounded);
-    }
 }
 
 class InteractiveModel {

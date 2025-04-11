@@ -435,6 +435,20 @@ void CameraSettings::on_gui_frame() {
         ImGui::InputFloat(_("FOV"), &CameraSettings::camera_fov, 10.0f, 20.0f, "%.0f%");
         ImGui::Spacing();
         ImGui::InputFloat(_("FOV (In Battle)"), &CameraSettings::camera_fov_in_battle, 10.0f, 20.0f, "%.0f%");
+        if (ImGui::Checkbox("Pause Camera", &pause_camera_enabled)) {
+            toggle_pause_camera(pause_camera_enabled);
+        }
+        if (ImGui::Button(_("Reset Camera Variables"))) {
+            CameraSettings::camera_height = 0.0f;
+            CameraSettings::camera_distance = 0.0f;
+            CameraSettings::camera_distance_lockon = 0.0f;
+            CameraSettings::camera_angle           = 0.0f;
+            CameraSettings::camera_angle_lockon    = 0.0f;
+            CameraSettings::camera_fov             = 0.0f;
+            CameraSettings::camera_fov_in_battle   = 0.0f;
+            pause_camera_enabled = false;
+            toggle_pause_camera(pause_camera_enabled);
+        }
         ImGui::PopItemWidth();
     }
 }
@@ -498,8 +512,7 @@ std::optional<std::string> CameraSettings::on_initialize() {
         return "Failed to init CameraSens2 mod";
     }
 
-    if (!install_hook_offset(
-            0x022575, camera_sens_brakes_hook, &camera_sens_brakes_proc, &CameraSettings::camera_sens_brakes_continue, 12)) {
+    if (!install_hook_offset(0x022575, camera_sens_brakes_hook, &camera_sens_brakes_proc, &CameraSettings::camera_sens_brakes_continue, 12)) {
         spdlog::error("Failed to init CameraSens3 mod\n");
         return "Failed to init CameraSens3 mod";
     }
@@ -520,7 +533,7 @@ std::optional<std::string> CameraSettings::on_initialize() {
 }
 
 void CameraSettings::on_update_input(utility::Input& input) {
-    
+    if (!mod_enabled) return;
     if (m_hotkeys[0]->check(input)) {
         CameraSettings::pause_camera_enabled = !CameraSettings::pause_camera_enabled;
         toggle_pause_camera(pause_camera_enabled);

@@ -92,7 +92,8 @@ std::optional<std::string> LuciAirThrow::on_initialize() {
 void LuciAirThrow::on_gui_frame() {
     ImGui::Checkbox(_("Lucifer Air Throw"), &mod_enabled);
     ImGui::SameLine();
-    help_marker(_("Add new move mimicking V5rgil's air taunt. Mapped to forward + melee"));
+    help_marker(_("Add new move mimicking V5rgil's air taunt. Mapped to forward + melee\n"
+        "Requires \"Move Table\" at the top of the Debug page, which applies at the start of a level"));
 }
 
 void LuciAirThrow::on_config_load(const utility::Config& cfg) {

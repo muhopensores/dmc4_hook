@@ -141,49 +141,58 @@ std::optional<std::string> MoveTable::on_initialize() {
 }
 
 void MoveTable::on_gui_frame() {
+    ImGui::BeginGroup();
     if (ImGui::Checkbox(_("Move Table"), &mod_enabled)) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker(_("Replace internal move params"));
-    ImGui::SameLine(sameLineWidth);
-    ImGui::Checkbox(_("Display move table"), &display_move_table);
-    if (display_move_table) {
-        uintptr_t player = (uintptr_t)devil4_sdk::get_local_player();
-        if (player) {
-            ImGui::Indent(lineIndent);
-            uintptr_t kAtckDefTblPtr = (uintptr_t) * (uintptr_t*)(player + 0x1DCC);
-            uint32_t currentMoveId   = (uint32_t) * (uintptr_t*)(player + 0x1564);
-            ImGui::InputScalar(_("Player move ID"), ImGuiDataType_U32, &currentMoveId);
-            kAtckDefTbl* TblEntry = (kAtckDefTbl*)(kAtckDefTblPtr);
-            int EntryCount = 0;
-            while ((currentMoveId != TblEntry->atckId) && (TblEntry->atckAttr != 3)) {
-                EntryCount++;
-                TblEntry++;
+    help_marker(_("Replace internal move params\nRequired by \"Aerial Stinger\", \"Payline\" and \"Lucifer Air Throw\""));
+#ifndef NDEBUG
+    if (mod_enabled) {
+        ImGui::Indent(lineIndent);
+        ImGui::Checkbox(_("[DEBUG] Display move table"), &display_move_table);
+        if (display_move_table) {
+            uintptr_t player = (uintptr_t)devil4_sdk::get_local_player();
+            if (player) {
+                ImGui::Indent(lineIndent);
+                uintptr_t kAtckDefTblPtr = (uintptr_t) * (uintptr_t*)(player + 0x1DCC);
+                uint32_t currentMoveId = (uint32_t) * (uintptr_t*)(player + 0x1564);
+                ImGui::InputScalar(_("Player move ID"), ImGuiDataType_U32, &currentMoveId);
+                kAtckDefTbl* TblEntry = (kAtckDefTbl*)(kAtckDefTblPtr);
+                int EntryCount = 0;
+                while ((currentMoveId != TblEntry->atckId) && (TblEntry->atckAttr != 3)) {
+                    EntryCount++;
+                    TblEntry++;
+                }
+                ImGui::InputScalar(_("Entry count"), ImGuiDataType_U32, &EntryCount, 0, 0, 0, ImGuiInputTextFlags_ReadOnly);
+                ImGui::InputScalar(_("Move Attribute"), ImGuiDataType_U32, &TblEntry->atckAttr);
+                ImGui::InputScalar(_("Table move ID"), ImGuiDataType_U32, &TblEntry->atckId);
+                ImGui::InputScalar(_("Move Level"), ImGuiDataType_U32, &TblEntry->atckLevel);
+                ImGui::InputScalar(_("Move Info"), ImGuiDataType_U32, &TblEntry->atckInfo);
+                ImGui::InputScalar(_("Move Command"), ImGuiDataType_U32, &TblEntry->command.buffer);
+                ImGui::InputScalar(_("Move Weapon Condition"), ImGuiDataType_U32, &TblEntry->atckConditionWp);
+                ImGui::InputScalar(_("Move Style Condition"), ImGuiDataType_U32, &TblEntry->atckConditionStyle);
+                ImGui::InputScalar(_("Move Attribute"), ImGuiDataType_U32, &TblEntry->atckConditionStyle);
+                ImGui::InputScalar(_("Unknown Param"), ImGuiDataType_U32, &TblEntry->ukn);
+                ImGui::InputScalar(_("Move Status"), ImGuiDataType_U32, &TblEntry->atckAs);
+                ImGui::InputScalar(_("Move Cancel ID 1"), ImGuiDataType_U32, &TblEntry->cancelId[0]);
+                ImGui::InputScalar(_("Move Cancel ID 2"), ImGuiDataType_U32, &TblEntry->cancelId[1]);
+                ImGui::InputScalar(_("Move Cancel ID 3"), ImGuiDataType_U32, &TblEntry->cancelId[2]);
+                ImGui::InputScalar(_("Move Cancel ID 4"), ImGuiDataType_U32, &TblEntry->cancelId[3]);
+                ImGui::InputScalar(_("Move Cancel ID 5"), ImGuiDataType_U32, &TblEntry->cancelId[4]);
+                TblEntry = (kAtckDefTbl*)(uintptr_t)(kAtckDefTblPtr);
+                ImGui::Unindent(lineIndent);
             }
-            ImGui::InputScalar(_("Entry count"), ImGuiDataType_U32, &EntryCount, 0, 0, 0, ImGuiInputTextFlags_ReadOnly);
-            ImGui::InputScalar(_("Move Attribute"), ImGuiDataType_U32, &TblEntry->atckAttr);
-            ImGui::InputScalar(_("Table move ID"), ImGuiDataType_U32, &TblEntry->atckId);
-            ImGui::InputScalar(_("Move Level"), ImGuiDataType_U32, &TblEntry->atckLevel);
-            ImGui::InputScalar(_("Move Info"), ImGuiDataType_U32, &TblEntry->atckInfo);
-            ImGui::InputScalar(_("Move Command"), ImGuiDataType_U32, &TblEntry->command.buffer);
-            ImGui::InputScalar(_("Move Weapon Condition"), ImGuiDataType_U32, &TblEntry->atckConditionWp);
-            ImGui::InputScalar(_("Move Style Condition"), ImGuiDataType_U32, &TblEntry->atckConditionStyle);
-            ImGui::InputScalar(_("Move Attribute"), ImGuiDataType_U32, &TblEntry->atckConditionStyle);
-            ImGui::InputScalar(_("Unknown Param"), ImGuiDataType_U32, &TblEntry->ukn);
-            ImGui::InputScalar(_("Move Status"), ImGuiDataType_U32, &TblEntry->atckAs);
-            ImGui::InputScalar(_("Move Cancel ID 1"), ImGuiDataType_U32, &TblEntry->cancelId[0]);
-            ImGui::InputScalar(_("Move Cancel ID 2"), ImGuiDataType_U32, &TblEntry->cancelId[1]);
-            ImGui::InputScalar(_("Move Cancel ID 3"), ImGuiDataType_U32, &TblEntry->cancelId[2]);
-            ImGui::InputScalar(_("Move Cancel ID 4"), ImGuiDataType_U32, &TblEntry->cancelId[3]);
-            ImGui::InputScalar(_("Move Cancel ID 5"), ImGuiDataType_U32, &TblEntry->cancelId[4]);
-            TblEntry = (kAtckDefTbl*)(uintptr_t)(kAtckDefTblPtr);
-            ImGui::Unindent(lineIndent);
+            else {
+                ImGui::Indent(lineIndent);
+                ImGui::Text(_("Load into a stage to see this table"));
+                ImGui::Unindent(lineIndent);
+            }
         }
-        else {
-            ImGui::Text(_("Load into a stage to see this table"));
-        }
+        ImGui::Unindent(lineIndent);
     }
+#endif
+    ImGui::EndGroup();
 }
 
 void MoveTable::on_config_load(const utility::Config& cfg) {

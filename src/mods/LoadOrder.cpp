@@ -432,8 +432,8 @@ void LoadOrder::on_config_load(const utility::Config& cfg)  {
 void LoadOrder::on_gui_frame() { 
     ImGui::Checkbox(_("HDD File Priority"), &mod_enabled);
     ImGui::SameLine();
-    help_marker(_("The game will look for files outside of arcs before looking inside\n"
-    "This is required for dmc4_hook mods that require external files"));
+    help_marker(_("The game will look for files outside of arcs before looking inside.\n"
+        "Required by \"Aerial Stinger\", \"Payline\" and \"Lucifer Air Throw\""));
 };
 
 // onGamePause()

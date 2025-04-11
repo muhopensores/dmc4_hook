@@ -548,6 +548,7 @@ static void SeeIfFileExists() {
 }
 
 void DanteJdc::on_gui_frame() {
+    ImGui::BeginGroup();
     if (!fileExists) {
         if (ImGui::Button(_("Download Judgement Cut Files"))) {
             ShellExecuteA(NULL, "open", "https://github.com/muhopensores/dmc4_hook/releases", NULL, NULL, SW_SHOWNORMAL);
@@ -564,7 +565,8 @@ void DanteJdc::on_gui_frame() {
             toggle(mod_enabled);
         ImGui::SameLine();
         help_marker(_("Activate judgement cut when performing Yamato aerial rave with lock-on."
-            "Perform normal inertia-less Yamato rave on lock-off"));
+            "Perform normal inertia-less Yamato rave on lock-off"
+            "Requires \"HDD File Priority\" at the top of the Debug page"));
         if (mod_enabled) {
             ImGui::Indent(lineIndent);
                 ImGui::Checkbox(_("Lock-on + back input"), &alt_input_enabled);
@@ -574,6 +576,7 @@ void DanteJdc::on_gui_frame() {
             ImGui::Unindent(lineIndent);
         }
     }
+    ImGui::EndGroup();
 }
 
 void DanteJdc::on_config_load(const utility::Config& cfg) {

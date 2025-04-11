@@ -440,7 +440,9 @@ void Payline::on_gui_frame() {
         Helm_Splitter_Toggle();
     }
     ImGui::SameLine();
-    help_marker(_("Remap Helm Splitter and Double Down to lockon+back+melee\nRequires \"Move Table\" at the bottom of the Debug page, which applies at the start of a level"));
+    help_marker(_("Remap Helm Splitter and Double Down to lockon+back+melee\n"
+        "Requires \"Move Table\" at the top of the Debug page, which applies at the start of a level\n"
+        "Requires \"HDD File Priority\" at the top of the Debug page"));
 }
 
 void Payline::on_config_load(const utility::Config& cfg) {
