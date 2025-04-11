@@ -1144,7 +1144,9 @@ static void DrawTonyScores() {
 
         float deltaTime = player->m_delta_time;
         float realSeconds = deltaTime / 60.0f;
-        bool isInAir = !player->characterSettingsOne->groundedActual;
+        bool isInAir = false;
+        if (player->characterSettingsOne)
+            isInAir = player->characterSettingsOne->groundedActual;
         bool justBecameAirborne = wasGrounded && isInAir;
         wasGrounded = !isInAir;
 
@@ -1161,8 +1163,11 @@ static void DrawTonyScores() {
                 fadingUp = true;
                 fadeUpTimer = 0.0f;
             }
-            if (!devil4_sdk::get_sArea()->aGamePtr->m_paused)
-                airTimer += realSeconds;
+            if (sArea* sArea = devil4_sdk::get_sArea()) {
+                if (!sArea->aGamePtr->m_paused) {
+                    airTimer += realSeconds;
+                }
+            }
             if (fadingUp) {
                 fadeUpTimer += realSeconds;
                 float fadeProgress = fadeUpTimer / fadeDuration;
@@ -1465,8 +1470,7 @@ std::string CensorText(const std::string& text) {
 }
    
 void StylePoints::DrawHiddenCombos() {
-    if (!devil4_sdk::get_local_player())
-        return;
+    if (!devil4_sdk::get_local_player()) return;
     sArea* sArea = devil4_sdk::get_sArea();
     if (sArea == nullptr || sArea->aGamePtr == nullptr || sArea->aGamePtr->m_paused == false)
         return;
@@ -1823,7 +1827,7 @@ void StylePoints::on_frame(fmilliseconds& dt) {
 }
 
 void StylePoints::on_config_load(const utility::Config& cfg) {
-    mod_enabled = cfg.get<bool>("style_points_display").value_or(false);
+    mod_enabled = cfg.get<bool>("style_points_display").value_or(true);
     tonyHawk = cfg.get<bool>("hawk_points_display").value_or(true);
     moreGrouping = cfg.get<bool>("group_points_display").value_or(false);
     showAirTimeDisplay = cfg.get<bool>("airtime_points_display").value_or(true);

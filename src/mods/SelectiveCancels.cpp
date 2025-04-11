@@ -29,13 +29,14 @@ naked void detour1() { // player in eax + edi
 			push ecx
 			mov ecx, [static_mediator_ptr]
 			mov ecx, [ecx]
+			test ecx, ecx
 			mov ecx, [ecx+0x24]
 			cmp eax, ecx
 			pop ecx
 			jne originalcode
 
-			movss [xmm0backup],xmm0
-			movss xmm0,[eax+0x348]
+			movss [xmm0backup], xmm0
+			movss xmm0, [eax+0x348]
 		// Dante
 			cmp dword ptr [eax+0x1494], 0 // Dante
 			jne CheckNero
@@ -190,31 +191,31 @@ naked void detour1() { // player in eax + edi
 
 
 		UsualBuffer:
-			mov dword ptr [eax+0x3174], 0x01 // jump / trickster dashes etc
+			mov dword ptr [eax+0x3174], 1 // jump / trickster dashes etc
 			jmp popcode
 		// MeleeCancel:
-			mov dword ptr [eax+0x30C4], 0x02 // 2 is cancellable, 1 sets a buffer
+			mov dword ptr [eax+0x30C4], 2 // 2 is cancellable, 1 sets a buffer
 			jmp popcode
 		UsualCancel: // also trickster dash cancellable etc
-			mov dword ptr [eax+0x3174], 0x02
+			mov dword ptr [eax+0x3174], 2
 			jmp popcode
 		// StyleCancel:
-			mov dword ptr [eax+0x3148], 0x02
+			mov dword ptr [eax+0x3148], 2
 			jmp popcode
 		// GunCancel:
-			mov dword ptr [eax+0x31CC], 0x02
+			mov dword ptr [eax+0x31CC], 2
 			jmp popcode
 		// WalkCancel:
-			mov dword ptr [eax+0x31F8], 0x02
+			mov dword ptr [eax+0x31F8], 2
 			jmp popcode
 		MostCancel:
-			mov dword ptr [eax+0x30C4], 0x02 // melee
-			mov dword ptr [eax+0x3148], 0x02 // style
-			mov dword ptr [eax+0x3174], 0x02 // jump / trickster dashes etc
+			mov dword ptr [eax+0x30C4], 2 // melee
+			mov dword ptr [eax+0x3148], 2 // style
+			mov dword ptr [eax+0x3174], 2 // jump / trickster dashes etc
 			jmp popcode
 		
 		popcode:
-			movss xmm0,[xmm0backup]
+			movss xmm0, [xmm0backup]
 		originalcode:
 			mov edi, 0x00000008
 			jmp dword ptr [SelectiveCancels::jmp_ret1]

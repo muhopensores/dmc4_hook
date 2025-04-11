@@ -442,7 +442,6 @@ std::optional<std::string> EnemySpawn::on_initialize() {
 }
 
 void EnemySpawn::on_gui_frame() {
-    sArea* s_area_ptr = devil4_sdk::get_sArea();
     if (!devil4_sdk::get_local_player()) {
         ImGui::TextWrapped(_("Enemy Spawner is not initialized.\nLoad into a stage to access it."));
         return;
