@@ -441,7 +441,6 @@ void Payline::on_gui_frame() {
     }
     ImGui::SameLine();
     help_marker(_("Remap Helm Splitter and Double Down to lockon+back+melee\n"
-        "Requires \"Move Table\" at the top of the Debug page, which applies at the start of a level\n"
         "Requires \"HDD File Priority\" at the top of the Debug page"));
 }
 

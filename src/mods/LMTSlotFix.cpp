@@ -1,6 +1,9 @@
 #include "LMTSlotFix.hpp"
 #include "MoveTable.hpp"
-bool LMTSlotFix::mod_enabled { true };
+#include "AerialStinger.hpp"
+#include "Payline.hpp"
+#include "LuciAirThrow.hpp"
+// bool LMTSlotFix::mod_enabled { true };
 
 uintptr_t LMTSlotFix::jmp_ret1{ NULL };
     constexpr uintptr_t detour1_default_jmp = 0x42B936;
@@ -17,8 +20,15 @@ uintptr_t LMTSlotFix::jmp_ret1{ NULL };
 
 naked void detour1() {
     _asm {
-            cmp byte ptr [MoveTable::mod_enabled], 1
-            jne originalcode
+            cmp byte ptr [AerialStinger::mod_enabled], 1
+            je newcode
+            cmp byte ptr [Payline::mod_enabled], 1
+            je newcode
+            cmp byte ptr [LuciAirThrow::mod_enabled], 1
+            je newcode
+            jmp originalcode
+
+        newcode:
             cmp eax,3
             ja detour1_ja
         originalcode:

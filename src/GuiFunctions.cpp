@@ -793,8 +793,8 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    pmods->on_draw_ui("MoveTable"_hash);
-                    ImGui::SameLine(sameLineWidth);
+                    // pmods->on_draw_ui("MoveTable"_hash);
+                    // ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("LoadOrder"_hash);
                     
                     ImGui::Spacing();

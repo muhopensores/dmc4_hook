@@ -565,7 +565,7 @@ void DanteJdc::on_gui_frame() {
             toggle(mod_enabled);
         ImGui::SameLine();
         help_marker(_("Activate judgement cut when performing Yamato aerial rave with lock-on."
-            "Perform normal inertia-less Yamato rave on lock-off"
+            "Perform normal inertia-less Yamato rave on lock-off\n"
             "Requires \"HDD File Priority\" at the top of the Debug page"));
         if (mod_enabled) {
             ImGui::Indent(lineIndent);

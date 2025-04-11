@@ -1,8 +1,16 @@
 #include "MoveTable.hpp"
 #include "misc/kAtckDefTbl.cpp"
 
-bool MoveTable::mod_enabled { false };
+// mods that require this:
+#include "AerialStinger.hpp"
+#include "Payline.hpp"
+#include "LuciAirThrow.hpp"
+// WARNING: you must also compare to these bools in LMT slot fix
 
+// bool MoveTable::mod_enabled { false };
+
+uintptr_t  MoveTable::jmp_ret0 { NULL };
+uintptr_t jmp_je0 = 0x803D37;
 uintptr_t  MoveTable::jmp_ret1 { NULL };
 uintptr_t  MoveTable::jmp_ret2 { NULL };
 uintptr_t  MoveTable::jmp_ret3 { NULL };
@@ -34,46 +42,80 @@ static bool display_move_table { false };
 //    uint32_t cancelId[5];
 //};
 
-void MoveTable::toggle(bool enable) {
+/*void MoveTable::toggle(bool enable) {
     if (enable) {
         install_patch_offset(0x403C6B, patch1, "\x90\x90\x90\x90\x90\x90", 6);
     }
     else {
         patch1.reset();
     }
+}*/
+
+naked void detour0(void) { // MoveTable toggle() function
+    _asm  {
+            cmp byte ptr [AerialStinger::mod_enabled], 1
+            je retcode
+            cmp byte ptr [Payline::mod_enabled], 1
+            je retcode
+            cmp byte ptr [LuciAirThrow::mod_enabled], 1
+            je retcode
+        // originalcode:
+            test [ecx+eax*4+0x18], edx
+            je jecode
+        retcode:
+            jmp dword ptr [MoveTable::jmp_ret0]
+        jecode:
+            jmp dword ptr [jmp_je0]
+    }
 }
 
 naked void detour1(void) { //Assign Dante's kAtckDefTbl
     _asm  {
             push eax
-            cmp byte ptr [MoveTable::mod_enabled], 1
-            jne handler
-            mov eax,HookDanteKADTbl
-            mov dword ptr [edi+0x1DCC],eax
+            cmp byte ptr [AerialStinger::mod_enabled], 1
+            je newcode
+            cmp byte ptr [Payline::mod_enabled], 1
+            je newcode
+            cmp byte ptr [LuciAirThrow::mod_enabled], 1
+            je newcode
+            jmp originalcode
+
+        newcode:
+            mov eax, HookDanteKADTbl
+            mov dword ptr [edi+0x1DCC], eax
+            jmp cont
+
         originalcode:
+            mov eax, [NativeDanteKADTbl]
+            mov [edi+0x1DCC], eax
+        cont:
             pop eax
             jmp [MoveTable::jmp_ret1]
-        handler:
-            mov eax,[NativeDanteKADTbl]
-            mov [edi+0x1DCC],eax
-            jmp originalcode
     }
 }
 
 naked void detour2(void) { //Assign Nero's kAtckDefTbl
     _asm  {
             push eax
-            cmp byte ptr [MoveTable::mod_enabled], 1
-            jne handler
+            cmp byte ptr [AerialStinger::mod_enabled], 1
+            je newcode
+            cmp byte ptr [Payline::mod_enabled], 1
+            je newcode
+            cmp byte ptr [LuciAirThrow::mod_enabled], 1
+            je newcode
+            jmp originalcode
+
+        newcode:
             mov eax,HookNeroKADTbl
             mov dword ptr [esi+0x1DCC],eax
+            jmp cont
+
         originalcode:
-            pop eax
-            jmp [MoveTable::jmp_ret2]
-        handler:
             mov eax,[NativeNeroKADTbl]
             mov [esi+0x1DCC],eax
-            jmp originalcode
+        cont:
+            pop eax
+            jmp [MoveTable::jmp_ret2]
     }
 }
 
@@ -93,11 +135,18 @@ void __stdcall dante_move_switch(uint32_t moveID, uintptr_t actor) {
 naked void detour3(void) { //handle Dante's move call
     _asm {
             jna originalcode
-            cmp byte ptr [MoveTable::mod_enabled], 1
-            jne originalcode
+            cmp byte ptr [AerialStinger::mod_enabled], 1
+            je newcode
+            cmp byte ptr [Payline::mod_enabled], 1
+            je newcode
+            cmp byte ptr [LuciAirThrow::mod_enabled], 1
+            je newcode
+            jmp originalcode
+
+        newcode:
             pushad
-            push eax //uPlayerDante
-            push ecx //moveID
+            push eax // uPlayerDante
+            push ecx // moveID
             call dante_move_switch
             popad
             pop edi
@@ -124,27 +173,30 @@ void updateKDATbl() {
 
 std::optional<std::string> MoveTable::on_initialize() {
     updateKDATbl();
+    if (!install_hook_offset(0x403C67, hook0, &detour0, &jmp_ret0, 10)) { // MoveTable toggle() function
+		spdlog::error("Failed to init MoveTable mod 0\n");
+		return "Failed to init MoveTable mod 0";
+	}
     if (!install_hook_offset(0x3B21E5, hook1, &detour1, &jmp_ret1, 10)) {
-		spdlog::error("Failed to init MoveTable mod\n");
-		return "Failed to init MoveTable mod";
+		spdlog::error("Failed to init MoveTable mod 1\n");
+		return "Failed to init MoveTable mod 1";
 	}
     if (!install_hook_offset(0x3E1CAC, hook2, &detour2, &jmp_ret2, 10)) {
 		spdlog::error("Failed to init MoveTable mod2\n");
-		return "Failed to init MoveTable mod2";
+		return "Failed to init MoveTable mod 2";
 	}
     if (!install_hook_offset(0x3CD1A6, hook3, &detour3, &jmp_ret3, 6)) {
-		spdlog::error("Failed to init MoveTable mod2\n");
-		return "Failed to init MoveTable mod2";
+		spdlog::error("Failed to init MoveTable mod3\n");
+		return "Failed to init MoveTable mod 3";
 	}
 
     return Mod::on_initialize();
 }
 
 void MoveTable::on_gui_frame() {
+    /*
     ImGui::BeginGroup();
-    if (ImGui::Checkbox(_("Move Table"), &mod_enabled)) {
-        toggle(mod_enabled);
-    }
+    ImGui::Checkbox(_("Move Table"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Replace internal move params\nRequired by \"Aerial Stinger\", \"Payline\" and \"Lucifer Air Throw\""));
 #ifndef NDEBUG
@@ -193,13 +245,14 @@ void MoveTable::on_gui_frame() {
     }
 #endif
     ImGui::EndGroup();
+    */
 }
 
 void MoveTable::on_config_load(const utility::Config& cfg) {
-	mod_enabled = cfg.get<bool>("move_table").value_or(false);
-    toggle(mod_enabled);
+	// mod_enabled = cfg.get<bool>("move_table").value_or(false);
+    // toggle(mod_enabled);
 };
 
 void MoveTable::on_config_save(utility::Config& cfg) {
-	cfg.set<bool>("move_table", mod_enabled);
+	// cfg.set<bool>("move_table", mod_enabled);
 };

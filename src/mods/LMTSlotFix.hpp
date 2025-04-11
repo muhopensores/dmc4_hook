@@ -6,11 +6,11 @@ class LMTSlotFix : public Mod {
 public:
     LMTSlotFix() = default;
 
-    static bool mod_enabled;
+    // static bool mod_enabled;
 
     static uintptr_t jmp_ret1;
 
-    void toggle(bool enable);
+    /// void toggle(bool enable);
 
     std::string get_mod_name() override { return "LMTSlotFix"; };
     std::optional<std::string> on_initialize() override;
