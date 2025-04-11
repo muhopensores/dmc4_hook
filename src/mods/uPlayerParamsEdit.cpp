@@ -1,7 +1,5 @@
 #include "uPlayerParamsEdit.hpp"
 
-
-bool uPlayerParamsEdit::mod_enabled { true };
 uintptr_t uPlayerParamsEdit::jmp_ret1{ NULL };
 uintptr_t uPlayerParamsEdit::jmp_ret2{ NULL };
 static bool fast_gilg_charge { false };
@@ -17,9 +15,9 @@ void __stdcall dante_param_edit(uintptr_t param_table) {
     }
 }
 
-naked void detour1() {//Dante params
+naked void detour1() { // Dante params
     _asm {
-            cmp byte ptr [uPlayerParamsEdit::mod_enabled], 1
+            cmp byte ptr [fast_gilg_charge], 1
             jne originalcode
             // Edit params here
             // mov [edx+whatever]
@@ -28,8 +26,8 @@ naked void detour1() {//Dante params
             call dante_param_edit
             popad
         originalcode:
-            mov [ebx+0x1EA8],edx
-            jmp [uPlayerParamsEdit::jmp_ret1];
+            mov [ebx+0x1EA8], edx
+            jmp [uPlayerParamsEdit::jmp_ret1]
     }
 }
 
@@ -37,19 +35,20 @@ void __stdcall nero_param_edit(float* param_table) {
 
 }
 
+// commented out, nothing uses it yet
 naked void detour2() {//Nero params
     _asm {
-            cmp byte ptr [uPlayerParamsEdit::mod_enabled], 1
-            jne originalcode
+            // cmp byte ptr [fast_?_charge], 1
+            // jne originalcode
             // Edit params here
             // mov [ecx+whatever]
             pushad
             push ecx
             call nero_param_edit
             popad
-        originalcode:
-            mov [ebp+0x1EA8],ecx
-            jmp [uPlayerParamsEdit::jmp_ret2];
+        // originalcode:
+            mov [ebp+0x1EA8], ecx
+            jmp [uPlayerParamsEdit::jmp_ret2]
     }
 }
 
@@ -59,10 +58,10 @@ std::optional<std::string> uPlayerParamsEdit::on_initialize() {
         return "Failed to init uPlayerParamsEdit mod1";
     }
 
-    if (!install_hook_offset(0x3E3327, hook2, &detour2, &jmp_ret2, 6)) {//Nero params
+    /*if (!install_hook_offset(0x3E3327, hook2, &detour2, &jmp_ret2, 6)) {//Nero params
         spdlog::error("Failed to init uPlayerParamsEdit mod2\n");
         return "Failed to init uPlayerParamsEdit mod2";
-    }
+    }*/
     return Mod::on_initialize();
 }
 

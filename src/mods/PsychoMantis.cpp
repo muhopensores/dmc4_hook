@@ -41,13 +41,14 @@ std::optional<std::string> PsychoMantis::on_initialize() {
 }
 
 void PsychoMantis::on_gui_frame() {
-    ImGui::Checkbox(_("Vibe"), &mod_enabled);
+    ImGui::Checkbox(_("Stylevibe"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Put your controller on the floor. Put it down as flat as you can..."
-        "that's good. Now I will move your controller by the power of my style alone!!"));
+        "that's good. Now I will move your controller by the power of my style alone!!\n"
+        "(Vibrates your controller more the higher your style rank)"));
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
-        if (ImGui::Checkbox(_("Vibe Slot 2"), &psycho_mantis_slot_2)) {
+        if (ImGui::Checkbox(_("Vibe Controller 2 Instead"), &psycho_mantis_slot_2)) {
             if (psycho_mantis_slot_2) {
                 PsychoMantis::Controller::_controllerNum = 1;
             }
@@ -56,6 +57,8 @@ void PsychoMantis::on_gui_frame() {
         }
         ImGui::Unindent(lineIndent);
     }
+    ImGui::SameLine();
+    help_marker(_("One simple trick to get your gf interested in your dmc combos"));
 #ifndef NDEBUG
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
