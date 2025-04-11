@@ -1,7 +1,10 @@
 #include "DebugCam.hpp"
 #include "../sdk/ReClass.hpp"
-#include "../sdk/uActor.hpp"
+//#include "../sdk/uActor.hpp"
 #include "../sdk/Devil4.hpp"
+#include "CustomProjectile.hpp"
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 typedef uActorMain::uFreeCamera uFreeCamera;
 typedef uActorMain::uCamera uCamera;
@@ -12,6 +15,7 @@ uintptr_t DebugCam::jmp_ret1 { NULL };
 float DebugCam::freecamSpeed = 1.0f;
 float DebugCam::freecamModifierSpeed = 10.0f;
 bool DebugCam::toggle_gameplay_cam = true;
+bool DebugCam::projectileTest = false;
 bool DebugCam::freecamMouseControls = false;
 bool DebugCam::freecamKeyboardControls = false;
 bool DebugCam::freecamGamepadControls = false;
@@ -114,6 +118,8 @@ sCamera_ViewPort* get_viewport(uint32_t index) {
     return viewport;
 }
 
+bool input_down = false;
+
 void __stdcall freecam_mouse_input(uCamera* camera) {
     uintptr_t sMouse = (uintptr_t)get_sMouse();
     int x_diff = *(int*)(*(uintptr_t*)sMouse + 0x2C);
@@ -132,6 +138,19 @@ void __stdcall freecam_mouse_input(uCamera* camera) {
         viewMatrix = glm::translate(viewMatrix, -cam_pos);
         
         viewMatrix = rotateX * viewMatrix;
+        short mouse_click_state = GetAsyncKeyState(VK_RBUTTON);
+        if (((mouse_click_state && 0xFF) == 1) && (input_down == false)) {
+            input_down = true;
+            void* projptr  = devil4_sdk::mt_allocate_heap(sizeof(CustomProjectileProp), 16);
+            glm::quat qua  = glm::quat_cast(glm::inverse(viewMatrix));
+            qua = glm::rotate(qua, (float)M_PI, glm::vec3(0.0, 1.0f, 0.0));
+            Vector4f quat4 = glm::vec4(qua.x, qua.y, qua.z, qua.w);
+            // void* projptr              = devil4_sdk::mt_allocate_heap(0x18D0, 16);
+            CustomProjectileProp* proj = new (projptr) CustomProjectileProp(120.0f, 30.0f, (Vector3f*)&camera->mCameraPos, &quat4);
+            devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)proj, 1);
+        }
+        if ((mouse_click_state && 0xFF) == 0)
+            input_down = false;
     }
     
     glm::mat4 rotateZ = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
@@ -189,7 +208,7 @@ void __stdcall freecam_mouse_input(uCamera* camera) {
     }
     
     viewMatrix = translateMat * viewMatrix;
-    
+
     glm::vec4 target = glm::inverse(viewMatrix) * glm::vec4(0.0f, 0.0f, -700.0f, 1.0f);
     glm::vec4 up = glm::inverse(viewMatrix) * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
     glm::vec4 pos = glm::inverse(viewMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -311,6 +330,8 @@ void DebugCam::on_gui_frame() {
         vp->mActive = toggle_gameplay_cam;
     }
     ImGui::Checkbox(_("Mouse Controls"), &freecamMouseControls);
+    ImGui::SameLine();
+    ImGui::Checkbox(_("Pew pew"), &projectileTest);
     ImGui::Checkbox(_("Keyboard Controls"), &freecamKeyboardControls);
     ImGui::SameLine();
     help_marker(_("Controls are:\nW, A, S, D = movement\nArrow keys = Pitch & Yaw\nSpace & Ctrl = Up & Down\nQ & E = roll\nShift = speed modifier\n"));

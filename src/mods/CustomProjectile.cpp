@@ -196,11 +196,11 @@ void CustomProjectileProp::die() {
 
 void CustomProjectileProp::startup_override() {
     //Get model
-    void* model = devil4_sdk::get_stuff_from_files((MtDTI*)(uintptr_t)rModelDTI, MODEL_PATH, 1);
-    get_model(this, model);
-    if (&model) {
-        bring_assert(model);
-    }
+    //void* model = devil4_sdk::get_stuff_from_files((MtDTI*)(uintptr_t)rModelDTI, MODEL_PATH, 1);
+    //get_model(this, model);
+    //if (&model) {
+    //    bring_assert(model);
+    //}
 
     void* atk_file = devil4_sdk::get_stuff_from_files((MtDTI*)(uintptr_t)rAtckStatDTI, ATK_PATH, 1);
     void* col_file = devil4_sdk::get_stuff_from_files((MtDTI*)(uintptr_t)rColShapeDTI, COL_PATH, 1);
@@ -289,7 +289,7 @@ CustomProjectileProp::CustomProjectileProp(float keepAlive, float force, uActorM
     this->actor.uActorBase.uModelBase.uCoordBase.mQuat.w = parent->mQuat.w;
 }
 
-CustomProjectileProp::CustomProjectileProp(float keepAlive, float force, Vector3f* Pos, glm::quat* Quat) {
+CustomProjectileProp::CustomProjectileProp(float keepAlive, float force, Vector3f* Pos, Vector4f* Quat) {
     uActorCons(this);
     this->KeepAliveTimer = keepAlive;
     this->HitTimer       = 0.0f;
@@ -354,8 +354,8 @@ std::optional<std::string> CustomProjectile::on_initialize() {
 
 void CustomProjectile::on_gui_frame() {
     if (ImGui::Button("Custom actor")) {
-        if (fileExists)
-            CustomProjectile::SpawnProjectile();
+        //if (fileExists)
+        CustomProjectile::SpawnProjectile();
     }
     ImGui::SameLine();
     help_marker(_("I put a file check here so if this suddenly stopped working blame me"));

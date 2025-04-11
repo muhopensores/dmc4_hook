@@ -30,4 +30,23 @@ namespace devil4_sdk {
 	void spawn_or_something(void* a1, MtObject* obj_to_spawn, int a3);
 	void* mt_allocate_heap(size_t size, int alignment);
 	void* unit_deallocate(MtObject* obj);
+	void* __cdecl MemberFuncToPtr(...);
+	void __stdcall bring_assert(void* rFile);
 };
+
+namespace uactor_sdk {
+	void __stdcall load_atk_col(void* rAtck, void* rCol, void* ColMgr, void* Obj);
+	void __stdcall get_model(void* obj, void* model);
+	void __stdcall updateLmat(void* obj);
+	void __stdcall updateWmat(void* obj);
+	void __stdcall despawn(void* obj);
+	void __stdcall ushell_des(void* obj);
+	void __stdcall uActorCons(void* obj);
+	void __stdcall uCollisionMgrCons(void* obj);
+	void __stdcall collide(void* CollMgr);
+	void __stdcall hitbox_call(void* CollMgr, int id);
+	void __stdcall render_call(void* render_obj, void* trans);
+	void __stdcall uDevil4ModelCons(void* obj);
+	void __stdcall uDevil4ModelDest(void* obj);
+	void __stdcall destructor_call(void* obj);
+}

@@ -2,6 +2,8 @@
 
 #include "../mod.hpp"
 #include "../sdk/uActor.hpp"
+#ifndef CUSTOMPROJECTILE_H
+#define CUSTOMPROJECTILE_H
 
 typedef uActorMain::uActor::uActor uActor_t;
 typedef uActorMain::uModelMain::uModel uModel_t;
@@ -25,7 +27,7 @@ public:
     float force;
     CustomProjectileProp() = default;
     CustomProjectileProp(float keepAlive, float force, uActorMain::uCoord* parent, int parentJoint);
-    CustomProjectileProp(float keepAlive, float force, Vector3f* Pos, glm::quat* Quat);
+    CustomProjectileProp(float keepAlive, float force, Vector3f* Pos, Vector4f* Quat);
     void destructor(uint32_t flag);
     void die();
     void startup_override();
@@ -52,3 +54,4 @@ public:
 private:
     std::unique_ptr<FunctionHook> hook1, hook2;
 };
+#endif

@@ -138,6 +138,7 @@
 #include "mods/DebugCam.hpp"
 #include "mods/NoclipCam.hpp"
 #include "mods/CutscenePause.hpp"
+#include "mods/AfterImage.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -285,6 +286,7 @@ Mods::Mods() {
     ADD_MOD(DebugCam);
     ADD_MOD(NoclipCam);
     ADD_MOD(CutscenePause);
+    ADD_MOD(AfterImage);
 }
 
 // Initializes mods, checks for errors

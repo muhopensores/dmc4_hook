@@ -272,6 +272,8 @@ set(MODS_SRC
   mods/NoLockonRestriction.cpp
   mods/DebugCam.hpp
   mods/DebugCam.cpp
+  mods/AfterImage.hpp
+  mods/AfterImage.cpp
 )
 
 set(HOOKS_SRC

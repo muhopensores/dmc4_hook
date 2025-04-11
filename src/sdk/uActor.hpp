@@ -112,8 +112,7 @@ namespace uActorMain {
 
     struct cUnit {
         uintptr_t* vtable_ptr;
-        uint8_t uknFlag1;
-        uint8_t uknFlag2;
+        uint16_t TransFlag;
         uint8_t mTransMode;
         uint8_t mTransView;
         struct cUnit *mp_next_unit;

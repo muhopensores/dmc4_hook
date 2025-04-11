@@ -411,6 +411,23 @@ namespace devil4_sdk {
 		return (MtObject*)projectile;
 	}
 
+	_declspec(naked) void* __cdecl MemberFuncToPtr(...) {
+		__asm {
+		mov eax, [esp+4]
+		ret
+		}
+	}
+
+	void __stdcall bring_assert(void* rFile) {
+		uintptr_t assert_call = 0x008DDA00;
+		uintptr_t sDevil4Resource_ptr = 0x00E552D0;
+		_asm {
+		mov eax,[sDevil4Resource_ptr]
+		mov eax,[eax]
+		mov edi,[rFile]
+		call assert_call
+		}
+	}
 	//uintptr_t __stdcall player_uEm010ShlCtrl_spawner(uPlayer* actor, uint32_t mode) { //0-pillars, 1-wave
 	//	float WaveRange = 220.0f;
 	//	float WaveInterval = 3.0f;
@@ -424,4 +441,170 @@ namespace devil4_sdk {
 	//	void* mem = mt_allocate_heap(sizeof(UEm003Shl), 0x10);
 	//}
 
+}
+
+namespace uactor_sdk {
+
+	void __stdcall load_atk_col(void* rAtck, void* rCol, void* ColMgr, void* Obj) {
+		uintptr_t load_call = 0x0050BDD0;
+		_asm {
+			pushad
+			push [rAtck]
+			push [rCol]
+			mov esi,[ColMgr]
+			mov eax,[Obj]
+			call load_call
+			popad
+		}
+	}
+
+	void __stdcall get_model(void* obj, void* model) {
+		_asm {
+			pushad
+			mov ecx,[obj]
+			mov eax,[ecx]
+			mov edx,[eax+0x40]
+			mov eax,[model]
+			push eax
+			call edx
+			popad
+		}
+	}
+
+	void __stdcall updateLmat(void* obj) {
+		_asm {
+			pushad
+			mov ecx,[obj]
+			mov eax,[ecx]
+			mov edx,[eax+0x34]
+			call edx
+			popad
+		}
+	}
+
+	void __stdcall updateWmat(void* obj) {
+		_asm {
+			pushad
+			mov ecx,[obj]
+			mov eax,[ecx]
+			mov edx,[eax+0x38]
+			call edx
+			popad
+		}
+	}
+
+	void __stdcall despawn(void* obj) {
+		_asm {
+			mov esi,[obj]
+			mov eax,[esi+4]
+			and eax,-5
+			or eax,3
+			mov [esi+4],eax
+		}
+	}
+
+	void __stdcall ushell_des(void* obj) {
+		uintptr_t ushellDTI         = 0x00BEE7C0;
+		uintptr_t ushell_destructor = 0x004A7280;
+		_asm {
+			pushad
+			mov ecx,[obj]
+			mov esi,ecx
+			mov edx, ushellDTI
+			mov [esi],edx
+			call ushell_destructor
+			popad
+		}
+	}
+
+	void __stdcall uActorCons(void* obj) {
+		uintptr_t uActor_constructor = 0x004A6E80;
+		_asm {
+			mov esi,[obj]
+			call uActor_constructor
+		}
+	}
+
+	void __stdcall uCollisionMgrCons(void* obj) {
+		uintptr_t uCollisionMgr_constructor = 0x0050B080;
+		_asm {
+				mov ecx,[obj]
+				call uCollisionMgr_constructor
+		}
+	}
+
+	void __stdcall collide(void* CollMgr) {
+		_asm {
+				pushad
+				mov ecx,[CollMgr]
+				mov eax,[ecx]
+				mov edx,[eax+0x18]
+				call edx
+				popad
+		}
+	}
+
+	void __stdcall hitbox_call(void* CollMgr, int id) {
+		uintptr_t hitbox_call_func = 0x0050CA60;
+		float timer                = 5.0f;
+		_asm {
+				pushad
+				push 00
+				push [CollMgr]
+				or edx,-1
+				mov eax,[id]
+				call hitbox_call_func
+				test eax,eax
+				je return_addr
+				movss xmm0,[timer]
+				movss [eax+0x14C],xmm0
+				xorps xmm0,xmm0
+				movss [eax+0x148],xmm0
+				mov esi,[CollMgr]
+				mov esi,[esi+0xD8]
+				lea edx,[esi+0xA0]
+				mov [eax+0x140],edx
+				mov byte ptr [eax+0x64],1
+			return_addr:
+				popad
+		}
+	}
+
+	void __stdcall render_call(void* render_obj, void* trans) {
+		uintptr_t render_func = 0x00522DC0;
+		_asm {
+				pushad
+				push [trans]
+				mov ecx, [render_obj]
+				call render_func
+				popad
+		}
+	}
+	
+	void __stdcall uDevil4ModelCons(void* obj) {
+        uintptr_t Devil4Model_constructor = 0x005226F0;
+        _asm {
+				mov ecx,[obj]
+				call Devil4Model_constructor
+        }
+	}
+    void __stdcall uDevil4ModelDest(void* obj) {
+        uintptr_t Devil4Model_destructor = 0x05229B0;
+        _asm {
+			mov ecx,[obj]
+			call Devil4Model_destructor
+        }
+    }
+
+	void __stdcall destructor_call(void* obj) {
+		_asm {
+			pushad
+			mov ecx,[obj]
+			mov esi,[ecx]
+			mov edx,[esi]
+			push 01
+			call edx
+			popad
+		}
+	}
 }

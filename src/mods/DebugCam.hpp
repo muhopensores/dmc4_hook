@@ -12,6 +12,7 @@ public:
     static float freecamSpeed;
     static float freecamModifierSpeed;
     static bool toggle_gameplay_cam;
+    static bool projectileTest;
     static bool freecamMouseControls;
     static bool freecamKeyboardControls;
     static bool freecamGamepadControls;
