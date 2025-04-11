@@ -9,7 +9,7 @@
 typedef uActorMain::uFreeCamera uFreeCamera;
 typedef uActorMain::uCamera uCamera;
 //constexpr uintptr_t freecam_cons { 0x9197A0 };
-bool DebugCam::mod_enabled { true };
+bool DebugCam::mod_enabled { false };
 void* (__stdcall*freecam_cons)() = (void*(__stdcall*)())0x9197A0;
 uintptr_t DebugCam::jmp_ret1 { NULL };
 float DebugCam::freecamSpeed = 1.0f;
@@ -361,7 +361,7 @@ void DebugCam::on_gui_frame() {
 // void DebugCam::on_frame(fmilliseconds& dt) {}
 
 void DebugCam::on_config_load(const utility::Config& cfg) {
-    // mod_enabled = cfg.get<bool>("debug_cam").value_or(false);
+    mod_enabled = cfg.get<bool>("debug_cam").value_or(false);
     freecamSpeed = cfg.get<float>("freecamSpeed").value_or(10.0f);
     freecamModifierSpeed = cfg.get<float>("freecamModifierSpeed").value_or(20.0f);
     freecamMouseControls = cfg.get<bool>("freecamMouseControls").value_or(true);
@@ -370,7 +370,7 @@ void DebugCam::on_config_load(const utility::Config& cfg) {
 };
 
 void DebugCam::on_config_save(utility::Config& cfg) {
-    // cfg.set<bool>("debug_cam", mod_enabled);
+    cfg.set<bool>("debug_cam", mod_enabled);
     cfg.set<float>("freecamSpeed", freecamSpeed);
     cfg.set<float>("freecamModifierSpeed", freecamModifierSpeed);
     cfg.set<bool>("freecamMouseControls", freecamMouseControls);

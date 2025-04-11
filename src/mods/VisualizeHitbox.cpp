@@ -78,7 +78,7 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
 }
 
 void VisualizeHitbox::on_gui_frame() {
-    ImGui::Checkbox(_("Visualize Hitbox"), &mod_enabled);
+    ImGui::Checkbox(_("Visualize Hitboxes"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Draw hitbox outlines"));
 }

@@ -314,12 +314,8 @@ void AfterImage::on_gui_frame() {
         // if (fileExists)
         AfterImage::SpawnAfterImg();
     }
-    ImGui::SameLine();
-    help_marker(_("I put a file check here so if this suddenly stopped working blame me"));
     if (ImGui::Button("After image controller")) {
         // if (fileExists)
         AfterImage::SpawnAfterImgCtl();
     }
-    ImGui::SameLine();
-    help_marker(_("I put a file check here so if this suddenly stopped working blame me"));
 }

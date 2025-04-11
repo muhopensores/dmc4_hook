@@ -33,9 +33,9 @@ void CutscenePause::on_gui_frame() {
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
         ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::InputFloat(_("Cutscene Length"), &cutsceneLength, 0.0f, 10.0f, "%.2f");
-        ImGui::SameLine();
-        help_marker(_("This controls the extent of the next slider"));
+        // ImGui::InputFloat(_("Cutscene Length"), &cutsceneLength, 0.0f, 10.0f, "%.2f");
+        // ImGui::SameLine();
+        // help_marker(_("This controls the extent of the next slider"));
         ImGui::SliderFloat(_("Cutscene Progress"), &cutsceneProgress, 0.0f, cutsceneLength, "%.2f");
         ImGui::SameLine();
         help_marker(_("This doesn't seem to like time being reversed"));

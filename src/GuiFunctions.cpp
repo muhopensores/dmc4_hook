@@ -306,6 +306,9 @@ namespace gui {
     void faq_drawing() {
         if (ImGui::CollapsingHeader(_("Frequently Asked Questions"))) {
             ImGui::Indent();
+            if (ImGui::CollapsingHeader(_("What mods do you recommend most?"))) {
+                ImGui::TextWrapped(_("\"Fast Game Load\" and neighbouring options in the \"System\" tab. Get from your Desktop to BP in 2 seconds."));
+            }
             if (ImGui::CollapsingHeader(_("Old mods I installed have suddenly turned on"))) {
                 ImGui::TextWrapped(_("\"HDD File Priority\" is ticked on the Debug page. If your DMC4 install contains any files left over from old mods, "
                     "this will load them. To clean up your directory you'll need to delete files manually as Steam verification does not check "
@@ -316,7 +319,7 @@ namespace gui {
                     "If you didn't turn this on manually, it would have been auto ticked when you used the reload current room hotkey."));
             }
             if (ImGui::CollapsingHeader(_("My camera is frozen"))) {
-                ImGui::TextWrapped(_("The default hotkey for camera settings' freeze camera is Numpad 0"));
+                ImGui::TextWrapped(_("The default hotkey for camera settings' freeze camera is Numpad 0."));
             }
             ImGui::Unindent();
         }
@@ -839,13 +842,9 @@ namespace gui {
 
                     pmods->on_draw_ui("VisualizeHitbox"_hash);
 
-                    ImGui::Spacing();
                     ImGui::Separator();
-                    ImGui::Spacing();
 
                     pmods->on_draw_ui("CutscenePause"_hash);
-
-                    ImGui::Separator();
 
                     pmods->on_draw_ui("DebugCam"_hash);
 

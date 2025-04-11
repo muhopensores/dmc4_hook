@@ -55,10 +55,10 @@ void PsychoMantis::on_gui_frame() {
             else
                 PsychoMantis::Controller::_controllerNum = 0;
         }
+        ImGui::SameLine();
+        help_marker(_("One simple trick to get your gf interested in your dmc combos"));
         ImGui::Unindent(lineIndent);
     }
-    ImGui::SameLine();
-    help_marker(_("One simple trick to get your gf interested in your dmc combos"));
 #ifndef NDEBUG
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
