@@ -2,10 +2,8 @@
 
 #include "../mod.hpp"
 
-
 class PinProperties: public Mod {
 public:
-    static bool mod_enabled;
     static bool pin_gs_passive_enabled;
     static bool consistent_embed_enabled;
     static uintptr_t jmp_ret1;

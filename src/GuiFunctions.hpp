@@ -27,6 +27,9 @@ namespace gui {
     // function for putting credits specific things in the gui
     void credits_drawing();
 
+    // faq
+    void faq_drawing();
+
     // helpmarker function, to avoid typing it every time in the gui section
     void help_marker(const char* desc);
 

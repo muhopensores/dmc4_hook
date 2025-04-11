@@ -9,61 +9,61 @@ uintptr_t  LuciAirThrow::jmp_ret2 { NULL };
 uintptr_t  LuciAirThrow::jmp_ret3 { NULL };
 uintptr_t  LuciAirThrow::jmp_ret4 { NULL };
 
-naked void detour1(void) {//Character frame skip
-    _asm {
-            cmp byte ptr [LuciAirThrow::mod_enabled],1
-            jne handler
-            cmp byte ptr [ebp+0x1564],0x6D
-            jne handler
-            fld [SplashThrowAnimSpeed]
-            fstp [esp+8]
-            fld [SplashThrowFrame]
-        originalcode:
-            mov ecx,ebp
-            fstp dword ptr [esp+04]
-            jmp [LuciAirThrow::jmp_ret1]
-        handler:
-            fldz
-            jmp originalcode
-    }
-}
-
-naked void detour2(void) {//Wp frame skip
+naked void detour1(void) { // Character frame skip
     _asm {
             cmp byte ptr [LuciAirThrow::mod_enabled],1
             jne originalcode
-            cmp byte ptr [ebp+0x1564],0x6D
+            cmp byte ptr [ebp+0x1564], 0x6D
+            jne originalcode
+            fld [SplashThrowAnimSpeed]
+            fstp [esp+8]
+            fld [SplashThrowFrame]
+            jmp skipcode
+        originalcode:
+            fldz
+        skipcode:
+            mov ecx, ebp
+            fstp dword ptr [esp+04]
+            jmp [LuciAirThrow::jmp_ret1]
+    }
+}
+
+naked void detour2(void) { // Wp frame skip
+    _asm {
+            cmp byte ptr [LuciAirThrow::mod_enabled],1
+            jne originalcode
+            cmp byte ptr [ebp+0x1564], 0x6D
             jne originalcode
             fld [SplashThrowWpFrame]
             fstp [ebx+0x348]
         originalcode:
-            mov eax,[ebp+0x28A4]
+            mov eax, [ebp+0x28A4]
             jmp [LuciAirThrow::jmp_ret2]
     }
 }
 
-naked void detour3(void) {//Modify luci unused actor flags
+naked void detour3(void) { // Modify luci unused actor flags
     _asm {
-            cmp byte ptr [LuciAirThrow::mod_enabled],1
+            cmp byte ptr [LuciAirThrow::mod_enabled], 1
             jne originalcode
-            cmp byte ptr [ebp+0x1564],0x6D
+            cmp byte ptr [ebp+0x1564], 0x6D
             jne originalcode
-            mov [eax+0xEAC],0x1B//unused actor flags
+            mov [eax+0xEAC], 0x1B // unused actor flags
         originalcode:
-            add dword ptr [ebp+0x1504],01
+            add dword ptr [ebp+0x1504], 01
             jmp [LuciAirThrow::jmp_ret3]
     }
 }
 
-naked void detour4(void) {//Wp frame skip
+naked void detour4(void) { // Wp frame skip
     _asm {
-            cmp byte ptr [LuciAirThrow::mod_enabled],1
+            cmp byte ptr [LuciAirThrow::mod_enabled], 1
             jne originalcode
-            cmp byte ptr [ebp+0x1564],0x6D
+            cmp byte ptr [ebp+0x1564], 0x6D
             jne originalcode
-            mov [eax+0xEAC],0x1B
+            mov [eax+0xEAC], 0x1B
         originalcode:
-            mov edx,[ebp+00]
+            mov edx, [ebp+00]
             fld dword ptr [esp+0x14]
             jmp [LuciAirThrow::jmp_ret4]
     }

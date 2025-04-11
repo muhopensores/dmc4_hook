@@ -6,7 +6,7 @@ class StylePoints : public Mod {
 public:
     StylePoints() = default;
 
-    static bool mod_enabled;
+    static bool style_points_display;
     static bool originalNames;
     static uintptr_t jmp_ret1;
     static uintptr_t jmp_ret2;
@@ -14,7 +14,7 @@ public:
     static uintptr_t jmp_ret4;
     static bool tonyHawk;
     static bool moreGrouping;
-    static bool showAirTimeDisplay;
+    // static bool showAirTimeDisplay;
     static bool showHeightChart;
     static bool showInertiaChart;
 

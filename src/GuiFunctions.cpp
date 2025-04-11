@@ -218,95 +218,102 @@ namespace gui {
         static ImVec4 color2 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
         static ImVec4 color3 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
         static ImVec4 color4 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
-        if (ImGui::BeginTabItem(_("About"))) {
-            ImGui::BeginChild("AboutChild");
-            ImGui::Spacing();
-            ImGui::Text(_("DMC4Hook - Devil May Cry 4 Trainer"));
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
-            ImGui::Text("Mstislav Capusta");
-            ImGui::Text("SSSiyan");
-            ImGui::Text("Vieris");
-            ImGui::Text("CrazyMelody");
-            ImGui::Text("Dlupx");
-            ImGui::Text("cheburrat0r");
-            ImGui::Text("endneo");
+        ImGui::Spacing();
+        ImGui::Text(_("DMC4Hook - Devil May Cry 4 Trainer"));
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        ImGui::Text("Mstislav Capusta");
+        ImGui::Text("SSSiyan");
+        ImGui::Text("Vieris");
+        ImGui::Text("CrazyMelody");
+        ImGui::Text("Dlupx");
+        ImGui::Text("cheburrat0r");
+        ImGui::Text("endneo");
 
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
 
-            ImGui::Text("Special Thanks:");
-            ImGui::Text("socks");
-            ImGui::Text("Whirling");
-            ImGui::Text("Terrutas");
-            ImGui::Text("Boey");
-            ImGui::Text("DelusionaryKiller");
-            ImGui::Text("DJMalice");
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
-            ImGui::Text(_("For more info and updates visit the github:"));
+        ImGui::Text("Special Thanks:");
+        ImGui::Text("socks");
+        ImGui::Text("Whirling");
+        ImGui::Text("Terrutas");
+        ImGui::Text("Boey");
+        ImGui::Text("DelusionaryKiller");
+        ImGui::Text("DJMalice");
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        ImGui::Text(_("For more info and updates visit the github:"));
 
-            ImGuiURL repo{ "https://github.com/muhopensores/dmc4_hook", "https://github.com/muhopensores/dmc4_hook" };
-            repo.draw();
+        ImGuiURL repo{ "https://github.com/muhopensores/dmc4_hook", "https://github.com/muhopensores/dmc4_hook" };
+        repo.draw();
 
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
 
-            ImGui::Text(_("This trainer was made using:"));
+        ImGui::Text(_("This trainer was made using:"));
 
-            // NOTE(): oops forgot cpp17 has CTAD hehe
-            static std::array links {
-                ImGuiURL { "REFramework -> https://github.com/praydog/REFramework", "https://github.com/praydog/REFramework" },
-                ImGuiURL { "GLM -> https://github.com/g-truc/glm", "https://github.com/g-truc/glm"},
-                ImGuiURL { "Dear ImGui -> https://github.com/ocornut/imgui", "https://github.com/ocornut/imgui" },
-                ImGuiURL { "MinHook -> https://github.com/TsudaKageyu/minhook", "https://github.com/TsudaKageyu/minhook" },
-                ImGuiURL { "spdlog -> https://github.com/gabime/spdlog", "https://github.com/gabime/spdlog" },
-                ImGuiURL { "GNU gettext -> https://www.gnu.org/software/gettext/", "https://www.gnu.org/software/gettext/" },
-                ImGuiURL { "mo_file.zip -> http://number-none.com/blow/code/mo_file/index.html", "http://number-none.com/blow/code/mo_file/index.html" },
+        // NOTE(): oops forgot cpp17 has CTAD hehe
+        static std::array links {
+            ImGuiURL { "REFramework -> https://github.com/praydog/REFramework", "https://github.com/praydog/REFramework" },
+            ImGuiURL { "GLM -> https://github.com/g-truc/glm", "https://github.com/g-truc/glm"},
+            ImGuiURL { "Dear ImGui -> https://github.com/ocornut/imgui", "https://github.com/ocornut/imgui" },
+            ImGuiURL { "MinHook -> https://github.com/TsudaKageyu/minhook", "https://github.com/TsudaKageyu/minhook" },
+            ImGuiURL { "spdlog -> https://github.com/gabime/spdlog", "https://github.com/gabime/spdlog" },
+            ImGuiURL { "GNU gettext -> https://www.gnu.org/software/gettext/", "https://www.gnu.org/software/gettext/" },
+            ImGuiURL { "mo_file.zip -> http://number-none.com/blow/code/mo_file/index.html", "http://number-none.com/blow/code/mo_file/index.html" },
+        };
+        for (auto& link: links) {
+            link.draw();
+        }
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        if (ImGui::CollapsingHeader(_("Licenses"))) {
+            ImGui::TreePush(_("Licenses"));
+
+            struct License {
+                std::string name;
+                std::string text;
             };
-            for (auto& link: links) {
-                link.draw();
-            }
 
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
+            static std::array licenses{
+                License{ "REFramework",   license::reframework },
+                License{ "GLM",           license::glm },
+                License{ "ImGui",         license::imgui },
+                License{ "MinHook",       license::minhook },
+                License{ "spdlog",        license::spdlog },
+                License{ "csys",          license::csys },
+                License{ "imgui_console", license::imgui_console },
+                License{ "GNU gettext",   license::gnu_gettext },
+                License{ "mo_file.zip",   license::naysayer_gettext },
+            };
 
-            if (ImGui::CollapsingHeader(_("Licenses"))) {
-                ImGui::TreePush(_("Licenses"));
-
-                struct License {
-                    std::string name;
-                    std::string text;
-                };
-
-                static std::array licenses{
-                    License{ "REFramework",   license::reframework },
-                    License{ "GLM",           license::glm },
-                    License{ "ImGui",         license::imgui },
-                    License{ "MinHook",       license::minhook },
-                    License{ "spdlog",        license::spdlog },
-                    License{ "csys",          license::csys },
-                    License{ "imgui_console", license::imgui_console },
-                    License{ "GNU gettext",   license::gnu_gettext },
-                    License{ "mo_file.zip",   license::naysayer_gettext },
-                };
-
-                for (const auto& license : licenses) {
-                    if (ImGui::CollapsingHeader(license.name.c_str())) {
-                        ImGui::TextWrapped(license.text.c_str());
-                    }
+            for (const auto& license : licenses) {
+                if (ImGui::CollapsingHeader(license.name.c_str())) {
+                    ImGui::TextWrapped(license.text.c_str());
                 }
-
-                ImGui::TreePop();
             }
-            g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
-            ImGui::EndChild();
-            ImGui::EndTabItem();
+            ImGui::TreePop();
+        }
+    }
+
+    void faq_drawing() {
+        if (ImGui::CollapsingHeader(_("Frequently Asked Questions"))) {
+            ImGui::Indent();
+            if (ImGui::CollapsingHeader(_("My combo points are stuck at 0"))) {
+                ImGui::TextWrapped(_("\"Respawn Enemies when visiting the same room multiple times\" is ticked on the debug screen."
+                    "If you didn't turn this on manually, it would have been auto ticked when you used the reload current room hotkey."));
+            }
+            if (ImGui::CollapsingHeader(_(""))) {
+                ImGui::Text(_(""));
+            }
+            ImGui::Unindent();
         }
     }
 
@@ -557,6 +564,9 @@ namespace gui {
 
 
                     ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
                     ImGui::Text(_("Aerial grounded moves"));
                     ImGui::Spacing();
 
@@ -566,8 +576,6 @@ namespace gui {
 
                     pmods->on_draw_ui("AirMustang"_hash);
                     ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("LuciAirThrow"_hash);
-
                     pmods->on_draw_ui("AerialDrive"_hash);
 
                     ImGui::Spacing();
@@ -582,6 +590,8 @@ namespace gui {
                     pmods->on_draw_ui("ForceLucifer"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("InputStates"_hash); // taunt ecstasy
+
+                    pmods->on_draw_ui("LuciAirThrow"_hash);
 
                     ImGui::Spacing();
                     ImGui::Text(_("Rose"));
@@ -696,12 +706,18 @@ namespace gui {
 
                     pmods->on_draw_ui("HideHud"_hash); // needs its own line
 
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    ImGui::Text(_("Custom HUD elements"));
+
                     pmods->on_draw_ui("PinTimer"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("RedOrbCompletion"_hash);
 
-                    pmods->on_draw_ui("StylePoints"_hash);
-                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("StylePoints"_hash); // needs its own line
+
                     pmods->on_draw_ui("GuardTimer"_hash);
 
                     ImGui::Spacing();
@@ -819,19 +835,21 @@ namespace gui {
                     // pmods->onDrawUI("ShaderEditor"_hash);
                     pmods->on_draw_ui("MoveTable"_hash);
 
-                    pmods->on_draw_ui("LMTSlotFix"_hash);
-                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("VisualizeHitbox"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    pmods->on_draw_ui("CustomProjectile"_hash);
-
                     pmods->on_draw_ui("CutscenePause"_hash);
 
+                    ImGui::Separator();
+
                     pmods->on_draw_ui("DebugCam"_hash);
+
+                    ImGui::Separator();
+
+                    pmods->on_draw_ui("CustomProjectile"_hash);
 
                     pmods->on_draw_ui("AfterImage"_hash);
 
@@ -850,7 +868,15 @@ namespace gui {
                     ImGui::EndChild();
                     ImGui::EndTabItem();
                 }
-                credits_drawing();
+                if (ImGui::BeginTabItem(_("About"))) {
+                    ImGui::BeginChild("AboutChild");
+                    faq_drawing();
+                    credits_drawing();
+
+                    g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
+                    ImGui::EndChild();
+                    ImGui::EndTabItem();
+                }
                 ImGui::EndTabBar();
             }
             ImGui::End();

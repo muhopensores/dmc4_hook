@@ -46,7 +46,7 @@ void MoveTable::toggle(bool enable) {
 naked void detour1(void) { //Assign Dante's kAtckDefTbl
     _asm  {
             push eax
-            cmp byte ptr [MoveTable::mod_enabled],1
+            cmp byte ptr [MoveTable::mod_enabled], 1
             jne handler
             mov eax,HookDanteKADTbl
             mov dword ptr [edi+0x1DCC],eax
@@ -63,7 +63,7 @@ naked void detour1(void) { //Assign Dante's kAtckDefTbl
 naked void detour2(void) { //Assign Nero's kAtckDefTbl
     _asm  {
             push eax
-            cmp byte ptr [MoveTable::mod_enabled],1
+            cmp byte ptr [MoveTable::mod_enabled], 1
             jne handler
             mov eax,HookNeroKADTbl
             mov dword ptr [esi+0x1DCC],eax
@@ -76,7 +76,6 @@ naked void detour2(void) { //Assign Nero's kAtckDefTbl
             jmp originalcode
     }
 }
-
 
 // Handle Dante's new move ids
 void __stdcall dante_move_switch(uint32_t moveID, uintptr_t actor) {
@@ -94,6 +93,8 @@ void __stdcall dante_move_switch(uint32_t moveID, uintptr_t actor) {
 naked void detour3(void) { //handle Dante's move call
     _asm {
             jna originalcode
+            cmp byte ptr [MoveTable::mod_enabled], 1
+            jne originalcode
             pushad
             push eax //uPlayerDante
             push ecx //moveID
@@ -178,6 +179,9 @@ void MoveTable::on_gui_frame() {
             ImGui::InputScalar(_("Move Cancel ID 5"), ImGuiDataType_U32, &TblEntry->cancelId[4]);
             TblEntry = (kAtckDefTbl*)(uintptr_t)(kAtckDefTblPtr);
             ImGui::Unindent(lineIndent);
+        }
+        else {
+            ImGui::Text(_("Load into a stage to see this table"));
         }
     }
 }

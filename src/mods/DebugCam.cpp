@@ -279,73 +279,75 @@ const RegionButton REGION_BUTTONS[3][3] = {
 };
 
 void DebugCam::on_gui_frame() {
-    ImGui::Separator();
-    ImGui::Text(_("Free Cam"));
-    ImGui::Indent(lineIndent);
-    for (int viewportId = 0; viewportId < NUM_VIEWPORTS; viewportId++) {
-        if (viewportId % 2 != 0) {
-            ImGui::SameLine(sameLineWidth + lineIndent);
-        }
-        ImGui::PushID(viewportId);
-        ImGui::BeginGroup();
-        if (viewportId == 0) {
-            ImGui::Text(_("Gameplay Cam"));
-        } else {
-            ImGui::Text(_("Extra Cam %i"), viewportId);
-        }
-        ImGui::SetNextItemWidth(sameLineItemWidth);
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 3; col++) {
-                const RegionButton& rb = REGION_BUTTONS[row][col];
-                ImGui::PushStyleColor(ImGuiCol_Button, 
-                    (selectedViewportOption[viewportId] == rb.mode) ? 
-                    SELECTED_BUTTON_COLOR : NORMAL_BUTTON_COLOR);
-                if (ImGui::Button(rb.label, ImVec2(BUTTON_SIZE, BUTTON_SIZE))) {
-                    selectedViewportOption[viewportId] = rb.mode;
-                
-                    if (viewportId == 0) {
-                        sCamera_ViewPort* first_vp = get_viewport(0);
-                        first_vp->mMode = selectedViewportOption[viewportId];
-                    } else {
-                        uFreeCamera* cam = (uFreeCamera*)freecam_cons();
-                        if (freecamGamepadControls) cam->mControlPad = 0;
-                        devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)cam, 0x17);
-                        sCamera_ViewPort* first_vp = get_viewport(0);
-                        set_viewport(viewportId, selectedViewportOption[viewportId], (uintptr_t)cam);
-                        cam->uCameraBase.mCameraPos = ((uCamera*)*(uintptr_t*)&first_vp->mpCamera)->mCameraPos;
-                        cam->uCameraBase.mTargetPos = ((uCamera*)*(uintptr_t*)&first_vp->mpCamera)->mTargetPos;
-                        cam->uCameraBase.mCameraUp  = ((uCamera*)*(uintptr_t*)&first_vp->mpCamera)->mCameraUp;
+    ImGui::Checkbox(_("Debug Camera"), &mod_enabled);
+    if (mod_enabled) {
+        ImGui::Indent(lineIndent);
+        for (int viewportId = 0; viewportId < NUM_VIEWPORTS; viewportId++) {
+            if (viewportId % 2 != 0) {
+                ImGui::SameLine(sameLineWidth + lineIndent);
+            }
+            ImGui::PushID(viewportId);
+            ImGui::BeginGroup();
+            if (viewportId == 0) {
+                ImGui::Text(_("Gameplay Cam"));
+            }
+            else {
+                ImGui::Text(_("Extra Cam %i"), viewportId);
+            }
+            ImGui::SetNextItemWidth(sameLineItemWidth);
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 3; col++) {
+                    const RegionButton& rb = REGION_BUTTONS[row][col];
+                    ImGui::PushStyleColor(ImGuiCol_Button,
+                        (selectedViewportOption[viewportId] == rb.mode) ?
+                        SELECTED_BUTTON_COLOR : NORMAL_BUTTON_COLOR);
+                    if (ImGui::Button(rb.label, ImVec2(BUTTON_SIZE, BUTTON_SIZE))) {
+                        selectedViewportOption[viewportId] = rb.mode;
+
+                        if (viewportId == 0) {
+                            sCamera_ViewPort* first_vp = get_viewport(0);
+                            first_vp->mMode = selectedViewportOption[viewportId];
+                        }
+                        else {
+                            uFreeCamera* cam = (uFreeCamera*)freecam_cons();
+                            if (freecamGamepadControls) cam->mControlPad = 0;
+                            devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)cam, 0x17);
+                            sCamera_ViewPort* first_vp = get_viewport(0);
+                            set_viewport(viewportId, selectedViewportOption[viewportId], (uintptr_t)cam);
+                            cam->uCameraBase.mCameraPos = ((uCamera*)*(uintptr_t*)&first_vp->mpCamera)->mCameraPos;
+                            cam->uCameraBase.mTargetPos = ((uCamera*)*(uintptr_t*)&first_vp->mpCamera)->mTargetPos;
+                            cam->uCameraBase.mCameraUp = ((uCamera*)*(uintptr_t*)&first_vp->mpCamera)->mCameraUp;
+                        }
+                    }
+                    ImGui::PopStyleColor();
+                    if (col < 2) {
+                        ImGui::SameLine(0, BUTTON_SPACING);
                     }
                 }
-                ImGui::PopStyleColor();
-                if (col < 2) {
-                    ImGui::SameLine(0, BUTTON_SPACING);
-                }
             }
+            ImGui::EndGroup();
+            ImGui::PopID();
         }
-        ImGui::EndGroup();
-        ImGui::PopID();
-    }
 
-
-    if (ImGui::Checkbox(_("Toggle Gameplay Cam"), &toggle_gameplay_cam)) {
-        sCamera_ViewPort* vp = get_viewport(0);
-        vp->mActive = toggle_gameplay_cam;
+        if (ImGui::Checkbox(_("Toggle Gameplay Cam"), &toggle_gameplay_cam)) {
+            sCamera_ViewPort* vp = get_viewport(0);
+            vp->mActive = toggle_gameplay_cam;
+        }
+        ImGui::Checkbox(_("Mouse Controls"), &freecamMouseControls);
+        ImGui::SameLine();
+        ImGui::Checkbox(_("Pew pew"), &projectileTest);
+        ImGui::Checkbox(_("Keyboard Controls"), &freecamKeyboardControls);
+        ImGui::SameLine();
+        help_marker(_("Controls are:\nW, A, S, D = movement\nArrow keys = Pitch & Yaw\nSpace & Ctrl = Up & Down\nQ & E = roll\nShift = speed modifier\n"));
+        ImGui::Checkbox(_("Gamepad Controls"), &freecamGamepadControls);
+        ImGui::SameLine();
+        help_marker(_("This option applies when selecting a new splitscreen"));
+        ImGui::PushItemWidth(sameLineItemWidth);
+        ImGui::SliderFloat(_("Camera Speed"), &freecamSpeed, 0.0f, 100.0f, "%.0f");
+        ImGui::SliderFloat(_("Camera Modifier Speed"), &freecamModifierSpeed, 0.0f, 200.0f, "%.0f");
+        ImGui::PopItemWidth();
+        ImGui::Unindent();
     }
-    ImGui::Checkbox(_("Mouse Controls"), &freecamMouseControls);
-    ImGui::SameLine();
-    ImGui::Checkbox(_("Pew pew"), &projectileTest);
-    ImGui::Checkbox(_("Keyboard Controls"), &freecamKeyboardControls);
-    ImGui::SameLine();
-    help_marker(_("Controls are:\nW, A, S, D = movement\nArrow keys = Pitch & Yaw\nSpace & Ctrl = Up & Down\nQ & E = roll\nShift = speed modifier\n"));
-    ImGui::Checkbox(_("Gamepad Controls"), &freecamGamepadControls);
-    ImGui::SameLine();
-    help_marker(_("This option applies when selecting a new splitscreen"));
-    ImGui::PushItemWidth(sameLineItemWidth);
-    ImGui::SliderFloat(_("Camera Speed"), &freecamSpeed, 0.0f, 100.0f, "%.0f");
-    ImGui::SliderFloat(_("Camera Modifier Speed"), &freecamModifierSpeed, 0.0f, 200.0f, "%.0f");
-    ImGui::PopItemWidth();
-    ImGui::Unindent();
 }
 
 // void DebugCam::on_frame(fmilliseconds& dt) {}
