@@ -8,8 +8,8 @@
 
 typedef uActorMain::uFreeCamera uFreeCamera;
 typedef uActorMain::uCamera uCamera;
-// bool DebugCam::mod_enabled{false};
 //constexpr uintptr_t freecam_cons { 0x9197A0 };
+bool DebugCam::mod_enabled { true };
 void* (__stdcall*freecam_cons)() = (void*(__stdcall*)())0x9197A0;
 uintptr_t DebugCam::jmp_ret1 { NULL };
 float DebugCam::freecamSpeed = 1.0f;
@@ -227,11 +227,14 @@ void __stdcall freecam_mouse_input(uCamera* camera) {
 
 naked void detour1(void) {
     _asm {
+        cmp byte ptr [DebugCam::mod_enabled], 1
+        jne originalcode
+
         pushad
         push esi
         call freecam_mouse_input
         popad
-    //originalcode:
+    originalcode:
         mov eax,[esi+0x000000C0]
         jmp [DebugCam::jmp_ret1]
     }

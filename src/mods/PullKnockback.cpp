@@ -1,5 +1,6 @@
 #include "PullKnockback.hpp"
 
+bool PullKnockback::mod_enabled { true };
 uintptr_t PullKnockback::jmp_ret1{ NULL };
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 constexpr uintptr_t detour1_jmp = 0x4A9D47;
@@ -7,6 +8,9 @@ constexpr uintptr_t detour1_jmp = 0x4A9D47;
 naked void detour1(void) {//Knock enemies towards player if kAttackStatus+0x50(mBlownAngleType) > 1 
     _asm {
             je originalcode
+
+            cmp byte ptr [PullKnockback::mod_enabled], 1
+            jne originalcode
             //cmp eax,2
             //jne originalcode
             pushad

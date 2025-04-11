@@ -7,6 +7,7 @@ class uPlayerParamsEdit: public Mod {
 public:
     static uintptr_t jmp_ret1;
     static uintptr_t jmp_ret2;
+    static bool mod_enabled;
 
     uPlayerParamsEdit() = default;
 

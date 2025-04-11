@@ -6,7 +6,7 @@ class DebugCam : public Mod {
 public:
     DebugCam() = default;
 
-    // static bool mod_enabled;
+    static bool mod_enabled;
     static uintptr_t jmp_ret1;
 
     static float freecamSpeed;

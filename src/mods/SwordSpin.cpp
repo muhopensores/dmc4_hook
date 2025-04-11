@@ -34,6 +34,7 @@ naked void detour1(void) {
     _asm {
             cmp byte ptr [SwordSpin::mod_enabled],1
             jne originalcode
+
             pushad
             //blur
             mov eax,[ebx+0x17A0] //uPlSwordBlur
@@ -98,12 +99,15 @@ void __stdcall set_spin_vars(float* srcMat) {
 
 naked void detour2(void) {
     _asm {
+            cmp byte ptr [SwordSpin::mod_enabled],1
+            jne originalcode
+
             pushad
             lea eax,[edi+0xA0]
             push eax
             call set_spin_vars
             popad
-        //originalcode:
+        originalcode:
             or word ptr [edi+0x000028BE],04
             jmp [SwordSpin::jmp_ret2]
     }

@@ -1,5 +1,7 @@
 #include "uPlayerParamsEdit.hpp"
 
+
+bool uPlayerParamsEdit::mod_enabled { true };
 uintptr_t uPlayerParamsEdit::jmp_ret1{ NULL };
 uintptr_t uPlayerParamsEdit::jmp_ret2{ NULL };
 static bool fast_gilg_charge { false };
@@ -17,13 +19,15 @@ void __stdcall dante_param_edit(uintptr_t param_table) {
 
 naked void detour1() {//Dante params
     _asm {
-        //Edit params here
-        //mov [edx+whatever]
+            cmp byte ptr [uPlayerParamsEdit::mod_enabled], 1
+            jne originalcode
+            // Edit params here
+            // mov [edx+whatever]
             pushad
             push edx
             call dante_param_edit
             popad
-        //originalcode
+        originalcode:
             mov [ebx+0x1EA8],edx
             jmp [uPlayerParamsEdit::jmp_ret1];
     }
@@ -35,13 +39,15 @@ void __stdcall nero_param_edit(float* param_table) {
 
 naked void detour2() {//Nero params
     _asm {
-        //Edit params here
-        //mov [ecx+whatever]
+            cmp byte ptr [uPlayerParamsEdit::mod_enabled], 1
+            jne originalcode
+            // Edit params here
+            // mov [ecx+whatever]
             pushad
             push ecx
             call nero_param_edit
             popad
-        //originalcode
+        originalcode:
             mov [ebp+0x1EA8],ecx
             jmp [uPlayerParamsEdit::jmp_ret2];
     }

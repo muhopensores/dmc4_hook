@@ -4,7 +4,7 @@
 
 
 
-bool PinProperties::mod_enabled { false };
+bool PinProperties::mod_enabled { true };
 bool PinProperties::pin_gs_passive_enabled { false };
 bool PinProperties::consistent_embed_enabled{false};
 
@@ -22,6 +22,9 @@ uintptr_t PinProperties::jmp_ret9{NULL};
 
 naked void detour1(void) {//Explode on contact, 2nd bit
     _asm {
+            cmp byte ptr [PinProperties::mod_enabled], 1
+            jne originalcode
+
             test [esi+0xEAC],2 //Unused uActor flags
             je originalcode
 
@@ -54,6 +57,9 @@ naked void detour1(void) {//Explode on contact, 2nd bit
 
 naked void detour2(void) {//Keep pin moving, 1st bit
     _asm {
+            cmp byte ptr [PinProperties::mod_enabled], 1
+            jne originalcode
+
             test [esi+0xEAC],1
             je originalcode
             mulss xmm2,[PinSpeedMultiplier]
@@ -66,6 +72,9 @@ naked void detour2(void) {//Keep pin moving, 1st bit
 
 naked void detour3(void) {//Slow down pinned enemies, 3rd bit
     _asm {
+            cmp byte ptr [PinProperties::mod_enabled], 1
+            jne originalcode
+
             test [ecx+0xEAC],4
             je originalcode
             push eax
@@ -81,6 +90,9 @@ naked void detour3(void) {//Slow down pinned enemies, 3rd bit
 
 naked void detour4(void) {//Reset enemies' speed
     _asm {
+            cmp byte ptr [PinProperties::mod_enabled], 1
+            jne originalcode
+
             cmp [esi+0x18],0
             je originalcode
             push eax
@@ -96,6 +108,9 @@ naked void detour4(void) {//Reset enemies' speed
 
 naked void detour5(void) { // Arcing explosion knockback (4), pull enemy towards player (5)
     _asm {
+            cmp byte ptr [PinProperties::mod_enabled], 1
+            jne originalcode
+
             test [esi+0xEAC],8
             je PullTest
             mov byte ptr [eax+0xA4+0x34],8
@@ -122,10 +137,13 @@ void __stdcall pin_conditional_properties(uintptr_t player, uintptr_t pin) {
 
 naked void detour6(void) { // Arcing explision knockback
     _asm {
+            cmp byte ptr [PinProperties::mod_enabled], 1
+            jne originalcode
+
             push esi
             push edi
             call pin_conditional_properties
-        //originalcode:
+        originalcode:
             mov [edi+ebx*4+0x14DBC],esi
             jmp [PinProperties::jmp_ret6]
     }
@@ -190,6 +208,9 @@ void __stdcall rotate_to_target(void* pin, void* target) {
 
 naked void detour7(void) {//discipline track target
     _asm {
+            cmp byte ptr [PinProperties::mod_enabled], 1
+            jne originalcode
+
             pushad
             test [esi+0xEAC],0x20
             je handler
@@ -272,17 +293,17 @@ void __stdcall negrad_to_2rad(float* v) {
     //v[1] -= (float)M_PI;
 }
 
-naked void detour9(void) {
-    _asm {
-            movss [esi+0x1818],xmm0
-            push edi
-            lea edi,[esi+0x1810]
-            push edi
-            call negrad_to_2rad
-            pop edi
-            jmp [PinProperties::jmp_ret9]
-    }
-}
+//naked void detour9(void) {
+//    _asm {
+//            movss [esi+0x1818],xmm0
+//            push edi
+//            lea edi,[esi+0x1810]
+//            push edi
+//            call negrad_to_2rad
+//            pop edi
+//            jmp [PinProperties::jmp_ret9]
+//    }
+//}
 
 std::optional<std::string> PinProperties::on_initialize() {
     if (!install_hook_offset(0x4131B0, hook1, &detour1, &jmp_ret1, 8)) {
