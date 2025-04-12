@@ -41,6 +41,7 @@ std::optional<std::string> PsychoMantis::on_initialize() {
 }
 
 void PsychoMantis::on_gui_frame() {
+    ImGui::BeginGroup();
     ImGui::Checkbox(_("Stylevibe"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Put your controller on the floor. Put it down as flat as you can..."
@@ -75,6 +76,7 @@ void PsychoMantis::on_gui_frame() {
         ImGui::Unindent(lineIndent);
     }
 #endif
+    ImGui::EndGroup();
 }
 void PsychoMantis::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {

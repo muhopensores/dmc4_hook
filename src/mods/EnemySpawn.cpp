@@ -449,13 +449,16 @@ void EnemySpawn::on_gui_frame() {
     ImGui::Text(_("Enemy Spawner"));
     ImGui::SameLine();
     help_marker(_("Any clicked enemy will spawn above player coords"));
+    ImGui::Spacing();
     int enemy_names_current = 0;
+    ImGui::PushItemWidth(sameLineItemWidth);
     if (ImGui::ListBox("##Enemy Spawn Listbox", &enemy_names_current, enemy_names.data(), enemy_names.size(), 21)) {
         spawn_em00x(enemy_names_current);
     }
     if (ImGui::Button(_("Random"))) {
         spawn_random_enemy();
     }
+    ImGui::PopItemWidth();
 }
 
 #if 0

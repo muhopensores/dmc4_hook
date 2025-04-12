@@ -15,6 +15,8 @@ public:
 	void on_frame(fmilliseconds& dt) override;
     void on_reset() override;
     void after_reset() override;
+	void on_config_load(const utility::Config& cfg) override;
+	void on_config_save(utility::Config& cfg) override;
 
 private:
 	PDIRECT3DTEXTURE9 m_texture_handle{ nullptr };

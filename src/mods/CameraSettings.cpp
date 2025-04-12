@@ -405,22 +405,11 @@ void CameraSettings::on_gui_frame() {
     help_marker(_("When above the locked on enemy the camera will look down"));
 
     ImGui::BeginGroup();
-    ImGui::Checkbox(_("Side Reset"), &camera_reset_enabled);
+    ImGui::Checkbox(_("Use Custom Camera Variables"), &mod_enabled);
     ImGui::SameLine();
-    help_marker(_("When pressing camera reset, the camera will be set to the player's side"));
-    if (camera_reset_enabled) {
+    help_marker(_("Also enables the editing of these values via hotkeys"));
+    if (mod_enabled) {
         ImGui::Indent(lineIndent);
-        ImGui::Checkbox(_("Right Side Reset"), &cam_right);
-        ImGui::SameLine();
-        help_marker(_("Set the camera to the right instead"));
-        ImGui::Unindent(lineIndent);
-    }
-    ImGui::EndGroup();
-
-    if (ImGui::CollapsingHeader(_("Camera Variables"))) {
-        ImGui::Checkbox(_("Use Custom Camera Variables"), &mod_enabled);
-        ImGui::SameLine();
-        help_marker(_("Also enables the editing of these values via hotkeys"));
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::InputFloat(_("Height"), &CameraSettings::camera_height, 10.0f, 20.0f, "%.0f");
         ImGui::Spacing();
@@ -442,15 +431,30 @@ void CameraSettings::on_gui_frame() {
             CameraSettings::camera_height = 0.0f;
             CameraSettings::camera_distance = 0.0f;
             CameraSettings::camera_distance_lockon = 0.0f;
-            CameraSettings::camera_angle           = 0.0f;
-            CameraSettings::camera_angle_lockon    = 0.0f;
-            CameraSettings::camera_fov             = 0.0f;
-            CameraSettings::camera_fov_in_battle   = 0.0f;
+            CameraSettings::camera_angle = 0.0f;
+            CameraSettings::camera_angle_lockon = 0.0f;
+            CameraSettings::camera_fov = 0.0f;
+            CameraSettings::camera_fov_in_battle = 0.0f;
             pause_camera_enabled = false;
             toggle_pause_camera(pause_camera_enabled);
         }
+        ImGui::Unindent(lineIndent);
         ImGui::PopItemWidth();
     }
+    ImGui::EndGroup();
+    ImGui::SameLine(sameLineWidth);
+    ImGui::BeginGroup();
+    ImGui::Checkbox(_("Side Reset"), &camera_reset_enabled);
+    ImGui::SameLine();
+    help_marker(_("When pressing camera reset, the camera will be set to the player's left"));
+    if (camera_reset_enabled) {
+        ImGui::Indent(lineIndent);
+        ImGui::Checkbox(_("Right Side Reset"), &cam_right);
+        ImGui::SameLine();
+        help_marker(_("Set the camera to the right instead"));
+        ImGui::Unindent(lineIndent);
+    }
+    ImGui::EndGroup();
 }
 
 std::optional<std::string> CameraSettings::on_initialize() {

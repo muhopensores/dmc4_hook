@@ -284,7 +284,8 @@ static void ToggleGameplayCam(bool enable) {
 }
 
 void DebugCam::on_gui_frame() {
-    if (ImGui::Checkbox(_("Debug Camera"), &mod_enabled)) {
+    ImGui::BeginGroup();
+    if (ImGui::Checkbox(_("Free Camera"), &mod_enabled)) {
         if (!mod_enabled) {
             toggle_gameplay_cam = true;
             ToggleGameplayCam(toggle_gameplay_cam);
@@ -354,8 +355,9 @@ void DebugCam::on_gui_frame() {
         ImGui::SliderFloat(_("Camera Speed"), &freecamSpeed, 0.0f, 100.0f, "%.0f");
         ImGui::SliderFloat(_("Camera Modifier Speed"), &freecamModifierSpeed, 0.0f, 200.0f, "%.0f");
         ImGui::PopItemWidth();
-        ImGui::Unindent();
+        ImGui::Unindent(lineIndent);
     }
+    ImGui::EndGroup();
 }
 
 // void DebugCam::on_frame(fmilliseconds& dt) {}

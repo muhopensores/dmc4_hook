@@ -174,12 +174,12 @@ uEnemy* GetDesiredEnemy(bool useLockon) {
 }
 
 void SaveStateWithCurrentEnemy() {
-    if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
+    if (auto enemy = GetDesiredEnemy(true))
         save_load_enemy_info(true, enemy);
     PlayerTracker::SavePlayerMove();
 }
 void LoadStateWithCurrentEnemy() {
-    if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
+    if (auto enemy = GetDesiredEnemy(true))
         save_load_enemy_info(false, enemy);
     PlayerTracker::LoadPlayerMove();
 }
@@ -187,22 +187,19 @@ void LoadStateWithCurrentEnemy() {
 void EnemyTracker::on_gui_frame() {
     if (ImGui::CollapsingHeader(_("Display Enemy Stats"))) {
         ImGui::Indent(lineIndent);
-        ImGui::Checkbox(_("Flying Enemy Stats"), &flyingEnemyStats);
+        ImGui::Checkbox(_("[DEBUG] Flying Spheres"), &flyingSpheres);
         ImGui::SameLine();
-		help_marker(_("Render ImGui stats on enemies"));
-        ImGui::Checkbox(_("Flying Spheres"), &flyingSpheres);
-        ImGui::SameLine();
-		help_marker(_("Sphere in the middle is clickable!\nSizes on Dante do not represent anything, they're random sizes on his root pos for now"));
-        ImGui::Checkbox(_("Flying Ad"), &flyingAd);
+		help_marker(_("Sphere in the middle is clickable!\nThese are random sizes for proof of concept"));
+        ImGui::Checkbox(_("[DEBUG] Flying Ad"), &flyingAd);
         ImGui::SameLine();
         help_marker(_("Makes the UI flicker :("));
-        ImGui::Checkbox(_("Use Locked On Enemy Instead Of Picking"), &useLockedOnEnemyInstead);
+        // ImGui::Checkbox(_("Use Locked On Enemy Instead Of Picking"), &useLockedOnEnemyInstead);
 
         ImGui::Spacing();
 
         SMediator* s_med_ptr = devil4_sdk::get_sMediator();
 
-        if (ImGui::Button(_("Save Selected Enemy Info"))) {
+        /*if (ImGui::Button(_("Save Selected Enemy Info"))) {
             if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
                 save_load_enemy_info(true, enemy);
         }
@@ -210,7 +207,7 @@ void EnemyTracker::on_gui_frame() {
         if (ImGui::Button(_("Replay Saved Move ID & Position"))) {
             if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
                 save_load_enemy_info(false, enemy);
-        }
+        }*/
 
         if (ImGui::Button(_("Save State"))) {
             SaveStateWithCurrentEnemy();
@@ -227,19 +224,17 @@ void EnemyTracker::on_gui_frame() {
         ImGui::Unindent(lineIndent);
 
         // get desired enemy and show stats
-        if (auto currentEnemy = GetDesiredEnemy(useLockedOnEnemyInstead)) {
+        if (auto currentEnemy = GetDesiredEnemy(false)) {
             ImGui::Indent(lineIndent);
-            if (!useLockedOnEnemyInstead) {
-                ImGui::SliderInt(_("Enemy Count"), (int*)&s_med_ptr->enemyCount[2], 0, 0);
-                if (s_med_ptr->enemyCount[0] > 0) {
-                    ImGui::SliderInt(_("Enemy Select"), &which_enemy, 0, s_med_ptr->enemyCount[2] - 1);
-                    if (ImGui::Button(_("Find Locked On Enemy In List"))) {
-                        if (uPlayer* player = devil4_sdk::get_local_player()) {
-                            for (uint32_t i = 0; i < s_med_ptr->enemyCount[2]; ++i) {
-                                if (s_med_ptr->uEnemies[i] && s_med_ptr->uEnemies[i] == player->lockOnTargetPtr3) {
-                                    which_enemy = i;
-                                    break;
-                                }
+            ImGui::SliderInt(_("Enemy Count"), (int*)&s_med_ptr->enemyCount[2], 0, 0);
+            if (s_med_ptr->enemyCount[0] > 0) {
+                ImGui::SliderInt(_("Enemy Select"), &which_enemy, 0, s_med_ptr->enemyCount[2] - 1);
+                if (ImGui::Button(_("Find Locked On Enemy In List"))) {
+                    if (uPlayer* player = devil4_sdk::get_local_player()) {
+                        for (uint32_t i = 0; i < s_med_ptr->enemyCount[2]; ++i) {
+                            if (s_med_ptr->uEnemies[i] && s_med_ptr->uEnemies[i] == player->lockOnTargetPtr3) {
+                                which_enemy = i;
+                                break;
                             }
                         }
                     }
@@ -249,6 +244,7 @@ void EnemyTracker::on_gui_frame() {
             // i hate this, game accesses them from base ptr, e.g. [uEnemy+1544] for scarecrow hp
             int damage_info_offset = get_enemy_specific_damage_offset(currentEnemy->ID);
             uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)currentEnemy + damage_info_offset);
+            ImGui::PushItemWidth(sameLineItemWidth);
             ImGui::InputFloat(_("HP ##2"), &currentEnemyDamage->HP);
             ImGui::InputFloat(_("Max HP ##2"), &currentEnemyDamage->HPMax);
             ImGui::InputFloat(_("Previous Hit Dealt"), &currentEnemyDamage->HPTaken);
@@ -288,15 +284,15 @@ void EnemyTracker::on_gui_frame() {
                 ImGui::InputFloat3(_("Enemy Velocity"), savedEnemyVelocity);
                 ImGui::InputScalar(_("Enemy Grounded"), ImGuiDataType_U8, &savedEnemyGrounded);
             }
+            ImGui::PopItemWidth();
             ImGui::Unindent(lineIndent);
         }
     }
     if (ImGui::CollapsingHeader(_("Display Boss Stats"))) {
         ImGui::Indent(lineIndent);
+        ImGui::PushItemWidth(sameLineItemWidth);
         SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
         if (s_med_ptr) {
-            uintptr_t* boss_ptr = (uintptr_t*)((uintptr_t)s_med_ptr + 0xB0);
-            uintptr_t boss_base = *boss_ptr;
             if (s_med_ptr->uBoss1) {
                 ImGui::Spacing();
                 ImGui::InputFloat3(_("XYZ Position ##3"), (float*)&s_med_ptr->uBoss1->position);
@@ -309,13 +305,13 @@ void EnemyTracker::on_gui_frame() {
                 ImGui::InputScalar(_("Move Part ##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->movePart);
                 ImGui::InputFloat(_("Animation Frame ##3"), &s_med_ptr->uBoss1->animFrame);
 
-                if (ImGui::Button(_("Save Boss Info ##3"))) {
+                if (ImGui::Button(_("Save State ##3"))) {
                     save_load_boss_info(true);
                 }
                 ImGui::SameLine();
                 help_marker(_("Hotkey is PAGE UP by default"));
 
-                if (ImGui::Button(_("Replay Saved Move ID & Position ##3"))) {
+                if (ImGui::Button(_("Load State ##3"))) {
                     save_load_boss_info(false);
                 }
                 ImGui::SameLine();
@@ -330,12 +326,17 @@ void EnemyTracker::on_gui_frame() {
             ImGui::InputFloat3(_("Enemy Velocity ##Boss"), savedEnemyVelocity);
             ImGui::InputScalar(_("Enemy Grounded ##Boss"), ImGuiDataType_U8, &savedEnemyGrounded);
         }
+        ImGui::PopItemWidth();
         ImGui::Unindent(lineIndent);
     }
 
     ImGui::Checkbox(_("Enable Save/Load hotkeys"), &hotkey_enabled);
     ImGui::SameLine();
     help_marker(_("Assuming default hotkeys,\nHome+End will save and load enemy attacks\nPage Up+Page Down will save and load boss attacks"));
+
+    ImGui::Checkbox(_("Flying Enemy Stats"), &flyingEnemyStats);
+    ImGui::SameLine();
+	help_marker(_("Render ImGui stats on enemies"));
 }
 
 class InteractiveModel {
@@ -483,6 +484,21 @@ void EnemyTracker::on_frame(fmilliseconds& dt) {
                     }
                 }
             }
+            if (sMedPtr->uBoss1) {
+                glm::vec3 objectPosition = sMedPtr->uBoss1->position;
+                float objectDistance = w2s::GetDistanceFromCam(objectPosition);
+                float guiFriendlyDistance = glm::min(1000.0f / objectDistance, 1.0f);
+                glm::vec2 screenPos = w2s::WorldToScreen(objectPosition);
+                if (w2s::IsVisibleOnScreen(objectPosition)) {
+                    ImGui::Begin("BossStats##1", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+                    ImGui::SetWindowPos(screenPos);
+                    ImGui::SetWindowFontScale(1.0f * guiFriendlyDistance);
+                    ImGui::PushItemWidth((sameLineItemWidth / 3) * guiFriendlyDistance);
+                    ImGui::InputFloat(_("HP ##BossFly"), &sMedPtr->uBoss1->HP);
+                    ImGui::PopItemWidth();
+                    ImGui::End();
+                }
+            }
         }
         if (sMedPtr->player_ptr) {
             if (flyingSpheres) {
@@ -572,7 +588,7 @@ void EnemyTracker::on_update_input(utility::Input& input) {
 
 void EnemyTracker::on_config_load(const utility::Config& cfg) {
     hotkey_enabled = cfg.get<bool>("enable_enemy_stats_hotkeys").value_or(true);
-    useLockedOnEnemyInstead = cfg.get<bool>("enable_enemy_stats_lockon").value_or(false);
+    // useLockedOnEnemyInstead = cfg.get<bool>("enable_enemy_stats_lockon").value_or(false);
     flyingEnemyStats = cfg.get<bool>("flyingEnemyStats").value_or(false);
     flyingSpheres = cfg.get<bool>("flyingSpheres").value_or(false);
     flyingAd = cfg.get<bool>("flyingAd").value_or(false);
@@ -580,7 +596,7 @@ void EnemyTracker::on_config_load(const utility::Config& cfg) {
 
 void EnemyTracker::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("enable_enemy_stats_hotkeys", hotkey_enabled);
-    cfg.set<bool>("enable_enemy_stats_lockon", useLockedOnEnemyInstead);
+    // cfg.set<bool>("enable_enemy_stats_lockon", useLockedOnEnemyInstead);
     cfg.set<bool>("flyingSpheres", flyingSpheres);
     cfg.set<bool>("flyingEnemyStats", flyingEnemyStats);
     cfg.set<bool>("flyingAd", flyingAd);

@@ -7,7 +7,6 @@ public:
     WorkRate() = default;
 
     std::string get_mod_name() override { return "WorkRate"; };
-    static bool disable_trainer_pause;
     std::optional<std::string> on_initialize() override;
 
     void on_frame(fmilliseconds& dt) override;

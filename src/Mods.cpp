@@ -139,6 +139,7 @@
 #include "mods/NoclipCam.hpp"
 #include "mods/CutscenePause.hpp"
 #include "mods/AfterImage.hpp"
+#include "mods/DisableTrainerPause.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -287,6 +288,7 @@ Mods::Mods() {
     ADD_MOD(NoclipCam);
     ADD_MOD(CutscenePause);
     ADD_MOD(AfterImage);
+    ADD_MOD(DisableTrainerPause);
 }
 
 // Initializes mods, checks for errors
@@ -455,10 +457,7 @@ void Mods::on_draw_custom_imgui_window() {
 #endif
 }
 
-void Mods::on_hotkey_tab(utility::Input& input)
-{
-    ImGui::Spacing();
-
+void Mods::on_hotkey_tab(utility::Input& input) {
     ImGui::Text(_("Keys will probably show up only on US keyboard layouts."));
     ImGui::Text(_("We use MapVirtualKeyA();"));
     ImGui::Text(_("Making sure dear imgui renders unicode properly is complicated"));

@@ -36,7 +36,7 @@ void FpsLimit::on_gui_frame() {
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
         ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::InputFloat(_("New FPS Limit"), &newfpslimit, 1.0f, 1.0f, "%.0f");
+        ImGui::InputFloat(_("FPS Limit"), &newfpslimit, 1.0f, 1.0f, "%.0f");
         ImGui::PopItemWidth();
         ImGui::Unindent(lineIndent);
     }

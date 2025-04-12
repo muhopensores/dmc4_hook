@@ -360,7 +360,7 @@ void DifficultySelect::on_config_save(utility::Config& cfg) {
 
 void DifficultySelect::on_gui_frame() {
     ImGui::PushItemWidth(sameLineItemWidth);
-    if (ImGui::Combo(_("Game Mode"), &game_difficulty, _("Default\0Dante Must Die\0God Must Die\0"))) {
+    if (ImGui::Combo(_("Difficulty ##Game Mode Combo"), &game_difficulty, _("Default\0Dante Must Die\0God Must Die\0"))) {
 #if 0
         switch (game_difficulty)
         {
@@ -379,7 +379,4 @@ void DifficultySelect::on_gui_frame() {
 #endif
     }
     ImGui::PopItemWidth();
-    ImGui::SameLine();
-    help_marker(_("Changes current difficulty - allows forced Dante Must Die or God Must Die"));
-    ImGui::Spacing();
 }

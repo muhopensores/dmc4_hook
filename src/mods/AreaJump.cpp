@@ -226,21 +226,17 @@ void AreaJump::on_gui_frame() {
 		return;
 	}
 
+    ImGui::PushItemWidth(sameLineItemWidth);
 	if (s_med_ptr->missionID == 50) {
         ImGui::Text(_("Bloody Palace Floor Teleports"));
         ImGui::SameLine();
         help_marker(_("Type in which BP floor you want to teleport to then hit Go to be teleported to that stage"));
         ImGui::Spacing();
-
 		if (ImGui::InputInt(_("##BP Floor "), &s_area_ptr->aGamePtr->bp_floor, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
 			s_area_ptr->aGamePtr->bp_floor = std::clamp(s_area_ptr->aGamePtr->bp_floor, 1, 101);
 		}
-
-        if (ImGui::Button(_("Go"), ImVec2(290, 20))) {
-			jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
-		}
-
-        if (ImGui::Button(_("Save BP Progress"))) {
+        ImGui::SameLine();
+        if (ImGui::Button(_("Save BP Progress"), ImVec2(sameLineItemWidth, NULL))) {
             sArea* s_area_ptr = devil4_sdk::get_sArea();
             SMediator* s_med_ptr = devil4_sdk::get_sMediator();
             if (devil4_sdk::get_local_player()) {
@@ -259,12 +255,15 @@ void AreaJump::on_gui_frame() {
                 cfg.set<float>("saved_dt", savedDT);
                 cfg.save(CONFIG_FILENAME);
             }
-        }
-    
+        }        
         ImGui::SameLine();
         help_marker(_("Saves floor, timer, orbs, hp, dt"));
+
+        if (ImGui::Button(_("Go"), ImVec2(sameLineItemWidth, NULL))) {
+			jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
+		}
         ImGui::SameLine();
-        if (ImGui::Button(_("Load BP Progress"))) {
+        if (ImGui::Button(_("Load BP Progress"), ImVec2(sameLineItemWidth, NULL))) {
             sArea* s_area_ptr = devil4_sdk::get_sArea();
         
             if (devil4_sdk::get_local_player()) {
@@ -278,11 +277,12 @@ void AreaJump::on_gui_frame() {
             }
         }
         ImGui::SameLine();
-        help_marker(_("Press Load after loading into BP\nRestores saved floor, timer, orbs, hp, dt"));
+        help_marker(_("Press Load after loading into BP\nLoads saved floor, timer, orbs, hp, dt"));
 	}
     else {
         ImGui::TextWrapped(_("BP Floor Jump is not initialized.\nLoad into BP to access it."));
     }
+    ImGui::PopItemWidth();
 
     ImGui::Spacing();
     ImGui::Separator();
@@ -290,7 +290,7 @@ void AreaJump::on_gui_frame() {
 
     ImGui::Text(_("Mission Area Teleports"));
     ImGui::SameLine();
-    help_marker(_("Teleport to any area by clicking its name"));
+    help_marker(_("Area - ID\nTeleport to any area by clicking its name"));
 
     ImGui::Spacing();
 

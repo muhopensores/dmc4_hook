@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/DisableTrainerPause.hpp
+  mods/DisableTrainerPause.cpp
   mods/CutscenePause.hpp
   mods/CutscenePause.cpp
   mods/NoclipCam.hpp

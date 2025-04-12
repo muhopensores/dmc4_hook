@@ -25,7 +25,8 @@ naked void detour1(void) {
 }
 
 void CutscenePause::on_gui_frame() {
-    if (ImGui::Checkbox(_("Pause Cutscene"), &mod_enabled)) {
+    ImGui::BeginGroup();
+    if (ImGui::Checkbox(_("Pause Cutscenes"), &mod_enabled)) {
         wasToggled = true;
     }
     ImGui::SameLine();
@@ -42,6 +43,7 @@ void CutscenePause::on_gui_frame() {
         ImGui::PopItemWidth();
         ImGui::Unindent(lineIndent);
     }
+    ImGui::EndGroup();
 }
 
 std::optional<std::string> CutscenePause::on_initialize() {

@@ -200,16 +200,15 @@ void RoomRespawn::on_config_load(const utility::Config& cfg) {
 
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
-void RoomRespawn::on_gui_frame() 
-{
-    if (ImGui::Button(_("Try Respawning Stuff"))) {
-        try_respawn();
-    }
-    ImGui::SameLine();
-    help_marker(_("Respawning stuff in areas from wrong missions will freeze the game"));
+void RoomRespawn::on_gui_frame() {
     ImGui::Checkbox(_("Respawn enemies when visiting the same room multiple times"), &g_reset_manager);
     ImGui::SameLine();
     help_marker(_("This will break your style points in the current mission"));
+    if (ImGui::Button(_("Respawn Enemies in current room"))) {
+        try_respawn();
+    }
+    ImGui::SameLine();
+    help_marker(_("Respawning enemies in incorrect missions will freeze the game\nThis button will enable the above checkbox"));
 };
 
 // onGamePause()

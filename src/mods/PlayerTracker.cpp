@@ -157,12 +157,6 @@ static void PlayAnimID(int animID) {
 }
 
 void PlayerTracker::on_gui_frame() {
-    ImGui::Checkbox(_("Disable Game Pause When Opening The Trainer"), &WorkRate::disable_trainer_pause);
-
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Spacing();
-
     if (ImGui::CollapsingHeader(_("Display Player Stats"))) {
         ImGui::Indent(lineIndent);
         uPlayer* player = devil4_sdk::get_local_player();

@@ -87,16 +87,22 @@ void MutatorSelfAdvertisement::custom_imgui_window() {
 }
 
 void MutatorSelfAdvertisement::on_gui_frame() {
-    if (ImGui::CollapsingHeader(_("Self advertisement"))) {
-        ImGui::Checkbox(_("Show self advertisement?"), &mod_enabled);
-        ImGui::SameLine();
-        help_marker(_("Thank you for supporting dmc4_hook"));
+    ImGui::BeginGroup();
+    ImGui::Checkbox(_("Show Self Advertisement"), &mod_enabled);
+    ImGui::SameLine();
+    help_marker(_("Thank you for supporting dmc4_hook"));
+    if (mod_enabled) {
+        ImGui::Indent(lineIndent);
+        ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::Checkbox(_("Dvd screensaver"), &dvd_mode);
         if (!dvd_mode) {
-            ImGui::DragFloat2(_("Image pos:"), (float*)&m_pos, 1.0f, 0.0f, 4096.0f, "%.1f");
-            ImGui::ColorEdit4(_("Tint color:"), (float*)&m_tint_color);
+            ImGui::DragFloat2(_("Position"), (float*)&m_pos, 1.0f, 0.0f, 4096.0f, "%.1f");
+            ImGui::ColorEdit4(_("Colour"), (float*)&m_tint_color);
         }
+        ImGui::PopItemWidth();
+        ImGui::Unindent(lineIndent);
     }
+    ImGui::EndGroup();
 }
 
 void MutatorSelfAdvertisement::on_frame(fmilliseconds& dt) {
@@ -121,3 +127,24 @@ void MutatorSelfAdvertisement::after_reset() {
     free(data);
 }
 
+void MutatorSelfAdvertisement::on_config_load(const utility::Config& cfg) {
+    mod_enabled = cfg.get<bool>("self_advertisement").value_or(false);
+    dvd_mode             = cfg.get<bool>("self_advertisement_dvd_mode").value_or(false);
+    m_pos.x     = cfg.get<float>("self_advertisement_pos_x").value_or(1700.0f);
+    m_pos.y     = cfg.get<float>("self_advertisement_pos_y").value_or(860.0f);
+    m_tint_color.Value.x = cfg.get<float>("self_advertisement_tint_color_x").value_or(1.0f);
+    m_tint_color.Value.y = cfg.get<float>("self_advertisement_tint_color_y").value_or(1.0f);
+    m_tint_color.Value.z = cfg.get<float>("self_advertisement_tint_color_z").value_or(1.0f);
+    m_tint_color.Value.w = cfg.get<float>("self_advertisement_tint_color_w").value_or(1.0f);
+};
+
+void MutatorSelfAdvertisement::on_config_save(utility::Config& cfg) {
+    cfg.set<bool>("self_advertisement", mod_enabled);
+    cfg.set<bool>("self_advertisement_dvd_mode", dvd_mode);
+    cfg.set<float>("self_advertisement_pos_x", m_pos.x);
+    cfg.set<float>("self_advertisement_pos_y", m_pos.y);
+    cfg.set<float>("self_advertisement_tint_color_x", m_tint_color.Value.x);
+    cfg.set<float>("self_advertisement_tint_color_y", m_tint_color.Value.y);
+    cfg.set<float>("self_advertisement_tint_color_z", m_tint_color.Value.z);
+    cfg.set<float>("self_advertisement_tint_color_w", m_tint_color.Value.w);
+};

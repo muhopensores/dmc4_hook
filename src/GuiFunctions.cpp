@@ -359,17 +359,21 @@ namespace gui {
             if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyMask_ ^ ImGuiTabBarFlags_FittingPolicyScroll)) {
                 if (ImGui::BeginTabItem(_("General"))) {
                     ImGui::BeginChild("GeneralChild");
+
                     ImGui::Spacing();
-                    ImGui::Text(_("General"));
+                    ImGui::Text(_("Damage"));
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("DamageMultiplier"_hash); // needs its own line
 
-                    ImGui::Separator();
-
                     pmods->on_draw_ui("InfAllHealth"_hash); // needs its own line
 
+                    ImGui::Spacing();
                     ImGui::Separator();
+                    ImGui::Spacing();
+
+                    ImGui::Text(_("General"));
+                    ImGui::Spacing();
 
                     pmods->on_draw_ui("OneHitKill"_hash); // needs its own line
 
@@ -444,6 +448,7 @@ namespace gui {
 
                 if (ImGui::BeginTabItem(_("Character"))) {
                     ImGui::BeginChild("CharacterChild");
+
                     ImGui::Spacing();
                     ImGui::Text(_("Limit Removal"));
                     ImGui::Spacing();
@@ -451,6 +456,9 @@ namespace gui {
                     pmods->on_draw_ui("LimitAdjust"_hash); // needs its own line
 
                     ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
                     ImGui::Text(_("Height Restriction"));
                     ImGui::Spacing();
 
@@ -459,6 +467,9 @@ namespace gui {
                     pmods->on_draw_ui("HeightRestrictionDante"_hash);
 
                     ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
                     ImGui::Text(_("Charge Time"));
                     ImGui::Spacing();
 
@@ -654,11 +665,12 @@ namespace gui {
                     ImGui::EndTabItem();
                 }
 
-                if (ImGui::BeginTabItem(_("Environment"))) {
-                    ImGui::BeginChild("EnvironmentChild");
+                if (ImGui::BeginTabItem(_("Stage"))) {
+                    ImGui::BeginChild("StageChild");
+
                     ImGui::Spacing();
                     pmods->on_draw_ui("AreaJump"_hash); // needs its own line
-
+                    
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();
@@ -672,6 +684,15 @@ namespace gui {
                     // pmods->onDrawUI("EnemyReplace"_hash); // needs its own line
                     pmods->on_draw_ui("EnemyReplaceAgain"_hash); // needs its own line
 
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    ImGui::Text(_("Speed"));
+                    ImGui::Spacing();
+
+                    pmods->on_draw_ui("WorkRate"_hash); // needs its own line
+
                     g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
                     ImGui::EndChild();
                     ImGui::EndTabItem();
@@ -681,9 +702,7 @@ namespace gui {
                     ImGui::BeginChild("SystemChild");
 
                     ImGui::Spacing();
-
                     ImGui::Text(_("Misc"));
-
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("CharacterSwap"_hash); // needs its own line
@@ -695,6 +714,8 @@ namespace gui {
                     pmods->on_draw_ui("BpPortal"_hash);
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("SlowWalk"_hash);
+
+                    pmods->on_draw_ui("PsychoMantis"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -715,6 +736,7 @@ namespace gui {
                     ImGui::Spacing();
 
                     ImGui::Text(_("Custom HUD elements"));
+                    ImGui::Spacing();
 
                     pmods->on_draw_ui("PinTimer"_hash);
                     ImGui::SameLine(sameLineWidth);
@@ -734,9 +756,9 @@ namespace gui {
 
                     pmods->on_draw_ui("CutsceneSkip"_hash);
 
+                    pmods->on_draw_ui("CutscenePause"_hash);
+                    ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("DisableCameraEvents"_hash);
-
-                    pmods->on_draw_ui("PsychoMantis"_hash); // needs its own line
 
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -763,8 +785,8 @@ namespace gui {
                     pmods->on_draw_ui("DisableKeyboard"_hash);
 
                     pmods->on_draw_ui("FastStart"_hash); // 1.5 lines
-                    //ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("FpsLimit"_hash); // needs to be on the left
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("FpsLimit"_hash);
 
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -774,11 +796,15 @@ namespace gui {
 
                     ImGui::Spacing();
 
-                    pmods->on_draw_ui("NoclipCam"_hash);
-
                     pmods->on_draw_ui("CameraSettings"_hash);
 
-                    pmods->on_draw_ui("WorkRate"_hash); // needs its own line
+                    pmods->on_draw_ui("DebugCam"_hash);
+                    ImGui::SameLine(sameLineWidth);
+                    pmods->on_draw_ui("NoclipCam"_hash);
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
 
                     pmods->on_draw_ui("TwitchClient"_hash); // needs its own line
 
@@ -790,10 +816,8 @@ namespace gui {
                 if (ImGui::BeginTabItem(_("Debug"))) {
                     ImGui::BeginChild("DebugChild");
 
-                    pmods->on_draw_ui("RoomRespawn"_hash);
-
                     ImGui::Spacing();
-                    ImGui::Separator();
+                    ImGui::Text(_("File Loading"));
                     ImGui::Spacing();
 
                     // pmods->on_draw_ui("MoveTable"_hash);
@@ -802,6 +826,9 @@ namespace gui {
                     
                     ImGui::Spacing();
                     ImGui::Separator();
+                    ImGui::Spacing();
+
+                    ImGui::Text(_("Noclip"));
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("NoClip"_hash); // 1.5 lines
@@ -814,23 +841,27 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    pmods->on_draw_ui("PlayerTracker"_hash); // needs its own line
+                    ImGui::Text(_("Stats"));
+                    ImGui::Spacing();
 
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
+                    pmods->on_draw_ui("PlayerTracker"_hash); // needs its own line, also contains game pause
 
                     pmods->on_draw_ui("EnemyTracker"_hash); // needs its own line
 
+                    pmods->on_draw_ui("VisualizeHitbox"_hash);
+
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();
+
+                    ImGui::Text(_("Misc"));
+                    ImGui::Spacing();
+
+                    pmods->on_draw_ui("DisableTrainerPause"_hash);
+
+                    pmods->on_draw_ui("RoomRespawn"_hash);
 
                     pmods->on_draw_ui("MutatorSelfAdvertisement"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
 
                     pmods->on_draw_ui("EffectColours"_hash);
 
@@ -838,17 +869,10 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
+                    ImGui::Text(_("Testing"));
+                    ImGui::Spacing();
+
                     // pmods->onDrawUI("ShaderEditor"_hash);
-
-                    pmods->on_draw_ui("VisualizeHitbox"_hash);
-
-                    ImGui::Separator();
-
-                    pmods->on_draw_ui("CutscenePause"_hash);
-
-                    pmods->on_draw_ui("DebugCam"_hash);
-
-                    ImGui::Separator();
 
                     pmods->on_draw_ui("CustomProjectile"_hash);
 
@@ -871,6 +895,8 @@ namespace gui {
                 }
                 if (ImGui::BeginTabItem(_("About"))) {
                     ImGui::BeginChild("AboutChild");
+
+                    ImGui::Spacing();
                     faq_drawing();
                     
                     ImGui::Spacing();
