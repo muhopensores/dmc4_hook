@@ -433,15 +433,16 @@ void Payline::on_gui_frame() {
             Payline_Toggle();
         }
         ImGui::SameLine();
-        help_marker(_("Give Nero a divekick action like he has in DMC5"));
+        help_marker(_("Give Nero a divekick action like he has in DMC5\n"
+                   "Requires \"HDD File Priority\" at the top of the Debug page\n"
+                   "Tick this before loading a stage"));
     }
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Remap Helm Splitter"), &helm_splitter_remap)) {
         Helm_Splitter_Toggle();
     }
     ImGui::SameLine();
-    help_marker(_("Remap Helm Splitter and Double Down to lockon+back+melee\n"
-        "Requires \"HDD File Priority\" at the top of the Debug page"));
+    help_marker(_("Remap Helm Splitter and Double Down to lockon+back+melee"));
 }
 
 void Payline::on_config_load(const utility::Config& cfg) {
