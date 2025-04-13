@@ -279,33 +279,13 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
 //};
 
 //std::unordered_map<std::string, std::string> neroLookupTable = { // uh some things can go off after a char switch
-    {"Grab-Attack",      "Collateral"},     // enemy hit by bustered scarecrow
-    {"Grab-Attack-DT",   "Collateral"},     // enemy hit by bustered scarecrow
-    {"em000_001_dt_th",  "Collateral"},     // enemy hit by bustered scarecrow (air + dt)
-    {"makikomi158",      "Collateral"},     // enemy hit by bustered mega
-    {"BusterBlown",      "Collateral"},     // enemy hit by bustered bianco
-    {"BusterExplosion",  "Collateral"},     // enemy hit by bustered bianco
-    {"D_Buster",         "Collateral"},     // enemy hit by bustered bianco
-    {"BusterImpact",     "Collateral"},     // enemy hit by bustered alto
-    {"Blown",            "Collateral"},     // enemy hit by bustered alto
-    {"Em008-rolled",     "Collateral"},     // enemy hit by bustered mephisto
-    {"Em009-rolled",     "Collateral"},     // enemy hit by bustered faust
-    {"em010Throw",       "Collateral"},     // enemy hit by bustered frost
-    {"Buster0Atk",       "Collateral"},     // enemy hit by bustered frost
-    {"Buster1Atk",       "Collateral"},     // enemy hit by bustered frost
-    {"grabed-attack",    "Collateral"},     // enemy hit by bustered assault
-    {"grabed-at-fin",    "Collateral"},     // enemy hit by bustered assault
-    {"ShootNero",        "Collateral"},     // enemy hit by bustered basilisk
-    {"ShootNeroAir",     "Collateral"},     // enemy hit by bustered basilisk
-    {"BusterThrow",      "Collateral"},     // enemy hit by bustered gladius
-    {"D_BusterSlash",    "Collateral"},     // enemy hit by bustered gladius (dt)
-    {"\xA0\x4F\xBE",     "Hold Block"},     // held enemy hit by scarecrow, reads �O�
-    {"\x90\x8B\xBA",     "Hold Block"},     // held enemy hit by seed, reads ???
-
     // scarecrow
     {"Em000",            "Scarecrow Buster"}, // non dt
     {"Em000_1",          "Scarecrow Buster"}, // dt ground
     {"Em000_2",          "Scarecrow Buster"}, // dt air
+    {"Grab-Attack",      "Collateral"},     // enemy hit by bustered scarecrow
+    {"Grab-Attack-DT",   "Collateral"},     // enemy hit by bustered scarecrow
+    {"em000_001_dt_th",  "Collateral"},     // enemy hit by bustered scarecrow (air + dt)
 
     // mega
     {"Em003",            "Mega Buster"},
@@ -315,6 +295,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Em003_3",          "Mega Buster"},
     {"BUS-Em003",        "Mega Buster"},
     {"Em003-roll_coun",  "Mega Counter"},
+    {"makikomi158",      "Collateral"},     // enemy hit by bustered mega
 
     // bianco
     {"Em005",            "Bianco Buster"},
@@ -326,6 +307,9 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Em005Majin_2",     "Bianco Buster"},
     {"Em005Majin_3",     "Bianco Buster"},
     {"Em005Majin_4",     "Bianco Buster"},
+    {"BusterBlown",      "Collateral"},     // enemy hit by bustered bianco
+    {"BusterExplosion",  "Collateral"},     // enemy hit by bustered bianco
+    {"D_Buster",         "Collateral"},     // enemy hit by bustered bianco
 
     // alto
     {"Em006",            "Alto Buster"},
@@ -336,24 +320,34 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Em006Flip",        "Alto Buster"}, // if alto jumps back when you buster
     {"PL_Genki",         "Energy Ball"},
     {"PL_GenkiExplo",    "Energy Ball Explosion"},
+    {"BusterImpact",     "Collateral"},     // enemy hit by bustered alto
+    {"Blown",            "Collateral"},     // enemy hit by bustered alto
 
     // mephisto
     {"Em008",            "Mephisto Buster"},
     {"Em008_2",          "Mephisto Buster"},
     {"Em008_3",          "Mephisto Buster"},
+    {"Em008-rolled",     "Collateral"},     // enemy hit by bustered mephisto
 
     // faust
     {"Em009",            "Faust Buster"},
     {"Em009_2",          "Faust Buster"},
     {"Em009_3",          "Faust Buster"},
+    {"Em009-rolled",     "Collateral"},     // enemy hit by bustered faust
 
     // frost
     {"Em010Release",     "Frost Buster"},
     {"Em010WallHit",     "Frost Buster"},
+    {"em010Throw",       "Collateral"},     // enemy hit by bustered frost
+    {"Buster0Atk",       "Collateral"},     // enemy hit by bustered frost
+    {"Buster1Atk",       "Collateral"},     // enemy hit by bustered frost
 
     // assault
     {"Em011Grab",        "Assault Buster"},
     {"Em011Grab_Fin",    "Assault Buster"},
+    {"Em011Grab_Count",  "Assault Buster"},
+    {"grabed-attack",    "Collateral"},     // enemy hit by bustered assault
+    {"grabed-at-fin",    "Collateral"},     // enemy hit by bustered assault
 
     // blitz
     {"BUS-Em012_Gr_00",  "Blitz Buster"}, // ground
@@ -381,18 +375,40 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
 
     // gladius
     {"Em016",            "Gladius Buster"},
+    {"em016",            "Gladius Buster"},
+    {"D_BusterThrow",    "Gladius Buster"},
+    {"BusterThrow",      "Collateral"},     // enemy hit by bustered gladius
+    {"D_BusterSlash",    "Collateral"},     // enemy hit by bustered gladius (dt)
+    {"Buster_VS_Barri",  "Collateral"},     // hitting the Agnus window with a gladius
+    {"D_Buster_VS_Bar",  "Collateral"},     // hitting the Agnus window with a gladius (dt)
 
     // basilisk
     {"Em017",            "Basilisk Buster"},
+    {"ShootNero",        "Collateral"},     // enemy hit by bustered basilisk
+    {"ShootNeroAir",     "Collateral"},     // enemy hit by bustered basilisk
+    {"ShootNero_D",      "Collateral"},     // enemy hit by bustered basilisk
+    {"ShootNeroAir_D",   "Collateral"},     // enemy hit by bustered basilisk
+    {"em017Throw",       "Collateral"},     // enemy hit by bustered basilisk
+    {"em017Throw_Boun",  "Collateral"},     // enemy hit by bustered basilisk (dt)
 
     // berial
+    {"Em018Down",        "Berial Buster"},
+    {"Em018Down2",        "Berial Buster"},
     {"Em018Head",        "Berial Buster"},
-    {"Em018Leg",         "Berial Buster"},
-    {"Em018Leg2",        "Berial Buster"},
     {"Em018Head_maji",   "Berial Buster"},
     {"Em018Head_maji2",  "Berial Buster"},
+    {"Em018Leg",         "Berial Buster"},
+    {"Em018Leg2",        "Berial Buster"},
+    {"Em018Leg2_maji",   "Berial Buster"},
+    {"Em018Leg3_maji",   "Berial Buster"},
+    {"Em018Leg_maji",    "Berial Buster"},
+    {"Em018Leg_maji2",   "Berial Buster"},
     {"Em018Down_maji",   "Berial Buster"},
     {"Em018Down_maji2",  "Berial Buster"},
+    {"Em018Down_maji3",  "Berial Buster"},
+    {"Em018FireLowF",    "Berial Buster"},
+    {"Em018FireLowB",    "Berial Buster"},
+    {"Em018FireUp",      "Berial Buster"},
 
     // frog
     {"Em019Tail",        "Frog Buster"},
@@ -421,6 +437,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Em019RanbuMaj12",  "Frog Buster"},
     {"Em019RanbuMaj13",  "Frog Buster"},
     {"Em019RanbuMaj14",  "Frog Buster"},
+    {"Icedmg-rec",       "Collateral"},     // enemy hit by breaking out of ice
 
     // echidna
     {"Em021Norm1",       "Echidna Buster"},
@@ -452,6 +469,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Em021Maji6",       "Echidna Buster"},
     {"Em021Maji7",       "Echidna Buster"},
     {"Em021Maji8",       "Echidna Buster"},
+    {"Em021Other",       "Echidna Buster"}, // buster fail
     {"SeedPLAtk",        "Seed Rebound"},
 
     // credo
@@ -467,16 +485,18 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"BUS-Em022_Mj_02",  "Credo Buster"},
     {"BUS-Em022_Mj_03",  "Credo Buster"},
     {"BUS-Em022_Mj_04",  "Credo Buster"},
+    {"BUS-Em022_Mj_05",  "Credo Buster"},
+    {"BUS-Em022_Mj_06",  "Credo Buster"},
 
     // agnus
     {"BusterLoop",       "Agnus Buster"},
     {"Sword",            "Agnus Buster"},
-    {"EM023Norm1",       "Agnus Buster"},
-    {"EM023Norm2",       "Agnus Buster"},
-    {"EM023Norm3",       "Agnus Buster"},
-    {"EM023Norm4",       "Agnus Buster"},
-    {"EM023Norm5",       "Agnus Buster"},
-    {"EM023Norm6",       "Agnus Buster"},
+    {"Em023Norm1",       "Agnus Buster"},
+    {"Em023Norm2",       "Agnus Buster"},
+    {"Em023Norm3",       "Agnus Buster"},
+    {"Em023Norm4",       "Agnus Buster"},
+    {"Em023Norm5",       "Agnus Buster"},
+    {"Em023Norm6",       "Agnus Buster"},
     {"Em023Majin1",      "Agnus Buster"},
     {"Em023Majin2",      "Agnus Buster"},
     {"Em023Majin3",      "Agnus Buster"},
@@ -484,8 +504,23 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Em023Majin5",      "Agnus Buster"},
     {"Em023Majin6",      "Agnus Buster"},
     {"Em023Majin7",      "Agnus Buster"},
+    {"Buster1stImpact",  "Agnus Buster"},
+    {"Buster3rdStrike",  "Agnus Buster"},
 
-    // sanctus
+    // m11 sanctus
+    {"BUS-Em029_00",     "Sanctus Buster"},
+    {"BUS-Em029_01",     "Sanctus Buster"},
+    {"BUS-Em029_02",     "Sanctus Buster"},
+    {"BUS-Em029_03",     "Sanctus Buster"},
+    {"BUS-Em029_04",     "Sanctus Buster"},
+    {"BUS-Em029_05",     "Sanctus Buster"},
+    {"BUS-Em029_06",     "Sanctus Buster"},
+    {"BUS-Em029_07",     "Sanctus Buster"},
+    {"BUS-Em029_08",     "Sanctus Buster"},
+    {"BUS-Em029_09",     "Sanctus Buster"},
+    {"BUS-Em029_10",     "Sanctus Buster"},
+
+    // m20 sanctus
     {"BUS-Em030_00",     "Sanctus Buster"},
     {"BUS-Em030_01",     "Sanctus Buster"},
     {"BUS-Em030_Mj_00",  "Sanctus Buster"},
@@ -546,7 +581,8 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"RED-SureenEX_08",  "EX Shuffle"},       // EX3
     {"RED-SureenEX_09",  "EX Shuffle"},       // EX3 // rare, I assume weak hit or back hit
     {"RED-SureenEX_10",  "EX Shuffle"},       // EX3
-    {"RED-AirStre_00",   "Calibur"},         
+    {"RED-AirStre_00",   "Calibur"},
+    {"RED-AirStre_01",   "Calibur"},
     {"RED-AirStEX_00",   "EX Calibur"},       // EX1
     {"RED-AirStEX_01",   "EX Calibur"},       // EX1
     {"RED-AirStEX_02",   "EX Calibur"},       // EX2
@@ -590,6 +626,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"YAM-AircombA_02",  "Red Queen Aerial"},
     {"YAM-RouletteSpi",  "Roulette Spin"},
     {"YAM-AirStre_00",   "Calibur"},
+    {"YAM-AirStre_01",   "Calibur"},
     {"YAM-AirStEX_00",   "EX Calibur"},
     {"YAM-AirStEX_01",   "EX Calibur"},
     {"YAM-AirStEX_02",   "EX Calibur"},
@@ -597,6 +634,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"YAM-AirStEX_04",   "EX Calibur"},
     {"YAM-AirStEX_05",   "EX Calibur"},
     {"YAM-Surren_00",    "Shuffle"},
+    {"YAM-Surren_01",    "Shuffle"},
     {"YAM-SureenEX_00",  "EX Shuffle"}, // EX1
     {"YAM-SureenEX_01",  "EX Shuffle"}, // EX1
     {"YAM-SureenEX_02",  "EX Shuffle"}, // EX1
@@ -628,6 +666,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"CHARGE_Lv3_Midd",  "Charge Shot 3"},
     {"CHARGE_Lv3_Long",  "Charge Shot 3"},
     {"BLU-Bomb_00",      "Charge Shot Bomb"},
+    {"BLU-Bomb_01",      "Charge Shot Bomb"},
 
     // dt
     {"D.T-Burst_00",     "DT Burst"},
@@ -647,6 +686,9 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Drive02",          "Maximum Bet Lv.2"}, // projectile
     {"Genei",            "Summoned Sword"},
     {"Genei02",          "Charged Summoned Sword"},
+
+    {"\xA0\x4F\xBE",     "Hold Block"},     // held enemy hit by scarecrow, reads �O�
+    {"\x90\x8B\xBA",     "Hold Block"},     // held enemy hit by seed, reads ???
 };
 
 static const std::map<std::vector<std::string>, std::string> comboNames = {
