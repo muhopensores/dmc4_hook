@@ -293,7 +293,7 @@ void AreaJump::on_gui_frame() {
     help_marker(_("Area - ID\nTeleport to any area by clicking its name"));
 
     ImGui::Spacing();
-
+    ImGui::PushItemWidth(sameLineWidth);
 	int item_current_idx = 0;
     if (ImGui::BeginListBox("##Room Codes Listbox")) {
         for (size_t n = 0; n < room_items.size(); n++) {
@@ -317,6 +317,7 @@ void AreaJump::on_gui_frame() {
         }
         ImGui::EndListBox();
     }
+    ImGui::PopItemWidth();
 }
 
 void AreaJump::on_update_input(utility::Input & input) {

@@ -310,15 +310,13 @@ naked void camera_sens_brakes_proc(void) {
 
 void CameraSettings::toggle_attack_towards_cam(bool toggle) {
     if (toggle) {
-        
-        install_patch_offset(camera_towards_auto_correct1, attack_towards_cam_patch1, "\xE9\x21\x03\x00\x00\x90", 6);
-
+        install_patch_offset(camera_towards_auto_correct1, attack_towards_cam_patch1, "\xE9\x21\x03\x00\x00\x90", 6); // jmp DevilMayCry4_DX9.exe+1983A
         // install_patch_offset(camera_towards_auto_correct1, attack_towards_cam_patch1, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
         // install_patch_offset(camera_towards_auto_correct2, attack_towards_cam_patch2, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
         // install_patch_offset(camera_towards_auto_correct3, attack_towards_cam_patch3, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
     }
     else {
-        attack_towards_cam_patch1.reset();
+        attack_towards_cam_patch1.reset(); // jne DevilMayCry4_DX9.exe+1983A
         // attack_towards_cam_patch2.reset();
         // attack_towards_cam_patch3.reset();
     }

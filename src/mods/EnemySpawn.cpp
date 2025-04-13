@@ -451,7 +451,7 @@ void EnemySpawn::on_gui_frame() {
     help_marker(_("Any clicked enemy will spawn above player coords"));
     ImGui::Spacing();
     int enemy_names_current = 0;
-    ImGui::PushItemWidth(sameLineItemWidth);
+    ImGui::PushItemWidth(sameLineWidth);
     if (ImGui::ListBox("##Enemy Spawn Listbox", &enemy_names_current, enemy_names.data(), enemy_names.size(), 21)) {
         spawn_em00x(enemy_names_current);
     }

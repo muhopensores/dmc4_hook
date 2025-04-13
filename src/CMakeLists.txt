@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/GunStingerDistance.hpp
+  mods/GunStingerDistance.cpp
   mods/DisableTrainerPause.hpp
   mods/DisableTrainerPause.cpp
   mods/CutscenePause.hpp

@@ -140,6 +140,7 @@
 #include "mods/CutscenePause.hpp"
 #include "mods/AfterImage.hpp"
 #include "mods/DisableTrainerPause.hpp"
+#include "mods/GunStingerDistance.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -289,6 +290,7 @@ Mods::Mods() {
     ADD_MOD(CutscenePause);
     ADD_MOD(AfterImage);
     ADD_MOD(DisableTrainerPause);
+    ADD_MOD(GunStingerDistance);
 }
 
 // Initializes mods, checks for errors

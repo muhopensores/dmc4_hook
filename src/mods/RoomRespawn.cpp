@@ -204,11 +204,13 @@ void RoomRespawn::on_gui_frame() {
     ImGui::Checkbox(_("Respawn enemies when visiting the same room multiple times"), &g_reset_manager);
     ImGui::SameLine();
     help_marker(_("This will break your style points in the current mission"));
+    ImGui::Indent(lineIndent);
     if (ImGui::Button(_("Respawn Enemies in current room"))) {
         try_respawn();
     }
     ImGui::SameLine();
     help_marker(_("Respawning enemies in incorrect missions will freeze the game\nThis button will enable the above checkbox"));
+    ImGui::Unindent(lineIndent);
 };
 
 // onGamePause()

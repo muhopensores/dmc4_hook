@@ -13,13 +13,17 @@
 #include "fw-imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
 
-#define GUI_VERSION "DMC4Hook 1.4.5"
+#define GUI_VERSION "dmc4_hook 1.5.0 PRE RELEASE"
 
 static constexpr char* version{GUI_VERSION};
-static float g_window_height_hack{ 1080.0f };
-static float g_max{ 0.0f };
-static float windowWidth   = 600.0f;
-static float sameLineWidth = windowWidth / 2; // redef in mod.hpp, I was too scared to include that here
+static constexpr float uiWidth       = 600.0f;
+static constexpr float sameLineWidth = uiWidth / 2.0f; // redef in mod.hpp, I was too scared to include that here
+static float maxUIHeight             = 0.0f;
+static float uiHeight                = 0.0f;
+static float tabHeight               = 0.0f;
+static float endHeight               = 0.0f;
+static float gameWindowHeight        = 0.0f;
+
 namespace gui {
 
     // visual theme of the gui, can be changed to change the look
@@ -194,137 +198,6 @@ namespace gui {
     }
     */
 
-    void set_window_props() {
-        ImGuiIO& io = ImGui::GetIO();
-        io.IniFilename = NULL;
-        ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Once);
-        g_max = io.DisplaySize[1] * 0.9f;
-        ImGui::SetNextWindowSize(ImVec2(windowWidth, io.DisplaySize[1] * 0.9f));
-    }
-
-    // imgui::being seperated into function (required to make gui overlay work, see imgui example and documentation
-    void begin_drawing() {
-        ImGui::Begin(version, NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-    }
-
-    // function that draws the fps onto the gui
-    void fps_drawing() {
-        ImGui::Text(_("Average %.3f ms/frame (%.1f FPS)"), 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    }
-
-    // function for putting credits specific things in the gui
-    void credits_drawing() {
-        static ImVec4 color1 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
-        static ImVec4 color2 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
-        static ImVec4 color3 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
-        static ImVec4 color4 = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
-        ImGui::Spacing();
-        ImGui::Text(_("DMC4Hook - Devil May Cry 4 Trainer"));
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-        ImGui::Text("Mstislav Capusta");
-        ImGui::Text("SSSiyan");
-        ImGui::Text("Vieris");
-        ImGui::Text("CrazyMelody");
-        ImGui::Text("Dlupx");
-        ImGui::Text("cheburrat0r");
-        ImGui::Text("endneo");
-
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        ImGui::Text("Special Thanks:");
-        ImGui::Text("socks");
-        ImGui::Text("Whirling");
-        ImGui::Text("Terrutas");
-        ImGui::Text("Boey");
-        ImGui::Text("DelusionaryKiller");
-        ImGui::Text("DJMalice");
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-        ImGui::Text(_("For more info and updates visit the github:"));
-
-        ImGuiURL repo{ "https://github.com/muhopensores/dmc4_hook", "https://github.com/muhopensores/dmc4_hook" };
-        repo.draw();
-
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        ImGui::Text(_("This trainer was made using:"));
-
-        // NOTE(): oops forgot cpp17 has CTAD hehe
-        static std::array links {
-            ImGuiURL { "REFramework -> https://github.com/praydog/REFramework", "https://github.com/praydog/REFramework" },
-            ImGuiURL { "GLM -> https://github.com/g-truc/glm", "https://github.com/g-truc/glm"},
-            ImGuiURL { "Dear ImGui -> https://github.com/ocornut/imgui", "https://github.com/ocornut/imgui" },
-            ImGuiURL { "MinHook -> https://github.com/TsudaKageyu/minhook", "https://github.com/TsudaKageyu/minhook" },
-            ImGuiURL { "spdlog -> https://github.com/gabime/spdlog", "https://github.com/gabime/spdlog" },
-            ImGuiURL { "GNU gettext -> https://www.gnu.org/software/gettext/", "https://www.gnu.org/software/gettext/" },
-            ImGuiURL { "mo_file.zip -> http://number-none.com/blow/code/mo_file/index.html", "http://number-none.com/blow/code/mo_file/index.html" },
-        };
-        for (auto& link: links) {
-            link.draw();
-        }
-
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        if (ImGui::CollapsingHeader(_("Licenses"))) {
-            ImGui::TreePush(_("Licenses"));
-
-            struct License {
-                std::string name;
-                std::string text;
-            };
-
-            static std::array licenses{
-                License{ "REFramework",   license::reframework },
-                License{ "GLM",           license::glm },
-                License{ "ImGui",         license::imgui },
-                License{ "MinHook",       license::minhook },
-                License{ "spdlog",        license::spdlog },
-                License{ "csys",          license::csys },
-                License{ "imgui_console", license::imgui_console },
-                License{ "GNU gettext",   license::gnu_gettext },
-                License{ "mo_file.zip",   license::naysayer_gettext },
-            };
-
-            for (const auto& license : licenses) {
-                if (ImGui::CollapsingHeader(license.name.c_str())) {
-                    ImGui::TextWrapped(license.text.c_str());
-                }
-            }
-            ImGui::TreePop();
-        }
-    }
-
-    void faq_drawing() {
-        if (ImGui::CollapsingHeader(_("Frequently Asked Questions"))) {
-            ImGui::Indent();
-            if (ImGui::CollapsingHeader(_("What mods do you recommend most?"))) {
-                ImGui::TextWrapped(_("\"Fast Game Load\" and neighbouring options in the \"System\" tab. Get from your Desktop to BP in 2 seconds."));
-            }
-            if (ImGui::CollapsingHeader(_("Old mods I installed have suddenly turned on"))) {
-                ImGui::TextWrapped(_("\"HDD File Priority\" is ticked on the Debug page. If your DMC4 install contains any files left over from old mods, "
-                    "this will load them. To clean up your directory you'll need to delete files manually as Steam verification does not check "
-                    "newly added files."));
-            }
-            if (ImGui::CollapsingHeader(_("My combo points are stuck at 0"))) {
-                ImGui::TextWrapped(_("\"Respawn Enemies when visiting the same room multiple times\" is ticked on the Debug page. "
-                    "If you didn't turn this on manually, it would have been auto ticked when you used the reload current room hotkey."));
-            }
-            if (ImGui::CollapsingHeader(_("My camera is frozen"))) {
-                ImGui::TextWrapped(_("The default hotkey for camera settings' freeze camera is Numpad 0."));
-            }
-            ImGui::Unindent();
-        }
-    }
-
     // helpmarker function, to avoid typing it every time in the gui section
     void help_marker(const char* desc) {
         ImGui::TextDisabled("(?)");
@@ -341,22 +214,25 @@ namespace gui {
         // specific imgui functions, can be looked up in examples or the documentation
         // references/ points to other functions to apply logic behind the gui toggles/ objects
         {
-            ImGui::SetNextWindowSize(ImVec2(windowWidth, g_window_height_hack));
-            begin_drawing();
+            ImGuiIO& io = ImGui::GetIO();
+            io.IniFilename = NULL;
+            ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Once);
+            ImGui::Begin(version, NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+            if (sRender* sRender = devil4_sdk::get_sRender()) maxUIHeight = sRender->screenRes.y * 0.9f;
+            else maxUIHeight = 1080.0f * 0.9f;
             ImGui::SameLine(0, 0);
-            fps_drawing();
+            ImGui::Text(_("Average %.3f ms/frame (%.1f FPS)"), 1000.0f / io.Framerate, io.Framerate);
             ImGui::Spacing();
             pmods->on_draw_ui("Borderless"_hash);
-            // calculate button width first
             const char* save_config_label = _("Save Config");
             const ImVec2 btn_size = ImGui::CalcTextSize(save_config_label);
-            ImGui::SameLine(windowWidth-(btn_size.x) - 30.0f);
+            ImGui::SameLine(uiWidth-(btn_size.x) - 30.0f);
             if (ImGui::Button(save_config_label)) {
                 pmods->on_config_save();
             }
             pmods->on_draw_ui("LocalizationManager"_hash);
-
             if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyMask_ ^ ImGuiTabBarFlags_FittingPolicyScroll)) {
+                uiHeight = ImGui::GetCursorPosY();
                 if (ImGui::BeginTabItem(_("General"))) {
                     ImGui::BeginChild("GeneralChild");
 
@@ -441,7 +317,7 @@ namespace gui {
                     pmods->on_draw_ui("BpJumpHook"_hash); // needs its own line
 
                     pmods->on_draw_ui("DmdBloodyPalace"_hash);
-                    g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
+                    tabHeight = ImGui::GetCursorPosY();
                     ImGui::EndChild();
                     ImGui::EndTabItem();
                 }
@@ -581,6 +457,8 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("NoLockonRestriction"_hash);
 
+                    pmods->on_draw_ui("GunStingerDistance"_hash);
+
                     ImGui::Spacing();
                     ImGui::Text(_("Aerial grounded moves"));
                     ImGui::Spacing();
@@ -660,7 +538,7 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("PlayerRotation"_hash);
 
-                    g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
+                    tabHeight = ImGui::GetCursorPosY();
                     ImGui::EndChild();
                     ImGui::EndTabItem();
                 }
@@ -693,7 +571,7 @@ namespace gui {
 
                     pmods->on_draw_ui("WorkRate"_hash); // needs its own line
 
-                    g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
+                    tabHeight = ImGui::GetCursorPosY();
                     ImGui::EndChild();
                     ImGui::EndTabItem();
                 }
@@ -808,12 +686,13 @@ namespace gui {
 
                     pmods->on_draw_ui("TwitchClient"_hash); // needs its own line
 
-                    g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
+                    tabHeight = ImGui::GetCursorPosY();
                     ImGui::EndChild();
                     ImGui::EndTabItem();
                 }
 
                 if (ImGui::BeginTabItem(_("Debug"))) {
+                    float startCursorY = ImGui::GetCursorPosY();
                     ImGui::BeginChild("DebugChild");
 
                     ImGui::Spacing();
@@ -857,9 +736,9 @@ namespace gui {
                     ImGui::Text(_("Misc"));
                     ImGui::Spacing();
 
-                    pmods->on_draw_ui("DisableTrainerPause"_hash);
-
                     pmods->on_draw_ui("RoomRespawn"_hash);
+
+                    pmods->on_draw_ui("DisableTrainerPause"_hash);
 
                     pmods->on_draw_ui("MutatorSelfAdvertisement"_hash);
 
@@ -878,7 +757,7 @@ namespace gui {
 
                     pmods->on_draw_ui("AfterImage"_hash);
 
-                    g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
+                    tabHeight = ImGui::GetCursorPosY();
                     ImGui::EndChild();
                     ImGui::EndTabItem();
                 }
@@ -887,9 +766,8 @@ namespace gui {
 
                     ImGui::Spacing();
                     pmods->on_hotkey_tab(*g_framework->get_input_struct());
-                    ImGui::Spacing();
 
-                    g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
+                    tabHeight = ImGui::GetCursorPosY();
                     ImGui::EndChild();
                     ImGui::EndTabItem();
                 }
@@ -897,21 +775,122 @@ namespace gui {
                     ImGui::BeginChild("AboutChild");
 
                     ImGui::Spacing();
-                    faq_drawing();
-                    
+                    ImGui::Text(_("DMC4Hook - Devil May Cry 4 Trainer"));
+
+                    ImGui::Spacing();
+
+                    ImGui::Text("Mstislav Capusta");
+                    ImGui::Text("SSSiyan");
+                    ImGui::Text("Vieris");
+                    ImGui::Text("CrazyMelody");
+                    ImGui::Text("Dlupx");
+                    ImGui::Text("cheburrat0r");
+                    ImGui::Text("endneo");
+
+                    ImGui::Spacing();
+
+                    ImGui::Text("Special Thanks:");
+                    ImGui::Text("socks");
+                    ImGui::Text("Whirling");
+                    ImGui::Text("Terrutas");
+                    ImGui::Text("Boey");
+                    ImGui::Text("DelusionaryKiller");
+                    ImGui::Text("DJMalice");
+                    ImGui::Text("GarudaKK");
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+                    ImGui::Text(_("For more info and updates visit the github:"));
+
+                    ImGuiURL repo{ "https://github.com/muhopensores/dmc4_hook", "https://github.com/muhopensores/dmc4_hook" };
+                    repo.draw();
+
+                    if (ImGui::CollapsingHeader(_("Frequently Asked Questions"))) {
+                        ImGui::Indent();
+                        if (ImGui::CollapsingHeader(_("What mods do you recommend most?"))) {
+                            ImGui::TextWrapped(_("\"Fast Game Load\" and neighbouring options in the \"System\" tab. Get from your Desktop to BP in 2 seconds."));
+                        }
+                        if (ImGui::CollapsingHeader(_("Old mods I installed have suddenly turned on"))) {
+                            ImGui::TextWrapped(_("\"HDD File Priority\" is ticked on the Debug page. If your DMC4 install contains any files left over from old mods, "
+                                "this will load them. To clean up your directory you'll need to delete files manually as Steam verification does not check "
+                                "newly added files."));
+                        }
+                        if (ImGui::CollapsingHeader(_("My combo points are stuck at 0"))) {
+                            ImGui::TextWrapped(_("\"Respawn Enemies when visiting the same room multiple times\" is ticked on the Debug page. "
+                                "If you didn't turn this on manually, it would have been auto ticked when you used the reload current room hotkey."));
+                        }
+                        if (ImGui::CollapsingHeader(_("My camera is frozen"))) {
+                            ImGui::TextWrapped(_("The default hotkey for camera settings' freeze camera is Numpad 0."));
+                        }
+                        ImGui::Unindent();
+                    }
+
                     ImGui::Spacing();
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    credits_drawing();
+                    ImGui::Text(_("This trainer was made using:"));
 
-                    g_window_height_hack = std::clamp(ImGui::GetCursorPosY() + 108.0f, 0.0f, g_max);
+                    // NOTE(): oops forgot cpp17 has CTAD hehe
+                    static std::array links{
+                        ImGuiURL { "REFramework -> https://github.com/praydog/REFramework", "https://github.com/praydog/REFramework" },
+                        ImGuiURL { "GLM -> https://github.com/g-truc/glm", "https://github.com/g-truc/glm"},
+                        ImGuiURL { "Dear ImGui -> https://github.com/ocornut/imgui", "https://github.com/ocornut/imgui" },
+                        ImGuiURL { "MinHook -> https://github.com/TsudaKageyu/minhook", "https://github.com/TsudaKageyu/minhook" },
+                        ImGuiURL { "spdlog -> https://github.com/gabime/spdlog", "https://github.com/gabime/spdlog" },
+                        ImGuiURL { "GNU gettext -> https://www.gnu.org/software/gettext/", "https://www.gnu.org/software/gettext/" },
+                        ImGuiURL { "mo_file.zip -> http://number-none.com/blow/code/mo_file/index.html", "http://number-none.com/blow/code/mo_file/index.html" },
+                    };
+                    for (auto& link : links) {
+                        link.draw();
+                    }
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    if (ImGui::CollapsingHeader(_("Licenses"))) {
+                        ImGui::TreePush(_("Licenses"));
+
+                        struct License {
+                            std::string name;
+                            std::string text;
+                        };
+
+                        static std::array licenses{
+                            License{ "REFramework",   license::reframework },
+                            License{ "GLM",           license::glm },
+                            License{ "ImGui",         license::imgui },
+                            License{ "MinHook",       license::minhook },
+                            License{ "spdlog",        license::spdlog },
+                            License{ "csys",          license::csys },
+                            License{ "imgui_console", license::imgui_console },
+                            License{ "GNU gettext",   license::gnu_gettext },
+                            License{ "mo_file.zip",   license::naysayer_gettext },
+                        };
+
+                        for (const auto& license : licenses) {
+                            if (ImGui::CollapsingHeader(license.name.c_str())) {
+                                ImGui::TextWrapped(license.text.c_str());
+                            }
+                        }
+                        ImGui::TreePop();
+                    }
+
+                    tabHeight = ImGui::GetCursorPosY();
                     ImGui::EndChild();
                     ImGui::EndTabItem();
                 }
                 ImGui::EndTabBar();
             }
+            endHeight = std::min(uiHeight + tabHeight, maxUIHeight);
+            ImGui::SetWindowSize(ImVec2(uiWidth, endHeight));
             ImGui::End();
+            /*ImGui::Begin("Window Height Check");
+            ImGui::SetWindowPos(ImVec2(1920.f * 0.7f, 1080.0f * 0.2f));
+            ImGui::Text("tabHeight %.1f", tabHeight);
+            ImGui::Text("uiHeight %.1f", uiHeight);
+            ImGui::End();*/
             // ImGui::ShowDemoWindow();
         }
     }

@@ -284,7 +284,7 @@ void ModFramework::draw_ui() {
         return;
     }
     if (m_game_data_initialized) {
-        gui::set_window_props();
+        // gui::set_window_props();
         gui::im_gui_main_window_proc(m_mods.get());
     }
     else if (!m_game_data_initialized) {
