@@ -334,6 +334,8 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Em006Majin_2",     "Alto Buster"},
     {"Em006Majin_3",     "Alto Buster"},
     {"Em006Flip",        "Alto Buster"}, // if alto jumps back when you buster
+    {"PL_Genki",         "Energy Ball"},
+    {"PL_GenkiExplo",    "Energy Ball Explosion"},
 
     // mephisto
     {"Em008",            "Mephisto Buster"},
@@ -482,6 +484,12 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Em023Majin5",      "Agnus Buster"},
     {"Em023Majin6",      "Agnus Buster"},
     {"Em023Majin7",      "Agnus Buster"},
+
+    // sanctus
+    {"BUS-Em030_00",     "Sanctus Buster"},
+    {"BUS-Em030_01",     "Sanctus Buster"},
+    {"BUS-Em030_Mj_00",  "Sanctus Buster"},
+    {"BUS-Em030_Mj_01",  "Sanctus Buster"},
 
     // dante
     {"EmDanteMaj",       "Dante Buster"},
@@ -730,7 +738,8 @@ static const float displayDuration = 1.0f;
 static const uint32_t maxScores = 5;
 
 // tony display
-static std::chrono::steady_clock::time_point lastTrickTime = std::chrono::steady_clock::now();
+// static std::chrono::steady_clock::time_point lastTrickTime = std::chrono::steady_clock::now();
+static float elapsedSinceLastTrick = 500.0f;
 static const uint32_t maxTonyScores = UINT32_MAX;
 static int maxPerRow = 7;
 static int maxRows = 3;
@@ -738,6 +747,8 @@ static float comboScore = 0.0f;
 static float timerBase = 1.0f;
 static float timerComboInfluence = 0.005f;
 static float shakeDuration = 0.99f;
+static float fadeRate = 1.0f;
+static float baseFadeTime = 1.0f / (timerBase * fadeRate); // Inversely proportional to timerBase
 
 const char* GetStyleChar(int styleNum) {
     switch (styleNum) {
@@ -884,20 +895,26 @@ static void DrawTonyScores() {
 
     ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;
     //if (!StylePoints::originalNames)
-        UpdateTrickNames();
+    UpdateTrickNames();
     auto now = std::chrono::steady_clock::now();
 
-    // trick recognition
-    float elapsedSinceLastTrick = std::chrono::duration<float>(now - lastTrickTime).count();
-    float turboSpeed = devil4_sdk::get_sMediator()->turboEnabled ? devil4_sdk::get_work_rate()->turbo_speed : devil4_sdk::get_work_rate()->game_speed;
+    bool gamePaused = false;
+    if (sArea* sArea = devil4_sdk::get_sArea()) gamePaused = sArea->aGamePtr->m_paused;
+
+    float deltaTime = player->m_delta_time;
+    float realSeconds = deltaTime / 60.0f;
+    if (sArea* sArea = devil4_sdk::get_sArea()) {
+        if (sArea->aGamePtr) {
+            gamePaused = sArea->aGamePtr->m_paused;
+        }
+    }
+    if (!gamePaused)
+        elapsedSinceLastTrick += realSeconds;
 
     // fade
-    float fadeRate = 1.0f * turboSpeed; // Base decay rate
-    float baseFadeTime = 1.0f / (timerBase * fadeRate); // Inversely proportional to timerBase
     float comboBonus = trickScores.empty() ? 0.0f : trickScores.back().score * timerComboInfluence;
     float fadeMaxMultiplier = baseFadeTime + comboBonus;
     float fade = std::max(0.0f, 1.0f - (elapsedSinceLastTrick / fadeMaxMultiplier));
-
     if (fade <= 0.0f) {
         trickScores.clear();
         comboScore = 0.0f;
@@ -912,7 +929,7 @@ static void DrawTonyScores() {
     std::uniform_real_distribution<float> dis(-1.0f, 1.0f);
 
     float shakeAmount = 0.0f;
-    if (fade > shakeDuration) {
+    if (fade > shakeDuration && !gamePaused) {
         shakeAmount = dis(gen);
     }
 
@@ -1069,7 +1086,7 @@ static void DrawTonyScores() {
     static std::string detectedCombo = "";
     static std::chrono::steady_clock::time_point lastMatchTime = std::chrono::steady_clock::now();
     float elapsedSinceLastMatch = std::chrono::duration<float>(now - lastMatchTime).count();
-    float comboRecognitionAlpha = 1.0f - (elapsedSinceLastMatch * turboSpeed);
+    float comboRecognitionAlpha = 1.0f - (elapsedSinceLastMatch);
 
     if (!trickScores.empty()) {
         const std::string& latestTrick = trickScores.back().text;
@@ -1143,8 +1160,6 @@ static void DrawTonyScores() {
         static float fadeUpTimer = 0.0f;
         static float alphaWhenLanded = 0.0f;
 
-        float deltaTime = player->m_delta_time;
-        float realSeconds = deltaTime / 60.0f;
         bool isInAir = false;
         if (player->characterSettingsOne)
             isInAir = !player->characterSettingsOne->groundedActual;
@@ -1232,8 +1247,7 @@ static void DrawTonyScores() {
 
             auto now = std::chrono::steady_clock::now();
             float realElapsed = std::chrono::duration<float>(now - heightInertiaTrackerStartTime).count();
-            float gameElapsed = realElapsed / turboSpeed;
-            heightInertiaTrackerStateHistory.push_back({ gameElapsed, player->m_pos.y, player->inertia });
+            heightInertiaTrackerStateHistory.push_back({ realElapsed, player->m_pos.y, player->inertia });
             ImVec2 chartSize = ImVec2(screenSize.x * 0.1f, screenSize.y * 0.1f);
             ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.01f, screenSize.y * 0.5f), ImGuiCond_Always, ImVec2(0.0f, 0.5f));
             ImGui::Begin("Height & Inertia Chart", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
@@ -1283,7 +1297,8 @@ static void AddTrickScore(const char* text, float score, float multiplier, int s
     newScore.isAlreadyRenamed = false;
 
     if (StylePoints::tonyHawk) {
-        lastTrickTime = newScore.timePerformed;
+        elapsedSinceLastTrick = 0.0f;
+        // lastTrickTime = newScore.timePerformed;
         if (trickScores.size() >= maxTonyScores) {
             trickScores.erase(trickScores.begin());
         }
@@ -1873,9 +1888,8 @@ void StylePoints::on_config_save(utility::Config& cfg) {
     cfg.set<int>("maxPerRow_points_display", maxPerRow);
     cfg.set<int>("maxRows_points_display", maxRows);
 
-    // done automatically now
-    /*for (size_t i = 0; i < unlocked_combos.size(); ++i) {
-        std::string configKey = "combo_unlock_" + std::to_string(i);
-        cfg.set<bool>(configKey, unlocked_combos[i].unlocked);
-    }*/
+    for (const auto& combo : unlocked_combos) {
+        std::string configKey = "combo_unlock_" + std::string(combo.name);
+        cfg.set<bool>(configKey, combo.unlocked);
+    }
 }
