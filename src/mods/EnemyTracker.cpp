@@ -8,9 +8,14 @@
 
 #if 1
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-bool EnemyTracker::flyingEnemyStats = false;
 bool EnemyTracker::flyingAd = false;
 bool EnemyTracker::flyingSpheres = false;
+bool EnemyTracker::flyingEnemyStats = false;
+static bool showFlyingEnemyHP = true;
+static bool showFlyingEnemyDamageTaken = false;
+static bool showFlyingEnemyStun[4]{ false, false, false, false };
+static bool showFlyingEnemyDisplacement[4]{ false, false, false, false };
+static bool showFlyingEnemyMoveID = false;
 
 static bool freeze_move_id = false;
 static bool hotkey_enabled = false;
@@ -189,7 +194,7 @@ void EnemyTracker::on_gui_frame() {
         ImGui::Indent(lineIndent);
         ImGui::Checkbox(_("[DEBUG] Flying Spheres"), &flyingSpheres);
         ImGui::SameLine();
-		help_marker(_("Sphere in the middle is clickable!\nThese are random sizes for proof of concept"));
+        help_marker(_("Sphere in the middle is clickable!\nThese are random sizes for proof of concept"));
         ImGui::Checkbox(_("[DEBUG] Flying Ad"), &flyingAd);
         ImGui::SameLine();
         help_marker(_("Makes the UI flicker :("));
@@ -266,7 +271,7 @@ void EnemyTracker::on_gui_frame() {
             ImGui::InputInt(_("Unknown 6 ##2"), &currentEnemyDamage->unknown[5]);
             ImGui::InputInt(_("Unknown 7 ##2"), &currentEnemyDamage->unknown[6]);
             ImGui::InputInt(_("Unknown 8 ##2"), &currentEnemyDamage->unknown[7]);
-                
+
             ImGui::InputFloat3(_("XYZ Position ##2"), (float*)&currentEnemy->position);
             ImGui::InputFloat3(_("XYZ Rotation ##2"), (float*)&currentEnemy->rotation);
             ImGui::InputFloat3(_("XYZ Velocity ##2"), (float*)&currentEnemy->velocity);
@@ -336,7 +341,21 @@ void EnemyTracker::on_gui_frame() {
 
     ImGui::Checkbox(_("Flying Enemy Stats"), &flyingEnemyStats);
     ImGui::SameLine();
-	help_marker(_("Render ImGui stats on enemies"));
+    help_marker(_("Render ImGui stats on enemies"));
+    if (flyingEnemyStats) {
+        ImGui::Indent(lineIndent);
+        ImGui::Checkbox("Display HP", &showFlyingEnemyHP);
+        ImGui::Checkbox("Display Damage Taken", &showFlyingEnemyDamageTaken);
+        ImGui::Checkbox("Display Stun 1", &showFlyingEnemyStun[0]);
+        ImGui::Checkbox("Display Stun 2", &showFlyingEnemyStun[1]);
+        ImGui::Checkbox("Display Stun 3", &showFlyingEnemyStun[2]);
+        ImGui::Checkbox("Display Stun 4", &showFlyingEnemyStun[3]);
+        ImGui::Checkbox("Display Displacement 1", &showFlyingEnemyDisplacement[0]);
+        ImGui::Checkbox("Display Displacement 2", &showFlyingEnemyDisplacement[1]);
+        ImGui::Checkbox("Display Displacement 3", &showFlyingEnemyDisplacement[2]);
+        ImGui::Checkbox("Display Displacement 4", &showFlyingEnemyDisplacement[3]);
+        ImGui::Unindent(lineIndent);
+    }
 }
 
 class InteractiveModel {
@@ -476,8 +495,17 @@ void EnemyTracker::on_frame(fmilliseconds& dt) {
                             ImGui::SetWindowPos(screenPos);
                             ImGui::SetWindowFontScale(1.0f * guiFriendlyDistance);
                             uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + get_enemy_specific_damage_offset(enemy->ID));
-                            ImGui::PushItemWidth((sameLineItemWidth / 3) * guiFriendlyDistance);
-                            ImGui::SliderFloat("HP", &currentEnemyDamage->HP, 0.0f, currentEnemyDamage->HPMax, "%.2f");
+                            ImGui::PushItemWidth((sameLineItemWidth / 2.5f) * guiFriendlyDistance);
+                            if (showFlyingEnemyHP) ImGui::SliderFloat("HP", &currentEnemyDamage->HP, 0.0f, currentEnemyDamage->HPMax, "%.2f");
+                            if (showFlyingEnemyDamageTaken) ImGui::InputFloat("Damage", &currentEnemyDamage->HPTaken, NULL, NULL, "%.2f");
+                            if (showFlyingEnemyStun[0]) ImGui::InputInt("Stun 1", &currentEnemyDamage->stun[0], NULL, NULL);
+                            if (showFlyingEnemyStun[1]) ImGui::InputInt("Stun 2", &currentEnemyDamage->stun[1], NULL, NULL);
+                            if (showFlyingEnemyStun[2]) ImGui::InputInt("Stun 3", &currentEnemyDamage->stun[2], NULL, NULL);
+                            if (showFlyingEnemyStun[3]) ImGui::InputInt("Stun 4", &currentEnemyDamage->stun[3], NULL, NULL);
+                            if (showFlyingEnemyDisplacement[0]) ImGui::InputInt("Displacement 1", &currentEnemyDamage->displacement[0], NULL, NULL);
+                            if (showFlyingEnemyDisplacement[1]) ImGui::InputInt("Displacement 2", &currentEnemyDamage->displacement[1], NULL, NULL);
+                            if (showFlyingEnemyDisplacement[2]) ImGui::InputInt("Displacement 3", &currentEnemyDamage->displacement[2], NULL, NULL);
+                            if (showFlyingEnemyDisplacement[3]) ImGui::InputInt("Displacement 4", &currentEnemyDamage->displacement[3], NULL, NULL);
                             ImGui::PopItemWidth();
                             ImGui::End();
                         }
@@ -493,8 +521,18 @@ void EnemyTracker::on_frame(fmilliseconds& dt) {
                     ImGui::Begin("BossStats##1", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
                     ImGui::SetWindowPos(screenPos);
                     ImGui::SetWindowFontScale(1.0f * guiFriendlyDistance);
-                    ImGui::PushItemWidth((sameLineItemWidth / 3) * guiFriendlyDistance);
+                    ImGui::PushItemWidth((sameLineItemWidth / 2.5f) * guiFriendlyDistance);
                     ImGui::InputFloat(_("HP ##BossFly"), &sMedPtr->uBoss1->HP);
+                    if (showFlyingEnemyHP) ImGui::SliderFloat("HP", &sMedPtr->uBoss1->HP, 0.0f, sMedPtr->uBoss1->HPMax, "%.2f");
+                    // if (showFlyingEnemyDamageTaken) ImGui::InputFloat("Damage", &sMedPtr->uBoss1->HPTaken, NULL, NULL, "%.2f");
+                    // if (showFlyingEnemyStun[0]) ImGui::InputInt("Stun 1", &sMedPtr->uBoss1->stun[0], NULL, NULL);
+                    // if (showFlyingEnemyStun[1]) ImGui::InputInt("Stun 2", &sMedPtr->uBoss1->stun[1], NULL, NULL);
+                    // if (showFlyingEnemyStun[2]) ImGui::InputInt("Stun 3", &sMedPtr->uBoss1->stun[2], NULL, NULL);
+                    // if (showFlyingEnemyStun[3]) ImGui::InputInt("Stun 4", &sMedPtr->uBoss1->stun[3], NULL, NULL);
+                    // if (showFlyingEnemyDisplacement[0]) ImGui::InputInt("Displacement 1", &sMedPtr->uBoss1->displacement[0], NULL, NULL);
+                    // if (showFlyingEnemyDisplacement[1]) ImGui::InputInt("Displacement 2", &sMedPtr->uBoss1->displacement[1], NULL, NULL);
+                    // if (showFlyingEnemyDisplacement[2]) ImGui::InputInt("Displacement 3", &sMedPtr->uBoss1->displacement[2], NULL, NULL);
+                    // if (showFlyingEnemyDisplacement[3]) ImGui::InputInt("Displacement 4", &sMedPtr->uBoss1->displacement[3], NULL, NULL);
                     ImGui::PopItemWidth();
                     ImGui::End();
                 }
@@ -589,16 +627,39 @@ void EnemyTracker::on_update_input(utility::Input& input) {
 void EnemyTracker::on_config_load(const utility::Config& cfg) {
     hotkey_enabled = cfg.get<bool>("enable_enemy_stats_hotkeys").value_or(true);
     // useLockedOnEnemyInstead = cfg.get<bool>("enable_enemy_stats_lockon").value_or(false);
-    flyingEnemyStats = cfg.get<bool>("flyingEnemyStats").value_or(false);
     flyingSpheres = cfg.get<bool>("flyingSpheres").value_or(false);
     flyingAd = cfg.get<bool>("flyingAd").value_or(false);
+    flyingEnemyStats = cfg.get<bool>("flyingEnemyStats").value_or(false);
+
+    showFlyingEnemyHP = cfg.get<bool>("showFlyingEnemyHP").value_or(true);
+    showFlyingEnemyDamageTaken = cfg.get<bool>("showFlyingEnemyDamageTaken").value_or(false);
+    showFlyingEnemyMoveID = cfg.get<bool>("showFlyingEnemyMoveID").value_or(false);
+    for (int i = 0; i < 4; i++) {
+        std::string key = "showFlyingEnemyStun" + std::to_string(i);
+        showFlyingEnemyStun[i] = cfg.get<bool>(key).value_or(false);
+    }
+    for (int i = 0; i < 4; i++) {
+        std::string key = "showFlyingEnemyDisplacement" + std::to_string(i);
+        showFlyingEnemyDisplacement[i] = cfg.get<bool>(key).value_or(false);
+    }
 }
 
 void EnemyTracker::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("enable_enemy_stats_hotkeys", hotkey_enabled);
     // cfg.set<bool>("enable_enemy_stats_lockon", useLockedOnEnemyInstead);
     cfg.set<bool>("flyingSpheres", flyingSpheres);
-    cfg.set<bool>("flyingEnemyStats", flyingEnemyStats);
     cfg.set<bool>("flyingAd", flyingAd);
+    cfg.set<bool>("flyingEnemyStats", flyingEnemyStats);
+    cfg.set<bool>("showFlyingEnemyHP", showFlyingEnemyHP);
+    cfg.set<bool>("showFlyingEnemyDamageTaken", showFlyingEnemyDamageTaken);
+    cfg.set<bool>("showFlyingEnemyMoveID", showFlyingEnemyMoveID);
+    for (int i = 0; i < 4; i++) {
+        std::string key = "showFlyingEnemyStun" + std::to_string(i);
+        cfg.set<bool>(key, showFlyingEnemyStun[i]);
+    }
+    for (int i = 0; i < 4; i++) {
+        std::string key = "showFlyingEnemyDisplacement" + std::to_string(i);
+        cfg.set<bool>(key, showFlyingEnemyDisplacement[i]);
+    }
 }
 #endif
