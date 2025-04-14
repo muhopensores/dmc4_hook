@@ -298,7 +298,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Em003-ground_th",  "Mega Counter"},
     {"makikomi152",      "Collateral"},
     {"makikomi158",      "Collateral"},     // enemy hit by bustered mega
-    {"makikomi156",      "Collateral"}
+    {"makikomi156",      "Collateral"}, 
 
     // bianco
     {"Em005",            "Bianco Buster"},
@@ -357,6 +357,11 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Em011Grab_Count",  "Assault Buster"},
     {"grabed-attack",    "Collateral"},     // enemy hit by bustered assault
     {"grabed-at-fin",    "Collateral"},     // enemy hit by bustered assault
+    {"grabed-at-f",      "Collateral"},     // enemy hit by bustered assault
+    {"wind-0",           "Friendly Fire"},  // enemy being bustered hit by screaming assault
+    {"nail-mis",         "Friendly Fire"},  // enemy being bustered hit by assault projectile
+    {"bullet-cn",        "Friendly Fire"},  // enemy being bustered hit by assault flying swallow
+    {"crow-ht",           "Friendly Fire"}, // enemy being bustered hit by assault 
 
     // blitz
     {"BUS-Em012_Gr_00",  "Blitz Buster"}, // ground
@@ -406,7 +411,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
 
     // berial
     {"Em018Down",        "Berial Buster"},
-    {"Em018Down2",        "Berial Buster"},
+    {"Em018Down2",       "Berial Buster"},
     {"Em018Head",        "Berial Buster"},
     {"Em018Head_maji",   "Berial Buster"},
     {"Em018Head_maji2",  "Berial Buster"},
@@ -422,6 +427,13 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Em018FireLowF",    "Berial Buster"},
     {"Em018FireLowB",    "Berial Buster"},
     {"Em018FireUp",      "Berial Buster"},
+    {"Syoryu_Body",      "Friendly Fire"}, // Berial hit an enemy you were bustering
+    {"Sword_Kaze",       "Friendly Fire"}, // Berial hit an enemy you were bustering
+    {"Sword_Base",       "Friendly Fire"}, // Berial hit an enemy you were bustering
+    {"Right_Hand",       "Friendly Fire"}, // Berial hit an enemy you were bustering
+    {"Tategiri_Sword",   "Friendly Fire"}, // Berial hit an enemy you were bustering
+    {"Super_Attack",     "Friendly Fire"}, // Berial hit an enemy you were bustering
+    {"EM018SHL",         "Friendly Fire"}, // Berial hit an enemy you were bustering
 
     // frog
     {"Em019Tail",        "Frog Buster"},
@@ -463,12 +475,15 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Em021Norm2",       "Echidna Buster"},
     {"Em021Norm3",       "Echidna Buster"},
     {"Em021Norm4",       "Echidna Buster"},
+    {"Em021Norm5",       "Echidna Buster"},
     {"Em021Norm6",       "Echidna Buster"},
+    {"Em021Norm7",       "Echidna Buster"},
     {"Em021Norm8",       "Echidna Buster"},
     {"Em021Norm_Ryu1",   "Echidna Buster"},
     {"Em021Norm_Ryu2",   "Echidna Buster"},
     {"Em021Norm_Ryu3",   "Echidna Buster"},
     {"Em021Norm_Ryu4",   "Echidna Buster"},
+    {"Em021Norm_Ryu5",   "Echidna Buster"},
     {"Em021Norm_Ryu6",   "Echidna Buster"},
     {"Em021Maji_Ryu1",   "Echidna Buster"},
     {"Em021Maji_Ryu2",   "Echidna Buster"},
@@ -507,6 +522,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"BUS-Em022_Mj_04",  "Credo Buster"},
     {"BUS-Em022_Mj_05",  "Credo Buster"},
     {"BUS-Em022_Mj_06",  "Credo Buster"},
+    {"SwordCmb1",        "Friendly Fire"},
 
     // agnus
     {"BusterLoop",       "Agnus Buster"},
@@ -543,8 +559,10 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     // m20 sanctus
     {"BUS-Em030_00",     "Sanctus Buster"},
     {"BUS-Em030_01",     "Sanctus Buster"},
+    {"BUS-Em030_02",     "Sanctus Buster"},
     {"BUS-Em030_Mj_00",  "Sanctus Buster"},
     {"BUS-Em030_Mj_01",  "Sanctus Buster"},
+    {"BUS-Em030_Mj_02",  "Sanctus Buster"},
 
     // dante
     {"EmDanteMaj",       "Dante Buster"},
@@ -552,6 +570,8 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"EmDanteMajFin",    "Dante Buster"},
     {"EmDanteNorm",      "Dante Buster"},
     {"EmDanteThrow",     "Dante Buster"}, // after sword clashes
+    {"em_dante_throw",   "Collateral"},   // hitting another thing with dante
+    {"em_dante_dt_thr",  "Collateral"},   // hitting another thing with dante (dt)
 
     // red queen
     {"RED-ComboA_00",    "Red Queen Combo A"},
@@ -578,6 +598,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"RED-Highro",       "High Roller"},      
     {"RED-HighroEX_00",  "EX High Roller"},   // grounded 1, 2, 3
     {"RED-HighroEX_01",  "EX High Roller"},   // aerial      2
+    {"RED-HighroEX_02",  "EX High Roller"},   // back hit
     {"RED-HighroEX_03",  "EX High Roller"},   // grounded    2, 3
     {"RED-HighroEX_04",  "EX High Roller"},   // grounded       3
     {"RED-HighroEX_05",  "EX High Roller"},   // aerial      2, 3
