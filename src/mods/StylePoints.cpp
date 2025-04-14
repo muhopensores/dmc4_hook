@@ -1409,28 +1409,30 @@ naked void detour1(void) { // hit instances
         movss [xmm0backup], xmm0
         movss [xmm1backup], xmm1
 
-        push eax // 0x4
-        push ebx // 0x8
-        push ecx // 0xC
-        push edx // 0x10
-        push esi // 0x14
-        push edi // 0x18
+        // push eax // 0x4
+        // push ebx // 0x8
+        // push ecx // 0xC
+        // push edx // 0x10
+        // push esi // 0x14
+        // push edi // 0x18
+        pushad // 0x20 bytes
 
         // backup pushes, 2 args
-        push [esp+0x18+0xC] // style letter
+        push [esp+0x20+0xC] // style letter
         sub esp, 0x4
         movss [esp], xmm2 // multiplier
-        push [esp+0x18+0x8+0x4] // score
+        push [esp+0x20+0x8+0x4] // score
         push ebx // text
         call AddTrickScore // fucks eax, ecx, edx
         add esp,0x10 // 4 args
 
-        pop edi
-        pop esi
-        pop edx
-        pop ecx
-        pop ebx
-        pop eax
+        popad
+        // pop edi
+        // pop esi
+        // pop edx
+        // pop ecx
+        // pop ebx
+        // pop eax
 
         movss xmm0, [xmm0backup]
         movss xmm1, [xmm1backup]
@@ -1446,16 +1448,16 @@ static const float slowestGuardfly = 20.0f;
 naked void detour2(void) { // guardfly
     _asm {
         cmp byte ptr [StylePoints::tonyHawk], 1
-        je cheatcode
-        jmp originalcode
+        jne originalcode
 
-        cheatcode:
-        push eax
-        push ebx
-        push ecx
-        push edx
-        push esi
-        push edi
+        // cheatcode:
+        // push eax // 0x4
+        // push ebx // 0x8
+        // push ecx // 0xC
+        // push edx // 0x10
+        // push esi // 0x14
+        // push edi // 0x18
+        pushad
 
         movss xmm0,[ebp+0x1e1c]
         comiss xmm0, [slowestGuardfly]
@@ -1468,12 +1470,13 @@ naked void detour2(void) { // guardfly
         add esp,0x10 // 4 args
 
         popcode:
-        pop edi
-        pop esi
-        pop edx
-        pop ecx
-        pop ebx
-        pop eax
+        popad
+        // pop edi
+        // pop esi
+        // pop edx
+        // pop ecx
+        // pop ebx
+        // pop eax
 
         originalcode:
         add [ebp+0x00001504],ebx
@@ -1487,12 +1490,13 @@ naked void detour3(void) { // snatch
         cmp byte ptr [StylePoints::tonyHawk], 1
         jne originalcode
 
-        push eax
-        push ebx
-        push ecx
-        push edx
-        push esi
-        push edi
+        // push eax // 0x4
+        // push ebx // 0x8
+        // push ecx // 0xC
+        // push edx // 0x10
+        // push esi // 0x14
+        // push edi // 0x18
+        pushad
 
         push 0 // style letter
         push 0x3f800000 // multiplier
@@ -1501,12 +1505,13 @@ naked void detour3(void) { // snatch
         call AddTrickScore // fucks eax, ecx, edx
         add esp,0x10 // 4 args
 
-        pop edi
-        pop esi
-        pop edx
-        pop ecx
-        pop ebx
-        pop eax
+        popad
+        // pop edi
+        // pop esi
+        // pop edx
+        // pop ecx
+        // pop ebx
+        // pop eax
 
         originalcode:
         mov dword ptr [ebp+0x00001504],00000002
@@ -1519,12 +1524,13 @@ naked void detour4(void) { // snatch air
         cmp byte ptr [StylePoints::tonyHawk], 1
         jne originalcode
 
-        push eax
-        push ebx
-        push ecx
-        push edx
-        push esi
-        push edi
+        // push eax // 0x4
+        // push ebx // 0x8
+        // push ecx // 0xC
+        // push edx // 0x10
+        // push esi // 0x14
+        // push edi // 0x18
+        pushad
 
         push 0 // style letter
         push 0x3f800000 // multiplier
@@ -1533,12 +1539,13 @@ naked void detour4(void) { // snatch air
         call AddTrickScore // fucks eax, ecx, edx
         add esp,0x10 // 4 args
 
-        pop edi
-        pop esi
-        pop edx
-        pop ecx
-        pop ebx
-        pop eax
+        popad
+        // pop edi
+        // pop esi
+        // pop edx
+        // pop ecx
+        // pop ebx
+        // pop eax
 
         originalcode:
         mov dword ptr [ebp+0x00001504],00000002

@@ -315,17 +315,23 @@ void __stdcall Filter(char* path) {
 // unsigned int mode)
 naked void detour() {
     __asm {
-        push ecx // original code
+        // original code
+        push ecx
         push ebx
         push ebp
         push esi
         push edi
+
+        cmp byte ptr [mod_enabled], 1
+        jne retcode
+
         pushad  // call our shitty hacks
         push eax // path is passed in eax
         mov ecx, [esp+0x3C] // dti is on the stack 
         push ecx
         call wew
         popad
+        retcode:
         jmp dword ptr [jmp_return]
     }
 #if 0
@@ -364,6 +370,7 @@ naked void detour2() {
         jmp [jmp_return01]
     }
 }
+
 naked void detour3() {
     __asm{
         cmp byte ptr [mod_enabled], 1
@@ -383,8 +390,11 @@ naked void detour3() {
 
 naked void detour4() {
     __asm{
+        cmp byte ptr [mod_enabled], 1
+        jne originalcode
         mov byte ptr [ArcInit], 0
-    // originalcode:
+
+        originalcode:
         test al, al
         mov [esp+0x13], al
         jmp [jmp_return03]

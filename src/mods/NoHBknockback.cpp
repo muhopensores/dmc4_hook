@@ -26,7 +26,11 @@ naked void no_helm_breaker_knockback_proc(void) { // ebx+0x98 = player + CE20 //
 			push eax
 			mov eax, [static_mediator_ptr]
 			mov eax, [eax]
+			test eax,eax
+			je poporiginalcode
 			mov eax, [eax+0x24]
+			test eax,eax
+			je poporiginalcode
 
 			// Dante:
 			cmp dword ptr [eax+0x2998], 0x20A // 522 // Low
@@ -54,7 +58,11 @@ naked void no_helm_breaker_knockback_proc(void) { // ebx+0x98 = player + CE20 //
 			push eax
 			mov eax, [static_mediator_ptr]
 			mov eax, [eax]
+			test eax,eax
+			je poporiginalcode
 			mov eax, [eax+0x24]
+			test eax,eax
+			je poporiginalcode
 
 			cmp dword ptr [eax+0x2998], 812
 			jne poporiginalcode

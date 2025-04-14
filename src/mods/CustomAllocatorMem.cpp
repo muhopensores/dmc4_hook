@@ -1,3 +1,4 @@
+#if 0
 #include "CustomAllocatorMem.hpp"
 
 bool CustomAllocatorMem::mod_enabled{ true };
@@ -33,3 +34,4 @@ std::optional<std::string> CustomAllocatorMem::on_initialize() {
     toggle(1);
     return Mod::on_initialize();
 }
+#endif

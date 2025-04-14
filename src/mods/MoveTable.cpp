@@ -69,12 +69,10 @@ naked void detour0(void) { // MoveTable toggle() function
     }
 }
 
-naked void detour1(void) { //Assign Dante's kAtckDefTbl
+naked void detour1(void) { // Assign Dante's kAtckDefTbl
     _asm  {
             push eax
             cmp byte ptr [AerialStinger::mod_enabled], 1
-            je newcode
-            cmp byte ptr [Payline::mod_enabled], 1
             je newcode
             cmp byte ptr [LuciAirThrow::mod_enabled], 1
             je newcode
@@ -94,32 +92,28 @@ naked void detour1(void) { //Assign Dante's kAtckDefTbl
     }
 }
 
-naked void detour2(void) { //Assign Nero's kAtckDefTbl
+naked void detour2(void) { // Assign Nero's kAtckDefTbl
     _asm  {
             push eax
-            cmp byte ptr [AerialStinger::mod_enabled], 1
-            je newcode
             cmp byte ptr [Payline::mod_enabled], 1
-            je newcode
-            cmp byte ptr [LuciAirThrow::mod_enabled], 1
             je newcode
             jmp originalcode
 
         newcode:
-            mov eax,HookNeroKADTbl
-            mov dword ptr [esi+0x1DCC],eax
+            mov eax, HookNeroKADTbl
+            mov dword ptr [esi+0x1DCC], eax
             jmp cont
 
         originalcode:
-            mov eax,[NativeNeroKADTbl]
-            mov [esi+0x1DCC],eax
+            mov eax, [NativeNeroKADTbl]
+            mov [esi+0x1DCC], eax
         cont:
             pop eax
             jmp [MoveTable::jmp_ret2]
     }
 }
 
-// Handle Dante's new move ids
+// Handle Dante's new >0x6B move ids
 void __stdcall dante_move_switch(uint32_t moveID, uintptr_t actor) {
     switch (moveID + 1) {
         case 0x6D: {
@@ -132,39 +126,43 @@ void __stdcall dante_move_switch(uint32_t moveID, uintptr_t actor) {
     }
 }
 
-naked void detour3(void) { //handle Dante's move call
-    _asm {
-            jna originalcode
-            cmp byte ptr [AerialStinger::mod_enabled], 1
-            je newcode
-            cmp byte ptr [Payline::mod_enabled], 1
-            je newcode
+// uintptr_t detour3_ja = 0x7CD504;
+naked void detour3(void) { // Handle Dante's move call
+    _asm { 
             cmp byte ptr [LuciAirThrow::mod_enabled], 1
             je newcode
-            jmp originalcode
+
+            cmp ecx, 0x6B
+            push esi
+            push edi
+            ja jacode
+        retcode:
+            jmp dword ptr [MoveTable::jmp_ret3]
 
         newcode:
+            cmp ecx, 0x6B
+            push esi
+            push edi
+            jna retcode // old moveid, continue
             pushad
             push eax // uPlayerDante
             push ecx // moveID
             call dante_move_switch
             popad
+        jacode:
             pop edi
             pop esi
             mov esp,ebp
             pop ebp
             ret
-        originalcode:
-            jmp [MoveTable::jmp_ret3]
     }
 }
 
-
 void updateKDATbl() {
-    //Put stuff here, IDs must be > 0x6B
+    // Put stuff here, IDs must be > 0x6B
     DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {2, 0x6D, 7, 1, 3, 6, (unsigned long)-1, 0, 2, 1, 0, 0, 0, 0x05000007}); //New splash
 
-    //Terminate
+    // Terminate
     DanteAtckDefTbl.emplace_back(3);
     NeroAtckDefTbl.emplace_back(3);
     HookDanteKADTbl = (uintptr_t)DanteAtckDefTbl.data();
@@ -185,7 +183,7 @@ std::optional<std::string> MoveTable::on_initialize() {
 		spdlog::error("Failed to init MoveTable mod2\n");
 		return "Failed to init MoveTable mod 2";
 	}
-    if (!install_hook_offset(0x3CD1A6, hook3, &detour3, &jmp_ret3, 6)) {
+    if (!install_hook_offset(0x3CD1A1, hook3, &detour3, &jmp_ret3, 11)) {
 		spdlog::error("Failed to init MoveTable mod3\n");
 		return "Failed to init MoveTable mod 3";
 	}

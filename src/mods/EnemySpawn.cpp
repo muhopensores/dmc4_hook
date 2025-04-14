@@ -47,7 +47,7 @@ enum {
 // em023    // Angelo Agnus                      // 2AA83A7F
 // em025    // Savior                            // 5C0C385E
 // em026    // Savior2                           //
-// em027    // Credo human form, pl004           //
+// em027    // Credo human form, pl004, dh says agnus anims // 
 // em029    // Sanctus, pl002, pl0023            // 62D0876D
 // em030    // Sanctus2, pl023                   //
 // em031    // Credo human again, pl004          //

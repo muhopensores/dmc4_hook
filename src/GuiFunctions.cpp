@@ -884,7 +884,10 @@ namespace gui {
                 ImGui::EndTabBar();
             }
             endHeight = std::min(uiHeight + tabHeight, maxUIHeight);
-            ImGui::SetWindowSize(ImVec2(uiWidth, endHeight));
+
+            // tab height is set to 0 when tabbing in. if() will keep old dimensions
+            if (tabHeight > 0.0f)
+                ImGui::SetWindowSize(ImVec2(uiWidth, endHeight));
             ImGui::End();
             /*ImGui::Begin("Window Height Check");
             ImGui::SetWindowPos(ImVec2(1920.f * 0.7f, 1080.0f * 0.2f));
