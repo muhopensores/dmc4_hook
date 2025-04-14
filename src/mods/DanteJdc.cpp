@@ -583,7 +583,7 @@ void DanteJdc::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("dante_jdc").value_or(false);
     SeeIfFileExists();
     if (mod_enabled) toggle(mod_enabled);
-    alt_input_enabled = cfg.get<bool>("jdc_alt_input").value_or(false);
+    alt_input_enabled = cfg.get<bool>("jdc_alt_input").value_or(true);
     DanteJdc::inertia_enabled = cfg.get<bool>("jdc_inertia").value_or(true);
 }
 

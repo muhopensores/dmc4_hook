@@ -20,6 +20,11 @@ static float shockCancel = 50.0f;
 static float kickThirteenBuffer = 20.0f;
 static float kickThirteenCancel = 46.8f;
 
+static float fireworksBuffer = 16.0f;
+static float fireworksCancel = 36.0f;
+static bool fireworksGunCancel = true;
+static bool fireworksStyleCancel = true;
+
 naked void detour1() { // player in eax + edi
 	_asm {
 			cmp byte ptr [SelectiveCancels::mod_enabled], 0
@@ -60,6 +65,8 @@ naked void detour1() { // player in eax + edi
 			je Omen
 			cmp dword ptr [eax+0x2998], 0x635 // Gunstinger
 			je Gunstinger
+			cmp dword ptr [eax+0x2998], 0x632 // Fireworks
+			je Fireworks
 			cmp dword ptr [eax+0x2998], 0x706 // Epidemic
 			je Epidemic
 			cmp dword ptr [eax+0x2998], 0x410 // DT Pin Up part 2
@@ -140,6 +147,42 @@ naked void detour1() { // player in eax + edi
 		GunStinger:
 			test [SelectiveCancels::cancels], GUNSTINGER
 			jne UsualCancel
+			jmp popcode
+
+		Fireworks:
+			test [SelectiveCancels::cancels], FIREWORKS
+			je popcode
+			comiss xmm0, [fireworksBuffer]
+			jb popcode
+			comiss xmm0, [fireworksCancel]
+			jb FireworksBufferChecks
+		// FireworksCancelChecks:
+			cmp byte ptr [fireworksStyleCancel], 1
+			je FireworksStyleCancel
+			cmp byte ptr [fireworksGunCancel], 1
+			je FireworksGunCancel
+			jmp popcode
+		FireworksStyleCancel:
+			mov dword ptr [eax+0x3148], 2 // style cancel
+			cmp byte ptr [fireworksGunCancel], 1
+			je FireworksGunCancel
+			jmp popcode
+		FireworksGunCancel:
+			mov dword ptr [eax+0x31CC], 2 // gun cancel
+			jmp popcode
+		FireworksBufferChecks:
+			cmp byte ptr [fireworksStyleCancel], 1
+			je FireworksStyleBuffer
+			cmp byte ptr [fireworksGunCancel], 1
+			je FireworksGunBuffer
+			jmp popcode
+		FireworksStyleBuffer:
+			mov dword ptr [eax+0x3148], 1 // style buffer
+			cmp byte ptr [fireworksGunCancel], 1
+			je FireworksGunBuffer
+			jmp popcode
+		FireworksGunBuffer:
+			mov dword ptr [eax+0x31CC], 1 // gun buffer
 			jmp popcode
 
 		Epidemic:
@@ -223,7 +266,7 @@ naked void detour1() { // player in eax + edi
 	}
 }
 
-naked void detour2() { // only called on ground guard
+naked void detour2() { // disable guardslide, only called on ground guard
 	_asm {
 			cmp byte ptr [SelectiveCancels::mod_enabled], 0
 			je originalcode
@@ -309,7 +352,7 @@ std::optional<std::string> SelectiveCancels::on_initialize() {
 		spdlog::error("Failed to init SelectiveCancels\n");
 		return "Failed to init SelectiveCancels";
 	}
-	if (!install_hook_offset(0x3CBA06, hook2, &detour2, &jmp_ret2, 5)) {
+	if (!install_hook_offset(0x3CBA06, hook2, &detour2, &jmp_ret2, 5)) { // disable guardslide, only called on ground guard
 		spdlog::error("Failed to init SelectiveCancels\n");
 		return "Failed to init SelectiveCancels";
 	}
@@ -422,8 +465,18 @@ void SelectiveCancels::on_gui_frame() {
 		}
 		ImGui::SameLine();
 		help_marker(_("Cancel out of Grief mid-throw animation without recalling Pandora"));
-		
+
 		draw_checkbox_simple(_("Gun Stinger"), GUNSTINGER);
+        ImGui::SameLine(sameLineWidth + lineIndent);
+		draw_checkbox_simple(_("Fireworks"), FIREWORKS);
+		// ImGui::Indent(sameLineWidth + lineIndent);
+		// ImGui::PushItemWidth(sameLineItemWidth / 3.0f);
+		// ImGui::InputFloat("[DEBUG] Buffer", &fireworksBuffer, NULL, NULL, "%.0f");
+		// ImGui::InputFloat("[DEBUG] Cancel", &fireworksCancel, NULL, NULL, "%.0f");
+		// ImGui::Checkbox("[DEBUG] GunCancel", &fireworksGunCancel);
+		// ImGui::Checkbox("[DEBUG] StyleCancel", &fireworksStyleCancel);
+		// ImGui::PopItemWidth();
+		// ImGui::Unindent(sameLineWidth + lineIndent);
 
 		// ImGui::InputFloat("Shock Buffer", &shockBuffer);
 		// ImGui::InputFloat("Shock Cancel", &shockCancel);
