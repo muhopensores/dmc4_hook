@@ -279,6 +279,10 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
 //};
 
 //std::unordered_map<std::string, std::string> neroLookupTable = { // uh some things can go off after a char switch
+
+    // Beyblade
+    {"Attack1",          "Gyro"},
+
     // scarecrow
     {"Em000",            "Scarecrow Buster"}, // non dt
     {"Em000_1",          "Scarecrow Buster"}, // dt ground
@@ -622,6 +626,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"RED-SureenEX_08",  "EX Shuffle"},       // EX3
     {"RED-SureenEX_09",  "EX Shuffle"},       // EX3 // rare, I assume weak hit or back hit
     {"RED-SureenEX_10",  "EX Shuffle"},       // EX3
+    {"RED-SureenEX_11",  "EX Shuffle"},       // EX3
     {"RED-AirStre_00",   "Calibur"},
     {"RED-AirStre_01",   "Calibur"},
     {"RED-AirStEX_00",   "EX Calibur"},       // EX1
@@ -689,6 +694,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"YAM-Split_01",     "Split"},
     {"YAM-SplitEX_00",   "EX Split"}, // EX1
     {"YAM-SplitEX_01",   "EX Split"}, // EX2
+    {"YAM-SplitEX_02",   "EX Split"}, // EX2
     {"YAM-SplitEX_03",   "EX Split"}, // EX3
 
     // blue rose
@@ -1013,7 +1019,7 @@ static void DrawTonyScores() {
     std::uniform_real_distribution<float> dis(-1.0f, 1.0f);
 
     float shakeAmount = 0.0f;
-    if (fade > shakeDuration && !gamePaused) {
+    if (fade > shakeDuration && !gamePaused && player->m_delta_time > 0.0f) {
         shakeAmount = dis(gen);
     }
 

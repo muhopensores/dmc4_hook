@@ -22,7 +22,7 @@ void EnemyDT::toggle_instant_dt(bool enable) {
     }
     else {
         // patch2.reset();
-        patch3.reset();
+        patch3.reset(); // movss xmm0, [esi+00001488]
     }
 }
 

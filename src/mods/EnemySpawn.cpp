@@ -56,7 +56,7 @@ enum {
 // em036    // Kyrie, pl022                      //
 // em_dante // Boss Dante                        // 3D355100
 
-constexpr std::array<uintptr_t, 21> fptr_em_factories{
+constexpr std::array<uintptr_t, 23> fptr_em_factories{
     0x0053F810, // 00 Leg Scarecrow
     0x0055E710, // 01 Arm Scarecrow
     0x0055F7E0, // 02 Mega Scarecrow
@@ -68,24 +68,23 @@ constexpr std::array<uintptr_t, 21> fptr_em_factories{
     0x005B3170, // 08 Assault
     0x005D1760, // 09 Blitz
     0x005DC160, // 10 Chimera Seed
-    0x0061A7B0, // 11 Basilisk
-    0x00630AC0, // 12 Berial
-    0x00649CB0, // 13 Bael
-    0x00685340, // 14 Echidna
-    0x006AA2C0, // 16 Angelo Credo
-    0x006BDE60, // 15 Angelo Agnus
-    0x006F81E0, // 17 Sanctus
-    0x007022F0, // 18 Sanctus Diabolica
-    0x00723C00, // 19 Kyrie
-    0x007BF980  // 20 Dante
-    // 0x00609C20,             // // Cutlass // Broken
-    // 0x00618460,             // // Gladius // Broken
-    //                         // // Fault
-    //                         // // The Savior
-    //                         // // The False Savior
+    0x005F37F0, // 11 Cutlass
+    0x0060AFC0, // 12 Gladius
+    0x0061A7B0, // 13 Basilisk
+    0x00630AC0, // 14 Berial
+    0x00649CB0, // 15 Bael
+    0x00685340, // 16 Echidna
+    0x006AA2C0, // 17 Angelo Credo
+    0x006BDE60, // 18 Angelo Agnus
+    0x006F81E0, // 19 Sanctus
+    0x007022F0, // 20 Sanctus Diabolica
+    0x00723C00, // 21 Kyrie
+    0x007BF980, // 22 Dante
+    // Fault
+    // The Savior
 };
 
-constexpr std::array<const char*, 21> enemy_names{
+constexpr std::array<const char*, 23> enemy_names{
     "Scarecrow (Leg)",   // 00 Leg Scarecrow
     "Scarecrow (Arm)",   // 01 Arm Scarecrow
     "Mega Scarecrow",    // 02 Mega Scarecrow
@@ -97,24 +96,24 @@ constexpr std::array<const char*, 21> enemy_names{
     "Assault",           // 08 Assault
     "Blitz",             // 09 Blitz
     "Chimera Seed",      // 10 Chimera Seed
-    "Basilisk",          // 11 Basilisk
-    "Berial",            // 12 Berial
-    "Bael",              // 13 Bael
-    "Echidna",           // 14 Echidna
-    "Angelo Credo",      // 16 Angelo Credo
-    "Angelo Agnus",      // 15 Angelo Agnus
-    "Sanctus",           // 17 Sanctus
-    "Sanctus Diabolica", // 18 Sanctus Diabolica
-    "Kyrie",             // 19 Kyrie
-    "Dante"              // 20 Dante
-                         // "Cutlass",		       // // Cutlass // Broken
-                         // "Gladius",		       // // Gladius // Broken
-                         // Fault			       // // Fault
-                         // The Savior		       // // The Savior
-                         // The False Savior	       // // The False Savior
+    "Cutlass",		     // 11 Cutlass
+    "Gladius", 		     // 12 Gladius
+    "Basilisk",          // 13 Basilisk
+    "Berial",            // 14 Berial
+    "Bael",              // 15 Bael
+    "Echidna",           // 16 Echidna
+    "Angelo Agnus",      // 17 Angelo Agnus
+    "Angelo Credo",      // 18 Angelo Credo
+    "Sanctus",           // 19 Sanctus
+    "Sanctus Diabolica", // 20 Sanctus Diabolica
+    "Kyrie",             // 21 Kyrie
+    "Dante",             // 22 Dante
+                         // Fault
+                         // The Savior
+                         // The False Savior
 };
 
-constexpr std::array<int, 21> enemy_spawn_type{
+constexpr std::array<int, 23> enemy_spawn_type{
     4, // 00 Leg Scarecrow
     4, // 01 Arm Scarecrow
     4, // 02 Mega Scarecrow
@@ -126,27 +125,30 @@ constexpr std::array<int, 21> enemy_spawn_type{
     0, // 08 Assault
     4, // 09 Blitz
     2, // 10 Chimera Seed
-    3, // 11 Basilisk
-    4, // 12 Berial
-    0, // 13 Bael
-    4, // 14 Echidna
-    4, // 16 Angelo Credo
-    4, // 15 Angelo Agnus
-    4, // 17 Sanctus
-    4, // 18 Sanctus Diabolica
-    4, // 19 Kyrie
-    4  // 20 Dante
-    // 4                       // // Cutlass // Broken
-    // 4                       // // Gladius // Broken
-    // 4                       // // Fault
-    // 4                       // // The Savior
-    // 4                       // // The False Savior
+    2, // 11 Cutlass
+    8, // 12 Gladius
+    3, // 13 Basilisk
+    4, // 14 Berial
+    0, // 15 Bael
+    4, // 16 Echidna
+    4, // 17 Angelo Agnus
+    4, // 18 Angelo Credo
+    4, // 19 Sanctus
+    4, // 20 Sanctus Diabolica
+    4, // 21 Kyrie
+    4, // 22 Dante
+    // 4 // Fault
+    // 4 // The Savior
 };
 
 /*
 spawn animations:
 if not listed, 4 was used
 5 is broken on most, T POSE BABYYYYY
+
+berial:
+0 spawns doing horizontal swipe
+1 same thing
 
 scarecrow:
 2 built by ants, looks bad coming from the air
@@ -187,6 +189,20 @@ basilisk:
 2 hops forward from air
 3 horizontal portal ground
 4 attacking random spot
+
+cutlass:
+2 spawns on the ground
+
+gladius:
+1 makes sound and spawn visual
+2 spawns shooting forward but kinda sucks
+3 spawns charging vertical spin
+4 spawns charging horizontally spin
+5 spawns charing upwards attack
+6 spawns with instant attack
+7 spawns being stabbed into the ground
+8 spawns slowly, comes out facing up, v clean
+
 */
 
 glm::vec3 get_player_position() {
@@ -234,6 +250,36 @@ void spawn_em00x(int index) {
     }
 }
 
+void spawn_custom(uintptr_t spawnAddr) {
+    std::lock_guard<std::mutex> lk(g_mutex);
+    if (!devil4_sdk::get_local_player()) return; // only work while character is loaded
+    __asm {
+		pushad
+		pushfd
+		call spawnAddr // make actor
+        mov esi, eax
+
+        push edx
+        mov edx, 0
+        mov [enemy_spawning], edx
+        pop edx
+
+		// pushad
+		// push esi
+		// call set_enemy_position
+		// pop esi
+		// popad
+
+        mov ecx, 0Fh
+        mov eax, [some_struct] // static
+		mov eax, [eax]
+        push 0Fh
+        call fptr_update_actor_list
+		popfd
+		popad
+    }
+}
+
 void spawn_random_enemy() {
     auto now = std::chrono::system_clock::now();
     srand((uint32_t)now.time_since_epoch().count());
@@ -241,7 +287,7 @@ void spawn_random_enemy() {
     // if (devil4_sdk::get_sMediator()->uBoss1)
     //    spawn_em00x(rand() % 11); // do not spawn a boss if a boss already exists
     // else
-    spawn_em00x(rand() % 21);
+    spawn_em00x(rand() % 23);
 }
 
 std::optional<std::string> EnemySpawn::on_initialize() {
@@ -304,51 +350,66 @@ std::optional<std::string> EnemySpawn::on_initialize() {
                 spawn_em00x(10);
         });
 
+    MutatorRegistry::define("SpawnCutlass").weight(0) // broken
+        .description("Spawns Cutlass")/*.special_arg(&g_enable_twitch_special_spawns)*/
+        .alias("Cutlass").alias("Fish")
+        .on_init([&]() { spawn_em00x(11); });
+
+    MutatorRegistry::define("SpawnGladius").weight(0) // broken
+        .description("Spawns Gladius")/*.special_arg(&g_enable_twitch_special_spawns)*/
+        .alias("Gladius").alias("Swordfish")
+        .on_init([&]() { spawn_em00x(12); });
+
     MutatorRegistry::define("SpawnBasilisk").weight(10)
         .description("Spawns Basilisk").alias("Basilisk").alias("dog").alias("doggo")
         .alias("doge").alias("dogg").alias("puppy")
-        .on_init([&]() { spawn_em00x(11); });
+        .on_init([&]() { spawn_em00x(13); });
 
     MutatorRegistry::define("SpawnBerial").weight(1)
         .description("Spawns Berial")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Berial").alias("FirePony")
-        .on_init([&]() { spawn_em00x(12); });
+        .on_init([&]() { spawn_em00x(14); });
 
     MutatorRegistry::define("SpawnBael").weight(1)
         .description("Spawns Bael")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Bael").alias("frog").alias("froggy").alias("frogeh")
         .alias("froggeh").alias("toad").alias("runkiller")
         .alias("widepeepoHappy").alias("жаба")
-        .on_init([&]() { spawn_em00x(13); });
+        .on_init([&]() { spawn_em00x(15); });
 
     MutatorRegistry::define("SpawnEchidna").weight(1)
         .description("Spawns Echidna")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Echidna").alias("HentaiWaifu")
-        .on_init([&]() { spawn_em00x(14); });
+        .on_init([&]() { spawn_em00x(16); });
 
     MutatorRegistry::define("SpawnCredo").weight(2)
         .description("Spawns Angelo Credo")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Credo").alias("NoCavIsNotAGoodBoss").alias("BiggusDickus")
-        .on_init([&]() { spawn_em00x(15); });
+        .on_init([&]() { spawn_em00x(17); });
 
     MutatorRegistry::define("SpawnAgnus").weight(1)
         .description("Spawns Angelo Agnus")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Agnus").alias("Agnis").alias("Ragnis").alias("moth").alias("mothman")
-        .on_init([&]() { spawn_em00x(16); });
+        .on_init([&]() { spawn_em00x(18); });
 
     MutatorRegistry::define("SpawnSanctus").weight(0) // broken iirc
-        .description("Spawns Sanctus Diabolica")/*.special_arg(&g_enable_twitch_special_spawns)*/
+        .description("Spawns Sanctus")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Sanctus").alias("OldFart").alias("pope").alias("Sanctussy")
-        .on_init([&]() { spawn_em00x(18); });
+        .on_init([&]() { spawn_em00x(19); });
+
+    MutatorRegistry::define("SpawnSanctusDia").weight(0) // broken iirc
+        .description("Spawns Sanctus Diabolica")/*.special_arg(&g_enable_twitch_special_spawns)*/
+        .alias("Sanctus2").alias("OldFart2").alias("pope2").alias("Sanctussy2")
+        .on_init([&]() { spawn_em00x(20); });
 
     MutatorRegistry::define("SpawnKyrie").weight(10)
         .description("Spawns Kyrie").alias("Kyrie")
-        .on_init([&]() { spawn_em00x(19); });
+        .on_init([&]() { spawn_em00x(21); });
 
     MutatorRegistry::define("SpawnDante").weight(0) // broken
         .description("Spawns Dante")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Dante").alias("Donny").alias("Donte").alias("DonterKebab")
-        .on_init([&]() { spawn_em00x(20); });
+        .on_init([&]() { spawn_em00x(22); });
 
     MutatorRegistry::define("SpawnRandom").weight(8)
         .description("Spawns random enemy")/*.special_arg(&g_enable_twitch_special_spawns)*/
@@ -404,35 +465,41 @@ std::optional<std::string> EnemySpawn::on_initialize() {
     console->system().RegisterCommand("spawnseed", "Spawn a Chimera Seed", [/*this*/]() {
         spawn_em00x(10);
     });
-    console->system().RegisterCommand("spawnbasilisk", "Spawn a Basilisk", [/*this*/]() {
+    console->system().RegisterCommand("spawncutlass", "Spawn a Cutlass", [/*this*/]() {
         spawn_em00x(11);
     });
-    console->system().RegisterCommand("spawnberial", "Spawn a Berial", [/*this*/]() {
+    console->system().RegisterCommand("spawngladius", "Spawn a Gladius", [/*this*/]() {
         spawn_em00x(12);
     });
-    console->system().RegisterCommand("spawnbael", "Spawn a Bael", [/*this*/]() {
+    console->system().RegisterCommand("spawnbasilisk", "Spawn a Basilisk", [/*this*/]() {
         spawn_em00x(13);
     });
-    console->system().RegisterCommand("spawnechidna", "Spawn an Echidna", [/*this*/]() {
+    console->system().RegisterCommand("spawnberial", "Spawn a Berial", [/*this*/]() {
         spawn_em00x(14);
     });
-    console->system().RegisterCommand("spawnagnus", "Spawn an Agnus", [/*this*/]() {
+    console->system().RegisterCommand("spawnbael", "Spawn a Bael", [/*this*/]() {
         spawn_em00x(15);
     });
-    console->system().RegisterCommand("spawncredo", "Spawn a Credo", [/*this*/]() {
+    console->system().RegisterCommand("spawnechidna", "Spawn an Echidna", [/*this*/]() {
         spawn_em00x(16);
     });
-    console->system().RegisterCommand("spawnsanctus", "Spawn a Sanctus", [/*this*/]() {
+    console->system().RegisterCommand("spawnagnus", "Spawn an Agnus", [/*this*/]() {
         spawn_em00x(17);
     });
-    console->system().RegisterCommand("spawnsanctus2", "Spawn a Sanctus Diabolica", [/*this*/]() {
+    console->system().RegisterCommand("spawncredo", "Spawn a Credo", [/*this*/]() {
         spawn_em00x(18);
     });
-    console->system().RegisterCommand("spawnkyrie", "Spawn a Kyrie", [/*this*/]() {
+    console->system().RegisterCommand("spawnsanctus", "Spawn a Sanctus", [/*this*/]() {
         spawn_em00x(19);
     });
-    console->system().RegisterCommand("spawndante", "Spawn a Dante", [/*this*/]() {
+    console->system().RegisterCommand("spawnsanctus2", "Spawn a Sanctus Diabolica", [/*this*/]() {
         spawn_em00x(20);
+    });
+    console->system().RegisterCommand("spawnkyrie", "Spawn a Kyrie", [/*this*/]() {
+        spawn_em00x(21);
+    });
+    console->system().RegisterCommand("spawndante", "Spawn a Dante", [/*this*/]() {
+        spawn_em00x(22);
     });
     console->system().RegisterCommand("spawnrandom", "Spawn a random enemy", [/*this*/]() {
         spawn_random_enemy();
@@ -452,11 +519,16 @@ void EnemySpawn::on_gui_frame() {
     ImGui::Spacing();
     int enemy_names_current = 0;
     ImGui::PushItemWidth(sameLineWidth);
-    if (ImGui::ListBox("##Enemy Spawn Listbox", &enemy_names_current, enemy_names.data(), enemy_names.size(), 21)) {
+    if (ImGui::ListBox("##Enemy Spawn Listbox", &enemy_names_current, enemy_names.data(), enemy_names.size())) {
         spawn_em00x(enemy_names_current);
     }
     if (ImGui::Button(_("Random"))) {
         spawn_random_enemy();
+    }
+    static intptr_t custom_spawn_addr = NULL;
+    ImGui::InputInt("[DEBUG] Custom Spawn Addr", &custom_spawn_addr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal);
+    if (ImGui::Button("Spawn")) {
+        spawn_custom(custom_spawn_addr);
     }
     ImGui::PopItemWidth();
 }
