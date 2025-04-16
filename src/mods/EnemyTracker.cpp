@@ -11,11 +11,14 @@ constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 bool EnemyTracker::flyingAd = false;
 bool EnemyTracker::flyingSpheres = false;
 bool EnemyTracker::flyingEnemyStats = false;
-static bool showFlyingEnemyHP = true;
+static bool showFlyingEnemyHP = false;
 static bool showFlyingEnemyDamageTaken = false;
-static bool showFlyingEnemyStun[4]{ false, false, false, false };
-static bool showFlyingEnemyDisplacement[4]{ false, false, false, false };
+static bool showFlyingEnemyDT = false;
+static bool showFlyingEnemyStun = false;
+static bool showFlyingEnemyDisplacement = false;
 static bool showFlyingEnemyMoveID = false;
+static bool showFlyingEnemyShield = false;
+static bool showFlyingEnemyStunTimer = false;
 
 static bool freeze_move_id = false;
 static bool hotkey_enabled = false;
@@ -250,37 +253,37 @@ void EnemyTracker::on_gui_frame() {
             int damage_info_offset = get_enemy_specific_damage_offset(currentEnemy->ID);
             uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)currentEnemy + damage_info_offset);
             ImGui::PushItemWidth(sameLineItemWidth);
-            ImGui::InputFloat(_("HP ##2"), &currentEnemyDamage->HP);
-            ImGui::InputFloat(_("Max HP ##2"), &currentEnemyDamage->HPMax);
+            ImGui::InputFloat(_("HP##2"), &currentEnemyDamage->HP);
+            ImGui::InputFloat(_("Max HP##2"), &currentEnemyDamage->HPMax);
             ImGui::InputFloat(_("Previous Hit Dealt"), &currentEnemyDamage->HPTaken);
-            ImGui::InputInt(_("Stun 1 ##2"), &currentEnemyDamage->stun[0]);
-            ImGui::InputInt(_("Stun 2 ##2"), &currentEnemyDamage->stun[1]);
-            ImGui::InputInt(_("Stun 3 ##2"), &currentEnemyDamage->stun[2]);
-            ImGui::InputInt(_("Stun 4 ##2"), &currentEnemyDamage->stun[3]);
-            ImGui::InputInt(_("Stun 5 ##2"), &currentEnemyDamage->stun[4]);
-            ImGui::InputInt(_("Displacement 1 ##2"), &currentEnemyDamage->displacement[0]);
-            ImGui::InputInt(_("Displacement 2 ##2"), &currentEnemyDamage->displacement[1]);
-            ImGui::InputInt(_("Displacement 3 ##2"), &currentEnemyDamage->displacement[2]);
-            ImGui::InputInt(_("Displacement 4 ##2"), &currentEnemyDamage->displacement[3]);
-            ImGui::InputInt(_("Displacement 5 ##2"), &currentEnemyDamage->displacement[4]);
-            ImGui::InputInt(_("Unknown 1 ##2"), &currentEnemyDamage->unknown[0]);
-            ImGui::InputInt(_("Unknown 2 ##2"), &currentEnemyDamage->unknown[1]);
-            ImGui::InputInt(_("Unknown 3 ##2"), &currentEnemyDamage->unknown[2]);
-            ImGui::InputInt(_("Unknown 4 ##2"), &currentEnemyDamage->unknown[3]);
-            ImGui::InputInt(_("Unknown 5 ##2"), &currentEnemyDamage->unknown[4]);
-            ImGui::InputInt(_("Unknown 6 ##2"), &currentEnemyDamage->unknown[5]);
-            ImGui::InputInt(_("Unknown 7 ##2"), &currentEnemyDamage->unknown[6]);
-            ImGui::InputInt(_("Unknown 8 ##2"), &currentEnemyDamage->unknown[7]);
+            ImGui::InputInt(_("Stun 1##2"), &currentEnemyDamage->stun[0]);
+            ImGui::InputInt(_("Stun 2##2"), &currentEnemyDamage->stun[1]);
+            ImGui::InputInt(_("Stun 3##2"), &currentEnemyDamage->stun[2]);
+            ImGui::InputInt(_("Stun 4##2"), &currentEnemyDamage->stun[3]);
+            ImGui::InputInt(_("Stun 5##2"), &currentEnemyDamage->stun[4]);
+            ImGui::InputInt(_("Displacement 1##2"), &currentEnemyDamage->displacement[0]);
+            ImGui::InputInt(_("Displacement 2##2"), &currentEnemyDamage->displacement[1]);
+            ImGui::InputInt(_("Displacement 3##2"), &currentEnemyDamage->displacement[2]);
+            ImGui::InputInt(_("Displacement 4##2"), &currentEnemyDamage->displacement[3]);
+            ImGui::InputInt(_("Displacement 5##2"), &currentEnemyDamage->displacement[4]);
+            ImGui::InputInt(_("Unknown 1##2"), &currentEnemyDamage->unknown[0]);
+            ImGui::InputInt(_("Unknown 2##2"), &currentEnemyDamage->unknown[1]);
+            ImGui::InputInt(_("Unknown 3##2"), &currentEnemyDamage->unknown[2]);
+            ImGui::InputInt(_("Unknown 4##2"), &currentEnemyDamage->unknown[3]);
+            ImGui::InputInt(_("Unknown 5##2"), &currentEnemyDamage->unknown[4]);
+            ImGui::InputInt(_("Unknown 6##2"), &currentEnemyDamage->unknown[5]);
+            ImGui::InputInt(_("Unknown 7##2"), &currentEnemyDamage->unknown[6]);
+            ImGui::InputInt(_("Unknown 8##2"), &currentEnemyDamage->unknown[7]);
 
-            ImGui::InputFloat3(_("XYZ Position ##2"), (float*)&currentEnemy->position);
-            ImGui::InputFloat3(_("XYZ Rotation ##2"), (float*)&currentEnemy->rotation);
-            ImGui::InputFloat3(_("XYZ Velocity ##2"), (float*)&currentEnemy->velocity);
-            ImGui::InputFloat3(_("XYZ Scale ##2"), (float*)&currentEnemy->scale);
-            ImGui::InputScalar(_("Move ID ##2"), ImGuiDataType_U8, &currentEnemy->moveID);
-            ImGui::InputScalar(_("Move ID 2 ##2"), ImGuiDataType_U8, &currentEnemy->moveID2, 0, 0);
-            ImGui::InputScalar(_("Move Part ##2"), ImGuiDataType_U8, &currentEnemy->movePart);
-            ImGui::InputScalar(_("Grounded ##2"), ImGuiDataType_U8, &currentEnemy->grounded);
-            ImGui::InputFloat(_("Animation Frame ##2"), &currentEnemy->animFrame);
+            ImGui::InputFloat3(_("XYZ Position##2"), (float*)&currentEnemy->position);
+            ImGui::InputFloat3(_("XYZ Rotation##2"), (float*)&currentEnemy->rotation);
+            ImGui::InputFloat3(_("XYZ Velocity##2"), (float*)&currentEnemy->velocity);
+            ImGui::InputFloat3(_("XYZ Scale##2"), (float*)&currentEnemy->scale);
+            ImGui::InputScalar(_("Move ID##2"), ImGuiDataType_U8, &currentEnemy->moveID);
+            ImGui::InputScalar(_("Move ID 2##2"), ImGuiDataType_U8, &currentEnemy->moveID2, 0, 0);
+            ImGui::InputScalar(_("Move Part##2"), ImGuiDataType_U8, &currentEnemy->movePart);
+            ImGui::InputScalar(_("Grounded##2"), ImGuiDataType_U8, &currentEnemy->grounded);
+            ImGui::InputFloat(_("Animation Frame##2"), &currentEnemy->animFrame);
             if (ImGui::CollapsingHeader(_("Saved Info"))) {
                 ImGui::InputScalar(_("Enemy Move ID"), ImGuiDataType_U8, &savedEnemyMoveID);
                 ImGui::InputScalar(_("Enemy Move ID 2"), ImGuiDataType_U8, &savedEnemyMoveID2, 0, 0);
@@ -300,36 +303,36 @@ void EnemyTracker::on_gui_frame() {
         if (s_med_ptr) {
             if (s_med_ptr->uBoss1) {
                 ImGui::Spacing();
-                ImGui::InputFloat3(_("XYZ Position ##3"), (float*)&s_med_ptr->uBoss1->position);
-                ImGui::InputFloat4(_("XYZ Rotation ##3"), (float*)&s_med_ptr->uBoss1->rotation);
-                ImGui::InputFloat3(_("XYZ Scale ##3"), (float*)&s_med_ptr->uBoss1->scale);
-                ImGui::InputFloat(_("HP ##3"), &s_med_ptr->uBoss1->HP);
-                ImGui::InputFloat(_("Max HP ##3"), &s_med_ptr->uBoss1->HPMax);
-                ImGui::InputScalar(_("Move ID ##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->moveID);
-                ImGui::InputScalar(_("Move ID 2 ##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->moveID2);
-                ImGui::InputScalar(_("Move Part ##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->movePart);
-                ImGui::InputFloat(_("Animation Frame ##3"), &s_med_ptr->uBoss1->animFrame);
+                ImGui::InputFloat3(_("XYZ Position##3"), (float*)&s_med_ptr->uBoss1->position);
+                ImGui::InputFloat4(_("XYZ Rotation##3"), (float*)&s_med_ptr->uBoss1->rotation);
+                ImGui::InputFloat3(_("XYZ Scale##3"), (float*)&s_med_ptr->uBoss1->scale);
+                ImGui::InputFloat(_("HP##3"), &s_med_ptr->uBoss1->HP);
+                ImGui::InputFloat(_("Max HP##3"), &s_med_ptr->uBoss1->HPMax);
+                ImGui::InputScalar(_("Move ID##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->moveID);
+                ImGui::InputScalar(_("Move ID 2##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->moveID2);
+                ImGui::InputScalar(_("Move Part##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->movePart);
+                ImGui::InputFloat(_("Animation Frame##3"), &s_med_ptr->uBoss1->animFrame);
 
-                if (ImGui::Button(_("Save State ##3"))) {
+                if (ImGui::Button(_("Save State##3"))) {
                     save_load_boss_info(true);
                 }
                 ImGui::SameLine();
                 help_marker(_("Hotkey is PAGE UP by default"));
 
-                if (ImGui::Button(_("Load State ##3"))) {
+                if (ImGui::Button(_("Load State##3"))) {
                     save_load_boss_info(false);
                 }
                 ImGui::SameLine();
                 help_marker(_("Hotkey is PAGE DOWN by default"));
             }
         }
-        if (ImGui::CollapsingHeader(_("Saved Info ##Boss"))) {
-            ImGui::InputScalar(_("Enemy Move ID ##Boss"), ImGuiDataType_U8, &savedEnemyMoveID);
-            ImGui::InputScalar(_("Enemy Move ID 2 ##Boss"), ImGuiDataType_U8, &savedEnemyMoveID2, 0, 0);
-            ImGui::InputFloat3(_("Enemy Position ##Boss"), savedEnemyPosition);
-            ImGui::InputFloat(_("Enemy Rotation ##Boss"), &savedEnemyRotation);
-            ImGui::InputFloat3(_("Enemy Velocity ##Boss"), savedEnemyVelocity);
-            ImGui::InputScalar(_("Enemy Grounded ##Boss"), ImGuiDataType_U8, &savedEnemyGrounded);
+        if (ImGui::CollapsingHeader(_("Saved Info##Boss"))) {
+            ImGui::InputScalar(_("Enemy Move ID##Boss"), ImGuiDataType_U8, &savedEnemyMoveID);
+            ImGui::InputScalar(_("Enemy Move ID 2##Boss"), ImGuiDataType_U8, &savedEnemyMoveID2, 0, 0);
+            ImGui::InputFloat3(_("Enemy Position##Boss"), savedEnemyPosition);
+            ImGui::InputFloat(_("Enemy Rotation##Boss"), &savedEnemyRotation);
+            ImGui::InputFloat3(_("Enemy Velocity##Boss"), savedEnemyVelocity);
+            ImGui::InputScalar(_("Enemy Grounded##Boss"), ImGuiDataType_U8, &savedEnemyGrounded);
         }
         ImGui::PopItemWidth();
         ImGui::Unindent(lineIndent);
@@ -346,14 +349,12 @@ void EnemyTracker::on_gui_frame() {
         ImGui::Indent(lineIndent);
         ImGui::Checkbox("Display HP", &showFlyingEnemyHP);
         ImGui::Checkbox("Display Damage Taken", &showFlyingEnemyDamageTaken);
-        ImGui::Checkbox("Display Stun 1", &showFlyingEnemyStun[0]);
-        ImGui::Checkbox("Display Stun 2", &showFlyingEnemyStun[1]);
-        ImGui::Checkbox("Display Stun 3", &showFlyingEnemyStun[2]);
-        ImGui::Checkbox("Display Stun 4", &showFlyingEnemyStun[3]);
-        ImGui::Checkbox("Display Displacement 1", &showFlyingEnemyDisplacement[0]);
-        ImGui::Checkbox("Display Displacement 2", &showFlyingEnemyDisplacement[1]);
-        ImGui::Checkbox("Display Displacement 3", &showFlyingEnemyDisplacement[2]);
-        ImGui::Checkbox("Display Displacement 4", &showFlyingEnemyDisplacement[3]);
+        ImGui::Checkbox("Display DT Timer", &showFlyingEnemyDT);
+        ImGui::Checkbox("Display Stun", &showFlyingEnemyStun);
+        ImGui::Checkbox("Display Displacement", &showFlyingEnemyDisplacement);
+        // ImGui::Checkbox("Stun Timer", &showFlyingEnemyStunTimer);
+        ImGui::Checkbox("Display Move ID", &showFlyingEnemyMoveID);
+        ImGui::Checkbox("Display Shield", &showFlyingEnemyShield);
         ImGui::Unindent(lineIndent);
     }
 }
@@ -481,64 +482,119 @@ void EnemyTracker::RenderExample() {
 
 void EnemyTracker::on_frame(fmilliseconds& dt) {
     if (SMediator* sMedPtr = devil4_sdk::get_sMediator()) {
-        if (flyingEnemyStats) {
-            if (sMedPtr->uEnemies[0]) {
-                for (uint32_t i = 0; i < sMedPtr->enemyCount[2]; ++i) {
-                    if (uEnemy* enemy = sMedPtr->uEnemies[i]) {
-                        glm::vec3 objectPosition = enemy->position;
-                        float objectDistance = w2s::GetDistanceFromCam(objectPosition);
-                        float guiFriendlyDistance = glm::min(1000.0f / objectDistance, 1.0f);
-                        glm::vec2 screenPos = w2s::WorldToScreen(objectPosition);
-                        std::string windowName = "EnemyStats##" + std::to_string(i);
-                        if (w2s::IsVisibleOnScreen(objectPosition)) {
-                            ImGui::Begin(windowName.c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
-                            ImGui::SetWindowPos(screenPos);
-                            ImGui::SetWindowFontScale(1.0f * guiFriendlyDistance);
-                            uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + get_enemy_specific_damage_offset(enemy->ID));
-                            ImGui::PushItemWidth((sameLineItemWidth / 2.5f) * guiFriendlyDistance);
-                            if (showFlyingEnemyHP) ImGui::SliderFloat("HP", &currentEnemyDamage->HP, 0.0f, currentEnemyDamage->HPMax, "%.2f");
-                            if (showFlyingEnemyDamageTaken) ImGui::InputFloat("Damage", &currentEnemyDamage->HPTaken, NULL, NULL, "%.2f");
-                            if (showFlyingEnemyStun[0]) ImGui::InputInt("Stun 1", &currentEnemyDamage->stun[0], NULL, NULL);
-                            if (showFlyingEnemyStun[1]) ImGui::InputInt("Stun 2", &currentEnemyDamage->stun[1], NULL, NULL);
-                            if (showFlyingEnemyStun[2]) ImGui::InputInt("Stun 3", &currentEnemyDamage->stun[2], NULL, NULL);
-                            if (showFlyingEnemyStun[3]) ImGui::InputInt("Stun 4", &currentEnemyDamage->stun[3], NULL, NULL);
-                            if (showFlyingEnemyDisplacement[0]) ImGui::InputInt("Displacement 1", &currentEnemyDamage->displacement[0], NULL, NULL);
-                            if (showFlyingEnemyDisplacement[1]) ImGui::InputInt("Displacement 2", &currentEnemyDamage->displacement[1], NULL, NULL);
-                            if (showFlyingEnemyDisplacement[2]) ImGui::InputInt("Displacement 3", &currentEnemyDamage->displacement[2], NULL, NULL);
-                            if (showFlyingEnemyDisplacement[3]) ImGui::InputInt("Displacement 4", &currentEnemyDamage->displacement[3], NULL, NULL);
-                            ImGui::PopItemWidth();
-                            ImGui::End();
+        if (sMedPtr->player_ptr) {
+            if (flyingEnemyStats) {
+                if (sMedPtr->uEnemies[0]) {
+                    for (uint32_t i = 0; i < sMedPtr->enemyCount[2]; ++i) {
+                        if (uEnemy* enemy = sMedPtr->uEnemies[i]) {
+                            glm::vec3 objectPosition = enemy->position;
+                            float objectDistance = w2s::GetDistanceFromCam(objectPosition);
+                            float guiFriendlyDistance = glm::min(1000.0f / objectDistance, 1.0f);
+                            glm::vec2 screenPos = w2s::WorldToScreen(objectPosition);
+                            std::string windowName = "EnemyStats##" + std::to_string(i);
+                            if (w2s::IsVisibleOnScreen(objectPosition)) {
+                                ImGui::Begin(windowName.c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+                                ImGui::SetWindowPos(screenPos);
+                                ImGui::SetWindowFontScale(1.0f * guiFriendlyDistance);
+                                uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + get_enemy_specific_damage_offset(enemy->ID));
+                                ImGui::PushItemWidth((sameLineItemWidth / 2.5f) * guiFriendlyDistance);
+                                if (showFlyingEnemyHP) ImGui::SliderFloat("HP##EnemyFly", &currentEnemyDamage->HP, 0.0f, currentEnemyDamage->HPMax, "%.0f");
+                                if (showFlyingEnemyDamageTaken) ImGui::InputFloat("Damage##EnemyFly", &currentEnemyDamage->HPTaken, NULL, NULL, "%.0f");
+                                if (showFlyingEnemyDT) ImGui::InputFloat("DT Timer##EnemyFly", &enemy->DTTimer, NULL, NULL, "%.0f"); // id * 4 + DevilMayCry4_DX9.exe+9EC0E0
+                                if (showFlyingEnemyStun) ImGui::InputInt("Stun##EnemyFly", &currentEnemyDamage->stun[0], NULL, NULL);
+                                if (showFlyingEnemyDisplacement) ImGui::InputInt("Displacement##EnemyFly", &currentEnemyDamage->displacement[0], NULL, NULL);
+                                if (showFlyingEnemyStunTimer)ImGui::SliderFloat("Stun Reset Timer##EnemyFly", &currentEnemyDamage->stunResetTimer, 0.0f, 180.0f, "%.0f");
+                                if (showFlyingEnemyMoveID) ImGui::InputScalar("MoveID##EnemyFly", ImGuiDataType_U8, &enemy->moveID, NULL, NULL);
+                                if (showFlyingEnemyShield) {
+                                    if (enemy->ID == 5 || enemy->ID == 6) { // Bianco, Alto
+                                        ImGui::SliderFloat("Shield##EnemyFly", &enemy->angeloShield, 0.0f, enemy->angeloShieldMax, "%.0f");
+                                    }
+                                    if (enemy->ID == 8 || enemy->ID == 9) { // Mephisto, Faust
+                                        if (enemy->faustCloak > 0.0f) {
+                                            ImGui::SliderFloat("Cloak##EnemyFly", &enemy->faustCloak, 0.0f, enemy->faustCloakMax, "%.0f");
+                                        }
+                                        else {
+                                            ImGui::InputFloat("Cloak Timer##EnemyFly", &enemy->faustCloakTimer, NULL, NULL, "%.0f");
+                                        }
+                                    }
+                                    if (enemy->ID == 12) { // Blitz
+                                        if (enemy->blitzElectric > 0.0f) {
+                                            ImGui::SliderFloat("Electric##EnemyFly", &enemy->blitzElectric, 0.0f, 1000.0f, "%.0f");
+                                        }
+                                        else {
+                                            if (currentEnemyDamage->HP < enemy->blitzElectricSuicideHPRequirement && enemy->blitzElectricSuicideTimer > 0.0f) {
+                                                ImGui::SliderFloat("Suicide Timer##EnemyFly", &enemy->blitzElectricSuicideTimer, 0.0f, 1800.0f, "%.0f");
+                                            }
+                                            else {
+                                                ImGui::SliderFloat("Electric Timer##EnemyFly", &enemy->blitzElectricTimer, 0.0f, 900.0f, "%.0f");
+                                            }
+                                        }
+                                    }
+                                }
+                                ImGui::PopItemWidth();
+                                ImGui::End();
+                            }
                         }
                     }
                 }
-            }
-            if (sMedPtr->uBoss1) {
-                glm::vec3 objectPosition = sMedPtr->uBoss1->position;
-                float objectDistance = w2s::GetDistanceFromCam(objectPosition);
-                float guiFriendlyDistance = glm::min(1000.0f / objectDistance, 1.0f);
-                glm::vec2 screenPos = w2s::WorldToScreen(objectPosition);
-                if (w2s::IsVisibleOnScreen(objectPosition)) {
-                    ImGui::Begin("BossStats##1", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
-                    ImGui::SetWindowPos(screenPos);
-                    ImGui::SetWindowFontScale(1.0f * guiFriendlyDistance);
-                    ImGui::PushItemWidth((sameLineItemWidth / 2.5f) * guiFriendlyDistance);
-                    ImGui::InputFloat(_("HP ##BossFly"), &sMedPtr->uBoss1->HP);
-                    if (showFlyingEnemyHP) ImGui::SliderFloat("HP", &sMedPtr->uBoss1->HP, 0.0f, sMedPtr->uBoss1->HPMax, "%.2f");
-                    // if (showFlyingEnemyDamageTaken) ImGui::InputFloat("Damage", &sMedPtr->uBoss1->HPTaken, NULL, NULL, "%.2f");
-                    // if (showFlyingEnemyStun[0]) ImGui::InputInt("Stun 1", &sMedPtr->uBoss1->stun[0], NULL, NULL);
-                    // if (showFlyingEnemyStun[1]) ImGui::InputInt("Stun 2", &sMedPtr->uBoss1->stun[1], NULL, NULL);
-                    // if (showFlyingEnemyStun[2]) ImGui::InputInt("Stun 3", &sMedPtr->uBoss1->stun[2], NULL, NULL);
-                    // if (showFlyingEnemyStun[3]) ImGui::InputInt("Stun 4", &sMedPtr->uBoss1->stun[3], NULL, NULL);
-                    // if (showFlyingEnemyDisplacement[0]) ImGui::InputInt("Displacement 1", &sMedPtr->uBoss1->displacement[0], NULL, NULL);
-                    // if (showFlyingEnemyDisplacement[1]) ImGui::InputInt("Displacement 2", &sMedPtr->uBoss1->displacement[1], NULL, NULL);
-                    // if (showFlyingEnemyDisplacement[2]) ImGui::InputInt("Displacement 3", &sMedPtr->uBoss1->displacement[2], NULL, NULL);
-                    // if (showFlyingEnemyDisplacement[3]) ImGui::InputInt("Displacement 4", &sMedPtr->uBoss1->displacement[3], NULL, NULL);
-                    ImGui::PopItemWidth();
-                    ImGui::End();
+                if (sMedPtr->uBoss1) {
+                    glm::vec3 objectPosition = sMedPtr->uBoss1->position;
+                    float objectDistance = w2s::GetDistanceFromCam(objectPosition);
+                    float guiFriendlyDistance = glm::min(1000.0f / objectDistance, 1.0f);
+                    glm::vec2 screenPos = w2s::WorldToScreen(objectPosition);
+                    if (w2s::IsVisibleOnScreen(objectPosition)) {
+                        ImGui::Begin("BossStats##1", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+                        ImGui::SetWindowPos(screenPos);
+                        ImGui::SetWindowFontScale(1.0f * guiFriendlyDistance);
+                        ImGui::PushItemWidth((sameLineItemWidth / 2.5f) * guiFriendlyDistance);
+                        if (sMedPtr->uBoss1->ID == 29 || sMedPtr->uBoss1->ID == 30) { // Sanctus M19/M20
+                            if (showFlyingEnemyHP) ImGui::SliderFloat("HP##BossFly", &sMedPtr->uBoss1->sanctusHP, 0.0f, sMedPtr->uBoss1->sanctusHPMax, "%.0f");
+                        }
+                        else {
+                            if (showFlyingEnemyHP) ImGui::SliderFloat("HP##BossFly", &sMedPtr->uBoss1->HP, 0.0f, sMedPtr->uBoss1->HPMax, "%.0f");
+                        }
+                        if (showFlyingEnemyDamageTaken) ImGui::InputFloat("Damage##BossFly", &sMedPtr->uBoss1->HPTaken, NULL, NULL, "%.0f");
+                        if (showFlyingEnemyDT) ImGui::InputFloat("DT Timer##BossFly", &sMedPtr->uBoss1->DTTimer, NULL, NULL, "%.0f");
+                        if (showFlyingEnemyMoveID) ImGui::InputScalar("MoveID##BossFly", ImGuiDataType_U8, &sMedPtr->uBoss1->moveID, NULL, NULL);
+                        if (showFlyingEnemyShield) {
+                            if (sMedPtr->uBoss1->ID == 18) { // Berial
+                                if (sMedPtr->uBoss1->berialFireTimer > 0.0f) {
+                                    ImGui::InputFloat("Fire Timer##BossFly", &sMedPtr->uBoss1->berialFireTimer, NULL, NULL, "%.0f");
+                                }
+                                else {
+                                    ImGui::SliderFloat("Fire Damage##BossFly", &sMedPtr->uBoss1->berialFire, 0.0f, sMedPtr->uBoss1->berialFireMax, "%.0f");
+                                }
+                            }
+                            if (sMedPtr->uBoss1->ID == 22) { // Credo
+                                if (sMedPtr->uBoss1->credoShield > 0.0f) {
+                                    ImGui::SliderFloat("Shield##BossFly", &sMedPtr->uBoss1->credoShield, 0.0f, 4000.0f, "%.0f");
+                                }
+                                else {
+                                    ImGui::InputFloat("Shield Timer##BossFly", &sMedPtr->uBoss1->credoShieldTimer, NULL, NULL, "%.0f");
+                                }
+                            }
+                            if (sMedPtr->uBoss1->ID == 29) { // Sanctus M11
+                                if (sMedPtr->uBoss1->sanctusShieldTimerM11 > 0.0f) {
+                                    ImGui::InputFloat("Shield Timer##BossFly", &sMedPtr->uBoss1->sanctusShieldTimerM11, NULL, NULL, "%.0f");
+                                }
+                                else {
+                                    ImGui::SliderFloat("Shield Damage##BossFly", &sMedPtr->uBoss1->sanctusShieldM11, 0.0f, 720.0f, "%.0f");
+                                }
+                            }
+                            if (sMedPtr->uBoss1->ID == 30) { // Sanctus M20
+                                if (sMedPtr->uBoss1->sanctusShieldTimerM20 > 0.0f) {
+                                    ImGui::InputFloat("Shield Timer##BossFly", &sMedPtr->uBoss1->sanctusShieldTimerM20, NULL, NULL, "%.0f");
+                                }
+                                else {
+                                    ImGui::SliderFloat("Shield Damage##BossFly", &sMedPtr->uBoss1->sanctusShieldM20, 0.0f, 600.0f, "%.0f");
+                                }
+                            }
+                        }
+                        ImGui::PopItemWidth();
+                        ImGui::End();
+                    }
                 }
             }
-        }
-        if (sMedPtr->player_ptr) {
             if (flyingSpheres) {
                 glm::vec3 playerPos = glm::vec3(sMedPtr->player_ptr->m_pos.x, sMedPtr->player_ptr->m_pos.y, sMedPtr->player_ptr->m_pos.z);
                 glm::vec3 playerRot = glm::vec3(0.0f, sMedPtr->player_ptr->rotation2, 0.0f);
@@ -632,16 +688,13 @@ void EnemyTracker::on_config_load(const utility::Config& cfg) {
     flyingEnemyStats = cfg.get<bool>("flyingEnemyStats").value_or(false);
 
     showFlyingEnemyHP = cfg.get<bool>("showFlyingEnemyHP").value_or(true);
+    showFlyingEnemyDT = cfg.get<bool>("showFlyingEnemyDT").value_or(false);
     showFlyingEnemyDamageTaken = cfg.get<bool>("showFlyingEnemyDamageTaken").value_or(false);
     showFlyingEnemyMoveID = cfg.get<bool>("showFlyingEnemyMoveID").value_or(false);
-    for (int i = 0; i < 4; i++) {
-        std::string key = "showFlyingEnemyStun" + std::to_string(i);
-        showFlyingEnemyStun[i] = cfg.get<bool>(key).value_or(false);
-    }
-    for (int i = 0; i < 4; i++) {
-        std::string key = "showFlyingEnemyDisplacement" + std::to_string(i);
-        showFlyingEnemyDisplacement[i] = cfg.get<bool>(key).value_or(false);
-    }
+    showFlyingEnemyStun = cfg.get<bool>("showFlyingEnemyStun").value_or(false);
+    showFlyingEnemyDisplacement = cfg.get<bool>("showFlyingEnemyDisplacement").value_or(false);
+    showFlyingEnemyStunTimer = cfg.get<bool>("showFlyingEnemyStunTimer").value_or(false);
+    showFlyingEnemyShield = cfg.get<bool>("showFlyingEnemyShield").value_or(false);
 }
 
 void EnemyTracker::on_config_save(utility::Config& cfg) {
@@ -651,15 +704,11 @@ void EnemyTracker::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("flyingAd", flyingAd);
     cfg.set<bool>("flyingEnemyStats", flyingEnemyStats);
     cfg.set<bool>("showFlyingEnemyHP", showFlyingEnemyHP);
+    cfg.set<bool>("showFlyingEnemyDT", showFlyingEnemyDT);
     cfg.set<bool>("showFlyingEnemyDamageTaken", showFlyingEnemyDamageTaken);
     cfg.set<bool>("showFlyingEnemyMoveID", showFlyingEnemyMoveID);
-    for (int i = 0; i < 4; i++) {
-        std::string key = "showFlyingEnemyStun" + std::to_string(i);
-        cfg.set<bool>(key, showFlyingEnemyStun[i]);
-    }
-    for (int i = 0; i < 4; i++) {
-        std::string key = "showFlyingEnemyDisplacement" + std::to_string(i);
-        cfg.set<bool>(key, showFlyingEnemyDisplacement[i]);
-    }
+    cfg.set<bool>("showFlyingEnemyStun", showFlyingEnemyStun);
+    cfg.set<bool>("showFlyingEnemyShield", showFlyingEnemyShield);
+    cfg.set<bool>("showFlyingEnemyStunTimer", showFlyingEnemyStunTimer);
 }
 #endif
