@@ -137,7 +137,7 @@ naked void detour3() {
 }
 
 std::optional<std::string> AirMustang::on_initialize() {
-    if (!install_hook_offset(0x3CAE77, hook1, &detour1, &jmp_ret1, 5)) {
+    /*if (!install_hook_offset(0x3CAE77, hook1, &detour1, &jmp_ret1, 5)) {
 		spdlog::error("Failed to init AirMustang mod\n");
 		return "Failed to init AirMustang mod";
 	}
@@ -148,7 +148,7 @@ std::optional<std::string> AirMustang::on_initialize() {
     if (!install_hook_offset(0x3CB56E, hook3, &detour3, &jmp_ret3, 7)) {
 		spdlog::error("Failed to init AirMustang mod3\n");
 		return "Failed to init AirMustang mod3";
-	}
+	}*/
     return Mod::on_initialize();
 }
 

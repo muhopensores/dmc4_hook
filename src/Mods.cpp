@@ -269,7 +269,7 @@ Mods::Mods() {
     ADD_MOD(RisingSun);
     ADD_MOD(LocalizationManager);
     ADD_MOD(AerialStinger);
-    ADD_MOD(AirMustang);
+    //ADD_MOD(AirMustang); // Crashed after 2 mins, removing for now
     ADD_MOD(AerialDrive);
     ADD_MOD(PinTrick);
     ADD_MOD(LMTSlotFix);

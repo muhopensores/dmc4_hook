@@ -467,8 +467,8 @@ namespace gui {
                     ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("AerialStinger"_hash);
 
-                    pmods->on_draw_ui("AirMustang"_hash);
-                    ImGui::SameLine(sameLineWidth);
+                    //pmods->on_draw_ui("AirMustang"_hash);
+                    //ImGui::SameLine(sameLineWidth);
                     pmods->on_draw_ui("AerialDrive"_hash);
 
                     ImGui::Spacing();
@@ -733,7 +733,7 @@ namespace gui {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    ImGui::Text(_("Misc"));
+                    ImGui::SeparatorText(_("Misc"));
                     ImGui::Spacing();
 
                     pmods->on_draw_ui("RoomRespawn"_hash);
