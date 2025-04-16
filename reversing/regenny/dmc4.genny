@@ -119,16 +119,32 @@ class uBoss {
 	uint8_t moveID @ 0x14
 	uint8_t movePart @ 0x15
 	Vector3f position @ 0x30
+	Vector3f rotation @ 0x40
+	float behindRotation @ 0x4C
 	Vector3f scale @ 0x50
 	uint8_t moveID2 @ 0x334
 	float animFrame @ 0x348
 	float animFrameMax @ 0x34C
 	int inputHold @ 0x140C
-	int inputPress @ 0x1410
+	int ID @ 0x1410
 	float HP @ 0x151C
 	float HPMax @ 0x1520
-	float DT @ 0x1F24
-	float DTMax @ 0x1F28
+	float HPTaken @ 0x1530
+	float DTTimer @ 0x1488
+	bool DT @ 0x148C
+	float berialFireHalf @ 0x1B6C
+	float berialFireMax @ 0x1B70
+	float berialFireTimer @ 0x1B7C
+	float berialFire @ 0x1B80
+	float sanctusHP @ 0x1D08
+	float sanctusHPMax @ 0x1D0C
+	float sanctusHPTaken @ 0x1D1C
+	float credoShieldTimer @ 0x3884
+	float credoShield @ 0x38BC
+	float sanctusShieldM11 @ 0x18900
+	float sanctusShieldTimerM11 @ 0x1890C
+	float sanctusShieldM20 @ 0x1DFF4
+	float sanctusShieldTimerM20 @ 0x1E000
 };
 
 class uEnemyDamage {
@@ -151,6 +167,7 @@ class uEnemy {
 	uint8_t moveID @ 0x14
 	uint8_t movePart @ 0x15
 	Vector3f position @ 0x30
+	Vector3f rotation @ 0x40
 	Vector3f scale @ 0x50
 	Vector3f positionKnockback @ 0xD0
 	Vector3f rotationKnockback @ 0xF0
@@ -164,12 +181,24 @@ class uEnemy {
 	bool inBattle @ 0x1404
 	bool isActive @ 0x1405
 	int ID @ 0x1410
+	float DTTimer @ 0x1488
+	bool DT @ 0x148C
 	class uEnemyDamagePossibility DamagePtrMephistoFaustAssaultGladius @ 0x1500
 	class uEnemyDamagePossibility DamagePtrAltoBiancoFrostBlitz @ 0x1504
 	class uEnemyDamagePossibility DamagePtrCutlass @ 0x1508
 	class uEnemyDamagePossibility DamagePtrScarecrowLegArmMega @ 0x152C
 	bool grounded @ 0x161C
 	Vector3f velocity @ 0x1B40
+	float assaultDifficulty @ 0x1F70
+	float faustCloakTimer @ 0x20BC
+	float blitzElectric @ 0x2184
+	float blitzElectricTimer @ 0x218C
+	float blitzElectricSuicideHPRequirement @ 0x2188
+	float blitzElectricSuicideTimer @ 0x2190
+	float faustCloak @ 0x22E0
+	float faustCloakMax @ 0x22E4
+	float angeloShield @ 0x37C8
+	float angeloShieldMax @ 0x37CC
 	class uEnemyDamagePossibility DamagePtrBasilisk @ 0x7FC4
 };
 
