@@ -1,5 +1,4 @@
 #include "NoHBknockback.hpp"
-#include "Payline.hpp"
 
 bool NoHbKnockback::nero_toggle = false;
 bool NoHbKnockback::dante_toggle = false;
@@ -12,8 +11,6 @@ naked void no_helm_breaker_knockback_proc(void) { // ebx+0x98 = player + CE20 //
 	_asm {
 			cmp byte ptr [NoHbKnockback::nero_toggle], 1
 			je NeroCode
-			// cmp byte ptr [Payline::mod_enabled], 1
-			// je PaylineCode
 			cmp byte ptr [NoHbKnockback::dante_toggle], 1
 			je DanteCode
 			jmp originalcode
@@ -61,24 +58,6 @@ naked void no_helm_breaker_knockback_proc(void) { // ebx+0x98 = player + CE20 //
 		helmbreakeractive:
 			cmp byte ptr [eax+0x1504],4 // move part, make the grounded part still knock back
 			jl AffectKnockback
-			jmp poporiginalcode
-
-		PaylineCode:
-			// load eax with player 1
-			push eax
-			mov eax, [static_mediator_ptr]
-			mov eax, [eax]
-			test eax,eax
-			je poporiginalcode
-			mov eax, [eax+0x24]
-			test eax,eax
-			je poporiginalcode
-			cmp [eax+0x1494], 1 // controller id nero
-			jne poporiginalcode
-			cmp dword ptr [eax+0x2998], 812
-			jne poporiginalcode
-			cmp dword ptr [eax+0x1564], 28 // check streak 1 was pushed to get this moveid
-			je AffectKnockback
 			jmp poporiginalcode
 
 		poporiginalcode:

@@ -190,12 +190,13 @@ void PlayerTracker::on_gui_frame(int display) {
                 help_marker(_("If you press exceed while this timer is between 0 and 1, you'll get MAX-Act."));
             }
             ImGui::SliderFloat(_("Animation Frame ##1"), &player->animFrame, 0.0f, player->animFrameMax, "%.1f");
-            ImGui::InputScalar(_("Move ID ##1"), ImGuiDataType_U8, &player->moveIDBest);
-            ImGui::InputScalar(_("Move ID2 ##1"), ImGuiDataType_U8, &player->moveID2);
-            ImGui::InputScalar(_("Move Bank ##1"), ImGuiDataType_U8, &player->moveBank);
-            ImGui::InputScalar(_("Move Part ##1"), ImGuiDataType_U8, &player->movePart);
-            ImGui::InputScalar(_("Saved Move Bank ##1"), ImGuiDataType_U8, &savedPlayerMoveBank);
-            ImGui::InputScalar(_("Saved Move ID ##1"), ImGuiDataType_U8, &savedPlayerMoveID);
+            ImGui::InputScalar(_("Animation ID ##1"), ImGuiDataType_U16, &player->animID, NULL, NULL, "%04X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("Move ID ##1"), ImGuiDataType_U32, &player->moveIDBest, NULL, NULL, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("Move ID2 ##1"), ImGuiDataType_U32, &player->moveID2, NULL, NULL, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("Move Bank ##1"), ImGuiDataType_U32, &player->moveBank, NULL, NULL, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("Move Part ##1"), ImGuiDataType_U32, &player->movePart, NULL, NULL, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("Saved Move Bank ##1"), ImGuiDataType_U8, &savedPlayerMoveBank, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("Saved Move ID ##1"), ImGuiDataType_U8, &savedPlayerMoveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
         }
         if (ImGui::Button(_("Save Current Move"))) {
             SavePlayerMove();
@@ -206,25 +207,21 @@ void PlayerTracker::on_gui_frame(int display) {
         }
         ImGui::InputFloat3(_("Saved Player Position"), &savedPlayerPosition[0]);
 
-        static int inputMoveID = 0;
-        ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::InputInt(_("##InputMoveIDInputInt ##1"), &inputMoveID, 1, 10, ImGuiInputTextFlags_CharsHexadecimal);
-        ImGui::PopItemWidth();
-        ImGui::SameLine();
-        if (ImGui::Button("PlayMoveID")) {
-            PlayMoveID(inputMoveID);
-        }
-
         static int inputAnimID = 0;
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::InputInt(_("##InputAnimIDInputInt ##1"), &inputAnimID, 1, 10, ImGuiInputTextFlags_CharsHexadecimal);
         ImGui::PopItemWidth();
         ImGui::SameLine();
-        if (ImGui::Button("PlayAnimID")) {
-            PlayAnimID(inputAnimID);
+        if (ImGui::Button("Play Animation ID")) {
+            uPlayer* player = devil4_sdk::get_local_player();
+            if (!player) { return; }
+            player->movePart = 3;
+            devil4_sdk::indexed_anim_call(inputAnimID, player, 0, 1.0f, 0.0f, 3.0f);
+            player->playMoveOnce = 4;
         }
         ImGui::SameLine();
-        help_marker(_("uhh this only plays things that don't require a certain player state idk why"));
+        help_marker(_("uhh this only plays things that don't require a certain player state, "
+            "e.g. You must have just taken damage to play a damage animation"));
         ImGui::Unindent(lineIndent);
     }
 }

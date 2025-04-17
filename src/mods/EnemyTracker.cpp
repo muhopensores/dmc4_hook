@@ -26,7 +26,7 @@ static int which_enemy = 0;
 static bool useLockedOnEnemyInstead = 0;
 
 static int8_t savedEnemyMoveID = 0;
-static int8_t savedEnemyMoveID2 = 0;
+static int8_t savedEnemyAnimID = 0;
 static int8_t savedEnemyGrounded = 0;
 static float savedEnemyHP = 0;
 static int8_t savedEnemyStun = 0;
@@ -114,7 +114,7 @@ void save_load_enemy_info(bool isSave, uEnemy* enemy) {
             savedEnemyVelocity[1] = enemy->velocity[1];
             savedEnemyVelocity[2] = enemy->velocity[2];
             savedEnemyMoveID = enemy->moveID;
-            savedEnemyMoveID2 = enemy->moveID2;
+            savedEnemyAnimID = enemy->animID;
             savedEnemyGrounded = enemy->grounded;
             uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
             savedEnemyHP = currentEnemyDamage->HP;
@@ -129,7 +129,7 @@ void save_load_enemy_info(bool isSave, uEnemy* enemy) {
             enemy->velocity[1] = savedEnemyVelocity[1];
             enemy->velocity[2] = savedEnemyVelocity[2];
             enemy->moveID = savedEnemyMoveID;
-            enemy->moveID2 = savedEnemyMoveID2;
+            enemy->animID = savedEnemyAnimID;
             uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
             currentEnemyDamage->HP = savedEnemyHP;
             currentEnemyDamage->stun[0] = savedEnemyStun;
@@ -149,7 +149,7 @@ void save_load_boss_info(bool isSave) {
             savedEnemyPosition[2] = s_med_ptr->uBoss1->position[2];
             savedEnemyRotation = s_med_ptr->uBoss1->rotation[1];
             savedEnemyMoveID = s_med_ptr->uBoss1->moveID;
-            savedEnemyMoveID2 = s_med_ptr->uBoss1->moveID2;
+            savedEnemyAnimID = s_med_ptr->uBoss1->animID;
         }
         else {
             s_med_ptr->uBoss1->position[0] = savedEnemyPosition[0];
@@ -157,7 +157,7 @@ void save_load_boss_info(bool isSave) {
             s_med_ptr->uBoss1->position[2] = savedEnemyPosition[2];
             s_med_ptr->uBoss1->rotation[1] = savedEnemyRotation;
             s_med_ptr->uBoss1->moveID = savedEnemyMoveID;
-            s_med_ptr->uBoss1->moveID2 = savedEnemyMoveID2;
+            s_med_ptr->uBoss1->animID = savedEnemyAnimID;
             s_med_ptr->uBoss1->movePart = 0;
         }
     }
@@ -279,14 +279,14 @@ void EnemyTracker::on_gui_frame(int display) {
             ImGui::InputFloat3(_("XYZ Rotation##2"), (float*)&currentEnemy->rotation);
             ImGui::InputFloat3(_("XYZ Velocity##2"), (float*)&currentEnemy->velocity);
             ImGui::InputFloat3(_("XYZ Scale##2"), (float*)&currentEnemy->scale);
-            ImGui::InputScalar(_("Move ID##2"), ImGuiDataType_U8, &currentEnemy->moveID);
-            ImGui::InputScalar(_("Move ID 2##2"), ImGuiDataType_U8, &currentEnemy->moveID2, 0, 0);
+            ImGui::InputScalar(_("Move ID##2"), ImGuiDataType_U8, &currentEnemy->moveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("Move ID 2##2"), ImGuiDataType_U8, &currentEnemy->animID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
             ImGui::InputScalar(_("Move Part##2"), ImGuiDataType_U8, &currentEnemy->movePart);
             ImGui::InputScalar(_("Grounded##2"), ImGuiDataType_U8, &currentEnemy->grounded);
             ImGui::InputFloat(_("Animation Frame##2"), &currentEnemy->animFrame);
             if (ImGui::CollapsingHeader(_("Saved Info"))) {
-                ImGui::InputScalar(_("Enemy Move ID"), ImGuiDataType_U8, &savedEnemyMoveID);
-                ImGui::InputScalar(_("Enemy Move ID 2"), ImGuiDataType_U8, &savedEnemyMoveID2, 0, 0);
+                ImGui::InputScalar(_("Enemy Move ID"), ImGuiDataType_U8, &savedEnemyMoveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+                ImGui::InputScalar(_("Enemy Move ID 2"), ImGuiDataType_U8, &savedEnemyAnimID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
                 ImGui::InputFloat3(_("Enemy Position"), savedEnemyPosition);
                 ImGui::InputFloat(_("Enemy Rotation"), &savedEnemyRotation);
                 ImGui::InputFloat3(_("Enemy Velocity"), savedEnemyVelocity);
@@ -308,9 +308,9 @@ void EnemyTracker::on_gui_frame(int display) {
                 ImGui::InputFloat3(_("XYZ Scale##3"), (float*)&s_med_ptr->uBoss1->scale);
                 ImGui::InputFloat(_("HP##3"), &s_med_ptr->uBoss1->HP);
                 ImGui::InputFloat(_("Max HP##3"), &s_med_ptr->uBoss1->HPMax);
-                ImGui::InputScalar(_("Move ID##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->moveID);
-                ImGui::InputScalar(_("Move ID 2##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->moveID2);
-                ImGui::InputScalar(_("Move Part##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->movePart);
+                ImGui::InputScalar(_("Move ID##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->moveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+                ImGui::InputScalar(_("Move Part##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->movePart, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+                ImGui::InputScalar(_("Move ID 2##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->animID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
                 ImGui::InputFloat(_("Animation Frame##3"), &s_med_ptr->uBoss1->animFrame);
 
                 if (ImGui::Button(_("Save State##3"))) {
@@ -327,8 +327,8 @@ void EnemyTracker::on_gui_frame(int display) {
             }
         }
         if (ImGui::CollapsingHeader(_("Saved Info##Boss"))) {
-            ImGui::InputScalar(_("Enemy Move ID##Boss"), ImGuiDataType_U8, &savedEnemyMoveID);
-            ImGui::InputScalar(_("Enemy Move ID 2##Boss"), ImGuiDataType_U8, &savedEnemyMoveID2, 0, 0);
+            ImGui::InputScalar(_("Enemy Move ID##Boss"), ImGuiDataType_U8, &savedEnemyMoveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("Enemy Move ID 2##Boss"), ImGuiDataType_U8, &savedEnemyAnimID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
             ImGui::InputFloat3(_("Enemy Position##Boss"), savedEnemyPosition);
             ImGui::InputFloat(_("Enemy Rotation##Boss"), &savedEnemyRotation);
             ImGui::InputFloat3(_("Enemy Velocity##Boss"), savedEnemyVelocity);
@@ -504,7 +504,7 @@ void EnemyTracker::on_frame(fmilliseconds& dt) {
                                 if (showFlyingEnemyStun) ImGui::InputInt("Stun##EnemyFly", &currentEnemyDamage->stun[0], NULL, NULL);
                                 if (showFlyingEnemyDisplacement) ImGui::InputInt("Displacement##EnemyFly", &currentEnemyDamage->displacement[0], NULL, NULL);
                                 if (showFlyingEnemyStunTimer)ImGui::SliderFloat("Stun Reset Timer##EnemyFly", &currentEnemyDamage->stunResetTimer, 0.0f, 180.0f, "%.0f");
-                                if (showFlyingEnemyMoveID) ImGui::InputScalar("MoveID##EnemyFly", ImGuiDataType_U8, &enemy->moveID, NULL, NULL);
+                                if (showFlyingEnemyMoveID) ImGui::InputScalar("MoveID##EnemyFly", ImGuiDataType_U8, &enemy->moveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
                                 if (showFlyingEnemyShield) {
                                     if (enemy->ID == 5 || enemy->ID == 6) { // Bianco, Alto
                                         ImGui::SliderFloat("Shield##EnemyFly", &enemy->angeloShield, 0.0f, enemy->angeloShieldMax, "%.0f");
@@ -555,7 +555,7 @@ void EnemyTracker::on_frame(fmilliseconds& dt) {
                         }
                         if (showFlyingEnemyDamageTaken) ImGui::InputFloat("Damage##BossFly", &sMedPtr->uBoss1->HPTaken, NULL, NULL, "%.0f");
                         if (showFlyingEnemyDT) ImGui::InputFloat("DT Timer##BossFly", &sMedPtr->uBoss1->DTTimer, NULL, NULL, "%.0f");
-                        if (showFlyingEnemyMoveID) ImGui::InputScalar("MoveID##BossFly", ImGuiDataType_U8, &sMedPtr->uBoss1->moveID, NULL, NULL);
+                        if (showFlyingEnemyMoveID) ImGui::InputScalar("MoveID##BossFly", ImGuiDataType_U8, &sMedPtr->uBoss1->moveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
                         if (showFlyingEnemyShield) {
                             if (sMedPtr->uBoss1->ID == 18) { // Berial
                                 if (sMedPtr->uBoss1->berialFireTimer > 0.0f) {
