@@ -112,12 +112,10 @@ set(MODS_SRC
   mods/DmdLevelAi.hpp
   mods/ManualTwosomeTime.cpp
   mods/ManualTwosomeTime.hpp
-  mods/HeightRestrictionDante.cpp
-  mods/HeightRestrictionDante.hpp
   mods/InfFaustCloak.cpp
   mods/InfFaustCloak.hpp
-  mods/HeightRestrictionNero.cpp
-  mods/HeightRestrictionNero.hpp
+  mods/HeightRestriction.cpp
+  mods/HeightRestriction.hpp
   mods/InfiniteTime.cpp
   mods/InfiniteTime.hpp
   mods/InfAllHealth.cpp
@@ -150,8 +148,6 @@ set(MODS_SRC
   mods/TimerMem.hpp
   mods/TrickDown.cpp
   mods/TrickDown.hpp
-  mods/DamageMultiplier.cpp
-  mods/DamageMultiplier.hpp
   mods/HpInOrbsDisplay.cpp
   mods/HpInOrbsDisplay.hpp
   mods/InfDT.cpp
@@ -194,8 +190,6 @@ set(MODS_SRC
   mods/EnemyAttackOffScreen.hpp
   mods/SlowWalk.cpp
   mods/SlowWalk.hpp
-  mods/EnemyReplace.cpp
-  mods/EnemyReplace.hpp
   mods/DifficultySelect.cpp
   mods/DifficultySelect.hpp
   mods/BpJumpHook.cpp
@@ -240,8 +234,8 @@ set(MODS_SRC
   mods/RoseOptions.cpp
   mods/InstantTrick.hpp
   mods/InstantTrick.cpp
-  mods/EnemyReplaceAgain.hpp
-  mods/EnemyReplaceAgain.cpp
+  mods/EnemyReplace.hpp
+  mods/EnemyReplace.cpp
   mods/MessageDisplay.hpp
   mods/MessageDisplay.cpp
   mods/AerialStinger.hpp

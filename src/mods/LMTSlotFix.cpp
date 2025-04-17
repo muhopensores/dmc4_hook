@@ -51,7 +51,7 @@ std::optional<std::string> LMTSlotFix::on_initialize() {
     return Mod::on_initialize();
 }
 
-/*void LMTSlotFix::on_gui_frame() {
+/*void LMTSlotFix::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("LMT slot fix"), &mod_enabled)) {
         //toggle(mod_enabled);
     }

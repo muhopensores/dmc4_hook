@@ -209,7 +209,7 @@ std::optional<std::string> AerialStinger::on_initialize() {
     return Mod::on_initialize();
 }
 
-void AerialStinger::on_gui_frame() {
+void AerialStinger::on_gui_frame(int display) {
    if (ImGui::Checkbox(_("Aerial Stinger"), &mod_enabled)) {
         toggle(mod_enabled);
         kAtckDefTbl* DanteAtkTbl = (kAtckDefTbl*)HookDanteKADTbl;

@@ -48,7 +48,7 @@ std::optional<std::string> RoseRemovesPins::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void RoseRemovesPins::on_gui_frame() {
+void RoseRemovesPins::on_gui_frame(int display) {
     ImGui::Checkbox(_("Rose Removes Pins"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Rose despawns pins rather than detonating them"));

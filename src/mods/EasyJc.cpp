@@ -36,7 +36,7 @@ void EasyJc::toggle(bool enable) {
     }
 }
 
-void EasyJc::on_gui_frame() {
+void EasyJc::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Easy Enemy Step"), &mod_enabled)) {
         toggle(mod_enabled);
     }

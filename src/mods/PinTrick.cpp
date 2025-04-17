@@ -202,7 +202,7 @@ std::optional<std::string> PinTrick::on_initialize() {
     return Mod::on_initialize();
 }
 
-void PinTrick::on_gui_frame() {
+void PinTrick::on_gui_frame(int display) {
     ImGui::Checkbox(_("Pin Trick"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Trick to the earliest valid pin with trickster back+style"));

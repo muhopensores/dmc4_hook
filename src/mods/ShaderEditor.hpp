@@ -30,7 +30,7 @@ public:
 
     // onGUIframe() gets called when imgui window is on the screen.
     // override this method if you want to display something in the gui.
-    void on_gui_frame() override;
+    void on_gui_frame(int display) override;
 
     char m_own_shader[1048575];
     char m_error_string[1024];

@@ -15,7 +15,7 @@ public:
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
 
-    void on_gui_frame() override;
+    void on_gui_frame(int display) override;
     void toggle_noclip_cam(bool toggle);
 
 private:

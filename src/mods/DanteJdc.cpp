@@ -547,7 +547,7 @@ static void SeeIfFileExists() {
     }
 }
 
-void DanteJdc::on_gui_frame() {
+void DanteJdc::on_gui_frame(int display) {
     ImGui::BeginGroup();
     if (!fileExists) {
         if (ImGui::Button(_("Download Judgement Cut Files"))) {

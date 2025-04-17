@@ -252,7 +252,7 @@ std::optional<std::string> RisingSun::on_initialize() {
     return Mod::on_initialize();
 }
 
-void RisingSun::on_gui_frame() {
+void RisingSun::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Aerial Rising Sun"), &mod_enabled)) {
         toggle(mod_enabled);
     }

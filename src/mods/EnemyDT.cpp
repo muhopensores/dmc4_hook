@@ -26,7 +26,7 @@ void EnemyDT::toggle_instant_dt(bool enable) {
     }
 }
 
-void EnemyDT::on_gui_frame() {
+void EnemyDT::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Enemies Don't DT"), &mod_enabled_no_dt)) {
         mod_enabled_instant_dt = 0;              // turn off other mod
         toggle_instant_dt(mod_enabled_instant_dt); // update other mod

@@ -1,27 +1,24 @@
 #include "NoHBknockback.hpp"
 #include "Payline.hpp"
 
-bool      NoHbKnockback::mod_enabled{ false };
+bool NoHbKnockback::nero_toggle = false;
+bool NoHbKnockback::dante_toggle = false;
+
 uintptr_t NoHbKnockback::no_helm_breaker_knockback_continue{ NULL }; // 0x0051C389
 uintptr_t NoHbKnockback::no_helm_breaker_knockback_je{ 0x0051C367 };
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 naked void no_helm_breaker_knockback_proc(void) { // ebx+0x98 = player + CE20 // ebx+0xA4 = damage id stuff (e.g. RED-Split_00)
 	_asm {
-			cmp byte ptr [NoHbKnockback::mod_enabled], 1
-			je helmbreakercode
-			cmp byte ptr [Payline::mod_enabled], 1
-			je paylinecode
+			cmp byte ptr [NoHbKnockback::nero_toggle], 1
+			je NeroCode
+			// cmp byte ptr [Payline::mod_enabled], 1
+			// je PaylineCode
+			cmp byte ptr [NoHbKnockback::dante_toggle], 1
+			je DanteCode
 			jmp originalcode
 
-		poporiginalcode:
-			pop eax
-		originalcode:
-			cmp ecx, 0x05
-			jl nohelmbreakerknockbackje
-			jmp dword ptr [NoHbKnockback::no_helm_breaker_knockback_continue]
-
-		helmbreakercode:
+		DanteCode:
 			// load eax with player 1
 			push eax
 			mov eax, [static_mediator_ptr]
@@ -31,15 +28,28 @@ naked void no_helm_breaker_knockback_proc(void) { // ebx+0x98 = player + CE20 //
 			mov eax, [eax+0x24]
 			test eax,eax
 			je poporiginalcode
-
-			// Dante:
+			cmp [eax+0x1494], 0 // controller id dante
+			jne poporiginalcode
 			cmp dword ptr [eax+0x2998], 0x20A // 522 // Low
 			je helmbreakeractive
 			cmp dword ptr [eax+0x2998], 0x213 // 531 // Mid
 			je helmbreakeractive
 			cmp dword ptr [eax+0x2998], 0x214 // 532 // High
 			je helmbreakeractive
-			// Nero:
+			jmp poporiginalcode
+
+		NeroCode:
+			// load eax with player 1
+			push eax
+			mov eax, [static_mediator_ptr]
+			mov eax, [eax]
+			test eax,eax
+			je poporiginalcode
+			mov eax, [eax+0x24]
+			test eax,eax
+			je poporiginalcode
+			cmp [eax+0x1494], 1 // controller id nero
+			jne poporiginalcode
 			cmp dword ptr [eax+0x2998], 786 // Split
 			je helmbreakeractive
 			cmp dword ptr [eax+0x2998], 812 // Double Down
@@ -50,10 +60,10 @@ naked void no_helm_breaker_knockback_proc(void) { // ebx+0x98 = player + CE20 //
 
 		helmbreakeractive:
 			cmp byte ptr [eax+0x1504],4 // move part, make the grounded part still knock back
-			jl newcode
+			jl AffectKnockback
 			jmp poporiginalcode
 
-		paylinecode:
+		PaylineCode:
 			// load eax with player 1
 			push eax
 			mov eax, [static_mediator_ptr]
@@ -63,18 +73,27 @@ naked void no_helm_breaker_knockback_proc(void) { // ebx+0x98 = player + CE20 //
 			mov eax, [eax+0x24]
 			test eax,eax
 			je poporiginalcode
-
+			cmp [eax+0x1494], 1 // controller id nero
+			jne poporiginalcode
 			cmp dword ptr [eax+0x2998], 812
 			jne poporiginalcode
-			cmp dword ptr [eax+0x1564], 28    // check streak 1 was pushed to get this moveid
-			je newcode
+			cmp dword ptr [eax+0x1564], 28 // check streak 1 was pushed to get this moveid
+			je AffectKnockback
 			jmp poporiginalcode
 
-		newcode:
+		poporiginalcode:
+			pop eax
+		originalcode:
+			cmp ecx, 0x05
+			jl nohelmbreakerknockbackje
+		contcode:
+			jmp dword ptr [NoHbKnockback::no_helm_breaker_knockback_continue]
+
+		AffectKnockback:
 			pop eax
 			cmp ecx, 0x05
 			je nohelmbreakerknockbackje
-			jmp dword ptr [NoHbKnockback::no_helm_breaker_knockback_continue]
+			jmp contcode
 
 		nohelmbreakerknockbackje:
 			jmp dword ptr [NoHbKnockback::no_helm_breaker_knockback_je]
@@ -90,16 +109,25 @@ std::optional<std::string> NoHbKnockback::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void NoHbKnockback::on_gui_frame() {
-	ImGui::Checkbox(_("No Helm Breaker Knockdown"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Helm Breaker + Helm Splitter deal no knockback or knockdown and instead only stun the enemy"));
+void NoHbKnockback::on_gui_frame(int display) {
+	if (display == 1) {
+		ImGui::Checkbox(_("No Helm Splitter Knockdown"), &nero_toggle);
+		ImGui::SameLine();
+		help_marker(_("Helm Splitter deals no knockdown and instead only stuns the enemy"));
+	}
+	else {
+		ImGui::Checkbox(_("No Helm Breaker Knockdown"), &dante_toggle);
+		ImGui::SameLine();
+		help_marker(_("Helm Breaker deals no knockdown and instead only stuns the enemy"));
+	}
 }
 
 void NoHbKnockback::on_config_load(const utility::Config& cfg) {
-	mod_enabled = cfg.get<bool>("no_helmbreaker_knockback").value_or(false);
+	nero_toggle = cfg.get<bool>("no_helmsplitter_knockdown").value_or(false);
+	dante_toggle = cfg.get<bool>("no_helmbreaker_knockdown").value_or(false);
 }
 
 void NoHbKnockback::on_config_save(utility::Config& cfg) {
-	cfg.set<bool>("no_helmbreaker_knockback", mod_enabled);
+	cfg.set<bool>("no_helmsplitter_knockdown", nero_toggle);
+	cfg.set<bool>("no_helmbreaker_knockdown", dante_toggle);
 }

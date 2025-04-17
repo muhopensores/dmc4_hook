@@ -89,7 +89,7 @@ std::optional<std::string> LuciAirThrow::on_initialize() {
     return Mod::on_initialize();
 }
 
-void LuciAirThrow::on_gui_frame() {
+void LuciAirThrow::on_gui_frame(int display) {
     ImGui::Checkbox(_("Lucifer Air Throw"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Add new move mimicking V5rgil's air taunt. Mapped to forward + melee\n"

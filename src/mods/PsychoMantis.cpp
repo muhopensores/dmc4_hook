@@ -40,7 +40,7 @@ std::optional<std::string> PsychoMantis::on_initialize() {
     return Mod::on_initialize();
 }
 
-void PsychoMantis::on_gui_frame() {
+void PsychoMantis::on_gui_frame(int display) {
     ImGui::BeginGroup();
     ImGui::Checkbox(_("Stylevibe"), &mod_enabled);
     ImGui::SameLine();

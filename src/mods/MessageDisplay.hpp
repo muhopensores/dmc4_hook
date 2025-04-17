@@ -17,7 +17,7 @@ public:
 
     void custom_imgui_window();
     //void onFrame(fmilliseconds& dt) override;
-    void on_gui_frame() override;
+    void on_gui_frame(int display) override;
     //void onTwitchCommand(std::size_t hash) override;
     //void onUpdateInput(hl::Input& input) override;
 

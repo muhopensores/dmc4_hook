@@ -15,7 +15,7 @@ void InfTableHopper::toggle(bool enable) {
     }
 }
 
-void InfTableHopper::on_gui_frame() {
+void InfTableHopper::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Always Table Hopper"), &mod_enabled)) {
         toggle(mod_enabled);
     }

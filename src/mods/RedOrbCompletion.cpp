@@ -48,7 +48,7 @@ void RedOrbCompletion::custom_imgui_window() {
     }
 }
 
-void RedOrbCompletion::on_gui_frame() {
+void RedOrbCompletion::on_gui_frame(int display) {
     ImGui::Checkbox(_("Show Red Orb Completion %"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Opens up a UI that shows the orb % you've picked up on the current mission"));

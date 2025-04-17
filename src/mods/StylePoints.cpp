@@ -1887,7 +1887,7 @@ void StylePoints::DrawHiddenCombos() {
     ImGui::PopStyleVar();
 }
 
-void StylePoints::on_gui_frame() {
+void StylePoints::on_gui_frame(int display) {
     ImGui::BeginGroup();
     ImGui::Checkbox(_("Tony"), &tonyHawk);
     ImGui::SameLine();

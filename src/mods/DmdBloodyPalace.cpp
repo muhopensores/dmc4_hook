@@ -17,7 +17,7 @@ void DmdBloodyPalace::toggle(bool enable) {
     }
 }
 
-void DmdBloodyPalace::on_gui_frame() {
+void DmdBloodyPalace::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("DMD Bloody Palace"), &mod_enabled)) {
         toggle(mod_enabled);
     }

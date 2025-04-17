@@ -28,7 +28,7 @@ std::optional<std::string> FpsLimit::on_initialize() {
     return Mod::on_initialize();
 }
 
-void FpsLimit::on_gui_frame() {
+void FpsLimit::on_gui_frame(int display) {
     ImGui::BeginGroup();
     ImGui::Checkbox(_("Override FPS Limit"), &mod_enabled);
     ImGui::SameLine();

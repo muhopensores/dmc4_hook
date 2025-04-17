@@ -8,7 +8,6 @@
 #include "mods/BackgroundRendering.hpp"
 #include "mods/Borderless.hpp"
 #include "mods/CameraSettings.hpp"
-#include "mods/DamageMultiplier.hpp"
 #include "mods/DmdBloodyPalace.hpp"
 #include "mods/DmdLevelAi.hpp"
 #include "mods/DtEnemiesDontStun.hpp"
@@ -20,8 +19,7 @@
 #include "mods/FpsLimit.hpp"
 #include "mods/FreeJc.hpp"
 #include "mods/FreezeEnemies.hpp"
-#include "mods/HeightRestrictionDante.hpp"
-#include "mods/HeightRestrictionNero.hpp"
+#include "mods/HeightRestriction.hpp"
 #include "mods/HpInOrbsDisplay.hpp"
 #include "mods/InfAllHealth.hpp"
 #include "mods/InfDT.hpp"
@@ -48,7 +46,6 @@
 #include "mods/TrackingFullHouse.hpp"
 #include "mods/TrickDown.hpp"
 #include "mods/WorkRate.hpp"
-// #include "mods/InfPlayerHealth.hpp"
 #include "mods/BerialDaze.hpp"
 #include "mods/BpPortal.hpp"
 #include "mods/CharacterSwap.hpp"
@@ -68,13 +65,11 @@
 #include "mods/RoseRemovesPins.hpp" // taunt ecstasy relies on this
 #include "mods/SlowWalk.hpp"
 #include "mods/StunAnything.hpp"
-//#include "mods/EnemyReplace.hpp"
 #include "mods/ActiveBlock.hpp"
 #include "mods/BigHeadMode.hpp"
-#include "mods/BpJumpHook.hpp"
 #include "mods/ChargeChecker.hpp"
 #include "mods/DisableChimeraBlades.hpp"
-#include "mods/EnemyReplaceAgain.hpp"
+#include "mods/EnemyReplace.hpp"
 #include "mods/EnemyTracker.hpp"
 #include "mods/FasterFastDrive.hpp"
 #include "mods/FrostsDontJump.hpp"
@@ -124,7 +119,7 @@
 #include "mods/PinProperties.hpp"
 #include "mods/LuciAirThrow.hpp"
 #include "mods/CustomAllocatorMem.hpp"
-#include "mods/uPlayerParamsEdit.hpp"
+// #include "mods/uPlayerParamsEdit.hpp"
 #include "mods/PullKnockback.hpp" // no gui
 #include "mods/SwordSpin.hpp"
 #include "mods/CustomProjectile.hpp"
@@ -185,9 +180,8 @@ Mods::Mods() {
     ADD_MOD(DmdBloodyPalace);
     ADD_MOD(DmdLevelAi);
     ADD_MOD(ManualTwosomeTime);
-    ADD_MOD(HeightRestrictionDante);
+    ADD_MOD(HeightRestriction);
     ADD_MOD(InfFaustCloak);
-    ADD_MOD(HeightRestrictionNero);
     ADD_MOD(InfiniteTime);
     ADD_MOD(InfAllHealth);
     ADD_MOD(CameraSettings);
@@ -203,7 +197,6 @@ Mods::Mods() {
     ADD_MOD(InfTrickRange);
     ADD_MOD(TimerMem);
     ADD_MOD(TrickDown);
-    ADD_MOD(DamageMultiplier);
     ADD_MOD(HpInOrbsDisplay);
     ADD_MOD(InfDT);
     ADD_MOD(BerialDaze);
@@ -225,8 +218,7 @@ Mods::Mods() {
     ADD_MOD(EnemyAttackOffScreen);
     ADD_MOD(SlowWalk);
     ADD_MOD(DifficultySelect);
-    ADD_MOD(EnemyReplaceAgain);
-    ADD_MOD(BpJumpHook);
+    ADD_MOD(EnemyReplace);
     ADD_MOD(NoAutomaticCharacters);
     ADD_MOD(DisableChimeraBlades);
     ADD_MOD(Quicksilver);
@@ -269,13 +261,13 @@ Mods::Mods() {
     ADD_MOD(RisingSun);
     ADD_MOD(LocalizationManager);
     ADD_MOD(AerialStinger);
-    //ADD_MOD(AirMustang); // Crashed after 2 mins, removing for now
+    // ADD_MOD(AirMustang); // Crashed after 2 mins, removing for now
     ADD_MOD(AerialDrive);
     ADD_MOD(PinTrick);
     ADD_MOD(LMTSlotFix);
     ADD_MOD(PinProperties);
     ADD_MOD(LuciAirThrow);
-    ADD_MOD(uPlayerParamsEdit);
+    // ADD_MOD(uPlayerParamsEdit);
     ADD_MOD(PullKnockback); // no gui
     ADD_MOD(SwordSpin);
     ADD_MOD(CustomProjectile);
@@ -388,10 +380,10 @@ void Mods::on_frame(fmilliseconds& dt) {
 }
 
 // Called when drawing the gui
-void Mods::on_draw_ui(uint32_t hash) {
+void Mods::on_draw_ui(uint32_t hash, int display) {
     auto itr = std::find(m_hash.begin(), m_hash.end(), hash);
     if (itr != m_hash.cend()) {
-        m_mods[std::distance(m_hash.begin(), itr)]->on_gui_frame();
+        m_mods[std::distance(m_hash.begin(), itr)]->on_gui_frame(display);
     }
     else {
         spdlog::error("Mods::onDrawUI not found in hashindex!");

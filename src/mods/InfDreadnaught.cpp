@@ -50,13 +50,16 @@ void InfDreadnaught::toggle2(bool enable) {
     }
 }
 
-void InfDreadnaught::on_gui_frame() {
-    if (ImGui::Checkbox(_("Infinite Dreadnaught"), &mod_enabled)) {
-        toggle(mod_enabled);
+void InfDreadnaught::on_gui_frame(int display) {
+    if (display == 1) {
+        if (ImGui::Checkbox(_("Infinite Dreadnaught"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
     }
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Run in Dreadnaught"), &mod_enabled2)) {
-        toggle2(mod_enabled2);
+    else if (display == 2) {
+        if (ImGui::Checkbox(_("Run in Dreadnaught"), &mod_enabled2)) {
+            toggle2(mod_enabled2);
+        }
     }
 }
 

@@ -125,7 +125,7 @@ std::optional<std::string> Borderless::on_initialize() {
     return Mod::on_initialize();
 }
 
-void Borderless::on_gui_frame() {
+void Borderless::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Borderless Window"), &m_enabled)) {
         apply();
     }

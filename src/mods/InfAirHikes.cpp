@@ -29,7 +29,7 @@ void InfAirHikes::toggle(bool enable) {
     }
 }
 
-void InfAirHikes::on_gui_frame() {
+void InfAirHikes::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Infinite Air Hikes"), &mod_enabled)) {
         toggle(mod_enabled);
     }

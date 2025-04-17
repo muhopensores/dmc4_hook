@@ -358,7 +358,7 @@ void DifficultySelect::on_config_save(utility::Config& cfg) {
     cfg.set<int>("game_difficulty", game_difficulty);
 }
 
-void DifficultySelect::on_gui_frame() {
+void DifficultySelect::on_gui_frame(int display) {
     ImGui::PushItemWidth(sameLineItemWidth);
     if (ImGui::Combo(_("Difficulty ##Game Mode Combo"), &game_difficulty, _("Default\0Dante Must Die\0God Must Die\0"))) {
 #if 0

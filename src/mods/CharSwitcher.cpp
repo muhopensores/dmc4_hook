@@ -719,7 +719,8 @@ void CharSwitcher::on_frame(fmilliseconds& dt) {
     }
 }
 
-void CharSwitcher::on_gui_frame() {
+void CharSwitcher::on_gui_frame(int display) {
+    ImGui::BeginGroup();
     if (ImGui::Checkbox(_("Character Switcher"), &mod_enabled)) {
         toggle(mod_enabled);
     }
@@ -764,6 +765,7 @@ void CharSwitcher::on_gui_frame() {
         ImGui::PopItemWidth();
         ImGui::Unindent(lineIndent);
     }
+    ImGui::EndGroup();
 }
 
 void CharSwitcher::on_config_load(const utility::Config& cfg) {

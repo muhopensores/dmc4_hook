@@ -101,7 +101,7 @@ std::optional<std::string> SkipWeapons::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void SkipWeapons::on_gui_frame() {
+void SkipWeapons::on_gui_frame(int display) {
 	if (!hooked) { return; }
     if (ImGui::Checkbox(_("Skip Shotgun"), &skip_shotgun))
 		skip_pandora = false;

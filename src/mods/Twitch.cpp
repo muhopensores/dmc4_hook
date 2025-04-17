@@ -424,7 +424,7 @@ void TwitchClient::start_voting() {
 
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
-void TwitchClient::on_gui_frame() {
+void TwitchClient::on_gui_frame(int display) {
     if (ImGui::CollapsingHeader(_("Random timed gameplay mods"))) {
 #if 0
         if (twitch_vote_state) {

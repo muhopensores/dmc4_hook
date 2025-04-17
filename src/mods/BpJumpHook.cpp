@@ -1,4 +1,4 @@
-
+#if 0
 #include "BpJumpHook.hpp"
 // #include "AreaJump.hpp"
 #include "random"
@@ -373,7 +373,8 @@ std::optional<std::string> BpJumpHook::on_initialize() {
     return Mod::on_initialize();
 }
 
-void BpJumpHook::on_gui_frame() {
+void BpJumpHook::on_gui_frame(int display) {
+    /*
     if (ImGui::Checkbox(_("Randomize BP"), &mod_enabled)) {
         toggle(mod_enabled);
         randomize_bp_floors();
@@ -413,6 +414,7 @@ void BpJumpHook::on_gui_frame() {
         }
         ImGui::Unindent(lineIndent);
     }
+    */
 }
 
 void BpJumpHook::on_config_load(const utility::Config& cfg) {
@@ -429,3 +431,4 @@ void BpJumpHook::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("randomize_bp", mod_enabled);
     cfg.set<bool>("bp_boss_rush", bp_boss_rush);
 }
+#endif

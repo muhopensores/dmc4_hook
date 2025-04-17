@@ -21,7 +21,7 @@ void FrostsDontJump::toggle(bool enable) {
     }
 }
 
-void FrostsDontJump::on_gui_frame() {
+void FrostsDontJump::on_gui_frame(int display) {
 
     if (ImGui::Checkbox(_("No DTless Frost Escape"), &mod_enabled)) {
         toggle(mod_enabled);

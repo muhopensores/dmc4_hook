@@ -19,7 +19,7 @@ public:
 
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
-    void on_gui_frame() override;
+    void on_gui_frame(int display) override;
 
 private:
     std::unique_ptr<FunctionHook> hook1, hook2, hook3, hook4, hook5, hook6;

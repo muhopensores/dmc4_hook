@@ -36,7 +36,7 @@ std::optional<std::string> EffectColours::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void EffectColours::on_gui_frame() {
+void EffectColours::on_gui_frame(int display) {
 	ImGui::Checkbox(_("Custom Effect Colours"), &mod_enabled);
 	ImGui::SameLine();
 	help_marker(_("I haven't figured this out yet, right now it just edits any effect that contains \"2_17\" in the name"));

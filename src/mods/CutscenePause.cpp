@@ -24,7 +24,7 @@ naked void detour1(void) {
     }
 }
 
-void CutscenePause::on_gui_frame() {
+void CutscenePause::on_gui_frame(int display) {
     ImGui::BeginGroup();
     if (ImGui::Checkbox(_("Pause Cutscenes"), &mod_enabled)) {
         wasToggled = true;

@@ -35,7 +35,7 @@ std::optional<std::string> GunStingerDistance::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void GunStingerDistance::on_gui_frame() {
+void GunStingerDistance::on_gui_frame(int display) {
 	ImGui::Checkbox(_("Gun Stinger 2"), &mod_enabled);
     ImGui::SameLine();
 	help_marker(_("Gun Stinger covers the same distance as Stinger 2"));

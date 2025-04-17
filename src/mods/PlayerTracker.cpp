@@ -156,7 +156,7 @@ static void PlayAnimID(int animID) {
     }
 }
 
-void PlayerTracker::on_gui_frame() {
+void PlayerTracker::on_gui_frame(int display) {
     if (ImGui::CollapsingHeader(_("Display Player Stats"))) {
         ImGui::Indent(lineIndent);
         uPlayer* player = devil4_sdk::get_local_player();

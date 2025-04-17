@@ -33,7 +33,7 @@ namespace gui {
         ImGui::GetStyle().GrabRounding = 3.0f;
 
         auto& style = ImGui::GetStyle();
-        style.WindowPadding = ImVec2(6, 4);
+        style.WindowPadding = ImVec2(6.0f, 4.0f);
         style.WindowRounding = 6.0f;
 
         ImVec4* colors = ImGui::GetStyle().Colors;
@@ -52,8 +52,8 @@ namespace gui {
         colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
         colors[ImGuiCol_MenuBarBg] = ImVec4(0.15f, 0.18f, 0.22f, 1.00f);
         colors[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.39f);
-        colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
-        colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.18f, 0.22f, 0.25f, 1.00f);
+        colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.0078f, 0.53f, 0.8196f, 0.95f);
+        colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
         colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.0078f, 0.53f, 0.8196f, 0.95f);
         colors[ImGuiCol_CheckMark] = ImVec4(0.0078f, 0.53f, 0.8196f, 0.95f);
         colors[ImGuiCol_SliderGrab] = ImVec4(0.0078f, 0.53f, 0.8196f, 0.95f);
@@ -211,690 +211,643 @@ namespace gui {
     }
 
     void im_gui_main_window_proc(Mods* pmods) {
-        // specific imgui functions, can be looked up in examples or the documentation
-        // references/ points to other functions to apply logic behind the gui toggles/ objects
-        {
-            ImGuiIO& io = ImGui::GetIO();
-            io.IniFilename = NULL;
-            ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Once);
-            ImGui::Begin(version, NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
-            if (sRender* sRender = devil4_sdk::get_sRender()) maxUIHeight = sRender->screenRes.y * 0.9f;
-            else maxUIHeight = 1080.0f * 0.9f;
-            ImGui::SameLine(0, 0);
-            ImGui::Text(_("Average %.3f ms/frame (%.1f FPS)"), 1000.0f / io.Framerate, io.Framerate);
-            ImGui::Spacing();
-            pmods->on_draw_ui("Borderless"_hash);
-            const char* save_config_label = _("Save Config");
-            const ImVec2 btn_size = ImGui::CalcTextSize(save_config_label);
-            ImGui::SameLine(uiWidth-(btn_size.x) - 30.0f);
-            if (ImGui::Button(save_config_label)) {
-                pmods->on_config_save();
-            }
-            pmods->on_draw_ui("LocalizationManager"_hash);
-            if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyMask_ ^ ImGuiTabBarFlags_FittingPolicyScroll)) {
-                uiHeight = ImGui::GetCursorPosY();
-                if (ImGui::BeginTabItem(_("General"))) {
-                    ImGui::BeginChild("GeneralChild");
-
-                    ImGui::Spacing();
-                    ImGui::Text(_("Damage"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("DamageMultiplier"_hash); // needs its own line
-
-                    pmods->on_draw_ui("InfAllHealth"_hash); // needs its own line
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("General"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("OneHitKill"_hash); // needs its own line
-
-                    // pmods->onDrawUI("InfPlayerHealth"_hash);
-
-                    pmods->on_draw_ui("InfDT"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("InfRevive"_hash);
-
-                    pmods->on_draw_ui("RestoreMaxHp"_hash); // needs its own line
-
-                    pmods->on_draw_ui("CharSwitcher"_hash); // needs its own line
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Enemy Difficulty"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("DifficultySelect"_hash); // needs its own line
-
-                    pmods->on_draw_ui("EnemySlotting"_hash); // needs its own line
-
-                    pmods->on_draw_ui("EnemyDT"_hash); // needs its own line
-
-                    pmods->on_draw_ui("DmdLevelAi"_hash); // needs its own line
-                    
-                    pmods->on_draw_ui("LdkWithDmd"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("EnemyAttackOffScreen"_hash);
-
-                    pmods->on_draw_ui("FrostsDontJump"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("AssaultsDontJump"_hash);
-
-                    pmods->on_draw_ui("DisableChimeraBlades"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Enemy Training"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("StunAnything"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("RemoveLaunchArmour"_hash);
-
-                    pmods->on_draw_ui("DtEnemiesDontStun"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("BerialDaze"_hash);
-
-                    pmods->on_draw_ui("InfFaustCloak"_hash); // needs its own line
-
-                    pmods->on_draw_ui("FreezeEnemies"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Bloody Palace"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("BpJumpHook"_hash); // needs its own line
-
-                    pmods->on_draw_ui("DmdBloodyPalace"_hash);
-                    tabHeight = ImGui::GetCursorPosY();
-                    ImGui::EndChild();
-                    ImGui::EndTabItem();
-                }
-
-                if (ImGui::BeginTabItem(_("Character"))) {
-                    ImGui::BeginChild("CharacterChild");
-
-                    ImGui::Spacing();
-                    ImGui::Text(_("Limit Removal"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("LimitAdjust"_hash); // needs its own line
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Height Restriction"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("HeightRestrictionNero"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("HeightRestrictionDante"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Charge Time"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("ChargeChecker"_hash); // needs its own line
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Parameter edits"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("uPlayerParamsEdit"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Shared Abilities"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("FastSprint"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("NoHbKnockback"_hash);
-
-                    pmods->on_draw_ui("EasyJc"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("FreeJc"_hash);
-
-                    pmods->on_draw_ui("InfAirHikes"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("Quicksilver"_hash);
-
-                    pmods->on_draw_ui("NoDtCooldown"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Nero Abilities"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("Payline"_hash); // needs its own line
-
-                    pmods->on_draw_ui("NeroSnatchLength"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("InfTableHopper"_hash);
-
-                    pmods->on_draw_ui("RevFlying"_hash); // needs its own line
-
-                    pmods->on_draw_ui("AngelSnatch"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("InfCalibur"_hash);
-
-                    pmods->on_draw_ui("DtKnuckle"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("ExceedLimiter"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Dante Abilities"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("TrackingFullHouse"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("TrickDown"_hash);
-
-                    pmods->on_draw_ui("SkipWeapons"_hash); // needs its own line
-
-                    pmods->on_draw_ui("ManualTwosomeTime"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("FastPandora"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("TimerMem"_hash); // instant honeycomb
-
-                    pmods->on_draw_ui("ActiveBlock"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("GuardSteer"_hash);
-
-                    pmods->on_draw_ui("KnockbackEdits"_hash);
-
-                    pmods->on_draw_ui("InfTrickRange"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("InstantTrick"_hash);
-
-                    pmods->on_draw_ui("InfSkyStars"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("AlwaysRoyalRelease"_hash);
-
-                    pmods->on_draw_ui("InfDreadnaught"_hash); // needs its own line
-
-                    pmods->on_draw_ui("FasterFastDrive"_hash); // needs its own line, has easy fast drive too
-
-                    pmods->on_draw_ui("RgMultiplier"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("TurnSpeedEdits"_hash);
-
-                    pmods->on_draw_ui("TrackingSkyStar"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("DisableDTStinger"_hash);
-
-                    pmods->on_draw_ui("HighTimeWeaponSwitch"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("SwordSpin"_hash);
-
-                    pmods->on_draw_ui("DanteJdc"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("NoLockonRestriction"_hash);
-
-                    pmods->on_draw_ui("GunStingerDistance"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Text(_("Aerial grounded moves"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("RisingSun"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("AerialStinger"_hash);
-
-                    //pmods->on_draw_ui("AirMustang"_hash);
-                    //ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("AerialDrive"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Lucifer"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("RoseRemovesPins"_hash); // needs its own line
-
-                    pmods->on_draw_ui("ForceLucifer"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("InputStates"_hash); // taunt ecstasy
-
-                    pmods->on_draw_ui("LuciAirThrow"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Text(_("Rose"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("RoseOptions"_hash); // needs its own line
-
-                    ImGui::Spacing();
-                    ImGui::Text(_("Pins"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("PinProperties"_hash); // needs its own line
-
-                    pmods->on_draw_ui("PinTrick"_hash); // needs its own line
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Darkslayer"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("DoubleTapDarkslayer"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("TargetChangeDarkslayer"_hash);
-
-                    pmods->on_draw_ui("DisableDarkslayer"_hash); // needs its own line
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("SelectiveCancels"_hash); // needs its own line
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("TauntSelect"_hash); // needs its own line
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Memes"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("BigHeadMode"_hash); // needs its own line
-
-                    pmods->on_draw_ui("MutatorSuperhot"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("PlayerRotation"_hash);
-
-                    tabHeight = ImGui::GetCursorPosY();
-                    ImGui::EndChild();
-                    ImGui::EndTabItem();
-                }
-
-                if (ImGui::BeginTabItem(_("Stage"))) {
-                    ImGui::BeginChild("StageChild");
-
-                    ImGui::Spacing();
-                    pmods->on_draw_ui("AreaJump"_hash); // needs its own line
-                    
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("EnemySpawn"_hash); // needs its own line
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    // pmods->onDrawUI("EnemyReplace"_hash); // needs its own line
-                    pmods->on_draw_ui("EnemyReplaceAgain"_hash); // needs its own line
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Speed"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("WorkRate"_hash); // needs its own line
-
-                    tabHeight = ImGui::GetCursorPosY();
-                    ImGui::EndChild();
-                    ImGui::EndTabItem();
-                }
-
-                if (ImGui::BeginTabItem(_("System"))) {
-                    ImGui::BeginChild("SystemChild");
-
-                    ImGui::Spacing();
-                    ImGui::Text(_("Misc"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("CharacterSwap"_hash); // needs its own line
-
-                    pmods->on_draw_ui("NoAutomaticCharacters"_hash); // needs its own line
-                    
-                    pmods->on_draw_ui("CustomModelFix"_hash); // needs its own line
-
-                    pmods->on_draw_ui("BpPortal"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("SlowWalk"_hash);
-
-                    pmods->on_draw_ui("PsychoMantis"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("HUD"));
-
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("InfiniteTime"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("HpInOrbsDisplay"_hash);
-
-                    pmods->on_draw_ui("HideHud"_hash); // needs its own line
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Custom HUD elements"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("PinTimer"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("RedOrbCompletion"_hash);
-
-                    pmods->on_draw_ui("StylePoints"_hash); // needs its own line
-
-                    pmods->on_draw_ui("GuardTimer"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Cutscenes"));
-
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("CutsceneSkip"_hash);
-
-                    pmods->on_draw_ui("CutscenePause"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("DisableCameraEvents"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("dmc4_hook"));
-
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("MessageDisplayMod"_hash);
-
-                    //pmods->on_draw_ui("TwCmdPlayerTransforms"_hash); // empty // broken
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("System"));
-
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("BackgroundRendering"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("DisableKeyboard"_hash);
-
-                    pmods->on_draw_ui("FastStart"_hash); // 1.5 lines
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("FpsLimit"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Camera"));
-
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("CameraSettings"_hash);
-
-                    pmods->on_draw_ui("DebugCam"_hash);
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("NoclipCam"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("TwitchClient"_hash); // needs its own line
-
-                    tabHeight = ImGui::GetCursorPosY();
-                    ImGui::EndChild();
-                    ImGui::EndTabItem();
-                }
-
-                if (ImGui::BeginTabItem(_("Debug"))) {
-                    float startCursorY = ImGui::GetCursorPosY();
-                    ImGui::BeginChild("DebugChild");
-
-                    ImGui::Spacing();
-                    ImGui::Text(_("File Loading"));
-                    ImGui::Spacing();
-
-                    // pmods->on_draw_ui("MoveTable"_hash);
-                    // ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("LoadOrder"_hash);
-                    
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Noclip"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("NoClip"_hash); // 1.5 lines
-                    ImGui::SameLine(sameLineWidth);
-                    pmods->on_draw_ui("FreeJc"_hash);
-
-                    pmods->on_draw_ui("NoclipCam"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Stats"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("PlayerTracker"_hash); // needs its own line, also contains game pause
-
-                    pmods->on_draw_ui("EnemyTracker"_hash); // needs its own line
-
-                    pmods->on_draw_ui("VisualizeHitbox"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::SeparatorText(_("Misc"));
-                    ImGui::Spacing();
-
-                    pmods->on_draw_ui("RoomRespawn"_hash);
-
-                    pmods->on_draw_ui("DisableTrainerPause"_hash);
-
-                    pmods->on_draw_ui("MutatorSelfAdvertisement"_hash);
-
-                    pmods->on_draw_ui("EffectColours"_hash);
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("Testing"));
-                    ImGui::Spacing();
-
-                    // pmods->onDrawUI("ShaderEditor"_hash);
-
-                    pmods->on_draw_ui("CustomProjectile"_hash);
-
-                    pmods->on_draw_ui("AfterImage"_hash);
-
-                    tabHeight = ImGui::GetCursorPosY();
-                    ImGui::EndChild();
-                    ImGui::EndTabItem();
-                }
-                if (ImGui::BeginTabItem(_("Hotkeys"))) {
-                    ImGui::BeginChild("HotkeysChild");
-
-                    ImGui::Spacing();
-                    pmods->on_hotkey_tab(*g_framework->get_input_struct());
-
-                    tabHeight = ImGui::GetCursorPosY();
-                    ImGui::EndChild();
-                    ImGui::EndTabItem();
-                }
-                if (ImGui::BeginTabItem(_("About"))) {
-                    ImGui::BeginChild("AboutChild");
-
-                    ImGui::Spacing();
-                    ImGui::Text(_("DMC4Hook - Devil May Cry 4 Trainer"));
-
-                    ImGui::Spacing();
-
-                    ImGui::Text("Mstislav Capusta");
-                    ImGui::Text("SSSiyan");
-                    ImGui::Text("Vieris");
-                    ImGui::Text("CrazyMelody");
-                    ImGui::Text("Dlupx");
-                    ImGui::Text("cheburrat0r");
-                    ImGui::Text("endneo");
-
-                    ImGui::Spacing();
-
-                    ImGui::Text("Special Thanks:");
-                    ImGui::Text("socks");
-                    ImGui::Text("Whirling");
-                    ImGui::Text("Terrutas");
-                    ImGui::Text("Boey");
-                    ImGui::Text("DelusionaryKiller");
-                    ImGui::Text("DJMalice");
-                    ImGui::Text("GarudaKK");
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-                    ImGui::Text(_("For more info and updates visit the github:"));
-
-                    ImGuiURL repo{ "https://github.com/muhopensores/dmc4_hook", "https://github.com/muhopensores/dmc4_hook" };
-                    repo.draw();
-
-                    if (ImGui::CollapsingHeader(_("Frequently Asked Questions"))) {
-                        ImGui::Indent();
-                        if (ImGui::CollapsingHeader(_("What mods do you recommend most?"))) {
-                            ImGui::TextWrapped(_("\"Fast Game Load\" and neighbouring options in the \"System\" tab. Get from your Desktop to BP in 2 seconds."));
-                        }
-                        if (ImGui::CollapsingHeader(_("Old mods I installed have suddenly turned on"))) {
-                            ImGui::TextWrapped(_("\"HDD File Priority\" is ticked on the Debug page. If your DMC4 install contains any files left over from old mods, "
-                                "this will load them. To clean up your directory you'll need to delete files manually as Steam verification does not check "
-                                "newly added files."));
-                        }
-                        if (ImGui::CollapsingHeader(_("My combo points are stuck at 0"))) {
-                            ImGui::TextWrapped(_("\"Respawn Enemies when visiting the same room multiple times\" is ticked on the Debug page. "
-                                "If you didn't turn this on manually, it would have been auto ticked when you used the reload current room hotkey."));
-                        }
-                        if (ImGui::CollapsingHeader(_("My camera is frozen"))) {
-                            ImGui::TextWrapped(_("The default hotkey for camera settings' freeze camera is Numpad 0."));
-                        }
-                        ImGui::Unindent();
-                    }
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    ImGui::Text(_("This trainer was made using:"));
-
-                    // NOTE(): oops forgot cpp17 has CTAD hehe
-                    static std::array links{
-                        ImGuiURL { "REFramework -> https://github.com/praydog/REFramework", "https://github.com/praydog/REFramework" },
-                        ImGuiURL { "GLM -> https://github.com/g-truc/glm", "https://github.com/g-truc/glm"},
-                        ImGuiURL { "Dear ImGui -> https://github.com/ocornut/imgui", "https://github.com/ocornut/imgui" },
-                        ImGuiURL { "MinHook -> https://github.com/TsudaKageyu/minhook", "https://github.com/TsudaKageyu/minhook" },
-                        ImGuiURL { "spdlog -> https://github.com/gabime/spdlog", "https://github.com/gabime/spdlog" },
-                        ImGuiURL { "GNU gettext -> https://www.gnu.org/software/gettext/", "https://www.gnu.org/software/gettext/" },
-                        ImGuiURL { "mo_file.zip -> http://number-none.com/blow/code/mo_file/index.html", "http://number-none.com/blow/code/mo_file/index.html" },
-                    };
-                    for (auto& link : links) {
-                        link.draw();
-                    }
-
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                    ImGui::Spacing();
-
-                    if (ImGui::CollapsingHeader(_("Licenses"))) {
-                        ImGui::TreePush(_("Licenses"));
-
-                        struct License {
-                            std::string name;
-                            std::string text;
-                        };
-
-                        static std::array licenses{
-                            License{ "REFramework",   license::reframework },
-                            License{ "GLM",           license::glm },
-                            License{ "ImGui",         license::imgui },
-                            License{ "MinHook",       license::minhook },
-                            License{ "spdlog",        license::spdlog },
-                            License{ "csys",          license::csys },
-                            License{ "imgui_console", license::imgui_console },
-                            License{ "GNU gettext",   license::gnu_gettext },
-                            License{ "mo_file.zip",   license::naysayer_gettext },
-                        };
-
-                        for (const auto& license : licenses) {
-                            if (ImGui::CollapsingHeader(license.name.c_str())) {
-                                ImGui::TextWrapped(license.text.c_str());
-                            }
-                        }
-                        ImGui::TreePop();
-                    }
-
-                    tabHeight = ImGui::GetCursorPosY();
-                    ImGui::EndChild();
-                    ImGui::EndTabItem();
-                }
-                ImGui::EndTabBar();
-            }
-            endHeight = std::min(uiHeight + tabHeight, maxUIHeight);
-
-            // tab height is set to 0 when tabbing in. if() will keep old dimensions
-            if (tabHeight > 0.0f)
-                ImGui::SetWindowSize(ImVec2(uiWidth, endHeight));
-            ImGui::End();
-            /*ImGui::Begin("Window Height Check");
-            ImGui::SetWindowPos(ImVec2(1920.f * 0.7f, 1080.0f * 0.2f));
-            ImGui::Text("tabHeight %.1f", tabHeight);
-            ImGui::Text("uiHeight %.1f", uiHeight);
-            ImGui::End();*/
-            // ImGui::ShowDemoWindow();
+        ImGuiIO& io = ImGui::GetIO();
+        io.IniFilename = NULL;
+        ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Once);
+        ImGui::Begin(version, NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+        tabHeight = 0.0f;
+        if (sRender* sRender = devil4_sdk::get_sRender()) maxUIHeight = sRender->screenRes.y * 0.9f;
+        else maxUIHeight = 1080.0f * 0.9f;
+        ImGui::SameLine(0, 0);
+        ImGui::Text(_("Average %.3f ms/frame (%.1f FPS)"), 1000.0f / io.Framerate, io.Framerate);
+        ImGui::Spacing();
+        pmods->on_draw_ui("Borderless"_hash);
+        ImGui::SameLine(sameLineWidth);
+        pmods->on_draw_ui("WorkRate"_hash, 2);
+        const char* save_config_label = _("Save Config");
+        const ImVec2 btn_size = ImGui::CalcTextSize(save_config_label);
+        ImGui::SameLine(uiWidth-(btn_size.x) - 30.0f);
+        if (ImGui::Button(save_config_label)) {
+            pmods->on_config_save();
         }
+        pmods->on_draw_ui("LocalizationManager"_hash);
+        if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyMask_ ^ ImGuiTabBarFlags_FittingPolicyScroll)) {
+            uiHeight = ImGui::GetCursorPosY();
+
+            if (ImGui::BeginTabItem(_("Training"))) {
+                ImGui::BeginChild("TrainingChild");
+
+                ImGui::SeparatorText(_("Damage"));
+
+                pmods->on_draw_ui("InfAllHealth"_hash); // needs its own line
+
+                ImGui::SeparatorText(_("Difficulty"));
+
+                pmods->on_draw_ui("DifficultySelect"_hash); // needs its own line
+
+                pmods->on_draw_ui("EnemySlotting"_hash); // needs its own line
+
+                pmods->on_draw_ui("EnemyDT"_hash); // needs its own line
+
+                pmods->on_draw_ui("DmdLevelAi"_hash); // needs its own line
+                    
+                pmods->on_draw_ui("LdkWithDmd"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("DmdBloodyPalace"_hash);
+
+                pmods->on_draw_ui("EnemyAttackOffScreen"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("DisableChimeraBlades"_hash);
+
+                pmods->on_draw_ui("FrostsDontJump"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("AssaultsDontJump"_hash);
+
+                ImGui::SeparatorText(_("Practice"));
+
+                pmods->on_draw_ui("OneHitKill"_hash); // needs its own line
+
+                pmods->on_draw_ui("InfDT"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("InfRevive"_hash);
+
+                pmods->on_draw_ui("RestoreMaxHp"_hash); // needs its own line
+
+                pmods->on_draw_ui("StunAnything"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("RemoveLaunchArmour"_hash);
+
+                pmods->on_draw_ui("DtEnemiesDontStun"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("BerialDaze"_hash);
+
+                pmods->on_draw_ui("InfFaustCloak"_hash); // needs its own line
+
+                pmods->on_draw_ui("FreezeEnemies"_hash);
+
+                tabHeight += ImGui::GetCursorPosY();
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem(_("Character"))) {
+                ImGui::BeginChild("CharacterChild");
+                float windowWidth = ImGui::GetWindowWidth();
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+
+                if (ImGui::BeginTabBar("CharacterTabBar"), ImGuiTabBarFlags_FittingPolicyResizeDown) {
+                    tabHeight += ImGui::GetCursorPosY();
+
+                    static int numTabs = 2;
+                    float tabWidth = windowWidth / numTabs;
+                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(tabWidth / 2, ImGui::GetStyle().FramePadding.y));
+
+                    if (ImGui::BeginTabItem(_("Nero"))) {
+                        ImGui::PopStyleVar(2);
+                        ImGui::BeginChild("NeroChild");
+
+                        ImGui::SeparatorText(_("Limit Removal"));
+
+                        pmods->on_draw_ui("HeightRestriction"_hash, 1); // needs its own line
+
+                        pmods->on_draw_ui("LimitAdjust"_hash, 1); // needs its own line
+                        
+                        pmods->on_draw_ui("NoDtCooldown"_hash, 1);
+
+                        ImGui::SeparatorText(_("Abilities"));
+
+                        pmods->on_draw_ui("FastSprint"_hash, 1);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("ChargeChecker"_hash, 1);
+
+                        pmods->on_draw_ui("RevFlying"_hash, 1); // needs its own line
+
+                        pmods->on_draw_ui("NeroSnatchLength"_hash, 1);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("AngelSnatch"_hash, 1);
+                        
+                        pmods->on_draw_ui("Quicksilver"_hash, 1);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("ExceedLimiter"_hash, 1);
+
+                        pmods->on_draw_ui("Payline"_hash, 1); // needs its own line
+
+                        pmods->on_draw_ui("DtKnuckle"_hash, 1);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("NoHbKnockback"_hash, 1);
+
+                        ImGui::SeparatorText(_("Accessibility"));
+
+                        pmods->on_draw_ui("EasyJc"_hash, 1);
+
+                        ImGui::SeparatorText(_("Infinite"));
+
+                        pmods->on_draw_ui("InfAirHikes"_hash, 1);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("FreeJc"_hash, 1);
+
+                        pmods->on_draw_ui("InfTableHopper"_hash, 1);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("InfCalibur"_hash, 1);
+
+                        ImGui::SeparatorText("Selective Cancels");
+
+                        pmods->on_draw_ui("SelectiveCancels"_hash, 1); // needs its own line
+
+                        ImGui::SeparatorText("Taunt Select");
+                        
+                        pmods->on_draw_ui("TauntSelect"_hash, 1); // needs its own line
+                        
+                        ImGui::SeparatorText(_("Memes"));
+                        
+                        pmods->on_draw_ui("BigHeadMode"_hash, 1); // needs its own line
+                        
+                        pmods->on_draw_ui("MutatorSuperhot"_hash, 1);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("PlayerRotation"_hash, 1);
+
+                        tabHeight += ImGui::GetCursorPosY();
+                        ImGui::EndChild();
+                        ImGui::EndTabItem();
+                    }
+                    else {
+                        ImGui::PopStyleVar(2);
+                    }
+
+                    if (ImGui::BeginTabItem(_("Dante"))) {
+                        ImGui::PopStyleVar(2);
+                        ImGui::BeginChild("DanteChild");
+
+                        ImGui::SeparatorText(_("Limit Removal"));
+
+                        pmods->on_draw_ui("HeightRestriction"_hash, 2); // needs its own line
+
+                        pmods->on_draw_ui("LimitAdjust"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("NoDtCooldown"_hash, 2);
+
+                        ImGui::SeparatorText(_("Abilities"));
+
+                        pmods->on_draw_ui("FastSprint"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("ChargeChecker"_hash, 2);
+                        
+                        pmods->on_draw_ui("Quicksilver"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("NoLockonRestriction"_hash, 2);
+
+                        pmods->on_draw_ui("NoHbKnockback"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("FasterFastDrive"_hash, 1); // faster quickdrive
+
+                        pmods->on_draw_ui("TrackingFullHouse"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("TrickDown"_hash, 2);
+
+                        pmods->on_draw_ui("ManualTwosomeTime"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("FastPandora"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("TimerMem"_hash, 2); // instant honeycomb
+
+                        pmods->on_draw_ui("ActiveBlock"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("GuardSteer"_hash, 2);
+
+                        pmods->on_draw_ui("KnockbackEdits"_hash, 2); // needs its own line
+
+                        pmods->on_draw_ui("RgMultiplier"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("TurnSpeedEdits"_hash, 2);
+
+                        pmods->on_draw_ui("TrackingSkyStar"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("DisableDTStinger"_hash, 2);
+
+                        pmods->on_draw_ui("SwordSpin"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("InfDreadnaught"_hash, 2); // run in dread
+
+                        pmods->on_draw_ui("GunStingerDistance"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("InstantTrick"_hash, 2);
+
+                        pmods->on_draw_ui("DanteJdc"_hash, 2);
+
+                        ImGui::SeparatorText(_("Lucifer"));
+
+                        pmods->on_draw_ui("RoseRemovesPins"_hash); // needs its own line
+
+                        pmods->on_draw_ui("ForceLucifer"_hash);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("InputStates"_hash); // taunt ecstasy
+
+                        pmods->on_draw_ui("LuciAirThrow"_hash);
+
+                        ImGui::Spacing();
+                        ImGui::Text(_("Rose"));
+                        ImGui::Spacing();
+
+                        pmods->on_draw_ui("RoseOptions"_hash); // needs its own line
+
+                        ImGui::Spacing();
+                        ImGui::Text(_("Pins"));
+                        ImGui::Spacing();
+
+                        pmods->on_draw_ui("PinProperties"_hash); // needs its own line
+
+                        pmods->on_draw_ui("PinTrick"_hash); // needs its own line
+
+                        ImGui::SeparatorText(_("Darkslayer"));
+
+                        pmods->on_draw_ui("DoubleTapDarkslayer"_hash);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("TargetChangeDarkslayer"_hash);
+
+                        pmods->on_draw_ui("DisableDarkslayer"_hash); // needs its own line
+
+                        ImGui::SeparatorText(_("Aerial grounded moves"));
+
+                        pmods->on_draw_ui("RisingSun"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("AerialStinger"_hash, 2);
+
+                        // pmods->on_draw_ui("AirMustang"_hash);
+                        // ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("AerialDrive"_hash);
+
+                        ImGui::SeparatorText(_("Accessibility"));
+
+                        pmods->on_draw_ui("SkipWeapons"_hash, 2); // needs its own line
+
+                        pmods->on_draw_ui("EasyJc"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("HighTimeWeaponSwitch"_hash, 2);
+
+                        pmods->on_draw_ui("FasterFastDrive"_hash, 2); // easier quickdrive
+
+                        ImGui::SeparatorText(_("Infinite"));
+
+                        pmods->on_draw_ui("InfTrickRange"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("InfDreadnaught"_hash, 1); // inf dread
+                        
+                        pmods->on_draw_ui("InfSkyStars"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("AlwaysRoyalRelease"_hash, 2);
+
+                        pmods->on_draw_ui("InfAirHikes"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("FreeJc"_hash, 2);
+
+                        ImGui::SeparatorText("Selective Cancels");
+
+                        pmods->on_draw_ui("SelectiveCancels"_hash, 2); // needs its own line
+
+                        ImGui::SeparatorText("Taunt Select");
+
+                        pmods->on_draw_ui("TauntSelect"_hash, 2); // needs its own line
+
+                        ImGui::SeparatorText(_("Memes"));
+
+                        pmods->on_draw_ui("BigHeadMode"_hash, 2); // needs its own line
+
+                        pmods->on_draw_ui("MutatorSuperhot"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("PlayerRotation"_hash, 2);
+
+                        tabHeight += ImGui::GetCursorPosY();
+                        ImGui::EndChild();
+                        ImGui::EndTabItem();
+                    }
+                    else {
+                        ImGui::PopStyleVar(2);
+                    }
+                    ImGui::EndTabBar();
+                }
+                else {
+                    ImGui::PopStyleVar();
+                }
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem(_("Environment"))) {
+                ImGui::BeginChild("EnvironmentChild");
+                float windowWidth = ImGui::GetWindowWidth();
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+
+                if (ImGui::BeginTabBar("EnvironmentTabBar"), ImGuiTabBarFlags_FittingPolicyResizeDown) {
+                    tabHeight += ImGui::GetCursorPosY();
+
+                    static int numTabs = 2;
+                    float tabWidth = windowWidth / numTabs;
+                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(tabWidth / 2, ImGui::GetStyle().FramePadding.y));
+
+                    if (ImGui::BeginTabItem(_("Stage"))) {
+                        ImGui::PopStyleVar(2);
+                        ImGui::BeginChild("StageChild");
+
+                        pmods->on_draw_ui("AreaJump"_hash); // needs its own line
+
+                        tabHeight += ImGui::GetCursorPosY();
+                        ImGui::EndChild();
+                        ImGui::EndTabItem();
+                    }
+                    else {
+                        ImGui::PopStyleVar(2);
+                    }
+
+                    if (ImGui::BeginTabItem(_("Enemies"))) {
+                        ImGui::PopStyleVar(2);
+                        ImGui::BeginChild("EnemiesChild");
+
+                        ImGui::SeparatorText(_("Enemy Spawner"));
+                        pmods->on_draw_ui("EnemySpawn"_hash); // needs its own line
+
+                        ImGui::SeparatorText(_("Enemy Replacement"));
+                        pmods->on_draw_ui("EnemyReplace"_hash); // needs its own line
+
+                        tabHeight += ImGui::GetCursorPosY();
+                        ImGui::EndChild();
+                        ImGui::EndTabItem();
+                    }
+                    else {
+                        ImGui::PopStyleVar(2);
+                    }
+                    ImGui::EndTabBar();
+                }
+                else {
+                    ImGui::PopStyleVar();
+                }
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem(_("System"))) {
+                ImGui::BeginChild("SystemChild");
+
+                ImGui::SeparatorText(_("Misc"));
+
+                pmods->on_draw_ui("CharacterSwap"_hash); // needs its own line
+
+                pmods->on_draw_ui("NoAutomaticCharacters"_hash); // needs its own line
+                    
+                pmods->on_draw_ui("CustomModelFix"_hash); // needs its own line
+
+                pmods->on_draw_ui("BpPortal"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("SlowWalk"_hash);
+
+                pmods->on_draw_ui("CharSwitcher"_hash); // needs its own line
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("PsychoMantis"_hash);
+
+                ImGui::SeparatorText(_("HUD"));
+
+                ImGui::Spacing();
+
+                pmods->on_draw_ui("InfiniteTime"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("HpInOrbsDisplay"_hash);
+
+                pmods->on_draw_ui("HideHud"_hash); // needs its own line
+
+                ImGui::SeparatorText(_("Custom HUD elements"));
+                ImGui::Spacing();
+
+                pmods->on_draw_ui("PinTimer"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("RedOrbCompletion"_hash);
+
+                pmods->on_draw_ui("StylePoints"_hash); // needs its own line
+
+                pmods->on_draw_ui("GuardTimer"_hash);
+
+                ImGui::SeparatorText(_("Cutscenes"));
+
+                pmods->on_draw_ui("CutsceneSkip"_hash);
+
+                pmods->on_draw_ui("CutscenePause"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("DisableCameraEvents"_hash);
+
+                ImGui::SeparatorText(_("dmc4_hook"));
+
+                pmods->on_draw_ui("MessageDisplayMod"_hash);
+
+                //pmods->on_draw_ui("TwCmdPlayerTransforms"_hash); // empty // broken
+
+                ImGui::SeparatorText(_("System"));
+
+                pmods->on_draw_ui("BackgroundRendering"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("DisableKeyboard"_hash);
+
+                pmods->on_draw_ui("FastStart"_hash); // 1.5 lines
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("FpsLimit"_hash);
+
+                ImGui::SeparatorText(_("Camera"));
+
+                pmods->on_draw_ui("CameraSettings"_hash);
+
+                pmods->on_draw_ui("DebugCam"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("NoclipCam"_hash);
+
+                ImGui::SeparatorText(_("Speed"));
+
+                pmods->on_draw_ui("WorkRate"_hash, 1); // needs its own line
+
+                pmods->on_draw_ui("TwitchClient"_hash); // needs its own line
+
+                tabHeight += ImGui::GetCursorPosY();
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem(_("Debug"))) {
+                float startCursorY = ImGui::GetCursorPosY();
+                ImGui::BeginChild("DebugChild");
+
+                ImGui::SeparatorText(_("File Loading"));
+
+                // pmods->on_draw_ui("MoveTable"_hash);
+                // ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("LoadOrder"_hash);
+                    
+                ImGui::SeparatorText(_("Noclip"));
+
+                pmods->on_draw_ui("NoClip"_hash); // 1.5 lines
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("FreeJc"_hash);
+
+                pmods->on_draw_ui("NoclipCam"_hash);
+
+                ImGui::SeparatorText(_("Stats"));
+
+                pmods->on_draw_ui("PlayerTracker"_hash); // needs its own line, also contains game pause
+
+                pmods->on_draw_ui("EnemyTracker"_hash); // needs its own line
+
+                pmods->on_draw_ui("VisualizeHitbox"_hash);
+
+                ImGui::SeparatorText(_("Misc"));
+
+                pmods->on_draw_ui("RoomRespawn"_hash);
+
+                pmods->on_draw_ui("DisableTrainerPause"_hash);
+
+                pmods->on_draw_ui("MutatorSelfAdvertisement"_hash);
+
+                pmods->on_draw_ui("EffectColours"_hash);
+
+                ImGui::SeparatorText(_("Testing"));
+
+                // pmods->onDrawUI("ShaderEditor"_hash);
+
+                pmods->on_draw_ui("CustomProjectile"_hash);
+
+                pmods->on_draw_ui("AfterImage"_hash);
+
+                tabHeight += ImGui::GetCursorPosY();
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem(_("Hotkeys"))) {
+                ImGui::BeginChild("HotkeysChild");
+
+                ImGui::Spacing();
+
+                pmods->on_hotkey_tab(*g_framework->get_input_struct());
+
+                tabHeight += ImGui::GetCursorPosY();
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem(_("About"))) {
+                ImGui::BeginChild("AboutChild");
+
+                ImGui::SeparatorText(_("DMC4Hook - Devil May Cry 4 Trainer"));
+
+                ImGui::Text("Mstislav Capusta");
+                ImGui::Text("SSSiyan");
+                ImGui::Text("Vieris");
+                ImGui::Text("CrazyMelody");
+                ImGui::Text("Dlupx");
+                ImGui::Text("cheburrat0r");
+                ImGui::Text("endneo");
+
+                ImGui::Spacing();
+
+                ImGui::Text("Special Thanks:");
+                ImGui::Text("socks");
+                ImGui::Text("Whirling");
+                ImGui::Text("Terrutas");
+                ImGui::Text("Boey");
+                ImGui::Text("DelusionaryKiller");
+                ImGui::Text("DJMalice");
+                ImGui::Text("GarudaKK");
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                ImGui::Text(_("For more info and updates visit the github:"));
+
+                ImGuiURL repo{ "https://github.com/muhopensores/dmc4_hook", "https://github.com/muhopensores/dmc4_hook" };
+                repo.draw();
+
+                if (ImGui::CollapsingHeader(_("Frequently Asked Questions"))) {
+                    ImGui::Indent();
+                    if (ImGui::CollapsingHeader(_("What mods do you recommend most?"))) {
+                        ImGui::TextWrapped(_("\"Fast Game Load\" and neighbouring options in the \"System\" tab. Get from your Desktop to BP in 2 seconds."));
+                    }
+                    if (ImGui::CollapsingHeader(_("Old mods I installed have suddenly turned on"))) {
+                        ImGui::TextWrapped(_("\"HDD File Priority\" is ticked on the Debug page. If your DMC4 install contains any files left over from old mods, "
+                            "this will load them. To clean up your directory you'll need to delete files manually as Steam verification does not check "
+                            "newly added files."));
+                    }
+                    if (ImGui::CollapsingHeader(_("My combo points are stuck at 0"))) {
+                        ImGui::TextWrapped(_("\"Respawn Enemies when visiting the same room multiple times\" is ticked on the Debug page. "
+                            "If you didn't turn this on manually, it would have been auto ticked when you used the reload current room hotkey."));
+                    }
+                    if (ImGui::CollapsingHeader(_("My camera is frozen"))) {
+                        ImGui::TextWrapped(_("The default hotkey for camera settings' freeze camera is Numpad 0."));
+                    }
+                    ImGui::Unindent();
+                }
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                ImGui::Text(_("This trainer was made using:"));
+
+                // NOTE(): oops forgot cpp17 has CTAD hehe
+                static std::array links{
+                    ImGuiURL { "REFramework -> https://github.com/praydog/REFramework", "https://github.com/praydog/REFramework" },
+                    ImGuiURL { "GLM -> https://github.com/g-truc/glm", "https://github.com/g-truc/glm"},
+                    ImGuiURL { "Dear ImGui -> https://github.com/ocornut/imgui", "https://github.com/ocornut/imgui" },
+                    ImGuiURL { "MinHook -> https://github.com/TsudaKageyu/minhook", "https://github.com/TsudaKageyu/minhook" },
+                    ImGuiURL { "spdlog -> https://github.com/gabime/spdlog", "https://github.com/gabime/spdlog" },
+                    ImGuiURL { "GNU gettext -> https://www.gnu.org/software/gettext/", "https://www.gnu.org/software/gettext/" },
+                    ImGuiURL { "mo_file.zip -> http://number-none.com/blow/code/mo_file/index.html", "http://number-none.com/blow/code/mo_file/index.html" },
+                };
+                for (auto& link : links) {
+                    link.draw();
+                }
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                if (ImGui::CollapsingHeader(_("Licenses"))) {
+                    ImGui::TreePush(_("Licenses"));
+
+                    struct License {
+                        std::string name;
+                        std::string text;
+                    };
+
+                    static std::array licenses{
+                        License{ "REFramework",   license::reframework },
+                        License{ "GLM",           license::glm },
+                        License{ "ImGui",         license::imgui },
+                        License{ "MinHook",       license::minhook },
+                        License{ "spdlog",        license::spdlog },
+                        License{ "csys",          license::csys },
+                        License{ "imgui_console", license::imgui_console },
+                        License{ "GNU gettext",   license::gnu_gettext },
+                        License{ "mo_file.zip",   license::naysayer_gettext },
+                    };
+
+                    for (const auto& license : licenses) {
+                        if (ImGui::CollapsingHeader(license.name.c_str())) {
+                            ImGui::TextWrapped(license.text.c_str());
+                        }
+                    }
+                    ImGui::TreePop();
+                }
+
+                tabHeight += ImGui::GetCursorPosY();
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        }
+        endHeight = std::min(uiHeight + tabHeight, maxUIHeight);
+
+        // tab height is set to 0 when tabbing in. if() will keep old dimensions
+        if (tabHeight > 0.0f)
+            ImGui::SetWindowSize(ImVec2(uiWidth, endHeight));
+        ImGui::End();
+        /*ImGui::Begin("Window Height Check");
+        ImGui::SetWindowPos(ImVec2(1920.f * 0.7f, 1080.0f * 0.2f));
+        ImGui::Text("tabHeight %.1f", tabHeight);
+        ImGui::Text("uiHeight %.1f", uiHeight);
+        ImGui::End();*/
+        // ImGui::ShowDemoWindow();
     }
 }

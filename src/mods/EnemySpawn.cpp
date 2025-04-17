@@ -508,130 +508,34 @@ std::optional<std::string> EnemySpawn::on_initialize() {
     return Mod::on_initialize();
 }
 
-void EnemySpawn::on_gui_frame() {
-    if (!devil4_sdk::get_local_player()) {
-        ImGui::TextWrapped(_("Enemy Spawner is not initialized.\nLoad into a stage to access it."));
-        return;
-    }
-    ImGui::Text(_("Enemy Spawner"));
-    ImGui::SameLine();
-    help_marker(_("Any clicked enemy will spawn above player coords"));
-    ImGui::Spacing();
+void EnemySpawn::on_gui_frame(int display) {
+    uPlayer* player = devil4_sdk::get_local_player();
     int enemy_names_current = 0;
-    ImGui::PushItemWidth(sameLineWidth);
-    if (ImGui::ListBox("##Enemy Spawn Listbox", &enemy_names_current, enemy_names.data(), enemy_names.size())) {
-        spawn_em00x(enemy_names_current);
+    ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+    if (ImGui::ListBox("##Enemy Spawn Listbox", &enemy_names_current, enemy_names.data(), enemy_names.size(), 23)) {
+        if (player)
+            spawn_em00x(enemy_names_current);
     }
     if (ImGui::Button(_("Random"))) {
-        spawn_random_enemy();
+        if (player)
+            spawn_random_enemy();
     }
+    ImGui::Spacing();
     static intptr_t custom_spawn_addr = NULL;
-    ImGui::InputInt("[DEBUG] Custom Spawn Addr", &custom_spawn_addr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal);
+    ImGui::Text(_("[DEBUG] Custom Spawn Addr"));
+    ImGui::InputInt("##[DEBUG] Custom Spawn Addr InputInt", &custom_spawn_addr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal);
     if (ImGui::Button("Spawn")) {
-        spawn_custom(custom_spawn_addr);
+        if (player)
+            spawn_custom(custom_spawn_addr);
     }
     ImGui::PopItemWidth();
 }
 
-#if 0
-void EnemySpawn::on_twitch_command(std::size_t hash) {
-    spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_scarecrow_leg_command);
-    if (hash == m_spawn_scarecrow_leg_command) {
-        spawn_em00x(0);
-    }
-    spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_scarecrow_arm_command);
-    if (hash == m_spawn_scarecrow_arm_command) {
-        spawn_em00x(1);
-    }
-    spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_mega_command);
-    if (hash == m_spawn_mega_command) {
-        spawn_em00x(2);
-    }
-    spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_bianco_command);
-    if (hash == m_spawn_bianco_command) {
-        spawn_em00x(3);
-    }
-    spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_alto_command);
-    if (hash == m_spawn_alto_command) {
-        spawn_em00x(4);
-    }
-    spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_mephisto_command);
-    if (hash == m_spawn_mephisto_command) {
-        spawn_em00x(5);
-    }
-    spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_faust_command);
-    if (hash == m_spawn_faust_command) {
-        spawn_em00x(6);
-    }
-    spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_frost_command);
-    if (hash == m_spawn_frost_command) {
-        spawn_em00x(7);
-    }
-    spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_assault_command);
-    if (hash == m_spawn_assault_command) {
-        spawn_em00x(8);
-    }
-    spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_blitz_command);
-    if (hash == m_spawn_blitz_command) {
-        spawn_em00x(9);
-    }
-    spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_chimera_command);
-    if (hash == m_spawn_chimera_command) {
-        spawn_em00x(10);
-    }
-    spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_basilisk_command);
-    if (hash == m_spawn_basilisk_command) {
-        spawn_em00x(11);
-    }
-    if (enable_twitch_special_spawns) {
-        spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_berial_command);
-        if (hash == m_spawn_berial_command) {
-            spawn_em00x(12);
-        }
-        spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_bael_command);
-        if (hash == m_spawn_bael_command) {
-            spawn_em00x(13);
-        }
-        spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_echidna_command);
-        if (hash == m_spawn_echidna_command) {
-            spawn_em00x(14);
-        }
-        spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_credo_command);
-        if (hash == m_spawn_credo_command) {
-            spawn_em00x(15);
-        }
-        spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_agnus_command);
-        if (hash == m_spawn_agnus_command) {
-            spawn_em00x(16);
-        }
-        spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_sanctus_dia_command);
-        if (hash == m_spawn_sanctus_dia_command) {
-            spawn_em00x(18); // skipping non diabolica sanctus
-        }
-        spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_kyrie_command);
-        if (hash == m_spawn_kyrie_command) {
-            spawn_em00x(19);
-        }
-        spdlog::debug("[TwitchCommand] got hash:%d our hash:%d\n", hash, m_spawn_dante_command);
-        if (hash == m_spawn_dante_command) {
-            spawn_em00x(20);
-        }
-    }
-}
-#endif
+// void EnemySpawn::on_config_load(const utility::Config& cfg) {};
 
-void EnemySpawn::on_config_load(const utility::Config& cfg) {
-    //g_enable_twitch_special_spawns = cfg.get<bool>("enable_twitch_special_spawns").value_or(true);
-    //g_forbid_cumrain = cfg.get<bool>("forbid_cumrain").value_or(false);
-};
-
-void EnemySpawn::on_config_save(utility::Config& cfg) {
-    //cfg.set<bool>("enable_twitch_special_spawns", g_enable_twitch_special_spawns);
-    //cfg.set<bool>("forbid_cumrain", g_forbid_cumrain);
-}
+// void EnemySpawn::on_config_save(utility::Config& cfg) {}
 
 void EnemySpawn::on_update_input(utility::Input& input) {
-
     for (size_t i = 0; i < m_hotkeys.size(); i++) {
         if (m_hotkeys[i]->check(input)) {
             spawn_em00x(i);

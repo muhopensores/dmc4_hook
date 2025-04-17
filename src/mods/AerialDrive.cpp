@@ -271,7 +271,7 @@ std::optional<std::string> AerialDrive::on_initialize() {
     return Mod::on_initialize();
 }
 
-void AerialDrive::on_gui_frame() {
+void AerialDrive::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Aerial Drive"), &mod_enabled)) {
         toggle(mod_enabled);
     }

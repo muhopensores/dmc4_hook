@@ -17,7 +17,7 @@ void DtEnemiesDontStun::toggle(bool enable){
     }
 }
 
-void DtEnemiesDontStun::on_gui_frame() {
+void DtEnemiesDontStun::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("DT Enemies Don't Stun"), &mod_enabled)) {
         toggle(mod_enabled);
     }

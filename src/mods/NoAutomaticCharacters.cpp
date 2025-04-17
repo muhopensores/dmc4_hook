@@ -160,7 +160,7 @@ std::optional<std::string> NoAutomaticCharacters::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void NoAutomaticCharacters::on_gui_frame() {
+void NoAutomaticCharacters::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("No Auto Characters"), &mod_enabled)) {
         mod_enabled2 = false;
     }

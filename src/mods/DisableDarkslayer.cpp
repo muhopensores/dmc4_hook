@@ -42,11 +42,11 @@ void DisableDarkslayer::toggle_right(bool enable) {
     }
 }
 
-void DisableDarkslayer::on_gui_frame() {
+void DisableDarkslayer::on_gui_frame(int display) {
     ImGui::Spacing();
     ImGui::Text(_("Disable Darkslayer Inputs"));
-
     ImGui::Spacing();
+
     ImGui::Text("               ");
     ImGui::SameLine();
     if (ImGui::Checkbox(_("Trickster"), &mod_enabled_up)) {

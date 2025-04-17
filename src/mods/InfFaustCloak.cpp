@@ -25,7 +25,7 @@ void InfFaustCloak::toggle2(bool enable) {
     }
 }
 
-void InfFaustCloak::on_gui_frame() {
+void InfFaustCloak::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Infinite Faust Cloak"), &always_cloak)) {
         toggle1(always_cloak);
     }

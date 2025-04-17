@@ -8,6 +8,9 @@ public:
     // using default constructor
     Quicksilver() = default;
 
+    static bool mod_enabled_nero;
+    static bool mod_enabled_dante;
+
     // override getModName() method with your mod name for logging.
     std::string get_mod_name() override { return "Quicksilver"; };
 
@@ -16,7 +19,7 @@ public:
     std::optional<std::string> on_initialize() override;
 
     void on_frame(fmilliseconds& dt) override;
-    void on_gui_frame() override;
+    void on_gui_frame(int display) override;
 
     void on_update_input(utility::Input& input) override;
 

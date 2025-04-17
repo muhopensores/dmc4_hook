@@ -7,7 +7,7 @@ std::optional<std::string> DisableTrainerPause::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void DisableTrainerPause::on_gui_frame() {
+void DisableTrainerPause::on_gui_frame(int display) {
 	ImGui::Checkbox(_("Disable Game Pause when opening the trainer"), &mod_enabled);
 }
 

@@ -309,7 +309,7 @@ std::optional<std::string> AfterImage::on_initialize() {
     return Mod::on_initialize();
 }
 
-void AfterImage::on_gui_frame() {
+void AfterImage::on_gui_frame(int display) {
     if (ImGui::Button("After image")) {
         // if (fileExists)
         AfterImage::SpawnAfterImg();

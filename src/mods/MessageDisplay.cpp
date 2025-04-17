@@ -28,7 +28,7 @@ void MessageDisplayMod::custom_imgui_window() {
     ImGui::End();
 }
 
-void MessageDisplayMod::on_gui_frame() {
+void MessageDisplayMod::on_gui_frame(int display) {
     ImGui::Checkbox(_("Keyboard Navigation"), &enable_keyboard_navigation);
     ImGui::SameLine();
     help_marker(_("Keyboard navigation throughout dmc4_hook"));

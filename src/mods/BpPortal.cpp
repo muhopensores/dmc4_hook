@@ -25,7 +25,7 @@ void BpPortal::toggle(bool enable) {
     }
 }
 
-void BpPortal::on_gui_frame() {
+void BpPortal::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Ignore Red Seal Kill Requirements"), &mod_enabled)) {
         toggle(mod_enabled);
     }

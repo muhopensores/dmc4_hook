@@ -6,9 +6,9 @@ class NoDtCooldown : public Mod {
 public:
     NoDtCooldown() = default;
 
-    static bool mod_enabled;
-
-    void toggle(bool enable);
+    static bool no_dt_cooldown_nero;
+    static bool no_dt_cooldown_dante;
+    static uintptr_t jmp_ret;
 
     std::string get_mod_name() override { return "NoDtCooldown"; };
 
@@ -17,8 +17,8 @@ public:
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
 
-    void on_gui_frame() override;
+    void on_gui_frame(int display) override;
 
 private:
-    std::unique_ptr<Patch> patch;
+    std::unique_ptr<FunctionHook> hook;
 };

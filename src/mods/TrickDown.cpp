@@ -54,7 +54,7 @@ std::optional<std::string> TrickDown::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void TrickDown::on_gui_frame() {
+void TrickDown::on_gui_frame(int display) {
     ImGui::Checkbox(_("Trick Down"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Map Trick Down to backforward + trick\nIf an enemy is directly above Dante, it may register your forward input as a back "

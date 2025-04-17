@@ -3,63 +3,91 @@
 #include "glm/gtx/compatibility.hpp"
 #include "../sdk/Devil4.hpp"
 
-bool g_enable_mod = false;
-bool g_swole_mode = false;
+bool big_head_mode_nero = false;
+bool swole_mode_nero = false;
+
+bool big_head_mode_dante = false;
+bool swole_mode_dante = false;
+
 static uintptr_t joint_size_detour1_continue = NULL;
 static uintptr_t joint_size_detour2_continue = NULL;
 
 glm::vec3 size{ 0.5f, 0.5f, 0.5f };
 glm::vec3 size_torso{ 0.9f, 0.8f, 0.8f };
 
+static void scale_head_joint(UModelJoint* joint, uPlayer* player) {
+	if (player->controllerID == 1) {
+		if (swole_mode_nero) {
+			joint->size = size * (glm::clamp(devil4_sdk::get_current_style_rank(), 1.5f, 3.0f));
+		}
+		else if (big_head_mode_nero) {
+			joint->size = size * devil4_sdk::get_current_style_rank();
+		}
+	}
+	if (player->controllerID == 0) {
+		if (swole_mode_dante) {
+			joint->size = size * (glm::clamp(devil4_sdk::get_current_style_rank(), 1.5f, 3.0f));
+		}
+		else if (big_head_mode_dante) {
+			joint->size = size * devil4_sdk::get_current_style_rank();
+		}
+	}
 
-static void scale_head_joint(UModelJoint* joint) {
-	if (g_swole_mode) {
-		joint->size = size * (glm::clamp(devil4_sdk::get_current_style_rank(), 1.5f, 3.0f));
-	}
-	else {
-		joint->size = size * devil4_sdk::get_current_style_rank();
-	}
 }
 
 static int is_head_joint(UModelJoint* joint) {
 	uPlayer* u_plr = devil4_sdk::get_local_player();
-    if (u_plr) {
-        if (g_swole_mode) {
-            UModelJoint* torso = &u_plr->joint_array->joint[2]; // seems to be torso for both chars
-            return joint == torso;
-        }
-        UModelJoint* head = &u_plr->joint_array->joint[4]; // seems to be heads for both chars
-        return joint == head;
+	if (u_plr) {
+		if (u_plr->controllerID == 0) {
+			if (swole_mode_dante) {
+				UModelJoint* torso = &u_plr->joint_array->joint[2]; // seems to be torso for both chars
+				return joint == torso;
+			}
+			if (big_head_mode_dante) {
+				UModelJoint* head = &u_plr->joint_array->joint[4]; // seems to be heads for both chars
+				return joint == head;
+			}
+		}
+		if (u_plr->controllerID == 1) {
+			if (swole_mode_nero) {
+				UModelJoint* torso = &u_plr->joint_array->joint[2]; // seems to be torso for both chars
+				return joint == torso;
+			}
+			if (big_head_mode_nero) {
+				UModelJoint* head = &u_plr->joint_array->joint[4]; // seems to be heads for both chars
+				return joint == head;
+			}
+		}
 	}
-    return 0;
+	return 0;
 }
 
-naked void joint_size_detour1() {
+naked void joint_size_detour1() { // edi has player sometimes
 	__asm {
-		pushf
-		cmp byte ptr [g_enable_mod], 1
-		jne originalCode1
-		pusha
+		pushfd
+		pushad
 		push esi
 		call is_head_joint
 		test eax, eax
 		pop esi
-		popa
+		popad
 	    je originalCode1
-		pusha
-		push esi
+		pushad
+		push edi // player
+		push esi // joint
 		call scale_head_joint
 		pop esi
-		popa
-		popf
+		pop edi
+		popad
+		popfd
 		jmp bail
 	originalCode1:
-		popf
-		movss [esi+0x30],xmm0
-		movss xmm0,[esp+0x54]
-		movss [esi+0x34],xmm0
-		movss xmm0,[esp+0x58]
-		movss [esi+0x38],xmm0
+		popfd
+		movss [esi+0x30], xmm0
+		movss xmm0, [esp+0x54]
+		movss [esi+0x34], xmm0
+		movss xmm0, [esp+0x58]
+		movss [esi+0x38], xmm0
 	bail:
 		jmp dword ptr [joint_size_detour1_continue]
 	}
@@ -67,26 +95,26 @@ naked void joint_size_detour1() {
 
 naked void joint_size_detour2() {
 	__asm {
-		pushf
-		cmp byte ptr [g_enable_mod], 1
-		jne originalCode2
-		pusha
+		pushfd
+		pushad
 		push esi
 		call is_head_joint
 		test eax, eax
 		pop esi
-		popa
+		popad
 		je originalCode2
-		pusha
-		push esi
+		pushad
+		push edi // player
+		push esi // joint
 		call scale_head_joint
 		pop esi
-		popa
-		popf
+		pop edi
+		popad
+		popfd
 		jmp bail
 
 	originalCode2:
-		popf
+		popfd
 		movss [esi+0x30], xmm0
 		movss xmm0, [esp+1C4h]
 		movss [esi+0x34],xmm0
@@ -103,18 +131,18 @@ std::optional<std::string> BigHeadMode::on_initialize(){
 #if 1
     MutatorRegistry::define("BigHeadMode")
         .on_init( []() {
-        g_enable_mod = !g_enable_mod;
+        big_head_mode_nero = !big_head_mode_nero;
     }).set_timer(300.0, []() {
-        g_enable_mod = false;
+        big_head_mode_nero = false;
     });
 
     MutatorRegistry::define("SwoleMode")
         .on_init( []() {
-        g_enable_mod = !g_enable_mod;
-        g_swole_mode = true;
+        big_head_mode_nero = !big_head_mode_nero;
+        swole_mode_nero = true;
     }).set_timer(300.0, []() {
-        g_enable_mod = false;
-        g_swole_mode = false;
+        big_head_mode_nero = false;
+        swole_mode_nero = false;
     });
 
 	// DevilMayCry4_DX9.exe+5E9774 
@@ -122,8 +150,8 @@ std::optional<std::string> BigHeadMode::on_initialize(){
 		spdlog::error("Failed to init BigHeadMode mod\n");
 		return "Failed to init BigHeadMode mod";
 	}
-	// DevilMayCry4_DX9.exe+5FC978 
 
+	// DevilMayCry4_DX9.exe+5FC978 
 	if (!install_hook_offset(0x5FC978 , hook2, &joint_size_detour2, &joint_size_detour2_continue, 0x21)) {
 		spdlog::error("Failed to init BigHeadMode mod\n");
 		return "Failed to init BigHeadMode mod";
@@ -133,17 +161,31 @@ std::optional<std::string> BigHeadMode::on_initialize(){
 	return Mod::on_initialize();
 }
 
-void BigHeadMode::on_gui_frame() {
-    if (ImGui::Checkbox(_("Big Head Mode"), &g_enable_mod)) {
-        if (g_swole_mode == true)
-            g_swole_mode = false;
+void BigHeadMode::on_gui_frame(int display) {
+	if (display == 1) {
+		if (ImGui::Checkbox(_("Big Head Mode"), &big_head_mode_nero)) {
+			swole_mode_nero = false;
+		}
+		ImGui::SameLine();
+		help_marker(_("Head size scales with style"));
+		ImGui::SameLine(sameLineWidth);
+		if (ImGui::Checkbox(_("Swole Mode"), &swole_mode_nero)) {
+			big_head_mode_nero = false;
+		}
+		ImGui::SameLine();
+		help_marker(_("Body size scales with style"));
 	}
-    ImGui::SameLine();
-    help_marker(_("Head size scales with style"));
-    ImGui::SameLine(sameLineWidth);
-	if (ImGui::Checkbox(_("Swole Mode"), &g_swole_mode)) {
-		g_enable_mod = g_swole_mode;
+	else if (display == 2) {
+		if (ImGui::Checkbox(_("Big Head Mode"), &big_head_mode_dante)) {
+			swole_mode_dante = false;
+		}
+		ImGui::SameLine();
+		help_marker(_("Head size scales with style"));
+		ImGui::SameLine(sameLineWidth);
+		if (ImGui::Checkbox(_("Swole Mode"), &swole_mode_dante)) {
+			big_head_mode_dante = false;
+		}
+		ImGui::SameLine();
+		help_marker(_("Body size scales with style"));
 	}
-	ImGui::SameLine();
-	help_marker(_("Body size scales with style"));
 }

@@ -31,7 +31,7 @@ std::optional<std::string> DisableChimeraBlades::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void DisableChimeraBlades::on_gui_frame() {
+void DisableChimeraBlades::on_gui_frame(int display) {
     ImGui::Checkbox(_("Disable Chimera Blades"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Stops the blades on chimera infected enemies from attacking"));

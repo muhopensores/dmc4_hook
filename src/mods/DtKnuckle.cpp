@@ -813,7 +813,7 @@ static void SeeIfFileExists() {
     }
 }
 
-void DtKnuckle::on_gui_frame() {
+void DtKnuckle::on_gui_frame(int display) {
 	ImGui::BeginGroup();
     if (!fileExists) {
         if (ImGui::Button(_("Download Guardian Devil Files"))) {

@@ -283,7 +283,7 @@ static void ToggleGameplayCam(bool enable) {
     vp->mActive = enable;
 }
 
-void DebugCam::on_gui_frame() {
+void DebugCam::on_gui_frame(int display) {
     ImGui::BeginGroup();
     if (ImGui::Checkbox(_("Free Camera"), &mod_enabled)) {
         if (!mod_enabled) {

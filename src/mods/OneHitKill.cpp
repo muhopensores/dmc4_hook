@@ -72,7 +72,7 @@ std::optional<std::string> OneHitKill::on_initialize() {
     return Mod::on_initialize();
 }
 
-void OneHitKill::on_gui_frame() {
+void OneHitKill::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("No Death (All)"), &cant_die)) {
         one_hit_kill = false;
         //toggle2(oneHitKill);

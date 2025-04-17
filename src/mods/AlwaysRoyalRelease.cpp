@@ -16,7 +16,7 @@ void AlwaysRoyalRelease::toggle(bool enable) {
         patch2.reset(); // E8 2C 2F 01 00
     }
 }
-void AlwaysRoyalRelease::on_gui_frame() {
+void AlwaysRoyalRelease::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Always Royal Release"), &mod_enabled)) {
         toggle(mod_enabled);
     }

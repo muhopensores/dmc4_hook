@@ -347,7 +347,7 @@ std::optional<std::string> PinProperties::on_initialize() {
     return Mod::on_initialize();
 }
 
-void PinProperties::on_gui_frame() {
+void PinProperties::on_gui_frame(int display) {
     ImGui::Checkbox(_("Gunslinger passive"), &pin_gs_passive_enabled);
     ImGui::SameLine();
     help_marker(_("Thrown lucifer pins continue moving and explode on contact in Gunslinger style."));

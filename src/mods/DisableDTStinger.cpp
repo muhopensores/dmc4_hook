@@ -14,7 +14,7 @@ void DisableDTStinger::toggle(bool enable) {
         patch.reset();
     }
 }
-void DisableDTStinger::on_gui_frame() {
+void DisableDTStinger::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Disable DT Stinger"), &mod_enabled)) {
         toggle(mod_enabled);
     }

@@ -57,7 +57,7 @@ void NoClip::toggle2(bool enable) {
     }
 }
 
-void NoClip::on_gui_frame() {
+void NoClip::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Noclip"), &mod_enabled)) {
         toggle(mod_enabled);
     }

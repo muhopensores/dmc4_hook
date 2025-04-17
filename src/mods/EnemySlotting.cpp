@@ -42,7 +42,7 @@ std::optional<std::string> EnemySlotting::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void EnemySlotting::on_gui_frame() {
+void EnemySlotting::on_gui_frame(int display) {
 	ImGui::Checkbox(_("Custom Enemy Slot Limit"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Set how many enemies can attack at the same time. Default is usually 1\n"

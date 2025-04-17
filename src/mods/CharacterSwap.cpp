@@ -79,7 +79,7 @@ std::optional<std::string> CharacterSwap::on_initialize() {
     return Mod::on_initialize();
 }
 
-void CharacterSwap::on_gui_frame() {
+void CharacterSwap::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Character Select in any mission"), &mod_enabled)) {
         toggle(mod_enabled);
     }

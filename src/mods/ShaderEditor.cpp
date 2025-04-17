@@ -302,7 +302,7 @@ ps_3_0
 
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
-void ShaderEditor::on_gui_frame() { 
+void ShaderEditor::on_gui_frame(int display) { 
     if (ImGui::Button("clear")) {
         g_mats.clear();
     }

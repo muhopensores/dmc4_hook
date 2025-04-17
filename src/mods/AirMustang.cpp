@@ -153,7 +153,7 @@ std::optional<std::string> AirMustang::on_initialize() {
 }
 
 
-void AirMustang::on_gui_frame() {
+void AirMustang::on_gui_frame(int display) {
     ImGui::Checkbox(_("Air Mustang"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Hold/Tap the style button while making contact with the enemy during Sky Star to quickly descend"));

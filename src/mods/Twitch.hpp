@@ -73,7 +73,7 @@ public:
     void on_frame(fmilliseconds& dt) override;
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
-    void on_gui_frame() override;
+    void on_gui_frame(int display) override;
     void custom_imgui_window();
 
     void make_instance(bool standalone = false);

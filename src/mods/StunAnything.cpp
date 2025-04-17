@@ -16,7 +16,7 @@ void StunAnything::toggle(bool enable) {
     }
 }
 
-void StunAnything::on_gui_frame() {
+void StunAnything::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Stun Anything"), &mod_enabled)) {
         toggle(mod_enabled);
     }

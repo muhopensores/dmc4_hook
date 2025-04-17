@@ -43,7 +43,7 @@ std::optional<std::string> AssaultsDontJump::on_initialize() {
     }
 }*/
 
-void AssaultsDontJump::on_gui_frame() {
+void AssaultsDontJump::on_gui_frame(int display) {
 
     ImGui::Checkbox(_("No DTless Assault Escape"), &mod_enabled);
     //toggle(mod_enabled);

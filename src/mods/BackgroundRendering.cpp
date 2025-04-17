@@ -76,7 +76,7 @@ void BackgroundRendering::on_config_save(utility::Config& cfg) {
 	cfg.set<bool>("enable_focus_patch", mod_enabled);
 }
 
-void BackgroundRendering::on_gui_frame() {
+void BackgroundRendering::on_gui_frame(int display) {
 	ImGui::Checkbox(_("Background Input"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("The game will accept controller and keyboard inputs while tabbed out"));

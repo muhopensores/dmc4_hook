@@ -163,7 +163,7 @@ void PinTimer::custom_imgui_window() {
     }
 }
 
-void PinTimer::on_gui_frame() {
+void PinTimer::on_gui_frame(int display) {
     ImGui::Checkbox(_("Show Pin Timers"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Opens up a UI when pins are placed that shows the time remaining on each pin"));

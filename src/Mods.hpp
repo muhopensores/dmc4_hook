@@ -14,7 +14,7 @@ public:
     void on_config_save();
 
 	void on_frame(fmilliseconds& dt);
-	void on_draw_ui(uint32_t hash);
+	void on_draw_ui(uint32_t hash, int display = 0);
 
     void on_update_input(utility::Input& input);
 	void on_game_pause(bool toggle);

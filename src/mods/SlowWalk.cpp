@@ -17,7 +17,7 @@ void SlowWalk::toggle(bool enable) {
     }
 }
 
-void SlowWalk::on_gui_frame() {
+void SlowWalk::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Slow Walk"), &mod_enabled)) {
         toggle(mod_enabled);
     }

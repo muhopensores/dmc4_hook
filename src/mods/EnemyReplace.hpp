@@ -1,4 +1,3 @@
-#if 0
 #pragma once
 
 #include "../mod.hpp"
@@ -7,40 +6,25 @@ class EnemyReplace : public Mod {
 public:
     EnemyReplace() = default;
 
-    static bool modEnabled;
+    static bool mod_enabled;
+    std::unique_ptr<Patch>& get_patch(int enemy_id);
+    uintptr_t get_enemy_address(int enemy_id);
+    void replace_enemy_with(int current_enemy_id, int desired_enemy_id);
 
-    void ReplaceEnemyDefault(uintptr_t address);
-    void ReplaceEnemyOne(uintptr_t address);
-    void ReplaceEnemyTwo(uintptr_t address);
-    void ReplaceEnemyThree(uintptr_t address);
-    void ReplaceEnemyFour(uintptr_t address);
-    void ReplaceEnemyFive(uintptr_t address);
-    void ReplaceEnemySix(uintptr_t address);
-    void ReplaceEnemySeven(uintptr_t address);
-    void ReplaceEnemyEight(uintptr_t address);
-    void ReplaceEnemyNine(uintptr_t address);
-    void ReplaceEnemyTen(uintptr_t address);
-    void ReplaceEnemyEleven(uintptr_t address);
-    void ReplaceEnemyTwelve(uintptr_t address);
-    void ReplaceEnemyThirteen(uintptr_t address);
-    void ReplaceEnemyFourteen(uintptr_t address);
-    void ReplaceEnemyFifteen(uintptr_t address);
-    void ReplaceEnemySixteen(uintptr_t address);
-    void ReplaceEnemySeventeen(uintptr_t address);
-    void ReplaceEnemyEighteen(uintptr_t address);
-    void ReplaceEnemyNineteen(uintptr_t address);
+    static int desired_enemy[];
+    static int default_enemy[];
 
-    std::string getModName() override { return "EnemyReplace"; };
-    std::optional<std::string> onInitialize() override;
+    std::string get_mod_name() override { return "EnemyReplace"; };
+    std::optional<std::string> on_initialize() override;
 
-    void onConfigLoad(const utility::Config& cfg) override;
-    void onConfigSave(utility::Config& cfg) override;
-    void onGUIframe() override;
+    void on_config_load(const utility::Config& cfg) override;
+    void on_config_save(utility::Config& cfg) override;
+    void on_gui_frame(int display) override;
 
 private:
-    std::unique_ptr<Patch> replaceScarecrowLeg_patch, replaceScarecrowArm_patch, replaceMegaScarecrow_patch, replacementAddressTwo_patch,
-        replaceBiancoAngelo_patch, replaceAltoAngelo_patch, replaceMephisto_patch, replaceFaust_patch, replaceFrost_patch,
-        replaceAssault_patch, replaceBlitz_patch, replaceChimera_patch, replaceBasilisk_patch, replaceBerial_patch, replaceBael_patch,
-        replaceEchidna_patch, replaceCredo_patch, replaceAgnus_patch;
+    std::unique_ptr<Patch> replacement_address_two_patch, replace_scarecrow_leg_patch, replace_scarecrow_arm_patch, replace_scarecrow_mega_patch,
+        replace_angelo_bianco_patch, replace_angelo_alto_patch, replace_mephisto_patch, replace_faust_patch, replace_frost_patch,
+        replace_assault_patch, replace_blitz_patch, replace_chimera_patch, replace_basilisk_patch, replace_berial_patch, replace_bael_patch,
+        replace_echidna_patch, replace_credo_patch, replace_agnus_patch, replace_sanctus_patch, replace_sanctus_dia_patch, replace_kyrie_patch,
+        replace_dante_patch;
 };
-#endif

@@ -367,7 +367,19 @@ void CameraSettings::toggle_camera_lockon_corrects(bool toggle) {
     }
 }
 
-void CameraSettings::on_gui_frame() {
+void CameraSettings::reset_camera_variables() {
+        camera_height = 0.0f;
+        camera_distance = 0.0f;
+        camera_distance_lockon = 0.0f;
+        camera_angle = 0.0f;
+        camera_angle_lockon = 0.0f;
+        camera_fov = 0.0f;
+        camera_fov_in_battle = 0.0f;
+        pause_camera_enabled = false;
+        toggle_pause_camera(pause_camera_enabled);
+}
+
+void CameraSettings::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Disable Lockon Autocorrects"), &camera_lockon_corrects)) {
         toggle_camera_lockon_corrects(camera_lockon_corrects);
     }
@@ -426,15 +438,7 @@ void CameraSettings::on_gui_frame() {
             toggle_pause_camera(pause_camera_enabled);
         }
         if (ImGui::Button(_("Reset Camera Variables"))) {
-            CameraSettings::camera_height = 0.0f;
-            CameraSettings::camera_distance = 0.0f;
-            CameraSettings::camera_distance_lockon = 0.0f;
-            CameraSettings::camera_angle = 0.0f;
-            CameraSettings::camera_angle_lockon = 0.0f;
-            CameraSettings::camera_fov = 0.0f;
-            CameraSettings::camera_fov_in_battle = 0.0f;
-            pause_camera_enabled = false;
-            toggle_pause_camera(pause_camera_enabled);
+            CameraSettings::reset_camera_variables();
         }
         ImGui::Unindent(lineIndent);
         ImGui::PopItemWidth();
@@ -556,13 +560,7 @@ void CameraSettings::on_update_input(utility::Input& input) {
         CameraSettings::camera_fov_in_battle -= 10.0f;
     }
     if (m_hotkeys[5]->check(input)) {
-        CameraSettings::camera_height          = 0.0f;
-        CameraSettings::camera_distance        = 0.0f;
-        CameraSettings::camera_distance_lockon = 0.0f;
-        CameraSettings::camera_angle           = 0.0f;
-        CameraSettings::camera_angle_lockon    = 0.0f;
-        CameraSettings::camera_fov_in_battle   = 0.0f;
-        CameraSettings::camera_fov             = 0.0f;
+        CameraSettings::reset_camera_variables();
     }
     if (m_hotkeys[6]->check(input)) {
         CameraSettings::camera_fov += 10.0f;

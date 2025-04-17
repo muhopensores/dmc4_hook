@@ -22,7 +22,7 @@ void TurnSpeedEdits::backslide_toggle(bool enable) {
     }
 }
 
-void TurnSpeedEdits::on_gui_frame() {
+void TurnSpeedEdits::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Decreased Backslide Turn Speed"), &backslide_enable)) {
         backslide_toggle(backslide_enable);
     }

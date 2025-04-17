@@ -416,7 +416,7 @@ static void SeeIfFileExists() {
     }
 }
 
-void Payline::on_gui_frame() {
+void Payline::on_gui_frame(int display) {
     if (!fileExists) {
         if (ImGui::Button(_("Download Payline Files"))) {
             ShellExecuteA(NULL, "open", "https://github.com/muhopensores/dmc4_hook/releases", NULL, NULL, SW_SHOWNORMAL);

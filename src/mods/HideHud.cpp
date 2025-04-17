@@ -452,7 +452,7 @@ void HideHud::on_update_input(utility::Input& input) {
     }
 }
 
-void HideHud::on_gui_frame() {
+void HideHud::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Hide All HUD"), &mod_enabled_hide_all_hud)) {
         hide_all_hud(mod_enabled_hide_all_hud);
     }

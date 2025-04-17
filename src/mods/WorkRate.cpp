@@ -5,30 +5,8 @@
 static bool force_custom_turbo = false;
 static float custom_turbo = 0.0f;
 static bool hotkey_paused = false;
-#if 0
-uintptr_t  WorkRate::jmp_return{ NULL };
-sWorkRate* WorkRate::sWorkRatePtr{ NULL };
-WorkRate::WorkRate() {
-	//onInitialize();
-}
-
-naked void detour() {
-	//DevilMayCry4_DX9.exe+A948 - 89 48 20              - mov [eax+20],ecx
-	__asm {
-		mov DWORD PTR [WorkRate::sWorkRatePtr], eax
-		mov [eax+0x20],ecx
-		mov [eax+0x24],ecx
-		jmp DWORD PTR [WorkRate::jmp_return]
-	}
-}
-#endif
 
 std::optional<std::string> WorkRate::on_initialize() {
-
-	/*if (!install_hook_offset(0xA948, hook, &detour, &jmp_return, 6)) {
-		return "Failed to init WorkRate mod";
-	}*/
-
     utility::create_keyboard_hotkey(m_hotkeys, {VK_DECIMAL}, "Pause Game", "pause_game");
 
 	console->system().RegisterCommand("turbo", "Set turbo speed for the current room", 
@@ -49,39 +27,53 @@ inline bool WorkRate::check_work_rate_ptr(sWorkRate* wr) {
 	return true;
 }
 
-void WorkRate::on_gui_frame() {
+void WorkRate::on_gui_frame(int display) {
 	sWorkRate* s_work_rate_ptr = devil4_sdk::get_work_rate();
-	if (!check_work_rate_ptr(s_work_rate_ptr)) {
-		ImGui::TextWrapped(_("Speed adjustments are not initialized yet, load into the stage to access them."));
-		ImGui::Spacing();
-		return;
-	}
-	ImGui::PushItemWidth(sameLineItemWidth);
-	ImGui::InputFloat(_("Turbo Value"), &s_work_rate_ptr->turbo_speed, 0.1f, 0.5f, "%.1f%");
-	ImGui::Spacing();
-    ImGui::InputFloat(_("Game Speed"), &s_work_rate_ptr->game_speed, 0.1f, 0.5f, "%.1f%");
-    ImGui::SameLine();
-    help_marker(_("Enemies, players, room, bullets, pins, camera"));
-	ImGui::Spacing();
-    ImGui::InputFloat(_("Global Speed"), &m_global_speed, 0.1f, 0.5f, "%.1f%");
-	ImGui::SameLine();
-    help_marker(_("Enemies, players, room"));
-	ImGui::Spacing();
-    ImGui::InputFloat(_("Room Speed"), &s_work_rate_ptr->room_speed, 0.1f, 0.5f, "%.1f%");
-	ImGui::Spacing();
-    ImGui::InputFloat(_("Player Speed"), &s_work_rate_ptr->player_speed, 0.1f, 0.5f, "%.1f%");
-	ImGui::Spacing();
-    ImGui::InputFloat(_("Enemy Speed"), &s_work_rate_ptr->enemy_speed, 0.1f, 0.5f, "%.1f%");
-	ImGui::PopItemWidth();
-    ImGui::Checkbox(_("Force Custom Turbo"), &force_custom_turbo);
-    ImGui::SameLine();
-    help_marker(_("This turbo won't be disabled on room change"));
-	if (force_custom_turbo) {
-		ImGui::Indent(lineIndent);
+	if (display == 1) {
+		if (!check_work_rate_ptr(s_work_rate_ptr)) {
+			ImGui::TextWrapped(_("Speed adjustments are not initialized yet, load into the stage to access them."));
+			ImGui::Spacing();
+			return;
+		}
 		ImGui::PushItemWidth(sameLineItemWidth);
-		ImGui::InputFloat(_("Custom Turbo"), &custom_turbo, 0.1f, 0.5f, "%.1f%");
+		ImGui::InputFloat(_("Turbo Value"), &s_work_rate_ptr->turbo_speed, 0.1f, 0.5f, "%.1f%");
+		ImGui::Spacing();
+		ImGui::InputFloat(_("Game Speed"), &s_work_rate_ptr->game_speed, 0.1f, 0.5f, "%.1f%");
+		ImGui::SameLine();
+		help_marker(_("Enemies, players, room, bullets, pins, camera"));
+		ImGui::Spacing();
+		ImGui::InputFloat(_("Global Speed"), &m_global_speed, 0.1f, 0.5f, "%.1f%");
+		ImGui::SameLine();
+		help_marker(_("Enemies, players, room"));
+		ImGui::Spacing();
+		ImGui::InputFloat(_("Room Speed"), &s_work_rate_ptr->room_speed, 0.1f, 0.5f, "%.1f%");
+		ImGui::Spacing();
+		ImGui::InputFloat(_("Player Speed"), &s_work_rate_ptr->player_speed, 0.1f, 0.5f, "%.1f%");
+		ImGui::Spacing();
+		ImGui::InputFloat(_("Enemy Speed"), &s_work_rate_ptr->enemy_speed, 0.1f, 0.5f, "%.1f%");
 		ImGui::PopItemWidth();
-		ImGui::Unindent(lineIndent);
+		ImGui::Checkbox(_("Force Custom Turbo"), &force_custom_turbo);
+		ImGui::SameLine();
+		help_marker(_("This turbo won't be disabled on room change"));
+		if (force_custom_turbo) {
+			ImGui::Indent(lineIndent);
+			ImGui::PushItemWidth(sameLineItemWidth);
+			ImGui::InputFloat(_("Custom Turbo"), &custom_turbo, 0.1f, 0.5f, "%.1f%");
+			ImGui::PopItemWidth();
+			ImGui::Unindent(lineIndent);
+		}
+	}
+	else if (display == 2) {
+		if (ImGui::Checkbox(_("Pause"), &hotkey_paused)) {
+			if (!s_work_rate_ptr) { return; }
+			if (hotkey_paused){
+				s_work_rate_ptr->global_speed = 0.0f;
+			} else {
+				s_work_rate_ptr->global_speed = m_global_speed;
+			}
+		}
+		ImGui::SameLine();
+		help_marker(_("Manual pause. Default hotkey is numpad ."));
 	}
 }
 

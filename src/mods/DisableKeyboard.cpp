@@ -35,7 +35,7 @@ std::optional<std::string> DisableKeyboard::on_initialize() {
     return Mod::on_initialize();
 }
 
-void DisableKeyboard::on_gui_frame() {
+void DisableKeyboard::on_gui_frame(int display) {
     ImGui::Checkbox(_("Disable Keyboard Input"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Disable keyboard inputs throughout DMC4\nUseful when using \"Background Input\""));

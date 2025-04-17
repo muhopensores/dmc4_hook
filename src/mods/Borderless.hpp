@@ -21,7 +21,7 @@ public:
     std::optional<std::string> on_initialize() override;
 
     void on_frame(fmilliseconds& dt) override;
-    void on_gui_frame() override;
+    void on_gui_frame(int display) override;
     bool on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param);
 
     void on_config_load(const utility::Config& cfg) override;

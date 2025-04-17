@@ -1,13 +1,13 @@
 #include "ChargeChecker.hpp"
 
-bool ChargeChecker::roundTripCharge_enabled{ false };
-bool ChargeChecker::blueRoseCharge_enabled{ false };
+bool ChargeChecker::roundTripCharge_enabled = false;
+bool ChargeChecker::blueRoseCharge_enabled = false;
 uintptr_t ChargeChecker::jmp_ret{ NULL };
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
-static float round_trip_charge_mult{ 2.0f };
-static float blue_rose_charge_mult_1{ 2.0f };
-static float blue_rose_charge_mult_2{ 2.0f };
+static constexpr float round_trip_charge_mult = 2.0f;
+static constexpr float blue_rose_charge_mult_1 = 2.0f;
+static constexpr float blue_rose_charge_mult_2 = 2.0f;
 
 naked void detour(void) { // player in edi 
     _asm {
@@ -99,42 +99,46 @@ std::optional<std::string> ChargeChecker::on_initialize() {
     return Mod::on_initialize();
 }
 
-void ChargeChecker::on_gui_frame() {
-    ImGui::Checkbox(_("Custom Round Trip Charge Time"), &roundTripCharge_enabled);
-    ImGui::SameLine();
-    help_marker(_("Edit the charge time on Round Trip"));
-    if (roundTripCharge_enabled) {
-        ImGui::Indent(lineIndent);
-        ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::SliderFloat("##RoundTripDragFloat", &round_trip_charge_mult, 0.1f, 10.0f, "%.1f");
-        ImGui::PopItemWidth();
-        ImGui::Unindent(lineIndent);
+void ChargeChecker::on_gui_frame(int display) {
+    if (display == 2) {
+        ImGui::Checkbox(_("Faster Round Trip Charge"), &roundTripCharge_enabled);
+        ImGui::SameLine();
+        help_marker(_("Halve the charge time on Round Trip"));
+        /*if (roundTripCharge_enabled) {
+            ImGui::Indent(lineIndent);
+            ImGui::PushItemWidth(sameLineItemWidth);
+            ImGui::SliderFloat("##RoundTripDragFloat", &round_trip_charge_mult, 0.1f, 10.0f, "%.1f");
+            ImGui::PopItemWidth();
+            ImGui::Unindent(lineIndent);
+        }*/
     }
-    ImGui::Checkbox(_("Custom Blue Rose Charge Time"), &blueRoseCharge_enabled);
-    ImGui::SameLine();
-    help_marker(_("Edit the charge time on Blue Rose"));
-    if (blueRoseCharge_enabled){
-        ImGui::Indent(lineIndent);
-        ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::SliderFloat("1 to 2", &blue_rose_charge_mult_1, 0.1f, 10.0f, "%.1f");
-        ImGui::SliderFloat("2 to max", &blue_rose_charge_mult_2, 0.1f, 10.0f, "%.1f");
-        ImGui::PopItemWidth();
-        ImGui::Unindent(lineIndent);
+    else if (display == 1) {
+        ImGui::Checkbox(_("Faster Blue Rose Charge"), &blueRoseCharge_enabled);
+        ImGui::SameLine();
+        help_marker(_("Halve the charge time on Blue Rose"));
+        /*if (blueRoseCharge_enabled) {
+            ImGui::Indent(lineIndent);
+            ImGui::PushItemWidth(sameLineItemWidth);
+            ImGui::SliderFloat("1 to 2", &blue_rose_charge_mult_1, 0.1f, 10.0f, "%.1f");
+            ImGui::SliderFloat("2 to max", &blue_rose_charge_mult_2, 0.1f, 10.0f, "%.1f");
+            ImGui::PopItemWidth();
+            ImGui::Unindent(lineIndent);
+        }*/
     }
 }
 
 void ChargeChecker::on_config_load(const utility::Config& cfg) {
     roundTripCharge_enabled = cfg.get<bool>("faster_roundtrip").value_or(false);
-    round_trip_charge_mult = cfg.get<float>("roundtrip_charge_mult_1").value_or(2.0f);
+    // round_trip_charge_mult = cfg.get<float>("roundtrip_charge_mult_1").value_or(2.0f);
     blueRoseCharge_enabled = cfg.get<bool>("faster_bluerose").value_or(false);
-    blue_rose_charge_mult_1 = cfg.get<float>("blue_rose_charge_mult_1").value_or(2.0f);
-    blue_rose_charge_mult_2 = cfg.get<float>("blue_rose_charge_mult_2").value_or(2.0f);
+    // blue_rose_charge_mult_1 = cfg.get<float>("blue_rose_charge_mult_1").value_or(2.0f);
+    // blue_rose_charge_mult_2 = cfg.get<float>("blue_rose_charge_mult_2").value_or(2.0f);
 };
 
 void ChargeChecker::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("faster_roundtrip", roundTripCharge_enabled);
-    cfg.set<float>("roundtrip_charge_mult_1", round_trip_charge_mult);
+    // cfg.set<float>("roundtrip_charge_mult_1", round_trip_charge_mult);
     cfg.set<bool>("faster_bluerose", blueRoseCharge_enabled);
-    cfg.set<float>("blue_rose_charge_mult_1", blue_rose_charge_mult_1);
-    cfg.set<float>("blue_rose_charge_mult_2", blue_rose_charge_mult_2);
+    // cfg.set<float>("blue_rose_charge_mult_1", blue_rose_charge_mult_1);
+    // cfg.set<float>("blue_rose_charge_mult_2", blue_rose_charge_mult_2);
 };

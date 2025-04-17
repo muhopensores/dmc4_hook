@@ -120,7 +120,7 @@ void FastStart::toggle(bool enable) {
     }
 }
 
-void FastStart::on_gui_frame() {
+void FastStart::on_gui_frame(int display) {
 	ImGui::Checkbox(_("Fast Game Load"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("The game will skip all opening screens and load the first save slot"));

@@ -17,7 +17,7 @@ public:
     static bool flyingSpheres;
     void RenderExample();
 
-    void on_gui_frame() override;
+    void on_gui_frame(int display) override;
     void on_frame(fmilliseconds& dt) override;
     void on_update_input(utility::Input& input) override;
     void on_config_load(const utility::Config& cfg);

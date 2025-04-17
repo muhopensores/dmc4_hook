@@ -200,7 +200,7 @@ void RoomRespawn::on_config_load(const utility::Config& cfg) {
 
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
-void RoomRespawn::on_gui_frame() {
+void RoomRespawn::on_gui_frame(int display) {
     ImGui::Checkbox(_("Respawn enemies when visiting the same room multiple times"), &g_reset_manager);
     ImGui::SameLine();
     help_marker(_("This will break your style points in the current mission"));

@@ -75,7 +75,7 @@ void LocalizationManager::on_config_load(const utility::Config& cfg) {
     g_framework->on_locale_update(country_code.c_str());
 };
 
-void LocalizationManager::on_gui_frame() { 
+void LocalizationManager::on_gui_frame(int display) { 
     static const char* current_item = g_framework->m_glob_locale;
     const char* lang_string = _("Language");
     IM_ASSERT(lang_string);

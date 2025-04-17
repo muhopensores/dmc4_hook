@@ -86,7 +86,7 @@ void MutatorSelfAdvertisement::custom_imgui_window() {
     ImGui::End();
 }
 
-void MutatorSelfAdvertisement::on_gui_frame() {
+void MutatorSelfAdvertisement::on_gui_frame(int display) {
     ImGui::BeginGroup();
     ImGui::Checkbox(_("Show Self Advertisement"), &mod_enabled);
     ImGui::SameLine();
@@ -96,8 +96,18 @@ void MutatorSelfAdvertisement::on_gui_frame() {
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::Checkbox(_("Dvd screensaver"), &dvd_mode);
         if (!dvd_mode) {
-            ImGui::DragFloat2(_("Position"), (float*)&m_pos, 1.0f, 0.0f, 4096.0f, "%.1f");
-            ImGui::ColorEdit4(_("Colour"), (float*)&m_tint_color);
+            ImGui::Text(_("Position"));
+            ImGui::DragFloat2(_("##PositionDragFloat2"), (float*)&m_pos, 1.0f, 0.0f, 4096.0f, "%.1f");
+            ImGui::SameLine(sameLineWidth + lineIndent);
+            if (ImGui::Button(_("Reset##ResetPos"))) {
+                m_pos = { 1700.0f, 860.0f };
+            }
+            ImGui::Text(_("Colour"));
+            ImGui::ColorEdit4(_("##ColourColorEdit4"), (float*)&m_tint_color);
+            ImGui::SameLine(sameLineWidth + lineIndent);
+            if (ImGui::Button(_("Reset##ResetColour"))) {
+                m_tint_color = { 1.0f, 1.0f, 1.0f, 0.5f };
+            }
         }
         ImGui::PopItemWidth();
         ImGui::Unindent(lineIndent);
@@ -135,7 +145,7 @@ void MutatorSelfAdvertisement::on_config_load(const utility::Config& cfg) {
     m_tint_color.Value.x = cfg.get<float>("self_advertisement_tint_color_x").value_or(1.0f);
     m_tint_color.Value.y = cfg.get<float>("self_advertisement_tint_color_y").value_or(1.0f);
     m_tint_color.Value.z = cfg.get<float>("self_advertisement_tint_color_z").value_or(1.0f);
-    m_tint_color.Value.w = cfg.get<float>("self_advertisement_tint_color_w").value_or(1.0f);
+    m_tint_color.Value.w = cfg.get<float>("self_advertisement_tint_color_w").value_or(0.5f);
 };
 
 void MutatorSelfAdvertisement::on_config_save(utility::Config& cfg) {

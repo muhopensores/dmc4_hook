@@ -119,7 +119,7 @@ void RestoreMaxHp::on_frame(fmilliseconds& dt) {
     restore_health_and_timer(s_med_ptr, player);
 }
 
-void RestoreMaxHp::on_gui_frame() {
+void RestoreMaxHp::on_gui_frame(int display) {
     ImGui::Checkbox(_("Reset Enemy HP"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Press Lock On + Taunt to restore Max HP to enemies"));

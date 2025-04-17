@@ -30,8 +30,8 @@ public:
 
     // onGUIframe() gets called when imgui window is on the screen.
     // override this method if you want to display something in the gui.
-    void on_gui_frame() override;
-    float tiny = 0.05f;
+    void on_gui_frame(int display) override;
+    float tiny[2]{ 0.05f, 0.05f };
     // onGamePause() gets called from hl::Main when toggling a gui.
     // override this method if you want to do something when toggling a gui.
     // (only used by workrate mod atm)

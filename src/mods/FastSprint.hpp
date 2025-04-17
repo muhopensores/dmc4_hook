@@ -7,7 +7,8 @@ public:
     FastSprint() = default;
 
     static uintptr_t jmp_ret;
-    static bool mod_enabled;
+    static bool mod_enabled_nero;
+    static bool mod_enabled_dante;
     static float newSprintTimer;
 
     std::string get_mod_name() override { return "FastSprint"; };
@@ -17,7 +18,7 @@ public:
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
 
-    void on_gui_frame() override;
+    void on_gui_frame(int display) override;
 
 private:
     std::unique_ptr<FunctionHook> hook;

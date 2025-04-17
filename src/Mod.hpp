@@ -135,7 +135,7 @@ public:
 	// should be called from d3d hook
 	virtual void on_frame(fmilliseconds& dt) {}
 	// called only when imgui window displays
-	virtual void on_gui_frame() {}
+	virtual void on_gui_frame(int display = 0) {}
 
 	virtual void on_config_load(const utility::Config& cfg) {}
 	virtual void on_config_save(utility::Config& cfg) {}

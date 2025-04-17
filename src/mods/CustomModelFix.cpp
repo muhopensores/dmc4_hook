@@ -50,7 +50,7 @@ std::optional<std::string> CustomModelFix::on_initialize() {
     return Mod::on_initialize();
 }
 
-void CustomModelFix::on_gui_frame() {
+void CustomModelFix::on_gui_frame(int display) {
     ImGui::Checkbox(_("Custom Nero Model Fix"), &char_nero);
     ImGui::SameLine();
     help_marker(_("Remove exploding shadows on Nero mods"));

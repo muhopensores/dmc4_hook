@@ -43,13 +43,14 @@ public:
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
 
-    void on_gui_frame() override;
+    void on_gui_frame(int display) override;
     void toggle_attack_towards_cam(bool toggle);
     void toggle_camera_lookdown(bool toggle);
     void toggle_disable_last_enemy_zoom(bool toggle);
     void toggle_force_last_enemy_zoom(bool toggle);
     void toggle_pause_camera(bool toggle);
     void toggle_camera_lockon_corrects(bool toggle);
+    void reset_camera_variables();
 
 private:
     std::unique_ptr<FunctionHook> hook1;

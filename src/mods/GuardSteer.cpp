@@ -78,7 +78,7 @@ std::optional<std::string> GuardSteer::on_initialize() {
     return Mod::on_initialize();
 }
 
-void GuardSteer::on_gui_frame() {
+void GuardSteer::on_gui_frame(int display) {
     ImGui::Checkbox(_("Guardsteer"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("See your body into the moonlight\n"

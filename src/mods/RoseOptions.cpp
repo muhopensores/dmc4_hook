@@ -37,7 +37,7 @@ void RoseOptions::toggle_rose_infinite_timer(bool enabled) {
     }
 }
 
-void RoseOptions::on_gui_frame() {
+void RoseOptions::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Rose Survives Enemies"), &enabled_no_despawn_enemy)) {
         toggle_disable_rose_despawn_on_hitting_enemy(enabled_no_despawn_enemy);
     }

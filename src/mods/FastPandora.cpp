@@ -89,7 +89,7 @@ void FastPandora::toggle(bool enable) {
     }
 }
 
-void FastPandora::on_gui_frame() {
+void FastPandora::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Fast Pandora"), &mod_enabled)) {
         toggle(mod_enabled);
     }

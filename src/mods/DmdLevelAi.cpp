@@ -41,7 +41,7 @@ void DmdLevelAi::frenzied_toggle(bool enable) {
     }
 }
 
-void DmdLevelAi::on_gui_frame() {
+void DmdLevelAi::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("DMD Level AI"), &mod_enabled)) {
         toggle(mod_enabled);
     }

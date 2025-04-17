@@ -42,7 +42,8 @@ class SelectiveCancels : public Mod {
 public:
     SelectiveCancels() = default;
 
-    static bool mod_enabled;
+    static bool mod_enabled_nero;
+    static bool mod_enabled_dante;
     static uint32_t cancels;
     static uintptr_t jmp_ret1;
     static uintptr_t jmp_ret2;
@@ -58,7 +59,7 @@ public:
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
 
-    void on_gui_frame() override;
+    void on_gui_frame(int display) override;
 
     inline void draw_checkbox_simple(const char* name, CancelMoves move);
 

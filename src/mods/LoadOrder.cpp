@@ -301,7 +301,7 @@ void __stdcall wew(MtDTI* dti, char* path) {
 
 void __stdcall Filter(char* path) {
     if (std::strstr(path,"effect\\arc\\efc_cmn")||
-    std::strstr(path,"rom\\system\\game_cmn")||
+    std::strstr(path,"rom\\system\\game_cmn")|| // will be useful for hud mods
     std::strstr(path,"rom\\system\\dmc4_cmn")||
     std::strstr(path,"system\\shader")||
     std::strstr(path,"rom\\id\\nowloading"))
@@ -439,7 +439,7 @@ void LoadOrder::on_config_load(const utility::Config& cfg)  {
 
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
-void LoadOrder::on_gui_frame() { 
+void LoadOrder::on_gui_frame(int display) { 
     ImGui::Checkbox(_("HDD File Priority"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("The game will look for files outside of arcs before looking inside.\n"

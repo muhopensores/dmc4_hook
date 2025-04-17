@@ -21,7 +21,7 @@ void InfRevive::toggle(bool enable) {
     }
 }
 
-void InfRevive::on_gui_frame() {
+void InfRevive::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Infinite Revives"), &mod_enabled)) {
         toggle(mod_enabled);
     }

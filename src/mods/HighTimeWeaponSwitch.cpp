@@ -14,7 +14,7 @@ void HighTimeWeaponSwitch::toggle(bool enable) {
         patch.reset(); // je DevilMayCry4_DX9.exe+3CEEED
     }
 }
-void HighTimeWeaponSwitch::on_gui_frame() {
+void HighTimeWeaponSwitch::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("High Time Weapon Switch"), &mod_enabled)) {
         toggle(mod_enabled);
     }

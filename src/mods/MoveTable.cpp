@@ -191,7 +191,7 @@ std::optional<std::string> MoveTable::on_initialize() {
     return Mod::on_initialize();
 }
 
-void MoveTable::on_gui_frame() {
+void MoveTable::on_gui_frame(int display) {
     /*
     ImGui::BeginGroup();
     ImGui::Checkbox(_("Move Table"), &mod_enabled);

@@ -59,7 +59,7 @@ std::optional<std::string> RevFlying::on_initialize() {
     return Mod::on_initialize();
 }
 
-void RevFlying::on_gui_frame() {
+void RevFlying::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Rev Flying"), &mod_enabled)) {
         toggle(mod_enabled);
     }

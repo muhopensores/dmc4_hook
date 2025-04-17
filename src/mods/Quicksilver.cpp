@@ -1,7 +1,8 @@
 #include "Quicksilver.hpp"
 #include "glm/gtx/compatibility.hpp"
 
-static bool quicksilver_enabled = false;
+bool Quicksilver::mod_enabled_nero = false;
+bool Quicksilver::mod_enabled_dante = false;
 
 // Found out that the game does not load anything
 // not related to current stage, after writing
@@ -253,10 +254,17 @@ void Quicksilver::on_frame(fmilliseconds& dt) {
     }
 }
 
-void Quicksilver::on_gui_frame() {
-    ImGui::Checkbox(_("Quicksilver"), &quicksilver_enabled);
-    ImGui::SameLine();
-    help_marker(_("Enables the hotkey for Quicksilver. By default this is = / +"));
+void Quicksilver::on_gui_frame(int display) {
+	if (display == 1) {
+		ImGui::Checkbox(_("Quicksilver"), &mod_enabled_nero);
+		ImGui::SameLine();
+		help_marker(_("Enables the hotkey for Quicksilver. By default this is = / +"));
+	}
+	else if (display == 2) {
+		ImGui::Checkbox(_("Quicksilver"), &mod_enabled_dante);
+		ImGui::SameLine();
+		help_marker(_("Enables the hotkey for Quicksilver. By default this is = / +"));
+	}
 }
 #if 0
 void Quicksilver::on_twitch_command(std::size_t hash) {
@@ -276,26 +284,38 @@ void Quicksilver::on_twitch_command(std::size_t hash) {
 }
 #endif
 void Quicksilver::on_update_input(utility::Input& input) {
-    if (quicksilver_enabled) {
-        if (m_hotkeys[0]->check(input)) {
-            if (m_timer) {
-                if (m_timer->m_active == false) {
-                    SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
-                    uPlayer* u_local_plr = s_med_ptr->player_ptr;
-                    if (u_local_plr) {
-                        qs_operator_new();
-                        m_timer->start();
-                    }
-                }
-            }
-        }
-    }
+	if (uPlayer* player = devil4_sdk::get_local_player()) {
+		if (m_hotkeys[0]->check(input)) {
+			if (mod_enabled_nero) {
+				if (player->controllerID == 1) {
+					if (m_timer) {
+						if (m_timer->m_active == false) {
+							qs_operator_new();
+							m_timer->start();
+						}
+					}
+				}
+			}
+			if (mod_enabled_dante) {
+				if (player->controllerID == 0) {
+					if (m_timer) {
+						if (m_timer->m_active == false) {
+							qs_operator_new();
+							m_timer->start();
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 void Quicksilver::on_config_load(const utility::Config& cfg) {
-    quicksilver_enabled = cfg.get<bool>("quicksilver_enabled").value_or(false);
+    mod_enabled_nero = cfg.get<bool>("quicksilver_enabled_nero").value_or(false);
+	mod_enabled_dante = cfg.get<bool>("quicksilver_enabled_dante").value_or(false);
 }
 
 void Quicksilver::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("quicksilver_enabled", quicksilver_enabled);
+    cfg.set<bool>("quicksilver_enabled_nero", mod_enabled_nero);
+	cfg.set<bool>("quicksilver_enabled_dante", mod_enabled_dante);
 }

@@ -40,7 +40,7 @@ void LdkWithDmd::toggle(bool enable) {
     }
 }
 
-void LdkWithDmd::on_gui_frame() {
+void LdkWithDmd::on_gui_frame(int display) {
     // from main.cpp
     // line 907 -> main->getMods()->onDrawUI("NoClip"_hash);
     ImGui::Checkbox(_("LDK With DMD"), &mod_enabled);

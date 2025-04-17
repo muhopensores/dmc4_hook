@@ -26,7 +26,7 @@ naked void detour1(void) { //
     }
 }
 
-void ExceedLimiter::on_gui_frame() {
+void ExceedLimiter::on_gui_frame(int display) {
     ImGui::Checkbox(_("Exceed Limiter"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Attacks only use one bar of exceed if holding the exceed button"));

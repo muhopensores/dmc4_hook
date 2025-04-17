@@ -192,7 +192,7 @@ void LoadStateWithCurrentEnemy() {
     PlayerTracker::LoadPlayerMove();
 }
 
-void EnemyTracker::on_gui_frame() {
+void EnemyTracker::on_gui_frame(int display) {
     if (ImGui::CollapsingHeader(_("Display Enemy Stats"))) {
         ImGui::Indent(lineIndent);
         ImGui::Checkbox(_("[DEBUG] Flying Spheres"), &flyingSpheres);

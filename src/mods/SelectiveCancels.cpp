@@ -1,7 +1,9 @@
 #include "SelectiveCancels.hpp"
 
 #if 1
-bool      SelectiveCancels::mod_enabled = false;
+bool      SelectiveCancels::mod_enabled_nero = false;
+bool      SelectiveCancels::mod_enabled_dante = false;
+
 uintptr_t SelectiveCancels::jmp_ret1 = 0x0080332F;
 uintptr_t SelectiveCancels::jmp_ret2 = NULL;
 uintptr_t SelectiveCancels::grief_jmp_ret1 = NULL;
@@ -27,9 +29,13 @@ static bool fireworksStyleCancel = true;
 
 naked void detour1() { // player in eax + edi
 	_asm {
-			cmp byte ptr [SelectiveCancels::mod_enabled], 0
+		// see if any cheats are even active
+			push ecx
+			mov cl, [SelectiveCancels::mod_enabled_nero]
+			or cl, [SelectiveCancels::mod_enabled_dante]
+			test cl, cl
+			pop ecx
 			je originalcode
-
 		// validate this is player 1
 			push ecx
 			mov ecx, [static_mediator_ptr]
@@ -40,11 +46,17 @@ naked void detour1() { // player in eax + edi
 			pop ecx
 			jne originalcode
 
+			// after this, always use popcode
 			movss [xmm0backup], xmm0
 			movss xmm0, [eax+0x348]
+
+			cmp byte ptr [eax+0x1494], 1 // controller id nero
+			je CheckNero
 		// Dante
-			cmp dword ptr [eax+0x1494], 0 // Dante
-			jne CheckNero
+			cmp dword ptr [eax+0x2998], 0x007 // Roll left
+			je Roll
+			cmp dword ptr [eax+0x2998], 0x008 // Roll right
+			je Roll
 			cmp dword ptr [eax+0x2998], 0x411 // Grounded Ecstasy
 			je Ecstasy
 			cmp dword ptr [eax+0x2998], 0x412 // Aerial Ecstasy
@@ -73,10 +85,6 @@ naked void detour1() { // player in eax + edi
 			je DTPinUp
 			cmp dword ptr [eax+0x2998], 0x310 // Draw
 			je Draw
-			cmp dword ptr [eax+0x2998], 0x007 // Roll left
-			je Roll
-			cmp dword ptr [eax+0x2998], 0x008 // Roll right
-			je Roll
 			cmp dword ptr [eax+0x2998], 0x20F // Stinger max level
 			je Stinger
 			cmp dword ptr [eax+0x2998], 0x335 // Real Impact
@@ -90,14 +98,14 @@ naked void detour1() { // player in eax + edi
 			jmp popcode
 
 		CheckNero:
-			cmp dword ptr [eax+0x2998], 0x33B // Nero Showdown
-			je Showdown
-			cmp dword ptr [eax+0x2998], 0x032 // Nero DT Ground
-			je DTGround
 			cmp dword ptr [eax+0x2998], 0x007 // Roll left
 			je Roll
 			cmp dword ptr [eax+0x2998], 0x008 // Roll right
 			je Roll
+			cmp dword ptr [eax+0x2998], 0x33B // Nero Showdown
+			je Showdown
+			cmp dword ptr [eax+0x2998], 0x032 // Nero DT Ground
+			je DTGround
 			jmp popcode
 
 	// Dante
@@ -156,32 +164,12 @@ naked void detour1() { // player in eax + edi
 			jb popcode
 			comiss xmm0, [fireworksCancel]
 			jb FireworksBufferChecks
-		// FireworksCancelChecks:
-			cmp byte ptr [fireworksStyleCancel], 1
-			je FireworksStyleCancel
-			cmp byte ptr [fireworksGunCancel], 1
-			je FireworksGunCancel
-			jmp popcode
-		FireworksStyleCancel:
+		// Fireworks Cancel
 			mov dword ptr [eax+0x3148], 2 // style cancel
-			cmp byte ptr [fireworksGunCancel], 1
-			je FireworksGunCancel
-			jmp popcode
-		FireworksGunCancel:
 			mov dword ptr [eax+0x31CC], 2 // gun cancel
 			jmp popcode
 		FireworksBufferChecks:
-			cmp byte ptr [fireworksStyleCancel], 1
-			je FireworksStyleBuffer
-			cmp byte ptr [fireworksGunCancel], 1
-			je FireworksGunBuffer
-			jmp popcode
-		FireworksStyleBuffer:
 			mov dword ptr [eax+0x3148], 1 // style buffer
-			cmp byte ptr [fireworksGunCancel], 1
-			je FireworksGunBuffer
-			jmp popcode
-		FireworksGunBuffer:
 			mov dword ptr [eax+0x31CC], 1 // gun buffer
 			jmp popcode
 
@@ -231,8 +219,7 @@ naked void detour1() { // player in eax + edi
 			test [SelectiveCancels::cancels], ROLL
 			jne UsualCancel
 			jmp popcode
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////
 		UsualBuffer:
 			mov dword ptr [eax+0x3174], 1 // jump / trickster dashes etc
 			jmp popcode
@@ -268,7 +255,7 @@ naked void detour1() { // player in eax + edi
 
 naked void detour2() { // disable guardslide, only called on ground guard
 	_asm {
-			cmp byte ptr [SelectiveCancels::mod_enabled], 0
+			cmp byte ptr [SelectiveCancels::mod_enabled_dante], 0
 			je originalcode
 			cmp byte ptr [fixGuardInertia], 0
 			je originalcode
@@ -283,7 +270,7 @@ naked void detour2() { // disable guardslide, only called on ground guard
 
 naked void grief_detour1() {
     _asm {
-            cmp byte ptr [SelectiveCancels::mod_enabled], 0
+            cmp byte ptr [SelectiveCancels::mod_enabled_dante], 0
             je originalcode
 			cmp byte ptr [good_grief], 0
 			je originalcode
@@ -301,7 +288,7 @@ naked void grief_detour1() {
 
 naked void grief_detour2() { // janky as all hell, but it works
     _asm {
-			cmp byte ptr [SelectiveCancels::mod_enabled], 0
+			cmp byte ptr [SelectiveCancels::mod_enabled_dante], 0
 			je originalcode
             cmp byte ptr [good_grief], 0
 			je originalcode
@@ -384,118 +371,101 @@ inline void SelectiveCancels::draw_checkbox_simple(const char* name, CancelMoves
 	}
 }
 
-void SelectiveCancels::on_gui_frame() {
-	ImGui::Text(_("Selective Cancels"));
-	ImGui::Spacing();
-	ImGui::Checkbox(_("Enable"), &mod_enabled);
-	ImGui::SameLine();
-	help_marker(_("Allows cancelling out of selected moves with evasive actions"));
-	ImGui::SameLine(sameLineWidth);
-	ImGui::Checkbox(_("Disable Guardslide"), &fixGuardInertia);
-	ImGui::SameLine();
-	help_marker(_("Guarding a grounded move with momentum will halt your movement"));
-
-	if (mod_enabled) {
-		ImGui::Indent(lineIndent);
-
-		ImGui::Spacing();
-		ImGui::Text(_("Shared Abilities"));
-		ImGui::Spacing();
-
-		draw_checkbox_simple(_("Roll"), ROLL);
-
-		ImGui::Spacing();
-		ImGui::Text(_("Nero Abilities"));
-		ImGui::Spacing();
-
-		draw_checkbox_simple(_("Grounded DT Activation"), DTGROUND);
-		ImGui::SameLine(sameLineWidth + lineIndent);
-		draw_checkbox_simple(_("Showdown"), SHOWDOWN);
-
-		ImGui::Spacing();
-		ImGui::Text(_("Dante Abilities"));
-		ImGui::Spacing();
-
-		draw_checkbox_simple(_("Flush"), FLUSH);
-
-		ImGui::Spacing();
-		ImGui::Text(_("Dante Swords"));
-		ImGui::Spacing();
-
-		draw_checkbox_simple(_("Stinger"), STINGER);
-		ImGui::SameLine(sameLineWidth + lineIndent);
-		draw_checkbox_simple(_("Prop"), PROP);
-
-		draw_checkbox_simple(_("Real Impact"), REAL_IMPACT);
-		ImGui::SameLine(sameLineWidth + lineIndent);
-		draw_checkbox_simple(_("Kick 13"), KICK13);
+void SelectiveCancels::on_gui_frame(int display) {
+	if (display == 1) {
+		ImGui::Checkbox(_("Enable##SelectiveCancelsNero"), &mod_enabled_nero);
 		ImGui::SameLine();
-		help_marker(_("Cancellable from frame 38 (after the first 2 kicks)"));
-
-		draw_checkbox_simple(_("Shock"), SHOCK);
-		ImGui::SameLine();
-		help_marker(_("Cancellable from frame 60"));
-		ImGui::SameLine(sameLineWidth + lineIndent);
-		draw_checkbox_simple(_("Ecstasy"), ECSTASY);
-
-		draw_checkbox_simple(_("Slash Dimension"), SLASH_DIMENSION);
-		ImGui::SameLine(sameLineWidth + lineIndent);
-		draw_checkbox_simple(_("DT Pin Up Part 2"), DT_PIN_UP_P2);
-
-		draw_checkbox_simple(_("Draw"), DRAW);
-
-		ImGui::Spacing();
-		ImGui::Text(_("Dante Guns"));
-		ImGui::Spacing();
-
-		draw_checkbox_simple(_("Omen"), OMEN);
-		ImGui::SameLine();
-		help_marker(_("Opening Pandora"));
-		ImGui::SameLine(sameLineWidth + lineIndent);
-		draw_checkbox_simple(_("Epidemic"), EPIDEMIC);
-		ImGui::SameLine();
-		help_marker(_("Pandora Ground shot 1"));
-
-		draw_checkbox_simple(_("Argument"), ARGUMENT);
-		ImGui::SameLine();
-		help_marker(_("Gunship"));
-		ImGui::SameLine(sameLineWidth + lineIndent);
-		if (ImGui::Checkbox(_("Grief"), &good_grief)) {
-			griefToggle(good_grief);
+		help_marker(_("Allows cancelling out of selected moves with evasive actions"));
+		if (mod_enabled_nero) {
+			ImGui::Indent(lineIndent);
+			draw_checkbox_simple(_("Roll"), ROLL);
+			draw_checkbox_simple(_("Grounded DT Activation"), DTGROUND);
+			draw_checkbox_simple(_("Showdown"), SHOWDOWN);
+			ImGui::Unindent();
 		}
+	}
+	else if (display == 2) {
+		ImGui::Checkbox(_("Enable##SelectiveCancelsDante"), &mod_enabled_dante);
 		ImGui::SameLine();
-		help_marker(_("Cancel out of Grief mid-throw animation without recalling Pandora"));
+		help_marker(_("Allows cancelling out of selected moves with evasive actions"));
 
-		draw_checkbox_simple(_("Gun Stinger"), GUNSTINGER);
-        ImGui::SameLine(sameLineWidth + lineIndent);
-		draw_checkbox_simple(_("Fireworks"), FIREWORKS);
-		// ImGui::Indent(sameLineWidth + lineIndent);
-		// ImGui::PushItemWidth(sameLineItemWidth / 3.0f);
-		// ImGui::InputFloat("[DEBUG] Buffer", &fireworksBuffer, NULL, NULL, "%.0f");
-		// ImGui::InputFloat("[DEBUG] Cancel", &fireworksCancel, NULL, NULL, "%.0f");
-		// ImGui::Checkbox("[DEBUG] GunCancel", &fireworksGunCancel);
-		// ImGui::Checkbox("[DEBUG] StyleCancel", &fireworksStyleCancel);
-		// ImGui::PopItemWidth();
-		// ImGui::Unindent(sameLineWidth + lineIndent);
+		if (mod_enabled_dante) {
+			ImGui::Indent(lineIndent);
+			ImGui::Checkbox(_("Disable Guardslide"), &fixGuardInertia);
+			ImGui::SameLine();
+			help_marker(_("Guarding a grounded move with momentum will halt your movement"));
 
-		// ImGui::InputFloat("Shock Buffer", &shockBuffer);
-		// ImGui::InputFloat("Shock Cancel", &shockCancel);
-		// ImGui::InputFloat("Kick13 Buffer", &kickThirteenBuffer);
-		// ImGui::InputFloat("Kick13 Cancel", &kickThirteenCancel);
+			draw_checkbox_simple(_("Roll"), ROLL);
 
-		ImGui::Unindent(lineIndent);
+			draw_checkbox_simple(_("Flush"), FLUSH);
+
+			ImGui::Spacing();
+			ImGui::Text(_("Swords"));
+			ImGui::Spacing();
+
+			draw_checkbox_simple(_("Stinger"), STINGER);
+			ImGui::SameLine(sameLineWidth + lineIndent);
+			draw_checkbox_simple(_("Prop"), PROP);
+
+			draw_checkbox_simple(_("Real Impact"), REAL_IMPACT);
+			ImGui::SameLine(sameLineWidth + lineIndent);
+			draw_checkbox_simple(_("Kick 13"), KICK13);
+			ImGui::SameLine();
+			help_marker(_("Cancellable from frame 38 (after the first 2 kicks)"));
+
+			draw_checkbox_simple(_("Shock"), SHOCK);
+			ImGui::SameLine();
+			help_marker(_("Cancellable from frame 60"));
+			ImGui::SameLine(sameLineWidth + lineIndent);
+			draw_checkbox_simple(_("Ecstasy"), ECSTASY);
+
+			draw_checkbox_simple(_("Slash Dimension"), SLASH_DIMENSION);
+			ImGui::SameLine(sameLineWidth + lineIndent);
+			draw_checkbox_simple(_("DT Pin Up Part 2"), DT_PIN_UP_P2);
+
+			draw_checkbox_simple(_("Draw"), DRAW);
+
+			ImGui::Spacing();
+			ImGui::Text(_("Guns"));
+			ImGui::Spacing();
+
+			draw_checkbox_simple(_("Omen"), OMEN);
+			ImGui::SameLine();
+			help_marker(_("Opening Pandora"));
+			ImGui::SameLine(sameLineWidth + lineIndent);
+			draw_checkbox_simple(_("Epidemic"), EPIDEMIC);
+			ImGui::SameLine();
+			help_marker(_("Pandora Ground shot 1"));
+
+			draw_checkbox_simple(_("Argument"), ARGUMENT);
+			ImGui::SameLine();
+			help_marker(_("Gunship"));
+			ImGui::SameLine(sameLineWidth + lineIndent);
+			if (ImGui::Checkbox(_("Grief"), &good_grief)) {
+				griefToggle(good_grief);
+			}
+			ImGui::SameLine();
+			help_marker(_("Cancel out of Grief mid-throw animation without recalling Pandora"));
+
+			draw_checkbox_simple(_("Gun Stinger"), GUNSTINGER);
+			ImGui::SameLine(sameLineWidth + lineIndent);
+			draw_checkbox_simple(_("Fireworks"), FIREWORKS);
+			ImGui::Unindent(lineIndent);
+		}
 	}
 }
 
 void SelectiveCancels::on_config_save(utility::Config& cfg) {
-	cfg.set<bool>("selective_cancels", mod_enabled);
+	cfg.set<bool>("selective_cancels_nero", mod_enabled_nero);
+	cfg.set<bool>("selective_cancels_dante", mod_enabled_dante);
 	cfg.set<uint32_t>("cancels", cancels);
 	cfg.set<bool>("fix_guard_inertia", fixGuardInertia);
 	cfg.set<bool>("good_grief", good_grief);
 }
 
 void SelectiveCancels::on_config_load(const utility::Config& cfg) {
-	mod_enabled = cfg.get<bool>("selective_cancels").value_or(false);
+	mod_enabled_nero = cfg.get<bool>("selective_cancels_nero").value_or(false);
+	mod_enabled_dante = cfg.get<bool>("selective_cancels_dante").value_or(false);
 	cancels = cfg.get<uint32_t>("cancels").value_or(0);
 	fixGuardInertia = cfg.get<bool>("fix_guard_inertia").value_or(false);
 	good_grief = cfg.get<bool>("good_grief").value_or(false);

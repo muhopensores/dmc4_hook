@@ -177,7 +177,7 @@ std::optional<std::string> KnockbackEdits::on_initialize() {
     return Mod::on_initialize();
 }
 
-void KnockbackEdits::on_gui_frame() {
+void KnockbackEdits::on_gui_frame(int display) {
     ImGui::Checkbox(_("Release Always Stuns"), &release_stuns);
     ImGui::SameLine();
     help_marker(_("Release with no meter will stun the enemy"));

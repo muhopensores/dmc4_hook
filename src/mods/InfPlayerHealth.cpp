@@ -31,7 +31,7 @@ std::optional<std::string> InfPlayerHealth::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void InfPlayerHealth::on_gui_frame() {
+void InfPlayerHealth::on_gui_frame(int display) {
     ImGui::Checkbox(_("Freeze Player HP To Max"), &mod_enabled);
 }
 

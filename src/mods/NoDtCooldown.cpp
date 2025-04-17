@@ -1,37 +1,58 @@
-
 #include "NoDtCooldown.hpp"
 
 #if 1
-bool NoDtCooldown::mod_enabled{ false };
+bool NoDtCooldown::no_dt_cooldown_nero = false;
+bool NoDtCooldown::no_dt_cooldown_dante = false;
+uintptr_t NoDtCooldown::jmp_ret = NULL;
+
+naked void detour() {
+    _asm {
+            cmp byte ptr [esi+0x1494], 1 // controller id nero
+            je CheckNero
+            cmp byte ptr [NoDtCooldown::no_dt_cooldown_dante], 1
+            je RetCode
+            jmp Code
+
+        CheckNero:
+            cmp byte ptr [NoDtCooldown::no_dt_cooldown_nero], 1
+            je RetCode
+        Code:
+            movss [esi+0x00001E6C],xmm0
+        RetCode:
+            jmp dword ptr [NoDtCooldown::jmp_ret]
+    }
+}
+
+void NoDtCooldown::on_gui_frame(int display) {
+    if (display == 1) {
+        ImGui::Checkbox(_("No DT Cooldown"), &no_dt_cooldown_nero);
+        ImGui::SameLine();
+        help_marker(_("Disables the cooldown on leaving Devil Trigger upon entering"));
+    }
+    else if (display == 2) {
+        ImGui::Checkbox(_("No DT Cooldown"), &no_dt_cooldown_dante);
+        ImGui::SameLine();
+        help_marker(_("Disables the cooldown on leaving Devil Trigger upon entering"));
+    }
+}
 
 std::optional<std::string> NoDtCooldown::on_initialize() {
+    if (!install_hook_offset(0x404B84, hook, &detour, &jmp_ret, 8)) {
+		spdlog::error("Failed to init NoDtCooldown\n");
+		return "Failed to init NoDtCooldown";
+	}
+
     return Mod::on_initialize();
 }
 
-void NoDtCooldown::toggle(bool enable) {
-    if (enable) {
-        install_patch_offset(0x404B84, patch, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-    }
-    else {
-        patch.reset();
-    }
-}
-
-void NoDtCooldown::on_gui_frame() {
-    if (ImGui::Checkbox(_("No DT Cooldown"), &mod_enabled)) {
-        toggle(mod_enabled);
-    }
-    ImGui::SameLine();
-    help_marker(_("Disables the cooldown on leaving Devil Trigger upon entering"));
-}
-
 void NoDtCooldown::on_config_load(const utility::Config& cfg) {
-    mod_enabled = cfg.get<bool>("no_dt_cooldown").value_or(false);
-    toggle(mod_enabled);
+    no_dt_cooldown_nero = cfg.get<bool>("no_dt_cooldown_nero").value_or(false);
+    no_dt_cooldown_dante = cfg.get<bool>("no_dt_cooldown_dante").value_or(false);
 }
 
 void NoDtCooldown::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("no_dt_cooldown", mod_enabled);
+    cfg.set<bool>("no_dt_cooldown_nero", no_dt_cooldown_nero);
+    cfg.set<bool>("no_dt_cooldown_dante", no_dt_cooldown_dante);
 }
 
 #endif

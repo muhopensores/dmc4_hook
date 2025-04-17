@@ -1,6 +1,5 @@
-
 #include "HpInOrbsDisplay.hpp"
-#include "DamageMultiplier.hpp"
+#include "InfAllHealth.hpp"
 
 bool HpInOrbsDisplay::mod_enabled{ false };
 uintptr_t HpInOrbsDisplay::jmp_ret{ NULL };
@@ -17,10 +16,10 @@ naked void detour(void) {
             // not seem to affect the game? not sure.
             movss [xmm0backup], xmm0
 			xorps xmm0, xmm0
-			comiss xmm0, [DamageMultiplier::enemy_hp_display]
+			comiss xmm0, [InfAllHealth::enemy_hp_display]
 			jae originalcode // If yes, show default Orb Count
             movss xmm0, [xmm0backup]
-			cvttss2si eax, [DamageMultiplier::enemy_hp_display] // If no, write Enemy HP Display to orbs rather than Orb Count	// cvttss2si
+			cvttss2si eax, [InfAllHealth::enemy_hp_display] // If no, write Enemy HP Display to orbs rather than Orb Count	// cvttss2si
 			jmp dword ptr [HpInOrbsDisplay::jmp_ret]
 
 		originalcode:
@@ -37,7 +36,7 @@ std::optional<std::string> HpInOrbsDisplay::on_initialize() {
     return Mod::on_initialize();
 }
 
-void HpInOrbsDisplay::on_gui_frame() {
+void HpInOrbsDisplay::on_gui_frame(int display) {
     ImGui::Checkbox(_("Enemy HP Red Orb Display"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Display the last hit enemy's HP in the Red Orb count"));

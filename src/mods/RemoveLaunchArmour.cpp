@@ -17,7 +17,7 @@ void RemoveLaunchArmour::toggle(bool enable) {
     }
 }
 
-void RemoveLaunchArmour::on_gui_frame() {
+void RemoveLaunchArmour::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Remove Launch Armour"), &mod_enabled)) {
         toggle(mod_enabled);
     }

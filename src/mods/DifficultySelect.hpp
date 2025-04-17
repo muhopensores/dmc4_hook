@@ -18,7 +18,7 @@ public:
 
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
-	void on_gui_frame() override;
+	void on_gui_frame(int display) override;
 
     enum DIFF_IDX { def, dmd, gmd, DIFF_IDX_MAX };
     std::array<std::function<void(DifficultySelect*)>, 3> m_diffs;

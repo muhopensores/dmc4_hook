@@ -160,7 +160,7 @@ std::optional<std::string> DoubleTapDarkslayer::on_initialize() {
     return Mod::on_initialize();
 }
 
-void DoubleTapDarkslayer::on_gui_frame() {
+void DoubleTapDarkslayer::on_gui_frame(int display) {
     ImGui::BeginGroup();
     ImGui::Checkbox(_("Double Tap Darkslayer"), &mod_enabled);
     ImGui::SameLine();

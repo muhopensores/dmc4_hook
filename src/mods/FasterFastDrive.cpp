@@ -18,16 +18,19 @@ void FasterFastDrive::toggle(bool enable) {
     }
 }
 
-void FasterFastDrive::on_gui_frame() {
-    if (ImGui::Checkbox(_("Fast Quick Drive"), &mod_enabled)) {
-        toggle(mod_enabled);
+void FasterFastDrive::on_gui_frame(int display) {
+    if (display == 1) {
+        if (ImGui::Checkbox(_("Fast Quick Drive"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Quick Drive skips the initial slash"));
     }
-    ImGui::SameLine();
-    help_marker(_("Quick Drive skips the initial slash"));
-    ImGui::SameLine(sameLineWidth);
-    ImGui::Checkbox(_("Easy Quick Drive"), &easy_fast_drive_enabled);
-    ImGui::SameLine();
-    help_marker(_("Prop is cancellable into quick drive until frame 7"));
+    if (display == 2) {
+        ImGui::Checkbox(_("Easy Quick Drive"), &easy_fast_drive_enabled);
+        ImGui::SameLine();
+        help_marker(_("Prop is cancellable into quick drive until frame 7"));
+    }
 }
 
 void FasterFastDrive::on_config_load(const utility::Config& cfg) {
