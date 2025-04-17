@@ -29,38 +29,43 @@ inline bool WorkRate::check_work_rate_ptr(sWorkRate* wr) {
 
 void WorkRate::on_gui_frame(int display) {
 	sWorkRate* s_work_rate_ptr = devil4_sdk::get_work_rate();
+	float availX = ImGui::GetContentRegionAvail().x;
 	if (display == 1) {
-		if (!check_work_rate_ptr(s_work_rate_ptr)) {
-			ImGui::TextWrapped(_("Speed adjustments are not initialized yet, load into the stage to access them."));
-			ImGui::Spacing();
-			return;
-		}
-		ImGui::PushItemWidth(sameLineItemWidth);
-		ImGui::InputFloat(_("Turbo Value"), &s_work_rate_ptr->turbo_speed, 0.1f, 0.5f, "%.1f%");
-		ImGui::Spacing();
-		ImGui::InputFloat(_("Game Speed"), &s_work_rate_ptr->game_speed, 0.1f, 0.5f, "%.1f%");
-		ImGui::SameLine();
-		help_marker(_("Enemies, players, room, bullets, pins, camera"));
-		ImGui::Spacing();
-		ImGui::InputFloat(_("Global Speed"), &m_global_speed, 0.1f, 0.5f, "%.1f%");
-		ImGui::SameLine();
-		help_marker(_("Enemies, players, room"));
-		ImGui::Spacing();
-		ImGui::InputFloat(_("Room Speed"), &s_work_rate_ptr->room_speed, 0.1f, 0.5f, "%.1f%");
-		ImGui::Spacing();
-		ImGui::InputFloat(_("Player Speed"), &s_work_rate_ptr->player_speed, 0.1f, 0.5f, "%.1f%");
-		ImGui::Spacing();
-		ImGui::InputFloat(_("Enemy Speed"), &s_work_rate_ptr->enemy_speed, 0.1f, 0.5f, "%.1f%");
-		ImGui::PopItemWidth();
-		ImGui::Checkbox(_("Force Custom Turbo"), &force_custom_turbo);
-		ImGui::SameLine();
-		help_marker(_("This turbo won't be disabled on room change"));
-		if (force_custom_turbo) {
-			ImGui::Indent(lineIndent);
-			ImGui::PushItemWidth(sameLineItemWidth);
-			ImGui::InputFloat(_("Custom Turbo"), &custom_turbo, 0.1f, 0.5f, "%.1f%");
+		if (ImGui::CollapsingHeader(_("Game Speed"))) {
+			if (!check_work_rate_ptr(s_work_rate_ptr)) {
+				ImGui::TextWrapped(_("Speed adjustments are not initialized yet, load into the stage to access them."));
+				ImGui::Spacing();
+				return;
+			}
+			ImGui::PushItemWidth(availX);
+			ImGui::Text(_("Turbo Speed"));
+			ImGui::InputFloat(_("##Turbo Speed InputFloat"), &s_work_rate_ptr->turbo_speed, 0.1f, 1.0f, "%.1f%");
+			ImGui::Text(_("Game Speed"));
+			ImGui::SameLine();
+			help_marker(_("Enemies, players, room, bullets, pins, camera"));
+			ImGui::InputFloat(_("##Game Speed InputFloat"), &s_work_rate_ptr->game_speed, 0.1f, 1.0f, "%.1f%");
+			ImGui::Text(_("Global Speed"));
+			ImGui::SameLine();
+			help_marker(_("Enemies, players, room"));
+			ImGui::InputFloat(_("##Global Speed InputFloat"), &m_global_speed, 0.1f, 1.0f, "%.1f%");
+			ImGui::Text(_("Room Speed"));
+			ImGui::InputFloat(_("##Room Speed InputFloat"), &s_work_rate_ptr->room_speed, 0.1f, 1.0f, "%.1f%");
+			ImGui::Text(_("Player Speed"));
+			ImGui::InputFloat(_("##Player Speed InputFloat"), &s_work_rate_ptr->player_speed, 0.1f, 1.0f, "%.1f%");
+			ImGui::Text(_("Enemy Speed"));
+			ImGui::InputFloat(_("##Enemy Speed InputFloat"), &s_work_rate_ptr->enemy_speed, 0.1f, 1.0f, "%.1f%");
+			ImGui::Checkbox(_("Force Custom Turbo"), &force_custom_turbo);
+			ImGui::SameLine();
+			help_marker(_("This turbo won't be disabled on room change"));
 			ImGui::PopItemWidth();
-			ImGui::Unindent(lineIndent);
+			if (force_custom_turbo) {
+				ImGui::Indent(lineIndent);
+				ImGui::PushItemWidth(availX - lineIndent);
+				ImGui::Text(_("Custom Turbo"));
+				ImGui::InputFloat(_("##Custom Turbo InputFloat"), &custom_turbo, 0.1f, 1.0f, "%.1f%");
+				ImGui::PopItemWidth();
+				ImGui::Unindent(lineIndent);
+			}
 		}
 	}
 	else if (display == 2) {

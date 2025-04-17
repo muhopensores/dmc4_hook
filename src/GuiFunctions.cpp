@@ -245,7 +245,9 @@ namespace gui {
 
                 ImGui::SeparatorText(_("Difficulty"));
 
-                pmods->on_draw_ui("DifficultySelect"_hash); // needs its own line
+                pmods->on_draw_ui("DifficultySelect"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("EnemyAttackOffScreen"_hash);
 
                 pmods->on_draw_ui("EnemySlotting"_hash); // needs its own line
 
@@ -257,13 +259,11 @@ namespace gui {
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("DmdBloodyPalace"_hash);
 
-                pmods->on_draw_ui("EnemyAttackOffScreen"_hash);
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("DisableChimeraBlades"_hash);
-
                 pmods->on_draw_ui("FrostsDontJump"_hash);
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("AssaultsDontJump"_hash);
+                
+                pmods->on_draw_ui("DisableChimeraBlades"_hash);
 
                 ImGui::SeparatorText(_("Practice"));
 
@@ -652,13 +652,13 @@ namespace gui {
 
                 ImGui::SeparatorText(_("Camera"));
 
-                pmods->on_draw_ui("CameraSettings"_hash);
-
-                pmods->on_draw_ui("DebugCam"_hash);
+                pmods->on_draw_ui("CameraSettings"_hash, 1);
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("NoclipCam"_hash);
 
-                ImGui::SeparatorText(_("Speed"));
+                pmods->on_draw_ui("DebugCam"_hash);
+
+                pmods->on_draw_ui("CameraSettings"_hash, 2);
 
                 pmods->on_draw_ui("WorkRate"_hash, 1); // needs its own line
 

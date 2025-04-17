@@ -343,7 +343,6 @@ void DebugCam::on_gui_frame(int display) {
             ToggleGameplayCam(toggle_gameplay_cam);
         }
         ImGui::Checkbox(_("Mouse Controls"), &freecamMouseControls);
-        ImGui::SameLine();
         ImGui::Checkbox(_("Pew pew"), &projectileTest);
         ImGui::Checkbox(_("Keyboard Controls"), &freecamKeyboardControls);
         ImGui::SameLine();
