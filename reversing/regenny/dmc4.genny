@@ -13,6 +13,7 @@ type void 0
 type bool 1 [[bool]]
 type uint8_t 1 [[u8]]
 type uint16_t 2 [[u16]]
+type uint32_t 4 [[u32]]
 type int 4 [[u32]]
 type float 4 [[f32]]
 type wchar_t 2 [[u16]]
@@ -273,6 +274,10 @@ class MtObject {
 	char pad_00[0x4] @ 0x00
 }; //Size: 0x0004
 
+class UModelJointArr {
+	char pad_00[0x4] @ 0x00
+}; //Size: 0x0004
+
 class CUnit : public MtObject {
 	int bitfield @ 0x04
 	class CUnit *mp_next_unit @ 0x08
@@ -283,11 +288,12 @@ class CUnit : public MtObject {
 
 class UCoord : public MtObject{
 	class UCoord *mp_parent @ 0x18
+	uint32_t mOrder @ 0x1C
 	Vector3f m_pos @ 0x30
 	Vector4f m_quat @ 0x40
 	Vector3f m_scale @ 0x50
-	Matrix4x4 m_lmat @ 0x5C
-	Matrix4x4 m_wmat @ 0x9C
+	Matrix4x4 m_lmat @ 0x60
+	Matrix4x4 m_wmat @ 0xa0
 }; //Size: 0x00DC
 
 class uPlayer : public UCoord{
@@ -295,15 +301,17 @@ class uPlayer : public UCoord{
 	uint8_t armShadows @ 0x130
 	uint8_t causeShadows @ 0x134
 	uint8_t bodyShadows @ 0x138
-	int boneMapping[5] @ 0x17C
-	int meshCount @ 0x27C
-	class uPlayer* player_ptr @ 0x2A4
+	uint32_t boneMapping[5] @ 0x17C
+	uint32_t meshCount @ 0x27C
+	uPlayer* player_ptr @ 0x2A4
 	int m_joint_array_size @ 0x2E0
-	class UModelJointArr* joint_array @ 0x2E4
+	UModelJointArr* joint_array @ 0x2E4
 	float speedUnsettable @ 0xCF4
+	uint16_t animID @ 0x334
 	float animFrame @ 0x348
-	class MotionPtr* motionPtr1 @ 0xA38
-	class MotionPtr* motionPtr2 @ 0xA3C
+	float animFrameMax @ 0x34C
+	MotionPtr* motionPtr1 @ 0xA38
+	MotionPtr* motionPtr2 @ 0xA3C
 	uint8_t damageIDMaybe @ 0xEA4 // boss dante is 3, player is 1 sometimes 9
 	uint8_t grounded @ 0xEA8 // this is definitely not grounded, damage stuff
 	float groundInertiaX @ 0xEC0
@@ -311,20 +319,22 @@ class uPlayer : public UCoord{
 	float groundInertiaZ @ 0xEC8
 	bool hitstop @ 0x1201
 	float facingDirection @ 0x1210
-	int inputHoldRaw @ 0x1374
+	uint16_t buttonInputRaw @ 0x1374
+	uint16_t stickInputRaw @ 0x1376
 	float stickDirection @ 0x13C4
 	uint8_t inputHold[4] @ 0x140C
 	uint8_t inputPress[4] @ 0x1410
 	uint8_t inputRelease[4] @ 0x1414
-	int stickThreshold @ 0x141C
+	uint32_t stickThreshold @ 0x141C
 	float stickFacingWorldAdjusted @ 0x1420
 	bool stickPastThreshold @ 0x1424
 	uint8_t isExceeding @ 0x1448
 	float characterSpeed @ 0x1464
-	int controllerID @ 0x1494
-	int canWeaponChange @ 0x14F0
-	int moveBank @ 0x1500
-	int movePart @ 0x1504
+	uint32_t controllerID @ 0x1494
+	uint32_t canWeaponChange @ 0x14F0
+	uint32_t isLockonAnimation @ 0x14F8
+	uint32_t moveBank @ 0x1500
+	uint32_t movePart @ 0x1504
 	bool isActive @ 0x1509 // completely disables the character, probably for cutscenes
 	bool roomCollision @ 0x150D
 	bool enemyCollision @ 0x150F
@@ -332,25 +342,26 @@ class uPlayer : public UCoord{
 	bool triggerStingerJump @ 0x1511
 	uint8_t cancels1[4] @ 0x1550
 	uint8_t cancels2[4] @ 0x1554
-	int moveID2 @ 0x1564
+	uint32_t moveID2 @ 0x1564
 	float HP @ 0x15CC
 	float HPMax @ 0x15D0
 	bool isDead @ 0x1640
-	int walkType @ 0x16AC
+	uint32_t walkType @ 0x16AC
 	float inertiaDirectionReal @ 0x16C0
 	bool lockedOn @ 0x16D0
 	float rotation2 @ 0x1710
 	float groundInertia @ 0x1780
 	uintptr_t* collisionPtr1 @ 0x17A0
-	uint8_t canExceed @ 0x1d7f
-	class DevilArm* gilgamesh @ 0x1D94
-	class DevilArm* lucifer @ 0x1D98
-	class DevilArm* ebonyIvory @ 0x1D9C
-	class DevilArm* coyoteA @ 0x1DA0
-	class DevilArm* pandora @ 0x1DA4
-	int currentSwordUI @ 0x1DB4
-	int currentGunUI @ 0x1DB8
-	int currentSword @ 0x1DC0
+	uint8_t canExceed @ 0x1d7f // 0x1d7f // 1 = exact, 2 = rev
+	DevilArm* gilgamesh @ 0x1D94
+	DevilArm* lucifer @ 0x1D98
+	DevilArm* ebonyIvory @ 0x1D9C
+	DevilArm* coyoteA @ 0x1DA0
+	DevilArm* pandora @ 0x1DA4
+	int nextSword @ 0x1DB4
+	uint32_t nextGun @ 0x1DB8
+	uint32_t currentSword @ 0x1DC0
+	uint32_t currentGun @ 0x1DC4
 	uint8_t meleeCancelPermissions1[4] @ 0x1E10
 	uint8_t jumpCancelPermissions1[4] @ 0x1E14
 	float inertia @ 0x1E1C
@@ -363,14 +374,14 @@ class uPlayer : public UCoord{
 	uint8_t weight @ 0x1E7D
 	uint8_t airHikeCount @ 0x1E7E
 	bool canAirHike @ 0x1E7F
-	class CharacterSettingsOne* characterSettingsOne @ 0x1E8C
-	class CharacterSettingsTwo* charactersettingsTwo @ 0x1E9C
-	class CharacterSettingsThree* charactersettingsThree @ 0x1EA8
+	CharacterSettingsOne* characterSettingsOne @ 0x1E8C
+	CharacterSettingsTwo* charactersettingsTwo @ 0x1E9C
+	CharacterSettingsThree* charactersettingsThree @ 0x1EA8
 	float DT @ 0x1F24
 	float maxDT @ 0x1F28
 	bool fullHouseSomething1 @ 0x1F50
 	bool canWallHike @ 0x1F7F
-	class uEnemy* lockOnTargetPtr1 @ 0x2000
+	uEnemy* lockOnTargetPtr1 @ 0x2000
 	bool grounded2 @ 0x2008
 	Vector3f location2 @ 0x2170
 	bool tiltForward @ 0x21CC
@@ -378,9 +389,11 @@ class uPlayer : public UCoord{
 	float roundTripCharge @ 0x23F8
 	bool tiltBackForward @ 0x27F8
 	uintptr_t* animFrameInfo @ 0x28A4
-	int moveID3 @ 0x295C
-	int moveIDBest @ 0x2998
-	class uEnemy* lockOnTargetPtr2 @ 0x3080
+	uint16_t playMoveOnce @ 0x28BE
+	uint32_t moveID3 @ 0x295C
+	uint32_t moveIDBest @ 0x2998
+	uEnemy* lockOnTargetPtr2 @ 0x3080
+	uEnemy* lockOnTargetPtr3 @ 0x3084
 	uint8_t bufferPermissions @ 0x30C4
 	uint8_t meleeCancelPermissions2 @ 0x30F0
 	uint8_t jumpCancelPermissions2 @ 0x3174
@@ -393,10 +406,10 @@ class uPlayer : public UCoord{
 	bool guardReq2 @ 0x14CD5
 	int currentStyle @ 0x14D98
 	float revengeGauge @ 0x14DAC
-	class LuciferPin* luciferPins[15] @ 0x14DBC
+	LuciferPin* luciferPins[15] @ 0x14DBC
 	float disasterGauge @ 0x151F4
 	int dreadnaught @ 0x152A0
-	class uEnemy* lockOnTargetPtr3 @ 0x15A68
+	uEnemy* lockOnTargetPtr4 @ 0x15A68
 };
 
 class dogFireball : public MtObject {
@@ -461,8 +474,8 @@ class sWorkRate {
 }; //Size=0x0058
 
 class SMediator {
-	class uPlayer* player_ptr @ 0x24
-	class uBoss* uBoss1 @ 0xB0
+	uPlayer* player_ptr @ 0x24
+	uBoss* uBoss1 @ 0xB0
 	int missionID @ 0xE0
 	int roomID @ 0xE4
 	class Camera* camera1 @ 0xD0
@@ -474,7 +487,7 @@ class SMediator {
 	class GameDifficulty gameDifficulty @ 0x140
 	class GameMode gameMode @ 0x144
 	float stylePoints @ 0x14C
-	class uEnemy* uEnemies[10] @ 0x1B8
+	uEnemy* uEnemies[10] @ 0x1B8
 	int enemyCount[3] @ 0x1E0
 	float bpTimer @ 0x250
 	bool hasUnlockedDT @ 0x368
@@ -484,5 +497,5 @@ class SMediator {
 	bool hasUnlockedMaxAct @ 0x3A3
 	bool displayDisasterGauge @ 0x3A9
 	bool turboEnabled @ 0x494
-	class sWorkRate workRate @ 0x820
+	sWorkRate* workRate @ 0x820
 };

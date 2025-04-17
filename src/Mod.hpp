@@ -7,8 +7,6 @@
 #include "utility/MessageDisplay.hpp"
 #include "utility/MoFile.hpp"
 
-#include "sdk/ReClass.hpp"
-
 #include "ModFramework.hpp"
 #include "sdk/Devil4.hpp"
 
