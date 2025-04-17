@@ -1,10 +1,10 @@
 #include "WorkRate.hpp"
-#include "DisableTrainerPause.hpp"
+#include "TrainerPause.hpp"
 #include "../sdk/Devil4.hpp"
 
-static bool force_custom_turbo = false;
-static float custom_turbo = 0.0f;
-static bool hotkey_paused = false;
+bool WorkRate::force_custom_turbo = false;
+float WorkRate::custom_turbo = 0.0f;
+bool WorkRate::hotkey_paused = false;
 
 std::optional<std::string> WorkRate::on_initialize() {
     utility::create_keyboard_hotkey(m_hotkeys, {VK_DECIMAL}, "Pause Game", "pause_game");
@@ -69,11 +69,13 @@ void WorkRate::on_gui_frame(int display) {
 			if (hotkey_paused){
 				s_work_rate_ptr->global_speed = 0.0f;
 			} else {
-				s_work_rate_ptr->global_speed = m_global_speed;
+				if (!TrainerPause::mod_enabled) {
+					s_work_rate_ptr->global_speed = m_global_speed;
+				}
 			}
 		}
 		ImGui::SameLine();
-		help_marker(_("Manual pause. Default hotkey is numpad ."));
+		help_marker(_("Default hotkey is numpad ."));
 	}
 }
 
@@ -89,7 +91,7 @@ void WorkRate::on_game_pause(bool toggle) {
 	if (!check_work_rate_ptr(s_work_rate_ptr)) {
 		return;
 	}
-	if (toggle == true && DisableTrainerPause::mod_enabled == false) {
+	if (toggle == true && TrainerPause::mod_enabled == true) {
 		s_work_rate_ptr->global_speed = 0.0f;
 	}
 	if (toggle == false) {

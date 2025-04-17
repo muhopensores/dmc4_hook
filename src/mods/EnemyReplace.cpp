@@ -350,7 +350,7 @@ void EnemyReplace::on_gui_frame(int display) {
         }
     }
     ImGui::PopItemWidth();
-    ImGui::Text(_("Reset Camera Variables:"));
+    ImGui::Text(_("Reset Enemy Replacements:"));
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Button(_("Reset"))) {
         for (int i = 0; i < IM_ARRAYSIZE(default_enemy); i++) {

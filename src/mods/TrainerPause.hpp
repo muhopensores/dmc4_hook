@@ -2,11 +2,11 @@
 
 #include "../mod.hpp"
 
-class DisableTrainerPause : public Mod {
+class TrainerPause : public Mod {
 public:
-    DisableTrainerPause() = default;
+    TrainerPause() = default;
 
-    std::string get_mod_name() override { return "DisableTrainerPause"; };
+    std::string get_mod_name() override { return "TrainerPause"; };
     static bool mod_enabled;
     std::optional<std::string> on_initialize() override;
 

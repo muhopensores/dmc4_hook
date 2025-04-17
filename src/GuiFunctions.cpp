@@ -222,8 +222,6 @@ namespace gui {
         ImGui::Text(_("Average %.3f ms/frame (%.1f FPS)"), 1000.0f / io.Framerate, io.Framerate);
         ImGui::Spacing();
         pmods->on_draw_ui("Borderless"_hash);
-        ImGui::SameLine(sameLineWidth);
-        pmods->on_draw_ui("WorkRate"_hash, 2);
         const char* save_config_label = _("Save Config");
         const ImVec2 btn_size = ImGui::CalcTextSize(save_config_label);
         ImGui::SameLine(uiWidth-(btn_size.x) - 30.0f);
@@ -231,6 +229,10 @@ namespace gui {
             pmods->on_config_save();
         }
         pmods->on_draw_ui("LocalizationManager"_hash);
+        ImGui::SameLine();
+        pmods->on_draw_ui("TrainerPause"_hash);
+        ImGui::SameLine();
+        pmods->on_draw_ui("WorkRate"_hash, 2);
         if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyMask_ ^ ImGuiTabBarFlags_FittingPolicyScroll)) {
             uiHeight = ImGui::GetCursorPosY();
 
@@ -603,6 +605,24 @@ namespace gui {
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("PsychoMantis"_hash);
 
+                ImGui::SeparatorText(_("System"));
+
+                pmods->on_draw_ui("BackgroundRendering"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("DisableKeyboard"_hash);
+
+                pmods->on_draw_ui("FastStart"_hash); // 1.5 lines
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("FpsLimit"_hash);
+
+                ImGui::SeparatorText(_("Cutscenes"));
+
+                pmods->on_draw_ui("CutsceneSkip"_hash);
+
+                pmods->on_draw_ui("CutscenePause"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("DisableCameraEvents"_hash);
+
                 ImGui::SeparatorText(_("HUD"));
 
                 ImGui::Spacing();
@@ -624,29 +644,11 @@ namespace gui {
 
                 pmods->on_draw_ui("GuardTimer"_hash);
 
-                ImGui::SeparatorText(_("Cutscenes"));
-
-                pmods->on_draw_ui("CutsceneSkip"_hash);
-
-                pmods->on_draw_ui("CutscenePause"_hash);
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("DisableCameraEvents"_hash);
-
                 ImGui::SeparatorText(_("dmc4_hook"));
 
                 pmods->on_draw_ui("MessageDisplayMod"_hash);
 
                 //pmods->on_draw_ui("TwCmdPlayerTransforms"_hash); // empty // broken
-
-                ImGui::SeparatorText(_("System"));
-
-                pmods->on_draw_ui("BackgroundRendering"_hash);
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("DisableKeyboard"_hash);
-
-                pmods->on_draw_ui("FastStart"_hash); // 1.5 lines
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("FpsLimit"_hash);
 
                 ImGui::SeparatorText(_("Camera"));
 
@@ -696,8 +698,6 @@ namespace gui {
                 ImGui::SeparatorText(_("Misc"));
 
                 pmods->on_draw_ui("RoomRespawn"_hash);
-
-                pmods->on_draw_ui("DisableTrainerPause"_hash);
 
                 pmods->on_draw_ui("MutatorSelfAdvertisement"_hash);
 
@@ -775,6 +775,9 @@ namespace gui {
                     }
                     if (ImGui::CollapsingHeader(_("My camera is frozen"))) {
                         ImGui::TextWrapped(_("The default hotkey for camera settings' freeze camera is Numpad 0."));
+                    }
+                    if (ImGui::CollapsingHeader(_("I crash entering mission 1"))) {
+                        ImGui::TextWrapped(_("\"Character Switcher\" crashes in this mission."));
                     }
                     ImGui::Unindent();
                 }

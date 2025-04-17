@@ -6,6 +6,10 @@ class WorkRate : public Mod {
 public:
     WorkRate() = default;
 
+    static bool force_custom_turbo;
+    static float custom_turbo;
+    static bool hotkey_paused;
+
     std::string get_mod_name() override { return "WorkRate"; };
     std::optional<std::string> on_initialize() override;
 

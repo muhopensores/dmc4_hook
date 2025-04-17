@@ -1251,4 +1251,5 @@ struct kAtckDefTbl {
     uint32_t ukn; // aerial lock
     uint32_t atckAs;
     uint32_t cancelId[5];
-};
+}; //Size: 0x0038
+static_assert(sizeof(kAtckDefTbl) == 0x38);

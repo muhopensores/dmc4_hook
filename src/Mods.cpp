@@ -134,7 +134,7 @@
 #include "mods/NoclipCam.hpp"
 #include "mods/CutscenePause.hpp"
 #include "mods/AfterImage.hpp"
-#include "mods/DisableTrainerPause.hpp"
+#include "mods/TrainerPause.hpp"
 #include "mods/GunStingerDistance.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
@@ -281,7 +281,7 @@ Mods::Mods() {
     ADD_MOD(NoclipCam);
     ADD_MOD(CutscenePause);
     ADD_MOD(AfterImage);
-    ADD_MOD(DisableTrainerPause);
+    ADD_MOD(TrainerPause);
     ADD_MOD(GunStingerDistance);
 }
 

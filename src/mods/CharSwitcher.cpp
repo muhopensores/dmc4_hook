@@ -725,7 +725,11 @@ void CharSwitcher::on_gui_frame(int display) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker(_("Enable before loading into a stage"));
+    help_marker(_("Enable before loading into a stage\n"
+        "This has a few unintentional side effects.\n"
+        "All the time this cheat is ticked,\n"
+        "- Lock on is a little less accurate\n"
+        "- Style drains twice as fast\n"));
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
         ImGui::PushItemWidth(sameLineItemWidth);
