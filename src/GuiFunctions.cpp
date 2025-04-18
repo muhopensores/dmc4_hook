@@ -296,15 +296,14 @@ namespace gui {
             if (ImGui::BeginTabItem(_("Character"))) {
                 ImGui::BeginChild("CharacterChild");
                 float windowWidth = ImGui::GetWindowWidth();
-                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
                 if (ImGui::BeginTabBar("CharacterTabBar"), ImGuiTabBarFlags_FittingPolicyResizeDown) {
                     tabHeight += ImGui::GetCursorPosY();
 
                     static int numTabs = 2;
                     float tabWidth = windowWidth / numTabs;
+                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(tabWidth / 2, ImGui::GetStyle().FramePadding.y));
-
                     if (ImGui::BeginTabItem(_("Nero"))) {
                         ImGui::PopStyleVar(2);
                         ImGui::BeginChild("NeroChild");
@@ -377,6 +376,8 @@ namespace gui {
                         ImGui::PopStyleVar(2);
                     }
 
+                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(tabWidth / 2, ImGui::GetStyle().FramePadding.y));
                     if (ImGui::BeginTabItem(_("Dante"))) {
                         ImGui::PopStyleVar(2);
                         ImGui::BeginChild("DanteChild");
@@ -528,9 +529,6 @@ namespace gui {
                     }
                     ImGui::EndTabBar();
                 }
-                else {
-                    ImGui::PopStyleVar();
-                }
                 ImGui::EndChild();
                 ImGui::EndTabItem();
             }
@@ -538,21 +536,18 @@ namespace gui {
             if (ImGui::BeginTabItem(_("Environment"))) {
                 ImGui::BeginChild("EnvironmentChild");
                 float windowWidth = ImGui::GetWindowWidth();
-                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-
-                if (ImGui::BeginTabBar("EnvironmentTabBar"), ImGuiTabBarFlags_FittingPolicyResizeDown) {
+    
+                if (ImGui::BeginTabBar("EnvironmentTabBar", ImGuiTabBarFlags_FittingPolicyResizeDown)) { // Fixed comma to comma
                     tabHeight += ImGui::GetCursorPosY();
-
                     static int numTabs = 2;
                     float tabWidth = windowWidth / numTabs;
+                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(tabWidth / 2, ImGui::GetStyle().FramePadding.y));
-
                     if (ImGui::BeginTabItem(_("Stage"))) {
                         ImGui::PopStyleVar(2);
+            
                         ImGui::BeginChild("StageChild");
-
                         pmods->on_draw_ui("AreaJump"_hash); // needs its own line
-
                         tabHeight += ImGui::GetCursorPosY();
                         ImGui::EndChild();
                         ImGui::EndTabItem();
@@ -560,17 +555,17 @@ namespace gui {
                     else {
                         ImGui::PopStyleVar(2);
                     }
-
+        
+                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(tabWidth / 2, ImGui::GetStyle().FramePadding.y));
                     if (ImGui::BeginTabItem(_("Enemies"))) {
                         ImGui::PopStyleVar(2);
+            
                         ImGui::BeginChild("EnemiesChild");
-
                         ImGui::SeparatorText(_("Enemy Spawner"));
                         pmods->on_draw_ui("EnemySpawn"_hash); // needs its own line
-
                         ImGui::SeparatorText(_("Enemy Replacement"));
                         pmods->on_draw_ui("EnemyReplace"_hash); // needs its own line
-
                         tabHeight += ImGui::GetCursorPosY();
                         ImGui::EndChild();
                         ImGui::EndTabItem();
@@ -578,11 +573,10 @@ namespace gui {
                     else {
                         ImGui::PopStyleVar(2);
                     }
+        
                     ImGui::EndTabBar();
                 }
-                else {
-                    ImGui::PopStyleVar();
-                }
+    
                 ImGui::EndChild();
                 ImGui::EndTabItem();
             }
