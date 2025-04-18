@@ -297,7 +297,7 @@ namespace gui {
                 ImGui::BeginChild("CharacterChild");
                 float windowWidth = ImGui::GetWindowWidth();
 
-                if (ImGui::BeginTabBar("CharacterTabBar"), ImGuiTabBarFlags_FittingPolicyResizeDown) {
+                if (ImGui::BeginTabBar("CharacterTabBar", ImGuiTabBarFlags_FittingPolicyResizeDown)) {
                     tabHeight += ImGui::GetCursorPosY();
 
                     static int numTabs = 2;
@@ -537,10 +537,11 @@ namespace gui {
                 ImGui::BeginChild("EnvironmentChild");
                 float windowWidth = ImGui::GetWindowWidth();
     
-                if (ImGui::BeginTabBar("EnvironmentTabBar", ImGuiTabBarFlags_FittingPolicyResizeDown)) { // Fixed comma to comma
+                if (ImGui::BeginTabBar("EnvironmentTabBar", ImGuiTabBarFlags_FittingPolicyResizeDown)) {
                     tabHeight += ImGui::GetCursorPosY();
                     static int numTabs = 2;
                     float tabWidth = windowWidth / numTabs;
+
                     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(tabWidth / 2, ImGui::GetStyle().FramePadding.y));
                     if (ImGui::BeginTabItem(_("Stage"))) {

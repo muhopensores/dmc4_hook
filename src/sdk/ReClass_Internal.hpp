@@ -548,7 +548,7 @@ public:
     bool playAnims; // 0x324
     char pad_325[0xf];
     uint16_t animID; // 0x334
-    char pad_335[0x12];
+    char pad_336[0x12];
     float animFrame; // 0x348
     char pad_34c[0xb54];
     uint16_t launchStateThing1; // 0xea0
@@ -574,14 +574,18 @@ public:
     Vector3f velocity; // 0x1b40
     char pad_1b4c[0x424];
     float assaultDifficulty; // 0x1f70
-    char pad_1f74[0x148];
+    char pad_1f74[0xe8];
+    float gladiusTimer; // 0x205c
+    char pad_2060[0x5c];
     float faustCloakTimer; // 0x20bc
     char pad_20c0[0xc4];
     float blitzElectric; // 0x2184
     float blitzElectricSuicideHPRequirement; // 0x2188
     float blitzElectricTimer; // 0x218c
     float blitzElectricSuicideTimer; // 0x2190
-    char pad_2194[0x14c];
+    char pad_2194[0x40];
+    bool gladiusBuried; // 0x21d4
+    char pad_21d5[0x10b];
     float faustCloak; // 0x22e0
     float faustCloakMax; // 0x22e4
     char pad_22e8[0x14e0];

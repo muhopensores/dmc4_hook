@@ -17,7 +17,7 @@ static bool showFlyingEnemyDT = false;
 static bool showFlyingEnemyStun = false;
 static bool showFlyingEnemyDisplacement = false;
 static bool showFlyingEnemyMoveID = false;
-static bool showFlyingEnemyShield = false;
+static bool showFlyingEnemyMechanics = false;
 static bool showFlyingEnemyStunTimer = false;
 
 static bool freeze_move_id = false;
@@ -26,7 +26,7 @@ static int which_enemy = 0;
 static bool useLockedOnEnemyInstead = 0;
 
 static int8_t savedEnemyMoveID = 0;
-static int8_t savedEnemyAnimID = 0;
+static int16_t savedEnemyAnimID = 0;
 static int8_t savedEnemyGrounded = 0;
 static float savedEnemyHP = 0;
 static int8_t savedEnemyStun = 0;
@@ -103,7 +103,7 @@ int EnemyTracker::get_enemy_specific_damage_offset(int enemy_id) {
 }
 
 // call with true to save, call with false to load
-void save_load_enemy_info(bool isSave, uEnemy* enemy) {
+static void save_load_enemy_info(bool isSave, uEnemy* enemy) {
     if (enemy) {
         if (isSave) {
             savedEnemyPosition[0] = enemy->position[0];
@@ -140,7 +140,7 @@ void save_load_enemy_info(bool isSave, uEnemy* enemy) {
 }
 
 // call with true to save, call with false to load
-void save_load_boss_info(bool isSave) {
+static void save_load_boss_info(bool isSave) {
     SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
     if (s_med_ptr->uBoss1) {
         if (isSave) {
@@ -163,7 +163,7 @@ void save_load_boss_info(bool isSave) {
     }
 }
 
-uEnemy* GetDesiredEnemy(bool useLockon) {
+static uEnemy* GetDesiredEnemy(bool useLockon) {
     SMediator* s_med_ptr = devil4_sdk::get_sMediator();
     uEnemy* enemy = NULL;
     if (useLockon) {
@@ -181,12 +181,12 @@ uEnemy* GetDesiredEnemy(bool useLockon) {
     return enemy;
 }
 
-void SaveStateWithCurrentEnemy() {
+static void SaveStateWithCurrentEnemy() {
     if (auto enemy = GetDesiredEnemy(true))
         save_load_enemy_info(true, enemy);
     PlayerTracker::SavePlayerMove();
 }
-void LoadStateWithCurrentEnemy() {
+static void LoadStateWithCurrentEnemy() {
     if (auto enemy = GetDesiredEnemy(true))
         save_load_enemy_info(false, enemy);
     PlayerTracker::LoadPlayerMove();
@@ -354,7 +354,7 @@ void EnemyTracker::on_gui_frame(int display) {
         ImGui::Checkbox("Display Displacement", &showFlyingEnemyDisplacement);
         // ImGui::Checkbox("Stun Timer", &showFlyingEnemyStunTimer);
         ImGui::Checkbox("Display Move ID", &showFlyingEnemyMoveID);
-        ImGui::Checkbox("Display Shield", &showFlyingEnemyShield);
+        ImGui::Checkbox("Display Mechanics", &showFlyingEnemyMechanics);
         ImGui::Unindent(lineIndent);
     }
 }
@@ -445,7 +445,7 @@ void RenderInteractiveModel() {
         model = new InteractiveModel(glm::vec3(0.0f, 0.0f, 10.0f), 100.0f);
         initialized = true;
     }
-
+    
     ImGuiIO& io = ImGui::GetIO();
     glm::vec2 mousePos(io.MousePos.x, io.MousePos.y);
     static bool wasPressed = false;
@@ -505,7 +505,7 @@ void EnemyTracker::on_frame(fmilliseconds& dt) {
                                 if (showFlyingEnemyDisplacement) ImGui::InputInt("Displacement##EnemyFly", &currentEnemyDamage->displacement[0], NULL, NULL);
                                 if (showFlyingEnemyStunTimer)ImGui::SliderFloat("Stun Reset Timer##EnemyFly", &currentEnemyDamage->stunResetTimer, 0.0f, 180.0f, "%.0f");
                                 if (showFlyingEnemyMoveID) ImGui::InputScalar("MoveID##EnemyFly", ImGuiDataType_U8, &enemy->moveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-                                if (showFlyingEnemyShield) {
+                                if (showFlyingEnemyMechanics) {
                                     if (enemy->ID == 5 || enemy->ID == 6) { // Bianco, Alto
                                         ImGui::SliderFloat("Shield##EnemyFly", &enemy->angeloShield, 0.0f, enemy->angeloShieldMax, "%.0f");
                                     }
@@ -528,6 +528,11 @@ void EnemyTracker::on_frame(fmilliseconds& dt) {
                                             else {
                                                 ImGui::SliderFloat("Electric Timer##EnemyFly", &enemy->blitzElectricTimer, 0.0f, 900.0f, "%.0f");
                                             }
+                                        }
+                                    }
+                                    if (enemy->ID == 16) { // Gladius
+                                        if (enemy->gladiusBuried) {
+                                            ImGui::SliderFloat("Buried Timer##EnemyFly", &enemy->gladiusTimer, 0.0f, 300.0f, "%.0f");
                                         }
                                     }
                                 }
@@ -556,7 +561,7 @@ void EnemyTracker::on_frame(fmilliseconds& dt) {
                         if (showFlyingEnemyDamageTaken) ImGui::InputFloat("Damage##BossFly", &sMedPtr->uBoss1->HPTaken, NULL, NULL, "%.0f");
                         if (showFlyingEnemyDT) ImGui::InputFloat("DT Timer##BossFly", &sMedPtr->uBoss1->DTTimer, NULL, NULL, "%.0f");
                         if (showFlyingEnemyMoveID) ImGui::InputScalar("MoveID##BossFly", ImGuiDataType_U8, &sMedPtr->uBoss1->moveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-                        if (showFlyingEnemyShield) {
+                        if (showFlyingEnemyMechanics) {
                             if (sMedPtr->uBoss1->ID == 18) { // Berial
                                 if (sMedPtr->uBoss1->berialFireTimer > 0.0f) {
                                     ImGui::InputFloat("Fire Timer##BossFly", &sMedPtr->uBoss1->berialFireTimer, NULL, NULL, "%.0f");
@@ -694,7 +699,7 @@ void EnemyTracker::on_config_load(const utility::Config& cfg) {
     showFlyingEnemyStun = cfg.get<bool>("showFlyingEnemyStun").value_or(false);
     showFlyingEnemyDisplacement = cfg.get<bool>("showFlyingEnemyDisplacement").value_or(false);
     showFlyingEnemyStunTimer = cfg.get<bool>("showFlyingEnemyStunTimer").value_or(false);
-    showFlyingEnemyShield = cfg.get<bool>("showFlyingEnemyShield").value_or(false);
+    showFlyingEnemyMechanics = cfg.get<bool>("showFlyingEnemyMechanics").value_or(false);
 }
 
 void EnemyTracker::on_config_save(utility::Config& cfg) {
@@ -708,7 +713,7 @@ void EnemyTracker::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("showFlyingEnemyDamageTaken", showFlyingEnemyDamageTaken);
     cfg.set<bool>("showFlyingEnemyMoveID", showFlyingEnemyMoveID);
     cfg.set<bool>("showFlyingEnemyStun", showFlyingEnemyStun);
-    cfg.set<bool>("showFlyingEnemyShield", showFlyingEnemyShield);
+    cfg.set<bool>("showFlyingEnemyMechanics", showFlyingEnemyMechanics);
     cfg.set<bool>("showFlyingEnemyStunTimer", showFlyingEnemyStunTimer);
 }
 #endif

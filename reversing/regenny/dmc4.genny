@@ -191,6 +191,8 @@ class uEnemy {
 	bool grounded @ 0x161C
 	Vector3f velocity @ 0x1B40
 	float assaultDifficulty @ 0x1F70
+	bool gladiusBuried @ 0x21D4
+	float gladiusTimer @ 0x205C // various timers - buried, attack wait, attack time
 	float faustCloakTimer @ 0x20BC
 	float blitzElectric @ 0x2184
 	float blitzElectricTimer @ 0x218C
