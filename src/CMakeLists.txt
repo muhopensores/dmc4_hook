@@ -4,8 +4,8 @@ set(MODS_SRC
   mods/RoomRespawn.cpp
   mods/GunStingerDistance.hpp
   mods/GunStingerDistance.cpp
-  mods/DisableTrainerPause.hpp
-  mods/DisableTrainerPause.cpp
+  mods/TrainerPause.hpp
+  mods/TrainerPause.cpp
   mods/CutscenePause.hpp
   mods/CutscenePause.cpp
   mods/NoclipCam.hpp
