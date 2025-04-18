@@ -6,7 +6,9 @@ class TrackingFullHouse : public Mod {
 public:
     TrackingFullHouse() = default;
 
-    static bool mod_enabled;
+    static bool tracking_full_house_nero;
+    static bool tracking_full_house_dante;
+
     static uintptr_t jmp_ret;
     static uintptr_t jmp_out;
 
