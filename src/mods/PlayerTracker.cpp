@@ -208,6 +208,7 @@ void PlayerTracker::on_gui_frame(int display) {
         ImGui::InputFloat3(_("Saved Player Position"), &savedPlayerPosition[0]);
 
         static int inputAnimID = 0;
+        static bool loopAnimID = false;
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::InputInt(_("##InputAnimIDInputInt ##1"), &inputAnimID, 1, 10, ImGuiInputTextFlags_CharsHexadecimal);
         ImGui::PopItemWidth();
@@ -217,11 +218,14 @@ void PlayerTracker::on_gui_frame(int display) {
             if (!player) { return; }
             player->movePart = 3;
             devil4_sdk::indexed_anim_call(inputAnimID, player, 0, 1.0f, 0.0f, 3.0f);
-            player->playMoveOnce = 4;
+            if (!loopAnimID)
+                player->playMoveOnce = 4;
         }
         ImGui::SameLine();
         help_marker(_("uhh this only plays things that don't require a certain player state, "
             "e.g. You must have just taken damage to play a damage animation"));
+        ImGui::SameLine();
+        ImGui::Checkbox(_("Loop"), &loopAnimID);
         ImGui::Unindent(lineIndent);
     }
 }

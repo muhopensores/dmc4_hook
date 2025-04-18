@@ -694,7 +694,7 @@ void AreaJump::on_gui_frame(int display) {
     ImGui::PushItemWidth(sameLineWidth);
 	int item_current_idx = 0;
     float itemHeight = ImGui::GetTextLineHeightWithSpacing();
-    int visibleItems = 20;
+    int visibleItems = 25;
     ImVec2 listBoxSize = ImVec2(ImGui::GetContentRegionAvail().x, itemHeight * visibleItems);
     if (ImGui::BeginListBox("##Room Codes Listbox", listBoxSize)) {
         for (size_t n = 0; n < room_items.size(); n++) {

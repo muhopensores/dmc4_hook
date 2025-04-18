@@ -4,6 +4,7 @@
 #include "utility/Locales.hpp"
 #include <string>
 #include "LicenseStrings.hpp"
+#include "mods/MessageDisplay.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -35,12 +36,12 @@ namespace gui {
         auto& style = ImGui::GetStyle();
         style.WindowPadding = ImVec2(6.0f, 4.0f);
         style.WindowRounding = 6.0f;
-
+        style.WindowBorderSize = 0.0f;
         ImVec4* colors = ImGui::GetStyle().Colors;
         colors[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
         colors[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
-        colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.06f, 0.06f, 0.94f);
-        colors[ImGuiCol_ChildBg] = ImVec4(0.06f, 0.06f, 0.06f, 0.94f);
+        colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.06f, 0.06f, 1.00f);
+        colors[ImGuiCol_ChildBg] = ImVec4(0.06f, 0.06f, 0.06f, 0.00f);
         colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
         colors[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
         colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
@@ -224,6 +225,7 @@ namespace gui {
         pmods->on_draw_ui("Borderless"_hash);
         const char* save_config_label = _("Save Config");
         const ImVec2 btn_size = ImGui::CalcTextSize(save_config_label);
+        static bool showDemoWindow = false;
         ImGui::SameLine(uiWidth-(btn_size.x) - 30.0f);
         if (ImGui::Button(save_config_label)) {
             pmods->on_config_save();
@@ -235,7 +237,6 @@ namespace gui {
         pmods->on_draw_ui("WorkRate"_hash, 2);
         if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyMask_ ^ ImGuiTabBarFlags_FittingPolicyScroll)) {
             uiHeight = ImGui::GetCursorPosY();
-
             if (ImGui::BeginTabItem(_("Training"))) {
                 ImGui::BeginChild("TrainingChild");
 
@@ -648,7 +649,7 @@ namespace gui {
 
                 pmods->on_draw_ui("MessageDisplayMod"_hash);
 
-                //pmods->on_draw_ui("TwCmdPlayerTransforms"_hash); // empty // broken
+                ImGui::Checkbox(_("showDemoWindow"), &showDemoWindow);
 
                 ImGui::SeparatorText(_("Camera"));
 
@@ -841,16 +842,35 @@ namespace gui {
             ImGui::EndTabBar();
         }
         endHeight = std::min(uiHeight + tabHeight, maxUIHeight);
+        
+        if (MessageDisplayMod::enable_scroll_transitions) {
+            static float currentHeight = 0.0f;
+            static float transitionSpeed = 10.0f;
+            const float transitionEpsilon = 1.0f;
+            float deltaTime = ImGui::GetIO().DeltaTime;
+            if (currentHeight == 0.0f)
+                 currentHeight = uiHeight;
+            currentHeight = glm::lerp(currentHeight, endHeight, deltaTime * transitionSpeed);
 
-        // tab height is set to 0 when tabbing in. if() will keep old dimensions
-        if (tabHeight > 0.0f)
+            // if coming from a smaller tab we are slightly short of a full pixel
+            if (std::abs(currentHeight - endHeight) < transitionEpsilon) {
+                currentHeight = endHeight;
+            }
+
+            // tab height is set to 0 when tabbing in. if() will keep old dimensions
+            if (tabHeight > 0.0f)
+                ImGui::SetWindowSize(ImVec2(uiWidth, currentHeight));
+        }
+        else {
             ImGui::SetWindowSize(ImVec2(uiWidth, endHeight));
+        }
         ImGui::End();
         /*ImGui::Begin("Window Height Check");
         ImGui::SetWindowPos(ImVec2(1920.f * 0.7f, 1080.0f * 0.2f));
         ImGui::Text("tabHeight %.1f", tabHeight);
         ImGui::Text("uiHeight %.1f", uiHeight);
         ImGui::End();*/
-        // ImGui::ShowDemoWindow();
+        if (showDemoWindow)
+            ImGui::ShowDemoWindow();
     }
 }
