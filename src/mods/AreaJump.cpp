@@ -164,7 +164,7 @@ void AreaJump::jump_to_stage(const Room* stage) {
 }
 
 
-// RANDOM BP START////////////////////////////////////////////////////////////////////////////////////////
+// RANDOM BP START/////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "random"
 #include "numeric"
 
@@ -520,7 +520,6 @@ void AreaJump::toggle_randomized_bp(bool enable) { // randomized bp
         patch2.reset();
     }
 }
-
 
 std::optional<std::string> AreaJump::on_initialize() {
     sArea* s_area_ptr = devil4_sdk::get_sArea();

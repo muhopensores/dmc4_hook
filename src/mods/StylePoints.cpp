@@ -1520,42 +1520,8 @@ naked void detour3(void) { // snatch
         // pop eax
 
         originalcode:
-        mov dword ptr [ebp+0x00001504],00000002
+        cmp dword ptr [esi+0x000014F0],00
         jmp dword ptr [StylePoints::jmp_ret3]
-    }
-}
-
-naked void detour4(void) { // snatch air
-    _asm {
-        cmp byte ptr [StylePoints::tonyHawk], 1
-        jne originalcode
-
-        // push eax // 0x4
-        // push ebx // 0x8
-        // push ecx // 0xC
-        // push edx // 0x10
-        // push esi // 0x14
-        // push edi // 0x18
-        pushad
-
-        push 0 // style letter
-        push 0x3f800000 // multiplier
-        push 0 // score
-        push snatchText // name
-        call AddTrickScore // fucks eax, ecx, edx
-        add esp,0x10 // 4 args
-
-        popad
-        // pop edi
-        // pop esi
-        // pop edx
-        // pop ecx
-        // pop ebx
-        // pop eax
-
-        originalcode:
-        mov dword ptr [ebp+0x00001504],00000002
-        jmp dword ptr [StylePoints::jmp_ret4]
     }
 }
 
@@ -1570,14 +1536,9 @@ std::optional<std::string> StylePoints::on_initialize() {
 		return "Failed to init StylePoints mod 2";
 	}
 
-    // would be nice to swap these out with "snatch was successful" call so you can't use it outside of combat
-    if (!install_hook_offset(0x3FA0C9, hook3, &detour3, &jmp_ret3, 10)) { // called once on snatch ground
+    if (!install_hook_offset(0x334FAB, hook3, &detour3, &jmp_ret3, 7)) { // called once on snatch touching an enemy
 		spdlog::error("Failed to init StylePoints mod 3\n");
 		return "Failed to init StylePoints mod 3";
-	}
-    if (!install_hook_offset(0x3FA319, hook4, &detour4, &jmp_ret4, 10)) { // called once on snatch air
-		spdlog::error("Failed to init StylePoints mod 4\n");
-		return "Failed to init StylePoints mod 4";
 	}
 
     after_reset();

@@ -62,7 +62,7 @@ uintptr_t AngelSnatch::jmp_ret6{false};
 //    }
 //}
 
-//Alternate trigger straight from the input check
+// Alternate trigger straight from the input check
 naked void detour1(void) {
     _asm {
             cmp byte ptr [esi+0x21CC],1
@@ -187,7 +187,7 @@ std::optional<std::string> AngelSnatch::on_initialize() {
     //    spdlog::error("Failed to init AngelSnatch mod\n");
     //    return "Failed to init AngelSnatch mod";
     //}
-    if (!install_hook_offset(0x3E5BD5, hook1, &detour1, &jmp_ret1, 5)) { //Alternate angel snatch trigger at input check
+    if (!install_hook_offset(0x3E5BD5, hook1, &detour1, &jmp_ret1, 5)) { // Alternate angel snatch trigger at input check
         spdlog::error("Failed to init AngelSnatch mod\n");
         return "Failed to init AngelSnatch mod";
     }
@@ -195,19 +195,19 @@ std::optional<std::string> AngelSnatch::on_initialize() {
     //    spdlog::error("Failed to init AngelSnatch mod2\n");
     //    return "Failed to init AngelSnatch mod2";
     //}
-    if (!install_hook_offset(0x334F9D, hook3, &detour3, &jmp_ret3, 7)) {
+    if (!install_hook_offset(0x334F9D, hook3, &detour3, &jmp_ret3, 7)) { // Invalidate enemy pull, change snatch reaction
         spdlog::error("Failed to init AngelSnatch mod3\n");
         return "Failed to init AngelSnatch mod3";
     }
-    if (!install_hook_offset(0x3C5D98, hook4, &detour4, &jmp_ret4, 5)) {
+    if (!install_hook_offset(0x3C5D98, hook4, &detour4, &jmp_ret4, 5)) { // Angel Snatch on Dante
         spdlog::error("Failed to init AngelSnatch mod4\n");
         return "Failed to init AngelSnatch mod4";
     }
-    if (!install_hook_offset(0x3C5D33, hook5, &detour5, &jmp_ret5, 10)) {
+    if (!install_hook_offset(0x3C5D33, hook5, &detour5, &jmp_ret5, 10)) { // Change Dante's reaction to Angel Snatch
         spdlog::error("Failed to init AngelSnatch mod5\n");
         return "Failed to init AngelSnatch mod5";
     }
-    if (!install_hook_offset(0x3C5D65, hook6, &detour6, &jmp_ret6, 6)) {
+    if (!install_hook_offset(0x3C5D65, hook6, &detour6, &jmp_ret6, 6)) { // Enable Dante's AI during Angel Snatch
         spdlog::error("Failed to init AngelSnatch mod6\n");
         return "Failed to init AngelSnatch mod6";
     }
