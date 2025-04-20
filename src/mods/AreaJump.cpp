@@ -279,7 +279,7 @@ void randomize_bp_bosses() {
 
 void random_boss_init(void) {
     // randomize bp bosses
-    // randomize_bp_bosses();  // this now happens on boot or when ticking the checkbox
+    randomize_bp_bosses();
 
     // apply floor
     boss_floor = boss_array[number_of_complete_bosses];
@@ -310,7 +310,7 @@ void boss_continue() { // used every time you enter a teleporter during randomiz
 
 void random_bp_init() { // used in first bp detour
     // randomize bp floors
-    // randomize_bp_floors(); // this now happens on boot or when ticking the checkbox
+    randomize_bp_floors();
 
     // apply floor
     bp_floor = bp_array[number_of_complete_floors];
