@@ -683,6 +683,10 @@ namespace gui {
 
                 pmods->on_draw_ui("NoclipCam"_hash);
 
+                ImGui::SeparatorText(_("Multi-character Fixes"));
+                
+                pmods->on_draw_ui("MultiCharFixes"_hash);
+
                 ImGui::SeparatorText(_("Stats"));
 
                 pmods->on_draw_ui("PlayerTracker"_hash); // needs its own line, also contains game pause

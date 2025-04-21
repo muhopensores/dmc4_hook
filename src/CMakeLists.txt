@@ -272,6 +272,8 @@ set(MODS_SRC
   mods/DebugCam.cpp
   mods/AfterImage.hpp
   mods/AfterImage.cpp
+  mods/MultiCharFixes.hpp
+  mods/MultiCharFixes.cpp
 )
 
 set(HOOKS_SRC
