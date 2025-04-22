@@ -6,6 +6,7 @@ uintptr_t EnemyStepDisplay::jmp_ret = NULL;
 bool EnemyStepDisplay::jc_possible = false;
 float EnemyStepDisplay::jc_possible_timer = 0.0f;
 bool EnemyStepDisplay::showExtraStats = false;
+ImVec2 EnemyStepDisplay::windowPos{ 0.0f, 0.0f };
 static constexpr uintptr_t sUnit = 0xE552CC;
 static constexpr uintptr_t sMediator = 0xE558B8;
 static constexpr uintptr_t detour1_getEnemies = 0x402BD0;
@@ -121,6 +122,8 @@ void EnemyStepDisplay::on_frame(fmilliseconds& dt) {
         else 
             WindowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground;
         ImGui::Begin("Enemy Step Possible UI", NULL, WindowFlags);
+        ImGui::SetWindowPos(windowPos, ImGuiCond_Once);
+        windowPos = ImGui::GetWindowPos();
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::Checkbox("##Enemy Step Possible Checkbox", &jc_possible);
         if (showExtraStats) {
@@ -155,6 +158,7 @@ std::optional<std::string> EnemyStepDisplay::on_initialize() {
 }
 
 void EnemyStepDisplay::on_gui_frame(int display) {
+    ImGui::BeginGroup();
     ImGui::Checkbox(_("Enemy Step Display"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("See if it was possible to enemy step in that combo after all"));
@@ -163,16 +167,21 @@ void EnemyStepDisplay::on_gui_frame(int display) {
         ImGui::Checkbox(_("Show Extra Info"), &showExtraStats);
         ImGui::Unindent(lineIndent);
     }
+    ImGui::EndGroup();
 }
 
 void EnemyStepDisplay::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("enemy_step_display").value_or(false);
     showExtraStats = cfg.get<bool>("enemy_step_display_extra").value_or(false);
+    windowPos.x = cfg.get<float>("enemy_step_display_pos_x").value_or(0.0f);
+    windowPos.y = cfg.get<float>("enemy_step_display_pos_y").value_or(0.0f);
 }
 
 void EnemyStepDisplay::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("enemy_step_display", mod_enabled);
     cfg.set<bool>("enemy_step_display_extra", showExtraStats);
+    cfg.set<float>("enemy_step_display_pos_x", windowPos.x);
+    cfg.set<float>("enemy_step_display_pos_y", windowPos.y);
 }
 
 #endif

@@ -124,7 +124,7 @@ namespace dd {
 
             // Allocate buffers
             CUSTOMVERTEX* vtx_dst;
-            unsigned short* idx_dst;
+            // unsigned short* idx_dst;
             if (bd->pVB->Lock(0, (UINT)(count * sizeof(CUSTOMVERTEX)), (void**)&vtx_dst, D3DLOCK_DISCARD) < 0)
             {
                 //d3d9_state_block->Release();

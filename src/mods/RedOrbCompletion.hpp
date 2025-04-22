@@ -7,6 +7,7 @@ public:
     RedOrbCompletion() = default;
 
     static bool mod_enabled;
+    static ImVec2 window_pos;
 
     void custom_imgui_window();
 

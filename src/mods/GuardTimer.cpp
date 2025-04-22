@@ -78,6 +78,8 @@ naked void detour3(void) { // called when the player presses release // player i
 
 void GuardTimer::on_gui_frame(int display) {
     ImGui::Checkbox(_("Royal Guard Timing Display"), &mod_enabled);
+    ImGui::SameLine();
+    help_marker(_("See how early or late your guards were"));
 }
 
 void GuardTimer::on_frame(fmilliseconds& dt) {

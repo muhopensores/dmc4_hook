@@ -11,6 +11,7 @@ public:
     static bool jc_possible;
     static float jc_possible_timer;
     static bool showExtraStats;
+    static ImVec2 windowPos;
 
     std::string get_mod_name() override { return "EnemyStepDisplay"; };
 

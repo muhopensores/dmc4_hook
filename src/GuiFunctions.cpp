@@ -638,9 +638,9 @@ namespace gui {
 
                 pmods->on_draw_ui("StylePoints"_hash); // needs its own line
 
-                pmods->on_draw_ui("GuardTimer"_hash);
-
                 pmods->on_draw_ui("EnemyStepDisplay"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("GuardTimer"_hash);
 
                 ImGui::SeparatorText(_("dmc4_hook"));
 
