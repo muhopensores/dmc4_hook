@@ -12,9 +12,9 @@ public:
 
     static int get_enemy_specific_damage_offset(int enemy_id);
 
-    static bool flyingEnemyStats;
     static bool flyingAd;
     static bool flyingSpheres;
+
     void RenderExample();
 
     void on_gui_frame(int display) override;

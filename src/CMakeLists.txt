@@ -2,6 +2,10 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/FlyingEnemyStats.hpp
+  mods/FlyingEnemyStats.cpp
+  mods/FastRoundTrip.hpp
+  mods/FastRoundTrip.cpp
   mods/EnemyStepDisplay.hpp
   mods/EnemyStepDisplay.cpp
   mods/GunStingerDistance.hpp

@@ -157,10 +157,39 @@ static void PlayAnimID(int animID) {
 
 void PlayerTracker::on_gui_frame(int display) {
     if (ImGui::CollapsingHeader(_("Display Player Stats"))) {
-        ImGui::Indent(lineIndent);
         uPlayer* player = devil4_sdk::get_local_player();
         SMediator* s_med_ptr = devil4_sdk::get_sMediator();
         if (player) {
+            ImGui::Indent(lineIndent);
+            if (ImGui::Button(_("Save Current Move"))) {
+                SavePlayerMove();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(_("Play Saved Move"))) {
+                LoadPlayerMove();
+            }
+            ImGui::InputFloat3(_("Saved Player Position"), &savedPlayerPosition[0]);
+
+            static int inputAnimID = 0;
+            static bool loopAnimID = false;
+            ImGui::PushItemWidth(sameLineItemWidth);
+            ImGui::InputInt(_("##InputAnimIDInputInt ##1"), &inputAnimID, 1, 10, ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::PopItemWidth();
+            ImGui::SameLine();
+            if (ImGui::Button("Play Animation ID")) {
+                uPlayer* player = devil4_sdk::get_local_player();
+                if (!player) { return; }
+                player->movePart = 3;
+                devil4_sdk::indexed_anim_call(inputAnimID, player, 0, 1.0f, 0.0f, 3.0f);
+                if (!loopAnimID)
+                    player->playMoveOnce = 4;
+            }
+            ImGui::SameLine();
+            help_marker(_("uhh this only plays things that don't require a certain player state, "
+                "e.g. You must have just taken damage to play a damage animation"));
+            ImGui::SameLine();
+            ImGui::Checkbox(_("Loop"), &loopAnimID);
+            ImGui::NewLine();
             ImGui::SliderFloat(_("HP ##1"), &player->HP, 0.0f, 20000.0f, "%.0f");
             ImGui::SliderFloat(_("Max HP ##1"), &player->HPMax, 0.0f, 20000.0f, "%.0f");
             ImGui::SliderFloat(_("DT ##1"), &player->DT, 0.0f, 10000.0f, "%.0f");
@@ -196,36 +225,8 @@ void PlayerTracker::on_gui_frame(int display) {
             ImGui::InputScalar(_("Move Part ##1"), ImGuiDataType_U32, &player->movePart, NULL, NULL, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
             ImGui::InputScalar(_("Saved Move Bank ##1"), ImGuiDataType_U8, &savedPlayerMoveBank, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
             ImGui::InputScalar(_("Saved Move ID ##1"), ImGuiDataType_U8, &savedPlayerMoveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::Unindent(lineIndent);
         }
-        if (ImGui::Button(_("Save Current Move"))) {
-            SavePlayerMove();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(_("Play Saved Move"))) {
-            LoadPlayerMove();
-        }
-        ImGui::InputFloat3(_("Saved Player Position"), &savedPlayerPosition[0]);
-
-        static int inputAnimID = 0;
-        static bool loopAnimID = false;
-        ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::InputInt(_("##InputAnimIDInputInt ##1"), &inputAnimID, 1, 10, ImGuiInputTextFlags_CharsHexadecimal);
-        ImGui::PopItemWidth();
-        ImGui::SameLine();
-        if (ImGui::Button("Play Animation ID")) {
-            uPlayer* player = devil4_sdk::get_local_player();
-            if (!player) { return; }
-            player->movePart = 3;
-            devil4_sdk::indexed_anim_call(inputAnimID, player, 0, 1.0f, 0.0f, 3.0f);
-            if (!loopAnimID)
-                player->playMoveOnce = 4;
-        }
-        ImGui::SameLine();
-        help_marker(_("uhh this only plays things that don't require a certain player state, "
-            "e.g. You must have just taken damage to play a damage animation"));
-        ImGui::SameLine();
-        ImGui::Checkbox(_("Loop"), &loopAnimID);
-        ImGui::Unindent(lineIndent);
     }
 }
 

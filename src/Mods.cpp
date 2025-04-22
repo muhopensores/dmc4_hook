@@ -138,6 +138,8 @@
 #include "mods/GunStingerDistance.hpp"
 #include "mods/EnemyStepDisplay.hpp"
 #include "mods/MultiCharFixes.hpp"
+#include "mods/FastRoundTrip.hpp"
+#include "mods/FlyingEnemyStats.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -287,6 +289,8 @@ Mods::Mods() {
     ADD_MOD(GunStingerDistance);
     ADD_MOD(EnemyStepDisplay);
     ADD_MOD(MultiCharFixes);
+    ADD_MOD(FastRoundTrip);
+    ADD_MOD(FlyingEnemyStats);
 }
 
 // Initializes mods, checks for errors

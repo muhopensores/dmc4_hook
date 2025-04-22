@@ -1919,7 +1919,7 @@ void StylePoints::on_frame(fmilliseconds& dt) {
 }
 
 void StylePoints::on_config_load(const utility::Config& cfg) {
-    style_points_display = cfg.get<bool>("style_points_display").value_or(true);
+    style_points_display = cfg.get<bool>("style_points_display").value_or(false);
     tonyHawk = cfg.get<bool>("hawk_points_display").value_or(false);
     moreGrouping = cfg.get<bool>("group_points_display").value_or(false);
     // showAirTimeDisplay = cfg.get<bool>("airtime_points_display").value_or(false);

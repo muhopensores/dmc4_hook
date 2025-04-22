@@ -179,6 +179,7 @@ class uEnemy {
 	bool playAnims @ 0x324
 	uint16_t animID @ 0x334
 	float animFrame @ 0x348
+	float animFrameMax @ 0x34C
 	uint16_t launchStateThing1 @ 0xEA0
 	uint16_t launchStateThing2 @ 0xEA8 // enemy doesn't take air stun without OA set
 	bool inBattle @ 0x1404

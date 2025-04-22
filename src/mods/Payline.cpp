@@ -444,11 +444,13 @@ void Payline::on_gui_frame(int display) {
     }
     ImGui::SameLine();
     help_marker(_("Remap Helm Splitter and Double Down to lockon+back+melee"));
-    ImGui::Indent(lineIndent);
-	ImGui::Checkbox(_("Tracking Payline"), &TrackingFullHouse::tracking_full_house_nero);
-	ImGui::SameLine();
-	help_marker(_("If the lock on target is below you (more than 65 degrees), Payline will adjust vertically like divekick does in DMC3 or 5"));
-    ImGui::Unindent(lineIndent);
+    if (mod_enabled) {
+        ImGui::Indent(lineIndent);
+        ImGui::Checkbox(_("Tracking Payline"), &TrackingFullHouse::tracking_full_house_nero);
+        ImGui::SameLine();
+        help_marker(_("If the lock on target is below you (more than 65 degrees), Payline will adjust vertically like divekick does in DMC3 or 5"));
+        ImGui::Unindent(lineIndent);
+    }
 }
 
 void Payline::on_config_load(const utility::Config& cfg) {

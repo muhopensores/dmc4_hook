@@ -101,29 +101,14 @@ std::optional<std::string> ChargeChecker::on_initialize() {
 
 void ChargeChecker::on_gui_frame(int display) {
     if (display == 2) {
-        ImGui::Checkbox(_("Faster Round Trip Charge"), &roundTripCharge_enabled);
+        ImGui::Checkbox(_("Fast Round Trip Charge"), &roundTripCharge_enabled);
         ImGui::SameLine();
-        help_marker(_("Halve the charge time on Round Trip"));
-        /*if (roundTripCharge_enabled) {
-            ImGui::Indent(lineIndent);
-            ImGui::PushItemWidth(sameLineItemWidth);
-            ImGui::SliderFloat("##RoundTripDragFloat", &round_trip_charge_mult, 0.1f, 10.0f, "%.1f");
-            ImGui::PopItemWidth();
-            ImGui::Unindent(lineIndent);
-        }*/
+        help_marker(_("Half the charge time on Round Trip"));
     }
     else if (display == 1) {
-        ImGui::Checkbox(_("Faster Blue Rose Charge"), &blueRoseCharge_enabled);
+        ImGui::Checkbox(_("Fast Blue Rose Charge"), &blueRoseCharge_enabled);
         ImGui::SameLine();
-        help_marker(_("Halve the charge time on Blue Rose"));
-        /*if (blueRoseCharge_enabled) {
-            ImGui::Indent(lineIndent);
-            ImGui::PushItemWidth(sameLineItemWidth);
-            ImGui::SliderFloat("1 to 2", &blue_rose_charge_mult_1, 0.1f, 10.0f, "%.1f");
-            ImGui::SliderFloat("2 to max", &blue_rose_charge_mult_2, 0.1f, 10.0f, "%.1f");
-            ImGui::PopItemWidth();
-            ImGui::Unindent(lineIndent);
-        }*/
+        help_marker(_("Half the charge time on Blue Rose"));
     }
 }
 

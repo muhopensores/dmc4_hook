@@ -552,7 +552,8 @@ public:
     uint16_t animID; // 0x334
     char pad_336[0x12];
     float animFrame; // 0x348
-    char pad_34c[0xb54];
+    float animFrameMax; // 0x34C
+    char pad_350[0xb50];
     uint16_t launchStateThing1; // 0xea0
     char pad_ea2[0x6];
     uint16_t launchStateThing2; // 0xea8

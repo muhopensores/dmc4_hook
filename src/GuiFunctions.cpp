@@ -318,10 +318,6 @@ namespace gui {
 
                         ImGui::SeparatorText(_("Abilities"));
 
-                        pmods->on_draw_ui("FastSprint"_hash, 1);
-                        ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("ChargeChecker"_hash, 1);
-
                         pmods->on_draw_ui("RevFlying"_hash, 1); // needs its own line
 
                         pmods->on_draw_ui("NeroSnatchLength"_hash, 1);
@@ -338,9 +334,11 @@ namespace gui {
                         ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("NoHbKnockback"_hash, 1);
 
-                        ImGui::SeparatorText(_("Accessibility"));
+                        ImGui::SeparatorText(_("Speedups"));
 
-                        pmods->on_draw_ui("EasyJc"_hash, 1);
+                        pmods->on_draw_ui("FastSprint"_hash, 1);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("ChargeChecker"_hash, 1);
 
                         ImGui::SeparatorText(_("Infinite"));
 
@@ -351,6 +349,10 @@ namespace gui {
                         pmods->on_draw_ui("InfTableHopper"_hash, 1);
                         ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("InfCalibur"_hash, 1);
+
+                        ImGui::SeparatorText(_("Accessibility"));
+
+                        pmods->on_draw_ui("EasyJc"_hash, 1);
 
                         ImGui::SeparatorText("Selective Cancels");
 
@@ -392,17 +394,13 @@ namespace gui {
 
                         ImGui::SeparatorText(_("Abilities"));
 
-                        pmods->on_draw_ui("FastSprint"_hash, 2);
-                        ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("ChargeChecker"_hash, 2);
-                        
-                        pmods->on_draw_ui("Quicksilver"_hash, 2);
-                        ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("NoLockonRestriction"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("SwordSpin"_hash, 2);
 
                         pmods->on_draw_ui("NoHbKnockback"_hash, 2);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("FasterFastDrive"_hash, 1); // faster quickdrive
+                        pmods->on_draw_ui("Quicksilver"_hash, 2);
 
                         pmods->on_draw_ui("TrackingFullHouse"_hash, 2);
                         ImGui::SameLine(sameLineWidth);
@@ -410,33 +408,25 @@ namespace gui {
 
                         pmods->on_draw_ui("ManualTwosomeTime"_hash, 2);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("FastPandora"_hash, 2);
-                        ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("TimerMem"_hash, 2); // instant honeycomb
 
                         pmods->on_draw_ui("ActiveBlock"_hash, 2);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("GuardSteer"_hash, 2);
+                        pmods->on_draw_ui("RgMultiplier"_hash, 2);
 
                         pmods->on_draw_ui("KnockbackEdits"_hash, 2); // needs its own line
 
-                        pmods->on_draw_ui("RgMultiplier"_hash, 2);
-                        ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("TurnSpeedEdits"_hash, 2);
-
+                        ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("TrackingSkyStar"_hash, 2);
-                        ImGui::SameLine(sameLineWidth);
+
                         pmods->on_draw_ui("DisableDTStinger"_hash, 2);
-
-                        pmods->on_draw_ui("SwordSpin"_hash, 2);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("InfDreadnaught"_hash, 2); // run in dread
-
                         pmods->on_draw_ui("GunStingerDistance"_hash, 2);
-                        ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("InstantTrick"_hash, 2);
 
                         pmods->on_draw_ui("DanteJdc"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("InfDreadnaught"_hash, 2); // run in dread
 
                         ImGui::SeparatorText(_("Lucifer"));
 
@@ -462,14 +452,6 @@ namespace gui {
 
                         pmods->on_draw_ui("PinTrick"_hash); // needs its own line
 
-                        ImGui::SeparatorText(_("Darkslayer"));
-
-                        pmods->on_draw_ui("DoubleTapDarkslayer"_hash);
-                        ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("TargetChangeDarkslayer"_hash);
-
-                        pmods->on_draw_ui("DisableDarkslayer"_hash); // needs its own line
-
                         ImGui::SeparatorText(_("Aerial grounded moves"));
 
                         pmods->on_draw_ui("RisingSun"_hash, 2);
@@ -490,6 +472,20 @@ namespace gui {
 
                         pmods->on_draw_ui("FasterFastDrive"_hash, 2); // easier quickdrive
 
+                        ImGui::SeparatorText(_("Speedups"));
+
+                        pmods->on_draw_ui("FastSprint"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("InstantTrick"_hash, 2);
+
+                        pmods->on_draw_ui("FastPandora"_hash, 2); // needs its own line
+                        
+                        pmods->on_draw_ui("ChargeChecker"_hash, 2); // fast round trip charge
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("FastRoundTrip"_hash, 2);
+
+                        pmods->on_draw_ui("FasterFastDrive"_hash, 1); // faster quickdrive
+
                         ImGui::SeparatorText(_("Infinite"));
 
                         pmods->on_draw_ui("InfTrickRange"_hash, 2);
@@ -503,6 +499,14 @@ namespace gui {
                         pmods->on_draw_ui("InfAirHikes"_hash, 2);
                         ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("FreeJc"_hash, 2);
+
+                        ImGui::SeparatorText(_("Darkslayer"));
+
+                        pmods->on_draw_ui("DoubleTapDarkslayer"_hash);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("TargetChangeDarkslayer"_hash);
+
+                        pmods->on_draw_ui("DisableDarkslayer"_hash); // needs its own line
 
                         ImGui::SeparatorText("Selective Cancels");
 
@@ -519,6 +523,8 @@ namespace gui {
                         pmods->on_draw_ui("MutatorSuperhot"_hash, 2);
                         ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("PlayerRotation"_hash, 2);
+
+                        pmods->on_draw_ui("GuardSteer"_hash, 2);
 
                         tabHeight += ImGui::GetCursorPosY();
                         ImGui::EndChild();
@@ -621,8 +627,6 @@ namespace gui {
 
                 ImGui::SeparatorText(_("HUD"));
 
-                ImGui::Spacing();
-
                 pmods->on_draw_ui("InfiniteTime"_hash);
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("HpInOrbsDisplay"_hash);
@@ -630,17 +634,18 @@ namespace gui {
                 pmods->on_draw_ui("HideHud"_hash); // needs its own line
 
                 ImGui::SeparatorText(_("Custom HUD elements"));
-                ImGui::Spacing();
 
                 pmods->on_draw_ui("PinTimer"_hash);
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("RedOrbCompletion"_hash);
 
-                pmods->on_draw_ui("StylePoints"_hash); // needs its own line
-
                 pmods->on_draw_ui("EnemyStepDisplay"_hash);
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("GuardTimer"_hash);
+
+                pmods->on_draw_ui("StylePoints"_hash); // needs its own line
+
+                pmods->on_draw_ui("FlyingEnemyStats"_hash);
 
                 ImGui::SeparatorText(_("dmc4_hook"));
 

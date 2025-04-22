@@ -116,11 +116,7 @@ void EnemyStepDisplay::on_frame(fmilliseconds& dt) {
         uPlayer* player = devil4_sdk::get_local_player();
         if (!player) { return; }
         call1();
-        int WindowFlags = 0;
-        if (showExtraStats)
-            WindowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize;
-        else 
-            WindowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground;
+        static constexpr int WindowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground;
         ImGui::Begin("Enemy Step Possible UI", NULL, WindowFlags);
         ImGui::SetWindowPos(windowPos, ImGuiCond_Once);
         windowPos = ImGui::GetWindowPos();

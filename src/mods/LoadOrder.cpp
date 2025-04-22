@@ -434,7 +434,7 @@ void LoadOrder::on_config_save(utility::Config& cfg)  {
 // onConfigLoad
 // load data into variables from config structure.
 void LoadOrder::on_config_load(const utility::Config& cfg)  { 
-    mod_enabled = cfg.get<bool>("LoadOrderHDD").value_or(true);
+    mod_enabled = cfg.get<bool>("LoadOrderHDD").value_or(false);
 };
 
 // onGUIframe()

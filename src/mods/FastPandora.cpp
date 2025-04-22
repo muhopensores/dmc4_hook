@@ -8,7 +8,7 @@ uintptr_t FastPandora::jmp_ret1{NULL};
 uintptr_t FastPandora::jmp_ret2{NULL};
 uintptr_t FastPandora::jmp_ret3{NULL};
 
-//Startup 1
+// Startup 1
 naked void detour1() {
     _asm {
             cmp byte ptr [FastPandora::mod2_enabled],1
@@ -25,7 +25,7 @@ naked void detour1() {
             jmp originalcode
     }
 }
-//Startup 2
+// Startup 2
 naked void detour2() {
     _asm {
             cmp byte ptr [FastPandora::mod2_enabled],1
@@ -42,7 +42,7 @@ naked void detour2() {
             jmp originalcode
     }
 }
-//Recovery
+// Recovery
 naked void detour3() {
     _asm {
             cmp byte ptr [FastPandora::mod2_enabled],1
@@ -62,19 +62,19 @@ naked void detour3() {
 
 
 std::optional<std::string> FastPandora::on_initialize() {
-    if (!install_hook_offset(0x3DE1CA, hook1, &detour1, &jmp_ret1, 5)) {
-    spdlog::error("Failed to init FastPandora mod1\n");
-    return "Failed to init RisingSun mod1";
+    if (!install_hook_offset(0x3DE1CA, hook1, &detour1, &jmp_ret1, 5)) { // Startup 1
+        spdlog::error("Failed to init FastPandora mod1\n");
+        return "Failed to init FastPandora mod 1";
 	}
 
-    if (!install_hook_offset(0x3DE4C9, hook2, &detour2, &jmp_ret2, 5)) {
-    spdlog::error("Failed to init FastPandora mod2\n");
-    return "Failed to init RisingSun mod2";
+    if (!install_hook_offset(0x3DE4C9, hook2, &detour2, &jmp_ret2, 5)) { // Startup 2
+        spdlog::error("Failed to init FastPandora mod2\n");
+        return "Failed to init FastPandora mod 2";
 	}
 
-    if (!install_hook_offset(0x3DEF6C, hook3, &detour3, &jmp_ret3, 5)) {
-    spdlog::error("Failed to init FastPandora mod3\n");
-    return "Failed to init RisingSun mod3";
+    if (!install_hook_offset(0x3DEF6C, hook3, &detour3, &jmp_ret3, 5)) { // Recovery
+        spdlog::error("Failed to init FastPandora mod3\n");
+        return "Failed to init FastPandora mod 3";
 	}
 
     return Mod::on_initialize();
@@ -95,7 +95,7 @@ void FastPandora::on_gui_frame(int display) {
     }
     ImGui::SameLine();
     help_marker(_("Cycle to grounded Pandora moves in DT speed outside of DT"));
-
+    ImGui::SameLine(sameLineWidth);
     ImGui::Checkbox(_("Fast Gunship"), &mod2_enabled);
     ImGui::SameLine();
     help_marker(_("Significantly speed up Argument startup and recovery"));

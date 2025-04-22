@@ -180,7 +180,7 @@ std::optional<std::string> KnockbackEdits::on_initialize() {
 void KnockbackEdits::on_gui_frame(int display) {
     ImGui::Checkbox(_("Release Always Stuns"), &release_stuns);
     ImGui::SameLine();
-    help_marker(_("Release with no meter will stun the enemy"));
+    help_marker(_("Release with no meter can stun the enemy"));
     ImGui::SameLine(sameLineWidth);
     ImGui::Checkbox(_("Shock Launches"), &volcano_launches);
 }
