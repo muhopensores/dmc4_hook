@@ -56,13 +56,13 @@ void EffectColours::on_gui_frame(int display) {
 
 void EffectColours::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("effect_colours_enable").value_or(false);
-	coloursPickedFloat[2] = cfg.get<float>("coloursPickedFloat[2]").value_or(0.0f);
-	coloursPickedFloat[1] = cfg.get<float>("coloursPickedFloat[1]").value_or(1.0f);
-	coloursPickedFloat[0] = cfg.get<float>("coloursPickedFloat[0]").value_or(1.0f);
-	coloursPickedFloat[3] = cfg.get<float>("coloursPickedFloat[3]").value_or(1.0f);
-	coloursPicked[2] = (int8_t)(coloursPickedFloat[2] * 255.0f); // Red
+	coloursPickedFloat[2] = cfg.get<float>("coloursPickedFloat[2]").value_or(0.0f); // Red
+	coloursPickedFloat[1] = cfg.get<float>("coloursPickedFloat[1]").value_or(1.0f); // Green
+	coloursPickedFloat[0] = cfg.get<float>("coloursPickedFloat[0]").value_or(1.0f); // Blue
+	coloursPickedFloat[3] = cfg.get<float>("coloursPickedFloat[3]").value_or(1.0f); // Alpha
+	coloursPicked[2] = (int8_t)(coloursPickedFloat[0] * 255.0f); // Red
 	coloursPicked[1] = (int8_t)(coloursPickedFloat[1] * 255.0f); // Green
-	coloursPicked[0] = (int8_t)(coloursPickedFloat[0] * 255.0f); // Blue
+	coloursPicked[0] = (int8_t)(coloursPickedFloat[2] * 255.0f); // Blue
 	coloursPicked[3] = (int8_t)(coloursPickedFloat[3] * 255.0f); // Alpha
 };
 

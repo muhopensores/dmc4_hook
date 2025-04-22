@@ -28,10 +28,8 @@ HWND WINAPI detour_get_focus() {
 		return fp_get_focus();
 }
 
-
-
 std::optional<std::string> BackgroundRendering::on_initialize() {
-    modGameWindow = g_framework->get_window_handle(); // FindWindowA(NULL, "DEVIL MAY CRY 4");
+    modGameWindow = FindWindowA(NULL, "DEVIL MAY CRY 4"); // g_framework->get_window_handle(); // game window might not be focused
 	if (!modGameWindow) {
 		throw std::runtime_error("[BackgroundRendering] WINDOW NOT FOUND\n");
 	}

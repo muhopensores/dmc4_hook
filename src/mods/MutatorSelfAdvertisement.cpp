@@ -39,8 +39,8 @@ static float Hash21(glm::vec2 p) {
     return glm::fract(p.x * p.y);
 }
 
-static ImColor rnd_hue(const glm::vec2& p) {
-    return ImColor::HSV(Hash21(p), 1.0f, 1.0, 1.0f);
+ImColor MutatorSelfAdvertisement::rnd_hue(const glm::vec2& p) {  
+   return ImColor::HSV(Hash21(p), 1.0f, 1.0f, m_tint_color.Value.w);  
 }
 
 void MutatorSelfAdvertisement::custom_imgui_window() {
@@ -95,19 +95,17 @@ void MutatorSelfAdvertisement::on_gui_frame(int display) {
         ImGui::Indent(lineIndent);
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::Checkbox(_("Dvd screensaver"), &dvd_mode);
-        if (!dvd_mode) {
-            ImGui::Text(_("Position"));
-            ImGui::DragFloat2(_("##PositionDragFloat2"), (float*)&m_pos, 1.0f, 0.0f, 4096.0f, "%.1f");
-            ImGui::SameLine();
-            if (ImGui::Button(_("Reset##ResetPos"))) {
-                m_pos = { 1700.0f, 860.0f };
-            }
-            ImGui::Text(_("Colour"));
-            ImGui::ColorEdit4(_("##ColourColorEdit4"), (float*)&m_tint_color);
-            ImGui::SameLine();
-            if (ImGui::Button(_("Reset##ResetColour"))) {
-                m_tint_color = { 1.0f, 1.0f, 1.0f, 0.5f };
-            }
+        ImGui::Text(_("Position"));
+        ImGui::DragFloat2(_("##PositionDragFloat2"), (float*)&m_pos, 1.0f, 0.0f, 4096.0f, "%.1f");
+        ImGui::SameLine();
+        if (ImGui::Button(_("Reset##ResetPos"))) {
+            m_pos = { 1700.0f, 860.0f };
+        }
+        ImGui::Text(_("Colour"));
+        ImGui::ColorEdit4(_("##ColourColorEdit4"), (float*)&m_tint_color);
+        ImGui::SameLine();
+        if (ImGui::Button(_("Reset##ResetColour"))) {
+            m_tint_color = { 1.0f, 1.0f, 1.0f, 0.5f };
         }
         ImGui::PopItemWidth();
         ImGui::Unindent(lineIndent);
@@ -141,7 +139,7 @@ void MutatorSelfAdvertisement::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("self_advertisement").value_or(false);
     dvd_mode             = cfg.get<bool>("self_advertisement_dvd_mode").value_or(false);
     m_pos.x     = cfg.get<float>("self_advertisement_pos_x").value_or(1700.0f);
-    m_pos.y     = cfg.get<float>("self_advertisement_pos_y").value_or(860.0f);
+    m_pos.y     = cfg.get<float>("self_advertisement_pos_y").value_or(890.0f);
     m_tint_color.Value.x = cfg.get<float>("self_advertisement_tint_color_x").value_or(1.0f);
     m_tint_color.Value.y = cfg.get<float>("self_advertisement_tint_color_y").value_or(1.0f);
     m_tint_color.Value.z = cfg.get<float>("self_advertisement_tint_color_z").value_or(1.0f);

@@ -17,7 +17,7 @@ public:
     void after_reset() override;
 	void on_config_load(const utility::Config& cfg) override;
 	void on_config_save(utility::Config& cfg) override;
-
+	ImColor rnd_hue(const glm::vec2& p);
 private:
 	PDIRECT3DTEXTURE9 m_texture_handle{ nullptr };
 	ImColor m_tint_color{ 1.0f, 1.0f, 1.0f, 1.0f };

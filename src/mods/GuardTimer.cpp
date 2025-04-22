@@ -83,6 +83,7 @@ void GuardTimer::on_gui_frame(int display) {
 void GuardTimer::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
         if (uPlayer* player = devil4_sdk::get_local_player()) {
+            if (player->controllerID != 0) { return; }
             ImGuiIO& io = ImGui::GetIO();
             if (sRender* sRen = devil4_sdk::get_sRender()) {
                 screen_res = sRen->screenRes;
@@ -93,9 +94,11 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
 
                 float damageTimeSeconds = std::chrono::duration<float>(guardTime - damageTime).count();
                 float turboSpeed = devil4_sdk::get_sMediator()->turboEnabled ? devil4_sdk::get_work_rate()->turbo_speed : devil4_sdk::get_work_rate()->game_speed;
+                float danteSpeed = player->dtActive ? 1.1f : 1.0f;
                 float windowWidth = ImGui::GetWindowSize().x;
                 float blockSliderWidth = screen_res.x * 0.4f;
                 static const float frameTime = 1.0f / 60.0f; // 0.01667f
+                float damageTimeFrames = damageTimeSeconds / frameTime;
 
                 // centre
                 float wideLeftX = (windowWidth - blockSliderWidth) * 0.5f;
@@ -111,30 +114,15 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
                     ImGui::SetCursorPosX(wideLeftX);
                     ImGui::PushItemWidth(blockSliderWidth);
                     ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 2);
-                    ImGui::SliderFloat("## Block Timing", &damageTimeSeconds, (-0.0833f / turboSpeed) * 4, (0.0833f / turboSpeed) * 4, "%.4fs", ImGuiSliderFlags_ReadOnly);
+                    ImGui::SliderFloat("## Block Timing", &damageTimeFrames, -5.0f * 4 / turboSpeed / danteSpeed, 5.0f * 4 / turboSpeed / danteSpeed, "%.2ff", ImGuiSliderFlags_ReadOnly);
                     ImGui::PopStyleVar();
                     ImGui::PopItemWidth();
                     ImGui::SameLine();
                     help_marker(_("0.0, the middle, is when damage was applied\n"
-                        "The marker location is your block timing relative to that damage application in seconds"));
+                                "The marker location is your block timing relative to that damage application"));
                 }
-                /*{
-                    ImGui::SetCursorPosX(perfectSliderLeftX);
-                    ImGui::PushItemWidth(perfectSliderWidth);
-                    ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 2);
-                    ImGui::SliderFloat("## Royal Block Timing 1", &damageTimeSeconds, -0.0833f / turboSpeed, 0.0f, "%.4fs", ImGuiSliderFlags_ReadOnly);
-                    ImGui::PopStyleVar();
-                    ImGui::PopItemWidth();
-                    ImGui::SameLine();
-                    help_marker("This is the perfect block window in seconds\n"
-                        "Perfect block / release cutoff is 0.0833 seconds for non-turbo\n"
-                        "and 0.0694 seconds for turbo\n"
-                        "(5 frames * 0.01667 frame time = 0.0833 seconds)\n"
-                        "(5 frames / 1.2 turbo (4.1666) * 0.01667 frame time = 0.0694 seconds)");
-                }*/
                 {
-                    float damageTimeFrames = damageTimeSeconds / frameTime;
-                    float minFrames = -5.0f / turboSpeed;
+                    float minFrames = -5.0f / turboSpeed / danteSpeed;
                     ImGui::SetCursorPosX(perfectSliderLeftX);
                     ImGui::PushItemWidth(perfectSliderWidth);
                     ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 2);
@@ -142,23 +130,13 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
                     ImGui::PopStyleVar();
                     ImGui::PopItemWidth();
                     ImGui::SameLine();
-                    help_marker(_("This is the perfect block window\n"
-                        "In turbo, you must guard before 4.1667 frames instead of before 5"));
-                }
-                /*{
-                    float damageTimeFrames = damageTimeSeconds / (frameTime / turboSpeed);
-                    float minFrames = -5.0f;
-                    ImGui::SetCursorPosX(perfectSliderLeftX);
-                    ImGui::PushItemWidth(perfectSliderWidth);
-                    ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 2);
-                    ImGui::SliderFloat("## Royal Block Timing 3", &damageTimeFrames, minFrames, 0.0f, "%.2ff", ImGuiSliderFlags_ReadOnly);
-                    ImGui::PopStyleVar();
-                    ImGui::PopItemWidth();
+                    ImGui::Text("/%f", minFrames);
                     ImGui::SameLine();
-                    help_marker("This is the perfect block window calculated from real time\n"
-                        "anything above -5 to below or equal 0 is a perfect block / release");
-                }*/
-                /*{
+                    help_marker(_("This is the perfect block window\n"
+                        "Anything above this number to below or equal 0 is a perfect block / release\n"
+                        "At 60fps with no turbo and no DT you must guard under 5 frames."));
+                }
+                {
                     ImGui::SetCursorPosX(perfectSliderLeftX);
                     ImGui::PushItemWidth(perfectSliderWidth);
                     ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 2);
@@ -168,7 +146,7 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
                     ImGui::SameLine();
                     help_marker("This is the game's internal calculation of the perfect block window\n"
                         "anything below 5 is a perfect block");
-                }*/
+                }
                 ImGui::End();
             }
         }

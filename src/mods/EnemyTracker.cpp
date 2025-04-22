@@ -480,123 +480,120 @@ void EnemyTracker::RenderExample() {
     g_pd3dDevice->Present(NULL, NULL, NULL, NULL);
 }
 
+class sUnit {
+public:
+    char pad_00[0x194];
+    uEnemy* enemy;
+};
+
+sUnit* get_sUnit() {
+		constexpr uintptr_t static_unit_ptr = 0xE552CC;
+		sUnit* s_unit_ptr = (sUnit*)*(uintptr_t*)static_unit_ptr;
+		return s_unit_ptr;
+}
+
 void EnemyTracker::on_frame(fmilliseconds& dt) {
     if (SMediator* sMedPtr = devil4_sdk::get_sMediator()) {
         if (sMedPtr->player_ptr) {
             if (flyingEnemyStats) {
-                if (sMedPtr->uEnemies[0]) {
-                    for (uint32_t i = 0; i < sMedPtr->enemyCount[2]; ++i) {
-                        if (uEnemy* enemy = sMedPtr->uEnemies[i]) {
-                            glm::vec3 objectPosition = enemy->position;
-                            float objectDistance = w2s::GetDistanceFromCam(objectPosition);
-                            float guiFriendlyDistance = glm::min(1000.0f / objectDistance, 1.0f);
-                            glm::vec2 screenPos = w2s::WorldToScreen(objectPosition);
-                            std::string windowName = "EnemyStats##" + std::to_string(i);
-                            if (w2s::IsVisibleOnScreen(objectPosition)) {
-                                ImGui::Begin(windowName.c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-                                ImGui::SetWindowPos(screenPos);
-                                ImGui::SetWindowFontScale(1.0f * guiFriendlyDistance);
-                                uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + get_enemy_specific_damage_offset(enemy->ID));
-                                ImGui::PushItemWidth((sameLineItemWidth / 2.5f) * guiFriendlyDistance);
+                sUnit* sUnit = get_sUnit();
+                if (!sUnit) { return; }
+                if (uEnemy* enemy = sUnit->enemy) {
+                    while (enemy) {
+                        glm::vec3 objectPosition = enemy->position;
+                        float objectDistance = w2s::GetDistanceFromCam(objectPosition);
+                        float guiFriendlyDistance = glm::min(1000.0f / objectDistance, 1.0f);
+                        glm::vec2 screenPos = w2s::WorldToScreen(objectPosition);
+                        std::string windowName = "EnemyStats##" + std::to_string((uintptr_t)enemy);
+                        if (w2s::IsVisibleOnScreen(objectPosition)) {
+                            ImGui::Begin(windowName.c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+                            ImGui::PushID((uintptr_t)enemy);
+                            ImGui::SetWindowPos(screenPos);
+                            ImGui::SetWindowFontScale(1.0f * guiFriendlyDistance);
+                            uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + get_enemy_specific_damage_offset(enemy->ID));
+                            ImGui::PushItemWidth((sameLineItemWidth / 2.5f) * guiFriendlyDistance);
+                            if (enemy->ID == 29 || enemy->ID == 30) { // Sanctus M19/M20
+                                uBoss* boss = (uBoss*)enemy;
+                                if (showFlyingEnemyHP) ImGui::SliderFloat("HP##EnemyFly", &boss->sanctusHP, 0.0f, boss->sanctusHPMax, "%.0f");
+                            }
+                            else {
                                 if (showFlyingEnemyHP) ImGui::SliderFloat("HP##EnemyFly", &currentEnemyDamage->HP, 0.0f, currentEnemyDamage->HPMax, "%.0f");
-                                if (showFlyingEnemyDamageTaken) ImGui::InputFloat("Damage##EnemyFly", &currentEnemyDamage->HPTaken, NULL, NULL, "%.0f");
-                                if (showFlyingEnemyDT) ImGui::InputFloat("DT Timer##EnemyFly", &enemy->DTTimer, NULL, NULL, "%.0f"); // id * 4 + DevilMayCry4_DX9.exe+9EC0E0
-                                if (showFlyingEnemyStun) ImGui::InputInt("Stun##EnemyFly", &currentEnemyDamage->stun[0], NULL, NULL);
-                                if (showFlyingEnemyDisplacement) ImGui::InputInt("Displacement##EnemyFly", &currentEnemyDamage->displacement[0], NULL, NULL);
-                                if (showFlyingEnemyStunTimer)ImGui::SliderFloat("Stun Reset Timer##EnemyFly", &currentEnemyDamage->stunResetTimer, 0.0f, 180.0f, "%.0f");
-                                if (showFlyingEnemyMoveID) ImGui::InputScalar("MoveID##EnemyFly", ImGuiDataType_U8, &enemy->moveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-                                if (showFlyingEnemyMechanics) {
-                                    if (enemy->ID == 5 || enemy->ID == 6) { // Bianco, Alto
-                                        ImGui::SliderFloat("Shield##EnemyFly", &enemy->angeloShield, 0.0f, enemy->angeloShieldMax, "%.0f");
+                            }
+                            if (showFlyingEnemyDamageTaken) ImGui::InputFloat("Damage##EnemyFly", &currentEnemyDamage->HPTaken, NULL, NULL, "%.0f");
+                            if (showFlyingEnemyDT) ImGui::InputFloat("DT Timer##EnemyFly", &enemy->DTTimer, NULL, NULL, "%.0f"); // id * 4 + DevilMayCry4_DX9.exe+9EC0E0
+                            if (showFlyingEnemyStun) ImGui::InputInt("Stun##EnemyFly", &currentEnemyDamage->stun[0], NULL, NULL);
+                            if (showFlyingEnemyDisplacement) ImGui::InputInt("Displacement##EnemyFly", &currentEnemyDamage->displacement[0], NULL, NULL);
+                            if (showFlyingEnemyStunTimer)ImGui::SliderFloat("Stun Reset Timer##EnemyFly", &currentEnemyDamage->stunResetTimer, 0.0f, 180.0f, "%.0f");
+                            if (showFlyingEnemyMoveID) ImGui::InputScalar("MoveID##EnemyFly", ImGuiDataType_U8, &enemy->moveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+                            if (showFlyingEnemyMechanics) {
+                                if (enemy->ID == 5 || enemy->ID == 6) { // Bianco, Alto
+                                    ImGui::SliderFloat("Shield##EnemyFly", &enemy->angeloShield, 0.0f, enemy->angeloShieldMax, "%.0f");
+                                }
+                                if (enemy->ID == 8 || enemy->ID == 9) { // Mephisto, Faust
+                                    if (enemy->faustCloak > 0.0f) {
+                                        ImGui::SliderFloat("Cloak##EnemyFly", &enemy->faustCloak, 0.0f, enemy->faustCloakMax, "%.0f");
                                     }
-                                    if (enemy->ID == 8 || enemy->ID == 9) { // Mephisto, Faust
-                                        if (enemy->faustCloak > 0.0f) {
-                                            ImGui::SliderFloat("Cloak##EnemyFly", &enemy->faustCloak, 0.0f, enemy->faustCloakMax, "%.0f");
+                                    else {
+                                        ImGui::InputFloat("Cloak Timer##EnemyFly", &enemy->faustCloakTimer, NULL, NULL, "%.0f");
+                                    }
+                                }
+                                if (enemy->ID == 12) { // Blitz
+                                    if (enemy->blitzElectric > 0.0f) {
+                                        ImGui::SliderFloat("Electric##EnemyFly", &enemy->blitzElectric, 0.0f, 1000.0f, "%.0f");
+                                    }
+                                    else {
+                                        if (currentEnemyDamage->HP < enemy->blitzElectricSuicideHPRequirement && enemy->blitzElectricSuicideTimer > 0.0f) {
+                                            ImGui::SliderFloat("Suicide Timer##EnemyFly", &enemy->blitzElectricSuicideTimer, 0.0f, 1800.0f, "%.0f");
                                         }
                                         else {
-                                            ImGui::InputFloat("Cloak Timer##EnemyFly", &enemy->faustCloakTimer, NULL, NULL, "%.0f");
-                                        }
-                                    }
-                                    if (enemy->ID == 12) { // Blitz
-                                        if (enemy->blitzElectric > 0.0f) {
-                                            ImGui::SliderFloat("Electric##EnemyFly", &enemy->blitzElectric, 0.0f, 1000.0f, "%.0f");
-                                        }
-                                        else {
-                                            if (currentEnemyDamage->HP < enemy->blitzElectricSuicideHPRequirement && enemy->blitzElectricSuicideTimer > 0.0f) {
-                                                ImGui::SliderFloat("Suicide Timer##EnemyFly", &enemy->blitzElectricSuicideTimer, 0.0f, 1800.0f, "%.0f");
-                                            }
-                                            else {
-                                                ImGui::SliderFloat("Electric Timer##EnemyFly", &enemy->blitzElectricTimer, 0.0f, 900.0f, "%.0f");
-                                            }
-                                        }
-                                    }
-                                    if (enemy->ID == 16) { // Gladius
-                                        if (enemy->gladiusBuried) {
-                                            ImGui::SliderFloat("Buried Timer##EnemyFly", &enemy->gladiusTimer, 0.0f, 300.0f, "%.0f");
+                                            ImGui::SliderFloat("Electric Timer##EnemyFly", &enemy->blitzElectricTimer, 0.0f, 900.0f, "%.0f");
                                         }
                                     }
                                 }
-                                ImGui::PopItemWidth();
-                                ImGui::End();
+                                if (enemy->ID == 16) { // Gladius
+                                    if (enemy->gladiusBuried) {
+                                        ImGui::SliderFloat("Buried Timer##EnemyFly", &enemy->gladiusTimer, 0.0f, 300.0f, "%.0f");
+                                    }
+                                }
+                                uBoss* boss = (uBoss*)enemy;
+                                if (boss->ID == 18) { // Berial
+                                    if (boss->berialFireTimer > 0.0f) {
+                                        ImGui::InputFloat("Fire Timer##BossFly", &boss->berialFireTimer, NULL, NULL, "%.0f");
+                                    }
+                                    else {
+                                        ImGui::SliderFloat("Fire Damage##BossFly", &boss->berialFire, 0.0f, boss->berialFireMax, "%.0f");
+                                    }
+                                }
+                                if (boss->ID == 22) { // Credo
+                                    if (boss->credoShield > 0.0f) {
+                                        ImGui::SliderFloat("Shield##BossFly", &boss->credoShield, 0.0f, 4000.0f, "%.0f");
+                                    }
+                                    else {
+                                        ImGui::InputFloat("Shield Timer##BossFly", &boss->credoShieldTimer, NULL, NULL, "%.0f");
+                                    }
+                                }
+                                if (boss->ID == 29) { // Sanctus M11
+                                    if (boss->sanctusShieldTimerM11 > 0.0f) {
+                                        ImGui::InputFloat("Shield Timer##BossFly", &boss->sanctusShieldTimerM11, NULL, NULL, "%.0f");
+                                    }
+                                    else {
+                                        ImGui::SliderFloat("Shield Damage##BossFly", &boss->sanctusShieldM11, 0.0f, 720.0f, "%.0f");
+                                    }
+                                }
+                                if (enemy->ID == 30) { // Sanctus M20
+                                    if (boss->sanctusShieldTimerM20 > 0.0f) {
+                                        ImGui::InputFloat("Shield Timer##BossFly", &boss->sanctusShieldTimerM20, NULL, NULL, "%.0f");
+                                    }
+                                    else {
+                                        ImGui::SliderFloat("Shield Damage##BossFly", &boss->sanctusShieldM20, 0.0f, 600.0f, "%.0f");
+                                    }
+                                }
                             }
+                            ImGui::PopItemWidth();
+                            ImGui::PopID();
+                            ImGui::End();
                         }
-                    }
-                }
-                if (sMedPtr->uBoss1) {
-                    glm::vec3 objectPosition = sMedPtr->uBoss1->position;
-                    float objectDistance = w2s::GetDistanceFromCam(objectPosition);
-                    float guiFriendlyDistance = glm::min(1000.0f / objectDistance, 1.0f);
-                    glm::vec2 screenPos = w2s::WorldToScreen(objectPosition);
-                    if (w2s::IsVisibleOnScreen(objectPosition)) {
-                        ImGui::Begin("BossStats##1", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-                        ImGui::SetWindowPos(screenPos);
-                        ImGui::SetWindowFontScale(1.0f * guiFriendlyDistance);
-                        ImGui::PushItemWidth((sameLineItemWidth / 2.5f) * guiFriendlyDistance);
-                        if (sMedPtr->uBoss1->ID == 29 || sMedPtr->uBoss1->ID == 30) { // Sanctus M19/M20
-                            if (showFlyingEnemyHP) ImGui::SliderFloat("HP##BossFly", &sMedPtr->uBoss1->sanctusHP, 0.0f, sMedPtr->uBoss1->sanctusHPMax, "%.0f");
-                        }
-                        else {
-                            if (showFlyingEnemyHP) ImGui::SliderFloat("HP##BossFly", &sMedPtr->uBoss1->HP, 0.0f, sMedPtr->uBoss1->HPMax, "%.0f");
-                        }
-                        if (showFlyingEnemyDamageTaken) ImGui::InputFloat("Damage##BossFly", &sMedPtr->uBoss1->HPTaken, NULL, NULL, "%.0f");
-                        if (showFlyingEnemyDT) ImGui::InputFloat("DT Timer##BossFly", &sMedPtr->uBoss1->DTTimer, NULL, NULL, "%.0f");
-                        if (showFlyingEnemyMoveID) ImGui::InputScalar("MoveID##BossFly", ImGuiDataType_U8, &sMedPtr->uBoss1->moveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-                        if (showFlyingEnemyMechanics) {
-                            if (sMedPtr->uBoss1->ID == 18) { // Berial
-                                if (sMedPtr->uBoss1->berialFireTimer > 0.0f) {
-                                    ImGui::InputFloat("Fire Timer##BossFly", &sMedPtr->uBoss1->berialFireTimer, NULL, NULL, "%.0f");
-                                }
-                                else {
-                                    ImGui::SliderFloat("Fire Damage##BossFly", &sMedPtr->uBoss1->berialFire, 0.0f, sMedPtr->uBoss1->berialFireMax, "%.0f");
-                                }
-                            }
-                            if (sMedPtr->uBoss1->ID == 22) { // Credo
-                                if (sMedPtr->uBoss1->credoShield > 0.0f) {
-                                    ImGui::SliderFloat("Shield##BossFly", &sMedPtr->uBoss1->credoShield, 0.0f, 4000.0f, "%.0f");
-                                }
-                                else {
-                                    ImGui::InputFloat("Shield Timer##BossFly", &sMedPtr->uBoss1->credoShieldTimer, NULL, NULL, "%.0f");
-                                }
-                            }
-                            if (sMedPtr->uBoss1->ID == 29) { // Sanctus M11
-                                if (sMedPtr->uBoss1->sanctusShieldTimerM11 > 0.0f) {
-                                    ImGui::InputFloat("Shield Timer##BossFly", &sMedPtr->uBoss1->sanctusShieldTimerM11, NULL, NULL, "%.0f");
-                                }
-                                else {
-                                    ImGui::SliderFloat("Shield Damage##BossFly", &sMedPtr->uBoss1->sanctusShieldM11, 0.0f, 720.0f, "%.0f");
-                                }
-                            }
-                            if (sMedPtr->uBoss1->ID == 30) { // Sanctus M20
-                                if (sMedPtr->uBoss1->sanctusShieldTimerM20 > 0.0f) {
-                                    ImGui::InputFloat("Shield Timer##BossFly", &sMedPtr->uBoss1->sanctusShieldTimerM20, NULL, NULL, "%.0f");
-                                }
-                                else {
-                                    ImGui::SliderFloat("Shield Damage##BossFly", &sMedPtr->uBoss1->sanctusShieldM20, 0.0f, 600.0f, "%.0f");
-                                }
-                            }
-                        }
-                        ImGui::PopItemWidth();
-                        ImGui::End();
+                        enemy = enemy->nextEnemy;
                     }
                 }
             }

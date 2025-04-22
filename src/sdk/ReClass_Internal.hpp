@@ -526,7 +526,9 @@ static_assert(sizeof(uEnemyDamage) == 0xb0);
 
 class uEnemy {
 public:
-    char pad_0[0x10];
+    char pad_0[0x8];
+    uEnemy* nextEnemy; // 0x8
+    char pad_C[0x4];
     float delta; // 0x10
     uint8_t moveID; // 0x14
     uint8_t movePart; // 0x15
@@ -1003,7 +1005,9 @@ public:
     bool fullHouseSomething1; // 0x1f50
     char pad_1f51[0x2e];
     bool canWallHike; // 0x1f7f
-    char pad_1f80[0x80];
+    char pad_1f80[0x74];
+    float jcTimer; // 0x1ff4
+    char pad_1ff8[0x8];
     uEnemy* lockOnTargetPtr1; // 0x2000
     char pad_2004[0x4];
     bool grounded2; // 0x2008
@@ -1045,7 +1049,11 @@ public:
     char pad_cdc0[0x7f14];
     bool guardReq1; // 0x14cd4
     bool guardReq2; // 0x14cd5
-    char pad_14cd6[0x6e];
+    char pad_14cd6[0x5e];
+    bool dtOutfit; // 0x14d34
+    char pad_14d35[0x3];
+    bool dtActive; // 0x14d38
+    char pad_14d39[0xb];
     float guardTimer; // 0x14d44
     char pad_14d48[0x50];
     int currentStyle; // 0x14d98

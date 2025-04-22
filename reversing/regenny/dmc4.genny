@@ -117,6 +117,7 @@ class enemyPermissions {
 };
 
 class uBoss {
+	uBoss* nextBoss @ 0x8
 	uint8_t moveID @ 0x14
 	uint8_t movePart @ 0x15
 	Vector3f position @ 0x30
@@ -164,6 +165,7 @@ class uEnemyDamagePossibility {
 };
 
 class uEnemy {
+	uEnemy* nextEnemy @ 0x8
 	float delta @ 0x10
 	uint8_t moveID @ 0x14
 	uint8_t movePart @ 0x15
@@ -383,6 +385,7 @@ class uPlayer : public UCoord{
 	float maxDT @ 0x1F28
 	bool fullHouseSomething1 @ 0x1F50
 	bool canWallHike @ 0x1F7F
+	float jcTimer @ 0x1FF4
 	uEnemy* lockOnTargetPtr1 @ 0x2000
 	bool grounded2 @ 0x2008
 	Vector3f location2 @ 0x2170
@@ -406,6 +409,8 @@ class uPlayer : public UCoord{
 	float guardTimer @ 0x14D44
 	bool guardReq1 @ 0x14CD4
 	bool guardReq2 @ 0x14CD5
+	bool dtOutfit @ 0x14D34
+	bool dtActive @ 0x14D38
 	int currentStyle @ 0x14D98
 	float revengeGauge @ 0x14DAC
 	LuciferPin* luciferPins[15] @ 0x14DBC

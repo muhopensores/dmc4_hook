@@ -640,6 +640,8 @@ namespace gui {
 
                 pmods->on_draw_ui("GuardTimer"_hash);
 
+                pmods->on_draw_ui("EnemyStepDisplay"_hash);
+
                 ImGui::SeparatorText(_("dmc4_hook"));
 
                 pmods->on_draw_ui("MessageDisplayMod"_hash);

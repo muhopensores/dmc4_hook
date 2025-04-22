@@ -136,6 +136,8 @@
 #include "mods/AfterImage.hpp"
 #include "mods/TrainerPause.hpp"
 #include "mods/GunStingerDistance.hpp"
+#include "mods/EnemyStepDisplay.hpp"
+#include "mods/MultiCharFixes.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -283,6 +285,8 @@ Mods::Mods() {
     ADD_MOD(AfterImage);
     ADD_MOD(TrainerPause);
     ADD_MOD(GunStingerDistance);
+    ADD_MOD(EnemyStepDisplay);
+    ADD_MOD(MultiCharFixes);
 }
 
 // Initializes mods, checks for errors
