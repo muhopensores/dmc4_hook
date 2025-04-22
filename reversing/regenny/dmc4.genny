@@ -387,6 +387,7 @@ class uPlayer : public UCoord{
 	bool canWallHike @ 0x1F7F
 	float jcTimer @ 0x1FF4
 	uEnemy* lockOnTargetPtr1 @ 0x2000
+	bool enemyStepEnabled @ 0x2005
 	bool grounded2 @ 0x2008
 	Vector3f location2 @ 0x2170
 	bool tiltForward @ 0x21CC

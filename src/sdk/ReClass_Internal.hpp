@@ -1009,7 +1009,9 @@ public:
     float jcTimer; // 0x1ff4
     char pad_1ff8[0x8];
     uEnemy* lockOnTargetPtr1; // 0x2000
-    char pad_2004[0x4];
+    char pad_2004[0x1];
+    bool enemyStepEnabled; // 0x2005
+    char pad_2006[0x02];
     bool grounded2; // 0x2008
     char pad_2009[0x167];
     Vector3f location2; // 0x2170

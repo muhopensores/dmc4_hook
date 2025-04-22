@@ -5,6 +5,7 @@ bool EnemyStepDisplay::mod_enabled{false};
 uintptr_t EnemyStepDisplay::jmp_ret = NULL;
 bool EnemyStepDisplay::jc_possible = false;
 float EnemyStepDisplay::jc_possible_timer = 0.0f;
+bool EnemyStepDisplay::showExtraStats = false;
 static constexpr uintptr_t sUnit = 0xE552CC;
 static constexpr uintptr_t sMediator = 0xE558B8;
 static constexpr uintptr_t detour1_getEnemies = 0x402BD0;
@@ -51,6 +52,9 @@ naked void call1(void) {
         
         cmp dword ptr [esi+0x1FF4], 0 // has jc timer expired 
         jne save_and_exit_false
+
+        cmp byte ptr [esi+0x2005], 0 // is enemy step banned
+        je save_and_exit_false
         
         mov esi, [esi+0x1e8c]
         cmp dword ptr [esi+0x1c], 0 // groundedActual
@@ -111,17 +115,32 @@ void EnemyStepDisplay::on_frame(fmilliseconds& dt) {
         uPlayer* player = devil4_sdk::get_local_player();
         if (!player) { return; }
         call1();
-        ImGui::Begin("Enemy Step Possible UI", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
+        int WindowFlags = 0;
+        if (showExtraStats)
+            WindowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize;
+        else 
+            WindowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground;
+        ImGui::Begin("Enemy Step Possible UI", NULL, WindowFlags);
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::Checkbox("##Enemy Step Possible Checkbox", &jc_possible);
-        ImGui::SameLine();
-        help_marker(_("Is enemy step possible"));
-        ImGui::InputFloat("##Enemy Step Possible InputFloat", &jc_possible_timer);
-        ImGui::SameLine();
-        help_marker(_("Last enemy step was possible for this number of 60fps frames"));
-        ImGui::SliderFloat("##Jump Cooldown SliderFloat", &player->jcTimer, 0.0f, 20.0f);
-        ImGui::SameLine();
-        help_marker(_("Jump Cooldown"));
+        if (showExtraStats) {
+            ImGui::SameLine();
+            help_marker(_("Is enemy step possible?"));
+            ImGui::SameLine();
+            ImGui::Checkbox("##Enemy Step Enabled Checkbox", &player->enemyStepEnabled);
+            ImGui::SameLine();
+            help_marker(_("Is enemy step enabled?\n(Nero's Buster moves and possibly other things disable enemy step)"));
+            ImGui::SameLine();
+            ImGui::Checkbox("##Grounded", &player->characterSettingsOne->groundedActual);
+            ImGui::SameLine();
+            help_marker(_("Is player grounded?"));
+            ImGui::InputFloat("##Enemy Step Possible InputFloat", &jc_possible_timer);
+            ImGui::SameLine();
+            help_marker(_("Enemy step was possible for this number of 60fps frames"));
+            ImGui::SliderFloat("##Jump Cooldown SliderFloat", &player->jcTimer, 0.0f, 20.0f);
+            ImGui::SameLine();
+            help_marker(_("Jump Cooldown"));
+        }
         ImGui::PopItemWidth();
         ImGui::End();
     }
@@ -137,16 +156,23 @@ std::optional<std::string> EnemyStepDisplay::on_initialize() {
 
 void EnemyStepDisplay::on_gui_frame(int display) {
     ImGui::Checkbox(_("Enemy Step Display"), &mod_enabled);
-    //ImGui::SameLine();
-    //help_marker(_(""));
+    ImGui::SameLine();
+    help_marker(_("See if it was possible to enemy step in that combo after all"));
+    if (mod_enabled) {
+        ImGui::Indent(lineIndent);
+        ImGui::Checkbox(_("Show Extra Info"), &showExtraStats);
+        ImGui::Unindent(lineIndent);
+    }
 }
 
 void EnemyStepDisplay::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("enemy_step_display").value_or(false);
+    showExtraStats = cfg.get<bool>("enemy_step_display_extra").value_or(false);
 }
 
 void EnemyStepDisplay::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("enemy_step_display", mod_enabled);
+    cfg.set<bool>("enemy_step_display_extra", showExtraStats);
 }
 
 #endif

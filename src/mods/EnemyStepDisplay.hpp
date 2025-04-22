@@ -10,6 +10,7 @@ public:
     static uintptr_t jmp_ret;
     static bool jc_possible;
     static float jc_possible_timer;
+    static bool showExtraStats;
 
     std::string get_mod_name() override { return "EnemyStepDisplay"; };
 
