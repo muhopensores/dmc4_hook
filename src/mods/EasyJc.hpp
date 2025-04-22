@@ -6,10 +6,9 @@ class EasyJc : public Mod {
 public:
     EasyJc() = default;
 
-    static bool mod_enabled;
+    static bool mod_enabled_nero;
+    static bool mod_enabled_dante;
     static uintptr_t easy_jc_continue;
-
-    void toggle(bool enable);
 
     std::string get_mod_name() override { return "EasyJc"; };
 
@@ -22,5 +21,4 @@ public:
 
 private:
     std::unique_ptr<FunctionHook> hook;
-    std::unique_ptr<Patch> patch;
 };

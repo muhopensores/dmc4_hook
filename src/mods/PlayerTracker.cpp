@@ -132,8 +132,7 @@ std::optional<std::string> PlayerTracker::on_initialize() {
     return Mod::on_initialize();
 }
 
-void PlayerTracker::on_update_input(utility::Input & input) {
-}
+// void PlayerTracker::on_update_input(utility::Input & input) {}
 
 static uintptr_t moveIDCallAddr{ 0x7AAC80 };
 static void PlayMoveID(int moveID) {

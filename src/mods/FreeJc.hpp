@@ -6,9 +6,10 @@ class FreeJc : public Mod {
 public:
     FreeJc() = default;
 
-    static bool mod_enabled;
+    static bool mod_enabled_nero;
+    static bool mod_enabled_dante;
 
-    void toggle(bool enable);
+    static uintptr_t jmp_ret2;
 
     std::string get_mod_name() override { return "FreeJc"; };
 
@@ -20,6 +21,5 @@ public:
     void on_gui_frame(int display) override;
 
 private:
-    std::unique_ptr<Patch> patch1;
-    std::unique_ptr<Patch> patch2;
+    std::unique_ptr<FunctionHook> hook1, hook2;
 };
