@@ -13,9 +13,7 @@ void LongerJealousy::toggle1(bool enable) {
     }
 }
 
-std::optional<std::string> LongerJealousy::on_initialize() {
-    return Mod::on_initialize();
-}
+// void on_frame(fmilliseconds& dt) {}
 
 void LongerJealousy::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Longer Jealousy"), &mod_enabled)) {
@@ -25,10 +23,11 @@ void LongerJealousy::on_gui_frame(int display) {
     help_marker(_("Jealousy doesn't stop shooting until you cancel or land"));
 }
 
-// void on_frame(fmilliseconds& dt) {}
+std::optional<std::string> LongerJealousy::on_initialize() {
+    return Mod::on_initialize();
+}
 
 // void on_game_pause(bool toggle) {}
-
 // bool on_message(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) {}
 
 void LongerJealousy::on_config_load(const utility::Config& cfg){

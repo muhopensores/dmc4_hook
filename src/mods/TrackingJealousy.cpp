@@ -41,6 +41,14 @@ naked void detour1() { // player in ebp
     }
 }
 
+// void on_frame(fmilliseconds& dt) {}
+
+void TrackingJealousy::on_gui_frame(int display) {
+    ImGui::Checkbox(_("Tracking Jealousy"), &mod_enabled);
+    ImGui::SameLine();
+    help_marker(_("Jealousy tracks horizontally"));
+}
+
 std::optional<std::string> TrackingJealousy::on_initialize() {
     if (!install_hook_offset(0x3DDF40, hook1, &detour1, &jmp_ret1, 6)) {
         spdlog::error("Failed to init TrackingJealousy mod 1\n");
@@ -50,16 +58,7 @@ std::optional<std::string> TrackingJealousy::on_initialize() {
     return Mod::on_initialize();
 }
 
-void TrackingJealousy::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Tracking Jealousy"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Jealousy tracks horizontally"));
-}
-
-// void on_frame(fmilliseconds& dt) {}
-
 // void on_game_pause(bool toggle) {}
-
 // bool on_message(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) {}
 
 void TrackingJealousy::on_config_load(const utility::Config& cfg){

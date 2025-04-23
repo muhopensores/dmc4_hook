@@ -1260,25 +1260,24 @@ public:
 }; //Size: 0x0004
 static_assert(sizeof(sMousePtr) == 0x4);
 
-
 struct kAtckDefTbl {
-    uint32_t atckAttr;
-    uint32_t atckId;
-    uint32_t atckLevel;
-    uint32_t atckInfo;
+    uint32_t atckAttr;  //0x0000
+    uint32_t atckId;    //0x0004
+    uint32_t atckLevel; //0x0008
+    uint32_t atckInfo;  //0x000C
     union {
-        uint32_t buffer;
+        uint32_t buffer; //0x0010
         struct {
-            uint8_t atckCommand;
-            uint8_t atckCommandNo;
-            uint8_t atckCondition;
-            uint8_t ukn;
+            uint8_t atckCommand;   //0x0010
+            uint8_t atckCommandNo; //0x0011
+            uint8_t atckCondition; //0x0012
+            uint8_t ukn;           //0x0013
         };
     } command;
-    uint32_t atckConditionWp;
-    uint32_t atckConditionStyle;
-    uint32_t ukn; // aerial lock
-    uint32_t atckAs;
-    uint32_t cancelId[5];
-}; //Size: 0x0038
+    uint32_t atckConditionWp;    //0x0014
+    uint32_t atckConditionStyle; //0x0018
+    uint32_t ukn;                //0x001C (aerial lock)
+    uint32_t atckAs;             //0x0020
+    uint32_t cancelId[5];        //0x0024, 0x0028, 0x002C, 0x0030, 0x0034
+}; //Size: 0x38
 static_assert(sizeof(kAtckDefTbl) == 0x38);

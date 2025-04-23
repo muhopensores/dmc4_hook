@@ -862,8 +862,8 @@ float GetStyleMultiplier(int styleNum) {
         case 3: return 2.5f; // B
         case 4: return 3.0f; // A
         case 5: return 4.0f; // S
-        case 6: return 4.0f; // SS
-        case 7: return 4.0f; // SSS
+        case 6: return 4.5f; // SS
+        case 7: return 5.0f; // SSS
         default: return 0.0f;
     }
 }

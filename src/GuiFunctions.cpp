@@ -691,8 +691,6 @@ namespace gui {
 
                 ImGui::SeparatorText(_("File Loading"));
 
-                // pmods->on_draw_ui("MoveTable"_hash);
-                // ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("LoadOrder"_hash);
                     
                 ImGui::SeparatorText(_("Noclip"));
@@ -708,6 +706,8 @@ namespace gui {
                 pmods->on_draw_ui("MultiCharFixes"_hash);
 
                 ImGui::SeparatorText(_("Stats"));
+
+                pmods->on_draw_ui("MoveTable"_hash);
 
                 pmods->on_draw_ui("PlayerTracker"_hash); // needs its own line, also contains game pause
 

@@ -28,6 +28,13 @@ naked void detour2() { // Edit arguments before gun animation call
     _asm {
             cmp byte ptr [FireworksTweaks::mod_enabled], 1
             jne originalcode
+            
+            // we use edx as it gets xor'd anyway
+            mov edx,[ecx+0x1e8c] // characterSettingsOne
+            test edx,edx
+            je originalcode
+            cmp [edx+0x1c], 1 // groundedActual
+            jne originalcode // don't replace start frame if aerial
 
             fld dword ptr [FireworksTweaks::fireworksStartFrame]
         originalcode:

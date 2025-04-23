@@ -159,8 +159,8 @@ naked void detour3(void) { // Handle Dante's move call
 }
 
 void updateKDATbl() {
-    // Put stuff here, IDs must be > 0x6B
-    DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {2, 0x6D, 7, 1, 3, 6, (unsigned long)-1, 0, 2, 1, 0, 0, 0, 0x05000007}); //New splash
+    // Put stuff here, IDs must be > 0x6B (107)
+    DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {2, 0x6D, 7, 1, 3, 6, (unsigned long)-1, 0, 2, 1, 0, 0, 0, 0x05000007}); // New splash
 
     // Terminate
     DanteAtckDefTbl.emplace_back(3);
@@ -168,6 +168,20 @@ void updateKDATbl() {
     HookDanteKADTbl = (uintptr_t)DanteAtckDefTbl.data();
     HookNeroKADTbl  = (uintptr_t)NeroAtckDefTbl.data();
 }
+
+#if 0
+uint32_t CompareArrays(const std::vector<unsigned int>& arr1,const std::vector<unsigned int>& arr2) {
+    if (arr1.size() != arr2.size()) {
+        return -1;
+    }
+    for (size_t i = 0; i < arr1.size(); ++i) {
+        if (arr1[i] != arr2[i]) {
+            return i;
+        }
+    }
+    return 0x6969;
+}
+#endif
 
 std::optional<std::string> MoveTable::on_initialize() {
     updateKDATbl();
@@ -191,59 +205,149 @@ std::optional<std::string> MoveTable::on_initialize() {
     return Mod::on_initialize();
 }
 
-void MoveTable::on_gui_frame(int display) {
-    /*
-    ImGui::BeginGroup();
-    ImGui::Checkbox(_("Move Table"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Replace internal move params\nRequired by \"Aerial Stinger\", \"Payline\" and \"Lucifer Air Throw\""));
-#ifndef NDEBUG
-    if (mod_enabled) {
-        ImGui::Indent(lineIndent);
-        ImGui::Checkbox(_("[DEBUG] Display move table"), &display_move_table);
-        if (display_move_table) {
-            uintptr_t player = (uintptr_t)devil4_sdk::get_local_player();
-            if (player) {
-                ImGui::Indent(lineIndent);
-                uintptr_t kAtckDefTblPtr = (uintptr_t) * (uintptr_t*)(player + 0x1DCC);
-                uint32_t currentMoveId = (uint32_t) * (uintptr_t*)(player + 0x1564);
-                ImGui::InputScalar(_("Player move ID"), ImGuiDataType_U32, &currentMoveId);
-                kAtckDefTbl* TblEntry = (kAtckDefTbl*)(kAtckDefTblPtr);
-                int EntryCount = 0;
-                while ((currentMoveId != TblEntry->atckId) && (TblEntry->atckAttr != 3)) {
-                    EntryCount++;
-                    TblEntry++;
+void MoveTable::on_frame(fmilliseconds& dt) {
+    if (!display_move_table) { return; }
+    uintptr_t player = (uintptr_t)devil4_sdk::get_local_player();
+    if (player) {
+        ImGui::SetNextWindowPos(ImVec2(sameLineWidth * 2.0f, 0.0f), ImGuiCond_Once);
+        if (ImGui::Begin("Attack Definitions")) {
+            static ImGuiTableFlags flags = 
+                ImGuiTableFlags_RowBg | 
+                ImGuiTableFlags_BordersOuter | 
+                ImGuiTableFlags_BordersV | 
+                ImGuiTableFlags_ScrollY |
+                ImGuiTableFlags_ScrollX |
+                ImGuiTableFlags_SizingFixedFit;
+        
+            if (ImGui::BeginTable("##AtckDefTable", 18, flags, ImVec2(0.0f, 600.0f))) {
+                ImGui::TableSetupScrollFreeze(0, 1);
+                
+                ImGui::TableSetupColumn("Entry");
+                ImGui::TableSetupColumn("Attr");
+                ImGui::TableSetupColumn("Id");
+                ImGui::TableSetupColumn("Level");
+                ImGui::TableSetupColumn("Info");
+                ImGui::TableSetupColumn("Cmd");
+                ImGui::TableSetupColumn("CmdNo");
+                ImGui::TableSetupColumn("Cnd");
+                ImGui::TableSetupColumn("ukn");
+                ImGui::TableSetupColumn("CndWp");
+                ImGui::TableSetupColumn("CndStyle");
+                ImGui::TableSetupColumn("aerial");
+                ImGui::TableSetupColumn("atckAs");
+                ImGui::TableSetupColumn("cancel0");
+                ImGui::TableSetupColumn("cancel1");
+                ImGui::TableSetupColumn("cancel2");
+                ImGui::TableSetupColumn("cancel3");
+                ImGui::TableSetupColumn("cancel4");
+                ImGui::TableHeadersRow();
+                
+                uintptr_t kAtckDefTblPtr = (uintptr_t)*(uintptr_t*)(player + 0x1DCC);
+                kAtckDefTbl* CountTblEntry = (kAtckDefTbl*)(kAtckDefTblPtr);
+
+                const size_t valuesPerEntry = 14;
+                uint32_t totalEntries = 0;
+                while ((CountTblEntry->atckAttr != 3)) {
+                    totalEntries++;
+                    CountTblEntry++;
                 }
-                ImGui::InputScalar(_("Entry count"), ImGuiDataType_U32, &EntryCount, 0, 0, 0, ImGuiInputTextFlags_ReadOnly);
-                ImGui::InputScalar(_("Move Attribute"), ImGuiDataType_U32, &TblEntry->atckAttr);
-                ImGui::InputScalar(_("Table move ID"), ImGuiDataType_U32, &TblEntry->atckId);
-                ImGui::InputScalar(_("Move Level"), ImGuiDataType_U32, &TblEntry->atckLevel);
-                ImGui::InputScalar(_("Move Info"), ImGuiDataType_U32, &TblEntry->atckInfo);
-                ImGui::InputScalar(_("Move Command"), ImGuiDataType_U32, &TblEntry->command.buffer);
-                ImGui::InputScalar(_("Move Weapon Condition"), ImGuiDataType_U32, &TblEntry->atckConditionWp);
-                ImGui::InputScalar(_("Move Style Condition"), ImGuiDataType_U32, &TblEntry->atckConditionStyle);
-                ImGui::InputScalar(_("Move Attribute"), ImGuiDataType_U32, &TblEntry->atckConditionStyle);
-                ImGui::InputScalar(_("Unknown Param"), ImGuiDataType_U32, &TblEntry->ukn);
-                ImGui::InputScalar(_("Move Status"), ImGuiDataType_U32, &TblEntry->atckAs);
-                ImGui::InputScalar(_("Move Cancel ID 1"), ImGuiDataType_U32, &TblEntry->cancelId[0]);
-                ImGui::InputScalar(_("Move Cancel ID 2"), ImGuiDataType_U32, &TblEntry->cancelId[1]);
-                ImGui::InputScalar(_("Move Cancel ID 3"), ImGuiDataType_U32, &TblEntry->cancelId[2]);
-                ImGui::InputScalar(_("Move Cancel ID 4"), ImGuiDataType_U32, &TblEntry->cancelId[3]);
-                ImGui::InputScalar(_("Move Cancel ID 5"), ImGuiDataType_U32, &TblEntry->cancelId[4]);
-                TblEntry = (kAtckDefTbl*)(uintptr_t)(kAtckDefTblPtr);
-                ImGui::Unindent(lineIndent);
+                
+                for (size_t entryIdx = 0; entryIdx < totalEntries; entryIdx++) {
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn(); 
+                    ImGui::Text("%zu", entryIdx);
+                    
+                    const size_t baseIdx = entryIdx * valuesPerEntry;
+                    kAtckDefTbl* TblEntry = (kAtckDefTbl*)(kAtckDefTblPtr + (entryIdx * sizeof(kAtckDefTbl)));
+                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->atckAttr);
+                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->atckId);
+                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->atckLevel);
+                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->atckInfo);
+                    ImGui::TableNextColumn(); ImGui::Text("%02X", TblEntry->command.atckCommand);
+                    ImGui::TableNextColumn(); ImGui::Text("%02X", TblEntry->command.atckCommandNo);
+                    ImGui::TableNextColumn(); ImGui::Text("%02X", TblEntry->command.atckCondition);
+                    ImGui::TableNextColumn(); ImGui::Text("%02X", TblEntry->command.ukn);
+                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->atckConditionWp);
+                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->atckConditionStyle);
+                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->ukn);
+                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->atckAs);
+                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->cancelId[0]);
+                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->cancelId[1]);
+                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->cancelId[2]);
+                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->cancelId[3]);
+                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->cancelId[4]);
+                }
+                ImGui::EndTable();
             }
-            else {
-                ImGui::Indent(lineIndent);
-                ImGui::Text(_("Load into a stage to see this table"));
-                ImGui::Unindent(lineIndent);
-            }
+            ImGui::End();
         }
-        ImGui::Unindent(lineIndent);
     }
-#endif
-    ImGui::EndGroup();
-    */
+}
+
+void MoveTable::on_gui_frame(int display) {
+    ImGui::Checkbox(_("Display Move Table"), &display_move_table);
+    uintptr_t player = (uintptr_t)devil4_sdk::get_local_player();
+    if (display_move_table) {
+        if (player) {
+            ImGui::Indent(lineIndent);
+            ImGui::Text(_("Table Editor"));
+            uintptr_t kAtckDefTblPtr = (uintptr_t) * (uintptr_t*)(player + 0x1DCC);
+            kAtckDefTbl* CountTblEntry = (kAtckDefTbl*)(kAtckDefTblPtr);
+            static const int step = 1;
+            const size_t valuesPerEntry = 14;
+            int totalEntries = 0;
+            while ((CountTblEntry->atckAttr != 3)) {
+                totalEntries++;
+                CountTblEntry++;
+            }
+            static int selectedEntryIndex = 0;
+            if (selectedEntryIndex >= totalEntries)
+                selectedEntryIndex = totalEntries - 1;
+            if (selectedEntryIndex < 0)
+                selectedEntryIndex = 0;
+            kAtckDefTbl* TblEntry = (kAtckDefTbl*)(kAtckDefTblPtr + (selectedEntryIndex * sizeof(kAtckDefTbl)));
+            uint32_t currentMoveId = (uint32_t) * (uintptr_t*)(player + 0x1564);
+            ImGui::InputScalar(_("Player Attack ID"), ImGuiDataType_U32, &currentMoveId, 0, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            int EntryCount = 0;
+            if (ImGui::Button(_("Find Current Attack ID"))) {
+                int entryNum = 0;
+                kAtckDefTbl* entry = (kAtckDefTbl*)kAtckDefTblPtr;
+                while (entryNum < totalEntries && (entry->atckId != currentMoveId) && (entry->atckAttr != 3)) {
+                    entryNum++;
+                    entry++;
+                }
+                if (entryNum < totalEntries) {
+                    selectedEntryIndex = entryNum;
+                }
+            }
+            ImGui::InputInt(_("Entry Num"), &selectedEntryIndex, 1, 10);
+            ImGui::Text(_("Entry count: %i"), totalEntries);
+            ImGui::InputScalar(_("+0 Attribute"), ImGuiDataType_U32, &TblEntry->atckAttr, &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("+4 Attack ID"), ImGuiDataType_U32, &TblEntry->atckId, &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("+8 Level"), ImGuiDataType_U32, &TblEntry->atckLevel, &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("+C Info"), ImGuiDataType_U32, &TblEntry->atckInfo, &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("+10 Cmd"), ImGuiDataType_U8, &TblEntry->command.atckCommand, &step, 0, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("+11 Cmd No"), ImGuiDataType_U8, &TblEntry->command.atckCommandNo, &step, 0, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("+12 Cmd Condition"), ImGuiDataType_U8, &TblEntry->command.atckCondition, &step, 0, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("+13 Cmd Unknown"), ImGuiDataType_U8, &TblEntry->command.ukn, &step, 0, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("+14 Weapon Condition"), ImGuiDataType_U32, &TblEntry->atckConditionWp, &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("+18 Style Condition"), ImGuiDataType_U32, &TblEntry->atckConditionStyle, &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("+1C Aerial"), ImGuiDataType_U32, &TblEntry->ukn, &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("+20 atckAs"), ImGuiDataType_U32, &TblEntry->atckAs, &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("+24 Cancel 0"), ImGuiDataType_U32, &TblEntry->cancelId[0], &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("+28 Cancel 1"), ImGuiDataType_U32, &TblEntry->cancelId[1], &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("+2C Cancel 2"), ImGuiDataType_U32, &TblEntry->cancelId[2], &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("+30 Cancel 3"), ImGuiDataType_U32, &TblEntry->cancelId[3], &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("+34 Cancel 4"), ImGuiDataType_U32, &TblEntry->cancelId[4], &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            TblEntry = (kAtckDefTbl*)(uintptr_t)(kAtckDefTblPtr);
+            ImGui::Unindent(lineIndent);
+        }
+        else {
+            ImGui::Indent(lineIndent);
+            ImGui::Text(_("Load into a stage to see the table and the editor"));
+            ImGui::Unindent(lineIndent);
+        }
+    }
 }
 
 void MoveTable::on_config_load(const utility::Config& cfg) {
