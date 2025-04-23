@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/LongerJealousy.hpp
+  mods/LongerJealousy.cpp
   mods/TrackingJealousy.hpp
   mods/TrackingJealousy.cpp
   mods/TricksterDashDT.hpp

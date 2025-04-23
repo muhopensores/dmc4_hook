@@ -145,6 +145,7 @@
 #include "mods/PandoraCharge.hpp"
 #include "mods/TricksterDashDT.hpp"
 #include "mods/TrackingJealousy.hpp"
+#include "mods/LongerJealousy.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -301,6 +302,7 @@ Mods::Mods() {
     ADD_MOD(PandoraCharge);
     ADD_MOD(TricksterDashDT);
     ADD_MOD(TrackingJealousy);
+    ADD_MOD(LongerJealousy);
 }
 
 // Initializes mods, checks for errors

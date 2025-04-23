@@ -328,9 +328,9 @@ namespace gui {
                         ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("ExceedLimiter"_hash, 1);
 
-                        pmods->on_draw_ui("Payline"_hash, 1); // needs its own line // keep at the end, it has a download button
+                        pmods->on_draw_ui("Payline"_hash, 1); // needs its own line // keep on the last line, it has a download button
 
-                        pmods->on_draw_ui("DtKnuckle"_hash, 1); // keep at the end, it has a download button
+                        pmods->on_draw_ui("DtKnuckle"_hash, 1); // keep on the last line, it has a download button
                         ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("NoHbKnockback"_hash, 1);
 
@@ -434,9 +434,10 @@ namespace gui {
 
                         pmods->on_draw_ui("TrackingJealousy"_hash, 2);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("TricksterDashDT"_hash, 2);
+                        pmods->on_draw_ui("LongerJealousy"_hash, 2);
 
-                        pmods->on_draw_ui("DanteJdc"_hash, 2); // keep at the end, it has a download button
+                        pmods->on_draw_ui("DanteJdc"_hash, 2); // keep on the last line, it has a download button
+                        // ImGui::SameLine(sameLineWidth);
 
                         ImGui::SeparatorText(_("Lucifer"));
 
@@ -481,6 +482,8 @@ namespace gui {
                         pmods->on_draw_ui("HighTimeWeaponSwitch"_hash, 2);
 
                         pmods->on_draw_ui("FasterFastDrive"_hash, 2); // easier quickdrive
+
+                        pmods->on_draw_ui("TricksterDashDT"_hash, 2);
 
                         ImGui::SeparatorText(_("Speedups"));
 
