@@ -2,6 +2,16 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/TrackingJealousy.hpp
+  mods/TrackingJealousy.cpp
+  mods/TricksterDashDT.hpp
+  mods/TricksterDashDT.cpp
+  mods/PandoraCharge.hpp
+  mods/PandoraCharge.cpp
+  mods/CrossGunCharge.hpp
+  mods/CrossGunCharge.cpp
+  mods/FireworksTweaks.hpp
+  mods/FireworksTweaks.cpp
   mods/FlyingEnemyStats.hpp
   mods/FlyingEnemyStats.cpp
   mods/FastRoundTrip.hpp
@@ -76,8 +86,8 @@ set(MODS_SRC
   mods/ShaderEditor.cpp
   mods/MutatorSuperhot.hpp
   mods/MutatorSuperhot.cpp
-  mods/Sample.cpp
-  mods/Sample.hpp
+  mods/ModSample.cpp
+  mods/ModSample.hpp
   mods/Borderless.cpp
   mods/Borderless.hpp
   mods/AreaJump.cpp

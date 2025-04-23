@@ -1,4 +1,5 @@
 #include "SelectiveCancels.hpp"
+#include "FireworksTweaks.hpp"
 
 #if 1
 bool      SelectiveCancels::mod_enabled_nero = false;
@@ -22,10 +23,8 @@ static float shockCancel = 50.0f;
 static float kickThirteenBuffer = 20.0f;
 static float kickThirteenCancel = 46.8f;
 
-static float fireworksBuffer = 16.0f;
-static float fireworksCancel = 36.0f;
-static bool fireworksGunCancel = true;
-static bool fireworksStyleCancel = true;
+static float fireworksBuffer = 40.0f;
+static float fireworksCancel = 64.0f;
 
 naked void detour1() { // player in eax + edi
 	_asm {
@@ -33,6 +32,7 @@ naked void detour1() { // player in eax + edi
 			push ecx
 			mov cl, [SelectiveCancels::mod_enabled_nero]
 			or cl, [SelectiveCancels::mod_enabled_dante]
+			or cl, [FireworksTweaks::mod_enabled]
 			test cl, cl
 			pop ecx
 			je originalcode
@@ -158,7 +158,7 @@ naked void detour1() { // player in eax + edi
 			jmp popcode
 
 		Fireworks:
-			test [SelectiveCancels::cancels], FIREWORKS
+			cmp byte ptr [FireworksTweaks::mod_enabled], 0
 			je popcode
 			comiss xmm0, [fireworksBuffer]
 			jb popcode
@@ -448,8 +448,7 @@ void SelectiveCancels::on_gui_frame(int display) {
 			help_marker(_("Cancel out of Grief mid-throw animation without recalling Pandora"));
 
 			draw_checkbox_simple(_("Gun Stinger"), GUNSTINGER);
-			ImGui::SameLine(sameLineWidth + lineIndent);
-			draw_checkbox_simple(_("Fireworks"), FIREWORKS);
+			// ImGui::SameLine(sameLineWidth + lineIndent);
 			ImGui::Unindent(lineIndent);
 		}
 	}

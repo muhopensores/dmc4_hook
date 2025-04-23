@@ -328,9 +328,9 @@ namespace gui {
                         ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("ExceedLimiter"_hash, 1);
 
-                        pmods->on_draw_ui("Payline"_hash, 1); // needs its own line
+                        pmods->on_draw_ui("Payline"_hash, 1); // needs its own line // keep at the end, it has a download button
 
-                        pmods->on_draw_ui("DtKnuckle"_hash, 1);
+                        pmods->on_draw_ui("DtKnuckle"_hash, 1); // keep at the end, it has a download button
                         ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("NoHbKnockback"_hash, 1);
 
@@ -424,9 +424,19 @@ namespace gui {
                         ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("GunStingerDistance"_hash, 2);
 
-                        pmods->on_draw_ui("DanteJdc"_hash, 2);
+                        pmods->on_draw_ui("FireworksTweaks"_hash, 2);
                         ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("InfDreadnaught"_hash, 2); // run in dread
+
+                        pmods->on_draw_ui("CrossGunCharge"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("PandoraCharge"_hash, 2);
+
+                        pmods->on_draw_ui("TrackingJealousy"_hash, 2);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("TricksterDashDT"_hash, 2);
+
+                        pmods->on_draw_ui("DanteJdc"_hash, 2); // keep at the end, it has a download button
 
                         ImGui::SeparatorText(_("Lucifer"));
 

@@ -140,6 +140,11 @@
 #include "mods/MultiCharFixes.hpp"
 #include "mods/FastRoundTrip.hpp"
 #include "mods/FlyingEnemyStats.hpp"
+#include "mods/FireworksTweaks.hpp"
+#include "mods/CrossGunCharge.hpp"
+#include "mods/PandoraCharge.hpp"
+#include "mods/TricksterDashDT.hpp"
+#include "mods/TrackingJealousy.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -291,6 +296,11 @@ Mods::Mods() {
     ADD_MOD(MultiCharFixes);
     ADD_MOD(FastRoundTrip);
     ADD_MOD(FlyingEnemyStats);
+    ADD_MOD(FireworksTweaks);
+    ADD_MOD(CrossGunCharge);
+    ADD_MOD(PandoraCharge);
+    ADD_MOD(TricksterDashDT);
+    ADD_MOD(TrackingJealousy);
 }
 
 // Initializes mods, checks for errors
