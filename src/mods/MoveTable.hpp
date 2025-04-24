@@ -17,6 +17,8 @@ public:
 
     // void toggle(bool enable);
 
+    void display_attack_entry(kAtckDefTbl* TblEntry);
+
     std::string get_mod_name() override { return "MoveTable"; };
     std::optional<std::string> on_initialize() override;
     void on_config_load(const utility::Config& cfg) override;

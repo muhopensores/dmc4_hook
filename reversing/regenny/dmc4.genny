@@ -269,7 +269,7 @@ class LuciferPin {
 	bool penetrated @ 0x17B4
 };
 
-class MtObject{}
+class MtObject{};
 
 class MtDTI {
 	char pad_00[0x20] @ 0x00
@@ -300,6 +300,8 @@ class UCoord : public MtObject{
 	Matrix4x4 m_lmat @ 0x60
 	Matrix4x4 m_wmat @ 0xa0
 }; //Size: 0x00DC
+
+class kAtckDefTbl{};
 
 class uPlayer : public UCoord{
 	Vector4f rotationKnockback @ 0xF0
@@ -367,6 +369,7 @@ class uPlayer : public UCoord{
 	uint32_t nextGun @ 0x1DB8
 	uint32_t currentSword @ 0x1DC0
 	uint32_t currentGun @ 0x1DC4
+	kAtckDefTbl* kAtckDefTblPtr @ 0x1DCC
 	uint8_t meleeCancelPermissions1[4] @ 0x1E10
 	uint8_t jumpCancelPermissions1[4] @ 0x1E14
 	float inertia @ 0x1E1C

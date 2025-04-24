@@ -863,6 +863,28 @@ public:
 }; // Size: 0x3e8
 static_assert(sizeof(CharacterSettingsThree) == 0x3e8);
 
+struct kAtckDefTbl {
+    uint32_t atckAttr;  //0x0000
+    uint32_t atckId;    //0x0004
+    uint32_t atckLevel; //0x0008
+    uint32_t atckInfo;  //0x000C
+    union {
+        uint32_t buffer; //0x0010
+        struct {
+            uint8_t atckCommand;   //0x0010
+            uint8_t atckCommandNo; //0x0011
+            uint8_t atckCondition; //0x0012
+            uint8_t ukn;           //0x0013
+        };
+    } command;
+    uint32_t atckConditionWp;    //0x0014
+    uint32_t atckConditionStyle; //0x0018
+    uint32_t ukn;                //0x001C (aerial lock)
+    uint32_t atckAs;             //0x0020
+    uint32_t cancelId[5];        //0x0024, 0x0028, 0x002C, 0x0030, 0x0034
+}; //Size: 0x38
+static_assert(sizeof(kAtckDefTbl) == 0x38);
+
 class uPlayer : public UCoord {
 public:
     char pad_e0[0x10];
@@ -974,7 +996,9 @@ public:
     char pad_1dbc[0x4];
     uint32_t currentSword; // 0x1dc0
     uint32_t currentGun; // 0x1dc4
-    char pad_1dc8[0x48];
+    char pad_1dc8[0x4];
+    kAtckDefTbl* kAtckDefTblPtr; // 0x1dcc
+    char pad_1dd0[0x40];
     uint8_t meleeCancelPermissions1[4]; // 0x1e10
     uint8_t jumpCancelPermissions1[4]; // 0x1e14
     char pad_1e18[0x4];
@@ -1259,25 +1283,3 @@ public:
     class sMouse *m_mouse_ptr; //0x0000
 }; //Size: 0x0004
 static_assert(sizeof(sMousePtr) == 0x4);
-
-struct kAtckDefTbl {
-    uint32_t atckAttr;  //0x0000
-    uint32_t atckId;    //0x0004
-    uint32_t atckLevel; //0x0008
-    uint32_t atckInfo;  //0x000C
-    union {
-        uint32_t buffer; //0x0010
-        struct {
-            uint8_t atckCommand;   //0x0010
-            uint8_t atckCommandNo; //0x0011
-            uint8_t atckCondition; //0x0012
-            uint8_t ukn;           //0x0013
-        };
-    } command;
-    uint32_t atckConditionWp;    //0x0014
-    uint32_t atckConditionStyle; //0x0018
-    uint32_t ukn;                //0x001C (aerial lock)
-    uint32_t atckAs;             //0x0020
-    uint32_t cancelId[5];        //0x0024, 0x0028, 0x002C, 0x0030, 0x0034
-}; //Size: 0x38
-static_assert(sizeof(kAtckDefTbl) == 0x38);

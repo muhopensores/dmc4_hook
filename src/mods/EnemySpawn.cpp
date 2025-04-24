@@ -102,8 +102,8 @@ constexpr std::array<const char*, 23> enemy_names{
     "Berial",            // 14 Berial
     "Bael",              // 15 Bael
     "Echidna",           // 16 Echidna
-    "Angelo Agnus",      // 17 Angelo Agnus
-    "Angelo Credo",      // 18 Angelo Credo
+    "Angelo Credo",      // 17 Angelo Credo
+    "Angelo Agnus",      // 18 Angelo Agnus
     "Sanctus",           // 19 Sanctus
     "Sanctus Diabolica", // 20 Sanctus Diabolica
     "Kyrie",             // 21 Kyrie
@@ -131,8 +131,8 @@ constexpr std::array<int, 23> enemy_spawn_type{
     4, // 14 Berial
     0, // 15 Bael
     4, // 16 Echidna
-    4, // 17 Angelo Agnus
-    4, // 18 Angelo Credo
+    4, // 17 Angelo Credo
+    4, // 18 Angelo Agnus
     4, // 19 Sanctus
     4, // 20 Sanctus Diabolica
     4, // 21 Kyrie
