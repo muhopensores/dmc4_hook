@@ -890,6 +890,6 @@ namespace gui {
         ImGui::Text("uiHeight %.1f", uiHeight);
         ImGui::End();*/
         if (showDemoWindow)
-            ImGui::ShowDemoWindow();
+            ImGui::ShowDemoWindow(&showDemoWindow);
     }
 }

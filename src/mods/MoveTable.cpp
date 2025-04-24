@@ -21,27 +21,6 @@ uintptr_t HookDanteKADTbl { NULL };
 uintptr_t HookNeroKADTbl { NULL };
 static bool display_move_table { false };
 
-//struct kAtckDefTbl {
-//    uint32_t atckAttr;
-//    uint32_t atckId;
-//    uint32_t atckLevel;
-//    uint32_t atckInfo;
-//    union {
-//        uint32_t buffer;
-//        struct {
-//            uint8_t atckCommand;
-//            uint8_t atckCommandNo;
-//            uint8_t atckCondition;
-//            uint8_t ukn;
-//        };
-//    } command;
-//    uint32_t atckConditionWp;
-//    uint32_t atckConditionStyle;
-//    uint32_t ukn; //aerial lock
-//    uint32_t atckAs;
-//    uint32_t cancelId[5];
-//};
-
 /*void MoveTable::toggle(bool enable) {
     if (enable) {
         install_patch_offset(0x403C6B, patch1, "\x90\x90\x90\x90\x90\x90", 6);
@@ -207,45 +186,110 @@ std::optional<std::string> MoveTable::on_initialize() {
 
 void MoveTable::on_frame(fmilliseconds& dt) {
     if (!display_move_table) { return; }
-    uintptr_t player = (uintptr_t)devil4_sdk::get_local_player();
+    uPlayer* player = devil4_sdk::get_local_player();
     if (player) {
         ImVec2 screenRes = devil4_sdk::get_sRender()->screenRes;
-        ImGui::SetNextWindowPos(ImVec2(sameLineWidth * 2.0f, 0.0f), ImGuiCond_Once);
-        ImGui::SetNextWindowSize(ImVec2(screenRes.x - sameLineWidth * 2.0f, 0.0f));
-        if (ImGui::Begin("Attack Definitions", &display_move_table)) {
-            float tableStart = ImGui::GetCursorPosY();
-            static ImGuiTableFlags flags = 
-                ImGuiTableFlags_RowBg | 
-                ImGuiTableFlags_Borders | 
+        ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Once);
+        ImGui::SetNextWindowSize(ImVec2(screenRes.x * 1.0f, screenRes.y * 0.4f), ImGuiCond_Once);
+        if (ImGui::Begin("Attack Definitions UI", &display_move_table)) {
+            static ImGuiTableFlags flags =
+                ImGuiTableFlags_RowBg |
+                ImGuiTableFlags_Borders |
                 ImGuiTableFlags_ScrollY |
-                ImGuiTableFlags_ScrollX |
-                ImGuiTableFlags_SizingFixedFit |
-                ImGuiTableFlags_NoPadOuterX;
-        
-            if (ImGui::BeginTable("##AtckDefTable", 18, flags, ImVec2(0.0f, screenRes.y * 0.9f - tableStart))) {
-                ImGui::TableSetupScrollFreeze(0, 1);
+                ImGuiTableFlags_ScrollX;
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+            if (ImGui::BeginTable("ControlsTable", 4, ImGuiTableFlags_SizingFixedFit)) {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text(_("Player Attack ID = %i"), player->moveID2);
                 
-                ImGui::TableSetupColumn("Entry");
-                ImGui::TableSetupColumn("Attr");
-                ImGui::TableSetupColumn("Id");
-                ImGui::TableSetupColumn("Level");
-                ImGui::TableSetupColumn("Info");
-                ImGui::TableSetupColumn("Cmd");
-                ImGui::TableSetupColumn("CmdNo");
-                ImGui::TableSetupColumn("Cnd");
-                ImGui::TableSetupColumn("ukn");
-                ImGui::TableSetupColumn("CndWp");
-                ImGui::TableSetupColumn("CndStyle");
-                ImGui::TableSetupColumn("aerial");
-                ImGui::TableSetupColumn("atckAs");
-                ImGui::TableSetupColumn("cancel0");
-                ImGui::TableSetupColumn("cancel1");
-                ImGui::TableSetupColumn("cancel2");
-                ImGui::TableSetupColumn("cancel3");
-                ImGui::TableSetupColumn("cancel4");
+                ImGui::TableNextColumn();
+                if (ImGui::Button("Use Current Move ID")) {
+                    sprintf_s(columnSearchBuffers[2], "%d", player->moveID2);
+                    columnSearchActive[2] = true;
+                    columnSearchIsExact[2] = enableExactMatch;
+                }
+                
+                ImGui::TableNextColumn();
+                if (ImGui::Button("Clear All Filters")) {
+                    for (int i = 0; i < 18; i++) {
+                        columnSearchBuffers[i][0] = '\0';
+                        columnSearchActive[i] = false;
+                    }
+                }
+                
+                ImGui::TableNextColumn();
+                bool oldExactMatch = enableExactMatch;
+                if (ImGui::Checkbox("Exact Match", &enableExactMatch)) {
+                    if (oldExactMatch != enableExactMatch) {
+                        for (int i = 0; i < 18; i++) {
+                            if (columnSearchActive[i]) {
+                                columnSearchIsExact[i] = enableExactMatch;
+                            }
+                        }
+                    }
+                }
+                ImGui::EndTable();
+            }
+            
+            const char* columnHeaders[18] = {
+                "Entry", "Attr", "Id", "Level", "CmdTgl", "Cmd", "CmdNo", "Cnd", "Ukn", 
+                "CndWp", "CndStyle", "CndDT", "CndAir", 
+                "cancel0", "cancel1", "cancel2", "cancel3", "cancel4"
+            };
+            
+            float fontSize = ImGui::GetFontSize();
+            float fontMultipliers[18] = {
+                2.0f,  // Entry
+                2.0f,  // Attr
+                2.0f,  // Id
+                2.0f,  // Level
+                3.0f,  // CmdTgl
+                15.0f, // Cmd
+                2.0f,  // CmdNo
+                2.0f,  // Cnd
+                2.0f,  // Ukn
+                8.0f,  // CndWp
+                8.5f,  // CndStyle
+                8.5f,  // CndDT
+                8.5f,  // CndAir
+                5.0f,  // cancel0
+                5.0f,  // cancel1
+                5.0f,  // cancel2
+                5.0f,  // cancel3
+                5.0f   // cancel4
+            };
+            
+            float columnWidths[18];
+            for (int i = 0; i < 18; i++) {
+                columnWidths[i] = fontSize * fontMultipliers[i];
+            }
+            
+            if (ImGui::BeginTable("##AtckDefTable", 18, flags)) {
+                ImGui::TableSetupScrollFreeze(0, 2);
+                
+                for (int i = 0; i < 18; i++) {
+                    ImGui::TableSetupColumn(columnHeaders[i], ImGuiTableColumnFlags_WidthFixed, columnWidths[i]);
+                }
+                
                 ImGui::TableHeadersRow();
                 
-                uintptr_t kAtckDefTblPtr = (uintptr_t)*(uintptr_t*)(player + 0x1DCC);
+                ImGui::TableNextRow();
+                for (int i = 0; i < 18; i++) {
+                    ImGui::TableNextColumn();
+                    
+                    ImGui::SetNextItemWidth(columnWidths[i] - ImGui::GetStyle().ItemInnerSpacing.x);
+                    
+                    if (ImGui::InputText(("##search_" + std::to_string(i)).c_str(), columnSearchBuffers[i], COLUMN_SEARCH_BUFFER_SIZE)) {
+                        bool wasActive = columnSearchActive[i];
+                        columnSearchActive[i] = strlen(columnSearchBuffers[i]) > 0;
+                        if (!wasActive && columnSearchActive[i]) {
+                            columnSearchIsExact[i] = enableExactMatch;
+                        }
+                    }
+                }
+                
+                uintptr_t kAtckDefTblPtr = (uintptr_t)player->kAtckDefTblPtr;
                 kAtckDefTbl* CountTblEntry = (kAtckDefTbl*)(kAtckDefTblPtr);
 
                 const size_t valuesPerEntry = 14;
@@ -256,32 +300,147 @@ void MoveTable::on_frame(fmilliseconds& dt) {
                 }
                 
                 for (size_t entryIdx = 0; entryIdx < totalEntries; entryIdx++) {
+                    const size_t baseIdx = entryIdx * valuesPerEntry;
+                    kAtckDefTbl* TblEntry = (kAtckDefTbl*)(kAtckDefTblPtr + (entryIdx * sizeof(kAtckDefTbl)));
+                    bool showEntry = true;
+                    auto matchesSearch = [](const std::string& strValue, const char* searchText, bool isExact) -> bool {
+                        std::string search = searchText;
+                        if (search.empty()) return true;
+                        if (isExact) {
+                            return strValue == search;
+                        }
+                        return strValue.find(search) != std::string::npos;
+                    };
+                    
+                    auto matchesNumericSearch = [&matchesSearch](int value, const char* searchText, bool isExact) -> bool {
+                        std::string decStr = std::to_string(value);
+                        char hexBuf[16];
+                        snprintf(hexBuf, sizeof(hexBuf), "%x", value);
+                        std::string hexStr = hexBuf;
+                        snprintf(hexBuf, sizeof(hexBuf), "%X", value);
+                        std::string hexStrUpper = hexBuf;
+                        if (value == -1) {
+                            hexStr = "ff";
+                            hexStrUpper = "FF";
+                        }
+                        return matchesSearch(decStr, searchText, isExact) || 
+                               matchesSearch(hexStr, searchText, isExact) || 
+                               matchesSearch(hexStrUpper, searchText, isExact);
+                    };
+                    
+                    if (columnSearchActive[0] && !matchesNumericSearch(entryIdx, columnSearchBuffers[0], columnSearchIsExact[0])) {
+                        showEntry = false;
+                    }
+                    if (showEntry && columnSearchActive[1] && !matchesNumericSearch(TblEntry->atckAttr, columnSearchBuffers[1], columnSearchIsExact[1]))
+                        showEntry = false;
+                    if (showEntry && columnSearchActive[2] && !matchesNumericSearch(TblEntry->atckId, columnSearchBuffers[2], columnSearchIsExact[2]))
+                        showEntry = false;
+                    if (showEntry && columnSearchActive[3] && !matchesNumericSearch(TblEntry->atckLevel, columnSearchBuffers[3], columnSearchIsExact[3]))
+                        showEntry = false;
+                    if (showEntry && columnSearchActive[4] && !matchesNumericSearch(TblEntry->atckInfo, columnSearchBuffers[4], columnSearchIsExact[4]))
+                        showEntry = false;
+                    if (showEntry && columnSearchActive[5] && !matchesNumericSearch(TblEntry->command.atckCommand, columnSearchBuffers[5], columnSearchIsExact[5]))
+                        showEntry = false;
+                    if (showEntry && columnSearchActive[6] && !matchesNumericSearch(TblEntry->command.atckCommandNo, columnSearchBuffers[6], columnSearchIsExact[6]))
+                        showEntry = false;
+                    if (showEntry && columnSearchActive[7] && !matchesNumericSearch(TblEntry->command.atckCondition, columnSearchBuffers[7], columnSearchIsExact[7]))
+                        showEntry = false;
+                    if (showEntry && columnSearchActive[8] && !matchesNumericSearch(TblEntry->command.ukn, columnSearchBuffers[8], columnSearchIsExact[8]))
+                        showEntry = false;
+                    if (showEntry && columnSearchActive[9] && !matchesNumericSearch(TblEntry->atckConditionWp, columnSearchBuffers[9], columnSearchIsExact[9]))
+                        showEntry = false;
+                    if (showEntry && columnSearchActive[10] && !matchesNumericSearch(TblEntry->atckConditionStyle, columnSearchBuffers[10], columnSearchIsExact[10]))
+                        showEntry = false;
+                    if (showEntry && columnSearchActive[11] && !matchesNumericSearch(TblEntry->ukn, columnSearchBuffers[11], columnSearchIsExact[11]))
+                        showEntry = false;
+                    if (showEntry && columnSearchActive[12] && !matchesNumericSearch(TblEntry->atckAs, columnSearchBuffers[12], columnSearchIsExact[12]))
+                        showEntry = false;
+                    
+                    for (int i = 0; i < 5; i++) {
+                        int searchIdx = 13 + i;
+                        if (showEntry && columnSearchActive[searchIdx]) {
+                            std::string hexStr = formatHex(TblEntry->cancelId[i]);
+                            
+                            if (!matchesSearch(hexStr, columnSearchBuffers[searchIdx], columnSearchIsExact[searchIdx])) {
+                                showEntry = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (!showEntry) {
+                        continue;
+                    }
+
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn(); 
                     ImGui::Text("%zu", entryIdx);
+                    ImGui::PushID((uintptr_t)TblEntry);
                     
-                    const size_t baseIdx = entryIdx * valuesPerEntry;
-                    kAtckDefTbl* TblEntry = (kAtckDefTbl*)(kAtckDefTblPtr + (entryIdx * sizeof(kAtckDefTbl)));
-                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->atckAttr);
-                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->atckId);
-                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->atckLevel);
-                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->atckInfo);
-                    ImGui::TableNextColumn(); ImGui::Text("%02X", TblEntry->command.atckCommand);
-                    ImGui::TableNextColumn(); ImGui::Text("%02X", TblEntry->command.atckCommandNo);
-                    ImGui::TableNextColumn(); ImGui::Text("%02X", TblEntry->command.atckCondition);
-                    ImGui::TableNextColumn(); ImGui::Text("%02X", TblEntry->command.ukn);
-                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->atckConditionWp);
-                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->atckConditionStyle);
-                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->ukn);
-                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->atckAs);
-                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->cancelId[0]);
-                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->cancelId[1]);
-                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->cancelId[2]);
-                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->cancelId[3]);
-                    ImGui::TableNextColumn(); ImGui::Text("%08X", TblEntry->cancelId[4]);
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[1] - ImGui::GetStyle().ItemInnerSpacing.x); 
+                    ImGui::InputInt(_("##+0 Attribute"), (int*)&TblEntry->atckAttr, 0, 0);
+                    
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[2] - ImGui::GetStyle().ItemInnerSpacing.x); 
+                    ImGui::InputInt(_("##+4 Attack ID"), (int*)&TblEntry->atckId, 0, 0);
+                    
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[3] - ImGui::GetStyle().ItemInnerSpacing.x); 
+                    ImGui::InputInt(_("##+8 Attack Level"), (int*)&TblEntry->atckLevel, 0, 0);
+                    
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[4] - ImGui::GetStyle().ItemInnerSpacing.x); 
+                    ImGui::Combo(_("##+C Enable Command Settings"), (int*)&TblEntry->atckInfo, "Off\0On\0");
+                    
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[5] - ImGui::GetStyle().ItemInnerSpacing.x); 
+                    int tempCommand = (int)TblEntry->command.atckCommand;
+                    if (ImGui::Combo(_("##+10"), &tempCommand, buttonMappingNames, IM_ARRAYSIZE(buttonMappingNames))) {
+                        TblEntry->command.atckCommand = (uint8_t)tempCommand;
+                    }
+
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[6] - ImGui::GetStyle().ItemInnerSpacing.x); 
+                    ImGui::InputScalar("##+11 cmd no", ImGuiDataType_U8, &TblEntry->command.atckCommandNo);
+                    
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[7] - ImGui::GetStyle().ItemInnerSpacing.x); 
+                    ImGui::InputScalar("##+12 cond", ImGuiDataType_U8, &TblEntry->command.atckCondition);
+                    
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[8] - ImGui::GetStyle().ItemInnerSpacing.x); 
+                    ImGui::InputScalar("##+13 ukn", ImGuiDataType_U8, &TblEntry->command.ukn);
+                    
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[9] - ImGui::GetStyle().ItemInnerSpacing.x);
+                    int tempWeapon = TblEntry->atckConditionWp + 1;
+                    if (ImGui::Combo(_("##+14 Weapon Condition"), &tempWeapon, weaponNames, IM_ARRAYSIZE(weaponNames))) {
+                        TblEntry->atckConditionWp = tempWeapon - 1;
+                    }
+
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[10] - ImGui::GetStyle().ItemInnerSpacing.x);
+                    int tempStyle = TblEntry->atckConditionStyle + 1;
+                    if (ImGui::Combo(_("##+18 Style Condition"), &tempStyle, styleNames, IM_ARRAYSIZE(styleNames))) {
+                        TblEntry->atckConditionStyle = tempStyle - 1;
+                    }
+
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[11] - ImGui::GetStyle().ItemInnerSpacing.x); 
+                    ImGui::Combo(_("##+1C DT Condition"), (int*)&TblEntry->ukn, dtNames, IM_ARRAYSIZE(dtNames));
+                    
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[12] - ImGui::GetStyle().ItemInnerSpacing.x); 
+                    ImGui::Combo(_("##+20 Aerial Condition"), (int*)&TblEntry->atckAs, aerialNames, IM_ARRAYSIZE(aerialNames));
+                    
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[13] - ImGui::GetStyle().ItemInnerSpacing.x); 
+                    ImGui::InputScalar(_("##+24"), ImGuiDataType_U32, &TblEntry->cancelId[0], 0, 0, "%08x");
+                    
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[14] - ImGui::GetStyle().ItemInnerSpacing.x); 
+                    ImGui::InputScalar(_("##+28"), ImGuiDataType_U32, &TblEntry->cancelId[1], 0, 0, "%08x");
+                    
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[15] - ImGui::GetStyle().ItemInnerSpacing.x); 
+                    ImGui::InputScalar(_("##+2C"), ImGuiDataType_U32, &TblEntry->cancelId[2], 0, 0, "%08x");
+                    
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[16] - ImGui::GetStyle().ItemInnerSpacing.x); 
+                    ImGui::InputScalar(_("##+30"), ImGuiDataType_U32, &TblEntry->cancelId[3], 0, 0, "%08x");
+                    
+                    ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[17] - ImGui::GetStyle().ItemInnerSpacing.x); 
+                    ImGui::InputScalar(_("##+34"), ImGuiDataType_U32, &TblEntry->cancelId[4], 0, 0, "%08x");
+                    
+                    ImGui::PopID();
                 }
                 ImGui::EndTable();
             }
+            ImGui::PopStyleVar();
             ImGui::End();
         }
     }
@@ -290,27 +449,38 @@ void MoveTable::on_frame(fmilliseconds& dt) {
 void MoveTable::display_attack_entry(kAtckDefTbl* TblEntry) {
     static int step = 1;
     ImGui::PushID((uintptr_t)TblEntry);
-    ImGui::InputScalar(_("+0 Attribute"), ImGuiDataType_U32, &TblEntry->atckAttr, &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::InputScalar(_("+4 Attack ID"), ImGuiDataType_U32, &TblEntry->atckId, &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::InputScalar(_("+8 Level"), ImGuiDataType_U32, &TblEntry->atckLevel, &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::InputScalar(_("+C Info"), ImGuiDataType_U32, &TblEntry->atckInfo, &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::SameLine();
-    help_marker(_("Enables Cmd Settings?"));
-    ImGui::InputScalar(_("+10 Cmd"), ImGuiDataType_U8, &TblEntry->command.atckCommand, &step, 0, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::SameLine();
-    help_marker(_("20 = on gun release, 21 = on gun charge release"));
-    ImGui::InputScalar(_("+11 Cmd No"), ImGuiDataType_U8, &TblEntry->command.atckCommandNo, &step, 0, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::InputScalar(_("+12 Cmd Cond"), ImGuiDataType_U8, &TblEntry->command.atckCondition, &step, 0, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::InputScalar(_("+13 Cmd Ukn"), ImGuiDataType_U8, &TblEntry->command.ukn, &step, 0, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::InputScalar(_("+14 Weapon Condition"), ImGuiDataType_U32, &TblEntry->atckConditionWp, &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::InputScalar(_("+18 Style Condition"), ImGuiDataType_U32, &TblEntry->atckConditionStyle, &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::InputScalar(_("+1C Aerial"), ImGuiDataType_U32, &TblEntry->ukn, &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::InputScalar(_("+20 atckAs"), ImGuiDataType_U32, &TblEntry->atckAs, &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+    ImGui::PushItemWidth(sameLineItemWidth);
+    ImGui::InputInt(_("+0 Attribute"), (int*)&TblEntry->atckAttr, 1);
+    ImGui::InputInt(_("+4 Attack ID"), (int*)&TblEntry->atckId, 1, 10);
+    ImGui::InputInt(_("+8 Level"), (int*)&TblEntry->atckLevel, 1, 10);
+    ImGui::Combo(_("+C Enable Command Settings"), (int*)&TblEntry->atckInfo, "Off\0On\0");
+    ImGui::Indent(lineIndent);
+    int tempCommand = (int)TblEntry->command.atckCommand;
+    ImGui::SetNextItemWidth(sameLineItemWidth * 2);
+    if (ImGui::Combo(_("+10 Cmd"), &tempCommand, buttonMappingNames, IM_ARRAYSIZE(buttonMappingNames))) {
+        TblEntry->command.atckCommand = (uint8_t)tempCommand;
+    }
+    ImGui::InputScalar(_("+11 Cmd No"), ImGuiDataType_U8, &TblEntry->command.atckCommandNo, &step);
+    ImGui::InputScalar(_("+12 Cmd Cond"), ImGuiDataType_U8, &TblEntry->command.atckCondition, &step);
+    ImGui::InputScalar(_("+13 Cmd Ukn"), ImGuiDataType_U8, &TblEntry->command.ukn, &step);
+    ImGui::Unindent(lineIndent);
+    int tempWeapon = TblEntry->atckConditionWp + 1;
+    if (ImGui::Combo(_("+14 Weapon Condition"), &tempWeapon, weaponNames, IM_ARRAYSIZE(weaponNames))) {
+        TblEntry->atckConditionWp = tempWeapon - 1;
+    }
+    int tempStyle = TblEntry->atckConditionStyle + 1;
+    if (ImGui::Combo(_("+18 Style Condition"), &tempStyle, styleNames, IM_ARRAYSIZE(styleNames))) {
+        TblEntry->atckConditionStyle = tempStyle - 1;
+    }
+    ImGui::SetNextItemWidth(sameLineItemWidth * 2);
+    ImGui::Combo(_("+1C DT Condition"), (int*)&TblEntry->ukn, dtNames, IM_ARRAYSIZE(dtNames));
+    ImGui::Combo(_("+20 Aerial Condition"), (int*)&TblEntry->atckAs, aerialNames, IM_ARRAYSIZE(aerialNames));
     ImGui::InputScalar(_("+24 Cancel 0"), ImGuiDataType_U32, &TblEntry->cancelId[0], &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
     ImGui::InputScalar(_("+28 Cancel 1"), ImGuiDataType_U32, &TblEntry->cancelId[1], &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
     ImGui::InputScalar(_("+2C Cancel 2"), ImGuiDataType_U32, &TblEntry->cancelId[2], &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
     ImGui::InputScalar(_("+30 Cancel 3"), ImGuiDataType_U32, &TblEntry->cancelId[3], &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
     ImGui::InputScalar(_("+34 Cancel 4"), ImGuiDataType_U32, &TblEntry->cancelId[4], &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+    ImGui::PopItemWidth();
     ImGui::PopID();
 }
 
@@ -336,7 +506,7 @@ void MoveTable::on_gui_frame(int display) {
                 selectedEntryIndex = 0;
             kAtckDefTbl* TblEntry = (kAtckDefTbl*)(kAtckDefTblPtr + (selectedEntryIndex * sizeof(kAtckDefTbl)));
             uint32_t currentMoveId = player->moveID2;
-            ImGui::InputScalar(_("Player Attack ID"), ImGuiDataType_U32, &currentMoveId, 0, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputInt(_("Player Attack ID"), (int*)&currentMoveId);
             int EntryCount = 0;
             if (ImGui::Button(_("Find Current Attack ID"))) {
                 int entryNum = 0;

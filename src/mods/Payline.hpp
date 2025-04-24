@@ -75,14 +75,15 @@ enum DmC4ButtonMappings {
     ANYDIRECTION_GUN           = 25,
     ANYDIRECTION_STYLE         = 26,
     // ...
-    GUN_CHARGE        = 32,
-    GUN_CHARGE2       = 33,
-    LOCKON_GUN_CHARGE = 34,
-    GUN_CHARGE_2OR3   = 35,
-    GUN_CHARGE3       = 36,
-    GUN_CHARGE4       = 37,
-    GUN_CHARGE_3      = 38,
+    GUN_RELEASE         = 32,
+    GUN_CHARGED_RELEASE = 33,
+    LOCKON_GUN_CHARGE   = 34,
+    GUN_CHARGE_2OR3     = 35,
+    GUN_CHARGE3         = 36,
+    GUN_CHARGE4         = 37,
+    GUN_CHARGE_3        = 38,
     // ...
+    MELEE_STYLE              = 81,
     LOCKON_BACKFORWARD_MELEE = 82,
     // 83
     GUN = 84
