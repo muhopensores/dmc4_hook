@@ -146,6 +146,7 @@
 #include "mods/TricksterDashDT.hpp"
 #include "mods/TrackingJealousy.hpp"
 #include "mods/LongerJealousy.hpp"
+#include "mods/GhostWalls.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -303,6 +304,7 @@ Mods::Mods() {
     ADD_MOD(TricksterDashDT);
     ADD_MOD(TrackingJealousy);
     ADD_MOD(LongerJealousy);
+    ADD_MOD(GhostWalls);
 }
 
 // Initializes mods, checks for errors
