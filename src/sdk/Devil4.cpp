@@ -3,7 +3,7 @@
 static MtHeapAllocator** mt_heap_alloc_static_ptr = (MtHeapAllocator**)0x00E1434C;
 
 static uintptr_t fptr_update_actor_list{ 0x008DC540 }; // Spawns shit
-static uintptr_t sUnit { 0x00E552CC };
+static uintptr_t sUnit_ptr { 0x00E552CC };
 static uintptr_t sKeyboard{ 0x00E559C0 };
 static uintptr_t sDevil4Resource { 0x00E552D0 };
 
@@ -82,6 +82,20 @@ namespace devil4_sdk {
 		constexpr uintptr_t static_area_ptr = 0x00E552C8;
 		sArea* s_area_ptr = (sArea*)*(uintptr_t*)static_area_ptr;
 		return s_area_ptr;
+	}
+
+	sUnit* get_sUnit() {
+		sUnit* s_unit_ptr = (sUnit*)*(uintptr_t*)sUnit_ptr;
+		return s_unit_ptr;
+	}
+
+	uEnemy* get_uEnemies() {
+		sUnit* s_unit_ptr = get_sUnit();
+		if (s_unit_ptr) {
+			uEnemy* enemy = s_unit_ptr->enemy;
+			return enemy;
+		}
+		else return nullptr;
 	}
 
 	sRender* get_sRender() {

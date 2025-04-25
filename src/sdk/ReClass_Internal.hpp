@@ -955,6 +955,13 @@ public:
 }; // Size: 0x1e004
 static_assert(sizeof(uEnemy) == 0x1e004);
 
+class sUnit {
+public:
+    char pad_00[0x194];
+    uEnemy* enemy;
+};
+static_assert(sizeof(sUnit) == 0x198);
+
 class cCameraPlayer {
 public:
     char pad_0[0x10]; //0x00

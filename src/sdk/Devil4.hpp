@@ -4,6 +4,8 @@
 namespace devil4_sdk {
 	void u_em003_shl_new();
 	sArea* get_sArea();
+	sUnit* get_sUnit();
+	uEnemy* get_uEnemies();
 	sRender* get_sRender();
 	SMediator* get_sMediator();
 	uPlayer* get_local_player();

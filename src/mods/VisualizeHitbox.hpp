@@ -7,6 +7,7 @@ public:
     VisualizeHitbox() = default;
 
     static bool mod_enabled;
+    static bool mod_enabled2;
     //static uintptr_t jmp_ret1;
     //static uintptr_t jmp_ret2;
 

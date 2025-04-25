@@ -16,26 +16,12 @@ bool FlyingEnemyStats::showFlyingEnemyDebug = false;
 bool FlyingEnemyStats::showFlyingEnemyCollisionData = false;
 int FlyingEnemyStats::collisionPage = 0;
 
-class sUnit {
-public:
-    char pad_00[0x194];
-    uEnemy* enemy;
-};
-
-sUnit* get_sUnit() {
-		constexpr uintptr_t static_unit_ptr = 0xE552CC;
-		sUnit* s_unit_ptr = (sUnit*)*(uintptr_t*)static_unit_ptr;
-		return s_unit_ptr;
-}
-
 void FlyingEnemyStats::on_frame(fmilliseconds& dt) {
     if (SMediator* sMedPtr = devil4_sdk::get_sMediator()) {
         if (sMedPtr->player_ptr) {
             if (!flyingEnemyStats) { return; }
-            sUnit* sUnit = get_sUnit();
-            if (!sUnit) { return; }
-            uEnemy* enemy = sUnit->enemy;
             int enemyCount = 0;
+            uEnemy* enemy = devil4_sdk::get_uEnemies();
             while (enemy) {
                 glm::vec3 objectPosition = enemy->position;
                 float objectDistance = w2s::GetDistanceFromCam(objectPosition);
