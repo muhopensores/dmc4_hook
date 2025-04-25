@@ -71,7 +71,7 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
         uint32_t collNum  = group->collisionCount;
         cCollision** cColl = group->collisionArray;
         if (collNum == 0 || cColl == nullptr) continue;
-        for (int j = 0; j < collNum; j++) {
+        for (uint32_t j = 0; j < collNum; j++) {
             cCollision* collision = cColl[j];
             if (!collision || !collision->mpCollPrim) continue;
             kCollPrim* prim = collision->mpCollPrim;

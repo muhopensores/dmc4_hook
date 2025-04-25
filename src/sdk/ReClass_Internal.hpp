@@ -460,10 +460,10 @@ public:
 static_assert(sizeof(CUnit) == 0x18);
 
 struct MtVector3 { /* 10 */
-    float x;
-    float y;
-    float z;
-    int padding;
+    float x; // 0x00
+    float y; // 0x04
+    float z; // 0x08
+    int padding; // 0x0C
 };
 
 struct MtCapsule {
@@ -577,115 +577,115 @@ struct uCollisionMgr {
     cUnit base; // 0x00
     uint8_t mHit; // 0x18
     uint8_t mGrab; // 0x19
-    uint8_t mDamage; // 0x1a
-    uint8_t mPsh; // 0x1b
-    uint8_t mLand; // 0x1c
-    uint8_t mTimedForceLand;
-    uint8_t mSetLand;
-    uint8_t mWall;
-    uint8_t mCeilling;
-    short padding21;
-    uint8_t mNoLandTimerEnable;
-    float mNoLandTimer;
-    float mNoLandTime;
-    uint8_t ForceLandFlag;
-    uint8_t mOldLand;
-    uint8_t mOldSetLand;
-    uint8_t mOldWall;
-    uint8_t mOldCeilling;
-    uint8_t mCheckWallEnable;
-    uint8_t mCheckGroundEnable;
-    char padding33[9];
-    uint8_t mFall;
-    uint8_t NoLandTimerType;
-    uint8_t NoLandDTSwitch;
-    uint8_t field25_0x3f;
-    uint32_t NoLandTimerType2;
-    float DamageValueCorrect;
-    uint32_t EnemyCollisionToggle;
-    uint32_t padding4c;
-    MtVector3 LockonTargetPos;
-    uintptr_t LockonTarget;
-    uint32_t padding64[3];
-    MtVector3 uknFixedVec1;
-    MtMatrix GroundMat;
-    MtVector3 uknFixedVec2;
-    uint32_t mWeightType;
-    uint32_t mModelID;
-    uintptr_t mpReportActor;
-    uActor *mpDstModel; /* Created by retype action */
-    uActor *mpSrcModel;
-    uintptr_t uknSrcModelPtr;
-    uint32_t paddinge8[17];
-    uint32_t mPushType;
-    uintptr_t mpPushModel;
-    uint32_t padding134[3];
-    MtCapsule mPushCap;
-    MtCapsule mPushCap1;
-    MtVector3 mPushPos;
-    MtVector3 mPushPosOld;
-    MtMatrix field50_0x1c0;
-    MtMatrix field51_0x200;
-    char padding240[64];
-    uint32_t uknToggle;
-    uintptr_t mpCollisionIdxData;
-    uintptr_t mpCollisionShape;
-    uintptr_t mpAttackStatusData;
-    uintptr_t mpDefendStatusData;
-    uint32_t mInDamageMessage;
-    uint32_t currentMotBuffer;
-    uint32_t MotSeq1;
-    uint32_t MotSeq2;
-    uint8_t HitCheckFlag;
-    uint8_t HitConfirm;
-    uint8_t mSelfCollision;
-    uint8_t padding2a7;
-    uCollisionMgr *uknCollMgrPtr;
-    uint32_t mMode;
-    uint32_t mVsAttrPlAtk;
-    uint32_t mVsAttrPlDmg;
-    uint32_t mVsAttrPlPsh;
-    uint32_t mVsAttrPlGrb;
-    uint32_t mVsAttrPsAtk;
-    uint32_t mVsAttrPsDmg;
-    uint32_t mVsAttrPsPsh;
-    uint32_t mVsAttrPsGrb;
-    uint32_t mVsAttrEmAtk;
-    uint32_t mVsAttrEmDmg;
-    uint32_t mVsAttrEmPsh;
-    uint32_t mVsAttrEmGrb;
-    uint32_t mVsAttrEsAtk;
-    uint32_t mVsAttrEsDmg;
-    uint32_t mVsAttrEsPsh;
-    uint32_t mVsAttrEsGrb;
-    uint32_t mVsAttrSetAtk;
-    uint32_t mVsAttrSetDmg;
-    uint32_t mVsAttrSetPsh;
-    uint32_t mVsAttrSetGrb;
-    uint32_t mVsAttrStgAtk;
-    uint32_t mVsAttrStgDmg;
-    uint32_t mVsAttrStgPsh;
-    uint32_t mVsAttrStgGrb;
-    uint32_t UknVsAttrAtk1;
-    uint32_t UknVsAttrDmg1;
-    uint32_t UknVsAttrPsh1;
-    uint32_t UknVsAttrGrb1;
-    uint32_t UknVsAttrAtk2;
-    uint32_t UknVsAttrDmg2;
-    uint32_t UknVsAttrPsh2;
-    uint32_t UknVsAttrGrb2;
-    uint32_t UknVsAttrAtk3;
-    uint32_t UknVsAttrDmg3;
-    uint32_t UknVsAttrPsh3;
-    uint32_t UknVsAttrGrb3;
-    uint32_t UknVsAttrAtk4;
-    uint32_t UknVsAttrDmg4;
-    uint32_t UknVsAttrPsh4;
-    uint32_t UknVsAttrGrb4;
-    uint32_t UknCollisionToggle;
-    uint32_t mCollisionGroupNum;
-    uintptr_t mppCollisionGroup[32];
-    uint32_t padding3d8[6];
+    uint8_t mDamage;// 0x1A
+    uint8_t mPsh; // 0x1B
+    uint8_t mLand; // 0x1C
+    uint8_t mTimedForceLand; // 0x1D
+    uint8_t mSetLand; // 0x1E
+    uint8_t mWall; // 0x1F
+    uint8_t mCeilling; // 0x20
+    short padding21; // 0x21
+    uint8_t mNoLandTimerEnable; // 0x23
+    float mNoLandTimer; // 0x24
+    float mNoLandTime;  // 0x28
+    uint8_t ForceLandFlag; // 0x2C
+    uint8_t mOldLand;  // 0x2D
+    uint8_t mOldSetLand; // 0x2E
+    uint8_t mOldWall; // 0x2F
+    uint8_t mOldCeilling; // 0x30
+    uint8_t mCheckWallEnable; // 0x31
+    uint8_t mCheckGroundEnable; // 0x32
+    char padding33[9]; // 0x33
+    uint8_t mFall; // 0x3C
+    uint8_t NoLandTimerType; // 0x3D
+    uint8_t NoLandDTSwitch; // 0x3E
+    uint8_t field25_0x3f; // 0x3F
+    uint32_t NoLandTimerType2; // 0x40
+    float DamageValueCorrect; // 0x44
+    uint32_t EnemyCollisionToggle; // 0x48
+    uint32_t padding4c; // 0x4C
+    MtVector3 LockonTargetPos; // 0x50
+    uintptr_t LockonTarget; // 0x60
+    uint32_t padding64[3]; // 0x64
+    MtVector3 uknFixedVec1; // 0x70
+    MtMatrix GroundMat; // 0x80
+    MtVector3 uknFixedVec2; // 0xC0
+    uint32_t mWeightType; // 0xD0
+    uint32_t mModelID; // 0xD4
+    uintptr_t mpReportActor; // 0xD8
+    uActor *mpDstModel; // 0xDC
+    uActor *mpSrcModel; // 0xE0
+    uintptr_t uknSrcModelPtr; // 0xE4
+    uint32_t paddinge8[17]; // 0xE8
+    uint32_t mPushType; // 0x12C
+    uintptr_t mpPushModel; // 0x130
+    uint32_t padding134[3]; // 0x134
+    MtCapsule mPushCap; // 0x140
+    MtCapsule mPushCap1; // 0x170
+    MtVector3 mPushPos; // 0x1A0
+    MtVector3 mPushPosOld; // 0x1B0
+    MtMatrix field50_0x1c0; // 0x1C0
+    MtMatrix field51_0x200; // 0x200
+    char padding240[64]; // 0x240
+    uint32_t uknToggle; // 0x280
+    uintptr_t mpCollisionIdxData; // 0x284
+    uintptr_t mpCollisionShape; // 0x288
+    uintptr_t mpAttackStatusData; // 0x28C
+    uintptr_t mpDefendStatusData; // 0x290
+    uint32_t mInDamageMessage; // 0x294
+    uint32_t currentMotBuffer; // 0x298
+    uint32_t MotSeq1; // 0x29C
+    uint32_t MotSeq2; // 0x2A0
+    uint8_t HitCheckFlag; // 0x2A4
+    uint8_t HitConfirm; // 0x2A5
+    uint8_t mSelfCollision; // 0x2A6
+    uint8_t padding2a7; // 0x2A7
+    uCollisionMgr *uknCollMgrPtr; // 0x2A8
+    uint32_t mMode; // 0x2AC
+    uint32_t mVsAttrPlAtk; // 0x2B0
+    uint32_t mVsAttrPlDmg; // 0x2B4
+    uint32_t mVsAttrPlPsh; // 0x2B8
+    uint32_t mVsAttrPlGrb; // 0x2BC
+    uint32_t mVsAttrPsAtk; // 0x2C0
+    uint32_t mVsAttrPsDmg; // 0x2C4
+    uint32_t mVsAttrPsPsh; // 0x2C8
+    uint32_t mVsAttrPsGrb; // 0x2CC
+    uint32_t mVsAttrEmAtk; // 0x2D0
+    uint32_t mVsAttrEmDmg; // 0x2D4
+    uint32_t mVsAttrEmPsh; // 0x2D8
+    uint32_t mVsAttrEmGrb; // 0x2DC
+    uint32_t mVsAttrEsAtk; // 0x2E0
+    uint32_t mVsAttrEsDmg; // 0x2E4
+    uint32_t mVsAttrEsPsh; // 0x2E8
+    uint32_t mVsAttrEsGrb; // 0x2EC
+    uint32_t mVsAttrSetAtk; // 0x2F0
+    uint32_t mVsAttrSetDmg; // 0x2F4
+    uint32_t mVsAttrSetPsh; // 0x2F8
+    uint32_t mVsAttrSetGrb; // 0x2FC
+    uint32_t mVsAttrStgAtk; // 0x300
+    uint32_t mVsAttrStgDmg; // 0x304
+    uint32_t mVsAttrStgPsh; // 0x308
+    uint32_t mVsAttrStgGrb; // 0x30C
+    uint32_t UknVsAttrAtk1; // 0x310
+    uint32_t UknVsAttrDmg1; // 0x314
+    uint32_t UknVsAttrPsh1; // 0x318
+    uint32_t UknVsAttrGrb1; // 0x31C
+    uint32_t UknVsAttrAtk2; // 0x320
+    uint32_t UknVsAttrDmg2; // 0x324
+    uint32_t UknVsAttrPsh2; // 0x328
+    uint32_t UknVsAttrGrb2; // 0x32C
+    uint32_t UknVsAttrAtk3; // 0x330
+    uint32_t UknVsAttrDmg3; // 0x334
+    uint32_t UknVsAttrPsh3; // 0x338
+    uint32_t UknVsAttrGrb3; // 0x33C
+    uint32_t UknVsAttrAtk4; // 0x340
+    uint32_t UknVsAttrDmg4; // 0x344
+    uint32_t UknVsAttrPsh4; // 0x348
+    uint32_t UknVsAttrGrb4; // 0x34C
+    uint32_t UknCollisionToggle; // 0x350
+    uint32_t mCollisionGroupNum; // 0x354
+    uintptr_t mppCollisionGroup[32]; // 0x358
+    uint32_t padding3d8[6]; // 0x3D8
 };
 static_assert(sizeof(uCollisionMgr) == 0x3f0);
 
