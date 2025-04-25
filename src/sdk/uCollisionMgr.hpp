@@ -98,6 +98,7 @@ struct MtCapsule {
     undefined field13_0x2e;
     undefined field14_0x2f;
 };
+static_assert(sizeof(MtCapsule) == 0x30);
 
 struct MtFloat3 {
     float x;
@@ -191,6 +192,7 @@ struct cUnit {
     float m_delta_time;
     uint8_t reserved_state_flags[4];
 };
+static_assert(sizeof(cUnit) == 0x18);
 
 struct uCoord {
     struct cUnit cUnitBase;
@@ -526,4 +528,4 @@ struct uCollisionMgr {
     uintptr_t mppCollisionGroup[32];
     uint padding3d8[6];
 };
-
+static_assert(sizeof(uCollisionMgr) == 0x3f0);

@@ -658,13 +658,9 @@ namespace gui {
 
                 pmods->on_draw_ui("StylePoints"_hash); // needs its own line
 
-                pmods->on_draw_ui("FlyingEnemyStats"_hash);
-
                 ImGui::SeparatorText(_("dmc4_hook"));
 
                 pmods->on_draw_ui("MessageDisplayMod"_hash);
-
-                ImGui::Checkbox(_("showDemoWindow"), &showDemoWindow);
 
                 ImGui::SeparatorText(_("Camera"));
 
@@ -715,6 +711,8 @@ namespace gui {
 
                 pmods->on_draw_ui("VisualizeHitbox"_hash);
 
+                pmods->on_draw_ui("FlyingEnemyStats"_hash);
+
                 ImGui::SeparatorText(_("Misc"));
 
                 pmods->on_draw_ui("RoomRespawn"_hash);
@@ -724,6 +722,8 @@ namespace gui {
                 pmods->on_draw_ui("EffectColours"_hash);
 
                 ImGui::SeparatorText(_("Testing"));
+
+                ImGui::Checkbox(_("showDemoWindow"), &showDemoWindow);
 
                 // pmods->onDrawUI("ShaderEditor"_hash);
 

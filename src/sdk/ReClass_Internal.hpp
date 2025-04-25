@@ -13,6 +13,7 @@ using Vector4 = glm::vec4;
 #include <cstdint>*/
 
 #include <vector>
+#include <string>
 
 enum class GameDifficulty : uint32_t {
     HUMAN                 = 0,
@@ -46,6 +47,112 @@ static const std::vector<std::pair<uint16_t, const char*>> buttonPairs = {
     {0x2000, "B"},
     {0x4000, "A"},
     {0x8000, "X"}
+};
+
+enum ATTACK_DIRECTION_CMD {
+    LOCKON_MELEE               = 0,
+    LOCKON_GUN                 = 1,
+    LOCKON_STYLE               = 2,
+    LOCKON_FORWARD_MELEE       = 3,
+    LOCKON_BACK_MELEE          = 4,
+    LOCKON_FORWARD_GUN         = 5,
+    LOCKON_BACK_GUN            = 6,
+    LOCKON_FORWARD_STYLE       = 7,
+    LOCKON_BACK_STYLE          = 8,
+    LOCKON_FORWARD_MELEE2      = 9,
+    LOCKON_BACK_MELEE2         = 10,
+    LOCKON_FORWARD_GUN2        = 11,
+    LOCKON_BACK_GUN2           = 12,
+    LOCKON_FORWARD_STYLE2      = 13,
+    LOCKON_BACK_STYLE2         = 14,
+    LOCKON_FORWARD_MELEE_STICK = 15,
+    LOCKON_BACK_MELEE_STICK    = 16,
+    LOCKON_FORWARD_GUN_STICK   = 17,
+    LOCKON_BACK_GUN_STICK      = 18,
+    LOCKON_FORWARD_STYLE_STICK = 19,
+    LOCKON_BACK_STYLE_STICK    = 20,
+    LOCKON_ANYDIRECTION_MELEE  = 21,
+    LOCKON_ANYDIRECTION_GUN    = 22,
+    LOCKON_ANYDIRECTION_STYLE  = 23,
+    ANYDIRECTION_MELEE         = 24,
+    ANYDIRECTION_GUN           = 25,
+    ANYDIRECTION_STYLE         = 26,
+    // ...
+    GUN_RELEASE         = 32,
+    GUN_CHARGED_RELEASE = 33,
+    LOCKON_GUN_CHARGE   = 34,
+    GUN_CHARGE_2OR3     = 35,
+    GUN_CHARGE3         = 36,
+    GUN_CHARGE4         = 37,
+    GUN_CHARGE_3        = 38,
+    // ...
+    MELEE_STYLE              = 81,
+    LOCKON_BACKFORWARD_MELEE = 82,
+    // 83
+    GUN = 84
+};
+
+enum class WEIGHT_TYPE : uint32_t {
+  WT_NO_WEIGHT = 0x0,
+  WT_LIGHT0 = 0x1,
+  WT_LIGHT1 = 0x2,
+  WT_LIGHT2 = 0x3,
+  WT_LIGHT3 = 0x4,
+  WT_MIDDLE0 = 0x5,
+  WT_MIDDLE1 = 0x6,
+  WT_MIDDLE2 = 0x7,
+  WT_MIDDLE3 = 0x8,
+  WT_HEAVY0 = 0x64,
+  WT_HEAVY1 = 0x78,
+  WT_HEAVY2 = 0x8C,
+  WT_HEAVY3 = 0xA0,
+  WT_MAX_WEIGHT = 0x3E8,
+  WT_MAX_WEIGHT2 = 0x2710,
+  WT_MAX = 0x2711,
+};
+
+enum class COLLISION_ACTOR_TYPE : uint32_t {
+  PL = 0x0,
+  PS = 0x1,
+  EM = 0x2,
+  ES = 0x3,
+  SET = 0x4,
+  STG = 0x5,
+  MAX_COLLISION_ACTOR_TYPE = 0x6,
+};
+
+enum ENEMY_ID : int {
+  SCARECROW_LEG = 0, // Legcrow
+  SCARECROW_ARM = 1, // Armcrow
+  SCARECROW_MEGA = 2, // Mega
+  EM003 = 3,
+  ANGELO_BIANCO = 4,
+  ANGELO_ALTO = 5,
+  EM006 = 6,
+  EM007 = 7,
+  MEPHISTO = 8,
+  FAUST = 9,
+  FROST = 10,
+  ASSAULT = 11,
+  BLITZ = 12,
+  CHIMERA = 13,
+  EM014 = 14,
+  CUTLASS = 15,
+  GLADIUS = 16,
+  BASILISK = 17,
+  BERIAL = 18,
+  BAEL = 19,
+  EM020 = 20,
+  ECHIDNA = 21,
+  CREDO = 22,
+  AGNUS = 23,
+  EM024 = 24,
+  SAVIOR = 25,
+  EM026 = 26,
+  EM027 = 27,
+  EM028 = 28,
+  SANCTUS_M11 = 29,
+  SANCTUS_M20 = 30,
 };
 
 class cAreaJump;
@@ -327,10 +434,10 @@ class uActor {
 class MtMatrix
 {
 public:
-	Vector4 m1; //0x0000
-	Vector4 m2; //0x0010
-	Vector4 m3; //0x0020
-	Vector4 m4; //0x0030
+	Vector4f m1; //0x0000
+	Vector4f m2; //0x0010
+	Vector4f m3; //0x0020
+	Vector4f m4; //0x0030
 }; //Size: 0x0040
 static_assert(sizeof(MtMatrix) == 0x40);
 
@@ -351,6 +458,236 @@ public:
 	char reserved_state_flags[4]; //0x0014
 }; //Size: 0x0018
 static_assert(sizeof(CUnit) == 0x18);
+
+struct MtVector3 { /* 10 */
+    float x;
+    float y;
+    float z;
+    int padding;
+};
+
+struct MtCapsule {
+    MtVector3 p0;
+    MtVector3 p1;
+    float r;
+    char field3_0x24;
+    char field4_0x25;
+    char field5_0x26;
+    char field6_0x27;
+    char field7_0x28;
+    char field8_0x29;
+    char field9_0x2a;
+    char field10_0x2b;
+    char field11_0x2c;
+    char field12_0x2d;
+    char field13_0x2e;
+    char field14_0x2f;
+};
+static_assert(sizeof(MtCapsule) == 0x30);
+
+struct MtFloat3 {
+    float x;
+    float y;
+    float z;
+};
+
+struct MtSphere {
+    MtFloat3 pos;
+    float r;
+};
+
+struct MtVector4 { /* MtFramework vector */
+    float x;
+    float y;
+    float z;
+    float w;
+};
+
+struct cFreeze {
+    void *vtable;
+    uint8_t mSchedulerMode;
+    uint8_t mEnable;
+    uint16_t padding6;
+    uintptr_t mpTexBase;
+    uintptr_t mpTexNormal;
+    uintptr_t mpTexMask;
+    uint32_t padding14[3];
+    MtVector3 mSphereCenter;
+    float mSphereBandwith;
+    float mIceBias;
+    float mFresnelBias;
+    float mFresnelFactor;
+    float mSpecularPow;
+    float mEnvmapPower;
+    float mNormalBias;
+    float mNormalWrap;
+    MtVector3 mTransmit;
+    uint32_t mFog;
+    float mSphereRadiusMax;
+    float mSphereRadiusMin;
+    float mIceTransparencyMax;
+    float mIceTransparencyMin;
+    float mFreezeTimerMax;
+    float mFreezeTimerNow;
+    float mSphereRadius;
+    float mIceTransparency;
+    uint32_t padding84[3];
+};
+
+struct cWorkRate {
+    void *vtable;
+    float mWorkRate;
+    uint32_t mType;
+    float HalfRate;
+    struct uDevil4Model *mpModel;
+};
+
+struct MtEaseCurve {
+    float p1;
+    float p2;
+};
+
+struct cUnit {
+    void *vtable_ptr;
+    uint8_t uknFlag1;
+    uint8_t uknFlag2;
+    uint8_t mTransMode;
+    uint8_t mTransView;
+    cUnit *mp_next_unit;
+    cUnit *mp_prev_unit;
+    float m_delta_time;
+    uint8_t reserved_state_flags[4];
+};
+static_assert(sizeof(cUnit) == 0x18);
+
+struct uCoord {
+    cUnit cUnitBase;
+    uintptr_t* mParent;
+    int ParentJoint;
+    int mOrder;
+    int padding24[3];
+    MtVector3 mPos;
+    MtVector4 mQuat;
+    MtVector3 mScale;
+    MtMatrix mLmat;
+    MtMatrix mWmat;
+};
+
+struct uCollisionMgr {
+    cUnit base; // 0x00
+    uint8_t mHit; // 0x18
+    uint8_t mGrab; // 0x19
+    uint8_t mDamage; // 0x1a
+    uint8_t mPsh; // 0x1b
+    uint8_t mLand; // 0x1c
+    uint8_t mTimedForceLand;
+    uint8_t mSetLand;
+    uint8_t mWall;
+    uint8_t mCeilling;
+    short padding21;
+    uint8_t mNoLandTimerEnable;
+    float mNoLandTimer;
+    float mNoLandTime;
+    uint8_t ForceLandFlag;
+    uint8_t mOldLand;
+    uint8_t mOldSetLand;
+    uint8_t mOldWall;
+    uint8_t mOldCeilling;
+    uint8_t mCheckWallEnable;
+    uint8_t mCheckGroundEnable;
+    char padding33[9];
+    uint8_t mFall;
+    uint8_t NoLandTimerType;
+    uint8_t NoLandDTSwitch;
+    uint8_t field25_0x3f;
+    uint32_t NoLandTimerType2;
+    float DamageValueCorrect;
+    uint32_t EnemyCollisionToggle;
+    uint32_t padding4c;
+    MtVector3 LockonTargetPos;
+    uintptr_t LockonTarget;
+    uint32_t padding64[3];
+    MtVector3 uknFixedVec1;
+    MtMatrix GroundMat;
+    MtVector3 uknFixedVec2;
+    uint32_t mWeightType;
+    uint32_t mModelID;
+    uintptr_t mpReportActor;
+    uActor *mpDstModel; /* Created by retype action */
+    uActor *mpSrcModel;
+    uintptr_t uknSrcModelPtr;
+    uint32_t paddinge8[17];
+    uint32_t mPushType;
+    uintptr_t mpPushModel;
+    uint32_t padding134[3];
+    MtCapsule mPushCap;
+    MtCapsule mPushCap1;
+    MtVector3 mPushPos;
+    MtVector3 mPushPosOld;
+    MtMatrix field50_0x1c0;
+    MtMatrix field51_0x200;
+    char padding240[64];
+    uint32_t uknToggle;
+    uintptr_t mpCollisionIdxData;
+    uintptr_t mpCollisionShape;
+    uintptr_t mpAttackStatusData;
+    uintptr_t mpDefendStatusData;
+    uint32_t mInDamageMessage;
+    uint32_t currentMotBuffer;
+    uint32_t MotSeq1;
+    uint32_t MotSeq2;
+    uint8_t HitCheckFlag;
+    uint8_t HitConfirm;
+    uint8_t mSelfCollision;
+    uint8_t padding2a7;
+    uCollisionMgr *uknCollMgrPtr;
+    uint32_t mMode;
+    uint32_t mVsAttrPlAtk;
+    uint32_t mVsAttrPlDmg;
+    uint32_t mVsAttrPlPsh;
+    uint32_t mVsAttrPlGrb;
+    uint32_t mVsAttrPsAtk;
+    uint32_t mVsAttrPsDmg;
+    uint32_t mVsAttrPsPsh;
+    uint32_t mVsAttrPsGrb;
+    uint32_t mVsAttrEmAtk;
+    uint32_t mVsAttrEmDmg;
+    uint32_t mVsAttrEmPsh;
+    uint32_t mVsAttrEmGrb;
+    uint32_t mVsAttrEsAtk;
+    uint32_t mVsAttrEsDmg;
+    uint32_t mVsAttrEsPsh;
+    uint32_t mVsAttrEsGrb;
+    uint32_t mVsAttrSetAtk;
+    uint32_t mVsAttrSetDmg;
+    uint32_t mVsAttrSetPsh;
+    uint32_t mVsAttrSetGrb;
+    uint32_t mVsAttrStgAtk;
+    uint32_t mVsAttrStgDmg;
+    uint32_t mVsAttrStgPsh;
+    uint32_t mVsAttrStgGrb;
+    uint32_t UknVsAttrAtk1;
+    uint32_t UknVsAttrDmg1;
+    uint32_t UknVsAttrPsh1;
+    uint32_t UknVsAttrGrb1;
+    uint32_t UknVsAttrAtk2;
+    uint32_t UknVsAttrDmg2;
+    uint32_t UknVsAttrPsh2;
+    uint32_t UknVsAttrGrb2;
+    uint32_t UknVsAttrAtk3;
+    uint32_t UknVsAttrDmg3;
+    uint32_t UknVsAttrPsh3;
+    uint32_t UknVsAttrGrb3;
+    uint32_t UknVsAttrAtk4;
+    uint32_t UknVsAttrDmg4;
+    uint32_t UknVsAttrPsh4;
+    uint32_t UknVsAttrGrb4;
+    uint32_t UknCollisionToggle;
+    uint32_t mCollisionGroupNum;
+    uintptr_t mppCollisionGroup[32];
+    uint32_t padding3d8[6];
+};
+static_assert(sizeof(uCollisionMgr) == 0x3f0);
 
 class UCoord : public CUnit
 {
@@ -528,7 +865,7 @@ class uEnemy {
 public:
     char pad_0[0x8];
     uEnemy* nextEnemy; // 0x8
-    char pad_C[0x4];
+    char pad_c[0x4];
     float delta; // 0x10
     uint8_t moveID; // 0x14
     uint8_t movePart; // 0x15
@@ -552,7 +889,7 @@ public:
     uint16_t animID; // 0x334
     char pad_336[0x12];
     float animFrame; // 0x348
-    float animFrameMax; // 0x34C
+    float animFrameMax; // 0x34c
     char pad_350[0xb50];
     uint16_t launchStateThing1; // 0xea0
     char pad_ea2[0x6];
@@ -561,21 +898,28 @@ public:
     bool inBattle; // 0x1404
     bool isActive; // 0x1405
     char pad_1406[0xa];
-    int ID; // 0x1410
-    char pad_1414[0x74];
+    ENEMY_ID ID; // 0x1410
+    int team; // 0x1414
+    char pad_1418[0x70];
     float DTTimer; // 0x1488
     bool DT; // 0x148c
     char pad_148d[0x73];
     uEnemyDamagePossibility DamagePtrMephistoFaustAssaultGladius; // 0x1500
-    uEnemyDamagePossibility DamagePtrAltoBiancoFrostBlitz; // 0x1504
+    uEnemyDamagePossibility DamagePtrAltoBiancoFrostBlitzBoss; // 0x1504
     uEnemyDamagePossibility DamagePtrCutlass; // 0x1508
     char pad_150c[0x20];
     uEnemyDamagePossibility DamagePtrScarecrowLegArmMega; // 0x152c
-    char pad_1530[0xec];
-    bool grounded; // 0x161c
-    char pad_161d[0x523];
+    char pad_1530[0xd0];
+    uCollisionMgr collisionSettings; // 0x1600
+    char pad_19f0[0x150];
     Vector3f velocity; // 0x1b40
-    char pad_1b4c[0x424];
+    char pad_1b4c[0x20];
+    float berialFireHalf; // 0x1b6c
+    float berialFireMax; // 0x1b70
+    char pad_1b74[0x8];
+    float berialFireTimer; // 0x1b7c
+    float berialFire; // 0x1b80
+    char pad_1b84[0x3ec];
     float assaultDifficulty; // 0x1f70
     char pad_1f74[0xe8];
     float gladiusTimer; // 0x205c
@@ -594,54 +938,13 @@ public:
     char pad_22e8[0x14e0];
     float angeloShield; // 0x37c8
     float angeloShieldMax; // 0x37cc
-    char pad_37d0[0x47f4];
-    uEnemyDamagePossibility DamagePtrBasilisk; // 0x7fc4
-}; // Size: 0x7fc8
-static_assert(sizeof(uEnemy) == 0x7fc8);
-
-class uBoss {
-public:
-    char pad_0[0x14];
-    uint8_t moveID; // 0x14
-    uint8_t movePart; // 0x15
-    char pad_16[0x1a];
-    Vector3f position; // 0x30
-    char pad_3c[0x4];
-    Vector3f rotation; // 0x40
-    float behindRotation; // 0x4c
-    Vector3f scale; // 0x50
-    char pad_5c[0x2d8];
-    uint16_t animID; // 0x334
-    char pad_335[0x12];
-    float animFrame; // 0x348
-    float animFrameMax; // 0x34c
-    char pad_350[0x10bc];
-    int inputHold; // 0x140c
-    int ID; // 0x1410
-    char pad_1414[0x74];
-    float DTTimer; // 0x1488
-    bool DT; // 0x148c
-    char pad_148d[0x8f];
-    float HP; // 0x151c
-    float HPMax; // 0x1520
-    char pad_1524[0xc];
-    float HPTaken; // 0x1530
-    char pad_1534[0x638];
-    float berialFireHalf; // 0x1b6c
-    float berialFireMax; // 0x1b70
-    char pad_1b74[0x8];
-    float berialFireTimer; // 0x1b7c
-    float berialFire; // 0x1b80
-    char pad_1b84[0x184];
-    float sanctusHP; // 0x1d08
-    float sanctusHPMax; // 0x1d0c
-    char pad_1d10[0xc];
-    float sanctusHPTaken; // 0x1d1c
-    char pad_1d20[0x1b64];
+    char pad_37d0[0xb4];
     float credoShieldTimer; // 0x3884
     char pad_3888[0x34];
     float credoShield; // 0x38bc
-    char pad_38c0[0x15040];
+    char pad_38c0[0x4704];
+    uEnemyDamagePossibility DamagePtrBasilisk; // 0x7fc4
+    char pad_7fc8[0x10938];
     float sanctusShieldM11; // 0x18900
     char pad_18904[0x8];
     float sanctusShieldTimerM11; // 0x1890c
@@ -650,7 +953,7 @@ public:
     char pad_1dff8[0x8];
     float sanctusShieldTimerM20; // 0x1e000
 }; // Size: 0x1e004
-static_assert(sizeof(uBoss) == 0x1e004);
+static_assert(sizeof(uEnemy) == 0x1e004);
 
 class cCameraPlayer {
 public:
@@ -697,7 +1000,7 @@ public:
     char pad_0[0x24];
     class uPlayer* player_ptr; // 0x24
     char pad_28[0x88];
-    class uBoss* uBoss1; // 0xb0
+    class uEnemy* uBoss1; // 0xb0
     char pad_b4[0x1c];
     class uCameraCtrl* camera1; // 0xd0
     char pad_d4[0xc];
@@ -1018,7 +1321,7 @@ public:
     uint8_t airHikeCount; // 0x1e7e
     bool canAirHike; // 0x1e7f
     char pad_1e80[0xc];
-    CharacterSettingsOne* characterSettingsOne; // 0x1e8c
+    uCollisionMgr* collisionSettings; // 0x1e8c
     char pad_1e90[0xc];
     CharacterSettingsTwo* charactersettingsTwo; // 0x1e9c
     char pad_1ea0[0x8];
@@ -1036,7 +1339,7 @@ public:
     uEnemy* lockOnTargetPtr1; // 0x2000
     char pad_2004[0x1];
     bool enemyStepEnabled; // 0x2005
-    char pad_2006[0x02];
+    char pad_2006[0x2];
     bool grounded2; // 0x2008
     char pad_2009[0x167];
     Vector3f location2; // 0x2170

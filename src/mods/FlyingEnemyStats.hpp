@@ -16,6 +16,8 @@ public:
     static bool showFlyingEnemyMechanics;
     static bool showFlyingEnemyStunTimer;
     static bool showFlyingEnemyDebug;
+    static bool showFlyingEnemyCollisionData;
+    static int collisionPage;
 
     std::string get_mod_name() override { return "FlyingEnemyStats"; };
 

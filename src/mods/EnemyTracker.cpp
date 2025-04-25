@@ -55,39 +55,47 @@ std::optional<std::string> EnemyTracker::on_initialize() {
 int EnemyTracker::get_enemy_specific_damage_offset(int enemy_id) {
     switch (enemy_id) {
     // 0x1500
-    case 0x8: // mephisto
+    case MEPHISTO:
         return 0x1500;
-    case 0x9: // faust
+    case FAUST:
         return 0x1500;
-    case 0xB: // assault
+    case ASSAULT:
         return 0x1500;
-    case 0x10: // gladius
+    case GLADIUS:
         return 0x1500;
 
     // 0x1504
-    case 0x5: // Alto
+    case ANGELO_BIANCO:
         return 0x1504;
-    case 0x6: // Bianco
+    case ANGELO_ALTO:
         return 0x1504;
-    case 0xA: // Frost
+    case FROST:
         return 0x1504;
-    case 0xC: // Blitz
+    case BLITZ:
         return 0x1504;
+    case BERIAL:
+        return 1504;
 
-    // 1508
-    case 0xF: // Cutlass
+    // 0x1508
+    case CUTLASS:
         return 0x1508;
 
     // 0x152C
-    case 0x0: // Scarecrow Leg
+    case SCARECROW_LEG:
         return 0x152C;
-    case 0x1: // Scarecrow Arm
+    case SCARECROW_ARM:
         return 0x152C;
-    case 0x3: // Scarecrow Mega
+    case SCARECROW_MEGA:
         return 0x152C;
 
-    // 7FC4
-    case 0x11: // Basilisk
+    // 0x1CF0
+    case SANCTUS_M11:
+        return 0x1CF0;
+    case SANCTUS_M20:
+        return 0x1CF0;
+
+    // 0x7FC4
+    case BASILISK:
         return 0x7FC4;
     }
     return NULL;
@@ -106,7 +114,7 @@ static void save_load_enemy_info(bool isSave, uEnemy* enemy) {
             savedEnemyVelocity[2] = enemy->velocity[2];
             savedEnemyMoveID = enemy->moveID;
             savedEnemyAnimID = enemy->animID;
-            savedEnemyGrounded = enemy->grounded;
+            savedEnemyGrounded = enemy->collisionSettings.mLand;
             uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
             savedEnemyHP = currentEnemyDamage->HP;
             savedEnemyStun = currentEnemyDamage->stun[0];
@@ -124,7 +132,7 @@ static void save_load_enemy_info(bool isSave, uEnemy* enemy) {
             uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
             currentEnemyDamage->HP = savedEnemyHP;
             currentEnemyDamage->stun[0] = savedEnemyStun;
-            enemy->grounded = savedEnemyGrounded;
+            enemy->collisionSettings.mLand = savedEnemyGrounded;
             enemy->movePart = 0;
         }
     }
@@ -273,7 +281,7 @@ void EnemyTracker::on_gui_frame(int display) {
             ImGui::InputScalar(_("Move ID##2"), ImGuiDataType_U8, &currentEnemy->moveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
             ImGui::InputScalar(_("Move ID 2##2"), ImGuiDataType_U8, &currentEnemy->animID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
             ImGui::InputScalar(_("Move Part##2"), ImGuiDataType_U8, &currentEnemy->movePart);
-            ImGui::InputScalar(_("Grounded##2"), ImGuiDataType_U8, &currentEnemy->grounded);
+            ImGui::InputScalar(_("Grounded##2"), ImGuiDataType_U8, &currentEnemy->collisionSettings.mLand);
             ImGui::InputFloat(_("Animation Frame##2"), &currentEnemy->animFrame);
             if (ImGui::CollapsingHeader(_("Saved Info"))) {
                 ImGui::InputScalar(_("Enemy Move ID"), ImGuiDataType_U8, &savedEnemyMoveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
@@ -287,48 +295,6 @@ void EnemyTracker::on_gui_frame(int display) {
             ImGui::Unindent(lineIndent);
         }
     }
-    if (ImGui::CollapsingHeader(_("Display Boss Stats"))) {
-        ImGui::Indent(lineIndent);
-        ImGui::PushItemWidth(sameLineItemWidth);
-        SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
-        if (s_med_ptr) {
-            if (s_med_ptr->uBoss1) {
-                ImGui::Spacing();
-                ImGui::InputFloat3(_("XYZ Position##3"), (float*)&s_med_ptr->uBoss1->position);
-                ImGui::InputFloat4(_("XYZ Rotation##3"), (float*)&s_med_ptr->uBoss1->rotation);
-                ImGui::InputFloat3(_("XYZ Scale##3"), (float*)&s_med_ptr->uBoss1->scale);
-                ImGui::InputFloat(_("HP##3"), &s_med_ptr->uBoss1->HP);
-                ImGui::InputFloat(_("Max HP##3"), &s_med_ptr->uBoss1->HPMax);
-                ImGui::InputScalar(_("Move ID##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->moveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-                ImGui::InputScalar(_("Move Part##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->movePart, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-                ImGui::InputScalar(_("Move ID 2##3"), ImGuiDataType_U8, &s_med_ptr->uBoss1->animID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-                ImGui::InputFloat(_("Animation Frame##3"), &s_med_ptr->uBoss1->animFrame);
-
-                if (ImGui::Button(_("Save State##3"))) {
-                    save_load_boss_info(true);
-                }
-                ImGui::SameLine();
-                help_marker(_("Hotkey is PAGE UP by default"));
-
-                if (ImGui::Button(_("Load State##3"))) {
-                    save_load_boss_info(false);
-                }
-                ImGui::SameLine();
-                help_marker(_("Hotkey is PAGE DOWN by default"));
-            }
-        }
-        if (ImGui::CollapsingHeader(_("Saved Info##Boss"))) {
-            ImGui::InputScalar(_("Enemy Move ID##Boss"), ImGuiDataType_U8, &savedEnemyMoveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-            ImGui::InputScalar(_("Enemy Move ID 2##Boss"), ImGuiDataType_U8, &savedEnemyAnimID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-            ImGui::InputFloat3(_("Enemy Position##Boss"), savedEnemyPosition);
-            ImGui::InputFloat(_("Enemy Rotation##Boss"), &savedEnemyRotation);
-            ImGui::InputFloat3(_("Enemy Velocity##Boss"), savedEnemyVelocity);
-            ImGui::InputScalar(_("Enemy Grounded##Boss"), ImGuiDataType_U8, &savedEnemyGrounded);
-        }
-        ImGui::PopItemWidth();
-        ImGui::Unindent(lineIndent);
-    }
-
     ImGui::Checkbox(_("Enable Save/Load hotkeys"), &hotkey_enabled);
     ImGui::SameLine();
     help_marker(_("Assuming default hotkeys,\nHome+End will save and load enemy attacks\nPage Up+Page Down will save and load boss attacks"));

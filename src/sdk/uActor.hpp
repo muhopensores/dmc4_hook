@@ -520,7 +520,7 @@ namespace uActorMain {
         uintptr_t mppCollisionGroup[32];
         uint32_t padding3d8[6];
     };
-    //static_assert(sizeof(uCollisionMgr) == 0x3f0);
+    static_assert(sizeof(uCollisionMgr) == 0x3f0);
 
     struct uCamera {
         struct cUnit base;

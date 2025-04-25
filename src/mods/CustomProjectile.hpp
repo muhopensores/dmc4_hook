@@ -7,7 +7,7 @@
 
 typedef uActorMain::uActor::uActor uActor_t;
 typedef uActorMain::uModelMain::uModel uModel_t;
-typedef uActorMain::uCollisionMgr uCollisionMgr;
+// typedef uActorMain::uCollisionMgr uCollisionMgr;
 
 class CustomProjectileVtable {
 public:

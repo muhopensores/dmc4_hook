@@ -35,6 +35,40 @@ enum class GameMode : int {
 	HELL_AND_HELL = 0,
 };
 
+enum class ENEMY_ID : int {
+  SCARECROW_LEG = 0, // Legcrow
+  SCARECROW_ARM = 1, // Armcrow
+  SCARECROW_MEGA = 2, // Mega
+  EM003 = 3,
+  ANGELO_BIANCO = 4,
+  ANGELO_ALTO = 5,
+  EM006 = 6,
+  EM007 = 7,
+  MEPHISTO = 8,
+  FAUST = 9,
+  FROST = 10,
+  ASSAULT = 11,
+  BLITZ = 12,
+  CHIMERA = 13,
+  EM014 = 14,
+  CUTLASS = 15,
+  GLADIUS = 16,
+  BASILISK = 17,
+  BERIAL = 18,
+  BAEL = 19,
+  EM020 = 20,
+  ECHIDNA = 21,
+  CREDO = 22,
+  AGNUS = 23,
+  EM024 = 24,
+  SAVIOR = 25,
+  EM026 = 26,
+  EM027 = 27,
+  EM028 = 28,
+  SANCTUS_M11 = 29,
+  SANCTUS_M20 = 30,
+};
+
 class Vector3f {
 	float x;
 	float y;
@@ -53,6 +87,10 @@ class Matrix4x4 {
 };
 
 class roomInfo{};
+
+class uCollisionMgr {
+  char pad_00[0x3f0]
+};
 
 class aGame {
 	//virtual functions1To9 @ 0x00
@@ -134,19 +172,6 @@ class uBoss {
 	float HPTaken @ 0x1530
 	float DTTimer @ 0x1488
 	bool DT @ 0x148C
-	float berialFireHalf @ 0x1B6C
-	float berialFireMax @ 0x1B70
-	float berialFireTimer @ 0x1B7C
-	float berialFire @ 0x1B80
-	float sanctusHP @ 0x1D08
-	float sanctusHPMax @ 0x1D0C
-	float sanctusHPTaken @ 0x1D1C
-	float credoShieldTimer @ 0x3884
-	float credoShield @ 0x38BC
-	float sanctusShieldM11 @ 0x18900
-	float sanctusShieldTimerM11 @ 0x1890C
-	float sanctusShieldM20 @ 0x1DFF4
-	float sanctusShieldTimerM20 @ 0x1E000
 };
 
 class uEnemyDamage {
@@ -184,15 +209,21 @@ class uEnemy {
 	uint16_t launchStateThing2 @ 0xEA8 // enemy doesn't take air stun without OA set
 	bool inBattle @ 0x1404
 	bool isActive @ 0x1405
-	int ID @ 0x1410
+	ENEMY_ID ID @ 0x1410
+	int team @ 0x1414
 	float DTTimer @ 0x1488
 	bool DT @ 0x148C
 	class uEnemyDamagePossibility DamagePtrMephistoFaustAssaultGladius @ 0x1500
-	class uEnemyDamagePossibility DamagePtrAltoBiancoFrostBlitz @ 0x1504
+	class uEnemyDamagePossibility DamagePtrAltoBiancoFrostBlitzBoss @ 0x1504
 	class uEnemyDamagePossibility DamagePtrCutlass @ 0x1508
 	class uEnemyDamagePossibility DamagePtrScarecrowLegArmMega @ 0x152C
-	bool grounded @ 0x161C
+	uCollisionMgr collisionSettings @ 0x1600
 	Vector3f velocity @ 0x1B40
+	float berialFireHalf @ 0x1B6C
+	float berialFireMax @ 0x1B70
+	float berialFireTimer @ 0x1B7C
+	float berialFire @ 0x1B80
+	class uEnemyDamagePossiblity DamagePtrSanctus @ 0x1CF0
 	float assaultDifficulty @ 0x1F70
 	bool gladiusBuried @ 0x21D4
 	float gladiusTimer @ 0x205C // various timers - buried, attack wait, attack time
@@ -205,7 +236,13 @@ class uEnemy {
 	float faustCloakMax @ 0x22E4
 	float angeloShield @ 0x37C8
 	float angeloShieldMax @ 0x37CC
+	float credoShieldTimer @ 0x3884
+	float credoShield @ 0x38BC
 	class uEnemyDamagePossibility DamagePtrBasilisk @ 0x7FC4
+	float sanctusShieldM11 @ 0x18900
+	float sanctusShieldTimerM11 @ 0x1890C
+	float sanctusShieldM20 @ 0x1DFF4
+	float sanctusShieldTimerM20 @ 0x1E000
 };
 
 ////////////////////uPlayer start
@@ -382,7 +419,7 @@ class uPlayer : public UCoord{
 	uint8_t weight @ 0x1E7D
 	uint8_t airHikeCount @ 0x1E7E
 	bool canAirHike @ 0x1E7F
-	CharacterSettingsOne* characterSettingsOne @ 0x1E8C
+	uCollisionMgr* collisionSettings @ 0x1E8C
 	CharacterSettingsTwo* charactersettingsTwo @ 0x1E9C
 	CharacterSettingsThree* charactersettingsThree @ 0x1EA8
 	float DT @ 0x1F24

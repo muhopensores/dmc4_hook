@@ -1251,8 +1251,8 @@ static void DrawTonyScores() {
         static float alphaWhenLanded = 0.0f;
 
         bool isInAir = false;
-        if (player->characterSettingsOne)
-            isInAir = !player->characterSettingsOne->groundedActual;
+        if (player->collisionSettings)
+            isInAir = !player->collisionSettings->mLand;
         bool justBecameAirborne = wasGrounded && isInAir;
         wasGrounded = !isInAir;
 

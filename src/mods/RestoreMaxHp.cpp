@@ -84,7 +84,12 @@ void RestoreMaxHp::restore_health_and_timer(SMediator* s_med_ptr, uPlayer* playe
         }
     }
     if (s_med_ptr->uBoss1) {
-        s_med_ptr->uBoss1->HP = s_med_ptr->uBoss1->HPMax;
+        int damage_info_offset = get_enemy_specific_damage_offset(s_med_ptr->uBoss1->ID);
+        if (damage_info_offset != 0) {
+            float& enemy_hp = *reinterpret_cast<float*>(s_med_ptr->uBoss1 + damage_info_offset + 0x18);
+            float& enemy_max_hp = *reinterpret_cast<float*>(s_med_ptr->uBoss1 + damage_info_offset + 0x1C);
+            enemy_hp = enemy_max_hp;
+        }
     }
     if (reset_timer && player->grounded == 1 && (player->inputHold[0] & 0x10) && (player->inputHold[0] & 0x08)) {
         s_med_ptr->bpTimer = two_minutes_timer;

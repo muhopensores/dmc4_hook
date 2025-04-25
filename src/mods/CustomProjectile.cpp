@@ -244,7 +244,7 @@ void CustomProjectileProp::lifecycle_override() {
 
 void CustomProjectileProp::onhit_override(void* atk_param, void* dfd_param) {
     uCollisionMgr* target_collmgr = (uCollisionMgr*)*(uintptr_t*)((uintptr_t)dfd_param+0x98);
-    uActor_t* target = target_collmgr->mpReportActor;
+    uActor_t* target = (uActor_t*)target_collmgr->mpReportActor;
     if (!target)
         return;
     Vector3f glmThisVec = *(Vector3f*)&this->actor.uActorBase.uModelBase.uCoordBase.mWmat.vectors[3];
