@@ -11,6 +11,7 @@ public:
     std::optional<std::string> on_initialize() override;
 
     static int get_enemy_specific_damage_offset(int enemy_id);
+    static int get_enemy_specific_uCollision_offset(int enemy_id);
 
     static bool flyingAd;
     static bool flyingSpheres;
