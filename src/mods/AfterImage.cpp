@@ -15,7 +15,6 @@ constexpr size_t uActorVtableSize       = 79;
 typedef uActorMain::uActor::uActor uActor_t;
 typedef uActorMain::uModelMain::uModel uModel_t;
 typedef uActorMain::uDevil4Model uDevil4Model_t;
-typedef uActorMain::uCollisionMgr uCollisionMgr;
 
 struct AfterImgCtl {
 public:
