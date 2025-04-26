@@ -124,11 +124,11 @@ enum class COLLISION_ACTOR_TYPE : uint32_t {
 enum ENEMY_ID : int {
   SCARECROW_LEG = 0, // Legcrow
   SCARECROW_ARM = 1, // Armcrow
-  SCARECROW_MEGA = 2, // Mega
-  EM003 = 3,
-  ANGELO_BIANCO = 4,
-  ANGELO_ALTO = 5,
-  EM006 = 6,
+  EM002 = 2,
+  SCARECROW_MEGA = 3, // Mega
+  EM004 = 4,
+  ANGELO_BIANCO = 5,
+  ANGELO_ALTO = 6,
   EM007 = 7,
   MEPHISTO = 8,
   FAUST = 9,

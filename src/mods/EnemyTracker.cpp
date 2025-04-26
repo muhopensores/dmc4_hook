@@ -42,15 +42,6 @@ enum HotkeyIndexes {
     APPLY_BOSS_STATS_HOTKEY
 };
 
-std::optional<std::string> EnemyTracker::on_initialize() {
-    g_pd3dDevice = g_framework->get_d3d9_device();
-    after_reset();
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_HOME},  "Save Enemy Stats",  "save_enemy_stats_key");
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_END},   "Apply Enemy Stats", "apply_enemy_stats_key");
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_PRIOR}, "Save Boss Stats",   "save_boss_stats_key");
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_NEXT},  "Apply Boss Stats",  "apply_boss_stats_key");
-    return Mod::on_initialize();
-}
 
 int EnemyTracker::get_enemy_specific_damage_offset(int enemy_id) {
     switch (enemy_id) {
@@ -62,7 +53,7 @@ int EnemyTracker::get_enemy_specific_damage_offset(int enemy_id) {
     case ASSAULT:
         return 0x1500;
     case GLADIUS:
-        return 0x1500;
+        return 0x1700; // or 0x1500 if you spawn them!
 
     // 0x1504
     case ANGELO_BIANCO:
@@ -74,7 +65,9 @@ int EnemyTracker::get_enemy_specific_damage_offset(int enemy_id) {
     case BLITZ:
         return 0x1504;
     case BERIAL:
-        return 1504;
+        return 0x1504;
+    case BAEL:
+        return 0x1504;
 
     // 0x1508
     case CUTLASS:
@@ -94,11 +87,98 @@ int EnemyTracker::get_enemy_specific_damage_offset(int enemy_id) {
     case SANCTUS_M20:
         return 0x1CF0;
 
+    // 0x3284
+    case CHIMERA:
+        return 0x3284;
+
     // 0x7FC4
     case BASILISK:
         return 0x7FC4;
+
+    }
+
+    return NULL;
+}
+
+int EnemyTracker::get_enemy_specific_uCollision_offset(int enemy_id) {
+    switch (enemy_id) {
+
+    case SANCTUS_M11: //
+        return 0x1500;
+    case SANCTUS_M20: //
+        return 0x1500;
+
+    case SCARECROW_LEG: //
+        return 0x1600;
+    case SCARECROW_ARM: //
+        return 0x1600;
+    case SCARECROW_MEGA: //
+        return 0x1600;
+
+    case GLADIUS: //
+        return 0x1700;
+
+    case FROST: //
+        return 0x1710;
+    case CUTLASS: //
+        return 0x1710;
+    case BLITZ: //
+        return 0x1710;
+
+    case MEPHISTO: //
+        return 0x1720;
+    case FAUST: //
+        return 0x1720;
+    case ASSAULT: //
+        return 0x1720;
+
+    case ECHIDNA: //
+        return 0x1750;
+
+    case ANGELO_BIANCO: //
+        return 0x1840;
+    case ANGELO_ALTO: //
+        return 0x1840;
+    case CREDO: //
+        return 0x1840;
+    case AGNUS: //
+        return 0x1840;
+
+    case BERIAL: //
+        return 0x15F0;
+
+    case BAEL: //
+        return 0x1710;
+
+    case CHIMERA: //
+        return 0x3490;
+
+    case BASILISK: //
+        return 0x7BD0;
+
+
+    // case SANCTUS_M11:
+    //     return 0x1CF0;
+    // case SANCTUS_M20:
+    //     return 0x1CF0;
+
+    // case DANTE: // em_dante is enemy id 0 what do i do
+    //     return 0X14E00;
+
+    // case FAULT:
+
     }
     return NULL;
+}
+
+std::optional<std::string> EnemyTracker::on_initialize() {
+    g_pd3dDevice = g_framework->get_d3d9_device();
+    after_reset();
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_HOME},  "Save Enemy Stats",  "save_enemy_stats_key");
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_END},   "Apply Enemy Stats", "apply_enemy_stats_key");
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_PRIOR}, "Save Boss Stats",   "save_boss_stats_key");
+    utility::create_keyboard_hotkey(m_hotkeys, {VK_NEXT},  "Apply Boss Stats",  "apply_boss_stats_key");
+    return Mod::on_initialize();
 }
 
 // call with true to save, call with false to load
@@ -249,7 +329,7 @@ void EnemyTracker::on_gui_frame(int display) {
             }
 
             // i hate this, game accesses them from base ptr, e.g. [uEnemy+1544] for scarecrow hp
-            int damage_info_offset = get_enemy_specific_damage_offset(currentEnemy->ID);
+            int damage_info_offset = EnemyTracker::get_enemy_specific_damage_offset(currentEnemy->ID);
             uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)currentEnemy + damage_info_offset);
             ImGui::PushItemWidth(sameLineItemWidth);
             ImGui::InputFloat(_("HP##2"), &currentEnemyDamage->HP);

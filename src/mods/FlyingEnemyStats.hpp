@@ -5,7 +5,7 @@
 class FlyingEnemyStats : public Mod {
 public:
     FlyingEnemyStats() = default;
-
+    
     static bool flyingEnemyStats;
     static bool showFlyingEnemyHP;
     static bool showFlyingEnemyDamageTaken;
