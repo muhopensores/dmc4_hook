@@ -6,8 +6,11 @@
 #include "EnemyTracker.hpp"
 
 bool VisualizeHitbox::mod_enabled = false;
-bool VisualizeHitbox::mod_enabled2 = false;
 constexpr uintptr_t sMainAddr = 0x00E5574C;
+
+bool VisualizeHitbox::mod_enabled2 = false;
+// uintptr_t VisualizeHitbox::jmp_ret_pushboxes = NULL;
+// static uintptr_t pushboxAddr = NULL;
 
 struct kCollPrim {
     int mType;
@@ -169,7 +172,27 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
     }
 }
 
+// they just stutter between different entities with this,
+// and while it does find enemies like berial, pills are still not displayed
+/*naked void detour_pushboxes() {
+    _asm {
+            cmp byte ptr [VisualizeHitbox::mod_enabled2], 1
+            jne originalcode
+
+            mov dword ptr [pushboxAddr], edi
+
+        originalcode:
+            lea ebx,[edi+0x00000358]
+            jmp dword ptr [VisualizeHitbox::jmp_ret_pushboxes]
+    }
+}*/
+
 std::optional<std::string> VisualizeHitbox::on_initialize() {
+    /*if (!install_hook_offset(0x10CE33, hook1, &detour_pushboxes, &jmp_ret_pushboxes, 6)) {
+        spdlog::error("Failed to init detour_pushboxes\n");
+        return "Failed to init detour_pushboxes";
+	}*/
+
     return Mod::on_initialize();
 }
 
