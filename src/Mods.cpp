@@ -139,7 +139,7 @@
 #include "mods/EnemyStepDisplay.hpp"
 #include "mods/MultiCharFixes.hpp"
 #include "mods/FastRoundTrip.hpp"
-#include "mods/FlyingEnemyStats.hpp"
+#include "mods/FlyingStats.hpp"
 #include "mods/FireworksTweaks.hpp"
 #include "mods/CrossGunCharge.hpp"
 #include "mods/PandoraCharge.hpp"
@@ -297,7 +297,7 @@ Mods::Mods() {
     ADD_MOD(EnemyStepDisplay);
     ADD_MOD(MultiCharFixes);
     ADD_MOD(FastRoundTrip);
-    ADD_MOD(FlyingEnemyStats);
+    ADD_MOD(FlyingStats);
     ADD_MOD(FireworksTweaks);
     ADD_MOD(CrossGunCharge);
     ADD_MOD(PandoraCharge);

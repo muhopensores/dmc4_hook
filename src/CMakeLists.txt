@@ -16,8 +16,8 @@ set(MODS_SRC
   mods/CrossGunCharge.cpp
   mods/FireworksTweaks.hpp
   mods/FireworksTweaks.cpp
-  mods/FlyingEnemyStats.hpp
-  mods/FlyingEnemyStats.cpp
+  mods/FlyingStats.hpp
+  mods/FlyingStats.cpp
   mods/FastRoundTrip.hpp
   mods/FastRoundTrip.cpp
   mods/EnemyStepDisplay.hpp

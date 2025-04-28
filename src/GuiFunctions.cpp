@@ -713,7 +713,7 @@ namespace gui {
 
                 pmods->on_draw_ui("VisualizeHitbox"_hash);
 
-                pmods->on_draw_ui("FlyingEnemyStats"_hash);
+                pmods->on_draw_ui("FlyingStats"_hash);
 
                 ImGui::SeparatorText(_("Misc"));
 

@@ -272,7 +272,7 @@ static void LoadStateWithCurrentEnemy() {
 }
 
 void EnemyTracker::on_gui_frame(int display) {
-    if (ImGui::CollapsingHeader(_("Display Enemy Stats"))) {
+    if (ImGui::CollapsingHeader(_("[OLD] Display Enemy Stats"))) {
         ImGui::Indent(lineIndent);
         ImGui::Checkbox(_("[DEBUG] Flying Spheres"), &flyingSpheres);
         ImGui::SameLine();
@@ -358,14 +358,14 @@ void EnemyTracker::on_gui_frame(int display) {
             ImGui::InputFloat3(_("XYZ Rotation##2"), (float*)&currentEnemy->rotation);
             ImGui::InputFloat3(_("XYZ Velocity##2"), (float*)&currentEnemy->velocity);
             ImGui::InputFloat3(_("XYZ Scale##2"), (float*)&currentEnemy->scale);
-            ImGui::InputScalar(_("Move ID##2"), ImGuiDataType_U8, &currentEnemy->moveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-            ImGui::InputScalar(_("Move ID 2##2"), ImGuiDataType_U8, &currentEnemy->animID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("Move ID##2"), ImGuiDataType_U8, &currentEnemy->moveID);
+            ImGui::InputScalar(_("Move ID 2##2"), ImGuiDataType_U8, &currentEnemy->animID);
             ImGui::InputScalar(_("Move Part##2"), ImGuiDataType_U8, &currentEnemy->movePart);
             ImGui::InputScalar(_("Grounded##2"), ImGuiDataType_U8, &currentEnemy->collisionSettings.mLand);
             ImGui::InputFloat(_("Animation Frame##2"), &currentEnemy->animFrame);
             if (ImGui::CollapsingHeader(_("Saved Info"))) {
-                ImGui::InputScalar(_("Enemy Move ID"), ImGuiDataType_U8, &savedEnemyMoveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-                ImGui::InputScalar(_("Enemy Move ID 2"), ImGuiDataType_U8, &savedEnemyAnimID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+                ImGui::InputScalar(_("Enemy Move ID"), ImGuiDataType_U8, &savedEnemyMoveID);
+                ImGui::InputScalar(_("Enemy Move ID 2"), ImGuiDataType_U8, &savedEnemyAnimID);
                 ImGui::InputFloat3(_("Enemy Position"), savedEnemyPosition);
                 ImGui::InputFloat(_("Enemy Rotation"), &savedEnemyRotation);
                 ImGui::InputFloat3(_("Enemy Velocity"), savedEnemyVelocity);

@@ -156,7 +156,7 @@ static void PlayAnimID(int animID) {
 }
 
 void PlayerTracker::on_gui_frame(int display) {
-    if (ImGui::CollapsingHeader(_("Display Player Stats"))) {
+    if (ImGui::CollapsingHeader(_("[OLD] Display Player Stats"))) {
         uPlayer* player = devil4_sdk::get_local_player();
         SMediator* s_med_ptr = devil4_sdk::get_sMediator();
         if (player) {
@@ -173,7 +173,7 @@ void PlayerTracker::on_gui_frame(int display) {
             static int inputAnimID = 0;
             static bool loopAnimID = false;
             ImGui::PushItemWidth(sameLineItemWidth);
-            ImGui::InputInt(_("##InputAnimIDInputInt ##1"), &inputAnimID, 1, 10, ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputInt(_("##InputAnimIDInputInt ##1"), &inputAnimID);
             ImGui::PopItemWidth();
             ImGui::SameLine();
             if (ImGui::Button("Play Animation ID")) {
@@ -218,13 +218,13 @@ void PlayerTracker::on_gui_frame(int display) {
                 help_marker(_("If you press exceed while this timer is between 0 and 1, you'll get MAX-Act."));
             }
             ImGui::SliderFloat(_("Animation Frame ##1"), &player->animFrame, 0.0f, player->animFrameMax, "%.1f");
-            ImGui::InputScalar(_("Animation ID ##1"), ImGuiDataType_U16, &player->animID, NULL, NULL, "%04X", ImGuiInputTextFlags_CharsHexadecimal);
-            ImGui::InputScalar(_("Move ID ##1"), ImGuiDataType_U32, &player->moveIDBest, NULL, NULL, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
-            ImGui::InputScalar(_("Move ID2 ##1"), ImGuiDataType_U32, &player->moveID2, NULL, NULL, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
-            ImGui::InputScalar(_("Move Bank ##1"), ImGuiDataType_U32, &player->moveBank, NULL, NULL, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
-            ImGui::InputScalar(_("Move Part ##1"), ImGuiDataType_U32, &player->movePart, NULL, NULL, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
-            ImGui::InputScalar(_("Saved Move Bank ##1"), ImGuiDataType_U8, &savedPlayerMoveBank, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-            ImGui::InputScalar(_("Saved Move ID ##1"), ImGuiDataType_U8, &savedPlayerMoveID, NULL, NULL, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputScalar(_("Animation ID ##1"), ImGuiDataType_U16, &player->animID);
+            ImGui::InputScalar(_("Move ID ##1"), ImGuiDataType_U32, &player->moveIDBest);
+            ImGui::InputScalar(_("Move ID2 ##1"), ImGuiDataType_U32, &player->moveID2);
+            ImGui::InputScalar(_("Move Bank ##1"), ImGuiDataType_U32, &player->moveBank);
+            ImGui::InputScalar(_("Move Part ##1"), ImGuiDataType_U32, &player->movePart);
+            ImGui::InputScalar(_("Saved Move Bank ##1"), ImGuiDataType_U8, &savedPlayerMoveBank);
+            ImGui::InputScalar(_("Saved Move ID ##1"), ImGuiDataType_U8, &savedPlayerMoveID);
             ImGui::Unindent(lineIndent);
         }
     }
