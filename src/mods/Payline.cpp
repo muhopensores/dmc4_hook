@@ -1,5 +1,4 @@
 #include "Payline.hpp"
-#include "misc/kAtckDefTbl.cpp"
 #include "SDK/ReClass.hpp"
 #include "MoveTable.hpp"
 #include "TrackingFullHouse.hpp"
@@ -363,28 +362,26 @@ std::optional<std::string> Payline::on_initialize() {
 }
 
 void Payline::Payline_Toggle() {
-    kAtckDefTbl* NeroAtkTbl     = (kAtckDefTbl*)HookNeroKADTbl;
-    kAtckDefTbl* payline_params = &NeroAtkTbl[6];
-    kAtckDefTbl* hb_params      = &NeroAtkTbl[21];
-    kAtckDefTbl* dd_params      = &NeroAtkTbl[22];
+    kAtckDefTbl* payline_params = (kAtckDefTbl*)HookNeroKADTbl + MoveTable::extra_nero_moves + 6;
+    kAtckDefTbl* hb_params = (kAtckDefTbl*)HookNeroKADTbl + MoveTable::extra_nero_moves + 21;
+    kAtckDefTbl* dd_params = (kAtckDefTbl*)HookNeroKADTbl + MoveTable::extra_nero_moves + 22;
     if (mod_enabled) {
         helm_splitter_remap = true;
-        payline_params->atckAs    = 2;
+        payline_params->atckAs    = 2; // air condition
         hb_params->command.buffer = LOCKON_BACK_MELEE;
         dd_params->command.buffer = LOCKON_BACK_MELEE;
     }
     else {
         helm_splitter_remap = false;
-        payline_params->atckAs    = 1;
+        payline_params->atckAs    = 1; // air condition
         hb_params->command.buffer = LOCKON_FORWARD_MELEE2;
         dd_params->command.buffer = LOCKON_FORWARD_MELEE2;
     }
 }
 
 void Payline::Helm_Splitter_Toggle() {
-    kAtckDefTbl* NeroAtkTbl     = (kAtckDefTbl*)HookNeroKADTbl;
-    kAtckDefTbl* hb_params      = &NeroAtkTbl[21];
-    kAtckDefTbl* dd_params      = &NeroAtkTbl[22];
+    kAtckDefTbl* hb_params = (kAtckDefTbl*)HookNeroKADTbl + MoveTable::extra_nero_moves + 21;
+    kAtckDefTbl* dd_params = (kAtckDefTbl*)HookNeroKADTbl + MoveTable::extra_nero_moves + 22;
     if (helm_splitter_remap) {
         hb_params->command.buffer = LOCKON_BACK_MELEE;
         dd_params->command.buffer = LOCKON_BACK_MELEE;

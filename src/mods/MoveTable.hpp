@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../mod.hpp"
+#include "misc/kAtckDefTbl.cpp"
 
 extern uintptr_t HookDanteKADTbl;
 extern uintptr_t HookNeroKADTbl;
@@ -12,6 +13,11 @@ public:
     static uintptr_t jmp_ret1;
     static uintptr_t jmp_ret2;
     static uintptr_t jmp_ret3;
+
+    static int extra_nero_moves;
+    static int extra_dante_moves;
+
+    static int AirThrow;
 
     MoveTable() = default;
 
@@ -70,7 +76,7 @@ static const char* buttonMappingNames[] = {
     "24 - Any Direction + Melee", 
     "25 - Any Direction + Gun",
     "26 - Any Direction + Style",
-    "27 -",
+    "27 - Melee",
     "28 -",
     "29 -",
     "30 -",

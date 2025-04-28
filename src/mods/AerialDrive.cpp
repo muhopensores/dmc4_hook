@@ -1,5 +1,4 @@
 #include "AerialDrive.hpp"
-#include "misc/kAtckDefTbl.cpp"
 #include "SDK/ReClass.hpp"
 #include "MoveTable.hpp"
 
@@ -35,21 +34,19 @@ uintptr_t AerialDrive::jmp_ret8{NULL};
 uintptr_t AerialDrive::jmp_ret9{NULL};
     constexpr uintptr_t landing_cancel_call = 0x007AA6A0;
 
-
 void AerialDrive::toggle(bool enable) {
-    kAtckDefTbl* DanteAtkTbl = (kAtckDefTbl*)HookDanteKADTbl;
-    kAtckDefTbl* DriveEntry  = &DanteAtkTbl[5];
+    kAtckDefTbl* DriveEntry = (kAtckDefTbl*)HookDanteKADTbl + MoveTable::extra_dante_moves + 4;
     if (enable) {
         install_patch_absolute(0x00C3FFA0, patch1, "\x03", 2);//Move class aerial lock
         install_patch_offset(0x3D0E32, patch2, "\x90\x90\x90\x90\x90\x90",6);//unlock aerial permission
         install_patch_offset(0x3D0B5D, patch3, "\x90\x90\x90\x90\x90\x90",6);//extendable ground qd
-        DriveEntry->atckAs = 3;
+        DriveEntry->atckAs = 3; // air condition
     }
     else {
-        DriveEntry->atckAs = 1;
         patch1.reset();
         patch2.reset();
-        patch3.reset(); // do we not reset patch 3??????
+        patch3.reset();
+        DriveEntry->atckAs = 1; // air condition
     }
 }
 //Check

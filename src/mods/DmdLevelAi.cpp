@@ -9,6 +9,8 @@ std::optional<std::string> DmdLevelAi::on_initialize() {
     return Mod::on_initialize();
 }
 
+// called on enemy spawn, gets enemy difficulty from sMediator+0x134 and applies a different value depending on it
+// this change gets xmm0 get written 999.0f instead of 100.0f on BP 1
 void DmdLevelAi::toggle(bool enable) {
     if (enable) {
         install_patch_offset(0x05D598, patch, "\x74", 1);
@@ -46,7 +48,7 @@ void DmdLevelAi::on_gui_frame(int display) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker(_("Forces enemies to use the ingame Dante Must Die AI, even on non Dante Must Die difficulties"));
+    help_marker(_("Forces enemies to use the ingame Dante Must Die AI, even on non Dante Must Die difficulties\nTick before an enemy spawns"));
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Frenzied Boss AI"), &frenzied_enabled)) {
         frenzied_toggle(frenzied_enabled);

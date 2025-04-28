@@ -1,4 +1,5 @@
 #include "LuciAirThrow.hpp"
+#include "MoveTable.hpp"
 
 bool LuciAirThrow::mod_enabled { false };
 uintptr_t  LuciAirThrow::jmp_ret1 { NULL };
@@ -89,15 +90,29 @@ std::optional<std::string> LuciAirThrow::on_initialize() {
     return Mod::on_initialize();
 }
 
+void toggle(bool enabled) {
+    kAtckDefTbl* AirThrowEntry = (kAtckDefTbl*)HookDanteKADTbl + MoveTable::extra_dante_moves - MoveTable::AirThrow;
+    if (enabled) {
+        AirThrowEntry->command.atckCommandNo = 0;
+    }
+    else {
+        AirThrowEntry->command.atckCommandNo = 1;
+    }
+}
+
 void LuciAirThrow::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Lucifer Air Throw"), &mod_enabled);
+    if (ImGui::Checkbox(_("Lucifer Air Throw"), &mod_enabled)) {
+        toggle(mod_enabled);
+    }
     ImGui::SameLine();
-    help_marker(_("Add new move mimicking V5rgil's air taunt. Mapped to forward + melee\n"
-        "Tick this before loading a stage"));
+    help_marker(_("Add new move mimicking V5rgil's air taunt. Mapped to forward + melee"));
 }
 
 void LuciAirThrow::on_config_load(const utility::Config& cfg) {
 	mod_enabled = cfg.get<bool>("luci_air_throw").value_or(false);
+    if (mod_enabled) {
+        toggle(mod_enabled);
+    }
 };
 
 void LuciAirThrow::on_config_save(utility::Config& cfg) {

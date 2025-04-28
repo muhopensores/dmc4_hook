@@ -1,5 +1,4 @@
 #include "MoveTable.hpp"
-#include "misc/kAtckDefTbl.cpp"
 
 // mods that require this:
 #include "AerialStinger.hpp"
@@ -15,11 +14,17 @@ uintptr_t  MoveTable::jmp_ret1 { NULL };
 uintptr_t  MoveTable::jmp_ret2 { NULL };
 uintptr_t  MoveTable::jmp_ret3 { NULL };
 
+// When we need to access values from this array, add this to keep it consistent
+int MoveTable::extra_nero_moves = 0;
+int MoveTable::extra_dante_moves = 0;
+
 constexpr uintptr_t NativeDanteKADTbl = 0x00C3FEA0;
 constexpr uintptr_t NativeNeroKADTbl = 0x00C3EE40;
 uintptr_t HookDanteKADTbl { NULL };
 uintptr_t HookNeroKADTbl { NULL };
 static bool display_move_table { false };
+
+int MoveTable::AirThrow = 0;
 
 /*void MoveTable::toggle(bool enable) {
     if (enable) {
@@ -51,18 +56,18 @@ naked void detour0(void) { // MoveTable toggle() function
 naked void detour1(void) { // Assign Dante's kAtckDefTbl
     _asm  {
             push eax
-            cmp byte ptr [AerialStinger::mod_enabled], 1
-            je newcode
-            cmp byte ptr [LuciAirThrow::mod_enabled], 1
-            je newcode
-            jmp originalcode
+            // cmp byte ptr [AerialStinger::mod_enabled], 1
+            // je newcode
+            // cmp byte ptr [LuciAirThrow::mod_enabled], 1
+            // je newcode
+            // jmp originalcode
 
-        newcode:
+        // newcode:
             mov eax, HookDanteKADTbl
             mov dword ptr [edi+0x1DCC], eax
             jmp cont
 
-        originalcode:
+        // originalcode:
             mov eax, [NativeDanteKADTbl]
             mov [edi+0x1DCC], eax
         cont:
@@ -74,16 +79,16 @@ naked void detour1(void) { // Assign Dante's kAtckDefTbl
 naked void detour2(void) { // Assign Nero's kAtckDefTbl
     _asm  {
             push eax
-            cmp byte ptr [Payline::mod_enabled], 1
-            je newcode
-            jmp originalcode
+            // cmp byte ptr [Payline::mod_enabled], 1
+            // je newcode
+            // jmp originalcode
 
-        newcode:
+        // newcode:
             mov eax, HookNeroKADTbl
             mov dword ptr [esi+0x1DCC], eax
             jmp cont
 
-        originalcode:
+        // originalcode:
             mov eax, [NativeNeroKADTbl]
             mov [esi+0x1DCC], eax
         cont:
@@ -137,9 +142,18 @@ naked void detour3(void) { // Handle Dante's move call
     }
 }
 
+// Moves on the front have priority so its necessary to put them at the start
+// Initialize with buffer.commandNo set to 1 (5th value, 6th digit) so it's impossible to use until the cheat tickbox or load sets it 0
 void updateKDATbl() {
     // Put stuff here, IDs must be > 0x6B (107)
-    DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {2, 0x6D, 7, 1, 3, 6, (unsigned long)-1, 0, 2, 1, 0, 0, 0, 0x05000007}); // New splash
+    
+    // DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {}); // 
+    // MoveTable::Entry = MoveTable::extra_dante_moves;
+    // MoveTable::extra_dante_moves++;
+
+    DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {2, 0x6D, 7, 1, 0x00000103, 6, (unsigned long)-1, 0, 2, 1, 0, 0, 0, 0x05000007}); // New splash
+    MoveTable::extra_dante_moves++; // keep track of original table / newly added elements
+    MoveTable::AirThrow = MoveTable::extra_dante_moves; // Store index so we can find it
 
     // Terminate
     DanteAtckDefTbl.emplace_back(3);
@@ -193,45 +207,40 @@ void MoveTable::on_frame(fmilliseconds& dt) {
         ImGui::SetNextWindowSize(ImVec2(screenRes.x * 1.0f, screenRes.y * 0.4f), ImGuiCond_Once);
         if (ImGui::Begin("Attack Definitions UI", &display_move_table)) {
             static ImGuiTableFlags flags =
-                ImGuiTableFlags_RowBg |
-                ImGuiTableFlags_Borders |
-                ImGuiTableFlags_ScrollY |
-                ImGuiTableFlags_ScrollX;
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-            if (ImGui::BeginTable("ControlsTable", 4, ImGuiTableFlags_SizingFixedFit)) {
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text(_("Player Attack ID = %i"), player->moveID2);
-                
-                ImGui::TableNextColumn();
-                if (ImGui::Button("Use Current Move ID")) {
-                    sprintf_s(columnSearchBuffers[2], "%d", player->moveID2);
-                    columnSearchActive[2] = true;
-                    columnSearchIsExact[2] = enableExactMatch;
+            ImGuiTableFlags_RowBg |
+            ImGuiTableFlags_Borders |
+            ImGuiTableFlags_ScrollY |
+            ImGuiTableFlags_ScrollX;
+            ImGui::Text(_("Player Attack ID = %i"), player->moveID2);
+            ImGui::SameLine();
+            if (ImGui::Button("Use Current Move ID")) {
+                sprintf_s(columnSearchBuffers[2], "%d", player->moveID2);
+                columnSearchActive[2] = true;
+                columnSearchIsExact[2] = enableExactMatch;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Clear All Filters")) {
+                for (int i = 0; i < 18; i++) {
+                    columnSearchBuffers[i][0] = '\0';
+                    columnSearchActive[i] = false;
                 }
-                
-                ImGui::TableNextColumn();
-                if (ImGui::Button("Clear All Filters")) {
+            }
+            ImGui::SameLine();
+            bool oldExactMatch = enableExactMatch;
+            if (ImGui::Checkbox("Exact Match", &enableExactMatch)) {
+                if (oldExactMatch != enableExactMatch) {
                     for (int i = 0; i < 18; i++) {
-                        columnSearchBuffers[i][0] = '\0';
-                        columnSearchActive[i] = false;
-                    }
-                }
-                
-                ImGui::TableNextColumn();
-                bool oldExactMatch = enableExactMatch;
-                if (ImGui::Checkbox("Exact Match", &enableExactMatch)) {
-                    if (oldExactMatch != enableExactMatch) {
-                        for (int i = 0; i < 18; i++) {
-                            if (columnSearchActive[i]) {
-                                columnSearchIsExact[i] = enableExactMatch;
-                            }
+                        if (columnSearchActive[i]) {
+                            columnSearchIsExact[i] = enableExactMatch;
                         }
                     }
                 }
-                ImGui::EndTable();
             }
-            
+            ImGui::SameLine();
+            ImGui::Text(_("Nero Moves Added = %i"), MoveTable::extra_nero_moves);
+            ImGui::SameLine();
+            ImGui::Text(_("Dante Moves Added = %i"), MoveTable::extra_dante_moves);
+
             const char* columnHeaders[18] = {
                 "Entry", "Attr", "Id", "Level", "CmdTgl", "Cmd", "CmdNo", "Cnd", "Ukn", 
                 "CndWp", "CndStyle", "CndDT", "CndAir", 
@@ -265,6 +274,7 @@ void MoveTable::on_frame(fmilliseconds& dt) {
                 columnWidths[i] = fontSize * fontMultipliers[i];
             }
             
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
             if (ImGui::BeginTable("##AtckDefTable", 18, flags)) {
                 ImGui::TableSetupScrollFreeze(0, 2);
                 
@@ -543,6 +553,7 @@ void MoveTable::on_gui_frame(int display) {
                 }
                 display_attack_entry(&customTblEntry);
                 if (ImGui::Button(_("Create"))) {
+                    if (player->controllerID == 0) {
                     DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {
                         customTblEntry.atckAttr,
                         customTblEntry.atckId,
@@ -559,13 +570,28 @@ void MoveTable::on_gui_frame(int display) {
                         customTblEntry.cancelId[3],
                         customTblEntry.cancelId[4]
                         });
-                    if (player->controllerID == 0) {
                         player->kAtckDefTblPtr = (kAtckDefTbl*)HookDanteKADTbl;
-                        DanteAtckDefTbl.emplace_back(3);
+                        extra_dante_moves++;
                     }
                     else {
+                    NeroAtckDefTbl.insert(NeroAtckDefTbl.begin(), {
+                        customTblEntry.atckAttr,
+                        customTblEntry.atckId,
+                        customTblEntry.atckLevel,
+                        customTblEntry.atckInfo,
+                        customTblEntry.command.buffer,
+                        customTblEntry.atckConditionWp,
+                        customTblEntry.atckConditionStyle,
+                        customTblEntry.ukn,
+                        customTblEntry.atckAs,
+                        customTblEntry.cancelId[0],
+                        customTblEntry.cancelId[1],
+                        customTblEntry.cancelId[2],
+                        customTblEntry.cancelId[3],
+                        customTblEntry.cancelId[4]
+                        });
                         player->kAtckDefTblPtr = (kAtckDefTbl*)HookNeroKADTbl;
-                        NeroAtckDefTbl.emplace_back(3);
+                        extra_nero_moves++;
                     }
                 }
             }

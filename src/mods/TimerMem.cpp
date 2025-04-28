@@ -1,5 +1,6 @@
 #include "TimerMem.hpp"
 #include "TrickDown.hpp"
+#include "MoveTable.hpp"
 
 bool TimerMem::instant_honeycomb_enabled{ false };
 uintptr_t TimerMem::timer_jmp_ret{ NULL };
@@ -81,19 +82,33 @@ naked void timer_detour(void) { // ticks timer, player in ecx
             cmp byte ptr [ecx+0x16D0], 0 // lockon
 			je dontreplacetwosome
 			push eax
-			mov eax, 0x00C40DBC       // Twosome Time Address
-			mov dword ptr [eax], 0x45 // Honeycomb Fire ID
+			push ebx
+			mov eax, 0x38 // struct size
+			mov ebx, 69 // entry
+			add ebx, [MoveTable::extra_dante_moves] // + extra entries
+			imul ebx, eax
+			mov eax, [ecx+0x1DCC] // kAtckDefTblPtr
+			add eax, ebx // Twosome time start
+			mov dword ptr [eax+0x4], 0x45 // Replace Twosome Time ID with Honeycomb Fire ID
+			pop ebx
 			pop eax
 			jmp originalcode
 
 		dontreplacetwosome:
 			push eax
-			mov eax, 0x00C40DBC       // Twosome Time Address
-			mov dword ptr [eax], 0x44 // Twosome Time ID
+			push ebx
+			mov eax, 0x38 // struct size
+			mov ebx, 69 // entry
+			add ebx, [MoveTable::extra_dante_moves] // + extra entries
+			imul ebx, eax
+			mov eax, [ecx+0x1DCC] // kAtckDefTblPtr
+			add eax, ebx // Twosome time start
+			mov dword ptr [eax+0x4], 0x44 // Restore Honeycomb Fire ID
+			pop ebx
 			pop eax
 
 		originalcode:
-			test bl,01
+			test bl, 01
 			mov dword ptr [ecx+0x00000EA8], 00000000
 			jmp dword ptr [TimerMem::timer_jmp_ret]
 	}

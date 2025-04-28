@@ -1,5 +1,4 @@
 #include "AerialStinger.hpp"
-#include "misc/kAtckDefTbl.cpp"
 #include "MoveTable.hpp"
 
 #if 1
@@ -18,15 +17,19 @@ uintptr_t AerialStinger::jmp_ret6{NULL};
     constexpr uintptr_t detour6_jmp = 0x007CE861;
 
 void AerialStinger::toggle(bool enable) {
+    kAtckDefTbl* StingerEntry = (kAtckDefTbl*)HookDanteKADTbl + MoveTable::extra_dante_moves + 1;
     if (enable) {
         install_patch_absolute(0x00C3FEF8, patch1, "\x03", 2);//Move class aerial lock
         install_patch_offset(0x3CE6FA, patch2, "\x90\x90\x90\x90\x90\x90\x90\x90",8);//stinger inertia
+        StingerEntry->atckAs = 3; // air condition
     }
     else {
         patch1.reset();
         patch2.reset();
+        StingerEntry->atckAs = 1; // air condition
     }
 }
+
 //Aerial Stinger init
 naked void detour1() {
     _asm {
@@ -210,29 +213,16 @@ std::optional<std::string> AerialStinger::on_initialize() {
 }
 
 void AerialStinger::on_gui_frame(int display) {
-   if (ImGui::Checkbox(_("Aerial Stinger"), &mod_enabled)) {
+    if (ImGui::Checkbox(_("Aerial Stinger"), &mod_enabled)) {
         toggle(mod_enabled);
-        kAtckDefTbl* DanteAtkTbl = (kAtckDefTbl*)HookDanteKADTbl;
-        kAtckDefTbl* stinger_param = &DanteAtkTbl[2];
-        if (mod_enabled) {
-            stinger_param->atckAs = 3;
-        }
-        else {
-            stinger_param->atckAs = 1;
-        }
     }
     ImGui::SameLine();
-    help_marker(_("Allow Dante to use Stinger in the air\nTick this before loading a stage"));
+    help_marker(_("Allow Dante to use Stinger in the air"));
 }
 
 void AerialStinger::on_config_load(const utility::Config& cfg) {
 	mod_enabled = cfg.get<bool>("aerial_stinger").value_or(false);
 	toggle(mod_enabled);
-    if (mod_enabled) {
-        kAtckDefTbl* DanteAtkTbl = (kAtckDefTbl*)HookDanteKADTbl;
-        kAtckDefTbl* stinger_param = &DanteAtkTbl[2];
-        stinger_param->atckAs = 3;
-    }
 };
 
 void AerialStinger::on_config_save(utility::Config& cfg) {
