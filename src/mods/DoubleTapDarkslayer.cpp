@@ -2,27 +2,27 @@
 
 #if 1
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-uintptr_t DoubleTapDarkslayer::jmp_ret1{NULL};
+uintptr_t DoubleTapDarkslayer::jmp_ret1 = NULL;
 
-uintptr_t DoubleTapDarkslayer::jmp_ret2{NULL};
-uintptr_t DoubleTapDarkslayer::jmp_jb2{0x007B6CA1};
+uintptr_t DoubleTapDarkslayer::jmp_ret2 = NULL;
+uintptr_t DoubleTapDarkslayer::jmp_jb2 = 0x007B6CA1;
 
-uintptr_t DoubleTapDarkslayer::jmp_ret3{NULL};
-uintptr_t DoubleTapDarkslayer::jmp_jb3{0x007B6D00};
+uintptr_t DoubleTapDarkslayer::jmp_ret3 = NULL;
+uintptr_t DoubleTapDarkslayer::jmp_jb3 = 0x007B6D00;
 
-uintptr_t DoubleTapDarkslayer::jmp_ret4{NULL};
-uintptr_t DoubleTapDarkslayer::jmp_jb4{0x007B6D5B};
-
-
-uintptr_t DoubleTapDarkslayer::jmp_ret5{NULL};
-uintptr_t DoubleTapDarkslayer::jmp_jb5{0x007B6DB3};
+uintptr_t DoubleTapDarkslayer::jmp_ret4 = NULL;
+uintptr_t DoubleTapDarkslayer::jmp_jb4 = 0x007B6D5B;
 
 
-bool DoubleTapDarkslayer::mod_enabled{false};
+uintptr_t DoubleTapDarkslayer::jmp_ret5 = NULL;
+uintptr_t DoubleTapDarkslayer::jmp_jb5 = 0x007B6DB3;
 
-float DoubleTapDarkslayer::darkslayerTimer{0.0f};
-float DoubleTapDarkslayer::darkslayerTimerFill{0.0f};
-float DoubleTapDarkslayer::zeroFloat{0.0f};
+
+bool DoubleTapDarkslayer::mod_enabled = false;
+
+float DoubleTapDarkslayer::darkslayerTimer = 0.0f;
+float DoubleTapDarkslayer::darkslayerTimerFill = 0.0f;
+float DoubleTapDarkslayer::zeroFloat = 0.0f;
 
 naked void detour1(void) { // ticks and resets the timer // player in esi
     _asm {

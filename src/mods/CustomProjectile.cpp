@@ -1,8 +1,9 @@
 #include "CustomProjectile.hpp"
+#include "../sdk/Devil4.hpp"
 #include <cmath>
 
-uintptr_t CustomProjectile::jmp_ret1 { NULL };
-uintptr_t CustomProjectile::jmp_ret2{ NULL };
+uintptr_t CustomProjectile::jmp_ret1 = NULL;
+uintptr_t CustomProjectile::jmp_ret2 = NULL;
 constexpr uintptr_t rModelDTI = 0x00EADF48;
 constexpr uintptr_t rAtckStatDTI = 0x00E57498;
 constexpr uintptr_t rColShapeDTI = 0x00E575F8;

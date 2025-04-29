@@ -1,9 +1,8 @@
-
 #include "DmdLevelAi.hpp"
 
 #if 1
-bool DmdLevelAi::mod_enabled{ false };
-bool DmdLevelAi::frenzied_enabled{false};
+bool DmdLevelAi::mod_enabled = false;
+bool DmdLevelAi::frenzied_enabled = false;
 
 std::optional<std::string> DmdLevelAi::on_initialize() {
     return Mod::on_initialize();

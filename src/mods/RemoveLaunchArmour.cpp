@@ -1,6 +1,6 @@
 #include "RemoveLaunchArmour.hpp"
 
-bool RemoveLaunchArmour::mod_enabled{ false };
+bool RemoveLaunchArmour::mod_enabled = false;
 
 std::optional<std::string> RemoveLaunchArmour::on_initialize() {
     return Mod::on_initialize();

@@ -104,8 +104,8 @@ namespace utility
         std::string m_description;
         std::string m_config_entry;
 
-        bool m_setting{ false };
-        bool m_is_gamepad { false };
+        bool m_setting = false;
+        bool m_is_gamepad = false;
 
         char m_tmp_buf[2]{0};
 

@@ -1,7 +1,8 @@
 #include "EnemyStepDisplay.hpp"
+#include "../sdk/Devil4.hpp"
 
 #if 1
-bool EnemyStepDisplay::mod_enabled{false};
+bool EnemyStepDisplay::mod_enabled = false;
 uintptr_t EnemyStepDisplay::jmp_ret = NULL;
 bool EnemyStepDisplay::jc_possible = false;
 float EnemyStepDisplay::jc_possible_timer = 0.0f;

@@ -1,4 +1,3 @@
-
 #include "RoseOptions.hpp"
 
 #if 1

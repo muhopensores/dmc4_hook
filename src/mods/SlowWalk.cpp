@@ -1,6 +1,6 @@
 #include "SlowWalk.hpp"
 
-bool SlowWalk::mod_enabled{ false };
+bool SlowWalk::mod_enabled = false;
 
 std::optional<std::string> SlowWalk::on_initialize() {
     return Mod::on_initialize();

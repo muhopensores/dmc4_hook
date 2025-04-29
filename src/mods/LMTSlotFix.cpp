@@ -3,9 +3,9 @@
 #include "AerialStinger.hpp"
 #include "Payline.hpp"
 #include "LuciAirThrow.hpp"
-// bool LMTSlotFix::mod_enabled { true };
+// bool LMTSlotFix::mod_enabled = false;
 
-uintptr_t LMTSlotFix::jmp_ret1{ NULL };
+uintptr_t LMTSlotFix::jmp_ret1 = NULL;
     constexpr uintptr_t detour1_default_jmp = 0x42B936;
     constexpr uintptr_t detour1_jmp = 0x42B936;
 

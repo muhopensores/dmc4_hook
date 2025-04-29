@@ -1,7 +1,6 @@
 #include "InfAllHealth.hpp"
-#include "EnemySpawn.hpp"
 #include "iostream"
-
+#include "../sdk/Devil4.hpp"
 #include "glm/gtx/compatibility.hpp"
 
 #if 1

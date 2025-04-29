@@ -1,37 +1,36 @@
 #include "AerialDrive.hpp"
-#include "SDK/ReClass.hpp"
 #include "MoveTable.hpp"
 
 #if 1
-bool AerialDrive::mod_enabled{ false };
+bool AerialDrive::mod_enabled = false;
 
-uintptr_t AerialDrive::jmp_ret1{NULL};
+uintptr_t AerialDrive::jmp_ret1 = NULL;
     bool aerialDrive = false;
-uintptr_t AerialDrive::jmp_ret2{NULL};
+uintptr_t AerialDrive::jmp_ret2 = NULL;
     float ADgrav = -0.5f; 
     float ADbounce = 8.0f; 
-uintptr_t AerialDrive::jmp_ret3{NULL};
-uintptr_t AerialDrive::jmp_ret4{NULL};
+uintptr_t AerialDrive::jmp_ret3 = NULL;
+uintptr_t AerialDrive::jmp_ret4 = NULL;
     constexpr uintptr_t detour4_jb_addr = 0x007D0BB1;
     constexpr uintptr_t detour4_jmp = 0x007D0A7B;
     float adTimer = 7.0f;
     float orgTimer = 18.0f;
-uintptr_t AerialDrive::jmp_ret5{NULL};
+uintptr_t AerialDrive::jmp_ret5 = NULL;
     float detour5_float1 = 20.0f;
     float detour5_float2 = 5.0f;
     float detour5_float3 = 0.98f;
     float detour5_float4 = 1000000.0f;
     constexpr uintptr_t detour5_call = 0x7AA410;
     constexpr uintptr_t detour5_jmp = 0x7D0BB1;
-uintptr_t AerialDrive::jmp_ret6{NULL};
+uintptr_t AerialDrive::jmp_ret6 = NULL;
     constexpr uintptr_t detour6_jmp = 0x007CE861;
-uintptr_t AerialDrive::jmp_ret7{NULL};
-uintptr_t AerialDrive::jmp_ret8{NULL};
+uintptr_t AerialDrive::jmp_ret7 = NULL;
+uintptr_t AerialDrive::jmp_ret8 = NULL;
     float ADRecoveryGrav = -1.0f;
     float AirDriveBufferF = 20.0f;
     float detour8_float1 = 52.0f;
     float detour8_float2 = 3.0f;
-uintptr_t AerialDrive::jmp_ret9{NULL};
+uintptr_t AerialDrive::jmp_ret9 = NULL;
     constexpr uintptr_t landing_cancel_call = 0x007AA6A0;
 
 void AerialDrive::toggle(bool enable) {

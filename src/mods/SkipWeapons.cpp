@@ -2,14 +2,14 @@
 #include "SkipWeapons.hpp"
 
 #if 1
-static bool hooked{ false };
+static bool hooked = false;
 
-bool SkipWeapons::skip_shotgun{ false };
-bool SkipWeapons::skip_pandora{ false };
-bool SkipWeapons::skip_gilgamesh{false};
-bool SkipWeapons::skip_lucifer{ false };
-uintptr_t SkipWeapons::skip_dante_gun_continue{ NULL };
-uintptr_t SkipWeapons::skip_dante_sword_continue{ NULL };
+bool SkipWeapons::skip_shotgun = false;
+bool SkipWeapons::skip_pandora = false;
+bool SkipWeapons::skip_gilgamesh = false;
+bool SkipWeapons::skip_lucifer = false;
+uintptr_t SkipWeapons::skip_dante_gun_continue = NULL;
+uintptr_t SkipWeapons::skip_dante_sword_continue = NULL;
 
 naked void skip_dante_gun_proc(void) {
 	_asm {

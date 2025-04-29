@@ -1,10 +1,10 @@
 #include "TargetChangeDarkslayer.hpp"
 
 #if 1
-bool TargetChangeDarkslayer::mod_enabled{false};
-uintptr_t TargetChangeDarkslayer::jmp_ret{NULL};
-uintptr_t TargetChangeDarkslayer::jmp_conditional{0x007B6CF1};
-uintptr_t TargetChangeDarkslayer::jmp_ret2{NULL};
+bool TargetChangeDarkslayer::mod_enabled = false;
+uintptr_t TargetChangeDarkslayer::jmp_ret = NULL;
+uintptr_t TargetChangeDarkslayer::jmp_conditional = 0x007B6CF1;
+uintptr_t TargetChangeDarkslayer::jmp_ret2 = NULL;
 
 // add new requirement to entering darkslayer
 naked void detour(void) {

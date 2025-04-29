@@ -1,7 +1,5 @@
 #include "DifficultySelect.hpp"
 
-// bool DifficultySelect::modEnabled{ false };
-
 static int game_difficulty = 0;
 
 std::optional<std::string> DifficultySelect::on_initialize() {

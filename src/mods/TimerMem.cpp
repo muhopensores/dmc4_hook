@@ -2,9 +2,9 @@
 #include "TrickDown.hpp"
 #include "MoveTable.hpp"
 
-bool TimerMem::instant_honeycomb_enabled{ false };
-uintptr_t TimerMem::timer_jmp_ret{ NULL };
-uintptr_t TimerMem::back_forward_jmp_ret{ 0x00805A60 };
+bool TimerMem::instant_honeycomb_enabled = false;
+uintptr_t TimerMem::timer_jmp_ret = NULL;
+uintptr_t TimerMem::back_forward_jmp_ret = 0x00805A60;
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 float TimerMem::timer_mem = 0.0f;

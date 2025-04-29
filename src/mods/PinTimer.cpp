@@ -1,11 +1,9 @@
-#include "PinTimer.hpp"
-#include "../sdk/Devil4.hpp"
-
 #include "utility/Compressed.hpp"
 #include "utility/TextureAtlas.hpp"
 #include "utility/Dx9Utils.hpp"
-
+#include "PinTimer.hpp"
 #include "misc/PinTimerAtlas.cpp"
+#include "sdk/Devil4.hpp"
 
 // hopefully mister compiler calculates those at compile time, we dont have consteval from c++20
 // cba to switch to newer standards
@@ -37,9 +35,9 @@ void PinTimer::after_reset() {
     free(data);
 }
 
-static float G_WINDOW_HEIGHT_HACK_IDK{ 270.0f }; // fresh from my ass
-static bool CON_PIN_UI_DEBUG{ false };
-bool PinTimer::mod_enabled{ false };
+static float G_WINDOW_HEIGHT_HACK_IDK = 270.0f; // fresh from my ass
+static bool CON_PIN_UI_DEBUG = false;
+bool PinTimer::mod_enabled = false;
 
 std::optional<std::string> PinTimer::on_initialize() {
     auto [data, size] = utility::decompress_file_from_memory_with_size(pintimer_atlas_compressed_data, pintimer_atlas_compressed_size);

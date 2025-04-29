@@ -5,6 +5,7 @@
 #include <string>
 #include "LicenseStrings.hpp"
 #include "mods/MessageDisplay.hpp"
+#include "sdk/Devil4.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -484,7 +485,7 @@ namespace gui {
                         pmods->on_draw_ui("HighTimeWeaponSwitch"_hash, 2);
 
                         pmods->on_draw_ui("FasterFastDrive"_hash, 2); // easier quickdrive
-
+                        ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("TricksterDashDT"_hash, 2);
 
                         ImGui::SeparatorText(_("Speedups"));

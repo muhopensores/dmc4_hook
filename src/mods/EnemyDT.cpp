@@ -1,7 +1,7 @@
 #include "EnemyDT.hpp"
 
-bool EnemyDT::mod_enabled_no_dt{ false };
-bool EnemyDT::mod_enabled_instant_dt{ false };
+bool EnemyDT::mod_enabled_no_dt = false;
+bool EnemyDT::mod_enabled_instant_dt = false;
 
 std::optional<std::string> EnemyDT::on_initialize() {
     return Mod::on_initialize();

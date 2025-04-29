@@ -31,7 +31,7 @@ struct VoteManager {
     std::vector<size_t> m_voters;
 
     size_t m_prev_mod_idx{ 0 };
-    bool m_anti_anti_spam{ false };
+    bool m_anti_anti_spam = false;
     void on_chat_message(const std::string& sender, const std::string& msg);
 
     inline void stop_timers() {
@@ -96,16 +96,16 @@ public:
     int32_t m_vote_time{30};
     int32_t m_idle_time{15};
 
-    bool m_twitch_vote_debug{ false };
-    bool m_disable_overlay{ false };
-    bool m_relay_voting_messages{ true };
+    bool m_twitch_vote_debug = false;
+    bool m_disable_overlay = false;
+    bool m_relay_voting_messages = true;
 private:
     char twitch_login[128]{};
     char twitch_chat_oauth_password[128]{};
 
     ImFont* custom_window_font{};
 
-    HMODULE m_libirc{ NULL };
+    HMODULE m_libirc = NULL;
 
     void stop_voting();
     void start_voting();

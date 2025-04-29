@@ -1,10 +1,9 @@
-
 #include "RoseRemovesPins.hpp"
 
-bool RoseRemovesPins::mod_enabled{ false };
-bool RoseRemovesPins::mod_enabled2{false};
-uintptr_t RoseRemovesPins::jmp_ret{ NULL };
-uintptr_t RoseRemovesPins::jmp_out{ 0x00815970 };
+bool RoseRemovesPins::mod_enabled = false;
+bool RoseRemovesPins::mod_enabled2 = false;
+uintptr_t RoseRemovesPins::jmp_ret = NULL;
+uintptr_t RoseRemovesPins::jmp_out = 0x00815970;
 
 naked void detour(void) {
 	_asm {

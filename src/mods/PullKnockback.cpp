@@ -1,6 +1,6 @@
 #include "PullKnockback.hpp"
 #include "LuciAirThrow.hpp"
-uintptr_t PullKnockback::jmp_ret1{ NULL };
+uintptr_t PullKnockback::jmp_ret1 = NULL;
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 constexpr uintptr_t detour1_jmp = 0x4A9D47;
 

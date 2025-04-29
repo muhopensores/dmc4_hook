@@ -1,7 +1,7 @@
 #include "InfiniteTime.hpp"
 
 #if 1
-bool InfiniteTime::mod_enabled{ false };
+bool InfiniteTime::mod_enabled = false;
 
 std::optional<std::string> InfiniteTime::on_initialize() {
     return Mod::on_initialize();

@@ -1,11 +1,11 @@
 #include "CharacterSwap.hpp"
 #include "NoAutomaticCharacters.hpp"
 
-bool CharacterSwap::mod_enabled{ false };
-bool CharacterSwap::prefer_dante{ false };
-uintptr_t CharacterSwap::jmp_ret{NULL};
-uintptr_t CharacterSwap::jmp_ret2{NULL};
-uintptr_t CharacterSwap::jmp_jne{ 0x00405F62 };
+bool CharacterSwap::mod_enabled = false;
+bool CharacterSwap::prefer_dante = false;
+uintptr_t CharacterSwap::jmp_ret = NULL;
+uintptr_t CharacterSwap::jmp_ret2 = NULL;
+uintptr_t CharacterSwap::jmp_jne = 0x00405F62;
 
 void CharacterSwap::toggle(bool enable) {
     if (enable) {

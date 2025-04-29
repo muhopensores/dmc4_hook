@@ -345,8 +345,9 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                     ImGui::PushItemWidth(currentItemWidth * 2.0f);
                     ImGui::InputScalar(_("Base Addr"), ImGuiDataType_U32, &player, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
                     ImGui::InputFloat3(_("Position##EnemyFly"), (float*)&player->m_pos);
+                    ImGui::InputFloat(_("InertiaXZ##EnemyFly"), (float*)&player->inertia);
+                    ImGui::InputFloat(_("InertiaY##EnemyFly"), (float*)&player->inertiaY);
                     ImGui::InputFloat3(_("Velocity##EnemyFly"), (float*)&player->m_d_velocity);
-                    ImGui::InputFloat(_("Inertia##EnemyFly"), (float*)&player->inertia);
                     ImGui::InputFloat3(_("Scale##EnemyFly"), (float*)&player->m_scale);
                     ImGui::PopItemWidth();
                     ImGui::InputFloat(_("Rotation##EnemyFly"), (float*)&player->rotation2);

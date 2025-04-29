@@ -1,9 +1,9 @@
 #include "HpInOrbsDisplay.hpp"
 #include "InfAllHealth.hpp"
 
-bool HpInOrbsDisplay::mod_enabled{ false };
-uintptr_t HpInOrbsDisplay::jmp_ret{ NULL };
-static float xmm0backup{ NULL };
+bool HpInOrbsDisplay::mod_enabled = false;
+uintptr_t HpInOrbsDisplay::jmp_ret = NULL;
+static float xmm0backup = NULL;
 
 naked void detour(void) {
     _asm {

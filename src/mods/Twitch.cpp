@@ -5,6 +5,7 @@
 #include <random>
 #include <optional>
 #include "GuiFunctions.hpp"
+#include "../sdk/Devil4.hpp"
 
 static bool twitch_login_on_boot = false;
 
@@ -96,7 +97,7 @@ struct VotingState : public Voting {
     };
     VoteManager* m_vote_manager;
     utility::Timer* m_timer{ nullptr };
-    bool m_paused{ false };
+    bool m_paused = false;
     std::vector<VoteQueueEntry> m_queue;
 };
 

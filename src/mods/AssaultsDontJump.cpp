@@ -1,10 +1,11 @@
 #include "AssaultsDontJump.hpp"
 
 #if 1
-uintptr_t AssaultsDontJump::jmp_ret{NULL};
-uintptr_t AssaultsDontJump::jmp_out{0x005CC590};
+bool AssaultsDontJump::mod_enabled = false;
 
-bool AssaultsDontJump::mod_enabled{false};
+uintptr_t AssaultsDontJump::jmp_ret = NULL;
+uintptr_t AssaultsDontJump::jmp_out = 0x005CC590;
+
 
 naked void detour(void) {
     _asm {

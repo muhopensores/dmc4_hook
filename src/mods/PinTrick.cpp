@@ -1,23 +1,23 @@
 #include "PinTrick.hpp"
 
-bool PinTrick::mod_enabled{false};
-static bool PinTrickFlag{ false };
-uintptr_t PinPtr { NULL };
+bool PinTrick::mod_enabled = false;
+static bool PinTrickFlag = false;
+uintptr_t PinPtr = NULL;
 
-uintptr_t PinTrick::jmp_ret1{ NULL };
-uintptr_t PinTrick::jmp_ret2{ NULL };
-uintptr_t PinTrick::jmp_ret3{ NULL };
+uintptr_t PinTrick::jmp_ret1 = NULL;
+uintptr_t PinTrick::jmp_ret2 = NULL;
+uintptr_t PinTrick::jmp_ret3 = NULL;
     constexpr uintptr_t detour3_call1 = 0x007AD570;
     constexpr uintptr_t detour3_call2 = 0x00458210;
     constexpr float Y_adjustment = 200.0f;
     constexpr float TurnRate = 0.35f;
     constexpr uintptr_t detour3_jmp = 0x007CAFC3;
-uintptr_t PinTrick::jmp_ret4{ NULL };
+uintptr_t PinTrick::jmp_ret4 = NULL;
     constexpr uintptr_t detour4_jmp = 0x7CB011;
-uintptr_t PinTrick::jmp_ret5{ NULL };
+uintptr_t PinTrick::jmp_ret5 = NULL;
     constexpr float DefaultTrickRange = 500.0f;
     float TrickRange = 5000.0f;
-uintptr_t PinTrick::jmp_ret6{ NULL };
+uintptr_t PinTrick::jmp_ret6 = NULL;
 
 bool __stdcall CheckValidPin(uPlayer *player) {
     if (!player->luciferPins[0])

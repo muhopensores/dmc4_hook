@@ -4,8 +4,8 @@
 bool EasyJc::mod_enabled_nero = false;
 bool EasyJc::mod_enabled_dante = false;
 
-uintptr_t EasyJc::easy_jc_continue{ NULL };
-static float jc_scale{1.5f};
+uintptr_t EasyJc::easy_jc_continue = NULL;
+static float jc_scale = 1.5f;
 
 naked void easy_jc_proc(void) { // player in eax
     _asm {

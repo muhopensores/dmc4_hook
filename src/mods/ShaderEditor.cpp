@@ -10,10 +10,10 @@
 // draw commands seem to use POD structs so no MTFramework DTIs.
 // this also leaks memory
 
-static uintptr_t  jmp_return { NULL };
-static uintptr_t  jmp_return2 { NULL };
-static bool mod_enabled{ false };
-//uintptr_t  ModShaderEditor::some_shared_ptr{ NULL };
+static uintptr_t  jmp_return = NULL;
+static uintptr_t  jmp_return2 = NULL;
+static bool mod_enabled = false;
+//uintptr_t  ModShaderEditor::some_shared_ptr = NULL;
 
 class sRenderStub
 {

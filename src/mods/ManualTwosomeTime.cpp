@@ -1,8 +1,6 @@
-
 #include "ManualTwosomeTime.hpp"
 
-#if 1
-bool ManualTwosomeTime::mod_enabled{ false };
+bool ManualTwosomeTime::mod_enabled = false;
 
 std::optional<std::string> ManualTwosomeTime::on_initialize() {
     return Mod::on_initialize();
@@ -34,5 +32,3 @@ void ManualTwosomeTime::on_config_save(utility::Config& cfg)
 {
     cfg.set<bool>("manual_twosome_time", mod_enabled);
 }
-
-#endif

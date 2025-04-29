@@ -32,5 +32,5 @@ private:
     uintptr_t m_address{ 0 };
     std::vector<int16_t> m_bytes;
     std::vector<int16_t> m_original_bytes;
-    bool m_enabled{ false };
+    bool m_enabled = false;
 };

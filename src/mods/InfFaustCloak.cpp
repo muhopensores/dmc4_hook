@@ -1,8 +1,8 @@
 #include "InfFaustCloak.hpp"
 
 #if 1
-bool InfFaustCloak::always_cloak{false};
-bool InfFaustCloak::no_cloak{false};
+bool InfFaustCloak::always_cloak = false;
+bool InfFaustCloak::no_cloak = false;
 
 std::optional<std::string> InfFaustCloak::on_initialize() {
     return Mod::on_initialize();

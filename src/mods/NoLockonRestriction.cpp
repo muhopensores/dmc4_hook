@@ -1,6 +1,6 @@
 #include "NoLockonRestriction.hpp"
 
-bool NoLockonRestriction::mod_enabled { false };
+bool NoLockonRestriction::mod_enabled = false;
 
 void NoLockonRestriction::toggle(bool enable) {
     if (enable) {

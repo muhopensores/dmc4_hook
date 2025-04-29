@@ -1,6 +1,6 @@
 #include "MultiCharFixes.hpp"
 
-bool MultiCharFixes::targeting_fix;
+bool MultiCharFixes::targeting_fix = false;
 
 void MultiCharFixes::toggle_targeting_fix(bool enable) {
     if (enable) {

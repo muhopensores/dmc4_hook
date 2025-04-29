@@ -5,8 +5,7 @@
 
 using namespace std;
 
-
-bool g_is_min_hook_initialized{ false };
+bool g_is_min_hook_initialized = false;
 
 FunctionHook::FunctionHook(Address target, Address destination)
     : m_target{ 0 },

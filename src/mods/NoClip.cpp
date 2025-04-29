@@ -1,8 +1,8 @@
 #include "NoClip.hpp"
-#include "utility/MessageDisplay.hpp"
-#if 1
-bool NoClip::mod_enabled{false};
-bool NoClip::mod_enabled_2{false};
+#include "../sdk/Devil4.hpp"
+
+bool NoClip::mod_enabled = false;
+bool NoClip::mod_enabled_2 = false;
 bool player_lock_y_pos = false;
 float player_y_backup  = 0.0f;
 
@@ -123,5 +123,3 @@ void NoClip::on_update_input(utility::Input& input) {
         toggle(mod_enabled);
     }
 }
-
-#endif

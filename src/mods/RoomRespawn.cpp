@@ -1,13 +1,12 @@
-// include your mod header file
 #include "RoomRespawn.hpp"
 
-static uintptr_t  jmp_return { NULL };
-static uintptr_t  script_bp_jmp_return { NULL };
-static uintptr_t  script_mission_jmp_return { NULL };
+static uintptr_t  jmp_return = NULL;
+static uintptr_t  script_bp_jmp_return = NULL;
+static uintptr_t  script_mission_jmp_return = NULL;
 
 static uint32_t   g_spawn_index_cache{};
 
-bool RoomRespawn::g_reset_manager { false };
+bool RoomRespawn::g_reset_manager = false;
 
 struct RPlacement : CResource {};
 

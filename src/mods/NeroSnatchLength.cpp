@@ -1,8 +1,7 @@
-
 #include "NeroSnatchLength.hpp"
 
-bool NeroSnatchLength::mod_enabled{ false };
-uintptr_t NeroSnatchLength::jmp_ret{ NULL };
+bool NeroSnatchLength::mod_enabled = false;
+uintptr_t NeroSnatchLength::jmp_ret = NULL;
 static float desired_snatch_length = 2550.0f; // 3x lv3
 
 naked void detour(void) {

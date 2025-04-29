@@ -12,7 +12,6 @@ public:
 
     std::optional<std::string> on_initialize() override;
 
-    int get_enemy_specific_damage_offset(int enemy_id);
     void restore_health_and_timer(SMediator* s_med_ptr, uPlayer* player);
 
     void on_config_load(const utility::Config& cfg) override;

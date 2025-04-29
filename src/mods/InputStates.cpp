@@ -2,24 +2,24 @@
 #include "ActiveBlock.hpp"
 #include "ForceLucifer.hpp" // used to stop rose despawning when leaving lucifer
 #include "FasterFastDrive.hpp" // for easy fast drive
-#include "utility/MessageDisplay.hpp"
+#include "../sdk/Devil4.hpp"
 #if 1
 
-uintptr_t InputStates::jmp_return{ NULL };
-uintptr_t InputStates::jmp_return2{ NULL };
-uintptr_t InputStates::jmp_return3{ NULL };
+uintptr_t InputStates::jmp_return = NULL;
+uintptr_t InputStates::jmp_return2 = NULL;
+uintptr_t InputStates::jmp_return3 = NULL;
 
-uint32_t InputStates::inputpressed{ 0 };
-float InputStates::input_timer{ 0.0f };
-float InputStates::input_timer2{ 0.0f };
+uint32_t InputStates::inputpressed = 0;
+float InputStates::input_timer = 0.0f;
+float InputStates::input_timer2 = 0.0f;
 
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
-bool InputStates::touchpad_rose_enabled{ false };
-bool InputStates::rose_timer_active{ false };
+bool InputStates::touchpad_rose_enabled = false;
+bool InputStates::rose_timer_active = false;
 
-static bool b_rose_input{ false };
-static bool b_buffered_rose{ false };
+static bool b_rose_input = false;
+static bool b_buffered_rose = false;
 
 constexpr uintptr_t change_to_lucifer_call = 0x00836190;
 

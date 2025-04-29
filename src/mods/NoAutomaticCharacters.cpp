@@ -1,11 +1,10 @@
-
 #include "NoAutomaticCharacters.hpp"
 
-bool NoAutomaticCharacters::mod_enabled{ false };
-bool NoAutomaticCharacters::mod_enabled2{false};
-int NoAutomaticCharacters::lastPickedCharacter{ 0 };
-uintptr_t NoAutomaticCharacters::jmp_ret{ NULL };
-uintptr_t NoAutomaticCharacters::jmp_ret2{ NULL };
+bool NoAutomaticCharacters::mod_enabled = false;
+bool NoAutomaticCharacters::mod_enabled2 = false;
+int NoAutomaticCharacters::lastPickedCharacter = 0;
+uintptr_t NoAutomaticCharacters::jmp_ret = NULL;
+uintptr_t NoAutomaticCharacters::jmp_ret2 = NULL;
 
 enum class CharPortraitNums : int {
     DANTE = 0,

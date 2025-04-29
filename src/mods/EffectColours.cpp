@@ -1,7 +1,7 @@
 #include "EffectColours.hpp"
 
-bool      EffectColours::mod_enabled{ false };
-uintptr_t EffectColours::jmp_ret{ NULL };
+bool      EffectColours::mod_enabled = false;
+uintptr_t EffectColours::jmp_ret = NULL;
 int8_t coloursPicked[4]{(int8_t)255, (int8_t)255, (int8_t)0, (int8_t)255}; // bgra
 float coloursPickedFloat[4]{0.0f, 1.0f, 1.0f, 1.0f}; //rgba
 

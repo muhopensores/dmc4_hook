@@ -1,8 +1,7 @@
-
 #include "FreezeEnemies.hpp"
 
 #if 1
-bool FreezeEnemies::mod_enabled{ false };
+bool FreezeEnemies::mod_enabled = false;
 
 std::optional<std::string> FreezeEnemies::on_initialize() {
     console->system().RegisterCommand("freeze", "Freeze enemies in their current position", [this]() {

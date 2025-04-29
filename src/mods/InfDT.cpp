@@ -1,10 +1,7 @@
-
 #include "InfDT.hpp"
-#include "utility/MessageDisplay.hpp"
-#include "EnemySpawn.hpp"
 
-bool InfDT::mod_enabled{ false };
-uintptr_t InfDT::jmp_ret{ NULL };
+bool InfDT::mod_enabled = false;
+uintptr_t InfDT::jmp_ret = NULL;
 
 naked void detour(void) {
 	_asm {

@@ -1,33 +1,32 @@
 #include "Payline.hpp"
-#include "SDK/ReClass.hpp"
 #include "MoveTable.hpp"
 #include "TrackingFullHouse.hpp"
 //#include "MoveIDsNero.hpp"
 
 #if 1
-bool Payline::mod_enabled{ false };
-bool Payline::helm_splitter_remap{ false };
+bool Payline::mod_enabled = false;
+bool Payline::helm_splitter_remap = false;
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-uintptr_t Payline::full_house{ 0x007D3300 };
-uintptr_t Payline::nero_streak_1{ 0x007FDA80 };
-uintptr_t Payline::helm_splitter_directional{ 0x00C3F320 };
-uintptr_t Payline::double_down_directional{ 0x00C3F2E8 };
+uintptr_t Payline::full_house = 0x007D3300;
+uintptr_t Payline::nero_streak_1 = 0x007FDA80;
+uintptr_t Payline::helm_splitter_directional = 0x00C3F320;
+uintptr_t Payline::double_down_directional = 0x00C3F2E8;
 
 // jmp to double down is DevilMayCry4_DX9.exe+3F9DC7 jmp DevilMayCry4_DX9.exe+400810
 // call to rave is DevilMayCry4_DX9.exe+3F9D62 call DevilMayCry4_DX9.exe+3FCF10
 // move switch is DevilMayCry4_DX9.exe+3F9CE4 jmp dword ptr [ecx*4+007F9DE0]
 
-uintptr_t Payline::jmp_ret1{ NULL };
-uintptr_t Payline::jmp_ret2{ NULL };
-uintptr_t Payline::jmp_ret3{ NULL };
-uintptr_t Payline::jmp_ret4{ NULL };
-uintptr_t Payline::jmp_ret5{ NULL };
-uintptr_t Payline::jmp_jne5{ 0X0042BA72 };
-uintptr_t Payline::jmp_ret6{ NULL };
-uintptr_t Payline::jmp_ret7{ NULL };
-uintptr_t Payline::jmp_ret8{ NULL };
-uintptr_t Payline::jmp_ret9{ NULL };
-uintptr_t Payline::jmp_ret10{ NULL };
+uintptr_t Payline::jmp_ret1 = NULL;
+uintptr_t Payline::jmp_ret2 = NULL;
+uintptr_t Payline::jmp_ret3 = NULL;
+uintptr_t Payline::jmp_ret4 = NULL;
+uintptr_t Payline::jmp_ret5 = NULL;
+uintptr_t Payline::jmp_jne5 = 0X0042BA72;
+uintptr_t Payline::jmp_ret6 = NULL;
+uintptr_t Payline::jmp_ret7 = NULL;
+uintptr_t Payline::jmp_ret8 = NULL;
+uintptr_t Payline::jmp_ret9 = NULL;
+uintptr_t Payline::jmp_ret10 = NULL;
 
 static float payline_loop_frame = 8.0f; // landing
 static float payline_bounce = 10.0f; // how much bounce

@@ -1,17 +1,17 @@
 #include "AirMustang.hpp"
 
 #if 1
-bool AirMustang::mod_enabled{ false };
+bool AirMustang::mod_enabled = false;
 
-uintptr_t AirMustang::jmp_ret1{ NULL };
+uintptr_t AirMustang::jmp_ret1 = NULL;
     long long WriteMem = 0;
     bool flag = false;
-uintptr_t AirMustang::jmp_ret2{ NULL };
+uintptr_t AirMustang::jmp_ret2 = NULL;
     float MustangBounce = 0.0f;
     float MustangInertia = 15.0f;
     float MustangGrav = -2.0f;
     float AMstFrame = 10.0f;
-uintptr_t AirMustang::jmp_ret3{ NULL };
+uintptr_t AirMustang::jmp_ret3 = NULL;
     float InertiaMultiplier = 0.8f;
 
 naked void detour1() {

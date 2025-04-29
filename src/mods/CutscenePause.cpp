@@ -1,7 +1,7 @@
 #include "CutscenePause.hpp"
 
-bool  CutscenePause::mod_enabled{ false };
-uintptr_t CutscenePause::jmp_ret{ NULL };
+bool  CutscenePause::mod_enabled = false;
+uintptr_t CutscenePause::jmp_ret = NULL;
 float CutscenePause::cutsceneProgress = 0.0f;
 float CutscenePause::cutsceneLength = 10000.0f;
 bool wasToggled = false;

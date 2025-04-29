@@ -1,14 +1,13 @@
-
 #include "FastStart.hpp"
 
-static bool mod_enabled{ false };
-static bool skip_fades { false };
-static bool skip_more_fades{ false };
+static bool mod_enabled = false;
+static bool skip_fades = false;
+static bool skip_more_fades = false;
 
-static uintptr_t jmp_ret;
-static uintptr_t jmp_ret_u_fade;
+static uintptr_t jmp_ret = NULL;
+static uintptr_t jmp_ret_u_fade = NULL;
 
-constexpr float fade_ammount = 999.f;
+constexpr float fade_amount = 999.0f;
 
 static bool check_class_name(MtDTI* dti) {
 	char* a_title = "aInit";
@@ -65,7 +64,7 @@ naked void detour_u_fade() {
 		cmp byte ptr[skip_fades], 0
 		je originalCode
 
-		movss xmm0, dword ptr [fade_ammount]
+		movss xmm0, dword ptr [fade_amount]
 		movss dword ptr [esi+0x24], xmm0
 		movss dword ptr [esi+0x1C], xmm0
 		pop edi

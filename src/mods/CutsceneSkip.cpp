@@ -1,7 +1,7 @@
 #include "CutsceneSkip.hpp"
 
-bool CutsceneSkip::mod_enabled_intro{ false };
-bool CutsceneSkip::mod_enabled_outro{ false };
+bool CutsceneSkip::mod_enabled_intro = false;
+bool CutsceneSkip::mod_enabled_outro = false;
 
 std::optional<std::string> CutsceneSkip::on_initialize() {
     return Mod::on_initialize();

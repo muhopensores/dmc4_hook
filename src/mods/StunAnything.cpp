@@ -1,6 +1,6 @@
 #include "StunAnything.hpp"
 
-bool StunAnything::mod_enabled{ false };
+bool StunAnything::mod_enabled = false;
 
 std::optional<std::string> StunAnything::on_initialize() {
 

@@ -1,18 +1,18 @@
 #include "MoveTable.hpp"
-
+#include "../sdk/Devil4.hpp"
 // mods that require this:
 #include "AerialStinger.hpp"
 #include "Payline.hpp"
 #include "LuciAirThrow.hpp"
 // WARNING: you must also compare to these bools in LMT slot fix
 
-// bool MoveTable::mod_enabled { false };
+// bool MoveTable::mod_enabled  = false;
 
-uintptr_t  MoveTable::jmp_ret0 { NULL };
+uintptr_t  MoveTable::jmp_ret0 = NULL;
 uintptr_t jmp_je0 = 0x803D37;
-uintptr_t  MoveTable::jmp_ret1 { NULL };
-uintptr_t  MoveTable::jmp_ret2 { NULL };
-uintptr_t  MoveTable::jmp_ret3 { NULL };
+uintptr_t  MoveTable::jmp_ret1 = NULL;
+uintptr_t  MoveTable::jmp_ret2 = NULL;
+uintptr_t  MoveTable::jmp_ret3 = NULL;
 
 // When we need to access values from this array, add this to keep it consistent
 int MoveTable::extra_nero_moves = 0;
@@ -20,9 +20,9 @@ int MoveTable::extra_dante_moves = 0;
 
 constexpr uintptr_t NativeDanteKADTbl = 0x00C3FEA0;
 constexpr uintptr_t NativeNeroKADTbl = 0x00C3EE40;
-uintptr_t HookDanteKADTbl { NULL };
-uintptr_t HookNeroKADTbl { NULL };
-static bool display_move_table { false };
+uintptr_t HookDanteKADTbl = NULL;
+uintptr_t HookNeroKADTbl = NULL;
+static bool display_move_table = false;
 
 int MoveTable::AirThrow = 0;
 

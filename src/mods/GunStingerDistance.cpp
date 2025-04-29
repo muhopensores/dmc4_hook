@@ -1,7 +1,7 @@
 #include "GunStingerDistance.hpp"
 
-bool      GunStingerDistance::mod_enabled{ false };
-uintptr_t GunStingerDistance::jmp_ret{ NULL };
+bool      GunStingerDistance::mod_enabled = false;
+uintptr_t GunStingerDistance::jmp_ret = NULL;
 
 static constexpr float gunStingerSpeed = 16.0f;
 static constexpr float gunStingerDistance = 560.0f;

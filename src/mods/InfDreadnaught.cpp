@@ -1,9 +1,9 @@
 #include "InfDreadnaught.hpp"
 
 #if 1
-bool InfDreadnaught::mod_enabled{ false };
-bool InfDreadnaught::mod_enabled2{false};
-uintptr_t InfDreadnaught::inf_dreadnaught_continue{ NULL };
+bool InfDreadnaught::mod_enabled = false;
+bool InfDreadnaught::mod_enabled2 = false;
+uintptr_t InfDreadnaught::inf_dreadnaught_continue = NULL;
 
 naked void inf_dreadnaught_proc(void) {
     _asm {

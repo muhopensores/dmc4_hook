@@ -1,8 +1,7 @@
-
 #include "EnemySlotting.hpp"
 
-bool      EnemySlotting::mod_enabled{ false };
-uintptr_t EnemySlotting::jmp_ret{ NULL };
+bool      EnemySlotting::mod_enabled = false;
+uintptr_t EnemySlotting::jmp_ret = NULL;
 static int new_enemy_slot_limit = NULL;
 static int backup_enemy_slot_limit = NULL;
 

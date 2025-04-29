@@ -1,12 +1,11 @@
 #include "KnockbackEdits.hpp"
-#if 1
 
-bool KnockbackEdits::mod_enabled{ false };
-uintptr_t KnockbackEdits::jmp_return{ NULL };
-uintptr_t KnockbackEdits::jmp_return2{ NULL };
+bool KnockbackEdits::mod_enabled = false;
+uintptr_t KnockbackEdits::jmp_return = NULL;
+uintptr_t KnockbackEdits::jmp_return2 = NULL;
 
-static bool release_stuns{ false };
-static bool volcano_launches{ false };
+static bool release_stuns = false;
+static bool volcano_launches = false;
 
 /*
 // looks like its this
@@ -196,5 +195,3 @@ void KnockbackEdits::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("release_always_stuns", release_stuns);
     cfg.set<bool>("volcano_launches", volcano_launches);
 }
-
-#endif

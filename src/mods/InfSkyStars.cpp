@@ -1,7 +1,6 @@
-
 #include "InfSkyStars.hpp"
 
-bool InfSkyStars::mod_enabled{ false };
+bool InfSkyStars::mod_enabled = false;
 
 std::optional<std::string> InfSkyStars::on_initialize() {
     return Mod::on_initialize();

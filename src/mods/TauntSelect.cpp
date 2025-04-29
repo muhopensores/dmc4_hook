@@ -1,11 +1,11 @@
 #include "TauntSelect.hpp"
 
 #if 1
-bool TauntSelect::mod_enabled{ false };
-bool TauntSelect::mod_enabled2{ false };
-uintptr_t TauntSelect::jmp_ret1{ NULL };
-uintptr_t TauntSelect::jmp_ret2{ NULL };
-uintptr_t TauntSelect::jmp_ret3{ NULL };
+bool TauntSelect::mod_enabled = false;
+bool TauntSelect::mod_enabled2 = false;
+uintptr_t TauntSelect::jmp_ret1 = NULL;
+uintptr_t TauntSelect::jmp_ret2 = NULL;
+uintptr_t TauntSelect::jmp_ret3 = NULL;
 static int danteSelectedTauntID = 0;
 static int neroSelectedTauntID = 0;
 

@@ -1,5 +1,6 @@
 #include "Quicksilver.hpp"
 #include "glm/gtx/compatibility.hpp"
+#include "../sdk/Devil4.hpp"
 
 bool Quicksilver::mod_enabled_nero = false;
 bool Quicksilver::mod_enabled_dante = false;

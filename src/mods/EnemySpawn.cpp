@@ -1,7 +1,8 @@
 #include "EnemySpawn.hpp"
+#include "../sdk/Devil4.hpp"
 
-static uintptr_t fptr_update_actor_list{0x008DC540}; // Spawns shit
-static uintptr_t some_struct{0x00E552CC};
+static uintptr_t fptr_update_actor_list = 0x008DC540; // Spawns shit
+static uintptr_t some_struct = 0x00E552CC;
 // DevilMayCry4_DX9.exe+338AA2 // 00738AA2 // calls most enemy spawns
 
 static SMediator* s_med_ptr             = nullptr;
@@ -270,10 +271,10 @@ void spawn_custom(uintptr_t spawnAddr) {
 		// pop esi
 		// popad
 
-        mov ecx, 0Fh
+        mov ecx, 10h // 0fh
         mov eax, [some_struct] // static
 		mov eax, [eax]
-        push 0Fh
+        push 10h // 0fh
         call fptr_update_actor_list
 		popfd
 		popad

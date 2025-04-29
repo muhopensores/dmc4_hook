@@ -212,8 +212,6 @@ set(MODS_SRC
   mods/SlowWalk.hpp
   mods/DifficultySelect.cpp
   mods/DifficultySelect.hpp
-  mods/BpJumpHook.cpp
-  mods/BpJumpHook.hpp
   mods/FastStart.cpp
   mods/FastStart.hpp
   mods/NoAutomaticCharacters.cpp

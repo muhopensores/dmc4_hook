@@ -1,11 +1,7 @@
-
 #include "LdkWithDmd.hpp"
 
-#if 1
-
-bool LdkWithDmd::mod_enabled{ false };
-uintptr_t LdkWithDmd::ldk_with_dmd_continue{ NULL };
-
+bool LdkWithDmd::mod_enabled = false;
+uintptr_t LdkWithDmd::ldk_with_dmd_continue = NULL;
 
 naked void ldk_with_dmd_proc(void) {
     _asm {
@@ -55,5 +51,3 @@ void LdkWithDmd::on_config_load(const utility::Config& cfg) {
 void LdkWithDmd::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("ldk_with_dmd", mod_enabled);
 }
-
-#endif

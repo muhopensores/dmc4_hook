@@ -1,17 +1,15 @@
 #include "DebugCam.hpp"
-#include "../sdk/ReClass.hpp"
-//#include "../sdk/uActor.hpp"
-#include "../sdk/Devil4.hpp"
 #include "CustomProjectile.hpp"
+#include "../sdk/Devil4.hpp"
 #define _USE_MATH_DEFINES
 #include <math.h>
 
 typedef uActorMain::uFreeCamera uFreeCamera;
 typedef uActorMain::uCamera uCamera;
-//constexpr uintptr_t freecam_cons { 0x9197A0 };
-bool DebugCam::mod_enabled { false };
+//constexpr uintptr_t freecam_cons = 0x9197A0;
+bool DebugCam::mod_enabled = false;
 void* (__stdcall*freecam_cons)() = (void*(__stdcall*)())0x9197A0;
-uintptr_t DebugCam::jmp_ret1 { NULL };
+uintptr_t DebugCam::jmp_ret1 = NULL;
 float DebugCam::freecamSpeed = 1.0f;
 float DebugCam::freecamModifierSpeed = 10.0f;
 bool DebugCam::toggle_gameplay_cam = true;

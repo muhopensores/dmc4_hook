@@ -1,7 +1,7 @@
 #include "BpPortal.hpp"
 
-bool BpPortal::mod_enabled{false};
-static BpPortal* g_mod{nullptr};
+bool BpPortal::mod_enabled = false;
+static BpPortal* g_mod = nullptr;
 
 static void on_timer_callback() {
     BpPortal::mod_enabled = !BpPortal::mod_enabled;

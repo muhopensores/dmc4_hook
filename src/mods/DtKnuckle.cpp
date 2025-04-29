@@ -1,11 +1,11 @@
 #include "DtKnuckle.hpp"
-
+#include "../sdk/Devil4.hpp"
 //#define EFCT_PATH "effect\\efl\\ene\\ee018_90v5"
 
-bool DtKnuckle::mod_enabled{false};
+bool DtKnuckle::mod_enabled = false;
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
-uintptr_t DtKnuckle::jmp_ret1{NULL};
+uintptr_t DtKnuckle::jmp_ret1 = NULL;
 	int moveID                        = 0;
 	float inputCooldown               = 0.0f;
 	bool spectreFlag                  = 0;
@@ -15,28 +15,28 @@ uintptr_t DtKnuckle::jmp_ret1{NULL};
 	uint32_t key					  = 84;
 	constexpr uintptr_t detour1_call1 = 0x00829BE0;
 	constexpr uintptr_t cancel_call = 0x82A9D5;
-uintptr_t DtKnuckle::jmp_ret2{NULL};
-uintptr_t DtKnuckle::jmp_ret3{NULL};
+uintptr_t DtKnuckle::jmp_ret2 = NULL;
+uintptr_t DtKnuckle::jmp_ret3 = NULL;
 	constexpr uintptr_t detour3_conditional1 = 0x0082A9D5;
-uintptr_t DtKnuckle::jmp_ret4{NULL};
+uintptr_t DtKnuckle::jmp_ret4 = NULL;
 	constexpr uintptr_t detour4_conditional1 = 0x00829671;
-uintptr_t DtKnuckle::jmp_ret5{NULL};
+uintptr_t DtKnuckle::jmp_ret5 = NULL;
 	constexpr uintptr_t detour5_jmp1 = 0x0082A8E5;
 	constexpr uintptr_t detour5_mov1 = 0x00E1657C;
-uintptr_t DtKnuckle::jmp_ret6{NULL};
-uintptr_t DtKnuckle::jmp_ret7{NULL};
-uintptr_t DtKnuckle::jmp_ret8{NULL};
-uintptr_t DtKnuckle::jmp_ret9{NULL};
-uintptr_t DtKnuckle::jmp_ret10{NULL};
+uintptr_t DtKnuckle::jmp_ret6 = NULL;
+uintptr_t DtKnuckle::jmp_ret7 = NULL;
+uintptr_t DtKnuckle::jmp_ret8 = NULL;
+uintptr_t DtKnuckle::jmp_ret9 = NULL;
+uintptr_t DtKnuckle::jmp_ret10 = NULL;
 	constexpr uintptr_t detour10_conditional1 = 0x007E6E8D;
-uintptr_t DtKnuckle::jmp_ret11{NULL};
+uintptr_t DtKnuckle::jmp_ret11 = NULL;
 	float decrement = 30.0f;
-uintptr_t DtKnuckle::jmp_ret12{NULL};
+uintptr_t DtKnuckle::jmp_ret12 = NULL;
 	constexpr uintptr_t detour12_conditional1 = 0x00829BD8;
-uintptr_t DtKnuckle::jmp_ret13{NULL};
-uintptr_t DtKnuckle::jmp_ret14{NULL};
-uintptr_t DtKnuckle::jmp_ret15{NULL};
-uintptr_t DtKnuckle::jmp_ret16{NULL};
+uintptr_t DtKnuckle::jmp_ret13 = NULL;
+uintptr_t DtKnuckle::jmp_ret14 = NULL;
+uintptr_t DtKnuckle::jmp_ret15 = NULL;
+uintptr_t DtKnuckle::jmp_ret16 = NULL;
 	constexpr uintptr_t detour16_conditional = 0x829B4B;
 	float rushFrame = 135.0f;
 	float rushStart = 150.f;

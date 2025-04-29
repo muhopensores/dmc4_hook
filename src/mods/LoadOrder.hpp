@@ -50,5 +50,5 @@ private:
     // patch instance if you need to apply patch
     // std::unique_ptr<Patch> patch;
     // random variable
-    // bool mod_name_enabled{ false };
+    // bool mod_name_enabled = false;
 };

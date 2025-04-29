@@ -69,8 +69,8 @@ public:
     // const auto& get_custom_imgui_font() const {
     //     return m_custom_font;
     // }
-    bool m_draw_console{ false };
-    bool m_draw_ui{ false };
+    bool m_draw_console = false;
+    bool m_draw_ui = false;
 
     // NOTE(): locale stuff
     bool m_imfont_queue_reload_flag {false};
@@ -92,11 +92,11 @@ private:
     void create_render_target();
     void cleanup_render_target();
 
-    bool m_first_frame{ true };
-    bool m_valid{ false };
-    bool m_initialized{ false };
+    bool m_first_frame = true;
+    bool m_valid = false;
+    bool m_initialized = false;
     
-    std::atomic<bool> m_game_data_initialized{ false };
+    std::atomic<bool> m_game_data_initialized = false;
     
     HWND m_wnd{ nullptr };
     HMODULE m_game_module{ nullptr };

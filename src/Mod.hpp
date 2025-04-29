@@ -8,8 +8,6 @@
 #include "utility/MoFile.hpp"
 
 #include "ModFramework.hpp"
-#include "sdk/Devil4.hpp"
-
 #include "Mutators.hpp"
 #include "Console.hpp"
 

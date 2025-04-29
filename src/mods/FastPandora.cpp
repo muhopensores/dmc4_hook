@@ -1,12 +1,12 @@
 #include "FastPandora.hpp"
 
-bool FastPandora::mod_enabled{ false };
-bool FastPandora::mod2_enabled{ false };
+bool FastPandora::mod_enabled = false;
+bool FastPandora::mod2_enabled = false;
 
-uintptr_t FastPandora::jmp_ret1{NULL};
+uintptr_t FastPandora::jmp_ret1 = NULL;
     float funshipSpeedMultiplier = 3.0f;
-uintptr_t FastPandora::jmp_ret2{NULL};
-uintptr_t FastPandora::jmp_ret3{NULL};
+uintptr_t FastPandora::jmp_ret2 = NULL;;
+uintptr_t FastPandora::jmp_ret3 = NULL;;
 
 // Grounded transformation
 void FastPandora::toggle(bool enable) {

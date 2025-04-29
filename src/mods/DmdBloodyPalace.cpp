@@ -1,8 +1,7 @@
-
 #include "DmdBloodyPalace.hpp"
 
 #if 1
-bool DmdBloodyPalace::mod_enabled{ false };
+bool DmdBloodyPalace::mod_enabled = false;
 
 std::optional<std::string> DmdBloodyPalace::on_initialize() {
     return Mod::on_initialize();

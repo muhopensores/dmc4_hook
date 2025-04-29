@@ -1,7 +1,7 @@
 #include "DisableDTStinger.hpp"
 
 #if 1
-bool DisableDTStinger::mod_enabled{false};
+bool DisableDTStinger::mod_enabled = false;
 
 std::optional<std::string> DisableDTStinger::on_initialize() {
     return Mod::on_initialize();

@@ -1,7 +1,8 @@
-
 #include "RestoreMaxHp.hpp"
+#include "EnemyTracker.hpp"
+#include "../sdk/Devil4.hpp"
 
-bool RestoreMaxHp::mod_enabled{ false };
+bool RestoreMaxHp::mod_enabled = false;
 
 static float two_minutes_timer = 7200.0f;
 static bool reset_timer = false;
@@ -28,54 +29,11 @@ DevilMayCry4_DX9.exe+157E4D - mov esi,eax
 call damage
 */
 
-int RestoreMaxHp::get_enemy_specific_damage_offset(int enemy_id) {
-    switch (enemy_id) {
-    // 0x1500
-    case 0x8: // Mephisto
-        return 0x1500;
-    case 0x9: // Faust
-        return 0x1500;
-    case 0xB: // Assault
-        return 0x1500;
-    case 0x10: // Gladius
-        return 0x1500;
-
-    // 0x1504
-    case 0x5: // Alto
-        return 0x1504;
-    case 0x6: // Bianco
-        return 0x1504;
-    case 0xA: // Frost
-        return 0x1504;
-    case 0xC: // Blitz
-        return 0x1504;
-
-    // 1508
-    case 0xF: // Cutlass
-        return 0x1508;
-
-    // 0x152C
-    case 0x0: // Scarecrow Leg
-        return 0x152C;
-    case 0x1: // Scarecrow Arm
-        return 0x152C;
-    case 0x3: // Scarecrow Mega
-        return 0x152C;
-
-    // 7FC4
-    case 0x11: // Basilisk
-        return 0x7FC4;
-    }
-    return NULL;
-    // seeds aren't on the enemy list
-    // i am too lazy to find a fault but they probably aren't either
-}
-
 void RestoreMaxHp::restore_health_and_timer(SMediator* s_med_ptr, uPlayer* player) {
     for (uint32_t i = 0; i < s_med_ptr->enemyCount[2]; ++i) {
         uintptr_t enemy_base = reinterpret_cast<uintptr_t>(s_med_ptr->uEnemies[i]);
         if (enemy_base) {
-            int damage_info_offset = get_enemy_specific_damage_offset(s_med_ptr->uEnemies[i]->ID);
+            int damage_info_offset = EnemyTracker::get_enemy_specific_damage_offset(s_med_ptr->uEnemies[i]->ID);
             if (damage_info_offset != 0) {
                 float& enemy_hp = *reinterpret_cast<float*>(enemy_base + damage_info_offset + 0x18);
                 float& enemy_max_hp = *reinterpret_cast<float*>(enemy_base + damage_info_offset + 0x1C);
@@ -84,7 +42,7 @@ void RestoreMaxHp::restore_health_and_timer(SMediator* s_med_ptr, uPlayer* playe
         }
     }
     if (s_med_ptr->uBoss1) {
-        int damage_info_offset = get_enemy_specific_damage_offset(s_med_ptr->uBoss1->ID);
+        int damage_info_offset = EnemyTracker::get_enemy_specific_damage_offset(s_med_ptr->uBoss1->ID);
         if (damage_info_offset != 0) {
             float& enemy_hp = *reinterpret_cast<float*>(s_med_ptr->uBoss1 + damage_info_offset + 0x18);
             float& enemy_max_hp = *reinterpret_cast<float*>(s_med_ptr->uBoss1 + damage_info_offset + 0x1C);

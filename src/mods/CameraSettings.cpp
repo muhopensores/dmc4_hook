@@ -1,43 +1,41 @@
 ﻿
 #include "CameraSettings.hpp"
 
-static bool camera_sens_enabled{ false };
-static bool camera_auto_correct_towards_cam_enabled{ false };
-bool CameraSettings::mod_enabled{ false };
-float CameraSettings::camera_height{ 0 };
-float CameraSettings::camera_distance{ 0 };
-float CameraSettings::camera_distance_lockon{ 0 };
-float CameraSettings::camera_angle{ 0 };
-float CameraSettings::camera_angle_lockon{ 0 };
-float CameraSettings::camera_fov_in_battle{ 0 };
-float CameraSettings::camera_fov{ 0 };
-bool CameraSettings::camera_lookdown_enabled{ false };
-bool CameraSettings::camera_reset_enabled{ false };
-bool CameraSettings::cam_right{ false };
-bool CameraSettings::disable_last_enemy_zoom{false};
-bool CameraSettings::force_last_enemy_zoom{false};
-bool CameraSettings::pause_camera_enabled{false};
-bool CameraSettings::camera_lockon_corrects{false};
+static bool camera_sens_enabled = false;
+static bool camera_auto_correct_towards_cam_enabled = false;
+bool CameraSettings::mod_enabled = false;
+float CameraSettings::camera_height = 0;
+float CameraSettings::camera_distance = 0;
+float CameraSettings::camera_distance_lockon = 0;
+float CameraSettings::camera_angle = 0;
+float CameraSettings::camera_angle_lockon = 0;
+float CameraSettings::camera_fov_in_battle = 0;
+float CameraSettings::camera_fov = 0;
+bool CameraSettings::camera_lookdown_enabled = false;
+bool CameraSettings::camera_reset_enabled = false;
+bool CameraSettings::cam_right = false;
+bool CameraSettings::disable_last_enemy_zoom = false;
+bool CameraSettings::force_last_enemy_zoom = false;
+bool CameraSettings::pause_camera_enabled = false;
+bool CameraSettings::camera_lockon_corrects = false;
 
-constexpr ptrdiff_t camera_towards_auto_correct1 = 0x19514; // 0x195A5;
-// constexpr ptrdiff_t camera_towards_auto_correct2 = 0x195F7;
-// constexpr ptrdiff_t camera_towards_auto_correct3 = 0x19822;
+constexpr ptrdiff_t camera_towards_auto_correct1 = 0x19514;
 
-uintptr_t CameraSettings::camera_height_continue{ NULL };
-uintptr_t CameraSettings::camera_distance_continue{ NULL };
-uintptr_t CameraSettings::camera_distance_lockon_continue{ NULL };
-uintptr_t CameraSettings::camera_angle_continue{ NULL };
-uintptr_t CameraSettings::camera_angle_lockon_continue{ NULL };
-uintptr_t CameraSettings::camera_fov_in_battle_continue{ NULL };
-uintptr_t CameraSettings::camera_fov_continue{ NULL };
-uintptr_t CameraSettings::camera_reset_keyboard_continue{ NULL };
-uintptr_t CameraSettings::camera_reset_continue{ NULL };
-uintptr_t CameraSettings::camera_sens_clockwise_continue{ NULL };
-uintptr_t CameraSettings::camera_sens_anti_clockwise_continue{ NULL };
-uintptr_t CameraSettings::camera_sens_brakes_continue{ NULL };
+uintptr_t CameraSettings::camera_height_continue = NULL;
+uintptr_t CameraSettings::camera_distance_continue = NULL;
+uintptr_t CameraSettings::camera_distance_lockon_continue = NULL;
+uintptr_t CameraSettings::camera_angle_continue = NULL;
+uintptr_t CameraSettings::camera_angle_lockon_continue = NULL;
+uintptr_t CameraSettings::camera_fov_in_battle_continue = NULL;
+uintptr_t CameraSettings::camera_fov_continue = NULL;
+uintptr_t CameraSettings::camera_reset_keyboard_continue = NULL;
+uintptr_t CameraSettings::camera_reset_continue = NULL;
+uintptr_t CameraSettings::camera_sens_clockwise_continue = NULL;
+uintptr_t CameraSettings::camera_sens_anti_clockwise_continue = NULL;
+uintptr_t CameraSettings::camera_sens_brakes_continue = NULL;
 
-static float degrees{ 1.57f };
-static float double_camera_sens{ 2.0f };
+static float degrees = 1.57f;
+static float double_camera_sens = 2.0f;
 
 naked void camera_height_proc(void) {
     _asm {
@@ -311,14 +309,9 @@ naked void camera_sens_brakes_proc(void) {
 void CameraSettings::toggle_attack_towards_cam(bool toggle) {
     if (toggle) {
         install_patch_offset(camera_towards_auto_correct1, attack_towards_cam_patch1, "\xE9\x21\x03\x00\x00\x90", 6); // jmp DevilMayCry4_DX9.exe+1983A
-        // install_patch_offset(camera_towards_auto_correct1, attack_towards_cam_patch1, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-        // install_patch_offset(camera_towards_auto_correct2, attack_towards_cam_patch2, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-        // install_patch_offset(camera_towards_auto_correct3, attack_towards_cam_patch3, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
     }
     else {
         attack_towards_cam_patch1.reset(); // jne DevilMayCry4_DX9.exe+1983A
-        // attack_towards_cam_patch2.reset();
-        // attack_towards_cam_patch3.reset();
     }
 }
 
@@ -429,31 +422,35 @@ void CameraSettings::on_gui_frame(int display) {
         help_marker(_("When above the locked on enemy the camera will look down"));
     }
     else if (display == 2) {
-        float availX = ImGui::GetContentRegionAvail().x;
-        if (ImGui::CollapsingHeader(_("Camera Settings"))) {
-            ImGui::Checkbox(_("Enable Camera Settings And Hotkeys"), &mod_enabled);
-            ImGui::PushItemWidth(availX);
-            ImGui::Text(_("Height"));
-            ImGui::InputFloat(_("##Height InputFloat"), &CameraSettings::camera_height, 10.0f, 20.0f, "%.0f");
-            ImGui::Text(_("Distance"));
-            ImGui::InputFloat(_("##Distance InputFloat"), &CameraSettings::camera_distance, 100.0f, 200.0f, "%.0f%");
-            ImGui::Text(_("Distance (Lockon)"));
-            ImGui::InputFloat(_("##Distance (Lockon) InputFloat"), &CameraSettings::camera_distance_lockon, 100.0f, 200.0f, "%.0f%");
-            ImGui::Text(_("Angle"));
-            ImGui::InputFloat(_("##Angle InputFloat"), &CameraSettings::camera_angle, 0.1f, 0.2f, "%.1f%");
-            ImGui::Text(_("Angle (Lockon) "));
-            ImGui::InputFloat(_("##Angle (Lockon) InputFloat"), &CameraSettings::camera_angle_lockon, 0.1f, 0.2f, "%.1f%");
-            ImGui::Text(_("FOV"));
-            ImGui::InputFloat(_("##FOV InputFloat"), &CameraSettings::camera_fov, 10.0f, 20.0f, "%.0f%");
-            ImGui::Text(_("FOV (In Battle)"));
-            ImGui::InputFloat(_("##FOV (In Battle) InputFloat"), &CameraSettings::camera_fov_in_battle, 10.0f, 20.0f, "%.0f%");
-            if (ImGui::Checkbox("Pause Camera InputFloat", &pause_camera_enabled)) {
-                toggle_pause_camera(pause_camera_enabled);
+        ImGui::Checkbox(_("Enable Camera Settings And Hotkeys"), &mod_enabled);
+        if (mod_enabled) {
+            ImGui::Indent(lineIndent);
+            if (ImGui::CollapsingHeader(_("Camera Settings"))) {
+                float availX = ImGui::GetContentRegionAvail().x;
+                ImGui::PushItemWidth(availX);
+                ImGui::Text(_("Height"));
+                ImGui::InputFloat(_("##Height InputFloat"), &CameraSettings::camera_height, 10.0f, 20.0f, "%.0f");
+                ImGui::Text(_("Distance"));
+                ImGui::InputFloat(_("##Distance InputFloat"), &CameraSettings::camera_distance, 100.0f, 200.0f, "%.0f%");
+                ImGui::Text(_("Distance (Lockon)"));
+                ImGui::InputFloat(_("##Distance (Lockon) InputFloat"), &CameraSettings::camera_distance_lockon, 100.0f, 200.0f, "%.0f%");
+                ImGui::Text(_("Angle"));
+                ImGui::InputFloat(_("##Angle InputFloat"), &CameraSettings::camera_angle, 0.1f, 0.2f, "%.1f%");
+                ImGui::Text(_("Angle (Lockon) "));
+                ImGui::InputFloat(_("##Angle (Lockon) InputFloat"), &CameraSettings::camera_angle_lockon, 0.1f, 0.2f, "%.1f%");
+                ImGui::Text(_("FOV"));
+                ImGui::InputFloat(_("##FOV InputFloat"), &CameraSettings::camera_fov, 10.0f, 20.0f, "%.0f%");
+                ImGui::Text(_("FOV (In Battle)"));
+                ImGui::InputFloat(_("##FOV (In Battle) InputFloat"), &CameraSettings::camera_fov_in_battle, 10.0f, 20.0f, "%.0f%");
+                if (ImGui::Checkbox("Pause Camera InputFloat", &pause_camera_enabled)) {
+                    toggle_pause_camera(pause_camera_enabled);
+                }
+                if (ImGui::Button(_("Reset Camera Variables"))) {
+                    CameraSettings::reset_camera_variables();
+                }
+                ImGui::PopItemWidth();
             }
-            if (ImGui::Button(_("Reset Camera Variables"))) {
-                CameraSettings::reset_camera_variables();
-            }
-            ImGui::PopItemWidth();
+            ImGui::Unindent();
         }
     }
 }

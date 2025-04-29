@@ -1,7 +1,7 @@
 #include "HighTimeWeaponSwitch.hpp"
 
 #if 1
-bool HighTimeWeaponSwitch::mod_enabled{false};
+bool HighTimeWeaponSwitch::mod_enabled = false;
 
 std::optional<std::string> HighTimeWeaponSwitch::on_initialize() {
     return Mod::on_initialize();

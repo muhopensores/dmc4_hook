@@ -15,7 +15,7 @@ namespace utility {
 		}
 		Timer(Timer&& other) = delete;
 
-		bool     m_active{ false };
+		bool     m_active = false;
 		float    m_duration;
 		fseconds m_time { 0 };
 

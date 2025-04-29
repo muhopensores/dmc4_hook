@@ -1,9 +1,9 @@
 #include "GuardSteer.hpp"
 
 #if 1
-bool GuardSteer::mod_enabled{false};
+bool GuardSteer::mod_enabled = false;
 
-uintptr_t GuardSteer::guard_steer_continue{NULL};
+uintptr_t GuardSteer::guard_steer_continue = NULL;
 
 static float startX;
 static float startY;

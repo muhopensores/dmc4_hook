@@ -1,7 +1,7 @@
 #include "AlwaysRoyalRelease.hpp"
 
 #if 1
-bool AlwaysRoyalRelease::mod_enabled{false};
+bool AlwaysRoyalRelease::mod_enabled = false;
 
 std::optional<std::string> AlwaysRoyalRelease::on_initialize() {
     return Mod::on_initialize();

@@ -1,7 +1,7 @@
 #if 0
 #include "CustomAllocatorMem.hpp"
 
-bool CustomAllocatorMem::mod_enabled{ true };
+bool CustomAllocatorMem::mod_enabled = true;
 MtAllocator* MtAllocatorList = (MtAllocator*)0x00E47D50;
 void CustomAllocatorMem::toggle(bool enable) {
     if (enable) {

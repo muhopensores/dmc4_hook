@@ -1,5 +1,4 @@
 #include "BigHeadMode.hpp"
-
 #include "glm/gtx/compatibility.hpp"
 #include "../sdk/Devil4.hpp"
 

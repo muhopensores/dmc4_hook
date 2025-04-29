@@ -1,8 +1,9 @@
 #include "uPlayerParamsEdit.hpp"
 
-uintptr_t uPlayerParamsEdit::jmp_ret1{ NULL };
-uintptr_t uPlayerParamsEdit::jmp_ret2{ NULL };
-static bool fast_gilg_charge { false };
+static bool fast_gilg_charge = false;
+
+uintptr_t uPlayerParamsEdit::jmp_ret1 = NULL;
+uintptr_t uPlayerParamsEdit::jmp_ret2 = NULL;
 
 void __stdcall dante_param_edit(uintptr_t param_table) {
     if (fast_gilg_charge) { // I'd like to keep charge time edits standardized

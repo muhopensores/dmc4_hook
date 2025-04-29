@@ -3,20 +3,20 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-bool PinProperties::pin_gs_passive_enabled  { false };
-bool PinProperties::consistent_embed_enabled{ false };
+bool PinProperties::pin_gs_passive_enabled = false;
+bool PinProperties::consistent_embed_enabled = false;
 
-uintptr_t PinProperties::jmp_ret1 { NULL };
-uintptr_t PinProperties::jmp_ret2 { NULL };
+uintptr_t PinProperties::jmp_ret1 = NULL;
+uintptr_t PinProperties::jmp_ret2 = NULL;
     float PinSpeedMultiplier = 0.0f;
     float PinSlowDownSpeed = 0.3f;
-uintptr_t PinProperties::jmp_ret3 { NULL };
-uintptr_t PinProperties::jmp_ret4 { NULL };
-uintptr_t PinProperties::jmp_ret5 { NULL };
-uintptr_t PinProperties::jmp_ret6 { NULL };
-uintptr_t PinProperties::jmp_ret7 { NULL };
-uintptr_t PinProperties::jmp_ret8 { NULL };
-uintptr_t PinProperties::jmp_ret9 { NULL };
+uintptr_t PinProperties::jmp_ret3 = NULL;
+uintptr_t PinProperties::jmp_ret4 = NULL;
+uintptr_t PinProperties::jmp_ret5 = NULL;
+uintptr_t PinProperties::jmp_ret6 = NULL;
+uintptr_t PinProperties::jmp_ret7 = NULL;
+uintptr_t PinProperties::jmp_ret8 = NULL;
+uintptr_t PinProperties::jmp_ret9 = NULL;
 
 naked void detour1(void) { // Explode on contact, 2nd bit
     _asm {

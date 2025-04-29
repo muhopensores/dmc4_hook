@@ -1,27 +1,27 @@
 #include "RisingSun.hpp"
 
 #if 1
-bool RisingSun::mod_enabled{ false };
+bool RisingSun::mod_enabled = false;
 
-uintptr_t RisingSun::jmp_ret1{NULL};
+uintptr_t RisingSun::jmp_ret1 = NULL;
     constexpr uintptr_t detour1_call = 0x007D36A0;
     constexpr uintptr_t detour1_org_call = 0x007D4970;
     bool kickFlag = false;
-uintptr_t RisingSun::jmp_ret2{NULL};
+uintptr_t RisingSun::jmp_ret2 = NULL;
     float RS_start_frame = 130.0f;
-uintptr_t RisingSun::jmp_ret3{NULL};
+uintptr_t RisingSun::jmp_ret3 = NULL;
     constexpr uintptr_t detour3_jmp1 = 0x007D3733;
-uintptr_t RisingSun::jmp_ret4{NULL};
+uintptr_t RisingSun::jmp_ret4 = NULL;
     float kickGrav = -1.0f;
-uintptr_t RisingSun::jmp_ret5{NULL};
+uintptr_t RisingSun::jmp_ret5 = NULL;
     constexpr uintptr_t detour5_call = 0x7BA210;
     float epsilon = 0.001f;
     float bounce = 10.0f;
-uintptr_t RisingSun::jmp_ret6{NULL};
-uintptr_t RisingSun::jmp_ret7{NULL};
-uintptr_t RisingSun::jmp_ret8{NULL};
+uintptr_t RisingSun::jmp_ret6 = NULL;
+uintptr_t RisingSun::jmp_ret7 = NULL;
+uintptr_t RisingSun::jmp_ret8 = NULL;
     float speed = 0.9f;
-// uintptr_t RisingSun::jmp_ret9{NULL};
+// uintptr_t RisingSun::jmp_ret9 = NULL;
 //     constexpr uintptr_t detour9_call = 0x00820060;
 
 

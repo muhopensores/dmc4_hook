@@ -1,6 +1,6 @@
 #include "InfRevive.hpp"
 
-bool InfRevive::mod_enabled{ false };
+bool InfRevive::mod_enabled = false;
 
 std::optional<std::string> InfRevive::on_initialize() {
     return Mod::on_initialize();

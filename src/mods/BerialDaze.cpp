@@ -1,8 +1,8 @@
 #include "BerialDaze.hpp"
 
 #if 1
-bool BerialDaze::mod_enabled{ false };
-uintptr_t BerialDaze::jmp_ret{ NULL };
+bool BerialDaze::mod_enabled = false;
+uintptr_t BerialDaze::jmp_ret = NULL;
 
 naked void detour(void) {
 	_asm {

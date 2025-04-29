@@ -5,7 +5,7 @@
 bool FreeJc::mod_enabled_nero = false;
 bool FreeJc::mod_enabled_dante = false;
 
-uintptr_t FreeJc::jmp_ret2;
+uintptr_t FreeJc::jmp_ret2 = NULL;
 
 uintptr_t detour1_je1 = 0x804A37;
 uintptr_t detour1_jmp1 = 0x804A10;

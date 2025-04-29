@@ -3,7 +3,7 @@
 #if 1
 bool FastRoundTrip::mod_enabled = false;
 
-uintptr_t FastRoundTrip::jmp_ret{ NULL };
+uintptr_t FastRoundTrip::jmp_ret = NULL;
 float FastRoundTrip::start_frame = 80.0f;
 
 naked void detour1(void) { // player in eax

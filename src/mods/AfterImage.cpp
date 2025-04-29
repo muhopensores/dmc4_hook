@@ -63,10 +63,10 @@ struct uModel_Joint {
     void* mpConstraint;
     struct uActorMain::MtFloat3 mOffset;
     float mLength;
-    struct uActorMain::MtVector4 mQuat;
-    struct uActorMain::MtVector3 mScale;
-    struct uActorMain::MtVector3 mTrans;
-    struct MtMatrix mWmat;
+    uActorMain::MtVector4 mQuat;
+    uActorMain::MtVector3 mScale;
+    uActorMain::MtVector3 mTrans;
+    MtMatrix mWmat;
 };
 static_assert(sizeof(uModel_Joint)==0x90);
 
@@ -160,7 +160,7 @@ MtDTI* AfterImgShl::getDTI() {
 
 void AfterImgShl::render(void* trans) {
     void* curr_context = *(void**)((uintptr_t)trans+0x2A90);
-    uint8_t curr_flag    = *(short*)((uintptr_t)curr_context + 0x1FC);
+    uint8_t curr_flag = *(uint8_t*)((uintptr_t)curr_context + 0x1FC);
     if (curr_flag & this->actor.uActorBase.uModelBase.uCoordBase.cUnitBase.mTransMode)
         uactor_sdk::render_call(this, trans);
     if (curr_flag & this->hair.uModelBase.uCoordBase.cUnitBase.mTransMode)
@@ -203,7 +203,7 @@ void AfterImgShl::startup_override() {
 
     uModel_Joint* actor_head_jnt_ptr  = (uModel_Joint*)this->head.uModelBase.mpJoint;
     uModel_Joint* parent_head_jnt_ptr = (uModel_Joint*)face_model->uModelBase.mpJoint;
-    for (int i = 0; i < face_model->uModelBase.mJointNum; i++) {
+    for (uint32_t i = 0; i < face_model->uModelBase.mJointNum; i++) {
         actor_head_jnt_ptr[i].mWmat        = parent_head_jnt_ptr[i].mWmat;
         actor_head_jnt_ptr[i].mpConstraint = parent_head_jnt_ptr[i].mpConstraint;
     }
@@ -211,7 +211,7 @@ void AfterImgShl::startup_override() {
     uModel_Joint* actor_hair_jnt_ptr  = (uModel_Joint*)this->hair.uModelBase.mpJoint;
     uModel_Joint* parent_hair_jnt_ptr = (uModel_Joint*)hair_model->uModelBase.mpJoint;
     actor_hair_jnt_ptr[0].mWmat       = parent_hair_jnt_ptr[0].mWmat;
-    for (int i = 0; i < hair_model->uModelBase.mJointNum; i++) {
+    for (uint32_t i = 0; i < hair_model->uModelBase.mJointNum; i++) {
         actor_hair_jnt_ptr[i].mWmat        = parent_hair_jnt_ptr[i].mWmat;
         actor_hair_jnt_ptr[i].mpConstraint = parent_hair_jnt_ptr[i].mpConstraint;
     }

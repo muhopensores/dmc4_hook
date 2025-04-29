@@ -1,8 +1,7 @@
-
 #include "DtEnemiesDontStun.hpp"
 
 #if 1
-bool DtEnemiesDontStun::mod_enabled{ false };
+bool DtEnemiesDontStun::mod_enabled = false;
 
 std::optional<std::string> DtEnemiesDontStun::on_initialize() {
     return Mod::on_initialize();

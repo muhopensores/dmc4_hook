@@ -1,8 +1,7 @@
-
 #include "FrostsDontJump.hpp"
 
 #if 1
-bool FrostsDontJump::mod_enabled{ false };
+bool FrostsDontJump::mod_enabled = false;
 
 std::optional<std::string> FrostsDontJump::on_initialize() {
     return Mod::on_initialize();

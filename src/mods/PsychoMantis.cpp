@@ -1,11 +1,12 @@
 #include "PsychoMantis.hpp"
+#include "../sdk/Devil4.hpp"
 
 // https://gist.github.com/stroum
-bool PsychoMantis::mod_enabled{false};
-bool PsychoMantis::psycho_mantis_slot_2{false};
-bool PsychoMantis::mod_debugEnabled{false};
-int PsychoMantis::mod_debugAmount{0};
-int PsychoMantis::mod_debugLR{0};
+bool PsychoMantis::mod_enabled = false;
+bool PsychoMantis::psycho_mantis_slot_2 = false;
+bool PsychoMantis::mod_debugEnabled = false;
+int PsychoMantis::mod_debugAmount = 0;
+int PsychoMantis::mod_debugLR = 0;
 int PsychoMantis::Controller::_controllerNum = 0;
 
 XINPUT_STATE PsychoMantis::Controller::getState() {

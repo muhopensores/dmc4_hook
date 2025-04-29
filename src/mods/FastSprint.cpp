@@ -1,7 +1,7 @@
 #include "FastSprint.hpp"
 
 #if 1
-uintptr_t FastSprint::jmp_ret{NULL};
+uintptr_t FastSprint::jmp_ret = NULL;
 bool FastSprint::mod_enabled_nero = false;
 bool FastSprint::mod_enabled_dante = false;
 float FastSprint::newSprintTimer = 50.0f; // 225.0f default

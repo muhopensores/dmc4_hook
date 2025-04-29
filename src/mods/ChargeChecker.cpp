@@ -2,7 +2,7 @@
 
 bool ChargeChecker::roundTripCharge_enabled = false;
 bool ChargeChecker::blueRoseCharge_enabled = false;
-uintptr_t ChargeChecker::jmp_ret{ NULL };
+uintptr_t ChargeChecker::jmp_ret = NULL;
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 static constexpr float round_trip_charge_mult = 2.0f;

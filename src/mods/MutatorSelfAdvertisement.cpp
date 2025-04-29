@@ -8,9 +8,9 @@
 #include <ctime>
 
 // shit memory access patterns but i want bools for imgui checkboxes
-static bool mod_enabled{ false };
-static bool dvd_mode{ false };
-static float gdt{ 0.0f };
+static bool mod_enabled = false;
+static bool dvd_mode = false;
+static float gdt = 0.0f;
 
 std::optional<std::string> MutatorSelfAdvertisement::on_initialize() {
     after_reset();
@@ -99,7 +99,7 @@ void MutatorSelfAdvertisement::on_gui_frame(int display) {
         ImGui::DragFloat2(_("##PositionDragFloat2"), (float*)&m_pos, 1.0f, 0.0f, 4096.0f, "%.1f");
         ImGui::SameLine();
         if (ImGui::Button(_("Reset##ResetPos"))) {
-            m_pos = { 1700.0f, 860.0f };
+            m_pos = { 1700.0f, 890.0f };
         }
         ImGui::Text(_("Colour"));
         ImGui::ColorEdit4(_("##ColourColorEdit4"), (float*)&m_tint_color);

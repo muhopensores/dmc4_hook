@@ -1,6 +1,6 @@
 #include "NoclipCam.hpp"
 
-bool  NoclipCam::noclip_cam_enabled{ false };
+bool  NoclipCam::noclip_cam_enabled = false;
 
 void NoclipCam::toggle_noclip_cam(bool toggle) {
     if (toggle) {

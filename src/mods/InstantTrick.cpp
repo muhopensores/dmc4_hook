@@ -1,8 +1,7 @@
-
 #include "InstantTrick.hpp"
 
 #if 1
-bool InstantTrick::mod_enabled{ false };
+bool InstantTrick::mod_enabled = false;
 
 std::optional<std::string> InstantTrick::on_initialize() {
     return Mod::on_initialize();

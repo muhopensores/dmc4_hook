@@ -23,8 +23,8 @@ public:
     std::string m_description;
 
     // TODO(): enable mutators in ui or some shit like that
-    bool m_enabled{ false };
-    bool* m_extra_arg{ nullptr }; // TODO(): std::variant crazyness maybe?
+    bool m_enabled = false;
+    bool* m_extra_arg = nullptr ; // TODO(): std::variant crazyness maybe?
     // TODO(): default value, we need to have a vector of weights for
     // std::discrete_distribution, so MutatorRegistry has one,
     // this is for default values when users config is empty

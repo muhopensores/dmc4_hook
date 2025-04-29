@@ -1,5 +1,6 @@
 #include "TrainerPause.hpp"
 #include "WorkRate.hpp"
+#include "../sdk/Devil4.hpp"
 bool TrainerPause::mod_enabled = true;
 
 std::optional<std::string> TrainerPause::on_initialize() {

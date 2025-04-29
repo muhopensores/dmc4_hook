@@ -75,7 +75,7 @@ protected:
 	bool m_scroll_to_bottom;           //!< Scroll to bottom after is command is ran
 	bool m_filter_bar;                //!< Filter bar flag.
 	bool m_time_stamps;                 //!< Display time stamps flag
-	bool m_was_open{ false };
+	bool m_was_open = false;
 
 	void init_ini_settings();             //!< Initialize Ini Settings handler
 	void default_settings();             //!< Restore console default settings

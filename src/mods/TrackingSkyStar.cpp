@@ -1,9 +1,9 @@
 #include "TrackingSkyStar.hpp"
 
 #if 1
-bool TrackingSkyStar::mod_enabled{false};
-uintptr_t TrackingSkyStar::tracking_sky_star_continue{NULL};
-static float turn_speed{1.0f};
+bool TrackingSkyStar::mod_enabled = false;
+uintptr_t TrackingSkyStar::tracking_sky_star_continue = NULL;
+static float turn_speed = 1.0f;
 // static float default_turn_speed{0.42f};
 
 naked void tracking_sky_star_proc(void) {

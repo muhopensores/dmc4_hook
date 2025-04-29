@@ -1,4 +1,5 @@
 #include "GuardTimer.hpp"
+#include "../sdk/Devil4.hpp"
 
 #if 1
 bool      GuardTimer::mod_enabled   = false;

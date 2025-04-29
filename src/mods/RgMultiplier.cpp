@@ -1,9 +1,8 @@
-
 #include "RgMultiplier.hpp"
 
-bool RgMultiplier::mod_enabled{ false };
-uintptr_t RgMultiplier::jmp_ret{ NULL };
-uintptr_t RgMultiplier::jmp_ret2{ NULL };
+bool RgMultiplier::mod_enabled = false;
+uintptr_t RgMultiplier::jmp_ret = NULL;
+uintptr_t RgMultiplier::jmp_ret2 = NULL;
 
 static float rgmultfloat{ 3.3333f };
 

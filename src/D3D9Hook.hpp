@@ -41,7 +41,7 @@ public:
 
 protected:
 
-    bool m_hooked{ false };
+    bool m_hooked = false;
 
     //std::unique_ptr<FunctionHook> m_end_scene_hook{};
     std::unique_ptr<FunctionHook> m_reset_hook{};

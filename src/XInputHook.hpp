@@ -29,7 +29,7 @@ public:
 
 protected:
 
-    bool m_hooked{ false };
+    bool m_hooked = false;
 
     std::vector<on_get_state> m_ogs_pointers{};
 

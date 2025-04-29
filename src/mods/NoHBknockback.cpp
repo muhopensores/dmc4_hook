@@ -3,8 +3,8 @@
 bool NoHbKnockback::nero_toggle = false;
 bool NoHbKnockback::dante_toggle = false;
 
-uintptr_t NoHbKnockback::no_helm_breaker_knockback_continue{ NULL }; // 0x0051C389
-uintptr_t NoHbKnockback::no_helm_breaker_knockback_je{ 0x0051C367 };
+uintptr_t NoHbKnockback::no_helm_breaker_knockback_continue = NULL; // 0x0051C389
+uintptr_t NoHbKnockback::no_helm_breaker_knockback_je = 0x0051C367;
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 naked void no_helm_breaker_knockback_proc(void) { // ebx+0x98 = player + CE20 // ebx+0xA4 = damage id stuff (e.g. RED-Split_00)

@@ -2,7 +2,7 @@
 
 bool SwordSpin::mod_enabled {false};
 
-uintptr_t SwordSpin::jmp_ret1{NULL};
+uintptr_t SwordSpin::jmp_ret1 = NULL;
     constexpr uintptr_t detour1_jmp = 0x839E20;
     constexpr uintptr_t collision_call = 0x0050CA60;
     Matrix4x4 anchorMat;
@@ -11,7 +11,7 @@ uintptr_t SwordSpin::jmp_ret1{NULL};
     float rotAngle = 0.0f;
     float rotSpeed = 0.15f;
     float radiusAdd = 0.0f;
-uintptr_t SwordSpin::jmp_ret2{NULL};
+uintptr_t SwordSpin::jmp_ret2 = NULL;
 
 void __stdcall mat_rot(float* target_pos, float* pos_addr, float tick) {
     anchorMat[3].x = target_pos[0];

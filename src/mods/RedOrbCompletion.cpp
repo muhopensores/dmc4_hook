@@ -1,8 +1,8 @@
 #include "RedOrbCompletion.hpp"
 #include "../sdk/Devil4.hpp"
 
-static float G_WINDOW_HEIGHT_HACK_IDK_ORBS{ 270.0f };
-bool RedOrbCompletion::mod_enabled{ false };
+static float G_WINDOW_HEIGHT_HACK_IDK_ORBS = 270.0f;
+bool RedOrbCompletion::mod_enabled = false;
 ImVec2 RedOrbCompletion::window_pos{ 0.0f, 0.0f };
 
 std::optional<std::string> RedOrbCompletion::on_initialize() {

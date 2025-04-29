@@ -1,7 +1,8 @@
 #include "CharSwitcher.hpp"
+#include "../sdk/Devil4.hpp"
 
-bool CharSwitcher::mod_enabled{false};
-bool CharSwitcher::inertia_enabled{true};
+bool CharSwitcher::mod_enabled = false;
+bool CharSwitcher::inertia_enabled = true;
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 constexpr uintptr_t sArea               = 0x00E552C8;
 constexpr uintptr_t sSave               = 0x00E558C8;
@@ -18,10 +19,10 @@ bool kbInputPressed                     = false;
 int16_t prevInput                       = 0;
 float SSwordRange                       = 26.0f;
 
-uintptr_t CharSwitcher::jmp_ret2{NULL};
+uintptr_t CharSwitcher::jmp_ret2 = NULL;
     constexpr uintptr_t detour2_call1 = 0x008DF530;
-uintptr_t CharSwitcher::jmp_ret3{NULL};
-uintptr_t CharSwitcher::jmp_ret4{NULL};
+uintptr_t CharSwitcher::jmp_ret3 = NULL;
+uintptr_t CharSwitcher::jmp_ret4 = NULL;
     // Dante
     constexpr uintptr_t detour4_call1  = 0x00503240;
     constexpr uintptr_t detour4_call2  = 0x0076F200;
@@ -35,13 +36,13 @@ uintptr_t CharSwitcher::jmp_ret4{NULL};
     constexpr uintptr_t detour4_call9  = 0x008DC540;
     // Originalcode
     constexpr uintptr_t detour4_call10 = 0x004A5AA0;
-uintptr_t CharSwitcher::jmp_ret5{NULL};
-uintptr_t CharSwitcher::jmp_ret6{NULL};
+uintptr_t CharSwitcher::jmp_ret5 = NULL;
+uintptr_t CharSwitcher::jmp_ret6 = NULL;
     constexpr uintptr_t detour6_call1  = 0x007ACEE0;
-uintptr_t CharSwitcher::jmp_ret7{NULL};
-uintptr_t CharSwitcher::jmp_ret8{NULL};
-uintptr_t CharSwitcher::jmp_ret9{NULL};
-uintptr_t CharSwitcher::jmp_ret10{NULL};
+uintptr_t CharSwitcher::jmp_ret7 = NULL;
+uintptr_t CharSwitcher::jmp_ret8 = NULL;
+uintptr_t CharSwitcher::jmp_ret9 = NULL;
+uintptr_t CharSwitcher::jmp_ret10 = NULL;
 
 
 

@@ -1,8 +1,7 @@
-
 #include "InfPlayerHealth.hpp"
 
-bool InfPlayerHealth::mod_enabled{ false };
-uintptr_t InfPlayerHealth::jmp_ret{ NULL };
+bool InfPlayerHealth::mod_enabled = false;
+uintptr_t InfPlayerHealth::jmp_ret = NULL;
 
 naked void detour(void) {
 	_asm {

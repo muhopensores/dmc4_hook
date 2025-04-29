@@ -1,6 +1,6 @@
 #include "EnemyAttackOffScreen.hpp"
 
-bool EnemyAttackOffScreen::mod_enabled{ false };
+bool EnemyAttackOffScreen::mod_enabled = false;
 
 std::optional<std::string> EnemyAttackOffScreen::on_initialize() {
     return Mod::on_initialize();

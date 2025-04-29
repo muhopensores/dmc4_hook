@@ -1,9 +1,9 @@
 #include "DisableKeyboard.hpp"
 #include "Console.hpp"
 #if 1
-bool DisableKeyboard::mod_enabled{false};
-uintptr_t DisableKeyboard::jmp_ret{ NULL };
-uintptr_t jmp_jl{ 0x008E0AFE };
+bool DisableKeyboard::mod_enabled = false;
+uintptr_t DisableKeyboard::jmp_ret = NULL;
+uintptr_t jmp_jl = 0x008E0AFE;
 
 naked void detour(void) {
 	_asm {

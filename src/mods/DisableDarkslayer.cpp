@@ -1,9 +1,9 @@
 #include "DisableDarkslayer.hpp"
 
-bool DisableDarkslayer::mod_enabled_up{ false };
-bool DisableDarkslayer::mod_enabled_down{ false };
-bool DisableDarkslayer::mod_enabled_left{ false };
-bool DisableDarkslayer::mod_enabled_right{ false };
+bool DisableDarkslayer::mod_enabled_up = false;
+bool DisableDarkslayer::mod_enabled_down = false;
+bool DisableDarkslayer::mod_enabled_left = false;
+bool DisableDarkslayer::mod_enabled_right = false;
 
 std::optional<std::string> DisableDarkslayer::on_initialize() {
     return Mod::on_initialize();

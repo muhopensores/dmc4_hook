@@ -1,16 +1,16 @@
 #include "AngelSnatch.hpp"
 
-bool AngelSnatch::mod_enabled{false};
+bool AngelSnatch::mod_enabled = false;
 bool snatchFlag = false;
 
-uintptr_t AngelSnatch::jmp_ret1{false};
+uintptr_t AngelSnatch::jmp_ret1 = NULL;
     constexpr uintptr_t detour1_call1 = 0x007FA190;
-uintptr_t AngelSnatch::jmp_ret2{false};
+uintptr_t AngelSnatch::jmp_ret2 = NULL;
     constexpr uintptr_t detour2_call1 = 0x007F9FA0;
-uintptr_t AngelSnatch::jmp_ret3{false};
-uintptr_t AngelSnatch::jmp_ret4{false};
-uintptr_t AngelSnatch::jmp_ret5{false};
-uintptr_t AngelSnatch::jmp_ret6{false};
+uintptr_t AngelSnatch::jmp_ret3 = NULL;
+uintptr_t AngelSnatch::jmp_ret4 = NULL;
+uintptr_t AngelSnatch::jmp_ret5 = NULL;
+uintptr_t AngelSnatch::jmp_ret6 = NULL;
 
 // Air Angel Snatch flag
 //naked void detour1(void) {

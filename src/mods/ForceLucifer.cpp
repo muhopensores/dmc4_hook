@@ -1,11 +1,10 @@
-
 #include "ForceLucifer.hpp"
 #include "InputStates.hpp"
 
 #if 1
-bool ForceLucifer::mod_enabled{ false };
-uintptr_t ForceLucifer::force_lucifer_continue{ NULL };
-bool ForceLucifer::enable_force_ecstasy_timer{ false };
+bool ForceLucifer::mod_enabled = false;
+uintptr_t ForceLucifer::force_lucifer_continue = NULL;
+bool ForceLucifer::enable_force_ecstasy_timer = false;
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 naked void force_lucifer_proc(void) {

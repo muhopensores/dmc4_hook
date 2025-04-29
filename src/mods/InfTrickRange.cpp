@@ -1,7 +1,6 @@
-
 #include "InfTrickRange.hpp"
 
-bool InfTrickRange::mod_enabled{ false };
+bool InfTrickRange::mod_enabled = false;
 
 std::optional<std::string> InfTrickRange::on_initialize() {
 	return Mod::on_initialize();

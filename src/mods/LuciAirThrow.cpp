@@ -1,14 +1,14 @@
 #include "LuciAirThrow.hpp"
 #include "MoveTable.hpp"
 
-bool LuciAirThrow::mod_enabled { false };
-uintptr_t  LuciAirThrow::jmp_ret1 { NULL };
+bool LuciAirThrow::mod_enabled = false;
+uintptr_t  LuciAirThrow::jmp_ret1 = NULL;
     float SplashThrowAnimSpeed = 0.8f;
     float SplashThrowFrame = 33.0f;
-uintptr_t  LuciAirThrow::jmp_ret2 { NULL };
+uintptr_t  LuciAirThrow::jmp_ret2 = NULL;
     float SplashThrowWpFrame = 28.0f;
-uintptr_t  LuciAirThrow::jmp_ret3 { NULL };
-uintptr_t  LuciAirThrow::jmp_ret4 { NULL };
+uintptr_t  LuciAirThrow::jmp_ret3 = NULL;
+uintptr_t  LuciAirThrow::jmp_ret4 = NULL;
 
 naked void detour1(void) { // Character frame skip
     _asm {

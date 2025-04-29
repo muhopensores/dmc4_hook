@@ -1,12 +1,9 @@
-
 #include "OneHitKill.hpp"
-#include "utility/MessageDisplay.hpp" // TODO(): DISPLAY_MESSAGE should probably be included in mod.hpp or something
-#include "EnemySpawn.hpp"
-#if 1
-bool OneHitKill::cant_die{ false };
-bool OneHitKill::one_hit_kill{ false };
-uintptr_t OneHitKill::jmp_ret{ NULL };
-uintptr_t OneHitKill::jmp_out{ 0x0051C129 };
+
+bool OneHitKill::cant_die = false;
+bool OneHitKill::one_hit_kill = false;
+uintptr_t OneHitKill::jmp_ret = NULL;
+uintptr_t OneHitKill::jmp_out = 0x0051C129;
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 static int one_hit_kill_hotkey;
@@ -91,17 +88,6 @@ void OneHitKill::on_gui_frame(int display) {
     help_marker(_("Enables one hit kill. This overrides the damage multiplier. By default this is hotkeyed to F3"));
 }
 
-void OneHitKill::on_config_load(const utility::Config& cfg) {
-    cant_die = cfg.get<bool>("no_death").value_or(false);
-    one_hit_kill = cfg.get<bool>("one_hit_kill").value_or(false);
-    no_death_toggle(cant_die);
-}
-
-void OneHitKill::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("no_death", cant_die);
-    cfg.set<bool>("one_hit_kill", one_hit_kill);
-}
-
 void OneHitKill::on_update_input(utility::Input& input) {
     if (m_hotkeys[0]->check(input)) {
         if (one_hit_kill) {
@@ -116,4 +102,15 @@ void OneHitKill::on_update_input(utility::Input& input) {
         // toggle2(oneHitKill);
     }
 }
-#endif
+
+
+void OneHitKill::on_config_load(const utility::Config& cfg) {
+    cant_die = cfg.get<bool>("no_death").value_or(false);
+    one_hit_kill = cfg.get<bool>("one_hit_kill").value_or(false);
+    no_death_toggle(cant_die);
+}
+
+void OneHitKill::on_config_save(utility::Config& cfg) {
+    cfg.set<bool>("no_death", cant_die);
+    cfg.set<bool>("one_hit_kill", one_hit_kill);
+}

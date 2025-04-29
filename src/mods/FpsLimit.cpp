@@ -1,9 +1,9 @@
 #include "FpsLimit.hpp"
 
 #if 1
-bool FpsLimit::mod_enabled{ false };
-uintptr_t FpsLimit::jmp_return{ NULL };
-float FpsLimit::newfpslimit{ 120.0f };
+bool FpsLimit::mod_enabled = false;
+uintptr_t FpsLimit::jmp_return = NULL;
+float FpsLimit::newfpslimit = 120.0f;
 
 naked void detour() {
     _asm {

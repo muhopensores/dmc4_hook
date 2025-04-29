@@ -1,9 +1,10 @@
 #include "PlayerTracker.hpp"
 #include "WorkRate.hpp"
+#include "../sdk/Devil4.hpp"
 
 #if 1
-uintptr_t PlayerTracker::jmp_return{ NULL };
-uPlayer* PlayerTracker::player_ptr{ NULL };
+uintptr_t PlayerTracker::jmp_return = NULL;
+uPlayer* PlayerTracker::player_ptr = NULL;
 
 Vector3f PlayerTracker::savedPlayerPosition{ 0.0f, 0.0f, 0.0f };
 float PlayerTracker::savedPlayerRotation = 0.0f;

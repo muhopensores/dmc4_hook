@@ -1,19 +1,19 @@
+#include "../sdk/Devil4.hpp"
 #include "AerialStinger.hpp"
 #include "MoveTable.hpp"
-
 #if 1
-bool AerialStinger::mod_enabled{ false };
+bool AerialStinger::mod_enabled = false;
 
-uintptr_t AerialStinger::jmp_ret1{NULL};
+uintptr_t AerialStinger::jmp_ret1 = NULL;
     bool aerialFlag = false;
-uintptr_t AerialStinger::jmp_ret2{NULL};
+uintptr_t AerialStinger::jmp_ret2 = NULL;
     float multiplier = 0.4f;
     float gravity = -0.7f; 
     float ASBounce = 5.0f; 
-uintptr_t AerialStinger::jmp_ret3{NULL};
-uintptr_t AerialStinger::jmp_ret4{NULL};
-uintptr_t AerialStinger::jmp_ret5{NULL};
-uintptr_t AerialStinger::jmp_ret6{NULL};
+uintptr_t AerialStinger::jmp_ret3 = NULL;
+uintptr_t AerialStinger::jmp_ret4 = NULL;
+uintptr_t AerialStinger::jmp_ret5 = NULL;
+uintptr_t AerialStinger::jmp_ret6 = NULL;
     constexpr uintptr_t detour6_jmp = 0x007CE861;
 
 void AerialStinger::toggle(bool enable) {

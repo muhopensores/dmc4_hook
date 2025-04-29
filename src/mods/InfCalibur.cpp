@@ -1,7 +1,6 @@
-
 #include "InfCalibur.hpp"
 
-bool InfCalibur::mod_enabled{ false };
+bool InfCalibur::mod_enabled = false;
 
 std::optional<std::string> InfCalibur::on_initialize() {
     return Mod::on_initialize();

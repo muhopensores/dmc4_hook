@@ -1,10 +1,10 @@
 #include "TrackingFullHouse.hpp"
 
-bool TrackingFullHouse::tracking_full_house_nero{ false };
-bool TrackingFullHouse::tracking_full_house_dante{ false };
-uintptr_t TrackingFullHouse::jmp_ret{ NULL };
-uintptr_t TrackingFullHouse::jmp_out{ 0x007D348A };
-static float full_house_angle{ 65.0 };
+bool TrackingFullHouse::tracking_full_house_nero = false;
+bool TrackingFullHouse::tracking_full_house_dante = false;
+uintptr_t TrackingFullHouse::jmp_ret = NULL;
+uintptr_t TrackingFullHouse::jmp_out = 0x007D348A;
+static float full_house_angle = 65.0f;
 
 naked void detour(void) { // player in ebx
 	_asm {

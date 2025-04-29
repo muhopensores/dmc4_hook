@@ -10,7 +10,7 @@ GETFOCUS            fp_get_focus            = NULL;
 GETFOREGROUNDWINDOW fp_get_foreground_window = NULL;
 
 HWND modGameWindow{ 0 };
-bool mod_enabled{ false };
+bool mod_enabled = false;
 
 HWND WINAPI detour_get_foreground_window() {
 	if (mod_enabled) {
