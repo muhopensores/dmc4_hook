@@ -131,7 +131,7 @@ void EnemyStepDisplay::on_frame(fmilliseconds& dt) {
             ImGui::SameLine();
             help_marker(_("Is enemy step enabled?\n(Nero's Buster moves and possibly other things disable enemy step)"));
             ImGui::SameLine();
-            ImGui::Checkbox("##Grounded", (bool*)player->collisionSettings->mLand);
+            ImGui::Checkbox("##Grounded", (bool*)&player->collisionSettings->mLand);
             ImGui::SameLine();
             help_marker(_("Is player grounded?"));
             ImGui::InputFloat("##Enemy Step Possible InputFloat", &jc_possible_timer);
