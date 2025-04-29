@@ -7,7 +7,7 @@ uintptr_t TrickDown::floor_touch_jmp_ret = NULL;
 uintptr_t TrickDown::landing_anim_jmp_ret = NULL;
 
 static float down_float = -200.0f;
-static float timerMemComparison1 = 50.0f; // initial input
+static float timerMemComparison1 = 20.0f; // initial input
 static float timerMemComparison2 = 80.0f; // landing
 static float xmmBackup = 0.0f;
 
@@ -17,10 +17,10 @@ naked void trick_down_detour(void) { // not gonna player compare because the ide
 			je originalcode
 
 			movss [xmmBackup], xmm7
-			movss xmm7, [timerMemComparison1] // 50.0f
-			comiss xmm7, [TimerMem::timer_mem] // Compare timer mem. It is reset by the backforward input. If lower, do down trick
+			movss xmm7, [TimerMem::timer_mem] // Compare timer mem. It is reset by the backforward input.
+			comiss xmm7, [timerMemComparison1]
 			movss xmm7, [xmmBackup]
-			ja downtrickstart
+			jb downtrickstart
 			jmp originalcode
 
 		downtrickstart:
@@ -37,10 +37,10 @@ naked void floor_touch_detour(void) {
 			je originalcode
 
 			movss [xmmBackup], xmm7
-			movss xmm7, [timerMemComparison2] // 80.0f
-			comiss xmm7, [TimerMem::timer_mem]
+			movss xmm7, [TimerMem::timer_mem]
+			comiss xmm7, [timerMemComparison2]
 			movss xmm7, [xmmBackup]
-			jb originalcode
+			ja originalcode
 			movss xmm2, [down_float] // Puts -200 in y axis momentum
 
 		originalcode:
@@ -56,11 +56,10 @@ naked void landing_anim_detour(void) {
 			je originalcode
 
 			movss [xmmBackup], xmm7
-			movss xmm7, [timerMemComparison2] // 80.0f
-			comiss xmm7, [TimerMem::timer_mem]
+			movss xmm7, [TimerMem::timer_mem]
+			comiss xmm7, [timerMemComparison2]
 			movss xmm7, [xmmBackup]
-			jb originalcode
-
+			ja originalcode
 			push 0x01
 			jmp cont
 

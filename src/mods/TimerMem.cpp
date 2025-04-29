@@ -8,8 +8,10 @@ uintptr_t TimerMem::back_forward_jmp_ret = 0x00805A60;
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 float TimerMem::timer_mem = 0.0f;
-static float timer_mem_tick = 2.0f;
-static float xmmbackup = 0.0f;
+static float xmm5backup = 0.0f;
+static float xmm5backup2 = 0.0f; // Used in reset
+static float back_forward_time = 10.0f;
+static float reset_timer = 10.0f;
 
 naked void timer_detour(void) { // ticks timer, player in ecx
 	_asm {
@@ -24,20 +26,18 @@ naked void timer_detour(void) { // ticks timer, player in ecx
 			mov eax, [static_mediator_ptr]
 			mov eax, [eax]
 			mov eax, [eax+0x24]
-			cmp eax,ecx
+			cmp eax, ecx
 			pop eax
 			jne originalcode // only inc timer if player
 			cmp byte ptr [ecx+0x1494], 0 // dante controller id
 			jne originalcode
 
 		// inc timer
+			movss [xmm5backup], xmm5
 			movss xmm5, [TimerMem::timer_mem]
-			movss [xmmbackup], xmm6
-			movss xmm6, [timer_mem_tick] // Timer starts at 0, has x added to it every tick and is reset every time a backforward input is made
-			mulss xmm6, [ecx+0x10]
-			addss xmm5, xmm6
-			movss xmm6, [xmmbackup]
+			addss xmm5, [ecx+0x10]
 			movss [TimerMem::timer_mem], xmm5
+			movss xmm5, [xmm5backup]
 
         // trick down check
 			cmp byte ptr [TrickDown::mod_enabled], 1
@@ -45,37 +45,54 @@ naked void timer_detour(void) { // ticks timer, player in ecx
 			jmp honeycombcheck
 
 		tricktimercompare:
-			cmp dword ptr [TimerMem::timer_mem], 0x41a00000 // 20
-			jl replacetrick                                // If trick down is enabled, replace trickster dash and sky star to trick when timer is under (float)x
+			movss [xmm5backup], xmm5
+			movss xmm5, [TimerMem::timer_mem]
+			comiss xmm5, [back_forward_time]
+			movss xmm5, [xmm5backup]
+			jb replacetrick                                // If trick down is enabled, replace trickster dash and sky star to trick when timer is under (float)x
 			jmp dontreplacetrick						   // By putting replacements on a timer you make a buffer for the input and have a convenient off state
 
 		replacetrick:
             cmp byte ptr [ecx+0x16D0], 0 // lockon
 			je dontreplacetrick
 			push eax
-			mov eax, 0x00C413A4        // Trickster Dash Address
-			mov dword ptr [eax], 0x5D  // Trick ID
-			mov eax, 0x00C413DC        // Sky Star Address
-			mov dword ptr [eax], 0x5D  // Trick ID
+			push ebx
+			mov eax, 0x38 // struct size
+			mov ebx, 96 // entry
+			add ebx, [MoveTable::extra_dante_moves] // + extra entries
+			imul ebx, eax
+			mov eax, [ecx+0x1DCC] // kAtckDefTblPtr
+			add eax, ebx // Twosome time start
+			mov dword ptr [eax+0x4], 0x5D // trickster dash
+			mov dword ptr [eax+0x4+0x38], 0x5D // sky star
+			pop ebx
 			pop eax
 			jmp honeycombcheck
 
 		dontreplacetrick:
 			push eax
-			mov eax, 0x00C413A4        // Trickster Dash Address
-			mov dword ptr [eax], 0x5B  // Trickster Dash ID
-			mov eax, 0x00C413DC        // Sky Star Address
-			mov dword ptr [eax], 0x5C  // Sky Star ID
+			push ebx
+			mov eax, 0x38 // struct size
+			mov ebx, 96 // entry
+			add ebx, [MoveTable::extra_dante_moves] // + extra entries
+			imul ebx, eax
+			mov eax, [ecx+0x1DCC] // kAtckDefTblPtr
+			add eax, ebx // Twosome time start
+			mov dword ptr [eax+0x4], 0x5B // trickster dash
+			mov dword ptr [eax+0x4+0x38], 0x5C // sky star
+			pop ebx
 			pop eax
-
 		honeycombcheck:
 			cmp byte ptr [TimerMem::instant_honeycomb_enabled], 1
 			je honeycombtimercompare   // If instant honeycomb is enabled, replace twosome time with honeycomb fire when timer is under (float)x
 			jmp dontreplacetwosome
 
 		honeycombtimercompare:
-			cmp dword ptr [TimerMem::timer_mem], 0x41a00000 // 20
-			jl replacetwosome
+			movss [xmm5backup], xmm5
+			movss xmm5, [TimerMem::timer_mem]
+			comiss xmm5, [back_forward_time]
+			movss xmm5, [xmm5backup]
+			jb replacetwosome
 			jmp dontreplacetwosome
 
 		replacetwosome:
@@ -116,7 +133,13 @@ naked void timer_detour(void) { // ticks timer, player in ecx
 
 naked void back_forward_detour(void) { // resets timer, player in ebx
 	_asm {
-        // trick compare
+			cmp byte ptr [TimerMem::instant_honeycomb_enabled], 1
+			je newcode
+			cmp byte ptr [TrickDown::mod_enabled], 1
+			je newcode
+			jmp originalcode
+
+		newcode:
 			push eax
 			mov eax, [static_mediator_ptr]
 			mov eax, [eax]
@@ -127,27 +150,17 @@ naked void back_forward_detour(void) { // resets timer, player in ebx
 			cmp byte ptr [ebx+0x1494], 0 // dante controller id
 			jne originalcode
 
-			cmp byte ptr [TrickDown::mod_enabled], 0
-			je honeycombcompare
-
-			cmp dword ptr [TimerMem::timer_mem], 0x41200000 // = 10 // If timer is less than 10, don't reset. With this, timer is only reset once per backforward.
-			jl originalcode // 10 is over before the moves can finish, so no worry them not being available
 			cmp al, 0x3
-			je resettimer
-
-		honeycombcompare:
-			cmp byte ptr [TimerMem::instant_honeycomb_enabled], 0
-			je originalcode
-
-			cmp dword ptr [TimerMem::timer_mem], 0x41200000 // = 10
-			jl originalcode
-			cmp al, 0x3
-			je resettimer
+			je ResetTimer
 			jmp originalcode
 
-		resettimer:
-			mov dword ptr [TimerMem::timer_mem], 0x00000000 // = 0
-
+		ResetTimer:
+			movss [xmm5backup2], xmm5
+			movss xmm5, [TimerMem::timer_mem]
+			comiss xmm5, [reset_timer]
+			movss xmm5, [xmm5backup2]
+			jl originalcode // If timer is less than 10, don't reset. With this, timer is only reset once per backforward.
+			mov dword ptr [TimerMem::timer_mem], 0
 		originalcode:
 			mov [ebp+0x00], al
 			jmp dword ptr [TimerMem::back_forward_jmp_ret] // next opcode was jmp x so rather than returning I do that
