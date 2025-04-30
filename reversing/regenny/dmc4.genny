@@ -88,6 +88,29 @@ class Matrix4x4 {
 
 class roomInfo{};
 
+class MtObject {
+	char pad_00[0x4] @ 0x00
+}; //Size: 0x0004
+
+class cUnit : public MtObject {
+	int bitfield @ 0x04
+	class cUnit *mp_next_unit @ 0x08
+	class cUnit *mp_prev_unit @ 0x0C
+	float m_delta_time @ 0x10
+	int some_union @ 0x14
+}; //Size: 0x0018
+
+class UCoord : public cUnit{
+	class UCoord *mp_parent @ 0x18
+	uint32_t mOrder @ 0x1C
+	Vector3f m_pos @ 0x30
+	Vector4f m_quat @ 0x40
+	Vector3f m_scale @ 0x50
+	Matrix4x4 m_lmat @ 0x60
+	Matrix4x4 m_wmat @ 0xa0
+}; //Size: 0x00DC
+
+
 class uCollisionMgr {
   char pad_00[0x3f0]
 };
@@ -245,6 +268,26 @@ class uEnemy {
 	float sanctusShieldTimerM20 @ 0x1E000
 };
 
+class uShadow : cUnit {
+	Vector3f rotation @ 0x40
+	float howMuchToIgnoreModels @ 0x50
+	Vector4f colour @ 0x60
+	float diffuse @ 0xa0
+	float solidity @ 0xb4
+	float bloom @ 0xf8
+	uint32_t resolution @ 0x224
+};
+
+class uHasDelta : cUnit {
+	char pad_18[0x4] @ 0x18
+};
+
+class sUnit : cUnit{
+	uShadow* shadow @ 0x48
+	uHasDelta* hasDelta @ 0xD4
+	uEnemy* enemy @ 0x194
+};
+
 ////////////////////uPlayer start
 class MotionData {
 	int hitboxStartTime @ 0x04
@@ -306,37 +349,13 @@ class LuciferPin {
 	bool penetrated @ 0x17B4
 };
 
-class MtObject{};
-
 class MtDTI {
 	char pad_00[0x20] @ 0x00
 }; //Size: 0x0020
 
-class MtObject {
-	char pad_00[0x4] @ 0x00
-}; //Size: 0x0004
-
 class UModelJointArr {
 	char pad_00[0x4] @ 0x00
 }; //Size: 0x0004
-
-class CUnit : public MtObject {
-	int bitfield @ 0x04
-	class CUnit *mp_next_unit @ 0x08
-	class CUnit *mp_prev_unit @ 0x0C
-	float m_delta_time @ 0x10
-	int some_union @ 0x14
-}; //Size: 0x0018
-
-class UCoord : public MtObject{
-	class UCoord *mp_parent @ 0x18
-	uint32_t mOrder @ 0x1C
-	Vector3f m_pos @ 0x30
-	Vector4f m_quat @ 0x40
-	Vector3f m_scale @ 0x50
-	Matrix4x4 m_lmat @ 0x60
-	Matrix4x4 m_wmat @ 0xa0
-}; //Size: 0x00DC
 
 class kAtckDefTbl{};
 

@@ -130,6 +130,6 @@ void Borderless::on_gui_frame(int display) {
         apply();
     }
     ImGui::SameLine();
-    help_marker(_("Only applies if already in fullscreen. Hit Alt+Enter to toggle fullscreen"));
+    help_marker(_("Only applies if in windowed. Hit Alt+Enter to toggle to windowed."));
 }
 #endif

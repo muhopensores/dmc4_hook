@@ -157,6 +157,19 @@ static void PlayAnimID(int animID) {
 }
 
 void PlayerTracker::on_gui_frame(int display) {
+    if (ImGui::CollapsingHeader("Shadow Settings")) {
+        sUnit* sUnit = devil4_sdk::get_sUnit();
+        if (sUnit) {
+            if (sUnit->shadow) {
+                ImGui::Indent(lineIndent);
+                ImGui::InputFloat3(_("Rotation"), &sUnit->shadow->rotation.x);
+                ImGui::InputFloat4(_("Colour"), &sUnit->shadow->colour.x);
+                ImGui::InputFloat(_("diffuse"), &sUnit->shadow->diffuse);
+                ImGui::InputFloat(_("bloom"), &sUnit->shadow->bloom);
+                ImGui::Unindent();
+            }
+        }
+    }
     if (ImGui::CollapsingHeader(_("[OLD] Display Player Stats"))) {
         uPlayer* player = devil4_sdk::get_local_player();
         SMediator* s_med_ptr = devil4_sdk::get_sMediator();

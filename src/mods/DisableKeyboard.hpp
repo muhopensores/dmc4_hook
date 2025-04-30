@@ -7,6 +7,7 @@ public:
     DisableKeyboard() = default;
 
     static bool mod_enabled;
+    static bool auto_block_inputs;
     static uintptr_t jmp_ret;
 
     std::string get_mod_name() override { return "DisableKeyboard"; };
@@ -16,6 +17,7 @@ public:
     void on_update_input(utility::Input& input) override;
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
+    void on_game_pause(bool toggle) override;
 
     void on_gui_frame(int display) override;
 

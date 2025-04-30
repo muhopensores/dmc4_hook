@@ -215,27 +215,23 @@ namespace gui {
     void im_gui_main_window_proc(Mods* pmods) {
         ImGuiIO& io = ImGui::GetIO();
         io.IniFilename = NULL;
+        static bool showDemoWindow = false;
         ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Once);
         ImGui::Begin(version, NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
         tabHeight = 0.0f;
         if (sRender* sRender = devil4_sdk::get_sRender()) maxUIHeight = sRender->screenRes.y * 0.9f;
         else maxUIHeight = 1080.0f * 0.9f;
-        ImGui::SameLine(0, 0);
         ImGui::Text(_("Average %.3f ms/frame (%.1f FPS)"), 1000.0f / io.Framerate, io.Framerate);
-        ImGui::Spacing();
-        pmods->on_draw_ui("Borderless"_hash);
         const char* save_config_label = _("Save Config");
-        const ImVec2 btn_size = ImGui::CalcTextSize(save_config_label);
-        static bool showDemoWindow = false;
-        ImGui::SameLine(uiWidth-(btn_size.x) - 30.0f);
+        ImVec2 btn_size = ImGui::CalcTextSize(save_config_label);
+        btn_size.x += ImGui::GetStyle().FramePadding.x * 2.0f;
+        btn_size.y += ImGui::GetStyle().FramePadding.y * 2.0f;
+        float rightEdge = ImGui::GetWindowPos().x + ImGui::GetContentRegionMax().x;
+        ImGui::SameLine(rightEdge - ImGui::GetWindowPos().x - btn_size.x);
         if (ImGui::Button(save_config_label)) {
             pmods->on_config_save();
         }
-        pmods->on_draw_ui("LocalizationManager"_hash);
-        ImGui::SameLine();
-        pmods->on_draw_ui("TrainerPause"_hash);
-        ImGui::SameLine();
-        pmods->on_draw_ui("WorkRate"_hash, 2);
+        
         if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyMask_ ^ ImGuiTabBarFlags_FittingPolicyScroll)) {
             uiHeight = ImGui::GetCursorPosY();
             if (ImGui::BeginTabItem(_("Training"))) {
@@ -607,6 +603,20 @@ namespace gui {
             if (ImGui::BeginTabItem(_("System"))) {
                 ImGui::BeginChild("SystemChild");
 
+                ImGui::SeparatorText(_("dmc4_hook"));
+
+                pmods->on_draw_ui("LocalizationManager"_hash);
+                //ImGui::SameLine(sameLineWidth);
+                
+
+                pmods->on_draw_ui("DisableKeyboard"_hash, 2);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("TrainerPause"_hash);
+
+                pmods->on_draw_ui("MessageDisplayMod"_hash); // needs its own line
+                
+                pmods->on_draw_ui("WorkRate"_hash, 2);
+
                 ImGui::SeparatorText(_("Misc"));
 
                 pmods->on_draw_ui("CharacterSwap"_hash); // needs its own line
@@ -623,15 +633,19 @@ namespace gui {
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("PsychoMantis"_hash);
 
+                pmods->on_draw_ui("ShadowResolution"_hash);
+
                 ImGui::SeparatorText(_("System"));
 
                 pmods->on_draw_ui("BackgroundRendering"_hash);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("DisableKeyboard"_hash);
+                pmods->on_draw_ui("DisableKeyboard"_hash, 1);
+
+                pmods->on_draw_ui("FpsLimit"_hash); // 1.5 lines
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("Borderless"_hash);
 
                 pmods->on_draw_ui("FastStart"_hash); // 1.5 lines
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("FpsLimit"_hash);
 
                 ImGui::SeparatorText(_("Cutscenes"));
 
@@ -660,10 +674,6 @@ namespace gui {
                 pmods->on_draw_ui("GuardTimer"_hash);
 
                 pmods->on_draw_ui("StylePoints"_hash); // needs its own line
-
-                ImGui::SeparatorText(_("dmc4_hook"));
-
-                pmods->on_draw_ui("MessageDisplayMod"_hash);
 
                 ImGui::SeparatorText(_("Camera"));
 
@@ -726,7 +736,7 @@ namespace gui {
 
                 ImGui::SeparatorText(_("Testing"));
 
-                ImGui::Checkbox(_("showDemoWindow"), &showDemoWindow);
+                ImGui::Checkbox(_("View ImGui Demo"), &showDemoWindow);
 
                 // pmods->onDrawUI("ShaderEditor"_hash);
 

@@ -147,6 +147,7 @@
 #include "mods/TrackingJealousy.hpp"
 #include "mods/LongerJealousy.hpp"
 #include "mods/GhostWalls.hpp"
+#include "mods/ShadowResolution.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -305,6 +306,7 @@ Mods::Mods() {
     ADD_MOD(TrackingJealousy);
     ADD_MOD(LongerJealousy);
     ADD_MOD(GhostWalls);
+    ADD_MOD(ShadowResolution);
 }
 
 // Initializes mods, checks for errors

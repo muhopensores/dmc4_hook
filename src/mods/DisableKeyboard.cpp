@@ -4,6 +4,8 @@
 bool DisableKeyboard::mod_enabled = false;
 uintptr_t DisableKeyboard::jmp_ret = NULL;
 uintptr_t jmp_jl = 0x008E0AFE;
+bool DisableKeyboard::auto_block_inputs = false;
+static bool is_hook_open = false;
 
 naked void detour(void) {
 	_asm {
@@ -13,13 +15,22 @@ naked void detour(void) {
 			cmp byte ptr [DisableKeyboard::mod_enabled], 1
 			je jmp_jl_code
 
+            cmp byte ptr [DisableKeyboard::auto_block_inputs], 1
+            je CheckHookOpenState
+
         // originalcode:
-            test eax,eax
+            test eax, eax
 			jl jmp_jl_code
+        retcode:
 			jmp dword ptr [DisableKeyboard::jmp_ret]
 
         jmp_jl_code:
             jmp dword ptr [jmp_jl]
+
+        CheckHookOpenState:
+            cmp byte ptr [is_hook_open], 1
+            je jmp_jl_code
+            jmp retcode
 	}
 }
 
@@ -36,9 +47,20 @@ std::optional<std::string> DisableKeyboard::on_initialize() {
 }
 
 void DisableKeyboard::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Disable Keyboard Input"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Disable keyboard inputs throughout DMC4\nUseful when using \"Background Input\""));
+    if (display == 1) {
+        ImGui::Checkbox(_("Always Disable Keyboard Input"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Disable keyboard inputs throughout DMC4\nUseful when using \"Background Input\""));
+    }
+    else if (display == 2) {
+        ImGui::Checkbox(_("UI Disables Keyboard Input"), &auto_block_inputs);
+        ImGui::SameLine();
+        help_marker(_("Disable keyboard inputs when opening the trainer"));
+    }
+}
+
+void DisableKeyboard::on_game_pause(bool toggle) {
+    is_hook_open = toggle;
 }
 
 void DisableKeyboard::on_update_input(utility::Input& input) {
@@ -49,10 +71,12 @@ void DisableKeyboard::on_update_input(utility::Input& input) {
 
 void DisableKeyboard::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("disable_keyboard").value_or(false);
+    auto_block_inputs = cfg.get<bool>("disable_keyboard_auto").value_or(false);
 }
 
 void DisableKeyboard::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("disable_keyboard", mod_enabled);
+    cfg.set<bool>("disable_keyboard_auto", auto_block_inputs);
 }
 
 #endif

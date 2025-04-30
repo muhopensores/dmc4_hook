@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/ShadowResolution.hpp
+  mods/ShadowResolution.cpp
   mods/GhostWalls.hpp
   mods/GhostWalls.cpp
   mods/LongerJealousy.hpp
