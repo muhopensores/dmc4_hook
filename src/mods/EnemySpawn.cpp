@@ -1,8 +1,8 @@
 #include "EnemySpawn.hpp"
 #include "../sdk/Devil4.hpp"
 
-static uintptr_t fptr_update_actor_list = 0x008DC540; // Spawns shit
 static uintptr_t some_struct = 0x00E552CC;
+static uintptr_t fptr_update_actor_list = 0x008DC540; // Spawns shit
 // DevilMayCry4_DX9.exe+338AA2 // 00738AA2 // calls most enemy spawns
 
 static SMediator* s_med_ptr             = nullptr;
@@ -220,7 +220,7 @@ void set_enemy_position(UEnemySomething* em) {
     em->m_enemy_spawn_effect_something = enemy_spawn_type[(enemy_spawning)];
 }
 
-void spawn_em00x(int index) {
+void EnemySpawn::spawn_em00x(int index) {
     std::lock_guard<std::mutex> lk(g_mutex);
     uintptr_t em_function_pointer = fptr_em_factories.at(index);
     if (!devil4_sdk::get_local_player()) return; // only work while character is loaded
@@ -241,10 +241,10 @@ void spawn_em00x(int index) {
 		pop esi
 		popad
 
-        mov ecx, 0Fh
+        mov ecx, 0x0F
         mov eax, [some_struct] // static
 		mov eax, [eax]
-        push 0Fh
+        push 0x0F
         call fptr_update_actor_list
 		popfd
 		popad
@@ -271,17 +271,47 @@ void spawn_custom(uintptr_t spawnAddr) {
 		// pop esi
 		// popad
 
-        mov ecx, 10h // 0fh
+        mov ecx, 0x0F
         mov eax, [some_struct] // static
 		mov eax, [eax]
-        push 10h // 0fh
+        push 0x0F
         call fptr_update_actor_list
 		popfd
 		popad
     }
 }
 
-void spawn_random_enemy() {
+static constexpr uintptr_t mt_heap_alloc_static_ptr = 0xE1434C;
+static uintptr_t playerSpawnTempAddr = 0;
+static constexpr uintptr_t playerSpawnAddr2 = 0x7B2150; // char switcher detour 4 call 4
+void EnemySpawn::spawn_player() {
+    std::lock_guard<std::mutex> lk(g_mutex);
+    if (!devil4_sdk::get_local_player()) return; // only work while character is loaded
+    __asm {
+		pushad
+		pushfd
+
+        mov ecx, [mt_heap_alloc_static_ptr]
+        mov ecx, [ecx]
+        mov eax, [ecx]
+        mov edx, [eax+0x14]
+        push 0x10
+        push 0x152F0
+        call edx
+        mov [playerSpawnTempAddr], eax
+        call dword ptr [playerSpawnAddr2]
+        mov esi, [playerSpawnTempAddr]
+        // mov esi, [esi]
+        mov eax, [some_struct]
+        mov eax, [eax]
+        push 0x0F
+        call fptr_update_actor_list
+		popfd
+		popad
+    }
+}
+
+void EnemySpawn::spawn_random_enemy() {
     auto now = std::chrono::system_clock::now();
     srand((uint32_t)now.time_since_epoch().count());
     // I thought this would stop crashes but no
@@ -419,19 +449,19 @@ std::optional<std::string> EnemySpawn::on_initialize() {
             spawn_random_enemy();
         });
 
-    m_hotkeys.reserve(HOTKEY_MAX);
-    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F1 }, "Spawn Scarecrow Leg", "spawn_scarecrow_leg_key");
-    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F2 }, "Spawn Scarecrow Arm", "spawn_scarecrow_arm_key");
-    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F3 }, "Spawn Mega", "spawn_mega_key");
-    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F4 }, "Spawn Bianco", "spawn_bianco_key");
-    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F5 }, "Spawn Alto", "spawn_alto_key");
-    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F6 }, "Spawn Mephisto", "spawn_mephisto_key");
-    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F7 }, "Spawn Faust", "spawn_faust_key");
-    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F8 }, "Spawn Frost", "spawn_frost_key");
-    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F9 }, "Spawn Assault", "spawn_assault_key");
-    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F10 }, "Spawn Blitz", "spawn_blitz_key");
-    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F11 }, "Spawn Chimera", "spawn_chimera_key");
-    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_F12 }, "Spawn Basilisk", "spawn_basilisk_key");
+    EnemySpawn::m_hotkeys.reserve(HOTKEY_MAX);
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F1 }, "Spawn Scarecrow Leg", "spawn_scarecrow_leg_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F2 }, "Spawn Scarecrow Arm", "spawn_scarecrow_arm_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F3 }, "Spawn Mega", "spawn_mega_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F4 }, "Spawn Bianco", "spawn_bianco_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F5 }, "Spawn Alto", "spawn_alto_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F6 }, "Spawn Mephisto", "spawn_mephisto_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F7 }, "Spawn Faust", "spawn_faust_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F8 }, "Spawn Frost", "spawn_frost_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F9 }, "Spawn Assault", "spawn_assault_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F10 }, "Spawn Blitz", "spawn_blitz_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F11 }, "Spawn Chimera", "spawn_chimera_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F12 }, "Spawn Basilisk", "spawn_basilisk_key");
 
     console->system().RegisterCommand("spawnscarecrowleg", "Spawn a Scarecrow Leg", [/*this*/]() {
         spawn_em00x(0);
@@ -537,8 +567,8 @@ void EnemySpawn::on_gui_frame(int display) {
 // void EnemySpawn::on_config_save(utility::Config& cfg) {}
 
 void EnemySpawn::on_update_input(utility::Input& input) {
-    for (size_t i = 0; i < m_hotkeys.size(); i++) {
-        if (m_hotkeys[i]->check(input)) {
+    for (size_t i = 0; i < EnemySpawn::m_hotkeys.size(); i++) {
+        if (EnemySpawn::m_hotkeys[i]->check(input)) {
             spawn_em00x(i);
         };
     }

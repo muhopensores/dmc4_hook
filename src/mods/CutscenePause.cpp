@@ -51,12 +51,12 @@ std::optional<std::string> CutscenePause::on_initialize() {
         spdlog::error("Failed to init CutscenePause mod\n");
         return "Failed to init CutscenePause mod";
     }
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_PAUSE}, "Pause Cutscene", "pause_cutscene");
+    utility::create_keyboard_hotkey(CutscenePause::m_hotkeys, {VK_PAUSE}, "Pause Cutscene", "pause_cutscene");
     return Mod::on_initialize();
 }
 
 void CutscenePause::on_update_input(utility::Input& input) {
-    if (m_hotkeys[0]->check(input)) {
+    if (CutscenePause::m_hotkeys[0]->check(input)) {
         CutscenePause::mod_enabled = !CutscenePause::mod_enabled;
         wasToggled = true;
     }

@@ -190,6 +190,7 @@ namespace w2s {
     float GetDistanceFromCam(const glm::vec3& targetPos) {
         SMediator* sMed = devil4_sdk::get_sMediator();
         uCameraCtrl* camera = sMed->camera1;
+        if (!camera) { return -1.0f; }
         glm::vec3 cameraPos = camera->pos;
         return glm::distance(cameraPos, targetPos);
     }
@@ -678,7 +679,9 @@ namespace w2s {
         glm::vec2 screenPos = WorldToScreen(worldPos);
 
         // Get screen dimensions
-        glm::vec2 screen = glm::vec2(devil4_sdk::get_sRender()->screenRes);
+        sRender* sRender = devil4_sdk::get_sRender();
+        if (!sRender) { return false; }
+        glm::vec2 screen = glm::vec2(sRender->screenRes);
 
         // Simple check if the position is outside the screen borders
         // The -1.0f return value from WorldToScreen indicates the point is behind the camera

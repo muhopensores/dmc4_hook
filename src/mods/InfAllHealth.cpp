@@ -114,7 +114,7 @@ std::optional<std::string> InfAllHealth::on_initialize() {
         csys::Arg<float>("1.0 default"));    
 
 
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_F1}, "Infinite Health (All)", "inf_hp_key");
+    utility::create_keyboard_hotkey(InfAllHealth::m_hotkeys, {VK_F1}, "Infinite Health (All)", "inf_hp_key");
 
     console->system().RegisterCommand("god", "Infinite player HP", [/*this*/]() {
         player_invincible = !player_invincible;
@@ -179,7 +179,7 @@ void InfAllHealth::on_gui_frame(int display) {
 }
 
 void InfAllHealth::on_update_input(utility::Input& input) {
-    if (m_hotkeys[0]->check(input)) {
+    if (InfAllHealth::m_hotkeys[0]->check(input)) {
         if (all_invincible) {
             DISPLAY_MESSAGE("Infinite Health (All) Off");
             all_invincible = false;

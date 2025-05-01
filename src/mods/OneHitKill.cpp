@@ -64,7 +64,7 @@ std::optional<std::string> OneHitKill::on_initialize() {
         OneHitKill::one_hit_kill = !OneHitKill::one_hit_kill;
     });    
 
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_F3}, "One Hit Kill", "one_hit_kill_key");
+    utility::create_keyboard_hotkey(OneHitKill::m_hotkeys, {VK_F3}, "One Hit Kill", "one_hit_kill_key");
 
     return Mod::on_initialize();
 }
@@ -89,7 +89,7 @@ void OneHitKill::on_gui_frame(int display) {
 }
 
 void OneHitKill::on_update_input(utility::Input& input) {
-    if (m_hotkeys[0]->check(input)) {
+    if (OneHitKill::m_hotkeys[0]->check(input)) {
         if (one_hit_kill) {
             DISPLAY_MESSAGE("One Hit Kill Off");
         }

@@ -6,7 +6,7 @@ float WorkRate::custom_turbo = 0.0f;
 bool WorkRate::hotkey_paused = false;
 
 std::optional<std::string> WorkRate::on_initialize() {
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_DECIMAL}, "Pause Game", "pause_game");
+    utility::create_keyboard_hotkey(WorkRate::m_hotkeys, {VK_DECIMAL}, "Pause Game", "pause_game");
 
 	console->system().RegisterCommand("turbo", "Set turbo speed for the current room", 
         [](float value) {
@@ -109,7 +109,7 @@ void WorkRate::on_update_input(utility::Input& input) {
     if (!check_work_rate_ptr(s_work_rate_ptr)) {
         return;
     }
-    if (m_hotkeys[0]->check(input)) {
+    if (WorkRate::m_hotkeys[0]->check(input)) {
         if (hotkey_paused){
 			s_work_rate_ptr->global_speed = m_global_speed;
 			hotkey_paused = false;

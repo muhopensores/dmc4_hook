@@ -11,6 +11,12 @@ public:
     static bool mod_enabled_nero;
     static bool mod_enabled_dante;
 
+    static void qs_operator_new();
+
+    static utility::Timer* get_timer() {
+        return m_timer;
+    }
+
     // override getModName() method with your mod name for logging.
     std::string get_mod_name() override { return "Quicksilver"; };
 
@@ -27,7 +33,7 @@ public:
     void on_config_save(utility::Config& cfg) override;
 
 private:
-    utility::Timer* m_timer; // i've kept those as ptrs to avoid malloc/free calls
+    static utility::Timer* m_timer; // i've kept those as ptrs to avoid malloc/free calls
                            // all the time which would cause memory fragmenation
                            // not sure how modern c++ handles this shit idk
     std::size_t m_command;

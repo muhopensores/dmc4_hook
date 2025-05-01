@@ -24,7 +24,7 @@ std::optional<std::string> NoClip::on_initialize() {
             toggle(mod_enabled);
         });
 
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_F5}, "NoClip", "noclip_key");
+    utility::create_keyboard_hotkey(NoClip::m_hotkeys, {VK_F5}, "NoClip", "noclip_key");
 
     console->system().RegisterCommand("noclip", "You and enemies will ignore walls", [this]() {
         NoClip::mod_enabled = !NoClip::mod_enabled;
@@ -113,7 +113,7 @@ void NoClip::on_config_save(utility::Config& cfg) {
 }
 
 void NoClip::on_update_input(utility::Input& input) {
-    if (m_hotkeys[0]->check(input)) {
+    if (NoClip::m_hotkeys[0]->check(input)) {
         if (mod_enabled) {
             DISPLAY_MESSAGE("Noclip Off");
         } else {

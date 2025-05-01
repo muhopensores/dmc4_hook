@@ -287,6 +287,10 @@ namespace gui {
 
                 pmods->on_draw_ui("FreezeEnemies"_hash);
 
+                pmods->on_draw_ui("Survival"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("SpawnedEnemiesAttack"_hash);
+
                 tabHeight += ImGui::GetCursorPosY();
                 ImGui::EndChild();
                 ImGui::EndTabItem();
@@ -440,27 +444,29 @@ namespace gui {
 
                         ImGui::SeparatorText(_("Lucifer"));
 
-                        pmods->on_draw_ui("RoseRemovesPins"_hash); // needs its own line
-
                         pmods->on_draw_ui("ForceLucifer"_hash);
                         ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("InputStates"_hash); // taunt ecstasy
 
+                        pmods->on_draw_ui("InfinitePinTimer"_hash);
+                        ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("LuciAirThrow"_hash);
+
+                        pmods->on_draw_ui("PinTrick"_hash);
 
                         ImGui::Spacing();
                         ImGui::Text(_("Rose"));
                         ImGui::Spacing();
 
-                        pmods->on_draw_ui("RoseOptions"_hash); // needs its own line
+                        pmods->on_draw_ui("RoseOptions"_hash); // 1.5 lines
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("RoseRemovesPins"_hash);
 
                         ImGui::Spacing();
                         ImGui::Text(_("Pins"));
                         ImGui::Spacing();
 
-                        pmods->on_draw_ui("PinProperties"_hash); // needs its own line
-
-                        pmods->on_draw_ui("PinTrick"_hash); // needs its own line
+                        pmods->on_draw_ui("PinProperties"_hash); // needs its own line // Gunslinger passive, Consistent embedding
 
                         ImGui::SeparatorText(_("Aerial grounded moves"));
 
@@ -608,7 +614,6 @@ namespace gui {
                 pmods->on_draw_ui("LocalizationManager"_hash);
                 //ImGui::SameLine(sameLineWidth);
                 
-
                 pmods->on_draw_ui("DisableKeyboard"_hash, 2);
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("TrainerPause"_hash);
@@ -616,6 +621,18 @@ namespace gui {
                 pmods->on_draw_ui("MessageDisplayMod"_hash); // needs its own line
                 
                 pmods->on_draw_ui("WorkRate"_hash, 2);
+
+                ImGui::SeparatorText(_("System"));
+
+                pmods->on_draw_ui("BackgroundRendering"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("DisableKeyboard"_hash, 1);
+
+                pmods->on_draw_ui("FpsLimit"_hash); // 1.5 lines
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("Borderless"_hash);
+
+                pmods->on_draw_ui("FastStart"_hash); // 1.5 lines
 
                 ImGui::SeparatorText(_("Misc"));
 
@@ -634,18 +651,6 @@ namespace gui {
                 pmods->on_draw_ui("PsychoMantis"_hash);
 
                 pmods->on_draw_ui("ShadowResolution"_hash);
-
-                ImGui::SeparatorText(_("System"));
-
-                pmods->on_draw_ui("BackgroundRendering"_hash);
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("DisableKeyboard"_hash, 1);
-
-                pmods->on_draw_ui("FpsLimit"_hash); // 1.5 lines
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("Borderless"_hash);
-
-                pmods->on_draw_ui("FastStart"_hash); // 1.5 lines
 
                 ImGui::SeparatorText(_("Cutscenes"));
 

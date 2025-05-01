@@ -98,6 +98,23 @@ namespace devil4_sdk {
 		else return nullptr;
 	}
 
+	int get_enemy_count() {
+		sUnit* sUnit = devil4_sdk::get_sUnit();
+		if (!sUnit || !sUnit->enemy) {
+			return 0;
+		}
+    
+		int enemyCount = 0;
+		uEnemy* currentEnemy = sUnit->enemy;
+    
+		while (currentEnemy) {
+			enemyCount++;
+			currentEnemy = currentEnemy->nextEnemy;
+		}
+    
+		return enemyCount;
+	}
+
 	sRender* get_sRender() {
 		constexpr uintptr_t static_render_ptr = 0x00E552D8;
 		sRender* s_render_ptr = (sRender*)*(uintptr_t*)static_render_ptr;

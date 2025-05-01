@@ -28,7 +28,7 @@ std::optional<std::string> InfDT::on_initialize() {
         .on_init([&] { mod_enabled = true; })
         .set_timer(30.0, [&] { mod_enabled = false; });
 
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_F2}, "Inf DT", "inf_dt_key");
+    utility::create_keyboard_hotkey(InfDT::m_hotkeys, {VK_F2}, "Inf DT", "inf_dt_key");
 
     console->system().RegisterCommand("infdt", "Infinite DT", [/*this*/]() {
         InfDT::mod_enabled = !InfDT::mod_enabled;
@@ -52,7 +52,7 @@ void InfDT::on_config_save(utility::Config& cfg) {
 }
 
 void InfDT::on_update_input(utility::Input& input) {
-    if (m_hotkeys[0]->check(input)) {
+    if (InfDT::m_hotkeys[0]->check(input)) {
         if (mod_enabled) {
             DISPLAY_MESSAGE("Infinite DT Off");
         }

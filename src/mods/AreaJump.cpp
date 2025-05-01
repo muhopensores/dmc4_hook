@@ -131,7 +131,7 @@ static const Room* find_room_by_name(const csys::String& name) {
     return nullptr;
 }
 
-static const Room* bp_stage(int floor) {
+const Room* AreaJump::bp_stage(int floor) {
 	auto in_range = [](int value, int low, int high) {return (value >= low) && (value <= high); };
 	
 	if (in_range(floor, 1, 19))  { return find_room_by_id(705); }
@@ -525,8 +525,8 @@ void AreaJump::toggle_randomized_bp(bool enable) { // randomized bp
 std::optional<std::string> AreaJump::on_initialize() {
     sArea* s_area_ptr = devil4_sdk::get_sArea();
 	// uintptr_t address = hl::FindPattern("8B 92 30 38 00 00", "DevilMayCry4_DX9.exe"); // DevilMayCry4_DX9.exe+E1F6 
-    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_OEM_4 }, "Restart BP stage", "bp_restart_stage_hotkey");
-    utility::create_keyboard_hotkey(m_hotkeys, { VK_CONTROL, VK_OEM_6 }, "Next BP stage", "bp_next_stage_hotkey");
+    utility::create_keyboard_hotkey(AreaJump::m_hotkeys, { VK_CONTROL, VK_OEM_4 }, "Restart BP stage", "bp_restart_stage_hotkey");
+    utility::create_keyboard_hotkey(AreaJump::m_hotkeys, { VK_CONTROL, VK_OEM_6 }, "Next BP stage", "bp_next_stage_hotkey");
 
     console->system().RegisterCommand("skip", "Skip current BP stage", [this]() {
         if (devil4_sdk::get_local_player()) {
@@ -722,7 +722,7 @@ void AreaJump::on_gui_frame(int display) {
 }
 
 void AreaJump::on_update_input(utility::Input & input) {
-    if (m_hotkeys[0]->check(input)) {
+    if (AreaJump::m_hotkeys[0]->check(input)) {
         sArea* s_area_ptr = devil4_sdk::get_sArea();
         if (!devil4_sdk::get_local_player()) {
             return;
@@ -731,7 +731,7 @@ void AreaJump::on_update_input(utility::Input & input) {
         jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
     }
 
-    if (m_hotkeys[1]->check(input)) {
+    if (AreaJump::m_hotkeys[1]->check(input)) {
         sArea* s_area_ptr = devil4_sdk::get_sArea();
         if (!devil4_sdk::get_local_player()) {
             return;

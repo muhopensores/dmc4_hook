@@ -520,56 +520,56 @@ std::optional<std::string> CameraSettings::on_initialize() {
     }
 
     // hotkeys
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD0}, "Pause Camera", "pause_camera");
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD1}, "Pan Camera Down", "pan_camera_down");
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD2}, "Tilt Camera Down", "tilt_camera_down");
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD3}, "Dolly Camera In", "dolly_camera_in");
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD4}, "Zoom Camera In", "zoom_camera_in");
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD5}, "Reset Camera", "reset_camera");
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD6}, "Zoom Camera Out", "zoom_camera_out");
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD7}, "Pan Camera Up", "pan_camera_up");
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD8}, "Tilt Camera Up", "tilt_camera_up");
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_NUMPAD9}, "Dolly Camera Out", "dolly_camera_out");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD0}, "Pause Camera", "pause_camera");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD1}, "Pan Camera Down", "pan_camera_down");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD2}, "Tilt Camera Down", "tilt_camera_down");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD3}, "Dolly Camera In", "dolly_camera_in");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD4}, "Zoom Camera In", "zoom_camera_in");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD5}, "Reset Camera", "reset_camera");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD6}, "Zoom Camera Out", "zoom_camera_out");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD7}, "Pan Camera Up", "pan_camera_up");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD8}, "Tilt Camera Up", "tilt_camera_up");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD9}, "Dolly Camera Out", "dolly_camera_out");
 
     return Mod::on_initialize();
 }
 
 void CameraSettings::on_update_input(utility::Input& input) {
     if (!mod_enabled) return;
-    if (m_hotkeys[0]->check(input)) {
+    if (CameraSettings::m_hotkeys[0]->check(input)) {
         CameraSettings::pause_camera_enabled = !CameraSettings::pause_camera_enabled;
         toggle_pause_camera(pause_camera_enabled);
     }
-    if (m_hotkeys[1]->check(input)) {
+    if (CameraSettings::m_hotkeys[1]->check(input)) {
         CameraSettings::camera_height -= 10.0f;
     }
-    if (m_hotkeys[2]->check(input)) {
+    if (CameraSettings::m_hotkeys[2]->check(input)) {
         CameraSettings::camera_angle -= 0.1f;
         CameraSettings::camera_angle_lockon -= 0.1f;
     }
-    if (m_hotkeys[3]->check(input)) {
+    if (CameraSettings::m_hotkeys[3]->check(input)) {
         CameraSettings::camera_distance -= 100.0f;
         CameraSettings::camera_distance_lockon -= 100.0f;
     }
-    if (m_hotkeys[4]->check(input)) {
+    if (CameraSettings::m_hotkeys[4]->check(input)) {
         CameraSettings::camera_fov -= 10.0f;
         CameraSettings::camera_fov_in_battle -= 10.0f;
     }
-    if (m_hotkeys[5]->check(input)) {
+    if (CameraSettings::m_hotkeys[5]->check(input)) {
         CameraSettings::reset_camera_variables();
     }
-    if (m_hotkeys[6]->check(input)) {
+    if (CameraSettings::m_hotkeys[6]->check(input)) {
         CameraSettings::camera_fov += 10.0f;
         CameraSettings::camera_fov_in_battle += 10.0f;
     }
-    if (m_hotkeys[7]->check(input)) {
+    if (CameraSettings::m_hotkeys[7]->check(input)) {
         CameraSettings::camera_height += 10.0f;
     }
-    if (m_hotkeys[8]->check(input)) {
+    if (CameraSettings::m_hotkeys[8]->check(input)) {
         CameraSettings::camera_angle += 0.1f;
         CameraSettings::camera_angle_lockon += 0.1f;
     }
-    if (m_hotkeys[9]->check(input)) {
+    if (CameraSettings::m_hotkeys[9]->check(input)) {
         CameraSettings::camera_distance += 100.0f;
         CameraSettings::camera_distance_lockon += 100.0f;
     }

@@ -6,7 +6,7 @@ class DisableKeyboard : public Mod {
 public:
     DisableKeyboard() = default;
 
-    static bool mod_enabled;
+    static bool always_block_inputs;
     static bool auto_block_inputs;
     static uintptr_t jmp_ret;
 

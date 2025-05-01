@@ -30,8 +30,8 @@ public:
 private:
     std::unique_ptr<FunctionHook> hook;
 
-    LPDIRECT3DDEVICE9 g_pd3dDevice;
-    PDIRECT3DTEXTURE9 m_texture_handle;
+    LPDIRECT3DDEVICE9 g_pd3dDevice{};
+    PDIRECT3DTEXTURE9 m_texture_handle{};
     int m_texture_width{};
     int m_texture_height{};
 };

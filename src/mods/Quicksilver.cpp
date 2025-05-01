@@ -4,6 +4,7 @@
 
 bool Quicksilver::mod_enabled_nero = false;
 bool Quicksilver::mod_enabled_dante = false;
+utility::Timer* Quicksilver::m_timer{};
 
 // Found out that the game does not load anything
 // not related to current stage, after writing
@@ -137,7 +138,7 @@ void u_stage_set_time_slow_constructor_params(UStageSetTimeSlow* ss) {
 }
 bool start_interpolating = false;
 
-void qs_operator_new() {
+void Quicksilver::qs_operator_new() {
 
     constexpr uintptr_t u_stage_slow_constructor           = 0x00887440;
     constexpr uintptr_t u_some_glob                        = 0x00E552CC;
@@ -233,18 +234,18 @@ std::optional<std::string> Quicksilver::on_initialize() {
     m_shorthand = std::hash<std::string>{}("\\qs");*/
     MutatorRegistry::define("Quicksilver")
         .alias("qs")
-        .on_init([]() {
+        .on_init([this]() {
             SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
             uPlayer* u_local_plr = s_med_ptr->player_ptr;
             if (u_local_plr) {
-                qs_operator_new();
+                Quicksilver::qs_operator_new();
             }
         })
         .set_timer(15.0f, []() { on_timer_callback(); });
 
     // timer duration in float and callback function once it finishes
     m_timer = new utility::Timer(15.0f, on_timer_callback);
-	utility::create_keyboard_hotkey(m_hotkeys, {VK_OEM_PLUS}, "QuickSilver", "quicksilver_key");
+	utility::create_keyboard_hotkey(Quicksilver::m_hotkeys, {VK_OEM_PLUS}, "QuickSilver", "quicksilver_key");
 
     return Mod::on_initialize();
 }
@@ -286,7 +287,7 @@ void Quicksilver::on_twitch_command(std::size_t hash) {
 #endif
 void Quicksilver::on_update_input(utility::Input& input) {
 	if (uPlayer* player = devil4_sdk::get_local_player()) {
-		if (m_hotkeys[0]->check(input)) {
+		if (Quicksilver::m_hotkeys[0]->check(input)) {
 			if (mod_enabled_nero) {
 				if (player->controllerID == 1) {
 					if (m_timer) {

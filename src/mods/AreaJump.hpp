@@ -17,6 +17,8 @@ public:
     static uintptr_t bp_jump_hook2_continue;
     static uintptr_t bp_jump_hook3_continue;
     void toggle_randomized_bp(bool enable);
+    static const Room* AreaJump::bp_stage(int floor);
+    static void jump_to_stage(const Room* stage);
 
     std::optional<std::string> on_initialize() override;
 
@@ -27,7 +29,6 @@ public:
     void on_config_save(utility::Config& cfg) override;
 
 private:
-    void jump_to_stage(const Room* stage);
 
     // BP:
     std::unique_ptr<FunctionHook> hook1;

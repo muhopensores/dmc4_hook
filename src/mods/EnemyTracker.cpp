@@ -103,57 +103,57 @@ int EnemyTracker::get_enemy_specific_damage_offset(int enemy_id) {
 int EnemyTracker::get_enemy_specific_uCollision_offset(int enemy_id) {
     switch (enemy_id) {
 
-    case SANCTUS_M11: //
+    case SANCTUS_M11:
         return 0x1500;
-    case SANCTUS_M20: //
+    case SANCTUS_M20:
         return 0x1500;
 
-    case SCARECROW_LEG: //
+    case SCARECROW_LEG:
         return 0x1600;
-    case SCARECROW_ARM: //
+    case SCARECROW_ARM:
         return 0x1600;
-    case SCARECROW_MEGA: //
+    case SCARECROW_MEGA:
         return 0x1600;
 
-    case GLADIUS: //
+    case GLADIUS:
         return 0x1700;
 
-    case FROST: //
+    case FROST:
         return 0x1710;
-    case CUTLASS: //
+    case CUTLASS:
         return 0x1710;
-    case BLITZ: //
+    case BLITZ:
         return 0x1710;
 
-    case MEPHISTO: //
+    case MEPHISTO:
         return 0x1720;
-    case FAUST: //
+    case FAUST:
         return 0x1720;
-    case ASSAULT: //
+    case ASSAULT:
         return 0x1720;
 
-    case ECHIDNA: //
+    case ECHIDNA:
         return 0x1750;
 
-    case ANGELO_BIANCO: //
+    case ANGELO_BIANCO:
         return 0x1840;
-    case ANGELO_ALTO: //
+    case ANGELO_ALTO:
         return 0x1840;
-    case CREDO: //
+    case CREDO:
         return 0x1840;
-    case AGNUS: //
+    case AGNUS:
         return 0x1840;
 
-    case BERIAL: //
+    case BERIAL:
         return 0x15F0;
 
-    case BAEL: //
+    case BAEL:
         return 0x1710;
 
-    case CHIMERA: //
+    case CHIMERA:
         return 0x3490;
 
-    case BASILISK: //
+    case BASILISK:
         return 0x7BD0;
 
 
@@ -174,10 +174,10 @@ int EnemyTracker::get_enemy_specific_uCollision_offset(int enemy_id) {
 std::optional<std::string> EnemyTracker::on_initialize() {
     g_pd3dDevice = g_framework->get_d3d9_device();
     after_reset();
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_HOME},  "Save Enemy Stats",  "save_enemy_stats_key");
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_END},   "Apply Enemy Stats", "apply_enemy_stats_key");
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_PRIOR}, "Save Boss Stats",   "save_boss_stats_key");
-    utility::create_keyboard_hotkey(m_hotkeys, {VK_NEXT},  "Apply Boss Stats",  "apply_boss_stats_key");
+    utility::create_keyboard_hotkey(EnemyTracker::m_hotkeys, {VK_HOME},  "Save Enemy Stats",  "save_enemy_stats_key");
+    utility::create_keyboard_hotkey(EnemyTracker::m_hotkeys, {VK_END},   "Apply Enemy Stats", "apply_enemy_stats_key");
+    utility::create_keyboard_hotkey(EnemyTracker::m_hotkeys, {VK_PRIOR}, "Save Boss Stats",   "save_boss_stats_key");
+    utility::create_keyboard_hotkey(EnemyTracker::m_hotkeys, {VK_NEXT},  "Apply Boss Stats",  "apply_boss_stats_key");
     return Mod::on_initialize();
 }
 
@@ -574,16 +574,16 @@ void EnemyTracker::after_reset() {
 
 void EnemyTracker::on_update_input(utility::Input& input) {
     if (hotkey_enabled) {
-        if (m_hotkeys[SAVE_ENEMY_STATS_HOTKEY]->check(input)) {
+        if (EnemyTracker::m_hotkeys[SAVE_ENEMY_STATS_HOTKEY]->check(input)) {
             SaveStateWithCurrentEnemy();
         }
-        if (m_hotkeys[APPLY_ENEMY_STATS_HOTKEY]->check(input)) {
+        if (EnemyTracker::m_hotkeys[APPLY_ENEMY_STATS_HOTKEY]->check(input)) {
             LoadStateWithCurrentEnemy();
         }
-        if (m_hotkeys[SAVE_BOSS_STATS_HOTKEY]->check(input)) {
+        if (EnemyTracker::m_hotkeys[SAVE_BOSS_STATS_HOTKEY]->check(input)) {
             save_load_boss_info(true);
         }
-        if (m_hotkeys[APPLY_BOSS_STATS_HOTKEY]->check(input)) {
+        if (EnemyTracker::m_hotkeys[APPLY_BOSS_STATS_HOTKEY]->check(input)) {
             save_load_boss_info(false);
         }
     }

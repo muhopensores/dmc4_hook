@@ -63,6 +63,7 @@
 #include "mods/InfTableHopper.hpp"
 #include "mods/RemoveLaunchArmour.hpp"
 #include "mods/RoseRemovesPins.hpp" // taunt ecstasy relies on this
+#include "mods/InfinitePinTimer.hpp"
 #include "mods/SlowWalk.hpp"
 #include "mods/StunAnything.hpp"
 #include "mods/ActiveBlock.hpp"
@@ -148,6 +149,9 @@
 #include "mods/LongerJealousy.hpp"
 #include "mods/GhostWalls.hpp"
 #include "mods/ShadowResolution.hpp"
+#include "mods/PowerUpSystem.hpp"
+#include "mods/SpawnedEnemiesAttack.hpp"
+#include "mods/Survival.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -213,6 +217,7 @@ Mods::Mods() {
     ADD_MOD(InfDT);
     ADD_MOD(BerialDaze);
     ADD_MOD(RoseRemovesPins);
+    ADD_MOD(InfinitePinTimer);
     ADD_MOD(StunAnything);
     ADD_MOD(DisableCameraEvents);
     ADD_MOD(HideHud);
@@ -307,6 +312,8 @@ Mods::Mods() {
     ADD_MOD(LongerJealousy);
     ADD_MOD(GhostWalls);
     ADD_MOD(ShadowResolution);
+    ADD_MOD(SpawnedEnemiesAttack); // before Survival
+    ADD_MOD(Survival);
 }
 
 // Initializes mods, checks for errors

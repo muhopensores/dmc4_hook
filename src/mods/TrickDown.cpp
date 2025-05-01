@@ -8,7 +8,7 @@ uintptr_t TrickDown::landing_anim_jmp_ret = NULL;
 
 static float down_float = -200.0f;
 static float timerMemComparison1 = 20.0f; // initial input
-static float timerMemComparison2 = 80.0f; // landing
+static float timerMemComparison2 = 50.0f; // landing
 static float xmmBackup = 0.0f;
 
 naked void trick_down_detour(void) { // not gonna player compare because the idea of boss dante using down trick on you is kinda funny
@@ -17,7 +17,7 @@ naked void trick_down_detour(void) { // not gonna player compare because the ide
 			je originalcode
 
 			movss [xmmBackup], xmm7
-			movss xmm7, [TimerMem::timer_mem] // Compare timer mem. It is reset by the backforward input.
+			movss xmm7, [TimerMem::timer_mem] // Compare timer mem. It is reset by the backforward input
 			comiss xmm7, [timerMemComparison1]
 			movss xmm7, [xmmBackup]
 			jb downtrickstart

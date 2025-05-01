@@ -2,6 +2,14 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/PowerUpSystem.hpp
+  mods/PowerUpSystem.cpp
+  mods/SpawnedEnemiesAttack.hpp
+  mods/SpawnedEnemiesAttack.cpp
+  mods/Survival.hpp
+  mods/Survival.cpp
+  mods/InfinitePinTimer.hpp
+  mods/InfinitePinTimer.cpp
   mods/ShadowResolution.hpp
   mods/ShadowResolution.cpp
   mods/GhostWalls.hpp
