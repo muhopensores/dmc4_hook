@@ -1053,7 +1053,9 @@ public:
     uint32_t hellGoldOrbCount; // 0x13c
     GameDifficulty gameDifficulty; // 0x140
     GameMode gameMode; // 0x144
-    char pad_148[0x70];
+    char pad_148[0x4];
+    float stylePoints; // 0x14C
+    char pad_150[0x68];
     class uEnemy* uEnemies[10]; // 0x1b8
     uint32_t enemyCount[3]; // 0x1e0
     char pad_1ec[0x64];

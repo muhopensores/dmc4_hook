@@ -10,6 +10,7 @@ static float savedBPTimer = 0.0f;
 static int savedOrbs = 0;
 static float savedHP = 0.0f;
 static float savedDT = 0.0f;
+static float savedStylePoints = 0.0f;
 
 struct Room {
   int id;
@@ -613,6 +614,7 @@ void AreaJump::on_gui_frame(int display) {
             savedOrbs = s_med_ptr->orbMissionCurrent;
             savedHP = s_med_ptr->player_ptr->HP;
             savedDT = s_med_ptr->player_ptr->DT;
+            savedStylePoints = s_med_ptr->stylePoints;
             ModFramework* framework = g_framework.get();
             utility::Config cfg{};
             cfg.load(CONFIG_FILENAME);
@@ -621,9 +623,10 @@ void AreaJump::on_gui_frame(int display) {
             cfg.set<int>("saved_orbs", savedOrbs);
             cfg.set<float>("saved_hp", savedHP);
             cfg.set<float>("saved_dt", savedDT);
+            cfg.set<float>("saved_style_points", savedStylePoints);
             cfg.save(CONFIG_FILENAME);
         }
-    }        
+    }
     ImGui::SameLine();
     help_marker(_("Saves floor, timer, orbs, hp, dt"));
 
@@ -639,6 +642,7 @@ void AreaJump::on_gui_frame(int display) {
             jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
             s_med_ptr->bpTimer = savedBPTimer;
             s_med_ptr->orbMissionCurrent = savedOrbs;
+            s_med_ptr->stylePoints = savedStylePoints;
             s_med_ptr->player_ptr->HP = savedHP;
             s_med_ptr->player_ptr->DT = savedDT;
             s_area_ptr->aGamePtr->init_jump = 1;
@@ -746,6 +750,7 @@ void AreaJump::on_config_save(utility::Config& cfg) {
     cfg.set<int>("saved_orbs", savedOrbs);
     cfg.set<float>("saved_hp", savedHP);
     cfg.set<float>("saved_dt", savedDT);
+    cfg.set<float>("saved_style_points", savedStylePoints);
 
     // BP:
     cfg.set<bool>("randomize_bp_toggle", randomize_bp_toggle);
@@ -758,7 +763,7 @@ void AreaJump::on_config_load(const utility::Config& cfg) {
     savedOrbs = cfg.get<int>("saved_orbs").value_or(0);
     savedHP = cfg.get<float>("saved_hp").value_or(0.0f);
     savedDT = cfg.get<float>("saved_dt").value_or(0.0f);
-
+    savedStylePoints = cfg.get<float>("saved_style_points").value_or(0.0f);
     // BP:
     randomize_bp_toggle = cfg.get<bool>("randomize_bp_toggle").value_or(false);
     if (randomize_bp_toggle) {
