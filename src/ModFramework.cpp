@@ -220,13 +220,13 @@ void ModFramework::on_reset() {
 	if (!m_initialized) { return; }
 	ImGui_ImplDX9_InvalidateDeviceObjects();
     auto& mods = m_mods->get_mods();
-    //for (const auto& mod : mods) {
-    //    mod->on_reset();
-    //}
-    //console->on_reset();
-    //w2s::dd_shutdown();
+    for (const auto& mod : mods) {
+        mod->on_reset();
+    }
+    console->on_reset();
+    w2s::dd_shutdown();
     // Crashes if we don't release it at this point.
-    //cleanup_render_target();
+    cleanup_render_target();
     m_initialized = false;
 }
 
