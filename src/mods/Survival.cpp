@@ -19,9 +19,25 @@ std::random_device Survival::rd;
 std::mt19937 Survival::rng(Survival::rd());
 static std::unique_ptr<PowerUpSystem> powerUpSystem = std::make_unique<PowerUpSystem>();
 
+int get_how_many_enemies_live() {
+    sUnit* sUnit = devil4_sdk::get_sUnit();
+    if (!sUnit) { return 0; }
+    uEnemy* enemy = sUnit->enemy;
+    if (!enemy) { return 0; }
+    int enemyCount = 0;
+    while (enemy) {
+        uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+        if (currentEnemyDamage->HP > 0.0f) {
+            enemyCount++;
+        }
+        enemy = enemy->nextEnemy;
+    }
+    return enemyCount;
+}
+
 bool Survival::can_spawn_enemy() {
     SMediator* sMed = devil4_sdk::get_sMediator();
-    int enemyCount = devil4_sdk::get_enemy_count();
+    int enemyCount = get_how_many_enemies_live();
     if (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) {
         if (enemyCount < 10) {
             return true;
@@ -75,33 +91,25 @@ void Survival::on_frame(fmilliseconds& dt) {
             AreaJump::jump_to_stage(AreaJump::bp_stage(101)); // if not in bp 101, tele there
         }
         else { // Player is spawned and in the correct room
-            if (!Survival::timer->m_active) {
+            if (!Survival::timer->m_active) { // timer needs to be started
                 if (!timer) {
                     create_timer();
                 }
                 timer->start();
             }
-            else {
-                if (sUnit->enemy) {
-                    if (!sUnit->enemy->nextEnemy) { // last enemy alive
-                        uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)sUnit->enemy + EnemyTracker::get_enemy_specific_damage_offset(sUnit->enemy->ID));
-                        if (currentEnemyDamage->HP <= 0.0f) { // has 0 hp
-                            Survival::on_timer_trigger();
-                        }
-                    }
-                }
-                else { // no enemy exists
-                    Survival::on_timer_trigger();
-                }
-                if (!devil4_sdk::is_paused()) {
+            else { // timer is active
+                if (!devil4_sdk::is_paused()) { // game is not paused
                     float dante_seconds = (player->m_delta_time / 60.0f) * 1000.0f;
                     timer->tick((fmilliseconds)dante_seconds);
+                    if (get_how_many_enemies_live() == 0) {
+                        timer->m_callback(); // trigger timer reset if the player killed all enemies too fast
+                    }
                 }
             }
+            if (powerUpSystem) {
+                powerUpSystem->on_frame(dt);
+            }
         }
-    }
-    if (powerUpSystem) {
-        powerUpSystem->on_frame(dt);
     }
 }
 

@@ -15,7 +15,7 @@ PowerUpSystem::PowerUpSystem() :
     m_rng(m_rd())
 {
     m_powerUpColors.resize((size_t)PowerUpType::COUNT);
-    //m_powerUpColors[(size_t)PowerUpType::DOPPELGANGER] = ImColor(255, 0, 0, 255);  // Red
+    m_powerUpColors[(size_t)PowerUpType::DOPPELGANGER] = ImColor(255, 0, 0, 255);  // Red
     m_powerUpColors[(size_t)PowerUpType::HEALTH_RESTORE] = ImColor(0, 255, 0, 255);  // Green
     m_powerUpColors[(size_t)PowerUpType::DEVIL_TRIGGER] = ImColor(128, 0, 255, 255); // Purple
     m_powerUpColors[(size_t)PowerUpType::QUICKSILVER] = ImColor(0, 191, 255, 255);  // Blue
@@ -30,12 +30,11 @@ void PowerUpSystem::on_timer_trigger() {
 }
 
 void doppel_callback() {
-    sUnit* sUnit = devil4_sdk::get_sUnit();
-    if (!sUnit) { return; }
-    uPlayer* sparePlayer = sUnit->player;
-    if (!sparePlayer) { return; }
-    uactor_sdk::uDevil4ModelDest(sparePlayer);
-    return;
+    // sUnit* sUnit = devil4_sdk::get_sUnit();
+    // if (!sUnit) { return; }
+    // uPlayer* sparePlayer = sUnit->player;
+    // if (!sparePlayer) { return; }
+    // uactor_sdk::uDevil4ModelDest(sparePlayer);
 }
 
 std::optional<std::string> PowerUpSystem::on_initialize() {
@@ -213,16 +212,15 @@ void PowerUpSystem::applyPowerUpEffect(PowerUp& powerup) {
     if (!player) { return; }
     sUnit* sUnit = devil4_sdk::get_sUnit();
     if (!sUnit) { return; }
-    uPlayer* otherPlayer = (uPlayer*)sUnit->player;
     
     powerup.effectActive = true;
     
     switch (powerup.type) {
         case PowerUpType::DOPPELGANGER:
-            if (!otherPlayer) { // whoops nvm this is main player
-                EnemySpawn::spawn_player();
-            }
-            doppel_timer->start();
+            // if (!sparePlayer) {
+            //     EnemySpawn::spawn_player();
+            // }
+            // doppel_timer->start();
             break;
             
         case PowerUpType::HEALTH_RESTORE:
