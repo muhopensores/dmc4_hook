@@ -166,7 +166,7 @@ void ModFramework::on_frame() {
     }
 
     std::chrono::high_resolution_clock::time_point now_time = std::chrono::high_resolution_clock::now();
-    w2s::dd_update();
+    w2s::dd_update(); // Used in imgui w2s
 
     m_input->update();
     m_mods->on_update_input(*m_input);
@@ -212,7 +212,7 @@ void ModFramework::on_frame() {
         }
     }
     m_prev_time = now_time;
-    w2s::dd_flush();
+    // w2s::dd_flush(); // d3d9 rendering, commented out because crash on reset
 }
 
 void ModFramework::on_reset() {
@@ -224,7 +224,7 @@ void ModFramework::on_reset() {
         mod->on_reset();
     }
     console->on_reset();
-    w2s::dd_shutdown();
+    // w2s::dd_shutdown(); // d3d9 rendering, commented out because crash on reset
     // Crashes if we don't release it at this point.
     cleanup_render_target();
     m_initialized = false;
@@ -451,7 +451,7 @@ bool ModFramework::initialize() {
 
         init_thread.detach();
 
-        w2s::dd_init(device);
+        // w2s::dd_init(device); // d3d9 rendering, commented out because crash on reset
     }
 
     return true;
