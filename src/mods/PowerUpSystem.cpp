@@ -88,12 +88,12 @@ void PowerUpSystem::on_frame(fmilliseconds& dt) {
 
 void PowerUpSystem::render() {
     if (!m_enabled) return;
-    
+
     for (const auto& powerup : m_powerUps) {
         if (!powerup.active || powerup.effectActive) continue;
         
         glm::vec3 realPowerupPos(powerup.location.x, powerup.location.y, powerup.location.z);
-        // lie about actual pos by 200 y so you can hit it with your body rather than feet
+        // lie about actual pos by 100 y so you can hit it with your body rather than feet
         glm::vec3 powerupPos(powerup.location.x, powerup.location.y + 100.0f, powerup.location.z);
         
         if (w2s::IsVisibleOnScreen(powerupPos, powerup.radius)) {

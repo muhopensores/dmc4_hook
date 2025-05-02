@@ -13,16 +13,13 @@ bool Survival::mod_enabled = false;
 bool Survival::special_effects = false;
 std::shared_ptr<utility::Timer> Survival::timer;
 int Survival::wave = 0;
-int Survival::wave_difficulty = 0;
 bool Survival::player_existed_last_frame = false;
 std::random_device Survival::rd;
 std::mt19937 Survival::rng(Survival::rd());
 static std::unique_ptr<PowerUpSystem> powerUpSystem = std::make_unique<PowerUpSystem>();
 
 int get_how_many_enemies_live() {
-    sUnit* sUnit = devil4_sdk::get_sUnit();
-    if (!sUnit) { return 0; }
-    uEnemy* enemy = sUnit->enemy;
+    uEnemy* enemy = devil4_sdk::get_uEnemies();
     if (!enemy) { return 0; }
     int enemyCount = 0;
     while (enemy) {
@@ -33,6 +30,18 @@ int get_how_many_enemies_live() {
         enemy = enemy->nextEnemy;
     }
     return enemyCount;
+}
+
+bool is_boss_spawned() {
+    uEnemy* enemy = devil4_sdk::get_uEnemies();
+    if (!enemy) { return 0; }
+    while (enemy) {
+        if (enemy->ID >= BERIAL || enemy->ID == BLITZ) {
+            return true;
+        }
+        enemy = enemy->nextEnemy;
+    }
+    return false;
 }
 
 bool Survival::can_spawn_enemy() {
@@ -57,16 +66,27 @@ void Survival::on_timer_trigger() {
     
     SMediator* sMed = devil4_sdk::get_sMediator();
     if (can_spawn_enemy()) {
-        // Every 5 waves, go up a wave_difficulty. Higher wave difficulties have harder enemies
+        // Every enemy spawn is a new wave
         Survival::wave++;
-        if (wave % 5 == 0) Survival::wave_difficulty++;
-        spawn_kinda_random_enemy();
-        if (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT)
-            spawn_kinda_random_enemy(); // spawn an extra dude every wave in LDK
-        // Above a certain difficulty, 1/4 chance of spawning a "side" enemy. Side enemies are things like seeds or swords
-        if (Survival::wave_difficulty >= 4 && (get_random_int(0, 3) == 0)) spawn_side_enemy();
-        // 1/4 chance of getting a powerup every wave
-        if (get_random_int(0, 3) == 0) {
+
+        // Above wave x, 1/8 chance of spawning a "boss" enemy if one does not already exist. Boss enemies are Blitz or the less annoying bosses
+        if (Survival::wave >= 35 && !is_boss_spawned() && (get_random_int(0, 7) == 0)) {
+            spawn_boss_enemy();
+        }
+        else {
+            // Spawn a dude
+            spawn_kinda_random_enemy();
+            // spawn an extra dude every wave in LDK
+            if (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) {
+                spawn_kinda_random_enemy();
+            }
+        }
+
+        // Above wave x, 1/4 chance of also spawning a "side" enemy. Side enemies are seeds swords, fish
+        if (Survival::wave >= 20 && (get_random_int(0, 3) == 0)) spawn_side_enemy();
+
+        // 1/3 chance of getting a powerup every wave
+        if (get_random_int(0, 2) == 0) {
             powerUpSystem->spawnRandomPowerUp();
         }
     }
@@ -103,11 +123,11 @@ void Survival::on_frame(fmilliseconds& dt) {
                     timer->tick((fmilliseconds)dante_seconds);
                     if (get_how_many_enemies_live() == 0) {
                         timer->m_callback(); // trigger timer reset if the player killed all enemies too fast
+                        if (powerUpSystem) {
+                            powerUpSystem->on_frame(dt);
+                        }
                     }
                 }
-            }
-            if (powerUpSystem) {
-                powerUpSystem->on_frame(dt);
             }
         }
     }
@@ -115,14 +135,14 @@ void Survival::on_frame(fmilliseconds& dt) {
 
 void Survival::spawn_kinda_random_enemy() {
     std::vector<int> available_enemies;
-    if (Survival::wave_difficulty == 0) {
+    if (Survival::wave <= 5) {
         available_enemies = {
             0, // SCARECROW_LEG
             1, // SCARECROW_ARM
             2, // SCARECROW_MEGA
         };
     }
-    else if (Survival::wave_difficulty == 1) {
+    else if (Survival::wave <= 19) {
         available_enemies = {
             0, // SCARECROW_LEG
             1, // SCARECROW_ARM
@@ -131,21 +151,6 @@ void Survival::spawn_kinda_random_enemy() {
             3, // ANGELO_BIANCO,
             5, // MEPHISTO,
             8, // ASSAULT
-        };
-    }
-    else if (Survival::wave_difficulty == 2) {
-        available_enemies = {
-            0, // SCARECROW_LEG
-            1, // SCARECROW_ARM
-            2, // SCARECROW_MEGA
-            // 2
-            3, // ANGELO_BIANCO
-            5, // MEPHISTO
-            8, // ASSAULT
-            // 3
-            7, // FROST
-            4, // ANGELO_ALTO
-            6, // FAUST
         };
     }
     else {
@@ -161,8 +166,7 @@ void Survival::spawn_kinda_random_enemy() {
             7, // FROST
             4, // ANGELO_ALTO
             6, // FAUST
-            // 4
-            9, // BLITZ
+            13, // BASILISK
         };
     }
 
@@ -187,6 +191,21 @@ void Survival::spawn_side_enemy() {
     }
 }
 
+void Survival::spawn_boss_enemy() {
+    std::vector<int> available_enemies = {
+        9, // BLITZ
+        14, // BERIAL
+        15, // BAEL
+        17, // CREDO
+        18, // AGNUS
+    };
+    if (!available_enemies.empty()) {
+        int random_index = get_random_int(0, available_enemies.size() - 1);
+        int enemy_type = available_enemies[random_index];
+        EnemySpawn::spawn_em00x(enemy_type);
+    }
+}
+
 void Survival::on_gui_frame(int display) {
     ImGui::BeginGroup();
     if (ImGui::Checkbox(_("Survival"), &Survival::mod_enabled)) {
@@ -203,7 +222,6 @@ void Survival::on_gui_frame(int display) {
     if (Survival::mod_enabled) {
         ImGui::Indent(lineIndent);
         ImGui::InputInt("Wave", &Survival::wave);
-        ImGui::InputInt("Wave Difficulty", &Survival::wave_difficulty);
         ImGui::InputFloat("Wave Timer", (float*)&timer->m_time);
         ImGui::Text("PowerUp System");
         float spawnInterval = powerUpSystem->getSpawnInterval();
@@ -233,7 +251,6 @@ void Survival::on_gui_frame(int display) {
 
 void Survival::reset_wave() {
     Survival::wave = 0;
-    Survival::wave_difficulty = 0;
     if (timer) {
         timer->start();
     }

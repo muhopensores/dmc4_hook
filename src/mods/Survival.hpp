@@ -10,7 +10,6 @@ public:
     static bool mod_enabled;
     static bool special_effects;
     static int wave;
-    static int wave_difficulty;
     static std::shared_ptr<utility::Timer> timer;
     static std::random_device rd;
     static std::mt19937 rng;
@@ -24,6 +23,7 @@ public:
 
     static int get_random_int(int min, int max);
     static void spawn_kinda_random_enemy();
+    static void spawn_boss_enemy();
     static void spawn_side_enemy();
     static void change_something();
 
