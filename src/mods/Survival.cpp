@@ -18,60 +18,65 @@ std::random_device Survival::rd;
 std::mt19937 Survival::rng(Survival::rd());
 static std::unique_ptr<PowerUpSystem> powerUpSystem = std::make_unique<PowerUpSystem>();
 
-int get_how_many_enemies_live() {
-    uEnemy* enemy = devil4_sdk::get_uEnemies();
-    if (!enemy) { return 0; }
-    int enemyCount = 0;
+// safe to be called with no enemy
+Survival::EnemyInfo Survival::get_enemy_info(uEnemy* enemy) {
+    EnemyInfo enemy_info{ 0, false };
     while (enemy) {
         uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
         if (currentEnemyDamage->HP > 0.0f) {
-            enemyCount++;
+            enemy_info.enemies_alive++;
+            if (enemy->ID >= BERIAL || enemy->ID == BLITZ) {
+                enemy_info.is_boss_spawned = true;
+            }
         }
         enemy = enemy->nextEnemy;
     }
-    return enemyCount;
+    return enemy_info;
 }
 
-bool is_boss_spawned() {
-    uEnemy* enemy = devil4_sdk::get_uEnemies();
-    if (!enemy) { return 0; }
-    while (enemy) {
-        if (enemy->ID >= BERIAL || enemy->ID == BLITZ) {
+bool Survival::can_spawn_enemy(EnemyInfo enemy_info, SMediator* sMed) {
+    if (!sMed) { return false; }
+    if (enemy_info.is_boss_spawned) { // if a boss is spawned, limit enemies
+        if (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) {
+            if (enemy_info.enemies_alive < 3) {
+                return true;
+            }
+        }
+        else if (enemy_info.enemies_alive < 1) {
             return true;
         }
-        enemy = enemy->nextEnemy;
+    }
+    else { // if no boss is spawned, limit less
+        if (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) {
+            if (enemy_info.enemies_alive < 10) {
+                return true;
+            }
+        }
+        else if (enemy_info.enemies_alive < 3) {
+            return true;
+        }
     }
     return false;
 }
 
-bool Survival::can_spawn_enemy() {
-    SMediator* sMed = devil4_sdk::get_sMediator();
-    int enemyCount = get_how_many_enemies_live();
-    if (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) {
-        if (enemyCount < 10) {
-            return true;
-        }
-    }
-    else if (enemyCount < 3) {
-        return true;
-    }
-    return false;
-}
-
-// Called every x dante seconds or when every enemy is dead, only when player is alive and in the correct room
+// When player is alive and in the correct room, this is called every x dante seconds or when every enemy is dead
 void Survival::on_timer_trigger() {
     Survival::timer->start();
+    SMediator* sMed = devil4_sdk::get_sMediator();
     sUnit* sUnit = devil4_sdk::get_sUnit();
     if (!sUnit) { return; }
-    
-    SMediator* sMed = devil4_sdk::get_sMediator();
-    if (can_spawn_enemy()) {
+    uEnemy* enemy = devil4_sdk::get_uEnemies();
+    EnemyInfo enemy_info = Survival::get_enemy_info(enemy);
+
+    if (can_spawn_enemy(enemy_info, sMed)) {
         // Every enemy spawn is a new wave
         Survival::wave++;
 
-        // Above wave x, 1/8 chance of spawning a "boss" enemy if one does not already exist. Boss enemies are Blitz or the less annoying bosses
-        if (Survival::wave >= 35 && !is_boss_spawned() && (get_random_int(0, 7) == 0)) {
-            spawn_boss_enemy();
+        if (Survival::wave >= 35) {
+            // 1/8 chance of spawning a "boss" enemy if one does not already exist. Boss enemies are Blitz or the less annoying bosses
+            if (!enemy_info.is_boss_spawned && get_random_int(0, 7) == 0) {
+                spawn_boss_enemy();
+            }
         }
         else {
             // Spawn a dude
@@ -80,10 +85,9 @@ void Survival::on_timer_trigger() {
             if (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) {
                 spawn_kinda_random_enemy();
             }
+            // Above wave x, 1/4 chance of also spawning a "side" enemy. Side enemies are seeds swords, fish
+            if (Survival::wave >= 20 && (get_random_int(0, 3) == 0)) spawn_side_enemy();
         }
-
-        // Above wave x, 1/4 chance of also spawning a "side" enemy. Side enemies are seeds swords, fish
-        if (Survival::wave >= 20 && (get_random_int(0, 3) == 0)) spawn_side_enemy();
 
         // 1/3 chance of getting a powerup every wave
         if (get_random_int(0, 2) == 0) {
@@ -121,11 +125,13 @@ void Survival::on_frame(fmilliseconds& dt) {
                 if (!devil4_sdk::is_paused()) { // game is not paused
                     float dante_seconds = (player->m_delta_time / 60.0f) * 1000.0f;
                     timer->tick((fmilliseconds)dante_seconds);
-                    if (get_how_many_enemies_live() == 0) {
-                        timer->m_callback(); // trigger timer reset if the player killed all enemies too fast
                         if (powerUpSystem) {
-                            powerUpSystem->on_frame(dt);
-                        }
+                    EnemyInfo enemy_info = get_enemy_info(devil4_sdk::get_uEnemies());
+                    if (enemy_info.enemies_alive == 0) {
+                        timer->m_time = (fseconds)timer->m_duration; // trigger timer reset if the player killed all enemies too fast
+                    }
+                    if (powerUpSystem) {
+                        powerUpSystem->on_frame(dt);
                     }
                 }
             }

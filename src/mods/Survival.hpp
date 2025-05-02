@@ -7,6 +7,11 @@ public:
     std::string get_mod_name() override { return "Survival"; };
     // Mod::ModType get_mod_type() override { return SLOW; };
 
+    struct EnemyInfo {
+        int enemies_alive;
+        bool is_boss_spawned;
+    };
+
     static bool mod_enabled;
     static bool special_effects;
     static int wave;
@@ -15,7 +20,8 @@ public:
     static std::mt19937 rng;
     static bool player_existed_last_frame;
 
-    static bool can_spawn_enemy();
+    static EnemyInfo get_enemy_info(uEnemy* enemy);
+    static bool can_spawn_enemy(EnemyInfo enemy_info, SMediator* sMed);
     static void create_timer();
     static void reset_wave();
     static void on_timer_trigger();
