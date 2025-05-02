@@ -49,8 +49,8 @@ naked void timer_detour(void) { // ticks timer, player in ecx
 			movss xmm5, [TimerMem::timer_mem]
 			comiss xmm5, [back_forward_time]
 			movss xmm5, [xmm5backup]
-			jb replacetrick                                // If trick down is enabled, replace trickster dash and sky star to trick when timer is under (float)x
-			jmp dontreplacetrick						   // By putting replacements on a timer you make a buffer for the input and have a convenient off state
+			jb replacetrick      // If trick down is enabled, replace trickster dash and sky star to trick when timer is under (float)x
+			jmp dontreplacetrick // By putting replacements on a timer you make a buffer for the input and have a convenient off state
 
 		replacetrick:
             cmp byte ptr [ecx+0x16D0], 0 // lockon

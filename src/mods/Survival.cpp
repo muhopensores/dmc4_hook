@@ -5,18 +5,19 @@
 #include "SpawnedEnemiesAttack.hpp"
 #include "PowerUpSystem.hpp"
 #include "EnemyTracker.hpp" // for enemy specific damage offset
+#include "Quicksilver.hpp"
 
 // Shame about the hitch when an enemy is loaded
 // Doppel is currently disabled because I couldn't figure out how to destroy p2, but the spawn and timer works (uh it sets you to p2 tho)
-
 bool Survival::mod_enabled = false;
-bool Survival::special_effects = false;
+bool Survival::meme_effects = false;
 std::shared_ptr<utility::Timer> Survival::timer;
 int Survival::wave = 0;
 bool Survival::player_existed_last_frame = false;
 std::random_device Survival::rd;
 std::mt19937 Survival::rng(Survival::rd());
-static std::unique_ptr<PowerUpSystem> powerUpSystem = std::make_unique<PowerUpSystem>();
+static std::unique_ptr<PowerUpSystem> basicPowerUpSystem = std::make_unique<PowerUpSystem>();
+static std::unique_ptr<PowerUpSystem> memePowerUpSystem = std::make_unique<PowerUpSystem>();
 
 // safe to be called with no enemy
 Survival::EnemyInfo Survival::get_enemy_info(uEnemy* enemy) {
@@ -72,11 +73,9 @@ void Survival::on_timer_trigger() {
         // Every enemy spawn is a new wave
         Survival::wave++;
 
-        if (Survival::wave >= 35) {
-            // 1/8 chance of spawning a "boss" enemy if one does not already exist. Boss enemies are Blitz or the less annoying bosses
-            if (!enemy_info.is_boss_spawned && get_random_int(0, 7) == 0) {
-                spawn_boss_enemy();
-            }
+        // 1/8 chance of spawning a "boss" enemy if one does not already exist. Boss enemies are Blitz or the less annoying bosses
+        if (Survival::wave >= 35 && !enemy_info.is_boss_spawned && get_random_int(0, 7) == 0) {
+            spawn_boss_enemy();
         }
         else {
             // Spawn a dude
@@ -91,10 +90,17 @@ void Survival::on_timer_trigger() {
 
         // 1/3 chance of getting a powerup every wave
         if (get_random_int(0, 2) == 0) {
-            powerUpSystem->spawnRandomPowerUp();
+            if (basicPowerUpSystem) { basicPowerUpSystem->spawnRandomPowerUp(); }
+        }
+        // 1/3 chance of getting a meme powerup every wave
+        if (get_random_int(0, 2) == 0) {
+            if (memePowerUpSystem) { memePowerUpSystem->spawnRandomPowerUp(); }
         }
     }
 }
+
+float accumulated_delta = 0.0f;
+const float TELEPORT_DELAY = 50.0f;
 
 void Survival::on_frame(fmilliseconds& dt) {
     if (!Survival::mod_enabled) { return; }
@@ -111,11 +117,17 @@ void Survival::on_frame(fmilliseconds& dt) {
     if (player) {
         sArea* s_area_ptr = devil4_sdk::get_sArea();
         sUnit* sUnit = devil4_sdk::get_sUnit();
+        sArea* sArea = devil4_sdk::get_sArea();
         if (sMed->roomID != 700) {
-            AreaJump::jump_to_stage(AreaJump::bp_stage(101)); // if not in bp 101, tele there
+            accumulated_delta += player->m_delta_time;
+            if (accumulated_delta >= TELEPORT_DELAY) {
+                AreaJump::jump_to_stage(AreaJump::bp_stage(101));
+                accumulated_delta = 0.0f; // Reset accumulated delta
+            }
         }
         else { // Player is spawned and in the correct room
-            if (!Survival::timer->m_active) { // timer needs to be started
+            accumulated_delta = 0.0f;
+            if (!Survival::timer->m_active) {
                 if (!timer) {
                     create_timer();
                 }
@@ -129,8 +141,11 @@ void Survival::on_frame(fmilliseconds& dt) {
                     if (enemy_info.enemies_alive == 0) {
                         timer->m_time = (fseconds)timer->m_duration; // trigger timer reset if the player killed all enemies too fast
                     }
-                    if (powerUpSystem) {
-                        powerUpSystem->on_frame(dt);
+                    if (basicPowerUpSystem) {
+                        basicPowerUpSystem->on_frame(dt);
+                    }
+                    if (memePowerUpSystem) {
+                        memePowerUpSystem->on_frame(dt);
                     }
                 }
             }
@@ -211,28 +226,203 @@ void Survival::spawn_boss_enemy() {
     }
 }
 
+PowerUpSystem::PowerUpDefinition createDoppelgangerPowerUp(float duration = 15.0f, float radius = 200.0f) {
+    return PowerUpSystem::createPowerUpDef(
+        "doppelganger",           // name
+        "DPL",                    // displayName
+        ImColor(255, 0, 0, 255),  // color (Red)
+        duration,                 // duration
+        radius,                   // radius
+        15.0f,                    // effectDuration
+        []() {                    // onActivate
+                                  
+        },                        
+        [](float dt) {            // onUpdate
+                                  
+        },                        
+        []() {                    // onExpire
+        
+        }
+    );
+}
+
+PowerUpSystem::PowerUpDefinition createHealthRestorePowerUp(float duration = 15.0f, float radius = 200.0f) {
+    return PowerUpSystem::createPowerUpDef(
+        "health_restore",         // name
+        "HP",                     // displayName
+        ImColor(0, 255, 0, 255),  // color (Green)
+        duration,                 // duration
+        radius,                   // radius
+        0.0f,                     // effectDuration (instant)
+        []() {                    // onActivate
+            uPlayer* player = devil4_sdk::get_local_player();
+            if (player) {
+                player->HP += std::min(3000.0f, 20000.0f - player->HP);
+            }
+        },
+        [](float dt) {            // onUpdate
+        
+        },
+        []() {                    // onExpire
+        
+        }
+    );
+}
+
+PowerUpSystem::PowerUpDefinition createDevilTriggerPowerUp(float duration = 15.0f, float radius = 200.0f) {
+    return PowerUpSystem::createPowerUpDef(
+        "devil_trigger",            // name
+        "DT",                       // displayName
+        ImColor(128, 0, 255, 255),  // color (Purple)
+        duration,                   // duration
+        radius,                     // radius
+        0.0f,                       // effectDuration (instant)
+        []() {                      // onActivate
+            uPlayer* player = devil4_sdk::get_local_player();
+            if (player) {
+                player->DT += std::min(3000.0f, 10000.0f - player->DT);
+            }
+        },
+        [](float dt) {              // onUpdate
+        
+        },
+        []() {                      // onExpire
+        
+        }
+    );
+}
+
+PowerUpSystem::PowerUpDefinition createQuicksilverPowerUp(float duration = 15.0f, float radius = 200.0f) {
+    return PowerUpSystem::createPowerUpDef(
+        "quicksilver",              // name
+        "QS",                       // displayName
+        ImColor(0, 191, 255, 255),  // color (Blue)
+        duration,                   // duration
+        radius,                     // radius
+        15.0f,                      // effectDuration
+        []() {                      // onActivate
+            Quicksilver::qs_operator_new();
+        },
+        [](float dt) {              // onUpdate
+        
+        },
+        []() {                      // onExpire
+            Quicksilver::on_timer_callback();
+        }
+    );
+}
+
+PowerUpSystem::PowerUpDefinition createPlayerSmolPowerUp() {
+    return PowerUpSystem::createPowerUpDef(
+        "player_smol",             // name
+        "SMOL",                    // displayName
+        ImColor(255, 255, 0, 255), // color (Yellow)
+        15.0f,                     // duration
+        200.0f,                    // radius
+        10.0f,                     // effectDuration
+        []() {                     // onActivate
+            uPlayer* player = devil4_sdk::get_local_player();
+            if (player) {
+                player->m_scale = { 0.5f, 0.5f, 0.5f };
+            }
+        },
+        [](float dt) {             // onUpdate
+        
+        },
+        []() {                     // onExpire
+            uPlayer* player = devil4_sdk::get_local_player();
+            if (player) {
+                player->m_scale = { 1.0f, 1.0f, 1.0f };
+            }
+        }
+    );
+}
+
+PowerUpSystem::PowerUpDefinition createEnemySizePowerUp() {
+    return PowerUpSystem::createPowerUpDef(
+        "enemy_size",              // name
+        "ENMY_SZ",                 // displayName
+        ImColor(255, 255, 0, 255), // color (Yellow)
+        15.0f,                     // duration
+        200.0f,                    // radius
+        10.0f,                     // effectDuration
+        []() {                     // onActivate
+            uEnemy* enemy = devil4_sdk::get_uEnemies();
+            while (enemy) {
+                float newScale = Survival::get_random_float(0.5f, 2.0f);
+                enemy->scale = { newScale, newScale, newScale };
+                enemy = enemy->nextEnemy;
+            }
+        },
+        [](float dt) {             // onUpdate
+        
+        },
+        []() {                     // onExpire
+
+        }
+    );
+}
+
+void Survival::toggle_basic_powerups(bool toggle) {
+    if (toggle) {
+        // powerUpSystem->registerPowerUp(createDoppelgangerPowerUp());
+        basicPowerUpSystem->registerPowerUp(createHealthRestorePowerUp());
+        basicPowerUpSystem->registerPowerUp(createDevilTriggerPowerUp());
+        basicPowerUpSystem->registerPowerUp(createQuicksilverPowerUp());
+    }
+    else {
+        // powerUpSystem->removePowerUp("doppelganger");
+        basicPowerUpSystem->removePowerUp("health_restore");
+        basicPowerUpSystem->removePowerUp("devil_trigger");
+        basicPowerUpSystem->removePowerUp("quicksilver");
+    }
+}
+
+void Survival::toggle_meme_powerups(bool toggle) {
+    if (toggle) {
+        memePowerUpSystem->registerPowerUp(createPlayerSmolPowerUp());
+        memePowerUpSystem->registerPowerUp(createEnemySizePowerUp());
+    }
+    else {
+        memePowerUpSystem->removePowerUp("player_smol");
+        memePowerUpSystem->removePowerUp("enemy_size");
+
+    }
+}
+
+void setupBasicPowerUpSystem() {
+    basicPowerUpSystem->setSpawnInterval(0.0f);
+    basicPowerUpSystem->setMaxPowerUps(5);
+}
+
+void setupMemePowerUpSystem() {
+    memePowerUpSystem->setSpawnInterval(0.0f);
+    memePowerUpSystem->setMaxPowerUps(5);
+}
+
 void Survival::on_gui_frame(int display) {
     ImGui::BeginGroup();
     if (ImGui::Checkbox(_("Survival"), &Survival::mod_enabled)) {
         SpawnedEnemiesAttack::mod_enabled = Survival::mod_enabled;
         toggle(Survival::mod_enabled);
-        powerUpSystem->setEnabled(Survival::mod_enabled);
+        basicPowerUpSystem->setEnabled(Survival::mod_enabled);
+        toggle_basic_powerups(Survival::mod_enabled);
     }
     ImGui::SameLine();
     help_marker(_("Tick and enter any non BP mission on your desired difficulty"));
-
-    /*if (ImGui::Button("Spawn Player")) {
-        EnemySpawn::spawn_player();
-    }
-    if (Survival::mod_enabled) {
+    if (mod_enabled) {
+        ImGui::Indent(lineIndent);
+        if (ImGui::Checkbox(_("Extra Effects"), &meme_effects)) {
+            toggle_meme_powerups(meme_effects);
+        }
+    
+        /*if (ImGui::Button("Spawn Player")) {
+            EnemySpawn::spawn_player();
+        }
         ImGui::Indent(lineIndent);
         ImGui::InputInt("Wave", &Survival::wave);
         ImGui::InputFloat("Wave Timer", (float*)&timer->m_time);
-        ImGui::Text("PowerUp System");
         float spawnInterval = powerUpSystem->getSpawnInterval();
-        if (ImGui::SliderFloat("PowerUp Natural Spawn Interval", &spawnInterval, 10.0f, 60.0f, "%.1f")) {
-            powerUpSystem->setSpawnInterval(spawnInterval);
-        }
         int maxPowerUps = powerUpSystem->getMaxPowerUps();
         if (ImGui::SliderInt("Max PowerUps", &maxPowerUps, 1, 10)) {
             powerUpSystem->setMaxPowerUps(maxPowerUps);
@@ -248,9 +438,10 @@ void Survival::on_gui_frame(int display) {
         }
         if (ImGui::Button("Timer Trigger")) {
             Survival::on_timer_trigger();
-        }
+        }*/
         ImGui::Unindent(lineIndent);
-    }*/
+        
+    }
     ImGui::EndGroup();
 }
 
@@ -260,8 +451,12 @@ void Survival::reset_wave() {
         timer->start();
     }
     
-    if (powerUpSystem) {
-        powerUpSystem->clearPowerUps();
+    if (basicPowerUpSystem) {
+        basicPowerUpSystem->clearPowerUps();
+    }
+
+    if (memePowerUpSystem) {
+        memePowerUpSystem->clearPowerUps();
     }
 }
 
@@ -270,29 +465,21 @@ int Survival::get_random_int(int min, int max) {
     return dist(rng);
 }
 
-void Survival::change_something() {
-    int thing = get_random_int(0, 1);
+float Survival::get_random_float(float min, float max) {
+    std::uniform_real_distribution<float> dist(min, max);
+    return dist(rng);
 }
 
-void Survival::toggle(bool enable) {
-    if (enable) {
+void Survival::toggle(bool toggle) {
+    if (toggle) {
         if (!timer) {
             create_timer();
         }
         timer->start();
         reset_wave();
-        
-        if (powerUpSystem) {
-            powerUpSystem->setEnabled(true);
-            powerUpSystem->setSpawnInterval(0.0f);
-        }
     } else {
         if (timer) {
             timer->stop();
-        }
-        
-        if (powerUpSystem) {
-            powerUpSystem->setEnabled(false);
         }
     }
 }
@@ -302,7 +489,10 @@ void Survival::create_timer() {
 }
 
 std::optional<std::string> Survival::on_initialize() {
-    powerUpSystem->on_initialize();
+    basicPowerUpSystem->on_initialize();
+    if (basicPowerUpSystem) { setupBasicPowerUpSystem(); }
+    memePowerUpSystem->on_initialize();
+    if (memePowerUpSystem) { setupMemePowerUpSystem(); }
     return Mod::on_initialize();
 }
 
@@ -310,11 +500,18 @@ void Survival::on_config_load(const utility::Config& cfg){
     Survival::mod_enabled = cfg.get<bool>("Survival").value_or(false);
     if (Survival::mod_enabled) {
         SpawnedEnemiesAttack::mod_enabled = Survival::mod_enabled;
-        powerUpSystem->setEnabled(Survival::mod_enabled);
         toggle(Survival::mod_enabled);
+        basicPowerUpSystem->setEnabled(Survival::mod_enabled);
+        toggle_basic_powerups(Survival::mod_enabled);
+    }
+    Survival::meme_effects = cfg.get<bool>("Survival_memes").value_or(false);
+    if (Survival::meme_effects) {
+        memePowerUpSystem->setEnabled(Survival::mod_enabled);
+        toggle_meme_powerups(Survival::meme_effects);
     }
 }
 
 void Survival::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("Survival", Survival::mod_enabled);
+    cfg.set<bool>("Survival_memes", Survival::meme_effects);
 }

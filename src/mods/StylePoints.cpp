@@ -824,8 +824,8 @@ uintptr_t StylePoints::jmp_ret4 = NULL;
 std::vector<TrickScore> trickScores;
 static const float baseWidth = 1920.0f;
 static float correctedWindowFontScale = 0.0f;
-static const float displayDuration = 1.0f;
-static const uint32_t maxScores = 5;
+static float displayDuration = 1.0f;
+static const uint32_t maxScores = 500;
 
 // tony display
 // static std::chrono::steady_clock::time_point lastTrickTime = std::chrono::steady_clock::now();
@@ -938,43 +938,129 @@ static void DrawTrickScores() {
         ImGui::Begin("TrickScoresWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
         ImGui::SetWindowFontScale(correctedWindowFontScale * 2.0f);
         float fontSize = ImGui::GetFontSize();
-
-        for (uint16_t i = 0; i < trickScores.size(); ++i) {
-            TrickScore& score = trickScores[i];
-            float elapsed = std::chrono::duration<float>(now - score.timePerformed).count();
-
-            if (elapsed > displayDuration) {
-                trickScores.erase(trickScores.begin() + i);
-                --i;
-                continue;
+        
+        struct ConsecutiveGroup {
+            std::string trickName;
+            float score;
+            float multiplier;
+            char styleLetter;
+            int count;
+            std::chrono::steady_clock::time_point mostRecentTime;
+            int startIndex;
+            int endIndex;
+        };
+        
+        std::vector<ConsecutiveGroup> consecutiveGroups;
+        
+        if (!trickScores.empty()) {
+            ConsecutiveGroup currentGroup;
+            currentGroup.trickName = trickScores[0].text;
+            currentGroup.score = trickScores[0].score;
+            currentGroup.multiplier = trickScores[0].multiplier;
+            currentGroup.styleLetter = trickScores[0].styleLetter;
+            currentGroup.count = 1;
+            currentGroup.mostRecentTime = trickScores[0].timePerformed;
+            currentGroup.startIndex = 0;
+            currentGroup.endIndex = 0;
+            
+            for (uint32_t i = 1; i < trickScores.size(); i++) {
+                if (trickScores[i].text == currentGroup.trickName) {
+                    // same trick, extend the current group
+                    currentGroup.count++;
+                    currentGroup.endIndex = i;
+                    if (trickScores[i].timePerformed > currentGroup.mostRecentTime) {
+                        currentGroup.mostRecentTime = trickScores[i].timePerformed;
+                    }
+                } else {
+                    // different trick, save current group and start a new one
+                    consecutiveGroups.push_back(currentGroup);
+                    
+                    currentGroup.trickName = trickScores[i].text;
+                    currentGroup.score = trickScores[i].score;
+                    currentGroup.multiplier = trickScores[i].multiplier;
+                    currentGroup.styleLetter = trickScores[i].styleLetter;
+                    currentGroup.count = 1;
+                    currentGroup.mostRecentTime = trickScores[i].timePerformed;
+                    currentGroup.startIndex = i;
+                    currentGroup.endIndex = i;
+                }
             }
-
-            float fade = 1.0f - (elapsed / displayDuration);
-            ImVec4 color(1.0f, 1.0f, 1.0f, fade);
-            ImVec4 currentStyleColor = GetStyleColor(score.styleLetter);
-            ImVec4 color2(currentStyleColor.x, currentStyleColor.y, currentStyleColor.z, fade);
-
-            if (score.styleLetter != 0) {
-                float windowWidth = ImGui::GetContentRegionAvail().x;
-                char scoreBuffer[32];
-                snprintf(scoreBuffer, sizeof(scoreBuffer), "%.1f", score.score * 0.1 * score.multiplier);
-
-                float textWidth = ImGui::CalcTextSize(score.text.c_str()).x;
-                float scoreWidth = ImGui::CalcTextSize(scoreBuffer).x;
-                float customSpacing = fontSize * 1.0f;
-                float rightAlignX = (windowWidth * 0.8f) - (customSpacing * 0.5f);
-                float leftAlignX = (windowWidth * 0.8f) + (customSpacing * 0.5f);
-
-                ImGui::SetCursorPosX(rightAlignX - textWidth);
-                ImGui::PushStyleColor(ImGuiCol_Text, color);
-                ImGui::Text(_("%s"), score.text.c_str());
-                ImGui::PopStyleColor();
-                ImGui::SameLine(leftAlignX);
-                ImGui::PushStyleColor(ImGuiCol_Text, color2);
-                ImGui::Text(_("%.1f"), score.score * 0.1 * score.multiplier);
-                ImGui::PopStyleColor();
+            
+            // add the last group
+            consecutiveGroups.push_back(currentGroup);
+        }
+        
+        // check which groups have timed out
+        std::vector<ConsecutiveGroup> activeGroups;
+        std::vector<int> trickIndicesToRemove;
+        
+        for (const auto& group : consecutiveGroups) {
+            float elapsed = std::chrono::duration<float>(now - group.mostRecentTime).count();
+            bool timedOut = (elapsed > displayDuration);
+            
+            if (timedOut) {
+                // Mark all tricks in this group for removal
+                for (int i = group.startIndex; i <= group.endIndex; i++) {
+                    trickIndicesToRemove.push_back(i);
+                }
+            } else {
+                activeGroups.push_back(group);
             }
         }
+        
+        // sort active groups by how recent they were
+        std::sort(activeGroups.begin(), activeGroups.end(), 
+            [](const ConsecutiveGroup& a, const ConsecutiveGroup& b) {
+                return a.mostRecentTime > b.mostRecentTime;
+            });
+        
+        // display active groups
+        for (const auto& group : activeGroups) {
+            float elapsed = std::chrono::duration<float>(now - group.mostRecentTime).count();
+            float fade = 1.0f - (elapsed / displayDuration);
+            fade = std::max(0.0f, std::min(1.0f, fade)); // Clamp fade between 0 and 1
+            
+            ImVec4 color(1.0f, 1.0f, 1.0f, fade);
+            ImVec4 currentStyleColor = GetStyleColor(group.styleLetter);
+            ImVec4 color2(currentStyleColor.x, currentStyleColor.y, currentStyleColor.z, fade);
+            
+            std::string displayText = group.trickName;
+            if (group.count > 1) {
+                displayText += " x" + std::to_string(group.count);
+            }
+            
+            float windowWidth = ImGui::GetContentRegionAvail().x;
+            char scoreBuffer[32];
+            snprintf(scoreBuffer, sizeof(scoreBuffer), "%.1f", group.score * 0.1 * group.multiplier);
+            float textWidth = ImGui::CalcTextSize(displayText.c_str()).x;
+            float scoreWidth = ImGui::CalcTextSize(scoreBuffer).x;
+            float customSpacing = fontSize * 1.0f;
+            float rightAlignX = (windowWidth * 0.8f) - (customSpacing * 0.5f);
+            float leftAlignX = (windowWidth * 0.8f) + (customSpacing * 0.5f);
+            
+            // draw trick name
+            ImGui::SetCursorPosX(rightAlignX - textWidth);
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            ImGui::Text(_("%s"), displayText.c_str());
+            ImGui::PopStyleColor();
+            
+            // draw score
+            ImGui::SameLine(leftAlignX);
+            ImGui::PushStyleColor(ImGuiCol_Text, color2);
+            ImGui::Text(_("%.1f"), group.score * 0.1 * group.multiplier);
+            ImGui::PopStyleColor();
+        }
+        
+        // sort to remove in descending order
+        std::sort(trickIndicesToRemove.begin(), trickIndicesToRemove.end(), std::greater<int>());
+        
+        // remove timed-out tricks
+        for (uint32_t index : trickIndicesToRemove) {
+            if (index >= 0 && index < trickScores.size()) {
+                trickScores.erase(trickScores.begin() + index);
+            }
+        }
+        
         ImGui::End();
     }
 }

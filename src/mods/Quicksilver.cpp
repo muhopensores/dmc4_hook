@@ -223,7 +223,7 @@ void Quicksilver::qs_operator_new() {
     }
 }
 
-static void on_timer_callback() {
+void Quicksilver::on_timer_callback() {
     g_ss->m_time_left = 0.0f;
     pps.tv->bitfield ^= 2048;
     pps.cc->bitfield ^= 2048;

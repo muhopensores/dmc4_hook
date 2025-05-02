@@ -13,7 +13,7 @@ public:
     };
 
     static bool mod_enabled;
-    static bool special_effects;
+    static bool meme_effects;
     static int wave;
     static std::shared_ptr<utility::Timer> timer;
     static std::random_device rd;
@@ -26,12 +26,14 @@ public:
     static void reset_wave();
     static void on_timer_trigger();
     static void toggle(bool enable);
+    static void toggle_basic_powerups(bool toggle);
+    static void toggle_meme_powerups(bool toggle);
 
     static int get_random_int(int min, int max);
+    static float get_random_float(float min, float max);
     static void spawn_kinda_random_enemy();
     static void spawn_boss_enemy();
     static void spawn_side_enemy();
-    static void change_something();
 
     void on_frame(fmilliseconds& dt) override;
     void on_gui_frame(int display) override;

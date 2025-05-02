@@ -10,6 +10,7 @@ public:
     static uintptr_t trick_down_jmp_ret;
     static uintptr_t floor_touch_jmp_ret;
     static uintptr_t landing_anim_jmp_ret;
+    static bool downFlag;
 
     std::string get_mod_name() override { return "TrickDown"; };
 

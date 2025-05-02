@@ -12,7 +12,7 @@ public:
     static bool mod_enabled_dante;
 
     static void qs_operator_new();
-
+    static void on_timer_callback();
     static utility::Timer* get_timer() {
         return m_timer;
     }

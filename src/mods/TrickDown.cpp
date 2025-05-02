@@ -7,24 +7,27 @@ uintptr_t TrickDown::floor_touch_jmp_ret = NULL;
 uintptr_t TrickDown::landing_anim_jmp_ret = NULL;
 
 static float down_float = -200.0f;
-static float timerMemComparison1 = 20.0f; // initial input
-static float timerMemComparison2 = 50.0f; // landing
+static float timerMemComparison = 20.0f; // Initial input + time it takes to get to trick, it reads 15ish
 static float xmmBackup = 0.0f;
+bool TrickDown::downFlag = false;
 
 naked void trick_down_detour(void) { // not gonna player compare because the idea of boss dante using down trick on you is kinda funny
 	_asm {
 			cmp byte ptr [TrickDown::mod_enabled], 0
 			je originalcode
 
+			mov byte ptr [TrickDown::downFlag], 0
+
 			movss [xmmBackup], xmm7
 			movss xmm7, [TimerMem::timer_mem] // Compare timer mem. It is reset by the backforward input
-			comiss xmm7, [timerMemComparison1]
+			comiss xmm7, [timerMemComparison]
 			movss xmm7, [xmmBackup]
 			jb downtrickstart
 			jmp originalcode
 
 		downtrickstart:
 			movss xmm2, [down_float] // Puts -200 in y axis momentum
+			mov byte ptr [TrickDown::downFlag], 1
 		originalcode:
 			movss [esi+0x00000EC4], xmm2
 			jmp dword ptr [TrickDown::trick_down_jmp_ret]
@@ -36,11 +39,8 @@ naked void floor_touch_detour(void) {
 			cmp byte ptr [TrickDown::mod_enabled], 0
 			je originalcode
 
-			movss [xmmBackup], xmm7
-			movss xmm7, [TimerMem::timer_mem]
-			comiss xmm7, [timerMemComparison2]
-			movss xmm7, [xmmBackup]
-			ja originalcode
+			cmp byte ptr [TrickDown::downFlag], 1
+			jne originalcode
 			movss xmm2, [down_float] // Puts -200 in y axis momentum
 
 		originalcode:
@@ -55,11 +55,8 @@ naked void landing_anim_detour(void) {
 			cmp byte ptr [TrickDown::mod_enabled], 0
 			je originalcode
 
-			movss [xmmBackup], xmm7
-			movss xmm7, [TimerMem::timer_mem]
-			comiss xmm7, [timerMemComparison2]
-			movss xmm7, [xmmBackup]
-			ja originalcode
+			cmp byte ptr [TrickDown::downFlag], 1
+			jne originalcode
 			push 0x01
 			jmp cont
 

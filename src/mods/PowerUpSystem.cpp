@@ -4,24 +4,18 @@
 #include "EnemySpawn.hpp"
 #include "Quicksilver.hpp"
 
-utility::Timer* PowerUpSystem::doppel_timer{};
-
 PowerUpSystem::PowerUpSystem() : 
     m_enabled(false),
-    m_spawnInterval(30.0f),
+    m_spawnInterval(15.0f),
     m_maxPowerUps(5),
-    m_defaultDuration(30.0f),
+    m_defaultDuration(15.0f),
     m_defaultRadius(200.0f),
     m_rng(m_rd())
-{
-    m_powerUpColors.resize((size_t)PowerUpType::COUNT);
-    m_powerUpColors[(size_t)PowerUpType::DOPPELGANGER] = ImColor(255, 0, 0, 255);  // Red
-    m_powerUpColors[(size_t)PowerUpType::HEALTH_RESTORE] = ImColor(0, 255, 0, 255);  // Green
-    m_powerUpColors[(size_t)PowerUpType::DEVIL_TRIGGER] = ImColor(128, 0, 255, 255); // Purple
-    m_powerUpColors[(size_t)PowerUpType::QUICKSILVER] = ImColor(0, 191, 255, 255);  // Blue
-}
+{}
 
-PowerUpSystem::~PowerUpSystem() {}
+PowerUpSystem::~PowerUpSystem() {
+    clearPowerUps();
+}
 
 void PowerUpSystem::on_timer_trigger() {
     if (m_powerUps.size() < (size_t)m_maxPowerUps && m_enabled) {
@@ -29,20 +23,12 @@ void PowerUpSystem::on_timer_trigger() {
     }
 }
 
-void doppel_callback() {
-    // sUnit* sUnit = devil4_sdk::get_sUnit();
-    // if (!sUnit) { return; }
-    // uPlayer* sparePlayer = sUnit->player;
-    // if (!sparePlayer) { return; }
-    // uactor_sdk::uDevil4ModelDest(sparePlayer);
-}
-
 std::optional<std::string> PowerUpSystem::on_initialize() {
     m_spawnTimer = std::make_shared<utility::Timer>(
         m_spawnInterval,
         [this]() { on_timer_trigger(); }
     );
-    doppel_timer = new utility::Timer(15.0f, doppel_callback);
+    
     return std::nullopt;
 }
 
@@ -51,10 +37,6 @@ void PowerUpSystem::on_frame(fmilliseconds& dt) {
     
     if (m_spawnTimer) {
         m_spawnTimer->tick(dt);
-    }
-
-    if (doppel_timer) {
-        doppel_timer->tick(dt);
     }
     
     float dtSeconds = dt.count() / 1000.0f;
@@ -70,9 +52,22 @@ void PowerUpSystem::on_frame(fmilliseconds& dt) {
             }
         } else {
             powerup.effectTimeLeft -= dtSeconds;
+            
+            // Call update callback while effect is active
+            const PowerUpDefinition* def = getPowerUpDefinition(powerup.typeId);
+            if (def && def->onUpdate) {
+                def->onUpdate(dtSeconds);
+            }
+            
             if (powerup.effectTimeLeft <= 0) {
                 powerup.effectActive = false;
                 powerup.active = false;
+                
+                // Call expire callback
+                if (def && def->onExpire) {
+                    def->onExpire();
+                }
+                
                 it = m_powerUps.erase(it);
                 continue;
             }
@@ -99,8 +94,11 @@ void PowerUpSystem::render() {
         if (w2s::IsVisibleOnScreen(powerupPos, powerup.radius)) {
             glm::vec2 screenPos = w2s::WorldToScreen(powerupPos);
             
-            ImU32 color = m_powerUpColors[(size_t)powerup.type];
-            ImU32 outlineColor = ImColor(255, 255, 255, 200);
+            const PowerUpDefinition* def = getPowerUpDefinition(powerup.typeId);
+            if (!def) continue;
+            
+            ImU32 colour = def->colour;
+            ImU32 outlinecolour = ImColor(255, 255, 255, 200);
             
             float distance = w2s::GetDistanceFromCam(powerupPos);
             float baseSize = 30.0f;
@@ -110,13 +108,13 @@ void PowerUpSystem::render() {
             ImGui::GetBackgroundDrawList()->AddCircleFilled(
                 ImVec2(screenPos.x, screenPos.y),
                 size,
-                color
+                colour
             );
             
             ImGui::GetBackgroundDrawList()->AddCircle(
                 ImVec2(screenPos.x, screenPos.y),
                 size + 1.0f, 
-                outlineColor,
+                outlinecolour,
                 0,
                 1.0f
             );
@@ -129,61 +127,49 @@ void PowerUpSystem::render() {
                 powerupPos,
                 sphereRadius,
                 (float)ImGui::GetTime(), // Rotation animation
-                color,
+                colour,
                 12,
                 1.5f
             );
-            const char* labelText = "";
-            switch (powerup.type) {
-                case PowerUpType::DOPPELGANGER: labelText = "DPL (BROKEN)"; break;
-                case PowerUpType::HEALTH_RESTORE: labelText = "HP"; break;
-                case PowerUpType::DEVIL_TRIGGER: labelText = "DT"; break;
-                case PowerUpType::QUICKSILVER: labelText = "QS"; break;
-                default: labelText = "???"; break;
-            }
             
             ImGui::GetBackgroundDrawList()->AddText(
-                ImVec2(screenPos.x - ImGui::CalcTextSize(labelText).x / 2.0f, 
+                ImVec2(screenPos.x - ImGui::CalcTextSize(def->displayName.c_str()).x / 2.0f, 
                        screenPos.y - size - 20.0f),
                 ImColor(255, 255, 255, 255),
-                labelText
+                def->displayName.c_str()
             );
         }
     }
 }
 
 void PowerUpSystem::spawnRandomPowerUp() {
+    // Get all available powerup types
+    std::vector<std::string> availableTypes = getAvailablePowerUpTypes();
+    if (availableTypes.empty()) return;
+    
+    // Select a random powerup type
+    std::string selectedType = availableTypes[getRandomInt(0, availableTypes.size() - 1)];
+    spawnSpecificPowerUp(selectedType);
+}
+
+void PowerUpSystem::spawnSpecificPowerUp(const std::string& typeId) {
     uPlayer* player = devil4_sdk::get_local_player();
     if (!player) return;
     
+    const PowerUpDefinition* def = getPowerUpDefinition(typeId);
+    if (!def) return;
+    
     PowerUp newPowerUp;
-    newPowerUp.type = (PowerUpType)getRandomInt(0, (int)PowerUpType::COUNT - 1);
-    newPowerUp.duration = m_defaultDuration;
+    newPowerUp.typeId = typeId;
+    newPowerUp.duration = def->duration;
     newPowerUp.remainingTime = newPowerUp.duration;
     newPowerUp.location = getRandomPosition();
-    newPowerUp.radius = m_defaultRadius;
+    newPowerUp.radius = def->radius;
     newPowerUp.active = true;
     newPowerUp.effectActive = false;
-    
-    switch (newPowerUp.type) {
-        case PowerUpType::DOPPELGANGER:
-            newPowerUp.effectDuration = 15.0f;
-            break;
-        case PowerUpType::HEALTH_RESTORE:
-            newPowerUp.effectDuration = 0.0f;
-            break;
-        case PowerUpType::DEVIL_TRIGGER:
-            newPowerUp.effectDuration = 0.0f;
-            break;
-        case PowerUpType::QUICKSILVER:
-            newPowerUp.effectDuration = 15.0f;
-            break;
-        default:
-            newPowerUp.effectDuration = 0.0f;
-            break;
-    }
-    
+    newPowerUp.effectDuration = def->effectDuration;
     newPowerUp.effectTimeLeft = newPowerUp.effectDuration;
+    
     m_powerUps.push_back(newPowerUp);
 }
 
@@ -208,48 +194,20 @@ void PowerUpSystem::checkPlayerProximity() {
 }
 
 void PowerUpSystem::applyPowerUpEffect(PowerUp& powerup) {
-    uPlayer* player = devil4_sdk::get_local_player();
-    if (!player) { return; }
-    sUnit* sUnit = devil4_sdk::get_sUnit();
-    if (!sUnit) { return; }
+    const PowerUpDefinition* def = getPowerUpDefinition(powerup.typeId);
+    if (!def) return;
     
     powerup.effectActive = true;
     
-    switch (powerup.type) {
-        case PowerUpType::DOPPELGANGER:
-            // if (!sparePlayer) {
-            //     EnemySpawn::spawn_player();
-            // }
-            // doppel_timer->start();
-            powerup.effectActive = false;
-            powerup.active = false;
-            break;
-            
-        case PowerUpType::HEALTH_RESTORE:
-            player->HP += std::min(3000.0f, 20000.0f - player->HP);
-            powerup.effectActive = false;
-            powerup.active = false;
-            break;
-            
-        case PowerUpType::DEVIL_TRIGGER:
-            player->DT += std::min(3000.0f, 10000.0f - player->DT);
-            powerup.effectActive = false;
-            powerup.active = false;
-            break;
-            
-        case PowerUpType::QUICKSILVER:
-            if (Quicksilver::get_timer()) {
-				if (Quicksilver::get_timer()->m_active == false) {
-					Quicksilver::qs_operator_new();
-				}
-		        Quicksilver::get_timer()->start();
-			}
-            break;
-            
-        default:
-            powerup.effectActive = false;
-            powerup.active = false;
-            break;
+    // Execute the activation callback
+    if (def->onActivate) {
+        def->onActivate();
+    }
+    
+    // If the effect is instant (duration = 0), remove the powerup immediately
+    if (powerup.effectDuration <= 0.0f) {
+        powerup.effectActive = false;
+        powerup.active = false;
     }
 }
 
@@ -295,4 +253,47 @@ int PowerUpSystem::getRandomInt(int min, int max) {
 float PowerUpSystem::getRandomFloat(float min, float max) {
     std::uniform_real_distribution<float> dist(min, max);
     return dist(m_rng);
+}
+
+void PowerUpSystem::registerPowerUp(const PowerUpDefinition& definition) {
+    m_powerUpDefinitions[definition.name] = definition;
+}
+
+bool PowerUpSystem::removePowerUp(const std::string& typeId) {
+    auto it = m_powerUpDefinitions.find(typeId);
+    if (it != m_powerUpDefinitions.end()) {
+        m_powerUpDefinitions.erase(it);
+        
+        // Also remove any spawned powerups of this type
+        for (auto powerupIt = m_powerUps.begin(); powerupIt != m_powerUps.end();) {
+            if (powerupIt->typeId == typeId) {
+                powerupIt = m_powerUps.erase(powerupIt);
+            } else {
+                ++powerupIt;
+            }
+        }
+        
+        return true;
+    }
+    return false;
+}
+
+const PowerUpSystem::PowerUpDefinition* PowerUpSystem::getPowerUpDefinition(const std::string& typeId) const {
+    auto it = m_powerUpDefinitions.find(typeId);
+    if (it != m_powerUpDefinitions.end()) {
+        return &(it->second);
+    }
+    return nullptr;
+}
+
+std::vector<std::string> PowerUpSystem::getAvailablePowerUpTypes() const {
+    std::vector<std::string> types;
+    for (const auto& pair : m_powerUpDefinitions) {
+        types.push_back(pair.first);
+    }
+    return types;
+}
+
+bool PowerUpSystem::isPowerUpRegistered(const std::string& typeId) const {
+    return m_powerUpDefinitions.find(typeId) != m_powerUpDefinitions.end();
 }
