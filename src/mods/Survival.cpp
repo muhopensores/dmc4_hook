@@ -413,7 +413,8 @@ void Survival::on_gui_frame(int display) {
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
         if (ImGui::Checkbox(_("Extra Effects"), &meme_effects)) {
-            toggle_meme_powerups(meme_effects);
+            memePowerUpSystem->setEnabled(Survival::mod_enabled);
+            toggle_meme_powerups(Survival::meme_effects);
         }
     
         /*if (ImGui::Button("Spawn Player")) {
