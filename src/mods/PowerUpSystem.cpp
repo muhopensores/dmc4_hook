@@ -133,9 +133,9 @@ void PowerUpSystem::render() {
                 12,
                 1.5f
             );
-            /*const char* labelText = "";
+            const char* labelText = "";
             switch (powerup.type) {
-                case PowerUpType::DOPPELGANGER: labelText = "DPL"; break;
+                case PowerUpType::DOPPELGANGER: labelText = "DPL (BROKEN)"; break;
                 case PowerUpType::HEALTH_RESTORE: labelText = "HP"; break;
                 case PowerUpType::DEVIL_TRIGGER: labelText = "DT"; break;
                 case PowerUpType::QUICKSILVER: labelText = "QS"; break;
@@ -147,7 +147,7 @@ void PowerUpSystem::render() {
                        screenPos.y - size - 20.0f),
                 ImColor(255, 255, 255, 255),
                 labelText
-            );*/
+            );
         }
     }
 }
@@ -221,11 +221,13 @@ void PowerUpSystem::applyPowerUpEffect(PowerUp& powerup) {
             //     EnemySpawn::spawn_player();
             // }
             // doppel_timer->start();
+            powerup.effectActive = false;
+            powerup.active = false;
             break;
             
         case PowerUpType::HEALTH_RESTORE:
-            player->DT += std::min(3000.0f, 20000.0f - player->HP);
-            powerup.effectActive = false; // One-time effect
+            player->HP += std::min(3000.0f, 20000.0f - player->HP);
+            powerup.effectActive = false;
             powerup.active = false;
             break;
             

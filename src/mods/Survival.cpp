@@ -6,7 +6,7 @@
 #include "PowerUpSystem.hpp"
 #include "EnemyTracker.hpp" // for enemy specific damage offset
 
-// Enemy spawning isn't really reliable enough for this yet, you crash sometimes when an enemy spawns after fptr_update_actor_list call
+// Shame about the hitch when an enemy is loaded
 // Doppel is currently disabled because I couldn't figure out how to destroy p2, but the spawn and timer works (uh it sets you to p2 tho)
 
 bool Survival::mod_enabled = false;
@@ -125,7 +125,6 @@ void Survival::on_frame(fmilliseconds& dt) {
                 if (!devil4_sdk::is_paused()) { // game is not paused
                     float dante_seconds = (player->m_delta_time / 60.0f) * 1000.0f;
                     timer->tick((fmilliseconds)dante_seconds);
-                        if (powerUpSystem) {
                     EnemyInfo enemy_info = get_enemy_info(devil4_sdk::get_uEnemies());
                     if (enemy_info.enemies_alive == 0) {
                         timer->m_time = (fseconds)timer->m_duration; // trigger timer reset if the player killed all enemies too fast
