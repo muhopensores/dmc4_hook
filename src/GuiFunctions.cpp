@@ -453,6 +453,8 @@ namespace gui {
                         pmods->on_draw_ui("LuciAirThrow"_hash);
 
                         pmods->on_draw_ui("PinTrick"_hash);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("ManualLuciferAim"_hash);
 
                         ImGui::Spacing();
                         ImGui::Text(_("Rose"));

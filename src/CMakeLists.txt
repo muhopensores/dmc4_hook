@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/ManualLuciferAim.hpp
+  mods/ManualLuciferAim.cpp
   mods/PowerUpSystem.hpp
   mods/PowerUpSystem.cpp
   mods/SpawnedEnemiesAttack.hpp

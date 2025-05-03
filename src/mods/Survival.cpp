@@ -18,6 +18,8 @@ std::random_device Survival::rd;
 std::mt19937 Survival::rng(Survival::rd());
 static std::unique_ptr<PowerUpSystem> basicPowerUpSystem = std::make_unique<PowerUpSystem>();
 static std::unique_ptr<PowerUpSystem> memePowerUpSystem = std::make_unique<PowerUpSystem>();
+static float accumulated_delta = 0.0f;
+static const float teleport_delay = 50.0f;
 
 // safe to be called with no enemy
 Survival::EnemyInfo Survival::get_enemy_info(uEnemy* enemy) {
@@ -78,7 +80,7 @@ void Survival::on_timer_trigger() {
             spawn_boss_enemy();
         }
         else {
-            // Spawn a dude
+            // Boss was not spawned, spawn a dude
             spawn_kinda_random_enemy();
             // spawn an extra dude every wave in LDK
             if (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) {
@@ -99,9 +101,6 @@ void Survival::on_timer_trigger() {
     }
 }
 
-float accumulated_delta = 0.0f;
-const float TELEPORT_DELAY = 50.0f;
-
 void Survival::on_frame(fmilliseconds& dt) {
     if (!Survival::mod_enabled) { return; }
     SMediator* sMed = devil4_sdk::get_sMediator();
@@ -120,7 +119,7 @@ void Survival::on_frame(fmilliseconds& dt) {
         sArea* sArea = devil4_sdk::get_sArea();
         if (sMed->roomID != 700) {
             accumulated_delta += player->m_delta_time;
-            if (accumulated_delta >= TELEPORT_DELAY) {
+            if (accumulated_delta >= teleport_delay) {
                 AreaJump::jump_to_stage(AreaJump::bp_stage(101));
                 accumulated_delta = 0.0f; // Reset accumulated delta
             }
@@ -155,14 +154,14 @@ void Survival::on_frame(fmilliseconds& dt) {
 
 void Survival::spawn_kinda_random_enemy() {
     std::vector<int> available_enemies;
-    if (Survival::wave <= 5) {
+    if (Survival::wave < 5) {
         available_enemies = {
             0, // SCARECROW_LEG
             1, // SCARECROW_ARM
             2, // SCARECROW_MEGA
         };
     }
-    else if (Survival::wave <= 19) {
+    else if (Survival::wave < 20) {
         available_enemies = {
             0, // SCARECROW_LEG
             1, // SCARECROW_ARM
@@ -171,6 +170,21 @@ void Survival::spawn_kinda_random_enemy() {
             3, // ANGELO_BIANCO,
             5, // MEPHISTO,
             8, // ASSAULT
+        };
+    }
+    else if (Survival::wave < 50) {
+        available_enemies = {
+            0, // SCARECROW_LEG
+            1, // SCARECROW_ARM
+            2, // SCARECROW_MEGA
+            // 2
+            3, // ANGELO_BIANCO
+            5, // MEPHISTO
+            8, // ASSAULT
+            // 3
+            7, // FROST
+            4, // ANGELO_ALTO
+            13, // BASILISK
         };
     }
     else {
@@ -185,8 +199,9 @@ void Survival::spawn_kinda_random_enemy() {
             // 3
             7, // FROST
             4, // ANGELO_ALTO
-            6, // FAUST
             13, // BASILISK
+            // 4
+            6, // FAUST
         };
     }
 
@@ -501,14 +516,14 @@ void Survival::on_config_load(const utility::Config& cfg){
     Survival::mod_enabled = cfg.get<bool>("Survival").value_or(false);
     if (Survival::mod_enabled) {
         SpawnedEnemiesAttack::mod_enabled = Survival::mod_enabled;
-        toggle(Survival::mod_enabled);
+        Survival::toggle(Survival::mod_enabled);
         basicPowerUpSystem->setEnabled(Survival::mod_enabled);
-        toggle_basic_powerups(Survival::mod_enabled);
+        Survival::toggle_basic_powerups(Survival::mod_enabled);
     }
     Survival::meme_effects = cfg.get<bool>("Survival_memes").value_or(false);
     if (Survival::meme_effects) {
         memePowerUpSystem->setEnabled(Survival::mod_enabled);
-        toggle_meme_powerups(Survival::meme_effects);
+        Survival::toggle_meme_powerups(Survival::meme_effects);
     }
 }
 

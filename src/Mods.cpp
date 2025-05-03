@@ -152,6 +152,7 @@
 #include "mods/PowerUpSystem.hpp"
 #include "mods/SpawnedEnemiesAttack.hpp"
 #include "mods/Survival.hpp"
+#include "mods/ManualLuciferAim.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -314,6 +315,7 @@ Mods::Mods() {
     ADD_MOD(ShadowResolution);
     ADD_MOD(SpawnedEnemiesAttack); // before Survival
     ADD_MOD(Survival);
+    ADD_MOD(ManualLuciferAim);
 }
 
 // Initializes mods, checks for errors
