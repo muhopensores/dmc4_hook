@@ -20,6 +20,7 @@ static std::unique_ptr<PowerUpSystem> basicPowerUpSystem = std::make_unique<Powe
 static std::unique_ptr<PowerUpSystem> memePowerUpSystem = std::make_unique<PowerUpSystem>();
 static float accumulated_delta = 0.0f;
 static const float teleport_delay = 50.0f;
+static int waves_since_boss = false;
 
 // safe to be called with no enemy
 Survival::EnemyInfo Survival::get_enemy_info(uEnemy* enemy) {
@@ -75,11 +76,13 @@ void Survival::on_timer_trigger() {
         // Every enemy spawn is a new wave
         Survival::wave++;
 
-        // 1/8 chance of spawning a "boss" enemy if one does not already exist. Boss enemies are Blitz or the less annoying bosses
-        if (Survival::wave >= 35 && !enemy_info.is_boss_spawned && get_random_int(0, 7) == 0) {
+        // 1/8 chance of spawning a "boss" enemy if one has not existed for 10 waves. Boss enemies are Blitz or the less annoying bosses
+        if (Survival::wave >= 35 && waves_since_boss > 10 && get_random_int(0, 7) == 0) {
             spawn_boss_enemy();
+            waves_since_boss = 0;
         }
         else {
+            waves_since_boss++;
             // Boss was not spawned, spawn a dude
             spawn_kinda_random_enemy();
             // spawn an extra dude every wave in LDK
@@ -230,7 +233,6 @@ void Survival::spawn_boss_enemy() {
     std::vector<int> available_enemies = {
         9, // BLITZ
         14, // BERIAL
-        15, // BAEL
         17, // CREDO
         18, // AGNUS
     };
@@ -307,6 +309,8 @@ PowerUpSystem::PowerUpDefinition createDevilTriggerPowerUp(float duration = 15.0
     );
 }
 
+bool quicksilverActive = false;
+
 PowerUpSystem::PowerUpDefinition createQuicksilverPowerUp(float duration = 15.0f, float radius = 200.0f) {
     return PowerUpSystem::createPowerUpDef(
         "quicksilver",              // name
@@ -316,29 +320,36 @@ PowerUpSystem::PowerUpDefinition createQuicksilverPowerUp(float duration = 15.0f
         radius,                     // radius
         15.0f,                      // effectDuration
         []() {                      // onActivate
-            Quicksilver::qs_operator_new();
+            if (!quicksilverActive) {
+                Quicksilver::qs_operator_new();
+                quicksilverActive = true;
+            }
         },
         [](float dt) {              // onUpdate
-        
+            // Called every frame while the effect is active
         },
         []() {                      // onExpire
-            Quicksilver::on_timer_callback();
+            if (quicksilverActive) {
+                quicksilverActive = false;
+                Quicksilver::on_timer_callback();
+            }
         }
     );
 }
 
-PowerUpSystem::PowerUpDefinition createPlayerSmolPowerUp() {
+PowerUpSystem::PowerUpDefinition createPlayerSizePowerUp() {
     return PowerUpSystem::createPowerUpDef(
-        "player_smol",             // name
-        "SMOL",                    // displayName
-        ImColor(255, 255, 0, 255), // color (Yellow)
+        "player_size",             // name
+        "PLYR_SZ",                    // displayName
+        ImColor(255, 255, 0, 0), // color (Yellow)
         15.0f,                     // duration
-        200.0f,                    // radius
+        2000.0f,                    // radius
         10.0f,                     // effectDuration
         []() {                     // onActivate
             uPlayer* player = devil4_sdk::get_local_player();
             if (player) {
-                player->m_scale = { 0.5f, 0.5f, 0.5f };
+                float newScale = Survival::get_random_float(0.75f, 1.5f);
+                player->m_scale = { newScale, newScale, newScale }; // { 0.5f, 0.5f, 0.5f };
             }
         },
         [](float dt) {             // onUpdate
@@ -357,14 +368,14 @@ PowerUpSystem::PowerUpDefinition createEnemySizePowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "enemy_size",              // name
         "ENMY_SZ",                 // displayName
-        ImColor(255, 255, 0, 255), // color (Yellow)
+        ImColor(255, 255, 0, 0),  // color (Yellow)
         15.0f,                     // duration
-        200.0f,                    // radius
+        2000.0f,                    // radius
         10.0f,                     // effectDuration
         []() {                     // onActivate
             uEnemy* enemy = devil4_sdk::get_uEnemies();
             while (enemy) {
-                float newScale = Survival::get_random_float(0.5f, 2.0f);
+                float newScale = Survival::get_random_float(0.75f, 1.5f);
                 enemy->scale = { newScale, newScale, newScale };
                 enemy = enemy->nextEnemy;
             }
@@ -395,11 +406,11 @@ void Survival::toggle_basic_powerups(bool toggle) {
 
 void Survival::toggle_meme_powerups(bool toggle) {
     if (toggle) {
-        memePowerUpSystem->registerPowerUp(createPlayerSmolPowerUp());
+        memePowerUpSystem->registerPowerUp(createPlayerSizePowerUp());
         memePowerUpSystem->registerPowerUp(createEnemySizePowerUp());
     }
     else {
-        memePowerUpSystem->removePowerUp("player_smol");
+        memePowerUpSystem->removePowerUp("player_size");
         memePowerUpSystem->removePowerUp("enemy_size");
 
     }
@@ -408,11 +419,25 @@ void Survival::toggle_meme_powerups(bool toggle) {
 void setupBasicPowerUpSystem() {
     basicPowerUpSystem->setSpawnInterval(0.0f);
     basicPowerUpSystem->setMaxPowerUps(5);
+    PowerUpSystem::SpawnArea customArea = {
+        Vector3f(0, 0, 0),  // centre
+        1200.0f,            // radius
+        50.0f,              // min
+        600.0f              // max
+    };
+    memePowerUpSystem->setSpawnArea(customArea);
 }
 
 void setupMemePowerUpSystem() {
     memePowerUpSystem->setSpawnInterval(0.0f);
     memePowerUpSystem->setMaxPowerUps(5);
+    PowerUpSystem::SpawnArea customArea = {
+        Vector3f(0, 0, 0),  // centre
+        0.0f,               // radius
+        0.0f,               // minimum
+        0.0f                // maximum
+    };
+    memePowerUpSystem->setSpawnArea(customArea);
 }
 
 void Survival::on_gui_frame(int display) {

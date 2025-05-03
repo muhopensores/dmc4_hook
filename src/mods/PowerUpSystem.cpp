@@ -11,6 +11,23 @@ PowerUpSystem::PowerUpSystem() :
     m_defaultDuration(15.0f),
     m_defaultRadius(200.0f),
     m_rng(m_rd())
+{
+    m_spawnArea = {
+        Vector3f(0, 0, 0),  // centre
+        1200.0f,            // radius
+        0.0f,               // min
+        600.0f              // max
+    };
+}
+
+PowerUpSystem::PowerUpSystem(const SpawnArea& spawnArea) : 
+    m_enabled(false),
+    m_spawnInterval(15.0f),
+    m_maxPowerUps(5),
+    m_defaultDuration(15.0f),
+    m_defaultRadius(200.0f),
+    m_spawnArea(spawnArea),
+    m_rng(m_rd())
 {}
 
 PowerUpSystem::~PowerUpSystem() {
@@ -197,14 +214,14 @@ void PowerUpSystem::applyPowerUpEffect(PowerUp& powerup) {
     const PowerUpDefinition* def = getPowerUpDefinition(powerup.typeId);
     if (!def) return;
     
-    powerup.effectActive = true;
+    std::string currentTypeId = powerup.typeId;
     
-    // Execute the activation callback
     if (def->onActivate) {
         def->onActivate();
     }
     
-    // If the effect is instant (duration = 0), remove the powerup immediately
+    powerup.effectActive = true;
+    
     if (powerup.effectDuration <= 0.0f) {
         powerup.effectActive = false;
         powerup.active = false;
@@ -231,17 +248,14 @@ void PowerUpSystem::toggle(bool enable) {
 }
 
 Vector3f PowerUpSystem::getRandomPosition() {
-    Vector3f basePos = Vector3f(0, 0, 0);
-    
-    float radius = 1200.0f;
     float angle = getRandomFloat(0, 2.0f * 3.14159f);
-    float distance = getRandomFloat(5.0f, radius);
-    float height = getRandomFloat(0.0f, 600.0f);
+    float distance = getRandomFloat(5.0f, m_spawnArea.radius);
+    float height = getRandomFloat(m_spawnArea.minHeight, m_spawnArea.maxHeight);
     
     return Vector3f(
-        basePos.x + std::cos(angle) * distance,
-        basePos.y + height,
-        basePos.z + std::sin(angle) * distance
+        m_spawnArea.centre.x + std::cos(angle) * distance,
+        m_spawnArea.centre.y + height,
+        m_spawnArea.centre.z + std::sin(angle) * distance
     );
 }
 
@@ -296,4 +310,38 @@ std::vector<std::string> PowerUpSystem::getAvailablePowerUpTypes() const {
 
 bool PowerUpSystem::isPowerUpRegistered(const std::string& typeId) const {
     return m_powerUpDefinitions.find(typeId) != m_powerUpDefinitions.end();
+}
+
+bool PowerUpSystem::isEffectActive(const std::string& typeId) const {
+    for (const auto& powerup : m_powerUps) {
+        if (powerup.typeId == typeId && powerup.effectActive) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool PowerUpSystem::resetEffectTimer(const std::string& typeId, float newDuration) {
+    for (auto& powerup : m_powerUps) {
+        if (powerup.typeId == typeId && powerup.effectActive) {
+            float duration = (newDuration > 0.0f) ? newDuration : powerup.effectDuration;
+            
+            powerup.effectTimeLeft = duration;
+            
+            return true;
+        }
+    }
+    return false;
+}
+
+bool PowerUpSystem::extendEffectTimer(const std::string& typeId, float additionalTime) {
+    for (auto& powerup : m_powerUps) {
+        if (powerup.typeId == typeId && powerup.effectActive) {
+            // Add the additional time to the remaining time
+            powerup.effectTimeLeft += additionalTime;
+            
+            return true;
+        }
+    }
+    return false;
 }

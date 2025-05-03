@@ -56,7 +56,17 @@ public:
         std::shared_ptr<utility::Timer> effectTimer; // Timer for this effect
     };
     
+    struct SpawnArea {
+        Vector3f centre;        // Centre position of spawn area
+        float radius;           // Horizontal radius from centre
+        float minHeight;        // Minimum height from centre.y
+        float maxHeight;        // Maximum height from centre.y
+    };
+    
     PowerUpSystem();
+    
+    PowerUpSystem(const SpawnArea& spawnArea);
+    
     ~PowerUpSystem();
     
     std::optional<std::string> on_initialize();
@@ -84,6 +94,10 @@ public:
     void setMaxPowerUps(int max) { m_maxPowerUps = max; }
     int getMaxPowerUps() const { return m_maxPowerUps; }
 
+    // Spawn area getters and setters
+    const SpawnArea& getSpawnArea() const { return m_spawnArea; }
+    void setSpawnArea(const SpawnArea& spawnArea) { m_spawnArea = spawnArea; }
+    
     void registerPowerUp(const PowerUpDefinition& definition);
     
     bool removePowerUp(const std::string& typeId);
@@ -94,6 +108,9 @@ public:
     
     bool isPowerUpRegistered(const std::string& typeId) const;
     
+    bool isEffectActive(const std::string& typeId) const;
+    bool resetEffectTimer(const std::string& typeId, float newDuration = 0.0f);
+    bool extendEffectTimer(const std::string& typeId, float additionalTime);
 private:
     Vector3f getRandomPosition();
     int getRandomInt(int min, int max);
@@ -106,6 +123,9 @@ private:
     int m_maxPowerUps;       // Maximum number of powerups allowed at once
     float m_defaultDuration; // Default duration before despawn
     float m_defaultRadius;   // Default pickup radius
+    
+    // Define spawn area parameters
+    SpawnArea m_spawnArea;
     
     // Store powerup definitions by type ID
     std::unordered_map<std::string, PowerUpDefinition> m_powerUpDefinitions;
