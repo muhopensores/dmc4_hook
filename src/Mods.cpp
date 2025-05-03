@@ -153,6 +153,7 @@
 #include "mods/SpawnedEnemiesAttack.hpp"
 #include "mods/Survival.hpp"
 #include "mods/ManualLuciferAim.hpp"
+#include "mods/ReversableDraw.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -316,6 +317,7 @@ Mods::Mods() {
     ADD_MOD(SpawnedEnemiesAttack); // before Survival
     ADD_MOD(Survival);
     ADD_MOD(ManualLuciferAim);
+    ADD_MOD(ReversableDraw);
 }
 
 // Initializes mods, checks for errors

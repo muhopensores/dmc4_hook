@@ -138,16 +138,16 @@ std::optional<std::string> ManualLuciferAim::on_initialize() {
         return "Failed to init ManualLuciferAim mod 1";
 	}
     if (!install_hook_offset(0x3D641A, hook2, &detour2, &jmp_ret2, 5)) { // A4
-        spdlog::error("Failed to init ManualLuciferAim mod 1\n");
-        return "Failed to init ManualLuciferAim mod 1";
+        spdlog::error("Failed to init ManualLuciferAim mod 2\n");
+        return "Failed to init ManualLuciferAim mod 2";
 	}
     if (!install_hook_offset(0x3D689B, hook3, &detour3, &jmp_ret3, 5)) { // E2
-        spdlog::error("Failed to init ManualLuciferAim mod 1\n");
-        return "Failed to init ManualLuciferAim mod 1";
+        spdlog::error("Failed to init ManualLuciferAim mod 3\n");
+        return "Failed to init ManualLuciferAim mod 3";
 	}
     if (!install_hook_offset(0x3D6BA7, hook4, &detour4, &jmp_ret4, 6)) { // E3
-        spdlog::error("Failed to init ManualLuciferAim mod 1\n");
-        return "Failed to init ManualLuciferAim mod 1";
+        spdlog::error("Failed to init ManualLuciferAim mod 4\n");
+        return "Failed to init ManualLuciferAim mod 4";
 	}
 
     return Mod::on_initialize();
