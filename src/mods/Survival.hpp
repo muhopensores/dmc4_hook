@@ -14,8 +14,10 @@ public:
 
     static bool mod_enabled;
     static bool meme_effects;
+    static ImVec2 window_pos;
     static int wave;
     static std::shared_ptr<utility::Timer> timer;
+    static float survivedTimer;
     static std::random_device rd;
     static std::mt19937 rng;
     static bool player_existed_last_frame;
@@ -25,6 +27,7 @@ public:
     static void create_timer();
     static void reset_wave();
     static void on_timer_trigger();
+    static void on_survived_timer_trigger();
     static void toggle(bool enable);
     static void toggle_basic_powerups(bool toggle);
     static void toggle_meme_powerups(bool toggle);

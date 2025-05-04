@@ -24,8 +24,8 @@ void RedOrbCompletion::custom_imgui_window() {
 
                 // bandaid
                 const float text_height = ImGui::GetTextLineHeightWithSpacing();
-                ImGui::Begin("Red Orb Completion HUD", NULL, window_flags);
                 ImGui::SetNextWindowPos(window_pos, ImGuiCond_Once);
+                ImGui::Begin("Red Orb Completion HUD", NULL, window_flags);
                 window_pos = ImGui::GetWindowPos();
                 ImGui::Text(_("Found Orbs: %i"), sMediatorPtr->orbMissionCurrent);
                 ImGui::Text(_("Potential Orbs: %i"), sMediatorPtr->orbMissionPotential);

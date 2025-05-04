@@ -11,7 +11,9 @@
 // Doppel is currently disabled because I couldn't figure out how to destroy p2, but the spawn and timer works (uh it sets you to p2 tho)
 bool Survival::mod_enabled = false;
 bool Survival::meme_effects = false;
+ImVec2 Survival::window_pos{ 0.0f, 0.0f };
 std::shared_ptr<utility::Timer> Survival::timer;
+float Survival::survivedTimer = 0.0f;
 int Survival::wave = 0;
 bool Survival::player_existed_last_frame = false;
 std::random_device Survival::rd;
@@ -104,11 +106,18 @@ void Survival::on_timer_trigger() {
     }
 }
 
+void Survival::on_survived_timer_trigger() {}
+
 void Survival::on_frame(fmilliseconds& dt) {
     if (!Survival::mod_enabled) { return; }
+
     SMediator* sMed = devil4_sdk::get_sMediator();
     if (!sMed) { return; }
     if (sMed->missionID == 50) { return; }
+
+    sArea* s_area_ptr = devil4_sdk::get_sArea();
+    if (!s_area_ptr) { return; }
+
     uPlayer* player = devil4_sdk::get_local_player();
     bool player_exists_now = (player != nullptr);
     if (player_exists_now && !player_existed_last_frame) {
@@ -117,9 +126,6 @@ void Survival::on_frame(fmilliseconds& dt) {
     player_existed_last_frame = player_exists_now;
     
     if (player) {
-        sArea* s_area_ptr = devil4_sdk::get_sArea();
-        sUnit* sUnit = devil4_sdk::get_sUnit();
-        sArea* sArea = devil4_sdk::get_sArea();
         if (sMed->roomID != 700) {
             accumulated_delta += player->m_delta_time;
             if (accumulated_delta >= teleport_delay) {
@@ -136,9 +142,24 @@ void Survival::on_frame(fmilliseconds& dt) {
                 timer->start();
             }
             else { // timer is active
+                ImGui::SetNextWindowPos(window_pos, ImGuiCond_Once);
+                ImGui::Begin("SurvivalStats", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground);
+                window_pos = ImGui::GetWindowPos();
+                int totalMilliseconds = static_cast<int>(survivedTimer * 1000);
+                int hours   = totalMilliseconds / (1000 * 60 * 60);
+                int minutes = (totalMilliseconds / (1000 * 60)) % 60;
+                int seconds = (totalMilliseconds / 1000) % 60;
+                int millis  = totalMilliseconds % 1000;
+                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%02i:%02i:%02i.%03i", hours, minutes, seconds, millis);
+                ImGui::End();
                 if (!devil4_sdk::is_paused()) { // game is not paused
-                    float dante_seconds = (player->m_delta_time / 60.0f) * 1000.0f;
-                    timer->tick((fmilliseconds)dante_seconds);
+                    sUnit* sUnit = devil4_sdk::get_sUnit();
+                    if (sUnit && sUnit->hasDelta) { // @Siy find how the bp timer gets time
+                        float game_seconds = sUnit->hasDelta->m_delta_time / 60.0f ;
+                        survivedTimer += game_seconds;
+                    }
+                    float dante_seconds = player->m_delta_time / 60.0f;
+                    timer->tick((fmilliseconds)dante_seconds * 1000.0f);
                     EnemyInfo enemy_info = get_enemy_info(devil4_sdk::get_uEnemies());
                     if (enemy_info.enemies_alive == 0) {
                         timer->m_time = (fseconds)timer->m_duration; // trigger timer reset if the player killed all enemies too fast
@@ -422,7 +443,7 @@ void setupBasicPowerUpSystem() {
     PowerUpSystem::SpawnArea customArea = {
         Vector3f(0, 0, 0),  // centre
         1200.0f,            // radius
-        50.0f,              // min
+        100.0f,             // min
         600.0f              // max
     };
     memePowerUpSystem->setSpawnArea(customArea);
@@ -490,6 +511,7 @@ void Survival::reset_wave() {
     Survival::wave = 0;
     if (timer) {
         timer->start();
+        survivedTimer = 0.0f;
     }
     
     if (basicPowerUpSystem) {
@@ -550,9 +572,13 @@ void Survival::on_config_load(const utility::Config& cfg){
         memePowerUpSystem->setEnabled(Survival::mod_enabled);
         Survival::toggle_meme_powerups(Survival::meme_effects);
     }
+    window_pos.x = cfg.get<float>("survival_imgui_window_pos_x").value_or(0.0f);
+    window_pos.y = cfg.get<float>("survival_imgui_window_pos_y").value_or(0.0f);
 }
 
 void Survival::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("Survival", Survival::mod_enabled);
     cfg.set<bool>("Survival_memes", Survival::meme_effects);
+    cfg.set<float>("survival_imgui_window_pos_x", window_pos.x);
+    cfg.set<float>("survival_imgui_window_pos_y", window_pos.y);
 }

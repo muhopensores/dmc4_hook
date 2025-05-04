@@ -348,11 +348,11 @@ std::optional<std::string> PinProperties::on_initialize() {
 }
 
 void PinProperties::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Gunslinger passive"), &pin_gs_passive_enabled);
+    ImGui::Checkbox(_("Gunslinger Passive"), &pin_gs_passive_enabled);
     ImGui::SameLine();
     help_marker(_("Thrown lucifer pins continue moving and explode on contact in Gunslinger style."));
     ImGui::SameLine(sameLineWidth);
-    ImGui::Checkbox(_("Consistent embedding"), &consistent_embed_enabled);
+    ImGui::Checkbox(_("Consistent Embedding"), &consistent_embed_enabled);
     ImGui::SameLine();
     help_marker(_("Remove random pin placement. Embedded pin accurately attaches to hit location."));
 }

@@ -124,9 +124,9 @@ naked void detour4() {
 // void on_frame(fmilliseconds& dt) {}
 
 void ManualLuciferAim::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Manual Lucifer Aim"), &mod_enabled);
+    ImGui::Checkbox(_("Consistent Target"), &mod_enabled);
     ImGui::SameLine();
-    help_marker(_("Replace the auto aim on Lucifer A2, A4, E2, E3 with what most other moves use"));
+    help_marker(_("Replace the forced auto enemy facing on Lucifer A2, A4, E2, E3 with what most other moves use"));
 }
 
 // void on_game_pause(bool toggle) {}
