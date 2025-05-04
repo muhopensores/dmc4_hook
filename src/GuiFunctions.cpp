@@ -285,12 +285,12 @@ namespace gui {
 
                 pmods->on_draw_ui("InfFaustCloak"_hash); // needs its own line
 
+                pmods->on_draw_ui("SpawnedEnemiesAttack"_hash);
+                ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("FreezeEnemies"_hash);
 
-                pmods->on_draw_ui("Survival"_hash);
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("SpawnedEnemiesAttack"_hash);
-
+                pmods->on_draw_ui("Survival"_hash); // needs its own line
+                
                 tabHeight += ImGui::GetCursorPosY();
                 ImGui::EndChild();
                 ImGui::EndTabItem();

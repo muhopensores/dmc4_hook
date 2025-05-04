@@ -104,10 +104,6 @@ void Survival::on_timer_trigger() {
         if (get_random_int(0, 2) == 0) {
             if (basicPowerUpSystem) { basicPowerUpSystem->spawnRandomPowerUp(); }
         }
-        // 1/3 chance of getting a meme powerup every wave
-        if (get_random_int(0, 2) == 0) {
-            if (memePowerUpSystem) { memePowerUpSystem->spawnRandomPowerUp(); }
-        }
     }
 }
 
@@ -142,79 +138,80 @@ naked float UpdateTimer() {
 }
 
 void Survival::on_frame(fmilliseconds& dt) {
-    if (!Survival::mod_enabled) { return; }
-
-    SMediator* sMed = devil4_sdk::get_sMediator();
-    sArea* s_area_ptr = devil4_sdk::get_sArea();
-    if (!sMed || sMed->missionID == 50 || !s_area_ptr) {
-        Survival::survival_active = false;
-        return;
-    }
-
     uPlayer* player = devil4_sdk::get_local_player();
-    bool player_exists_now = (player != nullptr);
-    if (player_exists_now && !player_existed_last_frame) {
-        reset_wave();
+    if (memePowerUpSystem) {
+        if (player) {
+            memePowerUpSystem->on_frame(dt);
+        }
     }
-    player_existed_last_frame = player_exists_now;
-    
-    if (player) {
-        if (sMed->roomID != 700) {
+    if (Survival::mod_enabled) {
+        SMediator* sMed = devil4_sdk::get_sMediator();
+        sArea* s_area_ptr = devil4_sdk::get_sArea();
+        if (!sMed || sMed->missionID == 50 || !s_area_ptr) {
             Survival::survival_active = false;
-            accumulated_delta += player->m_delta_time;
-            if (accumulated_delta >= teleport_delay) {
-                AreaJump::jump_to_stage(AreaJump::bp_stage(101));
-                accumulated_delta = 0.0f; // Reset accumulated delta
-            }
+            return;
         }
-        else { // Player is spawned and in the correct room
-            accumulated_delta = 0.0f;
-            if (!Survival::timer->m_active) {
-                if (!timer) {
-                    create_timer();
-                }
-                timer->start();
-            }
-            else { // timer is active
-                Survival::survival_active = true;
-                ImGui::SetNextWindowPos(window_pos, ImGuiCond_Once);
-                ImGui::Begin("SurvivalStats", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground);
-                window_pos = ImGui::GetWindowPos();
-                int totalMilliseconds = static_cast<int>(survivedTimer * 1000);
-                int hours   = totalMilliseconds / (1000 * 60 * 60);
-                int minutes = (totalMilliseconds / (1000 * 60)) % 60;
-                int seconds = (totalMilliseconds / 1000) % 60;
-                int millis  = totalMilliseconds % 1000;
-                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%02i:%02i:%02i.%03i", hours, minutes, seconds, millis);
-                
-                sMed->bpTimer = survivedTimer;
-                DisplayTimerOnTick();
-                ImGui::End();
-                if (!devil4_sdk::is_paused()) { // game is not paused
-                    sUnit* sUnit = devil4_sdk::get_sUnit();
-                    if (sUnit && sUnit->hasDelta) { // @Siy find how the bp timer gets time
-                        float game_seconds = sUnit->hasDelta->m_delta_time / 60.0f ;
-                        //survivedTimer += game_seconds;
-                        UpdateTimer();
-                    }
-                    float dante_seconds = player->m_delta_time / 60.0f;
-                    timer->tick((fmilliseconds)dante_seconds * 1000.0f);
-                    EnemyInfo enemy_info = get_enemy_info(devil4_sdk::get_uEnemies());
-                    if (enemy_info.enemies_alive == 0) {
-                        timer->m_time = (fseconds)timer->m_duration; // trigger timer reset if the player killed all enemies too fast
-                    }
-                    if (basicPowerUpSystem) {
-                        basicPowerUpSystem->on_frame(dt);
-                    }
-                    if (memePowerUpSystem) {
-                        memePowerUpSystem->on_frame(dt);
-                    }
+
+        bool player_exists_now = (player != nullptr);
+        if (player_exists_now && !player_existed_last_frame) {
+            reset_wave();
+        }
+        player_existed_last_frame = player_exists_now;
+
+        if (player) {
+            if (sMed->roomID != 700) {
+                Survival::survival_active = false;
+                accumulated_delta += player->m_delta_time;
+                if (accumulated_delta >= teleport_delay) {
+                    AreaJump::jump_to_stage(AreaJump::bp_stage(101));
+                    accumulated_delta = 0.0f; // Reset accumulated delta
                 }
             }
+            else { // Player is spawned and in the correct room
+                accumulated_delta = 0.0f;
+                if (!Survival::timer->m_active) {
+                    if (!timer) {
+                        create_timer();
+                    }
+                    timer->start();
+                }
+                else { // timer is active
+                    Survival::survival_active = true;
+                    sMed->bpTimer = survivedTimer;
+                    DisplayTimerOnTick();
+                    // ImGui::SetNextWindowPos(window_pos, ImGuiCond_Once);
+                    // ImGui::Begin("SurvivalStats", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground);
+                    // window_pos = ImGui::GetWindowPos();
+                    // int totalMilliseconds = static_cast<int>(survivedTimer * 1000);
+                    // int hours   = totalMilliseconds / (1000 * 60 * 60);
+                    // int minutes = (totalMilliseconds / (1000 * 60)) % 60;
+                    // int seconds = (totalMilliseconds / 1000) % 60;
+                    // int millis  = totalMilliseconds % 1000;
+                    // ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%02i:%02i:%02i.%03i", hours, minutes, seconds, millis);
+                    // ImGui::End();
+                    if (!devil4_sdk::is_paused()) { // game is not paused
+                        sUnit* sUnit = devil4_sdk::get_sUnit();
+                        if (sUnit && sUnit->hasDelta) { // @Siy find how the bp timer gets time
+                            float game_seconds = sUnit->hasDelta->m_delta_time / 60.0f;
+                            //survivedTimer += game_seconds;
+                            UpdateTimer();
+                        }
+                        float dante_seconds = player->m_delta_time / 60.0f;
+                        timer->tick((fmilliseconds)dante_seconds * 1000.0f);
+                        EnemyInfo enemy_info = get_enemy_info(devil4_sdk::get_uEnemies());
+                        if (enemy_info.enemies_alive == 0) {
+                            timer->m_time = (fseconds)timer->m_duration; // trigger timer reset if the player killed all enemies too fast
+                        }
+                        if (basicPowerUpSystem) {
+                            basicPowerUpSystem->on_frame(dt);
+                        }
+                    }
+                }
+            }
         }
-    }
-    else {
-        Survival::survival_active = false;
+        else {
+            Survival::survival_active = false;
+        }
     }
 }
 
@@ -306,13 +303,13 @@ void Survival::spawn_boss_enemy() {
     }
 }
 
-PowerUpSystem::PowerUpDefinition createDoppelgangerPowerUp(float duration = 15.0f, float radius = 200.0f) {
+PowerUpSystem::PowerUpDefinition createDoppelgangerPowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "doppelganger",           // name
         "DPL",                    // displayName
         ImColor(255, 0, 0, 255),  // color (Red)
-        duration,                 // duration
-        radius,                   // radius
+        15.0f,                    // duration
+        0.0f,                     // radius
         15.0f,                    // effectDuration
         []() {                    // onActivate
                                   
@@ -326,14 +323,14 @@ PowerUpSystem::PowerUpDefinition createDoppelgangerPowerUp(float duration = 15.0
     );
 }
 
-PowerUpSystem::PowerUpDefinition createHealthRestorePowerUp(float duration = 15.0f, float radius = 200.0f) {
+PowerUpSystem::PowerUpDefinition createHealthRestorePowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "health_restore",         // name
         "HP",                     // displayName
         ImColor(0, 255, 0, 255),  // color (Green)
-        duration,                 // duration
-        radius,                   // radius
-        0.0f,                     // effectDuration (instant)
+        15.0f,                    // duration
+        200.0f,                   // radius
+        0.0f,                     // effectDuration
         []() {                    // onActivate
             uPlayer* player = devil4_sdk::get_local_player();
             if (player) {
@@ -349,14 +346,14 @@ PowerUpSystem::PowerUpDefinition createHealthRestorePowerUp(float duration = 15.
     );
 }
 
-PowerUpSystem::PowerUpDefinition createDevilTriggerPowerUp(float duration = 15.0f, float radius = 200.0f) {
+PowerUpSystem::PowerUpDefinition createDevilTriggerPowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "devil_trigger",            // name
         "DT",                       // displayName
         ImColor(128, 0, 255, 255),  // color (Purple)
-        duration,                   // duration
-        radius,                     // radius
-        0.0f,                       // effectDuration (instant)
+        15.0f,                      // duration
+        200.0f,                     // radius
+        0.0f,                       // effectDuration
         []() {                      // onActivate
             uPlayer* player = devil4_sdk::get_local_player();
             if (player) {
@@ -372,30 +369,25 @@ PowerUpSystem::PowerUpDefinition createDevilTriggerPowerUp(float duration = 15.0
     );
 }
 
-bool quicksilverActive = false;
-
-PowerUpSystem::PowerUpDefinition createQuicksilverPowerUp(float duration = 15.0f, float radius = 200.0f) {
+PowerUpSystem::PowerUpDefinition createQuicksilverPowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "quicksilver",              // name
         "QS",                       // displayName
         ImColor(0, 191, 255, 255),  // color (Blue)
-        duration,                   // duration
-        radius,                     // radius
-        15.0f,                      // effectDuration
+        15.0f,                      // duration
+        200.0f,                     // radius
+        0.0f,                       // effectDuration
         []() {                      // onActivate
-            if (!quicksilverActive) {
+            if (!Quicksilver::get_timer()->m_active) {
+                Quicksilver::get_timer()->start();
                 Quicksilver::qs_operator_new();
-                quicksilverActive = true;
             }
         },
         [](float dt) {              // onUpdate
-            // Called every frame while the effect is active
+        
         },
         []() {                      // onExpire
-            if (quicksilverActive) {
-                quicksilverActive = false;
-                Quicksilver::on_timer_callback();
-            }
+
         }
     );
 }
@@ -403,11 +395,11 @@ PowerUpSystem::PowerUpDefinition createQuicksilverPowerUp(float duration = 15.0f
 PowerUpSystem::PowerUpDefinition createPlayerSizePowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "player_size",             // name
-        "PLYR_SZ",                    // displayName
-        ImColor(255, 255, 0, 0), // color (Yellow)
+        "PLYR_SZ",                 // displayName
+        ImColor(255, 255, 0, 0),   // color (Yellow)
         15.0f,                     // duration
-        2000.0f,                    // radius
-        10.0f,                     // effectDuration
+        5000.0f,                   // radius
+        15.0f,                     // effectDuration
         []() {                     // onActivate
             uPlayer* player = devil4_sdk::get_local_player();
             if (player) {
@@ -431,10 +423,10 @@ PowerUpSystem::PowerUpDefinition createEnemySizePowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "enemy_size",              // name
         "ENMY_SZ",                 // displayName
-        ImColor(255, 255, 0, 0),  // color (Yellow)
+        ImColor(255, 255, 0, 0),   // color (Yellow)
         15.0f,                     // duration
-        2000.0f,                    // radius
-        10.0f,                     // effectDuration
+        5000.0f,                   // radius
+        15.0f,                     // effectDuration
         []() {                     // onActivate
             uEnemy* enemy = devil4_sdk::get_uEnemies();
             while (enemy) {
@@ -492,7 +484,7 @@ void setupBasicPowerUpSystem() {
 }
 
 void setupMemePowerUpSystem() {
-    memePowerUpSystem->setSpawnInterval(0.0f);
+    memePowerUpSystem->setSpawnInterval(30.0f);
     memePowerUpSystem->setMaxPowerUps(5);
     PowerUpSystem::SpawnArea customArea = {
         Vector3f(0, 0, 0),  // centre
@@ -514,14 +506,17 @@ void Survival::on_gui_frame(int display) {
     }
     ImGui::SameLine();
     help_marker(_("Tick and enter any non BP mission on your desired difficulty"));
-    if (mod_enabled) {
+    ImGui::SameLine(sameLineWidth);
+    if (ImGui::Checkbox(_("Random Meme Modifiers"), &meme_effects)) {
+        memePowerUpSystem->setEnabled(Survival::mod_enabled);
+        toggle_meme_powerups(Survival::meme_effects);
+    }
+    ImGui::SameLine();
+    help_marker(_("Random meme modifiers applied while you play"));
+    /*if (mod_enabled) {
         ImGui::Indent(lineIndent);
-        if (ImGui::Checkbox(_("Extra Effects"), &meme_effects)) {
-            memePowerUpSystem->setEnabled(Survival::mod_enabled);
-            toggle_meme_powerups(Survival::meme_effects);
-        }
-    
-        /*if (ImGui::Button("Spawn Player")) {
+
+        if (ImGui::Button("Spawn Player")) {
             EnemySpawn::spawn_player();
         }
         ImGui::Indent(lineIndent);
@@ -543,10 +538,10 @@ void Survival::on_gui_frame(int display) {
         }
         if (ImGui::Button("Timer Trigger")) {
             Survival::on_timer_trigger();
-        }*/
+        }
         ImGui::Unindent(lineIndent);
         
-    }
+    }*/
     ImGui::EndGroup();
 }
 
