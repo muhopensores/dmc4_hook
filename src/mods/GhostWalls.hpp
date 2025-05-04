@@ -8,8 +8,7 @@ public:
     // Mod::ModType get_mod_type() override { return SLOW; };
 
     static bool mod_enabled;
-
-    void toggle1(bool enable);
+    static uintptr_t jmp_ret1;
 
     // void on_frame(fmilliseconds& dt) override;
     void on_gui_frame(int display) override;
@@ -20,6 +19,6 @@ public:
     void on_config_save(utility::Config& cfg) override;
 
 private:
-    std::unique_ptr<Patch> patch1;
-    // std::unique_ptr<FunctionHook> hook1;
+    // std::unique_ptr<Patch> patch1;
+    std::unique_ptr<FunctionHook> hook1;
 };
