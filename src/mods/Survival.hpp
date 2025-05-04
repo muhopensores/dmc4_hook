@@ -13,6 +13,10 @@ public:
     };
 
     static bool mod_enabled;
+    static bool survival_active;
+    static uintptr_t jmp_return_hp;
+    static uintptr_t jmp_return_combat;
+    static uintptr_t jmp_return_red_timer;
     static bool meme_effects;
     static ImVec2 window_pos;
     static int wave;
@@ -27,7 +31,6 @@ public:
     static void create_timer();
     static void reset_wave();
     static void on_timer_trigger();
-    static void on_survived_timer_trigger();
     static void toggle(bool enable);
     static void toggle_basic_powerups(bool toggle);
     static void toggle_meme_powerups(bool toggle);
@@ -47,4 +50,5 @@ public:
     void on_config_save(utility::Config& cfg) override;
 
 private:
+    std::unique_ptr<FunctionHook> hook_hp, hook_combat, hook_red_timer;
 };

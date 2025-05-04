@@ -11,6 +11,11 @@
 // Doppel is currently disabled because I couldn't figure out how to destroy p2, but the spawn and timer works (uh it sets you to p2 tho)
 bool Survival::mod_enabled = false;
 bool Survival::meme_effects = false;
+bool Survival::survival_active = false;
+uintptr_t Survival::jmp_return_hp = NULL;
+uintptr_t Survival::jmp_return_combat = NULL;
+uintptr_t Survival::jmp_return_red_timer = NULL;
+
 ImVec2 Survival::window_pos{ 0.0f, 0.0f };
 std::shared_ptr<utility::Timer> Survival::timer;
 float Survival::survivedTimer = 0.0f;
@@ -106,17 +111,45 @@ void Survival::on_timer_trigger() {
     }
 }
 
-void Survival::on_survived_timer_trigger() {}
+uintptr_t DisplayTimerCall = 0x494EA0;
+naked void DisplayTimerOnTick() {
+    _asm {
+        pushad
+        mov edx, 1
+        push edx
+        call dword ptr [DisplayTimerCall]
+        popad
+        ret
+    }
+}
+
+static constexpr uintptr_t sWorkRatePtr = 0xE558D0;
+static constexpr uintptr_t GetTimerTickCall = 0x4A6890;
+naked float UpdateTimer() {
+    _asm {
+        pushad
+        mov eax, [sWorkRatePtr]
+        mov eax, [eax]
+        push 05
+        push eax
+        call dword ptr [GetTimerTickCall]
+        movss xmm1, [Survival::survivedTimer]
+        addss xmm1, xmm0
+        movss [Survival::survivedTimer], xmm1
+        popad
+        ret
+    }
+}
 
 void Survival::on_frame(fmilliseconds& dt) {
     if (!Survival::mod_enabled) { return; }
 
     SMediator* sMed = devil4_sdk::get_sMediator();
-    if (!sMed) { return; }
-    if (sMed->missionID == 50) { return; }
-
     sArea* s_area_ptr = devil4_sdk::get_sArea();
-    if (!s_area_ptr) { return; }
+    if (!sMed || sMed->missionID == 50 || !s_area_ptr) {
+        Survival::survival_active = false;
+        return;
+    }
 
     uPlayer* player = devil4_sdk::get_local_player();
     bool player_exists_now = (player != nullptr);
@@ -127,6 +160,7 @@ void Survival::on_frame(fmilliseconds& dt) {
     
     if (player) {
         if (sMed->roomID != 700) {
+            Survival::survival_active = false;
             accumulated_delta += player->m_delta_time;
             if (accumulated_delta >= teleport_delay) {
                 AreaJump::jump_to_stage(AreaJump::bp_stage(101));
@@ -142,6 +176,7 @@ void Survival::on_frame(fmilliseconds& dt) {
                 timer->start();
             }
             else { // timer is active
+                Survival::survival_active = true;
                 ImGui::SetNextWindowPos(window_pos, ImGuiCond_Once);
                 ImGui::Begin("SurvivalStats", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground);
                 window_pos = ImGui::GetWindowPos();
@@ -151,12 +186,16 @@ void Survival::on_frame(fmilliseconds& dt) {
                 int seconds = (totalMilliseconds / 1000) % 60;
                 int millis  = totalMilliseconds % 1000;
                 ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%02i:%02i:%02i.%03i", hours, minutes, seconds, millis);
+                
+                sMed->bpTimer = survivedTimer;
+                DisplayTimerOnTick();
                 ImGui::End();
                 if (!devil4_sdk::is_paused()) { // game is not paused
                     sUnit* sUnit = devil4_sdk::get_sUnit();
                     if (sUnit && sUnit->hasDelta) { // @Siy find how the bp timer gets time
                         float game_seconds = sUnit->hasDelta->m_delta_time / 60.0f ;
-                        survivedTimer += game_seconds;
+                        //survivedTimer += game_seconds;
+                        UpdateTimer();
                     }
                     float dante_seconds = player->m_delta_time / 60.0f;
                     timer->tick((fmilliseconds)dante_seconds * 1000.0f);
@@ -173,6 +212,9 @@ void Survival::on_frame(fmilliseconds& dt) {
                 }
             }
         }
+    }
+    else {
+        Survival::survival_active = false;
     }
 }
 
@@ -464,6 +506,7 @@ void setupMemePowerUpSystem() {
 void Survival::on_gui_frame(int display) {
     ImGui::BeginGroup();
     if (ImGui::Checkbox(_("Survival"), &Survival::mod_enabled)) {
+        if (!Survival::mod_enabled) { Survival::survival_active = false; }
         SpawnedEnemiesAttack::mod_enabled = Survival::mod_enabled;
         toggle(Survival::mod_enabled);
         basicPowerUpSystem->setEnabled(Survival::mod_enabled);
@@ -551,7 +594,67 @@ void Survival::create_timer() {
     timer = std::make_shared<utility::Timer>(10.0f, Survival::on_timer_trigger);
 }
 
+static uintptr_t detour_hp_alt_ret = 0x4FF015;
+naked void detour_hp() {
+    _asm {
+        call edx
+        cmp byte ptr [Survival::survival_active], 1
+        je cont
+    // code:
+        test al, al
+        je alt_ret
+    cont:
+		jmp dword ptr [Survival::jmp_return_hp]
+
+    alt_ret:
+        jmp dword ptr [detour_hp_alt_ret]
+    }
+}
+
+naked void detour_combat() {
+    _asm {
+        cmp byte ptr [Survival::survival_active], 0
+        je code
+        mov al, 00
+        jmp cont
+    code:
+        mov al, 01
+    cont:
+        pop esi
+        mov esp,ebp
+		jmp dword ptr [Survival::jmp_return_combat]
+    }
+}
+
+static uintptr_t detour_red_timer_alt_ret = 0x4FDF59;
+naked void detour_red_timer() {
+    _asm {
+        cmp byte ptr [Survival::survival_active], 1
+        je cont
+    // code:
+        cmp edi, 0x00000708
+        jle jle_code
+    cont:
+		jmp dword ptr [Survival::jmp_return_red_timer]
+    jle_code:
+        jmp dword ptr [detour_red_timer_alt_ret]
+    }
+}
+
 std::optional<std::string> Survival::on_initialize() {
+    if (!install_hook_offset(0xFEFE1, hook_hp, &detour_hp, &jmp_return_hp, 6)) {
+        spdlog::error("Failed to init Survival mod 1\n");
+        return "Failed to init Survival mod 1";
+    }
+    if (!install_hook_offset(0xA667F, hook_combat, &detour_combat, &jmp_return_combat, 5)) {
+        spdlog::error("Failed to init Survival mod 2\n");
+        return "Failed to init Survival mod 2";
+    }
+    if (!install_hook_offset(0xFDF4D, hook_red_timer, &detour_red_timer, &jmp_return_red_timer, 8)) {
+        spdlog::error("Failed to init Survival mod 3\n");
+        return "Failed to init Survival mod 3";
+    }
+
     basicPowerUpSystem->on_initialize();
     if (basicPowerUpSystem) { setupBasicPowerUpSystem(); }
     memePowerUpSystem->on_initialize();
