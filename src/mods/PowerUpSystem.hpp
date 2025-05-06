@@ -71,7 +71,6 @@ public:
     
     std::optional<std::string> on_initialize();
     void on_frame(fmilliseconds& dt);
-    void on_timer_trigger();
     void render();
     void spawnRandomPowerUp();
     void spawnSpecificPowerUp(const std::string& typeId);
@@ -83,18 +82,11 @@ public:
     bool isEnabled() const { return m_enabled; }
     void setEnabled(bool enabled) { m_enabled = enabled; toggle(enabled); }
     
-    void setSpawnInterval(float seconds) { 
-        m_spawnInterval = seconds; 
-        if (m_spawnTimer) {
-            m_spawnTimer->m_duration = seconds;
-        }
-    }
     float getSpawnInterval() const { return m_spawnInterval; }
     
     void setMaxPowerUps(int max) { m_maxPowerUps = max; }
     int getMaxPowerUps() const { return m_maxPowerUps; }
 
-    // Spawn area getters and setters
     const SpawnArea& getSpawnArea() const { return m_spawnArea; }
     void setSpawnArea(const SpawnArea& spawnArea) { m_spawnArea = spawnArea; }
     
@@ -118,16 +110,13 @@ private:
     
     bool m_enabled;
     std::vector<PowerUp> m_powerUps;
-    std::shared_ptr<utility::Timer> m_spawnTimer;
     float m_spawnInterval;   // How often to spawn powerups (seconds)
     int m_maxPowerUps;       // Maximum number of powerups allowed at once
     float m_defaultDuration; // Default duration before despawn
     float m_defaultRadius;   // Default pickup radius
     
-    // Define spawn area parameters
     SpawnArea m_spawnArea;
     
-    // Store powerup definitions by type ID
     std::unordered_map<std::string, PowerUpDefinition> m_powerUpDefinitions;
     
     std::mt19937 m_rng;

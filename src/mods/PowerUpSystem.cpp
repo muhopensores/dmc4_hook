@@ -34,27 +34,16 @@ PowerUpSystem::~PowerUpSystem() {
     clearPowerUps();
 }
 
-void PowerUpSystem::on_timer_trigger() {
-    if (m_powerUps.size() < (size_t)m_maxPowerUps && m_enabled) {
-        spawnRandomPowerUp();
-    }
-}
-
 std::optional<std::string> PowerUpSystem::on_initialize() {
-    m_spawnTimer = std::make_shared<utility::Timer>(
-        m_spawnInterval,
-        [this]() { on_timer_trigger(); }
-    );
-    
     return std::nullopt;
 }
 
 void PowerUpSystem::on_frame(fmilliseconds& dt) {
     if (!m_enabled) return;
     
-    if (m_spawnTimer) {
-        m_spawnTimer->tick(dt);
-    }
+    // if (m_spawnTimer) {
+    //     m_spawnTimer->tick(dt);
+    // }
     
     float dtSeconds = dt.count() / 1000.0f;
     
@@ -198,6 +187,10 @@ void PowerUpSystem::checkPlayerProximity() {
     
     for (auto& powerup : m_powerUps) {
         if (!powerup.active || powerup.effectActive) continue;
+
+        if (powerup.radius == 0.0f) {
+            applyPowerUpEffect(powerup);
+        }
         
         float distance = glm::distance(
             glm::vec3(playerPos.x, playerPos.y, playerPos.z),
@@ -234,17 +227,6 @@ void PowerUpSystem::clearPowerUps() {
 
 void PowerUpSystem::toggle(bool enable) {
     m_enabled = enable;
-    
-    if (m_enabled) {
-        if (!m_spawnTimer) {
-            on_initialize();
-        }
-        m_spawnTimer->start();
-    } else {
-        if (m_spawnTimer) {
-            m_spawnTimer->stop();
-        }
-    }
 }
 
 Vector3f PowerUpSystem::getRandomPosition() {

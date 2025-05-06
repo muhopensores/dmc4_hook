@@ -17,7 +17,8 @@ uintptr_t Survival::jmp_return_combat = NULL;
 uintptr_t Survival::jmp_return_red_timer = NULL;
 
 ImVec2 Survival::window_pos{ 0.0f, 0.0f };
-std::shared_ptr<utility::Timer> Survival::timer;
+utility::Timer* Survival::timer{};
+utility::Timer* Survival::meme_timer{};
 float Survival::survivedTimer = 0.0f;
 int Survival::wave = 0;
 bool Survival::player_existed_last_frame = false;
@@ -72,7 +73,9 @@ bool Survival::can_spawn_enemy(EnemyInfo enemy_info, SMediator* sMed) {
 
 // When player is alive and in the correct room, this is called every x dante seconds or when every enemy is dead
 void Survival::on_timer_trigger() {
-    Survival::timer->start();
+    if (timer) {
+        Survival::timer->start();
+    }
     SMediator* sMed = devil4_sdk::get_sMediator();
     sUnit* sUnit = devil4_sdk::get_sUnit();
     if (!sUnit) { return; }
@@ -140,8 +143,17 @@ naked float UpdateTimer() {
 void Survival::on_frame(fmilliseconds& dt) {
     uPlayer* player = devil4_sdk::get_local_player();
     if (memePowerUpSystem) {
-        if (player) {
-            memePowerUpSystem->on_frame(dt);
+        if (meme_timer) {
+            bool player_exists_now = (player != nullptr);
+            if (player_exists_now && !player_existed_last_frame) {
+                meme_timer->start();
+            }
+            player_existed_last_frame = player_exists_now;
+            if (player_exists_now) {
+                memePowerUpSystem->on_frame(dt);
+                float dante_seconds = player->m_delta_time / 60.0f;
+                meme_timer->tick((fmilliseconds)dante_seconds * 1000.0f);
+            }
         }
     }
     if (Survival::mod_enabled) {
@@ -157,25 +169,18 @@ void Survival::on_frame(fmilliseconds& dt) {
             reset_wave();
         }
         player_existed_last_frame = player_exists_now;
-
-        if (player) {
-            if (sMed->roomID != 700) {
-                Survival::survival_active = false;
-                accumulated_delta += player->m_delta_time;
-                if (accumulated_delta >= teleport_delay) {
-                    AreaJump::jump_to_stage(AreaJump::bp_stage(101));
-                    accumulated_delta = 0.0f; // Reset accumulated delta
-                }
-            }
-            else { // Player is spawned and in the correct room
-                accumulated_delta = 0.0f;
-                if (!Survival::timer->m_active) {
-                    if (!timer) {
-                        create_timer();
+        if (timer) {
+            if (player) {
+                if (sMed->roomID != 700) {
+                    Survival::survival_active = false;
+                    accumulated_delta += player->m_delta_time;
+                    if (accumulated_delta >= teleport_delay) {
+                        AreaJump::jump_to_stage(AreaJump::bp_stage(101));
+                        accumulated_delta = 0.0f; // Reset accumulated delta
                     }
-                    timer->start();
                 }
-                else { // timer is active
+                else { // Player is spawned and in the correct room
+                    accumulated_delta = 0.0f;
                     Survival::survival_active = true;
                     sMed->bpTimer = survivedTimer;
                     DisplayTimerOnTick();
@@ -196,11 +201,13 @@ void Survival::on_frame(fmilliseconds& dt) {
                             //survivedTimer += game_seconds;
                             UpdateTimer();
                         }
-                        float dante_seconds = player->m_delta_time / 60.0f;
-                        timer->tick((fmilliseconds)dante_seconds * 1000.0f);
                         EnemyInfo enemy_info = get_enemy_info(devil4_sdk::get_uEnemies());
                         if (enemy_info.enemies_alive == 0) {
                             timer->m_time = (fseconds)timer->m_duration; // trigger timer reset if the player killed all enemies too fast
+                        }
+                        float dante_seconds = player->m_delta_time / 60.0f;
+                        if (timer) {
+                            timer->tick((fmilliseconds)dante_seconds * 1000.0f);
                         }
                         if (basicPowerUpSystem) {
                             basicPowerUpSystem->on_frame(dt);
@@ -208,9 +215,9 @@ void Survival::on_frame(fmilliseconds& dt) {
                     }
                 }
             }
-        }
-        else {
-            Survival::survival_active = false;
+            else {
+                Survival::survival_active = false;
+            }
         }
     }
 }
@@ -392,19 +399,18 @@ PowerUpSystem::PowerUpDefinition createQuicksilverPowerUp() {
     );
 }
 
-PowerUpSystem::PowerUpDefinition createPlayerSizePowerUp() {
+PowerUpSystem::PowerUpDefinition createPlayerSmolPowerUp() {
     return PowerUpSystem::createPowerUpDef(
-        "player_size",             // name
-        "PLYR_SZ",                 // displayName
+        "player_smol",             // name
+        "SMOL",                    // displayName
         ImColor(255, 255, 0, 0),   // color (Yellow)
         15.0f,                     // duration
-        5000.0f,                   // radius
+        0.0f,                      // radius
         15.0f,                     // effectDuration
         []() {                     // onActivate
             uPlayer* player = devil4_sdk::get_local_player();
             if (player) {
-                float newScale = Survival::get_random_float(0.5f, 2.0f);
-                player->m_scale = { newScale, newScale, newScale }; // { 0.5f, 0.5f, 0.5f };
+                player->m_scale = { 0.5f, 0.5f, 0.5f };
             }
         },
         [](float dt) {             // onUpdate
@@ -425,7 +431,7 @@ PowerUpSystem::PowerUpDefinition createEnemySizePowerUp() {
         "ENMY_SZ",                 // displayName
         ImColor(255, 255, 0, 0),   // color (Yellow)
         15.0f,                     // duration
-        5000.0f,                   // radius
+        0.0f,                      // radius
         15.0f,                     // effectDuration
         []() {                     // onActivate
             uEnemy* enemy = devil4_sdk::get_uEnemies();
@@ -444,35 +450,8 @@ PowerUpSystem::PowerUpDefinition createEnemySizePowerUp() {
     );
 }
 
-void Survival::toggle_basic_powerups(bool toggle) {
-    if (toggle) {
-        // powerUpSystem->registerPowerUp(createDoppelgangerPowerUp());
-        basicPowerUpSystem->registerPowerUp(createHealthRestorePowerUp());
-        basicPowerUpSystem->registerPowerUp(createDevilTriggerPowerUp());
-        basicPowerUpSystem->registerPowerUp(createQuicksilverPowerUp());
-    }
-    else {
-        // powerUpSystem->removePowerUp("doppelganger");
-        basicPowerUpSystem->removePowerUp("health_restore");
-        basicPowerUpSystem->removePowerUp("devil_trigger");
-        basicPowerUpSystem->removePowerUp("quicksilver");
-    }
-}
-
-void Survival::toggle_meme_powerups(bool toggle) {
-    if (toggle) {
-        memePowerUpSystem->registerPowerUp(createPlayerSizePowerUp());
-        memePowerUpSystem->registerPowerUp(createEnemySizePowerUp());
-    }
-    else {
-        memePowerUpSystem->removePowerUp("player_size");
-        memePowerUpSystem->removePowerUp("enemy_size");
-
-    }
-}
-
 void setupBasicPowerUpSystem() {
-    basicPowerUpSystem->setSpawnInterval(0.0f);
+    // basicPowerUpSystem->setSpawnInterval(0.0f);
     basicPowerUpSystem->setMaxPowerUps(5);
     PowerUpSystem::SpawnArea customArea = {
         Vector3f(0, 0, 0),  // centre
@@ -484,7 +463,7 @@ void setupBasicPowerUpSystem() {
 }
 
 void setupMemePowerUpSystem() {
-    memePowerUpSystem->setSpawnInterval(30.0f);
+    // memePowerUpSystem->setSpawnInterval(15.0f);
     memePowerUpSystem->setMaxPowerUps(5);
     PowerUpSystem::SpawnArea customArea = {
         Vector3f(0, 0, 0),  // centre
@@ -498,37 +477,36 @@ void setupMemePowerUpSystem() {
 void Survival::on_gui_frame(int display) {
     ImGui::BeginGroup();
     if (ImGui::Checkbox(_("Survival"), &Survival::mod_enabled)) {
-        if (!Survival::mod_enabled) { Survival::survival_active = false; }
-        SpawnedEnemiesAttack::mod_enabled = Survival::mod_enabled;
-        toggle(Survival::mod_enabled);
+        if (Survival::mod_enabled) {
+            SpawnedEnemiesAttack::mod_enabled = Survival::mod_enabled;
+        }
+        else {
+            Survival::survival_active = false;
+        }
+        Survival::toggle(Survival::mod_enabled);
         basicPowerUpSystem->setEnabled(Survival::mod_enabled);
-        toggle_basic_powerups(Survival::mod_enabled);
     }
     ImGui::SameLine();
     help_marker(_("Tick and enter any non BP mission on your desired difficulty"));
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Random Meme Modifiers"), &meme_effects)) {
+        Survival::meme_toggle(Survival::meme_effects);
         memePowerUpSystem->setEnabled(Survival::meme_effects);
-        toggle_meme_powerups(Survival::meme_effects);
     }
     ImGui::SameLine();
     help_marker(_("Random meme modifiers applied while you play"));
-    /*if (mod_enabled) {
+    if (mod_enabled) {
         ImGui::Indent(lineIndent);
 
+        if (timer)
+        ImGui::InputFloat("Spawn Timer", (float*)&timer->m_time);
         if (ImGui::Button("Spawn Player")) {
             EnemySpawn::spawn_player();
         }
         ImGui::Indent(lineIndent);
         ImGui::InputInt("Wave", &Survival::wave);
-        ImGui::InputFloat("Wave Timer", (float*)&timer->m_time);
-        float spawnInterval = powerUpSystem->getSpawnInterval();
-        int maxPowerUps = powerUpSystem->getMaxPowerUps();
-        if (ImGui::SliderInt("Max PowerUps", &maxPowerUps, 1, 10)) {
-            powerUpSystem->setMaxPowerUps(maxPowerUps);
-        }
         if (ImGui::Button("Spawn PowerUp")) {
-            powerUpSystem->spawnRandomPowerUp();
+            basicPowerUpSystem->spawnRandomPowerUp();
         }
         if (ImGui::Button("Spawn Enemy")) {
             Survival::spawn_kinda_random_enemy();
@@ -539,14 +517,22 @@ void Survival::on_gui_frame(int display) {
         if (ImGui::Button("Timer Trigger")) {
             Survival::on_timer_trigger();
         }
+
+        if (ImGui::Button("Spawn Meme")) {
+            memePowerUpSystem->spawnRandomPowerUp();
+        }
+        if (meme_timer)
+        ImGui::InputFloat("Meme Timer", (float*)&meme_timer->m_time);
+
         ImGui::Unindent(lineIndent);
         
-    }*/
+    }
     ImGui::EndGroup();
 }
 
 void Survival::reset_wave() {
     Survival::wave = 0;
+    waves_since_boss = 0;
     if (timer) {
         timer->start();
         survivedTimer = 0.0f;
@@ -554,10 +540,6 @@ void Survival::reset_wave() {
     
     if (basicPowerUpSystem) {
         basicPowerUpSystem->clearPowerUps();
-    }
-
-    if (memePowerUpSystem) {
-        memePowerUpSystem->clearPowerUps();
     }
 }
 
@@ -573,20 +555,51 @@ float Survival::get_random_float(float min, float max) {
 
 void Survival::toggle(bool toggle) {
     if (toggle) {
-        if (!timer) {
-            create_timer();
+        if (!Survival::timer) {
+            Survival::timer = new utility::Timer(10.0f, Survival::on_timer_trigger);
         }
-        timer->start();
-        reset_wave();
+        Survival::timer->start();
+        // powerUpSystem->registerPowerUp(createDoppelgangerPowerUp());
+        basicPowerUpSystem->registerPowerUp(createHealthRestorePowerUp());
+        basicPowerUpSystem->registerPowerUp(createDevilTriggerPowerUp());
+        basicPowerUpSystem->registerPowerUp(createQuicksilverPowerUp());
     } else {
-        if (timer) {
-            timer->stop();
+        if (Survival::timer) {
+            Survival::timer->stop();
         }
+        // basicPowerUpSystem->removePowerUp("doppelganger");
+        basicPowerUpSystem->removePowerUp("health_restore");
+        basicPowerUpSystem->removePowerUp("devil_trigger");
+        basicPowerUpSystem->removePowerUp("quicksilver");
     }
 }
 
-void Survival::create_timer() {
-    timer = std::make_shared<utility::Timer>(10.0f, Survival::on_timer_trigger);
+void Survival::meme_toggle(bool toggle) {
+    if (toggle) {
+        if (!Survival::meme_timer) {
+            Survival::meme_timer = new utility::Timer(10.0f, Survival::on_meme_timer_trigger);
+        }
+        Survival::meme_timer->start();
+        memePowerUpSystem->registerPowerUp(createPlayerSmolPowerUp());
+        memePowerUpSystem->registerPowerUp(createEnemySizePowerUp());
+    } else {
+        if (Survival::meme_timer) {
+            Survival::meme_timer->stop();
+        }
+        memePowerUpSystem->removePowerUp("player_smol");
+        memePowerUpSystem->removePowerUp("enemy_size");
+    }
+}
+
+void Survival::on_meme_timer_trigger() {
+    if (meme_timer) {
+        Survival::meme_timer->start();
+    }
+
+    // 1/3 chance of getting a powerup every wave
+    if (get_random_int(0, 2) == 0) {
+        if (memePowerUpSystem) { memePowerUpSystem->spawnRandomPowerUp(); }
+    }
 }
 
 static uintptr_t detour_hp_alt_ret = 0x4FF015;
@@ -652,8 +665,10 @@ std::optional<std::string> Survival::on_initialize() {
 
     basicPowerUpSystem->on_initialize();
     if (basicPowerUpSystem) { setupBasicPowerUpSystem(); }
+
     memePowerUpSystem->on_initialize();
     if (memePowerUpSystem) { setupMemePowerUpSystem(); }
+
     return Mod::on_initialize();
 }
 
@@ -663,12 +678,12 @@ void Survival::on_config_load(const utility::Config& cfg){
         SpawnedEnemiesAttack::mod_enabled = Survival::mod_enabled;
         Survival::toggle(Survival::mod_enabled);
         basicPowerUpSystem->setEnabled(Survival::mod_enabled);
-        Survival::toggle_basic_powerups(Survival::mod_enabled);
     }
+
     Survival::meme_effects = cfg.get<bool>("Survival_memes").value_or(false);
     if (Survival::meme_effects) {
+        Survival::meme_toggle(Survival::meme_effects);
         memePowerUpSystem->setEnabled(Survival::meme_effects);
-        Survival::toggle_meme_powerups(Survival::meme_effects);
     }
     window_pos.x = cfg.get<float>("survival_imgui_window_pos_x").value_or(0.0f);
     window_pos.y = cfg.get<float>("survival_imgui_window_pos_y").value_or(0.0f);

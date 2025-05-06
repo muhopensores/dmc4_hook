@@ -20,7 +20,8 @@ public:
     static bool meme_effects;
     static ImVec2 window_pos;
     static int wave;
-    static std::shared_ptr<utility::Timer> timer;
+    static utility::Timer* Survival::timer;
+    static utility::Timer* Survival::meme_timer;
     static float survivedTimer;
     static std::random_device rd;
     static std::mt19937 rng;
@@ -28,12 +29,11 @@ public:
 
     static EnemyInfo get_enemy_info(uEnemy* enemy);
     static bool can_spawn_enemy(EnemyInfo enemy_info, SMediator* sMed);
-    static void create_timer();
     static void reset_wave();
     static void on_timer_trigger();
+    static void on_meme_timer_trigger();
     static void toggle(bool enable);
-    static void toggle_basic_powerups(bool toggle);
-    static void toggle_meme_powerups(bool toggle);
+    static void meme_toggle(bool enable);
 
     static int get_random_int(int min, int max);
     static float get_random_float(float min, float max);

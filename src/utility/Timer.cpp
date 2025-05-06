@@ -15,10 +15,10 @@ namespace utility {
 	void Timer::tick(const fmilliseconds& dt) {
 		if (!m_active) { return; }
 		if (m_time.count() >= m_duration) {
+			m_active = false;
 			if (m_callback) {
 				m_callback();
 			}
-			m_active = false;
 		}
 		m_time += dt;
 	}
