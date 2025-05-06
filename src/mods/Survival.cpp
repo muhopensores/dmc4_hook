@@ -403,7 +403,7 @@ PowerUpSystem::PowerUpDefinition createPlayerSizePowerUp() {
         []() {                     // onActivate
             uPlayer* player = devil4_sdk::get_local_player();
             if (player) {
-                float newScale = Survival::get_random_float(0.75f, 1.5f);
+                float newScale = Survival::get_random_float(0.5f, 2.0f);
                 player->m_scale = { newScale, newScale, newScale }; // { 0.5f, 0.5f, 0.5f };
             }
         },
@@ -430,7 +430,7 @@ PowerUpSystem::PowerUpDefinition createEnemySizePowerUp() {
         []() {                     // onActivate
             uEnemy* enemy = devil4_sdk::get_uEnemies();
             while (enemy) {
-                float newScale = Survival::get_random_float(0.75f, 1.5f);
+                float newScale = Survival::get_random_float(0.5f, 2.0f);
                 enemy->scale = { newScale, newScale, newScale };
                 enemy = enemy->nextEnemy;
             }
@@ -508,7 +508,7 @@ void Survival::on_gui_frame(int display) {
     help_marker(_("Tick and enter any non BP mission on your desired difficulty"));
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Random Meme Modifiers"), &meme_effects)) {
-        memePowerUpSystem->setEnabled(Survival::mod_enabled);
+        memePowerUpSystem->setEnabled(Survival::meme_effects);
         toggle_meme_powerups(Survival::meme_effects);
     }
     ImGui::SameLine();
@@ -667,7 +667,7 @@ void Survival::on_config_load(const utility::Config& cfg){
     }
     Survival::meme_effects = cfg.get<bool>("Survival_memes").value_or(false);
     if (Survival::meme_effects) {
-        memePowerUpSystem->setEnabled(Survival::mod_enabled);
+        memePowerUpSystem->setEnabled(Survival::meme_effects);
         Survival::toggle_meme_powerups(Survival::meme_effects);
     }
     window_pos.x = cfg.get<float>("survival_imgui_window_pos_x").value_or(0.0f);
