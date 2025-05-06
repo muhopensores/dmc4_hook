@@ -8,6 +8,12 @@ public:
     // using default constructor
     BigHeadMode() = default;
 
+    static bool big_head_mode_nero;
+    static bool swole_mode_nero;
+
+    static bool big_head_mode_dante;
+    static bool swole_mode_dante;
+
     // override getModName() method with your mod name for logging.
     std::string get_mod_name() override { return "BigHeadMode"; };
 

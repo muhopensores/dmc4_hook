@@ -7,7 +7,7 @@ class MutatorHolyWater : public Mod {
 public:
     // using default constructor
     MutatorHolyWater() = default;
-
+    static void use_hw_asm_call();
     // override getModName() method with your mod name for logging.
     std::string get_mod_name() override { return "MutatorHolyWater"; };
 

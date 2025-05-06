@@ -2,11 +2,11 @@
 #include "glm/gtx/compatibility.hpp"
 #include "../sdk/Devil4.hpp"
 
-bool big_head_mode_nero = false;
-bool swole_mode_nero = false;
+bool BigHeadMode::big_head_mode_nero = false;
+bool BigHeadMode::swole_mode_nero = false;
 
-bool big_head_mode_dante = false;
-bool swole_mode_dante = false;
+bool BigHeadMode::big_head_mode_dante = false;
+bool BigHeadMode::swole_mode_dante = false;
 
 static uintptr_t joint_size_detour1_continue = NULL;
 static uintptr_t joint_size_detour2_continue = NULL;
@@ -16,18 +16,18 @@ glm::vec3 size_torso{ 0.9f, 0.8f, 0.8f };
 
 static void scale_head_joint(UModelJoint* joint, uPlayer* player) {
 	if (player->controllerID == 1) {
-		if (swole_mode_nero) {
+		if (BigHeadMode::swole_mode_nero) {
 			joint->size = size * (glm::clamp(devil4_sdk::get_current_style_rank(), 1.5f, 3.0f));
 		}
-		else if (big_head_mode_nero) {
+		else if (BigHeadMode::big_head_mode_nero) {
 			joint->size = size * devil4_sdk::get_current_style_rank();
 		}
 	}
 	if (player->controllerID == 0) {
-		if (swole_mode_dante) {
+		if (BigHeadMode::swole_mode_dante) {
 			joint->size = size * (glm::clamp(devil4_sdk::get_current_style_rank(), 1.5f, 3.0f));
 		}
-		else if (big_head_mode_dante) {
+		else if (BigHeadMode::big_head_mode_dante) {
 			joint->size = size * devil4_sdk::get_current_style_rank();
 		}
 	}
@@ -38,21 +38,21 @@ static int is_head_joint(UModelJoint* joint) {
 	uPlayer* u_plr = devil4_sdk::get_local_player();
 	if (u_plr) {
 		if (u_plr->controllerID == 0) {
-			if (swole_mode_dante) {
+			if (BigHeadMode::swole_mode_dante) {
 				UModelJoint* torso = &u_plr->joint_array->joint[2]; // seems to be torso for both chars
 				return joint == torso;
 			}
-			if (big_head_mode_dante) {
+			if (BigHeadMode::big_head_mode_dante) {
 				UModelJoint* head = &u_plr->joint_array->joint[4]; // seems to be heads for both chars
 				return joint == head;
 			}
 		}
 		if (u_plr->controllerID == 1) {
-			if (swole_mode_nero) {
+			if (BigHeadMode::swole_mode_nero) {
 				UModelJoint* torso = &u_plr->joint_array->joint[2]; // seems to be torso for both chars
 				return joint == torso;
 			}
-			if (big_head_mode_nero) {
+			if (BigHeadMode::big_head_mode_nero) {
 				UModelJoint* head = &u_plr->joint_array->joint[4]; // seems to be heads for both chars
 				return joint == head;
 			}

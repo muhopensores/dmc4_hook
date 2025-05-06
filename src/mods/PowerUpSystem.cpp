@@ -15,8 +15,8 @@ PowerUpSystem::PowerUpSystem() :
     m_spawnArea = {
         Vector3f(0, 0, 0),  // centre
         1200.0f,            // radius
-        0.0f,               // min
-        600.0f              // max
+        0.0f,               // min height
+        600.0f              // max height
     };
 }
 

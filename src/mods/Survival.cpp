@@ -6,6 +6,8 @@
 #include "PowerUpSystem.hpp"
 #include "EnemyTracker.hpp" // for enemy specific damage offset
 #include "Quicksilver.hpp"
+#include "MutatorHolyWater.hpp"
+#include "BigHeadMode.hpp"
 
 // Shame about the hitch when an enemy is loaded
 // Doppel is currently disabled because I couldn't figure out how to destroy p2, but the spawn and timer works (uh it sets you to p2 tho)
@@ -37,7 +39,7 @@ Survival::EnemyInfo Survival::get_enemy_info(uEnemy* enemy) {
         uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
         if (currentEnemyDamage->HP > 0.0f) {
             enemy_info.enemies_alive++;
-            if (enemy->ID >= BERIAL || enemy->ID == BLITZ) {
+            if (enemy->ID >= BERIAL || enemy->ID == CREDO || enemy->ID == AGNUS || enemy->ID == BLITZ) {
                 enemy_info.is_boss_spawned = true;
             }
         }
@@ -49,7 +51,7 @@ Survival::EnemyInfo Survival::get_enemy_info(uEnemy* enemy) {
 bool Survival::can_spawn_enemy(EnemyInfo enemy_info, SMediator* sMed) {
     if (!sMed) { return false; }
     if (enemy_info.is_boss_spawned) { // if a boss is spawned, limit enemies
-        if (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) {
+        if (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) { // if ldk, limit less
             if (enemy_info.enemies_alive < 3) {
                 return true;
             }
@@ -59,7 +61,7 @@ bool Survival::can_spawn_enemy(EnemyInfo enemy_info, SMediator* sMed) {
         }
     }
     else { // if no boss is spawned, limit less
-        if (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) {
+        if (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) { // if ldk, limit less
             if (enemy_info.enemies_alive < 10) {
                 return true;
             }
@@ -103,7 +105,7 @@ void Survival::on_timer_trigger() {
             if (Survival::wave >= 20 && (get_random_int(0, 3) == 0)) spawn_side_enemy();
         }
 
-        // 1/3 chance of getting a powerup every wave
+        // 1/3 chance of spawning a powerup every wave
         if (get_random_int(0, 2) == 0) {
             if (basicPowerUpSystem) { basicPowerUpSystem->spawnRandomPowerUp(); }
         }
@@ -226,9 +228,9 @@ void Survival::spawn_kinda_random_enemy() {
     std::vector<int> available_enemies;
     if (Survival::wave < 5) {
         available_enemies = {
-            0, // SCARECROW_LEG
-            1, // SCARECROW_ARM
-            2, // SCARECROW_MEGA
+            0, 0, // SCARECROW_LEG // higher chance
+            1, 1, // SCARECROW_ARM // higher chance
+            2,    // SCARECROW_MEGA
         };
     }
     else if (Survival::wave < 20) {
@@ -380,7 +382,7 @@ PowerUpSystem::PowerUpDefinition createQuicksilverPowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "quicksilver",              // name
         "QS",                       // displayName
-        ImColor(0, 191, 255, 255),  // color (Blue)
+        ImColor(50, 50, 50, 255),   // color (Gray)
         15.0f,                      // duration
         200.0f,                     // radius
         0.0f,                       // effectDuration
@@ -389,6 +391,26 @@ PowerUpSystem::PowerUpDefinition createQuicksilverPowerUp() {
                 Quicksilver::get_timer()->start();
                 Quicksilver::qs_operator_new();
             }
+        },
+        [](float dt) {              // onUpdate
+        
+        },
+        []() {                      // onExpire
+
+        }
+    );
+}
+
+PowerUpSystem::PowerUpDefinition createHolyWaterPowerUp() {
+    return PowerUpSystem::createPowerUpDef(
+        "holywater",                // name
+        "HW",                       // displayName
+        ImColor(0, 191, 255, 255),  // color (Blue)
+        15.0f,                      // duration
+        200.0f,                     // radius
+        0.0f,                       // effectDuration
+        []() {                      // onActivate
+            MutatorHolyWater::use_hw_asm_call(); // has its own player check
         },
         [](float dt) {              // onUpdate
         
@@ -425,6 +447,28 @@ PowerUpSystem::PowerUpDefinition createPlayerSmolPowerUp() {
     );
 }
 
+PowerUpSystem::PowerUpDefinition createPlayerHeadPowerUp() {
+    return PowerUpSystem::createPowerUpDef(
+        "player_head",             // name
+        "HEAD",                    // displayName
+        ImColor(255, 255, 0, 0),   // color (Yellow)
+        15.0f,                     // duration
+        0.0f,                      // radius
+        15.0f,                     // effectDuration
+        []() {                     // onActivate
+            BigHeadMode::big_head_mode_nero = !BigHeadMode::big_head_mode_nero;
+            BigHeadMode::big_head_mode_dante = !BigHeadMode::big_head_mode_dante;
+        },
+        [](float dt) {             // onUpdate
+            // 
+        },
+        []() {                     // onExpire
+            BigHeadMode::big_head_mode_nero = !BigHeadMode::big_head_mode_nero;
+            BigHeadMode::big_head_mode_dante = !BigHeadMode::big_head_mode_dante;
+        }
+    );
+}
+
 PowerUpSystem::PowerUpDefinition createEnemySizePowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "enemy_size",              // name
@@ -456,10 +500,10 @@ void setupBasicPowerUpSystem() {
     PowerUpSystem::SpawnArea customArea = {
         Vector3f(0, 0, 0),  // centre
         1200.0f,            // radius
-        100.0f,             // min
-        600.0f              // max
+        100.0f,             // min height
+        1200.0f              // max height
     };
-    memePowerUpSystem->setSpawnArea(customArea);
+    basicPowerUpSystem->setSpawnArea(customArea);
 }
 
 void setupMemePowerUpSystem() {
@@ -468,8 +512,8 @@ void setupMemePowerUpSystem() {
     PowerUpSystem::SpawnArea customArea = {
         Vector3f(0, 0, 0),  // centre
         0.0f,               // radius
-        0.0f,               // minimum
-        0.0f                // maximum
+        0.0f,               // min height
+        0.0f                // max height
     };
     memePowerUpSystem->setSpawnArea(customArea);
 }
@@ -495,11 +539,10 @@ void Survival::on_gui_frame(int display) {
     }
     ImGui::SameLine();
     help_marker(_("Random meme modifiers applied while you play"));
+    /*
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
-
-        if (timer)
-        ImGui::InputFloat("Spawn Timer", (float*)&timer->m_time);
+        if (timer) ImGui::InputFloat("Spawn Timer", (float*)&timer->m_time);
         if (ImGui::Button("Spawn Player")) {
             EnemySpawn::spawn_player();
         }
@@ -521,12 +564,12 @@ void Survival::on_gui_frame(int display) {
         if (ImGui::Button("Spawn Meme")) {
             memePowerUpSystem->spawnRandomPowerUp();
         }
-        if (meme_timer)
-        ImGui::InputFloat("Meme Timer", (float*)&meme_timer->m_time);
+        if (meme_timer) ImGui::InputFloat("Meme Timer", (float*)&meme_timer->m_time);
 
         ImGui::Unindent(lineIndent);
-        
+
     }
+    */
     ImGui::EndGroup();
 }
 
@@ -563,6 +606,7 @@ void Survival::toggle(bool toggle) {
         basicPowerUpSystem->registerPowerUp(createHealthRestorePowerUp());
         basicPowerUpSystem->registerPowerUp(createDevilTriggerPowerUp());
         basicPowerUpSystem->registerPowerUp(createQuicksilverPowerUp());
+        basicPowerUpSystem->registerPowerUp(createHolyWaterPowerUp());
     } else {
         if (Survival::timer) {
             Survival::timer->stop();
@@ -571,6 +615,7 @@ void Survival::toggle(bool toggle) {
         basicPowerUpSystem->removePowerUp("health_restore");
         basicPowerUpSystem->removePowerUp("devil_trigger");
         basicPowerUpSystem->removePowerUp("quicksilver");
+        basicPowerUpSystem->removePowerUp("holywater");
     }
 }
 
@@ -581,12 +626,14 @@ void Survival::meme_toggle(bool toggle) {
         }
         Survival::meme_timer->start();
         memePowerUpSystem->registerPowerUp(createPlayerSmolPowerUp());
+        memePowerUpSystem->registerPowerUp(createPlayerHeadPowerUp());
         memePowerUpSystem->registerPowerUp(createEnemySizePowerUp());
     } else {
         if (Survival::meme_timer) {
             Survival::meme_timer->stop();
         }
         memePowerUpSystem->removePowerUp("player_smol");
+        memePowerUpSystem->removePowerUp("player_head");
         memePowerUpSystem->removePowerUp("enemy_size");
     }
 }
