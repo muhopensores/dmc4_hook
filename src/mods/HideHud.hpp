@@ -21,7 +21,7 @@ public:
     static uintptr_t boey_hud_15_continue;
 
     void hide_all_hud(bool enable);
-    void toggle_health(bool enable);
+    // void toggle_health(bool enable); // now a detour
     void toggle_orbs(bool enable);
     void toggle_style(bool enable);
     void toggle_timer(bool enable);

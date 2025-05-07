@@ -265,14 +265,14 @@ naked void boey_hud_15_proc(void) {
     }
 }
 
-void HideHud::toggle_health(bool enable) {
+/*void HideHud::toggle_health(bool enable) { // now a detour
     if (enable) {
         install_patch_offset(0x00FEFE5, patchhealth, "\x73\x2E", 2); // Hides health
     }
     else {
         patchhealth.reset();
     }
-}
+}*/
 
 void HideHud::toggle_orbs(bool enable) {
     if (enable){
@@ -435,7 +435,7 @@ void HideHud::hide_all_hud(bool enable) {
         mod_enabled_boss                 = mod_enabled_boss_backup;
     }
 
-    toggle_health(mod_enabled_health);
+    // toggle_health(mod_enabled_health); // now a detour
     toggle_orbs(mod_enabled_orbs);
     toggle_style(mod_enabled_style);
     toggle_timer(mod_enabled_timer);
@@ -463,9 +463,8 @@ void HideHud::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("Hides the BP, Secret Mission and M12 timers"));
 
-    if (ImGui::Checkbox(_("Hide HP HUD"), &mod_enabled_health)) {
-        toggle_health(mod_enabled_health);
-    }
+    ImGui::Checkbox(_("Hide HP HUD"), &mod_enabled_health);
+    // toggle_health(mod_enabled_health); // now a detour
 
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Hide Orbs HUD"), &mod_enabled_orbs)) {
@@ -513,7 +512,7 @@ void HideHud::on_gui_frame(int display) {
 
 void HideHud::on_config_load(const utility::Config& cfg) {
     mod_enabled_health = cfg.get<bool>("hide_hp_hud").value_or(false);
-    toggle_health(mod_enabled_health);
+    // toggle_health(mod_enabled_health); // now a detour
     mod_enabled_orbs = cfg.get<bool>("hide_orbs_hud").value_or(false);
     toggle_orbs(mod_enabled_orbs);
     mod_enabled_style = cfg.get<bool>("hide_style_hud").value_or(false);

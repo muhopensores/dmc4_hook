@@ -8,6 +8,7 @@
 #include "Quicksilver.hpp"
 #include "MutatorHolyWater.hpp"
 #include "BigHeadMode.hpp"
+#include "HideHud.hpp"
 
 // Shame about the hitch when an enemy is loaded
 // Doppel is currently disabled because I couldn't figure out how to destroy p2, but the spawn and timer works (uh it sets you to p2 tho)
@@ -653,6 +654,8 @@ static uintptr_t detour_hp_alt_ret = 0x4FF015;
 naked void detour_hp() {
     _asm {
         call edx
+        cmp byte ptr [HideHud::mod_enabled_health], 1
+        je alt_ret
         cmp byte ptr [Survival::survival_active], 1
         je cont
     // code:
