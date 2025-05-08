@@ -360,6 +360,11 @@ PowerUpSystem::PowerUpDefinition createDantePowerUp() {
             if (player) {
                 uPlayer* doppel = (uPlayer*)doppelAddr;
                 if (doppel) {
+                    for (int i = 0; i < 15; i++) {
+                        if (doppel->luciferPins[i]) {
+                            uactor_sdk::despawn(doppel->luciferPins[i]);
+                        }
+                    }
                     uactor_sdk::despawn(doppel); // sometimes crashes (I think if a shell is spawned? DevilMayCry4_DX9.exe+3B1FD4 crash point with Dante Shl013 in esi)
                 }
             }

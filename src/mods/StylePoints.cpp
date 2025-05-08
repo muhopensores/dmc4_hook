@@ -768,24 +768,27 @@ static std::array<ComboUnlock, 3> unlocked_combos = {
 struct TrickScore {
     std::string text;
     float score;
-    float multiplier;
-    char styleLetter;
+    float enemyMult;
+    int styleLetter;
+    float styleMult;
     std::chrono::steady_clock::time_point timePerformed;
     bool isAlreadyRenamed;
 
     TrickScore() 
         : text(""), 
           score(0.0f), 
-          multiplier(1.0f), 
-          styleLetter(' '), 
+          enemyMult(1.0f), 
+          styleLetter(0), 
+          styleMult(1.0f),
           timePerformed(std::chrono::steady_clock::now()),
           isAlreadyRenamed(false) {}
 
-    TrickScore(const std::string& t, float s, int pos, float mult, char letter, bool renamed = false) 
+    TrickScore(const std::string& t, float s, int pos, float enemyMult, int styleLetter, float styleMult, bool renamed = false) 
         : text(t), 
           score(s), 
-          multiplier(mult), 
-          styleLetter(letter),
+          enemyMult(enemyMult), 
+          styleLetter(styleLetter),
+          styleMult(styleMult),
           timePerformed(std::chrono::steady_clock::now()),
           isAlreadyRenamed(renamed) {}
 };
@@ -840,7 +843,7 @@ static float shakeDuration = 0.99f;
 static float fadeRate = 1.0f;
 static float baseFadeTime = 1.0f / (timerBase * fadeRate); // Inversely proportional to timerBase
 
-const char* GetStyleChar(int styleNum) {
+/*const char* GetStyleChar(int styleNum) {
     switch (styleNum) {
         case 0: return "E";
         case 1: return "D";
@@ -852,9 +855,9 @@ const char* GetStyleChar(int styleNum) {
         case 7: return "SSS";
         default: return "";
     }
-}
+}*/
 
-float GetStyleMultiplier(int styleNum) {
+float GetstyleLetterMultiplier(int styleNum) {
     switch (styleNum) {
         case 0: return 1.0f; // E
         case 1: return 1.5f; // D
@@ -943,7 +946,7 @@ static void DrawTrickScores() {
             std::string trickName;
             float score;
             float multiplier;
-            char styleLetter;
+            int styleLetter;
             int count;
             std::chrono::steady_clock::time_point mostRecentTime;
             int startIndex;
@@ -956,7 +959,7 @@ static void DrawTrickScores() {
             ConsecutiveGroup currentGroup;
             currentGroup.trickName = trickScores[0].text;
             currentGroup.score = trickScores[0].score;
-            currentGroup.multiplier = trickScores[0].multiplier;
+            currentGroup.multiplier = trickScores[0].styleMult;
             currentGroup.styleLetter = trickScores[0].styleLetter;
             currentGroup.count = 1;
             currentGroup.mostRecentTime = trickScores[0].timePerformed;
@@ -977,7 +980,7 @@ static void DrawTrickScores() {
                     
                     currentGroup.trickName = trickScores[i].text;
                     currentGroup.score = trickScores[i].score;
-                    currentGroup.multiplier = trickScores[i].multiplier;
+                    currentGroup.multiplier = trickScores[i].styleMult;
                     currentGroup.styleLetter = trickScores[i].styleLetter;
                     currentGroup.count = 1;
                     currentGroup.mostRecentTime = trickScores[i].timePerformed;
@@ -1187,7 +1190,7 @@ static void DrawTonyScores() {
     snprintf(scoreText, sizeof(scoreText), "%.1f", comboScore);
 
     char styleTierText[32];
-    snprintf(styleTierText, sizeof(styleTierText), "x%.1f", GetStyleMultiplier(currentStyleTier));
+    snprintf(styleTierText, sizeof(styleTierText), "x%.1f", GetstyleLetterMultiplier(currentStyleTier));
 
     float totalWidth = ImGui::CalcTextSize(scoreText).x + ImGui::CalcTextSize(styleTierText).x + ImGui::CalcTextSize(" ").x;
     float scoreShakeAmount = shakeAmount * 1.0f;
@@ -1463,12 +1466,13 @@ static void DrawTonyScores() {
     }
 }
 
-static void AddTrickScore(const char* text, float score, float multiplier, int styleLetter) {
+static void AddTrickScore(const char* text, float score, float enemyMult, int styleLetter, float styleMult) {
     TrickScore newScore;
     newScore.text = text;
-    newScore.score = score;
-    newScore.multiplier = multiplier;
+    newScore.score = score * enemyMult;
+    newScore.enemyMult = enemyMult;
     newScore.styleLetter = styleLetter;
+    newScore.styleMult = styleMult;
     newScore.timePerformed = std::chrono::steady_clock::now();
     newScore.isAlreadyRenamed = false;
 
@@ -1491,6 +1495,7 @@ static float xmm0backup = 0.0f;
 static float xmm1backup = 0.0f;
 naked void detour1(void) { // hit instances
     _asm {
+        pushfd // 4 bytes
         cmp byte ptr [StylePoints::style_points_display], 1
         je cheatcode
         cmp byte ptr [StylePoints::tonyHawk], 1
@@ -1501,37 +1506,26 @@ naked void detour1(void) { // hit instances
         movss [xmm0backup], xmm0
         movss [xmm1backup], xmm1
 
-        // push eax // 0x4
-        // push ebx // 0x8
-        // push ecx // 0xC
-        // push edx // 0x10
-        // push esi // 0x14
-        // push edi // 0x18
         pushad // 0x20 bytes
 
-        // backup pushes, 2 args
-        push [esp+0x20+0xC] // style letter
-        sub esp, 0x4
-        movss [esp], xmm2 // multiplier
-        push [esp+0x20+0x8+0x4] // score
-        push ebx // text
+        sub esp, 4 // arg 5
+        movss [esp], xmm2 // style mult
+        push [esp+0x24+0x4+0xC] // styleLetter // backup pushes + 1 arg + style letter location // arg 4
+        sub esp, 4 // arg 3
+        movss [esp], xmm1 // enemyMult
+        push [esp+0x24+0xC+0x4] // score // backup pushes + 3 args + score location // arg 2
+        push ebx // text // arg 1
         call AddTrickScore // fucks eax, ecx, edx
-        add esp,0x10 // 4 args
+        add esp, 0x14 // 5 args
 
         popad
-        // pop edi
-        // pop esi
-        // pop edx
-        // pop ecx
-        // pop ebx
-        // pop eax
 
-        movss xmm0, [xmm0backup]
+        movss xmm0, [xmm0backup]    
         movss xmm1, [xmm1backup]
 
         originalcode:
-        comiss xmm0,xmm1
-        movss [edx+0x04], xmm0
+        popfd
+        movss xmm3, ds:[0xDECEDC] // [DevilMayCry4_DX9.exe+9ECEDC]
         jmp dword ptr [StylePoints::jmp_ret1]
     }
 }
@@ -1542,33 +1536,21 @@ naked void detour2(void) { // guardfly
         cmp byte ptr [StylePoints::tonyHawk], 1
         jne originalcode
 
-        // cheatcode:
-        // push eax // 0x4
-        // push ebx // 0x8
-        // push ecx // 0xC
-        // push edx // 0x10
-        // push esi // 0x14
-        // push edi // 0x18
         pushad
 
         movss xmm0,[ebp+0x1e1c]
         comiss xmm0, [slowestGuardfly]
         jb popcode
+        push 0x3f800000 // styleMult
         push 0 // style letter
-        push 0x3f800000 // multiplier
+        push 0x3f800000 // enemyMult
         push 0 // score
         push guardText // name
         call AddTrickScore // fucks eax, ecx, edx
-        add esp,0x10 // 4 args
+        add esp, 0x14 // 5 args
 
         popcode:
         popad
-        // pop edi
-        // pop esi
-        // pop edx
-        // pop ecx
-        // pop ebx
-        // pop eax
 
         originalcode:
         add [ebp+0x00001504],ebx
@@ -1582,28 +1564,17 @@ naked void detour3(void) { // snatch
         cmp byte ptr [StylePoints::tonyHawk], 1
         jne originalcode
 
-        // push eax // 0x4
-        // push ebx // 0x8
-        // push ecx // 0xC
-        // push edx // 0x10
-        // push esi // 0x14
-        // push edi // 0x18
         pushad
 
+        push 0x3f800000 // styleMult
         push 0 // style letter
-        push 0x3f800000 // multiplier
+        push 0x3f800000 // enemyMult
         push 0 // score
         push snatchText // name
         call AddTrickScore // fucks eax, ecx, edx
-        add esp,0x10 // 4 args
+        add esp, 0x14 // 5 args
 
         popad
-        // pop edi
-        // pop esi
-        // pop edx
-        // pop ecx
-        // pop ebx
-        // pop eax
 
         originalcode:
         cmp dword ptr [esi+0x000014F0],00
@@ -1612,7 +1583,7 @@ naked void detour3(void) { // snatch
 }
 
 std::optional<std::string> StylePoints::on_initialize() {
-    if (!install_hook_offset(0x5480F, hook1, &detour1, &jmp_ret1, 5)) {
+    if (!install_hook_offset(0x547B2, hook1, &detour1, &jmp_ret1, 8)) {
 		spdlog::error("Failed to init StylePoints mod\n");
 		return "Failed to init StylePoints mod";
 	}
