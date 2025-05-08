@@ -354,7 +354,7 @@ void PinProperties::on_gui_frame(int display) {
     ImGui::SameLine(sameLineWidth);
     ImGui::Checkbox(_("Consistent Embedding"), &consistent_embed_enabled);
     ImGui::SameLine();
-    help_marker(_("Remove random pin placement. Embedded pin accurately attaches to hit location."));
+    help_marker(_("Embedded pins attach to one position"));
 }
 
 void PinProperties::on_config_load(const utility::Config& cfg) {

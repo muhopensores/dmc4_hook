@@ -90,7 +90,7 @@ void CharacterSwap::on_gui_frame(int display) {
         Prefer_Dante(prefer_dante);
     }
     ImGui::SameLine();
-    help_marker(_("Also works if Character Select isn't enabled, for BP"));
+    help_marker(_("On character select screens where both characters are selectable, prefer Dante to Nero"));
 }
 
 void CharacterSwap::on_config_load(const utility::Config& cfg) {

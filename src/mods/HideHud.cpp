@@ -497,7 +497,7 @@ void HideHud::on_gui_frame(int display) {
         toggle_weapon_display(mod_enabled_weapon_selected);
     }
     ImGui::SameLine();
-    help_marker(_("Disables the fade out on the weapon switch UI"));
+    help_marker(_("Disable the fade out on the weapon switch UI"));
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Always Hide Weapons HUD"), &mod_enabled_hide_weapon_selected)) {
         mod_enabled_weapon_selected = false;

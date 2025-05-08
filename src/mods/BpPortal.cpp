@@ -30,7 +30,7 @@ void BpPortal::on_gui_frame(int display) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker(_("Forces the BP Portal to appear and lets you pass Red Seals without killing enemies"));
+    help_marker(_("Force the BP Portal to appear, allows you to pass Red Seals without killing enemies"));
 }
 
 void BpPortal::on_config_load(const utility::Config& cfg) {

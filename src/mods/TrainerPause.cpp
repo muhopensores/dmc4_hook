@@ -8,7 +8,7 @@ std::optional<std::string> TrainerPause::on_initialize() {
 }
 
 void TrainerPause::on_gui_frame(int display) {
-	if (ImGui::Checkbox(_("Trainer Pause"), &mod_enabled)) {
+	if (ImGui::Checkbox(_("Trainer Pauses"), &mod_enabled)) {
 		sWorkRate* wr = devil4_sdk::get_work_rate();
 		if (!wr) { return; }
 		if (mod_enabled)

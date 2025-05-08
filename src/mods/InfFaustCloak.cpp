@@ -26,17 +26,13 @@ void InfFaustCloak::toggle2(bool enable) {
 }
 
 void InfFaustCloak::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Infinite Faust Cloak"), &always_cloak)) {
+    if (ImGui::Checkbox(_("Infinite Mephisto / Faust Cloak"), &always_cloak)) {
         toggle1(always_cloak);
     }
-    ImGui::SameLine();
-    help_marker(_("Gives Faust Cloaks infinite HP"));
     ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Disable Faust Cloak"), &no_cloak)) {
+    if (ImGui::Checkbox(_("Disable Mephisto / Faust Recloak"), &no_cloak)) {
         toggle2(no_cloak);
     }
-    ImGui::SameLine();
-    help_marker(_("Disable Faust's recloak function"));
 }
 
 void InfFaustCloak::on_config_load(const utility::Config& cfg) {

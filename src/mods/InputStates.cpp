@@ -258,7 +258,7 @@ void InputStates::on_config_save(utility::Config& cfg) {
 void InputStates::on_gui_frame(int display) {
     ImGui::Checkbox(_("Taunt Ecstasy"), &touchpad_rose_enabled);
     ImGui::SameLine();
-    help_marker(_("Pressing Taunt in the air will perform Ecstasy. Consider using this with Selective Cancellable Ecstasy to make it feel more like 5"));
+    help_marker(_("Press Taunt in the air to perform Ecstasy. Consider using this with Selective Cancellable Ecstasy to make it feel more like 5"));
 }
 
 #endif

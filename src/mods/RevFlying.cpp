@@ -49,12 +49,12 @@ naked void detour2(void) { // exceed
 
 std::optional<std::string> RevFlying::on_initialize() {
     if (!install_hook_offset(0x3FDFF9, hook1, &detour1, &jmp_ret1, 10)) {
-        spdlog::error("Failed to init RevFlying mod\n");
-        return "Failed to init RevFlying mod";
+        spdlog::error("Failed to init RevFlying mod 1\n");
+        return "Failed to init RevFlying mod 1";
     }
     if (!install_hook_offset(0x400549, hook2, &detour2, &jmp_ret2, 10)) {
-        spdlog::error("Failed to init RevFlying mod2\n");
-        return "Failed to init RevFlying mod2";
+        spdlog::error("Failed to init RevFlying mod 2\n");
+        return "Failed to init RevFlying mod 2";
     }
     return Mod::on_initialize();
 }
@@ -64,13 +64,13 @@ void RevFlying::on_gui_frame(int display) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker(_("Kills inertia brakes on Rev"));
+    help_marker(_("Kill inertia brakes on Rev"));
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Calibur Inertia"), &mod_enabled2)) {
         toggle2(mod_enabled2);
     }
     ImGui::SameLine();
-    help_marker(_("Kills inertia brakes on Calibur"));
+    help_marker(_("Kill inertia brakes on Calibur"));
 }
 
 void RevFlying::on_config_load(const utility::Config& cfg) {

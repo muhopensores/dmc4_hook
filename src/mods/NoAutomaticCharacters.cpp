@@ -164,7 +164,7 @@ void NoAutomaticCharacters::on_gui_frame(int display) {
         mod_enabled2 = false;
     }
     ImGui::SameLine();
-    help_marker(_("Disables the Auto variants on the character select screen"));
+    help_marker(_("Disable the Auto variants on the character select screen"));
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("No Auto Or Super Characters"), &mod_enabled2)) {
         mod_enabled = false;

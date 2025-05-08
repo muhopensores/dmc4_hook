@@ -21,7 +21,7 @@ naked void detour(void) {
         originalcode:
             test eax, eax
 			jl jmp_jl_code
-        retcode:
+        // retcode:
 			jmp dword ptr [DisableKeyboard::jmp_ret]
 
         jmp_jl_code:
@@ -53,7 +53,7 @@ void DisableKeyboard::on_gui_frame(int display) {
         help_marker(_("Disable keyboard inputs throughout DMC4\nUseful when using \"Background Input\""));
     }
     else if (display == 2) {
-        ImGui::Checkbox(_("UI Disables Keyboard Input"), &auto_block_inputs);
+        ImGui::Checkbox(_("Trainer Disables Keyboard Input"), &auto_block_inputs);
         ImGui::SameLine();
         help_marker(_("Disable keyboard inputs when opening the trainer"));
     }

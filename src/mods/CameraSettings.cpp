@@ -391,7 +391,7 @@ void CameraSettings::on_gui_frame(int display) {
             toggle_disable_last_enemy_zoom(disable_last_enemy_zoom);
         }
         ImGui::SameLine();
-        help_marker(_("Disables the zoom-in that happens when you're fighting the last enemy of a room"));
+        help_marker(_("Disable the zoom-in that happens when you're fighting the last enemy of a room"));
         ImGui::SameLine(sameLineWidth);
         if (ImGui::Checkbox(_("Force Last Enemy Zoom"), &force_last_enemy_zoom)) {
             disable_last_enemy_zoom = false;

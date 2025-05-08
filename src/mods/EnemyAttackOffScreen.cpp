@@ -20,7 +20,7 @@ void EnemyAttackOffScreen::on_gui_frame(int display) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker(_("By default, most enemies won't start attacks unless they're being viewed by the camera. This disables that check"));
+    help_marker(_("Allow enemies to attack even if they're not currently in camera view"));
 }
 
 void EnemyAttackOffScreen::on_config_load(const utility::Config& cfg) {

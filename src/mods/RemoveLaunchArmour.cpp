@@ -22,7 +22,7 @@ void RemoveLaunchArmour::on_gui_frame(int display) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker(_("Removes the armour enemies gain when downed, allowing you to relaunch for practice instantly"));
+    help_marker(_("Remove the armour enemies gain when downed, allowing you to relaunch for practice instantly"));
 }
 
 void RemoveLaunchArmour::on_config_load(const utility::Config& cfg) {

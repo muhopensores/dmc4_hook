@@ -27,12 +27,12 @@ void NoDtCooldown::on_gui_frame(int display) {
     if (display == 1) {
         ImGui::Checkbox(_("No DT Cooldown"), &no_dt_cooldown_nero);
         ImGui::SameLine();
-        help_marker(_("Disables the cooldown on leaving Devil Trigger upon entering"));
+        help_marker(_("Disable the cooldown on leaving Devil Trigger upon entering"));
     }
     else if (display == 2) {
         ImGui::Checkbox(_("No DT Cooldown"), &no_dt_cooldown_dante);
         ImGui::SameLine();
-        help_marker(_("Disables the cooldown on leaving Devil Trigger upon entering"));
+        help_marker(_("Disable the cooldown on leaving Devil Trigger upon entering"));
     }
 }
 

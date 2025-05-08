@@ -44,7 +44,7 @@ void FreezeEnemies::on_gui_frame(int display) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker(_("Freezes enemies, even if they're midair. Best used with infinite enemy hp"));
+    help_marker(_("Freeze enemies in place, even if they're midair."));
 }
 
 void FreezeEnemies::on_config_load(const utility::Config& cfg) {

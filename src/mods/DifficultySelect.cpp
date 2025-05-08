@@ -377,4 +377,7 @@ void DifficultySelect::on_gui_frame(int display) {
 #endif
     }
     ImGui::PopItemWidth();
+    ImGui::SameLine();
+    help_marker(_("This is a modded difficulty originally from SpoilerAL that makes 49 changes per difficulty. "
+        "It seems to edit damage values and allow (faster than normal) enemy DT but also disables a lot of enemy attacks"));
 }

@@ -375,7 +375,7 @@ void SelectiveCancels::on_gui_frame(int display) {
 	if (display == 1) {
 		ImGui::Checkbox(_("Enable##SelectiveCancelsNero"), &mod_enabled_nero);
 		ImGui::SameLine();
-		help_marker(_("Allows cancelling out of selected moves with evasive actions"));
+		help_marker(_("Allow cancelling out of selected moves with evasive actions"));
 		if (mod_enabled_nero) {
 			ImGui::Indent(lineIndent);
 			draw_checkbox_simple(_("Roll"), ROLL);
@@ -387,7 +387,7 @@ void SelectiveCancels::on_gui_frame(int display) {
 	else if (display == 2) {
 		ImGui::Checkbox(_("Enable##SelectiveCancelsDante"), &mod_enabled_dante);
 		ImGui::SameLine();
-		help_marker(_("Allows cancelling out of selected moves with evasive actions"));
+		help_marker(_("Allow cancelling out of selected moves with evasive actions"));
 
 		if (mod_enabled_dante) {
 			ImGui::Indent(lineIndent);

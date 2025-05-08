@@ -74,8 +74,6 @@ void DisableCameraEvents::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Disable Camera Events"), &mod_enabled)) {
         toggle(mod_enabled);
     }
-    ImGui::SameLine();
-    help_marker(_("This now breaks the move list and map rather than your gameplay!"));
 }
 
 void DisableCameraEvents::on_config_load(const utility::Config& cfg) {

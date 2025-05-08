@@ -33,7 +33,7 @@ void EnemyDT::on_gui_frame(int display) {
         toggle_no_dt(mod_enabled_no_dt);
     }
     ImGui::SameLine();
-    help_marker(_("Disables enemy Devil Trigger on every difficulty"));
+    help_marker(_("Disable enemy Devil Trigger"));
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Enemies DT Instantly"), &mod_enabled_instant_dt)) {
         mod_enabled_no_dt = 0;                   // turn off other mod
@@ -41,7 +41,7 @@ void EnemyDT::on_gui_frame(int display) {
         toggle_instant_dt(mod_enabled_instant_dt);
     }
     ImGui::SameLine();
-    help_marker(_("If you're playing a difficulty where enemies have access to Devil Trigger, they will activate it instantly"));
+    help_marker(_("If available, enemies will Devil Trigger instantly"));
 }
 
 void EnemyDT::on_config_load(const utility::Config& cfg) {

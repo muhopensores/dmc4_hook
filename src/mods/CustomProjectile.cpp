@@ -2,6 +2,7 @@
 #include "../sdk/Devil4.hpp"
 #include <cmath>
 
+// I want to static everything here but can't test this without files and don't wanna break shit ~Siy
 uintptr_t CustomProjectile::jmp_ret1 = NULL;
 uintptr_t CustomProjectile::jmp_ret2 = NULL;
 constexpr uintptr_t rModelDTI = 0x00EADF48;

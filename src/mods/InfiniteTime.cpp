@@ -21,7 +21,7 @@ void InfiniteTime::on_gui_frame(int display) {
         toggle(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker(_("Stops the BP, Secret Mission and Mission 12 timers from decreasing over time"));
+    help_marker(_("Stop the BP, Secret Mission and Mission 12 timers from decreasing over time"));
 }
 
 void InfiniteTime::on_config_load(const utility::Config& cfg) {

@@ -61,7 +61,7 @@ std::optional<std::string> FireworksTweaks::on_initialize() {
 void FireworksTweaks::on_gui_frame(int display) {
     ImGui::Checkbox(_("Fireworks Tweaks"), &mod_enabled);
     ImGui::SameLine();
-    help_marker(_("Edits the start frame, cancel frame and cancel properties of grounded Fireworks"));
+    help_marker(_("Edit the start frame, cancel frame and cancel properties of grounded Fireworks"));
 }
 
 // void on_frame(fmilliseconds& dt) {}
