@@ -944,7 +944,9 @@ public:
     float credoShield; // 0x38bc
     char pad_38c0[0x4704];
     uEnemyDamagePossibility DamagePtrBasilisk; // 0x7fc4
-    char pad_7fc8[0x10938];
+    char pad_7fc8[0x18f8];
+    int frostHealCount; // 0x98c0
+    char pad_98c4[0xf03c];
     float sanctusShieldM11; // 0x18900
     char pad_18904[0x8];
     float sanctusShieldTimerM11; // 0x1890c

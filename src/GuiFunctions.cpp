@@ -237,35 +237,9 @@ namespace gui {
             if (ImGui::BeginTabItem(_("Training"))) {
                 ImGui::BeginChild("TrainingChild");
 
-                ImGui::SeparatorText(_("Damage"));
-
-                pmods->on_draw_ui("InfAllHealth"_hash); // needs its own line
-
-                ImGui::SeparatorText(_("Difficulty"));
-
-                pmods->on_draw_ui("DifficultySelect"_hash);
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("EnemyAttackOffScreen"_hash);
-
-                pmods->on_draw_ui("EnemySlotting"_hash); // needs its own line
-
-                pmods->on_draw_ui("EnemyDT"_hash); // needs its own line
-
-                pmods->on_draw_ui("DmdLevelAi"_hash); // needs its own line
-                    
-                pmods->on_draw_ui("LdkWithDmd"_hash);
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("DmdBloodyPalace"_hash);
-
-                pmods->on_draw_ui("FrostsDontJump"_hash);
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("AssaultsDontJump"_hash);
-                
-                pmods->on_draw_ui("DisableChimeraBlades"_hash);
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("GhostWalls"_hash);
-
                 ImGui::SeparatorText(_("Practice"));
+
+                pmods->on_draw_ui("InfAllHealth"_hash, 1); // needs its own line // damage modifier
 
                 pmods->on_draw_ui("OneHitKill"_hash); // needs its own line
 
@@ -285,11 +259,43 @@ namespace gui {
 
                 pmods->on_draw_ui("InfFaustCloak"_hash); // needs its own line
 
-                pmods->on_draw_ui("SpawnedEnemiesAttack"_hash);
+                pmods->on_draw_ui("InfFrostHeal"_hash);
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("FreezeEnemies"_hash);
 
+                ImGui::SeparatorText(_("Difficulty"));
+
+                pmods->on_draw_ui("DifficultySelect"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("EnemySlotting"_hash);
+
+                pmods->on_draw_ui("DmdBloodyPalace"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("DmdLevelAi"_hash);
+
+                pmods->on_draw_ui("LdkWithDmd"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("FrenziedBossAI"_hash);
+
+                pmods->on_draw_ui("EnemyDT"_hash); // needs its own line
+
+                pmods->on_draw_ui("EnemyAttackOffScreen"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("DisableChimeraBlades"_hash);
+
+                pmods->on_draw_ui("FrostsDontJump"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("AssaultsDontJump"_hash);
+
+                pmods->on_draw_ui("GhostWalls"_hash);
+
+                ImGui::SeparatorText(_("Game Mode"));
+
                 pmods->on_draw_ui("Survival"_hash); // needs its own line
+
+                pmods->on_draw_ui("InfAllHealth"_hash, 2); // needs its own line // must style
+
+                pmods->on_draw_ui("AreaJump"_hash, 2); // needs its own line // random bp & boss rush
                 
                 tabHeight += ImGui::GetCursorPosY();
                 ImGui::EndChild();
@@ -576,7 +582,7 @@ namespace gui {
                         ImGui::PopStyleVar(2);
             
                         ImGui::BeginChild("StageChild");
-                        pmods->on_draw_ui("AreaJump"_hash); // needs its own line
+                        pmods->on_draw_ui("AreaJump"_hash, 1); // needs its own line
                         tabHeight += ImGui::GetCursorPosY();
                         ImGui::EndChild();
                         ImGui::EndTabItem();
@@ -593,6 +599,7 @@ namespace gui {
                         ImGui::BeginChild("EnemiesChild");
                         ImGui::SeparatorText(_("Enemy Spawner"));
                         pmods->on_draw_ui("EnemySpawn"_hash); // needs its own line
+                        pmods->on_draw_ui("SpawnedEnemiesAttack"_hash);
                         ImGui::SeparatorText(_("Enemy Replacement"));
                         pmods->on_draw_ui("EnemyReplace"_hash); // needs its own line
                         tabHeight += ImGui::GetCursorPosY();

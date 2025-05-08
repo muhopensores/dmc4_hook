@@ -2,6 +2,10 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/FrenziedBossAI.hpp
+  mods/FrenziedBossAI.cpp
+  mods/InfFrostHeal.hpp
+  mods/InfFrostHeal.cpp
   mods/ReversableDraw.hpp
   mods/ReversableDraw.cpp
   mods/ManualLuciferAim.hpp

@@ -10,6 +10,7 @@
 #include "mods/CameraSettings.hpp"
 #include "mods/DmdBloodyPalace.hpp"
 #include "mods/DmdLevelAi.hpp"
+#include "mods/FrenziedBossAI.hpp"
 #include "mods/DtEnemiesDontStun.hpp"
 #include "mods/EasyJc.hpp"
 #include "mods/EnemySlotting.hpp"
@@ -154,6 +155,7 @@
 #include "mods/Survival.hpp"
 #include "mods/ManualLuciferAim.hpp"
 #include "mods/ReversableDraw.hpp"
+#include "mods/InfFrostHeal.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -197,6 +199,7 @@ Mods::Mods() {
     ADD_MOD(LdkWithDmd);
     ADD_MOD(DmdBloodyPalace);
     ADD_MOD(DmdLevelAi);
+    ADD_MOD(FrenziedBossAI);
     ADD_MOD(ManualTwosomeTime);
     ADD_MOD(HeightRestriction);
     ADD_MOD(InfFaustCloak);
@@ -318,6 +321,7 @@ Mods::Mods() {
     ADD_MOD(Survival);
     ADD_MOD(ManualLuciferAim);
     ADD_MOD(ReversableDraw);
+    ADD_MOD(InfFrostHeal);
 }
 
 // Initializes mods, checks for errors

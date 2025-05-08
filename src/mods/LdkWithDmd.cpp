@@ -37,15 +37,16 @@ void LdkWithDmd::toggle(bool enable) {
 }
 
 void LdkWithDmd::on_gui_frame(int display) {
-    // from main.cpp
-    // line 907 -> main->getMods()->onDrawUI("NoClip"_hash);
-    ImGui::Checkbox(_("LDK With DMD"), &mod_enabled);
+    if (ImGui::Checkbox(_("LDK With DMD AI"), &mod_enabled)) {
+        toggle(mod_enabled);
+    }
 	ImGui::SameLine();
-	help_marker(_("When playing a mission on Legendary Dark Knight, enemies will be on Dante Must Die Difficulty instead of Son Of Sparda"));
+	help_marker(_("When playing a mission on Legendary Dark Knight, enemies will use DMD AI (and DT) instead of Son Of Sparda AI"));
 }
 
 void LdkWithDmd::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("ldk_with_dmd").value_or(false);
+    if (mod_enabled) { toggle(mod_enabled); }
 }
 
 void LdkWithDmd::on_config_save(utility::Config& cfg) {

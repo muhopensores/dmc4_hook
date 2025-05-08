@@ -1,4 +1,5 @@
 #include "CharSwitcher.hpp"
+#include "Survival.hpp"
 #include "../sdk/Devil4.hpp"
 
 bool CharSwitcher::mod_enabled = false;
@@ -129,6 +130,8 @@ naked void detour3(void) {
 // Spawn Secondary Actor and HUD
 naked void detour4(void) {
     _asm {
+            cmp byte ptr [Survival::survival_active], 1 // if survival is active the spawn is a doppel, so skip assigning it to mediator
+            je retcode
             cmp byte ptr [CharSwitcher::mod_enabled], 0
 			je originalcode
 
@@ -244,6 +247,10 @@ naked void detour4(void) {
             call dword ptr [detour4_call10]
         // jmp_ret:
 			jmp dword ptr [CharSwitcher::jmp_ret4]
+
+        retcode:
+            pop esi
+            ret
     }                   
 }
 

@@ -236,6 +236,9 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                                 ImGui::InputFloat("Cloak Timer##EnemyFly", &enemy->faustCloakTimer, NULL, NULL, "%.0f");
                             }
                         }
+                        if (enemy->ID == FROST) {
+                            ImGui::SliderInt("Heal Count", &enemy->frostHealCount, 0, 5);
+                        }
                         if (enemy->ID == BLITZ) {
                             if (enemy->blitzElectric > 0.0f) {
                                 ImGui::SliderFloat("Electric##EnemyFly", &enemy->blitzElectric, 0.0f, 1000.0f, "%.0f");

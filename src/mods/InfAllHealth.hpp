@@ -12,9 +12,12 @@ public:
     static bool enemy_invincible;
     static bool damageMultiplierToggle;
     static bool mustStyleToggle;
+    static bool mightStyleToggle;
     static float enemy_hp_display;
-    static float damageMultiplier;
-    static float mustStyleMultiplier;
+    static float outgoingDamageMultiplier;
+    static float incomingDamageMultiplier;
+
+    static float mightStyleMultiplier;
 
     std::string get_mod_name() override { return "InfAllHealth"; };
     std::optional<std::string> on_initialize() override;

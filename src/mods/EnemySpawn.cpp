@@ -281,36 +281,6 @@ void spawn_custom(uintptr_t spawnAddr) {
     }
 }
 
-static constexpr uintptr_t mt_heap_alloc_static_ptr = 0xE1434C;
-static uintptr_t playerSpawnTempAddr = 0;
-static constexpr uintptr_t playerSpawnAddr2 = 0x7B2150; // char switcher detour 4 call 4
-void EnemySpawn::spawn_player() {
-    std::lock_guard<std::mutex> lk(g_mutex);
-    if (!devil4_sdk::get_local_player()) return; // only work while character is loaded
-    __asm {
-		pushad
-		pushfd
-
-        mov ecx, [mt_heap_alloc_static_ptr]
-        mov ecx, [ecx]
-        mov eax, [ecx]
-        mov edx, [eax+0x14]
-        push 0x10
-        push 0x152F0
-        call edx
-        mov [playerSpawnTempAddr], eax
-        call dword ptr [playerSpawnAddr2]
-        mov esi, [playerSpawnTempAddr]
-        // mov esi, [esi]
-        mov eax, [some_struct]
-        mov eax, [eax]
-        push 0x0F
-        call fptr_update_actor_list
-		popfd
-		popad
-    }
-}
-
 void EnemySpawn::spawn_random_enemy() {
     auto now = std::chrono::system_clock::now();
     srand((uint32_t)now.time_since_epoch().count());

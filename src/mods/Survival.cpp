@@ -11,10 +11,9 @@
 #include "HideHud.hpp"
 
 // Shame about the hitch when an enemy is loaded
-// Doppel is currently disabled because I couldn't figure out how to destroy p2, but the spawn and timer works (uh it sets you to p2 tho)
 bool Survival::mod_enabled = false;
 bool Survival::meme_effects = false;
-bool Survival::survival_active = false;
+bool Survival::survival_active = false; // Set dynamically, not a ui toggle
 uintptr_t Survival::jmp_return_hp = NULL;
 uintptr_t Survival::jmp_return_combat = NULL;
 uintptr_t Survival::jmp_return_red_timer = NULL;
@@ -32,6 +31,8 @@ static std::unique_ptr<PowerUpSystem> memePowerUpSystem = std::make_unique<Power
 static float accumulated_delta = 0.0f;
 static const float teleport_delay = 50.0f;
 static int waves_since_boss = false;
+
+static uintptr_t doppelAddr = NULL; // use this when spawning doppel dante or nero
 
 // safe to be called with no enemy
 Survival::EnemyInfo Survival::get_enemy_info(uEnemy* enemy) {
@@ -313,22 +314,56 @@ void Survival::spawn_boss_enemy() {
     }
 }
 
-PowerUpSystem::PowerUpDefinition createDoppelgangerPowerUp() {
+static std::mutex g_mutex;
+static constexpr uintptr_t danteSpawnAddr = 0x7B2130;
+static uintptr_t some_struct = 0x00E552CC;
+static uintptr_t fptr_update_actor_list = 0x008DC540;
+void EnemySpawn::spawn_dante() {
+    std::lock_guard<std::mutex> lk(g_mutex);
+    if (!devil4_sdk::get_local_player()) return; // only work while character is loaded
+    __asm {
+		pushad
+		pushfd
+        call dword ptr [danteSpawnAddr]
+        mov [doppelAddr], eax
+        mov esi, eax
+        mov eax, [some_struct]
+        mov eax, [eax]
+        push 0x0F
+        call fptr_update_actor_list
+		popfd
+		popad
+    }
+}
+
+PowerUpSystem::PowerUpDefinition createDantePowerUp() {
     return PowerUpSystem::createPowerUpDef(
-        "doppelganger",           // name
-        "DPL",                    // displayName
+        "dante",                  // name
+        "DNTE",                   // displayName
         ImColor(255, 0, 0, 255),  // color (Red)
         15.0f,                    // duration
-        0.0f,                     // radius
+        200.0f,                   // radius
         15.0f,                    // effectDuration
         []() {                    // onActivate
-                                  
-        },                        
+            uPlayer* player = devil4_sdk::get_local_player();
+            if (player) {
+                if (!doppelAddr) {
+                    EnemySpawn::spawn_dante(); // crashes if nero
+                }
+            }
+        },
         [](float dt) {            // onUpdate
-                                  
+        
         },                        
         []() {                    // onExpire
-        
+            uPlayer* player = devil4_sdk::get_local_player();
+            if (player) {
+                uPlayer* doppel = (uPlayer*)doppelAddr;
+                if (doppel) {
+                    uactor_sdk::despawn(doppel); // sometimes crashes (I think if a shell is spawned? DevilMayCry4_DX9.exe+3B1FD4 crash point with Dante Shl013 in esi)
+                }
+            }
+            doppelAddr = NULL;
         }
     );
 }
@@ -522,12 +557,7 @@ void setupMemePowerUpSystem() {
 void Survival::on_gui_frame(int display) {
     ImGui::BeginGroup();
     if (ImGui::Checkbox(_("Survival"), &Survival::mod_enabled)) {
-        if (Survival::mod_enabled) {
-            SpawnedEnemiesAttack::mod_enabled = Survival::mod_enabled;
-        }
-        else {
-            Survival::survival_active = false;
-        }
+        if (!Survival::mod_enabled) { Survival::survival_active = false; }
         Survival::toggle(Survival::mod_enabled);
         basicPowerUpSystem->setEnabled(Survival::mod_enabled);
     }
@@ -603,7 +633,7 @@ void Survival::toggle(bool toggle) {
             Survival::timer = new utility::Timer(10.0f, Survival::on_timer_trigger);
         }
         Survival::timer->start();
-        // powerUpSystem->registerPowerUp(createDoppelgangerPowerUp());
+        // basicPowerUpSystem->registerPowerUp(createDantePowerUp());
         basicPowerUpSystem->registerPowerUp(createHealthRestorePowerUp());
         basicPowerUpSystem->registerPowerUp(createDevilTriggerPowerUp());
         basicPowerUpSystem->registerPowerUp(createQuicksilverPowerUp());
@@ -612,7 +642,7 @@ void Survival::toggle(bool toggle) {
         if (Survival::timer) {
             Survival::timer->stop();
         }
-        // basicPowerUpSystem->removePowerUp("doppelganger");
+        // basicPowerUpSystem->removePowerUp("dante");
         basicPowerUpSystem->removePowerUp("health_restore");
         basicPowerUpSystem->removePowerUp("devil_trigger");
         basicPowerUpSystem->removePowerUp("quicksilver");

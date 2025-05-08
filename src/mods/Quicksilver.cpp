@@ -225,8 +225,10 @@ void Quicksilver::qs_operator_new() {
 
 void Quicksilver::on_timer_callback() {
     g_ss->m_time_left = 0.0f;
-    pps.tv->bitfield ^= 2048;
-    pps.cc->bitfield ^= 2048;
+	uactor_sdk::despawn(pps.tv);
+	uactor_sdk::despawn(pps.cc);
+    // pps.tv->bitfield ^= 2048; // when using ^= 2048 on a player, the mesh was hidden but effects remained
+    // pps.cc->bitfield ^= 2048;
 }
 
 std::optional<std::string> Quicksilver::on_initialize() {
@@ -260,12 +262,12 @@ void Quicksilver::on_gui_frame(int display) {
 	if (display == 1) {
 		ImGui::Checkbox(_("Quicksilver"), &mod_enabled_nero);
 		ImGui::SameLine();
-		help_marker(_("Enables the hotkey for Quicksilver. By default this is = / +"));
+		help_marker(_("Enable the hotkey for Quicksilver. By default this is = / +"));
 	}
 	else if (display == 2) {
 		ImGui::Checkbox(_("Quicksilver"), &mod_enabled_dante);
 		ImGui::SameLine();
-		help_marker(_("Enables the hotkey for Quicksilver. By default this is = / +"));
+		help_marker(_("Enable the hotkey for Quicksilver. By default this is = / +"));
 	}
 }
 #if 0

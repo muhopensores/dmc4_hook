@@ -262,6 +262,7 @@ class uEnemy {
 	float credoShieldTimer @ 0x3884
 	float credoShield @ 0x38BC
 	class uEnemyDamagePossibility DamagePtrBasilisk @ 0x7FC4
+	int frostHealCount @ 0x98C0
 	float sanctusShieldM11 @ 0x18900
 	float sanctusShieldTimerM11 @ 0x1890C
 	float sanctusShieldM20 @ 0x1DFF4

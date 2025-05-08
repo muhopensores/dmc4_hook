@@ -2,8 +2,8 @@
 
 bool      EnemySlotting::mod_enabled = false;
 uintptr_t EnemySlotting::jmp_ret = NULL;
-static int new_enemy_slot_limit = NULL;
-static int backup_enemy_slot_limit = NULL;
+static int new_enemy_slot_limit = 0;
+static int backup_enemy_slot_limit = 0;
 
 // static uintptr_t enemySlottingMov{ 0x14EF4C40 }; // mov ecx,[DevilMayCry4_DX9.exe+A558AC] // mov ecx,[00E558AC]
 
@@ -41,26 +41,28 @@ std::optional<std::string> EnemySlotting::on_initialize() {
 	return Mod::on_initialize();
 }
 
+static int selected_slot = 0;
 void EnemySlotting::on_gui_frame(int display) {
-	ImGui::Checkbox(_("Custom Enemy Slot Limit"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Set how many enemies can attack at the same time. Default is usually 1\n"
-				"After unchecking this option, the original value will only be restored after entering a new room"));
-    if (mod_enabled) {
-		ImGui::Indent(lineIndent);
-        ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::SliderInt(_("Slot Limit"), &new_enemy_slot_limit, 0, 12);
-        ImGui::PopItemWidth();
-        ImGui::Unindent(lineIndent);
+	const char* slot_options[] = { "Default", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" };
+	bool was_enabled = selected_slot > 0;
+	ImGui::SetNextItemWidth(sameLineItemWidth);
+	if (ImGui::Combo(_("Slot Limit"), &selected_slot, slot_options, IM_ARRAYSIZE(slot_options))) {
+		mod_enabled = (selected_slot > 0);
+		if (mod_enabled) {
+			new_enemy_slot_limit = selected_slot - 1;
+		}
 	}
+	ImGui::SameLine();
+	help_marker(_("Set how many enemies can attack at the same time.\n"
+				"After selecting Default, the original value will only be restored after entering a new fight"));
 }
 
 void EnemySlotting::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("enemy_slot_enable").value_or(false);
     new_enemy_slot_limit = cfg.get<int>("enemy_slot_limit").value_or(12);
     // old versions used to allow out of range values, this will correct configs
-    if (new_enemy_slot_limit > 12)
-		new_enemy_slot_limit = 12;
+	if (new_enemy_slot_limit > 12) { new_enemy_slot_limit = 12; }
+	if (mod_enabled) { selected_slot = new_enemy_slot_limit + 1; }
 };
 
 void EnemySlotting::on_config_save(utility::Config& cfg) {

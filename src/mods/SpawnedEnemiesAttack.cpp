@@ -10,6 +10,8 @@ naked void detour1() {
             mov byte ptr [esi+0x00001DDB], 00
             cmp byte ptr [SpawnedEnemiesAttack::mod_enabled], 1
             je newcode
+            cmp byte ptr [Survival::survival_active], 1
+            je newcode
 
         // originalcode:
             jmp dword ptr [SpawnedEnemiesAttack::jmp_ret1]

@@ -502,136 +502,140 @@ std::optional<std::string> AreaJump::on_initialize() {
 }
 
 void AreaJump::on_gui_frame(int display) {
-    sArea* s_area_ptr = devil4_sdk::get_sArea();
-    SMediator* s_med_ptr = devil4_sdk::get_sMediator();
-    uPlayer* player = devil4_sdk::get_local_player();
-
-    ImGui::SeparatorText(_("Bloody Palace"));
-
-    ImGui::PushItemWidth(sameLineItemWidth);
-	if (ImGui::InputInt(_("##BP Floor "), &s_area_ptr->aGamePtr->bp_floor, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
-        if (player)
-			s_area_ptr->aGamePtr->bp_floor = std::clamp(s_area_ptr->aGamePtr->bp_floor, 1, 101);
-	}
-    ImGui::SameLine();
-    if (ImGui::Button(_("Save BP Progress"), ImVec2(sameLineItemWidth, NULL))) {
+    if (display == 1) {
         sArea* s_area_ptr = devil4_sdk::get_sArea();
         SMediator* s_med_ptr = devil4_sdk::get_sMediator();
-        if (player) {
-            savedBPFloor = s_area_ptr->aGamePtr->bp_floor;
-            savedBPTimer = s_med_ptr->bpTimer;
-            savedOrbs = s_med_ptr->orbMissionCurrent;
-            savedHP = s_med_ptr->player_ptr->HP;
-            savedDT = s_med_ptr->player_ptr->DT;
-            savedStylePoints = s_med_ptr->stylePoints;
-            ModFramework* framework = g_framework.get();
-            utility::Config cfg{};
-            cfg.load(CONFIG_FILENAME);
-            cfg.set<int>("saved_bp_floor", savedBPFloor);
-            cfg.set<float>("saved_bp_timer", savedBPTimer);
-            cfg.set<int>("saved_orbs", savedOrbs);
-            cfg.set<float>("saved_hp", savedHP);
-            cfg.set<float>("saved_dt", savedDT);
-            cfg.set<float>("saved_style_points", savedStylePoints);
-            cfg.save(CONFIG_FILENAME);
+        uPlayer* player = devil4_sdk::get_local_player();
+
+        ImGui::SeparatorText(_("Bloody Palace"));
+
+        ImGui::PushItemWidth(sameLineItemWidth);
+        if (ImGui::InputInt(_("##BP Floor "), &s_area_ptr->aGamePtr->bp_floor, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
+            if (player)
+                s_area_ptr->aGamePtr->bp_floor = std::clamp(s_area_ptr->aGamePtr->bp_floor, 1, 101);
         }
-    }
-    ImGui::SameLine();
-    help_marker(_("Saves floor, timer, orbs, hp, dt"));
-
-    if (ImGui::Button(_("Teleport"), ImVec2(sameLineItemWidth, NULL))) {
-        if (player)
-			jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
-	}
-    ImGui::SameLine();
-    if (ImGui::Button(_("Load BP Progress"), ImVec2(sameLineItemWidth, NULL))) {
-        sArea* s_area_ptr = devil4_sdk::get_sArea();
-        if (player) {
-            s_area_ptr->aGamePtr->bp_floor = savedBPFloor;
-            jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
-            s_med_ptr->bpTimer = savedBPTimer;
-            s_med_ptr->orbMissionCurrent = savedOrbs;
-            s_med_ptr->stylePoints = savedStylePoints;
-            s_med_ptr->player_ptr->HP = savedHP;
-            s_med_ptr->player_ptr->DT = savedDT;
-            s_area_ptr->aGamePtr->init_jump = 1;
+        ImGui::SameLine();
+        if (ImGui::Button(_("Save BP Progress"), ImVec2(sameLineItemWidth, NULL))) {
+            sArea* s_area_ptr = devil4_sdk::get_sArea();
+            SMediator* s_med_ptr = devil4_sdk::get_sMediator();
+            if (player) {
+                savedBPFloor = s_area_ptr->aGamePtr->bp_floor;
+                savedBPTimer = s_med_ptr->bpTimer;
+                savedOrbs = s_med_ptr->orbMissionCurrent;
+                savedHP = s_med_ptr->player_ptr->HP;
+                savedDT = s_med_ptr->player_ptr->DT;
+                savedStylePoints = s_med_ptr->stylePoints;
+                ModFramework* framework = g_framework.get();
+                utility::Config cfg{};
+                cfg.load(CONFIG_FILENAME);
+                cfg.set<int>("saved_bp_floor", savedBPFloor);
+                cfg.set<float>("saved_bp_timer", savedBPTimer);
+                cfg.set<int>("saved_orbs", savedOrbs);
+                cfg.set<float>("saved_hp", savedHP);
+                cfg.set<float>("saved_dt", savedDT);
+                cfg.set<float>("saved_style_points", savedStylePoints);
+                cfg.save(CONFIG_FILENAME);
+            }
         }
-    }
-    ImGui::SameLine();
-    help_marker(_("Press Load after loading into BP\nLoads saved floor, timer, orbs, hp, dt"));
+        ImGui::SameLine();
+        help_marker(_("Save floor, timer, orbs, hp, dt, style points"));
 
-    ImGui::PopItemWidth();
+        if (ImGui::Button(_("Teleport"), ImVec2(sameLineItemWidth, NULL))) {
+            if (player)
+                jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Load BP Progress"), ImVec2(sameLineItemWidth, NULL))) {
+            sArea* s_area_ptr = devil4_sdk::get_sArea();
+            if (player) {
+                s_area_ptr->aGamePtr->bp_floor = savedBPFloor;
+                jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
+                s_med_ptr->bpTimer = savedBPTimer;
+                s_med_ptr->orbMissionCurrent = savedOrbs;
+                s_med_ptr->stylePoints = savedStylePoints;
+                s_med_ptr->player_ptr->HP = savedHP;
+                s_med_ptr->player_ptr->DT = savedDT;
+                s_area_ptr->aGamePtr->init_jump = 1;
+            }
+        }
+        ImGui::SameLine();
+        help_marker(_("Press Load after loading into BP\nLoads saved floor, timer, orbs, hp, dt"));
 
-    if (ImGui::Checkbox(_("Randomize BP"), &randomize_bp_toggle)) {
-        toggle_randomized_bp(randomize_bp_toggle);
-        randomize_bp_floors();
-        randomize_bp_bosses();
+        ImGui::PopItemWidth();
+
+        ImGui::SeparatorText(_("Mission Area Teleports"));
+
+        ImGui::Spacing();
+        ImGui::PushItemWidth(sameLineWidth);
+        int item_current_idx = 0;
+        float itemHeight = ImGui::GetTextLineHeightWithSpacing();
+        int visibleItems = 25;
+        ImVec2 listBoxSize = ImVec2(ImGui::GetContentRegionAvail().x, itemHeight * visibleItems);
+        if (ImGui::BeginListBox("##Room Codes Listbox", listBoxSize)) {
+            for (size_t n = 0; n < room_items.size(); n++) {
+                const bool is_selected = (item_current_idx == n);
+                // sigh
+                char buffer[MAX_PATH];
+                int result = snprintf(buffer, sizeof(buffer), "%s - %d", room_items[n].name, room_items[n].id);
+                IM_ASSERT(result > 0); // encoding error
+                IM_ASSERT(result < MAX_PATH); // output was truncated or null terminator didnt fit in
+
+                if (ImGui::Selectable(buffer, is_selected)) {
+                    item_current_idx = n;
+                    if (player)
+                        jump_to_stage(&room_items[n]);
+                }
+
+                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                if (is_selected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndListBox();
+        }
+        ImGui::PopItemWidth();
     }
-    ImGui::SameLine();
-    help_marker(_("All stages will be randomized"));
-    ImGui::Checkbox(_("Boss Rush"), &bp_boss_rush_toggle);
-    ImGui::SameLine();
-    help_marker(_("Only boss stages will be played\nEnable before selecting BP"));
-    if (randomize_bp_toggle) {
-        ImGui::Indent(lineIndent);
-        if (ImGui::CollapsingHeader(_("View Randomized Stages"))) {
+    if (display == 2) {
+        if (ImGui::Checkbox(_("Random BP"), &randomize_bp_toggle)) {
+            toggle_randomized_bp(randomize_bp_toggle);
+            randomize_bp_floors();
+            randomize_bp_bosses();
+        }
+        ImGui::SameLine();
+        help_marker(_("All stages will be randomized"));
+        ImGui::SameLine(sameLineWidth);
+        ImGui::Checkbox(_("BP Boss Rush"), &bp_boss_rush_toggle);
+        ImGui::SameLine();
+        help_marker(_("Only boss stages will be played\nEnable before selecting BP"));
+        if (randomize_bp_toggle) {
+            ImGui::Indent(lineIndent);
+            if (ImGui::CollapsingHeader(_("View Randomized Stages"))) {
                 ImGui::Text(_("Stage Number"));
                 ImGui::SameLine(sameLineWidth);
                 ImGui::Text(_("Random Stage"));
-            if (!bp_boss_rush_toggle) {
-                int stage_count = 1;
-                for (int i : bp_array) {
-                    ImGui::Text(_("%i"), stage_count);
-                    stage_count++;
-                    ImGui::SameLine(sameLineWidth);
-                    ImGui::Text(_("%i"), i);
+                if (!bp_boss_rush_toggle) {
+                    int stage_count = 1;
+                    for (int i : bp_array) {
+                        ImGui::Text(_("%i"), stage_count);
+                        stage_count++;
+                        ImGui::SameLine(sameLineWidth);
+                        ImGui::Text(_("%i"), i);
+                    }
                 }
-            }
-            else {
-                int stage_count = 1;
-                for (int i : boss_array) {
-                    ImGui::Text(_("%i"), stage_count);
-                    stage_count++;
-                    ImGui::SameLine(sameLineWidth);
-                    ImGui::Text(_("%i"), i);
+                else {
+                    int stage_count = 1;
+                    for (int i : boss_array) {
+                        ImGui::Text(_("%i"), stage_count);
+                        stage_count++;
+                        ImGui::SameLine(sameLineWidth);
+                        ImGui::Text(_("%i"), i);
+                    }
                 }
+                ImGui::Separator();
             }
-            ImGui::Separator();
+            ImGui::Unindent(lineIndent);
         }
-        ImGui::Unindent(lineIndent);
     }
-
-    ImGui::SeparatorText(_("Mission Area Teleports"));
-
-    ImGui::Spacing();
-    ImGui::PushItemWidth(sameLineWidth);
-	int item_current_idx = 0;
-    float itemHeight = ImGui::GetTextLineHeightWithSpacing();
-    int visibleItems = 25;
-    ImVec2 listBoxSize = ImVec2(ImGui::GetContentRegionAvail().x, itemHeight * visibleItems);
-    if (ImGui::BeginListBox("##Room Codes Listbox", listBoxSize)) {
-        for (size_t n = 0; n < room_items.size(); n++) {
-            const bool is_selected = (item_current_idx == n);
-            // sigh
-            char buffer[MAX_PATH];
-            int result = snprintf(buffer, sizeof(buffer), "%s - %d", room_items[n].name, room_items[n].id);
-            IM_ASSERT(result > 0); // encoding error
-            IM_ASSERT(result < MAX_PATH); // output was truncated or null terminator didnt fit in
-
-            if (ImGui::Selectable(buffer, is_selected)) {
-                item_current_idx = n;
-                if (player)
-                    jump_to_stage(&room_items[n]);
-            }
-
-            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            if (is_selected) {
-                ImGui::SetItemDefaultFocus();
-            }
-        }
-        ImGui::EndListBox();
-    }
-    ImGui::PopItemWidth();
 }
 
 void AreaJump::on_update_input(utility::Input & input) {

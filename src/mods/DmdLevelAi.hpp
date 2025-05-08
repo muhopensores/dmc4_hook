@@ -7,10 +7,8 @@ public:
     DmdLevelAi() = default;
 
     static bool mod_enabled;
-    static bool frenzied_enabled;
 
     void toggle(bool enable);
-    void frenzied_toggle(bool enable);
 
     std::string get_mod_name() override { return "DmdLevelAi"; };
 
@@ -23,5 +21,5 @@ public:
 
 private:
     // std::unique_ptr<FunctionHook> hook;
-    std::unique_ptr<Patch> patch, patch2, patch3, patch4, patch5, patch6, patch7, patch8, patch9;
+    std::unique_ptr<Patch> patch;
 };
