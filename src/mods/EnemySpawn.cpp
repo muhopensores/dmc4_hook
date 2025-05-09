@@ -220,9 +220,9 @@ void set_enemy_position(UEnemySomething* em) {
     em->m_enemy_spawn_effect_something = enemy_spawn_type[(enemy_spawning)];
 }
 
-void EnemySpawn::spawn_em00x(int index) {
+void EnemySpawn::spawn_em00x(EnemyType index) {
     std::lock_guard<std::mutex> lk(g_mutex);
-    uintptr_t em_function_pointer = fptr_em_factories.at(index);
+    uintptr_t em_function_pointer = fptr_em_factories.at((int)index);
     if (!devil4_sdk::get_local_player()) return; // only work while character is loaded
     __asm {
 		pushad
@@ -288,58 +288,58 @@ void EnemySpawn::spawn_random_enemy() {
     // if (devil4_sdk::get_sMediator()->uBoss1)
     //    spawn_em00x(rand() % 11); // do not spawn a boss if a boss already exists
     // else
-    spawn_em00x(rand() % 23);
+    spawn_em00x((EnemyType)(rand() % 23));
 }
 
 std::optional<std::string> EnemySpawn::on_initialize() {
     //srand((uint32_t)this);
     MutatorRegistry::define("SpawnScarecrowLeg").weight(8)
         .description("Spawns ScarecrowLeg").alias("Leg")
-        .on_init([&]() { spawn_em00x(0); });
+        .on_init([&]() { spawn_em00x(EnemyType::SCARECROW_LEG); });
 
     MutatorRegistry::define("SpawnScarecrowArm").weight(7)
         .description("Spawns ScarecrowArm").alias("Arm")
-        .on_init([&]() { spawn_em00x(1); });
+        .on_init([&]() { spawn_em00x(EnemyType::SCARECROW_ARM); });
 
     MutatorRegistry::define("SpawnMega").weight(6)
         .description("Spawns a Mega").alias("Mega")
-        .on_init([&]() { spawn_em00x(2); });
+        .on_init([&]() { spawn_em00x(EnemyType::SCARECROW_MEGA); });
 
     MutatorRegistry::define("SpawnBianco").weight(10)
         .description("Spawns Bianco Angelo").alias("Bianco").alias("BA")
-        .on_init([&]() { spawn_em00x(3); });
+        .on_init([&]() { spawn_em00x(EnemyType::ANGELO_BIANCO); });
 
     MutatorRegistry::define("SpawnAlto").weight(10)
         .description("Spawns Alto Angelo").alias("Alto").alias("AA")
-        .on_init([&]() { spawn_em00x(4); });
+        .on_init([&]() { spawn_em00x(EnemyType::ANGELO_ALTO); });
 
     MutatorRegistry::define("SpawnMephisto").weight(10)
         .description("Spawns Mephisto").alias("Mephisto").alias("FlyingRat")
-        .on_init([&]() { spawn_em00x(5); });
+        .on_init([&]() { spawn_em00x(EnemyType::MEPHISTO); });
 
     MutatorRegistry::define("SpawnFaust").weight(10)
         .description("Spawns Faust").alias("FlyingRatDaddy").alias("EdwardScissorhands")
-        .on_init([&]() { spawn_em00x(6); });
+        .on_init([&]() { spawn_em00x(EnemyType::FAUST); });
 
     MutatorRegistry::define("SpawnFrost").weight(10)
         .description("Spawns Frost").alias("Frost").alias("frot").alias("iWantIcecream")
         .alias("Icecube")
-        .on_init([&]() { spawn_em00x(7); });
+        .on_init([&]() { spawn_em00x(EnemyType::FROST); });
 
     MutatorRegistry::define("SpawnAssault").weight(10)
         .description("Spawns Assault").alias("Assault").alias("Lizard")
-        .on_init([&]() { spawn_em00x(8); });
+        .on_init([&]() { spawn_em00x(EnemyType::ASSAULT); });
 
     MutatorRegistry::define("SpawnBlitz")
         .description("Spawns Blitz").weight(1)
         .alias("Blitz").alias("Mark").alias("Zuck")
-        .on_init([&]() { spawn_em00x(9); });
+        .on_init([&]() { spawn_em00x(EnemyType::BLITZ); });
 
     MutatorRegistry::define("SpawnChimera")
         .description("Spawns Chimera Seed").weight(2)/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Chimera").alias("seed").alias("eg").alias("egg").alias("gregg")
         .alias("cum")
-        .on_init([&]() { spawn_em00x(10); });
+        .on_init([&]() { spawn_em00x(EnemyType::CHIMERA_SEED); });
         
     MutatorRegistry::define("SummonThePunishment")
         .description("Rain Down The God's Wrath")/*.special_arg(&g_enable_twitch_special_spawns)*/
@@ -348,69 +348,69 @@ std::optional<std::string> EnemySpawn::on_initialize() {
         .on_init([]() { 
             /*g_show_cum = true;*/
             for(int i = 0; i < 50; i++) 
-                spawn_em00x(10);
+                spawn_em00x(EnemyType::CHIMERA_SEED);
         });
 
     MutatorRegistry::define("SpawnCutlass").weight(0) // broken
         .description("Spawns Cutlass")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Cutlass").alias("Fish")
-        .on_init([&]() { spawn_em00x(11); });
+        .on_init([&]() { spawn_em00x(EnemyType::CUTLASS); });
 
     MutatorRegistry::define("SpawnGladius").weight(0) // broken
         .description("Spawns Gladius")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Gladius").alias("Swordfish")
-        .on_init([&]() { spawn_em00x(12); });
+        .on_init([&]() { spawn_em00x(EnemyType::GLADIUS); });
 
     MutatorRegistry::define("SpawnBasilisk").weight(10)
         .description("Spawns Basilisk").alias("Basilisk").alias("dog").alias("doggo")
         .alias("doge").alias("dogg").alias("puppy")
-        .on_init([&]() { spawn_em00x(13); });
+        .on_init([&]() { spawn_em00x(EnemyType::BASILISK); });
 
     MutatorRegistry::define("SpawnBerial").weight(1)
         .description("Spawns Berial")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Berial").alias("FirePony")
-        .on_init([&]() { spawn_em00x(14); });
+        .on_init([&]() { spawn_em00x(EnemyType::BERIAL); });
 
     MutatorRegistry::define("SpawnBael").weight(1)
         .description("Spawns Bael")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Bael").alias("frog").alias("froggy").alias("frogeh")
         .alias("froggeh").alias("toad").alias("runkiller")
         .alias("widepeepoHappy").alias("жаба")
-        .on_init([&]() { spawn_em00x(15); });
+        .on_init([&]() { spawn_em00x(EnemyType::BAEL); });
 
     MutatorRegistry::define("SpawnEchidna").weight(1)
         .description("Spawns Echidna")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Echidna").alias("HentaiWaifu")
-        .on_init([&]() { spawn_em00x(16); });
+        .on_init([&]() { spawn_em00x(EnemyType::ECHIDNA); });
 
     MutatorRegistry::define("SpawnCredo").weight(2)
         .description("Spawns Angelo Credo")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Credo").alias("NoCavIsNotAGoodBoss").alias("BiggusDickus")
-        .on_init([&]() { spawn_em00x(17); });
+        .on_init([&]() { spawn_em00x(EnemyType::CREDO); });
 
     MutatorRegistry::define("SpawnAgnus").weight(1)
         .description("Spawns Angelo Agnus")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Agnus").alias("Agnis").alias("Ragnis").alias("moth").alias("mothman")
-        .on_init([&]() { spawn_em00x(18); });
+        .on_init([&]() { spawn_em00x(EnemyType::AGNUS); });
 
     MutatorRegistry::define("SpawnSanctus").weight(0) // broken iirc
         .description("Spawns Sanctus")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Sanctus").alias("OldFart").alias("pope").alias("Sanctussy")
-        .on_init([&]() { spawn_em00x(19); });
+        .on_init([&]() { spawn_em00x(EnemyType::SANCTUS); });
 
     MutatorRegistry::define("SpawnSanctusDia").weight(0) // broken iirc
         .description("Spawns Sanctus Diabolica")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Sanctus2").alias("OldFart2").alias("pope2").alias("Sanctussy2")
-        .on_init([&]() { spawn_em00x(20); });
+        .on_init([&]() { spawn_em00x(EnemyType::SANCTUS_DIABOLICA); });
 
     MutatorRegistry::define("SpawnKyrie").weight(10)
         .description("Spawns Kyrie").alias("Kyrie")
-        .on_init([&]() { spawn_em00x(21); });
+        .on_init([&]() { spawn_em00x(EnemyType::KYRIE); });
 
     MutatorRegistry::define("SpawnDante").weight(0) // broken
         .description("Spawns Dante")/*.special_arg(&g_enable_twitch_special_spawns)*/
         .alias("Dante").alias("Donny").alias("Donte").alias("DonterKebab")
-        .on_init([&]() { spawn_em00x(22); });
+        .on_init([&]() { spawn_em00x(EnemyType::DANTE); });
 
     MutatorRegistry::define("SpawnRandom").weight(8)
         .description("Spawns random enemy")/*.special_arg(&g_enable_twitch_special_spawns)*/
@@ -434,73 +434,73 @@ std::optional<std::string> EnemySpawn::on_initialize() {
     utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F12 }, "Spawn Basilisk", "spawn_basilisk_key");
 
     console->system().RegisterCommand("spawnscarecrowleg", "Spawn a Scarecrow Leg", [/*this*/]() {
-        spawn_em00x(0);
+        spawn_em00x(EnemyType::SCARECROW_LEG);
     });
     console->system().RegisterCommand("spawnscarecrowarm", "Spawn a Scarecrow Arm", [/*this*/]() {
-        spawn_em00x(1);
+        spawn_em00x(EnemyType::SCARECROW_ARM);
     });
     console->system().RegisterCommand("spawnmega", "Spawn a Mega Scarecrow", [/*this*/]() {
-        spawn_em00x(2);
+        spawn_em00x(EnemyType::SCARECROW_MEGA);
     });
     console->system().RegisterCommand("spawnbianco", "Spawn a Bianco Angelo", [/*this*/]() {
-        spawn_em00x(3);
+        spawn_em00x(EnemyType::ANGELO_BIANCO);
     });
     console->system().RegisterCommand("spawnalto", "Spawn an Alto Angelo", [/*this*/]() {
-        spawn_em00x(4);
+        spawn_em00x(EnemyType::ANGELO_ALTO);
     });
     console->system().RegisterCommand("spawnmephisto", "Spawn a Mephisto", [/*this*/]() {
-        spawn_em00x(5);
+        spawn_em00x(EnemyType::MEPHISTO);
     });
     console->system().RegisterCommand("spawnfaust", "Spawn a Faust", [/*this*/]() {
-        spawn_em00x(6);
+        spawn_em00x(EnemyType::FAUST);
     });
     console->system().RegisterCommand("spawnfrost", "Spawn a Frost", [/*this*/]() {
-        spawn_em00x(7);
+        spawn_em00x(EnemyType::FROST);
     });
     console->system().RegisterCommand("spawnassault", "Spawn an Assault", [/*this*/]() {
-        spawn_em00x(8);
+        spawn_em00x(EnemyType::ASSAULT);
     });
     console->system().RegisterCommand("spawnblitz", "Spawn a Blitz", [/*this*/]() {
-        spawn_em00x(9);
+        spawn_em00x(EnemyType::BLITZ);
     });
     console->system().RegisterCommand("spawnseed", "Spawn a Chimera Seed", [/*this*/]() {
-        spawn_em00x(10);
+        spawn_em00x(EnemyType::CHIMERA_SEED);
     });
     console->system().RegisterCommand("spawncutlass", "Spawn a Cutlass", [/*this*/]() {
-        spawn_em00x(11);
+        spawn_em00x(EnemyType::CUTLASS);
     });
     console->system().RegisterCommand("spawngladius", "Spawn a Gladius", [/*this*/]() {
-        spawn_em00x(12);
+        spawn_em00x(EnemyType::GLADIUS);
     });
     console->system().RegisterCommand("spawnbasilisk", "Spawn a Basilisk", [/*this*/]() {
-        spawn_em00x(13);
+        spawn_em00x(EnemyType::BASILISK);
     });
     console->system().RegisterCommand("spawnberial", "Spawn a Berial", [/*this*/]() {
-        spawn_em00x(14);
+        spawn_em00x(EnemyType::BERIAL);
     });
     console->system().RegisterCommand("spawnbael", "Spawn a Bael", [/*this*/]() {
-        spawn_em00x(15);
+        spawn_em00x(EnemyType::BAEL);
     });
     console->system().RegisterCommand("spawnechidna", "Spawn an Echidna", [/*this*/]() {
-        spawn_em00x(16);
+        spawn_em00x(EnemyType::ECHIDNA);
     });
     console->system().RegisterCommand("spawnagnus", "Spawn an Agnus", [/*this*/]() {
-        spawn_em00x(17);
+        spawn_em00x(EnemyType::AGNUS);
     });
     console->system().RegisterCommand("spawncredo", "Spawn a Credo", [/*this*/]() {
-        spawn_em00x(18);
+        spawn_em00x(EnemyType::CREDO);
     });
     console->system().RegisterCommand("spawnsanctus", "Spawn a Sanctus", [/*this*/]() {
-        spawn_em00x(19);
+        spawn_em00x(EnemyType::SANCTUS);
     });
     console->system().RegisterCommand("spawnsanctus2", "Spawn a Sanctus Diabolica", [/*this*/]() {
-        spawn_em00x(20);
+        spawn_em00x(EnemyType::SANCTUS_DIABOLICA);
     });
     console->system().RegisterCommand("spawnkyrie", "Spawn a Kyrie", [/*this*/]() {
-        spawn_em00x(21);
+        spawn_em00x(EnemyType::KYRIE);
     });
     console->system().RegisterCommand("spawndante", "Spawn a Dante", [/*this*/]() {
-        spawn_em00x(22);
+        spawn_em00x(EnemyType::DANTE);
     });
     console->system().RegisterCommand("spawnrandom", "Spawn a random enemy", [/*this*/]() {
         spawn_random_enemy();
@@ -515,7 +515,7 @@ void EnemySpawn::on_gui_frame(int display) {
     ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
     if (ImGui::ListBox("##Enemy Spawn Listbox", &enemy_names_current, enemy_names.data(), enemy_names.size(), 23)) {
         if (player)
-            spawn_em00x(enemy_names_current);
+            spawn_em00x((EnemyType)enemy_names_current);
     }
     if (ImGui::Button(_("Random"))) {
         if (player)
@@ -539,7 +539,7 @@ void EnemySpawn::on_gui_frame(int display) {
 void EnemySpawn::on_update_input(utility::Input& input) {
     for (size_t i = 0; i < EnemySpawn::m_hotkeys.size(); i++) {
         if (EnemySpawn::m_hotkeys[i]->check(input)) {
-            spawn_em00x(i);
+            spawn_em00x((EnemyType)i);
         };
     }
 }

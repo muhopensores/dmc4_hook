@@ -272,9 +272,9 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
 	{"YMT-combo1003",    "Yamato Combo A"},
 	{"YMT-combo1004",    "Yamato Combo A"},
 	{"YMT-combo1005",    "Yamato Combo A"},
-    {"YMT-combo1006-1",  "Yamato Aerial Rave V"},
-    {"YMT-combo1006-2",  "Yamato Aerial Rave V"},
-    {"YMT-combo1007",    "Yamato Aerial Rave V"},
+    {"YMT-combo1006-1",  "Aerial Rave V"},
+    {"YMT-combo1006-2",  "Aerial Rave V"},
+    {"YMT-combo1007",    "Aerial Rave V"},
 	{"kuukan",   		 "Slash Dimension"},
 //};
 

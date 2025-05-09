@@ -10,6 +10,47 @@
 #include "BigHeadMode.hpp"
 #include "HideHud.hpp"
 
+class WaveConfig {
+public:
+    int max_enemies_with_boss;
+    int max_enemies_without_boss;
+    int ldk_max_enemies_with_boss;
+    int ldk_max_enemies_without_boss;
+    int boss_waves_cooldown;
+    int max_bosses;
+    int max_side_enemies;
+    int boss_spawn_chance;
+    int side_enemy_spawn_chance;
+    int powerup_spawn_chance;
+    std::vector<EnemyType> standard_enemies;
+    std::vector<EnemyType> side_enemies;
+    std::vector<EnemyType> boss_enemies;
+    WaveConfig(
+        int _max_with_boss, int _max_without_boss,
+        int _ldk_max_with_boss, int _ldk_max_without_boss,
+        int _boss_cooldown, int _max_bosses,
+        int _max_side_enemies,
+        int _boss_chance, int _side_chance, int _powerup_chance,
+        const std::vector<EnemyType>& _standard_enemies = {},
+        const std::vector<EnemyType>& _side_enemies = {},
+        const std::vector<EnemyType>& _boss_enemies = {}
+    ) :
+        max_enemies_with_boss(_max_with_boss),
+        max_enemies_without_boss(_max_without_boss),
+        ldk_max_enemies_with_boss(_ldk_max_with_boss),
+        ldk_max_enemies_without_boss(_ldk_max_without_boss),
+        boss_waves_cooldown(_boss_cooldown),
+        max_bosses(_max_bosses),
+        max_side_enemies(_max_side_enemies),
+        boss_spawn_chance(_boss_chance),
+        side_enemy_spawn_chance(_side_chance),
+        powerup_spawn_chance(_powerup_chance),
+        standard_enemies(_standard_enemies),
+        side_enemies(_side_enemies),
+        boss_enemies(_boss_enemies)
+    {}
+};
+
 // Shame about the hitch when an enemy is loaded
 bool Survival::mod_enabled = false;
 bool Survival::meme_effects = false;
@@ -18,7 +59,7 @@ uintptr_t Survival::jmp_return_hp = NULL;
 uintptr_t Survival::jmp_return_combat = NULL;
 uintptr_t Survival::jmp_return_red_timer = NULL;
 
-ImVec2 Survival::window_pos{ 0.0f, 0.0f };
+// ImVec2 Survival::window_pos{ 0.0f, 0.0f };
 utility::Timer* Survival::timer{};
 utility::Timer* Survival::meme_timer{};
 float Survival::survivedTimer = 0.0f;
@@ -44,123 +85,285 @@ Survival::EnemyInfo Survival::get_enemy_info(uEnemy* enemy) {
             if (enemy->ID >= BERIAL || enemy->ID == CREDO || enemy->ID == AGNUS || enemy->ID == BLITZ) {
                 enemy_info.bosses_alive++;
             }
+            if (enemy->ID == CHIMERA || enemy->ID == CUTLASS || enemy->ID == GLADIUS) {
+                enemy_info.side_enemies_alive++;
+            }
         }
         enemy = enemy->nextEnemy;
     }
     return enemy_info;
 }
 
-bool Survival::can_spawn_enemy(EnemyInfo enemy_info, SMediator* sMed) {
-    if (Survival::wave < 150) {
-        if (enemy_info.bosses_alive > 0) { // if a boss is spawned, limit enemies
-            if (Survival::wave >= 50 || sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) { // if ldk or high wave, limit less
-                if (enemy_info.enemies_alive < 3) {
-                    return true;
-                }
-            }
-            else if (enemy_info.enemies_alive < 1) {
-                return true;
-            }
-        }
-        else { // if no boss is spawned, limit less
-            if (Survival::wave >= 80 || sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) { // if ldk, limit less
-                if (enemy_info.enemies_alive < 10) {
-                    return true;
-                }
-            }
-            else if (Survival::wave < 20) { // 0 - 20
-                if (enemy_info.enemies_alive < 3) {
-                    return true;
-                }
-            }
-            else if (Survival::wave < 50) { // 20 - 50
-                if (enemy_info.enemies_alive < 5) {
-                    return true;
-                }
-            }
-            else if (Survival::wave < 80) { // 50 - 80
-                if (enemy_info.enemies_alive < 8) {
-                    return true;
-                }
-            }
+const std::map<int, WaveConfig> WAVE_CONFIGS = {
+    {5, WaveConfig( // 0-5
+        1,  // max_enemies_with_boss
+        3,  // max_enemies_without_boss
+        3,  // ldk_max_enemies_with_boss
+        5,  // ldk_max_enemies_without_boss
+        10, // boss_waves_cooldown
+        0,  // max_bosses
+        0,  // max_side_enemies
+        0,  // boss_spawn_chance
+        0,  // side_enemy_spawn_chance
+        3,  // powerup_spawn_chance
+        {EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_MEGA}, // tier 1 enemies with duplicates for less chance of mega
+        {EnemyType::CHIMERA_SEED, EnemyType::CUTLASS, EnemyType::GLADIUS}, // Side enemies
+        {EnemyType::BLITZ, EnemyType::CREDO, EnemyType::BERIAL, EnemyType::BAEL} // Boss enemies
+    )},
+    
+    {10, WaveConfig( // 5-10 // introduce tier 2 enemies
+        1,  // max_enemies_with_boss
+        3,  // max_enemies_without_boss
+        3,  // ldk_max_enemies_with_boss
+        5,  // ldk_max_enemies_without_boss
+        10, // boss_waves_cooldown
+        0,  // max_bosses
+        0,  // max_side_enemies
+        0,  // boss_spawn_chance
+        0,  // side_enemy_spawn_chance
+        3,  // powerup_spawn_chance
+        {EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_MEGA, // tier 1 enemies
+         EnemyType::ANGELO_BIANCO, EnemyType::MEPHISTO, EnemyType::ASSAULT}, // tier 2 enemies
+        {EnemyType::CHIMERA_SEED, EnemyType::CUTLASS, EnemyType::GLADIUS}, // side enemies
+        {EnemyType::BLITZ, EnemyType::CREDO, EnemyType::BERIAL, EnemyType::BAEL} // Boss enemies
+    )},
+    
+    {20, WaveConfig( // 20-30 // introduce tier 3 enemies
+        1,  // max_enemies_with_boss
+        3,  // max_enemies_without_boss
+        3,  // ldk_max_enemies_with_boss
+        5,  // ldk_max_enemies_without_boss
+        10, // boss_waves_cooldown
+        0,  // max_bosses
+        0,  // max_side_enemies
+        0,  // boss_spawn_chance
+        0,  // side_enemy_spawn_chance
+        3,  // powerup_spawn_chance
+        {EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_MEGA, // tier 1 enemies
+         EnemyType::ANGELO_BIANCO, EnemyType::MEPHISTO, EnemyType::ASSAULT, // tier 2 enemies
+         EnemyType::FROST, EnemyType::ANGELO_ALTO, EnemyType::BASILISK}, // tier 3 enemies
+        {EnemyType::CHIMERA_SEED, EnemyType::CUTLASS, EnemyType::GLADIUS}, // side enemies
+        {EnemyType::BLITZ, EnemyType::CREDO, EnemyType::BERIAL, EnemyType::BAEL} // Boss enemies
+    )},
+    
+    {30, WaveConfig( // 30-40 // introduce side enemies
+        1,  // max_enemies_with_boss
+        3,  // max_enemies_without_boss
+        3,  // ldk_max_enemies_with_boss
+        5,  // ldk_max_enemies_without_boss
+        10, // boss_waves_cooldown
+        0,  // max_bosses
+        1,  // max_side_enemies
+        0,  // boss_spawn_chance
+        8,  // side_enemy_spawn_chance
+        3,  // powerup_spawn_chance
+        {EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_MEGA, // tier 1 enemies
+         EnemyType::ANGELO_BIANCO, EnemyType::MEPHISTO, EnemyType::ASSAULT, // tier 2 enemies
+         EnemyType::FROST, EnemyType::ANGELO_ALTO, EnemyType::BASILISK}, // tier 3 enemies
+        {EnemyType::CHIMERA_SEED, EnemyType::CUTLASS, EnemyType::GLADIUS}, // side enemies
+        {EnemyType::BLITZ, EnemyType::CREDO, EnemyType::BERIAL, EnemyType::BAEL} // Boss enemies
+    )},
+    
+    {40, WaveConfig( // 40-50 // introduce tier 4 enemies
+        1,  // max_enemies_with_boss
+        3,  // max_enemies_without_boss
+        3,  // ldk_max_enemies_with_boss
+        5,  // ldk_max_enemies_without_boss
+        10, // boss_waves_cooldown
+        0,  // max_bosses
+        1,  // max_side_enemies
+        0,  // boss_spawn_chance
+        8,  // side_enemy_spawn_chance
+        3,  // powerup_spawn_chance
+        {EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_MEGA, // tier 1 enemies
+         EnemyType::ANGELO_BIANCO, EnemyType::MEPHISTO, EnemyType::ASSAULT, // tier 2 enemies
+         EnemyType::FROST, EnemyType::ANGELO_ALTO, EnemyType::BASILISK, // tier 3 enemies
+         EnemyType::FAUST}, // tier 4 enemies
+        {EnemyType::CHIMERA_SEED, EnemyType::CUTLASS, EnemyType::GLADIUS}, // side enemies
+        {EnemyType::BLITZ, EnemyType::CREDO, EnemyType::BERIAL, EnemyType::BAEL} // Boss enemies
+    )},
+    
+    {50, WaveConfig( // 40-50 // introduce bosses
+        1,  // max_enemies_with_boss
+        3,  // max_enemies_without_boss
+        3,  // ldk_max_enemies_with_boss
+        5,  // ldk_max_enemies_without_boss
+        10, // boss_waves_cooldown
+        1,  // max_bosses
+        1,  // max_side_enemies
+        8,  // boss_spawn_chance
+        8,  // side_enemy_spawn_chance
+        3,  // powerup_spawn_chance
+        {EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_MEGA, // tier 1 enemies
+         EnemyType::ANGELO_BIANCO, EnemyType::MEPHISTO, EnemyType::ASSAULT, // tier 2 enemies
+         EnemyType::FROST, EnemyType::ANGELO_ALTO, EnemyType::BASILISK, // tier 3 enemies
+         EnemyType::FAUST}, // tier 4 enemies
+        {EnemyType::CHIMERA_SEED, EnemyType::CUTLASS, EnemyType::GLADIUS}, // side enemies
+        {EnemyType::BLITZ, EnemyType::CREDO, EnemyType::BERIAL, EnemyType::BAEL} // Boss enemies
+    )},
+    
+    {100, WaveConfig( // 50-100 // up enemy count + side enemy count
+        3,  // max_enemies_with_boss
+        6,  // max_enemies_without_boss
+        5,  // ldk_max_enemies_with_boss
+        7,  // ldk_max_enemies_without_boss
+        5,  // boss_waves_cooldown
+        1,  // max_bosses
+        2,  // max_side_enemies
+        8,  // boss_spawn_chance
+        8,  // side_enemy_spawn_chance
+        3,  // powerup_spawn_chance
+        {EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_MEGA, // tier 1 enemies
+         EnemyType::ANGELO_BIANCO, EnemyType::MEPHISTO, EnemyType::ASSAULT, // tier 2 enemies
+         EnemyType::FROST, EnemyType::ANGELO_ALTO, EnemyType::BASILISK, // tier 3 enemies
+         EnemyType::FAUST}, // tier 4 enemies
+        {EnemyType::CHIMERA_SEED, EnemyType::CUTLASS, EnemyType::GLADIUS}, // side enemies
+        {EnemyType::BLITZ, EnemyType::CREDO, EnemyType::BERIAL, EnemyType::BAEL} // Boss enemies
+    )},
+
+    {9999, WaveConfig( // 100+ // up enemy count + boss count + side enemy count, probably crashy with multiple bosses
+        4,  // max_enemies_with_boss
+        7,  // max_enemies_without_boss
+        6,  // ldk_max_enemies_with_boss
+        8,  // ldk_max_enemies_without_boss
+        5,  // boss_waves_cooldown
+        2,  // max_bosses
+        3,  // max_side_enemies
+        8,  // boss_spawn_chance
+        8,  // side_enemy_spawn_chance
+        3,  // powerup_spawn_chance
+        {EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_MEGA, // tier 1 enemies
+         EnemyType::ANGELO_BIANCO, EnemyType::MEPHISTO, EnemyType::ASSAULT, // tier 2 enemies
+         EnemyType::FROST, EnemyType::ANGELO_ALTO, EnemyType::BASILISK, // tier 3 enemies
+         EnemyType::FAUST}, // tier 4 enemies
+        {EnemyType::CHIMERA_SEED, EnemyType::CUTLASS, EnemyType::GLADIUS}, // side enemies
+        {EnemyType::BLITZ, EnemyType::CREDO, EnemyType::BERIAL, EnemyType::BAEL} // Boss enemies
+    )}
+};
+
+const WaveConfig& get_wave_config() {
+    for (const auto& [wave_threshold, config] : WAVE_CONFIGS) {
+        if (Survival::wave < wave_threshold) {
+            return config;
         }
     }
-    else { // >= 150
-        if (enemy_info.enemies_alive < 10) {
-            return true;
-        }
-    }
-    return false;
+    return WAVE_CONFIGS.rbegin()->second;
 }
 
-bool Survival::can_spawn_boss(EnemyInfo enemy_info, SMediator* sMed) {
-    if (Survival::wave < 40) { // 0-40
+bool can_spawn_standard_enemy(const Survival::EnemyInfo& enemy_info, SMediator* sMed, const WaveConfig& config) {
+    bool is_ldk = (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT);
+        
+    int max_enemies = is_ldk
+        ? (enemy_info.bosses_alive > 0 ? config.ldk_max_enemies_with_boss : config.ldk_max_enemies_without_boss)
+        : (enemy_info.bosses_alive > 0 ? config.max_enemies_with_boss : config.max_enemies_without_boss);
+        
+    return enemy_info.enemies_alive < max_enemies;
+}
+
+bool can_spawn_side_enemy(const Survival::EnemyInfo& enemy_info, const WaveConfig& config) {
+    if (config.max_side_enemies <= 0 || config.side_enemy_spawn_chance <= 0) {
         return false;
     }
-    else if (Survival::wave < 50 ) { // 40-50
-        if (waves_since_boss > 10) {
-            return true;
-        }
+    
+    return enemy_info.side_enemies_alive < config.max_side_enemies;
+}
+
+bool can_spawn_boss(const Survival::EnemyInfo& enemy_info, const WaveConfig& config) {
+    if (config.max_bosses <= 0 || config.boss_spawn_chance <= 0) {
+        return false;
     }
-    else if (Survival::wave < 80 ) { // 50-80
-        if (waves_since_boss > 5) {
-            return true;
-        }
+    
+    if (config.boss_waves_cooldown> 0 && waves_since_boss <= config.boss_waves_cooldown) {
+        return false;
     }
-    else if (Survival::wave < 100) { // 80-100
-        if (waves_since_boss > 1) {
-            return true;
-        }
+    
+    return enemy_info.bosses_alive < config.max_bosses;
+}
+
+void spawn_enemy_from_pool(const std::vector<EnemyType>& enemy_pool) {
+    if (!enemy_pool.empty()) {
+        int random_index = Survival::get_random_int(0, enemy_pool.size() - 1);
+        EnemyType enemy_type = enemy_pool[random_index];
+        EnemySpawn::spawn_em00x(enemy_type);
     }
-    else if (Survival::wave < 150) {
-        if (enemy_info.bosses_alive < 2) {
-            return true;
-        }
-    }
-    else if (Survival::wave >= 150) {
-        return true;
-    }
-    return false;
+}
+
+void Survival::spawn_standard_enemy() {
+    const WaveConfig& config = get_wave_config();
+    spawn_enemy_from_pool(config.standard_enemies);
+}
+
+void Survival::spawn_side_enemy() {
+    const WaveConfig& config = get_wave_config();
+    spawn_enemy_from_pool(config.side_enemies);
+}
+
+void Survival::spawn_boss_enemy() {
+    const WaveConfig& config = get_wave_config();
+    spawn_enemy_from_pool(config.boss_enemies);
 }
 
 // When player is alive and in the correct room, this is called every x dante seconds or when every enemy is dead
 void Survival::on_timer_trigger() {
-    if (timer) {
+    if (Survival::timer) {
         Survival::timer->start();
     }
+        
     SMediator* sMed = devil4_sdk::get_sMediator();
     if (!sMed) { return; }
+        
     sUnit* sUnit = devil4_sdk::get_sUnit();
     if (!sUnit) { return; }
+        
     uEnemy* enemy = devil4_sdk::get_uEnemies();
-    EnemyInfo enemy_info = Survival::get_enemy_info(enemy);
-
-    if (can_spawn_enemy(enemy_info, sMed)) {
-        // Every enemy spawn is a new wave
-        Survival::wave++;
-
-        // 1/8 chance of spawning a "boss" enemy if one has not existed for 10 waves. Boss enemies are Blitz or the less annoying bosses
-        if (Survival::can_spawn_boss(enemy_info, sMed) && get_random_int(0, 7) == 0) {
-            spawn_boss_enemy();
-            waves_since_boss = 0;
-        }
-        else {
-            waves_since_boss++;
-            // Boss was not spawned, spawn a dude
-            spawn_kinda_random_enemy();
-            // spawn an extra dude every wave in LDK
-            if (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) {
-                spawn_kinda_random_enemy();
-            }
-            // Above wave x, 1/4 chance of also spawning a "side" enemy. Side enemies are seeds, swords, fish
-            if (Survival::wave >= 20 && (get_random_int(0, 3) == 0)) {
-                spawn_side_enemy();
-            }
-        }
-
-        // 1/3 chance of spawning a powerup every wave
-        if (get_random_int(0, 2) == 0) {
-            if (basicPowerUpSystem) { basicPowerUpSystem->spawnRandomPowerUp(); }
+    Survival::EnemyInfo enemy_info = Survival::get_enemy_info(enemy);
+        
+    const WaveConfig& config = get_wave_config();
+    bool is_ldk = (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT);
+    
+    if (!can_spawn_standard_enemy(enemy_info, sMed, config)) {
+        return;
+    }
+        
+    // Every enemy spawn is a new wave
+    Survival::wave++;
+        
+    // spawn a boss
+    bool boss_spawned = false;
+    if (can_spawn_boss(enemy_info, config) && Survival::get_random_int(0, config.boss_spawn_chance - 1) == 0) {
+        Survival::spawn_boss_enemy();
+        waves_since_boss = 0;
+        boss_spawned = true;
+    } else {
+        waves_since_boss++;
+    }
+    
+    // Recalculate enemy info after potential boss spawn
+    enemy_info = Survival::get_enemy_info(devil4_sdk::get_uEnemies());
+    
+    // Check if we can still spawn standard enemies
+    if (can_spawn_standard_enemy(enemy_info, sMed, config)) {
+        Survival::spawn_standard_enemy();
+    }
+        
+    // spawn an extra dude in ldk
+    enemy_info = Survival::get_enemy_info(devil4_sdk::get_uEnemies());
+    if (is_ldk && can_spawn_standard_enemy(enemy_info, sMed, config)) {
+        Survival::spawn_standard_enemy();
+    }
+        
+    // spawn a side dude
+    enemy_info = Survival::get_enemy_info(devil4_sdk::get_uEnemies());
+    if (can_spawn_side_enemy(enemy_info, config) && 
+        Survival::get_random_int(0, config.side_enemy_spawn_chance - 1) == 0 && 
+        can_spawn_standard_enemy(enemy_info, sMed, config)) {
+        Survival::spawn_side_enemy();
+    }
+        
+    // spawn powerup
+    if (config.powerup_spawn_chance > 0 && Survival::get_random_int(0, config.powerup_spawn_chance - 1) == 0) {
+        if (basicPowerUpSystem) {
+            basicPowerUpSystem->spawnRandomPowerUp();
         }
     }
 }
@@ -240,16 +443,6 @@ void Survival::on_frame(fmilliseconds& dt) {
                     Survival::survival_active = true;
                     sMed->bpTimer = survivedTimer;
                     DisplayTimerOnTick();
-                    // ImGui::SetNextWindowPos(window_pos, ImGuiCond_Once);
-                    // ImGui::Begin("SurvivalStats", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground);
-                    // window_pos = ImGui::GetWindowPos();
-                    // int totalMilliseconds = static_cast<int>(survivedTimer * 1000);
-                    // int hours   = totalMilliseconds / (1000 * 60 * 60);
-                    // int minutes = (totalMilliseconds / (1000 * 60)) % 60;
-                    // int seconds = (totalMilliseconds / 1000) % 60;
-                    // int millis  = totalMilliseconds % 1000;
-                    // ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%02i:%02i:%02i.%03i", hours, minutes, seconds, millis);
-                    // ImGui::End();
                     if (!devil4_sdk::is_paused()) { // game is not paused
                         sUnit* sUnit = devil4_sdk::get_sUnit();
                         if (sUnit && sUnit->hasDelta) { // @Siy find how the bp timer gets time
@@ -268,6 +461,14 @@ void Survival::on_frame(fmilliseconds& dt) {
                         if (basicPowerUpSystem) {
                             basicPowerUpSystem->on_frame(dt);
                         }
+                        auto windowSize = devil4_sdk::get_sRender()->screenRes;
+                        ImGui::SetNextWindowPos(ImVec2(windowSize.x * 0.19f, windowSize.y * 0.28f), NULL, ImVec2(0.0f, 0.0f));
+                        ImGui::Begin("SurvivalWaveDisplay", NULL, 
+                            ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration |
+                            ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
+                        ImGui::SetWindowFontScale(2.0f);
+                        ImGui::TextColored(ImVec4(0.392f, 1.0f, 1.0f, 1.0f), "WAVE %i", Survival::wave);
+                        ImGui::End();
                     }
                 }
             }
@@ -275,94 +476,6 @@ void Survival::on_frame(fmilliseconds& dt) {
                 Survival::survival_active = false;
             }
         }
-    }
-}
-
-void Survival::spawn_kinda_random_enemy() {
-    std::vector<int> available_enemies;
-    if (Survival::wave < 5) {
-        available_enemies = {
-            0, 0, // SCARECROW_LEG // higher chance
-            1, 1, // SCARECROW_ARM // higher chance
-            2,    // SCARECROW_MEGA
-        };
-    }
-    else if (Survival::wave < 20) {
-        available_enemies = {
-            0, // SCARECROW_LEG
-            1, // SCARECROW_ARM
-            2, // SCARECROW_MEGA
-            // 2
-            3, // ANGELO_BIANCO,
-            5, // MEPHISTO,
-            8, // ASSAULT
-        };
-    }
-    else if (Survival::wave < 50) {
-        available_enemies = {
-            0, // SCARECROW_LEG
-            1, // SCARECROW_ARM
-            2, // SCARECROW_MEGA
-            // 2
-            3, // ANGELO_BIANCO
-            5, // MEPHISTO
-            8, // ASSAULT
-            // 3
-            7, // FROST
-            4, // ANGELO_ALTO
-            13, // BASILISK
-        };
-    }
-    else {
-        available_enemies = {
-            0, // SCARECROW_LEG
-            1, // SCARECROW_ARM
-            2, // SCARECROW_MEGA
-            // 2
-            3, // ANGELO_BIANCO
-            5, // MEPHISTO
-            8, // ASSAULT
-            // 3
-            7, // FROST
-            4, // ANGELO_ALTO
-            13, // BASILISK
-            // 4
-            6, // FAUST
-        };
-    }
-
-    if (!available_enemies.empty()) {
-        int random_index = get_random_int(0, available_enemies.size() - 1);
-        int enemy_type = available_enemies[random_index];
-        EnemySpawn::spawn_em00x(enemy_type);
-    }
-}
-
-void Survival::spawn_side_enemy() {
-    std::vector<int> available_enemies = {
-        10, // CHIMERA_SEED
-        11, // CUTLASS
-        12, // GLADIUS
-    };
-
-    if (!available_enemies.empty()) {
-        int random_index = get_random_int(0, available_enemies.size() - 1);
-        int enemy_type = available_enemies[random_index];
-        EnemySpawn::spawn_em00x(enemy_type);
-    }
-}
-
-void Survival::spawn_boss_enemy() {
-    std::vector<int> available_enemies = {
-        9, // BLITZ
-        14, // BERIAL
-        17, // CREDO
-        18, // AGNUS
-    };
-    if (!available_enemies.empty()) {
-        int random_index = get_random_int(0, available_enemies.size() - 1);
-        int enemy_type = available_enemies[random_index];
-        EnemySpawn::spawn_em00x(enemy_type);
     }
 }
 
@@ -822,13 +935,13 @@ void Survival::on_config_load(const utility::Config& cfg){
         Survival::meme_toggle(Survival::meme_effects);
         memePowerUpSystem->setEnabled(Survival::meme_effects);
     }
-    window_pos.x = cfg.get<float>("survival_imgui_window_pos_x").value_or(0.0f);
-    window_pos.y = cfg.get<float>("survival_imgui_window_pos_y").value_or(0.0f);
+    // window_pos.x = cfg.get<float>("survival_imgui_window_pos_x").value_or(0.0f);
+    // window_pos.y = cfg.get<float>("survival_imgui_window_pos_y").value_or(0.0f);
 }
 
 void Survival::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("Survival", Survival::mod_enabled);
     cfg.set<bool>("Survival_memes", Survival::meme_effects);
-    cfg.set<float>("survival_imgui_window_pos_x", window_pos.x);
-    cfg.set<float>("survival_imgui_window_pos_y", window_pos.y);
+    // cfg.set<float>("survival_imgui_window_pos_x", window_pos.x);
+    // cfg.set<float>("survival_imgui_window_pos_y", window_pos.y);
 }

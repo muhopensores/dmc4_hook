@@ -9,6 +9,7 @@ public:
 
     struct EnemyInfo {
         int enemies_alive;
+        int side_enemies_alive;
         int bosses_alive;
     };
 
@@ -28,8 +29,6 @@ public:
     static bool player_existed_last_frame;
 
     static EnemyInfo get_enemy_info(uEnemy* enemy);
-    static bool can_spawn_enemy(EnemyInfo enemy_info, SMediator* sMed);
-    static bool can_spawn_boss(EnemyInfo enemy_info, SMediator* sMed);
     static void reset_wave();
     static void on_timer_trigger();
     static void on_meme_timer_trigger();
@@ -38,7 +37,7 @@ public:
 
     static int get_random_int(int min, int max);
     static float get_random_float(float min, float max);
-    static void spawn_kinda_random_enemy();
+    static void spawn_standard_enemy();
     static void spawn_boss_enemy();
     static void spawn_side_enemy();
 
