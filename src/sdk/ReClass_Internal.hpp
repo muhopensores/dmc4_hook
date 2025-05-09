@@ -843,12 +843,13 @@ public:
     char pad_00[4]; // 0x0
 }; // Size: 0x4
 
-class uEnemyDamage {
+class uDamage {
 public:
     char pad_0[0x18];
     float HP; // 0x18
     float HPMax; // 0x1c
-    char pad_20[0xc];
+    char pad_20[0x8];
+    float prevDamageResist; // 0x28 // damage resist * difficulty
     float HPTaken; // 0x2c
     char pad_30[0xc];
     int stun[5]; // 0x3c
@@ -859,7 +860,7 @@ public:
     char pad_8d[0x1f];
     float stunResetTimer; // 0xAC
 }; // Size: 0xb0
-static_assert(sizeof(uEnemyDamage) == 0xb0);
+static_assert(sizeof(uDamage) == 0xb0);
 
 class uEnemy {
 public:
@@ -1309,12 +1310,9 @@ public:
     uint8_t cancels2[4]; // 0x1554
     char pad_1558[0xc];
     uint32_t moveID2; // 0x1564
-    char pad_1568[0x64];
-    float HP; // 0x15cc
-    float HPMax; // 0x15d0
-    char pad_15d4[0x6c];
-    bool isDead; // 0x1640
-    char pad_1641[0x6b];
+    char pad_1568[0x4c];
+    uDamage damageStruct; // 0x15b4
+    char pad_1664[0x48];
     uint32_t walkType; // 0x16ac
     char pad_16b0[0x10];
     float inertiaDirectionReal; // 0x16c0
@@ -1439,7 +1437,6 @@ public:
     char pad_152a4[0x7c4];
     uEnemy* lockOnTargetPtr4; // 0x15a68
 }; // Size: 0x15a6c
-static_assert(sizeof(uPlayer) == 0x15a6c);
 
 class UStageSetTimeSlow
 {

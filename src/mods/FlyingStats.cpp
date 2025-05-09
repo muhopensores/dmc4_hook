@@ -7,6 +7,7 @@ bool FlyingStats::showFlyingEnemyStats = false;
 bool FlyingStats::showFlyingPlayerStats = false;
 bool FlyingStats::showFlyingHP = false;
 bool FlyingStats::showFlyingDamageTaken = false;
+bool FlyingStats::showFlyingDamageResist = false;
 bool FlyingStats::showFlyingDT = false;
 bool FlyingStats::showFlyingStun = false;
 bool FlyingStats::showFlyingDisplacement = false;
@@ -216,13 +217,14 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                     ImGui::PushItemWidth(currentItemWidth);
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.0, 1.0f));
                     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1.0f, 1.0f));
-                    uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
-                    if (showFlyingHP) ImGui::SliderFloat("HP##EnemyFly", &currentEnemyDamage->HP, 0.0f, currentEnemyDamage->HPMax, "%.0f");
-                    if (showFlyingDamageTaken) ImGui::InputFloat("Damage##EnemyFly", &currentEnemyDamage->HPTaken, NULL, NULL, "%.0f");
+                    uDamage* currentEnemyDamage = (uDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+                    if (showFlyingHP) ImGui::SliderFloat("HP##EnemyFly", &currentEnemyDamage->HP, 0.0f, currentEnemyDamage->HPMax, "%.1f");
+                    if (showFlyingDamageTaken) ImGui::InputFloat("PrevDamage##EnemyFly", &currentEnemyDamage->HPTaken, NULL, NULL, "%.1f");
+                    if (showFlyingDamageResist) ImGui::InputFloat("PrevDamageResist##EnemyFly", &currentEnemyDamage->prevDamageResist, NULL, NULL, "%.1f");
                     if (showFlyingDT) ImGui::InputFloat("DT Timer##EnemyFly", &enemy->DTTimer, NULL, NULL, "%.0f"); // id * 4 + DevilMayCry4_DX9.exe+9EC0E0
                     if (showFlyingStun) ImGui::InputInt("Stun##EnemyFly", &currentEnemyDamage->stun[0], NULL, NULL);
                     if (showFlyingDisplacement) ImGui::InputInt("Displacement##EnemyFly", &currentEnemyDamage->displacement[0], NULL, NULL);
-                    if (showFlyingStunTimer)ImGui::SliderFloat("Stun Reset Timer##EnemyFly", &currentEnemyDamage->stunResetTimer, 0.0f, 180.0f, "%.0f");
+                    // if (showFlyingStunTimer)ImGui::SliderFloat("Stun Reset Timer##EnemyFly", &currentEnemyDamage->stunResetTimer, 0.0f, 180.0f, "%.0f");
                     if (showFlyingMoveID) ImGui::InputScalar("MoveID##EnemyFly", ImGuiDataType_U8, &enemy->moveID);
                     if (showFlyingMechanics) {
                         if (enemy->ID == ANGELO_BIANCO || enemy->ID == ANGELO_ALTO) {
@@ -337,12 +339,13 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                 ImGui::PushItemWidth(currentItemWidth);
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.0, 1.0f));
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1.0f, 1.0f));
-                if (showFlyingHP) ImGui::SliderFloat("HP##EnemyFly", &player->HP, 0.0f, player->HPMax, "%.0f");
-                // if (showFlyingDamageTaken) ImGui::InputFloat("Damage##EnemyFly", &player->HPTaken, NULL, NULL, "%.0f");
+                if (showFlyingHP) ImGui::SliderFloat("HP##EnemyFly", &player->damageStruct.HP, 0.0f, player->damageStruct.HPMax, "%.1f");
+                if (showFlyingDamageTaken) ImGui::InputFloat("PrevDamage##EnemyFly", &player->damageStruct.HPTaken, NULL, NULL, "%.1f");
+                if (showFlyingDamageResist) ImGui::InputFloat("PrevDamageResist##EnemyFly", &player->damageStruct.prevDamageResist, NULL, NULL, "%.1f");
                 if (showFlyingDT) ImGui::InputFloat("DT##EnemyFly", &player->DT, NULL, NULL, "%.0f"); // id * 4 + DevilMayCry4_DX9.exe+9EC0E0
-                // if (showFlyingStun) ImGui::InputInt("Stun##EnemyFly", &player->stun[0], NULL, NULL);
-                // if (showFlyingDisplacement) ImGui::InputInt("Displacement##EnemyFly", &player->displacement[0], NULL, NULL);
-                // if (showFlyingStunTimer)ImGui::SliderFloat("Stun Reset Timer##EnemyFly", &player->stunResetTimer, 0.0f, 180.0f, "%.0f");
+                if (showFlyingStun) ImGui::InputInt("Stun##EnemyFly", &player->damageStruct.stun[4], NULL, NULL);
+                // if (showFlyingDisplacement) ImGui::InputInt("Displacement##EnemyFly", &player->damageStruct.displacement[0], NULL, NULL);
+                // if (showFlyingStunTimer)ImGui::SliderFloat("Stun Reset Timer##EnemyFly", &player->damageStruct.stunResetTimer, 0.0f, 180.0f, "%.0f");
                 if (showFlyingMoveID) ImGui::InputScalar("MoveID##EnemyFly", ImGuiDataType_U8, &player->moveID2);
                 if (showFlyingDebug) {
                     ImGui::PushItemWidth(currentItemWidth * 2.0f);
@@ -385,6 +388,9 @@ void FlyingStats::on_gui_frame(int display) {
         ImGui::Indent(lineIndent);
         ImGui::Checkbox(_("Display HP"), &showFlyingHP);
         ImGui::Checkbox(_("Display Damage Taken"), &showFlyingDamageTaken);
+        ImGui::Checkbox(_("Display Damage Resist"), &showFlyingDamageResist);
+        ImGui::SameLine();
+        help_marker("Current difficulty * armour");
         ImGui::Checkbox(_("Display DT Timer"), &showFlyingDT);
         ImGui::Checkbox(_("Display Stun"), &showFlyingStun);
         ImGui::Checkbox(_("Display Displacement"), &showFlyingDisplacement);
@@ -404,6 +410,7 @@ void FlyingStats::on_config_load(const utility::Config& cfg) {
     showFlyingHP = cfg.get<bool>("showFlyingHP").value_or(true);
     showFlyingDT = cfg.get<bool>("showFlyingDT").value_or(false);
     showFlyingDamageTaken = cfg.get<bool>("showFlyingDamageTaken").value_or(false);
+    showFlyingDamageResist = cfg.get<bool>("showFlyingDamageResist").value_or(false);
     showFlyingMoveID = cfg.get<bool>("showFlyingMoveID").value_or(false);
     showFlyingStun = cfg.get<bool>("showFlyingStun").value_or(false);
     showFlyingDisplacement = cfg.get<bool>("showFlyingDisplacement").value_or(false);
@@ -420,6 +427,7 @@ void FlyingStats::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("showFlyingHP", showFlyingHP);
     cfg.set<bool>("showFlyingDT", showFlyingDT);
     cfg.set<bool>("showFlyingDamageTaken", showFlyingDamageTaken);
+    cfg.set<bool>("showFlyingDamageResist", showFlyingDamageResist);
     cfg.set<bool>("showFlyingMoveID", showFlyingMoveID);
     cfg.set<bool>("showFlyingStun", showFlyingStun);
     cfg.set<bool>("showFlyingMechanics", showFlyingMechanics);

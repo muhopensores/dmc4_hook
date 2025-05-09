@@ -11,6 +11,7 @@ public:
     static bool showFlyingPlayerStats;
     static bool showFlyingHP;
     static bool showFlyingDamageTaken;
+    static bool showFlyingDamageResist;
     static bool showFlyingDT;
     static bool showFlyingStun;
     static bool showFlyingDisplacement;

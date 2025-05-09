@@ -522,7 +522,7 @@ void AreaJump::on_gui_frame(int display) {
                 savedBPFloor = s_area_ptr->aGamePtr->bp_floor;
                 savedBPTimer = s_med_ptr->bpTimer;
                 savedOrbs = s_med_ptr->orbMissionCurrent;
-                savedHP = s_med_ptr->player_ptr->HP;
+                savedHP = s_med_ptr->player_ptr->damageStruct.HP;
                 savedDT = s_med_ptr->player_ptr->DT;
                 savedStylePoints = s_med_ptr->stylePoints;
                 ModFramework* framework = g_framework.get();
@@ -553,13 +553,13 @@ void AreaJump::on_gui_frame(int display) {
                 s_med_ptr->bpTimer = savedBPTimer;
                 s_med_ptr->orbMissionCurrent = savedOrbs;
                 s_med_ptr->stylePoints = savedStylePoints;
-                s_med_ptr->player_ptr->HP = savedHP;
+                s_med_ptr->player_ptr->damageStruct.HP = savedHP;
                 s_med_ptr->player_ptr->DT = savedDT;
                 s_area_ptr->aGamePtr->init_jump = 1;
             }
         }
         ImGui::SameLine();
-        help_marker(_("Press Load after loading into BP\nLoads saved floor, timer, orbs, hp, dt"));
+        help_marker(_("Press Load after loading into BP\nLoads saved floor, timer, orbs, hp, dt, style points"));
 
         ImGui::PopItemWidth();
 

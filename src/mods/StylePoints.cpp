@@ -31,7 +31,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"TS-ehsuc",         "Mustang"},
     // royal guard
     {"RELEASE_A",        "Release"}, // empty bar
-    {"RELEASE_B",        "Release"}, // any bar
+    {"RELEASE_B",        "Release"}, // any bar or meh attack timing
     {"RELEASE_C",        "Release"}, // 10k or above
     {"RELEASE_D",        "Release"}, // releasing an attack at 0-10k gauge
     {"RELEASE_E",        "Release"}, // releasing an attack at 10k or above gauge
@@ -1168,18 +1168,26 @@ static void DrawTonyScores() {
     std::vector<std::vector<GroupedTrick>> rowTricks(maxRows);
     comboScore = 0.0f;
     int currentRow = 0;
+    int effectiveRowSize = 0;
 
     for (const auto& groupedTrick : groupedTricks) {
         comboScore += groupedTrick.summedScore * 0.1f;
 
         if (currentRow >= maxRows) continue;
 
-        if (rowTricks[currentRow].size() >= (uint32_t)maxPerRow) {
+        bool isEnemyStep = (groupedTrick.baseTrick.text == "Enemy Step");
+        
+        if (!isEnemyStep && effectiveRowSize >= maxPerRow) {
             currentRow++;
+            effectiveRowSize = 0;
+            
+            if (currentRow >= maxRows) continue;
         }
 
-        if (currentRow < maxRows) {
-            rowTricks[currentRow].push_back(groupedTrick);
+        rowTricks[currentRow].push_back(groupedTrick);
+        
+        if (!isEnemyStep) {
+            effectiveRowSize++;
         }
     }
 
@@ -1221,6 +1229,11 @@ static void DrawTonyScores() {
 
         for (size_t i = 0; i < rowTricks[row].size(); ++i) {
             const auto& groupedTrick = rowTricks[row][i];
+            
+            if (groupedTrick.baseTrick.text == "Enemy Step") {
+                continue;
+            }
+            
             char trickText[64];
             if (groupedTrick.repeatCount > 1) {
                 snprintf(trickText, sizeof(trickText), "%s (x%d)",
@@ -1238,7 +1251,15 @@ static void DrawTonyScores() {
             textSegments.emplace_back(trickText, trickColor);
 
             if (i < rowTricks[row].size() - 1) {
-                textSegments.emplace_back(" + ", ImVec4(1.0f, 1.0f, 1.0f, fade));
+                bool nextIsEnemyStep = (rowTricks[row][i+1].baseTrick.text == "Enemy Step");
+                bool skipToNextAfterEnemyStep = nextIsEnemyStep && (i+2 < rowTricks[row].size());
+                
+                if (nextIsEnemyStep) {
+                    textSegments.emplace_back(" x ", ImVec4(1.0f, 1.0f, 1.0f, fade));
+                    i++;
+                } else {
+                    textSegments.emplace_back(" + ", ImVec4(1.0f, 1.0f, 1.0f, fade));
+                }
             }
         }
 
@@ -1531,7 +1552,7 @@ naked void detour1(void) { // hit instances
 }
 static const char* guardText = "Guardfly";
 static const float slowestGuardfly = 20.0f;
-naked void detour2(void) { // guardfly
+naked void detour2(void) { // called once on air guard start
     _asm {
         cmp byte ptr [StylePoints::tonyHawk], 1
         jne originalcode
@@ -1559,7 +1580,7 @@ naked void detour2(void) { // guardfly
 }
 
 static const char* snatchText = "Snatch";
-naked void detour3(void) { // snatch
+naked void detour3(void) { // called once on snatch touching an enemy
     _asm {
         cmp byte ptr [StylePoints::tonyHawk], 1
         jne originalcode
@@ -1582,8 +1603,67 @@ naked void detour3(void) { // snatch
     }
 }
 
+static const char* GetJustTypeName(int Type) { // return "" if you don't want it displayed
+    switch (Type) {
+        case 0: return "";
+        case 1: return ""; // Taunt
+        case 2: return "Enemy Step";
+        case 3: return "";
+        case 4: return "";
+        case 5: return "Dodge";
+        case 6: return "";
+        case 7: return "Block";
+        case 8: return ""; // Release
+        case 9: return "";
+        case 10: return "";
+        case 11: return "";
+        case 12: return "Just Charge";
+        case 13: return "";
+        case 14: return "";
+        case 15: return "";
+        case 16: return "";
+        case 17: return "";
+        case 18: return "";
+        default: return "";
+    }
+}
+
+naked void detour4(void) { // called on just actions and taunts
+    _asm {
+        cmp byte ptr [StylePoints::tonyHawk], 1
+        jne originalcode
+
+        pushad
+
+        push 0x3f800000 // styleMult
+        push 0 // style letter
+        push 0x3f800000 // enemyMult
+        push 0 // score
+        push [esp+0x20+0x10+0x8] // just type name arg
+        call GetJustTypeName
+        add esp, 4 // just type name cleanup
+        cmp byte ptr [eax], 0
+        je escape
+        push eax // name
+        call AddTrickScore // fucks eax, ecx, edx
+        add esp, 0x14 // 5 args
+
+        popad
+
+        originalcode:
+        xor ecx,ecx
+        lea eax,[esi+0x28]
+        jmp dword ptr [StylePoints::jmp_ret4]
+
+        escape:
+        add esp,0x10
+        popad
+        jmp originalcode
+    }
+}
+
 std::optional<std::string> StylePoints::on_initialize() {
-    if (!install_hook_offset(0x547B2, hook1, &detour1, &jmp_ret1, 8)) {
+    if (!install_hook_offset(0x547B2, hook1, &detour1, &jmp_ret1, 8)) { // hit instances
 		spdlog::error("Failed to init StylePoints mod\n");
 		return "Failed to init StylePoints mod";
 	}
@@ -1596,6 +1676,11 @@ std::optional<std::string> StylePoints::on_initialize() {
     if (!install_hook_offset(0x334FAB, hook3, &detour3, &jmp_ret3, 7)) { // called once on snatch touching an enemy
 		spdlog::error("Failed to init StylePoints mod 3\n");
 		return "Failed to init StylePoints mod 3";
+	}
+
+    if (!install_hook_offset(0xA5FFC, hook3, &detour4, &jmp_ret4, 5)) { // called on just actions and taunts
+		spdlog::error("Failed to init StylePoints mod 4\n");
+		return "Failed to init StylePoints mod 4";
 	}
 
     after_reset();

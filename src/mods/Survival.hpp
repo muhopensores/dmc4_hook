@@ -9,7 +9,7 @@ public:
 
     struct EnemyInfo {
         int enemies_alive;
-        bool is_boss_spawned;
+        int bosses_alive;
     };
 
     static bool mod_enabled;
@@ -29,6 +29,7 @@ public:
 
     static EnemyInfo get_enemy_info(uEnemy* enemy);
     static bool can_spawn_enemy(EnemyInfo enemy_info, SMediator* sMed);
+    static bool can_spawn_boss(EnemyInfo enemy_info, SMediator* sMed);
     static void reset_wave();
     static void on_timer_trigger();
     static void on_meme_timer_trigger();

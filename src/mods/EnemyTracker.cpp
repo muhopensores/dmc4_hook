@@ -195,7 +195,7 @@ static void save_load_enemy_info(bool isSave, uEnemy* enemy) {
             savedEnemyMoveID = enemy->moveID;
             savedEnemyAnimID = enemy->animID;
             savedEnemyGrounded = enemy->collisionSettings.mLand;
-            uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+            uDamage* currentEnemyDamage = (uDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
             savedEnemyHP = currentEnemyDamage->HP;
             savedEnemyStun = currentEnemyDamage->stun[0];
         }
@@ -209,7 +209,7 @@ static void save_load_enemy_info(bool isSave, uEnemy* enemy) {
             enemy->velocity[2] = savedEnemyVelocity[2];
             enemy->moveID = savedEnemyMoveID;
             enemy->animID = savedEnemyAnimID;
-            uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+            uDamage* currentEnemyDamage = (uDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
             currentEnemyDamage->HP = savedEnemyHP;
             currentEnemyDamage->stun[0] = savedEnemyStun;
             enemy->collisionSettings.mLand = savedEnemyGrounded;
@@ -330,7 +330,7 @@ void EnemyTracker::on_gui_frame(int display) {
 
             // i hate this, game accesses them from base ptr, e.g. [uEnemy+1544] for scarecrow hp
             int damage_info_offset = EnemyTracker::get_enemy_specific_damage_offset(currentEnemy->ID);
-            uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)currentEnemy + damage_info_offset);
+            uDamage* currentEnemyDamage = (uDamage*)((char*)currentEnemy + damage_info_offset);
             ImGui::PushItemWidth(sameLineItemWidth);
             ImGui::InputFloat(_("HP##2"), &currentEnemyDamage->HP);
             ImGui::InputFloat(_("Max HP##2"), &currentEnemyDamage->HPMax);

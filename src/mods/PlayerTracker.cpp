@@ -125,7 +125,7 @@ std::optional<std::string> PlayerTracker::on_initialize() {
     console->system().RegisterCommand("playerhp", "Set HP value", 
         [](float value) {
             if (uPlayer* pl_ptr = devil4_sdk::get_local_player()) {
-                pl_ptr->HP = value;
+                pl_ptr->damageStruct.HP = value;
             }
         }, 
         csys::Arg<float>("0.0 - 20000.0"));
@@ -204,10 +204,29 @@ void PlayerTracker::on_gui_frame(int display) {
             ImGui::SameLine();
             ImGui::Checkbox(_("Loop"), &loopAnimID);
             ImGui::NewLine();
-            ImGui::SliderFloat(_("HP ##1"), &player->HP, 0.0f, 20000.0f, "%.0f");
-            ImGui::SliderFloat(_("Max HP ##1"), &player->HPMax, 0.0f, 20000.0f, "%.0f");
+            ImGui::SliderFloat(_("HP ##1"), &player->damageStruct.HP, 0.0f, 20000.0f, "%.0f");
+            ImGui::SliderFloat(_("Max HP ##1"), &player->damageStruct.HPMax, 0.0f, 20000.0f, "%.0f");
             ImGui::SliderFloat(_("DT ##1"), &player->DT, 0.0f, 10000.0f, "%.0f");
             ImGui::SliderFloat(_("Max DT ##1"), &player->maxDT, 0.0f, 10000.0f, "%.0f");
+            ImGui::InputFloat(_("Previous Hit Dealt"), &player->damageStruct.HPTaken);
+            ImGui::InputInt(_("Stun 1##2"), &player->damageStruct.stun[0]);
+            ImGui::InputInt(_("Stun 2##2"), &player->damageStruct.stun[1]);
+            ImGui::InputInt(_("Stun 3##2"), &player->damageStruct.stun[2]);
+            ImGui::InputInt(_("Stun 4##2"), &player->damageStruct.stun[3]);
+            ImGui::InputInt(_("Stun 5##2"), &player->damageStruct.stun[4]);
+            ImGui::InputInt(_("Displacement 1##2"), &player->damageStruct.displacement[0]);
+            ImGui::InputInt(_("Displacement 2##2"), &player->damageStruct.displacement[1]);
+            ImGui::InputInt(_("Displacement 3##2"), &player->damageStruct.displacement[2]);
+            ImGui::InputInt(_("Displacement 4##2"), &player->damageStruct.displacement[3]);
+            ImGui::InputInt(_("Displacement 5##2"), &player->damageStruct.displacement[4]);
+            ImGui::InputInt(_("Unknown 1##2"), &player->damageStruct.unknown[0]);
+            ImGui::InputInt(_("Unknown 2##2"), &player->damageStruct.unknown[1]);
+            ImGui::InputInt(_("Unknown 3##2"), &player->damageStruct.unknown[2]);
+            ImGui::InputInt(_("Unknown 4##2"), &player->damageStruct.unknown[3]);
+            ImGui::InputInt(_("Unknown 5##2"), &player->damageStruct.unknown[4]);
+            ImGui::InputInt(_("Unknown 6##2"), &player->damageStruct.unknown[5]);
+            ImGui::InputInt(_("Unknown 7##2"), &player->damageStruct.unknown[6]);
+            ImGui::InputInt(_("Unknown 8##2"), &player->damageStruct.unknown[7]);
             ImGui::InputFloat(_("BP Timer ##1"), &s_med_ptr->bpTimer);
             ImGui::InputFloat3(_("XYZ Position ##1"), (float*)&player->m_pos);
             ImGui::SliderFloat(_("Rotation ##1"), &player->rotation2, -3.14f, 3.14f, "%.2f");

@@ -1,4 +1,4 @@
-#include "Survival.hpp"
+﻿#include "Survival.hpp"
 #include "../sdk/Devil4.hpp"
 #include "EnemySpawn.hpp"
 #include "AreaJump.hpp"
@@ -30,19 +30,19 @@ static std::unique_ptr<PowerUpSystem> basicPowerUpSystem = std::make_unique<Powe
 static std::unique_ptr<PowerUpSystem> memePowerUpSystem = std::make_unique<PowerUpSystem>();
 static float accumulated_delta = 0.0f;
 static const float teleport_delay = 50.0f;
-static int waves_since_boss = false;
+static int waves_since_boss = 0;
 
 static uintptr_t doppelAddr = NULL; // use this when spawning doppel dante or nero
 
 // safe to be called with no enemy
 Survival::EnemyInfo Survival::get_enemy_info(uEnemy* enemy) {
-    EnemyInfo enemy_info{ 0, false };
+    EnemyInfo enemy_info{ 0, 0 };
     while (enemy) {
-        uEnemyDamage* currentEnemyDamage = (uEnemyDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+        uDamage* currentEnemyDamage = (uDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
         if (currentEnemyDamage->HP > 0.0f) {
             enemy_info.enemies_alive++;
             if (enemy->ID >= BERIAL || enemy->ID == CREDO || enemy->ID == AGNUS || enemy->ID == BLITZ) {
-                enemy_info.is_boss_spawned = true;
+                enemy_info.bosses_alive++;
             }
         }
         enemy = enemy->nextEnemy;
@@ -51,26 +51,74 @@ Survival::EnemyInfo Survival::get_enemy_info(uEnemy* enemy) {
 }
 
 bool Survival::can_spawn_enemy(EnemyInfo enemy_info, SMediator* sMed) {
-    if (!sMed) { return false; }
-    if (enemy_info.is_boss_spawned) { // if a boss is spawned, limit enemies
-        if (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) { // if ldk, limit less
-            if (enemy_info.enemies_alive < 3) {
+    if (Survival::wave < 150) {
+        if (enemy_info.bosses_alive > 0) { // if a boss is spawned, limit enemies
+            if (Survival::wave >= 50 || sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) { // if ldk or high wave, limit less
+                if (enemy_info.enemies_alive < 3) {
+                    return true;
+                }
+            }
+            else if (enemy_info.enemies_alive < 1) {
                 return true;
             }
         }
-        else if (enemy_info.enemies_alive < 1) {
+        else { // if no boss is spawned, limit less
+            if (Survival::wave >= 80 || sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) { // if ldk, limit less
+                if (enemy_info.enemies_alive < 10) {
+                    return true;
+                }
+            }
+            else if (Survival::wave < 20) { // 0 - 20
+                if (enemy_info.enemies_alive < 3) {
+                    return true;
+                }
+            }
+            else if (Survival::wave < 50) { // 20 - 50
+                if (enemy_info.enemies_alive < 5) {
+                    return true;
+                }
+            }
+            else if (Survival::wave < 80) { // 50 - 80
+                if (enemy_info.enemies_alive < 8) {
+                    return true;
+                }
+            }
+        }
+    }
+    else { // >= 150
+        if (enemy_info.enemies_alive < 10) {
             return true;
         }
     }
-    else { // if no boss is spawned, limit less
-        if (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) { // if ldk, limit less
-            if (enemy_info.enemies_alive < 10) {
-                return true;
-            }
-        }
-        else if (enemy_info.enemies_alive < 3) {
+    return false;
+}
+
+bool Survival::can_spawn_boss(EnemyInfo enemy_info, SMediator* sMed) {
+    if (Survival::wave < 40) { // 0-40
+        return false;
+    }
+    else if (Survival::wave < 50 ) { // 40-50
+        if (waves_since_boss > 10) {
             return true;
         }
+    }
+    else if (Survival::wave < 80 ) { // 50-80
+        if (waves_since_boss > 5) {
+            return true;
+        }
+    }
+    else if (Survival::wave < 100) { // 80-100
+        if (waves_since_boss > 1) {
+            return true;
+        }
+    }
+    else if (Survival::wave < 150) {
+        if (enemy_info.bosses_alive < 2) {
+            return true;
+        }
+    }
+    else if (Survival::wave >= 150) {
+        return true;
     }
     return false;
 }
@@ -81,6 +129,7 @@ void Survival::on_timer_trigger() {
         Survival::timer->start();
     }
     SMediator* sMed = devil4_sdk::get_sMediator();
+    if (!sMed) { return; }
     sUnit* sUnit = devil4_sdk::get_sUnit();
     if (!sUnit) { return; }
     uEnemy* enemy = devil4_sdk::get_uEnemies();
@@ -91,7 +140,7 @@ void Survival::on_timer_trigger() {
         Survival::wave++;
 
         // 1/8 chance of spawning a "boss" enemy if one has not existed for 10 waves. Boss enemies are Blitz or the less annoying bosses
-        if (Survival::wave >= 35 && waves_since_boss > 10 && get_random_int(0, 7) == 0) {
+        if (Survival::can_spawn_boss(enemy_info, sMed) && get_random_int(0, 7) == 0) {
             spawn_boss_enemy();
             waves_since_boss = 0;
         }
@@ -103,8 +152,10 @@ void Survival::on_timer_trigger() {
             if (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT) {
                 spawn_kinda_random_enemy();
             }
-            // Above wave x, 1/4 chance of also spawning a "side" enemy. Side enemies are seeds swords, fish
-            if (Survival::wave >= 20 && (get_random_int(0, 3) == 0)) spawn_side_enemy();
+            // Above wave x, 1/4 chance of also spawning a "side" enemy. Side enemies are seeds, swords, fish
+            if (Survival::wave >= 20 && (get_random_int(0, 3) == 0)) {
+                spawn_side_enemy();
+            }
         }
 
         // 1/3 chance of spawning a powerup every wave
@@ -365,7 +416,7 @@ PowerUpSystem::PowerUpDefinition createDantePowerUp() {
                             uactor_sdk::despawn(doppel->luciferPins[i]);
                         }
                     }
-                    uactor_sdk::despawn(doppel); // sometimes crashes (I think if a shell is spawned? DevilMayCry4_DX9.exe+3B1FD4 crash point with Dante Shl013 in esi)
+                    uactor_sdk::despawn(doppel); // crashes if a shell is spawned, luci pins fixed, need to find funship missiles
                 }
             }
             doppelAddr = NULL;
@@ -384,7 +435,7 @@ PowerUpSystem::PowerUpDefinition createHealthRestorePowerUp() {
         []() {                    // onActivate
             uPlayer* player = devil4_sdk::get_local_player();
             if (player) {
-                player->HP += std::min(3000.0f, 20000.0f - player->HP);
+                player->damageStruct.HP += std::min(3000.0f, 20000.0f - player->damageStruct.HP);
             }
         },
         [](float dt) {            // onUpdate

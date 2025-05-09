@@ -197,9 +197,10 @@ class uBoss {
 	bool DT @ 0x148C
 };
 
-class uEnemyDamage {
+class uDamage {
 	float HP @ 0x18
 	float HPMax @ 0x1C
+	float prevDamageResist @ 0x28
 	float HPTaken @ 0x2C
 	int stun[5] @ 0x3C
 	int displacement[5] @ 0x50
@@ -407,8 +408,7 @@ class uPlayer : public UCoord{
 	uint8_t cancels1[4] @ 0x1550
 	uint8_t cancels2[4] @ 0x1554
 	uint32_t moveID2 @ 0x1564
-	float HP @ 0x15CC
-	float HPMax @ 0x15D0
+	uDamage damageStruct @ 0x15B4
 	bool isDead @ 0x1640
 	uint32_t walkType @ 0x16AC
 	float inertiaDirectionReal @ 0x16C0
