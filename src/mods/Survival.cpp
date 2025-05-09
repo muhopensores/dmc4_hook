@@ -216,6 +216,7 @@ void Survival::on_frame(fmilliseconds& dt) {
         sArea* s_area_ptr = devil4_sdk::get_sArea();
         if (!sMed || sMed->missionID == 50 || !s_area_ptr) {
             Survival::survival_active = false;
+            reset_wave();
             return;
         }
 
