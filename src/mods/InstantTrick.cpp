@@ -26,7 +26,7 @@ void InstantTrick::on_gui_frame(int display) {
 
 void InstantTrick::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("instant_trick").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
 }
 
 void InstantTrick::on_config_save(utility::Config& cfg) {

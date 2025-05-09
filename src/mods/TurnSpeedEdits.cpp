@@ -32,7 +32,7 @@ void TurnSpeedEdits::on_gui_frame(int display) {
 
 void TurnSpeedEdits::on_config_load(const utility::Config& cfg) {
     backslide_enable = cfg.get<bool>("dmc5_backslide").value_or(false);
-    backslide_toggle(backslide_enable);
+    if (backslide_enable) backslide_toggle(backslide_enable);
 }
 
 void TurnSpeedEdits::on_config_save(utility::Config& cfg) {

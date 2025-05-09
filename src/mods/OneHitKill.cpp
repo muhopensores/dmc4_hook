@@ -107,7 +107,7 @@ void OneHitKill::on_update_input(utility::Input& input) {
 void OneHitKill::on_config_load(const utility::Config& cfg) {
     cant_die = cfg.get<bool>("no_death").value_or(false);
     one_hit_kill = cfg.get<bool>("one_hit_kill").value_or(false);
-    no_death_toggle(cant_die);
+    if (cant_die) no_death_toggle(cant_die);
 }
 
 void OneHitKill::on_config_save(utility::Config& cfg) {

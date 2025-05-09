@@ -139,8 +139,7 @@ void FastStart::on_config_load(const utility::Config& cfg) {
 	mod_enabled = cfg.get<bool>("fast_load").value_or(false);
 	skip_fades  = cfg.get<bool>("skip_fades").value_or(false);
 	skip_more_fades  = cfg.get<bool>("skip_more_fades").value_or(false);
-    if (skip_more_fades)
-        toggle(skip_more_fades);
+    if (skip_more_fades) toggle(skip_more_fades);
 }
 
 void FastStart::on_config_save(utility::Config& cfg) {

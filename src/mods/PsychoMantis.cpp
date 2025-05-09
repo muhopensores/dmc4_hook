@@ -119,8 +119,7 @@ void PsychoMantis::on_frame(fmilliseconds& dt) {
 void PsychoMantis::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("psycho_mantis_toggle").value_or(false);
     psycho_mantis_slot_2 = cfg.get<bool>("psycho_mantis_slot_2").value_or(false);
-    if (psycho_mantis_slot_2)
-        PsychoMantis::Controller::_controllerNum = 1;
+    if (psycho_mantis_slot_2) PsychoMantis::Controller::_controllerNum = 1;
 }
 
 void PsychoMantis::on_config_save(utility::Config& cfg) {

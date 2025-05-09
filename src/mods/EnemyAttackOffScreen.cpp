@@ -25,7 +25,7 @@ void EnemyAttackOffScreen::on_gui_frame(int display) {
 
 void EnemyAttackOffScreen::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("enemy_attack_off_screen").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
 }
 
 void EnemyAttackOffScreen::on_config_save(utility::Config& cfg) {

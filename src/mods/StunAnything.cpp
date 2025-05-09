@@ -26,7 +26,7 @@ void StunAnything::on_gui_frame(int display) {
 
 void StunAnything::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("stun_anything").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
 }
 
 void StunAnything::on_config_save(utility::Config& cfg) {

@@ -587,19 +587,19 @@ void CameraSettings::on_config_load(const utility::Config& cfg) {
     camera_fov_in_battle = cfg.get<float>("camera_fov_battle").value_or(0.0f);
     camera_sens_enabled = cfg.get<bool>("increased_camera_sensitivity").value_or(false);
     camera_auto_correct_towards_cam_enabled = cfg.get<bool>("disable_camera_autocorrect_towards_camera").value_or(false);
-    toggle_attack_towards_cam(camera_auto_correct_towards_cam_enabled);
+    if (camera_auto_correct_towards_cam_enabled) toggle_attack_towards_cam(camera_auto_correct_towards_cam_enabled);
     camera_lookdown_enabled = cfg.get<bool>("camera_lookdown").value_or(false);
-    toggle_camera_lookdown(camera_lookdown_enabled);
+    if (camera_lookdown_enabled) toggle_camera_lookdown(camera_lookdown_enabled);
     camera_reset_enabled = cfg.get<bool>("camera_reset").value_or(false);
     cam_right = cfg.get<bool>("right_side_reset").value_or(false);
     disable_last_enemy_zoom = cfg.get<bool>("disable_last_enemy_zoom").value_or(false);
-    toggle_disable_last_enemy_zoom(disable_last_enemy_zoom);
+    if (disable_last_enemy_zoom) toggle_disable_last_enemy_zoom(disable_last_enemy_zoom);
     force_last_enemy_zoom = cfg.get<bool>("force_last_enemy_zoom").value_or(false);
-    toggle_force_last_enemy_zoom(force_last_enemy_zoom);
+    if (force_last_enemy_zoom) toggle_force_last_enemy_zoom(force_last_enemy_zoom);
     pause_camera_enabled = cfg.get<bool>("pause_camera_enabled").value_or(false);
-    toggle_pause_camera(pause_camera_enabled);
+    if (pause_camera_enabled) toggle_pause_camera(pause_camera_enabled);
     camera_lockon_corrects = cfg.get<bool>("camera_lockon_corrects").value_or(false);
-    toggle_camera_lockon_corrects(camera_lockon_corrects);
+    if (camera_lockon_corrects) toggle_camera_lockon_corrects(camera_lockon_corrects);
 }
 
 void CameraSettings::on_config_save(utility::Config& cfg) {

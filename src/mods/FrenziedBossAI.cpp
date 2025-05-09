@@ -62,7 +62,7 @@ std::optional<std::string> FrenziedBossAI::on_initialize() {
 
 void FrenziedBossAI::on_config_load(const utility::Config& cfg){
     mod_enabled = cfg.get<bool>("FrenziedBossAI").value_or(false);
-    toggle1(mod_enabled);
+    if (mod_enabled) toggle1(mod_enabled);
 }
 
 void FrenziedBossAI::on_config_save(utility::Config& cfg) {

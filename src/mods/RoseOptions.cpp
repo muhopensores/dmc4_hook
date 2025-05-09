@@ -58,11 +58,11 @@ void RoseOptions::on_gui_frame(int display) {
 
 void RoseOptions::on_config_load(const utility::Config& cfg) {
     enabled_no_despawn_enemy = cfg.get<bool>("no_despawn_rose_enemy").value_or(false);
-    toggle_disable_rose_despawn_on_hitting_enemy(enabled_no_despawn_enemy);
+    if (enabled_no_despawn_enemy) toggle_disable_rose_despawn_on_hitting_enemy(enabled_no_despawn_enemy);
     enabled_no_despawn_object = cfg.get<bool>("no_despawn_rose_object").value_or(false);
-    toggle_disable_rose_despawn_on_hitting_object(enabled_no_despawn_object);
+    if (enabled_no_despawn_object) toggle_disable_rose_despawn_on_hitting_object(enabled_no_despawn_object);
     rose_infinite_timer = cfg.get<bool>("rose_infinite_timer").value_or(false);
-    toggle_rose_infinite_timer(rose_infinite_timer);
+    if (rose_infinite_timer) toggle_rose_infinite_timer(rose_infinite_timer);
 };
 
 void RoseOptions::on_config_save(utility::Config& cfg) {

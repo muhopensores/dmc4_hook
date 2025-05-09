@@ -110,9 +110,7 @@ void LuciAirThrow::on_gui_frame(int display) {
 
 void LuciAirThrow::on_config_load(const utility::Config& cfg) {
 	mod_enabled = cfg.get<bool>("luci_air_throw").value_or(false);
-    if (mod_enabled) {
-        toggle(mod_enabled);
-    }
+    if (mod_enabled) toggle(mod_enabled);
 };
 
 void LuciAirThrow::on_config_save(utility::Config& cfg) {

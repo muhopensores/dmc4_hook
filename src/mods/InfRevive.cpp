@@ -31,7 +31,7 @@ void InfRevive::on_gui_frame(int display) {
 
 void InfRevive::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("infinite_revive").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
 }
 
 void InfRevive::on_config_save(utility::Config& cfg) {

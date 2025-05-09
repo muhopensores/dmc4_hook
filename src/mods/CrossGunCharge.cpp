@@ -33,7 +33,7 @@ void CrossGunCharge::on_gui_frame(int display) {
 
 void CrossGunCharge::on_config_load(const utility::Config& cfg){
     mod_enabled = cfg.get<bool>("CrossGunCharge").value_or(false);
-    toggle1(mod_enabled);
+    if (mod_enabled) toggle1(mod_enabled);
 }
 
 void CrossGunCharge::on_config_save(utility::Config& cfg) {

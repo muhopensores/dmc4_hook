@@ -19,7 +19,7 @@ void MultiCharFixes::on_gui_frame(int display) {
 
 void MultiCharFixes::on_config_load(const utility::Config& cfg) {
     targeting_fix = cfg.get<bool>("targeting_fix").value_or(false);
-    toggle_targeting_fix(targeting_fix);
+    if (targeting_fix) toggle_targeting_fix(targeting_fix);
 }
 
 void MultiCharFixes::on_config_save(utility::Config& cfg) {

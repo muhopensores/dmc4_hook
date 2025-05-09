@@ -28,7 +28,7 @@ void DmdBloodyPalace::on_gui_frame(int display) {
 
 void DmdBloodyPalace::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("dmd_bloody_palace").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
 }
 
 void DmdBloodyPalace::on_config_save(utility::Config& cfg) {

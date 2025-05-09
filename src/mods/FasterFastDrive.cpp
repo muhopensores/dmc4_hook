@@ -35,7 +35,7 @@ void FasterFastDrive::on_gui_frame(int display) {
 void FasterFastDrive::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("faster_fast_drive").value_or(false);
     easy_fast_drive_enabled = cfg.get<bool>("easy_fast_drive").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
 };
 
 void FasterFastDrive::on_config_save(utility::Config& cfg) {

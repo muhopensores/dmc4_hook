@@ -25,7 +25,7 @@ void ManualTwosomeTime::on_gui_frame(int display) {
 
 void ManualTwosomeTime::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("manual_twosome_time").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
 }
 
 void ManualTwosomeTime::on_config_save(utility::Config& cfg)

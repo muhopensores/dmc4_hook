@@ -27,7 +27,7 @@ void SlowWalk::on_gui_frame(int display) {
 
 void SlowWalk::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("slow_walk").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
 }
 
 void SlowWalk::on_config_save(utility::Config& cfg) {

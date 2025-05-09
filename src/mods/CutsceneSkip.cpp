@@ -36,9 +36,9 @@ void CutsceneSkip::on_gui_frame(int display) {
 
 void CutsceneSkip::on_config_load(const utility::Config& cfg) {
     mod_enabled_intro = cfg.get<bool>("auto_skip_mission_intro").value_or(false);
-    toggle_intro(mod_enabled_intro);
+    if (mod_enabled_intro) toggle_intro(mod_enabled_intro);
     mod_enabled_outro = cfg.get<bool>("auto_skip_mission_outro").value_or(false);
-    toggle_outro(mod_enabled_outro);
+    if (mod_enabled_outro) toggle_outro(mod_enabled_outro);
 }
 
 void CutsceneSkip::on_config_save(utility::Config& cfg) {

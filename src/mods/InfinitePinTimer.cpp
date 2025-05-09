@@ -25,7 +25,7 @@ void InfinitePinTimer::on_gui_frame(int display) {
 
 void InfinitePinTimer::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("infinite_pin_timer").value_or(false);
-    toggle1(mod_enabled);
+    if (mod_enabled) toggle1(mod_enabled);
 }
 
 void InfinitePinTimer::on_config_save(utility::Config& cfg) {

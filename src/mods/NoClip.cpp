@@ -102,9 +102,9 @@ void NoClip::on_twitch_command(std::size_t hash) {
 
 void NoClip::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("noclip").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
     mod_enabled_2 = cfg.get<bool>("disable_teleport_planes").value_or(false);
-    toggle2(mod_enabled_2);
+    if (mod_enabled_2) toggle2(mod_enabled_2);
 }
 
 void NoClip::on_config_save(utility::Config& cfg) {

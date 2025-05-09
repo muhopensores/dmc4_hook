@@ -782,7 +782,7 @@ void CharSwitcher::on_gui_frame(int display) {
 
 void CharSwitcher::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("char_switcher").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
     desiredInput1 = cfg.get<int16_t>("char_swap_input1").value_or(0x8000);
     desiredInput2 = cfg.get<int16_t>("char_swap_input2").value_or(0x1000);
 }

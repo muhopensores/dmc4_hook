@@ -49,7 +49,7 @@ void FreezeEnemies::on_gui_frame(int display) {
 
 void FreezeEnemies::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("freeze_enemies").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
 }
 
 void FreezeEnemies::on_config_save(utility::Config& cfg) {

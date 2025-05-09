@@ -30,7 +30,7 @@ std::optional<std::string> NoclipCam::on_initialize() {
 
 void NoclipCam::on_config_load(const utility::Config& cfg) {
     noclip_cam_enabled = cfg.get<bool>("noclip_cam").value_or(false);
-    toggle_noclip_cam(noclip_cam_enabled);
+    if (noclip_cam_enabled) toggle_noclip_cam(noclip_cam_enabled);
 }
 
 void NoclipCam::on_config_save(utility::Config& cfg) {

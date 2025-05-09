@@ -95,9 +95,9 @@ std::optional<std::string> HeightRestriction::on_initialize() {
 
 void HeightRestriction::on_config_load(const utility::Config& cfg) {
     toggle_nero = cfg.get<bool>("height_restriction_removed_nero").value_or(false);
-    ToggleNero(toggle_nero);
+    if (toggle_nero) ToggleNero(toggle_nero);
     toggle_dante = cfg.get<bool>("height_restriction_removed_dante").value_or(false);
-    ToggleDante(toggle_dante);
+    if (toggle_dante) ToggleDante(toggle_dante);
 
     air_hike_nero = cfg.get<bool>("airhike_height_restriction_nero").value_or(false);
     air_hike_dante = cfg.get<bool>("airhike_height_restriction_dante").value_or(false);

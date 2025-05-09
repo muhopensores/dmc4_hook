@@ -179,7 +179,7 @@ void PandoraCharge::on_gui_frame(int display) {
 
 void PandoraCharge::on_config_load(const utility::Config& cfg){
     mod_enabled = cfg.get<bool>("PandoraCharge").value_or(false);
-    toggle1(mod_enabled); // Charge & Uncharge with Pandora equipped
+    if (mod_enabled) toggle1(mod_enabled); // Charge & Uncharge with Pandora equipped
 }
 
 void PandoraCharge::on_config_save(utility::Config& cfg) {

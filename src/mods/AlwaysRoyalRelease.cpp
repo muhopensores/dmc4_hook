@@ -24,7 +24,7 @@ void AlwaysRoyalRelease::on_gui_frame(int display) {
 
 void AlwaysRoyalRelease::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("always_royal_release").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
 }
 
 void AlwaysRoyalRelease::on_config_save(utility::Config& cfg) {

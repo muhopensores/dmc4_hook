@@ -263,9 +263,8 @@ void PlayerTracker::on_gui_frame(int display) {
     }
 }
 
-void PlayerTracker::on_config_save(utility::Config& cfg) {
-}
+// void PlayerTracker::on_config_save(utility::Config& cfg) {}
 
-void PlayerTracker::on_config_load(const utility::Config& cfg) {
-}
+// void PlayerTracker::on_config_load(const utility::Config& cfg) {}
+
 #endif

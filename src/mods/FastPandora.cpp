@@ -108,7 +108,7 @@ void FastPandora::on_gui_frame(int display) {
 
 void FastPandora::on_config_load(const utility::Config& cfg){
     mod_enabled = cfg.get<bool>("fast_pandora").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
     mod2_enabled = cfg.get<bool>("fast_funship").value_or(false);
 }
 

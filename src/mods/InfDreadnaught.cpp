@@ -65,9 +65,9 @@ void InfDreadnaught::on_gui_frame(int display) {
 
 void InfDreadnaught::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("inf_dreadnaught").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
     mod_enabled2 = cfg.get<bool>("run_in_dreadnaught").value_or(false);
-    toggle2(mod_enabled2);
+    if (mod_enabled2) toggle2(mod_enabled2);
 
 }
 

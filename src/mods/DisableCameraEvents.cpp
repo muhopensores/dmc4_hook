@@ -78,7 +78,7 @@ void DisableCameraEvents::on_gui_frame(int display) {
 
 void DisableCameraEvents::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("disable_camera_events").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
 }
 
 void DisableCameraEvents::on_config_save(utility::Config& cfg) {

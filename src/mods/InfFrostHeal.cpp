@@ -49,7 +49,7 @@ std::optional<std::string> InfFrostHeal::on_initialize() {
 
 void InfFrostHeal::on_config_load(const utility::Config& cfg){
     mod_enabled = cfg.get<bool>("InfFrostHeal").value_or(false);
-    toggle1(mod_enabled);
+    if (mod_enabled) toggle1(mod_enabled);
 }
 
 void InfFrostHeal::on_config_save(utility::Config& cfg) {

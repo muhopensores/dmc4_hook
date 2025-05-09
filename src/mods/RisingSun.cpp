@@ -262,7 +262,7 @@ void RisingSun::on_gui_frame(int display) {
 
 void RisingSun::on_config_load(const utility::Config& cfg) {
 	mod_enabled = cfg.get<bool>("rising_sun").value_or(false);
-	toggle(mod_enabled);
+	if (mod_enabled) toggle(mod_enabled);
 };
 
 void RisingSun::on_config_save(utility::Config& cfg) {

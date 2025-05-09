@@ -72,13 +72,13 @@ void DisableDarkslayer::on_gui_frame(int display) {
 
 void DisableDarkslayer::on_config_load(const utility::Config& cfg) {
     mod_enabled_up = cfg.get<bool>("disable_darkslayer_up").value_or(false);
-    toggle_up(mod_enabled_up);
+    if (mod_enabled_up) toggle_up(mod_enabled_up);
     mod_enabled_down = cfg.get<bool>("disable_darkslayer_down").value_or(false);
-    toggle_down(mod_enabled_down);
+    if (mod_enabled_down) toggle_down(mod_enabled_down);
     mod_enabled_left = cfg.get<bool>("disable_darkslayer_left").value_or(false);
-    toggle_left(mod_enabled_left);
+    if (mod_enabled_left) toggle_left(mod_enabled_left);
     mod_enabled_right = cfg.get<bool>("disable_darkslayer_right").value_or(false);
-    toggle_right(mod_enabled_right);
+    if (mod_enabled_right) toggle_right(mod_enabled_right);
 }
 
 void DisableDarkslayer::on_config_save(utility::Config& cfg)

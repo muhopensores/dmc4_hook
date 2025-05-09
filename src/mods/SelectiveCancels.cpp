@@ -468,7 +468,7 @@ void SelectiveCancels::on_config_load(const utility::Config& cfg) {
 	cancels = cfg.get<uint32_t>("cancels").value_or(0);
 	fixGuardInertia = cfg.get<bool>("fix_guard_inertia").value_or(false);
 	good_grief = cfg.get<bool>("good_grief").value_or(false);
-	griefToggle(good_grief);
+	if (good_grief) griefToggle(good_grief);
 }
 
 #endif

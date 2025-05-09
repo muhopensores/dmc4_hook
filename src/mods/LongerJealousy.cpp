@@ -32,7 +32,7 @@ std::optional<std::string> LongerJealousy::on_initialize() {
 
 void LongerJealousy::on_config_load(const utility::Config& cfg){
     mod_enabled = cfg.get<bool>("LongerJealousy").value_or(false);
-    toggle1(mod_enabled);
+    if (mod_enabled) toggle1(mod_enabled);
 }
 
 void LongerJealousy::on_config_save(utility::Config& cfg) {

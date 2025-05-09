@@ -24,7 +24,7 @@ void HighTimeWeaponSwitch::on_gui_frame(int display) {
 
 void HighTimeWeaponSwitch::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("high_time_weapon_switch").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
 }
 
 void HighTimeWeaponSwitch::on_config_save(utility::Config& cfg) {

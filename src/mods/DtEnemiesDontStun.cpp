@@ -26,7 +26,7 @@ void DtEnemiesDontStun::on_gui_frame(int display) {
 
 void DtEnemiesDontStun::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("dt_enemies_dont_stun").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
 }
 
 void DtEnemiesDontStun::on_config_save(utility::Config& cfg) {

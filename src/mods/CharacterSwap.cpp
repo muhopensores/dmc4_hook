@@ -95,9 +95,9 @@ void CharacterSwap::on_gui_frame(int display) {
 
 void CharacterSwap::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("character_select").value_or(false);
-    toggle(mod_enabled);
+    if (mod_enabled) toggle(mod_enabled);
     prefer_dante = cfg.get<bool>("prefer_dante").value_or(false);
-    Prefer_Dante(prefer_dante);
+    if (prefer_dante) Prefer_Dante(prefer_dante);
 };
 
 void CharacterSwap::on_config_save(utility::Config& cfg) {

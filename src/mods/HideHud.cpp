@@ -514,23 +514,23 @@ void HideHud::on_config_load(const utility::Config& cfg) {
     mod_enabled_health = cfg.get<bool>("hide_hp_hud").value_or(false);
     // toggle_health(mod_enabled_health); // now a detour
     mod_enabled_orbs = cfg.get<bool>("hide_orbs_hud").value_or(false);
-    toggle_orbs(mod_enabled_orbs);
+    if (mod_enabled_orbs) toggle_orbs(mod_enabled_orbs);
     mod_enabled_style = cfg.get<bool>("hide_style_hud").value_or(false);
-    toggle_style(mod_enabled_style);
+    if (mod_enabled_style) toggle_style(mod_enabled_style);
     mod_enabled_timer = cfg.get<bool>("hide_timer_hud").value_or(false);
-    toggle_timer(mod_enabled_timer);
+    if (mod_enabled_timer) toggle_timer(mod_enabled_timer);
     mod_enabled_boey = cfg.get<bool>("hide_boey_hud").value_or(false);
-    toggle_boey(mod_enabled_boey);
+    if (mod_enabled_boey) toggle_boey(mod_enabled_boey);
     mod_enabled_weapon_selected = cfg.get<bool>("always_show_weapon_selection").value_or(false);
-    toggle_weapon_display(mod_enabled_weapon_selected);
+    if (mod_enabled_weapon_selected) toggle_weapon_display(mod_enabled_weapon_selected);
     mod_enabled_hide_weapon_selected = cfg.get<bool>("always_hide_weapon_selection").value_or(false);
-    toggle_weapon_hide(mod_enabled_hide_weapon_selected);
+    if (mod_enabled_hide_weapon_selected) toggle_weapon_hide(mod_enabled_hide_weapon_selected);
     mod_enabled_map = cfg.get<bool>("hide_map_hud").value_or(false);
-    toggle_map(mod_enabled_map);
+    if (mod_enabled_map) toggle_map(mod_enabled_map);
     mod_enabled_boss = cfg.get<bool>("hide_boss_hud").value_or(false);
-    toggle_boss_hp(mod_enabled_boss);
+    if (mod_enabled_boss) toggle_boss_hp(mod_enabled_boss);
     mod_enabled_style_points = cfg.get<bool>("bp_style_points").value_or(false);
-    toggle_style_points(mod_enabled_style_points);
+    if (mod_enabled_style_points) toggle_style_points(mod_enabled_style_points);
 
 }
 

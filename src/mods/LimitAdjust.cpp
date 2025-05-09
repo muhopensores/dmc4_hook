@@ -165,11 +165,11 @@ void LimitAdjust::on_config_load(const utility::Config& cfg) {
 
     // dante
     gun_sword = cfg.get<bool>("sword_switch_limits_removed").value_or(false);
-    f_sword_and_gun(gun_sword);
+    if (gun_sword) f_sword_and_gun(gun_sword);
     style = cfg.get<bool>("style_switch_limits_removed").value_or(false);
-    f_style(style);
+    if (style) f_style(style);
     same_tick_style_change = cfg.get<bool>("same_tick_style_change_limit_removed").value_or(false);
-    f_same_tick_style_change(same_tick_style_change);
+    if (same_tick_style_change) f_same_tick_style_change(same_tick_style_change);
 }
 
 void LimitAdjust::on_config_save(utility::Config& cfg) {

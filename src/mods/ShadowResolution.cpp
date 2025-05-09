@@ -57,7 +57,7 @@ std::optional<std::string> ShadowResolution::on_initialize() {
 
 void ShadowResolution::on_config_load(const utility::Config& cfg){
     mod_enabled = cfg.get<bool>("ShadowResolution").value_or(false);
-    if (mod_enabled) { toggle1(mod_enabled); }
+    if (mod_enabled) toggle1(mod_enabled);
 }
 
 void ShadowResolution::on_config_save(utility::Config& cfg) {

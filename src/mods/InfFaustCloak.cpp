@@ -37,9 +37,9 @@ void InfFaustCloak::on_gui_frame(int display) {
 
 void InfFaustCloak::on_config_load(const utility::Config& cfg) {
     always_cloak = cfg.get<bool>("inf_faust_cloak").value_or(false);
-    toggle1(always_cloak);
+    if (always_cloak) toggle1(always_cloak);
     no_cloak = cfg.get<bool>("disable_faust_cloak").value_or(false);
-    toggle2(no_cloak);
+    if (no_cloak) toggle2(no_cloak);
 }
 
 void InfFaustCloak::on_config_save(utility::Config& cfg) {

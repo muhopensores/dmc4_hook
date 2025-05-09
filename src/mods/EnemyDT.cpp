@@ -46,9 +46,9 @@ void EnemyDT::on_gui_frame(int display) {
 
 void EnemyDT::on_config_load(const utility::Config& cfg) {
     mod_enabled_no_dt = cfg.get<bool>("enemy_no_dt").value_or(false);
-    toggle_no_dt(mod_enabled_no_dt);
+    if (mod_enabled_no_dt) toggle_no_dt(mod_enabled_no_dt);
     mod_enabled_instant_dt = cfg.get<bool>("enemy_instant_dt").value_or(false);
-    toggle_instant_dt(mod_enabled_instant_dt);
+    if (mod_enabled_instant_dt) toggle_instant_dt(mod_enabled_instant_dt);
 }
 
 void EnemyDT::on_config_save(utility::Config& cfg) {

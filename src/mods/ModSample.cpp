@@ -50,7 +50,7 @@ std::optional<std::string> ModSample::on_initialize() {
 
 void ModSample::on_config_load(const utility::Config& cfg){
     mod_enabled = cfg.get<bool>("ModSample").value_or(false);
-    toggle1(mod_enabled);
+    if (mod_enabled) toggle1(mod_enabled);
 }
 
 void ModSample::on_config_save(utility::Config& cfg) {
