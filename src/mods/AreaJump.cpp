@@ -459,8 +459,8 @@ std::optional<std::string> AreaJump::on_initialize() {
         }
     }, csys::Arg<int>("0-101"));
 
-    // damn cant overload commands distingueshed by arguments alone 
-    console->system().RegisterCommand("roomi", "Jump to room ID", [](int value) {
+    // damn cant overload commands distinguished by arguments alone 
+    console->system().RegisterCommand("roomid", "Jump to room ID", [](int value) {
         if (devil4_sdk::get_local_player()) {
             if (is_valid_room_id(value)) {
                 devil4_sdk::get_sArea()->aGamePtr->room_id = value;
@@ -472,7 +472,7 @@ std::optional<std::string> AreaJump::on_initialize() {
         }
     }, csys::Arg<int>("0-811"));
 
-    console->system().RegisterCommand("rooma", "Jump to room name", [](csys::String value) {
+    console->system().RegisterCommand("roomname", "Jump to room name", [](csys::String value) {
         if (devil4_sdk::get_local_player()) {
             if (const Room* proom = find_room_by_name(value)) {
                 devil4_sdk::get_sArea()->aGamePtr->room_id = proom->id;

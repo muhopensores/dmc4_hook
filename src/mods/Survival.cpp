@@ -100,7 +100,7 @@ const std::map<int, WaveConfig> WAVE_CONFIGS = {
         3,  // max_enemies_without_boss
         3,  // ldk_max_enemies_with_boss
         5,  // ldk_max_enemies_without_boss
-        10, // boss_waves_cooldown
+        0,  // boss_waves_cooldown
         0,  // max_bosses
         0,  // max_side_enemies
         0,  // boss_spawn_chance
@@ -116,7 +116,7 @@ const std::map<int, WaveConfig> WAVE_CONFIGS = {
         3,  // max_enemies_without_boss
         3,  // ldk_max_enemies_with_boss
         5,  // ldk_max_enemies_without_boss
-        10, // boss_waves_cooldown
+        0,  // boss_waves_cooldown
         0,  // max_bosses
         0,  // max_side_enemies
         0,  // boss_spawn_chance
@@ -133,7 +133,7 @@ const std::map<int, WaveConfig> WAVE_CONFIGS = {
         3,  // max_enemies_without_boss
         3,  // ldk_max_enemies_with_boss
         5,  // ldk_max_enemies_without_boss
-        10, // boss_waves_cooldown
+        0,  // boss_waves_cooldown
         0,  // max_bosses
         0,  // max_side_enemies
         0,  // boss_spawn_chance
@@ -151,7 +151,7 @@ const std::map<int, WaveConfig> WAVE_CONFIGS = {
         3,  // max_enemies_without_boss
         3,  // ldk_max_enemies_with_boss
         5,  // ldk_max_enemies_without_boss
-        10, // boss_waves_cooldown
+        0,  // boss_waves_cooldown
         0,  // max_bosses
         1,  // max_side_enemies
         0,  // boss_spawn_chance
@@ -169,7 +169,7 @@ const std::map<int, WaveConfig> WAVE_CONFIGS = {
         3,  // max_enemies_without_boss
         3,  // ldk_max_enemies_with_boss
         5,  // ldk_max_enemies_without_boss
-        10, // boss_waves_cooldown
+        0,  // boss_waves_cooldown
         0,  // max_bosses
         1,  // max_side_enemies
         0,  // boss_spawn_chance
@@ -188,7 +188,7 @@ const std::map<int, WaveConfig> WAVE_CONFIGS = {
         3,  // max_enemies_without_boss
         3,  // ldk_max_enemies_with_boss
         5,  // ldk_max_enemies_without_boss
-        10, // boss_waves_cooldown
+        30, // boss_waves_cooldown
         1,  // max_bosses
         1,  // max_side_enemies
         8,  // boss_spawn_chance
@@ -207,7 +207,7 @@ const std::map<int, WaveConfig> WAVE_CONFIGS = {
         6,  // max_enemies_without_boss
         5,  // ldk_max_enemies_with_boss
         7,  // ldk_max_enemies_without_boss
-        5,  // boss_waves_cooldown
+        20, // boss_waves_cooldown
         1,  // max_bosses
         2,  // max_side_enemies
         8,  // boss_spawn_chance
@@ -226,7 +226,7 @@ const std::map<int, WaveConfig> WAVE_CONFIGS = {
         7,  // max_enemies_without_boss
         6,  // ldk_max_enemies_with_boss
         8,  // ldk_max_enemies_without_boss
-        5,  // boss_waves_cooldown
+        10, // boss_waves_cooldown
         2,  // max_bosses
         3,  // max_side_enemies
         8,  // boss_spawn_chance
@@ -422,20 +422,25 @@ void Survival::on_frame(fmilliseconds& dt) {
             reset_wave();
             return;
         }
-
+        
         bool player_exists_now = (player != nullptr);
-        if (player_exists_now && !player_existed_last_frame) {
+        bool player_is_alive = player_exists_now && player->damageStruct.HP <= 0.0f;
+        
+        if ((player_exists_now && !player_existed_last_frame) || 
+            (player_existed_last_frame && (!player_exists_now || !player_is_alive))) {
             reset_wave();
         }
-        player_existed_last_frame = player_exists_now;
+        
+        player_existed_last_frame = player_exists_now && player_is_alive;
+        
         if (timer) {
-            if (player) {
+            if (player && player_is_alive) {
                 if (sMed->roomID != 700) {
                     Survival::survival_active = false;
                     accumulated_delta += player->m_delta_time;
                     if (accumulated_delta >= teleport_delay) {
                         AreaJump::jump_to_stage(AreaJump::bp_stage(101));
-                        accumulated_delta = 0.0f; // Reset accumulated delta
+                        accumulated_delta = 0.0f;
                     }
                 }
                 else { // Player is spawned and in the correct room
@@ -447,7 +452,6 @@ void Survival::on_frame(fmilliseconds& dt) {
                         sUnit* sUnit = devil4_sdk::get_sUnit();
                         if (sUnit && sUnit->hasDelta) { // @Siy find how the bp timer gets time
                             float game_seconds = sUnit->hasDelta->m_delta_time / 60.0f;
-                            //survivedTimer += game_seconds;
                             UpdateTimer();
                         }
                         EnemyInfo enemy_info = get_enemy_info(devil4_sdk::get_uEnemies());
@@ -485,7 +489,7 @@ static uintptr_t some_struct = 0x00E552CC;
 static uintptr_t fptr_update_actor_list = 0x008DC540;
 void EnemySpawn::spawn_dante() {
     std::lock_guard<std::mutex> lk(g_mutex);
-    if (!devil4_sdk::get_local_player()) return; // only work while character is loaded
+    if (!devil4_sdk::get_local_player()) return;
     __asm {
 		pushad
 		pushfd

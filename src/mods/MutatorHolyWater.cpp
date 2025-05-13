@@ -27,6 +27,10 @@ std::optional<std::string> MutatorHolyWater::on_initialize() {
         use_hw_asm_call();
     });
 
+	console->system().RegisterCommand("holywater", "Use a Holy Water", [/*this*/]() {
+        use_hw_asm_call();
+    });
+
 	/*m_command = std::hash<std::string>{}("\\HolyWater");
 	m_shorthand = std::hash<std::string>{}("\\hw");
 	

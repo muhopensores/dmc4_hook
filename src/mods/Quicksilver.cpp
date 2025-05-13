@@ -247,6 +247,14 @@ std::optional<std::string> Quicksilver::on_initialize() {
 
     // timer duration in float and callback function once it finishes
     m_timer = new utility::Timer(15.0f, on_timer_callback);
+
+	console->system().RegisterCommand("quicksilver", "Trigger Quicksilver", [/*this*/]() {
+		if (Quicksilver::m_timer->m_active == false) {
+			Quicksilver::qs_operator_new();
+			Quicksilver::m_timer->start();
+		}
+	});
+
 	utility::create_keyboard_hotkey(Quicksilver::m_hotkeys, {VK_OEM_PLUS}, "QuickSilver", "quicksilver_key");
 
     return Mod::on_initialize();
