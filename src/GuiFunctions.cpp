@@ -446,9 +446,10 @@ namespace gui {
                         pmods->on_draw_ui("LongerJealousy"_hash, 2);
 
                         pmods->on_draw_ui("ReversableDraw"_hash);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("MustangWalls"_hash, 2); 
 
                         pmods->on_draw_ui("DanteJdc"_hash, 2); // keep on the last line, it has a download button
-                        // ImGui::SameLine(sameLineWidth);
 
                         ImGui::SeparatorText(_("Lucifer"));
 

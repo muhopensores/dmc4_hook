@@ -156,6 +156,7 @@
 #include "mods/ManualLuciferAim.hpp"
 #include "mods/ReversableDraw.hpp"
 #include "mods/InfFrostHeal.hpp"
+#include "mods/MustangWalls.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -322,6 +323,7 @@ Mods::Mods() {
     ADD_MOD(ManualLuciferAim);
     ADD_MOD(ReversableDraw);
     ADD_MOD(InfFrostHeal);
+    ADD_MOD(MustangWalls);
 }
 
 // Initializes mods, checks for errors

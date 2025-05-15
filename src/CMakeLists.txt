@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/MustangWalls.hpp
+  mods/MustangWalls.cpp
   mods/FrenziedBossAI.hpp
   mods/FrenziedBossAI.cpp
   mods/InfFrostHeal.hpp
