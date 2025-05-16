@@ -75,6 +75,22 @@ static int waves_since_boss = 0;
 
 static uintptr_t doppelAddr = NULL; // use this when spawning doppel dante or nero
 
+// for stage select
+struct SurvivalRoom {
+    int roomID;
+    std::string readableName;
+    int roomNumber;
+};
+const std::vector<SurvivalRoom> survivalRooms {
+    {705,  "1-19",   1},
+    {704, "21-39",  21},
+    {703, "41-59",  41},
+    {701, "61-79",  61},
+    {702, "81-99",  81},
+    {700,   "101", 101}
+};
+int Survival::currentRoomIndex = 0;
+
 // safe to be called with no enemy
 Survival::EnemyInfo Survival::get_enemy_info(uEnemy* enemy) {
     EnemyInfo enemy_info{ 0, 0 };
@@ -435,11 +451,11 @@ void Survival::on_frame(fmilliseconds& dt) {
         
         if (timer) {
             if (player && player_is_alive) {
-                if (sMed->roomID != 700) {
+                if (sMed->roomID != survivalRooms[Survival::currentRoomIndex].roomID) {
                     Survival::survival_active = false;
                     accumulated_delta += player->m_delta_time;
                     if (accumulated_delta >= teleport_delay) {
-                        AreaJump::jump_to_stage(AreaJump::bp_stage(101));
+                        AreaJump::jump_to_stage(AreaJump::bp_stage(survivalRooms[Survival::currentRoomIndex].roomNumber));
                         accumulated_delta = 0.0f;
                     }
                 }
@@ -737,6 +753,29 @@ void Survival::on_gui_frame(int display) {
     }
     ImGui::SameLine();
     help_marker(_("Tick and enter any non BP mission on your desired difficulty"));
+
+    if (Survival::mod_enabled) {
+        ImGui::Indent(lineIndent);
+        const char* current_item_label = survivalRooms[Survival::currentRoomIndex].readableName.c_str();
+        ImGui::SetNextItemWidth(sameLineItemWidth);
+        if (ImGui::BeginCombo("Stage Select", current_item_label)) {
+            for (int i = 0; i < survivalRooms.size(); i++) {
+                const auto& room = survivalRooms[i];
+                bool is_selected = (Survival::currentRoomIndex == i);
+                if (ImGui::Selectable(room.readableName.c_str(), is_selected)) {
+                    Survival::currentRoomIndex = i;
+                }
+                if (is_selected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::Unindent(lineIndent);
+    }
+    ImGui::EndGroup();
+
+    ImGui::BeginGroup();
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Random Meme Modifiers"), &meme_effects)) {
         Survival::meme_toggle(Survival::meme_effects);
@@ -933,6 +972,7 @@ void Survival::on_config_load(const utility::Config& cfg){
         Survival::toggle(Survival::mod_enabled);
         basicPowerUpSystem->setEnabled(Survival::mod_enabled);
     }
+    Survival::currentRoomIndex = cfg.get<int>("Survival_room").value_or(5);
 
     Survival::meme_effects = cfg.get<bool>("Survival_memes").value_or(false);
     if (Survival::meme_effects) {
@@ -945,6 +985,7 @@ void Survival::on_config_load(const utility::Config& cfg){
 
 void Survival::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("Survival", Survival::mod_enabled);
+    cfg.set<int>("Survival_room", Survival::currentRoomIndex);
     cfg.set<bool>("Survival_memes", Survival::meme_effects);
     // cfg.set<float>("survival_imgui_window_pos_x", window_pos.x);
     // cfg.set<float>("survival_imgui_window_pos_y", window_pos.y);

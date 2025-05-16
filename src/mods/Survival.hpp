@@ -27,6 +27,7 @@ public:
     static std::random_device rd;
     static std::mt19937 rng;
     static bool player_existed_last_frame;
+    static int currentRoomIndex;
 
     static EnemyInfo get_enemy_info(uEnemy* enemy);
     static void reset_wave();
