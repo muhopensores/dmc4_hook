@@ -52,8 +52,14 @@ int EnemyTracker::get_enemy_specific_damage_offset(int enemy_id) {
         return 0x1500;
     case ASSAULT:
         return 0x1500;
-    case GLADIUS:
-        return 0x1700; // or 0x1500 if you spawn them!
+
+    // 0x1504
+    case CREDO:
+        return 0x1504;
+    case ECHIDNA:
+        return 0x1504;
+    case AGNUS:
+        return 0x1504;
 
     // 0x1504
     case ANGELO_BIANCO:
@@ -80,6 +86,10 @@ int EnemyTracker::get_enemy_specific_damage_offset(int enemy_id) {
         return 0x152C;
     case SCARECROW_MEGA:
         return 0x152C;
+
+    // 0x1700
+    case GLADIUS:
+        return 0x1700; // or 0x1500 if you spawn them!
 
     // 0x1CF0
     case SANCTUS_M11:

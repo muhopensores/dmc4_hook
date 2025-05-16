@@ -53,6 +53,10 @@ naked void detour1() { // player in eax + edi
 			cmp byte ptr [eax+0x1494], 1 // controller id nero
 			je CheckNero
 		// Dante
+			cmp dword ptr [eax+0x2998], 0x632 // Fireworks
+			je Fireworks
+			cmp byte ptr [SelectiveCancels::mod_enabled_dante], 0
+			je popcode
 			cmp dword ptr [eax+0x2998], 0x007 // Roll left
 			je Roll
 			cmp dword ptr [eax+0x2998], 0x008 // Roll right
@@ -77,8 +81,6 @@ naked void detour1() { // player in eax + edi
 			je Omen
 			cmp dword ptr [eax+0x2998], 0x635 // Gunstinger
 			je Gunstinger
-			cmp dword ptr [eax+0x2998], 0x632 // Fireworks
-			je Fireworks
 			cmp dword ptr [eax+0x2998], 0x706 // Epidemic
 			je Epidemic
 			cmp dword ptr [eax+0x2998], 0x410 // DT Pin Up part 2
@@ -98,6 +100,8 @@ naked void detour1() { // player in eax + edi
 			jmp popcode
 
 		CheckNero:
+			cmp byte ptr [SelectiveCancels::mod_enabled_nero], 0
+			je popcode
 			cmp dword ptr [eax+0x2998], 0x007 // Roll left
 			je Roll
 			cmp dword ptr [eax+0x2998], 0x008 // Roll right

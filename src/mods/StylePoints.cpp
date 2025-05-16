@@ -609,10 +609,10 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"RED-HighroEX_06",  "EX High Roller"},   // aerial      2
     {"RED-Split_00",     "Split"},            // aerial
     {"RED-Split_01",     "Split"},            // grounded
-    {"RED-SplitEX_00",   "EX Split"},         // 1, 2, 3
-    {"RED-SplitEX_01",   "EX Split"},         // 1
-    {"RED-SplitEX_02",   "EX Split"},         //    2
-    {"RED-SplitEX_03",   "EX Split"},         //       3
+    {"RED-SplitEX_00",   "Double Down"},         // 1, 2, 3
+    {"RED-SplitEX_01",   "Double Down"},         // 1
+    {"RED-SplitEX_02",   "Double Down"},         //    2
+    {"RED-SplitEX_03",   "Double Down"},         //       3
     {"RED-Surren_00",    "Shuffle"},
     {"RED-Surren_01",    "Shuffle"},          // weak hit
     {"RED-SureenEX_00",  "EX Shuffle"},       // EX1
@@ -692,10 +692,10 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"YAM-SureenEX_10",  "EX Shuffle"}, // EX3
     {"YAM-Split_00",     "Split"},
     {"YAM-Split_01",     "Split"},
-    {"YAM-SplitEX_00",   "EX Split"}, // EX1
-    {"YAM-SplitEX_01",   "EX Split"}, // EX2
-    {"YAM-SplitEX_02",   "EX Split"}, // EX2
-    {"YAM-SplitEX_03",   "EX Split"}, // EX3
+    {"YAM-SplitEX_00",   "Double Down"}, // EX1
+    {"YAM-SplitEX_01",   "Double Down"}, // EX2
+    {"YAM-SplitEX_02",   "Double Down"}, // EX2
+    {"YAM-SplitEX_03",   "Double Down"}, // EX3
 
     // blue rose
     {"Shoot_1st_Short",  "Blue Rose"},
@@ -741,8 +741,17 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
 
 static const std::map<std::vector<std::string>, std::string> comboNames = {
     {{"High Time", "Aerial Rave", "Aerial Rave", "Aerial Rave", "Aerial Rave"}, "Very Creative!"},
-    {{"High Time", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I", "E&I"}, "Kamiya's Vision!"},
+    {{"High Time", "E&I", "E&I", "E&I", "E&I", "E&I"}, "Kamiya's Vision!"},
     {{"Guardfly", "Guardfly"}, "Is That A Plane?"},
+    {{"Full House", "Enemy Step", "Full House", "Enemy Step", "Full House", "Enemy Step", "Full House", "Enemy Step", "Full House"}, "When the Lights Are Down"},
+    {{"Full House", "Enemy Step", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm",                                                     "E&I", "Full House", "Enemy Step", "Rainstorm", "Rainstorm", "Rainstorm"}, "The Forbidden Glitch"},
+    {{"Full House", "Enemy Step", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm",                                        "E&I", "Full House", "Enemy Step", "Rainstorm", "Rainstorm", "Rainstorm"}, "The Forbidden Glitch"},
+    {{"Full House", "Enemy Step", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm",                           "E&I", "Full House", "Enemy Step", "Rainstorm", "Rainstorm", "Rainstorm"}, "The Forbidden Glitch"},
+    {{"Full House", "Enemy Step", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm",              "E&I", "Full House", "Enemy Step", "Rainstorm", "Rainstorm", "Rainstorm"}, "The Forbidden Glitch"},
+    {{"Full House", "Enemy Step", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "E&I", "Full House", "Enemy Step", "Rainstorm", "Rainstorm", "Rainstorm"}, "The Forbidden Glitch"},
+    {{"Red Queen Combo A", "Red Queen Combo A", "Red Queen Combo A", "High Roller", "Red Queen Aerial", "Red Queen Aerial", "Split", "Split"}, "Grassroots"},
+    {{"Calibur", "Enemy Step", "Blue Rose", "Blue Rose", "Calibur", "Enemy Step", "Blue Rose", "Blue Rose", "Calibur", "Enemy Step", "Blue Rose", "Blue Rose"}, "Capcom Dev"},
+    {{"Red Queen Combo A", "EX High Roller", "EX High Roller", "EX High Roller", "Double Down", "Double Down", "EX Streak", "EX Streak", "EX Streak"}, "Tool Assisted"},
 };
 
 enum characterID {
@@ -759,10 +768,15 @@ struct ComboUnlock {
   bool unlocked;
 };
 
-static std::array<ComboUnlock, 3> unlocked_combos = {
-    ComboUnlock {DANTE, 1, "Very Creative!", "Welcome to Dante!", "As Dante, Used High Time > Rave 1-4", false},
-    ComboUnlock {DANTE, 1, "Kamiya's Vision!", "Did you know DMC1 was going to be RE4?", "As Dante, Used High Time > E+I Shot x 10", false},
-    ComboUnlock {DANTE, 3, "Is That A Plane?", "I saw a combo video on YouTube once...", "As Dante, Used Guardfly > Guardfly", false},
+static std::array<ComboUnlock, 8> unlocked_combos = {
+    ComboUnlock {DANTE, 1, "Very Creative!", "Welcome to Dante!", "As Dante, Used High Time > Rave x 4", false},
+    ComboUnlock {DANTE, 1, "Kamiya's Vision!", "Did you know DMC1 was going to be RE4?", "As Dante, Used High Time > E&I Shot x 10", false},
+    ComboUnlock {DANTE, 3, "Is That A Plane?", "Straight out of the window", "As Dante, Used Guardfly > Guardfly", false},
+    ComboUnlock {DANTE, 2, "When the Lights Are Down", "Rules without exceptions last eternally", "As Dante, Looped Full House > Enemy Step 5 Times", false},
+    ComboUnlock {DANTE, 2, "The Forbidden Glitch", "Inertia? Let's just make it steerable", "As Dante, Looped Full House > Enemy Step > E&I Shot > Rainstorm 2 Times", false},
+    ComboUnlock {NERO,  1, "Grassroots", "Imagine this: It's 2008. You just picked up a new character. Make a combo", "As Nero, Used Red Queen Combo A1, A2, A3 > High Roller > Red Queen Aerial 1, 2 > Split", false},
+    ComboUnlock {NERO,  3, "Capcom Dev", "It's time to record a trailer for Devil May Cry 5", "As Nero, Looped Calibur > Enemy Step > Blue Rose 3 Times", false},
+    ComboUnlock {NERO,  4, "Tool Assisted", "Just press the button at the right time", "As Nero, Used Red Queen Combo A1 > EX3 High Roller > Double Down > EX3 Streak", false},
 };
 
 struct TrickScore {
@@ -1347,90 +1361,88 @@ static void DrawTonyScores() {
     ImGui::End();
 
     // airtime window
-    // if (StylePoints::showAirTimeDisplay) {
-        static float airTimer = 0.0f;
-        static float airTimerAlpha = 0.0f;
-        static float displayedAirTime = 0.0f;
-        static bool wasInAir = false;
-        static float timeOnGround = 0.0f;
-        static const float displayStartAirTime = 3.0f;
-        static const float fadeDuration = 1.0f;
-        static bool wasGrounded = true;
-        static bool fadingUp = false;
-        static float fadeUpTimer = 0.0f;
-        static float alphaWhenLanded = 0.0f;
+    static float airTimer = 0.0f;
+    static float airTimerAlpha = 0.0f;
+    static float displayedAirTime = 0.0f;
+    static bool wasInAir = false;
+    static float timeOnGround = 0.0f;
+    static const float displayStartAirTime = 3.0f;
+    static const float fadeDuration = 1.0f;
+    static bool wasGrounded = true;
+    static bool fadingUp = false;
+    static float fadeUpTimer = 0.0f;
+    static float alphaWhenLanded = 0.0f;
 
-        bool isInAir = false;
-        if (player->collisionSettings)
-            isInAir = !player->collisionSettings->mLand;
-        bool justBecameAirborne = wasGrounded && isInAir;
-        wasGrounded = !isInAir;
+    bool isInAir = false;
+    if (player->collisionSettings)
+        isInAir = !player->collisionSettings->mLand;
+    bool justBecameAirborne = wasGrounded && isInAir;
+    wasGrounded = !isInAir;
 
-        if (isInAir) {
-            if (!wasInAir) {
-                airTimer = 0.0f;
-                wasInAir = true;
-                if (airTimerAlpha > 0.0f) {
-                    fadingUp = true;
-                    fadeUpTimer = 0.0f;
-                }
-            }
-            else if (justBecameAirborne && airTimerAlpha > 0.0f) {
+    if (isInAir) {
+        if (!wasInAir) {
+            airTimer = 0.0f;
+            wasInAir = true;
+            if (airTimerAlpha > 0.0f) {
                 fadingUp = true;
                 fadeUpTimer = 0.0f;
             }
-            if (sArea* sArea = devil4_sdk::get_sArea()) {
-                if (!sArea->aGamePtr->m_paused) {
-                    airTimer += realSeconds;
-                }
-            }
-            if (fadingUp) {
-                fadeUpTimer += realSeconds;
-                float fadeProgress = fadeUpTimer / fadeDuration;
-                if (fadeProgress >= 1.0f) {
-                    airTimerAlpha = 1.0f;
-                    fadingUp = false;
-                }
-                else {
-                    airTimerAlpha = std::min(1.0f, airTimerAlpha + fadeProgress * (1.0f - airTimerAlpha));
-                }
-            }
-            else if (airTimer >= displayStartAirTime && airTimerAlpha < 1.0f) {
-                float fadeInProgress = (airTimer - displayStartAirTime) / fadeDuration;
-                airTimerAlpha = std::max(airTimerAlpha, std::min(1.0f, fadeInProgress));
+        }
+        else if (justBecameAirborne && airTimerAlpha > 0.0f) {
+            fadingUp = true;
+            fadeUpTimer = 0.0f;
+        }
+        if (sArea* sArea = devil4_sdk::get_sArea()) {
+            if (!sArea->aGamePtr->m_paused) {
+                airTimer += realSeconds;
             }
         }
-        else {
-            if (wasInAir) {
-                displayedAirTime = airTimer;
-                timeOnGround = 0.0f;
-                wasInAir = false;
+        if (fadingUp) {
+            fadeUpTimer += realSeconds;
+            float fadeProgress = fadeUpTimer / fadeDuration;
+            if (fadeProgress >= 1.0f) {
+                airTimerAlpha = 1.0f;
                 fadingUp = false;
-                alphaWhenLanded = airTimerAlpha;
             }
-
-            if (airTimerAlpha > 0.0f) {
-                timeOnGround += realSeconds;
-                if (timeOnGround > 1.0f) {
-                    float fadeOutProgress = std::min(1.0f, (timeOnGround - 1.0f) / fadeDuration);
-                    airTimerAlpha = std::max(0.0f, alphaWhenLanded * (1.0f - fadeOutProgress));
-                }
+            else {
+                airTimerAlpha = std::min(1.0f, airTimerAlpha + fadeProgress * (1.0f - airTimerAlpha));
             }
+        }
+        else if (airTimer >= displayStartAirTime && airTimerAlpha < 1.0f) {
+            float fadeInProgress = (airTimer - displayStartAirTime) / fadeDuration;
+            airTimerAlpha = std::max(airTimerAlpha, std::min(1.0f, fadeInProgress));
+        }
+    }
+    else {
+        if (wasInAir) {
+            displayedAirTime = airTimer;
+            timeOnGround = 0.0f;
+            wasInAir = false;
+            fadingUp = false;
+            alphaWhenLanded = airTimerAlpha;
         }
 
         if (airTimerAlpha > 0.0f) {
-            ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.8f, screenSize.y * 0.7f), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
-            ImGui::Begin("AirtimeWindow", nullptr, ImGuiWindowFlags_AlwaysAutoResize |
-                ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
-            ImGui::SetWindowFontScale(correctedWindowFontScale * 1.5f);
-            ImVec4 airtimeColor(1.0f, 1.0f, 1.0f, airTimerAlpha);
-            ImGui::PushStyleColor(ImGuiCol_Text, airtimeColor);
-            float timeToDisplay = isInAir ? airTimer : displayedAirTime;
-            ImGui::Text(_("Airtime: %.1f"), timeToDisplay);
-            ImGui::PopStyleColor();
-            ImGui::End();
+            timeOnGround += realSeconds;
+            if (timeOnGround > 1.0f) {
+                float fadeOutProgress = std::min(1.0f, (timeOnGround - 1.0f) / fadeDuration);
+                airTimerAlpha = std::max(0.0f, alphaWhenLanded * (1.0f - fadeOutProgress));
+            }
         }
-    //}
+    }
+
+    if (airTimerAlpha > 0.0f) {
+        ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.8f, screenSize.y * 0.7f), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
+        ImGui::Begin("AirtimeWindow", nullptr, ImGuiWindowFlags_AlwaysAutoResize |
+            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
+        ImGui::SetWindowFontScale(correctedWindowFontScale * 1.5f);
+        ImVec4 airtimeColor(1.0f, 1.0f, 1.0f, airTimerAlpha);
+        ImGui::PushStyleColor(ImGuiCol_Text, airtimeColor);
+        float timeToDisplay = isInAir ? airTimer : displayedAirTime;
+        ImGui::Text(_("Airtime: %.1f"), timeToDisplay);
+        ImGui::PopStyleColor();
+        ImGui::End();
+    }
 
     // Height & Inertia Chart
     if (StylePoints::showHeightChart || StylePoints::showInertiaChart) {
@@ -1955,21 +1967,21 @@ void StylePoints::DrawHiddenCombos() {
     ImGui::Spacing();
     ImGui::Spacing();
     ImGui::Spacing();
-    ImGui::SliderInt(_("bg_red_int"),   &bg_red_int, 0, 255, "Red: %d");
-    ImGui::SliderInt(_("bg_green_int"), &bg_green_int, 0, 255, "Green: %d");
-    ImGui::SliderInt(_("bg_blue_int"),  &bg_blue_int, 0, 255, "Blue: %d");
-    ImGui::SliderInt(_("bg_alpha_int"), &bg_alpha_int, 0, 255, "Alpha: %d");
-    ImGui::InputFloat(_("windowPos.x"), &windowPosModifier.x, 0.0f, 1.0f, "%.2f");
-    ImGui::InputFloat(_("windowPos.y"), &windowPosModifier.y, 0.0f, 1.0f, "%.2f");
-    ImGui::InputFloat(_("windowSize.x"), &windowSizeModifier.x, 0.0f, 1.0f, "%.2f");
-    ImGui::InputFloat(_("windowSize.y"), &windowSizeModifier.y, 0.0f, 1.0f, "%.2f");
-    ImGui::InputFloat(_("windowPadding.x"), &windowPaddingModifier.x, 0.0f, 1.0f, "%.2f");
-    ImGui::InputFloat(_("windowPadding.y"), &windowPaddingModifier.y, 0.0f, 1.0f, "%.2f");
-    ImGui::InputFloat(_("Text r"), &TexCol.x);
-    ImGui::InputFloat(_("Text g"), &TexCol.y);
-    ImGui::InputFloat(_("Text b"), &TexCol.z);
-    ImGui::InputFloat(_("Text a"), &TexCol.w);
-    ImGui::InputFloat(_("fontScale"), &fontScale);
+    // ImGui::SliderInt(_("bg_red_int"),   &bg_red_int, 0, 255, "Red: %d");
+    // ImGui::SliderInt(_("bg_green_int"), &bg_green_int, 0, 255, "Green: %d");
+    // ImGui::SliderInt(_("bg_blue_int"),  &bg_blue_int, 0, 255, "Blue: %d");
+    // ImGui::SliderInt(_("bg_alpha_int"), &bg_alpha_int, 0, 255, "Alpha: %d");
+    // ImGui::InputFloat(_("windowPos.x"), &windowPosModifier.x, 0.0f, 1.0f, "%.2f");
+    // ImGui::InputFloat(_("windowPos.y"), &windowPosModifier.y, 0.0f, 1.0f, "%.2f");
+    // ImGui::InputFloat(_("windowSize.x"), &windowSizeModifier.x, 0.0f, 1.0f, "%.2f");
+    // ImGui::InputFloat(_("windowSize.y"), &windowSizeModifier.y, 0.0f, 1.0f, "%.2f");
+    // ImGui::InputFloat(_("windowPadding.x"), &windowPaddingModifier.x, 0.0f, 1.0f, "%.2f");
+    // ImGui::InputFloat(_("windowPadding.y"), &windowPaddingModifier.y, 0.0f, 1.0f, "%.2f");
+    // ImGui::InputFloat(_("Text r"), &TexCol.x);
+    // ImGui::InputFloat(_("Text g"), &TexCol.y);
+    // ImGui::InputFloat(_("Text b"), &TexCol.z);
+    // ImGui::InputFloat(_("Text a"), &TexCol.w);
+    // ImGui::InputFloat(_("fontScale"), &fontScale);
     ImGui::Checkbox(_("Split Into Difficulties"), &splitIntoDifficulties);
     ImGui::SameLine();
     const char* clear_unlocks_label = _("Clear Unlocks");

@@ -168,7 +168,7 @@ void PandoraCharge::on_gui_frame(int display) {
         toggle1(mod_enabled); // Charge & Uncharge with Pandora equipped
     }
     ImGui::SameLine();
-    help_marker(_("Charge Pandora just like the other guns"));
+    help_marker(_("Charge Pandora just like the other guns\nAlso enables Gunslinger charge moves"));
 }
 
 // void on_frame(fmilliseconds& dt) {}

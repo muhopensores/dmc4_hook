@@ -197,7 +197,7 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
         if (!player) { return; }
         if (showFlyingEnemyStats) {
             int enemyCount = 0;
-            uEnemy* enemy = devil4_sdk::get_uEnemies();
+            uEnemy* enemy = devil4_sdk::get_uEnemies(); // in BP 100, Agnus isn't in slot 1 so this breaks :(
             while (enemy) {
                 glm::vec3 objectPosition = enemy->position;
                 float objectDistance = w2s::GetDistanceFromCam(objectPosition);
