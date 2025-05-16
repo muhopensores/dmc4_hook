@@ -15,7 +15,7 @@
 #include "fw-imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
 
-#define GUI_VERSION "dmc4_hook 1.5.0 PRE RELEASE"
+#define GUI_VERSION "dmc4_hook 1.5.0"
 
 static constexpr char* version{GUI_VERSION};
 static constexpr float uiWidth       = 600.0f;
@@ -828,6 +828,12 @@ namespace gui {
                     }
                     if (ImGui::CollapsingHeader(_("I crash entering mission 1"))) {
                         ImGui::TextWrapped(_("\"Character Switcher\" crashes in this mission."));
+                    }
+                    if (ImGui::CollapsingHeader(_("Payline is going through enemies"))) {
+                        ImGui::TextWrapped(_("Tick \"HDD File Priority\""));
+                    }
+                    if (ImGui::CollapsingHeader(_("Enemies are white sometimes"))) {
+                        ImGui::TextWrapped(_("This is a known issue with \"HDD File Priority\""));
                     }
                     ImGui::Unindent();
                 }
