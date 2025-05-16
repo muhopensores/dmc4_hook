@@ -1690,7 +1690,7 @@ std::optional<std::string> StylePoints::on_initialize() {
 		return "Failed to init StylePoints mod 3";
 	}
 
-    if (!install_hook_offset(0xA5FFC, hook3, &detour4, &jmp_ret4, 5)) { // called on just actions and taunts
+    if (!install_hook_offset(0xA5FFC, hook4, &detour4, &jmp_ret4, 5)) { // called on just actions and taunts
 		spdlog::error("Failed to init StylePoints mod 4\n");
 		return "Failed to init StylePoints mod 4";
 	}
@@ -1699,10 +1699,6 @@ std::optional<std::string> StylePoints::on_initialize() {
     return Mod::on_initialize();
 }
 
-std::string CensorText(const std::string& text) {
-    return std::string(text.length(), '*');
-}
-   
 void StylePoints::DrawHiddenCombos() {
     if (!devil4_sdk::get_local_player()) return;
     sArea* sArea = devil4_sdk::get_sArea();
