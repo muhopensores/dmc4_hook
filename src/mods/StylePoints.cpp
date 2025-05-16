@@ -749,9 +749,9 @@ static const std::map<std::vector<std::string>, std::string> comboNames = {
     {{"Full House", "Enemy Step", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm",                           "E&I", "Full House", "Enemy Step", "Rainstorm", "Rainstorm", "Rainstorm"}, "The Forbidden Glitch"},
     {{"Full House", "Enemy Step", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm",              "E&I", "Full House", "Enemy Step", "Rainstorm", "Rainstorm", "Rainstorm"}, "The Forbidden Glitch"},
     {{"Full House", "Enemy Step", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "Rainstorm", "E&I", "Full House", "Enemy Step", "Rainstorm", "Rainstorm", "Rainstorm"}, "The Forbidden Glitch"},
-    {{"Red Queen Combo A", "Red Queen Combo A", "Red Queen Combo A", "High Roller", "Red Queen Aerial", "Red Queen Aerial", "Split", "Split"}, "Grassroots"},
+    {{"Red Queen Combo A", "Red Queen Combo A", "Red Queen Combo A", "High Roller", "Red Queen Aerial", "Red Queen Aerial", "Red Queen Aerial", "Split", "Split"}, "Grassroots"},
     {{"Calibur", "Enemy Step", "Blue Rose", "Blue Rose", "Calibur", "Enemy Step", "Blue Rose", "Blue Rose", "Calibur", "Enemy Step", "Blue Rose", "Blue Rose"}, "Capcom Dev"},
-    {{"Red Queen Combo A", "EX High Roller", "EX High Roller", "EX High Roller", "Double Down", "Double Down", "EX Streak", "EX Streak", "EX Streak"}, "Tool Assisted"},
+    {{"Red Queen Combo A", "EX High Roller", "EX High Roller", "EX High Roller", "Double Down", "Double Down", "EX Streak", "EX Streak", "EX Streak"}, "Full Throttle"},
 };
 
 enum characterID {
@@ -774,9 +774,9 @@ static std::array<ComboUnlock, 8> unlocked_combos = {
     ComboUnlock {DANTE, 3, "Is That A Plane?", "Straight out of the window", "As Dante, Used Guardfly > Guardfly", false},
     ComboUnlock {DANTE, 2, "When the Lights Are Down", "Rules without exceptions last eternally", "As Dante, Looped Full House > Enemy Step 5 Times", false},
     ComboUnlock {DANTE, 2, "The Forbidden Glitch", "Inertia? Let's just make it steerable", "As Dante, Looped Full House > Enemy Step > E&I Shot > Rainstorm 2 Times", false},
-    ComboUnlock {NERO,  1, "Grassroots", "Imagine this: It's 2008. You just picked up a new character. Make a combo", "As Nero, Used Red Queen Combo A1, A2, A3 > High Roller > Red Queen Aerial 1, 2 > Split", false},
+    ComboUnlock {NERO,  1, "Grassroots", "Imagine this: It's 2008. You just picked up a new character. Make a combo", "As Nero, Used Red Queen Combo A1, A2, A3 > High Roller > Red Queen Aerial 1, 2, 3 > Split", false},
     ComboUnlock {NERO,  3, "Capcom Dev", "It's time to record a trailer for Devil May Cry 5", "As Nero, Looped Calibur > Enemy Step > Blue Rose 3 Times", false},
-    ComboUnlock {NERO,  4, "Tool Assisted", "Just press the button at the right time", "As Nero, Used Red Queen Combo A1 > EX3 High Roller > Double Down > EX3 Streak", false},
+    ComboUnlock {NERO,  4, "Full Throttle", "Just press the button at the right time", "As Nero, Used Red Queen Combo A1 > EX3 High Roller > Double Down > EX3 Streak", false},
 };
 
 struct TrickScore {
