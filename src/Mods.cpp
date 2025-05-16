@@ -157,6 +157,7 @@
 #include "mods/ReversableDraw.hpp"
 #include "mods/InfFrostHeal.hpp"
 #include "mods/MustangWalls.hpp"
+#include "mods/ExceedDisplay.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -324,6 +325,7 @@ Mods::Mods() {
     ADD_MOD(ReversableDraw);
     ADD_MOD(InfFrostHeal);
     ADD_MOD(MustangWalls);
+    ADD_MOD(ExceedDisplay);
 }
 
 // Initializes mods, checks for errors

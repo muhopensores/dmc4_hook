@@ -82,12 +82,12 @@ struct SurvivalRoom {
     int roomNumber;
 };
 const std::vector<SurvivalRoom> survivalRooms {
-    {705,  "1-19",   1},
-    {704, "21-39",  21},
-    {703, "41-59",  41},
-    {701, "61-79",  61},
-    {702, "81-99",  81},
-    {700,   "101", 101}
+    {705, "BP 1-19",    1},
+    {704, "BP 21-39",  21},
+    {703, "BP 41-59",  41},
+    {701, "BP 61-79",  61},
+    {702, "BP 81-99",  81},
+    {700, "BP 101",   101}
 };
 int Survival::currentRoomIndex = 0;
 
@@ -759,7 +759,7 @@ void Survival::on_gui_frame(int display) {
         const char* current_item_label = survivalRooms[Survival::currentRoomIndex].readableName.c_str();
         ImGui::SetNextItemWidth(sameLineItemWidth);
         if (ImGui::BeginCombo("Stage Select", current_item_label)) {
-            for (int i = 0; i < survivalRooms.size(); i++) {
+            for (uint32_t i = 0; i < survivalRooms.size(); i++) {
                 const auto& room = survivalRooms[i];
                 bool is_selected = (Survival::currentRoomIndex == i);
                 if (ImGui::Selectable(room.readableName.c_str(), is_selected)) {

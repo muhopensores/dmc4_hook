@@ -15,7 +15,7 @@
 #include "fw-imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
 
-#define GUI_VERSION "dmc4_hook 1.5.0"
+#define GUI_VERSION "dmc4_hook 1.5.1"
 
 static constexpr char* version{GUI_VERSION};
 static constexpr float uiWidth       = 600.0f;
@@ -691,6 +691,8 @@ namespace gui {
                 pmods->on_draw_ui("GuardTimer"_hash);
 
                 pmods->on_draw_ui("StylePoints"_hash); // needs its own line
+
+                pmods->on_draw_ui("ExceedDisplay"_hash);
 
                 ImGui::SeparatorText(_("Camera"));
 
