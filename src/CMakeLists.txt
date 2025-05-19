@@ -428,6 +428,7 @@ set(MISC
 set(LANG
   i18n/en_dmc4hook.hpp
   i18n/ru_dmc4hook.hpp
+  i18n/zh_dmc4hook.hpp
 )
 
 source_group("imgui"   FILES ${IMGUI_SRC})

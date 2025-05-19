@@ -23,3 +23,4 @@ Get-ChildItem -Path .\i18n\mo\ -Filter *.mo -Recurse -File | ForEach-Object {
     $out_filename = ".\src\i18n\" + $_.BaseName + ".hpp"
     binary_to_compressed_c $_.FullName $_.BaseName > $out_filename
 }
+Read-Host -Prompt "Here's some time to read errors"

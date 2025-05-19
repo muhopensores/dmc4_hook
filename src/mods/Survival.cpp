@@ -440,7 +440,7 @@ void Survival::on_frame(fmilliseconds& dt) {
         }
         
         bool player_exists_now = (player != nullptr);
-        bool player_is_alive = player_exists_now && player->damageStruct.HP >= 0.0f;
+        bool player_is_alive = player_exists_now && player->damageStruct.HP > 0.0f;
         
         if ((player_exists_now && !player_existed_last_frame) || 
             (player_existed_last_frame && (!player_exists_now || !player_is_alive))) {

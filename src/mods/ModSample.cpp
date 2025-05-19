@@ -33,7 +33,7 @@ void ModSample::on_gui_frame(int display) {
         toggle1(mod_enabled);
     }
     ImGui::SameLine();
-    help_marker(_(""));
+    help_marker(_("ModSampleHelpMarker"));
 }
 
 // void on_game_pause(bool toggle) {}

@@ -36,7 +36,7 @@ naked void call1(void) {
         test esi, esi
         je save_and_exit_false
     CheckCanJC:
-        push esi // arg
+        push esi // enemy arg
         call dword ptr [detour1_getCanJC] // call 0x4AB170
         
         mov cl, al
@@ -91,26 +91,19 @@ naked void call1(void) {
     }
 }
 
-/*naked void detour1(void) {
+naked void detour1(void) {
     _asm {
         cmp byte ptr [EnemyStepDisplay::mod_enabled], 0
         je originalcode
         pushad
-        mov esi, [sUnit]
-        mov esi, [esi]
-        mov esi, [esi+0x194]
-        test esi, esi
-        je popcode
-        push esi
-        call dword ptr [detour1_getCanJC]
-        mov [EnemyStepDisplay::jc_possible], al
-    popcode:
+        call call1
         popad
+
     originalcode:
-        mov eax, [edi+0x00001410]
+        mov eax, [esi+0x000014F0]
         jmp dword ptr [EnemyStepDisplay::jmp_ret]
     }
-}*/
+}
 
 void EnemyStepDisplay::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
@@ -147,10 +140,10 @@ void EnemyStepDisplay::on_frame(fmilliseconds& dt) {
 }
 
 std::optional<std::string> EnemyStepDisplay::on_initialize() {
-    /*if (!install_hook_offset(0x4049C7, hook, &detour1, &EnemyStepDisplay::jmp_ret, 6)) {
+    if (!install_hook_offset(0x4035A9, hook, &detour1, &EnemyStepDisplay::jmp_ret, 6)) {
         spdlog::error("Failed to init EnemyStepDisplay mod\n");
         return "Failed to init EnemyStepDisplay mod";
-    }*/
+    }
     return Mod::on_initialize();
 }
 

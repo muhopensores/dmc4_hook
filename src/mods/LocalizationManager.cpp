@@ -7,6 +7,7 @@
 // compiled gettext files here
 #include "../i18n/en_dmc4hook.hpp"
 #include "../i18n/ru_dmc4hook.hpp"
+#include "../i18n/cn_dmc4hook.hpp"
 
 typedef const ImWchar* (ImFontAtlas::*GGR)();
 
@@ -20,6 +21,7 @@ static std::unordered_map<const char*, CompressedMoFile> g_locales_map {
     // NOTE(): example locale, doesnt contain any translated strings
     { "en", { (void*)en_dmc4hook_compressed_data, en_dmc4hook_compressed_size, &ImFontAtlas::GetGlyphRangesDefault } },
 #ifndef NDEBUG // tesing - machine translated file
+    { "zh", { (void*)cn_dmc4hook_compressed_data, cn_dmc4hook_compressed_size, &ImFontAtlas::GetGlyphRangesChineseSimplifiedCommon } },
     { "ru", { (void*)ru_dmc4hook_compressed_data, ru_dmc4hook_compressed_size, &ImFontAtlas::GetGlyphRangesCyrillic } },
 #endif
 };

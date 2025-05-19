@@ -1,0 +1,4168 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: dmc4_hook 1.5.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-19 17:53+0100\n"
+"PO-Revision-Date: 2025-05-19 17:56+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4.2\n"
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:224
+#, c-format
+msgid "Average %.3f ms/frame (%.1f FPS)"
+msgstr "平均 %.3f 毫秒/帧（%.1f FPS）"
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:225
+msgid "Save Config"
+msgstr "保存配置"
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:237
+msgid "Training"
+msgstr "培训"
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:240
+msgid "Practice"
+msgstr "练习"
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:266
+msgid "Difficulty"
+msgstr "难度"
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:292
+msgid "Game Mode"
+msgstr "游戏模式"
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:305
+msgid "Character"
+msgstr "字符"
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:316
+msgid "Nero"
+msgstr "尼禄"
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:320
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:396
+msgid "Limit Removal"
+msgstr "限制解除"
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:328
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:404
+msgid "Abilities"
+msgstr "能力"
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:346
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:504
+msgid "Speedups"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:352
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:518
+msgid "Infinite"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:362
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:492
+msgid "Accessibility"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:374
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:548
+msgid "Memes"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:392
+msgid "Dante"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:454
+msgid "Lucifer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:469
+msgid "Rose"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:477
+msgid "Pins"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:482
+msgid "Aerial grounded moves"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:532
+msgid "Darkslayer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:571
+msgid "Environment"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:582
+msgid "Stage"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:597
+msgid "Enemies"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:601
+msgid "Enemy Spawner"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:604
+msgid "Enemy Replacement"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:621
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:637
+msgid "System"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:624
+msgid "dmc4_hook"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:649
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:748
+msgid "Misc"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:667
+msgid "Cutscenes"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:675
+msgid "HUD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:683
+msgid "Custom HUD elements"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:697
+msgid "Camera"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:716
+msgid "Debug"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:720
+msgid "File Loading"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:724
+#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:61
+msgid "Noclip"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:732
+msgid "Multi-character Fixes"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:736
+msgid "Stats"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:756
+msgid "Testing"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:758
+msgid "View ImGui Demo"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:770
+msgid "Hotkeys"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:781
+msgid "About"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:784
+msgid "DMC4Hook - Devil May Cry 4 Trainer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:809
+msgid "For more info and updates visit the github:"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:814
+msgid "Frequently Asked Questions"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:816
+msgid "What mods do you recommend most?"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:817
+msgid ""
+"\"Fast Game Load\" and neighbouring options in the \"System\" tab. Get from "
+"your Desktop to BP in 2 seconds."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:819
+msgid "Old mods I installed have suddenly turned on"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:820
+msgid ""
+"\"HDD File Priority\" is ticked on the Debug page. If your DMC4 install "
+"contains any files left over from old mods, this will load them. To clean up "
+"your directory you'll need to delete files manually as Steam verification "
+"does not check newly added files."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:824
+msgid "My combo points are stuck at 0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:825
+msgid ""
+"\"Respawn Enemies when visiting the same room multiple times\" is ticked on "
+"the Debug page. If you didn't turn this on manually, it would have been auto "
+"ticked when you used the reload current room hotkey."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:828
+msgid "My camera is frozen"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:829
+msgid "The default hotkey for camera settings' freeze camera is Numpad 0."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:831
+msgid "I crash entering mission 1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:832
+msgid "\"Character Switcher\" crashes in this mission."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:834
+msgid "Payline is going through enemies"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:835
+msgid "Tick \"HDD File Priority\""
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:837
+msgid "Enemies are white sometimes"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:838
+msgid "This is a known issue with \"HDD File Priority\""
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:847
+msgid "This trainer was made using:"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:867
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:868
+msgid "Licenses"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:311
+#, c-format
+msgid "Version: %s"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:312
+#, c-format
+msgid "Date: %s"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:314
+msgid "Menu Key: Delete"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:316
+msgid "Save config"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:498
+msgid "Keys will probably show up only on US keyboard layouts."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:499
+msgid "We use MapVirtualKeyA();"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:500
+msgid "Making sure dear imgui renders unicode properly is complicated"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:501
+msgid "please understand. ;_;"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\Mutators.cpp:167
+msgid "Gameplay mutators configuration"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\Mutators.cpp:173
+msgid "Name"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\Mutators.cpp:176
+msgid "Enabled?"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\Mutators.cpp:178
+msgid "Toggle commands for chaos mode"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\Mutators.cpp:181
+msgid "Weight"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\Mutators.cpp:183
+msgid "How often mod will randomly appear during voting"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ActiveBlock.cpp:49
+msgid "Active Block"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ActiveBlock.cpp:51
+msgid ""
+"Block during uncancellable frames by pressing style while in Royal Guard or "
+"Darkslayer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AerialDrive.cpp:271
+msgid "Aerial Drive"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AerialDrive.cpp:275
+msgid "Allow Dante to use Drive in the air"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AerialStinger.cpp:216
+msgid "Aerial Stinger"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AerialStinger.cpp:220
+msgid "Allow Dante to use Stinger in the air"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AirMustang.cpp:157
+msgid "Air Mustang"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AirMustang.cpp:159
+msgid ""
+"Hold/Tap the style button while making contact with the enemy during Sky Star "
+"to quickly descend"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AlwaysRoyalRelease.cpp:20
+msgid "Always Royal Release"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AngelSnatch.cpp:218
+msgid "Angel Snatch"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AngelSnatch.cpp:220
+msgid "Mapped to forward + snatch"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:510
+msgid "Bloody Palace"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:513
+msgid "##BP Floor "
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:518
+msgid "Save BP Progress"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:541
+msgid "Save floor, timer, orbs, hp, dt, style points"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:543
+msgid "Teleport"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:548
+msgid "Load BP Progress"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:562
+msgid ""
+"Press Load after loading into BP\n"
+"Loads saved floor, timer, orbs, hp, dt, style points"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:566
+msgid "Mission Area Teleports"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:599
+msgid "Random BP"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:605
+msgid "All stages will be randomized"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:607
+msgid "BP Boss Rush"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:609
+msgid ""
+"Only boss stages will be played\n"
+"Enable before selecting BP"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:612
+msgid "View Randomized Stages"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:613
+msgid "Stage Number"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:615
+msgid "Random Stage"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:619
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:622
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:628
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:631
+#, c-format
+msgid "%i"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AssaultsDontJump.cpp:49
+msgid "No DTless Assault Escape"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AssaultsDontJump.cpp:52
+msgid "Disable Assaults jumping out of combos until they Devil Trigger"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\BackgroundRendering.cpp:78
+msgid "Background Input"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\BackgroundRendering.cpp:80
+msgid "The game will accept controller and keyboard inputs while tabbed out"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\BerialDaze.cpp:43
+msgid "Berial Daze"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\BerialDaze.cpp:47
+msgid "Set Berial to his fireless Dazed state"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\BigHeadMode.cpp:165
+#: C:\vs_projects\dmc4_hook\src\mods\BigHeadMode.cpp:178
+msgid "Big Head Mode"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\BigHeadMode.cpp:169
+#: C:\vs_projects\dmc4_hook\src\mods\BigHeadMode.cpp:182
+msgid "Head size scales with style"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\BigHeadMode.cpp:171
+#: C:\vs_projects\dmc4_hook\src\mods\BigHeadMode.cpp:184
+msgid "Swole Mode"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\BigHeadMode.cpp:175
+#: C:\vs_projects\dmc4_hook\src\mods\BigHeadMode.cpp:188
+msgid "Body size scales with style"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Borderless.cpp:129
+msgid "Borderless Window"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Borderless.cpp:133
+msgid "Only applies if in windowed. Hit Alt+Enter to toggle to windowed."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\BpPortal.cpp:29
+msgid "Ignore Red Seal Kill Requirements"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\BpPortal.cpp:33
+msgid ""
+"Force the BP Portal to appear, allows you to pass Red Seals without killing "
+"enemies"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:377
+msgid "Disable Lockon Autocorrects"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:381
+msgid ""
+"Attempts to stop the camera spinning behind Dante when enemies are more than "
+"like 2ft away"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:383
+msgid "Disable Attack Corrects"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:387
+msgid ""
+"Attempts to stop the camera rotating when the player attacks towards the "
+"camera, intended for comparison purposes"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:389
+msgid "Disable Last Enemy Zoom"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:394
+msgid ""
+"Disable the zoom-in that happens when you're fighting the last enemy of a room"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:396
+msgid "Force Last Enemy Zoom"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:402
+msgid "Side Reset"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:404
+msgid "When pressing camera reset, the camera will be set to the player's left"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:407
+msgid "Right Side Reset"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:409
+msgid "Set the camera to the right instead"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:414
+msgid "Increased Sensitivity"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:416
+msgid "Increases the camera rotation speed"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:418
+msgid "Camera Lookdown"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:422
+msgid "When above the locked on enemy the camera will look down"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:425
+msgid "Enable Camera Settings And Hotkeys"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:428
+msgid "Camera Settings"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:431
+msgid "Height"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:432
+msgid "##Height InputFloat"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:433
+msgid "Distance"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:434
+msgid "##Distance InputFloat"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:435
+msgid "Distance (Lockon)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:436
+msgid "##Distance (Lockon) InputFloat"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:437
+msgid "Angle"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:438
+msgid "##Angle InputFloat"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:439
+msgid "Angle (Lockon) "
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:440
+msgid "##Angle (Lockon) InputFloat"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:441
+msgid "FOV"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:442
+msgid "##FOV InputFloat"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:443
+msgid "FOV (In Battle)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:444
+msgid "##FOV (In Battle) InputFloat"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:448
+msgid "Reset Camera Variables"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CharacterSwap.cpp:83
+msgid "Character Select in any mission"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CharacterSwap.cpp:87
+msgid "Does not work for M1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CharacterSwap.cpp:89
+msgid "Prefer Dante"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CharacterSwap.cpp:93
+msgid ""
+"On character select screens where both characters are selectable, prefer "
+"Dante to Nero"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ChargeChecker.cpp:104
+msgid "Fast Round Trip Charge"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ChargeChecker.cpp:106
+msgid "Half the charge time on Round Trip"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ChargeChecker.cpp:109
+msgid "Fast Blue Rose Charge"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ChargeChecker.cpp:111
+msgid "Half the charge time on Blue Rose"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:732
+msgid "Character Switcher"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:736
+msgid ""
+"Enable before loading into a stage\n"
+"This has a few unintentional side effects.\n"
+"All the time this cheat is ticked,\n"
+"- Lock on is a little less accurate\n"
+"- Style drains twice as fast\n"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:744
+msgid "Input 1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:757
+msgid "Set a button combo to trigger the switch"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:758
+msgid "Input 2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:772
+msgid "Inertia carryover"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:776
+msgid "Enable inertia carryover on switching"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CrossGunCharge.cpp:21
+msgid "Cross Gun Charge"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CrossGunCharge.cpp:25
+msgid "Changing gun doesn't empty your charge"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CustomModelFix.cpp:54
+msgid "Custom Nero Model Fix"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CustomModelFix.cpp:56
+msgid "Remove exploding shadows on Nero mods"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CustomModelFix.cpp:58
+msgid "Custom Dante Model Fix"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CustomModelFix.cpp:60
+msgid "Remove exploding shadows on Dante mods"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CustomProjectile.cpp:363
+msgid "Requires \"HDD File Priority\" at the top of the Debug page"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CutscenePause.cpp:29
+msgid "Pause Cutscenes"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CutscenePause.cpp:33
+msgid "The hotkey is PAUSE BREAK by default"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CutscenePause.cpp:40
+msgid "Cutscene Progress"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CutscenePause.cpp:42
+msgid "This doesn't seem to like time being reversed"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CutsceneSkip.cpp:28
+msgid "Skip Mission Intros"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\CutsceneSkip.cpp:32
+msgid "Skip Mission Outros"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:553
+msgid "Download Judgement Cut Files"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:557
+msgid ""
+"Clicking this button will open https://github.com/muhopensores/dmc4_hook/"
+"releases\n"
+"From here you can download optional files for mods that require them, found "
+"in the Assets section of each dmc4_hook release\n"
+"Once you've downloadeded and installed these files (I recommend using Fluffy "
+"Mod Manager), restart the game and tick \"HDD File Priority\" in the Debug "
+"tab before you load into a stage\n"
+"This mod gives Dante Judgement Cut"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:564
+msgid "Judgement Cut"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:567
+msgid ""
+"Activate judgement cut when performing Yamato aerial rave with lock-on."
+"Perform normal inertia-less Yamato rave on lock-off\n"
+"Requires \"HDD File Priority\" at the top of the Debug page"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:572
+msgid "Lock-on + back input"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:574
+msgid "Bind jdc activation to lock-on + back"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:575
+msgid "Inertia enable"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:286
+msgid "Free Camera"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:301
+msgid "Gameplay Cam"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:304
+#, c-format
+msgid "Extra Cam %i"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:340
+msgid "Toggle Gameplay Cam"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:343
+msgid "Mouse Controls"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:344
+msgid "Pew pew"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:345
+msgid "Keyboard Controls"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:347
+msgid ""
+"Controls are:\n"
+"W, A, S, D = movement\n"
+"Arrow keys = Pitch & Yaw\n"
+"Space & Ctrl = Up & Down\n"
+"Q & E = roll\n"
+"Shift = speed modifier\n"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:348
+msgid "Gamepad Controls"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:350
+msgid "This option applies when selecting a new splitscreen"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:352
+msgid "Camera Speed"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:353
+msgid "Camera Modifier Speed"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DifficultySelect.cpp:361
+msgid "Difficulty ##Game Mode Combo"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DifficultySelect.cpp:361
+msgid "Default"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DifficultySelect.cpp:381
+msgid ""
+"This is a modded difficulty originally from SpoilerAL that makes 49 changes "
+"per difficulty. It seems to edit damage values and allow (faster than normal) "
+"enemy DT but also disables a lot of enemy attacks"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DisableCameraEvents.cpp:74
+msgid "Disable Camera Events"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DisableChimeraBlades.cpp:34
+msgid "Disable Chimera Blades"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DisableChimeraBlades.cpp:36
+msgid "Stop the blades on chimera infected enemies from attacking"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DisableDarkslayer.cpp:47
+msgid "Disable Darkslayer Inputs"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DisableDarkslayer.cpp:52
+msgid "Trickster"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DisableDarkslayer.cpp:58
+msgid "Gunslinger"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DisableDarkslayer.cpp:62
+msgid "Sword Master"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DisableDarkslayer.cpp:68
+msgid "Royal Guard"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DisableDTStinger.cpp:18
+msgid "Disable DT Stinger"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DisableKeyboard.cpp:51
+msgid "Always Disable Keyboard Input"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DisableKeyboard.cpp:53
+msgid ""
+"Disable keyboard inputs throughout DMC4\n"
+"Useful when using \"Background Input\""
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DisableKeyboard.cpp:56
+msgid "Trainer Disables Keyboard Input"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DisableKeyboard.cpp:58
+msgid "Disable keyboard inputs when opening the trainer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DmdBloodyPalace.cpp:20
+msgid "BP DMD HP + DT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DmdBloodyPalace.cpp:24
+msgid ""
+"Up enemy defence to DMD levels and enable enemy DT without adding DMD AI.\n"
+"Enemies will take longer to DT than with the SpoilerAL difficulty.\n"
+"Applied when starting BP"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DmdLevelAi.cpp:22
+msgid "DMD AI"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DmdLevelAi.cpp:26
+msgid ""
+"Apply DMD AI to enemies without changing their defence or giving them DT.\n"
+"Applied when an enemy spawns"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:165
+msgid "Double Tap Darkslayer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:167
+msgid "Darkslayer is accessed by quickly pressing one style twice"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:171
+msgid "Double Tap Timer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DtEnemiesDontStun.cpp:20
+msgid "DT Enemies Don't Stun"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DtEnemiesDontStun.cpp:24
+msgid "Stop enemies from receiving stun from most attacks"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:819
+msgid "Download Guardian Devil Files"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:823
+msgid ""
+"Clicking this button will open https://github.com/muhopensores/dmc4_hook/"
+"releases\n"
+"From here you can download optional files for mods that require them, found "
+"in the Assets section of each dmc4_hook release\n"
+"Once you've downloadeded and installed these files (I recommend using Fluffy "
+"Mod Manager), restart the game and tick \"HDD File Priority\" in the Debug "
+"tab before you load into a stage\n"
+"This mod lets you trigger an attack from Nero's Stand when you input the "
+"selected button"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:830
+msgid "Guardian Devil"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:834
+msgid ""
+"Triggers a stand attack when you input the selected button.\n"
+"Lockon+forward/back for other attacks"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:838
+msgid "Guardian Input"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EasyJc.cpp:39
+#: C:\vs_projects\dmc4_hook\src\mods\EasyJc.cpp:44
+msgid "Easy Enemy Step"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EasyJc.cpp:41
+#: C:\vs_projects\dmc4_hook\src\mods\EasyJc.cpp:46
+#, c-format
+msgid "50% bigger Enemy Step hitspheres"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EffectColours.cpp:40
+msgid "Custom Effect Colours"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EffectColours.cpp:42
+msgid ""
+"I haven't figured this out yet, right now it just edits any effect that "
+"contains \"2_17\" in the name"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EffectColours.cpp:46
+msgid "Colours"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyAttackOffScreen.cpp:19
+msgid "Enemies Attack Offscreen"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyAttackOffScreen.cpp:23
+msgid "Allow enemies to attack even if they're not currently in camera view"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyDT.cpp:30
+msgid "Enemies Don't DT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyDT.cpp:36
+msgid "Disable enemy Devil Trigger"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyDT.cpp:38
+msgid "Enemies DT Instantly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyDT.cpp:44
+msgid "If available, enemies will Devil Trigger instantly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:353
+msgid "Reset Enemy Replacements:"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:355
+msgid "Reset"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySlotting.cpp:49
+msgid "Slot Limit"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySlotting.cpp:56
+msgid ""
+"Set how many enemies can attack at the same time.\n"
+"After selecting Default, the original value will only be restored after "
+"entering a new fight"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:520
+msgid "Random"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:526
+msgid "[DEBUG] Custom Spawn Addr"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:121
+msgid "Is enemy step possible?"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:125
+msgid ""
+"Is enemy step enabled?\n"
+"(Nero's Buster moves and possibly other things disable enemy step)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:129
+msgid "Is player grounded?"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:132
+msgid "Enemy step was possible for this number of 60fps frames"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:135
+msgid "Jump Cooldown"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:152
+msgid "Enemy Step Display"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:154
+msgid "See if it was possible to enemy step in that combo after all"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:157
+msgid "Show Extra Info"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:285
+msgid "[OLD] Display Enemy Stats"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:287
+msgid "[DEBUG] Flying Spheres"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:289
+msgid ""
+"Sphere in the middle is clickable!\n"
+"These are random sizes for proof of concept"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:290
+msgid "[DEBUG] Flying Ad"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:292
+msgid "Makes the UI flicker :("
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:309
+msgid "Save State"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:313
+msgid ""
+"Affects you and the enemy you have selected on this page\n"
+"Hotkey is HOME by default"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:315
+msgid "Load State"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:319
+msgid ""
+"Affects you and the enemy you have selected on this page\n"
+"Hotkey is END by default"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:326
+msgid "Enemy Count"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:328
+msgid "Enemy Select"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:329
+msgid "Find Locked On Enemy In List"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:345
+msgid "HP##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:346
+msgid "Max HP##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:347
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:211
+msgid "Previous Hit Dealt"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:348
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:212
+msgid "Stun 1##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:349
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:213
+msgid "Stun 2##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:350
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:214
+msgid "Stun 3##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:351
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:215
+msgid "Stun 4##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:352
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:216
+msgid "Stun 5##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:353
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:217
+msgid "Displacement 1##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:354
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:218
+msgid "Displacement 2##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:355
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:219
+msgid "Displacement 3##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:356
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:220
+msgid "Displacement 4##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:357
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:221
+msgid "Displacement 5##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:358
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:222
+msgid "Unknown 1##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:359
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:223
+msgid "Unknown 2##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:360
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:224
+msgid "Unknown 3##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:361
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:225
+msgid "Unknown 4##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:362
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:226
+msgid "Unknown 5##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:363
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:227
+msgid "Unknown 6##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:364
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:228
+msgid "Unknown 7##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:365
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:229
+msgid "Unknown 8##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:367
+msgid "XYZ Position##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:368
+msgid "XYZ Rotation##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:369
+msgid "XYZ Velocity##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:370
+msgid "XYZ Scale##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:371
+msgid "Move ID##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:372
+msgid "Move ID 2##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:373
+msgid "Move Part##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:374
+msgid "Grounded##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:375
+msgid "Animation Frame##2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:376
+msgid "Saved Info"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:377
+msgid "Enemy Move ID"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:378
+msgid "Enemy Move ID 2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:379
+msgid "Enemy Position"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:380
+msgid "Enemy Rotation"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:381
+msgid "Enemy Velocity"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:382
+msgid "Enemy Grounded"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:388
+msgid "Enable Save/Load hotkeys"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:390
+msgid ""
+"Assuming default hotkeys,\n"
+"Home+End will save and load enemy attacks\n"
+"Page Up+Page Down will save and load boss attacks"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:80
+msgid "##ManualExceedTimer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:82
+msgid ""
+"This slider shows how long before the exceed window started you pressed the "
+"exceed button. This is calculated by dmc4_hook"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:83
+msgid "##exceedTimerSnapshot"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:85
+msgid ""
+"This slider shows a snapshot of what the exceed timer read when the exceed "
+"button was pressed"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:86
+msgid "##exceedTimer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:88
+msgid "This slider shows the exceed timer in realtime"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:95
+msgid "Exceed Display"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:97
+msgid "WIP, will be neater when more understood"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedLimiter.cpp:30
+msgid "Exceed Limiter"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedLimiter.cpp:32
+msgid "Attacks only use one bar of exceed if holding the exceed button"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FasterFastDrive.cpp:22
+msgid "Fast Quick Drive"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FasterFastDrive.cpp:26
+msgid "Quick Drive skips the initial slash"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FasterFastDrive.cpp:29
+msgid "Easy Quick Drive"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FasterFastDrive.cpp:31
+msgid "Prop is cancellable into quick drive until frame 7"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FastPandora.cpp:98
+msgid "Fast Pandora"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FastPandora.cpp:102
+msgid "Cycle to grounded Pandora moves in DT speed outside of DT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FastPandora.cpp:104
+msgid "Fast Gunship"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FastPandora.cpp:106
+msgid "Significantly speed up Argument startup and recovery"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FastRoundTrip.cpp:36
+msgid "Fast Round Trip"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FastRoundTrip.cpp:38
+msgid "Round Trip throw animation starts at frame 80"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FastSprint.cpp:40
+#: C:\vs_projects\dmc4_hook\src\mods\FastSprint.cpp:45
+msgid "Fast Sprint"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FastSprint.cpp:42
+#: C:\vs_projects\dmc4_hook\src\mods\FastSprint.cpp:47
+msgid "Go from Run to Speed faster, even if you're in battle"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:123
+msgid "Fast Game Load"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:125
+msgid "The game will skip all opening screens and load the first save slot"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:127
+msgid "Fast Menu Fades"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:129
+msgid "Skip the fades between some menus"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:131
+msgid "Fast BP Fade"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:135
+msgid "Skips the BP load fade"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FireworksTweaks.cpp:62
+msgid "Fireworks Tweaks"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FireworksTweaks.cpp:64
+msgid ""
+"Edit the start frame, cancel frame and cancel properties of grounded Fireworks"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:30
+msgid "Start Addr"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:31
+msgid "base.uknFlag1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:32
+msgid "base.uknFlag2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:33
+msgid "base.mTransMode"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:34
+msgid "base.mTransView"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:35
+msgid "base.mp_next_unit"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:36
+msgid "base.mp_prev_unit"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:37
+msgid "base.m_delta_time"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:38
+msgid "base.reserved_state_flags"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:41
+msgid "mHit"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:42
+msgid "mGrab"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:43
+msgid "mDamage"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:44
+msgid "mPsh"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:45
+msgid "mLand"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:46
+msgid "mTimedForceLand"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:47
+msgid "mSetLand"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:48
+msgid "mWall"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:49
+msgid "mCeilling"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:52
+msgid "mNoLandTimerEnable"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:53
+msgid "mNoLandTimer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:54
+msgid "mNoLandTime"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:55
+msgid "ForceLandFlag"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:56
+msgid "mCheckWallEnable"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:57
+msgid "mCheckGroundEnable"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:58
+msgid "mFall"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:59
+msgid "NoLandTimerType"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:60
+msgid "NoLandDTSwitch"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:61
+msgid "field25_0x3f"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:62
+msgid "NoLandTimerType2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:63
+msgid "DamageValueCorrect"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:64
+msgid "EnemyCollisionToggle"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:65
+msgid "LockonTargetPos"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:66
+msgid "LockOnTarget"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:69
+msgid "uknFixedVec1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:70
+msgid "GroundMat m1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:71
+msgid "GroundMat m2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:72
+msgid "GroundMat m3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:73
+msgid "GroundMat m4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:74
+msgid "uknFixedVec2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:75
+msgid "mWeightType"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:76
+msgid "mModelID"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:77
+msgid "mpReportActor"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:78
+msgid "mpDstModel"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:79
+msgid "mpSrcModel"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:80
+msgid "uknSrcModelPtr"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:81
+msgid "mPushType"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:82
+msgid "mpPushModel"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:85
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:102
+msgid "mPushCap p0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:86
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:103
+msgid "mPushCap p1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:87
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:104
+msgid "mPushCap r"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:88
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:105
+msgid "field3_0x24"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:89
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:106
+msgid "field4_0x25"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:90
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:107
+msgid "field5_0x26"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:91
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:108
+msgid "field6_0x27"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:92
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:109
+msgid "field7_0x28"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:93
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:110
+msgid "field8_0x29"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:94
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:111
+msgid "field9_0x2a"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:95
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:112
+msgid "field10_0x2b"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:96
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:113
+msgid "field11_0x2c"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:97
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:114
+msgid "field12_0x2d"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:98
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:115
+msgid "field13_0x2e"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:99
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:116
+msgid "field14_0x2f"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:119
+msgid "mPushPos"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:120
+msgid "mPushPosOld"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:121
+msgid "field50_0x1c0 m1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:122
+msgid "field50_0x1c0 m2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:123
+msgid "field50_0x1c0 m3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:124
+msgid "field50_0x1c0 m4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:125
+msgid "field51_0x200 m1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:126
+msgid "field51_0x200 m2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:127
+msgid "field51_0x200 m3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:128
+msgid "field51_0x200 m4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:129
+msgid "uknToggle"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:130
+msgid "currentMotBuffer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:131
+msgid "MotSeq1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:132
+msgid "MotSeq2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:133
+msgid "HitCheckFlag"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:134
+msgid "HitConfirm"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:135
+msgid "mSelfCollision"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:136
+msgid "mMode"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:139
+msgid "mVsAttrPlAtk"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:140
+msgid "mVsAttrPlDmg"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:141
+msgid "mVsAttrPlPsh"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:142
+msgid "mVsAttrPlGrb"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:143
+msgid "mVsAttrPsAtk"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:144
+msgid "mVsAttrPsDmg"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:145
+msgid "mVsAttrPsPsh"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:146
+msgid "mVsAttrPsGrb"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:147
+msgid "mVsAttrEmAtk"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:148
+msgid "mVsAttrEmDmg"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:149
+msgid "mVsAttrEmPsh"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:150
+msgid "mVsAttrEmGrb"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:153
+msgid "mVsAttrEsAtk"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:154
+msgid "mVsAttrEsDmg"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:155
+msgid "mVsAttrEsPsh"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:156
+msgid "mVsAttrEsGrb"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:157
+msgid "mVsAttrSetAtk"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:158
+msgid "mVsAttrSetDmg"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:159
+msgid "mVsAttrSetPsh"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:160
+msgid "mVsAttrSetGrb"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:161
+msgid "mVsAttrStgAtk"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:164
+msgid "mVsAttrStgDmg"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:165
+msgid "mVsAttrStgPsh"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:166
+msgid "mVsAttrStgGrb"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:167
+msgid "UknVsAttrAtk1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:168
+msgid "UknVsAttrDmg1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:169
+msgid "UknVsAttrPsh1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:170
+msgid "UknVsAttrGrb1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:171
+msgid "UknVsAttrAtk2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:172
+msgid "UknVsAttrDmg2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:173
+msgid "UknVsAttrPsh2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:174
+msgid "UknVsAttrGrb2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:175
+msgid "UknVsAttrAtk3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:178
+msgid "UknVsAttrDmg3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:179
+msgid "UknVsAttrPsh3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:180
+msgid "UknVsAttrGrb3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:181
+msgid "UknVsAttrAtk4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:182
+msgid "UknVsAttrDmg4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:183
+msgid "UknVsAttrPsh4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:184
+msgid "UknVsAttrGrb4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:185
+msgid "UknCollisionToggle"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:186
+msgid "mCollisionGroupNum"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:297
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:352
+msgid "Base Addr"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:298
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:353
+msgid "Position##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:299
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:359
+msgid "Rotation##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:300
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:356
+msgid "Velocity##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:301
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:357
+msgid "Scale##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:303
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:360
+msgid "Anim ID##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:304
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:361
+msgid "Move Part##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:305
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:362
+msgid "Animation Frame##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:306
+msgid "Team##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:307
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:363
+msgid "ID##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:308
+msgid "Number##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:354
+msgid "InertiaXZ##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:355
+msgid "InertiaY##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:381
+msgid "Flying Stats"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:383
+msgid "Render ImGui stats on entities"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:386
+msgid "Display Enemy Stats"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:387
+msgid "Display Player Stats"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:389
+msgid "Display HP"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:390
+msgid "Display Damage Taken"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:391
+msgid "Display Damage Resist"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:394
+msgid "Display DT Timer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:395
+msgid "Display Stun"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:396
+msgid "Display Displacement"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:397
+msgid "Display Move ID"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:398
+msgid "Display Mechanics"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:399
+msgid "Display Debug Info"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:400
+msgid "Display Collision Info"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ForceLucifer.cpp:49
+msgid "Force Lucifer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ForceLucifer.cpp:51
+msgid "Forcing Lucifer means never forcefully despawning rose"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FpsLimit.cpp:33
+msgid "Override FPS Limit"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FpsLimit.cpp:35
+msgid ""
+"If your FPS is set to unlocked, this will allow you to change the cap. Some "
+"things work differently at certain framerates"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FpsLimit.cpp:39
+msgid "FPS Limit"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FreeJc.cpp:79
+#: C:\vs_projects\dmc4_hook\src\mods\FreeJc.cpp:86
+#: C:\vs_projects\dmc4_hook\src\mods\FreeJc.cpp:91
+msgid "Free Enemy Step"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FreeJc.cpp:83
+msgid ""
+"Enemy Step anywhere (this enables/disables the cheat for both characters)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FreeJc.cpp:88
+#: C:\vs_projects\dmc4_hook\src\mods\FreeJc.cpp:93
+msgid "Enemy Step anywhere"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FreezeEnemies.cpp:43
+msgid "Freeze Enemies"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FreezeEnemies.cpp:47
+msgid "Freeze enemies in place, even if they're midair."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FrenziedBossAI.cpp:44
+msgid "Frenzied Boss AI"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FrenziedBossAI.cpp:48
+msgid "Force bosses to use the AI they usually use when low HP"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FrostsDontJump.cpp:25
+msgid "No DTless Frost Escape"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FrostsDontJump.cpp:29
+msgid "Disable Frosts jumping out of combos until they DT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\GhostWalls.cpp:40
+msgid "Mephisto/Faust Collision"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\GhostWalls.cpp:42
+msgid "Mephisto and Faust get caught on stage collision"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\GuardSteer.cpp:82
+msgid "Guardsteer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\GuardSteer.cpp:84
+msgid ""
+"See your body into the moonlight\n"
+"Even if I try to cancel\n"
+"All the pictures into the mind\n"
+"There's a flashing in my eyes"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:81
+msgid "Royal Guard Timing Display"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:83
+msgid "See how early or late your guards were"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:124
+msgid ""
+"0.0, the middle, is when damage was applied\n"
+"The marker location is your block timing relative to that damage application"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:138
+msgid ""
+"This is the perfect block window\n"
+"Anything above this number to below or equal 0 is a perfect block / release\n"
+"At 60fps with no turbo and no DT you must guard under 5 frames."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\GunStingerDistance.cpp:39
+msgid "Gun Stinger 2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\GunStingerDistance.cpp:41
+msgid "Gun Stinger covers the same distance as Stinger 2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HeightRestriction.cpp:66
+#: C:\vs_projects\dmc4_hook\src\mods\HeightRestriction.cpp:76
+msgid "Height Restriction"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HeightRestriction.cpp:70
+#: C:\vs_projects\dmc4_hook\src\mods\HeightRestriction.cpp:80
+msgid ""
+"By default, certain moves are locked behind a height threshold. If you're "
+"below that threshold, they cannot be started. This removes that limit"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HeightRestriction.cpp:73
+#: C:\vs_projects\dmc4_hook\src\mods\HeightRestriction.cpp:83
+msgid "Air Hike Height Restriction"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HideHud.cpp:456
+msgid "Hide All HUD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HideHud.cpp:460
+msgid "Hide Timer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HideHud.cpp:464
+msgid "Hides the BP, Secret Mission and M12 timers"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HideHud.cpp:466
+msgid "Hide HP HUD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HideHud.cpp:470
+msgid "Hide Orbs HUD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HideHud.cpp:474
+msgid "Hide Style HUD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HideHud.cpp:478
+msgid "Style Dial Only"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HideHud.cpp:482
+msgid "Hides every element of the HP HUD other than the style dial"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HideHud.cpp:484
+msgid "Hide Map HUD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HideHud.cpp:488
+msgid "Hide Boss HP HUD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HideHud.cpp:492
+msgid "Enable before the boss spawns"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HideHud.cpp:494
+msgid "Never Hide Weapons HUD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HideHud.cpp:500
+msgid "Disable the fade out on the weapon switch UI"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HideHud.cpp:502
+msgid "Always Hide Weapons HUD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HideHud.cpp:508
+msgid "Show Style Points in BP"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HighTimeWeaponSwitch.cpp:18
+msgid "High Time Weapon Switch"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HighTimeWeaponSwitch.cpp:22
+msgid ""
+"Changing weapons early while holding High Time will still allow you to do the "
+"held variant"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HpInOrbsDisplay.cpp:40
+msgid "Enemy HP Red Orb Display"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\HpInOrbsDisplay.cpp:42
+msgid "Display the last hit enemy's HP in the Red Orb count"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfAirHikes.cpp:74
+#: C:\vs_projects\dmc4_hook\src\mods\InfAirHikes.cpp:77
+msgid "Infinite Air Hikes"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfAllHealth.cpp:154
+msgid "Infinite Health (All)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfAllHealth.cpp:165
+msgid ""
+"Disable any entity's health decreasing. By default this is hotkeyed to F1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfAllHealth.cpp:167
+msgid "Infinite Health (Player)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfAllHealth.cpp:174
+msgid "Disable the player's health decreasing"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfAllHealth.cpp:176
+msgid "Infinite Health (Enemy)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfAllHealth.cpp:183
+msgid "Disable enemy's health decreasing"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfAllHealth.cpp:190
+msgid "Damage Multipliers"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfAllHealth.cpp:194
+msgid "Outgoing"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfAllHealth.cpp:195
+msgid "Incoming"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfAllHealth.cpp:203
+msgid "Must style mode"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfAllHealth.cpp:205
+msgid "Damage is disabled until reaching S rank"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfAllHealth.cpp:207
+msgid "Might style mode"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfAllHealth.cpp:209
+msgid ""
+"Damage scales with Style\n"
+"0 damage at no rank to 1.0 damage at S"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfCalibur.cpp:21
+msgid "Infinite Calibur"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfDreadnaught.cpp:55
+msgid "Infinite Dreadnaught"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfDreadnaught.cpp:60
+msgid "Run in Dreadnaught"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfDT.cpp:41
+msgid "Infinite DT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfDT.cpp:43
+msgid ""
+"Fill your Devil Trigger Gauge and stops it from decreasing. By default this "
+"is hotkeyed to F2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfFaustCloak.cpp:29
+msgid "Infinite Mephisto / Faust Cloak"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfFaustCloak.cpp:33
+msgid "Disable Mephisto / Faust Recloak"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfFrostHeal.cpp:31
+msgid "Infinite Frost Heals"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfFrostHeal.cpp:35
+msgid ""
+"By default, Frosts are limited to successfully healing and rearming 5 times, "
+"making some attacks awkward to see in practice"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfinitePinTimer.cpp:21
+msgid "Infinite Pin Timer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfiniteTime.cpp:20
+msgid "Disable Timer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfiniteTime.cpp:24
+msgid ""
+"Stop the BP, Secret Mission and Mission 12 timers from decreasing over time"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfPlayerHealth.cpp:34
+msgid "Freeze Player HP To Max"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfRevive.cpp:25
+msgid "Infinite Revives"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfRevive.cpp:29
+msgid "Revive on the spot whenever you die for free"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfSkyStars.cpp:19
+msgid "Infinite Sky Stars"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfTableHopper.cpp:19
+msgid "Always Table Hopper"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfTrickRange.cpp:19
+msgid "Infinite Trick Range"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InputStates.cpp:259
+msgid "Taunt Ecstasy"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InputStates.cpp:261
+msgid ""
+"Press Taunt in the air to perform Ecstasy. Consider using this with Selective "
+"Cancellable Ecstasy to make it feel more like 5"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InstantTrick.cpp:20
+msgid "Fast Trick"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InstantTrick.cpp:24
+msgid "Skips one part of the trick animation"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:180
+msgid "Release Always Stuns"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:182
+msgid "Release with no meter can stun the enemy"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:184
+msgid "Shock Launches"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LdkWithDmd.cpp:40
+msgid "LDK With DMD AI"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LdkWithDmd.cpp:44
+msgid ""
+"When playing a mission on Legendary Dark Knight, enemies will use DMD AI (and "
+"DT) instead of Son Of Sparda AI"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LimitAdjust.cpp:101
+#: C:\vs_projects\dmc4_hook\src\mods\LimitAdjust.cpp:113
+msgid "Target Switch Limit"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LimitAdjust.cpp:103
+#: C:\vs_projects\dmc4_hook\src\mods\LimitAdjust.cpp:115
+msgid ""
+"By default, the Target Switch button does nothing while holding the left "
+"stick (or WASD) in a direction. This removes that limit and allows you to "
+"target switch whenever"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LimitAdjust.cpp:106
+#: C:\vs_projects\dmc4_hook\src\mods\LimitAdjust.cpp:118
+msgid "Enemy Step Limit"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LimitAdjust.cpp:108
+#: C:\vs_projects\dmc4_hook\src\mods\LimitAdjust.cpp:120
+msgid ""
+"By default, there is a short timer that must end before two Jump Cancels can "
+"be made consecutively. This cheat removes that timer and allows you to Jump "
+"Cancel as often as you want\n"
+"This makes certain sequences much easier. If you're learning the game, I "
+"recommend not using this to save getting into bad habits"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LimitAdjust.cpp:124
+msgid "Sword & Gun Switch Limit"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LimitAdjust.cpp:128
+msgid ""
+"By default, there are short timers that must end before two sword or gun "
+"switches can be made consecutively. Without this timer, you can swap to "
+"distant weapons quickly and more easily do strings like Shotgun > Enemy Step "
+"> Ebony & Ivory shot"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LimitAdjust.cpp:131
+msgid "Style Switch Limit"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LimitAdjust.cpp:135
+msgid ""
+"By default, there is a short timer that must end before two style switches "
+"can be made consecutively. This cheat removes that timer and allows you to "
+"Style Switch as often as you want"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LimitAdjust.cpp:138
+msgid "Same Tick Style Change"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LimitAdjust.cpp:142
+msgid ""
+"Style changes registered on the same tick as other inputs are ignored by "
+"default.\n"
+"One bug has been found with this cheat so far: Every other time you perform "
+"Climax you'll spawn Discipline pins too"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LoadOrder.cpp:442
+msgid "HDD File Priority"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LoadOrder.cpp:444
+msgid ""
+"The game will look for files outside of arcs before looking inside.\n"
+"Required by \"Aerial Stinger\", \"Payline\" and \"Lucifer Air Throw\""
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LocalizationManager.cpp:80
+msgid "Language"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LocalizationManager.cpp:98
+msgid ""
+"Save config to load language settings on start.\n"
+"Please submit your translations for dmc4hook :pray:"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LongerJealousy.cpp:19
+msgid "Longer Jealousy"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LongerJealousy.cpp:23
+msgid "Jealousy doesn't stop shooting until you cancel or land"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LuciAirThrow.cpp:104
+msgid "Lucifer Air Throw"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LuciAirThrow.cpp:108
+msgid "Add new move mimicking V5rgil's air taunt. Mapped to forward + melee"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ManualLuciferAim.cpp:127
+msgid "Consistent Target"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ManualLuciferAim.cpp:129
+msgid ""
+"Replace the forced auto enemy facing on Lucifer A2, A4, E2, E3 with what most "
+"other moves use"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ManualTwosomeTime.cpp:19
+msgid "Manual Twosome Time"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ManualTwosomeTime.cpp:23
+msgid "Disable Twosome Time's automatic lock-on"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MessageDisplay.cpp:33
+msgid "Keyboard Navigation"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MessageDisplay.cpp:35
+msgid "Keyboard navigation throughout dmc4_hook"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MessageDisplay.cpp:37
+msgid "Gamepad Navigation"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MessageDisplay.cpp:39
+msgid "Gamepad navigation throughout dmc4_hook"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MessageDisplay.cpp:41
+msgid "Display Messages"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MessageDisplay.cpp:43
+msgid "Show/Hide popups at the top left such as \"Infinite Health (All) On\""
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MessageDisplay.cpp:45
+msgid "Scroll Transitions"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ModSample.cpp:32
+msgid "ModSample"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ModSample.cpp:36
+msgid "ModSampleHelpMarker"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:214
+#, c-format
+msgid "Player Attack ID = %i"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:240
+#, c-format
+msgid "Nero Moves Added = %i"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:242
+#, c-format
+msgid "Dante Moves Added = %i"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:390
+msgid "##+0 Attribute"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:393
+msgid "##+4 Attack ID"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:396
+msgid "##+8 Attack Level"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:399
+msgid "##+C Enable Command Settings"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:403
+msgid "##+10"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:418
+msgid "##+14 Weapon Condition"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:424
+msgid "##+18 Style Condition"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:429
+msgid "##+1C DT Condition"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:432
+msgid "##+20 Aerial Condition"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:435
+msgid "##+24"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:438
+msgid "##+28"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:441
+msgid "##+2C"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:444
+msgid "##+30"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:447
+msgid "##+34"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:463
+msgid "+0 Attribute"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:464
+msgid "+4 Attack ID"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:465
+msgid "+8 Level"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:466
+msgid "+C Enable Command Settings"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:470
+msgid "+10 Cmd"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:473
+msgid "+11 Cmd No"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:474
+msgid "+12 Cmd Cond"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:475
+msgid "+13 Cmd Ukn"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:478
+msgid "+14 Weapon Condition"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:482
+msgid "+18 Style Condition"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:486
+msgid "+1C DT Condition"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:487
+msgid "+20 Aerial Condition"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:488
+msgid "+24 Cancel 0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:489
+msgid "+28 Cancel 1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:490
+msgid "+2C Cancel 2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:491
+msgid "+30 Cancel 3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:492
+msgid "+34 Cancel 4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:498
+msgid "Display Move Table"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:503
+msgid "Display Table Editor"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:519
+msgid "Player Attack ID"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:521
+msgid "Find Current Attack ID"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:532
+msgid "Entry Num"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:533
+#, c-format
+msgid "Entry count: %i"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:536
+msgid "Create a new entry"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:538
+msgid "Fill fields from currently displayed entry"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:555
+msgid "Create"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:605
+msgid "Load into a stage to see the table and the editor"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MultiCharFixes.cpp:16
+msgid "Targeting Fix"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MustangWalls.cpp:36
+msgid "Mustang Walls"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:91
+msgid "Show Self Advertisement"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:93
+msgid "Thank you for supporting dmc4_hook"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:97
+msgid "Dvd screensaver"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:98
+msgid "Position"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:99
+msgid "##PositionDragFloat2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:101
+msgid "Reset##ResetPos"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:104
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:166
+msgid "Colour"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:105
+msgid "##ColourColorEdit4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:107
+msgid "Reset##ResetColour"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MutatorSuperhot.cpp:82
+#: C:\vs_projects\dmc4_hook\src\mods\MutatorSuperhot.cpp:107
+msgid "SUPERHOT Mode"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MutatorSuperhot.cpp:95
+#: C:\vs_projects\dmc4_hook\src\mods\MutatorSuperhot.cpp:120
+msgid "Enemy speed scales with your movement speed"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\MutatorSuperhot.cpp:99
+#: C:\vs_projects\dmc4_hook\src\mods\MutatorSuperhot.cpp:124
+msgid "Velocity Factor"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NeroSnatchLength.cpp:30
+msgid "Increased Snatch Range"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NeroSnatchLength.cpp:32
+msgid "Triple the reach on Snatch"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoAutomaticCharacters.cpp:163
+msgid "No Auto Characters"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoAutomaticCharacters.cpp:167
+msgid "Disable the Auto variants on the character select screen"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoAutomaticCharacters.cpp:169
+msgid "No Auto Or Super Characters"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:65
+msgid "You and enemies will ignore walls"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:67
+msgid "Disable Room Triggers"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:71
+msgid ""
+"Disable the areas that teleport the player, activate fights, activate "
+"cutscenes etc"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:72
+msgid "Lock Y Pos"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:81
+msgid "Lock your height to explore beyond the environment more efficiently"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoclipCam.cpp:19
+msgid "Noclip Cam"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoclipCam.cpp:23
+msgid ""
+"Remove camera presets and instead use a camera that can move through walls\n"
+"Enable before entering a stage"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoDtCooldown.cpp:28
+#: C:\vs_projects\dmc4_hook\src\mods\NoDtCooldown.cpp:33
+msgid "No DT Cooldown"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoDtCooldown.cpp:30
+#: C:\vs_projects\dmc4_hook\src\mods\NoDtCooldown.cpp:35
+msgid "Disable the cooldown on leaving Devil Trigger upon entering"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoHBknockback.cpp:93
+msgid "No Helm Splitter Knockdown"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoHBknockback.cpp:95
+msgid "Helm Splitter deals no knockdown and instead only stuns the enemy"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoHBknockback.cpp:98
+msgid "No Helm Breaker Knockdown"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoHBknockback.cpp:100
+msgid "Helm Breaker deals no knockdown and instead only stuns the enemy"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoLockonRestriction.cpp:14
+msgid "Remove lock-on restriction"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\NoLockonRestriction.cpp:18
+msgid "Remove Dante's lock-on restrictions (grim grip, gyro, etc.)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\OneHitKill.cpp:73
+msgid "No Death (All)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\OneHitKill.cpp:79
+msgid ""
+"Disable any entity dying while still allowing HP to drop.\n"
+"For practicing against enemies who have AI changes at different levels of HP\n"
+"Also stops Omen killing enemies."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\OneHitKill.cpp:82
+msgid "One Hit Kill"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\OneHitKill.cpp:88
+msgid ""
+"Enable one hit kill. This overrides the damage multiplier. By default this is "
+"hotkeyed to F3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PandoraCharge.cpp:167
+msgid "Pandora Charge"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PandoraCharge.cpp:171
+msgid ""
+"Charge Pandora just like the other guns\n"
+"Also enables Gunslinger charge moves"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:418
+msgid "Download Payline Files"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:422
+msgid ""
+"Clicking this button will open https://github.com/muhopensores/dmc4_hook/"
+"releases\n"
+"From here you can download optional files for mods that require them, found "
+"in the Assets section of each dmc4_hook release\n"
+"Once you've downloadeded and installed these files (I recommend using Fluffy "
+"Mod Manager), restart the game and tick \"HDD File Priority\" in the Debug "
+"tab before you load into a stage\n"
+"This mod gives Nero a divekick action like he has in DMC5"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:429
+msgid "Payline"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:433
+msgid ""
+"Give Nero a divekick action like he has in DMC5\n"
+"Requires \"HDD File Priority\" at the top of the Debug page\n"
+"Tick this before loading a stage"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:438
+msgid "Remap Helm Splitter"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:442
+msgid "Remap Helm Splitter and Double Down to lockon+back+melee"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:445
+msgid "Tracking Payline"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:447
+msgid ""
+"If the lock on target is below you (more than 65 degrees), Payline will "
+"adjust vertically like divekick does in DMC3 or 5"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PinProperties.cpp:351
+msgid "Gunslinger Passive"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PinProperties.cpp:353
+msgid ""
+"Thrown lucifer pins continue moving and explode on contact in Gunslinger "
+"style."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PinProperties.cpp:355
+msgid "Consistent Embedding"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PinProperties.cpp:357
+msgid "Embedded pins attach to one position"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PinTimer.cpp:137
+#, c-format
+msgid "%d"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PinTimer.cpp:141
+#, c-format
+msgid "%.2f / %.2f"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PinTimer.cpp:149
+#, c-format
+msgid "Pin %i = %.0f"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PinTimer.cpp:151
+#, c-format
+msgid "/ %.0f"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PinTimer.cpp:167
+msgid "Show Pin Timers"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PinTimer.cpp:169
+msgid ""
+"Opens up a UI when pins are placed that shows the time remaining on each pin"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PinTrick.cpp:206
+msgid "Pin Trick"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PinTrick.cpp:208
+msgid "Trick to the earliest valid pin with trickster back+style"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerRotation.cpp:48
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerRotation.cpp:53
+msgid "Unlock rotation"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerRotation.cpp:50
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerRotation.cpp:55
+msgid "Lock player rotation to stick direction"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:165
+msgid "Rotation"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:167
+msgid "diffuse"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:168
+msgid "bloom"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:173
+msgid "[OLD] Display Player Stats"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:178
+msgid "Save Current Move"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:182
+msgid "Play Saved Move"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:185
+msgid "Saved Player Position"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:190
+msgid "##InputAnimIDInputInt ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:202
+msgid ""
+"uhh this only plays things that don't require a certain player state, e.g. "
+"You must have just taken damage to play a damage animation"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:205
+msgid "Loop"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:207
+msgid "HP ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:208
+msgid "Max HP ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:209
+msgid "DT ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:210
+msgid "Max DT ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:230
+msgid "BP Timer ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:231
+msgid "XYZ Position ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:232
+msgid "Rotation ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:233
+msgid "XYZ Scale ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:234
+msgid "XYZ Velocity ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:235
+msgid "Movement Speed ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:236
+msgid "Inertia ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:238
+msgid ""
+"Uhm, ehm, akshually, internia isn't a thing, it's a property of a thing, the "
+"shit you're showing is velocity, the measure of inertia is mass, resistance "
+"to acceleration (slowing down is also acceleration just in the opposite "
+"direction), if the thing that got yeeted doesn't like burn off it's layers in "
+"flight due to air friction like a fucking meteor or some shit then it's "
+"inertia isn't changing. Get it right NERD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:242
+msgid "Weight ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:243
+msgid "Lock On ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:245
+msgid "Disaster Gauge ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:246
+msgid "Revenge Gauge ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:249
+msgid "Exceed Timer ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:251
+msgid ""
+"If you press exceed while this timer is between 0 and 1, you'll get MAX-Act."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:253
+msgid "Animation Frame ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:254
+msgid "Animation ID ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:255
+msgid "Move ID ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:256
+msgid "Move ID2 ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:257
+msgid "Move Bank ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:258
+msgid "Move Part ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:259
+msgid "Saved Move Bank ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:260
+msgid "Saved Move ID ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PsychoMantis.cpp:46
+msgid "Stylevibe"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PsychoMantis.cpp:48
+msgid ""
+"Put your controller on the floor. Put it down as flat as you can...that's "
+"good. Now I will move your controller by the power of my style alone!!\n"
+"(Vibrates your controller more the higher your style rank)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PsychoMantis.cpp:53
+msgid "Vibe Controller 2 Instead"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PsychoMantis.cpp:61
+msgid "One simple trick to get your gf interested in your dmc combos"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PsychoMantis.cpp:67
+msgid "...debug"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PsychoMantis.cpp:70
+msgid "##mod_enabled2AmountSliderInt"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PsychoMantis.cpp:75
+msgid "##mod_enabled2LRSliderInt"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Quicksilver.cpp:271
+#: C:\vs_projects\dmc4_hook\src\mods\Quicksilver.cpp:276
+msgid "Quicksilver"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Quicksilver.cpp:273
+#: C:\vs_projects\dmc4_hook\src\mods\Quicksilver.cpp:278
+msgid "Enable the hotkey for Quicksilver. By default this is = / +"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RedOrbCompletion.cpp:30
+#, c-format
+msgid "Found Orbs: %i"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RedOrbCompletion.cpp:31
+#, c-format
+msgid "Potential Orbs: %i"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RedOrbCompletion.cpp:34
+#, c-format
+msgid "%.0f%% Orbs found up to current point"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RedOrbCompletion.cpp:48
+msgid "Show Red Orb Completion %"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RedOrbCompletion.cpp:50
+msgid ""
+"Opens up a UI that shows the orb % you've picked up on the current mission"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RemoveLaunchArmour.cpp:21
+msgid "Remove Launch Armour"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RemoveLaunchArmour.cpp:25
+msgid ""
+"Remove the armour enemies gain when downed, allowing you to relaunch for "
+"practice instantly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:86
+msgid "Reset Enemy HP"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:88
+msgid "Press Lock On + Taunt to restore Max HP to enemies"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:90
+msgid "Reset Timer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:92
+msgid "Press Lock On + Taunt to reset the BP timer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:95
+msgid "Disable Aerial Resets"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:100
+msgid ""
+"Disable \"Reset Enemy HP\" and \"Reset Timer\" while aerial (Useful for Taunt "
+"Ecstasy)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:101
+msgid "Disable Grounded Resets"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ReversableDraw.cpp:27
+msgid "Reversable Draw"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ReversableDraw.cpp:29
+msgid "Enable reversals on draw"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RevFlying.cpp:63
+msgid "Rev Flying"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RevFlying.cpp:67
+msgid "Kill inertia brakes on Rev"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RevFlying.cpp:69
+msgid "Calibur Inertia"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RevFlying.cpp:73
+msgid "Kill inertia brakes on Calibur"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RgMultiplier.cpp:56
+msgid "Increased RG Gain"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RgMultiplier.cpp:58
+msgid "Intended to match DMC3's Royal Guard meter gain"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RisingSun.cpp:256
+msgid "Aerial Rising Sun"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RisingSun.cpp:260
+msgid "Replace Dante's Shocking with the last 2 kicks of DT Kick 13"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RoomRespawn.cpp:203
+msgid "Respawn enemies when visiting the same room multiple times"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RoomRespawn.cpp:205
+msgid "This will break your style points in the current mission"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RoomRespawn.cpp:207
+msgid "Respawn Enemies in current room"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RoomRespawn.cpp:211
+msgid ""
+"Respawning enemies in incorrect missions will freeze the game\n"
+"This button will enable the above checkbox"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RoseOptions.cpp:40
+msgid "Rose Survives Enemies"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RoseOptions.cpp:44
+msgid "Rose will hit the enemy and then continue past the enemy"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RoseOptions.cpp:46
+msgid "Rose Survives Objects"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RoseOptions.cpp:50
+msgid "Rose will sit on whatever surface it lands on until its timer expires"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RoseOptions.cpp:52
+msgid "Infinite Rose Timer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RoseOptions.cpp:56
+msgid ""
+"Rose will only despawn when colliding with something or having another placed"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RoseRemovesPins.cpp:39
+msgid "Rose Removes Pins"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\RoseRemovesPins.cpp:41
+msgid "Rose will despawn pins rather than detonating them"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:380
+msgid "Enable##SelectiveCancelsNero"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:382
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:394
+msgid "Allow cancelling out of selected moves with evasive actions"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:385
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:402
+msgid "Roll"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:386
+msgid "Grounded DT Activation"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:387
+msgid "Showdown"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:392
+msgid "Enable##SelectiveCancelsDante"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:398
+msgid "Disable Guardslide"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:400
+msgid "Guarding a grounded move with momentum will halt your movement"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:404
+msgid "Flush"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:407
+msgid "Swords"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:410
+msgid "Stinger"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:412
+msgid "Prop"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:414
+msgid "Real Impact"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:416
+msgid "Kick 13"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:418
+msgid "Cancellable from frame 38 (after the first 2 kicks)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:420
+msgid "Shock"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:422
+msgid "Cancellable from frame 60"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:424
+msgid "Ecstasy"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:426
+msgid "Slash Dimension"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:428
+msgid "DT Pin Up Part 2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:430
+msgid "Draw"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:433
+msgid "Guns"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:436
+msgid "Omen"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:438
+msgid "Opening Pandora"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:440
+msgid "Epidemic"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:442
+msgid "Pandora Ground shot 1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:444
+msgid "Argument"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:446
+msgid "Gunship"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:448
+msgid "Grief"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:452
+msgid "Cancel out of Grief mid-throw animation without recalling Pandora"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:454
+msgid "Gun Stinger"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ShadowResolution.cpp:41
+msgid "Increased Shadow Resolution"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SkipWeapons.cpp:106
+msgid "Skip Shotgun"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SkipWeapons.cpp:109
+msgid "Skip over Shotgun when Gun switching"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SkipWeapons.cpp:111
+msgid "Skip Gilgamesh"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SkipWeapons.cpp:114
+msgid "Skip over Gilgamesh when Weapon switching"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SkipWeapons.cpp:115
+msgid "Skip Pandora"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SkipWeapons.cpp:118
+msgid "Skip over Pandora when Gun switching"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SkipWeapons.cpp:120
+msgid "Skip Lucifer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SkipWeapons.cpp:123
+msgid "Skip over Lucifer when Weapon switching"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SlowWalk.cpp:21
+msgid "Slow Walk"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SlowWalk.cpp:25
+msgid "Walk slowly while holding the jump button"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SpawnedEnemiesAttack.cpp:27
+msgid "Spawned Scarecrows Attack"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SpawnedEnemiesAttack.cpp:33
+msgid ""
+"This is a hack to make spawned scarecrows attack despite lacking an "
+"rRouteNode. I have not bug checked this"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StunAnything.cpp:20
+msgid "Stun Anything"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StunAnything.cpp:24
+msgid "Allow anything (even Lucifer pins) to stun"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1061
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1223
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1230
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1358
+#, c-format
+msgid "%s"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1067
+#, c-format
+msgid "%.1f"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1442
+#, c-format
+msgid "Airtime: %.1f"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1485
+#, c-format
+msgid "Combo: %.2f"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1488
+#, c-format
+msgid "Height: %.2f"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1492
+#, c-format
+msgid "Inertia: %.2f"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1981
+msgid "Split Into Difficulties"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1983
+msgid "Clear Unlocks"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:2003
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:2005
+msgid "Tony"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:2011
+msgid "Alternate Grouping"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:2013
+msgid ""
+"Group attacks by the order you originally did them\n"
+"This helps show the variety in a combo over exact input order"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:2017
+msgid "Ever wanted to see a log of your height throughout a combo? Me neither!"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:2020
+msgid "Ever wanted to see a log of your inertia throughout a combo? Me neither!"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:2044
+msgid "Style Point Display"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:2046
+msgid "See exactly what goes into your style points count"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:2050
+msgid "Use Original Names"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:2052
+msgid ""
+"Instead of using our skill renames, use the developers'. Because there are "
+"more unique names, less skills will be grouped"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:749
+msgid "Survival"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:755
+msgid "Tick and enter any non BP mission on your desired difficulty"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:780
+msgid "Random Meme Modifiers"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:785
+msgid "Random meme modifiers applied while you play"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SwordSpin.cpp:129
+msgid "Sword Spin"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\SwordSpin.cpp:131
+msgid "Round trip orbits the player when not locked onto a target"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TargetChangeDarkslayer.cpp:61
+msgid "Target Change Darkslayer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TargetChangeDarkslayer.cpp:63
+msgid "Darkslayer is accessed by pressing the target change button"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:591
+msgid "Enable##TantSelectNero"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:593
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:613
+msgid ""
+"Unknown slots may crash. Test at your own risk.\n"
+"If you get stuck, use character switch to free yourself"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:611
+msgid "Enable##TauntSelectDante"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TimerMem.cpp:183
+msgid "Instant Honeycomb"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TimerMem.cpp:185
+msgid "Honeycomb Mapped To backforward + Gunslinger"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TrackingFullHouse.cpp:46
+msgid "Tracking Full House"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TrackingFullHouse.cpp:48
+msgid ""
+"If the lock on target is below you (more than 65 degrees), Full House will "
+"adjust vertically like in DMC3 or 5"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TrackingJealousy.cpp:47
+msgid "Tracking Jealousy"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TrackingJealousy.cpp:49
+msgid "Jealousy tracks horizontally"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TrackingSkyStar.cpp:52
+msgid "Auto Facing Sky Star"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TrackingSkyStar.cpp:54
+msgid "Sky star will auto face the enemy you're locked on to"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TrainerPause.cpp:11
+msgid "Trainer Pauses"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TrainerPause.cpp:22
+msgid "Pause the game when opening the trainer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TrickDown.cpp:90
+msgid "Down Trick"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TrickDown.cpp:92
+msgid ""
+"Map Down Trick to backforward + trick\n"
+"If an enemy is directly above Dante, it may register your forward input as a "
+"back input and so queue a down trick"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TricksterDashDT.cpp:19
+msgid "Always DT Trickster Dash"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TurnSpeedEdits.cpp:26
+msgid "Decreased Backslide Turn Speed"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TurnSpeedEdits.cpp:30
+msgid ""
+"Reduces turn speed on backslide to make it easier to land without the need of "
+"a buffer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:23
+msgid "STATE_NONE. Enter gameplay or pause/unpause the game to start."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:34
+#, c-format
+msgid "Winner: %s"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:35
+#, c-format
+msgid "with %d votes"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:38
+#, c-format
+msgid "currently active. time left: %.2f"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:84
+#, c-format
+msgid "TWITCH_VOTE_TIMER: %f"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:90
+#, c-format
+msgid "[%c] - %s:\t%d"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:93
+msgid "Vote in chat."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:122
+#, c-format
+msgid "TWITCH_IDLE_TIMER: %f"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:429
+msgid "Random Timed Gameplay Mods"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:432
+msgid "Random gameplay mods active"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:433
+#, c-format
+msgid "TIMER: %f"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:435
+msgid "Not in gameplay"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:439
+msgid "Set these before starting:"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:441
+msgid "Mod timer (seconds)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:446
+msgid "How long the random mod will last"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:448
+msgid "Cooldown timer (seconds)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:453
+msgid "How long before the next mod starts"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:454
+msgid "Random mutator mode"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:459
+msgid ""
+"Activate random spicy gameplay mods on a timer without connecting to Twitch"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:460
+msgid "Stop random mode"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:465
+msgid "Twitch Integration"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:468
+msgid "libircclient.dll not found, twitch support disabled"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:469
+msgid "Download libircclient-1.10-win32-dll.zip from the link below"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:470
+msgid ""
+"Extract libircclient.dll from zip file libircclient-1.10\\bin\\ to DMC4 root"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:471
+msgid "for example:"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:472
+msgid ""
+"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Devil May Cry "
+"4\\libircclient.dll"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:473
+msgid "and restart the game to enable twitch support"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:479
+msgid ""
+"Filling both fields and enabling one of the options below will allow your "
+"Twitch viewers to affect your gameplay.\n"
+"Your credentials are stored in config file in plaintext\n"
+"Dont send your config with twitch data saved to other people\n"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:485
+msgid "Twitch status: TWITCH_CONNECTING"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:488
+msgid "Twitch status: TWITCH_CONNECTED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:491
+msgid "Twitch status: TWITCH_DISCONNECTED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:494
+msgid "Get OAuth Password..."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:497
+msgid "Twitch Username"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:498
+msgid "Twitch OAuth"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:499
+msgid "Connect To Twitch"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:503
+msgid "Disconnect From Twitch"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:509
+msgid "Stop voting"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:512
+msgid "Start voting"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:518
+msgid "Show debug info in vote window"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:519
+msgid "Send voting messages in chat"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:520
+msgid "Disable voting overlay"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:521
+msgid "Set these before connecting:"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:523
+msgid "Voting timer (seconds)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:526
+msgid "Idle timer (seconds)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:530
+msgid "Log In On Game Boot Automatically"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:532
+msgid ""
+"This sometimes doesn't work, just come back here and hit disconnect > connect "
+"to reconnect"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:534
+msgid "Twitch Mode FAQ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:535
+msgid "Chaos - viewers can activate twitch mods directly through chat commands."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:536
+msgid "Vote mode - viewers can vote on what mods to activate next."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:538
+msgid "Chaos mode"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:542
+msgid "Vote mode"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:546
+msgid "Relay Twitch Chat To Devil May Cry 4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\uPlayerParamsEdit.cpp:70
+msgid "Faster Gilgamesh Charges"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\uPlayerParamsEdit.cpp:72
+msgid ""
+"3x faster Gilgamesh charges\n"
+"Applies when loading into a stage"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:200
+msgid "Visualize Hitboxes"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:202
+msgid "Draw hitbox outlines in red"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:203
+msgid "Visualize Pushboxes"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:205
+msgid "Draw pushbox outlines in blue"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:33
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:42
+msgid "Game Speed"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:35
+msgid ""
+"Speed adjustments are not initialized yet, load into the stage to access them."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:40
+msgid "Turbo Speed"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:41
+msgid "##Turbo Speed InputFloat"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:44
+msgid "Enemies, players, room, bullets, pins, camera"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:45
+msgid "##Game Speed InputFloat"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:46
+msgid "Global Speed"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:48
+msgid "Enemies, players, room"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:49
+msgid "##Global Speed InputFloat"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:50
+msgid "Room Speed"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:51
+msgid "##Room Speed InputFloat"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:52
+msgid "Player Speed"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:53
+msgid "##Player Speed InputFloat"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:54
+msgid "Enemy Speed"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:55
+msgid "##Enemy Speed InputFloat"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:56
+msgid "Force Custom Turbo"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:58
+msgid "This turbo won't be disabled on room change"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:63
+msgid "Custom Turbo"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:64
+msgid "##Custom Turbo InputFloat"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:71
+msgid "Pause"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:82
+msgid "Default hotkey is numpad ."
+msgstr ""
