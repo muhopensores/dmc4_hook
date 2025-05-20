@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/RunWhileHolding.hpp
+  mods/RunWhileHolding.cpp
   mods/ExceedDisplay.hpp
   mods/ExceedDisplay.cpp
   mods/MustangWalls.hpp
