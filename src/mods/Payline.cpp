@@ -28,8 +28,8 @@ uintptr_t Payline::jmp_ret8 = NULL;
 uintptr_t Payline::jmp_ret9 = NULL;
 uintptr_t Payline::jmp_ret10 = NULL;
 
-static float payline_loop_frame = 8.0f; // landing
-static float payline_bounce = 10.0f; // how much bounce
+static float payline_loop_frame = 12.0f;
+static float payline_bounce = 15.0f; // how much bounce
 //static float payline_startup_frame = 10.0f; // using loop frame
 static float payline_buffer_frame = 25.0f;
 static float payline_recovery_frame = 35.0f;
@@ -126,7 +126,7 @@ naked void detour4(void) { // set frame of animation, player in ecx, this should
             pop eax
             jne code
 
-        // payline loop - loop frame 10 while aerial
+        // payline loop - loop frame while aerial
         // nerotest1:
             cmp dword ptr [ecx+0x2998], 0x352 // was 0x32C but we use payline anim now!
             jne nerotest2
@@ -134,7 +134,7 @@ naked void detour4(void) { // set frame of animation, player in ecx, this should
             je code
             comiss xmm0, [payline_loop_frame]
             jb code
-            movss xmm0, [payline_loop_frame] 
+            movss xmm0, [payline_loop_frame]
             jmp code
 
         // payline ending, start at same frame as the loop for smooth transition
@@ -201,7 +201,7 @@ naked void detour6(void) { // how many frames to wait before starting loop
 
 static void __stdcall exceed_handling(uPlayer& neroBase) {
     if (neroBase.animID == 0x351) {
-        if ((neroBase.animFrame > payline_loop_frame + 2.0f) && (neroBase.animFrame < payline_loop_frame + 4.0f)) {
+        if ((neroBase.animFrame > payline_loop_frame + 1.0f) && (neroBase.animFrame < payline_loop_frame + 4.0f)) {
             neroBase.canExceed = 1;
         } else if (neroBase.animFrame > 24.0f) {
             neroBase.canExceed = 2;
@@ -433,6 +433,7 @@ void Payline::on_gui_frame(int display) {
         help_marker(_("Give Nero a divekick action like he has in DMC5\n"
                    "Requires \"HDD File Priority\" at the top of the Debug page\n"
                    "Tick this before loading a stage"));
+        ImGui::SliderFloat("PaylineLoopFrame", &payline_loop_frame, 0.0f, 20.0f);
     }
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Remap Helm Splitter"), &helm_splitter_remap)) {
