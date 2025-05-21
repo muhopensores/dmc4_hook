@@ -328,7 +328,7 @@ namespace utility {
 
         static ImVec2 btn_size{ ImGui::GetTextLineHeight() * 4.0f , ImGui::GetTextLineHeight() * 1.5f };
         // samelines for algning buttons neatly
-        float x_offset = ImGui::GetWindowContentRegionMax().x - ((btn_size.x * 1.1f));
+        float x_offset = ImGui::GetContentRegionAvail().x - ((btn_size.x * 1.1f));
         ImGui::SameLine(x_offset);
 
         // hsv sine undeline

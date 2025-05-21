@@ -110,7 +110,7 @@ void ImGuiConsole::draw(bool& open)
 		glm::vec2 region_min = ImVec2(0.0f, 0.0f);
 		glm::vec2 region_max = ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
 		// imguing all over the floor
-		dl->AddImage(m_texture_handle, region_min, region_max * i_resolution.x, ImVec2(0, 0), i_resolution, ImColor::ImColor(con_bg_red_int, con_bg_green_int, con_bg_blue_int, con_bg_alpha_int));
+		dl->AddImage((ImTextureID)m_texture_handle, region_min, region_max * i_resolution.x, ImVec2(0, 0), i_resolution, ImColor::ImColor(con_bg_red_int, con_bg_green_int, con_bg_blue_int, con_bg_alpha_int));
 		// clockwise from top right
 		//dl->AddQuadFilled(region_min, ImVec2(region_max.x, region_min.y), ImVec2(region_max.x, region_max.y), ImVec2(region_min.y, region_max.x), ImColor::ImColor(0.0f, 0.0f, 0.0f, 0.42f));
 	}
@@ -516,7 +516,7 @@ void ImGuiConsole::menu_bar()
 		{
 			// Logging Colors
 			ImGuiColorEditFlags flags =
-				ImGuiColorEditFlags_Float | ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar;
+				ImGuiColorEditFlags_Float /* | ImGuiColorEditFlags_AlphaPreview */ | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar;
 
 			ImGui::TextUnformatted("Color Palette");
 			ImGui::Indent();

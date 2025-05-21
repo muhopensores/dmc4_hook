@@ -1716,7 +1716,7 @@ void StylePoints::DrawHiddenCombos() {
     ImVec2 windowPadding = ImVec2(windowSize.x * windowPaddingModifier.x, windowSize.y * windowPaddingModifier.y);
     if (m_texture_handle != nullptr) {
         auto* bgDrawList = ImGui::GetBackgroundDrawList();
-        bgDrawList->AddImage(m_texture_handle, windowPos, ImVec2(windowPos.x + windowSize.x, windowPos.y + windowSize.y),
+        bgDrawList->AddImage((ImTextureID)m_texture_handle, windowPos, ImVec2(windowPos.x + windowSize.x, windowPos.y + windowSize.y),
             ImVec2(0, 0), ImVec2(1.0, 1.0), ImColor::ImColor(bg_red_int, bg_green_int, bg_blue_int, bg_alpha_int));
     }
 
@@ -1984,7 +1984,7 @@ void StylePoints::DrawHiddenCombos() {
     ImVec2 btn_size = ImGui::CalcTextSize(clear_unlocks_label);
     btn_size.x += ImGui::GetStyle().FramePadding.x * 2.0f;
     btn_size.y += ImGui::GetStyle().FramePadding.y * 2.0f;
-    float rightEdge = ImGui::GetWindowPos().x + ImGui::GetContentRegionMax().x;
+    float rightEdge = ImGui::GetWindowPos().x + ImGui::GetContentRegionAvail().x;
     ImGui::SetCursorPosX(rightEdge - ImGui::GetWindowPos().x - btn_size.x);
     if (ImGui::Button(clear_unlocks_label, btn_size)) {
         for (ComboUnlock& combo : unlocked_combos) {

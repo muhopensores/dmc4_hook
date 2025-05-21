@@ -82,7 +82,7 @@ void MutatorSelfAdvertisement::custom_imgui_window() {
     ImGui::SetNextWindowSize(size);
     ImGui::SetNextWindowPos(m_pos);
     ImGui::Begin("DirectX9 Texture Test", nullptr, window_flags);
-    ImGui::Image((void*)m_texture_handle, ImVec2((float)m_texture_width, (float)m_texture_height),ImVec2(0.0f,0.0f), ImVec2(1.25f,1.25f), m_tint_color);
+    ImGui::ImageWithBg((ImTextureID)m_texture_handle, ImVec2((float)m_texture_width, (float)m_texture_height),ImVec2(0.0f,0.0f), ImVec2(1.25f,1.25f), m_bg_color, m_tint_color);
     ImGui::End();
 }
 
