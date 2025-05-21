@@ -433,7 +433,7 @@ void Payline::on_gui_frame(int display) {
         help_marker(_("Give Nero a divekick action like he has in DMC5\n"
                    "Requires \"HDD File Priority\" at the top of the Debug page\n"
                    "Tick this before loading a stage"));
-        ImGui::SliderFloat("PaylineLoopFrame", &payline_loop_frame, 0.0f, 20.0f);
+        // ImGui::SliderFloat("PaylineLoopFrame", &payline_loop_frame, 0.0f, 20.0f);
     }
     ImGui::SameLine(sameLineWidth);
     if (ImGui::Checkbox(_("Remap Helm Splitter"), &helm_splitter_remap)) {
