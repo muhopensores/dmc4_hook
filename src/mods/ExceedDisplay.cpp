@@ -77,13 +77,13 @@ void ExceedDisplay::on_frame(fmilliseconds& dt) {
         ImGui::SetWindowPos(windowPos, ImGuiCond_Once);
         windowPos = ImGui::GetWindowPos();
         ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::SliderFloat(_("##ManualExceedTimer"), &exceedTimeFrames, -10.0f, 0.0f);
+        ImGui::SliderFloat("##ManualExceedTimer", &exceedTimeFrames, -10.0f, 0.0f);
         ImGui::SameLine();
         help_marker(_("This slider shows how long before the exceed window started you pressed the exceed button. This is calculated by dmc4_hook"));
-        ImGui::SliderFloat(_("##exceedTimerSnapshot"), &exceedTimerSnapshot, 0.0f, 10.0f);
+        ImGui::SliderFloat("##exceedTimerSnapshot", &exceedTimerSnapshot, 0.0f, 10.0f);
         ImGui::SameLine();
         help_marker(_("This slider shows a snapshot of what the exceed timer read when the exceed button was pressed"));
-        ImGui::SliderFloat(_("##exceedTimer"), &player->exceedTimer, 0.0f, 10.0f);
+        ImGui::SliderFloat("##exceedTimer", &player->exceedTimer, 0.0f, 10.0f);
         ImGui::SameLine();
         help_marker(_("This slider shows the exceed timer in realtime"));
         ImGui::PopItemWidth();

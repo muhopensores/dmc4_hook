@@ -255,7 +255,7 @@ std::optional<std::string> Quicksilver::on_initialize() {
 		}
 	});
 
-	utility::create_keyboard_hotkey(Quicksilver::m_hotkeys, {VK_OEM_PLUS}, "QuickSilver", "quicksilver_key");
+	utility::create_keyboard_hotkey(Quicksilver::m_hotkeys, {VK_OEM_PLUS}, _("QuickSilver"), "quicksilver_key");
 
     return Mod::on_initialize();
 }

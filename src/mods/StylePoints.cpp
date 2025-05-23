@@ -1058,13 +1058,13 @@ static void DrawTrickScores() {
             // draw trick name
             ImGui::SetCursorPosX(rightAlignX - textWidth);
             ImGui::PushStyleColor(ImGuiCol_Text, color);
-            ImGui::Text(_("%s"), displayText.c_str());
+            ImGui::Text("%s", displayText.c_str());
             ImGui::PopStyleColor();
             
             // draw score
             ImGui::SameLine(leftAlignX);
             ImGui::PushStyleColor(ImGuiCol_Text, color2);
-            ImGui::Text(_("%.1f"), group.score * 0.1 * group.multiplier);
+            ImGui::Text("%.1f", group.score * 0.1 * group.multiplier);
             ImGui::PopStyleColor();
         }
         
@@ -1220,14 +1220,14 @@ static void DrawTonyScores() {
     ImGui::SetCursorPosY(0.0f + scoreShakeAmount);
     ImVec4 scoreColor = GetScoreColor(comboScore, 0.0f, 500.0f);
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(scoreColor.x, scoreColor.y, scoreColor.z, fade));
-    ImGui::Text(_("%s"), scoreText);
+    ImGui::Text("%s", scoreText);
     ImGui::PopStyleColor();
 
     ImGui::SameLine();
 
     ImVec4 multiplierColor(currentStyleColor.x, currentStyleColor.y, currentStyleColor.z, fade);
     ImGui::PushStyleColor(ImGuiCol_Text, multiplierColor);
-    ImGui::Text(_("%s"), styleTierText);
+    ImGui::Text("%s", styleTierText);
     ImGui::PopStyleColor();
 
     ImGui::SetWindowFontScale(trickFontScale);
@@ -1355,7 +1355,7 @@ static void DrawTonyScores() {
         ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
         ImVec4 comboColor(1.0f, 1.0f, 0.0f, comboRecognitionAlpha);
         ImGui::PushStyleColor(ImGuiCol_Text, comboColor);
-        ImGui::Text(_("%s"), detectedCombo.c_str());
+        ImGui::Text("%s", detectedCombo.c_str());
         ImGui::PopStyleColor();
     }
     ImGui::End();

@@ -6,7 +6,7 @@ float WorkRate::custom_turbo = 0.0f;
 bool WorkRate::hotkey_paused = false;
 
 std::optional<std::string> WorkRate::on_initialize() {
-    utility::create_keyboard_hotkey(WorkRate::m_hotkeys, {VK_DECIMAL}, "Pause Game", "pause_game");
+    utility::create_keyboard_hotkey(WorkRate::m_hotkeys, {VK_DECIMAL}, _("Pause Game"), "pause_game");
 
 	console->system().RegisterCommand("turbo", "Set turbo speed for the current room", 
         [](float value) {
@@ -38,21 +38,21 @@ void WorkRate::on_gui_frame(int display) {
 			}
 			ImGui::PushItemWidth(availX);
 			ImGui::Text(_("Turbo Speed"));
-			ImGui::InputFloat(_("##Turbo Speed InputFloat"), &s_work_rate_ptr->turbo_speed, 0.1f, 1.0f, "%.1f%");
+			ImGui::InputFloat("##Turbo Speed InputFloat", &s_work_rate_ptr->turbo_speed, 0.1f, 1.0f, "%.1f%");
 			ImGui::Text(_("Game Speed"));
 			ImGui::SameLine();
 			help_marker(_("Enemies, players, room, bullets, pins, camera"));
-			ImGui::InputFloat(_("##Game Speed InputFloat"), &s_work_rate_ptr->game_speed, 0.1f, 1.0f, "%.1f%");
+			ImGui::InputFloat("##Game Speed InputFloat", &s_work_rate_ptr->game_speed, 0.1f, 1.0f, "%.1f%");
 			ImGui::Text(_("Global Speed"));
 			ImGui::SameLine();
 			help_marker(_("Enemies, players, room"));
-			ImGui::InputFloat(_("##Global Speed InputFloat"), &m_global_speed, 0.1f, 1.0f, "%.1f%");
+			ImGui::InputFloat("##Global Speed InputFloat", &m_global_speed, 0.1f, 1.0f, "%.1f%");
 			ImGui::Text(_("Room Speed"));
-			ImGui::InputFloat(_("##Room Speed InputFloat"), &s_work_rate_ptr->room_speed, 0.1f, 1.0f, "%.1f%");
+			ImGui::InputFloat("##Room Speed InputFloat", &s_work_rate_ptr->room_speed, 0.1f, 1.0f, "%.1f%");
 			ImGui::Text(_("Player Speed"));
-			ImGui::InputFloat(_("##Player Speed InputFloat"), &s_work_rate_ptr->player_speed, 0.1f, 1.0f, "%.1f%");
+			ImGui::InputFloat("##Player Speed InputFloat", &s_work_rate_ptr->player_speed, 0.1f, 1.0f, "%.1f%");
 			ImGui::Text(_("Enemy Speed"));
-			ImGui::InputFloat(_("##Enemy Speed InputFloat"), &s_work_rate_ptr->enemy_speed, 0.1f, 1.0f, "%.1f%");
+			ImGui::InputFloat("##Enemy Speed InputFloat", &s_work_rate_ptr->enemy_speed, 0.1f, 1.0f, "%.1f%");
 			ImGui::Checkbox(_("Force Custom Turbo"), &force_custom_turbo);
 			ImGui::SameLine();
 			help_marker(_("This turbo won't be disabled on room change"));
@@ -61,7 +61,7 @@ void WorkRate::on_gui_frame(int display) {
 				ImGui::Indent(lineIndent);
 				ImGui::PushItemWidth(availX - lineIndent);
 				ImGui::Text(_("Custom Turbo"));
-				ImGui::InputFloat(_("##Custom Turbo InputFloat"), &custom_turbo, 0.1f, 1.0f, "%.1f%");
+				ImGui::InputFloat("##Custom Turbo InputFloat", &custom_turbo, 0.1f, 1.0f, "%.1f%");
 				ImGui::PopItemWidth();
 				ImGui::Unindent(lineIndent);
 			}

@@ -11,6 +11,95 @@ static int savedOrbs = 0;
 static float savedHP = 0.0f;
 static float savedDT = 0.0f;
 static float savedStylePoints = 0.0f;
+std::array<AreaJump::Room, 83> AreaJump::room_items;
+
+void AreaJump::initialize_rooms() {
+    room_items = {{
+        Room {503, _("Berial")},                    // DevilMayCry4_DX9.exe+A56768
+        Room {504, _("Bael")},                      // DevilMayCry4_DX9.exe+A56528
+        Room {505, _("Echidna")},                   // DevilMayCry4_DX9.exe+A55FE8
+        Room {506, _("Agnus")},                     // DevilMayCry4_DX9.exe+A55F88
+        Room {507, _("Credo")},                     // DevilMayCry4_DX9.exe+A56728
+        Room {700, _("Dante")},                     // DevilMayCry4_DX9.exe+A56508
+        Room {0,   _("Opera House")},
+        Room {1,   _("Opera House Plaza")},
+        Room {2,   _("Storehouse")},
+        Room {3,   _("Cathedral")},
+        Room {4,   _("Terrace / Business District")},
+        Room {5,   _("Residential District")},
+        Room {6,   _("Port Caerula")},
+        Room {7,   _("Customs House")},
+        Room {8,   _("First Mining Area")},
+        Room {9,   _("Ferrum Hills")},
+        Room {10,  _("M17 Opera House")},
+        Room {11,  _("M17 Opera House Plaza")},
+        Room {12,  _("Business District / Terrace")},
+        Room {13,  _("M20 Opera House Plaza")},
+        Room {100, _("Second Mining Area")},
+        Room {105, _("Fortuna Castle Gate")},
+        Room {200, _("Grand Hall - Fortuna Castle")},
+        Room {201, _("Large Hall")},
+        Room {202, _("Dining Room")},
+        Room {203, _("Torture Chamber")},
+        Room {204, _("Central Courtyard")},
+        Room {205, _("Foris Falls - Bridge Area")},
+        Room {206, _("Gallery")},
+        Room {207, _("Library")},
+        Room {209, _("Soldier's Graveyard")},
+        Room {210, _("Master's Chamber")},
+        Room {211, _("Spiral Well")},
+        Room {212, _("Underground Laboratory")},
+        Room {213, _("R&D Access")},
+        Room {214, _("Game Room")},
+        Room {215, _("Containment Room")},
+        Room {216, _("Angel Creation")},
+        Room {217, _("Foris Falls - Detour Area")},
+        Room {300, _("Forest Entrance")},
+        Room {301, _("Windswept Valley")},
+        Room {302, _("Ruined Church")},
+        Room {303, _("Ruined Valley")},
+        Room {304, _("Ancient Training Ground")},
+        Room {305, _("Lapis River")},
+        Room {306, _("Ancient Plaza")},
+        Room {307, _("Den of the She-Viper")},
+        Room {308, _("Forgotten Ruins")},
+        Room {309, _("Hidden Pit")},
+        Room {310, _("Ruined Lowlands")},
+        Room {311, _("Lost Woods")},
+        Room {400, _("Gran Album Bridge")},
+        Room {401, _("Grand Hall - Order of the Sword HQ")},
+        Room {402, _("Key Chamber")},
+        Room {403, _("The Gauntlet")},
+        Room {404, _("Agnus' Room")},
+        Room {405, _("Security Corridor")},
+        Room {406, _("Experiment Disposal")},
+        Room {407, _("Meeting Room")},
+        Room {408, _("Ascension Chamber")},
+        Room {409, _("Advent Chamber")},
+        Room {500, _("Machina Ex Deus")},
+        Room {501, _("Stairway to Heaven")},
+        Room {502, _("Sacred Heart")},
+        Room {510, _("M18")},
+        Room {512, _("Sky Above Fortuna")},
+        Room {800, _("Secret Mission 1")},
+        Room {801, _("Secret Mission 2")},
+        Room {802, _("Secret Mission 3")},
+        Room {803, _("Secret Mission 4")},
+        Room {804, _("Secret Mission 5")},
+        Room {805, _("Secret Mission 6")},
+        Room {806, _("Secret Mission 7")},
+        Room {807, _("Secret Mission 8")},
+        Room {808, _("Secret Mission 9")},
+        Room {809, _("Secret Mission 10")},
+        Room {810, _("Secret Mission 11")},
+        Room {811, _("Secret Mission 12")},
+        Room {705, _("Bloody Palace 1-19")},
+        Room {704, _("Bloody Palace 21-39")},
+        Room {703, _("Bloody Palace 41-59")},
+        Room {701, _("Bloody Palace 61-79")},
+        Room {702, _("Bloody Palace 81-99")}
+    }};
+}
 
 bool AreaJump::is_valid_room_id(int id) {
     return std::any_of(room_items.begin(), room_items.end(), [id](const Room& room) { 
@@ -433,10 +522,11 @@ void AreaJump::toggle_randomized_bp(bool enable) { // randomized bp
 }
 
 std::optional<std::string> AreaJump::on_initialize() {
+    initialize_rooms();
     sArea* s_area_ptr = devil4_sdk::get_sArea();
 	// uintptr_t address = hl::FindPattern("8B 92 30 38 00 00", "DevilMayCry4_DX9.exe"); // DevilMayCry4_DX9.exe+E1F6 
-    utility::create_keyboard_hotkey(AreaJump::m_hotkeys, { VK_CONTROL, VK_OEM_4 }, "Restart BP stage", "bp_restart_stage_hotkey");
-    utility::create_keyboard_hotkey(AreaJump::m_hotkeys, { VK_CONTROL, VK_OEM_6 }, "Next BP stage", "bp_next_stage_hotkey");
+    utility::create_keyboard_hotkey(AreaJump::m_hotkeys, { VK_CONTROL, VK_OEM_4 }, _("Restart BP stage"), "bp_restart_stage_hotkey");
+    utility::create_keyboard_hotkey(AreaJump::m_hotkeys, { VK_CONTROL, VK_OEM_6 }, _("Next BP stage"), "bp_next_stage_hotkey");
 
     console->system().RegisterCommand("skip", "Skip current BP stage", [this]() {
         if (devil4_sdk::get_local_player()) {
@@ -510,7 +600,7 @@ void AreaJump::on_gui_frame(int display) {
         ImGui::SeparatorText(_("Bloody Palace"));
 
         ImGui::PushItemWidth(sameLineItemWidth);
-        if (ImGui::InputInt(_("##BP Floor "), &s_area_ptr->aGamePtr->bp_floor, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
+        if (ImGui::InputInt("##BP Floor ", &s_area_ptr->aGamePtr->bp_floor, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
             if (player)
                 s_area_ptr->aGamePtr->bp_floor = std::clamp(s_area_ptr->aGamePtr->bp_floor, 1, 101);
         }
@@ -616,19 +706,19 @@ void AreaJump::on_gui_frame(int display) {
                 if (!bp_boss_rush_toggle) {
                     int stage_count = 1;
                     for (int i : bp_array) {
-                        ImGui::Text(_("%i"), stage_count);
+                        ImGui::Text("%i", stage_count);
                         stage_count++;
                         ImGui::SameLine(sameLineWidth);
-                        ImGui::Text(_("%i"), i);
+                        ImGui::Text("%i", i);
                     }
                 }
                 else {
                     int stage_count = 1;
                     for (int i : boss_array) {
-                        ImGui::Text(_("%i"), stage_count);
+                        ImGui::Text("%i", stage_count);
                         stage_count++;
                         ImGui::SameLine(sameLineWidth);
-                        ImGui::Text(_("%i"), i);
+                        ImGui::Text("%i", i);
                     }
                 }
                 ImGui::Separator();

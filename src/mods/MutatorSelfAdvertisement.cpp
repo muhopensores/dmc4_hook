@@ -96,13 +96,13 @@ void MutatorSelfAdvertisement::on_gui_frame(int display) {
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::Checkbox(_("Dvd screensaver"), &dvd_mode);
         ImGui::Text(_("Position"));
-        ImGui::DragFloat2(_("##PositionDragFloat2"), (float*)&m_pos, 1.0f, 0.0f, 4096.0f, "%.1f");
+        ImGui::DragFloat2("##PositionDragFloat2", (float*)&m_pos, 1.0f, 0.0f, 4096.0f, "%.1f");
         ImGui::SameLine();
         if (ImGui::Button(_("Reset##ResetPos"))) {
             m_pos = { 1700.0f, 890.0f };
         }
         ImGui::Text(_("Colour"));
-        ImGui::ColorEdit4(_("##ColourColorEdit4"), (float*)&m_tint_color);
+        ImGui::ColorEdit4("##ColourColorEdit4", (float*)&m_tint_color);
         ImGui::SameLine();
         if (ImGui::Button(_("Reset##ResetColour"))) {
             m_tint_color = { 1.0f, 1.0f, 1.0f, 0.5f };

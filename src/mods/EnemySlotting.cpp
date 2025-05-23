@@ -43,7 +43,7 @@ std::optional<std::string> EnemySlotting::on_initialize() {
 
 static int selected_slot = 0;
 void EnemySlotting::on_gui_frame(int display) {
-	const char* slot_options[] = { "Default", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" };
+	const char* slot_options[] = { _("Default"), "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" };
 	bool was_enabled = selected_slot > 0;
 	ImGui::SetNextItemWidth(sameLineItemWidth);
 	if (ImGui::Combo(_("Slot Limit"), &selected_slot, slot_options, IM_ARRAYSIZE(slot_options))) {

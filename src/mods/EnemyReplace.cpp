@@ -239,51 +239,51 @@ void EnemyReplace::replace_enemy_with(int current_enemy_id, int desired_enemy_id
 }
 
 const char* combo_lists[] = {
-    "Replace Scarecrow (Leg) with:",    // 00
-    "Replace Scarecrow (Arm) with:",    // 01
-    "Replace Mega Scarecrow with:",     // 02
-    "Replace Bianco Angelo with:",      // 03
-    "Replace Alto Angelo with:",        // 04
-    "Replace Mephisto with:",           // 05
-    "Replace Faust with:",              // 06
-    "Replace Frost with:",              // 07
-    "Replace Assault with:",            // 08
-    "Replace Blitz with:",              // 09
-    "Replace Chimera Seed with:",       // 10
-    "Replace Basilisk with:",           // 11
-    "Replace Berial with:",             // 12
-    "Replace Bael with:",               // 13
-    "Replace Echidna with:",            // 14
-    "Replace Credo with:",              // 15
-    "Replace Agnus with:",              // 16
-    "Replace Sanctus with:",            // 17
-    "Replace Sanctus Diabolica with:",  // 18
-    "Replace Kyrie with:",              // 19
-    "Replace Dante with:"               // 20
+    _("Replace Scarecrow (Leg) with:"),    // 00
+    _("Replace Scarecrow (Arm) with:"),    // 01
+    _("Replace Mega Scarecrow with:"),     // 02
+    _("Replace Bianco Angelo with:"),      // 03
+    _("Replace Alto Angelo with:"),        // 04
+    _("Replace Mephisto with:"),           // 05
+    _("Replace Faust with:"),              // 06
+    _("Replace Frost with:"),              // 07
+    _("Replace Assault with:"),            // 08
+    _("Replace Blitz with:"),              // 09
+    _("Replace Chimera Seed with:"),       // 10
+    _("Replace Basilisk with:"),           // 11
+    _("Replace Berial with:"),             // 12
+    _("Replace Bael with:"),               // 13
+    _("Replace Echidna with:"),            // 14
+    _("Replace Credo with:"),              // 15
+    _("Replace Agnus with:"),              // 16
+    _("Replace Sanctus with:"),            // 17
+    _("Replace Sanctus Diabolica with:"),  // 18
+    _("Replace Kyrie with:"),              // 19
+    _("Replace Dante with:")               // 20
 };
 
 const char* combo_items[] = {
-    "Scarecrow (Leg)",    // 00
-    "Scarecrow (Arm)",    // 01
-    "Mega Scarecrow",     // 02
-    "Bianco Angelo",      // 03
-    "Alto Angelo",        // 04
-    "Mephisto",           // 05
-    "Faust",              // 06
-    "Frost",              // 07
-    "Assault",            // 08
-    "Blitz",              // 09
-    "Chimera Seed",       // 10
-    "Basilisk",           // 11
-    "Berial",             // 12
-    "Bael",               // 13
-    "Echidna",            // 14
-    "Credo",              // 15
-    "Agnus",              // 16
-    "Sanctus",            // 17
-    "Sanctus Diabolica",  // 18
-    "Kyrie",              // 19
-    "Dante"               // 20
+    _("Scarecrow (Leg)"),    // 00
+    _("Scarecrow (Arm)"),    // 01
+    _("Mega Scarecrow"),     // 02
+    _("Bianco Angelo"),      // 03
+    _("Alto Angelo"),        // 04
+    _("Mephisto"),           // 05
+    _("Faust"),              // 06
+    _("Frost"),              // 07
+    _("Assault"),            // 08
+    _("Blitz"),              // 09
+    _("Chimera Seed"),       // 10
+    _("Basilisk"),           // 11
+    _("Berial"),             // 12
+    _("Bael"),               // 13
+    _("Echidna"),            // 14
+    _("Credo"),              // 15
+    _("Agnus"),              // 16
+    _("Sanctus"),            // 17
+    _("Sanctus Diabolica"),  // 18
+    _("Kyrie"),              // 19
+    _("Dante")               // 20
 };
 
 // combo list text doesn't seem to like format text

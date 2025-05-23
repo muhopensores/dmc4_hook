@@ -356,25 +356,26 @@ void DifficultySelect::on_config_save(utility::Config& cfg) {
     cfg.set<int>("game_difficulty", game_difficulty);
 }
 
+static std::vector<std::string> difficulty_names = {
+    _("Default"),
+    _("Dante Must Die"),
+    _("God Must Die")
+};
+
 void DifficultySelect::on_gui_frame(int display) {
     ImGui::PushItemWidth(sameLineItemWidth);
-    if (ImGui::Combo(_("Difficulty ##Game Mode Combo"), &game_difficulty, _("Default\0Dante Must Die\0God Must Die\0"))) {
-#if 0
-        switch (game_difficulty)
-        {
-        case 0:
-            set_default();
-            break;
-        case 1:
-            set_dmd();
-            break;
-        case 2:
-            set_gmd();
-            break;
+    if (ImGui::BeginCombo(_("Difficulty ##Game Mode Combo"), difficulty_names[game_difficulty].c_str())) {
+        for (size_t i = 0; i < difficulty_names.size(); i++) {
+            bool is_selected = (game_difficulty == i);
+            if (ImGui::Selectable(difficulty_names[i].c_str(), is_selected)) {
+                game_difficulty = i;
+            }
+            if (is_selected) {
+                ImGui::SetItemDefaultFocus();
+                m_diffs[game_difficulty](this);
+            }
         }
-#else
-        m_diffs[game_difficulty](this);
-#endif
+        ImGui::EndCombo();
     }
     ImGui::PopItemWidth();
     ImGui::SameLine();

@@ -135,7 +135,7 @@ std::optional<std::string> InfAllHealth::on_initialize() {
         }, 
         csys::Arg<float>("1.0 default"));    
 
-    utility::create_keyboard_hotkey(InfAllHealth::m_hotkeys, {VK_F1}, "Infinite Health (All)", "inf_hp_key");
+    utility::create_keyboard_hotkey(InfAllHealth::m_hotkeys, {VK_F1}, _("Infinite Health (All)"), "inf_hp_key");
 
     console->system().RegisterCommand("god", "Infinite player HP", [/*this*/]() {
         player_invincible = !player_invincible;

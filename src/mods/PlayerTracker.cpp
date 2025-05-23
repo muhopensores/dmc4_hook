@@ -157,7 +157,7 @@ static void PlayAnimID(int animID) {
 }
 
 void PlayerTracker::on_gui_frame(int display) {
-    if (ImGui::CollapsingHeader("Shadow Settings")) {
+    if (ImGui::CollapsingHeader(_("Shadow Settings"))) {
         sUnit* sUnit = devil4_sdk::get_sUnit();
         if (sUnit) {
             if (sUnit->shadow) {
@@ -187,7 +187,7 @@ void PlayerTracker::on_gui_frame(int display) {
             static int inputAnimID = 0;
             static bool loopAnimID = false;
             ImGui::PushItemWidth(sameLineItemWidth);
-            ImGui::InputInt(_("##InputAnimIDInputInt ##1"), &inputAnimID);
+            ImGui::InputInt("##InputAnimIDInputInt ##1", &inputAnimID);
             ImGui::PopItemWidth();
             ImGui::SameLine();
             if (ImGui::Button("Play Animation ID")) {

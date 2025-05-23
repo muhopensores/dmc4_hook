@@ -429,20 +429,20 @@ void CameraSettings::on_gui_frame(int display) {
                 float availX = ImGui::GetContentRegionAvail().x;
                 ImGui::PushItemWidth(availX);
                 ImGui::Text(_("Height"));
-                ImGui::InputFloat(_("##Height InputFloat"), &CameraSettings::camera_height, 10.0f, 20.0f, "%.0f");
+                ImGui::InputFloat("##Height InputFloat", &CameraSettings::camera_height, 10.0f, 20.0f, "%.0f");
                 ImGui::Text(_("Distance"));
-                ImGui::InputFloat(_("##Distance InputFloat"), &CameraSettings::camera_distance, 100.0f, 200.0f, "%.0f%");
+                ImGui::InputFloat("##Distance InputFloat", &CameraSettings::camera_distance, 100.0f, 200.0f, "%.0f%");
                 ImGui::Text(_("Distance (Lockon)"));
-                ImGui::InputFloat(_("##Distance (Lockon) InputFloat"), &CameraSettings::camera_distance_lockon, 100.0f, 200.0f, "%.0f%");
+                ImGui::InputFloat("##Distance (Lockon) InputFloat", &CameraSettings::camera_distance_lockon, 100.0f, 200.0f, "%.0f%");
                 ImGui::Text(_("Angle"));
-                ImGui::InputFloat(_("##Angle InputFloat"), &CameraSettings::camera_angle, 0.1f, 0.2f, "%.1f%");
+                ImGui::InputFloat("##Angle InputFloat", &CameraSettings::camera_angle, 0.1f, 0.2f, "%.1f%");
                 ImGui::Text(_("Angle (Lockon) "));
-                ImGui::InputFloat(_("##Angle (Lockon) InputFloat"), &CameraSettings::camera_angle_lockon, 0.1f, 0.2f, "%.1f%");
+                ImGui::InputFloat("##Angle (Lockon) InputFloat", &CameraSettings::camera_angle_lockon, 0.1f, 0.2f, "%.1f%");
                 ImGui::Text(_("FOV"));
-                ImGui::InputFloat(_("##FOV InputFloat"), &CameraSettings::camera_fov, 10.0f, 20.0f, "%.0f%");
+                ImGui::InputFloat("##FOV InputFloat", &CameraSettings::camera_fov, 10.0f, 20.0f, "%.0f%");
                 ImGui::Text(_("FOV (In Battle)"));
-                ImGui::InputFloat(_("##FOV (In Battle) InputFloat"), &CameraSettings::camera_fov_in_battle, 10.0f, 20.0f, "%.0f%");
-                if (ImGui::Checkbox("Pause Camera InputFloat", &pause_camera_enabled)) {
+                ImGui::InputFloat("##FOV (In Battle) InputFloat", &CameraSettings::camera_fov_in_battle, 10.0f, 20.0f, "%.0f%");
+                if (ImGui::Checkbox("##Pause Camera Checkbox", &pause_camera_enabled)) {
                     toggle_pause_camera(pause_camera_enabled);
                 }
                 if (ImGui::Button(_("Reset Camera Variables"))) {
@@ -520,16 +520,16 @@ std::optional<std::string> CameraSettings::on_initialize() {
     }
 
     // hotkeys
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD0}, "Pause Camera", "pause_camera");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD1}, "Pan Camera Down", "pan_camera_down");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD2}, "Tilt Camera Down", "tilt_camera_down");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD3}, "Dolly Camera In", "dolly_camera_in");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD4}, "Zoom Camera In", "zoom_camera_in");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD5}, "Reset Camera", "reset_camera");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD6}, "Zoom Camera Out", "zoom_camera_out");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD7}, "Pan Camera Up", "pan_camera_up");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD8}, "Tilt Camera Up", "tilt_camera_up");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD9}, "Dolly Camera Out", "dolly_camera_out");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD0}, _("Pause Camera"), "pause_camera");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD1}, _("Pan Camera Down"), "pan_camera_down");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD2}, _("Tilt Camera Down"), "tilt_camera_down");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD3}, _("Dolly Camera In"), "dolly_camera_in");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD4}, _("Zoom Camera In"), "zoom_camera_in");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD5}, _("Reset Camera"), "reset_camera");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD6}, _("Zoom Camera Out"), "zoom_camera_out");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD7}, _("Pan Camera Up"), "pan_camera_up");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD8}, _("Tilt Camera Up"), "tilt_camera_up");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD9}, _("Dolly Camera Out"), "dolly_camera_out");
 
     return Mod::on_initialize();
 }

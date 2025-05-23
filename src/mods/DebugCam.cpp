@@ -134,21 +134,22 @@ void __stdcall freecam_mouse_input(uCamera* camera) {
         viewMatrix = glm::translate(viewMatrix, cam_pos);
         viewMatrix = viewMatrix * rotateY;
         viewMatrix = glm::translate(viewMatrix, -cam_pos);
-        
-        viewMatrix = rotateX * viewMatrix;
-        short mouse_click_state = GetAsyncKeyState(VK_RBUTTON);
-        if (((mouse_click_state && 0xFF) == 1) && (input_down == false)) {
-            input_down = true;
-            void* projptr  = devil4_sdk::mt_allocate_heap(sizeof(CustomProjectileProp), 16);
-            glm::quat qua  = glm::quat_cast(glm::inverse(viewMatrix));
-            qua = glm::rotate(qua, (float)M_PI, glm::vec3(0.0, 1.0f, 0.0));
-            Vector4f quat4 = glm::vec4(qua.x, qua.y, qua.z, qua.w);
-            // void* projptr              = devil4_sdk::mt_allocate_heap(0x18D0, 16);
-            CustomProjectileProp* proj = new (projptr) CustomProjectileProp(120.0f, 30.0f, (Vector3f*)&camera->mCameraPos, &quat4);
-            devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)proj, 1);
+        if (DebugCam::projectileTest) {
+            viewMatrix = rotateX * viewMatrix;
+            short mouse_click_state = GetAsyncKeyState(VK_RBUTTON);
+            if (((mouse_click_state && 0xFF) == 1) && (input_down == false)) {
+                input_down = true;
+                void* projptr = devil4_sdk::mt_allocate_heap(sizeof(CustomProjectileProp), 16);
+                glm::quat qua = glm::quat_cast(glm::inverse(viewMatrix));
+                qua = glm::rotate(qua, (float)M_PI, glm::vec3(0.0, 1.0f, 0.0));
+                Vector4f quat4 = glm::vec4(qua.x, qua.y, qua.z, qua.w);
+                // void* projptr              = devil4_sdk::mt_allocate_heap(0x18D0, 16);
+                CustomProjectileProp* proj = new (projptr) CustomProjectileProp(120.0f, 30.0f, (Vector3f*)&camera->mCameraPos, &quat4);
+                devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)proj, 1);
+            }
+            if ((mouse_click_state && 0xFF) == 0)
+                input_down = false;
         }
-        if ((mouse_click_state && 0xFF) == 0)
-            input_down = false;
     }
     
     glm::mat4 rotateZ = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
@@ -341,7 +342,7 @@ void DebugCam::on_gui_frame(int display) {
             ToggleGameplayCam(toggle_gameplay_cam);
         }
         ImGui::Checkbox(_("Mouse Controls"), &freecamMouseControls);
-        ImGui::Checkbox(_("Pew pew"), &projectileTest);
+        // ImGui::Checkbox("Pew pew", &projectileTest);
         ImGui::Checkbox(_("Keyboard Controls"), &freecamKeyboardControls);
         ImGui::SameLine();
         help_marker(_("Controls are:\nW, A, S, D = movement\nArrow keys = Pitch & Yaw\nSpace & Ctrl = Up & Down\nQ & E = roll\nShift = speed modifier\n"));

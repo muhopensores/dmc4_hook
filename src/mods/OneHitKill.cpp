@@ -64,7 +64,7 @@ std::optional<std::string> OneHitKill::on_initialize() {
         OneHitKill::one_hit_kill = !OneHitKill::one_hit_kill;
     });    
 
-    utility::create_keyboard_hotkey(OneHitKill::m_hotkeys, {VK_F3}, "One Hit Kill", "one_hit_kill_key");
+    utility::create_keyboard_hotkey(OneHitKill::m_hotkeys, {VK_F3}, _("One Hit Kill"), "one_hit_kill_key");
 
     return Mod::on_initialize();
 }

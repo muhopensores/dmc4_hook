@@ -365,11 +365,11 @@ namespace gui {
 
                         pmods->on_draw_ui("EasyJc"_hash, 1);
 
-                        ImGui::SeparatorText("Selective Cancels");
+                        ImGui::SeparatorText(_("Selective Cancels"));
 
                         pmods->on_draw_ui("SelectiveCancels"_hash, 1); // needs its own line
 
-                        ImGui::SeparatorText("Taunt Select");
+                        ImGui::SeparatorText(_("Taunt Select"));
                         
                         pmods->on_draw_ui("TauntSelect"_hash, 1); // needs its own line
                         
@@ -761,9 +761,9 @@ namespace gui {
 
                 // pmods->onDrawUI("ShaderEditor"_hash);
 
-                pmods->on_draw_ui("CustomProjectile"_hash);
+                // pmods->on_draw_ui("CustomProjectile"_hash);
 
-                pmods->on_draw_ui("AfterImage"_hash);
+                // pmods->on_draw_ui("AfterImage"_hash);
 
                 tabHeight += ImGui::GetCursorPosY();
                 ImGui::EndChild();

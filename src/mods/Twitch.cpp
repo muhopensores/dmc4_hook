@@ -87,7 +87,7 @@ struct VotingState : public Voting {
 
         auto vote_distribution = m_vote_manager->m_vote_distribution_display;
         for (auto& entry : vote_distribution) {
-            ImGui::Text(_("[%c] - %s:\t%d"), entry.m_token, entry.m_mod->m_name.c_str(), entry.m_votes);
+            ImGui::Text("[%c] - %s:\t%d", entry.m_token, entry.m_mod->m_name.c_str(), entry.m_votes);
         }
 
         ImGui::Text(_("Vote in chat."));
@@ -469,7 +469,7 @@ void TwitchClient::on_gui_frame(int display) {
             ImGui::Text(_("Download libircclient-1.10-win32-dll.zip from the link below"));
             ImGui::Text(_("Extract libircclient.dll from zip file libircclient-1.10\\bin\\ to DMC4 root"));
             ImGui::Text(_("for example:"));
-            ImGui::Text(_("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Devil May Cry 4\\libircclient.dll"));
+            ImGui::Text("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Devil May Cry 4\\libircclient.dll");
             ImGui::Text(_("and restart the game to enable twitch support"));
             gui::ImGuiURL libircclient_url{ "https://sourceforge.net/projects/libircclient/files/libircclient/1.10/", "https://sourceforge.net/projects/libircclient/files/libircclient/1.10/" };
             libircclient_url.draw();

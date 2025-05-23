@@ -213,13 +213,13 @@ void MoveTable::on_frame(fmilliseconds& dt) {
             ImGuiTableFlags_ScrollX;
             ImGui::Text(_("Player Attack ID = %i"), player->moveID2);
             ImGui::SameLine();
-            if (ImGui::Button("Use Current Move ID")) {
+            if (ImGui::Button(_("Use Current Move ID"))) {
                 sprintf_s(columnSearchBuffers[2], "%d", player->moveID2);
                 columnSearchActive[2] = true;
                 columnSearchIsExact[2] = enableExactMatch;
             }
             ImGui::SameLine();
-            if (ImGui::Button("Clear All Filters")) {
+            if (ImGui::Button(_("Clear All Filters"))) {
                 for (int i = 0; i < 18; i++) {
                     columnSearchBuffers[i][0] = '\0';
                     columnSearchActive[i] = false;
@@ -227,7 +227,7 @@ void MoveTable::on_frame(fmilliseconds& dt) {
             }
             ImGui::SameLine();
             bool oldExactMatch = enableExactMatch;
-            if (ImGui::Checkbox("Exact Match", &enableExactMatch)) {
+            if (ImGui::Checkbox(_("Exact Match"), &enableExactMatch)) {
                 if (oldExactMatch != enableExactMatch) {
                     for (int i = 0; i < 18; i++) {
                         if (columnSearchActive[i]) {
@@ -242,9 +242,24 @@ void MoveTable::on_frame(fmilliseconds& dt) {
             ImGui::Text(_("Dante Moves Added = %i"), MoveTable::extra_dante_moves);
 
             const char* columnHeaders[18] = {
-                "Entry", "Attr", "Id", "Level", "CmdTgl", "Cmd", "CmdNo", "Cnd", "Ukn", 
-                "CndWp", "CndStyle", "CndDT", "CndAir", 
-                "cancel0", "cancel1", "cancel2", "cancel3", "cancel4"
+                _("Entry"),
+                _("Attr"),
+                _("Id"),
+                _("Level"),
+                _("CmdTgl"),
+                _("Cmd"),
+                _("CmdNo"),
+                _("Cnd"),
+                _("Ukn"), 
+                _("CndWp"),
+                _("CndStyle"),
+                _("CndDT"),
+                _("CndAir"), 
+                _("cancel0"),
+                _("cancel1"),
+                _("cancel2"),
+                _("cancel3"),
+                _("cancel4")
             };
             
             float fontSize = ImGui::GetFontSize();
@@ -387,20 +402,20 @@ void MoveTable::on_frame(fmilliseconds& dt) {
                     ImGui::PushID((uintptr_t)TblEntry);
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[1] - ImGui::GetStyle().ItemInnerSpacing.x); 
-                    ImGui::InputInt(_("##+0 Attribute"), (int*)&TblEntry->atckAttr, 0, 0);
+                    ImGui::InputInt("##+0 Attribute", (int*)&TblEntry->atckAttr, 0, 0);
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[2] - ImGui::GetStyle().ItemInnerSpacing.x); 
-                    ImGui::InputInt(_("##+4 Attack ID"), (int*)&TblEntry->atckId, 0, 0);
+                    ImGui::InputInt("##+4 Attack ID", (int*)&TblEntry->atckId, 0, 0);
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[3] - ImGui::GetStyle().ItemInnerSpacing.x); 
-                    ImGui::InputInt(_("##+8 Attack Level"), (int*)&TblEntry->atckLevel, 0, 0);
+                    ImGui::InputInt("##+8 Attack Level", (int*)&TblEntry->atckLevel, 0, 0);
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[4] - ImGui::GetStyle().ItemInnerSpacing.x); 
-                    ImGui::Combo(_("##+C Enable Command Settings"), (int*)&TblEntry->atckInfo, "Off\0On\0");
+                    ImGui::Combo("##+C Enable Command Settings", (int*)&TblEntry->atckInfo, "Off\0On\0");
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[5] - ImGui::GetStyle().ItemInnerSpacing.x); 
                     int tempCommand = (int)TblEntry->command.atckCommand;
-                    if (ImGui::Combo(_("##+10"), &tempCommand, buttonMappingNames, IM_ARRAYSIZE(buttonMappingNames))) {
+                    if (ImGui::Combo("##+10", &tempCommand, buttonMappingNames, IM_ARRAYSIZE(buttonMappingNames))) {
                         TblEntry->command.atckCommand = (uint8_t)tempCommand;
                     }
 
@@ -415,36 +430,36 @@ void MoveTable::on_frame(fmilliseconds& dt) {
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[9] - ImGui::GetStyle().ItemInnerSpacing.x);
                     int tempWeapon = TblEntry->atckConditionWp + 1;
-                    if (ImGui::Combo(_("##+14 Weapon Condition"), &tempWeapon, weaponNames, IM_ARRAYSIZE(weaponNames))) {
+                    if (ImGui::Combo("##+14 Weapon Condition", &tempWeapon, weaponNames, IM_ARRAYSIZE(weaponNames))) {
                         TblEntry->atckConditionWp = tempWeapon - 1;
                     }
 
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[10] - ImGui::GetStyle().ItemInnerSpacing.x);
                     int tempStyle = TblEntry->atckConditionStyle + 1;
-                    if (ImGui::Combo(_("##+18 Style Condition"), &tempStyle, styleNames, IM_ARRAYSIZE(styleNames))) {
+                    if (ImGui::Combo("##+18 Style Condition", &tempStyle, styleNames, IM_ARRAYSIZE(styleNames))) {
                         TblEntry->atckConditionStyle = tempStyle - 1;
                     }
 
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[11] - ImGui::GetStyle().ItemInnerSpacing.x); 
-                    ImGui::Combo(_("##+1C DT Condition"), (int*)&TblEntry->ukn, dtNames, IM_ARRAYSIZE(dtNames));
+                    ImGui::Combo("##+1C DT Condition", (int*)&TblEntry->ukn, dtNames, IM_ARRAYSIZE(dtNames));
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[12] - ImGui::GetStyle().ItemInnerSpacing.x); 
-                    ImGui::Combo(_("##+20 Aerial Condition"), (int*)&TblEntry->atckAs, aerialNames, IM_ARRAYSIZE(aerialNames));
+                    ImGui::Combo("##+20 Aerial Condition", (int*)&TblEntry->atckAs, aerialNames, IM_ARRAYSIZE(aerialNames));
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[13] - ImGui::GetStyle().ItemInnerSpacing.x); 
-                    ImGui::InputScalar(_("##+24"), ImGuiDataType_U32, &TblEntry->cancelId[0], 0, 0, "%08x");
+                    ImGui::InputScalar("##+24", ImGuiDataType_U32, &TblEntry->cancelId[0], 0, 0, "%08x");
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[14] - ImGui::GetStyle().ItemInnerSpacing.x); 
-                    ImGui::InputScalar(_("##+28"), ImGuiDataType_U32, &TblEntry->cancelId[1], 0, 0, "%08x");
+                    ImGui::InputScalar("##+28", ImGuiDataType_U32, &TblEntry->cancelId[1], 0, 0, "%08x");
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[15] - ImGui::GetStyle().ItemInnerSpacing.x); 
-                    ImGui::InputScalar(_("##+2C"), ImGuiDataType_U32, &TblEntry->cancelId[2], 0, 0, "%08x");
+                    ImGui::InputScalar("##+2C", ImGuiDataType_U32, &TblEntry->cancelId[2], 0, 0, "%08x");
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[16] - ImGui::GetStyle().ItemInnerSpacing.x); 
-                    ImGui::InputScalar(_("##+30"), ImGuiDataType_U32, &TblEntry->cancelId[3], 0, 0, "%08x");
+                    ImGui::InputScalar("##+30", ImGuiDataType_U32, &TblEntry->cancelId[3], 0, 0, "%08x");
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[17] - ImGui::GetStyle().ItemInnerSpacing.x); 
-                    ImGui::InputScalar(_("##+34"), ImGuiDataType_U32, &TblEntry->cancelId[4], 0, 0, "%08x");
+                    ImGui::InputScalar("##+34", ImGuiDataType_U32, &TblEntry->cancelId[4], 0, 0, "%08x");
                     
                     ImGui::PopID();
                 }

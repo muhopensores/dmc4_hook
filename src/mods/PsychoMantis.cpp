@@ -67,12 +67,12 @@ void PsychoMantis::on_gui_frame(int display) {
         ImGui::Checkbox(_("...debug"), &mod_debugEnabled);
         ImGui::SameLine();
         ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::SliderInt(_("##mod_enabled2AmountSliderInt"), &mod_debugAmount, 0, 65535);
+        ImGui::SliderInt("##mod_enabled2AmountSliderInt", &mod_debugAmount, 0, 65535);
         ImGui::PopItemWidth();
 
         ImGui::SameLine(sameLineWidth);
         ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::SliderInt(_("##mod_enabled2LRSliderInt"), &mod_debugLR, 0, 2);
+        ImGui::SliderInt("##mod_enabled2LRSliderInt", &mod_debugLR, 0, 2);
         ImGui::PopItemWidth();
         ImGui::Unindent(lineIndent);
     }

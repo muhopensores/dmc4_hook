@@ -41,7 +41,7 @@ std::optional<std::string> DisableKeyboard::on_initialize() {
 	}
 
     using v_key = std::vector<uint32_t>;
-    utility::create_keyboard_hotkey(DisableKeyboard::m_hotkeys, {VK_SCROLL}, "Disable Keyboard Inputs", "disable_keyboard_inputs_hotkey");
+    utility::create_keyboard_hotkey(DisableKeyboard::m_hotkeys, {VK_SCROLL}, _("Disable Keyboard Inputs"), "disable_keyboard_inputs_hotkey");
 
     return Mod::on_initialize();
 }
