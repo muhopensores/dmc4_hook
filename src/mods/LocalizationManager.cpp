@@ -1,6 +1,7 @@
 // include your mod header file
 #include "LocalizationManager.hpp"
 #include "utility\Compressed.hpp"
+#include <fstream>
 
 #include "misc/FontRoboto.cpp"
 
@@ -32,6 +33,11 @@ std::optional<std::string> LocalizationManager::on_initialize() {
     return Mod::on_initialize();
 }
 
+bool file_exists(const char* filename) {
+    DWORD attrs = GetFileAttributesA(filename);
+    return (attrs != INVALID_FILE_ATTRIBUTES && !(attrs & FILE_ATTRIBUTE_DIRECTORY));
+}
+
 ImFont* load_locale_and_imfont(const char* country_code) noexcept {
     auto& io = ImGui::GetIO();
     if(io.Fonts->IsBuilt()) {
@@ -60,7 +66,19 @@ ImFont* load_locale_and_imfont(const char* country_code) noexcept {
             glyph_range = (atlas->*(mo.m_imgui_glyph_range))();
             
             if (mo.m_font_file != nullptr) {
-                result = atlas->AddFontFromFileTTF(mo.m_font_file, 18.0f, NULL, glyph_range);
+                if (std::strncmp(pair.first, "zh", 2) == 0) {
+                    if (file_exists(mo.m_font_file)) {
+                        result = atlas->AddFontFromFileTTF(mo.m_font_file, 18.0f, NULL, glyph_range);
+                    } else {
+                        if (file_exists("zh_font.ttf")) {
+                            result = atlas->AddFontFromFileTTF("zh_font.ttf", 18.0f, NULL, glyph_range);
+                        } else {
+                            result = atlas->AddFontFromMemoryCompressedBase85TTF(roboto_medium_compressed_data_base85, 18.0f, NULL, glyph_range);
+                        }
+                    }
+                } else {
+                    result = atlas->AddFontFromFileTTF(mo.m_font_file, 18.0f, NULL, glyph_range);
+                }
             } else {
                 result = atlas->AddFontFromMemoryCompressedBase85TTF(roboto_medium_compressed_data_base85, 18.0f, NULL, glyph_range);
             }
@@ -109,5 +127,7 @@ void LocalizationManager::on_gui_frame(int display) {
         ImGui::EndCombo();
     }
     ImGui::SameLine();
-    help_marker(_("Save config to load language settings on start.\nPlease submit your translations for dmc4hook :pray:"));
+    help_marker(_("Save config to load language settings on start.\nPlease submit your translations for dmc4hook :pray:\n"
+        "If you're not on Windows, there's a chance the necessary font won't load. Please place a font of your choice next to the game exe and name it "
+        "\"[languagecode]_font.ttf\" like the following Simplified Chinese example: \"zh_font.ttf\""));
 };
