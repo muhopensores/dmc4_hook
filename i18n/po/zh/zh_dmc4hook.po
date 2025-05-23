@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-23 16:26+0100\n"
-"PO-Revision-Date: 2025-05-23 16:46+0100\n"
+"POT-Creation-Date: 2025-05-23 17:08+0100\n"
+"PO-Revision-Date: 2025-05-23 17:13+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -2150,6 +2150,7 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\LocalizationManager.cpp:93
 #: C:\vs_projects\dmc4_hook\src\mods\LocalizationManager.cpp:94
+#: C:\vs_projects\dmc4_hook\src\mods\LocalizationManager.cpp:112
 msgid "Language"
 msgstr "语言"
 
@@ -4429,4 +4430,14 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:100
 msgid "Bloody Palace 81-99"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\LocalizationManager.cpp:130
+msgid ""
+"Save config to load language settings on start.\n"
+"Please submit your translations for dmc4hook :pray:\n"
+"If you're not on Windows, there's a chance the necessary font won't load. "
+"Please place a font of your choice next to the game exe and name it "
+"\"[languagecode]_font.ttf\" like the following Simplified Chinese example: "
+"\"zh_font.ttf\""
 msgstr ""

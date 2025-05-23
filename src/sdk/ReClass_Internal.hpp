@@ -14,6 +14,8 @@ using Vector4 = glm::vec4;
 
 #include <vector>
 #include <string>
+#include ".\utility\MoFile.hpp"
+#define _(string) utility::text_lookup(string)
 
 enum class GameDifficulty : uint32_t {
     HUMAN                 = 0,
@@ -29,24 +31,24 @@ enum class GameMode : uint32_t {
     HELL_AND_HELL  = 2,
 };
 
-static const std::vector<std::pair<uint16_t, const char*>> buttonPairs = {
-    {0x0000, "None"},
-    {0x0001, "Back"},
-    {0x0002, "L3"},
-    {0x0004, "R3"},
-    {0x0008, "Start"},
-    {0x0010, "Dpad Up"},
-    {0x0020, "Dpad Right"},
-    {0x0040, "Dpad Down"},
-    {0x0080, "Dpad Left"},
-    {0x0100, "L1"},
-    {0x0200, "R1"},
-    {0x0400, "L2"},
-    {0x0800, "R2"},
-    {0x1000, "Y"},
-    {0x2000, "B"},
-    {0x4000, "A"},
-    {0x8000, "X"}
+static std::vector<std::pair<uint16_t, const char*>> buttonPairs = {
+    {0x0000, _("None")},
+    {0x0001, _("Back")},
+    {0x0002, _("L3")},
+    {0x0004, _("R3")},
+    {0x0008, _("Start")},
+    {0x0010, _("Dpad Up")},
+    {0x0020, _("Dpad Right")},
+    {0x0040, _("Dpad Down")},
+    {0x0080, _("Dpad Left")},
+    {0x0100, _("L1")},
+    {0x0200, _("R1")},
+    {0x0400, _("L2")},
+    {0x0800, _("R2")},
+    {0x1000, _("Y")},
+    {0x2000, _("B")},
+    {0x4000, _("A")},
+    {0x8000, _("X")}
 };
 
 enum ATTACK_DIRECTION_CMD {
