@@ -591,6 +591,7 @@ void TwitchClient::on_config_save(utility::Config& cfg) {
 static bool g_previos_gameplay_state = false;
 
 void TwitchClient::on_frame(fmilliseconds & dt) {
+    TwitchClient::custom_imgui_window();
     bool early_out = (twitch_status != TWITCH_CONNECTED) || (voting_result == TwitchClient::CHAOS);
     if (early_out) { goto update_mutators; }
 

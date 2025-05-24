@@ -13,7 +13,7 @@ std::optional<std::string> RedOrbCompletion::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void RedOrbCompletion::custom_imgui_window() {
+void RedOrbCompletion::on_frame(fmilliseconds& dt) {
     if (RedOrbCompletion::mod_enabled) {
         if (devil4_sdk::get_local_player()) {
             SMediator* sMediatorPtr = devil4_sdk::get_sMediator();

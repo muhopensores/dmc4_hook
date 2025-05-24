@@ -173,14 +173,14 @@ Mods::Mods() {
     m_mods.reserve(MODS_NUM);
     m_hash.reserve(MODS_NUM);
     // slow mods
-    ADD_MOD(MessageDisplayMod); // keep this one at the 0 index for overlay;
-    ADD_MOD(BackgroundRendering); // keep as 1
-    ADD_MOD(Borderless); // keep as 2
-    ADD_MOD(TwitchClient); // keep as 3
-    ADD_MOD(MutatorSelfAdvertisement); // keep as 4
-    ADD_MOD(PinTimer); // keep as 5
+    ADD_MOD(MessageDisplayMod);
+    ADD_MOD(BackgroundRendering);
+    ADD_MOD(Borderless);
+    ADD_MOD(TwitchClient);
+    ADD_MOD(MutatorSelfAdvertisement);
+    ADD_MOD(PinTimer);
     // regular mods
-    ADD_MOD(RedOrbCompletion); // keep as 6
+    ADD_MOD(RedOrbCompletion);
     ADD_MOD(PlayerTracker);
     ADD_MOD(LoadOrder);
     ADD_MOD(MoveTable);
@@ -463,37 +463,6 @@ void Mods::on_update_input(utility::Input& input) {
     for (auto& mod : m_mods) {
         mod->on_update_input(input);
     }
-}
-
-void Mods::on_draw_custom_imgui_window() {
-    MessageDisplayMod* m = dynamic_cast<MessageDisplayMod*>(m_mods[0].get());
-    m->custom_imgui_window();
-    TwitchClient* tw = dynamic_cast<TwitchClient*>(m_mods[3].get());
-    tw->custom_imgui_window();
-    MutatorSelfAdvertisement* dv = dynamic_cast<MutatorSelfAdvertisement*>(m_mods[4].get());
-    dv->custom_imgui_window();
-    PinTimer* pt = dynamic_cast<PinTimer*>(m_mods[5].get());
-    pt->custom_imgui_window();
-    RedOrbCompletion* rc = dynamic_cast<RedOrbCompletion*>(m_mods[6].get());
-    rc->custom_imgui_window();
-#if 0
-    ImGui::Begin("utility::Input debugger");
-    auto& input = g_framework->get_input_struct();
-    for (size_t i = 0; i < input->get_keys_size(); i++) {
-        char b[32];
-        _itoa_s(i, b, sizeof(b), 10);
-        if (input->is_down(i)) { ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0,255,209,255)); }
-        else if (input->went_down(i)) { ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0,0,255,255)); }
-        else if (input->went_up(i)) { ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255,0,0,255)); }
-        else { ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255,255,255,255)); }
-        ImGui::Button(b, ImVec2(30, 30));
-        if ((i % 32) != 0) {
-            ImGui::SameLine();
-        }
-        ImGui::PopStyleColor(1);
-    }
-    ImGui::End();
-#endif
 }
 
 void Mods::on_hotkey_tab(utility::Input& input) {

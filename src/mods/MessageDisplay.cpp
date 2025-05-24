@@ -9,8 +9,7 @@ std::optional<std::string> MessageDisplayMod::on_initialize() {
     return Mod::on_initialize();
 }
 
-void MessageDisplayMod::custom_imgui_window() {
-    
+void MessageDisplayMod::on_frame(fmilliseconds& dt) {
     if (!should_display_messages) { return; }
 
     ImGuiIO& io = ImGui::GetIO();

@@ -8,8 +8,6 @@ public:
 
     static bool mod_enabled;
 
-    void custom_imgui_window();
-
     std::string get_mod_name() override { return "PinTimer"; };
     Mod::ModType get_mod_type() override { return SLOW; };
     void on_reset();
@@ -20,6 +18,7 @@ public:
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
     void on_gui_frame(int display) override;
+    void on_frame(fmilliseconds& dt) override;
 
 private:
     std::unique_ptr<FunctionHook> hook;

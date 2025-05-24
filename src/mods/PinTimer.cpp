@@ -63,8 +63,8 @@ std::optional<std::string> PinTimer::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void PinTimer::custom_imgui_window() {
-    if (mod_enabled || CON_PIN_UI_DEBUG ) {
+void PinTimer::on_frame(fmilliseconds& dt) {
+        if (mod_enabled || CON_PIN_UI_DEBUG ) {
         uPlayer* player = devil4_sdk::get_local_player();
         if (player) {
             if (player->controllerID == 0) { // 0 = dante, some were crashing with nero and this might:tm: fix it

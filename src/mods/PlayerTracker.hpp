@@ -22,6 +22,7 @@ public:
     static uint32_t savedPlayerStyle;
     static uint32_t savedPlayerLockonAnimation;
     static uint32_t savedPlayerCanWeaponChange;
+    static bool show_player_params;
 
     static void SavePlayerXYZ();
     static void LoadPlayerXYZ();
@@ -32,6 +33,7 @@ public:
 
     std::optional<std::string> on_initialize() override;
     void on_gui_frame(int display) override;
+    void on_frame(fmilliseconds& dt) override;
     // void on_update_input(utility::Input& input) override;
 
     // void on_config_load(const utility::Config& cfg) override;

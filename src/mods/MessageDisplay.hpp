@@ -19,8 +19,7 @@ public:
     // return Mod::onInitialize() on success or error string on failure.
     std::optional<std::string> on_initialize() override;
 
-    void custom_imgui_window();
-    //void onFrame(fmilliseconds& dt) override;
+    void on_frame(fmilliseconds& dt) override;
     void on_gui_frame(int display) override;
     //void onTwitchCommand(std::size_t hash) override;
     //void onUpdateInput(hl::Input& input) override;

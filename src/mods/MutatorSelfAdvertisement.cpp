@@ -43,9 +43,37 @@ ImColor MutatorSelfAdvertisement::rnd_hue(const glm::vec2& p) {
    return ImColor::HSV(Hash21(p), 1.0f, 1.0f, m_tint_color.Value.w);  
 }
 
-void MutatorSelfAdvertisement::custom_imgui_window() {
-    if (!mod_enabled) { return; }
+void MutatorSelfAdvertisement::on_gui_frame(int display) {
+    ImGui::BeginGroup();
+    ImGui::Checkbox(_("Show Self Advertisement"), &mod_enabled);
+    ImGui::SameLine();
+    help_marker(_("Thank you for supporting dmc4_hook"));
+    if (mod_enabled) {
+        ImGui::Indent(lineIndent);
+        ImGui::PushItemWidth(sameLineItemWidth);
+        ImGui::Checkbox(_("Dvd screensaver"), &dvd_mode);
+        ImGui::Text(_("Position"));
+        ImGui::DragFloat2("##PositionDragFloat2", (float*)&m_pos, 1.0f, 0.0f, 4096.0f, "%.1f");
+        ImGui::SameLine();
+        if (ImGui::Button(_("Reset##ResetPos"))) {
+            m_pos = { 1700.0f, 890.0f };
+        }
+        ImGui::Text(_("Colour"));
+        ImGui::ColorEdit4("##ColourColorEdit4", (float*)&m_tint_color);
+        ImGui::SameLine();
+        if (ImGui::Button(_("Reset##ResetColour"))) {
+            m_tint_color = { 1.0f, 1.0f, 1.0f, 0.5f };
+        }
+        ImGui::PopItemWidth();
+        ImGui::Unindent(lineIndent);
+    }
+    ImGui::EndGroup();
+}
 
+void MutatorSelfAdvertisement::on_frame(fmilliseconds& dt) {
+    gdt = dt.count();
+
+    if (!mod_enabled) { return; }
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoDecoration;
     static const ImVec2 size = ImVec2(220.0f,202.0f);
     if (dvd_mode) {
@@ -84,37 +112,6 @@ void MutatorSelfAdvertisement::custom_imgui_window() {
     ImGui::Begin("DirectX9 Texture Test", nullptr, window_flags);
     ImGui::ImageWithBg((ImTextureID)m_texture_handle, ImVec2((float)m_texture_width, (float)m_texture_height),ImVec2(0.0f,0.0f), ImVec2(1.25f,1.25f), m_bg_color, m_tint_color);
     ImGui::End();
-}
-
-void MutatorSelfAdvertisement::on_gui_frame(int display) {
-    ImGui::BeginGroup();
-    ImGui::Checkbox(_("Show Self Advertisement"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Thank you for supporting dmc4_hook"));
-    if (mod_enabled) {
-        ImGui::Indent(lineIndent);
-        ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::Checkbox(_("Dvd screensaver"), &dvd_mode);
-        ImGui::Text(_("Position"));
-        ImGui::DragFloat2("##PositionDragFloat2", (float*)&m_pos, 1.0f, 0.0f, 4096.0f, "%.1f");
-        ImGui::SameLine();
-        if (ImGui::Button(_("Reset##ResetPos"))) {
-            m_pos = { 1700.0f, 890.0f };
-        }
-        ImGui::Text(_("Colour"));
-        ImGui::ColorEdit4("##ColourColorEdit4", (float*)&m_tint_color);
-        ImGui::SameLine();
-        if (ImGui::Button(_("Reset##ResetColour"))) {
-            m_tint_color = { 1.0f, 1.0f, 1.0f, 0.5f };
-        }
-        ImGui::PopItemWidth();
-        ImGui::Unindent(lineIndent);
-    }
-    ImGui::EndGroup();
-}
-
-void MutatorSelfAdvertisement::on_frame(fmilliseconds& dt) {
-    gdt = dt.count();
 }
 
 void MutatorSelfAdvertisement::on_reset() {

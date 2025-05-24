@@ -10,7 +10,6 @@ public:
 
 	std::optional<std::string> on_initialize() override;
 	Mod::ModType get_mod_type() override { return SLOW; };
-	void custom_imgui_window();
 	void on_gui_frame(int display) override;
 	void on_frame(fmilliseconds& dt) override;
     void on_reset() override;

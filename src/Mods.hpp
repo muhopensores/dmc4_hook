@@ -20,7 +20,6 @@ public:
 	void on_game_pause(bool toggle);
 	bool on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param);
 	void on_chat_command(const std::string& message);
-    void on_draw_custom_imgui_window();
     void on_hotkey_tab(utility::Input& input);
 
 	const auto& get_mods() const {

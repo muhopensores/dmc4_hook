@@ -193,7 +193,6 @@ void ModFramework::on_frame() {
     if (m_error.empty() && m_game_data_initialized) {
         std::chrono::duration<float, std::milli> delta = now_time - m_prev_time;
         m_mods->on_frame(delta);
-        m_mods->on_draw_custom_imgui_window();
     }
 
     draw_ui();
@@ -383,7 +382,7 @@ bool ModFramework::initialize() {
     if (!m_menu_xinput_buttons) {
         m_menu_xinput_buttons = utility::create_gamepad_hotkey(
         { XIBtn::LEFT_TRIGGER, XIBtn::LEFT_THUMB, XIBtn::RIGHT_TRIGGER, XIBtn::RIGHT_THUMB },
-        "dmc4_hook (Pad)", "menu_gamepad_button");
+        _("dmc4_hook (Pad)"), "menu_gamepad_button");
     }
 
     ImGui_ImplDX9_CreateDeviceObjects();
