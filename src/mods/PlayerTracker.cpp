@@ -745,7 +745,7 @@ void DisplayParameters(void* baseAddress, const ParamArray (&params)[N], const c
     auto& backupValues = backupMap[key];
     auto& hasBackup = hasBackupMap[key];
     
-    ImGui::Begin(windowTitle);
+    ImGui::Begin(windowTitle, &PlayerTracker::show_player_params);
     ImGui::SetWindowFontScale(0.8f);
     
     if (ImGui::Button("Save Current Values")) {

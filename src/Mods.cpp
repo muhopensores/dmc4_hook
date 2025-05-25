@@ -159,6 +159,7 @@
 #include "mods/MustangWalls.hpp"
 #include "mods/ExceedDisplay.hpp"
 #include "mods/RunWhileHolding.hpp"
+#include "mods/GroundedGunCancels.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -183,7 +184,7 @@ Mods::Mods() {
     ADD_MOD(RedOrbCompletion);
     ADD_MOD(PlayerTracker);
     ADD_MOD(LoadOrder);
-    ADD_MOD(MoveTable);
+    ADD_MOD(MoveTable); // before anything that uses it
     ADD_MOD(FastStart);
     ADD_MOD(AreaJump);
     ADD_MOD(LimitAdjust);
@@ -328,6 +329,7 @@ Mods::Mods() {
     ADD_MOD(MustangWalls);
     ADD_MOD(ExceedDisplay);
     ADD_MOD(RunWhileHolding);
+    ADD_MOD(GroundedGunCancels);
 }
 
 // Initializes mods, checks for errors

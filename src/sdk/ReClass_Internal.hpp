@@ -157,6 +157,238 @@ enum ENEMY_ID : int {
   SANCTUS_M20 = 30,
 };
 
+enum DANTE_ATCK_ID {              
+	ATCK_ID_RV_COMBO0 = 0x1,                // Rebellion Combo A1
+	ATCK_ID_RV_COMBO1 = 0x2,                // Rebellion Combo A2
+	ATCK_ID_RV_COMBO2 = 0x3,                // Rebellion Combo A3
+	ATCK_ID_RV_DELAY_COMBO0 = 0x4,          // Rebellion Combo B1
+	ATCK_ID_RV_DELAY_COMBO1 = 0x5,          // Rebellion Combo B2
+	ATCK_ID_RV_HYAKURETSU = 0x6,            // Million Stab
+	ATCK_ID_RV_KABUTO = 0x7,                // Helm Breaker
+	ATCK_ID_RV_STINGER_LV1 = 0x8,           // Stinger Level 1
+	ATCK_ID_RV_STINGER_LV2 = 0x9,           // Stinger Level 2
+	ATCK_ID_RV_DT_STINGER = 0xa,            // Stinger DT
+	ATCK_ID_RV_HITIME = 0xb,                // High Time (Ground)
+	ATCK_ID_RV_HITIMEJUMP = 0xc,            // High Time (Air)
+	ATCK_ID_RV_ROUND_TRIP = 0xd,            // Round Trip
+	ATCK_ID_RV_RETURN = 0xe,                // Round Trip (Call Back Ground)
+	ATCK_ID_RV_RETURN_AIR = 0xf, 	        // Round Trip (Call Back Air)
+	ATCK_ID_SRV_ROLLING = 0x10,             // Prop
+	ATCK_ID_SRV_ROLLING_SERIES = 0x11,      // Shredder
+	ATCK_ID_SRV_AIR_COMBO0 = 0x12, 	        // Aerial Rave 1
+	ATCK_ID_SRV_AIR_COMBO1 = 0x13, 	        // Aerial Rave 2
+	ATCK_ID_SRV_AIR_COMBO2 = 0x14, 	        // Aerial Rave 3
+	ATCK_ID_SRV_AIR_COMBO3 = 0x15, 	        // Aerial Rave 4
+	ATCK_ID_SRV_DANCE = 0x16, 	 	        // Dance Macabre (Starting from RebA1)
+	ATCK_ID_SRV_DRIVE = 0x17, 		        // Drive
+	ATCK_ID_SRV_DRIVE_SERIES = 0x18,        // Overdrive
+	ATCK_ID_SRV_COMBO0_DRIVE = 0x19,        // Quick Drive
+
+	ATCK_ID_GM_L_STRAIGHT = 0x1a, 		    // Gilgamesh Combo A1
+	ATCK_ID_GM_R_BODY = 0x1b,			    // Gilgamesh Combo A2
+	ATCK_ID_GM_HI_KICK = 0x1c,			    // Gilgamesh Combo A3
+	ATCK_ID_GM_HEEL = 0x1d,				    // Gilgamesh Combo A4
+	ATCK_ID_GM_HYAKURETSU = 0x1e,		    // Gilgamesh Combo B1
+	ATCK_ID_GM_WHIRLWIND = 0x1f,		    // Gilgamesh Combo B2
+	ATCK_ID_GM_DESCENT_KICK = 0x20,		    // Full House
+	ATCK_ID_GM_KICK_13R = 0x21,			    // Kick 13 (Regular)
+	ATCK_ID_GM_SWAYING_BACK = 0x22, 	    // Draw
+	ATCK_ID_GM_STRAIGHT = 0x23,			    // Straight 
+	ATCK_ID_SGM_INFERNO = 0x24,  		    // Shock (Ground)
+	ATCK_ID_SGM_AIR_INFERNO = 0x25,		    // Shocking (Air)
+	ATCK_ID_SGM_REAL_IMPACT = 0x26,	  	    // Real Impact 
+	ATCK_ID_SGM_MAGMA_DRIVE = 0x27,		    // Beast Uppercut
+	ATCK_ID_SGM_RISING_DRAGON = 0x28,  	    // Rising Dragon 
+	ATCK_ID_SGM_DIVINE_DRAGON = 0x29,  	    // Divine Dragon 
+
+	ATCK_ID_LF_WIDE_RANGE_COMBO0 = 0x2a,    // Lucifer Combo A1 
+	ATCK_ID_LF_WIDE_RANGE_COMBO1 = 0x2b,    // Lucifer Combo A2 
+	ATCK_ID_LF_WIDE_RANGE_COMBO2 = 0x2c,    // Lucifer Combo A3 
+	ATCK_ID_LF_WIDE_RANGE_COMBO3 = 0x2d,    // Lucifer Combo A4 
+	ATCK_ID_LF_CROSS_THROW = 0x2e,          // Lucifer Combo D1
+	ATCK_ID_LF_BOISTEROUS = 0x2f,           // Lucifer Combo C1
+	ATCK_ID_LF_LAUNCH = 0x30,               // Lucifer Combo E1
+	ATCK_ID_LF_ROLLING = 0x31,              // Lucifer Combo B1
+	ATCK_ID_LF_ARRANGEMENT_COMBO = 0x32,    // N/A
+	ATCK_ID_LF_AIR_ARRANGEMENT = 0x33,      // Splash
+	ATCK_ID_LF_DIO_KNIFE = 0x34,            // Pin Up (Regular)
+	ATCK_ID_LF_ADD_DIO_KNIFE = 0x35,        // Pin Up (DT)
+	ATCK_ID_LF_DETONATE_ALL = 0x36,         // Ecstasy (Ground)
+	ATCK_ID_LF_AIR_DETONATE_ALL = 0x37,     // Ecstasy (Air)
+	ATCK_ID_SLF_BOM_BARRIER = 0x38,         // Climax (Ground)
+	ATCK_ID_SLF_AIR_BOM_BARRIER = 0x39,     // Climax (Air)
+	ATCK_ID_SLF_FUNNEL = 0x3a,              // Discipline
+	ATCK_ID_SLF_CONCENTRATED_LAUNCH = 0x3b, // Bondage?
+
+	ATCK_ID_EI_SHOT = 0x3c,                 // Ebony & Ivory Shoot (Ground)
+	ATCK_ID_EI_CSHOT_LV1 = 0x3d,            // Ebony & Ivory Charged Shot Lv1 (Ground)
+	ATCK_ID_EI_CSHOT_LV2 = 0x3e,            // Ebony & Ivory Charged Shot Lv2 (Ground)
+	ATCK_ID_EI_CSHOT_LV3 = 0x3f,            // Ebony & Ivory Charged Shot Lv3 (Ground)
+	ATCK_ID_EI_AIR_SHOT = 0x40,             // Ebony & Ivory Shoot (Air)
+	ATCK_ID_EI_AIR_CSHOT_LV1 = 0x41,        // Ebony & Ivory Charged Shot Lv1 (Air)
+	ATCK_ID_EI_AIR_CSHOT_LV2 = 0x42,        // Ebony & Ivory Charged Shot Lv2 (Air)
+	ATCK_ID_EI_AIR_CSHOT_LV3 = 0x43,        // Ebony & Ivory Charged Shot Lv3 (Air)
+	ATCK_ID_SEI_TWO_SOMETIME = 0x44,        // Ebony & Ivory Twosome Time
+	ATCK_ID_SEI_HONEYCOMB = 0x45,           // Ebony & Ivory Honeycomb Fire
+	ATCK_ID_SEI_RAIN_STORM = 0x46,          // Ebony & Ivory Rainstorm 
+
+	ATCK_ID_CA_SHOT = 0x47,                 // Coyote Ace Shoot (Ground)
+	ATCK_ID_CA_CSHOT_LV1 = 0x48,            // Coyote Ace Charged Shot Lv1 (Ground)
+	ATCK_ID_CA_CSHOT_LV2 = 0x49,            // Coyote Ace Charged Shot Lv2 (Ground)
+	ATCK_ID_CA_CSHOT_LV3 = 0x4a,            // Coyote Ace Charged Shot Lv3 (Ground)
+	ATCK_ID_CA_AIR_SHOT = 0x4b,             // Coyote Ace Shoot (Air)
+	ATCK_ID_CA_AIR_CSHOT_LV1 = 0x4c,        // Coyote Ace Charged Shot Lv1 (Air)
+	ATCK_ID_CA_AIR_CSHOT_LV2 = 0x4d,        // Coyote Ace Charged Shot Lv2 (Air)
+	ATCK_ID_CA_AIR_CSHOT_LV3 = 0x4e,        // Coyote Ace Charged Shot Lv3 (Air)
+	ATCK_ID_SCA_NUNCHAKU = 0x4f,            // Coyote Ace Fireworks (Ground)
+	ATCK_ID_SCA_AIR_NUNCHAKU = 0x50,        // Coyote Ace Fireworks (Air)
+	ATCK_ID_SCA_BACK_SHOT = 0x51,           // Coyote Ace Backslide
+	ATCK_ID_SCA_STINGER = 0x52,             // Coyote Ace Gun Stinger
+
+	ATCK_ID_PD_LAUNCHER = 0x53,             // PF013: Epidemic (Bow Gun)
+	ATCK_ID_PD_LAUNCHER2 = 0x54,            // PF124: Hatred (Rocket Launcher)
+	ATCK_ID_PD_LAUNCHER3 = 0x55,            // PF398: Revenge (Laser Cannon)
+	ATCK_ID_PD_AIR_MACHINE_GUN = 0x56,      // PF262: Jealousy
+	ATCK_ID_SPD_BATTERY = 0x57,             // N/A
+	ATCK_ID_SPD_METEOR = 0x58,              // PF594: Argument
+	ATCK_ID_SPD_BOOMERANG = 0x59,           // PF422: Grief 
+	ATCK_ID_SPD_PANDORA_BOX = 0x5a,         // PF666: Omen
+
+	ATCK_ID_TS_DASH = 0x5b,                 // Trickster Dash 
+	ATCK_ID_TS_AIR_DASH = 0x5c,             // Sky Star 
+	ATCK_ID_TS_AIRTRICK = 0x5d,             // Air Trick
+	ATCK_ID_TS_BACK_WARP = 0x5e,            // Flipper?
+
+	ATCK_ID_RG_RELEASE = 0x5f,              // Release (Bronze No Target)
+	ATCK_ID_RG_GUARD_RELEASE = 0x60,        // Release (Silver Target missed timing)
+	ATCK_ID_RG_JUST_RELEASE = 0x61,         // Release (Gold Royal Release)
+	ATCK_ID_RG_AIR_RELEASE = 0x62,          // Release Air (Bronze No Target) 
+	ATCK_ID_RG_AIR_GUARD_RELEASE = 0x63,    // Release Air (Silver Target missed timing)
+	ATCK_ID_RG_AIR_JUST_RELEASE = 0x64,     // Release Air (Gold Royal Release)
+	ATCK_ID_RG_INVINCIBLE = 0x65,           // Dreadnaught
+
+	ATCK_ID_YT_COMBO0 = 0x66,               // Yamato Combo A1
+	ATCK_ID_YT_COMBO1 = 0x67,               // Yamato Combo A2
+	ATCK_ID_YT_COMBO2 = 0x68,               // Yamato Combo A3
+	ATCK_ID_YT_AIR_COMBO0 = 0x69,           // Aerial Rave V1
+	ATCK_ID_YT_AIR_COMBO1 = 0x6a,           // Aerial Rave V2 
+	ATCK_ID_YT_SPACE = 0x6b,                // Slash Dimension (Far)
+	ATCK_ID_YT_SPACE2 = 0x6c,               // Slash Dimension (Close)
+	ATCK_ID_MAX = 0x6d,
+};
+
+static const char* dante_attack_names[109] = {
+    "",                                      // 0x00 /   0 
+    "Rebellion Combo A1",                   // 0x01 /   1  ATCK_ID_RV_COMBO0
+    "Rebellion Combo A2",                   // 0x02 /   2  ATCK_ID_RV_COMBO1
+    "Rebellion Combo A3",                   // 0x03 /   3  ATCK_ID_RV_COMBO2
+    "Rebellion Combo B1",                   // 0x04 /   4  ATCK_ID_RV_DELAY_COMBO0
+    "Rebellion Combo B2",                   // 0x05 /   5  ATCK_ID_RV_DELAY_COMBO1
+    "Million Stab",                         // 0x06 /   6  ATCK_ID_RV_HYAKURETSU
+    "Helm Breaker",                         // 0x07 /   7  ATCK_ID_RV_KABUTO
+    "Stinger Level 1",                      // 0x08 /   8  ATCK_ID_RV_STINGER_LV1
+    "Stinger Level 2",                      // 0x09 /   9  ATCK_ID_RV_STINGER_LV2
+    "Stinger DT",                           // 0x0A /  10  ATCK_ID_RV_DT_STINGER
+    "High Time (Ground)",                   // 0x0B /  11  ATCK_ID_RV_HITIME
+    "High Time (Air)",                      // 0x0C /  12  ATCK_ID_RV_HITIMEJUMP
+    "Round Trip",                           // 0x0D /  13  ATCK_ID_RV_ROUND_TRIP
+    "Round Trip (Call Back Ground)",        // 0x0E /  14  ATCK_ID_RV_RETURN
+    "Round Trip (Call Back Air)",           // 0x0F /  15  ATCK_ID_RV_RETURN_AIR
+    "Prop",                                 // 0x10 /  16  ATCK_ID_SRV_ROLLING
+    "Shredder",                             // 0x11 /  17  ATCK_ID_SRV_ROLLING_SERIES
+    "Aerial Rave 1",                        // 0x12 /  18  ATCK_ID_SRV_AIR_COMBO0
+    "Aerial Rave 2",                        // 0x13 /  19  ATCK_ID_SRV_AIR_COMBO1
+    "Aerial Rave 3",                        // 0x14 /  20  ATCK_ID_SRV_AIR_COMBO2
+    "Aerial Rave 4",                        // 0x15 /  21  ATCK_ID_SRV_AIR_COMBO3
+    "Dance Macabre",                        // 0x16 /  22  ATCK_ID_SRV_DANCE
+    "Drive",                                // 0x17 /  23  ATCK_ID_SRV_DRIVE
+    "Overdrive",                            // 0x18 /  24  ATCK_ID_SRV_DRIVE_SERIES
+    "Quick Drive",                          // 0x19 /  25  ATCK_ID_SRV_COMBO0_DRIVE
+    "Gilgamesh Combo A1",                   // 0x1A /  26  ATCK_ID_GM_L_STRAIGHT
+    "Gilgamesh Combo A2",                   // 0x1B /  27  ATCK_ID_GM_R_BODY
+    "Gilgamesh Combo A3",                   // 0x1C /  28  ATCK_ID_GM_HI_KICK
+    "Gilgamesh Combo A4",                   // 0x1D /  29  ATCK_ID_GM_HEEL
+    "Gilgamesh Combo B1",                   // 0x1E /  30  ATCK_ID_GM_HYAKURETSU
+    "Gilgamesh Combo B2",                   // 0x1F /  31  ATCK_ID_GM_WHIRLWIND
+    "Full House",                           // 0x20 /  32  ATCK_ID_GM_DESCENT_KICK
+    "Kick 13 (Regular)",                    // 0x21 /  33  ATCK_ID_GM_KICK_13R
+    "Draw",                                 // 0x22 /  34  ATCK_ID_GM_SWAYING_BACK
+    "Straight",                             // 0x23 /  35  ATCK_ID_GM_STRAIGHT
+    "Shock (Ground)",                       // 0x24 /  36  ATCK_ID_SGM_INFERNO
+    "Shocking (Air)",                       // 0x25 /  37  ATCK_ID_SGM_AIR_INFERNO
+    "Real Impact",                          // 0x26 /  38  ATCK_ID_SGM_REAL_IMPACT
+    "Beast Uppercut",                       // 0x27 /  39  ATCK_ID_SGM_MAGMA_DRIVE
+    "Rising Dragon",                        // 0x28 /  40  ATCK_ID_SGM_RISING_DRAGON
+    "Divine Dragon",                        // 0x29 /  41  ATCK_ID_SGM_DIVINE_DRAGON
+    "Lucifer Combo A1",                     // 0x2A /  42  ATCK_ID_LF_WIDE_RANGE_COMBO0
+    "Lucifer Combo A2",                     // 0x2B /  43  ATCK_ID_LF_WIDE_RANGE_COMBO1
+    "Lucifer Combo A3",                     // 0x2C /  44  ATCK_ID_LF_WIDE_RANGE_COMBO2
+    "Lucifer Combo A4",                     // 0x2D /  45  ATCK_ID_LF_WIDE_RANGE_COMBO3
+    "Lucifer Combo D1",                     // 0x2E /  46  ATCK_ID_LF_CROSS_THROW
+    "Lucifer Combo C1",                     // 0x2F /  47  ATCK_ID_LF_BOISTEROUS
+    "Lucifer Combo E1",                     // 0x30 /  48  ATCK_ID_LF_LAUNCH
+    "Lucifer Combo B1",                     // 0x31 /  49  ATCK_ID_LF_ROLLING
+    "ATCK_ID_LF_ARRANGEMENT_COMBO",         // 0x32 /  50  ATCK_ID_LF_ARRANGEMENT_COMBO
+    "Splash",                               // 0x33 /  51  ATCK_ID_LF_AIR_ARRANGEMENT
+    "Pin Up (Regular)",                     // 0x34 /  52  ATCK_ID_LF_DIO_KNIFE
+    "Pin Up (DT)",                          // 0x35 /  53  ATCK_ID_LF_ADD_DIO_KNIFE
+    "Ecstasy (Ground)",                     // 0x36 /  54  ATCK_ID_LF_DETONATE_ALL
+    "Ecstasy (Air)",                        // 0x37 /  55  ATCK_ID_LF_AIR_DETONATE_ALL
+    "Climax (Ground)",                      // 0x38 /  56  ATCK_ID_SLF_BOM_BARRIER
+    "Climax (Air)",                         // 0x39 /  57  ATCK_ID_SLF_AIR_BOM_BARRIER
+    "Discipline",                           // 0x3A /  58  ATCK_ID_SLF_FUNNEL
+    "Bondage?",                             // 0x3B /  59  ATCK_ID_SLF_CONCENTRATED_LAUNCH
+    "Ebony & Ivory Shoot (Ground)",         // 0x3C /  60  ATCK_ID_EI_SHOT
+    "Ebony & Ivory Charged Shot Lv1 (G)",   // 0x3D /  61  ATCK_ID_EI_CSHOT_LV1
+    "Ebony & Ivory Charged Shot Lv2 (G)",   // 0x3E /  62  ATCK_ID_EI_CSHOT_LV2
+    "Ebony & Ivory Charged Shot Lv3 (G)",   // 0x3F /  63  ATCK_ID_EI_CSHOT_LV3
+    "Ebony & Ivory Shoot (Air)",            // 0x40 /  64  ATCK_ID_EI_AIR_SHOT
+    "Ebony & Ivory Charged Shot Lv1 (A)",   // 0x41 /  65  ATCK_ID_EI_AIR_CSHOT_LV1
+    "Ebony & Ivory Charged Shot Lv2 (A)",   // 0x42 /  66  ATCK_ID_EI_AIR_CSHOT_LV2
+    "Ebony & Ivory Charged Shot Lv3 (A)",   // 0x43 /  67  ATCK_ID_EI_AIR_CSHOT_LV3
+    "Ebony & Ivory Twosome Time",           // 0x44 /  68  ATCK_ID_SEI_TWO_SOMETIME
+    "Ebony & Ivory Honeycomb Fire",         // 0x45 /  69  ATCK_ID_SEI_HONEYCOMB
+    "Ebony & Ivory Rainstorm",              // 0x46 /  70  ATCK_ID_SEI_RAIN_STORM
+    "Coyote Ace Shoot (Ground)",            // 0x47 /  71  ATCK_ID_CA_SHOT
+    "Coyote Ace Charged Shot Lv1 (G)",      // 0x48 /  72  ATCK_ID_CA_CSHOT_LV1
+    "Coyote Ace Charged Shot Lv2 (G)",      // 0x49 /  73  ATCK_ID_CA_CSHOT_LV2
+    "Coyote Ace Charged Shot Lv3 (G)",      // 0x4A /  74  ATCK_ID_CA_CSHOT_LV3
+    "Coyote Ace Shoot (Air)",               // 0x4B /  75  ATCK_ID_CA_AIR_SHOT
+    "Coyote Ace Charged Shot Lv1 (A)",      // 0x4C /  76  ATCK_ID_CA_AIR_CSHOT_LV1
+    "Coyote Ace Charged Shot Lv2 (A)",      // 0x4D /  77  ATCK_ID_CA_AIR_CSHOT_LV2
+    "Coyote Ace Charged Shot Lv3 (A)",      // 0x4E /  78  ATCK_ID_CA_AIR_CSHOT_LV3
+    "Coyote Ace Fireworks (Ground)",        // 0x4F /  79  ATCK_ID_SCA_NUNCHAKU
+    "Coyote Ace Fireworks (Air)",           // 0x50 /  80  ATCK_ID_SCA_AIR_NUNCHAKU
+    "Coyote Ace Backslide",                 // 0x51 /  81  ATCK_ID_SCA_BACK_SHOT
+    "Coyote Ace Gun Stinger",               // 0x52 /  82  ATCK_ID_SCA_STINGER
+    "PF013: Epidemic",                      // 0x53 /  83  ATCK_ID_PD_LAUNCHER
+    "PF124: Hatred",                        // 0x54 /  84  ATCK_ID_PD_LAUNCHER2
+    "PF398: Revenge",                       // 0x55 /  85  ATCK_ID_PD_LAUNCHER3
+    "PF262: Jealousy",                      // 0x56 /  86  ATCK_ID_PD_AIR_MACHINE_GUN
+    "ATCK_ID_SPD_BATTERY",                  // 0x57 /  87  ATCK_ID_SPD_BATTERY
+    "PF594: Argument",                      // 0x58 /  88  ATCK_ID_SPD_METEOR
+    "PF422: Grief",                         // 0x59 /  89  ATCK_ID_SPD_BOOMERANG
+    "PF666: Omen",                          // 0x5A /  90  ATCK_ID_SPD_PANDORA_BOX
+    "Trickster Dash",                       // 0x5B /  91  ATCK_ID_TS_DASH
+    "Sky Star",                             // 0x5C /  92  ATCK_ID_TS_AIR_DASH
+    "Air Trick",                            // 0x5D /  93  ATCK_ID_TS_AIRTRICK
+    "Flipper?",                             // 0x5E /  94  ATCK_ID_TS_BACK_WARP
+    "Release (Bronze No Target)",           // 0x5F /  95  ATCK_ID_RG_RELEASE
+    "Release (Silver Missed)",              // 0x60 /  96  ATCK_ID_RG_GUARD_RELEASE
+    "Release (Gold Just)",                  // 0x61 /  97  ATCK_ID_RG_JUST_RELEASE
+    "Release Air (Bronze)",                 // 0x62 /  98  ATCK_ID_RG_AIR_RELEASE
+    "Release Air (Silver)",                 // 0x63 /  99  ATCK_ID_RG_AIR_GUARD_RELEASE
+    "Release Air (Gold)",                   // 0x64 / 100  ATCK_ID_RG_AIR_JUST_RELEASE
+    "Dreadnaught",                          // 0x65 / 101  ATCK_ID_RG_INVINCIBLE
+    "Yamato Combo A1",                      // 0x66 / 102  ATCK_ID_YT_COMBO0
+    "Yamato Combo A2",                      // 0x67 / 103  ATCK_ID_YT_COMBO1
+    "Yamato Combo A3",                      // 0x68 / 104  ATCK_ID_YT_COMBO2
+    "Aerial Rave V1",                       // 0x69 / 105  ATCK_ID_YT_AIR_COMBO0
+    "Aerial Rave V2",                       // 0x6A / 106  ATCK_ID_YT_AIR_COMBO1
+    "Slash Dimension (Far)",                // 0x6B / 107  ATCK_ID_YT_SPACE
+    "Slash Dimension (Close)",              // 0x6C / 108  ATCK_ID_YT_SPACE2
+};
+
 class cAreaJump;
 class roomInfo;
 

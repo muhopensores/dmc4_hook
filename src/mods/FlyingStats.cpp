@@ -191,39 +191,47 @@ static void DisplayCollisionData(uCollisionMgr* currentEnemyCollision, float cur
 }
 
 void FlyingStats::on_frame(fmilliseconds& dt) {
-    /* stupid funship */ /*{
-        uPlayer* player = devil4_sdk::get_local_player();
-        if (!player) { return; }
-        static bool previousButtonState = false;
-        static float joltTimer = 0.0f;
-        static float joltCooldown = 0.0f;
-        bool currentButtonState = (player->inputPress[0] & 2);
-
-        if (joltCooldown <= 0.0f) {
-            if (currentButtonState && !previousButtonState) {
-                player->groundInertiaX += sin(player->stickFacingWorldAdjusted) * 50.0f;
-                player->groundInertiaZ += cos(player->stickFacingWorldAdjusted) * 50.0f;
-                joltTimer = 1.0f;
-                joltCooldown = 50.0f;
-            }
-        }
-
-        if (joltCooldown > 0.0f) {
-            joltCooldown -= player->m_delta_time;
-        }
-
-        if (joltTimer <= 0.0f) {
-            previousButtonState = currentButtonState;
-        }
-        if (joltTimer > 0.0f) {
-            joltTimer -= player->m_delta_time;
-        }
-        else {
-            player->groundInertiaX *= 0.95f;
-            player->groundInertiaZ *= 0.95f;
+    // flawless enemy riding 
+    /*uPlayer* player = devil4_sdk::get_local_player();
+    if (player) {
+        uEnemy* enemy = player->lockOnTargetPtr3;
+        if (enemy) {
+            player->m_pos = { enemy->position.x, enemy->position.y + 100.0f, enemy->position.z };
         }
     }*/
 
+    // stupid funship
+    /*uPlayer* player = devil4_sdk::get_local_player();
+    if (!player) { return; }
+    static bool previousButtonState = false;
+    static float joltTimer = 0.0f;
+    static float joltCooldown = 0.0f;
+    bool currentButtonState = (player->inputPress[0] & 2);
+
+    if (joltCooldown <= 0.0f) {
+        if (currentButtonState && !previousButtonState) {
+            player->groundInertiaX += sin(player->stickFacingWorldAdjusted) * 50.0f;
+            player->groundInertiaZ += cos(player->stickFacingWorldAdjusted) * 50.0f;
+            joltTimer = 1.0f;
+            joltCooldown = 50.0f;
+        }
+    }
+
+    if (joltCooldown > 0.0f) {
+        joltCooldown -= player->m_delta_time;
+    }
+
+    if (joltTimer <= 0.0f) {
+        previousButtonState = currentButtonState;
+    }
+    if (joltTimer > 0.0f) {
+        joltTimer -= player->m_delta_time;
+    }
+    else {
+        player->groundInertiaX *= 0.95f;
+        player->groundInertiaZ *= 0.95f;
+    }*/
+    
     if (!showFlyingStats) { return; }
     if (SMediator* sMedPtr = devil4_sdk::get_sMediator()) {
         uPlayer* player = sMedPtr->player_ptr;
@@ -372,28 +380,39 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                 ImGui::PushItemWidth(currentItemWidth);
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.0, 1.0f));
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1.0f, 1.0f));
-                if (showFlyingHP) ImGui::SliderFloat("HP##EnemyFly", &player->damageStruct.HP, 0.0f, player->damageStruct.HPMax, "%.1f");
-                if (showFlyingDamageTaken) ImGui::InputFloat("PrevDamage##EnemyFly", &player->damageStruct.HPTaken, NULL, NULL, "%.1f");
-                if (showFlyingDamageResist) ImGui::InputFloat("PrevDamageResist##EnemyFly", &player->damageStruct.prevDamageResist, NULL, NULL, "%.1f");
-                if (showFlyingDT) ImGui::InputFloat("DT##EnemyFly", &player->DT, NULL, NULL, "%.0f"); // id * 4 + DevilMayCry4_DX9.exe+9EC0E0
-                if (showFlyingStun) ImGui::InputInt("Stun##EnemyFly", &player->damageStruct.stun[4], NULL, NULL);
+                if (showFlyingHP) ImGui::SliderFloat("HP##PlayerFly", &player->damageStruct.HP, 0.0f, player->damageStruct.HPMax, "%.1f");
+                if (showFlyingDamageTaken) ImGui::InputFloat("PrevDamage##PlayerFly", &player->damageStruct.HPTaken, NULL, NULL, "%.1f");
+                if (showFlyingDamageResist) ImGui::InputFloat("PrevDamageResist##PlayerFly", &player->damageStruct.prevDamageResist, NULL, NULL, "%.1f");
+                if (showFlyingDT) ImGui::InputFloat("DT##PlayerFly", &player->DT, NULL, NULL, "%.0f"); // id * 4 + DevilMayCry4_DX9.exe+9EC0E0
+                if (showFlyingStun) ImGui::InputInt("Stun##PlayerFly", &player->damageStruct.stun[4], NULL, NULL);
                 // if (showFlyingDisplacement) ImGui::InputInt("Displacement##EnemyFly", &player->damageStruct.displacement[0], NULL, NULL);
                 // if (showFlyingStunTimer)ImGui::SliderFloat("Stun Reset Timer##EnemyFly", &player->damageStruct.stunResetTimer, 0.0f, 180.0f, "%.0f");
-                if (showFlyingMoveID) ImGui::InputScalar("MoveID##EnemyFly", ImGuiDataType_U8, &player->moveID2);
+                if (showFlyingMoveID) {
+                    ImGui::InputScalar("MoveID##PlayerFly", ImGuiDataType_U8, &player->moveID2);
+                    if (ImGui::IsItemHovered()) {
+                        if (player->controllerID == 0) {
+                            ImGui::BeginTooltip();
+                            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+                            ImGui::TextUnformatted(dante_attack_names[player->moveID2]);
+                            ImGui::PopTextWrapPos();
+                            ImGui::EndTooltip();
+                        }
+                    }
+                }
                 if (showFlyingDebug) {
                     ImGui::PushItemWidth(currentItemWidth * 2.0f);
-                    ImGui::InputScalar(_("Base Addr"), ImGuiDataType_U32, &player, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
-                    ImGui::InputFloat3(_("Position##EnemyFly"), (float*)&player->m_pos);
-                    ImGui::InputFloat(_("InertiaXZ##EnemyFly"), (float*)&player->inertia);
-                    ImGui::InputFloat(_("InertiaY##EnemyFly"), (float*)&player->inertiaY);
-                    ImGui::InputFloat3(_("Velocity##EnemyFly"), (float*)&player->m_d_velocity);
-                    ImGui::InputFloat3(_("Scale##EnemyFly"), (float*)&player->m_scale);
+                    ImGui::InputScalar(_("Base Addr##PlayerFly"), ImGuiDataType_U32, &player, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
+                    ImGui::InputFloat3(_("Position##PlayerFly"), (float*)&player->m_pos);
+                    ImGui::InputFloat(_("InertiaXZ##PlayerFly"), (float*)&player->inertia);
+                    ImGui::InputFloat(_("InertiaY##PlayerFly"), (float*)&player->inertiaY);
+                    ImGui::InputFloat3(_("Velocity##PlayerFly"), (float*)&player->m_d_velocity);
+                    ImGui::InputFloat3(_("Scale##PlayerFly"), (float*)&player->m_scale);
                     ImGui::PopItemWidth();
-                    ImGui::InputFloat(_("Rotation##EnemyFly"), (float*)&player->rotation2);
-                    ImGui::InputScalar(_("Anim ID##EnemyFly"), ImGuiDataType_U16, &player->animID);
-                    ImGui::InputScalar(_("Move Part##EnemyFly"), ImGuiDataType_U8, &player->movePart);
-                    ImGui::SliderFloat(_("Animation Frame##EnemyFly"), &player->animFrame, 0.0f, player->animFrameMax);
-                    ImGui::InputScalar(_("ID##EnemyFly"), ImGuiDataType_U8, &player->controllerID);
+                    ImGui::InputFloat(_("Rotation##PlayerFly"), (float*)&player->rotation2);
+                    ImGui::InputScalar(_("Anim ID##PlayerFly"), ImGuiDataType_U16, &player->animID);
+                    ImGui::InputScalar(_("Move Part##PlayerFly"), ImGuiDataType_U8, &player->movePart);
+                    ImGui::SliderFloat(_("Animation Frame##PlayerFly"), &player->animFrame, 0.0f, player->animFrameMax);
+                    ImGui::InputScalar(_("ID##PlayerFly"), ImGuiDataType_U8, &player->controllerID);
                 }
                 if (showFlyingCollisionData) DisplayCollisionData(player->collisionSettings, currentItemWidth);
                 ImGui::PopStyleVar(2);
@@ -406,7 +425,6 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
 }
 
 std::optional<std::string> FlyingStats::on_initialize() {
-
     return Mod::on_initialize();
 }
 

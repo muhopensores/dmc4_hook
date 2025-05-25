@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/GroundedGunCancels.hpp
+  mods/GroundedGunCancels.cpp
   mods/RunWhileHolding.hpp
   mods/RunWhileHolding.cpp
   mods/ExceedDisplay.hpp

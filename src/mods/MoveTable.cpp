@@ -406,6 +406,16 @@ void MoveTable::on_frame(fmilliseconds& dt) {
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[2] - ImGui::GetStyle().ItemInnerSpacing.x); 
                     ImGui::InputInt("##+4 Attack ID", (int*)&TblEntry->atckId, 0, 0);
+                    ImGui::SameLine();
+                    if (ImGui::IsItemHovered()) {
+                        if (player->controllerID == 0) {
+			                ImGui::BeginTooltip();
+			                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			                ImGui::TextUnformatted(dante_attack_names[TblEntry->atckId]);
+			                ImGui::PopTextWrapPos();
+			                ImGui::EndTooltip();
+		                }
+                    }
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[3] - ImGui::GetStyle().ItemInnerSpacing.x); 
                     ImGui::InputInt("##+8 Attack Level", (int*)&TblEntry->atckLevel, 0, 0);
@@ -466,8 +476,8 @@ void MoveTable::on_frame(fmilliseconds& dt) {
                 ImGui::EndTable();
             }
             ImGui::PopStyleVar();
-            ImGui::End();
         }
+        ImGui::End();
     }
 }
 
