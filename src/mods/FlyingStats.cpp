@@ -380,11 +380,11 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                 ImGui::PushItemWidth(currentItemWidth);
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.0, 1.0f));
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1.0f, 1.0f));
-                if (showFlyingHP) ImGui::SliderFloat("HP##PlayerFly", &player->damageStruct.HP, 0.0f, player->damageStruct.HPMax, "%.1f");
-                if (showFlyingDamageTaken) ImGui::InputFloat("PrevDamage##PlayerFly", &player->damageStruct.HPTaken, NULL, NULL, "%.1f");
-                if (showFlyingDamageResist) ImGui::InputFloat("PrevDamageResist##PlayerFly", &player->damageStruct.prevDamageResist, NULL, NULL, "%.1f");
-                if (showFlyingDT) ImGui::InputFloat("DT##PlayerFly", &player->DT, NULL, NULL, "%.0f"); // id * 4 + DevilMayCry4_DX9.exe+9EC0E0
-                if (showFlyingStun) ImGui::InputInt("Stun##PlayerFly", &player->damageStruct.stun[4], NULL, NULL);
+                if (showFlyingHP) ImGui::SliderFloat("HP##EnemyFly", &player->damageStruct.HP, 0.0f, player->damageStruct.HPMax, "%.1f");
+                if (showFlyingDamageTaken) ImGui::InputFloat("PrevDamage##EnemyFly", &player->damageStruct.HPTaken, NULL, NULL, "%.1f");
+                if (showFlyingDamageResist) ImGui::InputFloat("PrevDamageResist##EnemyFly", &player->damageStruct.prevDamageResist, NULL, NULL, "%.1f");
+                if (showFlyingDT) ImGui::InputFloat("DT##EnemyFly", &player->DT, NULL, NULL, "%.0f"); // id * 4 + DevilMayCry4_DX9.exe+9EC0E0
+                if (showFlyingStun) ImGui::InputInt("Stun##EnemyFly", &player->damageStruct.stun[4], NULL, NULL);
                 // if (showFlyingDisplacement) ImGui::InputInt("Displacement##EnemyFly", &player->damageStruct.displacement[0], NULL, NULL);
                 // if (showFlyingStunTimer)ImGui::SliderFloat("Stun Reset Timer##EnemyFly", &player->damageStruct.stunResetTimer, 0.0f, 180.0f, "%.0f");
                 if (showFlyingMoveID) {
@@ -401,18 +401,18 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                 }
                 if (showFlyingDebug) {
                     ImGui::PushItemWidth(currentItemWidth * 2.0f);
-                    ImGui::InputScalar(_("Base Addr##PlayerFly"), ImGuiDataType_U32, &player, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
-                    ImGui::InputFloat3(_("Position##PlayerFly"), (float*)&player->m_pos);
-                    ImGui::InputFloat(_("InertiaXZ##PlayerFly"), (float*)&player->inertia);
-                    ImGui::InputFloat(_("InertiaY##PlayerFly"), (float*)&player->inertiaY);
-                    ImGui::InputFloat3(_("Velocity##PlayerFly"), (float*)&player->m_d_velocity);
-                    ImGui::InputFloat3(_("Scale##PlayerFly"), (float*)&player->m_scale);
+                    ImGui::InputScalar(_("Base Addr##EnemyFly"), ImGuiDataType_U32, &player, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
+                    ImGui::InputFloat3(_("Position##EnemyFly"), (float*)&player->m_pos);
+                    ImGui::InputFloat(_("InertiaXZ##EnemyFly"), (float*)&player->inertia);
+                    ImGui::InputFloat(_("InertiaY##EnemyFly"), (float*)&player->inertiaY);
+                    ImGui::InputFloat3(_("Velocity##EnemyFly"), (float*)&player->m_d_velocity);
+                    ImGui::InputFloat3(_("Scale##EnemyFly"), (float*)&player->m_scale);
                     ImGui::PopItemWidth();
-                    ImGui::InputFloat(_("Rotation##PlayerFly"), (float*)&player->rotation2);
-                    ImGui::InputScalar(_("Anim ID##PlayerFly"), ImGuiDataType_U16, &player->animID);
-                    ImGui::InputScalar(_("Move Part##PlayerFly"), ImGuiDataType_U8, &player->movePart);
-                    ImGui::SliderFloat(_("Animation Frame##PlayerFly"), &player->animFrame, 0.0f, player->animFrameMax);
-                    ImGui::InputScalar(_("ID##PlayerFly"), ImGuiDataType_U8, &player->controllerID);
+                    ImGui::InputFloat(_("Rotation##EnemyFly"), (float*)&player->rotation2);
+                    ImGui::InputScalar(_("Anim ID##EnemyFly"), ImGuiDataType_U16, &player->animID);
+                    ImGui::InputScalar(_("Move Part##EnemyFly"), ImGuiDataType_U8, &player->movePart);
+                    ImGui::SliderFloat(_("Animation Frame##EnemyFly"), &player->animFrame, 0.0f, player->animFrameMax);
+                    ImGui::InputScalar(_("ID##EnemyFly"), ImGuiDataType_U8, &player->controllerID);
                 }
                 if (showFlyingCollisionData) DisplayCollisionData(player->collisionSettings, currentItemWidth);
                 ImGui::PopStyleVar(2);

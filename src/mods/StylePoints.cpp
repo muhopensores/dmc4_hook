@@ -28,7 +28,7 @@ void StylePoints::after_reset() {
 
 static std::unordered_map<std::string, std::string> textLookupTable = {
     // trickster
-    {"TS-ehsuc",         "Mustang"},
+    {"TS-ehsuc",         _("Mustang")},
     // royal guard
     {"RELEASE_A",        "Release"}, // empty bar
     {"RELEASE_B",        "Release"}, // any bar or meh attack timing
@@ -1978,9 +1978,9 @@ void StylePoints::DrawHiddenCombos() {
     // ImGui::InputFloat(_("Text b"), &TexCol.z);
     // ImGui::InputFloat(_("Text a"), &TexCol.w);
     // ImGui::InputFloat(_("fontScale"), &fontScale);
-    ImGui::Checkbox(_("Split Into Difficulties"), &splitIntoDifficulties);
+    ImGui::Checkbox("Split Into Difficulties", &splitIntoDifficulties);
     ImGui::SameLine();
-    const char* clear_unlocks_label = _("Clear Unlocks");
+    const char* clear_unlocks_label = "Clear Unlocks";
     ImVec2 btn_size = ImGui::CalcTextSize(clear_unlocks_label);
     btn_size.x += ImGui::GetStyle().FramePadding.x * 2.0f;
     btn_size.y += ImGui::GetStyle().FramePadding.y * 2.0f;

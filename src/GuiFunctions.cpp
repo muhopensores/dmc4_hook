@@ -796,7 +796,11 @@ namespace gui {
                 ImGui::Text("endneo");
 
                 ImGui::Spacing();
+                ImGui::Text("Translation:");
+                ImGui::Text(_("ttttchr"));
+                ImGui::Text(_("raika87"));
 
+                ImGui::Spacing();
                 ImGui::Text("Special Thanks:");
                 ImGui::Text("socks");
                 ImGui::Text("Whirling");
