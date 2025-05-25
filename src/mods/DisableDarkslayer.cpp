@@ -47,24 +47,26 @@ void DisableDarkslayer::on_gui_frame(int display) {
     ImGui::Text(_("Disable Darkslayer Inputs"));
     ImGui::Spacing();
 
-    ImGui::Text("                                                              ");
-    ImGui::SameLine();
+    float centerX = ImGui::GetWindowWidth() * 0.5f;
+    float buttonWidth = 120.0f;
+    float spacing = 10.0f;
+
+    ImGui::SetCursorPosX(centerX - buttonWidth * 0.5f);
     if (ImGui::Checkbox(_("Trickster"), &mod_enabled_up)) {
         toggle_up(mod_enabled_up);
     }
 
-    ImGui::Text("                                               ");
-    ImGui::SameLine();
+    ImGui::SetCursorPosX(centerX - buttonWidth - spacing * 0.5f);
     if (ImGui::Checkbox(_("Gunslinger"), &mod_enabled_left)) {
         toggle_left(mod_enabled_left);
     }
     ImGui::SameLine();
+    ImGui::SetCursorPosX(centerX + spacing * 0.5f);
     if (ImGui::Checkbox(_("Sword Master"), &mod_enabled_right)) {
         toggle_right(mod_enabled_right);
     }
 
-    ImGui::Text("                                                              ");
-    ImGui::SameLine();                   
+    ImGui::SetCursorPosX(centerX - buttonWidth * 0.5f);
     if (ImGui::Checkbox(_("Royal Guard"), &mod_enabled_down)) {
         toggle_down(mod_enabled_down);
     }
@@ -81,8 +83,7 @@ void DisableDarkslayer::on_config_load(const utility::Config& cfg) {
     if (mod_enabled_right) toggle_right(mod_enabled_right);
 }
 
-void DisableDarkslayer::on_config_save(utility::Config& cfg)
-{
+void DisableDarkslayer::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("disable_darkslayer_up", mod_enabled_up);
     cfg.set<bool>("disable_darkslayer_down", mod_enabled_down);
     cfg.set<bool>("disable_darkslayer_left", mod_enabled_left);
