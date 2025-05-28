@@ -11,6 +11,7 @@ static bool showAttackStatus = false;
 static bool getMelee = true;
 static bool getProjectiles = true;
 static bool hideNoAttacks = true;
+static bool hideNoUsed = true;
 
 static uintptr_t previousAttackStatus = NULL;
 
@@ -62,10 +63,18 @@ naked void detour2() { // melee?
         jne dontGet
         cmp byte ptr [getMelee], 1
         jne dontGet
-        cmp byte ptr [hideNoAttacks], 0
-        je get
-        cmp dword ptr [eax], 0x612D6F6E // no-a
+
+        cmp byte ptr [hideNoAttacks], 1
+        jne checkNoUsed
+        cmp dword ptr [eax], 0x612D6F6E // no-a(attack)
         je dontGet
+
+        checkNoUsed:
+        cmp byte ptr [hideNoUsed], 1
+        jne get
+        cmp dword ptr [eax], 0x755F6F4E // No_u(sed)
+        je dontGet
+
         get:
         mov [previousAttackStatus], eax
         dontGet:
@@ -100,7 +109,8 @@ void KnockbackEdits::on_frame(fmilliseconds& dt) {
         ImGui::Checkbox("Get Melee", &getMelee);
         ImGui::Checkbox("Get Projectiles", &getProjectiles);
         ImGui::Checkbox("Hide \"no-attack\" entries", &hideNoAttacks);
-
+        ImGui::Checkbox("Hide \"No_used\" entries", &hideNoUsed);
+        
         if (attack) {
             ImGui::Text(attack->mAsName);
             ImGui::PushItemWidth(sameLineItemWidth);
