@@ -541,11 +541,11 @@ namespace gui {
 
                         pmods->on_draw_ui("DisableDarkslayer"_hash); // needs its own line
 
-                        ImGui::SeparatorText("Selective Cancels");
+                        ImGui::SeparatorText(_("Selective Cancels"));
 
                         pmods->on_draw_ui("SelectiveCancels"_hash, 2); // needs its own line
 
-                        ImGui::SeparatorText("Taunt Select");
+                        ImGui::SeparatorText(_("Taunt Select"));
 
                         pmods->on_draw_ui("TauntSelect"_hash, 2); // needs its own line
 
@@ -741,6 +741,8 @@ namespace gui {
 
                 pmods->on_draw_ui("MoveTable"_hash);
 
+                pmods->on_draw_ui("KnockbackEdits"_hash, 0); // needs its own line
+
                 pmods->on_draw_ui("PlayerTracker"_hash); // needs its own line, also contains game pause
 
                 pmods->on_draw_ui("EnemyTracker"_hash); // needs its own line
@@ -796,12 +798,12 @@ namespace gui {
                 ImGui::Text("endneo");
 
                 ImGui::Spacing();
-                ImGui::Text("Translation:");
+                ImGui::Text(_("Translation:"));
                 ImGui::Text(_("ttttchr"));
                 ImGui::Text(_("raika87"));
 
                 ImGui::Spacing();
-                ImGui::Text("Special Thanks:");
+                ImGui::Text(_("Special Thanks:"));
                 ImGui::Text("socks");
                 ImGui::Text("Whirling");
                 ImGui::Text("Terrutas");

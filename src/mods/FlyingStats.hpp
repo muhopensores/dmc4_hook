@@ -21,6 +21,7 @@ public:
     static bool showFlyingDebug;
     static bool showFlyingCollisionData;
     static int collisionPage;
+    static bool showFlyingCancelBools;
 
     std::string get_mod_name() override { return "FlyingStats"; };
 

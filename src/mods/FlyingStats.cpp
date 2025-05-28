@@ -17,6 +17,7 @@ bool FlyingStats::showFlyingStunTimer = false;
 bool FlyingStats::showFlyingDebug = false;
 bool FlyingStats::showFlyingCollisionData = false;
 int FlyingStats::collisionPage = 0;
+bool FlyingStats::showFlyingCancelBools = false;
 
 static void DisplayCollisionData(uCollisionMgr* currentEnemyCollision, float currentItemWidth) {
     uintptr_t collisionSettingsAddress = *(uintptr_t*)&currentEnemyCollision;
@@ -415,6 +416,19 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                     ImGui::InputScalar(_("ID##EnemyFly"), ImGuiDataType_U8, &player->controllerID);
                 }
                 if (showFlyingCollisionData) DisplayCollisionData(player->collisionSettings, currentItemWidth);
+                if (showFlyingCancelBools) {
+                    ImGui::PushItemWidth(currentItemWidth / 3.0f);
+                    ImGui::InputScalar(_("melee+gun"), ImGuiDataType_S8, (bool*)&player->bufferPermissions);               // C_NORM0 = 0x0,
+                    ImGui::InputScalar(_("melee"), ImGuiDataType_S8, (bool*)&player->meleeCancelPermissions2);             // C_NORM1 = 0x1,
+                    ImGui::InputScalar(_("norm2"), ImGuiDataType_S8, (bool*)&player->unknPermission1);                     // C_NORM2 = 0x2,
+                    ImGui::InputScalar(_("directional"),  ImGuiDataType_S8, (bool*)&player->directionalMeleePermissions);  // C_COMMAND = 0x3,
+                    ImGui::InputScalar(_("jump"),  ImGuiDataType_S8, (bool*)&player->jumpCancelPermissions2);              // C_JUMP = 0x4,
+                    ImGui::InputScalar(_("taunt"), ImGuiDataType_S8, (bool*)&player->unknPermission2);                     // C_CHOUHATSU = 0x5,
+                    ImGui::InputScalar(_("gun"),    ImGuiDataType_S8, (bool*)&player->gunCancelPermissions2);              // C_GUN = 0x6,
+                    ImGui::InputScalar(_("all"), ImGuiDataType_S8, (bool*)&player->unknPermission3);                       // C_ALL = 0x7,
+                    ImGui::SameLine();                                                                                     // CANCEL_NO_NUM = 0x8,
+                    ImGui::PopItemWidth();
+                }   
                 ImGui::PopStyleVar(2);
                 ImGui::PopItemWidth();
                 ImGui::PopID();
@@ -449,6 +463,7 @@ void FlyingStats::on_gui_frame(int display) {
         ImGui::Checkbox(_("Display Mechanics"), &showFlyingMechanics);
         ImGui::Checkbox(_("Display Debug Info"), &showFlyingDebug);
         ImGui::Checkbox(_("Display Collision Info"), &showFlyingCollisionData);
+        ImGui::Checkbox(_("Display Cancels"), &showFlyingCancelBools);
         ImGui::Unindent(lineIndent);
         ImGui::Unindent(lineIndent);
     }
@@ -469,6 +484,7 @@ void FlyingStats::on_config_load(const utility::Config& cfg) {
     showFlyingMechanics = cfg.get<bool>("showFlyingMechanics").value_or(false);
     showFlyingDebug = cfg.get<bool>("showFlyingDebug").value_or(false);
     showFlyingCollisionData = cfg.get<bool>("showFlyingCollisionData").value_or(false);
+    showFlyingCancelBools = cfg.get<bool>("showFlyingCancelBools").value_or(false);
 }
 
 void FlyingStats::on_config_save(utility::Config& cfg) {
@@ -485,4 +501,5 @@ void FlyingStats::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("showFlyingStunTimer", showFlyingStunTimer);
     cfg.set<bool>("showFlyingDebug", showFlyingDebug);
     cfg.set<bool>("showFlyingCollisionData", showFlyingCollisionData);
+    cfg.set<bool>("showFlyingCancelBools", showFlyingCancelBools);
 }

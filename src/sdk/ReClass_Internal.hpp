@@ -1639,13 +1639,21 @@ public:
     uint8_t bufferPermissions; // 0x30c4
     char pad_30c5[0x2b];
     uint8_t meleeCancelPermissions2; // 0x30f0
-    char pad_30f1[0x83];
+    char pad_30f1[0x2B];
+    uint8_t unknPermission1; // 0x311c
+    char pad_311d[0x2B];
+    uint8_t directionalMeleePermissions;  // 0x3148
+    char pad_3149[0x2B];
     uint8_t jumpCancelPermissions2; // 0x3174
     char pad_3175[0x3];
     uint8_t bufferedJump; // 0x3178
-    char pad_3179[0x53];
+    char pad_3179[0x27];
+    uint8_t unknPermission2; // 0x31a0
+    char pad_31a1[0x2B];
     uint8_t gunCancelPermissions2; // 0x31cc
-    char pad_31cd[0x9b1b];
+    char pad_31cd[0x2B];
+    uint8_t unknPermission3; // 0x31f8
+    char pad_31f9[0x9AEF];
     uint8_t exceedLevel; // 0xcce8
     char pad_cce9[0xd3];
     float exceedTimer; // 0xcdbc
