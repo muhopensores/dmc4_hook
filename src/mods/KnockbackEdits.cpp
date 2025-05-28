@@ -1,7 +1,8 @@
 #include "KnockbackEdits.hpp"
 
 bool KnockbackEdits::mod_enabled = false;
-uintptr_t KnockbackEdits::jmp_return = NULL;
+uintptr_t KnockbackEdits::jmp_return0 = NULL;
+uintptr_t KnockbackEdits::jmp_return1 = NULL;
 uintptr_t KnockbackEdits::jmp_return2 = NULL;
 
 static bool release_stuns = false;
@@ -15,25 +16,31 @@ static bool hideNoUsed = true;
 
 static uintptr_t previousAttackStatus = NULL;
 
-naked void detour() { // projectiles?
+naked void detour0() { // get all projectiles
     _asm {
         cmp byte ptr [showAttackStatus], 1
-        jne dontGet
+        jne code
         cmp byte ptr [getProjectiles], 1
-        jne dontGet
+        jne code
         mov [previousAttackStatus], edx
-        dontGet:
+        code:
+        mov esi,edx // edx = string of move at the start of info
+        repe movsd // esi incs 4 every repe movsd starting at edx
+        mov byte ptr [eax+0x000000B3],00
+		jmp dword ptr [KnockbackEdits::jmp_return0]
+    }
+}
+
+naked void detour1() { // most projectile hits
+    _asm {
         mov esi, edx // edx = string of move at the start of info
         repe movsd // esi incs 4 every repe movsd starting at edx
         pop edi
 
-		//cmp byte ptr [KnockbackEdits::modEnabled], 0
-		//je retcode
-
         cmp dword ptr [eax+0xA4+0x00], 1162626386 // RELE(ASE) // get any release
         je release
-        cmp dword ptr [eax+0xA4+0x00], 0x5F4F5754 // TWO_ // get any release
-        je twosomeTime
+        //cmp dword ptr [eax+0xA4+0x00], 0x5F4F5754 // TWO_ // get twosome time
+        //je twosomeTime
         jmp retcode
 
     release:
@@ -45,19 +52,19 @@ naked void detour() { // projectiles?
         jmp retcode
 
     twosomeTime:
-        //cmp byte ptr [twosome_knocksback], 1
-        //jne retcode
+        // cmp byte ptr [twosome_knocksback], 1
+        // jne retcode
         cmp dword ptr [eax+0xA4+0x0C], 0x004C5F00 // ._L.
         jne retcode
         mov word ptr [eax+0xA4+0x34], 2 // make it knock back
         jmp retcode
 
     retcode:
-		jmp dword ptr [KnockbackEdits::jmp_return]
+		jmp dword ptr [KnockbackEdits::jmp_return1]
     }
 }
 
-naked void detour2() { // melee?
+naked void detour2() { // melee
     _asm {
         cmp byte ptr [showAttackStatus], 1
         jne dontGet
@@ -91,13 +98,17 @@ naked void detour2() { // melee?
 }
 
 std::optional<std::string> KnockbackEdits::on_initialize() {
-    if (!install_hook_offset(0x1099F8, hook, &detour, &jmp_return, 5)) { // projectiles?
-        spdlog::error("Failed to init KnockbackEdits mod\n");
-        return "Failed to init KnockbackEdits mod";
+    if (!install_hook_offset(0x10CAD7, hook0, &detour0, &jmp_return0, 11)) { // get all projectiles
+        spdlog::error("Failed to init KnockbackEdits mod 0\n");
+        return "Failed to init KnockbackEdits mod 0";
     }
-    if (!install_hook_offset(0x10CA35, hook2, &detour2, &jmp_return2, 7)) { // melee?
-        spdlog::error("Failed to init KnockbackEdits mod\n");
-        return "Failed to init KnockbackEdits mod";
+    if (!install_hook_offset(0x1099F8, hook1, &detour1, &jmp_return1, 5)) { // projectile hits
+        spdlog::error("Failed to init KnockbackEdits mod 1\n");
+        return "Failed to init KnockbackEdits mod 1";
+    }
+    if (!install_hook_offset(0x10CA35, hook2, &detour2, &jmp_return2, 7)) { // melee
+        spdlog::error("Failed to init KnockbackEdits mod 2\n");
+        return "Failed to init KnockbackEdits mod 2";
     }
     return Mod::on_initialize();
 }
