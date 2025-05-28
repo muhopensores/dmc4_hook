@@ -7,140 +7,48 @@ uintptr_t KnockbackEdits::jmp_return2 = NULL;
 static bool release_stuns = false;
 static bool volcano_launches = false;
 
-/*
-// looks like its this
-struct kAttackStatus
-{
-  MT_CHAR mAsName[16];
-  f32 mDamageValue; // 0x16
-  s32 mAttackLv;
-  s32 mAttackLvI;
-  s32 mAttackLvB;
-  s32 mRangeType;
-  s32 mHitStopTimer;
-  s32 mDamageType;
-  s32 mDamageTypeI;
-  s32 mDamageTypeB;
-  s32 mHitMarkAngle;
-  u32 mHitSE;
-  f32 mStylishPoint;
-  f32 mStylishTimer;
-};
+static bool showAttackStatus = false;
+static bool getMelee = true;
+static bool getProjectiles = true;
+static bool hideNoAttacks = true;
 
-// leaving this here because relevant
-struct kDefendStatus
-{
-  MT_CHAR mAsName[16];
-  f32 mResist[3];
-  s16 mMaxInterrupt[5];
-  s16 mMaxBlown[5];
-};
-
-// leaving this here because relevant
-struct cCollisionGroup {
-    u32 mKind;
-    u32 mAttr;
-    u32 mVsAttr;
-    u32 mUniqueID;
-    s32 mNum;
-    uCollisionMgr* mpCollisionMgr;
-    cCollision** mppCollision;
-    cCollGroup* mpCollGroup;
-    kAttackStatus mAttackStatus;
-    kDefendStatus mDefendStatus;
-    cCollisionGroup* mpNext[4];
-    MtMatrix* mpRefMat;
-    f32 mTimer;
-    f32 mOffset;
-    f32 mLife;
-    __attribute__((aligned(16))) MtVector3 mHitPos;
-};
-
-class attackDataEntry
-{
-public:
-    char name[12];    // 0x1365888
-    __int32 unk00;    // 0x000C
-    __int32 unkInt00; // 0x0010
-    float   damage;   // 0x0014
-    __int32 unkInt01; // 0x0018
-    __int32 unkInt02; // 0x001C // level 2 release changes this from 0 to 2 to make it stun the enemy. Looks like this is stun value - can stun DT enemies instantly with a high enough value
-    __int32 isGround; // 0x0020 // 00 neither 01 applies displacement when enemy is aerial 02 applies displacement when enemy is either air/ground
-    __int32 unkInt04; // 0x0024 // i think 00 == melee, 01 == gun. 01 has different hit vfx and kills ghost blanket quickly
-    __int32 unkInt05; // 0x0028 // hitstop duration
-    __int32 unkInt06; // 0x002C
-    __int32 unkInt07; // 0x0030
-    __int32 kbType;   // 0x0034
-    __int32 unkInt08; // 0x0038
-    __int32 unkInt09; // 0x003C
-    Vector3 unkVec3;  // 0x0040
-    __int32 unkInt10; // 0x004C
-    __int32 unkInt11; // 0x0050 // setting this to 02 breaks knockback direction and always sends the enemy a certain direction like SE trish. Shotgun uses 1
-    __int32 end;      // 0x0054
-
-}; // Size=0x0058
-
-class atkData
-{
-public:
-    char header[4];           // 0x1365888
-    DWORD headerWord;         // 0x0004
-    attackDataEntry name[64]; // 0x0008
-
-}; // Size=0x1608
-
-class attStruct
-{
-public:
-    char pad_0x0000[0x6C];  // 0x0000
-    atkData* atkDataPtr;    // 0x006C
-    char pad_0x0070[0x794]; // 0x0070
-
-}; // Size=0x0804
-
-
-class kbStruct
-{
-public:
-    virtual create;           //
-    virtual void Function1(); //
-    virtual void Function2(); //
-    virtual void Function3(); //
-    virtual void Function4(); //
-    virtual void Function5(); //
-    virtual void Function6(); //
-    virtual void Function7(); //
-    virtual void Function8(); //
-    virtual void Function9(); //
-
-    char pad_0x0004[0x17EC]; // 0x0004
-    attStruct* attPtr;       // 0x17F0
-    char pad_0x17F4[0x4C];   // 0x17F4
-
-}; // Size=0x1840
-*/
+static uintptr_t previousAttackStatus = NULL;
 
 naked void detour() { // projectiles?
     _asm {
+        cmp byte ptr [showAttackStatus], 1
+        jne dontGet
+        cmp byte ptr [getProjectiles], 1
+        jne dontGet
+        mov [previousAttackStatus], edx
+        dontGet:
         mov esi, edx // edx = string of move at the start of info
         repe movsd // esi incs 4 every repe movsd starting at edx
         pop edi
 
 		//cmp byte ptr [KnockbackEdits::modEnabled], 0
 		//je retcode
-        cmp byte ptr [release_stuns], 1
-        jne retcode
 
         cmp dword ptr [eax+0xA4+0x00], 1162626386 // RELE(ASE) // get any release
-        je releaseCheck2
+        je release
+        cmp dword ptr [eax+0xA4+0x00], 0x5F4F5754 // TWO_ // get any release
+        je twosomeTime
         jmp retcode
 
-    releaseCheck2:
+    release:
+        cmp byte ptr [release_stuns], 1
+        jne retcode
         cmp dword ptr [eax+0xA4+0x08], 3145793 // A 0 // get level 1 release
         jne retcode
-        // cmp byte ptr [releaseStuns], 1
-        // jne retcode
         mov word ptr [eax+0xA4+0x1C], 2 // make it hit
+        jmp retcode
+
+    twosomeTime:
+        //cmp byte ptr [twosome_knocksback], 1
+        //jne retcode
+        cmp dword ptr [eax+0xA4+0x0C], 0x004C5F00 // ._L.
+        jne retcode
+        mov word ptr [eax+0xA4+0x34], 2 // make it knock back
         jmp retcode
 
     retcode:
@@ -150,8 +58,17 @@ naked void detour() { // projectiles?
 
 naked void detour2() { // melee?
     _asm {
-		//cmp byte ptr [KnockbackEdits::modEnabled], 0
-		//je retcode
+        cmp byte ptr [showAttackStatus], 1
+        jne dontGet
+        cmp byte ptr [getMelee], 1
+        jne dontGet
+        cmp byte ptr [hideNoAttacks], 0
+        je get
+        cmp dword ptr [eax], 0x612D6F6E // no-a
+        je dontGet
+        get:
+        mov [previousAttackStatus], eax
+        dontGet:
         cmp byte ptr [volcano_launches], 1
         jne originalcode
 
@@ -176,12 +93,52 @@ std::optional<std::string> KnockbackEdits::on_initialize() {
     return Mod::on_initialize();
 }
 
+void KnockbackEdits::on_frame(fmilliseconds& dt) {
+    if (showAttackStatus) {
+        kAttackStatus_v3* attack = (kAttackStatus_v3*)previousAttackStatus;
+        ImGui::Begin("AttackStatusUI", &showAttackStatus);
+        ImGui::Checkbox("Get Melee", &getMelee);
+        ImGui::Checkbox("Get Projectiles", &getProjectiles);
+        ImGui::Checkbox("Hide \"no-attack\" entries", &hideNoAttacks);
+
+        if (attack) {
+            ImGui::Text(attack->mAsName);
+            ImGui::PushItemWidth(sameLineItemWidth);
+            ImGui::Combo("mAttackID", (int*)&attack->mAttackID, attack_id_names, IM_ARRAYSIZE(attack_id_names));
+            ImGui::InputFloat("mDamageValue", &attack->mDamageValue);
+            ImGui::InputInt("mAttackLv", &attack->mAttackLv);
+            ImGui::InputInt("mAttackLvI", &attack->mAttackLvI);
+            ImGui::InputInt("mAttackLvB", &attack->mAttackLvB);
+            ImGui::Combo("mRangeType", (int*)&attack->mRangeType, range_type_names, IM_ARRAYSIZE(range_type_names));
+            ImGui::InputInt("mHitStopTimer", &attack->mHitStopTimer);
+            ImGui::Combo("mDamageType", (int*)&attack->mDamageType, damage_type_names, IM_ARRAYSIZE(damage_type_names));
+            ImGui::InputInt("mDamageTypeI (turn enemy)", &attack->mDamageTypeI);
+            ImGui::InputInt("mDamageTypeB (launch n shits)", &attack->mDamageTypeB);
+            ImGui::Combo("mHitMarkAngle", (int*)&attack->mHitMarkAngle, hit_mark_angle_names, IM_ARRAYSIZE(hit_mark_angle_names));
+            ImGui::InputInt("mHitSE", (int*)&attack->mHitSE);
+            ImGui::InputFloat("mStylishPoint", &attack->mStylishPoint);
+            ImGui::InputFloat("mStylishTimer", &attack->mStylishTimer);
+            ImGui::InputFloat("mDTAdd", &attack->mDTAdd);
+            ImGui::Combo("mAttackFlag", (int*)&attack->mAttackFlag, attack_flag_names, IM_ARRAYSIZE(attack_flag_names));
+            ImGui::Combo("mBlownAngleType", (int*)&attack->mBlownAngleType, blown_angle_type_names, IM_ARRAYSIZE(blown_angle_type_names));
+            ImGui::Combo("mElementType", (int*)&attack->mElementType, element_type_dmc4_names, IM_ARRAYSIZE(element_type_dmc4_names));
+            ImGui::PopItemWidth();
+        }
+        ImGui::End();
+    }
+}
+
 void KnockbackEdits::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Release Always Stuns"), &release_stuns);
-    ImGui::SameLine();
-    help_marker(_("Release with no meter can stun the enemy"));
-    ImGui::SameLine(sameLineWidth);
-    ImGui::Checkbox(_("Shock Launches"), &volcano_launches);
+    if (display == 2) {
+        ImGui::Checkbox(_("Release Always Stuns"), &release_stuns);
+        ImGui::SameLine();
+        help_marker(_("Release with no meter can stun the enemy"));
+        ImGui::SameLine(sameLineWidth);
+        ImGui::Checkbox(_("Shock Launches"), &volcano_launches);
+    }
+    if (display == 0) {
+        ImGui::Checkbox("Previous Attack Data", &showAttackStatus);
+    }
 }
 
 void KnockbackEdits::on_config_load(const utility::Config& cfg) {
