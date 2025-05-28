@@ -1591,51 +1591,23 @@ naked void detour2(void) { // called once on air guard start
     }
 }
 
-static const char* snatchText = "Snatch";
-naked void detour3(void) { // called once on snatch touching an enemy
-    _asm {
-        cmp byte ptr [StylePoints::tonyHawk], 1
-        jne originalcode
-
-        pushad
-
-        push 0x3f800000 // styleMult
-        push 0 // style letter
-        push 0x3f800000 // enemyMult
-        push 0 // score
-        push snatchText // name
-        call AddTrickScore // fucks eax, ecx, edx
-        add esp, 0x14 // 5 args
-
-        popad
-
-        originalcode:
-        cmp dword ptr [esi+0x000014F0],00
-        jmp dword ptr [StylePoints::jmp_ret3]
-    }
-}
-
 static const char* GetJustTypeName(int Type) { // return "" if you don't want it displayed
     switch (Type) {
         case 0: return "";
-        case 1: return ""; // Taunt
-        case 2: return "Enemy Step";
-        case 3: return "";
-        case 4: return "";
-        case 5: return "Dodge";
-        case 6: return "";
-        case 7: return "Block";
-        case 8: return ""; // Release
-        case 9: return "";
-        case 10: return "";
-        case 11: return "";
-        case 12: return "Just Charge";
-        case 13: return "";
-        case 14: return "";
-        case 15: return "";
-        case 16: return "";
-        case 17: return "";
-        case 18: return "";
+        case 1: return "";                // ADD_COMBO_GUAGE_PROVOKE_BONUS = 0x1, // Taunt
+        case 2: return "Enemy Step";      // ADD_COMBO_GUAGE_EMJUMP = 0x2,
+        case 3: return "Snatch";          // ADD_COMBO_GUAGE_GRAB = 0x3,
+        case 4: return "";                // ADD_COMBO_GUAGE_GRAB_NEAR = 0x4, // Buster
+        case 5: return "Dodge";           // ADD_COMBO_GUAGE_AVOIDED = 0x5,
+        case 6: return "";                // ADD_COMBO_GUAGE_ENEMY_GUARD = 0x6,
+        case 7: return "Block";           // ADD_COMBO_GUAGE_BLOCK = 0x7,
+        case 8: return "";                // ADD_COMBO_GUAGE_RELEASE = 0x8,
+        case 9: return "";                // ADD_COMBO_GUAGE_PANDORABOX = 0x9,
+        case 10: return "";               // ADD_COMBO_GUAGE_TS_ESC = 0xa,
+        case 11: return "";               // ADD_COMBO_GUAGE_YT_COMBO2 = 0xb,
+        case 12: return "Just Charge";    // ADD_COMBO_GUAGE_GM_JUST_SAVE = 0xc,
+        case 13: return "";               // ADD_COMBO_GUAGE_TS_EM_HIKE = 0xd,
+        case 14: return "";               // ADD_COMBO_GUAGE_RETURN_SWORD = 0xe,
         default: return "";
     }
 }
@@ -1683,11 +1655,6 @@ std::optional<std::string> StylePoints::on_initialize() {
     if (!install_hook_offset(0x3CC13B, hook2, &detour2, &jmp_ret2, 6)) { // called once on air guard start
 		spdlog::error("Failed to init StylePoints mod 2\n");
 		return "Failed to init StylePoints mod 2";
-	}
-
-    if (!install_hook_offset(0x334FAB, hook3, &detour3, &jmp_ret3, 7)) { // called once on snatch touching an enemy
-		spdlog::error("Failed to init StylePoints mod 3\n");
-		return "Failed to init StylePoints mod 3";
 	}
 
     if (!install_hook_offset(0xA5FFC, hook4, &detour4, &jmp_ret4, 5)) { // called on just actions and taunts
@@ -2012,10 +1979,10 @@ void StylePoints::on_gui_frame(int display) {
         ImGui::SameLine();
         help_marker(_("Group attacks by the order you originally did them\n"
             "This helps show the variety in a combo over exact input order"));
-        ImGui::Checkbox("Height Chart", &showHeightChart);
+        ImGui::Checkbox(_("Height Chart"), &showHeightChart);
         ImGui::SameLine();
         help_marker(_("Ever wanted to see a log of your height throughout a combo? Me neither!"));
-        ImGui::Checkbox("Inertia Chart", &showInertiaChart);
+        ImGui::Checkbox(_("Inertia Chart"), &showInertiaChart);
         ImGui::SameLine();
         help_marker(_("Ever wanted to see a log of your inertia throughout a combo? Me neither!"));
         /*

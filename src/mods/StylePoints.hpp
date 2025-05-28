@@ -32,7 +32,7 @@ public:
     void on_gui_frame(int display) override;
 
 private:
-    std::unique_ptr<FunctionHook> hook1, hook2, hook3, hook4;
+    std::unique_ptr<FunctionHook> hook1, hook2, /*hook3,*/ hook4;
 	PDIRECT3DTEXTURE9 m_texture_handle{ nullptr };
 	int m_texture_width;
 	int m_texture_height;
