@@ -7,7 +7,8 @@ public:
     KnockbackEdits() = default;
 
     static bool mod_enabled;
-    static uintptr_t jmp_return;
+    static uintptr_t jmp_return0;
+	static uintptr_t jmp_return1;
     static uintptr_t jmp_return2;
 
     std::string get_mod_name() override { return "KnockbackEdits"; };
@@ -21,7 +22,7 @@ public:
     void on_frame(fmilliseconds& dt) override;
 
 private:
-    std::unique_ptr<FunctionHook> hook, hook2;
+    std::unique_ptr<FunctionHook> hook0, hook1, hook2;
 };
 
 enum ATTACK_ID /* int */
