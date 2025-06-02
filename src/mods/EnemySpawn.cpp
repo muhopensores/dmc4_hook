@@ -509,16 +509,6 @@ std::optional<std::string> EnemySpawn::on_initialize() {
     return Mod::on_initialize();
 }
 
-const char** get_translated_listbox(const char* const items[], int items_count ) {
-    char** memory = (char**)::malloc(sizeof(char*) * items_count);
-    assert(memory);
-    for (int i = 0; i < items_count; ++i) {
-        memory[i] = utility::text_lookup((char*)items[i]);
-    }
-    return (const char**)memory;
-}
-
-
 void EnemySpawn::on_gui_frame(int display) {
     uPlayer* player = devil4_sdk::get_local_player();
     int enemy_names_current = 0;
