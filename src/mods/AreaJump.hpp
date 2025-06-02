@@ -16,7 +16,6 @@ public:
     };
 
     static std::array<Room, 83> room_items;
-    static void initialize_rooms();
 
     // BP:
     static bool randomize_bp_toggle;

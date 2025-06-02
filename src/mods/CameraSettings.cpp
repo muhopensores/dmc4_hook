@@ -442,7 +442,7 @@ void CameraSettings::on_gui_frame(int display) {
                 ImGui::InputFloat("##FOV InputFloat", &CameraSettings::camera_fov, 10.0f, 20.0f, "%.0f%");
                 ImGui::Text(_("FOV (In Battle)"));
                 ImGui::InputFloat("##FOV (In Battle) InputFloat", &CameraSettings::camera_fov_in_battle, 10.0f, 20.0f, "%.0f%");
-                if (ImGui::Checkbox("##Pause Camera Checkbox", &pause_camera_enabled)) {
+                if (ImGui::Checkbox(_("Pause Camera##Pause Camera Checkbox"), &pause_camera_enabled)) {
                     toggle_pause_camera(pause_camera_enabled);
                 }
                 if (ImGui::Button(_("Reset Camera Variables"))) {

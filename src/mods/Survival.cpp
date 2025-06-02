@@ -78,16 +78,24 @@ static uintptr_t doppelAddr = NULL; // use this when spawning doppel dante or ne
 // for stage select
 struct SurvivalRoom {
     int roomID;
-    std::string readableName;
     int roomNumber;
 };
+
 const std::vector<SurvivalRoom> survivalRooms {
-    {705, "BP 1-19",    1},
-    {704, "BP 21-39",  21},
-    {703, "BP 41-59",  41},
-    {701, "BP 61-79",  61},
-    {702, "BP 81-99",  81},
-    {700, "BP 101",   101}
+    {705,   1},
+    {704,  21},
+    {703,  41},
+    {701,  61},
+    {702,  81},
+    {700, 101}
+};
+constexpr std::array<const char*, 6> survival_room_names {
+    __("BP 1-19"),
+    __("BP 21-39"), 
+    __("BP 41-59"),
+    __("BP 61-79"),
+    __("BP 81-99"),
+    __("BP 101")
 };
 int Survival::currentRoomIndex = 0;
 
@@ -756,13 +764,13 @@ void Survival::on_gui_frame(int display) {
 
     if (Survival::mod_enabled) {
         ImGui::Indent(lineIndent);
-        const char* current_item_label = survivalRooms[Survival::currentRoomIndex].readableName.c_str();
+        utility::ImGooListboxTranslated translated_names(survival_room_names.data(), survival_room_names.size());
         ImGui::SetNextItemWidth(sameLineItemWidth);
-        if (ImGui::BeginCombo("Stage Select", current_item_label)) {
+        if (ImGui::BeginCombo(_("Stage Select"), translated_names.data()[Survival::currentRoomIndex])) {
             for (uint32_t i = 0; i < survivalRooms.size(); i++) {
                 const auto& room = survivalRooms[i];
                 bool is_selected = (Survival::currentRoomIndex == i);
-                if (ImGui::Selectable(room.readableName.c_str(), is_selected)) {
+                if (ImGui::Selectable(translated_names.data()[i], is_selected)) {
                     Survival::currentRoomIndex = i;
                 }
                 if (is_selected) {

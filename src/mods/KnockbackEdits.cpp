@@ -116,7 +116,7 @@ std::optional<std::string> KnockbackEdits::on_initialize() {
 void KnockbackEdits::on_frame(fmilliseconds& dt) {
     if (showAttackStatus) {
         kAttackStatus_v3* attack = (kAttackStatus_v3*)previousAttackStatus;
-        ImGui::Begin("AttackStatusUI", &showAttackStatus);
+        ImGui::Begin("AttackStatusUI", &showAttackStatus, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Checkbox("Get Melee", &getMelee);
         ImGui::Checkbox("Get Projectiles", &getProjectiles);
         ImGui::Checkbox("Hide \"no-attack\" entries", &hideNoAttacks);

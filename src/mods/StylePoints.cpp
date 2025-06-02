@@ -28,715 +28,715 @@ void StylePoints::after_reset() {
 
 static std::unordered_map<std::string, std::string> textLookupTable = {
     // trickster
-    {"TS-ehsuc",         _("Mustang")},
+    {"TS-ehsuc",         __("Mustang")},
     // royal guard
-    {"RELEASE_A",        "Release"}, // empty bar
-    {"RELEASE_B",        "Release"}, // any bar or meh attack timing
-    {"RELEASE_C",        "Release"}, // 10k or above
-    {"RELEASE_D",        "Release"}, // releasing an attack at 0-10k gauge
-    {"RELEASE_E",        "Release"}, // releasing an attack at 10k or above gauge
+    {"RELEASE_A",        __("Release")}, // empty bar
+    {"RELEASE_B",        __("Release")}, // any bar or meh attack timing
+    {"RELEASE_C",        __("Release")}, // 10k or above
+    {"RELEASE_D",        __("Release")}, // releasing an attack at 0-10k gauge
+    {"RELEASE_E",        __("Release")}, // releasing an attack at 10k or above gauge
 
     // rebellion
-    {"REBE-combo303",    "Rebellion Combo A"}, // A1
-    {"REBE-combo304",    "Rebellion Combo A"}, // A2
-    {"REBE-combo305",    "Rebellion Combo A"}, // A3
-    {"REBE-stings",      "Stinger"},
-    {"REBE-sting",       "Stinger Hit"},
-    {"REBE-stab",        "Million Stab"},
-	{"REBE-roundt",      "Round Trip"},
-    {"REBE-hightime",    "High Time"},
-    {"REBE-combo306-1",  "Rebellion Combo B"},
-    {"REBE-combo306-2",  "Rebellion Combo B"},
-    {"REBE-combo306-3",  "Rebellion Combo B"},
-    {"REBE-stabf",       "Million Stab End"},
-    {"REBE-helmbrkLV1",  "Helm Breaker Lv.1"},
-    {"REBE-helmbrkLV2",  "Helm Breaker Lv.2"},
-    {"REBE-helmbrkLV3",  "Helm Breaker Lv.3"},
-    {"REBE-helmbrkf",    "Helm Breaker"},
-    {"REBE-DTstg1",      "DT Stinger"},
-    {"REBE-DTstg2",      "DT Stinger"},
-    {"REBE-DTstg3",      "DT Stinger"},
-    {"REBE-DTstg4",      "DT Stinger"},
-    {"REBE-DTstg5",      "DT Stinger"},
+    {"REBE-combo303",    __("Rebellion Combo A")}, // A1
+    {"REBE-combo304",    __("Rebellion Combo A")}, // A2
+    {"REBE-combo305",    __("Rebellion Combo A")}, // A3
+    {"REBE-stings",      __("Stinger")},
+    {"REBE-sting",       __("Stinger Hit")},
+    {"REBE-stab",        __("Million Stab")},
+	{"REBE-roundt",      __("Round Trip")},
+    {"REBE-hightime",    __("High Time")},
+    {"REBE-combo306-1",  __("Rebellion Combo B")},
+    {"REBE-combo306-2",  __("Rebellion Combo B")},
+    {"REBE-combo306-3",  __("Rebellion Combo B")},
+    {"REBE-stabf",       __("Million Stab End")},
+    {"REBE-helmbrkLV1",  __("Helm Breaker Lv.1")},
+    {"REBE-helmbrkLV2",  __("Helm Breaker Lv.2")},
+    {"REBE-helmbrkLV3",  __("Helm Breaker Lv.3")},
+    {"REBE-helmbrkf",    __("Helm Breaker")},
+    {"REBE-DTstg1",      __("DT Stinger")},
+    {"REBE-DTstg2",      __("DT Stinger")},
+    {"REBE-DTstg3",      __("DT Stinger")},
+    {"REBE-DTstg4",      __("DT Stinger")},
+    {"REBE-DTstg5",      __("DT Stinger")},
 
     // rebellion swordmaster
-    {"REBE-props1",      "Prop"},
-    {"REBE-props20",     "Shredder"},
-    {"REBE-props21",     "Shredder"},
-    {"REBE-dm363",       "Dance Macabre"}, // 1
-    {"REBE-dm365",       "Dance Macabre"}, // 2
-    {"REBE-dm366",       "Dance Macabre"}, // 3
-    {"REBE-dm367",       "Dance Macabre"}, // 4
-    {"REBE-dm368-1",     "Dance Macabre"}, // 5-1
-    {"REBE-dm368-2",     "Dance Macabre"}, // 5-2
-    {"REBE-dm368-3",     "Dance Macabre"}, // 5-3
-    {"REBE-dm369",       "Dance Macabre"}, // stab
-    {"REBE-dm370",       "Dance Macabre"}, // 7
-    {"REBE-dm371",       "Dance Macabre"}, // 8
-    {"REBE-dm372-1",     "Dance Macabre"}, // 9
-    {"REBE-dm373",       "Dance Macabre"}, // Million stab end
-    {"REBE-dm364",       "Dance Macabre"}, // End
-    {"REBE-arial353",    "Aerial Rave"}, // 1
-    {"REBE-arial354",    "Aerial Rave"}, // 2
-    {"REBE-arial355",    "Aerial Rave"}, // 3
-    {"REBE-arial356",    "Aerial Rave"}, // 4
-	{"REBE-drivesw1",	 "Drive"},
-	{"REBE-drive1",		 "Drive"},
-	{"REBE-drive1-2",	 "Drive Lv.2"},
-	{"REBE-drive1-3",	 "Drive Lv.3"},
-	{"REBE-drivesw2",	 "Overdrive"},
-	{"REBE-drive2",		 "Overdrive"},
-	{"REBE-drive2-2",	 "Overdrive Lv.2"},
-	{"REBE-drive2-3",	 "Overdrive Lv.3"},
-	{"REBE-drivesw3",	 "Drive"},
-	{"REBE-drive3",		 "Overdrive"},
-	{"REBE-drive3-2",	 "Overdrive Lv.2"},
-	{"REBE-drive3-3",	 "Overdrive Lv.3"},
-	{"REBE-qdrive",		 "Quick Drive"},
+    {"REBE-props1",      __("Prop")},
+    {"REBE-props20",     __("Shredder")},
+    {"REBE-props21",     __("Shredder")},
+    {"REBE-dm363",       __("Dance Macabre")}, // 1
+    {"REBE-dm365",       __("Dance Macabre")}, // 2
+    {"REBE-dm366",       __("Dance Macabre")}, // 3
+    {"REBE-dm367",       __("Dance Macabre")}, // 4
+    {"REBE-dm368-1",     __("Dance Macabre")}, // 5-1
+    {"REBE-dm368-2",     __("Dance Macabre")}, // 5-2
+    {"REBE-dm368-3",     __("Dance Macabre")}, // 5-3
+    {"REBE-dm369",       __("Dance Macabre")}, // stab
+    {"REBE-dm370",       __("Dance Macabre")}, // 7
+    {"REBE-dm371",       __("Dance Macabre")}, // 8
+    {"REBE-dm372-1",     __("Dance Macabre")}, // 9
+    {"REBE-dm373",       __("Dance Macabre")}, // Million stab end
+    {"REBE-dm364",       __("Dance Macabre")}, // End
+    {"REBE-arial353",    __("Aerial Rave")}, // 1
+    {"REBE-arial354",    __("Aerial Rave")}, // 2
+    {"REBE-arial355",    __("Aerial Rave")}, // 3
+    {"REBE-arial356",    __("Aerial Rave")}, // 4
+	{"REBE-drivesw1",	 __("Drive")},
+	{"REBE-drive1",		 __("Drive")},
+	{"REBE-drive1-2",	 __("Drive Lv.2")},
+	{"REBE-drive1-3",	 __("Drive Lv.3")},
+	{"REBE-drivesw2",	 __("Overdrive")},
+	{"REBE-drive2",		 __("Overdrive")},
+	{"REBE-drive2-2",	 __("Overdrive Lv.2")},
+	{"REBE-drive2-3",	 __("Overdrive Lv.3")},
+	{"REBE-drivesw3",	 __("Drive")},
+	{"REBE-drive3",		 __("Overdrive")},
+	{"REBE-drive3-2",	 __("Overdrive Lv.2")},
+	{"REBE-drive3-3",	 __("Overdrive Lv.3")},
+	{"REBE-qdrive",		 __("Quick Drive")},
 
     // gilgamesh
-	{"GIL-rblaze",       "Flush"},
-	{"GIL-rblaze-f",     "Flush"},
-	{"GIL-rblaze-b",     "Flush"},
-    {"GIL-klbe",         "Full House"},
-	{"GIL-combo403",     "Gilgamesh Combo A"}, // A1
-    {"GIL-combo464",     "Gilgamesh Combo A Lv.2"}, // A1 Lv.2
-    {"GIL-combo465",     "Gilgamesh Combo A Lv.3"}, // A1 Lv.3
-	{"GIL-combo404",     "Gilgamesh Combo A"}, // A2
-    {"GIL-combo466",     "Gilgamesh Combo A Lv.2"}, // A2 Lv.2
-    {"GIL-combo467",     "Gilgamesh Combo A Lv.3"}, // A2 Lv.3
-	{"GIL-combo405",     "Gilgamesh Combo A"}, // A3
-    {"GIL-combo476",     "Gilgamesh Combo A Lv.2"}, // A3 Lv.2
-    {"GIL-combo477",     "Gilgamesh Combo A Lv.3"}, // A3 Lv.3
-	{"GIL-combo406",     "Gilgamesh Combo A"}, // A4
-    {"GIL-combo478",     "Gilgamesh Combo A Lv.2"}, // A4 Lv.2
-    {"GIL-combo479",     "Gilgamesh Combo A Lv.3"}, // A4 Lv.3
-	{"GIL-combo407",     "Gilgamesh Combo B"}, // B1 (kick spam)
-    {"GIL-combo480",     "Gilgamesh Combo B Lv.2"}, // B1 Lv.2
-    {"GIL-combo481",     "Gilgamesh Combo B Lv.3"}, // B1 Lv.3
-	{"GIL-combo409-1",   "Gilgamesh Combo B"}, // B2-1
-	{"GIL-combo409-2",   "Gilgamesh Combo B"}, // B2-2
-    {"GIL-combo482-1",   "Gilgamesh Combo B Lv.2"}, // B2-1 Lv.2
-    {"GIL-combo482-2",   "Gilgamesh Combo B Lv.2"}, // B2-2 Lv.2
-    {"GIL-combo483-1",   "Gilgamesh Combo B Lv.3"}, // B2-1 Lv.3
-    {"GIL-combo483-2",   "Gilgamesh Combo B Lv.3"}, // B2-2 Lv.3
-	{"GIL-straight422",  "Straight"},
-	{"GIL-straight2",    "Straight Lv.2"},
-	{"GIL-straight3",    "Straight Lv.3"},
-	{"GIL-k13r-01",      "Kick 13"},
-	{"GIL-k13r-02",      "Kick 13"},
-	{"GIL-k13r-03",      "Kick 13"},
-	{"GIL-k13r-04",      "Kick 13"},
-	{"GIL-k13r-05",      "Kick 13"},
-	{"GIL-k13rDT-01",    "DT Kick 13"},
-	{"GIL-k13rDT-02",    "DT Kick 13"},
-	{"GIL-k13rDT-03",    "DT Kick 13"},
-	{"GIL-k13rDT-04",    "DT Kick 13"},
-	{"GIL-k13rDT-05",    "DT Kick 13"},
-	{"GIL-k13rDT-06",    "DT Kick 13"},
+	{"GIL-rblaze",       __("Flush")},
+	{"GIL-rblaze-f",     __("Flush")},
+	{"GIL-rblaze-b",     __("Flush")},
+    {"GIL-klbe",         __("Full House")},
+	{"GIL-combo403",     __("Gilgamesh Combo A")}, // A1
+    {"GIL-combo464",     __("Gilgamesh Combo A Lv.2")}, // A1 Lv.2
+    {"GIL-combo465",     __("Gilgamesh Combo A Lv.3")}, // A1 Lv.3
+	{"GIL-combo404",     __("Gilgamesh Combo A")}, // A2
+    {"GIL-combo466",     __("Gilgamesh Combo A Lv.2")}, // A2 Lv.2
+    {"GIL-combo467",     __("Gilgamesh Combo A Lv.3")}, // A2 Lv.3
+	{"GIL-combo405",     __("Gilgamesh Combo A")}, // A3
+    {"GIL-combo476",     __("Gilgamesh Combo A Lv.2")}, // A3 Lv.2
+    {"GIL-combo477",     __("Gilgamesh Combo A Lv.3")}, // A3 Lv.3
+	{"GIL-combo406",     __("Gilgamesh Combo A")}, // A4
+    {"GIL-combo478",     __("Gilgamesh Combo A Lv.2")}, // A4 Lv.2
+    {"GIL-combo479",     __("Gilgamesh Combo A Lv.3")}, // A4 Lv.3
+	{"GIL-combo407",     __("Gilgamesh Combo B")}, // B1 (kick spam)
+    {"GIL-combo480",     __("Gilgamesh Combo B Lv.2")}, // B1 Lv.2
+    {"GIL-combo481",     __("Gilgamesh Combo B Lv.3")}, // B1 Lv.3
+	{"GIL-combo409-1",   __("Gilgamesh Combo B")}, // B2-1
+	{"GIL-combo409-2",   __("Gilgamesh Combo B")}, // B2-2
+    {"GIL-combo482-1",   __("Gilgamesh Combo B Lv.2")}, // B2-1 Lv.2
+    {"GIL-combo482-2",   __("Gilgamesh Combo B Lv.2")}, // B2-2 Lv.2
+    {"GIL-combo483-1",   __("Gilgamesh Combo B Lv.3")}, // B2-1 Lv.3
+    {"GIL-combo483-2",   __("Gilgamesh Combo B Lv.3")}, // B2-2 Lv.3
+	{"GIL-straight422",  __("Straight")},
+	{"GIL-straight2",    __("Straight Lv.2")},
+	{"GIL-straight3",    __("Straight Lv.3")},
+	{"GIL-k13r-01",      __("Kick 13")},
+	{"GIL-k13r-02",      __("Kick 13")},
+	{"GIL-k13r-03",      __("Kick 13")},
+	{"GIL-k13r-04",      __("Kick 13")},
+	{"GIL-k13r-05",      __("Kick 13")},
+	{"GIL-k13rDT-01",    __("DT Kick 13")},
+	{"GIL-k13rDT-02",    __("DT Kick 13")},
+	{"GIL-k13rDT-03",    __("DT Kick 13")},
+	{"GIL-k13rDT-04",    __("DT Kick 13")},
+	{"GIL-k13rDT-05",    __("DT Kick 13")},
+	{"GIL-k13rDT-06",    __("DT Kick 13")},
 
     // gilgamesh swordmaster
-	{"GIL-mgdv450",  	 "Beast Uppercut"},
-	{"GIL-rgdg460",  	 "Rising Dragon"},
-	{"GIL-dvdg461",  	 "Divine Dragon"},
-	{"GIL-dvdg462",  	 "Divine Dragon"},
-	{"GIL-rlimpct-01",   "Real Impact"},
-	{"GIL-rlimpct-02",   "Real Impact"},
-	{"GIL-rlimpct-03",   "Real Impact"},
-	{"GIL-inferno451",   "Shock"},
-	{"GIL-inferno470",   "Shock Lv.2"},
-	{"GIL-inferno471",   "Shock Lv.3"},
+	{"GIL-mgdv450",  	 __("Beast Uppercut")},
+	{"GIL-rgdg460",  	 __("Rising Dragon")},
+	{"GIL-dvdg461",  	 __("Divine Dragon")},
+	{"GIL-dvdg462",  	 __("Divine Dragon")},
+	{"GIL-rlimpct-01",   __("Real Impact")},
+	{"GIL-rlimpct-02",   __("Real Impact")},
+	{"GIL-rlimpct-03",   __("Real Impact")},
+	{"GIL-inferno451",   __("Shock")},
+	{"GIL-inferno470",   __("Shock Lv.2")},
+	{"GIL-inferno471",   __("Shock Lv.3")},
 
     // lucifer
-    {"NORMAL",           "Embed"}, // pins and pandora's normal shot
-    {"Bomb",             "Pin Explosion"},
-    {"ROSE",             "Rose"},
-	{"LUCI-combo503",    "Lucifer A1"},
-	{"LUCI-combo504",    "Lucifer A2"},
-	{"LUCI-combo505",    "Lucifer A3"},
-	{"LUCI-combo506-1",  "Lucifer A4"},
-    {"LUCI-combo506-2",  "Lucifer A4"},
-	{"LUCI-combo519-1",  "Lucifer B1"},
-	{"LUCI-combo519-2",  "Lucifer B1"},
-	{"LUCI-combo508", 	 "Lucifer E1"},
-	{"LUCI-combo509", 	 "Lucifer E2"},
-	{"LUCI-combo510-1",  "Lucifer E3"},
-	{"LUCI-combo510-2",  "Lucifer E3"},
-    {"LUCI-combo514-1",  "Splash"},
-    {"LUCI-combo514-2",  "Splash"},
-    {"LUCI-combo514-3",  "Splash"},
+    {"NORMAL",           __("Embed")}, // pins and pandora's normal shot
+    {"Bomb",             __("Pin Explosion")},
+    {"ROSE",             __("Rose")},
+	{"LUCI-combo503",    __("Lucifer A1")},
+	{"LUCI-combo504",    __("Lucifer A2")},
+	{"LUCI-combo505",    __("Lucifer A3")},
+	{"LUCI-combo506-1",  __("Lucifer A4")},
+    {"LUCI-combo506-2",  __("Lucifer A4")},
+	{"LUCI-combo519-1",  __("Lucifer B1")},
+	{"LUCI-combo519-2",  __("Lucifer B1")},
+	{"LUCI-combo508", 	 __("Lucifer E1")},
+	{"LUCI-combo509", 	 __("Lucifer E2")},
+	{"LUCI-combo510-1",  __("Lucifer E3")},
+	{"LUCI-combo510-2",  __("Lucifer E3")},
+    {"LUCI-combo514-1",  __("Splash")},
+    {"LUCI-combo514-2",  __("Splash")},
+    {"LUCI-combo514-3",  __("Splash")},
 
     // lucifer swordmaster
-	{"Funnel", 			 "Discipline & Bondage"},
-	{"Stand",  			 "Climax"},
-	{"BombBariier",  	 "Climax"},
+	{"Funnel", 			 __("Discipline & Bondage")},
+	{"Stand",  			 __("Climax")},
+	{"BombBariier",  	 __("Climax")},
 
     // e&i
-    {"SHL000",           "E&I"},
-    {"SHL00-LEN2",       "E&I"},
-    {"SHL00_LEN3",       "E&I"},
-    {"CHARGE",           "Charged E&I"},
-    {"CHARGE_LEN2",      "Charged E&I"},
-    {"CHARGE_LEN3",      "Charged E&I"},
+    {"SHL000",           __("E&I")},
+    {"SHL00-LEN2",       __("E&I")},
+    {"SHL00_LEN3",       __("E&I")},
+    {"CHARGE",           __("Charged E&I")},
+    {"CHARGE_LEN2",      __("Charged E&I")},
+    {"CHARGE_LEN3",      __("Charged E&I")},
 
     // e&i gunslinger
-    {"RAIN_STORM",       "Rainstorm"},
-    {"RAIN_STORM_LEN2",  "Rainstorm"},
-    {"RAIN_STORM_LEN3",  "Rainstorm"},
-    {"DT_RAIN_STORM",    "Charged Rainstorm"},
-    {"DT_RAIN_STORM_L",  "Charged Rainstorm"},
-	{"TWO_SOMETIME",     "Twosome Time"},
-    {"TWO_SOMETIME_L2",  "Twosome Time"},
-    {"TWO_SOMETIME_L3",  "Twosome Time"},
-	{"DT_TWO_SOMETIME",  "Charged Twosome Time"},
-    {"HONEY_COMB",       "Honeycomb Fire"},
-    {"HONEY_COMB_LEN2",  "Honeycomb Fire"},
-    {"HONEY_COMB_LEN3",  "Honeycomb Fire"},
-    {"DT_HONEY_COMB",    "Charged Honeycomb Fire"},
-    {"DT_HONEY_COMB_L",  "Charged Honeycomb Fire"},
+    {"RAIN_STORM",       __("Rainstorm")},
+    {"RAIN_STORM_LEN2",  __("Rainstorm")},
+    {"RAIN_STORM_LEN3",  __("Rainstorm")},
+    {"DT_RAIN_STORM",    __("Charged Rainstorm")},
+    {"DT_RAIN_STORM_L",  __("Charged Rainstorm")},
+	{"TWO_SOMETIME",     __("Twosome Time")},
+    {"TWO_SOMETIME_L2",  __("Twosome Time")},
+    {"TWO_SOMETIME_L3",  __("Twosome Time")},
+	{"DT_TWO_SOMETIME",  __("Charged Twosome Time")},
+    {"HONEY_COMB",       __("Honeycomb Fire")},
+    {"HONEY_COMB_LEN2",  __("Honeycomb Fire")},
+    {"HONEY_COMB_LEN3",  __("Honeycomb Fire")},
+    {"DT_HONEY_COMB",    __("Charged Honeycomb Fire")},
+    {"DT_HONEY_COMB_L",  __("Charged Honeycomb Fire")},
 
     // coyote
-    {"NRML_ETC_LV1",     "Coyote"},
-    {"NRML_CEN_LV1",     "Coyote"},
-    {"NRML_ETC_LV2",     "Coyote"},
-    {"NRML_CEN_LV2",     "Coyote"},
-    {"NRML_ETC_LV3",     "Coyote"},
-    {"NRML_CEN_LV3",     "Coyote"},
-	{"CHRG_ETC_LV1",     "Charged Coyote"},
-    {"CHRG_CEN_LV1",     "Charged Coyote"},
-    {"CHRG_ETC_LV2",     "Charged Coyote"},
-    {"CHRG_CEN_LV2",     "Charged Coyote"},
-    {"CHRG_ETC_LV3",     "Charged Coyote"},
-    {"CHRG_CEN_LV3",     "Charged Coyote"},
+    {"NRML_ETC_LV1",     __("Coyote")},
+    {"NRML_CEN_LV1",     __("Coyote")},
+    {"NRML_ETC_LV2",     __("Coyote")},
+    {"NRML_CEN_LV2",     __("Coyote")},
+    {"NRML_ETC_LV3",     __("Coyote")},
+    {"NRML_CEN_LV3",     __("Coyote")},
+	{"CHRG_ETC_LV1",     __("Charged Coyote")},
+    {"CHRG_CEN_LV1",     __("Charged Coyote")},
+    {"CHRG_ETC_LV2",     __("Charged Coyote")},
+    {"CHRG_CEN_LV2",     __("Charged Coyote")},
+    {"CHRG_ETC_LV3",     __("Charged Coyote")},
+    {"CHRG_CEN_LV3",     __("Charged Coyote")},
 
     // coyote gunslinger
-	{"BACK_ETC_LV1",     "Backslide"},
-	{"BACK_CEN_LV1",     "Backslide"},
-	{"BACK_ETC_LV2",     "Backslide"},
-	{"BACK_CEN_LV2",     "Backslide"},
-	{"BACK_ETC_LV3",     "Backslide"},
-	{"BACK_CEN_LV3",     "Backslide"},
-    {"DTBC_ETC_LV1",     "Charged Backslide"},
-    {"DTBC_CEN_LV1",     "Charged Backslide"},
-    {"DTBC_ETC_LV2",     "Charged Backslide"},
-    {"DTBC_CEN_LV2",     "Charged Backslide"},
-    {"DTBC_ETC_LV3",     "Charged Backslide"},
-    {"DTBC_CEN_LV3",     "Charged Backslide"},
-	{"NCHA_STR_LV1",     "Fireworks"},
-	{"NCHA_STR_LV2",     "Fireworks"},
-	{"NCHA_STR_LV3",     "Fireworks"},
-	{"NCHA_WEK_LV1",     "Fireworks"},
-	{"NCHA_WEK_LV2",     "Fireworks"},
-	{"NCHA_WEK_LV3",     "Fireworks"},
-	{"DTNC_STR_LV1",     "Charged Fireworks"},
-	{"DTNC_STR_LV2",     "Charged Fireworks"},
-	{"DTNC_STR_LV3",     "Charged Fireworks"},
-	{"DTNC_WEK_LV1",     "Charged Fireworks"},
-	{"DTNC_WEK_LV2",     "Charged Fireworks"},
-	{"DTNC_WEK_LV3",     "Charged Fireworks"},
-	{"STG-gunstinger",   "Gun Stinger"},
-	{"STNG_ETC_LV1",     "Gun Stinger"},
-	{"STNG_CEN_LV1",     "Gun Stinger"},
-	{"STNG_ETC_LV2",     "Gun Stinger"},
-	{"STNG_CEN_LV2",     "Gun Stinger"},
-	{"STNG_ETC_LV3",     "Gun Stinger"},
-	{"STNG_CEN_LV3",     "Gun Stinger"},
-	{"DTST_ETC_LV1",     "Charged Gun Stinger"},
-	{"DTST_CEN_LV1",     "Charged Gun Stinger"},
-	{"DTST_ETC_LV2",     "Charged Gun Stinger"},
-	{"DTST_CEN_LV2",     "Charged Gun Stinger"},
-	{"DTST_ETC_LV3",     "Charged Gun Stinger"},
-	{"DTST_CEN_LV3",     "Charged Gun Stinger"},
+	{"BACK_ETC_LV1",     __("Backslide")},
+	{"BACK_CEN_LV1",     __("Backslide")},
+	{"BACK_ETC_LV2",     __("Backslide")},
+	{"BACK_CEN_LV2",     __("Backslide")},
+	{"BACK_ETC_LV3",     __("Backslide")},
+	{"BACK_CEN_LV3",     __("Backslide")},
+    {"DTBC_ETC_LV1",     __("Charged Backslide")},
+    {"DTBC_CEN_LV1",     __("Charged Backslide")},
+    {"DTBC_ETC_LV2",     __("Charged Backslide")},
+    {"DTBC_CEN_LV2",     __("Charged Backslide")},
+    {"DTBC_ETC_LV3",     __("Charged Backslide")},
+    {"DTBC_CEN_LV3",     __("Charged Backslide")},
+	{"NCHA_STR_LV1",     __("Fireworks")},
+	{"NCHA_STR_LV2",     __("Fireworks")},
+	{"NCHA_STR_LV3",     __("Fireworks")},
+	{"NCHA_WEK_LV1",     __("Fireworks")},
+	{"NCHA_WEK_LV2",     __("Fireworks")},
+	{"NCHA_WEK_LV3",     __("Fireworks")},
+	{"DTNC_STR_LV1",     __("Charged Fireworks")},
+	{"DTNC_STR_LV2",     __("Charged Fireworks")},
+	{"DTNC_STR_LV3",     __("Charged Fireworks")},
+	{"DTNC_WEK_LV1",     __("Charged Fireworks")},
+	{"DTNC_WEK_LV2",     __("Charged Fireworks")},
+	{"DTNC_WEK_LV3",     __("Charged Fireworks")},
+	{"STG-gunstinger",   __("Gun Stinger")},
+	{"STNG_ETC_LV1",     __("Gun Stinger")},
+	{"STNG_CEN_LV1",     __("Gun Stinger")},
+	{"STNG_ETC_LV2",     __("Gun Stinger")},
+	{"STNG_CEN_LV2",     __("Gun Stinger")},
+	{"STNG_ETC_LV3",     __("Gun Stinger")},
+	{"STNG_CEN_LV3",     __("Gun Stinger")},
+	{"DTST_ETC_LV1",     __("Charged Gun Stinger")},
+	{"DTST_CEN_LV1",     __("Charged Gun Stinger")},
+	{"DTST_ETC_LV2",     __("Charged Gun Stinger")},
+	{"DTST_CEN_LV2",     __("Charged Gun Stinger")},
+	{"DTST_ETC_LV3",     __("Charged Gun Stinger")},
+	{"DTST_CEN_LV3",     __("Charged Gun Stinger")},
 
     // pandora
-    {"MACHINEGUN",       "Jealousy"},
-    {"MACHINEGUN_LV2",   "Jealousy"},
-    {"MACHINEGUN_LV3",   "Jealousy"},
-    {"DT_MGUN",          "Charged Jealousy"},
-    {"DT_MGUN_LV2",      "Charged Jealousy"},
-    {"DT_MGUN_LV3",      "Charged Jealousy"},
-	{"BOM_NOR",          "Epidemic"},
-    {"NORMAL02",         "Hatred"}, // embed
-	{"BOM_NOR02",        "Hatred"},
-	{"NORMAL03",         "Revenge"},
-    {"PDR-lanc3tf",      "Revenge Hit"}, // physical hit
+    {"MACHINEGUN",       __("Jealousy")},
+    {"MACHINEGUN_LV2",   __("Jealousy")},
+    {"MACHINEGUN_LV3",   __("Jealousy")},
+    {"DT_MGUN",          __("Charged Jealousy")},
+    {"DT_MGUN_LV2",      __("Charged Jealousy")},
+    {"DT_MGUN_LV3",      __("Charged Jealousy")},
+	{"BOM_NOR",          __("Epidemic")},
+    {"NORMAL02",         __("Hatred")}, // embed
+	{"BOM_NOR02",        __("Hatred")},
+	{"NORMAL03",         __("Revenge")},
+    {"PDR-lanc3tf",      __("Revenge Hit")}, // physical hit
 	
     // pandora gunslinger
-	{"METEOR",        	 "Argument"},
-	{"BOM_METEOR",       "Argument"},
-	{"PDR-ma666s",  	 "Omen Hit"},
-    {"PDR-ma666e",  	 "Omen Back Hit"}, // behind physical hit
-	{"BOOMERANG",        "Grief"},
+	{"METEOR",        	 __("Argument")},
+	{"BOM_METEOR",       __("Argument")},
+	{"PDR-ma666s",  	 __("Omen Hit")},
+    {"PDR-ma666e",  	 __("Omen Back Hit")}, // behind physical hit
+	{"BOOMERANG",        __("Grief")},
 
     // yamato
-	{"YMT-combo1003",    "Yamato Combo A"},
-	{"YMT-combo1004",    "Yamato Combo A"},
-	{"YMT-combo1005",    "Yamato Combo A"},
-    {"YMT-combo1006-1",  "Aerial Rave V"},
-    {"YMT-combo1006-2",  "Aerial Rave V"},
-    {"YMT-combo1007",    "Aerial Rave V"},
-	{"kuukan",   		 "Slash Dimension"},
+	{"YMT-combo1003",    __("Yamato Combo A")},
+	{"YMT-combo1004",    __("Yamato Combo A")},
+	{"YMT-combo1005",    __("Yamato Combo A")},
+    {"YMT-combo1006-1",  __("Aerial Rave V")},
+    {"YMT-combo1006-2",  __("Aerial Rave V")},
+    {"YMT-combo1007",    __("Aerial Rave V")},
+	{"kuukan",   		 __("Slash Dimension")},
 //};
 
 //std::unordered_map<std::string, std::string> neroLookupTable = { // uh some things can go off after a char switch
 
     // Beyblade
-    {"Attack1",          "Gyro"},
+    {"Attack1",          __("Gyro")},
 
     // scarecrow
-    {"Em000",            "Scarecrow Buster"}, // non dt
-    {"Em000_1",          "Scarecrow Buster"}, // dt ground
-    {"Em000_2",          "Scarecrow Buster"}, // dt air
-    {"Grab-Attack",      "Collateral"},     // enemy hit by bustered scarecrow
-    {"Grab-Attack-DT",   "Collateral"},     // enemy hit by bustered scarecrow
-    {"em000_001_dt_th",  "Collateral"},     // enemy hit by bustered scarecrow (air + dt)
+    {"Em000",            __("Scarecrow Buster")}, // non dt
+    {"Em000_1",          __("Scarecrow Buster")}, // dt ground
+    {"Em000_2",          __("Scarecrow Buster")}, // dt air
+    {"Grab-Attack",      __("Collateral")},     // enemy hit by bustered scarecrow
+    {"Grab-Attack-DT",   __("Collateral")},     // enemy hit by bustered scarecrow
+    {"em000_001_dt_th",  __("Collateral")},     // enemy hit by bustered scarecrow (air + dt)
 
     // mega
-    {"Em003",            "Mega Buster"},
-    {"Em003_0",          "Mega Buster"},
-    {"Em003_1",          "Mega Buster"},
-    {"Em003_2",          "Mega Buster"},
-    {"Em003_3",          "Mega Buster"},
-    {"BUS-Em003",        "Mega Buster"},
-    {"Em003-roll_coun",  "Mega Counter"},
-    {"Em003-ground_th",  "Mega Counter"},
-    {"makikomi152",      "Collateral"},
-    {"makikomi158",      "Collateral"},     // enemy hit by bustered mega
-    {"makikomi156",      "Collateral"}, 
+    {"Em003",            __("Mega Buster")},
+    {"Em003_0",          __("Mega Buster")},
+    {"Em003_1",          __("Mega Buster")},
+    {"Em003_2",          __("Mega Buster")},
+    {"Em003_3",          __("Mega Buster")},
+    {"BUS-Em003",        __("Mega Buster")},
+    {"Em003-roll_coun",  __("Mega Counter")},
+    {"Em003-ground_th",  __("Mega Counter")},
+    {"makikomi152",      __("Collateral")},
+    {"makikomi158",      __("Collateral")},     // enemy hit by bustered mega
+    {"makikomi156",      __("Collateral")}, 
 
     // bianco
-    {"Em005",            "Bianco Buster"},
-    {"Em005_2",          "Bianco Buster"},
-    {"Em005_3",          "Bianco Buster"},
-    {"Em005_4",          "Bianco Buster"},
-    {"BusterThrust",     "Bianco Buster"},
-    {"Em005Majin",       "Bianco Buster"},
-    {"Em005Majin_2",     "Bianco Buster"},
-    {"Em005Majin_3",     "Bianco Buster"},
-    {"Em005Majin_4",     "Bianco Buster"},
-    {"BusterBlown",      "Collateral"},     // enemy hit by bustered bianco
-    {"BusterExplosion",  "Collateral"},     // enemy hit by bustered bianco
-    {"D_Buster",         "Collateral"},     // enemy hit by bustered bianco
+    {"Em005",            __("Bianco Buster")},
+    {"Em005_2",          __("Bianco Buster")},
+    {"Em005_3",          __("Bianco Buster")},
+    {"Em005_4",          __("Bianco Buster")},
+    {"BusterThrust",     __("Bianco Buster")},
+    {"Em005Majin",       __("Bianco Buster")},
+    {"Em005Majin_2",     __("Bianco Buster")},
+    {"Em005Majin_3",     __("Bianco Buster")},
+    {"Em005Majin_4",     __("Bianco Buster")},
+    {"BusterBlown",      __("Collateral")},     // enemy hit by bustered bianco
+    {"BusterExplosion",  __("Collateral")},     // enemy hit by bustered bianco
+    {"D_Buster",         __("Collateral")},     // enemy hit by bustered bianco
 
     // alto
-    {"Em006",            "Alto Buster"},
-    {"Em006_2",          "Alto Buster"},
-    {"Em006Majin",       "Alto Buster"},
-    {"Em006Majin_2",     "Alto Buster"},
-    {"Em006Majin_3",     "Alto Buster"},
-    {"Em006Flip",        "Alto Buster"}, // if alto jumps back when you buster
-    {"PL_Genki",         "Energy Ball"},
-    {"PL_GenkiExplo",    "Energy Ball Explosion"},
-    {"BusterImpact",     "Collateral"},     // enemy hit by bustered alto
-    {"Blown",            "Collateral"},     // enemy hit by bustered alto
+    {"Em006",            __("Alto Buster")},
+    {"Em006_2",          __("Alto Buster")},
+    {"Em006Majin",       __("Alto Buster")},
+    {"Em006Majin_2",     __("Alto Buster")},
+    {"Em006Majin_3",     __("Alto Buster")},
+    {"Em006Flip",        __("Alto Buster")}, // if alto jumps back when you buster
+    {"PL_Genki",         __("Energy Ball")},
+    {"PL_GenkiExplo",    __("Energy Ball Explosion")},
+    {"BusterImpact",     __("Collateral")},     // enemy hit by bustered alto
+    {"Blown",            __("Collateral")},     // enemy hit by bustered alto
 
     // mephisto
-    {"Em008",            "Mephisto Buster"},
-    {"Em008_2",          "Mephisto Buster"},
-    {"Em008_3",          "Mephisto Buster"},
-    {"em008-rolled",     "Collateral"},     // enemy hit by bustered mephisto
+    {"Em008",            __("Mephisto Buster")},
+    {"Em008_2",          __("Mephisto Buster")},
+    {"Em008_3",          __("Mephisto Buster")},
+    {"em008-rolled",     __("Collateral")},     // enemy hit by bustered mephisto
 
     // faust
-    {"Em009",            "Faust Buster"},
-    {"Em009_2",          "Faust Buster"},
-    {"Em009_3",          "Faust Buster"},
-    {"em009-rolled",     "Collateral"},     // enemy hit by bustered faust
+    {"Em009",            __("Faust Buster")},
+    {"Em009_2",          __("Faust Buster")},
+    {"Em009_3",          __("Faust Buster")},
+    {"em009-rolled",     __("Collateral")},     // enemy hit by bustered faust
 
     // frost
-    {"Em010Release",     "Frost Buster"},
-    {"Em010WallHit",     "Frost Buster"},
-    {"em010Throw",       "Collateral"},     // enemy hit by bustered frost
-    {"Buster0Atk",       "Collateral"},     // enemy hit by bustered frost
-    {"Buster1Atk",       "Collateral"},     // enemy hit by bustered frost
-    {"Shooter1Atk",      "Friendly Fire"},  // frost hitting enemy being bustered
-    {"Shooter2Atk",      "Friendly Fire"},  // frost hitting enemy being bustered
-    {"NailMissileAtk",   "Friendly Fire"},  // frost hitting enemy being bustered
-    {"HighJumpAtk",      "Friendly Fire"},  // frost hitting enemy being bustered
-    {"MegaCrushAtk",     "Friendly Fire"},  // frost hitting enemy being bustered
-    {"WideNailAtk",      "Friendly Fire"},  // frost hitting enemy being bustered
+    {"Em010Release",     __("Frost Buster")},
+    {"Em010WallHit",     __("Frost Buster")},
+    {"em010Throw",       __("Collateral")},     // enemy hit by bustered frost
+    {"Buster0Atk",       __("Collateral")},     // enemy hit by bustered frost
+    {"Buster1Atk",       __("Collateral")},     // enemy hit by bustered frost
+    {"Shooter1Atk",      __("Friendly Fire")},  // frost hitting enemy being bustered
+    {"Shooter2Atk",      __("Friendly Fire")},  // frost hitting enemy being bustered
+    {"NailMissileAtk",   __("Friendly Fire")},  // frost hitting enemy being bustered
+    {"HighJumpAtk",      __("Friendly Fire")},  // frost hitting enemy being bustered
+    {"MegaCrushAtk",     __("Friendly Fire")},  // frost hitting enemy being bustered
+    {"WideNailAtk",      __("Friendly Fire")},  // frost hitting enemy being bustered
 
     // assault
-    {"Em011Grab",        "Assault Buster"},
-    {"Em011Grab_Fin",    "Assault Buster"},
-    {"Em011Grab_Count",  "Assault Buster"},
-    {"grabed-attack",    "Collateral"},     // enemy hit by bustered assault
-    {"grabed-at-fin",    "Collateral"},     // enemy hit by bustered assault
-    {"grabed-at-f",      "Collateral"},     // enemy hit by bustered assault
-    {"wind-0",           "Friendly Fire"},  // enemy being bustered hit by screaming assault
-    {"nail-mis",         "Friendly Fire"},  // enemy being bustered hit by assault projectile
-    {"bullet-cn",        "Friendly Fire"},  // enemy being bustered hit by assault flying swallow
-    {"crow-ht",           "Friendly Fire"}, // enemy being bustered hit by assault 
+    {"Em011Grab",        __("Assault Buster")},
+    {"Em011Grab_Fin",    __("Assault Buster")},
+    {"Em011Grab_Count",  __("Assault Buster")},
+    {"grabed-attack",    __("Collateral")},     // enemy hit by bustered assault
+    {"grabed-at-fin",    __("Collateral")},     // enemy hit by bustered assault
+    {"grabed-at-f",      __("Collateral")},     // enemy hit by bustered assault
+    {"wind-0",           __("Friendly Fire")},  // enemy being bustered hit by screaming assault
+    {"nail-mis",         __("Friendly Fire")},  // enemy being bustered hit by assault projectile
+    {"bullet-cn",        __("Friendly Fire")},  // enemy being bustered hit by assault flying swallow
+    {"crow-ht",          __("Friendly Fire")},  // enemy being bustered hit by assault 
 
     // blitz
-    {"BUS-Em012_Gr_00",  "Blitz Buster"}, // ground
-    {"BUS-Em012_Gr_01",  "Blitz Buster"}, // ground
-    {"BUS-Em012_Gr_02",  "Blitz Buster"}, // ground
-    {"BUS-Em012_Gr_03",  "Blitz Buster"}, // ground
-    {"BUS-Em012_Gr_04",  "Blitz Buster"}, // ground
-    {"BUS-Em012_Gr_05",  "Blitz Buster"}, // ground
-    {"BUS-Em012_Gr_06",  "Blitz Buster"}, // ground
-    {"BUS-Em012_Gr_07",  "Blitz Buster"}, // ground
-    {"BUS-Em012_Ai_00",  "Blitz Buster"}, // air
-    {"BUS-Em012_Ai_01",  "Blitz Buster"}, // air
-    {"BUS-Em012_Ai_02",  "Blitz Buster"}, // air
-    {"BUS-Em012_Ai_03",  "Blitz Buster"}, // air
-    {"BUS-Em012_Ai_04",  "Blitz Buster"}, // air
-    {"BUS-Em012_Ai_05",  "Blitz Buster"}, // air
-    {"BUS-Em012_Ai_06",  "Blitz Buster"}, // air
-    {"BUS-Em012_Ai_07",  "Blitz Buster"}, // air
+    {"BUS-Em012_Gr_00",  __("Blitz Buster")}, // ground
+    {"BUS-Em012_Gr_01",  __("Blitz Buster")}, // ground
+    {"BUS-Em012_Gr_02",  __("Blitz Buster")}, // ground
+    {"BUS-Em012_Gr_03",  __("Blitz Buster")}, // ground
+    {"BUS-Em012_Gr_04",  __("Blitz Buster")}, // ground
+    {"BUS-Em012_Gr_05",  __("Blitz Buster")}, // ground
+    {"BUS-Em012_Gr_06",  __("Blitz Buster")}, // ground
+    {"BUS-Em012_Gr_07",  __("Blitz Buster")}, // ground
+    {"BUS-Em012_Ai_00",  __("Blitz Buster")}, // air
+    {"BUS-Em012_Ai_01",  __("Blitz Buster")}, // air
+    {"BUS-Em012_Ai_02",  __("Blitz Buster")}, // air
+    {"BUS-Em012_Ai_03",  __("Blitz Buster")}, // air
+    {"BUS-Em012_Ai_04",  __("Blitz Buster")}, // air
+    {"BUS-Em012_Ai_05",  __("Blitz Buster")}, // air
+    {"BUS-Em012_Ai_06",  __("Blitz Buster")}, // air
+    {"BUS-Em012_Ai_07",  __("Blitz Buster")}, // air
 
     // chimera seed
-    {"Em013",            "Chimera Seed Buster"},
+    {"Em013",            __("Chimera Seed Buster")},
 
     // cutlass
-    {"Em015",            "Cutlass Buster"},
-    {"em015",            "Cutlass Buster"},
-    {"em015-throw_nml",  "Collateral"},
-    {"em015-throw_dt",   "Collateral"},
-    {"AtkThrowingNml",   "Collateral"}, // hitting enemies with the spin
+    {"Em015",            __("Cutlass Buster")},
+    {"em015",            __("Cutlass Buster")},
+    {"em015-throw_nml",  __("Collateral")},
+    {"em015-throw_dt",   __("Collateral")},
+    {"AtkThrowingNml",   __("Collateral")}, // hitting enemies with the spin
 
     // gladius
-    {"Em016",            "Gladius Buster"},
-    {"em016",            "Gladius Buster"},
-    {"D_BusterThrow",    "Gladius Buster"},
-    {"BusterThrow",      "Collateral"},     // enemy hit by bustered gladius
-    {"D_BusterSlash",    "Collateral"},     // enemy hit by bustered gladius (dt)
-    {"Buster_VS_Barri",  "Collateral"},     // hitting the Agnus window with a gladius
-    {"D_Buster_VS_Bar",  "Collateral"},     // hitting the Agnus window with a gladius (dt)
+    {"Em016",            __("Gladius Buster")},
+    {"em016",            __("Gladius Buster")},
+    {"D_BusterThrow",    __("Gladius Buster")},
+    {"BusterThrow",      __("Collateral")},     // enemy hit by bustered gladius
+    {"D_BusterSlash",    __("Collateral")},     // enemy hit by bustered gladius (dt)
+    {"Buster_VS_Barri",  __("Collateral")},     // hitting the Agnus window with a gladius
+    {"D_Buster_VS_Bar",  __("Collateral")},     // hitting the Agnus window with a gladius (dt)
 
     // basilisk
-    {"Em017",            "Basilisk Buster"},
-    {"ShootNero",        "Collateral"},     // enemy hit by bustered basilisk
-    {"ShootNeroAir",     "Collateral"},     // enemy hit by bustered basilisk
-    {"ShootNero_D",      "Collateral"},     // enemy hit by bustered basilisk
-    {"ShootNeroAir_D",   "Collateral"},     // enemy hit by bustered basilisk
-    {"em017Throw",       "Collateral"},     // enemy hit by bustered basilisk
-    {"em017Throw_Boun",  "Collateral"},     // enemy hit by bustered basilisk (dt)
+    {"Em017",            __("Basilisk Buster")},
+    {"ShootNero",        __("Collateral")},     // enemy hit by bustered basilisk
+    {"ShootNeroAir",     __("Collateral")},     // enemy hit by bustered basilisk
+    {"ShootNero_D",      __("Collateral")},     // enemy hit by bustered basilisk
+    {"ShootNeroAir_D",   __("Collateral")},     // enemy hit by bustered basilisk
+    {"em017Throw",       __("Collateral")},     // enemy hit by bustered basilisk
+    {"em017Throw_Boun",  __("Collateral")},     // enemy hit by bustered basilisk (dt)
 
     // berial
-    {"Em018Down",        "Berial Buster"},
-    {"Em018Down2",       "Berial Buster"},
-    {"Em018Head",        "Berial Buster"},
-    {"Em018Head_maji",   "Berial Buster"},
-    {"Em018Head_maji2",  "Berial Buster"},
-    {"Em018Leg",         "Berial Buster"},
-    {"Em018Leg2",        "Berial Buster"},
-    {"Em018Leg2_maji",   "Berial Buster"},
-    {"Em018Leg3_maji",   "Berial Buster"},
-    {"Em018Leg_maji",    "Berial Buster"},
-    {"Em018Leg_maji2",   "Berial Buster"},
-    {"Em018Down_maji",   "Berial Buster"},
-    {"Em018Down_maji2",  "Berial Buster"},
-    {"Em018Down_maji3",  "Berial Buster"},
-    {"Em018FireLowF",    "Berial Buster"},
-    {"Em018FireLowB",    "Berial Buster"},
-    {"Em018FireUp",      "Berial Buster"},
-    {"Syoryu_Body",      "Friendly Fire"}, // Berial hit an enemy you were bustering
-    {"Sword_Kaze",       "Friendly Fire"}, // Berial hit an enemy you were bustering
-    {"Sword_Base",       "Friendly Fire"}, // Berial hit an enemy you were bustering
-    {"Right_Hand",       "Friendly Fire"}, // Berial hit an enemy you were bustering
-    {"Tategiri_Sword",   "Friendly Fire"}, // Berial hit an enemy you were bustering
-    {"Super_Attack",     "Friendly Fire"}, // Berial hit an enemy you were bustering
-    {"EM018SHL",         "Friendly Fire"}, // Berial hit an enemy you were bustering
+    {"Em018Down",        __("Berial Buster")},
+    {"Em018Down2",       __("Berial Buster")},
+    {"Em018Head",        __("Berial Buster")},
+    {"Em018Head_maji",   __("Berial Buster")},
+    {"Em018Head_maji2",  __("Berial Buster")},
+    {"Em018Leg",         __("Berial Buster")},
+    {"Em018Leg2",        __("Berial Buster")},
+    {"Em018Leg2_maji",   __("Berial Buster")},
+    {"Em018Leg3_maji",   __("Berial Buster")},
+    {"Em018Leg_maji",    __("Berial Buster")},
+    {"Em018Leg_maji2",   __("Berial Buster")},
+    {"Em018Down_maji",   __("Berial Buster")},
+    {"Em018Down_maji2",  __("Berial Buster")},
+    {"Em018Down_maji3",  __("Berial Buster")},
+    {"Em018FireLowF",    __("Berial Buster")},
+    {"Em018FireLowB",    __("Berial Buster")},
+    {"Em018FireUp",      __("Berial Buster")},
+    {"Syoryu_Body",      __("Friendly Fire")}, // Berial hit an enemy you were bustering
+    {"Sword_Kaze",       __("Friendly Fire")}, // Berial hit an enemy you were bustering
+    {"Sword_Base",       __("Friendly Fire")}, // Berial hit an enemy you were bustering
+    {"Right_Hand",       __("Friendly Fire")}, // Berial hit an enemy you were bustering
+    {"Tategiri_Sword",   __("Friendly Fire")}, // Berial hit an enemy you were bustering
+    {"Super_Attack",     __("Friendly Fire")}, // Berial hit an enemy you were bustering
+    {"EM018SHL",         __("Friendly Fire")}, // Berial hit an enemy you were bustering
 
     // frog
-    {"Em019Tail",        "Frog Buster"},
-    {"Em019Tail2",       "Frog Buster"},
-    {"Em019Tail3",       "Frog Buster"},
-    {"Em019TailMaj",     "Frog Buster"},
-    {"Em019TailMaj2",    "Frog Buster"},
-    {"Em019TailMaj3",    "Frog Buster"},
-    {"Em019Ranbu",       "Frog Buster"},
-    {"Em019Ranbu1",      "Frog Buster"},
-    {"Em019Ranbu2",      "Frog Buster"},
-    {"Em019Ranbu3",      "Frog Buster"},
-    {"Em019Ranbu4",      "Frog Buster"},
-    {"Em019Ranbu5",      "Frog Buster"},
-    {"Em019Ranbu6",      "Frog Buster"},
-    {"Em019Ranbu7",      "Frog Buster"},
-    {"Em019Ranbu8",      "Frog Buster"},
-    {"Em019Ranbu9",      "Frog Buster"},
-    {"Em019RanbuMaj",    "Frog Buster"},
-    {"Em019RanbuMaj0",   "Frog Buster"},
-    {"Em019RanbuMaj1",   "Frog Buster"},
-    {"Em019RanbuMaj2",   "Frog Buster"},
-    {"Em019RanbuMaj3",   "Frog Buster"},
-    {"Em019RanbuMaj4",   "Frog Buster"},
-    {"Em019RanbuMaj5",   "Frog Buster"},
-    {"Em019RanbuMaj6",   "Frog Buster"},
-    {"Em019RanbuMaj7",   "Frog Buster"},
-    {"Em019RanbuMaj8",   "Frog Buster"},
-    {"Em019RanbuMaj9",   "Frog Buster"},
-    {"Em019RanbuMaj10",  "Frog Buster"},
-    {"Em019RanbuMaj11",  "Frog Buster"},
-    {"Em019RanbuMaj12",  "Frog Buster"},
-    {"Em019RanbuMaj13",  "Frog Buster"},
-    {"Em019RanbuMaj14",  "Frog Buster"},
-    {"Icedmg-rec",       "Collateral"},     // enemy hit by breaking out of ice
+    {"Em019Tail",        __("Frog Buster")},
+    {"Em019Tail2",       __("Frog Buster")},
+    {"Em019Tail3",       __("Frog Buster")},
+    {"Em019TailMaj",     __("Frog Buster")},
+    {"Em019TailMaj2",    __("Frog Buster")},
+    {"Em019TailMaj3",    __("Frog Buster")},
+    {"Em019Ranbu",       __("Frog Buster")},
+    {"Em019Ranbu1",      __("Frog Buster")},
+    {"Em019Ranbu2",      __("Frog Buster")},
+    {"Em019Ranbu3",      __("Frog Buster")},
+    {"Em019Ranbu4",      __("Frog Buster")},
+    {"Em019Ranbu5",      __("Frog Buster")},
+    {"Em019Ranbu6",      __("Frog Buster")},
+    {"Em019Ranbu7",      __("Frog Buster")},
+    {"Em019Ranbu8",      __("Frog Buster")},
+    {"Em019Ranbu9",      __("Frog Buster")},
+    {"Em019RanbuMaj",    __("Frog Buster")},
+    {"Em019RanbuMaj0",   __("Frog Buster")},
+    {"Em019RanbuMaj1",   __("Frog Buster")},
+    {"Em019RanbuMaj2",   __("Frog Buster")},
+    {"Em019RanbuMaj3",   __("Frog Buster")},
+    {"Em019RanbuMaj4",   __("Frog Buster")},
+    {"Em019RanbuMaj5",   __("Frog Buster")},
+    {"Em019RanbuMaj6",   __("Frog Buster")},
+    {"Em019RanbuMaj7",   __("Frog Buster")},
+    {"Em019RanbuMaj8",   __("Frog Buster")},
+    {"Em019RanbuMaj9",   __("Frog Buster")},
+    {"Em019RanbuMaj10",  __("Frog Buster")},
+    {"Em019RanbuMaj11",  __("Frog Buster")},
+    {"Em019RanbuMaj12",  __("Frog Buster")},
+    {"Em019RanbuMaj13",  __("Frog Buster")},
+    {"Em019RanbuMaj14",  __("Frog Buster")},
+    {"Icedmg-rec",       __("Collateral")},     // enemy hit by breaking out of ice
 
     // echidna
-    {"Em021Norm1",       "Echidna Buster"},
-    {"Em021Norm2",       "Echidna Buster"},
-    {"Em021Norm3",       "Echidna Buster"},
-    {"Em021Norm4",       "Echidna Buster"},
-    {"Em021Norm5",       "Echidna Buster"},
-    {"Em021Norm6",       "Echidna Buster"},
-    {"Em021Norm7",       "Echidna Buster"},
-    {"Em021Norm8",       "Echidna Buster"},
-    {"Em021Norm_Ryu1",   "Echidna Buster"},
-    {"Em021Norm_Ryu2",   "Echidna Buster"},
-    {"Em021Norm_Ryu3",   "Echidna Buster"},
-    {"Em021Norm_Ryu4",   "Echidna Buster"},
-    {"Em021Norm_Ryu5",   "Echidna Buster"},
-    {"Em021Norm_Ryu6",   "Echidna Buster"},
-    {"Em021Maji_Ryu1",   "Echidna Buster"},
-    {"Em021Maji_Ryu2",   "Echidna Buster"},
-    {"BUS-Em021_Bl_00",  "Echidna Buster"},
-    {"BUS-Em021_Bl_01",  "Echidna Buster"},
-    {"BUS-Em021_Bl_02",  "Echidna Buster"},
-    {"BUS-Em021_Bl_03",  "Echidna Buster"},
-    {"BUS-Em021_Bl_04",  "Echidna Buster"},
-    {"BUS-Em021_Bl_05",  "Echidna Buster"},
-    {"BUS-Em021_Bl_06",  "Echidna Buster"},
-    {"BUS-Em021_Bl_07",  "Echidna Buster"},
-    {"Em021Maji1",       "Echidna Buster"},
-    {"Em021Maji2",       "Echidna Buster"},
-    {"Em021Maji3",       "Echidna Buster"},
-    {"Em021Maji4",       "Echidna Buster"},
-    {"Em021Maji5",       "Echidna Buster"},
-    {"Em021Maji6",       "Echidna Buster"},
-    {"Em021Maji7",       "Echidna Buster"},
-    {"Em021Maji8",       "Echidna Buster"},
-    {"Em021Other",       "Echidna Buster"}, // buster fail
-    {"SeedPLAtk",        "Seed Rebound"},
+    {"Em021Norm1",       __("Echidna Buster")},
+    {"Em021Norm2",       __("Echidna Buster")},
+    {"Em021Norm3",       __("Echidna Buster")},
+    {"Em021Norm4",       __("Echidna Buster")},
+    {"Em021Norm5",       __("Echidna Buster")},
+    {"Em021Norm6",       __("Echidna Buster")},
+    {"Em021Norm7",       __("Echidna Buster")},
+    {"Em021Norm8",       __("Echidna Buster")},
+    {"Em021Norm_Ryu1",   __("Echidna Buster")},
+    {"Em021Norm_Ryu2",   __("Echidna Buster")},
+    {"Em021Norm_Ryu3",   __("Echidna Buster")},
+    {"Em021Norm_Ryu4",   __("Echidna Buster")},
+    {"Em021Norm_Ryu5",   __("Echidna Buster")},
+    {"Em021Norm_Ryu6",   __("Echidna Buster")},
+    {"Em021Maji_Ryu1",   __("Echidna Buster")},
+    {"Em021Maji_Ryu2",   __("Echidna Buster")},
+    {"BUS-Em021_Bl_00",  __("Echidna Buster")},
+    {"BUS-Em021_Bl_01",  __("Echidna Buster")},
+    {"BUS-Em021_Bl_02",  __("Echidna Buster")},
+    {"BUS-Em021_Bl_03",  __("Echidna Buster")},
+    {"BUS-Em021_Bl_04",  __("Echidna Buster")},
+    {"BUS-Em021_Bl_05",  __("Echidna Buster")},
+    {"BUS-Em021_Bl_06",  __("Echidna Buster")},
+    {"BUS-Em021_Bl_07",  __("Echidna Buster")},
+    {"Em021Maji1",       __("Echidna Buster")},
+    {"Em021Maji2",       __("Echidna Buster")},
+    {"Em021Maji3",       __("Echidna Buster")},
+    {"Em021Maji4",       __("Echidna Buster")},
+    {"Em021Maji5",       __("Echidna Buster")},
+    {"Em021Maji6",       __("Echidna Buster")},
+    {"Em021Maji7",       __("Echidna Buster")},
+    {"Em021Maji8",       __("Echidna Buster")},
+    {"Em021Other",       __("Echidna Buster")}, // buster fail
+    {"SeedPLAtk",        __("Seed Rebound")},
 
     // credo
-    {"SpearBuster_PL",   "Credo Buster"},
-    {"BUS-Em022_Flip",   "Credo Buster"},
-    {"BUS-Em022_00",     "Credo Buster"},
-    {"BUS-Em022_01",     "Credo Buster"},
-    {"BUS-Em022_02",     "Credo Buster"},
-    {"BUS-Em022_03",     "Credo Buster"},
-    {"BUS-Em022_04",     "Credo Buster"},
-    {"BUS-Em022_05",     "Credo Buster"},
-    {"BUS-Em022_Mj_00",  "Credo Buster"},
-    {"BUS-Em022_Mj_01",  "Credo Buster"},
-    {"BUS-Em022_Mj_02",  "Credo Buster"},
-    {"BUS-Em022_Mj_03",  "Credo Buster"},
-    {"BUS-Em022_Mj_04",  "Credo Buster"},
-    {"BUS-Em022_Mj_05",  "Credo Buster"},
-    {"BUS-Em022_Mj_06",  "Credo Buster"},
-    {"SwordCmb1",        "Friendly Fire"},
+    {"SpearBuster_PL",   __("Credo Buster")},
+    {"BUS-Em022_Flip",   __("Credo Buster")},
+    {"BUS-Em022_00",     __("Credo Buster")},
+    {"BUS-Em022_01",     __("Credo Buster")},
+    {"BUS-Em022_02",     __("Credo Buster")},
+    {"BUS-Em022_03",     __("Credo Buster")},
+    {"BUS-Em022_04",     __("Credo Buster")},
+    {"BUS-Em022_05",     __("Credo Buster")},
+    {"BUS-Em022_Mj_00",  __("Credo Buster")},
+    {"BUS-Em022_Mj_01",  __("Credo Buster")},
+    {"BUS-Em022_Mj_02",  __("Credo Buster")},
+    {"BUS-Em022_Mj_03",  __("Credo Buster")},
+    {"BUS-Em022_Mj_04",  __("Credo Buster")},
+    {"BUS-Em022_Mj_05",  __("Credo Buster")},
+    {"BUS-Em022_Mj_06",  __("Credo Buster")},
+    {"SwordCmb1",        __("Friendly Fire")},
 
     // agnus
-    {"BusterLoop",       "Agnus Buster"},
-    {"Sword",            "Agnus Buster"},
-    {"Em023Norm1",       "Agnus Buster"},
-    {"Em023Norm2",       "Agnus Buster"},
-    {"Em023Norm3",       "Agnus Buster"},
-    {"Em023Norm4",       "Agnus Buster"},
-    {"Em023Norm5",       "Agnus Buster"},
-    {"Em023Norm6",       "Agnus Buster"},
-    {"Em023Majin1",      "Agnus Buster"},
-    {"Em023Majin2",      "Agnus Buster"},
-    {"Em023Majin3",      "Agnus Buster"},
-    {"Em023Majin4",      "Agnus Buster"},
-    {"Em023Majin5",      "Agnus Buster"},
-    {"Em023Majin6",      "Agnus Buster"},
-    {"Em023Majin7",      "Agnus Buster"},
-    {"Buster1stImpact",  "Agnus Buster"},
-    {"Buster3rdStrike",  "Agnus Buster"},
+    {"BusterLoop",       __("Agnus Buster")},
+    {"Sword",            __("Agnus Buster")},
+    {"Em023Norm1",       __("Agnus Buster")},
+    {"Em023Norm2",       __("Agnus Buster")},
+    {"Em023Norm3",       __("Agnus Buster")},
+    {"Em023Norm4",       __("Agnus Buster")},
+    {"Em023Norm5",       __("Agnus Buster")},
+    {"Em023Norm6",       __("Agnus Buster")},
+    {"Em023Majin1",      __("Agnus Buster")},
+    {"Em023Majin2",      __("Agnus Buster")},
+    {"Em023Majin3",      __("Agnus Buster")},
+    {"Em023Majin4",      __("Agnus Buster")},
+    {"Em023Majin5",      __("Agnus Buster")},
+    {"Em023Majin6",      __("Agnus Buster")},
+    {"Em023Majin7",      __("Agnus Buster")},
+    {"Buster1stImpact",  __("Agnus Buster")},
+    {"Buster3rdStrike",  __("Agnus Buster")},
 
     // m11 sanctus
-    {"BUS-Em029_00",     "Sanctus Buster"},
-    {"BUS-Em029_01",     "Sanctus Buster"},
-    {"BUS-Em029_02",     "Sanctus Buster"},
-    {"BUS-Em029_03",     "Sanctus Buster"},
-    {"BUS-Em029_04",     "Sanctus Buster"},
-    {"BUS-Em029_05",     "Sanctus Buster"},
-    {"BUS-Em029_06",     "Sanctus Buster"},
-    {"BUS-Em029_07",     "Sanctus Buster"},
-    {"BUS-Em029_08",     "Sanctus Buster"},
-    {"BUS-Em029_09",     "Sanctus Buster"},
-    {"BUS-Em029_10",     "Sanctus Buster"},
+    {"BUS-Em029_00",     __("Sanctus Buster")},
+    {"BUS-Em029_01",     __("Sanctus Buster")},
+    {"BUS-Em029_02",     __("Sanctus Buster")},
+    {"BUS-Em029_03",     __("Sanctus Buster")},
+    {"BUS-Em029_04",     __("Sanctus Buster")},
+    {"BUS-Em029_05",     __("Sanctus Buster")},
+    {"BUS-Em029_06",     __("Sanctus Buster")},
+    {"BUS-Em029_07",     __("Sanctus Buster")},
+    {"BUS-Em029_08",     __("Sanctus Buster")},
+    {"BUS-Em029_09",     __("Sanctus Buster")},
+    {"BUS-Em029_10",     __("Sanctus Buster")},
 
     // m20 sanctus
-    {"BUS-Em030_00",     "Sanctus Buster"},
-    {"BUS-Em030_01",     "Sanctus Buster"},
-    {"BUS-Em030_02",     "Sanctus Buster"},
-    {"BUS-Em030_Mj_00",  "Sanctus Buster"},
-    {"BUS-Em030_Mj_01",  "Sanctus Buster"},
-    {"BUS-Em030_Mj_02",  "Sanctus Buster"},
+    {"BUS-Em030_00",     __("Sanctus Buster")},
+    {"BUS-Em030_01",     __("Sanctus Buster")},
+    {"BUS-Em030_02",     __("Sanctus Buster")},
+    {"BUS-Em030_Mj_00",  __("Sanctus Buster")},
+    {"BUS-Em030_Mj_01",  __("Sanctus Buster")},
+    {"BUS-Em030_Mj_02",  __("Sanctus Buster")},
 
     // dante
-    {"EmDanteMaj",       "Dante Buster"},
-    {"EmDanteMajAir",    "Dante Buster"},
-    {"EmDanteMajFin",    "Dante Buster"},
-    {"EmDanteNorm",      "Dante Buster"},
-    {"EmDanteThrow",     "Dante Buster"}, // after sword clashes
-    {"em_dante_throw",   "Collateral"},   // hitting another thing with dante
-    {"em_dante_dt_thr",  "Collateral"},   // hitting another thing with dante (dt)
+    {"EmDanteMaj",       __("Dante Buster")},
+    {"EmDanteMajAir",    __("Dante Buster")},
+    {"EmDanteMajFin",    __("Dante Buster")},
+    {"EmDanteNorm",      __("Dante Buster")},
+    {"EmDanteThrow",     __("Dante Buster")}, // after sword clashes
+    {"em_dante_throw",   __("Collateral")},   // hitting another thing with dante
+    {"em_dante_dt_thr",  __("Collateral")},   // hitting another thing with dante (dt)
 
     // red queen
-    {"RED-ComboA_00",    "Red Queen Combo A"},
-    {"RED-ComboA_01",    "Red Queen Combo A"},
-    {"RED-ComboA_02",    "Red Queen Combo A"},
-    {"RED-ComboA_03",    "Red Queen Combo A"},
-    {"RED-ComboB_00",    "Red Queen Combo B"},
-    {"RED-ComboB_01",    "Red Queen Combo B"},
-    {"RED-ComboB_02_A",  "Red Queen Combo B"},
-    {"RED-ComboB_02_B",  "Red Queen Combo B"},
-    {"RED-ComboB_02_C",  "Red Queen Combo B"},
-    {"RED-ComboB_03",    "Red Queen Combo B"},
-    {"RED-ComboB_04",    "Red Queen Combo B"},
-    {"RED-ComboC_00",    "Red Queen Combo C"},
-    {"RED-ComboC_01",    "Red Queen Combo C"},
-    {"RED-ComboC_02",    "Red Queen Combo C"},
-    {"RED-ComboC_03",    "Red Queen Combo C"},
-    {"RED-ComboC_04",    "Red Queen Combo C"},
-    {"RED-ComboD_00",    "Red Queen Combo D"},
-    {"RED-ComboD_01",    "Red Queen Combo D"},
-    {"RED-Streak",       "Streak"},
-    {"RED-StreEX_00",    "EX Streak"},
-    {"RED-StreEX_01",    "EX Streak"},        // no clarification on ex2 or 3
-    {"RED-Highro",       "High Roller"},      
-    {"RED-HighroEX_00",  "EX High Roller"},   // grounded 1, 2, 3
-    {"RED-HighroEX_01",  "EX High Roller"},   // aerial      2
-    {"RED-HighroEX_02",  "EX High Roller"},   // back hit
-    {"RED-HighroEX_03",  "EX High Roller"},   // grounded    2, 3
-    {"RED-HighroEX_04",  "EX High Roller"},   // grounded       3
-    {"RED-HighroEX_05",  "EX High Roller"},   // aerial      2, 3
-    {"RED-HighroEX_06",  "EX High Roller"},   // aerial      2
-    {"RED-Split_00",     "Split"},            // aerial
-    {"RED-Split_01",     "Split"},            // grounded
-    {"RED-SplitEX_00",   "Double Down"},         // 1, 2, 3
-    {"RED-SplitEX_01",   "Double Down"},         // 1
-    {"RED-SplitEX_02",   "Double Down"},         //    2
-    {"RED-SplitEX_03",   "Double Down"},         //       3
-    {"RED-Surren_00",    "Shuffle"},
-    {"RED-Surren_01",    "Shuffle"},          // weak hit
-    {"RED-SureenEX_00",  "EX Shuffle"},       // EX1
-    {"RED-SureenEX_01",  "EX Shuffle"},       // EX1 // rare, I assume weak hit or back hit
-    {"RED-SureenEX_02",  "EX Shuffle"},       // EX1
-    {"RED-SureenEX_03",  "EX Shuffle"},       // EX1 // rare, I assume weak hit or back hit
-    {"RED-SureenEX_04",  "EX Shuffle"},       // EX2
-    {"RED-SureenEX_05",  "EX Shuffle"},       // EX2 // rare, I assume weak hit or back hit
-    {"RED-SureenEX_06",  "EX Shuffle"},       // EX2
-    {"RED-SureenEX_07",  "EX Shuffle"},       // EX2 // rare, I assume weak hit or back hit
-    {"RED-SureenEX_08",  "EX Shuffle"},       // EX3
-    {"RED-SureenEX_09",  "EX Shuffle"},       // EX3 // rare, I assume weak hit or back hit
-    {"RED-SureenEX_10",  "EX Shuffle"},       // EX3
-    {"RED-SureenEX_11",  "EX Shuffle"},       // EX3
-    {"RED-AirStre_00",   "Calibur"},
-    {"RED-AirStre_01",   "Calibur"},
-    {"RED-AirStEX_00",   "EX Calibur"},       // EX1
-    {"RED-AirStEX_01",   "EX Calibur"},       // EX1
-    {"RED-AirStEX_02",   "EX Calibur"},       // EX2
-    {"RED-AirStEX_03",   "EX Calibur"},       // EX2
-    {"RED-AirStEX_04",   "EX Calibur"},       // EX3
-    {"RED-AirStEX_05",   "EX Calibur"},       // EX3
-    {"RED-AircombA_00",  "Red Queen Aerial"}, // 1
-    {"RED-AircombA_01",  "Red Queen Aerial"}, // 2
-    {"RED-AircombA_02",  "Red Queen Aerial"}, // 3
-    {"RED-RouletteSpi",  "Roulette Spin"},
+    {"RED-ComboA_00",    __("Red Queen Combo A")},
+    {"RED-ComboA_01",    __("Red Queen Combo A")},
+    {"RED-ComboA_02",    __("Red Queen Combo A")},
+    {"RED-ComboA_03",    __("Red Queen Combo A")},
+    {"RED-ComboB_00",    __("Red Queen Combo B")},
+    {"RED-ComboB_01",    __("Red Queen Combo B")},
+    {"RED-ComboB_02_A",  __("Red Queen Combo B")},
+    {"RED-ComboB_02_B",  __("Red Queen Combo B")},
+    {"RED-ComboB_02_C",  __("Red Queen Combo B")},
+    {"RED-ComboB_03",    __("Red Queen Combo B")},
+    {"RED-ComboB_04",    __("Red Queen Combo B")},
+    {"RED-ComboC_00",    __("Red Queen Combo C")},
+    {"RED-ComboC_01",    __("Red Queen Combo C")},
+    {"RED-ComboC_02",    __("Red Queen Combo C")},
+    {"RED-ComboC_03",    __("Red Queen Combo C")},
+    {"RED-ComboC_04",    __("Red Queen Combo C")},
+    {"RED-ComboD_00",    __("Red Queen Combo D")},
+    {"RED-ComboD_01",    __("Red Queen Combo D")},
+    {"RED-Streak",       __("Streak")},
+    {"RED-StreEX_00",    __("EX Streak")},
+    {"RED-StreEX_01",    __("EX Streak")},        // no clarification on ex2 or 3
+    {"RED-Highro",       __("High Roller")},      
+    {"RED-HighroEX_00",  __("EX High Roller")},   // grounded 1, 2, 3
+    {"RED-HighroEX_01",  __("EX High Roller")},   // aerial      2
+    {"RED-HighroEX_02",  __("EX High Roller")},   // back hit
+    {"RED-HighroEX_03",  __("EX High Roller")},   // grounded    2, 3
+    {"RED-HighroEX_04",  __("EX High Roller")},   // grounded       3
+    {"RED-HighroEX_05",  __("EX High Roller")},   // aerial      2, 3
+    {"RED-HighroEX_06",  __("EX High Roller")},   // aerial      2
+    {"RED-Split_00",     __("Split")},            // aerial
+    {"RED-Split_01",     __("Split")},            // grounded
+    {"RED-SplitEX_00",   __("Double Down")},         // 1, 2, 3
+    {"RED-SplitEX_01",   __("Double Down")},         // 1
+    {"RED-SplitEX_02",   __("Double Down")},         //    2
+    {"RED-SplitEX_03",   __("Double Down")},         //       3
+    {"RED-Surren_00",    __("Shuffle")},
+    {"RED-Surren_01",    __("Shuffle")},          // weak hit
+    {"RED-SureenEX_00",  __("EX Shuffle")},       // EX1
+    {"RED-SureenEX_01",  __("EX Shuffle")},       // EX1 // rare, I assume weak hit or back hit
+    {"RED-SureenEX_02",  __("EX Shuffle")},       // EX1
+    {"RED-SureenEX_03",  __("EX Shuffle")},       // EX1 // rare, I assume weak hit or back hit
+    {"RED-SureenEX_04",  __("EX Shuffle")},       // EX2
+    {"RED-SureenEX_05",  __("EX Shuffle")},       // EX2 // rare, I assume weak hit or back hit
+    {"RED-SureenEX_06",  __("EX Shuffle")},       // EX2
+    {"RED-SureenEX_07",  __("EX Shuffle")},       // EX2 // rare, I assume weak hit or back hit
+    {"RED-SureenEX_08",  __("EX Shuffle")},       // EX3
+    {"RED-SureenEX_09",  __("EX Shuffle")},       // EX3 // rare, I assume weak hit or back hit
+    {"RED-SureenEX_10",  __("EX Shuffle")},       // EX3
+    {"RED-SureenEX_11",  __("EX Shuffle")},       // EX3
+    {"RED-AirStre_00",   __("Calibur")},
+    {"RED-AirStre_01",   __("Calibur")},
+    {"RED-AirStEX_00",   __("EX Calibur")},       // EX1
+    {"RED-AirStEX_01",   __("EX Calibur")},       // EX1
+    {"RED-AirStEX_02",   __("EX Calibur")},       // EX2
+    {"RED-AirStEX_03",   __("EX Calibur")},       // EX2
+    {"RED-AirStEX_04",   __("EX Calibur")},       // EX3
+    {"RED-AirStEX_05",   __("EX Calibur")},       // EX3
+    {"RED-AircombA_00",  __("Red Queen Aerial")}, // 1
+    {"RED-AircombA_01",  __("Red Queen Aerial")}, // 2
+    {"RED-AircombA_02",  __("Red Queen Aerial")}, // 3
+    {"RED-RouletteSpi",  __("Roulette Spin")},
 
     // yamato
-    {"YAM-ComboA_00",    "Red Queen Combo A"},
-    {"YAM-ComboA_01",    "Red Queen Combo A"},
-    {"YAM-ComboA_02",    "Red Queen Combo A"},
-    {"YAM-ComboA_03",    "Red Queen Combo A"},
-    {"YAM-ComboB_00",    "Red Queen Combo B"},
-    {"YAM-ComboB_01",    "Red Queen Combo B"},
-    {"YAM-ComboB_02_A",  "Red Queen Combo B"},
-    {"YAM-ComboB_02_B",  "Red Queen Combo B"},
-    {"YAM-ComboB_02_C",  "Red Queen Combo B"},
-    {"YAM-ComboB_03",    "Red Queen Combo B"},
-    {"YAM-ComboB_04",    "Red Queen Combo B"},
-    {"YAM-ComboC_00",    "Red Queen Combo C"},
-    {"YAM-ComboC_01",    "Red Queen Combo C"},
-    {"YAM-ComboC_02",    "Red Queen Combo C"},
-    {"YAM-ComboC_03",    "Red Queen Combo C"},
-    {"YAM-ComboC_04",    "Red Queen Combo C"},
-    {"YAM-ComboD_00",    "Red Queen Combo D"},
-    {"YAM-Streak",       "Streak"},
-    {"YAM-StreEX_00",    "EX Streak"},
-    {"YAM-StreEX_01",    "EX Streak"},
-    {"YAM-Highro",       "High Roller"},
-    {"YAM-HighroEX_01",  "EX High Roller"},
-    {"YAM-HighroEX_03",  "EX High Roller"},
-    {"YAM-HighroEX_04",  "EX High Roller"},
-    {"YAM-HighroEX_05",  "EX High Roller"},
-    {"YAM-HighroEX_06",  "EX High Roller"},
-    {"YAM-AircombA_00",  "Red Queen Aerial"},
-    {"YAM-AircombA_01",  "Red Queen Aerial"},
-    {"YAM-AircombA_02",  "Red Queen Aerial"},
-    {"YAM-RouletteSpi",  "Roulette Spin"},
-    {"YAM-AirStre_00",   "Calibur"},
-    {"YAM-AirStre_01",   "Calibur"},
-    {"YAM-AirStEX_00",   "EX Calibur"},
-    {"YAM-AirStEX_01",   "EX Calibur"},
-    {"YAM-AirStEX_02",   "EX Calibur"},
-    {"YAM-AirStEX_03",   "EX Calibur"},
-    {"YAM-AirStEX_04",   "EX Calibur"},
-    {"YAM-AirStEX_05",   "EX Calibur"},
-    {"YAM-Surren_00",    "Shuffle"},
-    {"YAM-Surren_01",    "Shuffle"},
-    {"YAM-SureenEX_00",  "EX Shuffle"}, // EX1
-    {"YAM-SureenEX_01",  "EX Shuffle"}, // EX1
-    {"YAM-SureenEX_02",  "EX Shuffle"}, // EX1
-    {"YAM-SureenEX_03",  "EX Shuffle"}, // EX2
-    {"YAM-SureenEX_04",  "EX Shuffle"}, // EX2
-    {"YAM-SureenEX_05",  "EX Shuffle"}, // EX2
-    {"YAM-SureenEX_06",  "EX Shuffle"}, // EX3
-    {"YAM-SureenEX_08",  "EX Shuffle"}, // EX3
-    {"YAM-SureenEX_10",  "EX Shuffle"}, // EX3
-    {"YAM-Split_00",     "Split"},
-    {"YAM-Split_01",     "Split"},
-    {"YAM-SplitEX_00",   "Double Down"}, // EX1
-    {"YAM-SplitEX_01",   "Double Down"}, // EX2
-    {"YAM-SplitEX_02",   "Double Down"}, // EX2
-    {"YAM-SplitEX_03",   "Double Down"}, // EX3
+    {"YAM-ComboA_00",    __("Red Queen Combo A")},
+    {"YAM-ComboA_01",    __("Red Queen Combo A")},
+    {"YAM-ComboA_02",    __("Red Queen Combo A")},
+    {"YAM-ComboA_03",    __("Red Queen Combo A")},
+    {"YAM-ComboB_00",    __("Red Queen Combo B")},
+    {"YAM-ComboB_01",    __("Red Queen Combo B")},
+    {"YAM-ComboB_02_A",  __("Red Queen Combo B")},
+    {"YAM-ComboB_02_B",  __("Red Queen Combo B")},
+    {"YAM-ComboB_02_C",  __("Red Queen Combo B")},
+    {"YAM-ComboB_03",    __("Red Queen Combo B")},
+    {"YAM-ComboB_04",    __("Red Queen Combo B")},
+    {"YAM-ComboC_00",    __("Red Queen Combo C")},
+    {"YAM-ComboC_01",    __("Red Queen Combo C")},
+    {"YAM-ComboC_02",    __("Red Queen Combo C")},
+    {"YAM-ComboC_03",    __("Red Queen Combo C")},
+    {"YAM-ComboC_04",    __("Red Queen Combo C")},
+    {"YAM-ComboD_00",    __("Red Queen Combo D")},
+    {"YAM-Streak",       __("Streak")},
+    {"YAM-StreEX_00",    __("EX Streak")},
+    {"YAM-StreEX_01",    __("EX Streak")},
+    {"YAM-Highro",       __("High Roller")},
+    {"YAM-HighroEX_01",  __("EX High Roller")},
+    {"YAM-HighroEX_03",  __("EX High Roller")},
+    {"YAM-HighroEX_04",  __("EX High Roller")},
+    {"YAM-HighroEX_05",  __("EX High Roller")},
+    {"YAM-HighroEX_06",  __("EX High Roller")},
+    {"YAM-AircombA_00",  __("Red Queen Aerial")},
+    {"YAM-AircombA_01",  __("Red Queen Aerial")},
+    {"YAM-AircombA_02",  __("Red Queen Aerial")},
+    {"YAM-RouletteSpi",  __("Roulette Spin")},
+    {"YAM-AirStre_00",   __("Calibur")},
+    {"YAM-AirStre_01",   __("Calibur")},
+    {"YAM-AirStEX_00",   __("EX Calibur")},
+    {"YAM-AirStEX_01",   __("EX Calibur")},
+    {"YAM-AirStEX_02",   __("EX Calibur")},
+    {"YAM-AirStEX_03",   __("EX Calibur")},
+    {"YAM-AirStEX_04",   __("EX Calibur")},
+    {"YAM-AirStEX_05",   __("EX Calibur")},
+    {"YAM-Surren_00",    __("Shuffle")},
+    {"YAM-Surren_01",    __("Shuffle")},
+    {"YAM-SureenEX_00",  __("EX Shuffle")}, // EX1
+    {"YAM-SureenEX_01",  __("EX Shuffle")}, // EX1
+    {"YAM-SureenEX_02",  __("EX Shuffle")}, // EX1
+    {"YAM-SureenEX_03",  __("EX Shuffle")}, // EX2
+    {"YAM-SureenEX_04",  __("EX Shuffle")}, // EX2
+    {"YAM-SureenEX_05",  __("EX Shuffle")}, // EX2
+    {"YAM-SureenEX_06",  __("EX Shuffle")}, // EX3
+    {"YAM-SureenEX_08",  __("EX Shuffle")}, // EX3
+    {"YAM-SureenEX_10",  __("EX Shuffle")}, // EX3
+    {"YAM-Split_00",     __("Split")},
+    {"YAM-Split_01",     __("Split")},
+    {"YAM-SplitEX_00",   __("Double Down")}, // EX1
+    {"YAM-SplitEX_01",   __("Double Down")}, // EX2
+    {"YAM-SplitEX_02",   __("Double Down")}, // EX2
+    {"YAM-SplitEX_03",   __("Double Down")}, // EX3
 
     // blue rose
-    {"Shoot_1st_Short",  "Blue Rose"},
-    {"Shoot_2nd_short",  "Blue Rose"},
-    {"Shoot_1st_Midd",   "Blue Rose"},
-    {"Shoot_2nd_midd",   "Blue Rose"},
-    {"Shoot_1st_Long",   "Blue Rose"},
-    {"Shoot_2nd_Long",   "Blue Rose"},
-    {"CHARGE_Lv1_Shor",  "Charge Shot 1"},
-    {"CHARGE_Lv1_Midd",  "Charge Shot 1"},
-    {"CHARGE_Lv1_Long",  "Charge Shot 1"},
-    {"CHARGE_Lv2_Shor",  "Charge Shot 2"},
-    {"CHARGE_Lv2_Midd",  "Charge Shot 2"},
-    {"CHARGE_Lv2_Long",  "Charge Shot 2"},
-    {"CHARGE_Lv3_Shor",  "Charge Shot 3"},
-    {"CHARGE_Lv3_Midd",  "Charge Shot 3"},
-    {"CHARGE_Lv3_Long",  "Charge Shot 3"},
-    {"BLU-Bomb_00",      "Charge Shot Bomb"},
-    {"BLU-Bomb_01",      "Charge Shot Bomb"},
+    {"Shoot_1st_Short",  __("Blue Rose")},
+    {"Shoot_2nd_short",  __("Blue Rose")},
+    {"Shoot_1st_Midd",   __("Blue Rose")},
+    {"Shoot_2nd_midd",   __("Blue Rose")},
+    {"Shoot_1st_Long",   __("Blue Rose")},
+    {"Shoot_2nd_Long",   __("Blue Rose")},
+    {"CHARGE_Lv1_Shor",  __("Charge Shot 1")},
+    {"CHARGE_Lv1_Midd",  __("Charge Shot 1")},
+    {"CHARGE_Lv1_Long",  __("Charge Shot 1")},
+    {"CHARGE_Lv2_Shor",  __("Charge Shot 2")},
+    {"CHARGE_Lv2_Midd",  __("Charge Shot 2")},
+    {"CHARGE_Lv2_Long",  __("Charge Shot 2")},
+    {"CHARGE_Lv3_Shor",  __("Charge Shot 3")},
+    {"CHARGE_Lv3_Midd",  __("Charge Shot 3")},
+    {"CHARGE_Lv3_Long",  __("Charge Shot 3")},
+    {"BLU-Bomb_00",      __("Charge Shot Bomb")},
+    {"BLU-Bomb_01",      __("Charge Shot Bomb")},
 
     // dt
-    {"D.T-Burst_00",     "DT Burst"},
-    {"D.T-Burst_01",     "DT Burst"},     // weak hit
-    {"D.T-AirBurst_00",  "Air DT Burst"},
-    {"D.T-AirBurst_01",  "Air DT Burst"}, // weak hit
-    {"D.T-Showdown_00",  "Showdown"},
-    {"D.T-Showdown_01",  "Showdown"},
-    {"D.T-Showdown_02",  "Showdown"},
-    {"D.T-Showdown_03",  "Showdown"},
-    {"D.T-Showdown_04",  "Showdown"},
-    {"D.T-Showdown_05",  "Showdown"},
-    {"D.T-Showdown_06",  "Showdown"},
-    {"D.T-Maximum_00",   "Maximum Bet"},      // hit
-    {"Drive",            "Maximum Bet"},      // projectile
-    {"D.T-Maximum_01",   "Maximum Bet Lv.2"}, // hit
-    {"Drive02",          "Maximum Bet Lv.2"}, // projectile
-    {"Genei",            "Summoned Sword"},
-    {"Genei02",          "Charged Summoned Sword"},
+    {"D.T-Burst_00",     __("DT Burst")},
+    {"D.T-Burst_01",     __("DT Burst")},     // weak hit
+    {"D.T-AirBurst_00",  __("Air DT Burst")},
+    {"D.T-AirBurst_01",  __("Air DT Burst")}, // weak hit
+    {"D.T-Showdown_00",  __("Showdown")},
+    {"D.T-Showdown_01",  __("Showdown")},
+    {"D.T-Showdown_02",  __("Showdown")},
+    {"D.T-Showdown_03",  __("Showdown")},
+    {"D.T-Showdown_04",  __("Showdown")},
+    {"D.T-Showdown_05",  __("Showdown")},
+    {"D.T-Showdown_06",  __("Showdown")},
+    {"D.T-Maximum_00",   __("Maximum Bet")},      // hit
+    {"Drive",            __("Maximum Bet")},      // projectile
+    {"D.T-Maximum_01",   __("Maximum Bet Lv.2")}, // hit
+    {"Drive02",          __("Maximum Bet Lv.2")}, // projectile
+    {"Genei",            __("Summoned Sword")},
+    {"Genei02",          __("Charged Summoned Sword")},
 
-    {"\xA0\x4F\xBE",     "Hold Block"},     // held enemy hit by scarecrow, reads �O�
-    {"\x90\x8B\xBA",     "Hold Block"},     // held enemy hit by seed, reads ???
+    {"\xA0\x4F\xBE",     __("Hold Block")},     // held enemy hit by scarecrow, reads �O�
+    {"\x90\x8B\xBA",     __("Hold Block")},     // held enemy hit by seed, reads ???
 };
 
 static const std::map<std::vector<std::string>, std::string> comboNames = {
@@ -769,14 +769,14 @@ struct ComboUnlock {
 };
 
 static std::array<ComboUnlock, 8> unlocked_combos = {
-    ComboUnlock {DANTE, 1, "Very Creative!", "Welcome to Dante!", "As Dante, Used High Time > Rave x 4", false},
-    ComboUnlock {DANTE, 1, "Kamiya's Vision!", "Did you know DMC1 was going to be RE4?", "As Dante, Used High Time > E&I Shot x 10", false},
-    ComboUnlock {DANTE, 3, "Is That A Plane?", "Straight out of the window", "As Dante, Used Guardfly > Guardfly", false},
-    ComboUnlock {DANTE, 2, "When the Lights Are Down", "Rules without exceptions last eternally", "As Dante, Looped Full House > Enemy Step 5 Times", false},
-    ComboUnlock {DANTE, 2, "The Forbidden Glitch", "Inertia? Let's just make it steerable", "As Dante, Looped Full House > Enemy Step > E&I Shot > Rainstorm 2 Times", false},
-    ComboUnlock {NERO,  1, "Grassroots", "Imagine this: It's 2008. You just picked up a new character. Make a combo", "As Nero, Used Red Queen Combo A1, A2, A3 > High Roller > Red Queen Aerial 1, 2, 3 > Split", false},
-    ComboUnlock {NERO,  3, "Capcom Dev", "It's time to record a trailer for Devil May Cry 5", "As Nero, Looped Calibur > Enemy Step > Blue Rose 3 Times", false},
-    ComboUnlock {NERO,  4, "Full Throttle", "Just press the button at the right time", "As Nero, Used Red Queen Combo A1 > EX3 High Roller > Double Down > EX3 Streak", false},
+    ComboUnlock {DANTE, 1, __("Very Creative!"), __("Welcome to Dante!"), __("As Dante, Used High Time > Rave x 4"), false},
+    ComboUnlock {DANTE, 1, __("Kamiya's Vision!"), __("Did you know DMC1 was going to be RE4?"), __("As Dante, Used High Time > E&I Shot x 10"), false},
+    ComboUnlock {DANTE, 3, __("Is That A Plane?"), __("Straight out of the window"), __("As Dante, Used Guardfly > Guardfly"), false},
+    ComboUnlock {DANTE, 2, __("When the Lights Are Down"), __("Rules without exceptions last eternally"), __("As Dante, Looped Full House > Enemy Step 5 Times"), false},
+    ComboUnlock {DANTE, 2, __("The Forbidden Glitch"), __("Inertia? Let's just make it steerable"), __("As Dante, Looped Full House > Enemy Step > E&I Shot > Rainstorm 2 Times"), false},
+    ComboUnlock {NERO,  1, __("Grassroots"), __("Imagine this: It's 2008. You just picked up a new character. Make a combo"), __("As Nero, Used Red Queen Combo A1, A2, A3 > High Roller > Red Queen Aerial 1, 2, 3 > Split"), false},
+    ComboUnlock {NERO,  3, __("Capcom Dev"), __("It's time to record a trailer for Devil May Cry 5"), __("As Nero, Looped Calibur > Enemy Step > Blue Rose 3 Times"), false},
+    ComboUnlock {NERO,  4, __("Full Throttle"), __("Just press the button at the right time"), __("As Nero, Used Red Queen Combo A1 > EX3 High Roller > Double Down > EX3 Streak"), false},
 };
 
 struct TrickScore {
@@ -1041,7 +1041,10 @@ static void DrawTrickScores() {
             ImVec4 currentStyleColor = GetStyleColor(group.styleLetter);
             ImVec4 color2(currentStyleColor.x, currentStyleColor.y, currentStyleColor.z, fade);
             
-            std::string displayText = group.trickName;
+
+            std::string translatedTrickName = utility::text_lookup((char*)group.trickName.c_str());
+            std::string displayText = translatedTrickName;
+            //std::string displayText = group.trickName;
             if (group.count > 1) {
                 displayText += " x" + std::to_string(group.count);
             }
@@ -1249,16 +1252,12 @@ static void DrawTonyScores() {
             }
             
             char trickText[64];
+            std::string translatedTrickName = utility::text_lookup((char*)groupedTrick.baseTrick.text.c_str());
             if (groupedTrick.repeatCount > 1) {
-                snprintf(trickText, sizeof(trickText), "%s (x%d)",
-                    groupedTrick.baseTrick.text.c_str(),
-                    groupedTrick.repeatCount
-                );
+                snprintf(trickText, sizeof(trickText), __("%s (x%d)"), translatedTrickName.c_str(), groupedTrick.repeatCount);
             }
             else {
-                snprintf(trickText, sizeof(trickText), "%s",
-                    groupedTrick.baseTrick.text.c_str()
-                );
+                snprintf(trickText, sizeof(trickText), "%s", translatedTrickName.c_str());
             }
 
             ImVec4 trickColor = GetTrickColor(groupedTrick.summedScore, fade);

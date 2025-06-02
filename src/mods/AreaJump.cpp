@@ -11,95 +11,92 @@ static int savedOrbs = 0;
 static float savedHP = 0.0f;
 static float savedDT = 0.0f;
 static float savedStylePoints = 0.0f;
-std::array<AreaJump::Room, 83> AreaJump::room_items;
 
-void AreaJump::initialize_rooms() {
-    room_items = {{
-        Room {503, _("Berial")},                    // DevilMayCry4_DX9.exe+A56768
-        Room {504, _("Bael")},                      // DevilMayCry4_DX9.exe+A56528
-        Room {505, _("Echidna")},                   // DevilMayCry4_DX9.exe+A55FE8
-        Room {506, _("Agnus")},                     // DevilMayCry4_DX9.exe+A55F88
-        Room {507, _("Credo")},                     // DevilMayCry4_DX9.exe+A56728
-        Room {700, _("Dante")},                     // DevilMayCry4_DX9.exe+A56508
-        Room {0,   _("Opera House")},
-        Room {1,   _("Opera House Plaza")},
-        Room {2,   _("Storehouse")},
-        Room {3,   _("Cathedral")},
-        Room {4,   _("Terrace / Business District")},
-        Room {5,   _("Residential District")},
-        Room {6,   _("Port Caerula")},
-        Room {7,   _("Customs House")},
-        Room {8,   _("First Mining Area")},
-        Room {9,   _("Ferrum Hills")},
-        Room {10,  _("M17 Opera House")},
-        Room {11,  _("M17 Opera House Plaza")},
-        Room {12,  _("Business District / Terrace")},
-        Room {13,  _("M20 Opera House Plaza")},
-        Room {100, _("Second Mining Area")},
-        Room {105, _("Fortuna Castle Gate")},
-        Room {200, _("Grand Hall - Fortuna Castle")},
-        Room {201, _("Large Hall")},
-        Room {202, _("Dining Room")},
-        Room {203, _("Torture Chamber")},
-        Room {204, _("Central Courtyard")},
-        Room {205, _("Foris Falls - Bridge Area")},
-        Room {206, _("Gallery")},
-        Room {207, _("Library")},
-        Room {209, _("Soldier's Graveyard")},
-        Room {210, _("Master's Chamber")},
-        Room {211, _("Spiral Well")},
-        Room {212, _("Underground Laboratory")},
-        Room {213, _("R&D Access")},
-        Room {214, _("Game Room")},
-        Room {215, _("Containment Room")},
-        Room {216, _("Angel Creation")},
-        Room {217, _("Foris Falls - Detour Area")},
-        Room {300, _("Forest Entrance")},
-        Room {301, _("Windswept Valley")},
-        Room {302, _("Ruined Church")},
-        Room {303, _("Ruined Valley")},
-        Room {304, _("Ancient Training Ground")},
-        Room {305, _("Lapis River")},
-        Room {306, _("Ancient Plaza")},
-        Room {307, _("Den of the She-Viper")},
-        Room {308, _("Forgotten Ruins")},
-        Room {309, _("Hidden Pit")},
-        Room {310, _("Ruined Lowlands")},
-        Room {311, _("Lost Woods")},
-        Room {400, _("Gran Album Bridge")},
-        Room {401, _("Grand Hall - Order of the Sword HQ")},
-        Room {402, _("Key Chamber")},
-        Room {403, _("The Gauntlet")},
-        Room {404, _("Agnus' Room")},
-        Room {405, _("Security Corridor")},
-        Room {406, _("Experiment Disposal")},
-        Room {407, _("Meeting Room")},
-        Room {408, _("Ascension Chamber")},
-        Room {409, _("Advent Chamber")},
-        Room {500, _("Machina Ex Deus")},
-        Room {501, _("Stairway to Heaven")},
-        Room {502, _("Sacred Heart")},
-        Room {510, _("M18")},
-        Room {512, _("Sky Above Fortuna")},
-        Room {800, _("Secret Mission 1")},
-        Room {801, _("Secret Mission 2")},
-        Room {802, _("Secret Mission 3")},
-        Room {803, _("Secret Mission 4")},
-        Room {804, _("Secret Mission 5")},
-        Room {805, _("Secret Mission 6")},
-        Room {806, _("Secret Mission 7")},
-        Room {807, _("Secret Mission 8")},
-        Room {808, _("Secret Mission 9")},
-        Room {809, _("Secret Mission 10")},
-        Room {810, _("Secret Mission 11")},
-        Room {811, _("Secret Mission 12")},
-        Room {705, _("Bloody Palace 1-19")},
-        Room {704, _("Bloody Palace 21-39")},
-        Room {703, _("Bloody Palace 41-59")},
-        Room {701, _("Bloody Palace 61-79")},
-        Room {702, _("Bloody Palace 81-99")}
-    }};
-}
+std::array<AreaJump::Room, 83> AreaJump::room_items{
+    Room {503, __("Berial")},                    // DevilMayCry4_DX9.exe+A56768
+    Room {504, __("Bael")},                      // DevilMayCry4_DX9.exe+A56528
+    Room {505, __("Echidna")},                   // DevilMayCry4_DX9.exe+A55FE8
+    Room {506, __("Agnus")},                     // DevilMayCry4_DX9.exe+A55F88
+    Room {507, __("Credo")},                     // DevilMayCry4_DX9.exe+A56728
+    Room {700, __("Dante")},                     // DevilMayCry4_DX9.exe+A56508
+    Room {0,   __("Opera House")},
+    Room {1,   __("Opera House Plaza")},
+    Room {2,   __("Storehouse")},
+    Room {3,   __("Cathedral")},
+    Room {4,   __("Terrace / Business District")},
+    Room {5,   __("Residential District")},
+    Room {6,   __("Port Caerula")},
+    Room {7,   __("Customs House")},
+    Room {8,   __("First Mining Area")},
+    Room {9,   __("Ferrum Hills")},
+    Room {10,  __("M17 Opera House")},
+    Room {11,  __("M17 Opera House Plaza")},
+    Room {12,  __("Business District / Terrace")},
+    Room {13,  __("M20 Opera House Plaza")},
+    Room {100, __("Second Mining Area")},
+    Room {105, __("Fortuna Castle Gate")},
+    Room {200, __("Grand Hall - Fortuna Castle")},
+    Room {201, __("Large Hall")},
+    Room {202, __("Dining Room")},
+    Room {203, __("Torture Chamber")},
+    Room {204, __("Central Courtyard")},
+    Room {205, __("Foris Falls - Bridge Area")},
+    Room {206, __("Gallery")},
+    Room {207, __("Library")},
+    Room {209, __("Soldier's Graveyard")},
+    Room {210, __("Master's Chamber")},
+    Room {211, __("Spiral Well")},
+    Room {212, __("Underground Laboratory")},
+    Room {213, __("R&D Access")},
+    Room {214, __("Game Room")},
+    Room {215, __("Containment Room")},
+    Room {216, __("Angel Creation")},
+    Room {217, __("Foris Falls - Detour Area")},
+    Room {300, __("Forest Entrance")},
+    Room {301, __("Windswept Valley")},
+    Room {302, __("Ruined Church")},
+    Room {303, __("Ruined Valley")},
+    Room {304, __("Ancient Training Ground")},
+    Room {305, __("Lapis River")},
+    Room {306, __("Ancient Plaza")},
+    Room {307, __("Den of the She-Viper")},
+    Room {308, __("Forgotten Ruins")},
+    Room {309, __("Hidden Pit")},
+    Room {310, __("Ruined Lowlands")},
+    Room {311, __("Lost Woods")},
+    Room {400, __("Gran Album Bridge")},
+    Room {401, __("Grand Hall - Order of the Sword HQ")},
+    Room {402, __("Key Chamber")},
+    Room {403, __("The Gauntlet")},
+    Room {404, __("Agnus' Room")},
+    Room {405, __("Security Corridor")},
+    Room {406, __("Experiment Disposal")},
+    Room {407, __("Meeting Room")},
+    Room {408, __("Ascension Chamber")},
+    Room {409, __("Advent Chamber")},
+    Room {500, __("Machina Ex Deus")},
+    Room {501, __("Stairway to Heaven")},
+    Room {502, __("Sacred Heart")},
+    Room {510, __("M18")},
+    Room {512, __("Sky Above Fortuna")},
+    Room {800, __("Secret Mission 1")},
+    Room {801, __("Secret Mission 2")},
+    Room {802, __("Secret Mission 3")},
+    Room {803, __("Secret Mission 4")},
+    Room {804, __("Secret Mission 5")},
+    Room {805, __("Secret Mission 6")},
+    Room {806, __("Secret Mission 7")},
+    Room {807, __("Secret Mission 8")},
+    Room {808, __("Secret Mission 9")},
+    Room {809, __("Secret Mission 10")},
+    Room {810, __("Secret Mission 11")},
+    Room {811, __("Secret Mission 12")},
+    Room {705, __("Bloody Palace 1-19")},
+    Room {704, __("Bloody Palace 21-39")},
+    Room {703, __("Bloody Palace 41-59")},
+    Room {701, __("Bloody Palace 61-79")},
+    Room {702, __("Bloody Palace 81-99")}
+};
 
 bool AreaJump::is_valid_room_id(int id) {
     return std::any_of(room_items.begin(), room_items.end(), [id](const Room& room) { 
@@ -522,7 +519,6 @@ void AreaJump::toggle_randomized_bp(bool enable) { // randomized bp
 }
 
 std::optional<std::string> AreaJump::on_initialize() {
-    initialize_rooms();
     sArea* s_area_ptr = devil4_sdk::get_sArea();
 	// uintptr_t address = hl::FindPattern("8B 92 30 38 00 00", "DevilMayCry4_DX9.exe"); // DevilMayCry4_DX9.exe+E1F6 
     utility::create_keyboard_hotkey(AreaJump::m_hotkeys, { VK_CONTROL, VK_OEM_4 }, _("Restart BP stage"), "bp_restart_stage_hotkey");
@@ -666,7 +662,7 @@ void AreaJump::on_gui_frame(int display) {
                 const bool is_selected = (item_current_idx == n);
                 // sigh
                 char buffer[MAX_PATH];
-                int result = snprintf(buffer, sizeof(buffer), "%s - %d", room_items[n].name, room_items[n].id);
+                int result = snprintf(buffer, sizeof(buffer), "%s - %d", utility::text_lookup((char*)room_items[n].name), room_items[n].id);
                 IM_ASSERT(result > 0); // encoding error
                 IM_ASSERT(result < MAX_PATH); // output was truncated or null terminator didnt fit in
 

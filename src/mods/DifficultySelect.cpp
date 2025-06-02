@@ -356,18 +356,19 @@ void DifficultySelect::on_config_save(utility::Config& cfg) {
     cfg.set<int>("game_difficulty", game_difficulty);
 }
 
-static std::vector<std::string> difficulty_names = {
-    _("Default"),
-    _("Dante Must Die"),
-    _("God Must Die")
+constexpr std::array<const char*, 3> difficulty_names {
+    __("Default"),
+    __("Dante Must Die"),
+    __("God Must Die")
 };
 
 void DifficultySelect::on_gui_frame(int display) {
+    utility::ImGooListboxTranslated translated_names(difficulty_names.data(), difficulty_names.size());
     ImGui::PushItemWidth(sameLineItemWidth);
-    if (ImGui::BeginCombo(_("Difficulty ##Game Mode Combo"), difficulty_names[game_difficulty].c_str())) {
+    if (ImGui::BeginCombo(_("Difficulty ##Game Mode Combo"), translated_names.data()[game_difficulty])) {
         for (size_t i = 0; i < difficulty_names.size(); i++) {
             bool is_selected = (game_difficulty == i);
-            if (ImGui::Selectable(difficulty_names[i].c_str(), is_selected)) {
+            if (ImGui::Selectable(translated_names.data()[i], is_selected)) {
                 game_difficulty = i;
             }
             if (is_selected) {
