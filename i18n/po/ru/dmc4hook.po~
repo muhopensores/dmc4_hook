@@ -1,30 +1,39 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# DMC4HOOK RUSSIAN MEME PO FILE
+# Copyright (C) dmc4hook contributors
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+# NOTE FOR TRANSLATORS:
+# we use dear_imgui, so dont change old c print format specifiers
+# for example:
+# "Did I fire %d shots or was it only %f?\tDo you feel lucky, punk?\n"
+#             ^ integer number float  -^  ^- tab           newline -^
+# those things starting with % or \ are format specifiers, usually
+# you'll might insert a newline or two if string dont fit rest
+# should be replaced by the right thing at runtime
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-02 16:31+0300\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"POT-Creation-Date: 2025-06-02 15:48+0300\n"
+"PO-Revision-Date: 2024-04-17 21:13+0300\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4.2\n"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:224
 #, c-format
 msgid "Average %.3f ms/frame (%.1f FPS)"
-msgstr ""
+msgstr "Средний %.3f ms/frame (%.1f FPS)"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:225
 msgid "Save Config"
-msgstr ""
+msgstr "Экономят Конфигурацию"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:237
 msgid "Training"
@@ -40,11 +49,11 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:292
 msgid "Game Mode"
-msgstr ""
+msgstr "Режим Игр"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:305
 msgid "Character"
-msgstr ""
+msgstr "Иероглиф"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:316
 msgid "Nero"
@@ -53,7 +62,7 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:320
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:398
 msgid "Limit Removal"
-msgstr ""
+msgstr "Удаление Лимита"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:328
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:406
@@ -78,7 +87,7 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:368
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:544
 msgid "Selective Cancels"
-msgstr ""
+msgstr "Выборочный, Отменяет"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:372
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:548
@@ -99,11 +108,11 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:458
 msgid "Lucifer"
-msgstr ""
+msgstr "Люцифер"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:473
 msgid "Rose"
-msgstr ""
+msgstr "Повысился"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:481
 msgid "Pins"
@@ -115,11 +124,11 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:536
 msgid "Darkslayer"
-msgstr ""
+msgstr "Darkslayer"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:575
 msgid "Environment"
-msgstr ""
+msgstr "Среда"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:586
 msgid "Stage"
@@ -131,7 +140,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:605
 msgid "Enemy Spawner"
-msgstr ""
+msgstr "Враг Спонер"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:608
 msgid "Enemy Replacement"
@@ -140,7 +149,7 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:625
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:641
 msgid "System"
-msgstr ""
+msgstr "Система"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:628
 msgid "dmc4_hook"
@@ -157,7 +166,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:679
 msgid "HUD"
-msgstr ""
+msgstr "КОЖУРА"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:687
 msgid "Custom HUD elements"
@@ -165,11 +174,11 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:701
 msgid "Camera"
-msgstr ""
+msgstr "Камера"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:720
 msgid "Debug"
-msgstr ""
+msgstr "Отладка"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:724
 msgid "File Loading"
@@ -178,7 +187,7 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:728
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoClip.cpp:61
 msgid "Noclip"
-msgstr ""
+msgstr "Noclip"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:736
 msgid "Multi-character Fixes"
@@ -198,15 +207,15 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:776
 msgid "Hotkeys"
-msgstr ""
+msgstr "Горячие клавиши"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:787
 msgid "About"
-msgstr ""
+msgstr "О"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:790
 msgid "DMC4Hook - Devil May Cry 4 Trainer"
-msgstr ""
+msgstr "DMC4Hook - Крик мая дьявола 4 Тренера»"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:801
 msgid "Translation:"
@@ -222,11 +231,11 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:806
 msgid "Special Thanks:"
-msgstr ""
+msgstr "Особая благодарность:"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:819
 msgid "For more info and updates visit the github:"
-msgstr ""
+msgstr "Для большего количества информации и обновлений посещают GitHub:"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:824
 msgid "Frequently Asked Questions"
@@ -299,12 +308,12 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:857
 msgid "This trainer was made using:"
-msgstr ""
+msgstr "Этот тренер был сделан с помощью:"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:877
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\GuiFunctions.cpp:878
 msgid "Licenses"
-msgstr ""
+msgstr "Лицензии"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\ModFramework.cpp:310
 #, c-format
@@ -374,7 +383,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\ActiveBlock.cpp:49
 msgid "Active Block"
-msgstr ""
+msgstr "Активный Блок"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\ActiveBlock.cpp:51
 msgid ""
@@ -404,17 +413,17 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AirMustang.cpp:159
 msgid ""
-"Hold/Tap the style button while making contact with the enemy during Sky Star "
-"to quickly descend"
+"Hold/Tap the style button while making contact with the enemy during Sky "
+"Star to quickly descend"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AlwaysRoyalRelease.cpp:20
 msgid "Always Royal Release"
-msgstr ""
+msgstr "Всегда Королевский Выпуск"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AngelSnatch.cpp:218
 msgid "Angel Snatch"
-msgstr ""
+msgstr "Кусочек Ангела"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AngelSnatch.cpp:220
 msgid "Mapped to forward + snatch"
@@ -766,7 +775,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:600
 msgid "Bloody Palace"
-msgstr ""
+msgstr "Кровавый Дворец"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:608
 msgid "Save BP Progress"
@@ -792,7 +801,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:656
 msgid "Mission Area Teleports"
-msgstr ""
+msgstr "Область Миссии Телепортирует"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:689
 msgid "Random BP"
@@ -814,19 +823,19 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:702
 msgid "View Randomized Stages"
-msgstr ""
+msgstr "Представление Рандомизированные Стадии"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:703
 msgid "Stage Number"
-msgstr ""
+msgstr "Число Стадии"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AreaJump.cpp:705
 msgid "Random Stage"
-msgstr ""
+msgstr "Случайная Стадия"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AssaultsDontJump.cpp:49
 msgid "No DTless Assault Escape"
-msgstr ""
+msgstr "Никакое Спасение Нападения DTless"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\AssaultsDontJump.cpp:52
 msgid "Disable Assaults jumping out of combos until they Devil Trigger"
@@ -834,7 +843,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BackgroundRendering.cpp:78
 msgid "Background Input"
-msgstr ""
+msgstr "Фоновый Вход"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BackgroundRendering.cpp:80
 msgid "The game will accept controller and keyboard inputs while tabbed out"
@@ -842,7 +851,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BerialDaze.cpp:43
 msgid "Berial Daze"
-msgstr ""
+msgstr "Изумление Berial"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BerialDaze.cpp:47
 msgid "Set Berial to his fireless Dazed state"
@@ -851,7 +860,7 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BigHeadMode.cpp:165
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BigHeadMode.cpp:178
 msgid "Big Head Mode"
-msgstr ""
+msgstr "Режим Высокомерия"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BigHeadMode.cpp:169
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BigHeadMode.cpp:182
@@ -861,7 +870,7 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BigHeadMode.cpp:171
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BigHeadMode.cpp:184
 msgid "Swole Mode"
-msgstr ""
+msgstr "Режим Swole"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BigHeadMode.cpp:175
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BigHeadMode.cpp:188
@@ -870,7 +879,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Borderless.cpp:129
 msgid "Borderless Window"
-msgstr ""
+msgstr "Безграничное Окно"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Borderless.cpp:133
 msgid "Only applies if in windowed. Hit Alt+Enter to toggle to windowed."
@@ -882,7 +891,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BpPortal.cpp:29
 msgid "Ignore Red Seal Kill Requirements"
-msgstr ""
+msgstr "Игнорируют Красную Печать, Убивают Требования"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\BpPortal.cpp:33
 msgid ""
@@ -892,31 +901,36 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:377
 msgid "Disable Lockon Autocorrects"
-msgstr ""
+msgstr "Отключают Lockon, Автоисправляет"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:381
 msgid ""
 "Attempts to stop the camera spinning behind Dante when enemies are more than "
 "like 2ft away"
 msgstr ""
+"Пытается остановить камеру, вращающуюся позади Данте, когда враги - больше, "
+"чемкак на расстоянии в 2 фута"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:383
 msgid "Disable Attack Corrects"
-msgstr ""
+msgstr "Отключают Нападение, Исправляет"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:387
 msgid ""
 "Attempts to stop the camera rotating when the player attacks towards the "
 "camera, intended for comparison purposes"
 msgstr ""
+"Пытается остановить вращение камеры, когда плеер нападает ккамера, "
+"предназначенная в целях сравнения"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:389
 msgid "Disable Last Enemy Zoom"
-msgstr ""
+msgstr "Отключают Последнее Вражеское Увеличение масштаба изображения"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:394
 msgid ""
-"Disable the zoom-in that happens when you're fighting the last enemy of a room"
+"Disable the zoom-in that happens when you're fighting the last enemy of a "
+"room"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:396
@@ -933,15 +947,15 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:407
 msgid "Right Side Reset"
-msgstr ""
+msgstr "Сброс Правой стороны"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:409
 msgid "Set the camera to the right instead"
-msgstr ""
+msgstr "Устанавливают камеру направо вместо этого"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:414
 msgid "Increased Sensitivity"
-msgstr ""
+msgstr "Увеличенная Чувствительность"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:416
 msgid "Increases the camera rotation speed"
@@ -949,11 +963,11 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:418
 msgid "Camera Lookdown"
-msgstr ""
+msgstr "Камера Lookdown"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:422
 msgid "When above the locked on enemy the camera will look down"
-msgstr ""
+msgstr "Когда выше соединенного врага камера будет выглядеть вниз"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:425
 msgid "Enable Camera Settings And Hotkeys"
@@ -965,19 +979,19 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:431
 msgid "Height"
-msgstr ""
+msgstr "Высота"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:433
 msgid "Distance"
-msgstr ""
+msgstr "Расстояние"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:435
 msgid "Distance (Lockon)"
-msgstr ""
+msgstr "Расстояние (Lockon)"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:437
 msgid "Angle"
-msgstr ""
+msgstr "Угол"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:439
 msgid "Angle (Lockon) "
@@ -989,7 +1003,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:443
 msgid "FOV (In Battle)"
-msgstr ""
+msgstr "FOV (В Сражении)"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CameraSettings.cpp:448
 msgid "Reset Camera Variables"
@@ -1071,7 +1085,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:732
 msgid "Character Switcher"
-msgstr ""
+msgstr "Переключатель Иероглифа"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:736
 msgid ""
@@ -1084,23 +1098,23 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:744
 msgid "Input 1"
-msgstr ""
+msgstr "Вводят 1"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:757
 msgid "Set a button combo to trigger the switch"
-msgstr ""
+msgstr "Устанавливают компанию кнопки приводить в действие переключатель"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:758
 msgid "Input 2"
-msgstr ""
+msgstr "Вводят 2"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:772
 msgid "Inertia carryover"
-msgstr ""
+msgstr "Переходящий остаток инерции"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CharSwitcher.cpp:776
 msgid "Enable inertia carryover on switching"
-msgstr ""
+msgstr "Позволяют переходящий остаток инерции на переключении"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CrossGunCharge.cpp:21
 msgid "Cross Gun Charge"
@@ -1112,19 +1126,19 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CustomModelFix.cpp:54
 msgid "Custom Nero Model Fix"
-msgstr ""
+msgstr "Пользовательское Затруднительное положение Модели Nero"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CustomModelFix.cpp:56
 msgid "Remove exploding shadows on Nero mods"
-msgstr ""
+msgstr "Удаляют взрывающиеся тени на модниках Nero"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CustomModelFix.cpp:58
 msgid "Custom Dante Model Fix"
-msgstr ""
+msgstr "Обычай Затруднительное положение Модели Данте"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CustomModelFix.cpp:60
 msgid "Remove exploding shadows on Dante mods"
-msgstr ""
+msgstr "Удаляют взрывающиеся тени на модниках Данте"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CustomProjectile.cpp:363
 msgid "Requires \"HDD File Priority\" at the top of the Debug page"
@@ -1152,11 +1166,11 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CutsceneSkip.cpp:28
 msgid "Skip Mission Intros"
-msgstr ""
+msgstr "Введения Миссии Пропуска"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\CutsceneSkip.cpp:32
 msgid "Skip Mission Outros"
-msgstr ""
+msgstr "Миссия Пропуска Outro"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:553
 msgid "Download Judgement Cut Files"
@@ -1176,7 +1190,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:564
 msgid "Judgement Cut"
-msgstr ""
+msgstr "Сокращение Суждения"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:567
 msgid ""
@@ -1187,15 +1201,15 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:572
 msgid "Lock-on + back input"
-msgstr ""
+msgstr "Замок - на + назад вход"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:574
 msgid "Bind jdc activation to lock-on + back"
-msgstr ""
+msgstr "Обязывают jdc активацию заблокировать - на + назад"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DanteJdc.cpp:575
 msgid "Inertia enable"
-msgstr ""
+msgstr "Инерция позволяют"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DebugCam.cpp:287
 msgid "Free Camera"
@@ -1251,7 +1265,7 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DifficultySelect.cpp:360
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySlotting.cpp:46
 msgid "Default"
-msgstr ""
+msgstr "Дефолт"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DifficultySelect.cpp:361
 msgid "Dante Must Die"
@@ -1268,17 +1282,17 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DifficultySelect.cpp:382
 msgid ""
 "This is a modded difficulty originally from SpoilerAL that makes 49 changes "
-"per difficulty. It seems to edit damage values and allow (faster than normal) "
-"enemy DT but also disables a lot of enemy attacks"
+"per difficulty. It seems to edit damage values and allow (faster than "
+"normal) enemy DT but also disables a lot of enemy attacks"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableCameraEvents.cpp:74
 msgid "Disable Camera Events"
-msgstr ""
+msgstr "Отключают События Камеры"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableChimeraBlades.cpp:34
 msgid "Disable Chimera Blades"
-msgstr ""
+msgstr "Отключают Лезвия химеры"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableChimeraBlades.cpp:36
 msgid "Stop the blades on chimera infected enemies from attacking"
@@ -1286,27 +1300,27 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableDarkslayer.cpp:47
 msgid "Disable Darkslayer Inputs"
-msgstr ""
+msgstr "Отключают Исходные данные Darkslayer"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableDarkslayer.cpp:55
 msgid "Trickster"
-msgstr ""
+msgstr "Обманщик"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableDarkslayer.cpp:60
 msgid "Gunslinger"
-msgstr ""
+msgstr "Опытный стрелок"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableDarkslayer.cpp:65
 msgid "Sword Master"
-msgstr ""
+msgstr "Владелец Меча"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableDarkslayer.cpp:70
 msgid "Royal Guard"
-msgstr ""
+msgstr "Королевская охрана"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableDTStinger.cpp:18
 msgid "Disable DT Stinger"
-msgstr ""
+msgstr "Отключают Жало DT"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DisableKeyboard.cpp:44
 msgid "Disable Keyboard Inputs"
@@ -1353,19 +1367,19 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:165
 msgid "Double Tap Darkslayer"
-msgstr ""
+msgstr "Дважды касаются Darkslayer"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:167
 msgid "Darkslayer is accessed by quickly pressing one style twice"
-msgstr ""
+msgstr "Darkslayer получают доступ, быстро нажимая один стиль дважды"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:171
 msgid "Double Tap Timer"
-msgstr ""
+msgstr "Таймер Двойного выстрела"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DtEnemiesDontStun.cpp:20
 msgid "DT Enemies Don't Stun"
-msgstr ""
+msgstr "Враги DT не Ошеломляют"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DtEnemiesDontStun.cpp:24
 msgid "Stop enemies from receiving stun from most attacks"
@@ -1390,22 +1404,24 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DtKnuckle.cpp:830
 msgid "Guardian Devil"
-msgstr ""
+msgstr "Дьявол Опекуна"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DtKnuckle.cpp:834
 msgid ""
 "Triggers a stand attack when you input the selected button.\n"
 "Lockon+forward/back for other attacks"
 msgstr ""
+"Вызывает нападение стенда, когда Вы вводите выбранную кнопку\n"
+"Lockon+forward/back для других нападений"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\DtKnuckle.cpp:838
 msgid "Guardian Input"
-msgstr ""
+msgstr "Вход Опекуна"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EasyJc.cpp:39
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EasyJc.cpp:44
 msgid "Easy Enemy Step"
-msgstr ""
+msgstr "Легкий Вражеский Шаг"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EasyJc.cpp:41
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EasyJc.cpp:46
@@ -1425,11 +1441,11 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EffectColours.cpp:46
 msgid "Colours"
-msgstr ""
+msgstr "Цвета"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyAttackOffScreen.cpp:19
 msgid "Enemies Attack Offscreen"
-msgstr ""
+msgstr "Нападение Врагов За кадром"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyAttackOffScreen.cpp:23
 msgid "Allow enemies to attack even if they're not currently in camera view"
@@ -1437,7 +1453,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyDT.cpp:30
 msgid "Enemies Don't DT"
-msgstr ""
+msgstr "Враги не Делают DT"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyDT.cpp:36
 msgid "Disable enemy Devil Trigger"
@@ -1445,7 +1461,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyDT.cpp:38
 msgid "Enemies DT Instantly"
-msgstr ""
+msgstr "Враги DT Немедленно"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyDT.cpp:44
 msgid "If available, enemies will Devil Trigger instantly"
@@ -1538,7 +1554,7 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyReplace.cpp:266
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:89
 msgid "Scarecrow (Leg)"
-msgstr ""
+msgstr "Пугало (Нога)"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyReplace.cpp:267
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:90
@@ -1616,7 +1632,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyReplace.cpp:355
 msgid "Reset"
-msgstr ""
+msgstr "Сброс"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySlotting.cpp:49
 msgid "Slot Limit"
@@ -1627,22 +1643,6 @@ msgid ""
 "Set how many enemies can attack at the same time.\n"
 "After selecting Default, the original value will only be restored after "
 "entering a new fight"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:100
-msgid "Cutlass"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:101
-msgid "Gladius"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:106
-msgid "Angelo Credo"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:107
-msgid "Angelo Agnus"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:423
@@ -1693,14 +1693,17 @@ msgstr ""
 msgid "Spawn Basilisk"
 msgstr ""
 
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:530
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:532
 msgid "Random"
-msgstr ""
+msgstr "Случайный"
 
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:536
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:538
 msgid "[DEBUG] Custom Spawn Addr"
 msgstr ""
 
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:538
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:540
 msgid "Spawn"
 msgstr ""
@@ -1799,11 +1802,11 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyTracker.cpp:326
 msgid "Enemy Count"
-msgstr ""
+msgstr "Вражеский граф"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyTracker.cpp:328
 msgid "Enemy Select"
-msgstr ""
+msgstr "Избранный Враг"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyTracker.cpp:329
 msgid "Find Locked On Enemy In List"
@@ -1950,7 +1953,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyTracker.cpp:376
 msgid "Saved Info"
-msgstr ""
+msgstr "Спасенная Информация"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyTracker.cpp:377
 msgid "Enemy Move ID"
@@ -1978,7 +1981,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyTracker.cpp:388
 msgid "Enable Save/Load hotkeys"
-msgstr ""
+msgstr "Горячие клавиши Enable Save/Load"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemyTracker.cpp:390
 msgid ""
@@ -2021,27 +2024,27 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FasterFastDrive.cpp:22
 msgid "Fast Quick Drive"
-msgstr ""
+msgstr "Фаст Куик-Драйв"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FasterFastDrive.cpp:26
 msgid "Quick Drive skips the initial slash"
-msgstr ""
+msgstr "Куик-Драйв пропускает начальный разрез"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FasterFastDrive.cpp:29
 msgid "Easy Quick Drive"
-msgstr ""
+msgstr "Иси Куик-Драйв"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FasterFastDrive.cpp:31
 msgid "Prop is cancellable into quick drive until frame 7"
-msgstr ""
+msgstr "Опора аннулируем в быстрый двигатель до структуры 7"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FastPandora.cpp:98
 msgid "Fast Pandora"
-msgstr ""
+msgstr "Быстрая Бандура"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FastPandora.cpp:102
 msgid "Cycle to grounded Pandora moves in DT speed outside of DT"
-msgstr ""
+msgstr "Цикл основанной Пандоре перемещается в скорость DT за пределами DT"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FastPandora.cpp:104
 msgid "Fast Gunship"
@@ -2062,7 +2065,7 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FastSprint.cpp:40
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FastSprint.cpp:45
 msgid "Fast Sprint"
-msgstr ""
+msgstr "Быстрый Sprint"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FastSprint.cpp:42
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FastSprint.cpp:47
@@ -2071,23 +2074,23 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FastStart.cpp:123
 msgid "Fast Game Load"
-msgstr ""
+msgstr "Быстрый Груз Игры"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FastStart.cpp:125
 msgid "The game will skip all opening screens and load the first save slot"
-msgstr ""
+msgstr "Игра пропустит все вводные экраны и загрузит первое, экономят слот"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FastStart.cpp:127
 msgid "Fast Menu Fades"
-msgstr ""
+msgstr "Быстрое Меню Исчезает"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FastStart.cpp:129
 msgid "Skip the fades between some menus"
-msgstr ""
+msgstr "Пропускают исчезновение между некоторыми меню"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FastStart.cpp:131
 msgid "Fast BP Fade"
-msgstr ""
+msgstr "Быстрая BP Исчезаю"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FastStart.cpp:135
 msgid "Skips the BP load fade"
@@ -2099,7 +2102,8 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FireworksTweaks.cpp:64
 msgid ""
-"Edit the start frame, cancel frame and cancel properties of grounded Fireworks"
+"Edit the start frame, cancel frame and cancel properties of grounded "
+"Fireworks"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FlyingStats.cpp:339
@@ -2208,11 +2212,11 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FlyingStats.cpp:451
 msgid "Display Enemy Stats"
-msgstr ""
+msgstr "Отображают Вражескую Статистику"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FlyingStats.cpp:452
 msgid "Display Player Stats"
-msgstr ""
+msgstr "Статистика Плеера Дисплея"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FlyingStats.cpp:454
 msgid "Display HP"
@@ -2260,15 +2264,15 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\ForceLucifer.cpp:49
 msgid "Force Lucifer"
-msgstr ""
+msgstr "Принудительно Люцифер"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\ForceLucifer.cpp:51
 msgid "Forcing Lucifer means never forcefully despawning rose"
-msgstr ""
+msgstr "Принуждение средств Люцифера никогда сильно despawning повысился"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FpsLimit.cpp:33
 msgid "Override FPS Limit"
-msgstr ""
+msgstr "Отвергают Лимит FPS"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FpsLimit.cpp:35
 msgid ""
@@ -2284,7 +2288,7 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FreeJc.cpp:86
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FreeJc.cpp:91
 msgid "Free Enemy Step"
-msgstr ""
+msgstr "Свободный Вражеский Шаг"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FreeJc.cpp:83
 msgid ""
@@ -2298,7 +2302,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FreezeEnemies.cpp:43
 msgid "Freeze Enemies"
-msgstr ""
+msgstr "Замораживают Врагов"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FreezeEnemies.cpp:47
 msgid "Freeze enemies in place, even if they're midair."
@@ -2306,7 +2310,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FrenziedBossAI.cpp:44
 msgid "Frenzied Boss AI"
-msgstr ""
+msgstr "Бешеный AI Босса"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FrenziedBossAI.cpp:48
 msgid "Force bosses to use the AI they usually use when low HP"
@@ -2314,11 +2318,11 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FrostsDontJump.cpp:25
 msgid "No DTless Frost Escape"
-msgstr ""
+msgstr "Никакой Дтлесс Фрост Эскэйп"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\FrostsDontJump.cpp:29
 msgid "Disable Frosts jumping out of combos until they DT"
-msgstr ""
+msgstr "Отключают Морозы, выпрыгивающие из компаний пока они DT"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\GhostWalls.cpp:40
 msgid "Mephisto/Faust Collision"
@@ -2350,6 +2354,10 @@ msgid ""
 "All the pictures into the mind\n"
 "There's a flashing in my eyes"
 msgstr ""
+"Посмотрите тело в moonlight\n"
+"Даже если я пробую к cancel\n"
+"Все картины в mind\n"
+"В моих глазах есть высвечивание"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\GuardTimer.cpp:81
 msgid "Royal Guard Timing Display"
@@ -2395,16 +2403,16 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HeightRestriction.cpp:73
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HeightRestriction.cpp:83
 msgid "Air Hike Height Restriction"
-msgstr ""
+msgstr "Воздушное Ограничение Разгара Экскурсии"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:398
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:456
 msgid "Hide All HUD"
-msgstr ""
+msgstr "Скрывают Всю КОЖУРУ"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:460
 msgid "Hide Timer"
-msgstr ""
+msgstr "Скрывают Таймер"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:464
 msgid "Hides the BP, Secret Mission and M12 timers"
@@ -2412,19 +2420,19 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:466
 msgid "Hide HP HUD"
-msgstr ""
+msgstr "Скрывают КОЖУРУ HP"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:470
 msgid "Hide Orbs HUD"
-msgstr ""
+msgstr "Скрывают КОЖУРУ Шаров"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:474
 msgid "Hide Style HUD"
-msgstr ""
+msgstr "Скрывают КОЖУРУ Стиля"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:478
 msgid "Style Dial Only"
-msgstr ""
+msgstr "Диски Стиля Только"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:482
 msgid "Hides every element of the HP HUD other than the style dial"
@@ -2432,11 +2440,11 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:484
 msgid "Hide Map HUD"
-msgstr ""
+msgstr "Скрывают КОЖУРУ Карты"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:488
 msgid "Hide Boss HP HUD"
-msgstr ""
+msgstr "Скрывают Босса КОЖУРА HP"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:492
 msgid "Enable before the boss spawns"
@@ -2444,7 +2452,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:494
 msgid "Never Hide Weapons HUD"
-msgstr ""
+msgstr "Никогда Не Скрывают КОЖУРУ Оружия"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:500
 msgid "Disable the fade out on the weapon switch UI"
@@ -2452,7 +2460,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:502
 msgid "Always Hide Weapons HUD"
-msgstr ""
+msgstr "Всегда Скрывают КОЖУРУ Оружия"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HideHud.cpp:508
 msgid "Show Style Points in BP"
@@ -2460,31 +2468,33 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HighTimeWeaponSwitch.cpp:18
 msgid "High Time Weapon Switch"
-msgstr ""
+msgstr "Пора Переключатель Оружия"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HighTimeWeaponSwitch.cpp:22
 msgid ""
-"Changing weapons early while holding High Time will still allow you to do the "
-"held variant"
+"Changing weapons early while holding High Time will still allow you to do "
+"the held variant"
 msgstr ""
+"Изменение оружия рано, держась Пора все еще позволит Вам делать проводимый "
+"вариантом"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HpInOrbsDisplay.cpp:40
 msgid "Enemy HP Red Orb Display"
-msgstr ""
+msgstr "Враг HP Красный Дисплей Шара"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\HpInOrbsDisplay.cpp:42
 msgid "Display the last hit enemy's HP in the Red Orb count"
-msgstr ""
+msgstr "Отображают последнего врага хита HP в Красном количестве Шара"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAirHikes.cpp:74
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAirHikes.cpp:77
 msgid "Infinite Air Hikes"
-msgstr ""
+msgstr "Воздушные Экскурсии Бога"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:138
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:154
 msgid "Infinite Health (All)"
-msgstr ""
+msgstr "здоровье Бога (Все)"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:165
 msgid ""
@@ -2493,7 +2503,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:167
 msgid "Infinite Health (Player)"
-msgstr ""
+msgstr "здоровье Бога (Плеер)"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:174
 msgid "Disable the player's health decreasing"
@@ -2501,7 +2511,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:176
 msgid "Infinite Health (Enemy)"
-msgstr ""
+msgstr "здоровье Бога (Враг)"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:183
 msgid "Disable enemy's health decreasing"
@@ -2521,7 +2531,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:203
 msgid "Must style mode"
-msgstr ""
+msgstr "Должен разработать режи"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfAllHealth.cpp:205
 msgid "Damage is disabled until reaching S rank"
@@ -2539,15 +2549,15 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfCalibur.cpp:21
 msgid "Infinite Calibur"
-msgstr ""
+msgstr "Бог Кэлибур"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfDreadnaught.cpp:55
 msgid "Infinite Dreadnaught"
-msgstr ""
+msgstr "Бог Дридногт"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfDreadnaught.cpp:60
 msgid "Run in Dreadnaught"
-msgstr ""
+msgstr "Пробег в Dreadnaught"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfDT.cpp:31
 msgid "Inf DT"
@@ -2555,7 +2565,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfDT.cpp:41
 msgid "Infinite DT"
-msgstr ""
+msgstr "Бог DT"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfDT.cpp:43
 msgid ""
@@ -2583,11 +2593,11 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfinitePinTimer.cpp:21
 msgid "Infinite Pin Timer"
-msgstr ""
+msgstr "Таймер Булавки Бога"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfiniteTime.cpp:20
 msgid "Disable Timer"
-msgstr ""
+msgstr "Отключают Таймер"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfiniteTime.cpp:24
 msgid ""
@@ -2596,11 +2606,11 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfPlayerHealth.cpp:34
 msgid "Freeze Player HP To Max"
-msgstr ""
+msgstr "Плеер Замораживания HP Максу"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfRevive.cpp:25
 msgid "Infinite Revives"
-msgstr ""
+msgstr "Бог Возрождается"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfRevive.cpp:29
 msgid "Revive on the spot whenever you die for free"
@@ -2608,7 +2618,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfSkyStars.cpp:19
 msgid "Infinite Sky Stars"
-msgstr ""
+msgstr "Звезды Неба Бога"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfTableHopper.cpp:19
 msgid "Always Table Hopper"
@@ -2616,16 +2626,16 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InfTrickRange.cpp:19
 msgid "Infinite Trick Range"
-msgstr ""
+msgstr "Ряд Уловки Богов"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InputStates.cpp:259
 msgid "Taunt Ecstasy"
-msgstr ""
+msgstr "Экстаз Колкости"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InputStates.cpp:261
 msgid ""
-"Press Taunt in the air to perform Ecstasy. Consider using this with Selective "
-"Cancellable Ecstasy to make it feel more like 5"
+"Press Taunt in the air to perform Ecstasy. Consider using this with "
+"Selective Cancellable Ecstasy to make it feel more like 5"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\InstantTrick.cpp:20
@@ -2638,7 +2648,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\KnockbackEdits.cpp:154
 msgid "Release Always Stuns"
-msgstr ""
+msgstr "Выпуск Всегда Ошеломляет"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\KnockbackEdits.cpp:156
 msgid "Release with no meter can stun the enemy"
@@ -2654,14 +2664,14 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LdkWithDmd.cpp:44
 msgid ""
-"When playing a mission on Legendary Dark Knight, enemies will use DMD AI (and "
-"DT) instead of Son Of Sparda AI"
+"When playing a mission on Legendary Dark Knight, enemies will use DMD AI "
+"(and DT) instead of Son Of Sparda AI"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:101
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:113
 msgid "Target Switch Limit"
-msgstr ""
+msgstr "Целевой Лимит Переключателя"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:103
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:115
@@ -2674,7 +2684,7 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:106
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:118
 msgid "Enemy Step Limit"
-msgstr ""
+msgstr "Вражеский Лимит Шага"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:108
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:120
@@ -2688,7 +2698,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:124
 msgid "Sword & Gun Switch Limit"
-msgstr ""
+msgstr "Меч и Лимит Переключателя Оружия"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:128
 msgid ""
@@ -2700,7 +2710,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:131
 msgid "Style Switch Limit"
-msgstr ""
+msgstr "Лимит Переключателя Стиля"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:135
 msgid ""
@@ -2711,7 +2721,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:138
 msgid "Same Tick Style Change"
-msgstr ""
+msgstr "То же Изменение стиля Тиканья"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LimitAdjust.cpp:142
 msgid ""
@@ -2720,10 +2730,14 @@ msgid ""
 "One bug has been found with this cheat so far: Every other time you perform "
 "Climax you'll spawn Discipline pins too"
 msgstr ""
+"зменения стиля, зарегистрированные на том же тиканье как другие исходные "
+"данные, проигнорированы дефолт Одна ошибка была найдена с этим обманом до "
+"сих пор: Каждое второе время Вы выступаете кульминационный момент Вы "
+"породите булавки Дисциплины также"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LoadOrder.cpp:442
 msgid "HDD File Priority"
-msgstr ""
+msgstr "Приоритет Файла HDD"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\LoadOrder.cpp:444
 msgid ""
@@ -2767,41 +2781,43 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\ManualLuciferAim.cpp:129
 msgid ""
-"Replace the forced auto enemy facing on Lucifer A2, A4, E2, E3 with what most "
-"other moves use"
+"Replace the forced auto enemy facing on Lucifer A2, A4, E2, E3 with what "
+"most other moves use"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\ManualTwosomeTime.cpp:19
 msgid "Manual Twosome Time"
-msgstr ""
+msgstr "Ручное Время Пары"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\ManualTwosomeTime.cpp:23
 msgid "Disable Twosome Time's automatic lock-on"
-msgstr ""
+msgstr "Отключают автоматический замок Времени Пары - на"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MessageDisplay.cpp:32
 msgid "Keyboard Navigation"
-msgstr ""
+msgstr "Клавишная Навигация"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MessageDisplay.cpp:34
 msgid "Keyboard navigation throughout dmc4_hook"
-msgstr ""
+msgstr "Клавишная навигация всюду по dmc4_hook"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MessageDisplay.cpp:36
 msgid "Gamepad Navigation"
-msgstr ""
+msgstr "Навигация Геймпада"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MessageDisplay.cpp:38
 msgid "Gamepad navigation throughout dmc4_hook"
-msgstr ""
+msgstr "Навигация геймпада всюду по dmc4_hook"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MessageDisplay.cpp:40
 msgid "Display Messages"
-msgstr ""
+msgstr "сообщения Дисплея"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MessageDisplay.cpp:42
 msgid "Show/Hide popups at the top left such as \"Infinite Health (All) On\""
 msgstr ""
+"Показывают/Скрывают, что всплывающие окна наверху оставили такой как "
+"\\«здоровье Бога (Все) На"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MessageDisplay.cpp:44
 msgid "Scroll Transitions"
@@ -3041,7 +3057,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:54
 msgid "Dvd screensaver"
-msgstr ""
+msgstr "Заставка DVD"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:55
 msgid "Position"
@@ -3063,7 +3079,7 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSuperhot.cpp:82
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSuperhot.cpp:107
 msgid "SUPERHOT Mode"
-msgstr ""
+msgstr "Режим SUPERHOT"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSuperhot.cpp:95
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSuperhot.cpp:120
@@ -3073,11 +3089,11 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSuperhot.cpp:99
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\MutatorSuperhot.cpp:124
 msgid "Velocity Factor"
-msgstr ""
+msgstr "Скоростной Фактор"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NeroSnatchLength.cpp:30
 msgid "Increased Snatch Range"
-msgstr ""
+msgstr "Увеличенный Диапазон Кусочка"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NeroSnatchLength.cpp:32
 msgid "Triple the reach on Snatch"
@@ -3085,7 +3101,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoAutomaticCharacters.cpp:163
 msgid "No Auto Characters"
-msgstr ""
+msgstr "Никакие Авто Персонажи"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoAutomaticCharacters.cpp:167
 msgid "Disable the Auto variants on the character select screen"
@@ -3093,7 +3109,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoAutomaticCharacters.cpp:169
 msgid "No Auto Or Super Characters"
-msgstr ""
+msgstr "Никакой Автомобиль Или Супер Персонажи"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoClip.cpp:27
 msgid "NoClip"
@@ -3115,7 +3131,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoClip.cpp:72
 msgid "Lock Y Pos"
-msgstr ""
+msgstr "Заблокировали Y На месте продажи"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoClip.cpp:81
 msgid "Lock your height to explore beyond the environment more efficiently"
@@ -3123,7 +3139,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoclipCam.cpp:19
 msgid "Noclip Cam"
-msgstr ""
+msgstr "Кулак Noclip"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoclipCam.cpp:23
 msgid ""
@@ -3134,7 +3150,7 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoDtCooldown.cpp:28
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoDtCooldown.cpp:33
 msgid "No DT Cooldown"
-msgstr ""
+msgstr "Никакой DT Cooldown"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoDtCooldown.cpp:30
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoDtCooldown.cpp:35
@@ -3151,7 +3167,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoHBknockback.cpp:98
 msgid "No Helm Breaker Knockdown"
-msgstr ""
+msgstr "Никакой Сокрушительный удар Прерывателя Руля"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\NoHBknockback.cpp:100
 msgid "Helm Breaker deals no knockdown and instead only stuns the enemy"
@@ -3168,23 +3184,24 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\OneHitKill.cpp:67
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\OneHitKill.cpp:82
 msgid "One Hit Kill"
-msgstr ""
+msgstr "Один Хит Убивают"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\OneHitKill.cpp:73
 msgid "No Death (All)"
-msgstr ""
+msgstr "Никакая Смерть (Все)"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\OneHitKill.cpp:79
 msgid ""
 "Disable any entity dying while still allowing HP to drop.\n"
-"For practicing against enemies who have AI changes at different levels of HP\n"
+"For practicing against enemies who have AI changes at different levels of "
+"HP\n"
 "Also stops Omen killing enemies."
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\OneHitKill.cpp:88
 msgid ""
-"Enable one hit kill. This overrides the damage multiplier. By default this is "
-"hotkeyed to F3"
+"Enable one hit kill. This overrides the damage multiplier. By default this "
+"is hotkeyed to F3"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PandoraCharge.cpp:167
@@ -3226,11 +3243,11 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Payline.cpp:439
 msgid "Remap Helm Splitter"
-msgstr ""
+msgstr "Сплиттер Руля Перекарты"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Payline.cpp:443
 msgid "Remap Helm Splitter and Double Down to lockon+back+melee"
-msgstr ""
+msgstr "Сплиттер Руля Перекарты и Удваивают ставку к lockon+back+melee"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Payline.cpp:446
 msgid "Tracking Payline"
@@ -3262,7 +3279,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PinTimer.cpp:167
 msgid "Show Pin Timers"
-msgstr ""
+msgstr "Выставочные Таймеры Булавки"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PinTimer.cpp:169
 msgid ""
@@ -3280,7 +3297,7 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerRotation.cpp:48
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerRotation.cpp:53
 msgid "Unlock rotation"
-msgstr ""
+msgstr "Разблокировывают вращение"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerRotation.cpp:50
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerRotation.cpp:55
@@ -3313,7 +3330,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:954
 msgid "Save Current Move"
-msgstr ""
+msgstr "Экономят Текущее Движение"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:958
 msgid "Play Saved Move"
@@ -3382,10 +3399,17 @@ msgid ""
 "Uhm, ehm, akshually, internia isn't a thing, it's a property of a thing, the "
 "shit you're showing is velocity, the measure of inertia is mass, resistance "
 "to acceleration (slowing down is also acceleration just in the opposite "
-"direction), if the thing that got yeeted doesn't like burn off it's layers in "
-"flight due to air friction like a fucking meteor or some shit then it's "
+"direction), if the thing that got yeeted doesn't like burn off it's layers "
+"in flight due to air friction like a fucking meteor or some shit then it's "
 "inertia isn't changing. Get it right NERD"
 msgstr ""
+"Uhm, ehm, akshually, internia не вещь, это - собственность вещи дерьмо, "
+"которое Вы показываете, является скоростью, мера инерции - масса, "
+"сопротивление к ускорению (замедление - также ускорение только в "
+"противоположном направление), если вещи, которая получила yeeted, не "
+"нравится, сжигают, это - уровни в рейс из-за воздушного трения как чертов "
+"метеор или немного дерьма тогда это инерция не изменяется. Получите его "
+"правильный БОТАНИК"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:1018
 msgid "Weight ##1"
@@ -3411,6 +3435,8 @@ msgstr ""
 msgid ""
 "If you press exceed while this timer is between 0 and 1, you'll get MAX-Act."
 msgstr ""
+"Если Вы нажимаете, превышают, в то время как этот таймер между 0 и 1, Вы "
+"получите МАКС. АКТ"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PlayerTracker.cpp:1029
 msgid "Animation Frame ##1"
@@ -3465,7 +3491,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\PsychoMantis.cpp:67
 msgid "...debug"
-msgstr ""
+msgstr "... отлаживают"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Quicksilver.cpp:258
 msgid "QuickSilver"
@@ -3474,7 +3500,7 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Quicksilver.cpp:271
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Quicksilver.cpp:276
 msgid "Quicksilver"
-msgstr ""
+msgstr "Ртуть"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Quicksilver.cpp:273
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Quicksilver.cpp:278
@@ -3507,7 +3533,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RemoveLaunchArmour.cpp:21
 msgid "Remove Launch Armour"
-msgstr ""
+msgstr "Удаляют Танки Запуска"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RemoveLaunchArmour.cpp:25
 msgid ""
@@ -3521,24 +3547,24 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:88
 msgid "Press Lock On + Taunt to restore Max HP to enemies"
-msgstr ""
+msgstr "Пресса Соединяются + Колкость, чтобы вернуть Макса ХП врагам"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:90
 msgid "Reset Timer"
-msgstr ""
+msgstr "Таймер Сброса"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:92
 msgid "Press Lock On + Taunt to reset the BP timer"
-msgstr ""
+msgstr "Пресса Соединяются + Колкость, чтобы перезагрузить таймер BP"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:95
 msgid "Disable Aerial Resets"
-msgstr ""
+msgstr "Отключают Воздушный Сброс"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:100
 msgid ""
-"Disable \"Reset Enemy HP\" and \"Reset Timer\" while aerial (Useful for Taunt "
-"Ecstasy)"
+"Disable \"Reset Enemy HP\" and \"Reset Timer\" while aerial (Useful for "
+"Taunt Ecstasy)"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RestoreMaxHp.cpp:101
@@ -3555,7 +3581,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RevFlying.cpp:63
 msgid "Rev Flying"
-msgstr ""
+msgstr "преподобный Флаинг"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RevFlying.cpp:67
 msgid "Kill inertia brakes on Rev"
@@ -3563,7 +3589,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RevFlying.cpp:69
 msgid "Calibur Inertia"
-msgstr ""
+msgstr "Инерция Calibur"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RevFlying.cpp:73
 msgid "Kill inertia brakes on Calibur"
@@ -3571,7 +3597,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RgMultiplier.cpp:56
 msgid "Increased RG Gain"
-msgstr ""
+msgstr "Увеличенная Выгода RG"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RgMultiplier.cpp:58
 msgid "Intended to match DMC3's Royal Guard meter gain"
@@ -3579,15 +3605,15 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RisingSun.cpp:256
 msgid "Aerial Rising Sun"
-msgstr ""
+msgstr "Воздушное Восходящее солнце"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RisingSun.cpp:260
 msgid "Replace Dante's Shocking with the last 2 kicks of DT Kick 13"
-msgstr ""
+msgstr "Заменяют Данте, Шокирующего последними 2 ударами Удара DT 13"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RoomRespawn.cpp:203
 msgid "Respawn enemies when visiting the same room multiple times"
-msgstr ""
+msgstr "Повторно порождают врагов, посещая ту же комнату многократно"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RoomRespawn.cpp:205
 msgid "This will break your style points in the current mission"
@@ -3605,32 +3631,35 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RoseOptions.cpp:40
 msgid "Rose Survives Enemies"
-msgstr ""
+msgstr "Повысился, Остается в силе после Врагов"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RoseOptions.cpp:44
 msgid "Rose will hit the enemy and then continue past the enemy"
-msgstr ""
+msgstr "Повысился, поразит врага и затем продолжится мимо врага"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RoseOptions.cpp:46
 msgid "Rose Survives Objects"
-msgstr ""
+msgstr "Повысился, Остается в силе после Объектов"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RoseOptions.cpp:50
 msgid "Rose will sit on whatever surface it lands on until its timer expires"
 msgstr ""
+"Повысился, будет сидеть на любой поверхности, которую он сажает на то, пока "
+"ее таймер не истекает"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RoseOptions.cpp:52
 msgid "Infinite Rose Timer"
-msgstr ""
+msgstr "Таймер Бога Роуз"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RoseOptions.cpp:56
 msgid ""
 "Rose will only despawn when colliding with something or having another placed"
 msgstr ""
+"Повысился, будет только despawn, сталкиваясь с чем-то или размещая другого"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RoseRemovesPins.cpp:39
 msgid "Rose Removes Pins"
-msgstr ""
+msgstr "Повысился, Удаляет Булавки"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\RoseRemovesPins.cpp:41
 msgid "Rose will despawn pins rather than detonating them"
@@ -3652,15 +3681,15 @@ msgstr ""
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:385
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:402
 msgid "Roll"
-msgstr ""
+msgstr "Список"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:386
 msgid "Grounded DT Activation"
-msgstr ""
+msgstr "Основанная Активация DT"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:387
 msgid "Showdown"
-msgstr ""
+msgstr "Откровенный обмен мнениями"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:392
 msgid "Enable##SelectiveCancelsDante"
@@ -3668,7 +3697,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:398
 msgid "Disable Guardslide"
-msgstr ""
+msgstr "Отключают Guardslide"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:400
 msgid "Guarding a grounded move with momentum will halt your movement"
@@ -3684,19 +3713,19 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:410
 msgid "Stinger"
-msgstr ""
+msgstr "Жало"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:412
 msgid "Prop"
-msgstr ""
+msgstr "Опора"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:414
 msgid "Real Impact"
-msgstr ""
+msgstr "Реальное Воздействие"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:416
 msgid "Kick 13"
-msgstr ""
+msgstr "Пинают 13"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:418
 msgid "Cancellable from frame 38 (after the first 2 kicks)"
@@ -3704,7 +3733,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:420
 msgid "Shock"
-msgstr ""
+msgstr "Удар"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:422
 msgid "Cancellable from frame 60"
@@ -3712,27 +3741,27 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:424
 msgid "Ecstasy"
-msgstr ""
+msgstr "Экстаз"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:426
 msgid "Slash Dimension"
-msgstr ""
+msgstr "Измерение Разреза"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:428
 msgid "DT Pin Up Part 2"
-msgstr ""
+msgstr "Булавка DT Часть 2"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:430
 msgid "Draw"
-msgstr ""
+msgstr "Рисуют"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:433
 msgid "Guns"
-msgstr ""
+msgstr "Оружие"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:436
 msgid "Omen"
-msgstr ""
+msgstr "Оружие"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:438
 msgid "Opening Pandora"
@@ -3740,7 +3769,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:440
 msgid "Epidemic"
-msgstr ""
+msgstr "Эпидемия"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:442
 msgid "Pandora Ground shot 1"
@@ -3748,7 +3777,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:444
 msgid "Argument"
-msgstr ""
+msgstr "Аргумент"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:446
 msgid "Gunship"
@@ -3764,7 +3793,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SelectiveCancels.cpp:454
 msgid "Gun Stinger"
-msgstr ""
+msgstr "Жало Оружия"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\ShadowResolution.cpp:41
 msgid "Increased Shadow Resolution"
@@ -3772,7 +3801,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SkipWeapons.cpp:106
 msgid "Skip Shotgun"
-msgstr ""
+msgstr "Ружье Пропуска"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SkipWeapons.cpp:109
 msgid "Skip over Shotgun when Gun switching"
@@ -3780,7 +3809,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SkipWeapons.cpp:111
 msgid "Skip Gilgamesh"
-msgstr ""
+msgstr "Пропускают Gilgamesh"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SkipWeapons.cpp:114
 msgid "Skip over Gilgamesh when Weapon switching"
@@ -3788,7 +3817,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SkipWeapons.cpp:115
 msgid "Skip Pandora"
-msgstr ""
+msgstr "Бандура Пропуска"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SkipWeapons.cpp:118
 msgid "Skip over Pandora when Gun switching"
@@ -3796,7 +3825,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SkipWeapons.cpp:120
 msgid "Skip Lucifer"
-msgstr ""
+msgstr "Пропускают Люцифера"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SkipWeapons.cpp:123
 msgid "Skip over Lucifer when Weapon switching"
@@ -3804,11 +3833,11 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SlowWalk.cpp:21
 msgid "Slow Walk"
-msgstr ""
+msgstr "Медленная Прогулка"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SlowWalk.cpp:25
 msgid "Walk slowly while holding the jump button"
-msgstr ""
+msgstr "Прогулка медленно, держа кнопку скачка"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\SpawnedEnemiesAttack.cpp:27
 msgid "Spawned Scarecrows Attack"
@@ -3822,7 +3851,7 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\StunAnything.cpp:20
 msgid "Stun Anything"
-msgstr ""
+msgstr "Ошеломляют Что-либо"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\StunAnything.cpp:24
 msgid "Allow anything (even Lucifer pins) to stun"
@@ -3880,7 +3909,8 @@ msgid "Inertia Chart"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\StylePoints.cpp:1987
-msgid "Ever wanted to see a log of your inertia throughout a combo? Me neither!"
+msgid ""
+"Ever wanted to see a log of your inertia throughout a combo? Me neither!"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\StylePoints.cpp:2011
@@ -3927,10 +3957,430 @@ msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TargetChangeDarkslayer.cpp:61
 msgid "Target Change Darkslayer"
-msgstr ""
+msgstr "Целевое Изменение Darkslaye"
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TargetChangeDarkslayer.cpp:63
 msgid "Darkslayer is accessed by pressing the target change button"
+msgstr "Darkslayer получают доступ, нажимая целевую кнопку изменения настроек"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TauntSelect.cpp:591
+msgid "Enable##TantSelectNero"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TauntSelect.cpp:593
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TauntSelect.cpp:613
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TauntSelect.cpp:614
+msgid ""
+"Unknown slots may crash. Test at your own risk.\n"
+"If you get stuck, use character switch to free yourself"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TauntSelect.cpp:611
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TauntSelect.cpp:612
+msgid "Enable##TauntSelectDante"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TimerMem.cpp:183
+msgid "Instant Honeycomb"
+msgstr "Мгновенные Соты"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TimerMem.cpp:185
+msgid "Honeycomb Mapped To backforward + Gunslinger"
+msgstr "Соты, Нанесенные на карту К backforward + Опытный стрелок"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrackingFullHouse.cpp:46
+msgid "Tracking Full House"
+msgstr "Отслеживающий Аншлаг"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrackingFullHouse.cpp:48
+msgid ""
+"If the lock on target is below you (more than 65 degrees), Full House will "
+"adjust vertically like in DMC3 or 5"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrackingJealousy.cpp:47
+msgid "Tracking Jealousy"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrackingJealousy.cpp:49
+msgid "Jealousy tracks horizontally"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrackingSkyStar.cpp:52
+msgid "Auto Facing Sky Star"
+msgstr "Авто Звезда Неба Столкновения"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrackingSkyStar.cpp:54
+msgid "Sky star will auto face the enemy you're locked on to"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrainerPause.cpp:11
+msgid "Trainer Pauses"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrainerPause.cpp:22
+msgid "Pause the game when opening the trainer"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrickDown.cpp:90
+msgid "Down Trick"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrickDown.cpp:92
+msgid ""
+"Map Down Trick to backforward + trick\n"
+"If an enemy is directly above Dante, it may register your forward input as a "
+"back input and so queue a down trick"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TricksterDashDT.cpp:19
+msgid "Always DT Trickster Dash"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TurnSpeedEdits.cpp:26
+msgid "Decreased Backslide Turn Speed"
+msgstr "Уменьшенная Скорость Поворота Вероотступничества"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TurnSpeedEdits.cpp:30
+msgid ""
+"Reduces turn speed on backslide to make it easier to land without the need "
+"of a buffer"
+msgstr ""
+"Уменьшает скорость поворота на вероотступничестве, чтобы облегчить "
+"приземляться без потребности буфер"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:23
+msgid "STATE_NONE. Enter gameplay or pause/unpause the game to start."
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:34
+#, c-format
+msgid "Winner: %s"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:35
+#, c-format
+msgid "with %d votes"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:38
+#, c-format
+msgid "currently active. time left: %.2f"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:84
+#, c-format
+msgid "TWITCH_VOTE_TIMER: %f"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:93
+msgid "Vote in chat."
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:122
+#, c-format
+msgid "TWITCH_IDLE_TIMER: %f"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:429
+msgid "Random Timed Gameplay Mods"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:432
+msgid "Random gameplay mods active"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:433
+#, c-format
+msgid "TIMER: %f"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:435
+msgid "Not in gameplay"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:439
+msgid "Set these before starting:"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:441
+msgid "Mod timer (seconds)"
+msgstr "Ультрасовременный таймер (секунды)"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:446
+msgid "How long the random mod will last"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:448
+msgid "Cooldown timer (seconds)"
+msgstr "таймер Cooldown (секунды)"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:453
+msgid "How long before the next mod starts"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:454
+msgid "Random mutator mode"
+msgstr "Случайный режим мутатора"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:459
+msgid ""
+"Activate random spicy gameplay mods on a timer without connecting to Twitch"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:460
+msgid "Stop random mode"
+msgstr "Останавливают случайный режим"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:465
+msgid "Twitch Integration"
+msgstr "Интеграция Подергивания"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:468
+msgid "libircclient.dll not found, twitch support disabled"
+msgstr "libircclient.dll не найденный, дергайте отключенную поддержку"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:469
+msgid "Download libircclient-1.10-win32-dll.zip from the link below"
+msgstr "Libircclient 1.10 win32 dll.zip загрузки от ссылки внизу"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:470
+msgid ""
+"Extract libircclient.dll from zip file libircclient-1.10\\bin\\ to DMC4 root"
+msgstr ""
+"«Извлеките libircclient.dll из zip-файла libircclient-1.10 мусорное ведро к "
+"корню DMC4"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:471
+msgid "for example:"
+msgstr "например: "
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:473
+msgid "and restart the game to enable twitch support"
+msgstr "и перезапуск игра, чтобы позволить поддержку подергивания"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:479
+msgid ""
+"Filling both fields and enabling one of the options below will allow your "
+"Twitch viewers to affect your gameplay.\n"
+"Your credentials are stored in config file in plaintext\n"
+"Dont send your config with twitch data saved to other people\n"
+msgstr ""
+"Заполнение обеих областей и предоставление возможности одного из вариантов "
+"ниже позволят Ваш Дергайте зрителей, чтобы затронуть Ваш геймплей Ваши "
+"верительные грамоты сохранены в файле конфигурации в plaintext Не посылайте "
+"свою конфигурацию с данными о подергивании, сохраненными к другому people\n"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:485
+msgid "Twitch status: TWITCH_CONNECTING"
+msgstr "Статус подергивания: TWITCH_CONNECTING"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:488
+msgid "Twitch status: TWITCH_CONNECTED"
+msgstr "Статус подергивания: TWITCH_CONNECTED"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:491
+msgid "Twitch status: TWITCH_DISCONNECTED"
+msgstr "Статус подергивания: TWITCH_DISCONNECTED"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:494
+msgid "Get OAuth Password..."
+msgstr "Получают Пароль OAuth..."
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:497
+msgid "Twitch Username"
+msgstr "Имя пользователя Подергивания"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:498
+msgid "Twitch OAuth"
+msgstr "Дергают OAuth"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:499
+msgid "Connect To Twitch"
+msgstr "Соединяются С Подергиванием"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:503
+msgid "Disconnect From Twitch"
+msgstr "Отключают От Подергивания"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:509
+msgid "Stop voting"
+msgstr "Прекращают голосовать"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:512
+msgid "Start voting"
+msgstr "Начинают голосовать"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:518
+msgid "Show debug info in vote window"
+msgstr "Выставочная информация отладки в окне голосования"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:519
+msgid "Send voting messages in chat"
+msgstr "Посылают голосующие сообщения в беседе"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:520
+msgid "Disable voting overlay"
+msgstr "Отключают голосующее наложение"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:521
+msgid "Set these before connecting:"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:523
+msgid "Voting timer (seconds)"
+msgstr "Голосующий таймер (секунды"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:526
+msgid "Idle timer (seconds)"
+msgstr "Незанятый таймер (секунды)"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:530
+msgid "Log In On Game Boot Automatically"
+msgstr "Входят в систему На Ботинке Игры Автоматически"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:532
+msgid ""
+"This sometimes doesn't work, just come back here and hit disconnect > "
+"connect to reconnect"
+msgstr ""
+"Это иногда не работает, просто возвратитесь сюда и совершите нападки, "
+"отключают, соединяются чтобы снова соединиться"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:534
+msgid "Twitch Mode FAQ"
+msgstr "часто задаваемые вопросы Режима Подергивания"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:535
+msgid ""
+"Chaos - viewers can activate twitch mods directly through chat commands."
+msgstr ""
+"Хаос - зрители может активировать модников подергивания непосредственно "
+"через команды беседы"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:536
+msgid "Vote mode - viewers can vote on what mods to activate next."
+msgstr ""
+"Режим голосования - зрители может голосовать по какой модники активировать "
+"затем"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:538
+msgid "Chaos mode"
+msgstr "Режим хаоса"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:542
+msgid "Vote mode"
+msgstr "Режим голосования"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:546
+msgid "Relay Twitch Chat To Devil May Cry 4"
+msgstr "Беседа Подергивания Реле К Крику мая дьявола 4"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\uPlayerParamsEdit.cpp:70
+msgid "Faster Gilgamesh Charges"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\uPlayerParamsEdit.cpp:72
+msgid ""
+"3x faster Gilgamesh charges\n"
+"Applies when loading into a stage"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\VisualizeHitbox.cpp:200
+msgid "Visualize Hitboxes"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\VisualizeHitbox.cpp:202
+msgid "Draw hitbox outlines in red"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\VisualizeHitbox.cpp:203
+msgid "Visualize Pushboxes"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\VisualizeHitbox.cpp:205
+msgid "Draw pushbox outlines in blue"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:9
+msgid "Pause Game"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:33
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:42
+msgid "Game Speed"
+msgstr "Скорость Игры"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:35
+msgid ""
+"Speed adjustments are not initialized yet, load into the stage to access "
+"them."
+msgstr ""
+"Корректировки скорости еще не инициализированы, груз в стадию, чтобы "
+"получить доступ к ним"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:40
+msgid "Turbo Speed"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:44
+msgid "Enemies, players, room, bullets, pins, camera"
+msgstr "Враги, плееры, комната, пули, булавки, камера"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:46
+msgid "Global Speed"
+msgstr "Глобальная Скорость"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:48
+msgid "Enemies, players, room"
+msgstr "Враги, плееры, комната"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:50
+msgid "Room Speed"
+msgstr "Скорость Помещения"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:52
+msgid "Player Speed"
+msgstr "Скорость Плеера"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:54
+msgid "Enemy Speed"
+msgstr "Вражеская Скорость"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:56
+msgid "Force Custom Turbo"
+msgstr "Принудительно Пользовательское Турб"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:58
+msgid "This turbo won't be disabled on room change"
+msgstr "Это турбо не будет отключен на изменении помещения"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:63
+msgid "Custom Turbo"
+msgstr "Пользовательское Турбо"
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:71
+msgid "Pause"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:82
+msgid "Default hotkey is numpad ."
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:100
+msgid "Cutlass"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:101
+msgid "Gladius"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:106
+msgid "Angelo Credo"
+msgstr ""
+
+#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\EnemySpawn.cpp:107
+msgid "Angelo Agnus"
 msgstr ""
 
 #: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TauntSelect.cpp:272
@@ -4957,386 +5407,441 @@ msgstr ""
 msgid "0xFF"
 msgstr ""
 
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TauntSelect.cpp:591
-msgid "Enable##TantSelectNero"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TauntSelect.cpp:593
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TauntSelect.cpp:614
-msgid ""
-"Unknown slots may crash. Test at your own risk.\n"
-"If you get stuck, use character switch to free yourself"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TauntSelect.cpp:612
-msgid "Enable##TauntSelectDante"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TimerMem.cpp:183
-msgid "Instant Honeycomb"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TimerMem.cpp:185
-msgid "Honeycomb Mapped To backforward + Gunslinger"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrackingFullHouse.cpp:46
-msgid "Tracking Full House"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrackingFullHouse.cpp:48
-msgid ""
-"If the lock on target is below you (more than 65 degrees), Full House will "
-"adjust vertically like in DMC3 or 5"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrackingJealousy.cpp:47
-msgid "Tracking Jealousy"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrackingJealousy.cpp:49
-msgid "Jealousy tracks horizontally"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrackingSkyStar.cpp:52
-msgid "Auto Facing Sky Star"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrackingSkyStar.cpp:54
-msgid "Sky star will auto face the enemy you're locked on to"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrainerPause.cpp:11
-msgid "Trainer Pauses"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrainerPause.cpp:22
-msgid "Pause the game when opening the trainer"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrickDown.cpp:90
-msgid "Down Trick"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TrickDown.cpp:92
-msgid ""
-"Map Down Trick to backforward + trick\n"
-"If an enemy is directly above Dante, it may register your forward input as a "
-"back input and so queue a down trick"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TricksterDashDT.cpp:19
-msgid "Always DT Trickster Dash"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TurnSpeedEdits.cpp:26
-msgid "Decreased Backslide Turn Speed"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\TurnSpeedEdits.cpp:30
-msgid ""
-"Reduces turn speed on backslide to make it easier to land without the need of "
-"a buffer"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:23
-msgid "STATE_NONE. Enter gameplay or pause/unpause the game to start."
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:34
-#, c-format
-msgid "Winner: %s"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:35
-#, c-format
-msgid "with %d votes"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:38
-#, c-format
-msgid "currently active. time left: %.2f"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:84
-#, c-format
-msgid "TWITCH_VOTE_TIMER: %f"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:93
-msgid "Vote in chat."
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:122
-#, c-format
-msgid "TWITCH_IDLE_TIMER: %f"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:429
-msgid "Random Timed Gameplay Mods"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:432
-msgid "Random gameplay mods active"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:433
-#, c-format
-msgid "TIMER: %f"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:435
-msgid "Not in gameplay"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:439
-msgid "Set these before starting:"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:441
-msgid "Mod timer (seconds)"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:446
-msgid "How long the random mod will last"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:448
-msgid "Cooldown timer (seconds)"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:453
-msgid "How long before the next mod starts"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:454
-msgid "Random mutator mode"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:459
-msgid ""
-"Activate random spicy gameplay mods on a timer without connecting to Twitch"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:460
-msgid "Stop random mode"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:465
-msgid "Twitch Integration"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:468
-msgid "libircclient.dll not found, twitch support disabled"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:469
-msgid "Download libircclient-1.10-win32-dll.zip from the link below"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:470
-msgid ""
-"Extract libircclient.dll from zip file libircclient-1.10\\bin\\ to DMC4 root"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:471
-msgid "for example:"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:473
-msgid "and restart the game to enable twitch support"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:479
-msgid ""
-"Filling both fields and enabling one of the options below will allow your "
-"Twitch viewers to affect your gameplay.\n"
-"Your credentials are stored in config file in plaintext\n"
-"Dont send your config with twitch data saved to other people\n"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:485
-msgid "Twitch status: TWITCH_CONNECTING"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:488
-msgid "Twitch status: TWITCH_CONNECTED"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:491
-msgid "Twitch status: TWITCH_DISCONNECTED"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:494
-msgid "Get OAuth Password..."
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:497
-msgid "Twitch Username"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:498
-msgid "Twitch OAuth"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:499
-msgid "Connect To Twitch"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:503
-msgid "Disconnect From Twitch"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:509
-msgid "Stop voting"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:512
-msgid "Start voting"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:518
-msgid "Show debug info in vote window"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:519
-msgid "Send voting messages in chat"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:520
-msgid "Disable voting overlay"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:521
-msgid "Set these before connecting:"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:523
-msgid "Voting timer (seconds)"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:526
-msgid "Idle timer (seconds)"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:530
-msgid "Log In On Game Boot Automatically"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:532
-msgid ""
-"This sometimes doesn't work, just come back here and hit disconnect > connect "
-"to reconnect"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:534
-msgid "Twitch Mode FAQ"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:535
-msgid "Chaos - viewers can activate twitch mods directly through chat commands."
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:536
-msgid "Vote mode - viewers can vote on what mods to activate next."
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:538
-msgid "Chaos mode"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:542
-msgid "Vote mode"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\Twitch.cpp:546
-msgid "Relay Twitch Chat To Devil May Cry 4"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\uPlayerParamsEdit.cpp:70
-msgid "Faster Gilgamesh Charges"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\uPlayerParamsEdit.cpp:72
-msgid ""
-"3x faster Gilgamesh charges\n"
-"Applies when loading into a stage"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\VisualizeHitbox.cpp:200
-msgid "Visualize Hitboxes"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\VisualizeHitbox.cpp:202
-msgid "Draw hitbox outlines in red"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\VisualizeHitbox.cpp:203
-msgid "Visualize Pushboxes"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\VisualizeHitbox.cpp:205
-msgid "Draw pushbox outlines in blue"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:9
-msgid "Pause Game"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:33
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:42
-msgid "Game Speed"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:35
-msgid ""
-"Speed adjustments are not initialized yet, load into the stage to access them."
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:40
-msgid "Turbo Speed"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:44
-msgid "Enemies, players, room, bullets, pins, camera"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:46
-msgid "Global Speed"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:48
-msgid "Enemies, players, room"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:50
-msgid "Room Speed"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:52
-msgid "Player Speed"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:54
-msgid "Enemy Speed"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:56
-msgid "Force Custom Turbo"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:58
-msgid "This turbo won't be disabled on room change"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:63
-msgid "Custom Turbo"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:71
-msgid "Pause"
-msgstr ""
-
-#: C:\vs_projects\fresh-dmc4_hook_repo\dmc4_hook\src\mods\WorkRate.cpp:82
-msgid "Default hotkey is numpad ."
-msgstr ""
+#~ msgid "General"
+#~ msgstr "Общий"
+
+#~ msgid "Enemy Difficulty"
+#~ msgstr "Вражеская Трудност"
+
+#~ msgid "Enemy Training"
+#~ msgstr "Вражеское Обучение"
+
+#~ msgid "Shared Abilities"
+#~ msgstr "Общие Способности"
+
+#~ msgid "Nero Abilities"
+#~ msgstr "Способности Nero"
+
+#~ msgid "Dante Abilities"
+#~ msgstr "Способности Данте"
+
+#~ msgid ""
+#~ "Area Jump is not initialized.\n"
+#~ "Load into a stage to access it."
+#~ msgstr ""
+#~ "Скачок области не инициализирован\n"
+#~ "Груз в этап, чтобы получить доступ к нему."
+
+#~ msgid "Bloody Palace Floor Teleports"
+#~ msgstr "Кровавый Пол Дворца Телепортирует"
+
+#~ msgid "##BP Floor "
+#~ msgstr "##BP Пол "
+
+#~ msgid "Go"
+#~ msgstr "Идут"
+
+#~ msgid ""
+#~ "BP Floor Jump is not initialized.\n"
+#~ "Load into BP to access it."
+#~ msgstr ""
+#~ "Скачок Пола BP не инициализирован\n"
+#~ "Груз в BP, чтобы получить доступ к нему."
+
+#~ msgid "##Room Codes Listbox"
+#~ msgstr "Кодовый Список"
+
+#~ msgid "Disable Assaults jumping out of combos until they DT"
+#~ msgstr "Отключают Нападения, выпрыгивающие из компаний пока они DT"
+
+#~ msgid "Randomize BP"
+#~ msgstr "Рандомизируют BP"
+
+#~ msgid "Enable before starting BP"
+#~ msgstr "Позволяют перед стартовой BP"
+
+#~ msgid "Boss Rush"
+#~ msgstr "Босс Раш"
+
+#~ msgid "Sealed doors and portals open instantly"
+#~ msgstr "Запечатал двери и порталы, открытые немедленно"
+
+#~ msgid "Left Side Reset"
+#~ msgstr "Сброс Левой стороны"
+
+#~ msgid ""
+#~ "When pressing the button that resets the camera behind Dante, the camera "
+#~ "will instead be set to Dante's left"
+#~ msgstr ""
+#~ "Нажимая кнопку, которая перезагружает камеру позади Данте, камера "
+#~ "будетвместо этого будьте установлены в Данте, уехал"
+
+#~ msgid "Use Custom Camera Variables"
+#~ msgstr "Используют Пользовательские Переменные Камеры"
+
+#~ msgid "Also enables the editing of these values via hotkeys"
+#~ msgstr "Также позволяет редактирование этих ценностей через горячие клавиши"
+
+#~ msgid "Camera Variables"
+#~ msgstr "Переменные Камеры"
+
+#~ msgid "Angle (Lockon)"
+#~ msgstr "Угол (Lockon)"
+
+#~ msgid "Force Nero"
+#~ msgstr "Принудительно Nero"
+
+#~ msgid "Force Dante"
+#~ msgstr "Принудительно Данте"
+
+#~ msgid "Faster Round Trip Charge"
+#~ msgstr "Более быстрый Сбор Кругового рейса"
+
+#~ msgid "Halves the charge time on Round Trip"
+#~ msgstr "Половины время зарядки в Круговом рейсе"
+
+#~ msgid "Enable before loading into a stage"
+#~ msgstr "Позволяют прежде, чем загрузить в этап"
+
+#~ msgid "Player Damage Multiplier"
+#~ msgstr "Множитель Повреждения Плеера"
+
+#~ msgid "Multiplier"
+#~ msgstr "Множитель"
+
+#~ msgid ""
+#~ "Activate judgement cut when performing Yamato aerial rave with lock-on."
+#~ "Perform normal inertia-less Yamato rave on lock-off.\n"
+#~ "This mod requires external files found on the dmc4_hook repo.\n"
+#~ "The button to the right of this cheat will take you to the download "
+#~ "page.\n"
+#~ "- Install the extra files (via fluffy's mod manager or manually).\n"
+#~ "- Enable both this and the \"HDD Priority\" mod in the Debug page.\n"
+#~ "- Save your config and load into a level."
+#~ msgstr ""
+#~ "Активируйте сокращение суждения, выполняя рейв антенны Ямато с замком - "
+#~ "на\n"
+#~ "Выполните нормальную инерцию меньше рейв Ямато на замке-off.\n"
+#~ "Этот модник требует внешних файлов, найденных на dmc4_hook соглашении об "
+#~ "обратной покупке \n"
+#~ "Кнопка направо от этого обмана возьмет Вас к странице загрузки\n"
+#~ "-Устанавливают дополнительные файлы (через ультрасовременного менеджера "
+#~ "fluffy или вручную).\n"
+#~ "-Позволяют и это и \\«Приоритет HDD \\» модник на странице Отладки\n"
+#~ "-Экономят Вашу конфигурацию и груз на уровень."
+
+#~ msgid "Download JDC Files"
+#~ msgstr "Загружают Файлы JDC"
+
+#~ msgid ""
+#~ "Download JDC Files in the Assets section of the latest release and "
+#~ "install manually or using Fluffy's Mod Manager"
+#~ msgstr ""
+#~ "Загрузите Файлы JDC в разделе Активов последнего выпуска и установите "
+#~ "вручную или использование Ультрасовременного менеджера Флаффи"
+
+#~ msgid ""
+#~ "Certain missions or parts will cause a black screen when this option is "
+#~ "enabled. Press the pause button then confirm to go into the item menu and "
+#~ "the screen will return to normal."
+#~ msgstr ""
+#~ "Определенные миссии или части вызовут черный экран, когда этот выбор "
+#~ "будет позволенный. Нажмите кнопка паузы тогда подтверждают, чтобы войти в "
+#~ "меню товара и экран возвратится к нормальному"
+
+#~ msgid "Disable Keyboard Input"
+#~ msgstr "Отключают Клавишный Вход"
+
+#~ msgid "DMD Bloody Palace"
+#~ msgstr "DMD Кровавый Дворец"
+
+#~ msgid ""
+#~ "Forces the ingame version of DMD. Enemies will take longer to DT than "
+#~ "with the 'Game Mode' option"
+#~ msgstr ""
+#~ "Вызывает ingame версию DMD. Враги займут больше времени к DT, чем с "
+#~ "'выбор' Режима Игры"
+
+#~ msgid "DMD Level AI"
+#~ msgstr "AI Уровня DMD"
+
+#~ msgid ""
+#~ "Forces enemies to use the ingame DMD AI, even on non DMD difficulties"
+#~ msgstr ""
+#~ "Вынуждает врагов использовать ingame DMD AI, даже на не трудности DMD"
+
+#~ msgid "Custom Colours"
+#~ msgstr "собственные цвета"
+
+#~ msgid "I haven't figured this out yet"
+#~ msgstr "Я еще не понял это»"
+
+#~ msgid "Enemy Replacement - No Cyclical Replacements!"
+#~ msgstr "Вражеская Замена - Никакие Циклические Замены!"
+
+#~ msgid ""
+#~ "Example: Don't replace Mephisto with Faust and Faust with Mephisto at the "
+#~ "same time. The game will crash.\n"
+#~ "Many of these are untested and may also crash; I thought I'd leave them "
+#~ "in just in case there's something that works that we had disabled before."
+#~ msgstr ""
+#~ "Пример: не заменяйте Mephisto Фаустом и Фаустом с Mephisto в то же время. "
+#~ "Игра потерпит крах\n"
+#~ "Многие из них не проверены и могут также потерпеть крах; я думал, что "
+#~ "оставлю их внутри на всякий случай есть что-то, что работает, который мы "
+#~ "отключили прежде"
+
+#~ msgid "Custom Enemy Slot Limit"
+#~ msgstr "Пользовательский Вражеский Лимит Слота"
+
+#~ msgid ""
+#~ "Set how many enemies can attack at the same time. Default is usually 1\n"
+#~ "After unchecking this option, the original value will only be restored "
+#~ "after entering a new room"
+#~ msgstr ""
+#~ "Набор, сколько врагов может напасть в то же время. Дефолт обычно 1\n"
+#~ "После снятия выделения с этим выбором исходное значение будет только "
+#~ "восстановлено после вводя новую комнату"
+
+#~ msgid ""
+#~ "Enemy Spawner is not initialized.\n"
+#~ "Load into a stage to access it."
+#~ msgstr ""
+#~ "Враг Спонер не инициализирован.\n"
+#~ "Груз в этап, чтобы получить доступ к нему"
+
+#~ msgid "Max HP ##2"
+#~ msgstr "Max HP ##2"
+
+#~ msgid "HP Taken ##2"
+#~ msgstr "HP, Взятый ##2"
+
+#~ msgid "Stun 1 ##2"
+#~ msgstr "Ошеломляют 1 ##2"
+
+#~ msgid "Stun 2 ##2"
+#~ msgstr "Ошеломляют 2 ##2"
+
+#~ msgid "Stun 3 ##2"
+#~ msgstr "Ошеломляют 3 ##2"
+
+#~ msgid "Stun 4 ##2"
+#~ msgstr "Ошеломляют 4 ##2"
+
+#~ msgid "Stun 5 ##2"
+#~ msgstr "Ошеломляют 5 ##2"
+
+#~ msgid "Displacement 1 ##2"
+#~ msgstr "Смещение 1 ##2"
+
+#~ msgid "Displacement 2 ##2"
+#~ msgstr "Смещение 2 ##2"
+
+#~ msgid "Displacement 3 ##2"
+#~ msgstr "Смещение 3 ##2"
+
+#~ msgid "Displacement 4 ##2"
+#~ msgstr "Смещение 4 ##2"
+
+#~ msgid "Displacement 5 ##2"
+#~ msgstr "Смещение 5 ##2"
+
+#~ msgid "Unknown 1 ##2"
+#~ msgstr "Неизвестный "
+
+#~ msgid "Hotkey is HOME by default"
+#~ msgstr "Горячая клавиша дома по умолчанию"
+
+#~ msgid "Hotkey is END by default"
+#~ msgstr "Горячая клавиша является КОНЦОМ по умолчанию"
+
+#~ msgid "Display Boss Stats"
+#~ msgstr "Отображают Статистику Босса"
+
+#~ msgid "Hotkey is PAGE UP by default"
+#~ msgstr "Горячая клавиша является СТРАНИЦЕЙ по умолчанию"
+
+#~ msgid "Hotkey is PAGE DOWN by default"
+#~ msgstr "Горячая клавиша является СТРАНИЦЕЙ ВНИЗ по умолчанию"
+
+#~ msgid "Mostly untested, should skip fade on BP load and nothing else"
+#~ msgstr ""
+#~ "Главным образом непроверенный, должен пропустить, исчезают на грузе BP и "
+#~ "ничем ином"
+
+#~ msgid "New FPS Limit"
+#~ msgstr "Новый Лимит FPS"
+
+#~ msgid "Enemy Step anywhere in the room with an enemy"
+#~ msgstr "Вражеский Шаг где угодно в комнате с врагом"
+
+#~ msgid ""
+#~ "Freezes enemies, even if they're midair. Best used with infinite enemy hp"
+#~ msgstr ""
+#~ "Замораживает врагов, даже если они воздушные. Лучше всего используемый с "
+#~ "бесконечным вражеским hp"
+
+#~ msgid "Dante Height Restriction"
+#~ msgstr "Ограничение Высоты Данте"
+
+#~ msgid "Nero Height Restriction"
+#~ msgstr "Ограничение Высоты Nero"
+
+#~ msgid "Infinite Faust Cloak"
+#~ msgstr "Плащ Бога Фауста"
+
+#~ msgid "Disable Faust Cloak"
+#~ msgstr "Отключают Плащ Фауста"
+
+#~ msgid "Infinite Table Hopper"
+#~ msgstr "Бункер Таблицы Бога"
+
+#~ msgid "Instant Trick"
+#~ msgstr "Мгновенная Уловка"
+
+#~ msgid "LDK With DMD"
+#~ msgstr "LDK С DMD"
+
+#~ msgid ""
+#~ "When playing a mission on Legendary Dark Knight, enemies will be on DMD "
+#~ "Difficulty instead of SOS"
+#~ msgstr "Играя миссию на Легендарном Темном Рыцаре, враги будут на DMD"
+
+#~ msgid "Self advertisement"
+#~ msgstr "Сам реклама"
+
+#~ msgid "Show self advertisement?"
+#~ msgstr "Шоу сам реклама?"
+
+#~ msgid "Image pos:"
+#~ msgstr "Изображение на месте продажи"
+
+#~ msgid "Tint color:"
+#~ msgstr "Цвет оттенка"
+
+#~ msgid "Very work in progress"
+#~ msgstr "очень незавершенное производство"
+
+#~ msgid "Disable Teleport Planes"
+#~ msgstr "Отключают, Телепортируют Самолеты"
+
+#~ msgid "Disables the cooldown on leaving DT upon entering"
+#~ msgstr "Отключает cooldown при отъезде DT после ввода"
+
+#~ msgid ""
+#~ "Disables dying while still allowing hp to drop. Also stops Omen killing "
+#~ "enemies."
+#~ msgstr ""
+#~ "Отключает смерть, все еще позволяя hp понижаться. Также останавливает "
+#~ "убийство Предзнаменования"
+
+#~ msgid "Disable Game Pause When Opening The Trainer"
+#~ msgstr "Отключают Паузу Игры, Открывая Тренера"
+
+#~ msgid "Vibe"
+#~ msgstr "Энергетика"
+
+#~ msgid ""
+#~ "Put your controller on the floor. Put it down as flat as you can...that's "
+#~ "good. Now I will move your controller by the power of my style alone!!"
+#~ msgstr ""
+#~ "Поместите своего диспетчера на пол. Подавите его столь плоский, как Вы "
+#~ "можете... это быть хороший. Теперь я перемещу Вашего диспетчера властью "
+#~ "одного только моего стиля!!"
+
+#~ msgid "Vibe Slot 2"
+#~ msgstr "Слот Энергетики 2"
+
+#~ msgid "Tick the Vibe checkbox too"
+#~ msgstr "Помечают чекбокс Энергетики также"
+
+#~ msgid "##mod_enabled2AmountSliderInt"
+#~ msgstr "##mod_enabled2AmountSliderInt"
+
+#~ msgid "##mod_enabled2LRSliderInt"
+#~ msgstr "##mod_enabled2LRSliderInt"
+
+#~ msgid "Enables the hotkey for Quicksilver. By default this is = / +"
+#~ msgstr "Позволяет горячую клавишу для Ртути. По умолчанию это = / +"
+
+#~ msgid ""
+#~ "Removes the armour enemies gain when downed, allowing you to relaunch for "
+#~ "practice instantly"
+#~ msgstr ""
+#~ "Удаляет выгоду врагов танков, когда побеждено, позволяя Вам повторно "
+#~ "начать для практика немедленно"
+
+#~ msgid "Restore Enemy HP"
+#~ msgstr "Восстанавливают Врага HP"
+
+#~ msgid ""
+#~ "Disable \"Restore Enemy HP\" and \"Reset Timer\" while aerial (Useful for "
+#~ "Taunt Ecstasy)"
+#~ msgstr ""
+#~ "Отключите Восстанавливают Врага HP и Таймер Сброса в то время как антенна "
+#~ "(Полезный для Экстаз колкости)"
+
+#~ msgid "Kills inertia brakes on Rev"
+#~ msgstr "Убивает тормоза инерции на преподобном"
+
+#~ msgid "Kills inertia brakes on Calibur"
+#~ msgstr "Убивает тормоза инерции на Calibur"
+
+#~ msgid "Intended to match DMC3's meter gain"
+#~ msgstr "Предназначенный, чтобы соответствовать увеличению метра DMC3"
+
+#~ msgid "try respawning stuff"
+#~ msgstr "пытаются повторно породить материал"
+
+#~ msgid "respawning stuff in areas from wrong mission will freeze the game"
+#~ msgstr ""
+#~ "повторно порождающий материал в областях от неправильной миссии, "
+#~ "заморозит игру"
+
+#~ msgid "Rose despawns pins rather than detonating them"
+#~ msgstr "Повысился булавки despawns вместо того, чтобы взорвать их"
+
+#~ msgid "Enable"
+#~ msgstr "Позволяют"
+
+#~ msgid "Allows cancelling out of selected moves with evasive actions"
+#~ msgstr "Позволяет отменять из выбранных шагов с уклончивыми действиями"
+
+#~ msgid "Guarding a move with momentum will halt your movement"
+#~ msgstr "Охрана движения с импульсом остановит Ваше движение"
+
+#~ msgid "Shared"
+#~ msgstr "Общий"
+
+#~ msgid "Allows anything (even Lucifer pins) to stun"
+#~ msgstr "Позволяет чему-либо (даже булавки Люцифера) ошеломлять"
+
+#~ msgid "Trick Down"
+#~ msgstr "Уловка Вниз"
+
+#~ msgid "Map Trick Down to backforward + trick"
+#~ msgstr "Уловка карты Вниз к backforward + уловка"
+
+#~ msgid "Random timed gameplay mods"
+#~ msgstr "Случайные рассчитанные модники геймплея"
+
+#~ msgid "Set those before starting:"
+#~ msgstr "Устанавливают тех перед стартом"
+
+#~ msgid ""
+#~ "Activate random spicy gameplay mods on timer without connecting to twitch"
+#~ msgstr ""
+#~ "Активируйте случайных пряных модников геймплея на таймере, не соединяясь "
+#~ "с подергиванием"
+
+#~ msgid "Set those before connecting:"
+#~ msgstr "Устанавливают тех перед соединением"
+
+#~ msgid "Speed"
+#~ msgstr "Скорость"
+
+#~ msgid "Turbo Value"
+#~ msgstr "Турбо Ценность"
+
+#~ msgid "Disable Game Pause when opening the trainer"
+#~ msgstr "Отключают Паузу Игры, открывая тренера"

@@ -296,4 +296,21 @@ void mo_load(void* mo_data) {
     delete the_localization_text;
     the_localization_text = new LocalizationText(mo_data);
 }
+
+
+#include <stdlib.h>
+
+ImGooListboxTranslated::ImGooListboxTranslated(const char* const items[], int items_count) {
+    count = items_count;
+    data_ = (char**)malloc(sizeof(char*) * items_count);
+    assert(data_);
+    for (int i = 0; i < items_count; ++i) {
+        data_[i] = utility::text_lookup((char*)items[i]);
+    }
+}
+
+ImGooListboxTranslated::~ImGooListboxTranslated() {
+    free(data_);
+}
+
 } // namespace utility

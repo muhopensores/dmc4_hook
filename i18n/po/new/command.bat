@@ -1,1 +1,0 @@
-binary_to_compressed_c.exe -u8 dmc4hook.mo zh_dmc4hook > zh_dmc4hook.hpp

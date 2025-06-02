@@ -80,4 +80,26 @@ struct LocalizationText {
 
 char* text_lookup(char* s);
 void mo_load(void* mo_data);
+
+struct ImGooListboxTranslated {
+
+    ImGooListboxTranslated(ImGooListboxTranslated const &) = delete;
+    void operator=(ImGooListboxTranslated const &l) = delete;
+
+    explicit ImGooListboxTranslated(const char* const items[], int items_count);
+    ~ImGooListboxTranslated();
+
+    inline const char* const* data() const {
+        return data_;
+    }
+
+    inline const int size() const {
+        return count;
+    }
+
+public:
+    char** data_;
+    int count;
+};
+
 } // namespace utility

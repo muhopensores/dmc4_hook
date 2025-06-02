@@ -86,32 +86,32 @@ constexpr std::array<uintptr_t, 23> fptr_em_factories{
 };
 
 constexpr std::array<const char*, 23> enemy_names{
-    "Scarecrow (Leg)",   // 00 Leg Scarecrow
-    "Scarecrow (Arm)",   // 01 Arm Scarecrow
-    "Mega Scarecrow",    // 02 Mega Scarecrow
-    "Bianco Angelo",     // 03 Bianco Angelo
-    "Alto Angelo",       // 04 Alto Angelo
-    "Mephisto",          // 05 Mephisto
-    "Faust",             // 06 Faust
-    "Frost",             // 07 Frost
-    "Assault",           // 08 Assault
-    "Blitz",             // 09 Blitz
-    "Chimera Seed",      // 10 Chimera Seed
-    "Cutlass",		     // 11 Cutlass
-    "Gladius", 		     // 12 Gladius
-    "Basilisk",          // 13 Basilisk
-    "Berial",            // 14 Berial
-    "Bael",              // 15 Bael
-    "Echidna",           // 16 Echidna
-    "Angelo Credo",      // 17 Angelo Credo
-    "Angelo Agnus",      // 18 Angelo Agnus
-    "Sanctus",           // 19 Sanctus
-    "Sanctus Diabolica", // 20 Sanctus Diabolica
-    "Kyrie",             // 21 Kyrie
-    "Dante",             // 22 Dante
-                         // Fault
-                         // The Savior
-                         // The False Savior
+    __("Scarecrow (Leg)"),   // 00 Leg Scarecrow
+    __("Scarecrow (Arm)"),   // 01 Arm Scarecrow
+    __("Mega Scarecrow"),    // 02 Mega Scarecrow
+    __("Bianco Angelo"),     // 03 Bianco Angelo
+    __("Alto Angelo"),       // 04 Alto Angelo
+    __("Mephisto"),          // 05 Mephisto
+    __("Faust"),             // 06 Faust
+    __("Frost"),             // 07 Frost
+    __("Assault"),           // 08 Assault
+    __("Blitz"),             // 09 Blitz
+    __("Chimera Seed"),      // 10 Chimera Seed
+    __("Cutlass"),		     // 11 Cutlass
+    __("Gladius"), 		     // 12 Gladius
+    __("Basilisk"),          // 13 Basilisk
+    __("Berial"),            // 14 Berial
+    __("Bael"),              // 15 Bael
+    __("Echidna"),           // 16 Echidna
+    __("Angelo Credo"),      // 17 Angelo Credo
+    __("Angelo Agnus"),      // 18 Angelo Agnus
+    __("Sanctus"),           // 19 Sanctus
+    __("Sanctus Diabolica"), // 20 Sanctus Diabolica
+    __("Kyrie"),             // 21 Kyrie
+    __("Dante"),             // 22 Dante
+                             // Fault
+                             // The Savior
+                             // The False Savior
 };
 
 constexpr std::array<int, 23> enemy_spawn_type{
@@ -509,11 +509,23 @@ std::optional<std::string> EnemySpawn::on_initialize() {
     return Mod::on_initialize();
 }
 
+const char** get_translated_listbox(const char* const items[], int items_count ) {
+    char** memory = (char**)::malloc(sizeof(char*) * items_count);
+    assert(memory);
+    for (int i = 0; i < items_count; ++i) {
+        memory[i] = utility::text_lookup((char*)items[i]);
+    }
+    return (const char**)memory;
+}
+
+
 void EnemySpawn::on_gui_frame(int display) {
     uPlayer* player = devil4_sdk::get_local_player();
     int enemy_names_current = 0;
     ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-    if (ImGui::ListBox("##Enemy Spawn Listbox", &enemy_names_current, enemy_names.data(), enemy_names.size(), 23)) {
+
+    utility::ImGooListboxTranslated translated_names(enemy_names.data(), enemy_names.size());
+    if (ImGui::ListBox("##Enemy Spawn Listbox", &enemy_names_current, translated_names.data(), translated_names.size(), 23)) {
         if (player)
             spawn_em00x((EnemyType)enemy_names_current);
     }
