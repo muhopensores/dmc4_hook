@@ -29,7 +29,7 @@ uintptr_t Payline::jmp_ret9 = NULL;
 uintptr_t Payline::jmp_ret10 = NULL;
 
 static float payline_loop_frame = 12.0f;
-static float payline_bounce = 15.0f; // how much bounce
+static float payline_bounce = 12.0f; // how much bounce
 //static float payline_startup_frame = 10.0f; // using loop frame
 static float payline_buffer_frame = 25.0f;
 static float payline_recovery_frame = 35.0f;

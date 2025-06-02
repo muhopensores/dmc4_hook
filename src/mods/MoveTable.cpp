@@ -205,7 +205,7 @@ void MoveTable::on_frame(fmilliseconds& dt) {
         ImVec2 screenRes = devil4_sdk::get_sRender()->screenRes;
         ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Once);
         ImGui::SetNextWindowSize(ImVec2(screenRes.x * 1.0f, screenRes.y * 0.4f), ImGuiCond_Once);
-        if (ImGui::Begin("Attack Definitions UI", &display_move_table)) {
+        if (ImGui::Begin(_("Attack Definitions UI"), &display_move_table)) {
             static ImGuiTableFlags flags =
             ImGuiTableFlags_RowBg |
             ImGuiTableFlags_Borders |

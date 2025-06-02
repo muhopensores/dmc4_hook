@@ -420,18 +420,18 @@ std::optional<std::string> EnemySpawn::on_initialize() {
         });
 
     EnemySpawn::m_hotkeys.reserve(HOTKEY_MAX);
-    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F1 }, _("Spawn Scarecrow Leg"), "spawn_scarecrow_leg_key");
-    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F2 }, _("Spawn Scarecrow Arm"), "spawn_scarecrow_arm_key");
-    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F3 }, _("Spawn Mega"), "spawn_mega_key");
-    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F4 }, _("Spawn Bianco"), "spawn_bianco_key");
-    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F5 }, _("Spawn Alto"), "spawn_alto_key");
-    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F6 }, _("Spawn Mephisto"), "spawn_mephisto_key");
-    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F7 }, _("Spawn Faust"), "spawn_faust_key");
-    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F8 }, _("Spawn Frost"), "spawn_frost_key");
-    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F9 }, _("Spawn Assault"), "spawn_assault_key");
-    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F10 }, _("Spawn Blitz"), "spawn_blitz_key");
-    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F11 }, _("Spawn Chimera"), "spawn_chimera_key");
-    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F12 }, _("Spawn Basilisk"), "spawn_basilisk_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F1 }, __("Spawn Scarecrow Leg"), "spawn_scarecrow_leg_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F2 }, __("Spawn Scarecrow Arm"), "spawn_scarecrow_arm_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F3 }, __("Spawn Mega"), "spawn_mega_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F4 }, __("Spawn Bianco"), "spawn_bianco_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F5 }, __("Spawn Alto"), "spawn_alto_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F6 }, __("Spawn Mephisto"), "spawn_mephisto_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F7 }, __("Spawn Faust"), "spawn_faust_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F8 }, __("Spawn Frost"), "spawn_frost_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F9 }, __("Spawn Assault"), "spawn_assault_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F10 }, __("Spawn Blitz"), "spawn_blitz_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F11 }, __("Spawn Chimera"), "spawn_chimera_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F12 }, __("Spawn Basilisk"), "spawn_basilisk_key");
 
     console->system().RegisterCommand("spawnscarecrowleg", "Spawn a Scarecrow Leg", [/*this*/]() {
         spawn_em00x(EnemyType::SCARECROW_LEG);

@@ -6,7 +6,7 @@ float WorkRate::custom_turbo = 0.0f;
 bool WorkRate::hotkey_paused = false;
 
 std::optional<std::string> WorkRate::on_initialize() {
-    utility::create_keyboard_hotkey(WorkRate::m_hotkeys, {VK_DECIMAL}, _("Pause Game"), "pause_game");
+    utility::create_keyboard_hotkey(WorkRate::m_hotkeys, {VK_DECIMAL}, __("Pause Game"), "pause_game");
 
 	console->system().RegisterCommand("turbo", "Set turbo speed for the current room", 
         [](float value) {

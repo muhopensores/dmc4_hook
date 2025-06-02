@@ -184,10 +184,10 @@ int EnemyTracker::get_enemy_specific_uCollision_offset(int enemy_id) {
 std::optional<std::string> EnemyTracker::on_initialize() {
     g_pd3dDevice = g_framework->get_d3d9_device();
     after_reset();
-    utility::create_keyboard_hotkey(EnemyTracker::m_hotkeys, {VK_HOME},  _("Save Enemy Stats"),  "save_enemy_stats_key");
-    utility::create_keyboard_hotkey(EnemyTracker::m_hotkeys, {VK_END},   _("Apply Enemy Stats"), "apply_enemy_stats_key");
-    utility::create_keyboard_hotkey(EnemyTracker::m_hotkeys, {VK_PRIOR}, _("Save Boss Stats"),   "save_boss_stats_key");
-    utility::create_keyboard_hotkey(EnemyTracker::m_hotkeys, {VK_NEXT},  _("Apply Boss Stats"),  "apply_boss_stats_key");
+    utility::create_keyboard_hotkey(EnemyTracker::m_hotkeys, {VK_HOME},  __("Save Enemy Stats"),  "save_enemy_stats_key");
+    utility::create_keyboard_hotkey(EnemyTracker::m_hotkeys, {VK_END},   __("Apply Enemy Stats"), "apply_enemy_stats_key");
+    utility::create_keyboard_hotkey(EnemyTracker::m_hotkeys, {VK_PRIOR}, __("Save Boss Stats"),   "save_boss_stats_key");
+    utility::create_keyboard_hotkey(EnemyTracker::m_hotkeys, {VK_NEXT},  __("Apply Boss Stats"),  "apply_boss_stats_key");
     return Mod::on_initialize();
 }
 

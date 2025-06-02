@@ -520,16 +520,16 @@ std::optional<std::string> CameraSettings::on_initialize() {
     }
 
     // hotkeys
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD0}, _("Pause Camera"), "pause_camera");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD1}, _("Pan Camera Down"), "pan_camera_down");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD2}, _("Tilt Camera Down"), "tilt_camera_down");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD3}, _("Dolly Camera In"), "dolly_camera_in");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD4}, _("Zoom Camera In"), "zoom_camera_in");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD5}, _("Reset Camera"), "reset_camera");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD6}, _("Zoom Camera Out"), "zoom_camera_out");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD7}, _("Pan Camera Up"), "pan_camera_up");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD8}, _("Tilt Camera Up"), "tilt_camera_up");
-    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD9}, _("Dolly Camera Out"), "dolly_camera_out");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD0}, __("Pause Camera"), "pause_camera");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD1}, __("Pan Camera Down"), "pan_camera_down");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD2}, __("Tilt Camera Down"), "tilt_camera_down");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD3}, __("Dolly Camera In"), "dolly_camera_in");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD4}, __("Zoom Camera In"), "zoom_camera_in");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD5}, __("Reset Camera"), "reset_camera");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD6}, __("Zoom Camera Out"), "zoom_camera_out");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD7}, __("Pan Camera Up"), "pan_camera_up");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD8}, __("Tilt Camera Up"), "tilt_camera_up");
+    utility::create_keyboard_hotkey(CameraSettings::m_hotkeys, {VK_NUMPAD9}, __("Dolly Camera Out"), "dolly_camera_out");
 
     return Mod::on_initialize();
 }

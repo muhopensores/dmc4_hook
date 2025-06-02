@@ -116,33 +116,33 @@ std::optional<std::string> KnockbackEdits::on_initialize() {
 void KnockbackEdits::on_frame(fmilliseconds& dt) {
     if (showAttackStatus) {
         kAttackStatus_v3* attack = (kAttackStatus_v3*)previousAttackStatus;
-        ImGui::Begin("AttackStatusUI", &showAttackStatus, ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::Checkbox("Get Melee", &getMelee);
-        ImGui::Checkbox("Get Projectiles", &getProjectiles);
-        ImGui::Checkbox("Hide \"no-attack\" entries", &hideNoAttacks);
-        ImGui::Checkbox("Hide \"No_used\" entries", &hideNoUsed);
+        ImGui::Begin(_("AttackStatusUI"), &showAttackStatus, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Checkbox(_("Get Melee"), &getMelee);
+        ImGui::Checkbox(_("Get Projectiles"), &getProjectiles);
+        ImGui::Checkbox(_("Hide \"no-attack\" entries"), &hideNoAttacks);
+        ImGui::Checkbox(_("Hide \"No_used\" entries"), &hideNoUsed);
         
         if (attack) {
             ImGui::Text(attack->mAsName);
             ImGui::PushItemWidth(sameLineItemWidth);
-            ImGui::Combo("mAttackID", (int*)&attack->mAttackID, attack_id_names, IM_ARRAYSIZE(attack_id_names));
-            ImGui::InputFloat("mDamageValue", &attack->mDamageValue);
-            ImGui::InputInt("mAttackLv", &attack->mAttackLv);
-            ImGui::InputInt("mAttackLvI", &attack->mAttackLvI);
-            ImGui::InputInt("mAttackLvB", &attack->mAttackLvB);
-            ImGui::Combo("mRangeType", (int*)&attack->mRangeType, range_type_names, IM_ARRAYSIZE(range_type_names));
-            ImGui::InputInt("mHitStopTimer", &attack->mHitStopTimer);
-            ImGui::Combo("mDamageType", (int*)&attack->mDamageType, damage_type_names, IM_ARRAYSIZE(damage_type_names));
-            ImGui::InputInt("mDamageTypeI (turn enemy)", &attack->mDamageTypeI);
-            ImGui::InputInt("mDamageTypeB (launch n shits)", &attack->mDamageTypeB);
-            ImGui::Combo("mHitMarkAngle", (int*)&attack->mHitMarkAngle, hit_mark_angle_names, IM_ARRAYSIZE(hit_mark_angle_names));
-            ImGui::InputInt("mHitSE", (int*)&attack->mHitSE);
-            ImGui::InputFloat("mStylishPoint", &attack->mStylishPoint);
-            ImGui::InputFloat("mStylishTimer", &attack->mStylishTimer);
-            ImGui::InputFloat("mDTAdd", &attack->mDTAdd);
-            ImGui::Combo("mAttackFlag", (int*)&attack->mAttackFlag, attack_flag_names, IM_ARRAYSIZE(attack_flag_names));
-            ImGui::Combo("mBlownAngleType", (int*)&attack->mBlownAngleType, blown_angle_type_names, IM_ARRAYSIZE(blown_angle_type_names));
-            ImGui::Combo("mElementType", (int*)&attack->mElementType, element_type_dmc4_names, IM_ARRAYSIZE(element_type_dmc4_names));
+            ImGui::Combo(_("mAttackID"), (int*)&attack->mAttackID, attack_id_names, IM_ARRAYSIZE(attack_id_names));
+            ImGui::InputFloat(_("mDamageValue"), &attack->mDamageValue);
+            ImGui::InputInt(_("mAttackLv"), &attack->mAttackLv);
+            ImGui::InputInt(_("mAttackLvI"), &attack->mAttackLvI);
+            ImGui::InputInt(_("mAttackLvB"), &attack->mAttackLvB);
+            ImGui::Combo(_("mRangeType"), (int*)&attack->mRangeType, range_type_names, IM_ARRAYSIZE(range_type_names));
+            ImGui::InputInt(_("mHitStopTimer"), &attack->mHitStopTimer);
+            ImGui::Combo(_("mDamageType"), (int*)&attack->mDamageType, damage_type_names, IM_ARRAYSIZE(damage_type_names));
+            ImGui::InputInt(_("mDamageTypeI (turn enemy)"), &attack->mDamageTypeI);
+            ImGui::InputInt(_("mDamageTypeB (launch n shits)"), &attack->mDamageTypeB);
+            ImGui::Combo(_("mHitMarkAngle"), (int*)&attack->mHitMarkAngle, hit_mark_angle_names, IM_ARRAYSIZE(hit_mark_angle_names));
+            ImGui::InputInt(_("mHitSE"), (int*)&attack->mHitSE);
+            ImGui::InputFloat(_("mStylishPoint"), &attack->mStylishPoint);
+            ImGui::InputFloat(_("mStylishTimer"), &attack->mStylishTimer);
+            ImGui::InputFloat(_("mDTAdd"), &attack->mDTAdd);
+            ImGui::Combo(_("mAttackFlag"), (int*)&attack->mAttackFlag, attack_flag_names, IM_ARRAYSIZE(attack_flag_names));
+            ImGui::Combo(_("mBlownAngleType"), (int*)&attack->mBlownAngleType, blown_angle_type_names, IM_ARRAYSIZE(blown_angle_type_names));
+            ImGui::Combo(_("mElementType"), (int*)&attack->mElementType, element_type_dmc4_names, IM_ARRAYSIZE(element_type_dmc4_names));
             ImGui::PopItemWidth();
         }
         ImGui::End();
@@ -158,7 +158,7 @@ void KnockbackEdits::on_gui_frame(int display) {
         ImGui::Checkbox(_("Shock Launches"), &volcano_launches);
     }
     if (display == 0) {
-        ImGui::Checkbox("Previous Attack Data", &showAttackStatus);
+        ImGui::Checkbox(_("Previous Attack Data"), &showAttackStatus);
     }
 }
 

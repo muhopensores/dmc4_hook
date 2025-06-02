@@ -521,8 +521,8 @@ void AreaJump::toggle_randomized_bp(bool enable) { // randomized bp
 std::optional<std::string> AreaJump::on_initialize() {
     sArea* s_area_ptr = devil4_sdk::get_sArea();
 	// uintptr_t address = hl::FindPattern("8B 92 30 38 00 00", "DevilMayCry4_DX9.exe"); // DevilMayCry4_DX9.exe+E1F6 
-    utility::create_keyboard_hotkey(AreaJump::m_hotkeys, { VK_CONTROL, VK_OEM_4 }, _("Restart BP stage"), "bp_restart_stage_hotkey");
-    utility::create_keyboard_hotkey(AreaJump::m_hotkeys, { VK_CONTROL, VK_OEM_6 }, _("Next BP stage"), "bp_next_stage_hotkey");
+    utility::create_keyboard_hotkey(AreaJump::m_hotkeys, { VK_CONTROL, VK_OEM_4 }, __("Restart BP stage"), "bp_restart_stage_hotkey");
+    utility::create_keyboard_hotkey(AreaJump::m_hotkeys, { VK_CONTROL, VK_OEM_6 }, __("Next BP stage"), "bp_next_stage_hotkey");
 
     console->system().RegisterCommand("skip", "Skip current BP stage", [this]() {
         if (devil4_sdk::get_local_player()) {

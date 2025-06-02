@@ -28,64 +28,64 @@ static void DisplayCollisionData(uCollisionMgr* currentEnemyCollision, float cur
     }
     switch (FlyingStats::collisionPage) {
     case 0:
-        ImGui::InputScalar("Start Addr", ImGuiDataType_U32, &collisionSettingsAddress, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
-        ImGui::InputScalar("base.uknFlag1", ImGuiDataType_U8, &currentEnemyCollision->base.uknFlag1, NULL, NULL, "%02X");
-        ImGui::InputScalar("base.uknFlag2", ImGuiDataType_U8, &currentEnemyCollision->base.uknFlag2, NULL, NULL, "%02X");
-        ImGui::InputScalar("base.mTransMode", ImGuiDataType_U8, &currentEnemyCollision->base.mTransMode, NULL, NULL, "%02X");
-        ImGui::InputScalar("base.mTransView", ImGuiDataType_U8, &currentEnemyCollision->base.mTransView, NULL, NULL, "%02X");
-        ImGui::InputScalar("base.mp_next_unit", ImGuiDataType_U32, &currentEnemyCollision->base.mp_next_unit, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
-        ImGui::InputScalar("base.mp_prev_unit", ImGuiDataType_U32, &currentEnemyCollision->base.mp_prev_unit, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
-        ImGui::InputFloat("base.m_delta_time", &currentEnemyCollision->base.m_delta_time);
-        ImGui::InputScalarN("base.reserved_state_flags", ImGuiDataType_U8, &currentEnemyCollision->base.reserved_state_flags, 4, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("Start Addr"), ImGuiDataType_U32, &collisionSettingsAddress, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
+        ImGui::InputScalar(_("base.uknFlag1"), ImGuiDataType_U8, &currentEnemyCollision->base.uknFlag1, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("base.uknFlag2"), ImGuiDataType_U8, &currentEnemyCollision->base.uknFlag2, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("base.mTransMode"), ImGuiDataType_U8, &currentEnemyCollision->base.mTransMode, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("base.mTransView"), ImGuiDataType_U8, &currentEnemyCollision->base.mTransView, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("base.mp_next_unit"), ImGuiDataType_U32, &currentEnemyCollision->base.mp_next_unit, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
+        ImGui::InputScalar(_("base.mp_prev_unit"), ImGuiDataType_U32, &currentEnemyCollision->base.mp_prev_unit, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
+        ImGui::InputFloat(_("base.m_delta_time"), &currentEnemyCollision->base.m_delta_time);
+        ImGui::InputScalarN(_("base.reserved_state_flags"), ImGuiDataType_U8, &currentEnemyCollision->base.reserved_state_flags, 4, NULL, NULL, "%02X");
         break;
     case 1:
-        ImGui::InputScalar("mHit", ImGuiDataType_U8, &currentEnemyCollision->mHit, NULL, NULL, "%02X");
-        ImGui::InputScalar("mGrab", ImGuiDataType_U8, &currentEnemyCollision->mGrab, NULL, NULL, "%02X");
-        ImGui::InputScalar("mDamage", ImGuiDataType_U8, &currentEnemyCollision->mDamage, NULL, NULL, "%02X");
-        ImGui::InputScalar("mPsh", ImGuiDataType_U8, &currentEnemyCollision->mPsh, NULL, NULL, "%02X");
-        ImGui::InputScalar("mLand", ImGuiDataType_U8, &currentEnemyCollision->mLand, NULL, NULL, "%02X");
-        ImGui::InputScalar("mTimedForceLand", ImGuiDataType_U8, &currentEnemyCollision->mTimedForceLand, NULL, NULL, "%02X");
-        ImGui::InputScalar("mSetLand", ImGuiDataType_U8, &currentEnemyCollision->mSetLand, NULL, NULL, "%02X");
-        ImGui::InputScalar("mWall", ImGuiDataType_U8, &currentEnemyCollision->mWall, NULL, NULL, "%02X");
-        ImGui::InputScalar("mCeilling", ImGuiDataType_U8, &currentEnemyCollision->mCeilling, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("mHit"), ImGuiDataType_U8, &currentEnemyCollision->mHit, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("mGrab"), ImGuiDataType_U8, &currentEnemyCollision->mGrab, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("mDamage"), ImGuiDataType_U8, &currentEnemyCollision->mDamage, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("mPsh"), ImGuiDataType_U8, &currentEnemyCollision->mPsh, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("mLand"), ImGuiDataType_U8, &currentEnemyCollision->mLand, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("mTimedForceLand"), ImGuiDataType_U8, &currentEnemyCollision->mTimedForceLand, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("mSetLand"), ImGuiDataType_U8, &currentEnemyCollision->mSetLand, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("mWall"), ImGuiDataType_U8, &currentEnemyCollision->mWall, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("mCeilling"), ImGuiDataType_U8, &currentEnemyCollision->mCeilling, NULL, NULL, "%02X");
         break;
     case 2:
-        ImGui::InputScalar("mNoLandTimerEnable", ImGuiDataType_U8, &currentEnemyCollision->mNoLandTimerEnable, NULL, NULL, "%02X");
-        ImGui::InputFloat("mNoLandTimer", &currentEnemyCollision->mNoLandTimer);
-        ImGui::InputFloat("mNoLandTime", &currentEnemyCollision->mNoLandTime);
-        ImGui::InputScalar("ForceLandFlag", ImGuiDataType_U8, &currentEnemyCollision->ForceLandFlag, NULL, NULL, "%02X");
-        ImGui::InputScalar("mCheckWallEnable", ImGuiDataType_U8, &currentEnemyCollision->mCheckWallEnable, NULL, NULL, "%02X");
-        ImGui::InputScalar("mCheckGroundEnable", ImGuiDataType_U8, &currentEnemyCollision->mCheckGroundEnable, NULL, NULL, "%02X");
-        ImGui::InputScalar("mFall", ImGuiDataType_U8, &currentEnemyCollision->mFall, NULL, NULL, "%02X");
-        ImGui::InputScalar("NoLandTimerType", ImGuiDataType_U8, &currentEnemyCollision->NoLandTimerType, NULL, NULL, "%02X");
-        ImGui::InputScalar("NoLandDTSwitch", ImGuiDataType_U8, &currentEnemyCollision->NoLandDTSwitch, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("mNoLandTimerEnable"), ImGuiDataType_U8, &currentEnemyCollision->mNoLandTimerEnable, NULL, NULL, "%02X");
+        ImGui::InputFloat(_("mNoLandTimer"), &currentEnemyCollision->mNoLandTimer);
+        ImGui::InputFloat(_("mNoLandTime"), &currentEnemyCollision->mNoLandTime);
+        ImGui::InputScalar(_("ForceLandFlag"), ImGuiDataType_U8, &currentEnemyCollision->ForceLandFlag, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("mCheckWallEnable"), ImGuiDataType_U8, &currentEnemyCollision->mCheckWallEnable, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("mCheckGroundEnable"), ImGuiDataType_U8, &currentEnemyCollision->mCheckGroundEnable, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("mFall"), ImGuiDataType_U8, &currentEnemyCollision->mFall, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("NoLandTimerType"), ImGuiDataType_U8, &currentEnemyCollision->NoLandTimerType, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("NoLandDTSwitch"), ImGuiDataType_U8, &currentEnemyCollision->NoLandDTSwitch, NULL, NULL, "%02X");
         ImGui::InputScalar("field25_0x3f", ImGuiDataType_U8, &currentEnemyCollision->field25_0x3f, NULL, NULL, "%02X");
-        ImGui::InputScalar("NoLandTimerType2", ImGuiDataType_U32, &currentEnemyCollision->NoLandTimerType2, NULL, NULL, "%08X");
-        ImGui::InputScalar("DamageValueCorrect", ImGuiDataType_U8, &currentEnemyCollision->DamageValueCorrect, NULL, NULL, "%02X");
-        ImGui::InputScalar("EnemyCollisionToggle", ImGuiDataType_U32, &currentEnemyCollision->EnemyCollisionToggle, NULL, NULL, "%08X");
-        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3("LockonTargetPos", &currentEnemyCollision->LockonTargetPos.x);
-        ImGui::InputScalar("LockOnTarget", ImGuiDataType_U32, &currentEnemyCollision->LockonTarget, NULL, NULL, "%08X");
+        ImGui::InputScalar(_("NoLandTimerType2"), ImGuiDataType_U32, &currentEnemyCollision->NoLandTimerType2, NULL, NULL, "%08X");
+        ImGui::InputScalar(_("DamageValueCorrect"), ImGuiDataType_U8, &currentEnemyCollision->DamageValueCorrect, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("EnemyCollisionToggle"), ImGuiDataType_U32, &currentEnemyCollision->EnemyCollisionToggle, NULL, NULL, "%08X");
+        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3(_("LockonTargetPos"), &currentEnemyCollision->LockonTargetPos.x);
+        ImGui::InputScalar(_("LockOnTarget"), ImGuiDataType_U32, &currentEnemyCollision->LockonTarget, NULL, NULL, "%08X");
         break;
     case 3:
-        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3("uknFixedVec1", &currentEnemyCollision->uknFixedVec1.x);
-        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat4("GroundMat m1", &currentEnemyCollision->GroundMat.m1.x);
-        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat4("GroundMat m2", &currentEnemyCollision->GroundMat.m2.x);
-        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat4("GroundMat m3", &currentEnemyCollision->GroundMat.m3.x);
-        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat4("GroundMat m4", &currentEnemyCollision->GroundMat.m4.x);
-        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3("uknFixedVec2", &currentEnemyCollision->uknFixedVec2.x);
-        ImGui::InputScalar("mWeightType", ImGuiDataType_U32, &currentEnemyCollision->mWeightType, NULL, NULL, "%08X");
-        ImGui::InputScalar("mModelID", ImGuiDataType_U32, &currentEnemyCollision->mModelID, NULL, NULL, "%08X");
-        ImGui::InputScalar("mpReportActor", ImGuiDataType_U32, &currentEnemyCollision->mpReportActor, NULL, NULL, "%08X");
-        ImGui::InputScalar("mpDstModel", ImGuiDataType_U32, &currentEnemyCollision->mpDstModel, NULL, NULL, "%08X");
-        ImGui::InputScalar("mpSrcModel", ImGuiDataType_U32, &currentEnemyCollision->mpSrcModel, NULL, NULL, "%08X");
-        ImGui::InputScalar("uknSrcModelPtr", ImGuiDataType_U32, &currentEnemyCollision->uknSrcModelPtr, NULL, NULL, "%08X");
-        ImGui::InputScalar("mPushType", ImGuiDataType_U32, &currentEnemyCollision->mPushType, NULL, NULL, "%08X");
-        ImGui::InputScalar("mpPushModel", ImGuiDataType_U32, &currentEnemyCollision->mpPushModel, NULL, NULL, "%08X");
+        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3(_("uknFixedVec1"), &currentEnemyCollision->uknFixedVec1.x);
+        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat4(_("GroundMat m1"), &currentEnemyCollision->GroundMat.m1.x);
+        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat4(_("GroundMat m2"), &currentEnemyCollision->GroundMat.m2.x);
+        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat4(_("GroundMat m3"), &currentEnemyCollision->GroundMat.m3.x);
+        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat4(_("GroundMat m4"), &currentEnemyCollision->GroundMat.m4.x);
+        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3(_("uknFixedVec2"), &currentEnemyCollision->uknFixedVec2.x);
+        ImGui::InputScalar(_("mWeightType"), ImGuiDataType_U32, &currentEnemyCollision->mWeightType, NULL, NULL, "%08X");
+        ImGui::InputScalar(_("mModelID"), ImGuiDataType_U32, &currentEnemyCollision->mModelID, NULL, NULL, "%08X");
+        ImGui::InputScalar(_("mpReportActor"), ImGuiDataType_U32, &currentEnemyCollision->mpReportActor, NULL, NULL, "%08X");
+        ImGui::InputScalar(_("mpDstModel"), ImGuiDataType_U32, &currentEnemyCollision->mpDstModel, NULL, NULL, "%08X");
+        ImGui::InputScalar(_("mpSrcModel"), ImGuiDataType_U32, &currentEnemyCollision->mpSrcModel, NULL, NULL, "%08X");
+        ImGui::InputScalar(_("uknSrcModelPtr"), ImGuiDataType_U32, &currentEnemyCollision->uknSrcModelPtr, NULL, NULL, "%08X");
+        ImGui::InputScalar(_("mPushType"), ImGuiDataType_U32, &currentEnemyCollision->mPushType, NULL, NULL, "%08X");
+        ImGui::InputScalar(_("mpPushModel"), ImGuiDataType_U32, &currentEnemyCollision->mpPushModel, NULL, NULL, "%08X");
         break;
     case 4:
-        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3("mPushCap p0", &currentEnemyCollision->mPushCap.p0.x);
-        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3("mPushCap p1", &currentEnemyCollision->mPushCap.p1.x);
-        ImGui::SetNextItemWidth(currentItemWidth); ImGui::InputFloat("mPushCap r", &currentEnemyCollision->mPushCap.r);
+        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3(_("mPushCap p0"), &currentEnemyCollision->mPushCap.p0.x);
+        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3(_("mPushCap p1"), &currentEnemyCollision->mPushCap.p1.x);
+        ImGui::SetNextItemWidth(currentItemWidth); ImGui::InputFloat(_("mPushCap r"), &currentEnemyCollision->mPushCap.r);
         ImGui::InputScalar("field3_0x24", ImGuiDataType_U8, &currentEnemyCollision->mPushCap.field3_0x24, NULL, NULL, "%02X");
         ImGui::InputScalar("field4_0x25", ImGuiDataType_U8, &currentEnemyCollision->mPushCap.field4_0x25, NULL, NULL, "%02X");
         ImGui::InputScalar("field5_0x26", ImGuiDataType_U8, &currentEnemyCollision->mPushCap.field5_0x26, NULL, NULL, "%02X");
@@ -100,9 +100,9 @@ static void DisplayCollisionData(uCollisionMgr* currentEnemyCollision, float cur
         ImGui::InputScalar("field14_0x2f", ImGuiDataType_U8, &currentEnemyCollision->mPushCap.field14_0x2f, NULL, NULL, "%02X");
         break;
     case 5:
-        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3("mPushCap p0", &currentEnemyCollision->mPushCap1.p0.x);
-        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3("mPushCap p1", &currentEnemyCollision->mPushCap1.p1.x);
-        ImGui::SetNextItemWidth(currentItemWidth); ImGui::InputFloat("mPushCap r", &currentEnemyCollision->mPushCap1.r);
+        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3(_("mPushCap p0"), &currentEnemyCollision->mPushCap1.p0.x);
+        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3(_("mPushCap p1"), &currentEnemyCollision->mPushCap1.p1.x);
+        ImGui::SetNextItemWidth(currentItemWidth); ImGui::InputFloat(_("mPushCap r"), &currentEnemyCollision->mPushCap1.r);
         ImGui::InputScalar("field3_0x24", ImGuiDataType_U8, &currentEnemyCollision->mPushCap1.field3_0x24, NULL, NULL, "%02X");
         ImGui::InputScalar("field4_0x25", ImGuiDataType_U8, &currentEnemyCollision->mPushCap1.field4_0x25, NULL, NULL, "%02X");
         ImGui::InputScalar("field5_0x26", ImGuiDataType_U8, &currentEnemyCollision->mPushCap1.field5_0x26, NULL, NULL, "%02X");
@@ -117,8 +117,8 @@ static void DisplayCollisionData(uCollisionMgr* currentEnemyCollision, float cur
         ImGui::InputScalar("field14_0x2f", ImGuiDataType_U8, &currentEnemyCollision->mPushCap1.field14_0x2f, NULL, NULL, "%02X");
         break;
     case 6:
-        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3("mPushPos", &currentEnemyCollision->mPushPos.x);
-        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3("mPushPosOld", &currentEnemyCollision->mPushPosOld.x);
+        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3(_("mPushPos"), &currentEnemyCollision->mPushPos.x);
+        ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat3(_("mPushPosOld"), &currentEnemyCollision->mPushPosOld.x);
         ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat4("field50_0x1c0 m1", &currentEnemyCollision->field50_0x1c0.m1.x);
         ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat4("field50_0x1c0 m2", &currentEnemyCollision->field50_0x1c0.m2.x);
         ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat4("field50_0x1c0 m3", &currentEnemyCollision->field50_0x1c0.m3.x);
@@ -127,14 +127,14 @@ static void DisplayCollisionData(uCollisionMgr* currentEnemyCollision, float cur
         ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat4("field51_0x200 m2", &currentEnemyCollision->field51_0x200.m2.x);
         ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat4("field51_0x200 m3", &currentEnemyCollision->field51_0x200.m3.x);
         ImGui::SetNextItemWidth(currentItemWidth * 2.0f); ImGui::InputFloat4("field51_0x200 m4", &currentEnemyCollision->field51_0x200.m4.x);
-        ImGui::InputScalar("uknToggle", ImGuiDataType_U32, &currentEnemyCollision->uknToggle, NULL, NULL, "%08X");
-        ImGui::InputScalar("currentMotBuffer", ImGuiDataType_U32, &currentEnemyCollision->currentMotBuffer, NULL, NULL, "%08X");
-        ImGui::InputScalar("MotSeq1", ImGuiDataType_U32, &currentEnemyCollision->MotSeq1, NULL, NULL, "%08X");
-        ImGui::InputScalar("MotSeq2", ImGuiDataType_U32, &currentEnemyCollision->MotSeq2, NULL, NULL, "%08X");
-        ImGui::InputScalar("HitCheckFlag", ImGuiDataType_U8, &currentEnemyCollision->HitCheckFlag, NULL, NULL, "%02X");
-        ImGui::InputScalar("HitConfirm", ImGuiDataType_U8, &currentEnemyCollision->HitConfirm, NULL, NULL, "%02X");
-        ImGui::InputScalar("mSelfCollision", ImGuiDataType_U8, &currentEnemyCollision->mSelfCollision, NULL, NULL, "%02X");
-        ImGui::InputScalar("mMode", ImGuiDataType_U32, &currentEnemyCollision->mMode, NULL, NULL, "%08X");
+        ImGui::InputScalar(_("uknToggle"), ImGuiDataType_U32, &currentEnemyCollision->uknToggle, NULL, NULL, "%08X");
+        ImGui::InputScalar(_("currentMotBuffer"), ImGuiDataType_U32, &currentEnemyCollision->currentMotBuffer, NULL, NULL, "%08X");
+        ImGui::InputScalar(_("MotSeq1"), ImGuiDataType_U32, &currentEnemyCollision->MotSeq1, NULL, NULL, "%08X");
+        ImGui::InputScalar(_("MotSeq2"), ImGuiDataType_U32, &currentEnemyCollision->MotSeq2, NULL, NULL, "%08X");
+        ImGui::InputScalar(_("HitCheckFlag"), ImGuiDataType_U8, &currentEnemyCollision->HitCheckFlag, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("HitConfirm"), ImGuiDataType_U8, &currentEnemyCollision->HitConfirm, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("mSelfCollision"), ImGuiDataType_U8, &currentEnemyCollision->mSelfCollision, NULL, NULL, "%02X");
+        ImGui::InputScalar(_("mMode"), ImGuiDataType_U32, &currentEnemyCollision->mMode, NULL, NULL, "%08X");
         break;
     case 7:
         ImGui::InputScalar("mVsAttrPlAtk", ImGuiDataType_U32, &currentEnemyCollision->mVsAttrPlAtk, NULL, NULL, "%08X");
@@ -260,77 +260,77 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.0, 1.0f));
                     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1.0f, 1.0f));
                     uDamage* currentEnemyDamage = (uDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
-                    if (showFlyingHP) ImGui::SliderFloat("HP##EnemyFly", &currentEnemyDamage->HP, 0.0f, currentEnemyDamage->HPMax, "%.1f");
-                    if (showFlyingDamageTaken) ImGui::InputFloat("PrevDamage##EnemyFly", &currentEnemyDamage->HPTaken, NULL, NULL, "%.1f");
-                    if (showFlyingDamageResist) ImGui::InputFloat("PrevDamageResist##EnemyFly", &currentEnemyDamage->prevDamageResist, NULL, NULL, "%.1f");
-                    if (showFlyingDT) ImGui::InputFloat("DT Timer##EnemyFly", &enemy->DTTimer, NULL, NULL, "%.0f"); // id * 4 + DevilMayCry4_DX9.exe+9EC0E0
-                    if (showFlyingStun) ImGui::InputInt("Stun##EnemyFly", &currentEnemyDamage->stun[0], NULL, NULL);
-                    if (showFlyingDisplacement) ImGui::InputInt("Displacement##EnemyFly", &currentEnemyDamage->displacement[0], NULL, NULL);
-                    // if (showFlyingStunTimer)ImGui::SliderFloat("Stun Reset Timer##EnemyFly", &currentEnemyDamage->stunResetTimer, 0.0f, 180.0f, "%.0f");
-                    if (showFlyingMoveID) ImGui::InputScalar("MoveID##EnemyFly", ImGuiDataType_U8, &enemy->moveID);
+                    if (showFlyingHP) ImGui::SliderFloat(_("HP##EnemyFly"), &currentEnemyDamage->HP, 0.0f, currentEnemyDamage->HPMax, "%.1f");
+                    if (showFlyingDamageTaken) ImGui::InputFloat(_("PrevDamage##EnemyFly"), &currentEnemyDamage->HPTaken, NULL, NULL, "%.1f");
+                    if (showFlyingDamageResist) ImGui::InputFloat(_("PrevDamageResist##EnemyFly"), &currentEnemyDamage->prevDamageResist, NULL, NULL, "%.1f");
+                    if (showFlyingDT) ImGui::InputFloat(_("DT Timer##EnemyFly"), &enemy->DTTimer, NULL, NULL, "%.0f"); // id * 4 + DevilMayCry4_DX9.exe+9EC0E0
+                    if (showFlyingStun) ImGui::InputInt(_("Stun##EnemyFly"), &currentEnemyDamage->stun[0], NULL, NULL);
+                    if (showFlyingDisplacement) ImGui::InputInt(_("Displacement##EnemyFly"), &currentEnemyDamage->displacement[0], NULL, NULL);
+                    // if (showFlyingStunTimer)ImGui::SliderFloat(_("Stun Reset Timer##EnemyFly"), &currentEnemyDamage->stunResetTimer, 0.0f, 180.0f, "%.0f");
+                    if (showFlyingMoveID) ImGui::InputScalar(_("MoveID##EnemyFly"), ImGuiDataType_U8, &enemy->moveID);
                     if (showFlyingMechanics) {
                         if (enemy->ID == ANGELO_BIANCO || enemy->ID == ANGELO_ALTO) {
-                            ImGui::SliderFloat("Shield##EnemyFly", &enemy->angeloShield, 0.0f, enemy->angeloShieldMax, "%.0f");
+                            ImGui::SliderFloat(_("Shield##EnemyFly"), &enemy->angeloShield, 0.0f, enemy->angeloShieldMax, "%.0f");
                         }
                         if (enemy->ID == MEPHISTO || enemy->ID == FAUST) {
                             if (enemy->faustCloak > 0.0f) {
-                                ImGui::SliderFloat("Cloak##EnemyFly", &enemy->faustCloak, 0.0f, enemy->faustCloakMax, "%.0f");
+                                ImGui::SliderFloat(_("Cloak##EnemyFly"), &enemy->faustCloak, 0.0f, enemy->faustCloakMax, "%.0f");
                             }
                             else {
-                                ImGui::InputFloat("Cloak Timer##EnemyFly", &enemy->faustCloakTimer, NULL, NULL, "%.0f");
+                                ImGui::InputFloat(_("Cloak Timer##EnemyFly"), &enemy->faustCloakTimer, NULL, NULL, "%.0f");
                             }
                         }
                         if (enemy->ID == FROST) {
-                            ImGui::SliderInt("Heal Count", &enemy->frostHealCount, 0, 5);
+                            ImGui::SliderInt(_("Heal Count"), &enemy->frostHealCount, 0, 5);
                         }
                         if (enemy->ID == BLITZ) {
                             if (enemy->blitzElectric > 0.0f) {
-                                ImGui::SliderFloat("Electric##EnemyFly", &enemy->blitzElectric, 0.0f, 1000.0f, "%.0f");
+                                ImGui::SliderFloat(_("Electric##EnemyFly"), &enemy->blitzElectric, 0.0f, 1000.0f, "%.0f");
                             }
                             else {
                                 if (currentEnemyDamage->HP < enemy->blitzElectricSuicideHPRequirement && enemy->blitzElectricSuicideTimer > 0.0f) {
-                                    ImGui::SliderFloat("Suicide Timer##EnemyFly", &enemy->blitzElectricSuicideTimer, 0.0f, 1800.0f, "%.0f");
+                                    ImGui::SliderFloat(_("Suicide Timer##EnemyFly"), &enemy->blitzElectricSuicideTimer, 0.0f, 1800.0f, "%.0f");
                                 }
                                 else {
-                                    ImGui::SliderFloat("Electric Timer##EnemyFly", &enemy->blitzElectricTimer, 0.0f, 900.0f, "%.0f");
+                                    ImGui::SliderFloat(_("Electric Timer##EnemyFly"), &enemy->blitzElectricTimer, 0.0f, 900.0f, "%.0f");
                                 }
                             }
                         }
                         if (enemy->ID == GLADIUS) {
                             if (enemy->gladiusBuried) {
-                                ImGui::SliderFloat("Buried Timer##EnemyFly", &enemy->gladiusTimer, 0.0f, 300.0f, "%.0f");
+                                ImGui::SliderFloat(_("Buried Timer##EnemyFly"), &enemy->gladiusTimer, 0.0f, 300.0f, "%.0f");
                             }
                         }
                         if (enemy->ID == BERIAL) {
                             if (enemy->berialFireTimer > 0.0f) {
-                                ImGui::InputFloat("Fire Timer##EnemyFly", &enemy->berialFireTimer, NULL, NULL, "%.0f");
+                                ImGui::InputFloat(_("Fire Timer##EnemyFly"), &enemy->berialFireTimer, NULL, NULL, "%.0f");
                             }
                             else {
-                                ImGui::SliderFloat("Fire Damage##EnemyFly", &enemy->berialFire, 0.0f, enemy->berialFireMax, "%.0f");
+                                ImGui::SliderFloat(_("Fire Damage##EnemyFly"), &enemy->berialFire, 0.0f, enemy->berialFireMax, "%.0f");
                             }
                         }
                         if (enemy->ID == CREDO) {
                             if (enemy->credoShield > 0.0f) {
-                                ImGui::SliderFloat("Shield##EnemyFly", &enemy->credoShield, 0.0f, 4000.0f, "%.0f");
+                                ImGui::SliderFloat(_("Shield##EnemyFly"), &enemy->credoShield, 0.0f, 4000.0f, "%.0f");
                             }
                             else {
-                                ImGui::InputFloat("Shield Timer##EnemyFly", &enemy->credoShieldTimer, NULL, NULL, "%.0f");
+                                ImGui::InputFloat(_("Shield Timer##EnemyFly"), &enemy->credoShieldTimer, NULL, NULL, "%.0f");
                             }
                         }
                         if (enemy->ID == SANCTUS_M11) {
                             if (enemy->sanctusShieldTimerM11 > 0.0f) {
-                                ImGui::InputFloat("Shield Timer##EnemyFly", &enemy->sanctusShieldTimerM11, NULL, NULL, "%.0f");
+                                ImGui::InputFloat(_("Shield Timer##EnemyFly"), &enemy->sanctusShieldTimerM11, NULL, NULL, "%.0f");
                             }
                             else {
-                                ImGui::SliderFloat("Shield Damage##EnemyFly", &enemy->sanctusShieldM11, 0.0f, 720.0f, "%.0f");
+                                ImGui::SliderFloat(_("Shield Damage##EnemyFly"), &enemy->sanctusShieldM11, 0.0f, 720.0f, "%.0f");
                             }
                         }
                         if (enemy->ID == SANCTUS_M20) {
                             if (enemy->sanctusShieldTimerM20 > 0.0f) {
-                                ImGui::InputFloat("Shield Timer##EnemyFly", &enemy->sanctusShieldTimerM20, NULL, NULL, "%.0f");
+                                ImGui::InputFloat(_("Shield Timer##EnemyFly"), &enemy->sanctusShieldTimerM20, NULL, NULL, "%.0f");
                             }
                             else {
-                                ImGui::SliderFloat("Shield Damage##EnemyFly", &enemy->sanctusShieldM20, 0.0f, 600.0f, "%.0f");
+                                ImGui::SliderFloat(_("Shield Damage##EnemyFly"), &enemy->sanctusShieldM20, 0.0f, 600.0f, "%.0f");
                             }
                         }
                     }
@@ -381,11 +381,11 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                 ImGui::PushItemWidth(currentItemWidth);
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.0, 1.0f));
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1.0f, 1.0f));
-                if (showFlyingHP) ImGui::SliderFloat("HP##EnemyFly", &player->damageStruct.HP, 0.0f, player->damageStruct.HPMax, "%.1f");
-                if (showFlyingDamageTaken) ImGui::InputFloat("PrevDamage##EnemyFly", &player->damageStruct.HPTaken, NULL, NULL, "%.1f");
-                if (showFlyingDamageResist) ImGui::InputFloat("PrevDamageResist##EnemyFly", &player->damageStruct.prevDamageResist, NULL, NULL, "%.1f");
-                if (showFlyingDT) ImGui::InputFloat("DT##EnemyFly", &player->DT, NULL, NULL, "%.0f"); // id * 4 + DevilMayCry4_DX9.exe+9EC0E0
-                if (showFlyingStun) ImGui::InputInt("Stun##EnemyFly", &player->damageStruct.stun[4], NULL, NULL);
+                if (showFlyingHP) ImGui::SliderFloat(_("HP##EnemyFly"), &player->damageStruct.HP, 0.0f, player->damageStruct.HPMax, "%.1f");
+                if (showFlyingDamageTaken) ImGui::InputFloat(_("PrevDamage##EnemyFly"), &player->damageStruct.HPTaken, NULL, NULL, "%.1f");
+                if (showFlyingDamageResist) ImGui::InputFloat(_("PrevDamageResist##EnemyFly"), &player->damageStruct.prevDamageResist, NULL, NULL, "%.1f");
+                if (showFlyingDT) ImGui::InputFloat(_("DT##EnemyFly"), &player->DT, NULL, NULL, "%.0f"); // id * 4 + DevilMayCry4_DX9.exe+9EC0E0
+                if (showFlyingStun) ImGui::InputInt(_("Stun##EnemyFly"), &player->damageStruct.stun[4], NULL, NULL);
                 // if (showFlyingDisplacement) ImGui::InputInt("Displacement##EnemyFly", &player->damageStruct.displacement[0], NULL, NULL);
                 // if (showFlyingStunTimer)ImGui::SliderFloat("Stun Reset Timer##EnemyFly", &player->damageStruct.stunResetTimer, 0.0f, 180.0f, "%.0f");
                 if (showFlyingMoveID) {

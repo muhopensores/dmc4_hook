@@ -848,28 +848,14 @@ static const uint32_t maxScores = 500;
 // static std::chrono::steady_clock::time_point lastTrickTime = std::chrono::steady_clock::now();
 static float elapsedSinceLastTrick = 500.0f;
 static const uint32_t maxTonyScores = UINT32_MAX;
+static constexpr float timerBase = 1.0f;
+static constexpr float timerComboInfluence = 0.005f;
+static constexpr float shakeDuration = 0.99f;
+static constexpr float fadeRate = 1.0f;
+static constexpr float baseFadeTime = 1.0f / (timerBase * fadeRate);
 static int maxPerRow = 7;
 static int maxRows = 3;
 static float comboScore = 0.0f;
-static float timerBase = 1.0f;
-static float timerComboInfluence = 0.005f;
-static float shakeDuration = 0.99f;
-static float fadeRate = 1.0f;
-static float baseFadeTime = 1.0f / (timerBase * fadeRate); // Inversely proportional to timerBase
-
-/*const char* GetStyleChar(int styleNum) {
-    switch (styleNum) {
-        case 0: return "E";
-        case 1: return "D";
-        case 2: return "C";
-        case 3: return "B";
-        case 4: return "A";
-        case 5: return "S";
-        case 6: return "SS";
-        case 7: return "SSS";
-        default: return "";
-    }
-}*/
 
 float GetstyleLetterMultiplier(int styleNum) {
     switch (styleNum) {

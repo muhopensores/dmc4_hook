@@ -24,7 +24,7 @@ std::optional<std::string> NoClip::on_initialize() {
             toggle(mod_enabled);
         });
 
-    utility::create_keyboard_hotkey(NoClip::m_hotkeys, {VK_F5}, _("NoClip"), "noclip_key");
+    utility::create_keyboard_hotkey(NoClip::m_hotkeys, {VK_F5}, __("NoClip"), "noclip_key");
 
     console->system().RegisterCommand("noclip", "You and enemies will ignore walls", [this]() {
         NoClip::mod_enabled = !NoClip::mod_enabled;

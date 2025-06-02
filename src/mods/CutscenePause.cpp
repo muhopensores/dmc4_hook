@@ -51,7 +51,7 @@ std::optional<std::string> CutscenePause::on_initialize() {
         spdlog::error("Failed to init CutscenePause mod\n");
         return "Failed to init CutscenePause mod";
     }
-    utility::create_keyboard_hotkey(CutscenePause::m_hotkeys, {VK_PAUSE}, _("Pause Cutscene"), "pause_cutscene");
+    utility::create_keyboard_hotkey(CutscenePause::m_hotkeys, {VK_PAUSE}, __("Pause Cutscene"), "pause_cutscene");
     return Mod::on_initialize();
 }
 

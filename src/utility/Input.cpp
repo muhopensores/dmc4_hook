@@ -324,7 +324,7 @@ namespace utility {
             }
         }
 
-        ImGui::TextWrapped("%s %s - %s", prompt, m_description.c_str(), ss.str().c_str());
+        ImGui::TextWrapped("%s %s - %s", prompt, utility::text_lookup((char*)m_description.c_str()), ss.str().c_str());
 
         static ImVec2 btn_size{ ImGui::GetTextLineHeight() * 4.0f , ImGui::GetTextLineHeight() * 1.5f };
         // samelines for algning buttons neatly
@@ -344,7 +344,7 @@ namespace utility {
 
         std::string label_hashed { "set###" + m_config_entry };
         ImGui::PushID(std::hash<std::string>{}(label_hashed));
-        if (ImGui::Button("set", btn_size)) {
+        if (ImGui::Button(_("set"), btn_size)) {
             m_setting = true;
             m_binds.clear();
         }
@@ -354,7 +354,7 @@ namespace utility {
 
         std::string slabel_hashed{ "save###" + m_config_entry };
         ImGui::PushID(std::hash<std::string>{}(slabel_hashed));
-        if (ImGui::Button("save", btn_size)) {
+        if (ImGui::Button(_("save"), btn_size)) {
             m_setting = false;
         }
         x_offset -= btn_size.x * 1.1f;
@@ -363,7 +363,7 @@ namespace utility {
 
         std::string clabel_hashed{ "clear1###" + m_config_entry };
         ImGui::PushID(std::hash<std::string>{}(clabel_hashed));
-        if (ImGui::Button("clear", btn_size)) {
+        if (ImGui::Button(_("clear"), btn_size)) {
             m_binds.clear();
             m_setting = false;
             m_binds = m_default_keys;
