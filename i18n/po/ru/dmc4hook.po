@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-04 15:21+0100\n"
+"POT-Creation-Date: 2025-06-04 15:46+0100\n"
 "PO-Revision-Date: 2024-04-17 21:13+0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3048,7 +3048,7 @@ msgid "mDamageTypeI (turn enemy)"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:137
-msgid "mDamageTypeB (launch n shits)"
+msgid "mDamageTypeB (launch etc)"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:138
@@ -3749,6 +3749,2758 @@ msgstr "Разблокировывают вращение"
 msgid "Lock player rotation to stick direction"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:30
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:473
+msgid "AIR_ATCK_COMMON_ADD_Y_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:31
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:432
+msgid "AIR_FLIPPED_Y_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:32
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:433
+msgid "AIR_FLIPPED_Y_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:33
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:434
+msgid "AIR_FLIPPED_XZ_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:34
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:435
+msgid "AIR_FLIPPED_XZ_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:35
+msgid "DT_GAUGE_DOWN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:36
+msgid "DT_GAUGE_DOWN_POWER_UP"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:37
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:692
+msgid "DT_HP_RECOVER"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:38
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:711
+msgid "DT_GAUGE_KEEP_FRM"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:39
+msgid "DT_BUSTER_RATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:40
+msgid "DROPKICK_SPD_Z"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:41
+msgid "DROPKICK_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:42
+msgid "AIR_DEVIL_TRG_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:43
+msgid "AIR_DEVIL_TRG_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:44
+msgid "RH_LONG_GRAB_STYLISH_POINT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:45
+msgid "RH_SHORT_GRAB_STYLISH_POINT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:46
+msgid "EG_GUARD_STYLISH_PTS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:47
+msgid "EG_GUARD_STYLISH_TIMER"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:48
+msgid "EG_GUARD_DT_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:49
+msgid "RQ_AIR_COMBO0_SPD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:50
+msgid "RQ_AIR_COMBO0_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:51
+msgid "RQ_AIR_COMBO0_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:52
+msgid "RQ_AIR_COMBO1_SPD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:53
+msgid "RQ_AIR_COMBO1_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:54
+msgid "RQ_AIR_COMBO1_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:55
+msgid "RQ_AIR_COMBO2_SPD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:56
+msgid "RQ_AIR_COMBO2_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:57
+msgid "RQ_AIR_COMBO2_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:58
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:471
+msgid "AIR_COMBO_HEIGHT_LIMIT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:59
+msgid "RQ_AIR_DELAY_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:60
+msgid "RQ_AIR_DELAY_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:61
+msgid "RQ_AIR_DELAY_HEIGHT_LIMIT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:62
+msgid "RQ_COMBO_B_SPD1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:63
+msgid "RQ_COMBO_B_SPD2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:64
+msgid "RQ_COMBO_B_SPD3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:65
+msgid "RQ_COMBO_B_SPD4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:66
+msgid "RQ_COMBO_B_SPD5"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:67
+msgid "RQ_COMBO_B_SPD6"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:68
+msgid "HITIME_JUMP_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:69
+msgid "HITIME_JUMP_ACC"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:70
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:479
+msgid "HITIME_MOVE_EM_DIST"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:71
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:385
+msgid "ATCK_STINGER_LV1_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:72
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:386
+msgid "ATCK_STINGER_LV1_RANGE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:73
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:387
+msgid "ATCK_STINGER_LV2_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:74
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:388
+msgid "ATCK_STINGER_LV2_RANGE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:75
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:389
+msgid "ATCK_STINGER_MOT_MOVE_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:76
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:390
+msgid "ATCK_STINGER_JUMP_XZ_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:77
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:391
+msgid "ATCK_STINGER_JUMP_Y_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:78
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:392
+msgid "ATCK_STINGER_JUMP_Y_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:79
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:469
+msgid "KABUTO_HEIGHT_LIMIT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:80
+msgid "OD_HITIME_JUMP1_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:81
+msgid "OD_HITIME_JUMP1_ACC"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:82
+msgid "OD_HITIME_JUMP2_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:83
+msgid "OD_HITIME_JUMP2_ACC"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:84
+msgid "OD_HITIME_JUMP3_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:85
+msgid "OD_HITIME_JUMP3_ACC"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:86
+msgid "RQ_OD_HITIME_HITSLOW_RATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:87
+msgid "RQ_OD_HITIME_HITSLOW_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:88
+msgid "RQ_OD_STINGER_CHARGE_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:89
+msgid "RQ_OD_STINGER_LV1_S_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:90
+msgid "RQ_OD_STINGER_LV1_S_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:91
+msgid "RQ_OD_STINGER_LV1_L_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:92
+msgid "RQ_OD_STINGER_LV1_L_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:93
+msgid "RQ_OD_STINGER_LV2_S_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:94
+msgid "RQ_OD_STINGER_LV2_S_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:95
+msgid "RQ_OD_STINGER_LV2_L_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:96
+msgid "RQ_OD_STINGER_LV2_L_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:97
+msgid "RQ_OD_STINGER_LV3_S_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:98
+msgid "RQ_OD_STINGER_LV3_S_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:99
+msgid "RQ_OD_STINGER_LV3_L_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:100
+msgid "RQ_OD_STINGER_LV3_L_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:101
+msgid "RQ_OD_STINGER_SPD_DOWN_RATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:102
+msgid "DEMO_STINGER_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:103
+msgid "DEMO_STINGER_RANGE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:104
+msgid "RQ_AIR_STINGER_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:105
+msgid "RQ_AIR_STINGER_RANGE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:106
+msgid "RQ_AIR_STINGER_HEIGHT_LIMIT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:107
+msgid "RQ_AIR_STINGER_XZ_SPD_DECELERATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:108
+msgid "RQ_FLIP_S_BACK_Z_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:109
+msgid "RQ_FLIP_S_BACK_Z_ACC"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:110
+msgid "RQ_FLIP_L_BACK_Z_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:111
+msgid "RQ_FLIP_L_BACK_Z_ACC"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:112
+msgid "OD_GUAGE_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:113
+msgid "OD_GUAGE_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:114
+msgid "OD_GUAGE_SPD_MAX"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:115
+msgid "OD_GUAGE_SUB"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:116
+msgid "OD_GUAGE_MAX"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:117
+msgid "OD_FOLLOW_THROUGH_REFUSE_FRM"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:118
+msgid "OD_AIR_HEIGHT_LIMIT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:119
+msgid "OD_AIR_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:120
+msgid "OD_AIR_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:121
+msgid "OD_AIR_SPD_Y_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:122
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:393
+msgid "ATCK_AIR_GUN_XZ_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:123
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:394
+msgid "ATCK_AIR_GUN_Y_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:124
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:395
+msgid "ATCK_AIR_GUN_Y_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:125
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:396
+msgid "ATCK_AIR_GUN_2ND_Y_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:126
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:397
+msgid "ATCK_AIR_GUN_2ND_Y_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:127
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:399
+msgid "ATCK_AIR_GUN_XZ_SPD_MAX"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:128
+msgid "BR_LOCK_HOLD_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:129
+msgid "BR_AIR_XZ_SPD_RATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:130
+msgid "WP000_SHELL_LV2_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:131
+msgid "WP000_SHELL_LV3_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:132
+msgid "BR_AIR_CSHOT1_SPD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:133
+msgid "BR_AIR_CSHOT1_RATE_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:134
+msgid "BR_AIR_CSHOT1_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:135
+msgid "BR_AIR_CSHOT1_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:136
+msgid "BR_AIR_CSHOT2_SPD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:137
+msgid "BR_AIR_CSHOT2_RATE_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:138
+msgid "BR_AIR_CSHOT2_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:139
+msgid "BR_AIR_CSHOT2_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:140
+msgid "WP000_SHELL_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:141
+msgid "WP000_SHELL_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:142
+msgid "WP000_SHELL_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:143
+msgid "DEVIL_DRIVE_SHELL00_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:144
+msgid "DEVIL_DRIVE_SHELL00_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:145
+msgid "DEVIL_DRIVE_SHELL00_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:146
+msgid "DEVIL_DRIVE_SHELL_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:147
+msgid "DEVIL_DRIVE_SHELL_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:148
+msgid "DEVIL_DRIVE_SHELL_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:149
+msgid "DEVIL_DRIVE_SHELL_OFF_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:150
+msgid "DEVIL_DRIVE_SHELL_ADD_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:151
+msgid "DEVIL_DRIVE_SHELL_MAX_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:152
+msgid "DEVIL_DRIVE_SHELL_HIT_NUM00"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:153
+msgid "DEVIL_DRIVE_SHELL_HIT_NUM01"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:154
+msgid "DEVIL_DRIVE_SHELL_SHOT_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:155
+msgid "ATCK_IS_HOLD_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:156
+msgid "ATCK_IS_CSHOT_WAITTIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:157
+msgid "ATCK_IS_SHOT_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:158
+msgid "ATCK_IS_SHOT_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:159
+msgid "ATCK_IS_SHOT_ADD_MAX"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:160
+msgid "ATCK_IS_CSHOT_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:161
+msgid "ATCK_IS_ENABLE_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:162
+msgid "ATCK_IS_ENABLE_TIME_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:163
+msgid "RH_LONG_GRAB_DIST_LV1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:164
+msgid "RH_LONG_GRAB_DIST_LV2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:165
+msgid "RH_LONG_GRAB_DIST_LV3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:166
+msgid "AIR_LONG_GRAB_HEIGHT_LIMIT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:167
+msgid "RH_LONG_AIR_GRAB_Y_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:168
+msgid "RH_LONG_AIR_GRAB_Y_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:169
+msgid "RH_LONG_EM_DRAW_POS_X"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:170
+msgid "RH_LONG_EM_DRAW_POS_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:171
+msgid "RH_LONG_EM_DRAW_POS_Z"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:172
+msgid "RH_LONG_EM_SHORT_DRAW_POS_X"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:173
+msgid "RH_LONG_EM_SHORT_DRAW_POS_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:174
+msgid "RH_LONG_EM_SHORT_DRAW_POS_Z"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:175
+msgid "RH_LONG_APPROACH_XZ_SPD_MAX"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:176
+msgid "RH_LONG_APPROACH_XZ_SPD_MIN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:177
+msgid "RH_LONG_APPROACH_XZ_SPD_DECELERATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:178
+msgid "DEMO_RH_LONG_APPROACH_XZ_SPD_MAX"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:179
+msgid "DEMO_RH_LONG_APPROACH_XZ_SPD_MIN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:180
+msgid "DEMO_RH_LONG_APPROACH_XZ_LEN_MAX"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:181
+msgid "DEMO_RH_LONG_APPROACH_XZ_LEN_MIN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:182
+msgid "DEMO_RH_LONG_APPROACH_XZ_SPD_DECELERATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:183
+msgid "LG_AIR_FLIPPED_XZ_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:184
+msgid "LG_AIR_FLIPPED_XZ_RATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:185
+msgid "LG_AIR_FLIPPED_Y_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:186
+msgid "LG_AIR_FLIPPED_Y_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:187
+msgid "AIR_SHORT_GRAB_HEIGHT_LIMIT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:188
+msgid "RH_SHORT_AIR_GRAB_Y_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:189
+msgid "RH_SHORT_AIR_GRAB_Y_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:190
+msgid "RH_SG_ANG_ADJUST_DIST"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:191
+msgid "RH_SG_ANG_ADJUST_HEIGHT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:192
+msgid "RH_SG_ANG_ADJUST_BOTTOM"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:193
+msgid "RH_SG_ANG_ADJUST_ANG"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:194
+msgid "RH_SG_ANG_ADJUST_AT_DIST"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:195
+msgid "RH_SG_ANG_ADJUST_AT_HEIGHT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:196
+msgid "RH_SG_ANG_ADJUST_AT_BOTTOM"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:197
+msgid "RH_SHORT_AIR_GRAB_HIT_Y_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:198
+msgid "RH_SHORT_AIR_GRAB_HIT_Y_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:199
+msgid "RH_SHORT_AIR_GRAB_THROW_Y_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:200
+msgid "RH_SHORT_AIR_GRAB_THROW_Y_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:201
+msgid "RH_SHORT_AIR_SCAREBALL_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:202
+msgid "RH_SHORT_AIR_SCAREBALL_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:203
+msgid "RH_SHORT_AIR_SCAREBALL_ROLL_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:204
+msgid "RH_SHORT_AIR_SCAREBALL_ROLL_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:205
+msgid "RH_SHORT_AIR_SCAREBALL_END_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:206
+msgid "RH_SHORT_AIR_SCAREBALL_END_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:207
+msgid "RH_SHORT_AIR_BIANCO_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:208
+msgid "RH_SHORT_AIR_BIANCO_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:209
+msgid "RH_SHORT_AIR_BIANCO_STICK_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:210
+msgid "RH_SHORT_AIR_BIANCO_STICK_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:211
+msgid "RH_SHORT_AIR_BIANCO_BURST_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:212
+msgid "RH_SHORT_AIR_BIANCO_BURST_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:213
+msgid "RH_SHORT_BIANCO_MOT_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:214
+msgid "RH_SHORT_BIANCO_MOT_SPD2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:215
+msgid "RH_SGD_BIANCO_MV_FRM_1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:216
+msgid "RH_SGD_BIANCO_MV_DIST_1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:217
+msgid "RH_SGD_BIANCO_MV_FRM_2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:218
+msgid "RH_SGD_BIANCO_MV_DIST_2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:219
+msgid "RH_SGD_BIANCO_MV_FRM_3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:220
+msgid "RH_SGD_BIANCO_MV_DIST_3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:221
+msgid "RH_SGAD_BIANCO_DOWN_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:222
+msgid "RH_SHORT_AIR_BIANCO_PIERCE_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:223
+msgid "RH_SHORT_AIR_BIANCO_PIERCE_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:224
+msgid "RH_SGD_BIANCO_MAX_ANG"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:225
+msgid "RH_SGD_BIANCO_BURST_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:226
+msgid "RH_SGD_BIANCO_BURST_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:227
+msgid "RH_SG_BIANCO_BURST_SPD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:228
+msgid "RH_SGD_BIANCO_BURST_SPD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:229
+msgid "RH_SHORT_AIR_ALTO_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:230
+msgid "RH_SHORT_AIR_ALTO_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:231
+msgid "RH_SHORT_AIR_ALTO_LIFT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:232
+msgid "RH_SHORT_AIR_ALTO_LIFT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:233
+msgid "RH_SHORT_AIR_ALTO_DOWN_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:234
+msgid "RH_SHORT_AIR_ALTO_DOWN_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:235
+msgid "RH_SHORT_AIR_ALTO_D_DOWN_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:236
+msgid "RH_SHORT_AIR_ALTO_D_DOWN_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:237
+msgid "RH_SGA_ALTO_HIT_Z_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:238
+msgid "RH_SGA_D_ALTO_DOWN_Z_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:239
+msgid "RH_SG_ALTO_ROTATE_FRM"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:240
+msgid "RH_SHORT_AIR_FROST_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:241
+msgid "RH_SHORT_AIR_FROST_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:242
+msgid "RH_SHORT_AIR_FROST_SPD_Y_LP"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:243
+msgid "RH_SHORT_AIR_FROST_ACC_Y_LP"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:244
+msgid "RH_SHORT_AIR_FROST_SPD_Y_LP2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:245
+msgid "RH_SHORT_AIR_FROST_ACC_Y_LP2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:246
+msgid "RH_SHORT_AIR_FROST_SPD_Y_END"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:247
+msgid "RH_SHORT_AIR_FROST_ACC_Y_END"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:248
+msgid "RH_SHORT_AIR_FROST_MOT_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:249
+msgid "RH_SHORT_AIR_FROST_MOT_SPD2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:250
+msgid "RH_SHORT_AIR_FROST_D_MOT_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:251
+msgid "RH_SHORT_AIR_FROST_D_MOT_SPD2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:252
+msgid "RH_SHORT_AIR_ASSAULT_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:253
+msgid "RH_SHORT_AIR_ASSAULT_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:254
+msgid "RH_SHORT_AIR_ASSAULT_DOWN_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:255
+msgid "RH_SHORT_AIR_ASSAULT_DOWN_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:256
+msgid "RH_SHORT_AIR_ASSAULT_MOT_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:257
+msgid "RH_SHORT_AIR_ASSAULT_MOT_SPD2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:258
+msgid "RH_SHORT_ASSAULT_COUNTER_DOWN_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:259
+msgid "RH_SHORT_ASSAULT_COUNTER_DOWN_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:260
+msgid "RH_SHORT_ASSAULT_COUNTER_DOWN_SPD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:261
+msgid "RH_SHORT_ASSAULT_MOT_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:262
+msgid "RH_SHORT_AIR_BLITZ_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:263
+msgid "RH_SHORT_AIR_BLITZ_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:264
+msgid "RH_SHORT_AIR_BLITZ_LP_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:265
+msgid "RH_SHORT_AIR_BLITZ_LP_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:266
+msgid "RH_SHORT_AIR_BLITZ_END1_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:267
+msgid "RH_SHORT_AIR_BLITZ_END1_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:268
+msgid "RH_SHORT_AIR_BLITZ_END2_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:269
+msgid "RH_SHORT_AIR_BLITZ_END2_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:270
+msgid "RH_SHORT_BLITZ_D_MOT_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:271
+msgid "RH_SGA_CHIMAIRASEED_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:272
+msgid "RH_SGA_CHIMAIRASEED_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:273
+msgid "RH_SGA_CHIMAIRASEED_PULL_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:274
+msgid "RH_SGA_CHIMAIRASEED_PULL_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:275
+msgid "RH_SG_CHIMAIRASEED_MOT_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:276
+msgid "RH_SHORT_CUTLASS_DOWN_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:277
+msgid "RH_SHORT_CUTLASS_DOWN_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:278
+msgid "RH_SHORT_CUTLASS_DOWN_SPD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:279
+msgid "RH_SHORT_AIR_CUTLASS_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:280
+msgid "RH_SHORT_AIR_CUTLASS_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:281
+msgid "RH_SHORT_CUTLASS_END_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:282
+msgid "RH_SHORT_CUTLASS_END_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:283
+msgid "RH_SHORT_CUTLASS_END_SPD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:284
+msgid "RH_SHORT_D_CUTLASS_END_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:285
+msgid "RH_SHORT_D_CUTLASS_END_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:286
+msgid "RH_SHORT_D_CUTLASS_END_SPD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:287
+msgid "RH_SHORT_AIR_GLADIUS_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:288
+msgid "RH_SHORT_AIR_GLADIUS_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:289
+msgid "RH_SHORT_AIR_GLADIUS_THROW_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:290
+msgid "RH_SHORT_AIR_GLADIUS_THROW_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:291
+msgid "RH_SHORT_AIR_GLADIUS_D_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:292
+msgid "RH_SHORT_AIR_GLADIUS_D_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:293
+msgid "RH_SHORT_AIR_GLADIUS_D_THROW_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:294
+msgid "RH_SHORT_AIR_GLADIUS_D_THROW_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:295
+msgid "RH_SHORT_AIR_BASILISK_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:296
+msgid "RH_SHORT_AIR_BASILISK_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:297
+msgid "RH_SHORT_AIR_BASILISK_SPD_Y2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:298
+msgid "RH_SHORT_AIR_BASILISK_ACC_Y2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:299
+msgid "RH_SHORT_AIR_BASILISK_SPD_Y3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:300
+msgid "RH_SHORT_AIR_BASILISK_ACC_Y3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:301
+msgid "RH_SG_BAEL_HIT_SLOW_RATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:302
+msgid "RH_SG_BAEL_HIT_SLOW_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:303
+msgid "RH_SG_BAEL_POS_MOVE_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:304
+msgid "RH_SG_BAEL_F_HIT_SLOW_RATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:305
+msgid "RH_SG_BAEL_F_HIT_SLOW_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:306
+msgid "RH_SG_ECHIDNA_CHANCE_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:307
+msgid "RH_SG_ECHIDNA_CHANCE_TIME_D"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:308
+msgid "RH_SG_ECHIDNA_HIT_SLOW_RATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:309
+msgid "RH_SG_ECHIDNA_HIT_SLOW_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:310
+msgid "RH_SG_ECHIDNA_OVIDUCT_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:311
+msgid "RH_SG_ECHIDNA_OVIDUCT_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:312
+msgid "RH_SG_ECHIDNA_OVIDUCT_LP_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:313
+msgid "RH_SG_ECHIDNA_OVIDUCT_LP_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:314
+msgid "RH_SG_ECHIDNA_OVIDUCT_UPPER_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:315
+msgid "RH_SG_ECHIDNA_OVIDUCT_UPPER_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:316
+msgid "RH_SG_ECHIDNA_OVIDUCT_END_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:317
+msgid "RH_SG_ECHIDNA_OVIDUCT_END_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:318
+msgid "RH_SG_ECHIDNA_OVIDUCT_D_MOT_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:319
+msgid "RH_SHORT_AIR_CREDO_FAIL_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:320
+msgid "RH_SHORT_AIR_CREDO_FAIL_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:321
+msgid "RH_SHORT_AIR_CREDO_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:322
+msgid "RH_SHORT_AIR_CREDO_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:323
+msgid "RH_SHORT_AIR_CREDO_THROW_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:324
+msgid "RH_SHORT_AIR_CREDO_THROW_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:325
+msgid "RH_SHORT_AIR_CREDO_DOWN_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:326
+msgid "RH_SHORT_AIR_CREDO_DOWN_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:327
+msgid "RH_SHORT_AIR_ALTO_SPEAR_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:328
+msgid "RH_SHORT_AIR_ALTO_SPEAR_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:329
+msgid "RH_SHORT_AIR_ALTO_SPEAR_THROW_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:330
+msgid "RH_SHORT_AIR_ALTO_SPEAR_THROW_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:331
+msgid "RH_SHORT_AGNUS_DOWN_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:332
+msgid "RH_SHORT_AGNUS_DOWN_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:333
+msgid "RH_SHORT_AGNUS_DOWN_SPD_Z"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:334
+msgid "RH_SHORT_AGNUS_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:335
+msgid "RH_SHORT_AGNUS_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:336
+msgid "RH_SHORT_AIR_GOD_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:337
+msgid "RH_SHORT_AIR_GOD_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:338
+msgid "RH_SHORT_AIR_GOD_HIT_SPD_Y2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:339
+msgid "RH_SHORT_AIR_GOD_HIT_ACC_Y2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:340
+msgid "RH_SHORT_AIR_D_GOD_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:341
+msgid "RH_SHORT_AIR_D_GOD_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:342
+msgid "RH_SHORT_AIR_D_GOD_HIT_SPD_Y2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:343
+msgid "RH_SHORT_AIR_D_GOD_HIT_ACC_Y2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:344
+msgid "RH_SGA_POPE_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:345
+msgid "RH_SGA_POPE_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:346
+msgid "RH_SGA_POPE_DOWN_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:347
+msgid "RH_SGA_POPE_DOWN_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:348
+msgid "RH_SG_POPE_HIT_SLOW_RATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:349
+msgid "RH_SG_POPE_HIT_SLOW_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:350
+msgid "RH_SGA_DPOPE_HIT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:351
+msgid "RH_SGA_DPOPE_HIT_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:352
+msgid "RH_SGA_DPOPE_DOWN_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:353
+msgid "RH_SGA_DPOPE_DOWN_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:354
+msgid "RH_SG_DPOPE_HIT_SLOW_RATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:355
+msgid "RH_SG_DPOPE_HIT_SLOW_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:356
+msgid "RH_SG_DPOPE_F_HIT_SLOW_RATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:357
+msgid "RH_SG_DPOPE_F_HIT_SLOW_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:358
+msgid "RH_SGA_DPOPE_HIT_SLOW_RATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:359
+msgid "RH_SGA_DPOPE_HIT_SLOW_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:360
+msgid "RH_SGA_DPOPE_FIRST_SLOW_RATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:361
+msgid "RH_SGA_DPOPE_FIRST_SLOW_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:362
+msgid "RH_SG_DPOPE_FIRST_SLOW_RATE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:363
+msgid "RH_SG_DPOPE_FIRST_SLOW_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:364
+msgid "RH_ENEMY_BLOCK_BGN_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:365
+msgid "RH_ENEMY_BLOCK_BGN_ACC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:366
+msgid "RH_ENEMY_BLOCK_GUARD_STOP_LV0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:367
+msgid "RH_ENEMY_BLOCK_GUARD_STOP_LV1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:368
+msgid "RH_ENEMY_BLOCK_GUARD_STOP_LV2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:369
+msgid "RH_ENEMY_BLOCK_GUARD_ANGLE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:370
+msgid "EG_DEVIL_ROTATION_SPD_MAX"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:371
+msgid "EG_GUARD_ANGLE_EM000"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:372
+msgid "EG_GUARD_ANGLE_EM001"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:373
+msgid "EG_GUARD_ANGLE_EM003"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:374
+msgid "EG_GUARD_ANGLE_EM008"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:375
+msgid "EG_GUARD_ANGLE_EM009"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:376
+msgid "EG_GUARD_ANGLE_EM010"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:377
+msgid "EG_GUARD_ANGLE_EM011"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:378
+msgid "EG_GUARD_ANGLE_EM013"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:379
+msgid "EG_GUARD_ANGLE_EM015"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:380
+msgid "EG_GUARD_ANGLE_EM016"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:381
+msgid "EG_GUARD_ANGLE_EM017"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:398
+msgid "ATCK_AIR_GUN_2ND_ADD_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:400
+msgid "AUTO_LOCK_HOLD_TIME_GUN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:401
+msgid "ATCK_HITIME_JUMP_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:402
+msgid "ATCK_HITIME_JUMP_ACC"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:403
+msgid "SRV_AIR_COMBO0_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:404
+msgid "SRV_AIR_COMBO0_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:405
+msgid "SRV_AIR_COMBO1_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:406
+msgid "SRV_AIR_COMBO1_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:407
+msgid "SRV_AIR_COMBO2_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:408
+msgid "SRV_AIR_COMBO2_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:409
+msgid "SRV_AIR_COMBO3_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:410
+msgid "SRV_AIR_COMBO3_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:411
+msgid "ATCK_SEI_RSTRM_Y_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:412
+msgid "ATCK_SEI_RSTRM_Y_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:413
+msgid "ATCK_SEI_RSTRM_END_HEIGHT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:414
+msgid "WP003_SHELL00_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:415
+msgid "WP003_SHELL00_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:416
+msgid "WP023_SHELL_LV2_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:417
+msgid "WP023_SHELL_LV3_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:418
+msgid "WP003_SHELL02_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:419
+msgid "WP003_SHELL02_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:420
+msgid "WP003_SHELL03_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:421
+msgid "WP003_SHELL03_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:422
+msgid "WP003_SHELL04_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:423
+msgid "WP003_SHELL04_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:424
+msgid "ATCK_AIR_CAGUN_XZ_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:425
+msgid "ATCK_AIR_CAGUN_Y_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:426
+msgid "ATCK_AIR_CAGUN_Y_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:427
+msgid "ATCK_AIR_CAGUN_2ND_Y_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:428
+msgid "ATCK_AIR_CAGUN_2ND_Y_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:429
+msgid "ATCK_AIR_CAGUN_2ND_ADD_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:430
+msgid "ATCK_AIR_CAGUN_XZ_SPD_MAX"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:431
+msgid "AUTO_LOCK_HOLD_TIME_CAGUN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:436
+msgid "SCA_NUNCHAKUS_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:437
+msgid "SCA_NUNCHAKUS_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:438
+msgid "WP010_SHELL05_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:439
+msgid "WP010_SHELL05_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:440
+msgid "WP010_SHELL05_RANGE0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:441
+msgid "WP010_SHELL05_RANGE1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:442
+msgid "WP010_SHELL06_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:443
+msgid "WP010_SHELL06_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:444
+msgid "WP010_SHELL06_RANGE0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:445
+msgid "WP010_SHELL06_RANGE1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:446
+msgid "WP010_SHELL07_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:447
+msgid "WP010_SHELL07_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:448
+msgid "WP010_SHELL07_RANGE0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:449
+msgid "WP010_SHELL07_RANGE1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:450
+msgid "WP010_SHELL08_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:451
+msgid "WP010_SHELL08_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:452
+msgid "WP010_SHELL08_RANGE0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:453
+msgid "WP010_SHELL08_RANGE1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:454
+msgid "WP010_SHELL09_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:455
+msgid "WP010_SHELL09_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:456
+msgid "WP010_SHELL09_RANGE0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:457
+msgid "WP010_SHELL09_RANGE1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:458
+msgid "WP010_SHELL05_LV2_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:459
+msgid "WP010_SHELL05_LV3_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:460
+msgid "TS_AIR_DASH_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:461
+msgid "TS_AIR_DASH_ADD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:462
+msgid "TS_ATRICK_HIDE_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:463
+msgid "TS_ATRICK_LENGTH_MAX"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:464
+msgid "TS_ATRICK_LENGTH_SUB"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:465
+msgid "TS_ATRICK_HEIGHT_SUB"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:466
+msgid "TS_ATRICK_SPD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:467
+msgid "TS_ATRICK_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:468
+msgid "TS_ATRICK_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:470
+msgid "RAIN_STORM_HEIGHT_LIMIT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:472
+msgid "DESCENT_KICK_HEIGHT_LIMIT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:474
+msgid "WP003_SHELL_LV2_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:475
+msgid "WP003_SHELL_LV3_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:476
+msgid "WP003_SHELL02_ATTACK_RAD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:477
+msgid "WP003_SHELL10_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:478
+msgid "WP003_SHELL10_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:480
+msgid "ATCK_RV_KABUTO_LEN0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:481
+msgid "ATCK_RV_KABUTO_LEN1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:482
+msgid "ATCK_RV_ROUNDTRIP_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:483
+msgid "SRV_AIR_RETURN_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:484
+msgid "SRV_AIR_RETURN_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:485
+msgid "ATCK_AIR_CNT_EI_SHOT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:486
+msgid "ATCK_AIR_CNT_SCA_SHOT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:487
+msgid "ATCK_AIR_CNT_SEI_RSTRM"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:488
+msgid "ATCK_AIR_CNT_SCA_NUNCHAKUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:489
+msgid "ATCK_AIR_CNT_SRV_ACOMBO0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:490
+msgid "ATCK_AIR_CNT_SRV_ACOMBO1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:491
+msgid "ATCK_AIR_CNT_SRV_ACOMBO2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:492
+msgid "ATCK_AIR_CNT_SRV_ACOMBO3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:493
+msgid "ATCK_AIR_CNT_RV_RETURN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:494
+msgid "ATCK_HYAKU_MIN_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:495
+msgid "ATCK_HYAKU_MAX_TIME1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:496
+msgid "ATCK_HYAKU_MAX_TIME2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:497
+msgid "ATCK_HYAKU_MAX_TIME3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:498
+msgid "SRV_ROLLING_MIN_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:499
+msgid "SRV_ROLLING_MAX_TIME1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:500
+msgid "SRV_ROLLING_MAX_TIME2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:501
+msgid "SRV_ROLLING_MAX_TIME3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:502
+msgid "ATCK_RV_KABUTO_LV0_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:503
+msgid "ATCK_RV_KABUTO_LV0_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:504
+msgid "ATCK_RV_KABUTO_LV1_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:505
+msgid "ATCK_RV_KABUTO_LV1_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:506
+msgid "ATCK_RV_KABUTO_LV2_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:507
+msgid "ATCK_RV_KABUTO_LV2_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:508
+msgid "ATCK_SRV_DRIVE_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:509
+msgid "ATCK_SRV_DRIVE00_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:510
+msgid "ATCK_SRV_DRIVE01_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:511
+msgid "ATCK_SRV_DRIVE02_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:512
+msgid "ATCK_SRV_DRIVE_HEIGHT_ROT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:513
+msgid "WP023_SHELL11_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:514
+msgid "WP023_SHELL11_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:515
+msgid "ATCK_AIR_PD_Y_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:516
+msgid "ATCK_AIR_PD_Y_ADD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:517
+msgid "ATCK_ID_SCA_STINGER_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:518
+msgid "ATCK_ID_SCA_STINGER_RANGE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:519
+msgid "ATCK_GM_STRAIGHT_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:520
+msgid "ATCK_GM_STRAIGHT_RANGE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:521
+msgid "SGM_RISING_DRAGON_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:522
+msgid "SGM_RISING_DRAGON_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:523
+msgid "SGM_RISING_DRAGON_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:524
+msgid "SGM_DIVINE_DRAGON_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:525
+msgid "SGM_DIVINE_DRAGON_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:526
+msgid "SGM_DIVINE_DRAGON_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:527
+msgid "SGM_DIVINE_DRAGON_LOOP_NUM"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:528
+msgid "ATCK_CS_HOLD_TIME_LV0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:529
+msgid "ATCK_CS_HOLD_TIME_LV1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:530
+msgid "ATCK_CS_HOLD_TIME_LV2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:531
+msgid "RG_AIR_BLOCK_SUCCESS_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:532
+msgid "RG_AIR_BLOCK_SUCCESS_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:533
+msgid "RG_AIR_BLOCK_JUST_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:534
+msgid "RG_AIR_BLOCK_JUST_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:535
+msgid "RG_AIR_BLOCK_ATCK_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:536
+msgid "RG_AIR_BLOCK_ATCK_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:537
+msgid "RG_GUAGE_MAX_LV0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:538
+msgid "RG_GUAGE_MAX_LV1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:539
+msgid "RG_GUAGE_MAX_LV2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:540
+msgid "RG_GUAGE_MAX_LV3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:541
+msgid "ATCK_CS_CA_HOLD_TIME_LV0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:542
+msgid "ATCK_CS_CA_HOLD_TIME_LV1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:543
+msgid "ATCK_CS_CA_HOLD_TIME_LV2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:544
+msgid "WP003_SHELL00_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:545
+msgid "WP003_SHELL02_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:546
+msgid "WP003_SHELL03_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:547
+msgid "WP003_SHELL04_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:548
+msgid "WP010_SHELL05_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:549
+msgid "WP010_SHELL06_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:550
+msgid "WP010_SHELL07_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:551
+msgid "WP010_SHELL08_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:552
+msgid "WP010_SHELL09_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:553
+msgid "WP003_SHELL10_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:554
+msgid "ATCK_SRV_DRIVE_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:555
+msgid "WP023_SHELL11_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:556
+msgid "RG_BLOCK_ADD_RG_GAUGE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:557
+msgid "RG_BLOCK_ADD_RG_GAUGE_JUST"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:558
+msgid "RG_BLOCK_ADD_RG_GAUGE_CRUSH"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:559
+msgid "RG_BLOCK_COMBO_UP_BONUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:560
+msgid "RG_BLOCK_COMBO_UP_BONUS_JUST"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:561
+msgid "RG_RELEASE_COMBO_UP_BONUS_JUST"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:562
+msgid "RG_RELEASE_COMBO_UP_BONUS_GUARD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:563
+msgid "RG_BLOCK_COMBO_UP_BONUS_TIMER"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:564
+msgid "RG_BLOCK_COMBO_UP_BONUS_JUST_TIMER"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:565
+msgid "RG_RELEASE_COMBO_UP_BONUS_JUST_TIMER"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:566
+msgid "RG_RELEASE_COMBO_UP_BONUS_GUARD_TIMER"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:567
+msgid "RG_ADD_RG_GAUGE_PARAM_A"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:568
+msgid "RG_ADD_RG_GAUGE_PARAM_B"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:569
+msgid "RG_ADD_RG_GAUGE_BONUS_JUST"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:570
+msgid "RG_ADD_RG_GAUGE_BONUS_GUARD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:571
+msgid "RG_BLOCK_KNOCK_BACK_SPD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:572
+msgid "RG_BLOCK_KNOCK_BACK_ADD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:573
+msgid "RG_BLOCK_GUARD_KNOCK_BACK_SPD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:574
+msgid "RG_BLOCK_GUARD_KNOCK_BACK_ADD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:575
+msgid "RG_BLOCK_AIR_KNOCK_BACK_SPD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:576
+msgid "RG_BLOCK_AIR_KNOCK_BACK_ADD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:577
+msgid "RG_BLOCK_GUARD_AIR_KNOCK_BACK_SPD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:578
+msgid "RG_BLOCK_GUARD_AIR_KNOCK_BACK_ADD_XZ"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:579
+msgid "ATCK_LF_AIR_COMBO_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:580
+msgid "ATCK_LF_AIR_COMBO_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:581
+msgid "ATCK_LF_AIR_COMBO_SPD2_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:582
+msgid "ATCK_LF_AIR_COMBO_ADD2_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:583
+msgid "ATCK_AIR_CNT_LF_COMBO"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:584
+msgid "ATCK_GM_SAVE_TIME_LV1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:585
+msgid "ATCK_GM_SAVE_TIME_LV2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:586
+msgid "SGM_REAL_IMPACT_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:587
+msgid "SGM_REAL_IMPACT_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:588
+msgid "SGM_INFERNO_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:589
+msgid "SGM_INFERNO_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:590
+msgid "ATCK_AIR_CNT_SGM_INFERNO"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:591
+msgid "ATCK_PD_SHOT_SAVE_TIME_LV1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:592
+msgid "ATCK_PD_SHOT_SAVE_TIME_LV2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:593
+msgid "PD_GUAGE_MAX_LV0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:594
+msgid "PD_GUAGE_MAX_LV1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:595
+msgid "PD_GUAGE_MAX_LV2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:596
+msgid "PD_GUAGE_MAX_LV3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:597
+msgid "ATCK_PD_METEOR_GUAGE_FIX_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:598
+msgid "WP023_SHELL14_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:599
+msgid "WP023_SHELL14_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:600
+msgid "WP023_SHELL14_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:601
+msgid "WP023_SHELL15_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:602
+msgid "WP023_SHELL15_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:603
+msgid "WP023_SHELL15_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:604
+msgid "WP023_SHELL16_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:605
+msgid "WP023_SHELL16_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:606
+msgid "WP023_SHELL16_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:607
+msgid "WP023_SHELL17_SPEED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:608
+msgid "WP023_SHELL17_LEN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:609
+msgid "WP023_SHELL17_LEN_BOSS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:610
+msgid "ATCK_PD_METEOR_SHOT_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:611
+msgid "GM_KICK_13R_DVL_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:612
+msgid "GM_KICK_13R_DVL_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:613
+msgid "ATCK_AIR_CNT_MGUN_REPEAT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:614
+msgid "DANTE_DEVIL_TRG_DOWN_VAL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:615
+msgid "ATCK_PD_MGUN_SHOT_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:616
+msgid "PD_GUAGE_DOWN_METEOR"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:617
+msgid "PD_GUAGE_DOWN_METEOR_SHOT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:618
+msgid "PD_GUAGE_DOWN_METEOR_SHOT2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:619
+msgid "PD_GUAGE_DOWN_BOOMERANG"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:620
+msgid "ATCK_PD_BOOMERANG_GUAGE_FIX_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:621
+msgid "ATCK_PD_BOOMERANG_HIT_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:622
+msgid "ATCK_PD_BOOMERANG_HIT_ENABLE_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:623
+msgid "ATCK_SRV_DRIVE_UP_TIME_LV1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:624
+msgid "ATCK_SRV_DRIVE_UP_TIME_LV2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:625
+msgid "PD_GUAGE_UP_LAUNCHER"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:626
+msgid "PD_GUAGE_UP_LAUNCHER2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:627
+msgid "PD_GUAGE_UP_LAUNCHER3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:628
+msgid "PD_GUAGE_UP_MACHINE_GUN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:629
+msgid "WP003_SHELL03_TARGET_INNER"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:630
+msgid "WP003_SHELL10_TARGET_INNER"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:631
+msgid "WP023_SHELL15_TARGET_INNER"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:632
+msgid "WP010_SHELL05_TARGET_INNER"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:633
+msgid "ATCK_PD_METEOR_S_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:634
+msgid "ATCK_PD_METEOR_S_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:635
+msgid "ATCK_PD_METEOR_E_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:636
+msgid "ATCK_PD_METEOR_E_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:637
+msgid "RG_INVINCIBLE_FIX_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:638
+msgid "RG_INVINCIBLE_GUAGE_DOWN"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:639
+msgid "RG_INVINCIBLE_END_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:640
+msgid "RG_INVINCIBLE_HITSTOP_TIME00"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:641
+msgid "RG_INVINCIBLE_JOINT_VIB_UP00"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:642
+msgid "RG_INVINCIBLE_JOINT_VIB_DOWN00"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:643
+msgid "RG_INVINCIBLE_JOINT_VIB_FRAME00"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:644
+msgid "RG_INVINCIBLE_HITSTOP_TIME01"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:645
+msgid "RG_INVINCIBLE_JOINT_VIB_UP01"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:646
+msgid "RG_INVINCIBLE_JOINT_VIB_DOWN01"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:647
+msgid "RG_INVINCIBLE_JOINT_VIB_FRAME01"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:648
+msgid "TS_AIR_ESC_KNEEL_FRAME_S"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:649
+msgid "TS_AIR_ESC_KNEEL_FRAME_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:650
+msgid "TS_AIR_ESC_KNEEL_FRAME_E"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:651
+msgid "TS_AIR_ESC_COMBO_FRAME_S"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:652
+msgid "TS_AIR_ESC_COMBO_FRAME_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:653
+msgid "TS_AIR_ESC_COMBO_FRAME_E"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:654
+msgid "TS_AIR_ESC_HITIME_FRAME_S"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:655
+msgid "TS_AIR_ESC_HITIME_FRAME_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:656
+msgid "TS_AIR_ESC_HITIME_FRAME_E"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:657
+msgid "TS_AIR_ESC_COMBO_UP_BONUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:658
+msgid "TS_AIR_ESC_COMBO_UP_BONUS_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:659
+msgid "ATCK_AIR_CNT_PD_METEOR"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:660
+msgid "ATCK_YT_SPACE_EFC_X"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:661
+msgid "ATCK_YT_SPACE_EFC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:662
+msgid "ATCK_YT_SPACE_EFC_Z"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:663
+msgid "ATCK_LF_SHL_REARRANGEMENT_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:664
+msgid "ATCK_LF_SHL_WAIT_BURST_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:665
+msgid "ATCK_LF_SHL_DETONATE_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:666
+msgid "ATCK_LF_SHL_DETONATE_INTERVAL_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:667
+msgid "ATCK_LF_SHL_INTENSIVE_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:668
+msgid "ATCK_LF_SHL_INTENSIVE_INTERVA_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:669
+msgid "ATCK_LF_SHL_INTENSIVE_SPD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:670
+msgid "ATCK_LF_SHL_EM_CNST_BURST_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:671
+msgid "ATCK_YT_AIR_COMBO0_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:672
+msgid "ATCK_YT_AIR_COMBO0_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:673
+msgid "ATCK_AIR_CNT_YT_COMBO0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:674
+msgid "ATCK_SCA_NUNCHAKUS_ID_PROBABILITY"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:675
+msgid "ATCK_YT_AIR_COMBO1_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:676
+msgid "ATCK_YT_AIR_COMBO1_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:677
+msgid "ATCK_AIR_CNT_YT_COMBO1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:678
+msgid "ATCK_LF_AIR_DETONATE_ALL_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:679
+msgid "ATCK_LF_AIR_DETONATE_ALL_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:680
+msgid "ATCK_AIR_CNT_LF_DETONATE_ALL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:681
+msgid "ATCK_YT_COMBO2_COMBO_UP_BONUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:682
+msgid "ATCK_YT_COMBO2_COMBO_UP_BONUS_TIMER"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:683
+msgid "ATCK_YT_COMBO2_DT_UP_BONUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:684
+msgid "ATCK_YT_SPACE2_EFC_X"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:685
+msgid "ATCK_YT_SPACE2_EFC_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:686
+msgid "ATCK_YT_SPACE2_EFC_Z"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:687
+msgid "ATCK_LF_CROSS_THROW_TIME00"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:688
+msgid "ATCK_LF_CROSS_THROW_TIME01"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:689
+msgid "ATCK_LF_AIR_COMBO_THROW_TIME00"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:690
+msgid "ATCK_LF_AIR_COMBO_THROW_TIME01"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:691
+msgid "ATCK_LF_AIR_COMBO_THROW_TIME02"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:693
+msgid "ATCK_LF_COMBO0_TIME00"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:694
+msgid "ATCK_LF_COMBO2_TIME00"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:695
+msgid "ATCK_LF_COMBO2_TIME01"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:696
+msgid "ATCK_LF_DIO_KNIFE_TIME00"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:697
+msgid "ATCK_LF_DIO_KNIFE_TIME01"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:698
+msgid "ATCK_LF_DIO_KNIFE_TIME02"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:699
+msgid "ATCK_LF_DT_DIO_KNIFE_TIME00"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:700
+msgid "ATCK_LF_DT_DIO_KNIFE_TIME01"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:701
+msgid "ATCK_LF_DT_DIO_KNIFE_TIME02"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:702
+msgid "ATCK_LF_SHL_BOM_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:703
+msgid "ATCK_LF_SHL_BOM_INTERVAL_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:704
+msgid "DANTE_DEVIL_TRG_DOWN_VAL2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:705
+msgid "ATCK_SGM_INFERNO_HEIGHT_LIMIT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:706
+msgid "ATCK_DS_AIR_COMBO0_HEIGHT_LIMIT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:707
+msgid "ATCK_DS_AIR_COMBO1_HEIGHT_LIMIT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:708
+msgid "ATCK_LF_BOM_BARRIER_SPD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:709
+msgid "ATCK_LF_BOM_BARRIER_ADD_Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:710
+msgid "ATCK_AIR_CNT_LF_BOM_BARRIER"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:712
+msgid "RG_BLOCK_DEVIL_UP_BONUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:713
+msgid "RG_BLOCK_DEVIL_UP_BONUS_JUST"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:714
+msgid "RG_RELEASE_DEVIL_UP_BONUS_JUST"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:715
+msgid "RG_RELEASE_DEVIL_UP_BONUS_GUARD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:716
+msgid "TS_AIR_ESC_DEVIL_UP_BONUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:717
+msgid "GM_JUST_SAVE_COMBO_UP_BONUS_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:718
+msgid "GM_JUST_SAVE_COMBO_UP_BONUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:719
+msgid "GM_JUST_SAVE_DEVIL_UP_BONUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:720
+msgid "PD_BOX_LV0_COMBO_UP_BONUS_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:721
+msgid "PD_BOX_LV0_COMBO_UP_BONUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:722
+msgid "PD_BOX_LV0_DEVIL_UP_BONUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:723
+msgid "PD_BOX_LV1_COMBO_UP_BONUS_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:724
+msgid "PD_BOX_LV1_COMBO_UP_BONUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:725
+msgid "PD_BOX_LV1_DEVIL_UP_BONUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:726
+msgid "PD_BOX_LV2_COMBO_UP_BONUS_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:727
+msgid "PD_BOX_LV2_COMBO_UP_BONUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:728
+msgid "PD_BOX_LV2_DEVIL_UP_BONUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:729
+msgid "PD_BOX_LV3_COMBO_UP_BONUS_TIME"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:730
+msgid "PD_BOX_LV3_COMBO_UP_BONUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:731
+msgid "PD_BOX_LV3_DEVIL_UP_BONUS"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:732
+msgid "DT_GUAGE_DOWN_STINGER"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:733
+msgid "DT_GUAGE_DOWN_KICK13"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:734
+msgid "DT_GUAGE_DOWN_DIO_KNIFE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:751
+msgid "Save Current Values"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:762
+msgid "Apply Saved Values"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:790
+msgid "Dante Parameters"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:793
+msgid "Nero Parameters"
+msgstr ""
+
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:935
 msgid "Show Player Params"
 msgstr ""
@@ -3783,6 +6535,10 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:961
 msgid "Saved Player Position"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:969
+msgid "Play Animation ID"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:978
@@ -6479,326 +9235,6 @@ msgstr ""
 msgid "0xBF END?"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:205
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:464
-msgid "0xC0"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:206
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:465
-msgid "0xC1"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:207
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:466
-msgid "0xC2"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:208
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:467
-msgid "0xC3"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:209
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:468
-msgid "0xC4"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:210
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:469
-msgid "0xC5"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:211
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:470
-msgid "0xC6"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:212
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:471
-msgid "0xC7"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:213
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:472
-msgid "0xC8"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:214
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:473
-msgid "0xC9"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:215
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:474
-msgid "0xCA"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:216
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:475
-msgid "0xCB"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:217
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:476
-msgid "0xCC"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:218
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:477
-msgid "0xCD"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:219
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:478
-msgid "0xCE"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:220
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:479
-msgid "0xCF"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:221
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:480
-msgid "0xD0"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:222
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:481
-msgid "0xD1"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:223
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:482
-msgid "0xD2"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:224
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:483
-msgid "0xD3"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:225
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:484
-msgid "0xD4"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:226
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:485
-msgid "0xD5"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:227
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:486
-msgid "0xD6"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:228
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:487
-msgid "0xD7"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:229
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:488
-msgid "0xD8"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:230
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:489
-msgid "0xD9"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:231
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:490
-msgid "0xDA"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:232
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:491
-msgid "0xDB"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:233
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:492
-msgid "0xDC"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:234
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:493
-msgid "0xDD"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:235
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:494
-msgid "0xDE"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:236
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:495
-msgid "0xDF"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:237
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:496
-msgid "0xE0"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:238
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:497
-msgid "0xE1"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:239
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:498
-msgid "0xE2"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:240
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:499
-msgid "0xE3"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:241
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:500
-msgid "0xE4"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:242
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:501
-msgid "0xE5"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:243
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:502
-msgid "0xE6"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:244
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:503
-msgid "0xE7"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:245
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:504
-msgid "0xE8"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:246
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:505
-msgid "0xE9"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:247
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:506
-msgid "0xEA"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:248
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:507
-msgid "0xEB"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:249
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:508
-msgid "0xEC"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:250
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:509
-msgid "0xED"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:251
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:510
-msgid "0xEE"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:252
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:511
-msgid "0xEF"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:253
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:512
-msgid "0xF0"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:254
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:513
-msgid "0xF1"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:255
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:514
-msgid "0xF2"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:256
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:515
-msgid "0xF3"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:257
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:516
-msgid "0xF4"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:258
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:517
-msgid "0xF5"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:259
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:518
-msgid "0xF6"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:260
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:519
-msgid "0xF7"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:261
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:520
-msgid "0xF8"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:262
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:521
-msgid "0xF9"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:263
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:522
-msgid "0xFA"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:264
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:523
-msgid "0xFB"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:265
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:524
-msgid "0xFC"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:266
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:525
-msgid "0xFD"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:267
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:526
-msgid "0xFE"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:268
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:527
-msgid "0xFF"
-msgstr ""
-
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:284
 msgid "0x0C Roll forward"
 msgstr ""
@@ -7093,50 +9529,6 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:452
 msgid "0xB4 END?"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:453
-msgid "0xB5"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:454
-msgid "0xB6"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:455
-msgid "0xB7"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:456
-msgid "0xB8"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:457
-msgid "0xB9"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:458
-msgid "0xBA"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:459
-msgid "0xBB"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:460
-msgid "0xBC"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:461
-msgid "0xBD"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:462
-msgid "0xBE"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:463
-msgid "0xBF"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:591

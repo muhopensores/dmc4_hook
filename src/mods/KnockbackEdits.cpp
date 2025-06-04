@@ -51,13 +51,13 @@ naked void detour1() { // most projectile hits
         mov word ptr [eax+0xA4+0x1C], 2 // make it hit
         jmp retcode
 
-    twosomeTime:
+    /*twosomeTime :
         // cmp byte ptr [twosome_knocksback], 1
         // jne retcode
         cmp dword ptr [eax+0xA4+0x0C], 0x004C5F00 // ._L.
         jne retcode
         mov word ptr [eax+0xA4+0x34], 2 // make it knock back
-        jmp retcode
+        jmp retcode*/
 
     retcode:
 		jmp dword ptr [KnockbackEdits::jmp_return1]
@@ -134,7 +134,7 @@ void KnockbackEdits::on_frame(fmilliseconds& dt) {
             ImGui::InputInt(_("mHitStopTimer"), &attack->mHitStopTimer);
             ImGui::Combo(_("mDamageType"), (int*)&attack->mDamageType, damage_type_names, IM_ARRAYSIZE(damage_type_names));
             ImGui::InputInt(_("mDamageTypeI (turn enemy)"), &attack->mDamageTypeI);
-            ImGui::InputInt(_("mDamageTypeB (launch n shits)"), &attack->mDamageTypeB);
+            ImGui::InputInt(_("mDamageTypeB (launch etc)"), &attack->mDamageTypeB);
             ImGui::Combo(_("mHitMarkAngle"), (int*)&attack->mHitMarkAngle, hit_mark_angle_names, IM_ARRAYSIZE(hit_mark_angle_names));
             ImGui::InputInt(_("mHitSE"), (int*)&attack->mHitSE);
             ImGui::InputFloat(_("mStylishPoint"), &attack->mStylishPoint);
