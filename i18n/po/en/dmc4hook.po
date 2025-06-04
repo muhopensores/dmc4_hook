@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-02 17:34+0100\n"
+"POT-Creation-Date: 2025-06-04 15:21+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,232 +22,232 @@ msgstr ""
 msgid "Average %.3f ms/frame (%.1f FPS)"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:225
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:227
 msgid "Save Config"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:237
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:239
 msgid "Training"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:240
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:242
 msgid "Practice"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:266
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:268
 msgid "Difficulty"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:292
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:294
 msgid "Game Mode"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:305
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:307
 msgid "Character"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:316
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:318
 msgid "Nero"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:320
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:398
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:322
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:400
 msgid "Limit Removal"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:328
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:406
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:330
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:408
 msgid "Abilities"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:348
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:508
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:350
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:510
 msgid "Speedups"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:354
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:522
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:356
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:524
 msgid "Infinite"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:364
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:496
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:366
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:498
 msgid "Accessibility"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:368
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:544
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:370
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:546
 msgid "Selective Cancels"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:372
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:548
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:374
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:550
 msgid "Taunt Select"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:376
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:552
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:378
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:554
 msgid "Memes"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:394
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:396
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:21
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:286
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:111
 msgid "Dante"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:458
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:460
 msgid "Lucifer"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:473
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:153
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:475
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:154
 msgid "Rose"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:481
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:483
 msgid "Pins"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:486
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:488
 msgid "Aerial grounded moves"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:536
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:538
 msgid "Darkslayer"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:575
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:577
 msgid "Environment"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:586
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:588
 msgid "Stage"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:601
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:603
 msgid "Enemies"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:605
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:607
 msgid "Enemy Spawner"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:608
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:610
 msgid "Enemy Replacement"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:625
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:641
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:627
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:640
 msgid "System"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:628
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:630
 msgid "dmc4_hook"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:653
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:754
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:652
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:753
 msgid "Misc"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:671
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:670
 msgid "Cutscenes"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:679
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:678
 msgid "HUD"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:687
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:686
 msgid "Custom HUD elements"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:701
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:700
 msgid "Camera"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:720
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:719
 msgid "Debug"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:724
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:723
 msgid "File Loading"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:728
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:727
 #: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:61
 msgid "Noclip"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:736
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:735
 msgid "Multi-character Fixes"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:740
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:739
 msgid "Stats"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:762
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:761
 msgid "Testing"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:764
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:763
 msgid "View ImGui Demo"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:776
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:775
 msgid "Hotkeys"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:787
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:786
 msgid "About"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:790
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:789
 msgid "DMC4Hook - Devil May Cry 4 Trainer"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:801
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:800
 msgid "Translation:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:802
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:801
 msgid "ttttchr"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:803
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:802
 msgid "raika87"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:806
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:805
 msgid "Special Thanks:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:819
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:818
 msgid "For more info and updates visit the github:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:824
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:823
 msgid "Frequently Asked Questions"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:826
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:825
 msgid "What mods do you recommend most?"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:827
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:826
 msgid ""
 "\"Fast Game Load\" and neighbouring options in the \"System\" tab. Get from "
 "your Desktop to BP in 2 seconds."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:829
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:828
 msgid "Old mods I installed have suddenly turned on"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:830
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:829
 msgid ""
 "\"HDD File Priority\" is ticked on the Debug page. If your DMC4 install "
 "contains any files left over from old mods, this will load them. To clean up "
@@ -255,55 +255,55 @@ msgid ""
 "does not check newly added files."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:834
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:833
 msgid "My combo points are stuck at 0"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:835
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:834
 msgid ""
 "\"Respawn Enemies when visiting the same room multiple times\" is ticked on "
 "the Debug page. If you didn't turn this on manually, it would have been auto "
 "ticked when you used the reload current room hotkey."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:838
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:837
 msgid "My camera is frozen"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:839
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:838
 msgid "The default hotkey for camera settings' freeze camera is Numpad 0."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:841
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:840
 msgid "I crash entering mission 1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:842
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:841
 msgid "\"Character Switcher\" crashes in this mission."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:844
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:843
 msgid "Payline is going through enemies"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:845
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:844
 msgid "Tick \"HDD File Priority\""
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:847
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:846
 msgid "Enemies are white sometimes"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:848
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:847
 msgid "This is a known issue with \"HDD File Priority\""
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:857
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:856
 msgid "This trainer was made using:"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:876
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:877
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:878
 msgid "Licenses"
 msgstr ""
 
@@ -1615,11 +1615,11 @@ msgstr ""
 msgid "Kyrie"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:353
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:355
 msgid "Reset Enemy Replacements:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:355
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:357
 msgid "Reset"
 msgstr ""
 
@@ -2107,6 +2107,329 @@ msgid ""
 "Edit the start frame, cancel frame and cancel properties of grounded Fireworks"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:31
+msgid "Start Addr"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:32
+msgid "base.uknFlag1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:33
+msgid "base.uknFlag2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:34
+msgid "base.mTransMode"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:35
+msgid "base.mTransView"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:36
+msgid "base.mp_next_unit"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:37
+msgid "base.mp_prev_unit"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:38
+msgid "base.m_delta_time"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:39
+msgid "base.reserved_state_flags"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:42
+msgid "mHit"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:43
+msgid "mGrab"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:44
+msgid "mDamage"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:45
+msgid "mPsh"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:46
+msgid "mLand"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:47
+msgid "mTimedForceLand"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:48
+msgid "mSetLand"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:49
+msgid "mWall"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:50
+msgid "mCeilling"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:53
+msgid "mNoLandTimerEnable"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:54
+msgid "mNoLandTimer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:55
+msgid "mNoLandTime"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:56
+msgid "ForceLandFlag"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:57
+msgid "mCheckWallEnable"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:58
+msgid "mCheckGroundEnable"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:59
+msgid "mFall"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:60
+msgid "NoLandTimerType"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:61
+msgid "NoLandDTSwitch"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:63
+msgid "NoLandTimerType2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:64
+msgid "DamageValueCorrect"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:65
+msgid "EnemyCollisionToggle"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:66
+msgid "LockonTargetPos"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:67
+msgid "LockOnTarget"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:70
+msgid "uknFixedVec1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:71
+msgid "GroundMat m1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:72
+msgid "GroundMat m2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:73
+msgid "GroundMat m3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:74
+msgid "GroundMat m4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:75
+msgid "uknFixedVec2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:76
+msgid "mWeightType"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:77
+msgid "mModelID"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:78
+msgid "mpReportActor"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:79
+msgid "mpDstModel"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:80
+msgid "mpSrcModel"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:81
+msgid "uknSrcModelPtr"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:82
+msgid "mPushType"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:83
+msgid "mpPushModel"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:86
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:103
+msgid "mPushCap p0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:87
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:104
+msgid "mPushCap p1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:88
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:105
+msgid "mPushCap r"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:120
+msgid "mPushPos"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:121
+msgid "mPushPosOld"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:130
+msgid "uknToggle"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:131
+msgid "currentMotBuffer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:132
+msgid "MotSeq1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:133
+msgid "MotSeq2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:134
+msgid "HitCheckFlag"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:135
+msgid "HitConfirm"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:136
+msgid "mSelfCollision"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:137
+msgid "mMode"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:263
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:384
+msgid "HP##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:264
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:385
+msgid "PrevDamage##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:265
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:386
+msgid "PrevDamageResist##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:266
+msgid "DT Timer##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:267
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:388
+msgid "Stun##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:268
+msgid "Displacement##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:270
+msgid "MoveID##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:273
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:314
+msgid "Shield##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:277
+msgid "Cloak##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:280
+msgid "Cloak Timer##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:284
+msgid "Heal Count"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:288
+msgid "Electric##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:292
+msgid "Suicide Timer##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:295
+msgid "Electric Timer##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:301
+msgid "Buried Timer##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:306
+msgid "Fire Timer##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:309
+msgid "Fire Damage##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:317
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:322
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:330
+msgid "Shield Timer##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:325
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:333
+msgid "Shield Damage##EnemyFly"
+msgstr ""
+
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:339
 msgid "Base Addr"
 msgstr ""
@@ -2157,6 +2480,10 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:350
 msgid "Number##EnemyFly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:387
+msgid "DT##EnemyFly"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:405
@@ -2641,6 +2968,98 @@ msgstr ""
 msgid "Skips one part of the trick animation"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:119
+msgid "AttackStatusUI"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:120
+msgid "Get Melee"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:121
+msgid "Get Projectiles"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:122
+msgid "Hide \"no-attack\" entries"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:123
+msgid "Hide \"No_used\" entries"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:128
+msgid "mAttackID"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:129
+msgid "mDamageValue"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:130
+msgid "mAttackLv"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:131
+msgid "mAttackLvI"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:132
+msgid "mAttackLvB"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:133
+msgid "mRangeType"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:134
+msgid "mHitStopTimer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:135
+msgid "mDamageType"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:136
+msgid "mDamageTypeI (turn enemy)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:137
+msgid "mDamageTypeB (launch n shits)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:138
+msgid "mHitMarkAngle"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:139
+msgid "mHitSE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:140
+msgid "mStylishPoint"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:141
+msgid "mStylishTimer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:142
+msgid "mDTAdd"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:143
+msgid "mAttackFlag"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:144
+msgid "mBlownAngleType"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:145
+msgid "mElementType"
+msgstr ""
+
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:154
 msgid "Release Always Stuns"
 msgstr ""
@@ -2651,6 +3070,10 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:158
 msgid "Shock Launches"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:161
+msgid "Previous Attack Data"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\LdkWithDmd.cpp:40
@@ -2820,6 +3243,10 @@ msgstr ""
 msgid "ModSampleHelpMarker"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:208
+msgid "Attack Definitions UI"
+msgstr ""
+
 #: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:214
 #, c-format
 msgid "Player Attack ID = %i"
@@ -2919,112 +3346,112 @@ msgstr ""
 msgid "cancel4"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:488
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:489
 msgid "+0 Attribute"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:489
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:490
 msgid "+4 Attack ID"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:490
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:491
 msgid "+8 Level"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:491
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:492
 msgid "+C Enable Command Settings"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:495
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:497
 msgid "+10 Cmd"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:498
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:500
 msgid "+11 Cmd No"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:499
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:501
 msgid "+12 Cmd Cond"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:500
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:502
 msgid "+13 Cmd Ukn"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:503
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:505
 msgid "+14 Weapon Condition"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:507
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:509
 msgid "+18 Style Condition"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:511
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:513
 msgid "+1C DT Condition"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:512
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:514
 msgid "+20 Aerial Condition"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:513
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:515
 msgid "+24 Cancel 0"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:514
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:516
 msgid "+28 Cancel 1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:515
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:517
 msgid "+2C Cancel 2"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:516
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:518
 msgid "+30 Cancel 3"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:517
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:519
 msgid "+34 Cancel 4"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:523
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:525
 msgid "Display Move Table"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:528
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:530
 msgid "Display Table Editor"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:544
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:546
 msgid "Player Attack ID"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:546
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:548
 msgid "Find Current Attack ID"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:557
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:559
 msgid "Entry Num"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:558
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:560
 #, c-format
 msgid "Entry count: %i"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:561
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:563
 msgid "Create a new entry"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:563
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:565
 msgid "Fill fields from currently displayed entry"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:580
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:582
 msgid "Create"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:630
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:632
 msgid "Load into a stage to see the table and the editor"
 msgstr ""
 
@@ -3704,6 +4131,7 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:412
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:63
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:298
 msgid "Prop"
 msgstr ""
 
@@ -3711,6 +4139,7 @@ msgstr ""
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:143
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:144
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:145
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:320
 msgid "Real Impact"
 msgstr ""
 
@@ -3750,6 +4179,7 @@ msgid "DT Pin Up Part 2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:430
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:316
 msgid "Draw"
 msgstr ""
 
@@ -3889,10 +4319,12 @@ msgid "Stinger Hit"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:45
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:288
 msgid "Million Stab"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:46
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:295
 msgid "Round Trip"
 msgstr ""
 
@@ -3923,6 +4355,7 @@ msgid "Helm Breaker Lv.3"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:55
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:289
 msgid "Helm Breaker"
 msgstr ""
 
@@ -3936,6 +4369,7 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:64
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:65
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:299
 msgid "Shredder"
 msgstr ""
 
@@ -3952,6 +4386,7 @@ msgstr ""
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:76
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:77
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:78
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:304
 msgid "Dance Macabre"
 msgstr ""
 
@@ -3965,6 +4400,7 @@ msgstr ""
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:83
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:84
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:91
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:305
 msgid "Drive"
 msgstr ""
 
@@ -3979,6 +4415,7 @@ msgstr ""
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:87
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:88
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:92
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:306
 msgid "Overdrive"
 msgstr ""
 
@@ -3993,10 +4430,12 @@ msgid "Overdrive Lv.3"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:95
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:307
 msgid "Quick Drive"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:101
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:314
 msgid "Full House"
 msgstr ""
 
@@ -4040,6 +4479,7 @@ msgid "Gilgamesh Combo B Lv.3"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:123
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:317
 msgid "Straight"
 msgstr ""
 
@@ -4061,15 +4501,18 @@ msgid "DT Kick 13"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:139
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:321
 msgid "Beast Uppercut"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:140
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:322
 msgid "Rising Dragon"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:141
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:142
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:323
 msgid "Divine Dragon"
 msgstr ""
 
@@ -4082,59 +4525,60 @@ msgid "Shock Lv.3"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:151
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:152
 msgid "Embed"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:152
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:153
 msgid "Pin Explosion"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:154
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:155
 msgid "Lucifer A1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:155
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:156
 msgid "Lucifer A2"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:156
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:157
 msgid "Lucifer A3"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:157
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:158
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:159
 msgid "Lucifer A4"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:159
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:160
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:161
 msgid "Lucifer B1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:161
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:162
 msgid "Lucifer E1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:162
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:163
 msgid "Lucifer E2"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:163
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:164
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:165
 msgid "Lucifer E3"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:165
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:166
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:167
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:168
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:333
 msgid "Splash"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:170
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:171
 msgid "Discipline & Bondage"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:171
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:172
 msgid "Climax"
 msgstr ""
@@ -4954,75 +5398,104 @@ msgid ""
 "As Nero, Used Red Queen Combo A1 > EX3 High Roller > Double Down > EX3 Streak"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1257
-#, c-format
-msgid "%s (x%d)"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1441
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1427
 #, c-format
 msgid "Airtime: %.1f"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1484
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1470
 #, c-format
 msgid "Combo: %.2f"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1487
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1473
 #, c-format
 msgid "Height: %.2f"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1491
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1477
 #, c-format
 msgid "Inertia: %.2f"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1969
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1971
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1551
+msgid "Guardfly"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1585
+msgid "Snatch"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1587
+msgid "Dodge"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1594
+msgid "Just Charge"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1686
+msgid "Hidden Combos"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1711
+#, c-format
+msgid "Dante - %i/%i Unlocked"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1714
+#, c-format
+msgid "Nero - %i/%i Unlocked"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1818
+msgid "Clear Unlocks"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1838
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1840
 msgid "Tony"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1977
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1846
 msgid "Alternate Grouping"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1979
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1848
 msgid ""
 "Group attacks by the order you originally did them\n"
 "This helps show the variety in a combo over exact input order"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1981
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1850
 msgid "Height Chart"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1983
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1852
 msgid "Ever wanted to see a log of your height throughout a combo? Me neither!"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1984
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1853
 msgid "Inertia Chart"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1986
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1855
 msgid "Ever wanted to see a log of your inertia throughout a combo? Me neither!"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:2010
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1879
 msgid "Style Point Display"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:2012
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1881
 msgid "See exactly what goes into your style points count"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:2016
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1885
 msgid "Use Original Names"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:2018
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1887
 msgid ""
 "Instead of using our skill renames, use the developers'. Because there are "
 "more unique names, less skills will be grouped"
@@ -5088,64 +5561,1203 @@ msgstr ""
 msgid "Darkslayer is accessed by pressing the target change button"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:13
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:272
 msgid "0x00 Idle"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:14
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:273
 msgid "0x01 Walk forward"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:15
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:274
 msgid "0x02 Run forward"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:16
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:275
 msgid "0x03 Sprint forward"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:17
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:276
 msgid "0x04 Jump"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:18
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:277
 msgid "0x05 Jump forward"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:19
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:278
 msgid "0x06 Return to idle"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:20
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:279
 msgid "0x07 Roll left"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:21
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:280
 msgid "0x08 Roll right"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:22
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:281
 msgid "0x09 Jump back"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:23
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:282
 msgid "0x0A NULL"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:24
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:283
 msgid "0x0B NULL"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:284
-msgid "0x0C Roll forward"
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:25
+msgid "0x0C NULL"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:26
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:285
 msgid "0x0D Land from stingerjump"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:27
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:286
 msgid "0x0E Stingerjump"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:28
+msgid "0x0F T pose (recoverable)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:29
+msgid "0x10 Trickster dash forward"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:30
+msgid "0x11 Land from jump"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:31
+msgid "0x12 Rise midair"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:32
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:291
+msgid "0x13 Holy water"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:33
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:292
+msgid "0x14 Walljump"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:34
+msgid "0x15 Walljump"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:35
+msgid "0x16 Walljump"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:36
+msgid "0x17 Walljump"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:37
+msgid "0x18 Enemy step"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:38
+msgid "0x19 Walljump"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:39
+msgid "0x1A Walljump"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:40
+msgid "0x1B Walljump"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:41
+msgid "0x1C Walljump"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:42
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:301
+msgid "0x1D Jump back"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:43
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:302
+msgid "0x1E NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:44
+msgid "0x1F NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:45
+msgid "0x20 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:46
+msgid "0x21 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:47
+msgid "0x22 Stingerjump"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:48
+msgid "0x23 Land from stingerjump"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:49
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:308
+msgid "0x24 Flip from jump pad"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:50
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:309
+msgid "0x25 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:51
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:310
+msgid "0x26 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:52
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:311
+msgid "0x27 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:53
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:312
+msgid "0x28 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:54
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:313
+msgid "0x29 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:55
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:314
+msgid "0x2A NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:56
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:315
+msgid "0x2B NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:57
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:316
+msgid "0x2C NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:58
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:317
+msgid "0x2D NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:59
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:318
+msgid "0x2E NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:60
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:319
+msgid "0x2F NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:61
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:320
+msgid "0x30 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:62
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:321
+msgid "0x31 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:63
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:322
+msgid "0x32 DT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:64
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:323
+msgid "0x33 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:65
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:324
+msgid "0x34 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:66
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:325
+msgid "0x35 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:67
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:326
+msgid "0x36 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:68
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:327
+msgid "0x37 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:69
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:328
+msgid "0x38 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:70
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:329
+msgid "0x39 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:71
+msgid "0x3A Leave DT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:72
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:331
+msgid "0x3B NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:73
+msgid "0x3C NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:74
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:333
+msgid "0x3D NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:75
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:334
+msgid "0x3E NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:76
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:335
+msgid "0x3F NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:77
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:336
+msgid "0x40 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:78
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:337
+msgid "0x41 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:79
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:338
+msgid "0x42 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:80
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:339
+msgid "0x43 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:81
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:340
+msgid "0x44 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:82
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:341
+msgid "0x45 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:83
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:342
+msgid "0x46 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:84
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:343
+msgid "0x47 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:85
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:344
+msgid "0x48 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:86
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:345
+msgid "0x49 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:87
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:346
+msgid "0x4A NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:88
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:347
+msgid "0x4B NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:89
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:348
+msgid "0x4C NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:90
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:349
+msgid "0x4D NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:91
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:350
+msgid "0x4E NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:92
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:351
+msgid "0x4F NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:93
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:352
+msgid "0x50 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:94
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:353
+msgid "0x51 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:95
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:354
+msgid "0x52 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:96
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:355
+msgid "0x53 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:97
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:356
+msgid "0x54 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:98
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:357
+msgid "0x55 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:99
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:358
+msgid "0x56 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:100
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:359
+msgid "0x57 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:101
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:360
+msgid "0x58 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:102
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:361
+msgid "0x59 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:103
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:362
+msgid "0x5A NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:104
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:363
+msgid "0x5B NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:105
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:364
+msgid "0x5C NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:106
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:365
+msgid "0x5D NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:107
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:366
+msgid "0x5E NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:108
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:367
+msgid "0x5F NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:109
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:368
+msgid "0x60 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:110
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:369
+msgid "0x61 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:111
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:370
+msgid "0x62 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:112
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:371
+msgid "0x63 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:113
+msgid "0x64 Take damage"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:114
+msgid "0x65 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:115
+msgid "0x66 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:116
+msgid "0x67 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:117
+msgid "0x68 Get knocked back into death"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:118
+msgid "0x69 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:119
+msgid "0x6A NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:120
+msgid "0x6B Gold orb flip on to feet"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:121
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:380
+msgid "0x6C NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:122
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:381
+msgid "0x6D NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:123
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:382
+msgid "0x6E NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:124
+msgid "0x6F Die"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:125
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:384
+msgid "0x70 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:126
+msgid "0x71 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:127
+msgid "0x72 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:128
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:387
+msgid "0x73 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:129
+msgid "0x74 Get knocked back"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:130
+msgid "0x75 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:131
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:390
+msgid "0x76 Get up again"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:132
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:391
+msgid "0x77 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:133
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:392
+msgid "0x78 Gold orb"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:134
+msgid "0x79 Take stun"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:135
+msgid "0x7A Get air juggled"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:136
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:395
+msgid "0x7B Shield face from wind"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:137
+msgid "0x7C Shield face from wind big"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:138
+msgid "0x7D Break out of something"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:139
+msgid "0x7E Break out of something big"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:140
+msgid "0x7F Fall after being hit"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:141
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:400
+msgid "0x80 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:142
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:401
+msgid "0x81 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:143
+msgid "0x82 Possessed thrown around"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:144
+msgid "0x83 Held in the air"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:145
+msgid "0x84 Falling from being held"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:146
+msgid "0x85 Fall to floor touching floor"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:147
+msgid "0x86 Get up from floor"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:148
+msgid "0x87 Fly back along floor on feet"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:149
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:408
+msgid "0x88 Shield face from wind"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:150
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:409
+msgid "0x89 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:151
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:410
+msgid "0x8A NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:152
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:411
+msgid "0x8B NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:153
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:412
+msgid "0x8C NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:154
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:413
+msgid "0x8D NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:155
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:414
+msgid "0x8E NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:156
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:415
+msgid "0x8F NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:157
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:416
+msgid "0x90 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:158
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:417
+msgid "0x91 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:159
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:418
+msgid "0x92 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:160
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:419
+msgid "0x93 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:161
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:420
+msgid "0x94 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:162
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:421
+msgid "0x95 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:163
+msgid "0x96 One handed cmon"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:164
+msgid "0x97 2 handed cmon"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:165
+msgid "0x98 Shrug"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:166
+msgid "0x99 Step back alright baby"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:167
+msgid "0x9A Cut bow"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:168
+msgid "0x9B Clap for doggo lean forward"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:169
+msgid "0x9C Dust off hands"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:170
+msgid "0x9D Turn around hands up"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:171
+msgid "0x9E Laugh"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:172
+msgid "0x9F Hands on hips"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:173
+msgid "0xA0 Stretch hands above head"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:174
+msgid "0xA1 Idly look around"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:175
+msgid "0xA2 Trickster"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:176
+msgid "0xA3 Swordmaster"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:177
+msgid "0xA4 Gunslinger"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:178
+msgid "0xA5 Royal Guard style change"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:179
+msgid "0xA6 Lean forward showdown"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:180
+msgid "0xA7 Cut gilg taunt"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:181
+msgid "0xA8 Cut luci taunt"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:182
+msgid "0xA9 Cut ei taunt"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:183
+msgid "0xAA Cut shotty taunt"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:184
+msgid "0xAB Shoot sky"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:185
+msgid "0xAC Cmon, broken root motion"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:186
+msgid "0xAD Lean forward cmon"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:187
+msgid "0xAE Turn around hands up"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:188
+msgid "0xAF Darkslayer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:189
+msgid "0xB0 Dante boss death"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:190
+msgid "0xB1 Dante boss death"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:191
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:450
+msgid "0xB2 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:192
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:451
+msgid "0xB3 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:193
+msgid "0xB4 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:194
+msgid "0xB5 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:195
+msgid "0xB6 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:196
+msgid "0xB7 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:197
+msgid "0xB8 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:198
+msgid "0xB9 NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:199
+msgid "0xBA NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:200
+msgid "0xBB NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:201
+msgid "0xBC NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:202
+msgid "0xBD NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:203
+msgid "0xBE NULL"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:204
+msgid "0xBF END?"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:205
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:464
+msgid "0xC0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:206
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:465
+msgid "0xC1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:207
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:466
+msgid "0xC2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:208
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:467
+msgid "0xC3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:209
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:468
+msgid "0xC4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:210
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:469
+msgid "0xC5"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:211
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:470
+msgid "0xC6"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:212
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:471
+msgid "0xC7"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:213
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:472
+msgid "0xC8"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:214
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:473
+msgid "0xC9"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:215
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:474
+msgid "0xCA"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:216
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:475
+msgid "0xCB"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:217
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:476
+msgid "0xCC"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:218
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:477
+msgid "0xCD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:219
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:478
+msgid "0xCE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:220
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:479
+msgid "0xCF"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:221
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:480
+msgid "0xD0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:222
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:481
+msgid "0xD1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:223
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:482
+msgid "0xD2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:224
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:483
+msgid "0xD3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:225
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:484
+msgid "0xD4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:226
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:485
+msgid "0xD5"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:227
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:486
+msgid "0xD6"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:228
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:487
+msgid "0xD7"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:229
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:488
+msgid "0xD8"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:230
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:489
+msgid "0xD9"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:231
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:490
+msgid "0xDA"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:232
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:491
+msgid "0xDB"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:233
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:492
+msgid "0xDC"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:234
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:493
+msgid "0xDD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:235
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:494
+msgid "0xDE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:236
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:495
+msgid "0xDF"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:237
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:496
+msgid "0xE0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:238
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:497
+msgid "0xE1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:239
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:498
+msgid "0xE2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:240
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:499
+msgid "0xE3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:241
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:500
+msgid "0xE4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:242
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:501
+msgid "0xE5"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:243
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:502
+msgid "0xE6"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:244
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:503
+msgid "0xE7"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:245
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:504
+msgid "0xE8"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:246
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:505
+msgid "0xE9"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:247
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:506
+msgid "0xEA"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:248
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:507
+msgid "0xEB"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:249
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:508
+msgid "0xEC"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:250
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:509
+msgid "0xED"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:251
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:510
+msgid "0xEE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:252
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:511
+msgid "0xEF"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:253
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:512
+msgid "0xF0"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:254
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:513
+msgid "0xF1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:255
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:514
+msgid "0xF2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:256
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:515
+msgid "0xF3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:257
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:516
+msgid "0xF4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:258
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:517
+msgid "0xF5"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:259
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:518
+msgid "0xF6"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:260
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:519
+msgid "0xF7"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:261
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:520
+msgid "0xF8"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:262
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:521
+msgid "0xF9"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:263
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:522
+msgid "0xFA"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:264
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:523
+msgid "0xFB"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:265
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:524
+msgid "0xFC"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:266
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:525
+msgid "0xFD"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:267
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:526
+msgid "0xFE"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:268
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:527
+msgid "0xFF"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:284
+msgid "0x0C Roll forward"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:287
@@ -5162,14 +6774,6 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:290
 msgid "0x12 Rise, prob midair anim"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:291
-msgid "0x13 Holy water"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:292
-msgid "0x14 Walljump"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:293
@@ -5204,14 +6808,6 @@ msgstr ""
 msgid "0x1C Walljump forward"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:301
-msgid "0x1D Jump back"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:302
-msgid "0x1E NULL"
-msgstr ""
-
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:303
 msgid "0x1F Table Hopper left"
 msgstr ""
@@ -5232,260 +6828,12 @@ msgstr ""
 msgid "0x23 Land from long jump"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:308
-msgid "0x24 Flip from jump pad"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:309
-msgid "0x25 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:310
-msgid "0x26 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:311
-msgid "0x27 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:312
-msgid "0x28 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:313
-msgid "0x29 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:314
-msgid "0x2A NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:315
-msgid "0x2B NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:316
-msgid "0x2C NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:317
-msgid "0x2D NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:318
-msgid "0x2E NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:319
-msgid "0x2F NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:320
-msgid "0x30 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:321
-msgid "0x31 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:322
-msgid "0x32 DT"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:323
-msgid "0x33 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:324
-msgid "0x34 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:325
-msgid "0x35 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:326
-msgid "0x36 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:327
-msgid "0x37 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:328
-msgid "0x38 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:329
-msgid "0x39 NULL"
-msgstr ""
-
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:330
 msgid "0x3A NULL"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:331
-msgid "0x3B NULL"
-msgstr ""
-
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:332
 msgid "0x3C Air DT"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:333
-msgid "0x3D NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:334
-msgid "0x3E NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:335
-msgid "0x3F NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:336
-msgid "0x40 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:337
-msgid "0x41 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:338
-msgid "0x42 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:339
-msgid "0x43 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:340
-msgid "0x44 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:341
-msgid "0x45 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:342
-msgid "0x46 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:343
-msgid "0x47 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:344
-msgid "0x48 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:345
-msgid "0x49 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:346
-msgid "0x4A NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:347
-msgid "0x4B NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:348
-msgid "0x4C NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:349
-msgid "0x4D NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:350
-msgid "0x4E NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:351
-msgid "0x4F NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:352
-msgid "0x50 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:353
-msgid "0x51 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:354
-msgid "0x52 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:355
-msgid "0x53 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:356
-msgid "0x54 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:357
-msgid "0x55 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:358
-msgid "0x56 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:359
-msgid "0x57 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:360
-msgid "0x58 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:361
-msgid "0x59 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:362
-msgid "0x5A NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:363
-msgid "0x5B NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:364
-msgid "0x5C NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:365
-msgid "0x5D NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:366
-msgid "0x5E NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:367
-msgid "0x5F NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:368
-msgid "0x60 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:369
-msgid "0x61 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:370
-msgid "0x62 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:371
-msgid "0x63 NULL"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:372
@@ -5520,24 +6868,8 @@ msgstr ""
 msgid "0x6B Gold orb"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:380
-msgid "0x6C NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:381
-msgid "0x6D NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:382
-msgid "0x6E NULL"
-msgstr ""
-
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:383
 msgid "0x6F Fall forward and die"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:384
-msgid "0x70 NULL"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:385
@@ -5548,10 +6880,6 @@ msgstr ""
 msgid "0x72 Land from a jump"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:387
-msgid "0x73 NULL"
-msgstr ""
-
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:388
 msgid "0x74 Thrown back on to feet"
 msgstr ""
@@ -5560,28 +6888,12 @@ msgstr ""
 msgid "0x75 Thrown back with a twirl"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:390
-msgid "0x76 Walter dodge"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:391
-msgid "0x77 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:392
-msgid "0x78 Gold orb"
-msgstr ""
-
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:393
 msgid "0x79 Stagger back"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:394
 msgid "0x7A Get juggled"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:395
-msgid "0x7B Shield face from wind"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:396
@@ -5598,14 +6910,6 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:399
 msgid "0x7F Fall from height"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:400
-msgid "0x80 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:401
-msgid "0x81 NULL"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:402
@@ -5630,62 +6934,6 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:407
 msgid "0x87 Sliding back on feet"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:408
-msgid "0x88 Shield face from wind"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:409
-msgid "0x89 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:410
-msgid "0x8A NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:411
-msgid "0x8B NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:412
-msgid "0x8C NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:413
-msgid "0x8D NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:414
-msgid "0x8E NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:415
-msgid "0x8F NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:416
-msgid "0x90 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:417
-msgid "0x91 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:418
-msgid "0x92 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:419
-msgid "0x93 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:420
-msgid "0x94 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:421
-msgid "0x95 NULL"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:422
@@ -5800,14 +7048,6 @@ msgstr ""
 msgid "0xB1 NULL"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:450
-msgid "0xB2 NULL"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:451
-msgid "0xB3 NULL"
-msgstr ""
-
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:452
 msgid "0xB4 END?"
 msgstr ""
@@ -5854,262 +7094,6 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:463
 msgid "0xBF"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:464
-msgid "0xC0"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:465
-msgid "0xC1"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:466
-msgid "0xC2"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:467
-msgid "0xC3"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:468
-msgid "0xC4"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:469
-msgid "0xC5"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:470
-msgid "0xC6"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:471
-msgid "0xC7"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:472
-msgid "0xC8"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:473
-msgid "0xC9"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:474
-msgid "0xCA"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:475
-msgid "0xCB"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:476
-msgid "0xCC"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:477
-msgid "0xCD"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:478
-msgid "0xCE"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:479
-msgid "0xCF"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:480
-msgid "0xD0"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:481
-msgid "0xD1"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:482
-msgid "0xD2"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:483
-msgid "0xD3"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:484
-msgid "0xD4"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:485
-msgid "0xD5"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:486
-msgid "0xD6"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:487
-msgid "0xD7"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:488
-msgid "0xD8"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:489
-msgid "0xD9"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:490
-msgid "0xDA"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:491
-msgid "0xDB"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:492
-msgid "0xDC"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:493
-msgid "0xDD"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:494
-msgid "0xDE"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:495
-msgid "0xDF"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:496
-msgid "0xE0"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:497
-msgid "0xE1"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:498
-msgid "0xE2"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:499
-msgid "0xE3"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:500
-msgid "0xE4"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:501
-msgid "0xE5"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:502
-msgid "0xE6"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:503
-msgid "0xE7"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:504
-msgid "0xE8"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:505
-msgid "0xE9"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:506
-msgid "0xEA"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:507
-msgid "0xEB"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:508
-msgid "0xEC"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:509
-msgid "0xED"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:510
-msgid "0xEE"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:511
-msgid "0xEF"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:512
-msgid "0xF0"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:513
-msgid "0xF1"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:514
-msgid "0xF2"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:515
-msgid "0xF3"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:516
-msgid "0xF4"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:517
-msgid "0xF5"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:518
-msgid "0xF6"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:519
-msgid "0xF7"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:520
-msgid "0xF8"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:521
-msgid "0xF9"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:522
-msgid "0xFA"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:523
-msgid "0xFB"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:524
-msgid "0xFC"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:525
-msgid "0xFD"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:526
-msgid "0xFE"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:527
-msgid "0xFF"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:591
@@ -6494,4 +7478,746 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:82
 msgid "Default hotkey is numpad ."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:36
+msgid "None"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:37
+msgid "Select"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:38
+msgid "L3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:39
+msgid "R3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:40
+msgid "Start"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:41
+msgid "Dpad Up"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:42
+msgid "Dpad Right"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:43
+msgid "Dpad Down"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:44
+msgid "Dpad Left"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:45
+msgid "L1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:46
+msgid "R1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:47
+msgid "L2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:48
+msgid "R2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:49
+msgid "Y"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:50
+msgid "B"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:51
+msgid "A"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:52
+msgid "X"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:283
+msgid "Rebellion Combo A1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:284
+msgid "Rebellion Combo A2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:285
+msgid "Rebellion Combo A3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:286
+msgid "Rebellion Combo B1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:287
+msgid "Rebellion Combo B2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:290
+msgid "Stinger Level 1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:291
+msgid "Stinger Level 2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:292
+msgid "Stinger DT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:293
+msgid "High Time (Ground)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:294
+msgid "High Time (Air)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:296
+msgid "Round Trip (Call Back Ground)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:297
+msgid "Round Trip (Call Back Air)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:300
+msgid "Aerial Rave 1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:301
+msgid "Aerial Rave 2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:302
+msgid "Aerial Rave 3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:303
+msgid "Aerial Rave 4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:308
+msgid "Gilgamesh Combo A1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:309
+msgid "Gilgamesh Combo A2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:310
+msgid "Gilgamesh Combo A3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:311
+msgid "Gilgamesh Combo A4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:312
+msgid "Gilgamesh Combo B1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:313
+msgid "Gilgamesh Combo B2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:315
+msgid "Kick 13 (Regular)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:318
+msgid "Shock (Ground)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:319
+msgid "Shocking (Air)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:324
+msgid "Lucifer Combo A1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:325
+msgid "Lucifer Combo A2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:326
+msgid "Lucifer Combo A3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:327
+msgid "Lucifer Combo A4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:328
+msgid "Lucifer Combo D1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:329
+msgid "Lucifer Combo C1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:330
+msgid "Lucifer Combo E1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:331
+msgid "Lucifer Combo B1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:332
+msgid "ATCK_ID_LF_ARRANGEMENT_COMBO"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:334
+msgid "Pin Up (Regular)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:335
+msgid "Pin Up (DT)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:336
+msgid "Ecstasy (Ground)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:337
+msgid "Ecstasy (Air)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:338
+msgid "Climax (Ground)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:339
+msgid "Climax (Air)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:340
+msgid "Discipline"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:341
+msgid "Bondage?"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:342
+msgid "Ebony & Ivory Shoot (Ground)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:343
+msgid "Ebony & Ivory Charged Shot Lv1 (G)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:344
+msgid "Ebony & Ivory Charged Shot Lv2 (G)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:345
+msgid "Ebony & Ivory Charged Shot Lv3 (G)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:346
+msgid "Ebony & Ivory Shoot (Air)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:347
+msgid "Ebony & Ivory Charged Shot Lv1 (A)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:348
+msgid "Ebony & Ivory Charged Shot Lv2 (A)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:349
+msgid "Ebony & Ivory Charged Shot Lv3 (A)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:350
+msgid "Ebony & Ivory Twosome Time"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:351
+msgid "Ebony & Ivory Honeycomb Fire"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:352
+msgid "Ebony & Ivory Rainstorm"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:353
+msgid "Coyote Ace Shoot (Ground)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:354
+msgid "Coyote Ace Charged Shot Lv1 (G)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:355
+msgid "Coyote Ace Charged Shot Lv2 (G)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:356
+msgid "Coyote Ace Charged Shot Lv3 (G)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:357
+msgid "Coyote Ace Shoot (Air)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:358
+msgid "Coyote Ace Charged Shot Lv1 (A)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:359
+msgid "Coyote Ace Charged Shot Lv2 (A)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:360
+msgid "Coyote Ace Charged Shot Lv3 (A)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:361
+msgid "Coyote Ace Fireworks (Ground)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:362
+msgid "Coyote Ace Fireworks (Air)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:363
+msgid "Coyote Ace Backslide"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:364
+msgid "Coyote Ace Gun Stinger"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:365
+msgid "PF013: Epidemic"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:366
+msgid "PF124: Hatred"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:367
+msgid "PF398: Revenge"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:368
+msgid "PF262: Jealousy"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:369
+msgid "ATCK_ID_SPD_BATTERY"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:370
+msgid "PF594: Argument"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:371
+msgid "PF422: Grief"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:372
+msgid "PF666: Omen"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:373
+msgid "Trickster Dash"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:374
+msgid "Sky Star"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:375
+msgid "Air Trick"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:376
+msgid "Flipper?"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:377
+msgid "Release (Bronze No Target)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:378
+msgid "Release (Silver Missed)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:379
+msgid "Release (Gold Just)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:380
+msgid "Release Air (Bronze)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:381
+msgid "Release Air (Silver)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:382
+msgid "Release Air (Gold)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:383
+msgid "Dreadnaught"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:384
+msgid "Yamato Combo A1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:385
+msgid "Yamato Combo A2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:386
+msgid "Yamato Combo A3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:387
+msgid "Aerial Rave V1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:388
+msgid "Aerial Rave V2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:389
+msgid "Slash Dimension (Far)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:390
+msgid "Slash Dimension (Close)"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:394
+msgid "0 - None / Lockon + Melee"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:395
+msgid "1 - Lockon + Gun"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:396
+msgid "2 - Lockon + Style"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:397
+msgid "3 - Lockon + Forward + Melee"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:398
+msgid "4 - Lockon + Back + Melee"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:399
+msgid "5 - Lockon + Forward + Gun"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:400
+msgid "6 - Lockon + Back + Gun"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:401
+msgid "7 - Lockon + Forward + Style"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:402
+msgid "8 - Lockon + Back + Style"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:403
+msgid "9 - Lockon + Forward + Melee2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:404
+msgid "10 - Lockon + Back + Melee2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:405
+msgid "11 - Lockon + Forward + Gun2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:406
+msgid "12 - Lockon + Back + Gun2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:407
+msgid "13 - Lockon + Forward + Style2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:408
+msgid "14 - Lockon + Back + Style2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:409
+msgid "15 - Lockon + Forward + Melee Stick"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:410
+msgid "16 - Lockon + Back + Melee Stick"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:411
+msgid "17 - Lockon + Forward + Gun Stick"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:412
+msgid "18 - Lockon + Back + Gun Stick"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:413
+msgid "19 - Lockon + Forward + Style Stick"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:414
+msgid "20 - Lockon + Back + Style Stick"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:415
+msgid "21 - Lockon + Any Direction + Melee"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:416
+msgid "22 - Lockon + Any Direction + Gun"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:417
+msgid "23 - Lockon + Any Direction + Style"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:418
+msgid "24 - Any Direction + Melee"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:419
+msgid "25 - Any Direction + Gun"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:420
+msgid "26 - Any Direction + Style"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:421
+msgid "27 - Melee"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:426
+msgid "32 - Gun Release"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:427
+msgid "33 - Gun Charged Release"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:428
+msgid "34 - Lockon + Gun Charge"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:429
+msgid "35 - Gun Charged"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:430
+msgid "36 - Gun Charge3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:431
+msgid "37 - Gun Charge4"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:432
+msgid "38 - Gun Charge3"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:475
+msgid "81 - Melee + Style"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:476
+msgid "82 - Lockon + Backforward + Melee"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:478
+msgid "84 - Gun"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:486
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:511
+msgid "FF - None"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:487
+msgid "0 - Red Queen"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:488
+msgid "1 - Blue Rose"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:489
+msgid "2 - Yamato"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:490
+msgid "3 - Right Hand"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:491
+msgid "4 - Rebellion"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:492
+msgid "5 - Gilgamesh"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:493
+msgid "6 - Lucifer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:494
+msgid "7 - Coyote Ace"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:495
+msgid "8 - Pandora"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:496
+msgid "9 - Ebony & Ivory"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:512
+msgid "0 - Swordmaster"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:513
+msgid "1 - Gunslinger"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:514
+msgid "2 - Trickster"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:515
+msgid "3 - Royal Guard"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:516
+msgid "4 - Darkslayer"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:520
+msgid "0 - None"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:521
+msgid "1 - Ground"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:522
+msgid "2 - Air"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:523
+msgid "3 - Ground or air"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:527
+msgid "0 - None?"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:528
+msgid "1 - None?"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:529
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:537
+msgid "2 - Disabled?"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:530
+msgid "3 -"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:531
+msgid "4 - Height Restricted"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:535
+msgid "0 - DT or no DT"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:536
+msgid "1 - DT or no DT 2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:538
+msgid "3 - DT Only"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:539
+msgid "4 -"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:540
+msgid "5 -"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:541
+msgid "6 -"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:542
+msgid "7 -"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:543
+msgid "8 -"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:544
+msgid "9 - DT or Charge"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:545
+msgid "10 -"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:546
+msgid "11 - DT or Charge 2"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\utility\Input.cpp:347
+msgid "set"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\utility\Input.cpp:357
+msgid "save"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\utility\Input.cpp:366
+msgid "clear"
 msgstr ""

@@ -674,6 +674,98 @@ namespace w2s {
         }
     }
 
+    void Draw3DText(
+        const char* string, 
+        glm::vec3 pos,
+        glm::vec3 rot,
+        ImColor color,
+        float thick,
+        float scale,
+        float width,
+        float height,
+        float spacing,
+        float lineheight) {
+
+        int slen = strlen(string);
+  
+        float xOffset = 0.0;
+        float yOffset = 0.0;
+
+        glm::quat rotation = glm::quat(glm::vec3(glm::radians(rot.x), glm::radians(rot.y), glm::radians(rot.z)));
+  
+        for (int i = 0; i < slen; i++) {
+            if (string[i] == '\n') {
+                // If we have a line break then reset xOffset and move to next line
+                xOffset = 0.0;
+                yOffset -= lineheight * scale * height;
+            }
+            else if (string[i] == '\r') {
+                // Carriage return resets the xOffset
+                xOffset = 0.0;
+            }
+            else if (string[i] == '\t') {
+                // Tab is like four spaces
+                xOffset += 4.0f * 0.5f * scale * width + spacing;          
+            }
+            else if (string[i] < '!' || string[i] > '~') {
+                // Every other non-printable character is rendered as a space
+                xOffset += 0.5f * scale * width + spacing;
+            }
+            else {
+                // Get the look-up table index from the character code
+                int ci = string[i] - '!';
+            
+                // Get the number of line segments and the offset into the lines array
+                int lnum = consolines_nums[ci];
+                int loff = consolines_offsets[ci];
+            
+                for (int li = 0; li < lnum; li++) {
+                    // Unpack integer coordinates
+                    int xStartInt = (0x000000FF & (consolines_lines[loff + li] >> 0));
+                    int yStartInt = (0x000000FF & (consolines_lines[loff + li] >> 8));
+                    int xEndInt = (0x000000FF & (consolines_lines[loff + li] >> 16));
+                    int yEndInt = (0x000000FF & (consolines_lines[loff + li] >> 24));
+              
+                    // Compute the line start position in 3D space
+                    glm::vec3 start = glm::vec3(
+                        xOffset + scale *  width * (       ((float)xStartInt) / 128),
+                        yOffset - scale * height * (1.0f - ((float)yStartInt) / 128),
+                        0.0f);
+              
+                    start = (rotation * start) + pos;
+                
+                    // Compute the line end position in 3D space
+                    glm::vec3 end = glm::vec3(
+                        xOffset + scale *  width * (       ((float)xEndInt) / 128),
+                        yOffset - scale * height * (1.0f - ((float)yEndInt) / 128),
+                        0.0f);
+                
+                    end = (rotation * end) + pos;
+                
+                    // If thickness is zero draw as a line otherwise draw as a capsule
+                    if (thick == 0.0f) {
+                        w2s::DrawLine3D(start, end, color);
+                    }
+                    else {
+                        glm::vec3 direction = end - start;
+                        float capsuleHeight = glm::length(direction);
+                    
+                        glm::vec3 normalizedDir = glm::normalize(direction);
+                    
+                        float pitch = atan2(sqrt(normalizedDir.x * normalizedDir.x + normalizedDir.z * normalizedDir.z), normalizedDir.y);
+                    
+                        float yaw = atan2(normalizedDir.x, normalizedDir.z);
+                    
+                        w2s::DrawWireframeCapsule(start, thick, capsuleHeight, pitch, yaw, 0.0f, color, 32, thick);                  
+                    }
+                }
+            
+                // Shift forward to next location
+                xOffset += 0.5f * scale * width + spacing;
+            }
+        }
+    }
+
     bool IsVisibleOnScreen(const glm::vec3& worldPos, float objectRadius) {
         // Convert world position to screen space
         glm::vec2 screenPos = WorldToScreen(worldPos);

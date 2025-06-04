@@ -222,6 +222,8 @@ namespace gui {
         if (sRender* sRender = devil4_sdk::get_sRender()) maxUIHeight = sRender->screenRes.y * 0.9f;
         else maxUIHeight = 1080.0f * 0.9f;
         ImGui::Text(_("Average %.3f ms/frame (%.1f FPS)"), 1000.0f / io.Framerate, io.Framerate);
+        ImGui::SameLine();
+        pmods->on_draw_ui("LocalizationManager"_hash);
         const char* save_config_label = _("Save Config");
         ImVec2 btn_size = ImGui::CalcTextSize(save_config_label);
         btn_size.x += ImGui::GetStyle().FramePadding.x * 2.0f;
@@ -626,9 +628,6 @@ namespace gui {
                 ImGui::BeginChild("SystemChild");
 
                 ImGui::SeparatorText(_("dmc4_hook"));
-
-                pmods->on_draw_ui("LocalizationManager"_hash);
-                //ImGui::SameLine(sameLineWidth);
                 
                 pmods->on_draw_ui("DisableKeyboard"_hash, 2);
                 ImGui::SameLine(sameLineWidth);

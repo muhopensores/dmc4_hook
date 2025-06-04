@@ -425,7 +425,8 @@ void MoveTable::on_frame(fmilliseconds& dt) {
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[5] - ImGui::GetStyle().ItemInnerSpacing.x); 
                     int tempCommand = (int)TblEntry->command.atckCommand;
-                    if (ImGui::Combo("##+10", &tempCommand, buttonMappingNames, IM_ARRAYSIZE(buttonMappingNames))) {
+                    utility::ImGooListboxTranslated localizedDirectionMappingNames(directionMappingNames, IM_ARRAYSIZE(directionMappingNames));
+                    if (ImGui::Combo("##+10", &tempCommand, localizedDirectionMappingNames.data_, IM_ARRAYSIZE(directionMappingNames))) {
                         TblEntry->command.atckCommand = (uint8_t)tempCommand;
                     }
 
@@ -492,7 +493,8 @@ void MoveTable::display_attack_entry(kAtckDefTbl* TblEntry) {
     ImGui::Indent(lineIndent);
     int tempCommand = (int)TblEntry->command.atckCommand;
     ImGui::SetNextItemWidth(sameLineItemWidth * 2);
-    if (ImGui::Combo(_("+10 Cmd"), &tempCommand, buttonMappingNames, IM_ARRAYSIZE(buttonMappingNames))) {
+    utility::ImGooListboxTranslated localizedDirectionMappingNames(directionMappingNames, IM_ARRAYSIZE(directionMappingNames));
+    if (ImGui::Combo(_("+10 Cmd"), &tempCommand, localizedDirectionMappingNames.data_, IM_ARRAYSIZE(directionMappingNames))) {
         TblEntry->command.atckCommand = (uint8_t)tempCommand;
     }
     ImGui::InputScalar(_("+11 Cmd No"), ImGuiDataType_U8, &TblEntry->command.atckCommandNo, &step);

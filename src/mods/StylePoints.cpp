@@ -149,6 +149,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
 
     // lucifer
     {"NORMAL",           __("Embed")}, // pins and pandora's normal shot
+	{"Stand",  			 __("Embed")}, // when the enemy is grounded and uh some other states
     {"Bomb",             __("Pin Explosion")},
     {"ROSE",             __("Rose")},
 	{"LUCI-combo503",    __("Lucifer A1")},
@@ -168,7 +169,6 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
 
     // lucifer swordmaster
 	{"Funnel", 			 __("Discipline & Bondage")},
-	{"Stand",  			 __("Climax")},
 	{"BombBariier",  	 __("Climax")},
 
     // e&i
@@ -299,7 +299,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"Em003_3",          __("Mega Buster")},
     {"BUS-Em003",        __("Mega Buster")},
     {"Em003-roll_coun",  __("Mega Counter")},
-    {"Em003-ground_th",  __("Mega Counter")},
+    {"Em003_ground_th",  __("Mega Counter")},
     {"makikomi152",      __("Collateral")},
     {"makikomi158",      __("Collateral")},     // enemy hit by bustered mega
     {"makikomi156",      __("Collateral")}, 
@@ -739,7 +739,7 @@ static std::unordered_map<std::string, std::string> textLookupTable = {
     {"\x90\x8B\xBA",     __("Hold Block")},     // held enemy hit by seed, reads ???
 };
 
-static const std::map<std::vector<std::string>, std::string> comboNames = {
+static const std::map<std::vector<const char*>, const char*> comboNames = {
     {{"High Time", "Aerial Rave", "Aerial Rave", "Aerial Rave", "Aerial Rave"}, "Very Creative!"},
     {{"High Time", "E&I", "E&I", "E&I", "E&I", "E&I"}, "Kamiya's Vision!"},
     {{"Guardfly", "Guardfly"}, "Is That A Plane?"},
@@ -1240,7 +1240,7 @@ static void DrawTonyScores() {
             char trickText[64];
             std::string translatedTrickName = utility::text_lookup((char*)groupedTrick.baseTrick.text.c_str());
             if (groupedTrick.repeatCount > 1) {
-                snprintf(trickText, sizeof(trickText), __("%s (x%d)"), translatedTrickName.c_str(), groupedTrick.repeatCount);
+                snprintf(trickText, sizeof(trickText), "%s (x%d)", translatedTrickName.c_str(), groupedTrick.repeatCount);
             }
             else {
                 snprintf(trickText, sizeof(trickText), "%s", translatedTrickName.c_str());
@@ -1296,7 +1296,7 @@ static void DrawTonyScores() {
 
     if (!trickScores.empty()) {
         for (const auto& combo : comboNames) {
-            const std::vector<std::string>& comboSequence = combo.first;
+            const std::vector<const char*>& comboSequence = combo.first;
             size_t comboLength = comboSequence.size();
             size_t trickScoresSize = trickScores.size();
             if (trickScoresSize >= comboLength) {
@@ -1322,7 +1322,7 @@ static void DrawTonyScores() {
                         SaveUnlockToConfig();
                     }
                 
-                    detectedCombo = combo.second;
+                    detectedCombo =  utility::text_lookup((char*)combo.second); // combo.second;
                     lastMatchTime = std::chrono::steady_clock::now();
                     break;
                 }
@@ -1547,7 +1547,8 @@ naked void detour1(void) { // hit instances
         jmp dword ptr [StylePoints::jmp_ret1]
     }
 }
-static const char* guardText = "Guardfly";
+
+static const char* guardText = __("Guardfly");
 static const float slowestGuardfly = 20.0f;
 naked void detour2(void) { // called once on air guard start
     _asm {
@@ -1580,17 +1581,17 @@ static const char* GetJustTypeName(int Type) { // return "" if you don't want it
     switch (Type) {
         case 0: return "";
         case 1: return "";                // ADD_COMBO_GUAGE_PROVOKE_BONUS = 0x1, // Taunt
-        case 2: return "Enemy Step";      // ADD_COMBO_GUAGE_EMJUMP = 0x2,
-        case 3: return "Snatch";          // ADD_COMBO_GUAGE_GRAB = 0x3,
+        case 2: return "Enemy Step";   // ADD_COMBO_GUAGE_EMJUMP = 0x2,
+        case 3: return _("Snatch");       // ADD_COMBO_GUAGE_GRAB = 0x3,
         case 4: return "";                // ADD_COMBO_GUAGE_GRAB_NEAR = 0x4, // Buster
-        case 5: return "Dodge";           // ADD_COMBO_GUAGE_AVOIDED = 0x5,
+        case 5: return _("Dodge");        // ADD_COMBO_GUAGE_AVOIDED = 0x5,
         case 6: return "";                // ADD_COMBO_GUAGE_ENEMY_GUARD = 0x6,
         case 7: return "Block";           // ADD_COMBO_GUAGE_BLOCK = 0x7,
         case 8: return "";                // ADD_COMBO_GUAGE_RELEASE = 0x8,
         case 9: return "";                // ADD_COMBO_GUAGE_PANDORABOX = 0x9,
         case 10: return "";               // ADD_COMBO_GUAGE_TS_ESC = 0xa,
         case 11: return "";               // ADD_COMBO_GUAGE_YT_COMBO2 = 0xb,
-        case 12: return "Just Charge";    // ADD_COMBO_GUAGE_GM_JUST_SAVE = 0xc,
+        case 12: return _("Just Charge"); // ADD_COMBO_GUAGE_GM_JUST_SAVE = 0xc,
         case 13: return "";               // ADD_COMBO_GUAGE_TS_EM_HIKE = 0xd,
         case 14: return "";               // ADD_COMBO_GUAGE_RETURN_SWORD = 0xe,
         default: return "";
@@ -1680,10 +1681,9 @@ void StylePoints::DrawHiddenCombos() {
     ImGui::BeginChild("ScrollingContent", availSpace, false, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar);
     static float fontScale = 1.0f;
     ImGui::SetWindowFontScale(fontScale);
-    static bool splitIntoDifficulties = false;
 
     static ImVec4 TexCol{ 0.8f, 0.8f, 0.8f, 1.0f };
-    ImGui::TextColored(TexCol, "Hidden Combos");
+    ImGui::TextColored(TexCol, _("Hidden Combos"));
 
     ImGui::Columns(2, "CharacterColumns", true);
 
@@ -1708,199 +1708,83 @@ void StylePoints::DrawHiddenCombos() {
         }
     }
     
-    ImGui::TextColored(TexCol, "Dante - %i/%i Unlocked", unlockedDante, totalDante);
+    ImGui::TextColored(TexCol, _("Dante - %i/%i Unlocked"), unlockedDante, totalDante);
     ImGui::NextColumn();
 
-    ImGui::TextColored(TexCol, "Nero - %i/%i Unlocked", unlockedNero, totalNero);
+    ImGui::TextColored(TexCol, _("Nero - %i/%i Unlocked"), unlockedNero, totalNero);
     ImGui::NextColumn();
 
-    if (splitIntoDifficulties) {
-        int maxDifficulty = 0;
-        for (ComboUnlock& combo : unlocked_combos) {
-            if (combo.difficultyLevel > maxDifficulty)
-                maxDifficulty = combo.difficultyLevel;
-        }
+    ImGui::Separator();
     
-        for (int difficulty = 1; difficulty <= maxDifficulty; ++difficulty) {
-            ImVec4 difficultyColor;
-            if (difficulty == 1) {
-                difficultyColor = ImVec4(0.5f, 1.0f, 0.5f, 1.0f); // Green
-            } else if (difficulty == 2) {
-                difficultyColor = ImVec4(1.0f, 1.0f, 0.5f, 1.0f); // Yellow
-            } else if (difficulty == 3) {
-                difficultyColor = ImVec4(1.0f, 0.6f, 0.2f, 1.0f); // Orange
-            } else if (difficulty == 4) {
-                difficultyColor = ImVec4(1.0f, 0.5f, 0.5f, 1.0f); // Red
-            } else if (difficulty == 5) {
-                difficultyColor = ImVec4(0.8f, 0.5f, 1.0f, 1.0f); // Purple
-            }
+    for (size_t i = 0; i < unlocked_combos.size(); ++i) {
+        ComboUnlock& combo = unlocked_combos[i];
+        if (combo.character != DANTE)
+            continue;
 
-            ImGui::Separator();
-            int totalDanteDiff = 0;
-            int unlockedDanteDiff = 0;
-            for (const ComboUnlock& combo : unlocked_combos) {
-                if (combo.difficultyLevel == difficulty && combo.character == DANTE) {
-                    totalDanteDiff++;
-                    if (combo.unlocked) unlockedDanteDiff++;
-                }
-            }
-        
-            ImGui::TextColored(TexCol, "Difficulty %i - %i/%i Unlocked", difficulty, unlockedDanteDiff, totalDanteDiff); // difficultyColor
-        
-            for (size_t i = 0; i < unlocked_combos.size(); ++i) {
-                ComboUnlock& combo = unlocked_combos[i];
-                if (combo.difficultyLevel != difficulty || combo.character != DANTE)
-                    continue;
-
-                std::string displayText;
-                if (combo.unlocked) {
-                    displayText = combo.name;
+        std::string displayText;
+        if (combo.unlocked) {
+            displayText = combo.name;
+        } else {
+            for (const char* p = combo.name; *p != '\0'; ++p) {
+                char c = *p;
+                if (c == ' ') {
+                    displayText += c;
                 } else {
-                    for (const char* p = combo.name; *p != '\0'; ++p) {
-                        char c = *p;
-                        if (c == ' ') {
-                            displayText += c;
-                        } else {
-                            displayText += '?';
-                        }
-                    }
-                }
-
-                ImGui::TextColored(TexCol, "%s", displayText.c_str());
-
-                if (ImGui::IsItemHovered()) {
-                    ImGui::BeginTooltip();
-                    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                    ImGui::TextUnformatted(combo.hint);
-                    if (combo.unlocked) {
-                        ImGui::TextColored(TexCol, "(%s)", combo.how);
-                    }
-                    ImGui::PopTextWrapPos();
-                    ImGui::EndTooltip();
+                    displayText += '?';
                 }
             }
-        
-            ImGui::NextColumn();
-        
-            int totalNeroDiff = 0;
-            int unlockedNeroDiff = 0;
-            for (const ComboUnlock& combo : unlocked_combos) {
-                if (combo.difficultyLevel == difficulty && combo.character == NERO) {
-                    totalNeroDiff++;
-                    if (combo.unlocked) unlockedNeroDiff++;
-                }
-            }
-        
-            ImGui::TextColored(TexCol, "Difficulty %i - %i/%i Unlocked", difficulty, unlockedNeroDiff, totalNeroDiff); // difficultyColor
-        
-            for (size_t i = 0; i < unlocked_combos.size(); ++i) {
-                ComboUnlock& combo = unlocked_combos[i];
-                if (combo.difficultyLevel != difficulty || combo.character != NERO)
-                    continue;
-
-                std::string displayText;
-                if (combo.unlocked) {
-                    displayText = combo.name;
-                } else {
-                    for (const char* p = combo.name; *p != '\0'; ++p) {
-                        char c = *p;
-                        if (c == ' ') {
-                            displayText += c;
-                        } else {
-                            displayText += '?';
-                        }
-                    }
-                }
-
-                ImGui::TextColored(TexCol, "%s", displayText.c_str());
-
-                if (ImGui::IsItemHovered()) {
-                    ImGui::BeginTooltip();
-                    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                    ImGui::TextUnformatted(combo.hint);
-                    if (combo.unlocked) {
-                        ImGui::TextColored(TexCol, "(%s)", combo.how);
-                    }
-                    ImGui::PopTextWrapPos();
-                    ImGui::EndTooltip();
-                }
-            }
-        
-            ImGui::NextColumn();
         }
-    } else {
-        ImGui::Separator();
-    
-        for (size_t i = 0; i < unlocked_combos.size(); ++i) {
-            ComboUnlock& combo = unlocked_combos[i];
-            if (combo.character != DANTE)
-                continue;
 
-            std::string displayText;
+        ImGui::TextColored(TexCol, "%s", utility::text_lookup((char*)displayText.c_str()));
+
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+            ImGui::TextUnformatted(utility::text_lookup((char*)combo.hint));
             if (combo.unlocked) {
-                displayText = combo.name;
-            } else {
-                for (const char* p = combo.name; *p != '\0'; ++p) {
-                    char c = *p;
-                    if (c == ' ') {
-                        displayText += c;
-                    } else {
-                        displayText += '?';
-                    }
-                }
+                ImGui::TextColored(TexCol, "(%s)", utility::text_lookup((char*)combo.how));
             }
-
-            ImGui::TextColored(TexCol, "%s", displayText.c_str());
-
-            if (ImGui::IsItemHovered()) {
-                ImGui::BeginTooltip();
-                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                ImGui::TextUnformatted(combo.hint);
-                if (combo.unlocked) {
-                    ImGui::TextColored(TexCol, "(%s)", combo.how);
-                }
-                ImGui::PopTextWrapPos();
-                ImGui::EndTooltip();
-            }
+            ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
         }
-    
-        ImGui::NextColumn();
-    
-        for (size_t i = 0; i < unlocked_combos.size(); ++i) {
-            ComboUnlock& combo = unlocked_combos[i];
-            if (combo.character != NERO)
-                continue;
-
-            std::string displayText;
-            if (combo.unlocked) {
-                displayText = combo.name;
-            } else {
-                for (const char* p = combo.name; *p != '\0'; ++p) {
-                    char c = *p;
-                    if (c == ' ') {
-                        displayText += c;
-                    } else {
-                        displayText += '?';
-                    }
-                }
-            }
-
-            ImGui::TextColored(TexCol, "%s", displayText.c_str());
-
-            if (ImGui::IsItemHovered()) {
-                ImGui::BeginTooltip();
-                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                ImGui::TextUnformatted(combo.hint);
-                if (combo.unlocked) {
-                    ImGui::TextColored(TexCol, "(%s)", combo.how);
-                }
-                ImGui::PopTextWrapPos();
-                ImGui::EndTooltip();
-            }
-        }
-    
-        ImGui::NextColumn();
     }
+    
+    ImGui::NextColumn();
+    
+    for (size_t i = 0; i < unlocked_combos.size(); ++i) {
+        ComboUnlock& combo = unlocked_combos[i];
+        if (combo.character != NERO)
+            continue;
+
+        std::string displayText;
+        if (combo.unlocked) {
+            displayText = utility::text_lookup((char*)combo.name);
+        } else {
+            for (const char* p = combo.name; *p != '\0'; ++p) {
+                char c = *p;
+                if (c == ' ') {
+                    displayText += c;
+                } else {
+                    displayText += '?';
+                }
+            }
+        }
+
+        ImGui::TextColored(TexCol, "%s", utility::text_lookup((char*)displayText.c_str()));
+
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+            ImGui::TextUnformatted(utility::text_lookup((char*)combo.hint));
+            if (combo.unlocked) {
+                ImGui::TextColored(TexCol, "(%s)", utility::text_lookup((char*)combo.how));
+            }
+            ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
+        }
+    }
+    
+    ImGui::NextColumn();
 
     ImGui::Columns(1);
     ImGui::Spacing();
@@ -1930,9 +1814,8 @@ void StylePoints::DrawHiddenCombos() {
     // ImGui::InputFloat(_("Text b"), &TexCol.z);
     // ImGui::InputFloat(_("Text a"), &TexCol.w);
     // ImGui::InputFloat(_("fontScale"), &fontScale);
-    ImGui::Checkbox("Split Into Difficulties", &splitIntoDifficulties);
     ImGui::SameLine();
-    const char* clear_unlocks_label = "Clear Unlocks";
+    const char* clear_unlocks_label = _("Clear Unlocks");
     ImVec2 btn_size = ImGui::CalcTextSize(clear_unlocks_label);
     btn_size.x += ImGui::GetStyle().FramePadding.x * 2.0f;
     btn_size.y += ImGui::GetStyle().FramePadding.y * 2.0f;

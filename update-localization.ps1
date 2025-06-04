@@ -9,7 +9,7 @@ New-Item -Path .\i18n\po\en\ -Force -Name dmc4hook.po
 
 # (re)create new .po file
 Write-Host "Generating new English .po file"
-Get-ChildItem -Path .\src\ -Filter *.cpp -Recurse -File | ForEach-Object {
+Get-ChildItem -Path .\src\ -Recurse -File | Where-Object { $_.Extension -match '\.cpp$|\.hpp$' } | ForEach-Object {
     xgettext --default-domain=dmc4hook --output=.\i18n\po\en\dmc4hook.po --join-existing --from-code=utf-8 --c++ --keyword=_ --keyword=__ --width=80 $_.FullName
 }
 $content = Get-Content -Path .\i18n\po\en\dmc4hook.po

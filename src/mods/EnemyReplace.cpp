@@ -239,51 +239,51 @@ void EnemyReplace::replace_enemy_with(int current_enemy_id, int desired_enemy_id
 }
 
 const char* combo_lists[] = {
-    _("Replace Scarecrow (Leg) with:"),    // 00
-    _("Replace Scarecrow (Arm) with:"),    // 01
-    _("Replace Mega Scarecrow with:"),     // 02
-    _("Replace Bianco Angelo with:"),      // 03
-    _("Replace Alto Angelo with:"),        // 04
-    _("Replace Mephisto with:"),           // 05
-    _("Replace Faust with:"),              // 06
-    _("Replace Frost with:"),              // 07
-    _("Replace Assault with:"),            // 08
-    _("Replace Blitz with:"),              // 09
-    _("Replace Chimera Seed with:"),       // 10
-    _("Replace Basilisk with:"),           // 11
-    _("Replace Berial with:"),             // 12
-    _("Replace Bael with:"),               // 13
-    _("Replace Echidna with:"),            // 14
-    _("Replace Credo with:"),              // 15
-    _("Replace Agnus with:"),              // 16
-    _("Replace Sanctus with:"),            // 17
-    _("Replace Sanctus Diabolica with:"),  // 18
-    _("Replace Kyrie with:"),              // 19
-    _("Replace Dante with:")               // 20
+    __("Replace Scarecrow (Leg) with:"),    // 00
+    __("Replace Scarecrow (Arm) with:"),    // 01
+    __("Replace Mega Scarecrow with:"),     // 02
+    __("Replace Bianco Angelo with:"),      // 03
+    __("Replace Alto Angelo with:"),        // 04
+    __("Replace Mephisto with:"),           // 05
+    __("Replace Faust with:"),              // 06
+    __("Replace Frost with:"),              // 07
+    __("Replace Assault with:"),            // 08
+    __("Replace Blitz with:"),              // 09
+    __("Replace Chimera Seed with:"),       // 10
+    __("Replace Basilisk with:"),           // 11
+    __("Replace Berial with:"),             // 12
+    __("Replace Bael with:"),               // 13
+    __("Replace Echidna with:"),            // 14
+    __("Replace Credo with:"),              // 15
+    __("Replace Agnus with:"),              // 16
+    __("Replace Sanctus with:"),            // 17
+    __("Replace Sanctus Diabolica with:"),  // 18
+    __("Replace Kyrie with:"),              // 19
+    __("Replace Dante with:")               // 20
 };
 
 const char* combo_items[] = {
-    _("Scarecrow (Leg)"),    // 00
-    _("Scarecrow (Arm)"),    // 01
-    _("Mega Scarecrow"),     // 02
-    _("Bianco Angelo"),      // 03
-    _("Alto Angelo"),        // 04
-    _("Mephisto"),           // 05
-    _("Faust"),              // 06
-    _("Frost"),              // 07
-    _("Assault"),            // 08
-    _("Blitz"),              // 09
-    _("Chimera Seed"),       // 10
-    _("Basilisk"),           // 11
-    _("Berial"),             // 12
-    _("Bael"),               // 13
-    _("Echidna"),            // 14
-    _("Credo"),              // 15
-    _("Agnus"),              // 16
-    _("Sanctus"),            // 17
-    _("Sanctus Diabolica"),  // 18
-    _("Kyrie"),              // 19
-    _("Dante")               // 20
+    __("Scarecrow (Leg)"),    // 00
+    __("Scarecrow (Arm)"),    // 01
+    __("Mega Scarecrow"),     // 02
+    __("Bianco Angelo"),      // 03
+    __("Alto Angelo"),        // 04
+    __("Mephisto"),           // 05
+    __("Faust"),              // 06
+    __("Frost"),              // 07
+    __("Assault"),            // 08
+    __("Blitz"),              // 09
+    __("Chimera Seed"),       // 10
+    __("Basilisk"),           // 11
+    __("Berial"),             // 12
+    __("Bael"),               // 13
+    __("Echidna"),            // 14
+    __("Credo"),              // 15
+    __("Agnus"),              // 16
+    __("Sanctus"),            // 17
+    __("Sanctus Diabolica"),  // 18
+    __("Kyrie"),              // 19
+    __("Dante")               // 20
 };
 
 // combo list text doesn't seem to like format text
@@ -342,10 +342,12 @@ int EnemyReplace::desired_enemy[IM_ARRAYSIZE(combo_items)];
 
 void EnemyReplace::on_gui_frame(int display) {
     ImGui::PushItemWidth(sameLineItemWidth);
+    utility::ImGooListboxTranslated localizedText(combo_lists, IM_ARRAYSIZE(combo_lists));
+    utility::ImGooListboxTranslated localizedBoxes(combo_items, IM_ARRAYSIZE(combo_items));
     for (int i = 0; i < IM_ARRAYSIZE(default_enemy); i++) {
-        ImGui::Text(combo_lists[i]);
+        ImGui::Text(localizedText.data_[i]);
         ImGui::SameLine(sameLineWidth);
-        if (ImGui::Combo(combo_list_i_ds[i], &desired_enemy[i], combo_items, IM_ARRAYSIZE(combo_items))) {
+        if (ImGui::Combo(combo_list_i_ds[i], &desired_enemy[i], localizedBoxes.data_, IM_ARRAYSIZE(combo_items))) {
             replace_enemy_with(default_enemy[i], desired_enemy[i]);
         }
     }
