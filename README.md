@@ -13,7 +13,7 @@ If you are using the retail (disc) release, you'll need to swap your exe with [t
 Releases can be found [here.](https://github.com/muhopensores/dmc4_hook/releases)
 
 ## Instructions
-For help regarding usage of the trainer, check our [wiki.](https://github.com/muhopensores/dmc4_hook/wiki)
+For help regarding usage of the trainer, check our [wiki.](https://github.com/muhopensores/dmc4_hook/wiki/Installation-Instructions#installation-instructions)
 
 ## How to build
 Install the [Legacy DirectX SDK](https://www.microsoft.com/en-us/download/details.aspx?id=6812). This will require you first uninstall the following:
