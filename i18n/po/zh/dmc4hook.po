@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-04 15:46+0100\n"
-"PO-Revision-Date: 2025-06-04 18:39+0800\n"
+"POT-Creation-Date: 2025-06-05 16:39+0100\n"
+"PO-Revision-Date: 2025-06-05 23:44+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -94,7 +94,7 @@ msgstr "整活类"
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:396
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:21
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:286
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:111
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:113
 msgid "Dante"
 msgstr "但丁"
 
@@ -117,7 +117,7 @@ msgstr "空放地"
 
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:538
 msgid "Darkslayer"
-msgstr "暗黑杀手"
+msgstr "黑暗杀手"
 
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:577
 msgid "Environment"
@@ -339,7 +339,7 @@ msgstr "dmc4_hook（键盘）"
 
 #: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:385
 msgid "dmc4_hook (Pad)"
-msgstr "dmc4_hook []"
+msgstr "dmc4_hook（手柄）"
 
 #: C:\vs_projects\dmc4_hook\src\Mods.cpp:471
 msgid "Keys will probably show up only on US keyboard layouts."
@@ -431,19 +431,19 @@ msgstr "指令绑定为锁定+前+鬼手"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:16
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:278
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:103
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:105
 msgid "Berial"
 msgstr "火牛"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:17
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:279
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:104
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:106
 msgid "Bael"
 msgstr "蛤蟆"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:18
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:280
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:105
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:107
 msgid "Echidna"
 msgstr "花蛇"
 
@@ -1094,15 +1094,16 @@ msgstr "即时切人"
 #: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:736
 msgid ""
 "Enable before loading into a stage\n"
-"This has a few unintentional side effects.\n"
-"All the time this cheat is ticked,\n"
+"On keyboard this is currently locked to F\n"
+"This has a few unintentional side effects:\n"
 "- Lock on is a little less accurate\n"
 "- Style drains twice as fast\n"
 msgstr ""
 "需在进入关卡前启用\n"
+"键盘固定按F键触发\n"
 "具有一些副作用\n"
 "- 锁定会稍微不正确\n"
-"- 风格评级以两倍速度掉落\n"
+"- 风格评级以两倍速度衰减\n"
 
 #: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:744
 msgid "Input 1"
@@ -1228,6 +1229,50 @@ msgstr "绑定指令为锁定+后+风格"
 msgid "Inertia enable"
 msgstr "启用惯性"
 
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:264
+msgid ""
+"Top\n"
+"Left"
+msgstr "左上"
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:265
+msgid "Top"
+msgstr "顶部"
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:266
+msgid ""
+"Top\n"
+"Right"
+msgstr "右上"
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:269
+msgid "Left"
+msgstr "左侧"
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:270
+msgid "Full"
+msgstr "全屏"
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:271
+msgid "Right"
+msgstr "右侧"
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:274
+msgid ""
+"Bottom\n"
+"Left"
+msgstr "左下"
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:275
+msgid "Bottom"
+msgstr "底部"
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:276
+msgid ""
+"Bottom\n"
+"Right"
+msgstr "右下"
+
 #: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:287
 msgid "Free Camera"
 msgstr "自由镜头"
@@ -1325,7 +1370,7 @@ msgstr "防止种子寄生布袋 / 蜥蜴后剑刃攻击"
 
 #: C:\vs_projects\dmc4_hook\src\mods\DisableDarkslayer.cpp:47
 msgid "Disable Darkslayer Inputs"
-msgstr "禁用切入暗黑杀手"
+msgstr "禁用切入黑暗杀手"
 
 #: C:\vs_projects\dmc4_hook\src\mods\DisableDarkslayer.cpp:55
 msgid "Trickster"
@@ -1399,7 +1444,7 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:165
 msgid "Double Tap Darkslayer"
-msgstr "双击暗黑杀手"
+msgstr "双击黑暗杀手"
 
 #: C:\vs_projects\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:167
 msgid "Darkslayer is accessed by quickly pressing one style twice"
@@ -1447,9 +1492,11 @@ msgstr "替身攻击"
 
 #: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:834
 msgid ""
+"On keyboard this is currently locked to T.\n"
 "Triggers a stand attack when you input the selected button.\n"
 "Lockon+forward/back for other attacks"
 msgstr ""
+"键盘固定按T键触发\n"
 "当您按下绑定键时尼禄会释放替身攻击\n"
 "锁定+后/前+绑定键可用出其他攻击"
 
@@ -1591,77 +1638,77 @@ msgid "Replace Dante with:"
 msgstr "将但丁替换为："
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:266
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:89
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:91
 msgid "Scarecrow (Leg)"
 msgstr "脚布袋"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:267
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:90
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:92
 msgid "Scarecrow (Arm)"
 msgstr "手布袋"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:268
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:91
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:93
 msgid "Mega Scarecrow"
 msgstr "大布袋"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:269
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:92
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:94
 msgid "Bianco Angelo"
 msgstr "银骑士"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:270
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:93
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:95
 msgid "Alto Angelo"
 msgstr "金骑士"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:271
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:94
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:96
 msgid "Mephisto"
 msgstr "小死神"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:272
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:95
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:97
 msgid "Faust"
 msgstr "大死神"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:273
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:96
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:98
 msgid "Frost"
 msgstr "冰刃"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:274
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:97
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:99
 msgid "Assault"
 msgstr "蜥蜴"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:275
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:98
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:100
 msgid "Blitz"
 msgstr "雷兽"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:276
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:99
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:101
 msgid "Chimera Seed"
 msgstr "种子"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:277
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:102
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:104
 msgid "Basilisk"
 msgstr "火狗"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:283
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:108
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:110
 msgid "Sanctus"
 msgstr "教皇"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:284
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:109
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:111
 msgid "Sanctus Diabolica"
 msgstr "腐化教皇"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:285
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:110
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:112
 msgid "Kyrie"
 msgstr "姬莉叶"
 
@@ -1686,79 +1733,87 @@ msgstr ""
 "定义同一时间攻击的敌人数量上限\n"
 "即使选择默认，初始值也只会在进入新战斗时生效"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:100
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:102
 msgid "Cutlass"
 msgstr "刀鱼"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:101
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:103
 msgid "Gladius"
 msgstr "飞刀"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:106
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:108
 msgid "Angelo Credo"
 msgstr "天使化克雷多"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:107
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:109
 msgid "Angelo Agnus"
 msgstr "天使化阿格纳斯"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:423
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:425
 msgid "Spawn Scarecrow Leg"
 msgstr "生成脚布袋"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:424
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:426
 msgid "Spawn Scarecrow Arm"
 msgstr "生成手布袋"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:425
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:427
 msgid "Spawn Mega"
 msgstr "生成大布袋"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:426
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:428
 msgid "Spawn Bianco"
 msgstr "生成银骑士"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:427
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:429
 msgid "Spawn Alto"
 msgstr "生成金骑士"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:428
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:430
 msgid "Spawn Mephisto"
 msgstr "生成小死神"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:429
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:431
 msgid "Spawn Faust"
 msgstr "生成大死神"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:430
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:432
 msgid "Spawn Frost"
 msgstr "生成冰刃"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:431
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:433
 msgid "Spawn Assault"
 msgstr "生成蜥蜴"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:432
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:434
 msgid "Spawn Blitz"
 msgstr "生成雷兽"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:433
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:435
 msgid "Spawn Chimera"
 msgstr "生成种子"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:434
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:436
+msgid "Spawn Gladius"
+msgstr "生成飞刀"
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:437
+msgid "Spawn Cutlass"
+msgstr "生成刀鱼"
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:438
 msgid "Spawn Basilisk"
 msgstr "生成火狗"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:522
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:526
 msgid "Random"
 msgstr "随机"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:528
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:532
 msgid "[DEBUG] Custom Spawn Addr"
 msgstr "[调试] 自定义刷怪地址"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:530
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:534
 msgid "Spawn"
 msgstr "生成"
 
@@ -2053,7 +2108,7 @@ msgid ""
 msgstr ""
 "以默认热键举例\n"
 "HOME键＋END键会保存并加载敌人的攻击\n"
-"PgUp＋PgDown会保存并加载BOSS的攻击"
+"PgUp键＋PgDown键会保存并加载Boss的攻击"
 
 #: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:82
 msgid ""
@@ -2171,17 +2226,21 @@ msgid ""
 "Fireworks"
 msgstr "修改地面枪花的开始帧、取消帧和取消属性"
 
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:25
+msgid "Page"
+msgstr "页面"
+
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:31
 msgid "Start Addr"
-msgstr "开始地址"
+msgstr "起始地址"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:32
 msgid "base.uknFlag1"
-msgstr ""
+msgstr "基础 - 未知标识1"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:33
 msgid "base.uknFlag2"
-msgstr ""
+msgstr "基础 - 未知标识2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:34
 msgid "base.mTransMode"
@@ -2209,79 +2268,79 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:42
 msgid "mHit"
-msgstr ""
+msgstr "能否施展攻击"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:43
 msgid "mGrab"
-msgstr ""
+msgstr "是否被命中"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:44
 msgid "mDamage"
-msgstr ""
+msgstr "是否受到伤害"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:45
 msgid "mPsh"
-msgstr ""
+msgstr "推挤"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:46
 msgid "mLand"
-msgstr ""
+msgstr "是否落地"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:47
 msgid "mTimedForceLand"
-msgstr ""
+msgstr "强制落地计时"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:48
 msgid "mSetLand"
-msgstr ""
+msgstr "强制落地"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:49
 msgid "mWall"
-msgstr ""
+msgstr "是否贴墙"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:50
 msgid "mCeilling"
-msgstr ""
+msgstr "是否贴天花板"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:53
 msgid "mNoLandTimerEnable"
-msgstr ""
+msgstr "防止落地计时器启用否"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:54
 msgid "mNoLandTimer"
-msgstr ""
+msgstr "防止落地计时器"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:55
 msgid "mNoLandTime"
-msgstr ""
+msgstr "防止落地时间"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:56
 msgid "ForceLandFlag"
-msgstr ""
+msgstr "强制落地标识"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:57
 msgid "mCheckWallEnable"
-msgstr ""
+msgstr "能否检测墙体"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:58
 msgid "mCheckGroundEnable"
-msgstr ""
+msgstr "能否检测地面"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:59
 msgid "mFall"
-msgstr ""
+msgstr "是否下落中"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:60
 msgid "NoLandTimerType"
-msgstr ""
+msgstr "防止落地计时器类型1"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:61
 msgid "NoLandDTSwitch"
-msgstr ""
+msgstr "防止落地魔人开关"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:63
 msgid "NoLandTimerType2"
-msgstr ""
+msgstr "防止落地计时器类型2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:64
 msgid "DamageValueCorrect"
@@ -2289,7 +2348,7 @@ msgstr "伤害值修正"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:65
 msgid "EnemyCollisionToggle"
-msgstr "敌人穿墙开关"
+msgstr "敌人碰撞开关"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:66
 msgid "LockonTargetPos"
@@ -2301,7 +2360,7 @@ msgstr "锁定中目标"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:70
 msgid "uknFixedVec1"
-msgstr ""
+msgstr "未知修复参数1"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:71
 msgid "GroundMat m1"
@@ -2321,15 +2380,15 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:75
 msgid "uknFixedVec2"
-msgstr ""
+msgstr "未知修复参数2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:76
 msgid "mWeightType"
-msgstr ""
+msgstr "重量类型"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:77
 msgid "mModelID"
-msgstr ""
+msgstr "模型ID"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:78
 msgid "mpReportActor"
@@ -2349,11 +2408,11 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:82
 msgid "mPushType"
-msgstr ""
+msgstr "推挤类型"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:83
 msgid "mpPushModel"
-msgstr ""
+msgstr "推挤模型"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:86
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:103
@@ -2372,11 +2431,11 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:120
 msgid "mPushPos"
-msgstr ""
+msgstr "推挤坐标"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:121
 msgid "mPushPosOld"
-msgstr ""
+msgstr "推挤坐标 旧"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:130
 msgid "uknToggle"
@@ -2384,15 +2443,15 @@ msgstr "未知开关"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:131
 msgid "currentMotBuffer"
-msgstr ""
+msgstr "当前动作缓冲"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:132
 msgid "MotSeq1"
-msgstr ""
+msgstr "动作序列1"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:133
 msgid "MotSeq2"
-msgstr ""
+msgstr "动作序列2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:134
 msgid "HitCheckFlag"
@@ -2404,11 +2463,11 @@ msgstr "攻击确认"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:136
 msgid "mSelfCollision"
-msgstr ""
+msgstr "自我碰撞"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:137
 msgid "mMode"
-msgstr ""
+msgstr "模式"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:263
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:384
@@ -2548,7 +2607,11 @@ msgstr "数字##EnemyFly"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:387
 msgid "DT##EnemyFly"
-msgstr "魔化##EnemyFly"
+msgstr "魔力值##EnemyFly"
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:392
+msgid "MoveID##PlayerFly"
+msgstr "动作ID##PlayerFly"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:405
 msgid "Base Addr##EnemyFly"
@@ -2622,9 +2685,13 @@ msgstr "显示受伤害量"
 msgid "Display Damage Resist"
 msgstr "显示被免疫的伤害"
 
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:458
+msgid "Current difficulty * armour"
+msgstr "当前难度 * 防御值"
+
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:459
 msgid "Display DT Timer"
-msgstr "显示魔化计时器"
+msgstr "显示魔力值 / 魔化倒计时"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:460
 msgid "Display Stun"
@@ -2706,7 +2773,7 @@ msgstr "把敌人冻结在原地，即使他们处于空中。"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FrenziedBossAI.cpp:44
 msgid "Frenzied Boss AI"
-msgstr "Boss 暴走"
+msgstr "Boss暴走"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FrenziedBossAI.cpp:48
 msgid "Force bosses to use the AI they usually use when low HP"
@@ -3071,75 +3138,75 @@ msgstr "隐藏\"未使用\"条目"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:128
 msgid "mAttackID"
-msgstr ""
+msgstr "攻击ID"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:129
 msgid "mDamageValue"
-msgstr ""
+msgstr "伤害值"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:130
 msgid "mAttackLv"
-msgstr ""
+msgstr "攻击等级"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:131
 msgid "mAttackLvI"
-msgstr ""
+msgstr "攻击等级I"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:132
 msgid "mAttackLvB"
-msgstr ""
+msgstr "攻击等级B"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:133
 msgid "mRangeType"
-msgstr ""
+msgstr "攻击类型"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:134
 msgid "mHitStopTimer"
-msgstr ""
+msgstr "攻击定怪计时器"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:135
 msgid "mDamageType"
-msgstr ""
+msgstr "伤害类型"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:136
 msgid "mDamageTypeI (turn enemy)"
-msgstr ""
+msgstr "攻击类型I（修正敌人面向）"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:137
 msgid "mDamageTypeB (launch etc)"
-msgstr ""
+msgstr "攻击类型B（挑空等）"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:138
 msgid "mHitMarkAngle"
-msgstr ""
+msgstr "攻击角度标识"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:139
 msgid "mHitSE"
-msgstr ""
+msgstr "命中音效"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:140
 msgid "mStylishPoint"
-msgstr ""
+msgstr "风格点数奖励"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:141
 msgid "mStylishTimer"
-msgstr ""
+msgstr "风格计时奖励"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:142
 msgid "mDTAdd"
-msgstr ""
+msgstr "魔力值奖励"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:143
 msgid "mAttackFlag"
-msgstr ""
+msgstr "攻击标识"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:144
 msgid "mBlownAngleType"
-msgstr ""
+msgstr "吹飞角度类型"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:145
 msgid "mElementType"
-msgstr ""
+msgstr "攻击属性"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:154
 msgid "Release Always Stuns"
@@ -3155,7 +3222,7 @@ msgstr "砸地挑空"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:161
 msgid "Previous Attack Data"
-msgstr "上一个攻击数据"
+msgstr "显示上次攻击数据"
 
 #: C:\vs_projects\dmc4_hook\src\mods\LdkWithDmd.cpp:40
 msgid "LDK With DMD AI"
@@ -3264,7 +3331,7 @@ msgid ""
 msgstr ""
 "在起始界面点击修改器界面右上角Save Config来加载语言。\n"
 "请提交您为dmc4hook做的翻译 :祈祷:\n"
-"如果你使用的不是Windows系统，必要的字体文件可能不会加载。请选择一个字体文件并"
+"如果您使用的不是Windows系统，必要的字体文件可能不会加载。请选择一个字体文件并"
 "将它和游戏exe放在一起，然后将它重命名为\"[语言代码]_font.ttf\"，例如简体中文"
 "字体应为：\"zh_font.ttf\""
 
@@ -3409,19 +3476,19 @@ msgstr "未知"
 
 #: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:254
 msgid "CndWp"
-msgstr "指令 - 武器"
+msgstr "武器状态"
 
 #: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:255
 msgid "CndStyle"
-msgstr "指令 - 风格"
+msgstr "风格状态"
 
 #: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:256
 msgid "CndDT"
-msgstr "指令 - 魔人"
+msgstr "魔人状态"
 
 #: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:257
 msgid "CndAir"
-msgstr "指令 - 空中"
+msgstr "滞空状态"
 
 #: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:258
 msgid "cancel0"
@@ -3872,7 +3939,7 @@ msgstr ""
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:37
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:692
 msgid "DT_HP_RECOVER"
-msgstr ""
+msgstr "魔人恢复血量"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:38
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:711
@@ -6574,19 +6641,19 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:751
 msgid "Save Current Values"
-msgstr ""
+msgstr "保存当前值"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:762
 msgid "Apply Saved Values"
-msgstr ""
+msgstr "应用保存值"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:790
 msgid "Dante Parameters"
-msgstr ""
+msgstr "但丁参数"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:793
 msgid "Nero Parameters"
-msgstr ""
+msgstr "尼禄参数"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:935
 msgid "Show Player Params"
@@ -6626,7 +6693,7 @@ msgstr "已保存的玩家位置"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:969
 msgid "Play Animation ID"
-msgstr ""
+msgstr "播放此ID动画"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:978
 msgid ""
@@ -7592,11 +7659,11 @@ msgstr "憎恶"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:261
 msgid "Revenge"
-msgstr "复仇启动"
+msgstr "报复命中"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:262
 msgid "Revenge Hit"
-msgstr "复仇命中"
+msgstr "报复启动"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:267
 msgid "Omen Hit"
@@ -8199,7 +8266,7 @@ msgstr "神谷的眼界！"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:773
 msgid "Did you know DMC1 was going to be RE4?"
-msgstr "你知道一代要用RE4重制了吗？"
+msgstr "您知道一代要用RE4重制了吗？"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:773
 msgid "As Dante, Used High Time > E&I Shot x 10"
@@ -8207,7 +8274,7 @@ msgstr "使用但丁，上挑 > 双枪射击 x 10"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:774
 msgid "Is That A Plane?"
-msgstr "飞机？"
+msgstr "什么玩意飞过去了？"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:774
 msgid "Straight out of the window"
@@ -8223,7 +8290,7 @@ msgstr "光亮黯淡之时"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:775
 msgid "Rules without exceptions last eternally"
-msgstr "无例外的规则永恒不变"
+msgstr "永恒的规则，绝无意外"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:775
 msgid "As Dante, Looped Full House > Enemy Step 5 Times"
@@ -8248,7 +8315,7 @@ msgstr "白手起家"
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:777
 msgid ""
 "Imagine this: It's 2008. You just picked up a new character. Make a combo"
-msgstr "想象一下：现在是2008。你刚刚玩上一个新角色。打个连击"
+msgstr "想象一下：现在是2008。您刚刚玩上一个新角色。打个连击"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:777
 msgid ""
@@ -8319,7 +8386,7 @@ msgstr "FS"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1686
 msgid "Hidden Combos"
-msgstr ""
+msgstr "隐藏连击"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1711
 #, c-format
@@ -8333,7 +8400,7 @@ msgstr "尼禄 - %i/%i 未解锁"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1818
 msgid "Clear Unlocks"
-msgstr ""
+msgstr "全部清除"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1838
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1840
@@ -8362,7 +8429,7 @@ msgstr "想要看高度记录？选我！"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1853
 msgid "Inertia Chart"
-msgstr "惯性图标"
+msgstr "惯性图表"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1855
 msgid ""
@@ -9263,11 +9330,11 @@ msgstr "0xAF 黑暗发胶手"
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:189
 msgid "0xB0 Dante boss death"
-msgstr "0xB0 BOSS但丁死亡"
+msgstr "0xB0 Boss但丁死亡"
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:190
 msgid "0xB1 Dante boss death"
-msgstr "0xB1 BOSS但丁死亡"
+msgstr "0xB1 Boss但丁死亡"
 
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:191
 #: C:\vs_projects\dmc4_hook\src\mods\TauntSelect.cpp:450
@@ -10018,55 +10085,55 @@ msgstr "默认热键是小键盘”.“键。"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:36
 msgid "None"
-msgstr ""
+msgstr "无"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:37
 msgid "Select"
-msgstr ""
+msgstr "选择键"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:38
 msgid "L3"
-msgstr ""
+msgstr "左摇杆"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:39
 msgid "R3"
-msgstr ""
+msgstr "右摇杆"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:40
 msgid "Start"
-msgstr ""
+msgstr "开始键"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:41
 msgid "Dpad Up"
-msgstr ""
+msgstr "上方向键"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:42
 msgid "Dpad Right"
-msgstr ""
+msgstr "右方向键"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:43
 msgid "Dpad Down"
-msgstr ""
+msgstr "下方向键"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:44
 msgid "Dpad Left"
-msgstr ""
+msgstr "左方向键"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:45
 msgid "L1"
-msgstr ""
+msgstr "左肩键"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:46
 msgid "R1"
-msgstr ""
+msgstr "右肩键"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:47
 msgid "L2"
-msgstr ""
+msgstr "左扳机键"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:48
 msgid "R2"
-msgstr ""
+msgstr "右扳机键"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:49
 msgid "Y"
@@ -10086,135 +10153,135 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:283
 msgid "Rebellion Combo A1"
-msgstr ""
+msgstr "叛逆 Combo A1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:284
 msgid "Rebellion Combo A2"
-msgstr ""
+msgstr "叛逆 Combo A2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:285
 msgid "Rebellion Combo A3"
-msgstr ""
+msgstr "叛逆 Combo A3"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:286
 msgid "Rebellion Combo B1"
-msgstr ""
+msgstr "叛逆 Combo B1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:287
 msgid "Rebellion Combo B2"
-msgstr ""
+msgstr "叛逆 Combo B2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:290
 msgid "Stinger Level 1"
-msgstr ""
+msgstr "突刺 Lv.1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:291
 msgid "Stinger Level 2"
-msgstr ""
+msgstr "突刺 Lv.2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:292
 msgid "Stinger DT"
-msgstr ""
+msgstr "魔人突刺"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:293
 msgid "High Time (Ground)"
-msgstr ""
+msgstr "短上挑"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:294
 msgid "High Time (Air)"
-msgstr ""
+msgstr "长上挑"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:296
 msgid "Round Trip (Call Back Ground)"
-msgstr ""
+msgstr "地面收剑"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:297
 msgid "Round Trip (Call Back Air)"
-msgstr ""
+msgstr "空中收剑"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:300
 msgid "Aerial Rave 1"
-msgstr ""
+msgstr "御空剑舞 1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:301
 msgid "Aerial Rave 2"
-msgstr ""
+msgstr "御空剑舞 2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:302
 msgid "Aerial Rave 3"
-msgstr ""
+msgstr "御空剑舞 3"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:303
 msgid "Aerial Rave 4"
-msgstr ""
+msgstr "御空剑舞 4"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:308
 msgid "Gilgamesh Combo A1"
-msgstr ""
+msgstr "拳套 Combo A1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:309
 msgid "Gilgamesh Combo A2"
-msgstr ""
+msgstr "拳套 Combo A2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:310
 msgid "Gilgamesh Combo A3"
-msgstr ""
+msgstr "拳套 Combo A3"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:311
 msgid "Gilgamesh Combo A4"
-msgstr ""
+msgstr "拳套 Combo A4"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:312
 msgid "Gilgamesh Combo B1"
-msgstr ""
+msgstr "拳套 Combo B1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:313
 msgid "Gilgamesh Combo B2"
-msgstr ""
+msgstr "拳套 Combo B2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:315
 msgid "Kick 13 (Regular)"
-msgstr ""
+msgstr "连踢"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:318
 msgid "Shock (Ground)"
-msgstr ""
+msgstr "地面砸地"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:319
 msgid "Shocking (Air)"
-msgstr ""
+msgstr "空中砸地"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:324
 msgid "Lucifer Combo A1"
-msgstr ""
+msgstr "路西法 Combo A1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:325
 msgid "Lucifer Combo A2"
-msgstr ""
+msgstr "路西法 Combo A2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:326
 msgid "Lucifer Combo A3"
-msgstr ""
+msgstr "路西法 Combo A3"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:327
 msgid "Lucifer Combo A4"
-msgstr ""
+msgstr "路西法 Combo A4"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:328
 msgid "Lucifer Combo D1"
-msgstr ""
+msgstr "路西法 Combo D1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:329
 msgid "Lucifer Combo C1"
-msgstr ""
+msgstr "路西法 Combo C1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:330
 msgid "Lucifer Combo E1"
-msgstr ""
+msgstr "路西法 Combo E1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:331
 msgid "Lucifer Combo B1"
-msgstr ""
+msgstr "路西法 Combo B1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:332
 msgid "ATCK_ID_LF_ARRANGEMENT_COMBO"
@@ -10222,143 +10289,143 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:334
 msgid "Pin Up (Regular)"
-msgstr ""
+msgstr "摆针"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:335
 msgid "Pin Up (DT)"
-msgstr ""
+msgstr "魔人摆针"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:336
 msgid "Ecstasy (Ground)"
-msgstr ""
+msgstr "地面玫瑰"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:337
 msgid "Ecstasy (Air)"
-msgstr ""
+msgstr "空中玫瑰"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:338
 msgid "Climax (Ground)"
-msgstr ""
+msgstr "地面剑盾"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:339
 msgid "Climax (Air)"
-msgstr ""
+msgstr "空中剑盾"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:340
 msgid "Discipline"
-msgstr ""
+msgstr "戒律"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:341
 msgid "Bondage?"
-msgstr ""
+msgstr "束缚?"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:342
 msgid "Ebony & Ivory Shoot (Ground)"
-msgstr ""
+msgstr "地面双枪"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:343
 msgid "Ebony & Ivory Charged Shot Lv1 (G)"
-msgstr ""
+msgstr "地面蓄力双枪 Lv.1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:344
 msgid "Ebony & Ivory Charged Shot Lv2 (G)"
-msgstr ""
+msgstr "地面蓄力双枪 Lv.2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:345
 msgid "Ebony & Ivory Charged Shot Lv3 (G)"
-msgstr ""
+msgstr "地面蓄力双枪 Lv.3"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:346
 msgid "Ebony & Ivory Shoot (Air)"
-msgstr ""
+msgstr "空中双枪"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:347
 msgid "Ebony & Ivory Charged Shot Lv1 (A)"
-msgstr ""
+msgstr "空中蓄力双枪 Lv.1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:348
 msgid "Ebony & Ivory Charged Shot Lv2 (A)"
-msgstr ""
+msgstr "空中蓄力双枪 Lv.2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:349
 msgid "Ebony & Ivory Charged Shot Lv3 (A)"
-msgstr ""
+msgstr "空中蓄力双枪 Lv.3"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:350
 msgid "Ebony & Ivory Twosome Time"
-msgstr ""
+msgstr "枪神射击"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:351
 msgid "Ebony & Ivory Honeycomb Fire"
-msgstr ""
+msgstr "十倍弹速"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:352
 msgid "Ebony & Ivory Rainstorm"
-msgstr ""
+msgstr "暴风雨"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:353
 msgid "Coyote Ace Shoot (Ground)"
-msgstr ""
+msgstr "地面土狼"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:354
 msgid "Coyote Ace Charged Shot Lv1 (G)"
-msgstr ""
+msgstr "地面蓄力土狼 Lv.1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:355
 msgid "Coyote Ace Charged Shot Lv2 (G)"
-msgstr ""
+msgstr "地面蓄力土狼 Lv.2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:356
 msgid "Coyote Ace Charged Shot Lv3 (G)"
-msgstr ""
+msgstr "地面蓄力土狼 Lv.3"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:357
 msgid "Coyote Ace Shoot (Air)"
-msgstr ""
+msgstr "空中土狼"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:358
 msgid "Coyote Ace Charged Shot Lv1 (A)"
-msgstr ""
+msgstr "空中蓄力土狼 Lv.1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:359
 msgid "Coyote Ace Charged Shot Lv2 (A)"
-msgstr ""
+msgstr "空中蓄力土狼 Lv.2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:360
 msgid "Coyote Ace Charged Shot Lv3 (A)"
-msgstr ""
+msgstr "空中蓄力土狼 Lv.3"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:361
 msgid "Coyote Ace Fireworks (Ground)"
-msgstr ""
+msgstr "地面枪花"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:362
 msgid "Coyote Ace Fireworks (Air)"
-msgstr ""
+msgstr "空中枪花"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:363
 msgid "Coyote Ace Backslide"
-msgstr ""
+msgstr "后射"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:364
 msgid "Coyote Ace Gun Stinger"
-msgstr ""
+msgstr "枪刺"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:365
 msgid "PF013: Epidemic"
-msgstr ""
+msgstr "灾厄013: 瘟疫"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:366
 msgid "PF124: Hatred"
-msgstr ""
+msgstr "灾厄124: 憎恶"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:367
 msgid "PF398: Revenge"
-msgstr ""
+msgstr "灾厄398: 报复"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:368
 msgid "PF262: Jealousy"
-msgstr ""
+msgstr "灾厄262: 嫉妒"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:369
 msgid "ATCK_ID_SPD_BATTERY"
@@ -10366,333 +10433,333 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:370
 msgid "PF594: Argument"
-msgstr ""
+msgstr "灾厄594: 争执"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:371
 msgid "PF422: Grief"
-msgstr ""
+msgstr "灾厄422: 悲恸"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:372
 msgid "PF666: Omen"
-msgstr ""
+msgstr "灾厄666: 预兆"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:373
 msgid "Trickster Dash"
-msgstr ""
+msgstr "骗术师Dash"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:374
 msgid "Sky Star"
-msgstr ""
+msgstr "空星"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:375
 msgid "Air Trick"
-msgstr ""
+msgstr "上瞬"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:376
 msgid "Flipper?"
-msgstr ""
+msgstr "受身?"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:377
 msgid "Release (Bronze No Target)"
-msgstr ""
+msgstr "RG释放（一级未命中）"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:378
 msgid "Release (Silver Missed)"
-msgstr ""
+msgstr "RG释放（二级未命中）"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:379
 msgid "Release (Gold Just)"
-msgstr ""
+msgstr "RG释放（三级一闪）"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:380
 msgid "Release Air (Bronze)"
-msgstr ""
+msgstr "空中RG释放（一级）"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:381
 msgid "Release Air (Silver)"
-msgstr ""
+msgstr "空中RG释放（二级）"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:382
 msgid "Release Air (Gold)"
-msgstr ""
+msgstr "空中RG释放（三级）"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:383
 msgid "Dreadnaught"
-msgstr ""
+msgstr "魔人重甲"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:384
 msgid "Yamato Combo A1"
-msgstr ""
+msgstr "阎魔 Combo A1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:385
 msgid "Yamato Combo A2"
-msgstr ""
+msgstr "阎魔 Combo A2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:386
 msgid "Yamato Combo A3"
-msgstr ""
+msgstr "阎魔 Combo A3"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:387
 msgid "Aerial Rave V1"
-msgstr ""
+msgstr "阎魔空削 1"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:388
 msgid "Aerial Rave V2"
-msgstr ""
+msgstr "阎魔空削 2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:389
 msgid "Slash Dimension (Far)"
-msgstr ""
+msgstr "次元斩（远）"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:390
 msgid "Slash Dimension (Close)"
-msgstr ""
+msgstr "次元斩（近）"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:394
 msgid "0 - None / Lockon + Melee"
-msgstr ""
+msgstr "0 - 无锁 / 锁定 + 近战"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:395
 msgid "1 - Lockon + Gun"
-msgstr ""
+msgstr "1 - 锁定 + 射击"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:396
 msgid "2 - Lockon + Style"
-msgstr ""
+msgstr "2 - 锁定 + 风格"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:397
 msgid "3 - Lockon + Forward + Melee"
-msgstr ""
+msgstr "3 - 锁定 + 前 + 近战"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:398
 msgid "4 - Lockon + Back + Melee"
-msgstr ""
+msgstr "4 - 锁定 + 后 + 攻击"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:399
 msgid "5 - Lockon + Forward + Gun"
-msgstr ""
+msgstr "5 - 锁定 + 前 + 射击"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:400
 msgid "6 - Lockon + Back + Gun"
-msgstr ""
+msgstr "6 - 锁定 + 后 + 射击"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:401
 msgid "7 - Lockon + Forward + Style"
-msgstr ""
+msgstr "7 - 锁定 + 前 + 风格"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:402
 msgid "8 - Lockon + Back + Style"
-msgstr ""
+msgstr "8 - 锁定 + 后 + 风格"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:403
 msgid "9 - Lockon + Forward + Melee2"
-msgstr ""
+msgstr "9 - 锁定 + 前 + 近战2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:404
 msgid "10 - Lockon + Back + Melee2"
-msgstr ""
+msgstr "10 - 锁定 + 后 + 近战2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:405
 msgid "11 - Lockon + Forward + Gun2"
-msgstr ""
+msgstr "11 - 锁定 + 前 + 射击2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:406
 msgid "12 - Lockon + Back + Gun2"
-msgstr ""
+msgstr "12 - 锁定 + 后 + 射击2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:407
 msgid "13 - Lockon + Forward + Style2"
-msgstr ""
+msgstr "13 - 锁定 + 前 + 风格2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:408
 msgid "14 - Lockon + Back + Style2"
-msgstr ""
+msgstr "14 - 锁定 + 后 + 风格2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:409
 msgid "15 - Lockon + Forward + Melee Stick"
-msgstr ""
+msgstr "15 - 锁定 + 上推摇杆 + 近战"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:410
 msgid "16 - Lockon + Back + Melee Stick"
-msgstr ""
+msgstr "16 - 锁定 + 下推摇杆 + 近战"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:411
 msgid "17 - Lockon + Forward + Gun Stick"
-msgstr ""
+msgstr "17 - 锁定 + 上推摇杆 + 射击"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:412
 msgid "18 - Lockon + Back + Gun Stick"
-msgstr ""
+msgstr "18 - 锁定 + 下推摇杆 + 射击"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:413
 msgid "19 - Lockon + Forward + Style Stick"
-msgstr ""
+msgstr "19 - 锁定 + 上推摇杆 + 风格"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:414
 msgid "20 - Lockon + Back + Style Stick"
-msgstr ""
+msgstr "20 - 锁定 + 下推摇杆 + 风格"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:415
 msgid "21 - Lockon + Any Direction + Melee"
-msgstr ""
+msgstr "21 - 锁定 + 任意方向 + 近战"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:416
 msgid "22 - Lockon + Any Direction + Gun"
-msgstr ""
+msgstr "22 - 锁定 + 任意方向 + 射击"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:417
 msgid "23 - Lockon + Any Direction + Style"
-msgstr ""
+msgstr "23 - 锁定 + 任意方向 + 风格"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:418
 msgid "24 - Any Direction + Melee"
-msgstr ""
+msgstr "24 - 任意方向 + 近战"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:419
 msgid "25 - Any Direction + Gun"
-msgstr ""
+msgstr "25 - 任意方向 + 射击"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:420
 msgid "26 - Any Direction + Style"
-msgstr ""
+msgstr "26 - 任意方向 + 风格"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:421
 msgid "27 - Melee"
-msgstr ""
+msgstr "27 - 近战"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:426
 msgid "32 - Gun Release"
-msgstr ""
+msgstr "32 - 松枪"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:427
 msgid "33 - Gun Charged Release"
-msgstr ""
+msgstr "33 - 松蓄力枪"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:428
 msgid "34 - Lockon + Gun Charge"
-msgstr ""
+msgstr "34 - 锁定 + 蓄枪"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:429
 msgid "35 - Gun Charged"
-msgstr ""
+msgstr "35 - 蓄枪完成"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:430
 msgid "36 - Gun Charge3"
-msgstr ""
+msgstr "36 - 蓄枪3"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:431
 msgid "37 - Gun Charge4"
-msgstr ""
+msgstr "37 - 蓄枪4"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:432
 msgid "38 - Gun Charge3"
-msgstr ""
+msgstr "38 - 蓄枪3"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:475
 msgid "81 - Melee + Style"
-msgstr ""
+msgstr "81 - 近战 + 风格"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:476
 msgid "82 - Lockon + Backforward + Melee"
-msgstr ""
+msgstr "82 - 锁定 + 后前 + 近战"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:478
 msgid "84 - Gun"
-msgstr ""
+msgstr "84 - 射击"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:486
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:511
 msgid "FF - None"
-msgstr ""
+msgstr "FF - 无"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:487
 msgid "0 - Red Queen"
-msgstr ""
+msgstr "0 - 绯红女皇"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:488
 msgid "1 - Blue Rose"
-msgstr ""
+msgstr "1 - 湛蓝玫瑰"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:489
 msgid "2 - Yamato"
-msgstr ""
+msgstr "2 - 阎魔刀"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:490
 msgid "3 - Right Hand"
-msgstr ""
+msgstr "3 - 右手"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:491
 msgid "4 - Rebellion"
-msgstr ""
+msgstr "4 - 叛逆之剑"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:492
 msgid "5 - Gilgamesh"
-msgstr ""
+msgstr "5 - 吉尔伽美什"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:493
 msgid "6 - Lucifer"
-msgstr ""
+msgstr "6 - 路西法"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:494
 msgid "7 - Coyote Ace"
-msgstr ""
+msgstr "7 - 土狼 A"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:495
 msgid "8 - Pandora"
-msgstr ""
+msgstr "8 - 潘多拉"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:496
 msgid "9 - Ebony & Ivory"
-msgstr ""
+msgstr "9 - 黑檀木 & 白象牙"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:512
 msgid "0 - Swordmaster"
-msgstr ""
+msgstr "0 - 剑圣"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:513
 msgid "1 - Gunslinger"
-msgstr ""
+msgstr "1 - 枪神"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:514
 msgid "2 - Trickster"
-msgstr ""
+msgstr "2 - 骗术师"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:515
 msgid "3 - Royal Guard"
-msgstr ""
+msgstr "3 - 皇家守卫"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:516
 msgid "4 - Darkslayer"
-msgstr ""
+msgstr "4 - 黑暗杀手"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:520
 msgid "0 - None"
-msgstr ""
+msgstr "0 - 无"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:521
 msgid "1 - Ground"
-msgstr ""
+msgstr "1 - 地面"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:522
 msgid "2 - Air"
-msgstr ""
+msgstr "2 - 空中"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:523
 msgid "3 - Ground or air"
-msgstr ""
+msgstr "3 - 地面或空中"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:527
 msgid "0 - None?"
-msgstr ""
+msgstr "0 - 无?"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:528
 msgid "1 - None?"
-msgstr ""
+msgstr "1 - 无?"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:529
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:537
 msgid "2 - Disabled?"
-msgstr ""
+msgstr "2 - 禁用?"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:530
 msgid "3 -"
@@ -10700,19 +10767,19 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:531
 msgid "4 - Height Restricted"
-msgstr ""
+msgstr "4 - 存在高度限制"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:535
 msgid "0 - DT or no DT"
-msgstr ""
+msgstr "0 - 魔人或常态"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:536
 msgid "1 - DT or no DT 2"
-msgstr ""
+msgstr "1 - 魔人或常态 2"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:538
 msgid "3 - DT Only"
-msgstr ""
+msgstr "3 - 仅魔人"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:539
 msgid "4 -"
@@ -10736,7 +10803,7 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:544
 msgid "9 - DT or Charge"
-msgstr ""
+msgstr "9 - 魔人或蓄力"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:545
 msgid "10 -"
@@ -10744,19 +10811,38 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:546
 msgid "11 - DT or Charge 2"
-msgstr ""
+msgstr "11 - 魔人或蓄力 2"
 
 #: C:\vs_projects\dmc4_hook\src\utility\Input.cpp:347
 msgid "set"
-msgstr "设定热键"
+msgstr "设定"
 
 #: C:\vs_projects\dmc4_hook\src\utility\Input.cpp:357
 msgid "save"
-msgstr "保存热键"
+msgstr "保存"
 
 #: C:\vs_projects\dmc4_hook\src\utility\Input.cpp:366
 msgid "clear"
-msgstr "清除热键"
+msgstr "默认"
+
+#~ msgid ""
+#~ "Enable before loading into a stage\n"
+#~ "This has a few unintentional side effects.\n"
+#~ "All the time this cheat is ticked,\n"
+#~ "- Lock on is a little less accurate\n"
+#~ "- Style drains twice as fast\n"
+#~ msgstr ""
+#~ "需在进入关卡前启用\n"
+#~ "具有一些副作用\n"
+#~ "- 锁定会稍微不正确\n"
+#~ "- 风格评级以两倍速度掉落\n"
+
+#~ msgid ""
+#~ "Triggers a stand attack when you input the selected button.\n"
+#~ "Lockon+forward/back for other attacks"
+#~ msgstr ""
+#~ "当您按下绑定键时尼禄会释放替身攻击\n"
+#~ "锁定+后/前+绑定键可用出其他攻击"
 
 #, c-format
 #~ msgid "Difficulty %i - %i/%i Unlocked"

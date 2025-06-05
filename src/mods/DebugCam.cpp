@@ -261,19 +261,19 @@ struct RegionButton {
 
 const RegionButton REGION_BUTTONS[3][3] = {
     {
-        { REGION_TOPLEFT, "Top\nLeft" },
-        { REGION_TOP, "Top" },
-        { REGION_TOPRIGHT, "Top\nRight" }
+        { REGION_TOPLEFT, __("Top\nLeft") },
+        { REGION_TOP, __("Top") },
+        { REGION_TOPRIGHT, __("Top\nRight") }
     },
     {
-        { REGION_LEFT, "Left" },
-        { REGION_FULLSCREEN, "Full" },
-        { REGION_RIGHT, "Right" }
+        { REGION_LEFT, __("Left") },
+        { REGION_FULLSCREEN, __("Full") },
+        { REGION_RIGHT, __("Right") }
     },
     {
-        { REGION_BOTTOMLEFT, "Bottom\nLeft" },
-        { REGION_BOTTOM, "Bottom" },
-        { REGION_BOTTOMRIGHT, "Bottom\nRight" }
+        { REGION_BOTTOMLEFT, __("Bottom\nLeft") },
+        { REGION_BOTTOM, __("Bottom") },
+        { REGION_BOTTOMRIGHT, __("Bottom\nRight") }
     }
 };
 
@@ -311,7 +311,7 @@ void DebugCam::on_gui_frame(int display) {
                     ImGui::PushStyleColor(ImGuiCol_Button,
                         (selectedViewportOption[viewportId] == rb.mode) ?
                         SELECTED_BUTTON_COLOR : NORMAL_BUTTON_COLOR);
-                    if (ImGui::Button(rb.label, ImVec2(BUTTON_SIZE, BUTTON_SIZE))) {
+                    if (ImGui::Button(utility::text_lookup((char*)rb.label), ImVec2(BUTTON_SIZE, BUTTON_SIZE))) {
                         selectedViewportOption[viewportId] = rb.mode;
 
                         if (viewportId == 0) {

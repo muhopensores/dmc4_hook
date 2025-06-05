@@ -734,17 +734,17 @@ void CharSwitcher::on_gui_frame(int display) {
     }
     ImGui::SameLine();
     help_marker(_("Enable before loading into a stage\n"
-        "This has a few unintentional side effects.\n"
-        "All the time this cheat is ticked,\n"
+        "On keyboard this is currently locked to F\n"
+        "This has a few unintentional side effects:\n"
         "- Lock on is a little less accurate\n"
         "- Style drains twice as fast\n"));
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
         ImGui::PushItemWidth(sameLineItemWidth);
-        if (ImGui::BeginCombo(_("Input 1"), devil4_sdk::getButtonInfo(desiredInput1).second)) {
+        if (ImGui::BeginCombo(_("Input 1"), utility::text_lookup((char*)devil4_sdk::getButtonInfo(desiredInput1).second))) {
             for (const auto& buttonPair : buttonPairs) {
                 bool is_selected = (desiredInput1 == buttonPair.first);
-                if (ImGui::Selectable(buttonPair.second, is_selected)) {
+                if (ImGui::Selectable(utility::text_lookup((char*)buttonPair.second), is_selected)) {
                     desiredInput1 = buttonPair.first;
                 }
                 if (is_selected) {
@@ -755,10 +755,10 @@ void CharSwitcher::on_gui_frame(int display) {
         }
         ImGui::SameLine();
         help_marker(_("Set a button combo to trigger the switch"));
-        if (ImGui::BeginCombo(_("Input 2"), devil4_sdk::getButtonInfo(desiredInput2).second)) {
+        if (ImGui::BeginCombo(_("Input 2"), utility::text_lookup((char*)devil4_sdk::getButtonInfo(desiredInput2).second))) {
             for (const auto& buttonPair : buttonPairs) {
                 bool is_selected = (desiredInput2 == buttonPair.first);
-                if (ImGui::Selectable(buttonPair.second, is_selected)) {
+                if (ImGui::Selectable(utility::text_lookup((char*)buttonPair.second), is_selected)) {
                     desiredInput2 = buttonPair.first;
                 }
                 if (is_selected) {

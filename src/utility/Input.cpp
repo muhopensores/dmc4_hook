@@ -318,7 +318,7 @@ namespace utility {
         
         // print keyboard or gamepad buttons
         for (uint32_t hotkey : m_binds) {
-            ss << hotkey_name(hotkey);
+            ss << utility::text_lookup((char*)hotkey_name(hotkey));
             if ((m_binds.size()) > 1 && (hotkey != m_binds.back())) {
                 ss << " + ";
             }

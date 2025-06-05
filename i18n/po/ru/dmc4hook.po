@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-04 15:46+0100\n"
+"POT-Creation-Date: 2025-06-05 16:39+0100\n"
 "PO-Revision-Date: 2024-04-17 21:13+0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -102,7 +102,7 @@ msgstr ""
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:396
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:21
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:286
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:111
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:113
 msgid "Dante"
 msgstr ""
 
@@ -432,19 +432,19 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:16
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:278
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:103
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:105
 msgid "Berial"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:17
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:279
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:104
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:106
 msgid "Bael"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:18
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:280
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:105
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:107
 msgid "Echidna"
 msgstr ""
 
@@ -1095,8 +1095,8 @@ msgstr "Переключатель Иероглифа"
 #: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:736
 msgid ""
 "Enable before loading into a stage\n"
-"This has a few unintentional side effects.\n"
-"All the time this cheat is ticked,\n"
+"On keyboard this is currently locked to F\n"
+"This has a few unintentional side effects:\n"
 "- Lock on is a little less accurate\n"
 "- Style drains twice as fast\n"
 msgstr ""
@@ -1215,6 +1215,50 @@ msgstr "Обязывают jdc активацию заблокировать - �
 #: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:575
 msgid "Inertia enable"
 msgstr "Инерция позволяют"
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:264
+msgid ""
+"Top\n"
+"Left"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:265
+msgid "Top"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:266
+msgid ""
+"Top\n"
+"Right"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:269
+msgid "Left"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:270
+msgid "Full"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:271
+msgid "Right"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:274
+msgid ""
+"Bottom\n"
+"Left"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:275
+msgid "Bottom"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:276
+msgid ""
+"Bottom\n"
+"Right"
+msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\DebugCam.cpp:287
 msgid "Free Camera"
@@ -1413,11 +1457,10 @@ msgstr "Дьявол Опекуна"
 
 #: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:834
 msgid ""
+"On keyboard this is currently locked to T.\n"
 "Triggers a stand attack when you input the selected button.\n"
 "Lockon+forward/back for other attacks"
 msgstr ""
-"Вызывает нападение стенда, когда Вы вводите выбранную кнопку\n"
-"Lockon+forward/back для других нападений"
 
 #: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:838
 msgid "Guardian Input"
@@ -1557,77 +1600,77 @@ msgid "Replace Dante with:"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:266
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:89
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:91
 msgid "Scarecrow (Leg)"
 msgstr "Пугало (Нога)"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:267
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:90
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:92
 msgid "Scarecrow (Arm)"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:268
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:91
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:93
 msgid "Mega Scarecrow"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:269
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:92
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:94
 msgid "Bianco Angelo"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:270
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:93
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:95
 msgid "Alto Angelo"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:271
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:94
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:96
 msgid "Mephisto"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:272
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:95
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:97
 msgid "Faust"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:273
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:96
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:98
 msgid "Frost"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:274
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:97
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:99
 msgid "Assault"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:275
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:98
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:100
 msgid "Blitz"
 msgstr "Блиц"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:276
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:99
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:101
 msgid "Chimera Seed"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:277
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:102
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:104
 msgid "Basilisk"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:283
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:108
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:110
 msgid "Sanctus"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:284
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:109
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:111
 msgid "Sanctus Diabolica"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:285
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:110
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:112
 msgid "Kyrie"
 msgstr ""
 
@@ -1650,79 +1693,87 @@ msgid ""
 "entering a new fight"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:100
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:102
 msgid "Cutlass"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:101
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:103
 msgid "Gladius"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:106
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:108
 msgid "Angelo Credo"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:107
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:109
 msgid "Angelo Agnus"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:423
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:425
 msgid "Spawn Scarecrow Leg"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:424
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:426
 msgid "Spawn Scarecrow Arm"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:425
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:427
 msgid "Spawn Mega"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:426
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:428
 msgid "Spawn Bianco"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:427
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:429
 msgid "Spawn Alto"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:428
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:430
 msgid "Spawn Mephisto"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:429
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:431
 msgid "Spawn Faust"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:430
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:432
 msgid "Spawn Frost"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:431
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:433
 msgid "Spawn Assault"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:432
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:434
 msgid "Spawn Blitz"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:433
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:435
 msgid "Spawn Chimera"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:434
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:436
+msgid "Spawn Gladius"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:437
+msgid "Spawn Cutlass"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:438
 msgid "Spawn Basilisk"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:522
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:526
 msgid "Random"
 msgstr "Случайный"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:528
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:532
 msgid "[DEBUG] Custom Spawn Addr"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:530
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:534
 msgid "Spawn"
 msgstr ""
 
@@ -2124,6 +2175,10 @@ msgid ""
 "Fireworks"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:25
+msgid "Page"
+msgstr ""
+
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:31
 msgid "Start Addr"
 msgstr ""
@@ -2503,6 +2558,10 @@ msgstr ""
 msgid "DT##EnemyFly"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:392
+msgid "MoveID##PlayerFly"
+msgstr ""
+
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:405
 msgid "Base Addr##EnemyFly"
 msgstr ""
@@ -2573,6 +2632,10 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:456
 msgid "Display Damage Resist"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:458
+msgid "Current difficulty * armour"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:459
@@ -10674,6 +10737,13 @@ msgstr ""
 #: C:\vs_projects\dmc4_hook\src\utility\Input.cpp:366
 msgid "clear"
 msgstr ""
+
+#~ msgid ""
+#~ "Triggers a stand attack when you input the selected button.\n"
+#~ "Lockon+forward/back for other attacks"
+#~ msgstr ""
+#~ "Вызывает нападение стенда, когда Вы вводите выбранную кнопку\n"
+#~ "Lockon+forward/back для других нападений"
 
 #~ msgid "General"
 #~ msgstr "Общий"

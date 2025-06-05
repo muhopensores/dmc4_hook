@@ -22,6 +22,8 @@ enum {
     HOTKEY_SPAWN_ASSAULT,
     HOTKEY_SPAWN_BLITZ,
     HOTKEY_SPAWN_CHIMERA,
+    HOTKEY_SPAWN_GLADIUS,
+    HOTKEY_SPAWN_CUTLASS,
     HOTKEY_SPAWN_BASILISK,
     HOTKEY_MAX
 };
@@ -431,7 +433,9 @@ std::optional<std::string> EnemySpawn::on_initialize() {
     utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F9 }, __("Spawn Assault"), "spawn_assault_key");
     utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F10 }, __("Spawn Blitz"), "spawn_blitz_key");
     utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F11 }, __("Spawn Chimera"), "spawn_chimera_key");
-    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F12 }, __("Spawn Basilisk"), "spawn_basilisk_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_CONTROL, VK_F12 }, __("Spawn Gladius"), "spawn_gladius_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_SHIFT,   VK_F1  }, __("Spawn Cutlass"), "spawn_cutlass_key");
+    utility::create_keyboard_hotkey(EnemySpawn::m_hotkeys, { VK_SHIFT,   VK_F2  }, __("Spawn Basilisk"), "spawn_basilisk_key");
 
     console->system().RegisterCommand("spawnscarecrowleg", "Spawn a Scarecrow Leg", [/*this*/]() {
         spawn_em00x(EnemyType::SCARECROW_LEG);

@@ -22,7 +22,7 @@ bool FlyingStats::showFlyingCancelBools = false;
 static void DisplayCollisionData(uCollisionMgr* currentEnemyCollision, float currentItemWidth) {
     uintptr_t collisionSettingsAddress = *(uintptr_t*)&currentEnemyCollision;
     ImGui::SetNextItemWidth(currentItemWidth);
-    if (ImGui::InputInt("Page", &FlyingStats::collisionPage)) {
+    if (ImGui::InputInt(_("Page"), &FlyingStats::collisionPage)) {
         if (FlyingStats::collisionPage < 0) FlyingStats::collisionPage = 0;
         if (FlyingStats::collisionPage > 10) FlyingStats::collisionPage = 10;
     }
@@ -389,7 +389,7 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                 // if (showFlyingDisplacement) ImGui::InputInt("Displacement##EnemyFly", &player->damageStruct.displacement[0], NULL, NULL);
                 // if (showFlyingStunTimer)ImGui::SliderFloat("Stun Reset Timer##EnemyFly", &player->damageStruct.stunResetTimer, 0.0f, 180.0f, "%.0f");
                 if (showFlyingMoveID) {
-                    ImGui::InputScalar("MoveID##PlayerFly", ImGuiDataType_U8, &player->moveID2);
+                    ImGui::InputScalar(_("MoveID##PlayerFly"), ImGuiDataType_U8, &player->moveID2);
                     if (ImGui::IsItemHovered()) {
                         if (player->controllerID == 0) {
                             ImGui::BeginTooltip();
@@ -455,7 +455,7 @@ void FlyingStats::on_gui_frame(int display) {
         ImGui::Checkbox(_("Display Damage Taken"), &showFlyingDamageTaken);
         ImGui::Checkbox(_("Display Damage Resist"), &showFlyingDamageResist);
         ImGui::SameLine();
-        help_marker("Current difficulty * armour");
+        help_marker(_("Current difficulty * armour"));
         ImGui::Checkbox(_("Display DT Timer"), &showFlyingDT);
         ImGui::Checkbox(_("Display Stun"), &showFlyingStun);
         ImGui::Checkbox(_("Display Displacement"), &showFlyingDisplacement);

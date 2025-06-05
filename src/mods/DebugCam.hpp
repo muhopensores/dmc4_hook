@@ -43,14 +43,3 @@ enum REGION_MODE {
     REGION_TOPRIGHT,
     REGION_BOTTOMRIGHT
 };
-static const char* validViewportsComboStr =
-    "FULLSCREEN\0"
-    "FREE\0"
-    "TOP\0"
-    "BOTTOM\0"
-    "LEFT\0"
-    "RIGHT\0"
-    "TOP LEFT\0"
-    "BOTTOM LEFT\0"
-    "TOP RIGHT\0"
-    "BOTTOM RIGHT\0\0";

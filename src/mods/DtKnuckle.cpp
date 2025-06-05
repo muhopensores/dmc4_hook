@@ -831,14 +831,14 @@ void DtKnuckle::on_gui_frame(int display) {
 			toggle(mod_enabled);
 		}
 		ImGui::SameLine();
-		help_marker(_("Triggers a stand attack when you input the selected button.\nLockon+forward/back for other attacks"));
+		help_marker(_("On keyboard this is currently locked to T.\nTriggers a stand attack when you input the selected button.\nLockon+forward/back for other attacks"));
 		if (mod_enabled) {
 			ImGui::Indent(lineIndent);
 			ImGui::PushItemWidth(sameLineItemWidth);
-			if (ImGui::BeginCombo(_("Guardian Input"), devil4_sdk::getButtonInfo(desiredInput).second)) {
+			if (ImGui::BeginCombo(_("Guardian Input"), utility::text_lookup((char*)devil4_sdk::getButtonInfo(desiredInput).second))) {
 				for (const auto& buttonPair : buttonPairs) {
 					bool is_selected = (desiredInput == buttonPair.first);
-					if (ImGui::Selectable(buttonPair.second, is_selected)) {
+					if (ImGui::Selectable(utility::text_lookup((char*)buttonPair.second), is_selected)) {
 						desiredInput = buttonPair.first;
 					}
 					if (is_selected) {
