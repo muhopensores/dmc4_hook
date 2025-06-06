@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/FloorIsLava.hpp
+  mods/FloorIsLava.cpp
   mods/GroundedGunCancels.hpp
   mods/GroundedGunCancels.cpp
   mods/RunWhileHolding.hpp
