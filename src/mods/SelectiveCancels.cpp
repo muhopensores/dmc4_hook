@@ -376,6 +376,7 @@ inline void SelectiveCancels::draw_checkbox_simple(const char* name, CancelMoves
 }
 
 void SelectiveCancels::on_gui_frame(int display) {
+	ImGui::PushID("SelectiveCancels");
 	if (display == 1) {
 		ImGui::Checkbox(_("Enable##SelectiveCancelsNero"), &mod_enabled_nero);
 		ImGui::SameLine();
@@ -392,7 +393,6 @@ void SelectiveCancels::on_gui_frame(int display) {
 		ImGui::Checkbox(_("Enable##SelectiveCancelsDante"), &mod_enabled_dante);
 		ImGui::SameLine();
 		help_marker(_("Allow cancelling out of selected moves with evasive actions"));
-
 		if (mod_enabled_dante) {
 			ImGui::Indent(lineIndent);
 			ImGui::Checkbox(_("Disable Guardslide"), &fixGuardInertia);
@@ -456,6 +456,7 @@ void SelectiveCancels::on_gui_frame(int display) {
 			ImGui::Unindent(lineIndent);
 		}
 	}
+	ImGui::PopID();
 }
 
 void SelectiveCancels::on_config_save(utility::Config& cfg) {

@@ -15,7 +15,7 @@
 #include "fw-imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
 
-#define GUI_VERSION "dmc4_hook 1.5.2"
+#define GUI_VERSION "dmc4_hook 1.5.3 PRE RELEASE"
 
 static constexpr char* version{GUI_VERSION};
 static constexpr float uiWidth       = 600.0f;
