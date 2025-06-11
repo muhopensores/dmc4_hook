@@ -68,7 +68,7 @@ struct sMain {
 };
 
 void VisualizeHitbox::on_frame(fmilliseconds& dt) {
-    if (mod_enabled) {
+    if (mod_enabled) { // hitboxes
         sMain* sMainPtr = *(sMain**)sMainAddr;
         if (!sMainPtr || !sMainPtr->pCollisionGroupsContainer) return;
         CollisionGroupsContainer* groupsContainer = sMainPtr->pCollisionGroupsContainer;
@@ -104,7 +104,7 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
         }
     }
 
-    if (mod_enabled2) {
+    if (mod_enabled2) { // pushpills
         if (uPlayer* player = devil4_sdk::get_local_player()) {
             uEnemy* enemy = devil4_sdk::get_uEnemies();
             int enemyCount = 0;
@@ -173,25 +173,12 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
         }
     }
 
-    if (mod_enabled3) {
+    if (mod_enabled3) { // enemy step
         if (uPlayer* player = devil4_sdk::get_local_player()) {
             uEnemy* enemy = devil4_sdk::get_uEnemies();
             while (enemy) {
-                // mPushCap
-                // Matrix4x4 worldMatrix = glm::make_mat4((float*)&currentEnemyCollision.field50_0x1c0);
-                // Vector3f pos1 = glm::make_vec3((float*)&currentEnemyCollision.mPushCap.p0);
-                // Vector3f pos2 = glm::make_vec3((float*)&currentEnemyCollision.mPushCap.p1);
-                // float length = glm::length(pos2 - pos1);
-                // length = (length > 0.00001f) ? length : 0.01f;
-                // Matrix4x4 worldPos1 = glm::translate(worldMatrix, pos1);
-                // Matrix4x4 worldPos2 = glm::translate(worldMatrix, pos2);
-                // Vector3f direction = glm::vec3(worldPos2[3]) - glm::vec3(worldPos1[3]);
-                // float rotationY = atan2(direction.x, direction.z);
-                // float rotationX = atan2(sqrt(direction.z * direction.z + direction.x * direction.x), direction.y);
-                // w2s::DrawWireframeCapsule(glm::vec3(worldPos1[3]), currentEnemyCollision.mPushCap.r, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
-
                 int sphereCount = enemy->jcSphereCount;
-                for (int i = 0; i < sphereCount; i++) {
+                for (int i = 0; i < sphereCount; i++) { // this gets enemies but not some extras like berial's sword. DevilMayCry4_DX9.exe+AB1C3 gets the sword
                     jcHitsphereData* sphere = &enemy->jcSpheres[i];
                     if (!sphere) continue;
                     Vector3f spherePos = glm::make_vec3((float*)&sphere->location);
@@ -205,12 +192,13 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
                 }
                 enemy = enemy->nextEnemy;
             }
+            // player
             {
                 Vector3f playerPos = glm::make_vec3((float*)&player->m_pos);
                 Vector3f playerSphereOffset { 0.0f, 85.0f, 0.0f }; // from DevilMayCry4_DX9.exe+AB322
                 Vector3f finalPos = playerPos + playerSphereOffset;
 
-                // There's 2? from DevilMayCry4_DX9.exe+AB336 > follow jmp > check first opcode. Static mem
+                // There's 2? from DevilMayCry4_DX9.exe+AB336 > follow jmp > check first opcode. Static mem (uh this is for enemies, some enemies have 2 and some have 3??)
                 w2s::DrawWireframeCapsule(finalPos, 160.0f, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
                 w2s::DrawWireframeCapsule(finalPos, 135.0f, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
             }
@@ -253,7 +241,7 @@ void VisualizeHitbox::on_gui_frame(int display) {
 
     ImGui::Checkbox(_("Visualize Enemy Step Spheres"), &mod_enabled3);
     ImGui::SameLine();
-    help_marker(_("Draw pushbox outlines in green"));
+    help_marker(_("Draw enemy step sphere outlines in green"));
 }
 
 void VisualizeHitbox::on_config_load(const utility::Config& cfg) {
