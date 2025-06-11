@@ -1272,6 +1272,21 @@ public:
 }; // Size: 0xb0
 static_assert(sizeof(uDamage) == 0xb0);
 
+class jcHitsphereData {
+public:
+    Vector3f location; // 0x0
+    float unknFloat1; // 0xc
+    int unknInt1; // 0x10
+    float unknFloat2; // 0x14
+    float unknFloat3; // 0x18
+    float unknFloat4; // 0x1c
+    int unknInt2; // 0x20
+    float unknFloat5; // 0x24
+    float unknFloat6; // 0x28
+    char pad_2C[4]; // 0x2c
+}; // Size: 0x30
+static_assert(sizeof(jcHitsphereData) == 0x30);
+
 class uEnemy {
 public:
     char pad_0[0x8];
@@ -1305,7 +1320,11 @@ public:
     uint16_t launchStateThing1; // 0xea0
     char pad_ea2[0x6];
     uint16_t launchStateThing2; // 0xea8
-    char pad_eaa[0x55a];
+    char pad_eaa[0x46];
+    int jcSphereCount; // 0xef0
+    char pad_ef4[0xc];
+    jcHitsphereData jcSpheres[10]; // 0xf00
+    char pad_10e0[0x324];
     bool inBattle; // 0x1404
     bool isActive; // 0x1405
     char pad_1406[0xa];

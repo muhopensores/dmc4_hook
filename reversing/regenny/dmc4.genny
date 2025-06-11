@@ -213,6 +213,19 @@ class uEnemyDamagePossibility {
 	char pad_00[0x4] @ 0x00
 };
 
+class jcHitsphereData {
+    Vector3f pos @ 0x00
+	float unknFloat1 @ 0x0C
+	int unknInt1 @ 0x10
+	float unknInt2@ 0x14
+	int unknFloat3 @ 0x18
+	float unknFloat4 @ 0x1C
+	int unknInt3 @ 0x20
+	float unknFloat5 @ 0x24
+	float unknFloat6 @ 0x28
+	char[4] pad_2C @ 0x2C
+};
+
 class uEnemy {
 	uEnemy* nextEnemy @ 0x8
 	float delta @ 0x10
@@ -231,6 +244,8 @@ class uEnemy {
 	float animFrameMax @ 0x34C
 	uint16_t launchStateThing1 @ 0xEA0
 	uint16_t launchStateThing2 @ 0xEA8 // enemy doesn't take air stun without OA set
+	int jcSphereCount @ 0xEF0
+	class jcHitsphereData[10] jcSpheres @ 0xF00 // idk how big this is gonna be, just throwing in rando 10 atm
 	bool inBattle @ 0x1404
 	bool isActive @ 0x1405
 	ENEMY_ID ID @ 0x1410

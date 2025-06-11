@@ -8,6 +8,7 @@ public:
 
     static bool mod_enabled;
     static bool mod_enabled2;
+    static bool mod_enabled3;
     // static uintptr_t jmp_ret_pushboxes;
     // static uintptr_t jmp_ret2;
 
@@ -20,5 +21,5 @@ public:
     void on_frame(fmilliseconds& dt) override;
 
 private:
-    std::unique_ptr<FunctionHook> hook1;
+    // std::unique_ptr<FunctionHook> hook1;
 };

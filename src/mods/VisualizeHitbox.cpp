@@ -5,12 +5,14 @@
 #include <math.h>
 #include "EnemyTracker.hpp"
 
-bool VisualizeHitbox::mod_enabled = false;
+bool VisualizeHitbox::mod_enabled = false; // Visualize Hitboxes
 constexpr uintptr_t sMainAddr = 0x00E5574C;
 
-bool VisualizeHitbox::mod_enabled2 = false;
+bool VisualizeHitbox::mod_enabled2 = false; // Visualize Pushboxes
 // uintptr_t VisualizeHitbox::jmp_ret_pushboxes = NULL;
 // static uintptr_t pushboxAddr = NULL;
+
+bool VisualizeHitbox::mod_enabled3 = false; // Visualize JC Spheres
 
 struct kCollPrim {
     int mType;
@@ -170,6 +172,50 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
             }
         }
     }
+
+    if (mod_enabled3) {
+        if (uPlayer* player = devil4_sdk::get_local_player()) {
+            uEnemy* enemy = devil4_sdk::get_uEnemies();
+            while (enemy) {
+                // mPushCap
+                // Matrix4x4 worldMatrix = glm::make_mat4((float*)&currentEnemyCollision.field50_0x1c0);
+                // Vector3f pos1 = glm::make_vec3((float*)&currentEnemyCollision.mPushCap.p0);
+                // Vector3f pos2 = glm::make_vec3((float*)&currentEnemyCollision.mPushCap.p1);
+                // float length = glm::length(pos2 - pos1);
+                // length = (length > 0.00001f) ? length : 0.01f;
+                // Matrix4x4 worldPos1 = glm::translate(worldMatrix, pos1);
+                // Matrix4x4 worldPos2 = glm::translate(worldMatrix, pos2);
+                // Vector3f direction = glm::vec3(worldPos2[3]) - glm::vec3(worldPos1[3]);
+                // float rotationY = atan2(direction.x, direction.z);
+                // float rotationX = atan2(sqrt(direction.z * direction.z + direction.x * direction.x), direction.y);
+                // w2s::DrawWireframeCapsule(glm::vec3(worldPos1[3]), currentEnemyCollision.mPushCap.r, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
+
+                int sphereCount = enemy->jcSphereCount;
+                for (int i = 0; i < sphereCount; i++) {
+                    jcHitsphereData* sphere = &enemy->jcSpheres[i];
+                    if (!sphere) continue;
+                    Vector3f spherePos = glm::make_vec3((float*)&sphere->location);
+                    ImGui::Text("Sphere %d pos: %.2f, %.2f, %.2f", i, spherePos.x, spherePos.y, spherePos.z);
+                    ImGui::Text("Sphere %d radius: %.2f", i, sphere->unknFloat1);
+                    ImGui::Text("Unkn f 2,3,4: %.2f, %.2f, %.2f", sphere->unknFloat2, sphere->unknFloat3, sphere->unknFloat4);
+                    ImGui::Text("Unkn f 5,6: %.2f, %.2f", sphere->unknFloat5, sphere->unknFloat6);
+                    ImGui::Text("Unkn i 1,2: %d, %d", sphere->unknInt1, sphere->unknInt2);
+                    ImGui::Separator();
+                    w2s::DrawWireframeCapsule(spherePos, sphere->unknFloat1, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
+                }
+                enemy = enemy->nextEnemy;
+            }
+            {
+                Vector3f playerPos = glm::make_vec3((float*)&player->m_pos);
+                Vector3f playerSphereOffset { 0.0f, 85.0f, 0.0f }; // from DevilMayCry4_DX9.exe+AB322
+                Vector3f finalPos = playerPos + playerSphereOffset;
+
+                // There's 2? from DevilMayCry4_DX9.exe+AB336 > follow jmp > check first opcode. Static mem
+                w2s::DrawWireframeCapsule(finalPos, 160.0f, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
+                w2s::DrawWireframeCapsule(finalPos, 135.0f, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
+            }
+        }
+    }
 }
 
 // they just stutter between different entities with this,
@@ -200,17 +246,24 @@ void VisualizeHitbox::on_gui_frame(int display) {
     ImGui::Checkbox(_("Visualize Hitboxes"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Draw hitbox outlines in red"));
+
     ImGui::Checkbox(_("Visualize Pushboxes"), &mod_enabled2);
     ImGui::SameLine();
     help_marker(_("Draw pushbox outlines in blue"));
+
+    ImGui::Checkbox(_("Visualize Enemy Step Spheres"), &mod_enabled3);
+    ImGui::SameLine();
+    help_marker(_("Draw pushbox outlines in green"));
 }
 
 void VisualizeHitbox::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("visualize_hitbox").value_or(false);
     mod_enabled2 = cfg.get<bool>("visualize_pushbox").value_or(false);
+    mod_enabled3 = cfg.get<bool>("visualize_enemystep").value_or(false);
 };
 
 void VisualizeHitbox::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("visualize_hitbox", mod_enabled);
     cfg.set<bool>("visualize_pushbox", mod_enabled2);
+    cfg.set<bool>("visualize_enemystep", mod_enabled3);
 };
