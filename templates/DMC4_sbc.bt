@@ -1,0 +1,111 @@
+//------------------------------------------------
+//--- 010 Editor v10.0 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: DMC4
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+// LittleEndian();
+#include "MTF_types.1sc"
+
+/* ----DEFINITIONS---- */
+// Nodes 
+    typedef struct {
+        // PS3 demo symbols
+        // u8 Ratio[6];
+        // u8 Bit;
+        // u8 Reserved;
+        // u16 ChildIndex[2];
+
+        MtAABB NodeAABB[2]<open=false>;// axis aligned bounding boxes of the children?
+        char   Bit;// flags? (only first 2 bits (BE) matter, leaf node flags ?)
+        char   undefined;
+        uint16 ChildIndex[2]; FSkip(10); // indices of children relative to the first node index in part?, 0-empty node
+    } Node<read=Str("%d, [Children: %d, %d]", Bit, ChildIndex[0], ChildIndex[1])>;
+
+
+// PartsInfo, bvh?
+    typedef struct {
+        // PS3 demo symbols
+        // u32 Flags;
+        // u32 TriangleIndex;
+        // u32 NodeIndex;
+        // u32 VertexIndex;
+        // u32 EdgeIndex;
+        // u32 Id;
+
+        uint32 Flags;
+        uint32 TriangleIndex; // index of the first tri in this part?
+        uint32 NodeIndex; // index of the first node in this part?
+        uint32 VertIndex; // index of the first vert in this part?
+    
+        uint32 Id<format=hex>; // -1
+        // next 2 seem to be the min/max of the first node's 2 AABBs
+        MtFloat3 vMinThis; 
+        MtFloat3 vMaxThis;
+        // next 2 seem to be the min/max of the child parts when the first child != 0, self index repeats the values in this struct?
+        MtFloat3 vMin[2]; 
+        MtFloat3 vMax[2]; 
+        uint16 ChildIndex[2]; // seems to be the child parts when the first child != 0, self index means no child?
+    } PartsInfo<read=Str("Children: %d, %d", ChildIndex[0], ChildIndex[1]),
+                name=Str("Tri: %d, Node: %d, Vert: %d ", TriangleIndex, NodeIndex, VertIndex)>;
+         
+
+// Triangle description
+    typedef struct {
+        uint16 vert_index[3];
+        byte   undefined[2]<format=binary>;
+        uint32 RuntimeAttr <name="Runtime-assigned attribute flags">;
+        uint uknAttr;
+        uint SpecialAttr <name="Special attributes (can wall jump, ledge leap, etc.)",format=hex>;
+        //0x10000000 - leapable ledge (turns even wall into floor), prevent falling off when attacking
+        //0x20000000 - camera block, bullet impacts, chain interactions, etc.
+        //0x400 - footprint
+        //0x200 - Foot IK, ground in general ?
+        uint SurfaceAttr <name="Surface attribute (is wall/ceiling-10, ground-20, auto-0)",format=hex>;
+        //10-phys wall/ceiling, 13-invis wall, 20-ground, 0-auto
+        uint uknAttr2;
+    } Triangle<read=Str("Verts: [%d, %d, %d] %02X %02X", vert_index[0], vert_index[1], vert_index[2],SurfaceAttr,SpecialAttr)>;
+
+
+// Vertex
+    typedef struct {
+        float x<bgcolor=cRed>; 
+        float y<bgcolor=cGreen>;
+        float z<bgcolor=cBlue>;
+        uint32 attribute;
+    } Vertex<read=Str("[%.3f, %.3f, %.3f", x, y, z)>;
+
+
+/* ----FUNCTIONS---- */
+
+
+
+/* ----START---- */
+struct {
+    u8  Id[4];
+    u16 Version;
+    u16 PartsInfoNum;
+    u16 PartsNodeNum;
+    u8  MaxPartsNestCount;
+    u8  MaxNestCount;
+    u32 TotalNodeNum;
+    u32 TotalTriangleNum;
+    // u32 TotalEdgeNum;
+    u32 TotalVertexNum;
+    MtFloat3 vMin;
+    MtFloat3 vMax;
+} Header<name="rCollision::Header">;
+
+Node Nodes[Header.TotalNodeNum]<name="rCollision::Nodes", optimize=false>;
+
+PartsInfo PartsInfoList[Header.PartsInfoNum]/* <name="rCollision::PartsInfo"> */;
+
+Triangle Triangles[Header.TotalTriangleNum]<name="rCollision::Triangle">;
+
+Vertex Verts[Header.TotalVertexNum]<name="rCollision::Vertex">;

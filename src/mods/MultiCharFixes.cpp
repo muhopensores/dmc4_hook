@@ -15,6 +15,8 @@ void MultiCharFixes::toggle_targeting_fix(bool enable) {
 void MultiCharFixes::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Targeting Fix"), &targeting_fix))
         toggle_targeting_fix(targeting_fix);
+    ImGui::SameLine();
+    help_marker(_("Prevents characters from drifting with multiple player characters available"));
 }
 
 void MultiCharFixes::on_config_load(const utility::Config& cfg) {

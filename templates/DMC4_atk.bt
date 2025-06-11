@@ -1,0 +1,52 @@
+//------------------------------------------------
+//--- 010 Editor v10.0 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: DMC4
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+// LittleEndian();
+#include "MTF_types.1sc"
+
+/* ----DEFINITIONS---- */
+
+
+// kAttackStatus 
+    typedef struct {
+        MT_CHAR mAsName[16];
+        char ukn[4];
+        f32 mDamageValue;
+        f32 mAttackLv; //s32 in symbols
+        s32 mAttackLvI;
+        s32 mAttackLvB;
+        s32 mRangeType;
+        s32 mHitStopTimer;
+        s32 mDamageType;
+        s32 mDamageTypeI;
+        s32 mDamageTypeB <name = "mDamageTypeB (Launch n shits)">;
+        s32 mHitMarkAngle;
+        u32 mHitSE;
+        f32 mStylishPoint;
+        f32 mStylishTimer;
+        f32 mDTAdd;
+        f32 mAttackFlag;
+        int mBlownAngleType <name = "mBlownAngleType (0-relative to src,1-relative to target)">;
+        f32 mElementType;
+    } kAttackStatus<name=Str(mAsName)>;
+
+
+
+
+/* ----START---- */
+struct {
+    u8  Id[4];
+    u16 unkU16_0x4;
+    u16 attkCount;
+} Header;
+
+kAttackStatus attkStatus[Header.attkCount];

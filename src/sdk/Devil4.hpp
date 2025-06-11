@@ -52,4 +52,5 @@ namespace uactor_sdk {
 	void __stdcall uDevil4ModelCons(void* obj);
 	void __stdcall uDevil4ModelDest(void* obj);
 	void __stdcall destructor_call(void* obj);
+	void* __stdcall get_joint_from_index(void* obj, int index);
 }

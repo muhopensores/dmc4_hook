@@ -1,0 +1,144 @@
+//------------------------------------------------
+//--- 010 Editor v14.0.1 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+#include "MTF_types.1sc"
+#define NUM_REMAPS 256
+#define NUM_SKINREMAPS 32
+LittleEndian();
+
+typedef struct {
+    uint32 id;
+    int16 ver;
+    uint16 numBones;
+    uint16 numMeshes;
+    uint16 numMaterials;
+    uint32 numVertices;
+    uint32 numIndices;
+    uint32 numEdges;
+    uint32 vertexBufferSize;
+    uint32 vertexBufferSize2;
+    uint32 numTextures;
+    uint32 numGroups;
+    uint32 numBoneMaps;
+    uint32 bones;
+    uint32 groups;
+    uint32 textures;
+    uint32 meshes;
+    uint32 vertexBuffer;
+    uint32 unkBuffer;
+    uint32 indices;
+} ModHeader;
+
+typedef struct {
+    ubyte ID<format=hex>;
+    ubyte parentID<format=hex>;
+    ubyte mirrorID<format=hex>;
+    ubyte reserved;
+    float furthestVertexDistance;
+    float parentDistance;
+    MtFloat3 absPos;
+} Bone;
+
+typedef struct {
+    uint32 pshData;
+    struct {
+        uint32 SkinType: 4;
+        uint32 ukn0: 2;
+        uint32 LightingType: 4;
+        uint32 NormalMapType: 4;
+        uint32 SpecularType: 4;
+        uint32 MultiTextureType: 4;
+        uint32 ukn1: 4;
+        uint32 ukn2: 2;
+    } VSHData;
+    uint32 internal[2];
+    uint32 shaders[2];
+    int32 baseTextureIndex;
+    int32 normalTextureIndex;
+    int32 maskTextureIndex;
+    int32 lightTextureIndex;
+    int32 shadowTextureIndex;
+    int32 additionalTextureIndex;
+    int32 cubeMapTextureIndex;
+    int32 detailTextureIndex;
+    int32 AOTextureIndex;
+    
+    float transparency;
+    float fresnelFactor;
+    float fresnelBias;
+    float specularPower;
+    float envMapPower;
+    MtFloat4A lightMapScale;
+    float detailFactor;
+    float detailWrap;
+    float envMapBias;
+    float normalBias;
+    MtFloat4A transmit;
+    MtFloat4A parallax;
+    
+    uint32 hash;
+    uint32 unk;
+    char ukn1[8];
+} Material;
+
+typedef struct {
+    uint16 ukn;
+    uint16 materialIndex;
+    byte visible;
+    ubyte LODFlags;
+    uint16 ukn1;
+    ubyte buffer0Stride;
+    ubyte buffer1Stride;
+} Mesh;
+
+typedef struct {
+    ModHeader header;
+    FSkip(8);
+    struct {
+        MtFloat4A BoundingSpheres;
+        MtFloat4A bboxMin;
+        MtFloat4A bboxMax;
+    } MODBounds;
+    struct {
+        uint32 middleDistance;
+        uint32 lowDistance;
+        uint32 lightGroup;
+        ubyte boundaryJoint;
+    } MODMetaData;
+    
+    FSeek(header.bones);
+    Bone bones[header.numBones];
+    MtMatrix refPoses[header.numBones];
+    MtMatrix transforms[header.numBones];
+    ubyte remaps[NUM_REMAPS];
+    struct {
+        uint32 count;
+        ubyte bones[NUM_SKINREMAPS];
+    } SkinRemaps[header.numBoneMaps];
+    
+    FSeek(header.groups);
+    struct {
+        uint32 index<format=hex>;
+        MtFloat4A boundingSphere;
+    } MODGroups[header.numGroups];
+    
+    FSeek(header.textures);
+    struct {
+        char path[64];
+    } texturePath[header.numTextures];
+    
+    Material mats[header.numMaterials]<optimize=false>;
+    
+    //FSeek(header.meshes);
+}Model;
+
+Model mod;

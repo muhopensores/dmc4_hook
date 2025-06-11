@@ -638,4 +638,16 @@ namespace uactor_sdk {
 			popad
 		}
 	}
+	void* __stdcall get_joint_from_index(void* obj, int index) {
+		_asm {
+			pushad
+			mov ecx,[obj]
+			mov eax,[index]
+			mov esi,[ecx+0x2E4]
+			mov eax,[eax+eax*8]
+			shl eax,4
+			mov eax,[esi+eax]
+			ret
+		}
+	}
 }

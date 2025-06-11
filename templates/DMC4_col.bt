@@ -1,0 +1,53 @@
+//------------------------------------------------
+//--- 010 Editor v14.0.1 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+#include "MTF_types.1sc"
+
+LittleEndian();
+
+typedef struct {
+    int mType;
+    int Bone0;
+    int Bone1;
+    float mRadius;
+    MtFloat3 Pos0;
+    int padding0;
+    MtFloat3 Pos1;
+    int padding1;
+    int padding2;
+    int mId;
+    float mShrink;
+    int padding3;  
+} cCollPrim;
+
+typedef struct {
+    uint partCount;
+    uint ActorType;//0-player,1-uPlShl
+    uint mAtk:1;
+    uint mDmg:1;
+    uint mPsh:1;
+    uint mGrb:1;
+    uint uknFlags:2;
+    uint padding:24;
+    uint flag;
+    if (partCount != 0)
+        cCollPrim Prim[partCount];
+} cCollGroup;
+
+struct {
+    char magic[4];
+    char ver[2];
+    ushort groupCount;
+    quad flags;
+} Header;
+
+cCollGroup collGroup[Header.groupCount]<optimize=false>;

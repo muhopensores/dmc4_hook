@@ -1,0 +1,90 @@
+// LittleEndian();
+#include "MTF_types.1sc"
+
+/* ----DEFINITIONS---- */
+// File type enum
+    typedef enum <uint32> {
+        MOD = 1041BD9Eh,
+        DFD = 27F3C33Dh,
+        ATK = 652A93A4h,
+        rCollisionIdxData = 470745CBh,
+        COL = 4EA4E09Ah, // rCollisionShape
+        PHS = 4D990996h, // rClothXml::Index
+        TEX = 3CAD8076h,
+        ARCS = 21034C90h,
+        LMT = 139EE51Dh,
+        SDL = 44E79B6Eh,
+        PLA = 3F5955F1h,
+        SBC = 3900DAD0h,
+        ARC = 21034C90h,
+        EFL = 294488A8h,
+        EAN = 5E7D6A45h,
+        EFS = 528770DFh,
+        rRoomDefault = 4D52E593h,
+        rEventHit = 6125D9CDh,
+        rRouteNode = 2B93C4ADh,
+        rDevilCamera = 743FE170h,
+        rSoundSeg = 2E47C723h,
+        rSndIf = 5D5CBBCEh,
+        rSoundEQ = 39F8A71Dh,
+        rReverb = 7A038F4Ch,
+        rSprLayout = 34A8C353h,
+        rSprAnm = 55A8FB34h,
+        rStreamScheduler = 3001BEC4h,
+        STQR = 07D5909Fh,
+        OGGS = 3821B94Dh,
+        SREQ = 6C1D2073h,
+        SPAC = 33AE5307h,
+        DNRS = 29948FBAh,
+        E2D = 76AA6987h,
+        PLP = 7A5DCF86h,
+        CTN = 19DDF06Ah,
+        VIB = 0D7DA737h,
+        SDST = 340F49F9h,
+        SCST = 094973CFh,
+        RTEX = 27CE98F6h,
+        LCM = 5EF1FB52h,
+        MSG = 4CDF60E9h
+    } FILE_TYPE<format=hex>;
+
+
+// File Header; rArchive::RESOURCE_INFO
+    typedef struct {
+        MT_CHAR path[64];
+        FILE_TYPE  type;
+        uint32  datasize;
+        uint32  orgsize : 24;
+        uint32  unkByte : 8;
+        offs_t  offset;
+    } RESOURCE_INFO<name=Str( "%s ", this.path ), 
+                    read=Str( "%s | Size: %d", EnumToString(this.type), this.orgsize )>;
+
+
+// File
+    typedef struct /* (struct RESOURCE_INFO& ref)  */{
+        local string path<hidden=true>;
+        local FILE_TYPE type<hidden=true>;
+    } File<name=Str( "%s ", this.path ), 
+           read=Str( "%s | Size: %d", EnumToString(this.type), sizeof(this) )>;
+
+
+/* ----START---- */
+struct {
+    char magic[4];
+    u16  version;
+    u16  resource_num;
+
+    RESOURCE_INFO fileHeaders[resource_num]</* name="rArchive::RESOURCE_INFO" */>;
+} Header<name="rArchive::ARCHIVE_HDR">;
+
+local uint64 i<hidden=true>;
+
+struct {
+    for (i = 0; i < Header.resource_num; i++)
+    {
+        FSeek(Header.fileHeaders[i].offset);
+        File file/* (Header.fileHeaders[i]) */ <size=Header.fileHeaders[i].datasize>;
+        file.path = Header.fileHeaders[i].path;
+        file.type = Header.fileHeaders[i].type;
+    }
+} Files;

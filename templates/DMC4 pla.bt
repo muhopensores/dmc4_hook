@@ -1,0 +1,225 @@
+LittleEndian();
+#include "MTF_types.1sc"
+#include "MTF_class_hashes.bt"
+
+/* ----PROTOTYPES---- */
+struct Node;
+void ObjectParam(struct Node& ref);
+
+
+/* ----DEFINITIONS---- */
+local int i<hidden=true>;
+
+// Bool enum
+typedef enum {
+    _false,
+    _true
+} BOOL;
+
+// Hash enum
+/* typedef enum {
+    Scarecrow_Arm = 0x6CA5B410, //
+    Scarecrow_Leg = 0x1C24D5B3, // 
+    Mega_Scarecrow = 0x1572D3C3, //
+    Bianco_Angelo = 0x0C5D0AF2, //
+    Alto_Angelo = 0x799BDCDA, //
+    Mephisto　= 0x651F058C, //
+    Faust = 0x2E027D2F, //
+    Frost = 0x638821A3, //
+    Assault = 0x3F0CA327, //
+    Blitz_1 = 0x27A30C3F, //
+    Blitz_2 = 0x1B4C1B23, //
+    Chimera　= 0x00A584E2, //
+    Cutlass = 0x05B40146,　//
+    Gladius = 0x2EDFC059,　//
+    Basillisk = 0x1406B273,　//
+    Berial = 0x38E09F83,　//
+    Bael　= 0x4328A81A, //
+    Echidna　= 0x35ACFC98, //
+    Credo　= 0x4A0C13AD, //
+    Agnus　= 0x7F3AA82A, //
+    Savior = 0x5E380C5C,　// M18
+    Sanctus = 0x6D87D062, //em029/030 
+    Dante = 0x0051353D //em_dante 
+} CLASS_HASH<format=hex>; */
+
+// Node info
+    typedef struct 
+    {
+        enum TYPE {
+            root = 1, //?
+            class = 4,
+            args_list = 5, //?
+            bool = 6,
+            integer = 7,
+            F32 = 8,
+            vec3f = 9,
+            string_pointer = 11
+        } dataType;
+
+        MtType type2<name="MtProperty::TYPE">;
+        // uint32 ukn;
+        uint32 parentIdx;
+        uint32 ukn;
+        offs_t stringOffs; //relative to the start of the buffer
+        CLASS_HASH classHash;
+        offs_t mParamValueOffs;
+    } NodeHeader;
+
+// Node 
+    typedef struct (int& i) {
+        NodeHeader header<name="Node Info">;
+
+        // get this node's name
+        local string name<hidden=true, open=suppress> = ReadString(header.stringOffs + Header.stringTblOffs, -1);
+        
+        // parse params
+        if (header.mParamValueOffs != 0) 
+            ObjectParam(this);
+
+        // parse chldren
+        local int j<hidden=true> = i;
+        local int c<hidden=true>;
+        i++;
+
+        for (c = 0; c < nodeChildren[j]; c++)
+            Node node(i);
+
+    } Node<name=this.name, read=NodeRead, write=NodeWrite>;
+
+    string NodeRead(struct Node& ref) {
+        string s;
+
+        if (exists(ref.param) || ref.header.dataType == class)
+        {
+            switch (ref.header.dataType)
+            {
+                case root:
+                    break;
+                case class:
+                    SPrintf( s, "%s", EnumToString(ref.header.classHash) );
+                    break;
+                case args_list:
+                    break;
+                case bool:
+                    SPrintf(s, "%s", ref.param == 0 ? "false" : "true");
+                    break;
+                case integer:
+                    SPrintf(s, "%d", ref.param);
+                    break;
+                case F32:
+                    SPrintf(s, "%.3f", ref.param);
+                    break;
+                case vec3f:
+                    SPrintf(s, "[%.3f, %.3f, %.3f]", 
+                            ref.param.x, 
+                            ref.param.y, 
+                            ref.param.z);
+                    break;
+                case string_pointer:
+                    SPrintf(s, "%s", ref.param);
+                    break;
+                default:
+                    SPrintf(s, "%d", ref.param);
+                    break;
+            }
+        }
+        return s;
+    }
+    void NodeWrite(struct Node& ref, string s) {
+        if (exists(ref.param) || ref.header.dataType == class)
+        {
+            switch (ref.header.dataType)
+            {
+                case root:
+                    break;
+                case class:
+                    ref.header.classHash = (CLASS_HASH)( Atoi(s) );
+                    break;
+                case args_list:
+                    break;
+                case bool:
+                    ref.param = (BOOL)( Atoi(s) );
+                    break;
+                case integer:
+                    ref.param = (int)( Atoi(s) );
+                    break;
+                case F32:
+                    ref.param = (float)( Atof(s) );
+                    break;
+                case vec3f:
+                    float x, y, z;
+                    SScanf(s, "%f, %f, %f", x, y, z);
+                    ref.param.x = x;
+                    ref.param.y = y;
+                    ref.param.z = z;
+                    break;
+                case string_pointer:
+                    ref.param = s;
+                    break;
+                default:
+                    ref.param = (int)( Atoi(s) );
+                    break;
+            }
+        }
+    }
+
+// Get object params 
+    void ObjectParam(struct Node& ref) {
+        local string name<hidden=true, open=suppress> = ref.name;
+        local uint64 pos<hidden=true> = FTell();
+
+        FSeek(ref.header.mParamValueOffs);
+
+        switch (ref.header.dataType)
+        {
+            case bool:
+                BOOL param;
+                break;
+            case integer:
+                int param;
+                break;
+            case F32:
+                float param;
+                break;
+            case vec3f:
+                MtFloat3 param;
+                break;
+            case string_pointer:
+                FSeek( Header.stringTblOffs + ReadUInt() );
+                string param;
+                break;
+            default:
+                int param;
+                break;
+        }
+
+        FSeek(pos);
+    }
+
+
+/* ----START---- */
+struct {
+    char   ID[4];
+    uint16 ukn;
+    uint16 nodeCount;
+    uint32 ukn;
+    offs_t stringTblOffs;
+} Header;
+
+// preparse the node descriptions and count children
+local uint nodeChildren[Header.nodeCount]<hidden=true>;
+FSkip(36);
+
+for (i = 1; i < Header.nodeCount; i++)
+{
+    nodeChildren[ReadUInt()]++;
+    FSkip(28);
+}
+
+FSeek(0x10);
+i = 0;
+
+struct {
+    Node node(i);
+} tree<name="Tree">;

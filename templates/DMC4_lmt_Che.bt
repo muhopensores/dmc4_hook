@@ -1,0 +1,438 @@
+//------------------------------------------------
+//--- 010 Editor v14.0.1 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+#include "MTF_types.1sc"
+
+#define PI (double)3.1415926535897932384626433832795
+#define H_PI (double)1.5707963267948966192313216916398
+#define zero (double)0.00000000000000000001
+
+LittleEndian();
+
+typedef struct () {
+    MtFloat3 pos;
+    uint32 frame;
+} TimedTranslation;
+
+typedef uint64 LinearRotation14bit<read=ReadSphericalRotation(this), 
+                                   write=WriteSphericalRotation>;
+
+
+double Deg2Rad(double Deg) {
+    // local double PI = 3.14159265;
+    // local double H_PI = PI / 2;
+    return Deg * (PI / 180.);
+}
+
+double Rad2Deg(double Rad) {
+    // local double PI = 3.14159265;
+    // local double H_PI = PI / 2;
+    return (Rad / PI) * 180.;
+}
+
+int Factorial(int n) {
+    // local int i;
+    // local int prod = 1;
+    
+    // for (i = 1; i <= n; i++) {
+    //     prod *= i;
+    // }
+
+    if (n > 1)
+        n *= Factorial(n-1);
+
+    return n;
+}
+
+int Combination (int p, int n) {
+    // return Factorial(n) / ( Factorial(p) * Factorial(n - 1) );
+    return 1;
+}
+
+double ArcSineTaylor(double x) {
+    local int i;
+    local double sum = 0;
+    local double prod = 1;
+
+    for (i = 0; i < 7; i++) 
+    {
+        prod = 1;
+        prod *= 1/(Pow(2, 2*i));
+        prod *= (double)Combination(i, 2*i);
+        prod *= Pow(x, 2*i+1) / (double)(2*i + 1);
+        sum += prod;
+    }
+    return sum;
+}
+
+
+double Atan(const double x) {
+    byte _shift = false;
+    byte _invert = false;
+    byte _negative = false;
+    double z, dz, x1, x2, a, b; 
+    int i;
+    x1 = x;
+
+    if (x1 < 0.0)
+    {
+        _negative = true; 
+        x1 =- x1; 
+    }
+    if (x1 > 1.0) 
+    { 
+        _invert = true; 
+        x1 = 1.0 / x1; 
+    }
+    if (x1 > 0.7) 
+    { 
+        _shift = true;
+        b = Sqrt(3.0) / 3.0; 
+        x1 = (x1-b) / ( 1.0+(x1*b) ); 
+    }
+
+    x2 = x1 * x1;
+
+    for (z = x1, a = x1, b = 1, i = 1; i < 1000; i++)  // if x1>0.8 convergence is slow
+    {
+        a *= x2; b += 2; dz = a/b; z -= dz;
+        a *= x2; b += 2; dz = a/b; z += dz;
+
+        if (Abs(dz) < zero) 
+            break;
+    }
+
+    if (_shift) 
+        z += PI/6.0;
+
+    if (_invert) 
+        z = 0.5 * PI - z;
+
+    if (_negative) 
+        z =- z;
+
+    return z;
+}
+
+double Asin(const double x)
+{
+    if ( x <= -1.0) 
+        return -0.5 * PI;
+
+    if (x >= 1.0) 
+        return 0.5 * PI;
+        
+    return Atan( x / Sqrt( 1.0 - (x*x) ) );
+}
+
+
+double Sine(double Rad) {
+       return Sin(Rad2Deg(Rad));
+}
+
+double Cosine(double Rad) {
+       return Cos(Rad2Deg(Rad));
+}
+
+void Decompress(uint64 data, MtFloat4A &out) {
+    
+    //local MtFloat4A out;
+    local const uint64 componentMask = ((1 << 17) - 1);
+    local const uint64 componentMaskW = ((1 << 19) - 1);
+    local const double componentMultiplierInv = (double)componentMask / H_PI;
+    local const double componentMultiplier = 1.0 / componentMultiplierInv;
+    local const double componentMultiplierW = 1.0 / (double)componentMaskW;
+    local const uint64 dataField = ((uint64)1 << 56) - 1;
+    local const uint64 frameField = ~dataField;
+    
+    local double wComp = (double)((data >> 34) & componentMaskW) * componentMultiplierW;
+
+    out.x = (double)(data & componentMask);
+    out.y = (double)((data >> 17) & componentMask);
+    out.x = out.x * componentMultiplier;
+    out.y = out.y * componentMultiplier;
+    out.z = out.x - H_PI;
+    out.w = out.y - H_PI;
+
+    local double var1[4] = {Sine(out.x), Sine(out.y), Cosine(out.x), Cosine(out.y)};
+    
+    wComp = 1.0 - (wComp * wComp);
+    local double magnitude = (double)Sqrt(1.0 - (wComp * wComp));
+    
+    out.x = var1[0] * var1[3] * magnitude;
+    out.y = var1[1] * magnitude;
+    out.z = var1[2] * var1[3] * magnitude;
+    out.w = wComp;
+    
+    if ((data >> 53) & 1) 
+    {
+        out.x *= -1;
+    }
+
+    if ((data >> 54) & 1) 
+    {
+        out.y *= -1;
+    }
+
+    if ((data >> 55) & 1) 
+    {
+        out.z *= -1;
+    }
+    
+}
+
+void WriteSphericalRotation(LinearRotation14bit& data, string s) {
+    local const uint64 componentMask = ((1 << 17) - 1);
+    local const uint64 componentMaskW = ((1 << 19) - 1);
+    local const double componentMultiplierInv = (double)componentMask / H_PI;
+    local const double componentMultiplier = 1.0 / componentMultiplierInv;
+    local const double componentMultiplierW = 1.0 / (double)componentMaskW;
+    local const uint64 dataField = ((uint64)1 << 56) - 1;
+    local const uint64 frameField = ~dataField;
+    data ^= data & dataField;
+    data ^= data & frameField;
+    local MtQuaternion in;
+    local ubyte additiveFrame;
+
+    SScanf(s, "[%g, %g, %g, %g] %d", in.x, in.y, in.z, in.w, additiveFrame);
+
+    if (in.w < 0.0f) {
+        in.w *= -1;
+        in.x *= -1;
+        in.y *= -1;
+        in.z *= -1;
+    }
+
+    if (in.x < 0.0f) {
+        in.x *= -1;
+        data |= (uint64)1 << 53;
+    }
+
+    if (in.y < 0.0f) {
+        in.y *= -1;
+        data |= (uint64)1 << 54;
+    }
+
+    if (in.z < 0.0f) {
+        in.z *= -1;
+        data |= (uint64)1 << 55;
+    }
+    
+    local double r = Sqrt(1.0 - in.w);
+    local double magnitude_safe = Sqrt(1.0 - (in.w * in.w));
+    local double magnitude = magnitude_safe < 0.00001 ? 1.0 : magnitude_safe;
+    
+    local double phi = Asin(in.y / magnitude);
+    local double theta = Asin(in.x / (Cosine(phi) * magnitude));
+    
+    data |= (uint64)(theta * componentMultiplierInv) & componentMask;
+    data |= ((uint64)(phi *  componentMultiplierInv) & componentMask) << 17;
+    data |= ((uint64)(r * componentMaskW) & componentMaskW) << 34;
+    data |= (uint64)additiveFrame << 56;
+}
+
+string ReadSphericalRotation(uint64 data) {
+    local string s;
+    // local double q[4];
+    local uint64 rev_data = SwapBytes(data);
+    // local uchar char_data[64] = IntToBinaryStr(rev_data);
+    local ubyte frame = (rev_data & ((1 << 8) - 1));
+    local MtFloat4A q;
+    Decompress(data, q);
+    SPrintf(s, "[%.9g, %.9g, %.9g, %.9g] %d", q.x, q.y, q.z, q.w, frame);
+    //SPrintf(s, "%d", res);
+    return s;
+}
+
+typedef struct () {
+    ushort eventID[32];
+    uint32 eventNum;
+    uint32 eventPtr;
+    local int currPos = FTell();
+    FSeek(eventPtr);
+    local int i;
+    local int FrameCounter = 0;
+    //for (i = 0; i < eventNum; i++)
+    typedef struct (int &counter) {
+            uint32 group<format=hex>;
+            uint32 frame;
+            counter += frame;
+            local int c = counter;
+    } EventAttr <read=Str("%d", this.c)>;
+    EventAttr Events(FrameCounter)[eventNum] <optimize=false>;
+    FSeek(currPos);
+} Event;
+
+string readTrackType(ubyte TrackType) {
+    string s;
+    local enum ETrackType {
+        localrotation,
+        localposition,
+        localscale,
+        absoluterotation,
+        absoluteposition
+    };
+    switch (TrackType) {
+        case localrotation:
+            SPrintf(s, "Local Rotation");
+            break;
+        case localposition:
+            SPrintf(s, "Local Position");
+            break;
+        case localscale:
+            SPrintf(s, "Local Scale");
+            break;
+        case absoluterotation:
+            SPrintf(s, "Absolute Rotation");
+            break;
+        case absoluteposition:
+            SPrintf(s, "Absolute Position");
+            break;
+        default:
+            SPrintf(s, "Unknown");
+            break;
+    }
+    return s;
+}
+
+string readBufferType(ubyte TrackType) {
+    string s;
+    local enum EBufferType {
+        SingleVector3 = 1,
+        SingleVector3_2,
+        StepRotationQuat3 = 4,
+        HermiteVector3,
+        SphericalRotation,
+        Linearvector3 = 9
+    };
+    switch (TrackType) {
+        case SingleVector3:
+        case SingleVector3_2:
+            SPrintf(s, "Single Vector");
+            break;
+        case StepRotationQuat3:
+            SPrintf(s, "Step Rotation Quat 3");
+            break;
+        case HermiteVector3:
+            SPrintf(s, "Hermite Vector 3");
+            break;
+        case SphericalRotation:
+            SPrintf(s, "Spherical Rotation");
+            break;
+        case Linearvector3:
+            SPrintf(s, "Linear Vector 3");
+            break;
+        default:
+            SPrintf(s, "Unknown");
+            break;
+    }
+    return s;
+}
+
+
+
+typedef struct () {
+    int BufferType: 8 <name = "Buffer type", read = readBufferType>;
+    int TrackType: 8 <name="Track type", read=readTrackType>;
+    int BoneType: 8;
+    int BoneID:8;
+    float Weight;
+    int BufferSize;
+    int BufferOffset <format=hex>;
+    MtVector4 Ref <name="Reference vector/quat">;
+
+    local int TrackHdrEnd = FTell();
+    FSeek(BufferOffset);
+    local int BufferStart = FTell();
+
+    struct {
+        while (FTell() < (BufferStart + BufferSize)) 
+        {
+            switch(BufferType) {
+                case 9:
+                    MtFloat3 motionData;
+                    uint32 addFrameData;
+                    break;
+                case 2:
+                    MtFloat3 data;
+                    break;
+                case 4:
+                    MtFloat3 data;
+                    break;
+                case 6:
+                    LinearRotation14bit data;
+                    break;
+                default:
+                    break;
+            }
+        }
+    } MotionData;
+    FSeek(TrackHdrEnd);
+} TrackHeader <read = Str("Buffer type: %d, BoneID: %02x", BufferType, BoneID)>;
+
+typedef struct (int ID) {
+    local int mID = ID;
+    int offset;
+    int trackNum;
+    int frameNum;
+    int loopframe;
+    MtFloat3 initPos;
+    float ukn<hidden=true>;
+    MtQuaternion initQuat;
+    //short collisionIdx[4];
+    //short atkCollisionIdx[4];
+    //FSkip(48);
+    //int colNum;
+    //int colOffset;
+    //short motionSEidx[32];
+    //int motionSENum;
+    //int motionSEOffset;
+    Event Collision;
+    Event MotionSE;
+    local int currPosMot = FTell();
+    local int trackptr;
+    FSeek(offset);
+    TrackHeader track[trackNum]<optimize=false>;
+    FSeek(currPosMot);
+} MotionHeader <read = Str("%x",(mID))>;
+
+void LMT() {
+    struct {
+        char magic[4] <name="File Magic", open=suppress>;
+        short ver <name="Version">;
+        short MotionCount <name="Motion count">;
+        local int currPos = FTell();
+        struct {
+            if (0 < MotionCount) {
+                local int i;
+                for (i = 0; i < MotionCount; i++)
+                    int offset;
+            }
+        } Offsets;
+        FSeek(currPos);
+    } Header <name = "LMT Header">;
+    
+    if (0 < Header.MotionCount) {
+        local int i;
+        local int currPos;
+        for (i = 0; i < Header.MotionCount; i++) {
+            currPos = FTell();
+            if (Header.Offsets.offset[i] > 0) {
+                FSeek(Header.Offsets.offset[i]);
+                MotionHeader motion(i);
+                FSeek(currPos);
+            }            
+        }
+    }
+}
+
+LMT();

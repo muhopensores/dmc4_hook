@@ -1,0 +1,37 @@
+//------------------------------------------------
+//--- 010 Editor v10.0 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: DMC4
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+// LittleEndian();
+#include "MTF_types.1sc"
+
+/* ----DEFINITIONS---- */
+
+
+// kDefendStatus 
+    typedef struct {
+        MT_CHAR mAsName[16];
+        f32 mResist[3];
+        s16 mMaxInterrupt[5];
+        s16 mMaxBlown[5];
+    } kDefendStatus<name=Str(mAsName)>;
+
+
+
+
+/* ----START---- */
+struct {
+    u8  Id[4];
+    u16 unkU16_0x4;
+    u16 dfdCount;
+} Header;
+
+kDefendStatus dfdkStatus[Header.dfdCount];
