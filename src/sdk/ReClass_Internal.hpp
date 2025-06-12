@@ -1272,7 +1272,7 @@ public:
 }; // Size: 0xb0
 static_assert(sizeof(uDamage) == 0xb0);
 
-class jcHitsphereData {
+class lockOnSphereData {
 public:
     Vector3f location; // 0x0
     float unknFloat1; // 0xc
@@ -1285,7 +1285,55 @@ public:
     float unknFloat6; // 0x28
     char pad_2C[4]; // 0x2c
 }; // Size: 0x30
-static_assert(sizeof(jcHitsphereData) == 0x30);
+static_assert(sizeof(lockOnSphereData) == 0x30);
+
+class UModelJoint { // redef, was in AfterImage.cpp
+public:
+   void* vtable;           // 0x00
+   byte mAttr;             // 0x04
+   byte mParentIndex;      // 0x05
+   byte mType;             // 0x06
+   byte mNo;               // 0x07
+   int mSymmetryIndex;     // 0x08
+   void* mpConstraint;     // 0x0C
+   struct MtFloat3 mOffset;// 0x10
+   float mLength;          // 0x1C
+   MtVector4 mQuat;        // 0x20
+   MtVector3 mScale;       // 0x30
+   MtVector3 mTrans;       // 0x3C
+   MtMatrix mWmat;         // 0x48
+};
+static_assert(sizeof(UModelJoint)==0x90);
+
+class UModelJointArr
+{
+public:
+	class UModelJoint joint[200]; //0x0000
+}; //Size: 0x2A30
+static_assert(sizeof(UModelJointArr) == 0x7080);
+
+class kEmJumpData /* size : 0x00000020 */
+{
+public:
+	// void kEmJumpData(const kEmJumpData *) /* public */;
+	// void kEmJumpData(void) /* public */;
+	// kEmJumpData *operator=(const kEmJumpData *) /* public */;
+	/*****************************************/
+	/*****************************************/
+	int jointNo; // 0x00000000
+	float radius; // 0x00000004
+    char pad_08[8]; // 0x00000008
+	MtVector3 offset; // 0x00000010
+};
+static_assert(sizeof(kEmJumpData) == 0x20);
+
+class kEmJumpDataArr
+{
+public:
+	class kEmJumpData enemyStepSphere[0x14];
+}; //Size: 0x280
+static_assert(sizeof(kEmJumpDataArr) == 0x280);
+
 
 class uEnemy {
 public:
@@ -1309,7 +1357,11 @@ public:
     bool isLit; // 0x130
     char pad_131[0x3];
     bool causeShadow; // 0x134
-    char pad_135[0x1ef];
+    char pad_135[0x1ab];
+    int m_joint_array_size; // 0x2e0
+    UModelJointArr* joints; // 0x2e4
+    int something_size; // 0x2e8
+    char pad_2ec[0x38];
     bool playAnims; // 0x324
     char pad_325[0xf];
     uint16_t animID; // 0x334
@@ -1321,10 +1373,13 @@ public:
     char pad_ea2[0x6];
     uint16_t launchStateThing2; // 0xea8
     char pad_eaa[0x46];
-    int jcSphereCount; // 0xef0
+    int lockOnSphereCount; // 0xef0
     char pad_ef4[0xc];
-    jcHitsphereData jcSpheres[10]; // 0xf00
-    char pad_10e0[0x324];
+    lockOnSphereData jcSpheres[5]; // 0xf00
+    char pad_ff0[0x328];
+    kEmJumpDataArr* enemyStepSphereArray; // 0x1318
+    int m_enemystepSphereCount; // 0x131c
+    char pad_1320[0xe4];
     bool inBattle; // 0x1404
     bool isActive; // 0x1405
     char pad_1406[0xa];
@@ -1508,22 +1563,6 @@ public:
     sWorkRate workRate; // 0x820
 }; // Size: 0x878
 static_assert(sizeof(SMediator) == 0x878);
-
-class UModelJoint
-{
-public:
-	char pad_0000[48]; //0x0000
-	Vector3f size; //0x0030
-	char pad_003_c[84]; //0x003C
-}; //Size: 0x0090
-static_assert(sizeof(UModelJoint) == 0x90);
-
-class UModelJointArr
-{
-public:
-	class UModelJoint joint[75]; //0x0000
-}; //Size: 0x2A30
-static_assert(sizeof(UModelJointArr) == 0x2A30);
 
 class MotionData {
 public:

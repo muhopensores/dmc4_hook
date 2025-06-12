@@ -67,6 +67,23 @@ struct sMain {
     CollisionGroupsContainer* pCollisionGroupsContainer;
 };
 
+void* __stdcall get_joint_from_index2(void* obj, int index) {
+    void* result;
+    _asm {
+        mov ecx, obj
+        mov eax, index
+        mov ecx, [ecx]          
+        push esi
+        mov esi, [ecx+0x2E4]
+        
+        imul eax, 0x90     // index * 0x90 (joint size)
+        add eax, esi            // bone_array + offset
+        
+        pop esi
+        mov result, eax
+    }
+    return result;
+}
 void VisualizeHitbox::on_frame(fmilliseconds& dt) {
     if (mod_enabled) { // hitboxes
         sMain* sMainPtr = *(sMain**)sMainAddr;
@@ -176,20 +193,50 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
     if (mod_enabled3) { // enemy step
         if (uPlayer* player = devil4_sdk::get_local_player()) {
             uEnemy* enemy = devil4_sdk::get_uEnemies();
+            int enemyCount = 0;
             while (enemy) {
-                int sphereCount = enemy->jcSphereCount;
-                for (int i = 0; i < sphereCount; i++) { // this gets enemies but not some extras like berial's sword. DevilMayCry4_DX9.exe+AB1C3 gets the sword
-                    jcHitsphereData* sphere = &enemy->jcSpheres[i];
-                    if (!sphere) continue;
-                    Vector3f spherePos = glm::make_vec3((float*)&sphere->location);
-                    ImGui::Text("Sphere %d pos: %.2f, %.2f, %.2f", i, spherePos.x, spherePos.y, spherePos.z);
-                    ImGui::Text("Sphere %d radius: %.2f", i, sphere->unknFloat1);
-                    ImGui::Text("Unkn f 2,3,4: %.2f, %.2f, %.2f", sphere->unknFloat2, sphere->unknFloat3, sphere->unknFloat4);
-                    ImGui::Text("Unkn f 5,6: %.2f, %.2f", sphere->unknFloat5, sphere->unknFloat6);
-                    ImGui::Text("Unkn i 1,2: %d, %d", sphere->unknInt1, sphere->unknInt2);
+                ImGui::PushID((void*)enemy);
+                int numOfSpheres = enemy->m_enemystepSphereCount & 0xFF;
+                static int numOfSpheresToDraw = numOfSpheres;
+                ImGui::SliderInt("numOfSpheresToDraw", &numOfSpheresToDraw, 0, 500);
+                ImGui::SameLine();
+                help_marker("-1 Bone IDs are hidden");
+                ImGui::Separator();
+                for (int i = 0; i < numOfSpheresToDraw; i++) {
+                    kEmJumpData* sphere = &enemy->enemyStepSphereArray->enemyStepSphere[i];
+                    if (!enemy->joints) continue;
+                    if (sphere->jointNo > enemy->m_joint_array_size || sphere->jointNo < 0) { continue; }
+                    UModelJoint* joint = &enemy->joints->joint[sphere->jointNo];
+                    Vector3f jointWorldPos = Vector3f(joint->mWmat.m4.x, joint->mWmat.m4.y, joint->mWmat.m4.z);
+                    float uniformScale = (joint->mScale.x + joint->mScale.y + joint->mScale.z) / 3.0f;
+                    Vector3f sphereOffset = glm::make_vec3((float*)&sphere->offset);
+                    Vector3f rotatedSphereOffset = Vector3f(
+                        joint->mWmat.m1.x * sphereOffset.x + joint->mWmat.m2.x * sphereOffset.y + joint->mWmat.m3.x * sphereOffset.z,
+                        joint->mWmat.m1.y * sphereOffset.x + joint->mWmat.m2.y * sphereOffset.y + joint->mWmat.m3.y * sphereOffset.z,
+                        joint->mWmat.m1.z * sphereOffset.x + joint->mWmat.m2.z * sphereOffset.y + joint->mWmat.m3.z * sphereOffset.z
+                    );
+                    rotatedSphereOffset *= uniformScale;
+                    Vector3f finalPos = jointWorldPos + rotatedSphereOffset;
+                    float scaledRadius = sphere->radius * uniformScale;
+                    ImGui::PushID(i);
+                    ImGui::Text("Enemy %d, Sphere %d/%d, Joint %d/%d", enemyCount, i, numOfSpheres, sphere->jointNo, enemy->m_joint_array_size - 1);
+                    ImGui::SliderFloat3("Enemy Pos", &enemy->position.x, -500.0f, 500.0f, "%.2f");
+                    ImGui::SliderInt("Joint No", &sphere->jointNo, 0, enemy->m_joint_array_size - 1);
+                    ImGui::SliderFloat3("Joint Offset", &joint->mOffset.x, -500.0f, 500.0f, "%.2f");
+                    ImGui::SliderFloat3("Joint Scale", &joint->mScale.x, 0.1f, 5.0f, "%.2f");
+                    ImGui::InputFloat3("Joint World Pos", &jointWorldPos.x, "%.2f");
+                    ImGui::SliderFloat3("Sphere Offset", (float*)&sphere->offset, -500.0f, 500.0f, "%.2f");
+                    ImGui::SliderFloat("Sphere Radius", &sphere->radius, 0.0f, 500.0f, "%.2f");
+                    ImGui::InputFloat3("Final Pos", &finalPos.x, "%.2f");
+                    ImGui::InputFloat("Scaled Radius", &scaledRadius, 0.0f, 0.0f, "%.2f");
+                    ImGui::InputInt("Pad 08 (0-3)", (int*)&sphere->pad_08[0]);
+                    ImGui::InputInt("Pad 08 (4-7)", (int*)&sphere->pad_08[4]);
                     ImGui::Separator();
-                    w2s::DrawWireframeCapsule(spherePos, sphere->unknFloat1, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
+                    ImGui::PopID();
+                    w2s::DrawWireframeCapsule(finalPos, scaledRadius, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
                 }
+                ImGui::PopID();
+                enemyCount++;
                 enemy = enemy->nextEnemy;
             }
             // player
@@ -199,8 +246,9 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
                 Vector3f finalPos = playerPos + playerSphereOffset;
 
                 // There's 2? from DevilMayCry4_DX9.exe+AB336 > follow jmp > check first opcode. Static mem (uh this is for enemies, some enemies have 2 and some have 3??)
-                w2s::DrawWireframeCapsule(finalPos, 160.0f, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
-                w2s::DrawWireframeCapsule(finalPos, 135.0f, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
+                // w2s::DrawWireframeCapsule(finalPos, 160.0f, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
+                // w2s::DrawWireframeCapsule(finalPos, 135.0f, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
+                w2s::DrawWireframeCapsule(finalPos, 2.0f, 0.0f, 0.0f, player->rotation2, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
             }
         }
     }

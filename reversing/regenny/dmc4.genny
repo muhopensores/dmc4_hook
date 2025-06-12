@@ -213,7 +213,7 @@ class uEnemyDamagePossibility {
 	char pad_00[0x4] @ 0x00
 };
 
-class jcHitsphereData {
+class lockOnSphereData {
     Vector3f pos @ 0x00
 	float unknFloat1 @ 0x0C
 	int unknInt1 @ 0x10
@@ -224,6 +224,26 @@ class jcHitsphereData {
 	float unknFloat5 @ 0x24
 	float unknFloat6 @ 0x28
 	char[4] pad_2C @ 0x2C
+};
+
+struct MtVector3 {
+    float x @ 0x00
+    float y @ 0x04
+    float z @ 0x08
+    int pad_0C @ 0x0C
+};
+
+struct kEmJumpData /* size : 0x00000020 */
+{
+	// void kEmJumpData(const kEmJumpData *) /* public */;
+	// void kEmJumpData(void) /* public */;
+	// kEmJumpData *operator=(const kEmJumpData *) /* public */;
+	/*****************************************/
+	/*****************************************/
+	int mJntNo @ 0x00000000
+	float mR @ 0x00000004
+	char pad_08[8] @ 0x00000008
+	MtVector3 mOfs @ 0x00000010
 };
 
 class uEnemy {
@@ -238,14 +258,18 @@ class uEnemy {
 	Vector3f rotationKnockback @ 0xF0
 	bool isLit @ 0x130
 	bool causeShadow @ 0x134
+	int m_joint_array_size @ 0x2E0
+	class UModelJointArr* joints @ 0x2E4
+	int somethingSize @ 0x2E8
 	bool playAnims @ 0x324
 	uint16_t animID @ 0x334
 	float animFrame @ 0x348
 	float animFrameMax @ 0x34C
 	uint16_t launchStateThing1 @ 0xEA0
 	uint16_t launchStateThing2 @ 0xEA8 // enemy doesn't take air stun without OA set
-	int jcSphereCount @ 0xEF0
-	class jcHitsphereData[10] jcSpheres @ 0xF00 // idk how big this is gonna be, just throwing in rando 10 atm
+	int lockOnSphereCount @ 0xEF0
+	class lockOnSphereData[5] jcSpheres @ 0xF00 // idk how big this is gonna be, just throwing in rando 5 atm
+	kEmJumpData* enemyStepSpheres @ 0x1318
 	bool inBattle @ 0x1404
 	bool isActive @ 0x1405
 	ENEMY_ID ID @ 0x1410

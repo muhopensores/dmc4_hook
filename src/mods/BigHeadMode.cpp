@@ -15,23 +15,24 @@ glm::vec3 size{ 0.5f, 0.5f, 0.5f };
 glm::vec3 size_torso{ 0.9f, 0.8f, 0.8f };
 
 static void scale_head_joint(UModelJoint* joint, uPlayer* player) {
-	if (player->controllerID == 1) {
-		if (BigHeadMode::swole_mode_nero) {
-			joint->size = size * (glm::clamp(devil4_sdk::get_current_style_rank(), 1.5f, 3.0f));
-		}
-		else if (BigHeadMode::big_head_mode_nero) {
-			joint->size = size * devil4_sdk::get_current_style_rank();
-		}
-	}
-	if (player->controllerID == 0) {
-		if (BigHeadMode::swole_mode_dante) {
-			joint->size = size * (glm::clamp(devil4_sdk::get_current_style_rank(), 1.5f, 3.0f));
-		}
-		else if (BigHeadMode::big_head_mode_dante) {
-			joint->size = size * devil4_sdk::get_current_style_rank();
-		}
-	}
-
+    glm::vec3& scale = *reinterpret_cast<glm::vec3*>(&joint->mScale);
+    
+    if (player->controllerID == 1) {
+        if (BigHeadMode::swole_mode_nero) {
+            scale = size * glm::clamp(devil4_sdk::get_current_style_rank(), 1.5f, 3.0f);
+        }
+        else if (BigHeadMode::big_head_mode_nero) {
+            scale = size * devil4_sdk::get_current_style_rank();
+        }
+    }
+    if (player->controllerID == 0) {
+        if (BigHeadMode::swole_mode_dante) {
+            scale = size * glm::clamp(devil4_sdk::get_current_style_rank(), 1.5f, 3.0f);
+        }
+        else if (BigHeadMode::big_head_mode_dante) {
+            scale = size * devil4_sdk::get_current_style_rank();
+        }
+    }
 }
 
 static int is_head_joint(UModelJoint* joint) {
