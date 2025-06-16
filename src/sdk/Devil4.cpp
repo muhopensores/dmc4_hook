@@ -98,6 +98,15 @@ namespace devil4_sdk {
 		else return nullptr;
 	}
 
+	uEnemy* get_objects() {
+		sUnit* s_unit_ptr = get_sUnit();
+		if (s_unit_ptr) {
+			uEnemy* object = s_unit_ptr->object;
+			return object;
+		}
+		else return nullptr;
+	}
+
 	int get_enemy_count() {
 		sUnit* sUnit = devil4_sdk::get_sUnit();
 		if (!sUnit || !sUnit->enemy) {

@@ -1330,10 +1330,9 @@ static_assert(sizeof(kEmJumpData) == 0x20);
 class kEmJumpDataArr
 {
 public:
-	class kEmJumpData enemyStepSphere[0x14];
-}; //Size: 0x280
-static_assert(sizeof(kEmJumpDataArr) == 0x280);
-
+	class kEmJumpData enemyStepSphere[30];
+}; //Size: 0x3C0
+static_assert(sizeof(kEmJumpDataArr) == 0x3C0);
 
 class uEnemy {
 public:
@@ -1476,8 +1475,10 @@ public:
     class uPlayer* player; // 0x164
     char pad_168[0x2C];
     uEnemy* enemy; // 0x194
-}; // Size: 0x198
-static_assert(sizeof(sUnit) == 0x198);
+    char pad_198[0x14];
+    uEnemy* object; // 0x1AC // Not an enemy but might as well be, I just want it for jc spheres atm
+}; // Size: 0x1B0
+static_assert(sizeof(sUnit) == 0x1B0);
 
 class cCameraPlayer {
 public:

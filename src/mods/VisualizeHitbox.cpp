@@ -68,6 +68,61 @@ struct sMain {
     CollisionGroupsContainer* pCollisionGroupsContainer;
 };
 
+void DisplayEnemyStepSpheres(uEnemy* enemy) {
+    while (enemy) {
+        ImGui::PushID((void*)enemy);
+        if (!enemy->enemyStepSphereArray || !enemy->joints) {
+            ImGui::PopID();
+            // enemyCount++;
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        for (int i = 0; i < 30; i++) {
+            kEmJumpData* sphere = &enemy->enemyStepSphereArray->enemyStepSphere[i];
+            if (sphere->jointNo == -1) break;
+
+            UModelJoint* joint = nullptr;
+            for (int j = 0; j < enemy->m_joint_array_size; j++) {
+                if (enemy->joints->joint[j].mNo == sphere->jointNo) {
+                    joint = &enemy->joints->joint[j];
+                    break;
+                }
+            }
+
+            if (!joint) continue;
+
+            float uniformScale = (joint->mScale.x + joint->mScale.y + joint->mScale.z) / 3.0f;
+            Vector3f sphereOffset = glm::make_vec3((float*)&sphere->offset);
+            Vector3f jointPos = Vector3f(joint->mWmat.m4.x, joint->mWmat.m4.y, joint->mWmat.m4.z);
+            Vector3f finalPos = jointPos + (sphereOffset * uniformScale);
+            float scaledRadius = sphere->radius * uniformScale;
+
+            w2s::DrawWireframeCapsule(finalPos, scaledRadius, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
+            if (enemyStepSphereDebug) {
+                ImGui::PushID(i);
+                // ImGui::Text("Enemy %d, Sphere %d/%d, Joint %d (index %d)", enemyCount, i, 30, sphere->jointNo, (int)(joint - enemy->joints->joint));
+                ImGui::SliderFloat3("Enemy Pos", &enemy->position.x, -500.0f, 500.0f, "%.2f");
+                ImGui::SliderInt("Joint No Desired", &sphere->jointNo, 0, enemy->m_joint_array_size - 1);
+                ImGui::InputScalar("Joint No Got", ImGuiDataType_S8, &joint->mNo);
+                ImGui::SliderFloat3("Joint Offset", &joint->mOffset.x, -500.0f, 500.0f, "%.2f");
+                ImGui::SliderFloat3("Joint Scale", &joint->mScale.x, 0.1f, 5.0f, "%.2f");
+                ImGui::InputFloat3("Joint Final Pos", &finalPos.x, "%.2f");
+                ImGui::SliderFloat3("Sphere Offset", (float*)&sphere->offset, -500.0f, 500.0f, "%.2f");
+                ImGui::SliderFloat("Sphere Radius", &sphere->radius, 0.0f, 500.0f, "%.2f");
+                ImGui::InputFloat3("Final Pos", &finalPos.x, "%.2f");
+                ImGui::InputFloat("Scaled Radius", &scaledRadius, 0.0f, 0.0f, "%.2f");
+                ImGui::InputInt("Pad 08 (0-3)", (int*)&sphere->pad_08[0]);
+                ImGui::InputInt("Pad 08 (4-7)", (int*)&sphere->pad_08[4]);
+                ImGui::Separator();
+                ImGui::PopID();
+            }
+        }
+        ImGui::PopID();
+        // enemyCount++;
+        enemy = enemy->nextEnemy;
+    }
+}
+
 void VisualizeHitbox::on_frame(fmilliseconds& dt) {
     if (mod_enabled) { // hitboxes
         sMain* sMainPtr = *(sMain**)sMainAddr;
@@ -177,71 +232,9 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
     if (mod_enabled3) { // enemy step
         if (uPlayer* player = devil4_sdk::get_local_player()) {
             uEnemy* enemy = devil4_sdk::get_uEnemies();
-            int enemyCount = 0;
-            while (enemy) {
-                ImGui::PushID((void*)enemy);
-                if (!enemy->enemyStepSphereArray || !enemy->joints) {
-                    ImGui::PopID();
-                    enemyCount++;
-                    enemy = enemy->nextEnemy;
-                    continue;
-                }
-
-                for (int i = 0; i < 30; i++) {
-                    kEmJumpData* sphere = &enemy->enemyStepSphereArray->enemyStepSphere[i];
-                    if (sphere->jointNo == -1) break;
-
-                    UModelJoint* joint = nullptr;
-                    for (int j = 0; j < enemy->m_joint_array_size; j++) {
-                        if (enemy->joints->joint[j].mNo == sphere->jointNo) {
-                            joint = &enemy->joints->joint[j];
-                            break;
-                        }
-                    }
-        
-                    if (!joint) continue;
-
-                    float uniformScale = (joint->mScale.x + joint->mScale.y + joint->mScale.z) / 3.0f;
-                    Vector3f sphereOffset = glm::make_vec3((float*)&sphere->offset);
-                    Vector3f jointPos = Vector3f(joint->mWmat.m4.x, joint->mWmat.m4.y, joint->mWmat.m4.z);
-                    Vector3f finalPos = jointPos + (sphereOffset * uniformScale);
-                    float scaledRadius = sphere->radius * uniformScale;
-        
-                    w2s::DrawWireframeCapsule(finalPos, scaledRadius, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
-                    if (enemyStepSphereDebug) {
-                        ImGui::PushID(i);
-                        ImGui::Text("Enemy %d, Sphere %d/%d, Joint %d (index %d)", enemyCount, i, 20, sphere->jointNo, (int)(joint - enemy->joints->joint));
-                        ImGui::SliderFloat3("Enemy Pos", &enemy->position.x, -500.0f, 500.0f, "%.2f");
-                        ImGui::SliderInt("Joint No Desired", &sphere->jointNo, 0, enemy->m_joint_array_size - 1);
-                        ImGui::InputScalar("Joint No Got", ImGuiDataType_S8, &joint->mNo);
-                        ImGui::SliderFloat3("Joint Offset", &joint->mOffset.x, -500.0f, 500.0f, "%.2f");
-                        ImGui::SliderFloat3("Joint Scale", &joint->mScale.x, 0.1f, 5.0f, "%.2f");
-                        ImGui::InputFloat3("Joint Final Pos", &finalPos.x, "%.2f");
-                        ImGui::SliderFloat3("Sphere Offset", (float*)&sphere->offset, -500.0f, 500.0f, "%.2f");
-                        ImGui::SliderFloat("Sphere Radius", &sphere->radius, 0.0f, 500.0f, "%.2f");
-                        ImGui::InputFloat3("Final Pos", &finalPos.x, "%.2f");
-                        ImGui::InputFloat("Scaled Radius", &scaledRadius, 0.0f, 0.0f, "%.2f");
-                        ImGui::InputInt("Pad 08 (0-3)", (int*)&sphere->pad_08[0]);
-                        ImGui::InputInt("Pad 08 (4-7)", (int*)&sphere->pad_08[4]);
-                        ImGui::Separator();
-                        ImGui::PopID();
-                    }
-                }
-                ImGui::PopID();
-                enemyCount++;
-                enemy = enemy->nextEnemy;
-            }
-            // player
-            {
-                Vector3f playerPos = glm::make_vec3((float*)&player->m_pos);
-                Vector3f playerSphereOffset { 0.0f, 85.0f, 0.0f }; // from DevilMayCry4_DX9.exe+AB322
-                Vector3f finalPos = playerPos + playerSphereOffset;
-
-                // There's 2? from DevilMayCry4_DX9.exe+AB336 > follow jmp > check first opcode. Static mem (uh this is for enemies, some enemies have 2 and some have 3??)
-                // w2s::DrawWireframeCapsule(finalPos, 160.0f, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
-                // w2s::DrawWireframeCapsule(finalPos, 135.0f, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
-                w2s::DrawWireframeCapsule(finalPos, 2.0f, 0.0f, 0.0f, player->rotation2, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
-            }
+            DisplayEnemyStepSpheres(enemy);
+            uEnemy* object = devil4_sdk::get_objects();
+            DisplayEnemyStepSpheres(object);
         }
     }
 }

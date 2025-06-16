@@ -7,6 +7,7 @@ namespace devil4_sdk {
 	sUnit* get_sUnit();
 	int get_enemy_count();
 	uEnemy* get_uEnemies();
+	uEnemy* get_objects();
 	sRender* get_sRender();
 	SMediator* get_sMediator();
 	uPlayer* get_local_player();
