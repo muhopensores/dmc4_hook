@@ -246,9 +246,9 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                 float guiFriendlyDistance = glm::min(1000.0f / objectDistance, 1.0f);
                 glm::vec2 screenPos = w2s::WorldToScreen(objectPosition);
                 std::string windowName = "EnemyStats##" + std::to_string((uintptr_t)enemy);
-                float currentFontScale = 0.8f * guiFriendlyDistance;
-                float currentItemWidth = (sameLineItemWidth / 2.0f) * guiFriendlyDistance;
-                if (w2s::IsVisibleOnScreen(objectPosition)) {
+                float currentFontScale = 0.8f /** guiFriendlyDistance*/; // malice didn't like it resizing
+                float currentItemWidth = (sameLineItemWidth / 2.0f)/* * guiFriendlyDistance*/;
+                if (w2s::IsVisibleOnScreen(objectPosition) && objectDistance < 10000.0f) { // distance made it crash for vieris
                     ImGui::Begin(windowName.c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize |
                         ImGuiWindowFlags_NoDecoration |
                         ImGuiWindowFlags_NoResize |
