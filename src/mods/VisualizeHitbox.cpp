@@ -7,6 +7,7 @@
 
 bool VisualizeHitbox::mod_enabled = false; // Visualize Hitboxes
 constexpr uintptr_t sMainAddr = 0x00E5574C;
+static bool enemyStepSphereDebug;
 
 bool VisualizeHitbox::mod_enabled2 = false; // Visualize Pushboxes
 // uintptr_t VisualizeHitbox::jmp_ret_pushboxes = NULL;
@@ -67,23 +68,6 @@ struct sMain {
     CollisionGroupsContainer* pCollisionGroupsContainer;
 };
 
-void* __stdcall get_joint_from_index2(void* obj, int index) {
-    void* result;
-    _asm {
-        mov ecx, obj
-        mov eax, index
-        mov ecx, [ecx]          
-        push esi
-        mov esi, [ecx+0x2E4]
-        
-        imul eax, 0x90     // index * 0x90 (joint size)
-        add eax, esi            // bone_array + offset
-        
-        pop esi
-        mov result, eax
-    }
-    return result;
-}
 void VisualizeHitbox::on_frame(fmilliseconds& dt) {
     if (mod_enabled) { // hitboxes
         sMain* sMainPtr = *(sMain**)sMainAddr;
@@ -196,44 +180,52 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
             int enemyCount = 0;
             while (enemy) {
                 ImGui::PushID((void*)enemy);
-                int numOfSpheres = enemy->m_enemystepSphereCount & 0xFF;
-                static int numOfSpheresToDraw = numOfSpheres;
-                ImGui::SliderInt("numOfSpheresToDraw", &numOfSpheresToDraw, 0, 500);
-                ImGui::SameLine();
-                help_marker("-1 Bone IDs are hidden");
-                ImGui::Separator();
-                for (int i = 0; i < numOfSpheresToDraw; i++) {
+                if (!enemy->enemyStepSphereArray || !enemy->joints) {
+                    ImGui::PopID();
+                    enemyCount++;
+                    enemy = enemy->nextEnemy;
+                    continue;
+                }
+
+                for (int i = 0; i < 30; i++) {
                     kEmJumpData* sphere = &enemy->enemyStepSphereArray->enemyStepSphere[i];
-                    if (!enemy->joints) continue;
-                    if (sphere->jointNo > enemy->m_joint_array_size || sphere->jointNo < 0) { continue; }
-                    UModelJoint* joint = &enemy->joints->joint[sphere->jointNo];
-                    Vector3f jointWorldPos = Vector3f(joint->mWmat.m4.x, joint->mWmat.m4.y, joint->mWmat.m4.z);
+                    if (sphere->jointNo == -1) break;
+
+                    UModelJoint* joint = nullptr;
+                    for (int j = 0; j < enemy->m_joint_array_size; j++) {
+                        if (enemy->joints->joint[j].mNo == sphere->jointNo) {
+                            joint = &enemy->joints->joint[j];
+                            break;
+                        }
+                    }
+        
+                    if (!joint) continue;
+
                     float uniformScale = (joint->mScale.x + joint->mScale.y + joint->mScale.z) / 3.0f;
                     Vector3f sphereOffset = glm::make_vec3((float*)&sphere->offset);
-                    Vector3f rotatedSphereOffset = Vector3f(
-                        joint->mWmat.m1.x * sphereOffset.x + joint->mWmat.m2.x * sphereOffset.y + joint->mWmat.m3.x * sphereOffset.z,
-                        joint->mWmat.m1.y * sphereOffset.x + joint->mWmat.m2.y * sphereOffset.y + joint->mWmat.m3.y * sphereOffset.z,
-                        joint->mWmat.m1.z * sphereOffset.x + joint->mWmat.m2.z * sphereOffset.y + joint->mWmat.m3.z * sphereOffset.z
-                    );
-                    rotatedSphereOffset *= uniformScale;
-                    Vector3f finalPos = jointWorldPos + rotatedSphereOffset;
+                    Vector3f jointPos = Vector3f(joint->mWmat.m4.x, joint->mWmat.m4.y, joint->mWmat.m4.z);
+                    Vector3f finalPos = jointPos + (sphereOffset * uniformScale);
                     float scaledRadius = sphere->radius * uniformScale;
-                    ImGui::PushID(i);
-                    ImGui::Text("Enemy %d, Sphere %d/%d, Joint %d/%d", enemyCount, i, numOfSpheres, sphere->jointNo, enemy->m_joint_array_size - 1);
-                    ImGui::SliderFloat3("Enemy Pos", &enemy->position.x, -500.0f, 500.0f, "%.2f");
-                    ImGui::SliderInt("Joint No", &sphere->jointNo, 0, enemy->m_joint_array_size - 1);
-                    ImGui::SliderFloat3("Joint Offset", &joint->mOffset.x, -500.0f, 500.0f, "%.2f");
-                    ImGui::SliderFloat3("Joint Scale", &joint->mScale.x, 0.1f, 5.0f, "%.2f");
-                    ImGui::InputFloat3("Joint World Pos", &jointWorldPos.x, "%.2f");
-                    ImGui::SliderFloat3("Sphere Offset", (float*)&sphere->offset, -500.0f, 500.0f, "%.2f");
-                    ImGui::SliderFloat("Sphere Radius", &sphere->radius, 0.0f, 500.0f, "%.2f");
-                    ImGui::InputFloat3("Final Pos", &finalPos.x, "%.2f");
-                    ImGui::InputFloat("Scaled Radius", &scaledRadius, 0.0f, 0.0f, "%.2f");
-                    ImGui::InputInt("Pad 08 (0-3)", (int*)&sphere->pad_08[0]);
-                    ImGui::InputInt("Pad 08 (4-7)", (int*)&sphere->pad_08[4]);
-                    ImGui::Separator();
-                    ImGui::PopID();
+        
                     w2s::DrawWireframeCapsule(finalPos, scaledRadius, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
+                    if (enemyStepSphereDebug) {
+                        ImGui::PushID(i);
+                        ImGui::Text("Enemy %d, Sphere %d/%d, Joint %d (index %d)", enemyCount, i, 20, sphere->jointNo, (int)(joint - enemy->joints->joint));
+                        ImGui::SliderFloat3("Enemy Pos", &enemy->position.x, -500.0f, 500.0f, "%.2f");
+                        ImGui::SliderInt("Joint No Desired", &sphere->jointNo, 0, enemy->m_joint_array_size - 1);
+                        ImGui::InputScalar("Joint No Got", ImGuiDataType_S8, &joint->mNo);
+                        ImGui::SliderFloat3("Joint Offset", &joint->mOffset.x, -500.0f, 500.0f, "%.2f");
+                        ImGui::SliderFloat3("Joint Scale", &joint->mScale.x, 0.1f, 5.0f, "%.2f");
+                        ImGui::InputFloat3("Joint Final Pos", &finalPos.x, "%.2f");
+                        ImGui::SliderFloat3("Sphere Offset", (float*)&sphere->offset, -500.0f, 500.0f, "%.2f");
+                        ImGui::SliderFloat("Sphere Radius", &sphere->radius, 0.0f, 500.0f, "%.2f");
+                        ImGui::InputFloat3("Final Pos", &finalPos.x, "%.2f");
+                        ImGui::InputFloat("Scaled Radius", &scaledRadius, 0.0f, 0.0f, "%.2f");
+                        ImGui::InputInt("Pad 08 (0-3)", (int*)&sphere->pad_08[0]);
+                        ImGui::InputInt("Pad 08 (4-7)", (int*)&sphere->pad_08[4]);
+                        ImGui::Separator();
+                        ImGui::PopID();
+                    }
                 }
                 ImGui::PopID();
                 enemyCount++;
@@ -290,6 +282,10 @@ void VisualizeHitbox::on_gui_frame(int display) {
     ImGui::Checkbox(_("Visualize Enemy Step Spheres"), &mod_enabled3);
     ImGui::SameLine();
     help_marker(_("Draw enemy step sphere outlines in green"));
+
+    ImGui::Indent(lineIndent);
+    ImGui::Checkbox(_("Debug Stats##EnemyStepSpheres"), &enemyStepSphereDebug);
+    ImGui::Unindent();
 }
 
 void VisualizeHitbox::on_config_load(const utility::Config& cfg) {
