@@ -79,6 +79,7 @@ void DisplayEnemyStepSpheres(uEnemy* enemy) {
         }
         for (int i = 0; i < 30; i++) {
             kEmJumpData* sphere = &enemy->enemyStepSphereArray->enemyStepSphere[i];
+            if (!sphere) break;
             if (sphere->jointNo == -1) break;
 
             UModelJoint* joint = nullptr;
