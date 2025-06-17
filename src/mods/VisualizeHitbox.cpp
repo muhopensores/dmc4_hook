@@ -73,15 +73,21 @@ void DisplayEnemyStepSpheres(uEnemy* enemy) {
         ImGui::PushID((void*)enemy);
         if (!enemy->enemyStepSphereArray || !enemy->joints) {
             ImGui::PopID();
-            // enemyCount++;
             enemy = enemy->nextEnemy;
             continue;
         }
+
+        // usual != 0 isn't good enough so we check if the ptr is reasonable
+        if ((uintptr_t)enemy->enemyStepSphereArray & 0xF0000000) {
+            // pointer has high bits set, invalid
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        
         for (int i = 0; i < 30; i++) {
             kEmJumpData* sphere = &enemy->enemyStepSphereArray->enemyStepSphere[i];
-            if (!sphere) break;
             if (sphere->jointNo == -1) break;
-
             UModelJoint* joint = nullptr;
             for (int j = 0; j < enemy->m_joint_array_size; j++) {
                 if (enemy->joints->joint[j].mNo == sphere->jointNo) {
@@ -119,7 +125,6 @@ void DisplayEnemyStepSpheres(uEnemy* enemy) {
             }
         }
         ImGui::PopID();
-        // enemyCount++;
         enemy = enemy->nextEnemy;
     }
 }
