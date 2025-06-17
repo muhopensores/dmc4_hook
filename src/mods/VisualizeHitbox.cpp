@@ -68,7 +68,7 @@ struct sMain {
     CollisionGroupsContainer* pCollisionGroupsContainer;
 };
 
-void DisplayEnemyStepSpheres(uEnemy* enemy) {
+void DisplayEnemyStepSpheres(uEnemy* enemy, uPlayer* player) {
     while (enemy) {
         ImGui::PushID((void*)enemy);
         if (!enemy->enemyStepSphereArray || !enemy->joints) {
@@ -103,8 +103,11 @@ void DisplayEnemyStepSpheres(uEnemy* enemy) {
             Vector3f jointPos = Vector3f(joint->mWmat.m4.x, joint->mWmat.m4.y, joint->mWmat.m4.z);
             Vector3f finalPos = jointPos + (sphereOffset * uniformScale);
             float scaledRadius = sphere->radius * uniformScale;
-
-            w2s::DrawWireframeCapsule(finalPos, scaledRadius, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
+            ImColor inRange = IM_COL32(0, 0, 255, 255);
+            ImColor outRange = IM_COL32(0, 255, 0, 255);
+            float playerDistance = glm::distance(player->m_pos, finalPos);
+            ImColor color = (playerDistance <= scaledRadius) ? inRange : outRange;
+            w2s::DrawWireframeCapsule(finalPos, scaledRadius, 0.0f, 0.0f, 0.0f, 0.0f, color, 16, 1.0f);
             if (enemyStepSphereDebug) {
                 ImGui::PushID(i);
                 // ImGui::Text("Enemy %d, Sphere %d/%d, Joint %d (index %d)", enemyCount, i, 30, sphere->jointNo, (int)(joint - enemy->joints->joint));
@@ -238,9 +241,9 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
     if (mod_enabled3) { // enemy step
         if (uPlayer* player = devil4_sdk::get_local_player()) {
             uEnemy* enemy = devil4_sdk::get_uEnemies();
-            DisplayEnemyStepSpheres(enemy);
+            DisplayEnemyStepSpheres(enemy, player);
             uEnemy* object = devil4_sdk::get_objects();
-            DisplayEnemyStepSpheres(object);
+            DisplayEnemyStepSpheres(object, player);
         // player
             Vector3f playerPos = glm::make_vec3((float*)&player->m_pos);
             Vector3f playerSphereOffset { 0.0f, 85.0f, 0.0f }; // from DevilMayCry4_DX9.exe+AB322
