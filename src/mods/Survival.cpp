@@ -449,6 +449,21 @@ void Survival::on_frame(fmilliseconds& dt) {
         
         bool player_exists_now = (player != nullptr);
         bool player_is_alive = player_exists_now && player->damageStruct.HP > 0.0f;
+        bool in_correct_room = (sMed->roomID == survivalRooms[Survival::currentRoomIndex].roomID);
+        
+        // check if player died while in survival mode and in correct room
+        if (player_existed_last_frame && player_exists_now && 
+            !player_is_alive && in_correct_room && Survival::survival_active) {
+            
+            // kill all enemies
+            uEnemy* enemy = devil4_sdk::get_uEnemies();
+            while (enemy) {
+                uDamage* currentEnemyDamage = (uDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+                currentEnemyDamage->HP = 0.0f;
+                enemy = enemy->nextEnemy;
+            }
+            MutatorHolyWater::use_hw_asm_call();
+        }
         
         if ((player_exists_now && !player_existed_last_frame) || 
             (player_existed_last_frame && (!player_exists_now || !player_is_alive))) {
@@ -459,7 +474,7 @@ void Survival::on_frame(fmilliseconds& dt) {
         
         if (timer) {
             if (player && player_is_alive) {
-                if (sMed->roomID != survivalRooms[Survival::currentRoomIndex].roomID) {
+                if (!in_correct_room) {
                     Survival::survival_active = false;
                     accumulated_delta += player->m_delta_time;
                     if (accumulated_delta >= teleport_delay) {
