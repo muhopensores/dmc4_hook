@@ -68,65 +68,189 @@ struct sMain {
     CollisionGroupsContainer* pCollisionGroupsContainer;
 };
 
+typedef int(__stdcall *GetActiveSphereMask_t)(uEnemy* enemy);
+GetActiveSphereMask_t GetActiveSphereMask_ptr = (GetActiveSphereMask_t)0x04AB3A0;
+int __stdcall CallSub4AB3A0(uEnemy* enemy) {
+    return GetActiveSphereMask_ptr(enemy);
+}
+
+typedef float*(__thiscall *CopyMatrix_t)(void* joint, float* matrixBuffer);
+CopyMatrix_t CopyMatrix_ptr = (CopyMatrix_t)0x42C680;
+float* __fastcall CallSub42C680(void* joint, float* matrixBuffer) {
+    return CopyMatrix_ptr(joint, matrixBuffer);
+}
+
+// recreation of 0x4AB170 with sphere displays. This is called twice - one with sUnit+0x194 (enemies) and one with sUnit+0x1AC (extra enemy parts)
 void DisplayEnemyStepSpheres(uEnemy* enemy, uPlayer* player) {
     while (enemy) {
         ImGui::PushID((void*)enemy);
-        if (!enemy->enemyStepSphereArray || !enemy->joints) {
+
+        // new checks, the enemy step func lacks these
+        uDamage* currentEnemyDamage = (uDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+        if (currentEnemyDamage->HP <= 0.0f) {
             ImGui::PopID();
             enemy = enemy->nextEnemy;
             continue;
         }
 
-        // usual != 0 isn't good enough so we check if the ptr is reasonable
-        if ((uintptr_t)enemy->enemyStepSphereArray & 0xF0000000) {
-            // pointer has high bits set, invalid
+        if ((uintptr_t)enemy->enemyStepSphereArray < 0x10000 || 
+            (uintptr_t)enemy->enemyStepSphereArray & 0xF0000000) {
             ImGui::PopID();
             enemy = enemy->nextEnemy;
             continue;
         }
         
-        for (int i = 0; i < 30; i++) {
-            kEmJumpData* sphere = &enemy->enemyStepSphereArray->enemyStepSphere[i];
-            if (sphere->jointNo == -1) break;
-            UModelJoint* joint = nullptr;
-            for (int j = 0; j < enemy->m_joint_array_size; j++) {
-                if (enemy->joints->joint[j].mNo == sphere->jointNo) {
-                    joint = &enemy->joints->joint[j];
-                    break;
+        // if ( !(BYTE*)(a1 + 4896 // + 0x1320) ) return 0;
+        if (!enemy->intAt1320) {
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        
+        // if ( !(*DWORD*)(a1 + 4888 // + 0x1318) ) return 0;
+        if (!enemy->enemyStepSphereArray) {
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        
+        // if ( (char*)(a1 + 3752 // + 0xEA8) < 0 ) return 0;
+        if (enemy->launchStateThing2 < 0) {
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        
+        // v1 = (*DWORD*)(a1 + 4); if ( (v1 & 7) != 2 ) return 0; if ( (v1 & 0x400) == 0 ) return 0;
+        if ((enemy->flags & 7) != 2 || (enemy->flags & 0x400) == 0) {
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        
+        // required fields for CallSub4AB3A0
+        if (!enemy->m_joint_array_size || enemy->m_joint_array_size > 1000) {
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        
+        // v21 = sub_4AB3A0(a1); if ( !v21 ) return 0;
+        uint32_t v21 = CallSub4AB3A0(enemy);
+        if (v21 == 0) {
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        
+        // v2 = (*DWORD*)(a1 + 4888); v20 = 0; if ( *v2 == -1 ) return 0;
+        uintptr_t* v2 = (uintptr_t*)enemy->enemyStepSphereArray;
+        char v20 = 0;
+        if (*v2 == -1) {
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        
+        Vector3f playerPos = player->m_pos;
+        // ( i = (float*)(v2 + 5); ; i += 8 )
+        for (float* i = (float*)(v2 + 5); ; i += 8) {
+            // if ( ((1 << v20) & v21) != 0 )
+            if (((1 << v20) & v21) != 0) {
+                // find joint by the value at *v2 (current jointNo)
+                int currentJointNo = *v2;
+                UModelJoint* joint = nullptr;
+                for (int j = 0; j < enemy->m_joint_array_size; j++) {
+                    if (enemy->joints->joint[j].mNo == currentJointNo) {
+                        joint = &enemy->joints->joint[j];
+                        break;
+                    }
+                }
+                
+                if (joint) {
+                    float v22[64];  // BYTE v22[64];
+                    float* v4 = CallSub42C680(joint, v22);  // v4 = (float*)sub_42C680(v22);
+                    
+                    // Check if CallSub42C680 returned null
+                    if (!v4) {
+                        goto next_sphere;
+                    }
+                    
+                    float v5 = i[1];      // v5 = i[1];
+                    float v6 = *(i - 1);  // v6 = *(i - 1);
+
+                    // Check for division by zero before calculating v7, was crashing
+                    float denominator = (v4[3] * v6 + v4[11] * v5) + v4[7] * (*i) + v4[15];
+                    if (denominator == 0.0f) {
+                        goto next_sphere;
+                    }
+                    
+                    // v7 = 1.0 / (float)((float)((float)((float)(v4[3] * v6) + (float)(v4[11] * v5)) + (float)(v4[7] * *i)) + v4[15]);
+                    float v7 = 1.0f / denominator;
+                    
+                    // v8 = (float)((float)((float)(v4[8] * v5) + (float)(v4[4] * *i)) + (float)(v6 * v4[0])) + v4[12];
+                    float v8 = ((v4[8] * v5 + v4[4] * (*i)) + v6 * v4[0]) + v4[12];
+                    
+                    // v9 = (float)((float)((float)(v4[1] * v6) + (float)(v4[9] * v5)) + (float)(v4[5] * *i)) + v4[13];
+                    float v9 = ((v4[1] * v6 + v4[9] * v5) + v4[5] * (*i)) + v4[13];
+                    
+                    // v10 = (float)((float)((float)(v4[2] * v6) + (float)(v4[10] * v5)) + (float)(v4[6] * *i)) + v4[14];
+                    float v10 = ((v4[2] * v6 + v4[10] * v5) + v4[6] * (*i)) + v4[14];
+                    
+                    // v12 = v8 * v7; v13 = v9 * v7; v14 = v10 * v7;
+                    float v12 = v8 * v7;  // transformed X
+                    float v13 = v9 * v7;  // transformed Y  
+                    float v14 = v10 * v7;  // transformed Z
+                    
+                    Vector3f finalPos = Vector3f(v12, v13, v14);
+                    
+                    Vector3f adjustedPlayerPos = playerPos;
+                    adjustedPlayerPos.y += 85.0f;
+                    
+                    // distance
+                    float dx = v12 - adjustedPlayerPos.x;  // v12 - v16
+                    float dy = v13 - adjustedPlayerPos.y;  // v13 - (v15 + 85.0)  
+                    float dz = v14 - adjustedPlayerPos.z;  // v14 - v17
+                    float distanceSquared = dx * dx + dy * dy + dz * dz;
+                    
+                    // *(i - 4) * *(i - 4)
+                    float radiusSquared = (*(i - 4)) * (*(i - 4));
+                    
+                    // Validate radius is reasonable
+                    if (radiusSquared < 0.0f || radiusSquared > 1000000.0f) {
+                        goto next_sphere;
+                    }
+                    
+                    // if ( radiusSquared > distanceSquared ) break;
+                    // but we want to display all spheres
+                    ImColor inRange = IM_COL32(255, 0, 0, 255);   // Red when in range
+                    ImColor outRange = IM_COL32(0, 255, 0, 255);  // Green when not
+                    ImColor color = (radiusSquared > distanceSquared) ? inRange : outRange;
+                    
+                    w2s::DrawWireframeCapsule(finalPos, sqrt(radiusSquared), 0.0f, 0.0f, 0.0f, 0.0f, color, 16, 1.0f);
+                    
+                    if (enemyStepSphereDebug) {
+                        ImGui::PushID(v20);
+                        ImGui::Text("Sphere %d - Active Mask: 0x%08X, Bit %d: %s", v20, v21, v20, 
+                                  ((1 << v20) & v21) ? "ACTIVE" : "INACTIVE");
+                        ImGui::Text("Joint No: %d, Distance²: %.2f, Radius²: %.2f, In Range: %s", 
+                                  currentJointNo, distanceSquared, radiusSquared, (radiusSquared > distanceSquared) ? "YES" : "NO");
+                        ImGui::Text("pseudocode vars: v5=%.2f, v6=%.2f, *i=%.2f", v5, v6, *i);
+                        ImGui::Text("Transformed: v12=%.2f, v13=%.2f, v14=%.2f", v12, v13, v14);
+                        ImGui::Text("Matrix v7 (w): %.6f", v7);
+                        ImGui::PopID();
+                    }
                 }
             }
-
-            if (!joint) continue;
-
-            float uniformScale = (joint->mScale.x + joint->mScale.y + joint->mScale.z) / 3.0f;
-            Vector3f sphereOffset = glm::make_vec3((float*)&sphere->offset);
-            Vector3f jointPos = Vector3f(joint->mWmat.m4.x, joint->mWmat.m4.y, joint->mWmat.m4.z);
-            Vector3f finalPos = jointPos + (sphereOffset * uniformScale);
-            float scaledRadius = sphere->radius * uniformScale;
-            ImColor inRange = IM_COL32(0, 0, 255, 255);
-            ImColor outRange = IM_COL32(0, 255, 0, 255);
-            float playerDistance = glm::distance(player->m_pos, finalPos);
-            ImColor color = (playerDistance <= scaledRadius) ? inRange : outRange;
-            w2s::DrawWireframeCapsule(finalPos, scaledRadius, 0.0f, 0.0f, 0.0f, 0.0f, color, 16, 1.0f);
-            if (enemyStepSphereDebug) {
-                ImGui::PushID(i);
-                // ImGui::Text("Enemy %d, Sphere %d/%d, Joint %d (index %d)", enemyCount, i, 30, sphere->jointNo, (int)(joint - enemy->joints->joint));
-                ImGui::SliderFloat3("Enemy Pos", &enemy->position.x, -500.0f, 500.0f, "%.2f");
-                ImGui::SliderInt("Joint No Desired", &sphere->jointNo, 0, enemy->m_joint_array_size - 1);
-                ImGui::InputScalar("Joint No Got", ImGuiDataType_S8, &joint->mNo);
-                ImGui::SliderFloat3("Joint Offset", &joint->mOffset.x, -500.0f, 500.0f, "%.2f");
-                ImGui::SliderFloat3("Joint Scale", &joint->mScale.x, 0.1f, 5.0f, "%.2f");
-                ImGui::InputFloat3("Joint Final Pos", &finalPos.x, "%.2f");
-                ImGui::SliderFloat3("Sphere Offset", (float*)&sphere->offset, -500.0f, 500.0f, "%.2f");
-                ImGui::SliderFloat("Sphere Radius", &sphere->radius, 0.0f, 500.0f, "%.2f");
-                ImGui::InputFloat3("Final Pos", &finalPos.x, "%.2f");
-                ImGui::InputFloat("Scaled Radius", &scaledRadius, 0.0f, 0.0f, "%.2f");
-                ImGui::InputInt("Pad 08 (0-3)", (int*)&sphere->pad_08[0]);
-                ImGui::InputInt("Pad 08 (4-7)", (int*)&sphere->pad_08[4]);
-                ImGui::Separator();
-                ImGui::PopID();
-            }
+            
+            next_sphere:
+            // v18 = *v2[8]; ++v20; v2 += 8; if ( v18 == -1 ) return 0;
+            int v18 = *(v2 + 8);    // v18 = v2[8]
+            ++v20;                  // increment sphere counter
+            v2 += 8;                // advance pointer to next sphere
+            if (v18 == -1) break;   // exit condition
         }
+        
         ImGui::PopID();
         enemy = enemy->nextEnemy;
     }
@@ -241,9 +365,9 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
     if (mod_enabled3) { // enemy step
         if (uPlayer* player = devil4_sdk::get_local_player()) {
             uEnemy* enemy = devil4_sdk::get_uEnemies();
-            DisplayEnemyStepSpheres(enemy, player);
+            if (enemy) DisplayEnemyStepSpheres(enemy, player);
             uEnemy* object = devil4_sdk::get_objects();
-            DisplayEnemyStepSpheres(object, player);
+            if (object) DisplayEnemyStepSpheres(object, player);
         // player
             Vector3f playerPos = glm::make_vec3((float*)&player->m_pos);
             Vector3f playerSphereOffset { 0.0f, 85.0f, 0.0f }; // from DevilMayCry4_DX9.exe+AB322

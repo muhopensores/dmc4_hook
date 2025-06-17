@@ -1336,7 +1336,8 @@ static_assert(sizeof(kEmJumpDataArr) == 0x3C0);
 
 class uEnemy {
 public:
-    char pad_0[0x8];
+    uintptr_t vtable; // 0x0
+    int flags; // 0x4
     uEnemy* nextEnemy; // 0x8
     char pad_c[0x4];
     float delta; // 0x10
@@ -1375,10 +1376,13 @@ public:
     int lockOnSphereCount; // 0xef0
     char pad_ef4[0xc];
     lockOnSphereData jcSpheres[5]; // 0xf00
-    char pad_ff0[0x328];
+    char pad_ff0[0x320];
+    uintptr_t something; // 0x1310
+    uintptr_t something2; // 0x1314
     kEmJumpDataArr* enemyStepSphereArray; // 0x1318
     int m_enemystepSphereCount; // 0x131c
-    char pad_1320[0xe4];
+    int intAt1320; // 0x1320
+    char pad_1324[0xe0];
     bool inBattle; // 0x1404
     bool isActive; // 0x1405
     char pad_1406[0xa];
