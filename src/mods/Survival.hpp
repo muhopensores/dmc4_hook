@@ -16,7 +16,6 @@ public:
     static bool mod_enabled;
     static bool survival_active;
     static uintptr_t jmp_return_hp;
-    static uintptr_t jmp_return_combat;
     static uintptr_t jmp_return_red_timer;
     static bool meme_effects;
     static ImVec2 window_pos;

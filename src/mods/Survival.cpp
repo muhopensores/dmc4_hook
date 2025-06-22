@@ -56,7 +56,6 @@ bool Survival::mod_enabled = false;
 bool Survival::meme_effects = false;
 bool Survival::survival_active = false; // Set dynamically, not a ui toggle
 uintptr_t Survival::jmp_return_hp = NULL;
-uintptr_t Survival::jmp_return_combat = NULL;
 uintptr_t Survival::jmp_return_red_timer = NULL;
 
 // ImVec2 Survival::window_pos{ 0.0f, 0.0f };
@@ -449,6 +448,21 @@ void Survival::on_frame(fmilliseconds& dt) {
         
         bool player_exists_now = (player != nullptr);
         bool player_is_alive = player_exists_now && player->damageStruct.HP > 0.0f;
+        bool in_correct_room = (sMed->roomID == survivalRooms[Survival::currentRoomIndex].roomID);
+        
+        // check if player died while in survival mode and in correct room
+        if (player_existed_last_frame && player_exists_now && 
+            !player_is_alive && in_correct_room && Survival::survival_active) {
+            
+            // kill all enemies
+            uEnemy* enemy = devil4_sdk::get_uEnemies();
+            while (enemy) {
+                uDamage* currentEnemyDamage = (uDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+                currentEnemyDamage->HP = 0.0f;
+                enemy = enemy->nextEnemy;
+            }
+            MutatorHolyWater::use_hw_asm_call();
+        }
         
         if ((player_exists_now && !player_existed_last_frame) || 
             (player_existed_last_frame && (!player_exists_now || !player_is_alive))) {
@@ -459,7 +473,7 @@ void Survival::on_frame(fmilliseconds& dt) {
         
         if (timer) {
             if (player && player_is_alive) {
-                if (sMed->roomID != survivalRooms[Survival::currentRoomIndex].roomID) {
+                if (!in_correct_room) {
                     Survival::survival_active = false;
                     accumulated_delta += player->m_delta_time;
                     if (accumulated_delta >= teleport_delay) {
@@ -920,21 +934,6 @@ naked void detour_hp() {
     }
 }
 
-naked void detour_combat() {
-    _asm {
-        cmp byte ptr [Survival::survival_active], 0
-        je code
-        mov al, 00
-        jmp cont
-    code:
-        mov al, 01
-    cont:
-        pop esi
-        mov esp,ebp
-		jmp dword ptr [Survival::jmp_return_combat]
-    }
-}
-
 static uintptr_t detour_red_timer_alt_ret = 0x4FDF59;
 naked void detour_red_timer() {
     _asm {
@@ -954,10 +953,6 @@ std::optional<std::string> Survival::on_initialize() {
     if (!install_hook_offset(0xFEFE1, hook_hp, &detour_hp, &jmp_return_hp, 6)) {
         spdlog::error("Failed to init Survival mod 1\n");
         return "Failed to init Survival mod 1";
-    }
-    if (!install_hook_offset(0xA667F, hook_combat, &detour_combat, &jmp_return_combat, 5)) {
-        spdlog::error("Failed to init Survival mod 2\n");
-        return "Failed to init Survival mod 2";
     }
     if (!install_hook_offset(0xFDF4D, hook_red_timer, &detour_red_timer, &jmp_return_red_timer, 8)) {
         spdlog::error("Failed to init Survival mod 3\n");

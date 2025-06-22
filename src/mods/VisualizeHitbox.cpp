@@ -7,12 +7,15 @@
 
 bool VisualizeHitbox::mod_enabled = false; // Visualize Hitboxes
 constexpr uintptr_t sMainAddr = 0x00E5574C;
+static bool enemyStepSphereDebug;
 
 bool VisualizeHitbox::mod_enabled2 = false; // Visualize Pushboxes
 // uintptr_t VisualizeHitbox::jmp_ret_pushboxes = NULL;
 // static uintptr_t pushboxAddr = NULL;
 
 bool VisualizeHitbox::mod_enabled3 = false; // Visualize JC Spheres
+
+bool VisualizeHitbox::mod_enabled4 = false; // Visualize enemy collision
 
 struct kCollPrim {
     int mType;
@@ -67,23 +70,194 @@ struct sMain {
     CollisionGroupsContainer* pCollisionGroupsContainer;
 };
 
-void* __stdcall get_joint_from_index2(void* obj, int index) {
-    void* result;
-    _asm {
-        mov ecx, obj
-        mov eax, index
-        mov ecx, [ecx]          
-        push esi
-        mov esi, [ecx+0x2E4]
-        
-        imul eax, 0x90     // index * 0x90 (joint size)
-        add eax, esi            // bone_array + offset
-        
-        pop esi
-        mov result, eax
-    }
-    return result;
+typedef int(__stdcall *GetActiveSphereMask_t)(uEnemy* enemy);
+GetActiveSphereMask_t GetActiveSphereMask_ptr = (GetActiveSphereMask_t)0x04AB3A0;
+int __stdcall CallSub4AB3A0(uEnemy* enemy) {
+    return GetActiveSphereMask_ptr(enemy);
 }
+
+typedef float*(__thiscall *CopyMatrix_t)(void* joint, float* matrixBuffer);
+CopyMatrix_t CopyMatrix_ptr = (CopyMatrix_t)0x42C680;
+float* __fastcall CallSub42C680(void* joint, float* matrixBuffer) {
+    return CopyMatrix_ptr(joint, matrixBuffer);
+}
+
+// recreation of 0x4AB170 with sphere displays. This is called twice - one with sUnit+0x194 (enemies) and one with sUnit+0x1AC (extra enemy parts)
+void DisplayEnemyStepSpheres(uEnemy* enemy, uPlayer* player) {
+    while (enemy) {
+        ImGui::PushID((void*)enemy);
+
+        // new checks, the enemy step func lacks these
+        uDamage* currentEnemyDamage = (uDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+        if (currentEnemyDamage->HP <= 0.0f) {
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+
+        if ((uintptr_t)enemy->enemyStepSphereArray < 0x10000 || 
+            (uintptr_t)enemy->enemyStepSphereArray & 0xF0000000) {
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        
+        // if ( !(BYTE*)(a1 + 4896 // + 0x1320) ) return 0;
+        if (!enemy->intAt1320) {
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        
+        // if ( !(*DWORD*)(a1 + 4888 // + 0x1318) ) return 0;
+        if (!enemy->enemyStepSphereArray) {
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        
+        // if ( (char*)(a1 + 3752 // + 0xEA8) < 0 ) return 0;
+        if (enemy->launchStateThing2 < 0) {
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        
+        // v1 = (*DWORD*)(a1 + 4); if ( (v1 & 7) != 2 ) return 0; if ( (v1 & 0x400) == 0 ) return 0;
+        if ((enemy->flags & 7) != 2 || (enemy->flags & 0x400) == 0) {
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        
+        // required fields for CallSub4AB3A0
+        if (!enemy->m_joint_array_size || enemy->m_joint_array_size > 1000) {
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        
+        // v21 = sub_4AB3A0(a1); if ( !v21 ) return 0;
+        uint32_t v21 = CallSub4AB3A0(enemy);
+        if (v21 == 0) {
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        
+        // v2 = (*DWORD*)(a1 + 4888); v20 = 0; if ( *v2 == -1 ) return 0;
+        uintptr_t* v2 = (uintptr_t*)enemy->enemyStepSphereArray;
+        char v20 = 0;
+        if (*v2 == -1) {
+            ImGui::PopID();
+            enemy = enemy->nextEnemy;
+            continue;
+        }
+        
+        Vector3f playerPos = player->m_pos;
+        // ( i = (float*)(v2 + 5); ; i += 8 )
+        for (float* i = (float*)(v2 + 5); ; i += 8) {
+            // if ( ((1 << v20) & v21) != 0 )
+            if (((1 << v20) & v21) != 0) {
+                // find joint by the value at *v2 (current jointNo)
+                int currentJointNo = *v2;
+                UModelJoint* joint = nullptr;
+                for (int j = 0; j < enemy->m_joint_array_size; j++) {
+                    if (enemy->joints->joint[j].mNo == currentJointNo) {
+                        joint = &enemy->joints->joint[j];
+                        break;
+                    }
+                }
+                
+                if (joint) {
+                    float v22[64];  // BYTE v22[64];
+                    float* v4 = CallSub42C680(joint, v22);  // v4 = (float*)sub_42C680(v22);
+                    
+                    // Check if CallSub42C680 returned null
+                    if (!v4) {
+                        goto next_sphere;
+                    }
+                    
+                    float v5 = i[1];      // v5 = i[1];
+                    float v6 = *(i - 1);  // v6 = *(i - 1);
+
+                    // Check for division by zero before calculating v7, was crashing
+                    float denominator = (v4[3] * v6 + v4[11] * v5) + v4[7] * (*i) + v4[15];
+                    if (denominator == 0.0f) {
+                        goto next_sphere;
+                    }
+                    
+                    // v7 = 1.0 / (float)((float)((float)((float)(v4[3] * v6) + (float)(v4[11] * v5)) + (float)(v4[7] * *i)) + v4[15]);
+                    float v7 = 1.0f / denominator;
+                    
+                    // v8 = (float)((float)((float)(v4[8] * v5) + (float)(v4[4] * *i)) + (float)(v6 * v4[0])) + v4[12];
+                    float v8 = ((v4[8] * v5 + v4[4] * (*i)) + v6 * v4[0]) + v4[12];
+                    
+                    // v9 = (float)((float)((float)(v4[1] * v6) + (float)(v4[9] * v5)) + (float)(v4[5] * *i)) + v4[13];
+                    float v9 = ((v4[1] * v6 + v4[9] * v5) + v4[5] * (*i)) + v4[13];
+                    
+                    // v10 = (float)((float)((float)(v4[2] * v6) + (float)(v4[10] * v5)) + (float)(v4[6] * *i)) + v4[14];
+                    float v10 = ((v4[2] * v6 + v4[10] * v5) + v4[6] * (*i)) + v4[14];
+                    
+                    // v12 = v8 * v7; v13 = v9 * v7; v14 = v10 * v7;
+                    float v12 = v8 * v7;  // transformed X
+                    float v13 = v9 * v7;  // transformed Y  
+                    float v14 = v10 * v7;  // transformed Z
+                    
+                    Vector3f finalPos = Vector3f(v12, v13, v14);
+                    
+                    Vector3f adjustedPlayerPos = playerPos;
+                    adjustedPlayerPos.y += 85.0f;
+                    
+                    // distance
+                    float dx = v12 - adjustedPlayerPos.x;  // v12 - v16
+                    float dy = v13 - adjustedPlayerPos.y;  // v13 - (v15 + 85.0)  
+                    float dz = v14 - adjustedPlayerPos.z;  // v14 - v17
+                    float distanceSquared = dx * dx + dy * dy + dz * dz;
+                    
+                    // *(i - 4) * *(i - 4)
+                    float radiusSquared = (*(i - 4)) * (*(i - 4));
+                    
+                    // Validate radius is reasonable
+                    if (radiusSquared < 0.0f || radiusSquared > 1000000.0f) {
+                        goto next_sphere;
+                    }
+                    
+                    // if ( radiusSquared > distanceSquared ) break;
+                    // but we want to display all spheres
+                    ImColor inRange = IM_COL32(255, 0, 0, 255);   // Red when in range
+                    ImColor outRange = IM_COL32(0, 255, 0, 255);  // Green when not
+                    ImColor color = (radiusSquared > distanceSquared) ? inRange : outRange;
+                    
+                    w2s::DrawWireframeCapsule(finalPos, sqrt(radiusSquared), 0.0f, 0.0f, (enemy->rotation.y * M_PI)/*(atan2(joint->mWmat.m1[2], joint->mWmat.m3[2]))*/, 0.0f, color, 16, 1.0f);
+                    
+                    if (enemyStepSphereDebug) {
+                        ImGui::PushID(v20);
+                        ImGui::Text("Sphere %d - Active Mask: 0x%08X, Bit %d: %s", v20, v21, v20, 
+                                  ((1 << v20) & v21) ? "ACTIVE" : "INACTIVE");
+                        ImGui::Text("Joint No: %d, Distance²: %.2f, Radius²: %.2f, In Range: %s", 
+                                  currentJointNo, distanceSquared, radiusSquared, (radiusSquared > distanceSquared) ? "YES" : "NO");
+                        ImGui::Text("pseudocode vars: v5=%.2f, v6=%.2f, *i=%.2f", v5, v6, *i);
+                        ImGui::Text("Transformed: v12=%.2f, v13=%.2f, v14=%.2f", v12, v13, v14);
+                        ImGui::Text("Matrix v7 (w): %.6f", v7);
+                        ImGui::PopID();
+                    }
+                }
+            }
+            
+            next_sphere:
+            // v18 = *v2[8]; ++v20; v2 += 8; if ( v18 == -1 ) return 0;
+            int v18 = *(v2 + 8);    // v18 = v2[8]
+            ++v20;                  // increment sphere counter
+            v2 += 8;                // advance pointer to next sphere
+            if (v18 == -1) break;   // exit condition
+        }
+        
+        ImGui::PopID();
+        enemy = enemy->nextEnemy;
+    }
+}
+
 void VisualizeHitbox::on_frame(fmilliseconds& dt) {
     if (mod_enabled) { // hitboxes
         sMain* sMainPtr = *(sMain**)sMainAddr;
@@ -193,62 +367,26 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
     if (mod_enabled3) { // enemy step
         if (uPlayer* player = devil4_sdk::get_local_player()) {
             uEnemy* enemy = devil4_sdk::get_uEnemies();
+            if (enemy) DisplayEnemyStepSpheres(enemy, player);
+            uEnemy* object = devil4_sdk::get_objects();
+            if (object) DisplayEnemyStepSpheres(object, player);
+        // player
+            Vector3f playerPos = glm::make_vec3((float*)&player->m_pos);
+            Vector3f playerSphereOffset { 0.0f, 85.0f, 0.0f }; // from DevilMayCry4_DX9.exe+AB322
+            Vector3f finalPos = playerPos + playerSphereOffset;
+            w2s::DrawWireframeCapsule(finalPos, 1.0f, 0.0f, 0.0f, player->rotation2, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
+        }
+    }
+    if (mod_enabled4) { // enemy collision
+        if (uPlayer* player = devil4_sdk::get_local_player()) {
+            uEnemy* enemy = devil4_sdk::get_uEnemies();
             int enemyCount = 0;
             while (enemy) {
-                ImGui::PushID((void*)enemy);
-                int numOfSpheres = enemy->m_enemystepSphereCount & 0xFF;
-                static int numOfSpheresToDraw = numOfSpheres;
-                ImGui::SliderInt("numOfSpheresToDraw", &numOfSpheresToDraw, 0, 500);
-                ImGui::SameLine();
-                help_marker("-1 Bone IDs are hidden");
-                ImGui::Separator();
-                for (int i = 0; i < numOfSpheresToDraw; i++) {
-                    kEmJumpData* sphere = &enemy->enemyStepSphereArray->enemyStepSphere[i];
-                    if (!enemy->joints) continue;
-                    if (sphere->jointNo > enemy->m_joint_array_size || sphere->jointNo < 0) { continue; }
-                    UModelJoint* joint = &enemy->joints->joint[sphere->jointNo];
-                    Vector3f jointWorldPos = Vector3f(joint->mWmat.m4.x, joint->mWmat.m4.y, joint->mWmat.m4.z);
-                    float uniformScale = (joint->mScale.x + joint->mScale.y + joint->mScale.z) / 3.0f;
-                    Vector3f sphereOffset = glm::make_vec3((float*)&sphere->offset);
-                    Vector3f rotatedSphereOffset = Vector3f(
-                        joint->mWmat.m1.x * sphereOffset.x + joint->mWmat.m2.x * sphereOffset.y + joint->mWmat.m3.x * sphereOffset.z,
-                        joint->mWmat.m1.y * sphereOffset.x + joint->mWmat.m2.y * sphereOffset.y + joint->mWmat.m3.y * sphereOffset.z,
-                        joint->mWmat.m1.z * sphereOffset.x + joint->mWmat.m2.z * sphereOffset.y + joint->mWmat.m3.z * sphereOffset.z
-                    );
-                    rotatedSphereOffset *= uniformScale;
-                    Vector3f finalPos = jointWorldPos + rotatedSphereOffset;
-                    float scaledRadius = sphere->radius * uniformScale;
-                    ImGui::PushID(i);
-                    ImGui::Text("Enemy %d, Sphere %d/%d, Joint %d/%d", enemyCount, i, numOfSpheres, sphere->jointNo, enemy->m_joint_array_size - 1);
-                    ImGui::SliderFloat3("Enemy Pos", &enemy->position.x, -500.0f, 500.0f, "%.2f");
-                    ImGui::SliderInt("Joint No", &sphere->jointNo, 0, enemy->m_joint_array_size - 1);
-                    ImGui::SliderFloat3("Joint Offset", &joint->mOffset.x, -500.0f, 500.0f, "%.2f");
-                    ImGui::SliderFloat3("Joint Scale", &joint->mScale.x, 0.1f, 5.0f, "%.2f");
-                    ImGui::InputFloat3("Joint World Pos", &jointWorldPos.x, "%.2f");
-                    ImGui::SliderFloat3("Sphere Offset", (float*)&sphere->offset, -500.0f, 500.0f, "%.2f");
-                    ImGui::SliderFloat("Sphere Radius", &sphere->radius, 0.0f, 500.0f, "%.2f");
-                    ImGui::InputFloat3("Final Pos", &finalPos.x, "%.2f");
-                    ImGui::InputFloat("Scaled Radius", &scaledRadius, 0.0f, 0.0f, "%.2f");
-                    ImGui::InputInt("Pad 08 (0-3)", (int*)&sphere->pad_08[0]);
-                    ImGui::InputInt("Pad 08 (4-7)", (int*)&sphere->pad_08[4]);
-                    ImGui::Separator();
-                    ImGui::PopID();
-                    w2s::DrawWireframeCapsule(finalPos, scaledRadius, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
-                }
-                ImGui::PopID();
+                Vector3f finalPos = glm::make_vec3((float*)&enemy->position) + Vector3f(0.0f, 85.0f, 0.0f);
+                float normalizedScale = ((enemy->scale.x + enemy->scale.y + enemy->scale.z) / 3.0f) * 50.0f;
+                w2s::DrawWireframeCapsule(finalPos, normalizedScale, 0.0f, 0.0f, (enemy->rotation[1] * M_PI), 0.0f, IM_COL32(0, 0, 0, 255), 16, 1.0f);
                 enemyCount++;
                 enemy = enemy->nextEnemy;
-            }
-            // player
-            {
-                Vector3f playerPos = glm::make_vec3((float*)&player->m_pos);
-                Vector3f playerSphereOffset { 0.0f, 85.0f, 0.0f }; // from DevilMayCry4_DX9.exe+AB322
-                Vector3f finalPos = playerPos + playerSphereOffset;
-
-                // There's 2? from DevilMayCry4_DX9.exe+AB336 > follow jmp > check first opcode. Static mem (uh this is for enemies, some enemies have 2 and some have 3??)
-                // w2s::DrawWireframeCapsule(finalPos, 160.0f, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
-                // w2s::DrawWireframeCapsule(finalPos, 135.0f, 0.0f, 0.0f, 0.0f, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
-                w2s::DrawWireframeCapsule(finalPos, 2.0f, 0.0f, 0.0f, player->rotation2, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
             }
         }
     }
@@ -290,16 +428,26 @@ void VisualizeHitbox::on_gui_frame(int display) {
     ImGui::Checkbox(_("Visualize Enemy Step Spheres"), &mod_enabled3);
     ImGui::SameLine();
     help_marker(_("Draw enemy step sphere outlines in green"));
+
+    ImGui::Indent(lineIndent);
+    ImGui::Checkbox(_("Debug Stats##EnemyStepSpheres"), &enemyStepSphereDebug);
+    ImGui::Unindent();
+
+    ImGui::Checkbox(_("Visualize Enemy Collision"), &mod_enabled4);
+    ImGui::SameLine();
+    help_marker(_("Draw enemy collision outlines in black\nCURRENTLY NOT DOING ANYTHING"));
 }
 
 void VisualizeHitbox::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("visualize_hitbox").value_or(false);
     mod_enabled2 = cfg.get<bool>("visualize_pushbox").value_or(false);
     mod_enabled3 = cfg.get<bool>("visualize_enemystep").value_or(false);
+    mod_enabled4 = cfg.get<bool>("visualize_enemy_collision").value_or(false);
 };
 
 void VisualizeHitbox::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("visualize_hitbox", mod_enabled);
     cfg.set<bool>("visualize_pushbox", mod_enabled2);
     cfg.set<bool>("visualize_enemystep", mod_enabled3);
+    cfg.set<bool>("visualize_enemy_collision", mod_enabled4);
 };

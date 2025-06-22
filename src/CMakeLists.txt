@@ -2,6 +2,10 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/ForceInCombat.hpp
+  mods/ForceInCombat.cpp
+  mods/JointDisplay.hpp
+  mods/JointDisplay.cpp
   mods/FloorIsLava.hpp
   mods/FloorIsLava.cpp
   mods/GroundedGunCancels.hpp
@@ -468,7 +472,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME dinput8)
-target_link_libraries(${PROJECT_NAME} imgui minhook glm_static shlwapi D3dx9 d3d9 csys::csys Winmm spdlog)
+target_link_libraries(${PROJECT_NAME} imgui minhook glm_static shlwapi D3dx9 d3d9 csys::csys Winmm spdlog ImGuizmo)
 target_compile_features(${CMAKE_PROJECT_NAME} PUBLIC cxx_std_17)
 
 include_directories(${CMAKE_PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})

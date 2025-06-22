@@ -668,6 +668,8 @@ namespace gui {
                 pmods->on_draw_ui("PsychoMantis"_hash);
 
                 pmods->on_draw_ui("ShadowResolution"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("ForceInCombat"_hash);
 
                 ImGui::SeparatorText(_("Cutscenes"));
 
@@ -676,6 +678,8 @@ namespace gui {
                 pmods->on_draw_ui("CutscenePause"_hash);
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("DisableCameraEvents"_hash);
+
+                pmods->on_draw_ui("ForceInCombat"_hash);
 
                 ImGui::SeparatorText(_("HUD"));
 
@@ -748,9 +752,11 @@ namespace gui {
 
                 pmods->on_draw_ui("EnemyTracker"_hash); // needs its own line
 
-                pmods->on_draw_ui("VisualizeHitbox"_hash);
+                pmods->on_draw_ui("VisualizeHitbox"_hash); // needs its own line
 
-                pmods->on_draw_ui("FlyingStats"_hash);
+                pmods->on_draw_ui("FlyingStats"_hash); // needs its own line
+
+                pmods->on_draw_ui("JointDisplay"_hash);
 
                 ImGui::SeparatorText(_("Misc"));
 
