@@ -19,6 +19,6 @@ public:
     void on_config_save(utility::Config& cfg) override;
 
 private:
-    std::unique_ptr<Patch> patch1;
+    // std::unique_ptr<Patch> patch1;
     std::unique_ptr<FunctionHook> hook1;
 };

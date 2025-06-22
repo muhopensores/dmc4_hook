@@ -363,23 +363,23 @@ constexpr std::array<const char*, 3> difficulty_names {
 };
 
 void DifficultySelect::on_gui_frame(int display) {
-    utility::ImGooListboxTranslated translated_names(difficulty_names.data(), difficulty_names.size());
-    ImGui::PushItemWidth(sameLineItemWidth);
-    if (ImGui::BeginCombo(_("Difficulty ##Game Mode Combo"), translated_names.data()[game_difficulty])) {
-        for (size_t i = 0; i < difficulty_names.size(); i++) {
-            bool is_selected = (game_difficulty == i);
-            if (ImGui::Selectable(translated_names.data()[i], is_selected)) {
-                game_difficulty = i;
-            }
-            if (is_selected) {
-                ImGui::SetItemDefaultFocus();
-                m_diffs[game_difficulty](this);
-            }
-        }
-        ImGui::EndCombo();
-    }
-    ImGui::PopItemWidth();
-    ImGui::SameLine();
-    help_marker(_("This is a modded difficulty originally from SpoilerAL that makes 49 changes per difficulty. "
-        "It seems to edit damage values and allow (faster than normal) enemy DT but also disables a lot of enemy attacks"));
+   utility::ImGooListboxTranslated translated_names(difficulty_names.data(), difficulty_names.size());
+   ImGui::PushItemWidth(sameLineItemWidth);
+   if (ImGui::BeginCombo(_("Difficulty ##Game Mode Combo"), translated_names.data()[game_difficulty])) {
+       for (size_t i = 0; i < difficulty_names.size(); i++) {
+           bool is_selected = (game_difficulty == i);
+           if (ImGui::Selectable(translated_names.data()[i], is_selected)) {
+               game_difficulty = i;
+               m_diffs[game_difficulty](this);
+           }
+           if (is_selected) {
+               ImGui::SetItemDefaultFocus();
+           }
+       }
+       ImGui::EndCombo();
+   }
+   ImGui::PopItemWidth();
+   ImGui::SameLine();
+   help_marker(_("This is a modded difficulty originally from SpoilerAL that makes 49 changes per difficulty. "
+       "It seems to edit damage values and allow (faster than normal) enemy DT but also disables a lot of enemy attacks"));
 }
