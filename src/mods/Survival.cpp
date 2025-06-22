@@ -56,7 +56,6 @@ bool Survival::mod_enabled = false;
 bool Survival::meme_effects = false;
 bool Survival::survival_active = false; // Set dynamically, not a ui toggle
 uintptr_t Survival::jmp_return_hp = NULL;
-uintptr_t Survival::jmp_return_combat = NULL;
 uintptr_t Survival::jmp_return_red_timer = NULL;
 
 // ImVec2 Survival::window_pos{ 0.0f, 0.0f };
@@ -935,21 +934,6 @@ naked void detour_hp() {
     }
 }
 
-naked void detour_combat() {
-    _asm {
-        cmp byte ptr [Survival::survival_active], 0
-        je code
-        mov al, 00
-        jmp cont
-    code:
-        mov al, 01
-    cont:
-        pop esi
-        mov esp,ebp
-		jmp dword ptr [Survival::jmp_return_combat]
-    }
-}
-
 static uintptr_t detour_red_timer_alt_ret = 0x4FDF59;
 naked void detour_red_timer() {
     _asm {
@@ -969,10 +953,6 @@ std::optional<std::string> Survival::on_initialize() {
     if (!install_hook_offset(0xFEFE1, hook_hp, &detour_hp, &jmp_return_hp, 6)) {
         spdlog::error("Failed to init Survival mod 1\n");
         return "Failed to init Survival mod 1";
-    }
-    if (!install_hook_offset(0xA667F, hook_combat, &detour_combat, &jmp_return_combat, 5)) {
-        spdlog::error("Failed to init Survival mod 2\n");
-        return "Failed to init Survival mod 2";
     }
     if (!install_hook_offset(0xFDF4D, hook_red_timer, &detour_red_timer, &jmp_return_red_timer, 8)) {
         spdlog::error("Failed to init Survival mod 3\n");

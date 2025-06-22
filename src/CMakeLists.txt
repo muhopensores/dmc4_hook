@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/ForceInCombat.hpp
+  mods/ForceInCombat.cpp
   mods/JointDisplay.hpp
   mods/JointDisplay.cpp
   mods/FloorIsLava.hpp

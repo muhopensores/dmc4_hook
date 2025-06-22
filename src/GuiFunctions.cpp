@@ -668,6 +668,8 @@ namespace gui {
                 pmods->on_draw_ui("PsychoMantis"_hash);
 
                 pmods->on_draw_ui("ShadowResolution"_hash);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("ForceInCombat"_hash);
 
                 ImGui::SeparatorText(_("Cutscenes"));
 
