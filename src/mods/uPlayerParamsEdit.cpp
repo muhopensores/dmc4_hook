@@ -4,7 +4,7 @@ static bool fast_gilg_charge = false;
 
 uintptr_t uPlayerParamsEdit::jmp_ret1 = NULL;
 uintptr_t uPlayerParamsEdit::jmp_ret2 = NULL;
-
+/*
 enum PLAYER_PARAMS {
     NRML_DMG_BLOWN_LAND_SPD_Y    = 0,
     NRML_DMG_BLOWN_LAND_ACC_Y    = 1,
@@ -843,7 +843,7 @@ enum NERO_PARAMS {
     EG_GUARD_ANGLE_EM015                    = 349,
     EG_GUARD_ANGLE_EM016                    = 350,
     EG_GUARD_ANGLE_EM017                    = 351
-};
+};*/
 void __stdcall dante_param_edit(uintptr_t param_table) {
     if (fast_gilg_charge) {                     // I'd like to keep charge time edits standardized
         *(float*)(param_table + 0x31C) = 15.0f; // gilg lvl 1 = 45.0f / 3.0f
