@@ -26,7 +26,7 @@ naked void detour1() {
     }
 }
 
-// void on_frame(fmilliseconds& dt) {}
+// void ModSample::on_frame(fmilliseconds& dt) {}
 
 void ModSample::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("ModSample"), &mod_enabled)) {
@@ -36,8 +36,8 @@ void ModSample::on_gui_frame(int display) {
     help_marker(_("ModSampleHelpMarker"));
 }
 
-// void on_game_pause(bool toggle) {}
-// bool on_message(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) {}
+// void ModSample::on_game_pause(bool toggle) {}
+// bool ModSample::on_message(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) {}
 
 std::optional<std::string> ModSample::on_initialize() {
     if (!install_hook_offset(0x0, hook1, &detour1, &jmp_ret1, 5)) {

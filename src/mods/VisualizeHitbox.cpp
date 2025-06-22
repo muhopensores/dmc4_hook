@@ -15,6 +15,8 @@ bool VisualizeHitbox::mod_enabled2 = false; // Visualize Pushboxes
 
 bool VisualizeHitbox::mod_enabled3 = false; // Visualize JC Spheres
 
+bool VisualizeHitbox::mod_enabled4 = false; // Visualize enemy collision
+
 struct kCollPrim {
     int mType;
     int Bone0;
@@ -227,7 +229,7 @@ void DisplayEnemyStepSpheres(uEnemy* enemy, uPlayer* player) {
                     ImColor outRange = IM_COL32(0, 255, 0, 255);  // Green when not
                     ImColor color = (radiusSquared > distanceSquared) ? inRange : outRange;
                     
-                    w2s::DrawWireframeCapsule(finalPos, sqrt(radiusSquared), 0.0f, 0.0f, 0.0f, 0.0f, color, 16, 1.0f);
+                    w2s::DrawWireframeCapsule(finalPos, sqrt(radiusSquared), 0.0f, 0.0f, (enemy->rotation.y * M_PI)/*(atan2(joint->mWmat.m1[2], joint->mWmat.m3[2]))*/, 0.0f, color, 16, 1.0f);
                     
                     if (enemyStepSphereDebug) {
                         ImGui::PushID(v20);
@@ -372,7 +374,20 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
             Vector3f playerPos = glm::make_vec3((float*)&player->m_pos);
             Vector3f playerSphereOffset { 0.0f, 85.0f, 0.0f }; // from DevilMayCry4_DX9.exe+AB322
             Vector3f finalPos = playerPos + playerSphereOffset;
-            w2s::DrawWireframeCapsule(finalPos, 2.0f, 0.0f, 0.0f, player->rotation2, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
+            w2s::DrawWireframeCapsule(finalPos, 1.0f, 0.0f, 0.0f, player->rotation2, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
+        }
+    }
+    if (mod_enabled4) { // enemy collision
+        if (uPlayer* player = devil4_sdk::get_local_player()) {
+            uEnemy* enemy = devil4_sdk::get_uEnemies();
+            int enemyCount = 0;
+            while (enemy) {
+                Vector3f finalPos = glm::make_vec3((float*)&enemy->position) + Vector3f(0.0f, 85.0f, 0.0f);
+                float normalizedScale = ((enemy->scale.x + enemy->scale.y + enemy->scale.z) / 3.0f) * 50.0f;
+                w2s::DrawWireframeCapsule(finalPos, normalizedScale, 0.0f, 0.0f, (enemy->rotation[1] * M_PI), 0.0f, IM_COL32(0, 0, 0, 255), 16, 1.0f);
+                enemyCount++;
+                enemy = enemy->nextEnemy;
+            }
         }
     }
 }
@@ -417,16 +432,22 @@ void VisualizeHitbox::on_gui_frame(int display) {
     ImGui::Indent(lineIndent);
     ImGui::Checkbox(_("Debug Stats##EnemyStepSpheres"), &enemyStepSphereDebug);
     ImGui::Unindent();
+
+    ImGui::Checkbox(_("Visualize Enemy Collision"), &mod_enabled4);
+    ImGui::SameLine();
+    help_marker(_("Draw enemy collision outlines in black\nCURRENTLY NOT DOING ANYTHING"));
 }
 
 void VisualizeHitbox::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("visualize_hitbox").value_or(false);
     mod_enabled2 = cfg.get<bool>("visualize_pushbox").value_or(false);
     mod_enabled3 = cfg.get<bool>("visualize_enemystep").value_or(false);
+    mod_enabled4 = cfg.get<bool>("visualize_enemy_collision").value_or(false);
 };
 
 void VisualizeHitbox::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("visualize_hitbox", mod_enabled);
     cfg.set<bool>("visualize_pushbox", mod_enabled2);
     cfg.set<bool>("visualize_enemystep", mod_enabled3);
+    cfg.set<bool>("visualize_enemy_collision", mod_enabled4);
 };

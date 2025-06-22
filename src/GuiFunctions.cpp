@@ -748,9 +748,11 @@ namespace gui {
 
                 pmods->on_draw_ui("EnemyTracker"_hash); // needs its own line
 
-                pmods->on_draw_ui("VisualizeHitbox"_hash);
+                pmods->on_draw_ui("VisualizeHitbox"_hash); // needs its own line
 
-                pmods->on_draw_ui("FlyingStats"_hash);
+                pmods->on_draw_ui("FlyingStats"_hash); // needs its own line
+
+                pmods->on_draw_ui("JointDisplay"_hash);
 
                 ImGui::SeparatorText(_("Misc"));
 

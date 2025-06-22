@@ -38,3 +38,15 @@ add_library(imgui STATIC
             imgui/imgui.cpp)
 
 target_compile_definitions(imgui PUBLIC IMGUI_USER_CONFIG="../src/fw-imgui/imgui_imconfig.hpp")
+
+add_library(ImGuizmo STATIC
+    ImGuizmo/ImGuizmo.cpp
+    ImGuizmo/ImGuizmo.h
+    ImGuizmo/ImSequencer.cpp
+    ImGuizmo/ImSequencer.h
+    ImGuizmo/ImCurveEdit.cpp
+    ImGuizmo/ImCurveEdit.h
+    ImGuizmo/ImGradient.cpp
+    ImGuizmo/ImGradient.h
+)
+target_link_libraries(ImGuizmo PUBLIC imgui)

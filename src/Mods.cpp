@@ -161,6 +161,7 @@
 #include "mods/RunWhileHolding.hpp"
 #include "mods/GroundedGunCancels.hpp"
 #include "mods/FloorIsLava.hpp"
+#include "mods/JointDisplay.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -332,6 +333,7 @@ Mods::Mods() {
     ADD_MOD(RunWhileHolding);
     ADD_MOD(GroundedGunCancels);
     ADD_MOD(FloorIsLava);
+    ADD_MOD(JointDisplay);
 }
 
 // Initializes mods, checks for errors

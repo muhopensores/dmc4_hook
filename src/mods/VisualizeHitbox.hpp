@@ -9,6 +9,7 @@ public:
     static bool mod_enabled;
     static bool mod_enabled2;
     static bool mod_enabled3;
+    static bool mod_enabled4;
     // static uintptr_t jmp_ret_pushboxes;
     // static uintptr_t jmp_ret2;
 
