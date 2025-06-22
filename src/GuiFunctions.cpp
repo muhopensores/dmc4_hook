@@ -677,6 +677,8 @@ namespace gui {
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("DisableCameraEvents"_hash);
 
+                pmods->on_draw_ui("ForceInCombat"_hash);
+
                 ImGui::SeparatorText(_("HUD"));
 
                 pmods->on_draw_ui("InfiniteTime"_hash);
