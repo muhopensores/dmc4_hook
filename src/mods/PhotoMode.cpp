@@ -1,7 +1,12 @@
 #include "PhotoMode.hpp"
+#include "DebugCam.hpp"
+#include "CameraSettings.hpp"
 #include "../sdk/Devil4.hpp"
+#include <Mods.hpp>
+#include "utility/Hash.hpp"
 
 bool PhotoMode::mod_enabled = false;
+bool PhotoMode::photo_mode_open = false;
 
 // Filter
 static uintptr_t uDOFFilterCons             = 0x0091F680;
@@ -291,7 +296,7 @@ struct uHSVFilter : uFilter {
 };
 static_assert(sizeof(uHSVFilter) == 0x2C);
 
-void* call_constructor(void* cons_ptr) {
+static void* call_constructor(void* cons_ptr) {
     void* ret_addr = nullptr;
     _asm {
 		pushad
@@ -302,7 +307,7 @@ void* call_constructor(void* cons_ptr) {
     return ret_addr;
 }
 
-void sUnit_spawn(void* obj, int move_line) {
+static void sUnit_spawn(void* obj, int move_line) {
     constexpr uintptr_t spawn_call = 0x008DC540;
     uintptr_t sUnit_ptr = (uintptr_t)devil4_sdk::get_sUnit();
     _asm {
@@ -314,6 +319,102 @@ void sUnit_spawn(void* obj, int move_line) {
         popad
     }
 }
+
+// yea we should make these public somewhere
+
+#include "../sdk/uActor.hpp"
+
+typedef uActorMain::uFreeCamera uFreeCamera;
+typedef uActorMain::uCamera uCamera;
+static void* (__stdcall*freecam_cons)() = (void*(__stdcall*)())0x9197A0;
+
+struct MtRect {
+    uint32_t l;
+    uint32_t t;
+    uint32_t r;
+    uint32_t b;
+};
+
+struct MtColor {
+   uint8_t r;
+   uint8_t g;
+   uint8_t b;
+   uint8_t a;
+};
+
+struct sCamera_ViewPort {
+    void* vtable;
+    void* mpCamera;
+    void* mpTestCamera;
+    uint32_t mAttr;
+    uint8_t mActive;
+    uint8_t mNo;
+    uint8_t mSceneNo;
+    uint8_t mMode;
+    MtRect mRegion;
+    char padding0[12];
+    struct uActorMain::MtVector4 mFrustum[6];
+    MtColor mClearColor;
+    float mClearZ;
+    uint32_t mClearStencil;
+    void* mpRenderTarget;
+    void* mpDepthStencil;
+    void* mpSubPixelMask;
+    char padding1[8];
+    MtMatrix mViewMat;
+    MtMatrix mProjMat;
+    MtMatrix mPrevViewMat;
+    MtMatrix mPrevProjMat;
+    float mFogStart;
+    float mFogEnd;
+    uint32_t mFogPlaneType;
+    float mFogPlaneWidth;
+    float mFogPlaneDist;
+    float mFogAttentuation;
+    char padding2[8];
+    struct uActorMain::MtVector4 mFogPlaneDir;
+    struct uActorMain::MtVector4 mFogColor;
+    struct uActorMain::MtVector4 UknVecs1[2];
+    struct uActorMain::MtVector4 UknVecs2[2];
+    struct uActorMain::MtVector4 mTransFogFactor[2];
+    struct uActorMain::MtVector4 mTransFogColor[2];
+    MtMatrix mTransViewMat[2];
+    MtMatrix mTransProjMat[2];
+    MtMatrix mTransViewProjMat[2];
+    MtMatrix mTransPrevViewMat[2];
+    MtMatrix mTransPrevProjMat[2];
+    MtMatrix mTransPrevViewProjMat[2];
+    struct uActorMain::MtVector4 mTransEyePos[2];
+};
+static_assert(sizeof(sCamera_ViewPort) == 0x590);
+
+struct sCamera: CSystem {
+    float mSubPixelOfsX;
+    float mSubPixelOfsY;
+    float mViewSubFrame;
+    float mWorldSubFrame;
+    sCamera_ViewPort viewports[8];
+    MtRect ScreenRect;
+    float SceneSize[2];
+    uint32_t mLayoutMode;
+    uint32_t mPause;
+};
+
+static sCamera* get_sCamera() {
+    uintptr_t sMain = 0x00E5574C;
+    sCamera* ptr    = *(sCamera**)(*(uintptr_t*)sMain + 0x10358);
+    return ptr;
+}
+
+static void set_viewport(uint32_t index, REGION_MODE mode, uintptr_t CameraPtr) {
+    sCamera* sCam = get_sCamera();
+    sCamera_ViewPort* viewport = &sCam->viewports[index];
+    viewport->mpCamera = (void*)CameraPtr;
+    viewport->mMode = mode;
+    viewport->mAttr = 0x17;
+}
+
+//
 
 //enum PHOTO_MODE_ENUM : unsigned long {
 //    PM_INF_LIGHT,
@@ -343,15 +444,50 @@ void sUnit_spawn(void* obj, int move_line) {
 #define PM_CONTRAST_FILTER 0x00EAD980
 #define PM_HSV_FILTER 0x00EAD9A0
 
-void spawn(void* fptr) {
+static void spawn(void* fptr) {
     void* obj = call_constructor(fptr);
     //obj_vec.push_back(std::pair<void*, PHOTO_MODE_ENUM>(obj, mode));
     sUnit_spawn(obj, 17);
 }
 
+static void SetGameSpeeds(float speed) {
+    sWorkRate* wr = devil4_sdk::get_work_rate();
+    if (!wr) { return; }
+    wr->enemy_speed = speed;
+    wr->player_speed = speed;
+    wr->room_speed = speed;
+}
+
+static sCamera_ViewPort* get_viewport(uint32_t index) {
+    sCamera* sCam              = get_sCamera();
+    sCamera_ViewPort* viewport = &sCam->viewports[index];
+    return viewport;
+}
+
+static void ToggleGameplayCam(bool enable) {
+    uFreeCamera* cam = (uFreeCamera*)freecam_cons();
+    /*if (freecamMouseControls)*/ cam->mControlPad = 0;
+    devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)cam, 0x17);
+    sCamera_ViewPort* first_vp = get_viewport(0);
+    set_viewport(1, REGION_FULLSCREEN, (uintptr_t)cam);
+    cam->uCameraBase.mCameraPos = ((uCamera*)*(uintptr_t*)&first_vp->mpCamera)->mCameraPos;
+    cam->uCameraBase.mTargetPos = ((uCamera*)*(uintptr_t*)&first_vp->mpCamera)->mTargetPos;
+    cam->uCameraBase.mCameraUp = ((uCamera*)*(uintptr_t*)&first_vp->mpCamera)->mCameraUp;
+
+    sCamera_ViewPort* vp = get_viewport(0);
+    vp->mActive = enable;
+}
+
+static void DisablePlayerInputs(bool enable) {
+    uPlayer* player = devil4_sdk::get_local_player();
+    if (!player) { return; }
+    player->pad_1e80[2] = enable;
+}
+
 void PhotoMode::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Photo Mode"), &PhotoMode::mod_enabled);
+    ImGui::Checkbox(_("Spawn Filters And Lights"), &PhotoMode::mod_enabled);
     if (PhotoMode::mod_enabled) {
+        ImGui::Indent(lineIndent);
         if (ImGui::Button("Infinite Light"))
             spawn((void*)uInfiniteLightCons);
         ImGui::SameLine();
@@ -391,16 +527,261 @@ void PhotoMode::on_gui_frame(int display) {
         sUnit* s_unit = (sUnit*)devil4_sdk::get_sUnit();
         MoveLine* moveline = &s_unit->mMoveLine[17];
         cUnit* obj = moveline->mTop;
-        if (obj != nullptr)
-            do {
+        while (obj != nullptr) {
+            bool del_flag     = obj->flags.bits.mBeFlag & BEFLAG_DELETE;
+            bool pre_del_flag = obj->flags.bits.mBeFlag & BEFLAG_PRE_DELETE;
+            if (del_flag != 0 || pre_del_flag != 0) {
+                ImGui::PushID((uintptr_t)obj);
+                ImGui::PushItemWidth(sameLineItemWidth);
+                switch ((uintptr_t)call_constructor(*(void**)((*(uintptr_t**)obj) + 4))) {
+                case PM_INF_LIGHT: {
+                    uInfiniteLight* inf_light = (uInfiniteLight*)obj;
+                    ImGui::InputFloat4(_("Color"), (float*)&inf_light->mColor);
+                    ImGui::InputFloat3(_("Dir"), (float*)&inf_light->mDir);
+                    break;
+                }
+
+                case PM_SPOT_LIGHT: {
+                    uSpotLight* spot_light = (uSpotLight*)obj;
+                    spot_light->mpTarget   = (uCoord*)devil4_sdk::get_local_player();
+                    spot_light->mTargetNo  = 0;
+                    ImGui::InputFloat4(_("Color"), (float*)&spot_light->mColor);
+                    ImGui::InputFloat3(_("Pos"), (float*)&spot_light->mPos);
+                    ImGui::InputFloat3(_("Dir"), (float*)&spot_light->mDir);
+                    ImGui::InputFloat3(_("Target Pos"), (float*)&spot_light->mTargetPos);
+                    ImGui::InputFloat3(_("World Pos"), (float*)&spot_light->mWPos);
+                    ImGui::InputFloat3(_("World Dir"), (float*)&spot_light->mWDir);
+                    ImGui::InputFloat(_("Start"), &spot_light->mStart);
+                    ImGui::InputFloat(_("End"), &spot_light->mEnd);
+                    ImGui::InputFloat(_("Cone"), &spot_light->mCone);
+                    ImGui::InputFloat(_("Spread"), &spot_light->mSpread);
+                    ImGui::Checkbox(_("Target Mode"), &spot_light->mTargetMode);
+                    ImGui::InputFloat(_("mStart"), &spot_light->mStart);
+                    break;
+                }
+
+                case PM_POINT_LIGHT: {
+                    uPointLight* point_light = (uPointLight*)obj;
+                    ImGui::InputFloat4(_("Color"), (float*)&point_light->mColor);
+                    ImGui::InputFloat3(_("Pos"), (float*)&point_light->mPos);
+                    ImGui::InputFloat3(_("World Pos"), (float*)&point_light->mWPos);
+                    ImGui::InputFloat(_("Start"), &point_light->mStart);
+                    ImGui::InputFloat(_("End"), &point_light->mEnd);
+                    break;
+                }
+
+                case PM_HEMI_LIGHT: {
+                    uHemiSphereLight* hemi_light = (uHemiSphereLight*)obj;
+                    ImGui::InputFloat4(_("Color"), (float*)&hemi_light->mColor);
+                    ImGui::InputFloat3(_("RevColor"), (float*)&hemi_light->mRevColor);
+                    ImGui::InputFloat3(_("Dir"), (float*)&hemi_light->mDir);
+                    break;
+                }
+
+                case PM_BACK_LIGHT: {
+                    uBackLight* back_light = (uBackLight*)obj;
+                    ImGui::InputFloat4(_("Color"), (float*)&back_light->mColor);
+                    break;
+                }
+
+                case PM_DOF_FILTER: {
+                    uDOFFilter* dof_filter = (uDOFFilter*)obj;
+                    ImGui::InputInt(_("Blur count"), (int*)&dof_filter->mBlurCount);
+                    ImGui::InputInt(_("Type"), (int*)&dof_filter->mType);
+                    ImGui::InputInt(_("Blur type"), (int*)&dof_filter->mBlurType);
+                    ImGui::InputFloat3(_("Gradate Color"), (float*)&dof_filter->mGradateColor);
+                    ImGui::InputFloat(_("Blur Size"), &dof_filter->mBlurSize);
+                    ImGui::InputFloat(_("Aperture"), &dof_filter->mAperture);
+                    ImGui::InputFloat(_("Focal Length"), &dof_filter->mFocalLength);
+                    ImGui::InputFloat(_("Low CoC Scale"), &dof_filter->mLowCoCScale);
+                    ImGui::InputFloat(_("CoC Scale"), &dof_filter->mCocScale);
+                    ImGui::InputFloat(_("CoC Bias"), &dof_filter->mCoCBias);
+                    ImGui::InputFloat(_("Far Blur Limit"), &dof_filter->mFarBlurLimit);
+                    ImGui::InputFloat(_("Near Blur Limit"), &dof_filter->mNearBlurLimit);
+                    ImGui::InputFloat(_("Near"), &dof_filter->mNear);
+                    ImGui::InputFloat(_("Far"), &dof_filter->mFar);
+                    ImGui::InputFloat(_("Focal"), &dof_filter->mFocal);
+                    break;
+                }
+
+                case PM_TONE_MAP_FILTER: {
+                    // uToneMapFilter* tone_filter = (uToneMapFilter*)obj;
+                    break;
+                }
+                
+                case PM_COLOR_CORR_FILTER: {
+                    break;
+                }
+
+                case PM_COLOR_SPACE_FILTER: {
+                    uColorSpaceFilter* cs_filter = (uColorSpaceFilter*)obj;
+                    ImGui::InputFloat4(_("Angle"), (float*)&cs_filter->mAngle);
+                    ImGui::InputFloat4(_("Scale"), (float*)&cs_filter->mScale);
+                    break;
+                }
+
+                case PM_LVL_CORR_FILTER: {
+                    uLevelCorrectFilter* lvl_filter = (uLevelCorrectFilter*)obj;
+                    ImGui::InputFloat4(_("In Black"), (float*)&lvl_filter->mInBlack);
+                    ImGui::InputFloat4(_("In White"), (float*)&lvl_filter->mInWhite);
+                    ImGui::InputFloat4(_("Input Gamma"), (float*)&lvl_filter->mInputGamma);
+                    ImGui::InputFloat4(_("Out Black"), (float*)&lvl_filter->mOutBlack);
+                    ImGui::InputFloat4(_("Out White"), (float*)&lvl_filter->mOutWhite);
+                    break;
+                }
+
+                case PM_CONTRAST_FILTER: { 
+                    uContrastFilter* contr_filter = (uContrastFilter*)obj;
+                    ImGui::InputFloat(_("Contrast"), &contr_filter->mContrast);
+                    break;
+                }
+
+                case PM_HSV_FILTER: {
+                    uHSVFilter* hsv_filter = (uHSVFilter*)obj;
+                    ImGui::InputFloat(_("Shift Hue"), &hsv_filter->mShiftHue);
+                    ImGui::InputFloat(_("Shift Saturation"), &hsv_filter->mShiftSaturation);
+                    ImGui::InputFloat(_("Shift Value"), &hsv_filter->mShiftValue);
+                    break;
+                }
+                }
+                if (ImGui::Button("Remove")) {
+                    obj->flags.bits.mBeFlag = 3;
+                }
+                ImGui::PopItemWidth();
+                ImGui::PopID();
+            }
+            obj = obj->mp_next_unit;
+        }
+        ImGui::Unindent(lineIndent);
+    }
+    if (ImGui::Checkbox(_("Photo Mode"), &PhotoMode::photo_mode_open)) {
+        if (photo_mode_open) {
+            SetGameSpeeds(0.0f);
+        } else {
+            SetGameSpeeds(1.0f);
+            DebugCam::toggle_gameplay_cam = true;
+            ToggleGameplayCam(DebugCam::toggle_gameplay_cam);
+        }
+        DisablePlayerInputs(photo_mode_open);
+    }
+}
+
+void PhotoMode::on_frame(fmilliseconds& dt) {
+    if (photo_mode_open) {
+        uPlayer* player = devil4_sdk::get_local_player();
+        ImVec2 ScreenSize = ImGui::GetIO().DisplaySize;
+        static float HUDCooldown = 0.0f;
+        if (HUDCooldown > 0.0f) {
+            /*if (HUDCooldown <= 1.0f) {
+                unhide hud here
+            }*/
+            HUDCooldown -= 1.0f;
+        }
+        if (player && HUDCooldown <= 0.0f) {
+            ImGui::Begin("Photo Mode##UI", &photo_mode_open);
+            static bool pauseGame = true;
+            ImGui::SetWindowPos(ImVec2(ScreenSize.x * 0.6f, ScreenSize.y * 0.4f), ImGuiCond_Once);
+            ImGui::SetWindowSize(ImVec2(ScreenSize.x * 0.4f, ScreenSize.y * 0.6f), ImGuiCond_Once);
+
+            if (ImGui::Button("Hide Photo Mode UI")) {
+                HUDCooldown = 300.0f;
+                /*hide hud here*/
+            }
+            ImGui::SameLine();
+            help_marker("Hide UI for a few seconds so you have time to take a screenshot");
+
+            static float speedSlider = 0.0f;
+            if (ImGui::Checkbox(_("Pause Game"), &pauseGame)) {
+                if (pauseGame) {
+                    speedSlider = 0.0f;
+                }
+                else {
+                    speedSlider = 1.0f;
+                }
+            }
+            if (pauseGame) {
+                speedSlider = 0.0f;
+                SetGameSpeeds(speedSlider);
+            }
+            else {
+                speedSlider = 1.0f;
+                SetGameSpeeds(speedSlider);
+            }
+            ImGui::SameLine();
+            if (!pauseGame) ImGui::BeginDisabled();
+            if (ImGui::Button(_("Frame Advance"))) {
+                SetGameSpeeds(1.0f);
+            }
+            if (!pauseGame) ImGui::EndDisabled();
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(sameLineItemWidth);
+            if (ImGui::SliderFloat(_("Speed"), &speedSlider, 0.0f, 2.0f)) {
+                SetGameSpeeds(speedSlider);
+            }
+
+            ImGui::SeparatorText(_("Free Cam"));
+
+            g_framework->get_mods().get()->on_draw_ui("DebugCam"_hash, 2);
+
+            ImGui::SeparatorText(_("Lights"));
+
+            if (ImGui::Button("Infinite Light"))
+                spawn((void*)uInfiniteLightCons);
+            ImGui::SameLine();
+            if (ImGui::Button("Spot Light"))
+                spawn((void*)uSpotLightCons);
+            ImGui::SameLine();
+            if (ImGui::Button("Point Light"))
+                spawn((void*)uPointLightCons);
+            ImGui::SameLine();
+            if (ImGui::Button("Hemi Light"))
+                spawn((void*)uHemiSphereLightCons);
+            ImGui::SameLine();
+            if (ImGui::Button("Back Light"))
+                spawn((void*)uPointLightCons);
+
+            ImGui::SeparatorText(_("Filters"));
+
+            if (ImGui::Button("DOF Filter"))
+                spawn((void*)uDOFFilterCons);
+            ImGui::SameLine();
+            if (ImGui::Button("Tone Map"))
+                spawn((void*)uToneMapFilterCons);
+            ImGui::SameLine();
+            if (ImGui::Button("Color Correct"))
+                spawn((void*)uColorCorrectFilterCons);
+            ImGui::SameLine();
+            if (ImGui::Button("Color Space"))
+                spawn((void*)uColorSpaceFilterCons);
+            ImGui::SameLine();
+            if (ImGui::Button("Level Correct"))
+                spawn((void*)uLevelCorrectFilterCons);
+            ImGui::SameLine();
+            if (ImGui::Button("Contrast"))
+                spawn((void*)uContrastFilterCons);
+            ImGui::SameLine();
+            if (ImGui::Button("HSV"))
+                spawn((void*)uHSVFilterCons);
+
+
+            sUnit* s_unit = (sUnit*)devil4_sdk::get_sUnit();
+            MoveLine* moveline = &s_unit->mMoveLine[17];
+            cUnit* obj = moveline->mTop;
+            int numOfObjs = 0;
+            if (obj != nullptr) ImGui::SeparatorText(_("Added Objects"));
+            while (obj != nullptr) {
                 bool del_flag     = obj->flags.bits.mBeFlag & BEFLAG_DELETE;
                 bool pre_del_flag = obj->flags.bits.mBeFlag & BEFLAG_PRE_DELETE;
                 if (del_flag != 0 || pre_del_flag != 0) {
-                    ImGui::PushID((uintptr_t)obj);
+                    ImGui::BeginGroup();
                     ImGui::PushItemWidth(sameLineItemWidth);
+                    ImGui::PushID((uintptr_t)obj);
+
                     switch ((uintptr_t)call_constructor(*(void**)((*(uintptr_t**)obj) + 4))) {
                     case PM_INF_LIGHT: {
                         uInfiniteLight* inf_light = (uInfiniteLight*)obj;
+                        ImGui::Text("Infinite Light");
+                        if (ImGui::Button("Remove")) obj->flags.bits.mBeFlag = 3;
                         ImGui::InputFloat4(_("Color"), (float*)&inf_light->mColor);
                         ImGui::InputFloat3(_("Dir"), (float*)&inf_light->mDir);
                         break;
@@ -410,6 +791,8 @@ void PhotoMode::on_gui_frame(int display) {
                         uSpotLight* spot_light = (uSpotLight*)obj;
                         spot_light->mpTarget   = (uCoord*)devil4_sdk::get_local_player();
                         spot_light->mTargetNo  = 0;
+                        ImGui::Text("Spot Light");
+                        if (ImGui::Button("Remove")) obj->flags.bits.mBeFlag = 3;
                         ImGui::InputFloat4(_("Color"), (float*)&spot_light->mColor);
                         ImGui::InputFloat3(_("Pos"), (float*)&spot_light->mPos);
                         ImGui::InputFloat3(_("Dir"), (float*)&spot_light->mDir);
@@ -427,6 +810,8 @@ void PhotoMode::on_gui_frame(int display) {
 
                     case PM_POINT_LIGHT: {
                         uPointLight* point_light = (uPointLight*)obj;
+                        ImGui::Text("Point Light");
+                        if (ImGui::Button("Remove")) obj->flags.bits.mBeFlag = 3;
                         ImGui::InputFloat4(_("Color"), (float*)&point_light->mColor);
                         ImGui::InputFloat3(_("Pos"), (float*)&point_light->mPos);
                         ImGui::InputFloat3(_("World Pos"), (float*)&point_light->mWPos);
@@ -437,6 +822,8 @@ void PhotoMode::on_gui_frame(int display) {
 
                     case PM_HEMI_LIGHT: {
                         uHemiSphereLight* hemi_light = (uHemiSphereLight*)obj;
+                        ImGui::Text("Hemi Light");
+                        if (ImGui::Button("Remove")) obj->flags.bits.mBeFlag = 3;
                         ImGui::InputFloat4(_("Color"), (float*)&hemi_light->mColor);
                         ImGui::InputFloat3(_("RevColor"), (float*)&hemi_light->mRevColor);
                         ImGui::InputFloat3(_("Dir"), (float*)&hemi_light->mDir);
@@ -445,12 +832,16 @@ void PhotoMode::on_gui_frame(int display) {
 
                     case PM_BACK_LIGHT: {
                         uBackLight* back_light = (uBackLight*)obj;
+                        ImGui::Text("Back Light");
+                        if (ImGui::Button("Remove")) obj->flags.bits.mBeFlag = 3;
                         ImGui::InputFloat4(_("Color"), (float*)&back_light->mColor);
                         break;
                     }
 
                     case PM_DOF_FILTER: {
                         uDOFFilter* dof_filter = (uDOFFilter*)obj;
+                        ImGui::Text("DOF Filter");
+                        if (ImGui::Button("Remove")) obj->flags.bits.mBeFlag = 3;
                         ImGui::InputInt(_("Blur count"), (int*)&dof_filter->mBlurCount);
                         ImGui::InputInt(_("Type"), (int*)&dof_filter->mType);
                         ImGui::InputInt(_("Blur type"), (int*)&dof_filter->mBlurType);
@@ -470,16 +861,22 @@ void PhotoMode::on_gui_frame(int display) {
                     }
 
                     case PM_TONE_MAP_FILTER: {
+                        ImGui::Text("Tone Map Filter");
+                        if (ImGui::Button("Remove")) obj->flags.bits.mBeFlag = 3;
                         // uToneMapFilter* tone_filter = (uToneMapFilter*)obj;
                         break;
                     }
                 
                     case PM_COLOR_CORR_FILTER: {
+                        ImGui::Text("Colour Correct Filter");
+                        if (ImGui::Button("Remove")) obj->flags.bits.mBeFlag = 3;
                         break;
                     }
 
                     case PM_COLOR_SPACE_FILTER: {
                         uColorSpaceFilter* cs_filter = (uColorSpaceFilter*)obj;
+                        ImGui::Text("Colour Space Filter");
+                        if (ImGui::Button("Remove")) obj->flags.bits.mBeFlag = 3;
                         ImGui::InputFloat4(_("Angle"), (float*)&cs_filter->mAngle);
                         ImGui::InputFloat4(_("Scale"), (float*)&cs_filter->mScale);
                         break;
@@ -487,6 +884,8 @@ void PhotoMode::on_gui_frame(int display) {
 
                     case PM_LVL_CORR_FILTER: {
                         uLevelCorrectFilter* lvl_filter = (uLevelCorrectFilter*)obj;
+                        ImGui::Text("Level Correct Filter");
+                        if (ImGui::Button("Remove")) obj->flags.bits.mBeFlag = 3;
                         ImGui::InputFloat4(_("In Black"), (float*)&lvl_filter->mInBlack);
                         ImGui::InputFloat4(_("In White"), (float*)&lvl_filter->mInWhite);
                         ImGui::InputFloat4(_("Input Gamma"), (float*)&lvl_filter->mInputGamma);
@@ -497,25 +896,33 @@ void PhotoMode::on_gui_frame(int display) {
 
                     case PM_CONTRAST_FILTER: { 
                         uContrastFilter* contr_filter = (uContrastFilter*)obj;
+                        ImGui::Text("Contrast Filter");
+                        if (ImGui::Button("Remove")) obj->flags.bits.mBeFlag = 3;
                         ImGui::InputFloat(_("Contrast"), &contr_filter->mContrast);
                         break;
                     }
 
                     case PM_HSV_FILTER: {
                         uHSVFilter* hsv_filter = (uHSVFilter*)obj;
+                        ImGui::Text("HSV Filter");
+                        if (ImGui::Button("Remove")) obj->flags.bits.mBeFlag = 3;
                         ImGui::InputFloat(_("Shift Hue"), &hsv_filter->mShiftHue);
                         ImGui::InputFloat(_("Shift Saturation"), &hsv_filter->mShiftSaturation);
                         ImGui::InputFloat(_("Shift Value"), &hsv_filter->mShiftValue);
                         break;
                     }
                     }
-                    if (ImGui::Button("Remove")) {
-                        obj->flags.bits.mBeFlag = 3;
-                    }
                     ImGui::PopItemWidth();
                     ImGui::PopID();
+                    ImGui::EndGroup();
                 }
+                numOfObjs++;
                 obj = obj->mp_next_unit;
-            } while (obj != nullptr);
+                if (numOfObjs % 3 != 0) {
+                    ImGui::SameLine();
+                }
+            }
+            ImGui::End();
+        }
     }
 }
