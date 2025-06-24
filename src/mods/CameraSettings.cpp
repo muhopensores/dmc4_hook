@@ -1,6 +1,5 @@
-﻿
-#include "CameraSettings.hpp"
-
+﻿#include "CameraSettings.hpp"
+#include "PhotoMode.hpp"
 static bool camera_sens_enabled = false;
 static bool camera_auto_correct_towards_cam_enabled = false;
 bool CameraSettings::mod_enabled = false;
@@ -39,9 +38,13 @@ static float double_camera_sens = 2.0f;
 
 naked void camera_height_proc(void) {
     _asm {
-            cmp byte ptr [CameraSettings::mod_enabled], 0
-            je code
+            cmp byte ptr [CameraSettings::mod_enabled], 1
+            je customcode
+            cmp byte ptr [PhotoMode::photo_mode_open], 1
+            je customcode
+            jmp code
 
+        customcode:
 			movss xmm0,[edi+0x000000D0]
 			addss xmm0,[CameraSettings::camera_height]
 			jmp dword ptr [CameraSettings::camera_height_continue]
@@ -54,9 +57,13 @@ naked void camera_height_proc(void) {
 
 naked void camera_distance_proc(void) {
     _asm {
-            cmp byte ptr [CameraSettings::mod_enabled], 0
-            je code
+            cmp byte ptr [CameraSettings::mod_enabled], 1
+            je customcode
+            cmp byte ptr [PhotoMode::photo_mode_open], 1
+            je customcode
+            jmp code
 
+        customcode:
 			movss xmm0,[edi+0x000000E0]
 			addss xmm0,[CameraSettings::camera_distance]
 			jmp dword ptr [CameraSettings::camera_distance_continue]
@@ -69,9 +76,13 @@ naked void camera_distance_proc(void) {
 
 naked void camera_distance_lockon_proc(void) {
     _asm {
-            cmp byte ptr [CameraSettings::mod_enabled], 0
-            je code
+            cmp byte ptr [CameraSettings::mod_enabled], 1
+            je customcode
+            cmp byte ptr [PhotoMode::photo_mode_open], 1
+            je customcode
+            jmp code
 
+        customcode:
 			movss xmm0,[ebx+0x000000DC]
 			addss xmm0,[CameraSettings::camera_distance_lockon]
 			jmp dword ptr [CameraSettings::camera_distance_lockon_continue]
@@ -84,9 +95,13 @@ naked void camera_distance_lockon_proc(void) {
 
 naked void camera_angle_proc(void) {
     _asm {
-            cmp byte ptr [CameraSettings::mod_enabled], 0
-            je code
+            cmp byte ptr [CameraSettings::mod_enabled], 1
+            je customcode
+            cmp byte ptr [PhotoMode::photo_mode_open], 1
+            je customcode
+            jmp code
 
+        customcode:
 			movss xmm2,[edi+0x000000D4]
 			addss xmm2,[CameraSettings::camera_angle]
             comiss xmm0,xmm1
@@ -101,9 +116,13 @@ naked void camera_angle_proc(void) {
 
 naked void camera_angle_lockon_proc(void) {
     _asm {
-            cmp byte ptr [CameraSettings::mod_enabled], 0
-            je code
+            cmp byte ptr [CameraSettings::mod_enabled], 1
+            je customcode
+            cmp byte ptr [PhotoMode::photo_mode_open], 1
+            je customcode
+            jmp code
 
+        customcode:
 			movss xmm0,[ebx+0x000000D4]
 			addss xmm0,[CameraSettings::camera_angle_lockon]
 			jmp dword ptr [CameraSettings::camera_angle_lockon_continue]
@@ -116,9 +135,13 @@ naked void camera_angle_lockon_proc(void) {
 
 naked void camera_fov_in_battle_proc(void) {
     _asm {
-            cmp byte ptr [CameraSettings::mod_enabled], 0
-            je code
+            cmp byte ptr [CameraSettings::mod_enabled], 1
+            je customcode
+            cmp byte ptr [PhotoMode::photo_mode_open], 1
+            je customcode
+            jmp code
 
+        customcode:
 			movss xmm0,[esi+0x000000E8]
 			addss xmm0,[CameraSettings::camera_fov_in_battle]
 			jmp dword ptr [CameraSettings::camera_fov_in_battle_continue]
@@ -131,9 +154,13 @@ naked void camera_fov_in_battle_proc(void) {
 
 naked void camera_fov_proc(void) {
     _asm {
-            cmp byte ptr [CameraSettings::mod_enabled], 0
-            je code
+            cmp byte ptr [CameraSettings::mod_enabled], 1
+            je customcode
+            cmp byte ptr [PhotoMode::photo_mode_open], 1
+            je customcode
+            jmp code
 
+        customcode:
 			movss xmm0,[esi+0x000000E4]
 			addss xmm0,[CameraSettings::camera_fov]
 			jmp dword ptr [CameraSettings::camera_fov_continue]
@@ -373,6 +400,7 @@ void CameraSettings::reset_camera_variables() {
 }
 
 void CameraSettings::on_gui_frame(int display) {
+    ImGui::PushID(display);
     if (display == 1) {
         if (ImGui::Checkbox(_("Disable Lockon Autocorrects"), &camera_lockon_corrects)) {
             toggle_camera_lockon_corrects(camera_lockon_corrects);
@@ -453,6 +481,35 @@ void CameraSettings::on_gui_frame(int display) {
             ImGui::Unindent();
         }
     }
+    else if (display == 3) {
+        ImGui::BeginGroup();
+        ImGui::PushItemWidth(sameLineItemWidth);
+        ImGui::Text(_("Gameplay Cam Settings"));
+        float fontSize = ImGui::GetFontSize();
+        ImVec2 vSliderSize(fontSize * 2.0f, fontSize * 10.0f);
+        ImGui::VSliderFloat(_("Height"), vSliderSize, &CameraSettings::camera_height, -500.0f, 500.0f, "%.0f%");
+        ImGui::SameLine();
+        if (ImGui::VSliderFloat(_("Distance"), vSliderSize, &CameraSettings::camera_distance, 1000.0f, -1000.0f, "%.0f%")) {
+            CameraSettings::camera_distance_lockon = CameraSettings::camera_distance;
+        }
+        ImGui::SameLine();
+        if (ImGui::VSliderFloat(_("Angle"), vSliderSize, &CameraSettings::camera_angle, -1.7f, 1.3f, "%.2f%")) {
+            CameraSettings::camera_angle_lockon = CameraSettings::camera_angle;
+        }
+        ImGui::SameLine();
+        if (ImGui::VSliderFloat(_("FOV"), vSliderSize, &CameraSettings::camera_fov, 100.0f, -100.0f, "%.0f%")) {
+            CameraSettings::camera_fov_in_battle = CameraSettings::camera_fov;
+        }
+        if (ImGui::Checkbox(_("Pause Camera##Pause Camera Checkbox"), &pause_camera_enabled)) {
+            toggle_pause_camera(pause_camera_enabled);
+        }
+        if (ImGui::Button(_("Reset Camera Variables"))) {
+            CameraSettings::reset_camera_variables();
+        }
+        ImGui::PopItemWidth();
+        ImGui::EndGroup();
+    }
+    ImGui::PopID();
 }
 
 std::optional<std::string> CameraSettings::on_initialize() {

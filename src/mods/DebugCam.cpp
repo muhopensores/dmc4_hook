@@ -136,8 +136,8 @@ static void __stdcall freecam_mouse_input(uCamera* camera) {
         viewMatrix = glm::translate(viewMatrix, cam_pos);
         viewMatrix = viewMatrix * rotateY;
         viewMatrix = glm::translate(viewMatrix, -cam_pos);
+        viewMatrix = viewMatrix * rotateX;
         if (DebugCam::projectileTest) {
-            viewMatrix = rotateX * viewMatrix;
             short mouse_click_state = GetAsyncKeyState(VK_RBUTTON);
             if (((mouse_click_state && 0xFF) == 1) && (input_down == false)) {
                 input_down = true;
@@ -370,6 +370,7 @@ void DebugCam::DrawDebugCamSettings(int ImGuiID) {
 
 // Used by photo mode. Photo mode should definitely be put in here but it's very crowded with all these struct and func definitions
 void DebugCam::DrawDebugCamSettings2(int ImGuiID) {
+    ImGui::BeginGroup();
     ImGui::PushID(ImGuiID);
     if (ImGui::Checkbox(_("Gameplay Cam"), &toggle_gameplay_cam)) {
         ToggleGameplayCam(toggle_gameplay_cam);
@@ -389,6 +390,7 @@ void DebugCam::DrawDebugCamSettings2(int ImGuiID) {
     ImGui::SliderFloat(_("Camera Modifier Speed"), &freecamModifierSpeed, 0.0f, 200.0f, "%.0f");
     ImGui::PopItemWidth();
     ImGui::PopID();
+    ImGui::EndGroup();
 }
 
 void DebugCam::on_gui_frame(int display) {
@@ -407,7 +409,7 @@ void DebugCam::on_gui_frame(int display) {
         }
         ImGui::EndGroup();
     }
-    if (display == 2) {
+    else if (display == 2) {
         DebugCam::DrawDebugCamSettings2(display);
     }
 }

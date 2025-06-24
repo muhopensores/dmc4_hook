@@ -714,12 +714,18 @@ void PhotoMode::on_frame(fmilliseconds& dt) {
             }
             if (!pauseGame) ImGui::EndDisabled();
             ImGui::SameLine();
+
             ImGui::SetNextItemWidth(sameLineItemWidth);
+
             if (ImGui::SliderFloat(_("Speed"), &speedSlider, 0.0f, 2.0f)) {
                 SetGameSpeeds(speedSlider);
             }
 
-            ImGui::SeparatorText(_("Free Cam"));
+            ImGui::SeparatorText(_("Camera"));
+
+            g_framework->get_mods().get()->on_draw_ui("CameraSettings"_hash, 3);
+
+            ImGui::SameLine();
 
             g_framework->get_mods().get()->on_draw_ui("DebugCam"_hash, 2);
 
