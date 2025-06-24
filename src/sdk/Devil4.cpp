@@ -92,7 +92,7 @@ namespace devil4_sdk {
 	uEnemy* get_uEnemies() {
 		sUnit* s_unit_ptr = get_sUnit();
 		if (s_unit_ptr) {
-			uEnemy* enemy = s_unit_ptr->enemy;
+			uEnemy* enemy = (uEnemy*)s_unit_ptr->mMoveLine[15].mTop;
 			return enemy;
 		}
 		else return nullptr;
@@ -101,20 +101,20 @@ namespace devil4_sdk {
 	uEnemy* get_objects() {
 		sUnit* s_unit_ptr = get_sUnit();
 		if (s_unit_ptr) {
-			uEnemy* object = s_unit_ptr->object;
+			uEnemy* object = (uEnemy*)s_unit_ptr->mMoveLine[16].mTop;
 			return object;
 		}
 		else return nullptr;
 	}
 
 	int get_enemy_count() {
-		sUnit* sUnit = devil4_sdk::get_sUnit();
-		if (!sUnit || !sUnit->enemy) {
+		sUnit* s_unit_ptr = devil4_sdk::get_sUnit();
+		uEnemy* currentEnemy = (uEnemy*)s_unit_ptr->mMoveLine[15].mTop;
+		if (!s_unit_ptr || !currentEnemy) {
 			return 0;
 		}
     
 		int enemyCount = 0;
-		uEnemy* currentEnemy = sUnit->enemy;
     
 		while (currentEnemy) {
 			enemyCount++;

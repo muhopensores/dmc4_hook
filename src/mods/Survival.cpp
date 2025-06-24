@@ -488,8 +488,9 @@ void Survival::on_frame(fmilliseconds& dt) {
                     DisplayTimerOnTick();
                     if (!devil4_sdk::is_paused()) { // game is not paused
                         sUnit* sUnit = devil4_sdk::get_sUnit();
-                        if (sUnit && sUnit->hasDelta) { // @Siy find how the bp timer gets time
-                            float game_seconds = sUnit->hasDelta->m_delta_time / 60.0f;
+                        if (sUnit && sUnit->mMoveLine[7].mTop) { // @Siy find how the bp timer gets time
+                            uHasDelta* sUnitHasDelta = (uHasDelta*)sUnit->mMoveLine[7].mTop;
+                            float game_seconds = sUnitHasDelta->m_delta_time / 60.0f;
                             UpdateTimer();
                         }
                         EnemyInfo enemy_info = get_enemy_info(devil4_sdk::get_uEnemies());

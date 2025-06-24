@@ -244,7 +244,7 @@ MtDTI* AfterImgShl::getDTI() {
 
 void AfterImgShl::render(void* trans) {
     void* curr_context = *(void**)((uintptr_t)trans+0x2A90);
-    uint8_t curr_flag    = *(short*)((uintptr_t)curr_context + 0x1FC);
+    uint8_t curr_flag   = *(short*)((uintptr_t)curr_context + 0x1FC);
     void* body_ptr     = (void*)this->actor.uActorBase.uModelBase.mpRModel;
     void* hair_ptr     = (void*)this->hair.uModelBase.mpRModel;
     void* head_ptr     = (void*)this->head.uModelBase.mpRModel;

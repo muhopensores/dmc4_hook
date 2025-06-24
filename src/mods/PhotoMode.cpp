@@ -388,7 +388,7 @@ void PhotoMode::on_gui_frame(int display) {
         if (ImGui::Button("HSV"))
             spawn((void*)uHSVFilterCons);
 
-        New_sUnit* s_unit = (New_sUnit*)devil4_sdk::get_sUnit();
+        sUnit* s_unit = (sUnit*)devil4_sdk::get_sUnit();
         MoveLine* moveline = &s_unit->mMoveLine[17];
         cUnit* obj = moveline->mTop;
         if (obj != nullptr)

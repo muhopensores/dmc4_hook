@@ -1491,21 +1491,6 @@ public:
 }; // Size: 0x228
 static_assert(sizeof(uShadow) == 0x228);
 
-class sUnit : public cUnit {
-public:
-    char pad_18[0x30];
-    uShadow* shadow; // 0x48
-    char pad_4c[0x88];
-    uHasDelta* hasDelta; // 0xd4
-    char pad_d8[0x8C];
-    class uPlayer* player; // 0x164
-    char pad_168[0x2C];
-    uEnemy* enemy; // 0x194
-    char pad_198[0x14];
-    uEnemy* object; // 0x1AC // Not an enemy but might as well be, I just want it for jc spheres atm
-}; // Size: 0x1B0
-static_assert(sizeof(sUnit) == 0x1B0);
-
 class cCameraPlayer {
 public:
     char pad_0[0x10]; //0x00
@@ -2130,21 +2115,21 @@ static_assert(sizeof(sMousePtr) == 0x4);
 
 class MoveLine {
 public:
-    void* vtable;
-    char* mName;
-    uint32_t mParallel : 1;
+    void* vtable;  // 0x0
+    char* mName; // 0x4
+    uint32_t mParallel : 1; // 0x8
     uint32_t mPause : 1;
     uint32_t mTrans : 1;
     uint32_t mLineType : 6;
     uint32_t reserved : 23;
-    cUnit* mTop;
-    cUnit* mBottom;
-    float mDeltaTime;
+    cUnit* mTop; // 0xC
+    cUnit* mBottom; // 0x10
+    float mDeltaTime; // 0x14
 };
 static_assert(sizeof(MoveLine) == 0x18);
 
-class New_sUnit : public CSystem {
+class sUnit : public CSystem {
 public:
     MoveLine mMoveLine[32];
 };
-static_assert(sizeof(New_sUnit) == 0x320);
+static_assert(sizeof(sUnit) == 0x320);

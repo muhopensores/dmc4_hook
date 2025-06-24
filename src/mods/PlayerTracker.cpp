@@ -936,12 +936,13 @@ void PlayerTracker::on_gui_frame(int display) {
     if (ImGui::CollapsingHeader(_("Shadow Settings"))) {
         sUnit* sUnit = devil4_sdk::get_sUnit();
         if (sUnit) {
-            if (sUnit->shadow) {
+			uShadow* shadow = (uShadow*)sUnit->mMoveLine[1].mTop;
+            if (shadow) {
                 ImGui::Indent(lineIndent);
-                ImGui::InputFloat3(_("Rotation"), &sUnit->shadow->rotation.x);
-                ImGui::InputFloat4(_("Colour"), &sUnit->shadow->colour.x);
-                ImGui::InputFloat(_("diffuse"), &sUnit->shadow->diffuse);
-                ImGui::InputFloat(_("bloom"), &sUnit->shadow->bloom);
+                ImGui::InputFloat3(_("Rotation"), &shadow->rotation.x);
+                ImGui::InputFloat4(_("Colour"), &shadow->colour.x);
+                ImGui::InputFloat(_("diffuse"), &shadow->diffuse);
+                ImGui::InputFloat(_("bloom"), &shadow->bloom);
                 ImGui::Unindent();
             }
         }

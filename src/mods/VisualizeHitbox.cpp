@@ -229,7 +229,7 @@ void DisplayEnemyStepSpheres(uEnemy* enemy, uPlayer* player) {
                     ImColor outRange = IM_COL32(0, 255, 0, 255);  // Green when not
                     ImColor color = (radiusSquared > distanceSquared) ? inRange : outRange;
                     
-                    w2s::DrawWireframeCapsule(finalPos, sqrt(radiusSquared), 0.0f, 0.0f, (enemy->rotation.y * M_PI)/*(atan2(joint->mWmat.m1[2], joint->mWmat.m3[2]))*/, 0.0f, color, 16, 1.0f);
+                    w2s::DrawWireframeCapsule(finalPos, sqrt(radiusSquared), 0.0f, 0.0f, (enemy->rotation.y * (float)M_PI)/*(atan2(joint->mWmat.m1[2], joint->mWmat.m3[2]))*/, 0.0f, color, 16, 1.0f);
                     
                     if (enemyStepSphereDebug) {
                         ImGui::PushID(v20);
@@ -384,7 +384,7 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
             while (enemy) {
                 Vector3f finalPos = glm::make_vec3((float*)&enemy->position) + Vector3f(0.0f, 85.0f, 0.0f);
                 float normalizedScale = ((enemy->scale.x + enemy->scale.y + enemy->scale.z) / 3.0f) * 50.0f;
-                w2s::DrawWireframeCapsule(finalPos, normalizedScale, 0.0f, 0.0f, (enemy->rotation[1] * M_PI), 0.0f, IM_COL32(0, 0, 0, 255), 16, 1.0f);
+                w2s::DrawWireframeCapsule(finalPos, normalizedScale, 0.0f, 0.0f, (enemy->rotation[1] * (float)M_PI), 0.0f, IM_COL32(0, 0, 0, 255), 16, 1.0f);
                 enemyCount++;
                 enemy = enemy->nextEnemy;
             }

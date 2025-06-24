@@ -14,8 +14,9 @@ void ShadowResolution::toggle1(bool enable) {
         patch2.reset();
         sUnit* sUnit = devil4_sdk::get_sUnit();
         if (!sUnit) { return; };
-        if (!sUnit->shadow) { return; };
-        sUnit->shadow->resolution = 0;
+        uShadow* shadow = (uShadow*)sUnit->mMoveLine[1].mBottom;
+        if (!shadow) { return; };
+        shadow->resolution = 0;
     }
 }
 /*
