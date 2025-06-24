@@ -324,6 +324,8 @@ set(MODS_SRC
   mods/AfterImage.cpp
   mods/MultiCharFixes.hpp
   mods/MultiCharFixes.cpp
+  mods/PhotoMode.hpp
+  mods/PhotoMode.cpp
 )
 
 set(HOOKS_SRC

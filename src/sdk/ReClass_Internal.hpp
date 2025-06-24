@@ -957,12 +957,34 @@ struct MtEaseCurve {
     float p2;
 };
 
+enum BE_FLAG {
+    BEFLAG_DISABBLE,
+    BEFLAG_PRE_MOVE,
+    BEFLAG_MOVE,
+    BEFLAG_PRE_DELETE,
+    BEFLAG_DELETE
+};
+
+enum UNIT_ATTR {
+    UATTR_MOVE = 1,
+    UATTR_DRAW = 2,
+    UATTR_SELECT = 4,
+    UATTR_FIX = 8,
+    UATTR_VISIBLE = 16
+};
+
 struct cUnit {
     void *vtable_ptr;
-    uint8_t uknFlag1;
-    uint8_t uknFlag2;
-    uint8_t mTransMode;
-    uint8_t mTransView;
+    union {
+        uint32_t raw;
+        struct {
+            uint32_t mBeFlag : 3;
+            uint32_t mMoveLine : 7;
+            uint32_t mUnitAttr : 6;
+            uint32_t mTransMode : 8;
+            uint32_t mTransView : 8;
+        } bits;
+    } flags;
     cUnit *mp_next_unit;
     cUnit *mp_prev_unit;
     float m_delta_time;
@@ -2105,3 +2127,24 @@ public:
     class sMouse *m_mouse_ptr; //0x0000
 }; //Size: 0x0004
 static_assert(sizeof(sMousePtr) == 0x4);
+
+class MoveLine {
+public:
+    void* vtable;
+    char* mName;
+    uint32_t mParallel : 1;
+    uint32_t mPause : 1;
+    uint32_t mTrans : 1;
+    uint32_t mLineType : 6;
+    uint32_t reserved : 23;
+    cUnit* mTop;
+    cUnit* mBottom;
+    float mDeltaTime;
+};
+static_assert(sizeof(MoveLine) == 0x18);
+
+class New_sUnit : public CSystem {
+public:
+    MoveLine mMoveLine[32];
+};
+static_assert(sizeof(New_sUnit) == 0x320);

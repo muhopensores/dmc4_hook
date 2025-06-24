@@ -29,10 +29,10 @@ static void DisplayCollisionData(uCollisionMgr* currentEnemyCollision, float cur
     switch (FlyingStats::collisionPage) {
     case 0:
         ImGui::InputScalar(_("Start Addr"), ImGuiDataType_U32, &collisionSettingsAddress, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
-        ImGui::InputScalar(_("base.uknFlag1"), ImGuiDataType_U8, &currentEnemyCollision->base.uknFlag1, NULL, NULL, "%02X");
-        ImGui::InputScalar(_("base.uknFlag2"), ImGuiDataType_U8, &currentEnemyCollision->base.uknFlag2, NULL, NULL, "%02X");
-        ImGui::InputScalar(_("base.mTransMode"), ImGuiDataType_U8, &currentEnemyCollision->base.mTransMode, NULL, NULL, "%02X");
-        ImGui::InputScalar(_("base.mTransView"), ImGuiDataType_U8, &currentEnemyCollision->base.mTransView, NULL, NULL, "%02X");
+        //ImGui::InputScalar(_("base.uknFlag1"), ImGuiDataType_U8, &currentEnemyCollision->base.uknFlag1, NULL, NULL, "%02X");
+        //ImGui::InputScalar(_("base.uknFlag2"), ImGuiDataType_U8, &currentEnemyCollision->base.uknFlag2, NULL, NULL, "%02X");
+        //ImGui::InputScalar(_("base.mTransMode"), ImGuiDataType_U8, &currentEnemyCollision->base.mTransMode, NULL, NULL, "%02X");
+        //ImGui::InputScalar(_("base.mTransView"), ImGuiDataType_U8, &currentEnemyCollision->base.mTransView, NULL, NULL, "%02X");
         ImGui::InputScalar(_("base.mp_next_unit"), ImGuiDataType_U32, &currentEnemyCollision->base.mp_next_unit, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
         ImGui::InputScalar(_("base.mp_prev_unit"), ImGuiDataType_U32, &currentEnemyCollision->base.mp_prev_unit, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
         ImGui::InputFloat(_("base.m_delta_time"), &currentEnemyCollision->base.m_delta_time);

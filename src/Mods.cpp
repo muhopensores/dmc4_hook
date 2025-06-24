@@ -163,6 +163,7 @@
 #include "mods/FloorIsLava.hpp"
 #include "mods/JointDisplay.hpp"
 #include "mods/ForceInCombat.hpp"
+#include "mods/PhotoMode.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -336,6 +337,7 @@ Mods::Mods() {
     ADD_MOD(FloorIsLava);
     ADD_MOD(JointDisplay);
     ADD_MOD(ForceInCombat);
+    ADD_MOD(PhotoMode);
 }
 
 // Initializes mods, checks for errors
