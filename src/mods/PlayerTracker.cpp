@@ -936,7 +936,7 @@ void PlayerTracker::on_gui_frame(int display) {
     if (ImGui::CollapsingHeader(_("Shadow Settings"))) {
         sUnit* sUnit = devil4_sdk::get_sUnit();
         if (sUnit) {
-			uShadow* shadow = (uShadow*)sUnit->mMoveLine[1].mTop;
+			uShadow* shadow = (uShadow*)sUnit->mMoveLine[1].mBottom;
             if (shadow) {
                 ImGui::Indent(lineIndent);
                 ImGui::InputFloat3(_("Rotation"), &shadow->rotation.x);
