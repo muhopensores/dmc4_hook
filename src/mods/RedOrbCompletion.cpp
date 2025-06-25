@@ -1,7 +1,6 @@
 #include "RedOrbCompletion.hpp"
 #include "../sdk/Devil4.hpp"
 
-static float G_WINDOW_HEIGHT_HACK_IDK_ORBS = 270.0f;
 bool RedOrbCompletion::mod_enabled = false;
 ImVec2 RedOrbCompletion::window_pos{ 0.0f, 0.0f };
 
@@ -21,23 +20,56 @@ void RedOrbCompletion::on_frame(fmilliseconds& dt) {
                 static float orbsFoundPercent = 0.0f;
                 ImGuiIO& io = ImGui::GetIO();
                 ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize;
-
-                // bandaid
+                
+                ImVec4 shadowColor(0.0f, 0.0f, 0.0f, 0.7f);
+                float shadowOffsetX = 2.0f;
+                float shadowOffsetY = 2.0f;
+                
                 const float text_height = ImGui::GetTextLineHeightWithSpacing();
                 ImGui::SetNextWindowPos(window_pos, ImGuiCond_Once);
                 ImGui::Begin("Red Orb Completion HUD", NULL, window_flags);
                 window_pos = ImGui::GetWindowPos();
-                ImGui::Text(_("Found Orbs: %i"), sMediatorPtr->orbMissionCurrent);
-                ImGui::Text(_("Potential Orbs: %i"), sMediatorPtr->orbMissionPotential);
-
+                
                 orbsFoundPercent = ((float)sMediatorPtr->orbMissionCurrent / (float)sMediatorPtr->orbMissionPotential) * 100.0f;
+                const char* styleRank;
+                if (orbsFoundPercent < 45.0f) styleRank = "D";
+                else if (orbsFoundPercent < 60.0f) styleRank = "C";
+                else if (orbsFoundPercent < 75.0f) styleRank = "B";
+                else if (orbsFoundPercent < 95.0f) styleRank = "A";
+                else styleRank = "S";
+                
+                ImVec2 currentPos = ImGui::GetCursorPos();
+                ImGui::SetCursorPos(ImVec2(currentPos.x + shadowOffsetX, currentPos.y + shadowOffsetY));
+                ImGui::PushStyleColor(ImGuiCol_Text, shadowColor);
+                ImGui::Text(_("Found Orbs: %i"), sMediatorPtr->orbMissionCurrent);
+                ImGui::PopStyleColor();
+                ImGui::SetCursorPos(currentPos);
+                ImGui::Text(_("Found Orbs: %i"), sMediatorPtr->orbMissionCurrent);
+                
+                currentPos = ImGui::GetCursorPos();
+                ImGui::SetCursorPos(ImVec2(currentPos.x + shadowOffsetX, currentPos.y + shadowOffsetY));
+                ImGui::PushStyleColor(ImGuiCol_Text, shadowColor);
+                ImGui::Text(_("Potential Orbs: %i"), sMediatorPtr->orbMissionPotential);
+                ImGui::PopStyleColor();
+                ImGui::SetCursorPos(currentPos);
+                ImGui::Text(_("Potential Orbs: %i"), sMediatorPtr->orbMissionPotential);
+                
+                currentPos = ImGui::GetCursorPos();
+                ImGui::SetCursorPos(ImVec2(currentPos.x + shadowOffsetX, currentPos.y + shadowOffsetY));
+                ImGui::PushStyleColor(ImGuiCol_Text, shadowColor);
                 ImGui::Text(_("%.0f%% Orbs found up to current point"), orbsFoundPercent);
-                if (orbsFoundPercent < 45.0f) ImGui::Text("D");
-                else if (orbsFoundPercent < 60.0f) ImGui::Text("C");
-                else if (orbsFoundPercent < 75.0f) ImGui::Text("B");
-                else if (orbsFoundPercent < 95.0f) ImGui::Text("A");
-                else ImGui::Text("S");
-                G_WINDOW_HEIGHT_HACK_IDK_ORBS = ImGui::GetCursorPosY();
+                ImGui::PopStyleColor();
+                ImGui::SetCursorPos(currentPos);
+                ImGui::Text(_("%.0f%% Orbs found up to current point"), orbsFoundPercent);
+                
+                currentPos = ImGui::GetCursorPos();
+                ImGui::SetCursorPos(ImVec2(currentPos.x + shadowOffsetX, currentPos.y + shadowOffsetY));
+                ImGui::PushStyleColor(ImGuiCol_Text, shadowColor);
+                ImGui::Text("%s", styleRank);
+                ImGui::PopStyleColor();
+                ImGui::SetCursorPos(currentPos);
+                ImGui::Text("%s", styleRank);
+                
                 ImGui::End();
             }
         }
