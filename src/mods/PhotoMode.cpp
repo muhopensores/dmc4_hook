@@ -662,7 +662,8 @@ void PhotoMode::on_gui_frame(int display) {
             DebugCam::toggle_gameplay_cam = true;
             ToggleGameplayCam(DebugCam::toggle_gameplay_cam);
         }
-        DisablePlayerInputs(photo_mode_open);
+        DebugCam::disable_player_inputs = photo_mode_open;
+        DisablePlayerInputs(DebugCam::disable_player_inputs);
     }
 }
 
@@ -681,7 +682,7 @@ void PhotoMode::on_frame(fmilliseconds& dt) {
             ImGui::Begin("Photo Mode##UI", &photo_mode_open);
             static bool pauseGame = true;
             ImGui::SetWindowPos(ImVec2(ScreenSize.x * 0.6f, ScreenSize.y * 0.5f), ImGuiCond_Once);
-            ImGui::SetWindowSize(ImVec2(ScreenSize.x * 0.4f, ScreenSize.y * 0.4f), ImGuiCond_Once);
+            ImGui::SetWindowSize(ImVec2(ScreenSize.x * 0.4f, ScreenSize.y * 0.5f), ImGuiCond_Once);
 
             if (ImGui::Button("Hide Photo Mode UI")) {
                 HUDCooldown = 300.0f;
@@ -715,11 +716,15 @@ void PhotoMode::on_frame(fmilliseconds& dt) {
             if (!pauseGame) ImGui::EndDisabled();
             ImGui::SameLine();
 
-            ImGui::SetNextItemWidth(sameLineItemWidth);
+            ImGui::PushItemWidth(sameLineItemWidth);
 
             if (ImGui::SliderFloat(_("Speed"), &speedSlider, 0.0f, 2.0f)) {
                 SetGameSpeeds(speedSlider);
             }
+            ImGui::SameLine();
+            ImGui::SliderFloat(_("Player Anim Frame"), &player->animFrame, 0.0f, player->animFrameMax);
+
+            ImGui::PopItemWidth();
 
             if (ImGui::BeginTabBar("PhotoTabBar", ImGuiTabBarFlags_FittingPolicyMask_ ^ ImGuiTabBarFlags_FittingPolicyScroll)) {
                 if (ImGui::BeginTabItem(_("Camera"))) {

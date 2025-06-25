@@ -255,7 +255,7 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                         ImGuiWindowFlags_NoMove);
                     ImGui::PushID((uintptr_t)enemy);
                     ImGui::SetWindowPos(screenPos);
-                    ImGui::SetWindowFontScale(currentFontScale);
+                    ImGui::UpdateCurrentFontSize(currentFontScale * ImGui::GetStyle().FontSizeBase);
                     ImGui::PushItemWidth(currentItemWidth);
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.0, 1.0f));
                     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1.0f, 1.0f));
@@ -377,7 +377,7 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                     ImGuiWindowFlags_NoMove);
                 ImGui::PushID((uintptr_t)player);
                 ImGui::SetWindowPos(screenPos);
-                ImGui::SetWindowFontScale(currentFontScale);
+                ImGui::UpdateCurrentFontSize(currentFontScale * ImGui::GetStyle().FontSizeBase);
                 ImGui::PushItemWidth(currentItemWidth);
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.0, 1.0f));
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1.0f, 1.0f));

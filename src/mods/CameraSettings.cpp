@@ -500,6 +500,18 @@ void CameraSettings::on_gui_frame(int display) {
         if (ImGui::VSliderFloat(_("FOV"), vSliderSize, &CameraSettings::camera_fov, 100.0f, -100.0f, "%.0f%")) {
             CameraSettings::camera_fov_in_battle = CameraSettings::camera_fov;
         }
+
+        if (ImGui::Checkbox(_("Disable Lockon Autocorrects"), &camera_lockon_corrects)) {
+            toggle_camera_lockon_corrects(camera_lockon_corrects);
+        }
+        ImGui::SameLine();
+        help_marker(_("Attempts to stop the camera spinning behind Dante when enemies are more than like 2ft away"));
+
+        if (ImGui::Checkbox(_("Disable Attack Corrects"), &camera_auto_correct_towards_cam_enabled)) {
+            toggle_attack_towards_cam(camera_auto_correct_towards_cam_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Attempts to stop the camera rotating when the player attacks towards the camera, intended for comparison purposes"));
         if (ImGui::Checkbox(_("Pause Camera##Pause Camera Checkbox"), &pause_camera_enabled)) {
             toggle_pause_camera(pause_camera_enabled);
         }

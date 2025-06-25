@@ -746,7 +746,7 @@ void DisplayParameters(void* baseAddress, const ParamArray (&params)[N], const c
     auto& hasBackup = hasBackupMap[key];
     
     ImGui::Begin(windowTitle, &PlayerTracker::show_player_params);
-    ImGui::SetWindowFontScale(0.8f);
+	ImGui::UpdateCurrentFontSize(0.8f * ImGui::GetStyle().FontSizeBase);
     
     if (ImGui::Button(_("Save Current Values"))) {
         backupValues.clear();
@@ -772,6 +772,7 @@ void DisplayParameters(void* baseAddress, const ParamArray (&params)[N], const c
     }
 
     ImGui::BeginChild("ValuesChild");
+	ImGui::UpdateCurrentFontSize(0.8f * ImGui::GetStyle().FontSizeBase);
     ImGui::PushItemWidth(100);
     for (size_t i = 0; i < N; ++i) {
         float& value = floatArray[params[i].offset];

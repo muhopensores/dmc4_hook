@@ -281,7 +281,7 @@ void FloorIsLava::on_frame(fmilliseconds& dt) {
         } else {
             grounded_allowed = true;
             ImGui::Begin("FloorIsLavaTimer", NULL, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::SetWindowFontScale(3.0f);
+            ImGui::UpdateCurrentFontSize(3.0f * ImGui::GetStyle().FontSizeBase);
             screen_res = sRen->screenRes;
             ImVec2 window_size = ImGui::GetWindowSize();
             ImVec2 window_pos((screen_res.x - window_size.x) * 0.5f, 0.0f);

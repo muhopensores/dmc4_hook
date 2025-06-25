@@ -939,7 +939,7 @@ static void DrawTrickScores() {
         ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.6f, screenSize.y * 0.4f));
         ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.3f, screenSize.y * 0.3f));
         ImGui::Begin("TrickScoresWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
-        ImGui::SetWindowFontScale(correctedWindowFontScale * 2.0f);
+        ImGui::UpdateCurrentFontSize(correctedWindowFontScale * (2.0f * ImGui::GetStyle().FontSizeBase));
         float fontSize = ImGui::GetFontSize();
         
         struct ConsecutiveGroup {
@@ -1119,7 +1119,7 @@ static void DrawTonyScores() {
     float trickFontBaseScale = correctedWindowFontScale * 1.5f;
     float scoreFontScale = scoreFontBaseScale + shakeAmount * 0.1f;
     float trickFontScale = trickFontBaseScale;
-    ImGui::SetWindowFontScale(scoreFontScale);
+    ImGui::UpdateCurrentFontSize(scoreFontScale * ImGui::GetStyle().FontSizeBase);
 
     std::vector<TrickScore> latestTricks;
     if (trickScores.size() > maxTonyScores) {
@@ -1219,7 +1219,7 @@ static void DrawTonyScores() {
     ImGui::Text("%s", styleTierText);
     ImGui::PopStyleColor();
 
-    ImGui::SetWindowFontScale(trickFontScale);
+    ImGui::UpdateCurrentFontSize(trickFontScale * ImGui::GetStyle().FontSizeBase);
 
     float trickShakeAmount = shakeAmount * 5.0f;
     float rowStartY = ImGui::GetFontSize() * 1.5f;
@@ -1333,7 +1333,7 @@ static void DrawTonyScores() {
     ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.2f, screenSize.y * 0.7f), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
     ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.5f, screenSize.y * 0.5f));
     ImGui::Begin("ScoreRecognitionWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
-    ImGui::SetWindowFontScale(correctedWindowFontScale * 1.5f);
+    ImGui::UpdateCurrentFontSize(correctedWindowFontScale * (1.5f * ImGui::GetStyle().FontSizeBase));
     if (comboRecognitionAlpha > 0.0f) {
         float textWidth = ImGui::CalcTextSize(detectedCombo.c_str()).x;
         float windowWidth = ImGui::GetContentRegionAvail().x;
@@ -1420,7 +1420,7 @@ static void DrawTonyScores() {
         ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.8f, screenSize.y * 0.7f), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
         ImGui::Begin("AirtimeWindow", nullptr, ImGuiWindowFlags_AlwaysAutoResize |
             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
-        ImGui::SetWindowFontScale(correctedWindowFontScale * 1.5f);
+        ImGui::UpdateCurrentFontSize(correctedWindowFontScale * (1.5f * ImGui::GetStyle().FontSizeBase));
         ImVec4 airtimeColor(1.0f, 1.0f, 1.0f, airTimerAlpha);
         ImGui::PushStyleColor(ImGuiCol_Text, airtimeColor);
         float timeToDisplay = isInAir ? airTimer : displayedAirTime;
@@ -1680,7 +1680,7 @@ void StylePoints::DrawHiddenCombos() {
     ImVec2 availSpace = ImGui::GetContentRegionAvail();
     ImGui::BeginChild("ScrollingContent", availSpace, false, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar);
     static float fontScale = 1.0f;
-    ImGui::SetWindowFontScale(fontScale);
+    ImGui::UpdateCurrentFontSize(fontScale * ImGui::GetStyle().FontSizeBase);
 
     static ImVec4 TexCol{ 0.8f, 0.8f, 0.8f, 1.0f };
     ImGui::TextColored(TexCol, _("Hidden Combos"));

@@ -277,7 +277,7 @@ bool ModFramework::on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_p
 
 void ModFramework::draw_ui() {
     //std::lock_guard _{ m_input_mutex };
-    if (!m_draw_ui || !(ImGui::GetIO().Fonts->IsBuilt())) {
+    if (!m_draw_ui || !(ImGui::GetIO().Fonts->TexIsBuilt)) {
         //m_dinput_hook->acknowledge_input();
         //ImGui::GetIO().MouseDrawCursor = false;
         return;

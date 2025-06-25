@@ -23,7 +23,7 @@ static std::unordered_map<const char*, CompressedMoFile> g_locales_map {
     // NOTE(): example locale, doesnt contain any translated strings
     { "en", { (void*)en_dmc4hook_compressed_data, en_dmc4hook_compressed_size, &ImFontAtlas::GetGlyphRangesDefault, nullptr } },
     // for zh, also consider C:\\Windows\\Fonts\\msyh.ttc
-    { "zh", { (void*)zh_dmc4hook_compressed_data, zh_dmc4hook_compressed_size, &ImFontAtlas::GetGlyphRangesChineseFull, "C:\\Windows\\Fonts\\simhei.ttf" } },
+    { "zh", { (void*)zh_dmc4hook_compressed_data, zh_dmc4hook_compressed_size, &ImFontAtlas::GetGlyphRangesDefault, "C:\\Windows\\Fonts\\simhei.ttf" } },
 #ifndef NDEBUG // testing - machine translated file
     { "ru", { (void*)ru_dmc4hook_compressed_data, ru_dmc4hook_compressed_size, &ImFontAtlas::GetGlyphRangesCyrillic, nullptr } },
 #endif
@@ -40,7 +40,7 @@ bool file_exists(const char* filename) {
 
 ImFont* load_locale_and_imfont(const char* country_code) noexcept {
     auto& io = ImGui::GetIO();
-    if(io.Fonts->IsBuilt()) {
+    if (io.Fonts->TexIsBuilt) {
         io.Fonts->Clear();
     }
     

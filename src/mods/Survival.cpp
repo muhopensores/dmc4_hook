@@ -509,7 +509,7 @@ void Survival::on_frame(fmilliseconds& dt) {
                         ImGui::Begin("SurvivalWaveDisplay", NULL, 
                             ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration |
                             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
-                        ImGui::SetWindowFontScale(2.0f);
+                        ImGui::UpdateCurrentFontSize(2.0f * ImGui::GetStyle().FontSizeBase);
                         ImGui::TextColored(ImVec4(0.392f, 1.0f, 1.0f, 1.0f), "WAVE %i", Survival::wave);
                         ImGui::End();
                     }
