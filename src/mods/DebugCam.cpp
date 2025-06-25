@@ -136,7 +136,7 @@ static void __stdcall freecam_mouse_input(uCamera* camera) {
         viewMatrix = glm::translate(viewMatrix, cam_pos);
         viewMatrix = viewMatrix * rotateY;
         viewMatrix = glm::translate(viewMatrix, -cam_pos);
-        viewMatrix = viewMatrix * rotateX;
+        viewMatrix = rotateX * viewMatrix;
         if (DebugCam::projectileTest) {
             short mouse_click_state = GetAsyncKeyState(VK_RBUTTON);
             if (((mouse_click_state && 0xFF) == 1) && (input_down == false)) {
