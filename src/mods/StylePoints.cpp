@@ -942,6 +942,10 @@ static void DrawTrickScores() {
         ImGui::UpdateCurrentFontSize(correctedWindowFontScale * (2.0f * ImGui::GetStyle().FontSizeBase));
         float fontSize = ImGui::GetFontSize();
         
+        ImVec4 shadowColor(0.0f, 0.0f, 0.0f, 0.7f);
+        float shadowOffsetX = 2.0f;
+        float shadowOffsetY = 2.0f;
+        
         struct ConsecutiveGroup {
             std::string trickName;
             float score;
@@ -1027,6 +1031,7 @@ static void DrawTrickScores() {
             ImVec4 currentStyleColor = GetStyleColor(group.styleLetter);
             ImVec4 color2(currentStyleColor.x, currentStyleColor.y, currentStyleColor.z, fade);
             
+            ImVec4 shadowColorWithFade(shadowColor.x, shadowColor.y, shadowColor.z, shadowColor.w * fade);
 
             std::string translatedTrickName = utility::text_lookup((char*)group.trickName.c_str());
             std::string displayText = translatedTrickName;
@@ -1044,14 +1049,28 @@ static void DrawTrickScores() {
             float rightAlignX = (windowWidth * 0.8f) - (customSpacing * 0.5f);
             float leftAlignX = (windowWidth * 0.8f) + (customSpacing * 0.5f);
             
+            float currentY = ImGui::GetCursorPosY();
+            
+            // draw trick name shadow
+            ImGui::SetCursorPos(ImVec2(rightAlignX - textWidth + shadowOffsetX, currentY + shadowOffsetY));
+            ImGui::PushStyleColor(ImGuiCol_Text, shadowColorWithFade);
+            ImGui::Text("%s", displayText.c_str());
+            ImGui::PopStyleColor();
+            
             // draw trick name
-            ImGui::SetCursorPosX(rightAlignX - textWidth);
+            ImGui::SetCursorPos(ImVec2(rightAlignX - textWidth, currentY));
             ImGui::PushStyleColor(ImGuiCol_Text, color);
             ImGui::Text("%s", displayText.c_str());
             ImGui::PopStyleColor();
             
+            // draw score shadow
+            ImGui::SetCursorPos(ImVec2(leftAlignX + shadowOffsetX, currentY + shadowOffsetY));
+            ImGui::PushStyleColor(ImGuiCol_Text, shadowColorWithFade);
+            ImGui::Text("%.1f", group.score * 0.1 * group.multiplier);
+            ImGui::PopStyleColor();
+            
             // draw score
-            ImGui::SameLine(leftAlignX);
+            ImGui::SetCursorPos(ImVec2(leftAlignX, currentY));
             ImGui::PushStyleColor(ImGuiCol_Text, color2);
             ImGui::Text("%.1f", group.score * 0.1 * group.multiplier);
             ImGui::PopStyleColor();
@@ -1101,6 +1120,10 @@ static void DrawTonyScores() {
         trickScores.clear();
         comboScore = 0.0f;
     }
+
+    ImVec4 shadowColor(0.0f, 0.0f, 0.0f, 0.7f);
+    float shadowOffsetX = 2.0f;
+    float shadowOffsetY = 2.0f;
 
     ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.5f, screenSize.y * 0.9f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(ImVec2(screenSize.x * 1.0f, screenSize.y * 0.2f));
@@ -1168,29 +1191,46 @@ static void DrawTonyScores() {
         }
     }
 
-    std::vector<std::vector<GroupedTrick>> rowTricks(maxRows);
+    // save more than x rows so we can scroll through them
+    std::vector<std::vector<GroupedTrick>> allRows;
     comboScore = 0.0f;
     int currentRow = 0;
     int effectiveRowSize = 0;
-
+    
+    allRows.push_back(std::vector<GroupedTrick>());
+    
     for (const auto& groupedTrick : groupedTricks) {
         comboScore += groupedTrick.summedScore * 0.1f;
-
-        if (currentRow >= maxRows) continue;
 
         bool isEnemyStep = (groupedTrick.baseTrick.text == "Enemy Step");
         
         if (!isEnemyStep && effectiveRowSize >= maxPerRow) {
             currentRow++;
             effectiveRowSize = 0;
-            
-            if (currentRow >= maxRows) continue;
+            allRows.push_back(std::vector<GroupedTrick>());
         }
 
-        rowTricks[currentRow].push_back(groupedTrick);
+        allRows[currentRow].push_back(groupedTrick);
         
         if (!isEnemyStep) {
             effectiveRowSize++;
+        }
+    }
+    
+    // scroll to show latest row
+    std::vector<std::vector<GroupedTrick>> rowTricks(maxRows);
+    int totalRows = allRows.size();
+    
+    if (totalRows <= maxRows) {
+        // if fewer rows than max, show all
+        for (int i = 0; i < totalRows; ++i) {
+            rowTricks[i] = allRows[i];
+        }
+    } else {
+        // show latest
+        int startRow = totalRows - maxRows;
+        for (int i = 0; i < maxRows; ++i) {
+            rowTricks[i] = allRows[startRow + i];
         }
     }
 
@@ -1205,6 +1245,16 @@ static void DrawTonyScores() {
 
     float totalWidth = ImGui::CalcTextSize(scoreText).x + ImGui::CalcTextSize(styleTierText).x + ImGui::CalcTextSize(" ").x;
     float scoreShakeAmount = shakeAmount * 1.0f;
+    
+    // draw score shadow
+    ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - totalWidth) * 0.5f + scoreShakeAmount + shadowOffsetX);
+    ImGui::SetCursorPosY(0.0f + scoreShakeAmount + shadowOffsetY);
+    ImVec4 scoreShadowColor(shadowColor.x, shadowColor.y, shadowColor.z, shadowColor.w * fade);
+    ImGui::PushStyleColor(ImGuiCol_Text, scoreShadowColor);
+    ImGui::Text("%s", scoreText);
+    ImGui::PopStyleColor();
+
+    // draw score
     ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - totalWidth) * 0.5f + scoreShakeAmount);
     ImGui::SetCursorPosY(0.0f + scoreShakeAmount);
     ImVec4 scoreColor = GetScoreColor(comboScore, 0.0f, 500.0f);
@@ -1212,8 +1262,18 @@ static void DrawTonyScores() {
     ImGui::Text("%s", scoreText);
     ImGui::PopStyleColor();
 
+    // draw style tier multiplier shadow
     ImGui::SameLine();
+    ImVec4 multiplierShadowColor(shadowColor.x, shadowColor.y, shadowColor.z, shadowColor.w * fade);
+    float multiplierPosX = ImGui::GetCursorPosX();
+    float multiplierPosY = ImGui::GetCursorPosY();
+    ImGui::SetCursorPos(ImVec2(multiplierPosX + shadowOffsetX, multiplierPosY + shadowOffsetY));
+    ImGui::PushStyleColor(ImGuiCol_Text, multiplierShadowColor);
+    ImGui::Text("%s", styleTierText);
+    ImGui::PopStyleColor();
 
+    // draw style tier multiplier
+    ImGui::SetCursorPos(ImVec2(multiplierPosX, multiplierPosY));
     ImVec4 multiplierColor(currentStyleColor.x, currentStyleColor.y, currentStyleColor.z, fade);
     ImGui::PushStyleColor(ImGuiCol_Text, multiplierColor);
     ImGui::Text("%s", styleTierText);
@@ -1228,6 +1288,7 @@ static void DrawTonyScores() {
         if (rowTricks[row].empty()) continue;
 
         std::vector<std::pair<std::string, ImVec4>> textSegments;
+        std::vector<std::pair<std::string, ImVec4>> shadowSegments;
         float totalRowWidth = 0.0f;
 
         for (size_t i = 0; i < rowTricks[row].size(); ++i) {
@@ -1247,17 +1308,25 @@ static void DrawTonyScores() {
             }
 
             ImVec4 trickColor = GetTrickColor(groupedTrick.summedScore, fade);
+            ImVec4 trickShadowColor(shadowColor.x, shadowColor.y, shadowColor.z, shadowColor.w * fade);
             textSegments.emplace_back(trickText, trickColor);
+            shadowSegments.emplace_back(trickText, trickShadowColor);
 
             if (i < rowTricks[row].size() - 1) {
                 bool nextIsEnemyStep = (rowTricks[row][i+1].baseTrick.text == "Enemy Step");
                 bool skipToNextAfterEnemyStep = nextIsEnemyStep && (i+2 < rowTricks[row].size());
                 
                 if (nextIsEnemyStep) {
-                    textSegments.emplace_back(" x ", ImVec4(1.0f, 1.0f, 1.0f, fade));
+                    ImVec4 separatorColor(1.0f, 1.0f, 1.0f, fade);
+                    ImVec4 separatorShadowColor(shadowColor.x, shadowColor.y, shadowColor.z, shadowColor.w * fade);
+                    textSegments.emplace_back(" x ", separatorColor);
+                    shadowSegments.emplace_back(" x ", separatorShadowColor);
                     i++;
                 } else {
-                    textSegments.emplace_back(" + ", ImVec4(1.0f, 1.0f, 1.0f, fade));
+                    ImVec4 separatorColor(1.0f, 1.0f, 1.0f, fade);
+                    ImVec4 separatorShadowColor(shadowColor.x, shadowColor.y, shadowColor.z, shadowColor.w * fade);
+                    textSegments.emplace_back(" + ", separatorColor);
+                    shadowSegments.emplace_back(" + ", separatorShadowColor);
                 }
             }
         }
@@ -1269,6 +1338,17 @@ static void DrawTonyScores() {
         float posY = rowStartY + row * ImGui::GetFontSize() * 1.0f + trickShakeAmount;
         float cursorX = (ImGui::GetContentRegionAvail().x - totalRowWidth) * 0.5f + trickShakeAmount;
 
+        // shadow
+        for (const auto& [text, shadowColor] : shadowSegments) {
+            ImGui::SetCursorPos(ImVec2(cursorX + shadowOffsetX, posY + shadowOffsetY));
+            ImGui::PushStyleColor(ImGuiCol_Text, shadowColor);
+            ImGui::TextUnformatted(text.c_str());
+            ImGui::PopStyleColor();
+            cursorX += ImGui::CalcTextSize(text.c_str()).x;
+        }
+
+        // text
+        cursorX = (ImGui::GetContentRegionAvail().x - totalRowWidth) * 0.5f + trickShakeAmount;
         for (const auto& [text, color] : textSegments) {
             ImGui::SetCursorPos(ImVec2(cursorX, posY));
             ImGui::PushStyleColor(ImGuiCol_Text, color);
@@ -1337,7 +1417,18 @@ static void DrawTonyScores() {
     if (comboRecognitionAlpha > 0.0f) {
         float textWidth = ImGui::CalcTextSize(detectedCombo.c_str()).x;
         float windowWidth = ImGui::GetContentRegionAvail().x;
-        ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+        float textPosX = (windowWidth - textWidth) * 0.5f;
+        float textPosY = ImGui::GetCursorPosY();
+        
+        // draw combo recognition shadow
+        ImGui::SetCursorPos(ImVec2(textPosX + shadowOffsetX, textPosY + shadowOffsetY));
+        ImVec4 comboShadowColor(shadowColor.x, shadowColor.y, shadowColor.z, shadowColor.w * comboRecognitionAlpha);
+        ImGui::PushStyleColor(ImGuiCol_Text, comboShadowColor);
+        ImGui::Text("%s", detectedCombo.c_str());
+        ImGui::PopStyleColor();
+        
+        // draw combo recognition text
+        ImGui::SetCursorPos(ImVec2(textPosX, textPosY));
         ImVec4 comboColor(1.0f, 1.0f, 0.0f, comboRecognitionAlpha);
         ImGui::PushStyleColor(ImGuiCol_Text, comboColor);
         ImGui::Text("%s", detectedCombo.c_str());
@@ -1421,10 +1512,26 @@ static void DrawTonyScores() {
         ImGui::Begin("AirtimeWindow", nullptr, ImGuiWindowFlags_AlwaysAutoResize |
             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
         ImGui::UpdateCurrentFontSize(correctedWindowFontScale * (1.5f * ImGui::GetStyle().FontSizeBase));
+        
+        float timeToDisplay = isInAir ? airTimer : displayedAirTime;
+        char airtimeText[64];
+        snprintf(airtimeText, sizeof(airtimeText), _("Airtime: %.1f"), timeToDisplay);
+        
+        float airtimePosX = ImGui::GetCursorPosX();
+        float airtimePosY = ImGui::GetCursorPosY();
+        
+        // draw airtime shadow
+        ImVec4 airtimeShadowColor(shadowColor.x, shadowColor.y, shadowColor.z, shadowColor.w * airTimerAlpha);
+        ImGui::SetCursorPos(ImVec2(airtimePosX + shadowOffsetX, airtimePosY + shadowOffsetY));
+        ImGui::PushStyleColor(ImGuiCol_Text, airtimeShadowColor);
+        ImGui::Text("%s", airtimeText);
+        ImGui::PopStyleColor();
+        
+        // draw airtime text
+        ImGui::SetCursorPos(ImVec2(airtimePosX, airtimePosY));
         ImVec4 airtimeColor(1.0f, 1.0f, 1.0f, airTimerAlpha);
         ImGui::PushStyleColor(ImGuiCol_Text, airtimeColor);
-        float timeToDisplay = isInAir ? airTimer : displayedAirTime;
-        ImGui::Text(_("Airtime: %.1f"), timeToDisplay);
+        ImGui::Text("%s", airtimeText);
         ImGui::PopStyleColor();
         ImGui::End();
     }
