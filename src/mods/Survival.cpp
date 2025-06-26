@@ -510,6 +510,12 @@ void Survival::on_frame(fmilliseconds& dt) {
                             ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration |
                             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
                         ImGui::UpdateCurrentFontSize(2.0f * ImGui::GetStyle().FontSizeBase);
+                        const ImVec2 pos = ImGui::GetCursorPos();
+                        // shadow
+                        ImGui::SetCursorPos(ImVec2(pos.x + 2.0f, pos.y + 2.0f));
+                        ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, 0.7f), "WAVE %i", Survival::wave);
+                        // text
+                        ImGui::SetCursorPos(pos);
                         ImGui::TextColored(ImVec4(0.392f, 1.0f, 1.0f, 1.0f), "WAVE %i", Survival::wave);
                         ImGui::End();
                     }

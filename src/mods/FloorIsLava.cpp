@@ -287,6 +287,13 @@ void FloorIsLava::on_frame(fmilliseconds& dt) {
             ImVec2 window_pos((screen_res.x - window_size.x) * 0.5f, 0.0f);
             ImGui::SetWindowPos(window_pos);
             static ImColor texCol = { 1.0f, 0.0f, 0.0f, 1.0f };
+
+            const ImVec2 pos = ImGui::GetCursorPos();
+            // shadow
+            ImGui::SetCursorPos(ImVec2(pos.x + 2.0f, pos.y + 2.0f));
+            ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, 0.7f), "%.2f", timer->m_time.count());
+            // text
+            ImGui::SetCursorPos(pos);
             ImGui::TextColored(texCol, "%.2f", timer->m_time.count());
             ImGui::End();
         }
