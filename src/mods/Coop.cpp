@@ -6,6 +6,7 @@
 
 bool Coop::mod_enabled;
 static unsigned int player_num = 1;
+static bool player_char[4] = {0, 0, 0, 0};
 static sDevil4Pad** sDevil4Pad_ptr = (sDevil4Pad**)0x00e559c4;
 static uintptr_t sDevil4Pad_cons = 0x00484C90;
 static uintptr_t update_analog_info_call = 0x007b0250;
@@ -138,7 +139,9 @@ naked void detour1() {
 sDevil4Pad* create_pad(int id) {
     sDevil4Pad* pad  = ((sDevil4Pad * (*)()) sDevil4Pad_cons)();
     pad->mPad->Info.Socket_no = id;
-    pad->mPad->Info.Pad_no = id;
+    //pad->mPad->Info.Pad_no = id;
+    //pad->mPad->Info.Kind = 1;
+    pad->mUserPadId = 0;
     return pad;
 }
 
@@ -182,7 +185,6 @@ void* make_dante() {
     return dante_ptr;
 }
 
-
 void player_factory(uint char_id, uint player_num) {
     void* player;
     if (char_id == 0) {
@@ -190,17 +192,28 @@ void player_factory(uint char_id, uint player_num) {
     } else {
         player = make_dante();
     }
-    *(byte*)((uintptr_t)player + 0x1405) = player_num; 
+    *(byte*)((uintptr_t)player + 0x1405) = player_num; //Pad ID (used for cPeripheral update)
+    *(byte*)((uintptr_t)player + 0xE64) = player_num;  //Player ID
+    if (PlayerArr.size() <= 4) {
+        PlayerArr.push_back(player);
+    }
     devil4_sdk::sUnit_spawn(player, 13);
 }
 
+void* make_cam(){ //make uCameraCtrl
+    void* cam = ((void* (*)())(0x004F71B0))();
+    devil4_sdk::sUnit_spawn(cam, 18);
+    CamArr.push_back(cam);
+    return cam;
+}
+
 std::optional<std::string> Coop::on_initialize() {
-    if (!install_hook_offset(0x3AFD10, hook1, &detour1, &jmp_ret1, 6)) {
+    if (!install_hook_offset(0x3AFD10, hook1, &detour1, &jmp_ret1, 6)) { //replace player pad update func
         spdlog::error("Failed to init Coop mod1\n");
         return "Failed to init Coop mod1";
     }
 
-    if (!install_hook_offset(0x4AEFA1, hook2, &detour2, &jmp_ret2, 6)) {
+    if (!install_hook_offset(0x4AEFA1, hook2, &detour2, &jmp_ret2, 6)) { //call sPad move loop
         spdlog::error("Failed to init Coop mod2\n");
         return "Failed to init Coop mod2";
     }
@@ -224,6 +237,23 @@ void Coop::on_frame(fmilliseconds& dt) {
     //        update.detach();
     //    }
     //}
+
+    if (mod_enabled) {
+        void* player   = devil4_sdk::get_local_player();
+        void* camera = devil4_sdk::get_local_camera();
+
+        if ((PlayerArr.empty()) && (player != nullptr)) {
+            PlayerArr.push_back(player);
+        }
+        if ((CamArr.empty()) && (camera != nullptr)) {
+            CamArr.push_back(camera);
+        }
+        if ((!PlayerArr.empty()) && (player == nullptr))
+            PlayerArr.clear();
+
+        if ((!CamArr.empty()) && (camera == nullptr))
+            CamArr.clear();
+    }
 }
 
 void Coop::on_gui_frame(int display) {
@@ -236,9 +266,9 @@ void Coop::on_gui_frame(int display) {
         PadArr.push_back(*sDevil4Pad_ptr);
         for (int i = 1; i < 4; i++) {
             PadArr.push_back(create_pad(i));
-        if (ImGui::Button("Spawn Nero")) {
-            player_factory(0, 1);
         }
     }
-
+    if (ImGui::Button("Spawn Nero")) {
+        player_factory(0, 1);
+    }
 }
