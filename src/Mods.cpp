@@ -164,6 +164,7 @@
 #include "mods/JointDisplay.hpp"
 #include "mods/ForceInCombat.hpp"
 #include "mods/PhotoMode.hpp"
+#include "mods/Coop.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -338,6 +339,7 @@ Mods::Mods() {
     ADD_MOD(JointDisplay);
     ADD_MOD(ForceInCombat);
     ADD_MOD(PhotoMode);
+    ADD_MOD(Coop);
 }
 
 // Initializes mods, checks for errors

@@ -758,6 +758,8 @@ namespace gui {
 
                 pmods->on_draw_ui("PhotoMode"_hash);
 
+                pmods->on_draw_ui("Coop"_hash);
+
                 ImGui::SeparatorText(_("Misc"));
 
                 pmods->on_draw_ui("RoomRespawn"_hash);

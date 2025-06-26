@@ -55,6 +55,19 @@ namespace devil4_sdk {
 
 	}
 
+	void sUnit_spawn(void* obj, int move_line) {
+        constexpr uintptr_t spawn_call = 0x008DC540;
+        uintptr_t sUnit_ptr            = (uintptr_t)get_sUnit();
+        _asm {
+				pushad
+				mov eax, sUnit_ptr
+				mov esi, obj
+				push move_line
+				call spawn_call
+				popad
+        }
+     }
+
 	void u_em003_shl_new() {
 		void* mem = mt_allocate_heap(sizeof(UEm003Shl), 0x10);
 		if (!mem) {

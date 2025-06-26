@@ -32,6 +32,7 @@ namespace devil4_sdk {
 	MtObject* __stdcall get_stuff_from_files(MtDTI* dti, char* path, uint32_t mode = 1);
 	void __stdcall release_resource(CResource* rsrc);
 	void spawn_or_something(void* a1, MtObject* obj_to_spawn, int a3);
+	void sUnit_spawn(void* obj, int move_line);
 	void* mt_allocate_heap(size_t size, int alignment);
 	void* unit_deallocate(MtObject* obj);
 	void* __cdecl MemberFuncToPtr(...);
