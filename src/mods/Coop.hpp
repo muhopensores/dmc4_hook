@@ -15,6 +15,8 @@ public:
     static uintptr_t jmp_ret6;
     static uintptr_t jmp_ret7;
 
+    void toggle(bool enable);
+
     Coop() = default;
     std::string get_mod_name() override { return "Coop"; };
     std::optional<std::string> on_initialize() override;
@@ -24,4 +26,5 @@ public:
     //void on_config_save(utility::Config& cfg) override;
 private:
     std::unique_ptr<FunctionHook> hook1, hook2, hook3, hook4, hook5, hook6, hook7;
+    std::unique_ptr<Patch> patch1;
 };

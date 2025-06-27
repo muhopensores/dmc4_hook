@@ -27,6 +27,14 @@ uintptr_t Coop::jmp_ret5 = NULL;
 uintptr_t Coop::jmp_ret6 = NULL;
 uintptr_t Coop::jmp_ret7 = NULL;
 
+void Coop::toggle(bool enable) {
+    if (enable) {
+        install_patch_offset(0xDE86, patch1, "\xEB\x13", 2); //prevent pausing on pad disconnect
+    } else {
+        patch1.reset();
+    }
+}
+
 void get_analog_level(sDevil4Pad* pad, kAnlg* anlg, bool r_side) {
 
     float anlg_x = pad->mPadInfo[0].mAnlg[r_side].x;
@@ -319,6 +327,7 @@ naked void detour5() {
 
         originalcode:
             mov ecx,[0x00E552D4]
+            mov ecx,[ecx]
             jmp [Coop::jmp_ret5]
     }
 }
@@ -450,6 +459,7 @@ void Coop::on_frame(fmilliseconds& dt) {
 
 void Coop::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Coop mode"), &mod_enabled)) {
+        toggle(mod_enabled);
         if (CharSwitcher::mod_enabled)
             CharSwitcher::mod_enabled = false;
         //PadArr.push_back(*sDevil4Pad_ptr);
