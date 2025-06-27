@@ -1,15 +1,19 @@
 #include "Coop.hpp"
 #include "..\sdk\Pad.hpp"
 #include "..\sdk\Devil4.hpp"
+#include "..\sdk\Cam.hpp"
 #include "CharSwitcher.hpp"
-
+#include "DebugCam.hpp"
 
 bool Coop::mod_enabled;
 static unsigned int player_num = 1;
 static bool player_char[4] = {0, 0, 0, 0};
 static sDevil4Pad** sDevil4Pad_ptr = (sDevil4Pad**)0x00e559c4;
+static uintptr_t sCamera_ptr = 0x00E552D4;
+static uintptr_t sMediator_ptr = 0x00E558B8;
 static uintptr_t sDevil4Pad_cons = 0x00484C90;
 static uintptr_t update_analog_info_call = 0x007b0250;
+static uintptr_t uCameraCtrl_setup_end = 0x04f76da;
 
 std::vector<sDevil4Pad*> PadArr;
 std::vector<void*> PlayerArr;
@@ -17,6 +21,11 @@ std::vector<void*> CamArr;
 
 uintptr_t Coop::jmp_ret1 = NULL;
 uintptr_t Coop::jmp_ret2 = NULL;
+uintptr_t Coop::jmp_ret3 = NULL;
+uintptr_t Coop::jmp_ret4 = NULL;
+uintptr_t Coop::jmp_ret5 = NULL;
+uintptr_t Coop::jmp_ret6 = NULL;
+uintptr_t Coop::jmp_ret7 = NULL;
 
 void get_analog_level(sDevil4Pad* pad, kAnlg* anlg, bool r_side) {
 
@@ -204,7 +213,163 @@ void* make_cam(){ //make uCameraCtrl
     void* cam = ((void* (*)())(0x004F71B0))();
     devil4_sdk::sUnit_spawn(cam, 18);
     CamArr.push_back(cam);
+    if (cam != CamArr[0])
+        *(void**)((uintptr_t)cam + 0x3a0) = (void*)((uintptr_t)CamArr[0] + 0x3a0);
     return cam;
+}
+
+void* __stdcall get_pl_from_cam(void* cam) {
+    uintptr_t ucam = *(uintptr_t*)((uintptr_t)cam + 0x6C);
+    for (int i = 0; i < CamArr.size(); i++) {
+        if (ucam == (uintptr_t)CamArr[i])
+            return PlayerArr[i];
+    }
+    return 0;
+}
+
+void* __stdcall get_pad_from_cam(void* cam) {
+    uintptr_t ucam = *(uintptr_t*)((uintptr_t)cam + 0x6C);
+    for (int i = 0; i < CamArr.size(); i++) {
+        if (ucam == (uintptr_t)CamArr[i])
+            return PadArr[i];
+    }
+    return 0;
+}
+
+
+naked void detour3() {
+    _asm {
+            cmp byte ptr [Coop::mod_enabled],1
+            jne originalcode
+
+            push edi
+            call get_pl_from_cam
+
+            test eax, eax
+            je originalcode
+
+            jmp handle
+        originalcode:
+            mov eax, [esi+0x24]
+        handle:
+            test eax,eax
+            jmp [Coop::jmp_ret3]
+    }
+}
+
+naked void detour4() {
+    _asm {
+            cmp byte ptr [Coop::mod_enabled],1
+            jne originalcode
+
+            push eax
+            push esi
+            call get_pad_from_cam
+
+            test eax, eax
+            je handle2
+
+            mov edi, eax
+            pop eax
+
+            jmp handle
+        originalcode:
+            mov edi,[sDevil4Pad_ptr]
+        handle:
+            jmp [Coop::jmp_ret4]
+        handle2:
+            pop eax
+            jmp originalcode
+    }
+}
+
+void __stdcall setup_cam(void* cam) {
+    sCamera* s_cam = *(sCamera**)sCamera_ptr;
+    for (int i = 1; i < CamArr.size(); i++) {
+        if (cam == CamArr[i]) {
+            sCamera_ViewPort* vp = &s_cam->viewports[i];
+            vp->mpCamera = cam;
+            vp->mAttr = 0x17;
+            return;
+        }
+    }
+}
+
+naked void detour5() {
+    _asm {
+            cmp byte ptr [Coop::mod_enabled],1
+            jne originalcode
+
+            mov ecx,[sMediator_ptr]
+            mov ecx,[ecx]
+            mov ecx,[ecx+0xD0]
+            
+            test ecx,ecx
+            je originalcode
+
+            cmp ecx, esi
+            je originalcode
+
+            pushad
+            push esi
+            call setup_cam
+            popad
+            
+            jmp [uCameraCtrl_setup_end]
+
+        originalcode:
+            mov ecx,[0x00E552D4]
+            jmp [Coop::jmp_ret5]
+    }
+}
+
+naked void detour6() {
+    _asm {
+            cmp byte ptr [Coop::mod_enabled],1
+            jne originalcode
+
+            push esi
+            call get_pad_from_cam
+
+            test eax, eax
+            je originalcode
+
+            jmp handle
+        originalcode:
+            mov eax,[sDevil4Pad_ptr]
+        handle:
+            jmp [Coop::jmp_ret6]
+    }
+}
+
+void* __stdcall get_cam_from_pl(void* player) {
+    byte id = *(byte*)((uintptr_t)player + 0x1405);
+    if (!CamArr.empty())
+        return CamArr[id];
+    else return 0;
+}
+
+naked void detour7() {
+    _asm {
+            cmp byte ptr [Coop::mod_enabled],1
+            jne originalcode
+
+            push esi
+            call get_cam_from_pl
+
+            test eax,eax
+            je handle2
+
+            jmp handle
+        originalcode:
+            mov eax, dword ptr [eax + 0xd0]
+        handle:
+            jmp [Coop::jmp_ret7]
+        handle2:
+            mov eax,[sMediator_ptr]
+            mov eax,[eax]
+            jmp originalcode
+    }
 }
 
 std::optional<std::string> Coop::on_initialize() {
@@ -216,6 +381,33 @@ std::optional<std::string> Coop::on_initialize() {
     if (!install_hook_offset(0x4AEFA1, hook2, &detour2, &jmp_ret2, 6)) { //call sPad move loop
         spdlog::error("Failed to init Coop mod2\n");
         return "Failed to init Coop mod2";
+    }
+
+    std::unique_ptr<FunctionHook> temp_hook3, temp_hook4, temp_hook5;//hook3 & 5 fall out of scope somehow ?!?!
+
+    if (!install_hook_offset(0x19189, hook3, &detour3, &jmp_ret3, 5)) { //Delock cam player pos
+        spdlog::error("Failed to init coop mod3\n");
+        return "Failed to init coop mod3";
+    }
+
+    if (!install_hook_offset(0x22449, hook4, &detour4, &jmp_ret4, 6)) { //Cam pad Y-axis control
+        spdlog::error("Failed to init Coop mod4\n");
+        return "Failed to init Coop mod4";
+    }
+
+    if (!install_hook_offset(0xF75DA, hook5, &detour5, &jmp_ret5, 6)) { //Cam setup
+        spdlog::error("Failed to init Coop mod5\n");
+        return "Failed to init Coop mod5";
+    }
+
+    if (!install_hook_absolute(0x421e14, hook6, &detour6, &jmp_ret6, 5)) { // Cam pad Y-axis control
+        spdlog::error("Failed to init Coop mod4\n");
+        return "Failed to init Coop mod4";
+    }
+
+    if (!install_hook_absolute(0x07abcbb, hook7, &detour7, &jmp_ret7, 6)) { // Input relative to cam
+        spdlog::error("Failed to init Coop mod4\n");
+        return "Failed to init Coop mod4";
     }
 
     //std::thread init([]() {
@@ -270,5 +462,9 @@ void Coop::on_gui_frame(int display) {
     }
     if (ImGui::Button("Spawn Nero")) {
         player_factory(0, 1);
+        make_cam();
+        sCamera* s_cam = *(sCamera**)sCamera_ptr;
+        s_cam->viewports[0].mMode = REGION_LEFT;
+        s_cam->viewports[1].mMode = REGION_RIGHT;
     }
 }
