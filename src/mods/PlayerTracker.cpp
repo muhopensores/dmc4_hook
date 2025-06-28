@@ -932,8 +932,44 @@ static void PlayAnimID(int animID) {
     }
 }
 
+const char* moveLineNames[]{
+	__("MoveLine 0:"),
+	__("MoveLine 1:"),
+	__("MoveLine 2:"),
+	__("MoveLine 3:"),
+	__("MoveLine 4:"),
+	__("MoveLine 5:"),
+	__("MoveLine 6:"),
+	__("MoveLine 7:"),
+	__("MoveLine 8:"),
+	__("MoveLine 9:"),
+	__("MoveLine 10:"),
+	__("MoveLine 11:"),
+	__("MoveLine 12:"),
+	__("MoveLine 13 (Players):"),
+	__("MoveLine 14"),
+	__("MoveLine 15 (Enemies):"),
+	__("MoveLine 16:"),
+	__("MoveLine 17:"),
+	__("MoveLine 18:"),
+	__("MoveLine 19:"),
+	__("MoveLine 20:"),
+	__("MoveLine 21:"),
+	__("MoveLine 22:"),
+	__("MoveLine 23:"),
+	__("MoveLine 24:"),
+	__("MoveLine 25:"),
+	__("MoveLine 26:"),
+	__("MoveLine 27:"),
+	__("MoveLine 28:"),
+	__("MoveLine 29:"),
+	__("MoveLine 30:"),
+	__("MoveLine 31:"),
+};
+
 void PlayerTracker::on_gui_frame(int display) {
 	ImGui::Checkbox(_("Show Player Params"), &show_player_params);
+
     if (ImGui::CollapsingHeader(_("Shadow Settings"))) {
         sUnit* sUnit = devil4_sdk::get_sUnit();
         if (sUnit) {
@@ -948,6 +984,31 @@ void PlayerTracker::on_gui_frame(int display) {
             }
         }
     }
+
+    if (ImGui::CollapsingHeader(_("View MoveLine Entries"))) {
+        sUnit* sUnit = devil4_sdk::get_sUnit();
+        if (sUnit) {
+			for (int i = 0; i < 32; i++) {
+				cUnit* mL = (cUnit*)sUnit->mMoveLine[i].mTop;
+				int mLCount = 0;
+				ImGui::Text(moveLineNames[i]);
+				while (mL) {
+					ImGui::PushID(mL);
+					ImGui::Indent(lineIndent);
+					ImGui::PushItemWidth(sameLineItemWidth);
+					char entryText[16];
+					snprintf(entryText, sizeof(entryText), "entry %i", mLCount);
+					ImGui::InputScalar(entryText, ImGuiDataType_S32, &mL, NULL, NULL, "%8X", ImGuiInputTextFlags_CharsHexadecimal);
+					mL = mL->mp_next_unit;
+					mLCount++;
+					ImGui::PopItemWidth();
+					ImGui::Unindent(lineIndent);
+					ImGui::PopID();
+				}
+			}
+        }
+    }
+
     if (ImGui::CollapsingHeader(_("[OLD] Display Player Stats"))) {
         uPlayer* player = devil4_sdk::get_local_player();
         SMediator* s_med_ptr = devil4_sdk::get_sMediator();
