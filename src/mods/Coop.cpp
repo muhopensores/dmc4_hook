@@ -18,6 +18,7 @@ static uintptr_t uCameraCtrl_setup_end = 0x04f76da;
 std::vector<sDevil4Pad*> PadArr;
 std::vector<void*> PlayerArr;
 std::vector<void*> CamArr;
+std::vector<void*> HUDArr;
 
 uintptr_t Coop::jmp_ret1 = NULL;
 uintptr_t Coop::jmp_ret2 = NULL;
@@ -26,9 +27,19 @@ uintptr_t Coop::jmp_ret4 = NULL;
 uintptr_t Coop::jmp_ret5 = NULL;
 uintptr_t Coop::jmp_ret6 = NULL;
 uintptr_t Coop::jmp_ret7 = NULL;
+uintptr_t Coop::jmp_ret8 = NULL;
+uintptr_t Coop::jmp_ret9 = NULL;
+uintptr_t Coop::jmp_ret10 = NULL;
+uintptr_t Coop::jmp_ret11 = NULL;
+uintptr_t Coop::jmp_ret12 = NULL;
+
 
 void Coop::toggle(bool enable) {
     if (enable) {
+        devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\player\\uPlayerNero",
+                                        MODE_ASYNC | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+        devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\player\\uPlayerDante",
+                                        MODE_ASYNC | MODE_USECACHE | MODE_QUALITY_HIGHEST);
         install_patch_offset(0xDE86, patch1, "\xEB\x13", 2); //prevent pausing on pad disconnect
     } else {
         patch1.reset();
@@ -202,6 +213,18 @@ void* make_dante() {
     return dante_ptr;
 }
 
+void* make_nero_hud() {
+    uintptr_t nero_hud_cons = 0x00507A60;
+    void* hud_ptr         = ((void* (*)())(nero_hud_cons))();
+    return hud_ptr;
+}
+
+void* make_dante_hud() {
+    uintptr_t dante_hud_cons = 0x00503210;
+    void* hud_ptr            = ((void* (*)())(dante_hud_cons))();
+    return hud_ptr;
+}
+
 void player_factory(uint char_id, uint player_num) {
     void* player;
     if (char_id == 0) {
@@ -215,6 +238,18 @@ void player_factory(uint char_id, uint player_num) {
         PlayerArr.push_back(player);
     }
     devil4_sdk::sUnit_spawn(player, 13);
+    
+    void* hud;
+    if (char_id == 0) {
+        hud = make_nero_hud();
+    } else {
+        hud = make_dante_hud();
+    }
+    if (HUDArr.size() <= 4) {
+        HUDArr.push_back(hud);
+        ((cUnit*)hud)->flags.bits.mTransView = (1 << (HUDArr.size() - 1));
+    }
+    devil4_sdk::sUnit_spawn(hud, 25);
 }
 
 void* make_cam(){ //make uCameraCtrl
@@ -381,6 +416,129 @@ naked void detour7() {
     }
 }
 
+naked void detour8() {
+    _asm {
+            cmp byte ptr [Coop::mod_enabled],1
+            jne originalcode
+
+            push ebx
+            call get_pl_from_cam
+
+            jmp handle
+        originalcode:
+            mov eax, dword ptr [esi+0x24]
+        handle:
+            test eax,eax
+            jmp [Coop::jmp_ret8]
+    }
+}
+
+naked void detour9() {
+    _asm {
+            cmp byte ptr [Coop::mod_enabled],1
+            jne originalcode
+
+            push ebx
+            call get_pl_from_cam
+
+            jmp handle
+        originalcode:
+            mov eax, dword ptr [esi+0x24]
+        handle:
+            test eax,eax
+            jmp [Coop::jmp_ret9]
+    }
+}
+
+naked void detour10() {
+    _asm {
+            cmp byte ptr [Coop::mod_enabled],1
+            jne originalcode
+
+            push ebx
+            call get_pl_from_cam
+
+            jmp handle
+        originalcode:
+            mov eax, dword ptr [esi+0x24]
+        handle:
+            test eax,eax
+            jmp [Coop::jmp_ret10]
+    }
+}
+
+void* __stdcall get_pl_from_hud(void* hud) {
+    for (int i = 1; i < HUDArr.size(); i++) {
+        if (hud == HUDArr[i])
+            return PlayerArr[i];
+    }
+    return 0;
+}
+
+naked void detour11() {//Nero HUD
+    _asm {
+            cmp byte ptr [Coop::mod_enabled],1
+            jne originalcode
+
+            push edi
+            mov edi,eax
+
+            push esi
+            call get_pl_from_hud
+
+            test eax,eax
+            je handle2
+
+            jmp handle
+
+        originalcode:
+            mov eax, dword ptr [eax+0x24]
+            test eax, eax
+            jmp [Coop::jmp_ret11]
+
+        handle:
+            pop edi
+            test eax,eax
+            jmp [Coop::jmp_ret11]
+
+        handle2:
+            mov eax,edi
+            pop edi
+            jmp originalcode
+    }
+}
+
+naked void detour12() {//Dante HUD
+    _asm {
+            cmp byte ptr [Coop::mod_enabled],1
+            jne originalcode
+
+            mov edi,eax
+
+            push esi
+            call get_pl_from_hud
+
+            test eax,eax
+            je handle2
+
+            jmp handle
+
+        originalcode:
+            mov ecx, dword ptr [eax+0x24]
+            xor edi, edi
+            jmp [Coop::jmp_ret12]
+
+        handle:
+            mov ecx,eax
+            xor edi,edi
+            jmp [Coop::jmp_ret12]
+
+        handle2:
+            mov eax,edi
+            jmp originalcode
+    }
+}
+
 std::optional<std::string> Coop::on_initialize() {
     if (!install_hook_offset(0x3AFD10, hook1, &detour1, &jmp_ret1, 6)) { //replace player pad update func
         spdlog::error("Failed to init Coop mod1\n");
@@ -419,6 +577,32 @@ std::optional<std::string> Coop::on_initialize() {
         return "Failed to init Coop mod4";
     }
 
+    if (!install_hook_absolute(0x419857, hook8, &detour8, &jmp_ret8, 5)) { // Lockon cam
+        spdlog::error("Failed to init Coop mod4\n");
+        return "Failed to init Coop mod4";
+    }
+
+    if (!install_hook_absolute(0x41a1de, hook9, &detour9, &jmp_ret9, 5)) { // Lockon cam
+        spdlog::error("Failed to init Coop mod4\n");
+        return "Failed to init Coop mod4";
+    }
+
+    if (!install_hook_absolute(0x041a286, hook10, &detour10, &jmp_ret10, 5)) { // Lockon cam
+        spdlog::error("Failed to init Coop mod4\n");
+        return "Failed to init Coop mod4";
+    }
+
+    if (!install_hook_absolute(0x508d82, hook11, &detour11, &jmp_ret11, 5)) { // Nero HUD
+        spdlog::error("Failed to init Coop mod4\n");
+        return "Failed to init Coop mod4";
+    }
+
+    //if (!install_hook_absolute(0x506ce4, hook12, &detour12, &jmp_ret12, 5)) { // Dante HUD
+    //    spdlog::error("Failed to init Coop mod4\n");
+    //    return "Failed to init Coop mod4";
+    //}
+
+
     //std::thread init([]() {
     //    while (*sDevil4Pad_ptr == nullptr)
     //        std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -442,6 +626,8 @@ void Coop::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
         void* player   = devil4_sdk::get_local_player();
         void* camera = devil4_sdk::get_local_camera();
+        sUnit* s_unit  = devil4_sdk::get_sUnit();
+        MoveLine* hud_ml = &s_unit->mMoveLine[25];
 
         if ((PlayerArr.empty()) && (player != nullptr)) {
             PlayerArr.push_back(player);
@@ -449,11 +635,23 @@ void Coop::on_frame(fmilliseconds& dt) {
         if ((CamArr.empty()) && (camera != nullptr)) {
             CamArr.push_back(camera);
         }
-        if ((!PlayerArr.empty()) && (player == nullptr))
+
+        if ((HUDArr.empty()) && (hud_ml->mTop != nullptr)) {
+            HUDArr.push_back((void*)hud_ml->mTop);
+            cUnit* hud = (cUnit*)hud_ml->mTop;
+            hud->flags.bits.mTransView = 1;
+        }
+
+        if ((!PlayerArr.empty()) && (player == nullptr)) {
             PlayerArr.clear();
+        }
 
         if ((!CamArr.empty()) && (camera == nullptr))
             CamArr.clear();
+
+        if ((!HUDArr.empty()) && (hud_ml->mTop == nullptr))
+            HUDArr.clear();
+
     }
 }
 

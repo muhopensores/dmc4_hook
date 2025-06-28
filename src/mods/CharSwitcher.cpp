@@ -713,7 +713,7 @@ std::optional<std::string> CharSwitcher::on_initialize() {
         spdlog::error("Failed to init CharSwitcher8 mod\n");
         return "Failed to init CharSwitcher8 mod";
     }
-    if (!install_hook_offset(0x42EB84, hook10, &detour10, &jmp_ret10, 6)) { // Reload Dante Save
+    if (!install_hook_offset(0x42EB84, hook10, &detour10, &jmp_ret10, 6)) { // Increase SSword range
         spdlog::error("Failed to init CharSwitcher9 mod\n");
         return "Failed to init CharSwitcher9 mod";
     }

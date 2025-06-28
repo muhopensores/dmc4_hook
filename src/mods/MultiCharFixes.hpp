@@ -19,5 +19,6 @@ public:
     void on_gui_frame(int display) override;
 
 private:
+    std::unique_ptr<FunctionHook> hook1, hook2;
     std::unique_ptr<Patch> patch1, patch2;
 };
