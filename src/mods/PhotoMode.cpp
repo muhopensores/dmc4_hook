@@ -4,6 +4,7 @@
 #include "../sdk/Devil4.hpp"
 #include <Mods.hpp>
 #include "utility/Hash.hpp"
+#include "../sdk/World2Screen.hpp"
 
 bool PhotoMode::mod_enabled = false;
 bool PhotoMode::photo_mode_open = false;
@@ -667,6 +668,102 @@ void PhotoMode::on_gui_frame(int display) {
     }
 }
 
+static int selectedLightIndex = -1;
+static bool isManipulatingLight = false;
+static ImGuizmo::OPERATION currentLightGizmoOperation = ImGuizmo::TRANSLATE;
+static ImGuizmo::MODE currentLightGizmoMode = ImGuizmo::WORLD;
+
+static void ImGuizmoManipulators() {
+    w2s::ImGuizmoSetup();
+    float view[16], projection[16];
+    if (!w2s::GetImGuizmoMatrices(view, projection)) {
+        return;
+    }
+    
+    sUnit* s_unit = (sUnit*)devil4_sdk::get_sUnit();
+    MoveLine* moveline = &s_unit->mMoveLine[17];
+    cUnit* obj = moveline->mTop;
+    int lightIndex = 0;
+    
+    while (obj != nullptr) {
+        bool del_flag = obj->flags.bits.mBeFlag & BEFLAG_DELETE;
+        bool pre_del_flag = obj->flags.bits.mBeFlag & BEFLAG_PRE_DELETE;
+        
+        if (del_flag != 0 || pre_del_flag != 0) {
+            uintptr_t objectType = (uintptr_t)call_constructor(*(void**)((*(uintptr_t**)obj) + 4));
+            
+            glm::vec3 lightPos;
+            bool hasPosition = false;
+            ImU32 lightColor = IM_COL32(255, 255, 0, 200); // yellow
+            
+            switch (objectType) {
+                case PM_SPOT_LIGHT: {
+                    uSpotLight* spot_light = (uSpotLight*)obj;
+                    lightPos = glm::vec3(spot_light->mWPos.x, spot_light->mWPos.y, spot_light->mWPos.z);
+                    lightColor = IM_COL32(255, 255, 0, 200); // yellow
+                    hasPosition = true;
+                    
+                    glm::vec3 newPos;
+                    if (w2s::DrawImGuizmoManipulator(lightPos, newPos, lightIndex, selectedLightIndex, isManipulatingLight,
+                                        currentLightGizmoOperation, currentLightGizmoMode, view, projection,
+                                        lightColor, 8.0f, "SpotLight")) {
+                        spot_light->mPos.x = newPos.x;
+                        spot_light->mPos.y = newPos.y;
+                        spot_light->mPos.z = newPos.z;
+                    }
+                    break;
+                }
+                
+                case PM_POINT_LIGHT: {
+                    uPointLight* point_light = (uPointLight*)obj;
+                    lightPos = glm::vec3(point_light->mWPos.x, point_light->mWPos.y, point_light->mWPos.z);
+                    lightColor = IM_COL32(255, 200, 100, 200); // orange
+                    hasPosition = true;
+                    
+                    glm::vec3 newPos;
+                    if (w2s::DrawImGuizmoManipulator(lightPos, newPos, lightIndex, selectedLightIndex, isManipulatingLight,
+                                        currentLightGizmoOperation, currentLightGizmoMode, view, projection,
+                                        lightColor, 8.0f, "PointLight")) {
+                        point_light->mPos.x = newPos.x;
+                        point_light->mPos.y = newPos.y;
+                        point_light->mPos.z = newPos.z;
+                    }
+                    break;
+                }
+            }
+        }
+        
+        lightIndex++;
+        obj = obj->mp_next_unit;
+    }
+    ImGuizmo::MODE currentImGuizmode = ImGuizmo::WORLD; // force world
+    w2s::ImGuizmoKeyboardShortcuts(currentLightGizmoOperation, currentImGuizmode);
+    w2s::ImGuizmoDeselection(selectedLightIndex);
+}
+
+void DisplayLightGuizmoControls() {
+    ImGui::Text("Light Manipulator Controls:");
+    ImGui::Text("G - Translate, R - Rotate, S - Scale");
+    
+    if (ImGui::RadioButton("Translate", currentLightGizmoOperation == ImGuizmo::TRANSLATE)) {
+        currentLightGizmoOperation = ImGuizmo::TRANSLATE;
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Rotate", currentLightGizmoOperation == ImGuizmo::ROTATE)) {
+        currentLightGizmoOperation = ImGuizmo::ROTATE;
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Scale", currentLightGizmoOperation == ImGuizmo::SCALE)) {
+        currentLightGizmoOperation = ImGuizmo::SCALE;
+    }
+    
+    if (selectedLightIndex >= 0) {
+        ImGui::Text("Selected Light Index: %d", selectedLightIndex);
+    } else {
+        ImGui::Text("No light selected");
+    }
+}
+
 void PhotoMode::on_frame(fmilliseconds& dt) {
     if (photo_mode_open) {
         uPlayer* player = devil4_sdk::get_local_player();
@@ -680,6 +777,8 @@ void PhotoMode::on_frame(fmilliseconds& dt) {
         }
         if (player && HUDCooldown <= 0.0f) {
             ImGui::Begin("Photo Mode##UI", &photo_mode_open);
+            ImGuizmoManipulators();
+            DisplayLightGuizmoControls();
             static bool pauseGame = true;
             ImGui::SetWindowPos(ImVec2(ScreenSize.x * 0.6f, ScreenSize.y * 0.5f), ImGuiCond_Once);
             ImGui::SetWindowSize(ImVec2(ScreenSize.x * 0.4f, ScreenSize.y * 0.5f), ImGuiCond_Once);

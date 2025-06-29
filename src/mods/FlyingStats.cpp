@@ -1,6 +1,7 @@
-#include "FlyingStats.hpp"
+﻿#include "FlyingStats.hpp"
 #include "EnemyTracker.hpp" // for enemy specific offsets
 #include "sdk/World2Screen.hpp"
+#include <corecrt_math_defines.h>
 
 bool FlyingStats::showFlyingStats = false;
 bool FlyingStats::showFlyingEnemyStats = false;
@@ -18,6 +19,63 @@ bool FlyingStats::showFlyingDebug = false;
 bool FlyingStats::showFlyingCollisionData = false;
 int FlyingStats::collisionPage = 0;
 bool FlyingStats::showFlyingCancelBools = false;
+
+static void ImGuizmoManipulators(uEnemy* enemy, int& enemyIndex) {
+    static int selectedEnemyIndex = -1;
+    static int selectedJointIndex = -1;
+    static bool isManipulating = false;
+    static ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::TRANSLATE;
+    
+    w2s::ImGuizmoSetup();
+    float view[16], projection[16];
+    if (!w2s::GetImGuizmoMatrices(view, projection)) {
+        return;
+    }
+        
+    glm::vec3 enemyPos = glm::vec3(enemy->position);
+    glm::vec3 enemyScale = glm::vec3(enemy->scale);
+    // glm::vec3 enemyRotation = glm::vec3(enemy->rotation);
+
+    glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), enemyScale);
+    glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), enemyPos);
+    glm::mat4 enemyTransform = translateMatrix * scaleMatrix;
+        
+    ImU32 enemyColor = (selectedEnemyIndex == enemyIndex) ? 
+                        IM_COL32(255, 0, 0, 255) : // red
+                        IM_COL32(255, 255, 0, 200); // yellow
+        
+    glm::mat4 newTransform;
+        
+    if (w2s::DrawImGuizmoManipulator(enemyTransform, newTransform, enemyIndex, selectedEnemyIndex, isManipulating,
+                        currentGizmoOperation, ImGuizmo::WORLD, view, projection,
+                        enemyColor, (selectedEnemyIndex == enemyIndex) ? 12.0f : 8.0f, "Enemy")) {
+            
+        if (currentGizmoOperation == ImGuizmo::TRANSLATE) {
+            glm::vec3 newPos = glm::vec3(newTransform[3]);
+            
+            enemy->position.x = newPos.x;
+            enemy->position.y = newPos.y;
+            enemy->position.z = newPos.z;
+        }
+        else if (currentGizmoOperation == ImGuizmo::SCALE) {
+            glm::vec3 newScale;
+            newScale.x = glm::length(glm::vec3(newTransform[0]));
+            newScale.y = glm::length(glm::vec3(newTransform[1]));
+            newScale.z = glm::length(glm::vec3(newTransform[2]));
+            
+            enemy->scale.x = newScale.x;
+            enemy->scale.y = newScale.y;
+            enemy->scale.z = newScale.z;
+        }
+        // else if (currentGizmoOperation == ImGuizmo::ROTATE) {
+        //     idk man, enemy->rotation is 3 floats that go from -1 to +1, it should be easy surely
+        // }
+    }
+    
+    ImGuizmo::MODE currentMode = ImGuizmo::WORLD; // Always use world space
+    w2s::ImGuizmoKeyboardShortcuts(currentGizmoOperation, currentMode);
+    w2s::ImGuizmoDeselection(selectedEnemyIndex);
+}
 
 static void DisplayCollisionData(uCollisionMgr* currentEnemyCollision, float currentItemWidth) {
     uintptr_t collisionSettingsAddress = *(uintptr_t*)&currentEnemyCollision;
@@ -241,6 +299,7 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
             int enemyCount = 0;
             uEnemy* enemy = devil4_sdk::get_uEnemies(); // in BP 100, Agnus isn't in slot 1 so this breaks :(
             while (enemy) {
+                ImGuizmoManipulators(enemy, enemyCount);
                 glm::vec3 objectPosition = enemy->position;
                 float objectDistance = w2s::GetDistanceFromCam(objectPosition);
                 float guiFriendlyDistance = glm::min(1000.0f / objectDistance, 1.0f);

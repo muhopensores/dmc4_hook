@@ -2,10 +2,20 @@
 #include "sdk/Devil4.hpp"
 #include "imgui/imgui.h"
 #include "utility/Dx9Utils.hpp"
+#include "../sdk/World2Screen.hpp"
+#include <ImGuizmo.h>
 
 namespace w2s {
 	glm::vec2 WorldToScreen(const glm::vec3& targetPos);
 	float GetDistanceFromCam(const glm::vec3& targetPos);
+    void ImGuizmoSetup();
+    bool DrawImGuizmoManipulator(const glm::mat4& worldTransform, glm::mat4& newTransform, int objectIndex, int& selectedIndex, bool& isManipulating, ImGuizmo::OPERATION operation,
+        ImGuizmo::MODE mode, const float* viewMatrix, const float* projectionMatrix, ImU32 iconColor, float iconRadius, const char* debugName);
+    bool DrawImGuizmoManipulator(const glm::vec3& worldPosition, glm::vec3& newPosition, int objectIndex, int& selectedIndex, bool& isManipulating, ImGuizmo::OPERATION operation,
+        ImGuizmo::MODE mode, const float* viewMatrix, const float* projectionMatrix, ImU32 iconColor, float iconRadius, const char* debugName);
+    bool GetImGuizmoMatrices(float viewMatrix[16], float projectionMatrix[16]);
+    void ImGuizmoDeselection(int& selectedIndex);
+    void ImGuizmoKeyboardShortcuts(ImGuizmo::OPERATION& operation, ImGuizmo::MODE&);
 	void DrawWireframeCube(const glm::vec3& center, float size, float rotation, ImU32 color, float thickness = 1.0f);
 	void DrawWireframeSphere(const glm::vec3& center, float radius, float rotation, ImU32 color, int segments = 16, float thickness = 1.0f);
 	void DrawWireframeCapsule(const glm::vec3& center, float radius, float height, float rotationX, float rotationY, float rotationZ, ImU32 color, int segments, float thickness);
