@@ -18,8 +18,8 @@ void MultiCharFixes::toggle_targeting_fix(bool enable) {
 }
 
 bool __stdcall new_jc_check(uActor* pl, uActor* em) {
-    if ((em->mEmJumpEnableFlag != false) && (em->mpEmJumpData != nullptr) && ((em->mActorStatus & 0x80) == 0) &&
-        (em->flags.bits.mBeFlag == 2) && ((em->flags.raw & 0x400) != 0)) {
+    if (((em->mEmJumpEnableFlag != false) && (em->mpEmJumpData != nullptr)) && ((em->mActorStatus & 0x80) == 0) &&
+        ((em->flags.bits.mBeFlag == 2) && ((em->flags.raw & 0x400) != 0))) {
         
         uint32_t jc_mask = ((uint32_t(__stdcall *)(uActor * actor))(0x04ab3a0))(em);
         if (jc_mask == 0) return false;
