@@ -317,7 +317,8 @@ naked void detour4() {
 
             jmp handle
         originalcode:
-            mov edi,[sDevil4Pad_ptr]
+            mov edi, dword ptr [sDevil4Pad_ptr]
+            mov edi, [edi]
         handle:
             jmp [Coop::jmp_ret4]
         handle2:
@@ -381,6 +382,7 @@ naked void detour6() {
             jmp handle
         originalcode:
             mov eax,[sDevil4Pad_ptr]
+            mov eax,[eax]
         handle:
             jmp [Coop::jmp_ret6]
     }
@@ -567,7 +569,7 @@ std::optional<std::string> Coop::on_initialize() {
         return "Failed to init Coop mod5";
     }
 
-    if (!install_hook_absolute(0x421e14, hook6, &detour6, &jmp_ret6, 5)) { // Cam pad Y-axis control
+    if (!install_hook_absolute(0x421e14, hook6, &detour6, &jmp_ret6, 5)) { // Cam pad X-axis control
         spdlog::error("Failed to init Coop mod4\n");
         return "Failed to init Coop mod4";
     }
