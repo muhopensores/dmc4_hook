@@ -328,6 +328,8 @@ set(MODS_SRC
   mods/PhotoMode.cpp
   mods/Coop.hpp
   mods/Coop.cpp
+  mods/StageCallback.hpp
+  mods/StageCallback.cpp
 )
 
 set(HOOKS_SRC
