@@ -20,35 +20,34 @@ void MultiCharFixes::toggle_targeting_fix(bool enable) {
 bool __stdcall new_jc_check(uActor* pl, uActor* em) {
     if ((em->mEmJumpEnableFlag != false) && (em->mpEmJumpData != nullptr) && ((em->mActorStatus & 0x80) == 0) &&
         (em->flags.bits.mBeFlag == 2) && ((em->flags.raw & 0x400) != 0)) {
+        
         uint32_t jc_mask = ((uint32_t(__stdcall *)(uActor * actor))(0x04ab3a0))(em);
-        UModelJoint* pjoint;
+        if (jc_mask == 0) return false;
+        
+        kEmJumpData* jc_data = em->mpEmJumpData;
+        if (jc_data->jointNo == -1) return false;
+        
         int count = 0;
-        if (jc_mask != 0) {
-            kEmJumpData* jc_data = em->mpEmJumpData;
-            uint32_t joint_no = em->mpEmJumpData->jointNo;
-            do {
-                if ((jc_mask & 1 << (count & 0x1f)) != 0) {
-                    joint_no = em->mJointTable[joint_no & 0xff];
-                    if (joint_no == 0xff)
-                        pjoint = 0;
-                    else
-                        pjoint = &em->mpJoint[joint_no];
+        
+        do {
+            if ((jc_mask & (1 << (count & 0x1f))) != 0) {
+                uint32_t joint_no = jc_data->jointNo;
+                joint_no = em->mJointTable[joint_no & 0xff];
+                
+                UModelJoint* pjoint;
+                if (joint_no == 0xff) {
+                    count++;
+                    jc_data++;
+                    continue;
                 }
+                pjoint = &em->mpJoint[joint_no];
+                
                 MtMatrix* joint_mat = &pjoint->mWmat;
-                glm::mat4 joint_wmat = glm::make_mat4((float*)joint_mat);
-                MtVector4 ofs;
-                ofs.x = jc_data->offset.x;
-                ofs.y = jc_data->offset.y;
-                ofs.z = jc_data->offset.z;
-                ofs.w = 1.0f;
-
-                float scale = 1.0f / (joint_mat->m1.w * ofs.x + joint_mat->m3.w * ofs.z
-                                    + joint_mat->m2.w * ofs.y + joint_mat->m4.w);
-
+                
                 MtVector4 pl_pos;
                 if (pl != nullptr) {
                     pl_pos.x = pl->mPos.x;
-                    pl_pos.y = pl->mPos.y - 85.0f;
+                    pl_pos.y = pl->mPos.y + 85.0f;
                     pl_pos.z = pl->mPos.z;
                     pl_pos.w = 1.0f;
                 } else {
@@ -57,18 +56,22 @@ bool __stdcall new_jc_check(uActor* pl, uActor* em) {
                     pl_pos.z = 0.0f;
                     pl_pos.w = 1.0f;
                 }
-
-                glm::vec4 res_vec = joint_wmat * (*(glm::vec4*)(&ofs));
-                res_vec = res_vec * scale - glm::make_vec4((float*)&pl_pos);
-
-                if (glm::length((glm::vec3)res_vec) < jc_data->radius * jc_data->radius)
+                
+                MtVector4 ofs = {jc_data->offset.x, jc_data->offset.y, jc_data->offset.z, 1.0f};
+                glm::vec4 transformed_pos = glm::make_mat4((float*)joint_mat) * glm::make_vec4((float*)&ofs);
+                
+                glm::vec3 diff = glm::vec3(transformed_pos) - glm::vec3(pl_pos.x, pl_pos.y, pl_pos.z);
+                float dist_squared = glm::dot(diff, diff);
+                
+                if (dist_squared < jc_data->radius * jc_data->radius) {
                     return true;
-
-                joint_no = (jc_data + 1)->jointNo;
-                count += 1;
-                jc_data = jc_data + 1;
-            } while (joint_no != -1);
-        }
+                }
+            }
+            
+            count++;
+            jc_data++;
+            
+        } while (jc_data->jointNo != -1);
     }
     return false;
 }
@@ -83,7 +86,7 @@ naked void detour1() {
 
             jmp handle
         originalcode:
-            call isEmJump_call
+            call isEmJump_call // player in edi, enemy in esi
         handle:
             jmp [MultiCharFixes::jmp_ret1]
     }
@@ -122,11 +125,12 @@ std::optional<std::string> MultiCharFixes::on_initialize() {
         spdlog::error("Failed to init Coop mod1\n");
         return "Failed to init Coop mod1";
     }
-
+    
     if (!install_hook_absolute(0x804a61, hook2, &detour2, &jmp_ret2, 5)) { // Nero HUD
         spdlog::error("Failed to init Coop mod1\n");
         return "Failed to init Coop mod1";
     }
+    return Mod::on_initialize();
 }
 
 void MultiCharFixes::on_config_load(const utility::Config& cfg) {
