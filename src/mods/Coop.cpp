@@ -672,14 +672,14 @@ void Coop::on_gui_frame(int display) {
         player_factory(0, 1);
         make_cam();
         sCamera* s_cam = *(sCamera**)sCamera_ptr;
-        s_cam->viewports[0].mMode = REGION_LEFT;
-        s_cam->viewports[1].mMode = REGION_RIGHT;
+        s_cam->viewports[0].mMode = REGION_TOP;
+        s_cam->viewports[1].mMode = REGION_BOTTOM;
     }
     if (ImGui::Button("Spawn Dante")) {
         player_factory(1, 1);
         make_cam();
         sCamera* s_cam = *(sCamera**)sCamera_ptr;
-        s_cam->viewports[0].mMode = REGION_LEFT;
-        s_cam->viewports[1].mMode = REGION_RIGHT;
+        s_cam->viewports[0].mMode = REGION_TOP;
+        s_cam->viewports[1].mMode = REGION_BOTTOM;
     }
 }

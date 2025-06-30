@@ -11,10 +11,14 @@ using Vector4 = glm::vec4;
 
 // Generated using ReClass 2016
 #include <cstdint>*/
+#ifndef RECLASS_INTERNAL_HPP
+#define RECLASS_INTERNAL_HPP
+#endif
 
 #include <vector>
 #include <string>
 #include ".\utility\MoFile.hpp"
+#include "MtMath.hpp"
 #define _(string) utility::text_lookup(string)
 #define __(str) str
 
@@ -813,43 +817,43 @@ public:
 }; //Size: 0x0080
 static_assert(sizeof(REffectList) == 0x0080);
 
-class uActor {
-    virtual void destructor();//0x00
-    virtual void getTypeInfo();//0x04
-    virtual void ukn1();//0x08
-    virtual void ukn2();//0x0C
-    virtual void getDTI();//0x10
-    virtual void setup();//0x14                                      
-    virtual void freeze(); //0x18, as in literally frosted over
-    virtual void ukn4(); //0x1C
-    virtual void ukn5(); //0x20
-    virtual void render(void* mtrans); // 0x24
-    virtual void ukn7(); // 0x28
-    virtual void ukn8(); // 0x2C
-    virtual void die(); // 0x30
-    virtual void updateLmat();//0x34
-    virtual void updateWmat();//0x38
-    virtual void getJointMatrix(int jntInd);//0x3C
-   // virtual void LoadrModel(CResource* mdl);//0x40
-    virtual void lifecycle();//0x78
-    virtual void getCenterPos();//0x84
-    virtual void getCenterJointInd(int index);//0x88
-    virtual void DamageReaction();//0x90
-    virtual void AtckHitCallback();//0x94
+//class uActor {
+//    virtual void destructor();//0x00
+//    virtual void getTypeInfo();//0x04
+//    virtual void ukn1();//0x08
+//    virtual void ukn2();//0x0C
+//    virtual void getDTI();//0x10
+//    virtual void setup();//0x14                                      
+//    virtual void freeze(); //0x18, as in literally frosted over
+//    virtual void ukn4(); //0x1C
+//    virtual void ukn5(); //0x20
+//    virtual void render(void* mtrans); // 0x24
+//    virtual void ukn7(); // 0x28
+//    virtual void ukn8(); // 0x2C
+//    virtual void die(); // 0x30
+//    virtual void updateLmat();//0x34
+//    virtual void updateWmat();//0x38
+//    virtual void getJointMatrix(int jntInd);//0x3C
+//   // virtual void LoadrModel(CResource* mdl);//0x40
+//    virtual void lifecycle();//0x78
+//    virtual void getCenterPos();//0x84
+//    virtual void getCenterJointInd(int index);//0x88
+//    virtual void DamageReaction();//0x90
+//    virtual void AtckHitCallback();//0x94
+//
+//    uintptr_t vtable;
+//    int transFlags;
+//};
 
-    uintptr_t vtable;
-    int transFlags;
-};
-
-class MtMatrix
-{
-public:
-	Vector4f m1; //0x0000
-	Vector4f m2; //0x0010
-	Vector4f m3; //0x0020
-	Vector4f m4; //0x0030
-}; //Size: 0x0040
-static_assert(sizeof(MtMatrix) == 0x40);
+//class MtMatrix
+//{
+//public:
+//	Vector4f m1; //0x0000
+//	Vector4f m2; //0x0010
+//	Vector4f m3; //0x0020
+//	Vector4f m4; //0x0030
+//}; //Size: 0x0040
+//static_assert(sizeof(MtMatrix) == 0x40);
 
 class CUnit : public MtObject
 {
@@ -869,93 +873,31 @@ public:
 }; //Size: 0x0018
 static_assert(sizeof(CUnit) == 0x18);
 
-struct MtVector3 { /* 10 */
-    float x; // 0x00
-    float y; // 0x04
-    float z; // 0x08
-    int padding; // 0x0C
-};
-
-struct MtCapsule {
-    MtVector3 p0;
-    MtVector3 p1;
-    float r;
-    char field3_0x24;
-    char field4_0x25;
-    char field5_0x26;
-    char field6_0x27;
-    char field7_0x28;
-    char field8_0x29;
-    char field9_0x2a;
-    char field10_0x2b;
-    char field11_0x2c;
-    char field12_0x2d;
-    char field13_0x2e;
-    char field14_0x2f;
-};
-static_assert(sizeof(MtCapsule) == 0x30);
-
-struct MtFloat3 {
-    float x;
-    float y;
-    float z;
-};
-
-struct MtSphere {
-    MtFloat3 pos;
-    float r;
-};
-
-struct MtVector4 { /* MtFramework vector */
-    float x;
-    float y;
-    float z;
-    float w;
-};
-
-struct cFreeze {
-    void *vtable;
-    uint8_t mSchedulerMode;
-    uint8_t mEnable;
-    uint16_t padding6;
-    uintptr_t mpTexBase;
-    uintptr_t mpTexNormal;
-    uintptr_t mpTexMask;
-    uint32_t padding14[3];
-    MtVector3 mSphereCenter;
-    float mSphereBandwith;
-    float mIceBias;
-    float mFresnelBias;
-    float mFresnelFactor;
-    float mSpecularPow;
-    float mEnvmapPower;
-    float mNormalBias;
-    float mNormalWrap;
-    MtVector3 mTransmit;
-    uint32_t mFog;
-    float mSphereRadiusMax;
-    float mSphereRadiusMin;
-    float mIceTransparencyMax;
-    float mIceTransparencyMin;
-    float mFreezeTimerMax;
-    float mFreezeTimerNow;
-    float mSphereRadius;
-    float mIceTransparency;
-    uint32_t padding84[3];
-};
-
-struct cWorkRate {
-    void *vtable;
-    float mWorkRate;
-    uint32_t mType;
-    float HalfRate;
-    struct uDevil4Model *mpModel;
-};
-
-struct MtEaseCurve {
-    float p1;
-    float p2;
-};
+//struct MtVector3 { /* 10 */
+//    float x; // 0x00
+//    float y; // 0x04
+//    float z; // 0x08
+//    int padding; // 0x0C
+//};
+//
+//struct MtCapsule {
+//    MtVector3 p0;
+//    MtVector3 p1;
+//    float r;
+//    char field3_0x24;
+//    char field4_0x25;
+//    char field5_0x26;
+//    char field6_0x27;
+//    char field7_0x28;
+//    char field8_0x29;
+//    char field9_0x2a;
+//    char field10_0x2b;
+//    char field11_0x2c;
+//    char field12_0x2d;
+//    char field13_0x2e;
+//    char field14_0x2f;
+//};
+//static_assert(sizeof(MtCapsule) == 0x30);
 
 enum BE_FLAG {
     BEFLAG_DISABBLE,
@@ -992,9 +934,9 @@ struct cUnit {
 };
 static_assert(sizeof(cUnit) == 0x18);
 
-struct uCoord {
-    cUnit cUnitBase;
-    uintptr_t* mParent;
+class uCoord: public cUnit {
+public:
+    uCoord* mpParent;
     int ParentJoint;
     int mOrder;
     int padding24[3];
@@ -1004,122 +946,7 @@ struct uCoord {
     MtMatrix mLmat;
     MtMatrix mWmat;
 };
-
-struct uCollisionMgr {
-    cUnit base; // 0x00
-    uint8_t mHit; // 0x18
-    uint8_t mGrab; // 0x19
-    uint8_t mDamage;// 0x1A
-    uint8_t mPsh; // 0x1B
-    uint8_t mLand; // 0x1C
-    uint8_t mTimedForceLand; // 0x1D
-    uint8_t mSetLand; // 0x1E
-    uint8_t mWall; // 0x1F
-    uint8_t mCeilling; // 0x20
-    short padding21; // 0x21
-    uint8_t mNoLandTimerEnable; // 0x23
-    float mNoLandTimer; // 0x24
-    float mNoLandTime;  // 0x28
-    uint8_t ForceLandFlag; // 0x2C
-    uint8_t mOldLand;  // 0x2D
-    uint8_t mOldSetLand; // 0x2E
-    uint8_t mOldWall; // 0x2F
-    uint8_t mOldCeilling; // 0x30
-    uint8_t mCheckWallEnable; // 0x31
-    uint8_t mCheckGroundEnable; // 0x32
-    char padding33[9]; // 0x33
-    uint8_t mFall; // 0x3C
-    uint8_t NoLandTimerType; // 0x3D
-    uint8_t NoLandDTSwitch; // 0x3E
-    uint8_t field25_0x3f; // 0x3F
-    uint32_t NoLandTimerType2; // 0x40
-    float DamageValueCorrect; // 0x44
-    uint32_t EnemyCollisionToggle; // 0x48
-    uint32_t padding4c; // 0x4C
-    MtVector3 LockonTargetPos; // 0x50
-    uintptr_t LockonTarget; // 0x60
-    uint32_t padding64[3]; // 0x64
-    MtVector3 uknFixedVec1; // 0x70
-    MtMatrix GroundMat; // 0x80
-    MtVector3 uknFixedVec2; // 0xC0
-    uint32_t mWeightType; // 0xD0
-    uint32_t mModelID; // 0xD4
-    uintptr_t mpReportActor; // 0xD8
-    uActor *mpDstModel; // 0xDC
-    uActor *mpSrcModel; // 0xE0
-    uintptr_t uknSrcModelPtr; // 0xE4
-    uint32_t paddinge8[17]; // 0xE8
-    uint32_t mPushType; // 0x12C
-    uintptr_t mpPushModel; // 0x130
-    uint32_t padding134[3]; // 0x134
-    MtCapsule mPushCap; // 0x140
-    MtCapsule mPushCap1; // 0x170
-    MtVector3 mPushPos; // 0x1A0
-    MtVector3 mPushPosOld; // 0x1B0
-    MtMatrix field50_0x1c0; // 0x1C0
-    MtMatrix field51_0x200; // 0x200
-    char padding240[64]; // 0x240
-    uint32_t uknToggle; // 0x280
-    uintptr_t mpCollisionIdxData; // 0x284
-    uintptr_t mpCollisionShape; // 0x288
-    uintptr_t mpAttackStatusData; // 0x28C
-    uintptr_t mpDefendStatusData; // 0x290
-    uint32_t mInDamageMessage; // 0x294
-    uint32_t currentMotBuffer; // 0x298
-    uint32_t MotSeq1; // 0x29C
-    uint32_t MotSeq2; // 0x2A0
-    uint8_t HitCheckFlag; // 0x2A4
-    uint8_t HitConfirm; // 0x2A5
-    uint8_t mSelfCollision; // 0x2A6
-    uint8_t padding2a7; // 0x2A7
-    uCollisionMgr *uknCollMgrPtr; // 0x2A8
-    uint32_t mMode; // 0x2AC
-    uint32_t mVsAttrPlAtk; // 0x2B0
-    uint32_t mVsAttrPlDmg; // 0x2B4
-    uint32_t mVsAttrPlPsh; // 0x2B8
-    uint32_t mVsAttrPlGrb; // 0x2BC
-    uint32_t mVsAttrPsAtk; // 0x2C0
-    uint32_t mVsAttrPsDmg; // 0x2C4
-    uint32_t mVsAttrPsPsh; // 0x2C8
-    uint32_t mVsAttrPsGrb; // 0x2CC
-    uint32_t mVsAttrEmAtk; // 0x2D0
-    uint32_t mVsAttrEmDmg; // 0x2D4
-    uint32_t mVsAttrEmPsh; // 0x2D8
-    uint32_t mVsAttrEmGrb; // 0x2DC
-    uint32_t mVsAttrEsAtk; // 0x2E0
-    uint32_t mVsAttrEsDmg; // 0x2E4
-    uint32_t mVsAttrEsPsh; // 0x2E8
-    uint32_t mVsAttrEsGrb; // 0x2EC
-    uint32_t mVsAttrSetAtk; // 0x2F0
-    uint32_t mVsAttrSetDmg; // 0x2F4
-    uint32_t mVsAttrSetPsh; // 0x2F8
-    uint32_t mVsAttrSetGrb; // 0x2FC
-    uint32_t mVsAttrStgAtk; // 0x300
-    uint32_t mVsAttrStgDmg; // 0x304
-    uint32_t mVsAttrStgPsh; // 0x308
-    uint32_t mVsAttrStgGrb; // 0x30C
-    uint32_t UknVsAttrAtk1; // 0x310
-    uint32_t UknVsAttrDmg1; // 0x314
-    uint32_t UknVsAttrPsh1; // 0x318
-    uint32_t UknVsAttrGrb1; // 0x31C
-    uint32_t UknVsAttrAtk2; // 0x320
-    uint32_t UknVsAttrDmg2; // 0x324
-    uint32_t UknVsAttrPsh2; // 0x328
-    uint32_t UknVsAttrGrb2; // 0x32C
-    uint32_t UknVsAttrAtk3; // 0x330
-    uint32_t UknVsAttrDmg3; // 0x334
-    uint32_t UknVsAttrPsh3; // 0x338
-    uint32_t UknVsAttrGrb3; // 0x33C
-    uint32_t UknVsAttrAtk4; // 0x340
-    uint32_t UknVsAttrDmg4; // 0x344
-    uint32_t UknVsAttrPsh4; // 0x348
-    uint32_t UknVsAttrGrb4; // 0x34C
-    uint32_t UknCollisionToggle; // 0x350
-    uint32_t mCollisionGroupNum; // 0x354
-    uintptr_t mppCollisionGroup[32]; // 0x358
-    uint32_t padding3d8[6]; // 0x3D8
-};
-static_assert(sizeof(uCollisionMgr) == 0x3f0);
+static_assert(sizeof(uCoord) == 0xe0);
 
 class UCoord : public CUnit
 {
@@ -1138,13 +965,6 @@ public:
 }; //Size: 0x00E0
 static_assert(sizeof(UCoord) == 0xE0);
 
-class uModel : public UCoord
-{
-public:
-    Matrix4x4 mPrevWmat;
-    uint32_t mLightGroup;
-};
-
 class UFilter : public CUnit
 {
 public:
@@ -1154,13 +974,13 @@ public:
 }; //Size: 0x0020
 static_assert(sizeof(UFilter) == 0x20);
 
-class MtHermiteCurve
-{
-public:
-	float x[8]; //0x0000
-	float y[8]; //0x0020
-}; //Size: 0x0040
-static_assert(sizeof(MtHermiteCurve) == 0x40);
+//class MtHermiteCurve
+//{
+//public:
+//	float x[8]; //0x0000
+//	float y[8]; //0x0020
+//}; //Size: 0x0040
+//static_assert(sizeof(MtHermiteCurve) == 0x40);
 
 enum class CcType : int32_t
 {
@@ -1309,163 +1129,7 @@ public:
 }; // Size: 0x30
 static_assert(sizeof(lockOnSphereData) == 0x30);
 
-class UModelJoint { // redef, was in AfterImage.cpp
-public:
-   void* vtable;           // 0x00
-   byte mAttr;             // 0x04
-   byte mParentIndex;      // 0x05
-   byte mType;             // 0x06
-   byte mNo;               // 0x07
-   int mSymmetryIndex;     // 0x08
-   void* mpConstraint;     // 0x0C
-   struct MtFloat3 mOffset;// 0x10
-   float mLength;          // 0x1C
-   MtVector4 mQuat;        // 0x20
-   MtVector3 mScale;       // 0x30
-   MtVector3 mTrans;       // 0x3C
-   MtMatrix mWmat;         // 0x48
-};
-static_assert(sizeof(UModelJoint)==0x90);
 
-class UModelJointArr
-{
-public:
-	class UModelJoint joint[200]; //0x0000
-}; //Size: 0x2A30
-static_assert(sizeof(UModelJointArr) == 0x7080);
-
-class kEmJumpData /* size : 0x00000020 */
-{
-public:
-	// void kEmJumpData(const kEmJumpData *) /* public */;
-	// void kEmJumpData(void) /* public */;
-	// kEmJumpData *operator=(const kEmJumpData *) /* public */;
-	/*****************************************/
-	/*****************************************/
-	int jointNo; // 0x00000000
-	float radius; // 0x00000004
-    char pad_08[8]; // 0x00000008
-	MtVector3 offset; // 0x00000010
-};
-static_assert(sizeof(kEmJumpData) == 0x20);
-
-class kEmJumpDataArr
-{
-public:
-	class kEmJumpData enemyStepSphere[30];
-}; //Size: 0x3C0
-static_assert(sizeof(kEmJumpDataArr) == 0x3C0);
-
-class uEnemy {
-public:
-    uintptr_t vtable; // 0x0
-    int flags; // 0x4
-    uEnemy* nextEnemy; // 0x8
-    char pad_c[0x4];
-    float delta; // 0x10
-    uint8_t moveID; // 0x14
-    uint8_t movePart; // 0x15
-    char pad_16[0x1a];
-    Vector3f position; // 0x30
-    char pad_3c[0x4];
-    Vector3f rotation; // 0x40
-    char pad_4c[0x4];
-    Vector3f scale; // 0x50
-    char pad_5c[0x74];
-    Vector3f positionKnockback; // 0xd0
-    char pad_dc[0x14];
-    Vector3f rotationKnockback; // 0xf0
-    char pad_fc[0x34];
-    bool isLit; // 0x130
-    char pad_131[0x3];
-    bool causeShadow; // 0x134
-    char pad_135[0x1ab];
-    int m_joint_array_size; // 0x2e0
-    UModelJointArr* joints; // 0x2e4
-    int something_size; // 0x2e8
-    char pad_2ec[0x38];
-    bool playAnims; // 0x324
-    char pad_325[0xf];
-    uint16_t animID; // 0x334
-    char pad_336[0x12];
-    float animFrame; // 0x348
-    float animFrameMax; // 0x34c
-    char pad_350[0xb50];
-    uint16_t launchStateThing1; // 0xea0
-    char pad_ea2[0x6];
-    uint16_t launchStateThing2; // 0xea8
-    char pad_eaa[0x46];
-    int lockOnSphereCount; // 0xef0
-    char pad_ef4[0xc];
-    lockOnSphereData jcSpheres[5]; // 0xf00
-    char pad_ff0[0x320];
-    uintptr_t something; // 0x1310
-    uintptr_t something2; // 0x1314
-    kEmJumpDataArr* enemyStepSphereArray; // 0x1318
-    int m_enemystepSphereCount; // 0x131c
-    int intAt1320; // 0x1320
-    char pad_1324[0xe0];
-    bool inBattle; // 0x1404
-    bool isActive; // 0x1405
-    char pad_1406[0xa];
-    ENEMY_ID ID; // 0x1410
-    int team; // 0x1414
-    char pad_1418[0x70];
-    float DTTimer; // 0x1488
-    bool DT; // 0x148c
-    char pad_148d[0x73];
-    uEnemyDamagePossibility DamagePtrMephistoFaustAssaultGladius; // 0x1500
-    uEnemyDamagePossibility DamagePtrAltoBiancoFrostBlitzBoss; // 0x1504
-    uEnemyDamagePossibility DamagePtrCutlass; // 0x1508
-    char pad_150c[0x20];
-    uEnemyDamagePossibility DamagePtrScarecrowLegArmMega; // 0x152c
-    char pad_1530[0xd0];
-    uCollisionMgr collisionSettings; // 0x1600
-    char pad_19f0[0x150];
-    Vector3f velocity; // 0x1b40
-    char pad_1b4c[0x20];
-    float berialFireHalf; // 0x1b6c
-    float berialFireMax; // 0x1b70
-    char pad_1b74[0x8];
-    float berialFireTimer; // 0x1b7c
-    float berialFire; // 0x1b80
-    char pad_1b84[0x3ec];
-    float assaultDifficulty; // 0x1f70
-    char pad_1f74[0xe8];
-    float gladiusTimer; // 0x205c
-    char pad_2060[0x5c];
-    float faustCloakTimer; // 0x20bc
-    char pad_20c0[0xc4];
-    float blitzElectric; // 0x2184
-    float blitzElectricSuicideHPRequirement; // 0x2188
-    float blitzElectricTimer; // 0x218c
-    float blitzElectricSuicideTimer; // 0x2190
-    char pad_2194[0x40];
-    bool gladiusBuried; // 0x21d4
-    char pad_21d5[0x10b];
-    float faustCloak; // 0x22e0
-    float faustCloakMax; // 0x22e4
-    char pad_22e8[0x14e0];
-    float angeloShield; // 0x37c8
-    float angeloShieldMax; // 0x37cc
-    char pad_37d0[0xb4];
-    float credoShieldTimer; // 0x3884
-    char pad_3888[0x34];
-    float credoShield; // 0x38bc
-    char pad_38c0[0x4704];
-    uEnemyDamagePossibility DamagePtrBasilisk; // 0x7fc4
-    char pad_7fc8[0x18f8];
-    int frostHealCount; // 0x98c0
-    char pad_98c4[0xf03c];
-    float sanctusShieldM11; // 0x18900
-    char pad_18904[0x8];
-    float sanctusShieldTimerM11; // 0x1890c
-    char pad_18910[0x56e4];
-    float sanctusShieldM20; // 0x1dff4
-    char pad_1dff8[0x8];
-    float sanctusShieldTimerM20; // 0x1e000
-}; // Size: 0x1e004
-static_assert(sizeof(uEnemy) == 0x1e004);
 
 class uHasDelta : public cUnit {
 public:
@@ -1490,46 +1154,6 @@ public:
     uint32_t resolution; // 0x224
 }; // Size: 0x228
 static_assert(sizeof(uShadow) == 0x228);
-
-class cCameraPlayer {
-public:
-    char pad_0[0x10]; //0x00
-    Vector3f pos; // 0x10
-    char pad_1c[0x4];
-    Vector3f lookat; // 0x20
-    char pad_2c[0x14];
-    float nearClipPlane; // 0x40
-    char pad_44[0x90];
-    float angle; // 0xd4
-    float distance; // 0xd8
-    float distanceLockon; // 0xdc
-    char pad_e0[0x4];
-    float FOV; // 0xe4
-    float FOVBattle; // 0xe8
-    char pad_ec[0x114];
-    Matrix4x4 possibleMat1; // 0x200 // buncha possibilities up til 230
-}; // Size: 0x240
-static_assert(sizeof(cCameraPlayer) == 0x240);
-
-// sMediator + D0 camera, had a more useable glm mat but less settable values
-class uCameraCtrl {
-public:
-    char pad_0[0x1c];
-    float nearClipPlane; // 0x1c
-    char pad_20[0x4];
-    float FOV; // 0x24
-    char pad_28[0x8];
-    Vector3f pos; // 0x30
-    char pad_3c[0x4];
-    Vector3f up; // 0x40
-    char pad_4c[0x4];
-    Vector3 lookat; // 0x50
-    char pad_60[0x154];
-    Matrix4x4 possibleMat5; // 0x1b0
-    char pad_1f0[0x2a0];
-    cCameraPlayer* cCameraPlayer1; // 0x490
-}; // Size: 0x494
-static_assert(sizeof(uCameraCtrl) == 0x494);
 
 class SMediator {
 public:
@@ -1709,222 +1333,6 @@ struct kAtckDefTbl {
     uint32_t cancelId[5];        //0x0024, 0x0028, 0x002C, 0x0030, 0x0034
 }; //Size: 0x38
 static_assert(sizeof(kAtckDefTbl) == 0x38);
-
-class uPlayer : public UCoord {
-public:
-    char pad_e0[0x10];
-    Vector4f rotationKnockback; // 0xf0
-    char pad_100[0x30];
-    uint8_t armShadows; // 0x130
-    char pad_131[0x3];
-    uint8_t causeShadows; // 0x134
-    char pad_135[0x3];
-    uint8_t bodyShadows; // 0x138
-    char pad_139[0x43];
-    uint32_t boneMapping[5]; // 0x17c
-    char pad_190[0xec];
-    uint32_t meshCount; // 0x27c
-    char pad_280[0x24];
-    uPlayer* player_ptr; // 0x2a4
-    char pad_2a8[0x38];
-    int m_joint_array_size; // 0x2e0
-    UModelJointArr* joint_array; // 0x2e4
-    char pad_2e8[0x4c];
-    uint16_t animID; // 0x334
-    char pad_336[0x12];
-    float animFrame; // 0x348
-    float animFrameMax; // 0x34c
-    char pad_350[0x6e8];
-    MotionPtr* motionPtr1; // 0xa38
-    MotionPtr* motionPtr2; // 0xa3c
-    char pad_a40[0x2b4];
-    float speedUnsettable; // 0xcf4
-    char pad_cf8[0x1ac];
-    uint8_t damageIDMaybe; // 0xea4
-    char pad_ea5[0x3];
-    uint8_t grounded; // 0xea8
-    char pad_ea9[0x17];
-    float groundInertiaX; // 0xec0
-    float inertiaY; // 0xec4
-    float groundInertiaZ; // 0xec8
-    char pad_ecc[0x335];
-    bool hitstop; // 0x1201
-    char pad_1202[0xe];
-    float facingDirection; // 0x1210
-    char pad_1214[0x160];
-    uint16_t buttonInputRaw; // 0x1374
-    uint16_t stickInputRaw; // 0x1376
-    char pad_1378[0x4c];
-    float stickDirection; // 0x13c4
-    char pad_13c8[0x44];
-    uint8_t inputHold[4]; // 0x140c
-    uint8_t inputPress[4]; // 0x1410
-    uint8_t inputRelease[4]; // 0x1414
-    char pad_1418[0x4];
-    uint32_t stickThreshold; // 0x141c
-    float stickFacingWorldAdjusted; // 0x1420
-    bool stickPastThreshold; // 0x1424
-    char pad_1425[0x23];
-    uint8_t isExceeding; // 0x1448
-    char pad_1449[0x1b];
-    float characterSpeed; // 0x1464
-    char pad_1468[0x2c];
-    uint32_t controllerID; // 0x1494
-    char pad_1498[0x58];
-    uint32_t canWeaponChange; // 0x14f0
-    char pad_14f4[0x4];
-    uint32_t isLockonAnimation; // 0x14f8
-    char pad_14fc[0x4];
-    uint32_t moveBank; // 0x1500
-    uint32_t movePart; // 0x1504
-    char pad_1508[0x1];
-    bool isActive; // 0x1509
-    char pad_150a[0x3];
-    bool roomCollision; // 0x150d
-    char pad_150e[0x1];
-    bool enemyCollision; // 0x150f
-    bool triggerBigJump; // 0x1510
-    bool triggerStingerJump; // 0x1511
-    char pad_1512[0x3e];
-    uint8_t cancels1[4]; // 0x1550
-    uint8_t cancels2[4]; // 0x1554
-    char pad_1558[0xc];
-    uint32_t moveID2; // 0x1564
-    char pad_1568[0x4c];
-    uDamage damageStruct; // 0x15b4
-    char pad_1664[0x48];
-    uint32_t walkType; // 0x16ac
-    char pad_16b0[0x10];
-    float inertiaDirectionReal; // 0x16c0
-    char pad_16c4[0xc];
-    bool lockedOn; // 0x16d0
-    char pad_16d1[0x3f];
-    float rotation2; // 0x1710
-    char pad_1714[0x6c];
-    float groundInertia; // 0x1780
-    char pad_1784[0x1c];
-    uintptr_t* collisionPtr1; // 0x17a0
-    char pad_17a4[0x5db];
-    uint8_t canExceed; // 0x1d7f
-    char pad_1d80[0x14];
-    DevilArm* gilgamesh; // 0x1d94
-    DevilArm* lucifer; // 0x1d98
-    DevilArm* ebonyIvory; // 0x1d9c
-    DevilArm* coyoteA; // 0x1da0
-    DevilArm* pandora; // 0x1da4
-    char pad_1da8[0xc];
-    int nextSword; // 0x1db4
-    uint32_t nextGun; // 0x1db8
-    char pad_1dbc[0x4];
-    uint32_t currentSword; // 0x1dc0
-    uint32_t currentGun; // 0x1dc4
-    char pad_1dc8[0x4];
-    kAtckDefTbl* kAtckDefTblPtr; // 0x1dcc
-    char pad_1dd0[0x40];
-    uint8_t meleeCancelPermissions1[4]; // 0x1e10
-    uint8_t jumpCancelPermissions1[4]; // 0x1e14
-    char pad_1e18[0x4];
-    float inertia; // 0x1e1c
-    char pad_1e20[0x4];
-    float rotation3; // 0x1e24
-    char pad_1e28[0x28];
-    Vector3f m_d_velocity; // 0x1e50
-    char pad_1e5c[0x4];
-    float m_d_vel_magnitude; // 0x1e60
-    float directionOfMagnitude; // 0x1e64
-    float hitstopTimer; // 0x1e68
-    char pad_1e6c[0xf];
-    uint8_t airAttackCount; // 0x1e7b
-    char pad_1e7c[0x1];
-    uint8_t weight; // 0x1e7d
-    uint8_t airHikeCount; // 0x1e7e
-    bool canAirHike; // 0x1e7f
-    char pad_1e80[0xc];
-    uCollisionMgr* collisionSettings; // 0x1e8c
-    char pad_1e90[0xc];
-    CharacterSettingsTwo* charactersettingsTwo; // 0x1e9c
-    char pad_1ea0[0x8];
-    CharacterSettingsThree* charactersettingsThree; // 0x1ea8
-    char pad_1eac[0x78];
-    float DT; // 0x1f24
-    float maxDT; // 0x1f28
-    char pad_1f2c[0x24];
-    bool fullHouseSomething1; // 0x1f50
-    char pad_1f51[0x2e];
-    bool canWallHike; // 0x1f7f
-    char pad_1f80[0x74];
-    float jcTimer; // 0x1ff4
-    char pad_1ff8[0x8];
-    uEnemy* lockOnTargetPtr1; // 0x2000
-    char pad_2004[0x1];
-    bool enemyStepEnabled; // 0x2005
-    char pad_2006[0x2];
-    bool grounded2; // 0x2008
-    char pad_2009[0x167];
-    Vector3f location2; // 0x2170
-    char pad_217c[0x50];
-    bool tiltForward; // 0x21cc
-    char pad_21cd[0x13];
-    bool tiltBack; // 0x21e0
-    char pad_21e1[0x217];
-    float roundTripCharge; // 0x23f8
-    char pad_23fc[0x3fc];
-    bool tiltBackForward; // 0x27f8
-    char pad_27f9[0xab];
-    uintptr_t* animFrameInfo; // 0x28a4
-    char pad_28a8[0x16];
-    uint16_t playMoveOnce; // 0x28be
-    char pad_28c0[0x9c];
-    uint32_t moveID3; // 0x295c
-    char pad_2960[0x38];
-    uint32_t moveIDBest; // 0x2998
-    char pad_299c[0x6e4];
-    uEnemy* lockOnTargetPtr2; // 0x3080
-    uEnemy* lockOnTargetPtr3; // 0x3084
-    char pad_3088[0x3c];
-    uint8_t bufferPermissions; // 0x30c4
-    char pad_30c5[0x2b];
-    uint8_t meleeCancelPermissions2; // 0x30f0
-    char pad_30f1[0x2B];
-    uint8_t unknPermission1; // 0x311c
-    char pad_311d[0x2B];
-    uint8_t directionalMeleePermissions;  // 0x3148
-    char pad_3149[0x2B];
-    uint8_t jumpCancelPermissions2; // 0x3174
-    char pad_3175[0x3];
-    uint8_t bufferedJump; // 0x3178
-    char pad_3179[0x27];
-    uint8_t unknPermission2; // 0x31a0
-    char pad_31a1[0x2B];
-    uint8_t gunCancelPermissions2; // 0x31cc
-    char pad_31cd[0x2B];
-    uint8_t unknPermission3; // 0x31f8
-    char pad_31f9[0x9AEF];
-    uint8_t exceedLevel; // 0xcce8
-    char pad_cce9[0xd3];
-    float exceedTimer; // 0xcdbc
-    char pad_cdc0[0x7f14];
-    bool guardReq1; // 0x14cd4
-    bool guardReq2; // 0x14cd5
-    char pad_14cd6[0x5e];
-    bool dtOutfit; // 0x14d34
-    char pad_14d35[0x3];
-    bool dtActive; // 0x14d38
-    char pad_14d39[0xb];
-    float guardTimer; // 0x14d44
-    char pad_14d48[0x50];
-    int currentStyle; // 0x14d98
-    char pad_14d9c[0x10];
-    float revengeGauge; // 0x14dac
-    char pad_14db0[0xc];
-    LuciferPin* luciferPins[15]; // 0x14dbc
-    char pad_14df8[0x3fc];
-    float disasterGauge; // 0x151f4
-    char pad_151f8[0xa8];
-    int dreadnaught; // 0x152a0
-    char pad_152a4[0x7c4];
-    uEnemy* lockOnTargetPtr4; // 0x15a68
-}; // Size: 0x15a6c
 
 class UStageSetTimeSlow
 {

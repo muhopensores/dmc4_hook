@@ -7,8 +7,6 @@ uintptr_t MultiCharFixes::jmp_ret1 = NULL;
 uintptr_t MultiCharFixes::jmp_ret2 = NULL;
 static uintptr_t isEmJump_call     = 0x4ab170;
 
-typedef uActorMain::uActor::uActor uActor;
-
 void MultiCharFixes::toggle_targeting_fix(bool enable) {
     if (enable) {
         install_patch_offset(0x420880, patch1, "\x90\x90\x90", 3);
@@ -78,7 +76,7 @@ bool __stdcall new_jc_check(uActor* pl, uActor* em) {
 naked void detour1() {
     _asm {
             cmp byte ptr [MultiCharFixes::jc_fix], 1
-            jne orignalcode
+            jne originalcode
 
             push edi
             call new_jc_check
@@ -94,7 +92,7 @@ naked void detour1() {
 naked void detour2() {
     _asm {
             cmp byte ptr [MultiCharFixes::jc_fix], 1
-            jne orignalcode
+            jne originalcode
 
             push edi
             call new_jc_check

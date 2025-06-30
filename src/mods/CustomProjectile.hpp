@@ -2,11 +2,12 @@
 
 #include "../mod.hpp"
 #include "../sdk/uActor.hpp"
+#include "../sdk/uCollisionMgr.hpp"
 #ifndef CUSTOMPROJECTILE_H
 #define CUSTOMPROJECTILE_H
 
-typedef uActorMain::uActor::uActor uActor_t;
-typedef uActorMain::uModelMain::uModel uModel_t;
+typedef uActor uActor_t;
+typedef uModel uModel_t;
 // typedef uActorMain::uCollisionMgr uCollisionMgr;
 
 class CustomProjectileVtable {
@@ -26,7 +27,7 @@ public:
     float KeepAliveTimer;
     float force;
     CustomProjectileProp() = default;
-    CustomProjectileProp(float keepAlive, float force, uActorMain::uCoord* parent, int parentJoint);
+    CustomProjectileProp(float keepAlive, float force, uCoord* parent, int parentJoint);
     CustomProjectileProp(float keepAlive, float force, Vector3f* Pos, Vector4f* Quat);
     void destructor(uint32_t flag);
     void die();

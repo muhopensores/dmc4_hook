@@ -191,7 +191,7 @@ namespace w2s {
         SMediator* sMed = devil4_sdk::get_sMediator();
         uCameraCtrl* camera = sMed->camera1;
         if (!camera) { return -1.0f; }
-        glm::vec3 cameraPos = camera->pos;
+        glm::vec3 cameraPos = glm::make_vec3((float*)&camera->mCameraPos);
         return glm::distance(cameraPos, targetPos);
     }
 
@@ -306,13 +306,13 @@ namespace w2s {
         }
     
         uCameraCtrl* camera = sMed->camera1;
-        glm::mat4 view = glm::lookAt(glm::vec3(camera->pos.x, camera->pos.y, camera->pos.z), 
-                                    glm::vec3(camera->lookat.x, camera->lookat.y, camera->lookat.z), 
-                                    glm::vec3(camera->up.x, camera->up.y, camera->up.z));
+        glm::mat4 view = glm::lookAt(glm::vec3(camera->mCameraPos.x, camera->mCameraPos.y, camera->mCameraPos.z), 
+                                    glm::vec3(camera->mTargetPos.x, camera->mTargetPos.y, camera->mTargetPos.z), 
+                                    glm::vec3(camera->mCameraUp.x, camera->mCameraUp.y, camera->mCameraUp.z));
     
         glm::vec2 screen = glm::vec2(devil4_sdk::get_sRender()->screenRes);
         float aspectRatio = screen.x / screen.y;
-        glm::mat4 proj = glm::perspective(glm::radians(camera->FOV), aspectRatio, 0.1f, 9999.0f);
+        glm::mat4 proj = glm::perspective(glm::radians(camera->mFov), aspectRatio, 0.1f, 9999.0f);
     
         memcpy(viewMatrix, &view[0][0], sizeof(float) * 16);
         memcpy(projectionMatrix, &proj[0][0], sizeof(float) * 16);
@@ -952,7 +952,7 @@ namespace w2s {
         ndcPos.y = 1.0f - (2.0f * screenPos.y / screen.y) * 2.0f;
 
         // Create inverse view-projection matrix
-        glm::mat4 viewMatrix = glm::lookAt(camera->pos, camera->lookat, camera->up);
+        glm::mat4 viewMatrix = glm::lookAt(camera->mCameraPos, camera->mTargetPos, camera->mCameraUp);
         glm::mat4 projMatrix = glm::perspective(glm::radians(camera->FOV), aspectRatio, 0.1f, 1000.0f);
         glm::mat4 invViewProj = glm::inverse(projMatrix * viewMatrix);
 
@@ -963,7 +963,7 @@ namespace w2s {
         rayStart /= rayStart.w;
         rayEnd /= rayEnd.w;
 
-        rayOrigin = camera->pos;
+        rayOrigin = camera->mCameraPos;
         rayDir = glm::normalize(glm::vec3(rayEnd) - glm::vec3(rayStart));
     }
 
@@ -1105,10 +1105,11 @@ namespace w2s {
         if (!sMed) { return; }
         uCameraCtrl* camera = sMed->camera1;
         if (!camera) { return; }
-        glm::mat4 viewMatrix = glm::lookAt(camera->pos, camera->lookat, camera->up);
+        glm::mat4 viewMatrix =
+            glm::lookAt(*(glm::vec3*)&camera->mCameraPos, *(glm::vec3*)&camera->mTargetPos, *(glm::vec3*)&camera->mCameraUp);
         glm::vec2 screen = glm::vec2(devil4_sdk::get_sRender()->screenRes);
         float aspectRatio = screen.x / screen.y;
-        glm::mat4 projMatrix = glm::perspective(glm::radians(camera->FOV), aspectRatio, 0.1f, 9999.0f);
+        glm::mat4 projMatrix = glm::perspective(glm::radians(camera->mFov), aspectRatio, 0.1f, 9999.0f);
         g_vp = projMatrix * viewMatrix;
 
         auto player = devil4_sdk::get_local_player();

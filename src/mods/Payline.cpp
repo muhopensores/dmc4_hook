@@ -1,6 +1,7 @@
 #include "Payline.hpp"
 #include "MoveTable.hpp"
 #include "TrackingFullHouse.hpp"
+#include "../sdk/Player.hpp"
 //#include "MoveIDsNero.hpp"
 
 #if 1

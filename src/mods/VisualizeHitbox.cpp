@@ -1,6 +1,9 @@
 #include "VisualizeHitbox.hpp"
 #include "./sdk/World2Screen.hpp"
 #include "../sdk/uActor.hpp"
+#include "../sdk/Enemy.hpp"
+#include "../sdk/Player.hpp"
+#include "../sdk/uCollisionMgr.hpp"
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "EnemyTracker.hpp"
@@ -16,37 +19,6 @@ bool VisualizeHitbox::mod_enabled2 = false; // Visualize Pushboxes
 bool VisualizeHitbox::mod_enabled3 = false; // Visualize JC Spheres
 
 bool VisualizeHitbox::mod_enabled4 = false; // Visualize enemy collision
-
-struct kCollPrim {
-    int mType;
-    int Bone0;
-    int Bone1;
-    float radius;
-    uActorMain::MtVector3 Pos0;
-    uActorMain::MtVector3 Pos1;
-    uint32_t ukn0;
-    uint32_t mId;
-    float mShrink;
-    uint32_t ukn1;
-};
-
-struct cCollision {
-    uint32_t ukn1;
-    kCollPrim* mpCollPrim; /* Created by retype action */
-    float scale;
-    int mAttackUniqueID;
-    uActorMain::MtVector3 UknVec1;
-    uActorMain::MtVector3 UknVec2;
-    uint32_t padding0;
-    struct cCollisionGroup* mpCollisionGroup;
-    uint32_t padding1[2];
-    MtMatrix mMat0;
-    MtMatrix mMat1;
-    MtMatrix mOldMat0;
-    MtMatrix* mpRefMat0;
-    MtMatrix* mpRefMat1;
-    byte mUseOld;
-};
 
 struct CollisionGroup {
     char pad_0[0x94];
@@ -275,8 +247,8 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
                 kCollPrim* prim = collision->mpCollPrim;
                 Matrix4x4 worldMatrix = glm::make_mat4((float*)&collision->mMat0);
                 if (prim->mType == 3) {
-                    Vector3f pos1 = glm::make_vec3((float*)&prim->Pos0);
-                    Vector3f pos2 = glm::make_vec3((float*)&prim->Pos1);
+                    Vector3f pos1 = glm::make_vec3((float*)&prim->mPos0);
+                    Vector3f pos2 = glm::make_vec3((float*)&prim->mPos1);
                     float length = glm::length(pos2 - pos1);
                     length = (length > 0.00001f) ? length : 0.01f;
                     Matrix4x4 worldPos1 = glm::translate(worldMatrix, pos1);
@@ -284,12 +256,12 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
                     Vector3f direction = glm::vec3(worldPos2[3]) - glm::vec3(worldPos1[3]);
                     float rotationY = atan2(direction.x, direction.z);
                     float rotationX = atan2(sqrt(direction.z * direction.z + direction.x * direction.x), direction.y);
-                    w2s::DrawWireframeCapsule(glm::vec3(worldPos1[3]), prim->radius, length, rotationX, rotationY, 0.0f, IM_COL32(255, 0, 0, 255), 16, 1.0f);
+                    w2s::DrawWireframeCapsule(glm::vec3(worldPos1[3]), prim->mRadius, length, rotationX, rotationY, 0.0f, IM_COL32(255, 0, 0, 255), 16, 1.0f);
                 }
                 else {
-                    Vector3f position = glm::make_vec3((float*)&prim->Pos0);
+                    Vector3f position = glm::make_vec3((float*)&prim->mPos0);
                     Matrix4x4 worldPos = glm::translate(worldMatrix, position);
-                    w2s::DrawWireframeSphere(glm::vec3(worldPos[3]), prim->radius, 0.0f, IM_COL32(255, 0, 0, 255), 16, 1.0f);
+                    w2s::DrawWireframeSphere(glm::vec3(worldPos[3]), prim->mRadius, 0.0f, IM_COL32(255, 0, 0, 255), 16, 1.0f);
                 }
             }
         }
@@ -303,7 +275,7 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
                 uCollisionMgr currentEnemyCollision = *(uCollisionMgr*)((char*)enemy + EnemyTracker::get_enemy_specific_uCollision_offset(enemy->ID));
                 {
                     // mPushCap
-                    Matrix4x4 worldMatrix = glm::make_mat4((float*)&currentEnemyCollision.field50_0x1c0);
+                    Matrix4x4 worldMatrix = glm::make_mat4((float*)&currentEnemyCollision.mPushNewMat);
                     Vector3f pos1 = glm::make_vec3((float*)&currentEnemyCollision.mPushCap.p0);
                     Vector3f pos2 = glm::make_vec3((float*)&currentEnemyCollision.mPushCap.p1);
                     float length = glm::length(pos2 - pos1);
@@ -316,10 +288,10 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
                     w2s::DrawWireframeCapsule(glm::vec3(worldPos1[3]), currentEnemyCollision.mPushCap.r, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
                 }
                 {
-                    // mPushCap1
-                    Matrix4x4 worldMatrix = glm::make_mat4((float*)&currentEnemyCollision.field51_0x200);
-                    Vector3f pos1 = glm::make_vec3((float*)&currentEnemyCollision.mPushCap1.p0);
-                    Vector3f pos2 = glm::make_vec3((float*)&currentEnemyCollision.mPushCap1.p1);
+                    // LineSegmentXZ
+                    Matrix4x4 worldMatrix = glm::make_mat4((float*)&currentEnemyCollision.mPushNewMat);
+                    Vector3f pos1         = glm::make_vec3((float*)&currentEnemyCollision.mPushLineSgXZ.p0);
+                    Vector3f pos2         = glm::make_vec3((float*)&currentEnemyCollision.mPushLineSgXZ.p1);
                     float length = glm::length(pos2 - pos1);
                     length = (length > 0.00001f) ? length : 0.01f;
                     Matrix4x4 worldPos1 = glm::translate(worldMatrix, pos1);
@@ -327,7 +299,7 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
                     Vector3f direction = glm::vec3(worldPos2[3]) - glm::vec3(worldPos1[3]);
                     float rotationY = atan2(direction.x, direction.z);
                     float rotationX = atan2(sqrt(direction.z * direction.z + direction.x * direction.x), direction.y);
-                    w2s::DrawWireframeCapsule(glm::vec3(worldPos1[3]), currentEnemyCollision.mPushCap1.r, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
+                    w2s::DrawWireframeCapsule(glm::vec3(worldPos1[3]), 10.0f, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
                 }
                 enemyCount++;
                 enemy = enemy->nextEnemy;
@@ -335,7 +307,7 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
             // player
             {
                 // mPushCap
-                Matrix4x4 worldMatrix = glm::make_mat4((float*)&player->collisionSettings->field50_0x1c0);
+                Matrix4x4 worldMatrix = glm::make_mat4((float*)&player->collisionSettings->mPushNewMat);
                 Vector3f pos1 = glm::make_vec3((float*)&player->collisionSettings->mPushCap.p0);
                 Vector3f pos2 = glm::make_vec3((float*)&player->collisionSettings->mPushCap.p1);
                 float length = glm::length(pos2 - pos1);
@@ -348,10 +320,10 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
                 w2s::DrawWireframeCapsule(glm::vec3(worldPos1[3]), player->collisionSettings->mPushCap.r, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
             }
             {
-                // mPushCap1
-                Matrix4x4 worldMatrix = glm::make_mat4((float*)&player->collisionSettings->field51_0x200);
-                Vector3f pos1 = glm::make_vec3((float*)&player->collisionSettings->mPushCap1.p0);
-                Vector3f pos2 = glm::make_vec3((float*)&player->collisionSettings->mPushCap1.p1);
+                // LineSegmentXZ
+                Matrix4x4 worldMatrix = glm::make_mat4((float*)&player->collisionSettings->mPushNewMat);
+                Vector3f pos1 = glm::make_vec3((float*)&player->collisionSettings->mPushLineSgXZ.p0);
+                Vector3f pos2 = glm::make_vec3((float*)&player->collisionSettings->mPushLineSgXZ.p1);
                 float length = glm::length(pos2 - pos1);
                 length = (length > 0.00001f) ? length : 0.01f;
                 Matrix4x4 worldPos1 = glm::translate(worldMatrix, pos1);
@@ -359,7 +331,7 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
                 Vector3f direction = glm::vec3(worldPos2[3]) - glm::vec3(worldPos1[3]);
                 float rotationY = atan2(direction.x, direction.z);
                 float rotationX = atan2(sqrt(direction.z * direction.z + direction.x * direction.x), direction.y);
-                w2s::DrawWireframeCapsule(glm::vec3(worldPos1[3]), player->collisionSettings->mPushCap1.r, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
+                w2s::DrawWireframeCapsule(glm::vec3(worldPos1[3]), 10.0f, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
             }
         }
     }

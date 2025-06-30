@@ -206,7 +206,7 @@ void CustomProjectileProp::startup_override() {
 
     void* atk_file = devil4_sdk::get_stuff_from_files((MtDTI*)(uintptr_t)rAtckStatDTI, ATK_PATH, 1);
     void* col_file = devil4_sdk::get_stuff_from_files((MtDTI*)(uintptr_t)rColShapeDTI, COL_PATH, 1);
-    uActorMain::uCoord* ThisCoord = &this->actor.uActorBase.uModelBase.uCoordBase;
+    uCoord* ThisCoord = &this->actor;
     void* efx = devil4_sdk::effect_generator(EFL_PATH, this, 0x14);
 
 
@@ -224,7 +224,7 @@ void CustomProjectileProp::startup_override() {
 void CustomProjectileProp::lifecycle_override() {
     updateLmat(this);
     updateWmat(this);
-    float tick = this->actor.uActorBase.uModelBase.uCoordBase.cUnitBase.m_delta_time;
+    float tick = this->actor.m_delta_time;
     this->keepAliveTime += tick;
     if (this->keepAliveTime > this->KeepAliveTimer)
         this->die();
@@ -235,9 +235,9 @@ void CustomProjectileProp::lifecycle_override() {
     }
     else
         this->HitTimer += tick;
-    Matrix4x4 Wmat = *(Matrix4x4*)&this->actor.uActorBase.uModelBase.uCoordBase.mWmat;
+    Matrix4x4 Wmat = *(Matrix4x4*)&this->actor.mWmat;
     Matrix4x4 translate = glm::translate(Wmat, glm::vec3(0,0,tick*10.0f));
-    Vector3f* this_coord = (Vector3f*)&this->actor.uActorBase.uModelBase.uCoordBase.mPos;
+    Vector3f* this_coord = (Vector3f*)&this->actor.mPos;
     this_coord->x = translate[3].x;
     this_coord->y = translate[3].y;
     this_coord->z = translate[3].z;
@@ -249,16 +249,16 @@ void CustomProjectileProp::onhit_override(void* atk_param, void* dfd_param) {
     uActor_t* target = (uActor_t*)target_collmgr->mpReportActor;
     if (!target)
         return;
-    Vector3f glmThisVec = *(Vector3f*)&this->actor.uActorBase.uModelBase.uCoordBase.mWmat.vectors[3];
-    Vector3f glmTargetVec = *(Vector3f*)&target->uActorBase.uModelBase.uCoordBase.mPos;
+    Vector3f glmThisVec = *(Vector3f*)&this->actor.mWmat.m3;
+    Vector3f glmTargetVec = *(Vector3f*)&target->mPos;
     Vector3f forceVec = glm::normalize(glmThisVec - glmTargetVec);
     float dist = glm::distance(glmThisVec, glmTargetVec);
     float TrueForce = std::clamp(this->force * pow(dist * 0.007f + 0.70f, -1.0f), 15.0f, this->force * 1.3f);
-    Vector3f* this_coord  = (Vector3f*)&this->actor.uActorBase.uModelBase.uCoordBase.mPos;
+    Vector3f* this_coord  = (Vector3f*)&this->actor.mPos;
     target->mVel.x = TrueForce * forceVec.x;
     target->mVel.z = TrueForce * forceVec.z;
     target->mVel.y = TrueForce * forceVec.y;
-    //target->uActorBase.uModelBase.uCoordBase.cUnitBase.m_delta_time = 0.1f;
+    //target->m_delta_time = 0.1f;
 }
 
 MtDTI* CustomProjectileProp::getDTI() {
@@ -266,7 +266,7 @@ MtDTI* CustomProjectileProp::getDTI() {
 }
 
 
-CustomProjectileProp::CustomProjectileProp(float keepAlive, float force, uActorMain::uCoord* parent = 0, int parentJoint = 0) {
+CustomProjectileProp::CustomProjectileProp(float keepAlive, float force, uCoord* parent = 0, int parentJoint = 0) {
     uActorCons(this);
     this->KeepAliveTimer = keepAlive;
     this->HitTimer = 0.0f;
@@ -274,21 +274,21 @@ CustomProjectileProp::CustomProjectileProp(float keepAlive, float force, uActorM
     this->force = force;
     memset(&this->CollMgr, 0, sizeof(uCollisionMgr));
     uCollisionMgrCons(&this->CollMgr);
-    //this->actor.uActorBase.uModelBase.uCoordBase.mParent = (uintptr_t)parent;
-    //this->actor.uActorBase.uModelBase.uCoordBase.ParentJoint = parentJoint;
-    this->actor.uActorBase.uModelBase.uCoordBase.cUnitBase.vtable_ptr = (uintptr_t*)CustomVtable->my_vtable.data();
+    //this->actor.mParent = (uintptr_t)parent;
+    //this->actor.ParentJoint = parentJoint;
+    this->actor.vtable_ptr = (uintptr_t*)CustomVtable->my_vtable.data();
     this->actor.mActorType=5;
-    this->actor.uActorBase.mWorkRate.mType=0x9;
+    this->actor.mWorkRate.mType=0x9;
     this->actor.mVel.x = 0.0f;
     this->actor.mVel.y = 0.0f;
     this->actor.mVel.z = 0.0f;
-    this->actor.uActorBase.uModelBase.uCoordBase.mPos.x = parent->mPos.x;
-    this->actor.uActorBase.uModelBase.uCoordBase.mPos.y = parent->mPos.y+500.0f;
-    this->actor.uActorBase.uModelBase.uCoordBase.mPos.z = parent->mPos.z;
-    this->actor.uActorBase.uModelBase.uCoordBase.mQuat.x = parent->mQuat.x;
-    this->actor.uActorBase.uModelBase.uCoordBase.mQuat.y = parent->mQuat.y;
-    this->actor.uActorBase.uModelBase.uCoordBase.mQuat.z = parent->mQuat.z;
-    this->actor.uActorBase.uModelBase.uCoordBase.mQuat.w = parent->mQuat.w;
+    this->actor.mPos.x = parent->mPos.x;
+    this->actor.mPos.y = parent->mPos.y+500.0f;
+    this->actor.mPos.z = parent->mPos.z;
+    this->actor.mQuat.x = parent->mQuat.x;
+    this->actor.mQuat.y = parent->mQuat.y;
+    this->actor.mQuat.z = parent->mQuat.z;
+    this->actor.mQuat.w = parent->mQuat.w;
 }
 
 CustomProjectileProp::CustomProjectileProp(float keepAlive, float force, Vector3f* Pos, Vector4f* Quat) {
@@ -299,21 +299,21 @@ CustomProjectileProp::CustomProjectileProp(float keepAlive, float force, Vector3
     this->force          = force;
     memset(&this->CollMgr, 0, sizeof(uCollisionMgr));
     uCollisionMgrCons(&this->CollMgr);
-    // this->actor.uActorBase.uModelBase.uCoordBase.mParent = (uintptr_t)parent;
-    // this->actor.uActorBase.uModelBase.uCoordBase.ParentJoint = parentJoint;
-    this->actor.uActorBase.uModelBase.uCoordBase.cUnitBase.vtable_ptr = (uintptr_t*)CustomVtable->my_vtable.data();
+    // this->actor.mParent = (uintptr_t)parent;
+    // this->actor.ParentJoint = parentJoint;
+    this->actor.vtable_ptr = (uintptr_t*)CustomVtable->my_vtable.data();
     this->actor.mActorType                                            = 5;
-    this->actor.uActorBase.mWorkRate.mType                            = 0x9;
+    this->actor.mWorkRate.mType                            = 0x9;
     this->actor.mVel.x                                                = 0.0f;
     this->actor.mVel.y                                                = 0.0f;
     this->actor.mVel.z                                                = 0.0f;
-    this->actor.uActorBase.uModelBase.uCoordBase.mPos.x               = Pos->x;
-    this->actor.uActorBase.uModelBase.uCoordBase.mPos.y               = Pos->y;
-    this->actor.uActorBase.uModelBase.uCoordBase.mPos.z               = Pos->z;
-    this->actor.uActorBase.uModelBase.uCoordBase.mQuat.x              = Quat->x;
-    this->actor.uActorBase.uModelBase.uCoordBase.mQuat.y              = Quat->y;
-    this->actor.uActorBase.uModelBase.uCoordBase.mQuat.z              = Quat->z;
-    this->actor.uActorBase.uModelBase.uCoordBase.mQuat.w              = Quat->w;
+    this->actor.mPos.x               = Pos->x;
+    this->actor.mPos.y               = Pos->y;
+    this->actor.mPos.z               = Pos->z;
+    this->actor.mQuat.x              = Quat->x;
+    this->actor.mQuat.y              = Quat->y;
+    this->actor.mQuat.z              = Quat->z;
+    this->actor.mQuat.w              = Quat->w;
 }
 
 void sUnit_spawn_call(void* sUnit, void* obj_to_spawn, int moveline) {
@@ -330,7 +330,7 @@ void sUnit_spawn_call(void* sUnit, void* obj_to_spawn, int moveline) {
 void CustomProjectile::SpawnProjectile() {
     void* projptr = devil4_sdk::mt_allocate_heap(sizeof(CustomProjectileProp),16);
     //void* projptr              = devil4_sdk::mt_allocate_heap(0x18D0, 16);
-    CustomProjectileProp *proj = new (projptr) CustomProjectileProp(120.0f, 30.0f,(uActorMain::uCoord*)devil4_sdk::get_local_player(),0);
+    CustomProjectileProp *proj = new (projptr) CustomProjectileProp(120.0f, 30.0f,(uCoord*)devil4_sdk::get_local_player(),0);
     sUnit_spawn_call((void*)0x00E552CC, (void*)proj, 1);
 }
 

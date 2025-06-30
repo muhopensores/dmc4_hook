@@ -24,7 +24,7 @@ static std::unordered_map<const char*, CompressedMoFile> g_locales_map {
     { "en", { (void*)en_dmc4hook_compressed_data, en_dmc4hook_compressed_size, &ImFontAtlas::GetGlyphRangesDefault, nullptr } },
     // for zh, also consider C:\\Windows\\Fonts\\msyh.ttc
     { "zh", { (void*)zh_dmc4hook_compressed_data, zh_dmc4hook_compressed_size, &ImFontAtlas::GetGlyphRangesDefault, "C:\\Windows\\Fonts\\simhei.ttf" } },
-#ifndef NDEBUG // testing - machine translated file
+#ifdef NDEBUG // testing - machine translated file
     { "ru", { (void*)ru_dmc4hook_compressed_data, ru_dmc4hook_compressed_size, &ImFontAtlas::GetGlyphRangesCyrillic, nullptr } },
 #endif
 };

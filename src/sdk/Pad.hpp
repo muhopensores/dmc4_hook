@@ -1,9 +1,5 @@
 #pragma once
-
-typedef signed char schar;
-typedef unsigned char uchar, undefined;
-typedef unsigned int uint;
-typedef unsigned short ushort;
+#include "MtMath.hpp"
 
 struct PAD_FREE {
     schar Press_free;

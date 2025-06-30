@@ -1,6 +1,8 @@
 ﻿#include "JointDisplay.hpp"
 #include "../sdk/Devil4.hpp"
 #include "sdk/World2Screen.hpp"
+#include "../sdk/Player.hpp"
+#include "../sdk/Enemy.hpp"
 
 bool JointDisplay::mod_enabled = false;
 

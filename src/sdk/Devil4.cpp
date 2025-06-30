@@ -164,7 +164,7 @@ namespace devil4_sdk {
     cCameraPlayer* get_player_camera() {
         constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
         static SMediator* s_mediator_ptr        = (SMediator*)*(uintptr_t*)static_mediator_ptr;
-        return s_mediator_ptr->camera1->cCameraPlayer1;
+        return s_mediator_ptr->camera1->mpCamPlayer;
     }
 
 	SStylishCount* get_stylish_count() {

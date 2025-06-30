@@ -77,6 +77,7 @@ static void ImGuizmoManipulators(uEnemy* enemy, int& enemyIndex) {
     w2s::ImGuizmoDeselection(selectedEnemyIndex);
 }
 
+#if 0
 static void DisplayCollisionData(uCollisionMgr* currentEnemyCollision, float currentItemWidth) {
     uintptr_t collisionSettingsAddress = *(uintptr_t*)&currentEnemyCollision;
     ImGui::SetNextItemWidth(currentItemWidth);
@@ -248,6 +249,7 @@ static void DisplayCollisionData(uCollisionMgr* currentEnemyCollision, float cur
         break;
     }
 }
+#endif
 
 void FlyingStats::on_frame(fmilliseconds& dt) {
     // flawless enemy riding 
@@ -410,7 +412,7 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                     }
                     if (showFlyingCollisionData) {
                         uCollisionMgr* currentEnemyCollision = (uCollisionMgr*)((char*)enemy + EnemyTracker::get_enemy_specific_uCollision_offset(enemy->ID));
-                        DisplayCollisionData(currentEnemyCollision, currentItemWidth);
+                        //DisplayCollisionData(currentEnemyCollision, currentItemWidth);
                     }
                     ImGui::PopStyleVar(2);
                     ImGui::PopItemWidth();
@@ -474,7 +476,7 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                     ImGui::SliderFloat(_("Animation Frame##EnemyFly"), &player->animFrame, 0.0f, player->animFrameMax);
                     ImGui::InputScalar(_("ID##EnemyFly"), ImGuiDataType_U8, &player->controllerID);
                 }
-                if (showFlyingCollisionData) DisplayCollisionData(player->collisionSettings, currentItemWidth);
+                //if (showFlyingCollisionData) DisplayCollisionData(player->collisionSettings, currentItemWidth);
                 if (showFlyingCancelBools) {
                     ImGui::PushItemWidth(currentItemWidth / 3.0f);
                     ImGui::InputScalar(_("melee+gun"), ImGuiDataType_S8, (bool*)&player->bufferPermissions);               // C_NORM0 = 0x0,

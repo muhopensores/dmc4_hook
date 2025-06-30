@@ -500,7 +500,9 @@ void EnemyTracker::RenderExample() {
             glm::vec3 texturePos(1200.0f, 400.0f, 1200.0f);
             SMediator* sMed = devil4_sdk::get_sMediator();
             uCameraCtrl* camera = sMed->camera1;
-            glm::mat4 viewMatrix = glm::lookAt(camera->pos, camera->lookat, camera->up);
+            glm::mat4 viewMatrix = glm::lookAt(*(glm::vec3*)&camera->mCameraPos,
+                                            *(glm::vec3*)&camera->mTargetPos,
+                                            *(glm::vec3*)&camera->mCameraUp);
             float width = static_cast<float>(desc.Width) * 2.0f;
             float height = static_cast<float>(desc.Height) * 2.0f;
             float yRotationDegrees = 220.0f;

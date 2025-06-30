@@ -17,9 +17,9 @@ char* HEAD_PATH   = "model\\game\\pl006\\pl006_01_afimg";
 char* HAIR_PATH   = "model\\game\\pl006\\pl006_02_afimg";
 char* JACKET_PATH   = "model\\game\\pl006\\pl006_03_afimg";
 
-typedef uActorMain::uActor::uActor uActor_t;
-typedef uActorMain::uModelMain::uModel uModel_t;
-typedef uActorMain::uDevil4Model uDevil4Model_t;
+typedef uActor uActor_t;
+typedef uModel uModel_t;
+typedef uDevil4Model uDevil4Model_t;
 
 struct AfterImgCtl {
 public:
@@ -68,16 +68,16 @@ public:
 struct uModel_Joint {
     void* vtable;
     byte mAttr;
-    byte mParentIndex;
+    byte mpParentIndex;
     byte mType;
     byte mNo;
     int mSymmetryIndex;
     void* mpConstraint;
-    struct uActorMain::MtFloat3 mOffset;
+    struct MtFloat3 mOffset;
     float mLength;
-    uActorMain::MtVector4 mQuat;
-    uActorMain::MtVector3 mScale;
-    uActorMain::MtVector3 mTrans;
+    MtVector4 mQuat;
+    MtVector3 mScale;
+    MtVector3 mTrans;
     MtMatrix mWmat;
 };
 static_assert(sizeof(uModel_Joint)==0x90);
@@ -194,7 +194,7 @@ void AfterImgCtl::lifecycle_override() {
         this->cooldown = this->cooldown_default;
         this->canSpawn = true;
     } else if (!this->canSpawn)
-        this->cooldown -= this->actor.uActorBase.uModelBase.uCoordBase.cUnitBase.m_delta_time;
+        this->cooldown -= this->actor.m_delta_time;
 }
 
 AfterImgCtl::AfterImgCtl(uActor_t* parent) {
@@ -203,9 +203,9 @@ AfterImgCtl::AfterImgCtl(uActor_t* parent) {
     this->cooldown = 5.0f;
     this->cooldown_default = 5.0f;
     this->canSpawn = false;
-    this->actor.uActorBase.uModelBase.uCoordBase.cUnitBase.vtable_ptr = (uintptr_t*)CtlVtable->my_vtable.data();
+    this->actor.vtable_ptr = (uintptr_t*)CtlVtable->my_vtable.data();
     this->actor.mActorType                                            = 5;
-    this->actor.uActorBase.mWorkRate.mType                            = 0x9;
+    this->actor.mWorkRate.mType                            = 0x9;
 }
 
 AfterImgShlVtable::AfterImgShlVtable(void* vtable, size_t size) {
@@ -245,17 +245,17 @@ MtDTI* AfterImgShl::getDTI() {
 void AfterImgShl::render(void* trans) {
     void* curr_context = *(void**)((uintptr_t)trans+0x2A90);
     uint8_t curr_flag   = *(short*)((uintptr_t)curr_context + 0x1FC);
-    void* body_ptr     = (void*)this->actor.uActorBase.uModelBase.mpRModel;
-    void* hair_ptr     = (void*)this->hair.uModelBase.mpRModel;
-    void* head_ptr     = (void*)this->head.uModelBase.mpRModel;
-    void* jacket_ptr   = (void*)this->jacket.uModelBase.mpRModel;
-    if (curr_flag && this->actor.uActorBase.uModelBase.uCoordBase.cUnitBase.mTransMode && body_ptr != nullptr)
+    void* body_ptr     = (void*)this->actor.mpRModel;
+    void* hair_ptr     = (void*)this->hair.mpRModel;
+    void* head_ptr     = (void*)this->head.mpRModel;
+    void* jacket_ptr   = (void*)this->jacket.mpRModel;
+    if (curr_flag && this->actor.flags.bits.mTransMode && body_ptr != nullptr)
         uactor_sdk::render_call(this, trans);
-    if (curr_flag && this->hair.uModelBase.uCoordBase.cUnitBase.mTransMode && hair_ptr != nullptr)
+    if (curr_flag && this->hair.flags.bits.mTransMode && hair_ptr != nullptr)
         uactor_sdk::render_call(&this->hair, trans);
-    if (curr_flag && this->head.uModelBase.uCoordBase.cUnitBase.mTransMode && head_ptr != nullptr)
+    if (curr_flag && this->head.flags.bits.mTransMode && head_ptr != nullptr)
         uactor_sdk::render_call(&this->head, trans);
-    if (curr_flag && this->jacket.uModelBase.uCoordBase.cUnitBase.mTransMode && jacket_ptr != nullptr)
+    if (curr_flag && this->jacket.flags.bits.mTransMode && jacket_ptr != nullptr)
         uactor_sdk::render_call(&this->jacket, trans);
 }
 
@@ -268,77 +268,77 @@ void AfterImgShl::startup_override() {
         if (spawnParent->BodyModel != nullptr)
             uactor_sdk::get_model(this, (void*)spawnParent->BodyModel);
         else
-            uactor_sdk::get_model(this, (void*)body_model->uModelBase.mpRModel);
+            uactor_sdk::get_model(this, (void*)body_model->mpRModel);
 
         if (spawnParent->HeadModel != nullptr)
             uactor_sdk::get_model(&this->head, (void*)spawnParent->HeadModel);
         else
-            uactor_sdk::get_model(&this->head, (void*)face_model->uModelBase.mpRModel);
+            uactor_sdk::get_model(&this->head, (void*)face_model->mpRModel);
 
         if (spawnParent->HairModel != nullptr)
             uactor_sdk::get_model(&this->hair, (void*)spawnParent->HairModel);
         else
-            uactor_sdk::get_model(&this->hair, (void*)hair_model->uModelBase.mpRModel);
+            uactor_sdk::get_model(&this->hair, (void*)hair_model->mpRModel);
 
         if (spawnParent->JacketModel != nullptr)
             uactor_sdk::get_model(&this->jacket, (void*)spawnParent->JacketModel);
         else
-            uactor_sdk::get_model(&this->jacket, (void*)jacket_model->uModelBase.mpRModel);
+            uactor_sdk::get_model(&this->jacket, (void*)jacket_model->mpRModel);
         //devil4_sdk::bring_assert(spawnParent->JacketModel);
     } else {
-        uactor_sdk::get_model(this, (void*)body_model->uModelBase.mpRModel);
-        uactor_sdk::get_model(&this->head, (void*)face_model->uModelBase.mpRModel);
-        uactor_sdk::get_model(&this->hair, (void*)hair_model->uModelBase.mpRModel);
-        uactor_sdk::get_model(&this->jacket, (void*)jacket_model->uModelBase.mpRModel);
+        uactor_sdk::get_model(this, (void*)body_model->mpRModel);
+        uactor_sdk::get_model(&this->head, (void*)face_model->mpRModel);
+        uactor_sdk::get_model(&this->hair, (void*)hair_model->mpRModel);
+        uactor_sdk::get_model(&this->jacket, (void*)jacket_model->mpRModel);
     }
     
-    this->actor.uActorBase.mCameraTransparencyEnable = false;
-    this->actor.uActorBase.uModelBase.Render.mVFCullLevel = 0;
-    this->actor.uActorBase.uModelBase.Render.mRenderMode = 0;
-    this->head.uModelBase.Render.mVFCullLevel  = 0;
-    this->head.uModelBase.Render.mRenderMode   = 0;
-    this->hair.uModelBase.Render.mVFCullLevel              = 0;
-    this->hair.uModelBase.Render.mRenderMode               = 0;
-    this->actor.uActorBase.uModelBase.Render.mZPrepassDist  = 2000;
-    this->actor.uActorBase.uModelBase.Render.mPriorityBias = -100;
-    //this->actor.uActorBase.mTransparency  = 0.3f;
+    this->actor.mCameraTransparencyEnable = false;
+    this->actor.Render.mVFCullLevel = 0;
+    this->actor.Render.mRenderMode = 0;
+    this->head.Render.mVFCullLevel  = 0;
+    this->head.Render.mRenderMode   = 0;
+    this->hair.Render.mVFCullLevel              = 0;
+    this->hair.Render.mRenderMode               = 0;
+    this->actor.Render.mZPrepassDist  = 2000;
+    this->actor.Render.mPriorityBias = -100;
+    //this->actor.mTransparency  = 0.3f;
     //this->jacket.mTransparency = 0.3f;
     //this->head.mTransparency = 0.1f;
     //this->hair.mTransparency = 0.1f;
     
-    int body_jnt_num = body_model->uModelBase.mJointNum;
-    uModel_Joint* actor_jnt_ptr = (uModel_Joint*)this->actor.uActorBase.uModelBase.mpJoint;
-    uModel_Joint* parent_jnt_ptr = (uModel_Joint*)body_model->uModelBase.mpJoint;
+    int body_jnt_num = body_model->mJointNum;
+    uModel_Joint* actor_jnt_ptr = (uModel_Joint*)this->actor.mpJoint;
+    uModel_Joint* parent_jnt_ptr = (uModel_Joint*)body_model->mpJoint;
     for (int i = 0; i < body_jnt_num; i++) {
         actor_jnt_ptr[i].mWmat = parent_jnt_ptr[i].mWmat;
     }
 
-    int jacket_jnt_num = jacket_model->uModelBase.mJointNum;
-    uModel_Joint* actor_jacket_jnt_ptr  = (uModel_Joint*)this->jacket.uModelBase.mpJoint;
-    uModel_Joint* parent_jacket_jnt_ptr = (uModel_Joint*)jacket_model->uModelBase.mpJoint;
+    int jacket_jnt_num = jacket_model->mJointNum;
+    uModel_Joint* actor_jacket_jnt_ptr  = (uModel_Joint*)this->jacket.mpJoint;
+    uModel_Joint* parent_jacket_jnt_ptr = (uModel_Joint*)jacket_model->mpJoint;
     for (int i = 0; i < jacket_jnt_num; i++) {
         actor_jacket_jnt_ptr[i].mWmat = parent_jacket_jnt_ptr[i].mWmat;
         //actor_jacket_jnt_ptr[i].mpConstraint = parent_jacket_jnt_ptr[i].mpConstraint;
     }
 
-    uModel_Joint* actor_head_jnt_ptr  = (uModel_Joint*)this->head.uModelBase.mpJoint;
-    uModel_Joint* parent_head_jnt_ptr = (uModel_Joint*)face_model->uModelBase.mpJoint;
-    for (int i = 0; i < face_model->uModelBase.mJointNum; i++) {
+    uModel_Joint* actor_head_jnt_ptr  = (uModel_Joint*)this->head.mpJoint;
+    uModel_Joint* parent_head_jnt_ptr = (uModel_Joint*)face_model->mpJoint;
+    for (int i = 0; i < face_model->mJointNum; i++) {
         actor_head_jnt_ptr[i].mWmat        = parent_head_jnt_ptr[i].mWmat;
         actor_head_jnt_ptr[i].mpConstraint = parent_head_jnt_ptr[i].mpConstraint;
     }
 
-    uModel_Joint* actor_hair_jnt_ptr  = (uModel_Joint*)this->hair.uModelBase.mpJoint;
-    uModel_Joint* parent_hair_jnt_ptr = (uModel_Joint*)hair_model->uModelBase.mpJoint;
+    uModel_Joint* actor_hair_jnt_ptr  = (uModel_Joint*)this->hair.mpJoint;
+    uModel_Joint* parent_hair_jnt_ptr = (uModel_Joint*)hair_model->mpJoint;
     actor_hair_jnt_ptr[0].mWmat       = parent_hair_jnt_ptr[0].mWmat;
-    for (int i = 0; i < hair_model->uModelBase.mJointNum; i++) {
+    for (int i = 0; i < hair_model->mJointNum; i++) {
         actor_hair_jnt_ptr[i].mWmat        = parent_hair_jnt_ptr[i].mWmat;
         actor_hair_jnt_ptr[i].mpConstraint = parent_hair_jnt_ptr[i].mpConstraint;
     }
 
 
-    cMaterial** mat_arr = (cMaterial**)this->actor.uActorBase.uModelBase.mpMaterial;
-    uint32_t mat_num   = this->actor.uActorBase.uModelBase.MaterialNum;
+    cMaterial** mat_arr = (cMaterial**)this->actor.mpMaterial;
+    uint32_t mat_num   = this->actor.MaterialNum;
     for (int i = 0; i < mat_num; i++) {
         cMaterial* mat = mat_arr[i];
         mat->BaseMapFactor.x        = 0.1f;
@@ -351,8 +351,8 @@ void AfterImgShl::startup_override() {
         mat->zthrough                 = 1;
     }
 
-    mat_arr = (cMaterial**)this->jacket.uModelBase.mpMaterial;
-    mat_num = this->jacket.uModelBase.MaterialNum;
+    mat_arr = (cMaterial**)this->jacket.mpMaterial;
+    mat_num = this->jacket.MaterialNum;
     for (int i = 0; i < mat_num; i++) {
         cMaterial* mat       = mat_arr[i];
         mat->BaseMapFactor.x = 0.1f;
@@ -364,8 +364,8 @@ void AfterImgShl::startup_override() {
         mat->draw_state.zwrite = 0;
         mat->zthrough        = 1;
     }
-    mat_arr = (cMaterial**)this->head.uModelBase.mpMaterial;
-    mat_num = this->head.uModelBase.MaterialNum;
+    mat_arr = (cMaterial**)this->head.mpMaterial;
+    mat_num = this->head.MaterialNum;
     for (int i = 0; i < mat_num; i++) {
         cMaterial* mat       = mat_arr[i];
         mat->BaseMapFactor.x = 0.1f;
@@ -377,8 +377,8 @@ void AfterImgShl::startup_override() {
         mat->draw_state.zwrite = 0;
         mat->zthrough        = 1;
     }
-    mat_arr = (cMaterial**)this->hair.uModelBase.mpMaterial;
-    mat_num = this->hair.uModelBase.MaterialNum;
+    mat_arr = (cMaterial**)this->hair.mpMaterial;
+    mat_num = this->hair.MaterialNum;
     for (int i = 0; i < mat_num; i++) {
         cMaterial* mat       = mat_arr[i];
         mat->BaseMapFactor.x = 0.1f;
@@ -390,33 +390,33 @@ void AfterImgShl::startup_override() {
         mat->draw_state.zwrite = 0;
         mat->zthrough        = 1;
     }
-    //memcpy((void*)this->actor.uActorBase.uModelBase.mpJoint, (void*)body_model->uModelBase.mpJoint, 0x90 * body_jnt_num);
-    //int jacket_jnt_num = jacket_model->uModelBase.mJointNum;
-    //memcpy((void*)this->jacket.uModelBase.mpJoint, (void*)jacket_model->uModelBase.mpJoint, 0x90 * jacket_jnt_num);
+    //memcpy((void*)this->actor.mpJoint, (void*)body_model->mpJoint, 0x90 * body_jnt_num);
+    //int jacket_jnt_num = jacket_model->mJointNum;
+    //memcpy((void*)this->jacket.mpJoint, (void*)jacket_model->mpJoint, 0x90 * jacket_jnt_num);
     return;
 }
 
 void AfterImgShl::lifecycle_override() {
     //uactor_sdk::updateLmat(this);
-    void* body_ptr = (void*)this->actor.uActorBase.uModelBase.mpRModel;
-    void* hair_ptr = (void*)this->hair.uModelBase.mpRModel;
-    void* head_ptr   = (void*)this->head.uModelBase.mpRModel;
-    void* jacket_ptr = (void*)this->jacket.uModelBase.mpRModel;
+    void* body_ptr = (void*)this->actor.mpRModel;
+    void* hair_ptr = (void*)this->hair.mpRModel;
+    void* head_ptr   = (void*)this->head.mpRModel;
+    void* jacket_ptr = (void*)this->jacket.mpRModel;
     if (body_ptr == nullptr || hair_ptr == nullptr || head_ptr == nullptr || jacket_ptr == nullptr)
         this->die();
     if (fade) {
         if (this->fadeTime < 0.0f)
             this->die();
         else {
-            this->fadeTime -= this->actor.uActorBase.uModelBase.uCoordBase.cUnitBase.m_delta_time;
-            this->actor.uActorBase.mTransparency *= fadeTime / 10.0f;
+            this->fadeTime -= this->actor.m_delta_time;
+            this->actor.mTransparency *= fadeTime / 10.0f;
             this->jacket.mTransparency *= fadeTime / 10.0f;
             this->head.mTransparency *= fadeTime / 10.0f;
             this->hair.mTransparency *= fadeTime / 10.0f;
         }
     }
     uactor_sdk::updateWmat(&this->jacket);
-    this->keepAliveTime -= this->actor.uActorBase.uModelBase.uCoordBase.cUnitBase.m_delta_time;
+    this->keepAliveTime -= this->actor.m_delta_time;
     if (this->keepAliveTime < 0.0f)
         this->fade = true;
 }
@@ -427,30 +427,30 @@ AfterImgShl::AfterImgShl(uActor_t* parent, AfterImgCtl* spawnParent) {
     uactor_sdk::uActorCons(this);
 
     uactor_sdk::uDevil4ModelCons(&this->head);
-    this->head.uModelBase.uCoordBase.mParent = (uintptr_t)this;
-    this->head.uModelBase.uCoordBase.ParentJoint = 4;
+    this->head.mpParent = (uCoord*)this;
+    this->head.ParentJoint = 4;
 
     uactor_sdk::uDevil4ModelCons(&this->hair);
-    this->hair.uModelBase.uCoordBase.mParent = (uintptr_t)this;
-    this->hair.uModelBase.uCoordBase.ParentJoint = 4;
+    this->hair.mpParent    = (uCoord*)this;
+    this->hair.ParentJoint = 4;
 
     uactor_sdk::uDevil4ModelCons(&this->jacket);
-    this->jacket.uModelBase.uCoordBase.mParent = (uintptr_t)this;
-    this->jacket.uModelBase.uCoordBase.ParentJoint = 2;
+    this->jacket.mpParent    = (uCoord*)this;
+    this->jacket.ParentJoint = 2;
 
     this->fade = false;
     this->fadeTime = 10.0f;
     this->keepAliveTime = 20.0f;
-    this->actor.uActorBase.uModelBase.uCoordBase.cUnitBase.vtable_ptr = (uintptr_t*)ShlVtable->my_vtable.data();
+    this->actor.vtable_ptr = (uintptr_t*)ShlVtable->my_vtable.data();
     this->actor.mActorType                                            = 5;
-    this->actor.uActorBase.mWorkRate.mType                            = 0x9;
-    this->actor.uActorBase.uModelBase.uCoordBase.mPos.x               = parent->uActorBase.uModelBase.uCoordBase.mPos.x;
-    this->actor.uActorBase.uModelBase.uCoordBase.mPos.y               = parent->uActorBase.uModelBase.uCoordBase.mPos.y;
-    this->actor.uActorBase.uModelBase.uCoordBase.mPos.z               = parent->uActorBase.uModelBase.uCoordBase.mPos.z;
-    this->actor.uActorBase.uModelBase.uCoordBase.mQuat.x              = parent->uActorBase.uModelBase.uCoordBase.mQuat.x;
-    this->actor.uActorBase.uModelBase.uCoordBase.mQuat.y              = parent->uActorBase.uModelBase.uCoordBase.mQuat.y;
-    this->actor.uActorBase.uModelBase.uCoordBase.mQuat.z              = parent->uActorBase.uModelBase.uCoordBase.mQuat.z;
-    this->actor.uActorBase.uModelBase.uCoordBase.mQuat.w              = parent->uActorBase.uModelBase.uCoordBase.mQuat.w;
+    this->actor.mWorkRate.mType                            = 0x9;
+    this->actor.mPos.x               = parent->mPos.x;
+    this->actor.mPos.y               = parent->mPos.y;
+    this->actor.mPos.z               = parent->mPos.z;
+    this->actor.mQuat.x              = parent->mQuat.x;
+    this->actor.mQuat.y              = parent->mQuat.y;
+    this->actor.mQuat.z              = parent->mQuat.z;
+    this->actor.mQuat.w              = parent->mQuat.w;
 }
 
 

@@ -3,6 +3,7 @@
 #include "ForceLucifer.hpp" // used to stop rose despawning when leaving lucifer
 #include "FasterFastDrive.hpp" // for easy fast drive
 #include "../sdk/Devil4.hpp"
+#include "../sdk/Player.hpp"
 #if 1
 
 uintptr_t InputStates::jmp_return = NULL;
