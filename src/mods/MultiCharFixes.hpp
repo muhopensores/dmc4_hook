@@ -6,12 +6,15 @@ public:
     MultiCharFixes() = default;
 
     static bool targeting_fix;
+    static bool jc_fix;
+    static uintptr_t jmp_ret1;
+    static uintptr_t jmp_ret2;
 
     void toggle_targeting_fix(bool enabled);
 
     std::string get_mod_name() override { return "MultiCharFixes"; };
 
-    //std::optional<std::string> on_initialize() override;
+    std::optional<std::string> on_initialize() override;
 
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
