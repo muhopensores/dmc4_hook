@@ -1,5 +1,5 @@
 #include "PinTrick.hpp"
-
+#include "../sdk/Player.hpp"
 bool PinTrick::mod_enabled = false;
 static bool PinTrickFlag = false;
 uintptr_t PinPtr = NULL;
