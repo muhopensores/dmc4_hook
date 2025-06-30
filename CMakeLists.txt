@@ -50,6 +50,7 @@ set(CONFIG_FILENAME "${CMAKE_PROJECT_NAME}.cfg")
 configure_file(Config.hpp.in ${CMAKE_SOURCE_DIR}/src/Config.hpp @ONLY)
 #add_compile_options(/W0)
 #add_compile_options(/MT)
+add_compile_options(/MP)
 
 # Statically compile runtime
 string(REGEX REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
