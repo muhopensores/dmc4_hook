@@ -18,6 +18,8 @@ public:
 
     void on_update_input(utility::Input& input);
 	void on_game_pause(bool toggle);
+    void on_stage_start();
+	void on_stage_end();
 	bool on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param);
 	void on_chat_command(const std::string& message);
     void on_hotkey_tab(utility::Input& input);

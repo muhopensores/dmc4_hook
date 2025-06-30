@@ -4,11 +4,13 @@ uintptr_t StageCallback::jmp_ret1 = NULL;
 uintptr_t StageCallback::jmp_ret2 = NULL;
 
 void __stdcall stage_start() {
-	return;
+    auto& mods = g_framework->get_mods();
+    mods->on_stage_start();
 }
 
 void __stdcall stage_end() {
-    return;
+    auto& mods = g_framework->get_mods();
+    mods->on_stage_end();
 }
 
 naked void detour1() {

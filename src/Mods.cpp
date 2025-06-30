@@ -422,6 +422,17 @@ void Mods::on_game_pause(bool toggle) {
     }
 }
 
+void Mods::on_stage_start() {
+    for (auto& mod: m_mods)
+        mod->on_stage_start();
+}
+
+void Mods::on_stage_end() {
+    for (auto& mod : m_mods)
+        mod->on_stage_end();
+}
+
+
 bool Mods::on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param) {
     for (auto& mod : m_mods) {
         if (!mod->on_message(wnd, message, w_param, l_param)) {

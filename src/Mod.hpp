@@ -140,7 +140,7 @@ public:
 
 	//game specific callbacks
 	virtual void on_game_pause(bool toggle) {};
-    virtual void on_stage_start(){};
+    virtual void on_stage_start() {};
     virtual void on_stage_end() {};
 	virtual bool on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param) { return true; };
 
