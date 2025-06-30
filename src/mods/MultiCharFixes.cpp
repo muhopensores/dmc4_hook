@@ -58,8 +58,8 @@ bool __stdcall new_jc_check(uActor* pl, uActor* em) {
                     pl_pos.w = 1.0f;
                 }
 
-                glm::vec4 res_vec = joint_wmat * (*(glm::vec4*)(&ofs));
-                res_vec = res_vec * scale - glm::make_vec4((float*)&pl_pos);
+                glm::vec3 res_vec = joint_wmat * (*(glm::vec4*)(&ofs));
+                res_vec = res_vec * scale - glm::make_vec3((float*)&pl_pos);
 
                 if (glm::length((glm::vec3)res_vec) < jc_data->radius * jc_data->radius)
                     return true;

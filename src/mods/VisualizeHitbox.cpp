@@ -290,16 +290,17 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
                 {
                     // LineSegmentXZ
                     Matrix4x4 worldMatrix = glm::make_mat4((float*)&currentEnemyCollision.mPushNewMat);
-                    Vector3f pos1         = glm::make_vec3((float*)&currentEnemyCollision.mPushLineSgXZ.p0);
-                    Vector3f pos2         = glm::make_vec3((float*)&currentEnemyCollision.mPushLineSgXZ.p1);
+                    Vector3f pos1         = glm::make_vec3((float*)&currentEnemyCollision.mPushLineSgY.p0);
+                    Vector3f pos2         = glm::make_vec3((float*)&currentEnemyCollision.mPushLineSgY.p1);
                     float length = glm::length(pos2 - pos1);
                     length = (length > 0.00001f) ? length : 0.01f;
-                    Matrix4x4 worldPos1 = glm::translate(worldMatrix, pos1);
-                    Matrix4x4 worldPos2 = glm::translate(worldMatrix, pos2);
-                    Vector3f direction = glm::vec3(worldPos2[3]) - glm::vec3(worldPos1[3]);
+                    //Matrix4x4 worldPos1 = glm::translate(worldMatrix, pos1);
+                    //Matrix4x4 worldPos2 = glm::translate(worldMatrix, pos2);
+                    //Vector3f direction = glm::vec3(pos2[3]) - glm::vec3(pos1[3]);
+                    Vector3f direction = pos2 - pos1;
                     float rotationY = atan2(direction.x, direction.z);
                     float rotationX = atan2(sqrt(direction.z * direction.z + direction.x * direction.x), direction.y);
-                    w2s::DrawWireframeCapsule(glm::vec3(worldPos1[3]), 10.0f, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
+                    w2s::DrawWireframeCapsule(pos1, 10.0f, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
                 }
                 enemyCount++;
                 enemy = enemy->nextEnemy;
@@ -322,16 +323,17 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
             {
                 // LineSegmentXZ
                 Matrix4x4 worldMatrix = glm::make_mat4((float*)&player->collisionSettings->mPushNewMat);
-                Vector3f pos1 = glm::make_vec3((float*)&player->collisionSettings->mPushLineSgXZ.p0);
-                Vector3f pos2 = glm::make_vec3((float*)&player->collisionSettings->mPushLineSgXZ.p1);
+                Vector3f pos1 = glm::make_vec3((float*)&player->collisionSettings->mPushLineSgY.p0);
+                Vector3f pos2 = glm::make_vec3((float*)&player->collisionSettings->mPushLineSgY.p1);
                 float length = glm::length(pos2 - pos1);
                 length = (length > 0.00001f) ? length : 0.01f;
-                Matrix4x4 worldPos1 = glm::translate(worldMatrix, pos1);
-                Matrix4x4 worldPos2 = glm::translate(worldMatrix, pos2);
-                Vector3f direction = glm::vec3(worldPos2[3]) - glm::vec3(worldPos1[3]);
+                //Matrix4x4 worldPos1 = glm::translate(worldMatrix, pos1);
+                //Matrix4x4 worldPos2 = glm::translate(worldMatrix, pos2);
+                //Vector3f direction = glm::vec3(worldPos2[3]) - glm::vec3(worldPos1[3]);
+                Vector3f direction = pos2 - pos1;
                 float rotationY = atan2(direction.x, direction.z);
                 float rotationX = atan2(sqrt(direction.z * direction.z + direction.x * direction.x), direction.y);
-                w2s::DrawWireframeCapsule(glm::vec3(worldPos1[3]), 10.0f, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
+                w2s::DrawWireframeCapsule(pos1, 10.0f, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
             }
         }
     }

@@ -252,12 +252,23 @@ void player_factory(uint char_id, uint player_num) {
     devil4_sdk::sUnit_spawn(hud, 25);
 }
 
+void __stdcall setupDevelop(uCameraCtrl* cam) {
+    uintptr_t setupDevelop_call = 0x4f76f0;
+    _asm {
+            mov eax,[cam]
+            call setupDevelop_call
+    }
+}
+
+
 void* make_cam(){ //make uCameraCtrl
     void* cam = ((void* (*)())(0x004F71B0))();
     devil4_sdk::sUnit_spawn(cam, 18);
     CamArr.push_back(cam);
-    if (cam != CamArr[0])
+    if (cam != CamArr[0]) {
         *(void**)((uintptr_t)cam + 0x3a0) = (void*)((uintptr_t)CamArr[0] + 0x3a0);
+        setupDevelop((uCameraCtrl*)cam);
+    }
     return cam;
 }
 
