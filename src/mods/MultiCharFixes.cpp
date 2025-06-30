@@ -104,7 +104,7 @@ naked void detour2() {
         originalcode:
             call isEmJump_call
         handle:
-            jmp [MultiCharFixes::jmp_ret1]
+            jmp [MultiCharFixes::jmp_ret2]
     }
 }
 
