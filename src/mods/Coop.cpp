@@ -4,9 +4,10 @@
 #include "..\sdk\Cam.hpp"
 #include "CharSwitcher.hpp"
 #include "DebugCam.hpp"
+bool Coop::mod_enabled = false;
+unsigned int Coop::player_num = 2;
+std::vector<std::unique_ptr<CoopPlayer>> PlayerArr;
 
-bool Coop::mod_enabled;
-static unsigned int player_num = 1;
 static bool player_char[4] = {0, 0, 0, 0};
 static sDevil4Pad** sDevil4Pad_ptr = (sDevil4Pad**)0x00e559c4;
 static uintptr_t sCamera_ptr = 0x00E552D4;
@@ -15,10 +16,10 @@ static uintptr_t sDevil4Pad_cons = 0x00484C90;
 static uintptr_t update_analog_info_call = 0x007b0250;
 static uintptr_t uCameraCtrl_setup_end = 0x04f76da;
 
-std::vector<sDevil4Pad*> PadArr;
-std::vector<void*> PlayerArr;
-std::vector<void*> CamArr;
-std::vector<void*> HUDArr;
+//std::vector<sDevil4Pad*> PadArr;
+//std::vector<void*> PlayerArr;
+//std::vector<void*> CamArr;
+//std::vector<void*> HUDArr;
 
 uintptr_t Coop::jmp_ret1 = NULL;
 uintptr_t Coop::jmp_ret2 = NULL;
@@ -131,8 +132,10 @@ void __stdcall update_analog_info(kAnlg* anlg) {
 void __stdcall new_pad_update_func(cPeripheral* peri) {
     byte control_num = *(byte*)((uintptr_t)peri + 0x95);
     sDevil4Pad* pad;
-    if (control_num < 4)
-        pad = PadArr[control_num];
+    if (control_num == 0)
+        pad = *sDevil4Pad_ptr;
+    else if (control_num < Coop::player_num)
+        pad = (sDevil4Pad*)PlayerArr[control_num].get()->pad;
     peri->mPadBtnOn = pad->mPadInfo[0].mBtn.on;
     peri->mPadBtnRel = pad->mPadInfo[0].mBtn.rel;
     peri->mPadBtnTrg = pad->mPadInfo[0].mBtn.trg;
@@ -182,8 +185,8 @@ void __stdcall move_pad(sDevil4Pad* obj) {
 }
 
 void __stdcall update_pad_loop() {
-    for (int i = 1; i < PadArr.size(); i++) {
-        std::thread update([i]() { move_pad(PadArr[i]); });
+    for (int i = 1; i < Coop::player_num; i++) {
+        std::thread update([i]() { move_pad(PlayerArr[i].get()->pad); });
         update.detach();
     }
 }
@@ -234,9 +237,7 @@ void player_factory(uint char_id, uint player_num) {
     }
     *(byte*)((uintptr_t)player + 0x1405) = player_num; //Pad ID (used for cPeripheral update)
     *(byte*)((uintptr_t)player + 0xE64) = player_num;  //Player ID
-    if (PlayerArr.size() <= 4) {
-        PlayerArr.push_back(player);
-    }
+    PlayerArr[player_num].get()->pl_char = player;
     devil4_sdk::sUnit_spawn(player, 13);
     
     void* hud;
@@ -245,10 +246,8 @@ void player_factory(uint char_id, uint player_num) {
     } else {
         hud = make_dante_hud();
     }
-    if (HUDArr.size() <= 4) {
-        HUDArr.push_back(hud);
-        ((cUnit*)hud)->flags.bits.mTransView = (1 << (HUDArr.size() - 1));
-    }
+    PlayerArr[player_num].get()->HUD = hud;
+    ((cUnit*)hud)->flags.bits.mTransView = (1 << player_num);
     devil4_sdk::sUnit_spawn(hud, 25);
 }
 
@@ -260,32 +259,28 @@ void __stdcall setupDevelop(uCameraCtrl* cam) {
     }
 }
 
-
 void* make_cam(){ //make uCameraCtrl
-    void* cam = ((void* (*)())(0x004F71B0))();
+    uCameraCtrl* cam = ((uCameraCtrl* (*)())(0x004F71B0))();
     devil4_sdk::sUnit_spawn(cam, 18);
-    CamArr.push_back(cam);
-    if (cam != CamArr[0]) {
-        *(void**)((uintptr_t)cam + 0x3a0) = (void*)((uintptr_t)CamArr[0] + 0x3a0);
-        setupDevelop((uCameraCtrl*)cam);
-    }
+    cam->mpResource = PlayerArr[0].get()->cam->mpResource;
+    setupDevelop((uCameraCtrl*)cam);
     return cam;
 }
 
 void* __stdcall get_pl_from_cam(void* cam) {
     uintptr_t ucam = *(uintptr_t*)((uintptr_t)cam + 0x6C);
-    for (int i = 0; i < CamArr.size(); i++) {
-        if (ucam == (uintptr_t)CamArr[i])
-            return PlayerArr[i];
+    for (int i = 0; i < Coop::player_num; i++) {
+        if (ucam == (uintptr_t)PlayerArr[i].get()->cam)
+            return PlayerArr[i].get()->pl_char;
     }
     return 0;
 }
 
 void* __stdcall get_pad_from_cam(void* cam) {
     uintptr_t ucam = *(uintptr_t*)((uintptr_t)cam + 0x6C);
-    for (int i = 0; i < CamArr.size(); i++) {
-        if (ucam == (uintptr_t)CamArr[i])
-            return PadArr[i];
+    for (int i = 0; i < Coop::player_num; i++) {
+        if (ucam == (uintptr_t)PlayerArr[i].get()->cam)
+            return PlayerArr[i].get()->pad;
     }
     return 0;
 }
@@ -340,8 +335,8 @@ naked void detour4() {
 
 void __stdcall setup_cam(void* cam) {
     sCamera* s_cam = *(sCamera**)sCamera_ptr;
-    for (int i = 1; i < CamArr.size(); i++) {
-        if (cam == CamArr[i]) {
+    for (int i = 1; i < Coop::player_num; i++) {
+        if (cam == PlayerArr[i].get()->cam) {
             sCamera_ViewPort* vp = &s_cam->viewports[i];
             vp->mpCamera = cam;
             vp->mAttr = 0x17;
@@ -401,9 +396,8 @@ naked void detour6() {
 
 void* __stdcall get_cam_from_pl(void* player) {
     byte id = *(byte*)((uintptr_t)player + 0x1405);
-    if (!CamArr.empty())
-        return CamArr[id];
-    else return 0;
+    CoopPlayer* pl = PlayerArr[id].get();
+    return pl->cam;
 }
 
 naked void detour7() {
@@ -481,9 +475,10 @@ naked void detour10() {
 }
 
 void* __stdcall get_pl_from_hud(void* hud) {
-    for (int i = 1; i < HUDArr.size(); i++) {
-        if (hud == HUDArr[i])
-            return PlayerArr[i];
+    for (int i = 1; i < Coop::player_num; i++) {
+        CoopPlayer* curr_pl = PlayerArr[i].get();
+        if (hud == curr_pl->HUD)
+            return curr_pl->pl_char;
     }
     return 0;
 }
@@ -628,62 +623,51 @@ std::optional<std::string> Coop::on_initialize() {
     return Mod::on_initialize();
 }
 
-// void Coop::on_stage_start() {}
-// void Coop::on_stage_end() {}
-
-void Coop::on_frame(fmilliseconds& dt) {
-    //if (mod_enabled) {
-    //    for (int i = 1; i < PadArr.size(); i++) {
-    //        std::thread update([i]() { move_pad(PadArr[i]); });
-    //        update.detach();
-    //    }
-    //}
-
-    if (mod_enabled) {
-        void* player   = devil4_sdk::get_local_player();
-        void* camera = devil4_sdk::get_local_camera();
-        sUnit* s_unit  = devil4_sdk::get_sUnit();
-        MoveLine* hud_ml = &s_unit->mMoveLine[25];
-
-        if ((PlayerArr.empty()) && (player != nullptr)) {
-            PlayerArr.push_back(player);
-        }
-        if ((CamArr.empty()) && (camera != nullptr)) {
-            CamArr.push_back(camera);
-        }
-
-        if ((HUDArr.empty()) && (hud_ml->mTop != nullptr)) {
-            HUDArr.push_back((void*)hud_ml->mTop);
-            cUnit* hud = (cUnit*)hud_ml->mTop;
-            hud->flags.bits.mTransView = 1;
-        }
-
-        if ((!PlayerArr.empty()) && (player == nullptr)) {
-            PlayerArr.clear();
-        }
-
-        if ((!CamArr.empty()) && (camera == nullptr))
-            CamArr.clear();
-
-        if ((!HUDArr.empty()) && (hud_ml->mTop == nullptr))
-            HUDArr.clear();
-
-    }
-}
+std::vector<const char*> CHAR_NAME = {"Nero", "Dante"};
 
 void Coop::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Coop mode"), &mod_enabled)) {
         toggle(mod_enabled);
         if (CharSwitcher::mod_enabled)
             CharSwitcher::mod_enabled = false;
-        //PadArr.push_back(*sDevil4Pad_ptr);
-        //for (int i = 1; i < 4; i++)
-        //    PadArr.push_back(create_pad(i));
-        PadArr.push_back(*sDevil4Pad_ptr);
-        for (int i = 1; i < 4; i++) {
-            PadArr.push_back(create_pad(i));
+        if (mod_enabled) {
+            for (int i = 0; i < 4; i++) {
+                PlayerArr.push_back(std::make_unique<CoopPlayer>());
+                CoopPlayer* curr_pl = PlayerArr[i].get();
+                curr_pl->pad = create_pad(i);
+                curr_pl->player_id = 0;
+            }
         }
     }
+
+    ImGui::SameLine();
+    help_marker(_("Enable split-screen co-op."));
+    ImGui::SameLine();
+    ImGui::PushItemWidth(sameLineItemWidth / 2.0f);
+    ImGui::SliderInt(_("Player Number"), (int*)&player_num, 2, 4);
+    ImGui::PopItemWidth();
+
+    if (mod_enabled) {
+        for (int i = 1; i < player_num; i++) {
+            ImGui::Text("Player %d", i + 1);
+            ImGui::SameLine();
+            CoopPlayer* curr_pl = PlayerArr[i].get();
+            ImGui::PushID(curr_pl);
+            if (ImGui::BeginCombo("Select Character", CHAR_NAME[curr_pl->player_id])) {
+                for (int char_id = 0; char_id < 2; char_id++) {
+                    bool is_selected = (curr_pl->player_id == char_id);
+                    if (ImGui::Selectable(CHAR_NAME[char_id], &is_selected)) {
+                        curr_pl->player_id = char_id;
+                    }
+                    if (is_selected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::PopID();
+        }
+    }
+
     if (ImGui::Button("Spawn Nero")) {
         player_factory(0, 1);
         make_cam();
@@ -697,5 +681,55 @@ void Coop::on_gui_frame(int display) {
         sCamera* s_cam = *(sCamera**)sCamera_ptr;
         s_cam->viewports[0].mMode = REGION_TOP;
         s_cam->viewports[1].mMode = REGION_BOTTOM;
+    }
+}
+
+void Coop::on_stage_start() {
+    if(mod_enabled) {
+        sUnit* s_unit  = devil4_sdk::get_sUnit();
+        sCamera* s_cam = *(sCamera**)sCamera_ptr;
+
+        CoopPlayer* main_pl                             = PlayerArr[0].get();
+        main_pl->pl_char                                = s_unit->mMoveLine[13].mTop;
+        main_pl->cam                                    = (uCameraCtrl*)s_unit->mMoveLine[0x17].mTop;
+        main_pl->HUD                                    = s_unit->mMoveLine[25].mTop;
+        main_pl->pad = *sDevil4Pad_ptr;
+        ((cUnit*)(main_pl->HUD))->flags.bits.mTransView = 1;
+        *(byte*)((uintptr_t)main_pl->pl_char + 0x1405)  = 0; // Pad ID (used for cPeripheral update)
+        *(byte*)((uintptr_t)main_pl->pl_char + 0xE64)   = 0; // Player ID
+
+        for (int i = 1; i < player_num; i++) {
+            CoopPlayer* curr_pl = PlayerArr[i].get();
+            player_factory(curr_pl->player_id, i);
+            curr_pl->cam = (uCameraCtrl*)make_cam();
+        }
+        switch (player_num) {
+        case 2:
+            s_cam->viewports[0].mMode = REGION_TOP;
+            s_cam->viewports[1].mMode = REGION_BOTTOM;
+            break;
+        case 3:
+            s_cam->viewports[0].mMode = REGION_TOPLEFT;
+            s_cam->viewports[1].mMode = REGION_TOPRIGHT;
+            s_cam->viewports[2].mMode = REGION_BOTTOMLEFT;
+            break;
+        case 4:
+            s_cam->viewports[0].mMode = REGION_TOPLEFT;
+            s_cam->viewports[1].mMode = REGION_TOPRIGHT;
+            s_cam->viewports[2].mMode = REGION_BOTTOMLEFT;
+            s_cam->viewports[3].mMode = REGION_BOTTOMRIGHT;
+            break;
+        }
+    }
+}
+
+void Coop::on_stage_end() {
+    if (mod_enabled) {
+        for (int i = 1; i < Coop::player_num; i++) {
+            CoopPlayer* curr_pl = PlayerArr[i].get();
+            curr_pl->pl_char    = nullptr;
+            curr_pl->cam        = nullptr;
+            curr_pl->HUD        = nullptr;
+        }
     }
 }
