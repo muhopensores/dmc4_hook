@@ -185,7 +185,7 @@ void __stdcall move_pad(sDevil4Pad* obj) {
 }
 
 void __stdcall update_pad_loop() {
-    for (int i = 0; i < Coop::player_num; i++) {
+    for (int i = 1; i < Coop::player_num; i++) {
         std::thread update([i]() { move_pad(PlayerArr[i].get()->pad); });
         update.detach();
     }
@@ -640,6 +640,7 @@ void Coop::on_gui_frame(int display) {
                     curr_pl->pad = create_pad(i);
                 curr_pl->player_id = 0;
             }
+            *sDevil4Pad_ptr = PlayerArr[0].get()->pad;
         }
     }
 
@@ -668,6 +669,52 @@ void Coop::on_gui_frame(int display) {
                 ImGui::EndCombo();
             }
             ImGui::PopID();
+        }
+    }
+    if (ImGui::Button("Refresh cam")) {
+        sCamera* s_cam = *(sCamera**)sCamera_ptr;
+        if (mod_enabled) {
+            switch (player_num) {
+            case 2: {
+                s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
+                s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
+                s_cam->viewports[0].mAttr    = 0x17;
+                s_cam->viewports[1].mAttr    = 0x17;
+                s_cam->viewports[0].mMode    = REGION_TOP;
+                s_cam->viewports[1].mMode    = REGION_BOTTOM;
+                break;
+            }
+            case 3: {
+                s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
+                s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
+                s_cam->viewports[2].mpCamera = PlayerArr[2].get()->cam;
+                s_cam->viewports[0].mAttr = 0x17;
+                s_cam->viewports[1].mAttr = 0x17;
+                s_cam->viewports[2].mAttr = 0x17;
+                s_cam->viewports[0].mMode = REGION_TOPLEFT;
+                s_cam->viewports[1].mMode = REGION_TOPRIGHT;
+                s_cam->viewports[2].mMode = REGION_BOTTOMLEFT;
+                break;
+            }
+            case 4: {
+                s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
+                s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
+                s_cam->viewports[2].mpCamera = PlayerArr[2].get()->cam;
+                s_cam->viewports[3].mpCamera = PlayerArr[3].get()->cam;
+                s_cam->viewports[0].mAttr = 0x17;
+                s_cam->viewports[1].mAttr = 0x17;
+                s_cam->viewports[2].mAttr = 0x17;
+                s_cam->viewports[3].mAttr = 0x17;
+                s_cam->viewports[0].mMode = REGION_TOPLEFT;
+                s_cam->viewports[1].mMode = REGION_TOPRIGHT;
+                s_cam->viewports[2].mMode = REGION_BOTTOMLEFT;
+                s_cam->viewports[3].mMode = REGION_BOTTOMRIGHT;
+                break;
+            }
+            }
+        }
+        else {
+            s_cam->viewports[0].mMode = REGION_FULLSCREEN;
         }
     }
 
@@ -705,23 +752,6 @@ void Coop::on_stage_start() {
             CoopPlayer* curr_pl = PlayerArr[i].get();
             player_factory(curr_pl->player_id, i);
             curr_pl->cam = (uCameraCtrl*)make_cam();
-        }
-        switch (player_num) {
-        case 2:
-            s_cam->viewports[0].mMode = REGION_TOP;
-            s_cam->viewports[1].mMode = REGION_BOTTOM;
-            break;
-        case 3:
-            s_cam->viewports[0].mMode = REGION_TOPLEFT;
-            s_cam->viewports[1].mMode = REGION_TOPRIGHT;
-            s_cam->viewports[2].mMode = REGION_BOTTOMLEFT;
-            break;
-        case 4:
-            s_cam->viewports[0].mMode = REGION_TOPLEFT;
-            s_cam->viewports[1].mMode = REGION_TOPRIGHT;
-            s_cam->viewports[2].mMode = REGION_BOTTOMLEFT;
-            s_cam->viewports[3].mMode = REGION_BOTTOMRIGHT;
-            break;
         }
     }
 }
