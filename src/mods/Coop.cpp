@@ -185,7 +185,7 @@ void __stdcall move_pad(sDevil4Pad* obj) {
 }
 
 void __stdcall update_pad_loop() {
-    for (int i = 1; i < Coop::player_num; i++) {
+    for (int i = 0; i < Coop::player_num; i++) {
         std::thread update([i]() { move_pad(PlayerArr[i].get()->pad); });
         update.detach();
     }
@@ -634,7 +634,10 @@ void Coop::on_gui_frame(int display) {
             for (int i = 0; i < 4; i++) {
                 PlayerArr.push_back(std::make_unique<CoopPlayer>());
                 CoopPlayer* curr_pl = PlayerArr[i].get();
-                curr_pl->pad = create_pad(i);
+                if (i == 0)
+                    curr_pl->pad = *sDevil4Pad_ptr;
+                else
+                    curr_pl->pad = create_pad(i);
                 curr_pl->player_id = 0;
             }
         }
