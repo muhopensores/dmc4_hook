@@ -184,8 +184,6 @@ set(MODS_SRC
   mods/EnemySpawn.hpp
   mods/KnockbackEdits.cpp
   mods/KnockbackEdits.hpp
-  mods/NoDtCooldown.cpp
-  mods/NoDtCooldown.hpp
   mods/DtEnemiesDontStun.cpp
   mods/DtEnemiesDontStun.hpp
   mods/EnemySlotting.cpp

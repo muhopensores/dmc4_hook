@@ -35,7 +35,6 @@
 #include "mods/LimitAdjust.hpp"
 #include "mods/ManualTwosomeTime.hpp"
 #include "mods/NoClip.hpp"
-#include "mods/NoDtCooldown.hpp"
 #include "mods/NoHBknockback.hpp"
 #include "mods/OneHitKill.hpp"
 #include "mods/PinTimer.hpp"
@@ -221,7 +220,6 @@ Mods::Mods() {
     ADD_MOD(OneHitKill);
     ADD_MOD(EnemySpawn);
     ADD_MOD(KnockbackEdits);
-    ADD_MOD(NoDtCooldown);
     ADD_MOD(DtEnemiesDontStun);
     ADD_MOD(EnemySlotting);
     ADD_MOD(TrackingFullHouse);

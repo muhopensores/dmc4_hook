@@ -326,8 +326,6 @@ namespace gui {
                         pmods->on_draw_ui("HeightRestriction"_hash, 1); // needs its own line
 
                         pmods->on_draw_ui("LimitAdjust"_hash, 1); // needs its own line
-                        
-                        pmods->on_draw_ui("NoDtCooldown"_hash, 1);
 
                         ImGui::SeparatorText(_("Abilities"));
 
@@ -404,8 +402,6 @@ namespace gui {
                         pmods->on_draw_ui("HeightRestriction"_hash, 2); // needs its own line
 
                         pmods->on_draw_ui("LimitAdjust"_hash, 2);
-                        ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("NoDtCooldown"_hash, 2);
 
                         ImGui::SeparatorText(_("Abilities"));
 
