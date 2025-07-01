@@ -63,24 +63,24 @@ naked void detour_air_hike() { // player in esi
 
 void HeightRestriction::on_gui_frame(int display) {
     if (display == 1) {
-        if (ImGui::Checkbox(_("Height Restriction"), &toggle_nero)) {
+        if (ImGui::Checkbox(_("No Height Restriction"), &toggle_nero)) {
             ToggleNero(toggle_nero);
         }
         ImGui::SameLine();
         help_marker(_("By default, certain moves are locked behind a height threshold. If you're below that threshold, they cannot be started. "
             "This removes that limit"));
         ImGui::SameLine(sameLineWidth);
-        ImGui::Checkbox(_("Air Hike Height Restriction"), &air_hike_nero);
+        ImGui::Checkbox(_("No Air Hike Height Restriction"), &air_hike_nero);
     }
     else if (display == 2) {
-        if (ImGui::Checkbox(_("Height Restriction"), &toggle_dante)) {
+        if (ImGui::Checkbox(_("No Height Restriction"), &toggle_dante)) {
             ToggleDante(toggle_dante);
         }
         ImGui::SameLine();
         help_marker(_("By default, certain moves are locked behind a height threshold. If you're below that threshold, they cannot be started. "
             "This removes that limit"));
         ImGui::SameLine(sameLineWidth);
-        ImGui::Checkbox(_("Air Hike Height Restriction"), &air_hike_dante);
+        ImGui::Checkbox(_("No Air Hike Height Restriction"), &air_hike_dante);
     }
 }
 
