@@ -628,6 +628,9 @@ std::optional<std::string> Coop::on_initialize() {
     return Mod::on_initialize();
 }
 
+// void Coop::on_stage_start() {}
+// void Coop::on_stage_end() {}
+
 void Coop::on_frame(fmilliseconds& dt) {
     //if (mod_enabled) {
     //    for (int i = 1; i < PadArr.size(); i++) {
