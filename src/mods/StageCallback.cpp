@@ -15,7 +15,9 @@ void __stdcall stage_end() {
 
 naked void detour1() {
 	_asm {
+			pushad
 			call stage_start
+			popad
 		//originalcode:
 			mov eax,[ebp+0x2c]
 			push eax
@@ -26,7 +28,9 @@ naked void detour1() {
 
 naked void detour2() {
 	_asm {
+			pushad
 			call stage_end
+			popad
 		//originalcode:
 			mov dword ptr [eax+0xd0],ebx
 			jmp [StageCallback::jmp_ret2]
