@@ -20,7 +20,7 @@ bool FlyingStats::showFlyingCollisionData = false;
 int FlyingStats::collisionPage = 0;
 bool FlyingStats::showFlyingCancelBools = false;
 
-static void ImGuizmoManipulators(uEnemy* enemy, int& enemyIndex) {
+static void ImGuizmoManipulators(uEnemy_Old* enemy, int& enemyIndex) {
     static int selectedEnemyIndex = -1;
     static int selectedJointIndex = -1;
     static bool isManipulating = false;
@@ -299,7 +299,7 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
         if (!player) { return; }
         if (showFlyingEnemyStats) {
             int enemyCount = 0;
-            uEnemy* enemy = devil4_sdk::get_uEnemies(); // in BP 100, Agnus isn't in slot 1 so this breaks :(
+            uEnemy_Old* enemy = devil4_sdk::get_uEnemies(); // in BP 100, Agnus isn't in slot 1 so this breaks :(
             while (enemy) {
                 ImGuizmoManipulators(enemy, enemyCount);
                 glm::vec3 objectPosition = enemy->position;
@@ -320,7 +320,7 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                     ImGui::PushItemWidth(currentItemWidth);
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.0, 1.0f));
                     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1.0f, 1.0f));
-                    uDamage* currentEnemyDamage = (uDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+                    uDamage_Old* currentEnemyDamage = (uDamage_Old*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
                     if (showFlyingHP) ImGui::SliderFloat(_("HP##EnemyFly"), &currentEnemyDamage->HP, 0.0f, currentEnemyDamage->HPMax, "%.1f");
                     if (showFlyingDamageTaken) ImGui::InputFloat(_("PrevDamage##EnemyFly"), &currentEnemyDamage->HPTaken, NULL, NULL, "%.1f");
                     if (showFlyingDamageResist) ImGui::InputFloat(_("PrevDamageResist##EnemyFly"), &currentEnemyDamage->prevDamageResist, NULL, NULL, "%.1f");

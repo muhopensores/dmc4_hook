@@ -238,10 +238,10 @@ naked void KillPlayer() { // vtable+BC (DevilMayCry4_DX9.exe+3B7AD0) is die with
     }
 }
 
-static int get_enemy_count(uEnemy* enemy) {
+static int get_enemy_count(uEnemy_Old* enemy) {
     int enemies_alive = 0;
     while (enemy) {
-        uDamage* currentEnemyDamage = (uDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+        uDamage_Old* currentEnemyDamage = (uDamage_Old*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
         if (currentEnemyDamage->HP > 0.0f) {
             enemies_alive++;
         }

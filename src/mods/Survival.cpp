@@ -99,10 +99,10 @@ constexpr std::array<const char*, 6> survival_room_names {
 int Survival::currentRoomIndex = 0;
 
 // safe to be called with no enemy
-Survival::EnemyInfo Survival::get_enemy_info(uEnemy* enemy) {
+Survival::EnemyInfo Survival::get_enemy_info(uEnemy_Old* enemy) {
     EnemyInfo enemy_info{ 0, 0 };
     while (enemy) {
-        uDamage* currentEnemyDamage = (uDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+        uDamage_Old* currentEnemyDamage = (uDamage_Old*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
         if (currentEnemyDamage->HP > 0.0f) {
             enemy_info.enemies_alive++;
             if (enemy->ID >= BERIAL || enemy->ID == CREDO || enemy->ID == AGNUS || enemy->ID == BLITZ) {
@@ -338,7 +338,7 @@ void Survival::on_timer_trigger() {
     sUnit* sUnit = devil4_sdk::get_sUnit();
     if (!sUnit) { return; }
         
-    uEnemy* enemy = devil4_sdk::get_uEnemies();
+    uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
     Survival::EnemyInfo enemy_info = Survival::get_enemy_info(enemy);
         
     const WaveConfig& config = get_wave_config();
@@ -455,9 +455,9 @@ void Survival::on_frame(fmilliseconds& dt) {
             !player_is_alive && in_correct_room && Survival::survival_active) {
             
             // kill all enemies
-            uEnemy* enemy = devil4_sdk::get_uEnemies();
+            uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
             while (enemy) {
-                uDamage* currentEnemyDamage = (uDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+                uDamage_Old* currentEnemyDamage = (uDamage_Old*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
                 currentEnemyDamage->HP = 0.0f;
                 enemy = enemy->nextEnemy;
             }
@@ -733,7 +733,7 @@ PowerUpSystem::PowerUpDefinition createEnemySizePowerUp() {
         0.0f,                      // radius
         15.0f,                     // effectDuration
         []() {                     // onActivate
-            uEnemy* enemy = devil4_sdk::get_uEnemies();
+            uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
             while (enemy) {
                 float newScale = Survival::get_random_float(0.5f, 2.0f);
                 enemy->scale = { newScale, newScale, newScale };

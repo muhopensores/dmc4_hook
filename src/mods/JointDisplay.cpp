@@ -151,7 +151,7 @@ void JointDisplay::on_frame(fmilliseconds& dt) {
     static ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::TRANSLATE;
     static ImGuizmo::MODE currentGizmoMode = ImGuizmo::LOCAL;
     
-    uEnemy* enemy = devil4_sdk::get_uEnemies();
+    uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
     int enemyCount = 0;
     while (enemy) {
         if (enemy->joints) {

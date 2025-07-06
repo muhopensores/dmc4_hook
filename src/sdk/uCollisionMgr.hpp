@@ -261,4 +261,69 @@ public:
     uint padding3d8[6];
 };
 static_assert(sizeof(uCollisionMgr) == 0x3f0);
+
+enum UDAMAGE_TYPE {
+    PLAYER      = 0,
+    SHELL       = 1,
+    ENEMY       = 2,
+    ENEMY_SHELL = 3,
+    SET         = 4,
+    STAGE       = 5,
+    BUTOU       = 6,
+    BOSS_DANTE  = 7,
+    OTHER       = 8
+};
+
+enum GUARD_TYPE {
+    GT_NO_GUARD,
+    GT_NORMAL,
+    GT_DEFEND_FAIL,
+    GT_ATTACK_FAIL,
+    GT_ATTACK_FAIL2,
+    GT_BOTH_FAIL
+};
+
+class uDamage_New : public cUnit{
+public:
+    float mHitPoint;
+    float mMaxHitPoint;
+    int mPointCorrect;
+    int mLvCorrect;
+    float mDamageCorrect;
+    float mDamageValue;
+    float mActualDamageValue;
+    int mInterrupt[5];
+    int mBlown[5];
+    int mMaxInterrupt[5];
+    int mMaxBlown[5];
+    uint mState;
+    uint mEffect;
+    bool mIsDead;
+    undefined field15_0x8d;
+    undefined field16_0x8e;
+    undefined field17_0x8f;
+    uintptr_t mpSoundRequest;
+    GUARD_TYPE mGuardType; /* Created by retype action */
+    bool mResetInterruptReq;
+    bool mResetBlownReq;
+    bool mIsEmToEm;
+    undefined field23_0x9b;
+    kAttackStatus* mpLastAttackStatus;
+    int mEffectReduceCount; /* Created by retype action */
+    float mEffectReduceTimer;
+    undefined field27_0xa8;
+    undefined field28_0xa9;
+    undefined field29_0xaa;
+    undefined field30_0xab;
+    float mTimer;
+    float mStateTimer;
+    kAttackStatus* mpAttackStatus;
+    kDefendStatus* mpDefendStatus; /* Created by retype action */
+    uActor* mpAttackActor;         /* Created by retype action */
+    uActor* mpDefendActor;         /* Created by retype action */
+    uModel* mpModel;               /* Created by retype action */
+    enum UDAMAGE_TYPE mType;              /* Created by retype action */
+    uint mComboRank;                      /* Created by retype action */
+    uintptr_t mpDefendStatusData;         /* Created by retype action */
+};
 #endif

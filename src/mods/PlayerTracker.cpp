@@ -999,6 +999,9 @@ void PlayerTracker::on_gui_frame(int display) {
 					char entryText[16];
 					snprintf(entryText, sizeof(entryText), "entry %i", mLCount);
 					ImGui::InputScalar(entryText, ImGuiDataType_S32, &mL, NULL, NULL, "%8X", ImGuiInputTextFlags_CharsHexadecimal);
+					MtDTI* dti = devil4_sdk::get_DTI(mL);
+					ImGui::SameLine();
+					ImGui::Text(dti->m_name);
 					mL = mL->mp_next_unit;
 					mLCount++;
 					ImGui::PopItemWidth();

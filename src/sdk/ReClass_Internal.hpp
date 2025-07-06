@@ -1095,7 +1095,7 @@ public:
     char pad_00[4]; // 0x0
 }; // Size: 0x4
 
-class uDamage {
+class uDamage_Old {
 public:
     char pad_0[0x18];
     float HP; // 0x18
@@ -1112,7 +1112,7 @@ public:
     char pad_8d[0x1f];
     float stunResetTimer; // 0xAC
 }; // Size: 0xb0
-static_assert(sizeof(uDamage) == 0xb0);
+static_assert(sizeof(uDamage_Old) == 0xb0);
 
 class lockOnSphereData {
 public:
@@ -1160,7 +1160,7 @@ public:
     char pad_0[0x24];
     class uPlayer* player_ptr; // 0x24
     char pad_28[0x88];
-    class uEnemy* uBoss1; // 0xb0
+    class uEnemy_Old* uBoss1; // 0xb0
     char pad_b4[0x1c];
     class uCameraCtrl* camera1; // 0xd0
     char pad_d4[0xc];
@@ -1179,7 +1179,7 @@ public:
     char pad_148[0x4];
     float stylePoints; // 0x14C
     char pad_150[0x68];
-    class uEnemy* uEnemies[10]; // 0x1b8
+    class uEnemy_Old* uEnemies[10]; // 0x1b8
     uint32_t enemyCount[3]; // 0x1e0
     char pad_1ec[0x64];
     float bpTimer; // 0x250

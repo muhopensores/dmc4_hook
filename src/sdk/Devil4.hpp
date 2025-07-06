@@ -10,8 +10,8 @@ namespace devil4_sdk {
 	sArea* get_sArea();
 	sUnit* get_sUnit();
 	int get_enemy_count();
-	uEnemy* get_uEnemies();
-	uEnemy* get_objects();
+	uEnemy_Old* get_uEnemies();
+	uEnemy_Old* get_objects();
 	sRender* get_sRender();
 	SMediator* get_sMediator();
 	uPlayer* get_local_player();
@@ -41,6 +41,7 @@ namespace devil4_sdk {
 	void* unit_deallocate(MtObject* obj);
 	void* __cdecl MemberFuncToPtr(...);
 	void __stdcall bring_assert(void* rFile);
+	MtDTI* get_DTI(void* obj);
 };
 
 namespace uactor_sdk {

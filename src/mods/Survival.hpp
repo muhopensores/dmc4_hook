@@ -28,7 +28,7 @@ public:
     static bool player_existed_last_frame;
     static int currentRoomIndex;
 
-    static EnemyInfo get_enemy_info(uEnemy* enemy);
+    static EnemyInfo get_enemy_info(uEnemy_Old* enemy);
     static void reset_wave();
     static void on_timer_trigger();
     static void on_meme_timer_trigger();

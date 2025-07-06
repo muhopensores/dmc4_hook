@@ -42,9 +42,9 @@ struct sMain {
     CollisionGroupsContainer* pCollisionGroupsContainer;
 };
 
-typedef int(__stdcall *GetActiveSphereMask_t)(uEnemy* enemy);
+typedef int(__stdcall *GetActiveSphereMask_t)(uEnemy_Old* enemy);
 GetActiveSphereMask_t GetActiveSphereMask_ptr = (GetActiveSphereMask_t)0x04AB3A0;
-int __stdcall CallSub4AB3A0(uEnemy* enemy) {
+int __stdcall CallSub4AB3A0(uEnemy_Old* enemy) {
     return GetActiveSphereMask_ptr(enemy);
 }
 
@@ -55,12 +55,12 @@ float* __fastcall CallSub42C680(void* joint, float* matrixBuffer) {
 }
 
 // recreation of 0x4AB170 with sphere displays. This is called twice - one with sUnit+0x194 (enemies) and one with sUnit+0x1AC (extra enemy parts)
-void DisplayEnemyStepSpheres(uEnemy* enemy, uPlayer* player) {
+void DisplayEnemyStepSpheres(uEnemy_Old* enemy, uPlayer* player) {
     while (enemy) {
         ImGui::PushID((void*)enemy);
 
         // new checks, the enemy step func lacks these
-        uDamage* currentEnemyDamage = (uDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+        uDamage_Old* currentEnemyDamage = (uDamage_Old*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
         if (currentEnemyDamage->HP <= 0.0f) {
             ImGui::PopID();
             enemy = enemy->nextEnemy;
@@ -269,7 +269,7 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
 
     if (mod_enabled2) { // pushpills
         if (uPlayer* player = devil4_sdk::get_local_player()) {
-            uEnemy* enemy = devil4_sdk::get_uEnemies();
+            uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
             int enemyCount = 0;
             while (enemy) {
                 uCollisionMgr currentEnemyCollision = *(uCollisionMgr*)((char*)enemy + EnemyTracker::get_enemy_specific_uCollision_offset(enemy->ID));
@@ -340,9 +340,9 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
 
     if (mod_enabled3) { // enemy step
         if (uPlayer* player = devil4_sdk::get_local_player()) {
-            uEnemy* enemy = devil4_sdk::get_uEnemies();
+            uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
             if (enemy) DisplayEnemyStepSpheres(enemy, player);
-            uEnemy* object = devil4_sdk::get_objects();
+            uEnemy_Old* object = devil4_sdk::get_objects();
             if (object) DisplayEnemyStepSpheres(object, player);
         // player
             Vector3f playerPos = glm::make_vec3((float*)&player->m_pos);
@@ -353,7 +353,7 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
     }
     if (mod_enabled4) { // enemy collision
         if (uPlayer* player = devil4_sdk::get_local_player()) {
-            uEnemy* enemy = devil4_sdk::get_uEnemies();
+            uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
             int enemyCount = 0;
             while (enemy) {
                 Vector3f finalPos = glm::make_vec3((float*)&enemy->position) + Vector3f(0.0f, 85.0f, 0.0f);

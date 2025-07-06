@@ -192,7 +192,7 @@ std::optional<std::string> EnemyTracker::on_initialize() {
 }
 
 // call with true to save, call with false to load
-static void save_load_enemy_info(bool isSave, uEnemy* enemy) {
+static void save_load_enemy_info(bool isSave, uEnemy_Old* enemy) {
     if (enemy) {
         if (isSave) {
             savedEnemyPosition[0] = enemy->position[0];
@@ -205,7 +205,7 @@ static void save_load_enemy_info(bool isSave, uEnemy* enemy) {
             savedEnemyMoveID = enemy->moveID;
             savedEnemyAnimID = enemy->animID;
             savedEnemyGrounded = enemy->collisionSettings.mLand;
-            uDamage* currentEnemyDamage = (uDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+            uDamage_Old* currentEnemyDamage = (uDamage_Old*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
             savedEnemyHP = currentEnemyDamage->HP;
             savedEnemyStun = currentEnemyDamage->stun[0];
         }
@@ -219,7 +219,7 @@ static void save_load_enemy_info(bool isSave, uEnemy* enemy) {
             enemy->velocity[2] = savedEnemyVelocity[2];
             enemy->moveID = savedEnemyMoveID;
             enemy->animID = savedEnemyAnimID;
-            uDamage* currentEnemyDamage = (uDamage*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
+            uDamage_Old* currentEnemyDamage = (uDamage_Old*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
             currentEnemyDamage->HP = savedEnemyHP;
             currentEnemyDamage->stun[0] = savedEnemyStun;
             enemy->collisionSettings.mLand = savedEnemyGrounded;
@@ -252,9 +252,9 @@ static void save_load_boss_info(bool isSave) {
     }
 }
 
-static uEnemy* GetDesiredEnemy(bool useLockon) {
+static uEnemy_Old* GetDesiredEnemy(bool useLockon) {
     SMediator* s_med_ptr = devil4_sdk::get_sMediator();
-    uEnemy* enemy = NULL;
+    uEnemy_Old* enemy = NULL;
     if (useLockon) {
         if (uPlayer* player = devil4_sdk::get_local_player()) {
             if (player->lockOnTargetPtr3) {
@@ -340,7 +340,7 @@ void EnemyTracker::on_gui_frame(int display) {
 
             // i hate this, game accesses them from base ptr, e.g. [uEnemy+1544] for scarecrow hp
             int damage_info_offset = EnemyTracker::get_enemy_specific_damage_offset(currentEnemy->ID);
-            uDamage* currentEnemyDamage = (uDamage*)((char*)currentEnemy + damage_info_offset);
+            uDamage_Old* currentEnemyDamage = (uDamage_Old*)((char*)currentEnemy + damage_info_offset);
             ImGui::PushItemWidth(sameLineItemWidth);
             ImGui::InputFloat(_("HP##2"), &currentEnemyDamage->HP);
             ImGui::InputFloat(_("Max HP##2"), &currentEnemyDamage->HPMax);

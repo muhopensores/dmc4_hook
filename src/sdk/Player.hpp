@@ -86,7 +86,7 @@ public:
     char pad_1558[0xc];
     uint32_t moveID2; // 0x1564
     char pad_1568[0x4c];
-    uDamage damageStruct; // 0x15b4
+    uDamage_Old damageStruct; // 0x15b4
     char pad_1664[0x48];
     uint32_t walkType; // 0x16ac
     char pad_16b0[0x10];
@@ -150,7 +150,7 @@ public:
     char pad_1f80[0x74];
     float jcTimer; // 0x1ff4
     char pad_1ff8[0x8];
-    uEnemy* lockOnTargetPtr1; // 0x2000
+    uEnemy_Old* lockOnTargetPtr1; // 0x2000
     char pad_2004[0x1];
     bool enemyStepEnabled; // 0x2005
     char pad_2006[0x2];
@@ -174,8 +174,8 @@ public:
     char pad_2960[0x38];
     uint32_t moveIDBest; // 0x2998
     char pad_299c[0x6e4];
-    uEnemy* lockOnTargetPtr2; // 0x3080
-    uEnemy* lockOnTargetPtr3; // 0x3084
+    uEnemy_Old* lockOnTargetPtr2; // 0x3080
+    uEnemy_Old* lockOnTargetPtr3; // 0x3084
     char pad_3088[0x3c];
     uint8_t bufferPermissions; // 0x30c4
     char pad_30c5[0x2b];
@@ -218,5 +218,5 @@ public:
     char pad_151f8[0xa8];
     int dreadnaught; // 0x152a0
     char pad_152a4[0x7c4];
-    uEnemy* lockOnTargetPtr4; // 0x15a68
+    uEnemy_Old* lockOnTargetPtr4; // 0x15a68
 };                            // Size: 0x15a6c

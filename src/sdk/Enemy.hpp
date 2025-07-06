@@ -6,11 +6,11 @@
 #include "MtMath.hpp"
 #include "uCollisionMgr.hpp"
 
-class uEnemy {
+class uEnemy_Old {
 public:
     uintptr_t vtable;  // 0x0
     int flags;         // 0x4
-    uEnemy* nextEnemy; // 0x8
+    uEnemy_Old* nextEnemy; // 0x8
     char pad_c[0x4];
     float delta;      // 0x10
     uint8_t moveID;   // 0x14
@@ -115,4 +115,8 @@ public:
     char pad_1dff8[0x8];
     float sanctusShieldTimerM20; // 0x1e000
 };                               // Size: 0x1e004
-static_assert(sizeof(uEnemy) == 0x1e004);
+static_assert(sizeof(uEnemy_Old) == 0x1e004);
+
+class uEnemy : public uActor {
+    
+};

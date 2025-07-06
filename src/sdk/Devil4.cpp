@@ -19,6 +19,11 @@ namespace devil4_sdk {
         return (void*)unit_heap_alloc->deallocate(obj);
     }
 
+	MtDTI* get_DTI(void* obj) {
+        uintptr_t dti_call = *(uintptr_t*)(*(uintptr_t*)obj + 0x10);
+        return ((MtDTI * (*)())(dti_call))();
+	}
+
 	//_DWORD *__usercall uEm003Shl_ConstructorMaybe_sub_560330@<eax>(int a1@<eax>)
 	MtObject* u_em003_shl_consturctor_sub(void* mem) {
 		MtObject* ret_val = 0;
@@ -102,19 +107,19 @@ namespace devil4_sdk {
 		return s_unit_ptr;
 	}
 
-	uEnemy* get_uEnemies() {
+	uEnemy_Old* get_uEnemies() {
 		sUnit* s_unit_ptr = get_sUnit();
 		if (s_unit_ptr) {
-			uEnemy* enemy = (uEnemy*)s_unit_ptr->mMoveLine[15].mTop;
+			uEnemy_Old* enemy = (uEnemy_Old*)s_unit_ptr->mMoveLine[15].mTop;
 			return enemy;
 		}
 		else return nullptr;
 	}
 
-	uEnemy* get_objects() {
+	uEnemy_Old* get_objects() {
 		sUnit* s_unit_ptr = get_sUnit();
 		if (s_unit_ptr) {
-			uEnemy* object = (uEnemy*)s_unit_ptr->mMoveLine[16].mTop;
+			uEnemy_Old* object = (uEnemy_Old*)s_unit_ptr->mMoveLine[16].mTop;
 			return object;
 		}
 		else return nullptr;
@@ -122,7 +127,7 @@ namespace devil4_sdk {
 
 	int get_enemy_count() {
 		sUnit* s_unit_ptr = devil4_sdk::get_sUnit();
-		uEnemy* currentEnemy = (uEnemy*)s_unit_ptr->mMoveLine[15].mTop;
+		uEnemy_Old* currentEnemy = (uEnemy_Old*)s_unit_ptr->mMoveLine[15].mTop;
 		if (!s_unit_ptr || !currentEnemy) {
 			return 0;
 		}
