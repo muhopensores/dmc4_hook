@@ -148,7 +148,7 @@
 #include "mods/TrackingJealousy.hpp"
 #include "mods/LongerJealousy.hpp"
 #include "mods/GhostWalls.hpp"
-#include "mods/ShadowResolution.hpp"
+#include "mods/GraphicsSettings.hpp"
 #include "mods/PowerUpSystem.hpp"
 #include "mods/SpawnedEnemiesAttack.hpp"
 #include "mods/Survival.hpp"
@@ -324,7 +324,7 @@ Mods::Mods() {
     ADD_MOD(TrackingJealousy);
     ADD_MOD(LongerJealousy);
     ADD_MOD(GhostWalls);
-    ADD_MOD(ShadowResolution);
+    ADD_MOD(GraphicsSettings);
     ADD_MOD(SpawnedEnemiesAttack); // before Survival
     ADD_MOD(Survival);
     ADD_MOD(ManualLuciferAim);
