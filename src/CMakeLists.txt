@@ -32,8 +32,8 @@ set(MODS_SRC
   mods/Survival.cpp
   mods/InfinitePinTimer.hpp
   mods/InfinitePinTimer.cpp
-  mods/ShadowResolution.hpp
-  mods/ShadowResolution.cpp
+  mods/GraphicsSettings.hpp
+  mods/GraphicsSettings.cpp
   mods/GhostWalls.hpp
   mods/GhostWalls.cpp
   mods/LongerJealousy.hpp
