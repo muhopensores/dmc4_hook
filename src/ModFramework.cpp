@@ -38,6 +38,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 std::unique_ptr<ModFramework> g_framework{};
 
+static ImGuiContext* g_context    = nullptr;
+
 ModFramework::ModFramework()
     : m_game_module{ GetModuleHandle(0) },
 #ifndef NDEBUG
@@ -162,6 +164,24 @@ void ModFramework::on_frame() {
 
         spdlog::info("ModFramework initialized");
         m_initialized = true;
+        return;
+    }
+    if (!g_context) {
+        return;
+    }
+    ImFont* ctx_font = g_context->Font;
+    if (!ctx_font) {
+        return;
+    }
+    ImFontAtlas* ctx_font_atlas = g_context->Font->ContainerAtlas;
+    if (!ctx_font_atlas) {
+        return;
+    }
+    ImTextureData* ctx_texture_data = g_context->Font->ContainerAtlas->TexData;
+    if (!ctx_texture_data) {
+        return;
+    }
+    if (ctx_texture_data->WantDestroyNextFrame == true) {
         return;
     }
 
@@ -394,7 +414,7 @@ bool ModFramework::initialize() {
         spdlog::info("Initializing ImGui");
 
         IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
+        g_context = ImGui::CreateContext();
 
         spdlog::info("Initializing ImGui Win32");
 
