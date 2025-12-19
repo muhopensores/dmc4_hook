@@ -60,8 +60,6 @@ int EnemyTracker::get_enemy_specific_damage_offset(int enemy_id) {
         return 0x1504;
     case AGNUS:
         return 0x1504;
-
-    // 0x1504
     case ANGELO_BIANCO:
         return 0x1504;
     case ANGELO_ALTO:

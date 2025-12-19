@@ -4,7 +4,7 @@
 
 bool RestoreMaxHp::mod_enabled = false;
 
-static float two_minutes_timer = 7200.0f;
+static const float two_minutes_timer = 7200.0f;
 static bool reset_timer = false;
 static bool limit_to_ground = false;
 static bool limit_to_air = false;
@@ -30,24 +30,18 @@ call damage
 */
 
 void RestoreMaxHp::restore_health_and_timer(SMediator* s_med_ptr, uPlayer* player) {
-    for (uint32_t i = 0; i < s_med_ptr->enemyCount[2]; ++i) {
-        uintptr_t enemy_base = reinterpret_cast<uintptr_t>(s_med_ptr->uEnemies[i]);
+    uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
+    while (enemy) {
+        uintptr_t enemy_base = (uintptr_t)(enemy);
         if (enemy_base) {
-            int damage_info_offset = EnemyTracker::get_enemy_specific_damage_offset(s_med_ptr->uEnemies[i]->ID);
+            int damage_info_offset = EnemyTracker::get_enemy_specific_damage_offset(enemy->ID);
             if (damage_info_offset != 0) {
-                float& enemy_hp = *reinterpret_cast<float*>(enemy_base + damage_info_offset + 0x18);
-                float& enemy_max_hp = *reinterpret_cast<float*>(enemy_base + damage_info_offset + 0x1C);
+                float& enemy_hp = *(float*)(enemy_base + damage_info_offset + 0x18);
+                float& enemy_max_hp = *(float*)(enemy_base + damage_info_offset + 0x1C);
                 enemy_hp = enemy_max_hp;
             }
         }
-    }
-    if (s_med_ptr->uBoss1) {
-        int damage_info_offset = EnemyTracker::get_enemy_specific_damage_offset(s_med_ptr->uBoss1->ID);
-        if (damage_info_offset != 0) {
-            float& enemy_hp = *reinterpret_cast<float*>(s_med_ptr->uBoss1 + damage_info_offset + 0x18);
-            float& enemy_max_hp = *reinterpret_cast<float*>(s_med_ptr->uBoss1 + damage_info_offset + 0x1C);
-            enemy_hp = enemy_max_hp;
-        }
+        enemy = enemy->nextEnemy;
     }
     if (reset_timer && player->grounded == 1 && (player->inputHold[0] & 0x10) && (player->inputHold[0] & 0x08)) {
         s_med_ptr->bpTimer = two_minutes_timer;
