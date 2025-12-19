@@ -171,6 +171,8 @@ constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 uintptr_t AreaJump::bp_jump_hook1_continue = NULL;
 uintptr_t AreaJump::bp_jump_hook2_continue = NULL;
 uintptr_t AreaJump::bp_jump_hook3_continue = NULL;
+uintptr_t AreaJump::randomized_bp_1_continue = NULL;
+uintptr_t AreaJump::randomized_bp_2_continue = NULL;
 
 static int bp_floor = 0;
 static int bp_area_id = 0;
@@ -507,14 +509,48 @@ naked void bp_jump_hook3_proc(void) { // called every time you enter a teleporte
     }
 }
 
-void AreaJump::toggle_randomized_bp(bool enable) { // randomized bp
-    if (enable) {
-        install_patch_offset(0x04B808, patch1, "\x90\x90\x90\x90", 4);
-        install_patch_offset(0x04C200, patch2, "\x90\x90\x90\x90\x90", 5);
+naked void detour_randomized_bp_1_proc(void) {
+    _asm {
+        movzx ecx, byte ptr [edi+0x01] // originalcode part 1
+        cmp byte ptr [AreaJump::randomize_bp_toggle], 1
+        je CheckArea
+        jmp cont
+
+    CheckArea:
+        push eax
+        mov eax, [static_mediator_ptr]
+        mov eax, [eax]
+        cmp dword ptr [eax+0xE0], 50
+        pop eax
+        jne cont // not BP, so do the original code
+        jmp retcode
+
+    cont:
+        mov [eax+ecx*0x4+0x74], edx // originalcode part 2
+    retcode:
+		jmp dword ptr [AreaJump::randomized_bp_1_continue]
     }
-    else {
-        patch1.reset();
-        patch2.reset();
+}
+
+naked void detour_randomized_bp_2_proc(void) {
+    _asm {
+        cmp byte ptr [AreaJump::randomize_bp_toggle], 1
+        je CheckArea
+        jmp code
+
+    CheckArea:
+        push eax
+        mov eax, [static_mediator_ptr]
+        mov eax, [eax]
+        cmp dword ptr [eax+0xE0], 50
+        pop eax
+        jne code // not BP, so do the original code
+        jmp retcode
+
+    code:
+        add dword ptr [eax+ecx*4+74],01
+    retcode:
+		jmp dword ptr [AreaJump::randomized_bp_2_continue]
     }
 }
 
@@ -581,6 +617,14 @@ std::optional<std::string> AreaJump::on_initialize() {
     }
     if (!install_hook_offset(0x04A974, hook3, &bp_jump_hook3_proc, &AreaJump::bp_jump_hook3_continue, 6)) {
         spdlog::error("Failed to init bpJumpHook3 mod\n");
+        return "Failed to init bpJumpHook3 mod";
+    }
+    if (!install_hook_offset(0x04B804, randomized_bp_1_continue_hook, &detour_randomized_bp_1_proc, &AreaJump::randomized_bp_1_continue, 8)) {
+        spdlog::error("Failed to init bpJumpHook4 mod\n");
+        return "Failed to init bpJumpHook3 mod";
+    }
+    if (!install_hook_offset(0x04C200, randomized_bp_2_continue_hook, &detour_randomized_bp_2_proc, &AreaJump::randomized_bp_2_continue, 5)) {
+        spdlog::error("Failed to init bpJumpHook5 mod\n");
         return "Failed to init bpJumpHook3 mod";
     }
 
@@ -683,7 +727,6 @@ void AreaJump::on_gui_frame(int display) {
     }
     if (display == 2) {
         if (ImGui::Checkbox(_("Random BP"), &randomize_bp_toggle)) {
-            toggle_randomized_bp(randomize_bp_toggle);
             randomize_bp_floors();
             randomize_bp_bosses();
         }
@@ -768,7 +811,6 @@ void AreaJump::on_config_load(const utility::Config& cfg) {
     if (randomize_bp_toggle) {
         randomize_bp_floors();
         randomize_bp_bosses();
-        toggle_randomized_bp(randomize_bp_toggle);
     }
     bp_boss_rush_toggle = cfg.get<bool>("bp_boss_rush_toggle").value_or(false);
 }

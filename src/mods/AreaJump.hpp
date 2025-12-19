@@ -23,7 +23,8 @@ public:
     static uintptr_t bp_jump_hook1_continue;
     static uintptr_t bp_jump_hook2_continue;
     static uintptr_t bp_jump_hook3_continue;
-    void toggle_randomized_bp(bool enable);
+    static uintptr_t randomized_bp_1_continue;
+    static uintptr_t randomized_bp_2_continue;
     static const Room* bp_stage(int floor);
     static void jump_to_stage(const Room* stage);
     static bool is_valid_room_id(int id);
@@ -43,6 +44,8 @@ private:
     std::unique_ptr<FunctionHook> hook1;
     std::unique_ptr<FunctionHook> hook2;
     std::unique_ptr<FunctionHook> hook3;
+    std::unique_ptr<FunctionHook> randomized_bp_1_continue_hook;
+    std::unique_ptr<FunctionHook> randomized_bp_2_continue_hook;
     std::unique_ptr<Patch> patch1;
     std::unique_ptr<Patch> patch2;
 };
