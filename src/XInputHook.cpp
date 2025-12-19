@@ -51,6 +51,9 @@ DWORD WINAPI XInputHook::xinput_get_state(DWORD dw_user_index, void* p_state) {
     // call original
     auto get_state_fn = g_xinput_hook->m_get_state_hook->get_original<decltype(XInputHook::xinput_get_state)>();
     DWORD retval      = get_state_fn(dw_user_index, p_state);
+    if (retval != ERROR_SUCCESS) {
+        return retval;
+    }
     // call into our function pointers
     for (auto ogs_pointer : g_xinput_hook->m_ogs_pointers) {
         ogs_pointer(dw_user_index, p_state);

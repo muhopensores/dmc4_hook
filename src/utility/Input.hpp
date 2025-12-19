@@ -65,8 +65,8 @@ namespace utility
             InputState state = InputState::IDLE;
         };
 
-        std::array<InputStatus, XIBtn::XIBTN_MAX>  m_gpad_status;
-        std::array<InputStatus, 256> m_status;
+        std::array<InputStatus, 256> m_status = {0} ;
+        std::array<InputStatus, XIBtn::XIBTN_MAX> m_gpad_status = {0};
 
         void update_gamepads();
         void Input::get_state(bool keydown, InputStatus& current_status);

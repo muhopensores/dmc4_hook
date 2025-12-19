@@ -17,8 +17,8 @@ struct XinputTriggers {
     BYTE m_right;
 };
 
-static WORD g_xinput_buttons[XUSER_MAX_COUNT];
-static XinputTriggers g_xinput_triggers[XUSER_MAX_COUNT];
+static WORD g_xinput_buttons[XUSER_MAX_COUNT] = {0};
+static XinputTriggers g_xinput_triggers[XUSER_MAX_COUNT] = {0};
 
 namespace utility {
     namespace gamepads {
