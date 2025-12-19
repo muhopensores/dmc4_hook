@@ -166,24 +166,7 @@ void ModFramework::on_frame() {
         m_initialized = true;
         return;
     }
-    if (!g_context) {
-        return;
-    }
-    ImFont* ctx_font = g_context->Font;
-    if (!ctx_font) {
-        return;
-    }
-    ImFontAtlas* ctx_font_atlas = g_context->Font->ContainerAtlas;
-    if (!ctx_font_atlas) {
-        return;
-    }
-    ImTextureData* ctx_texture_data = g_context->Font->ContainerAtlas->TexData;
-    if (!ctx_texture_data) {
-        return;
-    }
-    if (ctx_texture_data->WantDestroyNextFrame == true) {
-        return;
-    }
+    assert(g_context && "No imgui context!");
 
     std::chrono::high_resolution_clock::time_point now_time = std::chrono::high_resolution_clock::now();
     w2s::dd_update(); // Used in imgui w2s
@@ -204,8 +187,9 @@ void ModFramework::on_frame() {
     auto& io = ImGui::GetIO();
     io.MouseDrawCursor   = !mouse->m_show_mouse_cursor & m_draw_ui;
 
-	ImGui_ImplDX9_NewFrame();
+    ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
+
     ImGui::NewFrame();
 
     console->draw(m_draw_console);
@@ -220,7 +204,7 @@ void ModFramework::on_frame() {
     ImGui::EndFrame();
     ImGui::Render();
 
-	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+    ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 
     // need to to this cause font atlas is locked between ImGui::NewFrame / ImGui::Render :(
     if(m_imfont_queue_reload_flag) {
@@ -236,8 +220,11 @@ void ModFramework::on_frame() {
 
 void ModFramework::on_reset() {
     spdlog::info("Reset!");
-	if (!m_initialized) { return; }
-	ImGui_ImplDX9_InvalidateDeviceObjects();
+    if (!m_initialized) { return; }
+    ImGui_ImplDX9_InvalidateDeviceObjects();
+    ImGui_ImplWin32_Shutdown();
+    ImGui_ImplDX9_Shutdown();
+    ImGui::DestroyContext(g_context);
     auto& mods = m_mods->get_mods();
     for (const auto& mod : mods) {
         mod->on_reset();
@@ -358,32 +345,30 @@ bool ModFramework::initialize() {
 
     spdlog::info("Attempting to initialize");
 
-    auto *device = m_d3d9_hook->get_device();
+    auto* device = m_d3d9_hook->get_device();
 
     // Wait.
     if (device == nullptr) {
         spdlog::info("Device is null. Will try to initialize once again");
         return false;
     }
-    
 
-    D3DDEVICE_CREATION_PARAMETERS dev_params{ 0 };
+    D3DDEVICE_CREATION_PARAMETERS dev_params{0};
     auto hr = device->GetCreationParameters(&dev_params);
     if (SUCCEEDED(hr)) {
         if (dev_params.hFocusWindow) {
             spdlog::info("[D3D Device init] D3DDEVICE_CREATION_PARAMETERS hFocusWindow={0}\n", (void*)dev_params.hFocusWindow);
             m_wnd = dev_params.hFocusWindow;
-        }
-        else {
+        } else {
             spdlog::info("[D3D Device present] D3DDEVICE_CREATION_PARAMETERS hFocusWindow= is NULL\n");
             return false;
         }
     }
 
     // Explicitly call destructor first
-    //m_windows_message_hook.reset();
+    // m_windows_message_hook.reset();
     if (!m_windows_message_hook) {
-        m_windows_message_hook = std::make_unique<WindowsMessageHook>(m_wnd);
+        m_windows_message_hook             = std::make_unique<WindowsMessageHook>(m_wnd);
         m_windows_message_hook->on_message = [this](auto wnd, auto msg, auto w_param, auto l_param) {
             return on_message(wnd, msg, w_param, l_param);
         };
@@ -391,63 +376,63 @@ bool ModFramework::initialize() {
 
     // WARNING(): bandaid for some wack heap corruption
     // keyboard menu toggle key
-    //m_menu_key.reset();
+    // m_menu_key.reset();
     if (!m_menu_key) {
         m_menu_key = utility::create_keyboard_hotkey({VK_DELETE}, __("dmc4_hook (Keyboard)"),
             "menu_key_keyboard"); // std::make_unique<utility::Hotkey>(VK_DELETE, "Menu Key", "menu_key");
     }
     // gamepad menu toggle button
-    //m_menu_xinput_buttons.reset();
+    // m_menu_xinput_buttons.reset();
     // example
     if (!m_menu_xinput_buttons) {
-        m_menu_xinput_buttons = utility::create_gamepad_hotkey(
-        { XIBtn::LEFT_TRIGGER, XIBtn::LEFT_THUMB, XIBtn::RIGHT_TRIGGER, XIBtn::RIGHT_THUMB },
-        __("dmc4_hook (Pad)"), "menu_gamepad_button");
+        m_menu_xinput_buttons =
+            utility::create_gamepad_hotkey({XIBtn::LEFT_TRIGGER, XIBtn::LEFT_THUMB, XIBtn::RIGHT_TRIGGER, XIBtn::RIGHT_THUMB},
+                __("dmc4_hook (Pad)"), "menu_gamepad_button");
     }
 
-    ImGui_ImplDX9_CreateDeviceObjects();
+    // ImGui_ImplDX9_CreateDeviceObjects();
     on_after_reset();
-    if (m_first_frame) {
-        m_first_frame = false;
 
-        spdlog::info("Window Handle: 0x{0:x}", (uintptr_t)m_wnd);
-        spdlog::info("Initializing ImGui");
+    spdlog::info("Window Handle: 0x{0:x}", (uintptr_t)m_wnd);
+    spdlog::info("Initializing ImGui");
 
-        IMGUI_CHECKVERSION();
-        g_context = ImGui::CreateContext();
+    IMGUI_CHECKVERSION();
+    g_context = ImGui::CreateContext();
 
-        spdlog::info("Initializing ImGui Win32");
+    spdlog::info("Initializing ImGui Win32");
 
-        if (!ImGui_ImplWin32_Init(m_wnd)) {
-            spdlog::error("Failed to initialize ImGui.");
-            return false;
-        }
+    if (!ImGui_ImplWin32_Init(m_wnd)) {
+        spdlog::error("Failed to initialize ImGui.");
+        return false;
+    }
 
-        spdlog::info("Initializing ImGui D3D9");
+    spdlog::info("Initializing ImGui D3D9");
 
-        if (!ImGui_ImplDX9_Init(device)) {
-            spdlog::error("Failed to initialize ImGui DX9.");
-            return false;
-        }
+    if (!ImGui_ImplDX9_Init(device)) {
+        spdlog::error("Failed to initialize ImGui DX9.");
+        return false;
+    }
 
-        auto& io = ImGui::GetIO();
+    auto& io = ImGui::GetIO();
 #if 0
         io.Fonts->AddFontDefault();
         utility::Config cfg{CONFIG_FILENAME};
         auto country_code = cfg.get("locale").value_or("en");
 #endif
-        load_locale_and_imfont(m_glob_locale); // load SOMETHING into io.Fonts so we dont crash
+    load_locale_and_imfont(m_glob_locale); // load SOMETHING into io.Fonts so we dont crash
 
-        //io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\arial.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesDefault());
-        //m_custom_font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\ariali.ttf", 24.0f, NULL, io.Fonts->GetGlyphRangesDefault());
-        //console = new ImGuiConsole();
-        spdlog::info("Initializing Console system");
-        console->init_imgui();
-        spdlog::info("Initializing Input system");
-        m_input = std::make_unique<utility::Input>();
+    // io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\arial.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+    // m_custom_font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\ariali.ttf", 24.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+    // console = new ImGuiConsole();
+    spdlog::info("Initializing Console system");
+    console->init_imgui();
+    spdlog::info("Initializing Input system");
+    m_input = std::make_unique<utility::Input>();
 
-        gui::dark_theme();
+    gui::dark_theme();
 
+    if (m_first_frame) {
+        m_first_frame = false;
         spdlog::info("Starting game data initialization thread");
 
         // Game specific initialization stuff

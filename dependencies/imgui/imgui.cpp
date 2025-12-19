@@ -1,4 +1,4 @@
-// dear imgui, v1.92.0
+﻿// dear imgui, v1.92.0
 // (main code and documentation)
 
 // Help:
@@ -7253,6 +7253,85 @@ static void SetWindowActiveForSkipRefresh(ImGuiWindow* window)
         }
 }
 
+// Global (or thread-local) storage for saved state
+// ⚠️ If you use multiple breakpoints or threads, manage this carefully!
+static CONTEXT g_savedDebugContext = {0};
+static bool g_hasSavedDebugContext = false;
+
+// Save current DR0–DR7 state
+bool SaveDebugRegisters() {
+    CONTEXT ctx      = {0};
+    ctx.ContextFlags = CONTEXT_DEBUG_REGISTERS;
+    if (!GetThreadContext(GetCurrentThread(), &ctx)) {
+        printf("SaveDebugRegisters: GetThreadContext failed: %lu\n", GetLastError());
+        return false;
+    }
+    g_savedDebugContext    = ctx;
+    g_hasSavedDebugContext = true;
+    return true;
+}
+
+// Restore previously saved DR0–DR7 state
+bool RestoreDebugRegisters() {
+    if (!g_hasSavedDebugContext) {
+        printf("RestoreDebugRegisters: No saved state!\n");
+        return false;
+    }
+    g_savedDebugContext.ContextFlags = CONTEXT_DEBUG_REGISTERS;
+    if (!SetThreadContext(GetCurrentThread(), &g_savedDebugContext)) {
+        printf("RestoreDebugRegisters: SetThreadContext failed: %lu\n", GetLastError());
+        return false;
+    }
+    g_hasSavedDebugContext = false; // optional: prevent double-restore
+    return true;
+}
+
+// Set a hardware *write* breakpoint using DR0 (assumes you saved state first)
+bool SetHardwareWriteBreakpoint(void* address, SIZE_T size = 1) {
+    if (size != 1 && size != 2 && size != 4 && size != 8) {
+        printf("Invalid breakpoint size: %zu (must be 1,2,4,8)\n", size);
+        return false;
+    }
+
+    CONTEXT ctx      = {0};
+    ctx.ContextFlags = CONTEXT_DEBUG_REGISTERS;
+    if (!GetThreadContext(GetCurrentThread(), &ctx)) {
+        printf("SetHardwareWriteBreakpoint: GetThreadContext failed: %lu\n", GetLastError());
+        return false;
+    }
+
+    ctx.Dr0 = (DWORD_PTR)address;
+
+    // Clear DR0 control bits in DR7 (bits 0-3 and 16-19 for DR0)
+    ctx.Dr7 &= ~(0xF);       // Clear L0, G0, RW0, LEN0 (low 4 bits)
+    ctx.Dr7 &= ~(0xF << 16); // Clear RW0 and LEN0 in high control bits
+
+    // Enable local breakpoint (L0)
+    ctx.Dr7 |= (1 << 0);
+
+    // Set type = data write (01) → bits 16-17: 01 → set bit 16 only
+    ctx.Dr7 |= (1 << 16);
+
+    // Set length
+    if (size == 1) {
+        // LEN = 00 → nothing to set
+    } else if (size == 2) {
+        ctx.Dr7 |= (1 << 18); // LEN = 01
+    } else if (size == 4) {
+        ctx.Dr7 |= (3 << 18); // LEN = 11
+    } else if (size == 8) {
+        ctx.Dr7 |= (2 << 18); // LEN = 10
+    }
+
+    if (!SetThreadContext(GetCurrentThread(), &ctx)) {
+        printf("SetHardwareWriteBreakpoint: SetThreadContext failed: %lu\n", GetLastError());
+        return false;
+    }
+
+    printf("Hardware write breakpoint set at %p (size=%zu)\n", address, size);
+    return true;
+}
+ImTextureRef g_texture_ref = 0;
 // Push a new Dear ImGui window to add widgets to.
 // - A default window called "Debug" is automatically stacked at the beginning of every frame so you can use widgets without explicitly calling a Begin/End pair.
 // - Begin/End can be called multiple times during the frame with the same window name to append content.
@@ -7267,6 +7346,19 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
     IM_ASSERT(name != NULL && name[0] != '\0');     // Window name required
     IM_ASSERT(g.WithinFrameScope);                  // Forgot to call ImGui::NewFrame()
     IM_ASSERT(g.FrameCountEnded != g.FrameCount);   // Called ImGui::Render() or ImGui::EndFrame() and haven't called ImGui::NewFrame() again yet
+#if 0
+    g.Font->ContainerAtlas->TexRef;
+
+    if (g.Font) {
+        if (g.Font->ContainerAtlas) {
+            if (g_texture_ref != g.Font->ContainerAtlas->TexRef) {
+                SaveDebugRegisters();
+                SetHardwareWriteBreakpoint(&g.Font->ContainerAtlas->TexRef._TexData->UniqueID, 4);
+                g_texture_ref = g.Font->ContainerAtlas->TexRef;
+            }
+        }
+    }
+#endif
 
     // Find or create
     ImGuiWindow* window = FindWindowByName(name);
