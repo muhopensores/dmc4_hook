@@ -310,7 +310,7 @@ namespace gui {
                 ImGui::BeginChild("CharacterChild");
                 float windowWidth = ImGui::GetWindowWidth();
 
-                if (ImGui::BeginTabBar("CharacterTabBar", ImGuiTabBarFlags_FittingPolicyResizeDown)) {
+                if (ImGui::BeginTabBar("CharacterTabBar", ImGuiTabBarFlags_FittingPolicyShrink)) {
                     tabHeight += ImGui::GetCursorPosY();
 
                     static int numTabs = 2;
@@ -576,7 +576,7 @@ namespace gui {
                 ImGui::BeginChild("EnvironmentChild");
                 float windowWidth = ImGui::GetWindowWidth();
     
-                if (ImGui::BeginTabBar("EnvironmentTabBar", ImGuiTabBarFlags_FittingPolicyResizeDown)) {
+                if (ImGui::BeginTabBar("EnvironmentTabBar", ImGuiTabBarFlags_FittingPolicyShrink)) {
                     tabHeight += ImGui::GetCursorPosY();
                     static int numTabs = 2;
                     float tabWidth = windowWidth / numTabs;
