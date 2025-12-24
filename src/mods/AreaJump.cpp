@@ -548,7 +548,7 @@ naked void detour_randomized_bp_2_proc(void) {
         jmp retcode
 
     code:
-        add dword ptr [eax+ecx*4+74],01
+        add dword ptr [eax+ecx*0x4+0x74],01
     retcode:
 		jmp dword ptr [AreaJump::randomized_bp_2_continue]
     }
@@ -621,11 +621,11 @@ std::optional<std::string> AreaJump::on_initialize() {
     }
     if (!install_hook_offset(0x04B804, randomized_bp_1_continue_hook, &detour_randomized_bp_1_proc, &AreaJump::randomized_bp_1_continue, 8)) {
         spdlog::error("Failed to init bpJumpHook4 mod\n");
-        return "Failed to init bpJumpHook3 mod";
+        return "Failed to init bpJumpHook4 mod";
     }
     if (!install_hook_offset(0x04C200, randomized_bp_2_continue_hook, &detour_randomized_bp_2_proc, &AreaJump::randomized_bp_2_continue, 5)) {
         spdlog::error("Failed to init bpJumpHook5 mod\n");
-        return "Failed to init bpJumpHook3 mod";
+        return "Failed to init bpJumpHook5 mod";
     }
 
 	return Mod::on_initialize();

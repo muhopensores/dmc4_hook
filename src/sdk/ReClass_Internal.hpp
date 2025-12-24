@@ -35,6 +35,18 @@ enum class GameMode : uint32_t {
     HEAVEN_OR_HELL = 1,
     HELL_AND_HELL  = 2,
 };
+enum WeaponID {
+    WP_RED_QUEEN   = 0,
+    WP_BLUE_ROSE   = 1,
+    WP_YAMATO      = 2,
+    WP_RIGHT_HAND  = 3,
+    WP_REVELLION   = 4,
+    WP_GILGAMESH   = 5,
+    WP_BASILISK    = 6,
+    WP_COYOTE_ACE  = 7,
+    WP_PANDORA     = 8,
+    WP_EBONY_IVORY = 9,
+};
 
 static std::vector<std::pair<uint16_t, const char*>> buttonPairs = {
     {0x0000, __("None")},
