@@ -2,6 +2,7 @@
 #include "ActiveBlock.hpp"
 #include "ForceLucifer.hpp" // used to stop rose despawning when leaving lucifer
 #include "FasterFastDrive.hpp" // for easy fast drive
+#include "DarkSoulsStamina.hpp" // stamina
 #include "../sdk/Devil4.hpp"
 #include "../sdk/Player.hpp"
 #if 1
@@ -102,10 +103,15 @@ naked void detour() { // inputpressed // inputs are edx // player is in edi // A
     }
 }
 
-naked void detour2() { // inputonpress // touchpad ecstasy // player is in edx // called on button press
+static float d2xmm0backup = 0.0f;
+naked void detour2() { // inputonpress // touchpad ecstasy // player is in edx // called on tick
     _asm {
-        mov [edx+0x00001410], eax // originalcode
+        cmp byte ptr [DarkSoulsStamina::stamina_enabled], 1
+        je staminaCode
 
+        originalcode:
+        mov [edx+0x00001410], eax // originalcode
+        
         push eax
         mov eax, [static_mediator_ptr]
         mov eax, [eax]
@@ -149,6 +155,14 @@ naked void detour2() { // inputonpress // touchpad ecstasy // player is in edx /
         pop eax
         pop ecx
         jmp jmpret
+
+    staminaCode:
+        movss [d2xmm0backup], xmm0
+        xorps xmm0, xmm0
+        comiss xmm0, [DarkSoulsStamina::stamina]
+        movss xmm0, [d2xmm0backup]
+        ja jmpret
+        jmp originalcode
     }
 }
 

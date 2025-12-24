@@ -300,6 +300,8 @@ namespace gui {
                 pmods->on_draw_ui("AreaJump"_hash, 2); // needs its own line // random bp & boss rush
 
                 pmods->on_draw_ui("FloorIsLava"_hash, 2);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("DarkSoulsStamina"_hash, 2);
                 
                 tabHeight += ImGui::GetCursorPosY();
                 ImGui::EndChild();

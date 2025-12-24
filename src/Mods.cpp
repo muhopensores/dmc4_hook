@@ -165,6 +165,7 @@
 #include "mods/PhotoMode.hpp"
 #include "mods/Coop.hpp"
 #include "mods/StageCallback.hpp"
+#include "mods/DarkSoulsStamina.hpp"
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -340,6 +341,7 @@ Mods::Mods() {
     ADD_MOD(PhotoMode);
     ADD_MOD(Coop);
     ADD_MOD(StageCallback);
+    ADD_MOD(DarkSoulsStamina);
 }
 
 // Initializes mods, checks for errors
