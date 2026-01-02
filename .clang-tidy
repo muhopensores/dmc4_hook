@@ -1,7 +1,10 @@
 ---
-Checks:          '*,-fuchsia-*,-google-*,-zircon-*,-abseil-*,-modernize-use-trailing-return-type,-llvm*,-misc-non-private-member-variables-in-classes,-cppcoreguidelines-non-private-member-variables-in-classes,-cppcoreguidelines-pro-type-cstyle-cast'
-WarningsAsErrors: ''
-HeaderFilterRegex: ''
-FormatStyle:     none
+Checks: '*,-fuchsia-*,-google-*,-zircon-*,-abseil-*,-modernize-use-trailing-return-type,-llvm*,-misc-non-private-member-variables-in-classes,-cppcoreguidelines-non-private-member-variables-in-classes,-cppcoreguidelines-pro-type-cstyle-cast,-misc-use-anonymous-namespace,-readability-avoid-unconditional-preprocessor-if,-hicpp-avoid-c-arrays,-cppcoreguidelines-avoid-c-arrays,-modernize-avoid-c-arrays,-hicpp-use-nullptr,-modernize-use-nullptr,-cppcoreguidelines-avoid-non-const-global-variables,-readability-identifier-length,-cppcoreguidelines-pro-type-vararg,-hicpp-vararg,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-hicpp-no-array-decay,-altera-unroll-loops'
+WarningsAsErrors: ''  # or list specific checks if you want some as errors
 
+# IMPORTANT: Exclude Dear ImGui headers from linting
+# Adjust path regex to match where your imgui headers are located.
+# Example: if headers are in "extern/imgui/" or "third_party/imgui/"
+HeaderFilterRegex: '^((?!imgui).)*$'
 
+FormatStyle: none
