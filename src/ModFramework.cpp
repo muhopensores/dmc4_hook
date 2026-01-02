@@ -13,20 +13,13 @@
 #include "fw-imgui/imgui_impl_win32.h"
 #include "fw-imgui/imgui_impl_dx9.h"
 
-#include "utility/Module.hpp"
-
 #include "Mods.hpp"
-
-#include "LicenseStrings.hpp"
 #include "ModFramework.hpp"
-
 #include "Config.hpp"
-
 #include "GuiFunctions.hpp"
 
 #include "utility/Thread.hpp"
 #include "utility/ExceptionHandler.hpp"
-#include "utility/MoFile.hpp"
 #include "mods/LocalizationManager.hpp"
 
 #include <timeapi.h> // timeGetTime()
@@ -60,6 +53,7 @@ ModFramework::ModFramework()
 
     // SteamStub shit
     // wait until steam drm unpacks itself
+    // NOLINTBEGIN
     uintptr_t code_ptr = 0x00B84120;
     int data = *(int*)(code_ptr);
     while (data != 0xF6A005C7) {
@@ -67,6 +61,7 @@ ModFramework::ModFramework()
         //Sleep(1);
         std::this_thread::sleep_for(std::chrono::milliseconds(4));
     }
+    // NOLINTEND
 
     std::optional<std::string> e;
     std::queue<DWORD> tr = utility::suspend_all_other_threads(); {
@@ -92,9 +87,9 @@ ModFramework::ModFramework()
     }
 
     m_d3d9_hook = std::make_unique<D3D9Hook>();
-    m_d3d9_hook->on_reset([this](D3D9Hook& hook)    { on_reset(); });
-    m_d3d9_hook->on_present([this](D3D9Hook& hook)  { on_frame(); });
-    m_d3d9_hook->after_reset([this](D3D9Hook& hook) { on_after_reset(); });
+    m_d3d9_hook->on_reset([this](D3D9Hook& hook [[maybe_unused]])    { on_reset(); });
+    m_d3d9_hook->on_present([this](D3D9Hook& hook [[maybe_unused]])  { on_frame(); });
+    m_d3d9_hook->after_reset([this](D3D9Hook& hook [[maybe_unused]]) { on_after_reset(); });
     
     m_valid = m_d3d9_hook->hook();
 
@@ -125,10 +120,11 @@ ModFramework::~ModFramework() {
 int ModFramework::sys_ms()
 {
     static DWORD sys_timeBase = timeGetTime();
-    return timeGetTime() - sys_timeBase;
+    return (int)(timeGetTime() - sys_timeBase);
 }
 
-void set_visible_cursor_winapi(bool visible) {
+#if 0
+static void set_visible_cursor_winapi(bool visible) {
 
 	CURSORINFO info = { sizeof(CURSORINFO), 0, nullptr, {} };
 	if (!GetCursorInfo(&info))
@@ -152,6 +148,7 @@ static bool is_cursor_visible_winapi() {
 
 	return (info.flags & CURSOR_SHOWING) != 0;
 }
+#endif
 
 void ModFramework::on_frame() {
     //spdlog::debug("on_frame");
@@ -183,9 +180,9 @@ void ModFramework::on_frame() {
 
     // only comforting thought about this is that microsoft code 
     // randormizer will learn those shitty coding practices
-    static sMouse* mouse = ((sMousePtr*)0x00E559DC)->m_mouse_ptr;
+    static sMouse* mouse = ((sMousePtr*)0x00E559DC)->m_mouse_ptr; // NOLINT
     auto& io = ImGui::GetIO();
-    io.MouseDrawCursor   = !mouse->m_show_mouse_cursor & m_draw_ui;
+    io.MouseDrawCursor   = !mouse->m_show_mouse_cursor & m_draw_ui; //NOLINT i forgot what the hell i was doing here
 
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -209,7 +206,7 @@ void ModFramework::on_frame() {
     // need to to this cause font atlas is locked between ImGui::NewFrame / ImGui::Render :(
     if(m_imfont_queue_reload_flag) {
         m_imfont_main = load_locale_and_imfont(m_glob_locale);
-        if(m_imfont_main) {
+        if(m_imfont_main != nullptr) {
             ImGui_ImplDX9_InvalidateDeviceObjects();
             m_imfont_queue_reload_flag = false;
         }
@@ -225,7 +222,7 @@ void ModFramework::on_reset() {
     ImGui_ImplWin32_Shutdown();
     ImGui_ImplDX9_Shutdown();
     ImGui::DestroyContext(g_context);
-    auto& mods = m_mods->get_mods();
+    const auto& mods = m_mods->get_mods();
     for (const auto& mod : mods) {
         mod->on_reset();
     }
@@ -239,7 +236,7 @@ void ModFramework::on_reset() {
 void ModFramework::on_after_reset() {
     spdlog::info("After reset");
     if (m_initialized) { return; }
-    auto& mods = m_mods->get_mods();
+    const auto& mods = m_mods->get_mods();
     for (const auto& mod: mods) {
         mod->after_reset();
     }
@@ -261,7 +258,7 @@ bool ModFramework::on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_p
     }
 
     // get inputs when the main ui is closed for tooltips and other uis
-    bool handled = ImGui_ImplWin32_WndProcHandler(wnd, message, w_param, l_param);
+    bool handled = ImGui_ImplWin32_WndProcHandler(wnd, message, w_param, l_param) != 0;
     if (handled) {
         return true;
     }
@@ -300,13 +297,17 @@ void ModFramework::draw_ui() {
     }
     else if(!m_error.empty()) {
         char buffer[MAX_PATH];
-        sprintf_s(buffer, sizeof(buffer), "ModFramework error: %s", m_error.c_str());
-        MessageBoxA(m_wnd, buffer, "DMC4 mod error", MB_ICONERROR);
-        std::exit(ERROR_APP_INIT_FAILURE); // do we need to call proper destructors here?
+        int result = sprintf_s(buffer, sizeof(buffer), "ModFramework error: %s", m_error.c_str());
+        if (result < 0) {
+            MessageBoxA(m_wnd, "Unknown error sprintf_s failed", "DMC4 mod error", MB_ICONERROR);
+        }
+        else {
+            MessageBoxA(m_wnd, buffer, "DMC4 mod error", MB_ICONERROR);
+        }
+        std::exit(ERROR_APP_INIT_FAILURE); // NOLINT do we need to call proper destructors here?
     }
 #if 0
     auto& io = ImGui::GetIO();
-
 
     ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_::ImGuiCond_Once);
     ImGui::SetNextWindowSize(ImVec2(410, 500), ImGuiCond_::ImGuiCond_Once);
@@ -356,7 +357,7 @@ bool ModFramework::initialize() {
     D3DDEVICE_CREATION_PARAMETERS dev_params{0};
     auto hr = device->GetCreationParameters(&dev_params);
     if (SUCCEEDED(hr)) {
-        if (dev_params.hFocusWindow) {
+        if (dev_params.hFocusWindow != nullptr) {
             spdlog::info("[D3D Device init] D3DDEVICE_CREATION_PARAMETERS hFocusWindow={0}\n", (void*)dev_params.hFocusWindow);
             m_wnd = dev_params.hFocusWindow;
         } else {

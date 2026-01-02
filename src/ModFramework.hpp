@@ -12,7 +12,6 @@ namespace utility {
 #include "D3D9Hook.hpp"
 #include "XInputHook.hpp"
 #include "WindowsMessageHook.hpp"
-#include "utility/ChronoAlias.hpp"
 #include "imgui.h"
 
 
@@ -82,7 +81,7 @@ public:
     void on_after_reset();
     // NOTE(): need to delay updating font atlas till after 
     // frame is done through a flag at the end of on_frame();
-    void on_locale_update(const char* contry_code);
+    void on_locale_update(const char* country_code);
     bool on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param);
 
 private:
@@ -103,8 +102,8 @@ private:
 
     std::chrono::high_resolution_clock::time_point m_prev_time;
 
-    std::unique_ptr<D3D9Hook> m_d3d9_hook{};
-    std::unique_ptr<XInputHook> m_xinput_hook{};
+    std::unique_ptr<D3D9Hook> m_d3d9_hook;
+    std::unique_ptr<XInputHook> m_xinput_hook;
     std::unique_ptr<WindowsMessageHook> m_windows_message_hook;
     std::shared_ptr<spdlog::logger> m_logger;
     std::string m_error;
