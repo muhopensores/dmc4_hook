@@ -1322,6 +1322,7 @@ public:
 }; // Size: 0x13e9
 static_assert(sizeof(DevilArm) == 0x13e9);
 
+#if 0 // NOTE(): moved to uPlayerData.hpp
 class CharacterSettingsOne {
 public:
     char pad_0[0x1c];
@@ -1372,6 +1373,9 @@ public:
     float funshipUnbounce; // 0x3e4
 }; // Size: 0x3e8
 static_assert(sizeof(CharacterSettingsThree) == 0x3e8);
+#else
+#include "Devil4/uPlayerData.hpp"
+#endif
 
 struct kAtckDefTbl {
     uint32_t atckAttr;  //0x0000

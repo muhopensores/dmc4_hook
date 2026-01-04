@@ -5,6 +5,9 @@
 #include "Enemy.hpp"
 #include "uActor.hpp"
 
+class CharacterSettingsTwo;
+class CharacterSettingsThree;
+
 class MotionData {
 public:
     char pad_0[0x4];
