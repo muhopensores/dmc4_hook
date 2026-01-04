@@ -759,7 +759,9 @@ public:
 }; //Size=0x0034
 static_assert(sizeof(Inputs) == 0x34);
 
+#if 0
 class MtObject;
+#endif
 
 #if 0
 class MtDTI
@@ -783,6 +785,7 @@ public:
 #include "Devil4/MtDTI.hpp"
 #endif
 
+#if 0
 class MtObject
 {
 public:
@@ -793,6 +796,9 @@ public:
     virtual MtDTI* get_dti() { return (MtDTI*)0x00E5C5A8; }; // 0x10
 }; //Size: 0x0004
 static_assert(sizeof(MtObject) == 0x04);
+#else
+#include "Devil4/MtObject.hpp"
+#endif
 
 class CResource : public MtObject
 {
