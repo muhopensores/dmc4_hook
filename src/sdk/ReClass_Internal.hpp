@@ -761,6 +761,7 @@ static_assert(sizeof(Inputs) == 0x34);
 
 class MtObject;
 
+#if 0
 class MtDTI
 {
 public:
@@ -778,6 +779,9 @@ public:
 	virtual void vec_del_dtor(unsigned int x) {};
 	virtual void* new_instance() {return nullptr;};
 }; //Size: 0x0020
+#else
+#include "Devil4/MtDTI.hpp"
+#endif
 
 class MtObject
 {
