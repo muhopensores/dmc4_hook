@@ -1259,6 +1259,7 @@ static_assert(sizeof(sMediator) == 0x878);
 #include "Devil4/sMediator.hpp"
 #endif
 
+#if 0 // NOTE(): moved to Player.hpp
 class MotionData {
 public:
     char pad_0[0x4];
@@ -1286,6 +1287,7 @@ public:
     class InnerMotionPtr* innerMotionPtr1; // 0x1a0
 }; // Size: 0x1a4
 static_assert(sizeof(MotionPtr) == 0x1a4);
+#endif
 
 class LuciferPin {
 public:

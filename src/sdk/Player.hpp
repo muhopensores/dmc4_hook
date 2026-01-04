@@ -5,6 +5,34 @@
 #include "Enemy.hpp"
 #include "uActor.hpp"
 
+class MotionData {
+public:
+    char pad_0[0x4];
+    uint32_t hitboxStartTime; // 0x4
+    char pad_8[0xc];
+    uint32_t passThroughEnemiesIdk; // 0x14
+    char pad_18[0x24];
+    uint32_t sfxTiming; // 0x3c
+    char pad_40[0x10];
+    uint32_t sfxToPlay; // 0x50
+}; // Size: 0x54
+static_assert(sizeof(MotionData) == 0x54);
+
+class InnerMotionPtr {
+public:
+    MotionData motionData[100]; // 0x0
+}; // Size: 0x20d0
+static_assert(sizeof(InnerMotionPtr) == 0x20d0);
+
+class MotionPtr {
+public:
+    char pad_0[0x4];
+    char motionString1[30]; // 0x4
+    char pad_22[0x17e];
+    class InnerMotionPtr* innerMotionPtr1; // 0x1a0
+}; // Size: 0x1a4
+static_assert(sizeof(MotionPtr) == 0x1a4);
+
 class uPlayer : public uCoord {
 public:
     char pad_e0[0x10];
