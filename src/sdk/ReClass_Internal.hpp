@@ -821,7 +821,8 @@ static_assert(sizeof(cResource) == 0x60);
 #include "Devil4/cResource.hpp"
 #endif
 
-class REffectList : public cResource
+#if 0
+class rEffectList : public cResource
 {
 public:
 	float m_base_fps; //0x0060
@@ -833,7 +834,10 @@ public:
 	uint32_t m_resource_ptr; //0x0078
 	uint32_t m_resource_info_num; //0x007C
 }; //Size: 0x0080
-static_assert(sizeof(REffectList) == 0x0080);
+static_assert(sizeof(rEffectList) == 0x0080);
+#else
+#include "Devil4/rEffectList.hpp"
+#endif
 
 //class uActor {
 //    virtual void destructor();//0x00
