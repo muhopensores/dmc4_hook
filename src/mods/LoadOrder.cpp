@@ -61,7 +61,7 @@ struct __declspec(align(4)) SResourceLoadingInfo
 /* 10292 */
 struct SResourceResourcework
 {
-    CResource *presource;
+    cResource *presource;
     unsigned int offset;
     unsigned int orgsize;
     unsigned int datasize;
@@ -75,7 +75,7 @@ struct __cppobj SResourceDecodework
 {
     MtStream *pin;
     MtCriticalSection cs;
-    CResource *parc;
+    cResource *parc;
     char *pbuf;
     unsigned int bufsize;
     unsigned int readpt;
@@ -108,7 +108,7 @@ struct __cppobj __declspec(align(8)) SResource : CSystem
     MtString m_native_path;
     MtString m_resource_folder;
     MtString m_native_folder;
-    CResource *mp_table[8192];
+    cResource *mp_table[8192];
     SResourceProperty m_resource_property;
     bool m_optimize_enable;
     bool m_build_complete;
@@ -120,7 +120,7 @@ struct __cppobj __declspec(align(8)) SResource : CSystem
     bool m_load_end;
     bool m_auto_update;
     bool m_cache_enable;
-    CResource *mp_load_list[1024];
+    cResource *mp_load_list[1024];
     unsigned int m_load_num;
     SResourceLoadingInfo m_loading_info;
     SResourceDecodework m_decode_work;

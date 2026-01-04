@@ -800,7 +800,8 @@ static_assert(sizeof(MtObject) == 0x04);
 #include "Devil4/MtObject.hpp"
 #endif
 
-class CResource : public MtObject
+#if 0
+class cResource : public MtObject
 {
 public:
     virtual void callDestructor(); //0x0
@@ -815,9 +816,12 @@ public:
 	int64_t m_id; //0x0054
 	char pad_005_c[4]; //0x005C
 }; //Size: 0x0060
-static_assert(sizeof(CResource) == 0x60);
+static_assert(sizeof(cResource) == 0x60);
+#else
+#include "Devil4/cResource.hpp"
+#endif
 
-class REffectList : public CResource
+class REffectList : public cResource
 {
 public:
 	float m_base_fps; //0x0060
@@ -848,7 +852,7 @@ static_assert(sizeof(REffectList) == 0x0080);
 //    virtual void updateLmat();//0x34
 //    virtual void updateWmat();//0x38
 //    virtual void getJointMatrix(int jntInd);//0x3C
-//   // virtual void LoadrModel(CResource* mdl);//0x40
+//   // virtual void LoadrModel(cResource* mdl);//0x40
 //    virtual void lifecycle();//0x78
 //    virtual void getCenterPos();//0x84
 //    virtual void getCenterJointInd(int index);//0x88

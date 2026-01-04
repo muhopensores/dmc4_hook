@@ -34,7 +34,7 @@ namespace devil4_sdk {
 									float interpolationFrame = 3.0f);
 	void __stdcall neutral_air_transition(uPlayer* uActor);
 	MtObject* __stdcall get_stuff_from_files(MtDTI* dti, char* path, uint32_t mode = 1);
-	void __stdcall release_resource(CResource* rsrc);
+	void __stdcall release_resource(cResource* rsrc);
 	void spawn_or_something(void* a1, MtObject* obj_to_spawn, int a3);
 	void sUnit_spawn(void* obj, int move_line);
 	void* mt_allocate_heap(size_t size, int alignment);

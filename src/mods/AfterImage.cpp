@@ -151,10 +151,10 @@ AfterImgCtlVtable::AfterImgCtlVtable(void* vtable, size_t size) {
 
 void AfterImgCtl::destructor(uint32_t flag) {
     uactor_sdk::ushell_des(this);
-    //devil4_sdk::release_resource((CResource*)this->BodyModel);
-    //devil4_sdk::release_resource((CResource*)this->HeadModel);
-    //devil4_sdk::release_resource((CResource*)this->HairModel);
-    //devil4_sdk::release_resource((CResource*)this->JacketModel);
+    //devil4_sdk::release_resource((cResource*)this->BodyModel);
+    //devil4_sdk::release_resource((cResource*)this->HeadModel);
+    //devil4_sdk::release_resource((cResource*)this->HairModel);
+    //devil4_sdk::release_resource((cResource*)this->JacketModel);
     if (flag) {
         devil4_sdk::unit_deallocate((MtObject*)this);
     }

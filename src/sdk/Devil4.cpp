@@ -446,7 +446,7 @@ namespace devil4_sdk {
 		}
 	}
 
-	void __stdcall release_resource(CResource* rsrc) {
+	void __stdcall release_resource(cResource* rsrc) {
 		uintptr_t release_call = 0x8DDA00;
 		_asm {
 				push rsrc

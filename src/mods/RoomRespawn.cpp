@@ -8,7 +8,7 @@ static uint32_t   g_spawn_index_cache{};
 
 bool RoomRespawn::g_reset_manager = false;
 
-struct RPlacement : CResource {};
+struct RPlacement : cResource {};
 
 // linker errors with actual MtObject vtable,
 // too lazy to debug properly

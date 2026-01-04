@@ -381,7 +381,7 @@ public:
     uint8_t mIDQueueValue;
     short padding1256;
     uint field27_0x1258[32];
-    CResource* mpRefResource;
+    cResource* mpRefResource;
     uint mbActorTrans;
     MtVector3 mDamagePos;
     MtVector3 mDamageVec;

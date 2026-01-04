@@ -142,7 +142,7 @@ class cCameraPlayer : public cCameraBase {
     schar mType;
     uint mRno;
     uint mNextRno; /* Created by retype action */
-    CResource* mpCam;
+    cResource* mpCam;
     MtVector3 mLockonTargetPos;
     MtVector3 mLockonTargetBasePos;
     MtVector3 mLockonTargetCenterPos;
@@ -349,7 +349,7 @@ public:
 
 class uCameraCtrl : public uDevilCamera {
 public:
-    CResource* mpResource;
+    cResource* mpResource;
     uchar mNowArea;
     uchar mOldArea;         /* Created by retype action */
     uchar mBeforeNohitArea; /* Created by retype action */
