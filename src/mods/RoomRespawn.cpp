@@ -36,18 +36,18 @@ struct RPlacementXml : RPlacement
     RPlacementXmlRootTrack m_root_track;
 };
 // same linker fucky-wucky 
-class CUnitT : public MtObjectT
+class cUnitT : public MtObjectT
 {
 public:
     uint32_t bitfield; //0x0004
-    class CUnit *mp_next_unit; //0x0008
-    class CUnit *mp_prev_unit; //0x000C
+    class cUnitT* mp_next_unit; // 0x0008
+    class cUnitT* mp_prev_unit; // 0x000C
     float m_delta_time; //0x0010
     uint32_t some_union; //0x0014
 }; //Size: 0x0018
-static_assert(sizeof(CUnit) == 0x18);
+static_assert(sizeof(cUnitT) == 0x18);
 
-struct UEnemySetCtrl : CUnitT
+struct UEnemySetCtrl : cUnitT
 {
     RPlacementXml *mp_placement;
     int32_t m_set_id;

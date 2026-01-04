@@ -877,7 +877,8 @@ static_assert(sizeof(rEffectList) == 0x0080);
 //}; //Size: 0x0040
 //static_assert(sizeof(MtMatrix) == 0x40);
 
-class CUnit : public MtObject
+#if 0 // NOTE(): was a dublicate with CUnit name, superseeded by cUnit someone else RE'd below
+class cUnit : public MtObject
 {
 public:
     union {
@@ -888,12 +889,13 @@ public:
         uint8_t mTransView;
         };
     };
-	class CUnit *mp_next_unit; //0x0008
-	class CUnit *mp_prev_unit; //0x000C
+	class cUnit *mp_next_unit; //0x0008
+	class cUnit *mp_prev_unit; //0x000C
 	float m_delta_time; //0x0010
 	char reserved_state_flags[4]; //0x0014
 }; //Size: 0x0018
-static_assert(sizeof(CUnit) == 0x18);
+static_assert(sizeof(cUnit) == 0x18);
+#endif
 
 //struct MtVector3 { /* 10 */
 //    float x; // 0x00
@@ -921,6 +923,7 @@ static_assert(sizeof(CUnit) == 0x18);
 //};
 //static_assert(sizeof(MtCapsule) == 0x30);
 
+#if 0
 enum BE_FLAG {
     BEFLAG_DISABBLE,
     BEFLAG_PRE_MOVE,
@@ -955,6 +958,9 @@ struct cUnit {
     uint8_t reserved_state_flags[4];
 };
 static_assert(sizeof(cUnit) == 0x18);
+#else
+#include "Devil4/cUnit.hpp"
+#endif
 
 class uCoord: public cUnit {
 public:
@@ -970,7 +976,7 @@ public:
 };
 static_assert(sizeof(uCoord) == 0xe0);
 
-class UCoord : public CUnit
+class UCoord : public cUnit
 {
 public:
 	class UCoord *mp_parent; //0x0018
@@ -987,7 +993,7 @@ public:
 }; //Size: 0x00E0
 static_assert(sizeof(UCoord) == 0xE0);
 
-class UFilter : public CUnit
+class UFilter : public cUnit
 {
 public:
 	uint16_t m_pass; //0x0018
