@@ -616,6 +616,7 @@ static_assert(sizeof(aGame) == 0x1d2);
 #include "Devil4/aGame.hpp"
 #endif
 
+#if 0
 class currentMission
 {
 public:
@@ -661,6 +662,9 @@ public:
     currentRoom* currentRoomPtr; // x03838
 }; // Size: 0x383C
 static_assert(sizeof(sArea) == 0x383C);
+#else
+#include "Devil4/sArea.hpp"
+#endif
 
 class sRender
 {
