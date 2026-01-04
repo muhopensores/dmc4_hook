@@ -673,6 +673,7 @@ public:
     glm::ivec2 screenRes; // 0x44
 };
 
+#if 0
 class sWorkRate;
 class unkClass;
 class unkClass2;
@@ -729,6 +730,9 @@ public:
 
 }; //Size=0x0404
 static_assert(sizeof(unkClass2) == 0x404);
+#else
+#include "Devil4/sWorkRate.hpp"
+#endif
 
 class Inputs
 {
