@@ -217,7 +217,7 @@ glm::vec3 get_player_position() {
     return {0.0f, 0.0f, 0.0f};
 }
 
-void set_enemy_position(UEnemySomething* em) {
+void set_enemy_position(uEnemySomething* em) {
     em->m_spawn_coords               = get_player_position() + glm::vec3{0.0f, 300.0f, 0.0f};
     em->m_enemy_spawn_effect_something = enemy_spawn_type[(enemy_spawning)];
 }

@@ -1088,7 +1088,8 @@ static_assert(sizeof(UColorCorrectFilter) == 0x434);
 #include "Devil4/uFilter.hpp"
 #endif
 
-class UEnemySomething
+#if 0
+class uEnemySomething
 {
 public:
 	char pad_0000[4992]; //0x0000
@@ -1128,7 +1129,10 @@ public:
 	bool n00003_f_e0; //0x152E
 	char pad_152_f[4409]; //0x152F
 }; //Size: 0x2668
-static_assert(sizeof(UEnemySomething) == 0x2668);
+static_assert(sizeof(uEnemySomething) == 0x2668);
+#else
+#include "Devil4/uEnemy.hpp"
+#endif
 
 class uEnemyDamagePossibility {
 public:
