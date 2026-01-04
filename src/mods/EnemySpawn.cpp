@@ -212,7 +212,7 @@ glm::vec3 get_player_position() {
     u_local_plr = devil4_sdk::get_local_player();
     // not sure if this check is needed
     if (u_local_plr) {
-        return u_local_plr->m_pos;
+        return u_local_plr->mPos;
     } 
     return {0.0f, 0.0f, 0.0f};
 }

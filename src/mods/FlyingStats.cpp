@@ -424,7 +424,7 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
             }
         }
         if (showFlyingPlayerStats) {
-            glm::vec3 objectPosition = player->m_pos;
+            glm::vec3 objectPosition = player->mPos;
             float objectDistance = w2s::GetDistanceFromCam(objectPosition);
             float guiFriendlyDistance = glm::min(1000.0f / objectDistance, 1.0f);
             glm::vec2 screenPos = w2s::WorldToScreen(objectPosition);
@@ -464,11 +464,11 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                 if (showFlyingDebug) {
                     ImGui::PushItemWidth(currentItemWidth * 2.0f);
                     ImGui::InputScalar(_("Base Addr##EnemyFly"), ImGuiDataType_U32, &player, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
-                    ImGui::InputFloat3(_("Position##EnemyFly"), (float*)&player->m_pos);
+                    ImGui::InputFloat3(_("Position##EnemyFly"), (float*)&player->mPos);
                     ImGui::InputFloat(_("InertiaXZ##EnemyFly"), (float*)&player->inertia);
                     ImGui::InputFloat(_("InertiaY##EnemyFly"), (float*)&player->inertiaY);
                     ImGui::InputFloat3(_("Velocity##EnemyFly"), (float*)&player->m_d_velocity);
-                    ImGui::InputFloat3(_("Scale##EnemyFly"), (float*)&player->m_scale);
+                    ImGui::InputFloat3(_("Scale##EnemyFly"), (float*)&player->mScale);
                     ImGui::PopItemWidth();
                     ImGui::InputFloat(_("Rotation##EnemyFly"), (float*)&player->rotation2);
                     ImGui::InputScalar(_("Anim ID##EnemyFly"), ImGuiDataType_U16, &player->animID);

@@ -183,7 +183,7 @@ void PowerUpSystem::checkPlayerProximity() {
     uPlayer* player = devil4_sdk::get_local_player();
     if (!player) return;
     
-    Vector3f playerPos = player->m_pos;
+    Vector3f playerPos = player->mPos;
     
     for (auto& powerup : m_powerUps) {
         if (!powerup.active || powerup.effectActive) continue;

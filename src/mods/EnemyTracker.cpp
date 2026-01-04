@@ -573,7 +573,7 @@ void EnemyTracker::on_frame(fmilliseconds& dt) {
             //ImGui::SliderFloat("textSize", &textSize, 0.0f, 100.0f, "%.0f");
 
             if (flyingSpheres) {
-                glm::vec3 playerPos = glm::vec3(sMedPtr->player_ptr->m_pos.x, sMedPtr->player_ptr->m_pos.y, sMedPtr->player_ptr->m_pos.z);
+                glm::vec3 playerPos = glm::vec3(sMedPtr->player_ptr->mPos.x, sMedPtr->player_ptr->mPos.y, sMedPtr->player_ptr->mPos.z);
                 glm::vec3 playerRot = glm::vec3(0.0f, sMedPtr->player_ptr->rotation2, 0.0f);
                 glm::mat4 rotMatrix = w2s::CreateRotationMatrix(playerRot.x, playerRot.y, playerRot.z);
                 glm::vec3 forward = glm::vec3(rotMatrix * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f));

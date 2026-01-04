@@ -73,7 +73,7 @@ void NoClip::on_gui_frame(int display) {
         if (player_lock_y_pos) {
             uPlayer* player = devil4_sdk::get_local_player();
             if (player) {
-                player_y_backup = player->m_pos[1];
+                player_y_backup = player->mPos[1];
             }
         }
     }
@@ -85,7 +85,7 @@ void NoClip::on_frame(fmilliseconds& dt) {
     if (player_lock_y_pos) {
         uPlayer* player = devil4_sdk::get_local_player();
         if (player) {
-            player->m_pos[1] = player_y_backup;
+            player->mPos[1] = player_y_backup;
         }
     }
 }

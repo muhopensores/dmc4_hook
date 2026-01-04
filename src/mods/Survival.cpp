@@ -687,7 +687,7 @@ PowerUpSystem::PowerUpDefinition createPlayerSmolPowerUp() {
         []() {                     // onActivate
             uPlayer* player = devil4_sdk::get_local_player();
             if (player) {
-                player->m_scale = { 0.5f, 0.5f, 0.5f };
+                player->mScale = MtVector3 { 0.5f, 0.5f, 0.5f };
             }
         },
         [](float dt) {             // onUpdate
@@ -696,7 +696,7 @@ PowerUpSystem::PowerUpDefinition createPlayerSmolPowerUp() {
         []() {                     // onExpire
             uPlayer* player = devil4_sdk::get_local_player();
             if (player) {
-                player->m_scale = { 1.0f, 1.0f, 1.0f };
+                player->mScale = MtVector3 { 1.0f, 1.0f, 1.0f };
             }
         }
     );

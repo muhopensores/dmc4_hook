@@ -1551,7 +1551,7 @@ static void DrawTonyScores() {
 
             auto now = std::chrono::steady_clock::now();
             float realElapsed = std::chrono::duration<float>(now - heightInertiaTrackerStartTime).count();
-            heightInertiaTrackerStateHistory.push_back({ realElapsed, player->m_pos.y, player->inertia });
+            heightInertiaTrackerStateHistory.push_back({ realElapsed, player->mPos.y, player->inertia });
             ImVec2 chartSize = ImVec2(screenSize.x * 0.1f, screenSize.y * 0.1f);
             ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.01f, screenSize.y * 0.5f), ImGuiCond_Always, ImVec2(0.0f, 0.5f));
             ImGui::Begin("Height & Inertia Chart", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);

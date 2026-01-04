@@ -89,7 +89,7 @@ namespace devil4_sdk {
 		shell->m_some_float_vec = glm::vec3(0.0f, 0.0f, 0.0f);
 		
 		auto lp = devil4_sdk::get_local_player();
-		shell->m_pos_maybe = lp->m_pos;
+		shell->m_pos_maybe = lp->mPos;
 
 		shell->m_required_idk_wtf_is_this_needs_to_be2 = 2;
 		shell->m_required_idk_wtf_is_this_needs_to_be6 = 0;

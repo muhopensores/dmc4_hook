@@ -962,11 +962,12 @@ static_assert(sizeof(cUnit) == 0x18);
 #include "Devil4/cUnit.hpp"
 #endif
 
+#if 0
 class uCoord: public cUnit {
 public:
     uCoord* mpParent;
-    int ParentJoint;
-    int mOrder;
+    int ParentJoint; //attached entity's joint index
+    int mOrder; //axis order
     int padding24[3];
     MtVector3 mPos;
     MtVector4 mQuat;
@@ -976,10 +977,11 @@ public:
 };
 static_assert(sizeof(uCoord) == 0xe0);
 
-class UCoord : public cUnit
+#if 0
+class uCoord : public cUnit
 {
 public:
-	class UCoord *mp_parent; //0x0018
+	class uCoord *mp_parent; //0x0018
 	uint32_t mParentNo;//attached entity's joint index
     uint32_t mOrder;//axis order
     char pad_024_c[0xC];
@@ -991,7 +993,11 @@ public:
 	Matrix4x4 m_lmat; //0x0060
 	Matrix4x4 m_wmat; //0x00A0
 }; //Size: 0x00E0
-static_assert(sizeof(UCoord) == 0xE0);
+static_assert(sizeof(uCoord) == 0xE0);
+#endif
+#else
+#include "Devil4/uCoord.hpp"
+#endif
 
 class UFilter : public cUnit
 {

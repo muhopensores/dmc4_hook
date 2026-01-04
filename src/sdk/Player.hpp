@@ -5,7 +5,7 @@
 #include "Enemy.hpp"
 #include "uActor.hpp"
 
-class uPlayer : public UCoord {
+class uPlayer : public uCoord {
 public:
     char pad_e0[0x10];
     Vector4f rotationKnockback; // 0xf0

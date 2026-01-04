@@ -799,14 +799,14 @@ void PlayerTracker::on_frame(fmilliseconds& dt) {
 void PlayerTracker::SavePlayerXYZ() {
     uPlayer* player = devil4_sdk::get_local_player();
     if (player) {
-        savedPlayerPosition = player->m_pos;
+        savedPlayerPosition = player->mPos;
         savedPlayerRotation = player->rotation2;
     }
 }
 void PlayerTracker::LoadPlayerXYZ() {
     uPlayer* player = devil4_sdk::get_local_player();
     if (player) {
-        player->m_pos = savedPlayerPosition;
+        player->mPos      = MtVector3{ savedPlayerPosition.x, savedPlayerPosition.y, savedPlayerPosition.z };
         player->rotation2 = savedPlayerRotation;
     }
 }
@@ -869,24 +869,24 @@ std::optional<std::string> PlayerTracker::on_initialize() {
     MutatorRegistry::define("PocketKing").on_init([] {
         auto player = devil4_sdk::get_local_player();
         if (player) {
-            player->m_scale = glm::vec3(0.5f, 0.5f, 0.5f);
+            player->mScale = glm::vec3(0.5f, 0.5f, 0.5f);
         }
     }).set_timer(30.0f, [] {
         auto player = devil4_sdk::get_local_player();
         if (player) {
-            player->m_scale = glm::vec3(1.0f, 1.0f, 1.0f);
+            player->mScale = glm::vec3(1.0f, 1.0f, 1.0f);
         }
     });
 
     MutatorRegistry::define("BigGuy").on_init([] {
         auto player = devil4_sdk::get_local_player();
         if (player) {
-            player->m_scale = glm::vec3(1.35f, 1.35f, 1.35f);
+            player->mScale = glm::vec3(1.35f, 1.35f, 1.35f);
         }
     }).set_timer(30.0f, [] {
         auto player = devil4_sdk::get_local_player();
         if (player) {
-            player->m_scale = glm::vec3(1.0f, 1.0f, 1.0f);
+            player->mScale = glm::vec3(1.0f, 1.0f, 1.0f);
         }
     });
 
@@ -1070,9 +1070,9 @@ void PlayerTracker::on_gui_frame(int display) {
             ImGui::InputInt(_("Unknown 7##2"), &player->damageStruct.unknown[6]);
             ImGui::InputInt(_("Unknown 8##2"), &player->damageStruct.unknown[7]);
             ImGui::InputFloat(_("BP Timer ##1"), &s_med_ptr->bpTimer);
-            ImGui::InputFloat3(_("XYZ Position ##1"), (float*)&player->m_pos);
+            ImGui::InputFloat3(_("XYZ Position ##1"), (float*)&player->mPos);
             ImGui::SliderFloat(_("Rotation ##1"), &player->rotation2, -3.14f, 3.14f, "%.2f");
-            ImGui::InputFloat3(_("XYZ Scale ##1"), (float*)&player->m_scale);
+            ImGui::InputFloat3(_("XYZ Scale ##1"), (float*)&player->mScale);
             ImGui::InputFloat3(_("XYZ Velocity ##1"), (float*)&player->m_d_velocity);
             ImGui::InputFloat(_("Movement Speed ##1"), &player->m_d_vel_magnitude);
             ImGui::InputFloat(_("Inertia ##1"), &player->inertia);

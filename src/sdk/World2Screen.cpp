@@ -1115,7 +1115,7 @@ namespace w2s {
         auto player = devil4_sdk::get_local_player();
         if (!player) { return; }
 
-        ddVec3 position{ player->m_pos.x, player->m_pos.y + 55.0f, player->m_pos.z };
+        ddVec3 position{ player->mPos.x, player->mPos.y + 55.0f, player->mPos.z };
     }
 
     void dd_flush() {

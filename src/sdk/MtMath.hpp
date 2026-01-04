@@ -45,6 +45,29 @@ struct MtVector3 { /* 10 */
     float y;
     float z;
     uint32_t padding;
+
+    // TODO(remove): added for compat with existing code
+    MtVector3& operator=(const glm::vec3& other) {
+        x = other.x;
+        y = other.y;
+        z = other.z;
+        return *this;
+    }
+
+    // NOTE(): added an implicit conversion cause we had two uCoords
+    // one is using glm::vec3s and other uses MtVector3 :shrug:
+    operator glm::vec3() const { return glm::vec3(x, y, z); }
+
+    // NOTE(): added array subscript operator since some siyan code
+    // uses both xyz and [012] and i'm too scared to touch his code
+    float& operator[](size_t i) {
+        assert(i < 3);
+        return (&x)[i];
+    }
+    const float& operator[](size_t i) const {
+        assert(i < 3);
+        return (&x)[i];
+    }
 };
 static_assert(sizeof(MtVector3) == 0x10);
 

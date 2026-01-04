@@ -126,7 +126,7 @@ void DisplayEnemyStepSpheres(uEnemy_Old* enemy, uPlayer* player) {
             continue;
         }
         
-        Vector3f playerPos = player->m_pos;
+        Vector3f playerPos = player->mPos;
         // ( i = (float*)(v2 + 5); ; i += 8 )
         for (float* i = (float*)(v2 + 5); ; i += 8) {
             // if ( ((1 << v20) & v21) != 0 )
@@ -345,7 +345,7 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
             uEnemy_Old* object = devil4_sdk::get_objects();
             if (object) DisplayEnemyStepSpheres(object, player);
         // player
-            Vector3f playerPos = glm::make_vec3((float*)&player->m_pos);
+            Vector3f playerPos = glm::make_vec3((float*)&player->mPos);
             Vector3f playerSphereOffset { 0.0f, 85.0f, 0.0f }; // from DevilMayCry4_DX9.exe+AB322
             Vector3f finalPos = playerPos + playerSphereOffset;
             w2s::DrawWireframeCapsule(finalPos, 1.0f, 0.0f, 0.0f, player->rotation2, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
