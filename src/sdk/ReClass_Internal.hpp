@@ -1187,6 +1187,7 @@ public:
     char pad_18[4]; // 0x18
 }; // Size: 0x1c
 
+#if 0
 class uShadow : public cUnit {
 public:
     private: char pad_18[0x28]; public:
@@ -1205,6 +1206,9 @@ public:
     uint32_t resolution; // 0x224
 }; // Size: 0x228
 static_assert(sizeof(uShadow) == 0x228);
+#else
+#include "Devil4/uShadow.hpp"
+#endif
 
 class SMediator {
 public:
