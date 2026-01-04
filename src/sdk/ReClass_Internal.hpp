@@ -1134,6 +1134,7 @@ static_assert(sizeof(uEnemySomething) == 0x2668);
 #include "Devil4/uEnemy.hpp"
 #endif
 
+#if 0
 class uEnemyDamagePossibility {
 public:
     char pad_00[4]; // 0x0
@@ -1157,6 +1158,9 @@ public:
     float stunResetTimer; // 0xAC
 }; // Size: 0xb0
 static_assert(sizeof(uDamage_Old) == 0xb0);
+#else
+#include "Devil4/uDamage.hpp"
+#endif
 
 class lockOnSphereData {
 public:
