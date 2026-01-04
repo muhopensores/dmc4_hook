@@ -114,7 +114,7 @@ struct uBackLight : uLight {
         MtVector4 b[3];
     } mFactor;
 };
-
+#if 0
 struct uFilter : cUnit {
     uint32_t mPass;
     uint32_t mPriority;
@@ -297,6 +297,7 @@ struct uHSVFilter : uFilter {
     float mShiftValue;
 };
 static_assert(sizeof(uHSVFilter) == 0x2C);
+#endif
 
 static void* call_constructor(void* cons_ptr) {
     void* ret_addr = nullptr;

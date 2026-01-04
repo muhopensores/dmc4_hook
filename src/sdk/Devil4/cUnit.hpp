@@ -19,8 +19,6 @@ enum UNIT_ATTR : std::uint8_t { // TODO: check if uint8_t works
 };
 
 struct cUnit { // NOLINT
-	using uint32_t = unsigned int;
-	using uint8_t = unsigned char;
     void *vtable_ptr;
     union {
         uint32_t raw;

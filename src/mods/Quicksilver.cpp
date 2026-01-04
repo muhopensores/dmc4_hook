@@ -107,29 +107,29 @@ void screenBlinkEffect() {
 constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 struct PostProcessingEffects {
-    UTvNoiseFilter* tv;
-    UColorCorrectFilter* cc;
+    uTvNoiseFilter* tv;
+    uColorCorrectFilter* cc;
 };
 
 PostProcessingEffects pps;
 UStageSetTimeSlow* g_ss;
 
-void tv_noise_constructor_params(UTvNoiseFilter* tv) {
-    tv->m_priority ^= 2048;
+void tv_noise_constructor_params(uTvNoiseFilter* tv) {
+    tv->mPriority ^= 2048;
     tv->m_noise_power            = 0.06f;
     tv->m_shock_noise_freq       = 0.02f;
     tv->m_v_sync_noise_amplitude = 0.005f;
 }
 
-void u_color_correct_constructor_params(UColorCorrectFilter* cc) {
-    cc->m_priority ^= 2048;
+void u_color_correct_constructor_params(uColorCorrectFilter* cc) {
+    cc->mPriority ^= 2048;
 
     /*cc->correctors[0].mType = CC_TYPE::TYPE_NEGA2;
     cc->correctors[0].mEnable = true;*/
 
-    cc->correctors[0].m_type   = CcType::TYPE_CHROMA;
-    cc->correctors[0].m_factor = glm::vec4{1.0f, 0.1f, 0.1f, 0.1f};
-    cc->correctors[0].m_enable = true;
+    cc->mCorrector[0].type   = CcType::TYPE_CHROMA;
+    cc->mCorrector[0].mFactor = MtVector3 { 1.0f, 0.1f, 0.1f };
+    cc->mCorrector[0].mEnable = true;
 }
 
 void u_stage_set_time_slow_constructor_params(UStageSetTimeSlow* ss) {

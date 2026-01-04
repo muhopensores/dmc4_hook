@@ -999,14 +999,16 @@ static_assert(sizeof(uCoord) == 0xE0);
 #include "Devil4/uCoord.hpp"
 #endif
 
-class UFilter : public cUnit
+#if 0
+class uFilter : public cUnit
 {
 public:
 	uint16_t m_pass; //0x0018
 	char pad_001_a[2]; //0x001A
 	uint32_t m_priority; //0x001C
 }; //Size: 0x0020
-static_assert(sizeof(UFilter) == 0x20);
+static_assert(sizeof(uFilter) == 0x20);
+#endif
 
 //class MtHermiteCurve
 //{
@@ -1016,6 +1018,7 @@ static_assert(sizeof(UFilter) == 0x20);
 //}; //Size: 0x0040
 //static_assert(sizeof(MtHermiteCurve) == 0x40);
 
+#if 0
 enum class CcType : int32_t
 {
 	TYPE_UNUSED = 0,
@@ -1068,7 +1071,7 @@ public:
 }; //Size: 0x0030
 static_assert(sizeof(UColorCorrectFilterCorrector) == 0x30);
 
-class UColorCorrectFilter : public UFilter
+class UColorCorrectFilter : public uFilter
 {
 public:
 
@@ -1081,6 +1084,9 @@ public:
 	class cTransTexture *c_tans_texture; //0x0430
 }; //Size: 0x0434
 static_assert(sizeof(UColorCorrectFilter) == 0x434);
+#else
+#include "Devil4/uFilter.hpp"
+#endif
 
 class UEnemySomething
 {
@@ -1419,7 +1425,8 @@ public:
 }; //Size: 0x0204
 static_assert(sizeof(UEfctCam) == 0x0204);
 
-class UTvNoiseFilter : public UFilter
+#if 0 // taken care above in Devil4\uFilter.hpp
+class uTvNoiseFilter : public uFilter
 {
 public:
 	Vector3f m_noisy_uv_offset; //0x0020
@@ -1455,7 +1462,8 @@ public:
 	float m_h_sync_noise_offset; //0x00A8
 	char pad_00_ac[1992]; //0x00AC
 }; //Size: 0x0874
-static_assert(sizeof(UTvNoiseFilter) == 0x0874);
+static_assert(sizeof(uTvNoiseFilter) == 0x0874);
+#endif
 
 class SStylishCount
 {
