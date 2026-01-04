@@ -1162,6 +1162,7 @@ static_assert(sizeof(uDamage_Old) == 0xb0);
 #include "Devil4/uDamage.hpp"
 #endif
 
+#if 0 // NOTE(): seems to be already fully reversed in uActor.hpp::LOCKONSPHERE_DAT
 class lockOnSphereData {
 public:
     Vector3f location; // 0x0
@@ -1176,7 +1177,9 @@ public:
     char pad_2C[4]; // 0x2c
 }; // Size: 0x30
 static_assert(sizeof(lockOnSphereData) == 0x30);
-
+#else
+#define lockOnSphereData LOCKONSPHERE_DAT // TODO(): to compile for now
+#endif
 
 
 class uHasDelta : public cUnit {
