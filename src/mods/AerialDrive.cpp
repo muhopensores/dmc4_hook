@@ -1,5 +1,6 @@
 #include "AerialDrive.hpp"
 #include "MoveTable.hpp"
+#include "sdk/Player.hpp"
 
 #if 1
 bool AerialDrive::mod_enabled = false;

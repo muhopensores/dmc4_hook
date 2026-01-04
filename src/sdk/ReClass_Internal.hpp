@@ -1377,6 +1377,7 @@ static_assert(sizeof(CharacterSettingsThree) == 0x3e8);
 #include "Devil4/uPlayerData.hpp"
 #endif
 
+#if 0 // NOTE(): moved to Player.hpp
 struct kAtckDefTbl {
     uint32_t atckAttr;  //0x0000
     uint32_t atckId;    //0x0004
@@ -1398,6 +1399,7 @@ struct kAtckDefTbl {
     uint32_t cancelId[5];        //0x0024, 0x0028, 0x002C, 0x0030, 0x0034
 }; //Size: 0x38
 static_assert(sizeof(kAtckDefTbl) == 0x38);
+#endif
 
 #if 0
 class uStageSetTimeSlow

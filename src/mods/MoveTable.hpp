@@ -5,6 +5,7 @@
 
 extern uintptr_t HookDanteKADTbl;
 extern uintptr_t HookNeroKADTbl;
+struct kAtckDefTbl;
 
 class MoveTable: public Mod {
 public:
