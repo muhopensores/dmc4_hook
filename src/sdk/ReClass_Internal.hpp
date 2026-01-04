@@ -1395,7 +1395,8 @@ struct kAtckDefTbl {
 }; //Size: 0x38
 static_assert(sizeof(kAtckDefTbl) == 0x38);
 
-class UStageSetTimeSlow
+#if 0
+class uStageSetTimeSlow
 {
 public:
 	char pad_0000[4992]; //0x0000
@@ -1405,7 +1406,10 @@ public:
 	float m_stage_work_rate; //0x138C
 	char pad_1390[3288]; //0x1390
 }; //Size: 0x2068
-static_assert(sizeof(UStageSetTimeSlow) == 0x2068);
+static_assert(sizeof(uStageSetTimeSlow) == 0x2068);
+#else
+#include "Devil4/uStageSet.hpp"
+#endif
 
 class N00002D7A
 {

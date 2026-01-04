@@ -112,7 +112,7 @@ struct PostProcessingEffects {
 };
 
 PostProcessingEffects pps;
-UStageSetTimeSlow* g_ss;
+uStageSetTimeSlow* g_ss;
 
 void tv_noise_constructor_params(uTvNoiseFilter* tv) {
     tv->mPriority ^= 2048;
@@ -132,7 +132,7 @@ void u_color_correct_constructor_params(uColorCorrectFilter* cc) {
     cc->mCorrector[0].mEnable = true;
 }
 
-void u_stage_set_time_slow_constructor_params(UStageSetTimeSlow* ss) {
+void u_stage_set_time_slow_constructor_params(uStageSetTimeSlow* ss) {
     g_ss           = ss;
     ss->m_duration = 1100.0f; // hardcoded for now idk what they used
 }
