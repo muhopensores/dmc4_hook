@@ -228,7 +228,7 @@ static void save_load_enemy_info(bool isSave, uEnemy_Old* enemy) {
 
 // call with true to save, call with false to load
 static void save_load_boss_info(bool isSave) {
-    SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
+    sMediator* s_med_ptr = *(sMediator**)static_mediator_ptr;
     if (s_med_ptr->uBoss1) {
         if (isSave) {
             savedEnemyPosition[0] = s_med_ptr->uBoss1->position[0];
@@ -251,7 +251,7 @@ static void save_load_boss_info(bool isSave) {
 }
 
 static uEnemy_Old* GetDesiredEnemy(bool useLockon) {
-    SMediator* s_med_ptr = devil4_sdk::get_sMediator();
+    sMediator* s_med_ptr = devil4_sdk::get_sMediator();
     uEnemy_Old* enemy = NULL;
     if (useLockon) {
         if (uPlayer* player = devil4_sdk::get_local_player()) {
@@ -292,7 +292,7 @@ void EnemyTracker::on_gui_frame(int display) {
 
         ImGui::Spacing();
 
-        SMediator* s_med_ptr = devil4_sdk::get_sMediator();
+        sMediator* s_med_ptr = devil4_sdk::get_sMediator();
 
         /*if (ImGui::Button(_("Save Selected Enemy Info"))) {
             if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
@@ -496,7 +496,7 @@ void EnemyTracker::RenderExample() {
         D3DSURFACE_DESC desc;
         if (SUCCEEDED(m_texture_handle->GetLevelDesc(0, &desc))) {
             glm::vec3 texturePos(1200.0f, 400.0f, 1200.0f);
-            SMediator* sMed = devil4_sdk::get_sMediator();
+            sMediator* sMed = devil4_sdk::get_sMediator();
             uCameraCtrl* camera = sMed->camera1;
             glm::mat4 viewMatrix = glm::lookAt(*(glm::vec3*)&camera->mCameraPos,
                                             *(glm::vec3*)&camera->mTargetPos,
@@ -512,7 +512,7 @@ void EnemyTracker::RenderExample() {
 }
 
 void EnemyTracker::on_frame(fmilliseconds& dt) {
-    if (SMediator* sMedPtr = devil4_sdk::get_sMediator()) {
+    if (sMediator* sMedPtr = devil4_sdk::get_sMediator()) {
         if (sMedPtr->player_ptr) {
             // Draw 3D Text Demos
             /*w2s::Draw3DText(""

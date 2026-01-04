@@ -1014,7 +1014,7 @@ void PlayerTracker::on_gui_frame(int display) {
 
     if (ImGui::CollapsingHeader(_("[OLD] Display Player Stats"))) {
         uPlayer* player = devil4_sdk::get_local_player();
-        SMediator* s_med_ptr = devil4_sdk::get_sMediator();
+        sMediator* s_med_ptr = devil4_sdk::get_sMediator();
         if (player) {
             ImGui::Indent(lineIndent);
             if (ImGui::Button(_("Save Current Move"))) {

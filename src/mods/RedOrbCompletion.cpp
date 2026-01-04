@@ -15,7 +15,7 @@ std::optional<std::string> RedOrbCompletion::on_initialize() {
 void RedOrbCompletion::on_frame(fmilliseconds& dt) {
     if (RedOrbCompletion::mod_enabled) {
         if (devil4_sdk::get_local_player()) {
-            SMediator* sMediatorPtr = devil4_sdk::get_sMediator();
+            sMediator* sMediatorPtr = devil4_sdk::get_sMediator();
             if (sMediatorPtr && sMediatorPtr->missionID != 50) { // always shows 50 for BP
                 static float orbsFoundPercent = 0.0f;
                 ImGuiIO& io = ImGui::GetIO();

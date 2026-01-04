@@ -188,7 +188,7 @@ namespace w2s {
     }
 
     float GetDistanceFromCam(const glm::vec3& targetPos) {
-        SMediator* sMed = devil4_sdk::get_sMediator();
+        sMediator* sMed = devil4_sdk::get_sMediator();
         uCameraCtrl* camera = sMed->camera1;
         if (!camera) { return -1.0f; }
         glm::vec3 cameraPos = glm::make_vec3((float*)&camera->mCameraPos);
@@ -300,7 +300,7 @@ namespace w2s {
     }
 
     bool GetImGuizmoMatrices(float viewMatrix[16], float projectionMatrix[16]) {
-        SMediator* sMed = devil4_sdk::get_sMediator();
+        sMediator* sMed = devil4_sdk::get_sMediator();
         if (!sMed || !sMed->camera1) { 
             return false; 
         }
@@ -939,7 +939,7 @@ namespace w2s {
     }
 
     /*void ScreenToRay(const glm::vec2& screenPos, glm::vec3& rayOrigin, glm::vec3& rayDir) {
-        SMediator* sMed = devil4_sdk::get_sMediator();
+        sMediator* sMed = devil4_sdk::get_sMediator();
         uCameraCtrl* camera = sMed->camera1;
 
         // Get screen dimensions
@@ -1101,7 +1101,7 @@ namespace w2s {
     }
 
     void dd_update() {
-        SMediator* sMed = devil4_sdk::get_sMediator();
+        sMediator* sMed = devil4_sdk::get_sMediator();
         if (!sMed) { return; }
         uCameraCtrl* camera = sMed->camera1;
         if (!camera) { return; }

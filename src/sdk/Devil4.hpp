@@ -13,7 +13,7 @@ namespace devil4_sdk {
 	uEnemy_Old* get_uEnemies();
 	uEnemy_Old* get_objects();
 	sRender* get_sRender();
-	SMediator* get_sMediator();
+	sMediator* get_sMediator();
 	uPlayer* get_local_player();
 	uCameraCtrl* get_local_camera();
 	cCameraPlayer* get_player_camera();

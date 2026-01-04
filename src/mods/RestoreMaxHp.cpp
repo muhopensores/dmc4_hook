@@ -29,7 +29,7 @@ DevilMayCry4_DX9.exe+157E4D - mov esi,eax
 call damage
 */
 
-void RestoreMaxHp::restore_health_and_timer(SMediator* s_med_ptr, uPlayer* player) {
+void RestoreMaxHp::restore_health_and_timer(sMediator* s_med_ptr, uPlayer* player) {
     uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
     while (enemy) {
         uintptr_t enemy_base = (uintptr_t)(enemy);
@@ -50,7 +50,7 @@ void RestoreMaxHp::restore_health_and_timer(SMediator* s_med_ptr, uPlayer* playe
 
 void RestoreMaxHp::on_frame(fmilliseconds& dt) {
     uPlayer* player = devil4_sdk::get_local_player();
-    SMediator* s_med_ptr = reinterpret_cast<SMediator*>(*reinterpret_cast<uintptr_t*>(static_mediator_ptr));
+    sMediator* s_med_ptr = reinterpret_cast<sMediator*>(*reinterpret_cast<uintptr_t*>(static_mediator_ptr));
     if (!player) {
         return;
     }

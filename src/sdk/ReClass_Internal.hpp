@@ -1210,7 +1210,8 @@ static_assert(sizeof(uShadow) == 0x228);
 #include "Devil4/uShadow.hpp"
 #endif
 
-class SMediator {
+#if 0
+class sMediator {
 public:
     char pad_0[0x24];
     class uPlayer* player_ptr; // 0x24
@@ -1253,7 +1254,10 @@ public:
     char pad_495[0x38b];
     sWorkRate workRate; // 0x820
 }; // Size: 0x878
-static_assert(sizeof(SMediator) == 0x878);
+static_assert(sizeof(sMediator) == 0x878);
+#else
+#include "Devil4/sMediator.hpp"
+#endif
 
 class MotionData {
 public:

@@ -252,7 +252,7 @@ static int get_enemy_count(uEnemy_Old* enemy) {
 
 void FloorIsLava::on_frame(fmilliseconds& dt) {
     if (!mod_enabled) { return; }
-    SMediator* sMed = devil4_sdk::get_sMediator();
+    sMediator* sMed = devil4_sdk::get_sMediator();
     sArea* s_area_ptr = devil4_sdk::get_sArea();
     uPlayer* player = devil4_sdk::get_local_player();
     int enemyCount = get_enemy_count(devil4_sdk::get_uEnemies());

@@ -273,7 +273,7 @@ const WaveConfig& get_wave_config() {
     return WAVE_CONFIGS.rbegin()->second;
 }
 
-bool can_spawn_standard_enemy(const Survival::EnemyInfo& enemy_info, SMediator* sMed, const WaveConfig& config) {
+bool can_spawn_standard_enemy(const Survival::EnemyInfo& enemy_info, sMediator* sMed, const WaveConfig& config) {
     bool is_ldk = (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT);
         
     int max_enemies = is_ldk
@@ -332,7 +332,7 @@ void Survival::on_timer_trigger() {
         Survival::timer->start();
     }
         
-    SMediator* sMed = devil4_sdk::get_sMediator();
+    sMediator* sMed = devil4_sdk::get_sMediator();
     if (!sMed) { return; }
         
     sUnit* sUnit = devil4_sdk::get_sUnit();
@@ -438,7 +438,7 @@ void Survival::on_frame(fmilliseconds& dt) {
         }
     }
     if (Survival::mod_enabled) {
-        SMediator* sMed = devil4_sdk::get_sMediator();
+        sMediator* sMed = devil4_sdk::get_sMediator();
         sArea* s_area_ptr = devil4_sdk::get_sArea();
         if (!sMed || sMed->missionID == 50 || !s_area_ptr) {
             Survival::survival_active = false;
@@ -687,7 +687,7 @@ PowerUpSystem::PowerUpDefinition createPlayerSmolPowerUp() {
         []() {                     // onActivate
             uPlayer* player = devil4_sdk::get_local_player();
             if (player) {
-                player->mScale = MtVector3 { 0.5f, 0.5f, 0.5f };
+                player->mScale = MtVector3{ 0.5f, 0.5f, 0.5f };
             }
         },
         [](float dt) {             // onUpdate
@@ -696,7 +696,7 @@ PowerUpSystem::PowerUpDefinition createPlayerSmolPowerUp() {
         []() {                     // onExpire
             uPlayer* player = devil4_sdk::get_local_player();
             if (player) {
-                player->mScale = MtVector3 { 1.0f, 1.0f, 1.0f };
+                player->mScale = MtVector3{ 1.0f, 1.0f, 1.0f };
             }
         }
     );

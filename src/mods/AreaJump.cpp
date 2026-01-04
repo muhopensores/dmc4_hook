@@ -634,7 +634,7 @@ std::optional<std::string> AreaJump::on_initialize() {
 void AreaJump::on_gui_frame(int display) {
     if (display == 1) {
         sArea* s_area_ptr = devil4_sdk::get_sArea();
-        SMediator* s_med_ptr = devil4_sdk::get_sMediator();
+        sMediator* s_med_ptr = devil4_sdk::get_sMediator();
         uPlayer* player = devil4_sdk::get_local_player();
 
         ImGui::SeparatorText(_("Bloody Palace"));
@@ -647,7 +647,7 @@ void AreaJump::on_gui_frame(int display) {
         ImGui::SameLine();
         if (ImGui::Button(_("Save BP Progress"), ImVec2(sameLineItemWidth, NULL))) {
             sArea* s_area_ptr = devil4_sdk::get_sArea();
-            SMediator* s_med_ptr = devil4_sdk::get_sMediator();
+            sMediator* s_med_ptr = devil4_sdk::get_sMediator();
             if (player) {
                 savedBPFloor = s_area_ptr->aGamePtr->bp_floor;
                 savedBPTimer = s_med_ptr->bpTimer;

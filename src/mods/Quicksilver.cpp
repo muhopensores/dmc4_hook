@@ -237,7 +237,7 @@ std::optional<std::string> Quicksilver::on_initialize() {
     MutatorRegistry::define("Quicksilver")
         .alias("qs")
         .on_init([this]() {
-            SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
+            sMediator* s_med_ptr = *(sMediator**)static_mediator_ptr;
             uPlayer* u_local_plr = s_med_ptr->player_ptr;
             if (u_local_plr) {
                 Quicksilver::qs_operator_new();
@@ -284,7 +284,7 @@ void Quicksilver::on_twitch_command(std::size_t hash) {
     if (hash == m_command || hash == m_shorthand) {
         if (m_timer) {
             if (m_timer->m_active == false) {
-                SMediator* s_med_ptr = *(SMediator**)static_mediator_ptr;
+                sMediator* s_med_ptr = *(sMediator**)static_mediator_ptr;
                 uPlayer* u_local_plr = s_med_ptr->player_ptr;
                 if (u_local_plr) {
                     qs_operator_new();

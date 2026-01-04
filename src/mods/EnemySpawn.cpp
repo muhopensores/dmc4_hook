@@ -5,7 +5,7 @@ static uintptr_t some_struct = 0x00E552CC;
 static uintptr_t fptr_update_actor_list = 0x008DC540; // Spawns shit
 // DevilMayCry4_DX9.exe+338AA2 // 00738AA2 // calls most enemy spawns
 
-static SMediator* s_med_ptr             = nullptr;
+static sMediator* s_med_ptr             = nullptr;
 static uPlayer* u_local_plr             = nullptr;
 static int enemy_spawning               = 0;
 static std::mutex g_mutex;
