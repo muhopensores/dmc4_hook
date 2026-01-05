@@ -1618,6 +1618,7 @@ static_assert(sizeof(sDevil4MainPtr) == 0x40);
 #include "Devil4/sDevil4Main.hpp"
 #endif
 
+#if 0
 class sMouse
 {
 public:
@@ -1635,6 +1636,9 @@ public:
     class sMouse *m_mouse_ptr; //0x0000
 }; //Size: 0x0004
 static_assert(sizeof(sMousePtr) == 0x4);
+#else
+#include "Devil4/sMouse.hpp"
+#endif
 
 class MoveLine {
 public:
