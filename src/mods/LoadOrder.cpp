@@ -99,7 +99,7 @@ struct __cppobj SResourceRemoteInfo : MtObject
 };
 
 /* 10295 */
-struct __cppobj __declspec(align(8)) SResource : CSystem
+struct __cppobj __declspec(align(8)) SResource : cSystem
 {
     SResourceTypeInfo m_type_info[256];
     unsigned int m_type_info_num;

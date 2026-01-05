@@ -177,7 +177,7 @@ struct Pad {
 };
 static_assert(sizeof(Pad) == 0x2C0);
 
-struct sDevil4Pad: CSystem {
+struct sDevil4Pad: cSystem {
     bool mActive;
     undefined field33_0x21;
     undefined field34_0x22;
@@ -257,7 +257,7 @@ struct STATE {
 };
 static_assert(sizeof(STATE) == 0x8C0);
 
-struct sKeyboard: CSystem {
+struct sKeyboard: cSystem {
     uchar mVKTable[256];
     struct STATE mState;
     uint mRepeatStartTime;

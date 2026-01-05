@@ -55,7 +55,7 @@ struct sCamera_ViewPort {
 };
 static_assert(sizeof(sCamera_ViewPort) == 0x590);
 
-struct sCamera : CSystem {
+struct sCamera : cSystem {
     float mSubPixelOfsX;
     float mSubPixelOfsY;
     float mViewSubFrame;

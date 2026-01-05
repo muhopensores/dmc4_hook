@@ -1571,14 +1571,18 @@ static_assert(sizeof(MtCriticalSection) == 0x1C);
 #include "Devil4/MtThread.hpp"
 #endif
 
-class CSystem : public MtObject
+#if 0
+class cSystem : public MtObject
 {
 public:
     class MtCriticalSection critical_section; //0x0004
 }; //Size: 0x0020
-static_assert(sizeof(CSystem) == 0x0020);
+static_assert(sizeof(cSystem) == 0x0020);
+#else
+#include "Devil4/cSystem.hpp"
+#endif
 
-class SRender : public CSystem
+class SRender : public cSystem
 {
 public:
     char pad_0020[20]; //0x0020
@@ -1637,7 +1641,7 @@ public:
 };
 static_assert(sizeof(MoveLine) == 0x18);
 
-class sUnit : public CSystem {
+class sUnit : public cSystem {
 public:
     MoveLine mMoveLine[32];
 };
