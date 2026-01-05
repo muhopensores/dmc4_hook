@@ -1421,12 +1421,14 @@ static_assert(sizeof(uStageSetTimeSlow) == 0x2068);
 #include "Devil4/uStageSet.hpp"
 #endif
 
+#if 0 // NOTE(): unused
 class N00002D7A
 {
 public:
 	char pad_0000[4]; //0x0000
 }; //Size: 0x0004
 static_assert(sizeof(N00002D7A) == 0x4);
+#endif
 
 class MtAllocator : public MtObject
 {
