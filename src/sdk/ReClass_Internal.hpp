@@ -1542,6 +1542,7 @@ static_assert(sizeof(uEm003Shl) == 0x17F0);
 #include "Devil4/uEm003.hpp"
 #endif
 
+#if 0
 /* 8554 */
 struct __declspec(align(4)) MtStringSTRING
 {
@@ -1555,6 +1556,9 @@ struct MtString
 {
     MtStringSTRING *value;
 };
+#else
+#include "Devil4\MtString.hpp"
+#endif
 
 class MtCriticalSection
 {
