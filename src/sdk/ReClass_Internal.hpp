@@ -1640,6 +1640,7 @@ static_assert(sizeof(sMousePtr) == 0x4);
 #include "Devil4/sMouse.hpp"
 #endif
 
+#if 0
 class MoveLine {
 public:
     void* vtable;  // 0x0
@@ -1660,3 +1661,6 @@ public:
     MoveLine mMoveLine[32];
 };
 static_assert(sizeof(sUnit) == 0x320);
+#else
+#include "Devil4/sUnit.hpp"
+#endif
