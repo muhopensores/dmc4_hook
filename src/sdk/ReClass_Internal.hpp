@@ -666,12 +666,14 @@ static_assert(sizeof(sArea) == 0x383C);
 #include "Devil4/sArea.hpp"
 #endif
 
+#if 0 // NOTE(): taken care below
 class sRender
 {
 public:
     char pad_0x0000[0x44]; // 0x00
     glm::ivec2 screenRes; // 0x44
 };
+#endif
 
 #if 0
 class sWorkRate;
@@ -1582,20 +1584,24 @@ static_assert(sizeof(cSystem) == 0x0020);
 #include "Devil4/cSystem.hpp"
 #endif
 
-class SRender : public cSystem
+#if 0
+class sRender : public cSystem
 {
 public:
     char pad_0020[20]; //0x0020
     IDirect3DDevice9* mp_device; //0x0034
     char pad_0038[40]; //0x0038
 }; //Size: 0x0060
-static_assert(sizeof(SRender) == 0x0060);
+static_assert(sizeof(sRender) == 0x0060);
+#else
+#include "Devil4/sRender.hpp"
+#endif
 
 class SDevil4Main
 {
 public:
     char pad_0000[66376]; //0x0000
-    class SRender *s_render; //0x10348
+    class sRender *s_render; //0x10348
     char pad_1034_c[60]; //0x1034C
 }; //Size: 0x10388
 static_assert(sizeof(SDevil4Main) == 0x10388);

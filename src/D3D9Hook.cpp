@@ -66,7 +66,7 @@ bool D3D9Hook::hook() {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     } while (s_devil4_main == NULL);
 
-    SRender* s_render = nullptr;
+    sRender* s_render = nullptr;
     do {
         s_render = s_devil4_main->s_render;
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
