@@ -1430,6 +1430,7 @@ public:
 static_assert(sizeof(N00002D7A) == 0x4);
 #endif
 
+#if 0
 class MtAllocator : public MtObject
 {
 public:
@@ -1453,6 +1454,9 @@ public:
 	char pad_0020[60]; //0x0020
 }; //Size: 0x005C
 static_assert(sizeof(MtHeapAllocator) == 0x005C);
+#else
+#include "Devil4/MtAllocator.hpp"
+#endif
 
 class UEfctCam
 {
