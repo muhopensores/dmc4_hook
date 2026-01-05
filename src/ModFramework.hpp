@@ -1,6 +1,7 @@
 #pragma once
 
 #include <spdlog/spdlog.h>
+#include "utility/Address.hpp"
 
 class Mods;
 class ImGuiConsole;
@@ -9,10 +10,12 @@ namespace utility {
     struct Hotkey;
 }
 
-#include "D3D9Hook.hpp"
-#include "XInputHook.hpp"
-#include "WindowsMessageHook.hpp"
-#include "imgui.h"
+class D3D9Hook;
+class XInputHook;
+class WindowsMessageHook;
+
+struct ImFont;
+struct IDirect3DDevice9;
 
 
 // Global facilitator
@@ -34,14 +37,9 @@ public:
         return m_mods;
     }
 
-	auto get_d3d9_device() const {
-		return m_d3d9_hook->get_device();
-	}
+    IDirect3DDevice9* get_d3d9_device() const;
 
-    static Address get_module()  {
-        return GetModuleHandle(0);
-        //return m_game_module;
-    }
+    static Address get_module();
 
     static int sys_ms();
 

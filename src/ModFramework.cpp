@@ -12,12 +12,16 @@
 // ours with XInput removed
 #include "fw-imgui/imgui_impl_win32.h"
 #include "fw-imgui/imgui_impl_dx9.h"
+#include "D3D9Hook.hpp"
+#include "XInputHook.hpp"
+#include "WindowsMessageHook.hpp"
 
 #include "Mods.hpp"
 #include "ModFramework.hpp"
 #include "Config.hpp"
 #include "GuiFunctions.hpp"
 
+#include "utility/FunctionHook.hpp"
 #include "utility/Thread.hpp"
 #include "utility/ExceptionHandler.hpp"
 #include "mods/LocalizationManager.hpp"
@@ -117,8 +121,15 @@ ModFramework::~ModFramework() {
     FunctionHook::set_mh_skip_locks(TRUE); // dont care if we crash at this point
 }
 
-int ModFramework::sys_ms()
-{
+IDirect3DDevice9* ModFramework::get_d3d9_device() const {
+    return m_d3d9_hook->m_device;
+}
+
+Address ModFramework::get_module() {
+    return ::GetModuleHandle(NULL);
+}
+
+int ModFramework::sys_ms() {
     static DWORD sys_timeBase = timeGetTime();
     return (int)(timeGetTime() - sys_timeBase);
 }

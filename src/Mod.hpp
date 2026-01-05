@@ -3,9 +3,12 @@
 //#include "utility/Config.hpp"
 //#include "utility/Timer.hpp"
 #include "utility/Patch.hpp"
+#include "utility/FunctionHook.hpp"
 #include "utility/Input.hpp"
 //#include "utility/MessageDisplay.hpp"
-//#include "utility/MoFile.hpp"
+#include "utility/MoFile.hpp"
+#include "sdk/ReClass.hpp"
+
 
 #include "ModFramework.hpp"
 #include "Mutators.hpp"

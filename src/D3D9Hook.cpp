@@ -2,7 +2,11 @@
 #include <spdlog/spdlog.h>
 
 #include "D3D9Hook.hpp"
+
+#include <d3d9.h>
+#include "utility/FunctionHook.hpp"
 #include "sdk/ReClass.hpp"
+
 
 static D3D9Hook* g_d3d9_hook = nullptr;
 

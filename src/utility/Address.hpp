@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <cstdint>
 
 // sizeof(Address) should always be sizeof(void*).

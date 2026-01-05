@@ -1,12 +1,11 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 
 #include <d3d9.h>
 
-#include "utility/FunctionHook.hpp"
-#include "utility/Patch.hpp"
-#include "sdk/ReClass.hpp"
+class FunctionHook;
 
 class D3D9Hook {
 public:
@@ -22,9 +21,9 @@ public:
     bool unhook();
 
     //void on_end_scene(OnEndSceneFn fn) { m_on_end_scene = fn; }
-    void on_reset(OnResetFn fn)         { m_on_reset       = fn; }
-    void on_present(OnPresentFn fn)     { m_on_present     = fn; }
-    void after_reset(OnAfterResetFn fn) { m_on_after_reset = fn; }
+    void on_reset(OnResetFn fn)         { m_on_reset       = std::move(fn); }
+    void on_present(OnPresentFn fn)     { m_on_present     = std::move(fn); }
+    void after_reset(OnAfterResetFn fn) { m_on_after_reset = std::move(fn); }
 
 	IDirect3DDevice9* get_device() { return m_device; }
 	void set_device(IDirect3DDevice9* p_device) { m_device = p_device; }

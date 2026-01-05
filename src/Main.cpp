@@ -7,7 +7,7 @@ static HMODULE g_dinput;
 extern "C" {
 // DirectInput8Create wrapper for dinput8.dll
 __declspec(dllexport) HRESULT WINAPI direct_input8_create(
-    HINSTANCE hinst, DWORD dw_version, const IID& riidltf, LPVOID* ppv_out, LPUNKNOWN punk_outer) {
+    HINSTANCE hinst, DWORD dw_version, const IID& riidltf, LPVOID* ppv_out, LPVOID* punk_outer) {
 // This needs to be done because when we include dinput.h in DInputHook,
 // It is a redefinition, so we assign an export by not using the original name
 #pragma comment(linker, "/EXPORT:DirectInput8Create=_direct_input8_create@20")
