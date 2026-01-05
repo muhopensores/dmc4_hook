@@ -59,8 +59,8 @@ bool D3D9Hook::hook() {
     // didnt fly so well
 #if 0
     // assuming these are zero initialized
-    SDevil4MainPtr* main_ptr = (SDevil4MainPtr*)0x00E5574C;
-    SDevil4Main* s_devil4_main = nullptr;
+    sDevil4MainPtr* main_ptr = (sDevil4MainPtr*)0x00E5574C;
+    sDevil4Main* s_devil4_main = nullptr;
     do {
         s_devil4_main = main_ptr->mp_devil4_main;
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
