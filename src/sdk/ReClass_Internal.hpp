@@ -1458,13 +1458,15 @@ static_assert(sizeof(MtHeapAllocator) == 0x005C);
 #include "Devil4/MtAllocator.hpp"
 #endif
 
-class UEfctCam
+#if 0 // NOTE(): unused?
+class uEfctCam
 {
 public:
 	char pad_0000[512]; //0x0000
 	uint32_t some_field; //0x0200
 }; //Size: 0x0204
-static_assert(sizeof(UEfctCam) == 0x0204);
+static_assert(sizeof(uEfctCam) == 0x0204);
+#endif
 
 #if 0 // taken care above in Devil4\uFilter.hpp
 class uTvNoiseFilter : public uFilter
@@ -1506,14 +1508,18 @@ public:
 static_assert(sizeof(uTvNoiseFilter) == 0x0874);
 #endif
 
-class SStylishCount
+#if 0
+class sStylishCount
 {
 public:
 	char pad_0000[32]; //0x0000
 	uint32_t current_style_tier; //0x0020
 	char pad_0024[508]; //0x0024
 }; //Size: 0x0220
-static_assert(sizeof(SStylishCount) == 0x220);
+static_assert(sizeof(sStylishCount) == 0x220);
+#else
+#include "Devil4/sStylishCount.hpp"
+#endif
 
 class UEm003Shl : public MtObject
 {

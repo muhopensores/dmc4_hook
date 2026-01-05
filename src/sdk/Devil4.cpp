@@ -172,14 +172,14 @@ namespace devil4_sdk {
         return s_mediator_ptr->camera1->mpCamPlayer;
     }
 
-	SStylishCount* get_stylish_count() {
+	sStylishCount* get_stylish_count() {
 		constexpr uintptr_t s_stylish_count_ptr = 0x00E558CC;
-		static SStylishCount* sc = (SStylishCount*)*(uintptr_t*)s_stylish_count_ptr;
+		static sStylishCount* sc = (sStylishCount*)*(uintptr_t*)s_stylish_count_ptr;
 		return sc;
 	}
 
 	float get_current_style_rank() {
-		SStylishCount* sc = get_stylish_count();
+		sStylishCount* sc = get_stylish_count();
 		if (!sc) { return 1.0f; }
 
 		uint32_t rank = sc->current_style_tier;

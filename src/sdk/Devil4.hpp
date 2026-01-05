@@ -17,7 +17,7 @@ namespace devil4_sdk {
 	uPlayer* get_local_player();
 	uCameraCtrl* get_local_camera();
 	cCameraPlayer* get_player_camera();
-	SStylishCount* get_stylish_count();
+	sStylishCount* get_stylish_count();
 	sWorkRate* get_work_rate();
     bool is_paused();
     bool is_not_in_gameplay();
