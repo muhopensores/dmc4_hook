@@ -3,6 +3,8 @@
 #include <cstdint>
 #include "MtObject.hpp"
 
+class MtCriticalSection;
+
 #pragma pack(push, r2, 1)
 class MtAllocator : public MtObject {
 public:

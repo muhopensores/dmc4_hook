@@ -1560,12 +1560,16 @@ struct MtString
 #include "Devil4\MtString.hpp"
 #endif
 
+#if 0
 class MtCriticalSection
 {
 public:
     int8_t cs[28]; //0x0000
 }; //Size: 0x001C
 static_assert(sizeof(MtCriticalSection) == 0x1C);
+#else
+#include "Devil4/MtThread.hpp"
+#endif
 
 class CSystem : public MtObject
 {
