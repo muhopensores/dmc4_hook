@@ -1521,7 +1521,8 @@ static_assert(sizeof(sStylishCount) == 0x220);
 #include "Devil4/sStylishCount.hpp"
 #endif
 
-class UEm003Shl : public MtObject
+#if 0
+class uEm003Shl : public MtObject
 {
 public:
 	char pad_0004[44]; //0x0004
@@ -1536,7 +1537,10 @@ public:
 	uint8_t m_required_some_byte_idk; //0x17B6
 	char pad_17_b7[57]; //0x17B7
 }; //Size: 0x17F0
-static_assert(sizeof(UEm003Shl) == 0x17F0);
+static_assert(sizeof(uEm003Shl) == 0x17F0);
+#else
+#include "Devil4/uEm003.hpp"
+#endif
 
 /* 8554 */
 struct __declspec(align(4)) MtStringSTRING

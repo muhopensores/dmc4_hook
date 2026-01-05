@@ -74,12 +74,12 @@ namespace devil4_sdk {
      }
 
 	void u_em003_shl_new() {
-		void* mem = mt_allocate_heap(sizeof(UEm003Shl), 0x10);
+		void* mem = mt_allocate_heap(sizeof(uEm003Shl), 0x10);
 		if (!mem) {
 			return;
 		}
 		
-		UEm003Shl* shell = (UEm003Shl*)u_em003_shl_consturctor_sub(mem);
+		uEm003Shl* shell = (uEm003Shl*)u_em003_shl_consturctor_sub(mem);
 		if (!shell) {
 			return;
 		}
@@ -496,7 +496,7 @@ namespace devil4_sdk {
 	//	float PillarRange = 240.0f;
 	//	float PillarAngle = 0.7;
 	//	float PillarSpread = 60.0f;
-	//	void* mem = mt_allocate_heap(sizeof(UEm003Shl), 0x10);
+	//	void* mem = mt_allocate_heap(sizeof(uEm003Shl), 0x10);
 	//}
 
 }
