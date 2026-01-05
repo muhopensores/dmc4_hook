@@ -1289,6 +1289,7 @@ public:
 static_assert(sizeof(MotionPtr) == 0x1a4);
 #endif
 
+#if 0 // NOTE(): moved to uPlayerDante.hpp
 class LuciferPin {
 public:
     uint8_t pad_0[0x14];
@@ -1321,6 +1322,9 @@ public:
     bool roseAlive; // 0x13e8
 }; // Size: 0x13e9
 static_assert(sizeof(DevilArm) == 0x13e9);
+#else
+#include "Devil4/uPlayerDante.hpp"
+#endif
 
 #if 0 // NOTE(): moved to uPlayerData.hpp
 class CharacterSettingsOne {
