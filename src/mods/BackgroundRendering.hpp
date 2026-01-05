@@ -10,7 +10,7 @@ class BackgroundRendering : public Mod {
 public:
     BackgroundRendering() = default;
     
-    Mod::ModType get_mod_type() override { return SLOW; };
+    Mod::ModType get_mod_type() override { return ModType::SLOW; };
 
     std::string get_mod_name() override { return "BackgroundRendering"; };
 

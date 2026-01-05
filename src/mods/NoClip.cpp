@@ -1,5 +1,7 @@
 #include "NoClip.hpp"
 #include "../sdk/Devil4.hpp"
+#include "Console.hpp"
+#include "utility/MessageDisplay.hpp"
 
 bool NoClip::mod_enabled = false;
 bool NoClip::mod_enabled_2 = false;

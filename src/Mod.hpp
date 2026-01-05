@@ -1,32 +1,34 @@
 #pragma once
 #include "imgui/imgui.h"
-#include "utility/Config.hpp"
-#include "utility/Timer.hpp"
+//#include "utility/Config.hpp"
+//#include "utility/Timer.hpp"
 #include "utility/Patch.hpp"
 #include "utility/Input.hpp"
-#include "utility/MessageDisplay.hpp"
-#include "utility/MoFile.hpp"
+//#include "utility/MessageDisplay.hpp"
+//#include "utility/MoFile.hpp"
 
 #include "ModFramework.hpp"
 #include "Mutators.hpp"
-#include "Console.hpp"
+#include <cstdint>
+//#include "Console.hpp"
 
 #define naked static __declspec(naked)
 #define _(string) utility::text_lookup(string)
 #define __(str) str
 
-#include <chrono>
+//#include <chrono>
 
 class Mod {
 public:
 
     Mod() = default;
-    virtual ~Mod() {};
+    virtual ~Mod() = default;
 
-    enum ModType {
+    enum class ModType : std::uint8_t {
         REGULAR,
         SLOW
     };
+    
     float sameLineWidth     = 300.0f;
     float sameLineItemWidth = sameLineWidth / 2;
     float lineIndent        = 20.0f;
@@ -34,23 +36,23 @@ public:
     //std::unique_ptr<utility::Hotkey> m_hotkey;
     std::vector<std::unique_ptr<utility::Hotkey>> m_hotkeys;
 
-    virtual Mod::ModType get_mod_type() { return REGULAR; };
+    virtual Mod::ModType get_mod_type() { return ModType::REGULAR; };
 
     virtual std::string get_mod_name() { return "UnknownMod"; };
     // can be used for ModValues, like Mod_ValueName
     virtual std::string generate_name(std::string_view name) { return std::string{ get_mod_name() } + "_" + name.data(); }
 
-	void help_marker(const char* desc) {
-		ImGui::TextDisabled("(?)");
-		if (ImGui::IsItemHovered())
-		{
-			ImGui::BeginTooltip();
-			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-			ImGui::TextUnformatted(desc);
-			ImGui::PopTextWrapPos();
-			ImGui::EndTooltip();
-		}
-	}
+    static void help_marker(const char* desc) {
+        ImGui::TextDisabled("(?)");
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+            ImGui::TextUnformatted(desc);
+            ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
+        }
+    }
 
     void install_patch_absolute(uintptr_t location, std::unique_ptr<Patch>& patch, const char* patch_bytes, uint8_t length) {
         spdlog::info("{}: Installing patch at {:x}.\n", get_mod_name().c_str(), location);
@@ -66,13 +68,13 @@ public:
     }
 
 	void install_patch_offset(ptrdiff_t offset, std::unique_ptr<Patch>& patch, const char* patch_bytes, uint8_t length) {
-        uintptr_t base = g_framework->get_module().as<uintptr_t>();
+        auto base = ModFramework::get_module().as<uintptr_t>();
         uintptr_t location = base + offset;
 		spdlog::info("{}: Installing patch at {:x}.\n", get_mod_name().c_str(), location);
         patch.reset(nullptr);
         std::vector<int16_t> bytes;
         while (length > 0) {
-            bytes.push_back((short)(*patch_bytes) & 0x00FF);
+            bytes.push_back((uint16_t)(*patch_bytes) & 0x00FFu);
             patch_bytes++;
             length--;
         }
@@ -80,11 +82,11 @@ public:
         //patch.reset(Patch::create_raw(location, bytes, true));
 	}
     
-    inline bool install_hook_offset(ptrdiff_t offset, std::unique_ptr<FunctionHook>& hook, void* detour, uintptr_t* ret, ptrdiff_t next_instruction_offset = 0) {
-        uintptr_t base = g_framework->get_module().as<uintptr_t>();
+     bool install_hook_offset(ptrdiff_t offset, std::unique_ptr<FunctionHook>& hook, void* detour, uintptr_t* ret, ptrdiff_t next_instruction_offset = 0) {
+        auto base = ModFramework::get_module().as<uintptr_t>();
         uintptr_t location = base + offset;
 
-		spdlog::info("{}: Installing hook at {:x}.\n", get_mod_name().c_str(), location);
+	spdlog::info("{}: Installing hook at {:x}.\n", get_mod_name().c_str(), location);
         assert(!hook);
         
         hook = std::make_unique<FunctionHook>(location, detour);
@@ -106,7 +108,7 @@ public:
         return true;
     }
     
-    inline bool install_hook_absolute(uintptr_t location, std::unique_ptr<FunctionHook>& hook, void* detour, uintptr_t* ret, ptrdiff_t next_instruction_offset = 0) {
+    bool install_hook_absolute(uintptr_t location, std::unique_ptr<FunctionHook>& hook, void* detour, uintptr_t* ret, ptrdiff_t next_instruction_offset = 0) {
         assert(!hook);
 		spdlog::info("{}: Installing hook at {:x}.\n", get_mod_name().c_str(), location);
         hook = std::make_unique<FunctionHook>(location, detour);

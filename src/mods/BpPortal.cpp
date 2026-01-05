@@ -1,4 +1,5 @@
 #include "BpPortal.hpp"
+#include "utility/MessageDisplay.hpp"
 
 bool BpPortal::mod_enabled = false;
 static BpPortal* g_mod = nullptr;

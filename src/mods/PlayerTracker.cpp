@@ -1,6 +1,8 @@
 #include "PlayerTracker.hpp"
 #include "WorkRate.hpp"
 #include "../sdk/Devil4.hpp"
+#include "Console.hpp"
+#include "imgui_internal.h"
 
 #if 1
 uintptr_t PlayerTracker::jmp_return = NULL;

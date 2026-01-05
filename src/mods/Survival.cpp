@@ -9,6 +9,7 @@
 #include "MutatorHolyWater.hpp"
 #include "BigHeadMode.hpp"
 #include "HideHud.hpp"
+#include "imgui_internal.h"
 
 class WaveConfig {
 public:

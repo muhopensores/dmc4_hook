@@ -24,7 +24,7 @@ public:
     void on_config_load(const utility::Config& cfg);
     void on_config_save(utility::Config& cfg);
 
-    Mod::ModType get_mod_type() override { return SLOW; };
+    Mod::ModType get_mod_type() override { return ModType::SLOW; };
     void on_reset() override;
     void after_reset() override;
 private:

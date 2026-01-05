@@ -2,6 +2,8 @@
 #include "iostream"
 #include "../sdk/Devil4.hpp"
 #include "glm/gtx/compatibility.hpp"
+#include "Console.hpp"
+#include "utility/MessageDisplay.hpp"
 
 #if 1
 bool InfAllHealth::all_invincible = false;

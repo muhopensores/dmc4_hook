@@ -1,4 +1,5 @@
 #include "DifficultySelect.hpp"
+#include "Console.hpp"
 
 static int game_difficulty = 0;
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../mod.hpp"
+#include "csys/include/csys/string.h"
 
 struct Room;
 

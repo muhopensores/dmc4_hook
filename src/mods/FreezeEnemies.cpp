@@ -1,4 +1,5 @@
 #include "FreezeEnemies.hpp"
+#include "Console.hpp"
 
 #if 1
 bool FreezeEnemies::mod_enabled = false;

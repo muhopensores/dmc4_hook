@@ -1,4 +1,6 @@
 #include "OneHitKill.hpp"
+#include "Console.hpp"
+#include "utility/MessageDisplay.hpp"
 
 bool OneHitKill::cant_die = false;
 bool OneHitKill::one_hit_kill = false;

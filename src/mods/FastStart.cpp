@@ -1,4 +1,5 @@
 #include "FastStart.hpp"
+#include "utility/MessageDisplay.hpp"
 
 static bool mod_enabled = false;
 static bool skip_fades = false;

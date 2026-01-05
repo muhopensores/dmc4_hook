@@ -2,6 +2,7 @@
 #include "EnemyTracker.hpp" // for enemy specific offsets
 #include "sdk/World2Screen.hpp"
 #include <corecrt_math_defines.h>
+#include "imgui_internal.h"
 
 bool FlyingStats::showFlyingStats = false;
 bool FlyingStats::showFlyingEnemyStats = false;

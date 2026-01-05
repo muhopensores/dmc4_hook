@@ -1,5 +1,6 @@
 #include "MutatorHolyWater.hpp"
 #include "../sdk/Devil4.hpp"
+#include "Console.hpp"
 
 void MutatorHolyWater::use_hw_asm_call(){
 	constexpr uintptr_t use_holy_water_fptr = 0x00827D10;

@@ -5,6 +5,8 @@
 #include "utility/Dx9Utils.hpp"
 #include "utility/Compressed.hpp"
 #include "misc/TonyBg.cpp"
+#include "imgui_internal.h"
+
 static int bg_red_int   = 255;
 static int bg_green_int = 255;
 static int bg_blue_int  = 255;

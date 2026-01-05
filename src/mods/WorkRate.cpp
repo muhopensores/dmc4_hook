@@ -1,6 +1,8 @@
 #include "WorkRate.hpp"
 #include "TrainerPause.hpp"
 #include "../sdk/Devil4.hpp"
+#include "Console.hpp"
+
 bool WorkRate::force_custom_turbo = false;
 float WorkRate::custom_turbo = 0.0f;
 bool WorkRate::hotkey_paused = false;

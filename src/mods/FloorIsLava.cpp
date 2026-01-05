@@ -1,6 +1,7 @@
 #include "FloorIsLava.hpp"
 #include "..\sdk\Devil4.hpp"
 #include "EnemyTracker.hpp"
+#include "imgui_internal.h"
 
 bool FloorIsLava::mod_enabled = false;
 static bool grounded_allowed = false;

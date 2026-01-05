@@ -1,5 +1,6 @@
 #include "RedOrbCompletion.hpp"
 #include "../sdk/Devil4.hpp"
+#include "Console.hpp"
 
 bool RedOrbCompletion::mod_enabled = false;
 ImVec2 RedOrbCompletion::window_pos{ 0.0f, 0.0f };

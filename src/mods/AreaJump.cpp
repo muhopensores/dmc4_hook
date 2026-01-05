@@ -4,6 +4,7 @@
 #include "RoomRespawn.hpp"
 #include <Config.hpp>
 #include "../sdk/Devil4.hpp"
+#include "Console.hpp"
 
 static int savedBPFloor = 0;
 static float savedBPTimer = 0.0f;

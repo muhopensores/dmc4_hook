@@ -15,7 +15,7 @@ public:
 
     void toggle(bool enable);
     std::string get_mod_name() override { return "CustomAllocatorMem"; };
-    Mod::ModType get_mod_type() override { return SLOW; }
+    Mod::ModType get_mod_type() override { return ModType::SLOW; }
     std::optional<std::string> on_initialize() override;
     //void on_config_load(const utility::Config& cfg) override;
     // void on_config_save(utility::Config& cfg) override;

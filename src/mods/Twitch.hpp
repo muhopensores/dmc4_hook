@@ -64,7 +64,7 @@ public:
 
     TwitchClient() = default;
 
-    Mod::ModType get_mod_type() override { return SLOW; }
+    Mod::ModType get_mod_type() override { return ModType::SLOW; }
 
     std::string get_mod_name() override { return "TwitchClient"; };
     std::optional<std::string> on_initialize() override;

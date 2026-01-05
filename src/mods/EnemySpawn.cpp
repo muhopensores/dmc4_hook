@@ -1,5 +1,7 @@
 #include "EnemySpawn.hpp"
 #include "../sdk/Devil4.hpp"
+#include "utility/MessageDisplay.hpp"
+#include "Console.hpp"
 
 static uintptr_t some_struct = 0x00E552CC;
 static uintptr_t fptr_update_actor_list = 0x008DC540; // Spawns shit

@@ -5,7 +5,7 @@ class MessageDisplayMod : public Mod
 public:
     // using default constructor
     MessageDisplayMod() = default;
-    Mod::ModType get_mod_type() override { return SLOW; }
+    Mod::ModType get_mod_type() override { return ModType::SLOW; }
 
     static bool should_display_messages;
 	static bool enable_gamepad_navigation;

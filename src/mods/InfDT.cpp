@@ -1,4 +1,6 @@
 #include "InfDT.hpp"
+#include "Console.hpp"
+#include "utility/MessageDisplay.hpp"
 
 bool InfDT::mod_enabled = false;
 uintptr_t InfDT::jmp_ret = NULL;

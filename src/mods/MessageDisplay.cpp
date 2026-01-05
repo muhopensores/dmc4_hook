@@ -1,4 +1,5 @@
 #include "MessageDisplay.hpp"
+#include "utility/MessageDisplay.hpp"
 
 bool MessageDisplayMod::should_display_messages  = false;
 bool MessageDisplayMod::enable_gamepad_navigation = false;

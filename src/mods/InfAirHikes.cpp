@@ -1,4 +1,5 @@
 #include "InfAirHikes.hpp"
+#include "Console.hpp"
 
 bool InfAirHikes::mod_enabled_nero = false;
 bool InfAirHikes::mod_enabled_dante = false;

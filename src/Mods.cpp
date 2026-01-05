@@ -3,6 +3,7 @@
 #include "utility/Locales.hpp"
 #include "Config.hpp"
 #include "mods/LocalizationManager.hpp"
+#include "Console.hpp"
 // include mod headers here
 #include "mods/AreaJump.hpp"
 #include "mods/BackgroundRendering.hpp"

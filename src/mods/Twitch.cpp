@@ -6,6 +6,7 @@
 #include <optional>
 #include "GuiFunctions.hpp"
 #include "../sdk/Devil4.hpp"
+#include "utility/MessageDisplay.hpp"
 
 static bool twitch_login_on_boot = false;
 

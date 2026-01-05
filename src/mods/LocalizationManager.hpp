@@ -8,7 +8,7 @@ public:
 	LocalizationManager() = default;
 
 	std::string get_mod_name() override { return "LocalizationManager"; };
-	Mod::ModType get_mod_type() override { return SLOW; }
+	Mod::ModType get_mod_type() override { return ModType::SLOW; }
 	// override onInitialize() method with routines required to initialize the mod.
 	// return Mod::onInitialize() on success or error string on failure.
 	std::optional<std::string> on_initialize() override;

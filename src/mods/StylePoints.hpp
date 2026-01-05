@@ -22,7 +22,7 @@ public:
 
     std::string get_mod_name() override { return "StylePoints"; };
     std::optional<std::string> on_initialize() override;
-    Mod::ModType get_mod_type() override { return SLOW; };
+    Mod::ModType get_mod_type() override { return ModType::SLOW; };
     void on_reset();
     void after_reset();
 

@@ -1,4 +1,5 @@
 #include "HideHud.hpp"
+#include "Console.hpp"
 
 bool HideHud::mod_enabled_hide_all_hud         = false;
 bool HideHud::mod_enabled_health               = false;

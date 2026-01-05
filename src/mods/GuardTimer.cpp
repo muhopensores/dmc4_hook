@@ -1,4 +1,7 @@
 #include "GuardTimer.hpp"
+#include "imgui/imgui.h"
+#include "imgui_internal.h"
+
 #include "../sdk/Devil4.hpp"
 
 #if 1

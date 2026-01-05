@@ -4,6 +4,7 @@
 #include "PinTimer.hpp"
 #include "misc/PinTimerAtlas.cpp"
 #include "sdk/Devil4.hpp"
+#include "Console.hpp"
 
 // hopefully mister compiler calculates those at compile time, we dont have consteval from c++20
 // cba to switch to newer standards

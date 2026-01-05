@@ -1,5 +1,6 @@
 #include "FreeJc.hpp"
 #include "EasyJc.hpp"
+#include "Console.hpp"
 
 #if 1
 bool FreeJc::mod_enabled_nero = false;
