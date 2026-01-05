@@ -1,5 +1,9 @@
 #include "DtKnuckle.hpp"
 #include "../sdk/Devil4.hpp"
+#undef WIN32_LEAN_AND_MEAN
+#include <shellapi.h>
+#define WIN32_LEAN_AND_MEAN
+
 //#define EFCT_PATH "effect\\efl\\ene\\ee018_90v5"
 
 bool DtKnuckle::mod_enabled = false;

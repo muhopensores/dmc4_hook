@@ -2,6 +2,9 @@
 #include "MoveTable.hpp"
 #include "TrackingFullHouse.hpp"
 #include "../sdk/Player.hpp"
+#undef WIN32_LEAN_AND_MEAN
+#include <shellapi.h>
+#define WIN32_LEAN_AND_MEAN
 //#include "MoveIDsNero.hpp"
 
 #if 1

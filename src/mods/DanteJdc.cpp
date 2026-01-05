@@ -1,5 +1,9 @@
 #include "DanteJdc.hpp"
 
+#undef WIN32_LEAN_AND_MEAN
+#include <shellapi.h>
+#define WIN32_LEAN_AND_MEAN
+
 #if 1
 bool DanteJdc::mod_enabled = false;
 bool DanteJdc::alt_input_enabled = false;

@@ -43,6 +43,9 @@ endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
 #string(REGEX REPLACE "/EHsc" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 #add_compile_definitions(_HAS_EXCEPTIONS=0)
 
+# Win32 lean and mean
+add_compile_definitions(WIN32_LEAN_AND_MEAN)
+
 set(LOG_FILENAME "${CMAKE_PROJECT_NAME}_framework_log.txt")
 set(LOG_ENTRY "${CMAKE_PROJECT_NAME} ModFramework entry")
 set(CONFIG_FILENAME "${CMAKE_PROJECT_NAME}.cfg")

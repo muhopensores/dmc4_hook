@@ -7,10 +7,6 @@
 #include "mods/MessageDisplay.hpp"
 #include "sdk/Devil4.hpp"
 
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#undef WIN32_LEAN_AND_MEAN
-
 #include "fw-imgui/imgui_impl_dx9.h"
 #include "fw-imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
