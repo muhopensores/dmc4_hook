@@ -22,6 +22,7 @@ using Vector4 = glm::vec4;
 #define _(string) utility::text_lookup(string)
 #define __(str) str
 
+#if 0 // moved to sMediator
 enum class GameDifficulty : uint32_t {
     HUMAN                 = 0,
     DEVIL_HUNTER          = 1,
@@ -35,6 +36,8 @@ enum class GameMode : uint32_t {
     HEAVEN_OR_HELL = 1,
     HELL_AND_HELL  = 2,
 };
+#endif
+
 enum WeaponID {
     WP_RED_QUEEN   = 0,
     WP_BLUE_ROSE   = 1,

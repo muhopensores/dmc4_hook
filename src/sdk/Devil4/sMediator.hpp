@@ -1,5 +1,21 @@
 #pragma once
 
+#include <cstdint>
+
+enum class GameDifficulty : uint32_t {
+    HUMAN                 = 0,
+    DEVIL_HUNTER          = 1,
+    SON_OF_SPARDA_HOH_HAH = 2,
+    DANTE_MUST_DIE        = 3,
+    LEGENDARY_DARK_KNIGHT = 4,
+};
+
+enum class GameMode : uint32_t {
+    DEFAULT        = 0,
+    HEAVEN_OR_HELL = 1,
+    HELL_AND_HELL  = 2,
+};
+
 class sMediator { // TODO(): actually inherits from cSystem i think
 public:
     char pad_0[0x24];
