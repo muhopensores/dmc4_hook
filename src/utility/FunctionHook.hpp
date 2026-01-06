@@ -1,12 +1,13 @@
 #pragma once
 
-#include <windows.h>
 #include <cstdint>
 
 #include "Address.hpp"
 
 class FunctionHook {
 public:
+    using BOOL = int;
+
     FunctionHook() = delete;
     FunctionHook(const FunctionHook& other) = delete;
     FunctionHook(FunctionHook&& other) = delete;
