@@ -45,5 +45,5 @@ public:
     int bp_floor;      // 0x74
     char pad_78[0x159];
     bool m_paused; // 0x1d1
-}; // Size: 0x1d2
-static_assert(sizeof(aGame) == 0x1d2);
+}; // Size: 0x1d4
+static_assert(sizeof(aGame) == 0x1d4); // NOTE(): got rid of pragma pack 

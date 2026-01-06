@@ -1,8 +1,7 @@
 #pragma once
 
 #include <cstdint>
-
-#pragma pack(push, r2, 1)
+#include "../MtMath.hpp"
 
 class LuciferPin {
 public:
@@ -22,7 +21,7 @@ public:
     char pad_1798[0x1c];
     bool penetrated; // 0x17b4
 }; // Size: 0x17b5
-static_assert(sizeof(LuciferPin) == 0x17b5);
+static_assert(sizeof(LuciferPin) == 0x17b8);
 
 class DevilArm {
 public:
@@ -35,6 +34,4 @@ public:
     char pad_13c8[0x20];
     bool roseAlive; // 0x13e8
 }; // Size: 0x13e9
-static_assert(sizeof(DevilArm) == 0x13e9);
-
-#pragma pack(pop, r2)
+static_assert(sizeof(DevilArm) == 0x13ec);

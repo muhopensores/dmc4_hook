@@ -20,3 +20,4 @@ public:
     virtual void vec_del_dtor(unsigned int x) {};
     virtual void* new_instance() {return nullptr;};
 }; //Size: 0x0020
+static_assert(sizeof(MtDTI) == 0x0020);

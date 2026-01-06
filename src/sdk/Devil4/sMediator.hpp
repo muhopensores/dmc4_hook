@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "sWorkRate.hpp"
 
 enum class GameDifficulty : uint32_t {
     HUMAN                 = 0,

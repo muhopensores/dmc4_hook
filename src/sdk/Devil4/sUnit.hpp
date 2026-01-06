@@ -1,6 +1,9 @@
 #pragma once
 
 #include "cSystem.hpp"
+#include <cstdint>
+
+class cUnit;
 
 class MoveLine {
 public:

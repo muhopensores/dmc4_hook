@@ -19,4 +19,3 @@ public:
 
 }; // Size: 0x0004
 static_assert(sizeof(MtObject) == 0x04);
-

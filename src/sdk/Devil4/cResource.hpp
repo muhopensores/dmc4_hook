@@ -4,6 +4,7 @@
 
 static constexpr auto RESOURE_PATH_SIZE = 64;
 
+#pragma pack(push, 1)
 class cResource : public MtObject
 {
 public:
@@ -23,3 +24,5 @@ public:
     char pad_005_c[4]; //0x005C
 }; //Size: 0x0068
 static_assert(sizeof(cResource) == 0x60);
+#pragma pack(pop)
+

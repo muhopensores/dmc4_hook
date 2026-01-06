@@ -2,8 +2,7 @@
 
 #include <cstdio>
 #include "MtObject.hpp"
-
-#pragma pack(push, r2, 1)
+#include "../MtMath.hpp"
 
 class uEm003Shl : public MtObject {
 public:
@@ -21,4 +20,3 @@ public:
 }; // Size: 0x17F0
 static_assert(sizeof(uEm003Shl) == 0x17F0);
 
-#pragma pack(pop, r2)

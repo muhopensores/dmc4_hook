@@ -5,7 +5,6 @@
 
 class MtCriticalSection;
 
-#pragma pack(push, r2, 1)
 class MtAllocator : public MtObject {
 public:
     uint32_t m_used_size;          // 0x0004
@@ -28,4 +27,3 @@ public:
 }; // Size: 0x005C
 static_assert(sizeof(MtHeapAllocator) == 0x005C);
 
-#pragma pack(pop, r2)
