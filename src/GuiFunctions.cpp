@@ -1,3 +1,4 @@
+#include "Windows.h"
 #include "GuiFunctions.hpp"
 #include "Config.hpp"
 #include "utility/Hash.hpp"

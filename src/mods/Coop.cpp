@@ -4,6 +4,10 @@
 #include "..\sdk\Cam.hpp"
 #include "CharSwitcher.hpp"
 #include "DebugCam.hpp"
+#include "Windows.h"
+
+using byte = uint8_t;
+
 bool Coop::mod_enabled = false;
 unsigned int Coop::player_num = 2;
 std::vector<std::unique_ptr<CoopPlayer>> PlayerArr;

@@ -2,6 +2,7 @@
 #include <spdlog/spdlog.h>
 #include "sdk/ReClass.hpp"
 #include "XInput.h"
+#include "Windows.h"
 
 XInputHook* g_xinput_hook { nullptr };
 

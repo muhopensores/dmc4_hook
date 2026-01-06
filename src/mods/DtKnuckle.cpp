@@ -1,5 +1,6 @@
 #include "DtKnuckle.hpp"
 #include "../sdk/Devil4.hpp"
+#include "Windows.h"
 #undef WIN32_LEAN_AND_MEAN
 #include <shellapi.h>
 #define WIN32_LEAN_AND_MEAN

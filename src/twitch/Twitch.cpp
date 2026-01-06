@@ -1,4 +1,5 @@
 #include "Twitch.hpp"
+#include "Windows.h"
 #include <iostream>
 #include <regex>
 #include <fstream>

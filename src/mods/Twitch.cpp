@@ -4,6 +4,7 @@
 #include <thread>
 #include <random>
 #include <optional>
+#include "Windows.h"
 #include "GuiFunctions.hpp"
 #include "../sdk/Devil4.hpp"
 #include "utility/MessageDisplay.hpp"
@@ -493,7 +494,9 @@ void TwitchClient::on_gui_frame(int display) {
             break;
         }
         if (ImGui::Button(_("Get OAuth Password..."))) {
+            #define SW_SHOW 5
             ShellExecute(0, 0, "https://twitchapps.com/tmi/", 0, 0, SW_SHOW);
+            #undef SW_SHOW
         }
         ImGui::InputText(_("Twitch Username"), twitch_login, 128);
         ImGui::InputText(_("Twitch OAuth"), twitch_chat_oauth_password, 128, ImGuiInputTextFlags_Password);

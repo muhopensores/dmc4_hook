@@ -2,7 +2,10 @@
 
 #include "Mods.hpp"
 #include "imgui/imgui.h"
-#include "Shellapi.h"
+
+#undef WIN32_LEAN_AND_MEAN
+#include <shellapi.h>
+#define WIN32_LEAN_AND_MEAN
 
 namespace gui {
     // gui function definitions
@@ -33,7 +36,9 @@ namespace gui {
                 under_line(color_hover);
             }
             if (ImGui::IsItemClicked()) {
+                #define SW_SHOWNORMAL 1
                 ShellExecuteA(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
+                #undef SW_SHOWNORMAL
             }
         }
     };

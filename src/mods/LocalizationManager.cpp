@@ -9,6 +9,7 @@
 #include "../i18n/en_dmc4hook.hpp"
 #include "../i18n/ru_dmc4hook.hpp"
 #include "../i18n/zh_dmc4hook.hpp"
+#include "Windows.h"
 
 typedef const ImWchar* (ImFontAtlas::*GGR)();
 

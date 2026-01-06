@@ -128,10 +128,10 @@ static_assert(sizeof(kEmJumpDataArr) == 0x3C0);
 class UModelJoint { // redef, was in AfterImage.cpp
 public:
     void* vtable;            // 0x00
-    byte mAttr;              // 0x04
-    byte mParentIndex;       // 0x05
-    byte mType;              // 0x06
-    byte mNo;                // 0x07
+    uint8_t mAttr;              // 0x04
+    uint8_t mParentIndex;     // 0x05
+    uint8_t mType;              // 0x06
+    uint8_t mNo;              // 0x07
     int mSymmetryIndex;      // 0x08
     void* mpConstraint;      // 0x0C
     struct MtFloat3 mOffset; // 0x10

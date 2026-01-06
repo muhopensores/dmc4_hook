@@ -1,4 +1,5 @@
 #include "EnemyReplace.hpp"
+#include "Windows.h"
 
 bool EnemyReplace::mod_enabled = false;
 static uintptr_t mod_base = (uintptr_t)GetModuleHandle(NULL);

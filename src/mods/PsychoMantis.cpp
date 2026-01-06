@@ -1,5 +1,6 @@
 #include "PsychoMantis.hpp"
 #include "../sdk/Devil4.hpp"
+#include "Windows.h"
 
 // https://gist.github.com/stroum
 bool PsychoMantis::mod_enabled = false;

@@ -1,5 +1,7 @@
 ﻿#include "CameraSettings.hpp"
 #include "PhotoMode.hpp"
+#include "Windows.h"
+
 static bool camera_sens_enabled = false;
 static bool camera_auto_correct_towards_cam_enabled = false;
 bool CameraSettings::mod_enabled = false;

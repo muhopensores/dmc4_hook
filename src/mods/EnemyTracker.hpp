@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../mod.hpp"
+#include "d3d9.h"
 
 class EnemyTracker : public Mod {
 public:

@@ -1,6 +1,7 @@
 #include "Mutators.hpp"
 #include <cassert>
 #include "sdk/Devil4.hpp"
+#include "Windows.h"
 #include "GuiFunctions.hpp"
 
 static constexpr size_t NUM_MUTATORS_RESERVE = 128;

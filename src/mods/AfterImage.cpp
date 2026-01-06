@@ -67,10 +67,10 @@ public:
 
 struct uModel_Joint {
     void* vtable;
-    byte mAttr;
-    byte mpParentIndex;
-    byte mType;
-    byte mNo;
+    uint8_t mAttr;
+    uint8_t mpParentIndex;
+    uint8_t mType;
+    uint8_t mNo;
     int mSymmetryIndex;
     void* mpConstraint;
     struct MtFloat3 mOffset;

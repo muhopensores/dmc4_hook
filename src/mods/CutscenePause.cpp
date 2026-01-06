@@ -1,4 +1,5 @@
 #include "CutscenePause.hpp"
+#include "Windows.h"
 
 bool  CutscenePause::mod_enabled = false;
 uintptr_t CutscenePause::jmp_ret = NULL;

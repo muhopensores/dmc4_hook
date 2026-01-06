@@ -1,5 +1,6 @@
 #include "LoadOrder.hpp"
 #include "../misc/extension.cpp"
+#include "Windows.h"
 
 static uintptr_t  jmp_return = NULL;
 static uintptr_t  jmp_return01 = NULL;

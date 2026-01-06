@@ -1,5 +1,6 @@
 #include "BpPortal.hpp"
 #include "utility/MessageDisplay.hpp"
+#include "Windows.h"
 
 bool BpPortal::mod_enabled = false;
 static BpPortal* g_mod = nullptr;

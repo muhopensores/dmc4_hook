@@ -1,5 +1,6 @@
 #pragma once
 #include "MtMath.hpp"
+#include "Windows.h"
 
 struct PAD_FREE {
     schar Press_free;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Mod.hpp"
+#include <d3d9.h>
 
 class MutatorSelfAdvertisement : public Mod {
 public:

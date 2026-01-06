@@ -1,6 +1,7 @@
 #include "DebugCam.hpp"
 #include "PhotoMode.hpp"
 #include "CustomProjectile.hpp"
+#include "Windows.h"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/Cam.hpp"
 #define _USE_MATH_DEFINES
