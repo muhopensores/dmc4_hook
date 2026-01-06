@@ -3,12 +3,13 @@
 #include "utility/Patch.hpp"
 #include "utility/FunctionHook.hpp"
 #include "utility/Input.hpp"
+#include "utility/Config.hpp"
+
 #include "utility/MoFile.hpp"
 #include "sdk/ReClass.hpp"
 
 #include "ModFramework.hpp"
 #include "Mutators.hpp"
-//#include "Console.hpp"
 
 #define naked static __declspec(naked)
 #define _(string) utility::text_lookup(string)
@@ -27,9 +28,9 @@ public:
         SLOW
     };
     
-    float sameLineWidth     = 300.0f;
-    float sameLineItemWidth = sameLineWidth / 2;
-    float lineIndent        = 20.0f;
+    static constexpr float sameLineWidth     = 300.0f;
+    static constexpr float sameLineItemWidth = sameLineWidth / 2;
+    static constexpr float lineIndent        = 20.0f;
 
     //std::unique_ptr<utility::Hotkey> m_hotkey;
     std::vector<std::unique_ptr<utility::Hotkey>> m_hotkeys;
@@ -72,8 +73,7 @@ public:
         patch.reset(nullptr);
         std::vector<int16_t> bytes;
         while (length > 0) {
-            bytes.push_back((uint16_t)(*patch_bytes) & 0x00FFu);
-            patch_bytes++;
+            bytes.push_back((uint16_t)(*patch_bytes) & 0x00FFu); patch_bytes++;
             length--;
         }
         patch = Patch::create(location, bytes, true);
@@ -128,25 +128,25 @@ public:
         return true;
     }
 
-	virtual std::optional<std::string> on_initialize() { return std::nullopt; }
-	// should be called from d3d hook
-	virtual void on_frame(fmilliseconds& dt) {}
-	// called only when imgui window displays
-	virtual void on_gui_frame(int display = 0) {}
+    virtual std::optional<std::string> on_initialize() { return std::nullopt; }
+    // should be called from d3d hook
+    virtual void on_frame(fmilliseconds& dt) {}
+    // called only when imgui window displays
+    virtual void on_gui_frame(int display = 0) {}
 
-	virtual void on_config_load(const utility::Config& cfg) {}
-	virtual void on_config_save(utility::Config& cfg) {}
+    virtual void on_config_load(const utility::Config& cfg) {}
+    virtual void on_config_save(utility::Config& cfg) {}
     virtual void on_update_input(utility::Input& input) {}
 
-	//game specific callbacks
-	virtual void on_game_pause(bool toggle) {};
+    //game specific callbacks
+    virtual void on_game_pause(bool toggle) {};
     virtual void on_stage_start() {};
     virtual void on_stage_end() {};
-	virtual bool on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param) { return true; };
+    virtual bool on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param) { return true; };
 
     // texture stuff
     virtual void on_reset() {};
     virtual void after_reset() {};
-	// twitch
-	//virtual void on_twitch_command(std::size_t hash) {};
+    // twitch
+    //virtual void on_twitch_command(std::size_t hash) {};
 };

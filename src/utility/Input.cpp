@@ -11,6 +11,7 @@
 // NOTE(): experimental gamepad hotkey support?
 #include "XInputHook.hpp"
 #include "XInput.h"
+#include "utility/Config.hpp"
 
 struct XinputTriggers {
     BYTE m_left;

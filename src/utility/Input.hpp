@@ -2,11 +2,15 @@
 
 #include <array>
 #include <vector>
-#include "Config.hpp"
 #include <cstdint>
 #include <memory>
+#include <string>
 
 constexpr auto _XUSER_MAX_COUNT = 4;
+
+namespace utility {
+    class Config;
+}
 
 enum XIBtn : uint32_t {
     DPAD_UP,
@@ -46,8 +50,8 @@ namespace utility
         bool went_down(int vkey, bool is_gamepad) const;
         bool went_up(int vkey, bool is_gamepad) const;
 
-        inline const auto get_keys_size() const { return m_status.size(); };
-        inline const auto get_btns_size() const { return m_gpad_status.size(); };
+        auto get_keys_size() const { return m_status.size(); };
+        auto get_btns_size() const { return m_gpad_status.size(); };
 
 
     private:
@@ -111,7 +115,7 @@ namespace utility
 
         // this could have been a fixed array but someone will complain
         // they cant bind adagio for strings and organ in G minor
-        std::vector<uint32_t> m_binds{};
+        std::vector<uint32_t> m_binds;
 
         const char* hotkey_name(int hotkey); 
         void draw(utility::Input& input);
