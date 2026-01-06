@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include "Math.hpp"
 //#include "d3d9.h"
 #define _X86_
 #include "windef.h"
