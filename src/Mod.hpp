@@ -9,10 +9,8 @@
 #include "utility/MoFile.hpp"
 #include "sdk/ReClass.hpp"
 
-
 #include "ModFramework.hpp"
 #include "Mutators.hpp"
-#include <cstdint>
 //#include "Console.hpp"
 
 #define naked static __declspec(naked)
