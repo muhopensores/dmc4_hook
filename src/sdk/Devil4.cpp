@@ -1,4 +1,4 @@
-#include "Devil4.hpp"
+#include "sdk/Devil4.hpp"
 #include "Windows.h"
 
 static MtHeapAllocator** mt_heap_alloc_static_ptr = (MtHeapAllocator**)0x00E1434C;

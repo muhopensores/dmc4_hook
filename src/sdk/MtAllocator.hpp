@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include "MtObject.hpp"
+#include "sdk/MtObject.hpp"
 
 class MtCriticalSection;
 

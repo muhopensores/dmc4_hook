@@ -5,7 +5,9 @@
 
 
 #include "MtMath.hpp"
-#include "ReClass_Internal.hpp"
+#include "uCoord.hpp"
+
+class cResource;
 
 // typedef unsigned long    ulong;
 // typedef unsigned long long    ulonglong;

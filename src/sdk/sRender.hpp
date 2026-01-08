@@ -1,7 +1,7 @@
 #pragma once
 
 #include "cSystem.hpp"
-#include "..\MtMath.hpp"
+#include "MtMath.hpp"
 
 struct IDirect3DDevice9;
 

@@ -4,7 +4,7 @@
 #include "FasterFastDrive.hpp" // for easy fast drive
 #include "DarkSoulsStamina.hpp" // stamina
 #include "../sdk/Devil4.hpp"
-#include "../sdk/Player.hpp"
+#include "sdk/uPlayer.hpp"
 #if 1
 
 uintptr_t InputStates::jmp_return = NULL;

@@ -353,33 +353,33 @@ set(SDK_SRC
     sdk/World2Screen.cpp
     sdk/World2Screen.hpp
     # from reclass internal
-    sdk/Devil4/aGame.hpp
-    sdk/Devil4/cResource.hpp
-    sdk/Devil4/cSystem.hpp
-    sdk/Devil4/cUnit.hpp
-    sdk/Devil4/MtAllocator.hpp
-    sdk/Devil4/MtDTI.hpp
-    sdk/Devil4/MtObject.hpp
-    sdk/Devil4/MtString.hpp
-    sdk/Devil4/MtThread.hpp
-    sdk/Devil4/rEffectList.hpp
-    sdk/Devil4/sArea.hpp
-    sdk/Devil4/sDevil4Main.hpp
-    sdk/Devil4/sMediator.hpp
-    sdk/Devil4/sMouse.hpp
-    sdk/Devil4/sRender.hpp
-    sdk/Devil4/sStylishCount.hpp
-    sdk/Devil4/sUnit.hpp
-    sdk/Devil4/sWorkRate.hpp
-    sdk/Devil4/uCoord.hpp
-    sdk/Devil4/uDamage.hpp
-    sdk/Devil4/uEm003.hpp
-    sdk/Devil4/uEnemy.hpp
-    sdk/Devil4/uFilter.hpp
-    sdk/Devil4/uPlayerDante.hpp
-    sdk/Devil4/uPlayerData.hpp
-    sdk/Devil4/uShadow.hpp
-    sdk/Devil4/uStageSet.hpp
+    sdk/aGame.hpp
+    sdk/cResource.hpp
+    sdk/cSystem.hpp
+    sdk/cUnit.hpp
+    sdk/MtAllocator.hpp
+    sdk/MtDTI.hpp
+    sdk/MtObject.hpp
+    sdk/MtString.hpp
+    sdk/MtThread.hpp
+    sdk/rEffectList.hpp
+    sdk/sArea.hpp
+    sdk/sDevil4Main.hpp
+    sdk/sMediator.hpp
+    sdk/sMouse.hpp
+    sdk/sRender.hpp
+    sdk/sStylishCount.hpp
+    sdk/sUnit.hpp
+    sdk/sWorkRate.hpp
+    sdk/uCoord.hpp
+    sdk/uDamage.hpp
+    sdk/uEm003.hpp
+    sdk/uEnemy.hpp
+    sdk/uFilter.hpp
+    sdk/uPlayerDante.hpp
+    sdk/uPlayerData.hpp
+    sdk/uShadow.hpp
+    sdk/uStageSet.hpp
 )
 
 set(IMGUI_SRC

@@ -5,6 +5,7 @@
 
 #include "MtMath.hpp"
 #include "uActor.hpp"
+#include "uDamage.hpp"
 
 typedef unsigned int uint;
 struct cCollisionGroup;

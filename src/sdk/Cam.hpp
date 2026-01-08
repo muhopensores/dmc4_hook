@@ -2,12 +2,14 @@
 #include <cstdint>
 
 #ifndef UACTOR_HPP
-#include "uActor.hpp"
+#include "sdk/uActor.hpp"
 #endif
 
 #ifndef MTMATH_HPP
-#include "MtMath.hpp"
+#include "sdk/MtMath.hpp"
 #endif
+
+#include "sdk/cSystem.hpp"
 
 struct sCamera_ViewPort {
     void* vtable;

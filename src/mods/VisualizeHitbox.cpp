@@ -1,9 +1,9 @@
 #include "VisualizeHitbox.hpp"
 #include "./sdk/World2Screen.hpp"
 #include "../sdk/uActor.hpp"
-#include "../sdk/Enemy.hpp"
-#include "../sdk/Player.hpp"
-#include "../sdk/uCollisionMgr.hpp"
+#include "sdk/uEnemy.hpp"
+#include "sdk/uPlayer.hpp"
+#include "sdk/uCollisionMgr.hpp"
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "EnemyTracker.hpp"

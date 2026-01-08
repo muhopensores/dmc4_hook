@@ -1,6 +1,12 @@
 #pragma once
-#include "MtMath.hpp"
-#include "Windows.h"
+#include "sdk/cSystem.hpp"
+#include "sdk/MtMath.hpp"
+#include "sdk/MtString.hpp"
+
+#define _X86_ // NOTE(): for tagSTICKYKEYS and stuff
+#include <windef.h>
+#include <WinUser.h>
+#undef _X86_
 
 struct PAD_FREE {
     schar Press_free;

@@ -1,6 +1,6 @@
 #include "LuciAirThrow.hpp"
 #include "MoveTable.hpp"
-#include "sdk/Player.hpp"
+#include "sdk/uPlayer.hpp"
 
 bool LuciAirThrow::mod_enabled = false;
 uintptr_t  LuciAirThrow::jmp_ret1 = NULL;

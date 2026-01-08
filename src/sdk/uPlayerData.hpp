@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\MtMath.hpp"
+#include "MtMath.hpp"
 
 class CharacterSettingsOne {
 public:

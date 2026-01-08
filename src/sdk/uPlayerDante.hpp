@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include "../MtMath.hpp"
+#include "MtMath.hpp"
 
 class LuciferPin {
 public:

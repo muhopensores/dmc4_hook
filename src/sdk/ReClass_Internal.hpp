@@ -143,6 +143,7 @@ enum class COLLISION_ACTOR_TYPE : uint32_t {
   MAX_COLLISION_ACTOR_TYPE = 0x6,
 };
 
+#if 0 // NOTE(): moved to uEnemy.hpp
 enum ENEMY_ID : int {
   SCARECROW_LEG = 0, // Legcrow
   SCARECROW_ARM = 1, // Armcrow
@@ -176,6 +177,7 @@ enum ENEMY_ID : int {
   SANCTUS_M11 = 29,
   SANCTUS_M20 = 30,
 };
+#endif
 
 enum DANTE_ATCK_ID {              
 	ATCK_ID_RV_COMBO0 = 0x1,                // Rebellion Combo A1
@@ -616,7 +618,7 @@ public:
 }; // Size: 0x1d2
 static_assert(sizeof(aGame) == 0x1d2);
 #else
-#include "Devil4/aGame.hpp"
+#include "sdk/aGame.hpp"
 #endif
 
 #if 0
@@ -666,7 +668,7 @@ public:
 }; // Size: 0x383C
 static_assert(sizeof(sArea) == 0x383C);
 #else
-#include "Devil4/sArea.hpp"
+#include "sdk/sArea.hpp"
 #endif
 
 #if 0 // NOTE(): taken care below
@@ -736,7 +738,7 @@ public:
 }; //Size=0x0404
 static_assert(sizeof(unkClass2) == 0x404);
 #else
-#include "Devil4/sWorkRate.hpp"
+#include "sdk/sWorkRate.hpp"
 #endif
 
 class Inputs
@@ -787,7 +789,7 @@ public:
 	virtual void* new_instance() {return nullptr;};
 }; //Size: 0x0020
 #else
-#include "Devil4/MtDTI.hpp"
+#include "sdk/MtDTI.hpp"
 #endif
 
 #if 0
@@ -802,7 +804,7 @@ public:
 }; //Size: 0x0004
 static_assert(sizeof(MtObject) == 0x04);
 #else
-#include "Devil4/MtObject.hpp"
+#include "sdk/MtObject.hpp"
 #endif
 
 #if 0
@@ -823,7 +825,7 @@ public:
 }; //Size: 0x0060
 static_assert(sizeof(cResource) == 0x60);
 #else
-#include "Devil4/cResource.hpp"
+#include "sdk/cResource.hpp"
 #endif
 
 #if 0
@@ -841,7 +843,7 @@ public:
 }; //Size: 0x0080
 static_assert(sizeof(rEffectList) == 0x0080);
 #else
-#include "Devil4/rEffectList.hpp"
+#include "sdk/rEffectList.hpp"
 #endif
 
 //class uActor {
@@ -964,7 +966,7 @@ struct cUnit {
 };
 static_assert(sizeof(cUnit) == 0x18);
 #else
-#include "Devil4/cUnit.hpp"
+#include "sdk/cUnit.hpp"
 #endif
 
 #if 0
@@ -1001,7 +1003,7 @@ public:
 static_assert(sizeof(uCoord) == 0xE0);
 #endif
 #else
-#include "Devil4/uCoord.hpp"
+#include "sdk/uCoord.hpp"
 #endif
 
 #if 0
@@ -1090,7 +1092,7 @@ public:
 }; //Size: 0x0434
 static_assert(sizeof(UColorCorrectFilter) == 0x434);
 #else
-#include "Devil4/uFilter.hpp"
+#include "sdk/uFilter.hpp"
 #endif
 
 #if 0
@@ -1136,7 +1138,7 @@ public:
 }; //Size: 0x2668
 static_assert(sizeof(uEnemySomething) == 0x2668);
 #else
-#include "Devil4/uEnemy.hpp"
+#include "sdk/uEnemy.hpp"
 #endif
 
 #if 0
@@ -1164,7 +1166,7 @@ public:
 }; // Size: 0xb0
 static_assert(sizeof(uDamage_Old) == 0xb0);
 #else
-#include "Devil4/uDamage.hpp"
+#include "sdk/uDamage.hpp"
 #endif
 
 #if 0 // NOTE(): seems to be already fully reversed in uActor.hpp::LOCKONSPHERE_DAT
@@ -1212,7 +1214,7 @@ public:
 }; // Size: 0x228
 static_assert(sizeof(uShadow) == 0x228);
 #else
-#include "Devil4/uShadow.hpp"
+#include "sdk/uShadow.hpp"
 #endif
 
 #if 0
@@ -1261,7 +1263,7 @@ public:
 }; // Size: 0x878
 static_assert(sizeof(sMediator) == 0x878);
 #else
-#include "Devil4/sMediator.hpp"
+#include "sdk/sMediator.hpp"
 #endif
 
 #if 0 // NOTE(): moved to Player.hpp
@@ -1328,7 +1330,7 @@ public:
 }; // Size: 0x13e9
 static_assert(sizeof(DevilArm) == 0x13e9);
 #else
-#include "Devil4/uPlayerDante.hpp"
+#include "sdk/uPlayerDante.hpp"
 #endif
 
 #if 0 // NOTE(): moved to uPlayerData.hpp
@@ -1383,7 +1385,7 @@ public:
 }; // Size: 0x3e8
 static_assert(sizeof(CharacterSettingsThree) == 0x3e8);
 #else
-#include "Devil4/uPlayerData.hpp"
+#include "sdk/uPlayerData.hpp"
 #endif
 
 #if 0 // NOTE(): moved to Player.hpp
@@ -1423,7 +1425,7 @@ public:
 }; //Size: 0x2068
 static_assert(sizeof(uStageSetTimeSlow) == 0x2068);
 #else
-#include "Devil4/uStageSet.hpp"
+#include "sdk/uStageSet.hpp"
 #endif
 
 #if 0 // NOTE(): unused
@@ -1460,7 +1462,7 @@ public:
 }; //Size: 0x005C
 static_assert(sizeof(MtHeapAllocator) == 0x005C);
 #else
-#include "Devil4/MtAllocator.hpp"
+#include "sdk/MtAllocator.hpp"
 #endif
 
 #if 0 // NOTE(): unused?
@@ -1523,7 +1525,7 @@ public:
 }; //Size: 0x0220
 static_assert(sizeof(sStylishCount) == 0x220);
 #else
-#include "Devil4/sStylishCount.hpp"
+#include "sdk/sStylishCount.hpp"
 #endif
 
 #if 0
@@ -1544,7 +1546,7 @@ public:
 }; //Size: 0x17F0
 static_assert(sizeof(uEm003Shl) == 0x17F0);
 #else
-#include "Devil4/uEm003.hpp"
+#include "sdk/uEm003.hpp"
 #endif
 
 #if 0
@@ -1562,7 +1564,7 @@ struct MtString
     MtStringSTRING *value;
 };
 #else
-#include "Devil4\MtString.hpp"
+#include "MtString.hpp"
 #endif
 
 #if 0
@@ -1573,7 +1575,7 @@ public:
 }; //Size: 0x001C
 static_assert(sizeof(MtCriticalSection) == 0x1C);
 #else
-#include "Devil4/MtThread.hpp"
+#include "sdk/MtThread.hpp"
 #endif
 
 #if 0
@@ -1584,7 +1586,7 @@ public:
 }; //Size: 0x0020
 static_assert(sizeof(cSystem) == 0x0020);
 #else
-#include "Devil4/cSystem.hpp"
+#include "sdk/cSystem.hpp"
 #endif
 
 #if 0
@@ -1597,7 +1599,7 @@ public:
 }; //Size: 0x0060
 static_assert(sizeof(sRender) == 0x0060);
 #else
-#include "Devil4/sRender.hpp"
+#include "sdk/sRender.hpp"
 #endif
 
 #if 0
@@ -1618,7 +1620,7 @@ public:
 }; //Size: 0x0040
 static_assert(sizeof(sDevil4MainPtr) == 0x40);
 #else
-#include "Devil4/sDevil4Main.hpp"
+#include "sdk/sDevil4Main.hpp"
 #endif
 
 #if 0
@@ -1640,7 +1642,7 @@ public:
 }; //Size: 0x0004
 static_assert(sizeof(sMousePtr) == 0x4);
 #else
-#include "Devil4/sMouse.hpp"
+#include "sdk/sMouse.hpp"
 #endif
 
 #if 0
@@ -1665,5 +1667,5 @@ public:
 };
 static_assert(sizeof(sUnit) == 0x320);
 #else
-#include "Devil4/sUnit.hpp"
+#include "sdk/sUnit.hpp"
 #endif

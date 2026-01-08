@@ -1,7 +1,7 @@
 #include "Payline.hpp"
 #include "MoveTable.hpp"
 #include "TrackingFullHouse.hpp"
-#include "../sdk/Player.hpp"
+#include "sdk/uPlayer.hpp"
 #include "Windows.h"
 #undef WIN32_LEAN_AND_MEAN
 #include <shellapi.h>

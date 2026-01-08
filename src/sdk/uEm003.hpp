@@ -2,7 +2,7 @@
 
 #include <cstdio>
 #include "MtObject.hpp"
-#include "../MtMath.hpp"
+#include "MtMath.hpp"
 
 class uEm003Shl : public MtObject {
 public:

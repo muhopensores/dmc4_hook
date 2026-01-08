@@ -3,7 +3,7 @@
 #define MTMATH_HPP
 #endif
 #include <cstdint>
-#include "Math.hpp"
+#include "sdk/Math.hpp"
 
 typedef unsigned char undefined;
 typedef signed char schar;

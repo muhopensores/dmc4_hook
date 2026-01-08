@@ -1,6 +1,6 @@
 #include "GroundedGunCancels.hpp"
 #include "MoveTable.hpp"
-#include "sdk/Player.hpp"
+#include "sdk/uPlayer.hpp"
 
 bool GroundedGunCancels::mod_enabled = false;
 uintptr_t GroundedGunCancels::jmp_ret1 = NULL;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "cUnit.hpp"
-#include "..\MtMath.hpp"
+#include "MtMath.hpp"
 #include <cstdint>
 
 enum CcType : uint32_t //NOLINT

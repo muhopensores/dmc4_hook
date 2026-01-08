@@ -1,9 +1,9 @@
 #pragma once
 #include "ReClass.hpp"
-#include "Cam.hpp"
-#include "Enemy.hpp"
-#include "uActor.hpp"
-#include "Player.hpp"
+#include "sdk/Cam.hpp"
+#include "sdk/uEnemy.hpp"
+#include "sdk/uActor.hpp"
+#include "sdk/uPlayer.hpp"
 
 namespace devil4_sdk {
 	void u_em003_shl_new();

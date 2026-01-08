@@ -2,8 +2,9 @@
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 #endif
-#include "Enemy.hpp"
-#include "uActor.hpp"
+#include "sdk/uPlayerDante.hpp"
+#include "sdk/uEnemy.hpp"
+#include "sdk/uActor.hpp"
 
 class CharacterSettingsTwo;
 class CharacterSettingsThree;

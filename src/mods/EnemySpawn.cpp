@@ -1,5 +1,6 @@
 #include "EnemySpawn.hpp"
-#include "../sdk/Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/uEnemy.hpp"
 #include "utility/MessageDisplay.hpp"
 #include "Console.hpp"
 
