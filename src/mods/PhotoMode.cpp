@@ -1,11 +1,12 @@
 #include "PhotoMode.hpp"
 #include "DebugCam.hpp"
 #include "CameraSettings.hpp"
-#include "../sdk/Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/Cam.hpp"
+#include "sdk/World2Screen.hpp"
+#include "sdk/uFilter.hpp"
 #include <Mods.hpp>
-#include "../sdk/Cam.hpp"
 #include "utility/Hash.hpp"
-#include "../sdk/World2Screen.hpp"
 
 bool PhotoMode::mod_enabled = false;
 bool PhotoMode::photo_mode_open = false;

@@ -1009,7 +1009,7 @@ public:
 static_assert(sizeof(uCoord) == 0xE0);
 #endif
 #else
-#include "sdk/uCoord.hpp"
+//#include "sdk/uCoord.hpp"
 #endif
 
 #if 0
@@ -1098,7 +1098,7 @@ public:
 }; //Size: 0x0434
 static_assert(sizeof(UColorCorrectFilter) == 0x434);
 #else
-#include "sdk/uFilter.hpp"
+//#include "sdk/uFilter.hpp"
 #endif
 
 #if 0

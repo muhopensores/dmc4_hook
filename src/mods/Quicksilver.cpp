@@ -1,6 +1,7 @@
 #include "Quicksilver.hpp"
 #include "glm/gtx/compatibility.hpp"
-#include "../sdk/Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/uFilter.hpp"
 #include "Console.hpp"
 
 bool Quicksilver::mod_enabled_nero = false;
