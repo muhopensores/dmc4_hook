@@ -1470,7 +1470,7 @@ public:
 }; //Size: 0x005C
 static_assert(sizeof(MtHeapAllocator) == 0x005C);
 #else
-#include "sdk/MtAllocator.hpp"
+//#include "sdk/MtAllocator.hpp"
 #endif
 
 #if 0 // NOTE(): unused?
