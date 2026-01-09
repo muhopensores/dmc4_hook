@@ -2,6 +2,7 @@
 #include <Config.hpp>
 #include "sdk/Devil4.hpp"
 #include "sdk/aGame.hpp"
+#include "sdk/sArea.hpp"
 
 // texture
 #include "utility/Dx9Utils.hpp"

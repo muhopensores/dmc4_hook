@@ -5,6 +5,8 @@
 #include "sdk/uActor.hpp"
 #include "sdk/uPlayer.hpp"
 
+class sArea;
+
 namespace devil4_sdk {
 	void u_em003_shl_new();
 	sArea* get_sArea();

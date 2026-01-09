@@ -672,7 +672,7 @@ public:
 }; // Size: 0x383C
 static_assert(sizeof(sArea) == 0x383C);
 #else
-#include "sdk/sArea.hpp"
+//#include "sdk/sArea.hpp"
 #endif
 
 #if 0 // NOTE(): taken care below

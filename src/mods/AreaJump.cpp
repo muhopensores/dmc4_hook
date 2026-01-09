@@ -5,6 +5,7 @@
 #include <Config.hpp>
 #include "sdk/Devil4.hpp"
 #include "sdk/aGame.hpp"
+#include "sdk/sArea.hpp"
 #include "Console.hpp"
 
 static int savedBPFloor = 0;
