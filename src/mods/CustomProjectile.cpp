@@ -1,5 +1,6 @@
 #include "CustomProjectile.hpp"
-#include "../sdk/Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/MtDTI.hpp"
 #include <cmath>
 
 // I want to static everything here but can't test this without files and don't wanna break shit ~Siy

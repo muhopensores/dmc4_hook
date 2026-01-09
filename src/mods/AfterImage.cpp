@@ -1,6 +1,7 @@
 #include "AfterImage.hpp"
-#include "../sdk/Devil4.hpp"
-#include "../sdk/uActor.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/uActor.hpp"
+#include "sdk/MtDTI.hpp"
 
 std::unique_ptr<AfterImgCtlVtable> CtlVtable;
 std::unique_ptr<AfterImgShlVtable> ShlVtable;

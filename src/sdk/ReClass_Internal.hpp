@@ -742,9 +742,10 @@ public:
 }; //Size=0x0404
 static_assert(sizeof(unkClass2) == 0x404);
 #else
-#include "sdk/sWorkRate.hpp"
+//#include "sdk/sWorkRate.hpp"
 #endif
 
+#if 0
 class Inputs
 {
 public:
@@ -769,6 +770,7 @@ public:
 
 }; //Size=0x0034
 static_assert(sizeof(Inputs) == 0x34);
+#endif
 
 #if 0
 class MtObject;
@@ -793,7 +795,7 @@ public:
 	virtual void* new_instance() {return nullptr;};
 }; //Size: 0x0020
 #else
-#include "sdk/MtDTI.hpp"
+//#include "sdk/MtDTI.hpp"
 #endif
 
 #if 0

@@ -1,6 +1,7 @@
 #include "PlayerTracker.hpp"
 #include "WorkRate.hpp"
-#include "../sdk/Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/MtDTI.hpp"
 #include "Console.hpp"
 #include "imgui_internal.h"
 

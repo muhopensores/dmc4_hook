@@ -1,5 +1,6 @@
 #include "FastStart.hpp"
 #include "utility/MessageDisplay.hpp"
+#include "sdk/MtDTI.hpp"
 #include "Windows.h"
 
 static bool mod_enabled = false;
