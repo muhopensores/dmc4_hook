@@ -1,4 +1,5 @@
 #include "RoomRespawn.hpp"
+#include "sdk/cResource.hpp"
 
 static uintptr_t  jmp_return = NULL;
 static uintptr_t  script_bp_jmp_return = NULL;

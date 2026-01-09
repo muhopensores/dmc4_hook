@@ -810,7 +810,7 @@ public:
 }; //Size: 0x0004
 static_assert(sizeof(MtObject) == 0x04);
 #else
-#include "sdk/MtObject.hpp"
+//#include "sdk/MtObject.hpp"
 #endif
 
 #if 0
@@ -831,7 +831,7 @@ public:
 }; //Size: 0x0060
 static_assert(sizeof(cResource) == 0x60);
 #else
-#include "sdk/cResource.hpp"
+//#include "sdk/cResource.hpp"
 #endif
 
 #if 0
@@ -849,7 +849,7 @@ public:
 }; //Size: 0x0080
 static_assert(sizeof(rEffectList) == 0x0080);
 #else
-#include "sdk/rEffectList.hpp"
+//#include "sdk/rEffectList.hpp"
 #endif
 
 //class uActor {
