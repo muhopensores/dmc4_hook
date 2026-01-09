@@ -1583,7 +1583,7 @@ public:
 }; //Size: 0x001C
 static_assert(sizeof(MtCriticalSection) == 0x1C);
 #else
-#include "sdk/MtThread.hpp"
+//#include "sdk/MtThread.hpp"
 #endif
 
 #if 0
