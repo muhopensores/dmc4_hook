@@ -1533,7 +1533,7 @@ public:
 }; //Size: 0x0220
 static_assert(sizeof(sStylishCount) == 0x220);
 #else
-#include "sdk/sStylishCount.hpp"
+//#include "sdk/sStylishCount.hpp"
 #endif
 
 #if 0

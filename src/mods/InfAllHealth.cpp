@@ -1,6 +1,6 @@
 #include "InfAllHealth.hpp"
-#include "iostream"
-#include "../sdk/Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/sStylishCount.hpp"
 #include "glm/gtx/compatibility.hpp"
 #include "Console.hpp"
 #include "utility/MessageDisplay.hpp"

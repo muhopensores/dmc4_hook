@@ -6,6 +6,7 @@
 #include "sdk/sWorkRate.hpp"
 #include "sdk/sMediator.hpp"
 #include "sdk/MtAllocator.hpp"
+#include "sdk/sStylishCount.hpp"
 #include "Windows.h"
 
 static MtHeapAllocator** mt_heap_alloc_static_ptr = (MtHeapAllocator**)0x00E1434C;

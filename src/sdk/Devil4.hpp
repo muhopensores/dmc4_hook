@@ -9,6 +9,7 @@ class sArea;
 class sRender;
 class sMediator;
 class sWorkRate;
+class sStylishCount;
 
 namespace devil4_sdk {
 	void u_em003_shl_new();

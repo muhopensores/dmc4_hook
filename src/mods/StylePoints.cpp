@@ -4,6 +4,7 @@
 #include "sdk/aGame.hpp"
 #include "sdk/sArea.hpp"
 #include "sdk/sRender.hpp"
+#include "sdk/sStylishCount.hpp"
 
 // texture
 #include "utility/Dx9Utils.hpp"
