@@ -51,6 +51,7 @@ enum WeaponID {
     WP_EBONY_IVORY = 9,
 };
 
+#if 0 //NOTE(): moved to StringData.h
 static std::vector<std::pair<uint16_t, const char*>> buttonPairs = {
     {0x0000, __("None")},
     {0x0001, __("Select")},
@@ -70,6 +71,7 @@ static std::vector<std::pair<uint16_t, const char*>> buttonPairs = {
     {0x4000, __("A")},
     {0x8000, __("X")}
 };
+#endif
 
 enum ATTACK_DIRECTION_CMD {
     LOCKON_MELEE               = 0,
@@ -299,8 +301,9 @@ enum DANTE_ATCK_ID {
 	ATCK_ID_MAX = 0x6d,
 };
 
+#if 0 // NOTE(): moved to StringData.cpp
 static const char* dante_attack_names[109] = {
-    "",                                      // 0x00 /   0 
+    "",                                         // 0x00 /   0
     __("Rebellion Combo A1"),                   // 0x01 /   1  ATCK_ID_RV_COMBO0
     __("Rebellion Combo A2"),                   // 0x02 /   2  ATCK_ID_RV_COMBO1
     __("Rebellion Combo A3"),                   // 0x03 /   3  ATCK_ID_RV_COMBO2
@@ -585,6 +588,7 @@ static const char* dtNames[] = {
     "29 -",
     "30 -",
 };
+#endif
 
 //class cAreaJump; NOTE(): not referenced anywhere
 #if 0

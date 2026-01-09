@@ -1,5 +1,6 @@
 #include "MoveTable.hpp"
-#include "../sdk/Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/StringData.hpp"
 // mods that require this:
 #include "AerialStinger.hpp"
 #include "Payline.hpp"
@@ -425,8 +426,8 @@ void MoveTable::on_frame(fmilliseconds& dt) {
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[5] - ImGui::GetStyle().ItemInnerSpacing.x); 
                     int tempCommand = (int)TblEntry->command.atckCommand;
-                    utility::ImGooListboxTranslated localizedDirectionMappingNames(directionMappingNames, IM_ARRAYSIZE(directionMappingNames));
-                    if (ImGui::Combo("##+10", &tempCommand, localizedDirectionMappingNames.data_, IM_ARRAYSIZE(directionMappingNames))) {
+                    utility::ImGooListboxTranslated localizedDirectionMappingNames(directionMappingNames, directionMappingNamesArraySize());
+                    if (ImGui::Combo("##+10", &tempCommand, localizedDirectionMappingNames.data_, (directionMappingNamesArraySize()))) {
                         TblEntry->command.atckCommand = (uint8_t)tempCommand;
                     }
 
@@ -441,21 +442,21 @@ void MoveTable::on_frame(fmilliseconds& dt) {
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[9] - ImGui::GetStyle().ItemInnerSpacing.x);
                     int tempWeapon = TblEntry->atckConditionWp + 1;
-                    if (ImGui::Combo("##+14 Weapon Condition", &tempWeapon, weaponNames, IM_ARRAYSIZE(weaponNames))) {
+                    if (ImGui::Combo("##+14 Weapon Condition", &tempWeapon, weaponNames, (weaponNamesArraySize()))) {
                         TblEntry->atckConditionWp = tempWeapon - 1;
                     }
 
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[10] - ImGui::GetStyle().ItemInnerSpacing.x);
                     int tempStyle = TblEntry->atckConditionStyle + 1;
-                    if (ImGui::Combo("##+18 Style Condition", &tempStyle, styleNames, IM_ARRAYSIZE(styleNames))) {
+                    if (ImGui::Combo("##+18 Style Condition", &tempStyle, styleNames, (styleNamesArraySize()))) {
                         TblEntry->atckConditionStyle = tempStyle - 1;
                     }
 
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[11] - ImGui::GetStyle().ItemInnerSpacing.x); 
-                    ImGui::Combo("##+1C DT Condition", (int*)&TblEntry->ukn, dtNames, IM_ARRAYSIZE(dtNames));
+                    ImGui::Combo("##+1C DT Condition", (int*)&TblEntry->ukn, dtNames, (dtNamesArraySize()));
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[12] - ImGui::GetStyle().ItemInnerSpacing.x); 
-                    ImGui::Combo("##+20 Aerial Condition", (int*)&TblEntry->atckAs, aerialNames, IM_ARRAYSIZE(aerialNames));
+                    ImGui::Combo("##+20 Aerial Condition", (int*)&TblEntry->atckAs, aerialNames, (aerialNamesArraySize()));
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[13] - ImGui::GetStyle().ItemInnerSpacing.x); 
                     ImGui::InputScalar("##+24", ImGuiDataType_U32, &TblEntry->cancelId[0], 0, 0, "%08x");
@@ -493,8 +494,8 @@ void MoveTable::display_attack_entry(kAtckDefTbl* TblEntry) {
     ImGui::Indent(lineIndent);
     int tempCommand = (int)TblEntry->command.atckCommand;
     ImGui::SetNextItemWidth(sameLineItemWidth * 2);
-    utility::ImGooListboxTranslated localizedDirectionMappingNames(directionMappingNames, IM_ARRAYSIZE(directionMappingNames));
-    if (ImGui::Combo(_("+10 Cmd"), &tempCommand, localizedDirectionMappingNames.data_, IM_ARRAYSIZE(directionMappingNames))) {
+    utility::ImGooListboxTranslated localizedDirectionMappingNames(directionMappingNames, (int)(directionMappingNamesArraySize));
+    if (ImGui::Combo(_("+10 Cmd"), &tempCommand, localizedDirectionMappingNames.data_, (directionMappingNamesArraySize()))) {
         TblEntry->command.atckCommand = (uint8_t)tempCommand;
     }
     ImGui::InputScalar(_("+11 Cmd No"), ImGuiDataType_U8, &TblEntry->command.atckCommandNo, &step);
@@ -502,16 +503,16 @@ void MoveTable::display_attack_entry(kAtckDefTbl* TblEntry) {
     ImGui::InputScalar(_("+13 Cmd Ukn"), ImGuiDataType_U8, &TblEntry->command.ukn, &step);
     ImGui::Unindent(lineIndent);
     int tempWeapon = TblEntry->atckConditionWp + 1;
-    if (ImGui::Combo(_("+14 Weapon Condition"), &tempWeapon, weaponNames, IM_ARRAYSIZE(weaponNames))) {
+    if (ImGui::Combo(_("+14 Weapon Condition"), &tempWeapon, weaponNames, (weaponNamesArraySize()))) {
         TblEntry->atckConditionWp = tempWeapon - 1;
     }
     int tempStyle = TblEntry->atckConditionStyle + 1;
-    if (ImGui::Combo(_("+18 Style Condition"), &tempStyle, styleNames, IM_ARRAYSIZE(styleNames))) {
+    if (ImGui::Combo(_("+18 Style Condition"), &tempStyle, styleNames, (styleNamesArraySize()))) {
         TblEntry->atckConditionStyle = tempStyle - 1;
     }
     ImGui::SetNextItemWidth(sameLineItemWidth * 2);
-    ImGui::Combo(_("+1C DT Condition"), (int*)&TblEntry->ukn, dtNames, IM_ARRAYSIZE(dtNames));
-    ImGui::Combo(_("+20 Aerial Condition"), (int*)&TblEntry->atckAs, aerialNames, IM_ARRAYSIZE(aerialNames));
+    ImGui::Combo(_("+1C DT Condition"), (int*)&TblEntry->ukn, dtNames, (dtNamesArraySize()));
+    ImGui::Combo(_("+20 Aerial Condition"), (int*)&TblEntry->atckAs, aerialNames, (aerialNamesArraySize()));
     ImGui::InputScalar(_("+24 Cancel 0"), ImGuiDataType_U32, &TblEntry->cancelId[0], &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
     ImGui::InputScalar(_("+28 Cancel 1"), ImGuiDataType_U32, &TblEntry->cancelId[1], &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
     ImGui::InputScalar(_("+2C Cancel 2"), ImGuiDataType_U32, &TblEntry->cancelId[2], &step, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal);

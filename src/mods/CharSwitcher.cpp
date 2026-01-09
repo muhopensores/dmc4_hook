@@ -1,6 +1,7 @@
 #include "CharSwitcher.hpp"
 #include "Survival.hpp"
-#include "../sdk/Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/StringData.hpp"
 
 bool CharSwitcher::mod_enabled = false;
 bool CharSwitcher::inertia_enabled = true;

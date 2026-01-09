@@ -380,6 +380,8 @@ set(SDK_SRC
     sdk/uPlayerData.hpp
     sdk/uShadow.hpp
     sdk/uStageSet.hpp
+    sdk/StringData.hpp
+    sdk/StringData.cpp
 )
 
 set(IMGUI_SRC
