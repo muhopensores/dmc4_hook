@@ -73,6 +73,7 @@ static std::vector<std::pair<uint16_t, const char*>> buttonPairs = {
 };
 #endif
 
+#if 0 // NOTE(): moved to Enums_Internal.hpp
 enum ATTACK_DIRECTION_CMD {
     LOCKON_MELEE               = 0,
     LOCKON_GUN                 = 1,
@@ -144,6 +145,7 @@ enum class COLLISION_ACTOR_TYPE : uint32_t {
   STG = 0x5,
   MAX_COLLISION_ACTOR_TYPE = 0x6,
 };
+#endif
 
 #if 0 // NOTE(): moved to uEnemy.hpp
 enum ENEMY_ID : int {

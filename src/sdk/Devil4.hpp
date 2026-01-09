@@ -4,6 +4,7 @@
 #include "sdk/uEnemy.hpp"
 #include "sdk/uActor.hpp"
 #include "sdk/uPlayer.hpp"
+#include <utility>
 
 class sArea;
 class sRender;

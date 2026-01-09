@@ -2,7 +2,9 @@
 #include "sdk/Devil4.hpp"
 #include "imgui/imgui.h"
 #include "utility/Dx9Utils.hpp"
-#include "../sdk/World2Screen.hpp"
+#include "sdk/World2Screen.hpp"
+#include "sdk/MtMath.hpp"
+#include <vector>
 #include <ImGuizmo.h>
 
 namespace w2s {

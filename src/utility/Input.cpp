@@ -12,6 +12,10 @@
 #include "XInputHook.hpp"
 #include "XInput.h"
 #include "utility/Config.hpp"
+#include "utility/MoFile.hpp" // for text_lookup
+
+#define _(string) utility::text_lookup(string)
+#define __(str) str
 
 struct XinputTriggers {
     BYTE m_left;
