@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.20)
 
 project(dmc4_hook)
 
-#add_compile_options(/MT)
-
 include_directories(${CMAKE_SOURCE_DIR}/dependencies)
 include_directories(${CMAKE_SOURCE_DIR}/dependencies/imgui)
 include_directories(${CMAKE_SOURCE_DIR}/dependencies/minhook/include)
@@ -57,8 +55,11 @@ configure_file(Config.hpp.in ${CMAKE_SOURCE_DIR}/src/Config.hpp @ONLY)
 add_compile_options(/MP)
 
 # Statically compile runtime
-string(REGEX REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-string(REGEX REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELEASE   "${CMAKE_C_FLAGS_RELEASE}") # minhook
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+# doesn't work in new cmakes?
+#string(REGEX REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+#string(REGEX REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELEASE   "${CMAKE_C_FLAGS_RELEASE}") # minhook
+
 
 add_subdirectory(dependencies)
 add_subdirectory(src)
