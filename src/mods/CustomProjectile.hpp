@@ -1,8 +1,12 @@
 #pragma once
 
 #include "../mod.hpp"
-#include "../sdk/uActor.hpp"
-#include "../sdk/uCollisionMgr.hpp"
+
+#include "sdk/uActor.hpp"
+#include "sdk/uCollisionMgr.hpp"
+
+class MtDTI;
+
 #ifndef CUSTOMPROJECTILE_H
 #define CUSTOMPROJECTILE_H
 

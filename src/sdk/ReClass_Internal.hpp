@@ -1675,5 +1675,5 @@ public:
 };
 static_assert(sizeof(sUnit) == 0x320);
 #else
-#include "sdk/sUnit.hpp"
+//#include "sdk/sUnit.hpp"
 #endif

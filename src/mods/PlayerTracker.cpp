@@ -5,6 +5,7 @@
 #include "sdk/MtDTI.hpp"
 #include "sdk/uShadow.hpp"
 #include "sdk/uPlayer.hpp"
+#include "sdk/sUnit.hpp"
 #include "Console.hpp"
 #include "imgui_internal.h"
 

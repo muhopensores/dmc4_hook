@@ -1,6 +1,7 @@
 #include "GraphicsSettings.hpp"
 #include "sdk/Devil4.hpp"
 #include "sdk/uShadow.hpp"
+#include "sdk/sUnit.hpp"
 
 bool GraphicsSettings::disable_prop_fade_enabled = false;
 bool GraphicsSettings::disable_bullet_casing_fade_enabled = false;

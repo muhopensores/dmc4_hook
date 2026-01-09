@@ -4,6 +4,7 @@
 #include "sdk/cUnit.hpp"
 #include "sdk/uEnemy.hpp"
 #include "sdk/sMediator.hpp"
+#include "sdk/sUnit.hpp"
 #include "EnemySpawn.hpp"
 #include "AreaJump.hpp"
 #include "SpawnedEnemiesAttack.hpp"

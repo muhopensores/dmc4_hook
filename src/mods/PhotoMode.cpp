@@ -6,6 +6,7 @@
 #include "sdk/World2Screen.hpp"
 #include "sdk/uFilter.hpp"
 #include "sdk/sWorkRate.hpp"
+#include "sdk/sUnit.hpp"
 #include <Mods.hpp>
 #include "utility/Hash.hpp"
 

@@ -3,6 +3,8 @@
 #include "sdk/MtDTI.hpp"
 #include "sdk/cResource.hpp"
 #include "sdk/MtString.hpp"
+#include "sdk/MtThread.hpp"
+#include "sdk/cSystem.hpp"
 
 #include "Windows.h"
 
