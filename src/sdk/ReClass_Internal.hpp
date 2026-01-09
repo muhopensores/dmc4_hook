@@ -972,7 +972,7 @@ struct cUnit {
 };
 static_assert(sizeof(cUnit) == 0x18);
 #else
-#include "sdk/cUnit.hpp"
+//#include "sdk/cUnit.hpp"
 #endif
 
 #if 0
