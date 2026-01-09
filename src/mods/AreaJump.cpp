@@ -3,7 +3,8 @@
 #include <algorithm>
 #include "RoomRespawn.hpp"
 #include <Config.hpp>
-#include "../sdk/Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/aGame.hpp"
 #include "Console.hpp"
 
 static int savedBPFloor = 0;

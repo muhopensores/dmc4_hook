@@ -622,7 +622,7 @@ public:
 }; // Size: 0x1d2
 static_assert(sizeof(aGame) == 0x1d2);
 #else
-#include "sdk/aGame.hpp"
+//#include "sdk/aGame.hpp"
 #endif
 
 #if 0

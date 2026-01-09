@@ -1,6 +1,8 @@
 ﻿#include "StylePoints.hpp"
 #include <Config.hpp>
-#include "../sdk/Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/aGame.hpp"
+
 // texture
 #include "utility/Dx9Utils.hpp"
 #include "utility/Compressed.hpp"
