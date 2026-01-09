@@ -1650,7 +1650,7 @@ public:
 }; //Size: 0x0004
 static_assert(sizeof(sMousePtr) == 0x4);
 #else
-#include "sdk/sMouse.hpp"
+//#include "sdk/sMouse.hpp"
 #endif
 
 #if 0
