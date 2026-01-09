@@ -1,6 +1,8 @@
 #include "LoadOrder.hpp"
 #include "../misc/extension.cpp"
 #include "sdk/MtDTI.hpp"
+#include "sdk/cResource.hpp"
+
 #include "Windows.h"
 
 static uintptr_t  jmp_return = NULL;

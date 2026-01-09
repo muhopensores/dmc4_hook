@@ -37,3 +37,7 @@ struct cUnit { // NOLINT
 };
 static_assert(sizeof(cUnit) == 0x18);
 
+class uHasDelta : public cUnit {
+public:
+    char pad_18[4]; // 0x18
+}; // Size: 0x1c

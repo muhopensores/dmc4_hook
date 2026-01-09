@@ -1144,7 +1144,7 @@ public:
 }; //Size: 0x2668
 static_assert(sizeof(uEnemySomething) == 0x2668);
 #else
-#include "sdk/uEnemy.hpp"
+//#include "sdk/uEnemy.hpp"
 #endif
 
 #if 0
@@ -1195,10 +1195,12 @@ static_assert(sizeof(lockOnSphereData) == 0x30);
 #endif
 
 
+#if 0 // NOTE(): moved to cUnit
 class uHasDelta : public cUnit {
 public:
     char pad_18[4]; // 0x18
 }; // Size: 0x1c
+#endif
 
 #if 0
 class uShadow : public cUnit {
