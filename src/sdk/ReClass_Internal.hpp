@@ -1628,7 +1628,7 @@ public:
 }; //Size: 0x0040
 static_assert(sizeof(sDevil4MainPtr) == 0x40);
 #else
-#include "sdk/sDevil4Main.hpp"
+//#include "sdk/sDevil4Main.hpp"
 #endif
 
 #if 0
