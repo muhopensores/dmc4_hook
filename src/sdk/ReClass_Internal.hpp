@@ -1594,7 +1594,7 @@ public:
 }; //Size: 0x0020
 static_assert(sizeof(cSystem) == 0x0020);
 #else
-#include "sdk/cSystem.hpp"
+//#include "sdk/cSystem.hpp"
 #endif
 
 #if 0
