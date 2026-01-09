@@ -1,6 +1,7 @@
 #include "MoveTable.hpp"
 #include "sdk/Devil4.hpp"
 #include "sdk/StringData.hpp"
+#include "sdk/sRender.hpp"
 // mods that require this:
 #include "AerialStinger.hpp"
 #include "Payline.hpp"

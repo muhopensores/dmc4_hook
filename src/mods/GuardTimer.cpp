@@ -2,7 +2,8 @@
 #include "imgui/imgui.h"
 #include "imgui_internal.h"
 
-#include "../sdk/Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/sRender.hpp"
 
 #if 1
 bool      GuardTimer::mod_enabled   = false;

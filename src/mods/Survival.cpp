@@ -1,5 +1,6 @@
 ﻿#include "Survival.hpp"
-#include "../sdk/Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/sRender.hpp"
 #include "EnemySpawn.hpp"
 #include "AreaJump.hpp"
 #include "SpawnedEnemiesAttack.hpp"

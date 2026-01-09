@@ -4,6 +4,8 @@
 #include "debug-draw/debug_draw.hpp"
 #include <d3dx9math.h>
 
+#include "sdk/sRender.hpp"
+
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZW|D3DFVF_DIFFUSE)
 
 glm::mat4x4 g_vp{};

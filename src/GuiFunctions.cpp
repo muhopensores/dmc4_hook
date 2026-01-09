@@ -7,6 +7,7 @@
 #include "LicenseStrings.hpp"
 #include "mods/MessageDisplay.hpp"
 #include "sdk/Devil4.hpp"
+#include "sdk/sRender.hpp"
 
 #include "fw-imgui/imgui_impl_dx9.h"
 #include "fw-imgui/imgui_impl_win32.h"

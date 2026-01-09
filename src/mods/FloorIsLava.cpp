@@ -1,5 +1,6 @@
 #include "FloorIsLava.hpp"
-#include "..\sdk\Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/sRender.hpp"
 #include "EnemyTracker.hpp"
 #include "imgui_internal.h"
 

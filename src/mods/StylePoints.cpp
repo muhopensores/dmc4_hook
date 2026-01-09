@@ -3,6 +3,7 @@
 #include "sdk/Devil4.hpp"
 #include "sdk/aGame.hpp"
 #include "sdk/sArea.hpp"
+#include "sdk/sRender.hpp"
 
 // texture
 #include "utility/Dx9Utils.hpp"

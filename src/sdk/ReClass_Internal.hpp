@@ -1603,7 +1603,7 @@ public:
 }; //Size: 0x0060
 static_assert(sizeof(sRender) == 0x0060);
 #else
-#include "sdk/sRender.hpp"
+//#include "sdk/sRender.hpp"
 #endif
 
 #if 0
