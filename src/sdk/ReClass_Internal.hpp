@@ -1554,7 +1554,7 @@ public:
 }; //Size: 0x17F0
 static_assert(sizeof(uEm003Shl) == 0x17F0);
 #else
-#include "sdk/uEm003.hpp"
+//#include "sdk/uEm003.hpp"
 #endif
 
 #if 0
