@@ -1,6 +1,8 @@
 #pragma once
 #include "../mod.hpp"
 
+class uPlayer;
+
 class DarkSoulsStamina : public Mod {
 public:
     DarkSoulsStamina() = default;

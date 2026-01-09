@@ -1,6 +1,8 @@
 #pragma once
 #include "../mod.hpp"
 
+class uEnemy_Old;
+
 class Survival : public Mod {
 public:
     Survival() = default;

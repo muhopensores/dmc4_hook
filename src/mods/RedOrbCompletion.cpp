@@ -1,5 +1,6 @@
 #include "RedOrbCompletion.hpp"
-#include "../sdk/Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/sMediator.hpp"
 #include "Console.hpp"
 
 bool RedOrbCompletion::mod_enabled = false;

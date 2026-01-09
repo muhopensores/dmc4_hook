@@ -2,6 +2,8 @@
 
 #include "../mod.hpp"
 
+class sWorkRate;
+
 class WorkRate : public Mod {
 public:
     WorkRate() = default;

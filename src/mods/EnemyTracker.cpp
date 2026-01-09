@@ -1,6 +1,7 @@
 ﻿#include "EnemyTracker.hpp"
 #include "PlayerTracker.hpp"
 #include "sdk/World2Screen.hpp"
+#include "sdk/sMediator.hpp"
 
 #include "utility/Dx9Utils.hpp"
 #include "utility/Compressed.hpp"

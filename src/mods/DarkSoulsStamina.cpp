@@ -1,6 +1,7 @@
 ﻿#include "DarkSoulsStamina.hpp"
 #include "sdk/Devil4.hpp"
 #include "sdk/sRender.hpp"
+#include "sdk/uPlayer.hpp"
 uintptr_t DarkSoulsStamina::jmp_ret1 = NULL;
 static glm::ivec2 screen_res{0, 0};
 

@@ -1,6 +1,7 @@
 #include "RestoreMaxHp.hpp"
 #include "EnemyTracker.hpp"
-#include "../sdk/Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/sMediator.hpp"
 
 bool RestoreMaxHp::mod_enabled = false;
 

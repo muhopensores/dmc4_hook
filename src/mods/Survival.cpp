@@ -2,6 +2,8 @@
 #include "sdk/Devil4.hpp"
 #include "sdk/sRender.hpp"
 #include "sdk/cUnit.hpp"
+#include "sdk/uEnemy.hpp"
+#include "sdk/sMediator.hpp"
 #include "EnemySpawn.hpp"
 #include "AreaJump.hpp"
 #include "SpawnedEnemiesAttack.hpp"
@@ -10,7 +12,7 @@
 #include "Quicksilver.hpp"
 #include "MutatorHolyWater.hpp"
 #include "BigHeadMode.hpp"
-#include "HideHud.hpp"
+#include "HideHud.hpp" // NOTE(): emacs with clangd lsp says this header is unused, Siyan pls fix
 #include "imgui_internal.h"
 
 class WaveConfig {

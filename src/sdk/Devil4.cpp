@@ -3,6 +3,8 @@
 #include "sdk/aGame.hpp"
 #include "sdk/sArea.hpp"
 #include "sdk/sRender.hpp"
+#include "sdk/sWorkRate.hpp"
+#include "sdk/sMediator.hpp"
 #include "Windows.h"
 
 static MtHeapAllocator** mt_heap_alloc_static_ptr = (MtHeapAllocator**)0x00E1434C;

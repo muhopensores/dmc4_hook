@@ -2,6 +2,8 @@
 
 #include "../mod.hpp"
 
+class uPlayer;
+
 class PlayerTracker : public Mod {
 public:
     PlayerTracker() = default;

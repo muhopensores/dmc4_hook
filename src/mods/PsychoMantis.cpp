@@ -1,5 +1,6 @@
 #include "PsychoMantis.hpp"
-#include "../sdk/Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/sWorkRate.hpp"
 #include "Windows.h"
 
 // https://gist.github.com/stroum

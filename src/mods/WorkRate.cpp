@@ -1,6 +1,7 @@
 #include "WorkRate.hpp"
 #include "TrainerPause.hpp"
-#include "../sdk/Devil4.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/sWorkRate.hpp"
 #include "Console.hpp"
 
 bool WorkRate::force_custom_turbo = false;

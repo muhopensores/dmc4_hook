@@ -5,6 +5,7 @@
 #include <d3dx9math.h>
 
 #include "sdk/sRender.hpp"
+#include "sdk/sMediator.hpp"
 
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZW|D3DFVF_DIFFUSE)
 

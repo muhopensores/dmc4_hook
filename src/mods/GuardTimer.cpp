@@ -4,6 +4,8 @@
 
 #include "sdk/Devil4.hpp"
 #include "sdk/sRender.hpp"
+#include "sdk/sMediator.hpp"
+#include "sdk/sWorkRate.hpp"
 
 #if 1
 bool      GuardTimer::mod_enabled   = false;

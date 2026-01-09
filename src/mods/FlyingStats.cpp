@@ -2,6 +2,8 @@
 #include "EnemyTracker.hpp" // for enemy specific offsets
 #include "sdk/World2Screen.hpp"
 #include "sdk/StringData.hpp"
+#include "sdk/uPlayer.hpp"
+#include "sdk/sMediator.hpp"
 #include <corecrt_math_defines.h>
 #include "imgui_internal.h"
 

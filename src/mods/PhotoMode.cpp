@@ -5,6 +5,7 @@
 #include "sdk/Cam.hpp"
 #include "sdk/World2Screen.hpp"
 #include "sdk/uFilter.hpp"
+#include "sdk/sWorkRate.hpp"
 #include <Mods.hpp>
 #include "utility/Hash.hpp"
 

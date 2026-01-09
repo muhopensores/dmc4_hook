@@ -2,6 +2,9 @@
 
 #include "../mod.hpp"
 
+class sMediator;
+class uPlayer;
+
 class RestoreMaxHp : public Mod {
 public:
     RestoreMaxHp() = default;

@@ -1222,7 +1222,7 @@ public:
 }; // Size: 0x228
 static_assert(sizeof(uShadow) == 0x228);
 #else
-#include "sdk/uShadow.hpp"
+//#include "sdk/uShadow.hpp"
 #endif
 
 #if 0
@@ -1271,7 +1271,7 @@ public:
 }; // Size: 0x878
 static_assert(sizeof(sMediator) == 0x878);
 #else
-#include "sdk/sMediator.hpp"
+//#include "sdk/sMediator.hpp"
 #endif
 
 #if 0 // NOTE(): moved to Player.hpp

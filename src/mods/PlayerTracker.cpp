@@ -1,7 +1,10 @@
 #include "PlayerTracker.hpp"
 #include "WorkRate.hpp"
+#include "sdk/sMediator.hpp"
 #include "sdk/Devil4.hpp"
 #include "sdk/MtDTI.hpp"
+#include "sdk/uShadow.hpp"
+#include "sdk/uPlayer.hpp"
 #include "Console.hpp"
 #include "imgui_internal.h"
 
