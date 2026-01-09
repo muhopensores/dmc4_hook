@@ -3,6 +3,7 @@
 #include "sdk/Devil4.hpp"
 #include "sdk/uFilter.hpp"
 #include "sdk/sMediator.hpp"
+#include "sdk/uStageSet.hpp"
 #include "Console.hpp"
 
 bool Quicksilver::mod_enabled_nero = false;

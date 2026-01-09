@@ -1274,7 +1274,7 @@ static_assert(sizeof(sMediator) == 0x878);
 //#include "sdk/sMediator.hpp"
 #endif
 
-#if 0 // NOTE(): moved to Player.hpp
+#if 0 // NOTE(): moved to uPlayer.hpp
 class MotionData {
 public:
     char pad_0[0x4];
@@ -1338,7 +1338,7 @@ public:
 }; // Size: 0x13e9
 static_assert(sizeof(DevilArm) == 0x13e9);
 #else
-#include "sdk/uPlayerDante.hpp"
+//#include "sdk/uPlayerDante.hpp"
 #endif
 
 #if 0 // NOTE(): moved to uPlayerData.hpp
@@ -1393,7 +1393,7 @@ public:
 }; // Size: 0x3e8
 static_assert(sizeof(CharacterSettingsThree) == 0x3e8);
 #else
-#include "sdk/uPlayerData.hpp"
+//#include "sdk/uPlayerData.hpp"
 #endif
 
 #if 0 // NOTE(): moved to Player.hpp
@@ -1433,7 +1433,7 @@ public:
 }; //Size: 0x2068
 static_assert(sizeof(uStageSetTimeSlow) == 0x2068);
 #else
-#include "sdk/uStageSet.hpp"
+//#include "sdk/uStageSet.hpp"
 #endif
 
 #if 0 // NOTE(): unused
