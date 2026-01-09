@@ -1572,7 +1572,7 @@ struct MtString
     MtStringSTRING *value;
 };
 #else
-#include "MtString.hpp"
+//#include "MtString.hpp"
 #endif
 
 #if 0

@@ -2,6 +2,7 @@
 #include "../misc/extension.cpp"
 #include "sdk/MtDTI.hpp"
 #include "sdk/cResource.hpp"
+#include "sdk/MtString.hpp"
 
 #include "Windows.h"
 
