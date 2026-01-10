@@ -10,5 +10,6 @@ public:
     char              pad_0020[20]; // 0x0020
     IDirect3DDevice9* mp_device; // 0x0034
     char              pad_0038[12]; // 0x0038
-    Vector2           screenRes; // 0x0044
+    Vector2i          screenRes; // 0x0044
 }; // Size: 0x004C
+static_assert(sizeof(sRender) == 0x004C);

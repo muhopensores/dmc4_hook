@@ -4,6 +4,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/vector_int2.hpp>
 #include <glm/gtx/matrix_interpolation.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -12,6 +13,7 @@
 #include <glm/gtx/compatibility.hpp>
 
 using Vector2   = glm::vec2;
+using Vector2i  = glm::ivec2;
 using Vector3   = glm::vec3;
 using Vector4   = glm::vec4;
 using Matrix3x3 = glm::mat3x3;
