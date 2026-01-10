@@ -2,6 +2,13 @@
 
 #include "ModFramework.hpp"
 
+#ifndef NDEBUG
+#include "mods/MultipleGameInstances.hpp"
+
+static MultipleGameInstances* multiple_instances_mod = nullptr;
+#endif // !NDEBUG
+
+
 static HMODULE g_dinput;
 
 extern "C" {
@@ -93,9 +100,17 @@ BOOL APIENTRY DllMain(HMODULE handle, DWORD reason, LPVOID reserved) { //NOLINT
         VirtualProtect(resMem, 1, oldProtect, &oldProtect);*/
 
         CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)startup_thread, nullptr, 0, nullptr);
+#ifndef NDEBUG
+        multiple_instances_mod = new MultipleGameInstances();
+        auto err = multiple_instances_mod->on_initialize();
+#endif // !NDEBUG
     }
     if (reason == DLL_PROCESS_DETACH) {
         FreeLibrary(g_dinput);
+#ifndef NDEBUG
+        delete multiple_instances_mod;
+#endif // !NDEBUG
+
     }
     return TRUE;
 }
