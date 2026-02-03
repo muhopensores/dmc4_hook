@@ -23,5 +23,13 @@ static_assert(sizeof(MoveLine) == 0x18);
 class sUnit : public cSystem {
 public:
     MoveLine mMoveLine[32];
+    virtual void reset_();
+    virtual void moveExForAll();
+    virtual void nullsub_();
+    virtual void moveEx(int move_line);
+    virtual void moveAfter(int move_line);
+    virtual void moveAfter();
+    virtual const char* getLineName(int move_line);
+    virtual void sync(int move_line);
 };
 static_assert(sizeof(sUnit) == 0x320);
