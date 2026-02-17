@@ -120,8 +120,7 @@ naked void agnus_naked(void) {
 naked void sanctus_naked(void) {
     _asm { jmp dword ptr [sanctus_address] }
 }
-naked void sanctus_dia_naked(void)
-{
+naked void sanctus_dia_naked(void) {
     _asm { jmp dword ptr [sanctus_dia_address] }
 }
 naked void kyrie_naked(void) {

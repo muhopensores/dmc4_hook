@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <cstdint>
 #include "MtMath.hpp"
@@ -15,7 +15,9 @@ public:
     char pad_3C[4];         // 0x3C
     Vector4 rotation;       // 0x40
     Vector3f scale;         // 0x50
-    char pad_5c[0x1734];    // 0x5C
+    char pad_5C[0xC4];      // 0x5C
+    Vector3f penetratedPos; // 0x120
+    char pad_12C[0x1664];   // 0x12C
     float timer;            // 0x1790
     float timerMax;         // 0x1794
     char pad_1798[0x1c];

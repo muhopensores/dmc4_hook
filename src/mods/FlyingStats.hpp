@@ -22,6 +22,7 @@ public:
     static bool showFlyingCollisionData;
     static int collisionPage;
     static bool showFlyingCancelBools;
+    static bool showFlyingLuciferPinTimers;
 
     std::string get_mod_name() override { return "FlyingStats"; };
 

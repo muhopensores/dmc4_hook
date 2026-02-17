@@ -23,6 +23,7 @@ bool FlyingStats::showFlyingDebug = false;
 bool FlyingStats::showFlyingCollisionData = false;
 int FlyingStats::collisionPage = 0;
 bool FlyingStats::showFlyingCancelBools = false;
+bool FlyingStats::showFlyingLuciferPinTimers = false;
 
 static void ImGuizmoManipulators(uEnemy_Old* enemy, int& enemyIndex) {
     static int selectedEnemyIndex = -1;
@@ -498,6 +499,36 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                 ImGui::PopItemWidth();
                 ImGui::PopID();
                 ImGui::End();
+
+                if (showFlyingLuciferPinTimers) {
+                    for (int i = 0; i < 15; i++) {
+                        if (!player->luciferPins[i]) { continue; }
+                        glm::vec3 objectPosition{0.0f, 0.0f, 0.0f};
+                        objectPosition = player->luciferPins[i]->penetratedPos;
+                        glm::vec2 screenPos       = w2s::WorldToScreen(objectPosition);
+                        std::string windowName    = "PlayerStats##" + std::to_string((uintptr_t)player->luciferPins[i]);
+                        float currentFontScale    = 1.0f;
+                        float currentItemWidth    = (sameLineItemWidth);
+                        if (w2s::IsVisibleOnScreen(objectPosition)) {
+                            ImGui::Begin(windowName.c_str(), NULL,
+                                ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+                            ImGui::PushID((uintptr_t)player->luciferPins[i]);
+                            ImGui::SetWindowPos(screenPos);
+                            ImGui::UpdateCurrentFontSize(currentFontScale * ImGui::GetStyle().FontSizeBase);
+                            ImGui::PushItemWidth(currentItemWidth);
+                            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.0, 1.0f));
+                            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1.0f, 1.0f));
+                            ImGui::PushItemWidth(currentItemWidth / 3.0f);
+                            float countDownTimer = player->luciferPins[i]->timerMax - player->luciferPins[i]->timer;
+                            ImGui::SliderFloat("##PinTimer", &countDownTimer, (float)0, player->luciferPins[i]->timerMax, "%.0f");
+                            ImGui::PopItemWidth();
+                            ImGui::PopStyleVar(2);
+                            ImGui::PopItemWidth();
+                            ImGui::PopID();
+                            ImGui::End();
+                        }
+                    }
+                }
             }
         }
     }
@@ -529,6 +560,7 @@ void FlyingStats::on_gui_frame(int display) {
         ImGui::Checkbox(_("Display Debug Info"), &showFlyingDebug);
         ImGui::Checkbox(_("Display Collision Info"), &showFlyingCollisionData);
         ImGui::Checkbox(_("Display Cancels"), &showFlyingCancelBools);
+        ImGui::Checkbox(_("Display Lucifer Pin Timers"), &showFlyingLuciferPinTimers);
         ImGui::Unindent(lineIndent);
         ImGui::Unindent(lineIndent);
     }
@@ -550,6 +582,7 @@ void FlyingStats::on_config_load(const utility::Config& cfg) {
     showFlyingDebug = cfg.get<bool>("showFlyingDebug").value_or(false);
     showFlyingCollisionData = cfg.get<bool>("showFlyingCollisionData").value_or(false);
     showFlyingCancelBools = cfg.get<bool>("showFlyingCancelBools").value_or(false);
+    showFlyingLuciferPinTimers = cfg.get<bool>("showFlyingLuciferPinTimers").value_or(false);
 }
 
 void FlyingStats::on_config_save(utility::Config& cfg) {
@@ -567,4 +600,5 @@ void FlyingStats::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("showFlyingDebug", showFlyingDebug);
     cfg.set<bool>("showFlyingCollisionData", showFlyingCollisionData);
     cfg.set<bool>("showFlyingCancelBools", showFlyingCancelBools);
+    cfg.set<bool>("showFlyingLuciferPinTimers", showFlyingLuciferPinTimers);
 }
