@@ -500,7 +500,7 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                 ImGui::PopID();
                 ImGui::End();
 
-                if (showFlyingLuciferPinTimers) {
+                if (showFlyingLuciferPinTimers && player->controllerID == 0) {
                     for (int i = 0; i < 15; i++) {
                         if (!player->luciferPins[i]) { continue; }
                         glm::vec3 objectPosition{0.0f, 0.0f, 0.0f};
