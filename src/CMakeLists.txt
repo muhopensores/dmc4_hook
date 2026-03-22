@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/TestMod.hpp
+  mods/TestMod.cpp
   mods/MultipleGameInstances.hpp
   mods/MultipleGameInstances.cpp
   mods/DarkSoulsStamina.hpp

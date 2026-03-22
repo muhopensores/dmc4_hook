@@ -300,6 +300,8 @@ namespace gui {
                 pmods->on_draw_ui("FloorIsLava"_hash, 2);
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("DarkSoulsStamina"_hash, 2);
+
+                pmods->on_draw_ui("TestMod"_hash, 2);
                 
                 tabHeight += ImGui::GetCursorPosY();
                 ImGui::EndChild();
