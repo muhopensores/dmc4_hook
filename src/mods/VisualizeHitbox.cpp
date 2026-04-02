@@ -12,9 +12,13 @@ bool VisualizeHitbox::mod_enabled = false; // Visualize Hitboxes
 constexpr uintptr_t sMainAddr = 0x00E5574C;
 static bool enemyStepSphereDebug;
 
-bool VisualizeHitbox::mod_enabled2 = false; // Visualize Pushboxes
-// uintptr_t VisualizeHitbox::jmp_ret_pushboxes = NULL;
-// static uintptr_t pushboxAddr = NULL;
+bool VisualizeHitbox::mod_enabled2 = false; // Visualize Hurtboxes
+uintptr_t VisualizeHitbox::jmp_ret_hurtboxes = NULL;
+static std::vector<HurtboxSnapshot> hurtDataList;
+static void AddHurtDataPtr(void* ptr) {
+    auto* hitData = (hurtbox*)(ptr);
+    hurtDataList.push_back({hitData->offset, hitData->scale});
+}
 
 bool VisualizeHitbox::mod_enabled3 = false; // Visualize JC Spheres
 
@@ -267,8 +271,12 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
         }
     }
 
-    if (mod_enabled2) { // pushpills
-        if (uPlayer* player = devil4_sdk::get_local_player()) {
+    if (mod_enabled2) { // hurtboxes
+        for (const HurtboxSnapshot& snapshot : hurtDataList) {
+            w2s::DrawWireframeSphere(snapshot.pos, snapshot.radius, IM_COL32(0, 0, 255, 255), 32, 1.0f);
+        }
+        hurtDataList.clear();
+        /* if (uPlayer* player = devil4_sdk::get_local_player()) {
             uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
             int enemyCount = 0;
             while (enemy) {
@@ -335,7 +343,7 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
                 float rotationX = atan2(sqrt(direction.z * direction.z + direction.x * direction.x), direction.y);
                 w2s::DrawWireframeCapsule(pos1, 10.0f, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
             }
-        }
+        }*/
     }
 
     if (mod_enabled3) { // enemy step
@@ -366,26 +374,30 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
     }
 }
 
-// they just stutter between different entities with this,
-// and while it does find enemies like berial, pills are still not displayed
-/*naked void detour_pushboxes() {
+naked void detour_hurtboxes(void) {
     _asm {
             cmp byte ptr [VisualizeHitbox::mod_enabled2], 1
             jne originalcode
 
-            mov dword ptr [pushboxAddr], edi
+            // mov dword ptr [hurtboxAddr], edi
+
+            // pushad // 0x20
+			// push ebx
+			// call AddHurtDataPtr
+			// add esp,4
+			// popad
 
         originalcode:
-            lea ebx,[edi+0x00000358]
-            jmp dword ptr [VisualizeHitbox::jmp_ret_pushboxes]
+            movss xmm0, [ebx+0x0C]
+            jmp dword ptr [VisualizeHitbox::jmp_ret_hurtboxes]
     }
-}*/
+}
 
 std::optional<std::string> VisualizeHitbox::on_initialize() {
-    /*if (!install_hook_offset(0x10CE33, hook1, &detour_pushboxes, &jmp_ret_pushboxes, 6)) {
-        spdlog::error("Failed to init detour_pushboxes\n");
-        return "Failed to init detour_pushboxes";
-	}*/
+    if (!install_hook_offset(0x10AF17, hurtboxHook, &detour_hurtboxes, &jmp_ret_hurtboxes, 5)) {
+        spdlog::error("Failed to init detour_hurtboxes\n");
+        return "Failed to init detour_hurtboxes";
+    }
 
     return Mod::on_initialize();
 }
@@ -395,9 +407,9 @@ void VisualizeHitbox::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("Draw hitbox outlines in red"));
 
-    ImGui::Checkbox(_("Visualize Pushboxes"), &mod_enabled2);
+    ImGui::Checkbox(_("Visualize Hurtboxes"), &mod_enabled2);
     ImGui::SameLine();
-    help_marker(_("Draw pushbox outlines in blue"));
+    help_marker(_("Draw hurtbox outlines in blue"));
 
     ImGui::Checkbox(_("Visualize Enemy Step Spheres"), &mod_enabled3);
     ImGui::SameLine();
@@ -414,14 +426,14 @@ void VisualizeHitbox::on_gui_frame(int display) {
 
 void VisualizeHitbox::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("visualize_hitbox").value_or(false);
-    mod_enabled2 = cfg.get<bool>("visualize_pushbox").value_or(false);
+    mod_enabled2 = cfg.get<bool>("visualize_hurtbox").value_or(false);
     mod_enabled3 = cfg.get<bool>("visualize_enemystep").value_or(false);
     mod_enabled4 = cfg.get<bool>("visualize_enemy_collision").value_or(false);
 };
 
 void VisualizeHitbox::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("visualize_hitbox", mod_enabled);
-    cfg.set<bool>("visualize_pushbox", mod_enabled2);
+    cfg.set<bool>("visualize_hurtbox", mod_enabled2);
     cfg.set<bool>("visualize_enemystep", mod_enabled3);
     cfg.set<bool>("visualize_enemy_collision", mod_enabled4);
 };

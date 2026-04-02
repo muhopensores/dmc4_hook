@@ -8,10 +8,9 @@ public:
 
     static bool mod_enabled;
     static bool mod_enabled2;
+    static uintptr_t jmp_ret_hurtboxes;
     static bool mod_enabled3;
     static bool mod_enabled4;
-    // static uintptr_t jmp_ret_pushboxes;
-    // static uintptr_t jmp_ret2;
 
     std::string get_mod_name() override { return "VisualizeHitbox"; };
     std::optional<std::string> on_initialize() override;
@@ -22,5 +21,18 @@ public:
     void on_frame(fmilliseconds& dt) override;
 
 private:
-    // std::unique_ptr<FunctionHook> hook1;
+    std::unique_ptr<FunctionHook> hurtboxHook;
+};
+
+#pragma pack(push, 1)
+struct hurtbox {
+    char pad_0x0[0xC];
+    float scale; // 0xC
+    glm::vec3 offset; // 0x58
+}; // Size: 0x5C
+#pragma pack(pop)
+
+struct HurtboxSnapshot {
+    glm::vec3 pos;
+    float radius;
 };

@@ -30,6 +30,34 @@ void TestMod::on_frame(fmilliseconds& dt) {
     }*/
 }
 
+struct AnimationInfo {
+    int moveID;               // 4 bytes
+    float animFrame;          // another 4 bytes, so now the size of AnimationInfo is 8 bytes
+    float animFrameMax;       // another 4 bytes, so now the size of AnimationInfo is 12 bytes
+};
+
+// size: 12 bytes
+
+struct Player {
+    int playerID;             // 4 bytes
+    int HP;                   // 4 bytes (= 8 bytes so far)
+    int HPMax;                // 4 bytes (= 12 bytes so far)
+    int moveID;               // 4 bytes (= 16 bytes so far)
+    AnimationInfo* animInfo1; // 4 bytes because its a * (pointer) (= 20 bytes so far)
+};
+
+// size: 20 bytes
+
+   //AnimationInfo animInfo2;  // 12 bytes becaus its not a pointer (= 32 bytes so far)
+   // size: 32 bytes
+
+void example() {
+    Player* dante = (Player*)0xB00B135;
+    dante->HP = 100; // set dante's HP to 100
+    dante->animInfo1->animFrame = 5.0f;
+}
+    // dante->animInfo2.animFrame   = 5.0f;
+
 // make something show on the gui
 void TestMod::on_gui_frame(int display) {
     ImGui::Checkbox("Test Mod", &mod_enabled); // most imgui entries need a label and a pointer to the variable they change
@@ -43,6 +71,12 @@ void TestMod::on_gui_frame(int display) {
                             // from the function here, but this way is cleaner and allows us to reuse the code if we want to make
                             // another button that does the same thing
         }
+        uPlayer* player = devil4_sdk::get_local_player(); // get the player
+        if (!player) { return; } // if the player does not exist, don't run the rest of this code
+        ImGui::InputInt("test", &(int&)player->moveIDBest);
+        player->damageStruct.HP;
+        player->damageStruct.HPMax;
+        ImGui::SliderFloat("HP", &player->damageStruct.HP, 0.0f, player->damageStruct.HPMax);
     }
 }
 
