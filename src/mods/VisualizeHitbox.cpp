@@ -8,6 +8,9 @@
 #include <math.h>
 #include "EnemyTracker.hpp"
 
+static std::unique_ptr<FunctionHook> hurtboxHook;
+static std::unique_ptr<FunctionHook> hitbox2hook;
+
 bool VisualizeHitbox::mod_enabled = false; // Visualize Hitboxes
 constexpr uintptr_t sMainAddr = 0x00E5574C;
 static bool enemyStepSphereDebug;
@@ -15,14 +18,39 @@ static bool enemyStepSphereDebug;
 bool VisualizeHitbox::mod_enabled2 = false; // Visualize Hurtboxes
 uintptr_t VisualizeHitbox::jmp_ret_hurtboxes = NULL;
 static std::vector<HurtboxSnapshot> hurtDataList;
-static void AddHurtDataPtr(void* ptr) {
-    auto* hitData = (hurtbox*)(ptr);
-    hurtDataList.push_back({hitData->offset, hitData->scale});
+static void AddHurtDataPtr(void* worldData, void* data) { 
+    auto* wd = (hurtboxPos*)(worldData); // esi cCollision
+    auto* d  = (hurtboxData*)(data); // ebx kCollPrim
+    hurtDataList.push_back({wd->pos + d->offset, d->radius});
 }
 
 bool VisualizeHitbox::mod_enabled3 = false; // Visualize JC Spheres
 
-bool VisualizeHitbox::mod_enabled4 = false; // Visualize enemy collision
+bool VisualizeHitbox::mod_enabled4 = false; // Visualize Hitboxes 2
+
+uintptr_t VisualizeHitbox::jmp_ret_hitboxes2 = NULL;
+static std::vector<HitboxSnapshot> hitDataList;
+
+static void AddHitDataPtr(cCollision* collision /*, kCollPrim* prim*/) {
+    if (!collision) return;
+    kCollPrim* prim = collision->mpCollPrim;
+    if (!prim) return;
+    glm::mat4 worldMatrix = glm::make_mat4((float*)&collision->mMat0);
+    glm::vec3 pos0 = glm::make_vec3((float*)&prim->mPos0);
+    glm::vec3 pos1 = glm::make_vec3((float*)&prim->mPos1);
+    glm::mat4 worldPos0 = glm::translate(worldMatrix, pos0);
+    glm::mat4 worldPos1 = glm::translate(worldMatrix, pos1);
+    glm::vec3 direction = glm::vec3(worldPos1[3]) - glm::vec3(worldPos0[3]);
+    float length = glm::length(direction);
+
+    if (length > 0.001f) { // Capsule
+        float rotationY = atan2(direction.x, direction.z);
+        float rotationX = atan2(sqrt(direction.x*direction.x + direction.z*direction.z), direction.y);
+        hitDataList.push_back(HitboxSnapshot(glm::vec3(worldPos0[3]), prim->mRadius, length, rotationX, rotationY));
+    } else { // Sphere
+        hitDataList.push_back(HitboxSnapshot(glm::vec3(worldPos0[3]), prim->mRadius));
+    }
+}
 
 struct CollisionGroup {
     char pad_0[0x94];
@@ -273,77 +301,9 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
 
     if (mod_enabled2) { // hurtboxes
         for (const HurtboxSnapshot& snapshot : hurtDataList) {
-            w2s::DrawWireframeSphere(snapshot.pos, snapshot.radius, IM_COL32(0, 0, 255, 255), 32, 1.0f);
+                w2s::DrawWireframeSphere(snapshot.pos , snapshot.radius, 0.0f, IM_COL32(0, 0, 255, 255), 32, 1.0f);
         }
         hurtDataList.clear();
-        /* if (uPlayer* player = devil4_sdk::get_local_player()) {
-            uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
-            int enemyCount = 0;
-            while (enemy) {
-                uCollisionMgr currentEnemyCollision = *(uCollisionMgr*)((char*)enemy + EnemyTracker::get_enemy_specific_uCollision_offset(enemy->ID));
-                {
-                    // mPushCap
-                    Matrix4x4 worldMatrix = glm::make_mat4((float*)&currentEnemyCollision.mPushNewMat);
-                    Vector3f pos1 = glm::make_vec3((float*)&currentEnemyCollision.mPushCap.p0);
-                    Vector3f pos2 = glm::make_vec3((float*)&currentEnemyCollision.mPushCap.p1);
-                    float length = glm::length(pos2 - pos1);
-                    length = (length > 0.00001f) ? length : 0.01f;
-                    Matrix4x4 worldPos1 = glm::translate(worldMatrix, pos1);
-                    Matrix4x4 worldPos2 = glm::translate(worldMatrix, pos2);
-                    Vector3f direction = glm::vec3(worldPos2[3]) - glm::vec3(worldPos1[3]);
-                    float rotationY = atan2(direction.x, direction.z);
-                    float rotationX = atan2(sqrt(direction.z * direction.z + direction.x * direction.x), direction.y);
-                    w2s::DrawWireframeCapsule(glm::vec3(worldPos1[3]), currentEnemyCollision.mPushCap.r, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
-                }
-                {
-                    // LineSegmentXZ
-                    Matrix4x4 worldMatrix = glm::make_mat4((float*)&currentEnemyCollision.mPushNewMat);
-                    Vector3f pos1         = glm::make_vec3((float*)&currentEnemyCollision.mPushLineSgY.p0);
-                    Vector3f pos2         = glm::make_vec3((float*)&currentEnemyCollision.mPushLineSgY.p1);
-                    float length = glm::length(pos2 - pos1);
-                    length = (length > 0.00001f) ? length : 0.01f;
-                    //Matrix4x4 worldPos1 = glm::translate(worldMatrix, pos1);
-                    //Matrix4x4 worldPos2 = glm::translate(worldMatrix, pos2);
-                    //Vector3f direction = glm::vec3(pos2[3]) - glm::vec3(pos1[3]);
-                    Vector3f direction = pos2 - pos1;
-                    float rotationY = atan2(direction.x, direction.z);
-                    float rotationX = atan2(sqrt(direction.z * direction.z + direction.x * direction.x), direction.y);
-                    w2s::DrawWireframeCapsule(pos1, 10.0f, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
-                }
-                enemyCount++;
-                enemy = enemy->nextEnemy;
-            }
-            // player
-            {
-                // mPushCap
-                Matrix4x4 worldMatrix = glm::make_mat4((float*)&player->collisionSettings->mPushNewMat);
-                Vector3f pos1 = glm::make_vec3((float*)&player->collisionSettings->mPushCap.p0);
-                Vector3f pos2 = glm::make_vec3((float*)&player->collisionSettings->mPushCap.p1);
-                float length = glm::length(pos2 - pos1);
-                length = (length > 0.00001f) ? length : 0.01f;
-                Matrix4x4 worldPos1 = glm::translate(worldMatrix, pos1);
-                Matrix4x4 worldPos2 = glm::translate(worldMatrix, pos2);
-                Vector3f direction = glm::vec3(worldPos2[3]) - glm::vec3(worldPos1[3]);
-                float rotationY = atan2(direction.x, direction.z);
-                float rotationX = atan2(sqrt(direction.z * direction.z + direction.x * direction.x), direction.y);
-                w2s::DrawWireframeCapsule(glm::vec3(worldPos1[3]), player->collisionSettings->mPushCap.r, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
-            }
-            {
-                // LineSegmentXZ
-                Matrix4x4 worldMatrix = glm::make_mat4((float*)&player->collisionSettings->mPushNewMat);
-                Vector3f pos1 = glm::make_vec3((float*)&player->collisionSettings->mPushLineSgY.p0);
-                Vector3f pos2 = glm::make_vec3((float*)&player->collisionSettings->mPushLineSgY.p1);
-                float length = glm::length(pos2 - pos1);
-                length = (length > 0.00001f) ? length : 0.01f;
-                //Matrix4x4 worldPos1 = glm::translate(worldMatrix, pos1);
-                //Matrix4x4 worldPos2 = glm::translate(worldMatrix, pos2);
-                //Vector3f direction = glm::vec3(worldPos2[3]) - glm::vec3(worldPos1[3]);
-                Vector3f direction = pos2 - pos1;
-                float rotationY = atan2(direction.x, direction.z);
-                float rotationX = atan2(sqrt(direction.z * direction.z + direction.x * direction.x), direction.y);
-                w2s::DrawWireframeCapsule(pos1, 10.0f, length, rotationX, rotationY, 0.0f, IM_COL32(0, 0, 255, 255), 16, 1.0f);
-            }
-        }*/
     }
 
     if (mod_enabled3) { // enemy step
@@ -359,18 +319,11 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
             w2s::DrawWireframeCapsule(finalPos, 1.0f, 0.0f, 0.0f, player->rotation2, 0.0f, IM_COL32(0, 255, 0, 255), 16, 1.0f);
         }
     }
-    if (mod_enabled4) { // enemy collision
-        if (uPlayer* player = devil4_sdk::get_local_player()) {
-            uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
-            int enemyCount = 0;
-            while (enemy) {
-                Vector3f finalPos = glm::make_vec3((float*)&enemy->position) + Vector3f(0.0f, 85.0f, 0.0f);
-                float normalizedScale = ((enemy->scale.x + enemy->scale.y + enemy->scale.z) / 3.0f) * 50.0f;
-                w2s::DrawWireframeCapsule(finalPos, normalizedScale, 0.0f, 0.0f, (enemy->rotation[1] * (float)M_PI), 0.0f, IM_COL32(0, 0, 0, 255), 16, 1.0f);
-                enemyCount++;
-                enemy = enemy->nextEnemy;
-            }
+    if (mod_enabled4) { // hitboxes2
+        for (const HitboxSnapshot& snapshot : hitDataList) {
+            w2s::DrawWireframeSphere(snapshot.pos, snapshot.radius, 0.0f, IM_COL32(255, 0, 0, 255), 32, 1.0f);
         }
+        hitDataList.clear();
     }
 }
 
@@ -379,24 +332,46 @@ naked void detour_hurtboxes(void) {
             cmp byte ptr [VisualizeHitbox::mod_enabled2], 1
             jne originalcode
 
-            // mov dword ptr [hurtboxAddr], edi
-
-            // pushad // 0x20
-			// push ebx
-			// call AddHurtDataPtr
-			// add esp,4
-			// popad
+            pushad // 0x20
+            push ebx // radius and offset
+            push esi // hitbox location
+			call AddHurtDataPtr
+			add esp,0x8
+			popad
 
         originalcode:
-            movss xmm0, [ebx+0x0C]
+            movss xmm0,[edi+0x78]
             jmp dword ptr [VisualizeHitbox::jmp_ret_hurtboxes]
     }
 }
 
+naked void detour_hitboxes2(void) {
+    _asm {
+            cmp byte ptr [VisualizeHitbox::mod_enabled4], 1
+            jne originalcode
+
+            pushad // 0x20
+            //push ebx // kCollPrim
+            push esi // cCollision
+			call AddHitDataPtr
+			add esp,0x4
+			popad
+
+        originalcode:
+            movss xmm0,[ebx+0x0C]
+            jmp dword ptr [VisualizeHitbox::jmp_ret_hitboxes2]
+    }
+}
+
 std::optional<std::string> VisualizeHitbox::on_initialize() {
-    if (!install_hook_offset(0x10AF17, hurtboxHook, &detour_hurtboxes, &jmp_ret_hurtboxes, 5)) {
+    if (!install_hook_offset(0x10AF83, hurtboxHook, &detour_hurtboxes, &jmp_ret_hurtboxes, 5)) {
         spdlog::error("Failed to init detour_hurtboxes\n");
         return "Failed to init detour_hurtboxes";
+    }
+
+    if (!install_hook_offset(0x10A98C, hitbox2hook, &detour_hitboxes2, &jmp_ret_hitboxes2, 5)) {
+        spdlog::error("Failed to init detour_hittboxes2\n");
+        return "Failed to init detour_hittboxes2";
     }
 
     return Mod::on_initialize();
@@ -407,7 +382,11 @@ void VisualizeHitbox::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("Draw hitbox outlines in red"));
 
-    ImGui::Checkbox(_("Visualize Hurtboxes"), &mod_enabled2);
+    ImGui::Checkbox(_("Visualize Hitboxes Attempt 2 CRASHES WOOOO"), &mod_enabled4);
+    ImGui::SameLine();
+    help_marker(_("Draw hitbox outlines in red"));
+    
+    ImGui::Checkbox(_("Visualize Hurtboxes CRASHES WOOOO"), &mod_enabled2);
     ImGui::SameLine();
     help_marker(_("Draw hurtbox outlines in blue"));
 
@@ -418,22 +397,18 @@ void VisualizeHitbox::on_gui_frame(int display) {
     ImGui::Indent(lineIndent);
     ImGui::Checkbox(_("Debug Stats##EnemyStepSpheres"), &enemyStepSphereDebug);
     ImGui::Unindent();
-
-    ImGui::Checkbox(_("Visualize Enemy Collision"), &mod_enabled4);
-    ImGui::SameLine();
-    help_marker(_("Draw enemy collision outlines in black\nCURRENTLY NOT DOING ANYTHING"));
 }
 
 void VisualizeHitbox::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("visualize_hitbox").value_or(false);
     mod_enabled2 = cfg.get<bool>("visualize_hurtbox").value_or(false);
     mod_enabled3 = cfg.get<bool>("visualize_enemystep").value_or(false);
-    mod_enabled4 = cfg.get<bool>("visualize_enemy_collision").value_or(false);
+    mod_enabled4  = cfg.get<bool>("visualize_hitbox2").value_or(false);
 };
 
 void VisualizeHitbox::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("visualize_hitbox", mod_enabled);
     cfg.set<bool>("visualize_hurtbox", mod_enabled2);
     cfg.set<bool>("visualize_enemystep", mod_enabled3);
-    cfg.set<bool>("visualize_enemy_collision", mod_enabled4);
+    cfg.set<bool>("visualize_hitbox2", mod_enabled4);
 };

@@ -49,53 +49,55 @@ enum cCollPrimType: unsigned int {
 };
 
 struct kCollPrim {
-    cCollPrimType mType;
-    int mBone0;
-    int mBone1;
-    float mRadius;
-    MtVector3 mPos0;
-    MtVector3 mPos1;
-    uint mAttr;
-    uint mId;
-    float mShrink;
-    int mDummy;
+    cCollPrimType mType; // 0x0
+    int mBone0; // 0x4
+    int mBone1; // 0x8
+    float mRadius; // 0xC
+    MtVector3 mPos0; // 0x10
+    MtVector3 mPos1; // 0x20
+    uint mAttr; // 0x30
+    uint mId; // 0x34
+    float mShrink; // 0x38
+    int mDummy; // 0x3C
 };
 static_assert(sizeof(kCollPrim) == 0x40);
 
 struct cCollision {
-    bool mHit;
-    kCollPrim* mpCollPrim;
-    float mScale;
-    int paddingC;
-    MtAABB mAABB;
-    bool mAABBHit;
-    cCollisionGroup* mpCollisionGroup;
-    uint32_t padding38[2];
-    MtMatrix mMat0;
-    MtMatrix mMat1;
-    MtMatrix mOldMat0;
-    MtMatrix* mpRefMat0;
-    MtMatrix* mpRefMat1;
-    bool mUseOld;
-    char padding109[7];
+    bool mHit; // 0x0
+    char pad_01[0x3]; // 0x1
+    kCollPrim* mpCollPrim; // 0x4
+    float mScale; // 0x8
+    int paddingC; // 0xC
+    MtAABB mAABB; // 0x10
+    bool mAABBHit; // 0x30
+    char pad_0x31[3]; // 0x31
+    cCollisionGroup* mpCollisionGroup; // 0x34
+    char padding38[8]; // 0x38
+    MtMatrix mMat0; // 0x40
+    MtMatrix mMat1; // 0x80
+    MtMatrix mOldMat0; // 0xC0
+    MtMatrix* mpRefMat0; // 0x100
+    MtMatrix* mpRefMat1; // 0x104
+    bool mUseOld; // 0x108
+    char padding109[7]; // 0x109
 };
-//static_assert(sizeof(cCollision) == 0x110);
+static_assert(sizeof(cCollision) == 0x110);
 
 struct cCollisionGroup {
-    uint mSeqNo;
-    uint mKind;
-    uint mAttr;
-    uint mVsAttr;
-    bool mRide;
-    bool mFrdAtck;
-    int padding12[3];
-    MtVector3 mHitPos;
-    MtVector3 mShrinkHitPos;
-    cCollision* mpHitCollision;
-    int padding44[3];
-    MtVector3 mPushPos;
-    cCollision* mpPushCollision;
-    bool mNoThrough;
+    uint mSeqNo; // 0x0
+    uint mKind; // 0x4
+    uint mAttr; // 0x8
+    uint mVsAttr; // 0xC
+    bool mRide; // 0x10
+    bool mFrdAtck; // 0x11
+    char padding12[0xC]; // 0x12
+    MtVector3 mHitPos; // 0x20
+    MtVector3 mShrinkHitPos; // 0x30
+    cCollision* mpHitCollision; // 0x40
+    char padding44[0xC]; // 0x44
+    MtVector3 mPushPos; // 0x50
+    cCollision* mpPushCollision; // 0x60
+    bool mNoThrough; // 0x64
     int mCreatedFromIdx;
     bool mClear;
     MtAABB mAABB;
@@ -104,7 +106,7 @@ struct cCollisionGroup {
     uCollisionMgr* mpCollisionMgr;
     cCollision** mppCollision;
     uintptr_t mpCollGroup;
-    kAttackStatus mAttackStatus;
+    kAttackStatus mAttackStatus; // 0xa4?
     kAttackStatus* mpAttackStatusSrc;
     kDefendStatus mDefendStatus;
     cCollisionGroup* mpNext[4];
