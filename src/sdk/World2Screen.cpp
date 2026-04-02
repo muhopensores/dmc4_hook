@@ -207,8 +207,7 @@ namespace w2s {
     }
 
     // rets true if the object was manipulated this frame
-    bool DrawImGuizmoManipulator(const glm::mat4& worldTransform, glm::mat4& newTransform, int objectIndex, int& selectedIndex, bool& isManipulating, ImGuizmo::OPERATION operation,
-        ImGuizmo::MODE mode, const float* viewMatrix, const float* projectionMatrix, ImU32 iconColor, float iconRadius, const char* debugName) {
+    bool DrawImGuizmoManipulator(const glm::mat4& worldTransform, glm::mat4& newTransform, int objectIndex, int& selectedIndex, bool& isManipulating, ImGuizmo::OPERATION operation, ImGuizmo::MODE mode, const float* viewMatrix, const float* projectionMatrix, ImU32 iconColor, float iconRadius, const char* debugName) {
         bool wasManipulated = false;
         ImGuiIO& io = ImGui::GetIO();
 
@@ -218,87 +217,59 @@ namespace w2s {
         memcpy(&view[0][0], viewMatrix, sizeof(float) * 16);
         memcpy(&proj[0][0], projectionMatrix, sizeof(float) * 16);
         glm::vec4 clipPos = proj * view * glm::vec4(worldPosition, 1.0f);
-
-        if (clipPos.w > 0) {
-            glm::vec3 ndcPos = glm::vec3(clipPos) / clipPos.w;
-            if (ndcPos.x >= -1.0f && ndcPos.x <= 1.0f && ndcPos.y >= -1.0f && ndcPos.y <= 1.0f) {
-                ImVec2 screenPos;
-                screenPos.x = (ndcPos.x * 0.5f + 0.5f) * io.DisplaySize.x;
-                screenPos.y = (1.0f - (ndcPos.y * 0.5f + 0.5f)) * io.DisplaySize.y;
-        
-                ImVec2 mousePos = io.MousePos;
-                float distance = sqrt(pow(mousePos.x - screenPos.x, 2) + pow(mousePos.y - screenPos.y, 2));
-        
-                if (selectedIndex != objectIndex) {
-                    ImGui::GetForegroundDrawList()->AddCircle(
-                        screenPos, 
-                        iconRadius, 
-                        iconColor,
-                        8, 
-                        2.0f
-                    );
-            
-                    if (distance < 15.0f && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !isManipulating) {
-                        selectedIndex = objectIndex;
-                    }
-                }
-        
-                if (selectedIndex == objectIndex) {
-                    float objectMatrix[16];
-                    memcpy(objectMatrix, &worldTransform[0][0], sizeof(float) * 16);
-            
-                    float deltaMatrix[16];
-                    bool currentlyManipulated = ImGuizmo::Manipulate(
-                        viewMatrix, projectionMatrix,
-                        operation, mode,
-                        objectMatrix, deltaMatrix
-                    );
-            
-                    if (currentlyManipulated) {
-                        isManipulating = true;
-                        wasManipulated = true;
-                
-                        memcpy(&newTransform[0][0], objectMatrix, sizeof(float) * 16);
-                    } else {
-                        newTransform = worldTransform;
-                    
-                        if (isManipulating && !ImGuizmo::IsUsing()) {
-                            isManipulating = false;
-                        }
-                    }
-            
-                    ImGui::GetForegroundDrawList()->AddCircle(
-                        screenPos, 
-                        iconRadius * 1.5f, 
-                        IM_COL32(255, 255, 255, 255),
-                        12, 
-                        3.0f
-                    );
-                } else {
-                    newTransform = worldTransform;
-                }
-            } else {
-                newTransform = worldTransform;
-            }
-        } else {
+        if (clipPos.w <= 0) {
             newTransform = worldTransform;
+            return false;
         }
-    
+
+        glm::vec3 ndcPos = glm::vec3(clipPos) / clipPos.w;
+        ImVec2 screenPos;
+        bool onScreen = ndcPos.x >= -1.0f && ndcPos.x <= 1.0f && ndcPos.y >= -1.0f && ndcPos.y <= 1.0f;
+        screenPos.x = (ndcPos.x * 0.5f + 0.5f) * io.DisplaySize.x;
+        screenPos.y = (1.0f - (ndcPos.y * 0.5f + 0.5f)) * io.DisplaySize.y;
+        if (selectedIndex != objectIndex && onScreen) {
+            ImGui::GetForegroundDrawList()->AddCircle(screenPos, iconRadius, iconColor, 8, 2.0f);
+            ImVec2 mousePos = io.MousePos;
+            float distance  = sqrtf(powf(mousePos.x - screenPos.x, 2) + powf(mousePos.y - screenPos.y, 2));
+            if (distance < 15.0f && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                selectedIndex = objectIndex;
+            }
+        }
+
+        if (selectedIndex != objectIndex) {
+            newTransform = worldTransform;
+            return false;
+        }
+
+        float objectMatrix[16];
+        memcpy(objectMatrix, &worldTransform[0][0], sizeof(float) * 16);
+        float deltaMatrix[16];
+        bool currentlyManipulated = ImGuizmo::Manipulate(viewMatrix, projectionMatrix, operation, mode, objectMatrix, deltaMatrix);
+
+        if (currentlyManipulated) {
+            isManipulating = true;
+            wasManipulated = true;
+            memcpy(&newTransform[0][0], objectMatrix, sizeof(float) * 16);
+        } else {
+            newTransform   = worldTransform;
+            isManipulating = false;
+        }
+
+        if (onScreen) {
+            ImGui::GetForegroundDrawList()->AddCircle(screenPos, iconRadius * 1.5f, IM_COL32(255, 255, 255, 255), 12, 3.0f);
+        }
+
         return wasManipulated;
     }
 
-    // vec3 version for simple translation
-    bool DrawImGuizmoManipulator(const glm::vec3& worldPosition, glm::vec3& newPosition, int objectIndex, int& selectedIndex, bool& isManipulating, ImGuizmo::OPERATION operation,
-        ImGuizmo::MODE mode, const float* viewMatrix, const float* projectionMatrix, ImU32 iconColor, float iconRadius, const char* debugName) {
-    
+    // Vec3
+    bool DrawImGuizmoManipulator(const glm::vec3& worldPosition, glm::vec3& newPosition, int objectIndex, int& selectedIndex, bool& isManipulating, ImGuizmo::OPERATION operation, ImGuizmo::MODE mode, const float* viewMatrix, const float* projectionMatrix, ImU32 iconColor, float iconRadius, const char* debugName) {
         glm::mat4 worldTransform = glm::translate(glm::mat4(1.0f), worldPosition);
         glm::mat4 newTransform;
-    
-        bool result = DrawImGuizmoManipulator(worldTransform, newTransform, objectIndex, selectedIndex, isManipulating, 
-                                            operation, mode, viewMatrix, projectionMatrix, iconColor, iconRadius, debugName);
-    
+
+        bool result = DrawImGuizmoManipulator(worldTransform, newTransform, objectIndex, selectedIndex, isManipulating, operation, mode, viewMatrix, projectionMatrix, iconColor, iconRadius, debugName);
+
         newPosition = glm::vec3(newTransform[3]);
-    
         return result;
     }
 

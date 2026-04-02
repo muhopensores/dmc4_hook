@@ -8,6 +8,7 @@ public:
     // Mod::ModType get_mod_type() override { return SLOW; };
 
     static bool mod_enabled;
+    static bool show_manipulators;
 
     void on_frame(fmilliseconds& dt) override;
     void on_gui_frame(int display) override;
