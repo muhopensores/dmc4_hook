@@ -22,8 +22,8 @@ public:
  
 private:
     // these do not work for me so are placed at the top of the cpp
-    // std::unique_ptr<FunctionHook> hurtboxHook;
-    // std::unique_ptr<FunctionHook> hitbox2hook;
+    std::unique_ptr<FunctionHook> hurtboxHook;
+    std::unique_ptr<FunctionHook> hitbox2hook;
 };
 
 struct hurtboxData {

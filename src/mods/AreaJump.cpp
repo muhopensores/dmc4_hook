@@ -16,7 +16,7 @@ static float savedHP = 0.0f;
 static float savedDT = 0.0f;
 static float savedStylePoints = 0.0f;
 
-std::array<AreaJump::Room, 83> AreaJump::room_items{
+std::array<AreaJump::Room, 83> AreaJump::room_items {
     Room {503, __("Berial")},                    // DevilMayCry4_DX9.exe+A56768
     Room {504, __("Bael")},                      // DevilMayCry4_DX9.exe+A56528
     Room {505, __("Echidna")},                   // DevilMayCry4_DX9.exe+A55FE8
@@ -101,6 +101,173 @@ std::array<AreaJump::Room, 83> AreaJump::room_items{
     Room {701, __("Bloody Palace 61-79")},
     Room {702, __("Bloody Palace 81-99")}
 };
+
+static const char* bp_enemy_names[] = {
+    __("Scarecrow Leg"),              // 0
+    __("Scarecrow Arm"),              // 1
+    __("Chimera Legcrow"),            // 2 not actually but this is convenient
+    __("Mega Scarecrow"),             // 3
+    __("Chimera Armcrow"),            // 4 not actually but this is convenient
+    __("Bianco Angelo"),              // 5
+    __("Alto Angelo"),                // 6
+    __("Chimera Mega"),               // 7 not actually but this is convenient
+    __("Mephisto"),                   // 8
+    __("Faust"),                      // 9
+    __("Frost"),                      // 10
+    __("Assault"),                    // 11
+    __("Blitz"),                      // 12
+    __("Chimera Seed"),               // 13
+    __("Chimera Assault"),            // 14
+    __("Cutlass"),                    // 15
+    __("Gladius"),                    // 16
+    __("Basilisk"),                   // 17
+    __("Berial"),                     // 18
+    __("Bael"),                       // 19
+    ("Em20"),                         // 20
+    __("Echidna"),                    // 21
+    __("Angelo Credo"),               // 22
+    __("Angelo Agnus"),               // 23
+    ("Em24"),                         // 24
+    ("Savior"),                       // 25
+    ("Savior"),                       // 26
+    ("Agnus (Human)"),                // 27
+    ("Em28"),                         // 28
+    ("Sanctus"),                      // 29
+    ("Sanctus Diabolica"),            // 30
+    ("Agnus Again"),                  // 31
+    ("Em32"),                         // 32
+    ("Savior Again"),                 // 33
+    ("Em34"),                         // 34
+    ("Combat Adjudicator"),           // 35
+    ("Kyrie"),                        // 36
+    __("Dante")                       // 37 not actually but this is convenient
+};
+
+struct EnemyCount {
+    int enemy_id;
+    int count;
+};
+struct BPRoom {
+    int floor;
+    EnemyCount enemies[4];
+    int enemy_type_count;
+};
+
+static std::array<BPRoom, 101> bp_descriptions{{
+    {1,   {{SCARECROW_ARM,3}},                                                    1},
+    {2,   {{SCARECROW_LEG,4}},                                                    1},
+    {3,   {{SCARECROW_LEG,3},{SCARECROW_ARM,3}},                                  2},
+    {4,   {{FROST,2}},                                                            1},
+    {5,   {{ANGELO_BIANCO,2}},                                                    1},
+    {6,   {{MEPHISTO,3}},                                                         1},
+    {7,   {{GLADIUS,6}},                                                          1},
+    {8,   {{CHIMERA,9}},                                                          1},
+    {9,   {{CHIMERA,9},{SCARECROW_ARM,3}},                                        2},
+    {10,  {{SCARECROW_ARM,6},{SCARECROW_LEG,6}},                                  2},
+    {11,  {{ASSAULT,2}},                                                          1},
+    {12,  {{SCARECROW_MEGA,2}},                                                   1},
+    {13,  {{ASSAULT,2},{ANGELO_BIANCO,2}},                                        2},
+    {14,  {{FAUST,1}},                                                            1},
+    {15,  {{ANGELO_BIANCO,2},{ANGELO_ALTO,1}},                                    2},
+    {16,  {{SCARECROW_LEG,3},{SCARECROW_ARM,3},{SCARECROW_MEGA,1}},               3},
+    {17,  {{ANGELO_ALTO,2}},                                                      1},
+    {18,  {{BLITZ,1}},                                                            1},
+    {19,  {{BASILISK,4}},                                                         1},
+    {20,  {{BERIAL,1}},                                                           1},
+    {21,  {{MEPHISTO,2},{FROST,1}},                                               2},
+    {22,  {{FROST,2},{FAUST,1}},                                                  2},
+    {23,  {{ASSAULT,3},{FROST,2}},                                                2},
+    {24,  {{ASSAULT,3},{BASILISK,4}},                                             2},
+    {25,  {{ASSAULT,3},{BLITZ,1}},                                                2},
+    {26,  {{BLITZ,1},{BASILISK,4}},                                               2},
+    {27,  {{FROST,2},{ANGELO_BIANCO,2}},                                          2},
+    {28,  {{ASSAULT,2},{GLADIUS,8}},                                              2},
+    {29,  {{BLITZ,1},{GLADIUS,5}},                                                2},
+    {30,  {{FROST,4},{ASSAULT,6},{BLITZ,1}},                                      3},
+    {31,  {{CHIMERA,7},{MEPHISTO,3}},                                             2},
+    {32,  {{SCARECROW_ARM,3},{FAUST,1}},                                          2},
+    {33,  {{MEPHISTO,2},{SCARECROW_MEGA,1}},                                      2},
+    {34,  {{MEPHISTO,6}},                                                         1},
+    {35,  {{MEPHISTO,3},{FROST,1}},                                               2},
+    {36,  {{SCARECROW_LEG,2},{FAUST,1}},                                          2},
+    {37,  {{MEPHISTO,2},{ASSAULT,3}},                                             2},
+    {38,  {{MEPHISTO,2},{BLITZ,1}},                                               2},
+    {39,  {{CHIMERA,9},{FAUST,1}},                                                2},
+    {40,  {{BAEL,1}},                                                             1},
+    {41,  {{CHIMERA,10}},                                                         1},
+    {42,  {{SCARECROW_ARM,6}, {SCARECROW_LEG,2}, {CHIMERA,4}},                    3},
+    {43,  {{ASSAULT,4}},                                                          1},
+    {44,  {{CHIMERA,6},{GLADIUS,6}},                                              2},
+    {45,  {{CHIMERA_ASSAULT,2},{BLITZ,1}},                                        2},
+    {46,  {{BASILISK,2},{CHIMERA,4}},                                             2},
+    {47,  {{CHIMERA,5},{ANGELO_BIANCO,2},{ANGELO_ALTO,1}},                        3},
+    {48,  {{SCARECROW_LEG,1},{CHIMERA,6}},                                        2},
+    {49,  {{CHIMERA_ASSAULT,3},{FAUST,1}},                                        2},
+    {50,  {{SCARECROW_ARM,3},{SCARECROW_LEG,3},{CHIMERA,12},{ASSAULT,4}},         4},
+    {51,  {{SCARECROW_ARM,6}},                                                    1},
+    {52,  {{SCARECROW_LEG,3},{GLADIUS,8}},                                        2},
+    {53,  {{SCARECROW_MEGA,3},{FROST,2}},                                         2},
+    {54,  {{SCARECROW_ARM,2},{SCARECROW_LEG,3},{ANGELO_ALTO,1}},                  3},
+    {55,  {{SCARECROW_MEGA,1},{FAUST,1}},                                         2},
+    {56,  {{SCARECROW_MEGA,1},{ANGELO_ALTO,2}},                                   2},
+    {57,  {{SCARECROW_ARM,2},{SCARECROW_LEG,2},{MEPHISTO,3}},                     3},
+    {58,  {{SCARECROW_MEGA,1},{BASILISK,5}},                                      2},
+    {59,  {{CHIMERA_ARM,2},{SCARECROW_MEGA,1},{CHIMERA,4}},                       3},
+    {60,  {{ECHIDNA,1}},                                                          1},
+    {61,  {{ANGELO_BIANCO,4}},                                                    1},
+    {62,  {{CUTLASS,2},{ANGELO_BIANCO,3}},                                        2},
+    {63,  {{BLITZ,1},{ANGELO_BIANCO,2}},                                          2},
+    {64,  {{ANGELO_BIANCO,1},{GLADIUS,6}},                                        2},
+    {65,  {{ANGELO_BIANCO,7},{ANGELO_ALTO,1}},                                    2},
+    {66,  {{ANGELO_ALTO,1},{BASILISK,4}},                                         2},
+    {67,  {{BLITZ,1},{ANGELO_ALTO,2}},                                            2},
+    {68,  {{SCARECROW_ARM,6},{ANGELO_BIANCO,2}},                                  2},
+    {69,  {{ANGELO_ALTO,1},{FROST,2}},                                            2},
+    {70,  {{ANGELO_BIANCO,10},{ANGELO_ALTO,2}},                                   2},
+    {71,  {{GLADIUS,16}},                                                         1},
+    {72,  {{SCARECROW_MEGA,1},{GLADIUS,9}},                                       2},
+    {73,  {{GLADIUS,8},{FROST,1}},                                                2},
+    {74,  {{CUTLASS,2},{BASILISK,4}},                                             2},
+    {75,  {{ANGELO_ALTO,1},{CUTLASS,3}},                                          2},
+    {76,  {{CUTLASS,4},{GLADIUS,8}},                                              2},
+    {77,  {{BASILISK,10}},                                                        1},
+    {78,  {{FROST,2},{BASILISK,4}},                                               2},
+    {79,  {{CUTLASS,2},{BASILISK,2},{GLADIUS,4}},                                 3},
+    {80,  {{CREDO,1}},                                                            1},
+    {81,  {{SCARECROW_MEGA,1},{SCARECROW_ARM,3},{SCARECROW_LEG,2}},               3},
+    {82,  {{MEPHISTO,4},{FAUST,1}},                                               2},
+    {83,  {{FROST,3}},                                                            1},
+    {84,  {{CHIMERA_ASSAULT,2},{CHIMERA,12}},                                     2},
+    {85,  {{BLITZ,2},{CHIMERA,3}},                                                2},
+    {86,  {{ANGELO_BIANCO,2},{ANGELO_ALTO,1}},                                    2},
+    {87,  {{BASILISK,4},{GLADIUS,7}},                                             2},
+    {88,  {{CUTLASS,3},{ANGELO_BIANCO,2}},                                        2},
+    {89,  {{SCARECROW_MEGA,3},{BLITZ,1}},                                         2},
+    {90,  {{SCARECROW_ARM,15},{SCARECROW_LEG,15},{SCARECROW_MEGA,3},{CHIMERA,3}}, 4},
+    {91,  {{FAUST,3}},                                                            1},
+    {92,  {{ANGELO_ALTO,3},{ANGELO_BIANCO,4}},                                    2},
+    {93,  {{ASSAULT,8}},                                                          1},
+    {94,  {{CHIMERA,6},{CHIMERA_ARM,3},{ANGELO_BIANCO,2}},                        3},
+    {95,  {{BASILISK,16},{CHIMERA,4}},                                            2},
+    {96,  {{GLADIUS,8},{CUTLASS,3},{ANGELO_BIANCO,3}},                            3},
+    {97,  {{MEPHISTO,6},{SCARECROW_MEGA,2}},                                      2},
+    {98,  {{CHIMERA_LEG, 2}, {CHIMERA_ASSAULT, 2}, {CHIMERA, 3}},                 3},
+    {99,  {{ANGELO_ALTO,2},{ANGELO_BIANCO,44}},                                   2},
+    {100, {{AGNUS,1}},                                                            1},
+    {101, {{37,1}},                                                               1},
+}};
+
+std::string get_bp_description(int floor) {
+    const BPRoom& room = bp_descriptions[floor - 1];
+    std::string result;
+    for (int i = 0; i < room.enemy_type_count; i++) {
+        const EnemyCount& ec = room.enemies[i];
+        if (!result.empty()) result += ", ";
+        result += bp_enemy_names[ec.enemy_id];
+        result += " x" + std::to_string(ec.count);
+    }
+    return result;
+}
 
 bool AreaJump::is_valid_room_id(int id) {
     return std::any_of(room_items.begin(), room_items.end(), [id](const Room& room) { 
@@ -644,7 +811,7 @@ void AreaJump::on_gui_frame(int display) {
         ImGui::SeparatorText(_("Bloody Palace"));
 
         ImGui::PushItemWidth(sameLineItemWidth);
-        if (ImGui::InputInt("##BP Floor ", &s_area_ptr->aGamePtr->bp_floor, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
+        if (ImGui::InputInt("##BP Stage ", &s_area_ptr->aGamePtr->bp_floor, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
             if (player)
                 s_area_ptr->aGamePtr->bp_floor = std::clamp(s_area_ptr->aGamePtr->bp_floor, 1, 101);
         }
@@ -672,7 +839,7 @@ void AreaJump::on_gui_frame(int display) {
             }
         }
         ImGui::SameLine();
-        help_marker(_("Save floor, timer, orbs, hp, dt, style points"));
+        help_marker(_("Save stage, timer, orbs, hp, dt, style points"));
 
         if (ImGui::Button(_("Teleport"), ImVec2(sameLineItemWidth, NULL))) {
             if (player)
@@ -693,9 +860,17 @@ void AreaJump::on_gui_frame(int display) {
             }
         }
         ImGui::SameLine();
-        help_marker(_("Press Load after loading into BP\nLoads saved floor, timer, orbs, hp, dt, style points"));
+        help_marker(_("Press Load after loading into BP\nLoads saved stage, timer, orbs, hp, dt, style points"));
 
         ImGui::PopItemWidth();
+
+        int current_floor = s_area_ptr->aGamePtr->bp_floor;
+        if (current_floor >= 1 && current_floor <= 101) {
+            ImGui::TextDisabled(_("Stage %d: %s"), current_floor, get_bp_description(current_floor).c_str());
+        } else {
+            ImGui::TextDisabled(_("Stage %d: Empty"), current_floor);
+        }
+        // credits emiliathesage, only corrected chimera stages
 
         ImGui::SeparatorText(_("Mission Area Teleports"));
 

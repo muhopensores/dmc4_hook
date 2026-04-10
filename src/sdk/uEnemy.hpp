@@ -10,21 +10,21 @@
 #define lockOnSphereData LOCKONSPHERE_DAT // TODO(): to compile for now
 
 enum ENEMY_ID : int {
-  SCARECROW_LEG = 0, // Legcrow
-  SCARECROW_ARM = 1, // Armcrow
-  EM002 = 2,
-  SCARECROW_MEGA = 3, // Mega
-  EM004 = 4,
+  SCARECROW_LEG = 0,
+  SCARECROW_ARM = 1,
+  CHIMERA_LEG = 2, // not actually but this is convenient
+  SCARECROW_MEGA = 3,
+  CHIMERA_ARM = 4, // not actually but this is convenient
   ANGELO_BIANCO = 5,
   ANGELO_ALTO = 6,
-  EM007 = 7,
+  CHIMERA_MEGA = 7,
   MEPHISTO = 8,
   FAUST = 9,
   FROST = 10,
   ASSAULT = 11,
   BLITZ = 12,
   CHIMERA = 13,
-  EM014 = 14,
+  CHIMERA_ASSAULT = 14, // actually just infected enemy
   CUTLASS = 15,
   GLADIUS = 16,
   BASILISK = 17,
@@ -36,11 +36,17 @@ enum ENEMY_ID : int {
   AGNUS = 23,
   EM024 = 24,
   SAVIOR = 25,
-  EM026 = 26,
-  EM027 = 27,
+  SAVIOR2 = 26,
+  AGNUS_HUMAN = 27,
   EM028 = 28,
   SANCTUS_M11 = 29,
   SANCTUS_M20 = 30,
+  AGNUS_AGAIN = 31,
+  EM32 = 32,
+  SAVIOR_AGAIN = 33,
+  EM34 = 34,
+  COMBAT_ADJUDICATOR = 35,
+  KYRIE = 36,
 };
 
 class uEnemy_Old {

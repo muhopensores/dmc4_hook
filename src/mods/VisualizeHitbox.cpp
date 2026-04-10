@@ -8,8 +8,8 @@
 #include <math.h>
 #include "EnemyTracker.hpp"
 
-static std::unique_ptr<FunctionHook> hurtboxHook;
-static std::unique_ptr<FunctionHook> hitbox2hook;
+// static std::unique_ptr<FunctionHook> hurtboxHook;
+// static std::unique_ptr<FunctionHook> hitbox2hook;
 
 bool VisualizeHitbox::mod_enabled = false; // Visualize Hitboxes
 constexpr uintptr_t sMainAddr = 0x00E5574C;
@@ -321,7 +321,11 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
     }
     if (mod_enabled4) { // hitboxes2
         for (const HitboxSnapshot& snapshot : hitDataList) {
-            w2s::DrawWireframeSphere(snapshot.pos, snapshot.radius, 0.0f, IM_COL32(255, 0, 0, 255), 32, 1.0f);
+            //if (snapshot.type == 3) {
+                //w2s::DrawWireframeCapsule(glm::vec3(snapshot.pos), snapshot.radius, snapshot.length, snapshot.rotationX, snapshot.rotationY, 0.0f, IM_COL32(255, 0, 0, 255), 16, 1.0f);
+            //} else {
+                w2s::DrawWireframeSphere(snapshot.pos, snapshot.radius, 0.0f, IM_COL32(255, 0, 0, 255), 32, 1.0f);
+            //}
         }
         hitDataList.clear();
     }
@@ -370,8 +374,8 @@ std::optional<std::string> VisualizeHitbox::on_initialize() {
     }
 
     if (!install_hook_offset(0x10A98C, hitbox2hook, &detour_hitboxes2, &jmp_ret_hitboxes2, 5)) {
-        spdlog::error("Failed to init detour_hittboxes2\n");
-        return "Failed to init detour_hittboxes2";
+        spdlog::error("Failed to init detour_hitboxes2\n");
+        return "Failed to init detour_hitboxes2";
     }
 
     return Mod::on_initialize();

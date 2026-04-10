@@ -78,7 +78,7 @@ static DWORD WINAPI startup_thread([[maybe_unused]] LPVOID parameter) {
 BOOL APIENTRY DllMain(HMODULE handle, DWORD reason, LPVOID reserved) { //NOLINT
     if (reason == DLL_PROCESS_ATTACH) {
 #ifndef NDEBUG
-        MessageBox(NULL, "Debug attach opportunity", "DMC4", MB_ICONINFORMATION);
+        //MessageBox(NULL, "Debug attach opportunity", "DMC4", MB_ICONINFORMATION);
 #endif
         // increase global, temp, resource mem
         // gets gatted by I assume steam drm, works on nonsteam exe
