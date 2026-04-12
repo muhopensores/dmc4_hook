@@ -333,6 +333,7 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
 
 naked void detour_hurtboxes(void) {
     _asm {
+            pushfd
             cmp byte ptr [VisualizeHitbox::mod_enabled2], 1
             jne originalcode
 
@@ -344,6 +345,7 @@ naked void detour_hurtboxes(void) {
 			popad
 
         originalcode:
+            popfd
             movss xmm0,[edi+0x78]
             jmp dword ptr [VisualizeHitbox::jmp_ret_hurtboxes]
     }
@@ -351,6 +353,7 @@ naked void detour_hurtboxes(void) {
 
 naked void detour_hitboxes2(void) {
     _asm {
+            pushfd
             cmp byte ptr [VisualizeHitbox::mod_enabled4], 1
             jne originalcode
 
@@ -362,6 +365,7 @@ naked void detour_hitboxes2(void) {
 			popad
 
         originalcode:
+            popfd
             movss xmm0,[ebx+0x0C]
             jmp dword ptr [VisualizeHitbox::jmp_ret_hitboxes2]
     }
@@ -377,7 +381,7 @@ std::optional<std::string> VisualizeHitbox::on_initialize() {
         spdlog::error("Failed to init detour_hitboxes2\n");
         return "Failed to init detour_hitboxes2";
     }
-
+    
     return Mod::on_initialize();
 }
 

@@ -18,16 +18,27 @@ static void set_dt_gauge() {
     }
 }
 
-// make something happen every frame
+static void PlayRollAnimation() {
+    uPlayer* player = devil4_sdk::get_local_player();
+    if (!player) { return; }
+    player->movePart = 3;
+    devil4_sdk::indexed_anim_call(8, player, 0, 1.0f, 0.0f, 3.0f);
+    player->playMoveOnce = 4;
+}
+
 void TestMod::on_frame(fmilliseconds& dt) {
-    /*uPlayer* player = devil4_sdk::get_local_player(); // get the player
-    if (!player) { return; } // if the player does not exist, don't run the rest of this code
-    if (mod_enabled) { // if mod_enabled is true
-        // you could do something like:
-        if (player->currentStyle == 4) { // if you enter darkslayer
-            player->currentStyle = 3; // enter royal guard instead
+    if (mod_enabled) {
+        ImGui::Begin("AerialWindow");
+        if (ImGui::Button("Play Roll Animation")) {
+            PlayRollAnimation();
         }
-    }*/
+        static bool rollSpam = false;
+        ImGui::Checkbox("rollSpam", &rollSpam);
+        if (rollSpam) {
+            PlayRollAnimation();
+        }
+        ImGui::End();
+    }
 }
 
 struct AnimationInfo {
@@ -56,28 +67,9 @@ void example() {
     dante->HP = 100; // set dante's HP to 100
     dante->animInfo1->animFrame = 5.0f;
 }
-    // dante->animInfo2.animFrame   = 5.0f;
-
 // make something show on the gui
 void TestMod::on_gui_frame(int display) {
-    ImGui::Checkbox("Test Mod", &mod_enabled); // most imgui entries need a label and a pointer to the variable they change
-    ImGui::SameLine(); // every imgui entry is on its own line by default, use SameLine to specify that the next entry should be on the same line
-    help_marker("This is what test mod does!"); // draw a lil helpmarker (right click "help_marker" and hit "peek definition" to see exactly what this is doing)
-    if (mod_enabled) {
-        ImGui::Text("Example Text"); // some entries just need a label
-        ImGui::SliderFloat("Test Float", &test_float, 0.0f, 10000.0f); // some entries need even more - if you hover the text "SliderFloat" you'll see it needs a label, variable, then min and max values
-        if (ImGui::Button("Set DT Gauge")) { // buttons run the code in the if statement when you click them
-            set_dt_gauge(); // make the button do the thing we defined in the function above. I could also just copy paste the code
-                            // from the function here, but this way is cleaner and allows us to reuse the code if we want to make
-                            // another button that does the same thing
-        }
-        uPlayer* player = devil4_sdk::get_local_player(); // get the player
-        if (!player) { return; } // if the player does not exist, don't run the rest of this code
-        ImGui::InputInt("test", &(int&)player->moveIDBest);
-        player->damageStruct.HP;
-        player->damageStruct.HPMax;
-        ImGui::SliderFloat("HP", &player->damageStruct.HP, 0.0f, player->damageStruct.HPMax);
-    }
+    ImGui::Checkbox("Test Mod", &mod_enabled);
 }
 
 // what happens on boot
