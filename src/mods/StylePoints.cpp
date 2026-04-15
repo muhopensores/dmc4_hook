@@ -945,7 +945,7 @@ static void DrawTrickScores() {
         ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;
         ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.6f, screenSize.y * 0.4f));
         ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.3f, screenSize.y * 0.3f));
-        ImGui::Begin("TrickScoresWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
+        ImGui::Begin("TrickScoresWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoScrollbar);
         ImGui::UpdateCurrentFontSize(correctedWindowFontScale * (2.0f * ImGui::GetStyle().FontSizeBase));
         float fontSize = ImGui::GetFontSize();
         
@@ -1134,7 +1134,7 @@ static void DrawTonyScores() {
 
     ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.5f, screenSize.y * 0.9f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(ImVec2(screenSize.x * 1.0f, screenSize.y * 0.2f));
-    ImGui::Begin("TrickScoresWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs);
+    ImGui::Begin("TrickScoresWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoScrollbar);
 
     static std::random_device rd;
     static std::mt19937 gen(rd());
@@ -1961,12 +1961,12 @@ void StylePoints::on_gui_frame(int display) {
         ImGui::SameLine();
         help_marker(_("Group attacks by the order you originally did them\n"
             "This helps show the variety in a combo over exact input order"));
-        ImGui::Checkbox(_("Height Chart"), &showHeightChart);
-        ImGui::SameLine();
-        help_marker(_("Ever wanted to see a log of your height throughout a combo? Me neither!"));
-        ImGui::Checkbox(_("Inertia Chart"), &showInertiaChart);
-        ImGui::SameLine();
-        help_marker(_("Ever wanted to see a log of your inertia throughout a combo? Me neither!"));
+        // ImGui::Checkbox(_("Height Chart"), &showHeightChart);
+        // ImGui::SameLine();
+        // help_marker(_("Ever wanted to see a log of your height throughout a combo? Me neither!"));
+        // ImGui::Checkbox(_("Inertia Chart"), &showInertiaChart);
+        // ImGui::SameLine();
+        // help_marker(_("Ever wanted to see a log of your inertia throughout a combo? Me neither!"));
         /*
         ImGui::SliderFloat("timerBase", &timerBase, 0.0f, 2.0f, "%.1f");
         ImGui::SameLine();
@@ -2022,8 +2022,8 @@ void StylePoints::on_config_load(const utility::Config& cfg) {
     tonyHawk = cfg.get<bool>("hawk_points_display").value_or(false);
     moreGrouping = cfg.get<bool>("group_points_display").value_or(false);
     // showAirTimeDisplay = cfg.get<bool>("airtime_points_display").value_or(false);
-    showHeightChart = cfg.get<bool>("height_points_display").value_or(false);
-    showInertiaChart = cfg.get<bool>("inertia_points_display").value_or(false);
+    // showHeightChart = cfg.get<bool>("height_points_display").value_or(false);
+    // showInertiaChart = cfg.get<bool>("inertia_points_display").value_or(false);
 
     maxPerRow = cfg.get<int>("maxPerRow_points_display").value_or(7);
     maxRows = cfg.get<int>("maxRows_points_display").value_or(3);
@@ -2039,8 +2039,8 @@ void StylePoints::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("hawk_points_display", tonyHawk);
     cfg.set<bool>("group_points_display", moreGrouping);
     // cfg.set<bool>("airtime_points_display", showAirTimeDisplay);
-    cfg.set<bool>("height_points_display", showHeightChart);
-    cfg.set<bool>("inertia_points_display", showInertiaChart);
+    // cfg.set<bool>("height_points_display", showHeightChart);
+    // cfg.set<bool>("inertia_points_display", showInertiaChart);
 
     cfg.set<int>("maxPerRow_points_display", maxPerRow);
     cfg.set<int>("maxRows_points_display", maxRows);

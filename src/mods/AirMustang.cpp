@@ -14,7 +14,7 @@ uintptr_t AirMustang::jmp_ret2 = NULL;
 uintptr_t AirMustang::jmp_ret3 = NULL;
     float InertiaMultiplier = 0.8f;
 
-naked void detour1() {
+naked void detour1() { // I have stolen this detour addr in MustangWalls because this cheat was crashing ~Siyan
     _asm {
             cmp byte ptr [AirMustang::mod_enabled],1
             jne originalcode

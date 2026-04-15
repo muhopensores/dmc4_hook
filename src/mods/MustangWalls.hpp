@@ -10,6 +10,7 @@ public:
     static bool mod_enabled;
     static uintptr_t jmp_ret1;
     static uintptr_t jmp_je;
+    static uintptr_t jmp_ret2;
 
     // void on_frame(fmilliseconds& dt) override;
     void on_gui_frame(int display) override;
@@ -21,5 +22,5 @@ public:
 
 private:
     // std::unique_ptr<Patch> patch1;
-    std::unique_ptr<FunctionHook> hook1;
+    std::unique_ptr<FunctionHook> hook1, hook2;
 };
