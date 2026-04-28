@@ -495,7 +495,7 @@ void MoveTable::display_attack_entry(kAtckDefTbl* TblEntry) {
     ImGui::Indent(lineIndent);
     int tempCommand = (int)TblEntry->command.atckCommand;
     ImGui::SetNextItemWidth(sameLineItemWidth * 2);
-    utility::ImGooListboxTranslated localizedDirectionMappingNames(directionMappingNames, (int)(directionMappingNamesArraySize));
+    utility::ImGooListboxTranslated localizedDirectionMappingNames(directionMappingNames, (int)(directionMappingNamesArraySize()));
     if (ImGui::Combo(_("+10 Cmd"), &tempCommand, localizedDirectionMappingNames.data_, (directionMappingNamesArraySize()))) {
         TblEntry->command.atckCommand = (uint8_t)tempCommand;
     }
