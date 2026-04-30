@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/ArcadeMode.hpp
+  mods/ArcadeMode.cpp
   mods/TestMod.hpp
   mods/TestMod.cpp
   mods/MultipleGameInstances.hpp
@@ -387,6 +389,8 @@ set(SDK_SRC
     sdk/uStageSet.hpp
     sdk/StringData.hpp
     sdk/StringData.cpp
+    sdk/uMissionMenu.hpp
+    sdk/uMissionStart.hpp
 )
 
 set(IMGUI_SRC
@@ -438,6 +442,8 @@ set(UTILITY_SRC
   utility/MoFile.cpp
   utility/Locales.hpp
   utility/Locales.cpp
+  utility/CommandLineArgs.hpp
+  utility/CommandLineArgs.cpp
 )
 
 set(TWITCH_SRC

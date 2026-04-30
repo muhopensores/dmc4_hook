@@ -168,6 +168,8 @@
 #include "mods/StageCallback.hpp"
 #include "mods/DarkSoulsStamina.hpp"
 #include "mods/TestMod.hpp"
+#include "mods/ArcadeMode.hpp"
+
 constexpr size_t MODS_NUM{ 256 };
 
 #define ADD_MOD(name)                                  \
@@ -345,6 +347,7 @@ Mods::Mods() {
     ADD_MOD(StageCallback);
     ADD_MOD(DarkSoulsStamina);
     ADD_MOD(TestMod);
+    ADD_MOD(ArcadeMode);
 }
 
 // Initializes mods, checks for errors
