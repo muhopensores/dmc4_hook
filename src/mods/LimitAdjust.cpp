@@ -246,6 +246,7 @@ void LimitAdjust::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("jc_limits_removed_nero", enemy_step_enabled_nero);
     cfg.set<bool>("whirling_enemy_step_enabled_nero", whirling_enemy_step_enabled_nero);
     cfg.set<bool>("target_switch_limit_removed_nero", target_switch_enabled_nero);
+    cfg.set<bool>("no_dt_cooldown_nero", no_dt_cooldown_nero);
 
     // dante
     cfg.set<bool>("jc_limits_removed_dante", enemy_step_enabled_dante);
@@ -254,6 +255,7 @@ void LimitAdjust::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("sword_switch_limits_removed", gun_sword);
     cfg.set<bool>("style_switch_limits_removed", style);
     cfg.set<bool>("same_tick_style_change_limit_removed", same_tick_style_change);
+    cfg.set<bool>("no_dt_cooldown_dante", no_dt_cooldown_dante);
 }
 
 #endif
