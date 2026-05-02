@@ -105,11 +105,15 @@ naked void detour1(void) {
     }
 }
 
+void EnemyStepDisplay::update_jc_possible() {
+    call1();
+}
+
 void EnemyStepDisplay::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
         uPlayer* player = devil4_sdk::get_local_player();
         if (!player) { return; }
-        call1();
+        update_jc_possible();
         static constexpr int WindowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground;
         ImGui::Begin("Enemy Step Possible UI", NULL, WindowFlags);
         ImGui::SetWindowPos(windowPos, ImGuiCond_Once);

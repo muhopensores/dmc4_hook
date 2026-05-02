@@ -720,6 +720,16 @@ namespace gui {
                 ImGui::EndTabItem();
             }
 
+            if (ImGui::BeginTabItem(_("Keyboard Macro"))) {
+                ImGui::BeginChild("KeyboardMacroChild");
+
+                pmods->on_draw_ui("KeyboardMacro"_hash);
+
+                tabHeight += ImGui::GetCursorPosY();
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+
             if (ImGui::BeginTabItem(_("Debug"))) {
                 float startCursorY = ImGui::GetCursorPosY();
                 ImGui::BeginChild("DebugChild");

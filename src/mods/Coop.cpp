@@ -5,6 +5,7 @@
 #include "sdk/sUnit.hpp"
 #include "CharSwitcher.hpp"
 #include "DebugCam.hpp"
+#include "KeyboardMacro.hpp"
 #include "Windows.h"
 
 using byte = uint8_t;
@@ -157,6 +158,14 @@ void __stdcall new_pad_update_func(cPeripheral* peri) {
 
 naked void detour1() {
     _asm {
+            push [esp+4]
+            call KeyboardMacro::on_pad_update_tick
+            cmp byte ptr [KeyboardMacro::input_active], 1
+            jne coopcheck
+            push [esp+4]
+            call KeyboardMacro::on_player_pad_update
+            jmp handle
+        coopcheck:
             cmp byte ptr [Coop::mod_enabled], 1
             jne originalcode
             push [esp+4]
