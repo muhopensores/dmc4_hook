@@ -80,17 +80,19 @@ std::optional<std::string> CharacterSwap::on_initialize() {
 }
 
 void CharacterSwap::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Character Select in any mission"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Character Select in any mission"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Does not work for M1"));
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox(_("Prefer Dante"), &prefer_dante)) {
+            Prefer_Dante(prefer_dante);
+        }
+        ImGui::SameLine();
+        help_marker(_("On character select screens where both characters are selectable, prefer Dante to Nero"));
     }
-    ImGui::SameLine();
-    help_marker(_("Does not work for M1"));
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Prefer Dante"), &prefer_dante)) {
-        Prefer_Dante(prefer_dante);
-    }
-    ImGui::SameLine();
-    help_marker(_("On character select screens where both characters are selectable, prefer Dante to Nero"));
 }
 
 void CharacterSwap::on_config_load(const utility::Config& cfg) {

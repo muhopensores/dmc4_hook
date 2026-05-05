@@ -11,7 +11,9 @@ public:
     AreaJump() = default;
 
     std::string get_mod_name() override { return "AreaJump"; };
-
+    std::vector<std::string> get_search_terms() override { return {"area jump", "bloody palace", "room teleport"
+};
+    }
     struct Room {
       int id;
       const char* name;

@@ -13,8 +13,10 @@ public:
     static bool hotkey_paused;
 
     std::string get_mod_name() override { return "WorkRate"; };
+    std::vector<std::string> get_search_terms() override {
+        return {"speed", "turbo"};
+    }
     std::optional<std::string> on_initialize() override;
-
     void on_frame(fmilliseconds& dt) override;
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;

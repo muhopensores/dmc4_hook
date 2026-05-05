@@ -640,111 +640,112 @@ std::optional<std::string> Coop::on_initialize() {
 std::vector<const char*> CHAR_NAME = {"Nero", "Dante"};
 
 void Coop::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Coop mode"), &mod_enabled)) {
-        toggle(mod_enabled);
-        if (CharSwitcher::mod_enabled)
-            CharSwitcher::mod_enabled = false;
-        if (mod_enabled) {
-            for (int i = 0; i < 4; i++) {
-                PlayerArr.push_back(std::make_unique<CoopPlayer>());
-                CoopPlayer* curr_pl = PlayerArr[i].get();
-                if (i == 0)
-                    curr_pl->pad = *sDevil4Pad_ptr;
-                else
-                    curr_pl->pad = create_pad(i);
-                curr_pl->player_id = 0;
-            }
-            *sDevil4Pad_ptr = PlayerArr[0].get()->pad;
-        }
-    }
-
-    ImGui::SameLine();
-    help_marker(_("Enable split-screen co-op."));
-    ImGui::SameLine();
-    ImGui::PushItemWidth(sameLineItemWidth / 2.0f);
-    ImGui::SliderInt(_("Player Number"), (int*)&player_num, 2, 4);
-    ImGui::PopItemWidth();
-
-    if (mod_enabled) {
-        for (int i = 1; i < player_num; i++) {
-            ImGui::Text("Player %d", i + 1);
-            ImGui::SameLine();
-            CoopPlayer* curr_pl = PlayerArr[i].get();
-            ImGui::PushID(curr_pl);
-            if (ImGui::BeginCombo("Select Character", CHAR_NAME[curr_pl->player_id])) {
-                for (int char_id = 0; char_id < 2; char_id++) {
-                    bool is_selected = (curr_pl->player_id == char_id);
-                    if (ImGui::Selectable(CHAR_NAME[char_id], &is_selected)) {
-                        curr_pl->player_id = char_id;
-                    }
-                    if (is_selected)
-                        ImGui::SetItemDefaultFocus();
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Coop mode"), &mod_enabled)) {
+            toggle(mod_enabled);
+            if (CharSwitcher::mod_enabled)
+                CharSwitcher::mod_enabled = false;
+            if (mod_enabled) {
+                for (int i = 0; i < 4; i++) {
+                    PlayerArr.push_back(std::make_unique<CoopPlayer>());
+                    CoopPlayer* curr_pl = PlayerArr[i].get();
+                    if (i == 0)
+                        curr_pl->pad = *sDevil4Pad_ptr;
+                    else
+                        curr_pl->pad = create_pad(i);
+                    curr_pl->player_id = 0;
                 }
-                ImGui::EndCombo();
-            }
-            ImGui::PopID();
-        }
-    }
-    if (ImGui::Button("Refresh cam")) {
-        sCamera* s_cam = *(sCamera**)sCamera_ptr;
-        if (mod_enabled) {
-            switch (player_num) {
-            case 2: {
-                s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
-                s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
-                s_cam->viewports[0].mAttr    = 0x17;
-                s_cam->viewports[1].mAttr    = 0x17;
-                s_cam->viewports[0].mMode    = REGION_TOP;
-                s_cam->viewports[1].mMode    = REGION_BOTTOM;
-                break;
-            }
-            case 3: {
-                s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
-                s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
-                s_cam->viewports[2].mpCamera = PlayerArr[2].get()->cam;
-                s_cam->viewports[0].mAttr = 0x17;
-                s_cam->viewports[1].mAttr = 0x17;
-                s_cam->viewports[2].mAttr = 0x17;
-                s_cam->viewports[0].mMode = REGION_TOPLEFT;
-                s_cam->viewports[1].mMode = REGION_TOPRIGHT;
-                s_cam->viewports[2].mMode = REGION_BOTTOMLEFT;
-                break;
-            }
-            case 4: {
-                s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
-                s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
-                s_cam->viewports[2].mpCamera = PlayerArr[2].get()->cam;
-                s_cam->viewports[3].mpCamera = PlayerArr[3].get()->cam;
-                s_cam->viewports[0].mAttr = 0x17;
-                s_cam->viewports[1].mAttr = 0x17;
-                s_cam->viewports[2].mAttr = 0x17;
-                s_cam->viewports[3].mAttr = 0x17;
-                s_cam->viewports[0].mMode = REGION_TOPLEFT;
-                s_cam->viewports[1].mMode = REGION_TOPRIGHT;
-                s_cam->viewports[2].mMode = REGION_BOTTOMLEFT;
-                s_cam->viewports[3].mMode = REGION_BOTTOMRIGHT;
-                break;
-            }
+                *sDevil4Pad_ptr = PlayerArr[0].get()->pad;
             }
         }
-        else {
-            s_cam->viewports[0].mMode = REGION_FULLSCREEN;
-        }
-    }
 
-    if (ImGui::Button("Spawn Nero")) {
-        player_factory(0, 1);
-        make_cam();
-        sCamera* s_cam = *(sCamera**)sCamera_ptr;
-        s_cam->viewports[0].mMode = REGION_TOP;
-        s_cam->viewports[1].mMode = REGION_BOTTOM;
-    }
-    if (ImGui::Button("Spawn Dante")) {
-        player_factory(1, 1);
-        make_cam();
-        sCamera* s_cam = *(sCamera**)sCamera_ptr;
-        s_cam->viewports[0].mMode = REGION_TOP;
-        s_cam->viewports[1].mMode = REGION_BOTTOM;
+        ImGui::SameLine();
+        help_marker(_("Enable split-screen co-op."));
+        ImGui::SameLine();
+        ImGui::PushItemWidth(sameLineItemWidth / 2.0f);
+        ImGui::SliderInt(_("Player Number"), (int*)&player_num, 2, 4);
+        ImGui::PopItemWidth();
+
+        if (mod_enabled) {
+            for (int i = 1; i < player_num; i++) {
+                ImGui::Text("Player %d", i + 1);
+                ImGui::SameLine();
+                CoopPlayer* curr_pl = PlayerArr[i].get();
+                ImGui::PushID(curr_pl);
+                if (ImGui::BeginCombo("Select Character", CHAR_NAME[curr_pl->player_id])) {
+                    for (int char_id = 0; char_id < 2; char_id++) {
+                        bool is_selected = (curr_pl->player_id == char_id);
+                        if (ImGui::Selectable(CHAR_NAME[char_id], &is_selected)) {
+                            curr_pl->player_id = char_id;
+                        }
+                        if (is_selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+                ImGui::PopID();
+            }
+        }
+        if (ImGui::Button("Refresh cam")) {
+            sCamera* s_cam = *(sCamera**)sCamera_ptr;
+            if (mod_enabled) {
+                switch (player_num) {
+                case 2: {
+                    s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
+                    s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
+                    s_cam->viewports[0].mAttr    = 0x17;
+                    s_cam->viewports[1].mAttr    = 0x17;
+                    s_cam->viewports[0].mMode    = REGION_TOP;
+                    s_cam->viewports[1].mMode    = REGION_BOTTOM;
+                    break;
+                }
+                case 3: {
+                    s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
+                    s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
+                    s_cam->viewports[2].mpCamera = PlayerArr[2].get()->cam;
+                    s_cam->viewports[0].mAttr    = 0x17;
+                    s_cam->viewports[1].mAttr    = 0x17;
+                    s_cam->viewports[2].mAttr    = 0x17;
+                    s_cam->viewports[0].mMode    = REGION_TOPLEFT;
+                    s_cam->viewports[1].mMode    = REGION_TOPRIGHT;
+                    s_cam->viewports[2].mMode    = REGION_BOTTOMLEFT;
+                    break;
+                }
+                case 4: {
+                    s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
+                    s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
+                    s_cam->viewports[2].mpCamera = PlayerArr[2].get()->cam;
+                    s_cam->viewports[3].mpCamera = PlayerArr[3].get()->cam;
+                    s_cam->viewports[0].mAttr    = 0x17;
+                    s_cam->viewports[1].mAttr    = 0x17;
+                    s_cam->viewports[2].mAttr    = 0x17;
+                    s_cam->viewports[3].mAttr    = 0x17;
+                    s_cam->viewports[0].mMode    = REGION_TOPLEFT;
+                    s_cam->viewports[1].mMode    = REGION_TOPRIGHT;
+                    s_cam->viewports[2].mMode    = REGION_BOTTOMLEFT;
+                    s_cam->viewports[3].mMode    = REGION_BOTTOMRIGHT;
+                    break;
+                }
+                }
+            } else {
+                s_cam->viewports[0].mMode = REGION_FULLSCREEN;
+            }
+        }
+
+        if (ImGui::Button("Spawn Nero")) {
+            player_factory(0, 1);
+            make_cam();
+            sCamera* s_cam            = *(sCamera**)sCamera_ptr;
+            s_cam->viewports[0].mMode = REGION_TOP;
+            s_cam->viewports[1].mMode = REGION_BOTTOM;
+        }
+        if (ImGui::Button("Spawn Dante")) {
+            player_factory(1, 1);
+            make_cam();
+            sCamera* s_cam            = *(sCamera**)sCamera_ptr;
+            s_cam->viewports[0].mMode = REGION_TOP;
+            s_cam->viewports[1].mMode = REGION_BOTTOM;
+        }
     }
 }
 

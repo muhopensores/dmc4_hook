@@ -517,28 +517,30 @@ std::optional<std::string> EnemySpawn::on_initialize() {
 }
 
 void EnemySpawn::on_gui_frame(int display) {
-    uPlayer* player = devil4_sdk::get_local_player();
-    int enemy_names_current = 0;
-    ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+    if (display == DISPLAY_SYSTEM_A) {
+        uPlayer* player         = devil4_sdk::get_local_player();
+        int enemy_names_current = 0;
+        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
 
-    utility::ImGooListboxTranslated translated_names(enemy_names.data(), enemy_names.size());
-    if (ImGui::ListBox("##Enemy Spawn Listbox", &enemy_names_current, translated_names.data(), translated_names.size(), 23)) {
-        if (player)
-            spawn_em00x((EnemyType)enemy_names_current);
+        utility::ImGooListboxTranslated translated_names(enemy_names.data(), enemy_names.size());
+        if (ImGui::ListBox("##Enemy Spawn Listbox", &enemy_names_current, translated_names.data(), translated_names.size(), 23)) {
+            if (player)
+                spawn_em00x((EnemyType)enemy_names_current);
+        }
+        if (ImGui::Button(_("Random"))) {
+            if (player)
+                spawn_random_enemy();
+        }
+        ImGui::Spacing();
+        static intptr_t custom_spawn_addr = NULL;
+        ImGui::Text(_("[DEBUG] Custom Spawn Addr"));
+        ImGui::InputInt("##[DEBUG] Custom Spawn Addr InputInt", &custom_spawn_addr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal);
+        if (ImGui::Button(_("Spawn"))) {
+            if (player)
+                spawn_custom(custom_spawn_addr);
+        }
+        ImGui::PopItemWidth();
     }
-    if (ImGui::Button(_("Random"))) {
-        if (player)
-            spawn_random_enemy();
-    }
-    ImGui::Spacing();
-    static intptr_t custom_spawn_addr = NULL;
-    ImGui::Text(_("[DEBUG] Custom Spawn Addr"));
-    ImGui::InputInt("##[DEBUG] Custom Spawn Addr InputInt", &custom_spawn_addr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal);
-    if (ImGui::Button(_("Spawn"))) {
-        if (player)
-            spawn_custom(custom_spawn_addr);
-    }
-    ImGui::PopItemWidth();
 }
 
 // void EnemySpawn::on_config_load(const utility::Config& cfg) {};

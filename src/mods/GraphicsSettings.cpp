@@ -50,17 +50,19 @@ void GraphicsSettings::shadowres_toggle(bool enable) {
 // void on_frame(fmilliseconds& dt) {}
 
 void GraphicsSettings::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Disable Prop Fade"), &disable_prop_fade_enabled)) {
-        prop_fade_toggle(disable_prop_fade_enabled);
-    }
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Disable Bullet Casing Fade"), &disable_bullet_casing_fade_enabled)) {
-        bullet_casing_fade_toggle(disable_bullet_casing_fade_enabled);
-    }
-    ImGui::SameLine();
-    help_marker(_("Also stops cartridges from spinning so they don't endlessly spin while on the floor"));
-    if (ImGui::Checkbox(_("Increased Shadow Resolution"), &shadow_upgrade_enabled)) {
-        shadowres_toggle(shadow_upgrade_enabled);
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Disable Prop Fade"), &disable_prop_fade_enabled)) {
+            prop_fade_toggle(disable_prop_fade_enabled);
+        }
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox(_("Disable Bullet Casing Fade"), &disable_bullet_casing_fade_enabled)) {
+            bullet_casing_fade_toggle(disable_bullet_casing_fade_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("This will kill your fps if you spawn too many\nAlso stops cartridges from spinning so they don't endlessly spin while on the floor"));
+        if (ImGui::Checkbox(_("Increased Shadow Resolution"), &shadow_upgrade_enabled)) {
+            shadowres_toggle(shadow_upgrade_enabled);
+        }
     }
 }
 

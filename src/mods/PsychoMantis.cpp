@@ -45,43 +45,45 @@ std::optional<std::string> PsychoMantis::on_initialize() {
 }
 
 void PsychoMantis::on_gui_frame(int display) {
-    ImGui::BeginGroup();
-    ImGui::Checkbox(_("Stylevibe"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Put your controller on the floor. Put it down as flat as you can..."
-        "that's good. Now I will move your controller by the power of my style alone!!\n"
-        "(Vibrates your controller more the higher your style rank)"));
-    if (mod_enabled) {
-        ImGui::Indent(lineIndent);
-        if (ImGui::Checkbox(_("Vibe Controller 2 Instead"), &psycho_mantis_slot_2)) {
-            if (psycho_mantis_slot_2) {
-                PsychoMantis::Controller::_controllerNum = 1;
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::BeginGroup();
+        ImGui::Checkbox(_("Stylevibe"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Put your controller on the floor. Put it down as flat as you can..."
+                      "that's good. Now I will move your controller by the power of my style alone!!\n"
+                      "(Vibrates your controller more the higher your style rank)"));
+        if (mod_enabled) {
+            ImGui::Indent(lineIndent);
+            if (ImGui::Checkbox(_("Vibe Controller 2 Instead"), &psycho_mantis_slot_2)) {
+                if (psycho_mantis_slot_2) {
+                    PsychoMantis::Controller::_controllerNum = 1;
+                } else
+                    PsychoMantis::Controller::_controllerNum = 0;
             }
-            else
-                PsychoMantis::Controller::_controllerNum = 0;
+            ImGui::SameLine();
+            help_marker(_("One simple trick to get your gf interested in your dmc combos"));
+            ImGui::Unindent(lineIndent);
         }
-        ImGui::SameLine();
-        help_marker(_("One simple trick to get your gf interested in your dmc combos"));
-        ImGui::Unindent(lineIndent);
-    }
 #ifndef NDEBUG
-    if (mod_enabled) {
-        ImGui::Indent(lineIndent);
-        ImGui::Checkbox(_("...debug"), &mod_debugEnabled);
-        ImGui::SameLine();
-        ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::SliderInt("##mod_enabled2AmountSliderInt", &mod_debugAmount, 0, 65535);
-        ImGui::PopItemWidth();
+        if (mod_enabled) {
+            ImGui::Indent(lineIndent);
+            ImGui::Checkbox(_("...debug"), &mod_debugEnabled);
+            ImGui::SameLine();
+            ImGui::PushItemWidth(sameLineItemWidth);
+            ImGui::SliderInt("##mod_enabled2AmountSliderInt", &mod_debugAmount, 0, 65535);
+            ImGui::PopItemWidth();
 
-        ImGui::SameLine(sameLineWidth);
-        ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::SliderInt("##mod_enabled2LRSliderInt", &mod_debugLR, 0, 2);
-        ImGui::PopItemWidth();
-        ImGui::Unindent(lineIndent);
-    }
+            ImGui::SameLine(sameLineWidth);
+            ImGui::PushItemWidth(sameLineItemWidth);
+            ImGui::SliderInt("##mod_enabled2LRSliderInt", &mod_debugLR, 0, 2);
+            ImGui::PopItemWidth();
+            ImGui::Unindent(lineIndent);
+        }
 #endif
-    ImGui::EndGroup();
+        ImGui::EndGroup();
+    }
 }
+
 void PsychoMantis::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
         if (!devil4_sdk::is_paused() && devil4_sdk::get_work_rate()->global_speed != 0.0f) {

@@ -482,30 +482,32 @@ std::optional<std::string> FlyingStats::on_initialize() {
 }
 
 void FlyingStats::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Flying Stats"), &showFlyingStats);
-    ImGui::SameLine();
-    help_marker(_("Render ImGui stats on entities"));
-    if (showFlyingStats) {
-        ImGui::Indent(lineIndent);
-        ImGui::Checkbox(_("Display Enemy Stats"), &showFlyingEnemyStats);
-        ImGui::Checkbox(_("Display Player Stats"), &showFlyingPlayerStats);
-        ImGui::Indent(lineIndent);
-        ImGui::Checkbox(_("Display HP"), &showFlyingHP);
-        ImGui::Checkbox(_("Display Damage Taken"), &showFlyingDamageTaken);
-        ImGui::Checkbox(_("Display Damage Resist"), &showFlyingDamageResist);
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Flying Stats"), &showFlyingStats);
         ImGui::SameLine();
-        help_marker(_("Current difficulty * armour"));
-        ImGui::Checkbox(_("Display DT Timer"), &showFlyingDT);
-        ImGui::Checkbox(_("Display Stun"), &showFlyingStun);
-        ImGui::Checkbox(_("Display Displacement"), &showFlyingDisplacement);
-        ImGui::Checkbox(_("Display Move ID"), &showFlyingMoveID);
-        ImGui::Checkbox(_("Display Mechanics"), &showFlyingMechanics);
-        ImGui::Checkbox(_("Display Debug Info"), &showFlyingDebug);
-        ImGui::Checkbox(_("Display Collision Info"), &showFlyingCollisionData);
-        ImGui::Checkbox(_("Display Cancels"), &showFlyingCancelBools);
-        ImGui::Checkbox(_("Display Lucifer Pin Timers"), &showFlyingLuciferPinTimers);
-        ImGui::Unindent(lineIndent);
-        ImGui::Unindent(lineIndent);
+        help_marker(_("Render ImGui stats on entities"));
+        if (showFlyingStats) {
+            ImGui::Indent(lineIndent);
+            ImGui::Checkbox(_("Display Enemy Stats"), &showFlyingEnemyStats);
+            ImGui::Checkbox(_("Display Player Stats"), &showFlyingPlayerStats);
+            ImGui::Indent(lineIndent);
+            ImGui::Checkbox(_("Display HP"), &showFlyingHP);
+            ImGui::Checkbox(_("Display Damage Taken"), &showFlyingDamageTaken);
+            ImGui::Checkbox(_("Display Damage Resist"), &showFlyingDamageResist);
+            ImGui::SameLine();
+            help_marker(_("Current difficulty * armour"));
+            ImGui::Checkbox(_("Display DT Timer"), &showFlyingDT);
+            ImGui::Checkbox(_("Display Stun"), &showFlyingStun);
+            ImGui::Checkbox(_("Display Displacement"), &showFlyingDisplacement);
+            ImGui::Checkbox(_("Display Move ID"), &showFlyingMoveID);
+            ImGui::Checkbox(_("Display Mechanics"), &showFlyingMechanics);
+            ImGui::Checkbox(_("Display Debug Info"), &showFlyingDebug);
+            ImGui::Checkbox(_("Display Collision Info"), &showFlyingCollisionData);
+            ImGui::Checkbox(_("Display Cancels"), &showFlyingCancelBools);
+            ImGui::Checkbox(_("Display Lucifer Pin Timers"), &showFlyingLuciferPinTimers);
+            ImGui::Unindent(lineIndent);
+            ImGui::Unindent(lineIndent);
+        }
     }
 }
 

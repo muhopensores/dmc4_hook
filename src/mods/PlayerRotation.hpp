@@ -11,7 +11,11 @@ public:
     static uintptr_t player_rotation_continue;
 
     std::string get_mod_name() override { return "PlayerRotation"; };
-
+    std::vector<std::string> get_search_terms() override {
+        return {
+            "unlock rotation",
+        };
+    }
     std::optional<std::string> on_initialize() override;
 
     void on_config_load(const utility::Config& cfg) override;

@@ -975,141 +975,145 @@ const char* moveLineNames[]{
 };
 
 void PlayerTracker::on_gui_frame(int display) {
-	ImGui::Checkbox(_("Show Player Params"), &show_player_params);
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Show Player Params"), &show_player_params);
 
-    if (ImGui::CollapsingHeader(_("Shadow Settings"))) {
-        sUnit* sUnit = devil4_sdk::get_sUnit();
-        if (sUnit) {
-			uShadow* shadow = (uShadow*)sUnit->mMoveLine[1].mBottom;
-            if (shadow) {
+        if (ImGui::CollapsingHeader(_("Shadow Settings"))) {
+            sUnit* sUnit = devil4_sdk::get_sUnit();
+            if (sUnit) {
+                uShadow* shadow = (uShadow*)sUnit->mMoveLine[1].mBottom;
+                if (shadow) {
+                    ImGui::Indent(lineIndent);
+                    ImGui::InputFloat3(_("Rotation"), &shadow->rotation.x);
+                    ImGui::InputFloat4(_("Colour"), &shadow->colour.x);
+                    ImGui::InputFloat(_("diffuse"), &shadow->diffuse);
+                    ImGui::InputFloat(_("bloom"), &shadow->bloom);
+                    ImGui::Unindent();
+                }
+            }
+        }
+
+        if (ImGui::CollapsingHeader(_("View MoveLine Entries"))) {
+            sUnit* sUnit = devil4_sdk::get_sUnit();
+            if (sUnit) {
+                for (int i = 0; i < 32; i++) {
+                    cUnit* mL   = (cUnit*)sUnit->mMoveLine[i].mTop;
+                    int mLCount = 0;
+                    ImGui::Text(moveLineNames[i]);
+                    while (mL) {
+                        ImGui::PushID(mL);
+                        ImGui::Indent(lineIndent);
+                        ImGui::PushItemWidth(sameLineItemWidth);
+                        char entryText[16];
+                        snprintf(entryText, sizeof(entryText), "entry %i", mLCount);
+                        ImGui::InputScalar(entryText, ImGuiDataType_S32, &mL, NULL, NULL, "%8X", ImGuiInputTextFlags_CharsHexadecimal);
+                        MtDTI* dti = devil4_sdk::get_DTI(mL);
+                        ImGui::SameLine();
+                        ImGui::Text(dti->m_name);
+                        mL = mL->mp_next_unit;
+                        mLCount++;
+                        ImGui::PopItemWidth();
+                        ImGui::Unindent(lineIndent);
+                        ImGui::PopID();
+                    }
+                }
+            }
+        }
+
+        if (ImGui::CollapsingHeader(_("[OLD] Display Player Stats"))) {
+            uPlayer* player      = devil4_sdk::get_local_player();
+            sMediator* s_med_ptr = devil4_sdk::get_sMediator();
+            if (player) {
                 ImGui::Indent(lineIndent);
-                ImGui::InputFloat3(_("Rotation"), &shadow->rotation.x);
-                ImGui::InputFloat4(_("Colour"), &shadow->colour.x);
-                ImGui::InputFloat(_("diffuse"), &shadow->diffuse);
-                ImGui::InputFloat(_("bloom"), &shadow->bloom);
-                ImGui::Unindent();
-            }
-        }
-    }
-
-    if (ImGui::CollapsingHeader(_("View MoveLine Entries"))) {
-        sUnit* sUnit = devil4_sdk::get_sUnit();
-        if (sUnit) {
-			for (int i = 0; i < 32; i++) {
-				cUnit* mL = (cUnit*)sUnit->mMoveLine[i].mTop;
-				int mLCount = 0;
-				ImGui::Text(moveLineNames[i]);
-				while (mL) {
-					ImGui::PushID(mL);
-					ImGui::Indent(lineIndent);
-					ImGui::PushItemWidth(sameLineItemWidth);
-					char entryText[16];
-					snprintf(entryText, sizeof(entryText), "entry %i", mLCount);
-					ImGui::InputScalar(entryText, ImGuiDataType_S32, &mL, NULL, NULL, "%8X", ImGuiInputTextFlags_CharsHexadecimal);
-					MtDTI* dti = devil4_sdk::get_DTI(mL);
-					ImGui::SameLine();
-					ImGui::Text(dti->m_name);
-					mL = mL->mp_next_unit;
-					mLCount++;
-					ImGui::PopItemWidth();
-					ImGui::Unindent(lineIndent);
-					ImGui::PopID();
-				}
-			}
-        }
-    }
-
-    if (ImGui::CollapsingHeader(_("[OLD] Display Player Stats"))) {
-        uPlayer* player = devil4_sdk::get_local_player();
-        sMediator* s_med_ptr = devil4_sdk::get_sMediator();
-        if (player) {
-            ImGui::Indent(lineIndent);
-            if (ImGui::Button(_("Save Current Move"))) {
-                SavePlayerMove();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button(_("Play Saved Move"))) {
-                LoadPlayerMove();
-            }
-            ImGui::InputFloat3(_("Saved Player Position"), &savedPlayerPosition[0]);
-
-            static int inputAnimID = 0;
-            static bool loopAnimID = false;
-            ImGui::PushItemWidth(sameLineItemWidth);
-            ImGui::InputInt("##InputAnimIDInputInt ##1", &inputAnimID);
-            ImGui::PopItemWidth();
-            ImGui::SameLine();
-            if (ImGui::Button(_("Play Animation ID"))) {
-                uPlayer* player = devil4_sdk::get_local_player();
-                if (!player) { return; }
-                player->movePart = 3;
-                devil4_sdk::indexed_anim_call(inputAnimID, player, 0, 1.0f, 0.0f, 3.0f);
-                if (!loopAnimID)
-                    player->playMoveOnce = 4;
-            }
-            ImGui::SameLine();
-            help_marker(_("uhh this only plays things that don't require a certain player state, "
-                "e.g. You must have just taken damage to play a damage animation"));
-            ImGui::SameLine();
-            ImGui::Checkbox(_("Loop"), &loopAnimID);
-            ImGui::NewLine();
-            ImGui::SliderFloat(_("HP ##1"), &player->damageStruct.HP, 0.0f, 20000.0f, "%.0f");
-            ImGui::SliderFloat(_("Max HP ##1"), &player->damageStruct.HPMax, 0.0f, 20000.0f, "%.0f");
-            ImGui::SliderFloat(_("DT ##1"), &player->DT, 0.0f, 10000.0f, "%.0f");
-            ImGui::SliderFloat(_("Max DT ##1"), &player->maxDT, 0.0f, 10000.0f, "%.0f");
-            ImGui::InputFloat(_("Previous Hit Dealt"), &player->damageStruct.HPTaken);
-            ImGui::InputInt(_("Stun 1##2"), &player->damageStruct.stun[0]);
-            ImGui::InputInt(_("Stun 2##2"), &player->damageStruct.stun[1]);
-            ImGui::InputInt(_("Stun 3##2"), &player->damageStruct.stun[2]);
-            ImGui::InputInt(_("Stun 4##2"), &player->damageStruct.stun[3]);
-            ImGui::InputInt(_("Stun 5##2"), &player->damageStruct.stun[4]);
-            ImGui::InputInt(_("Displacement 1##2"), &player->damageStruct.displacement[0]);
-            ImGui::InputInt(_("Displacement 2##2"), &player->damageStruct.displacement[1]);
-            ImGui::InputInt(_("Displacement 3##2"), &player->damageStruct.displacement[2]);
-            ImGui::InputInt(_("Displacement 4##2"), &player->damageStruct.displacement[3]);
-            ImGui::InputInt(_("Displacement 5##2"), &player->damageStruct.displacement[4]);
-            ImGui::InputInt(_("Unknown 1##2"), &player->damageStruct.unknown[0]);
-            ImGui::InputInt(_("Unknown 2##2"), &player->damageStruct.unknown[1]);
-            ImGui::InputInt(_("Unknown 3##2"), &player->damageStruct.unknown[2]);
-            ImGui::InputInt(_("Unknown 4##2"), &player->damageStruct.unknown[3]);
-            ImGui::InputInt(_("Unknown 5##2"), &player->damageStruct.unknown[4]);
-            ImGui::InputInt(_("Unknown 6##2"), &player->damageStruct.unknown[5]);
-            ImGui::InputInt(_("Unknown 7##2"), &player->damageStruct.unknown[6]);
-            ImGui::InputInt(_("Unknown 8##2"), &player->damageStruct.unknown[7]);
-            ImGui::InputFloat(_("BP Timer ##1"), &s_med_ptr->bpTimer);
-            ImGui::InputFloat3(_("XYZ Position ##1"), (float*)&player->mPos);
-            ImGui::SliderFloat(_("Rotation ##1"), &player->rotation2, -3.14f, 3.14f, "%.2f");
-            ImGui::InputFloat3(_("XYZ Scale ##1"), (float*)&player->mScale);
-            ImGui::InputFloat3(_("XYZ Velocity ##1"), (float*)&player->m_d_velocity);
-            ImGui::InputFloat(_("Movement Speed ##1"), &player->m_d_vel_magnitude);
-            ImGui::InputFloat(_("Inertia ##1"), &player->inertia);
-            ImGui::SameLine();
-            help_marker(_("Uhm, ehm, akshually, internia isn't a thing, it's a property of a thing, the shit you're showing is velocity, the "
-                "measure of inertia is mass, resistance to acceleration (slowing down is also acceleration just in the opposite "
-                "direction), if the thing that got yeeted doesn't like burn off it's layers in flight due to air friction like a "
-                "fucking meteor or some shit then it's inertia isn't changing. Get it right NERD"));
-            ImGui::InputScalar(_("Weight ##1"), ImGuiDataType_U8, &player->weight);
-            ImGui::InputScalar(_("Lock On ##1"), ImGuiDataType_U8, &player->lockedOn);
-            if (player->controllerID == 0) { // dante
-                ImGui::SliderFloat(_("Disaster Gauge ##1"), &player->disasterGauge, 0.0f, 10000.0f, "%.0f");
-                ImGui::SliderFloat(_("Revenge Gauge ##1"), &player->revengeGauge, 0.0f, 30000.0f, "%.0f");
-            }
-            else { // nero
-                ImGui::InputFloat(_("Exceed Timer ##1"), &player->exceedTimer, 0.0f, 16.0f, "%.1f");
+                if (ImGui::Button(_("Save Current Move"))) {
+                    SavePlayerMove();
+                }
                 ImGui::SameLine();
-                help_marker(_("If you press exceed while this timer is between 0 and 1, you'll get MAX-Act."));
+                if (ImGui::Button(_("Play Saved Move"))) {
+                    LoadPlayerMove();
+                }
+                ImGui::InputFloat3(_("Saved Player Position"), &savedPlayerPosition[0]);
+
+                static int inputAnimID = 0;
+                static bool loopAnimID = false;
+                ImGui::PushItemWidth(sameLineItemWidth);
+                ImGui::InputInt("##InputAnimIDInputInt ##1", &inputAnimID);
+                ImGui::PopItemWidth();
+                ImGui::SameLine();
+                if (ImGui::Button(_("Play Animation ID"))) {
+                    uPlayer* player = devil4_sdk::get_local_player();
+                    if (!player) {
+                        return;
+                    }
+                    player->movePart = 3;
+                    devil4_sdk::indexed_anim_call(inputAnimID, player, 0, 1.0f, 0.0f, 3.0f);
+                    if (!loopAnimID)
+                        player->playMoveOnce = 4;
+                }
+                ImGui::SameLine();
+                help_marker(_("uhh this only plays things that don't require a certain player state, "
+                              "e.g. You must have just taken damage to play a damage animation"));
+                ImGui::SameLine();
+                ImGui::Checkbox(_("Loop"), &loopAnimID);
+                ImGui::NewLine();
+                ImGui::SliderFloat(_("HP ##1"), &player->damageStruct.HP, 0.0f, 20000.0f, "%.0f");
+                ImGui::SliderFloat(_("Max HP ##1"), &player->damageStruct.HPMax, 0.0f, 20000.0f, "%.0f");
+                ImGui::SliderFloat(_("DT ##1"), &player->DT, 0.0f, 10000.0f, "%.0f");
+                ImGui::SliderFloat(_("Max DT ##1"), &player->maxDT, 0.0f, 10000.0f, "%.0f");
+                ImGui::InputFloat(_("Previous Hit Dealt"), &player->damageStruct.HPTaken);
+                ImGui::InputInt(_("Stun 1##2"), &player->damageStruct.stun[0]);
+                ImGui::InputInt(_("Stun 2##2"), &player->damageStruct.stun[1]);
+                ImGui::InputInt(_("Stun 3##2"), &player->damageStruct.stun[2]);
+                ImGui::InputInt(_("Stun 4##2"), &player->damageStruct.stun[3]);
+                ImGui::InputInt(_("Stun 5##2"), &player->damageStruct.stun[4]);
+                ImGui::InputInt(_("Displacement 1##2"), &player->damageStruct.displacement[0]);
+                ImGui::InputInt(_("Displacement 2##2"), &player->damageStruct.displacement[1]);
+                ImGui::InputInt(_("Displacement 3##2"), &player->damageStruct.displacement[2]);
+                ImGui::InputInt(_("Displacement 4##2"), &player->damageStruct.displacement[3]);
+                ImGui::InputInt(_("Displacement 5##2"), &player->damageStruct.displacement[4]);
+                ImGui::InputInt(_("Unknown 1##2"), &player->damageStruct.unknown[0]);
+                ImGui::InputInt(_("Unknown 2##2"), &player->damageStruct.unknown[1]);
+                ImGui::InputInt(_("Unknown 3##2"), &player->damageStruct.unknown[2]);
+                ImGui::InputInt(_("Unknown 4##2"), &player->damageStruct.unknown[3]);
+                ImGui::InputInt(_("Unknown 5##2"), &player->damageStruct.unknown[4]);
+                ImGui::InputInt(_("Unknown 6##2"), &player->damageStruct.unknown[5]);
+                ImGui::InputInt(_("Unknown 7##2"), &player->damageStruct.unknown[6]);
+                ImGui::InputInt(_("Unknown 8##2"), &player->damageStruct.unknown[7]);
+                ImGui::InputFloat(_("BP Timer ##1"), &s_med_ptr->bpTimer);
+                ImGui::InputFloat3(_("XYZ Position ##1"), (float*)&player->mPos);
+                ImGui::SliderFloat(_("Rotation ##1"), &player->rotation2, -3.14f, 3.14f, "%.2f");
+                ImGui::InputFloat3(_("XYZ Scale ##1"), (float*)&player->mScale);
+                ImGui::InputFloat3(_("XYZ Velocity ##1"), (float*)&player->m_d_velocity);
+                ImGui::InputFloat(_("Movement Speed ##1"), &player->m_d_vel_magnitude);
+                ImGui::InputFloat(_("Inertia ##1"), &player->inertia);
+                ImGui::SameLine();
+                help_marker(
+                    _("Uhm, ehm, akshually, internia isn't a thing, it's a property of a thing, the shit you're showing is velocity, the "
+                      "measure of inertia is mass, resistance to acceleration (slowing down is also acceleration just in the opposite "
+                      "direction), if the thing that got yeeted doesn't like burn off it's layers in flight due to air friction like a "
+                      "fucking meteor or some shit then it's inertia isn't changing. Get it right NERD"));
+                ImGui::InputScalar(_("Weight ##1"), ImGuiDataType_U8, &player->weight);
+                ImGui::InputScalar(_("Lock On ##1"), ImGuiDataType_U8, &player->lockedOn);
+                if (player->controllerID == 0) { // dante
+                    ImGui::SliderFloat(_("Disaster Gauge ##1"), &player->disasterGauge, 0.0f, 10000.0f, "%.0f");
+                    ImGui::SliderFloat(_("Revenge Gauge ##1"), &player->revengeGauge, 0.0f, 30000.0f, "%.0f");
+                } else { // nero
+                    ImGui::InputFloat(_("Exceed Timer ##1"), &player->exceedTimer, 0.0f, 16.0f, "%.1f");
+                    ImGui::SameLine();
+                    help_marker(_("If you press exceed while this timer is between 0 and 1, you'll get MAX-Act."));
+                }
+                ImGui::SliderFloat(_("Animation Frame ##1"), &player->animFrame, 0.0f, player->animFrameMax, "%.1f");
+                ImGui::InputScalar(_("Animation ID ##1"), ImGuiDataType_U16, &player->animID);
+                ImGui::InputScalar(_("Move ID ##1"), ImGuiDataType_U32, &player->moveIDBest);
+                ImGui::InputScalar(_("Move ID2 ##1"), ImGuiDataType_U32, &player->moveID2);
+                ImGui::InputScalar(_("Move Bank ##1"), ImGuiDataType_U32, &player->moveBank);
+                ImGui::InputScalar(_("Move Part ##1"), ImGuiDataType_U32, &player->movePart);
+                ImGui::InputScalar(_("Saved Move Bank ##1"), ImGuiDataType_U8, &savedPlayerMoveBank);
+                ImGui::InputScalar(_("Saved Move ID ##1"), ImGuiDataType_U8, &savedPlayerMoveID);
+                ImGui::Unindent(lineIndent);
             }
-            ImGui::SliderFloat(_("Animation Frame ##1"), &player->animFrame, 0.0f, player->animFrameMax, "%.1f");
-            ImGui::InputScalar(_("Animation ID ##1"), ImGuiDataType_U16, &player->animID);
-            ImGui::InputScalar(_("Move ID ##1"), ImGuiDataType_U32, &player->moveIDBest);
-            ImGui::InputScalar(_("Move ID2 ##1"), ImGuiDataType_U32, &player->moveID2);
-            ImGui::InputScalar(_("Move Bank ##1"), ImGuiDataType_U32, &player->moveBank);
-            ImGui::InputScalar(_("Move Part ##1"), ImGuiDataType_U32, &player->movePart);
-            ImGui::InputScalar(_("Saved Move Bank ##1"), ImGuiDataType_U8, &savedPlayerMoveBank);
-            ImGui::InputScalar(_("Saved Move ID ##1"), ImGuiDataType_U8, &savedPlayerMoveID);
-            ImGui::Unindent(lineIndent);
         }
-	}
+    }
 }
 
 // void PlayerTracker::on_config_save(utility::Config& cfg) {}

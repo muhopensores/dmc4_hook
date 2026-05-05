@@ -11,7 +11,11 @@ public:
     void toggle(bool enable);
 
     std::string get_mod_name() override { return "InstantTrick"; };
-
+    std::vector<std::string> get_search_terms() override {
+        return {
+            "fast trick",
+        };
+    }
     std::optional<std::string> on_initialize() override;
 
     void on_config_load(const utility::Config& cfg) override;

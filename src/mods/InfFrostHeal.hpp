@@ -5,6 +5,11 @@ class InfFrostHeal : public Mod {
 public:
     InfFrostHeal() = default;
     std::string get_mod_name() override { return "InfFrostHeal"; };
+    std::vector<std::string> get_search_terms() override {
+        return {
+            "infinite frost heals",
+        };
+    }
     // Mod::ModType get_mod_type() override { return SLOW; };
 
     static bool mod_enabled;

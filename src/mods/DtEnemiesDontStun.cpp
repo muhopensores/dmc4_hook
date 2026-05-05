@@ -17,11 +17,13 @@ void DtEnemiesDontStun::toggle(bool enable){
 }
 
 void DtEnemiesDontStun::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("DT Enemies Don't Stun"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("DT Enemies Don't Stun"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Stop enemies from receiving stun from most attacks"));
     }
-    ImGui::SameLine();
-    help_marker(_("Stop enemies from receiving stun from most attacks"));
 }
 
 void DtEnemiesDontStun::on_config_load(const utility::Config& cfg) {

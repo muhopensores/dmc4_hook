@@ -164,11 +164,13 @@ std::optional<std::string> PandoraCharge::on_initialize() {
 }
 
 void PandoraCharge::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Pandora Charge"), &mod_enabled)) {
-        toggle1(mod_enabled); // Charge & Uncharge with Pandora equipped
+    if (display == DISPLAY_DANTE_A) {
+        if (ImGui::Checkbox(_("Pandora Charge"), &mod_enabled)) {
+            toggle1(mod_enabled); // Charge & Uncharge with Pandora equipped
+        }
+        ImGui::SameLine();
+        help_marker(_("Charge Pandora just like the other guns\nAlso enables Gunslinger charge moves"));
     }
-    ImGui::SameLine();
-    help_marker(_("Charge Pandora just like the other guns\nAlso enables Gunslinger charge moves"));
 }
 
 // void on_frame(fmilliseconds& dt) {}

@@ -269,11 +269,13 @@ std::optional<std::string> AerialDrive::on_initialize() {
 }
 
 void AerialDrive::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Aerial Drive"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_DANTE_A) {
+        if (ImGui::Checkbox(_("Aerial Drive"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Allow Dante to use Drive in the air"));
     }
-    ImGui::SameLine();
-    help_marker(_("Allow Dante to use Drive in the air"));
 }
 
 void AerialDrive::on_config_load(const utility::Config& cfg) {

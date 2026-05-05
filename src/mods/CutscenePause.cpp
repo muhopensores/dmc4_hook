@@ -26,25 +26,27 @@ naked void detour1(void) {
 }
 
 void CutscenePause::on_gui_frame(int display) {
-    ImGui::BeginGroup();
-    if (ImGui::Checkbox(_("Pause Cutscenes"), &mod_enabled)) {
-        wasToggled = true;
-    }
-    ImGui::SameLine();
-    help_marker(_("The hotkey is PAUSE BREAK by default"));
-    if (mod_enabled) {
-        ImGui::Indent(lineIndent);
-        ImGui::PushItemWidth(sameLineItemWidth);
-        // ImGui::InputFloat(_("Cutscene Length"), &cutsceneLength, 0.0f, 10.0f, "%.2f");
-        // ImGui::SameLine();
-        // help_marker(_("This controls the extent of the next slider"));
-        ImGui::SliderFloat(_("Cutscene Progress"), &cutsceneProgress, 0.0f, cutsceneLength, "%.2f");
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::BeginGroup();
+        if (ImGui::Checkbox(_("Pause Cutscenes"), &mod_enabled)) {
+            wasToggled = true;
+        }
         ImGui::SameLine();
-        help_marker(_("This doesn't seem to like time being reversed"));
-        ImGui::PopItemWidth();
-        ImGui::Unindent(lineIndent);
+        help_marker(_("The hotkey is PAUSE BREAK by default"));
+        if (mod_enabled) {
+            ImGui::Indent(lineIndent);
+            ImGui::PushItemWidth(sameLineItemWidth);
+            // ImGui::InputFloat(_("Cutscene Length"), &cutsceneLength, 0.0f, 10.0f, "%.2f");
+            // ImGui::SameLine();
+            // help_marker(_("This controls the extent of the next slider"));
+            ImGui::SliderFloat(_("Cutscene Progress"), &cutsceneProgress, 0.0f, cutsceneLength, "%.2f");
+            ImGui::SameLine();
+            help_marker(_("This doesn't seem to like time being reversed"));
+            ImGui::PopItemWidth();
+            ImGui::Unindent(lineIndent);
+        }
+        ImGui::EndGroup();
     }
-    ImGui::EndGroup();
 }
 
 std::optional<std::string> CutscenePause::on_initialize() {

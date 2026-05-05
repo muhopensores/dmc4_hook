@@ -322,7 +322,7 @@ void DebugCam::DrawDebugCamSettings2(int ImGuiID) {
 }
 
 void DebugCam::on_gui_frame(int display) {
-    if (display == 0) {
+    if (display == DISPLAY_SYSTEM_A) {
         ImGui::BeginGroup();
         if (ImGui::Checkbox(_("Free Camera"), &mod_enabled)) {
             if (!mod_enabled) {
@@ -337,7 +337,7 @@ void DebugCam::on_gui_frame(int display) {
         }
         ImGui::EndGroup();
     }
-    else if (display == 2) {
+    if (display == DISPLAY_SYSTEM_B) {
         DebugCam::DrawDebugCamSettings2(display);
     }
 }

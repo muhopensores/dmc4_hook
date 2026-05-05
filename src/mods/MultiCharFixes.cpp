@@ -110,14 +110,16 @@ naked void detour2() {
 
 
 void MultiCharFixes::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Targeting Fix"), &targeting_fix))
-        toggle_targeting_fix(targeting_fix);
-    ImGui::SameLine();
-    help_marker(_("Prevents characters from drifting with multiple player characters available"));
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Targeting Fix"), &targeting_fix))
+            toggle_targeting_fix(targeting_fix);
+        ImGui::SameLine();
+        help_marker(_("Prevents characters from drifting with multiple player characters available"));
 
-    ImGui::Checkbox(_("JC Fix"), &jc_fix);
-    ImGui::SameLine();
-    help_marker(_("Fixes co-op JC"));
+        ImGui::Checkbox(_("JC Fix"), &jc_fix);
+        ImGui::SameLine();
+        help_marker(_("Fixes co-op JC"));
+    }
 }
 
 std::optional<std::string> MultiCharFixes::on_initialize() {

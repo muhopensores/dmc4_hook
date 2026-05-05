@@ -14,11 +14,13 @@ void RunWhileHolding::toggle1(bool enable) {
 // void on_frame(fmilliseconds& dt) {}
 
 void RunWhileHolding::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Run While Holding"), &mod_enabled)) {
-        toggle1(mod_enabled);
+    if (display == DISPLAY_NERO_A) {
+        if (ImGui::Checkbox(_("Run While Holding"), &mod_enabled)) {
+            toggle1(mod_enabled);
+        }
+        // ImGui::SameLine();
+        // help_marker(_("RunWhileHoldingHelpMarker"));
     }
-    // ImGui::SameLine();
-    // help_marker(_("RunWhileHoldingHelpMarker"));
 }
 
 // void on_game_pause(bool toggle) {}

@@ -16,11 +16,13 @@ void ManualTwosomeTime::toggle(bool enable) {
 }
 
 void ManualTwosomeTime::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Manual Twosome Time"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_DANTE_A) {
+        if (ImGui::Checkbox(_("Manual Twosome Time"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Disable Twosome Time's automatic lock-on"));
     }
-    ImGui::SameLine();
-    help_marker(_("Disable Twosome Time's automatic lock-on"));
 }
 
 void ManualTwosomeTime::on_config_load(const utility::Config& cfg) {

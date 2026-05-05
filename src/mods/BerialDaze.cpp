@@ -40,11 +40,13 @@ std::optional<std::string> BerialDaze::on_initialize() {
 }
 
 void BerialDaze::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Berial Daze"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Berial Daze"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Set Berial to his fireless Dazed state"));
     }
-    ImGui::SameLine();
-    help_marker(_("Set Berial to his fireless Dazed state"));
 }
 
 void BerialDaze::on_config_load(const utility::Config& cfg) {

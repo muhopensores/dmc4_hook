@@ -11,11 +11,13 @@ void NoLockonRestriction::toggle(bool enable) {
 }
 
 void NoLockonRestriction::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Remove lock-on restriction"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_DANTE_A) {
+        if (ImGui::Checkbox(_("Remove lock-on restriction"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Remove Dante's lock-on restrictions (grim grip, gyro, etc.)"));
     }
-    ImGui::SameLine();
-    help_marker(_("Remove Dante's lock-on restrictions (grim grip, gyro, etc.)"));
 }
 
 void NoLockonRestriction::on_config_load(const utility::Config& cfg) {

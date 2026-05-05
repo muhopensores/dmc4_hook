@@ -109,26 +109,29 @@ void LocalizationManager::on_config_load(const utility::Config& cfg) {
 };
 
 void LocalizationManager::on_gui_frame(int display) { 
-    static const char* current_item = g_framework->m_glob_locale;
-    const char* lang_string = _("Language");
-    IM_ASSERT(lang_string);
-    const float str_size = ImGui::CalcTextSize(lang_string).x + (ImGui::GetTextLineHeightWithSpacing() * 1.1f);
-    ImGui::PushItemWidth(str_size);
-    if (ImGui::BeginCombo(lang_string, current_item)) {
-        for (const auto& pair : g_locales_map) {
-            bool is_selected = (current_item == pair.first);
-            if (ImGui::Selectable(pair.first, is_selected)) {
-                current_item = pair.first;
-                g_framework->on_locale_update(current_item);
+    if (display == DISPLAY_SYSTEM_A) {
+        static const char* current_item = g_framework->m_glob_locale;
+        const char* lang_string         = _("Language");
+        IM_ASSERT(lang_string);
+        const float str_size = ImGui::CalcTextSize(lang_string).x + (ImGui::GetTextLineHeightWithSpacing() * 1.1f);
+        ImGui::PushItemWidth(str_size);
+        if (ImGui::BeginCombo(lang_string, current_item)) {
+            for (const auto& pair : g_locales_map) {
+                bool is_selected = (current_item == pair.first);
+                if (ImGui::Selectable(pair.first, is_selected)) {
+                    current_item = pair.first;
+                    g_framework->on_locale_update(current_item);
+                }
+                if (is_selected) {
+                    ImGui::SetItemDefaultFocus();
+                }
             }
-            if (is_selected) {
-                ImGui::SetItemDefaultFocus();
-            }
+            ImGui::EndCombo();
         }
-        ImGui::EndCombo();
+        ImGui::SameLine();
+        help_marker(_("Save config to load language settings on start.\nPlease submit your translations for dmc4hook :pray:\n"
+                      "If you're not on Windows, there's a chance the necessary font won't load. Please place a font of your choice next "
+                      "to the game exe and name it "
+                      "\"[languagecode]_font.ttf\" like the following Simplified Chinese example: \"zh_font.ttf\""));
     }
-    ImGui::SameLine();
-    help_marker(_("Save config to load language settings on start.\nPlease submit your translations for dmc4hook :pray:\n"
-        "If you're not on Windows, there's a chance the necessary font won't load. Please place a font of your choice next to the game exe and name it "
-        "\"[languagecode]_font.ttf\" like the following Simplified Chinese example: \"zh_font.ttf\""));
 };

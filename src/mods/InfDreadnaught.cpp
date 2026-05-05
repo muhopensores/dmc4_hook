@@ -51,12 +51,12 @@ void InfDreadnaught::toggle2(bool enable) {
 }
 
 void InfDreadnaught::on_gui_frame(int display) {
-    if (display == 1) {
+    if (display == DISPLAY_DANTE_A) {
         if (ImGui::Checkbox(_("Infinite Dreadnaught"), &mod_enabled)) {
             toggle(mod_enabled);
         }
     }
-    else if (display == 2) {
+    if (display == DISPLAY_DANTE_B) {
         if (ImGui::Checkbox(_("Run in Dreadnaught"), &mod_enabled2)) {
             toggle2(mod_enabled2);
         }

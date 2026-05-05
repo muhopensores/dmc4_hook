@@ -126,10 +126,12 @@ std::optional<std::string> Borderless::on_initialize() {
 }
 
 void Borderless::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Borderless Window"), &m_enabled)) {
-        apply();
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Borderless Window"), &m_enabled)) {
+            apply();
+        }
+        ImGui::SameLine();
+        help_marker(_("Only applies if in windowed. Hit Alt+Enter to toggle to windowed."));
     }
-    ImGui::SameLine();
-    help_marker(_("Only applies if in windowed. Hit Alt+Enter to toggle to windowed."));
 }
 #endif

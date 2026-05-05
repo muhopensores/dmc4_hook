@@ -95,15 +95,17 @@ std::optional<std::string> FastPandora::on_initialize() {
 }
 
 void FastPandora::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Fast Pandora"), &mod_enabled)) { // Grounded transformation shots
-        toggle(mod_enabled);
+    if (display == DISPLAY_DANTE_A) {
+        if (ImGui::Checkbox(_("Fast Pandora"), &mod_enabled)) { // Grounded transformation shots
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Cycle to grounded Pandora moves in DT speed outside of DT"));
+        ImGui::SameLine(sameLineWidth);
+        ImGui::Checkbox(_("Fast Gunship"), &mod2_enabled); // Funship
+        ImGui::SameLine();
+        help_marker(_("Significantly speed up Argument startup and recovery"));
     }
-    ImGui::SameLine();
-    help_marker(_("Cycle to grounded Pandora moves in DT speed outside of DT"));
-    ImGui::SameLine(sameLineWidth);
-    ImGui::Checkbox(_("Fast Gunship"), &mod2_enabled); // Funship
-    ImGui::SameLine();
-    help_marker(_("Significantly speed up Argument startup and recovery"));
 }
 
 void FastPandora::on_config_load(const utility::Config& cfg){

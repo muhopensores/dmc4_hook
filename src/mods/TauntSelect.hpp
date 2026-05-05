@@ -13,7 +13,11 @@ public:
     static uintptr_t jmp_ret3;
 
     std::string get_mod_name() override { return "TauntSelect"; };
-
+    std::vector<std::string> get_search_terms() override {
+        return {
+            "taunt select"
+        };
+    }
     std::optional<std::string> on_initialize() override;
 
     void on_config_load(const utility::Config& cfg) override;

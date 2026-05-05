@@ -52,11 +52,13 @@ std::optional<std::string> LMTSlotFix::on_initialize() {
 }
 
 /*void LMTSlotFix::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("LMT slot fix"), &mod_enabled)) {
-        //toggle(mod_enabled);
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("LMT slot fix"), &mod_enabled)) {
+            //toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Enable reusing zeroed out offsets in LMT files. DO NOT disable if you have custom motion mods."));
     }
-    ImGui::SameLine();
-    help_marker(_("Enable reusing zeroed out offsets in LMT files. DO NOT disable if you have custom motion mods."));
 }
 
 void LMTSlotFix::on_config_load(const utility::Config& cfg) {

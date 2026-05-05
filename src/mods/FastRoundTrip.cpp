@@ -32,7 +32,7 @@ std::optional<std::string> FastRoundTrip::on_initialize() {
 }
 
 void FastRoundTrip::on_gui_frame(int display) {
-    if (display == 2) {
+    if (display == DISPLAY_DANTE_A) {
         ImGui::Checkbox(_("Fast Round Trip"), &mod_enabled);
         ImGui::SameLine();
         help_marker(_("Round Trip throw animation starts at frame 80"));

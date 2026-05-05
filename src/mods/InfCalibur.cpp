@@ -18,8 +18,10 @@ void InfCalibur::toggle(bool enable) {
 }
 
 void InfCalibur::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Infinite Calibur"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_NERO_A) {
+        if (ImGui::Checkbox(_("Infinite Calibur"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
     }
 }
 

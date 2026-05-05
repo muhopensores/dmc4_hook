@@ -1948,58 +1948,60 @@ void StylePoints::DrawHiddenCombos() {
 }
 
 void StylePoints::on_gui_frame(int display) {
-    ImGui::BeginGroup();
-    ImGui::Checkbox(_("Tony"), &tonyHawk);
-    ImGui::SameLine();
-    help_marker(_("Tony"));
-    if (tonyHawk) {
-        style_points_display = false;
-        originalNames = false;
-        ImGui::Indent(lineIndent);
-        // ImGui::Checkbox(_("Air Time Display"), &showAirTimeDisplay);
-        ImGui::Checkbox(_("Alternate Grouping"), &moreGrouping);
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::BeginGroup();
+        ImGui::Checkbox(_("Tony"), &tonyHawk);
         ImGui::SameLine();
-        help_marker(_("Group attacks by the order you originally did them\n"
-            "This helps show the variety in a combo over exact input order"));
-        // ImGui::Checkbox(_("Height Chart"), &showHeightChart);
-        // ImGui::SameLine();
-        // help_marker(_("Ever wanted to see a log of your height throughout a combo? Me neither!"));
-        // ImGui::Checkbox(_("Inertia Chart"), &showInertiaChart);
-        // ImGui::SameLine();
-        // help_marker(_("Ever wanted to see a log of your inertia throughout a combo? Me neither!"));
-        /*
-        ImGui::SliderFloat("timerBase", &timerBase, 0.0f, 2.0f, "%.1f");
+        help_marker(_("Tony"));
+        if (tonyHawk) {
+            style_points_display = false;
+            originalNames        = false;
+            ImGui::Indent(lineIndent);
+            // ImGui::Checkbox(_("Air Time Display"), &showAirTimeDisplay);
+            ImGui::Checkbox(_("Alternate Grouping"), &moreGrouping);
+            ImGui::SameLine();
+            help_marker(_("Group attacks by the order you originally did them\n"
+                          "This helps show the variety in a combo over exact input order"));
+            // ImGui::Checkbox(_("Height Chart"), &showHeightChart);
+            // ImGui::SameLine();
+            // help_marker(_("Ever wanted to see a log of your height throughout a combo? Me neither!"));
+            // ImGui::Checkbox(_("Inertia Chart"), &showInertiaChart);
+            // ImGui::SameLine();
+            // help_marker(_("Ever wanted to see a log of your inertia throughout a combo? Me neither!"));
+            /*
+            ImGui::SliderFloat("timerBase", &timerBase, 0.0f, 2.0f, "%.1f");
+            ImGui::SameLine();
+            help_marker("DEV PLS REMOVE - The base time for how long you have before breaking a combo\n1.0 default");
+            ImGui::SliderFloat("comboInfluence", &timerComboInfluence, 0.0f, 0.1f, "%.4f");
+            ImGui::SameLine();
+            help_marker("DEV PLS REMOVE - How much influence will the score from your last attack have on the timer\n0.0010 default");
+            ImGui::SliderFloat("shakeDuration", &shakeDuration, 0.0f, 1.0f, "%.4f");
+            ImGui::SameLine();
+            help_marker("DEV PLS REMOVE - At what point in the timer should text shake stop\nRemember a faster timer means less shake, so
+            edit this last\n0.99 default"); ImGui::PushItemWidth(sameLineItemWidth); ImGui::SliderInt(_("maxRows"), &maxRows, 1, 10);
+            ImGui::SameLine();
+            help_marker("How many rows\n5 default");
+            ImGui::SliderInt(_("maxPerRow"), &maxPerRow, 1, 10);
+            ImGui::SameLine();
+            help_marker("How many attacks per row\n7 default");
+            ImGui::PopItemWidth();
+            */
+            ImGui::Unindent(lineIndent);
+        }
+        ImGui::EndGroup();
+        ImGui::SameLine(sameLineWidth);
+        ImGui::Checkbox(_("Style Point Display"), &style_points_display);
         ImGui::SameLine();
-        help_marker("DEV PLS REMOVE - The base time for how long you have before breaking a combo\n1.0 default");
-        ImGui::SliderFloat("comboInfluence", &timerComboInfluence, 0.0f, 0.1f, "%.4f");
-        ImGui::SameLine();
-        help_marker("DEV PLS REMOVE - How much influence will the score from your last attack have on the timer\n0.0010 default");
-        ImGui::SliderFloat("shakeDuration", &shakeDuration, 0.0f, 1.0f, "%.4f");
-        ImGui::SameLine();
-        help_marker("DEV PLS REMOVE - At what point in the timer should text shake stop\nRemember a faster timer means less shake, so edit this last\n0.99 default");
-        ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::SliderInt(_("maxRows"), &maxRows, 1, 10);
-        ImGui::SameLine();
-        help_marker("How many rows\n5 default");
-        ImGui::SliderInt(_("maxPerRow"), &maxPerRow, 1, 10);
-        ImGui::SameLine();
-        help_marker("How many attacks per row\n7 default");
-        ImGui::PopItemWidth();
-        */
-        ImGui::Unindent(lineIndent);
-    }
-    ImGui::EndGroup();
-    ImGui::SameLine(sameLineWidth);
-    ImGui::Checkbox(_("Style Point Display"), &style_points_display);
-    ImGui::SameLine();
-    help_marker(_("See exactly what goes into your style points count"));
-    if (style_points_display) {
-        tonyHawk = false;
-        ImGui::Indent(lineIndent + sameLineWidth);
-        ImGui::Checkbox(_("Use Original Names"), &originalNames);
-        ImGui::SameLine();
-        help_marker(_("Instead of using our skill renames, use the developers'. Because there are more unique names, less skills will be grouped"));
-        ImGui::Unindent(lineIndent + sameLineWidth);
+        help_marker(_("See exactly what goes into your style points count"));
+        if (style_points_display) {
+            tonyHawk = false;
+            ImGui::Indent(lineIndent + sameLineWidth);
+            ImGui::Checkbox(_("Use Original Names"), &originalNames);
+            ImGui::SameLine();
+            help_marker(_("Instead of using our skill renames, use the developers'. Because there are more unique names, less skills will "
+                          "be grouped"));
+            ImGui::Unindent(lineIndent + sameLineWidth);
+        }
     }
 }
 

@@ -127,8 +127,7 @@ static void try_respawn() {
 
 // detour 
 // naked is defined to __declspec(naked)
-naked void detour() 
-{
+naked void detour() {
 	__asm {
         cmp byte ptr [RoomRespawn::g_reset_manager], 1
         jne originalCode
@@ -141,8 +140,7 @@ naked void detour()
 	}
 }
 
-naked void script_mission_detour()
-{
+naked void script_mission_detour() {
     __asm {
         mov ecx, [ebx+04h]
         movzx edx, BYTE PTR [ecx+01h]
@@ -151,8 +149,7 @@ naked void script_mission_detour()
     }
 }
 
-naked void script_mission_bp_detour()
-{
+naked void script_mission_bp_detour() {
     __asm {
         mov ecx, [ebx+04h]
         movzx edx, BYTE PTR [ecx+01h]
@@ -163,19 +160,16 @@ naked void script_mission_bp_detour()
 
 std::optional<std::string> RoomRespawn::on_initialize() {
     // char __userpurge cEnemyResetMgr_next_slot_something_sub_738D70@<al>(int groupId@<ecx>, __int16 IndexSomething@<di>, cEnemyResetMgr *a3@<esi>, int a4)
-    if (!install_hook_absolute(0x738D70, m_hook, &detour, &jmp_return, 5))
-    {
+    if (!install_hook_absolute(0x738D70, m_hook, &detour, &jmp_return, 5)) {
         spdlog::error("Failed to init LoadOrder mod\n");
         return "Failed to init LoadOrder mod";
     }
 
-    if (!install_hook_absolute(0x44AAA5, m_script_enemy_set_ctrl_opcode_mission, &script_mission_detour, &script_mission_jmp_return, 7))
-    {
+    if (!install_hook_absolute(0x44AAA5, m_script_enemy_set_ctrl_opcode_mission, &script_mission_detour, &script_mission_jmp_return, 7)) {
         spdlog::error("Failed to init LoadOrder mod\n");
         return "Failed to init LoadOrder mod";
     }
-    if (!install_hook_absolute(0x44CCE1, m_script_enemy_set_ctrl_opcode_bp, &script_mission_bp_detour, &script_bp_jmp_return, 7))
-    {
+    if (!install_hook_absolute(0x44CCE1, m_script_enemy_set_ctrl_opcode_bp, &script_mission_bp_detour, &script_bp_jmp_return, 7)) {
         spdlog::error("Failed to init LoadOrder mod\n");
         return "Failed to init LoadOrder mod";
     }
@@ -191,28 +185,30 @@ std::optional<std::string> RoomRespawn::on_initialize() {
 // save your data into cfg structure.
 void RoomRespawn::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("respawn_enemies_when_revisiting_rooms", g_reset_manager);
-};
+}
 
 // onConfigLoad
 // load data into variables from config structure.
 void RoomRespawn::on_config_load(const utility::Config& cfg) {
     g_reset_manager = cfg.get<bool>("respawn_enemies_when_revisiting_rooms").value_or(false);
-};
+}
 
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
 void RoomRespawn::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Respawn enemies when visiting the same room multiple times"), &g_reset_manager);
-    ImGui::SameLine();
-    help_marker(_("This will break your style points in the current mission"));
-    ImGui::Indent(lineIndent);
-    if (ImGui::Button(_("Respawn Enemies in current room"))) {
-        try_respawn();
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Respawn enemies when visiting the same room multiple times"), &g_reset_manager);
+        ImGui::SameLine();
+        help_marker(_("This will break your style points in the current mission"));
+        ImGui::Indent(lineIndent);
+        if (ImGui::Button(_("Respawn Enemies in current room"))) {
+            try_respawn();
+        }
+        ImGui::SameLine();
+        help_marker(_("Respawning enemies in incorrect missions will freeze the game\nThis button will enable the above checkbox"));
+        ImGui::Unindent(lineIndent);
     }
-    ImGui::SameLine();
-    help_marker(_("Respawning enemies in incorrect missions will freeze the game\nThis button will enable the above checkbox"));
-    ImGui::Unindent(lineIndent);
-};
+}
 
 // onGamePause()
 // do something when toggling a gui

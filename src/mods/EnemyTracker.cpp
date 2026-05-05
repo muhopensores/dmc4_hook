@@ -281,112 +281,115 @@ static void LoadStateWithCurrentEnemy() {
 }
 
 void EnemyTracker::on_gui_frame(int display) {
-    if (ImGui::CollapsingHeader(_("[OLD] Display Enemy Stats"))) {
-        ImGui::Indent(lineIndent);
-        ImGui::Checkbox(_("[DEBUG] Flying Spheres"), &flyingSpheres);
-        ImGui::SameLine();
-        help_marker(_("Sphere in the middle is clickable!\nThese are random sizes for proof of concept"));
-        ImGui::Checkbox(_("[DEBUG] Flying Ad"), &flyingAd);
-        ImGui::SameLine();
-        help_marker(_("Makes the UI flicker :("));
-        // ImGui::Checkbox(_("Use Locked On Enemy Instead Of Picking"), &useLockedOnEnemyInstead);
-
-        ImGui::Spacing();
-
-        sMediator* s_med_ptr = devil4_sdk::get_sMediator();
-
-        /*if (ImGui::Button(_("Save Selected Enemy Info"))) {
-            if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
-                save_load_enemy_info(true, enemy);
-        }
-
-        if (ImGui::Button(_("Replay Saved Move ID & Position"))) {
-            if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
-                save_load_enemy_info(false, enemy);
-        }*/
-
-        if (ImGui::Button(_("Save State"))) {
-            SaveStateWithCurrentEnemy();
-        }
-        ImGui::SameLine();
-        help_marker(_("Affects you and the enemy you have selected on this page\nHotkey is HOME by default"));
-
-        if (ImGui::Button(_("Load State"))) {
-            LoadStateWithCurrentEnemy();
-        }
-        ImGui::SameLine();
-        help_marker(_("Affects you and the enemy you have selected on this page\nHotkey is END by default"));
-
-        ImGui::Unindent(lineIndent);
-
-        // get desired enemy and show stats
-        if (auto currentEnemy = GetDesiredEnemy(false)) {
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::CollapsingHeader(_("[OLD] Display Enemy Stats"))) {
             ImGui::Indent(lineIndent);
-            ImGui::SliderInt(_("Enemy Count"), (int*)&s_med_ptr->enemyCount[2], 0, 0);
-            if (s_med_ptr->enemyCount[0] > 0) {
-                ImGui::SliderInt(_("Enemy Select"), &which_enemy, 0, s_med_ptr->enemyCount[2] - 1);
-                if (ImGui::Button(_("Find Locked On Enemy In List"))) {
-                    if (uPlayer* player = devil4_sdk::get_local_player()) {
-                        for (uint32_t i = 0; i < s_med_ptr->enemyCount[2]; ++i) {
-                            if (s_med_ptr->uEnemies[i] && s_med_ptr->uEnemies[i] == player->lockOnTargetPtr3) {
-                                which_enemy = i;
-                                break;
+            ImGui::Checkbox(_("[DEBUG] Flying Spheres"), &flyingSpheres);
+            ImGui::SameLine();
+            help_marker(_("Sphere in the middle is clickable!\nThese are random sizes for proof of concept"));
+            ImGui::Checkbox(_("[DEBUG] Flying Ad"), &flyingAd);
+            ImGui::SameLine();
+            help_marker(_("Makes the UI flicker :("));
+            // ImGui::Checkbox(_("Use Locked On Enemy Instead Of Picking"), &useLockedOnEnemyInstead);
+
+            ImGui::Spacing();
+
+            sMediator* s_med_ptr = devil4_sdk::get_sMediator();
+
+            /*if (ImGui::Button(_("Save Selected Enemy Info"))) {
+                if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
+                    save_load_enemy_info(true, enemy);
+            }
+
+            if (ImGui::Button(_("Replay Saved Move ID & Position"))) {
+                if (auto enemy = GetDesiredEnemy(useLockedOnEnemyInstead))
+                    save_load_enemy_info(false, enemy);
+            }*/
+
+            if (ImGui::Button(_("Save State"))) {
+                SaveStateWithCurrentEnemy();
+            }
+            ImGui::SameLine();
+            help_marker(_("Affects you and the enemy you have selected on this page\nHotkey is HOME by default"));
+
+            if (ImGui::Button(_("Load State"))) {
+                LoadStateWithCurrentEnemy();
+            }
+            ImGui::SameLine();
+            help_marker(_("Affects you and the enemy you have selected on this page\nHotkey is END by default"));
+
+            ImGui::Unindent(lineIndent);
+
+            // get desired enemy and show stats
+            if (auto currentEnemy = GetDesiredEnemy(false)) {
+                ImGui::Indent(lineIndent);
+                ImGui::SliderInt(_("Enemy Count"), (int*)&s_med_ptr->enemyCount[2], 0, 0);
+                if (s_med_ptr->enemyCount[0] > 0) {
+                    ImGui::SliderInt(_("Enemy Select"), &which_enemy, 0, s_med_ptr->enemyCount[2] - 1);
+                    if (ImGui::Button(_("Find Locked On Enemy In List"))) {
+                        if (uPlayer* player = devil4_sdk::get_local_player()) {
+                            for (uint32_t i = 0; i < s_med_ptr->enemyCount[2]; ++i) {
+                                if (s_med_ptr->uEnemies[i] && s_med_ptr->uEnemies[i] == player->lockOnTargetPtr3) {
+                                    which_enemy = i;
+                                    break;
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // i hate this, game accesses them from base ptr, e.g. [uEnemy+1544] for scarecrow hp
-            int damage_info_offset = EnemyTracker::get_enemy_specific_damage_offset(currentEnemy->ID);
-            uDamage_Old* currentEnemyDamage = (uDamage_Old*)((char*)currentEnemy + damage_info_offset);
-            ImGui::PushItemWidth(sameLineItemWidth);
-            ImGui::InputFloat(_("HP##2"), &currentEnemyDamage->HP);
-            ImGui::InputFloat(_("Max HP##2"), &currentEnemyDamage->HPMax);
-            ImGui::InputFloat(_("Previous Hit Dealt"), &currentEnemyDamage->HPTaken);
-            ImGui::InputInt(_("Stun 1##2"), &currentEnemyDamage->stun[0]);
-            ImGui::InputInt(_("Stun 2##2"), &currentEnemyDamage->stun[1]);
-            ImGui::InputInt(_("Stun 3##2"), &currentEnemyDamage->stun[2]);
-            ImGui::InputInt(_("Stun 4##2"), &currentEnemyDamage->stun[3]);
-            ImGui::InputInt(_("Stun 5##2"), &currentEnemyDamage->stun[4]);
-            ImGui::InputInt(_("Displacement 1##2"), &currentEnemyDamage->displacement[0]);
-            ImGui::InputInt(_("Displacement 2##2"), &currentEnemyDamage->displacement[1]);
-            ImGui::InputInt(_("Displacement 3##2"), &currentEnemyDamage->displacement[2]);
-            ImGui::InputInt(_("Displacement 4##2"), &currentEnemyDamage->displacement[3]);
-            ImGui::InputInt(_("Displacement 5##2"), &currentEnemyDamage->displacement[4]);
-            ImGui::InputInt(_("Unknown 1##2"), &currentEnemyDamage->unknown[0]);
-            ImGui::InputInt(_("Unknown 2##2"), &currentEnemyDamage->unknown[1]);
-            ImGui::InputInt(_("Unknown 3##2"), &currentEnemyDamage->unknown[2]);
-            ImGui::InputInt(_("Unknown 4##2"), &currentEnemyDamage->unknown[3]);
-            ImGui::InputInt(_("Unknown 5##2"), &currentEnemyDamage->unknown[4]);
-            ImGui::InputInt(_("Unknown 6##2"), &currentEnemyDamage->unknown[5]);
-            ImGui::InputInt(_("Unknown 7##2"), &currentEnemyDamage->unknown[6]);
-            ImGui::InputInt(_("Unknown 8##2"), &currentEnemyDamage->unknown[7]);
+                // i hate this, game accesses them from base ptr, e.g. [uEnemy+1544] for scarecrow hp
+                int damage_info_offset          = EnemyTracker::get_enemy_specific_damage_offset(currentEnemy->ID);
+                uDamage_Old* currentEnemyDamage = (uDamage_Old*)((char*)currentEnemy + damage_info_offset);
+                ImGui::PushItemWidth(sameLineItemWidth);
+                ImGui::InputFloat(_("HP##2"), &currentEnemyDamage->HP);
+                ImGui::InputFloat(_("Max HP##2"), &currentEnemyDamage->HPMax);
+                ImGui::InputFloat(_("Previous Hit Dealt"), &currentEnemyDamage->HPTaken);
+                ImGui::InputInt(_("Stun 1##2"), &currentEnemyDamage->stun[0]);
+                ImGui::InputInt(_("Stun 2##2"), &currentEnemyDamage->stun[1]);
+                ImGui::InputInt(_("Stun 3##2"), &currentEnemyDamage->stun[2]);
+                ImGui::InputInt(_("Stun 4##2"), &currentEnemyDamage->stun[3]);
+                ImGui::InputInt(_("Stun 5##2"), &currentEnemyDamage->stun[4]);
+                ImGui::InputInt(_("Displacement 1##2"), &currentEnemyDamage->displacement[0]);
+                ImGui::InputInt(_("Displacement 2##2"), &currentEnemyDamage->displacement[1]);
+                ImGui::InputInt(_("Displacement 3##2"), &currentEnemyDamage->displacement[2]);
+                ImGui::InputInt(_("Displacement 4##2"), &currentEnemyDamage->displacement[3]);
+                ImGui::InputInt(_("Displacement 5##2"), &currentEnemyDamage->displacement[4]);
+                ImGui::InputInt(_("Unknown 1##2"), &currentEnemyDamage->unknown[0]);
+                ImGui::InputInt(_("Unknown 2##2"), &currentEnemyDamage->unknown[1]);
+                ImGui::InputInt(_("Unknown 3##2"), &currentEnemyDamage->unknown[2]);
+                ImGui::InputInt(_("Unknown 4##2"), &currentEnemyDamage->unknown[3]);
+                ImGui::InputInt(_("Unknown 5##2"), &currentEnemyDamage->unknown[4]);
+                ImGui::InputInt(_("Unknown 6##2"), &currentEnemyDamage->unknown[5]);
+                ImGui::InputInt(_("Unknown 7##2"), &currentEnemyDamage->unknown[6]);
+                ImGui::InputInt(_("Unknown 8##2"), &currentEnemyDamage->unknown[7]);
 
-            ImGui::InputFloat3(_("XYZ Position##2"), (float*)&currentEnemy->position);
-            ImGui::InputFloat3(_("XYZ Rotation##2"), (float*)&currentEnemy->rotation);
-            ImGui::InputFloat3(_("XYZ Velocity##2"), (float*)&currentEnemy->velocity);
-            ImGui::InputFloat3(_("XYZ Scale##2"), (float*)&currentEnemy->scale);
-            ImGui::InputScalar(_("Move ID##2"), ImGuiDataType_U8, &currentEnemy->moveID);
-            ImGui::InputScalar(_("Move ID 2##2"), ImGuiDataType_U8, &currentEnemy->animID);
-            ImGui::InputScalar(_("Move Part##2"), ImGuiDataType_U8, &currentEnemy->movePart);
-            ImGui::InputScalar(_("Grounded##2"), ImGuiDataType_U8, &currentEnemy->collisionSettings.mLand);
-            ImGui::InputFloat(_("Animation Frame##2"), &currentEnemy->animFrame);
-            if (ImGui::CollapsingHeader(_("Saved Info"))) {
-                ImGui::InputScalar(_("Enemy Move ID"), ImGuiDataType_U8, &savedEnemyMoveID);
-                ImGui::InputScalar(_("Enemy Move ID 2"), ImGuiDataType_U8, &savedEnemyAnimID);
-                ImGui::InputFloat3(_("Enemy Position"), savedEnemyPosition);
-                ImGui::InputFloat(_("Enemy Rotation"), &savedEnemyRotation);
-                ImGui::InputFloat3(_("Enemy Velocity"), savedEnemyVelocity);
-                ImGui::InputScalar(_("Enemy Grounded"), ImGuiDataType_U8, &savedEnemyGrounded);
+                ImGui::InputFloat3(_("XYZ Position##2"), (float*)&currentEnemy->position);
+                ImGui::InputFloat3(_("XYZ Rotation##2"), (float*)&currentEnemy->rotation);
+                ImGui::InputFloat3(_("XYZ Velocity##2"), (float*)&currentEnemy->velocity);
+                ImGui::InputFloat3(_("XYZ Scale##2"), (float*)&currentEnemy->scale);
+                ImGui::InputScalar(_("Move ID##2"), ImGuiDataType_U8, &currentEnemy->moveID);
+                ImGui::InputScalar(_("Move ID 2##2"), ImGuiDataType_U8, &currentEnemy->animID);
+                ImGui::InputScalar(_("Move Part##2"), ImGuiDataType_U8, &currentEnemy->movePart);
+                ImGui::InputScalar(_("Grounded##2"), ImGuiDataType_U8, &currentEnemy->collisionSettings.mLand);
+                ImGui::InputFloat(_("Animation Frame##2"), &currentEnemy->animFrame);
+                if (ImGui::CollapsingHeader(_("Saved Info"))) {
+                    ImGui::InputScalar(_("Enemy Move ID"), ImGuiDataType_U8, &savedEnemyMoveID);
+                    ImGui::InputScalar(_("Enemy Move ID 2"), ImGuiDataType_U8, &savedEnemyAnimID);
+                    ImGui::InputFloat3(_("Enemy Position"), savedEnemyPosition);
+                    ImGui::InputFloat(_("Enemy Rotation"), &savedEnemyRotation);
+                    ImGui::InputFloat3(_("Enemy Velocity"), savedEnemyVelocity);
+                    ImGui::InputScalar(_("Enemy Grounded"), ImGuiDataType_U8, &savedEnemyGrounded);
+                }
+                ImGui::PopItemWidth();
+                ImGui::Unindent(lineIndent);
             }
-            ImGui::PopItemWidth();
-            ImGui::Unindent(lineIndent);
         }
+        ImGui::Checkbox(_("Enable Save/Load hotkeys"), &hotkey_enabled);
+        ImGui::SameLine();
+        help_marker(
+            _("Assuming default hotkeys,\nHome+End will save and load enemy attacks\nPage Up+Page Down will save and load boss attacks"));
     }
-    ImGui::Checkbox(_("Enable Save/Load hotkeys"), &hotkey_enabled);
-    ImGui::SameLine();
-    help_marker(_("Assuming default hotkeys,\nHome+End will save and load enemy attacks\nPage Up+Page Down will save and load boss attacks"));
 }
 
 class InteractiveModel {

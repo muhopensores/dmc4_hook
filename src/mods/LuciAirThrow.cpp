@@ -102,11 +102,13 @@ void toggle(bool enabled) {
 }
 
 void LuciAirThrow::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Lucifer Air Throw"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_DANTE_A) {
+        if (ImGui::Checkbox(_("Lucifer Air Throw"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Add new move mimicking V5rgil's air taunt. Mapped to forward + melee"));
     }
-    ImGui::SameLine();
-    help_marker(_("Add new move mimicking V5rgil's air taunt. Mapped to forward + melee"));
 }
 
 void LuciAirThrow::on_config_load(const utility::Config& cfg) {

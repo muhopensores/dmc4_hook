@@ -13,6 +13,10 @@ public:
     void toggle2(bool enable);
 
     std::string get_mod_name() override { return "InfFaustCloak"; };
+    std::vector<std::string> get_search_terms() override {
+        return {"infinite faust cloak", "infinite mephisto cloak"
+        };
+    }
 
     std::optional<std::string> on_initialize() override;
 

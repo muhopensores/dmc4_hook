@@ -14,7 +14,10 @@ public:
     static uintptr_t skip_dante_sword_continue;
 
     std::string get_mod_name() override { return "SkipWeapons"; };
-
+    std::vector<std::string> get_search_terms() override {
+        return {"skip", "lucifer", "gilgamesh", "rebellion", "ebony and ivory", "e+i", "e&i", "ebony & ivory", "shotty", "shotgun",
+            "coyote-a", "pandora"};
+    }
     std::optional<std::string> on_initialize() override;
 
     void on_config_load(const utility::Config& cfg) override;

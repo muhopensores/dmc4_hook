@@ -17,11 +17,13 @@ void InstantTrick::toggle(bool enable) {
 }
 
 void InstantTrick::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Fast Trick"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_DANTE_A) {
+        if (ImGui::Checkbox(_("Fast Trick"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Skips one part of the trick animation"));
     }
-    ImGui::SameLine();
-    help_marker(_("Skips one part of the trick animation"));
 }
 
 void InstantTrick::on_config_load(const utility::Config& cfg) {

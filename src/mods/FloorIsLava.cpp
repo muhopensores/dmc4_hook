@@ -312,9 +312,11 @@ void FloorIsLava::on_frame(fmilliseconds& dt) {
 void on_timer_trigger() {}
 
 void FloorIsLava::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Floor Is Lava"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Upon spawning, you have 5 seconds. Once them 5 seconds are up, if you touch the floor you die"));
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Floor Is Lava"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Upon spawning, you have 5 seconds. Once them 5 seconds are up, if you touch the floor you die"));
+    }
 }
 
 // void on_game_pause(bool toggle) {}

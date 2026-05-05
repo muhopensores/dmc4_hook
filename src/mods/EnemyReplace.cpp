@@ -341,23 +341,25 @@ int EnemyReplace::default_enemy[IM_ARRAYSIZE(combo_lists)] = { 0, 1, 2, 3, 4, 5,
 int EnemyReplace::desired_enemy[IM_ARRAYSIZE(combo_items)];
 
 void EnemyReplace::on_gui_frame(int display) {
-    ImGui::PushItemWidth(sameLineItemWidth);
-    utility::ImGooListboxTranslated localizedText(combo_lists, IM_ARRAYSIZE(combo_lists));
-    utility::ImGooListboxTranslated localizedBoxes(combo_items, IM_ARRAYSIZE(combo_items));
-    for (int i = 0; i < IM_ARRAYSIZE(default_enemy); i++) {
-        ImGui::Text(localizedText.data_[i]);
-        ImGui::SameLine(sameLineWidth);
-        if (ImGui::Combo(combo_list_i_ds[i], &desired_enemy[i], localizedBoxes.data_, IM_ARRAYSIZE(combo_items))) {
-            replace_enemy_with(default_enemy[i], desired_enemy[i]);
-        }
-    }
-    ImGui::PopItemWidth();
-    ImGui::Text(_("Reset Enemy Replacements:"));
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Button(_("Reset"))) {
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::PushItemWidth(sameLineItemWidth);
+        utility::ImGooListboxTranslated localizedText(combo_lists, IM_ARRAYSIZE(combo_lists));
+        utility::ImGooListboxTranslated localizedBoxes(combo_items, IM_ARRAYSIZE(combo_items));
         for (int i = 0; i < IM_ARRAYSIZE(default_enemy); i++) {
-            desired_enemy[i] = i;
-            replace_enemy_with(default_enemy[i], desired_enemy[i]);
+            ImGui::Text(localizedText.data_[i]);
+            ImGui::SameLine(sameLineWidth);
+            if (ImGui::Combo(combo_list_i_ds[i], &desired_enemy[i], localizedBoxes.data_, IM_ARRAYSIZE(combo_items))) {
+                replace_enemy_with(default_enemy[i], desired_enemy[i]);
+            }
+        }
+        ImGui::PopItemWidth();
+        ImGui::Text(_("Reset Enemy Replacements:"));
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Button(_("Reset"))) {
+            for (int i = 0; i < IM_ARRAYSIZE(default_enemy); i++) {
+                desired_enemy[i] = i;
+                replace_enemy_with(default_enemy[i], desired_enemy[i]);
+            }
         }
     }
 }

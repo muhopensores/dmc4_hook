@@ -43,32 +43,34 @@ void DisableDarkslayer::toggle_right(bool enable) {
 }
 
 void DisableDarkslayer::on_gui_frame(int display) {
-    ImGui::Spacing();
-    ImGui::Text(_("Disable Darkslayer Inputs"));
-    ImGui::Spacing();
+    if (display == DISPLAY_DANTE_A) {
+        ImGui::Spacing();
+        ImGui::Text(_("Disable Darkslayer Inputs"));
+        ImGui::Spacing();
 
-    float centerX = ImGui::GetWindowWidth() * 0.5f;
-    float buttonWidth = 120.0f;
-    float spacing = 10.0f;
+        float centerX     = ImGui::GetWindowWidth() * 0.5f;
+        float buttonWidth = 120.0f;
+        float spacing     = 10.0f;
 
-    ImGui::SetCursorPosX(centerX - buttonWidth * 0.5f);
-    if (ImGui::Checkbox(_("Trickster"), &mod_enabled_up)) {
-        toggle_up(mod_enabled_up);
-    }
+        ImGui::SetCursorPosX(centerX - buttonWidth * 0.5f);
+        if (ImGui::Checkbox(_("Trickster"), &mod_enabled_up)) {
+            toggle_up(mod_enabled_up);
+        }
 
-    ImGui::SetCursorPosX(centerX - buttonWidth - spacing * 0.5f);
-    if (ImGui::Checkbox(_("Gunslinger"), &mod_enabled_left)) {
-        toggle_left(mod_enabled_left);
-    }
-    ImGui::SameLine();
-    ImGui::SetCursorPosX(centerX + spacing * 0.5f);
-    if (ImGui::Checkbox(_("Sword Master"), &mod_enabled_right)) {
-        toggle_right(mod_enabled_right);
-    }
+        ImGui::SetCursorPosX(centerX - buttonWidth - spacing * 0.5f);
+        if (ImGui::Checkbox(_("Gunslinger"), &mod_enabled_left)) {
+            toggle_left(mod_enabled_left);
+        }
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(centerX + spacing * 0.5f);
+        if (ImGui::Checkbox(_("Sword Master"), &mod_enabled_right)) {
+            toggle_right(mod_enabled_right);
+        }
 
-    ImGui::SetCursorPosX(centerX - buttonWidth * 0.5f);
-    if (ImGui::Checkbox(_("Royal Guard"), &mod_enabled_down)) {
-        toggle_down(mod_enabled_down);
+        ImGui::SetCursorPosX(centerX - buttonWidth * 0.5f);
+        if (ImGui::Checkbox(_("Royal Guard"), &mod_enabled_down)) {
+            toggle_down(mod_enabled_down);
+        }
     }
 }
 

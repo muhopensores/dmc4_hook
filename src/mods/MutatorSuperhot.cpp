@@ -78,7 +78,7 @@ void MutatorSuperhot::on_frame(fmilliseconds& dt) {
 
 static float speed_backup[2]{ 1.0f, 1.0f };
 void MutatorSuperhot::on_gui_frame(int display) {
-	if (display == 1) {
+	if (display == DISPLAY_NERO_A) {
 		ImGui::BeginGroup();
 		if (ImGui::Checkbox(_("SUPERHOT Mode"), &mod_enabled_nero)) {
 			sWorkRate* sw = devil4_sdk::get_work_rate();
@@ -103,7 +103,7 @@ void MutatorSuperhot::on_gui_frame(int display) {
 		}
 		ImGui::EndGroup();
 	}
-	else if (display == 2) {
+	if (display == DISPLAY_DANTE_A) {
 		ImGui::BeginGroup();
 		if (ImGui::Checkbox(_("SUPERHOT Mode"), &mod_enabled_dante)) {
 			sWorkRate* sw = devil4_sdk::get_work_rate();

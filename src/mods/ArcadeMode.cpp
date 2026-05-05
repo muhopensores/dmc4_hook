@@ -110,18 +110,20 @@ void ArcadeMode::on_config_save(utility::Config& cfg) {
 }
 
 void ArcadeMode::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Enable arcade mode"), &g_arcade)) {
-        if (g_arcade) {
-            auto res = install_hooks(this);
-            if (res.has_value()) {
-                spdlog::error("error initializing arcade mode {}", res.value());
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Enable arcade mode"), &g_arcade)) {
+            if (g_arcade) {
+                auto res = install_hooks(this);
+                if (res.has_value()) {
+                    spdlog::error("error initializing arcade mode {}", res.value());
+                }
+            } else {
+                hook_bpstart.reset();
+                hook_msel_mstart.reset();
             }
-        } else {
-            hook_bpstart.reset();
-            hook_msel_mstart.reset();
         }
-    }
-    if (g_arcade) {
-        //TODO: draw g_our_mission_menu with imgui
+        if (g_arcade) {
+            // TODO: draw g_our_mission_menu with imgui
+        }
     }
 }

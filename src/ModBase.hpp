@@ -122,6 +122,8 @@ public:
         return true;
     }
 
+    virtual std::vector<std::string> get_search_terms() { return {get_mod_name()}; }
+
     virtual std::optional<std::string> on_initialize() { return std::nullopt; }
     // should be called from d3d hook
     virtual void on_frame(fmilliseconds& dt) {}

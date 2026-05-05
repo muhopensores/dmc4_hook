@@ -27,9 +27,11 @@ std::optional<std::string> NeroSnatchLength::on_initialize() {
 }
 
 void NeroSnatchLength::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Increased Snatch Range"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Triple the reach on Snatch"));
+    if (display == DISPLAY_NERO_A) {
+        ImGui::Checkbox(_("Increased Snatch Range"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Triple the reach on Snatch"));
+    }
 }
 
 void NeroSnatchLength::on_config_load(const utility::Config& cfg) {

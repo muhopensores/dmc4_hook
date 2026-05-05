@@ -454,60 +454,62 @@ void HideHud::on_update_input(utility::Input& input) {
 }
 
 void HideHud::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Hide All HUD"), &mod_enabled_hide_all_hud)) {
-        hide_all_hud(mod_enabled_hide_all_hud);
-    }
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Hide Timer"), &mod_enabled_timer)) {
-        toggle_timer(mod_enabled_timer);
-    }
-    ImGui::SameLine();
-    help_marker(_("Hides the BP, Secret Mission and M12 timers"));
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Hide All HUD"), &mod_enabled_hide_all_hud)) {
+            hide_all_hud(mod_enabled_hide_all_hud);
+        }
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox(_("Hide Timer"), &mod_enabled_timer)) {
+            toggle_timer(mod_enabled_timer);
+        }
+        ImGui::SameLine();
+        help_marker(_("Hides the BP, Secret Mission and M12 timers"));
 
-    ImGui::Checkbox(_("Hide HP HUD"), &mod_enabled_health);
-    // toggle_health(mod_enabled_health); // now a detour
+        ImGui::Checkbox(_("Hide HP HUD"), &mod_enabled_health);
+        // toggle_health(mod_enabled_health); // now a detour
 
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Hide Orbs HUD"), &mod_enabled_orbs)) {
-        toggle_orbs(mod_enabled_orbs);
-    }
-    
-    if (ImGui::Checkbox(_("Hide Style HUD"), &mod_enabled_style)) {
-        toggle_style(mod_enabled_style);
-    }
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Style Dial Only"), &mod_enabled_boey)) {
-        toggle_boey(mod_enabled_boey);
-    }
-    ImGui::SameLine();
-    help_marker(_("Hides every element of the HP HUD other than the style dial"));
-    
-    if (ImGui::Checkbox(_("Hide Map HUD"), &mod_enabled_map)) {
-        toggle_map(mod_enabled_map);
-    }
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Hide Boss HP HUD"), &mod_enabled_boss)) {
-        toggle_boss_hp(mod_enabled_boss);
-    }
-    ImGui::SameLine();
-    help_marker(_("Enable before the boss spawns"));
-    
-    if (ImGui::Checkbox(_("Never Hide Weapons HUD"), &mod_enabled_weapon_selected)) {
-        mod_enabled_hide_weapon_selected = false;
-        toggle_weapon_hide(mod_enabled_hide_weapon_selected);
-        toggle_weapon_display(mod_enabled_weapon_selected);
-    }
-    ImGui::SameLine();
-    help_marker(_("Disable the fade out on the weapon switch UI"));
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Always Hide Weapons HUD"), &mod_enabled_hide_weapon_selected)) {
-        mod_enabled_weapon_selected = false;
-        toggle_weapon_display(mod_enabled_weapon_selected);
-        toggle_weapon_hide(mod_enabled_hide_weapon_selected);
-    }
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox(_("Hide Orbs HUD"), &mod_enabled_orbs)) {
+            toggle_orbs(mod_enabled_orbs);
+        }
 
-    if (ImGui::Checkbox(_("Show Style Points in BP"), &mod_enabled_style_points)) {
-        toggle_style_points(mod_enabled_style_points);
+        if (ImGui::Checkbox(_("Hide Style HUD"), &mod_enabled_style)) {
+            toggle_style(mod_enabled_style);
+        }
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox(_("Style Dial Only"), &mod_enabled_boey)) {
+            toggle_boey(mod_enabled_boey);
+        }
+        ImGui::SameLine();
+        help_marker(_("Hides every element of the HP HUD other than the style dial"));
+
+        if (ImGui::Checkbox(_("Hide Map HUD"), &mod_enabled_map)) {
+            toggle_map(mod_enabled_map);
+        }
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox(_("Hide Boss HP HUD"), &mod_enabled_boss)) {
+            toggle_boss_hp(mod_enabled_boss);
+        }
+        ImGui::SameLine();
+        help_marker(_("Enable before the boss spawns"));
+
+        if (ImGui::Checkbox(_("Never Hide Weapons HUD"), &mod_enabled_weapon_selected)) {
+            mod_enabled_hide_weapon_selected = false;
+            toggle_weapon_hide(mod_enabled_hide_weapon_selected);
+            toggle_weapon_display(mod_enabled_weapon_selected);
+        }
+        ImGui::SameLine();
+        help_marker(_("Disable the fade out on the weapon switch UI"));
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox(_("Always Hide Weapons HUD"), &mod_enabled_hide_weapon_selected)) {
+            mod_enabled_weapon_selected = false;
+            toggle_weapon_display(mod_enabled_weapon_selected);
+            toggle_weapon_hide(mod_enabled_hide_weapon_selected);
+        }
+
+        if (ImGui::Checkbox(_("Show Style Points in BP"), &mod_enabled_style_points)) {
+            toggle_style_points(mod_enabled_style_points);
+        }
     }
 }
 

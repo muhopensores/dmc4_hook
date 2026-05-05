@@ -19,12 +19,14 @@ void DmdLevelAi::toggle(bool enable) {
 }
 
 void DmdLevelAi::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("DMD AI"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("DMD AI"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Apply DMD AI to enemies without changing their defence or giving them DT.\n"
+                      "Applied when an enemy spawns"));
     }
-    ImGui::SameLine();
-    help_marker(_("Apply DMD AI to enemies without changing their defence or giving them DT.\n"
-        "Applied when an enemy spawns"));
 }
 
 void DmdLevelAi::on_config_load(const utility::Config& cfg) {

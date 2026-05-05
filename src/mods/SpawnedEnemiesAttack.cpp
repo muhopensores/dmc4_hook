@@ -24,13 +24,15 @@ naked void detour1() {
 // void on_frame(fmilliseconds& dt) {}
 
 void SpawnedEnemiesAttack::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Spawned Scarecrows Attack"), &SpawnedEnemiesAttack::mod_enabled)) {
-        if (!SpawnedEnemiesAttack::mod_enabled) {
-            Survival::mod_enabled = SpawnedEnemiesAttack::mod_enabled;
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Spawned Scarecrows Attack"), &SpawnedEnemiesAttack::mod_enabled)) {
+            if (!SpawnedEnemiesAttack::mod_enabled) {
+                Survival::mod_enabled = SpawnedEnemiesAttack::mod_enabled;
+            }
         }
+        ImGui::SameLine();
+        help_marker(_("This is a hack to make spawned scarecrows attack despite lacking an rRouteNode. I have not bug checked this"));
     }
-    ImGui::SameLine();
-    help_marker(_("This is a hack to make spawned scarecrows attack despite lacking an rRouteNode. I have not bug checked this"));
 }
 
 // void on_game_pause(bool toggle) {}

@@ -60,27 +60,29 @@ void NoClip::toggle2(bool enable) {
 }
 
 void NoClip::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Noclip"), &mod_enabled)) {
-        toggle(mod_enabled);
-    }
-    ImGui::SameLine();
-    help_marker(_("You and enemies will ignore walls"));
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Disable Room Triggers"), &mod_enabled_2)) {
-        toggle2(mod_enabled_2);
-    }
-    ImGui::SameLine();
-    help_marker(_("Disable the areas that teleport the player, activate fights, activate cutscenes etc"));
-    if (ImGui::Checkbox(_("Lock Y Pos"), &player_lock_y_pos)) {
-        if (player_lock_y_pos) {
-            uPlayer* player = devil4_sdk::get_local_player();
-            if (player) {
-                player_y_backup = player->mPos[1];
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Noclip"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("You and enemies will ignore walls"));
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox(_("Disable Room Triggers"), &mod_enabled_2)) {
+            toggle2(mod_enabled_2);
+        }
+        ImGui::SameLine();
+        help_marker(_("Disable the areas that teleport the player, activate fights, activate cutscenes etc"));
+        if (ImGui::Checkbox(_("Lock Y Pos"), &player_lock_y_pos)) {
+            if (player_lock_y_pos) {
+                uPlayer* player = devil4_sdk::get_local_player();
+                if (player) {
+                    player_y_backup = player->mPos[1];
+                }
             }
         }
+        ImGui::SameLine();
+        help_marker(_("Lock your height to explore beyond the environment more efficiently"));
     }
-    ImGui::SameLine();
-    help_marker(_("Lock your height to explore beyond the environment more efficiently"));
 }
 
 void NoClip::on_frame(fmilliseconds& dt) {

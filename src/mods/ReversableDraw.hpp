@@ -5,8 +5,12 @@ class ReversableDraw : public Mod {
 public:
     ReversableDraw() = default;
     std::string get_mod_name() override { return "ReversableDraw"; };
+    std::vector<std::string> get_search_terms() override {
+        return {
+            "reverse draw",
+        };
+    }
     // Mod::ModType get_mod_type() override { return SLOW; };
-
     static bool mod_enabled;
     static uintptr_t jmp_ret1;
 

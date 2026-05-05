@@ -31,7 +31,9 @@ std::optional<std::string> InfPlayerHealth::on_initialize() {
 }
 
 void InfPlayerHealth::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Freeze Player HP To Max"), &mod_enabled);
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Freeze Player HP To Max"), &mod_enabled);
+    }
 }
 
 void InfPlayerHealth::on_config_load(const utility::Config& cfg) {

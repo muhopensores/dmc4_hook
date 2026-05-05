@@ -132,7 +132,7 @@ void LimitAdjust::f_same_tick_style_change(bool enable) {
 
 
 void LimitAdjust::on_gui_frame(int display) {
-    if (display == 1) {
+    if (display == DISPLAY_NERO_A) {
         if (ImGui::Checkbox(_("No Enemy Step Limit"), &enemy_step_enabled_nero)) {
             whirling_enemy_step_enabled_nero = false;
         }
@@ -156,7 +156,7 @@ void LimitAdjust::on_gui_frame(int display) {
         ImGui::SameLine();
         help_marker(_("Disable the cooldown on leaving Devil Trigger upon entering"));
     }
-    else if (display == 2) {
+    if (display == DISPLAY_DANTE_A) {
         if (ImGui::Checkbox(_("No Enemy Step Limit"), &enemy_step_enabled_dante)) {
             whirling_enemy_step_enabled_dante = false;
         }

@@ -44,30 +44,32 @@ ImColor MutatorSelfAdvertisement::rnd_hue(const glm::vec2& p) {
 }
 
 void MutatorSelfAdvertisement::on_gui_frame(int display) {
-    ImGui::BeginGroup();
-    ImGui::Checkbox(_("Show Self Advertisement"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Thank you for supporting dmc4_hook"));
-    if (mod_enabled) {
-        ImGui::Indent(lineIndent);
-        ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::Checkbox(_("Dvd screensaver"), &dvd_mode);
-        ImGui::Text(_("Position"));
-        ImGui::DragFloat2("##PositionDragFloat2", (float*)&m_pos, 1.0f, 0.0f, 4096.0f, "%.1f");
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::BeginGroup();
+        ImGui::Checkbox(_("Show Self Advertisement"), &mod_enabled);
         ImGui::SameLine();
-        if (ImGui::Button(_("Reset##ResetPos"))) {
-            m_pos = { 1700.0f, 890.0f };
+        help_marker(_("Thank you for supporting dmc4_hook"));
+        if (mod_enabled) {
+            ImGui::Indent(lineIndent);
+            ImGui::PushItemWidth(sameLineItemWidth);
+            ImGui::Checkbox(_("Dvd screensaver"), &dvd_mode);
+            ImGui::Text(_("Position"));
+            ImGui::DragFloat2("##PositionDragFloat2", (float*)&m_pos, 1.0f, 0.0f, 4096.0f, "%.1f");
+            ImGui::SameLine();
+            if (ImGui::Button(_("Reset##ResetPos"))) {
+                m_pos = {1700.0f, 890.0f};
+            }
+            ImGui::Text(_("Colour"));
+            ImGui::ColorEdit4("##ColourColorEdit4", (float*)&m_tint_color);
+            ImGui::SameLine();
+            if (ImGui::Button(_("Reset##ResetColour"))) {
+                m_tint_color = {1.0f, 1.0f, 1.0f, 0.5f};
+            }
+            ImGui::PopItemWidth();
+            ImGui::Unindent(lineIndent);
         }
-        ImGui::Text(_("Colour"));
-        ImGui::ColorEdit4("##ColourColorEdit4", (float*)&m_tint_color);
-        ImGui::SameLine();
-        if (ImGui::Button(_("Reset##ResetColour"))) {
-            m_tint_color = { 1.0f, 1.0f, 1.0f, 0.5f };
-        }
-        ImGui::PopItemWidth();
-        ImGui::Unindent(lineIndent);
+        ImGui::EndGroup();
     }
-    ImGui::EndGroup();
 }
 
 void MutatorSelfAdvertisement::on_frame(fmilliseconds& dt) {

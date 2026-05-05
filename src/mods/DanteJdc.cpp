@@ -553,35 +553,37 @@ static void SeeIfFileExists() {
 }
 
 void DanteJdc::on_gui_frame(int display) {
-    ImGui::BeginGroup();
-    if (!fileExists) {
-        if (ImGui::Button(_("Download Judgement Cut Files"))) {
-            ShellExecuteA(NULL, "open", "https://github.com/muhopensores/dmc4_hook/releases", NULL, NULL, SW_SHOWNORMAL);
-        }
-        ImGui::SameLine();
-        help_marker(_("Clicking this button will open https://github.com/muhopensores/dmc4_hook/releases\n"
-            "From here you can download optional files for mods that require them, found in the Assets section of each dmc4_hook release\n"
-            "Once you've downloadeded and installed these files (I recommend using Fluffy Mod Manager), "
-            "restart the game and tick \"HDD File Priority\" in the Debug tab before you load into a stage\n"
-            "This mod gives Dante Judgement Cut"));
-    }
-    else {
-        if (ImGui::Checkbox(_("Judgement Cut"), &mod_enabled))
-            toggle(mod_enabled);
-        ImGui::SameLine();
-        help_marker(_("Activate judgement cut when performing Yamato aerial rave with lock-on."
-            "Perform normal inertia-less Yamato rave on lock-off\n"
-            "Requires \"HDD File Priority\" at the top of the Debug page"));
-        if (mod_enabled) {
-            ImGui::Indent(lineIndent);
+    if (display == DISPLAY_DANTE_A) {
+        ImGui::BeginGroup();
+        if (!fileExists) {
+            if (ImGui::Button(_("Download Judgement Cut Files"))) {
+                ShellExecuteA(NULL, "open", "https://github.com/muhopensores/dmc4_hook/releases", NULL, NULL, SW_SHOWNORMAL);
+            }
+            ImGui::SameLine();
+            help_marker(_("Clicking this button will open https://github.com/muhopensores/dmc4_hook/releases\n"
+                          "From here you can download optional files for mods that require them, found in the Assets section of each "
+                          "dmc4_hook release\n"
+                          "Once you've downloadeded and installed these files (I recommend using Fluffy Mod Manager), "
+                          "restart the game and tick \"HDD File Priority\" in the Debug tab before you load into a stage\n"
+                          "This mod gives Dante Judgement Cut"));
+        } else {
+            if (ImGui::Checkbox(_("Judgement Cut"), &mod_enabled))
+                toggle(mod_enabled);
+            ImGui::SameLine();
+            help_marker(_("Activate judgement cut when performing Yamato aerial rave with lock-on."
+                          "Perform normal inertia-less Yamato rave on lock-off\n"
+                          "Requires \"HDD File Priority\" at the top of the Debug page"));
+            if (mod_enabled) {
+                ImGui::Indent(lineIndent);
                 ImGui::Checkbox(_("Lock-on + back input"), &alt_input_enabled);
                 ImGui::SameLine();
                 help_marker(_("Bind jdc activation to lock-on + back"));
                 ImGui::Checkbox(_("Inertia enable"), &DanteJdc::inertia_enabled);
-            ImGui::Unindent(lineIndent);
+                ImGui::Unindent(lineIndent);
+            }
         }
+        ImGui::EndGroup();
     }
-    ImGui::EndGroup();
 }
 
 void DanteJdc::on_config_load(const utility::Config& cfg) {

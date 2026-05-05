@@ -165,9 +165,11 @@ void PinTimer::on_frame(fmilliseconds& dt) {
 }
 
 void PinTimer::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Show Pin Timers"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Opens up a UI when pins are placed that shows the time remaining on each pin"));
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Show Pin Timers"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Opens up a UI when pins are placed that shows the time remaining on each pin"));
+    }
 }
 
 void PinTimer::on_config_save(utility::Config& cfg) {

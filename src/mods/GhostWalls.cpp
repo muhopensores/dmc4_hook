@@ -37,9 +37,11 @@ naked void detour1() {
 }
 
 void GhostWalls::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Mephisto/Faust Collision"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Mephisto and Faust get caught on stage collision"));
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Mephisto/Faust Collision"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Mephisto and Faust get caught on stage collision"));
+    }
 }
 
 // void on_game_pause(bool toggle) {}

@@ -28,9 +28,11 @@ naked void detour1() {
 // void ForceInCombat::on_frame(fmilliseconds& dt) {}
 
 void ForceInCombat::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Force \"In Combat\""), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Useful for forcing last enemy cam, style point gain etc."));
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Force \"In Combat\""), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Useful for forcing last enemy cam, style point gain etc."));
+    }
 }
 
 // void ForceInCombat::on_game_pause(bool toggle) {}

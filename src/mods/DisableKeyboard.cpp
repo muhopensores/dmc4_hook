@@ -47,12 +47,12 @@ std::optional<std::string> DisableKeyboard::on_initialize() {
 }
 
 void DisableKeyboard::on_gui_frame(int display) {
-    if (display == 1) {
+    if (display == DISPLAY_SYSTEM_A) {
         ImGui::Checkbox(_("Always Disable Keyboard Input"), &always_block_inputs);
         ImGui::SameLine();
         help_marker(_("Disable keyboard inputs throughout DMC4\nUseful when using \"Background Input\""));
     }
-    else if (display == 2) {
+    if (display == DISPLAY_SYSTEM_B) {
         ImGui::Checkbox(_("Trainer Disables Keyboard Input"), &auto_block_inputs);
         ImGui::SameLine();
         help_marker(_("Disable keyboard inputs when opening the trainer"));

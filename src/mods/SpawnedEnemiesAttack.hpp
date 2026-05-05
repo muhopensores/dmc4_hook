@@ -6,7 +6,11 @@ public:
     SpawnedEnemiesAttack() = default;
     std::string get_mod_name() override { return "SpawnedEnemiesAttack"; };
     // Mod::ModType get_mod_type() override { return SLOW; };
-
+    std::vector<std::string> get_search_terms() override {
+        return {
+            "scarecrow",
+        };
+    }
     static bool mod_enabled;
     static uintptr_t jmp_ret1;
     static uintptr_t detour1_je;

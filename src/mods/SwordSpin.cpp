@@ -126,9 +126,11 @@ std::optional<std::string> SwordSpin::on_initialize() {
 }
 
 void SwordSpin::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Sword Spin"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Round trip orbits the player when not locked onto a target"));
+    if (display == DISPLAY_DANTE_A) {
+        ImGui::Checkbox(_("Sword Spin"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Round trip orbits the player when not locked onto a target"));
+    }
 }
 
 void SwordSpin::on_config_load(const utility::Config& cfg) {

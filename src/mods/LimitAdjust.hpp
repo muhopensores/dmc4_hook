@@ -31,6 +31,9 @@ public:
     static float limit;
 
     std::string get_mod_name() override { return "LimitAdjust"; };
+    std::vector<std::string> get_search_terms() override {
+        return {"enemy step", "jc", "sword switch", "gun switch", "weapon switch", "style switch", "dt cooldown", "devil trigger"};
+    }
 
     std::optional<std::string> on_initialize() override;
 

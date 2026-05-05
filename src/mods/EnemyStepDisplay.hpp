@@ -15,7 +15,10 @@ public:
     static void update_jc_possible();
 
     std::string get_mod_name() override { return "EnemyStepDisplay"; };
-
+    std::vector<std::string> get_search_terms() override {
+        return {"jc", "enemy step"
+        };
+    }
     std::optional<std::string> on_initialize() override;
 
     void on_config_load(const utility::Config& cfg) override;

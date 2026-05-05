@@ -37,11 +37,13 @@ void LdkWithDmd::toggle(bool enable) {
 }
 
 void LdkWithDmd::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("LDK With DMD AI"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("LDK With DMD AI"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("When playing a mission on Legendary Dark Knight, enemies will use DMD AI (and DT) instead of Son Of Sparda AI"));
     }
-	ImGui::SameLine();
-	help_marker(_("When playing a mission on Legendary Dark Knight, enemies will use DMD AI (and DT) instead of Son Of Sparda AI"));
 }
 
 void LdkWithDmd::on_config_load(const utility::Config& cfg) {

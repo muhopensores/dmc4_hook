@@ -152,16 +152,18 @@ std::optional<std::string> EnemyStepDisplay::on_initialize() {
 }
 
 void EnemyStepDisplay::on_gui_frame(int display) {
-    ImGui::BeginGroup();
-    ImGui::Checkbox(_("Enemy Step Display"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("See if it was possible to enemy step in that combo after all"));
-    if (mod_enabled) {
-        ImGui::Indent(lineIndent);
-        ImGui::Checkbox(_("Show Extra Info"), &showExtraStats);
-        ImGui::Unindent(lineIndent);
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::BeginGroup();
+        ImGui::Checkbox(_("Enemy Step Display"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("See if it was possible to enemy step in that combo after all"));
+        if (mod_enabled) {
+            ImGui::Indent(lineIndent);
+            ImGui::Checkbox(_("Show Extra Info"), &showExtraStats);
+            ImGui::Unindent(lineIndent);
+        }
+        ImGui::EndGroup();
     }
-    ImGui::EndGroup();
 }
 
 void EnemyStepDisplay::on_config_load(const utility::Config& cfg) {

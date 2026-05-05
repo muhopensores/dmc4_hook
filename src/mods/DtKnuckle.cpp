@@ -820,44 +820,47 @@ static void SeeIfFileExists() {
 }
 
 void DtKnuckle::on_gui_frame(int display) {
-	ImGui::BeginGroup();
-    if (!fileExists) {
-        if (ImGui::Button(_("Download Guardian Devil Files"))) {
-            ShellExecuteA(NULL, "open", "https://github.com/muhopensores/dmc4_hook/releases", NULL, NULL, SW_SHOWNORMAL);
+    if (display == DISPLAY_NERO_A) {
+        ImGui::BeginGroup();
+        if (!fileExists) {
+            if (ImGui::Button(_("Download Guardian Devil Files"))) {
+                ShellExecuteA(NULL, "open", "https://github.com/muhopensores/dmc4_hook/releases", NULL, NULL, SW_SHOWNORMAL);
+            }
+            ImGui::SameLine();
+            help_marker(_("Clicking this button will open https://github.com/muhopensores/dmc4_hook/releases\n"
+                          "From here you can download optional files for mods that require them, found in the Assets section of each "
+                          "dmc4_hook release\n"
+                          "Once you've downloadeded and installed these files (I recommend using Fluffy Mod Manager), "
+                          "restart the game and tick \"HDD File Priority\" in the Debug tab before you load into a stage\n"
+                          "This mod lets you trigger an attack from Nero's Stand when you input the selected button"));
+        } else {
+            if (ImGui::Checkbox(_("Guardian Devil"), &mod_enabled)) {
+                toggle(mod_enabled);
+            }
+            ImGui::SameLine();
+            help_marker(_("On keyboard this is currently locked to T.\nTriggers a stand attack when you input the selected "
+                          "button.\nLockon+forward/back for other attacks"));
+            if (mod_enabled) {
+                ImGui::Indent(lineIndent);
+                ImGui::PushItemWidth(sameLineItemWidth);
+                if (ImGui::BeginCombo(_("Guardian Input"), utility::text_lookup((char*)devil4_sdk::getButtonInfo(desiredInput).second))) {
+                    for (const auto& buttonPair : buttonPairs) {
+                        bool is_selected = (desiredInput == buttonPair.first);
+                        if (ImGui::Selectable(utility::text_lookup((char*)buttonPair.second), is_selected)) {
+                            desiredInput = buttonPair.first;
+                        }
+                        if (is_selected) {
+                            ImGui::SetItemDefaultFocus();
+                        }
+                    }
+                    ImGui::EndCombo();
+                }
+                ImGui::PopItemWidth();
+                ImGui::Unindent(lineIndent);
+            }
         }
-        ImGui::SameLine();
-        help_marker(_("Clicking this button will open https://github.com/muhopensores/dmc4_hook/releases\n"
-            "From here you can download optional files for mods that require them, found in the Assets section of each dmc4_hook release\n"
-            "Once you've downloadeded and installed these files (I recommend using Fluffy Mod Manager), "
-            "restart the game and tick \"HDD File Priority\" in the Debug tab before you load into a stage\n"
-            "This mod lets you trigger an attack from Nero's Stand when you input the selected button"));
+        ImGui::EndGroup();
     }
-	else {
-		if (ImGui::Checkbox(_("Guardian Devil"), &mod_enabled)) {
-			toggle(mod_enabled);
-		}
-		ImGui::SameLine();
-		help_marker(_("On keyboard this is currently locked to T.\nTriggers a stand attack when you input the selected button.\nLockon+forward/back for other attacks"));
-		if (mod_enabled) {
-			ImGui::Indent(lineIndent);
-			ImGui::PushItemWidth(sameLineItemWidth);
-			if (ImGui::BeginCombo(_("Guardian Input"), utility::text_lookup((char*)devil4_sdk::getButtonInfo(desiredInput).second))) {
-				for (const auto& buttonPair : buttonPairs) {
-					bool is_selected = (desiredInput == buttonPair.first);
-					if (ImGui::Selectable(utility::text_lookup((char*)buttonPair.second), is_selected)) {
-						desiredInput = buttonPair.first;
-					}
-					if (is_selected) {
-						ImGui::SetItemDefaultFocus();
-					}
-				}
-				ImGui::EndCombo();
-			}
-			ImGui::PopItemWidth();
-			ImGui::Unindent(lineIndent);
-		}
-	}
-	ImGui::EndGroup();
 }
 
 void DtKnuckle::on_config_load(const utility::Config& cfg) {

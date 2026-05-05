@@ -46,9 +46,11 @@ std::optional<std::string> ActiveBlock::on_initialize() {
 }
 
 void ActiveBlock::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Active Block"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Block during uncancellable frames by pressing style while in Royal Guard or Darkslayer"));
+    if (display == DISPLAY_DANTE_A) {
+        ImGui::Checkbox(_("Active Block"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Block during uncancellable frames by pressing style while in Royal Guard or Darkslayer"));
+    }
 }
 
 void ActiveBlock::on_config_load(const utility::Config& cfg) {

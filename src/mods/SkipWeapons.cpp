@@ -102,25 +102,26 @@ std::optional<std::string> SkipWeapons::on_initialize() {
 }
 
 void SkipWeapons::on_gui_frame(int display) {
-	if (!hooked) { return; }
-    if (ImGui::Checkbox(_("Skip Shotgun"), &skip_shotgun))
-		skip_pandora = false;
-    ImGui::SameLine();
-    help_marker(_("Skip over Shotgun when Gun switching"));
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Skip Gilgamesh"), &skip_gilgamesh))
-        skip_lucifer = false;
-    ImGui::SameLine();
-    help_marker(_("Skip over Gilgamesh when Weapon switching"));
-    if (ImGui::Checkbox(_("Skip Pandora"), &skip_pandora))
-        skip_shotgun = false;
-    ImGui::SameLine();
-    help_marker(_("Skip over Pandora when Gun switching"));
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Skip Lucifer"), &skip_lucifer))
-        skip_gilgamesh = false;
-    ImGui::SameLine();
-    help_marker(_("Skip over Lucifer when Weapon switching"));
+    if (display == DISPLAY_DANTE_A) {
+        if (ImGui::Checkbox(_("Skip Shotgun"), &skip_shotgun))
+            skip_pandora = false;
+        ImGui::SameLine();
+        help_marker(_("Skip over Shotgun when Gun switching"));
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox(_("Skip Gilgamesh"), &skip_gilgamesh))
+            skip_lucifer = false;
+        ImGui::SameLine();
+        help_marker(_("Skip over Gilgamesh when Weapon switching"));
+        if (ImGui::Checkbox(_("Skip Pandora"), &skip_pandora))
+            skip_shotgun = false;
+        ImGui::SameLine();
+        help_marker(_("Skip over Pandora when Gun switching"));
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox(_("Skip Lucifer"), &skip_lucifer))
+            skip_gilgamesh = false;
+        ImGui::SameLine();
+        help_marker(_("Skip over Lucifer when Weapon switching"));
+    }
 }
 
 void SkipWeapons::on_config_load(const utility::Config& cfg) {

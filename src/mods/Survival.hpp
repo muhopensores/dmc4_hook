@@ -7,6 +7,11 @@ class Survival : public Mod {
 public:
     Survival() = default;
     std::string get_mod_name() override { return "Survival"; };
+    std::vector<std::string> get_search_terms() override {
+        return {
+            "random meme modifiers",
+        };
+    }
     // Mod::ModType get_mod_type() override { return SLOW; };
 
     struct EnemyInfo {

@@ -28,11 +28,13 @@ void BpPortal::toggle(bool enable) {
 }
 
 void BpPortal::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Ignore Red Seal Kill Requirements"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Ignore Red Seal Kill Requirements"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Force the BP Portal to appear, allows you to pass Red Seals without killing enemies"));
     }
-    ImGui::SameLine();
-    help_marker(_("Force the BP Portal to appear, allows you to pass Red Seals without killing enemies"));
 }
 
 void BpPortal::on_config_load(const utility::Config& cfg) {

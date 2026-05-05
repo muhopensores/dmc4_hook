@@ -24,9 +24,11 @@ naked void detour1() {
 // void on_frame(fmilliseconds& dt) {}
 
 void ReversableDraw::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Reversable Draw"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Enable reversals on draw"));
+    if (display == DISPLAY_DANTE_A) {
+        ImGui::Checkbox(_("Reversable Draw"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Enable reversals on draw"));
+    }
 }
 
 // void on_game_pause(bool toggle) {}

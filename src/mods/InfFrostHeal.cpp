@@ -28,11 +28,14 @@ naked void detour1() {
 // void on_frame(fmilliseconds& dt) {}
 
 void InfFrostHeal::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Infinite Frost Heals"), &mod_enabled)) {
-        toggle1(mod_enabled);
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Infinite Frost Heals"), &mod_enabled)) {
+            toggle1(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_(
+            "By default, Frosts are limited to successfully healing and rearming 5 times, making some attacks awkward to see in practice"));
     }
-    ImGui::SameLine();
-    help_marker(_("By default, Frosts are limited to successfully healing and rearming 5 times, making some attacks awkward to see in practice"));
 }
 
 // void on_game_pause(bool toggle) {}

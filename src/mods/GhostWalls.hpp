@@ -5,6 +5,9 @@ class GhostWalls : public Mod {
 public:
     GhostWalls() = default;
     std::string get_mod_name() override { return "GhostWalls"; };
+    std::vector<std::string> get_search_terms() override { return {"mephisto", "faust", "noclip"
+        };
+    }
     // Mod::ModType get_mod_type() override { return SLOW; };
 
     static bool mod_enabled;

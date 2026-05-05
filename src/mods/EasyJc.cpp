@@ -35,12 +35,12 @@ std::optional<std::string> EasyJc::on_initialize() {
 }
 
 void EasyJc::on_gui_frame(int display) {
-    if (display == 1) {
+    if (display == DISPLAY_NERO_A) {
         ImGui::Checkbox(_("Easy Enemy Step"), &mod_enabled_nero);
         ImGui::SameLine();
         help_marker(_("50%% bigger Enemy Step hitspheres"));
     }
-    else if (display == 2) {
+    if (display == DISPLAY_DANTE_A) {
         ImGui::Checkbox(_("Easy Enemy Step"), &mod_enabled_dante);
         ImGui::SameLine();
         help_marker(_("50%% bigger Enemy Step hitspheres"));

@@ -46,9 +46,11 @@ std::optional<std::string> ForceLucifer::on_initialize() {
 }
 
 void ForceLucifer::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Force Lucifer"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Forcing Lucifer means never forcefully despawning rose"));
+    if (display == DISPLAY_DANTE_A) {
+        ImGui::Checkbox(_("Force Lucifer"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Forcing Lucifer means never forcefully despawning rose"));
+    }
 }
 
 void ForceLucifer::on_config_load(const utility::Config& cfg) {

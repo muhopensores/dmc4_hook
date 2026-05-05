@@ -15,11 +15,13 @@ void HighTimeWeaponSwitch::toggle(bool enable) {
     }
 }
 void HighTimeWeaponSwitch::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("High Time Weapon Switch"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_DANTE_A) {
+        if (ImGui::Checkbox(_("High Time Weapon Switch"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Changing weapons early while holding High Time will still allow you to do the held variant"));
     }
-    ImGui::SameLine();
-    help_marker(_("Changing weapons early while holding High Time will still allow you to do the held variant"));
 }
 
 void HighTimeWeaponSwitch::on_config_load(const utility::Config& cfg) {

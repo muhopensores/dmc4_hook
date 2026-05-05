@@ -16,11 +16,13 @@ void EnemyAttackOffScreen::toggle(bool enable) {
 }
 
 void EnemyAttackOffScreen::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Enemies Attack Offscreen"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Enemies Attack Offscreen"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Allow enemies to attack even if they're not currently in camera view"));
     }
-    ImGui::SameLine();
-    help_marker(_("Allow enemies to attack even if they're not currently in camera view"));
 }
 
 void EnemyAttackOffScreen::on_config_load(const utility::Config& cfg) {

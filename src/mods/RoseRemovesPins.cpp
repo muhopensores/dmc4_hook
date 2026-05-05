@@ -36,9 +36,11 @@ std::optional<std::string> RoseRemovesPins::on_initialize() {
 }
 
 void RoseRemovesPins::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Rose Removes Pins"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Rose will despawn pins rather than detonating them"));
+    if (display == DISPLAY_DANTE_A) {
+        ImGui::Checkbox(_("Rose Removes Pins"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Rose will despawn pins rather than detonating them"));
+    }
 }
 
 void RoseRemovesPins::on_config_load(const utility::Config& cfg) {

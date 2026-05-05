@@ -18,11 +18,13 @@ std::optional<std::string> CrossGunCharge::on_initialize() {
 }
 
 void CrossGunCharge::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Cross Gun Charge"), &mod_enabled)) {
-        toggle1(mod_enabled);
+    if (display == DISPLAY_DANTE_A) {
+        if (ImGui::Checkbox(_("Cross Gun Charge"), &mod_enabled)) {
+            toggle1(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Changing gun doesn't empty your charge"));
     }
-    ImGui::SameLine();
-    help_marker(_("Changing gun doesn't empty your charge"));
 }
 
 // void on_frame(fmilliseconds& dt) {}

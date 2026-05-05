@@ -103,9 +103,11 @@ void ExceedDisplay::on_frame(fmilliseconds& dt) {
 }
 
 void ExceedDisplay::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Exceed Display"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("WIP, will be neater when more understood"));
+    if (display == DISPLAY_NERO_A) {
+        ImGui::Checkbox(_("Exceed Display"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("WIP, will be neater when more understood"));
+    }
 }
 
 // void on_game_pause(bool toggle) {}

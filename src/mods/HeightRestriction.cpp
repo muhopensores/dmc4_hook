@@ -62,7 +62,7 @@ naked void detour_air_hike() { // player in esi
 }
 
 void HeightRestriction::on_gui_frame(int display) {
-    if (display == 1) {
+    if (display == DISPLAY_NERO_A) {
         if (ImGui::Checkbox(_("No Height Restriction"), &toggle_nero)) {
             ToggleNero(toggle_nero);
         }
@@ -72,7 +72,7 @@ void HeightRestriction::on_gui_frame(int display) {
         ImGui::SameLine(sameLineWidth);
         ImGui::Checkbox(_("No Air Hike Height Restriction"), &air_hike_nero);
     }
-    else if (display == 2) {
+    if (display == DISPLAY_DANTE_A) {
         if (ImGui::Checkbox(_("No Height Restriction"), &toggle_dante)) {
             ToggleDante(toggle_dante);
         }

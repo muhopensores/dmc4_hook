@@ -419,39 +419,42 @@ static void SeeIfFileExists() {
 }
 
 void Payline::on_gui_frame(int display) {
-    if (!fileExists) {
-        if (ImGui::Button(_("Download Payline Files"))) {
-            ShellExecuteA(NULL, "open", "https://github.com/muhopensores/dmc4_hook/releases", NULL, NULL, SW_SHOWNORMAL);
+    if (display == DISPLAY_NERO_A) {
+        if (!fileExists) {
+            if (ImGui::Button(_("Download Payline Files"))) {
+                ShellExecuteA(NULL, "open", "https://github.com/muhopensores/dmc4_hook/releases", NULL, NULL, SW_SHOWNORMAL);
+            }
+            ImGui::SameLine();
+            help_marker(_("Clicking this button will open https://github.com/muhopensores/dmc4_hook/releases\n"
+                          "From here you can download optional files for mods that require them, found in the Assets section of each "
+                          "dmc4_hook release\n"
+                          "Once you've downloadeded and installed these files (I recommend using Fluffy Mod Manager), "
+                          "restart the game and tick \"HDD File Priority\" in the Debug tab before you load into a stage\n"
+                          "This mod gives Nero a divekick action like he has in DMC5"));
+        } else {
+            if (ImGui::Checkbox(_("Payline"), &mod_enabled)) {
+                Payline_Toggle();
+            }
+            ImGui::SameLine();
+            help_marker(_("Give Nero a divekick action like he has in DMC5\n"
+                          "Requires \"HDD File Priority\" at the top of the Debug page\n"
+                          "Tick this before loading a stage"));
+            // ImGui::SliderFloat("PaylineLoopFrame", &payline_loop_frame, 0.0f, 20.0f);
+        }
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox(_("Remap Helm Splitter"), &helm_splitter_remap)) {
+            Helm_Splitter_Toggle();
         }
         ImGui::SameLine();
-        help_marker(_("Clicking this button will open https://github.com/muhopensores/dmc4_hook/releases\n"
-            "From here you can download optional files for mods that require them, found in the Assets section of each dmc4_hook release\n"
-            "Once you've downloadeded and installed these files (I recommend using Fluffy Mod Manager), "
-            "restart the game and tick \"HDD File Priority\" in the Debug tab before you load into a stage\n"
-            "This mod gives Nero a divekick action like he has in DMC5"));
-    }
-    else {
-        if (ImGui::Checkbox(_("Payline"), &mod_enabled)) {
-            Payline_Toggle();
+        help_marker(_("Remap Helm Splitter and Double Down to lockon+back+melee"));
+        if (mod_enabled) {
+            ImGui::Indent(lineIndent);
+            ImGui::Checkbox(_("Tracking Payline"), &TrackingFullHouse::tracking_full_house_nero);
+            ImGui::SameLine();
+            help_marker(_("If the lock on target is below you (more than 65 degrees), Payline will adjust vertically like divekick does in "
+                          "DMC3 or 5"));
+            ImGui::Unindent(lineIndent);
         }
-        ImGui::SameLine();
-        help_marker(_("Give Nero a divekick action like he has in DMC5\n"
-                   "Requires \"HDD File Priority\" at the top of the Debug page\n"
-                   "Tick this before loading a stage"));
-        // ImGui::SliderFloat("PaylineLoopFrame", &payline_loop_frame, 0.0f, 20.0f);
-    }
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Remap Helm Splitter"), &helm_splitter_remap)) {
-        Helm_Splitter_Toggle();
-    }
-    ImGui::SameLine();
-    help_marker(_("Remap Helm Splitter and Double Down to lockon+back+melee"));
-    if (mod_enabled) {
-        ImGui::Indent(lineIndent);
-        ImGui::Checkbox(_("Tracking Payline"), &TrackingFullHouse::tracking_full_house_nero);
-        ImGui::SameLine();
-        help_marker(_("If the lock on target is below you (more than 65 degrees), Payline will adjust vertically like divekick does in DMC3 or 5"));
-        ImGui::Unindent(lineIndent);
     }
 }
 

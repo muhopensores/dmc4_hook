@@ -71,10 +71,10 @@ std::optional<std::string> InfAirHikes::on_initialize() {
 
 
 void InfAirHikes::on_gui_frame(int display) {
-    if (display == 1) {
+    if (display == DISPLAY_NERO_A) {
         ImGui::Checkbox(_("Infinite Air Hikes"), &mod_enabled_nero);
     }
-    else if (display == 2) {
+    if (display == DISPLAY_DANTE_A) {
         ImGui::Checkbox(_("Infinite Air Hikes"), &mod_enabled_dante);
     }
 }

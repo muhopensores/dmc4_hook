@@ -12,7 +12,10 @@ public:
     static uintptr_t jmp_return2;
 
     std::string get_mod_name() override { return "KnockbackEdits"; };
-
+    std::vector<std::string> get_search_terms() override {
+        return {"release always stuns", "shock launches"
+        };
+    }
     std::optional<std::string> on_initialize() override;
 
     void on_config_load(const utility::Config& cfg) override;

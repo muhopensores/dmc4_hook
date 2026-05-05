@@ -16,8 +16,10 @@ void InfTrickRange::toggle(bool enable) {
 }
 
 void InfTrickRange::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Infinite Trick Range"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_DANTE_A) {
+        if (ImGui::Checkbox(_("Infinite Trick Range"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
     }
 }
 

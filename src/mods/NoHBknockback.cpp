@@ -89,12 +89,12 @@ std::optional<std::string> NoHbKnockback::on_initialize() {
 }
 
 void NoHbKnockback::on_gui_frame(int display) {
-	if (display == 1) {
+	if (display == DISPLAY_NERO_A) {
 		ImGui::Checkbox(_("No Helm Splitter Knockdown"), &nero_toggle);
 		ImGui::SameLine();
 		help_marker(_("Helm Splitter deals no knockdown and instead only stuns the enemy"));
 	}
-	else {
+	if (display == DISPLAY_DANTE_A) {
 		ImGui::Checkbox(_("No Helm Breaker Knockdown"), &dante_toggle);
 		ImGui::SameLine();
 		help_marker(_("Helm Breaker deals no knockdown and instead only stuns the enemy"));

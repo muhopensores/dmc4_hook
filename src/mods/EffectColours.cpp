@@ -37,21 +37,23 @@ std::optional<std::string> EffectColours::on_initialize() {
 }
 
 void EffectColours::on_gui_frame(int display) {
-	ImGui::Checkbox(_("Custom Effect Colours"), &mod_enabled);
-	ImGui::SameLine();
-	help_marker(_("I haven't figured this out yet, right now it just edits any effect that contains \"2_17\" in the name"));
-	if (mod_enabled) {
-		ImGui::Indent(lineIndent);
-		ImGui::PushItemWidth(sameLineItemWidth);
-		if (ImGui::ColorPicker4(_("Colours"), coloursPickedFloat)) {
-			coloursPicked[2] = (int8_t)(coloursPickedFloat[0] * 255.0f); // Red
-			coloursPicked[1] = (int8_t)(coloursPickedFloat[1] * 255.0f); // Green
-			coloursPicked[0] = (int8_t)(coloursPickedFloat[2] * 255.0f); // Blue
-			coloursPicked[3] = (int8_t)(coloursPickedFloat[3] * 255.0f); // Alpha
-		}
-		ImGui::PopItemWidth();
-		ImGui::Unindent(lineIndent);
-	}
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Custom Effect Colours"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("I haven't figured this out yet, right now it just edits any effect that contains \"2_17\" in the name"));
+        if (mod_enabled) {
+            ImGui::Indent(lineIndent);
+            ImGui::PushItemWidth(sameLineItemWidth);
+            if (ImGui::ColorPicker4(_("Colours"), coloursPickedFloat)) {
+                coloursPicked[2] = (int8_t)(coloursPickedFloat[0] * 255.0f); // Red
+                coloursPicked[1] = (int8_t)(coloursPickedFloat[1] * 255.0f); // Green
+                coloursPicked[0] = (int8_t)(coloursPickedFloat[2] * 255.0f); // Blue
+                coloursPicked[3] = (int8_t)(coloursPickedFloat[3] * 255.0f); // Alpha
+            }
+            ImGui::PopItemWidth();
+            ImGui::Unindent(lineIndent);
+        }
+    }
 }
 
 void EffectColours::on_config_load(const utility::Config& cfg) {

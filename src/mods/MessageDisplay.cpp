@@ -30,32 +30,32 @@ void MessageDisplayMod::on_frame(fmilliseconds& dt) {
 }
 
 void MessageDisplayMod::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Keyboard Navigation"), &enable_keyboard_navigation);
-    ImGui::SameLine();
-    help_marker(_("Keyboard navigation throughout dmc4_hook"));
-    ImGui::SameLine(sameLineWidth);
-    ImGui::Checkbox(_("Gamepad Navigation"), &enable_gamepad_navigation);
-    ImGui::SameLine();
-    help_marker(_("Gamepad navigation throughout dmc4_hook"));
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Keyboard Navigation"), &enable_keyboard_navigation);
+        ImGui::SameLine();
+        help_marker(_("Keyboard navigation throughout dmc4_hook"));
+        ImGui::SameLine(sameLineWidth);
+        ImGui::Checkbox(_("Gamepad Navigation"), &enable_gamepad_navigation);
+        ImGui::SameLine();
+        help_marker(_("Gamepad navigation throughout dmc4_hook"));
 
-    ImGui::Checkbox(_("Display Messages"), &should_display_messages);
-    ImGui::SameLine();
-    help_marker(_("Show/Hide popups at the top left such as \"Infinite Health (All) On\""));
-    ImGui::SameLine(sameLineWidth);
-    ImGui::Checkbox(_("Scroll Transitions"), &enable_scroll_transitions);
+        ImGui::Checkbox(_("Display Messages"), &should_display_messages);
+        ImGui::SameLine();
+        help_marker(_("Show/Hide popups at the top left such as \"Infinite Health (All) On\""));
+        ImGui::SameLine(sameLineWidth);
+        ImGui::Checkbox(_("Scroll Transitions"), &enable_scroll_transitions);
 
-    // I would do this not on tick but idk how to use getIO in onConfigLoad without crashing
-    if (enable_keyboard_navigation) {
-        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    }
-    else {
-        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
-    }
-    if (enable_gamepad_navigation) {
-        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-    }
-    else {
-        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
+        // I would do this not on tick but idk how to use getIO in onConfigLoad without crashing
+        if (enable_keyboard_navigation) {
+            ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        } else {
+            ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
+        }
+        if (enable_gamepad_navigation) {
+            ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+        } else {
+            ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
+        }
     }
 }
 

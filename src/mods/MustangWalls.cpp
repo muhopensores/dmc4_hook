@@ -87,9 +87,11 @@ naked void detour2() { // sky star
 // void on_frame(fmilliseconds& dt) {}
 
 void MustangWalls::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Mustang Walls"), &mod_enabled);
-    // ImGui::SameLine();
-    // help_marker(_(""));
+    if (display == DISPLAY_DANTE_A) {
+        ImGui::Checkbox(_("Mustang Walls"), &mod_enabled);
+        // ImGui::SameLine();
+        // help_marker(_(""));
+    }
 }
 
 // void on_game_pause(bool toggle) {}

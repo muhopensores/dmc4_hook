@@ -18,14 +18,14 @@ void FasterFastDrive::toggle(bool enable) {
 }
 
 void FasterFastDrive::on_gui_frame(int display) {
-    if (display == 1) {
+    if (display == DISPLAY_DANTE_A) {
         if (ImGui::Checkbox(_("Fast Quick Drive"), &mod_enabled)) {
             toggle(mod_enabled);
         }
         ImGui::SameLine();
         help_marker(_("Quick Drive skips the initial slash"));
     }
-    if (display == 2) {
+    if (display == DISPLAY_DANTE_B) {
         ImGui::Checkbox(_("Easy Quick Drive"), &easy_fast_drive_enabled);
         ImGui::SameLine();
         help_marker(_("Prop is cancellable into quick drive until frame 7"));

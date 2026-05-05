@@ -271,12 +271,12 @@ void Quicksilver::on_frame(fmilliseconds& dt) {
 }
 
 void Quicksilver::on_gui_frame(int display) {
-	if (display == 1) {
+	if (display == DISPLAY_NERO_A) {
 		ImGui::Checkbox(_("Quicksilver"), &mod_enabled_nero);
 		ImGui::SameLine();
 		help_marker(_("Enable the hotkey for Quicksilver. By default this is = / +"));
 	}
-	else if (display == 2) {
+	if (display == DISPLAY_DANTE_A) {
 		ImGui::Checkbox(_("Quicksilver"), &mod_enabled_dante);
 		ImGui::SameLine();
 		help_marker(_("Enable the hotkey for Quicksilver. By default this is = / +"));

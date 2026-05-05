@@ -24,6 +24,10 @@ public:
 	void on_chat_command(const std::string& message);
     void on_hotkey_tab(utility::Input& input);
 
+	uint32_t get_hash(size_t index) const {
+		return m_hash[index];
+	}
+
 	const auto& get_mods() const {
 		return m_mods;
     };

@@ -803,7 +803,7 @@ std::optional<std::string> AreaJump::on_initialize() {
 }
 
 void AreaJump::on_gui_frame(int display) {
-    if (display == 1) {
+    if (display == DISPLAY_SYSTEM_A) {
         sArea* s_area_ptr = devil4_sdk::get_sArea();
         sMediator* s_med_ptr = devil4_sdk::get_sMediator();
         uPlayer* player = devil4_sdk::get_local_player();
@@ -904,7 +904,7 @@ void AreaJump::on_gui_frame(int display) {
         }
         ImGui::PopItemWidth();
     }
-    if (display == 2) {
+    if (display == DISPLAY_SYSTEM_B) {
         if (ImGui::Checkbox(_("Random BP"), &randomize_bp_toggle)) {
             randomize_bp_floors();
             randomize_bp_bosses();

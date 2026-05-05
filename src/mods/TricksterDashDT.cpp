@@ -16,8 +16,10 @@ std::optional<std::string> TricksterDashDT::on_initialize() {
 }
 
 void TricksterDashDT::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Always DT Trickster Dash"), &mod_enabled)) {
-        toggle1(mod_enabled);
+    if (display == DISPLAY_DANTE_A) {
+        if (ImGui::Checkbox(_("Always DT Trickster Dash"), &mod_enabled)) {
+            toggle1(mod_enabled);
+        }
     }
 }
 

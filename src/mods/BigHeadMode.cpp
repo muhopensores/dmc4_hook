@@ -169,7 +169,7 @@ std::optional<std::string> BigHeadMode::on_initialize(){
 }
 
 void BigHeadMode::on_gui_frame(int display) {
-	if (display == 1) {
+	if (display == DISPLAY_NERO_A) {
 		if (ImGui::Checkbox(_("Big Head Mode"), &big_head_mode_nero)) {
 			swole_mode_nero = false;
 		}
@@ -182,7 +182,7 @@ void BigHeadMode::on_gui_frame(int display) {
 		ImGui::SameLine();
 		help_marker(_("Body size scales with style"));
 	}
-	else if (display == 2) {
+	if (display == DISPLAY_DANTE_A) {
 		if (ImGui::Checkbox(_("Big Head Mode"), &big_head_mode_dante)) {
 			swole_mode_dante = false;
 		}

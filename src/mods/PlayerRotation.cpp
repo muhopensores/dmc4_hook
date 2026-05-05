@@ -44,12 +44,12 @@ std::optional<std::string> PlayerRotation::on_initialize() {
 }
 
 void PlayerRotation::on_gui_frame(int display) {
-    if (display == 1) {
+    if (display == DISPLAY_NERO_A) {
         ImGui::Checkbox(_("Unlock rotation"), &mod_enabled_nero);
         ImGui::SameLine();
         help_marker(_("Lock player rotation to stick direction"));
     }
-    else if (display == 2) {
+    if (display == DISPLAY_DANTE_A) {
         ImGui::Checkbox(_("Unlock rotation"), &mod_enabled_dante);
         ImGui::SameLine();
         help_marker(_("Lock player rotation to stick direction"));

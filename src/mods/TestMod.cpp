@@ -69,7 +69,9 @@ void example() {
 }
 // make something show on the gui
 void TestMod::on_gui_frame(int display) {
-    ImGui::Checkbox("Test Mod", &mod_enabled);
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox("Test Mod", &mod_enabled);
+    }
 }
 
 // what happens on boot

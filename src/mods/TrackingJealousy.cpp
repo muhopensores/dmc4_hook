@@ -44,9 +44,11 @@ naked void detour1() { // player in ebp
 // void on_frame(fmilliseconds& dt) {}
 
 void TrackingJealousy::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Tracking Jealousy"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Jealousy tracks horizontally"));
+    if (display == DISPLAY_DANTE_A) {
+        ImGui::Checkbox(_("Tracking Jealousy"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Jealousy tracks horizontally"));
+    }
 }
 
 std::optional<std::string> TrackingJealousy::on_initialize() {

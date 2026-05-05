@@ -27,21 +27,23 @@ void EnemyDT::toggle_instant_dt(bool enable) {
 }
 
 void EnemyDT::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Enemies Don't DT"), &mod_enabled_no_dt)) {
-        mod_enabled_instant_dt = 0;              // turn off other mod
-        toggle_instant_dt(mod_enabled_instant_dt); // update other mod
-        toggle_no_dt(mod_enabled_no_dt);
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Enemies Don't DT"), &mod_enabled_no_dt)) {
+            mod_enabled_instant_dt = 0;                // turn off other mod
+            toggle_instant_dt(mod_enabled_instant_dt); // update other mod
+            toggle_no_dt(mod_enabled_no_dt);
+        }
+        ImGui::SameLine();
+        help_marker(_("Disable enemy Devil Trigger"));
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox(_("Enemies DT Instantly"), &mod_enabled_instant_dt)) {
+            mod_enabled_no_dt = 0;           // turn off other mod
+            toggle_no_dt(mod_enabled_no_dt); // update other mod
+            toggle_instant_dt(mod_enabled_instant_dt);
+        }
+        ImGui::SameLine();
+        help_marker(_("If available, enemies will Devil Trigger instantly"));
     }
-    ImGui::SameLine();
-    help_marker(_("Disable enemy Devil Trigger"));
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Enemies DT Instantly"), &mod_enabled_instant_dt)) {
-        mod_enabled_no_dt = 0;                   // turn off other mod
-        toggle_no_dt(mod_enabled_no_dt);           // update other mod
-        toggle_instant_dt(mod_enabled_instant_dt);
-    }
-    ImGui::SameLine();
-    help_marker(_("If available, enemies will Devil Trigger instantly"));
 }
 
 void EnemyDT::on_config_load(const utility::Config& cfg) {

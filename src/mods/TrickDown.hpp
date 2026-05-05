@@ -13,7 +13,11 @@ public:
     static bool downFlag;
 
     std::string get_mod_name() override { return "TrickDown"; };
-
+    std::vector<std::string> get_search_terms() override {
+        return {
+            "down trick",
+        };
+    }
     std::optional<std::string> on_initialize() override;
 
     void on_config_load(const utility::Config& cfg) override;

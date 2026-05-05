@@ -16,11 +16,13 @@ void NoclipCam::toggle_noclip_cam(bool toggle) {
 }
 
 void NoclipCam::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Noclip Cam"), &noclip_cam_enabled)) {
-        toggle_noclip_cam(noclip_cam_enabled);
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Noclip Cam"), &noclip_cam_enabled)) {
+            toggle_noclip_cam(noclip_cam_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Remove camera presets and instead use a camera that can move through walls\nEnable before entering a stage"));
     }
-    ImGui::SameLine();
-    help_marker(_("Remove camera presets and instead use a camera that can move through walls\nEnable before entering a stage"));
 }
 
 std::optional<std::string> NoclipCam::on_initialize() {

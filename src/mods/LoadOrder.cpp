@@ -446,10 +446,12 @@ void LoadOrder::on_config_load(const utility::Config& cfg)  {
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
 void LoadOrder::on_gui_frame(int display) { 
-    ImGui::Checkbox(_("HDD File Priority"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("The game will look for files outside of arcs before looking inside.\n"
-        "Required by \"Aerial Stinger\", \"Payline\" and \"Lucifer Air Throw\""));
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("HDD File Priority"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("The game will look for files outside of arcs before looking inside.\n"
+                      "Required by \"Aerial Stinger\", \"Payline\" and \"Lucifer Air Throw\""));
+    }
 };
 
 // onGamePause()

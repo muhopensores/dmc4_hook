@@ -11,6 +11,11 @@ public:
     void toggle(bool enable);
 
     std::string get_mod_name() override { return "InfRevive"; };
+    std::vector<std::string> get_search_terms() override {
+        return {
+            "infinite revives",
+        };
+    }
     std::optional<std::string> on_initialize() override;
 
     void on_config_load(const utility::Config& cfg) override;

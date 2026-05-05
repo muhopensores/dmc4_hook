@@ -20,6 +20,9 @@ public:
     static float mightStyleMultiplier;
 
     std::string get_mod_name() override { return "InfAllHealth"; };
+    std::vector<std::string> get_search_terms() override { return {"inf hp", "inf all hp", "infinite hp", "health", "damage multipliers", "damage modifiers", "incoming", "outgoing"
+        };
+    }
     std::optional<std::string> on_initialize() override;
 
     void on_config_load(const utility::Config& cfg) override;

@@ -43,18 +43,20 @@ std::optional<std::string> EnemySlotting::on_initialize() {
 
 static int selected_slot = 0;
 void EnemySlotting::on_gui_frame(int display) {
-	const char* slot_options[] = { _("Default"), "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" };
-	bool was_enabled = selected_slot > 0;
-	ImGui::SetNextItemWidth(sameLineItemWidth);
-	if (ImGui::Combo(_("Slot Limit"), &selected_slot, slot_options, IM_ARRAYSIZE(slot_options))) {
-		mod_enabled = (selected_slot > 0);
-		if (mod_enabled) {
-			new_enemy_slot_limit = selected_slot - 1;
-		}
-	}
-	ImGui::SameLine();
-	help_marker(_("Set how many enemies can attack at the same time.\n"
-				"After selecting Default, the original value will only be restored after entering a new fight"));
+    if (display == DISPLAY_SYSTEM_A) {
+        const char* slot_options[] = {_("Default"), "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"};
+        bool was_enabled           = selected_slot > 0;
+        ImGui::SetNextItemWidth(sameLineItemWidth);
+        if (ImGui::Combo(_("Slot Limit"), &selected_slot, slot_options, IM_ARRAYSIZE(slot_options))) {
+            mod_enabled = (selected_slot > 0);
+            if (mod_enabled) {
+                new_enemy_slot_limit = selected_slot - 1;
+            }
+        }
+        ImGui::SameLine();
+        help_marker(_("Set how many enemies can attack at the same time.\n"
+                      "After selecting Default, the original value will only be restored after entering a new fight"));
+    }
 }
 
 void EnemySlotting::on_config_load(const utility::Config& cfg) {

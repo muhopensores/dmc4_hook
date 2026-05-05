@@ -377,7 +377,7 @@ inline void SelectiveCancels::draw_checkbox_simple(const char* name, CancelMoves
 
 void SelectiveCancels::on_gui_frame(int display) {
 	ImGui::PushID("SelectiveCancels");
-	if (display == 1) {
+	if (display == DISPLAY_NERO_A) {
 		ImGui::Checkbox(_("Enable##SelectiveCancelsNero"), &mod_enabled_nero);
 		ImGui::SameLine();
 		help_marker(_("Allow cancelling out of selected moves with evasive actions"));
@@ -389,7 +389,7 @@ void SelectiveCancels::on_gui_frame(int display) {
 			ImGui::Unindent();
 		}
 	}
-	else if (display == 2) {
+	if (display == DISPLAY_DANTE_A) {
 		ImGui::Checkbox(_("Enable##SelectiveCancelsDante"), &mod_enabled_dante);
 		ImGui::SameLine();
 		help_marker(_("Allow cancelling out of selected moves with evasive actions"));

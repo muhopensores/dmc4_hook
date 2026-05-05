@@ -16,11 +16,13 @@ void LongerJealousy::toggle1(bool enable) {
 // void on_frame(fmilliseconds& dt) {}
 
 void LongerJealousy::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Longer Jealousy"), &mod_enabled)) {
-        toggle1(mod_enabled);
+    if (display == DISPLAY_DANTE_A) {
+        if (ImGui::Checkbox(_("Longer Jealousy"), &mod_enabled)) {
+            toggle1(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Jealousy doesn't stop shooting until you cancel or land"));
     }
-    ImGui::SameLine();
-    help_marker(_("Jealousy doesn't stop shooting until you cancel or land"));
 }
 
 std::optional<std::string> LongerJealousy::on_initialize() {

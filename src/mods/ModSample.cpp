@@ -29,11 +29,13 @@ naked void detour1() {
 // void ModSample::on_frame(fmilliseconds& dt) {}
 
 void ModSample::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("ModSample"), &mod_enabled)) {
-        toggle1(mod_enabled);
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("ModSample"), &mod_enabled)) {
+            toggle1(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("ModSampleHelpMarker"));
     }
-    ImGui::SameLine();
-    help_marker(_("ModSampleHelpMarker"));
 }
 
 // void ModSample::on_game_pause(bool toggle) {}

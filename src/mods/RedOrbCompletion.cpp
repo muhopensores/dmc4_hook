@@ -79,9 +79,11 @@ void RedOrbCompletion::on_frame(fmilliseconds& dt) {
 }
 
 void RedOrbCompletion::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Show Red Orb Completion %"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Opens up a UI that shows the orb % you've picked up on the current mission"));
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Show Red Orb Completion %"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Opens up a UI that shows the orb % you've picked up on the current mission"));
+    }
 }
 
 void RedOrbCompletion::on_config_save(utility::Config& cfg) {

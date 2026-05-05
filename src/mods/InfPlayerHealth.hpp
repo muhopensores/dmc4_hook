@@ -10,7 +10,10 @@ public:
     static uintptr_t jmp_ret;
 
     std::string get_mod_name() override { return "InfPlayerHealth"; };
-
+    std::vector<std::string> get_search_terms() override {
+        return {"inf hp", "infinite hp"
+        };
+    }
     std::optional<std::string> on_initialize() override;
 
     void on_config_load(const utility::Config& cfg) override;

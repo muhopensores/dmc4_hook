@@ -524,115 +524,93 @@ void MoveTable::display_attack_entry(kAtckDefTbl* TblEntry) {
 }
 
 void MoveTable::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Display Move Table"), &display_move_table);
-    uPlayer* player = devil4_sdk::get_local_player();
-    
-    if (player) {
-        ImGui::Indent(lineIndent);
-        if (ImGui::CollapsingHeader(_("Display Table Editor"))) {
-            uintptr_t kAtckDefTblPtr = (uintptr_t&)player->kAtckDefTblPtr;
-            kAtckDefTbl* CountTblEntry = (kAtckDefTbl*)(kAtckDefTblPtr);
-            const size_t valuesPerEntry = 14;
-            int totalEntries = 0;
-            while ((CountTblEntry->atckAttr != 3)) {
-                totalEntries++;
-                CountTblEntry++;
-            }
-            static int selectedEntryIndex = 0;
-            if (selectedEntryIndex >= totalEntries)
-                selectedEntryIndex = totalEntries - 1;
-            if (selectedEntryIndex < 0)
-                selectedEntryIndex = 0;
-            kAtckDefTbl* TblEntry = (kAtckDefTbl*)(kAtckDefTblPtr + (selectedEntryIndex * sizeof(kAtckDefTbl)));
-            uint32_t currentMoveId = player->moveID2;
-            ImGui::InputInt(_("Player Attack ID"), (int*)&currentMoveId);
-            int EntryCount = 0;
-            if (ImGui::Button(_("Find Current Attack ID"))) {
-                int entryNum = 0;
-                kAtckDefTbl* entry = (kAtckDefTbl*)kAtckDefTblPtr;
-                while (entryNum < totalEntries && (entry->atckId != currentMoveId) && (entry->atckAttr != 3)) {
-                    entryNum++;
-                    entry++;
-                }
-                if (entryNum < totalEntries) {
-                    selectedEntryIndex = entryNum;
-                }
-            }
-            ImGui::InputInt(_("Entry Num"), &selectedEntryIndex, 1, 10);
-            ImGui::Text(_("Entry count: %i"), totalEntries);
-            display_attack_entry(TblEntry);
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Display Move Table"), &display_move_table);
+        uPlayer* player = devil4_sdk::get_local_player();
+
+        if (player) {
             ImGui::Indent(lineIndent);
-            if (ImGui::CollapsingHeader(_("Create a new entry"))) {
-                static kAtckDefTbl customTblEntry{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-                if (ImGui::Button(_("Fill fields from currently displayed entry"))) {
-                    customTblEntry.atckAttr = TblEntry->atckAttr;
-                    customTblEntry.atckId = TblEntry->atckId;
-                    customTblEntry.atckLevel = TblEntry->atckLevel;
-                    customTblEntry.atckInfo = TblEntry->atckInfo;
-                    customTblEntry.command.buffer = TblEntry->command.buffer;
-                    customTblEntry.atckConditionWp = TblEntry->atckConditionWp;
-                    customTblEntry.atckConditionStyle = TblEntry->atckConditionStyle;
-                    customTblEntry.ukn = TblEntry->ukn;
-                    customTblEntry.atckAs = TblEntry->atckAs;
-                    customTblEntry.cancelId[0] = TblEntry->cancelId[0];
-                    customTblEntry.cancelId[1] = TblEntry->cancelId[1];
-                    customTblEntry.cancelId[2] = TblEntry->cancelId[2];
-                    customTblEntry.cancelId[3] = TblEntry->cancelId[3];
-                    customTblEntry.cancelId[4] = TblEntry->cancelId[4];
+            if (ImGui::CollapsingHeader(_("Display Table Editor"))) {
+                uintptr_t kAtckDefTblPtr    = (uintptr_t&)player->kAtckDefTblPtr;
+                kAtckDefTbl* CountTblEntry  = (kAtckDefTbl*)(kAtckDefTblPtr);
+                const size_t valuesPerEntry = 14;
+                int totalEntries            = 0;
+                while ((CountTblEntry->atckAttr != 3)) {
+                    totalEntries++;
+                    CountTblEntry++;
                 }
-                display_attack_entry(&customTblEntry);
-                if (ImGui::Button(_("Create"))) {
-                    if (player->controllerID == 0) {
-                    DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {
-                        customTblEntry.atckAttr,
-                        customTblEntry.atckId,
-                        customTblEntry.atckLevel,
-                        customTblEntry.atckInfo,
-                        customTblEntry.command.buffer,
-                        customTblEntry.atckConditionWp,
-                        customTblEntry.atckConditionStyle,
-                        customTblEntry.ukn,
-                        customTblEntry.atckAs,
-                        customTblEntry.cancelId[0],
-                        customTblEntry.cancelId[1],
-                        customTblEntry.cancelId[2],
-                        customTblEntry.cancelId[3],
-                        customTblEntry.cancelId[4]
-                        });
-                        player->kAtckDefTblPtr = (kAtckDefTbl*)HookDanteKADTbl;
-                        extra_dante_moves++;
+                static int selectedEntryIndex = 0;
+                if (selectedEntryIndex >= totalEntries)
+                    selectedEntryIndex = totalEntries - 1;
+                if (selectedEntryIndex < 0)
+                    selectedEntryIndex = 0;
+                kAtckDefTbl* TblEntry  = (kAtckDefTbl*)(kAtckDefTblPtr + (selectedEntryIndex * sizeof(kAtckDefTbl)));
+                uint32_t currentMoveId = player->moveID2;
+                ImGui::InputInt(_("Player Attack ID"), (int*)&currentMoveId);
+                int EntryCount = 0;
+                if (ImGui::Button(_("Find Current Attack ID"))) {
+                    int entryNum       = 0;
+                    kAtckDefTbl* entry = (kAtckDefTbl*)kAtckDefTblPtr;
+                    while (entryNum < totalEntries && (entry->atckId != currentMoveId) && (entry->atckAttr != 3)) {
+                        entryNum++;
+                        entry++;
                     }
-                    else {
-                    NeroAtckDefTbl.insert(NeroAtckDefTbl.begin(), {
-                        customTblEntry.atckAttr,
-                        customTblEntry.atckId,
-                        customTblEntry.atckLevel,
-                        customTblEntry.atckInfo,
-                        customTblEntry.command.buffer,
-                        customTblEntry.atckConditionWp,
-                        customTblEntry.atckConditionStyle,
-                        customTblEntry.ukn,
-                        customTblEntry.atckAs,
-                        customTblEntry.cancelId[0],
-                        customTblEntry.cancelId[1],
-                        customTblEntry.cancelId[2],
-                        customTblEntry.cancelId[3],
-                        customTblEntry.cancelId[4]
-                        });
-                        player->kAtckDefTblPtr = (kAtckDefTbl*)HookNeroKADTbl;
-                        extra_nero_moves++;
+                    if (entryNum < totalEntries) {
+                        selectedEntryIndex = entryNum;
                     }
                 }
+                ImGui::InputInt(_("Entry Num"), &selectedEntryIndex, 1, 10);
+                ImGui::Text(_("Entry count: %i"), totalEntries);
+                display_attack_entry(TblEntry);
+                ImGui::Indent(lineIndent);
+                if (ImGui::CollapsingHeader(_("Create a new entry"))) {
+                    static kAtckDefTbl customTblEntry{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+                    if (ImGui::Button(_("Fill fields from currently displayed entry"))) {
+                        customTblEntry.atckAttr           = TblEntry->atckAttr;
+                        customTblEntry.atckId             = TblEntry->atckId;
+                        customTblEntry.atckLevel          = TblEntry->atckLevel;
+                        customTblEntry.atckInfo           = TblEntry->atckInfo;
+                        customTblEntry.command.buffer     = TblEntry->command.buffer;
+                        customTblEntry.atckConditionWp    = TblEntry->atckConditionWp;
+                        customTblEntry.atckConditionStyle = TblEntry->atckConditionStyle;
+                        customTblEntry.ukn                = TblEntry->ukn;
+                        customTblEntry.atckAs             = TblEntry->atckAs;
+                        customTblEntry.cancelId[0]        = TblEntry->cancelId[0];
+                        customTblEntry.cancelId[1]        = TblEntry->cancelId[1];
+                        customTblEntry.cancelId[2]        = TblEntry->cancelId[2];
+                        customTblEntry.cancelId[3]        = TblEntry->cancelId[3];
+                        customTblEntry.cancelId[4]        = TblEntry->cancelId[4];
+                    }
+                    display_attack_entry(&customTblEntry);
+                    if (ImGui::Button(_("Create"))) {
+                        if (player->controllerID == 0) {
+                            DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(),
+                                {customTblEntry.atckAttr, customTblEntry.atckId, customTblEntry.atckLevel, customTblEntry.atckInfo,
+                                    customTblEntry.command.buffer, customTblEntry.atckConditionWp, customTblEntry.atckConditionStyle,
+                                    customTblEntry.ukn, customTblEntry.atckAs, customTblEntry.cancelId[0], customTblEntry.cancelId[1],
+                                    customTblEntry.cancelId[2], customTblEntry.cancelId[3], customTblEntry.cancelId[4]});
+                            player->kAtckDefTblPtr = (kAtckDefTbl*)HookDanteKADTbl;
+                            extra_dante_moves++;
+                        } else {
+                            NeroAtckDefTbl.insert(NeroAtckDefTbl.begin(),
+                                {customTblEntry.atckAttr, customTblEntry.atckId, customTblEntry.atckLevel, customTblEntry.atckInfo,
+                                    customTblEntry.command.buffer, customTblEntry.atckConditionWp, customTblEntry.atckConditionStyle,
+                                    customTblEntry.ukn, customTblEntry.atckAs, customTblEntry.cancelId[0], customTblEntry.cancelId[1],
+                                    customTblEntry.cancelId[2], customTblEntry.cancelId[3], customTblEntry.cancelId[4]});
+                            player->kAtckDefTblPtr = (kAtckDefTbl*)HookNeroKADTbl;
+                            extra_nero_moves++;
+                        }
+                    }
+                }
+                TblEntry = (kAtckDefTbl*)(uintptr_t)(kAtckDefTblPtr);
+                ImGui::Unindent(lineIndent);
             }
-            TblEntry = (kAtckDefTbl*)(uintptr_t)(kAtckDefTblPtr);
+            ImGui::Unindent(lineIndent);
+        } else {
+            ImGui::Indent(lineIndent);
+            ImGui::Text(_("Load into a stage to see the table and the editor"));
             ImGui::Unindent(lineIndent);
         }
-        ImGui::Unindent(lineIndent);
-    }
-    else {
-        ImGui::Indent(lineIndent);
-        ImGui::Text(_("Load into a stage to see the table and the editor"));
-        ImGui::Unindent(lineIndent);
     }
 }
 

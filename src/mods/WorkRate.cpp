@@ -32,7 +32,7 @@ inline bool WorkRate::check_work_rate_ptr(sWorkRate* wr) {
 void WorkRate::on_gui_frame(int display) {
 	sWorkRate* s_work_rate_ptr = devil4_sdk::get_work_rate();
 	float availX = ImGui::GetContentRegionAvail().x;
-	if (display == 1) {
+	if (display == DISPLAY_SYSTEM_A) {
 		if (ImGui::CollapsingHeader(_("Game Speed"))) {
 			if (!check_work_rate_ptr(s_work_rate_ptr)) {
 				ImGui::TextWrapped(_("Speed adjustments are not initialized yet, load into the stage to access them."));
@@ -70,7 +70,7 @@ void WorkRate::on_gui_frame(int display) {
 			}
 		}
 	}
-	else if (display == 2) {
+        if (display == DISPLAY_SYSTEM_B) {
 		if (ImGui::Checkbox(_("Pause"), &hotkey_paused)) {
 			if (!s_work_rate_ptr) { return; }
 			if (hotkey_paused){

@@ -428,7 +428,8 @@ void TwitchClient::start_voting() {
 // onGUIframe()
 // draw your imgui widgets here, you are inside imgui context.
 void TwitchClient::on_gui_frame(int display) {
-    if (ImGui::CollapsingHeader(_("Random Timed Gameplay Mods"))) {
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::CollapsingHeader(_("Random Timed Gameplay Mods"))) {
 #if 0
         if (twitch_vote_state) {
             ImGui::Text(_("Random gameplay mods active"));
@@ -438,116 +439,118 @@ void TwitchClient::on_gui_frame(int display) {
             }
         }
 #endif
-        ImGui::Text(_("Set these before starting:"));
-        ImGui::PushItemWidth(sameLineItemWidth);
-        if (ImGui::InputInt(_("Mod timer (seconds)"), &m_vote_time, 1, 10)) {
-            m_vote_time = std::clamp<int32_t>(m_vote_time, 5, INT_MAX);
-        }
-        ImGui::PopItemWidth();
-        ImGui::SameLine();
-        help_marker(_("How long the random mod will last"));
-        ImGui::PushItemWidth(sameLineItemWidth);
-        if (ImGui::InputInt(_("Cooldown timer (seconds)"), &m_idle_time, 1, 10)) {
-            m_idle_time = std::clamp<int32_t>(m_idle_time, 5, INT_MAX);
-        }
-        ImGui::PopItemWidth();
-        ImGui::SameLine();
-        help_marker(_("How long before the next mod starts"));
-        if (ImGui::Button(_("Random mutator mode"))) {
-            voting_result = TwitchClient::TWITCH_MODE::LOCAL;
-            make_instance(true);
-        }
-        ImGui::SameLine();
-        help_marker(_("Activate random spicy gameplay mods on a timer without connecting to Twitch"));
-        if (ImGui::Button(_("Stop random mode"))) {
-            disconnect();
-        }
-    }
-
-    if (ImGui::CollapsingHeader(_("Twitch Integration"))) {
-
-        if (!libirc_loaded) {
-            ImGui::Text(_("libircclient.dll not found, twitch support disabled"));
-            ImGui::Text(_("Download libircclient-1.10-win32-dll.zip from the link below"));
-            ImGui::Text(_("Extract libircclient.dll from zip file libircclient-1.10\\bin\\ to DMC4 root"));
-            ImGui::Text(_("for example:"));
-            ImGui::Text("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Devil May Cry 4\\libircclient.dll");
-            ImGui::Text(_("and restart the game to enable twitch support"));
-            gui::ImGuiURL libircclient_url{ "https://sourceforge.net/projects/libircclient/files/libircclient/1.10/", "https://sourceforge.net/projects/libircclient/files/libircclient/1.10/" };
-            libircclient_url.draw();
-            return;
-        }
-
-        ImGui::TextWrapped(_("Filling both fields and enabling one of the options below will allow "
-                           "your Twitch viewers to affect your gameplay.\n"
-                           "Your credentials are stored in config file in plaintext\n"
-                           "Dont send your config with twitch data saved to other people\n"));
-        switch (twitch_status) {
-        case (TWITCH_CONNECTING):
-            ImGui::Text(_("Twitch status: TWITCH_CONNECTING"));
-            break;
-        case (TWITCH_CONNECTED):
-            ImGui::Text(_("Twitch status: TWITCH_CONNECTED"));
-            break;
-        default:
-            ImGui::Text(_("Twitch status: TWITCH_DISCONNECTED"));
-            break;
-        }
-        if (ImGui::Button(_("Get OAuth Password..."))) {
-            #define SW_SHOW 5
-            ShellExecute(0, 0, "https://twitchapps.com/tmi/", 0, 0, SW_SHOW);
-            #undef SW_SHOW
-        }
-        ImGui::InputText(_("Twitch Username"), twitch_login, 128);
-        ImGui::InputText(_("Twitch OAuth"), twitch_chat_oauth_password, 128, ImGuiInputTextFlags_Password);
-        if (ImGui::Button(_("Connect To Twitch"))) {
-            make_instance();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(_("Disconnect From Twitch"))) {
-            disconnect();
-        }
-
-        if (voting_result == VOTING) {
-            if (twitch_status == TWITCH_CONNECTED) {
-                if (ImGui::Button(_("Stop voting"))) {
-                    stop_voting();
-                }
-                if (ImGui::Button(_("Start voting"))) {
-                    start_voting();
-                }
+            ImGui::Text(_("Set these before starting:"));
+            ImGui::PushItemWidth(sameLineItemWidth);
+            if (ImGui::InputInt(_("Mod timer (seconds)"), &m_vote_time, 1, 10)) {
+                m_vote_time = std::clamp<int32_t>(m_vote_time, 5, INT_MAX);
+            }
+            ImGui::PopItemWidth();
+            ImGui::SameLine();
+            help_marker(_("How long the random mod will last"));
+            ImGui::PushItemWidth(sameLineItemWidth);
+            if (ImGui::InputInt(_("Cooldown timer (seconds)"), &m_idle_time, 1, 10)) {
+                m_idle_time = std::clamp<int32_t>(m_idle_time, 5, INT_MAX);
+            }
+            ImGui::PopItemWidth();
+            ImGui::SameLine();
+            help_marker(_("How long before the next mod starts"));
+            if (ImGui::Button(_("Random mutator mode"))) {
+                voting_result = TwitchClient::TWITCH_MODE::LOCAL;
+                make_instance(true);
+            }
+            ImGui::SameLine();
+            help_marker(_("Activate random spicy gameplay mods on a timer without connecting to Twitch"));
+            if (ImGui::Button(_("Stop random mode"))) {
+                disconnect();
             }
         }
 
-        ImGui::Checkbox(_("Show debug info in vote window"), &m_twitch_vote_debug);
-        ImGui::Checkbox(_("Send voting messages in chat"), &m_relay_voting_messages);
-        ImGui::Checkbox(_("Disable voting overlay"), &m_disable_overlay);
-        ImGui::Text(_("Set these before connecting:"));
-        ImGui::PushItemWidth(sameLineItemWidth);
-        if (ImGui::InputInt(_("Voting timer (seconds)"), &m_vote_time, 1, 10)) {
-            m_vote_time = std::clamp<int32_t>(m_vote_time, 5, INT_MAX);
-        }
-        if (ImGui::InputInt(_("Idle timer (seconds)"), &m_idle_time, 1, 10)) {
-            m_idle_time = std::clamp<int32_t>(m_idle_time, 5, INT_MAX);
-        }
-        ImGui::PopItemWidth();
-        ImGui::Checkbox(_("Log In On Game Boot Automatically"), &twitch_login_on_boot);
-        ImGui::SameLine();
-        help_marker(_("This sometimes doesn't work, just come back here and hit disconnect > connect to reconnect"));
+        if (ImGui::CollapsingHeader(_("Twitch Integration"))) {
 
-        ImGui::Text(_("Twitch Mode FAQ"));
-        ImGui::TextWrapped(_("Chaos - viewers can activate twitch mods directly through chat commands."));
-        ImGui::TextWrapped(_("Vote mode - viewers can vote on what mods to activate next."));
+            if (!libirc_loaded) {
+                ImGui::Text(_("libircclient.dll not found, twitch support disabled"));
+                ImGui::Text(_("Download libircclient-1.10-win32-dll.zip from the link below"));
+                ImGui::Text(_("Extract libircclient.dll from zip file libircclient-1.10\\bin\\ to DMC4 root"));
+                ImGui::Text(_("for example:"));
+                ImGui::Text("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Devil May Cry 4\\libircclient.dll");
+                ImGui::Text(_("and restart the game to enable twitch support"));
+                gui::ImGuiURL libircclient_url{"https://sourceforge.net/projects/libircclient/files/libircclient/1.10/",
+                    "https://sourceforge.net/projects/libircclient/files/libircclient/1.10/"};
+                libircclient_url.draw();
+                return;
+            }
 
-        if (ImGui::RadioButton(_("Chaos mode"), &voting_result, TwitchClient::TWITCH_MODE::CHAOS)) {
-            stop_voting();
-            disconnect();
+            ImGui::TextWrapped(_("Filling both fields and enabling one of the options below will allow "
+                                 "your Twitch viewers to affect your gameplay.\n"
+                                 "Your credentials are stored in config file in plaintext\n"
+                                 "Dont send your config with twitch data saved to other people\n"));
+            switch (twitch_status) {
+            case (TWITCH_CONNECTING):
+                ImGui::Text(_("Twitch status: TWITCH_CONNECTING"));
+                break;
+            case (TWITCH_CONNECTED):
+                ImGui::Text(_("Twitch status: TWITCH_CONNECTED"));
+                break;
+            default:
+                ImGui::Text(_("Twitch status: TWITCH_DISCONNECTED"));
+                break;
+            }
+            if (ImGui::Button(_("Get OAuth Password..."))) {
+#define SW_SHOW 5
+                ShellExecute(0, 0, "https://twitchapps.com/tmi/", 0, 0, SW_SHOW);
+#undef SW_SHOW
+            }
+            ImGui::InputText(_("Twitch Username"), twitch_login, 128);
+            ImGui::InputText(_("Twitch OAuth"), twitch_chat_oauth_password, 128, ImGuiInputTextFlags_Password);
+            if (ImGui::Button(_("Connect To Twitch"))) {
+                make_instance();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(_("Disconnect From Twitch"))) {
+                disconnect();
+            }
+
+            if (voting_result == VOTING) {
+                if (twitch_status == TWITCH_CONNECTED) {
+                    if (ImGui::Button(_("Stop voting"))) {
+                        stop_voting();
+                    }
+                    if (ImGui::Button(_("Start voting"))) {
+                        start_voting();
+                    }
+                }
+            }
+
+            ImGui::Checkbox(_("Show debug info in vote window"), &m_twitch_vote_debug);
+            ImGui::Checkbox(_("Send voting messages in chat"), &m_relay_voting_messages);
+            ImGui::Checkbox(_("Disable voting overlay"), &m_disable_overlay);
+            ImGui::Text(_("Set these before connecting:"));
+            ImGui::PushItemWidth(sameLineItemWidth);
+            if (ImGui::InputInt(_("Voting timer (seconds)"), &m_vote_time, 1, 10)) {
+                m_vote_time = std::clamp<int32_t>(m_vote_time, 5, INT_MAX);
+            }
+            if (ImGui::InputInt(_("Idle timer (seconds)"), &m_idle_time, 1, 10)) {
+                m_idle_time = std::clamp<int32_t>(m_idle_time, 5, INT_MAX);
+            }
+            ImGui::PopItemWidth();
+            ImGui::Checkbox(_("Log In On Game Boot Automatically"), &twitch_login_on_boot);
+            ImGui::SameLine();
+            help_marker(_("This sometimes doesn't work, just come back here and hit disconnect > connect to reconnect"));
+
+            ImGui::Text(_("Twitch Mode FAQ"));
+            ImGui::TextWrapped(_("Chaos - viewers can activate twitch mods directly through chat commands."));
+            ImGui::TextWrapped(_("Vote mode - viewers can vote on what mods to activate next."));
+
+            if (ImGui::RadioButton(_("Chaos mode"), &voting_result, TwitchClient::TWITCH_MODE::CHAOS)) {
+                stop_voting();
+                disconnect();
+            }
+            if (ImGui::RadioButton(_("Vote mode"), &voting_result, TwitchClient::TWITCH_MODE::VOTING)) {
+                disconnect();
+            }
+            mutator_draw_mod_table(MutatorRegistry::inst());
+            ImGui::Checkbox(_("Relay Twitch Chat To Devil May Cry 4"), &mirror_chat_checkbox);
         }
-        if (ImGui::RadioButton(_("Vote mode"), &voting_result, TwitchClient::TWITCH_MODE::VOTING)) {
-            disconnect();
-        }
-        mutator_draw_mod_table(MutatorRegistry::inst());
-        ImGui::Checkbox(_("Relay Twitch Chat To Devil May Cry 4"), &mirror_chat_checkbox);
     }
 }
 

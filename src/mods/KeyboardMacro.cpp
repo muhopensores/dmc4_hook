@@ -3238,160 +3238,161 @@ void KeyboardMacro::update_input_active() {
 }
 
 void KeyboardMacro::on_gui_frame(int display) {
-    (void)display;
-    keyboard_macro_instance = this;
-    ensure_keyboard_macro_hotkeys(m_hotkeys);
-    ensure_keyboard_macro_hotkey_binds(m_hotkeys);
+    if (display == 0) {
+        keyboard_macro_instance = this;
+        ensure_keyboard_macro_hotkeys(m_hotkeys);
+        ensure_keyboard_macro_hotkey_binds(m_hotkeys);
 
-    ImGui::BeginGroup();
-    if (ImGui::Checkbox(_("Keyboard Macro"), &mod_enabled)) {
-        if (!mod_enabled) {
-            stop_all_input();
-        }
-        else {
-            update_input_active();
-        }
-    }
-
-    if (mod_enabled) {
-        ImGui::Indent(lineIndent);
-
-        refresh_playback_file_choices();
-        if (ImGui::BeginCombo(_("Macro File"), get_playback_slot_label(playback_slot))) {
-            for (uint32_t slot = 0; slot < playback_file_choices.size(); ++slot) {
-                const bool is_selected = playback_slot == slot;
-                if (ImGui::Selectable(get_playback_slot_label(slot), is_selected)) {
-                    playback_slot = slot;
-                    set_playback_status("Macro file selected.");
-                }
-                if (is_selected) {
-                    ImGui::SetItemDefaultFocus();
-                }
+        ImGui::BeginGroup();
+        if (ImGui::Checkbox(_("Keyboard Macro"), &mod_enabled)) {
+            if (!mod_enabled) {
+                stop_all_input();
+            } else {
+                update_input_active();
             }
-
-            const bool custom_selected = playback_slot == PLAYBACK_SLOT_CUSTOM;
-            if (ImGui::Selectable(CUSTOM_PLAYBACK_LABEL, custom_selected)) {
-                playback_slot = PLAYBACK_SLOT_CUSTOM;
-                set_playback_status("Custom macro file selected.");
-            }
-            if (custom_selected) {
-                ImGui::SetItemDefaultFocus();
-            }
-
-            ImGui::EndCombo();
         }
 
-        if (playback_slot == PLAYBACK_SLOT_CUSTOM) {
-            ImGui::InputText(_("Custom Macro File"), playback_path, sizeof(playback_path));
-        }
+        if (mod_enabled) {
+            ImGui::Indent(lineIndent);
 
-        if (!playback_clips.empty()) {
-            uint32_t preview_clip_index = selected_clip_index;
-            if (preview_clip_index >= playback_clips.size()) {
-                preview_clip_index = 0;
-            }
-
-            const auto preview_label = clip_display_label(playback_clips[preview_clip_index], preview_clip_index);
-            if (ImGui::BeginCombo(_("Macro Clip"), preview_label.c_str())) {
-                for (uint32_t clip_index = 0; clip_index < playback_clips.size(); ++clip_index) {
-                    const bool is_selected = clip_index == selected_clip_index;
-                    const auto clip_label = clip_display_label(playback_clips[clip_index], clip_index);
-                    if (ImGui::Selectable(clip_label.c_str(), is_selected)) {
-                        selected_clip_index = clip_index;
-                        set_playback_status("Macro clip selected.");
+            refresh_playback_file_choices();
+            if (ImGui::BeginCombo(_("Macro File"), get_playback_slot_label(playback_slot))) {
+                for (uint32_t slot = 0; slot < playback_file_choices.size(); ++slot) {
+                    const bool is_selected = playback_slot == slot;
+                    if (ImGui::Selectable(get_playback_slot_label(slot), is_selected)) {
+                        playback_slot = slot;
+                        set_playback_status("Macro file selected.");
                     }
                     if (is_selected) {
                         ImGui::SetItemDefaultFocus();
                     }
                 }
+
+                const bool custom_selected = playback_slot == PLAYBACK_SLOT_CUSTOM;
+                if (ImGui::Selectable(CUSTOM_PLAYBACK_LABEL, custom_selected)) {
+                    playback_slot = PLAYBACK_SLOT_CUSTOM;
+                    set_playback_status("Custom macro file selected.");
+                }
+                if (custom_selected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+
                 ImGui::EndCombo();
             }
-        }
 
-        ImGui::SeparatorText(_("Hotkeys"));
-        if (m_hotkeys.size() >= 5) {
-            auto draw_macro_hotkey = [&](const char* action_label, uint32_t target, utility::Hotkey& hotkey) {
-                ImGui::PushID((int)target);
-                const auto label = hotkey_binds_label(hotkey.m_binds);
-                ImGui::Text("%s: %s", action_label, label.c_str());
-                ImGui::SameLine(sameLineWidth);
-                if (ImGui::Button(_("Set"))) {
-                    capture_hotkey_target = target;
-                    hotkey.m_setting = true;
-                    std::fill_n(raw_key_down, 256, false);
-                    set_playback_status("Press the new macro hotkey.");
+            if (playback_slot == PLAYBACK_SLOT_CUSTOM) {
+                ImGui::InputText(_("Custom Macro File"), playback_path, sizeof(playback_path));
+            }
+
+            if (!playback_clips.empty()) {
+                uint32_t preview_clip_index = selected_clip_index;
+                if (preview_clip_index >= playback_clips.size()) {
+                    preview_clip_index = 0;
                 }
-                ImGui::SameLine();
-                if (ImGui::Button(_("Clear"))) {
-                    hotkey.m_binds = hotkey.m_default_keys;
-                    hotkey.m_setting = false;
-                    if (capture_hotkey_target == target) {
-                        capture_hotkey_target = 0;
+
+                const auto preview_label = clip_display_label(playback_clips[preview_clip_index], preview_clip_index);
+                if (ImGui::BeginCombo(_("Macro Clip"), preview_label.c_str())) {
+                    for (uint32_t clip_index = 0; clip_index < playback_clips.size(); ++clip_index) {
+                        const bool is_selected = clip_index == selected_clip_index;
+                        const auto clip_label  = clip_display_label(playback_clips[clip_index], clip_index);
+                        if (ImGui::Selectable(clip_label.c_str(), is_selected)) {
+                            selected_clip_index = clip_index;
+                            set_playback_status("Macro clip selected.");
+                        }
+                        if (is_selected) {
+                            ImGui::SetItemDefaultFocus();
+                        }
                     }
-                    update_config_hotkey_vkeys(m_hotkeys);
-                    set_playback_status("Macro hotkey restored to default.");
+                    ImGui::EndCombo();
                 }
-                ImGui::PopID();
-            };
-
-            draw_macro_hotkey(_("Reload Macro File"), 1, *m_hotkeys[0]);
-            draw_macro_hotkey(_("Play Macro"), 2, *m_hotkeys[1]);
-            draw_macro_hotkey(_("Stop Macro / Clear Input"), 3, *m_hotkeys[2]);
-            draw_macro_hotkey(_("Capture Snapshot"), 4, *m_hotkeys[3]);
-            draw_macro_hotkey(_("Load Snapshot"), 5, *m_hotkeys[4]);
-
-            if (capture_hotkey_target != 0) {
-                ImGui::TextWrapped(_("Capturing hotkey: press a non-modifier key. Ctrl, Shift, and Alt are captured as modifiers."));
             }
-        }
 
-        if (!keyboard_macro_gameplay_ready()) {
-            suspend_keyboard_macro_runtime_for_transition();
+            ImGui::SeparatorText(_("Hotkeys"));
+            if (m_hotkeys.size() >= 5) {
+                auto draw_macro_hotkey = [&](const char* action_label, uint32_t target, utility::Hotkey& hotkey) {
+                    ImGui::PushID((int)target);
+                    const auto label = hotkey_binds_label(hotkey.m_binds);
+                    ImGui::Text("%s: %s", action_label, label.c_str());
+                    ImGui::SameLine(sameLineWidth);
+                    if (ImGui::Button(_("Set"))) {
+                        capture_hotkey_target = target;
+                        hotkey.m_setting      = true;
+                        std::fill_n(raw_key_down, 256, false);
+                        set_playback_status("Press the new macro hotkey.");
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button(_("Clear"))) {
+                        hotkey.m_binds   = hotkey.m_default_keys;
+                        hotkey.m_setting = false;
+                        if (capture_hotkey_target == target) {
+                            capture_hotkey_target = 0;
+                        }
+                        update_config_hotkey_vkeys(m_hotkeys);
+                        set_playback_status("Macro hotkey restored to default.");
+                    }
+                    ImGui::PopID();
+                };
+
+                draw_macro_hotkey(_("Reload Macro File"), 1, *m_hotkeys[0]);
+                draw_macro_hotkey(_("Play Macro"), 2, *m_hotkeys[1]);
+                draw_macro_hotkey(_("Stop Macro / Clear Input"), 3, *m_hotkeys[2]);
+                draw_macro_hotkey(_("Capture Snapshot"), 4, *m_hotkeys[3]);
+                draw_macro_hotkey(_("Load Snapshot"), 5, *m_hotkeys[4]);
+
+                if (capture_hotkey_target != 0) {
+                    ImGui::TextWrapped(_("Capturing hotkey: press a non-modifier key. Ctrl, Shift, and Alt are captured as modifiers."));
+                }
+            }
+
+            if (!keyboard_macro_gameplay_ready()) {
+                suspend_keyboard_macro_runtime_for_transition();
+                ImGui::TextWrapped(_("Macro status: %s"), playback_status);
+                ImGui::Unindent(lineIndent);
+                ImGui::EndGroup();
+                return;
+            }
+
+            ImGui::SeparatorText(_("Playback"));
+            if (ImGui::Button(_("Reload Macro File"))) {
+                reload_playback_file();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(_("Play Macro"))) {
+                restart_playback();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(_("Stop Macro"))) {
+                stop_all_input();
+            }
+            ImGui::Text(_("Macro tick: %u / %u"), playback_frame_index, (uint32_t)playback_frames.size());
+            const auto playback_time = format_playback_time(get_playback_elapsed_seconds());
+            ImGui::Text(_("Macro time: %s"), playback_time.c_str());
             ImGui::TextWrapped(_("Macro status: %s"), playback_status);
+
+            ImGui::SeparatorText(_("Battle Snapshot"));
+            ImGui::Checkbox(_("Restore Resources"), &restore_resources_snapshot);
+            if (ImGui::Button(_("Capture Snapshot"))) {
+                if (capture_position_snapshot()) {
+                    DISPLAY_MESSAGE("Snapshot captured");
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(_("Load Snapshot"))) {
+                if (load_position_snapshot()) {
+                    DISPLAY_MESSAGE("Snapshot loaded");
+                }
+            }
+            ImGui::TextWrapped(_("%s"), position_snapshot_label().c_str());
+            if (position_snapshot_load_ticks > 0) {
+                ImGui::Text(_("Snapshot restore ticks: %u"), position_snapshot_load_ticks);
+            }
+
             ImGui::Unindent(lineIndent);
-            ImGui::EndGroup();
-            return;
         }
-
-        ImGui::SeparatorText(_("Playback"));
-        if (ImGui::Button(_("Reload Macro File"))) {
-            reload_playback_file();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(_("Play Macro"))) {
-            restart_playback();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(_("Stop Macro"))) {
-            stop_all_input();
-        }
-        ImGui::Text(_("Macro tick: %u / %u"), playback_frame_index, (uint32_t)playback_frames.size());
-        const auto playback_time = format_playback_time(get_playback_elapsed_seconds());
-        ImGui::Text(_("Macro time: %s"), playback_time.c_str());
-        ImGui::TextWrapped(_("Macro status: %s"), playback_status);
-
-        ImGui::SeparatorText(_("Battle Snapshot"));
-        ImGui::Checkbox(_("Restore Resources"), &restore_resources_snapshot);
-        if (ImGui::Button(_("Capture Snapshot"))) {
-            if (capture_position_snapshot()) {
-                DISPLAY_MESSAGE("Snapshot captured");
-            }
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(_("Load Snapshot"))) {
-            if (load_position_snapshot()) {
-                DISPLAY_MESSAGE("Snapshot loaded");
-            }
-        }
-        ImGui::TextWrapped(_("%s"), position_snapshot_label().c_str());
-        if (position_snapshot_load_ticks > 0) {
-            ImGui::Text(_("Snapshot restore ticks: %u"), position_snapshot_load_ticks);
-        }
-
-        ImGui::Unindent(lineIndent);
+        ImGui::EndGroup();
     }
-    ImGui::EndGroup();
 }
+
 void KeyboardMacro::handle_hotkey_actions(
     bool reload_pressed,
     bool restart_pressed,

@@ -17,13 +17,15 @@ void DmdBloodyPalace::toggle(bool enable) {
 }
 
 void DmdBloodyPalace::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("BP DMD HP + DT"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("BP DMD HP + DT"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Up enemy defence to DMD levels and enable enemy DT without adding DMD AI.\n"
+                      "Enemies will take longer to DT than with the SpoilerAL difficulty.\n"
+                      "Applied when starting BP"));
     }
-    ImGui::SameLine();
-    help_marker(_("Up enemy defence to DMD levels and enable enemy DT without adding DMD AI.\n"
-        "Enemies will take longer to DT than with the SpoilerAL difficulty.\n"
-        "Applied when starting BP"));
 }
 
 void DmdBloodyPalace::on_config_load(const utility::Config& cfg) {

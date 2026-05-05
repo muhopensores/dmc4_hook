@@ -12,7 +12,11 @@ public:
     static bool mod_enabled;
 
     std::string get_mod_name() override { return "RestoreMaxHp"; };
-
+    std::vector<std::string> get_search_terms() override {
+        return {
+            "reset enemy hp",
+        };
+    }
     std::optional<std::string> on_initialize() override;
 
     void restore_health_and_timer(sMediator* s_med_ptr, uPlayer* player);

@@ -151,7 +151,7 @@ std::optional<std::string> InfAllHealth::on_initialize() {
 }
 
 void InfAllHealth::on_gui_frame(int display) {
-    if (display == 1) {
+    if (display == DISPLAY_SYSTEM_A) {
         ImGui::BeginGroup();
         if (ImGui::Checkbox(_("Infinite Health (All)"), &all_invincible)) {
             if (all_invincible) {
@@ -201,7 +201,7 @@ void InfAllHealth::on_gui_frame(int display) {
         ImGui::EndGroup();
     }
 
-    if (display == 2) {
+    if (display == DISPLAY_SYSTEM_B) {
         ImGui::Checkbox(_("Must style mode"), &mustStyleToggle);
         ImGui::SameLine();
         help_marker(_("Damage is disabled until reaching S rank"));

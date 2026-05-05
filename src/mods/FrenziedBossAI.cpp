@@ -41,11 +41,13 @@ void FrenziedBossAI::toggle1(bool enable) {
 // void on_frame(fmilliseconds& dt) {}
 
 void FrenziedBossAI::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Frenzied Boss AI"), &mod_enabled)) {
-        toggle1(mod_enabled);
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Frenzied Boss AI"), &mod_enabled)) {
+            toggle1(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Force bosses to use the AI they usually use when low HP"));
     }
-    ImGui::SameLine();
-    help_marker(_("Force bosses to use the AI they usually use when low HP"));
 }
 
 // void on_game_pause(bool toggle) {}

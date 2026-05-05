@@ -72,22 +72,24 @@ std::optional<std::string> OneHitKill::on_initialize() {
 }
 
 void OneHitKill::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("No Death (All)"), &cant_die)) {
-        one_hit_kill = false;
-        //toggle2(oneHitKill);
-        no_death_toggle(cant_die);
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("No Death (All)"), &cant_die)) {
+            one_hit_kill = false;
+            // toggle2(oneHitKill);
+            no_death_toggle(cant_die);
+        }
+        ImGui::SameLine();
+        help_marker(_("Disable any entity dying while still allowing HP to drop.\nFor practicing against enemies who have AI changes at "
+                      "different levels of HP\nAlso stops Omen killing enemies."));
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox(_("One Hit Kill"), &one_hit_kill)) {
+            cant_die = false;
+            no_death_toggle(cant_die);
+            // toggle2(oneHitKill);
+        }
+        ImGui::SameLine();
+        help_marker(_("Enable one hit kill. This overrides the damage multiplier. By default this is hotkeyed to F3"));
     }
-    ImGui::SameLine();
-    help_marker(_("Disable any entity dying while still allowing HP to drop.\nFor practicing against enemies who have AI changes at "
-                "different levels of HP\nAlso stops Omen killing enemies."));
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("One Hit Kill"), &one_hit_kill)) {
-        cant_die = false;
-        no_death_toggle(cant_die);
-        //toggle2(oneHitKill);
-    }
-    ImGui::SameLine();
-    help_marker(_("Enable one hit kill. This overrides the damage multiplier. By default this is hotkeyed to F3"));
 }
 
 void OneHitKill::on_update_input(utility::Input& input) {

@@ -386,25 +386,27 @@ std::optional<std::string> VisualizeHitbox::on_initialize() {
 }
 
 void VisualizeHitbox::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Visualize Hitboxes"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Draw hitbox outlines in red"));
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Visualize Hitboxes"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Draw hitbox outlines in red"));
 
-    ImGui::Checkbox(_("Visualize Hitboxes Attempt 2 CRASHES WOOOO"), &mod_enabled4);
-    ImGui::SameLine();
-    help_marker(_("Draw hitbox outlines in red"));
-    
-    ImGui::Checkbox(_("Visualize Hurtboxes CRASHES WOOOO"), &mod_enabled2);
-    ImGui::SameLine();
-    help_marker(_("Draw hurtbox outlines in blue"));
+        ImGui::Checkbox(_("Visualize Hitboxes Attempt 2 CRASHES WOOOO"), &mod_enabled4);
+        ImGui::SameLine();
+        help_marker(_("Draw hitbox outlines in red"));
 
-    ImGui::Checkbox(_("Visualize Enemy Step Spheres"), &mod_enabled3);
-    ImGui::SameLine();
-    help_marker(_("Draw enemy step sphere outlines in green"));
+        ImGui::Checkbox(_("Visualize Hurtboxes CRASHES WOOOO"), &mod_enabled2);
+        ImGui::SameLine();
+        help_marker(_("Draw hurtbox outlines in blue"));
 
-    ImGui::Indent(lineIndent);
-    ImGui::Checkbox(_("Debug Stats##EnemyStepSpheres"), &enemyStepSphereDebug);
-    ImGui::Unindent();
+        ImGui::Checkbox(_("Visualize Enemy Step Spheres"), &mod_enabled3);
+        ImGui::SameLine();
+        help_marker(_("Draw enemy step sphere outlines in green"));
+
+        ImGui::Indent(lineIndent);
+        ImGui::Checkbox(_("Debug Stats##EnemyStepSpheres"), &enemyStepSphereDebug);
+        ImGui::Unindent();
+    }
 }
 
 void VisualizeHitbox::on_config_load(const utility::Config& cfg) {

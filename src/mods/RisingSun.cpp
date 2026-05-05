@@ -253,11 +253,13 @@ std::optional<std::string> RisingSun::on_initialize() {
 }
 
 void RisingSun::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Aerial Rising Sun"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_DANTE_A) {
+        if (ImGui::Checkbox(_("Aerial Rising Sun"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Replace Dante's Shocking with the last 2 kicks of DT Kick 13"));
     }
-    ImGui::SameLine();
-    help_marker(_("Replace Dante's Shocking with the last 2 kicks of DT Kick 13"));
 }
 
 void RisingSun::on_config_load(const utility::Config& cfg) {

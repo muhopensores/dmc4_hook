@@ -161,18 +161,20 @@ std::optional<std::string> DoubleTapDarkslayer::on_initialize() {
 }
 
 void DoubleTapDarkslayer::on_gui_frame(int display) {
-    ImGui::BeginGroup();
-    ImGui::Checkbox(_("Double Tap Darkslayer"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Darkslayer is accessed by quickly pressing one style twice"));
-    if (mod_enabled) {
-        ImGui::Indent(lineIndent);
-        ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::SliderFloat(_("Double Tap Timer"), &darkslayerTimerFill, 6.0f, 32.0f, "%.0f");
-        ImGui::PopItemWidth();
-        ImGui::Unindent(lineIndent);
+    if (display == DISPLAY_DANTE_A) {
+        ImGui::BeginGroup();
+        ImGui::Checkbox(_("Double Tap Darkslayer"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Darkslayer is accessed by quickly pressing one style twice"));
+        if (mod_enabled) {
+            ImGui::Indent(lineIndent);
+            ImGui::PushItemWidth(sameLineItemWidth);
+            ImGui::SliderFloat(_("Double Tap Timer"), &darkslayerTimerFill, 6.0f, 32.0f, "%.0f");
+            ImGui::PopItemWidth();
+            ImGui::Unindent(lineIndent);
+        }
+        ImGui::EndGroup();
     }
-    ImGui::EndGroup();
 }
 
 void DoubleTapDarkslayer::on_config_load(const utility::Config& cfg) {

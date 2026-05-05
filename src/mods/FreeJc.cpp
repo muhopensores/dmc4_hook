@@ -76,19 +76,12 @@ std::optional<std::string> FreeJc::on_initialize() {
 }
 
 void FreeJc::on_gui_frame(int display) {
-    if (display == 0) {
-        if (ImGui::Checkbox(_("Free Enemy Step"), &FreeJc::mod_enabled_nero)) {
-            mod_enabled_dante = mod_enabled_nero;
-        }
-        ImGui::SameLine();
-        help_marker(_("Enemy Step anywhere (this enables/disables the cheat for both characters)"));
-    }
-    else if (display == 1) {
+    if (display == DISPLAY_NERO_A) {
         ImGui::Checkbox(_("Free Enemy Step"), &FreeJc::mod_enabled_nero);
         ImGui::SameLine();
         help_marker(_("Enemy Step anywhere"));
     }
-    else if (display == 2) {
+    if (display == DISPLAY_DANTE_A) {
         ImGui::Checkbox(_("Free Enemy Step"), &FreeJc::mod_enabled_dante);
         ImGui::SameLine();
         help_marker(_("Enemy Step anywhere"));

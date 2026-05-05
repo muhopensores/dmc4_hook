@@ -492,12 +492,14 @@ std::optional<std::string> AfterImage::on_initialize() {
 }
 
 void AfterImage::on_gui_frame(int display) {
-    if (ImGui::Button("After image")) {
-        // if (fileExists)
-        AfterImage::SpawnAfterImg();
-    }
-    if (ImGui::Button("After image controller")) {
-        // if (fileExists)
-        AfterImage::SpawnAfterImgCtl();
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Button("After image")) {
+            // if (fileExists)
+            AfterImage::SpawnAfterImg();
+        }
+        if (ImGui::Button("After image controller")) {
+            // if (fileExists)
+            AfterImage::SpawnAfterImgCtl();
+        }
     }
 }

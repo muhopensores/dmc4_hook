@@ -780,76 +780,80 @@ void setupMemePowerUpSystem() {
 }
 
 void Survival::on_gui_frame(int display) {
-    ImGui::BeginGroup();
-    if (ImGui::Checkbox(_("Survival"), &Survival::mod_enabled)) {
-        if (!Survival::mod_enabled) { Survival::survival_active = false; }
-        Survival::toggle(Survival::mod_enabled);
-        basicPowerUpSystem->setEnabled(Survival::mod_enabled);
-    }
-    ImGui::SameLine();
-    help_marker(_("Tick and enter any non BP mission on your desired difficulty"));
-
-    if (Survival::mod_enabled) {
-        ImGui::Indent(lineIndent);
-        utility::ImGooListboxTranslated translated_names(survival_room_names.data(), survival_room_names.size());
-        ImGui::SetNextItemWidth(sameLineItemWidth);
-        if (ImGui::BeginCombo(_("Stage Select"), translated_names.data()[Survival::currentRoomIndex])) {
-            for (uint32_t i = 0; i < survivalRooms.size(); i++) {
-                const auto& room = survivalRooms[i];
-                bool is_selected = (Survival::currentRoomIndex == i);
-                if (ImGui::Selectable(translated_names.data()[i], is_selected)) {
-                    Survival::currentRoomIndex = i;
-                }
-                if (is_selected) {
-                    ImGui::SetItemDefaultFocus();
-                }
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::BeginGroup();
+        if (ImGui::Checkbox(_("Survival"), &Survival::mod_enabled)) {
+            if (!Survival::mod_enabled) {
+                Survival::survival_active = false;
             }
-            ImGui::EndCombo();
+            Survival::toggle(Survival::mod_enabled);
+            basicPowerUpSystem->setEnabled(Survival::mod_enabled);
         }
-        ImGui::Unindent(lineIndent);
+        ImGui::SameLine();
+        help_marker(_("Tick and enter any non BP mission on your desired difficulty"));
+
+        if (Survival::mod_enabled) {
+            ImGui::Indent(lineIndent);
+            utility::ImGooListboxTranslated translated_names(survival_room_names.data(), survival_room_names.size());
+            ImGui::SetNextItemWidth(sameLineItemWidth);
+            if (ImGui::BeginCombo(_("Stage Select"), translated_names.data()[Survival::currentRoomIndex])) {
+                for (uint32_t i = 0; i < survivalRooms.size(); i++) {
+                    const auto& room = survivalRooms[i];
+                    bool is_selected = (Survival::currentRoomIndex == i);
+                    if (ImGui::Selectable(translated_names.data()[i], is_selected)) {
+                        Survival::currentRoomIndex = i;
+                    }
+                    if (is_selected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::Unindent(lineIndent);
+        }
+        ImGui::EndGroup();
+
+        //ImGui::BeginGroup();
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox(_("Random Meme Modifiers"), &meme_effects)) {
+            Survival::meme_toggle(Survival::meme_effects);
+            memePowerUpSystem->setEnabled(Survival::meme_effects);
+        }
+        ImGui::SameLine();
+        help_marker(_("Random meme modifiers applied while you play"));
+        /*
+        if (mod_enabled) {
+            ImGui::Indent(lineIndent);
+            if (timer) ImGui::InputFloat("Spawn Timer", (float*)&timer->m_time);
+            if (ImGui::Button("Spawn Player")) {
+                EnemySpawn::spawn_player();
+            }
+            ImGui::Indent(lineIndent);
+            ImGui::InputInt("Wave", &Survival::wave);
+            if (ImGui::Button("Spawn PowerUp")) {
+                basicPowerUpSystem->spawnRandomPowerUp();
+            }
+            if (ImGui::Button("Spawn Enemy")) {
+                Survival::spawn_kinda_random_enemy();
+            }
+            if (ImGui::Button("Reset Wave")) {
+                Survival::reset_wave();
+            }
+            if (ImGui::Button("Timer Trigger")) {
+                Survival::on_timer_trigger();
+            }
+
+            if (ImGui::Button("Spawn Meme")) {
+                memePowerUpSystem->spawnRandomPowerUp();
+            }
+            if (meme_timer) ImGui::InputFloat("Meme Timer", (float*)&meme_timer->m_time);
+
+            ImGui::Unindent(lineIndent);
+
+        }
+        */
+        //ImGui::EndGroup();
     }
-    ImGui::EndGroup();
-
-    ImGui::BeginGroup();
-    ImGui::SameLine(sameLineWidth);
-    if (ImGui::Checkbox(_("Random Meme Modifiers"), &meme_effects)) {
-        Survival::meme_toggle(Survival::meme_effects);
-        memePowerUpSystem->setEnabled(Survival::meme_effects);
-    }
-    ImGui::SameLine();
-    help_marker(_("Random meme modifiers applied while you play"));
-    /*
-    if (mod_enabled) {
-        ImGui::Indent(lineIndent);
-        if (timer) ImGui::InputFloat("Spawn Timer", (float*)&timer->m_time);
-        if (ImGui::Button("Spawn Player")) {
-            EnemySpawn::spawn_player();
-        }
-        ImGui::Indent(lineIndent);
-        ImGui::InputInt("Wave", &Survival::wave);
-        if (ImGui::Button("Spawn PowerUp")) {
-            basicPowerUpSystem->spawnRandomPowerUp();
-        }
-        if (ImGui::Button("Spawn Enemy")) {
-            Survival::spawn_kinda_random_enemy();
-        }
-        if (ImGui::Button("Reset Wave")) {
-            Survival::reset_wave();
-        }
-        if (ImGui::Button("Timer Trigger")) {
-            Survival::on_timer_trigger();
-        }
-
-        if (ImGui::Button("Spawn Meme")) {
-            memePowerUpSystem->spawnRandomPowerUp();
-        }
-        if (meme_timer) ImGui::InputFloat("Meme Timer", (float*)&meme_timer->m_time);
-
-        ImGui::Unindent(lineIndent);
-
-    }
-    */
-    ImGui::EndGroup();
 }
 
 void Survival::reset_wave() {

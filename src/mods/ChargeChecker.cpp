@@ -100,12 +100,12 @@ std::optional<std::string> ChargeChecker::on_initialize() {
 }
 
 void ChargeChecker::on_gui_frame(int display) {
-    if (display == 2) {
+    if (display == DISPLAY_DANTE_A) {
         ImGui::Checkbox(_("Fast Round Trip Charge"), &roundTripCharge_enabled);
         ImGui::SameLine();
         help_marker(_("Half the charge time on Round Trip"));
     }
-    else if (display == 1) {
+    if (display == DISPLAY_NERO_A) {
         ImGui::Checkbox(_("Fast Blue Rose Charge"), &blueRoseCharge_enabled);
         ImGui::SameLine();
         help_marker(_("Half the charge time on Blue Rose"));

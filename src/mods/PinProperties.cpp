@@ -348,13 +348,15 @@ std::optional<std::string> PinProperties::on_initialize() {
 }
 
 void PinProperties::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Gunslinger Passive"), &pin_gs_passive_enabled);
-    ImGui::SameLine();
-    help_marker(_("Thrown lucifer pins continue moving and explode on contact in Gunslinger style."));
-    ImGui::SameLine(sameLineWidth);
-    ImGui::Checkbox(_("Consistent Embedding"), &consistent_embed_enabled);
-    ImGui::SameLine();
-    help_marker(_("Embedded pins attach to one position"));
+    if (display == DISPLAY_DANTE_A) {
+        ImGui::Checkbox(_("Gunslinger Passive"), &pin_gs_passive_enabled);
+        ImGui::SameLine();
+        help_marker(_("Thrown lucifer pins continue moving and explode on contact in Gunslinger style."));
+        ImGui::SameLine(sameLineWidth);
+        ImGui::Checkbox(_("Consistent Embedding"), &consistent_embed_enabled);
+        ImGui::SameLine();
+        help_marker(_("Embedded pins attach to one position"));
+    }
 }
 
 void PinProperties::on_config_load(const utility::Config& cfg) {

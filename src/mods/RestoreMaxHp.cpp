@@ -78,26 +78,28 @@ void RestoreMaxHp::on_frame(fmilliseconds& dt) {
 }
 
 void RestoreMaxHp::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Reset Enemy HP"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Press Lock On + Taunt to restore Max HP to enemies"));
-    ImGui::SameLine(sameLineWidth);
-    ImGui::Checkbox(_("Reset Timer"), &reset_timer);
-    ImGui::SameLine();
-    help_marker(_("Press Lock On + Taunt to reset the BP timer"));
-    if (mod_enabled || reset_timer) {
-        ImGui::Indent(lineIndent);
-        if (ImGui::Checkbox(_("Disable Aerial Resets"), &limit_to_ground)) {
-            if (limit_to_ground)
-                limit_to_air = false;
-        }
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Reset Enemy HP"), &mod_enabled);
         ImGui::SameLine();
-        help_marker(_("Disable \"Reset Enemy HP\" and \"Reset Timer\" while aerial (Useful for Taunt Ecstasy)"));
-        if (ImGui::Checkbox(_("Disable Grounded Resets"), &limit_to_air)) {
-            if (limit_to_air)
-                limit_to_ground = false;
+        help_marker(_("Press Lock On + Taunt to restore Max HP to enemies"));
+        ImGui::SameLine(sameLineWidth);
+        ImGui::Checkbox(_("Reset Timer"), &reset_timer);
+        ImGui::SameLine();
+        help_marker(_("Press Lock On + Taunt to reset the BP timer"));
+        if (mod_enabled || reset_timer) {
+            ImGui::Indent(lineIndent);
+            if (ImGui::Checkbox(_("Disable Aerial Resets"), &limit_to_ground)) {
+                if (limit_to_ground)
+                    limit_to_air = false;
+            }
+            ImGui::SameLine();
+            help_marker(_("Disable \"Reset Enemy HP\" and \"Reset Timer\" while aerial (Useful for Taunt Ecstasy)"));
+            if (ImGui::Checkbox(_("Disable Grounded Resets"), &limit_to_air)) {
+                if (limit_to_air)
+                    limit_to_ground = false;
+            }
+            ImGui::Unindent(lineIndent);
         }
-        ImGui::Unindent(lineIndent);
     }
 }
 

@@ -5,6 +5,11 @@ class MustangWalls : public Mod {
 public:
     MustangWalls() = default;
     std::string get_mod_name() override { return "MustangWalls"; };
+    std::vector<std::string> get_search_terms() override {
+        return {
+            "wall mustang",
+        };
+    }
     // Mod::ModType get_mod_type() override { return SLOW; };
 
     static bool mod_enabled;

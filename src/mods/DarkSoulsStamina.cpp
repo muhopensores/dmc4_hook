@@ -179,9 +179,11 @@ void DarkSoulsStamina::on_frame(fmilliseconds& dt) {
 }
 
 void DarkSoulsStamina::on_gui_frame(int display) {
-    ImGui::Checkbox(_("Stamina"), &stamina_enabled);
-    ImGui::SameLine();
-    help_marker(_("I played a lot of Dark Souls recently and thought this would be funny"));
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Stamina"), &stamina_enabled);
+        ImGui::SameLine();
+        help_marker(_("I played a lot of Dark Souls recently and thought this would be funny"));
+    }
 }
 
 // void DarkSoulsStamina::on_game_pause(bool toggle) {}

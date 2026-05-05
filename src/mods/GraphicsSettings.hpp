@@ -5,6 +5,10 @@ class GraphicsSettings : public Mod {
 public:
     GraphicsSettings() = default;
     std::string get_mod_name() override { return "GraphicsSettings"; };
+    std::vector<std::string> get_search_terms() override {
+        return {"disable prop fade", "disable bullet casing fade", "increased shadow resolution"
+        };
+    }
     // Mod::ModType get_mod_type() override { return SLOW; };
 
     static bool disable_prop_fade_enabled;

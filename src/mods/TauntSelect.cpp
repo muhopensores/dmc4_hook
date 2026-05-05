@@ -587,8 +587,8 @@ std::optional<std::string> TauntSelect::on_initialize() {
 }
 
 void TauntSelect::on_gui_frame(int display) {
-	if (display == 1) {
-		ImGui::Checkbox(_("Enable##TantSelectNero"), &mod_enabled2);
+	if (display == DISPLAY_NERO_A) {
+		ImGui::Checkbox(_("Enable Taunt Select##TantSelectNero"), &mod_enabled2);
 		ImGui::SameLine();
 		help_marker(_("Unknown slots may crash. Test at your own risk.\nIf you get stuck, use character switch to free yourself"));
 		if (mod_enabled2) {
@@ -608,8 +608,8 @@ void TauntSelect::on_gui_frame(int display) {
 			ImGui::Unindent(lineIndent);
 		}
 	}
-	else if (display == 2) {
-		ImGui::Checkbox(_("Enable##TauntSelectDante"), &mod_enabled);
+	if (display == DISPLAY_DANTE_A) {
+		ImGui::Checkbox(_("Enable Taunt Select##TauntSelectDante"), &mod_enabled);
 		ImGui::SameLine();
 		help_marker(_("Unknown slots may crash. Test at your own risk.\nIf you get stuck, use character switch to free yourself"));
 		if (mod_enabled) {

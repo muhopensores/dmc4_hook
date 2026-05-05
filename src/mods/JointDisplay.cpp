@@ -188,11 +188,13 @@ void JointDisplay::on_frame(fmilliseconds& dt) {
 }
 
 void JointDisplay::on_gui_frame(int display) {
-    ImGui::Checkbox(_("JointDisplay"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("JointDisplayHelpMarker"));
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("JointDisplay"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("JointDisplayHelpMarker"));
 
-    ImGui::Checkbox(_("Show Manipulators"), &show_manipulators);
+        ImGui::Checkbox(_("Show Manipulators"), &show_manipulators);
+    }
 }
 
 // void on_game_pause(bool toggle) {}

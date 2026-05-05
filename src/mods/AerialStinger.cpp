@@ -213,11 +213,13 @@ std::optional<std::string> AerialStinger::on_initialize() {
 }
 
 void AerialStinger::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Aerial Stinger"), &mod_enabled)) {
-        toggle(mod_enabled);
+    if (display == DISPLAY_DANTE_A) {
+        if (ImGui::Checkbox(_("Aerial Stinger"), &mod_enabled)) {
+            toggle(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Allow Dante to use Stinger in the air"));
     }
-    ImGui::SameLine();
-    help_marker(_("Allow Dante to use Stinger in the air"));
 }
 
 void AerialStinger::on_config_load(const utility::Config& cfg) {

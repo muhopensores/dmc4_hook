@@ -33,12 +33,14 @@ void GroundedGunCancels::toggle1(bool enable) {
 // void on_frame(fmilliseconds& dt) {}
 
 void GroundedGunCancels::on_gui_frame(int display) {
-    if (ImGui::Checkbox(_("Grounded Gun Cancels"), &mod_enabled)) {
-        toggle1(mod_enabled);
+    if (display == DISPLAY_DANTE_A) {
+        if (ImGui::Checkbox(_("Grounded Gun Cancels"), &mod_enabled)) {
+            toggle1(mod_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Grounded gun attacks can cancel more moves\n"
+                      "Currently affects E&I basic shot, Coyote basic shot, Backslide, Gun Stinger, Fireworks, Epidemic"));
     }
-    ImGui::SameLine();
-    help_marker(_("Grounded gun attacks can cancel more moves\n"
-        "Currently affects E&I basic shot, Coyote basic shot, Backslide, Gun Stinger, Fireworks, Epidemic"));
 }
 
 // void on_game_pause(bool toggle) {}

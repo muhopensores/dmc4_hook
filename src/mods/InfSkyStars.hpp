@@ -11,6 +11,11 @@ public:
     void toggle(bool enable);
 
     std::string get_mod_name() override { return "InfSkyStars"; };
+    std::vector<std::string> get_search_terms() override {
+        return {
+            "infinite sky stars",
+        };
+    }
 
     std::optional<std::string> on_initialize() override;
 

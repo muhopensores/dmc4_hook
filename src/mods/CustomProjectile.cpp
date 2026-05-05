@@ -357,12 +357,14 @@ std::optional<std::string> CustomProjectile::on_initialize() {
 }
 
 void CustomProjectile::on_gui_frame(int display) {
-    if (ImGui::Button("Custom actor")) {
-        //if (fileExists)
-        CustomProjectile::SpawnProjectile();
+    if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Button("Custom actor")) {
+            // if (fileExists)
+            CustomProjectile::SpawnProjectile();
+        }
+        ImGui::SameLine();
+        help_marker(_("Requires \"HDD File Priority\" at the top of the Debug page"));
+        // ImGui::SameLine();
+        // help_marker(_("I put a file check here so if this suddenly stopped working blame me")); // mf
     }
-    ImGui::SameLine();
-    help_marker(_("Requires \"HDD File Priority\" at the top of the Debug page"));
-    //ImGui::SameLine();
-    //help_marker(_("I put a file check here so if this suddenly stopped working blame me")); // mf
 }

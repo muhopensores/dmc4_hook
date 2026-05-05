@@ -403,7 +403,7 @@ void CameraSettings::reset_camera_variables() {
 
 void CameraSettings::on_gui_frame(int display) {
     ImGui::PushID(display);
-    if (display == 1) {
+    if (display == DISPLAY_SYSTEM_A) {
         if (ImGui::Checkbox(_("Disable Lockon Autocorrects"), &camera_lockon_corrects)) {
             toggle_camera_lockon_corrects(camera_lockon_corrects);
         }
@@ -451,7 +451,7 @@ void CameraSettings::on_gui_frame(int display) {
         ImGui::SameLine();
         help_marker(_("When above the locked on enemy the camera will look down"));
     }
-    else if (display == 2) {
+    if (display == DISPLAY_SYSTEM_B) {
         ImGui::Checkbox(_("Enable Camera Settings And Hotkeys"), &mod_enabled);
         if (mod_enabled) {
             ImGui::Indent(lineIndent);
@@ -483,7 +483,7 @@ void CameraSettings::on_gui_frame(int display) {
             ImGui::Unindent();
         }
     }
-    else if (display == 3) {
+    if (display == DISPLAY_SYSTEM_C) {
         ImGui::BeginGroup();
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::Text(_("Gameplay Cam Settings"));

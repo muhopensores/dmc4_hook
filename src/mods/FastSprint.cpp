@@ -36,12 +36,12 @@ std::optional<std::string> FastSprint::on_initialize() {
 }
 
 void FastSprint::on_gui_frame(int display) {
-    if (display == 1) {
+    if (display == DISPLAY_NERO_A) {
         ImGui::Checkbox(_("Fast Sprint"), &mod_enabled_nero);
         ImGui::SameLine();
         help_marker(_("Go from Run to Speed faster, even if you're in battle"));
     }
-    else if (display == 2) {
+    if (display == DISPLAY_DANTE_A) {
         ImGui::Checkbox(_("Fast Sprint"), &mod_enabled_dante);
         ImGui::SameLine();
         help_marker(_("Go from Run to Speed faster, even if you're in battle"));

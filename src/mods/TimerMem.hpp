@@ -12,7 +12,11 @@ public:
     static float timer_mem;
 
     std::string get_mod_name() override { return "TimerMem"; };
-
+    std::vector<std::string> get_search_terms() override {
+        return {
+            "instant honeycomb"
+        };
+    }
     std::optional<std::string> on_initialize() override;
 
     void on_config_load(const utility::Config& cfg) override;
