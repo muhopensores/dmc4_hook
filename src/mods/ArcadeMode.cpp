@@ -40,8 +40,13 @@ bool __fastcall uMissionStart_check_start_flag_sub_89F4C0(uMissionMenu* mission_
             mission_struct->hah = g_our_mission_menu.hah;        // 0x0088
 
             mission_struct->character = g_our_mission_menu.character;
+
+            return true;
         }
-        return true; 
+        // uMissionStart check
+        if (mission_struct->vtable == 0xBE0AC8) {
+            return true;
+        }
     }
     return mission_struct->flags == 4;
 }
