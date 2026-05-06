@@ -3238,7 +3238,7 @@ void KeyboardMacro::update_input_active() {
 }
 
 void KeyboardMacro::on_gui_frame(int display) {
-    if (display == 0) {
+    if (display == DISPLAY_SYSTEM_A) {
         keyboard_macro_instance = this;
         ensure_keyboard_macro_hotkeys(m_hotkeys);
         ensure_keyboard_macro_hotkey_binds(m_hotkeys);

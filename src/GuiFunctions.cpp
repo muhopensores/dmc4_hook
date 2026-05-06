@@ -304,7 +304,7 @@ namespace gui {
 
                 // pmods->on_draw_ui("TestMod"_hash, DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("KeyboardMacro"_hash);
+                pmods->on_draw_ui("KeyboardMacro"_hash, DISPLAY_SYSTEM_A);
                 
                 tabHeight += ImGui::GetCursorPosY();
                 ImGui::EndChild();
