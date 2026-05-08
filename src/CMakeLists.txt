@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/FpsFixes.hpp
+  mods/FpsFixes.cpp
   mods/ArcadeMode.hpp
   mods/ArcadeMode.cpp
   mods/TestMod.hpp

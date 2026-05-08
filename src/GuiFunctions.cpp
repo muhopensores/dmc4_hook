@@ -651,6 +651,8 @@ namespace gui {
                 pmods->on_draw_ui("Borderless"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("FastStart"_hash, DISPLAY_SYSTEM_A); // 1.5 lines
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("FpsFixes"_hash, DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Misc"));
 

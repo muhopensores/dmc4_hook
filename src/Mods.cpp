@@ -170,6 +170,7 @@
 #include "mods/DarkSoulsStamina.hpp"
 #include "mods/TestMod.hpp"
 #include "mods/ArcadeMode.hpp"
+#include "mods/FpsFixes.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -350,6 +351,7 @@ Mods::Mods() {
     ADD_MOD(DarkSoulsStamina);
     ADD_MOD(TestMod);
     ADD_MOD(ArcadeMode);
+    ADD_MOD(FpsFixes);
 }
 
 // Initializes mods, checks for errors
