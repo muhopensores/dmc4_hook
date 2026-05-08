@@ -2,6 +2,7 @@
 
 #include <map>
 #include <optional>
+#include <exception>
 #include <string>
 #include <type_traits>
 
@@ -29,17 +30,22 @@ namespace utility {
                 return {};
             }
 
-            // Use the correct conversion function based on the type.
-            if constexpr (std::is_integral_v<T>) {
-                if constexpr (std::is_unsigned_v<T>) {
-                    return (T)std::stoul(*value);
+            try {
+                // Use the correct conversion function based on the type.
+                if constexpr (std::is_integral_v<T>) {
+                    if constexpr (std::is_unsigned_v<T>) {
+                        return (T)std::stoul(*value);
+                    }
+                    else {
+                        return (T)std::stol(*value);
+                    }
                 }
                 else {
-                    return (T)std::stol(*value);
+                    return (T)std::stod(*value);
                 }
             }
-            else {
-                return (T)std::stod(*value);
+            catch (const std::exception&) {
+                return {};
             }
         }
 

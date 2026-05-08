@@ -35,6 +35,7 @@ constexpr uintptr_t UPDATE_ANALOG_INFO_CALL = 0x007b0250;
 constexpr uintptr_t UPLAYER_EXCEED_INPUT_OFFSET = 0x1444;
 constexpr uintptr_t UPLAYER_CURRENT_STYLE_OFFSET = 0x14D98;
 constexpr uint32_t MACRO_EXCEED_LATCH_TICKS = 4;
+constexpr uint32_t MAX_ENEMY_CHAIN_SCAN = 128;
 constexpr uint32_t PAD_BUTTON_L1 = 0x0100;
 constexpr uint32_t PAD_BUTTON_R1 = 0x0200;
 constexpr uint32_t PAD_BUTTON_L2 = 0x0400;
@@ -210,6 +211,8 @@ PositionSnapshot position_snapshot{};
 uint32_t position_snapshot_load_ticks = 0;
 bool restore_resources_snapshot = false;
 bool keyboard_macro_suspended_for_transition = false;
+cPeripheral* last_player_peripheral = nullptr;
+uint32_t last_player_index = 0;
 
 void update_config_hotkey_vkeys(const std::vector<std::unique_ptr<utility::Hotkey>>& hotkeys);
 std::string trim_copy(const std::string& value);
@@ -228,6 +231,11 @@ sMediator* get_s_mediator_safe();
 uPlayer* get_local_player_safe();
 uCameraCtrl* get_local_camera_safe();
 sWorkRate* get_work_rate_safe();
+
+bool is_game_window_foreground() {
+    auto* window = g_framework ? g_framework->get_window_handle() : nullptr;
+    return !window || GetForegroundWindow() == window;
+}
 
 bool keyboard_macro_gameplay_ready() {
     __try {
@@ -293,6 +301,79 @@ sWorkRate* get_work_rate_safe() {
     }
 }
 
+sKeyboard* get_keyboard_safe() {
+    __try {
+        auto** keyboard_ptr = reinterpret_cast<sKeyboard**>(S_KEYBOARD_PTR);
+        return keyboard_ptr ? *keyboard_ptr : nullptr;
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return nullptr;
+    }
+}
+
+bool read_saved_key_binding(uintptr_t offset, uint32_t& key) {
+    key = 0;
+
+    __try {
+        key = *reinterpret_cast<uint32_t*>(S_SAVE_PTR + offset);
+        return key < 256;
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        key = 0;
+        return false;
+    }
+}
+
+bool keyboard_input_down(sKeyboard* keyboard, uint32_t key, uint8_t fallback_mask) {
+    if (!keyboard) {
+        return false;
+    }
+
+    __try {
+        bool key_down = false;
+        if (key < 256) {
+            key_down = ((keyboard->mState.on[key >> 5] >> (key & 0x1f)) & 1) != 0;
+        }
+
+        const bool fallback_down = (reinterpret_cast<uint8_t*>(&keyboard->mState.on[3])[0] & fallback_mask) != 0;
+        return key_down || fallback_down;
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return false;
+    }
+}
+
+bool clear_peripheral_output(cPeripheral* peripheral, uint32_t player_index) {
+    if (!peripheral) {
+        return false;
+    }
+
+    __try {
+        const uint32_t release_buttons = player_index < 4 ? KeyboardMacro::last_buttons[player_index] : 0;
+        peripheral->mPadBtnOn = 0;
+        peripheral->mPadBtnTrg = 0;
+        peripheral->mPadBtnRel = release_buttons;
+        std::memset(&peripheral->mPadBtnPress, 0, sizeof(float) * 15);
+        peripheral->mAnlgL = {};
+        peripheral->mAnlgR = {};
+        peripheral->mHoldAnlgL = {};
+        peripheral->mIsHold = false;
+        return true;
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return false;
+    }
+}
+
+bool clear_last_peripheral_output() {
+    if (!clear_peripheral_output(last_player_peripheral, last_player_index)) {
+        return false;
+    }
+
+    std::fill_n(KeyboardMacro::last_buttons, 4, 0);
+    return true;
+}
+
 bool is_nero_player_safe(uPlayer* player) {
     __try {
         return player && player->controllerID == 1;
@@ -303,6 +384,7 @@ bool is_nero_player_safe(uPlayer* player) {
 }
 
 void suspend_keyboard_macro_runtime_for_transition() {
+    clear_last_peripheral_output();
     KeyboardMacro::playback_enabled = false;
     KeyboardMacro::clear_input_frames = 0;
     KeyboardMacro::input_active = false;
@@ -1309,7 +1391,7 @@ void keyboard_to_analog(kAnlg* input, int char_id, int key_id) {
         return;
     }
 
-    sKeyboard* keyboard = (sKeyboard*)S_KEYBOARD_PTR;
+    sKeyboard* keyboard = get_keyboard_safe();
     if (!keyboard) {
         return;
     }
@@ -1317,33 +1399,32 @@ void keyboard_to_analog(kAnlg* input, int char_id, int key_id) {
     short analog = input->y;
     short analog_shift = analog >> 0x1f;
     if ((int)((analog ^ analog_shift) - analog_shift) < 0x40) {
+        uint32_t key = 0;
         if (char_id == 0) {
-            analog = *(uint32_t*)(S_SAVE_PTR + 0x1b0 + key_id * 16);
+            read_saved_key_binding(0x1b0 + key_id * 16, key);
         }
         else if (char_id == 1) {
-            analog = *(uint32_t*)(S_SAVE_PTR + 0x298 + key_id * 16);
+            read_saved_key_binding(0x298 + key_id * 16, key);
         }
         else {
-            analog = 0;
+            key = 0;
         }
 
-        if ((((keyboard->mState).on[analog >> 5] >> ((uint8_t)analog & 0x1f) & 1) != 0) ||
-            ((*(uint8_t*)((keyboard->mState).on + 3) & 0x40) != 0)) {
+        if (keyboard_input_down(keyboard, key, 0x40)) {
             input->x = ANALOG_MAX;
         }
 
         if (char_id == 0) {
-            analog = *(uint32_t*)(S_SAVE_PTR + 0x1b4 + key_id * 16);
+            read_saved_key_binding(0x1b4 + key_id * 16, key);
         }
         else if (char_id == 1) {
-            analog = *(uint32_t*)(S_SAVE_PTR + 0x29c + key_id * 16);
+            read_saved_key_binding(0x29c + key_id * 16, key);
         }
         else {
-            analog = 0;
+            key = 0;
         }
 
-        if ((((keyboard->mState).on[analog >> 5] >> ((uint8_t)analog & 0x1f) & 1) != 0) ||
-            ((*(uint8_t*)((keyboard->mState).on + 3) & 0x10) != 0)) {
+        if (keyboard_input_down(keyboard, key, 0x10)) {
             input->y = ANALOG_MIN;
         }
     }
@@ -1351,33 +1432,32 @@ void keyboard_to_analog(kAnlg* input, int char_id, int key_id) {
     analog = input->x;
     analog_shift = analog >> 0x1f;
     if ((int)((analog ^ analog_shift) - analog_shift) < 0x40) {
+        uint32_t key = 0;
         if (char_id == 0) {
-            analog = *(uint32_t*)(S_SAVE_PTR + 0x1bc + key_id * 16);
+            read_saved_key_binding(0x1bc + key_id * 16, key);
         }
         else if (char_id == 1) {
-            analog = *(uint32_t*)(S_SAVE_PTR + 0x2a4 + key_id * 16);
+            read_saved_key_binding(0x2a4 + key_id * 16, key);
         }
         else {
-            analog = 0;
+            key = 0;
         }
 
-        if ((((keyboard->mState).on[analog >> 5] >> ((uint8_t)analog & 0x1f) & 1) != 0) ||
-            ((*(uint8_t*)((keyboard->mState).on + 3) & 0x40) != 0)) {
+        if (keyboard_input_down(keyboard, key, 0x40)) {
             input->x = ANALOG_MAX;
         }
 
         if (char_id == 0) {
-            analog = *(uint32_t*)(S_SAVE_PTR + 0x1b8 + key_id * 4);
+            read_saved_key_binding(0x1b8 + key_id * 4, key);
         }
         else if (char_id == 1) {
-            analog = *(uint32_t*)(S_SAVE_PTR + 0x2a0 + key_id * 4);
+            read_saved_key_binding(0x2a0 + key_id * 4, key);
         }
         else {
-            analog = 0;
+            key = 0;
         }
 
-        if ((((keyboard->mState).on[analog >> 5] >> ((uint8_t)analog & 0x1f) & 1) != 0) ||
-            ((*(uint8_t*)((keyboard->mState).on + 3) & 0x10) != 0)) {
+        if (keyboard_input_down(keyboard, key, 0x10)) {
             input->x = ANALOG_MIN;
         }
     }
@@ -1457,7 +1537,8 @@ uEnemy_Old* select_hit_confirm_enemy(uPlayer* player) {
         }
     }
 
-    for (uEnemy_Old* enemy = devil4_sdk::get_uEnemies(); enemy; enemy = enemy->nextEnemy) {
+    uint32_t visited = 0;
+    for (uEnemy_Old* enemy = devil4_sdk::get_uEnemies(); enemy && visited < MAX_ENEMY_CHAIN_SCAN; enemy = enemy->nextEnemy, ++visited) {
         if (enemy->isActive) {
             return enemy;
         }
@@ -1578,7 +1659,7 @@ bool read_enemy_chain_link_safe(uEnemy_Old* enemy, uEnemy_Old*& next_enemy) {
 
 std::vector<uEnemy_Old*> collect_enemy_chain() {
     std::vector<uEnemy_Old*> enemies{};
-    for (uEnemy_Old* enemy = get_enemy_chain_head_safe(); enemy && enemies.size() < 128;) {
+    for (uEnemy_Old* enemy = get_enemy_chain_head_safe(); enemy && enemies.size() < MAX_ENEMY_CHAIN_SCAN;) {
         enemies.push_back(enemy);
 
         uEnemy_Old* next_enemy = nullptr;
@@ -2609,6 +2690,8 @@ void __stdcall KeyboardMacro::on_player_pad_update(cPeripheral* peripheral) {
         player_index = 0;
     }
 
+    last_player_peripheral = peripheral;
+    last_player_index = player_index;
     write_test_input(peripheral, player_index);
 }
 
@@ -3203,7 +3286,8 @@ void KeyboardMacro::stop_all_input() {
     macro_exceed_active = false;
     macro_exceed_latch_ticks = 0;
     playback_frame_index = 0;
-    clear_input_frames = 2;
+    clear_last_peripheral_output();
+    clear_input_frames = 4;
     reset_hit_confirmed_wait_state();
     update_input_active();
     set_playback_status("Playback stopped; clearing input.");
@@ -3450,6 +3534,9 @@ void KeyboardMacro::poll_raw_keyboard(bool trigger_actions) {
         }
 
         if (trigger_actions && capture_hotkey_target != 0) {
+            if (!is_game_window_foreground()) {
+                continue;
+            }
             capture_pending_hotkey(vkey);
             continue;
         }
@@ -3493,6 +3580,14 @@ void KeyboardMacro::poll_raw_keyboard(bool trigger_actions) {
     }
 
     if (trigger_actions) {
+        if (!is_game_window_foreground()) {
+            reload_pressed = false;
+            restart_pressed = false;
+            capture_snapshot_pressed = false;
+            load_snapshot_pressed = false;
+            clip_hotkey_index = INVALID_CLIP_INDEX;
+        }
+
         handle_hotkey_actions(reload_pressed, restart_pressed, stop_pressed, capture_snapshot_pressed, load_snapshot_pressed);
         if (!reload_pressed && !restart_pressed && !stop_pressed && !capture_snapshot_pressed && !load_snapshot_pressed && clip_hotkey_index != INVALID_CLIP_INDEX) {
             restart_playback_clip(clip_hotkey_index);
