@@ -113,12 +113,16 @@ std::optional<std::string> FastStart::on_initialize() {
 
 void FastStart::toggle(bool enable) {
     if (enable) {
-        install_patch_offset(0xBC96F, bp_fade_patch1, "\x90\x90", 2);
-        install_patch_offset(0xBCB91, bp_fade_patch2, "\x90\x90", 2);
+        install_patch_offset(0xBC96F, bp_fade_patch1, "\x90\x90", 2); // white flash
+        install_patch_offset(0xBCB91, bp_fade_patch2, "\x90\x90", 2); // text flying in
+        install_patch_offset(0x3875E2, mission_fade_patch1, "\xf3\x0f\x10\x87\x70\x01\x00\x00", 8); // fade // movss completed float rather than slowly addssing progress
+        install_patch_offset(0x387A10, mission_fade_patch2, "\xf3\x0f\x10\x87\x70\x01\x00\x00", 8); // text // movss completed float rather than slowly addssing progress
     }
     else {
         bp_fade_patch1.reset();
         bp_fade_patch2.reset();
+        mission_fade_patch1.reset();
+        mission_fade_patch2.reset();
     }
 }
 
@@ -132,11 +136,11 @@ void FastStart::on_gui_frame(int display) {
         ImGui::SameLine();
         help_marker(_("Skip the fades between some menus"));
 
-        if (ImGui::Checkbox(_("Fast BP Fade"), &skip_more_fades)) {
+        if (ImGui::Checkbox(_("Fast Mission Fades"), &skip_more_fades)) {
             toggle(skip_more_fades);
         }
         ImGui::SameLine();
-        help_marker(_("Skips the BP load fade"));
+        help_marker(_("Skips the Mission / BP load fades"));
     }
 }
 
