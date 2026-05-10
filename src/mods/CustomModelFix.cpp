@@ -81,6 +81,7 @@ void CustomModelFix::on_config_load(const utility::Config& cfg) {
     custom_nero_model_fix = cfg.get<bool>("custom_nero_model_fix").value_or(false);
     custom_dante_model_fix = cfg.get<bool>("custom_dante_model_fix").value_or(false);
     force_default_faceplate = cfg.get<bool>("force_default_faceplate").value_or(false);
+    if (force_default_faceplate) toggle_force_faceplate(force_default_faceplate);
 }
 
 void CustomModelFix::on_config_save(utility::Config& cfg) {
