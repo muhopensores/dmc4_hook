@@ -9,8 +9,11 @@ public:
     static uintptr_t jmp_ret1;
     static uintptr_t jmp_jb1;
 
-    static bool char_nero;
-    static bool char_dante;
+    static bool custom_nero_model_fix;
+    static bool custom_dante_model_fix;
+
+    static bool force_default_faceplate;
+    void toggle_force_faceplate(bool enable);
 
     std::string get_mod_name() override { return "CustomModelFix"; };
 
@@ -23,5 +26,5 @@ public:
 
 private:
     std::unique_ptr<FunctionHook> hook1;
-    // std::unique_ptr<Patch> patch;
+    std::unique_ptr<Patch> patchFaceplate;
 };

@@ -660,15 +660,16 @@ namespace gui {
 
                 pmods->on_draw_ui("NoAutomaticCharacters"_hash, DISPLAY_SYSTEM_A); // needs its own line
                     
-                pmods->on_draw_ui("CustomModelFix"_hash, DISPLAY_SYSTEM_A); // needs its own line
-
-                pmods->on_draw_ui("BpPortal"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui("CustomModelFix"_hash, DISPLAY_SYSTEM_A); // 1.5 lines
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("SlowWalk"_hash, DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("CharSwitcher"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui("BpPortal"_hash, DISPLAY_SYSTEM_A); // needs to be on the left
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("PsychoMantis"_hash, DISPLAY_SYSTEM_A);
+
+                pmods->on_draw_ui("CharSwitcher"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                ImGui::SameLine(sameLineWidth);
 
                 pmods->on_draw_ui("ForceInCombat"_hash, DISPLAY_SYSTEM_A);
 
