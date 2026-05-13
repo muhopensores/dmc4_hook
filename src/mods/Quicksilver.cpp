@@ -253,10 +253,7 @@ std::optional<std::string> Quicksilver::on_initialize() {
     m_timer = new utility::Timer(15.0f, on_timer_callback);
 
 	console->system().RegisterCommand("quicksilver", "Trigger Quicksilver", [/*this*/]() {
-		if (Quicksilver::m_timer->m_active == false) {
-			Quicksilver::qs_operator_new();
-			Quicksilver::m_timer->start();
-		}
+		start_quicksilver(15.0f);
 	});
 
 	utility::create_keyboard_hotkey(Quicksilver::m_hotkeys, {VK_OEM_PLUS}, __("QuickSilver"), "quicksilver_key");
@@ -304,24 +301,24 @@ void Quicksilver::on_update_input(utility::Input& input) {
 		if (Quicksilver::m_hotkeys[0]->check(input)) {
 			if (mod_enabled_nero) {
 				if (player->controllerID == 1) {
-					if (m_timer) {
-						if (m_timer->m_active == false) {
-							qs_operator_new();
-							m_timer->start();
-						}
-					}
+					start_quicksilver(15.0f);
 				}
 			}
 			if (mod_enabled_dante) {
 				if (player->controllerID == 0) {
-					if (m_timer) {
-						if (m_timer->m_active == false) {
-							qs_operator_new();
-							m_timer->start();
-						}
-					}
+					start_quicksilver(15.0f);
 				}
 			}
+		}
+	}
+}
+
+void Quicksilver::start_quicksilver(float duration) {
+	if (m_timer) {
+		if (m_timer->m_active == false) {
+			qs_operator_new();
+			m_timer->m_duration = duration;
+			m_timer->start();
 		}
 	}
 }

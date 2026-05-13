@@ -313,7 +313,10 @@ void on_timer_trigger() {}
 
 void FloorIsLava::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
-        ImGui::Checkbox(_("Floor Is Lava"), &mod_enabled);
+        if (ImGui::Checkbox(_("Floor Is Lava"), &mod_enabled)) {
+            if (timer)
+                timer->start();
+        }
         ImGui::SameLine();
         help_marker(_("Upon spawning, you have 5 seconds. Once them 5 seconds are up, if you touch the floor you die"));
     }

@@ -23,7 +23,7 @@
 #include "mods/FreezeEnemies.hpp"
 #include "mods/HeightRestriction.hpp"
 #include "mods/HpInOrbsDisplay.hpp"
-#include "mods/InfAllHealth.hpp"
+#include "mods/HealthSettings.hpp"
 #include "mods/InfDT.hpp"
 #include "mods/InfDreadnaught.hpp"
 #include "mods/InfFaustCloak.hpp"
@@ -37,7 +37,6 @@
 #include "mods/ManualTwosomeTime.hpp"
 #include "mods/NoClip.hpp"
 #include "mods/NoHBknockback.hpp"
-#include "mods/OneHitKill.hpp"
 #include "mods/PinTimer.hpp"
 #include "mods/PlayerTracker.hpp"
 #include "mods/RestoreMaxHp.hpp"
@@ -171,6 +170,7 @@
 #include "mods/TestMod.hpp"
 #include "mods/ArcadeMode.hpp"
 #include "mods/FpsFixes.hpp"
+#include "mods/WitchTime.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -220,11 +220,10 @@ Mods::Mods() {
     ADD_MOD(HeightRestriction);
     ADD_MOD(InfFaustCloak);
     ADD_MOD(InfiniteTime);
-    ADD_MOD(InfAllHealth);
+    ADD_MOD(HealthSettings);
     ADD_MOD(CameraSettings);
     ADD_MOD(FreezeEnemies);
     ADD_MOD(FreeJc);
-    ADD_MOD(OneHitKill);
     ADD_MOD(EnemySpawn);
     ADD_MOD(KnockbackEdits);
     ADD_MOD(DtEnemiesDontStun);
@@ -352,6 +351,7 @@ Mods::Mods() {
     ADD_MOD(TestMod);
     ADD_MOD(ArcadeMode);
     ADD_MOD(FpsFixes);
+    ADD_MOD(WitchTime);
 }
 
 // Initializes mods, checks for errors

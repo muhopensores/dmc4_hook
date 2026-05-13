@@ -16,6 +16,7 @@ public:
     static utility::Timer* get_timer() {
         return m_timer;
     }
+    static void start_quicksilver(float duration);
 
     // override getModName() method with your mod name for logging.
     std::string get_mod_name() override { return "Quicksilver"; };

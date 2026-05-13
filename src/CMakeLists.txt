@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/WitchTime.hpp
+  mods/WitchTime.cpp
   mods/FpsFixes.hpp
   mods/FpsFixes.cpp
   mods/ArcadeMode.hpp
@@ -180,16 +182,14 @@ set(MODS_SRC
   mods/HeightRestriction.hpp
   mods/InfiniteTime.cpp
   mods/InfiniteTime.hpp
-  mods/InfAllHealth.cpp
-  mods/InfAllHealth.hpp
+  mods/HealthSettings.cpp
+  mods/HealthSettings.hpp
   mods/CameraSettings.cpp
   mods/CameraSettings.hpp
   mods/FreezeEnemies.cpp
   mods/FreezeEnemies.hpp
   mods/FreeJc.cpp
   mods/FreeJc.hpp
-  mods/OneHitKill.cpp
-  mods/OneHitKill.hpp
   mods/EnemySpawn.cpp
   mods/EnemySpawn.hpp
   mods/KnockbackEdits.cpp
