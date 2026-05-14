@@ -48,6 +48,8 @@ public:
     static uint32_t stop_vkey;
     static uint32_t capture_snapshot_vkey;
     static uint32_t load_snapshot_vkey;
+    static uint32_t load_snapshot_play_vkey;
+    static uint32_t snapshot_play_delay_ticks;
     static uint32_t playback_slot;
     static uint32_t selected_clip_index;
     static uint32_t loaded_clip_index;
@@ -83,10 +85,19 @@ private:
     static bool reload_playback_file();
     static void restart_playback();
     static void restart_playback_clip(uint32_t clip_index);
+    static bool load_snapshot_then_play();
+    static void clear_snapshot_play_delay();
+    static void tick_snapshot_play_delay();
     static void stop_all_input();
     static void update_input_active();
     static std::string resolve_playback_path();
-    static void handle_hotkey_actions(bool reload_pressed, bool restart_pressed, bool stop_pressed, bool capture_snapshot_pressed, bool load_snapshot_pressed);
+    static void handle_hotkey_actions(
+        bool reload_pressed,
+        bool restart_pressed,
+        bool stop_pressed,
+        bool capture_snapshot_pressed,
+        bool load_snapshot_pressed,
+        bool load_snapshot_play_pressed);
     static void poll_raw_keyboard(bool trigger_actions);
     void check_hotkeys();
 };
