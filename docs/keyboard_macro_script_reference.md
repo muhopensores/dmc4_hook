@@ -20,7 +20,7 @@ This means:
 
 Macro scripts describe game inputs, not physical keyboard keys. `Y` means the game's melee button label, `A` means jump, `R1` means lock-on, and so on. Movement should be written with the macro movement tokens explained below, especially `MW`, `MS`, `MA`, and `MD`.
 
-`WAIT` uses input ticks, not milliseconds. One tick means one pass through the game's input update path. In normal play it is usually close to one rendered frame: about 1/60 second at 60 FPS, or about 1/120 second at 120 FPS. It is still better to think in "input updates" instead of real time, because this system is tied to the game's input layer.
+`WAIT` uses input ticks, not milliseconds. One tick means one pass through the game's input update path. In normal play it is usually close to one rendered frame: about 1/60 second at 60 FPS, or about 1/120 second at 120 FPS. It is still better to think in "input updates" instead of real time, because this system is tied to the game's input layer. Real time can vary if the game stalls or pauses, but a macro tick still means one game input update.
 
 ## Clips and Hotkeys
 
@@ -46,6 +46,8 @@ TAP X
 ```
 
 The clip name can use English, Chinese, or any text that helps you identify it.
+
+The GUI hotkey `Load Snapshot + Play Macro` is separate from clip hotkeys. It loads the current Battle Snapshot, waits `Snapshot Play Delay Ticks`, then starts the selected clip. Do not try to write `TAP F9` or another Windows hotkey in a macro file to control the GUI; macro files inject game inputs, not Windows key events.
 
 ## Buttons
 
@@ -105,6 +107,8 @@ MD D MOVE_RIGHT
 ```
 
 The short aliases `W`, `S`, `A`, and `D` are accepted only as convenience aliases for movement tokens. They are not physical keyboard key presses, and they can be confusing next to the game button `A` for jump. For clarity, prefer `MW`, `MS`, `MA`, and `MD` in shared scripts and documentation.
+
+This naming is fixed even if your real keyboard layout is not WASD. For example, on an AZERTY keyboard, your real in-game left key might be `Q`, but macro `MA` still means move left. Think of `MW/MS/MA/MD` as virtual left-stick directions, not keyboard letters.
 
 Diagonal directions:
 
@@ -194,23 +198,61 @@ CLEAR
 
 ### DIR
 
-Direction plus button for a fixed number of ticks.
+Direction plus button for a fixed number of ticks. Use this for simple directional attacks where the game only needs one direction plus one button.
 
 ```text
 DIR MA Y 1
 ```
 
-This means hold left plus melee for 1 tick, then release both. For Dante, this can be used for Split when the direction matches your lock-on situation.
+This means hold left plus melee for 1 tick, then release both.
+
+Equivalent long form:
+
+```text
+HOLD MA
+HOLD Y
+WAIT 1
+RELEASE Y
+RELEASE MA
+```
+
+`DIR` only touches the direction and button you give it. Inputs that were already held stay held during the helper. For example, if you write this:
+
+```text
+HOLD R1
+DIR MA Y 1
+RELEASE R1
+```
+
+then `R1` stays held while the `DIR` helper performs left plus melee.
+
+Use `DIR` for one-direction command moves such as Dante Split, Stinger, High Time, or Full House, depending on the character, weapon, air/ground state, and which direction is correct for your lock-on situation.
 
 ### BACK_FORWARD
 
-Back, then forward, then button. This is useful for Nero Calibur and Shuffle style inputs.
+Back, then forward, then button. Use this for two-direction command moves where the game expects a back-to-forward input before the attack button.
 
 ```text
 BACK_FORWARD MD MA Y
 ```
 
-The first direction is held for 1 tick, then the second direction is held for 1 tick, then the button is tapped.
+Equivalent long form:
+
+```text
+HOLD MD
+WAIT 1
+HOLD MA
+RELEASE MD
+WAIT 1
+RELEASE MA
+HOLD Y
+WAIT 1
+RELEASE Y
+```
+
+The first direction is held for 1 tick, then the second direction is held for 1 tick, then the button is tapped. Like `DIR`, it preserves other inputs that were already held, such as `R1`.
+
+`BACK_FORWARD` is not a replacement for every "backward" move. If a move only needs one back direction plus an attack button, use `DIR <back direction> <button> <ticks>` instead. Use `BACK_FORWARD` for moves like Nero Calibur/Shuffle-style inputs that really need back, then forward, then attack.
 
 ### Built-in Nero Helpers
 
