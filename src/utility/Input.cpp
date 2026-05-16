@@ -300,13 +300,14 @@ namespace utility {
             // keyboard path
             else {
                 for (size_t i = 0; i < input.get_keys_size(); i++) {
-                    static constexpr std::array<size_t, 5> ignored_keycodes{
+                    static constexpr std::array<size_t, 6> ignored_keycodes{
                         0x01, // lmouse
                         0x02, // rmouse
                         // we want r/l specializations
                         0x10, // shift
                         0x11, // ctrl
                         0x12, // alt
+                        0xFF, // VK_PACKET??
                     };
                     if (std::find(ignored_keycodes.begin(), ignored_keycodes.end(), i) != ignored_keycodes.end()) {
                         continue;
@@ -347,11 +348,12 @@ namespace utility {
 
         ImGui::PopTextWrapPos();
 
-        std::string label_hashed { "set###" + m_config_entry };
-        ImGui::PushID(std::hash<std::string>{}(label_hashed));
-        if (ImGui::Button(_("set"), btn_size)) {
-            m_setting = true;
+        std::string clabel_hashed{ "clear1###" + m_config_entry };
+        ImGui::PushID(std::hash<std::string>{}(clabel_hashed));
+        if (ImGui::Button(_("clear"), btn_size)) {
             m_binds.clear();
+            m_setting = false;
+            m_binds = m_default_keys;
         }
         x_offset -= btn_size.x * 1.1f;
         ImGui::SameLine(x_offset);
@@ -366,12 +368,11 @@ namespace utility {
         ImGui::SameLine(x_offset);
         ImGui::PopID();
 
-        std::string clabel_hashed{ "clear1###" + m_config_entry };
-        ImGui::PushID(std::hash<std::string>{}(clabel_hashed));
-        if (ImGui::Button(_("clear"), btn_size)) {
+        std::string label_hashed { "set###" + m_config_entry };
+        ImGui::PushID(std::hash<std::string>{}(label_hashed));
+        if (ImGui::Button(_("set"), btn_size)) {
+            m_setting = true;
             m_binds.clear();
-            m_setting = false;
-            m_binds = m_default_keys;
         }
         ImGui::PopID();
     };
