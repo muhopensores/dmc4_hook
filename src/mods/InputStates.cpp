@@ -132,6 +132,15 @@ naked void detour2() { // inputonpress // touchpad ecstasy // player is in edx /
         pop eax
         jne jmpret
 
+        push ecx
+        push eax
+        push edx
+        push edx
+        call KeyboardMacro::on_player_input_press_written
+        pop edx
+        pop eax
+        pop ecx
+
         cmp dword ptr [edx+0x1494], 0 // dante controller id
         jne jmpret
 

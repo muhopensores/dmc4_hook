@@ -21,6 +21,8 @@ public:
 	
     void toggle(bool enable);
     void toggle2(bool enable);
+    static bool request_macro_switch();
+    static void clear_macro_switch_request();
 
     std::string get_mod_name() override { return "CharSwitcher"; };
     std::optional<std::string> on_initialize() override;
