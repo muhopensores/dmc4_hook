@@ -1,6 +1,8 @@
 #include "KeyboardMacro.hpp"
+#include "CharSwitcher.hpp"
 #include "EnemyStepDisplay.hpp"
 #include "EnemyTracker.hpp"
+#include "HealthSettings.hpp"
 #include "WorkRate.hpp"
 
 #include <algorithm>
@@ -28,6 +30,7 @@ namespace {
 constexpr uint32_t MAX_PLAYBACK_FRAMES = 600000;
 constexpr short ANALOG_MIN = -127;
 constexpr short ANALOG_MAX = 127;
+constexpr short ANALOG_WALK = 80;
 constexpr uintptr_t S_DEVIL4_PAD_PTR = 0x00e559c4;
 constexpr uintptr_t S_KEYBOARD_PTR = 0x00e559c0;
 constexpr uintptr_t S_SAVE_PTR = 0x00e558c8;
@@ -43,6 +46,46 @@ constexpr uint32_t PAD_BUTTON_R2 = 0x0800;
 constexpr uint32_t PAD_BUTTON_SELECT = 0x0001;
 constexpr uint32_t PAD_BUTTON_L3 = 0x0002;
 constexpr uint32_t PAD_BUTTON_R3 = 0x0004;
+constexpr uint32_t PAD_BUTTON_START = 0x0008;
+constexpr uint32_t PAD_BUTTON_DPAD_UP = 0x0010;
+constexpr uint32_t PAD_BUTTON_DPAD_RIGHT = 0x0020;
+constexpr uint32_t PAD_BUTTON_DPAD_DOWN = 0x0040;
+constexpr uint32_t PAD_BUTTON_DPAD_LEFT = 0x0080;
+constexpr uint32_t PAD_BUTTON_Y = 0x1000;
+constexpr uint32_t PAD_BUTTON_B = 0x2000;
+constexpr uint32_t PAD_BUTTON_A = 0x4000;
+constexpr uint32_t PAD_BUTTON_X = 0x8000;
+constexpr uint32_t PAD_BUTTON_GLOBAL_ROUTE_MASK = PAD_BUTTON_L3 | PAD_BUTTON_R3;
+enum MacroActionIndex : uint32_t {
+    MACRO_ACTION_MELEE = 0,
+    MACRO_ACTION_GUN,
+    MACRO_ACTION_JUMP,
+    MACRO_ACTION_BRINGER,
+    MACRO_ACTION_STYLE_ACTION,
+    MACRO_ACTION_DEVIL_TRIGGER,
+    MACRO_ACTION_LOCK_ON,
+    MACRO_ACTION_CHANGE_GUN,
+    MACRO_ACTION_CHANGE_SWORD,
+    MACRO_ACTION_TAUNT,
+    MACRO_ACTION_CHANGE_TARGET,
+    MACRO_ACTION_RESET_CAMERA,
+    MACRO_ACTION_COUNT,
+};
+static_assert(MACRO_ACTION_COUNT == 12);
+constexpr uint32_t DEFAULT_ACTION_BUTTON_MAP[MACRO_ACTION_COUNT] = {
+    PAD_BUTTON_Y,
+    PAD_BUTTON_X,
+    PAD_BUTTON_A,
+    PAD_BUTTON_B,
+    PAD_BUTTON_B,
+    PAD_BUTTON_L1,
+    PAD_BUTTON_R1,
+    PAD_BUTTON_L2,
+    PAD_BUTTON_R2,
+    PAD_BUTTON_SELECT,
+    PAD_BUTTON_L3,
+    PAD_BUTTON_R3,
+};
 constexpr int DANTE_STYLE_RG = 3;
 constexpr size_t PAD_PRESS_L1 = 8;
 constexpr size_t PAD_PRESS_L2 = 9;
@@ -51,6 +94,7 @@ constexpr size_t PAD_PRESS_R2 = 11;
 constexpr size_t PAD_PRESS_SELECT = 12;
 constexpr size_t PAD_PRESS_L3 = 13;
 constexpr size_t PAD_PRESS_R3 = 14;
+constexpr uint32_t MACRO_CHANGE_TARGET_LATCH_TICKS = 4;
 constexpr uint32_t DEFAULT_RELOAD_VKEY = VK_F9;
 constexpr uint32_t DEFAULT_RESTART_VKEY = VK_F10;
 constexpr uint32_t DEFAULT_STOP_VKEY = VK_F11;
@@ -76,26 +120,48 @@ constexpr const char* CUSTOM_PLAYBACK_LABEL = "Custom";
 
 struct ParsedMacroInput {
     uint32_t buttons = 0;
+    uint32_t global_buttons = 0;
     bool move_up = false;
     bool move_down = false;
     bool move_left = false;
     bool move_right = false;
+    bool walk_up = false;
+    bool walk_down = false;
+    bool walk_left = false;
+    bool walk_right = false;
+    bool camera_up = false;
+    bool camera_down = false;
+    bool camera_left = false;
+    bool camera_right = false;
     bool exceed = false;
+    bool l2_exceed_compat = false;
     bool screen_pause = false;
     bool screen_resume = false;
     bool screen_pause_toggle = false;
+    bool change_target = false;
 };
 
 struct HeldMacroInput {
     uint32_t buttons = 0;
+    uint32_t global_buttons = 0;
     bool move_up = false;
     bool move_down = false;
     bool move_left = false;
     bool move_right = false;
+    bool walk_up = false;
+    bool walk_down = false;
+    bool walk_left = false;
+    bool walk_right = false;
+    bool camera_up = false;
+    bool camera_down = false;
+    bool camera_left = false;
+    bool camera_right = false;
     bool exceed = false;
+    bool l2_exceed_compat = false;
     bool screen_pause = false;
     bool screen_resume = false;
     bool screen_pause_toggle = false;
+    bool change_target = false;
 };
 
 struct BattleEnemySnapshot {
@@ -217,6 +283,12 @@ bool restore_resources_snapshot = false;
 bool keyboard_macro_suspended_for_transition = false;
 cPeripheral* last_player_peripheral = nullptr;
 uint32_t last_player_index = 0;
+uint32_t last_global_routed_buttons[4] = {};
+bool last_global_right_analog[4] = {};
+bool last_change_target_action[4] = {};
+std::string known_macro_file_time_path{};
+uint64_t known_macro_file_write_time = 0;
+bool last_game_pause_state = false;
 
 void update_config_hotkey_vkeys(const std::vector<std::unique_ptr<utility::Hotkey>>& hotkeys);
 std::string trim_copy(const std::string& value);
@@ -235,6 +307,51 @@ sMediator* get_s_mediator_safe();
 uPlayer* get_local_player_safe();
 uCameraCtrl* get_local_camera_safe();
 sWorkRate* get_work_rate_safe();
+sDevil4Pad* get_global_pad_safe();
+
+uint64_t file_time_to_u64(const FILETIME& file_time) {
+    ULARGE_INTEGER value{};
+    value.LowPart = file_time.dwLowDateTime;
+    value.HighPart = file_time.dwHighDateTime;
+    return value.QuadPart;
+}
+
+bool get_file_write_time(const std::string& path, uint64_t& write_time) {
+    write_time = 0;
+    if (path.empty()) {
+        return false;
+    }
+
+    WIN32_FILE_ATTRIBUTE_DATA data{};
+    const auto wide_path = utility::widen(path);
+    if (!GetFileAttributesExW(wide_path.c_str(), GetFileExInfoStandard, &data)) {
+        return false;
+    }
+
+    write_time = file_time_to_u64(data.ftLastWriteTime);
+    return write_time != 0;
+}
+
+void remember_macro_file_write_time(const std::string& path) {
+    uint64_t write_time = 0;
+    if (!get_file_write_time(path, write_time)) {
+        known_macro_file_time_path.clear();
+        known_macro_file_write_time = 0;
+        return;
+    }
+
+    known_macro_file_time_path = path;
+    known_macro_file_write_time = write_time;
+}
+
+bool is_game_paused_safe() {
+    __try {
+        return devil4_sdk::is_paused();
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return true;
+    }
+}
 
 bool is_game_window_foreground() {
     auto* window = g_framework ? g_framework->get_window_handle() : nullptr;
@@ -315,6 +432,16 @@ sKeyboard* get_keyboard_safe() {
     }
 }
 
+sDevil4Pad* get_global_pad_safe() {
+    __try {
+        auto** pad_ptr = reinterpret_cast<sDevil4Pad**>(S_DEVIL4_PAD_PTR);
+        return pad_ptr ? *pad_ptr : nullptr;
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return nullptr;
+    }
+}
+
 bool read_saved_key_binding(uintptr_t offset, uint32_t& key) {
     key = 0;
 
@@ -369,11 +496,88 @@ bool clear_peripheral_output(cPeripheral* peripheral, uint32_t player_index) {
     }
 }
 
+void set_global_pad_press(kPressInfo& press, uint32_t buttons) {
+    if ((buttons & PAD_BUTTON_L1) != 0) {
+        press.L1 = std::max(press.L1, 1.0f);
+    }
+    if ((buttons & PAD_BUTTON_L2) != 0) {
+        press.L2 = std::max(press.L2, 1.0f);
+    }
+    if ((buttons & PAD_BUTTON_R1) != 0) {
+        press.R1 = std::max(press.R1, 1.0f);
+    }
+    if ((buttons & PAD_BUTTON_R2) != 0) {
+        press.R2 = std::max(press.R2, 1.0f);
+    }
+    if ((buttons & PAD_BUTTON_SELECT) != 0) {
+        press.Select = std::max(press.Select, 1.0f);
+    }
+    if ((buttons & PAD_BUTTON_L3) != 0) {
+        press.L3 = std::max(press.L3, 1.0f);
+    }
+    if ((buttons & PAD_BUTTON_R3) != 0) {
+        press.R3 = std::max(press.R3, 1.0f);
+    }
+}
+
+void clear_global_macro_route(uint32_t player_index) {
+    if (player_index >= 4) {
+        player_index = 0;
+    }
+
+    const uint32_t release_buttons = last_global_routed_buttons[player_index];
+    const bool release_right_analog = last_global_right_analog[player_index];
+    auto* pad = get_global_pad_safe();
+    if (pad) {
+        __try {
+            auto& pad_info = pad->mPadInfo[0];
+            pad_info.mBtn.on &= ~release_buttons;
+            pad_info.mBtn.trg &= ~release_buttons;
+            pad_info.mBtn.rel |= release_buttons;
+
+            if ((release_buttons & PAD_BUTTON_L3) != 0) {
+                pad_info.mPress.L3 = 0.0f;
+            }
+            if ((release_buttons & PAD_BUTTON_R3) != 0) {
+                pad_info.mPress.R3 = 0.0f;
+            }
+            if ((release_buttons & PAD_BUTTON_L1) != 0) {
+                pad_info.mPress.L1 = 0.0f;
+            }
+            if ((release_buttons & PAD_BUTTON_L2) != 0) {
+                pad_info.mPress.L2 = 0.0f;
+            }
+            if ((release_buttons & PAD_BUTTON_R1) != 0) {
+                pad_info.mPress.R1 = 0.0f;
+            }
+            if ((release_buttons & PAD_BUTTON_R2) != 0) {
+                pad_info.mPress.R2 = 0.0f;
+            }
+            if ((release_buttons & PAD_BUTTON_SELECT) != 0) {
+                pad_info.mPress.Select = 0.0f;
+            }
+            if (release_right_analog) {
+                pad_info.mAnlg[1].x = 0.0f;
+                pad_info.mAnlg[1].y = 0.0f;
+            }
+        }
+        __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        }
+    }
+
+    last_global_routed_buttons[player_index] = 0;
+    last_global_right_analog[player_index] = false;
+}
+
 bool clear_last_peripheral_output() {
     if (!clear_peripheral_output(last_player_peripheral, last_player_index)) {
         return false;
     }
 
+    clear_global_macro_route(last_player_index);
+    if (last_player_index < 4) {
+        last_change_target_action[last_player_index] = false;
+    }
     std::fill_n(KeyboardMacro::last_buttons, 4, 0);
     return true;
 }
@@ -394,6 +598,7 @@ void suspend_keyboard_macro_runtime_for_transition() {
     KeyboardMacro::input_active = false;
     KeyboardMacro::macro_exceed_active = false;
     KeyboardMacro::macro_exceed_latch_ticks = 0;
+    KeyboardMacro::macro_change_target_latch_ticks = 0;
     position_snapshot_load_ticks = 0;
     snapshot_play_pending_ticks = 0;
     snapshot_play_pending_clip_index = INVALID_CLIP_INDEX;
@@ -412,6 +617,11 @@ void update_macro_exceed_active_from_latch() {
 void queue_macro_exceed_request() {
     KeyboardMacro::macro_exceed_latch_ticks = std::max(KeyboardMacro::macro_exceed_latch_ticks, MACRO_EXCEED_LATCH_TICKS);
     update_macro_exceed_active_from_latch();
+}
+
+void queue_macro_change_target_request() {
+    KeyboardMacro::macro_change_target_latch_ticks =
+        std::max(KeyboardMacro::macro_change_target_latch_ticks, MACRO_CHANGE_TARGET_LATCH_TICKS);
 }
 
 void ensure_keyboard_macro_hotkeys(std::vector<std::unique_ptr<utility::Hotkey>>& hotkeys) {
@@ -899,35 +1109,93 @@ bool parse_button_name(const std::string& token, uint32_t& button) {
     }
 
     static const std::pair<const char*, uint32_t> buttons[] = {
-        {"SELECT", 0x0001},
-        {"L3", 0x0002},
-        {"R3", 0x0004},
-        {"START", 0x0008},
-        {"PAUSE", 0x0008},
-        {"PAUSE_MENU", 0x0008},
-        {"PAVSE", 0x0008},
-        {"PAVSE_MENU", 0x0008},
-        {"MENU", 0x0008},
-        {"START_MENU", 0x0008},
-        {"OPTIONS", 0x0008},
-        {"ESC", 0x0008},
-        {"ESCAPE", 0x0008},
-        {"DPAD_UP", 0x0010},
-        {"UP", 0x0010},
-        {"DPAD_RIGHT", 0x0020},
-        {"RIGHT", 0x0020},
-        {"DPAD_DOWN", 0x0040},
-        {"DOWN", 0x0040},
-        {"DPAD_LEFT", 0x0080},
-        {"LEFT", 0x0080},
-        {"L1", 0x0100},
-        {"R1", 0x0200},
-        {"L2", 0x0400},
-        {"R2", 0x0800},
-        {"Y", 0x1000},
-        {"B", 0x2000},
-        {"A", 0x4000},
-        {"X", 0x8000},
+        {"SELECT", PAD_BUTTON_SELECT},
+        {"SELECT_BUTTON", PAD_BUTTON_SELECT},
+        {"BACK", PAD_BUTTON_SELECT},
+        {"BACK_BUTTON", PAD_BUTTON_SELECT},
+        {"VIEW", PAD_BUTTON_SELECT},
+        {"SHARE", PAD_BUTTON_SELECT},
+        {"SHARE_BUTTON", PAD_BUTTON_SELECT},
+
+        {"LS", PAD_BUTTON_L3},
+        {"L3", PAD_BUTTON_L3},
+        {"LEFT_STICK_CLICK", PAD_BUTTON_L3},
+        {"LEFTSTICK_CLICK", PAD_BUTTON_L3},
+
+        {"RS", PAD_BUTTON_R3},
+        {"R3", PAD_BUTTON_R3},
+        {"RIGHT_STICK_CLICK", PAD_BUTTON_R3},
+        {"RIGHTSTICK_CLICK", PAD_BUTTON_R3},
+
+        {"START", PAD_BUTTON_START},
+        {"START_BUTTON", PAD_BUTTON_START},
+        {"PAUSE", PAD_BUTTON_START},
+        {"PAUSE_MENU", PAD_BUTTON_START},
+        {"PAVSE", PAD_BUTTON_START},
+        {"PAVSE_MENU", PAD_BUTTON_START},
+        {"MENU", PAD_BUTTON_START},
+        {"START_MENU", PAD_BUTTON_START},
+        {"OPTIONS", PAD_BUTTON_START},
+        {"OPTIONS_BUTTON", PAD_BUTTON_START},
+        {"ESC", PAD_BUTTON_START},
+        {"ESCAPE", PAD_BUTTON_START},
+
+        {"DPAD_UP", PAD_BUTTON_DPAD_UP},
+        {"D_PAD_UP", PAD_BUTTON_DPAD_UP},
+        {"UP", PAD_BUTTON_DPAD_UP},
+        {"STYLE_TRICKSTER", PAD_BUTTON_DPAD_UP},
+        {"STYLE_TS", PAD_BUTTON_DPAD_UP},
+        {"TRICKSTER", PAD_BUTTON_DPAD_UP},
+        {"DPAD_RIGHT", PAD_BUTTON_DPAD_RIGHT},
+        {"D_PAD_RIGHT", PAD_BUTTON_DPAD_RIGHT},
+        {"RIGHT", PAD_BUTTON_DPAD_RIGHT},
+        {"STYLE_SWORDMASTER", PAD_BUTTON_DPAD_RIGHT},
+        {"STYLE_SM", PAD_BUTTON_DPAD_RIGHT},
+        {"SWORDMASTER", PAD_BUTTON_DPAD_RIGHT},
+        {"SWORD_MASTER", PAD_BUTTON_DPAD_RIGHT},
+        {"DPAD_DOWN", PAD_BUTTON_DPAD_DOWN},
+        {"D_PAD_DOWN", PAD_BUTTON_DPAD_DOWN},
+        {"DOWN", PAD_BUTTON_DPAD_DOWN},
+        {"STYLE_ROYALGUARD", PAD_BUTTON_DPAD_DOWN},
+        {"STYLE_RG", PAD_BUTTON_DPAD_DOWN},
+        {"ROYALGUARD", PAD_BUTTON_DPAD_DOWN},
+        {"ROYAL_GUARD", PAD_BUTTON_DPAD_DOWN},
+        {"DPAD_LEFT", PAD_BUTTON_DPAD_LEFT},
+        {"D_PAD_LEFT", PAD_BUTTON_DPAD_LEFT},
+        {"LEFT", PAD_BUTTON_DPAD_LEFT},
+        {"STYLE_GUNSLINGER", PAD_BUTTON_DPAD_LEFT},
+        {"STYLE_GS", PAD_BUTTON_DPAD_LEFT},
+        {"GUNSLINGER", PAD_BUTTON_DPAD_LEFT},
+        {"GUN_SLINGER", PAD_BUTTON_DPAD_LEFT},
+
+        {"L1", PAD_BUTTON_L1},
+        {"LB", PAD_BUTTON_L1},
+        {"LEFT_BUMPER", PAD_BUTTON_L1},
+        {"R1", PAD_BUTTON_R1},
+        {"RB", PAD_BUTTON_R1},
+        {"RIGHT_BUMPER", PAD_BUTTON_R1},
+        {"L2", PAD_BUTTON_L2},
+        {"LT", PAD_BUTTON_L2},
+        {"LEFT_TRIGGER", PAD_BUTTON_L2},
+        {"R2", PAD_BUTTON_R2},
+        {"RT", PAD_BUTTON_R2},
+        {"RIGHT_TRIGGER", PAD_BUTTON_R2},
+
+        {"Y", PAD_BUTTON_Y},
+        {"Y_BUTTON", PAD_BUTTON_Y},
+        {"TRIANGLE", PAD_BUTTON_Y},
+        {"TRI", PAD_BUTTON_Y},
+        {"B", PAD_BUTTON_B},
+        {"B_BUTTON", PAD_BUTTON_B},
+        {"CIRCLE", PAD_BUTTON_B},
+        {"O", PAD_BUTTON_B},
+        {"A", PAD_BUTTON_A},
+        {"A_BUTTON", PAD_BUTTON_A},
+        {"CROSS", PAD_BUTTON_A},
+        {"X", PAD_BUTTON_X},
+        {"X_BUTTON", PAD_BUTTON_X},
+        {"SQUARE", PAD_BUTTON_X},
+        {"SQ", PAD_BUTTON_X},
     };
 
     for (const auto& entry : buttons) {
@@ -938,6 +1206,130 @@ bool parse_button_name(const std::string& token, uint32_t& button) {
     }
 
     return false;
+}
+
+bool parse_action_name(const std::string& token, uint32_t& action_index) {
+    const auto normalized = normalize_button_token(token);
+
+    static const std::pair<const char*, uint32_t> actions[] = {
+        {"MELEE", MACRO_ACTION_MELEE},
+        {"MELEE_ATTACK", MACRO_ACTION_MELEE},
+        {"SWORD_ATTACK", MACRO_ACTION_MELEE},
+        {"ATTACK", MACRO_ACTION_MELEE},
+        {"GUN", MACRO_ACTION_GUN},
+        {"GUN_ATTACK", MACRO_ACTION_GUN},
+        {"SHOOT", MACRO_ACTION_GUN},
+        {"FIRE", MACRO_ACTION_GUN},
+        {"JUMP", MACRO_ACTION_JUMP},
+        {"BRINGER", MACRO_ACTION_BRINGER},
+        {"DEVIL_BRINGER", MACRO_ACTION_BRINGER},
+        {"STYLE_ACTION", MACRO_ACTION_STYLE_ACTION},
+        {"STYLE_BUTTON", MACRO_ACTION_STYLE_ACTION},
+        {"DEVIL_TRIGGER", MACRO_ACTION_DEVIL_TRIGGER},
+        {"DT", MACRO_ACTION_DEVIL_TRIGGER},
+        {"LOCK_ON", MACRO_ACTION_LOCK_ON},
+        {"LOCKON", MACRO_ACTION_LOCK_ON},
+        {"LOCK", MACRO_ACTION_LOCK_ON},
+        {"TARGET_LOCK", MACRO_ACTION_LOCK_ON},
+        {"CHANGE_GUN", MACRO_ACTION_CHANGE_GUN},
+        {"GUN_CHANGE", MACRO_ACTION_CHANGE_GUN},
+        {"DANTE_CHANGE_GUN", MACRO_ACTION_CHANGE_GUN},
+        {"CHANGE_SWORD", MACRO_ACTION_CHANGE_SWORD},
+        {"SWORD_CHANGE", MACRO_ACTION_CHANGE_SWORD},
+        {"DANTE_CHANGE_SWORD", MACRO_ACTION_CHANGE_SWORD},
+        {"TAUNT", MACRO_ACTION_TAUNT},
+        {"CHANGE_TARGET", MACRO_ACTION_CHANGE_TARGET},
+        {"TARGET_CHANGE", MACRO_ACTION_CHANGE_TARGET},
+        {"CYCLE_TARGET", MACRO_ACTION_CHANGE_TARGET},
+        {"NEXT_TARGET", MACRO_ACTION_CHANGE_TARGET},
+        {"RESET_CAMERA", MACRO_ACTION_RESET_CAMERA},
+        {"CAMERA_RESET", MACRO_ACTION_RESET_CAMERA},
+        {"CENTER_CAMERA", MACRO_ACTION_RESET_CAMERA},
+    };
+
+    for (const auto& entry : actions) {
+        if (normalized == entry.first) {
+            action_index = entry.second;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool is_l2_button_token(const std::string& normalized) {
+    return normalized == "L2" || normalized == "LT" || normalized == "LEFT_TRIGGER";
+}
+
+struct MacroButtonChoice {
+    const char* label;
+    uint32_t button;
+};
+
+const MacroButtonChoice* macro_button_choices(size_t& count) {
+    static const MacroButtonChoice choices[] = {
+        {"Y / TRIANGLE", PAD_BUTTON_Y},
+        {"X / SQUARE", PAD_BUTTON_X},
+        {"A / CROSS", PAD_BUTTON_A},
+        {"B / CIRCLE", PAD_BUTTON_B},
+        {"LB / L1", PAD_BUTTON_L1},
+        {"RB / R1", PAD_BUTTON_R1},
+        {"LT / L2", PAD_BUTTON_L2},
+        {"RT / R2", PAD_BUTTON_R2},
+        {"LS / L3", PAD_BUTTON_L3},
+        {"RS / R3", PAD_BUTTON_R3},
+        {"START / OPTIONS", PAD_BUTTON_START},
+        {"BACK / SHARE", PAD_BUTTON_SELECT},
+    };
+    count = sizeof(choices) / sizeof(choices[0]);
+    return choices;
+}
+
+const char* macro_button_label(uint32_t button) {
+    size_t count = 0;
+    const auto* choices = macro_button_choices(count);
+    for (size_t i = 0; i < count; ++i) {
+        if (choices[i].button == button) {
+            return choices[i].label;
+        }
+    }
+    return "Unknown";
+}
+
+uint32_t sanitize_macro_button(uint32_t button, uint32_t fallback) {
+    size_t count = 0;
+    const auto* choices = macro_button_choices(count);
+    for (size_t i = 0; i < count; ++i) {
+        if (choices[i].button == button) {
+            return button;
+        }
+    }
+    return fallback;
+}
+
+struct MacroActionChoice {
+    const char* config_key;
+    const char* label;
+    uint32_t default_button;
+};
+
+const MacroActionChoice* macro_action_choices(size_t& count) {
+    static const MacroActionChoice choices[MACRO_ACTION_COUNT] = {
+        {"keyboard_macro_action_melee", "MELEE", PAD_BUTTON_Y},
+        {"keyboard_macro_action_gun", "GUN", PAD_BUTTON_X},
+        {"keyboard_macro_action_jump", "JUMP", PAD_BUTTON_A},
+        {"keyboard_macro_action_bringer", "BRINGER", PAD_BUTTON_B},
+        {"keyboard_macro_action_style_action", "STYLE_ACTION", PAD_BUTTON_B},
+        {"keyboard_macro_action_devil_trigger", "DEVIL_TRIGGER", PAD_BUTTON_L1},
+        {"keyboard_macro_action_lock_on", "LOCK_ON", PAD_BUTTON_R1},
+        {"keyboard_macro_action_change_gun", "CHANGE_GUN", PAD_BUTTON_L2},
+        {"keyboard_macro_action_change_sword", "CHANGE_SWORD", PAD_BUTTON_R2},
+        {"keyboard_macro_action_taunt", "TAUNT", PAD_BUTTON_SELECT},
+        {"keyboard_macro_action_change_target", "CHANGE_TARGET", PAD_BUTTON_L3},
+        {"keyboard_macro_action_reset_camera", "RESET_CAMERA", PAD_BUTTON_R3},
+    };
+    count = sizeof(choices) / sizeof(choices[0]);
+    return choices;
 }
 
 bool parse_style_name(const std::string& token, int& style) {
@@ -1051,6 +1443,14 @@ bool parse_left_analog_name(const std::string& token, int& x, int& y) {
         {"FORWARD", {0, ANALOG_MAX}},
         {"LSTICK_UP", {0, ANALOG_MAX}},
         {"LS_UP", {0, ANALOG_MAX}},
+        {"WALK_MW", {0, ANALOG_WALK}},
+        {"WALK_W", {0, ANALOG_WALK}},
+        {"WALK_UP", {0, ANALOG_WALK}},
+        {"WALK_FORWARD", {0, ANALOG_WALK}},
+        {"SLOW_MW", {0, ANALOG_WALK}},
+        {"SLOW_W", {0, ANALOG_WALK}},
+        {"SLOW_UP", {0, ANALOG_WALK}},
+        {"SLOW_FORWARD", {0, ANALOG_WALK}},
         {"S", {0, ANALOG_MIN}},
         {"MS", {0, ANALOG_MIN}},
         {"MOVE_S", {0, ANALOG_MIN}},
@@ -1060,33 +1460,136 @@ bool parse_left_analog_name(const std::string& token, int& x, int& y) {
         {"BACKWARD", {0, ANALOG_MIN}},
         {"LSTICK_DOWN", {0, ANALOG_MIN}},
         {"LS_DOWN", {0, ANALOG_MIN}},
+        {"WALK_MS", {0, -ANALOG_WALK}},
+        {"WALK_S", {0, -ANALOG_WALK}},
+        {"WALK_DOWN", {0, -ANALOG_WALK}},
+        {"WALK_BACK", {0, -ANALOG_WALK}},
+        {"WALK_BACKWARD", {0, -ANALOG_WALK}},
+        {"SLOW_MS", {0, -ANALOG_WALK}},
+        {"SLOW_S", {0, -ANALOG_WALK}},
+        {"SLOW_DOWN", {0, -ANALOG_WALK}},
+        {"SLOW_BACK", {0, -ANALOG_WALK}},
+        {"SLOW_BACKWARD", {0, -ANALOG_WALK}},
         {"D", {ANALOG_MAX, 0}},
         {"MD", {ANALOG_MAX, 0}},
         {"MOVE_D", {ANALOG_MAX, 0}},
         {"MOVE_RIGHT", {ANALOG_MAX, 0}},
         {"LSTICK_RIGHT", {ANALOG_MAX, 0}},
         {"LS_RIGHT", {ANALOG_MAX, 0}},
+        {"WALK_MD", {ANALOG_WALK, 0}},
+        {"WALK_D", {ANALOG_WALK, 0}},
+        {"WALK_RIGHT", {ANALOG_WALK, 0}},
+        {"SLOW_MD", {ANALOG_WALK, 0}},
+        {"SLOW_D", {ANALOG_WALK, 0}},
+        {"SLOW_RIGHT", {ANALOG_WALK, 0}},
         {"MA", {ANALOG_MIN, 0}},
         {"MOVE_A", {ANALOG_MIN, 0}},
         {"MOVE_LEFT", {ANALOG_MIN, 0}},
         {"LSTICK_LEFT", {ANALOG_MIN, 0}},
         {"LS_LEFT", {ANALOG_MIN, 0}},
+        {"WALK_MA", {-ANALOG_WALK, 0}},
+        {"WALK_A", {-ANALOG_WALK, 0}},
+        {"WALK_LEFT", {-ANALOG_WALK, 0}},
+        {"SLOW_MA", {-ANALOG_WALK, 0}},
+        {"SLOW_A", {-ANALOG_WALK, 0}},
+        {"SLOW_LEFT", {-ANALOG_WALK, 0}},
         {"MW_MD", {ANALOG_MAX, ANALOG_MAX}},
         {"MOVE_UP_RIGHT", {ANALOG_MAX, ANALOG_MAX}},
         {"LSTICK_UP_RIGHT", {ANALOG_MAX, ANALOG_MAX}},
         {"LS_UP_RIGHT", {ANALOG_MAX, ANALOG_MAX}},
+        {"WALK_MW_MD", {ANALOG_WALK, ANALOG_WALK}},
+        {"WALK_UP_RIGHT", {ANALOG_WALK, ANALOG_WALK}},
+        {"SLOW_MW_MD", {ANALOG_WALK, ANALOG_WALK}},
+        {"SLOW_UP_RIGHT", {ANALOG_WALK, ANALOG_WALK}},
         {"MW_MA", {ANALOG_MIN, ANALOG_MAX}},
         {"MOVE_UP_LEFT", {ANALOG_MIN, ANALOG_MAX}},
         {"LSTICK_UP_LEFT", {ANALOG_MIN, ANALOG_MAX}},
         {"LS_UP_LEFT", {ANALOG_MIN, ANALOG_MAX}},
+        {"WALK_MW_MA", {-ANALOG_WALK, ANALOG_WALK}},
+        {"WALK_UP_LEFT", {-ANALOG_WALK, ANALOG_WALK}},
+        {"SLOW_MW_MA", {-ANALOG_WALK, ANALOG_WALK}},
+        {"SLOW_UP_LEFT", {-ANALOG_WALK, ANALOG_WALK}},
         {"MS_MD", {ANALOG_MAX, ANALOG_MIN}},
         {"MOVE_DOWN_RIGHT", {ANALOG_MAX, ANALOG_MIN}},
         {"LSTICK_DOWN_RIGHT", {ANALOG_MAX, ANALOG_MIN}},
         {"LS_DOWN_RIGHT", {ANALOG_MAX, ANALOG_MIN}},
+        {"WALK_MS_MD", {ANALOG_WALK, -ANALOG_WALK}},
+        {"WALK_DOWN_RIGHT", {ANALOG_WALK, -ANALOG_WALK}},
+        {"SLOW_MS_MD", {ANALOG_WALK, -ANALOG_WALK}},
+        {"SLOW_DOWN_RIGHT", {ANALOG_WALK, -ANALOG_WALK}},
         {"MS_MA", {ANALOG_MIN, ANALOG_MIN}},
         {"MOVE_DOWN_LEFT", {ANALOG_MIN, ANALOG_MIN}},
         {"LSTICK_DOWN_LEFT", {ANALOG_MIN, ANALOG_MIN}},
         {"LS_DOWN_LEFT", {ANALOG_MIN, ANALOG_MIN}},
+        {"WALK_MS_MA", {-ANALOG_WALK, -ANALOG_WALK}},
+        {"WALK_DOWN_LEFT", {-ANALOG_WALK, -ANALOG_WALK}},
+        {"SLOW_MS_MA", {-ANALOG_WALK, -ANALOG_WALK}},
+        {"SLOW_DOWN_LEFT", {-ANALOG_WALK, -ANALOG_WALK}},
+    };
+
+    for (const auto& entry : directions) {
+        if (normalized == entry.first) {
+            x = entry.second.first;
+            y = entry.second.second;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool parse_right_analog_name(const std::string& token, int& x, int& y) {
+    const auto normalized = normalize_button_token(token);
+
+    static const std::pair<const char*, std::pair<int, int>> directions[] = {
+        {"TW", {0, ANALOG_MAX}},
+        {"CAM_UP", {0, ANALOG_MAX}},
+        {"CAMERA_UP", {0, ANALOG_MAX}},
+        {"RSTICK_UP", {0, ANALOG_MAX}},
+        {"RS_UP", {0, ANALOG_MAX}},
+        {"RIGHT_STICK_UP", {0, ANALOG_MAX}},
+        {"TS", {0, ANALOG_MIN}},
+        {"CAM_DOWN", {0, ANALOG_MIN}},
+        {"CAMERA_DOWN", {0, ANALOG_MIN}},
+        {"RSTICK_DOWN", {0, ANALOG_MIN}},
+        {"RS_DOWN", {0, ANALOG_MIN}},
+        {"RIGHT_STICK_DOWN", {0, ANALOG_MIN}},
+        {"TD", {ANALOG_MAX, 0}},
+        {"CAM_RIGHT", {ANALOG_MAX, 0}},
+        {"CAMERA_RIGHT", {ANALOG_MAX, 0}},
+        {"RSTICK_RIGHT", {ANALOG_MAX, 0}},
+        {"RS_RIGHT", {ANALOG_MAX, 0}},
+        {"RIGHT_STICK_RIGHT", {ANALOG_MAX, 0}},
+        {"TA", {ANALOG_MIN, 0}},
+        {"CAM_LEFT", {ANALOG_MIN, 0}},
+        {"CAMERA_LEFT", {ANALOG_MIN, 0}},
+        {"RSTICK_LEFT", {ANALOG_MIN, 0}},
+        {"RS_LEFT", {ANALOG_MIN, 0}},
+        {"RIGHT_STICK_LEFT", {ANALOG_MIN, 0}},
+        {"TW_TD", {ANALOG_MAX, ANALOG_MAX}},
+        {"CAM_UP_RIGHT", {ANALOG_MAX, ANALOG_MAX}},
+        {"CAMERA_UP_RIGHT", {ANALOG_MAX, ANALOG_MAX}},
+        {"RS_UP_RIGHT", {ANALOG_MAX, ANALOG_MAX}},
+        {"RSTICK_UP_RIGHT", {ANALOG_MAX, ANALOG_MAX}},
+        {"RIGHT_STICK_UP_RIGHT", {ANALOG_MAX, ANALOG_MAX}},
+        {"TW_TA", {ANALOG_MIN, ANALOG_MAX}},
+        {"CAM_UP_LEFT", {ANALOG_MIN, ANALOG_MAX}},
+        {"CAMERA_UP_LEFT", {ANALOG_MIN, ANALOG_MAX}},
+        {"RS_UP_LEFT", {ANALOG_MIN, ANALOG_MAX}},
+        {"RSTICK_UP_LEFT", {ANALOG_MIN, ANALOG_MAX}},
+        {"RIGHT_STICK_UP_LEFT", {ANALOG_MIN, ANALOG_MAX}},
+        {"TS_TD", {ANALOG_MAX, ANALOG_MIN}},
+        {"CAM_DOWN_RIGHT", {ANALOG_MAX, ANALOG_MIN}},
+        {"CAMERA_DOWN_RIGHT", {ANALOG_MAX, ANALOG_MIN}},
+        {"RS_DOWN_RIGHT", {ANALOG_MAX, ANALOG_MIN}},
+        {"RSTICK_DOWN_RIGHT", {ANALOG_MAX, ANALOG_MIN}},
+        {"RIGHT_STICK_DOWN_RIGHT", {ANALOG_MAX, ANALOG_MIN}},
+        {"TS_TA", {ANALOG_MIN, ANALOG_MIN}},
+        {"CAM_DOWN_LEFT", {ANALOG_MIN, ANALOG_MIN}},
+        {"CAMERA_DOWN_LEFT", {ANALOG_MIN, ANALOG_MIN}},
+        {"RS_DOWN_LEFT", {ANALOG_MIN, ANALOG_MIN}},
+        {"RSTICK_DOWN_LEFT", {ANALOG_MIN, ANALOG_MIN}},
+        {"RIGHT_STICK_DOWN_LEFT", {ANALOG_MIN, ANALOG_MIN}},
     };
 
     for (const auto& entry : directions) {
@@ -1102,53 +1605,121 @@ bool parse_left_analog_name(const std::string& token, int& x, int& y) {
 
 void apply_direction_to_input(ParsedMacroInput& input, int x, int y) {
     if (x < 0) {
-        input.move_left = true;
+        if (std::abs(x) < ANALOG_MAX) {
+            input.walk_left = true;
+        }
+        else {
+            input.move_left = true;
+        }
     }
     else if (x > 0) {
-        input.move_right = true;
+        if (std::abs(x) < ANALOG_MAX) {
+            input.walk_right = true;
+        }
+        else {
+            input.move_right = true;
+        }
     }
 
     if (y < 0) {
-        input.move_down = true;
+        if (std::abs(y) < ANALOG_MAX) {
+            input.walk_down = true;
+        }
+        else {
+            input.move_down = true;
+        }
     }
     else if (y > 0) {
-        input.move_up = true;
+        if (std::abs(y) < ANALOG_MAX) {
+            input.walk_up = true;
+        }
+        else {
+            input.move_up = true;
+        }
+    }
+}
+
+void apply_camera_direction_to_input(ParsedMacroInput& input, int x, int y) {
+    if (x < 0) {
+        input.camera_left = true;
+    }
+    else if (x > 0) {
+        input.camera_right = true;
+    }
+
+    if (y < 0) {
+        input.camera_down = true;
+    }
+    else if (y > 0) {
+        input.camera_up = true;
     }
 }
 
 KeyboardMacroFrame frame_from_parts(
     uint32_t buttons,
+    uint32_t global_buttons,
     bool move_up,
     bool move_down,
     bool move_left,
     bool move_right,
+    bool walk_up,
+    bool walk_down,
+    bool walk_left,
+    bool walk_right,
+    bool camera_up,
+    bool camera_down,
+    bool camera_left,
+    bool camera_right,
     bool exceed,
+    bool l2_exceed_compat,
     bool screen_pause,
     bool screen_resume,
-    bool screen_pause_toggle) {
+    bool screen_pause_toggle,
+    bool change_target) {
     KeyboardMacroFrame frame{};
     frame.buttons = buttons;
-    frame.left_x = clamp_analog((move_right ? ANALOG_MAX : 0) + (move_left ? ANALOG_MIN : 0));
-    frame.left_y = clamp_analog((move_up ? ANALOG_MAX : 0) + (move_down ? ANALOG_MIN : 0));
-    frame.has_left_analog = move_up || move_down || move_left || move_right;
+    frame.global_buttons = global_buttons;
+    frame.left_x = clamp_analog(
+        (move_right ? ANALOG_MAX : 0) + (move_left ? ANALOG_MIN : 0) +
+        (walk_right ? ANALOG_WALK : 0) + (walk_left ? -ANALOG_WALK : 0));
+    frame.left_y = clamp_analog(
+        (move_up ? ANALOG_MAX : 0) + (move_down ? ANALOG_MIN : 0) +
+        (walk_up ? ANALOG_WALK : 0) + (walk_down ? -ANALOG_WALK : 0));
+    frame.has_left_analog = move_up || move_down || move_left || move_right || walk_up || walk_down || walk_left || walk_right;
+    frame.right_x = clamp_analog((camera_right ? ANALOG_MAX : 0) + (camera_left ? ANALOG_MIN : 0));
+    frame.right_y = clamp_analog((camera_up ? ANALOG_MAX : 0) + (camera_down ? ANALOG_MIN : 0));
+    frame.has_right_analog = camera_up || camera_down || camera_left || camera_right;
     frame.exceed = exceed;
+    frame.l2_exceed_compat = l2_exceed_compat;
     frame.screen_pause = screen_pause;
     frame.screen_resume = screen_resume;
     frame.screen_pause_toggle = screen_pause_toggle;
+    frame.change_target = change_target;
     return frame;
 }
 
 KeyboardMacroFrame frame_from_input(const ParsedMacroInput& input) {
     return frame_from_parts(
         input.buttons,
+        input.global_buttons,
         input.move_up,
         input.move_down,
         input.move_left,
         input.move_right,
+        input.walk_up,
+        input.walk_down,
+        input.walk_left,
+        input.walk_right,
+        input.camera_up,
+        input.camera_down,
+        input.camera_left,
+        input.camera_right,
         input.exceed,
+        input.l2_exceed_compat,
         input.screen_pause,
         input.screen_resume,
-        input.screen_pause_toggle);
+        input.screen_pause_toggle,
+        input.change_target);
 }
 
 KeyboardMacroFrame frame_from_forced_style(int style) {
@@ -1158,17 +1729,42 @@ KeyboardMacroFrame frame_from_forced_style(int style) {
     return frame;
 }
 
+KeyboardMacroFrame frame_from_character_switch() {
+    KeyboardMacroFrame frame{};
+    frame.character_switch = true;
+    return frame;
+}
+
+KeyboardMacroFrame frame_from_one_hit_kill(bool toggle, bool value) {
+    KeyboardMacroFrame frame{};
+    frame.one_hit_kill_toggle = toggle;
+    frame.one_hit_kill_set = !toggle;
+    frame.one_hit_kill_value = value;
+    return frame;
+}
+
 KeyboardMacroFrame frame_from_held(const HeldMacroInput& input) {
     return frame_from_parts(
         input.buttons,
+        input.global_buttons,
         input.move_up,
         input.move_down,
         input.move_left,
         input.move_right,
+        input.walk_up,
+        input.walk_down,
+        input.walk_left,
+        input.walk_right,
+        input.camera_up,
+        input.camera_down,
+        input.camera_left,
+        input.camera_right,
         input.exceed,
+        input.l2_exceed_compat,
         input.screen_pause,
         input.screen_resume,
-        input.screen_pause_toggle);
+        input.screen_pause_toggle,
+        input.change_target);
 }
 
 KeyboardMacroFrame frame_from_wait_condition(
@@ -1203,8 +1799,8 @@ bool parse_macro_input(std::string expression, ParsedMacroInput& input) {
             continue;
         }
 
-        if (normalized == "EXCEED" || normalized == "EX" || normalized == "REV" ||
-            normalized == "MAX_ACT" || normalized == "MAXACT") {
+        if (normalized == "EXCEED" || normalized == "NERO_EXCEED" || normalized == "EXCEED_INPUT" ||
+            normalized == "EX" || normalized == "REV" || normalized == "MAX_ACT" || normalized == "MAXACT") {
             input.exceed = true;
             found_token = true;
             continue;
@@ -1230,8 +1826,31 @@ bool parse_macro_input(std::string expression, ParsedMacroInput& input) {
             continue;
         }
 
+        uint32_t action_index = 0;
+        if (parse_action_name(token, action_index)) {
+            if (action_index < MACRO_ACTION_COUNT) {
+                const uint32_t button = KeyboardMacro::action_button_map[action_index];
+                input.buttons |= button;
+                if (action_index == MACRO_ACTION_RESET_CAMERA) {
+                    input.global_buttons |= button;
+                }
+                if (action_index == MACRO_ACTION_CHANGE_TARGET) {
+                    input.change_target = true;
+                }
+                found_token = true;
+                continue;
+            }
+            return false;
+        }
+
         int direction_x = 0;
         int direction_y = 0;
+        if (parse_right_analog_name(token, direction_x, direction_y)) {
+            apply_camera_direction_to_input(input, direction_x, direction_y);
+            found_token = true;
+            continue;
+        }
+
         if (parse_left_analog_name(token, direction_x, direction_y)) {
             apply_direction_to_input(input, direction_x, direction_y);
             found_token = true;
@@ -1243,6 +1862,12 @@ bool parse_macro_input(std::string expression, ParsedMacroInput& input) {
             return false;
         }
         input.buttons |= button;
+        if ((button & PAD_BUTTON_GLOBAL_ROUTE_MASK) != 0) {
+            input.global_buttons |= button;
+        }
+        if (is_l2_button_token(normalized)) {
+            input.l2_exceed_compat = true;
+        }
         found_token = true;
     }
 
@@ -1261,18 +1886,30 @@ bool parse_playback_command(std::string expression, KeyboardMacroFrame& frame) {
 
 void hold_input(HeldMacroInput& held, const ParsedMacroInput& input) {
     held.buttons |= input.buttons;
+    held.global_buttons |= input.global_buttons;
     held.move_up |= input.move_up;
     held.move_down |= input.move_down;
     held.move_left |= input.move_left;
     held.move_right |= input.move_right;
+    held.walk_up |= input.walk_up;
+    held.walk_down |= input.walk_down;
+    held.walk_left |= input.walk_left;
+    held.walk_right |= input.walk_right;
+    held.camera_up |= input.camera_up;
+    held.camera_down |= input.camera_down;
+    held.camera_left |= input.camera_left;
+    held.camera_right |= input.camera_right;
     held.exceed |= input.exceed;
+    held.l2_exceed_compat |= input.l2_exceed_compat;
     held.screen_pause |= input.screen_pause;
     held.screen_resume |= input.screen_resume;
     held.screen_pause_toggle |= input.screen_pause_toggle;
+    held.change_target |= input.change_target;
 }
 
 void release_input(HeldMacroInput& held, const ParsedMacroInput& input) {
     held.buttons &= ~input.buttons;
+    held.global_buttons &= ~input.global_buttons;
     if (input.move_up) {
         held.move_up = false;
     }
@@ -1285,8 +1922,35 @@ void release_input(HeldMacroInput& held, const ParsedMacroInput& input) {
     if (input.move_right) {
         held.move_right = false;
     }
+    if (input.walk_up) {
+        held.walk_up = false;
+    }
+    if (input.walk_down) {
+        held.walk_down = false;
+    }
+    if (input.walk_left) {
+        held.walk_left = false;
+    }
+    if (input.walk_right) {
+        held.walk_right = false;
+    }
+    if (input.camera_up) {
+        held.camera_up = false;
+    }
+    if (input.camera_down) {
+        held.camera_down = false;
+    }
+    if (input.camera_left) {
+        held.camera_left = false;
+    }
+    if (input.camera_right) {
+        held.camera_right = false;
+    }
     if (input.exceed) {
         held.exceed = false;
+    }
+    if (input.l2_exceed_compat) {
+        held.l2_exceed_compat = false;
     }
     if (input.screen_pause) {
         held.screen_pause = false;
@@ -1296,6 +1960,9 @@ void release_input(HeldMacroInput& held, const ParsedMacroInput& input) {
     }
     if (input.screen_pause_toggle) {
         held.screen_pause_toggle = false;
+    }
+    if (input.change_target) {
+        held.change_target = false;
     }
 }
 
@@ -1526,6 +2193,55 @@ void apply_button_press_values(cPeripheral* peripheral, uint32_t buttons) {
     set_pad_press(peripheral, buttons, PAD_BUTTON_SELECT, PAD_PRESS_SELECT);
     set_pad_press(peripheral, buttons, PAD_BUTTON_L3, PAD_PRESS_L3);
     set_pad_press(peripheral, buttons, PAD_BUTTON_R3, PAD_PRESS_R3);
+}
+
+void apply_global_pad_route_for_macro(
+    const KeyboardMacroFrame& frame,
+    uint32_t routed_buttons,
+    uint32_t previous_routed_buttons,
+    uint32_t player_index) {
+    if (player_index >= 4) {
+        player_index = 0;
+    }
+
+    auto* pad = get_global_pad_safe();
+    if (!pad) {
+        last_global_routed_buttons[player_index] = routed_buttons;
+        last_global_right_analog[player_index] = frame.has_right_analog;
+        return;
+    }
+
+    __try {
+        auto& pad_info = pad->mPadInfo[0];
+        const uint32_t pressed_buttons = routed_buttons & ~previous_routed_buttons;
+        const uint32_t released_buttons = previous_routed_buttons & ~routed_buttons;
+
+        pad_info.mBtn.on &= ~previous_routed_buttons;
+        pad_info.mBtn.on |= routed_buttons;
+        pad_info.mBtn.trg |= pressed_buttons;
+        pad_info.mBtn.rel |= released_buttons;
+        set_global_pad_press(pad_info.mPress, routed_buttons);
+
+        if (frame.has_right_analog) {
+            pad_info.mAnlg[1].x = std::clamp(
+                pad_info.mAnlg[1].x + (static_cast<float>(frame.right_x) / static_cast<float>(ANALOG_MAX)),
+                -1.0f,
+                1.0f);
+            pad_info.mAnlg[1].y = std::clamp(
+                pad_info.mAnlg[1].y + (static_cast<float>(frame.right_y) / static_cast<float>(ANALOG_MAX)),
+                -1.0f,
+                1.0f);
+        }
+        else if (last_global_right_analog[player_index]) {
+            pad_info.mAnlg[1].x = 0.0f;
+            pad_info.mAnlg[1].y = 0.0f;
+        }
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    }
+
+    last_global_routed_buttons[player_index] = routed_buttons;
+    last_global_right_analog[player_index] = frame.has_right_analog;
 }
 
 void set_playback_status(const std::string& message) {
@@ -2258,6 +2974,30 @@ void apply_force_style_action(const KeyboardMacroFrame& frame) {
     }
 }
 
+void apply_character_switch_action(const KeyboardMacroFrame& frame) {
+    if (!frame.character_switch) {
+        return;
+    }
+
+    if (CharSwitcher::request_macro_switch()) {
+        set_playback_status("Character switch requested.");
+    }
+    else {
+        set_playback_status("Character Switcher is not enabled or ready.");
+    }
+}
+
+void apply_one_hit_kill_action(const KeyboardMacroFrame& frame) {
+    if (frame.one_hit_kill_toggle) {
+        HealthSettings::one_hit_kill = !HealthSettings::one_hit_kill;
+        set_playback_status(HealthSettings::one_hit_kill ? "One Hit Kill enabled." : "One Hit Kill disabled.");
+    }
+    else if (frame.one_hit_kill_set) {
+        HealthSettings::one_hit_kill = frame.one_hit_kill_value;
+        set_playback_status(HealthSettings::one_hit_kill ? "One Hit Kill enabled." : "One Hit Kill disabled.");
+    }
+}
+
 bool is_player_grounded(uPlayer* player) {
     if (!player) {
         return false;
@@ -2664,11 +3404,28 @@ uint32_t KeyboardMacro::capture_snapshot_vkey = DEFAULT_CAPTURE_SNAPSHOT_VKEY;
 uint32_t KeyboardMacro::load_snapshot_vkey = DEFAULT_LOAD_SNAPSHOT_VKEY;
 uint32_t KeyboardMacro::load_snapshot_play_vkey = DEFAULT_LOAD_SNAPSHOT_PLAY_VKEY;
 uint32_t KeyboardMacro::snapshot_play_delay_ticks = POSITION_SNAPSHOT_LOAD_TICKS;
+uint32_t KeyboardMacro::action_button_map[MACRO_ACTION_COUNT] = {
+    PAD_BUTTON_Y,
+    PAD_BUTTON_X,
+    PAD_BUTTON_A,
+    PAD_BUTTON_B,
+    PAD_BUTTON_B,
+    PAD_BUTTON_L1,
+    PAD_BUTTON_R1,
+    PAD_BUTTON_L2,
+    PAD_BUTTON_R2,
+    PAD_BUTTON_SELECT,
+    PAD_BUTTON_L3,
+    PAD_BUTTON_R3,
+};
+bool KeyboardMacro::auto_reload_file = false;
+bool KeyboardMacro::stop_macro_on_game_pause = false;
 uint32_t KeyboardMacro::playback_slot = PLAYBACK_SLOT_MAIN;
 uint32_t KeyboardMacro::selected_clip_index = 0;
 uint32_t KeyboardMacro::loaded_clip_index = INVALID_CLIP_INDEX;
 bool KeyboardMacro::macro_exceed_active = false;
 uint32_t KeyboardMacro::macro_exceed_latch_ticks = 0;
+uint32_t KeyboardMacro::macro_change_target_latch_ticks = 0;
 bool KeyboardMacro::screen_pause_active = false;
 bool KeyboardMacro::screen_pause_restore_valid = false;
 float KeyboardMacro::screen_pause_restore_speed = 1.0f;
@@ -2690,6 +3447,9 @@ void __stdcall KeyboardMacro::on_pad_update_tick(cPeripheral* peripheral) {
     if (macro_exceed_latch_ticks > 0) {
         --macro_exceed_latch_ticks;
         update_macro_exceed_active_from_latch();
+    }
+    if (macro_change_target_latch_ticks > 0) {
+        --macro_change_target_latch_ticks;
     }
 
     tick_snapshot_play_delay();
@@ -2736,6 +3496,23 @@ uint32_t __stdcall KeyboardMacro::on_player_input_tick(uPlayer* player, void* in
         return inputs;
     }
     return inputs;
+}
+
+void __stdcall KeyboardMacro::on_player_input_press_written(uPlayer* player) {
+    if (!player || macro_change_target_latch_ticks == 0) {
+        return;
+    }
+
+    __try {
+        if (player != get_local_player_safe()) {
+            return;
+        }
+
+        player->inputPress[0] |= 0x20;
+        macro_change_target_latch_ticks = 0;
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    }
 }
 
 void KeyboardMacro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
@@ -2787,21 +3564,29 @@ void KeyboardMacro::write_test_input(cPeripheral* peripheral, uint32_t player_in
 
     auto* player = get_local_player_safe();
     const bool is_nero = is_nero_player_safe(player);
-    const bool l2_requested = (buttons & PAD_BUTTON_L2) != 0;
-    const bool exceed_requested = macro_frame.exceed || (is_nero && l2_requested);
+    const bool l2_exceed_requested = (buttons & PAD_BUTTON_L2) != 0 && macro_frame.l2_exceed_compat;
+    const bool exceed_requested = macro_frame.exceed || (is_nero && l2_exceed_requested);
 
     const uint32_t base_buttons = peripheral->mPadBtnOn;
     uint32_t injected_buttons = buttons;
-    if (is_nero && l2_requested) {
+    if (is_nero && l2_exceed_requested) {
         injected_buttons &= ~PAD_BUTTON_L2;
     }
     const uint32_t output_buttons = base_buttons | injected_buttons;
     const uint32_t previous_buttons = last_buttons[player_index];
+    const uint32_t routed_global_buttons = macro_frame.global_buttons;
+    const uint32_t previous_global_buttons = last_global_routed_buttons[player_index];
+    const bool previous_change_target_action = last_change_target_action[player_index];
 
     peripheral->mPadBtnOn = output_buttons;
     peripheral->mPadBtnTrg = output_buttons & ~previous_buttons;
     peripheral->mPadBtnRel = previous_buttons & ~output_buttons;
     apply_button_press_values(peripheral, output_buttons);
+
+    if (macro_frame.change_target && !previous_change_target_action) {
+        queue_macro_change_target_request();
+    }
+    apply_global_pad_route_for_macro(macro_frame, routed_global_buttons, previous_global_buttons, player_index);
 
     if (exceed_requested) {
         queue_macro_exceed_request();
@@ -2815,17 +3600,32 @@ void KeyboardMacro::write_test_input(cPeripheral* peripheral, uint32_t player_in
         peripheral->mIsHold = false;
     }
 
+    if (macro_frame.has_right_analog) {
+        peripheral->mAnlgR.x = clamp_analog((int)peripheral->mAnlgR.x + macro_frame.right_x);
+        peripheral->mAnlgR.y = clamp_analog((int)peripheral->mAnlgR.y + macro_frame.right_y);
+        update_analog_info_for_macro(&peripheral->mAnlgR);
+    }
+
     apply_screen_pause_action(macro_frame);
     apply_force_style_action(macro_frame);
+    apply_character_switch_action(macro_frame);
+    apply_one_hit_kill_action(macro_frame);
 
     last_buttons[player_index] = output_buttons;
+    last_change_target_action[player_index] = macro_frame.change_target;
     update_input_active();
 }
 
 void KeyboardMacro::reset_input_state() {
     std::fill_n(last_buttons, 4, 0);
+    std::fill_n(last_change_target_action, 4, false);
+    for (uint32_t player_index = 0; player_index < 4; ++player_index) {
+        clear_global_macro_route(player_index);
+    }
     macro_exceed_active = false;
     macro_exceed_latch_ticks = 0;
+    macro_change_target_latch_ticks = 0;
+    CharSwitcher::clear_macro_switch_request();
     playback_frame_index = 0;
     for (auto& frame : playback_frames) {
         frame.wait_elapsed_ticks = 0;
@@ -3181,6 +3981,55 @@ bool KeyboardMacro::load_playback_file() {
             continue;
         }
 
+        if (command == "CHARACTER_SWITCH" || command == "SWITCH_CHARACTER" || command == "CHAR_SWITCH" ||
+            command == "CHARACTER_SWAP" || command == "SWAP_CHARACTER") {
+            std::string extra{};
+            if (stream >> extra) {
+                return fail_with_message("Line %u: invalid CHARACTER_SWITCH command.", line_number);
+            }
+
+            if (!append_playback_frames(current_clip.frames, 1, frame_from_character_switch())) {
+                set_playback_status("Macro file is too long.");
+                clear_failed_load();
+                return false;
+            }
+
+            continue;
+        }
+
+        if (command == "ONE_HIT_KILL" || command == "ONEHITKILL" || command == "OHK") {
+            std::string action_token{};
+            std::string extra{};
+            stream >> action_token >> extra;
+            if (!extra.empty()) {
+                return fail_with_message("Line %u: invalid ONE_HIT_KILL command.", line_number);
+            }
+
+            const auto action = normalize_button_token(action_token);
+            bool toggle = false;
+            bool value = false;
+            if (action.empty() || action == "TOGGLE") {
+                toggle = true;
+            }
+            else if (action == "ON" || action == "ENABLE" || action == "ENABLED" || action == "TRUE" || action == "1") {
+                value = true;
+            }
+            else if (action == "OFF" || action == "DISABLE" || action == "DISABLED" || action == "FALSE" || action == "0") {
+                value = false;
+            }
+            else {
+                return fail_with_message("Line %u: invalid ONE_HIT_KILL command.", line_number);
+            }
+
+            if (!append_playback_frames(current_clip.frames, 1, frame_from_one_hit_kill(toggle, value))) {
+                set_playback_status("Macro file is too long.");
+                clear_failed_load();
+                return false;
+            }
+
+            continue;
+        }
+
         if (command == "SET") {
             std::string expression{};
             std::getline(stream, expression);
@@ -3229,6 +4078,7 @@ bool KeyboardMacro::load_playback_file() {
     std::snprintf(message, sizeof(message), "Loaded %u clips; selected clip has %u ticks.", (uint32_t)playback_clips.size(), (uint32_t)playback_frames.size());
     set_playback_status(message);
     strncpy_s(loaded_playback_path, file_path.c_str(), _TRUNCATE);
+    remember_macro_file_write_time(file_path);
 
     return !playback_frames.empty();
 }
@@ -3382,12 +4232,57 @@ void KeyboardMacro::stop_all_input() {
     finalize_playback_timer();
     macro_exceed_active = false;
     macro_exceed_latch_ticks = 0;
+    macro_change_target_latch_ticks = 0;
+    CharSwitcher::clear_macro_switch_request();
     playback_frame_index = 0;
     clear_last_peripheral_output();
     clear_input_frames = 4;
     reset_hit_confirmed_wait_state();
     update_input_active();
     set_playback_status("Playback stopped; clearing input.");
+}
+
+void KeyboardMacro::check_auto_reload_file() {
+    if (!mod_enabled || !auto_reload_file || playback_enabled || snapshot_play_pending_clip_index != INVALID_CLIP_INDEX) {
+        return;
+    }
+
+    const std::string file_path = resolve_playback_path();
+    uint64_t write_time = 0;
+    if (!get_file_write_time(file_path, write_time)) {
+        return;
+    }
+
+    if (known_macro_file_time_path != file_path || known_macro_file_write_time == 0) {
+        known_macro_file_time_path = file_path;
+        known_macro_file_write_time = write_time;
+        return;
+    }
+
+    if (write_time == known_macro_file_write_time) {
+        return;
+    }
+
+    known_macro_file_write_time = write_time;
+    if (reload_playback_file()) {
+        set_playback_status("Macro file changed; auto-reloaded.");
+    }
+}
+
+void KeyboardMacro::check_pause_interrupt() {
+    const bool game_paused = is_game_paused_safe();
+
+    if (!mod_enabled || !stop_macro_on_game_pause) {
+        last_game_pause_state = game_paused;
+        return;
+    }
+
+    if (game_paused && !last_game_pause_state && (playback_enabled || snapshot_play_pending_clip_index != INVALID_CLIP_INDEX)) {
+        stop_all_input();
+        set_playback_status("Playback stopped because the game paused.");
+    }
+
+    last_game_pause_state = game_paused;
 }
 
 void KeyboardMacro::on_frame(fmilliseconds& dt) {
@@ -3403,6 +4298,8 @@ void KeyboardMacro::on_frame(fmilliseconds& dt) {
         set_playback_status("Keyboard Macro ready.");
     }
 
+    check_pause_interrupt();
+    check_auto_reload_file();
     check_hotkeys();
     if (position_snapshot_load_ticks > 0) {
         if (apply_position_snapshot(false, false)) {
@@ -3526,6 +4423,42 @@ void KeyboardMacro::on_gui_frame(int display) {
                 }
             }
 
+            if (ImGui::CollapsingHeader(_("Action Mapping"))) {
+                ImGui::TextWrapped(_("Action names such as MELEE and LOCK_ON use this mapping. Match it to DMC4's in-game controller settings; this does not remap the game by itself."));
+                size_t action_count = 0;
+                const auto* actions = macro_action_choices(action_count);
+                size_t button_count = 0;
+                const auto* buttons = macro_button_choices(button_count);
+                for (uint32_t action_index = 0; action_index < action_count && action_index < MACRO_ACTION_COUNT; ++action_index) {
+                    ImGui::PushID((int)action_index);
+                    const auto current_button = action_button_map[action_index];
+                    if (ImGui::BeginCombo(actions[action_index].label, macro_button_label(current_button))) {
+                        for (size_t button_index = 0; button_index < button_count; ++button_index) {
+                            const bool is_selected = current_button == buttons[button_index].button;
+                            if (ImGui::Selectable(buttons[button_index].label, is_selected)) {
+                                action_button_map[action_index] = buttons[button_index].button;
+                                reset_input_state();
+                                reload_playback_file();
+                                set_playback_status("Action mapping updated.");
+                            }
+                            if (is_selected) {
+                                ImGui::SetItemDefaultFocus();
+                            }
+                        }
+                        ImGui::EndCombo();
+                    }
+                    ImGui::PopID();
+                }
+                if (ImGui::Button(_("Reset Action Mapping"))) {
+                    for (uint32_t action_index = 0; action_index < MACRO_ACTION_COUNT; ++action_index) {
+                        action_button_map[action_index] = DEFAULT_ACTION_BUTTON_MAP[action_index];
+                    }
+                    reset_input_state();
+                    reload_playback_file();
+                    set_playback_status("Action mapping restored to default.");
+                }
+            }
+
             if (!keyboard_macro_gameplay_ready()) {
                 suspend_keyboard_macro_runtime_for_transition();
                 ImGui::TextWrapped(_("Macro status: %s"), playback_status);
@@ -3535,6 +4468,12 @@ void KeyboardMacro::on_gui_frame(int display) {
             }
 
             ImGui::SeparatorText(_("Playback"));
+            ImGui::Checkbox(_("Auto reload Macro file"), &auto_reload_file);
+            ImGui::SameLine();
+            help_marker(_("Reload the selected macro file after it is saved. Auto reload waits until playback is stopped."));
+            ImGui::Checkbox(_("Stop Macro when game pauses"), &stop_macro_on_game_pause);
+            ImGui::SameLine();
+            help_marker(_("Stop macro playback when DMC4 opens the pause menu so it will not continue after unpausing."));
             if (ImGui::Button(_("Reload Macro File"))) {
                 reload_playback_file();
             }
@@ -3787,6 +4726,16 @@ void KeyboardMacro::on_config_load(const utility::Config& cfg) {
         cfg.get<uint32_t>("keyboard_macro_snapshot_play_delay_ticks").value_or(POSITION_SNAPSHOT_LOAD_TICKS),
         MAX_SNAPSHOT_PLAY_DELAY_TICKS);
     restore_resources_snapshot = cfg.get<bool>("keyboard_macro_restore_resources").value_or(false);
+    auto_reload_file = cfg.get<bool>("keyboard_macro_auto_reload_file").value_or(false);
+    stop_macro_on_game_pause = cfg.get<bool>("keyboard_macro_stop_on_game_pause").value_or(false);
+    last_game_pause_state = is_game_paused_safe();
+    size_t action_count = 0;
+    const auto* actions = macro_action_choices(action_count);
+    for (uint32_t action_index = 0; action_index < action_count && action_index < MACRO_ACTION_COUNT; ++action_index) {
+        action_button_map[action_index] = sanitize_macro_button(
+            cfg.get<uint32_t>(actions[action_index].config_key).value_or(actions[action_index].default_button),
+            actions[action_index].default_button);
+    }
     if (m_hotkeys.size() >= 6) {
         if (!cfg.get("keyboard_macro_reload_file_key")) {
             m_hotkeys[0]->m_default_keys = { reload_vkey };
@@ -3859,6 +4808,13 @@ void KeyboardMacro::on_config_save(utility::Config& cfg) {
     cfg.set<uint32_t>("keyboard_macro_load_snapshot_play_vkey", load_snapshot_play_vkey);
     cfg.set<uint32_t>("keyboard_macro_snapshot_play_delay_ticks", snapshot_play_delay_ticks);
     cfg.set<bool>("keyboard_macro_restore_resources", restore_resources_snapshot);
+    cfg.set<bool>("keyboard_macro_auto_reload_file", auto_reload_file);
+    cfg.set<bool>("keyboard_macro_stop_on_game_pause", stop_macro_on_game_pause);
+    size_t action_count = 0;
+    const auto* actions = macro_action_choices(action_count);
+    for (uint32_t action_index = 0; action_index < action_count && action_index < MACRO_ACTION_COUNT; ++action_index) {
+        cfg.set<uint32_t>(actions[action_index].config_key, action_button_map[action_index]);
+    }
     cfg.set<uint32_t>("keyboard_macro_slot", playback_slot);
     cfg.set<uint32_t>("keyboard_macro_clip_index", selected_clip_index);
     cfg.set("keyboard_macro_custom_path", playback_path);

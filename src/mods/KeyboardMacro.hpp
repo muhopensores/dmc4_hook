@@ -10,13 +10,23 @@ class uPlayer;
 
 struct KeyboardMacroFrame {
     uint32_t buttons = 0;
+    uint32_t global_buttons = 0;
     short left_x = 0;
     short left_y = 0;
     bool has_left_analog = false;
+    short right_x = 0;
+    short right_y = 0;
+    bool has_right_analog = false;
     bool exceed = false;
+    bool l2_exceed_compat = false;
     bool screen_pause = false;
     bool screen_resume = false;
     bool screen_pause_toggle = false;
+    bool change_target = false;
+    bool character_switch = false;
+    bool one_hit_kill_set = false;
+    bool one_hit_kill_value = false;
+    bool one_hit_kill_toggle = false;
     bool force_style = false;
     int forced_style = -1;
     uint32_t wait_condition = 0;
@@ -50,11 +60,15 @@ public:
     static uint32_t load_snapshot_vkey;
     static uint32_t load_snapshot_play_vkey;
     static uint32_t snapshot_play_delay_ticks;
+    static uint32_t action_button_map[12];
+    static bool auto_reload_file;
+    static bool stop_macro_on_game_pause;
     static uint32_t playback_slot;
     static uint32_t selected_clip_index;
     static uint32_t loaded_clip_index;
     static bool macro_exceed_active;
     static uint32_t macro_exceed_latch_ticks;
+    static uint32_t macro_change_target_latch_ticks;
     static bool screen_pause_active;
     static bool screen_pause_restore_valid;
     static float screen_pause_restore_speed;
@@ -69,6 +83,7 @@ public:
     static void __stdcall on_pad_update_tick(cPeripheral* peripheral);
     static void __stdcall on_player_pad_update(cPeripheral* peripheral);
     static uint32_t __stdcall on_player_input_tick(uPlayer* player, void* input_state, uint32_t inputs);
+    static void __stdcall on_player_input_press_written(uPlayer* player);
 
     std::optional<std::string> on_initialize() override;
     void on_frame(fmilliseconds& dt) override;
@@ -90,6 +105,8 @@ private:
     static void tick_snapshot_play_delay();
     static void stop_all_input();
     static void update_input_active();
+    static void check_auto_reload_file();
+    static void check_pause_interrupt();
     static std::string resolve_playback_path();
     static void handle_hotkey_actions(
         bool reload_pressed,

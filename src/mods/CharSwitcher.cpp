@@ -20,6 +20,8 @@ uint32_t kbInput                        = 70; // F
 bool kbInputPressed                     = false;
 int16_t prevInput                       = 0;
 float SSwordRange                       = 26.0f;
+uint32_t macroSwitchRequestTicks        = 0;
+constexpr uint32_t MACRO_SWITCH_REQUEST_TICKS = 8;
 
 uintptr_t CharSwitcher::jmp_ret2 = NULL;
     constexpr uintptr_t detour2_call1 = 0x008DF530;
@@ -552,6 +554,19 @@ naked void Switch(void) {
     }
 }
 
+bool CharSwitcher::request_macro_switch() {
+    if (!mod_enabled) {
+        return false;
+    }
+
+    macroSwitchRequestTicks = std::max(macroSwitchRequestTicks, MACRO_SWITCH_REQUEST_TICKS);
+    return true;
+}
+
+void CharSwitcher::clear_macro_switch_request() {
+    macroSwitchRequestTicks = 0;
+}
+
 // Swap actor
 naked void SwapActor_Controller(void) {
     _asm {
@@ -624,10 +639,14 @@ naked void SwapActor_KB(void) {
             xor eax,eax
             call devil4_sdk::internal_kb_check
             test al,al
+            jne inputPass
+            cmp dword ptr [macroSwitchRequestTicks], 0
             je inputFail
+        inputPass:
             cmp byte ptr [kbInputPressed], 1
             je loopend
             mov byte ptr [kbInputPressed], 1
+            mov dword ptr [macroSwitchRequestTicks], 0
             call Switch
             jmp loopend
         inputFail:
@@ -725,6 +744,9 @@ void CharSwitcher::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
         SwapActor_Controller();
         SwapActor_KB();
+    }
+    if (macroSwitchRequestTicks > 0) {
+        --macroSwitchRequestTicks;
     }
 }
 
