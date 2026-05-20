@@ -315,10 +315,14 @@ void Quicksilver::on_update_input(utility::Input& input) {
 
 void Quicksilver::start_quicksilver(float duration) {
 	if (m_timer) {
-		if (m_timer->m_active == false) {
-			qs_operator_new();
-			m_timer->m_duration = duration;
-			m_timer->start();
+        if (m_timer->m_active == false) {
+            qs_operator_new();
+            m_timer->m_duration = duration;
+            m_timer->start();
+        }
+		else {
+            m_timer->m_duration = duration;
+            m_timer->start();
 		}
 	}
 }

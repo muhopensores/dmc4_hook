@@ -2,30 +2,38 @@
 #include "Windows.h"
 
 bool EnemyReplace::mod_enabled = false;
-static uintptr_t mod_base = (uintptr_t)GetModuleHandle(NULL);
-static uintptr_t replacement_address_two = mod_base + 0x24B77B;
 
-static uintptr_t scarecrow_leg_address  = mod_base + 0x13F810; // 0x53F810;
-static uintptr_t scarecrow_arm_address  = mod_base + 0x15E710; // 0x55E710;
-static uintptr_t scarecrow_mega_address = mod_base + 0x15F7E0; // 0x55F7E0;
-static uintptr_t angelo_bianco_address  = mod_base + 0x161A10; // 0x561A10;
-static uintptr_t angelo_alto_address    = mod_base + 0x176C80; // 0x576C80;
-static uintptr_t mephisto_address       = mod_base + 0x17F1E0; // 0x57F1E0;
-static uintptr_t faust_address          = mod_base + 0x195810; // 0x595810;
-static uintptr_t frost_address          = mod_base + 0x1A3F60; // 0x5A3F60;
-static uintptr_t assault_address        = mod_base + 0x1B3170; // 0x5B3170;
-static uintptr_t blitz_address          = mod_base + 0x1D1760; // 0x5D1760;
-static uintptr_t chimera_seed_address   = mod_base + 0x1DC160; // 0x5DC160;
-static uintptr_t basilisk_address       = mod_base + 0x21A7B0; // 0x61A7B0;
-static uintptr_t berial_address         = mod_base + 0x230AC0; // 0x630AC0;
-static uintptr_t bael_address           = mod_base + 0x249CB0; // 0x649CB0;
-static uintptr_t echidna_address        = mod_base + 0x285340; // 0x685340;
-static uintptr_t credo_address          = mod_base + 0x2AA2C0; // 0x6AA2C0;
-static uintptr_t agnus_address          = mod_base + 0x2BDE60; // 0x6BDE60;
-static uintptr_t sanctus_address        = mod_base + 0x2F81E0; // 0x6F81E0;
-static uintptr_t sanctus_dia_address    = mod_base + 0x3022F0; // 0x7022F0;
-static uintptr_t kyrie_address          = mod_base + 0x323C00; // 0x723C00;
-static uintptr_t dante_address          = mod_base + 0x3BF980; // 0x7BF980;
+bool EnemyReplace::enemy_randomizer_enabled = false;
+std::mt19937 EnemyReplace::rng;
+uintptr_t EnemyReplace::jmp_ret1 = NULL;
+
+static uintptr_t mod_base = (uintptr_t)GetModuleHandle(NULL);
+static uintptr_t replacement_address_two = mod_base + 0x24B77B; // 0x64B77B;
+
+static const uintptr_t scarecrow_leg_address  = /*mod_base + 0x13F810; //*/ 0x53F810;
+static const uintptr_t scarecrow_arm_address  = /*mod_base + 0x15E710; //*/ 0x55E710;
+static const uintptr_t scarecrow_mega_address = /*mod_base + 0x15F7E0; //*/ 0x55F7E0;
+static const uintptr_t angelo_bianco_address  = /*mod_base + 0x161A10; //*/ 0x561A10;
+static const uintptr_t angelo_alto_address    = /*mod_base + 0x176C80; //*/ 0x576C80;
+static const uintptr_t mephisto_address       = /*mod_base + 0x17F1E0; //*/ 0x57F1E0;
+static const uintptr_t faust_address          = /*mod_base + 0x195810; //*/ 0x595810;
+static const uintptr_t frost_address          = /*mod_base + 0x1A3F60; //*/ 0x5A3F60;
+static const uintptr_t assault_address        = /*mod_base + 0x1B3170; //*/ 0x5B3170;
+static const uintptr_t blitz_address          = /*mod_base + 0x1D1760; //*/ 0x5D1760;
+static const uintptr_t chimera_seed_address   = /*mod_base + 0x1DC160; //*/ 0x5DC160;
+static const uintptr_t basilisk_address       = /*mod_base + 0x21A7B0; //*/ 0x61A7B0;
+static const uintptr_t berial_address         = /*mod_base + 0x230AC0; //*/ 0x630AC0;
+static const uintptr_t bael_address           = /*mod_base + 0x249CB0; //*/ 0x649CB0;
+static const uintptr_t echidna_address        = /*mod_base + 0x285340; //*/ 0x685340;
+static const uintptr_t credo_address          = /*mod_base + 0x2AA2C0; //*/ 0x6AA2C0;
+static const uintptr_t agnus_address          = /*mod_base + 0x2BDE60; //*/ 0x6BDE60;
+static const uintptr_t sanctus_address        = /*mod_base + 0x2F81E0; //*/ 0x6F81E0;
+static const uintptr_t sanctus_dia_address    = /*mod_base + 0x3022F0; //*/ 0x7022F0;
+static const uintptr_t kyrie_address          = /*mod_base + 0x323C00; //*/ 0x723C00;
+static const uintptr_t dante_address          = /*mod_base + 0x3BF980; //*/ 0x7BF980;
+static const uintptr_t cutlass_address = 0x05F37F0;
+static const uintptr_t gladius_address = 0x60AFC0;
+
 // modBase = 400000
 // crash:                                 
 // static uintptr_t CutlassAddress        = mod_base + 0x209C20; // 0x609C20;
@@ -62,7 +70,112 @@ static uintptr_t dante_address          = mod_base + 0x3BF980; // 0x7BF980;
 // em036    // Kyrie, pl022                      //
 // em_dante // Boss Dante                        // 3D355100
 
+enum class EnemyCategory {
+    BasicEnemy,
+    HardEnemy,
+    BossEnemy,
+};
+
+struct EnemyEntry {
+    const char* name;
+    uintptr_t wrapper_address;
+    EnemyCategory category;
+};
+
+static const std::vector<EnemyEntry> enemy_types = {
+    {"Scarecrow (Leg)", scarecrow_leg_address, EnemyCategory::BasicEnemy},
+    {"Scarecrow (Arm)", scarecrow_arm_address, EnemyCategory::BasicEnemy},
+    {"Bianco Angelo", angelo_bianco_address, EnemyCategory::BasicEnemy},
+    {"Mephisto", mephisto_address, EnemyCategory::BasicEnemy},
+    {"Assault", assault_address, EnemyCategory::BasicEnemy},
+    {"Chimera Seed", chimera_seed_address, EnemyCategory::BasicEnemy},
+    {"Basilisk", basilisk_address, EnemyCategory::BasicEnemy},
+
+    {"Gladius", gladius_address, EnemyCategory::HardEnemy},
+    {"Cutlass", cutlass_address, EnemyCategory::HardEnemy},
+    {"Mega Scarecrow", scarecrow_mega_address, EnemyCategory::HardEnemy},
+    {"Alto Angelo", angelo_alto_address, EnemyCategory::HardEnemy},
+    {"Faust", faust_address, EnemyCategory::HardEnemy},
+    {"Frost", frost_address, EnemyCategory::HardEnemy},
+    {"Blitz", blitz_address, EnemyCategory::HardEnemy},
+
+    {"Berial", berial_address, EnemyCategory::BossEnemy},
+    {"Bael", bael_address, EnemyCategory::BossEnemy},
+    {"Echidna", echidna_address, EnemyCategory::BossEnemy},
+    {"Credo", credo_address, EnemyCategory::BossEnemy},
+    {"Agnus", agnus_address, EnemyCategory::BossEnemy},
+    {"Sanctus Diabolica", sanctus_dia_address, EnemyCategory::BossEnemy},
+};
+
+static uintptr_t RandomizeEnemy(uintptr_t addr) {
+    const EnemyEntry* current = nullptr;
+    for (const auto& enemy : enemy_types) {
+        if (enemy.wrapper_address == addr) {
+            current = &enemy;
+            break;
+        }
+    }
+    if (!current) {
+        return addr;
+    }
+    std::vector<const EnemyEntry*> valid_pool;
+
+    for (const auto& enemy : enemy_types) {
+        switch (current->category) {
+        case EnemyCategory::BasicEnemy:
+            if (enemy.category == EnemyCategory::BasicEnemy) {
+                valid_pool.push_back(&enemy);
+            }
+            break;
+        case EnemyCategory::HardEnemy:
+            if (enemy.category == EnemyCategory::BasicEnemy || enemy.category == EnemyCategory::HardEnemy) {
+                valid_pool.push_back(&enemy);
+            }
+            break;
+        case EnemyCategory::BossEnemy:
+            if (enemy.category == EnemyCategory::BossEnemy) {
+                valid_pool.push_back(&enemy);
+            }
+            break;
+        }
+    }
+
+    valid_pool.erase(std::remove_if(valid_pool.begin(), valid_pool.end(), [&](const EnemyEntry* e) { return e->wrapper_address == addr; }), valid_pool.end());
+    if (valid_pool.empty()) {
+        return addr;
+    }
+    std::uniform_int_distribution<size_t> dist(0, valid_pool.size() - 1);
+    return valid_pool[dist(EnemyReplace::rng)]->wrapper_address;
+}
+
+// this detour could replace all these jumps and save the need for worrying about cyclical replacements
+naked void detour1() {
+    _asm {
+        cmp byte ptr [EnemyReplace::enemy_randomizer_enabled], 1
+        jne originalcode
+
+        pushad
+        push eax
+        call RandomizeEnemy
+        add esp, 4
+        mov [esp+0x1c], eax
+        popad
+
+        originalcode:
+        call eax
+        mov esi, eax
+        test esi, esi
+        jmp dword ptr [EnemyReplace::jmp_ret1]
+    }
+}
+
 std::optional<std::string> EnemyReplace::on_initialize() {
+    std::random_device rd;
+    rng.seed(rd());
+    if (!install_hook_offset(0x33823A, hook1, &detour1, &jmp_ret1, 6)) {
+        spdlog::error("Failed to init EnemyReplace mod 1\n");
+        return "Failed to init EnemyReplace mod 1";
+    }
     return Mod::on_initialize();
 }
 
@@ -362,6 +475,12 @@ void EnemyReplace::on_gui_frame(int display) {
             }
         }
     }
+
+    if (display == DISPLAY_SYSTEM_B) {
+        ImGui::Checkbox(_("Enemy Randomizer"), &enemy_randomizer_enabled);
+        ImGui::SameLine();
+        help_marker(_("Randomizes enemy spawns within reason so its still actually fun"));
+    }
 }
 
 void EnemyReplace::on_config_load(const utility::Config& cfg) {
@@ -369,10 +488,12 @@ void EnemyReplace::on_config_load(const utility::Config& cfg) {
         desired_enemy[i] = cfg.get<int>("enemy_replace_id_"+std::to_string(i)).value_or(i);
         replace_enemy_with(default_enemy[i], desired_enemy[i]);
     }
+    enemy_randomizer_enabled = cfg.get<bool>("enemy_randomizer_enabled").value_or(false);
 }
 
 void EnemyReplace::on_config_save(utility::Config& cfg) {
     for (int i = 0; i < IM_ARRAYSIZE(default_enemy); i++) {
         cfg.set<int>("enemy_replace_id_"+std::to_string(i), desired_enemy[i]);
     }
+    cfg.set<bool>("enemy_randomizer_enabled", enemy_randomizer_enabled);
 }

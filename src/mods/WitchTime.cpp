@@ -67,7 +67,7 @@ naked void detour1() {
         popcode:
         pop eax
         originalcode:
-        cvttss2si ecx, [esp+14]
+        cvttss2si ecx, [esp+0x14]
         jmp dword ptr [WitchTime::jmp_ret1]
     }
 }

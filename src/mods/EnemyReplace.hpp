@@ -14,6 +14,10 @@ public:
     static int desired_enemy[];
     static int default_enemy[];
 
+    static bool enemy_randomizer_enabled;
+    static std::mt19937 rng;
+    static uintptr_t jmp_ret1;
+
     std::string get_mod_name() override { return "EnemyReplace"; };
     std::vector<std::string> get_search_terms() override {
         return {
@@ -31,4 +35,5 @@ private:
         replace_assault_patch, replace_blitz_patch, replace_chimera_patch, replace_basilisk_patch, replace_berial_patch, replace_bael_patch,
         replace_echidna_patch, replace_credo_patch, replace_agnus_patch, replace_sanctus_patch, replace_sanctus_dia_patch, replace_kyrie_patch,
         replace_dante_patch;
+    std::unique_ptr<FunctionHook> hook1;
 };

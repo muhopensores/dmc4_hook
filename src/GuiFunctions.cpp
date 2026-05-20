@@ -300,6 +300,8 @@ namespace gui {
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("DarkSoulsStamina"_hash, DISPLAY_SYSTEM_A);
 
+                pmods->on_draw_ui("EnemyReplace"_hash, DISPLAY_SYSTEM_B);
+
                 // pmods->on_draw_ui("TestMod"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("KeyboardMacro"_hash, DISPLAY_SYSTEM_A);
