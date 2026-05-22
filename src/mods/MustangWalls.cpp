@@ -19,6 +19,8 @@ naked void detour1() { // trickster dash
 
             test byte ptr [esi+0x140D], 2 // input held
             je originalcode
+            cmp dword ptr [edi+0x141C], 2 // stick threshold
+            jne originalcode
             movss xmm6, [esi+0x1E8C] // current frame
             comiss xmm6, [maxMustangFrame]
             ja originalcode
@@ -50,6 +52,8 @@ naked void detour2() { // sky star
 
             test byte ptr [esi+0x140D], 2 // input held
             je originalcode
+            cmp dword ptr [edi+0x141C], 2 // stick threshold
+            jne originalcode
             movss xmm6, [esi+0x348] // current frame
             comiss xmm6, [maxMustangFrame]
             ja originalcode
