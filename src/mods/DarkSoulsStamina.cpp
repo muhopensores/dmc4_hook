@@ -43,6 +43,8 @@ naked void detour1() { // gamepad inputs (keyboard is handled by detour2 in Inpu
 float DarkSoulsStamina::get_move_cost(int moveID) {
     uPlayer* player = devil4_sdk::get_local_player();
     if (!player) return 0.0f;
+    if (player->movePart != 1)
+        return 0.0f;
     if ((moveID >= 0x000 && moveID <= 0x003) || // movement
         (moveID == 0x004 && !player->collisionSettings->mLand) || // falling anim
         moveID == 0x006 || // stop from run

@@ -38,6 +38,46 @@ std::optional<std::string> PowerUpSystem::on_initialize() {
     return std::nullopt;
 }
 
+static constexpr uintptr_t mt_heap_alloc_static_ptr    = 0xE1434C;
+static constexpr uintptr_t uStageSetItem_uStageSetItem = 0x880A30;
+static constexpr uintptr_t sUnit_ptr                   = 0xE552CC;
+static constexpr uintptr_t fptr_update_actor_list      = 0x8DC540;
+naked uintptr_t* spawn_pickup_effect(int item_id, Vector3f* pos) {
+    _asm {
+        push ebp
+        mov ebp,esp
+            // pushad
+        mov ecx, [mt_heap_alloc_static_ptr] // UnitAllocator (mt_heap_alloc_static_ptr)
+        mov ecx, [ecx]
+        mov edx, [ecx]
+        mov eax, [edx+0x14] // allocator::allocate
+        push 0x10 // alignment
+        push 0x17E0 // sizeof(uStageSetItem)
+        call eax // alloc 0x17E0
+        test eax, eax
+        jz retcode
+        push 0 // flag
+        push [ebp+8] // item_id // pushad + flag + item_id
+        call uStageSetItem_uStageSetItem // uStageSetItem::uStageSetItem
+        mov esi, eax
+        test esi, esi
+        jz retcode
+        mov eax, [sUnit_ptr] // sUnit::mpInstance (sUnit_ptr)
+        mov eax, [eax]
+        push 0x0F // MoveLine
+        call fptr_update_actor_list // sUnit::addBottom (fptr_update_actor_list)
+        mov eax, [ebp+0xc] // pos
+        movups xmm0, [eax]
+        movups [esi+0x30], xmm0
+        mov eax, esi
+        retcode:
+        // popad
+        mov esp,ebp
+        pop ebp
+        ret
+    }
+}
+
 static constexpr uintptr_t uStageSetItem_kill = 0x649340;
 naked void kill_pickup_effect(uintptr_t* effect) {
     _asm {
@@ -163,47 +203,6 @@ void PowerUpSystem::spawnRandomPowerUp() {
     // Select a random powerup type
     std::string selectedType = availableTypes[getRandomInt(0, availableTypes.size() - 1)];
     spawnSpecificPowerUp(selectedType);
-}
-
-static constexpr uintptr_t mt_heap_alloc_static_ptr = 0xE1434C;
-static constexpr uintptr_t uStageSetItem_uStageSetItem = 0x880A30;
-static constexpr uintptr_t sUnit_ptr = 0xE552CC;
-static constexpr uintptr_t fptr_update_actor_list = 0x8DC540;
-static uintptr_t* effect = NULL;
-naked uintptr_t* spawn_pickup_effect(int item_id, Vector3f* pos) {
-    _asm {
-        push ebp
-        mov ebp,esp
-        //pushad
-        mov ecx, [mt_heap_alloc_static_ptr] // UnitAllocator (mt_heap_alloc_static_ptr)
-        mov ecx, [ecx]
-        mov edx, [ecx]
-        mov eax, [edx+0x14] // allocator::allocate
-        push 0x10 // alignment
-        push 0x17E0 // sizeof(uStageSetItem)
-        call eax // alloc 0x17E0
-        test eax, eax
-        jz retcode
-        push 0 // flag
-        push [ebp+8] // item_id // pushad + flag + item_id
-        call uStageSetItem_uStageSetItem // uStageSetItem::uStageSetItem
-        mov esi, eax
-        test esi, esi
-        jz retcode
-        mov eax, [sUnit_ptr] // sUnit::mpInstance (sUnit_ptr)
-        mov eax, [eax]
-        push 0x0F // MoveLine
-        call fptr_update_actor_list // sUnit::addBottom (fptr_update_actor_list)
-        mov eax, [ebp+0xc] // pos
-        movups xmm0, [eax]
-        movups [esi+0x30], xmm0
-        mov eax, esi
-        retcode:
-        //popad
-        mov esp,ebp
-        pop ebp
-        ret
-    }
 }
 
 void PowerUpSystem::spawnSpecificPowerUp(const std::string& typeId) {
