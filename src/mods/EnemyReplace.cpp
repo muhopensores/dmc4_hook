@@ -82,6 +82,63 @@ struct EnemyEntry {
     EnemyCategory category;
 };
 
+// fairly sure the issue is that angelo biancos have a spawn id that breaks them and lots of other enemies get this id pushed
+// could probably fix this with a detour on the bianco spawn func replacing invalid ids with a valid one but its kinda nice not having too many biancos
+// with this setup, only chimera seeds, assaults, blitz and faust can spawn them
+static bool IsInvalidSwap(uintptr_t from, uintptr_t to) {
+    if ((from == scarecrow_arm_address && to == angelo_bianco_address) ||
+        (from == scarecrow_leg_address && to == angelo_bianco_address) || // sometimes these are fine
+
+        (from == frost_address && to == angelo_bianco_address) ||
+
+        (from == mephisto_address && to == angelo_bianco_address) ||
+
+        (from == basilisk_address && to == angelo_bianco_address) ||
+
+        (from == scarecrow_mega_address && to == angelo_bianco_address)
+
+        // there is too much here to bother with
+        /*// (from == berial_address && to == dante_address) ||
+        (from == berial_address && to == echidna_address) || // camera and collision goes crazy
+        (from == berial_address && to == bael_address) ||
+        (from == berial_address && to == agnus_address) || // camera
+        (from == berial_address && to == sanctus_address) ||
+        (from == berial_address && to == sanctus_dia_address) ||
+
+        // (from == bael_address && to == dante_address) ||
+        (from == bael_address && to == credo_address) ||
+        (from == bael_address && to == sanctus_address) ||
+        (from == bael_address && to == sanctus_dia_address) ||
+
+        // (from == echidna_address && to == dante_address) ||
+        (from == echidna_address && to == berial_address) ||
+        (from == echidna_address && to == credo_address) ||
+        (from == echidna_address && to == sanctus_address) ||
+
+        // (from == credo_address && to == dante_address) ||
+        (from == credo_address && to == sanctus_address) ||
+        (from == credo_address && to == sanctus_dia_address) ||
+
+        // (from == agnus_address && to == dante_address) ||
+        (from == agnus_address && to == credo_address) ||
+        (from == agnus_address && to == sanctus_address) ||
+        (from == agnus_address && to == bael_address)
+
+        // probably necesasry, haven't checked
+        // (from == sanctus_address && to == berial_address) ||
+        // (from == sanctus_address && to == bael_address) ||
+        // (from == sanctus_address && to == echidna_address) ||
+        // (from == sanctus_address && to == credo_address) ||
+        // (from == sanctus_address && to == agnus_address) ||
+        // (from == sanctus_address && to == sanctus_dia_address)
+        */
+        ) {
+        return true;
+    }
+
+    return false;
+}
+
 static const std::vector<EnemyEntry> enemy_types = {
     {"Scarecrow (Leg)", scarecrow_leg_address, EnemyCategory::BasicEnemy},
     {"Scarecrow (Arm)", scarecrow_arm_address, EnemyCategory::BasicEnemy},
@@ -104,7 +161,9 @@ static const std::vector<EnemyEntry> enemy_types = {
     {"Echidna", echidna_address, EnemyCategory::BossEnemy},
     {"Credo", credo_address, EnemyCategory::BossEnemy},
     {"Agnus", agnus_address, EnemyCategory::BossEnemy},
+    {"Sanctus", sanctus_address, EnemyCategory::BossEnemy},
     {"Sanctus Diabolica", sanctus_dia_address, EnemyCategory::BossEnemy},
+    // {"Dante", dante_address, EnemyCategory::BossEnemy}, // wrong addr?
 };
 
 static uintptr_t RandomizeEnemy(uintptr_t addr) {
@@ -121,6 +180,10 @@ static uintptr_t RandomizeEnemy(uintptr_t addr) {
     std::vector<const EnemyEntry*> valid_pool;
 
     for (const auto& enemy : enemy_types) {
+        if (IsInvalidSwap(current->wrapper_address, enemy.wrapper_address)) {
+            continue;
+        }
+
         switch (current->category) {
         case EnemyCategory::BasicEnemy:
             if (enemy.category == EnemyCategory::BasicEnemy) {
@@ -132,11 +195,11 @@ static uintptr_t RandomizeEnemy(uintptr_t addr) {
                 valid_pool.push_back(&enemy);
             }
             break;
-        case EnemyCategory::BossEnemy:
-            if (enemy.category == EnemyCategory::BossEnemy) {
-                valid_pool.push_back(&enemy);
-            }
-            break;
+        // case EnemyCategory::BossEnemy:
+        //     if (enemy.category == EnemyCategory::BossEnemy) {
+        //         valid_pool.push_back(&enemy);
+        //     }
+        //     break;
         }
     }
 
@@ -146,6 +209,7 @@ static uintptr_t RandomizeEnemy(uintptr_t addr) {
     }
     std::uniform_int_distribution<size_t> dist(0, valid_pool.size() - 1);
     return valid_pool[dist(EnemyReplace::rng)]->wrapper_address;
+    //return bael_address;
 }
 
 // this detour could replace all these jumps and save the need for worrying about cyclical replacements

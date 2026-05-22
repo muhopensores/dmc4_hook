@@ -38,12 +38,17 @@ std::optional<std::string> PowerUpSystem::on_initialize() {
     return std::nullopt;
 }
 
+static constexpr uintptr_t uStageSetItem_kill = 0x649340;
+naked void kill_pickup_effect(uintptr_t* effect) {
+    _asm {
+        mov ecx, [esp+4] // effect
+        call uStageSetItem_kill
+        ret
+    }
+}
+
 void PowerUpSystem::on_frame(fmilliseconds& dt) {
     if (!m_enabled) return;
-    
-    // if (m_spawnTimer) {
-    //     m_spawnTimer->tick(dt);
-    // }
     
     float dtSeconds = dt.count() / 1000.0f;
     
@@ -53,6 +58,7 @@ void PowerUpSystem::on_frame(fmilliseconds& dt) {
         if (!powerup.effectActive) {
             powerup.remainingTime -= dtSeconds;
             if (powerup.remainingTime <= 0) {
+                if (it->visualEffectPtr) kill_pickup_effect(it->visualEffectPtr);
                 it = m_powerUps.erase(it);
                 continue;
             }
@@ -84,18 +90,18 @@ void PowerUpSystem::on_frame(fmilliseconds& dt) {
     
     checkPlayerProximity();
     
-    render();
+    // render();
 }
 
 void PowerUpSystem::render() {
+#if 0
     if (!m_enabled) return;
-
+    
     for (const auto& powerup : m_powerUps) {
         if (!powerup.active || powerup.effectActive) continue;
         
         glm::vec3 realPowerupPos(powerup.location.x, powerup.location.y, powerup.location.z);
-        // lie about actual pos by 100 y so you can hit it with your body rather than feet
-        glm::vec3 powerupPos(powerup.location.x, powerup.location.y + 100.0f, powerup.location.z);
+        glm::vec3 powerupPos(powerup.visualLocation.x, powerup.visualLocation.y, powerup.visualLocation.z);
         
         if (w2s::IsVisibleOnScreen(powerupPos, powerup.radius)) {
             glm::vec2 screenPos = w2s::WorldToScreen(powerupPos);
@@ -119,7 +125,7 @@ void PowerUpSystem::render() {
             
             ImGui::GetBackgroundDrawList()->AddCircle(
                 ImVec2(screenPos.x, screenPos.y),
-                size + 1.0f, 
+                size + 1.0f, b
                 outlinecolour,
                 0,
                 1.0f
@@ -146,6 +152,7 @@ void PowerUpSystem::render() {
             );
         }
     }
+#endif
 }
 
 void PowerUpSystem::spawnRandomPowerUp() {
@@ -156,6 +163,47 @@ void PowerUpSystem::spawnRandomPowerUp() {
     // Select a random powerup type
     std::string selectedType = availableTypes[getRandomInt(0, availableTypes.size() - 1)];
     spawnSpecificPowerUp(selectedType);
+}
+
+static constexpr uintptr_t mt_heap_alloc_static_ptr = 0xE1434C;
+static constexpr uintptr_t uStageSetItem_uStageSetItem = 0x880A30;
+static constexpr uintptr_t sUnit_ptr = 0xE552CC;
+static constexpr uintptr_t fptr_update_actor_list = 0x8DC540;
+static uintptr_t* effect = NULL;
+naked uintptr_t* spawn_pickup_effect(int item_id, Vector3f* pos) {
+    _asm {
+        push ebp
+        mov ebp,esp
+        //pushad
+        mov ecx, [mt_heap_alloc_static_ptr] // UnitAllocator (mt_heap_alloc_static_ptr)
+        mov ecx, [ecx]
+        mov edx, [ecx]
+        mov eax, [edx+0x14] // allocator::allocate
+        push 0x10 // alignment
+        push 0x17E0 // sizeof(uStageSetItem)
+        call eax // alloc 0x17E0
+        test eax, eax
+        jz retcode
+        push 0 // flag
+        push [ebp+8] // item_id // pushad + flag + item_id
+        call uStageSetItem_uStageSetItem // uStageSetItem::uStageSetItem
+        mov esi, eax
+        test esi, esi
+        jz retcode
+        mov eax, [sUnit_ptr] // sUnit::mpInstance (sUnit_ptr)
+        mov eax, [eax]
+        push 0x0F // MoveLine
+        call fptr_update_actor_list // sUnit::addBottom (fptr_update_actor_list)
+        mov eax, [ebp+0xc] // pos
+        movups xmm0, [eax]
+        movups [esi+0x30], xmm0
+        mov eax, esi
+        retcode:
+        //popad
+        mov esp,ebp
+        pop ebp
+        ret
+    }
 }
 
 void PowerUpSystem::spawnSpecificPowerUp(const std::string& typeId) {
@@ -170,12 +218,13 @@ void PowerUpSystem::spawnSpecificPowerUp(const std::string& typeId) {
     newPowerUp.duration = def->duration;
     newPowerUp.remainingTime = newPowerUp.duration;
     newPowerUp.location = getRandomPosition();
+    newPowerUp.visualLocation  = {newPowerUp.location.x, newPowerUp.location.y + 100.0f, newPowerUp.location.z};
     newPowerUp.radius = def->radius;
     newPowerUp.active = true;
     newPowerUp.effectActive = false;
     newPowerUp.effectDuration = def->effectDuration;
     newPowerUp.effectTimeLeft = newPowerUp.effectDuration;
-    
+    newPowerUp.visualEffectPtr = spawn_pickup_effect(def->effectId, &newPowerUp.visualLocation);
     m_powerUps.push_back(newPowerUp);
 }
 
@@ -212,16 +261,24 @@ void PowerUpSystem::applyPowerUpEffect(PowerUp& powerup) {
     if (def->onActivate) {
         def->onActivate();
     }
+
+    if (powerup.visualEffectPtr)
+        kill_pickup_effect(powerup.visualEffectPtr);
     
     powerup.effectActive = true;
     
     if (powerup.effectDuration <= 0.0f) {
         powerup.effectActive = false;
         powerup.active = false;
+        powerup.visualEffectPtr = nullptr;
     }
 }
 
 void PowerUpSystem::clearPowerUps() {
+    for (auto& powerup : m_powerUps) {
+        if (powerup.visualEffectPtr)
+            kill_pickup_effect(powerup.visualEffectPtr);
+    }
     m_powerUps.clear();
 }
 
@@ -263,6 +320,7 @@ bool PowerUpSystem::removePowerUp(const std::string& typeId) {
         // Also remove any spawned powerups of this type
         for (auto powerupIt = m_powerUps.begin(); powerupIt != m_powerUps.end();) {
             if (powerupIt->typeId == typeId) {
+                if (powerupIt->visualEffectPtr) kill_pickup_effect(powerupIt->visualEffectPtr);
                 powerupIt = m_powerUps.erase(powerupIt);
             } else {
                 ++powerupIt;

@@ -70,6 +70,7 @@ utility::Timer* Survival::meme_timer{};
 float Survival::survivedTimer = 0.0f;
 int Survival::wave = 0;
 bool Survival::player_existed_last_frame = false;
+bool Survival::meme_player_existed_last_frame = false;
 std::random_device Survival::rd;
 std::mt19937 Survival::rng(Survival::rd());
 static std::unique_ptr<PowerUpSystem> basicPowerUpSystem = std::make_unique<PowerUpSystem>();
@@ -397,7 +398,7 @@ void Survival::on_timer_trigger() {
     }
 }
 
-uintptr_t DisplayTimerCall = 0x494EA0;
+static constexpr uintptr_t DisplayTimerCall = 0x494EA0;
 naked void DisplayTimerOnTick() {
     _asm {
         pushad
@@ -431,12 +432,12 @@ void Survival::on_frame(fmilliseconds& dt) {
     uPlayer* player = devil4_sdk::get_local_player();
     if (memePowerUpSystem) {
         if (meme_timer) {
-            bool player_exists_now = (player != nullptr);
-            if (player_exists_now && !player_existed_last_frame) {
+            bool meme_player_exists_now = (player != nullptr);
+            if (meme_player_exists_now && !meme_player_existed_last_frame) {
                 meme_timer->start();
             }
-            player_existed_last_frame = player_exists_now;
-            if (player_exists_now) {
+            meme_player_existed_last_frame = meme_player_exists_now;
+            if (meme_player_exists_now) {
                 memePowerUpSystem->on_frame(dt);
                 float dante_seconds = player->m_delta_time / 60.0f;
                 meme_timer->tick((fmilliseconds)dante_seconds * 1000.0f);
@@ -537,7 +538,7 @@ void Survival::on_frame(fmilliseconds& dt) {
 static std::mutex g_mutex;
 static constexpr uintptr_t danteSpawnAddr = 0x7B2130;
 static uintptr_t some_struct = 0x00E552CC;
-static uintptr_t fptr_update_actor_list = 0x008DC540;
+static uintptr_t fptr_update_actor_list   = 0x008DC540;
 void EnemySpawn::spawn_dante() {
     std::lock_guard<std::mutex> lk(g_mutex);
     if (!devil4_sdk::get_local_player()) return;
@@ -556,11 +557,25 @@ void EnemySpawn::spawn_dante() {
     }
 }
 
+enum class PowerupEffectID {
+    BLUE_SPIN            = 0,
+    NONE                 = 1,
+    YELLOW_SPIN          = 2,
+    PURPLE_SPIN          = 3,
+    WHITEY_GREEN         = 4,
+    GREENER_GREEN        = 5,
+    BIGGER_GREENER_GREEN = 6,
+    SMALL_PURPLE         = 7,
+    BIGGER_PURPLE        = 8,
+    SMALL_CYAN           = 9,
+};
+
 PowerUpSystem::PowerUpDefinition createDantePowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "dante",                  // name
         "DNTE",                   // displayName
         ImColor(255, 0, 0, 255),  // color (Red)
+        (int)PowerupEffectID::SMALL_CYAN, // effectID
         15.0f,                    // duration
         200.0f,                   // radius
         15.0f,                    // effectDuration
@@ -598,6 +613,7 @@ PowerUpSystem::PowerUpDefinition createHealthRestorePowerUp() {
         "health_restore",         // name
         "HP",                     // displayName
         ImColor(0, 255, 0, 255),  // color (Green)
+        (int)PowerupEffectID::BIGGER_GREENER_GREEN,
         15.0f,                    // duration
         200.0f,                   // radius
         0.0f,                     // effectDuration
@@ -621,6 +637,7 @@ PowerUpSystem::PowerUpDefinition createDevilTriggerPowerUp() {
         "devil_trigger",            // name
         "DT",                       // displayName
         ImColor(128, 0, 255, 255),  // color (Purple)
+        (int)PowerupEffectID::BIGGER_PURPLE,
         15.0f,                      // duration
         200.0f,                     // radius
         0.0f,                       // effectDuration
@@ -644,6 +661,7 @@ PowerUpSystem::PowerUpDefinition createQuicksilverPowerUp() {
         "quicksilver",              // name
         "QS",                       // displayName
         ImColor(50, 50, 50, 255),   // color (Gray)
+        (int)PowerupEffectID::YELLOW_SPIN,
         15.0f,                      // duration
         200.0f,                     // radius
         0.0f,                       // effectDuration
@@ -667,6 +685,7 @@ PowerUpSystem::PowerUpDefinition createHolyWaterPowerUp() {
         "holywater",                // name
         "HW",                       // displayName
         ImColor(0, 191, 255, 255),  // color (Blue)
+        (int)PowerupEffectID::BLUE_SPIN,
         15.0f,                      // duration
         200.0f,                     // radius
         0.0f,                       // effectDuration
@@ -687,8 +706,9 @@ PowerUpSystem::PowerUpDefinition createPlayerSmolPowerUp() {
         "player_smol",             // name
         "SMOL",                    // displayName
         ImColor(255, 255, 0, 0),   // color (Yellow)
+        (int)PowerupEffectID::YELLOW_SPIN,
         15.0f,                     // duration
-        0.0f,                      // radius
+        200.0f,                    // radius
         15.0f,                     // effectDuration
         []() {                     // onActivate
             uPlayer* player = devil4_sdk::get_local_player();
@@ -713,8 +733,9 @@ PowerUpSystem::PowerUpDefinition createPlayerHeadPowerUp() {
         "player_head",             // name
         "HEAD",                    // displayName
         ImColor(255, 255, 0, 0),   // color (Yellow)
+        (int)PowerupEffectID::YELLOW_SPIN,
         15.0f,                     // duration
-        0.0f,                      // radius
+        200.0f,                    // radius
         15.0f,                     // effectDuration
         []() {                     // onActivate
             BigHeadMode::big_head_mode_nero = !BigHeadMode::big_head_mode_nero;
@@ -735,8 +756,9 @@ PowerUpSystem::PowerUpDefinition createEnemySizePowerUp() {
         "enemy_size",              // name
         "ENMY_SZ",                 // displayName
         ImColor(255, 255, 0, 0),   // color (Yellow)
+        (int)PowerupEffectID::PURPLE_SPIN,
         15.0f,                     // duration
-        0.0f,                      // radius
+        200.0f,                    // radius
         15.0f,                     // effectDuration
         []() {                     // onActivate
             uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
@@ -750,7 +772,11 @@ PowerUpSystem::PowerUpDefinition createEnemySizePowerUp() {
         
         },
         []() {                     // onExpire
-
+            uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
+            while (enemy) {
+                enemy->scale = {1.0f, 1.0f, 1.0f}; // not all enemies are 1.0 but its too annoying enemies staying random sizes after powerup expires
+                enemy        = enemy->nextEnemy;
+            }
         }
     );
 }
@@ -760,9 +786,9 @@ void setupBasicPowerUpSystem() {
     basicPowerUpSystem->setMaxPowerUps(5);
     PowerUpSystem::SpawnArea customArea = {
         Vector3f(0, 0, 0),  // centre
-        1200.0f,            // radius
+        1200.0f,            // radius // bp size
         100.0f,             // min height
-        1200.0f              // max height
+        1200.0f             // max height
     };
     basicPowerUpSystem->setSpawnArea(customArea);
 }
@@ -770,11 +796,12 @@ void setupBasicPowerUpSystem() {
 void setupMemePowerUpSystem() {
     // memePowerUpSystem->setSpawnInterval(15.0f);
     memePowerUpSystem->setMaxPowerUps(5);
+    uPlayer* player = devil4_sdk::get_local_player();
     PowerUpSystem::SpawnArea customArea = {
-        Vector3f(0, 0, 0),  // centre
-        0.0f,               // radius
+        (player ? player->mPos : Vector3f(0, 0, 0)),  // centre
+        500.0f,             // radius
         0.0f,               // min height
-        0.0f                // max height
+        500.0f             // max height
     };
     memePowerUpSystem->setSpawnArea(customArea);
 }
@@ -820,7 +847,7 @@ void Survival::on_gui_frame(int display) {
             memePowerUpSystem->setEnabled(Survival::meme_effects);
         }
         ImGui::SameLine();
-        help_marker(_("Random meme modifiers applied while you play"));
+        help_marker(_("Spawn random meme modifier pickups spawned near your location to try to avoid (or target)"));
         /*
         if (mod_enabled) {
             ImGui::Indent(lineIndent);
@@ -926,8 +953,8 @@ void Survival::on_meme_timer_trigger() {
         Survival::meme_timer->start();
     }
 
-    // 1/3 chance of getting a powerup every wave
-    if (get_random_int(0, 2) == 0) {
+    // 1/2 chance of getting a powerup every wave
+    if (get_random_int(0, 1) == 0) {
         if (memePowerUpSystem) { memePowerUpSystem->spawnRandomPowerUp(); }
     }
 }

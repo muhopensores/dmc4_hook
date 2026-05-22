@@ -33,6 +33,7 @@ public:
     static std::random_device rd;
     static std::mt19937 rng;
     static bool player_existed_last_frame;
+    static bool meme_player_existed_last_frame;
     static int currentRoomIndex;
 
     static EnemyInfo get_enemy_info(uEnemy_Old* enemy);

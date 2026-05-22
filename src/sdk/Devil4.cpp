@@ -161,25 +161,28 @@ namespace devil4_sdk {
 
 	sMediator* get_sMediator() {
 		constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-		static sMediator* s_mediator_ptr = (sMediator*)*(uintptr_t*)static_mediator_ptr;
+		sMediator* s_mediator_ptr = (sMediator*)*(uintptr_t*)static_mediator_ptr;
 		return s_mediator_ptr;
 	}
 
 	uPlayer* get_local_player() {
 		constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-		static sMediator* s_mediator_ptr = (sMediator*)*(uintptr_t*)static_mediator_ptr;
+		sMediator* s_mediator_ptr = (sMediator*)*(uintptr_t*)static_mediator_ptr;
+        if (!s_mediator_ptr->pad_0) return nullptr;
 		return s_mediator_ptr->player_ptr;
 	}
 
 	uCameraCtrl* get_local_camera() {
         constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-        static sMediator* s_mediator_ptr        = (sMediator*)*(uintptr_t*)static_mediator_ptr;
+        sMediator* s_mediator_ptr        = (sMediator*)*(uintptr_t*)static_mediator_ptr;
+        if (!s_mediator_ptr->pad_0) return nullptr;
         return s_mediator_ptr->camera1;
     }
 
     cCameraPlayer* get_player_camera() {
         constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-        static sMediator* s_mediator_ptr        = (sMediator*)*(uintptr_t*)static_mediator_ptr;
+        sMediator* s_mediator_ptr        = (sMediator*)*(uintptr_t*)static_mediator_ptr;
+        if (!s_mediator_ptr->pad_0) return nullptr;
         return s_mediator_ptr->camera1->mpCamPlayer;
     }
 

@@ -10,7 +10,8 @@ public:
     struct PowerUpDefinition {
         std::string name;
         std::string displayName;
-        ImU32 colour;
+        ImU32 colour; // unused
+        int effectId;
         float duration; // How long the powerup stays in the world
         float radius; // Pickup radius
         float effectDuration; // How long the effect lasts (0 = instant)
@@ -23,6 +24,7 @@ public:
         const std::string& name,
         const std::string& displayName,
         ImU32 colour,
+        int effectId,
         float duration,
         float radius,
         float effectDuration,
@@ -34,6 +36,7 @@ public:
         def.name = name;
         def.displayName = displayName;
         def.colour = colour;
+        def.effectId = effectId;
         def.duration = duration;
         def.radius = radius;
         def.effectDuration = effectDuration;
@@ -48,12 +51,14 @@ public:
         float duration; // How long the powerup stays active (seconds)
         float remainingTime; // Time left before despawning
         Vector3f location; // Position in the world
+        Vector3f visualLocation;
         float radius; // Pickup radius
         bool active; // Whether the powerup is currently spawned
         bool effectActive; // Whether the player has the effect active
         float effectDuration; // How long the effect lasts (seconds)
         float effectTimeLeft; // Time left for the effect
         std::shared_ptr<utility::Timer> effectTimer; // Timer for this effect
+        uintptr_t* visualEffectPtr; // Pointer to the effect
     };
     
     struct SpawnArea {
