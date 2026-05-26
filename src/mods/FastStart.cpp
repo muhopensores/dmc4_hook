@@ -115,8 +115,8 @@ void FastStart::toggle(bool enable) {
     if (enable) {
         install_patch_offset(0x3875E2, mission_fade_patch1, "\xF3\x0F\x10\x87\x70\x01\x00\x00", 8); // fade // movss completed float rather than slowly addssing progress
         install_patch_offset(0x3879F1, mission_fade_patch2, "\xF3\x0F\x10\x4A\x70", 5); // text // movss bigger float (no longer delta though)
-        install_patch_offset(0xBC96F, bp_fade_patch1, "\x90\x90", 2); // white flash
-        install_patch_offset(0xBCB6E, bp_fade_patch2, "\xF3\x0F\x10\x05\x90\x6A\xE1\x00", 8); // text flying in
+        install_patch_offset(0xBC96F, bp_fade_patch1, "\x90\x90", 2); // skip white flash
+        install_patch_offset(0xBCB6E, bp_fade_patch2, "\xF3\x0F\x10\x05\x90\x6A\xE1\x00", 8); // text // movss bigger float (no longer delta though)
     }
     else {
         mission_fade_patch1.reset();

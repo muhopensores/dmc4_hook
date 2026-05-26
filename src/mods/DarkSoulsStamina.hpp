@@ -17,7 +17,6 @@ public:
     static float stamina;
     static float stamina_delay_current;
 
-    bool stamina_use(int moveID);
     float get_move_cost(int moveID);
     void stamina_regen(float seconds);
     void check_for_stamina_use(uPlayer* player);
