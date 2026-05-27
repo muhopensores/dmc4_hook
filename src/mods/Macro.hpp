@@ -8,9 +8,16 @@
 
 class uPlayer;
 
-struct KeyboardMacroFrame {
+constexpr uint32_t MACRO_CHARACTER_ROLE_COUNT = 2;
+constexpr uint32_t MACRO_ACTION_SLOT_COUNT = 13;
+constexpr uint32_t MACRO_CHARACTER_NERO = 0;
+constexpr uint32_t MACRO_CHARACTER_DANTE = 1;
+constexpr uint32_t MACRO_CHARACTER_INVALID = 0xFFFFFFFFu;
+
+struct MacroFrame {
     uint32_t buttons = 0;
     uint32_t global_buttons = 0;
+    uint32_t actions = 0;
     short left_x = 0;
     short left_y = 0;
     bool has_left_analog = false;
@@ -31,21 +38,28 @@ struct KeyboardMacroFrame {
     int forced_style = -1;
     uint32_t wait_condition = 0;
     int wait_arg = 0;
+    uint32_t wait_compare = 0;
+    float wait_value = 0.0f;
+    uint32_t wait_value_u32 = 0;
+    uint32_t wait_initial_u32 = 0;
+    bool wait_initial_valid = false;
     uint32_t wait_max_ticks = 0;
     uint32_t wait_elapsed_ticks = 0;
 };
 
-struct KeyboardMacroClip {
+struct MacroClip {
     std::string name{};
     std::vector<uint32_t> hotkey_binds{};
-    std::vector<KeyboardMacroFrame> frames{};
+    uint32_t gamepad_hotkey_button = 0;
+    std::vector<MacroFrame> frames{};
+    uint32_t character_role = MACRO_CHARACTER_INVALID;
     uint32_t header_line = 0;
 };
 
-class KeyboardMacro : public Mod {
+class Macro : public Mod {
 public:
-    KeyboardMacro() = default;
-    std::string get_mod_name() override { return "KeyboardMacro"; };
+    Macro() = default;
+    std::string get_mod_name() override { return "Macro"; };
 
     static bool mod_enabled;
     static bool playback_enabled;
@@ -60,14 +74,18 @@ public:
     static uint32_t load_snapshot_vkey;
     static uint32_t load_snapshot_play_vkey;
     static uint32_t snapshot_play_delay_ticks;
-    static uint32_t action_button_map[12];
+    static uint32_t action_button_map[MACRO_CHARACTER_ROLE_COUNT][MACRO_ACTION_SLOT_COUNT];
+    static uint32_t gamepad_hotkey_buttons[5];
     static bool auto_reload_file;
     static bool stop_macro_on_game_pause;
+    static bool gamepad_hotkeys_enabled;
     static uint32_t playback_slot;
     static uint32_t selected_clip_index;
     static uint32_t loaded_clip_index;
+    static uint32_t playback_character_role;
     static bool macro_exceed_active;
     static uint32_t macro_exceed_latch_ticks;
+    static bool macro_exceed_player_state_written;
     static uint32_t macro_change_target_latch_ticks;
     static bool screen_pause_active;
     static bool screen_pause_restore_valid;
@@ -77,8 +95,8 @@ public:
     static char playback_path[260];
     static char loaded_playback_path[260];
     static char playback_status[256];
-    static std::vector<KeyboardMacroClip> playback_clips;
-    static std::vector<KeyboardMacroFrame> playback_frames;
+    static std::vector<MacroClip> playback_clips;
+    static std::vector<MacroFrame> playback_frames;
 
     static void __stdcall on_pad_update_tick(cPeripheral* peripheral);
     static void __stdcall on_player_pad_update(cPeripheral* peripheral);
@@ -95,7 +113,7 @@ public:
 
 private:
     static void write_test_input(cPeripheral* peripheral, uint32_t player_index);
-    static void reset_input_state();
+    static void reset_input_state(bool preserve_macro_exceed_request = false);
     static bool load_playback_file();
     static bool reload_playback_file();
     static void restart_playback();
@@ -116,5 +134,6 @@ private:
         bool load_snapshot_pressed,
         bool load_snapshot_play_pressed);
     static void poll_raw_keyboard(bool trigger_actions);
+    static void poll_gamepad_hotkeys(cPeripheral* peripheral, bool trigger_actions);
     void check_hotkeys();
 };

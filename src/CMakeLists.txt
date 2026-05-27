@@ -64,6 +64,8 @@ set(MODS_SRC
   mods/FlyingStats.cpp
   mods/FastRoundTrip.hpp
   mods/FastRoundTrip.cpp
+  mods/AnimationOverlay.hpp
+  mods/AnimationOverlay.cpp
   mods/EnemyStepDisplay.hpp
   mods/EnemyStepDisplay.cpp
   mods/GunStingerDistance.hpp
@@ -334,8 +336,8 @@ set(MODS_SRC
   mods/MultiCharFixes.cpp
   mods/PhotoMode.hpp
   mods/PhotoMode.cpp
-  mods/KeyboardMacro.hpp
-  mods/KeyboardMacro.cpp
+  mods/Macro.hpp
+  mods/Macro.cpp
   mods/Coop.hpp
   mods/Coop.cpp
   mods/StageCallback.hpp
