@@ -322,6 +322,22 @@ Common script line types:
 | Complete commands | Full lines that run a direct macro or hook action by themselves. | `WAIT 10`, `WAIT_UNTIL CAN_EXCEED`, `STYLE RG`, `FREEZE`, `CHARACTER_SWITCH`, `ONE_HIT_KILL TOGGLE` |
 | Commands with input arguments | Commands that perform, hold, release, or combine one or more input names. | `TAP MELEE`, `HOLD LOCK_ON`, `DIR MOVE_LEFT MELEE 1`, `BACK_FORWARD MOVE_RIGHT MOVE_LEFT MELEE` |
 
+### How Macro Lines Run
+
+Macro lines run from top to bottom. The script keeps applying commands until it reaches a waiting line such as `WAIT` or `WAIT_UNTIL`, so you can write more than one command between waits.
+
+Use `+` to combine inputs in one command:
+
+```text
+HOLD LOCK_ON+MOVE_LEFT+MELEE
+WAIT 1
+RELEASE MELEE
+RELEASE MOVE_LEFT
+RELEASE LOCK_ON
+```
+
+If you want two inputs to happen on separate input updates, put `WAIT 1` between them.
+
 ### Action Names
 
 Use action names when you mean "the player's configured action":

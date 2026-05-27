@@ -110,6 +110,57 @@ HOLD LOCK_ON
 HOLD MOVE_LEFT
 ```
 
+## How Macro Lines Run
+
+Macro clips run from top to bottom. Each non-header line is read as one script command.
+
+Commands continue until the macro reaches a waiting command:
+
+```text
+HOLD LOCK_ON
+HOLD MOVE_LEFT
+TAP MELEE
+WAIT 10
+RELEASE MOVE_LEFT
+TAP JUMP
+WAIT_UNTIL GROUNDED 120
+RELEASE LOCK_ON
+```
+
+There is no rule that only one command may appear between two waits. Use as many command lines as the input needs.
+
+`WAIT ticks` advances time before the next line. `WAIT_UNTIL condition [max_ticks]` waits until the condition is true, or until the optional timeout is reached.
+
+Use `+` when several inputs should be part of one input command:
+
+```text
+HOLD LOCK_ON+MOVE_LEFT+MELEE
+WAIT 1
+RELEASE MELEE
+RELEASE MOVE_LEFT
+RELEASE LOCK_ON
+```
+
+This is required for multi-input `TAP` lines. Write `TAP JUMP+MELEE`, not `TAP JUMP MELEE`.
+
+`+` does not mean "then". This line presses jump and melee together:
+
+```text
+TAP JUMP+MELEE
+```
+
+This version presses jump first, then melee on a later input update:
+
+```text
+TAP JUMP
+WAIT 1
+TAP MELEE
+```
+
+`TAP` sends a short input. It does not wait for the move or animation to finish. Use `WAIT`, `WAIT_UNTIL`, `ANIM_FRAME`, `MOVEID2`, or another condition when the next line must happen later.
+
+`HOLD` keeps an input active until you release or clear it. Use `RELEASE input`, `RELEASE ALL`, `CLEAR`, or stop the macro to remove held macro input.
+
 ## Quick Command Summary
 
 ### Input Names
@@ -924,6 +975,21 @@ HOLD CAM_LEFT
 WAIT 20
 RELEASE CAM_LEFT
 ```
+
+## Common Script Misunderstandings
+
+- Input names alone do nothing. Write `TAP MELEE`, not just `MELEE`.
+- `WAIT` is not a section separator. You can place several commands before or after one `WAIT`.
+- `+` combines inputs for one command. It does not mean "do the left input, then the right input."
+- Multi-input `TAP` lines need `+`. Write `TAP JUMP+MELEE`, not `TAP JUMP MELEE`.
+- `TAP` does not wait for a move to finish. It only sends the input, then the next macro line may run.
+- `HOLD` does not release by itself. Release it later, clear macro input, or stop the macro.
+- `RELEASE` only releases macro-held input. It does not cancel a game action that already started.
+- Action names and physical buttons are different. `TAP MELEE` follows the clip character's Action Mapping; `TAP Y` always presses the physical `Y / TRIANGLE` button.
+- Movement names are left-stick directions. `MOVE_LEFT` is not the keyboard `A` key; `LEFT` is D-pad Left.
+- Camera names are right-stick movement. `CAM_LEFT` or `RS_LEFT` moves the camera; `RS` is the right-stick click button.
+- `STYLE RG` directly sets Dante's style to Royalguard. `TAP CHANGE_STYLE_RG` presses D-pad Down.
+- The gamepad tag in a header, such as `[F1][X/SQUARE][Nero]`, is a clip shortcut. It is not the first input line of the script.
 
 ## Script Troubleshooting
 
