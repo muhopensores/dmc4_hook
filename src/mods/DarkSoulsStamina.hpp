@@ -14,6 +14,7 @@ public:
     static float stamina_delay_max;
 
     static bool stamina_enabled;
+    static bool meme_stamina_enabled;
     static float stamina;
     static float stamina_delay_current;
 

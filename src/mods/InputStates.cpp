@@ -120,6 +120,8 @@ naked void detour2() { // inputonpress // touchpad ecstasy // player is in edx /
     _asm {
         cmp byte ptr [DarkSoulsStamina::stamina_enabled], 1
         je staminaCode
+        cmp byte ptr [DarkSoulsStamina::meme_stamina_enabled], 1
+        je staminaCode
 
         originalcode:
         mov [edx+0x00001410], eax // originalcode

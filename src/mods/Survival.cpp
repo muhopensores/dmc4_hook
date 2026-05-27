@@ -14,6 +14,7 @@
 #include "MutatorHolyWater.hpp"
 #include "BigHeadMode.hpp"
 #include "HideHud.hpp" // NOTE(): emacs with clangd lsp says this header is unused, Siyan pls fix
+#include "DarkSoulsStamina.hpp"
 #include "imgui_internal.h"
 
 class WaveConfig {
@@ -124,7 +125,7 @@ Survival::EnemyInfo Survival::get_enemy_info(uEnemy_Old* enemy) {
     return enemy_info;
 }
 
-const std::map<int, WaveConfig> WAVE_CONFIGS = {
+static const std::map<int, WaveConfig> WAVE_CONFIGS = {
     {5, WaveConfig( // 0-5
         1,  // max_enemies_with_boss
         3,  // max_enemies_without_boss
@@ -271,7 +272,7 @@ const std::map<int, WaveConfig> WAVE_CONFIGS = {
     )}
 };
 
-const WaveConfig& get_wave_config() {
+static const WaveConfig& get_wave_config() {
     for (const auto& [wave_threshold, config] : WAVE_CONFIGS) {
         if (Survival::wave < wave_threshold) {
             return config;
@@ -280,7 +281,7 @@ const WaveConfig& get_wave_config() {
     return WAVE_CONFIGS.rbegin()->second;
 }
 
-bool can_spawn_standard_enemy(const Survival::EnemyInfo& enemy_info, sMediator* sMed, const WaveConfig& config) {
+static bool can_spawn_standard_enemy(const Survival::EnemyInfo& enemy_info, sMediator* sMed, const WaveConfig& config) {
     bool is_ldk = (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT);
         
     int max_enemies = is_ldk
@@ -290,7 +291,7 @@ bool can_spawn_standard_enemy(const Survival::EnemyInfo& enemy_info, sMediator* 
     return enemy_info.enemies_alive < max_enemies;
 }
 
-bool can_spawn_side_enemy(const Survival::EnemyInfo& enemy_info, const WaveConfig& config) {
+static bool can_spawn_side_enemy(const Survival::EnemyInfo& enemy_info, const WaveConfig& config) {
     if (config.max_side_enemies <= 0 || config.side_enemy_spawn_chance <= 0) {
         return false;
     }
@@ -298,7 +299,7 @@ bool can_spawn_side_enemy(const Survival::EnemyInfo& enemy_info, const WaveConfi
     return enemy_info.side_enemies_alive < config.max_side_enemies;
 }
 
-bool can_spawn_boss(const Survival::EnemyInfo& enemy_info, const WaveConfig& config) {
+static bool can_spawn_boss(const Survival::EnemyInfo& enemy_info, const WaveConfig& config) {
     if (config.max_bosses <= 0 || config.boss_spawn_chance <= 0) {
         return false;
     }
@@ -310,7 +311,7 @@ bool can_spawn_boss(const Survival::EnemyInfo& enemy_info, const WaveConfig& con
     return enemy_info.bosses_alive < config.max_bosses;
 }
 
-void spawn_enemy_from_pool(const std::vector<EnemyType>& enemy_pool) {
+static void spawn_enemy_from_pool(const std::vector<EnemyType>& enemy_pool) {
     if (!enemy_pool.empty()) {
         int random_index = Survival::get_random_int(0, enemy_pool.size() - 1);
         EnemyType enemy_type = enemy_pool[random_index];
@@ -537,8 +538,8 @@ void Survival::on_frame(fmilliseconds& dt) {
 
 static std::mutex g_mutex;
 static constexpr uintptr_t danteSpawnAddr = 0x7B2130;
-static uintptr_t some_struct = 0x00E552CC;
-static uintptr_t fptr_update_actor_list   = 0x008DC540;
+static constexpr uintptr_t some_struct = 0x00E552CC;
+static constexpr uintptr_t fptr_update_actor_list   = 0x008DC540;
 void EnemySpawn::spawn_dante() {
     std::lock_guard<std::mutex> lk(g_mutex);
     if (!devil4_sdk::get_local_player()) return;
@@ -570,7 +571,7 @@ enum class PowerupEffectID {
     SMALL_CYAN           = 9,
 };
 
-PowerUpSystem::PowerUpDefinition createDantePowerUp() {
+static PowerUpSystem::PowerUpDefinition createDantePowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "dante",                  // name
         "DNTE",                   // displayName
@@ -608,7 +609,7 @@ PowerUpSystem::PowerUpDefinition createDantePowerUp() {
     );
 }
 
-PowerUpSystem::PowerUpDefinition createHealthRestorePowerUp() {
+static PowerUpSystem::PowerUpDefinition createHealthRestorePowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "health_restore",         // name
         "HP",                     // displayName
@@ -632,7 +633,7 @@ PowerUpSystem::PowerUpDefinition createHealthRestorePowerUp() {
     );
 }
 
-PowerUpSystem::PowerUpDefinition createDevilTriggerPowerUp() {
+static PowerUpSystem::PowerUpDefinition createDevilTriggerPowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "devil_trigger",            // name
         "DT",                       // displayName
@@ -656,7 +657,7 @@ PowerUpSystem::PowerUpDefinition createDevilTriggerPowerUp() {
     );
 }
 
-PowerUpSystem::PowerUpDefinition createQuicksilverPowerUp() {
+static PowerUpSystem::PowerUpDefinition createQuicksilverPowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "quicksilver",              // name
         "QS",                       // displayName
@@ -680,7 +681,7 @@ PowerUpSystem::PowerUpDefinition createQuicksilverPowerUp() {
     );
 }
 
-PowerUpSystem::PowerUpDefinition createHolyWaterPowerUp() {
+static PowerUpSystem::PowerUpDefinition createHolyWaterPowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "holywater",                // name
         "HW",                       // displayName
@@ -701,7 +702,7 @@ PowerUpSystem::PowerUpDefinition createHolyWaterPowerUp() {
     );
 }
 
-PowerUpSystem::PowerUpDefinition createPlayerSmolPowerUp() {
+static PowerUpSystem::PowerUpDefinition createPlayerSmolPowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "player_smol",             // name
         "SMOL",                    // displayName
@@ -709,7 +710,7 @@ PowerUpSystem::PowerUpDefinition createPlayerSmolPowerUp() {
         (int)PowerupEffectID::YELLOW_SPIN,
         15.0f,                     // duration
         200.0f,                    // radius
-        15.0f,                     // effectDuration
+        30.0f,                     // effectDuration
         []() {                     // onActivate
             uPlayer* player = devil4_sdk::get_local_player();
             if (player) {
@@ -728,7 +729,7 @@ PowerUpSystem::PowerUpDefinition createPlayerSmolPowerUp() {
     );
 }
 
-PowerUpSystem::PowerUpDefinition createPlayerHeadPowerUp() {
+static PowerUpSystem::PowerUpDefinition createPlayerHeadPowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "player_head",             // name
         "HEAD",                    // displayName
@@ -736,7 +737,7 @@ PowerUpSystem::PowerUpDefinition createPlayerHeadPowerUp() {
         (int)PowerupEffectID::YELLOW_SPIN,
         15.0f,                     // duration
         200.0f,                    // radius
-        15.0f,                     // effectDuration
+        30.0f,                     // effectDuration
         []() {                     // onActivate
             BigHeadMode::big_head_mode_nero = !BigHeadMode::big_head_mode_nero;
             BigHeadMode::big_head_mode_dante = !BigHeadMode::big_head_mode_dante;
@@ -751,7 +752,7 @@ PowerUpSystem::PowerUpDefinition createPlayerHeadPowerUp() {
     );
 }
 
-PowerUpSystem::PowerUpDefinition createEnemySizePowerUp() {
+static PowerUpSystem::PowerUpDefinition createEnemySizePowerUp() {
     return PowerUpSystem::createPowerUpDef(
         "enemy_size",              // name
         "ENMY_SZ",                 // displayName
@@ -759,7 +760,7 @@ PowerUpSystem::PowerUpDefinition createEnemySizePowerUp() {
         (int)PowerupEffectID::PURPLE_SPIN,
         15.0f,                     // duration
         200.0f,                    // radius
-        15.0f,                     // effectDuration
+        30.0f,                     // effectDuration
         []() {                     // onActivate
             uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
             while (enemy) {
@@ -775,13 +776,32 @@ PowerUpSystem::PowerUpDefinition createEnemySizePowerUp() {
             uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
             while (enemy) {
                 enemy->scale = {1.0f, 1.0f, 1.0f}; // not all enemies are 1.0 but its too annoying enemies staying random sizes after powerup expires
-                enemy        = enemy->nextEnemy;
+                enemy = enemy->nextEnemy;
             }
         }
     );
 }
 
-void setupBasicPowerUpSystem() {
+static PowerUpSystem::PowerUpDefinition createStaminaPowerUp() {
+    return PowerUpSystem::createPowerUpDef(
+        "stamina",               // name
+        "STAMINA",               // displayName
+        ImColor(255, 255, 0, 0), // color (Yellow)
+        (int)PowerupEffectID::YELLOW_SPIN,
+        15.0f,  // duration
+        200.0f, // radius
+        30.0f,  // effectDuration
+        []() {  // onActivate
+            DarkSoulsStamina::meme_stamina_enabled = true;
+        },
+        [](float dt) { // onUpdate
+        },
+        []() { // onExpire
+            DarkSoulsStamina::meme_stamina_enabled = false;
+        });
+}
+
+static void setupBasicPowerUpSystem() {
     // basicPowerUpSystem->setSpawnInterval(0.0f);
     basicPowerUpSystem->setMaxPowerUps(5);
     PowerUpSystem::SpawnArea customArea = {
@@ -793,7 +813,7 @@ void setupBasicPowerUpSystem() {
     basicPowerUpSystem->setSpawnArea(customArea);
 }
 
-void setupMemePowerUpSystem() {
+static void setupMemePowerUpSystem() {
     // memePowerUpSystem->setSpawnInterval(15.0f);
     memePowerUpSystem->setMaxPowerUps(5);
     uPlayer* player = devil4_sdk::get_local_player();
@@ -938,6 +958,7 @@ void Survival::meme_toggle(bool toggle) {
         memePowerUpSystem->registerPowerUp(createPlayerSmolPowerUp());
         memePowerUpSystem->registerPowerUp(createPlayerHeadPowerUp());
         memePowerUpSystem->registerPowerUp(createEnemySizePowerUp());
+        memePowerUpSystem->registerPowerUp(createStaminaPowerUp());
     } else {
         if (Survival::meme_timer) {
             Survival::meme_timer->stop();
@@ -945,6 +966,7 @@ void Survival::meme_toggle(bool toggle) {
         memePowerUpSystem->removePowerUp("player_smol");
         memePowerUpSystem->removePowerUp("player_head");
         memePowerUpSystem->removePowerUp("enemy_size");
+        memePowerUpSystem->removePowerUp("stamina");
     }
 }
 

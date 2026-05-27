@@ -10,6 +10,7 @@ float DarkSoulsStamina::stamina_max = 1000.0f;
 float DarkSoulsStamina::stamina_delay_max = 1.0f;
 
 bool DarkSoulsStamina::stamina_enabled = false;
+bool DarkSoulsStamina::meme_stamina_enabled = false;
 float DarkSoulsStamina::stamina_delay_current = 0.0f;
 float DarkSoulsStamina::stamina = stamina_max;
 
@@ -25,8 +26,11 @@ static float xmm0backup  = 0.0f;
 naked void detour1() { // gamepad inputs (keyboard is handled by detour2 in InputStates.cpp)
     _asm {
             cmp byte ptr [DarkSoulsStamina::stamina_enabled], 1
+            je newcode
+            cmp byte ptr [DarkSoulsStamina::meme_stamina_enabled], 1
             jne originalcode
 
+        newcode:
             movss [xmm0backup], xmm0
             xorps xmm0, xmm0
             comiss xmm0, [DarkSoulsStamina::stamina]
@@ -43,33 +47,66 @@ naked void detour1() { // gamepad inputs (keyboard is handled by detour2 in Inpu
 float DarkSoulsStamina::get_move_cost(int moveID) {
     uPlayer* player = devil4_sdk::get_local_player();
     if (!player) return 0.0f;
-    if ((moveID >= 0x000 && moveID <= 0x003) || // movement
-        (moveID == 0x004 && !player->collisionSettings->mLand) || // falling anim
-        (moveID >= 0x96 && moveID <= 0xAF)  ||  // taunts
-        moveID == 0x006 || // stop from run
-        moveID == 0x00D || // stop from sprint
-        moveID == 0x200 || // reb idle
-        moveID == 0x300 || // gilg idle
-        moveID == 0x400 || // luci idle
-        moveID == 0x500) {
-        return 0.0f;
+
+    if (player->controllerID == 0) {// dante
+        if ((moveID >= 0x000 && moveID <= 0x003) || // movement
+            (moveID == 0x004 && !player->collisionSettings->mLand) || // falling anim // landing anim still drains stamina :(
+            (moveID >= 0x96 && moveID <= 0xAF)  ||  // taunts
+            moveID == 0x006 || // stop from run
+            moveID == 0x00D || // stop from sprint
+            moveID == 0x200 || // reb idle
+            moveID == 0x300 || // gilg idle
+            moveID == 0x400 || // luci idle
+            moveID == 0x500) {
+            return 0.0f;
+        }
+
+        if (moveID > 0x3 && moveID < 0x200)
+            return 100.0f; // movement
+        if (moveID > 0x200 && moveID < 0x300)
+            return 100.0f; // reb + nero
+        if (moveID > 0x300 && moveID < 0x400)
+            return 150.0f; // gilg
+        if (moveID > 0x400 && moveID < 0x500)
+            return 75.0f; // luci
+        if ((moveID > 0x528 && moveID < 0x600) || moveID == 0x51E) // air e+i
+            return 10.0f; // e+i
+        if (moveID > 0x61E && moveID < 0x700)
+            return 25.0f; // coyote
+        if (moveID > 0x715 && moveID < 0x800)
+            return 50.0f; // pandora
+        if (moveID > 0x900 && moveID < 0xA00)
+            return 100.0f; // yamato
     }
-    if (moveID > 0x3 && moveID < 0x200)
-        return 100.0f; // movement
-    if (moveID > 0x200 && moveID < 0x300)
-        return 50.0f; // reb
-    if (moveID > 0x300 && moveID < 0x400)
-        return 100.0f; // gilg
-    if (moveID > 0x400 && moveID < 0x500)
-        return 75.0f; // luci
-    if ((moveID > 0x528 && moveID < 0x600) || moveID == 0x51E) // air e+i
-        return 10.0f; // e+i
-    if (moveID > 0x61E && moveID < 0x700)
-        return 25.0f; // coyote
-    if (moveID > 0x715 && moveID < 0x800)
-        return 50.0f; // pandora
-    if (moveID > 0x900 && moveID < 0xA00)
-        return 100.0f; // yamato
+    else { // nero
+        if ((moveID >= 0x000 && moveID <= 0x003) || // movement
+            (moveID == 0x004 && !player->collisionSettings->mLand) || // falling anim // landing anim still drains stamina :(
+            (moveID >= 0x96 && moveID <= 0xA1)  ||  // taunts
+            moveID == 0x006 || // stop from run
+            moveID == 0x00D || // stop from sprint
+            moveID == 0x300) { // rq idle
+            //(moveID >= 0x502 && moveID <= 0x51E) || // lock on idle, strafing, shooting
+            //moveID == 0x528) { // ground basic shot
+            return 0.0f;
+        }
+        if (moveID == 0x525) // air basic shot
+            return 20.0f;
+        if (moveID == 0x52B || // ground charge shot
+            moveID == 0x52E) // air charge shot
+            return 150.0f;
+        if (moveID == 0x100 || // ground snatch
+            moveID == 0x10F) // air snatch
+            return 100.0f;
+        if (moveID == 0x11E || // ground buster
+            moveID == 0x123) // air buster
+            return 150.0f;
+        if (moveID > 0x3 && moveID < 0x200)
+            return 100.0f; // movement
+        if (moveID > 0x300 && moveID < 0x400)
+            return 100.0f; // rq
+        // if (moveID > 0x500 && moveID < 0x600)
+            // return 0.0f; // blue rose
+    }
     return 0.0f;
 }
 
@@ -86,11 +123,13 @@ void DarkSoulsStamina::stamina_regen(float seconds) {
 }
 
 void DarkSoulsStamina::check_for_stamina_use(uPlayer* player) {
-    if (player->movePart == 1) {
     int moveID    = player->moveIDBest;
     float moveFrame = player->animFrame;
-    static int prevMoveID    = -1;
-    static float prevAnimFrame = -1;
+    if ((player->movePart == 1) ||
+        (player->movePart == 2 && (moveID == 0x20B || moveID == 0x31)) ||  // dante+nero high time have move part 2 :harold:
+        (player->movePart == 0 && (moveID == 0x525 || moveID == 0x52E || moveID == 0x52B))) { // nero air normal shot + charge shots have move part 0 :harold:
+        static int prevMoveID    = -1;
+        static float prevAnimFrame = -1;
         bool moveReset = (moveID != prevMoveID) || (moveID == prevMoveID && moveFrame < prevAnimFrame);
         if (moveReset) {
             float cost = get_move_cost(moveID);
@@ -100,13 +139,13 @@ void DarkSoulsStamina::check_for_stamina_use(uPlayer* player) {
                 stamina_delay_current       = 0.0f;
             }
         }
-    prevMoveID    = moveID;
-    prevAnimFrame = moveFrame;
+        prevMoveID    = moveID;
+        prevAnimFrame = moveFrame;
     }
 }
 
 void DarkSoulsStamina::on_frame(fmilliseconds& dt) {
-    if (!stamina_enabled) return;
+    if (!stamina_enabled && !meme_stamina_enabled) return;
     uPlayer* player = devil4_sdk::get_local_player();
     if (!player) return;
     sRender* sRen = devil4_sdk::get_sRender();
