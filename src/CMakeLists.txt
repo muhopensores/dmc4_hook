@@ -336,8 +336,8 @@ set(MODS_SRC
   mods/MultiCharFixes.cpp
   mods/PhotoMode.hpp
   mods/PhotoMode.cpp
-  mods/KeyboardMacro.hpp
-  mods/KeyboardMacro.cpp
+  mods/Macro.hpp
+  mods/Macro.cpp
   mods/Coop.hpp
   mods/Coop.cpp
   mods/StageCallback.hpp

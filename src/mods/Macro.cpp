@@ -1,4 +1,4 @@
-#include "KeyboardMacro.hpp"
+#include "Macro.hpp"
 #include "CharSwitcher.hpp"
 #include "EnemyStepDisplay.hpp"
 #include "EnemyTracker.hpp"
@@ -72,7 +72,7 @@ enum MacroActionIndex : uint32_t {
     MACRO_ACTION_RESET_CAMERA,
     MACRO_ACTION_COUNT,
 };
-static_assert(MACRO_ACTION_COUNT == KEYBOARD_MACRO_ACTION_SLOT_COUNT);
+static_assert(MACRO_ACTION_COUNT == MACRO_ACTION_SLOT_COUNT);
 constexpr uint32_t MACRO_ACTION_BIT(uint32_t action_index) {
     return 1u << action_index;
 }
@@ -312,7 +312,7 @@ struct EnemyHitSample {
 
 bool raw_key_down[256] = {};
 uint32_t capture_hotkey_target = 0;
-KeyboardMacro* keyboard_macro_instance = nullptr;
+Macro* macro_instance = nullptr;
 std::chrono::steady_clock::time_point playback_timer_started_at{};
 double playback_elapsed_seconds = 0.0;
 bool playback_timer_active = false;
@@ -347,7 +347,7 @@ void refresh_playback_file_choices();
 bool parse_integer(const std::string& token, uint32_t& value);
 bool parse_hotkey_binds(const std::string& expression, std::vector<uint32_t>& binds);
 uint32_t sanitize_macro_button(uint32_t button, uint32_t fallback);
-std::string clip_display_label(const KeyboardMacroClip& clip, uint32_t clip_index);
+std::string clip_display_label(const MacroClip& clip, uint32_t clip_index);
 void clear_playback_timer();
 void set_playback_status(const std::string& message);
 bool is_boss_enemy_id(int enemy_id);
@@ -551,14 +551,14 @@ bool gamepad_hotkey_prefix_active(uint32_t buttons, const std::chrono::steady_cl
 uint32_t configured_gamepad_hotkey_button_mask() {
     uint32_t buttons = 0;
     for (uint32_t index = 0; index < GAMEPAD_HOTKEY_COUNT; ++index) {
-        buttons |= KeyboardMacro::gamepad_hotkey_buttons[index];
+        buttons |= Macro::gamepad_hotkey_buttons[index];
     }
     return buttons;
 }
 
 uint32_t clip_gamepad_hotkey_button_mask() {
     uint32_t buttons = 0;
-    for (const auto& clip : KeyboardMacro::playback_clips) {
+    for (const auto& clip : Macro::playback_clips) {
         buttons |= clip.gamepad_hotkey_button;
     }
     return buttons;
@@ -575,19 +575,19 @@ uint32_t gamepad_hotkey_actions_from_rolling_chord(
     uint32_t action_buttons = pressed_buttons & ~PAD_BUTTON_SELECT;
 
     uint32_t actions = 0;
-    if ((action_buttons & KeyboardMacro::gamepad_hotkey_buttons[0]) != 0) {
+    if ((action_buttons & Macro::gamepad_hotkey_buttons[0]) != 0) {
         actions |= GAMEPAD_HOTKEY_ACTION_PLAY;
     }
-    if ((action_buttons & KeyboardMacro::gamepad_hotkey_buttons[1]) != 0) {
+    if ((action_buttons & Macro::gamepad_hotkey_buttons[1]) != 0) {
         actions |= GAMEPAD_HOTKEY_ACTION_STOP;
     }
-    if ((action_buttons & KeyboardMacro::gamepad_hotkey_buttons[2]) != 0) {
+    if ((action_buttons & Macro::gamepad_hotkey_buttons[2]) != 0) {
         actions |= GAMEPAD_HOTKEY_ACTION_CAPTURE_SNAPSHOT;
     }
-    if ((action_buttons & KeyboardMacro::gamepad_hotkey_buttons[3]) != 0) {
+    if ((action_buttons & Macro::gamepad_hotkey_buttons[3]) != 0) {
         actions |= GAMEPAD_HOTKEY_ACTION_LOAD_SNAPSHOT;
     }
-    if ((action_buttons & KeyboardMacro::gamepad_hotkey_buttons[4]) != 0) {
+    if ((action_buttons & Macro::gamepad_hotkey_buttons[4]) != 0) {
         actions |= GAMEPAD_HOTKEY_ACTION_LOAD_SNAPSHOT_PLAY;
     }
     return actions;
@@ -607,19 +607,19 @@ uint32_t gamepad_hotkey_buttons_from_rolling_chord(
 uint32_t gamepad_hotkey_buttons_from_actions(uint32_t actions) {
     uint32_t buttons = 0;
     if ((actions & GAMEPAD_HOTKEY_ACTION_PLAY) != 0) {
-        buttons |= KeyboardMacro::gamepad_hotkey_buttons[0];
+        buttons |= Macro::gamepad_hotkey_buttons[0];
     }
     if ((actions & GAMEPAD_HOTKEY_ACTION_STOP) != 0) {
-        buttons |= KeyboardMacro::gamepad_hotkey_buttons[1];
+        buttons |= Macro::gamepad_hotkey_buttons[1];
     }
     if ((actions & GAMEPAD_HOTKEY_ACTION_CAPTURE_SNAPSHOT) != 0) {
-        buttons |= KeyboardMacro::gamepad_hotkey_buttons[2];
+        buttons |= Macro::gamepad_hotkey_buttons[2];
     }
     if ((actions & GAMEPAD_HOTKEY_ACTION_LOAD_SNAPSHOT) != 0) {
-        buttons |= KeyboardMacro::gamepad_hotkey_buttons[3];
+        buttons |= Macro::gamepad_hotkey_buttons[3];
     }
     if ((actions & GAMEPAD_HOTKEY_ACTION_LOAD_SNAPSHOT_PLAY) != 0) {
-        buttons |= KeyboardMacro::gamepad_hotkey_buttons[4];
+        buttons |= Macro::gamepad_hotkey_buttons[4];
     }
     return buttons;
 }
@@ -802,7 +802,7 @@ bool clear_peripheral_output(cPeripheral* peripheral, uint32_t player_index) {
     }
 
     __try {
-        const uint32_t release_buttons = player_index < 4 ? KeyboardMacro::last_buttons[player_index] : 0;
+        const uint32_t release_buttons = player_index < 4 ? Macro::last_buttons[player_index] : 0;
         peripheral->mPadBtnOn = 0;
         peripheral->mPadBtnTrg = 0;
         peripheral->mPadBtnRel = release_buttons;
@@ -900,7 +900,7 @@ bool clear_last_peripheral_output() {
     if (last_player_index < 4) {
         last_change_target_action[last_player_index] = false;
     }
-    std::fill_n(KeyboardMacro::last_buttons, 4, 0);
+    std::fill_n(Macro::last_buttons, 4, 0);
     return true;
 }
 
@@ -913,13 +913,13 @@ bool is_nero_player_safe(uPlayer* player) {
     }
 }
 
-void suspend_keyboard_macro_runtime_for_transition() {
+void suspend_macro_runtime_for_transition() {
     clear_last_peripheral_output();
-    KeyboardMacro::playback_enabled = false;
-    KeyboardMacro::clear_input_frames = 0;
-    KeyboardMacro::input_active = false;
+    Macro::playback_enabled = false;
+    Macro::clear_input_frames = 0;
+    Macro::input_active = false;
     clear_macro_exceed_runtime_state();
-    KeyboardMacro::macro_change_target_latch_ticks = 0;
+    Macro::macro_change_target_latch_ticks = 0;
     position_snapshot_load_ticks = 0;
     snapshot_play_pending_ticks = 0;
     snapshot_play_pending_clip_index = INVALID_CLIP_INDEX;
@@ -932,16 +932,16 @@ void suspend_keyboard_macro_runtime_for_transition() {
 }
 
 void update_macro_exceed_active_from_latch() {
-    KeyboardMacro::macro_exceed_active = KeyboardMacro::macro_exceed_latch_ticks > 0;
+    Macro::macro_exceed_active = Macro::macro_exceed_latch_ticks > 0;
 }
 
 void queue_macro_exceed_request() {
-    KeyboardMacro::macro_exceed_latch_ticks = std::max(KeyboardMacro::macro_exceed_latch_ticks, MACRO_EXCEED_LATCH_TICKS);
+    Macro::macro_exceed_latch_ticks = std::max(Macro::macro_exceed_latch_ticks, MACRO_EXCEED_LATCH_TICKS);
     update_macro_exceed_active_from_latch();
 }
 
 void clear_macro_exceed_player_state(uPlayer* player) {
-    if (!KeyboardMacro::macro_exceed_player_state_written) {
+    if (!Macro::macro_exceed_player_state_written) {
         return;
     }
 
@@ -960,21 +960,21 @@ void clear_macro_exceed_player_state(uPlayer* player) {
         }
     }
 
-    KeyboardMacro::macro_exceed_player_state_written = false;
+    Macro::macro_exceed_player_state_written = false;
 }
 
 void clear_macro_exceed_runtime_state(uPlayer* player) {
-    KeyboardMacro::macro_exceed_active = false;
-    KeyboardMacro::macro_exceed_latch_ticks = 0;
+    Macro::macro_exceed_active = false;
+    Macro::macro_exceed_latch_ticks = 0;
     clear_macro_exceed_player_state(player);
 }
 
 void queue_macro_change_target_request() {
-    KeyboardMacro::macro_change_target_latch_ticks =
-        std::max(KeyboardMacro::macro_change_target_latch_ticks, MACRO_CHANGE_TARGET_LATCH_TICKS);
+    Macro::macro_change_target_latch_ticks =
+        std::max(Macro::macro_change_target_latch_ticks, MACRO_CHANGE_TARGET_LATCH_TICKS);
 }
 
-void ensure_keyboard_macro_hotkeys(std::vector<std::unique_ptr<utility::Hotkey>>& hotkeys) {
+void ensure_keyboard_hotkeys(std::vector<std::unique_ptr<utility::Hotkey>>& hotkeys) {
     if (hotkeys.empty()) {
         utility::create_keyboard_hotkey(hotkeys, { DEFAULT_RELOAD_VKEY }, __("Reload Macro File"), "keyboard_macro_reload_file_key");
     }
@@ -999,7 +999,7 @@ void ensure_keyboard_macro_hotkeys(std::vector<std::unique_ptr<utility::Hotkey>>
     }
 }
 
-void ensure_keyboard_macro_hotkey_binds(std::vector<std::unique_ptr<utility::Hotkey>>& hotkeys) {
+void ensure_keyboard_hotkey_binds(std::vector<std::unique_ptr<utility::Hotkey>>& hotkeys) {
     if (hotkeys.size() < 6) {
         return;
     }
@@ -1030,11 +1030,11 @@ const char* get_playback_slot_label(uint32_t slot) {
 std::string get_selected_playback_path_text() {
     refresh_playback_file_choices();
 
-    if (KeyboardMacro::playback_slot != PLAYBACK_SLOT_CUSTOM && KeyboardMacro::playback_slot < playback_file_choices.size()) {
-        return playback_file_choices[KeyboardMacro::playback_slot];
+    if (Macro::playback_slot != PLAYBACK_SLOT_CUSTOM && Macro::playback_slot < playback_file_choices.size()) {
+        return playback_file_choices[Macro::playback_slot];
     }
 
-    return trim_copy(KeyboardMacro::playback_path);
+    return trim_copy(Macro::playback_path);
 }
 
 std::string lowercase_copy(std::string value) {
@@ -1070,13 +1070,14 @@ bool is_macro_text_filename(const std::string& filename) {
         return false;
     }
 
+    // Keep keyboard_macro*.txt as a legacy file name so older tester setups still appear in the Macro file picker.
     return lowered.rfind("macro", 0) == 0 || lowered.rfind("keyboard_macro", 0) == 0;
 }
 
 void refresh_playback_file_choices() {
     std::string previous_selection{};
-    if (KeyboardMacro::playback_slot != PLAYBACK_SLOT_CUSTOM && KeyboardMacro::playback_slot < playback_file_choices.size()) {
-        previous_selection = playback_file_choices[KeyboardMacro::playback_slot];
+    if (Macro::playback_slot != PLAYBACK_SLOT_CUSTOM && Macro::playback_slot < playback_file_choices.size()) {
+        previous_selection = playback_file_choices[Macro::playback_slot];
     }
 
     std::vector<std::string> discovered{};
@@ -1121,7 +1122,7 @@ void refresh_playback_file_choices() {
 
     playback_file_choices = std::move(discovered);
 
-    if (KeyboardMacro::playback_slot == PLAYBACK_SLOT_CUSTOM) {
+    if (Macro::playback_slot == PLAYBACK_SLOT_CUSTOM) {
         return;
     }
 
@@ -1129,14 +1130,14 @@ void refresh_playback_file_choices() {
         const auto previous_lower = lowercase_copy(previous_selection);
         for (uint32_t index = 0; index < playback_file_choices.size(); ++index) {
             if (lowercase_copy(playback_file_choices[index]) == previous_lower) {
-                KeyboardMacro::playback_slot = index;
+                Macro::playback_slot = index;
                 return;
             }
         }
     }
 
-    if (KeyboardMacro::playback_slot >= playback_file_choices.size()) {
-        KeyboardMacro::playback_slot = PLAYBACK_SLOT_MAIN;
+    if (Macro::playback_slot >= playback_file_choices.size()) {
+        Macro::playback_slot = PLAYBACK_SLOT_MAIN;
     }
 }
 
@@ -1743,9 +1744,9 @@ const MacroActionChoice* macro_action_choices(size_t& count) {
 
 const char* character_role_label(uint32_t role) {
     switch (role) {
-    case KEYBOARD_MACRO_CHARACTER_NERO:
+    case MACRO_CHARACTER_NERO:
         return "Nero";
-    case KEYBOARD_MACRO_CHARACTER_DANTE:
+    case MACRO_CHARACTER_DANTE:
         return "Dante";
     default:
         return "Unknown";
@@ -1755,11 +1756,11 @@ const char* character_role_label(uint32_t role) {
 bool parse_character_role(const std::string& expression, uint32_t& role) {
     const auto normalized = normalize_button_token(expression);
     if (normalized == "NERO" || normalized == "N") {
-        role = KEYBOARD_MACRO_CHARACTER_NERO;
+        role = MACRO_CHARACTER_NERO;
         return true;
     }
     if (normalized == "DANTE" || normalized == "D") {
-        role = KEYBOARD_MACRO_CHARACTER_DANTE;
+        role = MACRO_CHARACTER_DANTE;
         return true;
     }
     return false;
@@ -1768,29 +1769,29 @@ bool parse_character_role(const std::string& expression, uint32_t& role) {
 uint32_t current_player_character_role() {
     auto* player = get_local_player_safe();
     if (!player) {
-        return KEYBOARD_MACRO_CHARACTER_INVALID;
+        return MACRO_CHARACTER_INVALID;
     }
 
     __try {
         if (player->controllerID == 1) {
-            return KEYBOARD_MACRO_CHARACTER_NERO;
+            return MACRO_CHARACTER_NERO;
         }
         if (player->controllerID == 0) {
-            return KEYBOARD_MACRO_CHARACTER_DANTE;
+            return MACRO_CHARACTER_DANTE;
         }
     }
     __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
     }
-    return KEYBOARD_MACRO_CHARACTER_INVALID;
+    return MACRO_CHARACTER_INVALID;
 }
 
-bool clip_matches_current_character(const KeyboardMacroClip& clip) {
+bool clip_matches_current_character(const MacroClip& clip) {
     const uint32_t current_role = current_player_character_role();
-    return current_role != KEYBOARD_MACRO_CHARACTER_INVALID && clip.character_role == current_role;
+    return current_role != MACRO_CHARACTER_INVALID && clip.character_role == current_role;
 }
 
 bool macro_action_valid_for_role(uint32_t action_index, uint32_t role) {
-    if (action_index >= MACRO_ACTION_COUNT || role >= KEYBOARD_MACRO_CHARACTER_ROLE_COUNT) {
+    if (action_index >= MACRO_ACTION_COUNT || role >= MACRO_CHARACTER_ROLE_COUNT) {
         return false;
     }
 
@@ -1800,21 +1801,21 @@ bool macro_action_valid_for_role(uint32_t action_index, uint32_t role) {
         return false;
     }
 
-    if (role == KEYBOARD_MACRO_CHARACTER_NERO) {
+    if (role == MACRO_CHARACTER_NERO) {
         return actions[action_index].nero_config_key != nullptr;
     }
-    if (role == KEYBOARD_MACRO_CHARACTER_DANTE) {
+    if (role == MACRO_CHARACTER_DANTE) {
         return actions[action_index].dante_config_key != nullptr;
     }
     return false;
 }
 
 uint32_t default_action_button_for_role(uint32_t action_index, uint32_t role) {
-    if (action_index >= MACRO_ACTION_COUNT || role >= KEYBOARD_MACRO_CHARACTER_ROLE_COUNT) {
+    if (action_index >= MACRO_ACTION_COUNT || role >= MACRO_CHARACTER_ROLE_COUNT) {
         return 0;
     }
 
-    if (role == KEYBOARD_MACRO_CHARACTER_NERO) {
+    if (role == MACRO_CHARACTER_NERO) {
         return DEFAULT_NERO_ACTION_BUTTON_MAP[action_index];
     }
     return DEFAULT_DANTE_ACTION_BUTTON_MAP[action_index];
@@ -1824,12 +1825,12 @@ uint32_t action_button_for_role(uint32_t action_index, uint32_t role) {
     if (!macro_action_valid_for_role(action_index, role)) {
         return 0;
     }
-    return KeyboardMacro::action_button_map[role][action_index];
+    return Macro::action_button_map[role][action_index];
 }
 
 uint32_t resolve_action_buttons(uint32_t actions, uint32_t role) {
     uint32_t buttons = 0;
-    if (role >= KEYBOARD_MACRO_CHARACTER_ROLE_COUNT) {
+    if (role >= MACRO_CHARACTER_ROLE_COUNT) {
         return buttons;
     }
 
@@ -2244,7 +2245,7 @@ void apply_camera_direction_to_input(ParsedMacroInput& input, int x, int y) {
     }
 }
 
-KeyboardMacroFrame frame_from_parts(
+MacroFrame frame_from_parts(
     uint32_t buttons,
     uint32_t global_buttons,
     uint32_t actions,
@@ -2266,7 +2267,7 @@ KeyboardMacroFrame frame_from_parts(
     bool screen_resume,
     bool screen_pause_toggle,
     bool change_target) {
-    KeyboardMacroFrame frame{};
+    MacroFrame frame{};
     frame.buttons = buttons;
     frame.global_buttons = global_buttons;
     frame.actions = actions;
@@ -2289,7 +2290,7 @@ KeyboardMacroFrame frame_from_parts(
     return frame;
 }
 
-KeyboardMacroFrame frame_from_input(const ParsedMacroInput& input) {
+MacroFrame frame_from_input(const ParsedMacroInput& input) {
     return frame_from_parts(
         input.buttons,
         input.global_buttons,
@@ -2314,28 +2315,28 @@ KeyboardMacroFrame frame_from_input(const ParsedMacroInput& input) {
         input.change_target);
 }
 
-KeyboardMacroFrame frame_from_forced_style(int style) {
-    KeyboardMacroFrame frame{};
+MacroFrame frame_from_forced_style(int style) {
+    MacroFrame frame{};
     frame.force_style = true;
     frame.forced_style = style;
     return frame;
 }
 
-KeyboardMacroFrame frame_from_character_switch() {
-    KeyboardMacroFrame frame{};
+MacroFrame frame_from_character_switch() {
+    MacroFrame frame{};
     frame.character_switch = true;
     return frame;
 }
 
-KeyboardMacroFrame frame_from_one_hit_kill(bool toggle, bool value) {
-    KeyboardMacroFrame frame{};
+MacroFrame frame_from_one_hit_kill(bool toggle, bool value) {
+    MacroFrame frame{};
     frame.one_hit_kill_toggle = toggle;
     frame.one_hit_kill_set = !toggle;
     frame.one_hit_kill_value = value;
     return frame;
 }
 
-KeyboardMacroFrame frame_from_held(const HeldMacroInput& input) {
+MacroFrame frame_from_held(const HeldMacroInput& input) {
     return frame_from_parts(
         input.buttons,
         input.global_buttons,
@@ -2360,7 +2361,7 @@ KeyboardMacroFrame frame_from_held(const HeldMacroInput& input) {
         input.change_target);
 }
 
-KeyboardMacroFrame frame_from_wait_condition(
+MacroFrame frame_from_wait_condition(
     const HeldMacroInput& input,
     uint32_t condition,
     int arg,
@@ -2464,7 +2465,7 @@ bool parse_macro_input(std::string expression, ParsedMacroInput& input, uint32_t
     return found_token;
 }
 
-bool parse_playback_command(std::string expression, KeyboardMacroFrame& frame, uint32_t character_role) {
+bool parse_playback_command(std::string expression, MacroFrame& frame, uint32_t character_role) {
     ParsedMacroInput input{};
     if (!parse_macro_input(std::move(expression), input, character_role)) {
         return false;
@@ -2558,7 +2559,7 @@ void release_input(HeldMacroInput& held, const ParsedMacroInput& input) {
     }
 }
 
-bool append_playback_frames(std::vector<KeyboardMacroFrame>& frames, uint32_t frame_count, const KeyboardMacroFrame& frame) {
+bool append_playback_frames(std::vector<MacroFrame>& frames, uint32_t frame_count, const MacroFrame& frame) {
     if (frame_count == 0 || frames.size() + frame_count > MAX_PLAYBACK_FRAMES) {
         return false;
     }
@@ -2568,7 +2569,7 @@ bool append_playback_frames(std::vector<KeyboardMacroFrame>& frames, uint32_t fr
 }
 
 bool append_tap_macro(
-    std::vector<KeyboardMacroFrame>& frames,
+    std::vector<MacroFrame>& frames,
     HeldMacroInput& held,
     const std::string& input_expression,
     uint32_t ticks,
@@ -2586,7 +2587,7 @@ bool append_tap_macro(
 }
 
 bool append_direction_button_macro(
-    std::vector<KeyboardMacroFrame>& frames,
+    std::vector<MacroFrame>& frames,
     HeldMacroInput& held,
     const std::string& direction_expression,
     const std::string& input_expression,
@@ -2608,7 +2609,7 @@ bool append_direction_button_macro(
 }
 
 bool append_back_forward_macro(
-    std::vector<KeyboardMacroFrame>& frames,
+    std::vector<MacroFrame>& frames,
     HeldMacroInput& held,
     const std::string& back_expression,
     const std::string& forward_expression,
@@ -2798,7 +2799,7 @@ void apply_button_press_values(cPeripheral* peripheral, uint32_t buttons) {
 }
 
 void apply_global_pad_route_for_macro(
-    const KeyboardMacroFrame& frame,
+    const MacroFrame& frame,
     uint32_t routed_buttons,
     uint32_t previous_routed_buttons,
     uint32_t player_index) {
@@ -2847,7 +2848,7 @@ void apply_global_pad_route_for_macro(
 }
 
 void set_playback_status(const std::string& message) {
-    strncpy_s(KeyboardMacro::playback_status, message.c_str(), _TRUNCATE);
+    strncpy_s(Macro::playback_status, message.c_str(), _TRUNCATE);
 }
 
 uEnemy_Old* select_hit_confirm_enemy(uPlayer* player) {
@@ -2936,7 +2937,7 @@ bool is_hit_confirmed_delta(const EnemyHitSample& previous, const EnemyHitSample
     return displacement_delta > 0;
 }
 
-bool evaluate_hit_confirmed_wait_condition(const KeyboardMacroFrame& frame) {
+bool evaluate_hit_confirmed_wait_condition(const MacroFrame& frame) {
     auto* player = get_local_player_safe();
     if (!player) {
         reset_hit_confirmed_wait_state();
@@ -3222,10 +3223,10 @@ void clear_player_input_snapshot(uPlayer* player) {
     player->tiltForward = false;
     player->tiltBack = false;
     player->tiltBackForward = false;
-    std::fill_n(KeyboardMacro::last_buttons, 4, 0);
+    std::fill_n(Macro::last_buttons, 4, 0);
     clear_macro_exceed_runtime_state(player);
-    KeyboardMacro::clear_input_frames = 2;
-    KeyboardMacro::input_active = KeyboardMacro::clear_input_frames > 0 || (KeyboardMacro::mod_enabled && KeyboardMacro::playback_enabled);
+    Macro::clear_input_frames = 2;
+    Macro::input_active = Macro::clear_input_frames > 0 || (Macro::mod_enabled && Macro::playback_enabled);
 }
 
 void apply_player_resource_snapshot(uPlayer* player) {
@@ -3341,7 +3342,7 @@ bool capture_position_snapshot() {
     }
     __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
         position_snapshot.valid = false;
-        strncpy_s(KeyboardMacro::playback_status, "Battle Snapshot capture failed: gameplay objects changed while capturing.", _TRUNCATE);
+        strncpy_s(Macro::playback_status, "Battle Snapshot capture failed: gameplay objects changed while capturing.", _TRUNCATE);
         return false;
     }
 }
@@ -3491,7 +3492,7 @@ bool apply_position_snapshot(bool update_status, bool include_resources) {
     __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
         position_snapshot_load_ticks = 0;
         if (update_status) {
-            strncpy_s(KeyboardMacro::playback_status, "Battle Snapshot load failed: gameplay objects changed while loading.", _TRUNCATE);
+            strncpy_s(Macro::playback_status, "Battle Snapshot load failed: gameplay objects changed while loading.", _TRUNCATE);
         }
         return false;
     }
@@ -3510,44 +3511,44 @@ bool load_position_snapshot() {
 bool set_screen_pause(bool paused) {
     auto* work_rate = get_work_rate_safe();
     if (!work_rate) {
-        ++KeyboardMacro::screen_pause_fail_count;
+        ++Macro::screen_pause_fail_count;
         return false;
     }
 
     __try {
         if (paused) {
-            if (!KeyboardMacro::screen_pause_active) {
-                KeyboardMacro::screen_pause_restore_speed = work_rate->global_speed;
-                KeyboardMacro::screen_pause_restore_valid = true;
+            if (!Macro::screen_pause_active) {
+                Macro::screen_pause_restore_speed = work_rate->global_speed;
+                Macro::screen_pause_restore_valid = true;
             }
             work_rate->global_speed = 0.0f;
             WorkRate::hotkey_paused = true;
-            KeyboardMacro::screen_pause_active = true;
-            ++KeyboardMacro::screen_pause_request_count;
+            Macro::screen_pause_active = true;
+            ++Macro::screen_pause_request_count;
             return true;
         }
 
-        if (KeyboardMacro::screen_pause_restore_valid) {
-            work_rate->global_speed = KeyboardMacro::screen_pause_restore_speed;
+        if (Macro::screen_pause_restore_valid) {
+            work_rate->global_speed = Macro::screen_pause_restore_speed;
         }
         else {
             work_rate->global_speed = 1.0f;
         }
         WorkRate::hotkey_paused = false;
-        KeyboardMacro::screen_pause_active = false;
-        KeyboardMacro::screen_pause_restore_valid = false;
-        ++KeyboardMacro::screen_pause_request_count;
+        Macro::screen_pause_active = false;
+        Macro::screen_pause_restore_valid = false;
+        ++Macro::screen_pause_request_count;
         return true;
     }
     __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        ++KeyboardMacro::screen_pause_fail_count;
+        ++Macro::screen_pause_fail_count;
         return false;
     }
 }
 
-void apply_screen_pause_action(const KeyboardMacroFrame& frame) {
+void apply_screen_pause_action(const MacroFrame& frame) {
     if (frame.screen_pause_toggle) {
-        set_screen_pause(!KeyboardMacro::screen_pause_active);
+        set_screen_pause(!Macro::screen_pause_active);
     }
     if (frame.screen_pause) {
         set_screen_pause(true);
@@ -3557,7 +3558,7 @@ void apply_screen_pause_action(const KeyboardMacroFrame& frame) {
     }
 }
 
-void apply_force_style_action(const KeyboardMacroFrame& frame) {
+void apply_force_style_action(const MacroFrame& frame) {
     if (!frame.force_style || frame.forced_style < 0 || frame.forced_style > 4) {
         return;
     }
@@ -3575,7 +3576,7 @@ void apply_force_style_action(const KeyboardMacroFrame& frame) {
     }
 }
 
-void apply_character_switch_action(const KeyboardMacroFrame& frame) {
+void apply_character_switch_action(const MacroFrame& frame) {
     if (!frame.character_switch) {
         return;
     }
@@ -3589,7 +3590,7 @@ void apply_character_switch_action(const KeyboardMacroFrame& frame) {
     }
 }
 
-void apply_one_hit_kill_action(const KeyboardMacroFrame& frame) {
+void apply_one_hit_kill_action(const MacroFrame& frame) {
     if (frame.one_hit_kill_toggle) {
         HealthSettings::one_hit_kill = !HealthSettings::one_hit_kill;
         set_playback_status(HealthSettings::one_hit_kill ? "One Hit Kill enabled." : "One Hit Kill disabled.");
@@ -3661,7 +3662,7 @@ bool has_valid_anim_frame_max(float value) {
     return std::isfinite(value) && value > 0.0f && value < 100000.0f;
 }
 
-bool wait_for_next_bool_edge(KeyboardMacroFrame& frame, bool current_active) {
+bool wait_for_next_bool_edge(MacroFrame& frame, bool current_active) {
     if (!frame.wait_initial_valid) {
         frame.wait_initial_u32 = current_active ? 0u : 1u;
         frame.wait_initial_valid = true;
@@ -3674,7 +3675,7 @@ bool wait_for_next_bool_edge(KeyboardMacroFrame& frame, bool current_active) {
     return frame.wait_initial_u32 != 0;
 }
 
-bool evaluate_wait_condition(KeyboardMacroFrame& frame) {
+bool evaluate_wait_condition(MacroFrame& frame) {
     if (frame.wait_condition == MACRO_WAIT_NONE) {
         return true;
     }
@@ -3728,7 +3729,7 @@ bool evaluate_wait_condition(KeyboardMacroFrame& frame) {
     }
 }
 
-bool should_advance_wait_frame(KeyboardMacroFrame& frame) {
+bool should_advance_wait_frame(MacroFrame& frame) {
     if (frame.wait_condition == MACRO_WAIT_NONE) {
         return true;
     }
@@ -3938,31 +3939,31 @@ bool capture_pending_hotkey(uint32_t vkey) {
     }
 
     const auto binds = collect_hotkey_binds(vkey);
-    if (keyboard_macro_instance && capture_hotkey_target >= 1 && capture_hotkey_target <= keyboard_macro_instance->m_hotkeys.size()) {
-        auto& hotkey = keyboard_macro_instance->m_hotkeys[capture_hotkey_target - 1];
+    if (macro_instance && capture_hotkey_target >= 1 && capture_hotkey_target <= macro_instance->m_hotkeys.size()) {
+        auto& hotkey = macro_instance->m_hotkeys[capture_hotkey_target - 1];
         hotkey->m_binds = binds;
         hotkey->m_setting = false;
 
         if (capture_hotkey_target == 1) {
-            KeyboardMacro::reload_vkey = binds.back();
+            Macro::reload_vkey = binds.back();
         }
         else if (capture_hotkey_target == 2) {
-            KeyboardMacro::restart_vkey = binds.back();
+            Macro::restart_vkey = binds.back();
         }
         else if (capture_hotkey_target == 3) {
-            KeyboardMacro::stop_vkey = binds.back();
+            Macro::stop_vkey = binds.back();
         }
         else if (capture_hotkey_target == 4) {
-            KeyboardMacro::capture_snapshot_vkey = binds.back();
+            Macro::capture_snapshot_vkey = binds.back();
         }
         else if (capture_hotkey_target == 5) {
-            KeyboardMacro::load_snapshot_vkey = binds.back();
+            Macro::load_snapshot_vkey = binds.back();
         }
         else if (capture_hotkey_target == 6) {
-            KeyboardMacro::load_snapshot_play_vkey = binds.back();
+            Macro::load_snapshot_play_vkey = binds.back();
         }
 
-        update_config_hotkey_vkeys(keyboard_macro_instance->m_hotkeys);
+        update_config_hotkey_vkeys(macro_instance->m_hotkeys);
 
         const auto key_label = hotkey_binds_label(binds);
         char message[128]{};
@@ -3977,7 +3978,7 @@ bool capture_pending_hotkey(uint32_t vkey) {
     return true;
 }
 
-std::string clip_display_label(const KeyboardMacroClip& clip, uint32_t clip_index) {
+std::string clip_display_label(const MacroClip& clip, uint32_t clip_index) {
     std::ostringstream stream{};
     stream << (clip_index + 1) << ". ";
     if (!clip.name.empty()) {
@@ -3993,7 +3994,7 @@ std::string clip_display_label(const KeyboardMacroClip& clip, uint32_t clip_inde
     if (clip.gamepad_hotkey_button != 0) {
         stream << " [Back/Select + " << gamepad_hotkey_button_label(clip.gamepad_hotkey_button) << "]";
     }
-    if (clip.character_role != KEYBOARD_MACRO_CHARACTER_INVALID) {
+    if (clip.character_role != MACRO_CHARACTER_INVALID) {
         stream << " [" << character_role_label(clip.character_role) << "]";
     }
 
@@ -4025,22 +4026,22 @@ void update_config_hotkey_vkeys(const std::vector<std::unique_ptr<utility::Hotke
     }
 
     if (!hotkeys[0]->m_binds.empty()) {
-        KeyboardMacro::reload_vkey = hotkeys[0]->m_binds.back();
+        Macro::reload_vkey = hotkeys[0]->m_binds.back();
     }
     if (!hotkeys[1]->m_binds.empty()) {
-        KeyboardMacro::restart_vkey = hotkeys[1]->m_binds.back();
+        Macro::restart_vkey = hotkeys[1]->m_binds.back();
     }
     if (!hotkeys[2]->m_binds.empty()) {
-        KeyboardMacro::stop_vkey = hotkeys[2]->m_binds.back();
+        Macro::stop_vkey = hotkeys[2]->m_binds.back();
     }
     if (!hotkeys[3]->m_binds.empty()) {
-        KeyboardMacro::capture_snapshot_vkey = hotkeys[3]->m_binds.back();
+        Macro::capture_snapshot_vkey = hotkeys[3]->m_binds.back();
     }
     if (!hotkeys[4]->m_binds.empty()) {
-        KeyboardMacro::load_snapshot_vkey = hotkeys[4]->m_binds.back();
+        Macro::load_snapshot_vkey = hotkeys[4]->m_binds.back();
     }
     if (!hotkeys[5]->m_binds.empty()) {
-        KeyboardMacro::load_snapshot_play_vkey = hotkeys[5]->m_binds.back();
+        Macro::load_snapshot_play_vkey = hotkeys[5]->m_binds.back();
     }
 }
 
@@ -4077,20 +4078,20 @@ bool hotkey_is_default_or_unbound(const utility::Hotkey& hotkey, uint32_t defaul
 
 }
 
-bool KeyboardMacro::mod_enabled = false;
-bool KeyboardMacro::playback_enabled = false;
-bool KeyboardMacro::input_active = false;
-uint32_t KeyboardMacro::last_buttons[4] = {};
-uint32_t KeyboardMacro::playback_frame_index = 0;
-uint32_t KeyboardMacro::clear_input_frames = 0;
-uint32_t KeyboardMacro::reload_vkey = DEFAULT_RELOAD_VKEY;
-uint32_t KeyboardMacro::restart_vkey = DEFAULT_RESTART_VKEY;
-uint32_t KeyboardMacro::stop_vkey = DEFAULT_STOP_VKEY;
-uint32_t KeyboardMacro::capture_snapshot_vkey = DEFAULT_CAPTURE_SNAPSHOT_VKEY;
-uint32_t KeyboardMacro::load_snapshot_vkey = DEFAULT_LOAD_SNAPSHOT_VKEY;
-uint32_t KeyboardMacro::load_snapshot_play_vkey = DEFAULT_LOAD_SNAPSHOT_PLAY_VKEY;
-uint32_t KeyboardMacro::snapshot_play_delay_ticks = POSITION_SNAPSHOT_LOAD_TICKS;
-uint32_t KeyboardMacro::action_button_map[KEYBOARD_MACRO_CHARACTER_ROLE_COUNT][MACRO_ACTION_COUNT] = {
+bool Macro::mod_enabled = false;
+bool Macro::playback_enabled = false;
+bool Macro::input_active = false;
+uint32_t Macro::last_buttons[4] = {};
+uint32_t Macro::playback_frame_index = 0;
+uint32_t Macro::clear_input_frames = 0;
+uint32_t Macro::reload_vkey = DEFAULT_RELOAD_VKEY;
+uint32_t Macro::restart_vkey = DEFAULT_RESTART_VKEY;
+uint32_t Macro::stop_vkey = DEFAULT_STOP_VKEY;
+uint32_t Macro::capture_snapshot_vkey = DEFAULT_CAPTURE_SNAPSHOT_VKEY;
+uint32_t Macro::load_snapshot_vkey = DEFAULT_LOAD_SNAPSHOT_VKEY;
+uint32_t Macro::load_snapshot_play_vkey = DEFAULT_LOAD_SNAPSHOT_PLAY_VKEY;
+uint32_t Macro::snapshot_play_delay_ticks = POSITION_SNAPSHOT_LOAD_TICKS;
+uint32_t Macro::action_button_map[MACRO_CHARACTER_ROLE_COUNT][MACRO_ACTION_COUNT] = {
     {
         PAD_BUTTON_Y,
         PAD_BUTTON_X,
@@ -4122,42 +4123,42 @@ uint32_t KeyboardMacro::action_button_map[KEYBOARD_MACRO_CHARACTER_ROLE_COUNT][M
         PAD_BUTTON_R3,
     },
 };
-uint32_t KeyboardMacro::gamepad_hotkey_buttons[GAMEPAD_HOTKEY_COUNT] = {
+uint32_t Macro::gamepad_hotkey_buttons[GAMEPAD_HOTKEY_COUNT] = {
     PAD_BUTTON_A,
     PAD_BUTTON_B,
     PAD_BUTTON_X,
     PAD_BUTTON_Y,
     PAD_BUTTON_R1,
 };
-bool KeyboardMacro::auto_reload_file = true;
-bool KeyboardMacro::stop_macro_on_game_pause = false;
-bool KeyboardMacro::gamepad_hotkeys_enabled = false;
-uint32_t KeyboardMacro::playback_slot = PLAYBACK_SLOT_MAIN;
-uint32_t KeyboardMacro::selected_clip_index = 0;
-uint32_t KeyboardMacro::loaded_clip_index = INVALID_CLIP_INDEX;
-uint32_t KeyboardMacro::playback_character_role = KEYBOARD_MACRO_CHARACTER_INVALID;
-bool KeyboardMacro::macro_exceed_active = false;
-uint32_t KeyboardMacro::macro_exceed_latch_ticks = 0;
-bool KeyboardMacro::macro_exceed_player_state_written = false;
-uint32_t KeyboardMacro::macro_change_target_latch_ticks = 0;
-bool KeyboardMacro::screen_pause_active = false;
-bool KeyboardMacro::screen_pause_restore_valid = false;
-float KeyboardMacro::screen_pause_restore_speed = 1.0f;
-uint32_t KeyboardMacro::screen_pause_request_count = 0;
-uint32_t KeyboardMacro::screen_pause_fail_count = 0;
-char KeyboardMacro::playback_path[260] = "macro.txt";
-char KeyboardMacro::loaded_playback_path[260] = "";
-char KeyboardMacro::playback_status[256] = "No Macro file loaded.";
-std::vector<KeyboardMacroClip> KeyboardMacro::playback_clips{};
-std::vector<KeyboardMacroFrame> KeyboardMacro::playback_frames{};
+bool Macro::auto_reload_file = true;
+bool Macro::stop_macro_on_game_pause = false;
+bool Macro::gamepad_hotkeys_enabled = false;
+uint32_t Macro::playback_slot = PLAYBACK_SLOT_MAIN;
+uint32_t Macro::selected_clip_index = 0;
+uint32_t Macro::loaded_clip_index = INVALID_CLIP_INDEX;
+uint32_t Macro::playback_character_role = MACRO_CHARACTER_INVALID;
+bool Macro::macro_exceed_active = false;
+uint32_t Macro::macro_exceed_latch_ticks = 0;
+bool Macro::macro_exceed_player_state_written = false;
+uint32_t Macro::macro_change_target_latch_ticks = 0;
+bool Macro::screen_pause_active = false;
+bool Macro::screen_pause_restore_valid = false;
+float Macro::screen_pause_restore_speed = 1.0f;
+uint32_t Macro::screen_pause_request_count = 0;
+uint32_t Macro::screen_pause_fail_count = 0;
+char Macro::playback_path[260] = "macro.txt";
+char Macro::loaded_playback_path[260] = "";
+char Macro::playback_status[256] = "No Macro file loaded.";
+std::vector<MacroClip> Macro::playback_clips{};
+std::vector<MacroFrame> Macro::playback_frames{};
 
-std::optional<std::string> KeyboardMacro::on_initialize() {
-    keyboard_macro_instance = this;
-    ensure_keyboard_macro_hotkeys(m_hotkeys);
+std::optional<std::string> Macro::on_initialize() {
+    macro_instance = this;
+    ensure_keyboard_hotkeys(m_hotkeys);
     return Mod::on_initialize();
 }
 
-void __stdcall KeyboardMacro::on_pad_update_tick(cPeripheral* peripheral) {
+void __stdcall Macro::on_pad_update_tick(cPeripheral* peripheral) {
     if (macro_exceed_latch_ticks > 0) {
         --macro_exceed_latch_ticks;
         update_macro_exceed_active_from_latch();
@@ -4168,8 +4169,8 @@ void __stdcall KeyboardMacro::on_pad_update_tick(cPeripheral* peripheral) {
 
     tick_snapshot_play_delay();
 
-    if (keyboard_macro_instance) {
-        keyboard_macro_instance->check_hotkeys();
+    if (macro_instance) {
+        macro_instance->check_hotkeys();
     }
     else {
         poll_raw_keyboard(mod_enabled);
@@ -4178,7 +4179,7 @@ void __stdcall KeyboardMacro::on_pad_update_tick(cPeripheral* peripheral) {
     poll_gamepad_hotkeys(peripheral, mod_enabled);
 }
 
-void __stdcall KeyboardMacro::on_player_pad_update(cPeripheral* peripheral) {
+void __stdcall Macro::on_player_pad_update(cPeripheral* peripheral) {
     if (!peripheral || !input_active) {
         return;
     }
@@ -4193,7 +4194,7 @@ void __stdcall KeyboardMacro::on_player_pad_update(cPeripheral* peripheral) {
     write_test_input(peripheral, player_index);
 }
 
-uint32_t __stdcall KeyboardMacro::on_player_input_tick(uPlayer* player, void* input_state, uint32_t inputs) {
+uint32_t __stdcall Macro::on_player_input_tick(uPlayer* player, void* input_state, uint32_t inputs) {
     (void)input_state;
     if (!player || !input_state || !macro_exceed_active) {
         return inputs;
@@ -4214,7 +4215,7 @@ uint32_t __stdcall KeyboardMacro::on_player_input_tick(uPlayer* player, void* in
     return inputs;
 }
 
-void __stdcall KeyboardMacro::on_player_input_press_written(uPlayer* player) {
+void __stdcall Macro::on_player_input_press_written(uPlayer* player) {
     if (!player || macro_change_target_latch_ticks == 0) {
         return;
     }
@@ -4231,9 +4232,9 @@ void __stdcall KeyboardMacro::on_player_input_press_written(uPlayer* player) {
     }
 }
 
-void KeyboardMacro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
+void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
     uint32_t buttons = 0;
-    KeyboardMacroFrame macro_frame{};
+    MacroFrame macro_frame{};
     const bool was_clearing_input = clear_input_frames > 0;
 
     if (was_clearing_input) {
@@ -4321,7 +4322,7 @@ void KeyboardMacro::write_test_input(cPeripheral* peripheral, uint32_t player_in
     update_input_active();
 }
 
-void KeyboardMacro::reset_input_state(bool preserve_macro_exceed_request) {
+void Macro::reset_input_state(bool preserve_macro_exceed_request) {
     const uint32_t preserved_exceed_latch_ticks = macro_exceed_latch_ticks;
     std::fill_n(last_buttons, 4, 0);
     std::fill_n(last_change_target_action, 4, false);
@@ -4347,27 +4348,27 @@ void KeyboardMacro::reset_input_state(bool preserve_macro_exceed_request) {
 }
 
 static bool load_clip_into_playback_state(uint32_t clip_index) {
-    if (clip_index >= KeyboardMacro::playback_clips.size()) {
-        KeyboardMacro::playback_frames.clear();
-        KeyboardMacro::loaded_clip_index = INVALID_CLIP_INDEX;
-        KeyboardMacro::playback_character_role = KEYBOARD_MACRO_CHARACTER_INVALID;
+    if (clip_index >= Macro::playback_clips.size()) {
+        Macro::playback_frames.clear();
+        Macro::loaded_clip_index = INVALID_CLIP_INDEX;
+        Macro::playback_character_role = MACRO_CHARACTER_INVALID;
         return false;
     }
 
-    const auto& clip = KeyboardMacro::playback_clips[clip_index];
-    KeyboardMacro::playback_frames = clip.frames;
-    KeyboardMacro::playback_frame_index = 0;
-    KeyboardMacro::loaded_clip_index = clip_index;
-    KeyboardMacro::playback_character_role = clip.character_role;
-    return !KeyboardMacro::playback_frames.empty();
+    const auto& clip = Macro::playback_clips[clip_index];
+    Macro::playback_frames = clip.frames;
+    Macro::playback_frame_index = 0;
+    Macro::loaded_clip_index = clip_index;
+    Macro::playback_character_role = clip.character_role;
+    return !Macro::playback_frames.empty();
 }
 
-bool KeyboardMacro::load_playback_file() {
+bool Macro::load_playback_file() {
     playback_frames.clear();
     playback_clips.clear();
     playback_frame_index = 0;
     loaded_clip_index = INVALID_CLIP_INDEX;
-    playback_character_role = KEYBOARD_MACRO_CHARACTER_INVALID;
+    playback_character_role = MACRO_CHARACTER_INVALID;
     loaded_playback_path[0] = '\0';
 
     const std::string file_path = resolve_playback_path();
@@ -4381,7 +4382,7 @@ bool KeyboardMacro::load_playback_file() {
         playback_frames.clear();
         playback_clips.clear();
         loaded_clip_index = INVALID_CLIP_INDEX;
-        playback_character_role = KEYBOARD_MACRO_CHARACTER_INVALID;
+        playback_character_role = MACRO_CHARACTER_INVALID;
         loaded_playback_path[0] = '\0';
     };
 
@@ -4393,7 +4394,7 @@ bool KeyboardMacro::load_playback_file() {
         return false;
     };
 
-    auto ensure_clip_name = [](KeyboardMacroClip& clip, uint32_t clip_index) {
+    auto ensure_clip_name = [](MacroClip& clip, uint32_t clip_index) {
         if (clip.name.empty()) {
             clip.name = "Clip " + std::to_string(clip_index + 1);
         }
@@ -4455,7 +4456,7 @@ bool KeyboardMacro::load_playback_file() {
                 return fail_with_message("Line %u: section header must include [Nero] or [Dante].", line_number);
             }
 
-            uint32_t character_role = KEYBOARD_MACRO_CHARACTER_INVALID;
+            uint32_t character_role = MACRO_CHARACTER_INVALID;
             uint32_t gamepad_hotkey_button = 0;
             if (!parse_character_role(second_tag, character_role)) {
                 if (!parse_gamepad_hotkey_button_expression(second_tag, gamepad_hotkey_button)) {
@@ -4512,7 +4513,7 @@ bool KeyboardMacro::load_playback_file() {
                 button_expression = "NONE";
             }
 
-            KeyboardMacroFrame frame{};
+            MacroFrame frame{};
             if (!parse_playback_command(button_expression, frame, current_clip.character_role)) {
                 return fail_with_message("Line %u: invalid input token.", line_number);
             }
@@ -4797,11 +4798,11 @@ bool KeyboardMacro::load_playback_file() {
     return !playback_frames.empty();
 }
 
-std::string KeyboardMacro::resolve_playback_path() {
+std::string Macro::resolve_playback_path() {
     return resolve_playback_path_text(get_selected_playback_path_text().c_str());
 }
 
-bool KeyboardMacro::reload_playback_file() {
+bool Macro::reload_playback_file() {
     clear_snapshot_play_delay();
     const bool was_playing = playback_enabled;
 
@@ -4829,7 +4830,7 @@ bool KeyboardMacro::reload_playback_file() {
     return true;
 }
 
-void KeyboardMacro::restart_playback_clip(uint32_t clip_index) {
+void Macro::restart_playback_clip(uint32_t clip_index) {
     clear_snapshot_play_delay();
 
     if (screen_pause_active) {
@@ -4867,7 +4868,7 @@ void KeyboardMacro::restart_playback_clip(uint32_t clip_index) {
     set_playback_status(message);
 }
 
-void KeyboardMacro::restart_playback() {
+void Macro::restart_playback() {
     if (!load_playback_file()) {
         playback_enabled = false;
         update_input_active();
@@ -4877,12 +4878,12 @@ void KeyboardMacro::restart_playback() {
     restart_playback_clip(selected_clip_index);
 }
 
-void KeyboardMacro::clear_snapshot_play_delay() {
+void Macro::clear_snapshot_play_delay() {
     snapshot_play_pending_ticks = 0;
     snapshot_play_pending_clip_index = INVALID_CLIP_INDEX;
 }
 
-bool KeyboardMacro::load_snapshot_then_play() {
+bool Macro::load_snapshot_then_play() {
     if (!load_playback_file()) {
         playback_enabled = false;
         clear_snapshot_play_delay();
@@ -4923,7 +4924,7 @@ bool KeyboardMacro::load_snapshot_then_play() {
     return true;
 }
 
-void KeyboardMacro::tick_snapshot_play_delay() {
+void Macro::tick_snapshot_play_delay() {
     if (snapshot_play_pending_clip_index == INVALID_CLIP_INDEX) {
         return;
     }
@@ -4946,7 +4947,7 @@ void KeyboardMacro::tick_snapshot_play_delay() {
     DISPLAY_MESSAGE("Snapshot loaded; Macro playback started");
 }
 
-void KeyboardMacro::stop_all_input() {
+void Macro::stop_all_input() {
     clear_snapshot_play_delay();
 
     if (screen_pause_active) {
@@ -4966,7 +4967,7 @@ void KeyboardMacro::stop_all_input() {
     set_playback_status("Playback stopped; clearing input.");
 }
 
-void KeyboardMacro::check_auto_reload_file() {
+void Macro::check_auto_reload_file() {
     if (!mod_enabled || playback_enabled || snapshot_play_pending_clip_index != INVALID_CLIP_INDEX) {
         return;
     }
@@ -5002,7 +5003,7 @@ void KeyboardMacro::check_auto_reload_file() {
     }
 }
 
-void KeyboardMacro::check_pause_interrupt() {
+void Macro::check_pause_interrupt() {
     const bool game_paused = is_game_paused_safe();
 
     if (!mod_enabled || !stop_macro_on_game_pause) {
@@ -5018,11 +5019,11 @@ void KeyboardMacro::check_pause_interrupt() {
     last_game_pause_state = game_paused;
 }
 
-void KeyboardMacro::on_frame(fmilliseconds& dt) {
+void Macro::on_frame(fmilliseconds& dt) {
     (void)dt;
     check_auto_reload_file();
     if (mod_enabled && !macro_gameplay_ready()) {
-        suspend_keyboard_macro_runtime_for_transition();
+        suspend_macro_runtime_for_transition();
         poll_raw_keyboard(false);
         return;
     }
@@ -5045,15 +5046,15 @@ void KeyboardMacro::on_frame(fmilliseconds& dt) {
     }
 }
 
-void KeyboardMacro::update_input_active() {
+void Macro::update_input_active() {
     input_active = clear_input_frames > 0 || (mod_enabled && playback_enabled);
 }
 
-void KeyboardMacro::on_gui_frame(int display) {
+void Macro::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
-        keyboard_macro_instance = this;
-        ensure_keyboard_macro_hotkeys(m_hotkeys);
-        ensure_keyboard_macro_hotkey_binds(m_hotkeys);
+        macro_instance = this;
+        ensure_keyboard_hotkeys(m_hotkeys);
+        ensure_keyboard_hotkey_binds(m_hotkeys);
 
         ImGui::BeginGroup();
         if (ImGui::Checkbox(_("Macro"), &mod_enabled)) {
@@ -5204,7 +5205,7 @@ void KeyboardMacro::on_gui_frame(int display) {
                 const auto* actions = macro_action_choices(action_count);
                 size_t button_count = 0;
                 const auto* buttons = macro_button_choices(button_count);
-                for (uint32_t role = 0; role < KEYBOARD_MACRO_CHARACTER_ROLE_COUNT; ++role) {
+                for (uint32_t role = 0; role < MACRO_CHARACTER_ROLE_COUNT; ++role) {
                     ImGui::PushID((int)(1000 + role));
                     ImGui::Text("%s", character_role_label(role));
                     for (uint32_t action_index = 0; action_index < action_count && action_index < MACRO_ACTION_COUNT; ++action_index) {
@@ -5233,7 +5234,7 @@ void KeyboardMacro::on_gui_frame(int display) {
                     ImGui::PopID();
                 }
                 if (ImGui::Button(_("Reset Action Mapping"))) {
-                    for (uint32_t role = 0; role < KEYBOARD_MACRO_CHARACTER_ROLE_COUNT; ++role) {
+                    for (uint32_t role = 0; role < MACRO_CHARACTER_ROLE_COUNT; ++role) {
                         for (uint32_t action_index = 0; action_index < MACRO_ACTION_COUNT; ++action_index) {
                             action_button_map[role][action_index] = default_action_button_for_role(action_index, role);
                         }
@@ -5245,7 +5246,7 @@ void KeyboardMacro::on_gui_frame(int display) {
             }
 
             if (!macro_gameplay_ready()) {
-                suspend_keyboard_macro_runtime_for_transition();
+                suspend_macro_runtime_for_transition();
                 ImGui::TextWrapped(_("Macro status: %s"), playback_status);
                 ImGui::Unindent(lineIndent);
                 ImGui::EndGroup();
@@ -5311,7 +5312,7 @@ void KeyboardMacro::on_gui_frame(int display) {
     }
 }
 
-void KeyboardMacro::handle_hotkey_actions(
+void Macro::handle_hotkey_actions(
     bool reload_pressed,
     bool restart_pressed,
     bool stop_pressed,
@@ -5361,7 +5362,7 @@ void KeyboardMacro::handle_hotkey_actions(
     }
 }
 
-void KeyboardMacro::poll_raw_keyboard(bool trigger_actions) {
+void Macro::poll_raw_keyboard(bool trigger_actions) {
     bool reload_pressed = false;
     bool restart_pressed = false;
     bool stop_pressed = false;
@@ -5389,12 +5390,12 @@ void KeyboardMacro::poll_raw_keyboard(bool trigger_actions) {
         }
 
         if (trigger_actions) {
-            if (keyboard_macro_instance && keyboard_macro_instance->m_hotkeys.size() >= 6) {
-                auto& restart_hotkey = *keyboard_macro_instance->m_hotkeys[1];
-                auto& stop_hotkey = *keyboard_macro_instance->m_hotkeys[2];
-                auto& capture_snapshot_hotkey = *keyboard_macro_instance->m_hotkeys[3];
-                auto& load_snapshot_hotkey = *keyboard_macro_instance->m_hotkeys[4];
-                auto& load_snapshot_play_hotkey = *keyboard_macro_instance->m_hotkeys[5];
+            if (macro_instance && macro_instance->m_hotkeys.size() >= 6) {
+                auto& restart_hotkey = *macro_instance->m_hotkeys[1];
+                auto& stop_hotkey = *macro_instance->m_hotkeys[2];
+                auto& capture_snapshot_hotkey = *macro_instance->m_hotkeys[3];
+                auto& load_snapshot_hotkey = *macro_instance->m_hotkeys[4];
+                auto& load_snapshot_play_hotkey = *macro_instance->m_hotkeys[5];
 
                 restart_pressed |= hotkey_message_matches(restart_hotkey, vkey);
                 stop_pressed |= hotkey_message_matches(stop_hotkey, vkey);
@@ -5448,7 +5449,7 @@ void KeyboardMacro::poll_raw_keyboard(bool trigger_actions) {
     }
 }
 
-void KeyboardMacro::poll_gamepad_hotkeys(cPeripheral* peripheral, bool trigger_actions) {
+void Macro::poll_gamepad_hotkeys(cPeripheral* peripheral, bool trigger_actions) {
     if (!trigger_actions) {
         gamepad_hotkey_chord_state = 0;
         gamepad_hotkey_raw_buttons = 0;
@@ -5579,9 +5580,9 @@ void KeyboardMacro::poll_gamepad_hotkeys(cPeripheral* peripheral, bool trigger_a
         load_snapshot_play_pressed);
 }
 
-void KeyboardMacro::check_hotkeys() {
-    ensure_keyboard_macro_hotkeys(m_hotkeys);
-    ensure_keyboard_macro_hotkey_binds(m_hotkeys);
+void Macro::check_hotkeys() {
+    ensure_keyboard_hotkeys(m_hotkeys);
+    ensure_keyboard_hotkey_binds(m_hotkeys);
     if (!mod_enabled) {
         if (capture_hotkey_target != 0) {
             capture_hotkey_target = 0;
@@ -5599,13 +5600,13 @@ void KeyboardMacro::check_hotkeys() {
     poll_raw_keyboard(true);
 }
 
-void KeyboardMacro::on_update_input(utility::Input& input) {
+void Macro::on_update_input(utility::Input& input) {
     (void)input;
-    ensure_keyboard_macro_hotkeys(m_hotkeys);
-    ensure_keyboard_macro_hotkey_binds(m_hotkeys);
+    ensure_keyboard_hotkeys(m_hotkeys);
+    ensure_keyboard_hotkey_binds(m_hotkeys);
 }
 
-bool KeyboardMacro::on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param) {
+bool Macro::on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param) {
     (void)wnd;
 
     if (message != WM_KEYDOWN && message != WM_SYSKEYDOWN) {
@@ -5623,8 +5624,9 @@ bool KeyboardMacro::on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_
     return true;
 }
 
-void KeyboardMacro::on_config_load(const utility::Config& cfg) {
-    ensure_keyboard_macro_hotkeys(m_hotkeys);
+void Macro::on_config_load(const utility::Config& cfg) {
+    ensure_keyboard_hotkeys(m_hotkeys);
+    // Legacy keyboard_macro_* keys are intentionally preserved so existing tester configs keep working.
     mod_enabled = cfg.get<bool>("keyboard_macro_enabled").value_or(false);
     playback_enabled = false;
     clear_playback_timer();
@@ -5661,9 +5663,9 @@ void KeyboardMacro::on_config_load(const utility::Config& cfg) {
     last_game_pause_state = is_game_paused_safe();
     size_t action_count = 0;
     const auto* actions = macro_action_choices(action_count);
-    for (uint32_t role = 0; role < KEYBOARD_MACRO_CHARACTER_ROLE_COUNT; ++role) {
+    for (uint32_t role = 0; role < MACRO_CHARACTER_ROLE_COUNT; ++role) {
         for (uint32_t action_index = 0; action_index < action_count && action_index < MACRO_ACTION_COUNT; ++action_index) {
-            const char* config_key = role == KEYBOARD_MACRO_CHARACTER_NERO ?
+            const char* config_key = role == MACRO_CHARACTER_NERO ?
                 actions[action_index].nero_config_key : actions[action_index].dante_config_key;
             const uint32_t default_button = default_action_button_for_role(action_index, role);
             if (!config_key) {
@@ -5716,9 +5718,10 @@ void KeyboardMacro::on_config_load(const utility::Config& cfg) {
     update_input_active();
 }
 
-void KeyboardMacro::on_config_save(utility::Config& cfg) {
+void Macro::on_config_save(utility::Config& cfg) {
+    // Save legacy keyboard_macro_* keys for compatibility with earlier macro test builds.
     cfg.set<bool>("keyboard_macro_enabled", mod_enabled);
-    ensure_keyboard_macro_hotkeys(m_hotkeys);
+    ensure_keyboard_hotkeys(m_hotkeys);
     if (m_hotkeys.size() >= 6) {
         if (!m_hotkeys[0]->m_binds.empty()) {
             reload_vkey = m_hotkeys[0]->m_binds.back();
@@ -5757,9 +5760,9 @@ void KeyboardMacro::on_config_save(utility::Config& cfg) {
     cfg.set<uint32_t>("keyboard_macro_gamepad_load_snapshot_play_button", gamepad_hotkey_buttons[4]);
     size_t action_count = 0;
     const auto* actions = macro_action_choices(action_count);
-    for (uint32_t role = 0; role < KEYBOARD_MACRO_CHARACTER_ROLE_COUNT; ++role) {
+    for (uint32_t role = 0; role < MACRO_CHARACTER_ROLE_COUNT; ++role) {
         for (uint32_t action_index = 0; action_index < action_count && action_index < MACRO_ACTION_COUNT; ++action_index) {
-            const char* config_key = role == KEYBOARD_MACRO_CHARACTER_NERO ?
+            const char* config_key = role == MACRO_CHARACTER_NERO ?
                 actions[action_index].nero_config_key : actions[action_index].dante_config_key;
             if (config_key) {
                 cfg.set<uint32_t>(config_key, action_button_map[role][action_index]);

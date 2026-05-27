@@ -3,7 +3,7 @@
 #include "ForceLucifer.hpp" // used to stop rose despawning when leaving lucifer
 #include "FasterFastDrive.hpp" // for easy fast drive
 #include "DarkSoulsStamina.hpp" // stamina
-#include "KeyboardMacro.hpp"
+#include "Macro.hpp"
 #include "../sdk/Devil4.hpp"
 #include "sdk/uPlayer.hpp"
 #if 1
@@ -51,7 +51,7 @@ naked void detour() { // inputpressed // inputs are edx // player is in edi // A
         push edx
         push eax
         push edi
-        call KeyboardMacro::on_player_input_tick
+        call Macro::on_player_input_tick
         mov [esp], eax
         pop edx
         pop eax
@@ -136,7 +136,7 @@ naked void detour2() { // inputonpress // touchpad ecstasy // player is in edx /
         push eax
         push edx
         push edx
-        call KeyboardMacro::on_player_input_press_written
+        call Macro::on_player_input_press_written
         pop edx
         pop eax
         pop ecx

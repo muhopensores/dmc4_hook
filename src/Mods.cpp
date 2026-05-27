@@ -164,7 +164,7 @@
 #include "mods/JointDisplay.hpp"
 #include "mods/ForceInCombat.hpp"
 #include "mods/PhotoMode.hpp"
-#include "mods/KeyboardMacro.hpp"
+#include "mods/Macro.hpp"
 #include "mods/Coop.hpp"
 #include "mods/StageCallback.hpp"
 #include "mods/DarkSoulsStamina.hpp"
@@ -346,7 +346,7 @@ Mods::Mods() {
     ADD_MOD(JointDisplay);
     ADD_MOD(ForceInCombat);
     ADD_MOD(PhotoMode);
-    ADD_MOD(KeyboardMacro);
+    ADD_MOD(Macro);
     ADD_MOD(Coop);
     ADD_MOD(StageCallback);
     ADD_MOD(DarkSoulsStamina);

@@ -8,13 +8,13 @@
 
 class uPlayer;
 
-constexpr uint32_t KEYBOARD_MACRO_CHARACTER_ROLE_COUNT = 2;
-constexpr uint32_t KEYBOARD_MACRO_ACTION_SLOT_COUNT = 13;
-constexpr uint32_t KEYBOARD_MACRO_CHARACTER_NERO = 0;
-constexpr uint32_t KEYBOARD_MACRO_CHARACTER_DANTE = 1;
-constexpr uint32_t KEYBOARD_MACRO_CHARACTER_INVALID = 0xFFFFFFFFu;
+constexpr uint32_t MACRO_CHARACTER_ROLE_COUNT = 2;
+constexpr uint32_t MACRO_ACTION_SLOT_COUNT = 13;
+constexpr uint32_t MACRO_CHARACTER_NERO = 0;
+constexpr uint32_t MACRO_CHARACTER_DANTE = 1;
+constexpr uint32_t MACRO_CHARACTER_INVALID = 0xFFFFFFFFu;
 
-struct KeyboardMacroFrame {
+struct MacroFrame {
     uint32_t buttons = 0;
     uint32_t global_buttons = 0;
     uint32_t actions = 0;
@@ -47,19 +47,19 @@ struct KeyboardMacroFrame {
     uint32_t wait_elapsed_ticks = 0;
 };
 
-struct KeyboardMacroClip {
+struct MacroClip {
     std::string name{};
     std::vector<uint32_t> hotkey_binds{};
     uint32_t gamepad_hotkey_button = 0;
-    std::vector<KeyboardMacroFrame> frames{};
-    uint32_t character_role = KEYBOARD_MACRO_CHARACTER_INVALID;
+    std::vector<MacroFrame> frames{};
+    uint32_t character_role = MACRO_CHARACTER_INVALID;
     uint32_t header_line = 0;
 };
 
-class KeyboardMacro : public Mod {
+class Macro : public Mod {
 public:
-    KeyboardMacro() = default;
-    std::string get_mod_name() override { return "KeyboardMacro"; };
+    Macro() = default;
+    std::string get_mod_name() override { return "Macro"; };
 
     static bool mod_enabled;
     static bool playback_enabled;
@@ -74,7 +74,7 @@ public:
     static uint32_t load_snapshot_vkey;
     static uint32_t load_snapshot_play_vkey;
     static uint32_t snapshot_play_delay_ticks;
-    static uint32_t action_button_map[KEYBOARD_MACRO_CHARACTER_ROLE_COUNT][KEYBOARD_MACRO_ACTION_SLOT_COUNT];
+    static uint32_t action_button_map[MACRO_CHARACTER_ROLE_COUNT][MACRO_ACTION_SLOT_COUNT];
     static uint32_t gamepad_hotkey_buttons[5];
     static bool auto_reload_file;
     static bool stop_macro_on_game_pause;
@@ -95,8 +95,8 @@ public:
     static char playback_path[260];
     static char loaded_playback_path[260];
     static char playback_status[256];
-    static std::vector<KeyboardMacroClip> playback_clips;
-    static std::vector<KeyboardMacroFrame> playback_frames;
+    static std::vector<MacroClip> playback_clips;
+    static std::vector<MacroFrame> playback_frames;
 
     static void __stdcall on_pad_update_tick(cPeripheral* peripheral);
     static void __stdcall on_player_pad_update(cPeripheral* peripheral);

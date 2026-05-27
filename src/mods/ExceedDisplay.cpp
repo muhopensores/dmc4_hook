@@ -1,5 +1,5 @@
 #include "ExceedDisplay.hpp"
-#include "KeyboardMacro.hpp"
+#include "Macro.hpp"
 #include "..\sdk\Devil4.hpp"
 
 bool ExceedDisplay::mod_enabled = false;
@@ -19,15 +19,15 @@ static void record_exceed_press_time(uPlayer* player) {
 // get when exceed was pressed
 naked void detour1() {
     _asm {
-            cmp byte ptr [KeyboardMacro::macro_exceed_active], 1
+            cmp byte ptr [Macro::macro_exceed_active], 1
             jne recordcheck
             cmp dword ptr [esi+0x00001494], 1
             jne recordcheck
             mov dword ptr [esi+0x00001444], 0x3F800000
             mov byte ptr [esi+0x00001448], 1
-            mov byte ptr [KeyboardMacro::macro_exceed_player_state_written], 1
-            mov dword ptr [KeyboardMacro::macro_exceed_latch_ticks], 0
-            mov byte ptr [KeyboardMacro::macro_exceed_active], 0
+            mov byte ptr [Macro::macro_exceed_player_state_written], 1
+            mov dword ptr [Macro::macro_exceed_latch_ticks], 0
+            mov byte ptr [Macro::macro_exceed_active], 0
 
         recordcheck:
             cmp byte ptr [ExceedDisplay::mod_enabled], 1

@@ -1,5 +1,5 @@
 #include "ExceedLimiter.hpp"
-#include "KeyboardMacro.hpp"
+#include "Macro.hpp"
 
 #if 1
 bool      ExceedLimiter::mod_enabled   = false;
@@ -7,14 +7,14 @@ uintptr_t ExceedLimiter::jmp_ret1      = NULL;
 
 naked void detour1(void) { // 
     _asm {
-        cmp byte ptr [KeyboardMacro::macro_exceed_active], 1
+        cmp byte ptr [Macro::macro_exceed_active], 1
         jne modcheck
         cmp dword ptr [edi+0x1494], 1
         jne modcheck
         mov dword ptr [edi+0x1444], 0x3F800000
         mov byte ptr [edi+0x1448], 1
-        mov dword ptr [KeyboardMacro::macro_exceed_latch_ticks], 0
-        mov byte ptr [KeyboardMacro::macro_exceed_active], 0
+        mov dword ptr [Macro::macro_exceed_latch_ticks], 0
+        mov byte ptr [Macro::macro_exceed_active], 0
 
     modcheck:
         cmp byte ptr [ExceedLimiter::mod_enabled], 1
