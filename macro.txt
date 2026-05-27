@@ -1,0 +1,29 @@
+# Minimal DMC4 Macro example.
+# Put this file next to DevilMayCry4_DX9.exe or select it through Custom Macro File.
+
+[F10][A/CROSS][Nero] Jump test
+TAP JUMP
+WAIT 10
+TAP JUMP
+
+[F11][X/SQUARE][Nero] Nero Exceed test
+TAP EXCEED
+
+[Ctrl+1][Dante] Dante Split example
+HOLD LOCK_ON
+HOLD MOVE_LEFT
+HOLD MELEE
+WAIT 1
+RELEASE MELEE
+RELEASE MOVE_LEFT
+RELEASE LOCK_ON
+
+[Ctrl+1][LT/L2][Nero] controller scripting test
+HOLD R1
+HOLD Y
+WAIT 1
+RELEASE Y
+RELEASE R1
+
+[V][Nero] Nero Exceed tests
+TAP EXCEED

@@ -25,6 +25,7 @@ naked void detour1() {
             jne recordcheck
             mov dword ptr [esi+0x00001444], 0x3F800000
             mov byte ptr [esi+0x00001448], 1
+            mov byte ptr [KeyboardMacro::macro_exceed_player_state_written], 1
             mov dword ptr [KeyboardMacro::macro_exceed_latch_ticks], 0
             mov byte ptr [KeyboardMacro::macro_exceed_active], 0
 

@@ -705,9 +705,9 @@ namespace gui {
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("GuardTimer"_hash, DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("StylePoints"_hash, DISPLAY_SYSTEM_A); // needs its own line
-
+                pmods->on_draw_ui("StylePoints"_hash, DISPLAY_SYSTEM_A); // contains Tony on the left and Style Point Display on the right
                 pmods->on_draw_ui("ExceedDisplay"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui("AnimationOverlay"_hash, DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Camera"));
 

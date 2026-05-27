@@ -64,6 +64,8 @@ set(MODS_SRC
   mods/FlyingStats.cpp
   mods/FastRoundTrip.hpp
   mods/FastRoundTrip.cpp
+  mods/AnimationOverlay.hpp
+  mods/AnimationOverlay.cpp
   mods/EnemyStepDisplay.hpp
   mods/EnemyStepDisplay.cpp
   mods/GunStingerDistance.hpp

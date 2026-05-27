@@ -137,6 +137,7 @@
 #include "mods/AfterImage.hpp"
 #include "mods/TrainerPause.hpp"
 #include "mods/GunStingerDistance.hpp"
+#include "mods/AnimationOverlay.hpp"
 #include "mods/EnemyStepDisplay.hpp"
 #include "mods/MultiCharFixes.hpp"
 #include "mods/FastRoundTrip.hpp"
@@ -319,6 +320,7 @@ Mods::Mods() {
     ADD_MOD(AfterImage);
     ADD_MOD(TrainerPause);
     ADD_MOD(GunStingerDistance);
+    ADD_MOD(AnimationOverlay);
     ADD_MOD(EnemyStepDisplay);
     ADD_MOD(MultiCharFixes);
     ADD_MOD(FastRoundTrip);
