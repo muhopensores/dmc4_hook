@@ -3,7 +3,6 @@
 #include "ForceLucifer.hpp" // used to stop rose despawning when leaving lucifer
 #include "FasterFastDrive.hpp" // for easy fast drive
 #include "DarkSoulsStamina.hpp" // stamina
-#include "Macro.hpp"
 #include "../sdk/Devil4.hpp"
 #include "sdk/uPlayer.hpp"
 #if 1
@@ -45,17 +44,6 @@ naked void detour() { // inputpressed // inputs are edx // player is in edi // A
         pop eax
         jne code
 
-        push ecx
-        push eax
-        push edx
-        push edx
-        push eax
-        push edi
-        call Macro::on_player_input_tick
-        mov [esp], eax
-        pop edx
-        pop eax
-        pop ecx
         mov [InputStates::inputpressed], edx
 
         cmp byte ptr [ActiveBlock::mod_enabled], 1
@@ -133,15 +121,6 @@ naked void detour2() { // inputonpress // touchpad ecstasy // player is in edx /
         cmp eax,edx
         pop eax
         jne jmpret
-
-        push ecx
-        push eax
-        push edx
-        push edx
-        call Macro::on_player_input_press_written
-        pop edx
-        pop eax
-        pop ecx
 
         cmp dword ptr [edx+0x1494], 0 // dante controller id
         jne jmpret

@@ -35,9 +35,7 @@ constexpr uintptr_t S_DEVIL4_PAD_PTR = 0x00e559c4;
 constexpr uintptr_t S_KEYBOARD_PTR = 0x00e559c0;
 constexpr uintptr_t S_SAVE_PTR = 0x00e558c8;
 constexpr uintptr_t UPDATE_ANALOG_INFO_CALL = 0x007b0250;
-constexpr uintptr_t UPLAYER_EXCEED_INPUT_OFFSET = 0x1444;
 constexpr uintptr_t UPLAYER_CURRENT_STYLE_OFFSET = 0x14D98;
-constexpr uint32_t MACRO_EXCEED_LATCH_TICKS = 4;
 constexpr uint32_t MAX_ENEMY_CHAIN_SCAN = 128;
 constexpr uint32_t PAD_BUTTON_L1 = 0x0100;
 constexpr uint32_t PAD_BUTTON_R1 = 0x0200;
@@ -114,7 +112,6 @@ constexpr size_t PAD_PRESS_R2 = 11;
 constexpr size_t PAD_PRESS_SELECT = 12;
 constexpr size_t PAD_PRESS_L3 = 13;
 constexpr size_t PAD_PRESS_R3 = 14;
-constexpr uint32_t MACRO_CHANGE_TARGET_LATCH_TICKS = 4;
 constexpr uint32_t DEFAULT_RELOAD_VKEY = VK_F9;
 constexpr uint32_t DEFAULT_RESTART_VKEY = VK_F10;
 constexpr uint32_t DEFAULT_STOP_VKEY = VK_F11;
@@ -177,12 +174,9 @@ struct ParsedMacroInput {
     bool camera_down = false;
     bool camera_left = false;
     bool camera_right = false;
-    bool exceed = false;
-    bool l2_exceed_compat = false;
     bool screen_pause = false;
     bool screen_resume = false;
     bool screen_pause_toggle = false;
-    bool change_target = false;
 };
 
 struct HeldMacroInput {
@@ -201,12 +195,9 @@ struct HeldMacroInput {
     bool camera_down = false;
     bool camera_left = false;
     bool camera_right = false;
-    bool exceed = false;
-    bool l2_exceed_compat = false;
     bool screen_pause = false;
     bool screen_resume = false;
     bool screen_pause_toggle = false;
-    bool change_target = false;
 };
 
 struct BattleEnemySnapshot {
@@ -330,7 +321,6 @@ cPeripheral* last_player_peripheral = nullptr;
 uint32_t last_player_index = 0;
 uint32_t last_global_routed_buttons[4] = {};
 bool last_global_right_analog[4] = {};
-bool last_change_target_action[4] = {};
 std::string known_macro_file_time_path{};
 uint64_t known_macro_file_write_time = 0;
 uint64_t known_macro_file_size = 0;
@@ -358,7 +348,6 @@ uPlayer* get_local_player_safe();
 uCameraCtrl* get_local_camera_safe();
 sWorkRate* get_work_rate_safe();
 sDevil4Pad* get_global_pad_safe();
-void clear_macro_exceed_runtime_state(uPlayer* player = nullptr);
 
 uint64_t file_time_to_u64(const FILETIME& file_time) {
     ULARGE_INTEGER value{};
@@ -901,9 +890,6 @@ bool clear_last_peripheral_output() {
     }
 
     clear_global_macro_route(last_player_index);
-    if (last_player_index < 4) {
-        last_change_target_action[last_player_index] = false;
-    }
     std::fill_n(Macro::last_buttons, 4, 0);
     return true;
 }
@@ -922,8 +908,6 @@ void suspend_macro_runtime_for_transition() {
     Macro::playback_enabled = false;
     Macro::clear_input_frames = 0;
     Macro::input_active = false;
-    clear_macro_exceed_runtime_state();
-    Macro::macro_change_target_latch_ticks = 0;
     position_snapshot_load_ticks = 0;
     snapshot_play_pending_ticks = 0;
     snapshot_play_pending_clip_index = INVALID_CLIP_INDEX;
@@ -933,49 +917,6 @@ void suspend_macro_runtime_for_transition() {
         macro_suspended_for_transition = true;
         set_playback_status("Macro paused while gameplay is unavailable.");
     }
-}
-
-void update_macro_exceed_active_from_latch() {
-    Macro::macro_exceed_active = Macro::macro_exceed_latch_ticks > 0;
-}
-
-void queue_macro_exceed_request() {
-    Macro::macro_exceed_latch_ticks = std::max(Macro::macro_exceed_latch_ticks, MACRO_EXCEED_LATCH_TICKS);
-    update_macro_exceed_active_from_latch();
-}
-
-void clear_macro_exceed_player_state(uPlayer* player) {
-    if (!Macro::macro_exceed_player_state_written) {
-        return;
-    }
-
-    if (!player) {
-        player = get_local_player_safe();
-    }
-
-    if (player) {
-        __try {
-            if (player->controllerID == 1) {
-                *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + UPLAYER_EXCEED_INPUT_OFFSET) = 0.0f;
-                player->isExceeding = 0;
-            }
-        }
-        __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        }
-    }
-
-    Macro::macro_exceed_player_state_written = false;
-}
-
-void clear_macro_exceed_runtime_state(uPlayer* player) {
-    Macro::macro_exceed_active = false;
-    Macro::macro_exceed_latch_ticks = 0;
-    clear_macro_exceed_player_state(player);
-}
-
-void queue_macro_change_target_request() {
-    Macro::macro_change_target_latch_ticks =
-        std::max(Macro::macro_change_target_latch_ticks, MACRO_CHANGE_TARGET_LATCH_TICKS);
 }
 
 void ensure_keyboard_hotkeys(std::vector<std::unique_ptr<utility::Hotkey>>& hotkeys) {
@@ -2265,12 +2206,9 @@ MacroFrame frame_from_parts(
     bool camera_down,
     bool camera_left,
     bool camera_right,
-    bool exceed,
-    bool l2_exceed_compat,
     bool screen_pause,
     bool screen_resume,
-    bool screen_pause_toggle,
-    bool change_target) {
+    bool screen_pause_toggle) {
     MacroFrame frame{};
     frame.buttons = buttons;
     frame.global_buttons = global_buttons;
@@ -2285,12 +2223,9 @@ MacroFrame frame_from_parts(
     frame.right_x = clamp_analog((camera_right ? ANALOG_MAX : 0) + (camera_left ? ANALOG_MIN : 0));
     frame.right_y = clamp_analog((camera_up ? ANALOG_MAX : 0) + (camera_down ? ANALOG_MIN : 0));
     frame.has_right_analog = camera_up || camera_down || camera_left || camera_right;
-    frame.exceed = exceed;
-    frame.l2_exceed_compat = l2_exceed_compat;
     frame.screen_pause = screen_pause;
     frame.screen_resume = screen_resume;
     frame.screen_pause_toggle = screen_pause_toggle;
-    frame.change_target = change_target;
     return frame;
 }
 
@@ -2311,12 +2246,9 @@ MacroFrame frame_from_input(const ParsedMacroInput& input) {
         input.camera_down,
         input.camera_left,
         input.camera_right,
-        input.exceed,
-        input.l2_exceed_compat,
         input.screen_pause,
         input.screen_resume,
-        input.screen_pause_toggle,
-        input.change_target);
+        input.screen_pause_toggle);
 }
 
 MacroFrame frame_from_forced_style(int style) {
@@ -2357,12 +2289,9 @@ MacroFrame frame_from_held(const HeldMacroInput& input) {
         input.camera_down,
         input.camera_left,
         input.camera_right,
-        input.exceed,
-        input.l2_exceed_compat,
         input.screen_pause,
         input.screen_resume,
-        input.screen_pause_toggle,
-        input.change_target);
+        input.screen_pause_toggle);
 }
 
 MacroFrame frame_from_wait_condition(
@@ -2432,9 +2361,6 @@ bool parse_macro_input(std::string expression, ParsedMacroInput& input, uint32_t
                     return false;
                 }
                 input.actions |= MACRO_ACTION_BIT(action_index);
-                if (action_index == MACRO_ACTION_CHANGE_TARGET) {
-                    input.change_target = true;
-                }
                 found_token = true;
                 continue;
             }
@@ -2495,12 +2421,9 @@ void hold_input(HeldMacroInput& held, const ParsedMacroInput& input) {
     held.camera_down |= input.camera_down;
     held.camera_left |= input.camera_left;
     held.camera_right |= input.camera_right;
-    held.exceed |= input.exceed;
-    held.l2_exceed_compat |= input.l2_exceed_compat;
     held.screen_pause |= input.screen_pause;
     held.screen_resume |= input.screen_resume;
     held.screen_pause_toggle |= input.screen_pause_toggle;
-    held.change_target |= input.change_target;
 }
 
 void release_input(HeldMacroInput& held, const ParsedMacroInput& input) {
@@ -2543,12 +2466,6 @@ void release_input(HeldMacroInput& held, const ParsedMacroInput& input) {
     if (input.camera_right) {
         held.camera_right = false;
     }
-    if (input.exceed) {
-        held.exceed = false;
-    }
-    if (input.l2_exceed_compat) {
-        held.l2_exceed_compat = false;
-    }
     if (input.screen_pause) {
         held.screen_pause = false;
     }
@@ -2557,9 +2474,6 @@ void release_input(HeldMacroInput& held, const ParsedMacroInput& input) {
     }
     if (input.screen_pause_toggle) {
         held.screen_pause_toggle = false;
-    }
-    if (input.change_target) {
-        held.change_target = false;
     }
 }
 
@@ -3233,7 +3147,6 @@ void clear_player_input_snapshot(uPlayer* player) {
     player->tiltBack = false;
     player->tiltBackForward = false;
     std::fill_n(Macro::last_buttons, 4, 0);
-    clear_macro_exceed_runtime_state(player);
     Macro::clear_input_frames = 2;
     Macro::input_active = Macro::clear_input_frames > 0 || (Macro::mod_enabled && Macro::playback_enabled);
 }
@@ -3590,7 +3503,6 @@ void apply_character_switch_action(const MacroFrame& frame) {
         return;
     }
 
-    clear_macro_exceed_runtime_state();
     if (CharSwitcher::request_macro_switch()) {
         set_playback_status("Character switch requested.");
     }
@@ -4146,10 +4058,6 @@ uint32_t Macro::playback_slot = PLAYBACK_SLOT_MAIN;
 uint32_t Macro::selected_clip_index = 0;
 uint32_t Macro::loaded_clip_index = INVALID_CLIP_INDEX;
 uint32_t Macro::playback_character_role = MACRO_CHARACTER_INVALID;
-bool Macro::macro_exceed_active = false;
-uint32_t Macro::macro_exceed_latch_ticks = 0;
-bool Macro::macro_exceed_player_state_written = false;
-uint32_t Macro::macro_change_target_latch_ticks = 0;
 bool Macro::screen_pause_active = false;
 bool Macro::screen_pause_restore_valid = false;
 float Macro::screen_pause_restore_speed = 1.0f;
@@ -4179,14 +4087,6 @@ void __stdcall Macro::on_pad_update_tick(cPeripheral* peripheral) {
         poll_raw_keyboard(false);
         poll_gamepad_hotkeys(peripheral, false);
         return;
-    }
-
-    if (macro_exceed_latch_ticks > 0) {
-        --macro_exceed_latch_ticks;
-        update_macro_exceed_active_from_latch();
-    }
-    if (macro_change_target_latch_ticks > 0) {
-        --macro_change_target_latch_ticks;
     }
 
     tick_snapshot_play_delay();
@@ -4223,44 +4123,6 @@ void __stdcall Macro::on_player_pad_update(cPeripheral* peripheral) {
     last_player_peripheral = peripheral;
     last_player_index = player_index;
     write_test_input(peripheral, player_index);
-}
-
-uint32_t __stdcall Macro::on_player_input_tick(uPlayer* player, void* input_state, uint32_t inputs) {
-    (void)input_state;
-    if (!player || !input_state || !macro_exceed_active) {
-        return inputs;
-    }
-
-    __try {
-        if (player->controllerID != 1) {
-            return inputs;
-        }
-
-        *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + UPLAYER_EXCEED_INPUT_OFFSET) = 1.0f;
-        player->isExceeding = 1;
-        macro_exceed_player_state_written = true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return inputs;
-    }
-    return inputs;
-}
-
-void __stdcall Macro::on_player_input_press_written(uPlayer* player) {
-    if (!player || macro_change_target_latch_ticks == 0) {
-        return;
-    }
-
-    __try {
-        if (player != get_local_player_safe()) {
-            return;
-        }
-
-        player->inputPress[0] |= 0x20;
-        macro_change_target_latch_ticks = 0;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-    }
 }
 
 void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
@@ -4309,7 +4171,6 @@ void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
             if (!found_frame) {
                 playback_enabled = false;
                 finalize_playback_timer();
-                clear_macro_exceed_runtime_state();
                 buttons = 0;
                 set_playback_status("Playback finished.");
                 update_input_active();
@@ -4328,16 +4189,12 @@ void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
     const uint32_t routed_global_buttons =
         macro_frame.global_buttons | resolve_global_action_buttons(macro_frame.actions, playback_character_role);
     const uint32_t previous_global_buttons = last_global_routed_buttons[player_index];
-    const bool previous_change_target_action = last_change_target_action[player_index];
 
     peripheral->mPadBtnOn = output_buttons;
     peripheral->mPadBtnTrg = output_buttons & ~previous_buttons;
     peripheral->mPadBtnRel = previous_buttons & ~output_buttons;
     apply_button_press_values(peripheral, output_buttons);
 
-    if (macro_frame.change_target && !previous_change_target_action) {
-        queue_macro_change_target_request();
-    }
     apply_global_pad_route_for_macro(macro_frame, routed_global_buttons, previous_global_buttons, player_index);
 
     if (macro_frame.has_left_analog) {
@@ -4360,25 +4217,14 @@ void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
     apply_one_hit_kill_action(macro_frame);
 
     last_buttons[player_index] = output_buttons;
-    last_change_target_action[player_index] = macro_frame.change_target;
     update_input_active();
 }
 
-void Macro::reset_input_state(bool preserve_macro_exceed_request) {
-    const uint32_t preserved_exceed_latch_ticks = macro_exceed_latch_ticks;
+void Macro::reset_input_state() {
     std::fill_n(last_buttons, 4, 0);
-    std::fill_n(last_change_target_action, 4, false);
     for (uint32_t player_index = 0; player_index < 4; ++player_index) {
         clear_global_macro_route(player_index);
     }
-    if (!preserve_macro_exceed_request) {
-        clear_macro_exceed_runtime_state();
-    }
-    else {
-        macro_exceed_latch_ticks = preserved_exceed_latch_ticks;
-        update_macro_exceed_active_from_latch();
-    }
-    macro_change_target_latch_ticks = 0;
     CharSwitcher::clear_macro_switch_request();
     playback_frame_index = 0;
     for (auto& frame : playback_frames) {
@@ -4909,7 +4755,7 @@ void Macro::restart_playback_clip(uint32_t clip_index) {
     selected_clip_index = clip_index;
     mod_enabled = true;
     playback_enabled = true;
-    reset_input_state(true);
+    reset_input_state();
     queue_playback_timer_start();
     update_input_active();
 
@@ -5015,8 +4861,6 @@ void Macro::stop_all_input() {
 
     playback_enabled = false;
     finalize_playback_timer();
-    clear_macro_exceed_runtime_state();
-    macro_change_target_latch_ticks = 0;
     CharSwitcher::clear_macro_switch_request();
     playback_frame_index = 0;
     clear_last_peripheral_output();
