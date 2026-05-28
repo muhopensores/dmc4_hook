@@ -433,6 +433,10 @@ bool macro_gameplay_ready() {
     }
 }
 
+bool macro_runtime_ready() {
+    return macro_gameplay_ready() && !is_game_paused_safe();
+}
+
 sArea* get_s_area_safe() {
     __try {
         return devil4_sdk::get_sArea();
@@ -927,7 +931,7 @@ void suspend_macro_runtime_for_transition() {
 
     if (!macro_suspended_for_transition) {
         macro_suspended_for_transition = true;
-        set_playback_status("Macro paused while gameplay objects are rebuilding.");
+        set_playback_status("Macro paused while gameplay is unavailable.");
     }
 }
 
@@ -2746,34 +2750,39 @@ void keyboard_to_analog(kAnlg* input, int char_id, int key_id) {
     }
 }
 
-void write_base_player_input_snapshot(cPeripheral* peripheral) {
+bool write_base_player_input_snapshot(cPeripheral* peripheral) {
     if (!peripheral) {
-        return;
+        return false;
     }
 
-    sDevil4Pad** pad_ptr = (sDevil4Pad**)S_DEVIL4_PAD_PTR;
-    sDevil4Pad* pad = pad_ptr ? *pad_ptr : nullptr;
+    auto* pad = get_global_pad_safe();
     if (!pad) {
-        return;
+        return false;
     }
 
-    peripheral->mPadBtnOn = pad->mPadInfo[0].mBtn.on;
-    peripheral->mPadBtnTrg = pad->mPadInfo[0].mBtn.trg;
-    peripheral->mPadBtnRel = pad->mPadInfo[0].mBtn.rel;
-    std::memcpy(&peripheral->mPadBtnPress, &pad->mPadInfo[0].mPress, sizeof(float) * 15);
+    __try {
+        peripheral->mPadBtnOn = pad->mPadInfo[0].mBtn.on;
+        peripheral->mPadBtnTrg = pad->mPadInfo[0].mBtn.trg;
+        peripheral->mPadBtnRel = pad->mPadInfo[0].mBtn.rel;
+        std::memcpy(&peripheral->mPadBtnPress, &pad->mPadInfo[0].mPress, sizeof(float) * 15);
 
-    peripheral->mAnlgL = {};
-    get_pad_analog_level(pad, &peripheral->mAnlgL, false);
-    keyboard_to_analog(&peripheral->mAnlgL, 0, 0);
-    update_analog_info_for_macro(&peripheral->mAnlgL);
+        peripheral->mAnlgL = {};
+        get_pad_analog_level(pad, &peripheral->mAnlgL, false);
+        keyboard_to_analog(&peripheral->mAnlgL, 0, 0);
+        update_analog_info_for_macro(&peripheral->mAnlgL);
 
-    peripheral->mAnlgR = {};
-    get_pad_analog_level(pad, &peripheral->mAnlgR, true);
-    keyboard_to_analog(&peripheral->mAnlgR, 0, 1);
-    update_analog_info_for_macro(&peripheral->mAnlgR);
+        peripheral->mAnlgR = {};
+        get_pad_analog_level(pad, &peripheral->mAnlgR, true);
+        keyboard_to_analog(&peripheral->mAnlgR, 0, 1);
+        update_analog_info_for_macro(&peripheral->mAnlgR);
 
-    peripheral->mHoldAnlgL = peripheral->mAnlgL;
-    peripheral->mIsHold = false;
+        peripheral->mHoldAnlgL = peripheral->mAnlgL;
+        peripheral->mIsHold = false;
+        return true;
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return false;
+    }
 }
 
 void set_pad_press(cPeripheral* peripheral, uint32_t buttons, uint32_t button_mask, size_t press_index) {
@@ -3256,8 +3265,8 @@ void apply_player_resource_snapshot(uPlayer* player) {
 }
 
 bool capture_position_snapshot_unsafe() {
-    if (!macro_gameplay_ready()) {
-        set_playback_status("Battle Snapshot capture failed: gameplay objects are rebuilding.");
+    if (!macro_runtime_ready()) {
+        set_playback_status("Battle Snapshot capture failed: gameplay is unavailable.");
         return false;
     }
 
@@ -3355,9 +3364,9 @@ bool apply_position_snapshot_unsafe(bool update_status, bool include_resources) 
         return false;
     }
 
-    if (!macro_gameplay_ready()) {
+    if (!macro_runtime_ready()) {
         if (update_status) {
-            set_playback_status("Battle Snapshot load failed: gameplay objects are rebuilding.");
+            set_playback_status("Battle Snapshot load failed: gameplay is unavailable.");
         }
         return false;
     }
@@ -4159,6 +4168,19 @@ std::optional<std::string> Macro::on_initialize() {
 }
 
 void __stdcall Macro::on_pad_update_tick(cPeripheral* peripheral) {
+    if (!mod_enabled) {
+        poll_raw_keyboard(false);
+        poll_gamepad_hotkeys(peripheral, false);
+        return;
+    }
+
+    if (!macro_runtime_ready()) {
+        suspend_macro_runtime_for_transition();
+        poll_raw_keyboard(false);
+        poll_gamepad_hotkeys(peripheral, false);
+        return;
+    }
+
     if (macro_exceed_latch_ticks > 0) {
         --macro_exceed_latch_ticks;
         update_macro_exceed_active_from_latch();
@@ -4173,10 +4195,10 @@ void __stdcall Macro::on_pad_update_tick(cPeripheral* peripheral) {
         macro_instance->check_hotkeys();
     }
     else {
-        poll_raw_keyboard(mod_enabled);
+        poll_raw_keyboard(true);
     }
 
-    poll_gamepad_hotkeys(peripheral, mod_enabled);
+    poll_gamepad_hotkeys(peripheral, true);
 }
 
 void __stdcall Macro::on_player_pad_update(cPeripheral* peripheral) {
@@ -4184,7 +4206,16 @@ void __stdcall Macro::on_player_pad_update(cPeripheral* peripheral) {
         return;
     }
 
-    uint32_t player_index = *(uint8_t*)((uintptr_t)peripheral + 0x95);
+    if (!macro_runtime_ready()) {
+        suspend_macro_runtime_for_transition();
+        return;
+    }
+
+    uint32_t player_index = 0;
+    if (!read_peripheral_player_index_safe(peripheral, player_index)) {
+        suspend_macro_runtime_for_transition();
+        return;
+    }
     if (player_index >= 4) {
         player_index = 0;
     }
@@ -4233,6 +4264,14 @@ void __stdcall Macro::on_player_input_press_written(uPlayer* player) {
 }
 
 void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
+    if (!peripheral || !macro_runtime_ready()) {
+        suspend_macro_runtime_for_transition();
+        return;
+    }
+    if (player_index >= 4) {
+        player_index = 0;
+    }
+
     uint32_t buttons = 0;
     MacroFrame macro_frame{};
     const bool was_clearing_input = clear_input_frames > 0;
@@ -4278,7 +4317,10 @@ void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
         }
     }
 
-    write_base_player_input_snapshot(peripheral);
+    if (!write_base_player_input_snapshot(peripheral)) {
+        suspend_macro_runtime_for_transition();
+        return;
+    }
 
     const uint32_t base_buttons = peripheral->mPadBtnOn;
     const uint32_t output_buttons = base_buttons | buttons;
@@ -4837,6 +4879,15 @@ void Macro::restart_playback_clip(uint32_t clip_index) {
         set_screen_pause(false);
     }
 
+    if (!macro_runtime_ready()) {
+        playback_enabled = false;
+        clear_playback_timer();
+        reset_input_state();
+        update_input_active();
+        set_playback_status("Playback blocked: gameplay is unavailable.");
+        return;
+    }
+
     if (clip_index >= playback_clips.size() || !load_clip_into_playback_state(clip_index)) {
         playback_enabled = false;
         update_input_active();
@@ -4884,6 +4935,14 @@ void Macro::clear_snapshot_play_delay() {
 }
 
 bool Macro::load_snapshot_then_play() {
+    if (!macro_runtime_ready()) {
+        playback_enabled = false;
+        clear_snapshot_play_delay();
+        update_input_active();
+        set_playback_status("Load Snapshot + Play failed: gameplay is unavailable.");
+        return false;
+    }
+
     if (!load_playback_file()) {
         playback_enabled = false;
         clear_snapshot_play_delay();
@@ -4929,7 +4988,7 @@ void Macro::tick_snapshot_play_delay() {
         return;
     }
 
-    if (!mod_enabled || !macro_gameplay_ready()) {
+    if (!mod_enabled || !macro_runtime_ready()) {
         clear_snapshot_play_delay();
         return;
     }
@@ -5022,13 +5081,14 @@ void Macro::check_pause_interrupt() {
 void Macro::on_frame(fmilliseconds& dt) {
     (void)dt;
     check_auto_reload_file();
-    if (mod_enabled && !macro_gameplay_ready()) {
+    if (mod_enabled && !macro_runtime_ready()) {
         suspend_macro_runtime_for_transition();
         poll_raw_keyboard(false);
+        poll_gamepad_hotkeys(nullptr, false);
         return;
     }
 
-    if (macro_suspended_for_transition && macro_gameplay_ready()) {
+    if (macro_suspended_for_transition && macro_runtime_ready()) {
         macro_suspended_for_transition = false;
         set_playback_status("Macro ready.");
     }
@@ -5245,7 +5305,7 @@ void Macro::on_gui_frame(int display) {
                 }
             }
 
-            if (!macro_gameplay_ready()) {
+            if (!macro_runtime_ready()) {
                 suspend_macro_runtime_for_transition();
                 ImGui::TextWrapped(_("Macro status: %s"), playback_status);
                 ImGui::Unindent(lineIndent);
