@@ -236,7 +236,7 @@ Physical button names do not use Action Mapping. `TAP Y` always presses `Y / TRI
 | --- | --- | --- | --- | --- | --- |
 | `MELEE` | Nero, Dante | `MELEE_ATTACK`, `SWORD_ATTACK`, `ATTACK` | `Y / TRIANGLE` | `Y / TRIANGLE` | The normal close-range attack button for the current character. |
 | `GUN` | Nero, Dante | `GUN_ATTACK`, `SHOOT`, `FIRE` | `X / SQUARE` | `X / SQUARE` | The normal gun/shoot button for the current character. |
-| `EXCEED` | Nero | `REV`, `NERO_EXCEED`, `EXCEED_INPUT`, `MAX_ACT`, `MAXACT` | `LT / L2` | not valid | Nero's Red Queen rev/Exceed action. The game timing decides whether the result is a normal rev, Ex-Act, or Max-Act. |
+| `EXCEED` | Nero | `REV`, `NERO_EXCEED`, `EXCEED_INPUT` | `LT / L2` | not valid | Nero's Red Queen rev/Exceed action. The game timing decides whether the result is a normal rev, Ex-Act, or Max-Act. |
 | `JUMP` | Nero, Dante | none | `A / CROSS` | `A / CROSS` | Jump. |
 | `BRINGER` | Nero | `DEVIL_BRINGER` | `B / CIRCLE` | not valid | Nero's Devil Bringer/Buster action button. |
 | `STYLE_ACTION` | Dante | `STYLE_BUTTON` | not valid | `B / CIRCLE` | Dante's current-style action button, such as Trickster dash, Swordmaster extra attack, Royalguard guard, or Gunslinger action. |

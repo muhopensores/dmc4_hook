@@ -24,12 +24,9 @@ struct MacroFrame {
     short right_x = 0;
     short right_y = 0;
     bool has_right_analog = false;
-    bool exceed = false;
-    bool l2_exceed_compat = false;
     bool screen_pause = false;
     bool screen_resume = false;
     bool screen_pause_toggle = false;
-    bool change_target = false;
     bool character_switch = false;
     bool one_hit_kill_set = false;
     bool one_hit_kill_value = false;
@@ -67,7 +64,6 @@ public:
     static uint32_t last_buttons[4];
     static uint32_t playback_frame_index;
     static uint32_t clear_input_frames;
-    static uint32_t reload_vkey;
     static uint32_t restart_vkey;
     static uint32_t stop_vkey;
     static uint32_t capture_snapshot_vkey;
@@ -76,17 +72,12 @@ public:
     static uint32_t snapshot_play_delay_ticks;
     static uint32_t action_button_map[MACRO_CHARACTER_ROLE_COUNT][MACRO_ACTION_SLOT_COUNT];
     static uint32_t gamepad_hotkey_buttons[5];
-    static bool auto_reload_file;
     static bool stop_macro_on_game_pause;
     static bool gamepad_hotkeys_enabled;
     static uint32_t playback_slot;
     static uint32_t selected_clip_index;
     static uint32_t loaded_clip_index;
     static uint32_t playback_character_role;
-    static bool macro_exceed_active;
-    static uint32_t macro_exceed_latch_ticks;
-    static bool macro_exceed_player_state_written;
-    static uint32_t macro_change_target_latch_ticks;
     static bool screen_pause_active;
     static bool screen_pause_restore_valid;
     static float screen_pause_restore_speed;
@@ -100,8 +91,6 @@ public:
 
     static void __stdcall on_pad_update_tick(cPeripheral* peripheral);
     static void __stdcall on_player_pad_update(cPeripheral* peripheral);
-    static uint32_t __stdcall on_player_input_tick(uPlayer* player, void* input_state, uint32_t inputs);
-    static void __stdcall on_player_input_press_written(uPlayer* player);
 
     std::optional<std::string> on_initialize() override;
     void on_frame(fmilliseconds& dt) override;
@@ -113,7 +102,7 @@ public:
 
 private:
     static void write_test_input(cPeripheral* peripheral, uint32_t player_index);
-    static void reset_input_state(bool preserve_macro_exceed_request = false);
+    static void reset_input_state();
     static bool load_playback_file();
     static bool reload_playback_file();
     static void restart_playback();
@@ -127,7 +116,6 @@ private:
     static void check_pause_interrupt();
     static std::string resolve_playback_path();
     static void handle_hotkey_actions(
-        bool reload_pressed,
         bool restart_pressed,
         bool stop_pressed,
         bool capture_snapshot_pressed,

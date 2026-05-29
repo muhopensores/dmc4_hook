@@ -35,9 +35,7 @@ constexpr uintptr_t S_DEVIL4_PAD_PTR = 0x00e559c4;
 constexpr uintptr_t S_KEYBOARD_PTR = 0x00e559c0;
 constexpr uintptr_t S_SAVE_PTR = 0x00e558c8;
 constexpr uintptr_t UPDATE_ANALOG_INFO_CALL = 0x007b0250;
-constexpr uintptr_t UPLAYER_EXCEED_INPUT_OFFSET = 0x1444;
 constexpr uintptr_t UPLAYER_CURRENT_STYLE_OFFSET = 0x14D98;
-constexpr uint32_t MACRO_EXCEED_LATCH_TICKS = 4;
 constexpr uint32_t MAX_ENEMY_CHAIN_SCAN = 128;
 constexpr uint32_t PAD_BUTTON_L1 = 0x0100;
 constexpr uint32_t PAD_BUTTON_R1 = 0x0200;
@@ -114,8 +112,6 @@ constexpr size_t PAD_PRESS_R2 = 11;
 constexpr size_t PAD_PRESS_SELECT = 12;
 constexpr size_t PAD_PRESS_L3 = 13;
 constexpr size_t PAD_PRESS_R3 = 14;
-constexpr uint32_t MACRO_CHANGE_TARGET_LATCH_TICKS = 4;
-constexpr uint32_t DEFAULT_RELOAD_VKEY = VK_F9;
 constexpr uint32_t DEFAULT_RESTART_VKEY = VK_F10;
 constexpr uint32_t DEFAULT_STOP_VKEY = VK_F11;
 constexpr uint32_t DEFAULT_CAPTURE_SNAPSHOT_VKEY = VK_F7;
@@ -177,12 +173,9 @@ struct ParsedMacroInput {
     bool camera_down = false;
     bool camera_left = false;
     bool camera_right = false;
-    bool exceed = false;
-    bool l2_exceed_compat = false;
     bool screen_pause = false;
     bool screen_resume = false;
     bool screen_pause_toggle = false;
-    bool change_target = false;
 };
 
 struct HeldMacroInput {
@@ -201,12 +194,9 @@ struct HeldMacroInput {
     bool camera_down = false;
     bool camera_left = false;
     bool camera_right = false;
-    bool exceed = false;
-    bool l2_exceed_compat = false;
     bool screen_pause = false;
     bool screen_resume = false;
     bool screen_pause_toggle = false;
-    bool change_target = false;
 };
 
 struct BattleEnemySnapshot {
@@ -330,7 +320,6 @@ cPeripheral* last_player_peripheral = nullptr;
 uint32_t last_player_index = 0;
 uint32_t last_global_routed_buttons[4] = {};
 bool last_global_right_analog[4] = {};
-bool last_change_target_action[4] = {};
 std::string known_macro_file_time_path{};
 uint64_t known_macro_file_write_time = 0;
 uint64_t known_macro_file_size = 0;
@@ -358,7 +347,6 @@ uPlayer* get_local_player_safe();
 uCameraCtrl* get_local_camera_safe();
 sWorkRate* get_work_rate_safe();
 sDevil4Pad* get_global_pad_safe();
-void clear_macro_exceed_runtime_state(uPlayer* player = nullptr);
 
 uint64_t file_time_to_u64(const FILETIME& file_time) {
     ULARGE_INTEGER value{};
@@ -431,6 +419,10 @@ bool macro_gameplay_ready() {
     __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
         return false;
     }
+}
+
+bool macro_runtime_ready() {
+    return macro_gameplay_ready() && !is_game_paused_safe();
 }
 
 sArea* get_s_area_safe() {
@@ -897,9 +889,6 @@ bool clear_last_peripheral_output() {
     }
 
     clear_global_macro_route(last_player_index);
-    if (last_player_index < 4) {
-        last_change_target_action[last_player_index] = false;
-    }
     std::fill_n(Macro::last_buttons, 4, 0);
     return true;
 }
@@ -918,8 +907,6 @@ void suspend_macro_runtime_for_transition() {
     Macro::playback_enabled = false;
     Macro::clear_input_frames = 0;
     Macro::input_active = false;
-    clear_macro_exceed_runtime_state();
-    Macro::macro_change_target_latch_ticks = 0;
     position_snapshot_load_ticks = 0;
     snapshot_play_pending_ticks = 0;
     snapshot_play_pending_clip_index = INVALID_CLIP_INDEX;
@@ -927,70 +914,24 @@ void suspend_macro_runtime_for_transition() {
 
     if (!macro_suspended_for_transition) {
         macro_suspended_for_transition = true;
-        set_playback_status("Macro paused while gameplay objects are rebuilding.");
+        set_playback_status("Macro paused while gameplay is unavailable.");
     }
-}
-
-void update_macro_exceed_active_from_latch() {
-    Macro::macro_exceed_active = Macro::macro_exceed_latch_ticks > 0;
-}
-
-void queue_macro_exceed_request() {
-    Macro::macro_exceed_latch_ticks = std::max(Macro::macro_exceed_latch_ticks, MACRO_EXCEED_LATCH_TICKS);
-    update_macro_exceed_active_from_latch();
-}
-
-void clear_macro_exceed_player_state(uPlayer* player) {
-    if (!Macro::macro_exceed_player_state_written) {
-        return;
-    }
-
-    if (!player) {
-        player = get_local_player_safe();
-    }
-
-    if (player) {
-        __try {
-            if (player->controllerID == 1) {
-                *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + UPLAYER_EXCEED_INPUT_OFFSET) = 0.0f;
-                player->isExceeding = 0;
-            }
-        }
-        __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        }
-    }
-
-    Macro::macro_exceed_player_state_written = false;
-}
-
-void clear_macro_exceed_runtime_state(uPlayer* player) {
-    Macro::macro_exceed_active = false;
-    Macro::macro_exceed_latch_ticks = 0;
-    clear_macro_exceed_player_state(player);
-}
-
-void queue_macro_change_target_request() {
-    Macro::macro_change_target_latch_ticks =
-        std::max(Macro::macro_change_target_latch_ticks, MACRO_CHANGE_TARGET_LATCH_TICKS);
 }
 
 void ensure_keyboard_hotkeys(std::vector<std::unique_ptr<utility::Hotkey>>& hotkeys) {
     if (hotkeys.empty()) {
-        utility::create_keyboard_hotkey(hotkeys, { DEFAULT_RELOAD_VKEY }, __("Reload Macro File"), "keyboard_macro_reload_file_key");
-    }
-    if (hotkeys.size() == 1) {
         utility::create_keyboard_hotkey(hotkeys, { DEFAULT_RESTART_VKEY }, __("Play Macro File"), "keyboard_macro_restart_key");
     }
-    if (hotkeys.size() == 2) {
+    if (hotkeys.size() == 1) {
         utility::create_keyboard_hotkey(hotkeys, { DEFAULT_STOP_VKEY }, __("Stop Macro / Clear Input"), "keyboard_macro_stop_clear_key");
     }
-    if (hotkeys.size() == 3) {
+    if (hotkeys.size() == 2) {
         utility::create_keyboard_hotkey(hotkeys, { DEFAULT_CAPTURE_SNAPSHOT_VKEY }, __("Capture Snapshot"), "keyboard_macro_capture_snapshot_key");
     }
-    if (hotkeys.size() == 4) {
+    if (hotkeys.size() == 3) {
         utility::create_keyboard_hotkey(hotkeys, { DEFAULT_LOAD_SNAPSHOT_VKEY }, __("Load Snapshot"), "keyboard_macro_load_snapshot_key");
     }
-    if (hotkeys.size() == 5) {
+    if (hotkeys.size() == 4) {
         utility::create_keyboard_hotkey(
             hotkeys,
             { DEFAULT_LOAD_SNAPSHOT_PLAY_VKEY },
@@ -1000,7 +941,7 @@ void ensure_keyboard_hotkeys(std::vector<std::unique_ptr<utility::Hotkey>>& hotk
 }
 
 void ensure_keyboard_hotkey_binds(std::vector<std::unique_ptr<utility::Hotkey>>& hotkeys) {
-    if (hotkeys.size() < 6) {
+    if (hotkeys.size() < 5) {
         return;
     }
 
@@ -1621,8 +1562,6 @@ bool parse_action_name(const std::string& token, uint32_t& action_index) {
         {"NERO_EXCEED", MACRO_ACTION_EXCEED},
         {"EXCEED_INPUT", MACRO_ACTION_EXCEED},
         {"REV", MACRO_ACTION_EXCEED},
-        {"MAX_ACT", MACRO_ACTION_EXCEED},
-        {"MAXACT", MACRO_ACTION_EXCEED},
         {"JUMP", MACRO_ACTION_JUMP},
         {"BRINGER", MACRO_ACTION_BRINGER},
         {"DEVIL_BRINGER", MACRO_ACTION_BRINGER},
@@ -2261,12 +2200,9 @@ MacroFrame frame_from_parts(
     bool camera_down,
     bool camera_left,
     bool camera_right,
-    bool exceed,
-    bool l2_exceed_compat,
     bool screen_pause,
     bool screen_resume,
-    bool screen_pause_toggle,
-    bool change_target) {
+    bool screen_pause_toggle) {
     MacroFrame frame{};
     frame.buttons = buttons;
     frame.global_buttons = global_buttons;
@@ -2281,12 +2217,9 @@ MacroFrame frame_from_parts(
     frame.right_x = clamp_analog((camera_right ? ANALOG_MAX : 0) + (camera_left ? ANALOG_MIN : 0));
     frame.right_y = clamp_analog((camera_up ? ANALOG_MAX : 0) + (camera_down ? ANALOG_MIN : 0));
     frame.has_right_analog = camera_up || camera_down || camera_left || camera_right;
-    frame.exceed = exceed;
-    frame.l2_exceed_compat = l2_exceed_compat;
     frame.screen_pause = screen_pause;
     frame.screen_resume = screen_resume;
     frame.screen_pause_toggle = screen_pause_toggle;
-    frame.change_target = change_target;
     return frame;
 }
 
@@ -2307,12 +2240,9 @@ MacroFrame frame_from_input(const ParsedMacroInput& input) {
         input.camera_down,
         input.camera_left,
         input.camera_right,
-        input.exceed,
-        input.l2_exceed_compat,
         input.screen_pause,
         input.screen_resume,
-        input.screen_pause_toggle,
-        input.change_target);
+        input.screen_pause_toggle);
 }
 
 MacroFrame frame_from_forced_style(int style) {
@@ -2353,12 +2283,9 @@ MacroFrame frame_from_held(const HeldMacroInput& input) {
         input.camera_down,
         input.camera_left,
         input.camera_right,
-        input.exceed,
-        input.l2_exceed_compat,
         input.screen_pause,
         input.screen_resume,
-        input.screen_pause_toggle,
-        input.change_target);
+        input.screen_pause_toggle);
 }
 
 MacroFrame frame_from_wait_condition(
@@ -2428,9 +2355,6 @@ bool parse_macro_input(std::string expression, ParsedMacroInput& input, uint32_t
                     return false;
                 }
                 input.actions |= MACRO_ACTION_BIT(action_index);
-                if (action_index == MACRO_ACTION_CHANGE_TARGET) {
-                    input.change_target = true;
-                }
                 found_token = true;
                 continue;
             }
@@ -2491,12 +2415,9 @@ void hold_input(HeldMacroInput& held, const ParsedMacroInput& input) {
     held.camera_down |= input.camera_down;
     held.camera_left |= input.camera_left;
     held.camera_right |= input.camera_right;
-    held.exceed |= input.exceed;
-    held.l2_exceed_compat |= input.l2_exceed_compat;
     held.screen_pause |= input.screen_pause;
     held.screen_resume |= input.screen_resume;
     held.screen_pause_toggle |= input.screen_pause_toggle;
-    held.change_target |= input.change_target;
 }
 
 void release_input(HeldMacroInput& held, const ParsedMacroInput& input) {
@@ -2539,12 +2460,6 @@ void release_input(HeldMacroInput& held, const ParsedMacroInput& input) {
     if (input.camera_right) {
         held.camera_right = false;
     }
-    if (input.exceed) {
-        held.exceed = false;
-    }
-    if (input.l2_exceed_compat) {
-        held.l2_exceed_compat = false;
-    }
     if (input.screen_pause) {
         held.screen_pause = false;
     }
@@ -2553,9 +2468,6 @@ void release_input(HeldMacroInput& held, const ParsedMacroInput& input) {
     }
     if (input.screen_pause_toggle) {
         held.screen_pause_toggle = false;
-    }
-    if (input.change_target) {
-        held.change_target = false;
     }
 }
 
@@ -2746,34 +2658,39 @@ void keyboard_to_analog(kAnlg* input, int char_id, int key_id) {
     }
 }
 
-void write_base_player_input_snapshot(cPeripheral* peripheral) {
+bool write_base_player_input_snapshot(cPeripheral* peripheral) {
     if (!peripheral) {
-        return;
+        return false;
     }
 
-    sDevil4Pad** pad_ptr = (sDevil4Pad**)S_DEVIL4_PAD_PTR;
-    sDevil4Pad* pad = pad_ptr ? *pad_ptr : nullptr;
+    auto* pad = get_global_pad_safe();
     if (!pad) {
-        return;
+        return false;
     }
 
-    peripheral->mPadBtnOn = pad->mPadInfo[0].mBtn.on;
-    peripheral->mPadBtnTrg = pad->mPadInfo[0].mBtn.trg;
-    peripheral->mPadBtnRel = pad->mPadInfo[0].mBtn.rel;
-    std::memcpy(&peripheral->mPadBtnPress, &pad->mPadInfo[0].mPress, sizeof(float) * 15);
+    __try {
+        peripheral->mPadBtnOn = pad->mPadInfo[0].mBtn.on;
+        peripheral->mPadBtnTrg = pad->mPadInfo[0].mBtn.trg;
+        peripheral->mPadBtnRel = pad->mPadInfo[0].mBtn.rel;
+        std::memcpy(&peripheral->mPadBtnPress, &pad->mPadInfo[0].mPress, sizeof(float) * 15);
 
-    peripheral->mAnlgL = {};
-    get_pad_analog_level(pad, &peripheral->mAnlgL, false);
-    keyboard_to_analog(&peripheral->mAnlgL, 0, 0);
-    update_analog_info_for_macro(&peripheral->mAnlgL);
+        peripheral->mAnlgL = {};
+        get_pad_analog_level(pad, &peripheral->mAnlgL, false);
+        keyboard_to_analog(&peripheral->mAnlgL, 0, 0);
+        update_analog_info_for_macro(&peripheral->mAnlgL);
 
-    peripheral->mAnlgR = {};
-    get_pad_analog_level(pad, &peripheral->mAnlgR, true);
-    keyboard_to_analog(&peripheral->mAnlgR, 0, 1);
-    update_analog_info_for_macro(&peripheral->mAnlgR);
+        peripheral->mAnlgR = {};
+        get_pad_analog_level(pad, &peripheral->mAnlgR, true);
+        keyboard_to_analog(&peripheral->mAnlgR, 0, 1);
+        update_analog_info_for_macro(&peripheral->mAnlgR);
 
-    peripheral->mHoldAnlgL = peripheral->mAnlgL;
-    peripheral->mIsHold = false;
+        peripheral->mHoldAnlgL = peripheral->mAnlgL;
+        peripheral->mIsHold = false;
+        return true;
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return false;
+    }
 }
 
 void set_pad_press(cPeripheral* peripheral, uint32_t buttons, uint32_t button_mask, size_t press_index) {
@@ -3224,7 +3141,6 @@ void clear_player_input_snapshot(uPlayer* player) {
     player->tiltBack = false;
     player->tiltBackForward = false;
     std::fill_n(Macro::last_buttons, 4, 0);
-    clear_macro_exceed_runtime_state(player);
     Macro::clear_input_frames = 2;
     Macro::input_active = Macro::clear_input_frames > 0 || (Macro::mod_enabled && Macro::playback_enabled);
 }
@@ -3256,8 +3172,8 @@ void apply_player_resource_snapshot(uPlayer* player) {
 }
 
 bool capture_position_snapshot_unsafe() {
-    if (!macro_gameplay_ready()) {
-        set_playback_status("Battle Snapshot capture failed: gameplay objects are rebuilding.");
+    if (!macro_runtime_ready()) {
+        set_playback_status("Battle Snapshot capture failed: gameplay is unavailable.");
         return false;
     }
 
@@ -3355,9 +3271,9 @@ bool apply_position_snapshot_unsafe(bool update_status, bool include_resources) 
         return false;
     }
 
-    if (!macro_gameplay_ready()) {
+    if (!macro_runtime_ready()) {
         if (update_status) {
-            set_playback_status("Battle Snapshot load failed: gameplay objects are rebuilding.");
+            set_playback_status("Battle Snapshot load failed: gameplay is unavailable.");
         }
         return false;
     }
@@ -3581,7 +3497,6 @@ void apply_character_switch_action(const MacroFrame& frame) {
         return;
     }
 
-    clear_macro_exceed_runtime_state();
     if (CharSwitcher::request_macro_switch()) {
         set_playback_status("Character switch requested.");
     }
@@ -3945,21 +3860,18 @@ bool capture_pending_hotkey(uint32_t vkey) {
         hotkey->m_setting = false;
 
         if (capture_hotkey_target == 1) {
-            Macro::reload_vkey = binds.back();
-        }
-        else if (capture_hotkey_target == 2) {
             Macro::restart_vkey = binds.back();
         }
-        else if (capture_hotkey_target == 3) {
+        else if (capture_hotkey_target == 2) {
             Macro::stop_vkey = binds.back();
         }
-        else if (capture_hotkey_target == 4) {
+        else if (capture_hotkey_target == 3) {
             Macro::capture_snapshot_vkey = binds.back();
         }
-        else if (capture_hotkey_target == 5) {
+        else if (capture_hotkey_target == 4) {
             Macro::load_snapshot_vkey = binds.back();
         }
-        else if (capture_hotkey_target == 6) {
+        else if (capture_hotkey_target == 5) {
             Macro::load_snapshot_play_vkey = binds.back();
         }
 
@@ -4021,27 +3933,24 @@ bool hotkey_binds_match_message(const std::vector<uint32_t>& binds, WPARAM key) 
 }
 
 void update_config_hotkey_vkeys(const std::vector<std::unique_ptr<utility::Hotkey>>& hotkeys) {
-    if (hotkeys.size() < 6) {
+    if (hotkeys.size() < 5) {
         return;
     }
 
     if (!hotkeys[0]->m_binds.empty()) {
-        Macro::reload_vkey = hotkeys[0]->m_binds.back();
+        Macro::restart_vkey = hotkeys[0]->m_binds.back();
     }
     if (!hotkeys[1]->m_binds.empty()) {
-        Macro::restart_vkey = hotkeys[1]->m_binds.back();
+        Macro::stop_vkey = hotkeys[1]->m_binds.back();
     }
     if (!hotkeys[2]->m_binds.empty()) {
-        Macro::stop_vkey = hotkeys[2]->m_binds.back();
+        Macro::capture_snapshot_vkey = hotkeys[2]->m_binds.back();
     }
     if (!hotkeys[3]->m_binds.empty()) {
-        Macro::capture_snapshot_vkey = hotkeys[3]->m_binds.back();
+        Macro::load_snapshot_vkey = hotkeys[3]->m_binds.back();
     }
     if (!hotkeys[4]->m_binds.empty()) {
-        Macro::load_snapshot_vkey = hotkeys[4]->m_binds.back();
-    }
-    if (!hotkeys[5]->m_binds.empty()) {
-        Macro::load_snapshot_play_vkey = hotkeys[5]->m_binds.back();
+        Macro::load_snapshot_play_vkey = hotkeys[4]->m_binds.back();
     }
 }
 
@@ -4084,7 +3993,6 @@ bool Macro::input_active = false;
 uint32_t Macro::last_buttons[4] = {};
 uint32_t Macro::playback_frame_index = 0;
 uint32_t Macro::clear_input_frames = 0;
-uint32_t Macro::reload_vkey = DEFAULT_RELOAD_VKEY;
 uint32_t Macro::restart_vkey = DEFAULT_RESTART_VKEY;
 uint32_t Macro::stop_vkey = DEFAULT_STOP_VKEY;
 uint32_t Macro::capture_snapshot_vkey = DEFAULT_CAPTURE_SNAPSHOT_VKEY;
@@ -4130,17 +4038,12 @@ uint32_t Macro::gamepad_hotkey_buttons[GAMEPAD_HOTKEY_COUNT] = {
     PAD_BUTTON_Y,
     PAD_BUTTON_R1,
 };
-bool Macro::auto_reload_file = true;
 bool Macro::stop_macro_on_game_pause = false;
 bool Macro::gamepad_hotkeys_enabled = false;
 uint32_t Macro::playback_slot = PLAYBACK_SLOT_MAIN;
 uint32_t Macro::selected_clip_index = 0;
 uint32_t Macro::loaded_clip_index = INVALID_CLIP_INDEX;
 uint32_t Macro::playback_character_role = MACRO_CHARACTER_INVALID;
-bool Macro::macro_exceed_active = false;
-uint32_t Macro::macro_exceed_latch_ticks = 0;
-bool Macro::macro_exceed_player_state_written = false;
-uint32_t Macro::macro_change_target_latch_ticks = 0;
 bool Macro::screen_pause_active = false;
 bool Macro::screen_pause_restore_valid = false;
 float Macro::screen_pause_restore_speed = 1.0f;
@@ -4159,12 +4062,17 @@ std::optional<std::string> Macro::on_initialize() {
 }
 
 void __stdcall Macro::on_pad_update_tick(cPeripheral* peripheral) {
-    if (macro_exceed_latch_ticks > 0) {
-        --macro_exceed_latch_ticks;
-        update_macro_exceed_active_from_latch();
+    if (!mod_enabled) {
+        poll_raw_keyboard(false);
+        poll_gamepad_hotkeys(peripheral, false);
+        return;
     }
-    if (macro_change_target_latch_ticks > 0) {
-        --macro_change_target_latch_ticks;
+
+    if (!macro_runtime_ready()) {
+        suspend_macro_runtime_for_transition();
+        poll_raw_keyboard(false);
+        poll_gamepad_hotkeys(peripheral, false);
+        return;
     }
 
     tick_snapshot_play_delay();
@@ -4173,10 +4081,10 @@ void __stdcall Macro::on_pad_update_tick(cPeripheral* peripheral) {
         macro_instance->check_hotkeys();
     }
     else {
-        poll_raw_keyboard(mod_enabled);
+        poll_raw_keyboard(true);
     }
 
-    poll_gamepad_hotkeys(peripheral, mod_enabled);
+    poll_gamepad_hotkeys(peripheral, true);
 }
 
 void __stdcall Macro::on_player_pad_update(cPeripheral* peripheral) {
@@ -4184,7 +4092,16 @@ void __stdcall Macro::on_player_pad_update(cPeripheral* peripheral) {
         return;
     }
 
-    uint32_t player_index = *(uint8_t*)((uintptr_t)peripheral + 0x95);
+    if (!macro_runtime_ready()) {
+        suspend_macro_runtime_for_transition();
+        return;
+    }
+
+    uint32_t player_index = 0;
+    if (!read_peripheral_player_index_safe(peripheral, player_index)) {
+        suspend_macro_runtime_for_transition();
+        return;
+    }
     if (player_index >= 4) {
         player_index = 0;
     }
@@ -4194,45 +4111,15 @@ void __stdcall Macro::on_player_pad_update(cPeripheral* peripheral) {
     write_test_input(peripheral, player_index);
 }
 
-uint32_t __stdcall Macro::on_player_input_tick(uPlayer* player, void* input_state, uint32_t inputs) {
-    (void)input_state;
-    if (!player || !input_state || !macro_exceed_active) {
-        return inputs;
-    }
-
-    __try {
-        if (player->controllerID != 1) {
-            return inputs;
-        }
-
-        *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + UPLAYER_EXCEED_INPUT_OFFSET) = 1.0f;
-        player->isExceeding = 1;
-        macro_exceed_player_state_written = true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return inputs;
-    }
-    return inputs;
-}
-
-void __stdcall Macro::on_player_input_press_written(uPlayer* player) {
-    if (!player || macro_change_target_latch_ticks == 0) {
+void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
+    if (!peripheral || !macro_runtime_ready()) {
+        suspend_macro_runtime_for_transition();
         return;
     }
-
-    __try {
-        if (player != get_local_player_safe()) {
-            return;
-        }
-
-        player->inputPress[0] |= 0x20;
-        macro_change_target_latch_ticks = 0;
+    if (player_index >= 4) {
+        player_index = 0;
     }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-    }
-}
 
-void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
     uint32_t buttons = 0;
     MacroFrame macro_frame{};
     const bool was_clearing_input = clear_input_frames > 0;
@@ -4270,7 +4157,6 @@ void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
             if (!found_frame) {
                 playback_enabled = false;
                 finalize_playback_timer();
-                clear_macro_exceed_runtime_state();
                 buttons = 0;
                 set_playback_status("Playback finished.");
                 update_input_active();
@@ -4278,7 +4164,10 @@ void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
         }
     }
 
-    write_base_player_input_snapshot(peripheral);
+    if (!write_base_player_input_snapshot(peripheral)) {
+        suspend_macro_runtime_for_transition();
+        return;
+    }
 
     const uint32_t base_buttons = peripheral->mPadBtnOn;
     const uint32_t output_buttons = base_buttons | buttons;
@@ -4286,16 +4175,12 @@ void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
     const uint32_t routed_global_buttons =
         macro_frame.global_buttons | resolve_global_action_buttons(macro_frame.actions, playback_character_role);
     const uint32_t previous_global_buttons = last_global_routed_buttons[player_index];
-    const bool previous_change_target_action = last_change_target_action[player_index];
 
     peripheral->mPadBtnOn = output_buttons;
     peripheral->mPadBtnTrg = output_buttons & ~previous_buttons;
     peripheral->mPadBtnRel = previous_buttons & ~output_buttons;
     apply_button_press_values(peripheral, output_buttons);
 
-    if (macro_frame.change_target && !previous_change_target_action) {
-        queue_macro_change_target_request();
-    }
     apply_global_pad_route_for_macro(macro_frame, routed_global_buttons, previous_global_buttons, player_index);
 
     if (macro_frame.has_left_analog) {
@@ -4318,25 +4203,14 @@ void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
     apply_one_hit_kill_action(macro_frame);
 
     last_buttons[player_index] = output_buttons;
-    last_change_target_action[player_index] = macro_frame.change_target;
     update_input_active();
 }
 
-void Macro::reset_input_state(bool preserve_macro_exceed_request) {
-    const uint32_t preserved_exceed_latch_ticks = macro_exceed_latch_ticks;
+void Macro::reset_input_state() {
     std::fill_n(last_buttons, 4, 0);
-    std::fill_n(last_change_target_action, 4, false);
     for (uint32_t player_index = 0; player_index < 4; ++player_index) {
         clear_global_macro_route(player_index);
     }
-    if (!preserve_macro_exceed_request) {
-        clear_macro_exceed_runtime_state();
-    }
-    else {
-        macro_exceed_latch_ticks = preserved_exceed_latch_ticks;
-        update_macro_exceed_active_from_latch();
-    }
-    macro_change_target_latch_ticks = 0;
     CharSwitcher::clear_macro_switch_request();
     playback_frame_index = 0;
     for (auto& frame : playback_frames) {
@@ -4837,6 +4711,15 @@ void Macro::restart_playback_clip(uint32_t clip_index) {
         set_screen_pause(false);
     }
 
+    if (!macro_runtime_ready()) {
+        playback_enabled = false;
+        clear_playback_timer();
+        reset_input_state();
+        update_input_active();
+        set_playback_status("Playback blocked: gameplay is unavailable.");
+        return;
+    }
+
     if (clip_index >= playback_clips.size() || !load_clip_into_playback_state(clip_index)) {
         playback_enabled = false;
         update_input_active();
@@ -4858,7 +4741,7 @@ void Macro::restart_playback_clip(uint32_t clip_index) {
     selected_clip_index = clip_index;
     mod_enabled = true;
     playback_enabled = true;
-    reset_input_state(true);
+    reset_input_state();
     queue_playback_timer_start();
     update_input_active();
 
@@ -4884,6 +4767,14 @@ void Macro::clear_snapshot_play_delay() {
 }
 
 bool Macro::load_snapshot_then_play() {
+    if (!macro_runtime_ready()) {
+        playback_enabled = false;
+        clear_snapshot_play_delay();
+        update_input_active();
+        set_playback_status("Load Snapshot + Play failed: gameplay is unavailable.");
+        return false;
+    }
+
     if (!load_playback_file()) {
         playback_enabled = false;
         clear_snapshot_play_delay();
@@ -4929,7 +4820,7 @@ void Macro::tick_snapshot_play_delay() {
         return;
     }
 
-    if (!mod_enabled || !macro_gameplay_ready()) {
+    if (!mod_enabled || !macro_runtime_ready()) {
         clear_snapshot_play_delay();
         return;
     }
@@ -4956,8 +4847,6 @@ void Macro::stop_all_input() {
 
     playback_enabled = false;
     finalize_playback_timer();
-    clear_macro_exceed_runtime_state();
-    macro_change_target_latch_ticks = 0;
     CharSwitcher::clear_macro_switch_request();
     playback_frame_index = 0;
     clear_last_peripheral_output();
@@ -5022,13 +4911,14 @@ void Macro::check_pause_interrupt() {
 void Macro::on_frame(fmilliseconds& dt) {
     (void)dt;
     check_auto_reload_file();
-    if (mod_enabled && !macro_gameplay_ready()) {
+    if (mod_enabled && !macro_runtime_ready()) {
         suspend_macro_runtime_for_transition();
         poll_raw_keyboard(false);
+        poll_gamepad_hotkeys(nullptr, false);
         return;
     }
 
-    if (macro_suspended_for_transition && macro_gameplay_ready()) {
+    if (macro_suspended_for_transition && macro_runtime_ready()) {
         macro_suspended_for_transition = false;
         set_playback_status("Macro ready.");
     }
@@ -5122,7 +5012,7 @@ void Macro::on_gui_frame(int display) {
                 }
             }
 
-            if (ImGui::CollapsingHeader(_("Keyboard Hotkeys"), ImGuiTreeNodeFlags_DefaultOpen) && m_hotkeys.size() >= 6) {
+            if (ImGui::CollapsingHeader(_("Keyboard Hotkeys"), ImGuiTreeNodeFlags_DefaultOpen) && m_hotkeys.size() >= 5) {
                 auto draw_macro_hotkey = [&](const char* action_label, uint32_t target, utility::Hotkey& hotkey) {
                     ImGui::PushID((int)target);
                     const auto label = hotkey_binds_label(hotkey.m_binds);
@@ -5147,11 +5037,11 @@ void Macro::on_gui_frame(int display) {
                     ImGui::PopID();
                 };
 
-                draw_macro_hotkey(_("Play Macro"), 2, *m_hotkeys[1]);
-                draw_macro_hotkey(_("Stop Macro / Clear Input"), 3, *m_hotkeys[2]);
-                draw_macro_hotkey(_("Capture Snapshot"), 4, *m_hotkeys[3]);
-                draw_macro_hotkey(_("Load Snapshot"), 5, *m_hotkeys[4]);
-                draw_macro_hotkey(_("Load Snapshot + Play Macro"), 6, *m_hotkeys[5]);
+                draw_macro_hotkey(_("Play Macro"), 1, *m_hotkeys[0]);
+                draw_macro_hotkey(_("Stop Macro / Clear Input"), 2, *m_hotkeys[1]);
+                draw_macro_hotkey(_("Capture Snapshot"), 3, *m_hotkeys[2]);
+                draw_macro_hotkey(_("Load Snapshot"), 4, *m_hotkeys[3]);
+                draw_macro_hotkey(_("Load Snapshot + Play Macro"), 5, *m_hotkeys[4]);
 
                 if (capture_hotkey_target != 0) {
                     ImGui::TextWrapped(_("Capturing hotkey: press a non-modifier key. Ctrl, Shift, and Alt are captured as modifiers."));
@@ -5245,7 +5135,7 @@ void Macro::on_gui_frame(int display) {
                 }
             }
 
-            if (!macro_gameplay_ready()) {
+            if (!macro_runtime_ready()) {
                 suspend_macro_runtime_for_transition();
                 ImGui::TextWrapped(_("Macro status: %s"), playback_status);
                 ImGui::Unindent(lineIndent);
@@ -5313,7 +5203,6 @@ void Macro::on_gui_frame(int display) {
 }
 
 void Macro::handle_hotkey_actions(
-    bool reload_pressed,
     bool restart_pressed,
     bool stop_pressed,
     bool capture_snapshot_pressed,
@@ -5327,12 +5216,6 @@ void Macro::handle_hotkey_actions(
         stop_all_input();
         DISPLAY_MESSAGE("Macro stopped");
         return;
-    }
-
-    if (reload_pressed) {
-        clear_snapshot_play_delay();
-        reload_playback_file();
-        DISPLAY_MESSAGE("Macro file reloaded");
     }
 
     if (load_snapshot_play_pressed) {
@@ -5363,7 +5246,6 @@ void Macro::handle_hotkey_actions(
 }
 
 void Macro::poll_raw_keyboard(bool trigger_actions) {
-    bool reload_pressed = false;
     bool restart_pressed = false;
     bool stop_pressed = false;
     bool capture_snapshot_pressed = false;
@@ -5390,12 +5272,12 @@ void Macro::poll_raw_keyboard(bool trigger_actions) {
         }
 
         if (trigger_actions) {
-            if (macro_instance && macro_instance->m_hotkeys.size() >= 6) {
-                auto& restart_hotkey = *macro_instance->m_hotkeys[1];
-                auto& stop_hotkey = *macro_instance->m_hotkeys[2];
-                auto& capture_snapshot_hotkey = *macro_instance->m_hotkeys[3];
-                auto& load_snapshot_hotkey = *macro_instance->m_hotkeys[4];
-                auto& load_snapshot_play_hotkey = *macro_instance->m_hotkeys[5];
+            if (macro_instance && macro_instance->m_hotkeys.size() >= 5) {
+                auto& restart_hotkey = *macro_instance->m_hotkeys[0];
+                auto& stop_hotkey = *macro_instance->m_hotkeys[1];
+                auto& capture_snapshot_hotkey = *macro_instance->m_hotkeys[2];
+                auto& load_snapshot_hotkey = *macro_instance->m_hotkeys[3];
+                auto& load_snapshot_play_hotkey = *macro_instance->m_hotkeys[4];
 
                 restart_pressed |= hotkey_message_matches(restart_hotkey, vkey);
                 stop_pressed |= hotkey_message_matches(stop_hotkey, vkey);
@@ -5432,7 +5314,6 @@ void Macro::poll_raw_keyboard(bool trigger_actions) {
 
     if (trigger_actions) {
         if (!is_game_window_foreground()) {
-            reload_pressed = false;
             restart_pressed = false;
             capture_snapshot_pressed = false;
             load_snapshot_pressed = false;
@@ -5440,8 +5321,8 @@ void Macro::poll_raw_keyboard(bool trigger_actions) {
             clip_hotkey_index = INVALID_CLIP_INDEX;
         }
 
-        handle_hotkey_actions(reload_pressed, restart_pressed, stop_pressed, capture_snapshot_pressed, load_snapshot_pressed, load_snapshot_play_pressed);
-        if (!reload_pressed && !restart_pressed && !stop_pressed && !capture_snapshot_pressed && !load_snapshot_pressed && !load_snapshot_play_pressed &&
+        handle_hotkey_actions(restart_pressed, stop_pressed, capture_snapshot_pressed, load_snapshot_pressed, load_snapshot_play_pressed);
+        if (!restart_pressed && !stop_pressed && !capture_snapshot_pressed && !load_snapshot_pressed && !load_snapshot_play_pressed &&
             clip_hotkey_index != INVALID_CLIP_INDEX) {
             restart_playback_clip(clip_hotkey_index);
             DISPLAY_MESSAGE("Macro clip playback started");
@@ -5572,7 +5453,6 @@ void Macro::poll_gamepad_hotkeys(cPeripheral* peripheral, bool trigger_actions) 
     }
 
     handle_hotkey_actions(
-        false,
         restart_pressed,
         stop_pressed,
         capture_snapshot_pressed,
@@ -5631,7 +5511,6 @@ void Macro::on_config_load(const utility::Config& cfg) {
     playback_enabled = false;
     clear_playback_timer();
     loaded_playback_path[0] = '\0';
-    reload_vkey = std::clamp(cfg.get<uint32_t>("keyboard_macro_reload_vkey").value_or(DEFAULT_RELOAD_VKEY), 1u, 255u);
     restart_vkey = std::clamp(cfg.get<uint32_t>("keyboard_macro_restart_vkey").value_or(DEFAULT_RESTART_VKEY), 1u, 255u);
     stop_vkey = std::clamp(cfg.get<uint32_t>("keyboard_macro_stop_vkey").value_or(DEFAULT_STOP_VKEY), 1u, 255u);
     capture_snapshot_vkey = std::clamp(cfg.get<uint32_t>("keyboard_macro_capture_snapshot_vkey").value_or(DEFAULT_CAPTURE_SNAPSHOT_VKEY), 1u, 255u);
@@ -5642,7 +5521,6 @@ void Macro::on_config_load(const utility::Config& cfg) {
         cfg.get<uint32_t>("keyboard_macro_snapshot_play_delay_ticks").value_or(POSITION_SNAPSHOT_LOAD_TICKS),
         MAX_SNAPSHOT_PLAY_DELAY_TICKS);
     restore_resources_snapshot = cfg.get<bool>("keyboard_macro_restore_resources").value_or(false);
-    auto_reload_file = true;
     stop_macro_on_game_pause = cfg.get<bool>("keyboard_macro_stop_on_game_pause").value_or(false);
     gamepad_hotkeys_enabled = cfg.get<bool>("keyboard_macro_gamepad_hotkeys").value_or(false);
     gamepad_hotkey_buttons[0] = sanitize_gamepad_hotkey_button(
@@ -5677,24 +5555,21 @@ void Macro::on_config_load(const utility::Config& cfg) {
                 default_button);
         }
     }
-    if (m_hotkeys.size() >= 6) {
-        if (!cfg.get("keyboard_macro_reload_file_key")) {
-            m_hotkeys[0]->m_default_keys = { reload_vkey };
-        }
+    if (m_hotkeys.size() >= 5) {
         if (!cfg.get("keyboard_macro_restart_key")) {
-            m_hotkeys[1]->m_default_keys = { restart_vkey };
+            m_hotkeys[0]->m_default_keys = { restart_vkey };
         }
         if (!cfg.get("keyboard_macro_stop_clear_key")) {
-            m_hotkeys[2]->m_default_keys = { stop_vkey };
+            m_hotkeys[1]->m_default_keys = { stop_vkey };
         }
         if (!cfg.get("keyboard_macro_capture_snapshot_key")) {
-            m_hotkeys[3]->m_default_keys = { capture_snapshot_vkey };
+            m_hotkeys[2]->m_default_keys = { capture_snapshot_vkey };
         }
         if (!cfg.get("keyboard_macro_load_snapshot_key")) {
-            m_hotkeys[4]->m_default_keys = { load_snapshot_vkey };
+            m_hotkeys[3]->m_default_keys = { load_snapshot_vkey };
         }
         if (!cfg.get("keyboard_macro_load_snapshot_play_key")) {
-            m_hotkeys[5]->m_default_keys = { load_snapshot_play_vkey };
+            m_hotkeys[4]->m_default_keys = { load_snapshot_play_vkey };
         }
     }
     refresh_playback_file_choices();
@@ -5722,27 +5597,23 @@ void Macro::on_config_save(utility::Config& cfg) {
     // Save legacy keyboard_macro_* keys for compatibility with earlier macro test builds.
     cfg.set<bool>("keyboard_macro_enabled", mod_enabled);
     ensure_keyboard_hotkeys(m_hotkeys);
-    if (m_hotkeys.size() >= 6) {
+    if (m_hotkeys.size() >= 5) {
         if (!m_hotkeys[0]->m_binds.empty()) {
-            reload_vkey = m_hotkeys[0]->m_binds.back();
+            restart_vkey = m_hotkeys[0]->m_binds.back();
         }
         if (!m_hotkeys[1]->m_binds.empty()) {
-            restart_vkey = m_hotkeys[1]->m_binds.back();
+            stop_vkey = m_hotkeys[1]->m_binds.back();
         }
         if (!m_hotkeys[2]->m_binds.empty()) {
-            stop_vkey = m_hotkeys[2]->m_binds.back();
+            capture_snapshot_vkey = m_hotkeys[2]->m_binds.back();
         }
         if (!m_hotkeys[3]->m_binds.empty()) {
-            capture_snapshot_vkey = m_hotkeys[3]->m_binds.back();
+            load_snapshot_vkey = m_hotkeys[3]->m_binds.back();
         }
         if (!m_hotkeys[4]->m_binds.empty()) {
-            load_snapshot_vkey = m_hotkeys[4]->m_binds.back();
-        }
-        if (!m_hotkeys[5]->m_binds.empty()) {
-            load_snapshot_play_vkey = m_hotkeys[5]->m_binds.back();
+            load_snapshot_play_vkey = m_hotkeys[4]->m_binds.back();
         }
     }
-    cfg.set<uint32_t>("keyboard_macro_reload_vkey", reload_vkey);
     cfg.set<uint32_t>("keyboard_macro_restart_vkey", restart_vkey);
     cfg.set<uint32_t>("keyboard_macro_stop_vkey", stop_vkey);
     cfg.set<uint32_t>("keyboard_macro_capture_snapshot_vkey", capture_snapshot_vkey);
@@ -5750,7 +5621,6 @@ void Macro::on_config_save(utility::Config& cfg) {
     cfg.set<uint32_t>("keyboard_macro_load_snapshot_play_vkey", load_snapshot_play_vkey);
     cfg.set<uint32_t>("keyboard_macro_snapshot_play_delay_ticks", snapshot_play_delay_ticks);
     cfg.set<bool>("keyboard_macro_restore_resources", restore_resources_snapshot);
-    cfg.set<bool>("keyboard_macro_auto_reload_file", true);
     cfg.set<bool>("keyboard_macro_stop_on_game_pause", stop_macro_on_game_pause);
     cfg.set<bool>("keyboard_macro_gamepad_hotkeys", gamepad_hotkeys_enabled);
     cfg.set<uint32_t>("keyboard_macro_gamepad_play_button", gamepad_hotkey_buttons[0]);
