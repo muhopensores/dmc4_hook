@@ -64,7 +64,6 @@ public:
     static uint32_t last_buttons[4];
     static uint32_t playback_frame_index;
     static uint32_t clear_input_frames;
-    static uint32_t reload_vkey;
     static uint32_t restart_vkey;
     static uint32_t stop_vkey;
     static uint32_t capture_snapshot_vkey;
@@ -73,7 +72,6 @@ public:
     static uint32_t snapshot_play_delay_ticks;
     static uint32_t action_button_map[MACRO_CHARACTER_ROLE_COUNT][MACRO_ACTION_SLOT_COUNT];
     static uint32_t gamepad_hotkey_buttons[5];
-    static bool auto_reload_file;
     static bool stop_macro_on_game_pause;
     static bool gamepad_hotkeys_enabled;
     static uint32_t playback_slot;
@@ -118,7 +116,6 @@ private:
     static void check_pause_interrupt();
     static std::string resolve_playback_path();
     static void handle_hotkey_actions(
-        bool reload_pressed,
         bool restart_pressed,
         bool stop_pressed,
         bool capture_snapshot_pressed,
