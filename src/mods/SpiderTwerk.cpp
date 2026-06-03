@@ -3,6 +3,7 @@
 #include "sdk/cResource.hpp"
 #include <D3dx9tex.h>
 
+bool SpiderTwerk::mod_enabled = false;
 #define SPIDERTWERK_RANDOM_TWERK 0
 
 static constexpr int       SPIDERTWERK_NUM_FRAMES    = 75;
@@ -174,17 +175,16 @@ void SpiderTwerk::on_frame(fmilliseconds& dt) {
     while(InterlockedCompareExchange((LONG*)(pTextureLoc), (LONG)twerk_frame, (LONG)(g_rt_agnus->cTransTexture->mD3D9Texture)) != (LONG)g_rt_agnus->cTransTexture->mD3D9Texture);
 }
 
-#if 0
 void SpiderTwerk::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
         if (ImGui::Checkbox(_("SpiderTwerk"), &mod_enabled)) {
-            toggle1(mod_enabled);
+            //toggle1(mod_enabled);
         }
         ImGui::SameLine();
         help_marker(_("SpiderTwerkHelpMarker"));
     }
 }
-#endif
+
 void SpiderTwerk::on_stage_start() {
     g_render_targets.clear();
 }

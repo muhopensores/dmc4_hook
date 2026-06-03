@@ -14,7 +14,7 @@ public:
     void toggle1(bool enable);
 
     void on_frame(fmilliseconds& dt) override;
-    //void on_gui_frame(int display) override;
+    void on_gui_frame(int display) override;
     void on_stage_start() override;
     void on_reset() override;
 

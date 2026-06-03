@@ -774,6 +774,8 @@ namespace gui {
 
                 pmods->on_draw_ui("MutatorSelfAdvertisement"_hash, DISPLAY_SYSTEM_A);
 
+                pmods->on_draw_ui("SpiderTwerk"_hash, DISPLAY_SYSTEM_A);
+
                 pmods->on_draw_ui("EffectColours"_hash, DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Testing"));
