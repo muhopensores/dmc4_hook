@@ -216,34 +216,34 @@ public:
     bool mPushMode;
     COLLISION_MGR_ID mCollisionMgrID;
     int mUniqueID;
-    uint mVsAttrPlAtk; /* Created by retype action */
-    uint mVsAttrPlDmg;
-    uint mVsAttrPlPsh;
-    uint mVsAttrPlGrb; /* Created by retype action */
-    uint mVsAttrPlFrdAtk;
-    uint mVsAttrPsAtk; /* Created by retype action */
-    uint mVsAttrPsDmg;
-    uint mVsAttrPsPsh;
-    uint mVsAttrPsGrb; /* Created by retype action */
-    uint mVsAttrPsFrdAtk;
-    uint mVsAttrEmAtk; /* Created by retype action */
-    uint mVsAttrEmDmg;
-    uint mVsAttrEmPsh;
-    uint mVsAttrEmGrb;    /* Created by retype action */
-    uint mVsAttrEmFrdAtk; /* Created by retype action */
-    uint mVsAttrEsAtk;    /* Created by retype action */
-    uint mVsAttrEsDmg;
-    uint mVsAttrEsPsh;
-    uint mVsAttrEsGrb;    /* Created by retype action */
-    uint mVsAttrEsFrdAtk; /* Created by retype action */
-    uint mVsAttrEm2Atk;   /* Created by retype action */
-    uint mVsAttrEm2Dmg;
-    uint mVsAttrEm2Psh;
-    uint mVsAttrEm2Grb;
-    uint mVsAttrEm2FrdAtk; /* Created by retype action */
-    uint mVsAttrEs2Atk;    /* Created by retype action */
-    uint mVsAttrEs2Dmg;
-    uint mVsAttrEs2Psh;
+    uint mVsAttrPlAtk; /* Created by retype action */ // 0x2b0
+    uint mVsAttrPlDmg; // 0x2b4
+    uint mVsAttrPlPsh; // 0x2b8
+    uint mVsAttrPlGrb; /* Created by retype action */ // 0x2bc
+    uint mVsAttrPlFrdAtk; // 0x2c0
+    uint mVsAttrPsAtk; /* Created by retype action */ // 0x2c4
+    uint mVsAttrPsDmg; // 0x2c8
+    uint mVsAttrPsPsh; // 0x2cc
+    uint mVsAttrPsGrb; /* Created by retype action */ // 0x2d0
+    uint mVsAttrPsFrdAtk; // 0x2d4
+    uint mVsAttrEmAtk; /* Created by retype action */ // 0x2d8
+    uint mVsAttrEmDmg; // 0x2dc
+    uint mVsAttrEmPsh; // 0x2e0
+    uint mVsAttrEmGrb;    /* Created by retype action */ // 0x2e4
+    uint mVsAttrEmFrdAtk; /* Created by retype action */ // 0x2e8
+    uint mVsAttrEsAtk;    /* Created by retype action */ // 0x2ec
+    uint mVsAttrEsDmg; // 0x2f0
+    uint mVsAttrEsPsh; // 0x2f4
+    uint mVsAttrEsGrb;    /* Created by retype action */ // 0x2f8
+    uint mVsAttrEsFrdAtk; /* Created by retype action */ // 0x2fc
+    uint mVsAttrEm2Atk;   /* Created by retype action */ // 0x300
+    uint mVsAttrEm2Dmg; // 0x304
+    uint mVsAttrEm2Psh; // 0x308
+    uint mVsAttrEm2Grb; // 0x30c
+    uint mVsAttrEm2FrdAtk; /* Created by retype action */ // 0x310
+    uint mVsAttrEs2Atk;    /* Created by retype action */ // 0x314
+    uint mVsAttrEs2Dmg; // 0x318
+    uint mVsAttrEs2Psh; // 0x31c
     uint mVsAttrEs2Grb;    /* Created by retype action */
     uint mVsAttrEs2FrdAtk; /* Created by retype action */
     uint mVsAttrSetAtk;    /* Created by retype action */
