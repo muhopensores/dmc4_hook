@@ -172,6 +172,7 @@
 #include "mods/ArcadeMode.hpp"
 #include "mods/FpsFixes.hpp"
 #include "mods/WitchTime.hpp"
+#include "mods/SpiderTwerk.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -354,6 +355,7 @@ Mods::Mods() {
     ADD_MOD(ArcadeMode);
     ADD_MOD(FpsFixes);
     ADD_MOD(WitchTime);
+    ADD_MOD(SpiderTwerk);
 }
 
 // Initializes mods, checks for errors
