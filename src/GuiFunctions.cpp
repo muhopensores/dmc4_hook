@@ -778,6 +778,8 @@ namespace gui {
 
                 pmods->on_draw_ui("EffectColours"_hash, DISPLAY_SYSTEM_A);
 
+                pmods->on_draw_ui("FriendlyFire"_hash, DISPLAY_SYSTEM_A);
+
                 ImGui::SeparatorText(_("Testing"));
 
                 ImGui::Checkbox(_("View ImGui Demo"), &showDemoWindow);

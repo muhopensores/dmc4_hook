@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/FriendlyFire.hpp
+  mods/FriendlyFire.cpp
   mods/SpiderTwerk.hpp
   mods/SpiderTwerk.cpp
   mods/WitchTime.hpp

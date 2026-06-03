@@ -326,6 +326,8 @@ void DebugCam::on_gui_frame(int display) {
         ImGui::BeginGroup();
         if (ImGui::Checkbox(_("Free Camera"), &mod_enabled)) {
             if (!mod_enabled) {
+                uPlayer* player = devil4_sdk::get_local_player();
+                if (!player) { return; } // quick fix for this crashing when unticking in a menu. this also means you can't use it to restore cutscene cam
                 toggle_gameplay_cam = true;
                 ToggleGameplayCam(toggle_gameplay_cam);
             }

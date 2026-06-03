@@ -868,12 +868,12 @@ void Survival::on_gui_frame(int display) {
         }
         ImGui::SameLine();
         help_marker(_("Spawn random meme modifier pickups spawned near your location to try to avoid (or target)"));
-        /*
+#if 1
         if (mod_enabled) {
             ImGui::Indent(lineIndent);
             if (timer) ImGui::InputFloat("Spawn Timer", (float*)&timer->m_time);
             if (ImGui::Button("Spawn Player")) {
-                EnemySpawn::spawn_player();
+                EnemySpawn::spawn_dante();
             }
             ImGui::Indent(lineIndent);
             ImGui::InputInt("Wave", &Survival::wave);
@@ -881,7 +881,7 @@ void Survival::on_gui_frame(int display) {
                 basicPowerUpSystem->spawnRandomPowerUp();
             }
             if (ImGui::Button("Spawn Enemy")) {
-                Survival::spawn_kinda_random_enemy();
+                Survival::spawn_standard_enemy();
             }
             if (ImGui::Button("Reset Wave")) {
                 Survival::reset_wave();
@@ -898,7 +898,7 @@ void Survival::on_gui_frame(int display) {
             ImGui::Unindent(lineIndent);
 
         }
-        */
+ #endif
         //ImGui::EndGroup();
     }
 }

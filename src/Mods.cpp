@@ -173,6 +173,7 @@
 #include "mods/FpsFixes.hpp"
 #include "mods/WitchTime.hpp"
 #include "mods/SpiderTwerk.hpp"
+#include "mods/FriendlyFire.hpp"
 
 constexpr size_t MODS_NUM{ 256 };
 
@@ -356,6 +357,7 @@ Mods::Mods() {
     ADD_MOD(FpsFixes);
     ADD_MOD(WitchTime);
     ADD_MOD(SpiderTwerk);
+    ADD_MOD(FriendlyFire);
 }
 
 // Initializes mods, checks for errors
