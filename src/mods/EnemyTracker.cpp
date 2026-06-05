@@ -165,7 +165,6 @@ int EnemyTracker::get_enemy_specific_uCollision_offset(int enemy_id) {
     case BASILISK:
         return 0x7BD0;
 
-
     // case SANCTUS_M11:
     //     return 0x1CF0;
     // case SANCTUS_M20:

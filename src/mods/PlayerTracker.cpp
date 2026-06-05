@@ -1009,6 +1009,10 @@ void PlayerTracker::on_gui_frame(int display) {
                         ImGui::InputScalar(entryText, ImGuiDataType_S32, &mL, NULL, NULL, "%8X", ImGuiInputTextFlags_CharsHexadecimal);
                         MtDTI* dti = devil4_sdk::get_DTI(mL);
                         ImGui::SameLine();
+                        if (ImGui::Button("Delete")) {
+                            uactor_sdk::despawn(mL);
+                        }
+                        ImGui::SameLine();
                         ImGui::Text(dti->m_name);
                         mL = mL->mp_next_unit;
                         mLCount++;
