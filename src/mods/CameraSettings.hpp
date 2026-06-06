@@ -34,6 +34,8 @@ public:
     static bool force_last_enemy_zoom;
     static bool pause_camera_enabled;
     static bool camera_lockon_corrects;
+    static bool disable_boss_camera;
+    void toggle_boss_camera(bool toggle);
 
     std::string get_mod_name() override { return "CameraSettings"; };
 
@@ -65,6 +67,7 @@ private:
     std::unique_ptr<FunctionHook> camera_sens_clockwise_hook;
     std::unique_ptr<FunctionHook> camera_sens_anti_clockwise_hook;
     std::unique_ptr<FunctionHook> camera_sens_brakes_hook;
+    std::unique_ptr<Patch> disable_boss_cam_patch1;
     std::unique_ptr<Patch> attack_towards_cam_patch1;
     std::unique_ptr<Patch> patch_camera_lookdown;
     std::unique_ptr<Patch> camera_disable_last_enemy_zoom_patch;

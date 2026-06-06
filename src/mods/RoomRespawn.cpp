@@ -184,13 +184,13 @@ std::optional<std::string> RoomRespawn::on_initialize() {
 // onConfigSave
 // save your data into cfg structure.
 void RoomRespawn::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("respawn_enemies_when_revisiting_rooms", g_reset_manager);
+    // cfg.set<bool>("respawn_enemies_when_revisiting_rooms", g_reset_manager);
 }
 
 // onConfigLoad
 // load data into variables from config structure.
 void RoomRespawn::on_config_load(const utility::Config& cfg) {
-    g_reset_manager = cfg.get<bool>("respawn_enemies_when_revisiting_rooms").value_or(false);
+    // g_reset_manager = cfg.get<bool>("respawn_enemies_when_revisiting_rooms").value_or(false);
 }
 
 // onGUIframe()

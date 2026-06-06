@@ -19,6 +19,7 @@ bool CameraSettings::disable_last_enemy_zoom = false;
 bool CameraSettings::force_last_enemy_zoom = false;
 bool CameraSettings::pause_camera_enabled = false;
 bool CameraSettings::camera_lockon_corrects = false;
+bool CameraSettings::disable_boss_camera = false;
 
 constexpr ptrdiff_t camera_towards_auto_correct1 = 0x19514;
 
@@ -335,6 +336,16 @@ naked void camera_sens_brakes_proc(void) {
     }
 }
 
+void CameraSettings::toggle_boss_camera(bool toggle) {
+    
+    if (toggle) {
+        install_patch_offset(0xC7D8B, disable_boss_cam_patch1, "\xb0\x01", 2); // mov al,1
+    }
+    else {
+        disable_boss_cam_patch1.reset(); // xor al,al
+    }
+}
+
 void CameraSettings::toggle_attack_towards_cam(bool toggle) {
     if (toggle) {
         install_patch_offset(camera_towards_auto_correct1, attack_towards_cam_patch1, "\xE9\x21\x03\x00\x00\x90", 6); // jmp DevilMayCry4_DX9.exe+1983A
@@ -450,6 +461,12 @@ void CameraSettings::on_gui_frame(int display) {
         }
         ImGui::SameLine();
         help_marker(_("When above the locked on enemy the camera will look down"));
+
+        if (ImGui::Checkbox(_("Disable Boss Camera"), &disable_boss_camera)) {
+            toggle_boss_camera(disable_boss_camera);
+        }
+        ImGui::SameLine();
+        help_marker(_("Disable the camera still locking on to the boss while you're not locked on"));
     }
     if (display == DISPLAY_SYSTEM_B) {
         ImGui::Checkbox(_("Enable Camera Settings And Hotkeys"), &mod_enabled);
@@ -671,6 +688,8 @@ void CameraSettings::on_config_load(const utility::Config& cfg) {
     if (pause_camera_enabled) toggle_pause_camera(pause_camera_enabled);
     camera_lockon_corrects = cfg.get<bool>("camera_lockon_corrects").value_or(false);
     if (camera_lockon_corrects) toggle_camera_lockon_corrects(camera_lockon_corrects);
+    disable_boss_camera = cfg.get<bool>("disable_boss_camera").value_or(false);
+    if (disable_boss_camera) toggle_boss_camera(disable_boss_camera);
 }
 
 void CameraSettings::on_config_save(utility::Config& cfg) {
@@ -691,4 +710,5 @@ void CameraSettings::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("force_last_enemy_zoom", force_last_enemy_zoom);
     cfg.set<bool>("pause_camera_enabled", pause_camera_enabled);
     cfg.set<bool>("camera_lockon_corrects", camera_lockon_corrects);
+    cfg.set<bool>("disable_boss_camera", disable_boss_camera);
 }

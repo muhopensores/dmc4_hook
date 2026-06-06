@@ -95,13 +95,12 @@ static bool IsInvalidSwap(uintptr_t from, uintptr_t to) {
 
         (from == basilisk_address && to == angelo_bianco_address) ||
 
-        (from == scarecrow_mega_address && to == angelo_bianco_address)
+        (from == scarecrow_mega_address && to == angelo_bianco_address) ||
 
         // there is too much here to bother with
-        /*// (from == berial_address && to == dante_address) ||
+        // (from == berial_address && to == dante_address) ||
         (from == berial_address && to == echidna_address) || // camera and collision goes crazy
         (from == berial_address && to == bael_address) ||
-        (from == berial_address && to == agnus_address) || // camera
         (from == berial_address && to == sanctus_address) ||
         (from == berial_address && to == sanctus_dia_address) ||
 
@@ -118,11 +117,13 @@ static bool IsInvalidSwap(uintptr_t from, uintptr_t to) {
         // (from == credo_address && to == dante_address) ||
         (from == credo_address && to == sanctus_address) ||
         (from == credo_address && to == sanctus_dia_address) ||
+        (from == credo_address && to == echidna_address) ||
 
         // (from == agnus_address && to == dante_address) ||
         (from == agnus_address && to == credo_address) ||
         (from == agnus_address && to == sanctus_address) ||
-        (from == agnus_address && to == bael_address)
+        (from == agnus_address && to == bael_address) ||
+        (from == agnus_address && to == echidna_address)
 
         // probably necesasry, haven't checked
         // (from == sanctus_address && to == berial_address) ||
@@ -131,7 +132,7 @@ static bool IsInvalidSwap(uintptr_t from, uintptr_t to) {
         // (from == sanctus_address && to == credo_address) ||
         // (from == sanctus_address && to == agnus_address) ||
         // (from == sanctus_address && to == sanctus_dia_address)
-        */
+        
         ) {
         return true;
     }
@@ -195,21 +196,21 @@ static uintptr_t RandomizeEnemy(uintptr_t addr) {
                 valid_pool.push_back(&enemy);
             }
             break;
-        // case EnemyCategory::BossEnemy:
-        //     if (enemy.category == EnemyCategory::BossEnemy) {
-        //         valid_pool.push_back(&enemy);
-        //     }
-        //     break;
+        case EnemyCategory::BossEnemy:
+            if (enemy.category == EnemyCategory::BossEnemy) {
+                valid_pool.push_back(&enemy);
+            }
+            break;
         }
     }
 
-    valid_pool.erase(std::remove_if(valid_pool.begin(), valid_pool.end(), [&](const EnemyEntry* e) { return e->wrapper_address == addr; }), valid_pool.end());
+    // valid_pool.erase(std::remove_if(valid_pool.begin(), valid_pool.end(), [&](const EnemyEntry* e) { return e->wrapper_address == addr; }), valid_pool.end()); // exclude self
     if (valid_pool.empty()) {
         return addr;
     }
     std::uniform_int_distribution<size_t> dist(0, valid_pool.size() - 1);
     return valid_pool[dist(EnemyReplace::rng)]->wrapper_address;
-    //return bael_address;
+    //return agnus_address;
 }
 
 // this detour could replace all these jumps and save the need for worrying about cyclical replacements
