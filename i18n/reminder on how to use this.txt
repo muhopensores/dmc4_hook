@@ -1,0 +1,4 @@
+install gettext
+open powershell in dmc4_hook root
+$env:Path += ";$PWD\i18n"
+.\update-localization.ps1

@@ -189,9 +189,9 @@ void JointDisplay::on_frame(fmilliseconds& dt) {
 
 void JointDisplay::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
-        ImGui::Checkbox(_("JointDisplay"), &mod_enabled);
+        ImGui::Checkbox(_("Joint Display"), &mod_enabled);
         ImGui::SameLine();
-        help_marker(_("JointDisplayHelpMarker"));
+        help_marker(_("Display Joints in the game world"));
 
         ImGui::Checkbox(_("Show Manipulators"), &show_manipulators);
     }

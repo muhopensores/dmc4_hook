@@ -31,7 +31,7 @@ bool FlyingStats::showFlyingLuciferPinTimers = false;
 static void DisplayCollisionData(uCollisionMgr* currentEnemyCollision, float currentItemWidth) {
     uintptr_t collisionSettingsAddress = *(uintptr_t*)&currentEnemyCollision;
     ImGui::SetNextItemWidth(currentItemWidth);
-    if (ImGui::InputInt(_("Page"), &FlyingStats::collisionPage)) {
+    if (ImGui::InputInt(_("Page##EnemyFly"), &FlyingStats::collisionPage)) {
         if (FlyingStats::collisionPage < 0) FlyingStats::collisionPage = 0;
         if (FlyingStats::collisionPage > 21) FlyingStats::collisionPage = 21;
     }
@@ -396,7 +396,7 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                             }
                         }
                         if (enemy->ID == FROST) {
-                            ImGui::SliderInt(_("Heal Count"), &enemy->frostHealCount, 0, 5);
+                            ImGui::SliderInt(_("Heal Count##EnemyFly"), &enemy->frostHealCount, 0, 5);
                         }
                         if (enemy->ID == BLITZ) {
                             if (enemy->blitzElectric > 0.0f) {
@@ -451,7 +451,7 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                     }
                     if (showFlyingDebug) {
                         ImGui::PushItemWidth(currentItemWidth * 2.0f);
-                        ImGui::InputScalar(_("Base Addr"), ImGuiDataType_U32, &enemy, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
+                        ImGui::InputScalar(_("Base Addr##EnemyFly"), ImGuiDataType_U32, &enemy, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
                         ImGui::InputFloat3(_("Position##EnemyFly"), (float*)&enemy->position);
                         ImGui::InputFloat3(_("Rotation##EnemyFly"), (float*)&enemy->rotation);
                         ImGui::InputFloat3(_("Velocity##EnemyFly"), (float*)&enemy->velocity);

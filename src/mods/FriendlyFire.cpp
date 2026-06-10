@@ -20,27 +20,6 @@ void FriendlyFire::toggle1(bool enable) {
     }
 }
 
-static constexpr uintptr_t danteSpawnAddr         = 0x7B2130;
-static constexpr uintptr_t some_struct            = 0x00E552CC;
-static constexpr uintptr_t fptr_update_actor_list = 0x008DC540;
-static uintptr_t doppelAddr                       = NULL;
-static void spawn_dante() {
-    if (!devil4_sdk::get_local_player())
-        return;
-    __asm {
-		pushad
-		pushfd
-        call dword ptr [danteSpawnAddr]
-        mov [doppelAddr], eax
-        mov esi, eax
-        mov eax, [some_struct]
-        mov eax, [eax]
-        push 0x0F
-        call fptr_update_actor_list
-		popfd
-		popad
-    }
-}
 
 /*naked void detour1() {
     _asm {
@@ -59,17 +38,8 @@ static void spawn_dante() {
 
 void FriendlyFire::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
-        if (ImGui::Checkbox(_("FriendlyFire"), &mod_enabled)) {
+        if (ImGui::Checkbox(_("Friendly Fire"), &mod_enabled)) {
             toggle1(mod_enabled);
-        }
-        ImGui::SameLine();
-        help_marker(_("FriendlyFireHelpMarker"));
-        if (mod_enabled) {
-            ImGui::Indent(lineIndent);
-            if (ImGui::Button("spawn extra dante")) {
-                spawn_dante();
-            }
-            ImGui::Unindent(lineIndent);
         }
     }
 }
