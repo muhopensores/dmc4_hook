@@ -732,14 +732,14 @@ void Coop::on_gui_frame(int display) {
             }
         }
 
-        if (ImGui::Button("Spawn Nero")) {
+        if (ImGui::Button(_("Spawn Nero##Coop"))) {
             player_factory(0, 1);
             make_cam();
             sCamera* s_cam            = *(sCamera**)sCamera_ptr;
             s_cam->viewports[0].mMode = REGION_TOP;
             s_cam->viewports[1].mMode = REGION_BOTTOM;
         }
-        if (ImGui::Button("Spawn Dante")) {
+        if (ImGui::Button(_("Spawn Dante##Coop"))) {
             player_factory(1, 1);
             make_cam();
             sCamera* s_cam            = *(sCamera**)sCamera_ptr;
