@@ -214,6 +214,7 @@ static uintptr_t RandomizeEnemy(uintptr_t addr) {
 }
 
 // this detour could replace all these jumps and save the need for worrying about cyclical replacements
+// We should find an earlier inject point. This one relies on the previous enemy having the correct spawn anim for the new enemy
 naked void detour1() {
     _asm {
         cmp byte ptr [EnemyReplace::enemy_randomizer_enabled], 1

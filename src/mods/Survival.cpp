@@ -360,12 +360,16 @@ static int get_random_spawn_anim(SpawnableEnemyType type) {
     return anims[Survival::get_random_int(0, (int)(anims.size()) - 1)];
 }
 
-static void set_survival_enemy_position(
-    uEnemySomething* enemy, SpawnableEnemyType type, int spawnAnim) { // not in survival.hpp to save including EnemySpawn.hpp
+static void set_survival_enemy_pos_and_anim(uEnemySomething* enemy, SpawnableEnemyType type, int spawnAnim) { // not in survival.hpp to save including EnemySpawn.hpp
     if (!enemy) {
         return;
     }
-    enemy->m_spawn_coords = Survival::get_random_spawn_position();
+    if (type == SpawnableEnemyType::ASSAULT && spawnAnim == 0) { // sry
+        enemy->m_spawn_coords = devil4_sdk::get_local_player()->mPos;
+    }
+    else {
+        enemy->m_spawn_coords = Survival::get_random_spawn_position();
+    }
     if (spawnAnim >= 0) {
         enemy->m_enemy_spawn_effect_something = spawnAnim;
     } else {
@@ -376,7 +380,7 @@ static void set_survival_enemy_position(
 static void spawn_enemy(SpawnableEnemyType index, int spawnAnim = -1) {
     uintptr_t em_function_pointer = enemy_spawn_info.at((size_t)size_t(index)).factory;
     if (!devil4_sdk::get_local_player())
-        return;       // only work while character is loaded
+        return; // only work while character is loaded
     __asm {
 		pushad
 		pushfd
@@ -387,7 +391,7 @@ static void spawn_enemy(SpawnableEnemyType index, int spawnAnim = -1) {
         push spawnAnim
         push index
         push esi
-        call set_survival_enemy_position
+        call set_survival_enemy_pos_and_anim
         add esp, 0xc
         popad
 
