@@ -46,7 +46,7 @@ naked uintptr_t* spawn_pickup_effect(int item_id, Vector3f* pos) {
     _asm {
         push ebp
         mov ebp,esp
-            // pushad
+        // pushad
         mov ecx, [mt_heap_alloc_static_ptr] // UnitAllocator (mt_heap_alloc_static_ptr)
         mov ecx, [ecx]
         mov edx, [ecx]
@@ -261,8 +261,10 @@ void PowerUpSystem::applyPowerUpEffect(PowerUp& powerup) {
         def->onActivate();
     }
 
-    if (powerup.visualEffectPtr)
+    if (powerup.visualEffectPtr) {
         kill_pickup_effect(powerup.visualEffectPtr);
+        powerup.visualEffectPtr = nullptr;
+    }
     
     powerup.effectActive = true;
     
@@ -274,10 +276,12 @@ void PowerUpSystem::applyPowerUpEffect(PowerUp& powerup) {
 }
 
 void PowerUpSystem::clearPowerUps() {
-    for (auto& powerup : m_powerUps) {
-        if (powerup.visualEffectPtr)
+    /*for (auto& powerup : m_powerUps) { // was destroying things after they were destroyed by alt f4
+        if (powerup.visualEffectPtr) {
             kill_pickup_effect(powerup.visualEffectPtr);
-    }
+            powerup.visualEffectPtr = nullptr;
+        }
+    }*/
     m_powerUps.clear();
 }
 
@@ -319,8 +323,10 @@ bool PowerUpSystem::removePowerUp(const std::string& typeId) {
         // Also remove any spawned powerups of this type
         for (auto powerupIt = m_powerUps.begin(); powerupIt != m_powerUps.end();) {
             if (powerupIt->typeId == typeId) {
-                if (powerupIt->visualEffectPtr) kill_pickup_effect(powerupIt->visualEffectPtr);
-                powerupIt = m_powerUps.erase(powerupIt);
+                if (powerupIt->visualEffectPtr) {
+                    kill_pickup_effect(powerupIt->visualEffectPtr);
+                    powerupIt = m_powerUps.erase(powerupIt);
+                }
             } else {
                 ++powerupIt;
             }

@@ -48,6 +48,7 @@ public:
     static void spawn_standard_enemy();
     static void spawn_boss_enemy();
     static void spawn_side_enemy();
+    static glm::vec3 get_random_spawn_position();
 
     void on_frame(fmilliseconds& dt) override;
     void on_gui_frame(int display) override;

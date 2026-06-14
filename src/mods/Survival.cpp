@@ -17,6 +17,9 @@
 #include "DarkSoulsStamina.hpp"
 #include "imgui_internal.h"
 
+static constexpr uintptr_t some_struct            = 0x00E552CC;
+static constexpr uintptr_t fptr_update_actor_list = 0x008DC540;
+
 class WaveConfig {
 public:
     int max_enemies_with_boss;
@@ -29,18 +32,18 @@ public:
     int boss_spawn_chance;
     int side_enemy_spawn_chance;
     int powerup_spawn_chance;
-    std::vector<EnemyType> standard_enemies;
-    std::vector<EnemyType> side_enemies;
-    std::vector<EnemyType> boss_enemies;
+    std::vector<SpawnableEnemyType> standard_enemies;
+    std::vector<SpawnableEnemyType> side_enemies;
+    std::vector<SpawnableEnemyType> boss_enemies;
     WaveConfig(
         int _max_with_boss, int _max_without_boss,
         int _ldk_max_with_boss, int _ldk_max_without_boss,
         int _boss_cooldown, int _max_bosses,
         int _max_side_enemies,
         int _boss_chance, int _side_chance, int _powerup_chance,
-        const std::vector<EnemyType>& _standard_enemies = {},
-        const std::vector<EnemyType>& _side_enemies = {},
-        const std::vector<EnemyType>& _boss_enemies = {}
+        const std::vector<SpawnableEnemyType>& _standard_enemies = {},
+        const std::vector<SpawnableEnemyType>& _side_enemies = {},
+        const std::vector<SpawnableEnemyType>& _boss_enemies = {}
     ) :
         max_enemies_with_boss(_max_with_boss),
         max_enemies_without_boss(_max_without_boss),
@@ -137,9 +140,9 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         0,  // boss_spawn_chance
         0,  // side_enemy_spawn_chance
         3,  // powerup_spawn_chance
-        {EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_MEGA}, // tier 1 enemies with duplicates for less chance of mega
-        {EnemyType::CHIMERA_SEED, EnemyType::CUTLASS, EnemyType::GLADIUS}, // Side enemies
-        {EnemyType::BLITZ, EnemyType::CREDO, EnemyType::BERIAL, EnemyType::BAEL} // Boss enemies
+        {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA}, // tier 1 enemies with duplicates for less chance of mega
+        {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // Side enemies
+        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
     )},
     
     {10, WaveConfig( // 5-10 // introduce tier 2 enemies
@@ -153,10 +156,10 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         0,  // boss_spawn_chance
         0,  // side_enemy_spawn_chance
         3,  // powerup_spawn_chance
-        {EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_MEGA, // tier 1 enemies
-         EnemyType::ANGELO_BIANCO, EnemyType::MEPHISTO, EnemyType::ASSAULT}, // tier 2 enemies
-        {EnemyType::CHIMERA_SEED, EnemyType::CUTLASS, EnemyType::GLADIUS}, // side enemies
-        {EnemyType::BLITZ, EnemyType::CREDO, EnemyType::BERIAL, EnemyType::BAEL} // Boss enemies
+        {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA, // tier 1 enemies
+         SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT}, // tier 2 enemies
+        {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // side enemies
+        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
     )},
     
     {20, WaveConfig( // 20-30 // introduce tier 3 enemies
@@ -170,11 +173,11 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         0,  // boss_spawn_chance
         0,  // side_enemy_spawn_chance
         3,  // powerup_spawn_chance
-        {EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_MEGA, // tier 1 enemies
-         EnemyType::ANGELO_BIANCO, EnemyType::MEPHISTO, EnemyType::ASSAULT, // tier 2 enemies
-         EnemyType::FROST, EnemyType::ANGELO_ALTO, EnemyType::BASILISK}, // tier 3 enemies
-        {EnemyType::CHIMERA_SEED, EnemyType::CUTLASS, EnemyType::GLADIUS}, // side enemies
-        {EnemyType::BLITZ, EnemyType::CREDO, EnemyType::BERIAL, EnemyType::BAEL} // Boss enemies
+        {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA, // tier 1 enemies
+         SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT, // tier 2 enemies
+         SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK}, // tier 3 enemies
+        {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // side enemies
+        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
     )},
     
     {30, WaveConfig( // 30-40 // introduce side enemies
@@ -188,11 +191,11 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         0,  // boss_spawn_chance
         8,  // side_enemy_spawn_chance
         3,  // powerup_spawn_chance
-        {EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_MEGA, // tier 1 enemies
-         EnemyType::ANGELO_BIANCO, EnemyType::MEPHISTO, EnemyType::ASSAULT, // tier 2 enemies
-         EnemyType::FROST, EnemyType::ANGELO_ALTO, EnemyType::BASILISK}, // tier 3 enemies
-        {EnemyType::CHIMERA_SEED, EnemyType::CUTLASS, EnemyType::GLADIUS}, // side enemies
-        {EnemyType::BLITZ, EnemyType::CREDO, EnemyType::BERIAL, EnemyType::BAEL} // Boss enemies
+        {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA, // tier 1 enemies
+         SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT, // tier 2 enemies
+         SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK}, // tier 3 enemies
+        {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // side enemies
+        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
     )},
     
     {40, WaveConfig( // 40-50 // introduce tier 4 enemies
@@ -206,12 +209,12 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         0,  // boss_spawn_chance
         8,  // side_enemy_spawn_chance
         3,  // powerup_spawn_chance
-        {EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_MEGA, // tier 1 enemies
-         EnemyType::ANGELO_BIANCO, EnemyType::MEPHISTO, EnemyType::ASSAULT, // tier 2 enemies
-         EnemyType::FROST, EnemyType::ANGELO_ALTO, EnemyType::BASILISK, // tier 3 enemies
-         EnemyType::FAUST}, // tier 4 enemies
-        {EnemyType::CHIMERA_SEED, EnemyType::CUTLASS, EnemyType::GLADIUS}, // side enemies
-        {EnemyType::BLITZ, EnemyType::CREDO, EnemyType::BERIAL, EnemyType::BAEL} // Boss enemies
+        {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA, // tier 1 enemies
+         SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT, // tier 2 enemies
+         SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK, // tier 3 enemies
+         SpawnableEnemyType::FAUST}, // tier 4 enemies
+        {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // side enemies
+        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
     )},
     
     {50, WaveConfig( // 40-50 // introduce bosses
@@ -225,12 +228,12 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         8,  // boss_spawn_chance
         8,  // side_enemy_spawn_chance
         3,  // powerup_spawn_chance
-        {EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_MEGA, // tier 1 enemies
-         EnemyType::ANGELO_BIANCO, EnemyType::MEPHISTO, EnemyType::ASSAULT, // tier 2 enemies
-         EnemyType::FROST, EnemyType::ANGELO_ALTO, EnemyType::BASILISK, // tier 3 enemies
-         EnemyType::FAUST}, // tier 4 enemies
-        {EnemyType::CHIMERA_SEED, EnemyType::CUTLASS, EnemyType::GLADIUS}, // side enemies
-        {EnemyType::BLITZ, EnemyType::CREDO, EnemyType::BERIAL, EnemyType::BAEL} // Boss enemies
+        {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA, // tier 1 enemies
+         SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT, // tier 2 enemies
+         SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK, // tier 3 enemies
+         SpawnableEnemyType::FAUST}, // tier 4 enemies
+        {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // side enemies
+        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
     )},
     
     {100, WaveConfig( // 50-100 // up enemy count + side enemy count
@@ -244,12 +247,12 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         8,  // boss_spawn_chance
         8,  // side_enemy_spawn_chance
         3,  // powerup_spawn_chance
-        {EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_MEGA, // tier 1 enemies
-         EnemyType::ANGELO_BIANCO, EnemyType::MEPHISTO, EnemyType::ASSAULT, // tier 2 enemies
-         EnemyType::FROST, EnemyType::ANGELO_ALTO, EnemyType::BASILISK, // tier 3 enemies
-         EnemyType::FAUST}, // tier 4 enemies
-        {EnemyType::CHIMERA_SEED, EnemyType::CUTLASS, EnemyType::GLADIUS}, // side enemies
-        {EnemyType::BLITZ, EnemyType::CREDO, EnemyType::BERIAL, EnemyType::BAEL} // Boss enemies
+        {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA, // tier 1 enemies
+         SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT, // tier 2 enemies
+         SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK, // tier 3 enemies
+         SpawnableEnemyType::FAUST}, // tier 4 enemies
+        {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // side enemies
+        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
     )},
 
     {9999, WaveConfig( // 100+ // up enemy count + boss count + side enemy count, probably crashy with multiple bosses
@@ -263,12 +266,12 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         8,  // boss_spawn_chance
         8,  // side_enemy_spawn_chance
         3,  // powerup_spawn_chance
-        {EnemyType::SCARECROW_LEG, EnemyType::SCARECROW_ARM, EnemyType::SCARECROW_MEGA, // tier 1 enemies
-         EnemyType::ANGELO_BIANCO, EnemyType::MEPHISTO, EnemyType::ASSAULT, // tier 2 enemies
-         EnemyType::FROST, EnemyType::ANGELO_ALTO, EnemyType::BASILISK, // tier 3 enemies
-         EnemyType::FAUST}, // tier 4 enemies
-        {EnemyType::CHIMERA_SEED, EnemyType::CUTLASS, EnemyType::GLADIUS}, // side enemies
-        {EnemyType::BLITZ, EnemyType::CREDO, EnemyType::BERIAL, EnemyType::BAEL} // Boss enemies
+        {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA, // tier 1 enemies
+         SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT, // tier 2 enemies
+         SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK, // tier 3 enemies
+         SpawnableEnemyType::FAUST}, // tier 4 enemies
+        {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // side enemies
+        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
     )}
 };
 
@@ -311,12 +314,99 @@ static bool can_spawn_boss(const Survival::EnemyInfo& enemy_info, const WaveConf
     return enemy_info.bosses_alive < config.max_bosses;
 }
 
-static void spawn_enemy_from_pool(const std::vector<EnemyType>& enemy_pool) {
-    if (!enemy_pool.empty()) {
-        int random_index = Survival::get_random_int(0, enemy_pool.size() - 1);
-        EnemyType enemy_type = enemy_pool[random_index];
-        EnemySpawn::spawn_em00x(enemy_type);
+struct EnemySpawnInfo {
+    uintptr_t factory;
+    std::vector<int> spawn_anims;
+};
+
+static std::array<EnemySpawnInfo, 23> enemy_spawn_info{{
+    {0x0053F810, {4}},             // Leg Scarecrow
+    {0x0055E710, {4}},             // Arm Scarecrow
+    {0x0055F7E0, {4}},             // Mega Scarecrow
+    {0x00561A10, {1,4}},           // Bianco Angelo
+    {0x00576C80, {1,4}},           // Alto Angelo
+    {0x0057F1E0, {3,4}},           // Mephisto
+    {0x00595810, {3,4}},           // Faust
+    {0x005A3F60, {4}},             // Frost
+    {0x005B3170, {0,2}},           // Assault
+    {0x005D1760, {1,2,4}},         // Blitz
+    {0x005DC160, {2,3}},           // Chimera Seed
+    {0x005F37F0, {2}},             // Cutlass
+    {0x0060AFC0, {1,3,4,5,6,7,8}}, // Gladius
+    {0x0061A7B0, {3}},             // Basilisk
+    {0x00630AC0, {4}},             // Berial
+    {0x00649CB0, {0}},             // Bael
+    {0x00685340, {4}},             // Echidna
+    {0x006AA2C0, {4}},             // Credo
+    {0x006BDE60, {4}},             // Agnus
+    {0x006F81E0, {4}},             // Sanctus
+    {0x007022F0, {4}},             // Sanctus Diabolica
+    {0x00723C00, {4}},             // Kyrie
+    {0x007BF980, {4}},             // Dante
+}};
+
+glm::vec3 Survival::get_random_spawn_position() {
+    static constexpr float radius    = 800.0f; // 1200 for bp size
+    static constexpr float minHeight = 100.0f;
+    static constexpr float maxHeight = 400.0f;
+    float angle    = get_random_float(0.0f, 2.0f * 3.14159265f);
+    float distance = get_random_float(5.0f, radius);
+    float height   = get_random_float(minHeight, maxHeight);
+    return glm::vec3(std::cos(angle) * distance, height, std::sin(angle) * distance);
+}
+
+static int get_random_spawn_anim(SpawnableEnemyType type) {
+    std::vector anims = enemy_spawn_info.at((size_t)(type)).spawn_anims;
+    return anims[Survival::get_random_int(0, (int)(anims.size()) - 1)];
+}
+
+static void set_survival_enemy_position(
+    uEnemySomething* enemy, SpawnableEnemyType type, int spawnAnim) { // not in survival.hpp to save including EnemySpawn.hpp
+    if (!enemy) {
+        return;
     }
+    enemy->m_spawn_coords = Survival::get_random_spawn_position();
+    if (spawnAnim >= 0) {
+        enemy->m_enemy_spawn_effect_something = spawnAnim;
+    } else {
+        enemy->m_enemy_spawn_effect_something = get_random_spawn_anim(type);
+    }
+}
+
+static void spawn_enemy(SpawnableEnemyType index, int spawnAnim = -1) {
+    uintptr_t em_function_pointer = enemy_spawn_info.at((size_t)size_t(index)).factory;
+    if (!devil4_sdk::get_local_player())
+        return;       // only work while character is loaded
+    __asm {
+		pushad
+		pushfd
+		call em_function_pointer // make actor
+        mov esi, eax
+
+        pushad
+        push spawnAnim
+        push index
+        push esi
+        call set_survival_enemy_position
+        add esp, 0xc
+        popad
+
+        mov ecx, 0x0F
+        mov eax, [some_struct] // static
+		mov eax, [eax]
+        push 0x0F
+        call fptr_update_actor_list
+		popfd
+		popad
+    }
+}
+
+static void spawn_enemy_from_pool(const std::vector<SpawnableEnemyType>& enemy_pool) {
+    if (enemy_pool.empty()) {
+        return;
+    }
+    int random_index = Survival::get_random_int(0, (int)(enemy_pool.size()) - 1);
+    spawn_enemy(enemy_pool[random_index]);
 }
 
 void Survival::spawn_standard_enemy() {
@@ -536,12 +626,8 @@ void Survival::on_frame(fmilliseconds& dt) {
     }
 }
 
-static std::mutex g_mutex;
 static constexpr uintptr_t danteSpawnAddr = 0x7B2130;
-static constexpr uintptr_t some_struct = 0x00E552CC;
-static constexpr uintptr_t fptr_update_actor_list   = 0x008DC540;
 void EnemySpawn::spawn_dante() {
-    std::lock_guard<std::mutex> lk(g_mutex);
     if (!devil4_sdk::get_local_player()) return;
     __asm {
 		pushad

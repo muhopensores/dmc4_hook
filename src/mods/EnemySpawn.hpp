@@ -3,7 +3,7 @@
 #include "../mod.hpp"
 
 // These are not Enemy IDs, they are what we use for spawnable enemies
-enum class EnemyType : int {
+enum class SpawnableEnemyType : int {
     SCARECROW_LEG = 0,
     SCARECROW_ARM = 1,
     SCARECROW_MEGA = 2,
@@ -34,7 +34,7 @@ public:
     EnemySpawn() = default;
 
     std::string get_mod_name() override { return "EnemySpawn"; };
-    static void EnemySpawn::spawn_em00x(EnemyType index);
+    static void EnemySpawn::spawn_em00x(SpawnableEnemyType index);
     static void EnemySpawn::spawn_random_enemy();
     static void EnemySpawn::spawn_dante();
 
