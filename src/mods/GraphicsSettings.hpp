@@ -20,6 +20,9 @@ public:
     static bool shadow_upgrade_enabled;
     void shadowres_toggle(bool enable);
 
+    static bool water_upgrade_enabled;
+    void waterres_toggle(bool enable);
+
     // void on_frame(fmilliseconds& dt) override;
     void on_gui_frame(int display) override;
     std::optional<std::string> on_initialize() override;
@@ -32,5 +35,6 @@ private:
     std::unique_ptr<Patch> prop_fade_patch1;
     std::unique_ptr<Patch> bullet_casing_fade_patch1, bullet_casing_fade_patch2, bullet_casing_fade_patch3, bullet_casing_fade_patch4;
     std::unique_ptr<Patch> shadows_patch1, shadows_patch2;
+    std::unique_ptr<Patch> water_patch1, water_patch2;
     // std::unique_ptr<FunctionHook> hook1;
 };

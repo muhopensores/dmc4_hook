@@ -81,7 +81,7 @@ std::array<AreaJump::Room, 83> AreaJump::room_items {
     Room {500, __("Machina Ex Deus")},
     Room {501, __("Stairway to Heaven")},
     Room {502, __("Sacred Heart")},
-    Room {510, __("M18")},
+    Room {510, __("Sky Above Fortuna (M18)")},
     Room {512, __("Sky Above Fortuna")},
     Room {800, __("Secret Mission 1")},
     Room {801, __("Secret Mission 2")},
@@ -885,7 +885,7 @@ void AreaJump::on_gui_frame(int display) {
                 const bool is_selected = (item_current_idx == n);
                 // sigh
                 char buffer[MAX_PATH];
-                int result = snprintf(buffer, sizeof(buffer), "%s - %d", utility::text_lookup((char*)room_items[n].name), room_items[n].id);
+                int result = snprintf(buffer, sizeof(buffer), "%s - st%d", utility::text_lookup((char*)room_items[n].name), room_items[n].id);
                 IM_ASSERT(result > 0); // encoding error
                 IM_ASSERT(result < MAX_PATH); // output was truncated or null terminator didnt fit in
 

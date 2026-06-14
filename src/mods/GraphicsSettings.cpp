@@ -6,6 +6,7 @@
 bool GraphicsSettings::disable_prop_fade_enabled = false;
 bool GraphicsSettings::disable_bullet_casing_fade_enabled = false;
 bool GraphicsSettings::shadow_upgrade_enabled = false;
+bool GraphicsSettings::water_upgrade_enabled  = false;
 
 void GraphicsSettings::prop_fade_toggle(bool enable) {
     if (enable) {
@@ -47,6 +48,17 @@ void GraphicsSettings::shadowres_toggle(bool enable) {
     }
 }
 
+void GraphicsSettings::waterres_toggle(bool enable) {
+    if (enable) { // reset mid gameplay
+        install_patch_offset(0x6BF82B, water_patch1, "\x08", 1); // push 0x800 (2048)
+        install_patch_offset(0x6BF830, water_patch2, "\x08", 1); // push 0x800 (2048)
+    }
+    else {
+        water_patch1.reset(); // push 0x200 (512)
+        water_patch2.reset(); // push 0x200 (512)
+    }
+}
+
 // void on_frame(fmilliseconds& dt) {}
 
 void GraphicsSettings::on_gui_frame(int display) {
@@ -54,14 +66,23 @@ void GraphicsSettings::on_gui_frame(int display) {
         if (ImGui::Checkbox(_("Disable Prop Fade"), &disable_prop_fade_enabled)) {
             prop_fade_toggle(disable_prop_fade_enabled);
         }
+
         ImGui::SameLine(sameLineWidth);
+
         if (ImGui::Checkbox(_("Disable Bullet Casing Fade"), &disable_bullet_casing_fade_enabled)) {
             bullet_casing_fade_toggle(disable_bullet_casing_fade_enabled);
         }
         ImGui::SameLine();
         help_marker(_("This will kill your fps if you spawn too many\nAlso stops cartridges from spinning so they don't endlessly spin while on the floor"));
+
         if (ImGui::Checkbox(_("Increased Shadow Resolution"), &shadow_upgrade_enabled)) {
             shadowres_toggle(shadow_upgrade_enabled);
+        }
+
+        ImGui::SameLine(sameLineWidth);
+
+        if (ImGui::Checkbox(_("Increased Water Resolution"), &water_upgrade_enabled)) {
+            waterres_toggle(water_upgrade_enabled);
         }
     }
 }
@@ -81,14 +102,20 @@ std::optional<std::string> GraphicsSettings::on_initialize() {
 void GraphicsSettings::on_config_load(const utility::Config& cfg){
     disable_prop_fade_enabled = cfg.get<bool>("DisablePropFade").value_or(false);
     if (disable_prop_fade_enabled) prop_fade_toggle(disable_prop_fade_enabled);
+
     disable_bullet_casing_fade_enabled = cfg.get<bool>("DisableBulletCasingFade").value_or(false);
     if (disable_bullet_casing_fade_enabled) bullet_casing_fade_toggle(disable_bullet_casing_fade_enabled);
-    shadow_upgrade_enabled = cfg.get<bool>("GraphicsSettings").value_or(false);
+
+    shadow_upgrade_enabled = cfg.get<bool>("shadow_upgrade_enabled").value_or(false);
     if (shadow_upgrade_enabled) shadowres_toggle(shadow_upgrade_enabled);
+
+    water_upgrade_enabled = cfg.get<bool>("water_upgrade_enabled").value_or(false);
+    if (water_upgrade_enabled) waterres_toggle(water_upgrade_enabled);
 }
 
 void GraphicsSettings::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("DisablePropFade", disable_prop_fade_enabled);
     cfg.set<bool>("DisableBulletCasingFade", disable_bullet_casing_fade_enabled);
-    cfg.set<bool>("GraphicsSettings", shadow_upgrade_enabled);
+    cfg.set<bool>("shadow_upgrade_enabled", shadow_upgrade_enabled);
+    cfg.set<bool>("water_upgrade_enabled", water_upgrade_enabled);
 }
