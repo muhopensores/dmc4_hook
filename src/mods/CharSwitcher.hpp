@@ -1,10 +1,16 @@
 #pragma once
 
+#include <cstdint>
+
 #include "../mod.hpp"
 
 class CharSwitcher : public Mod {
 public:
     CharSwitcher() = default;
+
+    static constexpr uint32_t CHARACTER_NERO = 0;
+    static constexpr uint32_t CHARACTER_DANTE = 1;
+    static constexpr uint32_t CHARACTER_INVALID = 0xFFFFFFFFu;
 
     static bool mod_enabled;
     static bool mod_pending;
@@ -24,7 +30,16 @@ public:
 
     void toggle(bool enable);
     void toggle2(bool enable);
+    static bool is_ready();
+    static bool is_switch_settled();
+    static uint32_t current_character_role();
+    static uint32_t requested_character_role();
+    static uintptr_t current_actor_address();
+    static uintptr_t primary_actor_address();
+    static uintptr_t secondary_actor_address();
+    static uintptr_t inactive_actor_address();
     static bool request_macro_switch();
+    static bool request_switch_to_role(uint32_t character_role);
     static void clear_macro_switch_request();
 
     std::string get_mod_name() override { return "CharSwitcher"; };

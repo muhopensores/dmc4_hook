@@ -31,8 +31,6 @@ struct MacroFrame {
     bool one_hit_kill_set = false;
     bool one_hit_kill_value = false;
     bool one_hit_kill_toggle = false;
-    bool force_style = false;
-    int forced_style = -1;
     uint32_t wait_condition = 0;
     int wait_arg = 0;
     uint32_t wait_compare = 0;
@@ -42,6 +40,12 @@ struct MacroFrame {
     bool wait_initial_valid = false;
     uint32_t wait_max_ticks = 0;
     uint32_t wait_elapsed_ticks = 0;
+    uint32_t source_line_index = 0xFFFFFFFFu;
+};
+
+struct MacroSourceLine {
+    uint32_t line_number = 0;
+    std::string text{};
 };
 
 struct MacroClip {
@@ -49,7 +53,9 @@ struct MacroClip {
     std::vector<uint32_t> hotkey_binds{};
     uint32_t gamepad_hotkey_button = 0;
     std::vector<MacroFrame> frames{};
+    std::vector<MacroSourceLine> source_lines{};
     uint32_t character_role = MACRO_CHARACTER_INVALID;
+    bool switch_character_mode = false;
     uint32_t header_line = 0;
 };
 
@@ -70,14 +76,17 @@ public:
     static uint32_t load_snapshot_vkey;
     static uint32_t load_snapshot_play_vkey;
     static uint32_t snapshot_play_delay_ticks;
+    static uint32_t setup_play_delay_ticks;
     static uint32_t action_button_map[MACRO_CHARACTER_ROLE_COUNT][MACRO_ACTION_SLOT_COUNT];
-    static uint32_t gamepad_hotkey_buttons[5];
-    static bool stop_macro_on_game_pause;
+    static uint32_t gamepad_hotkey_buttons[7];
     static bool gamepad_hotkeys_enabled;
+    static bool playback_overlay_enabled;
     static uint32_t playback_slot;
     static uint32_t selected_clip_index;
     static uint32_t loaded_clip_index;
     static uint32_t playback_character_role;
+    static bool playback_switch_character_mode;
+    static uint32_t playback_current_frame_index;
     static bool screen_pause_active;
     static bool screen_pause_restore_valid;
     static float screen_pause_restore_speed;
@@ -88,6 +97,7 @@ public:
     static char playback_status[256];
     static std::vector<MacroClip> playback_clips;
     static std::vector<MacroFrame> playback_frames;
+    static std::vector<MacroSourceLine> playback_source_lines;
 
     static void __stdcall on_pad_update_tick(cPeripheral* peripheral);
     static void __stdcall on_player_pad_update(cPeripheral* peripheral);
@@ -98,7 +108,11 @@ public:
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
     void on_update_input(utility::Input& input) override;
+    void on_stage_start() override;
+    void on_stage_end() override;
     bool on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param) override;
+
+    static void prepare_for_external_transition();
 
 private:
     static void write_test_input(cPeripheral* peripheral, uint32_t player_index);
@@ -108,19 +122,26 @@ private:
     static void restart_playback();
     static void restart_playback_clip(uint32_t clip_index);
     static bool load_snapshot_then_play();
+    static uint32_t load_position_snapshot_or_queue_character_switch(uint32_t play_after_load_clip_index);
+    static bool load_macro_setup(bool play_after_load);
+    static uint32_t begin_macro_setup_load(uint32_t play_after_load_clip_index);
+    static void queue_playback_after_loaded(uint32_t clip_index, bool setup_source);
     static void clear_snapshot_play_delay();
-    static void tick_snapshot_play_delay();
+    static void tick_playback_delay();
+    static void tick_snapshot_character_switch();
+    static void tick_macro_setup_load();
     static void stop_all_input();
     static void update_input_active();
     static void check_auto_reload_file();
-    static void check_pause_interrupt();
     static std::string resolve_playback_path();
     static void handle_hotkey_actions(
         bool restart_pressed,
         bool stop_pressed,
         bool capture_snapshot_pressed,
         bool load_snapshot_pressed,
-        bool load_snapshot_play_pressed);
+        bool load_snapshot_play_pressed,
+        bool load_setup_pressed,
+        bool load_setup_play_pressed);
     static void poll_raw_keyboard(bool trigger_actions);
     static void poll_gamepad_hotkeys(cPeripheral* peripheral, bool trigger_actions);
     void check_hotkeys();

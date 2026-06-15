@@ -57,6 +57,9 @@ ModFramework::ModFramework()
 #ifndef NDEBUG
     spdlog::set_level(spdlog::level::debug);
 #endif
+
+    reframework::setup_exception_handler();
+
 #if 0
     // SteamStub shit
     // wait until steam drm unpacks itself
@@ -112,10 +115,6 @@ ModFramework::ModFramework()
     else {
         spdlog::error("Failed to hook XInput!");
     }
-
-#ifndef NDEBUG
-    reframework::setup_exception_handler();
-#endif
 
     FunctionHook::set_mh_skip_locks(FALSE);
 

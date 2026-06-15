@@ -30,13 +30,16 @@ public:
     static uintptr_t randomized_bp_1_continue;
     static uintptr_t randomized_bp_2_continue;
     static const Room* bp_stage(int floor);
-    static void jump_to_stage(const Room* stage);
+    static bool jump_to_stage(const Room* stage);
+    static bool jump_to_room_id(int room_id);
+    static bool jump_to_bp_floor(int floor);
     static bool is_valid_room_id(int id);
     static const Room* find_room_by_id(int id);
     static const Room* find_room_by_name(const csys::String& name);
     std::optional<std::string> on_initialize() override;
 
     void on_gui_frame(int display) override;
+    void on_frame(fmilliseconds& dt) override;
     void on_update_input(utility::Input& input) override;
 
     void on_config_load(const utility::Config& cfg) override;
