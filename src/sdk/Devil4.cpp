@@ -33,6 +33,31 @@ namespace devil4_sdk {
 	MtDTI* get_DTI(void* obj) {
         uintptr_t dti_call = *(uintptr_t*)(*(uintptr_t*)obj + 0x10);
         return ((MtDTI * (*)())(dti_call))();
+    }
+
+	bool load_arc(const char* arcPath) { // rets true if successful, false if failed or already exists
+        typedef char(__stdcall * LoadArcFn)(currentRoom*, const char*);
+        LoadArcFn loadArc = (LoadArcFn)0x40EB00;
+        sArea* area       = devil4_sdk::get_sArea();
+        if (!area) { return false; }
+        currentRoom* room = area->currentRoomPtr;
+        if (!room) { return false; }
+        return loadArc(room, arcPath);
+    }
+
+	uActor* easy_spawn(uintptr_t spawn_addr, int moveLine) {
+		__asm {
+			mov eax, spawn_addr
+			call eax
+			mov esi, eax
+			mov eax, [0x00E552CC] // sUnit::mpInstance (sUnit_ptr)
+			mov eax, [eax]
+			mov ecx, moveLine
+			push ecx
+			mov edx, 0x008DC540 // sUnit::addBottom (fptr_update_actor_list)
+			call edx
+			mov eax,esi
+		}
 	}
 
 	//_DWORD *__usercall uEm003Shl_ConstructorMaybe_sub_560330@<eax>(int a1@<eax>)
@@ -117,6 +142,21 @@ namespace devil4_sdk {
 		sUnit* s_unit_ptr = (sUnit*)*(uintptr_t*)sUnit_ptr;
 		return s_unit_ptr;
 	}
+
+	// return true if already exists
+	bool check_exists_in_moveline(uActor* actorToFind, int moveLine) {
+        if (!actorToFind) { return false; }
+        sUnit* s_unit_ptr = get_sUnit();
+        if (!s_unit_ptr) { return false; }
+        cUnit* unit = (cUnit*)s_unit_ptr->mMoveLine[moveLine].mTop;
+        while (unit) {
+            if ((uActor*)unit == actorToFind) {
+                return true;
+            }
+            unit = unit->mp_next_unit;
+        }
+        return false;
+    }
 
 	uEnemy_Old* get_uEnemies() {
 		sUnit* s_unit_ptr = get_sUnit();
@@ -232,6 +272,22 @@ namespace devil4_sdk {
 		bool ret = curr_state != state;
 		state = curr_state;
 		return ret;
+	}
+
+	bool is_playing() {
+		sMediator* sMed = devil4_sdk::get_sMediator();
+		if (!sMed)
+			return false;
+		uPlayer* player = sMed->player_ptr;
+		if (!player)
+			return false;
+		return (player->damageStruct.HP > 0.0f);
+	}
+
+	bool is_in_bp() {
+		sMediator* sMed = devil4_sdk::get_sMediator();
+		if (!sMed) return false;
+		return (sMed->missionID == 50);
 	}
 
 	std::pair<uint16_t, const char*> getButtonInfo(uint16_t buttonNum) {
@@ -565,6 +621,7 @@ namespace uactor_sdk {
 		}
 	}
 
+	// this is safe to be called if the obj does not exist
 	void __stdcall despawn(void* obj) {
 		_asm {
 			mov esi,[obj]

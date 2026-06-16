@@ -1,26 +1,24 @@
 #include "CustomProjectile.hpp"
 #include "sdk/Devil4.hpp"
 #include "sdk/MtDTI.hpp"
-#include "sdk/MtDTI.hpp"
 #include <cmath>
 
-// I want to static everything here but can't test this without files and don't wanna break shit ~Siy
 uintptr_t CustomProjectile::jmp_ret1 = NULL;
 uintptr_t CustomProjectile::jmp_ret2 = NULL;
-constexpr uintptr_t rModelDTI = 0x00EADF48;
-constexpr uintptr_t rAtckStatDTI = 0x00E57498;
-constexpr uintptr_t rColShapeDTI = 0x00E575F8;
-constexpr uintptr_t rDfdStatDTI = 0x00E57638;
-constexpr uintptr_t sDevil4Resource_ptr = 0x00E552D0;
-constexpr uintptr_t uActorVtablePtr = 0x00BC4B78; //uActor
-constexpr uintptr_t JavelinVtablePtr = 0x0BD4270;//uEmShl022Javelin
-constexpr size_t uActorVtableSize = 79;
-char* MODEL_PATH = "model\\game\\wp023\\wp023_06";
-char* ATK_PATH = "Collision\\vieris";
-char* COL_PATH = "Collision\\vieris";
-char* EFL_PATH = "effect\\efl\\ene\\ee006_40v0";
-std::unique_ptr<CustomProjectileVtable> CustomVtable;
-class MtDTI CustomDTI;
+static constexpr uintptr_t rModelDTI = 0x00EADF48;
+static constexpr uintptr_t rAtckStatDTI = 0x00E57498;
+static constexpr uintptr_t rColShapeDTI = 0x00E575F8;
+static constexpr uintptr_t rDfdStatDTI = 0x00E57638;
+static constexpr uintptr_t sDevil4Resource_ptr = 0x00E552D0;
+static constexpr uintptr_t uActorVtablePtr = 0x00BC4B78; //uActor
+static constexpr uintptr_t JavelinVtablePtr = 0x0BD4270;//uEmShl022Javelin
+static constexpr size_t uActorVtableSize = 79;
+static char* MODEL_PATH = "model\\game\\wp023\\wp023_06";
+static char* ATK_PATH = "Collision\\vieris";
+static char* COL_PATH = "Collision\\vieris";
+static char* EFL_PATH = "effect\\efl\\ene\\ee006_40v0";
+static std::unique_ptr<CustomProjectileVtable> CustomVtable;
+static class MtDTI CustomDTI;
 typedef void(__thiscall* rModelLoad)(void*, void*);
 
 naked void* __cdecl MemberFuncToPtr(...) {
@@ -30,7 +28,7 @@ naked void* __cdecl MemberFuncToPtr(...) {
     }
 }
 
-void __stdcall bring_assert(void* rFile) {
+static void __stdcall bring_assert(void* rFile) {
     uintptr_t assert_call = 0x008DDA00;
     _asm {
         mov eax,[sDevil4Resource_ptr]
@@ -40,7 +38,7 @@ void __stdcall bring_assert(void* rFile) {
     }
 }
 
-void __stdcall load_atk_col(void* rAtck, void* rCol, void* ColMgr, void*Obj) {
+static void __stdcall load_atk_col(void* rAtck, void* rCol, void* ColMgr, void* Obj) {
     uintptr_t load_call = 0x0050BDD0;
     _asm {
         pushad
@@ -53,7 +51,7 @@ void __stdcall load_atk_col(void* rAtck, void* rCol, void* ColMgr, void*Obj) {
     }
 }
 
-void __stdcall get_model(void* obj, void* model) {
+static void __stdcall get_model(void* obj, void* model) {
     _asm {
         pushad
         mov ecx,[obj]
@@ -66,7 +64,7 @@ void __stdcall get_model(void* obj, void* model) {
     }
 }
 
-void __stdcall updateLmat(void* obj) {
+static void __stdcall updateLmat(void* obj) {
     _asm {
         pushad
         mov ecx,[obj]
@@ -77,7 +75,7 @@ void __stdcall updateLmat(void* obj) {
     }
 }
 
-void __stdcall updateWmat(void* obj) {
+static void __stdcall updateWmat(void* obj) {
     _asm {
         pushad
         mov ecx,[obj]
@@ -88,7 +86,7 @@ void __stdcall updateWmat(void* obj) {
     }
 }
 
-void __stdcall despawn(void* obj) {
+static void __stdcall despawn(void* obj) {
     _asm {
         mov esi,[obj]
         mov eax,[esi+4]
@@ -98,7 +96,7 @@ void __stdcall despawn(void* obj) {
     }
 }
 
-void __stdcall ushell_des(void* obj) {
+static void __stdcall ushell_des(void* obj) {
     uintptr_t ushellDTI = 0x00BEE7C0;
     uintptr_t ushell_destructor = 0x004A7280;
     _asm {
@@ -112,7 +110,7 @@ void __stdcall ushell_des(void* obj) {
     }
 }
 
-void __stdcall uActorCons(void* obj) {
+static void __stdcall uActorCons(void* obj) {
     uintptr_t uActor_constructor = 0x004A6E80;
     _asm {
         mov esi,[obj]
@@ -120,7 +118,7 @@ void __stdcall uActorCons(void* obj) {
     }
 }
 
-void __stdcall uCollisionMgrCons(void* obj) {
+static void __stdcall uCollisionMgrCons(void* obj) {
     uintptr_t uCollisionMgr_constructor = 0x0050B080;
     _asm {
             mov ecx,[obj]
@@ -128,7 +126,7 @@ void __stdcall uCollisionMgrCons(void* obj) {
     }
 }
 
-void __stdcall collide(void* CollMgr) {
+static void __stdcall collide(void* CollMgr) {
     _asm {
             pushad
             mov ecx,[CollMgr]
@@ -139,7 +137,7 @@ void __stdcall collide(void* CollMgr) {
     }
 }
 
-void __stdcall hitbox_call(void* CollMgr, int id) {
+static void __stdcall hitbox_call(void* CollMgr, int id) {
     uintptr_t hitbox_call_func = 0x0050CA60;
     float timer = 5.0f;
     _asm {
@@ -200,11 +198,11 @@ void CustomProjectileProp::die() {
 
 void CustomProjectileProp::startup_override() {
     //Get model
-    //void* model = devil4_sdk::get_stuff_from_files((MtDTI*)(uintptr_t)rModelDTI, MODEL_PATH, 1);
-    //get_model(this, model);
-    //if (&model) {
-    //    bring_assert(model);
-    //}
+    void* model = devil4_sdk::get_stuff_from_files((MtDTI*)(uintptr_t)rModelDTI, MODEL_PATH, 1);
+    get_model(this, model);
+    if (&model) {
+        bring_assert(model);
+    }
 
     void* atk_file = devil4_sdk::get_stuff_from_files((MtDTI*)(uintptr_t)rAtckStatDTI, ATK_PATH, 1);
     void* col_file = devil4_sdk::get_stuff_from_files((MtDTI*)(uintptr_t)rColShapeDTI, COL_PATH, 1);
@@ -318,7 +316,7 @@ CustomProjectileProp::CustomProjectileProp(float keepAlive, float force, Vector3
     this->actor.mQuat.w              = Quat->w;
 }
 
-void sUnit_spawn_call(void* sUnit, void* obj_to_spawn, int moveline) {
+static void sUnit_spawn_call(void* sUnit, void* obj_to_spawn, int moveline) {
     constexpr uintptr_t fptr_spawn_or_something = 0x008DC540;
     __asm {
 			mov eax, [sUnit]

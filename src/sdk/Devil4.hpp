@@ -30,6 +30,8 @@ namespace devil4_sdk {
     bool is_paused();
     bool is_not_in_gameplay();
 	bool was_gameplay_state_toggled();
+    bool is_playing();
+	bool is_in_bp();
 	std::pair<uint16_t, const char*> getButtonInfo(uint16_t buttonNum);
 	float get_current_style_rank();
 	bool __stdcall internal_kb_check(uint32_t input);
@@ -50,6 +52,9 @@ namespace devil4_sdk {
 	void* __cdecl MemberFuncToPtr(...);
 	void __stdcall bring_assert(void* rFile);
 	MtDTI* get_DTI(void* obj);
+	bool load_arc(const char* name);
+    uActor* easy_spawn(uintptr_t spawn_addr, int moveLine);
+	bool check_exists_in_moveline(uActor* actorToFind, int moveLine);
 };
 
 namespace uactor_sdk {

@@ -16,6 +16,7 @@
 #include "HideHud.hpp" // NOTE(): emacs with clangd lsp says this header is unused, Siyan pls fix
 #include "DarkSoulsStamina.hpp"
 #include "imgui_internal.h"
+#include "..\sdk\sArea.hpp"
 
 static constexpr uintptr_t some_struct            = 0x00E552CC;
 static constexpr uintptr_t fptr_update_actor_list = 0x008DC540;
@@ -82,6 +83,8 @@ static std::unique_ptr<PowerUpSystem> memePowerUpSystem = std::make_unique<Power
 static float accumulated_delta = 0.0f;
 static const float teleport_delay = 50.0f;
 static int waves_since_boss = 0;
+static bool survival_active_last_frame = false;
+static bool pending_arc_load = true;
 
 static uintptr_t doppelAddr = NULL; // use this when spawning doppel dante or nero
 
@@ -364,16 +367,16 @@ static void set_survival_enemy_pos_and_anim(uEnemySomething* enemy, SpawnableEne
     if (!enemy) {
         return;
     }
-    if (type == SpawnableEnemyType::ASSAULT && spawnAnim == 0) { // sry
-        enemy->m_spawn_coords = devil4_sdk::get_local_player()->mPos;
-    }
-    else {
-        enemy->m_spawn_coords = Survival::get_random_spawn_position();
-    }
     if (spawnAnim >= 0) {
         enemy->m_enemy_spawn_effect_something = spawnAnim;
     } else {
         enemy->m_enemy_spawn_effect_something = get_random_spawn_anim(type);
+    }
+    if (type == SpawnableEnemyType::ASSAULT && enemy->m_enemy_spawn_effect_something == 0) { // sry
+        enemy->m_spawn_coords = devil4_sdk::get_local_player()->mPos;
+    }
+    else {
+        enemy->m_spawn_coords = Survival::get_random_spawn_position();
     }
 }
 
@@ -551,10 +554,10 @@ void Survival::on_frame(fmilliseconds& dt) {
         bool player_exists_now = (player != nullptr);
         bool player_is_alive = player_exists_now && player->damageStruct.HP > 0.0f;
         bool in_correct_room = (sMed->roomID == survivalRooms[Survival::currentRoomIndex].roomID);
+        bool entering_survival = !survival_active_last_frame && player_exists_now && player_is_alive && in_correct_room;
         
         // check if player died while in survival mode and in correct room
-        if (player_existed_last_frame && player_exists_now && 
-            !player_is_alive && in_correct_room && Survival::survival_active) {
+        if (player_existed_last_frame && player_exists_now && !player_is_alive && in_correct_room && Survival::survival_active) {
             
             // kill all enemies
             uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
@@ -577,6 +580,7 @@ void Survival::on_frame(fmilliseconds& dt) {
             if (player && player_is_alive) {
                 if (!in_correct_room) {
                     Survival::survival_active = false;
+                    pending_arc_load = true;
                     accumulated_delta += player->m_delta_time;
                     if (accumulated_delta >= teleport_delay) {
                         AreaJump::jump_to_stage(AreaJump::bp_stage(survivalRooms[Survival::currentRoomIndex].roomNumber));
@@ -586,9 +590,33 @@ void Survival::on_frame(fmilliseconds& dt) {
                 else { // Player is spawned and in the correct room
                     accumulated_delta = 0.0f;
                     Survival::survival_active = true;
+                    if (entering_survival) {
+                        pending_arc_load = true;
+                    }
+
                     sMed->bpTimer = survivedTimer;
                     DisplayTimerOnTick();
                     if (!devil4_sdk::is_paused()) { // game is not paused
+                        if (pending_arc_load && devil4_sdk::get_uEnemies() != nullptr) {
+                            pending_arc_load = false;
+                            if (*(int8_t*)0x8AFB3E != 6/*&& *(int8_t*)0x8AFB76 != 2 && *(int8_t*)0x8AFBAE != 6*/) { // is player using more mem exe?
+                            devil4_sdk::load_arc("rom\\enemy\\em000");
+                            devil4_sdk::load_arc("rom\\enemy\\em001");
+                            devil4_sdk::load_arc("rom\\enemy\\em003");
+                            devil4_sdk::load_arc("rom\\enemy\\em005");
+                            devil4_sdk::load_arc("rom\\enemy\\em006");
+                            devil4_sdk::load_arc("rom\\enemy\\em008");
+                            devil4_sdk::load_arc("rom\\enemy\\em009");
+                            devil4_sdk::load_arc("rom\\enemy\\em010");
+                            devil4_sdk::load_arc("rom\\enemy\\em011");
+                            devil4_sdk::load_arc("rom\\enemy\\em012");
+                            devil4_sdk::load_arc("rom\\enemy\\em013");
+                            devil4_sdk::load_arc("rom\\enemy\\em015");
+                            devil4_sdk::load_arc("rom\\enemy\\em016");
+                            devil4_sdk::load_arc("rom\\enemy\\em017");
+                            }
+                        }
+
                         sUnit* sUnit = devil4_sdk::get_sUnit();
                         if (sUnit && sUnit->mMoveLine[7].mTop) { // @Siy find how the bp timer gets time
                             uHasDelta* sUnitHasDelta = (uHasDelta*)sUnit->mMoveLine[7].mTop;
