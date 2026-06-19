@@ -61,7 +61,7 @@ namespace devil4_sdk {
         if (!room) {
             return true;
         }
-        if (room->busy != 0 || 
+        if (//room->busy != 0 || 
 			is_loading_enemy()
 		){
             return true;
@@ -69,8 +69,10 @@ namespace devil4_sdk {
         return false;
 	}
 
-	// I think the issue is this works async and actual enemy spawn doesn't
 	bool load_arc(const char* arcPath) { // rets true if successful, false if failed or already exists
+		while (is_loading_arc()) {
+            Sleep(0);
+        }
         typedef char(__stdcall * LoadArcFn)(aRoom*, const char*);
         LoadArcFn loadArc = (LoadArcFn)0x40EB00;
         sArea* area       = devil4_sdk::get_sArea();

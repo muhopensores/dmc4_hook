@@ -1028,44 +1028,50 @@ void Survival::on_gui_frame(int display) {
         help_marker(_("Spawn random meme modifier pickups spawned near your location to try to avoid (or target)"));
 #if 1
         if (mod_enabled) {
-            ImGui::Indent(lineIndent);
-            if (timer) ImGui::InputFloat("Spawn Timer", (float*)&timer->m_time);
-            if (ImGui::Button("Spawn Player")) {
-                EnemySpawn::spawn_dante();
-            }
-            ImGui::Indent(lineIndent);
-            ImGui::InputInt("Wave", &Survival::wave);
-            if (ImGui::Button("Spawn PowerUp")) {
-                basicPowerUpSystem->spawnRandomPowerUp();
-            }
-            if (ImGui::Button("Spawn Enemy")) {
-                Survival::spawn_standard_enemy();
-            }
-            if (ImGui::Button("Reset Wave")) {
-                Survival::reset_wave();
-            }
-            if (ImGui::Button("Timer Trigger")) {
-                Survival::on_timer_trigger();
-            }
+            if (ImGui::CollapsingHeader("[SURVIVAL DEBUG]")) {
+                ImGui::Indent(lineIndent);
+                if (timer)
+                    ImGui::InputFloat("Spawn Timer", (float*)&timer->m_time);
+                if (ImGui::Button("Spawn Player")) {
+                    EnemySpawn::spawn_dante();
+                }
+                ImGui::InputInt("Wave", &Survival::wave);
+                if (ImGui::Button("Spawn PowerUp")) {
+                    basicPowerUpSystem->spawnRandomPowerUp();
+                }
+                if (ImGui::Button("Spawn Enemy")) {
+                    Survival::spawn_standard_enemy();
+                }
+                if (ImGui::Button("Reset Wave")) {
+                    Survival::reset_wave();
+                }
+                if (ImGui::Button("Timer Trigger")) {
+                    Survival::on_timer_trigger();
+                }
 
-            if (ImGui::Button("Spawn Meme")) {
-                memePowerUpSystem->spawnRandomPowerUp();
+                if (ImGui::Button("Spawn Meme")) {
+                    memePowerUpSystem->spawnRandomPowerUp();
+                }
+                if (meme_timer)
+                    ImGui::InputFloat("Meme Timer", (float*)&meme_timer->m_time);
+
+                static bool bla = false;
+                if (ImGui::Button("Check if loading something")) {
+                    bla = devil4_sdk::is_loading_arc();
+                }
+                ImGui::SameLine();
+                ImGui::BeginDisabled();
+                ImGui::Checkbox("##LoadingCheckbox", &bla);
+                ImGui::EndDisabled();
+
+                if (ImGui::Button("Create and Spawn Laser")) {
+                    devil4_sdk::load_arc("rom\\room\\st405");
+                    devil4_sdk::easy_spawn(0x8825D0, 10);
+                }
+
+                ImGui::Unindent(lineIndent);
+                ImGui::Separator();
             }
-            if (meme_timer) ImGui::InputFloat("Meme Timer", (float*)&meme_timer->m_time);
-
-            static bool bla = false;
-            if (ImGui::Button("Check spawning")) {
-                bla = devil4_sdk::is_loading_enemy();
-            }
-            ImGui::Checkbox("Spawning?", &bla);
-
-            if (ImGui::Button("Create and Spawn Laser")) {
-                devil4_sdk::load_arc("rom\\room\\st405");
-                devil4_sdk::easy_spawn(0x8825D0, 10);
-            }
-
-            ImGui::Unindent(lineIndent);
-
         }
  #endif
         //ImGui::EndGroup();
