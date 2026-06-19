@@ -18,10 +18,10 @@
 #include "imgui_internal.h"
 #include "..\sdk\sArea.hpp"
 #include "EnvironmentalHazards.hpp"
+#include "RotatingLaser.hpp"
 
 static constexpr uintptr_t some_struct            = 0x00E552CC;
 static constexpr uintptr_t fptr_update_actor_list = 0x008DC540;
-std::vector<std::unique_ptr<RotatingLaser>> g_lasers;
 
 class WaveConfig {
 public:
@@ -482,6 +482,7 @@ void Survival::on_timer_trigger() {
                     get_random_float(-3.14f, 3.14f), // roll
                 },
                 get_random_float(600.0f, 2400.0f), // length
+                1.0f,                              // spawn delay
                 30.0f,                             // lifetime
                 get_random_int(0, 2));             // rotation type (still, rotate from one end, rotate from mid)
         }

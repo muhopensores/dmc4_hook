@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/RotatingLaser.hpp
+  mods/RotatingLaser.cpp
   mods/EnvironmentalHazards.hpp
   mods/EnvironmentalHazards.cpp
   mods/GermanWord.hpp
