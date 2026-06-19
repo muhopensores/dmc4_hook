@@ -1,7 +1,6 @@
 #pragma once
 
 class aGame;
-
 class currentMission {
 public:
     char pad_0[0x20];
@@ -24,25 +23,32 @@ public:
 }; // Size: 0x41
 static_assert(sizeof(pauseMenu) == 0x41);
 
-class currentRoom {
+class sResource; // arc I think
+
+class aRoom {
 public:
     using uint32_t = unsigned int;
-    char pad_0[0x20];
+    char pad_0[0x7]; // 0x00
+    int8_t busy; // 0x07
+    char pad_8[0x18];
     bool allowPause; // 0x20
-    char pad_21[0x10];
+    char pad_21[0x10]; // 0x21
     bool isPaused; // 0x31
-    char pad_32[0xa];
-    uint32_t restartLastEvent; // 0x3c
-    char pad_40[0xd4];
+    char pad_32[0xA];
+    uint32_t restartLastEvent; // 0x3C
+    char pad_40a[0x30];
+    sResource* enemyResource[16]; // 0x70
+    char pad_40b[0x64];
     pauseMenu* pauseMenuPtr1; // 0x114
-}; // Size: 0x118
-static_assert(sizeof(currentRoom) == 0x118);
+};
+
+static_assert(sizeof(aRoom) == 0x118);
 
 class sArea {
 public:
     char pad_0x0000[0x3830];           // 0x0000
     aGame* aGamePtr;                   // 0x3830 aGame
     currentMission* currentMissionPtr; // 0x3834
-    currentRoom* currentRoomPtr;       // x03838
+    aRoom* aRoomPtr;       // x03838
 }; // Size: 0x383C
 static_assert(sizeof(sArea) == 0x383C);

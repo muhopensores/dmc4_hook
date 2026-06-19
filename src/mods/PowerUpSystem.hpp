@@ -51,7 +51,7 @@ public:
         float duration; // How long the powerup stays active (seconds)
         float remainingTime; // Time left before despawning
         Vector3f location; // Position in the world
-        Vector3f visualLocation;
+        Vector3f visualLocation; // Position + a little higher so it looks like it's getting player mid point rather than origin
         float radius; // Pickup radius
         bool active; // Whether the powerup is currently spawned
         bool effectActive; // Whether the player has the effect active

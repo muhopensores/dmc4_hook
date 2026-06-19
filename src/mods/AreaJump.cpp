@@ -326,9 +326,13 @@ const AreaJump::Room* AreaJump::bp_stage(int floor) {
 }
 
 void AreaJump::jump_to_stage(const Room* stage) {
+    if (!stage) { return; }
     sArea* s_area_ptr = devil4_sdk::get_sArea();
-    s_area_ptr->aGamePtr->room_id = stage->id;
-	s_area_ptr->aGamePtr->init_jump = 1;
+    if (!s_area_ptr) { return; }
+    if (!s_area_ptr->aGamePtr) { return; }
+
+    s_area_ptr->aGamePtr->room_id   = stage->id;
+    s_area_ptr->aGamePtr->init_jump = 1;
 }
 
 

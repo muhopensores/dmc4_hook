@@ -1771,7 +1771,7 @@ void StylePoints::DrawHiddenCombos() {
     sArea* sArea = devil4_sdk::get_sArea();
     if (sArea == nullptr || sArea->aGamePtr == nullptr || sArea->aGamePtr->m_paused == false)
         return;
-    if (sArea->currentRoomPtr == nullptr || sArea->currentRoomPtr->pauseMenuPtr1 == nullptr || sArea->currentRoomPtr->pauseMenuPtr1->draw != 1)
+    if (sArea->aRoomPtr == nullptr || sArea->aRoomPtr->pauseMenuPtr1 == nullptr || sArea->aRoomPtr->pauseMenuPtr1->draw != 1)
         return;
 
     ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;

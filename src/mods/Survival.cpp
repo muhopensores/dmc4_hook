@@ -17,9 +17,11 @@
 #include "DarkSoulsStamina.hpp"
 #include "imgui_internal.h"
 #include "..\sdk\sArea.hpp"
+#include "EnvironmentalHazards.hpp"
 
 static constexpr uintptr_t some_struct            = 0x00E552CC;
 static constexpr uintptr_t fptr_update_actor_list = 0x008DC540;
+std::vector<std::unique_ptr<RotatingLaser>> g_lasers;
 
 class WaveConfig {
 public:
@@ -33,6 +35,7 @@ public:
     int boss_spawn_chance;
     int side_enemy_spawn_chance;
     int powerup_spawn_chance;
+    int laser_spawn_chance;
     std::vector<SpawnableEnemyType> standard_enemies;
     std::vector<SpawnableEnemyType> side_enemies;
     std::vector<SpawnableEnemyType> boss_enemies;
@@ -41,7 +44,7 @@ public:
         int _ldk_max_with_boss, int _ldk_max_without_boss,
         int _boss_cooldown, int _max_bosses,
         int _max_side_enemies,
-        int _boss_chance, int _side_chance, int _powerup_chance,
+        int _boss_chance, int _side_chance, int _powerup_chance, int _laser_chance,
         const std::vector<SpawnableEnemyType>& _standard_enemies = {},
         const std::vector<SpawnableEnemyType>& _side_enemies = {},
         const std::vector<SpawnableEnemyType>& _boss_enemies = {}
@@ -56,13 +59,13 @@ public:
         boss_spawn_chance(_boss_chance),
         side_enemy_spawn_chance(_side_chance),
         powerup_spawn_chance(_powerup_chance),
+        laser_spawn_chance(_laser_chance),
         standard_enemies(_standard_enemies),
         side_enemies(_side_enemies),
         boss_enemies(_boss_enemies)
     {}
 };
 
-// Shame about the hitch when an enemy is loaded
 bool Survival::mod_enabled = false;
 bool Survival::meme_effects = false;
 bool Survival::survival_active = false; // Set dynamically, not a ui toggle
@@ -143,6 +146,7 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         0,  // boss_spawn_chance
         0,  // side_enemy_spawn_chance
         3,  // powerup_spawn_chance
+        0, // laser_spawn_chance
         {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA}, // tier 1 enemies with duplicates for less chance of mega
         {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // Side enemies
         {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
@@ -159,6 +163,7 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         0,  // boss_spawn_chance
         0,  // side_enemy_spawn_chance
         3,  // powerup_spawn_chance
+        4, // laser_spawn_chance
         {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA, // tier 1 enemies
          SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT}, // tier 2 enemies
         {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // side enemies
@@ -176,6 +181,7 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         0,  // boss_spawn_chance
         0,  // side_enemy_spawn_chance
         3,  // powerup_spawn_chance
+        3, // laser_spawn_chance
         {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA, // tier 1 enemies
          SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT, // tier 2 enemies
          SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK}, // tier 3 enemies
@@ -194,6 +200,7 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         0,  // boss_spawn_chance
         8,  // side_enemy_spawn_chance
         3,  // powerup_spawn_chance
+        3, // laser_spawn_chance
         {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA, // tier 1 enemies
          SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT, // tier 2 enemies
          SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK}, // tier 3 enemies
@@ -212,6 +219,7 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         0,  // boss_spawn_chance
         8,  // side_enemy_spawn_chance
         3,  // powerup_spawn_chance
+        2, // laser_spawn_chance
         {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA, // tier 1 enemies
          SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT, // tier 2 enemies
          SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK, // tier 3 enemies
@@ -231,6 +239,7 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         8,  // boss_spawn_chance
         8,  // side_enemy_spawn_chance
         3,  // powerup_spawn_chance
+        2, // laser_spawn_chance
         {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA, // tier 1 enemies
          SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT, // tier 2 enemies
          SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK, // tier 3 enemies
@@ -250,6 +259,7 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         8,  // boss_spawn_chance
         8,  // side_enemy_spawn_chance
         3,  // powerup_spawn_chance
+        1, // laser_spawn_chance
         {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA, // tier 1 enemies
          SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT, // tier 2 enemies
          SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK, // tier 3 enemies
@@ -269,6 +279,7 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         8,  // boss_spawn_chance
         8,  // side_enemy_spawn_chance
         3,  // powerup_spawn_chance
+        1, // laser_spawn_chance
         {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA, // tier 1 enemies
          SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT, // tier 2 enemies
          SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK, // tier 3 enemies
@@ -384,6 +395,13 @@ static void spawn_enemy(SpawnableEnemyType index, int spawnAnim = -1) {
     uintptr_t em_function_pointer = enemy_spawn_info.at((size_t)size_t(index)).factory;
     if (!devil4_sdk::get_local_player())
         return; // only work while character is loaded
+
+    // should never be an issue but lets do this to try to stop enemies not being hittable
+    // even though I think that's a memory issue
+    while (devil4_sdk::is_loading_arc()) {
+        Sleep(0);
+    }
+
     __asm {
 		pushad
 		pushfd
@@ -448,6 +466,26 @@ void Survival::on_timer_trigger() {
         
     const WaveConfig& config = get_wave_config();
     bool is_ldk = (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT);
+
+    // lasers does not care if an enemy can be spawned
+    if (config.laser_spawn_chance > 0 && Survival::get_random_int(0, config.laser_spawn_chance - 1) == 0) {
+        if (EnvironmentalHazards::mod_enabled) {
+            RotatingLaser::spawn(
+                {
+                    get_random_float(-800.0f, 800.0f), // x pos
+                    get_random_float(100.0f, 800.0f),  // y pos
+                    get_random_float(-800.0f, 800.0f)  // z pos
+                },
+                {
+                    get_random_float(-3.14f, 3.14f), // pitch
+                    0.0f,                            // yaw
+                    get_random_float(-3.14f, 3.14f), // roll
+                },
+                get_random_float(600.0f, 2400.0f), // length
+                30.0f,                             // lifetime
+                get_random_int(0, 2));             // rotation type (still, rotate from one end, rotate from mid)
+        }
+    }
     
     if (!can_spawn_standard_enemy(enemy_info, sMed, config)) {
         return;
@@ -567,6 +605,7 @@ void Survival::on_frame(fmilliseconds& dt) {
                 enemy = enemy->nextEnemy;
             }
             MutatorHolyWater::use_hw_asm_call();
+            RotatingLaser::kill_all();
         }
         
         if ((player_exists_now && !player_existed_last_frame) || 
@@ -599,21 +638,21 @@ void Survival::on_frame(fmilliseconds& dt) {
                     if (!devil4_sdk::is_paused()) { // game is not paused
                         if (pending_arc_load && devil4_sdk::get_uEnemies() != nullptr) {
                             pending_arc_load = false;
-                            if (*(int8_t*)0x8AFB3E != 6/*&& *(int8_t*)0x8AFB76 != 2 && *(int8_t*)0x8AFBAE != 6*/) { // is player using more mem exe?
-                            devil4_sdk::load_arc("rom\\enemy\\em000");
-                            devil4_sdk::load_arc("rom\\enemy\\em001");
-                            devil4_sdk::load_arc("rom\\enemy\\em003");
-                            devil4_sdk::load_arc("rom\\enemy\\em005");
-                            devil4_sdk::load_arc("rom\\enemy\\em006");
-                            devil4_sdk::load_arc("rom\\enemy\\em008");
-                            devil4_sdk::load_arc("rom\\enemy\\em009");
-                            devil4_sdk::load_arc("rom\\enemy\\em010");
-                            devil4_sdk::load_arc("rom\\enemy\\em011");
-                            devil4_sdk::load_arc("rom\\enemy\\em012");
-                            devil4_sdk::load_arc("rom\\enemy\\em013");
-                            devil4_sdk::load_arc("rom\\enemy\\em015");
-                            devil4_sdk::load_arc("rom\\enemy\\em016");
-                            devil4_sdk::load_arc("rom\\enemy\\em017");
+                            if (*(int8_t*)0x8AFB3E != 6 /*&& *(int8_t*)0x8AFB76 != 2 && *(int8_t*)0x8AFBAE != 6*/) { // is player using more mem exe?
+                                devil4_sdk::load_arc("rom\\enemy\\em000");
+                                devil4_sdk::load_arc("rom\\enemy\\em001");
+                                devil4_sdk::load_arc("rom\\enemy\\em003");
+                                devil4_sdk::load_arc("rom\\enemy\\em005");
+                                devil4_sdk::load_arc("rom\\enemy\\em006");
+                                devil4_sdk::load_arc("rom\\enemy\\em008");
+                                devil4_sdk::load_arc("rom\\enemy\\em009");
+                                devil4_sdk::load_arc("rom\\enemy\\em010");
+                                devil4_sdk::load_arc("rom\\enemy\\em011");
+                                devil4_sdk::load_arc("rom\\enemy\\em012");
+                                devil4_sdk::load_arc("rom\\enemy\\em013");
+                                devil4_sdk::load_arc("rom\\enemy\\em015");
+                                devil4_sdk::load_arc("rom\\enemy\\em016");
+                                devil4_sdk::load_arc("rom\\enemy\\em017");
                             }
                         }
 
@@ -1012,6 +1051,17 @@ void Survival::on_gui_frame(int display) {
                 memePowerUpSystem->spawnRandomPowerUp();
             }
             if (meme_timer) ImGui::InputFloat("Meme Timer", (float*)&meme_timer->m_time);
+
+            static bool bla = false;
+            if (ImGui::Button("Check spawning")) {
+                bla = devil4_sdk::is_loading_enemy();
+            }
+            ImGui::Checkbox("Spawning?", &bla);
+
+            if (ImGui::Button("Create and Spawn Laser")) {
+                devil4_sdk::load_arc("rom\\room\\st405");
+                devil4_sdk::easy_spawn(0x8825D0, 10);
+            }
 
             ImGui::Unindent(lineIndent);
 

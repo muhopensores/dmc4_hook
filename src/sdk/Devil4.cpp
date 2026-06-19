@@ -35,17 +35,55 @@ namespace devil4_sdk {
         return ((MtDTI * (*)())(dti_call))();
     }
 
+	bool is_loading_enemy() {
+        sArea* area = devil4_sdk::get_sArea();
+        if (!area) {
+            return true;
+        }
+        aRoom* room = area->aRoomPtr;
+        if (!room) {
+            return true;
+        }
+        __asm {
+			mov edi, room
+			mov edx, 0x40EBC0
+			call edx
+        }
+    }
+
+	// check room is created and is_loading_enemy()
+	bool is_loading_arc() {
+        sArea* area = devil4_sdk::get_sArea();
+        if (!area) {
+            return true;
+        }
+        aRoom* room = area->aRoomPtr;
+        if (!room) {
+            return true;
+        }
+        if (room->busy != 0 || 
+			is_loading_enemy()
+		){
+            return true;
+        }
+        return false;
+	}
+
+	// I think the issue is this works async and actual enemy spawn doesn't
 	bool load_arc(const char* arcPath) { // rets true if successful, false if failed or already exists
-        typedef char(__stdcall * LoadArcFn)(currentRoom*, const char*);
+        typedef char(__stdcall * LoadArcFn)(aRoom*, const char*);
         LoadArcFn loadArc = (LoadArcFn)0x40EB00;
         sArea* area       = devil4_sdk::get_sArea();
         if (!area) { return false; }
-        currentRoom* room = area->currentRoomPtr;
+        aRoom* room = area->aRoomPtr;
         if (!room) { return false; }
         return loadArc(room, arcPath);
     }
 
 	uActor* easy_spawn(uintptr_t spawn_addr, int moveLine) {
+        while (is_loading_arc()) {
+            Sleep(0);
+        }
 		__asm {
 			mov eax, spawn_addr
 			call eax
@@ -252,14 +290,11 @@ namespace devil4_sdk {
 	}
 
     bool is_paused() {
-        __try {
-            return devil4_sdk::get_sArea()->aGamePtr->m_paused;
+        if (auto sArea = devil4_sdk::get_sArea()) {
+            return sArea->aGamePtr->m_paused;
         }
-        __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ?
-            EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-            return true;
-        }
-        
+		else
+			return false;
     }
 
     bool is_not_in_gameplay() {
@@ -274,13 +309,12 @@ namespace devil4_sdk {
 		return ret;
 	}
 
+	// does player exist and have > 0 hp
 	bool is_playing() {
 		sMediator* sMed = devil4_sdk::get_sMediator();
-		if (!sMed)
-			return false;
+		if (!sMed) return false;
 		uPlayer* player = sMed->player_ptr;
-		if (!player)
-			return false;
+		if (!player) return false;
 		return (player->damageStruct.HP > 0.0f);
 	}
 

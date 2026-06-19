@@ -72,11 +72,20 @@ struct MtVector3 { /* 10 */
 static_assert(sizeof(MtVector3) == 0x10);
 
 
-struct MtVector4 { /* MtFramework vector */
+struct MtVector4 {
     float x;
     float y;
     float z;
     float w;
+
+    MtVector4 operator*(const MtVector4& rhs) const {
+        MtVector4 r;
+        r.w = w * rhs.w - x * rhs.x - y * rhs.y - z * rhs.z;
+        r.x = w * rhs.x + x * rhs.w + y * rhs.z - z * rhs.y;
+        r.y = w * rhs.y - x * rhs.z + y * rhs.w + z * rhs.x;
+        r.z = w * rhs.z + x * rhs.y - y * rhs.x + z * rhs.w;
+        return r;
+    }
 };
 static_assert(sizeof(MtVector4) == 0x10);
 

@@ -185,25 +185,34 @@ constexpr size_t MODS_NUM{ 256 };
         m_hash.emplace_back(#name##_hash);             \
     } while (0)
 
+//#define CRASHHUNTING
+
 //#include "mods/Sample.hpp"
 // mods constructor
 Mods::Mods() {
     m_mods.reserve(MODS_NUM);
     m_hash.reserve(MODS_NUM);
     // slow mods
+//#ifndef CRASHHUNTING
     ADD_MOD(MessageDisplayMod);
     ADD_MOD(BackgroundRendering);
     ADD_MOD(Borderless);
     ADD_MOD(TwitchClient);
     ADD_MOD(MutatorSelfAdvertisement);
-    ADD_MOD(PinTimer);
+//#endif
     // regular mods
+    ADD_MOD(InfiniteTime);
+    ADD_MOD(FastStart);
+    ADD_MOD(HealthSettings);
+    ADD_MOD(AreaJump);
+    ADD_MOD(PinTimer);
+    ADD_MOD(EnemySpawn);
+    ADD_MOD(CutsceneSkip);
     ADD_MOD(RedOrbCompletion);
     ADD_MOD(PlayerTracker);
     ADD_MOD(LoadOrder);
+#ifndef CRASHHUNTING
     ADD_MOD(MoveTable); // before anything that uses it
-    ADD_MOD(FastStart);
-    ADD_MOD(AreaJump);
     ADD_MOD(LimitAdjust);
     ADD_MOD(NoHbKnockback);
     ADD_MOD(EasyJc);
@@ -224,12 +233,9 @@ Mods::Mods() {
     ADD_MOD(ManualTwosomeTime);
     ADD_MOD(HeightRestriction);
     ADD_MOD(InfFaustCloak);
-    ADD_MOD(InfiniteTime);
-    ADD_MOD(HealthSettings);
     ADD_MOD(CameraSettings);
     ADD_MOD(FreezeEnemies);
     ADD_MOD(FreeJc);
-    ADD_MOD(EnemySpawn);
     ADD_MOD(KnockbackEdits);
     ADD_MOD(DtEnemiesDontStun);
     ADD_MOD(EnemySlotting);
@@ -253,7 +259,6 @@ Mods::Mods() {
     ADD_MOD(CharacterSwap);
     ADD_MOD(DisableDarkslayer);
     ADD_MOD(RemoveLaunchArmour);
-    ADD_MOD(CutsceneSkip);
     ADD_MOD(FastSprint);
     ADD_MOD(InfTableHopper);
     ADD_MOD(EnemyAttackOffScreen);
@@ -266,7 +271,7 @@ Mods::Mods() {
     ADD_MOD(MutatorHolyWater);
     ADD_MOD(BigHeadMode);
     // ADD_MOD(MutatorPlayerTransforms); // BROKEN
-    ADD_MOD(MutatorSuperhot);
+    ADD_MOD(MutatorSuperhot); // crashing still with from here down commented out
     ADD_MOD(InfCalibur);
     ADD_MOD(RgMultiplier);
     ADD_MOD(ActiveBlock);
@@ -350,11 +355,11 @@ Mods::Mods() {
     ADD_MOD(JointDisplay);
     ADD_MOD(ForceInCombat);
     ADD_MOD(PhotoMode);
-    ADD_MOD(Macro);
     ADD_MOD(Coop);
     ADD_MOD(StageCallback);
     ADD_MOD(DarkSoulsStamina);
     ADD_MOD(TestMod);
+    ADD_MOD(Macro);
     ADD_MOD(ArcadeMode);
     ADD_MOD(FpsFixes);
     ADD_MOD(WitchTime);
@@ -362,6 +367,7 @@ Mods::Mods() {
     ADD_MOD(GermanWord);
     ADD_MOD(FriendlyFire);
     ADD_MOD(EnvironmentalHazards);
+#endif
 }
 
 // Initializes mods, checks for errors

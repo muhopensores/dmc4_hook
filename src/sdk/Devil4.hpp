@@ -12,6 +12,7 @@ class sMediator;
 class sWorkRate;
 class sStylishCount;
 class sUnit;
+class sResource;
 
 namespace devil4_sdk {
 	void u_em003_shl_new();
@@ -52,6 +53,8 @@ namespace devil4_sdk {
 	void* __cdecl MemberFuncToPtr(...);
 	void __stdcall bring_assert(void* rFile);
 	MtDTI* get_DTI(void* obj);
+    bool is_loading_enemy();
+    bool is_loading_arc();
 	bool load_arc(const char* name);
     uActor* easy_spawn(uintptr_t spawn_addr, int moveLine);
 	bool check_exists_in_moveline(uActor* actorToFind, int moveLine);

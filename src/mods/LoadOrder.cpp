@@ -319,7 +319,7 @@ void __stdcall Filter(char* path) {
 // cResource* __userpurge sResource::create_sub_8DF530@<eax>(
 // sResource* sDevil4Resource@<eax>, MtDTI* dti, const char* path,
 // unsigned int mode)
-naked void detour() {
+naked void detour() { // filename_hash
     __asm {
         // original code
         push ecx
