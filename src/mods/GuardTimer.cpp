@@ -7,44 +7,102 @@
 #include "sdk/sMediator.hpp"
 #include "sdk/sWorkRate.hpp"
 
-#if 1
 bool      GuardTimer::mod_enabled   = false;
+bool      GuardTimer::chart_enabled   = false;
 uintptr_t GuardTimer::jmp_ret1      = NULL;
 uintptr_t GuardTimer::jmp_ret2      = NULL;
 uintptr_t GuardTimer::jmp_ret3      = NULL;
-float     GuardTimer::lastGuardTime = 0.0f;
+uintptr_t GuardTimer::jmp_ret4      = NULL;
+float GuardTimer::lastGuardTime = 0.0f;
+static float guardTimeline = 0.0f;
+
 static std::chrono::time_point<std::chrono::high_resolution_clock> damageTime = std::chrono::high_resolution_clock::now();
 static std::chrono::time_point<std::chrono::high_resolution_clock> guardTime  = std::chrono::high_resolution_clock::now();
-static constexpr float hundredFloat = 100.0f;
-static float playerDelta = 0.0f;
-static glm::ivec2 screen_res{ 0, 0 };
 
-void record_damage_time() {
+static void record_damage_time() {
     damageTime = std::chrono::high_resolution_clock::now();
 }
-
-void record_guard_time() {
+static void record_guard_time() {
     guardTime = std::chrono::high_resolution_clock::now();
 }
+struct ChartEntry {
+    float time;
+    float blockTimer;
+    bool blockHeld;
+    bool canBlock;
+    bool isHit;
+};
+static constexpr int CHART_SIZE = 512;
+static ChartEntry guardChart[CHART_SIZE];
+static int guardIndex = 0;
+static ChartEntry hitChart[CHART_SIZE];
+static int hitIndex = 0;
+static bool checkCanBlock(uPlayer* player) {
+    __asm {
+        mov ecx, [player]
+        test ecx, ecx
+        je retcode
+        mov edx, 0x7BC120
+        call edx
+        retcode:
+    }
+}
+static void update_chart_hit(float timeline) {
+    const ChartEntry& snapshot = guardChart[(guardIndex + CHART_SIZE - 1) % CHART_SIZE];
+    hitChart[hitIndex] = {snapshot.time, snapshot.blockTimer, snapshot.blockHeld, snapshot.canBlock, true};
+    hitIndex = (hitIndex + 1) % CHART_SIZE;
+}
+static void update_chart_tick(uPlayer* player, float timeline) {
+    bool guardPressed      = (player->inputHold[1] & 0x6) != 0;
+    bool canBlock          = checkCanBlock(player);
+    float guardTimer       = player->guardTimer;
+    guardChart[guardIndex] = {timeline, guardTimer, guardPressed, canBlock, false};
+    guardIndex = (guardIndex + 1) % CHART_SIZE;
+}
 
+// chart hits + timer hits
 naked void detour1(void) { // called when the player is hit
     _asm {
         cmp byte ptr [GuardTimer::mod_enabled], 1
-        jne originalcode
+        je GuardTimerCode
+        cmp byte ptr [GuardTimer::chart_enabled], 1
+        je GuardChartCode
 
+        GuardTimerCode:
         pushad
         call record_damage_time
         popad
 
+        sub esp, 4
+        movss [esp], xmm0
         movss xmm0, [ecx+0x14D44]
-        comiss xmm0, [hundredFloat]
-        je originalcode
-        comiss xmm0, [hundredFloat]
-        jae originalcode
-        movss [GuardTimer::lastGuardTime],xmm0
+        movss [GuardTimer::lastGuardTime],xmm0 // game reading slider
+        movss xmm0, [esp]
+        add esp, 4
+        jmp check2
+
+        check2:
+        cmp byte ptr [GuardTimer::chart_enabled], 1
+        jne originalcode
+
+        GuardChartCode:
+        sub esp, 0xC
+        movss [esp], xmm0
+        movss [esp+4], xmm1
+        movss [esp+8], xmm2
+        pushad
+        push guardTimeline
+        push eax // player
+        call update_chart_hit
+        add esp, 0x8
+        popad
+        movss xmm2, [esp+8]
+        movss xmm1, [esp+4]
+        movss xmm0, [esp]
+        add esp, 0xC
 
         originalcode:
-        mov edx,[eax+0x000002D8]
+        mov edx, [eax+0x000002D8]
         jmp dword ptr [GuardTimer::jmp_ret1]
     }
 }
@@ -55,8 +113,6 @@ naked void detour2(void) { // called when the player presses guard // player in 
         jne originalcode
 
         pushad
-        mov eax, [edi+0x10]
-        mov [playerDelta], eax
         call record_guard_time
         popad
 
@@ -73,7 +129,6 @@ naked void detour3(void) { // called when the player presses release // player i
         jne originalcode
 
         pushad
-        mov eax, [esi+0x10]
         call record_guard_time
         popad
 
@@ -83,11 +138,42 @@ naked void detour3(void) { // called when the player presses release // player i
     }
 }
 
-void GuardTimer::on_gui_frame(int display) {
-    if (display == DISPLAY_SYSTEM_A) {
-        ImGui::Checkbox(_("Royal Guard Timing Display"), &mod_enabled);
-        ImGui::SameLine();
-        help_marker(_("See how early or late your guards were"));
+// chart tick
+static constexpr float incFloat = 0.01f;
+static constexpr uintptr_t checkBlockActSet = 0x7BDEF0;
+static constexpr uintptr_t sub_7b6f80       = 0x7B6F80;
+naked void detour4(void) { // called every tick a few opcodes before guard button comparing
+    _asm {
+        call dword ptr [sub_7b6f80] // ogcode
+        cmp byte ptr [GuardTimer::chart_enabled], 1
+        jne retcode
+
+        sub esp, 4
+        movss [esp], xmm1
+        movss xmm1, [guardTimeline]
+        addss xmm1, [incFloat]
+        movss [guardTimeline], xmm1
+        movss xmm1, [esp]
+        add esp, 4
+
+        sub esp, 0xC
+        movss [esp], xmm0
+        movss [esp+4], xmm1
+        movss [esp+8], xmm2
+        pushad
+        push guardTimeline
+        push edi // player
+        call update_chart_tick
+        add esp,0x8
+        popad
+        movss xmm2, [esp+8]
+        movss xmm1, [esp+4]
+        movss xmm0, [esp]
+        add esp, 0xC
+        jmp retcode
+
+        retcode:
+        jmp dword ptr [GuardTimer::jmp_ret4]
     }
 }
 
@@ -97,7 +183,7 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
             if (player->controllerID != 0) { return; }
             ImGuiIO& io = ImGui::GetIO();
             if (sRender* sRen = devil4_sdk::get_sRender()) {
-                screen_res = sRen->screenRes;
+                Vector2f screen_res = sRen->screenRes;
                 ImGui::Begin("GuardTimerGUI", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize);
                 ImVec2 window_size = ImGui::GetWindowSize();
                 ImVec2 window_pos((screen_res.x - window_size.x) * 0.5f, 0);
@@ -162,6 +248,94 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
             }
         }
     }
+    if (chart_enabled) {
+        if (uPlayer* player = devil4_sdk::get_local_player()) {
+            if (player->controllerID != 0) { return; }
+            ImGuiIO& io = ImGui::GetIO();
+            if (sRender* sRen = devil4_sdk::get_sRender()) {
+                Vector2f screen_res         = sRen->screenRes;
+                float uiScale               = screen_res.y / 1080.0f;
+                float panelWidth            = screen_res.x;
+                const float timelineHeight  = 20.0f * uiScale;
+                const float hitExtendAmount = 10.0f * uiScale;
+                const float panelHeight     = timelineHeight + (hitExtendAmount * 2.0f);
+                float posX                  = (screen_res.x - panelWidth) * 0.5f;
+                float posY                  = screen_res.y;
+
+                ImGui::SetNextWindowSize(ImVec2(panelWidth, panelHeight));
+                ImGui::SetNextWindowPos(ImVec2(posX, posY), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+                ImGui::Begin("Guard Timeline", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+                ImDrawList* draw = ImGui::GetWindowDrawList();
+                ImVec2 origin    = ImGui::GetCursorScreenPos();
+                draw->AddRectFilled(origin, ImVec2(origin.x + panelWidth, origin.y + panelHeight), IM_COL32(20, 20, 20, 255));
+                const float timelineTop    = origin.y + hitExtendAmount;
+                const float timelineBottom = timelineTop + timelineHeight;
+                const float graphLeft      = origin.x;
+                const float graphWidth     = panelWidth;
+                const float timeWindow     = 4.0f;
+                float now                  = guardChart[(guardIndex + CHART_SIZE - 1) % CHART_SIZE].time;
+                const float sampleWidth = graphWidth / (float)CHART_SIZE;
+
+                // canBlock
+                for (int i = 0; i < CHART_SIZE; i++) {
+                    const ChartEntry& entry = guardChart[i];
+                    if (entry.time <= 0.0f || !entry.canBlock)
+                        continue;
+                    float normalizedTime = (entry.time - (now - timeWindow)) / timeWindow;
+                    if (normalizedTime < 0.0f || normalizedTime > 1.0f)
+                        continue;
+                    float x = graphLeft + normalizedTime * graphWidth;
+                    draw->AddRectFilled(ImVec2(x - sampleWidth * 0.5f, timelineTop - hitExtendAmount),
+                        ImVec2(x + sampleWidth * 0.5f, timelineBottom + hitExtendAmount), IM_COL32(0, 64, 0, 100));
+                }
+
+                // blocking
+                for (int i = 0; i < CHART_SIZE; i++) {
+                    const ChartEntry& entry = guardChart[i];
+                    if (entry.time <= 0.0f)
+                        continue;
+                    float normalizedTime = (entry.time - (now - timeWindow)) / timeWindow;
+                    if (normalizedTime < 0.0f || normalizedTime > 1.0f)
+                        continue;
+                    float x = graphLeft + normalizedTime * graphWidth;
+                    if (entry.blockHeld) {
+                        ImU32 color = (entry.blockTimer < 5.0f) ? IM_COL32(0, 255, 255, 180) : IM_COL32(255, 140, 0, 160);
+                        draw->AddLine(ImVec2(x, timelineTop), ImVec2(x, timelineBottom), color, 1.0f * uiScale);
+                    }
+                }
+
+                // hit markers
+                for (int i = 0; i < CHART_SIZE; i++) {
+                    const ChartEntry& e = hitChart[i];
+                    if (!e.isHit || e.time <= 0.0f)
+                        continue;
+                    float normalizedTime = (e.time - (now - timeWindow)) / timeWindow;
+                    if (normalizedTime < 0.0f || normalizedTime > 1.0f)
+                        continue;
+                    float x        = graphLeft + normalizedTime * graphWidth;
+                    ImU32 hitColor = (e.blockHeld) ? ((e.blockTimer < 5.0f) ? IM_COL32(0, 255, 255, 255) : IM_COL32(255, 140, 0, 255))
+                                                   : IM_COL32(255, 0, 0, 255);
+                    draw->AddLine(
+                        ImVec2(x, timelineTop - hitExtendAmount), ImVec2(x, timelineBottom + hitExtendAmount), hitColor, 2.0f * uiScale);
+                }
+                ImGui::PopStyleVar();
+                ImGui::End();
+            }
+        }
+    }
+}
+
+void GuardTimer::on_gui_frame(int display) {
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Royal Guard Timing Display"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("See how early or late your guards were"));
+    } else if (display == DISPLAY_SYSTEM_B) {
+        ImGui::Checkbox("Royal Guard Timing Chart", &chart_enabled);
+        ImGui::SameLine();
+        help_marker(_("See how early or late multiple guards in a row were"));
+    }
 }
 
 std::optional<std::string> GuardTimer::on_initialize() {
@@ -178,14 +352,20 @@ std::optional<std::string> GuardTimer::on_initialize() {
 		spdlog::error("Failed to init GuardTimer mod 3\n");
 		return "Failed to init GuardTimer mod 3";
 	}
+    if (!install_hook_offset(0x3B7286, hook4, &detour4, &jmp_ret4, 5)) { // player tick, after guard logic
+        spdlog::error("Failed to init GuardTimer mod 4\n");
+        return "Failed to init GuardTimer mod 4";
+    }
+
     return Mod::on_initialize();
 }
 
 void GuardTimer::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("guard_timer_display", mod_enabled);
+    cfg.set<bool>("guard_timer_chart", chart_enabled);
 }
 
 void GuardTimer::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("guard_timer_display").value_or(false);
+    chart_enabled = cfg.get<bool>("guard_timer_chart").value_or(false);
 }
-#endif

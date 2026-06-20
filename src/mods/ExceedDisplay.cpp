@@ -92,7 +92,7 @@ void ExceedDisplay::on_frame(fmilliseconds& dt) {
 }
 
 void ExceedDisplay::on_gui_frame(int display) {
-    if (display == DISPLAY_NERO_A) {
+    if (display == DISPLAY_SYSTEM_A) {
         ImGui::Checkbox(_("Exceed Display"), &mod_enabled);
         ImGui::SameLine();
         help_marker(_("WIP, will be neater when more understood"));

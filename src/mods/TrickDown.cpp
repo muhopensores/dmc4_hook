@@ -7,7 +7,7 @@ uintptr_t TrickDown::floor_touch_jmp_ret = NULL;
 uintptr_t TrickDown::landing_anim_jmp_ret = NULL;
 
 static float down_float = -200.0f;
-static float timerMemComparison = 20.0f; // Initial input + time it takes to get to trick, it reads 15ish
+static float timerMemComparison = 25.0f; // Initial input + time it takes to get to trick, it reads 15ish
 static float xmmBackup = 0.0f;
 bool TrickDown::downFlag = false;
 
@@ -26,8 +26,8 @@ naked void trick_down_detour(void) { // not gonna player compare because the ide
 			jmp originalcode
 
 		downtrickstart:
-			movss xmm2, [down_float] // Puts -200 in y axis momentum
 			mov byte ptr [TrickDown::downFlag], 1
+			movss xmm2, [down_float] // Puts -200 in y axis momentum
 		originalcode:
 			movss [esi+0x00000EC4], xmm2
 			jmp dword ptr [TrickDown::trick_down_jmp_ret]
@@ -90,9 +90,7 @@ void TrickDown::on_gui_frame(int display) {
     if (display == DISPLAY_DANTE_A) {
         ImGui::Checkbox(_("Down Trick"), &mod_enabled);
         ImGui::SameLine();
-        help_marker(
-            _("Map Down Trick to backforward + trick\nIf an enemy is directly above Dante, it may register your forward input as a back "
-              "input and so queue a down trick"));
+        help_marker(_("Map Down Trick to backforward + trick"));
     }
 }
 
