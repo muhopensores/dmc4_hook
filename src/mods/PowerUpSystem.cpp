@@ -82,11 +82,12 @@ naked uintptr_t* spawn_pickup_effect(int item_id, Vector3f* pos) {
 }
 
 static constexpr uintptr_t uStageSetItem_kill = 0x649340;
-naked void kill_pickup_effect(uintptr_t* effect) {
+static void kill_pickup_effect(uintptr_t* effect) {
+    if (!effect) { return; }
+    if (!devil4_sdk::check_exists_in_moveline((uActor*)effect, 15)) { return; }
     _asm {
-        mov ecx, [esp+4] // effect
+        mov ecx, effect
         call uStageSetItem_kill
-        ret
     }
 }
 
@@ -101,7 +102,11 @@ void PowerUpSystem::on_frame(fmilliseconds& dt) {
         if (!powerup.effectActive) {
             powerup.remainingTime -= dtSeconds;
             if (powerup.remainingTime <= 0) {
-                if (it->visualEffectPtr) kill_pickup_effect(it->visualEffectPtr);
+                if (it->visualEffectPtr) {
+                    kill_pickup_effect(it->visualEffectPtr);
+                    it->visualEffectPtr = nullptr;
+                }
+
                 it = m_powerUps.erase(it);
                 continue;
             }
@@ -239,16 +244,13 @@ void PowerUpSystem::checkPlayerProximity() {
     for (auto& powerup : m_powerUps) {
         if (!powerup.active || powerup.effectActive) continue;
 
+        float distance = glm::distance(
+            glm::vec3(playerPos.x, playerPos.y, playerPos.z), glm::vec3(powerup.location.x, powerup.location.y, powerup.location.z));
+
         if (powerup.radius == 0.0f) {
             applyPowerUpEffect(powerup);
         }
-        
-        float distance = glm::distance(
-            glm::vec3(playerPos.x, playerPos.y, playerPos.z),
-            glm::vec3(powerup.location.x, powerup.location.y, powerup.location.z)
-        );
-        
-        if (distance <= powerup.radius) {
+        else if (distance <= powerup.radius) {
             applyPowerUpEffect(powerup);
         }
     }
@@ -279,12 +281,12 @@ void PowerUpSystem::applyPowerUpEffect(PowerUp& powerup) {
 }
 
 void PowerUpSystem::clearPowerUps() {
-    /*for (auto& powerup : m_powerUps) { // was destroying things after they were destroyed by alt f4
+    for (auto& powerup : m_powerUps) {
         if (powerup.visualEffectPtr) {
             kill_pickup_effect(powerup.visualEffectPtr);
             powerup.visualEffectPtr = nullptr;
         }
-    }*/
+    }
     m_powerUps.clear();
 }
 
@@ -328,8 +330,9 @@ bool PowerUpSystem::removePowerUp(const std::string& typeId) {
             if (powerupIt->typeId == typeId) {
                 if (powerupIt->visualEffectPtr) {
                     kill_pickup_effect(powerupIt->visualEffectPtr);
-                    powerupIt = m_powerUps.erase(powerupIt);
+                    powerupIt->visualEffectPtr = nullptr;
                 }
+                powerupIt = m_powerUps.erase(powerupIt);
             } else {
                 ++powerupIt;
             }
