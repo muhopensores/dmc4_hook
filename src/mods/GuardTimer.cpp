@@ -16,7 +16,6 @@ uintptr_t GuardTimer::jmp_ret4      = NULL;
 float GuardTimer::lastGuardTime = 0.0f;
 static float guardTimeline = 0.0f;
 
-
 // chart colours
 static constexpr ImColor failedBlockCol         = {255, 0, 0, 255};
 static constexpr ImColor lateCol                = {255, 140, 0, 255};

@@ -3,8 +3,6 @@
 
 bool HpInOrbsDisplay::mod_enabled = false;
 uintptr_t HpInOrbsDisplay::jmp_ret = NULL;
-static float xmm0backup = NULL;
-
 naked void detour(void) {
     _asm {
 			cmp byte ptr [HpInOrbsDisplay::mod_enabled], 0
@@ -12,16 +10,19 @@ naked void detour(void) {
 
             // cmp dword ptr [enemyHPDisplay], 0x00000000		// Check to see if enemy is dead
             // checking to see if enemyHP >= 0
-            // this clobbers xmm0 register but it does
-            // not seem to affect the game? not sure.
-            movss [xmm0backup], xmm0
+            sub esp, 4
+            movss [esp], xmm0
 			xorps xmm0, xmm0
 			comiss xmm0, [HealthSettings::enemy_hp_display]
-			jae originalcode // If yes, show default Orb Count
-            movss xmm0, [xmm0backup]
+			jae poporiginal // If yes, show default Orb Count
+            movss xmm0, [esp]
+            add esp, 4
 			cvttss2si eax, [HealthSettings::enemy_hp_display] // If no, write Enemy HP Display to orbs rather than Orb Count	// cvttss2si
 			jmp dword ptr [HpInOrbsDisplay::jmp_ret]
 
+        poporiginal:
+            movss xmm0, [esp]
+            add esp, 4
 		originalcode:
 			mov eax, [eax+0x00000114]
 			jmp dword ptr [HpInOrbsDisplay::jmp_ret]

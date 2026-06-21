@@ -1623,8 +1623,6 @@ static void AddTrickScore(const char* text, float score, float enemyMult, int st
     }
 }
 
-static float xmm0backup = 0.0f;
-static float xmm1backup = 0.0f;
 naked void detour1(void) { // hit instances
     _asm {
         pushfd // 4 bytes
@@ -1635,11 +1633,12 @@ naked void detour1(void) { // hit instances
         jmp originalcode
 
         cheatcode:
-        movss [xmm0backup], xmm0
-        movss [xmm1backup], xmm1
+        sub esp, 0xC
+        movss [esp+8], xmm2
+        movss [esp+4], xmm1
+        movss [esp], xmm0
 
         pushad // 0x20 bytes
-
         sub esp, 4 // arg 5
         movss [esp], xmm2 // style mult
         push [esp+0x24+0x4+0xC] // styleLetter // backup pushes + 1 arg + style letter location // arg 4
@@ -1649,11 +1648,12 @@ naked void detour1(void) { // hit instances
         push ebx // text // arg 1
         call AddTrickScore // fucks eax, ecx, edx
         add esp, 0x14 // 5 args
-
         popad
 
-        movss xmm0, [xmm0backup]    
-        movss xmm1, [xmm1backup]
+        movss xmm0, [esp] // doesn't matter, next opcode is xorps xmm0, xmm0
+        movss xmm1, [esp+4]
+        movss xmm2, [esp+8]
+        add esp, 0xC
 
         originalcode:
         popfd
@@ -1718,7 +1718,6 @@ naked void detour4(void) { // called on just actions and taunts
         jne originalcode
 
         pushad
-
         push 0x3f800000 // styleMult
         push 0 // style letter
         push 0x3f800000 // enemyMult
@@ -1731,7 +1730,6 @@ naked void detour4(void) { // called on just actions and taunts
         push eax // name
         call AddTrickScore // fucks eax, ecx, edx
         add esp, 0x14 // 5 args
-
         popad
 
         originalcode:

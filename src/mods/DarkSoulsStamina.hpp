@@ -7,6 +7,7 @@ class DarkSoulsStamina : public Mod {
 public:
     DarkSoulsStamina() = default;
     std::string get_mod_name() override { return "DarkSoulsStamina"; };
+    std::vector<std::string> get_search_terms() override { return {"dark souls stamina"}; }
     // Mod::ModType get_mod_type() override { return SLOW; };
 
     static float stamina_regen_rate;

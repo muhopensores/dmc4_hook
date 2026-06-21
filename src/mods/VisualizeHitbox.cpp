@@ -18,9 +18,12 @@ static bool enemyStepSphereDebug;
 bool VisualizeHitbox::mod_enabled2 = false; // Visualize Hurtboxes
 uintptr_t VisualizeHitbox::jmp_ret_hurtboxes = NULL;
 static std::vector<HurtboxSnapshot> hurtDataList;
+
+static std::mutex hurtDataMutex;
 static void AddHurtDataPtr(void* worldData, void* data) { 
     auto* wd = (hurtboxPos*)(worldData); // esi cCollision
     auto* d  = (hurtboxData*)(data); // ebx kCollPrim
+    std::lock_guard<std::mutex> lock(hurtDataMutex);
     hurtDataList.push_back({wd->pos + d->offset, d->radius});
 }
 
@@ -31,6 +34,7 @@ bool VisualizeHitbox::mod_enabled4 = false; // Visualize Hitboxes 2
 uintptr_t VisualizeHitbox::jmp_ret_hitboxes2 = NULL;
 static std::vector<HitboxSnapshot> hitDataList;
 
+static std::mutex hitDataMutex;
 static void AddHitDataPtr(cCollision* collision /*, kCollPrim* prim*/) {
     if (!collision) return;
     kCollPrim* prim = collision->mpCollPrim;
@@ -43,6 +47,7 @@ static void AddHitDataPtr(cCollision* collision /*, kCollPrim* prim*/) {
     glm::vec3 direction = glm::vec3(worldPos1[3]) - glm::vec3(worldPos0[3]);
     float length = glm::length(direction);
 
+    std::lock_guard<std::mutex> lock(hitDataMutex);
     if (length > 0.001f) { // Capsule
         float rotationY = atan2(direction.x, direction.z);
         float rotationX = atan2(sqrt(direction.x*direction.x + direction.z*direction.z), direction.y);
@@ -357,12 +362,30 @@ naked void detour_hitboxes2(void) {
             cmp byte ptr [VisualizeHitbox::mod_enabled4], 1
             jne originalcode
 
+            sub esp, 0x80
+            movups [esp+0x0*10], xmm0 // only xmm0 has a vec3 but only backing this up would mean i have to do more simple addition
+            movups [esp+0x1*10], xmm1
+            movups [esp+0x2*10], xmm2
+            movups [esp+0x3*10], xmm3
+            movups [esp+0x4*10], xmm4
+            movups [esp+0x5*10], xmm5
+            movups [esp+0x6*10], xmm6
+            movups [esp+0x7*10], xmm7
             pushad // 0x20
             //push ebx // kCollPrim
             push esi // cCollision
-			call AddHitDataPtr
+			call AddHitDataPtr // this screws like every xmm and breaks col
 			add esp,0x4
 			popad
+            movups xmm7, [esp+0x7*10]
+            movups xmm6, [esp+0x6*10]
+            movups xmm5, [esp+0x5*10]
+            movups xmm4, [esp+0x4*10]
+            movups xmm3, [esp+0x3*10]
+            movups xmm2, [esp+0x2*10]
+            movups xmm1, [esp+0x1*10]
+            movups xmm0, [esp+0x0*10]
+            add esp, 0x80
 
         originalcode:
             popfd

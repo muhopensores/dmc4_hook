@@ -15,7 +15,6 @@ uint32_t  SelectiveCancels::cancels = 0;
 constexpr uintptr_t static_mediator_ptr  = 0x00E558B8;
 static bool good_grief = false;
 static bool fixGuardInertia = false;
-static float xmm0backup = 0.0f;
 
 static float shockBuffer = 30.0f;
 static float shockCancel = 50.0f;
@@ -47,7 +46,8 @@ naked void detour1() { // player in eax + edi
 			jne originalcode
 
 			// after this, always use popcode
-			movss [xmm0backup], xmm0
+			sub esp, 4
+			movss [esp], xmm0
 			movss xmm0, [eax+0x348]
 
 			cmp byte ptr [eax+0x1494], 1 // controller id nero
@@ -249,7 +249,8 @@ naked void detour1() { // player in eax + edi
 			jmp popcode
 		
 		popcode:
-			movss xmm0, [xmm0backup]
+			movss xmm0, [esp]
+			add esp, 4
 		originalcode:
 			mov edi, 0x00000008
 			jmp dword ptr [SelectiveCancels::jmp_ret1]

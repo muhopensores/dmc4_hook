@@ -103,7 +103,6 @@ naked void detour() { // inputpressed // inputs are edx // player is in edi // A
     }
 }
 
-static float d2xmm0backup = 0.0f;
 naked void detour2() { // inputonpress // touchpad ecstasy // player is in edx // called on tick
     _asm {
         cmp byte ptr [DarkSoulsStamina::stamina_enabled], 1
@@ -144,6 +143,11 @@ naked void detour2() { // inputonpress // touchpad ecstasy // player is in edx /
         test al, dl
         pop edx
         jnz rosethrow
+        jmp jmpret
+
+    staminaPop:
+        movss xmm0, [esp]
+        add esp, 4
     jmpret:
 		jmp dword ptr [InputStates::jmp_return2]
 
@@ -159,11 +163,13 @@ naked void detour2() { // inputonpress // touchpad ecstasy // player is in edx /
         jmp jmpret
 
     staminaCode:
-        movss [d2xmm0backup], xmm0
+        sub esp, 4
+        movss [esp], xmm0
         xorps xmm0, xmm0
         comiss xmm0, [DarkSoulsStamina::stamina]
-        movss xmm0, [d2xmm0backup]
-        ja jmpret
+        ja staminaPop
+        movss xmm0, [esp]
+        add esp, 4
         jmp originalcode
     }
 }

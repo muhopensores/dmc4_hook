@@ -457,7 +457,7 @@ public:
     }
     
     void Draw() {
-        if (!w2s::IsVisibleOnScreen(position, size)) {
+        if (!w2s::IsVisibleOnScreen(w2s::WorldToScreen(position))) {
             return;
         }
         w2s::DrawWireframeSphere(position, size, rotation, color, 16, isSelected ? 2.0f : 1.0f);

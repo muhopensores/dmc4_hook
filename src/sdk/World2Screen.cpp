@@ -449,9 +449,12 @@ namespace w2s {
             glm::vec2 screenYZ2 = w2s::WorldToScreen(rotatedYZ2);
 
             // Draw the lines
-            drawList->AddLine(ImVec2(screenXY1.x, screenXY1.y), ImVec2(screenXY2.x, screenXY2.y), color, thickness);
-            drawList->AddLine(ImVec2(screenXZ1.x, screenXZ1.y), ImVec2(screenXZ2.x, screenXZ2.y), color, thickness);
-            drawList->AddLine(ImVec2(screenYZ1.x, screenYZ1.y), ImVec2(screenYZ2.x, screenYZ2.y), color, thickness);
+            if (IsVisibleOnScreen(screenXY1) || IsVisibleOnScreen(screenXY2))
+                drawList->AddLine(ImVec2(screenXY1.x, screenXY1.y), ImVec2(screenXY2.x, screenXY2.y), color, thickness);
+            if (IsVisibleOnScreen(screenXZ1) || IsVisibleOnScreen(screenXZ2))
+                drawList->AddLine(ImVec2(screenXZ1.x, screenXZ1.y), ImVec2(screenXZ2.x, screenXZ2.y), color, thickness);
+            if (IsVisibleOnScreen(screenYZ1) || IsVisibleOnScreen(screenYZ2))
+                drawList->AddLine(ImVec2(screenYZ1.x, screenYZ1.y), ImVec2(screenYZ2.x, screenYZ2.y), color, thickness);
 #endif
         }
     }
@@ -497,8 +500,7 @@ namespace w2s {
             glm::vec2 screenBottomPoint = w2s::WorldToScreen(rotatedBottomPoint);
 
             // Check if points are behind the camera
-            if ((screenTopPoint.x == -1.0f && screenTopPoint.y == -1.0f) ||
-                (screenBottomPoint.x == -1.0f && screenBottomPoint.y == -1.0f)) {
+            if (!IsVisibleOnScreen(screenTopPoint) || !IsVisibleOnScreen(screenBottomPoint)) {
                 continue;
             }
 
@@ -538,8 +540,7 @@ namespace w2s {
             glm::vec2 screenTopPoint2 = w2s::WorldToScreen(rotatedTopPoint2);
         
             // Check if points are behind the camera
-            if ((screenTopPoint1.x != -1.0f || screenTopPoint1.y != -1.0f) &&
-                (screenTopPoint2.x != -1.0f || screenTopPoint2.y != -1.0f)) {
+            if (IsVisibleOnScreen(screenTopPoint1) && IsVisibleOnScreen(screenTopPoint2)) {
                 // Draw the top horizontal line
                 drawList->AddLine(ImVec2(screenTopPoint1.x, screenTopPoint1.y), 
                                   ImVec2(screenTopPoint2.x, screenTopPoint2.y), 
@@ -550,8 +551,7 @@ namespace w2s {
             glm::vec2 screenBottomPoint2 = w2s::WorldToScreen(rotatedBottomPoint2);
         
             // Check if points are behind the camera
-            if ((screenBottomPoint1.x != -1.0f || screenBottomPoint1.y != -1.0f) &&
-                (screenBottomPoint2.x != -1.0f || screenBottomPoint2.y != -1.0f)) {
+            if (IsVisibleOnScreen(screenBottomPoint1) && IsVisibleOnScreen(screenBottomPoint2)) {
                 // Draw the bottom horizontal line
                 drawList->AddLine(ImVec2(screenBottomPoint1.x, screenBottomPoint1.y), 
                                   ImVec2(screenBottomPoint2.x, screenBottomPoint2.y), 
@@ -605,8 +605,7 @@ namespace w2s {
             glm::vec2 screenTopFrontXY1 = w2s::WorldToScreen(rotatedTopFrontXY1);
             glm::vec2 screenTopFrontXY2 = w2s::WorldToScreen(rotatedTopFrontXY2);
         
-            if ((screenTopFrontXY1.x != -1.0f || screenTopFrontXY1.y != -1.0f) &&
-                (screenTopFrontXY2.x != -1.0f || screenTopFrontXY2.y != -1.0f)) {
+            if (IsVisibleOnScreen(screenTopFrontXY1) && IsVisibleOnScreen(screenTopFrontXY2)) {
                 drawList->AddLine(ImVec2(screenTopFrontXY1.x, screenTopFrontXY1.y), 
                                  ImVec2(screenTopFrontXY2.x, screenTopFrontXY2.y), 
                                  color, thickness);
@@ -616,8 +615,7 @@ namespace w2s {
             glm::vec2 screenTopSideYZ1 = w2s::WorldToScreen(rotatedTopSideYZ1);
             glm::vec2 screenTopSideYZ2 = w2s::WorldToScreen(rotatedTopSideYZ2);
         
-            if ((screenTopSideYZ1.x != -1.0f || screenTopSideYZ1.y != -1.0f) &&
-                (screenTopSideYZ2.x != -1.0f || screenTopSideYZ2.y != -1.0f)) {
+            if (IsVisibleOnScreen(screenTopSideYZ1) && IsVisibleOnScreen(screenTopSideYZ2)) {
                 drawList->AddLine(ImVec2(screenTopSideYZ1.x, screenTopSideYZ1.y), 
                                  ImVec2(screenTopSideYZ2.x, screenTopSideYZ2.y), 
                                  color, thickness);
@@ -627,8 +625,7 @@ namespace w2s {
             glm::vec2 screenBottomFrontXY1 = w2s::WorldToScreen(rotatedBottomFrontXY1);
             glm::vec2 screenBottomFrontXY2 = w2s::WorldToScreen(rotatedBottomFrontXY2);
         
-            if ((screenBottomFrontXY1.x != -1.0f || screenBottomFrontXY1.y != -1.0f) &&
-                (screenBottomFrontXY2.x != -1.0f || screenBottomFrontXY2.y != -1.0f)) {
+            if (IsVisibleOnScreen(screenBottomFrontXY1) && IsVisibleOnScreen(screenBottomFrontXY2)) {
                 drawList->AddLine(ImVec2(screenBottomFrontXY1.x, screenBottomFrontXY1.y), 
                                  ImVec2(screenBottomFrontXY2.x, screenBottomFrontXY2.y), 
                                  color, thickness);
@@ -638,8 +635,7 @@ namespace w2s {
             glm::vec2 screenBottomSideYZ1 = w2s::WorldToScreen(rotatedBottomSideYZ1);
             glm::vec2 screenBottomSideYZ2 = w2s::WorldToScreen(rotatedBottomSideYZ2);
         
-            if ((screenBottomSideYZ1.x != -1.0f || screenBottomSideYZ1.y != -1.0f) &&
-                (screenBottomSideYZ2.x != -1.0f || screenBottomSideYZ2.y != -1.0f)) {
+            if (IsVisibleOnScreen(screenBottomSideYZ1) && IsVisibleOnScreen(screenBottomSideYZ2)) {
                 drawList->AddLine(ImVec2(screenBottomSideYZ1.x, screenBottomSideYZ1.y), 
                                  ImVec2(screenBottomSideYZ2.x, screenBottomSideYZ2.y), 
                                  color, thickness);
@@ -648,11 +644,11 @@ namespace w2s {
     }
 
     void DrawLine3D(const glm::vec3& start, const glm::vec3& end, ImU32 color, float thickness) {
-        ImDrawList* drawList = ImGui::GetBackgroundDrawList();
-
-        // Convert to screen space
         glm::vec2 screenStart = w2s::WorldToScreen(start);
-        glm::vec2 screenEnd = w2s::WorldToScreen(end);
+        glm::vec2 screenEnd   = w2s::WorldToScreen(end);
+        if (!IsVisibleOnScreen(screenStart) && !IsVisibleOnScreen(screenEnd)) return;
+
+        ImDrawList* drawList = ImGui::GetBackgroundDrawList();
 
         // Draw the line
         drawList->AddLine(ImVec2(screenStart.x, screenStart.y), ImVec2(screenEnd.x, screenEnd.y), color, thickness);
@@ -880,37 +876,17 @@ namespace w2s {
         }
     }
 
-    bool IsVisibleOnScreen(const glm::vec3& worldPos, float objectRadius) {
-        // Convert world position to screen space
-        glm::vec2 screenPos = WorldToScreen(worldPos);
-
-        // Get screen dimensions
-        sRender* sRender = devil4_sdk::get_sRender();
-        if (!sRender) { return false; }
-        glm::vec2 screen = glm::vec2(sRender->screenRes);
-
-        // Simple check if the position is outside the screen borders
-        // The -1.0f return value from WorldToScreen indicates the point is behind the camera
-        if (screenPos.x == -1.0f && screenPos.y == -1.0f) {
-            return false;
-        }
-
-        // For objects with size, we add a buffer equal to their radius in screen space
-        float screenBuffer = 0.0f;
-        if (objectRadius > 0.0f) {
-            float distFromCamera = GetDistanceFromCam(worldPos);
-            // Simple approximation of screen radius
-            screenBuffer = objectRadius * 1000.0f / distFromCamera;
-        }
-
-        // Check if the object is within the screen bounds, with buffer
-        if (screenPos.x + screenBuffer < 0 || screenPos.x - screenBuffer > screen.x ||
-            screenPos.y + screenBuffer < 0 || screenPos.y - screenBuffer > screen.y) {
-            return false;
-        }
-
-        return true;
+    bool IsVisibleOnScreen(const glm::vec2& screenPos) {
+    if (screenPos.x == -1.0f && screenPos.y == -1.0f) return false;
+    sRender* sRender = devil4_sdk::get_sRender();
+    if (!sRender) { return false; }
+    glm::vec2 screen = glm::vec2(sRender->screenRes);
+    if (screenPos.x < 0 || screenPos.x > screen.x ||
+        screenPos.y < 0 || screenPos.y > screen.y) {
+        return false;
     }
+    return true;
+}
 
     /*void ScreenToRay(const glm::vec2& screenPos, glm::vec3& rayOrigin, glm::vec3& rayDir) {
         sMediator* sMed = devil4_sdk::get_sMediator();

@@ -22,6 +22,7 @@ public:
     void DrawHiddenCombos();
 
     std::string get_mod_name() override { return "StylePoints"; };
+    std::vector<std::string> get_search_terms() override { return {"tony", "move names", "move name display"}; };
     std::optional<std::string> on_initialize() override;
     Mod::ModType get_mod_type() override { return ModType::SLOW; };
     void on_reset();

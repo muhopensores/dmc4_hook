@@ -20,8 +20,6 @@ float DarkSoulsStamina::stamina_ghost_delay_max = 0.5f;
 float DarkSoulsStamina::stamina_ghost_rate = 500.0f;
 
 static int currentMoveID = 0; // for imgui debug
-static float xmm0backup  = 0.0f;
-
 // atm I kill inputs because I don't know how to stop the player from being able to do actions other than movement
 naked void detour1() { // gamepad inputs (keyboard is handled by detour2 in InputStates.cpp)
     _asm {
@@ -31,15 +29,20 @@ naked void detour1() { // gamepad inputs (keyboard is handled by detour2 in Inpu
             jne originalcode
 
         newcode:
-            movss [xmm0backup], xmm0
+            sub esp, 4
+            movss [esp], xmm0
             xorps xmm0, xmm0
             comiss xmm0, [DarkSoulsStamina::stamina]
-            movss xmm0, [xmm0backup]
-            ja retcode
-
+            ja popret
+            movss xmm0, [esp]
+            add esp, 4
         originalcode:
             mov [esi+0x00001410], eax
-        retcode:
+            jmp dword ptr [DarkSoulsStamina::jmp_ret1]
+
+        popret:
+            movss xmm0, [esp]
+            add esp, 4
             jmp dword ptr [DarkSoulsStamina::jmp_ret1]
     }
 }

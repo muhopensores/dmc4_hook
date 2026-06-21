@@ -30,7 +30,7 @@ namespace w2s {
 	void DrawWireframeMesh(const std::vector<glm::vec3>& vertices, const std::vector<std::vector<int>>& triangles, ImU32 color, float thickness);
 	void DrawWireframeMeshIndices(const std::vector<glm::vec3>& vertices, const std::vector<int>& indices, ImU32 color, float thickness = 1.0f);
 
-	bool IsVisibleOnScreen(const glm::vec3& worldPos, float objectRadius = 0.0f);
+	bool IsVisibleOnScreen(const glm::vec2& screenPos);
 	// void ScreenToRay(const glm::vec2& screenPos, glm::vec3& rayOrigin, glm::vec3& rayDir);
 	// bool RayPlaneIntersection(const glm::vec3& rayOrigin, const glm::vec3& rayDir, const glm::vec3& planePos, const glm::vec3& planeNormal, float& t);
 
