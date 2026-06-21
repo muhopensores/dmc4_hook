@@ -16,6 +16,13 @@ uintptr_t GuardTimer::jmp_ret4      = NULL;
 float GuardTimer::lastGuardTime = 0.0f;
 static float guardTimeline = 0.0f;
 
+
+// chart colours
+static constexpr ImColor failedBlockCol         = {255, 0, 0, 255};
+static constexpr ImColor lateCol                = {255, 140, 0, 255};
+static constexpr ImColor perfectCol             = {0, 255, 255, 255};
+static constexpr ImColor perfectButCantBlockCol = {255, 0, 255, 255};
+
 static std::chrono::time_point<std::chrono::high_resolution_clock> damageTime = std::chrono::high_resolution_clock::now();
 static std::chrono::time_point<std::chrono::high_resolution_clock> guardTime  = std::chrono::high_resolution_clock::now();
 
@@ -28,6 +35,7 @@ static void record_guard_time() {
 struct ChartEntry {
     float time;
     float blockTimer;
+    float releaseTimer;
     bool blockHeld;
     bool canBlock;
     bool isHit;
@@ -49,14 +57,15 @@ static bool checkCanBlock(uPlayer* player) {
 }
 static void update_chart_hit(float timeline) {
     const ChartEntry& snapshot = guardChart[(guardIndex + CHART_SIZE - 1) % CHART_SIZE];
-    hitChart[hitIndex] = {snapshot.time, snapshot.blockTimer, snapshot.blockHeld, snapshot.canBlock, true};
+    hitChart[hitIndex] = {snapshot.time, snapshot.blockTimer, snapshot.releaseTimer, snapshot.blockHeld, snapshot.canBlock, true};
     hitIndex = (hitIndex + 1) % CHART_SIZE;
 }
 static void update_chart_tick(uPlayer* player, float timeline) {
-    bool guardPressed      = (player->inputHold[1] & 0x6) != 0;
-    bool canBlock          = checkCanBlock(player);
-    float guardTimer       = player->guardTimer;
-    guardChart[guardIndex] = {timeline, guardTimer, guardPressed, canBlock, false};
+    bool guardPressed      = (player->inputHold[1] & 0x6) != 0 && player->currentStyle == 3;
+    bool canBlock          = checkCanBlock(player) && !player->iFrameCol;
+    float blockTimer       = player->guardTimer;
+    float releaseTimer     = player->releaseTimer;
+    guardChart[guardIndex] = {timeline, blockTimer, releaseTimer, guardPressed, canBlock, false};
     guardIndex = (guardIndex + 1) % CHART_SIZE;
 }
 
@@ -256,9 +265,9 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
                 Vector2f screen_res         = sRen->screenRes;
                 float uiScale               = screen_res.y / 1080.0f;
                 float panelWidth            = screen_res.x;
-                const float timelineHeight  = 20.0f * uiScale;
-                const float hitExtendAmount = 10.0f * uiScale;
-                const float panelHeight     = timelineHeight + (hitExtendAmount * 2.0f);
+                static const float timelineHeight  = 20.0f * uiScale;
+                static const float hitExtendAmount = 10.0f * uiScale;
+                static const float panelHeight     = timelineHeight + (hitExtendAmount * 2.0f);
                 float posX                  = (screen_res.x - panelWidth) * 0.5f;
                 float posY                  = screen_res.y;
 
@@ -269,55 +278,62 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
                 ImDrawList* draw = ImGui::GetWindowDrawList();
                 ImVec2 origin    = ImGui::GetCursorScreenPos();
                 draw->AddRectFilled(origin, ImVec2(origin.x + panelWidth, origin.y + panelHeight), IM_COL32(20, 20, 20, 255));
-                const float timelineTop    = origin.y + hitExtendAmount;
-                const float timelineBottom = timelineTop + timelineHeight;
-                const float graphLeft      = origin.x;
-                const float graphWidth     = panelWidth;
-                const float timeWindow     = 4.0f;
-                float now                  = guardChart[(guardIndex + CHART_SIZE - 1) % CHART_SIZE].time;
-                const float sampleWidth = graphWidth / (float)CHART_SIZE;
+                static const float timelineTop    = origin.y + hitExtendAmount;
+                static const float timelineBottom = timelineTop + timelineHeight;
+                static const float graphLeft      = origin.x;
+                static const float graphWidth     = panelWidth;
+                static const float timeWindow     = 4.0f;
+                float now                         = guardChart[(guardIndex + CHART_SIZE - 1) % CHART_SIZE].time;
+                static const float sampleWidth    = graphWidth / (float)CHART_SIZE;
 
-                // canBlock
+                // release windows
                 for (int i = 0; i < CHART_SIZE; i++) {
                     const ChartEntry& entry = guardChart[i];
-                    if (entry.time <= 0.0f || !entry.canBlock)
-                        continue;
+                    if (entry.time <= 0.0f || entry.releaseTimer <= 0.0f) continue;
                     float normalizedTime = (entry.time - (now - timeWindow)) / timeWindow;
-                    if (normalizedTime < 0.0f || normalizedTime > 1.0f)
-                        continue;
+                    if (normalizedTime < 0.0f || normalizedTime > 1.0f) continue;
                     float x = graphLeft + normalizedTime * graphWidth;
-                    draw->AddRectFilled(ImVec2(x - sampleWidth * 0.5f, timelineTop - hitExtendAmount),
-                        ImVec2(x + sampleWidth * 0.5f, timelineBottom + hitExtendAmount), IM_COL32(0, 64, 0, 100));
+                    ImU32 color = lateCol;
+                    if (entry.releaseTimer > 5.0f) {
+                        color = perfectCol;
+                    }
+                    draw->AddLine(ImVec2(x, timelineTop), ImVec2(x, timelineBottom), color, 1.0f * uiScale);
                 }
 
                 // blocking
                 for (int i = 0; i < CHART_SIZE; i++) {
                     const ChartEntry& entry = guardChart[i];
-                    if (entry.time <= 0.0f)
-                        continue;
+                    if (entry.time <= 0.0f || entry.releaseTimer > 0.0f) continue;
                     float normalizedTime = (entry.time - (now - timeWindow)) / timeWindow;
-                    if (normalizedTime < 0.0f || normalizedTime > 1.0f)
-                        continue;
+                    if (normalizedTime < 0.0f || normalizedTime > 1.0f) continue;
                     float x = graphLeft + normalizedTime * graphWidth;
                     if (entry.blockHeld) {
-                        ImU32 color = (entry.blockTimer < 5.0f) ? IM_COL32(0, 255, 255, 180) : IM_COL32(255, 140, 0, 160);
+                        ImU32 color = lateCol;
+                        if (entry.blockTimer < 5.0f) {
+                            color = perfectCol;
+                            if (!entry.canBlock) {
+                                color = perfectButCantBlockCol;
+                            }
+                        }
                         draw->AddLine(ImVec2(x, timelineTop), ImVec2(x, timelineBottom), color, 1.0f * uiScale);
                     }
                 }
 
                 // hit markers
                 for (int i = 0; i < CHART_SIZE; i++) {
-                    const ChartEntry& e = hitChart[i];
-                    if (!e.isHit || e.time <= 0.0f)
-                        continue;
-                    float normalizedTime = (e.time - (now - timeWindow)) / timeWindow;
-                    if (normalizedTime < 0.0f || normalizedTime > 1.0f)
-                        continue;
-                    float x        = graphLeft + normalizedTime * graphWidth;
-                    ImU32 hitColor = (e.blockHeld) ? ((e.blockTimer < 5.0f) ? IM_COL32(0, 255, 255, 255) : IM_COL32(255, 140, 0, 255))
-                                                   : IM_COL32(255, 0, 0, 255);
-                    draw->AddLine(
-                        ImVec2(x, timelineTop - hitExtendAmount), ImVec2(x, timelineBottom + hitExtendAmount), hitColor, 2.0f * uiScale);
+                    const ChartEntry& entry = hitChart[i];
+                    if (!entry.isHit || entry.time <= 0.0f) continue;
+                    float normalizedTime = (entry.time - (now - timeWindow)) / timeWindow;
+                    if (normalizedTime < 0.0f || normalizedTime > 1.0f) continue;
+                    float x = graphLeft + normalizedTime * graphWidth;
+                    ImU32 hitColor = failedBlockCol;
+                    if ((entry.blockHeld && entry.canBlock) || entry.releaseTimer > 0.0f) {
+                        hitColor = lateCol;
+                        if (entry.blockTimer < 5.0f || entry.releaseTimer > 5.0f) {
+                            hitColor = perfectCol;
+                        }
+                    }
+                    draw->AddLine(ImVec2(x, timelineTop - hitExtendAmount), ImVec2(x, timelineBottom + hitExtendAmount), hitColor, 2.0f * uiScale);
                 }
                 ImGui::PopStyleVar();
                 ImGui::End();
@@ -332,9 +348,20 @@ void GuardTimer::on_gui_frame(int display) {
         ImGui::SameLine();
         help_marker(_("See how early or late your guards were"));
     } else if (display == DISPLAY_SYSTEM_B) {
-        ImGui::Checkbox("Royal Guard Timing Chart", &chart_enabled);
+        ImGui::Checkbox(_("Royal Guard Timing Chart"), &chart_enabled);
         ImGui::SameLine();
-        help_marker(_("See how early or late multiple guards in a row were"));
+        ImGui::TextDisabled("(?)");
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+            ImGui::TextUnformatted(_("See how early or late multiple guards in a row were"));
+            ImGui::TextColored(failedBlockCol, _("Failed"));
+            ImGui::TextColored(lateCol, _("Late"));
+            ImGui::TextColored(perfectCol, _("Perfect"));
+            ImGui::TextColored(perfectButCantBlockCol, _("Perfect, but can't"));
+            ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
+        }
     }
 }
 

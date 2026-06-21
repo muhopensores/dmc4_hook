@@ -252,7 +252,8 @@ public:
     uint8_t exceedLevel; // 0xcce8
     char pad_cce9[0xd3];
     float exceedTimer; // 0xcdbc
-    char pad_cdc0[0x7f14];
+    char pad_cdc0[0x7f10];
+    float releaseTimer; // 0x14cd0
     bool guardReq1; // 0x14cd4
     bool guardReq2; // 0x14cd5
     char pad_14cd6[0x5e];
@@ -267,10 +268,20 @@ public:
     float revengeGauge; // 0x14dac
     char pad_14db0[0xc];
     LuciferPin* luciferPins[15]; // 0x14dbc
-    char pad_14df8[0x3fc];
-    float disasterGauge; // 0x151f4
-    char pad_151f8[0xa8];
-    int dreadnaught; // 0x152a0
-    char pad_152a4[0x7c4];
+    char pad_14df8[0x360];
+    cCollisionGroup* legsCol; // 0x15158
+    cCollisionGroup* bodyCol; // 0x1515C
+    cCollisionGroup* airCol;  // 0x15160
+    cCollisionGroup* iFrameCol; // 0x15164
+    char pad_15168[0x8C]; // 0x15168
+    float disasterGauge; // 0x151F4
+    float mPdMeteorMoveSpd; // 0x151F8
+    float mPdMeteorMoveSpdMax; // 0x151fc
+    float mPdMeteorRotSpd; // 0x151200
+    float mPdMeteorRotBlendSpd; // 0x151204
+    char pad_15208[0x98];
+    int dreadnaught; // 0x152A0
+    char pad_152A4[0x7C4];
     uEnemy_Old* lockOnTargetPtr4; // 0x15a68
-};                            // Size: 0x15a6c
+}; // Size: 0x15a6c
+static_assert(sizeof(uPlayer) == 0x15a6c);
