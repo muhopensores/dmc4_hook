@@ -1,10 +1,9 @@
 #include "ActiveBlock.hpp"
-#include "InputStates.hpp"
 
 bool ActiveBlock::mod_enabled = false;
 uintptr_t ActiveBlock::jmp_return = NULL;
 uintptr_t ActiveBlock::alt_ret = 0x007BBAC1;
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
+float ActiveBlock::guardTimerRequirement = 5.0f;
 
 naked void detour() {
     _asm {
@@ -19,15 +18,25 @@ naked void detour() {
         pop ecx
         jne code
 
-        cmp dword ptr [InputStates::input_timer], 0x40a00000 // 5.0f to match guard/release
-        jae code
-        cmp dword ptr [InputStates::input_timer], 0x00000000
-        je code
+        movss xmm0, [ActiveBlock::guardTimerRequirement]
+        comiss xmm0, [esi+0x14d44]
+        jb popcode
+
+        xorps xmm0, xmm0
+        comiss xmm0, [esi+0x14d44]
+        ja popcode
+
+        movss xmm0,[esp]
+        add esp,4
         cmp dword ptr [esi+0x00014D98], 3 // royal guard
         je alt_ret
         cmp dword ptr [esi+0x00014D98], 4 // darkslayer
         je alt_ret
+        jmp code
 
+    popcode:
+        movss xmm0,[esp]
+        add esp,4
     code:
         cmp dword ptr [esi+0x000152A0], 00
 		jmp dword ptr [ActiveBlock::jmp_return]

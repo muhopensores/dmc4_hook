@@ -17,10 +17,12 @@ float GuardTimer::lastGuardTime = 0.0f;
 static float guardTimeline = 0.0f;
 
 // chart colours
-static constexpr ImColor failedBlockCol         = {255, 0, 0, 255};
-static constexpr ImColor lateCol                = {255, 140, 0, 255};
-static constexpr ImColor perfectCol             = {0, 255, 255, 255};
-static constexpr ImColor perfectButCantBlockCol = {255, 0, 255, 255};
+// chart colours
+static constexpr ImColor failedBlockCol = {220, 0, 0, 255}; // red
+static constexpr ImColor perfectCol = {255, 215, 0, 255};  // gold
+static constexpr ImColor lateCol    = {184, 144, 16, 255}; // dark gold
+static constexpr ImColor perfectButCantBlockCol = {0, 180, 166, 255}; // siyan
+static constexpr ImColor lateButCantBlockCol    = {0, 107, 98, 255};  // dark siyan
 
 static std::chrono::time_point<std::chrono::high_resolution_clock> damageTime = std::chrono::high_resolution_clock::now();
 static std::chrono::time_point<std::chrono::high_resolution_clock> guardTime  = std::chrono::high_resolution_clock::now();
@@ -296,7 +298,7 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
                     if (entry.releaseTimer > 5.0f) {
                         color = perfectCol;
                     }
-                    draw->AddLine(ImVec2(x, timelineTop), ImVec2(x, timelineBottom), color, 1.0f * uiScale);
+                    draw->AddLine(ImVec2(x, timelineTop), ImVec2(x, timelineBottom), color, 2.0f * uiScale);
                 }
 
                 // blocking
@@ -313,8 +315,10 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
                             if (!entry.canBlock) {
                                 color = perfectButCantBlockCol;
                             }
+                        } else if (!entry.canBlock) {
+                            color = lateButCantBlockCol;
                         }
-                        draw->AddLine(ImVec2(x, timelineTop), ImVec2(x, timelineBottom), color, 1.0f * uiScale);
+                        draw->AddLine(ImVec2(x, timelineTop), ImVec2(x, timelineBottom), color, 2.0f * uiScale);
                     }
                 }
 
@@ -326,13 +330,19 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
                     if (normalizedTime < 0.0f || normalizedTime > 1.0f) continue;
                     float x = graphLeft + normalizedTime * graphWidth;
                     ImU32 hitColor = failedBlockCol;
-                    if ((entry.blockHeld && entry.canBlock) || entry.releaseTimer > 0.0f) {
+                    if (entry.blockHeld && !entry.canBlock && entry.releaseTimer == 0.0f) {
+                        if (entry.blockTimer < 5.0f) {
+                            hitColor = perfectButCantBlockCol;
+                        } else {
+                            hitColor = lateButCantBlockCol;
+                        }
+                    } else if (entry.blockHeld || entry.releaseTimer > 0.0f) {
                         hitColor = lateCol;
-                        if (entry.blockTimer < 5.0f || entry.releaseTimer > 5.0f) {
+                        if (entry.blockTimer < 5.0f || entry.releaseTimer >= 5.0f) {
                             hitColor = perfectCol;
                         }
                     }
-                    draw->AddLine(ImVec2(x, timelineTop - hitExtendAmount), ImVec2(x, timelineBottom + hitExtendAmount), hitColor, 2.0f * uiScale);
+                    draw->AddLine(ImVec2(x, timelineTop - hitExtendAmount), ImVec2(x, timelineBottom + hitExtendAmount), hitColor, 1.0f * uiScale);
                 }
                 ImGui::PopStyleVar();
                 ImGui::End();
@@ -357,7 +367,8 @@ void GuardTimer::on_gui_frame(int display) {
             ImGui::TextColored(failedBlockCol, _("Failed"));
             ImGui::TextColored(lateCol, _("Late"));
             ImGui::TextColored(perfectCol, _("Perfect"));
-            ImGui::TextColored(perfectButCantBlockCol, _("Perfect, but can't"));
+            ImGui::TextColored(perfectButCantBlockCol, _("Perfect, but can't (or in iframes)"));
+            ImGui::TextColored(lateButCantBlockCol, _("Late, but can't (or in iframes)"));
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }

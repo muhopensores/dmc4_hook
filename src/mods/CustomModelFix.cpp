@@ -4,8 +4,6 @@
 uintptr_t CustomModelFix::jmp_ret1 = NULL;
 uintptr_t CustomModelFix::jmp_jb1 = 0x009F46F6;
 
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-
 bool CustomModelFix::custom_nero_model_fix  = false;
 bool CustomModelFix::custom_dante_model_fix = false;
 bool CustomModelFix::force_default_faceplate = false;

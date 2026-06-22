@@ -11,7 +11,6 @@
 #if 1
 bool Payline::mod_enabled = false;
 bool Payline::helm_splitter_remap = false;
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 uintptr_t Payline::full_house = 0x007D3300;
 uintptr_t Payline::nero_streak_1 = 0x007FDA80;
 uintptr_t Payline::helm_splitter_directional = 0x00C3F320;

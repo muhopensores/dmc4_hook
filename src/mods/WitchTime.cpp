@@ -4,7 +4,6 @@
 bool WitchTime::witch_time_enabled_dante = false;
 bool WitchTime::witch_time_enabled_nero = false;
 uintptr_t WitchTime::jmp_ret1 = NULL;
-constexpr uintptr_t static_mediator_ptr  = 0x00E558B8; // we really should put this somewhere global
 static constexpr float wt_duration = 3.0f;
 
 /*void WitchTime::toggle1(bool enable) {

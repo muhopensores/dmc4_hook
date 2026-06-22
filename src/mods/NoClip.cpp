@@ -8,8 +8,6 @@ bool NoClip::mod_enabled_2 = false;
 bool player_lock_y_pos = false;
 float player_y_backup  = 0.0f;
 
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8; // DevilMayCry4_DX9.exe+A558B8
-
 static void on_timer_callback() {
     NoClip::mod_enabled = !NoClip::mod_enabled;
 }

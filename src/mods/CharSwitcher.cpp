@@ -5,7 +5,6 @@
 
 bool CharSwitcher::mod_enabled = false;
 bool CharSwitcher::inertia_enabled = true;
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 constexpr uintptr_t sArea               = 0x00E552C8;
 constexpr uintptr_t sSave               = 0x00E558C8;
 uintptr_t primaryActor                  = NULL;

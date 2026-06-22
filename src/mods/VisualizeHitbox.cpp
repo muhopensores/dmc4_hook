@@ -410,15 +410,19 @@ std::optional<std::string> VisualizeHitbox::on_initialize() {
 
 void VisualizeHitbox::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
-        ImGui::Checkbox(_("Visualize Hitboxes"), &mod_enabled);
+        if (ImGui::Checkbox(_("Visualize Hitboxes"), &mod_enabled)) {
+            mod_enabled4 = false;
+        }
         ImGui::SameLine();
         help_marker(_("Draw hitbox outlines in red"));
 
-        ImGui::Checkbox(_("Visualize Hitboxes Attempt 2 CRASHES WOOOO"), &mod_enabled4);
+        if (ImGui::Checkbox(_("Visualize Hitboxes 2"), &mod_enabled4)) {
+            mod_enabled = false;
+        }
         ImGui::SameLine();
         help_marker(_("Draw hitbox outlines in red"));
 
-        ImGui::Checkbox(_("Visualize Hurtboxes CRASHES WOOOO"), &mod_enabled2);
+        ImGui::Checkbox(_("Visualize Hurtboxes"), &mod_enabled2);
         ImGui::SameLine();
         help_marker(_("Draw hurtbox outlines in blue"));
 

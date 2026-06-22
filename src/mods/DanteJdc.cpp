@@ -9,7 +9,6 @@
 bool DanteJdc::mod_enabled = false;
 bool DanteJdc::alt_input_enabled = false;
 bool DanteJdc::inertia_enabled  = false;
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 uintptr_t DanteJdc::jmp_ret1 = NULL;
     constexpr uintptr_t detour1_push1 = 0x00486640;

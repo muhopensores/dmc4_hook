@@ -9,7 +9,6 @@ static bool grounded_allowed = false;
 static utility::Timer* timer{};
 static glm::ivec2 screen_res{ 0, 0 };
 
-static constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 naked void KillPlayer() { // vtable+BC (DevilMayCry4_DX9.exe+3B7AD0) is die with damage IDs, vtable+1A4 (DevilMayCry4_DX9.exe+3AAB80) is die but it crashes if I do it while aerial???
     _asm {
         pushad

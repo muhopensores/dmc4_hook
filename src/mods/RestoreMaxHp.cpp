@@ -10,8 +10,6 @@ static bool reset_timer = false;
 static bool limit_to_ground = false;
 static bool limit_to_air = false;
 
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-
 std::optional<std::string> RestoreMaxHp::on_initialize() {
     return Mod::on_initialize();
 }

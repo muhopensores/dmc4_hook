@@ -342,7 +342,6 @@ void AreaJump::jump_to_stage(const Room* stage) {
 
 bool AreaJump::randomize_bp_toggle = false;
 bool AreaJump::bp_boss_rush_toggle = false;
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 uintptr_t AreaJump::bp_jump_hook1_continue = NULL;
 uintptr_t AreaJump::bp_jump_hook2_continue = NULL;
 uintptr_t AreaJump::bp_jump_hook3_continue = NULL;

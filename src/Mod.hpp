@@ -21,3 +21,5 @@ enum DisplayID {
     DISPLAY_DANTE_C  = 8,
     DISPLAY_MAX      = 9,
 };
+
+static constexpr uintptr_t static_mediator_ptr = 0x00E558B8;

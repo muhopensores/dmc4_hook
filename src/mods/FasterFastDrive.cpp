@@ -1,7 +1,6 @@
 #include "FasterFastDrive.hpp"
 
 bool FasterFastDrive::mod_enabled = false;
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 bool FasterFastDrive::easy_fast_drive_enabled = false;
 
 std::optional<std::string> FasterFastDrive::on_initialize() {

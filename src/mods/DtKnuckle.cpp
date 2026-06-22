@@ -9,7 +9,6 @@
 //#define EFCT_PATH "effect\\efl\\ene\\ee018_90v5"
 
 bool DtKnuckle::mod_enabled = false;
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 
 uintptr_t DtKnuckle::jmp_ret1 = NULL;
 	int moveID                        = 0;

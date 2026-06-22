@@ -108,8 +108,6 @@ void screenBlinkEffect() {
 }
 #endif
 
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-
 struct PostProcessingEffects {
     uTvNoiseFilter* tv;
     uColorCorrectFilter* cc;

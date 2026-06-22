@@ -8,7 +8,6 @@
 #include "misc/CompressedDrawing.cpp"
 
 #if 1
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 bool EnemyTracker::flyingAd = false;
 bool EnemyTracker::flyingSpheres = false;
 

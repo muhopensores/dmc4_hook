@@ -15,8 +15,6 @@ uint32_t InputStates::inputpressed = 0;
 float InputStates::input_timer = 0.0f;
 float InputStates::input_timer2 = 0.0f;
 
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
-
 bool InputStates::touchpad_rose_enabled = false;
 bool InputStates::rose_timer_active = false;
 

@@ -22,7 +22,6 @@ bool HealthSettings::cant_die                  = false;
 bool HealthSettings::one_hit_kill            = false;
 uintptr_t HealthSettings::one_hit_kill_jmp_ret = NULL;
 uintptr_t HealthSettings::one_hit_kill_jmp_out = 0x0051C129;
-constexpr uintptr_t static_mediator_ptr    = 0x00E558B8;
 
 #include <xmmintrin.h> // simd microsoft specific thingies
 // should be zero initialized due to static init

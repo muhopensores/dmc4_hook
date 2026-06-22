@@ -1,7 +1,6 @@
 #include "DoubleTapDarkslayer.hpp"
 
 #if 1
-constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 uintptr_t DoubleTapDarkslayer::jmp_ret1 = NULL;
 
 uintptr_t DoubleTapDarkslayer::jmp_ret2 = NULL;

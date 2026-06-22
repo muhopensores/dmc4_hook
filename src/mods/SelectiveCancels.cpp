@@ -12,7 +12,6 @@ uintptr_t SelectiveCancels::grief_jmp_ret2 = NULL;
 static constexpr uintptr_t grief_detour2_jmp = 0x836FCF;
 uint32_t  SelectiveCancels::cancels = 0;
 
-constexpr uintptr_t static_mediator_ptr  = 0x00E558B8;
 static bool good_grief = false;
 static bool fixGuardInertia = false;
 

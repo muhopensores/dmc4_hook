@@ -10,6 +10,7 @@ public:
 
     static uintptr_t jmp_return;
     static uintptr_t alt_ret;
+    static float guardTimerRequirement;
 
     std::string get_mod_name() override { return "ActiveBlock"; };
 
