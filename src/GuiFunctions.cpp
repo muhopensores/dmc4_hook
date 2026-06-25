@@ -428,7 +428,7 @@ namespace gui {
 
                         pmods->on_draw_ui("ManualTwosomeTime"_hash, DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("TimerMem"_hash, DISPLAY_DANTE_A); // instant honeycomb
+                        pmods->on_draw_ui("LiveMoveTableSwaps"_hash, DISPLAY_DANTE_A); // instant honeycomb
 
                         pmods->on_draw_ui("ActiveBlock"_hash, DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);

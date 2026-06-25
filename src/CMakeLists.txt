@@ -218,8 +218,8 @@ set(MODS_SRC
   mods/TrackingFullHouse.hpp
   mods/InfTrickRange.cpp
   mods/InfTrickRange.hpp
-  mods/TimerMem.cpp
-  mods/TimerMem.hpp
+  mods/LiveMoveTableSwaps.cpp
+  mods/LiveMoveTableSwaps.hpp
   mods/TrickDown.cpp
   mods/TrickDown.hpp
   mods/HpInOrbsDisplay.cpp

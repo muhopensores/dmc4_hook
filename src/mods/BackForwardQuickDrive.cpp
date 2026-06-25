@@ -23,7 +23,7 @@ void BackForwardQuickDrive::toggle1(bool enable) {
 
 void BackForwardQuickDrive::on_gui_frame(int display) {
     if (display == DISPLAY_DANTE_A) {
-        if (ImGui::Checkbox(_("Back Forward Quickdrive"), &mod_enabled)) {
+        if (ImGui::Checkbox(_("Backforward Quickdrive"), &mod_enabled)) {
             toggle1(mod_enabled);
         }
         ImGui::SameLine();

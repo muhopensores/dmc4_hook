@@ -42,7 +42,7 @@
 #include "mods/RestoreMaxHp.hpp"
 #include "mods/SelectiveCancels.hpp"
 #include "mods/SkipWeapons.hpp"
-#include "mods/TimerMem.hpp"
+#include "mods/LiveMoveTableSwaps.hpp"
 #include "mods/TrackingFullHouse.hpp"
 #include "mods/TrickDown.hpp"
 #include "mods/WorkRate.hpp"
@@ -242,7 +242,7 @@ Mods::Mods() {
     ADD_MOD(EnemySlotting);
     ADD_MOD(TrackingFullHouse);
     ADD_MOD(InfTrickRange);
-    ADD_MOD(TimerMem);
+    ADD_MOD(LiveMoveTableSwaps);
     ADD_MOD(TrickDown);
     ADD_MOD(HpInOrbsDisplay);
     ADD_MOD(InfDT);

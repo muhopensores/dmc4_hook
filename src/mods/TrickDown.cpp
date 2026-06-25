@@ -1,35 +1,45 @@
 #include "TrickDown.hpp"
-#include "TimerMem.hpp"
 
 bool TrickDown::mod_enabled = false;
+uintptr_t TrickDown::trick_begin_jmp_ret = NULL;
 uintptr_t TrickDown::trick_down_jmp_ret = NULL;
 uintptr_t TrickDown::floor_touch_jmp_ret = NULL;
 uintptr_t TrickDown::landing_anim_jmp_ret = NULL;
-
-static float down_float = -200.0f;
-static float timerMemComparison = 25.0f; // Initial input + time it takes to get to trick, it reads 15ish
-static float xmmBackup = 0.0f;
+static constexpr float down_float = -200.0f;
 bool TrickDown::downFlag = false;
 
-naked void trick_down_detour(void) { // not gonna player compare because the idea of boss dante using down trick on you is kinda funny
+// if downFlag is true, LiveMoveTableSwaps swaps sky star and trickster dash to trick, allowing this to work even if forward isn't currently held
+// a cleaner fix would of course be adding a backforward trick input to MoveTable, but I don't really like adding to it
+
+naked void trick_begin_detour(void) { // not gonna player compare because the idea of boss dante using down trick on you is kinda funny
 	_asm {
 			cmp byte ptr [TrickDown::mod_enabled], 0
 			je originalcode
 
-			mov byte ptr [TrickDown::downFlag], 0
-
-			movss [xmmBackup], xmm7
-			movss xmm7, [TimerMem::timer_mem] // Compare timer mem. It is reset by the backforward input
-			comiss xmm7, [timerMemComparison]
-			movss xmm7, [xmmBackup]
-			jb downtrickstart
+			cmp byte ptr [esi+0x27F8], 3 // bakforward
+			jne normalTrick
+			mov byte ptr [TrickDown::downFlag], 1
 			jmp originalcode
 
-		downtrickstart:
-			mov byte ptr [TrickDown::downFlag], 1
-			movss xmm2, [down_float] // Puts -200 in y axis momentum
+		normalTrick:
+			mov byte ptr [TrickDown::downFlag], 0
+		originalcode:
+			mov ebx, 00000001
+			jmp dword ptr [TrickDown::trick_begin_jmp_ret]
+	}
+}
+
+naked void trick_down_detour(void) {
+	_asm {
+			cmp byte ptr [TrickDown::mod_enabled], 0
+			je originalcode
+
+			cmp byte ptr [TrickDown::downFlag], 1
+			jne originalcode
+			movss xmm2, [down_float] // Overwrite y axis momentum with -200 
 		originalcode:
 			movss [esi+0x00000EC4], xmm2
+		retcode:
 			jmp dword ptr [TrickDown::trick_down_jmp_ret]
 	}
 }
@@ -41,8 +51,7 @@ naked void floor_touch_detour(void) {
 
 			cmp byte ptr [TrickDown::downFlag], 1
 			jne originalcode
-			movss xmm2, [down_float] // Puts -200 in y axis momentum
-
+			movss xmm2, [down_float] // Overwrite y axis momentum with -200 
 		originalcode:
 			movss [esi+0x00000EC4], xmm2
 		// retcode:
@@ -71,13 +80,17 @@ naked void landing_anim_detour(void) {
 }
 
 std::optional<std::string> TrickDown::on_initialize() {
+    if (!install_hook_offset(0x3CAED1, trick_begin_hook, &trick_begin_detour, &trick_begin_jmp_ret, 5)) {
+        spdlog::error("Failed to init TrickDown mod 0\n");
+        return "Failed to init TrickDown1 mod 0";
+    }
 	if (!install_hook_offset(0x3CB119, trick_down_hook, &trick_down_detour, &trick_down_jmp_ret, 8)) {
-		spdlog::error("Failed to init TrickDown1 mod\n");
-		return "Failed to init TrickDown1 mod";
+		spdlog::error("Failed to init TrickDown mod 1\n");
+		return "Failed to init TrickDown mod 1";
 	}
     if (!install_hook_offset(0x3CB33D, floor_touch_hook, &floor_touch_detour, &floor_touch_jmp_ret, 8)) {
-        spdlog::error("Failed to init TrickDown2 mod\n");
-        return "Failed to init TrickDown2 mod";
+        spdlog::error("Failed to init TrickDown mod 2\n");
+        return "Failed to init TrickDown2 mod 2";
     }
     if (!install_hook_offset(0x3CB38E, landing_anim_hook, &landing_anim_detour, &landing_anim_jmp_ret, 6)) {
         spdlog::error("Failed to init TrickDown mod 3\n");

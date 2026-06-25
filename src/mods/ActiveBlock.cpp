@@ -22,8 +22,8 @@ naked void detour() {
         movss [esp], xmm0
         movss [esp+4], xmm1
 
-        movss xmm1,[esi+0x14d44]
-        movss xmm0,[ActiveBlock::guardTimerRequirement]
+        movss xmm1, [esi+0x14d44]
+        movss xmm0, [ActiveBlock::guardTimerRequirement]
         comiss xmm0, xmm1
         jb popcode
 
