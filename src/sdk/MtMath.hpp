@@ -54,6 +54,13 @@ struct MtVector3 { /* 10 */
         return *this;
     }
 
+    MtVector3& operator+=(const glm::vec3& other) {
+        x += other.x;
+        y += other.y;
+        z += other.z;
+        return *this;
+    }
+
     // NOTE(): added an implicit conversion cause we had two uCoords
     // one is using glm::vec3s and other uses MtVector3 :shrug:
     operator glm::vec3() const { return glm::vec3(x, y, z); }

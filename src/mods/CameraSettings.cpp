@@ -43,7 +43,7 @@ naked void camera_height_proc(void) {
     _asm {
             cmp byte ptr [CameraSettings::mod_enabled], 1
             je customcode
-            cmp byte ptr [PhotoMode::photo_mode_open], 1
+            cmp byte ptr [PhotoMode::mod_enabled], 1
             je customcode
             jmp code
 
@@ -62,7 +62,7 @@ naked void camera_distance_proc(void) {
     _asm {
             cmp byte ptr [CameraSettings::mod_enabled], 1
             je customcode
-            cmp byte ptr [PhotoMode::photo_mode_open], 1
+            cmp byte ptr [PhotoMode::mod_enabled], 1
             je customcode
             jmp code
 
@@ -81,7 +81,7 @@ naked void camera_distance_lockon_proc(void) {
     _asm {
             cmp byte ptr [CameraSettings::mod_enabled], 1
             je customcode
-            cmp byte ptr [PhotoMode::photo_mode_open], 1
+            cmp byte ptr [PhotoMode::mod_enabled], 1
             je customcode
             jmp code
 
@@ -100,7 +100,7 @@ naked void camera_angle_proc(void) {
     _asm {
             cmp byte ptr [CameraSettings::mod_enabled], 1
             je customcode
-            cmp byte ptr [PhotoMode::photo_mode_open], 1
+            cmp byte ptr [PhotoMode::mod_enabled], 1
             je customcode
             jmp code
 
@@ -121,7 +121,7 @@ naked void camera_angle_lockon_proc(void) {
     _asm {
             cmp byte ptr [CameraSettings::mod_enabled], 1
             je customcode
-            cmp byte ptr [PhotoMode::photo_mode_open], 1
+            cmp byte ptr [PhotoMode::mod_enabled], 1
             je customcode
             jmp code
 
@@ -140,7 +140,7 @@ naked void camera_fov_in_battle_proc(void) {
     _asm {
             cmp byte ptr [CameraSettings::mod_enabled], 1
             je customcode
-            cmp byte ptr [PhotoMode::photo_mode_open], 1
+            cmp byte ptr [PhotoMode::mod_enabled], 1
             je customcode
             jmp code
 
@@ -159,7 +159,7 @@ naked void camera_fov_proc(void) {
     _asm {
             cmp byte ptr [CameraSettings::mod_enabled], 1
             je customcode
-            cmp byte ptr [PhotoMode::photo_mode_open], 1
+            cmp byte ptr [PhotoMode::mod_enabled], 1
             je customcode
             jmp code
 

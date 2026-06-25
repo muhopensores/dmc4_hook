@@ -75,7 +75,7 @@ public:
     char pad_135[0x1ab];
     int m_joint_array_size; // 0x2e0
     UModelJointArr* joints; // 0x2e4
-    int something_size;     // 0x2e8
+    uchar* mJointTable; // 0x2e8
     char pad_2ec[0x38];
     bool playAnims; // 0x324
     char pad_325[0xf];
@@ -86,8 +86,8 @@ public:
     char pad_350[0xb50];
     uint16_t launchStateThing1; // 0xea0
     char pad_ea2[0x6];
-    uint16_t launchStateThing2; // 0xea8
-    char pad_eaa[0x46];
+    uint8_t launchStateThing2; // 0xea8
+    char pad_ea9[0x47];
     int lockOnSphereCount; // 0xef0
     char pad_ef4[0xc];
     lockOnSphereData jcSpheres[5]; // 0xf00
@@ -96,8 +96,8 @@ public:
     uintptr_t something2;                 // 0x1314
     kEmJumpDataArr* enemyStepSphereArray; // 0x1318
     int m_enemystepSphereCount;           // 0x131c
-    int intAt1320;                        // 0x1320
-    char pad_1324[0xe0];
+    char charAt1320;                      // 0x1320
+    char pad_1321[0xe3];
     bool inBattle; // 0x1404
     bool isActive; // 0x1405
     char pad_1406[0xa];

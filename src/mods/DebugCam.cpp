@@ -158,7 +158,7 @@ naked void detour1(void) {
     _asm {
         cmp byte ptr [DebugCam::mod_enabled], 1
         je CallUpdateInput
-        cmp byte ptr [PhotoMode::photo_mode_open], 1
+        cmp byte ptr [PhotoMode::mod_enabled], 1
         je CallUpdateInput
         jmp originalcode
 

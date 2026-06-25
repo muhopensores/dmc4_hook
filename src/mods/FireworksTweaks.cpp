@@ -24,7 +24,7 @@ naked void detour1() { // Edit arguments before player animation call
     }
 }
 
-naked void detour2() { // Edit arguments before gun animation call
+naked void detour2() { // Edit arguments before EVERY shotty animation call silly siyan
     _asm {
             cmp byte ptr [FireworksTweaks::mod_enabled], 1
             jne originalcode
@@ -37,10 +37,11 @@ naked void detour2() { // Edit arguments before gun animation call
             jne originalcode // don't replace start frame if aerial
 
             fld dword ptr [FireworksTweaks::fireworksStartFrame]
+            jmp cont
         originalcode:
-            fstp dword ptr [esp]
-            push esi
-            xor edx, edx
+            fldz
+        cont:
+            movss xmm3, ds:[0xB9A23C]
             jmp dword ptr [FireworksTweaks::jmp_ret2]
     }
 }
@@ -50,7 +51,7 @@ std::optional<std::string> FireworksTweaks::on_initialize() {
         spdlog::error("Failed to init FireworksTweaks mod 1\n");
         return "Failed to init FireworksTweaks mod 1";
 	}
-    if (!install_hook_offset(0x432267, hook2, &detour2, &jmp_ret2, 6)) { // Edit arguments before gun animation call
+    if (!install_hook_offset(0x432257, hook2, &detour2, &jmp_ret2, 6)) { // Edit arguments before gun animation call
         spdlog::error("Failed to init FireworksTweaks mod 2\n");
         return "Failed to init FireworksTweaks mod 2";
 	}

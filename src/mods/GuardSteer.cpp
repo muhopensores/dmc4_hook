@@ -12,7 +12,7 @@ static float stickDirectionAdjusted;
 static float newX;
 static float newY;
 
-void LetsNotTryThisInAsm(void) {
+static void LetsNotTryThisInAsm() {
     float magnitude           = std::sqrt(startX * startX + startY * startY);
     newX                      = magnitude * std::cos(stickDirectionAdjusted);
     newY                      = magnitude * std::sin(stickDirectionAdjusted);
@@ -20,6 +20,7 @@ void LetsNotTryThisInAsm(void) {
 
 naked void guard_steer_proc(void) {
     _asm {
+        pushfd
 		cmp byte ptr [GuardSteer::mod_enabled], 0
         je originalcode
         cmp dword ptr [eax+0x00001494], 0 // controller id dante
@@ -29,18 +30,19 @@ naked void guard_steer_proc(void) {
         cmp dword ptr [eax+0x0000141C], 0 // stick threshold
         je originalcode
 
+        // if people start getting random teles to credo, back up more xmm / movsd
+        sub esp, 6*0x10
+        movups [esp+0*0x10], xmm2
+        movups [esp+1*0x10], xmm3
+        movups [esp+2*0x10], xmm4
+        movups [esp+3*0x10], xmm5
+        movups [esp+4*0x10], xmm6
+        movups [esp+5*0x10], xmm7
+
         // I don't think a grounded inertia direction value exists??
         // For air you can just feed an xmm stick value
         movss [startY], xmm0
         movss [startX], xmm1
-
-        // if people start getting random teles to credo, back up more xmm / movsd
-        push ebp
-        mov ebp, esp
-        sub esp, 3*4
-        movss [esp], xmm2
-        movss [esp+0x4], xmm3
-        movss [esp+0x8], xmm4
 
         movss xmm5, [eax+0x00001420]
         movss [stickDirectionAdjusted], xmm5
@@ -49,18 +51,22 @@ naked void guard_steer_proc(void) {
         call LetsNotTryThisInAsm
         popad
 
+        // restore xmms
+        movups xmm7, [esp+5*0x10]
+        movups xmm6, [esp+4*0x10]
+        movups xmm5, [esp+3*0x10]
+        movups xmm4, [esp+2*0x10]
+        movups xmm3, [esp+1*0x10]
+        movups xmm2, [esp+0*0x10]
+        add esp, 6*0x10
+
         movss xmm0, [newY]
         movss xmm1, [newX]
-        movss xmm2, [esp]
-        // restore xmms
-        movss xmm3, [esp+0x4]
-        movss xmm4, [esp+0x8]
-        mov esp, ebp
-        pop ebp
 
         originalcode:
-        comiss xmm4,xmm3
+        comiss xmm4, xmm3
         movss [eax+0x00000EC0], xmm0
+        popfd
 		jmp dword ptr [GuardSteer::guard_steer_continue]
     }
 }

@@ -444,23 +444,23 @@ namespace gui {
                         ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("GunStingerDistance"_hash, DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("FireworksTweaks"_hash, DISPLAY_DANTE_A);
-                        ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("InfDreadnaught"_hash, DISPLAY_DANTE_B); // run in dread
-
+                        ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("CrossGunCharge"_hash, DISPLAY_DANTE_A);
-                        ImGui::SameLine(sameLineWidth);
+
                         pmods->on_draw_ui("PandoraCharge"_hash, DISPLAY_DANTE_A);
-
+                        ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("TrackingJealousy"_hash, DISPLAY_DANTE_A);
-                        ImGui::SameLine(sameLineWidth);
+
+                        // pmods->on_draw_ui("FireworksTweaks"_hash, DISPLAY_DANTE_A);
                         pmods->on_draw_ui("LongerJealousy"_hash, DISPLAY_DANTE_A);
-
-                        pmods->on_draw_ui("ReversableDraw"_hash, DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("MustangWalls"_hash, DISPLAY_DANTE_A); 
+                        pmods->on_draw_ui("ReversableDraw"_hash, DISPLAY_DANTE_A);
 
+                        pmods->on_draw_ui("MustangWalls"_hash, DISPLAY_DANTE_A); 
+                        ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("WitchTime"_hash, DISPLAY_DANTE_A);
+
 
                         pmods->on_draw_ui("DanteJdc"_hash, DISPLAY_DANTE_A); // keep on the last line, it has a download button
                         ImGui::SameLine(sameLineWidth);

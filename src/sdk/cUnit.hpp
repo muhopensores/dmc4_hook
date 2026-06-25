@@ -19,9 +19,9 @@ enum UNIT_ATTR : std::uint8_t { // TODO: check if uint8_t works
 };
 
 struct cUnit { // NOLINT
-    void *vtable_ptr;
+    void *vtable_ptr; // 0x0
     union {
-        uint32_t raw;
+        uint32_t raw; // 0x4
         struct { //NOLINT
             uint32_t mBeFlag : 3;
             uint32_t mMoveLine : 7;
@@ -30,10 +30,10 @@ struct cUnit { // NOLINT
             uint32_t mTransView : 8;
         } bits;
     } flags;
-    cUnit *mp_next_unit;
-    cUnit *mp_prev_unit;
-    float m_delta_time;
-    uint8_t reserved_state_flags[4];
+    cUnit *mp_next_unit; // 0x8
+    cUnit *mp_prev_unit; // 0xc
+    float m_delta_time; // 0x10
+    uint8_t reserved_state_flags[4]; // 0x14
 };
 static_assert(sizeof(cUnit) == 0x18);
 

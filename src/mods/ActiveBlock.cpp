@@ -18,16 +18,23 @@ naked void detour() {
         pop ecx
         jne code
 
-        movss xmm0, [ActiveBlock::guardTimerRequirement]
-        comiss xmm0, [esi+0x14d44]
+        sub esp, 8
+        movss [esp], xmm0
+        movss [esp+4], xmm1
+
+        movss xmm1,[esi+0x14d44]
+        movss xmm0,[ActiveBlock::guardTimerRequirement]
+        comiss xmm0, xmm1
         jb popcode
 
         xorps xmm0, xmm0
-        comiss xmm0, [esi+0x14d44]
+        comiss xmm0, xmm1
         ja popcode
 
-        movss xmm0,[esp]
-        add esp,4
+        movss xmm1, [esp+4]
+        movss xmm0, [esp]
+        add esp, 8
+
         cmp dword ptr [esi+0x00014D98], 3 // royal guard
         je alt_ret
         cmp dword ptr [esi+0x00014D98], 4 // darkslayer
@@ -35,8 +42,9 @@ naked void detour() {
         jmp code
 
     popcode:
-        movss xmm0,[esp]
-        add esp,4
+        movss xmm1, [esp+4]
+        movss xmm0, [esp]
+        add esp, 8
     code:
         cmp dword ptr [esi+0x000152A0], 00
 		jmp dword ptr [ActiveBlock::jmp_return]

@@ -83,7 +83,9 @@ public:
     char pad_336[0x12];
     float animFrame;    // 0x348
     float animFrameMax; // 0x34c
-    char pad_350[0x6e8];
+    char pad_350[0x176];
+    uint8_t charAt4C6; // 0x4c6
+    char pad_4C7[0x571];
     MotionPtr* motionPtr1; // 0xa38
     MotionPtr* motionPtr2; // 0xa3c
     char pad_a40[0x2b4];

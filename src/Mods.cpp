@@ -271,7 +271,7 @@ Mods::Mods() {
     ADD_MOD(MutatorHolyWater);
     ADD_MOD(BigHeadMode);
     // ADD_MOD(MutatorPlayerTransforms); // BROKEN
-    ADD_MOD(MutatorSuperhot); // crashing still with from here down commented out
+    ADD_MOD(MutatorSuperhot);
     ADD_MOD(InfCalibur);
     ADD_MOD(RgMultiplier);
     ADD_MOD(ActiveBlock);
@@ -334,7 +334,7 @@ Mods::Mods() {
     ADD_MOD(MultiCharFixes);
     ADD_MOD(FastRoundTrip);
     ADD_MOD(FlyingStats);
-    ADD_MOD(FireworksTweaks);
+    // ADD_MOD(FireworksTweaks);
     ADD_MOD(CrossGunCharge);
     ADD_MOD(PandoraCharge);
     ADD_MOD(TricksterDashDT);
