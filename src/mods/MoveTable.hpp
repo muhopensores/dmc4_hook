@@ -19,6 +19,7 @@ public:
     static int extra_dante_moves;
 
     static int AirThrow;
+    static int backForwardQuickDrive;
 
     MoveTable() = default;
 

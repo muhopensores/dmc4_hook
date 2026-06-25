@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/BackForwardQuickDrive.hpp
+  mods/BackForwardQuickDrive.cpp
   mods/RotatingLaser.hpp
   mods/RotatingLaser.cpp
   mods/EnvironmentalHazards.hpp

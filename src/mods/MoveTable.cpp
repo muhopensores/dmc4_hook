@@ -6,15 +6,15 @@
 #include "AerialStinger.hpp"
 #include "Payline.hpp"
 #include "LuciAirThrow.hpp"
-// WARNING: you must also compare to these bools in LMT slot fix
+// WARNING: you must also compare to these bools in LMT slot fix if using a new moveid
 
 // bool MoveTable::mod_enabled  = false;
 
-uintptr_t  MoveTable::jmp_ret0 = NULL;
+uintptr_t MoveTable::jmp_ret0 = NULL;
 uintptr_t jmp_je0 = 0x803D37;
-uintptr_t  MoveTable::jmp_ret1 = NULL;
-uintptr_t  MoveTable::jmp_ret2 = NULL;
-uintptr_t  MoveTable::jmp_ret3 = NULL;
+uintptr_t MoveTable::jmp_ret1 = NULL;
+uintptr_t MoveTable::jmp_ret2 = NULL;
+uintptr_t MoveTable::jmp_ret3 = NULL;
 
 // When we need to access values from this array, add this to keep it consistent
 int MoveTable::extra_nero_moves = 0;
@@ -27,6 +27,7 @@ uintptr_t HookNeroKADTbl = NULL;
 static bool display_move_table = false;
 
 int MoveTable::AirThrow = 0;
+int MoveTable::backForwardQuickDrive = 0;
 
 /*void MoveTable::toggle(bool enable) {
     if (enable) {
@@ -39,8 +40,6 @@ int MoveTable::AirThrow = 0;
 
 naked void detour0(void) { // MoveTable toggle() function
     _asm  {
-            cmp byte ptr [AerialStinger::mod_enabled], 1
-            je retcode
             cmp byte ptr [Payline::mod_enabled], 1
             je retcode
             cmp byte ptr [LuciAirThrow::mod_enabled], 1
@@ -153,9 +152,12 @@ void updateKDATbl() {
     // MoveTable::Entry = MoveTable::extra_dante_moves;
     // MoveTable::extra_dante_moves++;
 
-    DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {2, 0x6D, 7, 1, 0x00000103, 6, (unsigned long)-1, 0, 2, 1, 0, 0, 0, 0x05000007}); // New splash
+    DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {2, 0x6D, 7, 1, 0x00000103, 6, (unsigned long)-1, 1, 2, 1, 0, 0, 0, 0x05000007}); // New splash
     MoveTable::extra_dante_moves++; // keep track of original table / newly added elements
     MoveTable::AirThrow = MoveTable::extra_dante_moves; // Store index so we can find it
+    DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {0, 25,   3, 1, 0x00000152, 4, (unsigned long)-1, 1, 1, 1, 0, 0, 0, 0x07000005}); // New quickdrive
+    MoveTable::extra_dante_moves++;
+    MoveTable::backForwardQuickDrive = MoveTable::extra_dante_moves;
 
     // Terminate
     DanteAtckDefTbl.emplace_back(3);

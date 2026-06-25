@@ -461,6 +461,7 @@ namespace gui {
                         ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("WitchTime"_hash, DISPLAY_DANTE_A);
 
+                        pmods->on_draw_ui("BackForwardQuickDrive"_hash, DISPLAY_DANTE_A);
 
                         pmods->on_draw_ui("DanteJdc"_hash, DISPLAY_DANTE_A); // keep on the last line, it has a download button
                         ImGui::SameLine(sameLineWidth);
