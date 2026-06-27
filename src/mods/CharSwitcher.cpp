@@ -1,7 +1,10 @@
 #include "CharSwitcher.hpp"
-#include "Survival.hpp"
 #include "sdk/Devil4.hpp"
 #include "sdk/StringData.hpp"
+
+// these mods want to skip registering to sMed
+#include "Survival.hpp"
+#include "GermanWord.hpp"
 
 bool CharSwitcher::mod_enabled = false;
 bool CharSwitcher::inertia_enabled = true;
@@ -47,7 +50,7 @@ uintptr_t CharSwitcher::jmp_ret8 = NULL;
 uintptr_t CharSwitcher::jmp_ret9 = NULL;
 uintptr_t CharSwitcher::jmp_ret10 = NULL;
 
-
+bool CharSwitcher::external_spawn_requested = false;
 
 void CharSwitcher::toggle(bool enable) {
     if (enable) {
@@ -132,8 +135,8 @@ naked void detour3(void) {
 // Spawn Secondary Actor and HUD
 naked void detour4(void) {
     _asm {
-            cmp byte ptr [Survival::survival_active], 1 // if survival is active the spawn is a doppel, so skip assigning it to mediator
-            je retcode
+            cmp byte ptr [CharSwitcher::external_spawn_requested], 1
+            je allow_doppel
             cmp byte ptr [CharSwitcher::mod_enabled], 0
 			je originalcode
 
@@ -239,6 +242,10 @@ naked void detour4(void) {
             mov [secondaryActor], esi
             popad
             jmp code
+
+        allow_doppel:
+            mov byte ptr [CharSwitcher::external_spawn_requested], 0
+            jmp retcode
 
         handler:
             popad

@@ -254,7 +254,9 @@ public:
     uint8_t exceedLevel; // 0xcce8
     char pad_cce9[0xd3];
     float exceedTimer; // 0xcdbc
-    char pad_cdc0[0x7f10];
+    char pad_cdc0[0x38]; // 0xcdc0
+    void* stand; // 0xcdf8
+    char pad_cdfc[0x7ED4];
     float releaseTimer; // 0x14cd0
     bool guardReq1; // 0x14cd4
     bool guardReq2; // 0x14cd5

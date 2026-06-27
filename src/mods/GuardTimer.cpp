@@ -6,6 +6,7 @@
 #include "sdk/sRender.hpp"
 #include "sdk/sMediator.hpp"
 #include "sdk/sWorkRate.hpp"
+#include "ActiveBlock.hpp"
 
 bool      GuardTimer::mod_enabled   = false;
 bool      GuardTimer::chart_enabled   = false;
@@ -331,10 +332,11 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
                     float x = graphLeft + normalizedTime * graphWidth;
                     ImU32 hitColor = failedBlockCol;
                     if (entry.blockHeld && !entry.canBlock && entry.releaseTimer == 0.0f) {
-                        if (entry.blockTimer < 5.0f) {
-                            hitColor = perfectButCantBlockCol;
-                        } else {
-                            hitColor = lateButCantBlockCol;
+                        hitColor = failedBlockCol;
+                        if (ActiveBlock::mod_enabled) {
+                            if (entry.blockTimer < 5.0f) {
+                                hitColor = perfectButCantBlockCol;
+                            }
                         }
                     } else if (entry.blockHeld || entry.releaseTimer > 0.0f) {
                         hitColor = lateCol;

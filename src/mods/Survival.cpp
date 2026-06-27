@@ -19,6 +19,7 @@
 #include "..\sdk\sArea.hpp"
 #include "EnvironmentalHazards.hpp"
 #include "RotatingLaser.hpp"
+#include "CharSwitcher.hpp" // for external_spawn_requested, stops chars being registered to sMed
 
 static constexpr uintptr_t some_struct            = 0x00E552CC;
 static constexpr uintptr_t fptr_update_actor_list = 0x008DC540;
@@ -704,6 +705,7 @@ void EnemySpawn::spawn_dante() {
     __asm {
 		pushad
 		pushfd
+        mov byte ptr [CharSwitcher::external_spawn_requested], 1
         call dword ptr [danteSpawnAddr]
         mov [doppelAddr], eax
         mov esi, eax

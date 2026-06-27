@@ -18,7 +18,9 @@ public:
     static uintptr_t jmp_ret8;
     static uintptr_t jmp_ret9;
     static uintptr_t jmp_ret10;
-	
+
+    static bool external_spawn_requested;
+
     void toggle(bool enable);
     void toggle2(bool enable);
     static bool request_macro_switch();

@@ -1,5 +1,7 @@
 #include "GermanWord.hpp"
 #include "../sdk/Devil4.hpp"
+#include "../sdk/sUnit.hpp"
+#include "CharSwitcher.hpp" // for external_spawn_requested, stops chars being registered to sMed
 
 bool GermanWord::mod_enabled = false;
 // uintptr_t GermanWord::jmp_ret1 = NULL;
@@ -58,16 +60,70 @@ void GermanWord::toggle3(bool enable) {
 
 // void GermanWord::on_frame(fmilliseconds& dt) {}
 
+static void __stdcall update_spawn_pos(uPlayer* player1, Vector3f* doppelPos, float* doppelRot) {
+    float yaw = player1->rotation2;
+    doppelPos->x = player1->mPos.x + cosf(yaw) * -100.0f;
+    doppelPos->y = player1->mPos.y;
+    doppelPos->z = player1->mPos.z - sinf(yaw) * -100.0f;
+    *doppelRot   = yaw;
+}
+
 static constexpr uintptr_t some_struct            = 0x00E552CC;
 static constexpr uintptr_t fptr_update_actor_list = 0x008DC540;
 static void spawn_dante() {
-    if (!devil4_sdk::get_local_player()) { return; }
+    uPlayer* player = devil4_sdk::get_local_player();
+    if (!player  || player->controllerID == 1) { return; }
     __asm {
 		pushad
 		pushfd
+        mov byte ptr [CharSwitcher::external_spawn_requested], 1
         call dword ptr [danteSpawnAddr]
         mov [danteSpawnedAddr], eax
         mov esi, eax
+
+        mov eax, [static_mediator_ptr]
+        mov eax, [eax]
+        lea ebx, [eax+0x70]
+        push ebx
+        lea ebx, [eax+0x60]
+        push ebx
+        mov eax, [player]
+        push eax
+        call update_spawn_pos
+
+        mov eax, [some_struct]
+        mov eax, [eax]
+        push 13 // players
+        call fptr_update_actor_list
+
+		popfd
+		popad
+    }
+}
+
+static void spawn_nero() {
+    uPlayer* player = devil4_sdk::get_local_player();
+    if (!player || player->controllerID == 0) {
+        return;
+    }
+    __asm {
+		pushad
+		pushfd
+        mov byte ptr [CharSwitcher::external_spawn_requested], 1
+        call dword ptr [neroSpawnAddr]
+        mov [neroSpawnedAddr], eax
+        mov esi, eax
+
+        mov eax, [static_mediator_ptr]
+        mov eax, [eax]
+        lea ebx, [eax+0x70] // rot
+        push ebx
+        lea ebx, [eax+0x60] // pos
+        push ebx
+        mov eax, [player]
+        push eax
+        call update_spawn_pos
+
         mov eax, [some_struct]
         mov eax, [eax]
         push 13 // players
@@ -77,21 +133,74 @@ static void spawn_dante() {
     }
 }
 
-static void spawn_nero() {
-    if (!devil4_sdk::get_local_player()) { return; }
-    __asm {
-		pushad
-		pushfd
-        call dword ptr [neroSpawnAddr]
-        mov [neroSpawnedAddr], eax
-        mov esi, eax
-        mov eax, [some_struct]
-        mov eax, [eax]
-        push 13 // players
-        call fptr_update_actor_list
-		popfd
-		popad
+class ParentOf {
+public:
+    char pad_00[0x04];
+    ParentOf* prev; // 0x04
+    ParentOf* next; // 0x08
+    char pad_0c[0x17a4];
+    uPlayer* parent; // 0x17b0
+    char pad_0x17b4[0x29];
+    bool die; // 0x17dd
+    char pad_0x17de[0x6f];
+    bool alive2; // 0x184c
+};
+static_assert(sizeof(ParentOf) == 0x1850);
+
+static void destroy_projectile(void* projectile) {
+    typedef void(__stdcall * DespawnFn)(void*); // __thiscall
+    DespawnFn despawnFunc = (DespawnFn)0x830BD0;
+    despawnFunc(projectile);
+}
+
+static void despawn_owned_projectiles(uPlayer* owner) {
+    if (!owner)
+        return;
+    auto* sUnit = devil4_sdk::get_sUnit();
+    if (!sUnit)
+        return;
+
+    auto* mlEntry = (ParentOf*)sUnit->mMoveLine[18].mTop; // projectiles
+
+    while (mlEntry) {
+        auto* next = mlEntry->next;
+
+        if (mlEntry->parent == owner) {
+            uactor_sdk::despawn(mlEntry);
+        }
+        mlEntry = next;
     }
+}
+
+class NeroStand {
+public:
+    char pad_00[0x22c4];
+    int destroy; // 0x22c4 // wrong
+};
+static_assert(sizeof(NeroStand) == 0x22c8);
+
+typedef void*(__thiscall* DestroyStandFn)(void*, unsigned int); // crashes
+static void destroy_stand(void* stand) {
+    DestroyStandFn destroy = (DestroyStandFn)0x8280B0;
+    destroy(stand, 1);
+}
+
+typedef void*(__thiscall* DestroyNeroFn)(void*, unsigned int); // crashes
+static void destroy_nero(void* stand) {
+    DestroyNeroFn destroy = (DestroyNeroFn)0x7E21B0;
+    destroy(stand, 0);
+}
+
+typedef void*(__thiscall* DestroyDanteFn)(void*); // crashes
+static void destroy_dante(void* dante) {
+    DestroyDanteFn destroy = (DestroyDanteFn)0x7B2890;
+    destroy(dante);
+}
+
+typedef void*(__thiscall* DestroyPandoraFn)(void*); // crashes if pandora is in use
+static void destroy_pandora(void* pandora) {
+    DestroyPandoraFn destroy = (DestroyPandoraFn)0x8364E0;
+    destroy(pandora);
 }
 
 void GermanWord::on_gui_frame(int display) {
@@ -122,22 +231,50 @@ void GermanWord::on_gui_frame(int display) {
 
         if (ImGui::Button(_("Destroy Last Spawned Dante (Crashy)##GermanWord"))) {
             if (danteSpawnedAddr) {
-                // insert other projectiles here
-                for (int i = 0; i < 15; i++) {
-                    if (danteSpawnedAddr->luciferPins[i]) {
-                        uactor_sdk::despawn(danteSpawnedAddr->luciferPins[i]);
-                    }
-                }
+                uPlayer* doppel = (uPlayer*)danteSpawnedAddr;
+
+                DevilArm* addr  = doppel->lucifer;
+                doppel->lucifer = 0;
+                uactor_sdk::despawn(addr); // better check this actually does anything
+
+                addr = doppel->pandora;
+                doppel->pandora = 0;
+                uactor_sdk::despawn(addr); // better check this actually does anything
+
+                despawn_owned_projectiles(danteSpawnedAddr);
+
                 uactor_sdk::despawn(danteSpawnedAddr);
                 danteSpawnedAddr = nullptr;
             }
         }
-        ImGui::SameLine(sameLineWidth);
+
         if (ImGui::Button(_("Destroy Last Spawned Nero (Crashy)##GermanWord"))) {
             if (neroSpawnedAddr) {
-                // insert nero stand + projectiles here
+                uPlayer* doppel = (uPlayer*)neroSpawnedAddr;
+
+                NeroStand* stand = (NeroStand*)doppel->stand;
+                doppel->stand = 0;
+                destroy_stand(stand);
+
+                despawn_owned_projectiles(neroSpawnedAddr);
+
                 uactor_sdk::despawn(neroSpawnedAddr);
                 neroSpawnedAddr = nullptr;
+            }
+        }
+
+        ImGui::SameLine(sameLineWidth);
+
+        if (ImGui::Button(_("Destroy Nero's Projectiles##GermanWord"))) {
+            if (neroSpawnedAddr) {
+                uPlayer* doppel = (uPlayer*)neroSpawnedAddr;
+
+                NeroStand* stand = (NeroStand*)doppel->stand;
+                // doppel->stand = 0;
+                //destroy_stand(stand);
+                destroy_nero(doppel);
+
+                //despawn_owned_projectiles(neroSpawnedAddr);
             }
         }
     }
