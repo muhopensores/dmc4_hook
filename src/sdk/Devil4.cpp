@@ -184,13 +184,13 @@ namespace devil4_sdk {
 	}
 
 	// return true if already exists
-	bool check_exists_in_moveline(uActor* actorToFind, int moveLine) {
+	bool check_exists_in_moveline(void* actorToFind, int moveLine) {
         if (!actorToFind) { return false; }
         sUnit* s_unit_ptr = get_sUnit();
         if (!s_unit_ptr) { return false; }
         cUnit* unit = (cUnit*)s_unit_ptr->mMoveLine[moveLine].mTop;
         while (unit) {
-            if ((uActor*)unit == actorToFind) {
+            if (unit == actorToFind) {
                 return true;
             }
             unit = unit->mp_next_unit;

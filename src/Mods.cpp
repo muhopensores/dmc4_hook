@@ -178,7 +178,7 @@
 #include "mods/EnvironmentalHazards.hpp"
 #include "mods/BackForwardQuickDrive.hpp"
 
-constexpr size_t MODS_NUM{ 256 };
+constexpr size_t MODS_NUM{ 512 };
 
 #define ADD_MOD(name)                                  \
     do {                                               \

@@ -57,7 +57,7 @@ namespace devil4_sdk {
     bool is_loading_arc();
 	bool load_arc(const char* name);
     uActor* easy_spawn(uintptr_t spawn_addr, int moveLine);
-	bool check_exists_in_moveline(uActor* actorToFind, int moveLine);
+	bool check_exists_in_moveline(void* actorToFind, int moveLine);
 };
 
 namespace uactor_sdk {

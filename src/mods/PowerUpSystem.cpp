@@ -84,7 +84,7 @@ naked uintptr_t* spawn_pickup_effect(int item_id, Vector3f* pos) {
 static constexpr uintptr_t uStageSetItem_kill = 0x649340;
 static void kill_pickup_effect(uintptr_t* effect) {
     if (!effect) { return; }
-    if (!devil4_sdk::check_exists_in_moveline((uActor*)effect, 15)) { return; }
+    if (!devil4_sdk::check_exists_in_moveline(effect, 15)) { return; }
     _asm {
         mov ecx, effect
         call uStageSetItem_kill

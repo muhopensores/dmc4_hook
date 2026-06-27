@@ -3,8 +3,11 @@
 #include "../sdk/sUnit.hpp"
 #include "CharSwitcher.hpp" // for external_spawn_requested, stops chars being registered to sMed
 
+static constexpr uintptr_t some_struct            = 0x00E552CC;
+static constexpr uintptr_t fptr_update_actor_list = 0x008DC540;
+
 bool GermanWord::mod_enabled = false;
-// uintptr_t GermanWord::jmp_ret1 = NULL;
+bool GermanWord::spawn_queued = false;
 
 static constexpr uintptr_t danteSpawnAddr = 0x7B2130;
 static uPlayer* danteSpawnedAddr          = nullptr;
@@ -44,22 +47,6 @@ void GermanWord::toggle3(bool enable) {
     }
 }
 
-
-/*naked void detour1() {
-    _asm {
-            cmp byte ptr [GermanWord::mod_enabled], 1
-            jne originalcode
-
-            
-
-        originalcode:
-
-            jmp dword ptr [GermanWord::jmp_ret1]
-    }
-}*/
-
-// void GermanWord::on_frame(fmilliseconds& dt) {}
-
 static void __stdcall update_spawn_pos(uPlayer* player1, Vector3f* doppelPos, float* doppelRot) {
     float yaw = player1->rotation2;
     doppelPos->x = player1->mPos.x + cosf(yaw) * -100.0f;
@@ -68,11 +55,11 @@ static void __stdcall update_spawn_pos(uPlayer* player1, Vector3f* doppelPos, fl
     *doppelRot   = yaw;
 }
 
-static constexpr uintptr_t some_struct            = 0x00E552CC;
-static constexpr uintptr_t fptr_update_actor_list = 0x008DC540;
 static void spawn_dante() {
     uPlayer* player = devil4_sdk::get_local_player();
-    if (!player  || player->controllerID == 1) { return; }
+    if (!player /* || player->controllerID == 1*/) {
+        return;
+    }
     __asm {
 		pushad
 		pushfd
@@ -103,7 +90,7 @@ static void spawn_dante() {
 
 static void spawn_nero() {
     uPlayer* player = devil4_sdk::get_local_player();
-    if (!player || player->controllerID == 0) {
+    if (!player /* || player->controllerID == 0*/) {
         return;
     }
     __asm {
@@ -147,10 +134,10 @@ public:
 };
 static_assert(sizeof(ParentOf) == 0x1850);
 
-static void destroy_projectile(void* projectile) {
-    typedef void(__stdcall * DespawnFn)(void*); // __thiscall
-    DespawnFn despawnFunc = (DespawnFn)0x830BD0;
-    despawnFunc(projectile);
+typedef void(__thiscall* VirtualFn)(void*);
+static void call_vfunc12(void* obj) {
+    void** vtable = *(void***)obj;
+    ((VirtualFn)vtable[12])(obj);
 }
 
 static void despawn_owned_projectiles(uPlayer* owner) {
@@ -166,18 +153,26 @@ static void despawn_owned_projectiles(uPlayer* owner) {
         auto* next = mlEntry->next;
 
         if (mlEntry->parent == owner) {
-            uactor_sdk::despawn(mlEntry);
+            //uactor_sdk::despawn(mlEntry);
+            call_vfunc12(mlEntry);
         }
         mlEntry = next;
     }
 }
 
+#if 0
 class NeroStand {
 public:
     char pad_00[0x22c4];
     int destroy; // 0x22c4 // wrong
 };
 static_assert(sizeof(NeroStand) == 0x22c8);
+
+static void destroy_projectile(void* projectile) {
+    typedef void(__stdcall * DespawnFn)(void*);
+    DespawnFn despawnFunc = (DespawnFn)0x830BD0;
+    despawnFunc(projectile);
+}
 
 typedef void*(__thiscall* DestroyStandFn)(void*, unsigned int); // crashes
 static void destroy_stand(void* stand) {
@@ -202,13 +197,67 @@ static void destroy_pandora(void* pandora) {
     DestroyPandoraFn destroy = (DestroyPandoraFn)0x8364E0;
     destroy(pandora);
 }
+#endif
+
+void GermanWord::DoppelSpawnLogic(bool enabled) {
+    uPlayer* player = devil4_sdk::get_local_player();
+    if (!player) { return; }
+    spawn_queued = false;
+    int id          = player->controllerID;
+    if (enabled) {
+        toggle1(enabled);
+        if (id == 0) {
+            spawn_dante();
+        } else {
+            spawn_nero();
+        }
+    } else {
+        if (id == 0) {
+            if (danteSpawnedAddr && devil4_sdk::check_exists_in_moveline(danteSpawnedAddr, 13)) {
+                uPlayer* doppel = (uPlayer*)danteSpawnedAddr;
+                void* addr      = doppel->lucifer;
+                call_vfunc12(addr);
+
+                addr = doppel->pandora;
+                call_vfunc12(addr);
+
+                despawn_owned_projectiles(danteSpawnedAddr);
+                call_vfunc12(danteSpawnedAddr);
+                danteSpawnedAddr = nullptr;
+            } else {
+                danteSpawnedAddr = nullptr;
+            }
+        } else {
+            if (neroSpawnedAddr && devil4_sdk::check_exists_in_moveline(neroSpawnedAddr, 13)) {
+                uPlayer* doppel = (uPlayer*)neroSpawnedAddr;
+                void* stand     = doppel->stand;
+                call_vfunc12(stand);
+
+                despawn_owned_projectiles(neroSpawnedAddr);
+                call_vfunc12(neroSpawnedAddr);
+                neroSpawnedAddr = nullptr;
+            } else {
+                neroSpawnedAddr = nullptr;
+            }
+        }
+    }
+}
+
+void GermanWord::on_frame(fmilliseconds& dt) {
+    if (spawn_queued) {
+        DoppelSpawnLogic(mod_enabled);
+    }
+}
 
 void GermanWord::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
+        if (ImGui::Checkbox(_("Doppelganger##GermanWord"), &mod_enabled)) {
+            spawn_queued = true;
+        }
+        #if 0
         if (ImGui::Checkbox(_("Players Push Players##GermanWord"), &mod_enabled)) {
             toggle1(mod_enabled);
         }
-
         if (ImGui::Button(_("Spawn Dante##GermanWord"))) {
             spawn_dante();
         }
@@ -229,54 +278,53 @@ void GermanWord::on_gui_frame(int display) {
         ImGui::SameLine();
         help_marker("Tick then untick");
 
-        if (ImGui::Button(_("Destroy Last Spawned Dante (Crashy)##GermanWord"))) {
+        if (ImGui::Button(_("Destroy Last Spawned Dante##GermanWord"))) {
             if (danteSpawnedAddr) {
                 uPlayer* doppel = (uPlayer*)danteSpawnedAddr;
 
-                DevilArm* addr  = doppel->lucifer;
-                doppel->lucifer = 0;
-                uactor_sdk::despawn(addr); // better check this actually does anything
-
+                void* addr  = doppel->lucifer;
+                //doppel->lucifer = 0;
+                //uactor_sdk::despawn(addr); // better check this actually does anything
+                call_vfunc12(addr);
+                
                 addr = doppel->pandora;
-                doppel->pandora = 0;
-                uactor_sdk::despawn(addr); // better check this actually does anything
-
+                //doppel->pandora = 0;
+                //uactor_sdk::despawn(addr); // better check this actually does anything
+                call_vfunc12(addr);
+                
                 despawn_owned_projectiles(danteSpawnedAddr);
 
-                uactor_sdk::despawn(danteSpawnedAddr);
+                //uactor_sdk::despawn(danteSpawnedAddr);
+                call_vfunc12(danteSpawnedAddr);
                 danteSpawnedAddr = nullptr;
             }
         }
 
-        if (ImGui::Button(_("Destroy Last Spawned Nero (Crashy)##GermanWord"))) {
+        if (ImGui::Button(_("Destroy Last Spawned Nero##GermanWord"))) {
             if (neroSpawnedAddr) {
                 uPlayer* doppel = (uPlayer*)neroSpawnedAddr;
 
-                NeroStand* stand = (NeroStand*)doppel->stand;
-                doppel->stand = 0;
-                destroy_stand(stand);
+                void* stand = doppel->stand;
+                //doppel->stand = 0;
+                //destroy_stand(stand);
+                call_vfunc12(stand);
 
                 despawn_owned_projectiles(neroSpawnedAddr);
 
-                uactor_sdk::despawn(neroSpawnedAddr);
+                //uactor_sdk::despawn(neroSpawnedAddr);
+                call_vfunc12(neroSpawnedAddr);
                 neroSpawnedAddr = nullptr;
             }
         }
+        #endif
+    }
+}
 
-        ImGui::SameLine(sameLineWidth);
-
-        if (ImGui::Button(_("Destroy Nero's Projectiles##GermanWord"))) {
-            if (neroSpawnedAddr) {
-                uPlayer* doppel = (uPlayer*)neroSpawnedAddr;
-
-                NeroStand* stand = (NeroStand*)doppel->stand;
-                // doppel->stand = 0;
-                //destroy_stand(stand);
-                destroy_nero(doppel);
-
-                //despawn_owned_projectiles(neroSpawnedAddr);
-            }
-        }
+void GermanWord::on_stage_start() {
+    if (mod_enabled) {
+        neroSpawnedAddr  = nullptr;
+        danteSpawnedAddr = nullptr;
+        spawn_queued     = true;
     }
 }
 
