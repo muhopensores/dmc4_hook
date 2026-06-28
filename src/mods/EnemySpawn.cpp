@@ -531,6 +531,8 @@ void EnemySpawn::on_gui_frame(int display) {
             if (player)
                 spawn_random_enemy();
         }
+
+        #if 1
         ImGui::Spacing();
         static intptr_t custom_spawn_addr = NULL;
         ImGui::Text(_("[DEBUG] Custom Spawn Addr"));
@@ -539,7 +541,17 @@ void EnemySpawn::on_gui_frame(int display) {
             if (player)
                 spawn_custom(custom_spawn_addr);
         }
+        static char buf[0x50] = {};
+        ImGui::Text(_("[DEBUG] Load arc file"));
+        ImGui::SameLine();
+        help_marker(_("e.g. rom/room/st405"));
+        ImGui::InputText("##[DEBUG] Load arc file InputText", buf, 0x50);
+        if (ImGui::Button(_("Load"))) {
+            if (player)
+                devil4_sdk::load_arc(buf);
+        }
         ImGui::PopItemWidth();
+        #endif
     }
 }
 

@@ -300,14 +300,18 @@ namespace gui {
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("DarkSoulsStamina"_hash, DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("EnemyReplace"_hash, DISPLAY_SYSTEM_B);
-
-                // pmods->on_draw_ui("TestMod"_hash, DISPLAY_SYSTEM_A);
-
+                pmods->on_draw_ui("EnemyReplace"_hash, DISPLAY_SYSTEM_B); // enemy randomizer
+                ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("EnvironmentalHazards"_hash, DISPLAY_SYSTEM_A);
+
+                pmods->on_draw_ui("CharSwitcher"_hash, DISPLAY_SYSTEM_A);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("GermanWord"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("Macro"_hash, DISPLAY_SYSTEM_A);
                 
+                // pmods->on_draw_ui("TestMod"_hash, DISPLAY_SYSTEM_A);
+
                 tabHeight += ImGui::GetCursorPosY();
                 ImGui::EndChild();
                 ImGui::EndTabItem();
@@ -675,9 +679,6 @@ namespace gui {
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("PsychoMantis"_hash, DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("CharSwitcher"_hash, DISPLAY_SYSTEM_A); // needs its own line
-                ImGui::SameLine(sameLineWidth);
-
                 pmods->on_draw_ui("ForceInCombat"_hash, DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Graphics"));
@@ -748,12 +749,6 @@ namespace gui {
                 ImGui::SeparatorText(_("Noclip"));
 
                 pmods->on_draw_ui("NoClip"_hash, DISPLAY_SYSTEM_A); // 1.5 lines
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("NoclipCam"_hash, DISPLAY_SYSTEM_A);
-
-                ImGui::SeparatorText(_("Multi-character Fixes"));
-                
-                pmods->on_draw_ui("MultiCharFixes"_hash, DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Stats"));
 
@@ -775,6 +770,10 @@ namespace gui {
 
                 pmods->on_draw_ui("Coop"_hash, DISPLAY_SYSTEM_A);
 
+                ImGui::SeparatorText(_("Multi-character Fixes"));
+                
+                pmods->on_draw_ui("MultiCharFixes"_hash, DISPLAY_SYSTEM_A);
+
                 ImGui::SeparatorText(_("Misc"));
 
                 pmods->on_draw_ui("RoomRespawn"_hash, DISPLAY_SYSTEM_A);
@@ -786,8 +785,6 @@ namespace gui {
                 pmods->on_draw_ui("EffectColours"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("FriendlyFire"_hash, DISPLAY_SYSTEM_A);
-
-                pmods->on_draw_ui("GermanWord"_hash, DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Testing"));
 

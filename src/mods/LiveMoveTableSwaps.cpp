@@ -4,6 +4,7 @@
 
 bool LiveMoveTableSwaps::instant_honeycomb_enabled = false;
 uintptr_t LiveMoveTableSwaps::live_move_table_swaps_jmp_ret = NULL;
+static constexpr float backforward_timer_comparison = 5.0f;
 
 naked void live_move_table_swaps_detour(void) { // player in ecx
 	_asm {
@@ -32,11 +33,18 @@ naked void live_move_table_swaps_detour(void) { // player in ecx
 			jmp honeycombcheck
 
 		tricktimercompare:
-			cmp byte ptr [ecx+0x27f8], 3 // If trick down is enabled, replace trickster dash and sky star to trick when timer is 3
+			cmp byte ptr [ecx+0x27f8], 3 // If trick down is enabled, replace trickster dash and sky star to trick when backforward == 3
 			jne dontreplacetrick
+			sub esp, 4
+			movss [esp], xmm0
+			movss xmm0, [ecx+0x2800]
+			comiss xmm0, [backforward_timer_comparison] // and timer is >=5, otherwise it was too lenient
+			jb popdontreplacetrick
+			movss xmm0, [esp]
+			add esp, 4
 		replacetrick:
-            cmp byte ptr [ecx+0x16D0], 0 // lockon
-			je dontreplacetrick
+            //cmp byte ptr [ecx+0x16D0], 0 // lockon
+			//je dontreplacetrick
 			push eax
 			push ebx
 			mov eax, 0x38 // struct size
@@ -51,6 +59,9 @@ naked void live_move_table_swaps_detour(void) { // player in ecx
 			pop eax
 			jmp honeycombcheck
 
+		popdontreplacetrick:
+			movss xmm0, [esp]
+			add esp, 4
 		dontreplacetrick:
 			push eax
 			push ebx

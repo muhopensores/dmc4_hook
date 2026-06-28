@@ -685,66 +685,66 @@ void Coop::on_gui_frame(int display) {
                 }
                 ImGui::PopID();
             }
-        }
-        if (ImGui::Button("Refresh cam")) {
-            sCamera* s_cam = *(sCamera**)sCamera_ptr;
-            if (mod_enabled) {
-                switch (player_num) {
-                case 2: {
-                    s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
-                    s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
-                    s_cam->viewports[0].mAttr    = 0x17;
-                    s_cam->viewports[1].mAttr    = 0x17;
-                    s_cam->viewports[0].mMode    = REGION_TOP;
-                    s_cam->viewports[1].mMode    = REGION_BOTTOM;
-                    break;
+            if (ImGui::Button("Refresh cam")) {
+                sCamera* s_cam = *(sCamera**)sCamera_ptr;
+                if (mod_enabled) {
+                    switch (player_num) {
+                    case 2: {
+                        s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
+                        s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
+                        s_cam->viewports[0].mAttr    = 0x17;
+                        s_cam->viewports[1].mAttr    = 0x17;
+                        s_cam->viewports[0].mMode    = REGION_TOP;
+                        s_cam->viewports[1].mMode    = REGION_BOTTOM;
+                        break;
+                    }
+                    case 3: {
+                        s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
+                        s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
+                        s_cam->viewports[2].mpCamera = PlayerArr[2].get()->cam;
+                        s_cam->viewports[0].mAttr    = 0x17;
+                        s_cam->viewports[1].mAttr    = 0x17;
+                        s_cam->viewports[2].mAttr    = 0x17;
+                        s_cam->viewports[0].mMode    = REGION_TOPLEFT;
+                        s_cam->viewports[1].mMode    = REGION_TOPRIGHT;
+                        s_cam->viewports[2].mMode    = REGION_BOTTOMLEFT;
+                        break;
+                    }
+                    case 4: {
+                        s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
+                        s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
+                        s_cam->viewports[2].mpCamera = PlayerArr[2].get()->cam;
+                        s_cam->viewports[3].mpCamera = PlayerArr[3].get()->cam;
+                        s_cam->viewports[0].mAttr    = 0x17;
+                        s_cam->viewports[1].mAttr    = 0x17;
+                        s_cam->viewports[2].mAttr    = 0x17;
+                        s_cam->viewports[3].mAttr    = 0x17;
+                        s_cam->viewports[0].mMode    = REGION_TOPLEFT;
+                        s_cam->viewports[1].mMode    = REGION_TOPRIGHT;
+                        s_cam->viewports[2].mMode    = REGION_BOTTOMLEFT;
+                        s_cam->viewports[3].mMode    = REGION_BOTTOMRIGHT;
+                        break;
+                    }
+                    }
+                } else {
+                    s_cam->viewports[0].mMode = REGION_FULLSCREEN;
                 }
-                case 3: {
-                    s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
-                    s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
-                    s_cam->viewports[2].mpCamera = PlayerArr[2].get()->cam;
-                    s_cam->viewports[0].mAttr    = 0x17;
-                    s_cam->viewports[1].mAttr    = 0x17;
-                    s_cam->viewports[2].mAttr    = 0x17;
-                    s_cam->viewports[0].mMode    = REGION_TOPLEFT;
-                    s_cam->viewports[1].mMode    = REGION_TOPRIGHT;
-                    s_cam->viewports[2].mMode    = REGION_BOTTOMLEFT;
-                    break;
-                }
-                case 4: {
-                    s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
-                    s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
-                    s_cam->viewports[2].mpCamera = PlayerArr[2].get()->cam;
-                    s_cam->viewports[3].mpCamera = PlayerArr[3].get()->cam;
-                    s_cam->viewports[0].mAttr    = 0x17;
-                    s_cam->viewports[1].mAttr    = 0x17;
-                    s_cam->viewports[2].mAttr    = 0x17;
-                    s_cam->viewports[3].mAttr    = 0x17;
-                    s_cam->viewports[0].mMode    = REGION_TOPLEFT;
-                    s_cam->viewports[1].mMode    = REGION_TOPRIGHT;
-                    s_cam->viewports[2].mMode    = REGION_BOTTOMLEFT;
-                    s_cam->viewports[3].mMode    = REGION_BOTTOMRIGHT;
-                    break;
-                }
-                }
-            } else {
-                s_cam->viewports[0].mMode = REGION_FULLSCREEN;
             }
-        }
 
-        if (ImGui::Button(_("Spawn Nero##Coop"))) {
-            player_factory(0, 1);
-            make_cam();
-            sCamera* s_cam            = *(sCamera**)sCamera_ptr;
-            s_cam->viewports[0].mMode = REGION_TOP;
-            s_cam->viewports[1].mMode = REGION_BOTTOM;
-        }
-        if (ImGui::Button(_("Spawn Dante##Coop"))) {
-            player_factory(1, 1);
-            make_cam();
-            sCamera* s_cam            = *(sCamera**)sCamera_ptr;
-            s_cam->viewports[0].mMode = REGION_TOP;
-            s_cam->viewports[1].mMode = REGION_BOTTOM;
+            if (ImGui::Button(_("Spawn Nero##Coop"))) {
+                player_factory(0, 1);
+                make_cam();
+                sCamera* s_cam            = *(sCamera**)sCamera_ptr;
+                s_cam->viewports[0].mMode = REGION_TOP;
+                s_cam->viewports[1].mMode = REGION_BOTTOM;
+            }
+            if (ImGui::Button(_("Spawn Dante##Coop"))) {
+                player_factory(1, 1);
+                make_cam();
+                sCamera* s_cam            = *(sCamera**)sCamera_ptr;
+                s_cam->viewports[0].mMode = REGION_TOP;
+                s_cam->viewports[1].mMode = REGION_BOTTOM;
+            }
         }
     }
 }

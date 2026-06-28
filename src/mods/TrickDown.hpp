@@ -8,6 +8,7 @@ public:
 
     static bool mod_enabled;
     static uintptr_t trick_begin_jmp_ret;
+    static uintptr_t buffered_action_jmp_ret;
     static uintptr_t trick_down_jmp_ret;
     static uintptr_t floor_touch_jmp_ret;
     static uintptr_t landing_anim_jmp_ret;
@@ -28,6 +29,7 @@ public:
 
 private:
     std::unique_ptr<FunctionHook> trick_begin_hook;
+    std::unique_ptr<FunctionHook> buffered_action_hook;
     std::unique_ptr<FunctionHook> trick_down_hook;
     std::unique_ptr<FunctionHook> floor_touch_hook;
     std::unique_ptr<FunctionHook> landing_anim_hook;

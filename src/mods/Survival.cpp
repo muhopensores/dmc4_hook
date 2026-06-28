@@ -950,7 +950,7 @@ static PowerUpSystem::PowerUpDefinition createStaminaPowerUp() {
         (int)PowerupEffectID::YELLOW_SPIN,
         15.0f,  // duration
         200.0f, // radius
-        30.0f,  // effectDuration
+        15.0f,  // effectDuration
         []() {  // onActivate
             DarkSoulsStamina::meme_stamina_enabled = true;
         },

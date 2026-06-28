@@ -34,7 +34,7 @@ void GermanWord::toggle2(bool enable) {
         install_patch_offset(0x838078, patch2, "\xFB\xFB\x30\x06", 4);
     } else {
         install_patch_offset(0x838078, patch2, "\xF8\xF0\x1D\x00", 4);
-        patch2.reset();
+        // patch2.reset();
     }
 }
 
@@ -199,6 +199,51 @@ static void destroy_pandora(void* pandora) {
 }
 #endif
 
+static void setStandAction(void* stand, void* player) { // kinda just trial and erroring atm
+    __asm {
+        mov esi, player
+        mov edi, stand
+        
+        // mov eax, [static_mediator_ptr]
+        // mov eax, [eax]
+        // push 00
+        // push 00
+        // push 00
+        // push 00
+        // push 0x18
+        // mov edx, 0x494B90 // sMediator::customMessage
+        // call edx
+        // mov edi,[esi+0x0000CDF8]
+        // mov eax,00000002
+        // mov edx,0x829BE0 // uPlNeroDevil::setAction
+        // call edx
+        // push ebx
+        // push 0x1E
+        // mov eax,esi
+        // mov [esi+0x0000CE11],bl
+        // mov [esi+0x00001F50],bl
+        // mov edx,0x081FB70 // uPlayer::finishEffectId
+        // call edx
+
+
+        mov dword ptr [edi+0x22A8], 7
+        mov byte ptr [esi+0xCE18], 0
+        mov dword ptr [esi+0x140C], 0x400
+
+        mov dword ptr [esi+0xCCD0], 1
+        mov dword ptr [esi+0x3148], 2
+
+
+
+        //mov dword ptr [esi+0x1550],0x400
+        //mov byte ptr [edi+0x2448], 1
+        //mov byte ptr [esi+0x1554], 2
+
+        //mov edx, 0x829BE0
+        //call edx
+    }
+}
+
 void GermanWord::DoppelSpawnLogic(bool enabled) {
     uPlayer* player = devil4_sdk::get_local_player();
     if (!player) { return; }
@@ -254,6 +299,16 @@ void GermanWord::on_gui_frame(int display) {
         if (ImGui::Checkbox(_("Doppelganger##GermanWord"), &mod_enabled)) {
             spawn_queued = true;
         }
+        #if 0
+        ImGui::SameLine();
+        if (ImGui::Button("bla")) {
+            uPlayer* player = devil4_sdk::get_local_player();
+            if (!player) { return; }
+            void* stand = player->stand;
+            player->stand;
+            setStandAction(stand, player);
+        }
+        #endif
         #if 0
         if (ImGui::Checkbox(_("Players Push Players##GermanWord"), &mod_enabled)) {
             toggle1(mod_enabled);

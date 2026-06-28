@@ -2,10 +2,6 @@
 #include "sdk/Devil4.hpp"
 #include "sdk/StringData.hpp"
 
-// these mods want to skip registering to sMed
-#include "Survival.hpp"
-#include "GermanWord.hpp"
-
 bool CharSwitcher::mod_enabled = false;
 bool CharSwitcher::inertia_enabled = true;
 constexpr uintptr_t sArea               = 0x00E552C8;
