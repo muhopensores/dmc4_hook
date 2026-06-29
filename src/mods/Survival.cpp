@@ -13,7 +13,7 @@
 #include "Quicksilver.hpp"
 #include "MutatorHolyWater.hpp"
 #include "BigHeadMode.hpp"
-#include "HideHud.hpp" // NOTE(): emacs with clangd lsp says this header is unused, Siyan pls fix
+#include "HideHud.hpp"
 #include "DarkSoulsStamina.hpp"
 #include "imgui_internal.h"
 #include "..\sdk\sArea.hpp"
@@ -470,7 +470,7 @@ void Survival::on_timer_trigger() {
 
     // lasers does not care if an enemy can be spawned
     if (config.laser_spawn_chance > 0 && Survival::get_random_int(0, config.laser_spawn_chance - 1) == 0) {
-        if (EnvironmentalHazards::mod_enabled) {
+        if (EnvironmentalHazards::laser_enabled) {
             RotatingLaser::spawn(
                 {
                     get_random_float(-800.0f, 800.0f), // x pos

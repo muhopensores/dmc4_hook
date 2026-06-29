@@ -37,8 +37,8 @@ naked void detour() {
 
         cmp dword ptr [esi+0x00014D98], 3 // royal guard
         je alt_ret
-        cmp dword ptr [esi+0x00014D98], 4 // darkslayer
-        je alt_ret
+        //cmp dword ptr [esi+0x00014D98], 4 // darkslayer
+        //je alt_ret
         jmp code
 
     popcode:
@@ -66,7 +66,7 @@ void ActiveBlock::on_gui_frame(int display) {
     if (display == DISPLAY_DANTE_A) {
         ImGui::Checkbox(_("Active Block"), &mod_enabled);
         ImGui::SameLine();
-        help_marker(_("Block during uncancellable frames by pressing style while in Royal Guard or Darkslayer"));
+        help_marker(_("Block during uncancellable frames by pressing style while in Royal Guard"));
     }
 }
 

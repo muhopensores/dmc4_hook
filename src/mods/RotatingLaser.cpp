@@ -8,7 +8,6 @@ RotatingLaser::RotatingLaser(Vector3f pos, float length, float spawnDelay, float
     , m_spawnDelay(spawnDelay)
     , m_lifetime(lifetime)
     , m_rotationType(type) {
-    devil4_sdk::load_arc("rom\\room\\st405");
 }
 
 RotatingLaser* RotatingLaser::spawn(Vector3f pos, Vector3f rotXYZ, float length, float spawnDelay, float lifetime, int type) {
@@ -79,6 +78,7 @@ void RotatingLaser::kill_all() {
 
 void RotatingLaser::update(fmilliseconds& dt) {
     if (m_dead) { return; }
+    if (devil4_sdk::is_paused()) return;
     float delta = dt.count() * 0.001f;
     if (!m_spawned) {
         m_spawnTimer += delta;

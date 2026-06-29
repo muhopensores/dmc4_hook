@@ -6,6 +6,8 @@ set(MODS_SRC
   mods/BackForwardQuickDrive.cpp
   mods/RotatingLaser.hpp
   mods/RotatingLaser.cpp
+  mods/BerialPillar.hpp
+  mods/BerialPillar.cpp
   mods/EnvironmentalHazards.hpp
   mods/EnvironmentalHazards.cpp
   mods/GermanWord.hpp

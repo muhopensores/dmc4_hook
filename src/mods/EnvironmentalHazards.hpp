@@ -8,9 +8,11 @@ public:
     // std::vector<std::string> get_search_terms() override { return {"mod sample"}; }
     // Mod::ModType get_mod_type() override { return SLOW; };
 
-    static bool mod_enabled;
+    static bool laser_enabled;
     static bool laser_tracks_player;
     static void spawn_bp_laser();
+
+    static bool pillar_enabled;
 
     void on_frame(fmilliseconds& dt) override;
     void on_gui_frame(int display) override;

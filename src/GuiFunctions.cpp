@@ -814,7 +814,7 @@ namespace gui {
             if (ImGui::BeginTabItem(_("About"))) {
                 ImGui::BeginChild("AboutChild");
 
-                ImGui::SeparatorText(_("DMC4Hook - Devil May Cry 4 Trainer"));
+                ImGui::SeparatorText(_("dmc4_hook"));
 
                 ImGui::Text("Mstislav Capusta");
                 ImGui::Text("SSSiyan");
