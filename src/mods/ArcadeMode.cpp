@@ -5,7 +5,7 @@
 
 #include "utility/CommandLineArgs.hpp"
 
-static bool g_arcade = false;
+bool ArcadeMode::mod_enabled = false;
 
 static uMissionMenu g_our_mission_menu {};
 
@@ -25,7 +25,7 @@ void uMissionMenu_our_set_mission_num(int mission) {
 }
 
 bool __fastcall uMissionStart_check_start_flag_sub_89F4C0(uMissionMenu* mission_struct) {
-    if(g_arcade) { 
+    if (ArcadeMode::mod_enabled) { 
         // uMissionMenu check
         if (mission_struct->vtable == 0xBDFD88) {
             mission_struct->cursor = g_our_mission_menu.cursor;
@@ -52,7 +52,9 @@ bool __fastcall uMissionStart_check_start_flag_sub_89F4C0(uMissionMenu* mission_
 }
 
 bool __fastcall uBloodyPalaceStart_check_start_sub_854050(uBloodyPalaceStart* bp) {
-    if(g_arcade) { return true; }
+    if (ArcadeMode::mod_enabled) {
+        return true;
+    }
     return bp->flags == 2;
 }
 
@@ -71,53 +73,10 @@ std::optional<std::string> install_hooks(ArcadeMode* arcade) {
     return std::nullopt;
 }
 
-std::optional<std::string> ArcadeMode::on_initialize() {
-    g_our_mission_menu.cursor = 7; // bp start
-    uMissionMenu_our_set_mission_num(12);
-
-    bool has_arg = utility::check_argument("-arcade");
-    if (has_arg) {
-        g_arcade = true;
-        install_hooks(this);
-    }
-
-    uint32_t arg_char = utility::get_argument("-character");
-    if (arg_char > 0) {
-        g_our_mission_menu.character = arg_char;
-    }
-
-    uint32_t arg_cursor = utility::get_argument("-difficulty");
-    if (arg_cursor > 0) {
-        g_our_mission_menu.cursor = arg_cursor;
-    }
-
-    int arg_mission = utility::get_argument("-mission");
-    if (arg_mission > 0) {
-        uMissionMenu_our_set_mission_num(arg_mission);
-    }
-
-    return Mod::on_initialize();
-}
-
-void ArcadeMode::on_config_load(const utility::Config& cfg){
-    bool arcade = cfg.get<bool>("ArcadeMode").value_or(false);
-    if (arcade) {
-        g_arcade = true;
-        auto res = install_hooks(this);
-        if (res.has_value()) {
-            spdlog::error("error initializing arcade mode {}", res.value());
-        }
-    }
-}
-
-void ArcadeMode::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("ArcadeMode", g_arcade);
-}
-
 void ArcadeMode::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
-        if (ImGui::Checkbox(_("Enable arcade mode"), &g_arcade)) {
-            if (g_arcade) {
+        if (ImGui::Checkbox(_("Arcade"), &mod_enabled)) {
+            if (mod_enabled) {
                 auto res = install_hooks(this);
                 if (res.has_value()) {
                     spdlog::error("error initializing arcade mode {}", res.value());
@@ -127,8 +86,101 @@ void ArcadeMode::on_gui_frame(int display) {
                 hook_msel_mstart.reset();
             }
         }
-        if (g_arcade) {
-            // TODO: draw g_our_mission_menu with imgui
+        ImGui::SameLine();
+        help_marker(_("When opening the game or returning to the mission select screen, the game will load these settings\n"
+            "You can also start dmc4 with command line arguments, using something like\n"
+            "`DevilMayCry4_DX9.exe -arcade -difficulty 3 -mission 12` (DMD, M12), or\n"
+            "`DevilMayCry4_DX9.exe -arcade -character 4 -difficulty 7` (Dante, BP)"));
+
+        if (mod_enabled) {
+            ImGui::Indent(lineIndent);
+            int mission = g_our_mission_menu.hum;
+            if (ImGui::SliderInt(_("Mission"), &mission, 1, 20)) {
+                uMissionMenu_our_set_mission_num(mission);
+            }
+
+            static const char* difficulty_names[9]{
+                __("Human"), // 0
+                __("Devil Hunter"), // 1
+                __("Son Of Sparda"), // 2
+                __("Dante Must Die"), // 3
+                __("Legendary Dark Knight"), // 4
+                __("Heaven Or Hell (SOS)"), // 5
+                __("Hell And Hell (SOS)"),  // 6
+                __("Bloody Palace"), // 7
+                __("Story Theater"), // 8
+                // "I assume 10 would be training but they removed it, just black screens",
+            };
+
+            int cursor = g_our_mission_menu.cursor;
+            if (ImGui::Combo(_("Difficulty"), &cursor, difficulty_names, 9)) {
+                g_our_mission_menu.cursor = cursor;
+            }
+
+            static const char* char_names[8]{//_("Dante"),
+                // __("Dante - Auto"),
+                // __("Super Dante"),
+                // __("Super Dante - Auto"),
+                // __("Nero"), // 6?
+                // __("Nero - Auto"),
+                // __("Super Nero"),
+                // __("Super Nero - Auto"),
+                __("Dante"),
+                __("Dante"),
+                __("Dante"),
+                __("Dante"),
+                __("Nero"),
+                __("Nero"),
+                __("Nero"),
+                __("Nero"),
+            };
+
+            if (cursor == 7) {
+                int character = g_our_mission_menu.character;
+                if (ImGui::Combo(_("Character"), &character, char_names, 8)) {
+                    g_our_mission_menu.character = character;
+                }
+            }
+            ImGui::Unindent(lineIndent);
         }
     }
+}
+
+std::optional<std::string> ArcadeMode::on_initialize() {
+    return Mod::on_initialize();
+}
+
+void ArcadeMode::on_config_load(const utility::Config& cfg) {
+    mod_enabled                  = cfg.get<bool>("ArcadeMode").value_or(false);
+    g_our_mission_menu.cursor    = cfg.get<int>("ArcadeMode.difficulty").value_or(7);
+    g_our_mission_menu.character = cfg.get<int>("ArcadeMode.character").value_or(6);
+    g_our_mission_menu.hum       = cfg.get<int>("ArcadeMode.mission").value_or(12);
+    uMissionMenu_our_set_mission_num(g_our_mission_menu.hum);
+
+    if (utility::check_argument("-arcade")) {
+        mod_enabled = true;
+        uint32_t arg_char = utility::get_argument("-character");
+        if (arg_char > 0)
+            g_our_mission_menu.character = arg_char;
+        uint32_t arg_cursor = utility::get_argument("-difficulty");
+        if (arg_cursor > 0)
+            g_our_mission_menu.cursor = arg_cursor;
+        int arg_mission = utility::get_argument("-mission");
+        if (arg_mission > 0)
+            uMissionMenu_our_set_mission_num(arg_mission);
+    }
+
+    if (mod_enabled) {
+        auto res = install_hooks(this);
+        if (res.has_value()) {
+            spdlog::error("error initializing arcade mode {}", res.value());
+        }
+    }
+}
+
+void ArcadeMode::on_config_save(utility::Config& cfg) {
+    cfg.set<bool>("ArcadeMode", mod_enabled);
+    cfg.set<int>("ArcadeMode.difficulty", g_our_mission_menu.cursor);
+    cfg.set<int>("ArcadeMode.character", g_our_mission_menu.character);
+    cfg.set<int>("ArcadeMode.mission", g_our_mission_menu.hum);
 }

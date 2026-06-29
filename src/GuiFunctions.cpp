@@ -261,6 +261,8 @@ namespace gui {
                 pmods->on_draw_ui("InfFrostHeal"_hash, DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("FreezeEnemies"_hash, DISPLAY_SYSTEM_A);
+                
+                pmods->on_draw_ui("InfiniteTime"_hash, DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Difficulty"));
 
@@ -307,6 +309,8 @@ namespace gui {
                 pmods->on_draw_ui("CharSwitcher"_hash, DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("GermanWord"_hash, DISPLAY_SYSTEM_A);
+
+                pmods->on_draw_ui("ArcadeMode"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("Macro"_hash, DISPLAY_SYSTEM_A);
                 
@@ -695,11 +699,9 @@ namespace gui {
 
                 ImGui::SeparatorText(_("HUD"));
 
-                pmods->on_draw_ui("InfiniteTime"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui("HideHud"_hash, DISPLAY_SYSTEM_A); // 1.5
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("HpInOrbsDisplay"_hash, DISPLAY_SYSTEM_A);
-
-                pmods->on_draw_ui("HideHud"_hash, DISPLAY_SYSTEM_A); // needs its own line
 
                 ImGui::SeparatorText(_("Custom HUD elements"));
 

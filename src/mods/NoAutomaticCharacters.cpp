@@ -1,4 +1,5 @@
 #include "NoAutomaticCharacters.hpp"
+#include "ArcadeMode.hpp"
 
 bool NoAutomaticCharacters::mod_enabled = false;
 bool NoAutomaticCharacters::mod_enabled2 = false;
@@ -19,6 +20,8 @@ enum class CharPortraitNums : int {
 
 naked void detour(void) {
 	_asm {
+            cmp byte ptr [ArcadeMode::mod_enabled], 1
+            je code
             cmp byte ptr [NoAutomaticCharacters::mod_enabled2], 1
 			je NoSupersOrAutos
 			cmp byte ptr [NoAutomaticCharacters::mod_enabled], 1
@@ -107,6 +110,8 @@ naked void detour(void) {
 
 naked void detour2(void) {
     _asm {
+            cmp byte ptr [ArcadeMode::mod_enabled], 1
+            je code
             cmp byte ptr [NoAutomaticCharacters::mod_enabled2], 1
 			je NoAutos
 			cmp byte ptr [NoAutomaticCharacters::mod_enabled], 1

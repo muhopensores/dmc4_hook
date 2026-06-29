@@ -5,6 +5,7 @@ class ArcadeMode : public Mod {
 public:
     ArcadeMode() = default;
 
+    static bool mod_enabled;
     std::string get_mod_name() override { return "ArcadeMode"; };
 
     std::optional<std::string> on_initialize() override;

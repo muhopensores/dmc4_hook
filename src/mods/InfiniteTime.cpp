@@ -18,7 +18,7 @@ void InfiniteTime::toggle(bool enable) {
 
 void InfiniteTime::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
-        if (ImGui::Checkbox(_("Disable Timer"), &mod_enabled)) {
+        if (ImGui::Checkbox(_("Disable BP Timer"), &mod_enabled)) {
             toggle(mod_enabled);
         }
         ImGui::SameLine();
