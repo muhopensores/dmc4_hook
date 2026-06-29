@@ -11,10 +11,8 @@ bool GermanWord::survival_doppel_enabled = false;
 bool GermanWord::spawn_queued = false;
 
 static constexpr uintptr_t danteSpawnAddr = 0x7B2130;
-static uPlayer* danteSpawnedAddr          = nullptr;
-
 static constexpr uintptr_t neroSpawnAddr  = 0x7E1A70;
-static uPlayer* neroSpawnedAddr             = nullptr;
+static uPlayer* doppelAddr          = nullptr;
 
 static bool spawn_ai_dante_toggle = false;
 static bool spawn_ai_nero_toggle = false;
@@ -66,7 +64,7 @@ static void spawn_dante() {
 		pushfd
         mov byte ptr [CharSwitcher::external_spawn_requested], 1
         call dword ptr [danteSpawnAddr]
-        mov [danteSpawnedAddr], eax
+        mov [doppelAddr], eax
         mov esi, eax
 
         mov eax, [static_mediator_ptr]
@@ -99,7 +97,7 @@ static void spawn_nero() {
 		pushfd
         mov byte ptr [CharSwitcher::external_spawn_requested], 1
         call dword ptr [neroSpawnAddr]
-        mov [neroSpawnedAddr], eax
+        mov [doppelAddr], eax
         mov esi, eax
 
         mov eax, [static_mediator_ptr]
@@ -141,7 +139,7 @@ static void call_vfunc12(void* obj) {
     ((VirtualFn)vtable[12])(obj);
 }
 
-static void despawn_owned_projectiles(uPlayer* owner) {
+static void despawn_owned_projectiles(void* owner) {
     if (!owner)
         return;
     auto* sUnit = devil4_sdk::get_sUnit();
@@ -161,129 +159,58 @@ static void despawn_owned_projectiles(uPlayer* owner) {
     }
 }
 
-#if 0
 class NeroStand {
 public:
-    char pad_00[0x22c4];
-    int destroy; // 0x22c4 // wrong
+    char pad_00[0x22c0];
+    int int22c0; // 0x22c0
+    char pad_22c4[0x186];
+    int int244A; // 0x244a
 };
-static_assert(sizeof(NeroStand) == 0x22c8);
+static_assert(sizeof(NeroStand) == 0x2450);
 
-static void destroy_projectile(void* projectile) {
-    typedef void(__stdcall * DespawnFn)(void*);
-    DespawnFn despawnFunc = (DespawnFn)0x830BD0;
-    despawnFunc(projectile);
-}
-
-typedef void*(__thiscall* DestroyStandFn)(void*, unsigned int); // crashes
-static void destroy_stand(void* stand) {
-    DestroyStandFn destroy = (DestroyStandFn)0x8280B0;
-    destroy(stand, 1);
-}
-
-typedef void*(__thiscall* DestroyNeroFn)(void*, unsigned int); // crashes
-static void destroy_nero(void* stand) {
-    DestroyNeroFn destroy = (DestroyNeroFn)0x7E21B0;
-    destroy(stand, 0);
-}
-
-typedef void*(__thiscall* DestroyDanteFn)(void*); // crashes
-static void destroy_dante(void* dante) {
-    DestroyDanteFn destroy = (DestroyDanteFn)0x7B2890;
-    destroy(dante);
-}
-
-typedef void*(__thiscall* DestroyPandoraFn)(void*); // crashes if pandora is in use
-static void destroy_pandora(void* pandora) {
-    DestroyPandoraFn destroy = (DestroyPandoraFn)0x8364E0;
-    destroy(pandora);
-}
-#endif
-
-static void setStandAction(void* stand, void* player) { // kinda just trial and erroring atm
-    __asm {
-        mov esi, player
-        mov edi, stand
-        
-        // mov eax, [static_mediator_ptr]
-        // mov eax, [eax]
-        // push 00
-        // push 00
-        // push 00
-        // push 00
-        // push 0x18
-        // mov edx, 0x494B90 // sMediator::customMessage
-        // call edx
-        // mov edi,[esi+0x0000CDF8]
-        // mov eax,00000002
-        // mov edx,0x829BE0 // uPlNeroDevil::setAction
-        // call edx
-        // push ebx
-        // push 0x1E
-        // mov eax,esi
-        // mov [esi+0x0000CE11],bl
-        // mov [esi+0x00001F50],bl
-        // mov edx,0x081FB70 // uPlayer::finishEffectId
-        // call edx
-
-
-        mov dword ptr [edi+0x22A8], 7
-        mov byte ptr [esi+0xCE18], 0
-        mov dword ptr [esi+0x140C], 0x400
-
-        mov dword ptr [esi+0xCCD0], 1
-        mov dword ptr [esi+0x3148], 2
-
-
-
-        //mov dword ptr [esi+0x1550],0x400
-        //mov byte ptr [edi+0x2448], 1
-        //mov byte ptr [esi+0x1554], 2
-
-        //mov edx, 0x829BE0
-        //call edx
-    }
-}
-
+static int pending_nero_despawn = 0;
 void GermanWord::DoppelSpawnLogic(bool enabled) {
+    toggle1(enabled);
     uPlayer* player = devil4_sdk::get_local_player();
     if (!player) { return; }
     spawn_queued = false;
     int id = player->controllerID;
     if (enabled) {
-        toggle1(enabled);
         if (id == 0) {
-            spawn_dante();
+            if (!doppelAddr || !devil4_sdk::check_exists_in_moveline(doppelAddr, 13)) {
+                spawn_dante();
+            }
         } else {
-            spawn_nero();
+            if (!doppelAddr || !devil4_sdk::check_exists_in_moveline(doppelAddr, 13)) {
+                spawn_nero();
+            }
         }
     } else {
         if (id == 0) {
-            if (danteSpawnedAddr && devil4_sdk::check_exists_in_moveline(danteSpawnedAddr, 13)) {
-                uPlayer* doppel = (uPlayer*)danteSpawnedAddr;
-                void* addr      = doppel->lucifer;
+            if (doppelAddr && devil4_sdk::check_exists_in_moveline(doppelAddr, 13)) {
+                uPlayer* doppel = (uPlayer*)doppelAddr;
+                void* addr = doppel->lucifer;
                 call_vfunc12(addr);
 
                 addr = doppel->pandora;
                 call_vfunc12(addr);
 
-                despawn_owned_projectiles(danteSpawnedAddr);
-                call_vfunc12(danteSpawnedAddr);
-                danteSpawnedAddr = nullptr;
+                despawn_owned_projectiles(doppelAddr);
+                call_vfunc12(doppelAddr);
+                doppelAddr = nullptr;
             } else {
-                danteSpawnedAddr = nullptr;
+                doppelAddr = nullptr;
             }
         } else {
-            if (neroSpawnedAddr && devil4_sdk::check_exists_in_moveline(neroSpawnedAddr, 13)) {
-                uPlayer* doppel = (uPlayer*)neroSpawnedAddr;
-                void* stand     = doppel->stand;
-                call_vfunc12(stand);
-
-                despawn_owned_projectiles(neroSpawnedAddr);
-                call_vfunc12(neroSpawnedAddr);
-                neroSpawnedAddr = nullptr;
+            if (doppelAddr && devil4_sdk::check_exists_in_moveline(doppelAddr, 13)) {
+                if (pending_nero_despawn == 0) {
+                    uPlayer* doppel      = (uPlayer*)doppelAddr;
+                    NeroStand* stand     = (NeroStand*)doppel->stand;
+                    stand->int22c0       = 50;
+                    pending_nero_despawn = 1;
+                }
             } else {
-                neroSpawnedAddr = nullptr;
+                doppelAddr = nullptr;
             }
         }
     }
@@ -297,6 +224,21 @@ void GermanWord::on_frame(fmilliseconds& dt) {
     } else {
         DoppelSpawnLogic(false);
     }
+
+    if (pending_nero_despawn > 0) {
+        pending_nero_despawn++;
+        if (pending_nero_despawn > 3) {
+            if (doppelAddr && devil4_sdk::check_exists_in_moveline(doppelAddr, 13)) {
+                uPlayer* doppel  = (uPlayer*)doppelAddr;
+                NeroStand* stand = (NeroStand*)doppel->stand;
+                call_vfunc12(stand);
+                despawn_owned_projectiles(doppel);
+                call_vfunc12(doppel);
+            }
+            doppelAddr = nullptr;
+            pending_nero_despawn = 0;
+        }
+    }
 }
 
 void GermanWord::on_gui_frame(int display) {
@@ -304,87 +246,13 @@ void GermanWord::on_gui_frame(int display) {
         if (ImGui::Checkbox(_("Doppelganger##GermanWord"), &mod_enabled)) {
             spawn_queued = true;
         }
-        #if 0
-        ImGui::SameLine();
-        if (ImGui::Button("bla")) {
-            uPlayer* player = devil4_sdk::get_local_player();
-            if (!player) { return; }
-            void* stand = player->stand;
-            player->stand;
-            setStandAction(stand, player);
-        }
-        #endif
-        #if 0
-        if (ImGui::Checkbox(_("Players Push Players##GermanWord"), &mod_enabled)) {
-            toggle1(mod_enabled);
-        }
-        if (ImGui::Button(_("Spawn Dante##GermanWord"))) {
-            spawn_dante();
-        }
-        ImGui::SameLine(sameLineWidth);
-        if (ImGui::Checkbox(_("Become AI Dante##GermanWord"), &spawn_ai_dante_toggle)) {
-            toggle2(spawn_ai_dante_toggle);
-        }
-        ImGui::SameLine();
-        help_marker("Tick then untick");
-
-        if (ImGui::Button(_("Spawn Nero##GermanWord"))) {
-            spawn_nero();
-        }
-        ImGui::SameLine(sameLineWidth);
-        if (ImGui::Checkbox(_("Become AI Nero##GermanWord"), &spawn_ai_nero_toggle)) {
-            toggle3(spawn_ai_nero_toggle);
-        }
-        ImGui::SameLine();
-        help_marker("Tick then untick");
-
-        if (ImGui::Button(_("Destroy Last Spawned Dante##GermanWord"))) {
-            if (danteSpawnedAddr) {
-                uPlayer* doppel = (uPlayer*)danteSpawnedAddr;
-
-                void* addr  = doppel->lucifer;
-                //doppel->lucifer = 0;
-                //uactor_sdk::despawn(addr); // better check this actually does anything
-                call_vfunc12(addr);
-                
-                addr = doppel->pandora;
-                //doppel->pandora = 0;
-                //uactor_sdk::despawn(addr); // better check this actually does anything
-                call_vfunc12(addr);
-                
-                despawn_owned_projectiles(danteSpawnedAddr);
-
-                //uactor_sdk::despawn(danteSpawnedAddr);
-                call_vfunc12(danteSpawnedAddr);
-                danteSpawnedAddr = nullptr;
-            }
-        }
-
-        if (ImGui::Button(_("Destroy Last Spawned Nero##GermanWord"))) {
-            if (neroSpawnedAddr) {
-                uPlayer* doppel = (uPlayer*)neroSpawnedAddr;
-
-                void* stand = doppel->stand;
-                //doppel->stand = 0;
-                //destroy_stand(stand);
-                call_vfunc12(stand);
-
-                despawn_owned_projectiles(neroSpawnedAddr);
-
-                //uactor_sdk::despawn(neroSpawnedAddr);
-                call_vfunc12(neroSpawnedAddr);
-                neroSpawnedAddr = nullptr;
-            }
-        }
-        #endif
     }
 }
 
 void GermanWord::on_stage_start() {
     if (mod_enabled) {
-        neroSpawnedAddr  = nullptr;
-        danteSpawnedAddr = nullptr;
-        spawn_queued     = true;
+        doppelAddr  = nullptr;
+        spawn_queued = true;
         survival_doppel_enabled = false;
     }
 }
