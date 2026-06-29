@@ -48,6 +48,8 @@ ModFramework::ModFramework()
     //m_logger{ spdlog::basic_logger_mt("ModFramework", LOG_FILENAME, true) }
 #endif
 {
+    FunctionHook::set_mh_skip_locks(TRUE);
+
     spdlog::set_default_logger(m_logger);
     spdlog::flush_on(spdlog::level::info);
     spdlog::info(LOG_ENTRY);
@@ -55,7 +57,7 @@ ModFramework::ModFramework()
 #ifndef NDEBUG
     spdlog::set_level(spdlog::level::debug);
 #endif
-
+#if 0
     // SteamStub shit
     // wait until steam drm unpacks itself
     // NOLINTBEGIN
@@ -67,18 +69,18 @@ ModFramework::ModFramework()
         std::this_thread::sleep_for(std::chrono::milliseconds(4));
     }
     // NOLINTEND
+#endif
 
     std::optional<std::string> e;
-    std::queue<DWORD> tr = utility::suspend_all_other_threads(); {
+    //std::queue<DWORD> tr = utility::suspend_all_other_threads(); {
         // NOTE(): hack to avoid rare dealocks if minhook tries to suspend while we already did
         // also faster startup time probably
-        FunctionHook::set_mh_skip_locks(TRUE);
+        //FunctionHook::set_mh_skip_locks(TRUE);
         m_mods = std::make_unique<Mods>();
         e = m_mods->on_initialize(Mod::ModType::REGULAR);
-    }
-    utility::resume_threads(tr);
+    //}
+    //utility::resume_threads(tr);
     
-    FunctionHook::set_mh_skip_locks(FALSE);
 
     if (e) {
         if (e->empty()) {
@@ -114,6 +116,8 @@ ModFramework::ModFramework()
 #ifndef NDEBUG
     reframework::setup_exception_handler();
 #endif
+
+    FunctionHook::set_mh_skip_locks(FALSE);
 
 }
 
