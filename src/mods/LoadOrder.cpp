@@ -248,8 +248,9 @@ void __stdcall wew(MtDTI* dti, char* path) {
     // dont wanna strcmp
     uint32_t type = *(uint32_t*)dti->m_name;
     char* name = dti->m_name;
-    char key[3];
-    memcpy(key,path,sizeof(key));
+    char key[4];
+    memcpy(key, path, 3);
+    key[3] = '\0';
     //for (int i = 0; i < 97; i++) {
     //    if ((uint32_t)res_dict[i].DTI == (uint32_t)dti) {
     //        extension = res_dict[i].extension;
@@ -296,7 +297,8 @@ void __stdcall wew(MtDTI* dti, char* path) {
     sprintf_s(buf, "%s\\%s.%s", s_devil4_resource->m_native_path.value->str, path, extension.c_str());
     if (file_exists(buf)) 
     {
-        if (!(strcmp(key,"sys")==0||strcmp(key,"mov")==0||strcmp(key,"rom")==0)||strcmp(key,"id\\"))
+     // if (!(strcmp(key,"sys")==0||strcmp(key,"mov")==0||strcmp(key,"rom")==0)||strcmp(key,"id\\")) // old
+        if (!(strcmp(key,"sys")==0||strcmp(key,"mov")==0||strcmp(key,"rom")==0 ||strcmp(key,"id\\") == 0)) // new
             if (ArcInit)
                 exists=true;
         s_devil4_resource->m_optimize_enable = false;
@@ -306,13 +308,13 @@ void __stdcall wew(MtDTI* dti, char* path) {
 }
 
 void __stdcall Filter(char* path) {
-    if (std::strstr(path,"effect\\arc\\efc_cmn")||
-    std::strstr(path,"rom\\system\\game_cmn")|| // will be useful for hud mods
+    /*if (std::strstr(path, "effect\\arc\\efc_cmn") ||
+    std::strstr(path,"rom\\system\\game_cmn")|| // will be useful for hud/sound mods
     std::strstr(path,"rom\\system\\dmc4_cmn")||
     std::strstr(path,"system\\shader")||
     std::strstr(path,"rom\\id\\nowloading"))
         ArcInit = false;
-    else
+    else*/
         ArcInit = true;
 }
 
