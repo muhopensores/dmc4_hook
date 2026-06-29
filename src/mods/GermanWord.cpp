@@ -7,6 +7,7 @@ static constexpr uintptr_t some_struct            = 0x00E552CC;
 static constexpr uintptr_t fptr_update_actor_list = 0x008DC540;
 
 bool GermanWord::mod_enabled = false;
+bool GermanWord::survival_doppel_enabled = false;
 bool GermanWord::spawn_queued = false;
 
 static constexpr uintptr_t danteSpawnAddr = 0x7B2130;
@@ -248,7 +249,7 @@ void GermanWord::DoppelSpawnLogic(bool enabled) {
     uPlayer* player = devil4_sdk::get_local_player();
     if (!player) { return; }
     spawn_queued = false;
-    int id          = player->controllerID;
+    int id = player->controllerID;
     if (enabled) {
         toggle1(enabled);
         if (id == 0) {
@@ -289,8 +290,12 @@ void GermanWord::DoppelSpawnLogic(bool enabled) {
 }
 
 void GermanWord::on_frame(fmilliseconds& dt) {
-    if (spawn_queued) {
-        DoppelSpawnLogic(mod_enabled);
+    if (mod_enabled || survival_doppel_enabled) {
+        if (spawn_queued) {
+            DoppelSpawnLogic(true);
+        }
+    } else {
+        DoppelSpawnLogic(false);
     }
 }
 
@@ -380,6 +385,7 @@ void GermanWord::on_stage_start() {
         neroSpawnedAddr  = nullptr;
         danteSpawnedAddr = nullptr;
         spawn_queued     = true;
+        survival_doppel_enabled = false;
     }
 }
 

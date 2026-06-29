@@ -9,6 +9,7 @@ public:
     // Mod::ModType get_mod_type() override { return SLOW; };
 
     static bool mod_enabled;
+    static bool survival_doppel_enabled;
     static bool spawn_queued;
     // static uintptr_t jmp_ret1;
 
