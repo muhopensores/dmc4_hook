@@ -30,14 +30,14 @@ bool __fastcall uMissionStart_check_start_flag_sub_89F4C0(uMissionMenu* mission_
         if (mission_struct->vtable == 0xBDFD88) {
             mission_struct->cursor = g_our_mission_menu.cursor;
 
-            mission_struct->hum = g_our_mission_menu.hum;        // 0x0070
-            mission_struct->idk = g_our_mission_menu.idk;        // 0x006C
-            mission_struct->dvh = g_our_mission_menu.dvh;        // 0x0074
-            mission_struct->sos = g_our_mission_menu.sos;        // 0x0078
-            mission_struct->dmd = g_our_mission_menu.dmd;        // 0x007C
-            mission_struct->ldk = g_our_mission_menu.ldk;        // 0x0080
-            mission_struct->hoh = g_our_mission_menu.hoh;        // 0x0084
-            mission_struct->hah = g_our_mission_menu.hah;        // 0x0088
+            mission_struct->hum = g_our_mission_menu.hum; // 0x0070
+            mission_struct->idk = g_our_mission_menu.idk; // 0x006C
+            mission_struct->dvh = g_our_mission_menu.dvh; // 0x0074
+            mission_struct->sos = g_our_mission_menu.sos; // 0x0078
+            mission_struct->dmd = g_our_mission_menu.dmd; // 0x007C
+            mission_struct->ldk = g_our_mission_menu.ldk; // 0x0080
+            mission_struct->hoh = g_our_mission_menu.hoh; // 0x0084
+            mission_struct->hah = g_our_mission_menu.hah; // 0x0088
 
             mission_struct->character = g_our_mission_menu.character;
 
@@ -94,30 +94,14 @@ void ArcadeMode::on_gui_frame(int display) {
 
         if (mod_enabled) {
             ImGui::Indent(lineIndent);
-            int mission = g_our_mission_menu.hum;
-            if (ImGui::SliderInt(_("Mission"), &mission, 1, 20)) {
-                uMissionMenu_our_set_mission_num(mission);
+            if (g_our_mission_menu.cursor != 7) {
+                if (ImGui::SliderInt(_("Mission"), (int*)&g_our_mission_menu.hum, 1, 20)) {
+                    uMissionMenu_our_set_mission_num(g_our_mission_menu.hum);
+                }
             }
 
-            static const char* difficulty_names[9]{
-                __("Human"), // 0
-                __("Devil Hunter"), // 1
-                __("Son Of Sparda"), // 2
-                __("Dante Must Die"), // 3
-                __("Legendary Dark Knight"), // 4
-                __("Heaven Or Hell (SOS)"), // 5
-                __("Hell And Hell (SOS)"),  // 6
-                __("Bloody Palace"), // 7
-                __("Story Theater"), // 8
-                // "I assume 10 would be training but they removed it, just black screens",
-            };
-
-            int cursor = g_our_mission_menu.cursor;
-            if (ImGui::Combo(_("Difficulty"), &cursor, difficulty_names, 9)) {
-                g_our_mission_menu.cursor = cursor;
-            }
-
-            static const char* char_names[8]{//_("Dante"),
+            static const char* char_names[8]{
+                //_("Dante"),
                 // __("Dante - Auto"),
                 // __("Super Dante"),
                 // __("Super Dante - Auto"),
@@ -135,12 +119,25 @@ void ArcadeMode::on_gui_frame(int display) {
                 __("Nero"),
             };
 
-            if (cursor == 7) {
-                int character = g_our_mission_menu.character;
-                if (ImGui::Combo(_("Character"), &character, char_names, 8)) {
-                    g_our_mission_menu.character = character;
-                }
+            if (g_our_mission_menu.cursor == 7) {
+                ImGui::Combo(_("Character"), (int*)&g_our_mission_menu.character, char_names, 8);
             }
+
+            static const char* difficulty_names[9] {
+                __("Human"), // 0
+                __("Devil Hunter"), // 1
+                __("Son Of Sparda"), // 2
+                __("Dante Must Die"), // 3
+                __("Legendary Dark Knight"), // 4
+                __("Heaven Or Hell (SOS)"), // 5
+                __("Hell And Hell (SOS)"),  // 6
+                __("Bloody Palace"), // 7
+                __("Story Theater"), // 8
+                // "I assume 10 would be training but they removed it, just black screens",
+            };
+
+            ImGui::Combo(_("Difficulty"), (int*)&g_our_mission_menu.cursor, difficulty_names, 9);
+
             ImGui::Unindent(lineIndent);
         }
     }
