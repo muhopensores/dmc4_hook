@@ -398,9 +398,9 @@ static void spawn_enemy(SpawnableEnemyType index, int spawnAnim = -1) {
 
     // should never be an issue but lets do this to try to stop enemies not being hittable
     // even though I think that's a memory issue
-    while (devil4_sdk::is_loading_arc()) {
-        Sleep(0);
-    }
+    // while (devil4_sdk::is_loading_arc()) {
+    //     Sleep(0);
+    // }
 
     __asm {
 		pushad
@@ -549,7 +549,7 @@ naked void DisplayTimerOnTick() {
 
 static constexpr uintptr_t sWorkRatePtr = 0xE558D0;
 static constexpr uintptr_t GetTimerTickCall = 0x4A6890;
-naked float UpdateTimer() {
+naked void UpdateTimer() {
     _asm {
         pushad
         mov eax, [sWorkRatePtr]
@@ -631,36 +631,32 @@ void Survival::on_frame(fmilliseconds& dt) {
                     accumulated_delta = 0.0f;
                     Survival::survival_active = true;
                     if (entering_survival) {
-                        pending_arc_load = true;
+                        if (*(int8_t*)0x8AFB3E != 6 /*&& *(int8_t*)0x8AFB76 != 2 && *(int8_t*)0x8AFBAE != 6*/) { // is player using more mem exe?
+                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em000", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em001", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em003", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em005", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em006", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em008", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em009", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em010", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em011", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em012", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em013", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em015", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em016", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em017", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                        }
                     }
 
                     sMed->bpTimer = survivedTimer;
                     DisplayTimerOnTick();
                     if (!devil4_sdk::is_paused()) { // game is not paused
-                        if (pending_arc_load && devil4_sdk::get_uEnemies() != nullptr) {
-                            pending_arc_load = false;
-                            if (*(int8_t*)0x8AFB3E != 6 /*&& *(int8_t*)0x8AFB76 != 2 && *(int8_t*)0x8AFBAE != 6*/) { // is player using more mem exe?
-                                devil4_sdk::load_arc("rom\\enemy\\em000");
-                                devil4_sdk::load_arc("rom\\enemy\\em001");
-                                devil4_sdk::load_arc("rom\\enemy\\em003");
-                                devil4_sdk::load_arc("rom\\enemy\\em005");
-                                devil4_sdk::load_arc("rom\\enemy\\em006");
-                                devil4_sdk::load_arc("rom\\enemy\\em008");
-                                devil4_sdk::load_arc("rom\\enemy\\em009");
-                                devil4_sdk::load_arc("rom\\enemy\\em010");
-                                devil4_sdk::load_arc("rom\\enemy\\em011");
-                                devil4_sdk::load_arc("rom\\enemy\\em012");
-                                devil4_sdk::load_arc("rom\\enemy\\em013");
-                                devil4_sdk::load_arc("rom\\enemy\\em015");
-                                devil4_sdk::load_arc("rom\\enemy\\em016");
-                                devil4_sdk::load_arc("rom\\enemy\\em017");
-                            }
-                        }
-
                         sUnit* sUnit = devil4_sdk::get_sUnit();
                         if (sUnit && sUnit->mMoveLine[7].mTop) { // @Siy find how the bp timer gets time
                             uHasDelta* sUnitHasDelta = (uHasDelta*)sUnit->mMoveLine[7].mTop;
-                            float game_seconds = sUnitHasDelta->m_delta_time / 60.0f;
+                            float game_seconds;
+                            game_seconds = sUnitHasDelta->m_delta_time / 60.0f;
                             UpdateTimer();
                         }
                         EnemyInfo enemy_info = get_enemy_info(devil4_sdk::get_uEnemies());
@@ -997,7 +993,7 @@ void Survival::on_gui_frame(int display) {
         }
         ImGui::SameLine();
         help_marker(_("Spawn random meme modifier pickups spawned near your location to try to avoid (or target)"));
-#if 1
+#ifndef NDEBUG
         if (mod_enabled) {
             if (ImGui::CollapsingHeader("[SURVIVAL DEBUG]")) {
                 ImGui::Indent(lineIndent);
@@ -1033,7 +1029,7 @@ void Survival::on_gui_frame(int display) {
                 ImGui::EndDisabled();
 
                 if (ImGui::Button("Create and Spawn Laser")) {
-                    devil4_sdk::load_arc("rom\\room\\st405");
+                    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\room\\st405", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
                     devil4_sdk::easy_spawn(0x8825D0, 10);
                 }
 

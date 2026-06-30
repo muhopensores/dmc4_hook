@@ -548,7 +548,7 @@ void EnemySpawn::on_gui_frame(int display) {
         ImGui::InputText("##[DEBUG] Load arc file InputText", buf, 0x50);
         if (ImGui::Button(_("Load"))) {
             if (player)
-                devil4_sdk::load_arc(buf);
+                devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, buf, MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
         }
         ImGui::PopItemWidth();
         #endif

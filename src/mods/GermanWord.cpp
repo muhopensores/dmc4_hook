@@ -246,7 +246,7 @@ void GermanWord::on_gui_frame(int display) {
         if (ImGui::Checkbox(_("Doppelganger##GermanWord"), &mod_enabled)) {
             spawn_queued = true;
         }
-        #if 1
+        #ifndef NDEBUG
         if (ImGui::Checkbox(_("Become AI Dante##GermanWord"), &spawn_ai_dante_toggle)) {
             toggle2(spawn_ai_dante_toggle);
         }

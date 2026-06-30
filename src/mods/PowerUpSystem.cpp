@@ -43,9 +43,9 @@ static constexpr uintptr_t uStageSetItem_uStageSetItem = 0x880A30;
 static constexpr uintptr_t sUnit_ptr                   = 0xE552CC;
 static constexpr uintptr_t fptr_update_actor_list      = 0x8DC540;
 naked uintptr_t* spawn_pickup_effect(int item_id, Vector3f* pos) {
-    while (devil4_sdk::is_loading_arc()) {
-        Sleep(0);
-    }
+    //while (devil4_sdk::is_loading_arc()) {
+    //    Sleep(0);
+    //}
     _asm {
         push ebp
         mov ebp,esp

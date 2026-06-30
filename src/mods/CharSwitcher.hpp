@@ -7,6 +7,7 @@ public:
     CharSwitcher() = default;
 
     static bool mod_enabled;
+    static bool mod_pending;
     static bool inertia_enabled;
     static uintptr_t jmp_ret1;
     static uintptr_t jmp_ret2;

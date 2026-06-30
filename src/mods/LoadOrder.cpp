@@ -308,13 +308,13 @@ void __stdcall wew(MtDTI* dti, char* path) {
 }
 
 void __stdcall Filter(char* path) {
-    /*if (std::strstr(path, "effect\\arc\\efc_cmn") ||
-    std::strstr(path,"rom\\system\\game_cmn")|| // will be useful for hud/sound mods
-    std::strstr(path,"rom\\system\\dmc4_cmn")||
+    if (std::strstr(path, "effect\\arc\\efc_cmn") ||
+    //std::strstr(path,"rom\\system\\game_cmn")|| // will be useful for hud/sound mods
+    //std::strstr(path,"rom\\system\\dmc4_cmn")||
     std::strstr(path,"system\\shader")||
     std::strstr(path,"rom\\id\\nowloading"))
         ArcInit = false;
-    else*/
+    else
         ArcInit = true;
 }
 

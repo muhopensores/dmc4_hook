@@ -3,6 +3,7 @@
 #include "sdk/StringData.hpp"
 
 bool CharSwitcher::mod_enabled = false;
+bool CharSwitcher::mod_pending = false;
 bool CharSwitcher::inertia_enabled = true;
 constexpr uintptr_t sArea               = 0x00E552C8;
 constexpr uintptr_t sSave               = 0x00E558C8;
@@ -73,8 +74,9 @@ void CharSwitcher::toggle2(bool enable) {
 naked void detour2(void) {
     _asm {
 			cmp byte ptr [CharSwitcher::mod_enabled], 0
-			je originalcode
+			je CheckPending
 
+        ModCode:
             push ecx
             mov ecx, [0x00E552C8]
             mov ecx, [ecx]
@@ -110,6 +112,12 @@ naked void detour2(void) {
             mov edi, [0x00E558B8]
             mov edi, [edi]
             jmp dword ptr [CharSwitcher::jmp_ret2]
+
+        CheckPending:
+            cmp byte ptr [CharSwitcher::mod_pending], 1
+            jne originalcode
+            mov byte ptr [CharSwitcher::mod_enabled], 1
+            jmp ModCode
     }
 }
 
@@ -755,16 +763,30 @@ void CharSwitcher::on_frame(fmilliseconds& dt) {
 void CharSwitcher::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
         ImGui::BeginGroup();
-        if (ImGui::Checkbox(_("Character Switcher"), &mod_enabled)) {
+        bool pushed_color = false;
+        if (!mod_enabled) {
+            ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+            pushed_color = true;
+        }
+
+        if (ImGui::Checkbox(_("Character Switcher"), &mod_pending)) {
+            if (!mod_pending) {
+                mod_enabled = mod_pending;
+            }
             toggle(mod_enabled);
         }
+
+        if (pushed_color) {
+            ImGui::PopStyleColor();
+        }
+
         ImGui::SameLine();
         help_marker(_("Enable before loading into a stage\n"
                       "On keyboard this is currently locked to F\n"
                       "This has a few unintentional side effects:\n"
                       "- Lock on is a little less accurate\n"
                       "- Style drains twice as fast\n"));
-        if (mod_enabled) {
+        if (mod_enabled || mod_pending) {
             ImGui::Indent(lineIndent);
             ImGui::PushItemWidth(sameLineItemWidth);
             if (ImGui::BeginCombo(_("Input 1"), utility::text_lookup((char*)devil4_sdk::getButtonInfo(desiredInput1).second))) {
@@ -808,14 +830,16 @@ void CharSwitcher::on_gui_frame(int display) {
 }
 
 void CharSwitcher::on_config_load(const utility::Config& cfg) {
-    mod_enabled = cfg.get<bool>("char_switcher").value_or(false);
+    mod_pending = cfg.get<bool>("char_switcher").value_or(false);
+    mod_enabled = mod_pending;
     if (mod_enabled) toggle(mod_enabled);
     desiredInput1 = cfg.get<int16_t>("char_swap_input1").value_or(0x8000);
     desiredInput2 = cfg.get<int16_t>("char_swap_input2").value_or(0x1000);
 }
 
 void CharSwitcher::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("char_switcher", mod_enabled);
+    if (mod_pending || mod_enabled)
+        cfg.set<bool>("char_switcher", true);
     cfg.set<int16_t>("char_swap_input1", desiredInput1);
     cfg.set<int16_t>("char_swap_input2", desiredInput2);
 }

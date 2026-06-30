@@ -6,6 +6,8 @@ public:
     ArcadeMode() = default;
 
     static bool mod_enabled;
+    static bool launched_via_cmd;
+    static bool user_modified_settings;
     std::string get_mod_name() override { return "ArcadeMode"; };
 
     std::optional<std::string> on_initialize() override;

@@ -69,23 +69,7 @@ namespace devil4_sdk {
         return false;
 	}
 
-	bool load_arc(const char* arcPath) { // rets true if successful, false if failed or already exists
-		while (is_loading_arc()) {
-            Sleep(0);
-        }
-        typedef char(__stdcall * LoadArcFn)(aRoom*, const char*);
-        LoadArcFn loadArc = (LoadArcFn)0x40EB00;
-        sArea* area       = devil4_sdk::get_sArea();
-        if (!area) { return false; }
-        aRoom* room = area->aRoomPtr;
-        if (!room) { return false; }
-        return loadArc(room, arcPath);
-    }
-
 	uActor* easy_spawn(uintptr_t spawn_addr, int moveLine) {
-        while (is_loading_arc()) {
-            Sleep(0);
-        }
 		__asm {
 			mov eax, spawn_addr
 			call eax

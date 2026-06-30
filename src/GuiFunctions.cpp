@@ -290,6 +290,8 @@ namespace gui {
 
                 pmods->on_draw_ui("GhostWalls"_hash, DISPLAY_SYSTEM_A);
 
+                pmods->on_draw_ui("EnvironmentalHazards"_hash, DISPLAY_SYSTEM_A);
+
                 ImGui::SeparatorText(_("Game Mode"));
 
                 pmods->on_draw_ui("Survival"_hash, DISPLAY_SYSTEM_A); // needs its own line
@@ -304,15 +306,13 @@ namespace gui {
 
                 pmods->on_draw_ui("EnemyReplace"_hash, DISPLAY_SYSTEM_B); // enemy randomizer
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("EnvironmentalHazards"_hash, DISPLAY_SYSTEM_A);
-
-                pmods->on_draw_ui("CharSwitcher"_hash, DISPLAY_SYSTEM_A);
-                ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("GermanWord"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("ArcadeMode"_hash, DISPLAY_SYSTEM_A);
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("CharSwitcher"_hash, DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("Macro"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui("Macro"_hash, DISPLAY_SYSTEM_A); // needs its own line
                 
                 // pmods->on_draw_ui("TestMod"_hash, DISPLAY_SYSTEM_A);
 
