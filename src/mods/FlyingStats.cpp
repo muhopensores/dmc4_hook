@@ -363,7 +363,7 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                 std::string windowName = "EnemyStats##" + std::to_string((uintptr_t)enemy);
                 float currentFontScale = 0.8f /** guiFriendlyDistance*/; // malice didn't like it resizing
                 float currentItemWidth = (sameLineItemWidth / 2.0f)/* * guiFriendlyDistance*/;
-                if (w2s::IsVisibleOnScreen(objectPosition) && objectDistance < 10000.0f) { // distance made it crash for vieris
+                if (w2s::IsVisibleOnScreen(screenPos) && objectDistance < 10000.0f) { // distance made it crash for vieris
                     ImGui::Begin(windowName.c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize |
                         ImGuiWindowFlags_NoDecoration |
                         ImGuiWindowFlags_NoResize |
@@ -376,6 +376,8 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1.0f, 1.0f));
                     uDamage_Old* currentEnemyDamage = (uDamage_Old*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
                     if (showFlyingHP) ImGui::SliderFloat(_("HP##EnemyFly"), &currentEnemyDamage->HP, 0.0f, currentEnemyDamage->HPMax, "%.1f");
+                    ImGui::SameLine();
+                    ImGui::Text("/ %.0f", currentEnemyDamage->HPMax);
                     if (showFlyingDamageTaken) ImGui::InputFloat(_("PrevDamage##EnemyFly"), &currentEnemyDamage->HPTaken, NULL, NULL, "%.1f");
                     if (showFlyingDamageResist) ImGui::InputFloat(_("PrevDamageResist##EnemyFly"), &currentEnemyDamage->prevDamageResist, NULL, NULL, "%.1f");
                     if (showFlyingDT) ImGui::InputFloat(_("DT Timer##EnemyFly"), &enemy->DTTimer, NULL, NULL, "%.0f"); // id * 4 + DevilMayCry4_DX9.exe+9EC0E0
@@ -386,10 +388,14 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                     if (showFlyingMechanics) {
                         if (enemy->ID == ANGELO_BIANCO || enemy->ID == ANGELO_ALTO) {
                             ImGui::SliderFloat(_("Shield##EnemyFly"), &enemy->angeloShield, 0.0f, enemy->angeloShieldMax, "%.0f");
+                            ImGui::SameLine();
+                            ImGui::Text("/ %.0f", enemy->angeloShieldMax);
                         }
                         if (enemy->ID == MEPHISTO || enemy->ID == FAUST) {
                             if (enemy->faustCloak > 0.0f) {
                                 ImGui::SliderFloat(_("Cloak##EnemyFly"), &enemy->faustCloak, 0.0f, enemy->faustCloakMax, "%.0f");
+                                ImGui::SameLine();
+                                ImGui::Text("/ %.0f", enemy->faustCloakMax);
                             }
                             else {
                                 ImGui::InputFloat(_("Cloak Timer##EnemyFly"), &enemy->faustCloakTimer, NULL, NULL, "%.0f");
@@ -397,6 +403,8 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                         }
                         if (enemy->ID == FROST) {
                             ImGui::SliderInt(_("Heal Count##EnemyFly"), &enemy->frostHealCount, 0, 5);
+                            ImGui::SameLine();
+                            ImGui::Text("/ 5");
                         }
                         if (enemy->ID == BLITZ) {
                             if (enemy->blitzElectric > 0.0f) {
@@ -405,6 +413,8 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                             else {
                                 if (currentEnemyDamage->HP < enemy->blitzElectricSuicideHPRequirement && enemy->blitzElectricSuicideTimer > 0.0f) {
                                     ImGui::SliderFloat(_("Suicide Timer##EnemyFly"), &enemy->blitzElectricSuicideTimer, 0.0f, 1800.0f, "%.0f");
+                                    ImGui::SameLine();
+                                    ImGui::Text("/ 1800");
                                 }
                                 else {
                                     ImGui::SliderFloat(_("Electric Timer##EnemyFly"), &enemy->blitzElectricTimer, 0.0f, 900.0f, "%.0f");

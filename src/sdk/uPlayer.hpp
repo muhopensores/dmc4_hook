@@ -89,9 +89,11 @@ public:
     MotionPtr* motionPtr1; // 0xa38
     MotionPtr* motionPtr2; // 0xa3c
     char pad_a40[0x2b4];
-    float speedUnsettable; // 0xcf4
-    char pad_cf8[0x1ac];
-    uint8_t damageIDMaybe; // 0xea4
+    float speedUnsettable; // 0xCF4
+    char pad_CF8[0x16C];
+    int playerID;          // 0xE64
+    char pad_E68[0x3C];
+    uint8_t damageIDMaybe; // 0xEA4
     char pad_ea5[0x3];
     uint8_t grounded; // 0xea8
     char pad_ea9[0x17];
@@ -106,9 +108,11 @@ public:
     uint16_t buttonInputRaw; // 0x1374
     uint16_t stickInputRaw;  // 0x1376
     char pad_1378[0x4c];
-    float stickDirection; // 0x13c4
-    char pad_13c8[0x44];
-    uint8_t inputHold[4];    // 0x140c
+    float stickDirection;    // 0x13C4
+    char pad_13C8[0x3D];
+    uint8_t padID;           // 0x1405
+    char pad_1406[0x06];
+    uint8_t inputHold[4];    // 0x140C
     uint8_t inputPress[4];   // 0x1410
     uint8_t inputRelease[4]; // 0x1414
     char pad_1418[0x4];
