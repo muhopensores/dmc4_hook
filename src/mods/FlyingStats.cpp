@@ -375,9 +375,11 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.0, 1.0f));
                     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1.0f, 1.0f));
                     uDamage_Old* currentEnemyDamage = (uDamage_Old*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
-                    if (showFlyingHP) ImGui::SliderFloat(_("HP##EnemyFly"), &currentEnemyDamage->HP, 0.0f, currentEnemyDamage->HPMax, "%.1f");
-                    ImGui::SameLine();
-                    ImGui::Text("/ %.0f", currentEnemyDamage->HPMax);
+                    if (showFlyingHP) {
+                        ImGui::SliderFloat(_("HP##EnemyFly"), &currentEnemyDamage->HP, 0.0f, currentEnemyDamage->HPMax, "%.1f");
+                        ImGui::SameLine();
+                        ImGui::Text("/ %.0f", currentEnemyDamage->HPMax);
+                    }
                     if (showFlyingDamageTaken) ImGui::InputFloat(_("PrevDamage##EnemyFly"), &currentEnemyDamage->HPTaken, NULL, NULL, "%.1f");
                     if (showFlyingDamageResist) ImGui::InputFloat(_("PrevDamageResist##EnemyFly"), &currentEnemyDamage->prevDamageResist, NULL, NULL, "%.1f");
                     if (showFlyingDT) ImGui::InputFloat(_("DT Timer##EnemyFly"), &enemy->DTTimer, NULL, NULL, "%.0f"); // id * 4 + DevilMayCry4_DX9.exe+9EC0E0
@@ -409,6 +411,8 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                         if (enemy->ID == BLITZ) {
                             if (enemy->blitzElectric > 0.0f) {
                                 ImGui::SliderFloat(_("Electric##EnemyFly"), &enemy->blitzElectric, 0.0f, 1000.0f, "%.0f");
+                                ImGui::SameLine();
+                                ImGui::Text("/ 1000");
                             }
                             else {
                                 if (currentEnemyDamage->HP < enemy->blitzElectricSuicideHPRequirement && enemy->blitzElectricSuicideTimer > 0.0f) {
@@ -418,12 +422,16 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                                 }
                                 else {
                                     ImGui::SliderFloat(_("Electric Timer##EnemyFly"), &enemy->blitzElectricTimer, 0.0f, 900.0f, "%.0f");
+                                    ImGui::SameLine();
+                                    ImGui::Text("/ 900");
                                 }
                             }
                         }
                         if (enemy->ID == GLADIUS) {
                             if (enemy->gladiusBuried) {
                                 ImGui::SliderFloat(_("Buried Timer##EnemyFly"), &enemy->gladiusTimer, 0.0f, 300.0f, "%.0f");
+                                ImGui::SameLine();
+                                ImGui::Text("/ 300");
                             }
                         }
                         if (enemy->ID == BERIAL) {
@@ -432,11 +440,16 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                             }
                             else {
                                 ImGui::SliderFloat(_("Fire Damage##EnemyFly"), &enemy->berialFire, 0.0f, enemy->berialFireMax, "%.0f");
+
+                                ImGui::SameLine();
+                                ImGui::Text("/ %.0f", enemy->berialFireMax);
                             }
                         }
                         if (enemy->ID == CREDO) {
                             if (enemy->credoShield > 0.0f) {
                                 ImGui::SliderFloat(_("Shield##EnemyFly"), &enemy->credoShield, 0.0f, 4000.0f, "%.0f");
+                                ImGui::SameLine();
+                                ImGui::Text("/ 4000");
                             }
                             else {
                                 ImGui::InputFloat(_("Shield Timer##EnemyFly"), &enemy->credoShieldTimer, NULL, NULL, "%.0f");
@@ -448,6 +461,8 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                             }
                             else {
                                 ImGui::SliderFloat(_("Shield Damage##EnemyFly"), &enemy->sanctusShieldM11, 0.0f, 720.0f, "%.0f");
+                                ImGui::SameLine();
+                                ImGui::Text("/ 720");
                             }
                         }
                         if (enemy->ID == SANCTUS_M20) {
@@ -456,16 +471,18 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                             }
                             else {
                                 ImGui::SliderFloat(_("Shield Damage##EnemyFly"), &enemy->sanctusShieldM20, 0.0f, 600.0f, "%.0f");
+                                ImGui::SameLine();
+                                ImGui::Text("/ 600");
                             }
                         }
                     }
                     if (showFlyingDebug) {
                         ImGui::PushItemWidth(currentItemWidth * 2.0f);
                         ImGui::InputScalar(_("Base Addr##EnemyFly"), ImGuiDataType_U32, &enemy, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
-                        ImGui::InputFloat3(_("Position##EnemyFly"), (float*)&enemy->position);
-                        ImGui::InputFloat3(_("Rotation##EnemyFly"), (float*)&enemy->rotation);
-                        ImGui::InputFloat3(_("Velocity##EnemyFly"), (float*)&enemy->velocity);
-                        ImGui::InputFloat3(_("Scale##EnemyFly"), (float*)&enemy->scale);
+                        ImGui::DragFloat3(_("Position##EnemyFly"), (float*)&enemy->position);
+                        ImGui::DragFloat3(_("Rotation##EnemyFly"), (float*)&enemy->rotation);
+                        ImGui::DragFloat3(_("Velocity##EnemyFly"), (float*)&enemy->velocity);
+                        ImGui::DragFloat3(_("Scale##EnemyFly"), (float*)&enemy->scale);
                         ImGui::PopItemWidth();
                         ImGui::InputScalar(_("Anim ID##EnemyFly"), ImGuiDataType_U16, &enemy->animID);
                         ImGui::InputScalar(_("Move Part##EnemyFly"), ImGuiDataType_U8, &enemy->movePart);
@@ -528,13 +545,13 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                 if (showFlyingDebug) {
                     ImGui::PushItemWidth(currentItemWidth * 2.0f);
                     ImGui::InputScalar(_("Base Addr##EnemyFly"), ImGuiDataType_U32, &player, NULL, NULL, "%08X", ImGuiInputTextFlags_ReadOnly);
-                    ImGui::InputFloat3(_("Position##EnemyFly"), (float*)&player->mPos);
-                    ImGui::InputFloat(_("InertiaXZ##EnemyFly"), (float*)&player->inertia);
-                    ImGui::InputFloat(_("InertiaY##EnemyFly"), (float*)&player->inertiaY);
-                    ImGui::InputFloat3(_("Velocity##EnemyFly"), (float*)&player->m_d_velocity);
-                    ImGui::InputFloat3(_("Scale##EnemyFly"), (float*)&player->mScale);
+                    ImGui::DragFloat3(_("Position##EnemyFly"), (float*)&player->mPos);
+                    ImGui::DragFloat3(_("InertiaXZ##EnemyFly"), (float*)&player->inertia);
+                    ImGui::DragFloat3(_("InertiaY##EnemyFly"), (float*)&player->inertiaY);
+                    ImGui::DragFloat3(_("Velocity##EnemyFly"), (float*)&player->m_d_velocity);
+                    ImGui::DragFloat3(_("Scale##EnemyFly"), (float*)&player->mScale);
                     ImGui::PopItemWidth();
-                    ImGui::InputFloat(_("Rotation##EnemyFly"), (float*)&player->rotation2);
+                    ImGui::DragFloat3(_("Rotation##EnemyFly"), (float*)&player->rotation2);
                     ImGui::InputScalar(_("Anim ID##EnemyFly"), ImGuiDataType_U16, &player->animID);
                     ImGui::InputScalar(_("Move Part##EnemyFly"), ImGuiDataType_U8, &player->movePart);
                     ImGui::SliderFloat(_("Animation Frame##EnemyFly"), &player->animFrame, 0.0f, player->animFrameMax);

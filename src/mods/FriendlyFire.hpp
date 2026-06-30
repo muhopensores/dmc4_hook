@@ -22,6 +22,6 @@ public:
     void on_config_save(utility::Config& cfg) override;
 
 private:
-    std::unique_ptr<Patch> patch1, patch2, patch3, patch4, patch5;
-    //std::unique_ptr<FunctionHook> hook1;
+    std::unique_ptr<Patch> patch1, patch2, patch3, /*patch4,*/ patch5;
+    std::unique_ptr<FunctionHook> hook1;
 };

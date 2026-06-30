@@ -8,31 +8,55 @@ void FriendlyFire::toggle1(bool enable) {
         install_patch_offset(0x10C690, patch1, "\x8B\xB1\x00\x03\x00\x00", 6); // hit players,                                [playerCol+300],     mVsAttrEm2Atk,    (22020222)
         install_patch_offset(0x10C69B, patch2, "\x8B\x91\x10\x03\x00\x00", 6); // idk,                                        [playerCol+310],     mVsAttrEm2FrdAtk, (00202000)
         install_patch_offset(0x10C6AB, patch3, "\x8B\x91\x04\x03\x00\x00", 6); // not changing means I can't damage anything, [playerCol+304],     mVsAttrEm2Dmg,    (11111111)
-        install_patch_offset(0x10C6E4, patch4, "\x8B\xB1\x00\x03\x00\x00", 6); // not changing means I can't shoot players,   [projectileCol+300], mVsAttrEm2Atk,    (22020222)
+        //install_patch_offset(0x10C6E4, patch4, "\x8B\xB1\x00\x03\x00\x00", 6); // not changing means I can't shoot players,   [projectileCol+300], mVsAttrEm2Atk,    (22020222)
         install_patch_offset(0x10C6FF, patch5, "\x8B\x91\x04\x03\x00\x00", 6); // idk,                                        [playerCol+304],     mVsAttrEm2Dmg,    (11111111)
     }
     else {
         patch1.reset(); // hit players,                                                                                       [playerCol+2b0]      mVsAttrPlAtk,     0x22222200
         patch2.reset(); // idk,                                                                                               [playerCol+2c0],     mVsAttrPlFrdAtk,  0x00000022
         patch3.reset(); // not changing means I can't damage anything,                                                        [playerCol+2b4],     mVsAttrPlDmg,     0x11111100
-        patch4.reset(); // not changing means I can't shoot players                                                           [projectileCol+2c4], mVsAttrPsAtk,     0x22222200
+        //patch4.reset(); // not changing means I can't shoot players                                                           [projectileCol+2c4], mVsAttrPsAtk,     0x22222200
         patch5.reset(); // idk,                                                                                               [unkn+2c8],          mVsAttrPsDmg,     0x11111100
     }
 }
 
-
-/*naked void detour1() {
+// atm this filters out p1 from hurting p1. I haven't found "hit entity" to actually filter out hit entity != parent
+naked void detour1() {
     _asm {
             cmp byte ptr [FriendlyFire::mod_enabled], 1
             jne originalcode
 
-            
+            push eax
+            push ebx
 
-        originalcode:
+            // p1
+            mov eax, [static_mediator_ptr]
+            mov eax, [eax]
+            mov eax, [eax+0x24]
 
+            // check parent of shell
+            mov ebx, [ecx+0xe4]
+            cmp eax, [ebx+0x17b0]
+            je poporiginalcode
+            cmp eax, [ebx+0x18]
+            je poporiginalcode
+            pop ebx
+            pop eax
+            test dl,dl
+            mov esi,[ecx+0x00000300] // not parent, enable hitting players
+            jmp retcode
+
+            // parent
+            poporiginalcode:
+            pop ebx
+            pop eax
+            originalcode:
+            test dl, dl
+            mov esi, [ecx+0x000002c4]
+        retcode:
             jmp dword ptr [FriendlyFire::jmp_ret1]
     }
-}*/
+}
 
 // void FriendlyFire::on_frame(fmilliseconds& dt) {}
 
@@ -48,10 +72,10 @@ void FriendlyFire::on_gui_frame(int display) {
 // bool FriendlyFire::on_message(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) {}
 
 std::optional<std::string> FriendlyFire::on_initialize() {
-    /*if (!install_hook_offset(0x0, hook1, &detour1, &jmp_ret1, 5)) {
+    if (!install_hook_offset(0x10C6E2, hook1, &detour1, &jmp_ret1, 8)) { // projectiles
         spdlog::error("Failed to init FriendlyFire mod 1\n");
         return "Failed to init FriendlyFire mod 1";
-	}*/
+	}
 
     return Mod::on_initialize();
 }
