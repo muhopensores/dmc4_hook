@@ -434,7 +434,7 @@ static void spawn_enemy_from_pool(const std::vector<SpawnableEnemyType>& enemy_p
     spdlog::info("Spawning enemy: {}", (int)enemy_pool[random_index]);
     spawn_enemy(enemy_pool[random_index]); // DETOUR4 of LoadOrder found 7 calls back from crash site
                                            // DETOUR6 of CharSwitcher ends with different edx to when it started, called on frame, looks fine
-                                           // I think char switcher is causing crashes at <50, alternatively might just be nero's existence
+                                           // I think char switcher is causing crashes at >40
 }
 
 void Survival::spawn_standard_enemy() {

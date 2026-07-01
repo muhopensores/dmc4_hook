@@ -129,16 +129,16 @@ void ArcadeMode::on_gui_frame(int display) {
                 }
             }
 
-            static const char* difficulty_names[9] {
-                __("Human"), // 0
-                __("Devil Hunter"), // 1
-                __("Son Of Sparda"), // 2
-                __("Dante Must Die"), // 3
+            static const char* difficulty_names[9]{
+                __("Human"),                 // 0
+                __("Devil Hunter"),          // 1
+                __("Son Of Sparda"),         // 2
+                __("Dante Must Die"),        // 3
                 __("Legendary Dark Knight"), // 4
-                __("Heaven Or Hell (SOS)"), // 5
-                __("Hell And Hell (SOS)"), // 6
-                __("Bloody Palace"), // 7
-                __("Story Theater"), // 8
+                __("Heaven Or Hell (SOS)"),  // 5
+                __("Hell And Hell (SOS)"),   // 6
+                __("Bloody Palace"),         // 7
+                __("Story Theater"),         // 8
                 // "I assume 10 would be training but they removed it, just black screens",
             };
 
@@ -166,6 +166,7 @@ void ArcadeMode::on_config_load(const utility::Config& cfg) {
 
     if (utility::check_argument("-arcade")) {
         launched_via_cmd  = true;
+        mod_enabled       = true;
         uint32_t arg_char = utility::get_argument("-character");
         if (arg_char > 0)
             g_our_mission_menu.character = arg_char;
