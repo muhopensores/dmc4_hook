@@ -3,6 +3,8 @@
 #include "../sdk/sMediator.hpp"
 #include "BerialPillar.hpp"
 #include "RotatingLaser.hpp"
+#include "../sdk/sArea.hpp"
+#include "../sdk/aGame.hpp"
 
 bool EnvironmentalHazards::laser_enabled = false;
 bool EnvironmentalHazards::laser_tracks_player = false;
@@ -123,16 +125,25 @@ void EnvironmentalHazards::on_stage_start() {
     RotatingLaser::kill_all();
     pending_laser_spawn  = false;
     laser_spawn_timer = 0.0f;
-    if (laser_enabled) {
+    if (laser_enabled && !devil4_sdk::is_loading_arc()) {
         pending_laser_spawn = true;
         devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\room\\st405", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
     }
 
     BerialPillar::kill_all();
     pillar_spawn_timer = 0.0f;
-    if (pillar_enabled) {
-        pillar_spawn_interval = random_pillar_interval(1.0f, 30.0f);
-        devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em018", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+    if (pillar_enabled && !devil4_sdk::is_loading_arc()) {
+        sArea* sAreaPtr = devil4_sdk::get_sArea();
+        if (sAreaPtr) {
+            aGame* aGamePtr = sAreaPtr->aGamePtr;
+            if (aGamePtr) {
+                int roomID = devil4_sdk::get_sArea()->aGamePtr->room_id;
+                if (roomID == 705 || roomID == 704 || roomID == 703 || roomID == 701 || roomID == 702) {
+                    pillar_spawn_interval = random_pillar_interval(1.0f, 30.0f);
+                    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em018", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                }
+            }
+        }
     }
 }
 

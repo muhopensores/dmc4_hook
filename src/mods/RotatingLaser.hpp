@@ -14,6 +14,7 @@ public:
     static void update_all(fmilliseconds& dt);
     void destroy();
     static void kill_all();
+    static std::vector<std::unique_ptr<RotatingLaser>> s_lasers;
 
 private:
     bool is_dead() const { return m_dead; }
@@ -34,5 +35,4 @@ private:
     float m_angle        = 0.0f;
     bool m_spawned       = false;
     bool m_dead          = false;
-    static std::vector<std::unique_ptr<RotatingLaser>> s_lasers;
 };

@@ -149,7 +149,7 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         0, // laser_spawn_chance
         {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA}, // tier 1 enemies with duplicates for less chance of mega
         {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // Side enemies
-        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
+        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, /*SpawnableEnemyType::BAEL,*/} // Boss enemies
     )},
     
     {10, WaveConfig( // 5-10 // introduce tier 2 enemies
@@ -167,7 +167,7 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA, // tier 1 enemies
          SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT}, // tier 2 enemies
         {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // side enemies
-        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
+        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, /*SpawnableEnemyType::BAEL,*/} // Boss enemies
     )},
     
     {20, WaveConfig( // 20-30 // introduce tier 3 enemies
@@ -184,9 +184,9 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
         3, // laser_spawn_chance
         {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM, SpawnableEnemyType::SCARECROW_MEGA, // tier 1 enemies
          SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT, // tier 2 enemies
-         SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK}, // tier 3 enemies
+         SpawnableEnemyType::FROST, /*SpawnableEnemyType::ANGELO_ALTO,*/ SpawnableEnemyType::BASILISK}, // tier 3 enemies
         {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // side enemies
-        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
+        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, /*SpawnableEnemyType::BAEL,*/} // Boss enemies
     )},
     
     {30, WaveConfig( // 30-40 // introduce side enemies
@@ -205,7 +205,7 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
          SpawnableEnemyType::ANGELO_BIANCO, SpawnableEnemyType::MEPHISTO, SpawnableEnemyType::ASSAULT, // tier 2 enemies
          SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK}, // tier 3 enemies
         {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // side enemies
-        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
+        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, /*SpawnableEnemyType::BAEL,*/} // Boss enemies
     )},
     
     {40, WaveConfig( // 40-50 // introduce tier 4 enemies
@@ -225,7 +225,7 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
          SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK, // tier 3 enemies
          SpawnableEnemyType::FAUST}, // tier 4 enemies
         {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // side enemies
-        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
+        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, /*SpawnableEnemyType::BAEL,*/} // Boss enemies
     )},
     
     {50, WaveConfig( // 40-50 // introduce bosses
@@ -245,7 +245,7 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
          SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK, // tier 3 enemies
          SpawnableEnemyType::FAUST}, // tier 4 enemies
         {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // side enemies
-        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
+        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, /*SpawnableEnemyType::BAEL,*/} // Boss enemies
     )},
     
     {100, WaveConfig( // 50-100 // up enemy count + side enemy count
@@ -265,7 +265,7 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
          SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK, // tier 3 enemies
          SpawnableEnemyType::FAUST}, // tier 4 enemies
         {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // side enemies
-        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
+        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, /*SpawnableEnemyType::BAEL,*/} // Boss enemies
     )},
 
     {9999, WaveConfig( // 100+ // up enemy count + boss count + side enemy count, probably crashy with multiple bosses
@@ -285,7 +285,7 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
          SpawnableEnemyType::FROST, SpawnableEnemyType::ANGELO_ALTO, SpawnableEnemyType::BASILISK, // tier 3 enemies
          SpawnableEnemyType::FAUST}, // tier 4 enemies
         {SpawnableEnemyType::CHIMERA_SEED, SpawnableEnemyType::CUTLASS, SpawnableEnemyType::GLADIUS}, // side enemies
-        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, SpawnableEnemyType::BAEL} // Boss enemies
+        {SpawnableEnemyType::BLITZ, SpawnableEnemyType::CREDO, SpawnableEnemyType::BERIAL, /*SpawnableEnemyType::BAEL,*/} // Boss enemies
     )}
 };
 
@@ -431,7 +431,10 @@ static void spawn_enemy_from_pool(const std::vector<SpawnableEnemyType>& enemy_p
         return;
     }
     int random_index = Survival::get_random_int(0, (int)(enemy_pool.size()) - 1);
-    spawn_enemy(enemy_pool[random_index]);
+    spdlog::info("Spawning enemy: {}", (int)enemy_pool[random_index]);
+    spawn_enemy(enemy_pool[random_index]); // DETOUR4 of LoadOrder found 7 calls back from crash site
+                                           // DETOUR6 of CharSwitcher ends with different edx to when it started, called on frame, looks fine
+                                           // I think char switcher is causing crashes at <50, alternatively might just be nero's existence
 }
 
 void Survival::spawn_standard_enemy() {
@@ -470,21 +473,23 @@ void Survival::on_timer_trigger() {
     // lasers does not care if an enemy can be spawned
     if (config.laser_spawn_chance > 0 && Survival::get_random_int(0, config.laser_spawn_chance - 1) == 0) {
         if (EnvironmentalHazards::laser_enabled) {
-            RotatingLaser::spawn(
-                {
-                    get_random_float(-800.0f, 800.0f), // x pos
-                    get_random_float(100.0f, 800.0f),  // y pos
-                    get_random_float(-800.0f, 800.0f)  // z pos
-                },
-                {
-                    get_random_float(-3.14f, 3.14f), // pitch
-                    0.0f,                            // yaw
-                    get_random_float(-3.14f, 3.14f), // roll
-                },
-                get_random_float(600.0f, 2400.0f), // length
-                1.0f,                              // spawn delay
-                30.0f,                             // lifetime
-                get_random_int(0, 2));             // rotation type (still, rotate from one end, rotate from mid)
+            if (RotatingLaser::s_lasers.size() < 6) {
+                RotatingLaser::spawn(
+                    {
+                        get_random_float(-800.0f, 800.0f), // x pos
+                        get_random_float(100.0f, 800.0f),  // y pos
+                        get_random_float(-800.0f, 800.0f)  // z pos
+                    },
+                    {
+                        get_random_float(-3.14f, 3.14f), // pitch
+                        0.0f,                            // yaw
+                        get_random_float(-3.14f, 3.14f), // roll
+                    },
+                    get_random_float(600.0f, 2400.0f), // length
+                    1.0f,                              // spawn delay
+                    30.0f,                             // lifetime
+                    get_random_int(0, 2));             // rotation type (still, rotate from one end, rotate from mid)
+            } 
         }
     }
     
@@ -520,7 +525,7 @@ void Survival::on_timer_trigger() {
     }
         
     // spawn a side dude
-    enemy_info = Survival::get_enemy_info(devil4_sdk::get_uEnemies());
+    // enemy_info = Survival::get_enemy_info(devil4_sdk::get_uEnemies());
     if (can_spawn_side_enemy(enemy_info, config) && 
         Survival::get_random_int(0, config.side_enemy_spawn_chance - 1) == 0 && 
         can_spawn_standard_enemy(enemy_info, sMed, config)) {
@@ -620,7 +625,6 @@ void Survival::on_frame(fmilliseconds& dt) {
             if (player && player_is_alive) {
                 if (!in_correct_room) {
                     Survival::survival_active = false;
-                    pending_arc_load = true;
                     accumulated_delta += player->m_delta_time;
                     if (accumulated_delta >= teleport_delay) {
                         AreaJump::jump_to_stage(AreaJump::bp_stage(survivalRooms[Survival::currentRoomIndex].roomNumber));
@@ -631,32 +635,34 @@ void Survival::on_frame(fmilliseconds& dt) {
                     accumulated_delta = 0.0f;
                     Survival::survival_active = true;
                     if (entering_survival) {
-                        if (*(int8_t*)0x8AFB3E != 6 /*&& *(int8_t*)0x8AFB76 != 2 && *(int8_t*)0x8AFBAE != 6*/) { // is player using more mem exe?
-                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em000", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
-                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em001", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
-                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em003", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
-                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em005", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
-                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em006", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
-                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em008", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
-                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em009", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
-                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em010", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
-                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em011", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
-                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em012", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
-                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em013", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
-                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em015", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
-                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em016", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
-                            devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em017", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
-                        }
+                        pending_arc_load = true;
                     }
 
                     sMed->bpTimer = survivedTimer;
                     DisplayTimerOnTick();
                     if (!devil4_sdk::is_paused()) { // game is not paused
+                        if (pending_arc_load && !devil4_sdk::is_loading_arc() /* && devil4_sdk::get_uEnemies() != nullptr*/) {
+                            if (*(int8_t*)0x8AFB3E != 6 /*&& *(int8_t*)0x8AFB76 != 2 && *(int8_t*)0x8AFBAE != 6*/) { // is player using more mem exe?
+                                devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em000", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Scarecrow (Leg Type)
+                                devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em001", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Scarecrow (Arm Type)
+                                devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em003", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Mega Scarecrow
+                                devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em005", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Bianco Angelo (White Armor)
+                                devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em006", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Alto Angelo (Gold Armor)
+                                devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em008", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Mephisto
+                                devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em009", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Faust
+                                devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em010", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Frost
+                                devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em011", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Assault
+                                //devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em012", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Blitz
+                                devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em013", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Chimera
+                                devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em015", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Cutlass
+                                devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em016", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Gladius                     
+                                devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em017", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Basilisk
+                            }
+                        }
                         sUnit* sUnit = devil4_sdk::get_sUnit();
                         if (sUnit && sUnit->mMoveLine[7].mTop) { // @Siy find how the bp timer gets time
                             uHasDelta* sUnitHasDelta = (uHasDelta*)sUnit->mMoveLine[7].mTop;
-                            float game_seconds;
-                            game_seconds = sUnitHasDelta->m_delta_time / 60.0f;
+                            float game_seconds = sUnitHasDelta->m_delta_time / 60.0f;
                             UpdateTimer();
                         }
                         EnemyInfo enemy_info = get_enemy_info(devil4_sdk::get_uEnemies());
