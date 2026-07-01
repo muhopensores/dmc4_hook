@@ -379,19 +379,19 @@ void GuardTimer::on_gui_frame(int display) {
 
 std::optional<std::string> GuardTimer::on_initialize() {
     // DevilMayCry4_DX9.exe+
-    if (!install_hook_offset(0x3BC185, hook1, &detour1, &jmp_ret1, 6)) { // player takes damage
+    if (!install_hook_offset(0x3BC185, hook1, &detour1, &jmp_ret1, 6)) { // dante takes damage
 		spdlog::error("Failed to init GuardTimer mod 1\n");
 		return "Failed to init GuardTimer mod 1";
 	}
-    if (!install_hook_offset(0x3B6FD6, hook2, &detour2, &jmp_ret2, 11)) { // player blocks
+    if (!install_hook_offset(0x3B6FD6, hook2, &detour2, &jmp_ret2, 11)) { // dante blocks
 	    spdlog::error("Failed to init GuardTimer mod 2\n");
 	    return "Failed to init GuardTimer mod 2";
 	}
-    if (!install_hook_offset(0x3B6B3D, hook3, &detour3, &jmp_ret3, 8)) { // player releases
+    if (!install_hook_offset(0x3B6B3D, hook3, &detour3, &jmp_ret3, 8)) { // dante releases
 		spdlog::error("Failed to init GuardTimer mod 3\n");
 		return "Failed to init GuardTimer mod 3";
 	}
-    if (!install_hook_offset(0x3B7286, hook4, &detour4, &jmp_ret4, 5)) { // player tick, after guard logic
+    if (!install_hook_offset(0x3B7286, hook4, &detour4, &jmp_ret4, 5)) { // dante tick, after guard logic
         spdlog::error("Failed to init GuardTimer mod 4\n");
         return "Failed to init GuardTimer mod 4";
     }

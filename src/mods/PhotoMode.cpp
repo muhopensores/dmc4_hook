@@ -555,8 +555,8 @@ void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
                     if (ImGui::Button("Remove"))
                         obj->flags.bits.mBeFlag = 3;
                     ImGui::InputInt(_("Blur count"), (int*)&dof_filter->mBlurCount);
-                    ImGui::InputInt(_("Type"), (int*)&dof_filter->mType);
-                    ImGui::InputInt(_("Blur type"), (int*)&dof_filter->mBlurType);
+                    ImGui::SliderInt(_("Type"), (int*)&dof_filter->mType, 0, 2);
+                    ImGui::SliderInt(_("Blur type"), (int*)&dof_filter->mBlurType, 1, 2);
                     ImGui::ColorEdit4(_("Gradate Color"), (float*)&dof_filter->mGradateColor);
                     ImGui::InputFloat(_("Blur Size"), &dof_filter->mBlurSize);
                     ImGui::InputFloat(_("Aperture"), &dof_filter->mAperture);

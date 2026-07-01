@@ -7,6 +7,8 @@ bool GraphicsSettings::disable_prop_fade_enabled = false;
 bool GraphicsSettings::disable_bullet_casing_fade_enabled = false;
 bool GraphicsSettings::shadow_upgrade_enabled = false;
 bool GraphicsSettings::water_upgrade_enabled  = false;
+bool GraphicsSettings::disable_bloom_enabled = false;
+bool GraphicsSettings::disable_lightshafts_enabled = false;
 
 void GraphicsSettings::prop_fade_toggle(bool enable) {
     if (enable) {
@@ -59,7 +61,23 @@ void GraphicsSettings::waterres_toggle(bool enable) {
     }
 }
 
-// void on_frame(fmilliseconds& dt) {}
+void GraphicsSettings::bloom_toggle(bool enable) {
+    if (enable) {
+        install_patch_offset(0x52E1B8, bloom_patch1, "\xEB", 1); // jmp
+    } else {
+        bloom_patch1.reset(); // je
+    }
+}
+
+void GraphicsSettings::lightshafts_toggle(bool enable) {
+    if (enable) {
+        install_patch_offset(0x52E1F1, lightshafts_patch1, "\xEB", 1); // jmp
+    } else {
+        lightshafts_patch1.reset(); // je
+    }
+}
+
+    // void on_frame(fmilliseconds& dt) {}
 
 void GraphicsSettings::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
@@ -83,6 +101,16 @@ void GraphicsSettings::on_gui_frame(int display) {
 
         if (ImGui::Checkbox(_("Increased Water Resolution"), &water_upgrade_enabled)) {
             waterres_toggle(water_upgrade_enabled);
+        }
+
+        if (ImGui::Checkbox(_("Disable Bloom"), &disable_bloom_enabled)) {
+            bloom_toggle(disable_bloom_enabled);
+        }
+
+        ImGui::SameLine(sameLineWidth);
+
+        if (ImGui::Checkbox(_("Disable Lightshafts"), &disable_lightshafts_enabled)) {
+            lightshafts_toggle(disable_lightshafts_enabled);
         }
     }
 }
@@ -111,6 +139,12 @@ void GraphicsSettings::on_config_load(const utility::Config& cfg){
 
     water_upgrade_enabled = cfg.get<bool>("water_upgrade_enabled").value_or(false);
     if (water_upgrade_enabled) waterres_toggle(water_upgrade_enabled);
+
+    disable_bloom_enabled = cfg.get<bool>("disable_bloom_enabled").value_or(false);
+    if (disable_bloom_enabled) bloom_toggle(disable_bloom_enabled);
+
+    disable_lightshafts_enabled = cfg.get<bool>("disable_lightshafts_enabled").value_or(false);
+    if (disable_lightshafts_enabled) lightshafts_toggle(disable_lightshafts_enabled);
 }
 
 void GraphicsSettings::on_config_save(utility::Config& cfg) {
@@ -118,4 +152,6 @@ void GraphicsSettings::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("DisableBulletCasingFade", disable_bullet_casing_fade_enabled);
     cfg.set<bool>("shadow_upgrade_enabled", shadow_upgrade_enabled);
     cfg.set<bool>("water_upgrade_enabled", water_upgrade_enabled);
+    cfg.set<bool>("disable_bloom_enabled", disable_bloom_enabled);
+    cfg.set<bool>("disable_lightshafts_enabled", disable_lightshafts_enabled);
 }
