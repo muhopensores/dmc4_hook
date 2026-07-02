@@ -10,7 +10,8 @@ naked void detour(void) {
 			cmp byte ptr [InfDT::mod_enabled], 0
 			je originalcode
 
-			mov dword ptr [ebp+0x00001F24], 0x461C4000
+			movss xmm0, [ebp+0x00001F28]
+            movss [ebp+0x00001F24], xmm0
 			jmp dword ptr [InfDT::jmp_ret]
 
 			originalcode:

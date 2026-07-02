@@ -18,9 +18,9 @@ public:
 
 private:
     bool is_dead() const { return m_dead; }
-    void update(fmilliseconds& dt);
+    void update(float delta);
     void spawn_actor();
-    void rotate(fmilliseconds& dt);
+    void rotate(float delta);
     laser* m_actor       = nullptr;
     Vector3f m_pos       = {0.0f, 0.0f, 0.0f};
     MtVector4 rot        = {0.0f, 0.0f, 0.0f, 0.0f};

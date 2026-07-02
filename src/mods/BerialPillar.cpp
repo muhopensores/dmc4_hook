@@ -1,5 +1,6 @@
 #include "BerialPillar.hpp"
 #include "../sdk/Devil4.hpp"
+#include "../sdk/sWorkRate.hpp"
 
 std::vector<std::unique_ptr<BerialPillar>> BerialPillar::s_pillars;
 BerialPillar::BerialPillar(Vector3f pos, float speed, float spawnDelay)
@@ -45,6 +46,11 @@ void BerialPillar::update(fmilliseconds& dt) {
     if (m_dead) { return; }
     if (devil4_sdk::is_paused()) return;
     float delta = dt.count() * 0.001f;
+
+    if (auto* work_rate = devil4_sdk::get_work_rate()) {
+        delta *= work_rate->global_speed;
+    }
+
     if (!m_spawned) {
         m_spawnTimer += delta;
         if (m_spawnTimer >= m_spawnDelay) {

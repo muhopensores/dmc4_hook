@@ -15,7 +15,14 @@ static float laser_spawn_delay = 0.0f;
 bool EnvironmentalHazards::pillar_enabled = false;
 static float pillar_spawn_timer = 0.0f;
 static float pillar_spawn_interval = 0.0f;
-static bool inCorrectRoom;
+
+static bool in_correct_room(std::initializer_list<int> roomIDs) {
+    sArea* sAreaPtr = devil4_sdk::get_sArea();
+    if (!sAreaPtr || !sAreaPtr->currentMissionPtr)
+        return false;
+    int roomID = sAreaPtr->currentMissionPtr->roomNumber;
+    return std::find(roomIDs.begin(), roomIDs.end(), roomID) != roomIDs.end();
+}
 
 void EnvironmentalHazards::spawn_bp_laser() {
     if (laser_tracks_player)
@@ -43,7 +50,11 @@ void EnvironmentalHazards::on_frame(fmilliseconds& dt) {
     if (devil4_sdk::is_paused() || !player)
         return;
 
-    const float dt_sec = dt.count() / 1000.0f;
+    float dt_sec = (dt.count() / 1000.0f);
+    sWorkRate* s_work_rate_ptr = devil4_sdk::get_work_rate();
+    if (s_work_rate_ptr)
+        dt_sec *= s_work_rate_ptr->global_speed;
+
     if (EnvironmentalHazards::laser_enabled) {
         if (devil4_sdk::is_in_bp()) {
             laser_spawn_timer += dt_sec;
@@ -55,7 +66,7 @@ void EnvironmentalHazards::on_frame(fmilliseconds& dt) {
         RotatingLaser::update_all(dt);
     }
 
-    if (EnvironmentalHazards::pillar_enabled && inCorrectRoom) {
+    if (EnvironmentalHazards::pillar_enabled && in_correct_room({700, 701, 702, 703, 704, 705})) {
         pillar_spawn_timer += dt_sec;
         if (pillar_spawn_timer >= pillar_spawn_interval) {
             pillar_spawn_timer -= pillar_spawn_interval;
@@ -106,11 +117,10 @@ void EnvironmentalHazards::on_gui_frame(int display) {
         ImGui::BeginGroup();
         if (ImGui::Checkbox(_("BP Fire Pillar Hazards"), &pillar_enabled)) {
             if (devil4_sdk::get_local_player()) {
-                if (pillar_enabled) {
+                if (pillar_enabled && in_correct_room({700, 701, 702, 703, 704, 705})) {
                     BerialPillar::kill_all();
                     pillar_spawn_interval = random_pillar_interval(1.0f, 30.0f);
-                    devil4_sdk::get_stuff_from_files(
-                        (MtDTI*)0x00ead4a0, "rom\\enemy\\em018", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em018", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
                 } else {
                     BerialPillar::kill_all();
                 }
@@ -133,19 +143,9 @@ void EnvironmentalHazards::on_stage_start() {
 
     BerialPillar::kill_all();
     pillar_spawn_timer = 0.0f;
-    if (pillar_enabled) {
-        sArea* sAreaPtr = devil4_sdk::get_sArea();
-        if (sAreaPtr) {
-            aGame* aGamePtr = sAreaPtr->aGamePtr;
-            if (aGamePtr) {
-                int roomID = devil4_sdk::get_sArea()->aGamePtr->room_id;
-                inCorrectRoom = roomID == 705 || roomID == 704 || roomID == 703 || roomID == 701 || roomID == 702 || roomID == 700;
-                if (inCorrectRoom) {
-                    pillar_spawn_interval = random_pillar_interval(1.0f, 30.0f);
-                    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em018", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
-                }
-            }
-        }
+    if (pillar_enabled && in_correct_room({700, 701, 702, 703, 704, 705})) {
+        pillar_spawn_interval = random_pillar_interval(1.0f, 30.0f);
+        devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em018", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
     }
 }
 

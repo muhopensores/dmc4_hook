@@ -70,7 +70,7 @@ void WorkRate::on_gui_frame(int display) {
 			}
 		}
 	}
-        if (display == DISPLAY_SYSTEM_B) {
+    if (display == DISPLAY_SYSTEM_B) {
 		if (ImGui::Checkbox(_("Pause"), &hotkey_paused)) {
 			if (!s_work_rate_ptr) { return; }
 			if (hotkey_paused){

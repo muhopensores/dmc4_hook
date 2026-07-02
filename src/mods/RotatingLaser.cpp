@@ -1,5 +1,6 @@
 #include "RotatingLaser.hpp"
 #include "../sdk/Devil4.hpp"
+#include "../sdk/sWorkRate.hpp"
 
 std::vector<std::unique_ptr<RotatingLaser>> RotatingLaser::s_lasers;
 RotatingLaser::RotatingLaser(Vector3f pos, float length, float spawnDelay, float lifetime, int type)
@@ -31,14 +32,14 @@ void RotatingLaser::spawn_actor() {
     m_spawned       = true;
 }
 
-void RotatingLaser::rotate(fmilliseconds& dt) {
+void RotatingLaser::rotate(float delta) {
     if (!m_actor) { return; }
     if (m_rotationType == 0) {
         m_actor->mQuat = m_skewQuat * m_baseQuat;
         m_actor->mPos  = m_pos;
         return;
     }
-    m_angle += dt.count() * 0.001f;
+    m_angle += delta;
     MtVector4 spin    = {0.0f, sinf(m_angle * 0.5f), 0.0f, cosf(m_angle * 0.5f)};
     MtVector4 rotated = spin * m_baseQuat;
     m_actor->mQuat    = m_skewQuat * rotated;
@@ -76,10 +77,10 @@ void RotatingLaser::kill_all() {
     s_lasers.clear();
 }
 
-void RotatingLaser::update(fmilliseconds& dt) {
-    if (m_dead) { return; }
-    if (devil4_sdk::is_paused()) return;
-    float delta = dt.count() * 0.001f;
+void RotatingLaser::update(float delta) {
+    if (m_dead)
+        return;
+
     if (!m_spawned) {
         m_spawnTimer += delta;
         if (m_spawnTimer >= m_spawnDelay) {
@@ -87,23 +88,29 @@ void RotatingLaser::update(fmilliseconds& dt) {
         }
         return;
     }
+
     m_aliveTimer += delta;
     if (m_lifetime > 0.0f && m_aliveTimer >= m_lifetime) {
         destroy();
         return;
     }
-    rotate(dt);
+
+    rotate(delta);
 }
 
 void RotatingLaser::update_all(fmilliseconds& dt) {
+    if (devil4_sdk::is_paused())
+        return;
+
+    float delta = dt.count() * 0.001f;
+
+    if (auto* work_rate = devil4_sdk::get_work_rate()) {
+        delta *= work_rate->global_speed;
+    }
+
     for (auto& laser : s_lasers) {
-        laser->update(dt);
+        laser->update(delta);
     }
-    for (auto it = s_lasers.begin(); it != s_lasers.end();) {
-        if ((*it)->is_dead()) {
-            it = s_lasers.erase(it);
-        } else {
-            ++it;
-        }
-    }
+
+    s_lasers.erase(std::remove_if(s_lasers.begin(), s_lasers.end(), [](const auto& laser) { return laser->is_dead(); }), s_lasers.end());
 }

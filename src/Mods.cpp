@@ -335,7 +335,7 @@ Mods::Mods() {
     ADD_MOD(MultiCharFixes);
     ADD_MOD(FastRoundTrip);
     ADD_MOD(FlyingStats);
-    // ADD_MOD(FireworksTweaks);
+    // ADD_MOD(FireworksTweaks); // Works but edits the shotty animation on every shotty shot
     ADD_MOD(CrossGunCharge);
     ADD_MOD(PandoraCharge);
     ADD_MOD(TricksterDashDT);

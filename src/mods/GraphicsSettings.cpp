@@ -77,7 +77,7 @@ void GraphicsSettings::lightshafts_toggle(bool enable) {
     }
 }
 
-    // void on_frame(fmilliseconds& dt) {}
+// void on_frame(fmilliseconds& dt) {}
 
 void GraphicsSettings::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {

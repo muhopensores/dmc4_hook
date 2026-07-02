@@ -23,14 +23,6 @@ bool HealthSettings::one_hit_kill            = false;
 uintptr_t HealthSettings::one_hit_kill_jmp_ret = NULL;
 uintptr_t HealthSettings::one_hit_kill_jmp_out = 0x0051C129;
 
-#include <xmmintrin.h> // simd microsoft specific thingies
-// should be zero initialized due to static init
-static __m128 xxmm0;
-static __m128 xxmm1;
-static __m128 xxmm2;
-static __m128 xxmm3;
-static __m128 xxmm4;
-
 static void might_style_multiplier() {
     int currentRank = devil4_sdk::get_stylish_count()->current_style_tier;
     // E = 0.0, D = 0.2, C = 0.4, B = 0.6, A = 0.8, S and above = 1.0
@@ -83,7 +75,7 @@ naked void health_detour() {
             mov ecx, [ecx]
             test ecx, ecx
             je popcode
-            cmp [ecx+0x20], 5 // S rank
+            cmp dword ptr [ecx+0x20], 5 // S rank
             pop ecx
             jl retcode
             // jmp OutgoingMult
@@ -92,19 +84,21 @@ naked void health_detour() {
         MightStyleCheck:
             cmp byte ptr [HealthSettings::mightStyleToggle], 1
             jne code
-            movdqa [xxmm0], xmm0        // simd i
-            movdqa [xxmm1], xmm1
-            movdqa [xxmm2], xmm2
-            movdqa [xxmm3], xmm3
-            movdqa [xxmm4], xmm4
+            sub esp, 0x50
+            movups [esp+0x0*0x10], xmm0
+            movups [esp+0x1*0x10], xmm1
+            movups [esp+0x2*0x10], xmm2
+            movups [esp+0x3*0x10], xmm3
+            movups [esp+0x4*0x10], xmm4
             pushad
             call might_style_multiplier  // moved might style update here for micro-optimizations because DamageMultiplier::OnFrame()
             popad                        // showed up on luke stackwalker once, fucks eax+ecx on debug
-            movdqa xmm0, [xxmm0]         // simd o
-            movdqa xmm1, [xxmm1]
-            movdqa xmm2, [xxmm2]
-            movdqa xmm3, [xxmm3]
-            movdqa xmm4, [xxmm4]
+            movups xmm0, [esp+0x0*0x10]
+            movups xmm1, [esp+0x1*0x10]
+            movups xmm2, [esp+0x2*0x10]
+            movups xmm3, [esp+0x3*0x10]
+            movups xmm4, [esp+0x4*0x10]
+            add esp, 0x50
             mulss xmm1, [HealthSettings::mightStyleMultiplier]
             jmp code
 

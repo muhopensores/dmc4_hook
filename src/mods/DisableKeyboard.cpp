@@ -5,7 +5,7 @@ bool DisableKeyboard::always_block_inputs = false;
 uintptr_t DisableKeyboard::jmp_ret = NULL;
 uintptr_t jmp_jl = 0x008E0AFE;
 bool DisableKeyboard::auto_block_inputs = false;
-static bool is_hook_open = false;
+bool DisableKeyboard::is_hook_open = false;
 
 naked void detour(void) {
 	_asm {
@@ -28,7 +28,7 @@ naked void detour(void) {
             jmp dword ptr [jmp_jl]
 
         CheckHookOpenState:
-            cmp byte ptr [is_hook_open], 1
+            cmp byte ptr [DisableKeyboard::is_hook_open], 1
             je jmp_jl_code
             jmp originalcode
 	}

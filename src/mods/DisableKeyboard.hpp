@@ -8,6 +8,8 @@ public:
 
     static bool always_block_inputs;
     static bool auto_block_inputs;
+
+    static bool is_hook_open;
     static uintptr_t jmp_ret;
 
     std::string get_mod_name() override { return "DisableKeyboard"; };
