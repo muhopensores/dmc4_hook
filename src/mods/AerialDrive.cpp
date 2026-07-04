@@ -36,17 +36,20 @@ uintptr_t AerialDrive::jmp_ret9 = NULL;
 
 void AerialDrive::toggle(bool enable) {
     kAtckDefTbl* DriveEntry = (kAtckDefTbl*)HookDanteKADTbl + MoveTable::extra_dante_moves + 4;
+    kAtckDefTbl* BackForwardDriveEntry = (kAtckDefTbl*)HookDanteKADTbl + MoveTable::extra_dante_moves - MoveTable::backForwardQuickDrive;
     if (enable) {
-        install_patch_absolute(0x00C3FFA0, patch1, "\x03", 2);//Move class aerial lock
+        // install_patch_absolute(0x00C3FFA0, patch1, "\x03", 2);//Move class aerial lock
         install_patch_offset(0x3D0E32, patch2, "\x90\x90\x90\x90\x90\x90",6);//unlock aerial permission
         install_patch_offset(0x3D0B5D, patch3, "\x90\x90\x90\x90\x90\x90",6);//extendable ground qd
         DriveEntry->atckAs = 3; // air condition
+        BackForwardDriveEntry->atckAs = 3;
     }
     else {
-        patch1.reset();
+        // patch1.reset();
         patch2.reset();
         patch3.reset();
         DriveEntry->atckAs = 1; // air condition
+        BackForwardDriveEntry->atckAs = 1;
     }
 }
 //Check
@@ -62,7 +65,7 @@ naked void detour1(void) {
         originalcode:
             jmp [AerialDrive::jmp_ret1]
         handler:
-            or [ebp+01550],ebx
+            or [ebp+0x1550],ebx
             jmp originalcode
     }
 }

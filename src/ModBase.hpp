@@ -47,6 +47,24 @@ public:
         }
     }
 
+    bool PendingCheckbox(const char* label, bool& pending, bool& enabled) {
+        bool pending_style = (enabled != pending);
+
+        if (pending_style) {
+            const ImVec4& c = ImGui::GetStyle().Colors[ImGuiCol_HeaderHovered];
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, c);
+            ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, c);
+            ImGui::PushStyleColor(ImGuiCol_FrameBgActive, c);
+        }
+
+        bool changed = ImGui::Checkbox(label, &pending);
+
+        if (pending_style)
+            ImGui::PopStyleColor(3);
+
+        return changed;
+    }
+
     void install_patch_absolute(uintptr_t location, std::unique_ptr<Patch>& patch, const char* patch_bytes, uint8_t length) {
         spdlog::info("{}: Installing patch at {:x}.\n", get_mod_name().c_str(), location);
         patch.reset(nullptr);

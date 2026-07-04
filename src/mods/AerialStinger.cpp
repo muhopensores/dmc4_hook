@@ -19,12 +19,12 @@ uintptr_t AerialStinger::jmp_ret6 = NULL;
 void AerialStinger::toggle(bool enable) {
     kAtckDefTbl* StingerEntry = (kAtckDefTbl*)HookDanteKADTbl + MoveTable::extra_dante_moves + 1;
     if (enable) {
-        install_patch_absolute(0x00C3FEF8, patch1, "\x03", 2);//Move class aerial lock
+        // install_patch_absolute(0x00C3FEF8, patch1, "\x03", 2);//Move class aerial lock
         install_patch_offset(0x3CE6FA, patch2, "\x90\x90\x90\x90\x90\x90\x90\x90",8);//stinger inertia
         StingerEntry->atckAs = 3; // air condition
     }
     else {
-        patch1.reset();
+        // patch1.reset();
         patch2.reset();
         StingerEntry->atckAs = 1; // air condition
     }

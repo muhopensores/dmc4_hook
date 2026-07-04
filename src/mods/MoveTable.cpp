@@ -39,12 +39,15 @@ int MoveTable::backForwardQuickDrive = 0;
 }*/
 
 naked void detour0(void) { // MoveTable toggle() function
-    _asm  {
-            cmp byte ptr [Payline::mod_enabled], 1
-            je retcode
+    _asm {
             cmp byte ptr [LuciAirThrow::mod_enabled], 1
+            je checkcode
+            jmp originalcode
+
+        checkcode:
+            cmp ebx, 0x6d // luci air throw
             je retcode
-        // originalcode:
+        originalcode:
             test [ecx+eax*4+0x18], edx
             je jecode
         retcode:
@@ -65,13 +68,12 @@ naked void detour1(void) { // Assign Dante's kAtckDefTbl
 
         // newcode:
             mov eax, HookDanteKADTbl
-            mov dword ptr [edi+0x1DCC], eax
             jmp cont
 
         // originalcode:
             mov eax, [NativeDanteKADTbl]
-            mov [edi+0x1DCC], eax
         cont:
+            mov [edi+0x1DCC], eax
             pop eax
             jmp [MoveTable::jmp_ret1]
     }
@@ -86,13 +88,12 @@ naked void detour2(void) { // Assign Nero's kAtckDefTbl
 
         // newcode:
             mov eax, HookNeroKADTbl
-            mov dword ptr [esi+0x1DCC], eax
             jmp cont
 
         // originalcode:
             mov eax, [NativeNeroKADTbl]
-            mov [esi+0x1DCC], eax
         cont:
+            mov [esi+0x1DCC], eax
             pop eax
             jmp [MoveTable::jmp_ret2]
     }
@@ -152,9 +153,10 @@ void updateKDATbl() {
     // MoveTable::Entry = MoveTable::extra_dante_moves;
     // MoveTable::extra_dante_moves++;
 
-    DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {2, 0x6D, 7, 1, 0x00000103, 6, (unsigned long)-1, 1, 2, 1, 0, 0, 0, 0x05000007}); // New splash
+    DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {2, 0x6D, 7, 1, 0x00000103, 6, (unsigned long)-1, 1, 2, 1, 0, 0, 0, 0x07000005}); // New splash
     MoveTable::extra_dante_moves++; // keep track of original table / newly added elements
     MoveTable::AirThrow = MoveTable::extra_dante_moves; // Store index so we can find it
+
     DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {0, 25,   3, 1, 0x00000152, 4, (unsigned long)-1, 1, 1, 1, 0, 0, 0, 0x07000005}); // New quickdrive
     MoveTable::extra_dante_moves++;
     MoveTable::backForwardQuickDrive = MoveTable::extra_dante_moves;
@@ -402,7 +404,14 @@ void MoveTable::on_frame(fmilliseconds& dt) {
 
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn(); 
-                    ImGui::Text("%zu", entryIdx);
+                    int extra_moves;
+                    if (player->controllerID == 0) {
+                        extra_moves = extra_dante_moves;
+                    } else {
+                        extra_moves = extra_nero_moves;
+                    }
+                    int rel = (int)entryIdx - extra_moves;
+                    ImGui::Text("%d", rel);
                     ImGui::PushID((uintptr_t)TblEntry);
                     
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(columnWidths[1] - ImGui::GetStyle().ItemInnerSpacing.x); 

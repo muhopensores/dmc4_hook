@@ -309,7 +309,8 @@ Mods::Mods() {
     ADD_MOD(LocalizationManager);
     ADD_MOD(AerialStinger);
     // ADD_MOD(AirMustang); // Crashed after 2 mins, removing for now
-    ADD_MOD(AerialDrive);
+    ADD_MOD(BackForwardQuickDrive);
+    ADD_MOD(AerialDrive); // after backforwardquickdrive
     ADD_MOD(PinTrick);
     ADD_MOD(LMTSlotFix);
     ADD_MOD(PinProperties);
@@ -368,7 +369,6 @@ Mods::Mods() {
     ADD_MOD(GermanWord);
     ADD_MOD(FriendlyFire);
     ADD_MOD(EnvironmentalHazards);
-    ADD_MOD(BackForwardQuickDrive);
 #endif
 }
 

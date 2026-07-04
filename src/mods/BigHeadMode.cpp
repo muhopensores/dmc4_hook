@@ -16,7 +16,7 @@ glm::vec3 size{ 0.5f, 0.5f, 0.5f };
 glm::vec3 size_torso{ 0.9f, 0.8f, 0.8f };
 
 static void scale_head_joint(UModelJoint* joint, uPlayer* player) {
-    glm::vec3& scale = *reinterpret_cast<glm::vec3*>(&joint->mScale);
+    glm::vec3& scale = *(glm::vec3*)&joint->mScale;
     
     if (player->controllerID == 1) {
         if (BigHeadMode::swole_mode_nero) {

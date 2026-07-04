@@ -73,8 +73,13 @@ void CharSwitcher::toggle2(bool enable) {
 // Arc file load mk4
 naked void detour2(void) {
     _asm {
-			cmp byte ptr [CharSwitcher::mod_enabled], 0
-			je CheckPending
+            push eax
+            mov al, [CharSwitcher::mod_pending]
+            mov [CharSwitcher::mod_enabled], al
+            cmp al, 1
+            pop eax
+            je ModCode
+            jmp originalcode
 
         ModCode:
             push ecx
@@ -112,12 +117,6 @@ naked void detour2(void) {
             mov edi, [0x00E558B8]
             mov edi, [edi]
             jmp dword ptr [CharSwitcher::jmp_ret2]
-
-        CheckPending:
-            cmp byte ptr [CharSwitcher::mod_pending], 1
-            jne originalcode
-            mov byte ptr [CharSwitcher::mod_enabled], 1
-            jmp ModCode
     }
 }
 
@@ -763,21 +762,9 @@ void CharSwitcher::on_frame(fmilliseconds& dt) {
 void CharSwitcher::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
         ImGui::BeginGroup();
-        bool pushed_color = false;
-        if (!mod_enabled) {
-            ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-            pushed_color = true;
-        }
 
-        if (ImGui::Checkbox(_("Character Switcher"), &mod_pending)) {
-            if (!mod_pending) {
-                mod_enabled = mod_pending;
-            }
+        if (PendingCheckbox(_("Character Switcher"), mod_pending, mod_enabled)) {
             toggle(mod_enabled);
-        }
-
-        if (pushed_color) {
-            ImGui::PopStyleColor();
         }
 
         ImGui::SameLine();
