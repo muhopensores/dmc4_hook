@@ -22,13 +22,13 @@ bool DebugCam::disable_player_inputs = false;
 
 static sCamera* get_sCamera() {
     uintptr_t sMain = 0x00E5574C;
-    sCamera* ptr    = *(sCamera**)(*(uintptr_t*)sMain + 0x10358);
+    sCamera* ptr = *(sCamera**)(*(uintptr_t*)sMain + 0x10358);
     return ptr;
 }
 
 static void* get_sMouse() {
     uintptr_t sMain = 0x00E5574C;
-    void* ptr    = (void*)(*(uintptr_t*)sMain + 0x10384);
+    void* ptr = (void*)(*(uintptr_t*)sMain + 0x10384);
     return ptr;
 }
 
@@ -350,7 +350,7 @@ void DebugCam::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("debug_cam").value_or(false);
     freecamSpeed = cfg.get<float>("freecamSpeed").value_or(10.0f);
     freecamModifierSpeed = cfg.get<float>("freecamModifierSpeed").value_or(20.0f);
-    freecamMouseControls = cfg.get<bool>("freecamMouseControls").value_or(true);
+    freecamMouseControls = cfg.get<bool>("freecamMouseControls").value_or(false);
     freecamKeyboardControls = cfg.get<bool>("freecamKeyboardControls").value_or(true);
     freecamGamepadControls = cfg.get<bool>("freecamGamepadControls").value_or(false);
 };

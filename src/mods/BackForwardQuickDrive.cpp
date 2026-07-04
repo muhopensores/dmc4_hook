@@ -27,7 +27,7 @@ void BackForwardQuickDrive::on_gui_frame(int display) {
             toggle1(mod_enabled);
         }
         ImGui::SameLine();
-        help_marker(_("Replace melee+style input with backfowrward+melee"));
+        help_marker(_("Replace melee+style input with backforward+melee"));
     }
 }
 

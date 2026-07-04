@@ -15,6 +15,7 @@
 bool PhotoMode::mod_enabled = false;
 float PhotoMode::HUDCooldown = 0.0f;
 static bool spotLightsFollowPlayer = true;
+static bool forceHideCameraHUD     = false;
 
 // Filter
 static uintptr_t uDOFFilterCons             = 0x0091F680;
@@ -160,10 +161,12 @@ void PhotoMode::on_gui_frame(int display) {
                 SetGameSpeeds(1.0f);
                 DebugCam::toggle_gameplay_cam = true;
                 ToggleGameplayCam(DebugCam::toggle_gameplay_cam);
+                DebugCam::disable_player_inputs = mod_enabled;
+                DisablePlayerInputs(DebugCam::disable_player_inputs);
             }
-            DebugCam::disable_player_inputs = mod_enabled;
-            DisablePlayerInputs(DebugCam::disable_player_inputs);
         }
+        ImGui::SameLine(sameLineWidth);
+        ImGui::Checkbox(_("Hide Photo Mode HUD"), &forceHideCameraHUD);
     }
 }
 
@@ -252,8 +255,9 @@ static void ImGuizmoManipulators() {
                     if (w2s::IsVisibleOnScreen(screenPos)) {
                         ImGui::SetNextWindowPos(ImVec2(screenPos.x + 20.0f, screenPos.y));
                         ImGui::SetNextWindowBgAlpha(0.6f);
-                        ImGui::Begin("SpotLight Edit", nullptr,
-                            ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+                        ImGui::Begin("SpotLight Edit", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+                        ImGui::ColorEdit4(_("Color"), &spot_light->mColor.x);
+                        ImGui::InputFloat3(_("Pos"), (float*)&spot_light->mPos);
                         ImGui::SliderFloat(_("Start"), &spot_light->mStart, 0.f, 3000.f);
                         ImGui::SliderFloat(_("End"), &spot_light->mEnd, 0.f, 3000.f);
                         ImGui::SliderFloat(_("Cone"), &spot_light->mCone, 0.f, 360.f);
@@ -264,31 +268,37 @@ static void ImGuizmoManipulators() {
                 }
 
                 if (spot_light->mTargetMode) {
-                    uPlayer* player = devil4_sdk::get_local_player();
-                    Vector3f playerPos       = player->mPos;
-                    Vector3f offset = spot_light->mTargetPos;
+                    uPlayer* player    = devil4_sdk::get_local_player();
+                    Vector3f playerPos = player->mPos;
+                    Vector3f offset    = spot_light->mTargetPos;
                     Vector3f worldTarget;
+
                     if (spotLightsFollowPlayer)
                         worldTarget = playerPos;
-                    else 
+                    else
                         worldTarget = lightPos + offset;
+
+                    // Draw line to the target instead of along mDir.
+                    worldEnd = glm::vec3(worldTarget.x, worldTarget.y, worldTarget.z);
 
                     glm::vec3 newWorldTarget = worldTarget;
                     int gizmoID = 100000 + lightIndex;
                     ImGuizmo::SetID(gizmoID);
                     if (w2s::DrawImGuizmoManipulator(worldTarget, newWorldTarget, gizmoID, selectedLightIndex, isManipulatingLight,
                             ImGuizmo::TRANSLATE, currentLightGizmoMode, view, projection, IM_COL32(0, 200, 255, 255), 6.0f, "Target")) {
-                        glm::vec3 newOffset = newWorldTarget - lightPos;
+                        glm::vec3 newOffset    = newWorldTarget - lightPos;
                         spot_light->mTargetPos = newOffset;
                     }
                 }
 
                 glm::vec2 p0 = w2s::WorldToScreen(lightPos);
-
                 glm::vec2 p1 = w2s::WorldToScreen(worldEnd);
+
                 if (w2s::IsVisibleOnScreen(p0)) {
                     drawList->AddLine(ImVec2(p0.x, p0.y), ImVec2(p1.x, p1.y), IM_COL32(0, 255, 255, 200), 2.0f);
+
                     drawList->AddText(ImVec2(p0.x + 10.0f, p0.y - 10.0f), IM_COL32(255, 255, 0, 255), objectName);
+
                     if (w2s::IsVisibleOnScreen(p1)) {
                         drawList->AddCircleFilled(ImVec2(p1.x, p1.y), 4.0f, IM_COL32(0, 255, 255, 255));
                     }
@@ -314,9 +324,10 @@ static void ImGuizmoManipulators() {
                         ImGui::SetNextWindowPos(ImVec2(screenPos.x + 20.0f, screenPos.y));
                         ImGui::SetNextWindowBgAlpha(0.6f);
                         ImGui::Begin("PointLight Edit", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+                        ImGui::ColorEdit4(_("Color"), &point_light->mColor.x);
+                        ImGui::InputFloat3(_("Pos"), (float*)&point_light->mPos);
                         ImGui::SliderFloat(_("Start"), &point_light->mStart, 0.f, 3000.f);
                         ImGui::SliderFloat(_("End"), &point_light->mEnd, 0.f, 3000.f);
-                        ImGui::ColorEdit4(_("Color"), &point_light->mColor.x);
                         ImGui::End();
                     }
                 }
@@ -367,8 +378,7 @@ static void ImGuizmoManipulators() {
                     if (w2s::IsVisibleOnScreen(screenPos)) {
                         ImGui::SetNextWindowPos(ImVec2(screenPos.x + 20.0f, screenPos.y));
                         ImGui::SetNextWindowBgAlpha(0.6f);
-                        ImGui::Begin("PointLight Edit", nullptr,
-                            ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+                        ImGui::Begin("PointLight Edit", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
                         ImGui::ColorEdit4(_("Color"), &hemi_light->mColor.x);
                         ImGui::ColorEdit4(_("RevColor"), &hemi_light->mRevColor.x);
                         ImGui::End();
@@ -649,7 +659,9 @@ void PhotoMode::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
         uPlayer* player = devil4_sdk::get_local_player();
         ImVec2 ScreenSize = ImGui::GetIO().DisplaySize;
-        if (HUDCooldown > 0.0f) {
+        if (forceHideCameraHUD) {
+            HUDCooldown = 1.0f;
+        } else if (HUDCooldown > 0.0f) {
             /*if (HUDCooldown <= 1.0f) {
                 unhide hud here
             }*/
@@ -662,18 +674,16 @@ void PhotoMode::on_frame(fmilliseconds& dt) {
             ImGui::SetWindowPos(ImVec2(ScreenSize.x * 0.6f, ScreenSize.y * 0.0f), ImGuiCond_Once);
             ImGui::SetWindowSize(ImVec2(ScreenSize.x * 0.4f, ScreenSize.y * 0.9f), ImGuiCond_Once);
 
-            ImGui::Text(_("Light Manipulator Controls:"));
-            ImGui::Text(_("G - Translate, R - Rotate, S - Settings"));
-
-            if (ImGui::RadioButton(_("Translate"), currentLightGizmoOperation == ImGuizmo::TRANSLATE)) {
+            ImGui::SameLine();
+            if (ImGui::RadioButton(_("G - Translate"), currentLightGizmoOperation == ImGuizmo::TRANSLATE)) {
                 currentLightGizmoOperation = ImGuizmo::TRANSLATE;
             }
             ImGui::SameLine();
-            if (ImGui::RadioButton(_("Rotate"), currentLightGizmoOperation == ImGuizmo::ROTATE)) {
+            if (ImGui::RadioButton(_("R - Rotate"), currentLightGizmoOperation == ImGuizmo::ROTATE)) {
                 currentLightGizmoOperation = ImGuizmo::ROTATE;
             }
             ImGui::SameLine();
-            if (ImGui::RadioButton(_("Settings"), currentLightGizmoOperation == ImGuizmo::SCALE)) {
+            if (ImGui::RadioButton(_("S - Settings"), currentLightGizmoOperation == ImGuizmo::SCALE)) {
                 currentLightGizmoOperation = ImGuizmo::SCALE;
             }
 

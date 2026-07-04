@@ -6,6 +6,7 @@
 
 #include "sdk/sRender.hpp"
 #include "sdk/sMediator.hpp"
+#include "../mods/DebugCam.hpp"
 
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZW|D3DFVF_DIFFUSE)
 
@@ -181,6 +182,18 @@ namespace dd {
 
 static dd::RenderInterfaceD3D9* g_debugdraw {nullptr};
 
+static sCamera* get_sCamera() {
+    uintptr_t sMain = 0x00E5574C;
+    sCamera* ptr = *(sCamera**)(*(uintptr_t*)sMain + 0x10358);
+    return ptr;
+}
+
+static sCamera_ViewPort* get_viewport(uint32_t index) {
+    sCamera* sCam              = get_sCamera();
+    sCamera_ViewPort* viewport = &sCam->viewports[index];
+    return viewport;
+}
+
 namespace w2s {
     glm::vec2 WorldToScreen(const glm::vec3& worldPos) {
         glm::vec2 screen = glm::vec2(devil4_sdk::get_sRender()->screenRes);
@@ -280,13 +293,18 @@ namespace w2s {
         }
     
         uCameraCtrl* camera = sMed->camera1;
-        glm::mat4 view = glm::lookAt(glm::vec3(camera->mCameraPos.x, camera->mCameraPos.y, camera->mCameraPos.z), 
-                                    glm::vec3(camera->mTargetPos.x, camera->mTargetPos.y, camera->mTargetPos.z), 
-                                    glm::vec3(camera->mCameraUp.x, camera->mCameraUp.y, camera->mCameraUp.z));
+        int vp = !DebugCam::toggle_gameplay_cam; // I don't know how to get current cam
+        sCamera_ViewPort* cam = get_viewport(vp);
+        //glm::mat4 view = glm::lookAt(glm::vec3(camera->mCameraPos.x, camera->mCameraPos.y, camera->mCameraPos.z), 
+        //                            glm::vec3(camera->mTargetPos.x, camera->mTargetPos.y, camera->mTargetPos.z), 
+        //                            glm::vec3(camera->mCameraUp.x, camera->mCameraUp.y, camera->mCameraUp.z));
+
+        glm::mat4 view = cam->mViewMat;
+        // float fovY     = glm::degrees(2.0f * atanf(1.0f / cam->mProjMat.m2.y));
     
-        glm::vec2 screen = glm::vec2(devil4_sdk::get_sRender()->screenRes);
-        float aspectRatio = screen.x / screen.y;
-        glm::mat4 proj = glm::perspective(glm::radians(camera->mFov), aspectRatio, 0.1f, 9999.0f);
+        // glm::vec2 screen = glm::vec2(devil4_sdk::get_sRender()->screenRes);
+        // float aspectRatio = screen.x / screen.y;
+        glm::mat4 proj    = cam->mProjMat; // glm::perspective(glm::radians(/*camera->mFov*/fovY), aspectRatio, 0.1f, 9999.0f);
     
         memcpy(viewMatrix, &view[0][0], sizeof(float) * 16);
         memcpy(projectionMatrix, &proj[0][0], sizeof(float) * 16);
@@ -1053,14 +1071,32 @@ namespace w2s {
     void dd_update() {
         sMediator* sMed = devil4_sdk::get_sMediator();
         if (!sMed) { return; }
-        uCameraCtrl* camera = sMed->camera1;
-        if (!camera) { return; }
-        glm::mat4 viewMatrix =
-            glm::lookAt(*(glm::vec3*)&camera->mCameraPos, *(glm::vec3*)&camera->mTargetPos, *(glm::vec3*)&camera->mCameraUp);
-        glm::vec2 screen = glm::vec2(devil4_sdk::get_sRender()->screenRes);
-        float aspectRatio = screen.x / screen.y;
-        glm::mat4 projMatrix = glm::perspective(glm::radians(camera->mFov), aspectRatio, 0.1f, 9999.0f);
-        g_vp = projMatrix * viewMatrix;
+
+
+
+        uCameraCtrl* camera   = sMed->camera1;
+        int vp                = !DebugCam::toggle_gameplay_cam; // I don't know how to get current cam
+        sCamera_ViewPort* cam = get_viewport(vp);
+        // glm::mat4 view = glm::lookAt(glm::vec3(camera->mCameraPos.x, camera->mCameraPos.y, camera->mCameraPos.z),
+        //                             glm::vec3(camera->mTargetPos.x, camera->mTargetPos.y, camera->mTargetPos.z),
+        //                             glm::vec3(camera->mCameraUp.x, camera->mCameraUp.y, camera->mCameraUp.z));
+
+        glm::mat4 view = cam->mViewMat;
+        // float fovY     = glm::degrees(2.0f * atanf(1.0f / cam->mProjMat.m2.y));
+
+        // glm::vec2 screen  = glm::vec2(devil4_sdk::get_sRender()->screenRes);
+        // float aspectRatio = screen.x / screen.y;
+        glm::mat4 proj    = cam->mProjMat; // glm::perspective(glm::radians(/*camera->mFov*/ fovY), aspectRatio, 0.1f, 9999.0f);
+        g_vp              = proj * view;
+
+
+        //uCameraCtrl* camera = sMed->camera1;
+        //if (!camera) { return; }
+        //glm::mat4 viewMatrix = glm::lookAt(*(glm::vec3*)&camera->mCameraPos, *(glm::vec3*)&camera->mTargetPos, *(glm::vec3*)&camera->mCameraUp);
+        //glm::vec2 screen = glm::vec2(devil4_sdk::get_sRender()->screenRes);
+        //float aspectRatio = screen.x / screen.y;
+        //glm::mat4 projMatrix = glm::perspective(glm::radians(camera->mFov), aspectRatio, 0.1f, 9999.0f);
+        //g_vp = projMatrix * viewMatrix;
 
         auto player = devil4_sdk::get_local_player();
         if (!player) { return; }

@@ -106,6 +106,11 @@ struct MtMatrix { /* MtFramework matrix */
     Vector4f m2;  // 0x0010
     Vector4f m3;  // 0x0020
     Vector4f m4;  // 0x0030
+
+    operator glm::mat4() const {
+        return glm::mat4(glm::vec4(m1.x, m1.y, m1.z, m1.w), glm::vec4(m2.x, m2.y, m2.z, m2.w), glm::vec4(m3.x, m3.y, m3.z, m3.w),
+            glm::vec4(m4.x, m4.y, m4.z, m4.w));
+    }
 };
 static_assert(sizeof(MtMatrix) == 0x40);
 

@@ -58,11 +58,11 @@ struct sCamera_ViewPort {
 static_assert(sizeof(sCamera_ViewPort) == 0x590);
 
 struct sCamera : cSystem {
-    float mSubPixelOfsX;
-    float mSubPixelOfsY;
-    float mViewSubFrame;
-    float mWorldSubFrame;
-    sCamera_ViewPort viewports[8];
+    float mSubPixelOfsX; // 0x20
+    float mSubPixelOfsY; // 0x24
+    float mViewSubFrame; // 0x28
+    float mWorldSubFrame; // 0x2c
+    sCamera_ViewPort viewports[8]; // 0x30
     MtRect ScreenRect;
     float SceneSize[2];
     uint32_t mLayoutMode;
