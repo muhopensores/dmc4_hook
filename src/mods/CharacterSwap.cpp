@@ -32,6 +32,8 @@ naked void detourCharSwap(void) { // force which character is picked
         //
             cmp byte ptr [ArcadeMode::mod_enabled], 1
             je arcadecode
+            cmp byte ptr [ArcadeMode::launched_via_cmd], 1
+            je arcadecode
             cmp byte ptr [CharacterSwap::mod_enabled], 0
             je originalcode
 

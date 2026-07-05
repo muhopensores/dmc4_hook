@@ -56,6 +56,7 @@ bool __fastcall uMissionStart_check_start_flag_sub_89F4C0(uMissionMenu* mission_
         }
         // uMissionStart check
         if (mission_struct->vtable == 0xBE0AC8) {
+            ArcadeMode::launched_via_cmd = false;
             return true;
         }
     }
@@ -75,6 +76,7 @@ bool __fastcall uBloodyPalaceStart_check_start_sub_854050(uBloodyPalaceStart* bp
             agp->init_jump = 1;
         }
 
+        ArcadeMode::launched_via_cmd = false;
         return true;
     }
 
@@ -197,16 +199,16 @@ void ArcadeMode::on_config_load(const utility::Config& cfg) {
         FastStart::set_bools(true);
 
         launched_via_cmd  = true;
-        mod_enabled       = true;
+        // mod_enabled       = true;
 
         int arg_char = utility::get_argument("-character");
-        if (arg_char > 0) {
+        if (arg_char > -1) {
             g_our_mission_menu.character = arg_char;
         }
 
         g_our_mission_menu.cursor = 3;
         int difficulty = utility::get_argument("-difficulty");
-        if (difficulty > 0) {
+        if (difficulty > -1) {
             g_our_mission_menu.cursor = difficulty;
         }
 
