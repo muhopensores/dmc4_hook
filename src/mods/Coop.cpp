@@ -8,6 +8,11 @@
 #include "Macro.hpp"
 #include "Windows.h"
 
+// This needs a hook for when the camera returns to the player after a camera event. these access the same ptr when bp portal transition finishes (in order):
+// 0040C89E - 8B 15 D452E500  - mov edx,[00E552D4]
+// 004F7B50 - 8B 0D D452E500  - mov ecx,[00E552D4]
+// 004F7BB6 - A1 D452E500 - mov eax,[00E552D4]
+
 using byte = uint8_t;
 
 bool Coop::mod_enabled = false;
@@ -158,18 +163,26 @@ void __stdcall new_pad_update_func(cPeripheral* peri) {
 
 naked void detour1() {
     _asm {
-            push [esp+4]
+            cmp byte ptr [Macro::mod_enabled], 1
+            je coopcheck
+            pushad
+            push [esp+0x20+0x4]
             call Macro::on_pad_update_tick
+            popad
             cmp byte ptr [Macro::input_active], 1
             jne coopcheck
-            push [esp+4]
+            pushad
+            push [esp+0x20+0x4]
             call Macro::on_player_pad_update
+            popad
             jmp handle
         coopcheck:
             cmp byte ptr [Coop::mod_enabled], 1
             jne originalcode
-            push [esp+4]
+            pushad
+            push [esp+0x20+0x4]
             call new_pad_update_func
+            popad
             jmp handle
         originalcode:
             push ebp
@@ -253,7 +266,7 @@ void player_factory(uint char_id, uint player_num) {
     *(byte*)((uintptr_t)player + 0xE64) = player_num;  //Player ID
     PlayerArr[player_num].get()->pl_char = player;
     devil4_sdk::sUnit_spawn(player, 13);
-    
+
     void* hud;
     if (char_id == 0) {
         hud = make_nero_hud();
@@ -276,8 +289,14 @@ void __stdcall setupDevelop(uCameraCtrl* cam) {
 void* make_cam(){ //make uCameraCtrl
     uCameraCtrl* cam = ((uCameraCtrl* (*)())(0x004F71B0))();
     devil4_sdk::sUnit_spawn(cam, 18);
-    cam->mpResource = PlayerArr[0].get()->cam->mpResource;
-    setupDevelop((uCameraCtrl*)cam);
+    uCameraCtrl* main_cam = PlayerArr[0].get()->cam;
+    if (!main_cam) {
+        sUnit* s_unit           = devil4_sdk::get_sUnit();
+        main_cam                = (uCameraCtrl*)s_unit->mMoveLine[0x17].mTop;
+        PlayerArr[0].get()->cam = main_cam;
+    }
+    cam->mpResource = main_cam->mpResource;
+    setupDevelop(cam);
     return cam;
 }
 
@@ -347,6 +366,45 @@ naked void detour4() {
     }
 }
 
+void apply_viewport_layout() {
+    sCamera* s_cam = *(sCamera**)sCamera_ptr;
+    switch (Coop::player_num) {
+    case 2:
+        s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
+        s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
+        s_cam->viewports[0].mAttr    = 0x17;
+        s_cam->viewports[1].mAttr    = 0x17;
+        s_cam->viewports[0].mMode    = REGION_TOP;
+        s_cam->viewports[1].mMode    = REGION_BOTTOM;
+        break;
+    case 3:
+        s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
+        s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
+        s_cam->viewports[2].mpCamera = PlayerArr[2].get()->cam;
+        s_cam->viewports[0].mAttr    = 0x17;
+        s_cam->viewports[1].mAttr    = 0x17;
+        s_cam->viewports[2].mAttr    = 0x17;
+        s_cam->viewports[0].mMode    = REGION_TOPLEFT;
+        s_cam->viewports[1].mMode    = REGION_TOPRIGHT;
+        s_cam->viewports[2].mMode    = REGION_BOTTOMLEFT;
+        break;
+    case 4:
+        s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
+        s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
+        s_cam->viewports[2].mpCamera = PlayerArr[2].get()->cam;
+        s_cam->viewports[3].mpCamera = PlayerArr[3].get()->cam;
+        s_cam->viewports[0].mAttr    = 0x17;
+        s_cam->viewports[1].mAttr    = 0x17;
+        s_cam->viewports[2].mAttr    = 0x17;
+        s_cam->viewports[3].mAttr    = 0x17;
+        s_cam->viewports[0].mMode    = REGION_TOPLEFT;
+        s_cam->viewports[1].mMode    = REGION_TOPRIGHT;
+        s_cam->viewports[2].mMode    = REGION_BOTTOMLEFT;
+        s_cam->viewports[3].mMode    = REGION_BOTTOMRIGHT;
+        break;
+    }
+}
+
 void __stdcall setup_cam(void* cam) {
     sCamera* s_cam = *(sCamera**)sCamera_ptr;
     for (int i = 1; i < Coop::player_num; i++) {
@@ -357,6 +415,8 @@ void __stdcall setup_cam(void* cam) {
             return;
         }
     }
+    PlayerArr[0].get()->cam = (uCameraCtrl*)cam;
+    apply_viewport_layout();
 }
 
 naked void detour5() {
@@ -662,9 +722,8 @@ void Coop::on_gui_frame(int display) {
         ImGui::SameLine();
         help_marker(_("Enable split-screen co-op."));
         ImGui::SameLine();
-        ImGui::PushItemWidth(sameLineItemWidth / 2.0f);
+        ImGui::SetNextItemWidth(sameLineItemWidth / 2.0f);
         ImGui::SliderInt(_("Player Number"), (int*)&player_num, 2, 4);
-        ImGui::PopItemWidth();
 
         if (mod_enabled) {
             for (int i = 1; i < player_num; i++) {
@@ -672,7 +731,8 @@ void Coop::on_gui_frame(int display) {
                 ImGui::SameLine();
                 CoopPlayer* curr_pl = PlayerArr[i].get();
                 ImGui::PushID(curr_pl);
-                if (ImGui::BeginCombo("Select Character", CHAR_NAME[curr_pl->player_id])) {
+                ImGui::SetNextItemWidth(sameLineItemWidth);
+                if (ImGui::BeginCombo("##Select Character Combo", CHAR_NAME[curr_pl->player_id])) {
                     for (int char_id = 0; char_id < 2; char_id++) {
                         bool is_selected = (curr_pl->player_id == char_id);
                         if (ImGui::Selectable(CHAR_NAME[char_id], &is_selected)) {
@@ -685,62 +745,24 @@ void Coop::on_gui_frame(int display) {
                 }
                 ImGui::PopID();
             }
+            ImGui::SameLine();
+            help_marker(_("Picking Dante while you are Nero will crash. The opposite is fine"));
             if (ImGui::Button("Refresh cam")) {
-                sCamera* s_cam = *(sCamera**)sCamera_ptr;
                 if (mod_enabled) {
-                    switch (player_num) {
-                    case 2: {
-                        s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
-                        s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
-                        s_cam->viewports[0].mAttr    = 0x17;
-                        s_cam->viewports[1].mAttr    = 0x17;
-                        s_cam->viewports[0].mMode    = REGION_TOP;
-                        s_cam->viewports[1].mMode    = REGION_BOTTOM;
-                        break;
-                    }
-                    case 3: {
-                        s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
-                        s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
-                        s_cam->viewports[2].mpCamera = PlayerArr[2].get()->cam;
-                        s_cam->viewports[0].mAttr    = 0x17;
-                        s_cam->viewports[1].mAttr    = 0x17;
-                        s_cam->viewports[2].mAttr    = 0x17;
-                        s_cam->viewports[0].mMode    = REGION_TOPLEFT;
-                        s_cam->viewports[1].mMode    = REGION_TOPRIGHT;
-                        s_cam->viewports[2].mMode    = REGION_BOTTOMLEFT;
-                        break;
-                    }
-                    case 4: {
-                        s_cam->viewports[0].mpCamera = PlayerArr[0].get()->cam;
-                        s_cam->viewports[1].mpCamera = PlayerArr[1].get()->cam;
-                        s_cam->viewports[2].mpCamera = PlayerArr[2].get()->cam;
-                        s_cam->viewports[3].mpCamera = PlayerArr[3].get()->cam;
-                        s_cam->viewports[0].mAttr    = 0x17;
-                        s_cam->viewports[1].mAttr    = 0x17;
-                        s_cam->viewports[2].mAttr    = 0x17;
-                        s_cam->viewports[3].mAttr    = 0x17;
-                        s_cam->viewports[0].mMode    = REGION_TOPLEFT;
-                        s_cam->viewports[1].mMode    = REGION_TOPRIGHT;
-                        s_cam->viewports[2].mMode    = REGION_BOTTOMLEFT;
-                        s_cam->viewports[3].mMode    = REGION_BOTTOMRIGHT;
-                        break;
-                    }
-                    }
-                } else {
-                    s_cam->viewports[0].mMode = REGION_FULLSCREEN;
+                    apply_viewport_layout();
                 }
             }
 
             if (ImGui::Button(_("Spawn Nero##Coop"))) {
                 player_factory(0, 1);
-                make_cam();
+                PlayerArr[1].get()->cam = (uCameraCtrl*)make_cam();
                 sCamera* s_cam            = *(sCamera**)sCamera_ptr;
                 s_cam->viewports[0].mMode = REGION_TOP;
                 s_cam->viewports[1].mMode = REGION_BOTTOM;
             }
             if (ImGui::Button(_("Spawn Dante##Coop"))) {
                 player_factory(1, 1);
-                make_cam();
+                PlayerArr[1].get()->cam = (uCameraCtrl*)make_cam();
                 sCamera* s_cam            = *(sCamera**)sCamera_ptr;
                 s_cam->viewports[0].mMode = REGION_TOP;
                 s_cam->viewports[1].mMode = REGION_BOTTOM;
