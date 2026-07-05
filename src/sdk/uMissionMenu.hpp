@@ -19,6 +19,6 @@ public:
     uint32_t hoh;        // 0x0084
     uint32_t hah;        // 0x0088
     uint32_t character;        // 0x008C
-    char pad_008C[1968]; // 0x008C
+    char pad_0090[1968]; // 0x0090
 }; // Size: 0x0840
 static_assert(sizeof(uMissionMenu) == 0x840);

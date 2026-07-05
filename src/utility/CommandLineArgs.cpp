@@ -46,21 +46,18 @@ int get_argument(const char* arg_name) {
         strcpy_s(g_command_line_buffer, MAX_CSTR_ARGS, GetCommandLineA());
     }
 
-    char* args = g_command_line_buffer;
-
     char buffer[512];
-    strcpy_s(buffer, sizeof(buffer), args);
+    strcpy_s(buffer, sizeof(buffer), g_command_line_buffer);
 
-    char* token;
-    char* saveptr;
-
-    token = strtok(buffer, " ");
+    char* token = strtok(buffer, " ");
 
     while (token != NULL) {
 
         if (strcmp(token, arg_name) == 0) {
 
             token = strtok(NULL, " ");
+            if (token == nullptr)
+                return -1;
             return atoi(token);
         }
 

@@ -1,5 +1,6 @@
 #include "CharacterSwap.hpp"
 #include "NoAutomaticCharacters.hpp"
+#include "ArcadeMode.hpp"
 
 bool CharacterSwap::mod_enabled = false;
 bool CharacterSwap::prefer_dante = false;
@@ -29,6 +30,8 @@ void CharacterSwap::Prefer_Dante(bool enable) {
 naked void detourCharSwap(void) { // force which character is picked
     _asm {
         //
+            cmp byte ptr [ArcadeMode::mod_enabled], 1
+            je arcadecode
             cmp byte ptr [CharacterSwap::mod_enabled], 0
             je originalcode
 
@@ -37,6 +40,12 @@ naked void detourCharSwap(void) { // force which character is picked
 
             // this is disgusting but I'm not sure how else to get portrait picked
             cmp dword ptr [NoAutomaticCharacters::lastPickedCharacter], 4
+            jae playNero
+            mov byte ptr [edi+0x28], 00
+            jmp originalcode
+
+        arcadecode:
+            cmp dword ptr [ArcadeMode::g_our_mission_menu+0x8C], 4
             jae playNero
             mov byte ptr [edi+0x28], 00
             jmp originalcode

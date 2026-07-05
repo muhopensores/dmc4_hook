@@ -17,40 +17,40 @@ bool ArcadeMode::mod_enabled            = false;
 bool ArcadeMode::launched_via_cmd       = false;
 bool ArcadeMode::user_modified_settings = false;
 
-static uMissionMenu g_our_mission_menu{};
-static int g_bp_floor = 0;
+uMissionMenu ArcadeMode::g_our_mission_menu{};
+static int g_bp_floor = 1;
 
 void uMissionMenu_our_set_mission_num(int mission) {
     if ((mission < 1) || (mission > 20)) {
         spdlog::warn("[ArcadeMode]: set_mission_num mission id outside of range");
         return;
     }
-    g_our_mission_menu.hum = mission; 
-    g_our_mission_menu.idk = mission; 
-    g_our_mission_menu.dvh = mission; 
-    g_our_mission_menu.sos = mission; 
-    g_our_mission_menu.dmd = mission; 
-    g_our_mission_menu.ldk = mission; 
-    g_our_mission_menu.hoh = mission; 
-    g_our_mission_menu.hah = mission; 
+    ArcadeMode::g_our_mission_menu.hum = mission; 
+    ArcadeMode::g_our_mission_menu.idk = mission; 
+    ArcadeMode::g_our_mission_menu.dvh = mission; 
+    ArcadeMode::g_our_mission_menu.sos = mission; 
+    ArcadeMode::g_our_mission_menu.dmd = mission; 
+    ArcadeMode::g_our_mission_menu.ldk = mission; 
+    ArcadeMode::g_our_mission_menu.hoh = mission; 
+    ArcadeMode::g_our_mission_menu.hah = mission; 
 }
 
 bool __fastcall uMissionStart_check_start_flag_sub_89F4C0(uMissionMenu* mission_struct) {
     if (ArcadeMode::mod_enabled || ArcadeMode::launched_via_cmd) {
         // uMissionMenu check
         if (mission_struct->vtable == 0xBDFD88) {
-            mission_struct->cursor = g_our_mission_menu.cursor;
+            mission_struct->cursor = ArcadeMode::g_our_mission_menu.cursor;
 
-            mission_struct->hum = g_our_mission_menu.hum; // 0x0070
-            mission_struct->idk = g_our_mission_menu.idk; // 0x006C
-            mission_struct->dvh = g_our_mission_menu.dvh; // 0x0074
-            mission_struct->sos = g_our_mission_menu.sos; // 0x0078
-            mission_struct->dmd = g_our_mission_menu.dmd; // 0x007C
-            mission_struct->ldk = g_our_mission_menu.ldk; // 0x0080
-            mission_struct->hoh = g_our_mission_menu.hoh; // 0x0084
-            mission_struct->hah = g_our_mission_menu.hah; // 0x0088
+            mission_struct->hum = ArcadeMode::g_our_mission_menu.hum; // 0x0070
+            mission_struct->idk = ArcadeMode::g_our_mission_menu.idk; // 0x006C
+            mission_struct->dvh = ArcadeMode::g_our_mission_menu.dvh; // 0x0074
+            mission_struct->sos = ArcadeMode::g_our_mission_menu.sos; // 0x0078
+            mission_struct->dmd = ArcadeMode::g_our_mission_menu.dmd; // 0x007C
+            mission_struct->ldk = ArcadeMode::g_our_mission_menu.ldk; // 0x0080
+            mission_struct->hoh = ArcadeMode::g_our_mission_menu.hoh; // 0x0084
+            mission_struct->hah = ArcadeMode::g_our_mission_menu.hah; // 0x0088
 
-            mission_struct->character = g_our_mission_menu.character;
+            mission_struct->character = ArcadeMode::g_our_mission_menu.character;
 
             return true;
         }
@@ -64,7 +64,7 @@ bool __fastcall uMissionStart_check_start_flag_sub_89F4C0(uMissionMenu* mission_
 
 bool __fastcall uBloodyPalaceStart_check_start_sub_854050(uBloodyPalaceStart* bp) {
     if (ArcadeMode::mod_enabled || ArcadeMode::launched_via_cmd) {
-        if (g_bp_floor > 0) {
+        if (g_bp_floor != 1) {
             auto* stage = AreaJump::bp_stage(g_bp_floor);
             sArea* sap  = devil4_sdk::get_sArea();
             assert(sap);
@@ -112,19 +112,12 @@ void ArcadeMode::on_gui_frame(int display) {
         }
         ImGui::SameLine();
         help_marker(_("When opening the game or returning to the mission select screen, the game will load these settings\n"
-            "You can also start dmc4 with command line arguments, using something like\n"
-            "`DevilMayCry4_DX9.exe -arcade -difficulty 3 -mission 12` (DMD, M12), or\n"
-            "`DevilMayCry4_DX9.exe -arcade -character 4 -difficulty 7` (Dante, BP)"));
+            "You can also start dmc4 with steam launch options, using something like\n"
+            "-arcade -difficulty 3 -mission 12 (DMD, M12), or\n"
+            "-arcade -character 6 -bp 4 (Nero, BP floor 4)"));
 
         if (mod_enabled) {
             ImGui::Indent(lineIndent);
-            if (g_our_mission_menu.cursor != 7) {
-                if (ImGui::SliderInt(_("Mission"), (int*)&g_our_mission_menu.hum, 1, 20)) {
-                    user_modified_settings = true;
-                    uMissionMenu_our_set_mission_num(g_our_mission_menu.hum);
-                }
-            }
-
             static const char* char_names[8]{
                 //_("Dante"),
                 // __("Dante - Auto"),
@@ -144,9 +137,24 @@ void ArcadeMode::on_gui_frame(int display) {
                 __("Nero"),
             };
 
-            if (g_our_mission_menu.cursor == 7) {
-                if (ImGui::Combo(_("Character"), (int*)&g_our_mission_menu.character, char_names, 8)) {
+            if (ImGui::Combo(_("Character"), (int*)&g_our_mission_menu.character, char_names, 8)) {
+                user_modified_settings = true;
+            }
+
+            if (g_our_mission_menu.cursor == ARCADE_BP_DIFF) {
+                if (ImGui::InputInt(_("Floor"), &g_bp_floor, 1, 10)) {
                     user_modified_settings = true;
+                    if (g_bp_floor < 1) {
+                        g_bp_floor = 1;
+                    }
+                    if (g_bp_floor > 101) {
+                        g_bp_floor = 101;
+                    }
+                }
+            } else {
+                if (ImGui::SliderInt(_("Mission"), (int*)&g_our_mission_menu.hum, 1, 20)) {
+                    user_modified_settings = true;
+                    uMissionMenu_our_set_mission_num(g_our_mission_menu.hum);
                 }
             }
 
@@ -191,27 +199,28 @@ void ArcadeMode::on_config_load(const utility::Config& cfg) {
         launched_via_cmd  = true;
         mod_enabled       = true;
 
-        uint32_t arg_char = utility::get_argument("-character");
+        int arg_char = utility::get_argument("-character");
         if (arg_char > 0) {
             g_our_mission_menu.character = arg_char;
         }
-        uint32_t arg_cursor = utility::get_argument("-difficulty");
-        if (arg_cursor > 0) {
-            g_our_mission_menu.cursor = arg_cursor;
+
+        g_our_mission_menu.cursor = 3;
+        int difficulty = utility::get_argument("-difficulty");
+        if (difficulty > 0) {
+            g_our_mission_menu.cursor = difficulty;
         }
+
         if (utility::check_argument("-bp")) {
-            arg_cursor = ARCADE_BP_DIFF;
             g_our_mission_menu.cursor = ARCADE_BP_DIFF;
-        }
-        int arg_mission = utility::get_argument("-mission");
-        if (arg_mission > 0) {
-            uMissionMenu_our_set_mission_num(arg_mission);
-        }
-        if (arg_cursor == ARCADE_BP_DIFF) {
-            int arg_floor = utility::get_argument("-floor");
-            if (arg_floor > 0) {
-                g_bp_floor = arg_floor;
+            int floor = utility::get_argument("-bp");
+            if (floor > 1) {
+                g_bp_floor = floor;
             }
+        }
+
+        int mission = utility::get_argument("-mission");
+        if (mission > 0) {
+            uMissionMenu_our_set_mission_num(mission);
         }
     }
 

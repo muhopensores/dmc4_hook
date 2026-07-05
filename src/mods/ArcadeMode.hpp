@@ -1,6 +1,6 @@
 #pragma once
 #include "../mod.hpp"
-
+struct uMissionMenu;
 class ArcadeMode : public Mod {
 public:
     ArcadeMode() = default;
@@ -8,6 +8,7 @@ public:
     static bool mod_enabled;
     static bool launched_via_cmd;
     static bool user_modified_settings;
+    static uMissionMenu g_our_mission_menu;
     std::string get_mod_name() override { return "ArcadeMode"; };
 
     std::optional<std::string> on_initialize() override;
