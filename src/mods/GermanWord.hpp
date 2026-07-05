@@ -5,6 +5,7 @@ class GermanWord : public Mod {
 public:
     GermanWord() = default;
     std::string get_mod_name() override { return "GermanWord"; };
+    std::vector<std::string> get_search_terms() override { return {"doppelganger"}; }
     // std::vector<std::string> get_search_terms() override { return {"mod sample"}; }
     // Mod::ModType get_mod_type() override { return SLOW; };
 

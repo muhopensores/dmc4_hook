@@ -113,30 +113,32 @@ void ArcadeMode::on_gui_frame(int display) {
             }
         }
         ImGui::SameLine();
-        help_marker(_("When opening the game or returning to the mission select screen, the game will load these settings\n"
+        help_marker(_("When opening the game or returning to the mission select screen, the game will load these settings.\n"
             "You can also start dmc4 with steam launch options, using something like\n"
             "-arcade -difficulty 3 -mission 12 (DMD, M12), or\n"
-            "-arcade -character 6 -bp 4 (Nero, BP floor 4)"));
+            "-arcade -character 6 -bp 4 (Nero, BP floor 4).\n"
+            "If you do not use a Steam copy, you can use cmd or a bat file beginning with DevilMayCry4_DX9.exe.\n"
+            "Using custom launch options will auto-tick \"Fast Game Load\" in the System tab"));
 
         if (mod_enabled) {
             ImGui::Indent(lineIndent);
             static const char* char_names[8]{
-                //_("Dante"),
-                // __("Dante - Auto"),
-                // __("Super Dante"),
-                // __("Super Dante - Auto"),
-                // __("Nero"), // 6?
-                // __("Nero - Auto"),
-                // __("Super Nero"),
-                // __("Super Nero - Auto"),
-                __("Dante"),
-                __("Dante"),
-                __("Dante"),
-                __("Dante"),
-                __("Nero"),
-                __("Nero"),
-                __("Nero"),
-                __("Nero"),
+                //_("Dante"), // 0
+                // __("Dante - Auto"), // 1
+                // __("Super Dante"), // 2
+                // __("Super Dante - Auto"), // 3
+                // __("Nero"), // 4
+                // __("Nero - Auto"), // 5
+                // __("Super Nero"), // 6
+                // __("Super Nero - Auto"), // 7
+                __("Dante"), // 0
+                __("Dante"), // 1
+                __("Dante"), // 2
+                __("Dante"), // 3
+                __("Nero"), // 4
+                __("Nero"), // 5
+                __("Nero"), // 6
+                __("Nero"), // 7
             };
 
             if (ImGui::Combo(_("Character"), (int*)&g_our_mission_menu.character, char_names, 8)) {
