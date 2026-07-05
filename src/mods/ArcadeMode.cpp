@@ -2,14 +2,23 @@
 
 #include "sdk/uMissionMenu.hpp"
 #include "sdk/uMissionStart.hpp"
+#include "sdk/Devil4.hpp"
+#include "sdk/sArea.hpp"
+#include "sdk/aGame.hpp"
+
+#include "mods/FastStart.hpp"
 
 #include "utility/CommandLineArgs.hpp"
+#include "AreaJump.hpp"
+
+#define ARCADE_BP_DIFF 7
 
 bool ArcadeMode::mod_enabled            = false;
 bool ArcadeMode::launched_via_cmd       = false;
 bool ArcadeMode::user_modified_settings = false;
 
 static uMissionMenu g_our_mission_menu{};
+static int g_bp_floor = 0;
 
 void uMissionMenu_our_set_mission_num(int mission) {
     if ((mission < 1) || (mission > 20)) {
@@ -55,8 +64,20 @@ bool __fastcall uMissionStart_check_start_flag_sub_89F4C0(uMissionMenu* mission_
 
 bool __fastcall uBloodyPalaceStart_check_start_sub_854050(uBloodyPalaceStart* bp) {
     if (ArcadeMode::mod_enabled || ArcadeMode::launched_via_cmd) {
+        if (g_bp_floor > 0) {
+            auto* stage = AreaJump::bp_stage(g_bp_floor);
+            sArea* sap  = devil4_sdk::get_sArea();
+            assert(sap);
+            aGame* agp = sap->aGamePtr;
+            assert(agp);
+            agp->room_id  = stage->id;
+            agp->bp_floor = g_bp_floor;
+            agp->init_jump = 1;
+        }
+
         return true;
     }
+
     return bp->flags == 2;
 }
 
@@ -165,17 +186,33 @@ void ArcadeMode::on_config_load(const utility::Config& cfg) {
     uMissionMenu_our_set_mission_num(g_our_mission_menu.hum);
 
     if (utility::check_argument("-arcade")) {
+        FastStart::set_bools(true);
+
         launched_via_cmd  = true;
         mod_enabled       = true;
+
         uint32_t arg_char = utility::get_argument("-character");
-        if (arg_char > 0)
+        if (arg_char > 0) {
             g_our_mission_menu.character = arg_char;
+        }
         uint32_t arg_cursor = utility::get_argument("-difficulty");
-        if (arg_cursor > 0)
+        if (arg_cursor > 0) {
             g_our_mission_menu.cursor = arg_cursor;
+        }
+        if (utility::check_argument("-bp")) {
+            arg_cursor = ARCADE_BP_DIFF;
+            g_our_mission_menu.cursor = ARCADE_BP_DIFF;
+        }
         int arg_mission = utility::get_argument("-mission");
-        if (arg_mission > 0)
+        if (arg_mission > 0) {
             uMissionMenu_our_set_mission_num(arg_mission);
+        }
+        if (arg_cursor == ARCADE_BP_DIFF) {
+            int arg_floor = utility::get_argument("-floor");
+            if (arg_floor > 0) {
+                g_bp_floor = arg_floor;
+            }
+        }
     }
 
     if (mod_enabled || launched_via_cmd) {

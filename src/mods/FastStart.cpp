@@ -12,6 +12,12 @@ static uintptr_t jmp_ret_u_fade = NULL;
 
 constexpr float fade_amount = 999.0f;
 
+void FastStart::set_bools(bool enabled) {
+    mod_enabled = enabled;
+    skip_fades = enabled;
+    skip_more_fades = enabled;
+}
+
 static bool check_class_name(MtDTI* dti) {
 	char* a_title = "aInit";
 	return strcmp(dti->m_name, a_title) == 0;

@@ -15,6 +15,8 @@ public:
 
     void on_gui_frame(int display) override;
 
+    static void set_bools(bool enabled);
+
 private:
     std::unique_ptr<FunctionHook> hook_dti;
     std::unique_ptr<FunctionHook> hook_u_fade;
