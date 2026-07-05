@@ -95,7 +95,7 @@ static void WINAPI startup_proc() {
 
     patch_more_memories();
 
-#ifndef NDEBUG
+#ifndef NDEBUG // TODO(deep): freopen_s fails for me in debug, doubt anyone else cares though
     AllocConsole();
     HANDLE handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD console_mode{0};
@@ -133,7 +133,13 @@ static int start_hook() {
 #endif // !NDEBUG
 
     startup_proc();
-
+    if (IsDebuggerPresent()) {
+        static constexpr uintptr_t security_init_cookie_ = 0x00B53D9A;
+        static constexpr uintptr_t tmain_CRT_startup_ = 0x00B53BBA;
+        __asm {
+            jmp  tmain_CRT_startup_
+        }
+    }
     return g_start_hook->get_original<decltype(start_hook)>()();
 }
 
