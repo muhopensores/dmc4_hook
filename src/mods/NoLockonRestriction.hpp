@@ -17,5 +17,5 @@ public:
     void on_gui_frame(int display) override;
 
 private:
-    std::unique_ptr<Patch> patch1;
+    std::unique_ptr<Patch> patch1, patch2;
 };

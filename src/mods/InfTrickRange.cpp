@@ -8,10 +8,12 @@ std::optional<std::string> InfTrickRange::on_initialize() {
 
 void InfTrickRange::toggle(bool enable) {
     if (enable) {
-        install_patch_offset(0x003CB0A8, patch, "\x90\x90\x90", 3);
+        install_patch_offset(0x3CB0A8, patch, "\x90\x90\x90", 3); // horizontal
+        install_patch_offset(0x3CB0D3, patch2, "\x90\x90\x90", 3); // vertical
     }
     else {
         patch.reset();
+        patch2.reset();
     }
 }
 

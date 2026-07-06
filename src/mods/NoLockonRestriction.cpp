@@ -5,8 +5,10 @@ bool NoLockonRestriction::mod_enabled = false;
 void NoLockonRestriction::toggle(bool enable) {
     if (enable) {
         install_patch_offset(0x510C0, patch1, "\x90\x90", 2);
+        install_patch_offset(0x48FBAB, patch2, "\x90\x90\x90\x90\x90\x90", 6); // snatch pads activate for dante
     } else {
         patch1.reset();
+        patch2.reset();
     }
 }
 

@@ -8,8 +8,10 @@ public:
     // Mod::ModType get_mod_type() override { return SLOW; };
 
     static bool mod_enabled;
+    static bool chart_enabled;
     static uintptr_t jmp_ret1;
     static uintptr_t jmp_ret2;
+    static uintptr_t jmp_ret3;
     static ImVec2 windowPos;
 
     void on_frame(fmilliseconds& dt) override;
@@ -22,5 +24,5 @@ public:
 
 private:
     // std::unique_ptr<Patch> patch1;
-    std::unique_ptr<FunctionHook> hook1, hook2;
+    std::unique_ptr<FunctionHook> hook1, hook2, hook3;
 };

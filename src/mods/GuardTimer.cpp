@@ -18,7 +18,6 @@ float GuardTimer::lastGuardTime = 0.0f;
 static float guardTimeline = 0.0f;
 
 // chart colours
-// chart colours
 static constexpr ImColor failedBlockCol = {220, 0, 0, 255}; // red
 static constexpr ImColor perfectCol = {255, 215, 0, 255};  // gold
 static constexpr ImColor lateCol    = {184, 144, 16, 255}; // dark gold
