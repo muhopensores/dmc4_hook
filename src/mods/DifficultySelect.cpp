@@ -367,7 +367,7 @@ void DifficultySelect::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
         utility::ImGooListboxTranslated translated_names(difficulty_names.data(), difficulty_names.size());
         ImGui::PushItemWidth(sameLineItemWidth);
-        if (ImGui::BeginCombo(_("Difficulty ##Game Mode Combo"), translated_names.data()[game_difficulty])) {
+        if (ImGui::BeginCombo(_("Difficulty##Game Mode Combo"), translated_names.data()[game_difficulty])) {
             for (size_t i = 0; i < difficulty_names.size(); i++) {
                 bool is_selected = (game_difficulty == i);
                 if (ImGui::Selectable(translated_names.data()[i], is_selected)) {

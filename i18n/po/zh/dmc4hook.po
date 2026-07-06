@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 10:23+0100\n"
-"PO-Revision-Date: 2026-06-15 12:58+0800\n"
+"POT-Creation-Date: 2026-07-06 17:58+0100\n"
+"PO-Revision-Date: 2026-07-06 18:17+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -35,63 +35,63 @@ msgstr "训练"
 msgid "Practice"
 msgstr "练习"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:265
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:267
 msgid "Difficulty"
 msgstr "难度"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:291
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:295
 msgid "Game Mode"
 msgstr "游戏模式"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:314
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:324
 msgid "Character"
 msgstr "角色"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:325
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:335
 msgid "Nero"
 msgstr "尼禄"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:329
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:407
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:339
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:417
 msgid "Limit Removal"
 msgstr "限制去除"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:335
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:413
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:345
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:423
 msgid "Abilities"
 msgstr "技能类"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:357
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:517
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:367
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:528
 msgid "Speedups"
 msgstr "快速类"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:363
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:531
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:373
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:542
 msgid "Infinite"
 msgstr "无限类"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:373
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:505
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:383
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:516
 msgid "Accessibility"
 msgstr "便利类"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:377
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:553
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:387
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:564
 msgid "Selective Cancels"
-msgstr "可选取消"
+msgstr "可取消技"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:381
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:557
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:391
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:568
 msgid "Taunt Select"
 msgstr "嘲讽选择"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:385
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:561
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:395
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:572
 msgid "Memes"
 msgstr "整活类"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:403
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:413
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:25
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:143
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:197
@@ -100,153 +100,150 @@ msgstr "整活类"
 msgid "Dante"
 msgstr "但丁"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:467
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:478
 msgid "Lucifer"
 msgstr "路西法"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:482
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:493
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:161
 msgid "Rose"
 msgstr "玫瑰"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:490
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:501
 msgid "Pins"
 msgstr "爆炸剑"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:495
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:506
 msgid "Aerial grounded moves"
 msgstr "空放地"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:545
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:556
 msgid "Darkslayer"
 msgstr "黑暗杀手"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:584
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:595
 msgid "Environment"
 msgstr "环境"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:595
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:606
 msgid "Stage"
 msgstr "关卡"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:610
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:621
 msgid "Enemies"
 msgstr "敌人"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:614
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:625
 msgid "Enemy Spawner"
 msgstr "敌人生成"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:617
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:628
 msgid "Enemy Replacement"
 msgstr "敌人替换"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:634
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:647
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:645
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:658
 msgid "System"
 msgstr "系统"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:637
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:648
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:819
 msgid "dmc4_hook"
 msgstr "dmc4_hook"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:661
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:771
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:672
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:779
 msgid "Misc"
 msgstr "杂项"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:680
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:688
 msgid "Graphics"
 msgstr "图像"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:684
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:692
 msgid "Cutscenes"
 msgstr "过场动画"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:692
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:700
 msgid "HUD"
 msgstr "界面"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:700
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:706
 msgid "Custom HUD elements"
 msgstr "自定义界面元素"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:714
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:762
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:764
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:724
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:731
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:733
 msgid "Camera"
 msgstr "镜头"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:733
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:743
 msgid "Debug"
 msgstr "调试"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:737
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:747
 msgid "File Loading"
 msgstr "文件加载"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:741
-#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:64
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:751
+#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:62
 msgid "Noclip"
 msgstr "去除边界"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:747
-msgid "Multi-character Fixes"
-msgstr "多人修复"
-
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:751
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:755
 msgid "Stats"
 msgstr "状态"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:785
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:775
+msgid "Multi-character Fixes"
+msgstr "多人修复"
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:791
 msgid "Testing"
 msgstr "测试"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:787
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:793
 msgid "View ImGui Demo"
 msgstr "显示ImGui界面框架"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:799
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:805
 msgid "Hotkeys"
 msgstr "热键"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:810
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:816
 msgid "About"
 msgstr "关于"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:813
-msgid "DMC4Hook - Devil May Cry 4 Trainer"
-msgstr "DMC4Hook - 鬼泣4修改器"
-
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:824
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:830
 msgid "Translation:"
 msgstr "翻译："
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:825
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:831
 msgid "ttttchr"
 msgstr "创到"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:826
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:832
 msgid "raika87"
 msgstr "雷卡"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:829
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:835
 msgid "Special Thanks:"
 msgstr "特别鸣谢："
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:842
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:848
 msgid "For more info and updates visit the github:"
 msgstr "访问github来获取更多信息和更新："
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:847
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:853
 msgid "Frequently Asked Questions"
 msgstr "常见问题"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:849
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:855
 msgid "What mods do you recommend most?"
 msgstr "最推荐哪些修改项？"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:850
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:856
 msgid ""
 "\"Fast Game Load\" and neighbouring options in the \"System\" tab. Get from "
 "your Desktop to BP in 2 seconds."
@@ -254,11 +251,11 @@ msgstr ""
 "\"系统\" 选项卡里的 \"快速进入游戏\" 以及和它相邻的两个修改项。你两秒就能从电"
 "脑桌面进入血宫。"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:852
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:858
 msgid "Old mods I installed have suddenly turned on"
 msgstr "我之前装的mod突然生效了"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:853
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:859
 msgid ""
 "\"HDD File Priority\" is ticked on the Debug page. If your DMC4 install "
 "contains any files left over from old mods, this will load them. To clean up "
@@ -269,11 +266,11 @@ msgstr ""
 "DMC4 安装目录中包含任何老 MOD 遗留的文件，它们就会被加载。要清理目录，你需要"
 "手动删除文件，因为 Steam 验证不会检查新添加的文件。"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:857
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:863
 msgid "My combo points are stuck at 0"
 msgstr "我的风格点数一直是0"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:858
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:864
 msgid ""
 "\"Respawn Enemies when visiting the same room multiple times\" is ticked on "
 "the Debug page. If you didn't turn this on manually, it would have been auto "
@@ -282,90 +279,90 @@ msgstr ""
 "这是因为启用了 \"调试\" 选项卡中的 \"重进房间时重复刷怪\" 修改项。如果你没手"
 "动打开过，那么是因为当你使用 \"重新加载当前房间\" 热键时，它会自动启用。"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:861
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:867
 msgid "My camera is frozen"
 msgstr "我的镜头不动了"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:862
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:868
 msgid "The default hotkey for camera settings' freeze camera is Numpad 0."
 msgstr "\"冻结镜头\" 修改项的默认热键是小键盘 \"0\" 键。"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:864
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:870
 msgid "I crash entering mission 1"
 msgstr "我进第一关会崩溃"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:865
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:871
 msgid "\"Character Switcher\" crashes in this mission."
 msgstr "\"即时切人\" 修改项在这一关会导致崩溃。"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:867
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:873
 msgid "Payline is going through enemies"
 msgstr "斜戳会穿过敌人"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:868
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:874
 msgid "Tick \"HDD File Priority\""
 msgstr "启用 \"调试\" 选项卡的 \"优先加载硬盘文件\" 修改项。"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:870
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:876
 msgid "Enemies are white sometimes"
 msgstr "敌人有时会变成白色"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:871
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:877
 msgid "This is a known issue with \"HDD File Priority\""
 msgstr "这是 \"优先加载硬盘文件\" 修改项的一个已知问题。"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:880
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:886
 msgid "This trainer was made using:"
 msgstr "此修改器用以下工具制作："
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:900
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:901
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:906
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:907
 msgid "Licenses"
 msgstr "许可"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:933
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:939
 msgid "Search"
 msgstr "搜索"
 
-#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:330
+#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:334
 #, c-format
 msgid "Version: %s"
 msgstr "版本：%s"
 
-#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:331
+#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:335
 #, c-format
 msgid "Date: %s"
 msgstr "日期：%s"
 
-#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:333
+#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:337
 msgid "Menu Key: Delete"
 msgstr "菜单键：Delete"
 
-#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:335
+#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:339
 msgid "Save config"
 msgstr "保存设置"
 
-#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:394
+#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:398
 msgid "dmc4_hook (Keyboard)"
 msgstr "dmc4_hook（键盘）"
 
-#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:403
+#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:407
 msgid "dmc4_hook (Pad)"
 msgstr "dmc4_hook（手柄）"
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:512
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:522
 msgid "Keys will probably show up only on US keyboard layouts."
 msgstr "按键可能只在美国键盘布局上显示。"
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:513
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:523
 msgid "We use MapVirtualKeyA();"
 msgstr "我们使用 MapVirtualKeyA() 函数；"
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:514
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:524
 msgid "Making sure dear imgui renders unicode properly is complicated"
 msgstr "保证 Dear Imgui 正确渲染 unicode 编码是很麻烦的"
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:515
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:525
 msgid "please understand. ;_;"
 msgstr "请理解。;_;"
 
@@ -393,21 +390,20 @@ msgstr "权重"
 msgid "How often mod will randomly appear during voting"
 msgstr "通过弹幕投票随机生成对应怪物的频率"
 
-#: C:\vs_projects\dmc4_hook\src\mods\ActiveBlock.cpp:50
+#: C:\vs_projects\dmc4_hook\src\mods\ActiveBlock.cpp:67
 msgid "Active Block"
 msgstr "硬直中防御"
 
-#: C:\vs_projects\dmc4_hook\src\mods\ActiveBlock.cpp:52
+#: C:\vs_projects\dmc4_hook\src\mods\ActiveBlock.cpp:69
 msgid ""
-"Block during uncancellable frames by pressing style while in Royal Guard or "
-"Darkslayer"
-msgstr "RG 或黑暗杀手风格下可以在动作硬直时防御"
+"Block during uncancellable frames by pressing style while in Royal Guard"
+msgstr "RG风格下，按风格键可在硬直状态中防御"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AerialDrive.cpp:273
+#: C:\vs_projects\dmc4_hook\src\mods\AerialDrive.cpp:276
 msgid "Aerial Drive"
 msgstr "空中剑气"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AerialDrive.cpp:277
+#: C:\vs_projects\dmc4_hook\src\mods\AerialDrive.cpp:280
 msgid "Allow Dante to use Drive in the air"
 msgstr "允许但丁在空中释放剑气"
 
@@ -439,7 +435,7 @@ msgstr "天使牵引"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AngelSnatch.cpp:221
 msgid "Mapped to forward + snatch"
-msgstr "锁定+前+鬼手"
+msgstr "指令为锁定 + 前 + 鬼手"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:141
 msgid "Animation Overlay"
@@ -464,9 +460,113 @@ msgid ""
 "hitstop timer."
 msgstr "显示更底层的信息，例如动画库、原始落地标志以及受击停顿计时器"
 
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:107
+msgid "Dante##0"
+msgstr "但丁##0"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:108
+msgid "Dante##1"
+msgstr "但丁##1"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:109
+msgid "Dante##2"
+msgstr "但丁##2"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:110
+msgid "Dante##3"
+msgstr "但丁##3"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:111
+msgid "Nero##4"
+msgstr "尼禄##4"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:112
+msgid "Nero##5"
+msgstr "尼禄##5"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:113
+msgid "Nero##6"
+msgstr "尼禄##6"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:114
+msgid "Nero##7"
+msgstr "尼禄##7"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:118
+msgid "Human##Arcade"
+msgstr "人类##Arcade"
+
 #: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:119
-msgid "Enable arcade mode"
-msgstr "启用战役模式"
+msgid "Devil Hunter##Arcade"
+msgstr "恶魔猎人##Arcade"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:120
+msgid "Son Of Sparda##Arcade"
+msgstr "斯巴达之子##Arcade"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:121
+msgid "Dante Must Die##Arcade"
+msgstr "但丁必死\"##Arcade"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:122
+msgid "Legendary Dark Knight##Arcade"
+msgstr "黑骑士##Arcade"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:123
+msgid "Heaven Or Hell (SOS)##Arcade"
+msgstr "天堂或地狱（SOS）##Arcade"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:124
+msgid "Hell And Hell (SOS)##Arcade"
+msgstr "轮回地狱（SOS）##Arcade"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:125
+msgid "Bloody Palace##Arcade"
+msgstr "血宫##Arcade"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:126
+msgid "Story Theater##Arcade"
+msgstr "剧情剧场##Arcade"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:134
+msgid "Arcade"
+msgstr "街机模式"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:148
+msgid ""
+"When opening the game or returning to the mission select screen, the game "
+"will load these settings.\n"
+"You can also start dmc4 with steam launch options, using something like\n"
+"-arcade -difficulty 3 -mission 12 (DMD, M12), or\n"
+"-arcade -character 6 -bp 4 (Nero, BP floor 4).\n"
+"If you do not use a Steam copy, you can use cmd or a bat file beginning with "
+"DevilMayCry4_DX9.exe.\n"
+"Using custom launch options will auto-tick \"Fast Game Load\" in the System "
+"tab"
+msgstr ""
+"当打开游戏或返回关卡菜单时，游戏将加载这些设置。\n"
+"你还可以使用 steam 启动选项启动 dmc4，填写如下命令\n"
+"-arcade -difficulty 3 -misson 12（DMD、M12）或\n"
+"-arcade -character 6 -bp 4（尼禄、血宫第4层）\n"
+"如果你不使用 steam 副本，则可以使用 cmd 或以 DevilMayCry4_DX9.exe 开头的 bat "
+"文件。\n"
+"使用自定义启动选项将在“系统”选项卡中自动勾选“快速游戏加载”"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:160
+msgid "Character##Arcade Mode Combo"
+msgstr "角色##Arcade Mode Combo"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:175
+msgid "Floor"
+msgstr "层数"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:185
+msgid "Mission"
+msgstr "关卡"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ArcadeMode.cpp:193
+msgid "Difficulty##Arcade Mode Combo"
+msgstr "难度##Arcade Mode Combo"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:20
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:124
@@ -736,7 +836,7 @@ msgstr "圣之核心 [腐化教皇]"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:84
 msgid "Sky Above Fortuna (M18)"
-msgstr ""
+msgstr "潜伏者内部（M18）"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:85
 msgid "Sky Above Fortuna"
@@ -930,35 +1030,35 @@ msgstr "天使化克雷多"
 msgid "Angelo Agnus"
 msgstr "天使化阿格纳斯"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:731
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:734
 msgid "Restart BP stage"
 msgstr "重开当前层"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:732
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:735
 msgid "Next BP stage"
 msgstr "进入下一层"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:811
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:814
 msgid "Bloody Palace"
 msgstr "血宫"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:819
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:822
 msgid "Save BP Progress"
 msgstr "保存血宫进度"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:842
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:845
 msgid "Save stage, timer, orbs, hp, dt, style points"
 msgstr "保存层数，时间，红魂数，血量，魔力值，评价点数"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:844
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:847
 msgid "Teleport"
 msgstr "传送"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:849
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:852
 msgid "Load BP Progress"
 msgstr "加载血宫进度"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:863
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:866
 msgid ""
 "Press Load after loading into BP\n"
 "Loads saved stage, timer, orbs, hp, dt, style points"
@@ -966,33 +1066,33 @@ msgstr ""
 "进入血宫后点击加载按钮\n"
 "加载已保存的层数，时间，红魂数，血量，魔力值，评价点数"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:869
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:872
 #, c-format
 msgid "Stage %d: %s"
 msgstr "层数 %d: %s"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:871
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:874
 #, c-format
 msgid "Stage %d: Empty"
 msgstr "层数 %d: Empty"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:875
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:878
 msgid "Mission Area Teleports"
 msgstr "场景跳跃"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:908
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:911
 msgid "Random BP"
 msgstr "随机血宫模式"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:913
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:916
 msgid "All stages will be randomized"
 msgstr "所有层数都会被打乱"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:915
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:918
 msgid "BP Boss Rush"
-msgstr "血宫Boss Rush"
+msgstr "血宫 Boss Rush"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:917
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:920
 msgid ""
 "Only boss stages will be played\n"
 "Enable before selecting BP"
@@ -1000,15 +1100,15 @@ msgstr ""
 "只进入 Boss 层\n"
 "需在进入血宫前启用"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:920
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:923
 msgid "View Randomized Stages"
 msgstr "预览打乱后的层数"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:921
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:924
 msgid "Stage Number"
 msgstr "真实层数"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:923
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:926
 msgid "Random Stage"
 msgstr "打乱后层数"
 
@@ -1033,16 +1133,15 @@ msgstr "教皇"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:192
 msgid "Sanctus2"
-msgstr "教皇2"
+msgstr "教皇 2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:194
 msgid "Savior3"
 msgstr "救世主 3"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:195
-#, fuzzy
 msgid "Style checker"
-msgstr "风格检查器（？）"
+msgstr "风格雕像"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:196
 msgid "Kyrie, pl022"
@@ -1055,6 +1154,14 @@ msgstr "防止未魔化蜥蜴脱离"
 #: C:\vs_projects\dmc4_hook\src\mods\AssaultsDontJump.cpp:52
 msgid "Disable Assaults jumping out of combos until they Devil Trigger"
 msgstr "防止未魔化的蜥蜴脱离空连，直到它魔化"
+
+#: C:\vs_projects\dmc4_hook\src\mods\BackForwardQuickDrive.cpp:26
+msgid "Backforward Quickdrive"
+msgstr "后前快速剑气"
+
+#: C:\vs_projects\dmc4_hook\src\mods\BackForwardQuickDrive.cpp:30
+msgid "Replace melee+style input with backforward+melee"
+msgstr "以后前指令代替原本的近战 + 风格指令"
 
 #: C:\vs_projects\dmc4_hook\src\mods\BackgroundRendering.cpp:79
 msgid "Background Input"
@@ -1098,7 +1205,7 @@ msgstr "无边框全屏"
 
 #: C:\vs_projects\dmc4_hook\src\mods\Borderless.cpp:134
 msgid "Only applies if in windowed. Hit Alt+Enter to toggle to windowed."
-msgstr "只对窗口模式生效。按Alt + Enter切回至窗口模式。"
+msgstr "只对窗口模式生效。按 Alt + Enter 切回至窗口模式。"
 
 #: C:\vs_projects\dmc4_hook\src\mods\BpPortal.cpp:18
 msgid "Open BP Portal / Red Seal"
@@ -1217,8 +1324,7 @@ msgstr "距离（锁定）"
 
 #: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:484
 #: C:\vs_projects\dmc4_hook\src\mods\CameraSettings.cpp:515
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:551
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:926
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:604
 msgid "Angle"
 msgstr "角度"
 
@@ -1289,45 +1395,45 @@ msgstr "向下倾斜相机"
 msgid "Dolly Camera Out"
 msgstr "拉远相机"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharacterSwap.cpp:84
+#: C:\vs_projects\dmc4_hook\src\mods\CharacterSwap.cpp:95
 msgid "Character Select in any mission"
 msgstr "任意关卡选择人物"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharacterSwap.cpp:88
+#: C:\vs_projects\dmc4_hook\src\mods\CharacterSwap.cpp:99
 msgid "Does not work for M1"
 msgstr "在 M1 不管用"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharacterSwap.cpp:90
+#: C:\vs_projects\dmc4_hook\src\mods\CharacterSwap.cpp:101
 msgid "Prefer Dante"
 msgstr "偏好但丁"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharacterSwap.cpp:94
+#: C:\vs_projects\dmc4_hook\src\mods\CharacterSwap.cpp:105
 msgid ""
 "On character select screens where both characters are selectable, prefer "
 "Dante to Nero"
 msgstr "在两人都可选的关卡中优先调出但丁"
 
-#: C:\vs_projects\dmc4_hook\src\mods\ChargeChecker.cpp:104
+#: C:\vs_projects\dmc4_hook\src\mods\ChargeChecker.cpp:103
 msgid "Fast Round Trip Charge"
 msgstr "快速丢剑蓄力"
 
-#: C:\vs_projects\dmc4_hook\src\mods\ChargeChecker.cpp:106
+#: C:\vs_projects\dmc4_hook\src\mods\ChargeChecker.cpp:105
 msgid "Half the charge time on Round Trip"
 msgstr "使丢剑所需蓄力时间减半"
 
-#: C:\vs_projects\dmc4_hook\src\mods\ChargeChecker.cpp:109
+#: C:\vs_projects\dmc4_hook\src\mods\ChargeChecker.cpp:108
 msgid "Fast Blue Rose Charge"
 msgstr "快速蓄枪"
 
-#: C:\vs_projects\dmc4_hook\src\mods\ChargeChecker.cpp:111
+#: C:\vs_projects\dmc4_hook\src\mods\ChargeChecker.cpp:110
 msgid "Half the charge time on Blue Rose"
 msgstr "使蓄枪所需时间减半"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:756
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:766
 msgid "Character Switcher"
 msgstr "即时切人"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:760
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:771
 msgid ""
 "Enable before loading into a stage\n"
 "On keyboard this is currently locked to F\n"
@@ -1341,45 +1447,49 @@ msgstr ""
 "- 锁定会稍微不正确\n"
 "- 风格评级以两倍速度衰减\n"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:768
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:779
 msgid "Input 1"
 msgstr "绑定键 1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:781
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:792
 msgid "Set a button combo to trigger the switch"
 msgstr "设定组合键来触发切人（同时按下两个绑定键）"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:782
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:793
 msgid "Input 2"
 msgstr "绑定键 2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:796
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:807
 msgid "Inertia carryover"
 msgstr "惯性保留"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:800
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:811
 msgid "Enable inertia carryover on switching"
 msgstr "切人时保留当前惯性"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:644
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:704
 msgid "Coop mode"
 msgstr "双人模式"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:663
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:723
 msgid "Enable split-screen co-op."
 msgstr "启用双人分屏显示"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:666
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:726
 msgid "Player Number"
 msgstr "玩家编号"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:735
-msgid "Spawn Nero##Coop"
-msgstr ""
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:749
+msgid "Picking Dante while you are Nero will crash. The opposite is fine"
+msgstr "游玩尼禄时选择但丁会崩溃，反之则正常"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:742
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:756
+msgid "Spawn Nero##Coop"
+msgstr "生成尼禄##Coop"
+
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:763
 msgid "Spawn Dante##Coop"
-msgstr ""
+msgstr "生成但丁##Coop"
 
 #: C:\vs_projects\dmc4_hook\src\mods\CrossGunCharge.cpp:22
 msgid "Cross Gun Charge"
@@ -1389,34 +1499,34 @@ msgstr "枪械蓄力保留"
 msgid "Changing gun doesn't empty your charge"
 msgstr "切枪不会清空蓄力效果"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CustomModelFix.cpp:64
+#: C:\vs_projects\dmc4_hook\src\mods\CustomModelFix.cpp:62
 msgid "Custom Nero Model Fix"
 msgstr "尼禄自定模型修复"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CustomModelFix.cpp:66
+#: C:\vs_projects\dmc4_hook\src\mods\CustomModelFix.cpp:64
 msgid "Remove exploding shadows on Nero mods"
 msgstr "修复尼禄模型 mod 的阴影光照"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CustomModelFix.cpp:68
+#: C:\vs_projects\dmc4_hook\src\mods\CustomModelFix.cpp:66
 msgid "Custom Dante Model Fix"
 msgstr "但丁自定模型修复"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CustomModelFix.cpp:70
+#: C:\vs_projects\dmc4_hook\src\mods\CustomModelFix.cpp:68
 msgid "Remove exploding shadows on Dante mods"
 msgstr "修复但丁模型 mod 的阴影光照"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CustomModelFix.cpp:72
+#: C:\vs_projects\dmc4_hook\src\mods\CustomModelFix.cpp:70
 msgid "Force Default Face Plate"
 msgstr "强制默认模型表情"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CustomModelFix.cpp:76
+#: C:\vs_projects\dmc4_hook\src\mods\CustomModelFix.cpp:74
 msgid ""
 "Force the character face that shows when not attacking or getting hurt so "
 "cutscene face mods display correctly"
 msgstr ""
 "强制玩家的模型使用默认表情（未受击或攻击），以便 CG 脸部模型 mod 可以正常生效"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CustomProjectile.cpp:366
+#: C:\vs_projects\dmc4_hook\src\mods\CustomProjectile.cpp:364
 msgid "Requires \"HDD File Priority\" at the top of the Debug page"
 msgstr "需启用 \"调试\" 选项卡顶部的 \"优先加载硬盘文件\" 修改项"
 
@@ -1426,7 +1536,7 @@ msgstr "暂停过场动画"
 
 #: C:\vs_projects\dmc4_hook\src\mods\CutscenePause.cpp:35
 msgid "The hotkey is PAUSE BREAK by default"
-msgstr "默认热键为Pause键"
+msgstr "默认热键为 Pause 键"
 
 #: C:\vs_projects\dmc4_hook\src\mods\CutscenePause.cpp:42
 msgid "Cutscene Progress"
@@ -1448,11 +1558,11 @@ msgstr "跳过关卡开场动画"
 msgid "Skip Mission Outros"
 msgstr "跳过关卡结束动画"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:559
+#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:558
 msgid "Download Judgement Cut Files"
 msgstr "下载次元斩文件"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:563
+#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:562
 msgid ""
 "Clicking this button will open https://github.com/muhopensores/dmc4_hook/"
 "releases\n"
@@ -1471,11 +1581,11 @@ msgstr ""
 "前启用 \"调试\" 选项卡顶部的 \"优先加载硬盘文件\" 修改项\n"
 "这个修改项让但丁可以用出次元斩"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:570
+#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:569
 msgid "Judgement Cut"
 msgstr "次元斩"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:573
+#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:572
 msgid ""
 "Activate judgement cut when performing Yamato aerial rave with lock-"
 "on.Perform normal inertia-less Yamato rave on lock-off\n"
@@ -1484,23 +1594,23 @@ msgstr ""
 "带锁定的阎魔空削 1 将会释放次元斩。不带锁定则仍然是原本的无惯性阎魔空削。\n"
 "需启用 \"调试\" 选项卡顶部的 \"优先加载硬盘文件\" 修改项"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:578
+#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:577
 msgid "Lock-on + back input"
 msgstr "锁后指令"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:580
+#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:579
 msgid "Bind jdc activation to lock-on + back"
-msgstr "绑定指令为锁定+后+风格"
+msgstr "绑定指令为锁定 + 后 + 风格"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:581
+#: C:\vs_projects\dmc4_hook\src\mods\DanteJdc.cpp:580
 msgid "Inertia enable"
 msgstr "启用惯性"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DarkSoulsStamina.cpp:212
+#: C:\vs_projects\dmc4_hook\src\mods\DarkSoulsStamina.cpp:215
 msgid "Stamina"
 msgstr "体力条"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DarkSoulsStamina.cpp:214
+#: C:\vs_projects\dmc4_hook\src\mods\DarkSoulsStamina.cpp:217
 msgid "I played a lot of Dark Souls recently and thought this would be funny"
 msgstr "最近黑暗之魂玩多了，我觉得会很好玩"
 
@@ -1629,8 +1739,8 @@ msgid "God Must Die"
 msgstr "上帝必死"
 
 #: C:\vs_projects\dmc4_hook\src\mods\DifficultySelect.cpp:370
-msgid "Difficulty ##Game Mode Combo"
-msgstr "难度"
+msgid "Difficulty##Game Mode Combo"
+msgstr "难度##AGame Mode Combo"
 
 #: C:\vs_projects\dmc4_hook\src\mods\DifficultySelect.cpp:385
 msgid ""
@@ -1711,7 +1821,7 @@ msgid ""
 "Enemies will take longer to DT than with the SpoilerAL difficulty.\n"
 "Applied when starting BP"
 msgstr ""
-"使血宫敌人具有 DMD 等级防御值，并且会魔化，但没有 DMD 等级的AI\n"
+"使血宫敌人具有 DMD 等级防御值，并且会魔化，但没有 DMD 等级的 AI\n"
 "敌人魔化会比 SpoilerAL 难度更慢\n"
 "进入血宫时生效"
 
@@ -1727,15 +1837,15 @@ msgstr ""
 "使敌人具有 DMD 等级 AI，不改变防御值，不允许它们魔化\n"
 "敌人生成时生效"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:166
+#: C:\vs_projects\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:165
 msgid "Double Tap Darkslayer"
 msgstr "双击黑暗杀手"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:168
+#: C:\vs_projects\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:167
 msgid "Darkslayer is accessed by quickly pressing one style twice"
 msgstr "快速双击切换风格键切到黑暗杀手风格"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:172
+#: C:\vs_projects\dmc4_hook\src\mods\DoubleTapDarkslayer.cpp:171
 msgid "Double Tap Timer"
 msgstr "双击计时器"
 
@@ -1747,11 +1857,11 @@ msgstr "魔化敌人无视硬直"
 msgid "Stop enemies from receiving stun from most attacks"
 msgstr "大部分攻击判定不再使敌人硬直"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:826
+#: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:825
 msgid "Download Guardian Devil Files"
 msgstr "下载替身攻击必需文件"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:830
+#: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:829
 msgid ""
 "Clicking this button will open https://github.com/muhopensores/dmc4_hook/"
 "releases\n"
@@ -1771,11 +1881,11 @@ msgstr ""
 "前启用 \"调试\" 选项卡顶部的 \"优先加载硬盘文件\" 修改项\n"
 "此修改项允许你在按下绑定键时令尼禄释放替身攻击"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:837
+#: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:836
 msgid "Guardian Devil"
 msgstr "替身攻击"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:841
+#: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:840
 msgid ""
 "On keyboard this is currently locked to T.\n"
 "Triggers a stand attack when you input the selected button.\n"
@@ -1783,22 +1893,22 @@ msgid ""
 msgstr ""
 "键盘固定按 T 键触发\n"
 "按下绑定键时尼禄会释放替身攻击\n"
-"锁定+后 / 前+绑定键可用出其他攻击"
+"锁定 + 后 / 前 + 绑定键可用出其他攻击"
 
-#: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:846
+#: C:\vs_projects\dmc4_hook\src\mods\DtKnuckle.cpp:845
 msgid "Guardian Input"
 msgstr "替身攻击绑定键"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EasyJc.cpp:39
 #: C:\vs_projects\dmc4_hook\src\mods\EasyJc.cpp:44
 msgid "Easy Enemy Step"
-msgstr "扩大JC踩点"
+msgstr "扩大 JC 踩点"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EasyJc.cpp:41
 #: C:\vs_projects\dmc4_hook\src\mods\EasyJc.cpp:46
 #, c-format
 msgid "50%% bigger Enemy Step hitspheres"
-msgstr "使敌人的JC踩点扩大50%%"
+msgstr "使敌人的 JC 踩点扩大50%%"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EffectColours.cpp:41
 msgid "Custom Effect Colours"
@@ -2031,13 +2141,26 @@ msgstr "生成火狗"
 msgid "Random"
 msgstr "随机"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:536
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:538
 msgid "[DEBUG] Custom Spawn Addr"
 msgstr "[调试] 自定义刷怪地址"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:538
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:540
 msgid "Spawn"
 msgstr "生成"
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:545
+msgid "[DEBUG] Load arc file"
+msgstr "[调试] 加载 arc 文件"
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:547
+msgid "e.g. rom/room/st405"
+msgstr "例如 rom/room/st405"
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:549
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5063
+msgid "Load"
+msgstr "加载"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:125
 msgid "Is enemy step possible?"
@@ -2075,51 +2198,51 @@ msgstr "用来检查连段中能否 JC"
 msgid "Show Extra Info"
 msgstr "显示额外信息"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:185
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:184
 msgid "Save Enemy Stats"
 msgstr "保存敌人状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:186
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:185
 msgid "Apply Enemy Stats"
 msgstr "应用敌人状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:187
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:186
 msgid "Save Boss Stats"
 msgstr "保存 Boss 状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:188
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:187
 msgid "Apply Boss Stats"
 msgstr "应用 Boss 状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:284
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:283
 msgid "[OLD] Display Enemy Stats"
 msgstr "[旧版] 显示敌人状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:286
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:285
 msgid "[DEBUG] Flying Spheres"
-msgstr "[调试] 飞行球体"
+msgstr "[调试] 悬浮球体"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:288
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:287
 msgid ""
 "Sphere in the middle is clickable!\n"
 "These are random sizes for proof of concept"
 msgstr ""
 "中间的球体可以点击！\n"
-"这些球是随机大小的，是便于给开发组内讲解绘制球体的概念用的"
+"这些球是随机大小的"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:289
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:288
 msgid "[DEBUG] Flying Ad"
 msgstr "[测试] 悬浮水印"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:291
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:290
 msgid "Makes the UI flicker :("
-msgstr "会导致UI闪烁:("
+msgstr "会导致UI闪烁 :("
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:308
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:307
 msgid "Save State"
 msgstr "保存状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:312
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:311
 msgid ""
 "Affects you and the enemy you have selected on this page\n"
 "Hotkey is HOME by default"
@@ -2127,11 +2250,11 @@ msgstr ""
 "影响玩家和在此页面选中的敌人\n"
 "默认热键是 HOME 键"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:314
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:313
 msgid "Load State"
 msgstr "加载状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:318
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:317
 msgid ""
 "Affects you and the enemy you have selected on this page\n"
 "Hotkey is END by default"
@@ -2139,222 +2262,266 @@ msgstr ""
 "影响玩家和在此页面选中的敌人\n"
 "默认热键是 END 键"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:325
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:324
 msgid "Enemy Count"
 msgstr "敌人数量"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:327
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:326
 msgid "Enemy Select"
 msgstr "敌人选择"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:328
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:327
 msgid "Find Locked On Enemy In List"
-msgstr "在列表里寻找锁定的敌人"
+msgstr "选择正在锁定的敌人"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:344
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:343
 msgid "HP##2"
 msgstr "血量##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:345
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:344
 msgid "Max HP##2"
 msgstr "血量上限##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:346
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:345
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1067
 msgid "Previous Hit Dealt"
 msgstr "上一次攻击的血量消耗"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:347
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:346
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1068
 msgid "Stun 1##2"
 msgstr "硬直 1##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:348
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:347
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1069
 msgid "Stun 2##2"
 msgstr "硬直 2##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:349
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:348
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1070
 msgid "Stun 3##2"
 msgstr "硬直 3##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:350
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:349
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1071
 msgid "Stun 4##2"
 msgstr "硬直 4##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:351
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:350
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1072
 msgid "Stun 5##2"
 msgstr "硬直 5##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:352
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:351
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1073
 msgid "Displacement 1##2"
 msgstr "位移 1##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:353
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:352
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1074
 msgid "Displacement 2##2"
 msgstr "位移 2##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:354
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:353
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1075
 msgid "Displacement 3##2"
 msgstr "位移 3##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:355
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:354
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1076
 msgid "Displacement 4##2"
 msgstr "位移 4##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:356
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:355
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1077
 msgid "Displacement 5##2"
 msgstr "位移 5##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:357
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:356
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1078
 msgid "Unknown 1##2"
 msgstr "未知 1##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:358
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:357
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1079
 msgid "Unknown 2##2"
 msgstr "未知 2##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:359
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:358
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1080
 msgid "Unknown 3##2"
 msgstr "未知 3##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:360
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:359
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1081
 msgid "Unknown 4##2"
 msgstr "未知 4##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:361
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:360
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1082
 msgid "Unknown 5##2"
 msgstr "未知 5##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:362
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:361
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1083
 msgid "Unknown 6##2"
 msgstr "未知 6##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:363
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:362
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1084
 msgid "Unknown 7##2"
 msgstr "未知 7##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:364
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:363
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1085
 msgid "Unknown 8##2"
 msgstr "未知 8##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:366
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:365
 msgid "XYZ Position##2"
 msgstr "XYZ 位置##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:367
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:366
 msgid "XYZ Rotation##2"
 msgstr "XYZ 旋转##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:368
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:367
 msgid "XYZ Velocity##2"
 msgstr "XYZ 速度##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:369
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:368
 msgid "XYZ Scale##2"
 msgstr "XYZ 缩放##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:370
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:369
 msgid "Move ID##2"
 msgstr "动作 ID##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:371
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:370
 msgid "Move ID 2##2"
 msgstr "动作 ID 2##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:372
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:371
 msgid "Move Part##2"
 msgstr "动作部分##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:373
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:372
 msgid "Grounded##2"
 msgstr "是否落地##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:374
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:373
 msgid "Animation Frame##2"
 msgstr "动画帧##2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:375
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:374
 msgid "Saved Info"
-msgstr "已保存的详情"
+msgstr "已保存信息"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:376
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:375
 msgid "Enemy Move ID"
 msgstr "敌人动作 ID"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:377
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:376
 msgid "Enemy Move ID 2"
 msgstr "敌人动作 ID 2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:378
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:377
 msgid "Enemy Position"
 msgstr "敌人位置"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:379
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:378
 msgid "Enemy Rotation"
 msgstr "敌人旋转"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:380
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:379
 msgid "Enemy Velocity"
 msgstr "敌人速度"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:381
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:380
 msgid "Enemy Grounded"
 msgstr "敌人是否落地"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:387
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:386
 msgid "Enable Save/Load hotkeys"
-msgstr "启用保存/加载热键"
+msgstr "启用保存 / 加载热键"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:390
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:389
 msgid ""
 "Assuming default hotkeys,\n"
 "Home+End will save and load enemy attacks\n"
 "Page Up+Page Down will save and load boss attacks"
 msgstr ""
 "以默认热键举例\n"
-"HOME 键＋END 键会保存并加载敌人的攻击\n"
-"PgUp 键＋PgDown 键会保存并加载Boss的攻击"
+"Home 键 + End 键会保存并加载敌人的攻击\n"
+"PageUp 键 + PageDown 键会保存并加载 Boss 的攻击"
 
-#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:82
+#: C:\vs_projects\dmc4_hook\src\mods\EnvironmentalHazards.cpp:82
+msgid "Environmental Hazards"
+msgstr "环境陷阱"
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnvironmentalHazards.cpp:84
+msgid "BP Laser Hazard"
+msgstr "血宫电网"
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnvironmentalHazards.cpp:99
+#: C:\vs_projects\dmc4_hook\src\mods\EnvironmentalHazards.cpp:130
+msgid "Enable this with Survival for extra hazards"
+msgstr "需同时启用生存模式，才能启用额外陷阱"
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnvironmentalHazards.cpp:102
+msgid "Track player height"
+msgstr "追踪玩家高度"
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnvironmentalHazards.cpp:118
+msgid "BP Fire Pillar Hazards"
+msgstr "血宫火柱"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:153
 msgid ""
 "This slider shows how long before the exceed window started you pressed the "
 "exceed button. This is calculated by dmc4_hook"
 msgstr "此滑块显示你相对红刀点按下油门的时间"
 
-#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:85
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:156
 msgid ""
 "This slider shows a snapshot of what the exceed timer read when the exceed "
 "button was pressed"
 msgstr "此滑块显示红刀计时器的快照"
 
-#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:88
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:159
 msgid "This slider shows the exceed timer in realtime"
 msgstr "此滑块实时显示红刀计时器"
 
-#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:96
-msgid "Exceed Display"
-msgstr "红刀显示"
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:227
+msgid "Exceed Timing Display"
+msgstr "红刀时机显示"
 
-#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:98
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:229
 msgid "WIP, will be neater when more understood"
 msgstr "未完成，完成后会更直观"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:231
+msgid "Exceed Timing Chart"
+msgstr "红刀时机表"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:237
+msgid "See how early or late multiple exceed presses in a row were"
+msgstr "查看连续多次红刀过早或过晚"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:238
+#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:368
+msgid "Failed"
+msgstr "失败"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:239
+#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:369
+msgid "Late"
+msgstr "过晚"
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:240
+#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:370
+msgid "Perfect"
+msgstr "完美"
 
 #: C:\vs_projects\dmc4_hook\src\mods\ExceedLimiter.cpp:31
 msgid "Exceed Limiter"
@@ -2364,19 +2531,19 @@ msgstr "红刀限制"
 msgid "Attacks only use one bar of exceed if holding the exceed button"
 msgstr "按住红刀键时，攻击只会消耗一层红刀"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FasterFastDrive.cpp:22
+#: C:\vs_projects\dmc4_hook\src\mods\FasterFastDrive.cpp:21
 msgid "Fast Quick Drive"
 msgstr "立刻快速剑气"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FasterFastDrive.cpp:26
+#: C:\vs_projects\dmc4_hook\src\mods\FasterFastDrive.cpp:25
 msgid "Quick Drive skips the initial slash"
 msgstr "使快速剑气跳过第一刀平砍"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FasterFastDrive.cpp:29
+#: C:\vs_projects\dmc4_hook\src\mods\FasterFastDrive.cpp:28
 msgid "Easy Quick Drive"
 msgstr "简易快速剑气"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FasterFastDrive.cpp:31
+#: C:\vs_projects\dmc4_hook\src\mods\FasterFastDrive.cpp:30
 msgid "Prop is cancellable into quick drive until frame 7"
 msgstr "转剑的前七帧可以被快速剑气取消"
 
@@ -2390,11 +2557,11 @@ msgstr "使魔化的摇炮简化常驻"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FastPandora.cpp:105
 msgid "Fast Gunship"
-msgstr "快速炮艇"
+msgstr "快速飞船"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FastPandora.cpp:107
 msgid "Significantly speed up Argument startup and recovery"
-msgstr "显著提升炮艇启动速度和收起速度"
+msgstr "显著提升潘多拉飞船启动速度和收起速度"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FastRoundTrip.cpp:36
 msgid "Fast Round Trip"
@@ -2414,45 +2581,45 @@ msgstr "快速疾跑"
 msgid "Go from Run to Speed faster, even if you're in battle"
 msgstr "快速触发疾跑，同时允许战斗中疾跑"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:131
+#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:137
 msgid "Fast Game Load"
 msgstr "快速读取游戏"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:133
+#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:139
 msgid "The game will skip all opening screens and load the first save slot"
 msgstr "游戏会跳过启动界面并且加载一号存档"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:135
+#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:141
 msgid "Fast Menu Fades"
 msgstr "快速菜单过渡"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:137
+#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:143
 msgid "Skip the fades between some menus"
 msgstr "跳过一些菜单的过渡动画"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:139
+#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:145
 msgid "Fast Mission Fades"
 msgstr "快速关卡过渡"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:143
+#: C:\vs_projects\dmc4_hook\src\mods\FastStart.cpp:149
 msgid "Skips the Mission / BP load fades"
 msgstr "跳过关卡和血宫的加载过渡动画"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FireworksTweaks.cpp:63
+#: C:\vs_projects\dmc4_hook\src\mods\FireworksTweaks.cpp:64
 msgid "Fireworks Tweaks"
 msgstr "枪花修改"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FireworksTweaks.cpp:65
+#: C:\vs_projects\dmc4_hook\src\mods\FireworksTweaks.cpp:66
 msgid ""
 "Edit the start frame, cancel frame and cancel properties of grounded "
 "Fireworks"
 msgstr "修改地面枪花的开始帧、取消帧和取消属性"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FloorIsLava.cpp:105
+#: C:\vs_projects\dmc4_hook\src\mods\FloorIsLava.cpp:104
 msgid "Floor Is Lava"
 msgstr "落地即死"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FloorIsLava.cpp:110
+#: C:\vs_projects\dmc4_hook\src\mods\FloorIsLava.cpp:109
 msgid ""
 "Upon spawning, you have 5 seconds. Once them 5 seconds are up, if you touch "
 "the floor you die"
@@ -2462,256 +2629,256 @@ msgstr "开场后你有五秒时间，此后碰到地面就会死"
 msgid "Page##EnemyFly"
 msgstr "页面##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:378
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:499
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:379
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:526
 msgid "HP##EnemyFly"
 msgstr "血量##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:379
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:500
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:383
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:527
 msgid "PrevDamage##EnemyFly"
 msgstr "受伤害量##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:380
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:501
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:384
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:528
 msgid "PrevDamageResist##EnemyFly"
 msgstr "受伤倍率##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:381
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:385
 msgid "DT Timer##EnemyFly"
 msgstr "魔化计时##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:382
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:503
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:386
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:530
 msgid "Stun##EnemyFly"
 msgstr "硬直##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:383
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:387
 msgid "Displacement##EnemyFly"
 msgstr "位移##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:385
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:389
 msgid "MoveID##EnemyFly"
 msgstr "动作ID##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:388
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:429
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:392
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:450
 msgid "Shield##EnemyFly"
 msgstr "护盾血量##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:392
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:398
 msgid "Cloak##EnemyFly"
 msgstr "斗篷血量##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:395
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:403
 msgid "Cloak Timer##EnemyFly"
 msgstr "斗篷恢复计时##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:399
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:407
 msgid "Heal Count##EnemyFly"
 msgstr "自愈计数##EnemyFlyaw"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:403
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:413
 msgid "Electric##EnemyFly"
 msgstr "电甲血量##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:407
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:419
 msgid "Suicide Timer##EnemyFly"
 msgstr "自爆计时##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:410
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:424
 msgid "Electric Timer##EnemyFly"
 msgstr "电甲恢复计时##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:416
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:432
 msgid "Buried Timer##EnemyFly"
 msgstr "插地恢复计时##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:421
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:439
 msgid "Fire Timer##EnemyFly"
 msgstr "重燃计时##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:424
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:442
 msgid "Fire Damage##EnemyFly"
 msgstr "火焰损失度##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:432
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:437
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:445
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:455
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:460
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:470
 msgid "Shield Timer##EnemyFly"
 msgstr "护盾恢复计时##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:440
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:448
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:463
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:473
 msgid "Shield Damage##EnemyFly"
 msgstr "屏障损失度##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:454
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:520
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:481
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:547
 msgid "Base Addr##EnemyFly"
 msgstr "基础地址##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:455
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:521
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:482
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:548
 msgid "Position##EnemyFly"
 msgstr "位置##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:456
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:527
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:483
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:554
 msgid "Rotation##EnemyFly"
 msgstr "旋转##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:457
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:524
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:484
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:551
 msgid "Velocity##EnemyFly"
 msgstr "速度##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:458
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:525
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:485
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:552
 msgid "Scale##EnemyFly"
 msgstr "缩放##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:460
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:528
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:487
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:555
 msgid "Anim ID##EnemyFly"
 msgstr "动画ID##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:461
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:529
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:488
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:556
 msgid "Move Part##EnemyFly"
 msgstr "动作部分##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:462
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:530
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:489
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:557
 msgid "Animation Frame##EnemyFly"
 msgstr "动画帧##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:463
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:490
 msgid "Team##EnemyFly"
 msgstr "队伍##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:464
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:531
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:491
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:558
 msgid "ID##EnemyFly"
 msgstr "ID##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:465
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:492
 msgid "Number##EnemyFly"
 msgstr "数字##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:502
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:529
 msgid "DT##EnemyFly"
 msgstr "魔力值##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:507
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:534
 msgid "MoveID##PlayerFly"
 msgstr "动作ID##PlayerFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:522
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:549
 msgid "InertiaXZ##EnemyFly"
 msgstr "XZ惯性##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:523
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:550
 msgid "InertiaY##EnemyFly"
 msgstr "Y惯性##EnemyFly"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:536
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:563
 msgid "melee+gun"
 msgstr "近战 + 射击"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:537
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:564
 msgid "melee"
 msgstr "近战"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:538
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:565
 msgid "norm2"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:539
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:566
 msgid "directional"
 msgstr "方向技"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:540
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:567
 msgid "jump"
 msgstr "跳跃"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:541
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:568
 msgid "taunt"
 msgstr "嘲讽"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:542
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:569
 msgid "gun"
 msgstr "射击"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:543
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:570
 msgid "all"
 msgstr "所有"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:592
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:619
 msgid "Flying Stats"
 msgstr "漂浮状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:594
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:621
 msgid "Render ImGui stats on entities"
 msgstr "在实体上渲染ImGui状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:597
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:624
 msgid "Display Enemy Stats"
 msgstr "显示敌人状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:598
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:625
 msgid "Display Player Stats"
 msgstr "显示玩家状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:600
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:627
 msgid "Display HP"
 msgstr "显示血量"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:601
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:628
 msgid "Display Damage Taken"
 msgstr "显示受伤害量"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:602
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:629
 msgid "Display Damage Resist"
 msgstr "显示被免疫的伤害"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:604
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:631
 msgid "Current difficulty * armour"
 msgstr "当前难度 * 防御值"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:605
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:632
 msgid "Display DT Timer"
 msgstr "显示魔力值 / 魔化倒计时"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:606
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:633
 msgid "Display Stun"
 msgstr "显示硬直"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:607
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:634
 msgid "Display Displacement"
 msgstr "显示位移"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:608
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:635
 msgid "Display Move ID"
 msgstr "显示动作ID"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:609
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:636
 msgid "Display Mechanics"
 msgstr "显示敌人特殊机制数值"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:610
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:637
 msgid "Display Debug Info"
 msgstr "显示调试详情"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:611
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:638
 msgid "Display Collision Info"
 msgstr "显示碰撞详情"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:612
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:639
 msgid "Display Cancels"
 msgstr "显示取消"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:613
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:640
 msgid "Display Lucifer Pin Timers"
 msgstr "显示路西法针计时器"
 
@@ -2723,11 +2890,11 @@ msgstr "强制战斗状态"
 msgid "Useful for forcing last enemy cam, style point gain etc."
 msgstr "用于\"强制唯一敌人镜头拉近\"，正常获取评价点数等。"
 
-#: C:\vs_projects\dmc4_hook\src\mods\ForceLucifer.cpp:50
+#: C:\vs_projects\dmc4_hook\src\mods\ForceLucifer.cpp:49
 msgid "Force Lucifer"
 msgstr "路西法常驻"
 
-#: C:\vs_projects\dmc4_hook\src\mods\ForceLucifer.cpp:52
+#: C:\vs_projects\dmc4_hook\src\mods\ForceLucifer.cpp:51
 msgid "Forcing Lucifer means never forcefully despawning rose"
 msgstr ""
 "使路西法常驻装备（仍可以正常切武器）\n"
@@ -2787,7 +2954,7 @@ msgstr "Boss 暴走"
 msgid "Force bosses to use the AI they usually use when low HP"
 msgstr "强制 Boss 使用低血量 AI"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FriendlyFire.cpp:41
+#: C:\vs_projects\dmc4_hook\src\mods\FriendlyFire.cpp:65
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:358
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:359
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:360
@@ -2817,33 +2984,17 @@ msgstr "防止未魔化冰刃脱离"
 msgid "Disable Frosts jumping out of combos until they DT"
 msgstr "防止未魔化的冰刃脱离空连，直到它魔化"
 
-#: C:\vs_projects\dmc4_hook\src\mods\GermanWord.cpp:99
-msgid "Players Push Players##GermanWord"
-msgstr ""
+#: C:\vs_projects\dmc4_hook\src\mods\GermanWord.cpp:246
+msgid "Doppelganger##GermanWord"
+msgstr "同行者##GermanWord"
 
-#: C:\vs_projects\dmc4_hook\src\mods\GermanWord.cpp:103
-msgid "Spawn Dante##GermanWord"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\GermanWord.cpp:107
+#: C:\vs_projects\dmc4_hook\src\mods\GermanWord.cpp:250
 msgid "Become AI Dante##GermanWord"
-msgstr ""
+msgstr "变成 AI 但丁##GermanWord"
 
-#: C:\vs_projects\dmc4_hook\src\mods\GermanWord.cpp:113
-msgid "Spawn Nero##GermanWord"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\GermanWord.cpp:117
+#: C:\vs_projects\dmc4_hook\src\mods\GermanWord.cpp:256
 msgid "Become AI Nero##GermanWord"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\GermanWord.cpp:123
-msgid "Destroy Last Spawned Dante (Crashy)##GermanWord"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\GermanWord.cpp:136
-msgid "Destroy Last Spawned Nero (Crashy)##GermanWord"
-msgstr ""
+msgstr "变成 AI 尼禄##GermanWord"
 
 #: C:\vs_projects\dmc4_hook\src\mods\GhostWalls.cpp:41
 msgid "Mephisto/Faust Collision"
@@ -2853,15 +3004,15 @@ msgstr "大小死神不穿墙"
 msgid "Mephisto and Faust get caught on stage collision"
 msgstr "大小死神会被地形阻挡"
 
-#: C:\vs_projects\dmc4_hook\src\mods\GraphicsSettings.cpp:66
+#: C:\vs_projects\dmc4_hook\src\mods\GraphicsSettings.cpp:84
 msgid "Disable Prop Fade"
 msgstr "防止场景物件消失"
 
-#: C:\vs_projects\dmc4_hook\src\mods\GraphicsSettings.cpp:72
+#: C:\vs_projects\dmc4_hook\src\mods\GraphicsSettings.cpp:90
 msgid "Disable Bullet Casing Fade"
 msgstr "防止弹壳消失"
 
-#: C:\vs_projects\dmc4_hook\src\mods\GraphicsSettings.cpp:76
+#: C:\vs_projects\dmc4_hook\src\mods\GraphicsSettings.cpp:94
 msgid ""
 "This will kill your fps if you spawn too many\n"
 "Also stops cartridges from spinning so they don't endlessly spin while on "
@@ -2870,13 +3021,21 @@ msgstr ""
 "如果生成太多弹壳，这会让你的 FPS 降低。\n"
 "同时也会停止弹壳旋转，避免它们落在地上后一直不停旋转"
 
-#: C:\vs_projects\dmc4_hook\src\mods\GraphicsSettings.cpp:78
+#: C:\vs_projects\dmc4_hook\src\mods\GraphicsSettings.cpp:96
 msgid "Increased Shadow Resolution"
 msgstr "增加阴影分辨率"
 
-#: C:\vs_projects\dmc4_hook\src\mods\GraphicsSettings.cpp:84
+#: C:\vs_projects\dmc4_hook\src\mods\GraphicsSettings.cpp:102
 msgid "Increased Water Resolution"
-msgstr ""
+msgstr "增加水面分辨率"
+
+#: C:\vs_projects\dmc4_hook\src\mods\GraphicsSettings.cpp:106
+msgid "Disable Bloom"
+msgstr "禁用泛光"
+
+#: C:\vs_projects\dmc4_hook\src\mods\GraphicsSettings.cpp:112
+msgid "Disable Lightshafts"
+msgstr "禁用体积光"
 
 #: C:\vs_projects\dmc4_hook\src\mods\GroundedGunCancels.cpp:37
 msgid "Grounded Gun Cancels"
@@ -2889,13 +3048,13 @@ msgid ""
 "Fireworks, Epidemic"
 msgstr ""
 "使地面枪械攻击取消可以取消更多动作\n"
-"目前会影响双枪，散弹，普通射击，散弹后射，枪刺，枪花潘多拉第一形态弩炮"
+"目前会影响双枪，散弹，普通射击，散弹后射，枪刺，枪花，潘多拉第一形态弩炮"
 
-#: C:\vs_projects\dmc4_hook\src\mods\GuardSteer.cpp:83
+#: C:\vs_projects\dmc4_hook\src\mods\GuardSteer.cpp:89
 msgid "Guardsteer"
 msgstr "皇家方向盘"
 
-#: C:\vs_projects\dmc4_hook\src\mods\GuardSteer.cpp:85
+#: C:\vs_projects\dmc4_hook\src\mods\GuardSteer.cpp:91
 msgid ""
 "See your body into the moonlight\n"
 "Even if I try to cancel\n"
@@ -2905,15 +3064,7 @@ msgstr ""
 "逮虾户！\n"
 "可以用 RG 来操控由 \"可选取消\" 修改项产生的地面漂移惯性"
 
-#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:88
-msgid "Royal Guard Timing Display"
-msgstr "RG 点显示"
-
-#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:90
-msgid "See how early or late your guards were"
-msgstr "用来看 RG 早了还是晚了"
-
-#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:132
+#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:228
 msgid ""
 "0.0, the middle, is when damage was applied\n"
 "The marker location is your block timing relative to that damage application"
@@ -2921,7 +3072,7 @@ msgstr ""
 "中央的 0.0 是受击点\n"
 "滑块是你相对于受击点按下 RG 的时间"
 
-#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:146
+#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:242
 msgid ""
 "This is the perfect block window\n"
 "Anything above this number to below or equal 0 is a perfect block / release\n"
@@ -2931,6 +3082,30 @@ msgstr ""
 "此数字少于等于 0 视为完美格挡/一闪\n"
 "60 帧下，无魔人无加速，格挡窗口是 5 帧。"
 
+#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:357
+msgid "Royal Guard Timing Display"
+msgstr "RG 点显示"
+
+#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:359
+msgid "See how early or late your guards were"
+msgstr "用来看 RG 过早还是过晚"
+
+#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:361
+msgid "Royal Guard Timing Chart"
+msgstr "RG时机表"
+
+#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:367
+msgid "See how early or late multiple guards in a row were"
+msgstr "查看连续多次防御过早或过晚"
+
+#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:371
+msgid "Perfect, but can't (or in iframes)"
+msgstr "完美，但无法作出防御（或处于硬直状态）"
+
+#: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:372
+msgid "Late, but can't (or in iframes)"
+msgstr "过晚，但无法作出防御（或处于硬直状态）"
+
 #: C:\vs_projects\dmc4_hook\src\mods\GunStingerDistance.cpp:40
 msgid "Gun Stinger 2"
 msgstr "延长枪刺"
@@ -2939,54 +3114,54 @@ msgstr "延长枪刺"
 msgid "Gun Stinger covers the same distance as Stinger 2"
 msgstr "延长枪刺距离，使其与大剑二级突刺距离相同"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:180
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:209
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:173
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:202
 msgid "Infinite Health (All)"
 msgstr "无限血量（所有）"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:201
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:261
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:194
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:254
 msgid "One Hit Kill"
 msgstr "一击必杀"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:217
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:210
 msgid ""
 "Disable any entity's health decreasing. By default this is hotkeyed to F1"
 msgstr "所有实体不会扣血，默认热键为 F1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:219
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:212
 msgid "Infinite Health (Player)"
 msgstr "无限血量（玩家）"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:226
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:219
 msgid "Disable the player's health decreasing"
 msgstr "玩家锁血"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:228
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:221
 msgid "Infinite Health (Enemy)"
 msgstr "无限血量（敌人）"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:237
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:230
 msgid "Disable enemy's health decreasing"
 msgstr "敌人锁血"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:244
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:237
 msgid "Damage Multipliers"
 msgstr "伤害倍率"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:248
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:241
 msgid "Outgoing"
 msgstr "造成伤害倍率"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:249
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:242
 msgid "Incoming"
 msgstr "受到伤害倍率"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:255
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:248
 msgid "No Death (All)"
 msgstr "空血不死（全场）"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:258
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:251
 msgid ""
 "Disable any entity dying while still allowing HP to drop.\n"
 "For practicing against enemies who have AI changes at different levels of "
@@ -2997,25 +3172,25 @@ msgstr ""
 "供与低血量 AI 狂暴的敌人练习用\n"
 "也会阻止开箱杀死敌人。"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:263
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:256
 msgid ""
 "Enable one hit kill. This overrides the damage multiplier. By default this "
 "is hotkeyed to F3"
 msgstr "玩家秒杀敌人，会覆盖伤害倍率修改。默认热键为F3"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:267
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:260
 msgid "Must style mode"
 msgstr "华丽制敌模式"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:269
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:262
 msgid "Damage is disabled until reaching S rank"
 msgstr "S 评级及以上才能造成伤害"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:271
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:264
 msgid "Might style mode"
 msgstr "战斗爽模式"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:273
+#: C:\vs_projects\dmc4_hook\src\mods\HealthSettings.cpp:266
 msgid ""
 "Damage scales with Style\n"
 "0 damage at no rank to 1.0 damage at S"
@@ -3111,11 +3286,11 @@ msgid ""
 "the held variant"
 msgstr "可在长按上挑时切换冷武器"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HpInOrbsDisplay.cpp:41
+#: C:\vs_projects\dmc4_hook\src\mods\HpInOrbsDisplay.cpp:42
 msgid "Enemy HP Red Orb Display"
 msgstr "红魂显血"
 
-#: C:\vs_projects\dmc4_hook\src\mods\HpInOrbsDisplay.cpp:43
+#: C:\vs_projects\dmc4_hook\src\mods\HpInOrbsDisplay.cpp:44
 msgid "Display the last hit enemy's HP in the Red Orb count"
 msgstr "以红魂数量显示最后一个击中的敌人血量"
 
@@ -3136,15 +3311,15 @@ msgstr "无限重甲"
 msgid "Run in Dreadnaught"
 msgstr "重甲奔跑"
 
-#: C:\vs_projects\dmc4_hook\src\mods\InfDT.cpp:33
+#: C:\vs_projects\dmc4_hook\src\mods\InfDT.cpp:34
 msgid "Inf DT"
 msgstr "无限魔人"
 
-#: C:\vs_projects\dmc4_hook\src\mods\InfDT.cpp:44
+#: C:\vs_projects\dmc4_hook\src\mods\InfDT.cpp:45
 msgid "Infinite DT"
 msgstr "无限魔人"
 
-#: C:\vs_projects\dmc4_hook\src\mods\InfDT.cpp:46
+#: C:\vs_projects\dmc4_hook\src\mods\InfDT.cpp:47
 msgid ""
 "Fill your Devil Trigger Gauge and stops it from decreasing. By default this "
 "is hotkeyed to F2"
@@ -3174,8 +3349,8 @@ msgid "Infinite Pin Timer"
 msgstr "针无限存留"
 
 #: C:\vs_projects\dmc4_hook\src\mods\InfiniteTime.cpp:21
-msgid "Disable Timer"
-msgstr "禁用计时器"
+msgid "Disable BP Timer"
+msgstr "禁用血宫倒计时"
 
 #: C:\vs_projects\dmc4_hook\src\mods\InfiniteTime.cpp:25
 msgid ""
@@ -3202,21 +3377,21 @@ msgstr "无限空星"
 msgid "Always Table Hopper"
 msgstr "强制鬼步"
 
-#: C:\vs_projects\dmc4_hook\src\mods\InfTrickRange.cpp:20
+#: C:\vs_projects\dmc4_hook\src\mods\InfTrickRange.cpp:22
 msgid "Infinite Trick Range"
 msgstr "无限瞬移距离"
 
-#: C:\vs_projects\dmc4_hook\src\mods\InputStates.cpp:277
+#: C:\vs_projects\dmc4_hook\src\mods\InputStates.cpp:281
 msgid "Taunt Ecstasy"
 msgstr "空嘲玫瑰"
 
-#: C:\vs_projects\dmc4_hook\src\mods\InputStates.cpp:279
+#: C:\vs_projects\dmc4_hook\src\mods\InputStates.cpp:283
 msgid ""
 "Press Taunt in the air to perform Ecstasy. Consider using this with "
 "Selective Cancellable Ecstasy to make it feel more like 5"
 msgstr ""
 "在空中按嘲讽键丢出玫瑰，没有地面玫瑰\n"
-"可以使用可选取消功能来使其手感更贴近五代"
+"可以使用\"可取消技\"功能来使其手感更贴近五代"
 
 #: C:\vs_projects\dmc4_hook\src\mods\InstantTrick.cpp:21
 msgid "Fast Trick"
@@ -3231,6 +3406,7 @@ msgid "Manipulation Controls"
 msgstr "Gizmo 控制"
 
 #: C:\vs_projects\dmc4_hook\src\mods\JointDisplay.cpp:142
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:678
 msgid "G - Translate"
 msgstr "G - 移动"
 
@@ -3463,14 +3639,22 @@ msgid ""
 "Climax you'll spawn Discipline pins too"
 msgstr ""
 "防止风格切换输入与其他动作输入冲突导致风格切换失效\n"
-"存在bug：在空中释放路西法剑盾（剑圣锁定+后+风格）时\n"
-"会同时触发路西法的戒律（剑圣单按风格）"
+"存在 bug：在空中释放剑盾时会同时触发引剑"
 
-#: C:\vs_projects\dmc4_hook\src\mods\LoadOrder.cpp:450
+#: C:\vs_projects\dmc4_hook\src\mods\LiveMoveTableSwaps.cpp:132
+msgid "Backforward Honeycomb"
+msgstr "后前十倍弹速"
+
+#: C:\vs_projects\dmc4_hook\src\mods\LiveMoveTableSwaps.cpp:134
+#: C:\vs_projects\dmc4_hook\src\mods\TimerMem.cpp:185
+msgid "Honeycomb Mapped To backforward + Gunslinger"
+msgstr "十倍弹速指令修改为枪神风格下按锁定 + 后前 + 风格"
+
+#: C:\vs_projects\dmc4_hook\src\mods\LoadOrder.cpp:452
 msgid "HDD File Priority"
 msgstr "优先加载硬盘文件"
 
-#: C:\vs_projects\dmc4_hook\src\mods\LoadOrder.cpp:452
+#: C:\vs_projects\dmc4_hook\src\mods\LoadOrder.cpp:454
 msgid ""
 "The game will look for files outside of arcs before looking inside.\n"
 "Required by \"Aerial Stinger\", \"Payline\" and \"Lucifer Air Throw\""
@@ -3511,7 +3695,7 @@ msgstr "空中撒剑"
 
 #: C:\vs_projects\dmc4_hook\src\mods\LuciAirThrow.cpp:110
 msgid "Add new move mimicking V5rgil's air taunt. Mapped to forward + melee"
-msgstr "添加一个仿5V空嘲撒剑的空中技能，指令为锁定+前+攻击，判定为固定炸回"
+msgstr "添加一个仿 5V 空嘲撒剑的空中技能，指令为锁定 + 前 + 攻击"
 
 #: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:923
 msgid "Play Macro File"
@@ -3606,8 +3790,8 @@ msgid ""
 "All gamepad hotkeys use Back/Select as the fixed prefix. To set or use one, "
 "hold Back/Select first, then press the shortcut button."
 msgstr ""
-"所有手柄热键都固定使用 Back / Select 作为前置按键。设置或使用热键时，需要先按"
-"住 Back / Select，然后再按下对应的热键按钮。"
+"所有手柄热键都固定使用 Back / Select 作为前置按键。设置或使用热键时，先按住 "
+"Back / Select，再按下热键按钮。"
 
 #: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5056
 msgid ""
@@ -3615,9 +3799,9 @@ msgid ""
 "and will not trigger the game's original taunt. Macro playback can still "
 "send Back/Select with commands such as HOLD SELECT and RELEASE SELECT."
 msgstr ""
-"启用此选项后，手动按下 Back / Select 会被保留用于热键功能，不会触发游戏原本的"
-"嘲讽动作。此功能仍然可以通过 \"按住Select\"、\"松开 Select\" 等指令发送 "
-"Back / Select 输入。"
+"启用此选项后，手动按下的 Back / Select 会被保留用于热键功能，不会触发游戏原本"
+"的嘲讽动作。此功能仍然可以通过 \"HOLD SELECT\"、\"RELEASE SELECT\" 等宏语句发"
+"送 Back / Select 指令。"
 
 #: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5057
 msgid ""
@@ -3638,10 +3822,6 @@ msgstr "停止"
 #: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5062
 msgid "Capture"
 msgstr "捕获"
-
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5063
-msgid "Load"
-msgstr "加载"
 
 #: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5064
 msgid "Load + Play"
@@ -3806,215 +3986,215 @@ msgstr "模组案例"
 msgid "ModSampleHelpMarker"
 msgstr "模组案例帮助标记"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:210
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:214
 msgid "Attack Definitions UI"
 msgstr "攻击定义 UI"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:216
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:220
 #, c-format
 msgid "Player Attack ID = %i"
 msgstr "玩家攻击 ID = %i"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:218
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:222
 msgid "Use Current Move ID"
 msgstr "使用当前动作ID"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:224
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:228
 msgid "Clear All Filters"
 msgstr "清除所有筛选器"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:232
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:236
 msgid "Exact Match"
 msgstr "精确匹配"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:242
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:246
 #, c-format
 msgid "Nero Moves Added = %i"
 msgstr "已增加的尼禄动作  %i"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:244
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:248
 #, c-format
 msgid "Dante Moves Added = %i"
 msgstr "已增加的但丁动作  %i"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:247
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:251
 msgid "Entry"
 msgstr "条目"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:248
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:252
 msgid "Attr"
 msgstr "地址"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:249
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:253
 msgid "Id"
 msgstr "ID"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:250
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:254
 msgid "Level"
 msgstr "等级"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:251
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:255
 msgid "CmdTgl"
 msgstr "指令开关"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:252
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:256
 msgid "Cmd"
 msgstr "指令"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:253
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:257
 msgid "CmdNo"
 msgstr "指令编号"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:254
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:258
 msgid "Cnd"
 msgstr "条件"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:255
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:259
 msgid "Ukn"
 msgstr "未知"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:256
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:260
 msgid "CndWp"
 msgstr "武器状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:257
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:261
 msgid "CndStyle"
 msgstr "风格状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:258
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:262
 msgid "CndDT"
 msgstr "魔人状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:259
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:263
 msgid "CndAir"
 msgstr "滞空状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:260
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:264
 msgid "cancel0"
 msgstr "取消 0"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:261
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:265
 msgid "cancel1"
 msgstr "取消 1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:262
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:266
 msgid "cancel2"
 msgstr "取消 2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:263
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:267
 msgid "cancel3"
 msgstr "取消 3"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:264
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:268
 msgid "cancel4"
 msgstr "取消 4"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:491
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:502
 msgid "+0 Attribute"
 msgstr "+0 属性"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:492
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:503
 msgid "+4 Attack ID"
 msgstr "+4 攻击 ID"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:493
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:504
 msgid "+8 Level"
 msgstr "+8 等级"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:494
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:505
 msgid "+C Enable Command Settings"
 msgstr "+C 启用指令设置"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:499
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:510
 msgid "+10 Cmd"
 msgstr "+10 指令"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:502
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:513
 msgid "+11 Cmd No"
 msgstr "+11 指令编号"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:503
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:514
 msgid "+12 Cmd Cond"
 msgstr "+12 指令条件"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:504
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:515
 msgid "+13 Cmd Ukn"
 msgstr "+13 未知指令"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:507
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:518
 msgid "+14 Weapon Condition"
 msgstr "+14 武器状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:511
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:522
 msgid "+18 Style Condition"
 msgstr "+18 风格状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:515
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:526
 msgid "+1C DT Condition"
 msgstr "+1C 魔人状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:516
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:527
 msgid "+20 Aerial Condition"
 msgstr "+20 滞空状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:517
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:528
 msgid "+24 Cancel 0"
 msgstr "+24 取消 0"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:518
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:529
 msgid "+28 Cancel 1"
 msgstr "+28 取消 1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:519
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:530
 msgid "+2C Cancel 2"
 msgstr "+2C 取消 2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:520
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:531
 msgid "+30 Cancel 3"
 msgstr "+30 取消 3"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:521
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:532
 msgid "+34 Cancel 4"
 msgstr "+34 取消 4"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:528
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:539
 msgid "Display Move Table"
 msgstr "显示动作表格"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:533
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:544
 msgid "Display Table Editor"
 msgstr "显示表格编辑器"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:549
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:560
 msgid "Player Attack ID"
 msgstr "玩家攻击 ID"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:551
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:562
 msgid "Find Current Attack ID"
 msgstr "寻找当前攻击 ID"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:562
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:573
 msgid "Entry Num"
 msgstr "条目编号"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:563
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:574
 #, c-format
 msgid "Entry count: %i"
 msgstr "条目数：%i"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:566
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:577
 msgid "Create a new entry"
 msgstr "创建新条目"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:568
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:579
 msgid "Fill fields from currently displayed entry"
 msgstr "从当前显示的条目中填写字段"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:585
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:596
 msgid "Create"
 msgstr "创建"
 
-#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:611
+#: C:\vs_projects\dmc4_hook\src\mods\MoveTable.cpp:622
 msgid "Load into a stage to see the table and the editor"
 msgstr "进入关卡以查看表格与编辑器"
 
@@ -4076,7 +4256,7 @@ msgstr "木头人模式"
 #: C:\vs_projects\dmc4_hook\src\mods\MutatorSuperhot.cpp:96
 #: C:\vs_projects\dmc4_hook\src\mods\MutatorSuperhot.cpp:121
 msgid "Enemy speed scales with your movement speed"
-msgstr "敌人动画速度 = 玩家水平速度 * 速度因数"
+msgstr "敌人的速度随你的移动速度变化"
 
 #: C:\vs_projects\dmc4_hook\src\mods\MutatorSuperhot.cpp:100
 #: C:\vs_projects\dmc4_hook\src\mods\MutatorSuperhot.cpp:125
@@ -4089,43 +4269,43 @@ msgstr "鬼手延长"
 
 #: C:\vs_projects\dmc4_hook\src\mods\NeroSnatchLength.cpp:33
 msgid "Triple the reach on Snatch"
-msgstr "鬼手抓取延长三倍"
+msgstr "鬼手抓取范围延长三倍"
 
-#: C:\vs_projects\dmc4_hook\src\mods\NoAutomaticCharacters.cpp:164
+#: C:\vs_projects\dmc4_hook\src\mods\NoAutomaticCharacters.cpp:169
 msgid "No Auto Characters"
 msgstr "禁用自动角色"
 
-#: C:\vs_projects\dmc4_hook\src\mods\NoAutomaticCharacters.cpp:168
+#: C:\vs_projects\dmc4_hook\src\mods\NoAutomaticCharacters.cpp:173
 msgid "Disable the Auto variants on the character select screen"
 msgstr "删去选人界面的自动角色"
 
-#: C:\vs_projects\dmc4_hook\src\mods\NoAutomaticCharacters.cpp:170
+#: C:\vs_projects\dmc4_hook\src\mods\NoAutomaticCharacters.cpp:175
 msgid "No Auto Or Super Characters"
 msgstr "禁用自动及超级角色"
 
-#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:29
+#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:27
 msgid "NoClip"
 msgstr "去除边界"
 
-#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:68
+#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:66
 msgid "You and enemies will ignore walls"
 msgstr "玩家和敌人穿墙"
 
-#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:70
+#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:68
 msgid "Disable Room Triggers"
 msgstr "禁用房间触发器"
 
-#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:74
+#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:72
 msgid ""
 "Disable the areas that teleport the player, activate fights, activate "
 "cutscenes etc"
 msgstr "防止房间传送玩家、进入对战、触发过场等"
 
-#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:75
+#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:73
 msgid "Lock Y Pos"
-msgstr "锁定Y位置"
+msgstr "锁定高度"
 
-#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:84
+#: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:82
 msgid "Lock your height to explore beyond the environment more efficiently"
 msgstr "锁定人物的高度"
 
@@ -4141,27 +4321,27 @@ msgstr ""
 "禁用相机预设，允许相机穿墙\n"
 "开始关卡前启用"
 
-#: C:\vs_projects\dmc4_hook\src\mods\NoHBknockback.cpp:93
+#: C:\vs_projects\dmc4_hook\src\mods\NoHBknockback.cpp:92
 msgid "No Helm Splitter Knockdown"
 msgstr "下劈无扣落"
 
-#: C:\vs_projects\dmc4_hook\src\mods\NoHBknockback.cpp:95
+#: C:\vs_projects\dmc4_hook\src\mods\NoHBknockback.cpp:94
 msgid "Helm Splitter deals no knockdown and instead only stuns the enemy"
 msgstr "去除下劈的扣落和吹飞判定，只保留硬直判定"
 
-#: C:\vs_projects\dmc4_hook\src\mods\NoHBknockback.cpp:98
+#: C:\vs_projects\dmc4_hook\src\mods\NoHBknockback.cpp:97
 msgid "No Helm Breaker Knockdown"
 msgstr "下劈无扣落"
 
-#: C:\vs_projects\dmc4_hook\src\mods\NoHBknockback.cpp:100
+#: C:\vs_projects\dmc4_hook\src\mods\NoHBknockback.cpp:99
 msgid "Helm Breaker deals no knockdown and instead only stuns the enemy"
 msgstr "去除下劈的扣落和吹飞判定，只保留硬直判定"
 
-#: C:\vs_projects\dmc4_hook\src\mods\NoLockonRestriction.cpp:15
+#: C:\vs_projects\dmc4_hook\src\mods\NoLockonRestriction.cpp:17
 msgid "Remove lock-on restriction"
 msgstr "锁定互动物件"
 
-#: C:\vs_projects\dmc4_hook\src\mods\NoLockonRestriction.cpp:19
+#: C:\vs_projects\dmc4_hook\src\mods\NoLockonRestriction.cpp:21
 msgid "Remove Dante's lock-on restrictions (grim grip, gyro, etc.)"
 msgstr "使但丁可以触发并锁定牵引平台、锁定刀刃陀螺"
 
@@ -4177,11 +4357,11 @@ msgstr ""
 "允许潘多拉蓄力\n"
 "同时允许枪神技使用蓄力子弹"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:424
+#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:423
 msgid "Download Payline Files"
-msgstr "下载五代斜戳文件"
+msgstr "下载五代斜戳必需文件"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:428
+#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:427
 msgid ""
 "Clicking this button will open https://github.com/muhopensores/dmc4_hook/"
 "releases\n"
@@ -4200,11 +4380,11 @@ msgstr ""
 "前启用 \"调试\" 选项卡顶部的 \"优先加载硬盘文件 \"修改项\n"
 "这个修改项让尼禄可以用出五代斜戳"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:435
+#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:434
 msgid "Payline"
 msgstr "五代斜戳"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:439
+#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:438
 msgid ""
 "Give Nero a divekick action like he has in DMC5\n"
 "Requires \"HDD File Priority\" at the top of the Debug page\n"
@@ -4214,279 +4394,334 @@ msgstr ""
 "需启用 \"调试\" 选项卡顶部的 \"优先加载硬盘文件\" 修改项\n"
 "进入关卡前启用"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:445
+#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:444
 msgid "Remap Helm Splitter"
 msgstr "锁后下劈"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:449
+#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:448
 msgid "Remap Helm Splitter and Double Down to lockon+back+melee"
 msgstr ""
 "将下劈指令改为锁定+后+攻击\n"
 "如不勾选此项，下劈指令将变为锁定+前+侧向+攻击"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:452
+#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:451
 msgid "Tracking Payline"
 msgstr "斜戳追踪"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:454
+#: C:\vs_projects\dmc4_hook\src\mods\Payline.cpp:453
 msgid ""
 "If the lock on target is below you (more than 65 degrees), Payline will "
 "adjust vertically like divekick does in DMC3 or 5"
 msgstr "使斜戳可以像三代和五代的星落一样锁定超过斜下 65° 的敌人"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:421
-msgid "Spawn Filters And Lights"
-msgstr "生成滤镜和光照"
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:472
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:481
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:498
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:508
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:516
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:831
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:842
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:861
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:873
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:883
-msgid "Color"
-msgstr "颜色"
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:473
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:483
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:510
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:832
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:844
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:875
-msgid "Dir"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:482
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:499
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:843
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:862
-msgid "Pos"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:484
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:845
-msgid "Target Pos"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:485
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:500
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:846
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:863
-msgid "World Pos"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:486
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:847
-msgid "World Dir"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:487
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:501
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:848
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:864
-#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:60
-#: C:\vs_projects\dmc4_hook\src\sdk\StringData.cpp:14
-msgid "Start"
-msgstr "开始键"
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:488
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:502
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:849
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:865
-msgid "End"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:489
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:850
-msgid "Cone"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:490
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:851
-msgid "Spread"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:491
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:852
-msgid "Target Mode"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:492
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:853
-msgid "mStart"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:509
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:874
-msgid "RevColor"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:522
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:891
-msgid "Blur count"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:523
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:892
-msgid "Type"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:524
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:893
-msgid "Blur type"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:525
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:894
-msgid "Gradate Color"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:526
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:895
-msgid "Blur Size"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:527
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:896
-msgid "Aperture"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:528
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:897
-msgid "Focal Length"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:529
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:898
-msgid "Low CoC Scale"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:530
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:899
-msgid "CoC Scale"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:531
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:900
-msgid "CoC Bias"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:532
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:901
-msgid "Far Blur Limit"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:533
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:902
-msgid "Near Blur Limit"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:534
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:903
-msgid "Near"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:535
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:904
-msgid "Far"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:536
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:905
-msgid "Focal"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:552
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:927
-msgid "Scale"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:558
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:935
-msgid "In Black"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:559
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:936
-msgid "In White"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:560
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:937
-msgid "Input Gamma"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:561
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:938
-msgid "Out Black"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:562
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:939
-msgid "Out White"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:568
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:947
-msgid "Contrast"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:574
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:955
-msgid "Shift Hue"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:575
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:956
-msgid "Shift Saturation"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:576
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:957
-msgid "Shift Value"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:590
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:157
 msgid "Photo Mode"
 msgstr "拍照模式"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:727
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:169
+msgid "Hide Photo Mode HUD"
+msgstr "隐藏拍照模式界面"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:204
+msgid "SpotLight"
+msgstr "聚光灯"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:259
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:327
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:382
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:421
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:462
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:503
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:515
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:534
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:547
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:558
+msgid "Color"
+msgstr "颜色"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:260
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:328
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:516
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:535
+msgid "Pos"
+msgstr "位置"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:261
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:329
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:521
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:537
+#: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:60
+#: C:\vs_projects\dmc4_hook\src\sdk\StringData.cpp:14
+msgid "Start"
+msgstr "开始"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:262
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:330
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:522
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:538
+msgid "End"
+msgstr "结束"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:263
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:523
+msgid "Cone"
+msgstr "光束角"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:264
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:524
+msgid "Spread"
+msgstr "扩散"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:265
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:525
+msgid "Target Mode"
+msgstr "追踪模式"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:312
+msgid "PointLight"
+msgstr "点光源"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:346
+msgid "HemiLight"
+msgstr "半球光"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:383
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:548
+msgid "RevColor"
+msgstr "反面颜色"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:411
+msgid "BackLight"
+msgstr "背光"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:435
+msgid "InfiniteLight"
+msgstr "平行光"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:500
+msgid "Infinite Light"
+msgstr "平行光"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:504
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:517
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:549
+msgid "Dir"
+msgstr "方向"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:512
+msgid "Spot Light"
+msgstr "聚光灯"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:518
+msgid "Target Pos"
+msgstr "目标位置"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:519
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:536
+msgid "World Pos"
+msgstr "世界位置"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:520
+msgid "World Dir"
+msgstr "世界方向"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:531
+msgid "Point Light"
+msgstr "点光源"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:544
+msgid "Hemi Light"
+msgstr "半球光"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:545
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:556
+msgid "Remove"
+msgstr "删除"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:555
+msgid "Back Light"
+msgstr "背光"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:564
+msgid "DOF Filter"
+msgstr "景深滤镜"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:567
+msgid "Blur count"
+msgstr "模糊次数"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:568
+msgid "Type"
+msgstr "类型"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:569
+msgid "Blur type"
+msgstr "模糊类型"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:570
+msgid "Gradate Color"
+msgstr "渐变颜色"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:571
+msgid "Blur Size"
+msgstr "模糊半径"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:572
+msgid "Aperture"
+msgstr "光圈"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:573
+msgid "Focal Length"
+msgstr "焦距"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:574
+msgid "Low CoC Scale"
+msgstr "小 CoC 缩放"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:575
+msgid "CoC Scale"
+msgstr "CoC 缩放"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:576
+msgid "CoC Bias"
+msgstr "CoC 偏移"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:577
+msgid "Far Blur Limit"
+msgstr "远景模糊上限"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:578
+msgid "Near Blur Limit"
+msgstr "近景模糊上限"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:579
+msgid "Near"
+msgstr "近距离"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:580
+msgid "Far"
+msgstr "远距离"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:581
+msgid "Focal"
+msgstr "焦点距离"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:586
+msgid "Tone Map Filter"
+msgstr "色调映射滤镜"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:593
+msgid "Colour Correct Filter"
+msgstr "色彩校正滤镜"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:601
+msgid "Colour Space Filter"
+msgstr "色彩空间滤镜"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:605
+msgid "Scale"
+msgstr "缩放"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:611
+msgid "Level Correct Filter"
+msgstr "色阶校正滤镜"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:614
+msgid "In Black"
+msgstr "输入黑场"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:615
+msgid "In White"
+msgstr "输入白场"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:616
+msgid "Input Gamma"
+msgstr "输入伽马"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:617
+msgid "Out Black"
+msgstr "输出黑场"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:618
+msgid "Out White"
+msgstr "输出白场"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:624
+msgid "Contrast Filter"
+msgstr "对比度滤镜"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:627
+msgid "Contrast"
+msgstr "对比度"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:633
+msgid "HSV Filter"
+msgstr "HSV 滤镜"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:636
+msgid "Shift Hue"
+msgstr "色相偏移"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:637
+msgid "Shift Saturation"
+msgstr "饱和度偏移"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:638
+msgid "Shift Value"
+msgstr "明度偏移"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:682
+msgid "R - Rotate"
+msgstr "R - 旋转"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:686
+msgid "S - Settings"
+msgstr "S - 设置"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:695
+msgid "Hide UI for a few seconds so you have time to take a screenshot"
+msgstr "将界面隐藏几秒钟，以便截图"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:698
 #: C:\vs_projects\dmc4_hook\src\mods\WorkRate.cpp:12
 msgid "Pause Game"
 msgstr "暂停游戏"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:745
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:716
 msgid "Frame Advance"
 msgstr "前进动画帧"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:753
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:723
 msgid "Speed"
 msgstr "速度"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:757
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:727
 msgid "Player Anim Frame"
 msgstr "玩家动画帧"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:772
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:741
 msgid "Lights/Filters"
 msgstr "光照 / 滤镜"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:773
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:743
 msgid "Lights"
 msgstr "光照"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:790
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:759
 msgid "Filters"
 msgstr "滤镜"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:817
-#, fuzzy
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:785
 msgid "Added Objects"
-msgstr "已添加物体"
+msgstr "已添加项"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:791
+msgid "Existing Lights"
+msgstr "现有光源"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:797
+msgid "Existing Filters"
+msgstr "现有滤镜"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PinProperties.cpp:352
 msgid "Gunslinger Passive"
@@ -4504,7 +4739,7 @@ msgstr "固定插针位置"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PinProperties.cpp:358
 msgid "Embedded pins attach to one position"
-msgstr "使所有附着针集中于敌人的同一点（中心位置）"
+msgstr "使所有针插在敌人的同一点（中心位置）"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PinTimer.cpp:169
 msgid "Show Pin Timers"
@@ -4521,9 +4756,7 @@ msgstr "针换位"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PinTrick.cpp:209
 msgid "Trick to the earliest valid pin with trickster back+style"
-msgstr ""
-"骗术师锁定+后+风格可与最近的未附着针互换位置\n"
-"空中撒剑的针也可换位"
+msgstr "骗术师锁定 + 后 + 风格可与最近的悬浮针互换位置"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerRotation.cpp:48
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerRotation.cpp:53
@@ -4533,7 +4766,7 @@ msgstr "转向解锁"
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerRotation.cpp:50
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerRotation.cpp:55
 msgid "Lock player rotation to stick direction"
-msgstr "去除角色的转向限制，使您可以在动作中任意转向"
+msgstr "使角色强制面向输入方向"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:758
 msgid "Save Current Values"
@@ -4556,7 +4789,7 @@ msgid "MoveLine 0:"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:944
-msgid "MoveLine 1:"
+msgid "MoveLine 1 (uScheduler + uShadow):"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:945
@@ -4580,7 +4813,7 @@ msgid "MoveLine 6:"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:950
-msgid "MoveLine 7:"
+msgid "MoveLine 7 (uScheduler):"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:951
@@ -4588,7 +4821,7 @@ msgid "MoveLine 8:"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:952
-msgid "MoveLine 9:"
+msgid "MoveLine 9 (BP portal effect + uSe):"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:953
@@ -4616,7 +4849,7 @@ msgid "MoveLine 15 (Enemies):"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:959
-msgid "MoveLine 16:"
+msgid "MoveLine 16 (uEmAppear):"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:960
@@ -4624,7 +4857,7 @@ msgid "MoveLine 17:"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:961
-msgid "MoveLine 18:"
+msgid "MoveLine 18 (Projectiles):"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:962
@@ -4632,11 +4865,11 @@ msgid "MoveLine 19:"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:963
-msgid "MoveLine 20:"
+msgid "MoveLine 20 (uDevil4Effect):"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:964
-msgid "MoveLine 21:"
+msgid "MoveLine 21 (uEfctBlurHandlder:"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:965
@@ -4644,19 +4877,19 @@ msgid "MoveLine 22:"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:966
-msgid "MoveLine 23:"
+msgid "MoveLine 23 (uCameraCtrl):"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:967
-msgid "MoveLine 24:"
+msgid "MoveLine 24 (uLights):"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:968
-msgid "MoveLine 25:"
+msgid "MoveLine 25 (uCockpitMgr):"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:969
-msgid "MoveLine 26:"
+msgid "MoveLine 26 (uMessage/uPause):"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:970
@@ -4668,7 +4901,7 @@ msgid "MoveLine 28:"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:972
-msgid "MoveLine 29:"
+msgid "MoveLine 29 (Filters):"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:973
@@ -4701,7 +4934,7 @@ msgstr "泛光"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:996
 msgid "View MoveLine Entries"
-msgstr ""
+msgstr "查看 MoveLine 条目"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1027
 msgid "[OLD] Display Player Stats"
@@ -4786,9 +5019,9 @@ msgid ""
 "in flight due to air friction like a fucking meteor or some shit then it's "
 "inertia isn't changing. Get it right NERD"
 msgstr ""
-"其实吧，惯性没那么复杂，它就是一种属性，让你看起来很快，惯性的度量是质量和物"
-"体抵抗加速度的能力（减速也是加速度，只是方向相反）如果没有受到阻力，那么惯性"
-"就不会改变"
+"呃其实，，惯性没那么复杂，它就是一种属性，让你看起来很快，它的度量是质量和物"
+"体抵抗加速度的能力（减速也是加速度，只是方向相反）如果没有跟飞机被空气摩擦烧"
+"掉一样受到阻力，那么惯性就不会改变，先搞懂再说吧池子"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1099
 msgid "Weight ##1"
@@ -4872,17 +5105,17 @@ msgstr "让女朋友对鬼泣段子感兴趣的小妙招"
 msgid "...debug"
 msgstr "调试"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Quicksilver.cpp:259
+#: C:\vs_projects\dmc4_hook\src\mods\Quicksilver.cpp:257
 msgid "QuickSilver"
+msgstr "水银风格"
+
+#: C:\vs_projects\dmc4_hook\src\mods\Quicksilver.cpp:270
+#: C:\vs_projects\dmc4_hook\src\mods\Quicksilver.cpp:275
+msgid "Quicksilver"
 msgstr "水银风格"
 
 #: C:\vs_projects\dmc4_hook\src\mods\Quicksilver.cpp:272
 #: C:\vs_projects\dmc4_hook\src\mods\Quicksilver.cpp:277
-msgid "Quicksilver"
-msgstr "水银风格"
-
-#: C:\vs_projects\dmc4_hook\src\mods\Quicksilver.cpp:274
-#: C:\vs_projects\dmc4_hook\src\mods\Quicksilver.cpp:279
 msgid "Enable the hotkey for Quicksilver. By default this is = / +"
 msgstr "启用水银风格热键。默认热键为 = / +"
 
@@ -4923,33 +5156,33 @@ msgid ""
 "practice instantly"
 msgstr "移除敌人倒地后获得的甲值，让你能直接挑空"
 
-#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:82
+#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:80
 msgid "Reset Enemy HP"
 msgstr "重置敌人血量"
 
-#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:84
+#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:82
 msgid "Press Lock On + Taunt to restore Max HP to enemies"
 msgstr "按锁定＋嘲讽给全场敌人补满血"
 
-#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:86
+#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:84
 msgid "Reset Timer"
 msgstr "重置计时器"
 
-#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:88
+#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:86
 msgid "Press Lock On + Taunt to reset the BP timer"
 msgstr "按锁定＋嘲讽重置血宫计时器"
 
-#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:91
+#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:89
 msgid "Disable Aerial Resets"
 msgstr "禁用空中重置"
 
-#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:96
+#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:94
 msgid ""
 "Disable \"Reset Enemy HP\" and \"Reset Timer\" while aerial (Useful for "
 "Taunt Ecstasy)"
 msgstr "禁用在空中时按锁定＋嘲讽给敌人回血和重置计时（用于空嘲玫瑰）"
 
-#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:97
+#: C:\vs_projects\dmc4_hook\src\mods\RestoreMaxHp.cpp:95
 msgid "Disable Grounded Resets"
 msgstr "禁用地面重置"
 
@@ -4995,7 +5228,7 @@ msgstr "将空中拳套下砸替换为日升脚"
 
 #: C:\vs_projects\dmc4_hook\src\mods\RoomRespawn.cpp:200
 msgid "Respawn enemies when visiting the same room multiple times"
-msgstr "重新进入相同房间时会再次刷新敌人"
+msgstr "重新进入相同房间时再次刷新敌人"
 
 #: C:\vs_projects\dmc4_hook\src\mods\RoomRespawn.cpp:202
 msgid "This will break your style points in the current mission"
@@ -5040,11 +5273,11 @@ msgstr "玫瑰只在命中敌人或地形，或丢出另一朵后销毁"
 
 #: C:\vs_projects\dmc4_hook\src\mods\RoseRemovesPins.cpp:40
 msgid "Rose Removes Pins"
-msgstr "玫瑰移除附着针"
+msgstr "玫瑰移除针"
 
 #: C:\vs_projects\dmc4_hook\src\mods\RoseRemovesPins.cpp:42
 msgid "Rose will despawn pins rather than detonating them"
-msgstr "玫瑰会直接移除已附着的针，不再引爆（未附着的针仍爆炸）"
+msgstr "玫瑰会直接移除已插入的针，不再引爆（悬浮的针仍爆炸）"
 
 #: C:\vs_projects\dmc4_hook\src\mods\RunWhileHolding.cpp:18
 msgid "Run While Holding"
@@ -5057,7 +5290,7 @@ msgstr "启用##SelectiveCancelsNero"
 #: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:383
 #: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:395
 msgid "Allow cancelling out of selected moves with evasive actions"
-msgstr "允许跳跃、翻滚、dash、rg 取消指定技能"
+msgstr "允许跳跃、翻滚、Dash、RG 取消指定技能"
 
 #: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:386
 #: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:402
@@ -5066,7 +5299,7 @@ msgstr "翻滚"
 
 #: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:387
 msgid "Grounded DT Activation"
-msgstr "地面魔化"
+msgstr "地面魔爆"
 
 #: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:388
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:731
@@ -5170,7 +5403,7 @@ msgstr "热武器"
 
 #: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:436
 msgid "Omen"
-msgstr "预兆"
+msgstr "开箱"
 
 #: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:438
 msgid "Opening Pandora"
@@ -5179,7 +5412,7 @@ msgstr "潘多拉开箱"
 #: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:440
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:265
 msgid "Epidemic"
-msgstr "瘟疫"
+msgstr "弩炮"
 
 #: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:442
 msgid "Pandora Ground shot 1"
@@ -5189,7 +5422,7 @@ msgstr "潘多拉弩炮"
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:272
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:273
 msgid "Argument"
-msgstr "争执"
+msgstr "飞船"
 
 #: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:446
 msgid "Gunship"
@@ -5198,7 +5431,7 @@ msgstr "潘多拉飞船"
 #: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:448
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:276
 msgid "Grief"
-msgstr "悲恸"
+msgstr "飞盘"
 
 #: C:\vs_projects\dmc4_hook\src\mods\SelectiveCancels.cpp:452
 msgid "Cancel out of Grief mid-throw animation without recalling Pandora"
@@ -5273,7 +5506,7 @@ msgstr "蜘蛛电臀舞"
 
 #: C:\vs_projects\dmc4_hook\src\mods\SpiderTwerk.cpp:184
 msgid "SpiderTwerkHelpMarker"
-msgstr "marker"
+msgstr "SpiderTwerkHelpMarker"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StunAnything.cpp:21
 msgid "Stun Anything"
@@ -5281,9 +5514,7 @@ msgstr "强制硬直"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StunAnything.cpp:25
 msgid "Allow anything (even Lucifer pins) to stun"
-msgstr ""
-"玩家任何攻击判定都将强制使敌人硬直，包括路西法针的附着判定（不会影响甲值计"
-"算）"
+msgstr "玩家任何攻击判定都将强制使敌人硬直，包括路西法插针（不会影响甲值计算）"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:38
 msgid "Mustang"
@@ -5529,7 +5760,7 @@ msgstr "砸地 Lv.3"
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:158
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:159
 msgid "Embed"
-msgstr "针附着"
+msgstr "插针"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:160
 msgid "Pin Explosion"
@@ -6334,7 +6565,7 @@ msgstr "禁忌のBUG"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:783
 msgid "Inertia? Let's just make it steerable"
-msgstr "惯性？试着控制它"
+msgstr "惯性？现在归我了"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:783
 msgid "As Dante, Looped Full House > Enemy Step > E&I Shot > Rainstorm 2 Times"
@@ -6347,7 +6578,7 @@ msgstr "白手起家"
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:784
 msgid ""
 "Imagine this: It's 2008. You just picked up a new character. Make a combo"
-msgstr "想象一下：现在是 2008 年。你刚刚玩到一个新角色。现在打个连段吧"
+msgstr "想象一下：现在是 2008 年。你刚刚玩到一个新角色。打个连招"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:784
 msgid ""
@@ -6369,7 +6600,7 @@ msgstr "使用尼禄，飞燕 > JC > 点枪 循环三次"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:786
 msgid "Full Throttle"
-msgstr "满红"
+msgstr "油门拧死"
 
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:786
 msgid "Just press the button at the right time"
@@ -6416,34 +6647,34 @@ msgstr "躲避"
 msgid "Just Charge"
 msgstr "FS"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1800
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1798
 msgid "Hidden Combos"
 msgstr "隐藏连招"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1825
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1823
 #, c-format
 msgid "Dante - %i/%i Unlocked"
 msgstr "但丁 - %i/%i 未解锁"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1828
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1826
 #, c-format
 msgid "Nero - %i/%i Unlocked"
 msgstr "尼禄 - %i/%i 未解锁"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1932
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1930
 msgid "Clear Unlocks"
 msgstr "清除未解锁"
 
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1951
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1953
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1955
 msgid "Tony"
 msgstr "Tony 连段展示器"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1961
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1959
 msgid "Alternate Grouping"
 msgstr "招式分组"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1963
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1961
 msgid ""
 "Group attacks by the order you originally did them\n"
 "This helps show the variety in a combo over exact input order"
@@ -6451,68 +6682,68 @@ msgstr ""
 "合并输入的重复招式\n"
 "这有助于显示连段的多样性，而不是精确的招式顺序"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1993
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1991
 msgid "Style Point Display"
 msgstr "风格点数显示"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1995
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1993
 msgid "See exactly what goes into your style points count"
 msgstr "展示风格点数实时计算情况"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1999
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1997
 msgid "Use Original Names"
 msgstr "使用动作原始名称"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:2001
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1999
 msgid ""
 "Instead of using our skill renames, use the developers'. Because there are "
 "more unique names, less skills will be grouped"
 msgstr "使用开发者命名，此命名方式会使招式有更多名字，导致无法分组"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:103
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:109
 msgid "BP 1-19"
 msgstr "血宫 1-19 层"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:104
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:110
 msgid "BP 21-39"
 msgstr "血宫 21-39 层"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:105
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:111
 msgid "BP 41-59"
 msgstr "血宫 41-59 层"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:106
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:112
 msgid "BP 61-79"
 msgstr "血宫 61-79 层"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:107
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:113
 msgid "BP 81-99"
 msgstr "血宫 81-99 层"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:108
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:114
 msgid "BP 101"
 msgstr "血宫 101 层"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:922
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:963
 msgid "Survival"
 msgstr "生存模式"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:930
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:971
 msgid "Tick and enter any non BP mission on your desired difficulty"
 msgstr ""
 "自动刷怪，具有时限\n"
 "所有战斗只在已选定的同一房间内进行\n"
 "勾选此项后进入一个流程关卡即可，敌人难度继承流程难度"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:936
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:977
 msgid "Stage Select"
 msgstr "场景选择"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:955
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:996
 msgid "Random Meme Modifiers"
 msgstr "随机整活模式"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:960
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:1001
 msgid ""
 "Spawn random meme modifier pickups spawned near your location to try to "
 "avoid (or target)"
@@ -7158,13 +7389,9 @@ msgstr ""
 msgid "Enable Taunt Select##TauntSelectDante"
 msgstr "启用嘲讽选择##TantSelectDante"
 
-#: C:\vs_projects\dmc4_hook\src\mods\TimerMem.cpp:184
+#: C:\vs_projects\dmc4_hook\src\mods\TimerMem.cpp:183
 msgid "Instant Honeycomb"
 msgstr "立刻十倍弹速"
-
-#: C:\vs_projects\dmc4_hook\src\mods\TimerMem.cpp:186
-msgid "Honeycomb Mapped To backforward + Gunslinger"
-msgstr "枪神风格下按锁定+后前+风格使出十倍弹速"
 
 #: C:\vs_projects\dmc4_hook\src\mods\TrackingFullHouse.cpp:46
 msgid "Tracking Full House"
@@ -7190,7 +7417,7 @@ msgstr "空星自瞄"
 
 #: C:\vs_projects\dmc4_hook\src\mods\TrackingSkyStar.cpp:55
 msgid "Sky star will auto face the enemy you're locked on to"
-msgstr "锁定+无方向的空星会自动瞄准锁定的敌人"
+msgstr "锁定 + 无方向的空星会自动瞄准锁定的敌人"
 
 #: C:\vs_projects\dmc4_hook\src\mods\TrainerPause.cpp:14
 msgid "Trainer Pauses"
@@ -7200,18 +7427,13 @@ msgstr "开启菜单时暂停游戏"
 msgid "Pause the game when opening the trainer"
 msgstr "开启修改器菜单时令游戏时间暂停"
 
-#: C:\vs_projects\dmc4_hook\src\mods\TrickDown.cpp:91
+#: C:\vs_projects\dmc4_hook\src\mods\TrickDown.cpp:160
 msgid "Down Trick"
 msgstr "下瞬"
 
-#: C:\vs_projects\dmc4_hook\src\mods\TrickDown.cpp:94
-msgid ""
-"Map Down Trick to backforward + trick\n"
-"If an enemy is directly above Dante, it may register your forward input as a "
-"back input and so queue a down trick"
-msgstr ""
-"锁定 + 后前 + 风格\n"
-"可能会被卡位影响而误触下瞬"
+#: C:\vs_projects\dmc4_hook\src\mods\TrickDown.cpp:162
+msgid "Map Down Trick to backforward + trick"
+msgstr "指令为锁定 + 后前 + 风格"
 
 #: C:\vs_projects\dmc4_hook\src\mods\TricksterDashDT.cpp:20
 msgid "Always DT Trickster Dash"
@@ -7249,7 +7471,7 @@ msgstr "激活中，剩余时间：%.2f"
 #: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:86
 #, c-format
 msgid "TWITCH_VOTE_TIMER: %f"
-msgstr "Twitch投票计时：%f"
+msgstr "Twitch 投票计时：%f"
 
 #: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:95
 msgid "Vote in chat."
@@ -7258,7 +7480,7 @@ msgstr "在聊天栏投票。"
 #: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:124
 #, c-format
 msgid "TWITCH_IDLE_TIMER: %f"
-msgstr "Twitch待机计时：%f"
+msgstr "Twitch 待机计时：%f"
 
 #: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:432
 msgid "Random Timed Gameplay Mods"
@@ -7312,11 +7534,11 @@ msgstr "停止随机模式"
 
 #: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:468
 msgid "Twitch Integration"
-msgstr "Twitch整合包"
+msgstr "Twitch 整合包"
 
 #: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:471
 msgid "libircclient.dll not found, twitch support disabled"
-msgstr "未找到 libircclient.dll，Twitch功能已禁用"
+msgstr "未找到 libircclient.dll，Twitch 功能已禁用"
 
 #: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:472
 msgid "Download libircclient-1.10-win32-dll.zip from the link below"
@@ -7329,7 +7551,7 @@ msgstr "从 libircclient-1.10\\bin\\ 解压缩 libircclient.dll 到鬼泣 4 根�
 
 #: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:474
 msgid "for example:"
-msgstr "例子："
+msgstr "例如："
 
 #: C:\vs_projects\dmc4_hook\src\mods\Twitch.cpp:476
 msgid "and restart the game to enable twitch support"
@@ -7457,48 +7679,48 @@ msgstr ""
 "3倍加速拳套蓄力\n"
 "进入关卡前启用"
 
-#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:390
+#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:388
 msgid "Visualize Hitboxes"
 msgstr "显示判定框"
 
 #: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:392
-#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:396
+#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:398
 msgid "Draw hitbox outlines in red"
 msgstr "用红色线条画出攻击判定框"
 
 #: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:394
-msgid "Visualize Hitboxes Attempt 2 CRASHES WOOOO"
-msgstr "显示判定框 测试 2 会崩溃啊啊啊aaa"
-
-#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:398
-msgid "Visualize Hurtboxes CRASHES WOOOO"
-msgstr "显示受击框 会崩溃啊啊啊aaaa"
+msgid "Visualize Hitboxes 2"
+msgstr "显示判定框 2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:400
+msgid "Visualize Hurtboxes"
+msgstr "显示受击框"
+
+#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:402
 msgid "Draw hurtbox outlines in blue"
 msgstr "用蓝色线条画出受击框"
 
-#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:402
+#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:404
 msgid "Visualize Enemy Step Spheres"
 msgstr "显示 JC 范围"
 
-#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:404
+#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:406
 msgid "Draw enemy step sphere outlines in green"
 msgstr "用绿色线条画出 JC 范围"
 
-#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:407
+#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:409
 msgid "Debug Stats##EnemyStepSpheres"
 msgstr "调试状态##EnemyStepSpheres"
 
-#: C:\vs_projects\dmc4_hook\src\mods\WitchTime.cpp:79
+#: C:\vs_projects\dmc4_hook\src\mods\WitchTime.cpp:84
 msgid "Witch Time##Dante"
 msgstr "魔男时间##Dante"
 
-#: C:\vs_projects\dmc4_hook\src\mods\WitchTime.cpp:82
+#: C:\vs_projects\dmc4_hook\src\mods\WitchTime.cpp:87
 msgid "Witch Time##Nero"
 msgstr "魔男时间##Nero"
 
-#: C:\vs_projects\dmc4_hook\src\mods\WitchTime.cpp:86
+#: C:\vs_projects\dmc4_hook\src\mods\WitchTime.cpp:91
 msgid ""
 "Slow down the world when you dodge an attack with anything other than jump"
 msgstr "用跳跃以外的手段躲避一次攻击后延缓时间"
@@ -7570,7 +7792,7 @@ msgstr "无"
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:57
 #: C:\vs_projects\dmc4_hook\src\sdk\StringData.cpp:11
 msgid "Select"
-msgstr "选择键"
+msgstr "选择"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:58
 #: C:\vs_projects\dmc4_hook\src\sdk\StringData.cpp:12
@@ -7585,22 +7807,22 @@ msgstr "右摇杆"
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:61
 #: C:\vs_projects\dmc4_hook\src\sdk\StringData.cpp:15
 msgid "Dpad Up"
-msgstr "上方向键"
+msgstr "上方向"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:62
 #: C:\vs_projects\dmc4_hook\src\sdk\StringData.cpp:16
 msgid "Dpad Right"
-msgstr "右方向键"
+msgstr "右方向"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:63
 #: C:\vs_projects\dmc4_hook\src\sdk\StringData.cpp:17
 msgid "Dpad Down"
-msgstr "下方向键"
+msgstr "下方向"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:64
 #: C:\vs_projects\dmc4_hook\src\sdk\StringData.cpp:18
 msgid "Dpad Left"
-msgstr "左方向键"
+msgstr "左方向"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:65
 #: C:\vs_projects\dmc4_hook\src\sdk\StringData.cpp:19
@@ -8484,6 +8706,67 @@ msgstr "保存"
 #: C:\vs_projects\dmc4_hook\src\utility\Input.cpp:373
 msgid "set"
 msgstr "设定"
+
+#~ msgid "Human"
+#~ msgstr "人类"
+
+#~ msgid "Devil Hunter"
+#~ msgstr "恶魔猎人"
+
+#~ msgid "Son Of Sparda"
+#~ msgstr "斯巴达之子"
+
+#~ msgid "Legendary Dark Knight"
+#~ msgstr "黑骑士"
+
+#~ msgid "Heaven Or Hell (SOS)"
+#~ msgstr "天堂或地狱（SOS）"
+
+#~ msgid "Hell And Hell (SOS)"
+#~ msgstr "轮回地狱（SOS）"
+
+#~ msgid "Story Theater"
+#~ msgstr "剧情剧场"
+
+#~ msgid "Difficulty##Arcade"
+#~ msgstr "难度##Arcade"
+
+#~ msgid "Difficulty ##Game Mode Combo"
+#~ msgstr "难度##Game Mode Combo"
+
+#~ msgid "Exceed Display"
+#~ msgstr "红刀显示"
+
+#~ msgid "DMC4Hook - Devil May Cry 4 Trainer"
+#~ msgstr "DMC4Hook - 鬼泣4修改器"
+
+#~ msgid ""
+#~ "Block during uncancellable frames by pressing style while in Royal Guard "
+#~ "or Darkslayer"
+#~ msgstr "RG 或黑暗杀手风格下可以在动作硬直时防御"
+
+#~ msgid "Enable arcade mode"
+#~ msgstr "启用战役模式"
+
+#~ msgid "Disable Timer"
+#~ msgstr "禁用计时器"
+
+#~ msgid "Spawn Filters And Lights"
+#~ msgstr "生成滤镜和光照"
+
+#~ msgid ""
+#~ "Map Down Trick to backforward + trick\n"
+#~ "If an enemy is directly above Dante, it may register your forward input "
+#~ "as a back input and so queue a down trick"
+#~ msgstr ""
+#~ "锁定 + 后前 + 风格\n"
+#~ "可能会被卡位影响而误触下瞬"
+
+#~ msgid "Visualize Hitboxes Attempt 2 CRASHES WOOOO"
+#~ msgstr "显示判定框 测试 2 会崩溃啊啊啊aaa"
+
+#~ msgid "Visualize Hurtboxes CRASHES WOOOO"
+#~ msgstr "显示受击框 会崩溃啊啊啊aaaa"
 
 #~ msgid "M18"
 #~ msgstr "命运之城上空 [救世主]"

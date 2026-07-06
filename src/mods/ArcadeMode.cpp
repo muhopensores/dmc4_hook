@@ -95,6 +95,38 @@ std::optional<std::string> install_hooks(ArcadeMode* arcade) {
     return std::nullopt;
 }
 
+static constexpr std::array<const char*, 8> arcade_char_names{
+    //_("Dante"), // 0
+    // __("Dante - Auto"), // 1
+    // __("Super Dante"), // 2
+    // __("Super Dante - Auto"), // 3
+    // __("Nero"), // 4
+    // __("Nero - Auto"), // 5
+    // __("Super Nero"), // 6
+    // __("Super Nero - Auto"), // 7
+    __("Dante##0"), // 0
+    __("Dante##1"), // 1
+    __("Dante##2"), // 2
+    __("Dante##3"), // 3
+    __("Nero##4"),  // 4
+    __("Nero##5"),  // 5
+    __("Nero##6"),  // 6
+    __("Nero##7"),  // 7
+};
+
+static constexpr std::array<const char*, 9> arcade_difficulty_names{
+    __("Human##Arcade"),                 // 0
+    __("Devil Hunter##Arcade"),          // 1
+    __("Son Of Sparda##Arcade"),         // 2
+    __("Dante Must Die##Arcade"),        // 3
+    __("Legendary Dark Knight##Arcade"), // 4
+    __("Heaven Or Hell (SOS)##Arcade"),  // 5
+    __("Hell And Hell (SOS)##Arcade"),   // 6
+    __("Bloody Palace##Arcade"),         // 7
+    __("Story Theater##Arcade"),         // 8
+    // "I assume 10 would be training but they removed it, just black screens",
+};
+
 void ArcadeMode::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
         ImGui::BeginGroup();
@@ -122,27 +154,21 @@ void ArcadeMode::on_gui_frame(int display) {
 
         if (mod_enabled) {
             ImGui::Indent(lineIndent);
-            static const char* char_names[8]{
-                //_("Dante"), // 0
-                // __("Dante - Auto"), // 1
-                // __("Super Dante"), // 2
-                // __("Super Dante - Auto"), // 3
-                // __("Nero"), // 4
-                // __("Nero - Auto"), // 5
-                // __("Super Nero"), // 6
-                // __("Super Nero - Auto"), // 7
-                __("Dante"), // 0
-                __("Dante"), // 1
-                __("Dante"), // 2
-                __("Dante"), // 3
-                __("Nero"), // 4
-                __("Nero"), // 5
-                __("Nero"), // 6
-                __("Nero"), // 7
-            };
 
-            if (ImGui::Combo(_("Character"), (int*)&g_our_mission_menu.character, char_names, 8)) {
-                user_modified_settings = true;
+            utility::ImGooListboxTranslated translated_names(arcade_char_names.data(), arcade_char_names.size());
+            ImGui::PushItemWidth(sameLineItemWidth);
+            if (ImGui::BeginCombo(_("Character##Arcade Mode Combo"), translated_names.data()[g_our_mission_menu.character])) {
+                for (size_t i = 0; i < arcade_char_names.size(); i++) {
+                    bool is_selected = (g_our_mission_menu.character == i);
+                    if (ImGui::Selectable(translated_names.data()[i], is_selected)) {
+                        g_our_mission_menu.character = i;
+                        user_modified_settings = true;
+                    }
+                    if (is_selected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
             }
 
             if (g_our_mission_menu.cursor == ARCADE_BP_DIFF) {
@@ -150,7 +176,7 @@ void ArcadeMode::on_gui_frame(int display) {
                     user_modified_settings = true;
                     if (g_bp_floor < 1) {
                         g_bp_floor = 1;
-                    }
+                    }\
                     if (g_bp_floor > 101) {
                         g_bp_floor = 101;
                     }
@@ -162,21 +188,20 @@ void ArcadeMode::on_gui_frame(int display) {
                 }
             }
 
-            static const char* difficulty_names[9]{
-                __("Human"),                 // 0
-                __("Devil Hunter"),          // 1
-                __("Son Of Sparda"),         // 2
-                __("Dante Must Die"),        // 3
-                __("Legendary Dark Knight"), // 4
-                __("Heaven Or Hell (SOS)"),  // 5
-                __("Hell And Hell (SOS)"),   // 6
-                __("Bloody Palace"),         // 7
-                __("Story Theater"),         // 8
-                // "I assume 10 would be training but they removed it, just black screens",
-            };
-
-            if (ImGui::Combo(_("Difficulty"), (int*)&g_our_mission_menu.cursor, difficulty_names, 9)) {
-                user_modified_settings = true;
+            utility::ImGooListboxTranslated translated_difficulties(arcade_difficulty_names.data(), arcade_difficulty_names.size());
+            ImGui::PushItemWidth(sameLineItemWidth);
+            if (ImGui::BeginCombo(_("Difficulty##Arcade Mode Combo"), translated_difficulties.data()[g_our_mission_menu.cursor])) {
+                for (size_t i = 0; i < arcade_difficulty_names.size(); i++) {
+                    bool is_selected = (g_our_mission_menu.cursor == i);
+                    if (ImGui::Selectable(translated_difficulties.data()[i], is_selected)) {
+                        g_our_mission_menu.cursor = i;
+                        user_modified_settings    = true;
+                    }
+                    if (is_selected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
             }
 
             ImGui::Unindent(lineIndent);

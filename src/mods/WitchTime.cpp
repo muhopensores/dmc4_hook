@@ -55,6 +55,12 @@ naked void detour1() {
         je popcode
         cmp byte ptr [eax+0x2998], 5 // moveid - jump forward
         je popcode
+        cmp byte ptr [eax+0x2998], 0x31e // moveid - jump (gilg)
+        je popcode
+        cmp byte ptr [eax+0x2998], 0x320 // moveid - jump back (gilg)
+        je popcode
+        cmp byte ptr [eax+0x2998], 0x31f // moveid - jump forward (gilg)
+        je popcode
         pop eax
         pushad
         push dword ptr [wt_duration]
