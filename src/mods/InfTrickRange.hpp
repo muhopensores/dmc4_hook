@@ -7,8 +7,10 @@ public:
     InfTrickRange() = default;
 
     static bool mod_enabled;
+    static bool mod_enabled_height;
 
     void toggle(bool enable);
+    void toggle2(bool enable);
 
     std::string get_mod_name() override { return "InfTrickRange"; };
     std::vector<std::string> get_search_terms() override {

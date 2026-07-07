@@ -177,6 +177,7 @@
 #include "mods/FriendlyFire.hpp"
 #include "mods/EnvironmentalHazards.hpp"
 #include "mods/BackForwardQuickDrive.hpp"
+#include "mods/ExceedLock.hpp"
 
 constexpr size_t MODS_NUM{ 512 };
 
@@ -369,6 +370,7 @@ Mods::Mods() {
     ADD_MOD(GermanWord);
     ADD_MOD(FriendlyFire);
     ADD_MOD(EnvironmentalHazards);
+    ADD_MOD(ExceedLock);
 #endif
 }
 

@@ -164,7 +164,7 @@ void __stdcall new_pad_update_func(cPeripheral* peri) {
 naked void detour1() {
     _asm {
             cmp byte ptr [Macro::mod_enabled], 1
-            je coopcheck
+            jne coopcheck
             pushad
             push [esp+0x20+0x4]
             call Macro::on_pad_update_tick
@@ -697,7 +697,7 @@ std::optional<std::string> Coop::on_initialize() {
     return Mod::on_initialize();
 }
 
-std::vector<const char*> CHAR_NAME = {"Nero", "Dante"};
+static std::vector<char*> CHAR_NAME = {_("Nero"), _("Dante")};
 
 void Coop::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
@@ -720,7 +720,7 @@ void Coop::on_gui_frame(int display) {
         }
 
         ImGui::SameLine();
-        help_marker(_("Enable split-screen co-op."));
+        help_marker(_("Enable split-screen co-op"));
         ImGui::SameLine();
         ImGui::SetNextItemWidth(sameLineItemWidth / 2.0f);
         ImGui::SliderInt(_("Player Number"), (int*)&player_num, 2, 4);
@@ -732,10 +732,10 @@ void Coop::on_gui_frame(int display) {
                 CoopPlayer* curr_pl = PlayerArr[i].get();
                 ImGui::PushID(curr_pl);
                 ImGui::SetNextItemWidth(sameLineItemWidth);
-                if (ImGui::BeginCombo("##Select Character Combo", CHAR_NAME[curr_pl->player_id])) {
+                if (ImGui::BeginCombo("##Select Character Combo", utility::text_lookup(CHAR_NAME[curr_pl->player_id]))) {
                     for (int char_id = 0; char_id < 2; char_id++) {
                         bool is_selected = (curr_pl->player_id == char_id);
-                        if (ImGui::Selectable(CHAR_NAME[char_id], &is_selected)) {
+                        if (ImGui::Selectable(utility::text_lookup(CHAR_NAME[char_id]), &is_selected)) {
                             curr_pl->player_id = char_id;
                         }
                         if (is_selected)
@@ -747,7 +747,7 @@ void Coop::on_gui_frame(int display) {
             }
             ImGui::SameLine();
             help_marker(_("Picking Dante while you are Nero will crash. The opposite is fine"));
-            if (ImGui::Button("Refresh cam")) {
+            if (ImGui::Button(_("Refresh cam"))) {
                 if (mod_enabled) {
                     apply_viewport_layout();
                 }

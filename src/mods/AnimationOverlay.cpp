@@ -76,12 +76,12 @@ bool read_animation_overlay_state(uPlayer* player, AnimationOverlayState& state)
 }
 
 std::string format_state_line(const AnimationOverlayState& state) {
-    std::string result = state.grounded ? "grounded" : "airborne";
+    std::string result = state.grounded ? _("grounded") : _("airborne");
     if (state.hitstop) {
-        result += ", hitstop";
+        result += _(", hitstop");
     }
     if (state.locked_on) {
-        result += ", locked-on";
+        result += _(", locked-on");
     }
     return result;
 }
@@ -108,25 +108,25 @@ void AnimationOverlay::on_frame(fmilliseconds& dt) {
     ImGui::SetWindowPos(window_pos, ImGuiCond_Once);
     window_pos = ImGui::GetWindowPos();
 
-    ImGui::Text("Anim: 0x%04X", state.anim_id);
-    ImGui::Text("MoveID2: 0x%08X", state.move_id2);
-    ImGui::Text("Part: %u", state.move_part);
+    ImGui::Text(_("Anim: 0x%04X"), state.anim_id);
+    ImGui::Text(_("MoveID2: 0x%08X"), state.move_id2);
+    ImGui::Text(_("Part: %u"), state.move_part);
     if (has_valid_frame_max(state.anim_frame_max)) {
-        ImGui::Text("Frame: %.1f / %.1f", state.anim_frame, state.anim_frame_max);
+        ImGui::Text(_("Frame: %.1f / %.1f"), state.anim_frame, state.anim_frame_max);
     }
     else {
-        ImGui::Text("Frame: %.1f", state.anim_frame);
+        ImGui::Text(_("Frame: %.1f"), state.anim_frame);
     }
     const auto state_line = format_state_line(state);
-    ImGui::Text("State: %s", state_line.c_str());
-
+    ImGui::Text(_("State: %s"), state_line.c_str());
+    
     if (show_advanced) {
         ImGui::Separator();
-        ImGui::Text("Bank: 0x%X", state.move_bank);
-        ImGui::Text("Ground Raw: %u", state.grounded_raw);
-        ImGui::Text("Ground2: %u", state.grounded2 ? 1 : 0);
-        ImGui::Text("Land Flag: %s", state.has_collision_land ? (state.collision_land ? "1" : "0") : "n/a");
-        ImGui::Text("Hitstop Timer: %.1f", state.hitstop_timer);
+        ImGui::Text(_("Bank: 0x%X"), state.move_bank);
+        ImGui::Text(_("Ground Raw: %u"), state.grounded_raw);
+        ImGui::Text(_("Ground2: %u"), state.grounded2 ? 1 : 0);
+        ImGui::Text(_("Land Flag: %s"), state.has_collision_land ? (state.collision_land ? "1" : "0") : _("n/a"));
+        ImGui::Text(_("Hitstop Timer: %.1f"), state.hitstop_timer);
     }
 
     ImGui::End();
@@ -140,8 +140,7 @@ void AnimationOverlay::on_gui_frame(int display) {
     ImGui::BeginGroup();
     ImGui::Checkbox(_("Animation Overlay"), &mod_enabled);
     ImGui::SameLine();
-    help_marker(_(
-        "Shows the local player's read-only animation state directly on the game screen. Frame max is the runtime max frame value, not a verified resource-file total frame count."));
+    help_marker(_("Shows the local player's read-only animation state directly on the game screen. Frame max is the runtime max frame value, not a verified resource-file total frame count."));
     if (mod_enabled) {
         ImGui::Indent(lineIndent);
         ImGui::Checkbox(_("Show Advanced Animation Fields"), &show_advanced);

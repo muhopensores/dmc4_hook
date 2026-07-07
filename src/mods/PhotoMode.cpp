@@ -498,7 +498,7 @@ void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
                 case PM_INF_LIGHT: {
                     uInfiniteLight* inf_light = (uInfiniteLight*)obj;
                     ImGui::Text(_("Infinite Light"));
-                    if (ImGui::Button("Remove"))
+                    if (ImGui::Button(_("Remove")))
                         obj->flags.bits.mBeFlag = 3;
                     ImGui::ColorEdit4(_("Color"), (float*)&inf_light->mColor);
                     ImGui::InputFloat3(_("Dir"), (float*)&inf_light->mDir);
@@ -510,7 +510,7 @@ void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
                     spot_light->mpTarget   = (uCoord*)devil4_sdk::get_local_player();
                     spot_light->mTargetNo  = 0;
                     ImGui::Text(_("Spot Light"));
-                    if (ImGui::Button("Remove"))
+                    if (ImGui::Button(_("Remove")))
                         obj->flags.bits.mBeFlag = 3;
                     ImGui::ColorEdit4(_("Color"), (float*)&spot_light->mColor);
                     ImGui::InputFloat3(_("Pos"), (float*)&spot_light->mPos);
@@ -529,7 +529,7 @@ void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
                 case PM_POINT_LIGHT: {
                     uPointLight* point_light = (uPointLight*)obj;
                     ImGui::Text(_("Point Light"));
-                    if (ImGui::Button("Remove"))
+                    if (ImGui::Button(_("Remove")))
                         obj->flags.bits.mBeFlag = 3;
                     ImGui::ColorEdit4(_("Color"), (float*)&point_light->mColor);
                     ImGui::InputFloat3(_("Pos"), (float*)&point_light->mPos);
@@ -562,7 +562,7 @@ void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
                 case PM_DOF_FILTER: {
                     uDOFFilter* dof_filter = (uDOFFilter*)obj;
                     ImGui::Text(_("DOF Filter"));
-                    if (ImGui::Button("Remove"))
+                    if (ImGui::Button(_("Remove")))
                         obj->flags.bits.mBeFlag = 3;
                     ImGui::InputInt(_("Blur count"), (int*)&dof_filter->mBlurCount);
                     ImGui::SliderInt(_("Type"), (int*)&dof_filter->mType, 0, 2);
@@ -584,14 +584,14 @@ void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
 
                 case PM_TONE_MAP_FILTER: {
                     ImGui::Text(_("Tone Map Filter"));
-                    if (ImGui::Button("Remove"))
+                    if (ImGui::Button(_("Remove")))
                         obj->flags.bits.mBeFlag = 3;
                     break;
                 }
 
                 case PM_COLOR_CORR_FILTER: {
                     ImGui::Text(_("Colour Correct Filter"));
-                    if (ImGui::Button("Remove"))
+                    if (ImGui::Button(_("Remove")))
                         obj->flags.bits.mBeFlag = 3;
                     break;
                 }
@@ -599,7 +599,7 @@ void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
                 case PM_COLOR_SPACE_FILTER: {
                     uColorSpaceFilter* cs_filter = (uColorSpaceFilter*)obj;
                     ImGui::Text(_("Colour Space Filter"));
-                    if (ImGui::Button("Remove"))
+                    if (ImGui::Button(_("Remove")))
                         obj->flags.bits.mBeFlag = 3;
                     ImGui::InputFloat4(_("Angle"), (float*)&cs_filter->mAngle);
                     ImGui::InputFloat4(_("Scale"), (float*)&cs_filter->mScale);
@@ -609,7 +609,7 @@ void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
                 case PM_LVL_CORR_FILTER: {
                     uLevelCorrectFilter* lvl_filter = (uLevelCorrectFilter*)obj;
                     ImGui::Text(_("Level Correct Filter"));
-                    if (ImGui::Button("Remove"))
+                    if (ImGui::Button(_("Remove")))
                         obj->flags.bits.mBeFlag = 3;
                     ImGui::InputFloat4(_("In Black"), (float*)&lvl_filter->mInBlack);
                     ImGui::InputFloat4(_("In White"), (float*)&lvl_filter->mInWhite);
@@ -622,7 +622,7 @@ void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
                 case PM_CONTRAST_FILTER: {
                     uContrastFilter* contr_filter = (uContrastFilter*)obj;
                     ImGui::Text(_("Contrast Filter"));
-                    if (ImGui::Button("Remove"))
+                    if (ImGui::Button(_("Remove")))
                         obj->flags.bits.mBeFlag = 3;
                     ImGui::InputFloat(_("Contrast"), &contr_filter->mContrast);
                     break;
@@ -631,7 +631,7 @@ void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
                 case PM_HSV_FILTER: {
                     uHSVFilter* hsv_filter = (uHSVFilter*)obj;
                     ImGui::Text(_("HSV Filter"));
-                    if (ImGui::Button("Remove"))
+                    if (ImGui::Button(_("Remove")))
                         obj->flags.bits.mBeFlag = 3;
                     ImGui::InputFloat(_("Shift Hue"), &hsv_filter->mShiftHue);
                     ImGui::InputFloat(_("Shift Saturation"), &hsv_filter->mShiftSaturation);
@@ -687,7 +687,7 @@ void PhotoMode::on_frame(fmilliseconds& dt) {
                 currentLightGizmoOperation = ImGuizmo::SCALE;
             }
 
-            if (ImGui::Button("Hide Photo Mode UI")) {
+            if (ImGui::Button(_("Hide Photo Mode UI"))) {
                 HUDCooldown = 300.0f;
                 /*hide hud here*/
             }
@@ -741,41 +741,41 @@ void PhotoMode::on_frame(fmilliseconds& dt) {
                 if (ImGui::BeginTabItem(_("Lights/Filters"))) {
                     ImGui::BeginChild("PhotoTabBarChild");
                     ImGui::SeparatorText(_("Lights"));
-                    if (ImGui::Button("Infinite Light"))
+                    if (ImGui::Button(_("Infinite Light")))
                         spawn((void*)uInfiniteLightCons);
                     ImGui::SameLine();
-                    if (ImGui::Button("Spot Light"))
+                    if (ImGui::Button(_("Spot Light")))
                         spawn((void*)uSpotLightCons);
                     ImGui::SameLine();
-                    if (ImGui::Button("Point Light"))
+                    if (ImGui::Button(_("Point Light")))
                         spawn((void*)uPointLightCons);
                     ImGui::SameLine();
-                    if (ImGui::Button("Hemi Light"))
+                    if (ImGui::Button(_("Hemi Light")))
                         spawn((void*)uHemiSphereLightCons);
                     ImGui::SameLine();
-                    if (ImGui::Button("Back Light"))
+                    if (ImGui::Button(_("Back Light")))
                         spawn((void*)uBackLightCons);
 
                     ImGui::SeparatorText(_("Filters"));
-                    if (ImGui::Button("DOF Filter"))
+                    if (ImGui::Button(_("DOF Filter")))
                         spawn((void*)uDOFFilterCons);
                     ImGui::SameLine();
-                    if (ImGui::Button("Tone Map"))
+                    if (ImGui::Button(_("Tone Map")))
                         spawn((void*)uToneMapFilterCons);
                     ImGui::SameLine();
-                    if (ImGui::Button("Color Correct"))
+                    if (ImGui::Button(_("Color Correct")))
                         spawn((void*)uColorCorrectFilterCons);
                     ImGui::SameLine();
-                    if (ImGui::Button("Color Space"))
+                    if (ImGui::Button(_("Color Space")))
                         spawn((void*)uColorSpaceFilterCons);
                     ImGui::SameLine();
-                    if (ImGui::Button("Level Correct"))
+                    if (ImGui::Button(_("Level Correct")))
                         spawn((void*)uLevelCorrectFilterCons);
                     ImGui::SameLine();
-                    if (ImGui::Button("Contrast"))
+                    if (ImGui::Button(_("Contrast")))
                         spawn((void*)uContrastFilterCons);
                     ImGui::SameLine();
-                    if (ImGui::Button("HSV"))
+                    if (ImGui::Button(_("HSV")))
                         spawn((void*)uHSVFilterCons);
 
                     sUnit* s_unit = (sUnit*)devil4_sdk::get_sUnit();

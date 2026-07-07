@@ -352,13 +352,15 @@ namespace gui {
                         
                         pmods->on_draw_ui("Quicksilver"_hash, DISPLAY_NERO_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("ExceedLimiter"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui("WitchTime"_hash, DISPLAY_NERO_A);
 
                         pmods->on_draw_ui("RunWhileHolding"_hash, DISPLAY_NERO_A);
                         ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("NoHbKnockback"_hash, DISPLAY_NERO_A);
 
-                        pmods->on_draw_ui("WitchTime"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui("ExceedLock"_hash, DISPLAY_NERO_A);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui("ExceedLimiter"_hash, DISPLAY_NERO_A);
 
                         pmods->on_draw_ui("Payline"_hash, DISPLAY_NERO_A); // needs its own line // keep on the last line, it has a download button
 

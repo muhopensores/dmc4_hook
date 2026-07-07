@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-06 18:18+0100\n"
+"POT-Creation-Date: 2026-07-07 11:54+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -47,212 +47,214 @@ msgid "Character"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:335
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:700
 msgid "Nero"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:339
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:417
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:419
 msgid "Limit Removal"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:345
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:423
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:425
 msgid "Abilities"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:367
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:528
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:369
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:530
 msgid "Speedups"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:373
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:542
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:375
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:544
 msgid "Infinite"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:383
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:516
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:385
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:518
 msgid "Accessibility"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:387
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:564
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:389
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:566
 msgid "Selective Cancels"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:391
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:568
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:393
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:570
 msgid "Taunt Select"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:395
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:572
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:397
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:574
 msgid "Memes"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:413
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:415
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:25
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:143
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:197
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:700
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:465
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:116
 msgid "Dante"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:478
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:480
 msgid "Lucifer"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:493
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:495
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:161
 msgid "Rose"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:501
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:503
 msgid "Pins"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:506
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:508
 msgid "Aerial grounded moves"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:556
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:558
 msgid "Darkslayer"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:595
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:597
 msgid "Environment"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:606
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:608
 msgid "Stage"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:621
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:623
 msgid "Enemies"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:625
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:627
 msgid "Enemy Spawner"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:628
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:630
 msgid "Enemy Replacement"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:645
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:658
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:647
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:660
 msgid "System"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:648
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:819
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:650
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:821
 msgid "dmc4_hook"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:672
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:779
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:674
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:781
 msgid "Misc"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:688
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:690
 msgid "Graphics"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:692
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:694
 msgid "Cutscenes"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:700
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:702
 msgid "HUD"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:706
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:708
 msgid "Custom HUD elements"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:724
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:726
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:731
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:733
 msgid "Camera"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:743
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:745
 msgid "Debug"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:747
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:749
 msgid "File Loading"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:751
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:753
 #: C:\vs_projects\dmc4_hook\src\mods\NoClip.cpp:62
 msgid "Noclip"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:755
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:757
 msgid "Stats"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:775
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:777
 msgid "Multi-character Fixes"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:791
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:793
 msgid "Testing"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:793
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:795
 msgid "View ImGui Demo"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:805
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:807
 msgid "Hotkeys"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:816
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:818
 msgid "About"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:830
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:832
 msgid "Translation:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:831
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:833
 msgid "ttttchr"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:832
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:834
 msgid "raika87"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:835
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:837
 msgid "Special Thanks:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:848
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:850
 msgid "For more info and updates visit the github:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:853
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:855
 msgid "Frequently Asked Questions"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:855
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:857
 msgid "What mods do you recommend most?"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:856
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:858
 msgid ""
 "\"Fast Game Load\" and neighbouring options in the \"System\" tab. Get from "
 "your Desktop to BP in 2 seconds."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:858
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:860
 msgid "Old mods I installed have suddenly turned on"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:859
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:861
 msgid ""
 "\"HDD File Priority\" is ticked on the Debug page. If your DMC4 install "
 "contains any files left over from old mods, this will load them. To clean up "
@@ -260,59 +262,59 @@ msgid ""
 "does not check newly added files."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:863
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:865
 msgid "My combo points are stuck at 0"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:864
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:866
 msgid ""
 "\"Respawn Enemies when visiting the same room multiple times\" is ticked on "
 "the Debug page. If you didn't turn this on manually, it would have been auto "
 "ticked when you used the reload current room hotkey."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:867
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:869
 msgid "My camera is frozen"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:868
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:870
 msgid "The default hotkey for camera settings' freeze camera is Numpad 0."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:870
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:872
 msgid "I crash entering mission 1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:871
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:873
 msgid "\"Character Switcher\" crashes in this mission."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:873
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:875
 msgid "Payline is going through enemies"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:874
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:876
 msgid "Tick \"HDD File Priority\""
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:876
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:878
 msgid "Enemies are white sometimes"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:877
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:879
 msgid "This is a known issue with \"HDD File Priority\""
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:886
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:888
 msgid "This trainer was made using:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:906
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:907
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:908
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:909
 msgid "Licenses"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:939
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:941
 msgid "Search"
 msgstr ""
 
@@ -342,19 +344,19 @@ msgstr ""
 msgid "dmc4_hook (Pad)"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:522
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:524
 msgid "Keys will probably show up only on US keyboard layouts."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:523
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:525
 msgid "We use MapVirtualKeyA();"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:524
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:526
 msgid "Making sure dear imgui renders unicode properly is complicated"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:525
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:527
 msgid "please understand. ;_;"
 msgstr ""
 
@@ -428,22 +430,97 @@ msgstr ""
 msgid "Mapped to forward + snatch"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:79
+msgid "grounded"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:79
+msgid "airborne"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:81
+msgid ", hitstop"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:84
+msgid ", locked-on"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:111
+#, c-format
+msgid "Anim: 0x%04X"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:112
+#, c-format
+msgid "MoveID2: 0x%08X"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:113
+#, c-format
+msgid "Part: %u"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:115
+#, c-format
+msgid "Frame: %.1f / %.1f"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:118
+#, c-format
+msgid "Frame: %.1f"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:121
+#, c-format
+msgid "State: %s"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:125
+#, c-format
+msgid "Bank: 0x%X"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:126
+#, c-format
+msgid "Ground Raw: %u"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:127
+#, c-format
+msgid "Ground2: %u"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:128
+#, c-format
+msgid "Land Flag: %s"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:128
+msgid "n/a"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:129
+#, c-format
+msgid "Hitstop Timer: %.1f"
+msgstr ""
+
 #: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:141
 msgid "Animation Overlay"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:144
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:143
 msgid ""
 "Shows the local player's read-only animation state directly on the game "
 "screen. Frame max is the runtime max frame value, not a verified resource-"
 "file total frame count."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:147
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:146
 msgid "Show Advanced Animation Fields"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:149
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:148
 msgid ""
 "Adds lower-level values such as animation bank, raw ground flags, and hitstop "
 "timer."
@@ -1444,7 +1521,7 @@ msgid "Coop mode"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:723
-msgid "Enable split-screen co-op."
+msgid "Enable split-screen co-op"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:726
@@ -1453,6 +1530,10 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:749
 msgid "Picking Dante while you are Nero will crash. The opposite is fine"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:750
+msgid "Refresh cam"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:756
@@ -2455,6 +2536,14 @@ msgstr ""
 msgid "Attacks only use one bar of exceed if holding the exceed button"
 msgstr ""
 
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedLock.cpp:28
+msgid "Exceed Lock"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedLock.cpp:30
+msgid "Lock exceed to any level"
+msgstr ""
+
 #: C:\vs_projects\dmc4_hook\src\mods\FasterFastDrive.cpp:21
 msgid "Fast Quick Drive"
 msgstr ""
@@ -3276,8 +3365,12 @@ msgstr ""
 msgid "Always Table Hopper"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\InfTrickRange.cpp:22
+#: C:\vs_projects\dmc4_hook\src\mods\InfTrickRange.cpp:30
 msgid "Infinite Trick Range"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\InfTrickRange.cpp:35
+msgid "Infinite Trick Height"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\InputStates.cpp:281
@@ -4343,7 +4436,23 @@ msgid "InfiniteLight"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:500
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:744
 msgid "Infinite Light"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:501
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:513
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:532
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:545
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:556
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:565
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:587
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:594
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:602
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:612
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:625
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:634
+msgid "Remove"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:504
@@ -4353,6 +4462,7 @@ msgid "Dir"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:512
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:747
 msgid "Spot Light"
 msgstr ""
 
@@ -4370,23 +4480,22 @@ msgid "World Dir"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:531
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:750
 msgid "Point Light"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:544
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:753
 msgid "Hemi Light"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:545
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:556
-msgid "Remove"
-msgstr ""
-
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:555
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:756
 msgid "Back Light"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:564
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:760
 msgid "DOF Filter"
 msgstr ""
 
@@ -4495,6 +4604,7 @@ msgid "Contrast Filter"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:627
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:775
 msgid "Contrast"
 msgstr ""
 
@@ -4520,6 +4630,10 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:686
 msgid "S - Settings"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:690
+msgid "Hide Photo Mode UI"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:695
@@ -4553,6 +4667,26 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:759
 msgid "Filters"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:763
+msgid "Tone Map"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:766
+msgid "Color Correct"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:769
+msgid "Color Space"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:772
+msgid "Level Correct"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:778
+msgid "HSV"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:785
