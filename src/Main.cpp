@@ -45,21 +45,21 @@ static void patch_more_memories() {
     // gets gatted by I assume steam drm, works on nonsteam exe
     static DWORD oldProtect;
 
-    static BYTE* globalMem = (BYTE*)0x8AFB3E; // global
-    static BYTE* tempMem   = (BYTE*)0x8AFB76; // temp
-    static BYTE* resMem    = (BYTE*)0x8AFBAE; // resource
+    static UINT* globalMem = (UINT*)0x8AFB3B; // global
+    static UINT* tempMem   = (UINT*)0x8AFB73; // temp
+    static UINT* resMem    = (UINT*)0x8AFBAB; // resource
 
-    VirtualProtect(globalMem, 1, PAGE_EXECUTE_READWRITE, &oldProtect);
-    *globalMem = 9; // was push 06000000
-    VirtualProtect(globalMem, 1, oldProtect, &oldProtect);
+    VirtualProtect(globalMem, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
+    *globalMem = 0xA0000000; // was push 06000000
+    VirtualProtect(globalMem, 4, PAGE_READONLY, &oldProtect);
 
-    VirtualProtect(tempMem, 1, PAGE_EXECUTE_READWRITE, &oldProtect);
-    *tempMem = 3; // was push 02000000
-    VirtualProtect(tempMem, 1, oldProtect, &oldProtect);
+    VirtualProtect(tempMem, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
+    *tempMem = 0x03000000; // was push 02000000
+    VirtualProtect(tempMem, 4, oldProtect, &oldProtect);
 
-    VirtualProtect(resMem, 1, PAGE_EXECUTE_READWRITE, &oldProtect);
-    *resMem = 9; // was push 06000000
-    VirtualProtect(resMem, 1, oldProtect, &oldProtect);
+    VirtualProtect(resMem, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
+    *resMem = 0x90000000; // was push 06000000
+    VirtualProtect(resMem, 4, oldProtect, &oldProtect);
 }
 
 static void failed() {
@@ -160,6 +160,7 @@ BOOL APIENTRY DllMain(HMODULE handle, DWORD reason, LPVOID reserved) { //NOLINT
 #ifndef NDEBUG
         //MessageBox(NULL, "Debug attach opportunity", "DMC4", MB_ICONINFORMATION);
 #endif
+
         assert(DisableThreadLibraryCalls(handle));
 
         load_original_dinput8();
