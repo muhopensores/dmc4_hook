@@ -768,4 +768,10 @@ namespace uactor_sdk {
 			ret
 		}
 	}
+	void* __stdcall get_center_pos(void* obj, Vector3f* pos) {
+		void** vtable = *(void***)obj;
+		typedef void(__thiscall* VirtualFn)(void*, Vector3f*);
+		((VirtualFn)vtable[33])(obj, pos);
+		return pos;
+	}
 }

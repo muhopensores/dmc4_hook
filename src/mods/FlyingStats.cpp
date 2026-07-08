@@ -356,7 +356,8 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
             int enemyCount = 0;
             uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
             while (enemy) {
-                glm::vec3 objectPosition = enemy->position;
+                Vector3f objectPosition{};
+                uactor_sdk::get_center_pos(enemy, &objectPosition);
                 float objectDistance = w2s::GetDistanceFromCam(objectPosition);
                 float guiFriendlyDistance = glm::min(1000.0f / objectDistance, 1.0f);
                 glm::vec2 screenPos = w2s::WorldToScreen(objectPosition);
@@ -505,14 +506,15 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
             }
         }
         if (showFlyingPlayerStats) {
-            glm::vec3 objectPosition = player->mPos;
+            Vector3f objectPosition{};
+            uactor_sdk::get_center_pos(player, &objectPosition);
             float objectDistance = w2s::GetDistanceFromCam(objectPosition);
             float guiFriendlyDistance = glm::min(1000.0f / objectDistance, 1.0f);
             glm::vec2 screenPos = w2s::WorldToScreen(objectPosition);
             std::string windowName = "PlayerStats##" + std::to_string((uintptr_t)player);
             float currentFontScale = 0.8f * guiFriendlyDistance;
             float currentItemWidth = (sameLineItemWidth / 2.0f) * guiFriendlyDistance;
-            if (w2s::IsVisibleOnScreen(objectPosition)) {
+            if (w2s::IsVisibleOnScreen(screenPos)) {
                 ImGui::Begin(windowName.c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize |
                     ImGuiWindowFlags_NoDecoration |
                     ImGuiWindowFlags_NoResize |
