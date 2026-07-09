@@ -189,7 +189,7 @@ std::string format_frame_line(const AnimationOverlayState& state) {
 
 std::string format_part_line(const AnimationOverlayState& state) {
     char buffer[64]{};
-    std::snprintf(buffer, sizeof(buffer), "Part %u", state.move_part);
+    std::snprintf(buffer, sizeof(buffer), _("Part %u"), state.move_part);
     return buffer;
 }
 
@@ -257,7 +257,7 @@ void AnimationOverlay::on_frame(fmilliseconds& dt) {
     draw_shadow_text(state_line, state_color);
 
     ImGui::UpdateCurrentFontSize(1.90f * ImGui::GetStyle().FontSizeBase);
-    draw_shadow_text(std::string("Frame  ") + format_frame_line(state), palette.highlight);
+    draw_shadow_text(std::string(_("Frame  ")) + format_frame_line(state), palette.highlight);
     draw_frame_progress_bar(state, palette);
 
     ImGui::UpdateCurrentFontSize(1.36f * ImGui::GetStyle().FontSizeBase);
