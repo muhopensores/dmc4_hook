@@ -2,15 +2,22 @@
 
 #include "sdk/Devil4.hpp"
 #include "sdk/uPlayer.hpp"
+#include "imgui_internal.h"
 
+#include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <string>
 
 bool AnimationOverlay::mod_enabled = false;
 bool AnimationOverlay::show_advanced = false;
-ImVec2 AnimationOverlay::window_pos{ 20.0f, 120.0f };
+ImVec2 AnimationOverlay::window_pos{ 20.0f, 230.0f };
 
 namespace {
+constexpr float DEFAULT_WINDOW_POS_X = 20.0f;
+constexpr float OLD_DEFAULT_WINDOW_POS_Y = 120.0f;
+constexpr float DEFAULT_WINDOW_POS_Y = 230.0f;
+
 struct AnimationOverlayState {
     uint16_t anim_id = 0;
     float anim_frame = 0.0f;
@@ -26,6 +33,17 @@ struct AnimationOverlayState {
     bool hitstop = false;
     float hitstop_timer = 0.0f;
     bool locked_on = false;
+    uint32_t character_role = 0xFFFFFFFFu;
+};
+
+struct AnimationOverlayPalette {
+    ImVec4 title{};
+    ImVec4 accent{};
+    ImVec4 highlight{};
+    ImVec4 body{};
+    ImVec4 muted{};
+    ImVec4 good{};
+    ImVec4 warning{};
 };
 
 bool has_valid_frame_max(float value) {
@@ -67,12 +85,22 @@ bool read_animation_overlay_state(uPlayer* player, AnimationOverlayState& state)
         state.hitstop = player->hitstop;
         state.hitstop_timer = player->hitstopTimer;
         state.locked_on = player->lockedOn;
+        state.character_role = player->controllerID == 1 ? 0 : (player->controllerID == 0 ? 1 : 0xFFFFFFFFu);
     }
     __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
         return false;
     }
 
     return std::isfinite(state.anim_frame);
+}
+
+uPlayer* get_animation_overlay_player_safe() {
+    __try {
+        return devil4_sdk::get_local_player();
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return nullptr;
+    }
 }
 
 std::string format_state_line(const AnimationOverlayState& state) {
@@ -85,6 +113,113 @@ std::string format_state_line(const AnimationOverlayState& state) {
     }
     return result;
 }
+
+AnimationOverlayPalette overlay_palette_for_character(uint32_t character_role) {
+    if (character_role == 1) {
+        return {
+            ImVec4(1.0f, 0.30f, 0.22f, 0.98f),
+            ImVec4(1.0f, 0.68f, 0.40f, 0.98f),
+            ImVec4(1.0f, 0.92f, 0.58f, 0.98f),
+            ImVec4(1.0f, 0.96f, 0.92f, 0.96f),
+            ImVec4(1.0f, 0.72f, 0.62f, 0.88f),
+            ImVec4(0.66f, 1.0f, 0.72f, 0.94f),
+            ImVec4(1.0f, 0.86f, 0.34f, 0.96f),
+        };
+    }
+
+    if (character_role == 0) {
+        return {
+            ImVec4(0.24f, 0.72f, 1.0f, 0.98f),
+            ImVec4(0.68f, 0.94f, 1.0f, 0.98f),
+            ImVec4(0.95f, 1.0f, 1.0f, 0.98f),
+            ImVec4(0.93f, 0.98f, 1.0f, 0.96f),
+            ImVec4(0.66f, 0.84f, 1.0f, 0.88f),
+            ImVec4(0.66f, 1.0f, 0.72f, 0.94f),
+            ImVec4(1.0f, 0.86f, 0.34f, 0.96f),
+        };
+    }
+
+    return {
+        ImVec4(0.85f, 0.92f, 1.0f, 0.98f),
+        ImVec4(0.65f, 0.78f, 1.0f, 0.96f),
+        ImVec4(1.0f, 1.0f, 1.0f, 0.98f),
+        ImVec4(0.96f, 0.98f, 1.0f, 0.94f),
+        ImVec4(0.78f, 0.84f, 0.94f, 0.88f),
+        ImVec4(0.66f, 1.0f, 0.72f, 0.94f),
+        ImVec4(1.0f, 0.86f, 0.34f, 0.96f),
+    };
+}
+
+void draw_shadow_text(const std::string& text, const ImVec4& color) {
+    const ImVec2 pos = ImGui::GetCursorPos();
+    ImGui::SetCursorPos(ImVec2(pos.x + 3.0f, pos.y + 3.0f));
+    ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, color.w * 0.75f), "%s", text.c_str());
+    ImGui::SetCursorPos(pos);
+    ImGui::TextColored(color, "%s", text.c_str());
+}
+
+void draw_key_value_line(const char* label, const std::string& value, const ImVec4& label_color, const ImVec4& value_color) {
+    ImGui::TextColored(label_color, "%s", label);
+    ImGui::SameLine(115.0f);
+    draw_shadow_text(value, value_color);
+}
+
+std::string format_hex16(uint16_t value) {
+    char buffer[32]{};
+    std::snprintf(buffer, sizeof(buffer), "0x%04X", value);
+    return buffer;
+}
+
+std::string format_hex32(uint32_t value) {
+    char buffer[32]{};
+    std::snprintf(buffer, sizeof(buffer), "0x%08X", value);
+    return buffer;
+}
+
+std::string format_frame_line(const AnimationOverlayState& state) {
+    char buffer[64]{};
+    if (has_valid_frame_max(state.anim_frame_max)) {
+        std::snprintf(buffer, sizeof(buffer), "%.1f / %.1f", state.anim_frame, state.anim_frame_max);
+    }
+    else {
+        std::snprintf(buffer, sizeof(buffer), "%.1f", state.anim_frame);
+    }
+    return buffer;
+}
+
+std::string format_part_line(const AnimationOverlayState& state) {
+    char buffer[64]{};
+    std::snprintf(buffer, sizeof(buffer), "Part %u", state.move_part);
+    return buffer;
+}
+
+void draw_frame_progress_bar(const AnimationOverlayState& state, const AnimationOverlayPalette& palette) {
+    if (!has_valid_frame_max(state.anim_frame_max)) {
+        return;
+    }
+
+    const float progress = std::clamp(state.anim_frame / state.anim_frame_max, 0.0f, 1.0f);
+    const ImVec2 pos = ImGui::GetCursorScreenPos();
+    const float width = std::max(1.0f, ImGui::GetContentRegionAvail().x);
+    const ImVec2 size(width, 12.0f);
+    auto* draw_list = ImGui::GetWindowDrawList();
+
+    const ImVec2 end(pos.x + size.x, pos.y + size.y);
+    const ImVec2 fill_end(pos.x + size.x * progress, pos.y + size.y);
+
+    draw_list->AddRectFilled(pos, end, ImColor(0, 0, 0, 155), 5.0f);
+    draw_list->AddRect(pos, end, ImColor(255, 255, 255, 58), 5.0f);
+    if (progress > 0.0f) {
+        draw_list->AddRectFilled(pos, fill_end, ImColor(palette.title), 5.0f);
+        draw_list->AddRectFilled(
+            ImVec2(pos.x, pos.y + 1.0f),
+            ImVec2(fill_end.x, pos.y + 4.0f),
+            ImColor(palette.highlight),
+            5.0f);
+    }
+
+    ImGui::Dummy(size);
+}
 }
 
 void AnimationOverlay::on_frame(fmilliseconds& dt) {
@@ -93,7 +228,7 @@ void AnimationOverlay::on_frame(fmilliseconds& dt) {
     }
 
     AnimationOverlayState state{};
-    if (!read_animation_overlay_state(devil4_sdk::get_local_player(), state)) {
+    if (!read_animation_overlay_state(get_animation_overlay_player_safe(), state)) {
         return;
     }
 
@@ -103,33 +238,49 @@ void AnimationOverlay::on_frame(fmilliseconds& dt) {
         ImGuiWindowFlags_NoResize |
         ImGuiWindowFlags_NoSavedSettings;
 
-    ImGui::SetNextWindowBgAlpha(0.58f);
+    const auto palette = overlay_palette_for_character(state.character_role);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(16.0f, 12.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 6.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.02f, 0.025f, 0.035f, 0.52f));
     ImGui::Begin("Animation Overlay", nullptr, window_flags);
     ImGui::SetWindowPos(window_pos, ImGuiCond_Once);
     window_pos = ImGui::GetWindowPos();
 
-    ImGui::Text(_("Anim: 0x%04X"), state.anim_id);
-    ImGui::Text(_("MoveID2: 0x%08X"), state.move_id2);
-    ImGui::Text(_("Part: %u"), state.move_part);
-    if (has_valid_frame_max(state.anim_frame_max)) {
-        ImGui::Text(_("Frame: %.1f / %.1f"), state.anim_frame, state.anim_frame_max);
-    }
-    else {
-        ImGui::Text(_("Frame: %.1f"), state.anim_frame);
-    }
     const auto state_line = format_state_line(state);
-    ImGui::Text(_("State: %s"), state_line.c_str());
-    
+    const auto state_color = state.hitstop ? palette.warning : (state.grounded ? palette.good : palette.accent);
+
+    ImGui::UpdateCurrentFontSize(1.45f * ImGui::GetStyle().FontSizeBase);
+    draw_shadow_text(_("Animation"), palette.title);
+    ImGui::SameLine();
+    draw_shadow_text(state_line, state_color);
+
+    ImGui::UpdateCurrentFontSize(1.90f * ImGui::GetStyle().FontSizeBase);
+    draw_shadow_text(std::string("Frame  ") + format_frame_line(state), palette.highlight);
+    draw_frame_progress_bar(state, palette);
+
+    ImGui::UpdateCurrentFontSize(1.36f * ImGui::GetStyle().FontSizeBase);
+    draw_key_value_line(_("MoveID2"), format_hex32(state.move_id2), palette.muted, palette.body);
+    draw_key_value_line(_("Anim"), format_hex16(state.anim_id), palette.muted, palette.body);
+    draw_key_value_line(_("Move Part"), format_part_line(state), palette.muted, palette.body);
+
     if (show_advanced) {
         ImGui::Separator();
-        ImGui::Text(_("Bank: 0x%X"), state.move_bank);
-        ImGui::Text(_("Ground Raw: %u"), state.grounded_raw);
-        ImGui::Text(_("Ground2: %u"), state.grounded2 ? 1 : 0);
-        ImGui::Text(_("Land Flag: %s"), state.has_collision_land ? (state.collision_land ? "1" : "0") : _("n/a"));
-        ImGui::Text(_("Hitstop Timer: %.1f"), state.hitstop_timer);
+        ImGui::UpdateCurrentFontSize(1.18f * ImGui::GetStyle().FontSizeBase);
+        draw_key_value_line(_("Bank"), format_hex32(state.move_bank), palette.muted, palette.body);
+        draw_key_value_line(_("Ground Raw"), std::to_string(state.grounded_raw), palette.muted, palette.body);
+        draw_key_value_line(_("Ground2"), state.grounded2 ? "1" : "0", palette.muted, palette.body);
+        draw_key_value_line(_("Land Flag"), state.has_collision_land ? (state.collision_land ? "1" : "0") : _("n/a"), palette.muted, palette.body);
+        char hitstop_buffer[32]{};
+        std::snprintf(hitstop_buffer, sizeof(hitstop_buffer), "%.1f", state.hitstop_timer);
+        draw_key_value_line(_("Hitstop"), hitstop_buffer, palette.muted, state.hitstop ? palette.warning : palette.body);
     }
 
+    ImGui::UpdateCurrentFontSize(0.0f);
     ImGui::End();
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar(3);
 }
 
 void AnimationOverlay::on_gui_frame(int display) {
@@ -154,8 +305,13 @@ void AnimationOverlay::on_gui_frame(int display) {
 void AnimationOverlay::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("animation_overlay").value_or(false);
     show_advanced = cfg.get<bool>("animation_overlay_advanced").value_or(false);
-    window_pos.x = cfg.get<float>("animation_overlay_pos_x").value_or(20.0f);
-    window_pos.y = cfg.get<float>("animation_overlay_pos_y").value_or(120.0f);
+    window_pos.x = cfg.get<float>("animation_overlay_pos_x").value_or(DEFAULT_WINDOW_POS_X);
+    window_pos.y = cfg.get<float>("animation_overlay_pos_y").value_or(DEFAULT_WINDOW_POS_Y);
+
+    if (std::abs(window_pos.x - DEFAULT_WINDOW_POS_X) < 2.0f &&
+        std::abs(window_pos.y - OLD_DEFAULT_WINDOW_POS_Y) < 2.0f) {
+        window_pos.y = DEFAULT_WINDOW_POS_Y;
+    }
 }
 
 void AnimationOverlay::on_config_save(utility::Config& cfg) {

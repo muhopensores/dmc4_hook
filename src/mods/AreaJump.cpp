@@ -1,6 +1,7 @@
 #include "AreaJump.hpp"
 #include <array>
 #include <algorithm>
+#include "Macro.hpp"
 #include "RoomRespawn.hpp"
 #include <Config.hpp>
 #include "sdk/Devil4.hpp"
@@ -15,6 +16,156 @@ static int savedOrbs = 0;
 static float savedHP = 0.0f;
 static float savedDT = 0.0f;
 static float savedStylePoints = 0.0f;
+static bool pendingBPRestore = false;
+static uint32_t pendingBPRestoreTicks = 0;
+
+namespace {
+constexpr uint32_t BP_PROGRESS_RESTORE_TIMEOUT_TICKS = 180;
+
+struct AreaJumpRuntime {
+    sArea* area = nullptr;
+    aGame* game = nullptr;
+    sMediator* mediator = nullptr;
+    uPlayer* player = nullptr;
+};
+
+bool read_area_jump_runtime_safe(AreaJumpRuntime& runtime, bool require_player) {
+    runtime = {};
+    runtime.area = devil4_sdk::get_sArea();
+    runtime.game = runtime.area ? runtime.area->aGamePtr : nullptr;
+    runtime.mediator = devil4_sdk::get_sMediator();
+    runtime.player = devil4_sdk::get_local_player();
+    if (!runtime.area || !runtime.game || !runtime.mediator) {
+        runtime = {};
+        return false;
+    }
+    if (require_player && !runtime.player) {
+        runtime = {};
+        return false;
+    }
+    return true;
+}
+
+bool read_bp_runtime_safe(AreaJumpRuntime& runtime, bool require_stable_stage) {
+    if (!read_area_jump_runtime_safe(runtime, true)) {
+        return false;
+    }
+
+    if (runtime.mediator->missionID != 50) {
+        runtime = {};
+        return false;
+    }
+    if (require_stable_stage && runtime.game->init_jump != 0) {
+        runtime = {};
+        return false;
+    }
+    return true;
+}
+
+int clamp_bp_floor(int floor) {
+    return std::clamp(floor, 1, 101);
+}
+
+bool write_bp_floor_safe(int floor) {
+    AreaJumpRuntime runtime{};
+    if (!read_bp_runtime_safe(runtime, false)) {
+        return false;
+    }
+
+    runtime.game->bp_floor = clamp_bp_floor(floor);
+    return true;
+}
+
+bool read_bp_floor_safe(int& floor) {
+    AreaJumpRuntime runtime{};
+    if (!read_bp_runtime_safe(runtime, false)) {
+        return false;
+    }
+
+    floor = runtime.game->bp_floor;
+    return true;
+}
+
+bool jump_to_bp_floor_safe(int floor) {
+    floor = clamp_bp_floor(floor);
+    if (!write_bp_floor_safe(floor)) {
+        return false;
+    }
+    return AreaJump::jump_to_stage(AreaJump::bp_stage(floor));
+}
+
+bool capture_bp_progress_values_safe() {
+    AreaJumpRuntime runtime{};
+    if (!read_bp_runtime_safe(runtime, true)) {
+        return false;
+    }
+
+    auto* player = runtime.mediator->player_ptr ? runtime.mediator->player_ptr : runtime.player;
+    if (!player) {
+        return false;
+    }
+
+    savedBPFloor = clamp_bp_floor(runtime.game->bp_floor);
+    savedBPTimer = runtime.mediator->bpTimer;
+    savedOrbs = runtime.mediator->orbMissionCurrent;
+    savedHP = player->damageStruct.HP;
+    savedDT = player->DT;
+    savedStylePoints = runtime.mediator->stylePoints;
+    return true;
+}
+
+void save_bp_progress_config() {
+    utility::Config cfg{};
+    cfg.load(CONFIG_FILENAME);
+    cfg.set<int>("saved_bp_floor", savedBPFloor);
+    cfg.set<float>("saved_bp_timer", savedBPTimer);
+    cfg.set<int>("saved_orbs", savedOrbs);
+    cfg.set<float>("saved_hp", savedHP);
+    cfg.set<float>("saved_dt", savedDT);
+    cfg.set<float>("saved_style_points", savedStylePoints);
+    cfg.save(CONFIG_FILENAME);
+}
+
+bool queue_bp_progress_restore_safe() {
+    if (savedBPFloor < 1 || savedBPFloor > 101) {
+        return false;
+    }
+    if (!jump_to_bp_floor_safe(savedBPFloor)) {
+        return false;
+    }
+
+    pendingBPRestore = true;
+    pendingBPRestoreTicks = BP_PROGRESS_RESTORE_TIMEOUT_TICKS;
+    return true;
+}
+
+bool apply_pending_bp_progress_restore_safe() {
+    if (savedBPFloor < 1 || savedBPFloor > 101) {
+        return false;
+    }
+
+    AreaJumpRuntime runtime{};
+    if (!read_bp_runtime_safe(runtime, true)) {
+        return false;
+    }
+
+    if (runtime.game->bp_floor != savedBPFloor) {
+        return false;
+    }
+
+    auto* player = runtime.mediator->player_ptr ? runtime.mediator->player_ptr : runtime.player;
+    if (!player) {
+        return false;
+    }
+
+    runtime.mediator->bpTimer = savedBPTimer;
+    runtime.mediator->orbMissionCurrent = savedOrbs;
+    runtime.mediator->stylePoints = savedStylePoints;
+    player->damageStruct.HP = savedHP;
+    player->DT = savedDT;
+    return true;
+}
+}
 
 std::array<AreaJump::Room, 83> AreaJump::room_items {
     Room {503, __("Berial")},                    // DevilMayCry4_DX9.exe+A56768
@@ -325,14 +476,31 @@ const AreaJump::Room* AreaJump::bp_stage(int floor) {
 	return nullptr;
 }
 
-void AreaJump::jump_to_stage(const Room* stage) {
-    if (!stage) { return; }
-    sArea* s_area_ptr = devil4_sdk::get_sArea();
-    if (!s_area_ptr) { return; }
-    if (!s_area_ptr->aGamePtr) { return; }
+bool AreaJump::jump_to_stage(const Room* stage) {
+    if (!stage) {
+        return false;
+    }
 
-    s_area_ptr->aGamePtr->room_id   = stage->id;
+    sArea* s_area_ptr = devil4_sdk::get_sArea();
+    if (!s_area_ptr || !s_area_ptr->aGamePtr) {
+        return false;
+    }
+
+    Macro::prepare_for_external_transition();
+    s_area_ptr->aGamePtr->room_id = stage->id;
     s_area_ptr->aGamePtr->init_jump = 1;
+    return true;
+}
+
+bool AreaJump::jump_to_room_id(int room_id) {
+    if (!is_valid_room_id(room_id)) {
+        return false;
+    }
+    return jump_to_stage(find_room_by_id(room_id));
+}
+
+bool AreaJump::jump_to_bp_floor(int floor) {
+    return jump_to_bp_floor_safe(floor);
 }
 
 
@@ -729,38 +897,32 @@ naked void detour_randomized_bp_2_proc(void) {
 }
 
 std::optional<std::string> AreaJump::on_initialize() {
-    sArea* s_area_ptr = devil4_sdk::get_sArea();
 	// uintptr_t address = hl::FindPattern("8B 92 30 38 00 00", "DevilMayCry4_DX9.exe"); // DevilMayCry4_DX9.exe+E1F6 
     utility::create_keyboard_hotkey(AreaJump::m_hotkeys, { VK_CONTROL, VK_OEM_4 }, __("Restart BP stage"), "bp_restart_stage_hotkey");
     utility::create_keyboard_hotkey(AreaJump::m_hotkeys, { VK_CONTROL, VK_OEM_6 }, __("Next BP stage"), "bp_next_stage_hotkey");
 
     console->system().RegisterCommand("skip", "Skip current BP stage", [this]() {
-        if (devil4_sdk::get_local_player()) {
-            if (devil4_sdk::get_sMediator()->missionID == 50){ // always shows 50 for BP
-                jump_to_stage(bp_stage(++(devil4_sdk::get_sArea()->aGamePtr->bp_floor)));
-            }
+        int floor = 0;
+        if (read_bp_floor_safe(floor)) {
+            jump_to_bp_floor_safe(floor + 1);
 	    }
     });
 
     console->system().RegisterCommand("bp", "Jump to BP stage", [this](int value) {
-        if (devil4_sdk::get_local_player()) {
-            if (devil4_sdk::get_sMediator()->missionID == 50) { // always shows 50 for BP
-                if (value <= 101 && value >= 1){
-                    jump_to_stage(bp_stage(devil4_sdk::get_sArea()->aGamePtr->bp_floor = value));
-                }
-                else {
-                    spdlog::error("Invalid Stage ID");
-                }
-            }
+        if (value <= 101 && value >= 1){
+            jump_to_bp_floor_safe(value);
+        }
+        else {
+            spdlog::error("Invalid Stage ID");
         }
     }, csys::Arg<int>("0-101"));
 
     // damn cant overload commands distinguished by arguments alone 
     console->system().RegisterCommand("roomid", "Jump to room ID", [](int value) {
-        if (devil4_sdk::get_local_player()) {
-            if (is_valid_room_id(value)) {
-                devil4_sdk::get_sArea()->aGamePtr->room_id = value;
-                devil4_sdk::get_sArea()->aGamePtr->init_jump = 1;
+        AreaJumpRuntime runtime{};
+        if (read_area_jump_runtime_safe(runtime, true)) {
+            if (const Room* proom = is_valid_room_id(value) ? find_room_by_id(value) : nullptr) {
+                jump_to_stage(proom);
             }
             else {
                 spdlog::error("Invalid Room ID");
@@ -769,10 +931,10 @@ std::optional<std::string> AreaJump::on_initialize() {
     }, csys::Arg<int>("0-811"));
 
     console->system().RegisterCommand("roomname", "Jump to room name", [](csys::String value) {
-        if (devil4_sdk::get_local_player()) {
+        AreaJumpRuntime runtime{};
+        if (read_area_jump_runtime_safe(runtime, true)) {
             if (const Room* proom = find_room_by_name(value)) {
-                devil4_sdk::get_sArea()->aGamePtr->room_id = proom->id;
-                devil4_sdk::get_sArea()->aGamePtr->init_jump = 1;
+                jump_to_stage(proom);
             }
             else {
                 spdlog::error("Invalid Room Name");
@@ -807,71 +969,51 @@ std::optional<std::string> AreaJump::on_initialize() {
 
 void AreaJump::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
-        sArea* s_area_ptr = devil4_sdk::get_sArea();
-        sMediator* s_med_ptr = devil4_sdk::get_sMediator();
-        uPlayer* player = devil4_sdk::get_local_player();
+        AreaJumpRuntime runtime{};
+        const bool area_ready = read_area_jump_runtime_safe(runtime, false);
+        const bool player_ready = area_ready && runtime.player != nullptr;
+        int bp_stage_input = 1;
+        int current_bp_floor = 0;
+        if (read_bp_floor_safe(current_bp_floor)) {
+            bp_stage_input = clamp_bp_floor(current_bp_floor);
+        }
 
         ImGui::SeparatorText(_("Bloody Palace"));
 
         ImGui::PushItemWidth(sameLineItemWidth);
-        if (ImGui::InputInt("##BP Stage ", &s_area_ptr->aGamePtr->bp_floor, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
-            if (player)
-                s_area_ptr->aGamePtr->bp_floor = std::clamp(s_area_ptr->aGamePtr->bp_floor, 1, 101);
+        if (ImGui::InputInt("##BP Stage ", &bp_stage_input, 1, 10, ImGuiInputTextFlags_AllowTabInput)) {
+            write_bp_floor_safe(bp_stage_input);
         }
         ImGui::SameLine();
         if (ImGui::Button(_("Save BP Progress"), ImVec2(sameLineItemWidth, NULL))) {
-            sArea* s_area_ptr = devil4_sdk::get_sArea();
-            sMediator* s_med_ptr = devil4_sdk::get_sMediator();
-            if (player) {
-                savedBPFloor = s_area_ptr->aGamePtr->bp_floor;
-                savedBPTimer = s_med_ptr->bpTimer;
-                savedOrbs = s_med_ptr->orbMissionCurrent;
-                savedHP = s_med_ptr->player_ptr->damageStruct.HP;
-                savedDT = s_med_ptr->player_ptr->DT;
-                savedStylePoints = s_med_ptr->stylePoints;
-                ModFramework* framework = g_framework.get();
-                utility::Config cfg{};
-                cfg.load(CONFIG_FILENAME);
-                cfg.set<int>("saved_bp_floor", savedBPFloor);
-                cfg.set<float>("saved_bp_timer", savedBPTimer);
-                cfg.set<int>("saved_orbs", savedOrbs);
-                cfg.set<float>("saved_hp", savedHP);
-                cfg.set<float>("saved_dt", savedDT);
-                cfg.set<float>("saved_style_points", savedStylePoints);
-                cfg.save(CONFIG_FILENAME);
+            if (capture_bp_progress_values_safe()) {
+                save_bp_progress_config();
             }
         }
         ImGui::SameLine();
         help_marker(_("Save stage, timer, orbs, hp, dt, style points"));
 
         if (ImGui::Button(_("Teleport"), ImVec2(sameLineItemWidth, NULL))) {
-            if (player)
-                jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
+            jump_to_bp_floor_safe(bp_stage_input);
         }
         ImGui::SameLine();
         if (ImGui::Button(_("Load BP Progress"), ImVec2(sameLineItemWidth, NULL))) {
-            sArea* s_area_ptr = devil4_sdk::get_sArea();
-            if (player) {
-                s_area_ptr->aGamePtr->bp_floor = savedBPFloor;
-                jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
-                s_med_ptr->bpTimer = savedBPTimer;
-                s_med_ptr->orbMissionCurrent = savedOrbs;
-                s_med_ptr->stylePoints = savedStylePoints;
-                s_med_ptr->player_ptr->damageStruct.HP = savedHP;
-                s_med_ptr->player_ptr->DT = savedDT;
-                s_area_ptr->aGamePtr->init_jump = 1;
-            }
+            queue_bp_progress_restore_safe();
         }
         ImGui::SameLine();
         help_marker(_("Press Load after loading into BP\nLoads saved stage, timer, orbs, hp, dt, style points"));
 
         ImGui::PopItemWidth();
 
-        int current_floor = s_area_ptr->aGamePtr->bp_floor;
-        if (current_floor >= 1 && current_floor <= 101) {
-            ImGui::TextDisabled(_("Stage %d: %s"), current_floor, get_bp_description(current_floor).c_str());
+        if (current_bp_floor >= 1 && current_bp_floor <= 101) {
+            ImGui::TextDisabled(_("Stage %d: %s"), current_bp_floor, get_bp_description(current_bp_floor).c_str());
+        } else if (area_ready) {
+            ImGui::TextDisabled(_("Stage %d: Empty"), current_bp_floor);
         } else {
-            ImGui::TextDisabled(_("Stage %d: Empty"), current_floor);
+            ImGui::TextDisabled(_("Bloody Palace teleport is available after loading into gameplay."));
+        }
+        if (pendingBPRestore) {
+            ImGui::TextDisabled(_("BP Progress restore pending..."));
         }
         // credits emiliathesage, only corrected chimera stages
 
@@ -894,7 +1036,7 @@ void AreaJump::on_gui_frame(int display) {
 
                 if (ImGui::Selectable(buffer, is_selected)) {
                     item_current_idx = n;
-                    if (player)
+                    if (player_ready)
                         jump_to_stage(&room_items[n]);
                 }
 
@@ -949,22 +1091,40 @@ void AreaJump::on_gui_frame(int display) {
     }
 }
 
+void AreaJump::on_frame(fmilliseconds& dt) {
+    (void)dt;
+    if (!pendingBPRestore) {
+        return;
+    }
+
+    if (apply_pending_bp_progress_restore_safe()) {
+        pendingBPRestore = false;
+        pendingBPRestoreTicks = 0;
+        return;
+    }
+
+    if (pendingBPRestoreTicks > 0) {
+        --pendingBPRestoreTicks;
+    }
+    else {
+        pendingBPRestore = false;
+    }
+}
+
 void AreaJump::on_update_input(utility::Input & input) {
     if (AreaJump::m_hotkeys[0]->check(input)) {
-        sArea* s_area_ptr = devil4_sdk::get_sArea();
-        if (!devil4_sdk::get_local_player()) {
-            return;
-        }
         RoomRespawn::g_reset_manager = true;
-        jump_to_stage(bp_stage(s_area_ptr->aGamePtr->bp_floor));
+        int floor = 0;
+        if (read_bp_floor_safe(floor)) {
+            jump_to_bp_floor_safe(floor);
+        }
     }
 
     if (AreaJump::m_hotkeys[1]->check(input)) {
-        sArea* s_area_ptr = devil4_sdk::get_sArea();
-        if (!devil4_sdk::get_local_player()) {
-            return;
+        int floor = 0;
+        if (read_bp_floor_safe(floor)) {
+            jump_to_bp_floor_safe(floor + 1);
         }
-        jump_to_stage(bp_stage(++(s_area_ptr->aGamePtr->bp_floor)));
     }
 }
 

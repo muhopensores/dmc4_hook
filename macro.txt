@@ -1,29 +1,30 @@
-# Minimal DMC4 Macro example.
-# Put this file next to DevilMayCry4_DX9.exe or select it through Custom Macro File.
+# DMC4 Macro examples.
+# Put this file next to DevilMayCry4_DX9.exe.
+# Read macro_release.html first, then use macro_script_reference.html as a lookup manual.
+#
+# Action names such as JUMP and MELEE use the matching Nero or Dante
+# Action Mapping table in the Macro GUI.
 
-[F10][A/CROSS][Nero] Jump test
+# Press V, or enable Gamepad Hotkeys and hold Back/Select before A / Cross.
+[V][A/CROSS][Nero] Jump test
+TAP JUMP
+
+# TAP lines run in sequence. WAIT adds a larger gap before the next input.
+[F1][Nero] Jump then melee
 TAP JUMP
 WAIT 10
-TAP JUMP
+TAP MELEE
 
-[F11][X/SQUARE][Nero] Nero Exceed test
-TAP EXCEED
-
-[Ctrl+1][Dante] Dante Split example
+# HOLD remains active until RELEASE, CLEAR, or Stop Macro.
+[F2][Nero] Lock-on movement
 HOLD LOCK_ON
-HOLD MOVE_LEFT
-HOLD MELEE
-WAIT 1
-RELEASE MELEE
-RELEASE MOVE_LEFT
+HOLD MOVE_RIGHT
+WAIT 20
+RELEASE MOVE_RIGHT
 RELEASE LOCK_ON
 
-[Ctrl+1][LT/L2][Nero] controller scripting test
-HOLD R1
-HOLD Y
-WAIT 1
-RELEASE Y
-RELEASE R1
-
-[V][Nero] Nero Exceed tests
-TAP EXCEED
+# Dante action names use Dante Action Mapping.
+[F3][Dante] Melee then style action
+TAP MELEE
+WAIT 10
+TAP STYLE_ACTION

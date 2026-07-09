@@ -21,6 +21,10 @@ int16_t prevInput                       = 0;
 float SSwordRange                       = 26.0f;
 uint32_t macroSwitchRequestTicks        = 0;
 constexpr uint32_t MACRO_SWITCH_REQUEST_TICKS = 8;
+uint32_t macroSwitchTargetRole          = CharSwitcher::CHARACTER_INVALID;
+uint32_t macroSwitchSettleTicks         = 0;
+uint32_t lastObservedCharacterRole      = CharSwitcher::CHARACTER_INVALID;
+constexpr uint32_t MACRO_SWITCH_SETTLE_TICKS = 4;
 
 uintptr_t CharSwitcher::jmp_ret2 = NULL;
     constexpr uintptr_t detour2_call1 = 0x008DF530;
@@ -375,12 +379,23 @@ naked void SwapHUD(void) {
             pushad
             mov eax, [primaryHUD]
             mov ecx, [secondaryHUD]
+            test eax, eax
+            je retcode
+            test ecx, ecx
+            je retcode
             mov ebp, [0x00E552CC]
+            test ebp, ebp
+            je retcode
             mov ebp, [ebp]
+            test ebp, ebp
+            je retcode
             mov ebp, [ebp+0x284]
+            test ebp, ebp
+            je retcode
             mov [ebp+0x18], ecx
             mov [primaryHUD], ecx
             mov [secondaryHUD], eax
+        retcode:
             popad
             ret
     }
@@ -427,11 +442,19 @@ naked void ResetCam(void) {
     _asm {
             pushad
             mov eax, [static_mediator_ptr]
+            test eax, eax
+            je retcode
             mov eax, [eax]
+            test eax, eax
+            je retcode
             mov eax, [eax+0xD0] // uCameraCtrl
+            test eax, eax
+            je retcode
             cmp byte ptr [eax+0x490], 0
             je retcode
             mov ecx, [eax+0x490] // cCameraPlayer
+            test ecx, ecx
+            je retcode
             mov byte ptr [ecx+0x60], 0
         retcode:
             popad
@@ -444,14 +467,39 @@ naked void Switch(void) {
             pushad
             mov eax, [primaryActor]
             mov ecx, [secondaryActor]
+            test eax, eax
+            je switch_abort
+            test ecx, ecx
+            je switch_abort
+            mov edx, [eax+0x1E8C]
+            test edx, edx
+            je switch_abort
+            mov edx, [ecx+0x1E8C]
+            test edx, edx
+            je switch_abort
             mov ebp, [0x00E552C8]
+            test ebp, ebp
+            je switch_abort
             mov ebp, [ebp]
+            test ebp, ebp
+            je switch_abort
+            mov edx, [ebp+0x3830]
+            test edx, edx
+            je switch_abort
             mov ebp, [ebp+0x3834]
+            test ebp, ebp
+            je switch_abort
             xor dword ptr [ebp+0x28], 1
             // To-be main actor
             mov ebp, [0x00E558B8]
+            test ebp, ebp
+            je switch_abort
             mov ebp, [ebp]
+            test ebp, ebp
+            je switch_abort
             mov ebp, [ebp+0x24]
+            test ebp, ebp
+            je switch_abort
             mov dword ptr [ecx+0x1509], 1 // input
             // Position, rotation
             fld dword ptr [ebp+0x1350] //X pos
@@ -527,11 +575,19 @@ naked void Switch(void) {
             mov [secondaryActor], eax
             mov dword ptr [eax+0x1509], 0 // input
             mov esi, [eax+0x1E8C]
+            test esi, esi
+            je switch_abort
             mov dword ptr [esi+0xD4], 1 // collision
             //Position
             mov ebp, [0x00E552C8]
+            test ebp, ebp
+            je switch_abort
             mov ebp, [ebp]
+            test ebp, ebp
+            je switch_abort
             mov ebp, [ebp+0x3830]
+            test ebp, ebp
+            je switch_abort
             // fld dword ptr [ebp+0x50]
             // fstp dword ptr [eax+0x30]
             movss xmm0, [eax+0x34]
@@ -553,14 +609,101 @@ naked void Switch(void) {
             movss [eax+0xED4], xmm0
             movss [eax+0xED8], xmm0
             mov ebp, [0x00E558B8]
+            test ebp, ebp
+            je switch_abort
             mov ebp, [ebp] //
+            test ebp, ebp
+            je switch_abort
             mov [ebp+0x24], ecx
             mov [primaryActor], ecx
             call SwapHUD
             call ResetCam
+        switch_abort:
             popad
             ret
     }
+}
+
+uint32_t CharSwitcher::current_character_role() {
+    __try {
+        auto* player = devil4_sdk::get_local_player();
+        if (!player) {
+            return CHARACTER_INVALID;
+        }
+
+        if (player->controllerID == 1) {
+            return CHARACTER_NERO;
+        }
+        if (player->controllerID == 0) {
+            return CHARACTER_DANTE;
+        }
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    }
+
+    return CHARACTER_INVALID;
+}
+
+uintptr_t CharSwitcher::current_actor_address() {
+    __try {
+        return reinterpret_cast<uintptr_t>(devil4_sdk::get_local_player());
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return 0;
+    }
+}
+
+uintptr_t CharSwitcher::primary_actor_address() {
+    return primaryActor;
+}
+
+uintptr_t CharSwitcher::secondary_actor_address() {
+    return secondaryActor;
+}
+
+uintptr_t CharSwitcher::inactive_actor_address() {
+    const uintptr_t current_actor = current_actor_address();
+    if (current_actor == primaryActor) {
+        return secondaryActor;
+    }
+    if (current_actor == secondaryActor) {
+        return primaryActor;
+    }
+    return 0;
+}
+
+bool actor_has_collision_manager(uintptr_t actor) {
+    if (actor == 0) {
+        return false;
+    }
+
+    __try {
+        return *reinterpret_cast<uintptr_t*>(actor + 0x1E8C) != 0;
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return false;
+    }
+}
+
+bool CharSwitcher::is_ready() {
+    if (!mod_enabled || primaryActor == 0 || secondaryActor == 0) {
+        return false;
+    }
+
+    const uintptr_t current_actor = current_actor_address();
+    return current_actor != 0 && current_actor == primaryActor &&
+        actor_has_collision_manager(primaryActor) &&
+        actor_has_collision_manager(secondaryActor) &&
+        current_character_role() != CHARACTER_INVALID;
+}
+
+bool CharSwitcher::is_switch_settled() {
+    return is_ready() && macroSwitchTargetRole == CHARACTER_INVALID &&
+        macroSwitchRequestTicks == 0 && macroSwitchSettleTicks == 0;
+}
+
+uint32_t CharSwitcher::requested_character_role() {
+    return macroSwitchTargetRole;
 }
 
 bool CharSwitcher::request_macro_switch() {
@@ -568,12 +711,37 @@ bool CharSwitcher::request_macro_switch() {
         return false;
     }
 
+    macroSwitchTargetRole = CHARACTER_INVALID;
+    macroSwitchRequestTicks = std::max(macroSwitchRequestTicks, MACRO_SWITCH_REQUEST_TICKS);
+    return true;
+}
+
+bool CharSwitcher::request_switch_to_role(uint32_t character_role) {
+    if (character_role != CHARACTER_NERO && character_role != CHARACTER_DANTE) {
+        return false;
+    }
+    if (!is_ready()) {
+        return false;
+    }
+
+    const uint32_t current_role = current_character_role();
+    if (current_role == character_role) {
+        macroSwitchTargetRole = CHARACTER_INVALID;
+        macroSwitchRequestTicks = 0;
+        return true;
+    }
+    if (current_role == CHARACTER_INVALID) {
+        return false;
+    }
+
+    macroSwitchTargetRole = character_role;
     macroSwitchRequestTicks = std::max(macroSwitchRequestTicks, MACRO_SWITCH_REQUEST_TICKS);
     return true;
 }
 
 void CharSwitcher::clear_macro_switch_request() {
     macroSwitchRequestTicks = 0;
+    macroSwitchTargetRole = CHARACTER_INVALID;
 }
 
 // Swap actor
@@ -648,14 +816,16 @@ naked void SwapActor_KB(void) {
             xor eax,eax
             call devil4_sdk::internal_kb_check
             test al,al
-            jne inputPass
+            jne keyboardInputPass
             cmp dword ptr [macroSwitchRequestTicks], 0
             je inputFail
-        inputPass:
+            mov dword ptr [macroSwitchRequestTicks], 0
+            call Switch
+            jmp loopend
+        keyboardInputPass:
             cmp byte ptr [kbInputPressed], 1
             je loopend
             mov byte ptr [kbInputPressed], 1
-            mov dword ptr [macroSwitchRequestTicks], 0
             call Switch
             jmp loopend
         inputFail:
@@ -750,9 +920,33 @@ std::optional<std::string> CharSwitcher::on_initialize() {
 }
 
 void CharSwitcher::on_frame(fmilliseconds& dt) {
+    (void)dt;
     if (mod_enabled) {
+        if (macroSwitchTargetRole != CHARACTER_INVALID) {
+            const uint32_t current_role = current_character_role();
+            if (current_role == macroSwitchTargetRole) {
+                macroSwitchTargetRole = CHARACTER_INVALID;
+                macroSwitchRequestTicks = 0;
+            } else if (current_role != CHARACTER_INVALID && macroSwitchRequestTicks == 0) {
+                macroSwitchRequestTicks = MACRO_SWITCH_REQUEST_TICKS;
+            }
+        }
+
         SwapActor_Controller();
         SwapActor_KB();
+    }
+
+    const uint32_t observed_role = current_character_role();
+    if (observed_role != CHARACTER_INVALID && observed_role != lastObservedCharacterRole) {
+        lastObservedCharacterRole = observed_role;
+        macroSwitchSettleTicks = MACRO_SWITCH_SETTLE_TICKS;
+    } else if (macroSwitchSettleTicks > 0) {
+        --macroSwitchSettleTicks;
+    }
+
+    if (macroSwitchTargetRole != CHARACTER_INVALID && observed_role == macroSwitchTargetRole) {
+        macroSwitchTargetRole = CHARACTER_INVALID;
+        macroSwitchRequestTicks = 0;
     }
     if (macroSwitchRequestTicks > 0) {
         --macroSwitchRequestTicks;

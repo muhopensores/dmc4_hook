@@ -1,0 +1,1079 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DMC4 Macro + Battle Snapshot Player Guide</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f6f7f9;
+  --page: #ffffff;
+  --text: #17202a;
+  --muted: #5f6b7a;
+  --border: #d9dee7;
+  --accent: #0b6bcb;
+  --accent-soft: #e8f2fd;
+  --code-bg: #eef2f7;
+  --shadow: rgba(24, 36, 52, 0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111418;
+    --page: #181c22;
+    --text: #e9edf3;
+    --muted: #a9b4c2;
+    --border: #303844;
+    --accent: #65b7ff;
+    --accent-soft: #1c3044;
+    --code-bg: #242b35;
+    --shadow: rgba(0, 0, 0, 0.25);
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Arial, sans-serif;
+  line-height: 1.58;
+}
+.page {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 24px 20px 64px;
+  display: grid;
+  grid-template-columns: 286px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+.sidebar {
+  position: sticky;
+  top: 18px;
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 8px 30px var(--shadow);
+}
+.content {
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 30px 34px 48px;
+  min-width: 0;
+  box-shadow: 0 8px 30px var(--shadow);
+}
+.doc-switch {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.doc-switch strong { color: var(--text); font-size: 16px; }
+.doc-switch a {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 7px 9px;
+  background: var(--code-bg);
+}
+.search-label {
+  display: block;
+  margin: 12px 0 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.doc-search {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--page);
+  color: var(--text);
+  padding: 9px 10px;
+  font: inherit;
+}
+.doc-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.search-results {
+  display: none;
+  margin: 8px 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.search-results.active { display: block; }
+.search-results a {
+  display: block;
+  padding: 8px 9px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+}
+.search-results a:last-child { border-bottom: 0; }
+.search-results a:hover { background: var(--accent-soft); text-decoration: none; }
+.search-empty { padding: 8px 9px; color: var(--muted); font-size: 13px; }
+.callout {
+  margin: 0.9em 0;
+  border-left: 4px solid var(--accent);
+  border-radius: 4px;
+  background: var(--accent-soft);
+  padding: 11px 13px;
+  font-weight: 600;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1, h2, h3, h4 { line-height: 1.25; margin: 1.6em 0 0.55em; }
+h1 { margin-top: 0; font-size: 32px; }
+h2 { border-top: 1px solid var(--border); padding-top: 22px; font-size: 24px; }
+h1 + h2, .toc h2 { border-top: 0; padding-top: 0; }
+h3 { font-size: 19px; }
+.heading-link {
+  margin-left: 0.4em;
+  color: var(--muted);
+  font-size: 0.72em;
+  opacity: 0;
+}
+h1:hover .heading-link,
+h2:hover .heading-link,
+h3:hover .heading-link,
+h4:hover .heading-link,
+.heading-link:focus { opacity: 1; }
+p, ul, ol, table, pre { margin: 0.85em 0; }
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.3em 0; }
+code {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.08em 0.35em;
+  font-family: Consolas, "Cascadia Mono", monospace;
+  font-size: 0.94em;
+}
+.code-block {
+  position: relative;
+  margin: 0.9em 0;
+}
+.code-block pre { margin: 0; }
+pre {
+  overflow: auto;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.copy-code {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 1;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--muted);
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.copy-code:hover { color: var(--text); border-color: var(--accent); }
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 0.85em 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  vertical-align: top;
+}
+th {
+  background: var(--code-bg);
+  text-align: left;
+}
+.toc {
+  margin-top: 14px;
+}
+.toc h2 { margin: 0 0 8px; font-size: 15px; }
+.toc ul { margin: 0; padding-left: 0; list-style: none; }
+.toc li { margin: 1px 0; }
+.toc a {
+  display: block;
+  padding: 4px 6px;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.toc a:hover { background: var(--accent-soft); color: var(--text); text-decoration: none; }
+.toc-level-1 { font-weight: 600; }
+.toc-level-2 { margin-left: 0; }
+.toc-level-3 { margin-left: 0.75em !important; }
+.back-to-top {
+  display: block;
+  margin-top: 12px;
+  font-size: 13px;
+}
+@media (max-width: 900px) {
+  .page { display: block; }
+  .sidebar {
+    position: static;
+    max-height: none;
+    margin-bottom: 14px;
+  }
+  .toc {
+    max-height: 340px;
+    overflow: auto;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+  .toc ul { columns: 2; column-gap: 18px; }
+}
+@media (max-width: 620px) {
+  .page { padding: 14px 10px 36px; }
+  .content { padding: 18px 14px; }
+  .toc ul { columns: 1; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+  .heading-link { opacity: 1; }
+}
+</style>
+</head>
+<body>
+<main class="page" id="top">
+<aside class="sidebar">
+<div class="doc-switch">
+<strong>DMC4 Macro Docs</strong>
+<a href="macro_script_reference.html">Open Script Reference</a>
+</div>
+<label class="search-label" for="doc-search">Search this page</label>
+<input class="doc-search" id="doc-search" type="search" placeholder="TAP, MOVE_LEFT, Snapshot..." autocomplete="off">
+<div class="search-results" id="search-results" aria-live="polite"></div>
+<nav class="toc" aria-label="Page contents">
+<h2>Contents</h2>
+<ul>
+<li class="toc-level-1"><a href="#dmc4-macro-battle-snapshot-player-guide">DMC4 Macro + Battle Snapshot Player Guide</a></li>
+<li class="toc-level-2"><a href="#start-here">Start Here</a></li>
+<li class="toc-level-2"><a href="#reading-path">Reading Path</a></li>
+<li class="toc-level-2"><a href="#install">Install</a></li>
+<li class="toc-level-2"><a href="#ten-minute-first-macro">Ten-Minute First Macro</a></li>
+<li class="toc-level-2"><a href="#the-input-rule">The Input Rule</a></li>
+<li class="toc-level-2"><a href="#buttons-and-sticks">Buttons And Sticks</a></li>
+<li class="toc-level-2"><a href="#combining-inputs-with">Combining Inputs With <code>+</code></a></li>
+<li class="toc-level-2"><a href="#macro-clips">Macro Clips</a></li>
+<li class="toc-level-3"><a href="#character-tags-and-action-mapping">Character Tags And Action Mapping</a></li>
+<li class="toc-level-3"><a href="#character-switcher-clips">Character Switcher Clips</a></li>
+<li class="toc-level-2"><a href="#gamepad-shortcuts">Gamepad Shortcuts</a></li>
+<li class="toc-level-2"><a href="#practice-workflows">Practice Workflows</a></li>
+<li class="toc-level-3"><a href="#macro-gui">Macro GUI</a></li>
+<li class="toc-level-3"><a href="#macro-playback-overlay">Macro Playback Overlay</a></li>
+<li class="toc-level-3"><a href="#animation-overlay">Animation Overlay</a></li>
+<li class="toc-level-3"><a href="#battle-snapshot">Battle Snapshot</a></li>
+<li class="toc-level-3"><a href="#macro-setup">Macro Setup</a></li>
+<li class="toc-level-2"><a href="#timing-basics">Timing Basics</a></li>
+<li class="toc-level-2"><a href="#simple-recipes">Simple Recipes</a></li>
+<li class="toc-level-3"><a href="#action-name">Action Name</a></li>
+<li class="toc-level-3"><a href="#physical-button">Physical Button</a></li>
+<li class="toc-level-3"><a href="#movement-and-camera">Movement And Camera</a></li>
+<li class="toc-level-3"><a href="#lock-on-directional-input">Lock-On Directional Input</a></li>
+<li class="toc-level-3"><a href="#dante-d-pad-and-style-action">Dante D-Pad And Style Action</a></li>
+<li class="toc-level-2"><a href="#common-misunderstandings">Common Misunderstandings</a></li>
+<li class="toc-level-2"><a href="#troubleshooting">Troubleshooting</a></li>
+<li class="toc-level-2"><a href="#reporting-a-crash">Reporting A Crash</a></li>
+</ul>
+</nav>
+<a class="back-to-top" href="#top">Back to top</a>
+</aside>
+<article class="content" id="document-content">
+<h1 id="dmc4-macro-battle-snapshot-player-guide" data-search-heading="DMC4 Macro + Battle Snapshot Player Guide">DMC4 Macro + Battle Snapshot Player Guide<a class="heading-link" href="#dmc4-macro-battle-snapshot-player-guide" aria-label="Link to DMC4 Macro + Battle Snapshot Player Guide">#</a></h1>
+
+<p>Use this guide to install the build, run your first macro, understand controller inputs, and choose a practice workflow. If you are new to macro scripts, start from the top and stop after <code>Timing Basics</code>; Snapshot, Setup, and advanced animation waits can wait until your first simple route works.</p>
+
+<p>For every accepted input name, command, alias, <code>WAIT_UNTIL</code> condition, and <code>[Setup]</code> field, open <code>macro_script_reference.html</code>.</p>
+
+<h2 id="start-here" data-search-heading="Start Here">Start Here<a class="heading-link" href="#start-here" aria-label="Link to Start Here">#</a></h2>
+
+<p>Macro reads <code>macro*.txt</code> files and sends input through DMC4's controller input layer. It does not send Windows keyboard events.</p>
+
+<p>Think of a macro file as an automatic controller note sheet. Macro reads from top to bottom and does exactly what the lines say: press this input, keep holding that input, wait a short time, release this input, or run a Hook action.</p>
+
+<p>The build also includes:</p>
+
+<ul>
+<li>Battle Snapshot for repeatable same-room practice</li>
+<li>Macro Setup blocks for text-based player, camera, and enemy placement</li>
+<li>Animation Overlay for observing animation state and timing</li>
+<li>Macro Playback Overlay for seeing the current line, next line, held inputs, and progress</li>
+<li>Character Switcher support for macros that intentionally use both characters</li>
+</ul>
+
+<p>Battle Snapshot and Macro Setup are practice tools, not full savestates. They do not restore every projectile, effect, animation, enemy AI state, or mission script.</p>
+
+<h2 id="reading-path" data-search-heading="Reading Path">Reading Path<a class="heading-link" href="#reading-path" aria-label="Link to Reading Path">#</a></h2>
+
+<p>For a first macro, read only:</p>
+
+<ol>
+<li><code>Install</code></li>
+<li><code>Ten-Minute First Macro</code></li>
+<li><code>The Input Rule</code></li>
+<li><code>Buttons And Sticks</code></li>
+<li><code>Combining Inputs With +</code></li>
+<li><code>Timing Basics</code></li>
+</ol>
+
+<p>After that, use <code>Macro Playback Overlay</code> when something does not happen at the expected line.</p>
+
+<p>For regular combo writing, add:</p>
+
+<ul>
+<li><code>Character Tags And Action Mapping</code></li>
+<li><code>Gamepad Shortcuts</code></li>
+<li><code>Simple Recipes</code></li>
+</ul>
+
+<p>For repeatable practice setups, read:</p>
+
+<ul>
+<li><code>Battle Snapshot</code></li>
+<li><code>Macro Setup</code></li>
+</ul>
+
+<p>For advanced timing, open <code>macro_script_reference.html</code> and look up <code>WAIT_UNTIL</code>, <code>ANIM_FRAME</code>, <code>MOVEID2</code>, and the troubleshooting index.</p>
+
+<h2 id="install" data-search-heading="Install">Install<a class="heading-link" href="#install" aria-label="Link to Install">#</a></h2>
+
+<ol>
+<li>Close the game.</li>
+<li>Back up the existing <code>dinput8.dll</code> next to <code>DevilMayCry4_DX9.exe</code>.</li>
+<li>Copy the new <code>dinput8.dll</code> next to <code>DevilMayCry4_DX9.exe</code>.</li>
+<li>Copy <code>macro.txt</code> to the same folder.</li>
+<li>Launch the game and open the dmc4_hook GUI.</li>
+<li>Enable <code>Macro</code> under <code>Training</code>.</li>
+</ol>
+
+<p>The GUI automatically lists files next to the game executable whose names begin with <code>macro</code> and end with <code>.txt</code>:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">macro.txt
+macro_nero.txt
+macro_boss_practice.txt</code></pre></div>
+
+<p>Use <code>Custom Macro File</code> when the file is stored somewhere else.</p>
+
+<h2 id="ten-minute-first-macro" data-search-heading="Ten-Minute First Macro">Ten-Minute First Macro<a class="heading-link" href="#ten-minute-first-macro" aria-label="Link to Ten-Minute First Macro">#</a></h2>
+
+<p>Create or edit <code>macro.txt</code>:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[V][Nero] Jump test
+TAP JUMP</code></pre></div>
+
+<p>Controller shortcut version:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[V][A/CROSS][Nero] Jump test
+TAP JUMP</code></pre></div>
+
+<p>This header means:</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Part</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>[V]</code></td><td>Press <code>V</code> to start this clip.</td></tr>
+<tr><td><code>[A/CROSS]</code></td><td>Optional controller shortcut button. Hold Back/Select first, then press A / Cross.</td></tr>
+<tr><td><code>[Nero]</code></td><td>Resolve action names through Nero Action Mapping.</td></tr>
+<tr><td><code>Jump test</code></td><td>The name shown in the GUI clip list.</td></tr>
+<tr><td><code>TAP JUMP</code></td><td>Press the action mapped as Jump once.</td></tr>
+</tbody>
+</table></div>
+
+<p>In game:</p>
+
+<ol>
+<li>Enable <code>Macro</code>.</li>
+<li>Select <code>macro.txt</code>.</li>
+<li>Select the <code>Jump test</code> clip.</li>
+<li>Play as Nero.</li>
+<li>Press <code>V</code> or click <code>Play Macro</code>.</li>
+</ol>
+
+<p>Nero should jump once.</p>
+
+<p>If you used the controller shortcut version, also enable <code>Gamepad Hotkeys</code>, then hold <code>Back/Select</code> first and press <code>A / Cross</code>. Pressing <code>A / Cross</code> first will not trigger the shortcut. While <code>Gamepad Hotkeys</code> is enabled, Back/Select is reserved by Macro shortcuts and will not trigger its normal in-game action manually.</p>
+
+<p>If a different action happens, open <code>Nero Action Mapping</code> and set <code>JUMP</code> to the same button used by Nero in DMC4's controller settings.</p>
+
+<p>For Dante, change the header to:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[V][Dante] Jump test
+TAP JUMP</code></pre></div>
+
+<p>Now add a second action:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[V][Nero] Jump and attack
+TAP JUMP
+WAIT 10
+TAP MELEE</code></pre></div>
+
+<p><code>WAIT 10</code> does not mean &quot;wait for the jump animation to finish.&quot; It means Macro waits 10 input ticks before sending the next line. If the attack is too early or too late, change the number and test again.</p>
+
+<p>Now try holding and releasing an input:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[V][Nero] Lock-on attack
+HOLD LOCK_ON
+TAP MELEE
+WAIT 20
+RELEASE LOCK_ON</code></pre></div>
+
+<p><code>HOLD LOCK_ON</code> keeps Lock-On active through later lines. It stays active until <code>RELEASE LOCK_ON</code>, <code>RELEASE ALL</code>, <code>CLEAR</code>, <code>SET</code>, Stop Macro, or the end-of-playback cleanup removes it.</p>
+
+<p>Finally, try a same-tick combination:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[V][Nero] Jump attack
+TAP JUMP+MELEE</code></pre></div>
+
+<p><code>+</code> means the inputs are sent together in one command. This is different from two separate <code>TAP</code> lines.</p>
+
+<p>When a macro does not do what you expected, enable <code>Show Macro Playback Overlay</code>. Check:</p>
+
+<ul>
+<li><code>Now</code>: the current script line</li>
+<li><code>Next</code>: the next script line</li>
+<li><code>Held</code>: inputs that Macro is still holding</li>
+<li><code>Progress</code>: where playback is in the clip</li>
+</ul>
+
+<h2 id="the-input-rule" data-search-heading="The Input Rule">The Input Rule<a class="heading-link" href="#the-input-rule" aria-label="Link to The Input Rule">#</a></h2>
+
+<p>The most important rule is:</p>
+
+<div class="callout">If a word represents something that can be pressed, held, or released on a controller, put it after <code>TAP</code>, <code>HOLD</code>, <code>RELEASE</code>, or <code>SET</code>.</div>
+
+<div class="callout">If the whole line already means wait, switch character, freeze the screen, or run another Hook action, do not add <code>TAP</code>.</div>
+
+<div class="table-wrap"><table>
+<thead><tr><th>What it represents</th><th>Correct line</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Character action</td><td><code>TAP MELEE</code></td><td><code>MELEE</code> is an input resolved through Action Mapping.</td></tr>
+<tr><td>Physical button</td><td><code>TAP Y</code></td><td><code>Y</code> is the exact Y / Triangle button.</td></tr>
+<tr><td>Left-stick direction</td><td><code>HOLD MOVE_LEFT</code></td><td>The virtual left stick stays pushed left.</td></tr>
+<tr><td>Right-stick direction</td><td><code>HOLD CAM_LEFT</code></td><td>The virtual right stick stays pushed left.</td></tr>
+<tr><td>Stick click</td><td><code>TAP LS</code></td><td>This presses the left stick button / L3.</td></tr>
+<tr><td>D-pad direction</td><td><code>TAP DOWN</code></td><td>This presses D-pad Down.</td></tr>
+<tr><td>Wait command</td><td><code>WAIT 10</code></td><td>The line is already a complete timing command.</td></tr>
+<tr><td>Character Switcher</td><td><code>CHARACTER_SWITCH</code></td><td>The line requests a Hook character switch.</td></tr>
+<tr><td>Screen Freeze</td><td><code>FREEZE</code></td><td>The line is already a complete Hook command.</td></tr>
+</tbody>
+</table></div>
+
+<p>Wrong:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">MELEE
+MOVE_LEFT
+TAP CHARACTER_SWITCH</code></pre></div>
+
+<p>Right:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">TAP MELEE
+HOLD MOVE_LEFT
+CHARACTER_SWITCH</code></pre></div>
+
+<h2 id="buttons-and-sticks" data-search-heading="Buttons And Sticks">Buttons And Sticks<a class="heading-link" href="#buttons-and-sticks" aria-label="Link to Buttons And Sticks">#</a></h2>
+
+<p>Players often use the word &quot;stick&quot; for several different inputs. The script names keep them separate:</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Name</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>MOVE_LEFT</code></td><td>Push the virtual left stick left.</td></tr>
+<tr><td><code>WALK_LEFT</code></td><td>Lightly push the virtual left stick left.</td></tr>
+<tr><td><code>CAM_LEFT</code></td><td>Push the virtual right stick left.</td></tr>
+<tr><td><code>LS</code> / <code>L3</code></td><td>Press the left stick button.</td></tr>
+<tr><td><code>RS</code> / <code>R3</code></td><td>Press the right stick button.</td></tr>
+<tr><td><code>LEFT</code> / <code>DPAD_LEFT</code></td><td>Press D-pad Left.</td></tr>
+</tbody>
+</table></div>
+
+<p>Examples:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text"># Move for 30 ticks
+HOLD MOVE_FORWARD
+WAIT 30
+RELEASE MOVE_FORWARD
+
+# Move the camera
+HOLD CAM_LEFT
+WAIT 20
+RELEASE CAM_LEFT
+
+# Press the left stick button
+TAP LS
+
+# Press D-pad Left
+TAP LEFT</code></pre></div>
+
+<p>Movement and camera names are controller-stick inputs. They are not keyboard keys.</p>
+
+<h2 id="combining-inputs-with" data-search-heading="Combining Inputs With `+`">Combining Inputs With <code>+</code><a class="heading-link" href="#combining-inputs-with" aria-label="Link to Combining Inputs With `+`">#</a></h2>
+
+<p>Use <code>+</code> when several inputs must belong to the same command:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">TAP JUMP+MELEE
+HOLD LOCK_ON+MOVE_LEFT+GUN
+RELEASE LOCK_ON+MOVE_LEFT+GUN
+SET LOCK_ON+MOVE_BACK+MELEE</code></pre></div>
+
+<p>Important rules:</p>
+
+<ul>
+<li><code>+</code> means simultaneous input, not &quot;then&quot;.</li>
+<li>You may combine more than two inputs. There is no fixed two-input or three-input limit.</li>
+<li>Every part must still be a valid input name for the clip.</li>
+<li>Multi-input <code>TAP</code> lines must use <code>+</code>.</li>
+<li>Use separate <code>TAP</code> lines when inputs should happen in sequence. Add <code>WAIT</code> only when you need a bigger gap.</li>
+</ul>
+
+<p>Simultaneous:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">TAP JUMP+MELEE</code></pre></div>
+
+<p>Sequential:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">TAP JUMP
+TAP MELEE</code></pre></div>
+
+<p>This sends <code>JUMP</code> for one input tick, then <code>MELEE</code> for one input tick on the next macro tick.</p>
+
+<p>Add a gap:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">TAP JUMP
+WAIT 10
+TAP MELEE</code></pre></div>
+
+<p><code>TAP JUMP+MELEE 20</code> holds both inputs together for 20 input ticks, then releases both.</p>
+
+<p><code>TAP A+B</code> is roughly the same as:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD A+B
+WAIT 1
+RELEASE A+B</code></pre></div>
+
+<p><code>TAP A+B 20</code> is roughly the same as:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD A+B
+WAIT 20
+RELEASE A+B</code></pre></div>
+
+<p>The small difference is that <code>TAP</code> temporarily adds its inputs and then restores whatever was already held before the tap. A manual <code>RELEASE A+B</code> will release those inputs even if one of them was already held earlier.</p>
+
+<p>Different left-stick axes can make a diagonal:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD MOVE_FORWARD+MOVE_RIGHT</code></pre></div>
+
+<p>Opposite directions cancel each other and should not be combined:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD MOVE_LEFT+MOVE_RIGHT
+HOLD MOVE_FORWARD+MOVE_BACK
+HOLD CAM_LEFT+CAM_RIGHT</code></pre></div>
+
+<p>Do not confuse script input combinations with keyboard hotkeys. In <code>[Ctrl+1][Nero]</code>, <code>Ctrl+1</code> is a keyboard shortcut. In <code>TAP JUMP+MELEE</code>, <code>JUMP+MELEE</code> is simultaneous game input.</p>
+
+<h2 id="macro-clips" data-search-heading="Macro Clips">Macro Clips<a class="heading-link" href="#macro-clips" aria-label="Link to Macro Clips">#</a></h2>
+
+<p>Each playable clip begins with a header:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[KeyboardHotkey][Character] Clip name
+[KeyboardHotkey][GamepadButton][Character] Clip name</code></pre></div>
+
+<p>Examples:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[V][Nero] Nero route
+[V][Dante] Dante route
+[F1][X/SQUARE][Nero] Nero route with controller shortcut
+[F2][A][Nero] Nero route using one Xbox button name
+[F3][CIRCLE][Dante] Dante route using one PlayStation button name</code></pre></div>
+
+<p>The same keyboard hotkey may be used once for Nero and once for Dante. Macro chooses the clip matching the current character.</p>
+
+<h3 id="character-tags-and-action-mapping" data-search-heading="Character Tags And Action Mapping">Character Tags And Action Mapping<a class="heading-link" href="#character-tags-and-action-mapping" aria-label="Link to Character Tags And Action Mapping">#</a></h3>
+
+<p>Nero and Dante have separate controller settings. The character tag selects the corresponding GUI Action Mapping table.</p>
+
+<p>Suppose the player's controls are:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">Nero MELEE  = Y / TRIANGLE
+Dante MELEE = B / CIRCLE</code></pre></div>
+
+<p>Then:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">TAP MELEE</code></pre></div>
+
+<p>presses Y / Triangle in a <code>[Nero]</code> clip and B / Circle in a <code>[Dante]</code> clip.</p>
+
+<p>Action names such as <code>MELEE</code>, <code>JUMP</code>, <code>LOCK_ON</code>, and <code>DEVIL_TRIGGER</code> make scripts easier to read and follow the player's layout.</p>
+
+<p>Physical button names ignore Action Mapping:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">TAP Y</code></pre></div>
+
+<p>always presses Y / Triangle, even if Melee is assigned to another button.</p>
+
+<h3 id="character-switcher-clips" data-search-heading="Character Switcher Clips">Character Switcher Clips<a class="heading-link" href="#character-switcher-clips" aria-label="Link to Character Switcher Clips">#</a></h3>
+
+<p>Use <code>[SWITCH]</code> when a macro intentionally changes character and later action names should follow whichever character is current:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[V][SWITCH] Switch route
+CHARACTER_SWITCH
+WAIT 20
+TAP STYLE_ACTION</code></pre></div>
+
+<p>Normal <code>[Nero]</code> and <code>[Dante]</code> clips continue using their header character's Action Mapping for the entire clip.</p>
+
+<p><code>CHARACTER_SWITCH</code> requires the Hook's <code>Character Switcher</code> feature to be enabled and ready. The switch is not guaranteed to finish on the same tick, so wait before sending the next character-specific action.</p>
+
+<h2 id="gamepad-shortcuts" data-search-heading="Gamepad Shortcuts">Gamepad Shortcuts<a class="heading-link" href="#gamepad-shortcuts" aria-label="Link to Gamepad Shortcuts">#</a></h2>
+
+<p>Enable <code>Gamepad Hotkeys</code> to use controller shortcuts.</p>
+
+<p>Every controller shortcut uses this order:</p>
+
+<ol>
+<li>Hold <code>Back/Select</code>.</li>
+<li>While still holding it, press the shortcut button.</li>
+</ol>
+
+<p>Pressing the shortcut button first does not trigger the macro.</p>
+
+<p>Default GUI action shortcuts:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">Back/Select + A   Play Macro
+Back/Select + B   Stop Macro
+Back/Select + X   Capture Snapshot
+Back/Select + Y   Load Snapshot
+Back/Select + RB  Load Snapshot + Play Macro
+Back/Select + LB  Load Setup
+Back/Select + RT  Load Setup + Play Macro</code></pre></div>
+
+<p>A clip may define its own controller shortcut:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F1][X/SQUARE][Nero] Air route
+TAP JUMP</code></pre></div>
+
+<p>With Gamepad Hotkeys enabled, holding Back/Select and then pressing X / Square starts this clip directly. A matching clip shortcut has priority over a fixed GUI action shortcut.</p>
+
+<p>While Gamepad Hotkeys is enabled, Macro reserves Back/Select and consumes a detected shortcut so the game does not also receive those buttons. The original action assigned to Back/Select, normally Taunt, will not activate manually.</p>
+
+<p>A gamepad shortcut tag may use one accepted name. You do not have to write both controller layouts:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F1][A][Nero]        Back/Select + A / Cross
+[F2][CROSS][Nero]    Back/Select + A / Cross
+[F3][B][Dante]       Back/Select + B / Circle
+[F4][CIRCLE][Dante]  Back/Select + B / Circle</code></pre></div>
+
+<p>A slash form is only a readable pair of aliases. Every name in the pair must describe the same physical button:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[A/CROSS]  valid
+[CIRCLE]   valid
+[L2/LT]  valid
+[LT/L2]  valid
+[L2/LB]  invalid</code></pre></div>
+
+<h2 id="practice-workflows" data-search-heading="Practice Workflows">Practice Workflows<a class="heading-link" href="#practice-workflows" aria-label="Link to Practice Workflows">#</a></h2>
+
+<h3 id="macro-gui" data-search-heading="Macro GUI">Macro GUI<a class="heading-link" href="#macro-gui" aria-label="Link to Macro GUI">#</a></h3>
+
+<ul>
+<li><code>Macro File</code>: choose the loaded <code>macro*.txt</code> file.</li>
+<li><code>Macro Clip</code>: choose the clip used by playback actions. Setup-only files do not show this selector.</li>
+<li><code>Play Macro</code>: start the selected clip.</li>
+<li><code>Stop Macro</code>: stop playback and release macro-held input.</li>
+<li><code>Show Macro Playback Overlay</code>: display the current line, next line, held inputs, and progress.</li>
+</ul>
+
+<p>The selected macro file automatically reloads after it is saved, unless playback is currently running.</p>
+
+<p>Keyboard Hotkeys in the GUI run actions on the currently selected file. <code>Load Setup</code> and <code>Load Setup + Play Macro</code> start unbound; use their <code>Set</code> buttons to assign keys. Header hotkeys such as <code>[V][Nero]</code> start the specific clip written in the file.</p>
+
+<h3 id="macro-playback-overlay" data-search-heading="Macro Playback Overlay">Macro Playback Overlay<a class="heading-link" href="#macro-playback-overlay" aria-label="Link to Macro Playback Overlay">#</a></h3>
+
+<p>The playback overlay shows:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">Now       current source line
+Next      next source line
+Held      inputs currently kept active
+Progress  clip playback progress</code></pre></div>
+
+<p>Nero uses a blue palette and Dante uses a red palette. A <code>[SWITCH]</code> clip updates its palette after the current character changes.</p>
+
+<h3 id="animation-overlay" data-search-heading="Animation Overlay">Animation Overlay<a class="heading-link" href="#animation-overlay" aria-label="Link to Animation Overlay">#</a></h3>
+
+<p>Enable <code>System -&gt; Custom HUD elements -&gt; Animation Overlay</code>.</p>
+
+<p>The overlay can show:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">Frame    current animation frame / maximum frame
+MoveID2  runtime move/action state
+Anim     current animation ID
+Part     current action phase value
+State    grounded, airborne, hitstop, and lock-on flags</code></pre></div>
+
+<p>Use these values when tuning <code>WAIT_UNTIL ANIM_FRAME</code>, <code>MOVEID2</code>, <code>MOVEID2_CHANGED</code>, <code>GROUNDED</code>, or related conditions.</p>
+
+<p><code>Show Advanced Animation Fields</code> adds lower-level diagnostic values. Most players do not need them.</p>
+
+<h3 id="battle-snapshot" data-search-heading="Battle Snapshot">Battle Snapshot<a class="heading-link" href="#battle-snapshot" aria-label="Link to Battle Snapshot">#</a></h3>
+
+<p>Battle Snapshot quickly restores a practice setup in the same encounter.</p>
+
+<p>Its GUI actions are:</p>
+
+<ul>
+<li><code>Capture Snapshot</code></li>
+<li><code>Load Snapshot</code></li>
+<li><code>Load Snapshot + Play Macro</code></li>
+</ul>
+
+<p>These actions only use the captured Battle Snapshot. A <code>[Setup]</code> block in the selected macro file does not replace Snapshot behavior.</p>
+
+<p>Normal restore includes:</p>
+
+<ul>
+<li>active player position, facing, and velocity</li>
+<li>camera position and camera parameters</li>
+<li>matching active enemy positions, velocity, and rotation</li>
+</ul>
+
+<p><code>Restore Resources</code> additionally restores selected safe resources:</p>
+
+<ul>
+<li>player HP and DT amount</li>
+<li>Nero Exceed level/timer</li>
+<li>Dante style and supported gauges</li>
+<li>regular enemy HP and basic stun/displacement data where safe</li>
+</ul>
+
+<p>When Character Switcher is ready, Snapshot records safe resource state for both characters. Loading requests a switch back to the captured active character, waits for the switch to settle, restores the active setup, and restores safe inactive-character resources.</p>
+
+<p>Snapshot refuses a load when the current mission, room, player, camera, enemy count, enemy lifecycle, or captured objects are no longer compatible. This is intentional protection against restoring stale game objects.</p>
+
+<p>Snapshot does not restore every move, projectile, effect, weapon object, enemy AI state, or mission script.</p>
+
+<h3 id="macro-setup" data-search-heading="Macro Setup">Macro Setup<a class="heading-link" href="#macro-setup" aria-label="Link to Macro Setup">#</a></h3>
+
+<p>A macro file may begin with one <code>[Setup]</code> block before its clips:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[Setup]
+Character Nero
+Room BP 4
+Player 120.0 0.0 -80.0 Face 90
+Camera Pos 10.0 250.0 -300.0 Target 100.0 80.0 -50.0 Fov 45
+Enemy 1 Frost Pos 200.0 0.0 -60.0 Face 180
+[/Setup]
+
+[F1][Nero] Frost test
+TAP MELEE</code></pre></div>
+
+<p>Use <code>Copy Current Setup</code> in the Macro GUI after arranging the room, then paste the copied block before the clips.</p>
+
+<p>Behavior:</p>
+
+<ul>
+<li>Macro Setup has its own GUI section below Battle Snapshot.</li>
+<li><code>Copy Current Setup</code> copies a ready-to-paste <code>[Setup]</code> block.</li>
+<li>A file containing only <code>[Setup] ... [/Setup]</code> is valid. <code>Load Setup</code> does not require any macro clips.</li>
+<li><code>Load Setup</code> prepares the scene without starting a macro.</li>
+<li><code>Load Setup + Play Macro</code> prepares the scene, waits <code>Setup Play Delay Ticks</code>, then starts the selected clip.</li>
+<li><code>Play Macro</code> and <code>Load Setup + Play Macro</code> require at least one clip.</li>
+<li><code>Character Nero</code> or <code>Character Dante</code> can request Character Switcher before applying the setup.</li>
+<li><code>Room ID</code> uses the Hook's room teleport. <code>Room BP</code> moves to that floor when the player is already inside Bloody Palace.</li>
+<li>Setup waits for the room and its native enemies to become ready.</li>
+<li>Existing live enemies are matched by type. Missing enemies are generated through the Hook's Enemy Spawn feature.</li>
+<li>Extra enemies are left in the room.</li>
+<li>After preparation, Setup applies the listed player, enemy, and camera placement.</li>
+<li><code>Copy Current Setup</code> skips dead enemies and cleanup objects that are no longer valid battle targets.</li>
+</ul>
+
+<p>Generated enemies use the current game mode, difficulty, room, and Bloody Palace context. They are normal game-spawned enemies, but Setup does not reproduce every wave-script link, AI state, timer, projectile, effect, or other hidden battle state.</p>
+
+<p>See <code>macro_script_reference.html</code> for every setup field and supported enemy name.</p>
+
+<h2 id="timing-basics" data-search-heading="Timing Basics">Timing Basics<a class="heading-link" href="#timing-basics" aria-label="Link to Timing Basics">#</a></h2>
+
+<p><code>WAIT n</code> waits for a number of DMC4 input ticks:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD MELEE
+WAIT 1
+RELEASE MELEE</code></pre></div>
+
+<p>A tick is Macro's input timing unit. Do not treat it as an animation frame or a precise number of seconds. When tuning a combo, start with a rough value, test, then adjust while watching the game or the playback overlay.</p>
+
+<p><code>WAIT_UNTIL</code> waits for a game condition:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">TAP JUMP
+WAIT_UNTIL GROUNDED
+TAP MELEE</code></pre></div>
+
+<p>If no timeout is written, <code>WAIT_UNTIL</code> uses <code>120</code> ticks:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">WAIT_UNTIL GROUNDED</code></pre></div>
+
+<p>is equivalent to:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">WAIT_UNTIL GROUNDED 120</code></pre></div>
+
+<p>Earlier <code>HOLD</code> inputs remain held while waiting. Always release or clear them after the wait:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD LOCK_ON
+WAIT_UNTIL ENEMY_STEP 180
+TAP JUMP
+RELEASE LOCK_ON</code></pre></div>
+
+<p><code>TAP</code> sends input; it does not wait for an animation or move to finish.</p>
+
+<p>Some lines create playback time and some do not:</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Line type</th><th>Does it advance macro playback time?</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td><code>TAP</code></td><td>Yes, by its duration. Default is 1 tick.</td><td><code>TAP MELEE</code></td></tr>
+<tr><td><code>WAIT</code></td><td>Yes, by the written tick count.</td><td><code>WAIT 10</code></td></tr>
+<tr><td><code>WAIT_UNTIL</code></td><td>Yes, until success or timeout.</td><td><code>WAIT_UNTIL GROUNDED</code></td></tr>
+<tr><td><code>HOLD</code></td><td>No. It changes held input state.</td><td><code>HOLD LOCK_ON</code></td></tr>
+<tr><td><code>RELEASE</code></td><td>No. It changes held input state.</td><td><code>RELEASE LOCK_ON</code></td></tr>
+<tr><td><code>CLEAR</code> / <code>SET</code></td><td>No. They change held input state.</td><td><code>CLEAR</code></td></tr>
+</tbody>
+</table></div>
+
+<p>That means:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD MELEE
+HOLD JUMP
+WAIT 1</code></pre></div>
+
+<p>holds both inputs on the same wait tick, while:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">TAP MELEE
+TAP JUMP</code></pre></div>
+
+<p>sends Melee on one tick and Jump on the next tick.</p>
+
+<h2 id="simple-recipes" data-search-heading="Simple Recipes">Simple Recipes<a class="heading-link" href="#simple-recipes" aria-label="Link to Simple Recipes">#</a></h2>
+
+<h3 id="action-name" data-search-heading="Action Name">Action Name<a class="heading-link" href="#action-name" aria-label="Link to Action Name">#</a></h3>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F1][Nero] Melee
+TAP MELEE</code></pre></div>
+
+<h3 id="physical-button" data-search-heading="Physical Button">Physical Button<a class="heading-link" href="#physical-button" aria-label="Link to Physical Button">#</a></h3>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F2][Nero] Physical Y
+TAP Y</code></pre></div>
+
+<h3 id="movement-and-camera" data-search-heading="Movement And Camera">Movement And Camera<a class="heading-link" href="#movement-and-camera" aria-label="Link to Movement And Camera">#</a></h3>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F3][Nero] Movement test
+HOLD MOVE_RIGHT
+WAIT 20
+RELEASE MOVE_RIGHT
+HOLD WALK_LEFT
+WAIT 20
+RELEASE WALK_LEFT
+HOLD CAM_LEFT
+WAIT 20
+RELEASE CAM_LEFT</code></pre></div>
+
+<h3 id="lock-on-directional-input" data-search-heading="Lock-On Directional Input">Lock-On Directional Input<a class="heading-link" href="#lock-on-directional-input" aria-label="Link to Lock-On Directional Input">#</a></h3>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F4][Nero] Directional melee
+HOLD LOCK_ON
+DIR MOVE_LEFT MELEE 1
+WAIT 10
+RELEASE LOCK_ON</code></pre></div>
+
+<h3 id="dante-d-pad-and-style-action" data-search-heading="Dante D-Pad And Style Action">Dante D-Pad And Style Action<a class="heading-link" href="#dante-d-pad-and-style-action" aria-label="Link to Dante D-Pad And Style Action">#</a></h3>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F5][Dante] D-pad Down then style action
+TAP DOWN
+WAIT 1
+TAP STYLE_ACTION</code></pre></div>
+
+<p><code>TAP DOWN</code> always presses D-pad Down. It does not inspect Dante's style controls or force Royalguard, so use the physical input that matches your own controller settings.</p>
+
+<p>For complex timing recipes, open <code>macro_script_reference.html</code>.</p>
+
+<h2 id="common-misunderstandings" data-search-heading="Common Misunderstandings">Common Misunderstandings<a class="heading-link" href="#common-misunderstandings" aria-label="Link to Common Misunderstandings">#</a></h2>
+
+<div class="table-wrap"><table>
+<thead><tr><th>If you think...</th><th>Actual behavior</th></tr></thead>
+<tbody>
+<tr><td><code>TAP MELEE</code> waits for the attack to finish.</td><td>It only sends the input. Add <code>WAIT</code>, <code>WAIT_UNTIL</code>, or another timing command yourself.</td></tr>
+<tr><td><code>TAP JUMP</code> then <code>TAP MELEE</code> is the same as <code>TAP JUMP+MELEE</code>.</td><td>Separate <code>TAP</code> lines are sequential. <code>+</code> is same-tick input.</td></tr>
+<tr><td><code>HOLD LOCK_ON</code> will release by itself.</td><td>It stays held until released, cleared, stopped, or playback cleanup runs.</td></tr>
+<tr><td><code>+</code> means &quot;then&quot;.</td><td><code>+</code> means simultaneous input inside one command.</td></tr>
+<tr><td><code>+</code> only supports two inputs.</td><td>More inputs are valid when every part is a valid input name.</td></tr>
+<tr><td><code>TAP Y</code> follows Melee mapping.</td><td><code>Y</code> is the physical Y / Triangle button. <code>TAP MELEE</code> follows Action Mapping.</td></tr>
+<tr><td><code>MOVE_LEFT</code> is the keyboard A key.</td><td>It pushes the virtual left stick left.</td></tr>
+<tr><td><code>LEFT</code> is left-stick left.</td><td>It presses D-pad Left.</td></tr>
+<tr><td><code>[Nero]</code> only checks the current character.</td><td>It also selects Nero Action Mapping for action names.</td></tr>
+<tr><td>Snapshot is a full savestate.</td><td>It restores supported practice state, not every hidden object or script state.</td></tr>
+<tr><td>A <code>[Setup]</code> block replaces Snapshot.</td><td>Setup and Snapshot are separate workflows.</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="troubleshooting" data-search-heading="Troubleshooting">Troubleshooting<a class="heading-link" href="#troubleshooting" aria-label="Link to Troubleshooting">#</a></h2>
+
+<ul>
+<li>Nothing happens: enable <code>Macro</code>, select a valid file and clip, and confirm that the clip tag matches the current character.</li>
+<li>The wrong action happens: update Nero or Dante Action Mapping to match DMC4's controller settings.</li>
+<li><code>TAP Y</code> ignores Action Mapping: expected. <code>Y</code> is a physical button. Use <code>TAP MELEE</code> when you mean the mapped action.</li>
+<li><code>MOVE_LEFT</code> does nothing by itself: it is an input name. Write <code>HOLD MOVE_LEFT</code>, then release it later.</li>
+<li>Camera does not move: use <code>CAM_LEFT</code> or <code>RS_LEFT</code>. Plain <code>RS</code> presses the right stick button.</li>
+<li>D-pad action is wrong: <code>LEFT</code>, <code>RIGHT</code>, <code>UP</code>, and <code>DOWN</code> are physical D-pad inputs. They do not inspect Action Mapping.</li>
+<li>Multi-input TAP fails: use <code>TAP JUMP+MELEE</code>, not <code>TAP JUMP MELEE</code>.</li>
+<li>Inputs happen together unexpectedly: <code>+</code> means simultaneous. Use separate <code>TAP</code> lines for sequence, or add <code>WAIT</code> for a larger gap.</li>
+<li>Character-specific actions are wrong after switching: use a <code>[SWITCH]</code> header and wait after <code>CHARACTER_SWITCH</code>.</li>
+<li>Gamepad shortcut does nothing: enable Gamepad Hotkeys, hold Back/Select first, then press the shortcut button.</li>
+<li>Back/Select no longer taunts: expected while Gamepad Hotkeys is enabled.</li>
+<li>Input stays held: click <code>Stop Macro</code>, then make sure every <code>HOLD</code> reaches a matching <code>RELEASE</code>, <code>RELEASE ALL</code>, or <code>CLEAR</code>.</li>
+<li><code>WAIT_UNTIL</code> continues without success: its timeout expired. Verify the condition with Animation Overlay or use a larger explicit timeout.</li>
+<li>Snapshot refuses to load: return to the captured encounter and character state. Recapture after changing rooms, enemies, or major game state.</li>
+<li>Macro Setup cannot load a BP floor: enter Bloody Palace first.</li>
+<li>Macro Setup cannot load a room: confirm that the copied <code>Room ID</code> is available in the Hook's Area Jump list.</li>
+<li>Macro Setup cannot generate an enemy: that enemy type is not supported by the current Enemy Spawn feature. Existing matching enemies can still be repositioned.</li>
+</ul>
+
+<h2 id="reporting-a-crash" data-search-heading="Reporting A Crash">Reporting A Crash<a class="heading-link" href="#reporting-a-crash" aria-label="Link to Reporting A Crash">#</a></h2>
+
+<p>After an unhandled crash, look for:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">Devil May Cry 4\dmc4_hook_crashes\&lt;timestamp_pid&gt;\</code></pre></div>
+
+<p>Send the entire matching crash folder. It can contain:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">crash.dmp
+crash_report.txt
+dmc4_hook_framework_log.txt
+dmc4_hook.cfg
+macro.txt</code></pre></div>
+
+<p>Also describe:</p>
+
+<ul>
+<li>what you were doing before the crash</li>
+<li>whether Macro, Character Switcher, Snapshot, or Area Jump was enabled</li>
+<li>the selected macro file and clip</li>
+<li>whether the crash is repeatable</li>
+</ul>
+</article>
+</main>
+<script>
+const content = document.getElementById("document-content");
+const searchInput = document.getElementById("doc-search");
+const searchResults = document.getElementById("search-results");
+const searchable = Array.from(content.querySelectorAll("h1, h2, h3, h4, p, li, tr, pre"));
+
+function nearestHeading(element) {
+  if (/^H[1-4]$/.test(element.tagName)) {
+    return element;
+  }
+
+  let current = element.previousElementSibling;
+  while (current) {
+    if (/^H[1-4]$/.test(current.tagName)) {
+      return current;
+    }
+    current = current.previousElementSibling;
+  }
+  return content.querySelector("h1");
+}
+
+function runSearch() {
+  const query = searchInput.value.trim().toLowerCase();
+  searchResults.innerHTML = "";
+  if (query.length < 2) {
+    searchResults.classList.remove("active");
+    return;
+  }
+
+  const seen = new Set();
+  const matches = [];
+  for (const element of searchable) {
+    const text = element.textContent.replace(/\s+/g, " ").trim();
+    if (!text.toLowerCase().includes(query)) {
+      continue;
+    }
+
+    const heading = nearestHeading(element);
+    const id = heading && heading.id ? heading.id : "top";
+    const key = id + "|" + text.slice(0, 90);
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    matches.push({
+      id,
+      text,
+      heading: heading ? heading.textContent.replace(/#$/, "").trim() : "Top",
+    });
+    if (matches.length >= 12) {
+      break;
+    }
+  }
+
+  searchResults.classList.add("active");
+  if (matches.length === 0) {
+    searchResults.innerHTML = '<div class="search-empty">No matches on this page.</div>';
+    return;
+  }
+
+  for (const match of matches) {
+    const link = document.createElement("a");
+    link.href = "#" + match.id;
+    link.textContent = match.heading + ": " + match.text.slice(0, 105);
+    link.addEventListener("click", () => searchResults.classList.remove("active"));
+    searchResults.appendChild(link);
+  }
+}
+
+searchInput.addEventListener("input", runSearch);
+searchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    searchInput.value = "";
+    searchResults.classList.remove("active");
+  }
+});
+
+for (const button of document.querySelectorAll(".copy-code")) {
+  button.addEventListener("click", async () => {
+    const codeElement = button.parentElement.querySelector("code");
+    try {
+      await navigator.clipboard.writeText(codeElement.textContent);
+      button.textContent = "Copied";
+      window.setTimeout(() => { button.textContent = "Copy"; }, 1200);
+    }
+    catch {
+      button.textContent = "Select";
+      const range = document.createRange();
+      range.selectNodeContents(codeElement);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  });
+}
+</script>
+</body>
+</html>
