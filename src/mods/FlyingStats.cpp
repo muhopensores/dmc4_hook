@@ -581,13 +581,13 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
                 if (showFlyingLuciferPinTimers && player->controllerID == 0) {
                     for (int i = 0; i < 15; i++) {
                         if (!player->luciferPins[i]) { continue; }
-                        glm::vec3 objectPosition{0.0f, 0.0f, 0.0f};
+                        glm::vec3 objectPosition{};
                         objectPosition = player->luciferPins[i]->penetratedPos;
                         glm::vec2 screenPos       = w2s::WorldToScreen(objectPosition);
                         std::string windowName    = "PlayerStats##" + std::to_string((uintptr_t)player->luciferPins[i]);
                         float currentFontScale    = 1.0f;
                         float currentItemWidth    = (sameLineItemWidth);
-                        if (w2s::IsVisibleOnScreen(objectPosition)) {
+                        if (w2s::IsVisibleOnScreen(screenPos)) {
                             ImGui::Begin(windowName.c_str(), NULL,
                                 ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
                             ImGui::PushID((uintptr_t)player->luciferPins[i]);
