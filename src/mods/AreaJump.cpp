@@ -31,25 +31,19 @@ struct AreaJumpRuntime {
 
 bool read_area_jump_runtime_safe(AreaJumpRuntime& runtime, bool require_player) {
     runtime = {};
-    __try {
-        runtime.area = devil4_sdk::get_sArea();
-        runtime.game = runtime.area ? runtime.area->aGamePtr : nullptr;
-        runtime.mediator = devil4_sdk::get_sMediator();
-        runtime.player = devil4_sdk::get_local_player();
-        if (!runtime.area || !runtime.game || !runtime.mediator) {
-            runtime = {};
-            return false;
-        }
-        if (require_player && !runtime.player) {
-            runtime = {};
-            return false;
-        }
-        return true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    runtime.area = devil4_sdk::get_sArea();
+    runtime.game = runtime.area ? runtime.area->aGamePtr : nullptr;
+    runtime.mediator = devil4_sdk::get_sMediator();
+    runtime.player = devil4_sdk::get_local_player();
+    if (!runtime.area || !runtime.game || !runtime.mediator) {
         runtime = {};
         return false;
     }
+    if (require_player && !runtime.player) {
+        runtime = {};
+        return false;
+    }
+    return true;
 }
 
 bool read_bp_runtime_safe(AreaJumpRuntime& runtime, bool require_stable_stage) {
@@ -57,21 +51,15 @@ bool read_bp_runtime_safe(AreaJumpRuntime& runtime, bool require_stable_stage) {
         return false;
     }
 
-    __try {
-        if (runtime.mediator->missionID != 50) {
-            runtime = {};
-            return false;
-        }
-        if (require_stable_stage && runtime.game->init_jump != 0) {
-            runtime = {};
-            return false;
-        }
-        return true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    if (runtime.mediator->missionID != 50) {
         runtime = {};
         return false;
     }
+    if (require_stable_stage && runtime.game->init_jump != 0) {
+        runtime = {};
+        return false;
+    }
+    return true;
 }
 
 int clamp_bp_floor(int floor) {
@@ -84,13 +72,8 @@ bool write_bp_floor_safe(int floor) {
         return false;
     }
 
-    __try {
-        runtime.game->bp_floor = clamp_bp_floor(floor);
-        return true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return false;
-    }
+    runtime.game->bp_floor = clamp_bp_floor(floor);
+    return true;
 }
 
 bool read_bp_floor_safe(int& floor) {
@@ -99,13 +82,8 @@ bool read_bp_floor_safe(int& floor) {
         return false;
     }
 
-    __try {
-        floor = runtime.game->bp_floor;
-        return true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return false;
-    }
+    floor = runtime.game->bp_floor;
+    return true;
 }
 
 bool jump_to_bp_floor_safe(int floor) {
@@ -122,23 +100,18 @@ bool capture_bp_progress_values_safe() {
         return false;
     }
 
-    __try {
-        auto* player = runtime.mediator->player_ptr ? runtime.mediator->player_ptr : runtime.player;
-        if (!player) {
-            return false;
-        }
-
-        savedBPFloor = clamp_bp_floor(runtime.game->bp_floor);
-        savedBPTimer = runtime.mediator->bpTimer;
-        savedOrbs = runtime.mediator->orbMissionCurrent;
-        savedHP = player->damageStruct.HP;
-        savedDT = player->DT;
-        savedStylePoints = runtime.mediator->stylePoints;
-        return true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    auto* player = runtime.mediator->player_ptr ? runtime.mediator->player_ptr : runtime.player;
+    if (!player) {
         return false;
     }
+
+    savedBPFloor = clamp_bp_floor(runtime.game->bp_floor);
+    savedBPTimer = runtime.mediator->bpTimer;
+    savedOrbs = runtime.mediator->orbMissionCurrent;
+    savedHP = player->damageStruct.HP;
+    savedDT = player->DT;
+    savedStylePoints = runtime.mediator->stylePoints;
+    return true;
 }
 
 void save_bp_progress_config() {
@@ -176,26 +149,21 @@ bool apply_pending_bp_progress_restore_safe() {
         return false;
     }
 
-    __try {
-        if (runtime.game->bp_floor != savedBPFloor) {
-            return false;
-        }
-
-        auto* player = runtime.mediator->player_ptr ? runtime.mediator->player_ptr : runtime.player;
-        if (!player) {
-            return false;
-        }
-
-        runtime.mediator->bpTimer = savedBPTimer;
-        runtime.mediator->orbMissionCurrent = savedOrbs;
-        runtime.mediator->stylePoints = savedStylePoints;
-        player->damageStruct.HP = savedHP;
-        player->DT = savedDT;
-        return true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    if (runtime.game->bp_floor != savedBPFloor) {
         return false;
     }
+
+    auto* player = runtime.mediator->player_ptr ? runtime.mediator->player_ptr : runtime.player;
+    if (!player) {
+        return false;
+    }
+
+    runtime.mediator->bpTimer = savedBPTimer;
+    runtime.mediator->orbMissionCurrent = savedOrbs;
+    runtime.mediator->stylePoints = savedStylePoints;
+    player->damageStruct.HP = savedHP;
+    player->DT = savedDT;
+    return true;
 }
 }
 

@@ -421,6 +421,7 @@ uint32_t snapshot_switch_pending_clip_index = INVALID_CLIP_INDEX;
 bool pending_player_resource_restore[MACRO_CHARACTER_ROLE_COUNT]{};
 bool restore_resources_snapshot = false;
 bool macro_suspended_for_transition = false;
+bool macro_cached_runtime_ready = false;
 cPeripheral* last_player_peripheral = nullptr;
 uint32_t last_player_index = 0;
 uint32_t last_global_routed_buttons[4] = {};
@@ -500,12 +501,12 @@ void remember_macro_file_write_time(const std::string& path) {
 }
 
 bool is_game_paused_safe() {
-    __try {
-        return devil4_sdk::is_paused();
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    auto* area = get_s_area_safe();
+    if (!area || !area->aGamePtr) {
         return true;
     }
+
+    return area->aGamePtr->m_paused;
 }
 
 bool is_game_window_foreground() {
@@ -514,24 +515,19 @@ bool is_game_window_foreground() {
 }
 
 bool macro_gameplay_ready() {
-    __try {
-        auto* area = get_s_area_safe();
-        if (!area || !area->aGamePtr || !area->aRoomPtr || area->aGamePtr->init_jump != 0) {
-            return false;
-        }
-
-        auto* mediator = get_s_mediator_safe();
-        auto* player = get_local_player_safe();
-        auto* camera = get_local_camera_safe();
-        if (!mediator || !player || !camera || mediator->player_ptr != player || mediator->camera1 != camera) {
-            return false;
-        }
-
-        return true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    auto* area = get_s_area_safe();
+    if (!area || !area->aGamePtr || !area->aRoomPtr || area->aGamePtr->init_jump != 0) {
         return false;
     }
+
+    auto* mediator = get_s_mediator_safe();
+    auto* player = get_local_player_safe();
+    auto* camera = get_local_camera_safe();
+    if (!mediator || !player || !camera || mediator->player_ptr != player || mediator->camera1 != camera) {
+        return false;
+    }
+
+    return true;
 }
 
 bool macro_runtime_ready() {
@@ -539,81 +535,52 @@ bool macro_runtime_ready() {
 }
 
 sArea* get_s_area_safe() {
-    __try {
-        return devil4_sdk::get_sArea();
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return nullptr;
-    }
+    return devil4_sdk::get_sArea();
 }
 
 sMediator* get_s_mediator_safe() {
-    __try {
-        return devil4_sdk::get_sMediator();
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return nullptr;
-    }
+    return devil4_sdk::get_sMediator();
 }
 
 uPlayer* get_local_player_safe() {
-    __try {
-        return devil4_sdk::get_local_player();
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    auto* mediator = get_s_mediator_safe();
+    if (!mediator || !mediator->pad_0) {
         return nullptr;
     }
+
+    return mediator->player_ptr;
 }
 
 uCameraCtrl* get_local_camera_safe() {
-    __try {
-        return devil4_sdk::get_local_camera();
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    auto* mediator = get_s_mediator_safe();
+    if (!mediator || !mediator->pad_0) {
         return nullptr;
     }
+
+    return mediator->camera1;
 }
 
 sWorkRate* get_work_rate_safe() {
-    __try {
-        return devil4_sdk::get_work_rate();
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return nullptr;
-    }
+    return devil4_sdk::get_work_rate();
 }
 
 sKeyboard* get_keyboard_safe() {
-    __try {
-        auto** keyboard_ptr = reinterpret_cast<sKeyboard**>(S_KEYBOARD_PTR);
-        return keyboard_ptr ? *keyboard_ptr : nullptr;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return nullptr;
-    }
+    return *reinterpret_cast<sKeyboard**>(S_KEYBOARD_PTR);
 }
 
 sDevil4Pad* get_global_pad_safe() {
-    __try {
-        auto** pad_ptr = reinterpret_cast<sDevil4Pad**>(S_DEVIL4_PAD_PTR);
-        return pad_ptr ? *pad_ptr : nullptr;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return nullptr;
-    }
+    return *reinterpret_cast<sDevil4Pad**>(S_DEVIL4_PAD_PTR);
 }
 
 bool read_saved_key_binding(uintptr_t offset, uint32_t& key) {
     key = 0;
 
-    __try {
-        key = *reinterpret_cast<uint32_t*>(S_SAVE_PTR + offset);
-        return key < 256;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    key = *reinterpret_cast<uint32_t*>(S_SAVE_PTR + offset);
+    if (key >= 256) {
         key = 0;
         return false;
     }
+    return true;
 }
 
 bool keyboard_input_down(sKeyboard* keyboard, uint32_t key, uint8_t fallback_mask) {
@@ -621,18 +588,13 @@ bool keyboard_input_down(sKeyboard* keyboard, uint32_t key, uint8_t fallback_mas
         return false;
     }
 
-    __try {
-        bool key_down = false;
-        if (key < 256) {
-            key_down = ((keyboard->mState.on[key >> 5] >> (key & 0x1f)) & 1) != 0;
-        }
+    bool key_down = false;
+    if (key < 256) {
+        key_down = ((keyboard->mState.on[key >> 5] >> (key & 0x1f)) & 1) != 0;
+    }
 
-        const bool fallback_down = (reinterpret_cast<uint8_t*>(&keyboard->mState.on[3])[0] & fallback_mask) != 0;
-        return key_down || fallback_down;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return false;
-    }
+    const bool fallback_down = (reinterpret_cast<uint8_t*>(&keyboard->mState.on[3])[0] & fallback_mask) != 0;
+    return key_down || fallback_down;
 }
 
 int gamepad_button_index(uint32_t button) {
@@ -819,14 +781,8 @@ bool read_gamepad_buttons_safe(uint32_t& buttons) {
         return false;
     }
 
-    __try {
-        buttons = pad->mPadInfo[0].mBtn.on;
-        return true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        buttons = 0;
-        return false;
-    }
+    buttons = pad->mPadInfo[0].mBtn.on;
+    return true;
 }
 
 bool read_peripheral_player_index_safe(cPeripheral* peripheral, uint32_t& player_index) {
@@ -835,14 +791,8 @@ bool read_peripheral_player_index_safe(cPeripheral* peripheral, uint32_t& player
         return false;
     }
 
-    __try {
-        player_index = *(uint8_t*)((uintptr_t)peripheral + 0x95);
-        return true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        player_index = 0;
-        return false;
-    }
+    player_index = *(uint8_t*)((uintptr_t)peripheral + 0x95);
+    return true;
 }
 
 void clear_press_values_for_buttons(kPressInfo& press, uint32_t buttons) {
@@ -874,14 +824,10 @@ void clear_peripheral_buttons(cPeripheral* peripheral, uint32_t buttons) {
         return;
     }
 
-    __try {
-        peripheral->mPadBtnOn &= ~buttons;
-        peripheral->mPadBtnTrg &= ~buttons;
-        peripheral->mPadBtnRel &= ~buttons;
-        clear_press_values_for_buttons(*reinterpret_cast<kPressInfo*>(&peripheral->mPadBtnPress), buttons);
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-    }
+    peripheral->mPadBtnOn &= ~buttons;
+    peripheral->mPadBtnTrg &= ~buttons;
+    peripheral->mPadBtnRel &= ~buttons;
+    clear_press_values_for_buttons(*reinterpret_cast<kPressInfo*>(&peripheral->mPadBtnPress), buttons);
 }
 
 void consume_gamepad_hotkey_buttons(cPeripheral* peripheral, uint32_t buttons) {
@@ -891,23 +837,19 @@ void consume_gamepad_hotkey_buttons(cPeripheral* peripheral, uint32_t buttons) {
 
     auto* pad = get_global_pad_safe();
     if (pad) {
-        __try {
-            auto& pad_info = pad->mPadInfo[0];
-            pad_info.mBtn.on &= ~buttons;
-            pad_info.mBtn.trg &= ~buttons;
-            pad_info.mBtn.rel &= ~buttons;
-            pad_info.mBtn.rep &= ~buttons;
-            clear_press_values_for_buttons(pad_info.mPress, buttons);
+        auto& pad_info = pad->mPadInfo[0];
+        pad_info.mBtn.on &= ~buttons;
+        pad_info.mBtn.trg &= ~buttons;
+        pad_info.mBtn.rel &= ~buttons;
+        pad_info.mBtn.rep &= ~buttons;
+        clear_press_values_for_buttons(pad_info.mPress, buttons);
 
-            auto& pad_data = pad->mPad[0].field10_0x15c;
-            pad_data.On &= ~buttons;
-            pad_data.Trg &= ~buttons;
-            pad_data.Rel &= ~buttons;
-            pad_data.Chg &= ~buttons;
-            pad_data.Rep &= ~buttons;
-        }
-        __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        }
+        auto& pad_data = pad->mPad[0].field10_0x15c;
+        pad_data.On &= ~buttons;
+        pad_data.Trg &= ~buttons;
+        pad_data.Rel &= ~buttons;
+        pad_data.Chg &= ~buttons;
+        pad_data.Rep &= ~buttons;
     }
 
     clear_peripheral_buttons(peripheral, buttons);
@@ -968,39 +910,35 @@ void clear_global_macro_route(uint32_t player_index) {
     const bool release_right_analog = last_global_right_analog[player_index];
     auto* pad = get_global_pad_safe();
     if (pad) {
-        __try {
-            auto& pad_info = pad->mPadInfo[0];
-            pad_info.mBtn.on &= ~release_buttons;
-            pad_info.mBtn.trg &= ~release_buttons;
-            pad_info.mBtn.rel |= release_buttons;
+        auto& pad_info = pad->mPadInfo[0];
+        pad_info.mBtn.on &= ~release_buttons;
+        pad_info.mBtn.trg &= ~release_buttons;
+        pad_info.mBtn.rel |= release_buttons;
 
-            if ((release_buttons & PAD_BUTTON_L3) != 0) {
-                pad_info.mPress.L3 = 0.0f;
-            }
-            if ((release_buttons & PAD_BUTTON_R3) != 0) {
-                pad_info.mPress.R3 = 0.0f;
-            }
-            if ((release_buttons & PAD_BUTTON_L1) != 0) {
-                pad_info.mPress.L1 = 0.0f;
-            }
-            if ((release_buttons & PAD_BUTTON_L2) != 0) {
-                pad_info.mPress.L2 = 0.0f;
-            }
-            if ((release_buttons & PAD_BUTTON_R1) != 0) {
-                pad_info.mPress.R1 = 0.0f;
-            }
-            if ((release_buttons & PAD_BUTTON_R2) != 0) {
-                pad_info.mPress.R2 = 0.0f;
-            }
-            if ((release_buttons & PAD_BUTTON_SELECT) != 0) {
-                pad_info.mPress.Select = 0.0f;
-            }
-            if (release_right_analog) {
-                pad_info.mAnlg[1].x = 0.0f;
-                pad_info.mAnlg[1].y = 0.0f;
-            }
+        if ((release_buttons & PAD_BUTTON_L3) != 0) {
+            pad_info.mPress.L3 = 0.0f;
         }
-        __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        if ((release_buttons & PAD_BUTTON_R3) != 0) {
+            pad_info.mPress.R3 = 0.0f;
+        }
+        if ((release_buttons & PAD_BUTTON_L1) != 0) {
+            pad_info.mPress.L1 = 0.0f;
+        }
+        if ((release_buttons & PAD_BUTTON_L2) != 0) {
+            pad_info.mPress.L2 = 0.0f;
+        }
+        if ((release_buttons & PAD_BUTTON_R1) != 0) {
+            pad_info.mPress.R1 = 0.0f;
+        }
+        if ((release_buttons & PAD_BUTTON_R2) != 0) {
+            pad_info.mPress.R2 = 0.0f;
+        }
+        if ((release_buttons & PAD_BUTTON_SELECT) != 0) {
+            pad_info.mPress.Select = 0.0f;
+        }
+        if (release_right_analog) {
+            pad_info.mAnlg[1].x = 0.0f;
+            pad_info.mAnlg[1].y = 0.0f;
         }
     }
 
@@ -1039,6 +977,15 @@ bool snapshot_work_pending() {
         macro_setup_load_pending();
 }
 
+bool pad_detour_work_pending() {
+    return Macro::mod_enabled &&
+        (Macro::input_active ||
+            snapshot_work_pending() ||
+            Macro::screen_pause_active ||
+            Macro::gamepad_hotkeys_enabled ||
+            capture_gamepad_hotkey_target != 0);
+}
+
 bool has_pending_macro_output() {
     if (Macro::playback_enabled || Macro::clear_input_frames > 0 || snapshot_work_pending() || Macro::screen_pause_active) {
         return true;
@@ -1058,12 +1005,7 @@ bool playback_start_busy() {
 }
 
 bool is_nero_player_safe(uPlayer* player) {
-    __try {
-        return player && player->controllerID == 1;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return false;
-    }
+    return player && player->controllerID == 1;
 }
 
 uint32_t character_role_from_player_safe(uPlayer* player) {
@@ -1071,21 +1013,18 @@ uint32_t character_role_from_player_safe(uPlayer* player) {
         return MACRO_CHARACTER_INVALID;
     }
 
-    __try {
-        if (player->controllerID == 1) {
-            return MACRO_CHARACTER_NERO;
-        }
-        if (player->controllerID == 0) {
-            return MACRO_CHARACTER_DANTE;
-        }
+    if (player->controllerID == 1) {
+        return MACRO_CHARACTER_NERO;
     }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    if (player->controllerID == 0) {
+        return MACRO_CHARACTER_DANTE;
     }
 
     return MACRO_CHARACTER_INVALID;
 }
 
 void suspend_macro_runtime_for_transition() {
+    macro_cached_runtime_ready = false;
     const bool should_clear_on_resume = has_pending_macro_output();
     const bool preserve_setup_load = macro_setup_transition_expected();
     if (Macro::screen_pause_active) {
@@ -1115,6 +1054,14 @@ void suspend_macro_runtime_for_transition() {
     else if (preserve_setup_load) {
         macro_suspended_for_transition = true;
     }
+}
+
+void suspend_macro_runtime_for_transition_once() {
+    if (macro_suspended_for_transition) {
+        return;
+    }
+
+    suspend_macro_runtime_for_transition();
 }
 
 void ensure_keyboard_hotkeys(std::vector<std::unique_ptr<utility::Hotkey>>& hotkeys) {
@@ -1377,16 +1324,12 @@ std::string truncate_overlay_text(const std::string& text, size_t max_length) {
 }
 
 ImVec2 get_render_screen_size_safe() {
-    __try {
-        auto* render = devil4_sdk::get_sRender();
-        if (!render) {
-            return {};
-        }
-        return render->screenRes;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    auto* render = devil4_sdk::get_sRender();
+    if (!render) {
         return {};
     }
+
+    return render->screenRes;
 }
 
 const MacroFrame* get_current_playback_frame() {
@@ -2889,21 +2832,7 @@ bool parse_macro_setup_line(const std::string& line, MacroScenarioSetup& setup, 
 
 uint32_t current_player_character_role() {
     auto* player = get_local_player_safe();
-    if (!player) {
-        return MACRO_CHARACTER_INVALID;
-    }
-
-    __try {
-        if (player->controllerID == 1) {
-            return MACRO_CHARACTER_NERO;
-        }
-        if (player->controllerID == 0) {
-            return MACRO_CHARACTER_DANTE;
-        }
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-    }
-    return MACRO_CHARACTER_INVALID;
+    return character_role_from_player_safe(player);
 }
 
 bool clip_matches_current_character(const MacroClip& clip) {
@@ -3914,29 +3843,24 @@ bool write_base_player_input_snapshot(cPeripheral* peripheral) {
         return false;
     }
 
-    __try {
-        peripheral->mPadBtnOn = pad->mPadInfo[0].mBtn.on;
-        peripheral->mPadBtnTrg = pad->mPadInfo[0].mBtn.trg;
-        peripheral->mPadBtnRel = pad->mPadInfo[0].mBtn.rel;
-        std::memcpy(&peripheral->mPadBtnPress, &pad->mPadInfo[0].mPress, sizeof(float) * 15);
+    peripheral->mPadBtnOn = pad->mPadInfo[0].mBtn.on;
+    peripheral->mPadBtnTrg = pad->mPadInfo[0].mBtn.trg;
+    peripheral->mPadBtnRel = pad->mPadInfo[0].mBtn.rel;
+    std::memcpy(&peripheral->mPadBtnPress, &pad->mPadInfo[0].mPress, sizeof(float) * 15);
 
-        peripheral->mAnlgL = {};
-        get_pad_analog_level(pad, &peripheral->mAnlgL, false);
-        keyboard_to_analog(&peripheral->mAnlgL, 0, 0);
-        update_analog_info_for_macro(&peripheral->mAnlgL);
+    peripheral->mAnlgL = {};
+    get_pad_analog_level(pad, &peripheral->mAnlgL, false);
+    keyboard_to_analog(&peripheral->mAnlgL, 0, 0);
+    update_analog_info_for_macro(&peripheral->mAnlgL);
 
-        peripheral->mAnlgR = {};
-        get_pad_analog_level(pad, &peripheral->mAnlgR, true);
-        keyboard_to_analog(&peripheral->mAnlgR, 0, 1);
-        update_analog_info_for_macro(&peripheral->mAnlgR);
+    peripheral->mAnlgR = {};
+    get_pad_analog_level(pad, &peripheral->mAnlgR, true);
+    keyboard_to_analog(&peripheral->mAnlgR, 0, 1);
+    update_analog_info_for_macro(&peripheral->mAnlgR);
 
-        peripheral->mHoldAnlgL = peripheral->mAnlgL;
-        peripheral->mIsHold = false;
-        return true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return false;
-    }
+    peripheral->mHoldAnlgL = peripheral->mAnlgL;
+    peripheral->mIsHold = false;
+    return true;
 }
 
 void set_pad_press(cPeripheral* peripheral, uint32_t buttons, uint32_t button_mask, size_t press_index) {
@@ -3977,33 +3901,29 @@ void apply_global_pad_route_for_macro(
         return;
     }
 
-    __try {
-        auto& pad_info = pad->mPadInfo[0];
-        const uint32_t pressed_buttons = routed_buttons & ~previous_routed_buttons;
-        const uint32_t released_buttons = previous_routed_buttons & ~routed_buttons;
+    auto& pad_info = pad->mPadInfo[0];
+    const uint32_t pressed_buttons = routed_buttons & ~previous_routed_buttons;
+    const uint32_t released_buttons = previous_routed_buttons & ~routed_buttons;
 
-        pad_info.mBtn.on &= ~previous_routed_buttons;
-        pad_info.mBtn.on |= routed_buttons;
-        pad_info.mBtn.trg |= pressed_buttons;
-        pad_info.mBtn.rel |= released_buttons;
-        set_global_pad_press(pad_info.mPress, routed_buttons);
+    pad_info.mBtn.on &= ~previous_routed_buttons;
+    pad_info.mBtn.on |= routed_buttons;
+    pad_info.mBtn.trg |= pressed_buttons;
+    pad_info.mBtn.rel |= released_buttons;
+    set_global_pad_press(pad_info.mPress, routed_buttons);
 
-        if (frame.has_right_analog) {
-            pad_info.mAnlg[1].x = std::clamp(
-                pad_info.mAnlg[1].x + (static_cast<float>(frame.right_x) / static_cast<float>(ANALOG_MAX)),
-                -1.0f,
-                1.0f);
-            pad_info.mAnlg[1].y = std::clamp(
-                pad_info.mAnlg[1].y + (static_cast<float>(frame.right_y) / static_cast<float>(ANALOG_MAX)),
-                -1.0f,
-                1.0f);
-        }
-        else if (last_global_right_analog[player_index]) {
-            pad_info.mAnlg[1].x = 0.0f;
-            pad_info.mAnlg[1].y = 0.0f;
-        }
+    if (frame.has_right_analog) {
+        pad_info.mAnlg[1].x = std::clamp(
+            pad_info.mAnlg[1].x + (static_cast<float>(frame.right_x) / static_cast<float>(ANALOG_MAX)),
+            -1.0f,
+            1.0f);
+        pad_info.mAnlg[1].y = std::clamp(
+            pad_info.mAnlg[1].y + (static_cast<float>(frame.right_y) / static_cast<float>(ANALOG_MAX)),
+            -1.0f,
+            1.0f);
     }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    else if (last_global_right_analog[player_index]) {
+        pad_info.mAnlg[1].x = 0.0f;
+        pad_info.mAnlg[1].y = 0.0f;
     }
 
     last_global_routed_buttons[player_index] = routed_buttons;
@@ -4976,30 +4896,24 @@ bool load_position_snapshot() {
 
 bool read_current_bp_floor_safe(uint32_t& floor) {
     floor = 0;
-    __try {
-        auto* area = get_s_area_safe();
-        auto* mediator = get_s_mediator_safe();
-        if (!area || !area->aGamePtr || !mediator || mediator->missionID != 50) {
-            return false;
-        }
-        const int current_floor = area->aGamePtr->bp_floor;
-        if (current_floor < 1 || current_floor > 101) {
-            return false;
-        }
-        const auto* expected_stage = AreaJump::bp_stage(current_floor);
-        if (!expected_stage) {
-            return false;
-        }
-        if (mediator->roomID != (uint32_t)expected_stage->id || area->aGamePtr->room_id != expected_stage->id) {
-            return false;
-        }
-        floor = (uint32_t)current_floor;
-        return true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        floor = 0;
+    auto* area = get_s_area_safe();
+    auto* mediator = get_s_mediator_safe();
+    if (!area || !area->aGamePtr || !mediator || mediator->missionID != 50) {
         return false;
     }
+    const int current_floor = area->aGamePtr->bp_floor;
+    if (current_floor < 1 || current_floor > 101) {
+        return false;
+    }
+    const auto* expected_stage = AreaJump::bp_stage(current_floor);
+    if (!expected_stage) {
+        return false;
+    }
+    if (mediator->roomID != (uint32_t)expected_stage->id || area->aGamePtr->room_id != expected_stage->id) {
+        return false;
+    }
+    floor = (uint32_t)current_floor;
+    return true;
 }
 
 std::string macro_setup_label() {
@@ -5344,41 +5258,35 @@ bool set_screen_pause(bool paused) {
         return false;
     }
 
-    __try {
-        if (paused) {
-            if (!Macro::screen_pause_active) {
-                Macro::screen_pause_restore_speed = work_rate->global_speed;
-                Macro::screen_pause_restore_valid = true;
-                screen_pause_restore_hotkey_paused = WorkRate::hotkey_paused;
-            }
-            work_rate->global_speed = 0.0f;
-            WorkRate::hotkey_paused = true;
-            Macro::screen_pause_active = true;
-            ++Macro::screen_pause_request_count;
-            return true;
+    if (paused) {
+        if (!Macro::screen_pause_active) {
+            Macro::screen_pause_restore_speed = work_rate->global_speed;
+            Macro::screen_pause_restore_valid = true;
+            screen_pause_restore_hotkey_paused = WorkRate::hotkey_paused;
         }
-
-        if (!Macro::screen_pause_active && !Macro::screen_pause_restore_valid) {
-            return true;
-        }
-
-        if (Macro::screen_pause_restore_valid) {
-            work_rate->global_speed = Macro::screen_pause_restore_speed;
-        }
-        else {
-            work_rate->global_speed = 1.0f;
-        }
-        WorkRate::hotkey_paused = screen_pause_restore_hotkey_paused;
-        Macro::screen_pause_active = false;
-        Macro::screen_pause_restore_valid = false;
-        screen_pause_restore_hotkey_paused = false;
+        work_rate->global_speed = 0.0f;
+        WorkRate::hotkey_paused = true;
+        Macro::screen_pause_active = true;
         ++Macro::screen_pause_request_count;
         return true;
     }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        ++Macro::screen_pause_fail_count;
-        return false;
+
+    if (!Macro::screen_pause_active && !Macro::screen_pause_restore_valid) {
+        return true;
     }
+
+    if (Macro::screen_pause_restore_valid) {
+        work_rate->global_speed = Macro::screen_pause_restore_speed;
+    }
+    else {
+        work_rate->global_speed = 1.0f;
+    }
+    WorkRate::hotkey_paused = screen_pause_restore_hotkey_paused;
+    Macro::screen_pause_active = false;
+    Macro::screen_pause_restore_valid = false;
+    screen_pause_restore_hotkey_paused = false;
+    ++Macro::screen_pause_request_count;
+    return true;
 }
 
 void apply_screen_pause_action(const MacroFrame& frame) {
@@ -5506,41 +5414,36 @@ bool evaluate_wait_condition(MacroFrame& frame) {
         return false;
     }
 
-    __try {
-        switch (frame.wait_condition) {
-        case MACRO_WAIT_GROUNDED:
-            return is_player_grounded(player);
-        case MACRO_WAIT_AIRBORNE:
-            return !is_player_grounded(player);
-        case MACRO_WAIT_STYLE:
-            return player->currentStyle == frame.wait_arg;
-        case MACRO_WAIT_CAN_EXCEED:
-            return wait_for_next_bool_edge(frame, player->canExceed == 1);
-        case MACRO_WAIT_HITSTOP:
-            return player->hitstop || player->hitstopTimer > 0.0f;
-        case MACRO_WAIT_HIT_CONFIRMED:
-            return evaluate_hit_confirmed_wait_condition(frame);
-        case MACRO_WAIT_LOCKED_ON:
-            return player->lockedOn;
-        case MACRO_WAIT_ANIM_FRAME:
-            return std::isfinite(player->animFrame) && compare_wait_float(player->animFrame, frame.wait_compare, frame.wait_value);
-        case MACRO_WAIT_MOVEID2:
-            return compare_wait_u32(player->moveID2, frame.wait_compare, frame.wait_value_u32);
-        case MACRO_WAIT_MOVEID2_CHANGED:
-            if (!frame.wait_initial_valid) {
-                frame.wait_initial_u32 = player->moveID2;
-                frame.wait_initial_valid = true;
-                return false;
-            }
-            return player->moveID2 != frame.wait_initial_u32;
-        case MACRO_WAIT_FRAME_REACHED_MAX:
-            return std::isfinite(player->animFrame) && has_valid_anim_frame_max(player->animFrameMax) &&
-                player->animFrame >= player->animFrameMax - 0.001f;
-        default:
+    switch (frame.wait_condition) {
+    case MACRO_WAIT_GROUNDED:
+        return is_player_grounded(player);
+    case MACRO_WAIT_AIRBORNE:
+        return !is_player_grounded(player);
+    case MACRO_WAIT_STYLE:
+        return player->currentStyle == frame.wait_arg;
+    case MACRO_WAIT_CAN_EXCEED:
+        return wait_for_next_bool_edge(frame, player->canExceed == 1);
+    case MACRO_WAIT_HITSTOP:
+        return player->hitstop || player->hitstopTimer > 0.0f;
+    case MACRO_WAIT_HIT_CONFIRMED:
+        return evaluate_hit_confirmed_wait_condition(frame);
+    case MACRO_WAIT_LOCKED_ON:
+        return player->lockedOn;
+    case MACRO_WAIT_ANIM_FRAME:
+        return std::isfinite(player->animFrame) && compare_wait_float(player->animFrame, frame.wait_compare, frame.wait_value);
+    case MACRO_WAIT_MOVEID2:
+        return compare_wait_u32(player->moveID2, frame.wait_compare, frame.wait_value_u32);
+    case MACRO_WAIT_MOVEID2_CHANGED:
+        if (!frame.wait_initial_valid) {
+            frame.wait_initial_u32 = player->moveID2;
+            frame.wait_initial_valid = true;
             return false;
         }
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return player->moveID2 != frame.wait_initial_u32;
+    case MACRO_WAIT_FRAME_REACHED_MAX:
+        return std::isfinite(player->animFrame) && has_valid_anim_frame_max(player->animFrameMax) &&
+            player->animFrame >= player->animFrameMax - 0.001f;
+    default:
         return false;
     }
 }
@@ -6035,7 +5938,7 @@ void Macro::tick_snapshot_character_switch() {
         return;
     }
 
-    if (!Macro::mod_enabled || !macro_runtime_ready()) {
+    if (!Macro::mod_enabled || !macro_cached_runtime_ready) {
         clear_snapshot_play_delay();
         return;
     }
@@ -6363,6 +6266,7 @@ std::optional<std::string> Macro::on_initialize() {
 }
 
 void Macro::prepare_for_external_transition() {
+    macro_cached_runtime_ready = false;
     if (!has_pending_macro_output()) {
         return;
     }
@@ -6378,30 +6282,24 @@ void Macro::on_stage_end() {
 }
 
 void __stdcall Macro::on_pad_update_tick(cPeripheral* peripheral) {
-    if (!mod_enabled) {
-        poll_raw_keyboard(false);
+    if (!pad_detour_work_pending()) {
+        return;
+    }
+
+    if (!macro_cached_runtime_ready) {
+        if (has_pending_macro_output()) {
+            suspend_macro_runtime_for_transition_once();
+        }
         poll_gamepad_hotkeys(peripheral, false);
         return;
     }
 
-    if (!macro_runtime_ready()) {
-        suspend_macro_runtime_for_transition();
-        poll_raw_keyboard(false);
-        poll_gamepad_hotkeys(peripheral, false);
-        return;
+    if (snapshot_work_pending()) {
+        tick_snapshot_character_switch();
+        tick_playback_delay();
     }
 
-    tick_snapshot_character_switch();
-    tick_playback_delay();
-
-    if (macro_instance) {
-        macro_instance->check_hotkeys();
-    }
-    else {
-        poll_raw_keyboard(true);
-    }
-
-    poll_gamepad_hotkeys(peripheral, true);
+    poll_gamepad_hotkeys(peripheral, gamepad_hotkeys_enabled || capture_gamepad_hotkey_target != 0);
 }
 
 void __stdcall Macro::on_player_pad_update(cPeripheral* peripheral) {
@@ -6409,14 +6307,14 @@ void __stdcall Macro::on_player_pad_update(cPeripheral* peripheral) {
         return;
     }
 
-    if (!macro_runtime_ready()) {
-        suspend_macro_runtime_for_transition();
+    if (!macro_cached_runtime_ready) {
+        suspend_macro_runtime_for_transition_once();
         return;
     }
 
     uint32_t player_index = 0;
     if (!read_peripheral_player_index_safe(peripheral, player_index)) {
-        suspend_macro_runtime_for_transition();
+        suspend_macro_runtime_for_transition_once();
         return;
     }
     if (player_index >= 4) {
@@ -6446,46 +6344,41 @@ bool apply_macro_output_to_peripheral(
         macro_frame.global_buttons | resolve_global_action_buttons(macro_frame.actions, action_role);
     const uint32_t previous_global_buttons = last_global_routed_buttons[player_index];
 
-    __try {
-        const uint32_t base_buttons = peripheral->mPadBtnOn;
-        const uint32_t output_buttons = base_buttons | buttons;
+    const uint32_t base_buttons = peripheral->mPadBtnOn;
+    const uint32_t output_buttons = base_buttons | buttons;
 
-        peripheral->mPadBtnOn = output_buttons;
-        peripheral->mPadBtnTrg = output_buttons & ~previous_buttons;
-        peripheral->mPadBtnRel = previous_buttons & ~output_buttons;
-        apply_button_press_values(peripheral, output_buttons);
+    peripheral->mPadBtnOn = output_buttons;
+    peripheral->mPadBtnTrg = output_buttons & ~previous_buttons;
+    peripheral->mPadBtnRel = previous_buttons & ~output_buttons;
+    apply_button_press_values(peripheral, output_buttons);
 
-        apply_global_pad_route_for_macro(macro_frame, routed_global_buttons, previous_global_buttons, player_index);
+    apply_global_pad_route_for_macro(macro_frame, routed_global_buttons, previous_global_buttons, player_index);
 
-        if (macro_frame.has_left_analog) {
-            peripheral->mAnlgL.x = clamp_analog((int)peripheral->mAnlgL.x + macro_frame.left_x);
-            peripheral->mAnlgL.y = clamp_analog((int)peripheral->mAnlgL.y + macro_frame.left_y);
-            update_analog_info_for_macro(&peripheral->mAnlgL);
-            peripheral->mHoldAnlgL = peripheral->mAnlgL;
-            peripheral->mIsHold = false;
-        }
-
-        if (macro_frame.has_right_analog) {
-            peripheral->mAnlgR.x = clamp_analog((int)peripheral->mAnlgR.x + macro_frame.right_x);
-            peripheral->mAnlgR.y = clamp_analog((int)peripheral->mAnlgR.y + macro_frame.right_y);
-            update_analog_info_for_macro(&peripheral->mAnlgR);
-        }
-
-        apply_screen_pause_action(macro_frame);
-        apply_character_switch_action(macro_frame);
-        apply_one_hit_kill_action(macro_frame);
-
-        Macro::last_buttons[player_index] = output_buttons;
-        return true;
+    if (macro_frame.has_left_analog) {
+        peripheral->mAnlgL.x = clamp_analog((int)peripheral->mAnlgL.x + macro_frame.left_x);
+        peripheral->mAnlgL.y = clamp_analog((int)peripheral->mAnlgL.y + macro_frame.left_y);
+        update_analog_info_for_macro(&peripheral->mAnlgL);
+        peripheral->mHoldAnlgL = peripheral->mAnlgL;
+        peripheral->mIsHold = false;
     }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return false;
+
+    if (macro_frame.has_right_analog) {
+        peripheral->mAnlgR.x = clamp_analog((int)peripheral->mAnlgR.x + macro_frame.right_x);
+        peripheral->mAnlgR.y = clamp_analog((int)peripheral->mAnlgR.y + macro_frame.right_y);
+        update_analog_info_for_macro(&peripheral->mAnlgR);
     }
+
+    apply_screen_pause_action(macro_frame);
+    apply_character_switch_action(macro_frame);
+    apply_one_hit_kill_action(macro_frame);
+
+    Macro::last_buttons[player_index] = output_buttons;
+    return true;
 }
 
 void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
-    if (!peripheral || !macro_runtime_ready()) {
-        suspend_macro_runtime_for_transition();
+    if (!peripheral || !macro_cached_runtime_ready) {
+        suspend_macro_runtime_for_transition_once();
         return;
     }
     if (player_index >= 4) {
@@ -6540,12 +6433,12 @@ void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
     }
 
     if (!write_base_player_input_snapshot(peripheral)) {
-        suspend_macro_runtime_for_transition();
+        suspend_macro_runtime_for_transition_once();
         return;
     }
 
     if (!apply_macro_output_to_peripheral(peripheral, macro_frame, buttons, player_index)) {
-        suspend_macro_runtime_for_transition();
+        suspend_macro_runtime_for_transition_once();
         return;
     }
 
@@ -7360,7 +7253,7 @@ void Macro::tick_playback_delay() {
         return;
     }
 
-    if (!mod_enabled || !macro_runtime_ready()) {
+    if (!mod_enabled || !macro_cached_runtime_ready) {
         clear_snapshot_play_delay();
         return;
     }
@@ -7439,14 +7332,19 @@ void Macro::check_auto_reload_file() {
 void Macro::on_frame(fmilliseconds& dt) {
     (void)dt;
     check_auto_reload_file();
-    if (mod_enabled && !macro_runtime_ready()) {
-        suspend_macro_runtime_for_transition();
+
+    macro_cached_runtime_ready = mod_enabled && macro_runtime_ready();
+    const bool runtime_ready = macro_cached_runtime_ready;
+    if (mod_enabled && !runtime_ready) {
+        if (has_pending_macro_output()) {
+            suspend_macro_runtime_for_transition_once();
+        }
         poll_raw_keyboard(false);
         poll_gamepad_hotkeys(nullptr, false);
         return;
     }
 
-    if (macro_suspended_for_transition && macro_runtime_ready()) {
+    if (macro_suspended_for_transition && runtime_ready) {
         macro_suspended_for_transition = false;
         if (screen_pause_active) {
             set_screen_pause(false);
@@ -7456,13 +7354,13 @@ void Macro::on_frame(fmilliseconds& dt) {
         }
     }
 
-    if (mod_enabled && macro_runtime_ready()) {
+    if (runtime_ready) {
         tick_macro_setup_load();
         tick_pending_player_resource_restore();
     }
 
     check_hotkeys();
-    poll_gamepad_hotkeys(nullptr, mod_enabled);
+    poll_gamepad_hotkeys(nullptr, mod_enabled && (gamepad_hotkeys_enabled || capture_gamepad_hotkey_target != 0));
     draw_macro_playback_overlay();
 }
 

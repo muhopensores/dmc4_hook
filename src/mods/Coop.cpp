@@ -163,8 +163,6 @@ void __stdcall new_pad_update_func(cPeripheral* peri) {
 
 naked void detour1() {
     _asm {
-            cmp byte ptr [Macro::mod_enabled], 1
-            jne coopcheck
             pushad
             push [esp+0x20+0x4]
             call Macro::on_pad_update_tick
