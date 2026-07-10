@@ -1,11 +1,13 @@
 #include "EnemyReplace.hpp"
 #include "Windows.h"
+#include <sdk/uEnemy.hpp>
 
 bool EnemyReplace::mod_enabled = false;
 
 bool EnemyReplace::enemy_randomizer_enabled = false;
 std::mt19937 EnemyReplace::rng;
 uintptr_t EnemyReplace::jmp_ret1 = NULL;
+uintptr_t EnemyReplace::jmp_ret2 = NULL;
 
 static uintptr_t mod_base = (uintptr_t)GetModuleHandle(NULL);
 static uintptr_t replacement_address_two = mod_base + 0x24B77B; // 0x64B77B;
@@ -31,8 +33,9 @@ static const uintptr_t sanctus_address        = /*mod_base + 0x2F81E0; //*/ 0x6F
 static const uintptr_t sanctus_dia_address    = /*mod_base + 0x3022F0; //*/ 0x7022F0;
 static const uintptr_t kyrie_address          = /*mod_base + 0x323C00; //*/ 0x723C00;
 static const uintptr_t dante_address          = /*mod_base + 0x3BF980; //*/ 0x7BF980;
-static const uintptr_t cutlass_address = 0x05F37F0;
-static const uintptr_t gladius_address = 0x60AFC0;
+static const uintptr_t cutlass_address        = 0x5F37F0;
+static const uintptr_t gladius_from_address   = 0x618460;
+static const uintptr_t gladius_to_address     = 0x60AFC0;
 
 // modBase = 400000
 // crash:                                 
@@ -82,22 +85,9 @@ struct EnemyEntry {
     EnemyCategory category;
 };
 
-// fairly sure the issue is that angelo biancos have a spawn id that breaks them and lots of other enemies get this id pushed
-// could probably fix this with a detour on the bianco spawn func replacing invalid ids with a valid one but its kinda nice not having too many biancos
-// with this setup, only chimera seeds, assaults, blitz and faust can spawn them
 static bool IsInvalidSwap(uintptr_t from, uintptr_t to) {
-    if ((from == scarecrow_arm_address && to == angelo_bianco_address) ||
-        (from == scarecrow_leg_address && to == angelo_bianco_address) || // sometimes these are fine
+    if (to == gladius_from_address ||
 
-        (from == frost_address && to == angelo_bianco_address) ||
-
-        (from == mephisto_address && to == angelo_bianco_address) ||
-
-        (from == basilisk_address && to == angelo_bianco_address) ||
-
-        (from == scarecrow_mega_address && to == angelo_bianco_address) ||
-
-        // there is too much here to bother with
         // (from == berial_address && to == dante_address) ||
         (from == berial_address && to == echidna_address) || // camera and collision goes crazy
         (from == berial_address && to == bael_address) ||
@@ -105,6 +95,7 @@ static bool IsInvalidSwap(uintptr_t from, uintptr_t to) {
         (from == berial_address && to == sanctus_dia_address) ||
 
         // (from == bael_address && to == dante_address) ||
+        (from == bael_address && to == echidna_address) ||
         (from == bael_address && to == credo_address) ||
         (from == bael_address && to == sanctus_address) ||
         (from == bael_address && to == sanctus_dia_address) ||
@@ -125,7 +116,7 @@ static bool IsInvalidSwap(uintptr_t from, uintptr_t to) {
         (from == agnus_address && to == bael_address) ||
         (from == agnus_address && to == echidna_address)
 
-        // probably necesasry, haven't checked
+        // probably necessary, haven't checked
         // (from == sanctus_address && to == berial_address) ||
         // (from == sanctus_address && to == bael_address) ||
         // (from == sanctus_address && to == echidna_address) ||
@@ -148,10 +139,11 @@ static const std::vector<EnemyEntry> enemy_types = {
     {"Assault", assault_address, EnemyCategory::BasicEnemy},
     {"Chimera Seed", chimera_seed_address, EnemyCategory::BasicEnemy},
     {"Basilisk", basilisk_address, EnemyCategory::BasicEnemy},
+    {"Gladius1", gladius_to_address, EnemyCategory::BasicEnemy},
+    {"Gladius2", gladius_from_address, EnemyCategory::BasicEnemy},
+    {"Cutlass", cutlass_address, EnemyCategory::BasicEnemy},
+    {"Mega Scarecrow", scarecrow_mega_address, EnemyCategory::BasicEnemy},
 
-    {"Gladius", gladius_address, EnemyCategory::HardEnemy},
-    {"Cutlass", cutlass_address, EnemyCategory::HardEnemy},
-    {"Mega Scarecrow", scarecrow_mega_address, EnemyCategory::HardEnemy},
     {"Alto Angelo", angelo_alto_address, EnemyCategory::HardEnemy},
     {"Faust", faust_address, EnemyCategory::HardEnemy},
     {"Frost", frost_address, EnemyCategory::HardEnemy},
@@ -209,8 +201,64 @@ static uintptr_t RandomizeEnemy(uintptr_t addr) {
         return addr;
     }
     std::uniform_int_distribution<size_t> dist(0, valid_pool.size() - 1);
+    //return angelo_bianco_address;
     return valid_pool[dist(EnemyReplace::rng)]->wrapper_address;
-    //return agnus_address;
+}
+ // 00618460 flysword
+struct EnemySpawnAnims {
+    int id{};
+    std::vector<int> spawn_anims{};
+};
+
+static std::array<EnemySpawnAnims, 23> enemy_spawn_anim_from_id{{
+    {0,  {4}},                       // Leg Scarecrow
+    {1,  {4}},                       // Arm Scarecrow
+    {3,  {4}},                       // Mega Scarecrow
+    {5,  {1, 4}},                    // Bianco Angelo
+    {6,  {1, 4}},                    // Alto Angelo
+    {8,  {3, 4}},                    // Mephisto
+    {9,  {3, 4}},                    // Faust
+    {10, {4}},                       // Frost
+    {11, {0, 2}},                    // Assault
+    {12, {1, 2, 4}},                 // Blitz
+    {13, {2, 3}},                    // Chimera Seed
+    {15, {2}},                       // Cutlass
+    {16, {1, 3, 4, 5, 6, /*7,*/ 8}}, // Gladius, 7 spawns embedded in the floor
+    {17, {3}},                       // Basilisk
+    {18, {4}},                       // Berial
+    {19, {0}},                       // Bael
+    {21, {4}},                       // Echidna
+    {22, {1}},                       // Credo
+    {23, {4}},                       // Agnus
+    {25, {4}},                       // Sanctus
+    {26, {4}},                       // Sanctus Diabolica
+}};
+
+static int get_random_spawn_anim_from_enemy_id(int id) {
+    for (const auto& info : enemy_spawn_anim_from_id) {
+        if (info.id == id) {
+            if (info.spawn_anims.empty()) {
+                return -1;
+            }
+            std::uniform_int_distribution<size_t> dist(0, info.spawn_anims.size() - 1);
+            return info.spawn_anims[dist(EnemyReplace::rng)];
+        }
+    }
+    return -1;
+}
+
+static void WriteWorkingSpawnAnim(uintptr_t obj) {
+    auto* em              = (uEnemySomething*)obj;
+    auto* em2             = (uEnemy_Old*)obj;
+    int id = em2->ID;
+
+    int anim = get_random_spawn_anim_from_enemy_id(id);
+    if (anim >= 0) {
+        em->m_enemy_spawn_effect_something = anim;
+        #ifndef NDEBUG
+        spdlog::info("EnemyReplace: Enemy ID replaced with {}. Enemy Spawn Anim replaced with {}", id, anim);
+        #endif
+    }
 }
 
 // this detour could replace all these jumps and save the need for worrying about cyclical replacements
@@ -235,6 +283,24 @@ naked void detour1() {
     }
 }
 
+naked void detour2() {
+    _asm {
+        cmp byte ptr [EnemyReplace::enemy_randomizer_enabled], 1
+        jne originalcode
+
+        pushad
+        push esi
+        call WriteWorkingSpawnAnim
+        add esp, 4
+        popad
+
+        originalcode:
+        mov [ebx+0x54], eax
+        mov eax, [ebx+0x64]
+        jmp dword ptr [EnemyReplace::jmp_ret2]
+    }
+}
+
 std::optional<std::string> EnemyReplace::on_initialize() {
     std::random_device rd;
     rng.seed(rd());
@@ -242,6 +308,11 @@ std::optional<std::string> EnemyReplace::on_initialize() {
         spdlog::error("Failed to init EnemyReplace mod 1\n");
         return "Failed to init EnemyReplace mod 1";
     }
+    if (!install_hook_offset(0x338271, hook2, &detour2, &jmp_ret2, 6)) {
+        spdlog::error("Failed to init EnemyReplace mod 2\n");
+        return "Failed to init EnemyReplace mod 2";
+    }
+
     return Mod::on_initialize();
 }
 

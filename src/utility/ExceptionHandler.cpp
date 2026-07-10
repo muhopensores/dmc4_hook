@@ -2,6 +2,11 @@
 #include <DbgHelp.h>
 #include <spdlog/spdlog.h>
 
+#include <fstream>
+#include <iomanip>
+#include <sstream>
+#include <string>
+
 #include "utility/Module.hpp"
 #include "utility/Scan.hpp"
 #include "utility/Patch.hpp"
@@ -64,98 +69,230 @@ static const char* get_exception_code_info(UINT code) {
     }
 }
 
+namespace {
+std::string join_path(const std::string& base, const std::string& leaf) {
+    if (base.empty()) {
+        return leaf;
+    }
+
+    const auto last = base.back();
+    if (last == '\\' || last == '/') {
+        return base + leaf;
+    }
+
+    return base + "\\" + leaf;
+}
+
+bool ensure_directory(const std::string& path) {
+    if (path.empty()) {
+        return false;
+    }
+
+    if (CreateDirectoryA(path.c_str(), nullptr) != 0) {
+        return true;
+    }
+
+    return GetLastError() == ERROR_ALREADY_EXISTS;
+}
+
+std::string make_crash_timestamp() {
+    SYSTEMTIME st{};
+    GetLocalTime(&st);
+
+    std::ostringstream out;
+    out << std::setfill('0')
+        << std::setw(4) << st.wYear
+        << std::setw(2) << st.wMonth
+        << std::setw(2) << st.wDay
+        << "_"
+        << std::setw(2) << st.wHour
+        << std::setw(2) << st.wMinute
+        << std::setw(2) << st.wSecond
+        << "_pid"
+        << GetCurrentProcessId();
+
+    return out.str();
+}
+
+std::string module_info_for_address(uintptr_t address) {
+    const auto module_within = utility::get_module_within(address);
+
+    if (!module_within) {
+        return "Module: Unknown\n";
+    }
+
+    std::ostringstream out;
+    out << fmt::format("Module base: 0x{:x}\n", (uintptr_t)*module_within);
+    out << fmt::format("Module offset: 0x{:x}\n", address - (uintptr_t)*module_within);
+
+    const auto module_path = utility::get_module_path(*module_within);
+    if (module_path) {
+        out << fmt::format("Module path: {}\n", *module_path);
+    } else {
+        out << "Module path: Unknown\n";
+    }
+
+    return out.str();
+}
+
+std::string build_exception_report(_EXCEPTION_POINTERS* ei) {
+    std::stringstream err_msg_buf;
+    err_msg_buf << fmt::format("Exception occurred: 0x{:x}", ei->ExceptionRecord->ExceptionCode) << '\n';
+    err_msg_buf << "-= " << get_exception_code_info(ei->ExceptionRecord->ExceptionCode) << " =-" << '\n';
+    err_msg_buf << "Please describe what you were doing when DMC4 crashed and send this crash folder to the developers." << '\n';
+    err_msg_buf << fmt::format("Process ID: {}", GetCurrentProcessId()) << '\n';
+    err_msg_buf << fmt::format("Thread ID: {}", GetCurrentThreadId()) << '\n';
+    err_msg_buf << fmt::format("Exception address: 0x{:x}", (uintptr_t)ei->ExceptionRecord->ExceptionAddress) << '\n';
+
+    if (ei->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION &&
+        ei->ExceptionRecord->NumberParameters >= 2) {
+        const auto operation = ei->ExceptionRecord->ExceptionInformation[0];
+        const char* operation_name = "access";
+        if (operation == 0) {
+            operation_name = "read";
+        } else if (operation == 1) {
+            operation_name = "write";
+        } else if (operation == 8) {
+            operation_name = "execute";
+        }
+
+        err_msg_buf << fmt::format(
+            "Access violation: attempted {} at 0x{:x}",
+            operation_name,
+            (uintptr_t)ei->ExceptionRecord->ExceptionInformation[1]
+        ) << '\n';
+    }
+
+    err_msg_buf << fmt::format("EIP: 0x{:x}", ei->ContextRecord->Eip) << '\n';
+    err_msg_buf << fmt::format("ESP: 0x{:x}", ei->ContextRecord->Esp) << '\n';
+    err_msg_buf << fmt::format("ECX: 0x{:x}", ei->ContextRecord->Ecx) << '\n';
+    err_msg_buf << fmt::format("EDX: 0x{:x}", ei->ContextRecord->Edx) << '\n';
+    err_msg_buf << fmt::format("EAX: 0x{:x}", ei->ContextRecord->Eax) << '\n';
+    err_msg_buf << fmt::format("EBX: 0x{:x}", ei->ContextRecord->Ebx) << '\n';
+    err_msg_buf << fmt::format("EBP: 0x{:x}", ei->ContextRecord->Ebp) << '\n';
+    err_msg_buf << fmt::format("ESI: 0x{:x}", ei->ContextRecord->Esi) << '\n';
+    err_msg_buf << fmt::format("EDI: 0x{:x}", ei->ContextRecord->Edi) << '\n';
+    err_msg_buf << fmt::format("EFLAGS: 0x{:x}", ei->ContextRecord->EFlags) << '\n';
+    err_msg_buf << fmt::format("CS: 0x{:x}", ei->ContextRecord->SegCs) << '\n';
+    err_msg_buf << fmt::format("DS: 0x{:x}", ei->ContextRecord->SegDs) << '\n';
+    err_msg_buf << fmt::format("ES: 0x{:x}", ei->ContextRecord->SegEs) << '\n';
+    err_msg_buf << fmt::format("FS: 0x{:x}", ei->ContextRecord->SegFs) << '\n';
+    err_msg_buf << fmt::format("GS: 0x{:x}", ei->ContextRecord->SegGs) << '\n';
+    err_msg_buf << fmt::format("SS: 0x{:x}", ei->ContextRecord->SegSs) << '\n';
+    err_msg_buf << module_info_for_address(ei->ContextRecord->Eip);
+
+#ifdef GIT_HASH
+    err_msg_buf << fmt::format("Build hash: {}\n", GIT_HASH);
+#endif
+#ifdef GIT_DATE
+    err_msg_buf << fmt::format("Build date: {}\n", GIT_DATE);
+#endif
+
+    return err_msg_buf.str();
+}
+
+void write_text_file(const std::string& path, const std::string& text) {
+    std::ofstream file(path, std::ios::out | std::ios::trunc);
+    if (file) {
+        file << text;
+    }
+}
+
+bool write_minidump(const std::string& path, _EXCEPTION_POINTERS* ei, HMODULE dbghelp) {
+    auto f = CreateFile(
+        path.c_str(),
+        GENERIC_WRITE,
+        FILE_SHARE_WRITE,
+        nullptr,
+        CREATE_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr
+    );
+
+    if (!f || f == INVALID_HANDLE_VALUE) {
+        return false;
+    }
+
+    MINIDUMP_EXCEPTION_INFORMATION ei_info{
+        GetCurrentThreadId(),
+        ei,
+        FALSE
+    };
+
+    auto minidump_write_dump = (decltype(MiniDumpWriteDump)*)GetProcAddress(dbghelp, "MiniDumpWriteDump");
+    const bool ok = minidump_write_dump != nullptr && minidump_write_dump(
+        GetCurrentProcess(),
+        GetCurrentProcessId(),
+        f,
+        MINIDUMP_TYPE::MiniDumpNormal,
+        &ei_info,
+        nullptr,
+        nullptr
+    ) != FALSE;
+
+    CloseHandle(f);
+    return ok;
+}
+
+void copy_if_present(const std::string& directory, const std::string& crash_dir, const std::string& file_name) {
+    CopyFileA(join_path(directory, file_name).c_str(), join_path(crash_dir, file_name).c_str(), FALSE);
+}
+} // namespace
+
 LONG WINAPI reframework::global_exception_handler(struct _EXCEPTION_POINTERS* ei) {
     spdlog::flush_on(spdlog::level::err);
-   
-    std::stringstream err_msg_buf;
-    err_msg_buf << fmt::format("Exception occurred: {:x}", ei->ExceptionRecord->ExceptionCode) << '\n';
-    err_msg_buf << "-= " << get_exception_code_info(ei->ExceptionRecord->ExceptionCode) << " =-" << '\n';
-    err_msg_buf << "Check for dmc4hook_crash.dmp in DMC4 installation directory" << '\n';
-    err_msg_buf << "Please describe what you were doing when DMC 4 crashed!\nand send it to the developers" << '\n';
-    err_msg_buf << fmt::format("EIP: {:x}", ei->ContextRecord->Eip) << '\n';
-    err_msg_buf << fmt::format("ESP: {:x}", ei->ContextRecord->Esp) << '\n';
-    err_msg_buf << fmt::format("ECX: {:x}", ei->ContextRecord->Ecx) << '\n';
-    err_msg_buf << fmt::format("EDX: {:x}", ei->ContextRecord->Edx) << '\n';
-    err_msg_buf << fmt::format("EAX: {:x}", ei->ContextRecord->Eax) << '\n';
-    err_msg_buf << fmt::format("EBX: {:x}", ei->ContextRecord->Ebx) << '\n';
-    err_msg_buf << fmt::format("EBP: {:x}", ei->ContextRecord->Ebp) << '\n';
-    err_msg_buf << fmt::format("ESI: {:x}", ei->ContextRecord->Esi) << '\n';
-    err_msg_buf << fmt::format("EDI: {:x}", ei->ContextRecord->Edi) << '\n';
-    err_msg_buf << fmt::format("EFLAGS: {:x}", ei->ContextRecord->EFlags) << '\n';
-    err_msg_buf << fmt::format("CS: {:x}", ei->ContextRecord->SegCs) << '\n';
-    err_msg_buf << fmt::format("DS: {:x}", ei->ContextRecord->SegDs) << '\n';
-    err_msg_buf << fmt::format("ES: {:x}", ei->ContextRecord->SegEs) << '\n';
-    err_msg_buf << fmt::format("FS: {:x}", ei->ContextRecord->SegFs) << '\n';
-    err_msg_buf << fmt::format("GS: {:x}", ei->ContextRecord->SegGs) << '\n';
-    err_msg_buf << fmt::format("SS: {:x}", ei->ContextRecord->SegSs) << '\n';
-
-    spdlog::error(err_msg_buf.str());
-
-    const auto module_within = utility::get_module_within(ei->ContextRecord->Eip);
-
-    if (module_within) {
-
-        const auto module_path = utility::get_module_path(*module_within);
-
-        if (module_path) {
-            spdlog::error("Module: {:x} {}", (uintptr_t)*module_within, *module_path);
-        } else {
-            spdlog::error("Module: Unknown");
-        }
-    } else {
-        spdlog::error("Module: Unknown");
-    }
 
     auto dbghelp = LoadLibrary("dbghelp.dll");
+    const auto mod_dir = utility::get_module_directory(GetModuleHandle(0));
+    const auto real_mod_dir = mod_dir ? *mod_dir : "";
+    const auto crash_root = join_path(real_mod_dir, "dmc4_hook_crashes");
+    const auto crash_dir = join_path(crash_root, make_crash_timestamp());
+    const auto report = build_exception_report(ei);
 
-    if (dbghelp) {
-        const auto mod_dir = utility::get_module_directory(GetModuleHandle(0));
-        const auto real_mod_dir = mod_dir ? (*mod_dir + "\\") : "";
-        const auto final_path = real_mod_dir + "dmc4hook_crash.dmp";
-        const auto final_path_log = real_mod_dir + LOG_FILENAME;
-        spdlog::error("Attempting to write dump to {}", final_path);
+    spdlog::error(report);
 
-        auto f = CreateFile(final_path.c_str(), 
-            GENERIC_WRITE, 
-            FILE_SHARE_WRITE, 
-            nullptr, 
-            CREATE_ALWAYS, 
-            FILE_ATTRIBUTE_NORMAL, 
-            nullptr
-        );
+    if (!real_mod_dir.empty()) {
+        ensure_directory(crash_root);
+        ensure_directory(crash_dir);
 
-        if (!f || f == INVALID_HANDLE_VALUE) {
-            spdlog::error("Exception occurred, but could not create dump file");
-            return EXCEPTION_CONTINUE_SEARCH;
+        write_text_file(join_path(crash_dir, "crash_report.txt"), report);
+
+        if (dbghelp) {
+            const auto per_crash_dump = join_path(crash_dir, "crash.dmp");
+            const auto legacy_dump = join_path(real_mod_dir, "dmc4hook_crash.dmp");
+
+            spdlog::error("Attempting to write dump to {}", per_crash_dump);
+
+            if (!write_minidump(per_crash_dump, ei, dbghelp)) {
+                spdlog::error("Exception occurred, but could not create per-crash dump file");
+            }
+            write_minidump(legacy_dump, ei, dbghelp);
+        } else {
+            spdlog::error("Exception occurred, but could not load dbghelp.dll");
         }
 
-        MINIDUMP_EXCEPTION_INFORMATION ei_info{
-            GetCurrentThreadId(),
-            ei,
-            FALSE
-        };
-
-        auto minidump_write_dump = (decltype(MiniDumpWriteDump)*)GetProcAddress(dbghelp, "MiniDumpWriteDump");
-
-        minidump_write_dump(GetCurrentProcess(), 
-            GetCurrentProcessId(),
-            f,
-            MINIDUMP_TYPE::MiniDumpNormal, 
-            &ei_info, 
-            nullptr, 
-            nullptr
-        );
-        if (!console->dump_file(final_path_log)) {
-            spdlog::error("Could not dump log file");
+        const auto per_crash_log = join_path(crash_dir, LOG_FILENAME);
+        const auto legacy_log = join_path(real_mod_dir, LOG_FILENAME);
+        if (console == nullptr || !console->dump_file(per_crash_log)) {
+            spdlog::error("Could not dump per-crash log file");
         }
-        MessageBoxA(NULL, err_msg_buf.str().c_str(), "Caught exception", MB_ICONINFORMATION);
-        
-        CloseHandle(f);
+        if (console != nullptr) {
+            console->dump_file(legacy_log);
+        }
+
+        copy_if_present(real_mod_dir, crash_dir, CONFIG_FILENAME);
+        copy_if_present(real_mod_dir, crash_dir, "macro.txt");
+        copy_if_present(real_mod_dir, crash_dir, "keyboard_macro.txt");
     } else {
-        spdlog::error("Exception occurred, but could not load dbghelp.dll");
+        spdlog::error("Exception occurred, but could not resolve game directory");
     }
 
+#ifndef NDEBUG
+    MessageBoxA(NULL, report.c_str(), "Caught exception", MB_ICONINFORMATION);
     return EXCEPTION_EXECUTE_HANDLER;
+#else
+    return EXCEPTION_CONTINUE_SEARCH;
+#endif
 }
 
 void reframework::setup_exception_handler() {

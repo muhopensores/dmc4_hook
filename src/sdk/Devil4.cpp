@@ -14,7 +14,7 @@
 static MtHeapAllocator** mt_heap_alloc_static_ptr = (MtHeapAllocator**)0x00E1434C;
 
 static uintptr_t fptr_update_actor_list{ 0x008DC540 }; // Spawns shit
-static uintptr_t sUnit_ptr { 0x00E552CC };
+static constexpr uintptr_t sUnit_static_ptr { 0x00E552CC };
 static uintptr_t sKeyboard{ 0x00E559C0 };
 static uintptr_t sDevil4Resource { 0x00E552D0 };
 
@@ -122,10 +122,10 @@ namespace devil4_sdk {
 
 	void sUnit_spawn(void* obj, int move_line) {
         constexpr uintptr_t spawn_call = 0x008DC540;
-        uintptr_t sUnit_ptr            = (uintptr_t)get_sUnit();
+        uintptr_t s_unit_ptr           = (uintptr_t)get_sUnit();
         _asm {
 				pushad
-				mov eax, sUnit_ptr
+				mov eax, s_unit_ptr
 				mov esi, obj
 				push move_line
 				call spawn_call
@@ -163,7 +163,7 @@ namespace devil4_sdk {
 	}
 
 	sUnit* get_sUnit() {
-		sUnit* s_unit_ptr = (sUnit*)*(uintptr_t*)sUnit_ptr;
+		sUnit* s_unit_ptr = (sUnit*)*(uintptr_t*)sUnit_static_ptr;
 		return s_unit_ptr;
 	}
 
@@ -202,8 +202,12 @@ namespace devil4_sdk {
 
 	int get_enemy_count() {
 		sUnit* s_unit_ptr = devil4_sdk::get_sUnit();
+		if (!s_unit_ptr) {
+			return 0;
+		}
+
 		uEnemy_Old* currentEnemy = (uEnemy_Old*)s_unit_ptr->mMoveLine[15].mTop;
-		if (!s_unit_ptr || !currentEnemy) {
+		if (!currentEnemy) {
 			return 0;
 		}
     
@@ -232,6 +236,7 @@ namespace devil4_sdk {
 	uPlayer* get_local_player() {
 		constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 		sMediator* s_mediator_ptr = (sMediator*)*(uintptr_t*)static_mediator_ptr;
+		if (!s_mediator_ptr) return nullptr;
         if (!s_mediator_ptr->pad_0) return nullptr;
 		return s_mediator_ptr->player_ptr;
 	}
@@ -239,6 +244,7 @@ namespace devil4_sdk {
 	uCameraCtrl* get_local_camera() {
         constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
         sMediator* s_mediator_ptr        = (sMediator*)*(uintptr_t*)static_mediator_ptr;
+        if (!s_mediator_ptr) return nullptr;
         if (!s_mediator_ptr->pad_0) return nullptr;
         return s_mediator_ptr->camera1;
     }
@@ -246,6 +252,7 @@ namespace devil4_sdk {
     cCameraPlayer* get_player_camera() {
         constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
         sMediator* s_mediator_ptr        = (sMediator*)*(uintptr_t*)static_mediator_ptr;
+        if (!s_mediator_ptr || !s_mediator_ptr->camera1) return nullptr;
         if (!s_mediator_ptr->pad_0) return nullptr;
         return s_mediator_ptr->camera1->mpCamPlayer;
     }
@@ -277,7 +284,7 @@ namespace devil4_sdk {
 
     bool is_paused() {
         if (auto sArea = devil4_sdk::get_sArea()) {
-            return sArea->aGamePtr->m_paused;
+            return sArea->aGamePtr && sArea->aGamePtr->m_paused;
         }
 		else
 			return false;
@@ -767,5 +774,11 @@ namespace uactor_sdk {
 			mov eax,[esi+eax]
 			ret
 		}
+	}
+	void* __stdcall get_center_pos(void* obj, Vector3f* pos) {
+		void** vtable = *(void***)obj;
+		typedef void(__thiscall* VirtualFn)(void*, Vector3f*);
+		((VirtualFn)vtable[33])(obj, pos);
+		return pos;
 	}
 }

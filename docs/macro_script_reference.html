@@ -1,0 +1,1551 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>macro*.txt Script Reference</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f6f7f9;
+  --page: #ffffff;
+  --text: #17202a;
+  --muted: #5f6b7a;
+  --border: #d9dee7;
+  --accent: #0b6bcb;
+  --accent-soft: #e8f2fd;
+  --code-bg: #eef2f7;
+  --shadow: rgba(24, 36, 52, 0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111418;
+    --page: #181c22;
+    --text: #e9edf3;
+    --muted: #a9b4c2;
+    --border: #303844;
+    --accent: #65b7ff;
+    --accent-soft: #1c3044;
+    --code-bg: #242b35;
+    --shadow: rgba(0, 0, 0, 0.25);
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Arial, sans-serif;
+  line-height: 1.58;
+}
+.page {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 24px 20px 64px;
+  display: grid;
+  grid-template-columns: 286px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+.sidebar {
+  position: sticky;
+  top: 18px;
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 8px 30px var(--shadow);
+}
+.content {
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 30px 34px 48px;
+  min-width: 0;
+  box-shadow: 0 8px 30px var(--shadow);
+}
+.doc-switch {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.doc-switch strong { color: var(--text); font-size: 16px; }
+.doc-switch a {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 7px 9px;
+  background: var(--code-bg);
+}
+.search-label {
+  display: block;
+  margin: 12px 0 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.doc-search {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--page);
+  color: var(--text);
+  padding: 9px 10px;
+  font: inherit;
+}
+.doc-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.search-results {
+  display: none;
+  margin: 8px 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.search-results.active { display: block; }
+.search-results a {
+  display: block;
+  padding: 8px 9px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+}
+.search-results a:last-child { border-bottom: 0; }
+.search-results a:hover { background: var(--accent-soft); text-decoration: none; }
+.search-empty { padding: 8px 9px; color: var(--muted); font-size: 13px; }
+.callout {
+  margin: 0.9em 0;
+  border-left: 4px solid var(--accent);
+  border-radius: 4px;
+  background: var(--accent-soft);
+  padding: 11px 13px;
+  font-weight: 600;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1, h2, h3, h4 { line-height: 1.25; margin: 1.6em 0 0.55em; }
+h1 { margin-top: 0; font-size: 32px; }
+h2 { border-top: 1px solid var(--border); padding-top: 22px; font-size: 24px; }
+h1 + h2, .toc h2 { border-top: 0; padding-top: 0; }
+h3 { font-size: 19px; }
+.heading-link {
+  margin-left: 0.4em;
+  color: var(--muted);
+  font-size: 0.72em;
+  opacity: 0;
+}
+h1:hover .heading-link,
+h2:hover .heading-link,
+h3:hover .heading-link,
+h4:hover .heading-link,
+.heading-link:focus { opacity: 1; }
+p, ul, ol, table, pre { margin: 0.85em 0; }
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.3em 0; }
+code {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.08em 0.35em;
+  font-family: Consolas, "Cascadia Mono", monospace;
+  font-size: 0.94em;
+}
+.code-block {
+  position: relative;
+  margin: 0.9em 0;
+}
+.code-block pre { margin: 0; }
+pre {
+  overflow: auto;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.copy-code {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 1;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--muted);
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.copy-code:hover { color: var(--text); border-color: var(--accent); }
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 0.85em 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  vertical-align: top;
+}
+th {
+  background: var(--code-bg);
+  text-align: left;
+}
+.toc {
+  margin-top: 14px;
+}
+.toc h2 { margin: 0 0 8px; font-size: 15px; }
+.toc ul { margin: 0; padding-left: 0; list-style: none; }
+.toc li { margin: 1px 0; }
+.toc a {
+  display: block;
+  padding: 4px 6px;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.toc a:hover { background: var(--accent-soft); color: var(--text); text-decoration: none; }
+.toc-level-1 { font-weight: 600; }
+.toc-level-2 { margin-left: 0; }
+.toc-level-3 { margin-left: 0.75em !important; }
+.back-to-top {
+  display: block;
+  margin-top: 12px;
+  font-size: 13px;
+}
+@media (max-width: 900px) {
+  .page { display: block; }
+  .sidebar {
+    position: static;
+    max-height: none;
+    margin-bottom: 14px;
+  }
+  .toc {
+    max-height: 340px;
+    overflow: auto;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+  .toc ul { columns: 2; column-gap: 18px; }
+}
+@media (max-width: 620px) {
+  .page { padding: 14px 10px 36px; }
+  .content { padding: 18px 14px; }
+  .toc ul { columns: 1; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+  .heading-link { opacity: 1; }
+}
+</style>
+</head>
+<body>
+<main class="page" id="top">
+<aside class="sidebar">
+<div class="doc-switch">
+<strong>DMC4 Macro Docs</strong>
+<a href="macro_release.html">Open Player Guide</a>
+</div>
+<label class="search-label" for="doc-search">Search this page</label>
+<input class="doc-search" id="doc-search" type="search" placeholder="TAP, MOVE_LEFT, Snapshot..." autocomplete="off">
+<div class="search-results" id="search-results" aria-live="polite"></div>
+<nav class="toc" aria-label="Page contents">
+<h2>Contents</h2>
+<ul>
+<li class="toc-level-1"><a href="#macrotxt-script-reference">macro*.txt Script Reference</a></li>
+<li class="toc-level-2"><a href="#syntax-at-a-glance">Syntax At A Glance</a></li>
+<li class="toc-level-3"><a href="#controller-input-map">Controller Input Map</a></li>
+<li class="toc-level-2"><a href="#clip-headers-and-file-structure">Clip Headers And File Structure</a></li>
+<li class="toc-level-2"><a href="#how-macro-lines-run">How Macro Lines Run</a></li>
+<li class="toc-level-3"><a href="#combining-inputs-with">Combining Inputs With <code>+</code></a></li>
+<li class="toc-level-2"><a href="#command-index">Command Index</a></li>
+<li class="toc-level-3"><a href="#input-commands">Input Commands</a></li>
+<li class="toc-level-3"><a href="#complete-commands">Complete Commands</a></li>
+<li class="toc-level-2"><a href="#input-names">Input Names</a></li>
+<li class="toc-level-3"><a href="#character-action-names">Character Action Names</a></li>
+<li class="toc-level-3"><a href="#physical-controller-buttons">Physical Controller Buttons</a></li>
+<li class="toc-level-3"><a href="#stick-and-d-pad-input-names">Stick And D-Pad Input Names</a></li>
+<li class="toc-level-2"><a href="#detailed-command-reference">Detailed Command Reference</a></li>
+<li class="toc-level-3"><a href="#input-commands-2">Input Commands</a></li>
+<li class="toc-level-3"><a href="#complete-commands-2">Complete Commands</a></li>
+<li class="toc-level-2"><a href="#timing-and-conditional-wait">Timing And Conditional Wait</a></li>
+<li class="toc-level-3"><a href="#wait">WAIT</a></li>
+<li class="toc-level-3"><a href="#wait_until">WAIT_UNTIL</a></li>
+<li class="toc-level-3"><a href="#supported-conditions">Supported Conditions</a></li>
+<li class="toc-level-3"><a href="#comparison-operators">Comparison Operators</a></li>
+<li class="toc-level-2"><a href="#macro-playback-overlay-reference">Macro Playback Overlay Reference</a></li>
+<li class="toc-level-2"><a href="#animation-overlay-reference">Animation Overlay Reference</a></li>
+<li class="toc-level-2"><a href="#macro-setup-blocks">Macro Setup Blocks</a></li>
+<li class="toc-level-2"><a href="#common-recipes">Common Recipes</a></li>
+<li class="toc-level-2"><a href="#common-script-misunderstandings">Common Script Misunderstandings</a></li>
+<li class="toc-level-2"><a href="#error-and-troubleshooting-index">Error And Troubleshooting Index</a></li>
+</ul>
+</nav>
+<a class="back-to-top" href="#top">Back to top</a>
+</aside>
+<article class="content" id="document-content">
+<h1 id="macrotxt-script-reference" data-search-heading="macro*.txt Script Reference">macro*.txt Script Reference<a class="heading-link" href="#macrotxt-script-reference" aria-label="Link to macro*.txt Script Reference">#</a></h1>
+
+<p>This is the complete lookup reference for Macro. For installation, a first macro, controller explanations, Battle Snapshot, and common workflows, read <code>macro_release.html</code>.</p>
+
+<p>Use the page contents or browser search to jump directly to an input name, command, condition, or error. This page is a lookup manual, not the best first reading order.</p>
+
+<h2 id="syntax-at-a-glance" data-search-heading="Syntax At A Glance">Syntax At A Glance<a class="heading-link" href="#syntax-at-a-glance" aria-label="Link to Syntax At A Glance">#</a></h2>
+
+<p>A playable clip:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[V][Nero] Example
+TAP MELEE
+WAIT 10
+TAP JUMP</code></pre></div>
+
+<p>The key distinction is whether a word is an <strong>input name</strong> or a <strong>complete command</strong>.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Script item</th><th>Needs <code>TAP</code>, <code>HOLD</code>, <code>RELEASE</code>, or <code>SET</code>?</th><th>Correct example</th></tr></thead>
+<tbody>
+<tr><td>Action name</td><td>Yes</td><td><code>TAP MELEE</code></td></tr>
+<tr><td>Physical controller button</td><td>Yes</td><td><code>TAP Y</code></td></tr>
+<tr><td>Left-stick direction</td><td>Yes</td><td><code>HOLD MOVE_LEFT</code></td></tr>
+<tr><td>Right-stick direction</td><td>Yes</td><td><code>HOLD CAM_LEFT</code></td></tr>
+<tr><td>Stick click</td><td>Yes</td><td><code>TAP LS</code></td></tr>
+<tr><td>D-pad direction</td><td>Yes</td><td><code>TAP DOWN</code></td></tr>
+<tr><td>Wait</td><td>No</td><td><code>WAIT 10</code></td></tr>
+<tr><td>Conditional wait</td><td>No</td><td><code>WAIT_UNTIL GROUNDED</code></td></tr>
+<tr><td>Character Switcher</td><td>No</td><td><code>CHARACTER_SWITCH</code></td></tr>
+<tr><td>Screen Freeze</td><td>No</td><td><code>FREEZE</code></td></tr>
+</tbody>
+</table></div>
+
+<p>Quick test:</p>
+
+<div class="callout">Can this be pressed, held, and released like controller input? If yes, use an input command. If the whole line already describes timing or Hook behavior, write the complete command by itself.</div>
+
+<h3 id="controller-input-map" data-search-heading="Controller Input Map">Controller Input Map<a class="heading-link" href="#controller-input-map" aria-label="Link to Controller Input Map">#</a></h3>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Player intention</th><th>Script name</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td>Mapped game action</td><td><code>MELEE</code>, <code>JUMP</code>, <code>LOCK_ON</code></td><td><code>TAP MELEE</code></td></tr>
+<tr><td>Exact face/shoulder button</td><td><code>Y</code>, <code>A</code>, <code>RB</code>, <code>LT</code></td><td><code>TAP Y</code></td></tr>
+<tr><td>Push left stick</td><td><code>MOVE_LEFT</code>, <code>MOVE_FORWARD</code></td><td><code>HOLD MOVE_LEFT</code></td></tr>
+<tr><td>Lightly push left stick</td><td><code>WALK_LEFT</code>, <code>WALK_FORWARD</code></td><td><code>HOLD WALK_LEFT</code></td></tr>
+<tr><td>Push right stick</td><td><code>CAM_LEFT</code>, <code>CAM_UP</code></td><td><code>HOLD CAM_LEFT</code></td></tr>
+<tr><td>Press left/right stick</td><td><code>LS</code>, <code>RS</code></td><td><code>TAP LS</code></td></tr>
+<tr><td>Press D-pad</td><td><code>UP</code>, <code>DOWN</code>, <code>LEFT</code>, <code>RIGHT</code></td><td><code>TAP DOWN</code></td></tr>
+</tbody>
+</table></div>
+
+<p>Do not confuse:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">MOVE_LEFT  push the left stick left
+CAM_LEFT   push the right stick left
+LS         press the left stick button
+RS         press the right stick button
+LEFT       press D-pad Left</code></pre></div>
+
+<h2 id="clip-headers-and-file-structure" data-search-heading="Clip Headers And File Structure">Clip Headers And File Structure<a class="heading-link" href="#clip-headers-and-file-structure" aria-label="Link to Clip Headers And File Structure">#</a></h2>
+
+<p>Header formats:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[KeyboardHotkey][Character] Clip name
+[KeyboardHotkey][GamepadButton][Character] Clip name
+[KeyboardHotkey][SWITCH] Clip name
+[KeyboardHotkey][GamepadButton][SWITCH] Clip name</code></pre></div>
+
+<p>Examples:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[V][Nero] Nero test
+[V][X/SQUARE][Nero] Nero test with controller shortcut
+[F2][A][Nero] Nero test with one Xbox button name
+[F3][CIRCLE][Dante] Dante test with one PlayStation button name
+[V][Dante] Dante test
+[F1][RB/R1][Dante] Dante route with controller shortcut
+[Ctrl+1][Nero] Boss route
+[F9][SWITCH] Character Switcher route</code></pre></div>
+
+<p>File rules:</p>
+
+<ul>
+<li>blank lines are ignored</li>
+<li>text after <code>#</code> or <code>;</code> is a comment</li>
+<li>write one command per line</li>
+<li>playback commands must be inside a clip; Setup fields belong inside <code>[Setup] ... [/Setup]</code></li>
+<li>use <code>[Nero]</code> or <code>[Dante]</code> for ordinary single-character clips</li>
+<li>use <code>[SWITCH]</code> when action names must follow the current character after <code>CHARACTER_SWITCH</code></li>
+<li>the optional middle gamepad tag is the second button after the fixed Back/Select prefix</li>
+<li>clip hotkeys start that specific clip; GUI action hotkeys run the currently selected file and clip</li>
+<li>Macro injects DMC4 controller input, not Windows keyboard events</li>
+</ul>
+
+<p>Each clip may contain up to <code>600000</code> generated playback frames. <code>WAIT 100</code> adds 100 frames and <code>TAP MELEE 20</code> adds 20. Combining several inputs with <code>+</code> does not multiply that count. <code>WAIT_UNTIL</code> uses one generated wait frame whose condition is evaluated at runtime. Normal combo scripts are unlikely to approach this limit.</p>
+
+<p><code>Character</code> must be <code>Nero</code> or <code>Dante</code>. Short tags <code>N</code> and <code>D</code> are accepted, but full names are clearer.</p>
+
+<p>The same keyboard hotkey may be used once for Nero and once for Dante. Duplicate hotkeys for the same character are rejected. A <code>[SWITCH]</code> clip can start as either character, so it cannot share the same keyboard or gamepad clip hotkey with an ordinary Nero/Dante clip.</p>
+
+<p>Gamepad header buttons include face buttons, bumpers, triggers, stick clicks, Start/Options, and D-pad directions. Back/Select itself is reserved as the prefix.</p>
+
+<p>A gamepad header tag may contain one accepted Xbox or PlayStation name. Equivalent examples are:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[A]       = [CROSS]       = [A/CROSS]
+[B]       = [CIRCLE]      = [B/CIRCLE]
+[X]       = [SQUARE]      = [X/SQUARE]
+[Y]       = [TRIANGLE]    = [Y/TRIANGLE]
+[LT]      = [L2]          = [LT/L2]</code></pre></div>
+
+<p>The slash form is optional and exists only so a header can show aliases from both controller layouts. If slash names are used, every part must describe one physical button:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[A]      valid
+[CIRCLE] valid
+[L2/LT]  valid
+[LT/L2]  valid
+[L2/LB]  invalid</code></pre></div>
+
+<p>With Gamepad Hotkeys enabled, hold Back/Select first, then press the header's gamepad button. Macro consumes the detected shortcut so DMC4 does not also receive it.</p>
+
+<p>Keyboard hotkeys support:</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Hotkey type</th><th>Examples</th></tr></thead>
+<tbody>
+<tr><td>Single letters or numbers</td><td><code>V</code>, <code>1</code>, <code>Z</code></td></tr>
+<tr><td>Function keys</td><td><code>F1</code> through <code>F24</code></td></tr>
+<tr><td>Numpad keys</td><td><code>NUMPAD0</code> through <code>NUMPAD9</code></td></tr>
+<tr><td>Modifier combinations</td><td><code>Ctrl+1</code>, <code>Shift+V</code>, <code>Alt+F2</code>, <code>Ctrl+Shift+F5</code></td></tr>
+<tr><td>Named keys</td><td><code>Space</code>, <code>Tab</code>, <code>Enter</code>, <code>Esc</code>, <code>Backspace</code>, <code>Insert</code>, <code>Delete</code>, <code>Home</code>, <code>End</code>, <code>PageUp</code>, <code>PageDown</code>, arrow keys</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="how-macro-lines-run" data-search-heading="How Macro Lines Run">How Macro Lines Run<a class="heading-link" href="#how-macro-lines-run" aria-label="Link to How Macro Lines Run">#</a></h2>
+
+<p>Macro runs from top to bottom until the clip ends:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD LOCK_ON
+HOLD MOVE_LEFT
+TAP MELEE
+WAIT 10
+RELEASE MOVE_LEFT
+TAP JUMP
+WAIT_UNTIL GROUNDED
+RELEASE LOCK_ON</code></pre></div>
+
+<p>There is no rule that only one command may appear between two waits. Consecutive <code>HOLD</code>, <code>RELEASE</code>, complete commands, or <code>TAP</code> lines are valid.</p>
+
+<p><code>WAIT ticks</code> delays the following line. <code>WAIT_UNTIL condition [max_ticks]</code> continues when the condition succeeds or its timeout expires. Omitted <code>max_ticks</code> defaults to <code>120</code>.</p>
+
+<p><code>TAP</code> sends input; it does not wait for the resulting move or animation to finish.</p>
+
+<p><code>HOLD</code> remains active through later lines and waits until a matching <code>RELEASE</code>, <code>RELEASE ALL</code>, <code>CLEAR</code>, <code>SET</code>, or Stop Macro removes it.</p>
+
+<p>A script line is not automatically a time step. These commands add generated playback frames:</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Command</th><th>Playback time</th></tr></thead>
+<tbody>
+<tr><td><code>TAP input [ticks]</code></td><td>Adds <code>ticks</code> frames. Default is 1.</td></tr>
+<tr><td><code>WAIT ticks</code></td><td>Adds <code>ticks</code> frames using the current held input state.</td></tr>
+<tr><td><code>WAIT_UNTIL condition [max_ticks]</code></td><td>Adds one conditional wait frame that stays active until success or timeout.</td></tr>
+<tr><td><code>DIR ...</code></td><td>Adds temporary direction/action frames.</td></tr>
+<tr><td><code>BACK_FORWARD ...</code></td><td>Adds the back, forward, and action frames.</td></tr>
+<tr><td>Complete Hook commands</td><td>Usually add one command frame, such as <code>CHARACTER_SWITCH</code> or <code>FREEZE</code>.</td></tr>
+</tbody>
+</table></div>
+
+<p>These commands change the held input state but do not create playback time by themselves:</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Command</th><th>Effect</th></tr></thead>
+<tbody>
+<tr><td><code>HOLD input</code></td><td>Adds input to the held state.</td></tr>
+<tr><td><code>RELEASE input</code></td><td>Removes input from the held state.</td></tr>
+<tr><td><code>SET input</code></td><td>Clears held state, then holds the supplied input.</td></tr>
+<tr><td><code>CLEAR</code></td><td>Clears held state.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="combining-inputs-with" data-search-heading="Combining Inputs With `+`">Combining Inputs With <code>+</code><a class="heading-link" href="#combining-inputs-with" aria-label="Link to Combining Inputs With `+`">#</a></h3>
+
+<p>Use <code>+</code> when several inputs belong to one command:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">TAP JUMP+MELEE
+HOLD LOCK_ON+MOVE_LEFT+GUN
+RELEASE LOCK_ON+MOVE_LEFT+GUN
+SET LOCK_ON+MOVE_BACK+MELEE</code></pre></div>
+
+<p>Rules:</p>
+
+<ul>
+<li><code>+</code> means simultaneous input.</li>
+<li>There is no fixed two-input or three-input limit.</li>
+<li>Every part must be a valid input name for the clip.</li>
+<li>Multi-input <code>TAP</code> must use <code>+</code>; <code>TAP JUMP MELEE</code> is invalid because the second argument position is reserved for tap duration.</li>
+<li><code>TAP JUMP+MELEE 20</code> holds both inputs together for 20 input ticks.</li>
+<li>Separate <code>TAP</code> lines are sequential. Add <code>WAIT</code> only when you need a larger gap.</li>
+</ul>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text"># Simultaneous
+TAP JUMP+MELEE
+
+# Jump for one tick, then melee on the next tick
+TAP JUMP
+TAP MELEE
+
+# Jump, wait ten ticks, then melee
+TAP JUMP
+WAIT 10
+TAP MELEE</code></pre></div>
+
+<p><code>TAP A+B</code> is roughly equivalent to:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD A+B
+WAIT 1
+RELEASE A+B</code></pre></div>
+
+<p><code>TAP A+B 20</code> is roughly equivalent to:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD A+B
+WAIT 20
+RELEASE A+B</code></pre></div>
+
+<p>The difference is that <code>TAP</code> restores the held input state that existed before the tap. A manual <code>RELEASE A+B</code> removes those inputs from the held state.</p>
+
+<p>Different left-stick axes create a diagonal:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD MOVE_FORWARD+MOVE_RIGHT</code></pre></div>
+
+<p>Opposite directions cancel and should not be combined:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD MOVE_LEFT+MOVE_RIGHT
+HOLD MOVE_FORWARD+MOVE_BACK
+HOLD CAM_LEFT+CAM_RIGHT</code></pre></div>
+
+<p>Avoid combining full and slow movement in opposite directions, such as <code>MOVE_RIGHT+WALK_LEFT</code>; their analog values are added and the result is usually not what the script author intended.</p>
+
+<p>The <code>+</code> in <code>[Ctrl+1][Nero]</code> belongs to a keyboard hotkey. The <code>+</code> in <code>TAP JUMP+MELEE</code> combines game inputs.</p>
+
+<h2 id="command-index" data-search-heading="Command Index">Command Index<a class="heading-link" href="#command-index" aria-label="Link to Command Index">#</a></h2>
+
+<h3 id="input-commands" data-search-heading="Input Commands">Input Commands<a class="heading-link" href="#input-commands" aria-label="Link to Input Commands">#</a></h3>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Command form</th><th>Meaning</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td><code>TAP input [ticks]</code></td><td>Temporarily press one or more inputs. Default duration is 1 tick.</td><td><code>TAP MELEE</code>, <code>TAP JUMP+MELEE 2</code></td></tr>
+<tr><td><code>HOLD input</code></td><td>Add one or more inputs to the held state.</td><td><code>HOLD LOCK_ON+MOVE_LEFT</code></td></tr>
+<tr><td><code>RELEASE input</code></td><td>Remove one or more inputs from the held state.</td><td><code>RELEASE LOCK_ON+MOVE_LEFT</code></td></tr>
+<tr><td><code>RELEASE ALL</code></td><td>Remove all held Macro input.</td><td><code>RELEASE ALL</code></td></tr>
+<tr><td><code>SET input</code></td><td>Clear the held state, then hold the supplied input.</td><td><code>SET LOCK_ON+MOVE_LEFT</code></td></tr>
+<tr><td><code>CLEAR</code></td><td>Clear all held Macro input.</td><td><code>CLEAR</code></td></tr>
+<tr><td><code>DIR direction action ticks</code></td><td>Temporarily combine a direction and action.</td><td><code>DIR MOVE_LEFT MELEE 1</code></td></tr>
+<tr><td><code>BACK_FORWARD back forward action</code></td><td>Send back, then forward, then the action.</td><td><code>BACK_FORWARD MOVE_RIGHT MOVE_LEFT MELEE</code></td></tr>
+</tbody>
+</table></div>
+
+<h3 id="complete-commands" data-search-heading="Complete Commands">Complete Commands<a class="heading-link" href="#complete-commands" aria-label="Link to Complete Commands">#</a></h3>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Command group</th><th>Forms</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td>Timing</td><td><code>WAIT ticks</code></td><td><code>WAIT 10</code></td></tr>
+<tr><td>Conditional wait</td><td><code>WAIT_UNTIL condition [max_ticks]</code></td><td><code>WAIT_UNTIL CAN_EXCEED</code></td></tr>
+<tr><td>Screen Freeze</td><td><code>FREEZE</code>, <code>UNFREEZE</code>, <code>TOGGLE_FREEZE</code></td><td><code>FREEZE</code></td></tr>
+<tr><td>Character Switcher</td><td><code>CHARACTER_SWITCH</code>, <code>SWITCH_CHARACTER</code></td><td><code>CHARACTER_SWITCH</code></td></tr>
+<tr><td>Hook action</td><td><code>ONE_HIT_KILL ON/OFF/TOGGLE</code></td><td><code>ONE_HIT_KILL TOGGLE</code></td></tr>
+</tbody>
+</table></div>
+
+<h2 id="input-names" data-search-heading="Input Names">Input Names<a class="heading-link" href="#input-names" aria-label="Link to Input Names">#</a></h2>
+
+<p>Input names describe a controller action, physical button, stick direction, camera direction, or D-pad direction. They do not do anything by themselves. Use them after commands such as <code>TAP</code>, <code>HOLD</code>, <code>RELEASE</code>, <code>SET</code>, <code>DIR</code>, or <code>BACK_FORWARD</code>.</p>
+
+<h3 id="character-action-names" data-search-heading="Character Action Names">Character Action Names<a class="heading-link" href="#character-action-names" aria-label="Link to Character Action Names">#</a></h3>
+
+<p>Action names mean &quot;press the button assigned to this action in the GUI Action Mapping table.&quot; They are usually the best choice for shared scripts because they follow each player's controller layout.</p>
+
+<p>They also make scripts easier to read. <code>TAP MELEE</code> or <code>TAP DEVIL_TRIGGER</code> describes the intended game action, so the script usually needs fewer comments than a physical-button-only version such as <code>TAP Y</code> or <code>TAP LB</code>.</p>
+
+<p>Nero and Dante have separate Action Mapping tables. The clip header chooses the table:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[V][Nero]  uses Nero Action Mapping
+[V][Dante] uses Dante Action Mapping</code></pre></div>
+
+<p>For Character Switcher clips, use <code>[SWITCH]</code> when action names should follow the current character during playback:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[V][SWITCH] Switch route
+CHARACTER_SWITCH
+WAIT 20
+TAP STYLE_ACTION</code></pre></div>
+
+<p>This clip can start as Nero or Dante. After Character Switcher changes the active character, later action names are resolved through that current character's Action Mapping. Use a <code>WAIT</code> or another condition after <code>CHARACTER_SWITCH</code>; the switch is requested by the hook and is not guaranteed to be usable on the same tick.</p>
+
+<p>Shared action names are accepted by both characters. The script word is the same, but the output button is read from that character's table:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F1][Nero] Nero melee
+TAP MELEE
+
+[F1][Dante] Dante melee
+TAP MELEE</code></pre></div>
+
+<p>If Nero Action Mapping has <code>MELEE = Y / TRIANGLE</code> and Dante Action Mapping has <code>MELEE = B / CIRCLE</code>, the Nero clip presses <code>Y / TRIANGLE</code> and the Dante clip presses <code>B / CIRCLE</code>.</p>
+
+<p>Character-only action names are different. <code>EXCEED</code> and <code>BRINGER</code> only make sense in <code>[Nero]</code> clips. <code>STYLE_ACTION</code>, <code>CHANGE_GUN</code>, and <code>CHANGE_SWORD</code> only make sense in <code>[Dante]</code> clips. If an action is not valid for the clip's character, the macro file will fail to load that line.</p>
+
+<p>Action Mapping can point an action to face buttons, bumpers, triggers, stick clicks, Back/Select, Start/Options, or D-pad directions. If your DMC4 controller settings put an action on D-pad, choose the same D-pad direction in the matching Nero or Dante Action Mapping table.</p>
+
+<p>Physical button names do not use Action Mapping. <code>TAP Y</code> always presses <code>Y / TRIANGLE</code>, even if Nero or Dante melee is set to <code>B / CIRCLE</code> in DMC4. <code>TAP MELEE</code> presses the mapped melee button for the header character, or for the current character in a <code>[SWITCH]</code> clip.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Action name</th><th>Valid in</th><th>Aliases</th><th>Default Nero</th><th>Default Dante</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code>MELEE</code></td><td>Nero, Dante</td><td><code>MELEE_ATTACK</code>, <code>SWORD_ATTACK</code>, <code>ATTACK</code></td><td><code>Y / TRIANGLE</code></td><td><code>Y / TRIANGLE</code></td><td>The normal close-range attack button for the clip character, or the current character in a <code>[SWITCH]</code> clip.</td></tr>
+<tr><td><code>GUN</code></td><td>Nero, Dante</td><td><code>GUN_ATTACK</code>, <code>SHOOT</code>, <code>FIRE</code></td><td><code>X / SQUARE</code></td><td><code>X / SQUARE</code></td><td>The normal gun/shoot button for the clip character, or the current character in a <code>[SWITCH]</code> clip.</td></tr>
+<tr><td><code>EXCEED</code></td><td>Nero</td><td><code>NERO_EXCEED</code>, <code>EXCEED_INPUT</code></td><td><code>LT / L2</code></td><td>not valid</td><td>Nero's Red Queen rev/Exceed action. The game timing decides whether the result is a normal rev, Ex-Act, or Max-Act.</td></tr>
+<tr><td><code>JUMP</code></td><td>Nero, Dante</td><td>none</td><td><code>A / CROSS</code></td><td><code>A / CROSS</code></td><td>Jump.</td></tr>
+<tr><td><code>BRINGER</code></td><td>Nero</td><td><code>DEVIL_BRINGER</code></td><td><code>B / CIRCLE</code></td><td>not valid</td><td>Nero's Devil Bringer/Buster action button.</td></tr>
+<tr><td><code>STYLE_ACTION</code></td><td>Dante</td><td><code>STYLE_BUTTON</code></td><td>not valid</td><td><code>B / CIRCLE</code></td><td>Dante's current-style action button, such as Trickster dash, Swordmaster extra attack, Royalguard guard, or Gunslinger action.</td></tr>
+<tr><td><code>DEVIL_TRIGGER</code></td><td>Nero, Dante</td><td><code>DT</code></td><td><code>LB / L1</code></td><td><code>LB / L1</code></td><td>Devil Trigger action.</td></tr>
+<tr><td><code>LOCK_ON</code></td><td>Nero, Dante</td><td><code>LOCKON</code>, <code>LOCK</code>, <code>TARGET_LOCK</code></td><td><code>RB / R1</code></td><td><code>RB / R1</code></td><td>Lock-on/targeting button. Hold this for lock-on directional moves.</td></tr>
+<tr><td><code>CHANGE_GUN</code></td><td>Dante</td><td><code>GUN_CHANGE</code>, <code>DANTE_CHANGE_GUN</code></td><td>not valid</td><td><code>LT / L2</code></td><td>Dante gun weapon switch.</td></tr>
+<tr><td><code>CHANGE_SWORD</code></td><td>Dante</td><td><code>SWORD_CHANGE</code>, <code>DANTE_CHANGE_SWORD</code></td><td>not valid</td><td><code>RT / R2</code></td><td>Dante melee weapon switch.</td></tr>
+<tr><td><code>TAUNT</code></td><td>Nero, Dante</td><td>none</td><td><code>BACK / SHARE</code></td><td><code>BACK / SHARE</code></td><td>Taunt action.</td></tr>
+<tr><td><code>CHANGE_TARGET</code></td><td>Nero, Dante</td><td><code>TARGET_CHANGE</code>, <code>CYCLE_TARGET</code>, <code>NEXT_TARGET</code></td><td><code>LS / L3</code></td><td><code>LS / L3</code></td><td>Change target while locked on.</td></tr>
+<tr><td><code>RESET_CAMERA</code></td><td>Nero, Dante</td><td><code>CAMERA_RESET</code>, <code>CENTER_CAMERA</code></td><td><code>RS / R3</code></td><td><code>RS / R3</code></td><td>Reset/center camera action.</td></tr>
+</tbody>
+</table></div>
+
+<p>Important:</p>
+
+<ul>
+<li>Use action names when you want the script to follow the player's Nero/Dante controller layout.</li>
+<li>Use physical button names when you deliberately want one exact controller button.</li>
+<li>If a row says <code>not valid</code> for the current character, that action name cannot be used in that character's clip.</li>
+<li>Shared names such as <code>MELEE</code> can map to different buttons for Nero and Dante.</li>
+<li>For new shared scripts, prefer the main action name in the first column. The alias column is mainly for reading older scripts.</li>
+</ul>
+
+<h3 id="physical-controller-buttons" data-search-heading="Physical Controller Buttons">Physical Controller Buttons<a class="heading-link" href="#physical-controller-buttons" aria-label="Link to Physical Controller Buttons">#</a></h3>
+
+<p>Physical button names ignore Action Mapping and press the named virtual controller button directly.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Button group</th><th>Accepted names</th></tr></thead>
+<tbody>
+<tr><td>Back / Select</td><td><code>BACK</code>, <code>BACK_BUTTON</code>, <code>SELECT</code>, <code>SELECT_BUTTON</code>, <code>VIEW</code>, <code>SHARE</code>, <code>SHARE_BUTTON</code></td></tr>
+<tr><td>Start / Options</td><td><code>START</code>, <code>START_BUTTON</code>, <code>OPTIONS</code>, <code>OPTIONS_BUTTON</code>, <code>MENU</code>, <code>ESC</code>, <code>ESCAPE</code></td></tr>
+<tr><td>Stick clicks</td><td><code>LS</code>, <code>L3</code>, <code>LEFT_STICK_CLICK</code>, <code>RS</code>, <code>R3</code>, <code>RIGHT_STICK_CLICK</code></td></tr>
+<tr><td>Bumpers</td><td><code>LB</code>, <code>L1</code>, <code>LEFT_BUMPER</code>, <code>RB</code>, <code>R1</code>, <code>RIGHT_BUMPER</code></td></tr>
+<tr><td>Triggers</td><td><code>LT</code>, <code>L2</code>, <code>LEFT_TRIGGER</code>, <code>RT</code>, <code>R2</code>, <code>RIGHT_TRIGGER</code></td></tr>
+<tr><td>Face buttons</td><td><code>Y</code>, <code>TRIANGLE</code>, <code>TRI</code>, <code>X</code>, <code>SQUARE</code>, <code>SQ</code>, <code>A</code>, <code>CROSS</code>, <code>B</code>, <code>CIRCLE</code>, <code>O</code></td></tr>
+<tr><td>D-pad</td><td><code>UP</code>, <code>DOWN</code>, <code>LEFT</code>, <code>RIGHT</code>, <code>DPAD_UP</code>, <code>DPAD_DOWN</code>, <code>DPAD_LEFT</code>, <code>DPAD_RIGHT</code></td></tr>
+</tbody>
+</table></div>
+
+<p>Common mistakes:</p>
+
+<ul>
+<li><code>X</code> means Xbox X / PlayStation Square. PlayStation Cross is <code>CROSS</code>.</li>
+<li><code>A</code> means Xbox A / PlayStation Cross. Move left is <code>MOVE_LEFT</code>.</li>
+<li><code>BACK</code> means physical Back/Select. Move back is <code>MOVE_BACK</code>.</li>
+<li><code>RS</code> means right stick click. Camera left is <code>CAM_LEFT</code>, <code>RS_LEFT</code>, or <code>RIGHT_STICK_LEFT</code>.</li>
+</ul>
+
+<h3 id="stick-and-d-pad-input-names" data-search-heading="Stick And D-Pad Input Names">Stick And D-Pad Input Names<a class="heading-link" href="#stick-and-d-pad-input-names" aria-label="Link to Stick And D-Pad Input Names">#</a></h3>
+
+<h4 id="movement" data-search-heading="Movement">Movement<a class="heading-link" href="#movement" aria-label="Link to Movement">#</a></h4>
+
+<p>Movement tokens are input names for virtual left-stick directions, not physical keyboard keys.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Name</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>MOVE_FORWARD</code></td><td>Push the virtual left stick forward/up.</td></tr>
+<tr><td><code>MOVE_BACK</code></td><td>Pull the virtual left stick back/down.</td></tr>
+<tr><td><code>MOVE_LEFT</code></td><td>Push the virtual left stick left.</td></tr>
+<tr><td><code>MOVE_RIGHT</code></td><td>Push the virtual left stick right.</td></tr>
+</tbody>
+</table></div>
+
+<p>Extra aliases:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">MOVE_UP
+MOVE_DOWN
+FORWARD
+BACKWARD
+LSTICK_UP
+LSTICK_DOWN
+LSTICK_LEFT
+LSTICK_RIGHT</code></pre></div>
+
+<p>Diagonals:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">MOVE_FORWARD_RIGHT
+MOVE_FORWARD_LEFT
+MOVE_BACK_RIGHT
+MOVE_BACK_LEFT
+MOVE_UP_RIGHT
+MOVE_UP_LEFT
+MOVE_DOWN_RIGHT
+MOVE_DOWN_LEFT</code></pre></div>
+
+<h4 id="slow-movement" data-search-heading="Slow Movement">Slow Movement<a class="heading-link" href="#slow-movement" aria-label="Link to Slow Movement">#</a></h4>
+
+<p>Slow walk tokens use a light left-stick push:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">WALK_FORWARD
+WALK_BACK
+WALK_LEFT
+WALK_RIGHT
+WALK_UP
+WALK_DOWN</code></pre></div>
+
+<p><code>SLOW_*</code> is accepted as an equivalent spelling, for example <code>SLOW_LEFT</code>.</p>
+
+<p>Slow diagonals:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">WALK_FORWARD_RIGHT
+WALK_FORWARD_LEFT
+WALK_BACK_RIGHT
+WALK_BACK_LEFT
+WALK_UP_RIGHT
+WALK_UP_LEFT
+WALK_DOWN_RIGHT
+WALK_DOWN_LEFT</code></pre></div>
+
+<h4 id="camera" data-search-heading="Camera">Camera<a class="heading-link" href="#camera" aria-label="Link to Camera">#</a></h4>
+
+<p>Camera tokens are input names for right-stick camera movement:</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Name</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>CAM_UP</code>, <code>RS_UP</code>, <code>RIGHT_STICK_UP</code></td><td>Push the virtual right stick up.</td></tr>
+<tr><td><code>CAM_DOWN</code>, <code>RS_DOWN</code>, <code>RIGHT_STICK_DOWN</code></td><td>Push the virtual right stick down.</td></tr>
+<tr><td><code>CAM_LEFT</code>, <code>RS_LEFT</code>, <code>RIGHT_STICK_LEFT</code></td><td>Push the virtual right stick left.</td></tr>
+<tr><td><code>CAM_RIGHT</code>, <code>RS_RIGHT</code>, <code>RIGHT_STICK_RIGHT</code></td><td>Push the virtual right stick right.</td></tr>
+</tbody>
+</table></div>
+
+<p>Diagonals:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">CAM_UP_LEFT
+CAM_UP_RIGHT
+CAM_DOWN_LEFT
+CAM_DOWN_RIGHT
+RS_UP_LEFT
+RS_UP_RIGHT
+RS_DOWN_LEFT
+RS_DOWN_RIGHT</code></pre></div>
+
+<h4 id="d-pad-input" data-search-heading="D-Pad Input">D-Pad Input<a class="heading-link" href="#d-pad-input" aria-label="Link to D-Pad Input">#</a></h4>
+
+<p>These are exact virtual D-pad directions. They do not check Dante's controller settings, and they do not mean &quot;change style&quot; by themselves. If the current character has an action mapped to D-pad in DMC4, pressing that D-pad direction can trigger that action.</p>
+
+<p><code>CHANGE_STYLE_*</code> names are readable aliases for the default Dante D-pad style layout. They still press ordinary D-pad directions. If your Dante style-change controls are not on D-pad, use the physical button or action name that matches your layout instead.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Name</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>UP</code>, <code>DPAD_UP</code>, <code>CHANGE_STYLE_TS</code></td><td>Press D-pad Up.</td></tr>
+<tr><td><code>RIGHT</code>, <code>DPAD_RIGHT</code>, <code>CHANGE_STYLE_SM</code></td><td>Press D-pad Right.</td></tr>
+<tr><td><code>DOWN</code>, <code>DPAD_DOWN</code>, <code>CHANGE_STYLE_RG</code></td><td>Press D-pad Down.</td></tr>
+<tr><td><code>LEFT</code>, <code>DPAD_LEFT</code>, <code>CHANGE_STYLE_GS</code></td><td>Press D-pad Left.</td></tr>
+</tbody>
+</table></div>
+
+<p>Examples:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">TAP CHANGE_STYLE_RG
+TAP DOWN</code></pre></div>
+
+<p>Both lines press D-pad Down. They do not inspect Dante's controller settings and do not force a particular style.</p>
+
+<h2 id="detailed-command-reference" data-search-heading="Detailed Command Reference">Detailed Command Reference<a class="heading-link" href="#detailed-command-reference" aria-label="Link to Detailed Command Reference">#</a></h2>
+
+<p>Commands are complete script lines. Some commands take input names as arguments, and some commands run built-in macro or hook behavior by themselves.</p>
+
+<h3 id="input-commands-2" data-search-heading="Input Commands">Input Commands<a class="heading-link" href="#input-commands-2" aria-label="Link to Input Commands">#</a></h3>
+
+<p>These commands use the input names from the previous section.</p>
+
+<h4 id="tap" data-search-heading="TAP">TAP<a class="heading-link" href="#tap" aria-label="Link to TAP">#</a></h4>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">TAP input
+TAP input ticks</code></pre></div>
+
+<p>Examples:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">TAP MELEE
+TAP JUMP
+TAP EXCEED
+TAP MELEE 3
+TAP LOCK_ON+MELEE 2</code></pre></div>
+
+<p>If <code>ticks</code> is omitted, the tap lasts 1 input tick.</p>
+
+<p>All items joined by <code>+</code> are pressed during the same tap. There is no fixed limit of two or three inputs:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">TAP A+B+X+Y
+TAP LOCK_ON+MOVE_LEFT+MELEE+DEVIL_TRIGGER 2</code></pre></div>
+
+<p>The practical limit is whether every name is valid and whether the combination makes sense to DMC4. Opposite analog directions cancel.</p>
+
+<p><code>TAP A+B</code> behaves like a one-tick temporary hold:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD A+B
+WAIT 1
+RELEASE A+B</code></pre></div>
+
+<p><code>TAP A+B 20</code> behaves like a 20-tick temporary hold:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD A+B
+WAIT 20
+RELEASE A+B</code></pre></div>
+
+<p>The exact implementation temporarily adds the tap input to the current held state, writes the requested playback frames, then restores the previous held state. This matters when one of the tapped inputs was already held before the <code>TAP</code>.</p>
+
+<h4 id="hold" data-search-heading="HOLD">HOLD<a class="heading-link" href="#hold" aria-label="Link to HOLD">#</a></h4>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD input
+HOLD input+input</code></pre></div>
+
+<p>Alias:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">PRESS input</code></pre></div>
+
+<p>Examples:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD LOCK_ON
+HOLD MOVE_LEFT
+HOLD LOCK_ON+MOVE_LEFT</code></pre></div>
+
+<p>Held input remains active through later <code>WAIT</code> lines until released, cleared, or stopped.</p>
+
+<p><code>HOLD</code> accepts more than two combined inputs:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD LOCK_ON+MOVE_FORWARD+GUN+DEVIL_TRIGGER</code></pre></div>
+
+<p>Consecutive <code>HOLD</code> lines do not spend time by themselves. They combine before the next frame-producing command:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD MELEE
+HOLD JUMP
+WAIT 1</code></pre></div>
+
+<p>is equivalent to:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD MELEE+JUMP
+WAIT 1</code></pre></div>
+
+<h4 id="release" data-search-heading="RELEASE">RELEASE<a class="heading-link" href="#release" aria-label="Link to RELEASE">#</a></h4>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">RELEASE input
+RELEASE input+input
+RELEASE ALL</code></pre></div>
+
+<p>Alias:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">REL input</code></pre></div>
+
+<p>Examples:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">RELEASE MELEE
+RELEASE LOCK_ON+MOVE_LEFT
+RELEASE ALL</code></pre></div>
+
+<h4 id="set" data-search-heading="SET">SET<a class="heading-link" href="#set" aria-label="Link to SET">#</a></h4>
+
+<p><code>SET</code> clears the current macro-held state, then holds the new input.</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">SET LOCK_ON+MOVE_LEFT
+WAIT 5
+RELEASE ALL</code></pre></div>
+
+<h4 id="clear" data-search-heading="CLEAR">CLEAR<a class="heading-link" href="#clear" aria-label="Link to CLEAR">#</a></h4>
+
+<p><code>CLEAR</code> stops holding all macro-held input.</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">CLEAR</code></pre></div>
+
+<h4 id="dir" data-search-heading="DIR">DIR<a class="heading-link" href="#dir" aria-label="Link to DIR">#</a></h4>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">DIR direction action ticks</code></pre></div>
+
+<p>Alias:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">DIRECTION direction action ticks</code></pre></div>
+
+<p>Temporarily holds a direction and an action, then releases only those inputs.</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD LOCK_ON
+DIR MOVE_LEFT MELEE 1
+RELEASE LOCK_ON</code></pre></div>
+
+<p>Equivalent core input:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD MOVE_LEFT
+HOLD MELEE
+WAIT 1
+RELEASE MELEE
+RELEASE MOVE_LEFT</code></pre></div>
+
+<h4 id="back_forward" data-search-heading="BACK_FORWARD">BACK_FORWARD<a class="heading-link" href="#back_forward" aria-label="Link to BACK_FORWARD">#</a></h4>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">BACK_FORWARD back forward action</code></pre></div>
+
+<p>Aliases:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">BACKFORWARD back forward action
+BF back forward action</code></pre></div>
+
+<p>Performs back, then forward, then taps the action.</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD LOCK_ON
+BACK_FORWARD MOVE_RIGHT MOVE_LEFT MELEE
+RELEASE LOCK_ON</code></pre></div>
+
+<p>Equivalent core input:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD MOVE_RIGHT
+WAIT 1
+HOLD MOVE_LEFT
+RELEASE MOVE_RIGHT
+WAIT 1
+RELEASE MOVE_LEFT
+HOLD MELEE
+WAIT 1
+RELEASE MELEE</code></pre></div>
+
+<h3 id="complete-commands-2" data-search-heading="Complete Commands">Complete Commands<a class="heading-link" href="#complete-commands-2" aria-label="Link to Complete Commands">#</a></h3>
+
+<h4 id="screen-freeze" data-search-heading="Screen Freeze">Screen Freeze<a class="heading-link" href="#screen-freeze" aria-label="Link to Screen Freeze">#</a></h4>
+
+<p>These are complete command lines:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">FREEZE
+WAIT 30
+UNFREEZE</code></pre></div>
+
+<p>Aliases:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">SCREEN_FREEZE
+SCREEN_PAUSE
+TRAINER_PAUSE
+FRAME_PAUSE
+RESUME
+UNPAUSE
+SCREEN_RESUME
+SCREEN_UNPAUSE
+TOGGLE_FREEZE
+TOGGLE_PAUSE
+SCREEN_PAUSE_TOGGLE</code></pre></div>
+
+<p>Use:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">TOGGLE_FREEZE</code></pre></div>
+
+<p>to flip the current freeze state.</p>
+
+<h4 id="character-switcher" data-search-heading="Character Switcher">Character Switcher<a class="heading-link" href="#character-switcher" aria-label="Link to Character Switcher">#</a></h4>
+
+<p>These are complete command lines:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">CHARACTER_SWITCH
+SWITCH_CHARACTER</code></pre></div>
+
+<p>Aliases:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">CHAR_SWITCH
+CHARACTER_SWAP
+SWAP_CHARACTER</code></pre></div>
+
+<p>This requests one Character Switcher swap. It does not enable Character Switcher by itself.</p>
+
+<p>Requirements:</p>
+
+<ul>
+<li>enable <code>Character Switcher</code> in the hook GUI before entering the stage</li>
+<li>wait until both characters have been created by Character Switcher</li>
+<li>do not use it in missions or moments where Character Switcher itself is unsafe</li>
+</ul>
+
+<p>If Character Switcher is not enabled or ready, the command does nothing and the Macro status line reports it.</p>
+
+<p>By default, a clip keeps using the header character's Action Mapping for the whole playback. If a script switches characters and then uses action names for whichever character is current, use a <code>[SWITCH]</code> header:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[V][SWITCH] Switch action route
+CHARACTER_SWITCH
+WAIT 20
+TAP STYLE_ACTION</code></pre></div>
+
+<p>Without <code>[SWITCH]</code>, a normal <code>[Nero]</code> or <code>[Dante]</code> clip keeps resolving action names through its header character after the switch.</p>
+
+<h4 id="hook-actions" data-search-heading="Hook Actions">Hook Actions<a class="heading-link" href="#hook-actions" aria-label="Link to Hook Actions">#</a></h4>
+
+<p>One Hit Kill:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">ONE_HIT_KILL ON
+ONE_HIT_KILL OFF
+ONE_HIT_KILL TOGGLE
+OHK TOGGLE</code></pre></div>
+
+<p>Aliases:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">ONEHITKILL ON
+OHK ON
+OHK OFF
+OHK ENABLE
+OHK DISABLE</code></pre></div>
+
+<p><code>ON</code> enables One Hit Kill, <code>OFF</code> disables it, and <code>TOGGLE</code> flips the current setting. <code>ENABLE</code>, <code>ENABLED</code>, <code>TRUE</code>, and <code>1</code> also mean on. <code>DISABLE</code>, <code>DISABLED</code>, <code>FALSE</code>, and <code>0</code> also mean off.</p>
+
+<h2 id="timing-and-conditional-wait" data-search-heading="Timing And Conditional Wait">Timing And Conditional Wait<a class="heading-link" href="#timing-and-conditional-wait" aria-label="Link to Timing And Conditional Wait">#</a></h2>
+
+<h3 id="wait" data-search-heading="WAIT">WAIT<a class="heading-link" href="#wait" aria-label="Link to WAIT">#</a></h3>
+
+<p><code>WAIT n</code> uses DMC4 input ticks, not milliseconds.</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">HOLD MELEE
+WAIT 1
+RELEASE MELEE</code></pre></div>
+
+<p>This is the normal fastest long-form tap. Without <code>WAIT 1</code>, the game may not see the input as held.</p>
+
+<p>One tick is one pass through DMC4's input update path. In normal play it is usually close to one rendered frame.</p>
+
+<h3 id="wait_until" data-search-heading="WAIT_UNTIL">WAIT_UNTIL<a class="heading-link" href="#wait_until" aria-label="Link to WAIT_UNTIL">#</a></h3>
+
+<p><code>WAIT_UNTIL</code> pauses macro playback until a game state becomes true, then continues on the same script.</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">WAIT_UNTIL condition [max_ticks]
+WAIT_UNTIL ANIM_FRAME [operator] frame [max_ticks]
+WAIT_UNTIL MOVEID2 [operator] value [max_ticks]</code></pre></div>
+
+<p>Aliases:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">WAITUNTIL
+UNTIL</code></pre></div>
+
+<p>If the condition becomes true earlier, playback continues immediately. <code>max_ticks</code> is a safety timeout measured in input ticks. If <code>max_ticks</code> is omitted, it defaults to <code>120</code>. While a macro is waiting, earlier <code>HOLD</code> inputs stay held until the script reaches <code>RELEASE</code>, <code>RELEASE ALL</code>, <code>CLEAR</code>, or the macro is stopped.</p>
+
+<p>How to read these templates:</p>
+
+<ul>
+<li>Words such as <code>condition</code>, <code>operator</code>, <code>frame</code>, <code>value</code>, and <code>max_ticks</code> are placeholders. Replace them with real script text.</li>
+<li>Square brackets mean optional. For example, <code>[max_ticks]</code> means you may write a timeout such as <code>180</code>, or leave it out to use the default <code>120</code>.</li>
+<li><code>WAIT_UNTIL condition [max_ticks]</code> is for simple yes/no conditions such as <code>GROUNDED</code>, <code>CAN_EXCEED</code>, <code>HITSTOP</code>, or <code>LOCKED_ON</code>.</li>
+<li><code>WAIT_UNTIL ANIM_FRAME [operator] frame [max_ticks]</code> waits for the current <code>Frame</code> number shown by Animation Overlay.</li>
+<li><code>WAIT_UNTIL MOVEID2 [operator] value [max_ticks]</code> waits for the current <code>MoveID2</code> shown by Animation Overlay. Decimal and hex values are both accepted.</li>
+</ul>
+
+<h3 id="supported-conditions" data-search-heading="Supported Conditions">Supported Conditions<a class="heading-link" href="#supported-conditions" aria-label="Link to Supported Conditions">#</a></h3>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Script condition</th><th>Meaning</th><th>Common use</th></tr></thead>
+<tbody>
+<tr><td><code>ENEMY_STEP</code></td><td>Enemy Step / jump-cancel window is available. Aliases: <code>JC</code>, <code>JUMP_CANCEL</code>.</td><td>Jump as soon as an Enemy Step can happen.</td></tr>
+<tr><td><code>GROUNDED</code></td><td>Player is currently grounded. Alias: <code>GROUND</code>.</td><td>Continue after landing.</td></tr>
+<tr><td><code>AIRBORNE</code></td><td>Player is currently airborne. Aliases: <code>AIR</code>, <code>IN_AIR</code>.</td><td>Continue after leaving the ground.</td></tr>
+<tr><td><code>CAN_EXCEED</code></td><td>Nero's next Ex-Act/Max-Act timing window after this wait begins. Alias: <code>EXCEED_WINDOW</code>.</td><td>Press Exceed at the earliest reliable timing after an attack.</td></tr>
+<tr><td><code>HITSTOP</code></td><td>Player is in hitstop or has a hitstop timer. Alias: <code>HIT_STOP</code>.</td><td>Continue when hitstop begins.</td></tr>
+<tr><td><code>HIT_CONFIRMED</code></td><td>Nearby target damage/stun/displacement changed after the wait began. Aliases: <code>HIT</code>, <code>ENEMY_HIT</code>, <code>DAMAGE</code>, <code>DAMAGE_REGISTERED</code>.</td><td>Continue only after an attack connects.</td></tr>
+<tr><td><code>LOCKED_ON</code></td><td>Player is currently locked on. Aliases: <code>LOCKON</code>, <code>LOCK_ON</code>.</td><td>Wait before lock-on dependent movement.</td></tr>
+<tr><td><code>ANIM_FRAME</code></td><td>Current runtime animation frame from Animation Overlay. Aliases: <code>FRAME</code>, <code>ANIMFRAME</code>, <code>ANIMATION_FRAME</code>.</td><td>Continue at a specific shown frame.</td></tr>
+<tr><td><code>MOVEID2</code></td><td>Runtime <code>MoveID2</code> value from Animation Overlay. Aliases: <code>MOVEID</code>, <code>MOVE_ID</code>, <code>MOVE_ID2</code>.</td><td>Continue during a specific move/action state.</td></tr>
+<tr><td><code>MOVEID2_CHANGED</code></td><td>Captures current <code>MoveID2</code> when the wait begins, then continues after it changes. Aliases: <code>MOVE_CHANGED</code>, <code>MOVE_ID_CHANGED</code>.</td><td>Continue when the current action changes to another state.</td></tr>
+<tr><td><code>FRAME_REACHED_MAX</code></td><td>Current <code>animFrame</code> reached the runtime <code>animFrameMax</code>. Aliases: <code>FRAME_MAX</code>, <code>ANIM_FRAME_MAX</code>.</td><td>Approximate &quot;animation reached its listed end&quot; checks.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="comparison-operators" data-search-heading="Comparison Operators">Comparison Operators<a class="heading-link" href="#comparison-operators" aria-label="Link to Comparison Operators">#</a></h3>
+
+<p>Comparison operators are supported for <code>ANIM_FRAME</code> and <code>MOVEID2</code>:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">==  !=  &gt;  &gt;=  &lt;  &lt;=</code></pre></div>
+
+<p>These signs mean:</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Sign</th><th>How to read it</th><th>Example meaning</th></tr></thead>
+<tbody>
+<tr><td><code>==</code></td><td>equals</td><td><code>MOVEID2 == 30</code> means &quot;MoveID2 is exactly 30&quot;.</td></tr>
+<tr><td><code>!=</code></td><td>does not equal</td><td><code>MOVEID2 != 30</code> means &quot;MoveID2 is anything except 30&quot;.</td></tr>
+<tr><td><code>&gt;</code></td><td>greater than</td><td><code>ANIM_FRAME &gt; 28</code> means &quot;frame is later than 28&quot;.</td></tr>
+<tr><td><code>&gt;=</code></td><td>greater than or equal to</td><td><code>ANIM_FRAME &gt;= 28</code> means &quot;frame has reached 28 or later&quot;.</td></tr>
+<tr><td><code>&lt;</code></td><td>less than</td><td><code>ANIM_FRAME &lt; 28</code> means &quot;frame is still before 28&quot;.</td></tr>
+<tr><td><code>&lt;=</code></td><td>less than or equal to</td><td><code>ANIM_FRAME &lt;= 28</code> means &quot;frame is 28 or earlier&quot;.</td></tr>
+</tbody>
+</table></div>
+
+<p>Word spellings such as <code>EQ</code>, <code>NOT_EQUAL</code>, <code>GREATER_THAN_OR_EQUAL</code>, and <code>LESS_THAN_OR_EQUAL</code> are also accepted, but the signs are shorter.</p>
+
+<p><code>ANIM_FRAME</code> compares the current runtime animation frame as a decimal number. If the operator is omitted, it defaults to <code>&gt;=</code>:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">WAIT_UNTIL ANIM_FRAME 28 120
+TAP MELEE</code></pre></div>
+
+<p>This is the same as:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">WAIT_UNTIL ANIM_FRAME &gt;= 28 120
+TAP MELEE</code></pre></div>
+
+<p>It means: wait until the shown animation frame reaches <code>28</code> or later. If that does not happen within <code>120</code> input ticks, continue anyway.</p>
+
+<p><code>MOVEID2</code> compares the runtime value shown by Animation Overlay. If the operator is omitted, it defaults to <code>==</code>:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">WAIT_UNTIL MOVEID2 0x0000001E 120
+TAP JUMP</code></pre></div>
+
+<p>This is the same as:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">WAIT_UNTIL MOVEID2 == 0x0000001E 120
+TAP JUMP</code></pre></div>
+
+<p>It means: wait until the shown <code>MoveID2</code> is exactly <code>0x0000001E</code>. If that does not happen within <code>120</code> input ticks, continue anyway.</p>
+
+<p>Decimal values also work:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">WAIT_UNTIL MOVEID2 == 30 120</code></pre></div>
+
+<p><code>MOVEID2_CHANGED</code> captures the current <code>MoveID2</code> when the wait begins and continues after it changes. Put it after the command that starts the action you want to leave:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">TAP MELEE
+WAIT_UNTIL MOVEID2_CHANGED 120
+TAP MELEE</code></pre></div>
+
+<p><code>FRAME_REACHED_MAX</code> checks whether <code>animFrame</code> has reached the runtime <code>animFrameMax</code> value. This is a frame display condition, so confirm the result in-game when using it to time the next action.</p>
+
+<h2 id="macro-playback-overlay-reference" data-search-heading="Macro Playback Overlay Reference">Macro Playback Overlay Reference<a class="heading-link" href="#macro-playback-overlay-reference" aria-label="Link to Macro Playback Overlay Reference">#</a></h2>
+
+<p>Enable <code>Show Macro Playback Overlay</code> in the Macro GUI.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Overlay row</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>Header</td><td>Loaded clip name and character mode.</td></tr>
+<tr><td>Progress bar</td><td>Current generated playback position in the clip.</td></tr>
+<tr><td><code>Now</code></td><td>Source line currently producing input or waiting.</td></tr>
+<tr><td><code>Next</code></td><td>Next source line associated with playback.</td></tr>
+<tr><td><code>Held</code></td><td>Action names, physical buttons, stick directions, or Hook input state currently active.</td></tr>
+<tr><td>Progress text</td><td>Current generated frame and total generated frames.</td></tr>
+</tbody>
+</table></div>
+
+<p>Nero uses a blue palette and Dante uses a red palette. <code>[SWITCH]</code> clips follow the current character's palette after a completed switch.</p>
+
+<p>The overlay displays source lines, not game animation names. A single source line such as <code>WAIT 30</code> or <code>TAP MELEE 20</code> can remain current for several input ticks.</p>
+
+<p><code>WAIT_UNTIL</code> is represented by one generated wait frame that can remain active until the condition succeeds or the timeout expires. The progress bar therefore describes the generated macro timeline, not elapsed real time inside a conditional wait.</p>
+
+<h2 id="animation-overlay-reference" data-search-heading="Animation Overlay Reference">Animation Overlay Reference<a class="heading-link" href="#animation-overlay-reference" aria-label="Link to Animation Overlay Reference">#</a></h2>
+
+<p>Enable <code>System -&gt; Custom HUD elements -&gt; Animation Overlay</code> to read runtime values while playing. The script names below use the same data shown by that overlay.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Overlay field</th><th>Script condition</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td><code>Frame: 28.0 / 61.0</code></td><td><code>ANIM_FRAME</code> compares the left/current value.</td><td><code>WAIT_UNTIL ANIM_FRAME &gt;= 28 120</code></td></tr>
+<tr><td><code>Frame: current / max</code></td><td><code>FRAME_REACHED_MAX</code> compares current frame against max.</td><td><code>WAIT_UNTIL FRAME_REACHED_MAX 120</code></td></tr>
+<tr><td><code>MoveID2: 0x0000001E</code></td><td><code>MOVEID2</code> compares the shown value. Hex and decimal are both accepted.</td><td><code>WAIT_UNTIL MOVEID2 == 0x0000001E 120</code></td></tr>
+<tr><td><code>MoveID2</code> changes after a command</td><td><code>MOVEID2_CHANGED</code> waits for any different <code>MoveID2</code>.</td><td><code>WAIT_UNTIL MOVEID2_CHANGED 120</code></td></tr>
+<tr><td><code>State: grounded</code></td><td><code>GROUNDED</code></td><td><code>WAIT_UNTIL GROUNDED 180</code></td></tr>
+<tr><td><code>State: airborne</code></td><td><code>AIRBORNE</code></td><td><code>WAIT_UNTIL AIRBORNE 60</code></td></tr>
+<tr><td><code>State: hitstop</code></td><td><code>HITSTOP</code></td><td><code>WAIT_UNTIL HITSTOP 60</code></td></tr>
+<tr><td><code>State: locked-on</code></td><td><code>LOCKED_ON</code></td><td><code>WAIT_UNTIL LOCKED_ON 30</code></td></tr>
+</tbody>
+</table></div>
+
+<p>The overlay is read-only. It helps you observe the current player state while you practice or tune scripts.</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">Anim:   current animation ID
+MoveID2: runtime action/state value
+Part:   action phase value
+Frame:  current animation frame / max frame
+State:  grounded or airborne, plus hitstop and lock-on flags when active</code></pre></div>
+
+<p>Field notes:</p>
+
+<ul>
+<li><code>Anim</code> is the current runtime animation ID. It is useful for comparing whether two actions use the same animation, but it is not shown as a move name.</li>
+<li><code>MoveID2</code> is a runtime action/state value shown as an 8-digit hex number. Use it with <code>WAIT_UNTIL MOVEID2</code> or <code>WAIT_UNTIL MOVEID2_CHANGED</code>.</li>
+<li><code>Part</code> is a phase value inside the current action. It can help you see that an action moved from one part to another, but it is not a universal startup/active/recovery label.</li>
+<li><code>Frame</code> is the current runtime animation frame. When the max frame value is available, the overlay shows <code>current / max</code>, such as <code>Frame: 12.5 / 38.0</code>.</li>
+<li><code>State</code> shows quick flags such as <code>grounded</code>, <code>airborne</code>, <code>hitstop</code>, and <code>locked-on</code>.</li>
+</ul>
+
+<p><code>Show Advanced Animation Fields</code> also displays:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">Bank:          animation bank value
+Ground Raw:    raw player ground state
+Ground2:       secondary player ground flag
+Land Flag:     collision land flag
+Hitstop Timer: current hitstop timer value</code></pre></div>
+
+<p>Advanced field notes:</p>
+
+<ul>
+<li><code>Ground Raw</code> is the main value used for grounded/airborne display. In current builds, <code>1</code> is treated as grounded and <code>2</code> as airborne.</li>
+<li><code>Ground2</code> is a secondary ground flag used as a fallback.</li>
+<li><code>Land Flag</code> can remain set briefly during jumps, so use the main <code>State</code> display first for normal scripts.</li>
+<li><code>Hitstop Timer</code> helps you see when timing is being paused or delayed by hitstop.</li>
+</ul>
+
+<p>Recommended tuning workflow:</p>
+
+<ol>
+<li>Turn on Animation Overlay.</li>
+<li>Perform the action manually or play the macro once.</li>
+<li>Note the displayed <code>Frame</code> and <code>MoveID2</code> values at the moment you want.</li>
+<li>Add the matching <code>WAIT_UNTIL</code> condition to the script.</li>
+<li>Use a larger timeout such as <code>180</code> or <code>240</code> while tuning longer actions if the default <code>120</code> is too short.</li>
+</ol>
+
+<h2 id="macro-setup-blocks" data-search-heading="Macro Setup Blocks">Macro Setup Blocks<a class="heading-link" href="#macro-setup-blocks" aria-label="Link to Macro Setup Blocks">#</a></h2>
+
+<p>A macro file may contain one <code>[Setup]</code> block before the clip sections. Macro Setup is a separate practice workflow from Battle Snapshot.</p>
+
+<p>Basic layout:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[Setup]
+Character Nero
+Room BP 4
+Player 120.0 0.0 -80.0 Face 90
+Camera Pos 10.0 250.0 -300.0 Target 100.0 80.0 -50.0 Fov 45
+Enemy 1 Frost Pos 200.0 0.0 -60.0 Face 180
+Enemy 2 Frost Pos 260.0 0.0 -30.0 Face 180
+[/Setup]
+
+[F1][Nero] Frost combo test
+TAP MELEE</code></pre></div>
+
+<p>Rules:</p>
+
+<ul>
+<li>Put <code>[Setup]</code> before all macro clips.</li>
+<li>End it with <code>[/Setup]</code>.</li>
+<li>Only one setup block is supported per file.</li>
+<li>A Setup-only file with no clip sections is valid for <code>Load Setup</code>.</li>
+<li><code>Copy Current Setup</code> copies a setup block from the current scene.</li>
+<li><code>Load Setup</code> prepares the selected macro file's setup without playing a clip.</li>
+<li><code>Load Setup + Play Macro</code> prepares the setup, waits <code>Setup Play Delay Ticks</code>, then starts the selected clip.</li>
+<li><code>Play Macro</code> and <code>Load Setup + Play Macro</code> require at least one clip.</li>
+<li>Battle Snapshot buttons always use the captured Battle Snapshot. They do not inspect <code>[Setup]</code>.</li>
+<li>Setup can switch to the requested character and load the requested room.</li>
+<li>Setup waits for native room enemies, then generates missing enemy types through the Hook's Enemy Spawn feature.</li>
+<li>Existing matching enemies are reused. Extra enemies are not removed.</li>
+<li>Setup then repositions the player, matched enemies, and camera.</li>
+<li><code>Copy Current Setup</code> skips dead enemies and cleanup objects that are no longer valid battle targets.</li>
+<li>A failed character switch, room load, or enemy spawn stops Setup and prevents playback.</li>
+</ul>
+
+<p>Setup line formats:</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Line</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>Character Nero</code></td><td>Start as Nero. If Character Switcher is available and Dante is active, the mod switches to Nero before applying the setup.</td></tr>
+<tr><td><code>Character Dante</code></td><td>Start as Dante.</td></tr>
+<tr><td><code>Room BP 4</code></td><td>Load Bloody Palace floor 4. The player must already be inside Bloody Palace.</td></tr>
+<tr><td><code>Room 705</code> or <code>Room ID 705</code></td><td>Load room ID 705 through the Hook's Area Jump feature.</td></tr>
+<tr><td><code>Player x y z Face degrees</code></td><td>Restore player position and facing direction. <code>Face</code> is written in degrees.</td></tr>
+<tr><td><code>Camera Pos x y z Target x y z Fov value</code></td><td>Restore camera position, target, and FOV. <code>Up x y z</code> may also be included.</td></tr>
+<tr><td><code>Enemy n type Pos x y z Face degrees</code></td><td>Reuse or generate one enemy of this type, then apply its position and facing. The number is a readable setup label. Matching is by live enemy type order, not by an internal pointer.</td></tr>
+</tbody>
+</table></div>
+
+<p>Enemy names may be written as readable names or IDs. Common names include:</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Name</th><th>Enemy</th></tr></thead>
+<tbody>
+<tr><td><code>Scarecrow_Leg</code> / <code>Leg</code></td><td>Leg Scarecrow</td></tr>
+<tr><td><code>Scarecrow_Arm</code> / <code>Arm</code></td><td>Arm Scarecrow</td></tr>
+<tr><td><code>Mega_Scarecrow</code> / <code>Mega</code></td><td>Mega Scarecrow</td></tr>
+<tr><td><code>Bianco_Angelo</code> / <code>Bianco</code></td><td>Bianco Angelo</td></tr>
+<tr><td><code>Alto_Angelo</code> / <code>Alto</code></td><td>Alto Angelo</td></tr>
+<tr><td><code>Mephisto</code></td><td>Mephisto</td></tr>
+<tr><td><code>Faust</code></td><td>Faust</td></tr>
+<tr><td><code>Frost</code></td><td>Frost</td></tr>
+<tr><td><code>Assault</code></td><td>Assault</td></tr>
+<tr><td><code>Blitz</code></td><td>Blitz</td></tr>
+<tr><td><code>Chimera</code> / <code>Chimera_Seed</code></td><td>Chimera Seed</td></tr>
+<tr><td><code>Cutlass</code></td><td>Cutlass</td></tr>
+<tr><td><code>Gladius</code></td><td>Gladius</td></tr>
+<tr><td><code>Basilisk</code></td><td>Basilisk</td></tr>
+<tr><td><code>Berial</code></td><td>Berial</td></tr>
+<tr><td><code>Bael</code></td><td>Bael</td></tr>
+<tr><td><code>Echidna</code></td><td>Echidna</td></tr>
+<tr><td><code>Credo</code></td><td>Angelo Credo</td></tr>
+<tr><td><code>Agnus</code></td><td>Angelo Agnus</td></tr>
+<tr><td><code>Sanctus</code> / <code>Sanctus2</code></td><td>Sanctus variants</td></tr>
+</tbody>
+</table></div>
+
+<p>The easiest way to make a setup is to arrange the room in-game, open the Macro GUI, click <code>Copy Current Setup</code>, then paste the copied block before your clip sections. The copied values use high float precision so they can round-trip through the text file cleanly. Dead enemies and cleanup objects are not copied.</p>
+
+<p>Generated enemies are created by DMC4's normal enemy factory in the current game context. Difficulty, game mode, room, and Bloody Palace state can affect their HP or behavior. Setup does not promise an exact copy of the original room wave: it does not restore wave membership, clear conditions, current AI decisions, internal timers, projectiles, effects, or other hidden battle state.</p>
+
+<h2 id="common-recipes" data-search-heading="Common Recipes">Common Recipes<a class="heading-link" href="#common-recipes" aria-label="Link to Common Recipes">#</a></h2>
+
+<p>Triple Lv3 EX melee chain:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[V][X/SQUARE][Nero] Triple EX melee
+TAP MELEE
+WAIT_UNTIL CAN_EXCEED 120
+TAP EXCEED
+TAP MELEE
+WAIT_UNTIL CAN_EXCEED 120
+TAP EXCEED
+TAP MELEE
+WAIT_UNTIL CAN_EXCEED 120
+TAP EXCEED</code></pre></div>
+
+<p>Devil Trigger after a back-forward melee input finishes. <code>160</code> is used here because <code>120</code> can be too short for this <code>MOVEID2</code> change:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F1][RB/R1][Nero] Back-forward melee to DT
+HOLD LOCK_ON
+WAIT 1
+BACK_FORWARD MOVE_RIGHT MOVE_LEFT MELEE
+WAIT_UNTIL MOVEID2_CHANGED 160
+TAP DEVIL_TRIGGER
+WAIT 1
+RELEASE LOCK_ON</code></pre></div>
+
+<p>Shuffle after Split. The <code>WAIT 15</code> after landing is important; sending the next directional input earlier can be too early for the game to accept it:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F2][Y/TRIANGLE][Nero] Split to Shuffle
+HOLD LOCK_ON
+WAIT 1
+DIR MOVE_LEFT Y 1
+WAIT_UNTIL GROUNDED
+WAIT 15
+BACK_FORWARD MOVE_RIGHT MOVE_LEFT MELEE
+WAIT 10
+RELEASE LOCK_ON</code></pre></div>
+
+<p>Act when the shown animation frame reaches 28:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F3][A/CROSS][Nero] Frame wait
+TAP MELEE
+WAIT_UNTIL ANIM_FRAME &gt;= 28 120
+TAP MELEE</code></pre></div>
+
+<p>Act when a specific <code>MoveID2</code> appears:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F4][B/CIRCLE][Nero] MoveID2 wait
+TAP MELEE
+WAIT_UNTIL MOVEID2 == 0x0000001E 120
+TAP JUMP</code></pre></div>
+
+<p>Act after landing:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F5][LT/L2][Nero] Landing action
+TAP JUMP
+WAIT_UNTIL GROUNDED 180
+TAP MELEE</code></pre></div>
+
+<p>Enemy Step as soon as possible:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F6][RT/R2][Nero] Enemy Step
+TAP MELEE
+WAIT_UNTIL ENEMY_STEP 120
+TAP JUMP</code></pre></div>
+
+<p>Use a larger timeout for <code>ENEMY_STEP</code> while tuning if the default <code>120</code> is too short. If Nero or Dante is too far away and the jump-cancel window never appears, the macro continues when the timeout is reached and any previous <code>HOLD</code> inputs remain active until the script releases or clears them.</p>
+
+<p>Only continue after an attack connects:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F7][LB/L1][Nero] Hit confirm
+TAP MELEE
+WAIT_UNTIL HIT_CONFIRMED 120
+TAP JUMP</code></pre></div>
+
+<p>Dante D-pad Down followed by the current style action:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F8][B/CIRCLE][Dante] D-pad and style action
+TAP DOWN
+WAIT 1
+TAP STYLE_ACTION</code></pre></div>
+
+<p>This presses D-pad Down and then Dante's mapped <code>STYLE_ACTION</code>. It does not force Royalguard. Replace <code>DOWN</code> with the physical input used by your controller layout.</p>
+
+<p>Short screen freeze:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F9][DPAD_UP][Nero] Freeze test
+FREEZE
+WAIT 30
+UNFREEZE</code></pre></div>
+
+<p>Move, slow walk, and camera control:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[F10][START/OPTIONS][Nero] Movement and camera
+HOLD MOVE_RIGHT
+WAIT 20
+RELEASE MOVE_RIGHT
+HOLD WALK_LEFT
+WAIT 20
+RELEASE WALK_LEFT
+HOLD CAM_LEFT
+WAIT 20
+RELEASE CAM_LEFT</code></pre></div>
+
+<h2 id="common-script-misunderstandings" data-search-heading="Common Script Misunderstandings">Common Script Misunderstandings<a class="heading-link" href="#common-script-misunderstandings" aria-label="Link to Common Script Misunderstandings">#</a></h2>
+
+<ul>
+<li>Input names alone do nothing. Write <code>TAP MELEE</code>, not just <code>MELEE</code>.</li>
+<li><code>WAIT</code> is not a section separator. You can place several commands before or after one <code>WAIT</code>.</li>
+<li><code>+</code> combines inputs for one command. It does not mean &quot;do the left input, then the right input.&quot;</li>
+<li><code>+</code> is not limited to two inputs. Longer combinations are valid when every item is a valid input.</li>
+<li>Multi-input <code>TAP</code> lines need <code>+</code>. Write <code>TAP JUMP+MELEE</code>, not <code>TAP JUMP MELEE</code>.</li>
+<li>Opposite stick directions cancel. Do not combine <code>MOVE_LEFT+MOVE_RIGHT</code>, <code>MOVE_FORWARD+MOVE_BACK</code>, or <code>CAM_LEFT+CAM_RIGHT</code>.</li>
+<li><code>[Ctrl+1]</code> is a keyboard hotkey. <code>JUMP+MELEE</code> inside an input command is simultaneous game input.</li>
+<li><code>TAP</code> does not wait for a move to finish. It only sends the input, then the next macro line may run.</li>
+<li><code>HOLD</code> does not release by itself. Release it later, clear macro input, or stop the macro.</li>
+<li><code>RELEASE</code> only releases macro-held input. It does not cancel a game action that already started.</li>
+<li>Action names and physical buttons are different. <code>TAP MELEE</code> follows the clip character's Action Mapping, or the current character in a <code>[SWITCH]</code> clip. <code>TAP Y</code> always presses the physical <code>Y / TRIANGLE</code> button.</li>
+<li>Movement names are left-stick directions. <code>MOVE_LEFT</code> is not the keyboard <code>A</code> key; <code>LEFT</code> is D-pad Left.</li>
+<li>Camera names are right-stick movement. <code>CAM_LEFT</code> or <code>RS_LEFT</code> moves the camera; <code>RS</code> is the right-stick click button.</li>
+<li><code>CHANGE_STYLE_RG</code> is only a readable alias for D-pad Down. It does not inspect Dante's controller settings or force Royalguard.</li>
+<li>The gamepad tag in a header, such as <code>[F1][X/SQUARE][Nero]</code>, is a clip shortcut. It is not the first input line of the script.</li>
+</ul>
+
+<h2 id="error-and-troubleshooting-index" data-search-heading="Error And Troubleshooting Index">Error And Troubleshooting Index<a class="heading-link" href="#error-and-troubleshooting-index" aria-label="Link to Error And Troubleshooting Index">#</a></h2>
+
+<ul>
+<li>Invalid token: check spelling, character tag, and Action Mapping validity, then save the macro file so it auto-reloads.</li>
+<li><code>Line X: section header must include [Nero], [Dante], or [Switch]</code>: add a character mode after the hotkey.</li>
+<li>Action names are wrong after <code>CHARACTER_SWITCH</code>: use a <code>[SWITCH]</code> header, for example <code>[V][SWITCH]</code>, and wait briefly after <code>CHARACTER_SWITCH</code>.</li>
+<li><code>Line X: invalid HOLD/TAP/RELEASE input</code>: the input name is misspelled or not valid for the clip's character.</li>
+<li><code>Macro file is too long or TAP input is invalid</code>: check that multi-input TAP uses <code>+</code>, that the optional final argument is a number, and that every action is valid for the clip character.</li>
+<li><code>Macro file is too long</code>: the clip exceeded <code>600000</code> generated playback frames. Reduce very long <code>WAIT</code> or <code>TAP ... ticks</code> ranges.</li>
+<li>Exceed becomes the wrong action: make sure the clip header is <code>[...][Nero]</code>, use <code>EXCEED</code>, and set Nero Action Mapping <code>EXCEED</code> to your in-game Exceed button.</li>
+<li><code>TAP L2</code> behaves differently from <code>TAP EXCEED</code>: <code>L2</code> is the physical trigger; <code>EXCEED</code> is the Nero action name.</li>
+<li>Camera does not move: use <code>CAM_LEFT</code> / <code>RS_LEFT</code>, not plain <code>RS</code>.</li>
+<li>Target does not change: use <code>CHANGE_TARGET</code> while locked on, and make sure the clip's Nero/Dante Action Mapping table matches your in-game controller settings.</li>
+<li>Directional move comes out on the wrong side: swap <code>MOVE_LEFT</code> and <code>MOVE_RIGHT</code>, or swap <code>MOVE_FORWARD</code> and <code>MOVE_BACK</code>.</li>
+<li><code>WAIT_UNTIL</code> continues too early or too late: write an explicit timeout, confirm the value with Animation Overlay, and check whether the condition is for Nero, Dante, grounded state, hitstop, or Enemy Step range.</li>
+<li>Macro Setup cannot load a BP floor: enter Bloody Palace first.</li>
+<li>Macro Setup cannot load a room: confirm that the <code>Room ID</code> exists in the Hook's Area Jump list.</li>
+<li>Macro Setup cannot generate an enemy: the current Enemy Spawn feature does not support that type. Existing matching enemies can still be used.</li>
+<li>Battle Snapshot refuses to load: the captured room, player, camera, encounter, or enemy lifecycle no longer matches. Return to the original setup or capture again.</li>
+</ul>
+
+<p>After an unhandled crash, send the matching folder from:</p>
+
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">Devil May Cry 4\dmc4_hook_crashes\&lt;timestamp_pid&gt;\</code></pre></div>
+
+<p>Include what you were doing, the selected macro file and clip, and whether Macro, Character Switcher, Snapshot, or Area Jump was enabled.</p>
+</article>
+</main>
+<script>
+const content = document.getElementById("document-content");
+const searchInput = document.getElementById("doc-search");
+const searchResults = document.getElementById("search-results");
+const searchable = Array.from(content.querySelectorAll("h1, h2, h3, h4, p, li, tr, pre"));
+
+function nearestHeading(element) {
+  if (/^H[1-4]$/.test(element.tagName)) {
+    return element;
+  }
+
+  let current = element.previousElementSibling;
+  while (current) {
+    if (/^H[1-4]$/.test(current.tagName)) {
+      return current;
+    }
+    current = current.previousElementSibling;
+  }
+  return content.querySelector("h1");
+}
+
+function runSearch() {
+  const query = searchInput.value.trim().toLowerCase();
+  searchResults.innerHTML = "";
+  if (query.length < 2) {
+    searchResults.classList.remove("active");
+    return;
+  }
+
+  const seen = new Set();
+  const matches = [];
+  for (const element of searchable) {
+    const text = element.textContent.replace(/\s+/g, " ").trim();
+    if (!text.toLowerCase().includes(query)) {
+      continue;
+    }
+
+    const heading = nearestHeading(element);
+    const id = heading && heading.id ? heading.id : "top";
+    const key = id + "|" + text.slice(0, 90);
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    matches.push({
+      id,
+      text,
+      heading: heading ? heading.textContent.replace(/#$/, "").trim() : "Top",
+    });
+    if (matches.length >= 12) {
+      break;
+    }
+  }
+
+  searchResults.classList.add("active");
+  if (matches.length === 0) {
+    searchResults.innerHTML = '<div class="search-empty">No matches on this page.</div>';
+    return;
+  }
+
+  for (const match of matches) {
+    const link = document.createElement("a");
+    link.href = "#" + match.id;
+    link.textContent = match.heading + ": " + match.text.slice(0, 105);
+    link.addEventListener("click", () => searchResults.classList.remove("active"));
+    searchResults.appendChild(link);
+  }
+}
+
+searchInput.addEventListener("input", runSearch);
+searchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    searchInput.value = "";
+    searchResults.classList.remove("active");
+  }
+});
+
+for (const button of document.querySelectorAll(".copy-code")) {
+  button.addEventListener("click", async () => {
+    const codeElement = button.parentElement.querySelector("code");
+    try {
+      await navigator.clipboard.writeText(codeElement.textContent);
+      button.textContent = "Copied";
+      window.setTimeout(() => { button.textContent = "Copy"; }, 1200);
+    }
+    catch {
+      button.textContent = "Select";
+      const range = document.createRange();
+      range.selectNodeContents(codeElement);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  });
+}
+</script>
+</body>
+</html>

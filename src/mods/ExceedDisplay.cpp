@@ -35,6 +35,10 @@ static int exceedChartIndex = 0;
 static ExceedAttemptEntry exceedAttemptChart[EXCEED_CHART_SIZE];
 static int exceedAttemptIndex = 0;
 static void update_exceed_chart_tick(uPlayer* player) {
+    if (!player || player->controllerID != 1) {
+        return;
+    }
+
     exceedChart[exceedChartIndex] = { exceedTimeline, player->exceedTimer, player->canExceed == 1 };
     exceedChartIndex = (exceedChartIndex + 1) % EXCEED_CHART_SIZE;
 }
@@ -44,6 +48,10 @@ static void update_exceed_chart_attempt() {
     exceedAttemptIndex = (exceedAttemptIndex + 1) % EXCEED_CHART_SIZE;
 }
 static void record_exceed_press_time(uPlayer* player) {
+    if (!player || player->controllerID != 1) {
+        return;
+    }
+
     exceedPressTime = std::chrono::high_resolution_clock::now();
     exceedTimerSnapshot = player->exceedTimer;
 }
@@ -143,6 +151,7 @@ void ExceedDisplay::on_frame(fmilliseconds& dt) {
         float exceedTimeSeconds = std::chrono::duration<float>(exceedPressTime - exceedWindowTime).count();
         static const float frameTime = 1.0f / 60.0f; // 0.01667f
         float exceedTimeFrames = exceedTimeSeconds / frameTime;
+        float exceedTimer = player->exceedTimer;
 
         ImGui::Begin("Exceed Timer UI", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground);
         ImGui::SetWindowPos(windowPos, ImGuiCond_Once);
@@ -154,7 +163,7 @@ void ExceedDisplay::on_frame(fmilliseconds& dt) {
         ImGui::SliderFloat("##exceedTimerSnapshot", &exceedTimerSnapshot, 0.0f, 10.0f);
         ImGui::SameLine();
         help_marker(_("This slider shows a snapshot of what the exceed timer read when the exceed button was pressed"));
-        ImGui::SliderFloat("##exceedTimer", &player->exceedTimer, 0.0f, 10.0f);
+        ImGui::SliderFloat("##exceedTimer", &exceedTimer, 0.0f, 10.0f);
         ImGui::SameLine();
         help_marker(_("This slider shows the exceed timer in realtime"));
         ImGui::PopItemWidth();

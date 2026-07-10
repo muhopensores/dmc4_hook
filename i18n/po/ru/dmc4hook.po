@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-07 11:54+0100\n"
+"POT-Creation-Date: 2026-07-09 10:57+0100\n"
 "PO-Revision-Date: 2024-04-17 21:13+0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -56,7 +56,7 @@ msgid "Character"
 msgstr "Иероглиф"
 
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:335
-#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:700
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:698
 msgid "Nero"
 msgstr ""
 
@@ -101,11 +101,11 @@ msgid "Memes"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:415
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:25
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:143
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:197
-#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:700
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:465
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:176
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:294
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:200
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:698
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:536
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:116
 msgid "Dante"
 msgstr ""
@@ -327,29 +327,29 @@ msgstr "Лицензии"
 msgid "Search"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:334
+#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:333
 #, c-format
 msgid "Version: %s"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:335
+#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:334
 #, c-format
 msgid "Date: %s"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:337
+#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:336
 msgid "Menu Key: Delete"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:339
+#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:338
 msgid "Save config"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:398
+#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:397
 msgid "dmc4_hook (Keyboard)"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:407
+#: C:\vs_projects\dmc4_hook\src\ModFramework.cpp:406
 msgid "dmc4_hook (Pad)"
 msgstr ""
 
@@ -440,97 +440,87 @@ msgstr "Кусочек Ангела"
 msgid "Mapped to forward + snatch"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:79
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:107
 msgid "grounded"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:79
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:107
 msgid "airborne"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:81
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:109
 msgid ", hitstop"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:84
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:112
 msgid ", locked-on"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:111
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:192
 #, c-format
-msgid "Anim: 0x%04X"
+msgid "Part %u"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:112
-#, c-format
-msgid "MoveID2: 0x%08X"
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:255
+msgid "Animation"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:113
-#, c-format
-msgid "Part: %u"
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:260
+msgid "Frame  "
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:115
-#, c-format
-msgid "Frame: %.1f / %.1f"
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:264
+msgid "MoveID2"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:118
-#, c-format
-msgid "Frame: %.1f"
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:265
+msgid "Anim"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:121
-#, c-format
-msgid "State: %s"
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:266
+msgid "Move Part"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:125
-#, c-format
-msgid "Bank: 0x%X"
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:271
+msgid "Bank"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:126
-#, c-format
-msgid "Ground Raw: %u"
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:272
+msgid "Ground Raw"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:127
-#, c-format
-msgid "Ground2: %u"
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:273
+msgid "Ground2"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:128
-#, c-format
-msgid "Land Flag: %s"
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:274
+msgid "Land Flag"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:128
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:274
 msgid "n/a"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:129
-#, c-format
-msgid "Hitstop Timer: %.1f"
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:277
+msgid "Hitstop"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:141
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:292
 msgid "Animation Overlay"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:143
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:294
 msgid ""
 "Shows the local player's read-only animation state directly on the game "
 "screen. Frame max is the runtime max frame value, not a verified resource-"
 "file total frame count."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:146
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:297
 msgid "Show Advanced Animation Fields"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:148
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:299
 msgid ""
 "Adds lower-level values such as animation bank, raw ground flags, and "
 "hitstop timer."
@@ -637,578 +627,586 @@ msgstr ""
 msgid "Difficulty##Arcade Mode Combo"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:20
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:124
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:183
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:457
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:171
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:275
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:186
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:528
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:108
 msgid "Berial"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:21
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:125
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:184
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:458
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:172
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:276
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:187
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:529
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:109
 msgid "Bael"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:22
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:127
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:185
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:459
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:173
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:278
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:188
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:530
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:110
 msgid "Echidna"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:23
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:461
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:174
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:532
 msgid "Agnus"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:24
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:460
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:175
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:531
 msgid "Credo"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:26
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:177
 msgid "Opera House"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:27
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:178
 msgid "Opera House Plaza"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:28
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:179
 msgid "Storehouse"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:29
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:180
 msgid "Cathedral"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:30
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:181
 msgid "Terrace / Business District"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:31
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:182
 msgid "Residential District"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:32
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:183
 msgid "Port Caerula"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:33
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:184
 msgid "Customs House"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:34
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:185
 msgid "First Mining Area"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:35
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:186
 msgid "Ferrum Hills"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:36
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:187
 msgid "M17 Opera House"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:37
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:188
 msgid "M17 Opera House Plaza"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:38
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:189
 msgid "Business District / Terrace"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:39
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:190
 msgid "M20 Opera House Plaza"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:40
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:191
 msgid "Second Mining Area"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:41
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:192
 msgid "Fortuna Castle Gate"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:42
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:193
 msgid "Grand Hall - Fortuna Castle"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:43
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:194
 msgid "Large Hall"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:44
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:195
 msgid "Dining Room"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:45
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:196
 msgid "Torture Chamber"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:46
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:197
 msgid "Central Courtyard"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:47
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:198
 msgid "Foris Falls - Bridge Area"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:48
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:199
 msgid "Gallery"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:49
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:200
 msgid "Library"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:50
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:201
 msgid "Soldier's Graveyard"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:51
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:202
 msgid "Master's Chamber"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:52
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:203
 msgid "Spiral Well"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:53
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:204
 msgid "Underground Laboratory"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:54
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:205
 msgid "R&D Access"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:55
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:206
 msgid "Game Room"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:56
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:207
 msgid "Containment Room"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:57
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:208
 msgid "Angel Creation"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:58
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:209
 msgid "Foris Falls - Detour Area"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:59
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:210
 msgid "Forest Entrance"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:60
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:211
 msgid "Windswept Valley"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:61
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:212
 msgid "Ruined Church"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:62
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:213
 msgid "Ruined Valley"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:63
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:214
 msgid "Ancient Training Ground"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:64
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:215
 msgid "Lapis River"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:65
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:216
 msgid "Ancient Plaza"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:66
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:217
 msgid "Den of the She-Viper"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:67
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:218
 msgid "Forgotten Ruins"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:68
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:219
 msgid "Hidden Pit"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:69
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:220
 msgid "Ruined Lowlands"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:70
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:221
 msgid "Lost Woods"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:71
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:222
 msgid "Gran Album Bridge"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:72
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:223
 msgid "Grand Hall - Order of the Sword HQ"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:73
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:224
 msgid "Key Chamber"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:74
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:225
 msgid "The Gauntlet"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:75
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:226
 msgid "Agnus' Room"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:76
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:227
 msgid "Security Corridor"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:77
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:228
 msgid "Experiment Disposal"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:78
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:229
 msgid "Meeting Room"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:79
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:230
 msgid "Ascension Chamber"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:80
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:231
 msgid "Advent Chamber"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:81
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:232
 msgid "Machina Ex Deus"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:82
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:233
 msgid "Stairway to Heaven"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:83
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:234
 msgid "Sacred Heart"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:84
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:235
 msgid "Sky Above Fortuna (M18)"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:85
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:236
 msgid "Sky Above Fortuna"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:86
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:237
 msgid "Secret Mission 1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:87
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:238
 msgid "Secret Mission 2"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:88
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:239
 msgid "Secret Mission 3"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:89
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:240
 msgid "Secret Mission 4"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:90
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:241
 msgid "Secret Mission 5"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:91
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:242
 msgid "Secret Mission 6"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:92
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:243
 msgid "Secret Mission 7"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:93
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:244
 msgid "Secret Mission 8"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:94
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:245
 msgid "Secret Mission 9"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:95
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:246
 msgid "Secret Mission 10"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:96
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:247
 msgid "Secret Mission 11"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:97
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:248
 msgid "Secret Mission 12"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:98
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:249
 msgid "Bloody Palace 1-19"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:99
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:250
 msgid "Bloody Palace 21-39"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:100
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:251
 msgid "Bloody Palace 41-59"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:101
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:252
 msgid "Bloody Palace 61-79"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:102
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:253
 msgid "Bloody Palace 81-99"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:106
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:169
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:257
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:172
 msgid "Scarecrow Leg"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:107
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:170
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:258
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:173
 msgid "Scarecrow Arm"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:108
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:259
 msgid "Chimera Legcrow"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:109
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:171
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:447
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:260
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:174
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:518
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:96
 msgid "Mega Scarecrow"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:110
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:261
 msgid "Chimera Armcrow"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:111
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:172
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:448
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:262
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:175
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:519
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:97
 msgid "Bianco Angelo"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:112
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:173
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:449
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:263
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:176
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:520
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:98
 msgid "Alto Angelo"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:113
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:264
 msgid "Chimera Mega"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:114
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:174
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:450
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:265
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:177
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:521
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:99
 msgid "Mephisto"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:115
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:175
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:451
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:266
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:178
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:522
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:100
 msgid "Faust"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:116
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:176
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:452
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:267
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:179
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:523
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:101
 msgid "Frost"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:117
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:177
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:453
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:268
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:180
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:524
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:102
 msgid "Assault"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:118
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:178
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:454
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:269
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:181
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:525
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:103
 msgid "Blitz"
 msgstr "Блиц"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:119
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:179
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:455
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:270
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:182
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:526
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:104
 msgid "Chimera Seed"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:120
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:271
 msgid "Chimera Assault"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:121
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:180
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:272
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:183
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:105
 msgid "Cutlass"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:122
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:181
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:273
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:184
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:106
 msgid "Gladius"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:123
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:182
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:456
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:274
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:185
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:527
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:107
 msgid "Basilisk"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:128
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:186
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:279
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:189
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:111
 msgid "Angelo Credo"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:129
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:187
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:280
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:190
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:112
 msgid "Angelo Agnus"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:734
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:901
 msgid "Restart BP stage"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:735
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:902
 msgid "Next BP stage"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:814
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:981
 msgid "Bloody Palace"
 msgstr "Кровавый Дворец"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:822
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:988
 msgid "Save BP Progress"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:845
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:994
 msgid "Save stage, timer, orbs, hp, dt, style points"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:847
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:996
 msgid "Teleport"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:852
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:1000
 msgid "Load BP Progress"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:866
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:1004
 msgid ""
 "Press Load after loading into BP\n"
 "Loads saved stage, timer, orbs, hp, dt, style points"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:872
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:1009
 #, c-format
 msgid "Stage %d: %s"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:874
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:1011
 #, c-format
 msgid "Stage %d: Empty"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:878
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:1013
+msgid "Bloody Palace teleport is available after loading into gameplay."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:1016
+msgid "BP Progress restore pending..."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:1020
 msgid "Mission Area Teleports"
 msgstr "Область Миссии Телепортирует"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:911
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:1053
 msgid "Random BP"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:916
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:1058
 msgid "All stages will be randomized"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:918
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:1060
 msgid "BP Boss Rush"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:920
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:1062
 msgid ""
 "Only boss stages will be played\n"
 "Enable before selecting BP"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:923
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:1065
 msgid "View Randomized Stages"
 msgstr "Представление Рандомизированные Стадии"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:924
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:1066
 msgid "Stage Number"
 msgstr "Число Стадии"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:926
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:1068
 msgid "Random Stage"
 msgstr "Случайная Стадия"
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:188
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:191
 msgid "Savior"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:189
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:192
 msgid "Savior2"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:190
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:193
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:196
 msgid "Credo human form"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:191
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:462
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:194
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:533
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:113
 msgid "Sanctus"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:192
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:195
 msgid "Sanctus2"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:194
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:197
 msgid "Savior3"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:195
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:198
 msgid "Style checker"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:196
+#: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:199
 msgid "Kyrie, pl022"
 msgstr ""
 
@@ -1498,11 +1496,11 @@ msgstr ""
 msgid "Half the charge time on Blue Rose"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:766
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:960
 msgid "Character Switcher"
 msgstr "Переключатель Иероглифа"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:771
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:965
 msgid ""
 "Enable before loading into a stage\n"
 "On keyboard this is currently locked to F\n"
@@ -1511,51 +1509,51 @@ msgid ""
 "- Style drains twice as fast\n"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:779
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:973
 msgid "Input 1"
 msgstr "Вводят 1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:792
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:986
 msgid "Set a button combo to trigger the switch"
 msgstr "Устанавливают компанию кнопки приводить в действие переключатель"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:793
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:987
 msgid "Input 2"
 msgstr "Вводят 2"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:807
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:1001
 msgid "Inertia carryover"
 msgstr "Переходящий остаток инерции"
 
-#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:811
+#: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:1005
 msgid "Enable inertia carryover on switching"
 msgstr "Позволяют переходящий остаток инерции на переключении"
 
-#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:704
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:702
 msgid "Coop mode"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:723
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:721
 msgid "Enable split-screen co-op"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:726
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:724
 msgid "Player Number"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:749
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:747
 msgid "Picking Dante while you are Nero will crash. The opposite is fine"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:750
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:748
 msgid "Refresh cam"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:756
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:754
 msgid "Spawn Nero##Coop"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:763
+#: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:761
 msgid "Spawn Dante##Coop"
 msgstr ""
 
@@ -1981,123 +1979,123 @@ msgstr "Враги DT Немедленно"
 msgid "If available, enemies will Devil Trigger instantly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:421
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:492
 msgid "Replace Scarecrow (Leg) with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:422
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:493
 msgid "Replace Scarecrow (Arm) with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:423
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:494
 msgid "Replace Mega Scarecrow with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:424
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:495
 msgid "Replace Bianco Angelo with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:425
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:496
 msgid "Replace Alto Angelo with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:426
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:497
 msgid "Replace Mephisto with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:427
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:498
 msgid "Replace Faust with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:428
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:499
 msgid "Replace Frost with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:429
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:500
 msgid "Replace Assault with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:430
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:501
 msgid "Replace Blitz with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:431
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:502
 msgid "Replace Chimera Seed with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:432
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:503
 msgid "Replace Basilisk with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:433
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:504
 msgid "Replace Berial with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:434
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:505
 msgid "Replace Bael with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:435
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:506
 msgid "Replace Echidna with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:436
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:507
 msgid "Replace Credo with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:437
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:508
 msgid "Replace Agnus with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:438
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:509
 msgid "Replace Sanctus with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:439
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:510
 msgid "Replace Sanctus Diabolica with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:440
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:511
 msgid "Replace Kyrie with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:441
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:512
 msgid "Replace Dante with:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:445
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:516
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:94
 msgid "Scarecrow (Leg)"
 msgstr "Пугало (Нога)"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:446
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:517
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:95
 msgid "Scarecrow (Arm)"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:463
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:534
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:114
 msgid "Sanctus Diabolica"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:464
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:535
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:115
 msgid "Kyrie"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:535
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:606
 msgid "Reset Enemy Replacements:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:537
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:608
 msgid "Reset"
 msgstr "Сброс"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:546
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:617
 msgid "Enemy Randomizer"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:548
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:619
 msgid "Randomizes enemy spawns within reason so its still actually fun"
 msgstr ""
 
@@ -2189,41 +2187,40 @@ msgid "e.g. rom/room/st405"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:549
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5063
 msgid "Load"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:125
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:172
 msgid "Is enemy step possible?"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:129
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:176
 msgid ""
 "Is enemy step enabled?\n"
 "(Nero's Buster moves and possibly other things disable enemy step)"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:133
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:180
 msgid "Is player grounded?"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:136
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:183
 msgid "Enemy step was possible for this number of 60fps frames"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:139
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:186
 msgid "Jump Cooldown"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:157
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:204
 msgid "Enemy Step Display"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:159
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:206
 msgid "See if it was possible to enemy step in that combo after all"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:162
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:209
 msgid "Show Extra Info"
 msgstr ""
 
@@ -2496,49 +2493,49 @@ msgstr ""
 msgid "BP Fire Pillar Hazards"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:153
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:162
 msgid ""
 "This slider shows how long before the exceed window started you pressed the "
 "exceed button. This is calculated by dmc4_hook"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:156
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:165
 msgid ""
 "This slider shows a snapshot of what the exceed timer read when the exceed "
 "button was pressed"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:159
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:168
 msgid "This slider shows the exceed timer in realtime"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:227
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:236
 msgid "Exceed Timing Display"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:229
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:238
 msgid "WIP, will be neater when more understood"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:231
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:240
 msgid "Exceed Timing Chart"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:237
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:246
 msgid "See how early or late multiple exceed presses in a row were"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:238
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:247
 #: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:368
 msgid "Failed"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:239
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:248
 #: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:369
 msgid "Late"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:240
+#: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:249
 #: C:\vs_projects\dmc4_hook\src\mods\GuardTimer.cpp:370
 msgid "Perfect"
 msgstr ""
@@ -2657,256 +2654,256 @@ msgstr ""
 msgid "Page##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:379
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:526
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:380
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:528
 msgid "HP##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:383
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:527
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:384
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:529
 msgid "PrevDamage##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:384
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:528
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:385
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:530
 msgid "PrevDamageResist##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:385
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:386
 msgid "DT Timer##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:386
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:530
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:387
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:532
 msgid "Stun##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:387
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:388
 msgid "Displacement##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:389
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:390
 msgid "MoveID##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:392
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:450
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:393
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:451
 msgid "Shield##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:398
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:399
 msgid "Cloak##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:403
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:404
 msgid "Cloak Timer##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:407
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:408
 msgid "Heal Count##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:413
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:414
 msgid "Electric##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:419
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:420
 msgid "Suicide Timer##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:424
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:425
 msgid "Electric Timer##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:432
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:433
 msgid "Buried Timer##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:439
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:440
 msgid "Fire Timer##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:442
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:443
 msgid "Fire Damage##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:455
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:460
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:470
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:456
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:461
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:471
 msgid "Shield Timer##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:463
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:473
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:464
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:474
 msgid "Shield Damage##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:481
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:547
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:482
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:549
 msgid "Base Addr##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:482
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:548
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:483
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:550
 msgid "Position##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:483
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:554
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:484
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:556
 msgid "Rotation##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:484
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:551
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:485
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:553
 msgid "Velocity##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:485
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:552
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:486
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:554
 msgid "Scale##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:487
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:555
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:488
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:557
 msgid "Anim ID##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:488
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:556
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:489
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:558
 msgid "Move Part##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:489
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:557
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:490
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:559
 msgid "Animation Frame##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:490
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:491
 msgid "Team##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:491
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:558
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:492
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:560
 msgid "ID##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:492
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:493
 msgid "Number##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:529
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:531
 msgid "DT##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:534
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:536
 msgid "MoveID##PlayerFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:549
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:551
 msgid "InertiaXZ##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:550
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:552
 msgid "InertiaY##EnemyFly"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:563
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:565
 msgid "melee+gun"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:564
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:566
 msgid "melee"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:565
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:567
 msgid "norm2"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:566
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:568
 msgid "directional"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:567
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:569
 msgid "jump"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:568
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:570
 msgid "taunt"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:569
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:571
 msgid "gun"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:570
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:572
 msgid "all"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:619
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:621
 msgid "Flying Stats"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:621
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:623
 msgid "Render ImGui stats on entities"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:624
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:626
 msgid "Display Enemy Stats"
 msgstr "Отображают Вражескую Статистику"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:625
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:627
 msgid "Display Player Stats"
 msgstr "Статистика Плеера Дисплея"
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:627
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:629
 msgid "Display HP"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:628
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:630
 msgid "Display Damage Taken"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:629
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:631
 msgid "Display Damage Resist"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:631
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:633
 msgid "Current difficulty * armour"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:632
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:634
 msgid "Display DT Timer"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:633
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:635
 msgid "Display Stun"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:634
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:636
 msgid "Display Displacement"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:635
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:637
 msgid "Display Move ID"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:636
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:638
 msgid "Display Mechanics"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:637
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:639
 msgid "Display Debug Info"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:638
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:640
 msgid "Display Collision Info"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:639
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:641
 msgid "Display Cancels"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:640
+#: C:\vs_projects\dmc4_hook\src\mods\FlyingStats.cpp:642
 msgid "Display Lucifer Pin Timers"
 msgstr ""
 
@@ -3693,83 +3690,97 @@ msgstr ""
 msgid "Add new move mimicking V5rgil's air taunt. Mapped to forward + melee"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:923
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:1069
 msgid "Play Macro File"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:926
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5041
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:1072
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7469
 msgid "Stop Macro / Clear Input"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:929
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5042
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5174
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:1075
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7470
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7611
 msgid "Capture Snapshot"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:932
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5043
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5180
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:1078
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7471
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7493
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7620
 msgid "Load Snapshot"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:938
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5044
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5186
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:1084
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7472
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7632
 msgid "Load Snapshot + Play Macro"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:4950
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:1088
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7473
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7495
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7669
+msgid "Load Setup"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:1091
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7474
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7678
+msgid "Load Setup + Play Macro"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7378
 msgid "Macro"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:4962
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7390
 msgid "Macro File"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:4989
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7417
 msgid "Custom Macro File"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:4999
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7427
 msgid "Macro Clip"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5015
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7443
 msgid "Keyboard Hotkeys"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5021
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5071
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7449
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7503
 msgid "Set"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5028
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5077
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7456
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7509
 msgid "Clear"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5040
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5152
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7468
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7584
 msgid "Play Macro"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5047
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7477
 msgid ""
 "Capturing hotkey: press a non-modifier key. Ctrl, Shift, and Alt are "
 "captured as modifiers."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5050
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7480
 msgid "Gamepad Hotkeys"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5051
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7481
 msgid "Enable Gamepad Hotkeys"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5054
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7484
 msgid ""
 "Controller shortcuts require holding Back/Select first, then pressing one "
 "shortcut button. While enabled, Back/Select is reserved for shortcuts and "
@@ -3778,138 +3789,174 @@ msgid ""
 "receive it."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5055
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7485
 msgid ""
 "All gamepad hotkeys use Back/Select as the fixed prefix. To set or use one, "
 "hold Back/Select first, then press the shortcut button."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5056
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7486
 msgid ""
 "While this option is enabled, manual Back/Select is reserved for shortcuts "
 "and will not trigger the game's original taunt. Macro playback can still "
 "send Back/Select with commands such as HOLD SELECT and RELEASE SELECT."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5057
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7487
 msgid ""
 "Macro clip headers can also define Back/Select shortcuts, for example [V][X/"
 "SQUARE][Nero]. A matching clip shortcut starts that clip directly."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5060
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7490
 msgid "Play"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5061
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7491
 msgid "Stop"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5062
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7492
 msgid "Capture"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5064
-msgid "Load + Play"
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7494
+msgid "Load Snapshot + Play"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5088
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7496
+msgid "Load Setup + Play"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7520
 msgid ""
 "Capturing gamepad hotkey: hold Back/Select first, then press one non-Back "
 "controller button."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5092
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7524
 msgid "Action Mapping"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5093
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7525
 msgid ""
 "Action names use the mapping for the clip character tag. Match Nero and "
 "Dante separately to DMC4's in-game controller settings; this does not remap "
 "the game by itself."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5126
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7558
 msgid "Reset Action Mapping"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5140
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5162
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7572
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7599
 #, c-format
 msgid "Macro status: %s"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5146
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7578
 msgid "Playback"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5147
-msgid "Stop Macro when game pauses"
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7579
+msgid "Show Macro Playback Overlay"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5149
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7581
 msgid ""
-"Stop macro playback when DMC4 opens the pause menu so it will not continue "
-"after unpausing."
+"During playback, show the selected clip, current source line, tick progress, "
+"and wait progress directly on the game screen."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5150
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7582
 msgid ""
 "The selected macro file reloads automatically after saving, as long as "
 "playback is stopped."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5151
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7583
 msgid ""
-"Play Macro and Load Snapshot + Play Macro use the selected Macro File and "
-"Macro Clip above."
+"Play Macro, Load Snapshot + Play Macro, and Load Setup + Play Macro use the "
+"selected Macro File and Macro Clip above."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5156
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7593
 msgid "Stop Macro"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5159
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7596
 #, c-format
 msgid "Macro tick: %u / %u"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5161
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7598
 #, c-format
 msgid "Macro time: %s"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5164
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7601
 msgid "Battle Snapshot"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5165
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7602
 msgid "Restore Resources"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5167
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7604
 msgid "Snapshot Play Delay Ticks"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5169
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7606
 msgid ""
 "Delay between loading a Battle Snapshot and starting the selected macro clip."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5191
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7640
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7657
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7689
 #, c-format
 msgid "%s"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5193
-#, c-format
-msgid "Snapshot restore ticks: %u"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:5196
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7642
 #, c-format
 msgid "Snapshot playback delay: %u"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7645
+#, c-format
+msgid "Snapshot character switch wait: %u"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7648
+msgid "Macro Setup"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7650
+msgid "Setup Play Delay Ticks"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7652
+msgid ""
+"Delay between finishing Macro Setup and starting the selected macro clip."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7658
+msgid "Copy Current Setup"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7687
+msgid ""
+"Copy creates a [Setup] block from the current scene. Load Setup reads the "
+"selected Macro File, switches character if needed, loads the requested room, "
+"waits for native enemies, generates missing enemies, and applies player, "
+"enemy, and camera placement. Extra enemies are left alone."
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Macro.cpp:7692
+#, c-format
+msgid "Setup playback delay: %u"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\ManualLuciferAim.cpp:128
@@ -6708,47 +6755,47 @@ msgid ""
 "more unique names, less skills will be grouped"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:109
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:110
 msgid "BP 1-19"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:110
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:111
 msgid "BP 21-39"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:111
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:112
 msgid "BP 41-59"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:112
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:113
 msgid "BP 61-79"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:113
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:114
 msgid "BP 81-99"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:114
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:115
 msgid "BP 101"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:963
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:970
 msgid "Survival"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:971
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:978
 msgid "Tick and enter any non BP mission on your desired difficulty"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:977
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:984
 msgid "Stage Select"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:996
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:1003
 msgid "Random Meme Modifiers"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:1001
+#: C:\vs_projects\dmc4_hook\src\mods\Survival.cpp:1008
 msgid ""
 "Spawn random meme modifier pickups spawned near your location to try to "
 "avoid (or target)"

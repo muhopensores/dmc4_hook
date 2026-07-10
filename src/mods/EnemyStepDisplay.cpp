@@ -96,7 +96,7 @@ naked void detour1(void) {
         cmp byte ptr [EnemyStepDisplay::mod_enabled], 0
         je originalcode
         pushad
-        call call1
+        call EnemyStepDisplay::update_jc_possible
         popad
 
     originalcode:
@@ -106,12 +106,55 @@ naked void detour1(void) {
 }
 
 void EnemyStepDisplay::update_jc_possible() {
-    call1();
+    __try {
+        call1();
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        jc_possible = false;
+        jc_possible_timer = 0.0f;
+    }
+}
+
+namespace {
+struct EnemyStepExtraInfo {
+    bool valid = false;
+    bool enemy_step_enabled = false;
+    bool grounded = false;
+    float jc_timer = 0.0f;
+};
+
+uPlayer* get_enemy_step_player_safe() {
+    __try {
+        return devil4_sdk::get_local_player();
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return nullptr;
+    }
+}
+
+EnemyStepExtraInfo read_enemy_step_extra_info(uPlayer* player) {
+    EnemyStepExtraInfo info{};
+    if (!player) {
+        return info;
+    }
+
+    __try {
+        info.enemy_step_enabled = player->enemyStepEnabled;
+        info.grounded = player->collisionSettings && player->collisionSettings->mLand != 0;
+        info.jc_timer = player->jcTimer;
+        info.valid = true;
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return {};
+    }
+
+    return info;
+}
 }
 
 void EnemyStepDisplay::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
-        uPlayer* player = devil4_sdk::get_local_player();
+        uPlayer* player = get_enemy_step_player_safe();
         if (!player) { return; }
         //update_jc_possible(); // this is done in game tick now
         static constexpr int WindowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground;
@@ -121,20 +164,24 @@ void EnemyStepDisplay::on_frame(fmilliseconds& dt) {
         ImGui::PushItemWidth(sameLineItemWidth);
         ImGui::Checkbox("##Enemy Step Possible Checkbox", &jc_possible);
         if (showExtraStats) {
+            const auto extra_info = read_enemy_step_extra_info(player);
+            bool enemy_step_enabled = extra_info.enemy_step_enabled;
+            bool grounded = extra_info.grounded;
+            float jc_timer = extra_info.jc_timer;
             ImGui::SameLine();
             help_marker(_("Is enemy step possible?"));
             ImGui::SameLine();
-            ImGui::Checkbox("##Enemy Step Enabled Checkbox", &player->enemyStepEnabled);
+            ImGui::Checkbox("##Enemy Step Enabled Checkbox", &enemy_step_enabled);
             ImGui::SameLine();
             help_marker(_("Is enemy step enabled?\n(Nero's Buster moves and possibly other things disable enemy step)"));
             ImGui::SameLine();
-            ImGui::Checkbox("##Grounded", (bool*)&player->collisionSettings->mLand);
+            ImGui::Checkbox("##Grounded", &grounded);
             ImGui::SameLine();
             help_marker(_("Is player grounded?"));
             ImGui::InputFloat("##Enemy Step Possible InputFloat", &jc_possible_timer);
             ImGui::SameLine();
             help_marker(_("Enemy step was possible for this number of 60fps frames"));
-            ImGui::SliderFloat("##Jump Cooldown SliderFloat", &player->jcTimer, 0.0f, 20.0f);
+            ImGui::SliderFloat("##Jump Cooldown SliderFloat", &jc_timer, 0.0f, 20.0f);
             ImGui::SameLine();
             help_marker(_("Jump Cooldown"));
         }

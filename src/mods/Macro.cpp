@@ -1,5 +1,7 @@
 #include "Macro.hpp"
+#include "AreaJump.hpp"
 #include "CharSwitcher.hpp"
+#include "EnemySpawn.hpp"
 #include "EnemyStepDisplay.hpp"
 #include "EnemyTracker.hpp"
 #include "HealthSettings.hpp"
@@ -13,6 +15,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <iomanip>
 #include <sstream>
 #include <string>
 
@@ -20,6 +23,7 @@
 #include "../sdk/aGame.hpp"
 #include "../sdk/sArea.hpp"
 #include "../sdk/sMediator.hpp"
+#include "../sdk/sRender.hpp"
 #include "../sdk/sWorkRate.hpp"
 #include "../sdk/uDamage.hpp"
 #include "../sdk/uEnemy.hpp"
@@ -28,6 +32,8 @@
 
 namespace {
 constexpr uint32_t MAX_PLAYBACK_FRAMES = 600000;
+constexpr uint32_t INVALID_MACRO_SOURCE_LINE_INDEX = 0xFFFFFFFFu;
+constexpr uint32_t INVALID_PLAYBACK_FRAME_INDEX = 0xFFFFFFFFu;
 constexpr short ANALOG_MIN = -127;
 constexpr short ANALOG_MAX = 127;
 constexpr short ANALOG_WALK = 80;
@@ -35,7 +41,6 @@ constexpr uintptr_t S_DEVIL4_PAD_PTR = 0x00e559c4;
 constexpr uintptr_t S_KEYBOARD_PTR = 0x00e559c0;
 constexpr uintptr_t S_SAVE_PTR = 0x00e558c8;
 constexpr uintptr_t UPDATE_ANALOG_INFO_CALL = 0x007b0250;
-constexpr uintptr_t UPLAYER_CURRENT_STYLE_OFFSET = 0x14D98;
 constexpr uint32_t MAX_ENEMY_CHAIN_SCAN = 128;
 constexpr uint32_t PAD_BUTTON_L1 = 0x0100;
 constexpr uint32_t PAD_BUTTON_R1 = 0x0200;
@@ -122,7 +127,9 @@ constexpr uint32_t GAMEPAD_HOTKEY_ACTION_STOP = 1 << 1;
 constexpr uint32_t GAMEPAD_HOTKEY_ACTION_CAPTURE_SNAPSHOT = 1 << 2;
 constexpr uint32_t GAMEPAD_HOTKEY_ACTION_LOAD_SNAPSHOT = 1 << 3;
 constexpr uint32_t GAMEPAD_HOTKEY_ACTION_LOAD_SNAPSHOT_PLAY = 1 << 4;
-constexpr uint32_t GAMEPAD_HOTKEY_COUNT = 5;
+constexpr uint32_t GAMEPAD_HOTKEY_ACTION_LOAD_SETUP = 1 << 5;
+constexpr uint32_t GAMEPAD_HOTKEY_ACTION_LOAD_SETUP_PLAY = 1 << 6;
+constexpr uint32_t GAMEPAD_HOTKEY_COUNT = 7;
 constexpr uint32_t PLAYBACK_SLOT_MAIN = 0;
 constexpr uint32_t PLAYBACK_SLOT_CUSTOM = UINT32_MAX;
 constexpr uint32_t INVALID_CLIP_INDEX = UINT32_MAX;
@@ -145,8 +152,18 @@ constexpr uint32_t MACRO_WAIT_COMPARE_GT = 3;
 constexpr uint32_t MACRO_WAIT_COMPARE_GTE = 4;
 constexpr uint32_t MACRO_WAIT_COMPARE_LT = 5;
 constexpr uint32_t MACRO_WAIT_COMPARE_LTE = 6;
-constexpr uint32_t POSITION_SNAPSHOT_LOAD_TICKS = 30;
+constexpr uint32_t DEFAULT_SNAPSHOT_PLAY_DELAY_TICKS = 30;
+constexpr uint32_t DEFAULT_WAIT_UNTIL_TIMEOUT_TICKS = 120;
 constexpr uint32_t MAX_SNAPSHOT_PLAY_DELAY_TICKS = 6000;
+constexpr uint32_t SNAPSHOT_CHARACTER_SWITCH_TIMEOUT_TICKS = 120;
+constexpr uint32_t SETUP_CHARACTER_SWITCH_TIMEOUT_TICKS = 240;
+constexpr uint32_t SETUP_ROOM_LOAD_TIMEOUT_TICKS = 600;
+constexpr uint32_t SETUP_ROOM_SETTLE_TICKS = 120;
+constexpr uint32_t SETUP_ENEMY_SPAWN_TIMEOUT_TICKS = 240;
+constexpr uint32_t SETUP_ENEMY_SETTLE_TICKS = 15;
+constexpr uint32_t SNAPSHOT_LOAD_FAILED = 0;
+constexpr uint32_t SNAPSHOT_LOAD_LOADED = 1;
+constexpr uint32_t SNAPSHOT_LOAD_QUEUED = 2;
 constexpr const char* DEFAULT_PLAYBACK_FILE = "macro.txt";
 constexpr const char* CUSTOM_PLAYBACK_LABEL = "Custom";
 constexpr uint32_t DEFAULT_GAMEPAD_HOTKEY_BUTTONS[GAMEPAD_HOTKEY_COUNT] = {
@@ -155,7 +172,10 @@ constexpr uint32_t DEFAULT_GAMEPAD_HOTKEY_BUTTONS[GAMEPAD_HOTKEY_COUNT] = {
     PAD_BUTTON_X,
     PAD_BUTTON_Y,
     PAD_BUTTON_R1,
+    PAD_BUTTON_L1,
+    PAD_BUTTON_R2,
 };
+bool screen_pause_restore_hotkey_paused = false;
 
 struct ParsedMacroInput {
     uint32_t buttons = 0;
@@ -237,10 +257,37 @@ struct BattleEnemySnapshot {
     float stun_reset_timer = 0.0f;
 };
 
+struct PlayerResourceSnapshot {
+    bool valid = false;
+    uintptr_t actor_ptr = 0;
+    uint32_t role = MACRO_CHARACTER_INVALID;
+    bool was_active = false;
+    int current_style = 0;
+    float hp = 0.0f;
+    float hp_max = 0.0f;
+    float hp_taken = 0.0f;
+    float prev_damage_resist = 0.0f;
+    float dt = 0.0f;
+    float max_dt = 0.0f;
+    bool dt_active = false;
+    uint8_t exceed_level = 0;
+    float exceed_timer = 0.0f;
+    bool guard_req1 = false;
+    bool guard_req2 = false;
+    float guard_timer = 0.0f;
+    float revenge_gauge = 0.0f;
+    float disaster_gauge = 0.0f;
+    int dreadnaught = 0;
+};
+
 struct PositionSnapshot {
     bool valid = false;
     bool camera_valid = false;
     bool player_camera_valid = false;
+    uintptr_t player_ptr = 0;
+    uintptr_t camera_ptr = 0;
+    uintptr_t player_camera_ptr = 0;
+    uint32_t player_character_role = MACRO_CHARACTER_INVALID;
     uint32_t mission_id = 0;
     uint32_t room_id = 0;
     uint32_t mediator_enemy_count0 = 0;
@@ -274,6 +321,7 @@ struct PositionSnapshot {
     float player_revenge_gauge = 0.0f;
     float player_disaster_gauge = 0.0f;
     int player_dreadnaught = 0;
+    PlayerResourceSnapshot player_resources[MACRO_CHARACTER_ROLE_COUNT]{};
     float camera_near_clip = 0.0f;
     float camera_fov = 0.0f;
     Vector3f camera_position{};
@@ -288,6 +336,58 @@ struct PositionSnapshot {
     float player_camera_fov = 0.0f;
     float player_camera_fov_battle = 0.0f;
     std::vector<BattleEnemySnapshot> enemies{};
+};
+
+struct MacroSetupEnemy {
+    uint32_t label_index = 0;
+    int enemy_id = -1;
+    bool position_valid = false;
+    Vector3f position{};
+    bool facing_valid = false;
+    float facing_radians = 0.0f;
+};
+
+struct MacroScenarioSetup {
+    bool valid = false;
+    uint32_t header_line = 0;
+    uint32_t character_role = MACRO_CHARACTER_INVALID;
+    bool mission_valid = false;
+    uint32_t mission_id = 0;
+    bool room_valid = false;
+    uint32_t room_id = 0;
+    bool bp_floor_valid = false;
+    uint32_t bp_floor = 0;
+    bool player_position_valid = false;
+    Vector3f player_position{};
+    bool player_facing_valid = false;
+    float player_facing_radians = 0.0f;
+    bool camera_valid = false;
+    Vector3f camera_position{};
+    Vector3f camera_target{};
+    bool camera_up_valid = false;
+    Vector3f camera_up{};
+    bool camera_fov_valid = false;
+    float camera_fov = 0.0f;
+    std::vector<MacroSetupEnemy> enemies{};
+};
+
+enum class MacroSetupLoadPhase : uint32_t {
+    IDLE = 0,
+    WAIT_CHARACTER,
+    WAIT_ROOM,
+    SETTLE_ROOM,
+    PREPARE_ENEMIES,
+    WAIT_ENEMY_SPAWN,
+    SETTLE_ENEMY,
+};
+
+struct MacroSetupLoadRuntime {
+    MacroSetupLoadPhase phase = MacroSetupLoadPhase::IDLE;
+    uint32_t timeout_ticks = 0;
+    uint32_t settle_ticks = 0;
+    uint32_t play_after_load_clip_index = INVALID_CLIP_INDEX;
+    int waiting_enemy_id = -1;
+    uint32_t waiting_enemy_count = 0;
 };
 
 struct EnemyHitSample {
@@ -311,11 +411,17 @@ std::vector<std::string> playback_file_choices{};
 EnemyHitSample last_hit_confirmed_enemy{};
 bool has_last_hit_confirmed_enemy = false;
 PositionSnapshot position_snapshot{};
-uint32_t position_snapshot_load_ticks = 0;
-uint32_t snapshot_play_pending_ticks = 0;
-uint32_t snapshot_play_pending_clip_index = INVALID_CLIP_INDEX;
+MacroScenarioSetup macro_setup{};
+MacroSetupLoadRuntime macro_setup_load{};
+uint32_t playback_delay_pending_ticks = 0;
+uint32_t playback_delay_pending_clip_index = INVALID_CLIP_INDEX;
+bool playback_delay_pending_uses_setup = false;
+uint32_t snapshot_switch_pending_ticks = 0;
+uint32_t snapshot_switch_pending_clip_index = INVALID_CLIP_INDEX;
+bool pending_player_resource_restore[MACRO_CHARACTER_ROLE_COUNT]{};
 bool restore_resources_snapshot = false;
 bool macro_suspended_for_transition = false;
+bool macro_cached_runtime_ready = false;
 cPeripheral* last_player_peripheral = nullptr;
 uint32_t last_player_index = 0;
 uint32_t last_global_routed_buttons[4] = {};
@@ -323,7 +429,6 @@ bool last_global_right_analog[4] = {};
 std::string known_macro_file_time_path{};
 uint64_t known_macro_file_write_time = 0;
 uint64_t known_macro_file_size = 0;
-bool last_game_pause_state = false;
 uint32_t gamepad_hotkey_chord_state = 0;
 uint32_t gamepad_hotkey_raw_buttons = 0;
 uint32_t capture_gamepad_hotkey_target = 0;
@@ -339,6 +444,7 @@ uint32_t sanitize_macro_button(uint32_t button, uint32_t fallback);
 std::string clip_display_label(const MacroClip& clip, uint32_t clip_index);
 void clear_playback_timer();
 void set_playback_status(const std::string& message);
+std::string macro_setup_load_label();
 bool is_boss_enemy_id(int enemy_id);
 uDamage_Old* get_enemy_damage_block(uEnemy_Old* enemy);
 sArea* get_s_area_safe();
@@ -347,6 +453,12 @@ uPlayer* get_local_player_safe();
 uCameraCtrl* get_local_camera_safe();
 sWorkRate* get_work_rate_safe();
 sDevil4Pad* get_global_pad_safe();
+void clear_pending_player_resource_restore();
+void tick_pending_player_resource_restore();
+void clear_player_input_snapshot(uPlayer* player);
+bool set_screen_pause(bool paused);
+uint32_t playback_action_resolution_role();
+const char* character_role_label(uint32_t role);
 
 uint64_t file_time_to_u64(const FILETIME& file_time) {
     ULARGE_INTEGER value{};
@@ -389,12 +501,12 @@ void remember_macro_file_write_time(const std::string& path) {
 }
 
 bool is_game_paused_safe() {
-    __try {
-        return devil4_sdk::is_paused();
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    auto* area = get_s_area_safe();
+    if (!area || !area->aGamePtr) {
         return true;
     }
+
+    return area->aGamePtr->m_paused;
 }
 
 bool is_game_window_foreground() {
@@ -403,22 +515,19 @@ bool is_game_window_foreground() {
 }
 
 bool macro_gameplay_ready() {
-    __try {
-        auto* area = get_s_area_safe();
-        if (!area || !area->aGamePtr || area->aGamePtr->init_jump != 0) {
-            return false;
-        }
-
-        auto* mediator = get_s_mediator_safe();
-        if (!mediator || !mediator->player_ptr || !mediator->camera1) {
-            return false;
-        }
-
-        return true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    auto* area = get_s_area_safe();
+    if (!area || !area->aGamePtr || !area->aRoomPtr || area->aGamePtr->init_jump != 0) {
         return false;
     }
+
+    auto* mediator = get_s_mediator_safe();
+    auto* player = get_local_player_safe();
+    auto* camera = get_local_camera_safe();
+    if (!mediator || !player || !camera || mediator->player_ptr != player || mediator->camera1 != camera) {
+        return false;
+    }
+
+    return true;
 }
 
 bool macro_runtime_ready() {
@@ -426,81 +535,52 @@ bool macro_runtime_ready() {
 }
 
 sArea* get_s_area_safe() {
-    __try {
-        return devil4_sdk::get_sArea();
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return nullptr;
-    }
+    return devil4_sdk::get_sArea();
 }
 
 sMediator* get_s_mediator_safe() {
-    __try {
-        return devil4_sdk::get_sMediator();
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return nullptr;
-    }
+    return devil4_sdk::get_sMediator();
 }
 
 uPlayer* get_local_player_safe() {
-    __try {
-        return devil4_sdk::get_local_player();
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    auto* mediator = get_s_mediator_safe();
+    if (!mediator || !mediator->pad_0) {
         return nullptr;
     }
+
+    return mediator->player_ptr;
 }
 
 uCameraCtrl* get_local_camera_safe() {
-    __try {
-        return devil4_sdk::get_local_camera();
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    auto* mediator = get_s_mediator_safe();
+    if (!mediator || !mediator->pad_0) {
         return nullptr;
     }
+
+    return mediator->camera1;
 }
 
 sWorkRate* get_work_rate_safe() {
-    __try {
-        return devil4_sdk::get_work_rate();
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return nullptr;
-    }
+    return devil4_sdk::get_work_rate();
 }
 
 sKeyboard* get_keyboard_safe() {
-    __try {
-        auto** keyboard_ptr = reinterpret_cast<sKeyboard**>(S_KEYBOARD_PTR);
-        return keyboard_ptr ? *keyboard_ptr : nullptr;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return nullptr;
-    }
+    return *reinterpret_cast<sKeyboard**>(S_KEYBOARD_PTR);
 }
 
 sDevil4Pad* get_global_pad_safe() {
-    __try {
-        auto** pad_ptr = reinterpret_cast<sDevil4Pad**>(S_DEVIL4_PAD_PTR);
-        return pad_ptr ? *pad_ptr : nullptr;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return nullptr;
-    }
+    return *reinterpret_cast<sDevil4Pad**>(S_DEVIL4_PAD_PTR);
 }
 
 bool read_saved_key_binding(uintptr_t offset, uint32_t& key) {
     key = 0;
 
-    __try {
-        key = *reinterpret_cast<uint32_t*>(S_SAVE_PTR + offset);
-        return key < 256;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    key = *reinterpret_cast<uint32_t*>(S_SAVE_PTR + offset);
+    if (key >= 256) {
         key = 0;
         return false;
     }
+    return true;
 }
 
 bool keyboard_input_down(sKeyboard* keyboard, uint32_t key, uint8_t fallback_mask) {
@@ -508,18 +588,13 @@ bool keyboard_input_down(sKeyboard* keyboard, uint32_t key, uint8_t fallback_mas
         return false;
     }
 
-    __try {
-        bool key_down = false;
-        if (key < 256) {
-            key_down = ((keyboard->mState.on[key >> 5] >> (key & 0x1f)) & 1) != 0;
-        }
+    bool key_down = false;
+    if (key < 256) {
+        key_down = ((keyboard->mState.on[key >> 5] >> (key & 0x1f)) & 1) != 0;
+    }
 
-        const bool fallback_down = (reinterpret_cast<uint8_t*>(&keyboard->mState.on[3])[0] & fallback_mask) != 0;
-        return key_down || fallback_down;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return false;
-    }
+    const bool fallback_down = (reinterpret_cast<uint8_t*>(&keyboard->mState.on[3])[0] & fallback_mask) != 0;
+    return key_down || fallback_down;
 }
 
 int gamepad_button_index(uint32_t button) {
@@ -582,6 +657,12 @@ uint32_t gamepad_hotkey_actions_from_rolling_chord(
     if ((action_buttons & Macro::gamepad_hotkey_buttons[4]) != 0) {
         actions |= GAMEPAD_HOTKEY_ACTION_LOAD_SNAPSHOT_PLAY;
     }
+    if ((action_buttons & Macro::gamepad_hotkey_buttons[5]) != 0) {
+        actions |= GAMEPAD_HOTKEY_ACTION_LOAD_SETUP;
+    }
+    if ((action_buttons & Macro::gamepad_hotkey_buttons[6]) != 0) {
+        actions |= GAMEPAD_HOTKEY_ACTION_LOAD_SETUP_PLAY;
+    }
     return actions;
 }
 
@@ -612,6 +693,12 @@ uint32_t gamepad_hotkey_buttons_from_actions(uint32_t actions) {
     }
     if ((actions & GAMEPAD_HOTKEY_ACTION_LOAD_SNAPSHOT_PLAY) != 0) {
         buttons |= Macro::gamepad_hotkey_buttons[4];
+    }
+    if ((actions & GAMEPAD_HOTKEY_ACTION_LOAD_SETUP) != 0) {
+        buttons |= Macro::gamepad_hotkey_buttons[5];
+    }
+    if ((actions & GAMEPAD_HOTKEY_ACTION_LOAD_SETUP_PLAY) != 0) {
+        buttons |= Macro::gamepad_hotkey_buttons[6];
     }
     return buttons;
 }
@@ -694,14 +781,8 @@ bool read_gamepad_buttons_safe(uint32_t& buttons) {
         return false;
     }
 
-    __try {
-        buttons = pad->mPadInfo[0].mBtn.on;
-        return true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        buttons = 0;
-        return false;
-    }
+    buttons = pad->mPadInfo[0].mBtn.on;
+    return true;
 }
 
 bool read_peripheral_player_index_safe(cPeripheral* peripheral, uint32_t& player_index) {
@@ -710,14 +791,8 @@ bool read_peripheral_player_index_safe(cPeripheral* peripheral, uint32_t& player
         return false;
     }
 
-    __try {
-        player_index = *(uint8_t*)((uintptr_t)peripheral + 0x95);
-        return true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        player_index = 0;
-        return false;
-    }
+    player_index = *(uint8_t*)((uintptr_t)peripheral + 0x95);
+    return true;
 }
 
 void clear_press_values_for_buttons(kPressInfo& press, uint32_t buttons) {
@@ -749,14 +824,10 @@ void clear_peripheral_buttons(cPeripheral* peripheral, uint32_t buttons) {
         return;
     }
 
-    __try {
-        peripheral->mPadBtnOn &= ~buttons;
-        peripheral->mPadBtnTrg &= ~buttons;
-        peripheral->mPadBtnRel &= ~buttons;
-        clear_press_values_for_buttons(*reinterpret_cast<kPressInfo*>(&peripheral->mPadBtnPress), buttons);
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-    }
+    peripheral->mPadBtnOn &= ~buttons;
+    peripheral->mPadBtnTrg &= ~buttons;
+    peripheral->mPadBtnRel &= ~buttons;
+    clear_press_values_for_buttons(*reinterpret_cast<kPressInfo*>(&peripheral->mPadBtnPress), buttons);
 }
 
 void consume_gamepad_hotkey_buttons(cPeripheral* peripheral, uint32_t buttons) {
@@ -766,23 +837,19 @@ void consume_gamepad_hotkey_buttons(cPeripheral* peripheral, uint32_t buttons) {
 
     auto* pad = get_global_pad_safe();
     if (pad) {
-        __try {
-            auto& pad_info = pad->mPadInfo[0];
-            pad_info.mBtn.on &= ~buttons;
-            pad_info.mBtn.trg &= ~buttons;
-            pad_info.mBtn.rel &= ~buttons;
-            pad_info.mBtn.rep &= ~buttons;
-            clear_press_values_for_buttons(pad_info.mPress, buttons);
+        auto& pad_info = pad->mPadInfo[0];
+        pad_info.mBtn.on &= ~buttons;
+        pad_info.mBtn.trg &= ~buttons;
+        pad_info.mBtn.rel &= ~buttons;
+        pad_info.mBtn.rep &= ~buttons;
+        clear_press_values_for_buttons(pad_info.mPress, buttons);
 
-            auto& pad_data = pad->mPad[0].field10_0x15c;
-            pad_data.On &= ~buttons;
-            pad_data.Trg &= ~buttons;
-            pad_data.Rel &= ~buttons;
-            pad_data.Chg &= ~buttons;
-            pad_data.Rep &= ~buttons;
-        }
-        __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        }
+        auto& pad_data = pad->mPad[0].field10_0x15c;
+        pad_data.On &= ~buttons;
+        pad_data.Trg &= ~buttons;
+        pad_data.Rel &= ~buttons;
+        pad_data.Chg &= ~buttons;
+        pad_data.Rep &= ~buttons;
     }
 
     clear_peripheral_buttons(peripheral, buttons);
@@ -843,39 +910,35 @@ void clear_global_macro_route(uint32_t player_index) {
     const bool release_right_analog = last_global_right_analog[player_index];
     auto* pad = get_global_pad_safe();
     if (pad) {
-        __try {
-            auto& pad_info = pad->mPadInfo[0];
-            pad_info.mBtn.on &= ~release_buttons;
-            pad_info.mBtn.trg &= ~release_buttons;
-            pad_info.mBtn.rel |= release_buttons;
+        auto& pad_info = pad->mPadInfo[0];
+        pad_info.mBtn.on &= ~release_buttons;
+        pad_info.mBtn.trg &= ~release_buttons;
+        pad_info.mBtn.rel |= release_buttons;
 
-            if ((release_buttons & PAD_BUTTON_L3) != 0) {
-                pad_info.mPress.L3 = 0.0f;
-            }
-            if ((release_buttons & PAD_BUTTON_R3) != 0) {
-                pad_info.mPress.R3 = 0.0f;
-            }
-            if ((release_buttons & PAD_BUTTON_L1) != 0) {
-                pad_info.mPress.L1 = 0.0f;
-            }
-            if ((release_buttons & PAD_BUTTON_L2) != 0) {
-                pad_info.mPress.L2 = 0.0f;
-            }
-            if ((release_buttons & PAD_BUTTON_R1) != 0) {
-                pad_info.mPress.R1 = 0.0f;
-            }
-            if ((release_buttons & PAD_BUTTON_R2) != 0) {
-                pad_info.mPress.R2 = 0.0f;
-            }
-            if ((release_buttons & PAD_BUTTON_SELECT) != 0) {
-                pad_info.mPress.Select = 0.0f;
-            }
-            if (release_right_analog) {
-                pad_info.mAnlg[1].x = 0.0f;
-                pad_info.mAnlg[1].y = 0.0f;
-            }
+        if ((release_buttons & PAD_BUTTON_L3) != 0) {
+            pad_info.mPress.L3 = 0.0f;
         }
-        __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        if ((release_buttons & PAD_BUTTON_R3) != 0) {
+            pad_info.mPress.R3 = 0.0f;
+        }
+        if ((release_buttons & PAD_BUTTON_L1) != 0) {
+            pad_info.mPress.L1 = 0.0f;
+        }
+        if ((release_buttons & PAD_BUTTON_L2) != 0) {
+            pad_info.mPress.L2 = 0.0f;
+        }
+        if ((release_buttons & PAD_BUTTON_R1) != 0) {
+            pad_info.mPress.R1 = 0.0f;
+        }
+        if ((release_buttons & PAD_BUTTON_R2) != 0) {
+            pad_info.mPress.R2 = 0.0f;
+        }
+        if ((release_buttons & PAD_BUTTON_SELECT) != 0) {
+            pad_info.mPress.Select = 0.0f;
+        }
+        if (release_right_analog) {
+            pad_info.mAnlg[1].x = 0.0f;
+            pad_info.mAnlg[1].y = 0.0f;
         }
     }
 
@@ -884,38 +947,121 @@ void clear_global_macro_route(uint32_t player_index) {
 }
 
 bool clear_last_peripheral_output() {
-    if (!clear_peripheral_output(last_player_peripheral, last_player_index)) {
-        return false;
+    const bool cleared_peripheral = clear_peripheral_output(last_player_peripheral, last_player_index);
+    for (uint32_t player_index = 0; player_index < 4; ++player_index) {
+        clear_global_macro_route(player_index);
+    }
+    std::fill_n(Macro::last_buttons, 4, 0);
+    last_player_peripheral = nullptr;
+    last_player_index = 0;
+    return cleared_peripheral;
+}
+
+bool macro_setup_load_pending() {
+    return macro_setup_load.phase != MacroSetupLoadPhase::IDLE;
+}
+
+bool macro_setup_transition_expected() {
+    return macro_setup_load.phase == MacroSetupLoadPhase::WAIT_CHARACTER ||
+        macro_setup_load.phase == MacroSetupLoadPhase::WAIT_ROOM ||
+        macro_setup_load.phase == MacroSetupLoadPhase::SETTLE_ROOM;
+}
+
+void clear_macro_setup_load_state() {
+    macro_setup_load = {};
+}
+
+bool snapshot_work_pending() {
+    return playback_delay_pending_clip_index != INVALID_CLIP_INDEX ||
+        snapshot_switch_pending_ticks > 0 ||
+        macro_setup_load_pending();
+}
+
+bool pad_detour_work_pending() {
+    return Macro::mod_enabled &&
+        (Macro::input_active ||
+            snapshot_work_pending() ||
+            Macro::screen_pause_active ||
+            Macro::gamepad_hotkeys_enabled ||
+            capture_gamepad_hotkey_target != 0);
+}
+
+bool has_pending_macro_output() {
+    if (Macro::playback_enabled || Macro::clear_input_frames > 0 || snapshot_work_pending() || Macro::screen_pause_active) {
+        return true;
     }
 
-    clear_global_macro_route(last_player_index);
-    std::fill_n(Macro::last_buttons, 4, 0);
-    return true;
+    for (uint32_t player_index = 0; player_index < 4; ++player_index) {
+        if (Macro::last_buttons[player_index] != 0 || last_global_routed_buttons[player_index] != 0 || last_global_right_analog[player_index]) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool playback_start_busy() {
+    return Macro::playback_enabled || snapshot_work_pending();
 }
 
 bool is_nero_player_safe(uPlayer* player) {
-    __try {
-        return player && player->controllerID == 1;
+    return player && player->controllerID == 1;
+}
+
+uint32_t character_role_from_player_safe(uPlayer* player) {
+    if (!player) {
+        return MACRO_CHARACTER_INVALID;
     }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return false;
+
+    if (player->controllerID == 1) {
+        return MACRO_CHARACTER_NERO;
     }
+    if (player->controllerID == 0) {
+        return MACRO_CHARACTER_DANTE;
+    }
+
+    return MACRO_CHARACTER_INVALID;
 }
 
 void suspend_macro_runtime_for_transition() {
+    macro_cached_runtime_ready = false;
+    const bool should_clear_on_resume = has_pending_macro_output();
+    const bool preserve_setup_load = macro_setup_transition_expected();
+    if (Macro::screen_pause_active) {
+        set_screen_pause(false);
+    }
     clear_last_peripheral_output();
     Macro::playback_enabled = false;
-    Macro::clear_input_frames = 0;
-    Macro::input_active = false;
-    position_snapshot_load_ticks = 0;
-    snapshot_play_pending_ticks = 0;
-    snapshot_play_pending_clip_index = INVALID_CLIP_INDEX;
+    Macro::playback_current_frame_index = INVALID_PLAYBACK_FRAME_INDEX;
+    Macro::clear_input_frames = should_clear_on_resume ? 4 : 0;
+    Macro::input_active = Macro::clear_input_frames > 0;
+    playback_delay_pending_ticks = 0;
+    playback_delay_pending_clip_index = INVALID_CLIP_INDEX;
+    playback_delay_pending_uses_setup = false;
+    snapshot_switch_pending_ticks = 0;
+    snapshot_switch_pending_clip_index = INVALID_CLIP_INDEX;
+    clear_pending_player_resource_restore();
+    if (!preserve_setup_load) {
+        clear_macro_setup_load_state();
+        CharSwitcher::clear_macro_switch_request();
+    }
     clear_playback_timer();
 
-    if (!macro_suspended_for_transition) {
+    if (!macro_suspended_for_transition && !preserve_setup_load) {
         macro_suspended_for_transition = true;
         set_playback_status("Macro paused while gameplay is unavailable.");
     }
+    else if (preserve_setup_load) {
+        macro_suspended_for_transition = true;
+    }
+}
+
+void suspend_macro_runtime_for_transition_once() {
+    if (macro_suspended_for_transition) {
+        return;
+    }
+
+    suspend_macro_runtime_for_transition();
 }
 
 void ensure_keyboard_hotkeys(std::vector<std::unique_ptr<utility::Hotkey>>& hotkeys) {
@@ -938,10 +1084,16 @@ void ensure_keyboard_hotkeys(std::vector<std::unique_ptr<utility::Hotkey>>& hotk
             __("Load Snapshot + Play Macro"),
             "keyboard_macro_load_snapshot_play_key");
     }
+    if (hotkeys.size() == 5) {
+        utility::create_keyboard_hotkey(hotkeys, {}, __("Load Setup"), "macro_load_setup_key");
+    }
+    if (hotkeys.size() == 6) {
+        utility::create_keyboard_hotkey(hotkeys, {}, __("Load Setup + Play Macro"), "macro_load_setup_play_key");
+    }
 }
 
 void ensure_keyboard_hotkey_binds(std::vector<std::unique_ptr<utility::Hotkey>>& hotkeys) {
-    if (hotkeys.size() < 5) {
+    if (hotkeys.size() < 7) {
         return;
     }
 
@@ -1157,6 +1309,485 @@ std::string format_playback_time(double seconds) {
     }
 
     return buffer;
+}
+
+std::string truncate_overlay_text(const std::string& text, size_t max_length) {
+    if (text.size() <= max_length) {
+        return text;
+    }
+
+    if (max_length <= 3) {
+        return text.substr(0, max_length);
+    }
+
+    return text.substr(0, max_length - 3) + "...";
+}
+
+ImVec2 get_render_screen_size_safe() {
+    auto* render = devil4_sdk::get_sRender();
+    if (!render) {
+        return {};
+    }
+
+    return render->screenRes;
+}
+
+const MacroFrame* get_current_playback_frame() {
+    if (Macro::playback_current_frame_index == INVALID_PLAYBACK_FRAME_INDEX ||
+        Macro::playback_current_frame_index >= Macro::playback_frames.size()) {
+        return nullptr;
+    }
+
+    return &Macro::playback_frames[Macro::playback_current_frame_index];
+}
+
+const MacroSourceLine* get_current_playback_source_line() {
+    const auto* frame = get_current_playback_frame();
+    if (!frame || frame->source_line_index == INVALID_MACRO_SOURCE_LINE_INDEX ||
+        frame->source_line_index >= Macro::playback_source_lines.size()) {
+        return nullptr;
+    }
+
+    return &Macro::playback_source_lines[frame->source_line_index];
+}
+
+const MacroSourceLine* get_source_line_for_frame(const MacroFrame& frame) {
+    if (frame.source_line_index == INVALID_MACRO_SOURCE_LINE_INDEX ||
+        frame.source_line_index >= Macro::playback_source_lines.size()) {
+        return nullptr;
+    }
+
+    return &Macro::playback_source_lines[frame.source_line_index];
+}
+
+const MacroSourceLine* get_next_playback_source_line() {
+    uint32_t start_frame_index = Macro::playback_frame_index;
+    uint32_t current_source_line_index = INVALID_MACRO_SOURCE_LINE_INDEX;
+
+    if (Macro::playback_current_frame_index != INVALID_PLAYBACK_FRAME_INDEX &&
+        Macro::playback_current_frame_index < Macro::playback_frames.size()) {
+        start_frame_index = Macro::playback_current_frame_index + 1;
+        current_source_line_index = Macro::playback_frames[Macro::playback_current_frame_index].source_line_index;
+    }
+
+    for (uint32_t frame_index = start_frame_index; frame_index < Macro::playback_frames.size(); ++frame_index) {
+        const auto& frame = Macro::playback_frames[frame_index];
+        if (frame.source_line_index == INVALID_MACRO_SOURCE_LINE_INDEX ||
+            frame.source_line_index == current_source_line_index) {
+            continue;
+        }
+
+        return get_source_line_for_frame(frame);
+    }
+
+    return nullptr;
+}
+
+std::string format_overlay_source_line(const char* prefix, const MacroSourceLine* source_line) {
+    if (!source_line) {
+        return std::string(prefix) + "end";
+    }
+
+    char line_prefix[40]{};
+    std::snprintf(line_prefix, sizeof(line_prefix), "%sL%u  ", prefix, source_line->line_number);
+    return std::string(line_prefix) + source_line->text;
+}
+
+const char* overlay_button_name(uint32_t button) {
+    switch (button) {
+    case PAD_BUTTON_SELECT:
+        return "BACK/SELECT";
+    case PAD_BUTTON_L3:
+        return "L3";
+    case PAD_BUTTON_R3:
+        return "R3";
+    case PAD_BUTTON_START:
+        return "START";
+    case PAD_BUTTON_DPAD_UP:
+        return "DPAD_UP";
+    case PAD_BUTTON_DPAD_RIGHT:
+        return "DPAD_RIGHT";
+    case PAD_BUTTON_DPAD_DOWN:
+        return "DPAD_DOWN";
+    case PAD_BUTTON_DPAD_LEFT:
+        return "DPAD_LEFT";
+    case PAD_BUTTON_L1:
+        return "L1/LB";
+    case PAD_BUTTON_R1:
+        return "R1/RB";
+    case PAD_BUTTON_L2:
+        return "L2/LT";
+    case PAD_BUTTON_R2:
+        return "R2/RT";
+    case PAD_BUTTON_Y:
+        return "Y/TRIANGLE";
+    case PAD_BUTTON_B:
+        return "B/CIRCLE";
+    case PAD_BUTTON_A:
+        return "A/CROSS";
+    case PAD_BUTTON_X:
+        return "X/SQUARE";
+    default:
+        return nullptr;
+    }
+}
+
+const char* overlay_action_name(uint32_t action_index) {
+    switch (action_index) {
+    case MACRO_ACTION_MELEE:
+        return "MELEE";
+    case MACRO_ACTION_GUN:
+        return "GUN";
+    case MACRO_ACTION_EXCEED:
+        return "EXCEED";
+    case MACRO_ACTION_JUMP:
+        return "JUMP";
+    case MACRO_ACTION_BRINGER:
+        return "BRINGER";
+    case MACRO_ACTION_STYLE_ACTION:
+        return "STYLE_ACTION";
+    case MACRO_ACTION_DEVIL_TRIGGER:
+        return "DEVIL_TRIGGER";
+    case MACRO_ACTION_LOCK_ON:
+        return "LOCK_ON";
+    case MACRO_ACTION_CHANGE_GUN:
+        return "CHANGE_GUN";
+    case MACRO_ACTION_CHANGE_SWORD:
+        return "CHANGE_SWORD";
+    case MACRO_ACTION_TAUNT:
+        return "TAUNT";
+    case MACRO_ACTION_CHANGE_TARGET:
+        return "CHANGE_TARGET";
+    case MACRO_ACTION_RESET_CAMERA:
+        return "RESET_CAMERA";
+    default:
+        return nullptr;
+    }
+}
+
+void append_overlay_part(std::vector<std::string>& parts, const char* label) {
+    if (label && *label) {
+        parts.emplace_back(label);
+    }
+}
+
+void append_overlay_analog_parts(std::vector<std::string>& parts, const MacroFrame& frame) {
+    if (frame.has_left_analog) {
+        const bool walking_x = std::abs((int)frame.left_x) > 0 && std::abs((int)frame.left_x) < 100;
+        const bool walking_y = std::abs((int)frame.left_y) > 0 && std::abs((int)frame.left_y) < 100;
+
+        if (frame.left_y > 0) {
+            append_overlay_part(parts, walking_y ? "WALK_FORWARD" : "MOVE_FORWARD");
+        }
+        else if (frame.left_y < 0) {
+            append_overlay_part(parts, walking_y ? "WALK_BACK" : "MOVE_BACK");
+        }
+
+        if (frame.left_x > 0) {
+            append_overlay_part(parts, walking_x ? "WALK_RIGHT" : "MOVE_RIGHT");
+        }
+        else if (frame.left_x < 0) {
+            append_overlay_part(parts, walking_x ? "WALK_LEFT" : "MOVE_LEFT");
+        }
+    }
+
+    if (frame.has_right_analog) {
+        if (frame.right_y > 0) {
+            append_overlay_part(parts, "CAMERA_UP");
+        }
+        else if (frame.right_y < 0) {
+            append_overlay_part(parts, "CAMERA_DOWN");
+        }
+
+        if (frame.right_x > 0) {
+            append_overlay_part(parts, "CAMERA_RIGHT");
+        }
+        else if (frame.right_x < 0) {
+            append_overlay_part(parts, "CAMERA_LEFT");
+        }
+    }
+}
+
+std::string join_overlay_parts(const std::vector<std::string>& parts) {
+    if (parts.empty()) {
+        return "none";
+    }
+
+    std::string result{};
+    for (size_t i = 0; i < parts.size(); ++i) {
+        if (i != 0) {
+            result += " + ";
+        }
+        result += parts[i];
+    }
+    return result;
+}
+
+std::string format_overlay_active_input(const MacroFrame* frame) {
+    if (!frame) {
+        return "Held: none";
+    }
+
+    std::vector<std::string> parts{};
+
+    for (uint32_t action_index = 0; action_index < MACRO_ACTION_COUNT; ++action_index) {
+        if ((frame->actions & MACRO_ACTION_BIT(action_index)) != 0) {
+            append_overlay_part(parts, overlay_action_name(action_index));
+        }
+    }
+
+    constexpr uint32_t button_order[] = {
+        PAD_BUTTON_L1,
+        PAD_BUTTON_R1,
+        PAD_BUTTON_L2,
+        PAD_BUTTON_R2,
+        PAD_BUTTON_Y,
+        PAD_BUTTON_B,
+        PAD_BUTTON_A,
+        PAD_BUTTON_X,
+        PAD_BUTTON_DPAD_UP,
+        PAD_BUTTON_DPAD_RIGHT,
+        PAD_BUTTON_DPAD_DOWN,
+        PAD_BUTTON_DPAD_LEFT,
+        PAD_BUTTON_SELECT,
+        PAD_BUTTON_START,
+        PAD_BUTTON_L3,
+        PAD_BUTTON_R3,
+    };
+
+    for (const auto button : button_order) {
+        if ((frame->buttons & button) != 0) {
+            append_overlay_part(parts, overlay_button_name(button));
+        }
+    }
+
+    append_overlay_analog_parts(parts, *frame);
+
+    if (frame->screen_pause) {
+        append_overlay_part(parts, "SCREEN_FREEZE");
+    }
+    if (frame->screen_resume) {
+        append_overlay_part(parts, "SCREEN_RESUME");
+    }
+    if (frame->screen_pause_toggle) {
+        append_overlay_part(parts, "SCREEN_TOGGLE");
+    }
+    if (frame->character_switch) {
+        append_overlay_part(parts, "CHARACTER_SWITCH");
+    }
+    if (frame->one_hit_kill_toggle) {
+        append_overlay_part(parts, "ONE_HIT_KILL_TOGGLE");
+    }
+    else if (frame->one_hit_kill_set) {
+        append_overlay_part(parts, frame->one_hit_kill_value ? "ONE_HIT_KILL_ON" : "ONE_HIT_KILL_OFF");
+    }
+
+    return std::string("Held: ") + join_overlay_parts(parts);
+}
+
+struct MacroOverlayPalette {
+    ImVec4 accent{};
+    ImVec4 highlight{};
+    ImVec4 body{};
+    ImVec4 next{};
+    ImVec4 held{};
+    ImVec4 progress{};
+};
+
+MacroOverlayPalette overlay_palette_for_role(uint32_t role, bool playback_queued) {
+    if (role == MACRO_CHARACTER_DANTE) {
+        return {
+            ImVec4(1.0f, 0.22f, 0.16f, 0.98f),
+            ImVec4(1.0f, 0.74f, 0.36f, 0.98f),
+            ImVec4(1.0f, 0.97f, 0.94f, 0.96f),
+            ImVec4(1.0f, 0.70f, 0.62f, 0.90f),
+            ImVec4(1.0f, 0.84f, 0.52f, 0.96f),
+            ImVec4(0.98f, 0.82f, 0.70f, 0.90f),
+        };
+    }
+
+    if (role == MACRO_CHARACTER_NERO) {
+        return {
+            ImVec4(0.20f, 0.68f, 1.0f, 0.98f),
+            ImVec4(0.72f, 0.95f, 1.0f, 0.98f),
+            ImVec4(0.94f, 0.98f, 1.0f, 0.96f),
+            ImVec4(0.64f, 0.84f, 1.0f, 0.90f),
+            ImVec4(0.78f, 0.96f, 1.0f, 0.96f),
+            ImVec4(0.78f, 0.90f, 1.0f, 0.90f),
+        };
+    }
+
+    return {
+        ImVec4(0.55f, 0.75f, 1.0f, 0.96f),
+        ImVec4(0.95f, 0.96f, 1.0f, 0.98f),
+        ImVec4(1.0f, 1.0f, 1.0f, 0.94f),
+        ImVec4(0.82f, 0.88f, 0.95f, 0.86f),
+        ImVec4(0.92f, 0.94f, 1.0f, 0.92f),
+        ImVec4(0.82f, 0.88f, 0.95f, 0.86f),
+    };
+}
+
+void draw_overlay_text(const std::string& text, const ImVec4& color) {
+    const ImVec2 pos = ImGui::GetCursorPos();
+    ImGui::SetCursorPos(ImVec2(pos.x + 3.0f, pos.y + 3.0f));
+    ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, color.w * 0.75f), "%s", text.c_str());
+    ImGui::SetCursorPos(pos);
+    ImGui::TextColored(color, "%s", text.c_str());
+}
+
+void draw_overlay_progress_bar(float progress, const ImVec4& color, const ImVec4& highlight) {
+    progress = std::clamp(progress, 0.0f, 1.0f);
+
+    const ImVec2 pos = ImGui::GetCursorScreenPos();
+    const float width = std::max(1.0f, ImGui::GetContentRegionAvail().x);
+    const ImVec2 size(width, 11.0f);
+    auto* draw_list = ImGui::GetWindowDrawList();
+
+    const ImVec2 end(pos.x + size.x, pos.y + size.y);
+    const float fill_width = size.x * progress;
+    const ImVec2 fill_end(pos.x + fill_width, pos.y + size.y);
+
+    draw_list->AddRectFilled(pos, end, ImColor(0, 0, 0, 150), 5.0f);
+    draw_list->AddRect(pos, end, ImColor(255, 255, 255, 65), 5.0f);
+    if (fill_width > 0.0f) {
+        draw_list->AddRectFilled(pos, fill_end, ImColor(color), 5.0f);
+        draw_list->AddRectFilled(
+            ImVec2(pos.x, pos.y + 1.0f),
+            ImVec2(fill_end.x, pos.y + 4.0f),
+            ImColor(highlight),
+            5.0f);
+        draw_list->AddRectFilled(
+            ImVec2(std::max(pos.x, fill_end.x - 3.0f), pos.y),
+            fill_end,
+            ImColor(255, 255, 255, 110),
+            5.0f);
+    }
+    ImGui::Dummy(size);
+}
+
+void draw_macro_playback_overlay() {
+    if (!Macro::mod_enabled || !Macro::playback_overlay_enabled) {
+        return;
+    }
+
+    const bool playback_queued = playback_delay_pending_clip_index != INVALID_CLIP_INDEX ||
+        snapshot_switch_pending_clip_index != INVALID_CLIP_INDEX ||
+        (macro_setup_load_pending() && macro_setup_load.play_after_load_clip_index != INVALID_CLIP_INDEX);
+    if (!Macro::playback_enabled && !playback_queued) {
+        return;
+    }
+
+    const ImVec2 screen_size = get_render_screen_size_safe();
+    if (screen_size.x <= 0.0f || screen_size.y <= 0.0f) {
+        return;
+    }
+
+    const uint32_t total_ticks = (uint32_t)Macro::playback_frames.size();
+    uint32_t current_tick = 0;
+    if (Macro::playback_current_frame_index != INVALID_PLAYBACK_FRAME_INDEX &&
+        Macro::playback_current_frame_index < Macro::playback_frames.size()) {
+        current_tick = Macro::playback_current_frame_index + 1;
+    }
+    else {
+        current_tick = std::min(Macro::playback_frame_index, total_ticks);
+    }
+
+    const float progress = total_ticks > 0 ? (float)current_tick / (float)total_ticks : 0.0f;
+    const auto palette = overlay_palette_for_role(playback_action_resolution_role(), playback_queued);
+
+    std::string clip_label = "Macro clip";
+    if (Macro::loaded_clip_index < Macro::playback_clips.size()) {
+        clip_label = clip_display_label(Macro::playback_clips[Macro::loaded_clip_index], Macro::loaded_clip_index);
+    }
+
+    const auto* current_frame = get_current_playback_frame();
+    std::string header_label{};
+    {
+        char buffer[48]{};
+        std::snprintf(buffer, sizeof(buffer), "   %.0f%%", progress * 100.0f);
+        header_label = std::string("Macro: ") + clip_label + buffer;
+    }
+
+    std::string now_label{};
+    std::string next_label{};
+    if (macro_setup_load_pending()) {
+        now_label = std::string("Now:  ") + macro_setup_load_label();
+        next_label = macro_setup_load.play_after_load_clip_index == INVALID_CLIP_INDEX
+            ? "Next: finish loading Setup"
+            : "Next: play selected macro";
+    }
+    else if (snapshot_switch_pending_ticks > 0) {
+        char buffer[128]{};
+        std::snprintf(
+            buffer,
+            sizeof(buffer),
+            "Snapshot switch: waiting for %s",
+            character_role_label(position_snapshot.player_character_role));
+        now_label = std::string("Now:  ") + buffer;
+        next_label = snapshot_switch_pending_clip_index == INVALID_CLIP_INDEX ? "Next: load Snapshot" : "Next: load Snapshot, then play macro";
+    }
+    else if (playback_queued) {
+        char buffer[128]{};
+        std::snprintf(
+            buffer,
+            sizeof(buffer),
+            "%s delay: %u ticks",
+            playback_delay_pending_uses_setup ? "Setup" : "Snapshot",
+            playback_delay_pending_ticks);
+        now_label = std::string("Now:  ") + buffer;
+        next_label = "Next: first macro line";
+    }
+    else if (const auto* source_line = get_current_playback_source_line()) {
+        now_label = format_overlay_source_line("Now:  ", source_line);
+        next_label = format_overlay_source_line("Next: ", get_next_playback_source_line());
+    }
+    else {
+        now_label = "Now: waiting for first playback tick";
+        next_label = format_overlay_source_line("Next: ", get_next_playback_source_line());
+    }
+    now_label = truncate_overlay_text(now_label, 120);
+    next_label = truncate_overlay_text(next_label, 120);
+
+    const auto held_label = truncate_overlay_text(format_overlay_active_input(current_frame), 120);
+
+    std::string progress_label{};
+    {
+        char buffer[128]{};
+        const auto playback_time = format_playback_time(get_playback_elapsed_seconds());
+        std::snprintf(buffer, sizeof(buffer), "Progress: tick %u / %u   %s", current_tick, total_ticks, playback_time.c_str());
+        progress_label = buffer;
+    }
+
+    if (current_frame) {
+        if (current_frame->wait_condition != MACRO_WAIT_NONE && current_frame->wait_max_ticks != 0) {
+            char wait_buffer[64]{};
+            std::snprintf(wait_buffer, sizeof(wait_buffer), "   wait %u / %u", current_frame->wait_elapsed_ticks, current_frame->wait_max_ticks);
+            progress_label += wait_buffer;
+        }
+    }
+
+    ImGui::SetNextWindowPos(ImVec2(screen_size.x * 0.5f, screen_size.y * 0.76f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(screen_size.x * 0.72f, 0.0f), ImGuiCond_Always);
+    ImGui::SetNextWindowBgAlpha(0.0f);
+
+    constexpr ImGuiWindowFlags flags =
+        ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoBackground |
+        ImGuiWindowFlags_NoInputs |
+        ImGuiWindowFlags_NoScrollbar |
+        ImGuiWindowFlags_NoSavedSettings |
+        ImGuiWindowFlags_AlwaysAutoResize;
+
+    ImGui::Begin("MacroPlaybackOverlay", nullptr, flags);
+    ImGui::UpdateCurrentFontSize(1.18f * ImGui::GetStyle().FontSizeBase);
+    draw_overlay_text(truncate_overlay_text(header_label, 108), palette.accent);
+    draw_overlay_progress_bar(progress, palette.accent, palette.highlight);
+    draw_overlay_text(now_label, palette.body);
+    draw_overlay_text(next_label, palette.next);
+    draw_overlay_text(held_label, palette.held);
+    draw_overlay_text(progress_label, palette.progress);
+    ImGui::UpdateCurrentFontSize(0.0f);
+    ImGui::End();
 }
 
 std::string format_vec3_short(const Vector3f& value) {
@@ -1561,7 +2192,6 @@ bool parse_action_name(const std::string& token, uint32_t& action_index) {
         {"EXCEED", MACRO_ACTION_EXCEED},
         {"NERO_EXCEED", MACRO_ACTION_EXCEED},
         {"EXCEED_INPUT", MACRO_ACTION_EXCEED},
-        {"REV", MACRO_ACTION_EXCEED},
         {"JUMP", MACRO_ACTION_JUMP},
         {"BRINGER", MACRO_ACTION_BRINGER},
         {"DEVIL_BRINGER", MACRO_ACTION_BRINGER},
@@ -1705,28 +2335,532 @@ bool parse_character_role(const std::string& expression, uint32_t& role) {
     return false;
 }
 
-uint32_t current_player_character_role() {
-    auto* player = get_local_player_safe();
-    if (!player) {
-        return MACRO_CHARACTER_INVALID;
+bool parse_switch_character_mode(const std::string& expression) {
+    const auto normalized = normalize_button_token(expression);
+    return normalized == "SWITCH" || normalized == "SWITCH_CHARACTER" ||
+        normalized == "CHARACTER_SWITCH" || normalized == "CURRENT_CHARACTER";
+}
+
+constexpr float SETUP_PI = 3.14159265358979323846f;
+
+float setup_degrees_to_radians(float degrees) {
+    return degrees * SETUP_PI / 180.0f;
+}
+
+float setup_radians_to_degrees(float radians) {
+    return radians * 180.0f / SETUP_PI;
+}
+
+bool parse_enemy_id_name(const std::string& expression, int& enemy_id) {
+    uint32_t numeric_id = 0;
+    if (parse_integer(expression, numeric_id)) {
+        enemy_id = (int)numeric_id;
+        return true;
     }
 
-    __try {
-        if (player->controllerID == 1) {
-            return MACRO_CHARACTER_NERO;
-        }
-        if (player->controllerID == 0) {
-            return MACRO_CHARACTER_DANTE;
+    const auto normalized = normalize_button_token(expression);
+    static const std::pair<const char*, int> enemies[] = {
+        {"SCARECROW_LEG", SCARECROW_LEG},
+        {"LEG_SCARECROW", SCARECROW_LEG},
+        {"LEG", SCARECROW_LEG},
+        {"SCARECROW_ARM", SCARECROW_ARM},
+        {"ARM_SCARECROW", SCARECROW_ARM},
+        {"ARM", SCARECROW_ARM},
+        {"MEGA_SCARECROW", SCARECROW_MEGA},
+        {"SCARECROW_MEGA", SCARECROW_MEGA},
+        {"MEGA", SCARECROW_MEGA},
+        {"BIANCO_ANGELO", ANGELO_BIANCO},
+        {"ANGELO_BIANCO", ANGELO_BIANCO},
+        {"BIANCO", ANGELO_BIANCO},
+        {"ALTO_ANGELO", ANGELO_ALTO},
+        {"ANGELO_ALTO", ANGELO_ALTO},
+        {"ALTO", ANGELO_ALTO},
+        {"MEPHISTO", MEPHISTO},
+        {"FAUST", FAUST},
+        {"FROST", FROST},
+        {"ASSAULT", ASSAULT},
+        {"BLITZ", BLITZ},
+        {"CHIMERA", CHIMERA},
+        {"CHIMERA_SEED", CHIMERA},
+        {"SEED", CHIMERA},
+        {"CUTLASS", CUTLASS},
+        {"GLADIUS", GLADIUS},
+        {"BASILISK", BASILISK},
+        {"BERIAL", BERIAL},
+        {"BAEL", BAEL},
+        {"ECHIDNA", ECHIDNA},
+        {"CREDO", CREDO},
+        {"ANGELO_CREDO", CREDO},
+        {"AGNUS", AGNUS},
+        {"ANGELO_AGNUS", AGNUS},
+        {"SAVIOR", SAVIOR},
+        {"SANCTUS", SANCTUS_M11},
+        {"SANCTUS_M11", SANCTUS_M11},
+        {"SANCTUS_M20", SANCTUS_M20},
+        {"SANCTUS2", SANCTUS_M20},
+        {"KYRIE", KYRIE},
+    };
+
+    for (const auto& entry : enemies) {
+        if (normalized == entry.first) {
+            enemy_id = entry.second;
+            return true;
         }
     }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    return false;
+}
+
+const char* enemy_id_setup_label(int enemy_id) {
+    switch (enemy_id) {
+    case SCARECROW_LEG:
+        return "Scarecrow_Leg";
+    case SCARECROW_ARM:
+        return "Scarecrow_Arm";
+    case SCARECROW_MEGA:
+        return "Mega_Scarecrow";
+    case ANGELO_BIANCO:
+        return "Bianco_Angelo";
+    case ANGELO_ALTO:
+        return "Alto_Angelo";
+    case MEPHISTO:
+        return "Mephisto";
+    case FAUST:
+        return "Faust";
+    case FROST:
+        return "Frost";
+    case ASSAULT:
+        return "Assault";
+    case BLITZ:
+        return "Blitz";
+    case CHIMERA:
+        return "Chimera";
+    case CUTLASS:
+        return "Cutlass";
+    case GLADIUS:
+        return "Gladius";
+    case BASILISK:
+        return "Basilisk";
+    case BERIAL:
+        return "Berial";
+    case BAEL:
+        return "Bael";
+    case ECHIDNA:
+        return "Echidna";
+    case CREDO:
+        return "Credo";
+    case AGNUS:
+        return "Agnus";
+    case SAVIOR:
+        return "Savior";
+    case SANCTUS_M11:
+        return "Sanctus";
+    case SANCTUS_M20:
+        return "Sanctus2";
+    case KYRIE:
+        return "Kyrie";
+    default:
+        return "Enemy";
     }
-    return MACRO_CHARACTER_INVALID;
+}
+
+bool macro_setup_enemy_spawn_type(int enemy_id, SpawnableEnemyType& spawn_type) {
+    switch (enemy_id) {
+    case SCARECROW_LEG:
+        spawn_type = SpawnableEnemyType::SCARECROW_LEG;
+        return true;
+    case SCARECROW_ARM:
+        spawn_type = SpawnableEnemyType::SCARECROW_ARM;
+        return true;
+    case SCARECROW_MEGA:
+        spawn_type = SpawnableEnemyType::SCARECROW_MEGA;
+        return true;
+    case ANGELO_BIANCO:
+        spawn_type = SpawnableEnemyType::ANGELO_BIANCO;
+        return true;
+    case ANGELO_ALTO:
+        spawn_type = SpawnableEnemyType::ANGELO_ALTO;
+        return true;
+    case MEPHISTO:
+        spawn_type = SpawnableEnemyType::MEPHISTO;
+        return true;
+    case FAUST:
+        spawn_type = SpawnableEnemyType::FAUST;
+        return true;
+    case FROST:
+        spawn_type = SpawnableEnemyType::FROST;
+        return true;
+    case ASSAULT:
+        spawn_type = SpawnableEnemyType::ASSAULT;
+        return true;
+    case BLITZ:
+        spawn_type = SpawnableEnemyType::BLITZ;
+        return true;
+    case CHIMERA:
+        spawn_type = SpawnableEnemyType::CHIMERA_SEED;
+        return true;
+    case CUTLASS:
+        spawn_type = SpawnableEnemyType::CUTLASS;
+        return true;
+    case GLADIUS:
+        spawn_type = SpawnableEnemyType::GLADIUS;
+        return true;
+    case BASILISK:
+        spawn_type = SpawnableEnemyType::BASILISK;
+        return true;
+    case BERIAL:
+        spawn_type = SpawnableEnemyType::BERIAL;
+        return true;
+    case BAEL:
+        spawn_type = SpawnableEnemyType::BAEL;
+        return true;
+    case ECHIDNA:
+        spawn_type = SpawnableEnemyType::ECHIDNA;
+        return true;
+    case CREDO:
+        spawn_type = SpawnableEnemyType::CREDO;
+        return true;
+    case AGNUS:
+        spawn_type = SpawnableEnemyType::AGNUS;
+        return true;
+    case SANCTUS_M11:
+        spawn_type = SpawnableEnemyType::SANCTUS;
+        return true;
+    case SANCTUS_M20:
+        spawn_type = SpawnableEnemyType::SANCTUS_DIABOLICA;
+        return true;
+    case KYRIE:
+        spawn_type = SpawnableEnemyType::KYRIE;
+        return true;
+    default:
+        return false;
+    }
+}
+
+std::vector<std::string> split_setup_tokens(const std::string& line) {
+    std::vector<std::string> tokens{};
+    std::istringstream stream{ line };
+    std::string token{};
+    while (stream >> token) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+bool setup_token_is(const std::string& token, const char* expected) {
+    return normalize_button_token(token) == expected;
+}
+
+bool setup_token_is_option(const std::string& token) {
+    const auto normalized = normalize_button_token(token);
+    return normalized == "POS" || normalized == "POSITION" ||
+        normalized == "FACE" || normalized == "FACING" || normalized == "YAW" ||
+        normalized == "ROT" || normalized == "ROTATION" ||
+        normalized == "TARGET" || normalized == "LOOKAT" ||
+        normalized == "UP" || normalized == "FOV";
+}
+
+bool parse_setup_vector3(const std::vector<std::string>& tokens, size_t& index, Vector3f& value) {
+    if (index + 2 >= tokens.size()) {
+        return false;
+    }
+
+    float x = 0.0f;
+    float y = 0.0f;
+    float z = 0.0f;
+    if (!parse_float(tokens[index], x) || !parse_float(tokens[index + 1], y) || !parse_float(tokens[index + 2], z)) {
+        return false;
+    }
+
+    value = { x, y, z };
+    index += 3;
+    return true;
+}
+
+std::string join_setup_name_tokens(const std::vector<std::string>& tokens, size_t begin, size_t end) {
+    std::string result{};
+    for (size_t index = begin; index < end; ++index) {
+        if (!result.empty()) {
+            result += "_";
+        }
+        result += tokens[index];
+    }
+    return result;
+}
+
+bool parse_macro_setup_line(const std::string& line, MacroScenarioSetup& setup, std::string& error) {
+    const auto tokens = split_setup_tokens(line);
+    if (tokens.empty()) {
+        return true;
+    }
+
+    const auto command = normalize_button_token(tokens[0]);
+    if (command == "CHARACTER" || command == "CHAR" || command == "ACTIVE") {
+        if (tokens.size() != 2 || !parse_character_role(tokens[1], setup.character_role)) {
+            error = "invalid Setup Character line";
+            return false;
+        }
+        setup.valid = true;
+        return true;
+    }
+
+    if (command == "ROOM") {
+        if (tokens.size() == 3 && setup_token_is(tokens[1], "BP")) {
+            uint32_t floor = 0;
+            if (!parse_integer(tokens[2], floor) || floor < 1 || floor > 101) {
+                error = "invalid Setup BP floor";
+                return false;
+            }
+            setup.bp_floor_valid = true;
+            setup.bp_floor = floor;
+            setup.mission_valid = true;
+            setup.mission_id = 50;
+            setup.valid = true;
+            return true;
+        }
+
+        size_t room_index = 1;
+        if (tokens.size() == 3 && setup_token_is(tokens[1], "ID")) {
+            room_index = 2;
+        }
+        if (room_index < tokens.size() && room_index + 1 == tokens.size()) {
+            uint32_t room_id = 0;
+            if (!parse_integer(tokens[room_index], room_id)) {
+                error = "invalid Setup room id";
+                return false;
+            }
+            setup.room_valid = true;
+            setup.room_id = room_id;
+            setup.valid = true;
+            return true;
+        }
+
+        error = "invalid Setup Room line";
+        return false;
+    }
+
+    if (command == "MISSION") {
+        if (tokens.size() != 2 && tokens.size() != 4) {
+            error = "invalid Setup Mission line";
+            return false;
+        }
+
+        uint32_t mission_id = 0;
+        if (!parse_integer(tokens[1], mission_id)) {
+            error = "invalid Setup mission id";
+            return false;
+        }
+        setup.mission_valid = true;
+        setup.mission_id = mission_id;
+
+        if (tokens.size() == 4) {
+            if (!setup_token_is(tokens[2], "ROOM")) {
+                error = "invalid Setup Mission room syntax";
+                return false;
+            }
+            uint32_t room_id = 0;
+            if (!parse_integer(tokens[3], room_id)) {
+                error = "invalid Setup room id";
+                return false;
+            }
+            setup.room_valid = true;
+            setup.room_id = room_id;
+        }
+        setup.valid = true;
+        return true;
+    }
+
+    if (command == "PLAYER") {
+        size_t index = 1;
+        if (index < tokens.size() && (setup_token_is(tokens[index], "POS") || setup_token_is(tokens[index], "POSITION"))) {
+            ++index;
+        }
+        if (!parse_setup_vector3(tokens, index, setup.player_position)) {
+            error = "invalid Setup Player position";
+            return false;
+        }
+        setup.player_position_valid = true;
+
+        while (index < tokens.size()) {
+            const auto option = normalize_button_token(tokens[index++]);
+            if (option == "FACE" || option == "FACING" || option == "YAW" || option == "ROT" || option == "ROTATION") {
+                if (index >= tokens.size()) {
+                    error = "invalid Setup Player facing";
+                    return false;
+                }
+                float degrees = 0.0f;
+                if (!parse_float(tokens[index++], degrees)) {
+                    error = "invalid Setup Player facing";
+                    return false;
+                }
+                setup.player_facing_valid = true;
+                setup.player_facing_radians = setup_degrees_to_radians(degrees);
+                continue;
+            }
+
+            error = "unknown Setup Player option";
+            return false;
+        }
+
+        setup.valid = true;
+        return true;
+    }
+
+    if (command == "CAMERA") {
+        bool has_position = false;
+        bool has_target = false;
+        size_t index = 1;
+        while (index < tokens.size()) {
+            const auto option = normalize_button_token(tokens[index++]);
+            if (option == "POS" || option == "POSITION") {
+                if (!parse_setup_vector3(tokens, index, setup.camera_position)) {
+                    error = "invalid Setup Camera position";
+                    return false;
+                }
+                has_position = true;
+                continue;
+            }
+            if (option == "TARGET" || option == "LOOKAT") {
+                if (!parse_setup_vector3(tokens, index, setup.camera_target)) {
+                    error = "invalid Setup Camera target";
+                    return false;
+                }
+                has_target = true;
+                continue;
+            }
+            if (option == "UP") {
+                if (!parse_setup_vector3(tokens, index, setup.camera_up)) {
+                    error = "invalid Setup Camera up vector";
+                    return false;
+                }
+                setup.camera_up_valid = true;
+                continue;
+            }
+            if (option == "FOV") {
+                if (index >= tokens.size() || !parse_float(tokens[index++], setup.camera_fov)) {
+                    error = "invalid Setup Camera FOV";
+                    return false;
+                }
+                setup.camera_fov_valid = true;
+                continue;
+            }
+
+            error = "unknown Setup Camera option";
+            return false;
+        }
+
+        if (!has_position || !has_target) {
+            error = "Setup Camera needs Pos and Target";
+            return false;
+        }
+        setup.camera_valid = true;
+        setup.valid = true;
+        return true;
+    }
+
+    if (command == "ENEMY") {
+        if (tokens.size() < 4) {
+            error = "invalid Setup Enemy line";
+            return false;
+        }
+
+        MacroSetupEnemy enemy{};
+        size_t index = 1;
+        if (!parse_integer(tokens[index], enemy.label_index)) {
+            enemy.label_index = (uint32_t)setup.enemies.size() + 1;
+        }
+        else {
+            ++index;
+        }
+
+        const size_t name_begin = index;
+        while (index < tokens.size() && !setup_token_is_option(tokens[index])) {
+            ++index;
+        }
+        if (name_begin == index) {
+            error = "missing Setup Enemy type";
+            return false;
+        }
+
+        const auto enemy_name = join_setup_name_tokens(tokens, name_begin, index);
+        if (!parse_enemy_id_name(enemy_name, enemy.enemy_id)) {
+            error = "unknown Setup Enemy type";
+            return false;
+        }
+
+        while (index < tokens.size()) {
+            const auto option = normalize_button_token(tokens[index++]);
+            if (option == "POS" || option == "POSITION") {
+                if (!parse_setup_vector3(tokens, index, enemy.position)) {
+                    error = "invalid Setup Enemy position";
+                    return false;
+                }
+                enemy.position_valid = true;
+                continue;
+            }
+            if (option == "FACE" || option == "FACING" || option == "YAW" || option == "ROT" || option == "ROTATION") {
+                if (index >= tokens.size()) {
+                    error = "invalid Setup Enemy facing";
+                    return false;
+                }
+                float degrees = 0.0f;
+                if (!parse_float(tokens[index++], degrees)) {
+                    error = "invalid Setup Enemy facing";
+                    return false;
+                }
+                enemy.facing_valid = true;
+                enemy.facing_radians = setup_degrees_to_radians(degrees);
+                continue;
+            }
+
+            error = "unknown Setup Enemy option";
+            return false;
+        }
+
+        if (!enemy.position_valid && !enemy.facing_valid) {
+            error = "Setup Enemy needs Pos or Face";
+            return false;
+        }
+
+        setup.enemies.push_back(enemy);
+        setup.valid = true;
+        return true;
+    }
+
+    error = "unknown Setup command";
+    return false;
+}
+
+uint32_t current_player_character_role() {
+    auto* player = get_local_player_safe();
+    return character_role_from_player_safe(player);
 }
 
 bool clip_matches_current_character(const MacroClip& clip) {
     const uint32_t current_role = current_player_character_role();
-    return current_role != MACRO_CHARACTER_INVALID && clip.character_role == current_role;
+    if (current_role == MACRO_CHARACTER_INVALID) {
+        return false;
+    }
+    if (clip.switch_character_mode) {
+        return true;
+    }
+    return clip.character_role == current_role;
+}
+
+bool clip_matches_character_role(const MacroClip& clip, uint32_t role) {
+    if (role == MACRO_CHARACTER_INVALID) {
+        return false;
+    }
+    if (clip.switch_character_mode) {
+        return true;
+    }
+    return clip.character_role == role;
+}
+
+bool clip_start_modes_overlap(const MacroClip& existing_clip, uint32_t character_role, bool switch_mode) {
+    if (existing_clip.switch_character_mode || switch_mode) {
+        return true;
+    }
+    return existing_clip.character_role == character_role;
 }
 
 bool macro_action_valid_for_role(uint32_t action_index, uint32_t role) {
@@ -1747,6 +2881,14 @@ bool macro_action_valid_for_role(uint32_t action_index, uint32_t role) {
         return actions[action_index].dante_config_key != nullptr;
     }
     return false;
+}
+
+bool macro_action_valid_for_parse(uint32_t action_index, uint32_t role, bool switch_character_mode) {
+    if (switch_character_mode) {
+        return macro_action_valid_for_role(action_index, MACRO_CHARACTER_NERO) ||
+            macro_action_valid_for_role(action_index, MACRO_CHARACTER_DANTE);
+    }
+    return macro_action_valid_for_role(action_index, role);
 }
 
 uint32_t default_action_button_for_role(uint32_t action_index, uint32_t role) {
@@ -1787,6 +2929,16 @@ uint32_t resolve_global_action_buttons(uint32_t actions, uint32_t role) {
         buttons |= action_button_for_role(MACRO_ACTION_RESET_CAMERA, role);
     }
     return buttons;
+}
+
+uint32_t playback_action_resolution_role() {
+    if (Macro::playback_switch_character_mode) {
+        const uint32_t current_role = current_player_character_role();
+        if (current_role != MACRO_CHARACTER_INVALID) {
+            return current_role;
+        }
+    }
+    return Macro::playback_character_role;
 }
 
 bool parse_style_name(const std::string& token, int& style) {
@@ -1910,7 +3062,7 @@ bool parse_wait_condition(
     compare = 0;
     value = 0.0f;
     value_u32 = 0;
-    max_ticks = 0;
+    max_ticks = DEFAULT_WAIT_UNTIL_TIMEOUT_TICKS;
 
     std::string condition_token{};
     stream >> condition_token;
@@ -2245,13 +3397,6 @@ MacroFrame frame_from_input(const ParsedMacroInput& input) {
         input.screen_pause_toggle);
 }
 
-MacroFrame frame_from_forced_style(int style) {
-    MacroFrame frame{};
-    frame.force_style = true;
-    frame.forced_style = style;
-    return frame;
-}
-
 MacroFrame frame_from_character_switch() {
     MacroFrame frame{};
     frame.character_switch = true;
@@ -2309,7 +3454,11 @@ MacroFrame frame_from_wait_condition(
     return frame;
 }
 
-bool parse_macro_input(std::string expression, ParsedMacroInput& input, uint32_t character_role) {
+bool parse_macro_input(
+    std::string expression,
+    ParsedMacroInput& input,
+    uint32_t character_role,
+    bool switch_character_mode = false) {
     input = {};
 
     for (auto& c : expression) {
@@ -2351,7 +3500,7 @@ bool parse_macro_input(std::string expression, ParsedMacroInput& input, uint32_t
         uint32_t action_index = 0;
         if (parse_action_name(token, action_index)) {
             if (action_index < MACRO_ACTION_COUNT) {
-                if (!macro_action_valid_for_role(action_index, character_role)) {
+                if (!macro_action_valid_for_parse(action_index, character_role, switch_character_mode)) {
                     return false;
                 }
                 input.actions |= MACRO_ACTION_BIT(action_index);
@@ -2389,9 +3538,13 @@ bool parse_macro_input(std::string expression, ParsedMacroInput& input, uint32_t
     return found_token;
 }
 
-bool parse_playback_command(std::string expression, MacroFrame& frame, uint32_t character_role) {
+bool parse_playback_command(
+    std::string expression,
+    MacroFrame& frame,
+    uint32_t character_role,
+    bool switch_character_mode = false) {
     ParsedMacroInput input{};
-    if (!parse_macro_input(std::move(expression), input, character_role)) {
+    if (!parse_macro_input(std::move(expression), input, character_role, switch_character_mode)) {
         return false;
     }
 
@@ -2480,14 +3633,34 @@ bool append_playback_frames(std::vector<MacroFrame>& frames, uint32_t frame_coun
     return true;
 }
 
+uint32_t add_macro_source_line(MacroClip& clip, uint32_t line_number, const std::string& text) {
+    if (clip.source_lines.size() >= INVALID_MACRO_SOURCE_LINE_INDEX) {
+        return INVALID_MACRO_SOURCE_LINE_INDEX;
+    }
+
+    clip.source_lines.push_back(MacroSourceLine{ line_number, text });
+    return (uint32_t)clip.source_lines.size() - 1;
+}
+
+void tag_appended_frames(std::vector<MacroFrame>& frames, size_t first_frame, uint32_t source_line_index) {
+    if (source_line_index == INVALID_MACRO_SOURCE_LINE_INDEX || first_frame >= frames.size()) {
+        return;
+    }
+
+    for (size_t frame_index = first_frame; frame_index < frames.size(); ++frame_index) {
+        frames[frame_index].source_line_index = source_line_index;
+    }
+}
+
 bool append_tap_macro(
     std::vector<MacroFrame>& frames,
     HeldMacroInput& held,
     const std::string& input_expression,
     uint32_t ticks,
-    uint32_t character_role) {
+    uint32_t character_role,
+    bool switch_character_mode) {
     ParsedMacroInput input{};
-    if (ticks == 0 || !parse_macro_input(input_expression, input, character_role)) {
+    if (ticks == 0 || !parse_macro_input(input_expression, input, character_role, switch_character_mode)) {
         return false;
     }
 
@@ -2504,11 +3677,12 @@ bool append_direction_button_macro(
     const std::string& direction_expression,
     const std::string& input_expression,
     uint32_t ticks,
-    uint32_t character_role) {
+    uint32_t character_role,
+    bool switch_character_mode) {
     ParsedMacroInput direction{};
     ParsedMacroInput input{};
-    if (ticks == 0 || !parse_macro_input(direction_expression, direction, character_role) ||
-        !parse_macro_input(input_expression, input, character_role)) {
+    if (ticks == 0 || !parse_macro_input(direction_expression, direction, character_role, switch_character_mode) ||
+        !parse_macro_input(input_expression, input, character_role, switch_character_mode)) {
         return false;
     }
 
@@ -2526,13 +3700,14 @@ bool append_back_forward_macro(
     const std::string& back_expression,
     const std::string& forward_expression,
     const std::string& input_expression,
-    uint32_t character_role) {
+    uint32_t character_role,
+    bool switch_character_mode) {
     ParsedMacroInput back{};
     ParsedMacroInput forward{};
     ParsedMacroInput input{};
-    if (!parse_macro_input(back_expression, back, character_role) ||
-        !parse_macro_input(forward_expression, forward, character_role) ||
-        !parse_macro_input(input_expression, input, character_role)) {
+    if (!parse_macro_input(back_expression, back, character_role, switch_character_mode) ||
+        !parse_macro_input(forward_expression, forward, character_role, switch_character_mode) ||
+        !parse_macro_input(input_expression, input, character_role, switch_character_mode)) {
         return false;
     }
 
@@ -2668,29 +3843,24 @@ bool write_base_player_input_snapshot(cPeripheral* peripheral) {
         return false;
     }
 
-    __try {
-        peripheral->mPadBtnOn = pad->mPadInfo[0].mBtn.on;
-        peripheral->mPadBtnTrg = pad->mPadInfo[0].mBtn.trg;
-        peripheral->mPadBtnRel = pad->mPadInfo[0].mBtn.rel;
-        std::memcpy(&peripheral->mPadBtnPress, &pad->mPadInfo[0].mPress, sizeof(float) * 15);
+    peripheral->mPadBtnOn = pad->mPadInfo[0].mBtn.on;
+    peripheral->mPadBtnTrg = pad->mPadInfo[0].mBtn.trg;
+    peripheral->mPadBtnRel = pad->mPadInfo[0].mBtn.rel;
+    std::memcpy(&peripheral->mPadBtnPress, &pad->mPadInfo[0].mPress, sizeof(float) * 15);
 
-        peripheral->mAnlgL = {};
-        get_pad_analog_level(pad, &peripheral->mAnlgL, false);
-        keyboard_to_analog(&peripheral->mAnlgL, 0, 0);
-        update_analog_info_for_macro(&peripheral->mAnlgL);
+    peripheral->mAnlgL = {};
+    get_pad_analog_level(pad, &peripheral->mAnlgL, false);
+    keyboard_to_analog(&peripheral->mAnlgL, 0, 0);
+    update_analog_info_for_macro(&peripheral->mAnlgL);
 
-        peripheral->mAnlgR = {};
-        get_pad_analog_level(pad, &peripheral->mAnlgR, true);
-        keyboard_to_analog(&peripheral->mAnlgR, 0, 1);
-        update_analog_info_for_macro(&peripheral->mAnlgR);
+    peripheral->mAnlgR = {};
+    get_pad_analog_level(pad, &peripheral->mAnlgR, true);
+    keyboard_to_analog(&peripheral->mAnlgR, 0, 1);
+    update_analog_info_for_macro(&peripheral->mAnlgR);
 
-        peripheral->mHoldAnlgL = peripheral->mAnlgL;
-        peripheral->mIsHold = false;
-        return true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return false;
-    }
+    peripheral->mHoldAnlgL = peripheral->mAnlgL;
+    peripheral->mIsHold = false;
+    return true;
 }
 
 void set_pad_press(cPeripheral* peripheral, uint32_t buttons, uint32_t button_mask, size_t press_index) {
@@ -2731,33 +3901,29 @@ void apply_global_pad_route_for_macro(
         return;
     }
 
-    __try {
-        auto& pad_info = pad->mPadInfo[0];
-        const uint32_t pressed_buttons = routed_buttons & ~previous_routed_buttons;
-        const uint32_t released_buttons = previous_routed_buttons & ~routed_buttons;
+    auto& pad_info = pad->mPadInfo[0];
+    const uint32_t pressed_buttons = routed_buttons & ~previous_routed_buttons;
+    const uint32_t released_buttons = previous_routed_buttons & ~routed_buttons;
 
-        pad_info.mBtn.on &= ~previous_routed_buttons;
-        pad_info.mBtn.on |= routed_buttons;
-        pad_info.mBtn.trg |= pressed_buttons;
-        pad_info.mBtn.rel |= released_buttons;
-        set_global_pad_press(pad_info.mPress, routed_buttons);
+    pad_info.mBtn.on &= ~previous_routed_buttons;
+    pad_info.mBtn.on |= routed_buttons;
+    pad_info.mBtn.trg |= pressed_buttons;
+    pad_info.mBtn.rel |= released_buttons;
+    set_global_pad_press(pad_info.mPress, routed_buttons);
 
-        if (frame.has_right_analog) {
-            pad_info.mAnlg[1].x = std::clamp(
-                pad_info.mAnlg[1].x + (static_cast<float>(frame.right_x) / static_cast<float>(ANALOG_MAX)),
-                -1.0f,
-                1.0f);
-            pad_info.mAnlg[1].y = std::clamp(
-                pad_info.mAnlg[1].y + (static_cast<float>(frame.right_y) / static_cast<float>(ANALOG_MAX)),
-                -1.0f,
-                1.0f);
-        }
-        else if (last_global_right_analog[player_index]) {
-            pad_info.mAnlg[1].x = 0.0f;
-            pad_info.mAnlg[1].y = 0.0f;
-        }
+    if (frame.has_right_analog) {
+        pad_info.mAnlg[1].x = std::clamp(
+            pad_info.mAnlg[1].x + (static_cast<float>(frame.right_x) / static_cast<float>(ANALOG_MAX)),
+            -1.0f,
+            1.0f);
+        pad_info.mAnlg[1].y = std::clamp(
+            pad_info.mAnlg[1].y + (static_cast<float>(frame.right_y) / static_cast<float>(ANALOG_MAX)),
+            -1.0f,
+            1.0f);
     }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+    else if (last_global_right_analog[player_index]) {
+        pad_info.mAnlg[1].x = 0.0f;
+        pad_info.mAnlg[1].y = 0.0f;
     }
 
     last_global_routed_buttons[player_index] = routed_buttons;
@@ -2936,6 +4102,17 @@ bool is_boss_enemy_id(int enemy_id) {
     }
 }
 
+bool is_finite_vector3(const Vector3f& value) {
+    return std::isfinite(value.x) && std::isfinite(value.y) && std::isfinite(value.z);
+}
+
+bool is_plausible_setup_enemy_position(const Vector3f& position) {
+    constexpr float MAX_SETUP_ENEMY_COORD_ABS = 8000.0f;
+    return std::fabs(position.x) <= MAX_SETUP_ENEMY_COORD_ABS &&
+        std::fabs(position.y) <= MAX_SETUP_ENEMY_COORD_ABS &&
+        std::fabs(position.z) <= MAX_SETUP_ENEMY_COORD_ABS;
+}
+
 uDamage_Old* get_enemy_damage_block(uEnemy_Old* enemy) {
     if (!enemy) {
         return nullptr;
@@ -2952,6 +4129,40 @@ uDamage_Old* get_enemy_damage_block(uEnemy_Old* enemy) {
     }
 
     return (uDamage_Old*)((char*)enemy + damage_offset);
+}
+
+bool is_live_macro_setup_enemy(uEnemy_Old* enemy) {
+    __try {
+        if (!enemy || !enemy->isActive) {
+            return false;
+        }
+
+        if (!is_finite_vector3(enemy->position) || !is_finite_vector3(enemy->rotation) ||
+            !is_plausible_setup_enemy_position(enemy->position)) {
+            return false;
+        }
+
+        if (auto* damage = get_enemy_damage_block(enemy)) {
+            if (damage->isDead || !std::isfinite(damage->HP) || damage->HP <= 0.0f) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return false;
+    }
+}
+
+uint32_t count_live_macro_setup_enemies(int enemy_id) {
+    uint32_t count = 0;
+    for (auto* enemy : collect_enemy_chain()) {
+        if (is_live_macro_setup_enemy(enemy) && (int)enemy->ID == enemy_id) {
+            ++count;
+        }
+    }
+    return count;
 }
 
 bool capture_enemy_snapshot(uEnemy_Old* enemy, BattleEnemySnapshot& snapshot) {
@@ -3029,19 +4240,6 @@ void apply_enemy_stable_snapshot(uEnemy_Old* enemy, const BattleEnemySnapshot& s
     enemy->position = snapshot.position;
     enemy->velocity = snapshot.velocity;
     enemy->rotation = snapshot.rotation;
-
-    if (snapshot.damage_valid) {
-        if (auto* damage = get_enemy_damage_block(enemy)) {
-            damage->HP = snapshot.hp;
-            damage->HPMax = snapshot.hp_max;
-            damage->HPTaken = snapshot.hp_taken;
-            damage->prevDamageResist = snapshot.prev_damage_resist;
-            std::copy(std::begin(snapshot.stun), std::end(snapshot.stun), std::begin(damage->stun));
-            std::copy(std::begin(snapshot.displacement), std::end(snapshot.displacement), std::begin(damage->displacement));
-            damage->isDead = snapshot.is_dead;
-            damage->stunResetTimer = snapshot.stun_reset_timer;
-        }
-    }
 }
 
 void apply_enemy_combat_snapshot(uEnemy_Old* enemy, const BattleEnemySnapshot& snapshot) {
@@ -3053,27 +4251,16 @@ void apply_enemy_combat_snapshot(uEnemy_Old* enemy, const BattleEnemySnapshot& s
         return;
     }
 
-    enemy->DT = snapshot.dt;
-    enemy->DTTimer = snapshot.dt_timer;
-    if (snapshot.id == BERIAL) {
-        enemy->berialFire = snapshot.berial_fire;
-        enemy->berialFireTimer = snapshot.berial_fire_timer;
-    }
-    if (snapshot.id == GLADIUS) {
-        enemy->gladiusTimer = snapshot.gladius_timer;
-        enemy->gladiusBuried = snapshot.gladius_buried;
-    }
-    if (snapshot.id == MEPHISTO || snapshot.id == FAUST) {
-        enemy->faustCloak = snapshot.faust_cloak;
-        enemy->faustCloakTimer = snapshot.faust_cloak_timer;
-    }
-    if (snapshot.id == BLITZ) {
-        enemy->blitzElectric = snapshot.blitz_electric;
-        enemy->blitzElectricTimer = snapshot.blitz_electric_timer;
-        enemy->blitzElectricSuicideTimer = snapshot.blitz_electric_suicide_timer;
-    }
-    if (snapshot.id == ANGELO_BIANCO || snapshot.id == ANGELO_ALTO) {
-        enemy->angeloShield = snapshot.angelo_shield;
+    if (snapshot.damage_valid) {
+        if (auto* damage = get_enemy_damage_block(enemy)) {
+            damage->HP = snapshot.hp;
+            damage->HPMax = snapshot.hp_max;
+            damage->HPTaken = snapshot.hp_taken;
+            damage->prevDamageResist = snapshot.prev_damage_resist;
+            std::copy(std::begin(snapshot.stun), std::end(snapshot.stun), std::begin(damage->stun));
+            std::copy(std::begin(snapshot.displacement), std::end(snapshot.displacement), std::begin(damage->displacement));
+            damage->stunResetTimer = snapshot.stun_reset_timer;
+        }
     }
 }
 
@@ -3086,7 +4273,8 @@ std::string position_snapshot_label() {
     std::snprintf(
         buffer,
         sizeof(buffer),
-        "Battle Snapshot: mission/room %u/%u, enemies %u chain / %u active, player %s, camera %s",
+        "Battle Snapshot: %s, mission/room %u/%u, enemies %u chain / %u active, player %s, camera %s",
+        character_role_label(position_snapshot.player_character_role),
         position_snapshot.mission_id,
         position_snapshot.room_id,
         position_snapshot.enemy_chain_count,
@@ -3096,28 +4284,175 @@ std::string position_snapshot_label() {
     return buffer;
 }
 
-void capture_player_resource_snapshot(uPlayer* player) {
+void clear_player_resource_snapshots() {
+    for (auto& snapshot : position_snapshot.player_resources) {
+        snapshot = {};
+    }
+}
+
+bool capture_player_resource_snapshot(uPlayer* player, PlayerResourceSnapshot& snapshot, bool was_active) {
+    snapshot = {};
+
     __try {
         if (!player) {
-            return;
+            return false;
         }
 
-        position_snapshot.player_current_style = player->currentStyle;
-        position_snapshot.player_hp = player->damageStruct.HP;
-        position_snapshot.player_hp_max = player->damageStruct.HPMax;
-        position_snapshot.player_hp_taken = player->damageStruct.HPTaken;
-        position_snapshot.player_prev_damage_resist = player->damageStruct.prevDamageResist;
-        position_snapshot.player_dt = player->DT;
-        position_snapshot.player_max_dt = player->maxDT;
-        position_snapshot.player_dt_active = player->dtActive;
-        position_snapshot.player_exceed_level = player->exceedLevel;
-        position_snapshot.player_exceed_timer = player->exceedTimer;
-        position_snapshot.player_guard_req1 = player->guardReq1;
-        position_snapshot.player_guard_req2 = player->guardReq2;
-        position_snapshot.player_guard_timer = player->guardTimer;
-        position_snapshot.player_revenge_gauge = player->revengeGauge;
-        position_snapshot.player_disaster_gauge = player->disasterGauge;
-        position_snapshot.player_dreadnaught = player->dreadnaught;
+        const uint32_t role = character_role_from_player_safe(player);
+        if (role >= MACRO_CHARACTER_ROLE_COUNT) {
+            return false;
+        }
+
+        snapshot.valid = true;
+        snapshot.actor_ptr = reinterpret_cast<uintptr_t>(player);
+        snapshot.role = role;
+        snapshot.was_active = was_active;
+        snapshot.current_style = player->currentStyle;
+        snapshot.hp = player->damageStruct.HP;
+        snapshot.hp_max = player->damageStruct.HPMax;
+        snapshot.hp_taken = player->damageStruct.HPTaken;
+        snapshot.prev_damage_resist = player->damageStruct.prevDamageResist;
+        snapshot.dt = player->DT;
+        snapshot.max_dt = player->maxDT;
+        snapshot.dt_active = player->dtActive;
+        snapshot.exceed_level = player->exceedLevel;
+        snapshot.exceed_timer = player->exceedTimer;
+        snapshot.guard_req1 = player->guardReq1;
+        snapshot.guard_req2 = player->guardReq2;
+        snapshot.guard_timer = player->guardTimer;
+        snapshot.revenge_gauge = player->revengeGauge;
+        snapshot.disaster_gauge = player->disasterGauge;
+        snapshot.dreadnaught = player->dreadnaught;
+        return true;
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        snapshot = {};
+        return false;
+    }
+}
+
+void copy_player_resource_snapshot_to_legacy_fields(const PlayerResourceSnapshot& snapshot) {
+    if (!snapshot.valid) {
+        return;
+    }
+
+    position_snapshot.player_current_style = snapshot.current_style;
+    position_snapshot.player_hp = snapshot.hp;
+    position_snapshot.player_hp_max = snapshot.hp_max;
+    position_snapshot.player_hp_taken = snapshot.hp_taken;
+    position_snapshot.player_prev_damage_resist = snapshot.prev_damage_resist;
+    position_snapshot.player_dt = snapshot.dt;
+    position_snapshot.player_max_dt = snapshot.max_dt;
+    position_snapshot.player_dt_active = snapshot.dt_active;
+    position_snapshot.player_exceed_level = snapshot.exceed_level;
+    position_snapshot.player_exceed_timer = snapshot.exceed_timer;
+    position_snapshot.player_guard_req1 = snapshot.guard_req1;
+    position_snapshot.player_guard_req2 = snapshot.guard_req2;
+    position_snapshot.player_guard_timer = snapshot.guard_timer;
+    position_snapshot.player_revenge_gauge = snapshot.revenge_gauge;
+    position_snapshot.player_disaster_gauge = snapshot.disaster_gauge;
+    position_snapshot.player_dreadnaught = snapshot.dreadnaught;
+}
+
+uPlayer* get_player_for_role_safe(uint32_t role) {
+    if (role >= MACRO_CHARACTER_ROLE_COUNT) {
+        return nullptr;
+    }
+
+    if (auto* player = get_local_player_safe()) {
+        if (character_role_from_player_safe(player) == role) {
+            return player;
+        }
+    }
+
+    if (!CharSwitcher::is_ready()) {
+        return nullptr;
+    }
+
+    uintptr_t candidates[] = {
+        CharSwitcher::primary_actor_address(),
+        CharSwitcher::secondary_actor_address(),
+        CharSwitcher::inactive_actor_address(),
+        CharSwitcher::current_actor_address(),
+    };
+
+    for (uintptr_t candidate : candidates) {
+        if (candidate == 0) {
+            continue;
+        }
+
+        auto* player = reinterpret_cast<uPlayer*>(candidate);
+        if (character_role_from_player_safe(player) == role) {
+            return player;
+        }
+    }
+
+    return nullptr;
+}
+
+void capture_player_resource_snapshots(uPlayer* active_player) {
+    clear_player_resource_snapshots();
+
+    PlayerResourceSnapshot active_snapshot{};
+    if (capture_player_resource_snapshot(active_player, active_snapshot, true) &&
+        active_snapshot.role < MACRO_CHARACTER_ROLE_COUNT) {
+        position_snapshot.player_resources[active_snapshot.role] = active_snapshot;
+        copy_player_resource_snapshot_to_legacy_fields(active_snapshot);
+    }
+
+    if (!CharSwitcher::is_ready()) {
+        return;
+    }
+
+    uintptr_t candidates[] = {
+        CharSwitcher::primary_actor_address(),
+        CharSwitcher::secondary_actor_address(),
+        CharSwitcher::inactive_actor_address(),
+    };
+
+    for (uintptr_t candidate : candidates) {
+        if (candidate == 0 || candidate == reinterpret_cast<uintptr_t>(active_player)) {
+            continue;
+        }
+
+        auto* player = reinterpret_cast<uPlayer*>(candidate);
+        PlayerResourceSnapshot snapshot{};
+        if (!capture_player_resource_snapshot(player, snapshot, false) ||
+            snapshot.role >= MACRO_CHARACTER_ROLE_COUNT) {
+            continue;
+        }
+
+        if (!position_snapshot.player_resources[snapshot.role].valid) {
+            position_snapshot.player_resources[snapshot.role] = snapshot;
+        }
+    }
+}
+
+void apply_player_resource_snapshot_values(uPlayer* player, const PlayerResourceSnapshot& snapshot, bool clear_input) {
+    if (!restore_resources_snapshot || !player || !snapshot.valid) {
+        return;
+    }
+
+    if (clear_input) {
+        clear_player_input_snapshot(player);
+    }
+
+    __try {
+        player->currentStyle = snapshot.current_style;
+        player->damageStruct.HP = snapshot.hp;
+        player->damageStruct.HPMax = snapshot.hp_max;
+        player->damageStruct.HPTaken = snapshot.hp_taken;
+        player->damageStruct.prevDamageResist = snapshot.prev_damage_resist;
+        player->DT = snapshot.dt;
+        player->maxDT = snapshot.max_dt;
+        player->exceedLevel = snapshot.exceed_level;
+        player->exceedTimer = snapshot.exceed_timer;
+        player->guardReq1 = snapshot.guard_req1;
+        player->guardReq2 = snapshot.guard_req2;
+        player->guardTimer = snapshot.guard_timer;
+        player->revengeGauge = snapshot.revenge_gauge;
+        player->disasterGauge = snapshot.disaster_gauge;
+        player->dreadnaught = snapshot.dreadnaught;
     }
     __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
         return;
@@ -3150,25 +4485,87 @@ void apply_player_resource_snapshot(uPlayer* player) {
         return;
     }
 
-    clear_player_input_snapshot(player);
+    const uint32_t role = character_role_from_player_safe(player);
+    if (role < MACRO_CHARACTER_ROLE_COUNT && position_snapshot.player_resources[role].valid) {
+        apply_player_resource_snapshot_values(player, position_snapshot.player_resources[role], true);
+        return;
+    }
 
-    player->currentStyle = position_snapshot.player_current_style;
-    player->damageStruct.HP = position_snapshot.player_hp;
-    player->damageStruct.HPMax = position_snapshot.player_hp_max;
-    player->damageStruct.HPTaken = position_snapshot.player_hp_taken;
-    player->damageStruct.prevDamageResist = position_snapshot.player_prev_damage_resist;
-    player->DT = position_snapshot.player_dt;
-    player->maxDT = position_snapshot.player_max_dt;
-    player->dtActive = position_snapshot.player_dt_active;
-    player->dtOutfit = position_snapshot.player_dt_active;
-    player->exceedLevel = position_snapshot.player_exceed_level;
-    player->exceedTimer = position_snapshot.player_exceed_timer;
-    player->guardReq1 = position_snapshot.player_guard_req1;
-    player->guardReq2 = position_snapshot.player_guard_req2;
-    player->guardTimer = position_snapshot.player_guard_timer;
-    player->revengeGauge = position_snapshot.player_revenge_gauge;
-    player->disasterGauge = position_snapshot.player_disaster_gauge;
-    player->dreadnaught = position_snapshot.player_dreadnaught;
+    PlayerResourceSnapshot legacy_snapshot{};
+    legacy_snapshot.valid = true;
+    legacy_snapshot.actor_ptr = reinterpret_cast<uintptr_t>(player);
+    legacy_snapshot.role = role;
+    legacy_snapshot.was_active = true;
+    legacy_snapshot.current_style = position_snapshot.player_current_style;
+    legacy_snapshot.hp = position_snapshot.player_hp;
+    legacy_snapshot.hp_max = position_snapshot.player_hp_max;
+    legacy_snapshot.hp_taken = position_snapshot.player_hp_taken;
+    legacy_snapshot.prev_damage_resist = position_snapshot.player_prev_damage_resist;
+    legacy_snapshot.dt = position_snapshot.player_dt;
+    legacy_snapshot.max_dt = position_snapshot.player_max_dt;
+    legacy_snapshot.dt_active = position_snapshot.player_dt_active;
+    legacy_snapshot.exceed_level = position_snapshot.player_exceed_level;
+    legacy_snapshot.exceed_timer = position_snapshot.player_exceed_timer;
+    legacy_snapshot.guard_req1 = position_snapshot.player_guard_req1;
+    legacy_snapshot.guard_req2 = position_snapshot.player_guard_req2;
+    legacy_snapshot.guard_timer = position_snapshot.player_guard_timer;
+    legacy_snapshot.revenge_gauge = position_snapshot.player_revenge_gauge;
+    legacy_snapshot.disaster_gauge = position_snapshot.player_disaster_gauge;
+    legacy_snapshot.dreadnaught = position_snapshot.player_dreadnaught;
+    apply_player_resource_snapshot_values(player, legacy_snapshot, true);
+}
+
+void clear_pending_player_resource_restore() {
+    std::fill(std::begin(pending_player_resource_restore), std::end(pending_player_resource_restore), false);
+}
+
+void queue_pending_inactive_player_resource_restore(uint32_t active_role) {
+    clear_pending_player_resource_restore();
+
+    if (!restore_resources_snapshot) {
+        return;
+    }
+
+    for (uint32_t role = 0; role < MACRO_CHARACTER_ROLE_COUNT; ++role) {
+        if (role != active_role && position_snapshot.player_resources[role].valid) {
+            pending_player_resource_restore[role] = true;
+        }
+    }
+}
+
+void apply_inactive_player_resource_snapshots(uint32_t active_role) {
+    if (!restore_resources_snapshot || !CharSwitcher::is_ready()) {
+        return;
+    }
+
+    for (uint32_t role = 0; role < MACRO_CHARACTER_ROLE_COUNT; ++role) {
+        if (role == active_role || !position_snapshot.player_resources[role].valid) {
+            continue;
+        }
+
+        if (auto* player = get_player_for_role_safe(role)) {
+            apply_player_resource_snapshot_values(player, position_snapshot.player_resources[role], false);
+        }
+    }
+}
+
+void tick_pending_player_resource_restore() {
+    if (!restore_resources_snapshot || !CharSwitcher::is_switch_settled()) {
+        return;
+    }
+
+    auto* player = get_local_player_safe();
+    const uint32_t current_role = character_role_from_player_safe(player);
+    if (current_role >= MACRO_CHARACTER_ROLE_COUNT || !pending_player_resource_restore[current_role]) {
+        return;
+    }
+
+    if (!player || !position_snapshot.player_resources[current_role].valid) {
+        return;
+    }
+
+    apply_player_resource_snapshot_values(player, position_snapshot.player_resources[current_role], false);
+    pending_player_resource_restore[current_role] = false;
 }
 
 bool capture_position_snapshot_unsafe() {
@@ -3191,12 +4588,17 @@ bool capture_position_snapshot_unsafe() {
 
     const auto current_enemies = collect_enemy_chain();
 
+    clear_pending_player_resource_restore();
     position_snapshot.valid = true;
+    position_snapshot.player_ptr = reinterpret_cast<uintptr_t>(player);
+    position_snapshot.camera_ptr = 0;
+    position_snapshot.player_camera_ptr = 0;
     position_snapshot.mission_id = mediator->missionID;
     position_snapshot.room_id = mediator->roomID;
     position_snapshot.mediator_enemy_count0 = mediator->enemyCount[0];
     position_snapshot.mediator_enemy_count1 = mediator->enemyCount[1];
     position_snapshot.mediator_enemy_count2 = mediator->enemyCount[2];
+    position_snapshot.player_character_role = character_role_from_player_safe(player);
     position_snapshot.enemy_chain_count = (uint32_t)current_enemies.size();
     position_snapshot.active_enemy_count = 0;
     position_snapshot.locked_enemy_index = -1;
@@ -3227,12 +4629,13 @@ bool capture_position_snapshot_unsafe() {
     position_snapshot.player_ground_inertia_x = player->groundInertiaX;
     position_snapshot.player_inertia_y = player->inertiaY;
     position_snapshot.player_ground_inertia_z = player->groundInertiaZ;
-    capture_player_resource_snapshot(player);
+    capture_player_resource_snapshots(player);
 
     position_snapshot.camera_valid = false;
     position_snapshot.player_camera_valid = false;
     if (auto* camera = get_local_camera_safe()) {
         position_snapshot.camera_valid = true;
+        position_snapshot.camera_ptr = reinterpret_cast<uintptr_t>(camera);
         position_snapshot.camera_near_clip = camera->mNearPlane;
         position_snapshot.camera_fov = camera->mFov;
         position_snapshot.camera_position = camera->mCameraPos;
@@ -3241,6 +4644,7 @@ bool capture_position_snapshot_unsafe() {
 
         if (auto* player_camera = camera->mpCamPlayer) {
             position_snapshot.player_camera_valid = true;
+            position_snapshot.player_camera_ptr = reinterpret_cast<uintptr_t>(player_camera);
             position_snapshot.player_camera_position = player_camera->mCameraPos;
             position_snapshot.player_camera_lookat = player_camera->mTargetPos;
             position_snapshot.player_camera_near_clip = player_camera->mNearPlane;
@@ -3286,10 +4690,33 @@ bool apply_position_snapshot_unsafe(bool update_status, bool include_resources) 
         return false;
     }
 
+    if (reinterpret_cast<uintptr_t>(player) != position_snapshot.player_ptr) {
+        if (update_status) {
+            set_playback_status("Battle Snapshot load blocked: the player object changed after capture.");
+        }
+        return false;
+    }
+
     auto* mediator = get_s_mediator_safe();
     if (!mediator) {
         if (update_status) {
             set_playback_status("Battle Snapshot load failed: mediator is unavailable.");
+        }
+        return false;
+    }
+
+    const uint32_t current_character_role = character_role_from_player_safe(player);
+    if (position_snapshot.player_character_role != MACRO_CHARACTER_INVALID &&
+        current_character_role != position_snapshot.player_character_role) {
+        if (update_status) {
+            char buffer[160]{};
+            std::snprintf(
+                buffer,
+                sizeof(buffer),
+                "Battle Snapshot load failed: current character is %s, state expects %s.",
+                character_role_label(current_character_role),
+                character_role_label(position_snapshot.player_character_role));
+            set_playback_status(buffer);
         }
         return false;
     }
@@ -3306,6 +4733,15 @@ bool apply_position_snapshot_unsafe(bool update_status, bool include_resources) 
                 position_snapshot.mission_id,
                 position_snapshot.room_id);
             set_playback_status(buffer);
+        }
+        return false;
+    }
+
+    if (mediator->enemyCount[0] != position_snapshot.mediator_enemy_count0 ||
+        mediator->enemyCount[1] != position_snapshot.mediator_enemy_count1 ||
+        mediator->enemyCount[2] != position_snapshot.mediator_enemy_count2) {
+        if (update_status) {
+            set_playback_status("Battle Snapshot load blocked: the encounter enemy counts changed after capture.");
         }
         return false;
     }
@@ -3344,6 +4780,42 @@ bool apply_position_snapshot_unsafe(bool update_status, bool include_resources) 
             }
             return false;
         }
+        if (current_enemy->isActive != enemy_snapshot.is_active) {
+            if (update_status) {
+                char buffer[160]{};
+                std::snprintf(buffer, sizeof(buffer), "Battle Snapshot load blocked: enemy %u changed lifecycle state.", index);
+                set_playback_status(buffer);
+            }
+            return false;
+        }
+        if (restore_resources_snapshot && enemy_snapshot.damage_valid) {
+            auto* damage = get_enemy_damage_block(current_enemy);
+            if (!damage || damage->isDead != enemy_snapshot.is_dead) {
+                if (update_status) {
+                    char buffer[176]{};
+                    std::snprintf(buffer, sizeof(buffer), "Battle Snapshot load blocked: enemy %u death state changed after capture.", index);
+                    set_playback_status(buffer);
+                }
+                return false;
+            }
+        }
+    }
+
+    if (position_snapshot.camera_valid) {
+        auto* camera = get_local_camera_safe();
+        if (!camera || reinterpret_cast<uintptr_t>(camera) != position_snapshot.camera_ptr) {
+            if (update_status) {
+                set_playback_status("Battle Snapshot load blocked: the camera object changed after capture.");
+            }
+            return false;
+        }
+        if (position_snapshot.player_camera_valid &&
+            (!camera->mpCamPlayer || reinterpret_cast<uintptr_t>(camera->mpCamPlayer) != position_snapshot.player_camera_ptr)) {
+            if (update_status) {
+                set_playback_status("Battle Snapshot load blocked: the player camera changed after capture.");
+            }
+            return false;
+        }
     }
 
     if (update_status) {
@@ -3369,6 +4841,8 @@ bool apply_position_snapshot_unsafe(bool update_status, bool include_resources) 
                 apply_enemy_combat_snapshot(current_enemies[index], position_snapshot.enemies[index]);
             }
         }
+        apply_inactive_player_resource_snapshots(current_character_role);
+        queue_pending_inactive_player_resource_restore(current_character_role);
     }
 
     if (position_snapshot.camera_valid) {
@@ -3406,7 +4880,6 @@ bool apply_position_snapshot(bool update_status, bool include_resources) {
         return apply_position_snapshot_unsafe(update_status, include_resources);
     }
     __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        position_snapshot_load_ticks = 0;
         if (update_status) {
             strncpy_s(Macro::playback_status, "Battle Snapshot load failed: gameplay objects changed while loading.", _TRUNCATE);
         }
@@ -3416,12 +4889,366 @@ bool apply_position_snapshot(bool update_status, bool include_resources) {
 
 bool load_position_snapshot() {
     if (!apply_position_snapshot(true, true)) {
-        position_snapshot_load_ticks = 0;
+        return false;
+    }
+    return true;
+}
+
+bool read_current_bp_floor_safe(uint32_t& floor) {
+    floor = 0;
+    auto* area = get_s_area_safe();
+    auto* mediator = get_s_mediator_safe();
+    if (!area || !area->aGamePtr || !mediator || mediator->missionID != 50) {
+        return false;
+    }
+    const int current_floor = area->aGamePtr->bp_floor;
+    if (current_floor < 1 || current_floor > 101) {
+        return false;
+    }
+    const auto* expected_stage = AreaJump::bp_stage(current_floor);
+    if (!expected_stage) {
+        return false;
+    }
+    if (mediator->roomID != (uint32_t)expected_stage->id || area->aGamePtr->room_id != expected_stage->id) {
+        return false;
+    }
+    floor = (uint32_t)current_floor;
+    return true;
+}
+
+std::string macro_setup_label() {
+    if (!macro_setup.valid) {
+        return "Macro Setup: <none>";
+    }
+
+    char buffer[320]{};
+    if (macro_setup.bp_floor_valid) {
+        std::snprintf(
+            buffer,
+            sizeof(buffer),
+            "Macro Setup: %s, BP floor %u, player %s, camera %s, enemies %u",
+            character_role_label(macro_setup.character_role),
+            macro_setup.bp_floor,
+            macro_setup.player_position_valid ? "yes" : "no",
+            macro_setup.camera_valid ? "yes" : "no",
+            (uint32_t)macro_setup.enemies.size());
+    }
+    else if (macro_setup.room_valid) {
+        std::snprintf(
+            buffer,
+            sizeof(buffer),
+            "Macro Setup: %s, room %u, player %s, camera %s, enemies %u",
+            character_role_label(macro_setup.character_role),
+            macro_setup.room_id,
+            macro_setup.player_position_valid ? "yes" : "no",
+            macro_setup.camera_valid ? "yes" : "no",
+            (uint32_t)macro_setup.enemies.size());
+    }
+    else {
+        std::snprintf(
+            buffer,
+            sizeof(buffer),
+            "Macro Setup: %s, player %s, camera %s, enemies %u",
+            character_role_label(macro_setup.character_role),
+            macro_setup.player_position_valid ? "yes" : "no",
+            macro_setup.camera_valid ? "yes" : "no",
+            (uint32_t)macro_setup.enemies.size());
+    }
+    return buffer;
+}
+
+std::string macro_setup_load_label() {
+    switch (macro_setup_load.phase) {
+    case MacroSetupLoadPhase::WAIT_CHARACTER:
+        return std::string("Setup: waiting for ") + character_role_label(macro_setup.character_role);
+    case MacroSetupLoadPhase::WAIT_ROOM:
+        return "Setup: loading room";
+    case MacroSetupLoadPhase::SETTLE_ROOM:
+        return "Setup: waiting for room enemies";
+    case MacroSetupLoadPhase::PREPARE_ENEMIES:
+        return "Setup: checking enemies";
+    case MacroSetupLoadPhase::WAIT_ENEMY_SPAWN:
+        return std::string("Setup: spawning ") + enemy_id_setup_label(macro_setup_load.waiting_enemy_id);
+    case MacroSetupLoadPhase::SETTLE_ENEMY:
+        return std::string("Setup: waiting for ") + enemy_id_setup_label(macro_setup_load.waiting_enemy_id);
+    default:
+        return {};
+    }
+}
+
+bool validate_macro_setup_room(sMediator* mediator, bool update_status) {
+    if (!mediator) {
+        if (update_status) {
+            set_playback_status("Macro Setup failed: mediator is unavailable.");
+        }
         return false;
     }
 
-    position_snapshot_load_ticks = POSITION_SNAPSHOT_LOAD_TICKS;
+    if (macro_setup.room_valid && mediator->roomID != macro_setup.room_id) {
+        if (update_status) {
+            char buffer[160]{};
+            std::snprintf(
+                buffer,
+                sizeof(buffer),
+                "Macro Setup failed: room is %u, setup expects %u.",
+                mediator->roomID,
+                macro_setup.room_id);
+            set_playback_status(buffer);
+        }
+        return false;
+    }
+
+    if (macro_setup.bp_floor_valid) {
+        uint32_t current_floor = 0;
+        if (!read_current_bp_floor_safe(current_floor)) {
+            if (update_status) {
+                set_playback_status("Macro Setup failed: current BP floor is unavailable.");
+            }
+            return false;
+        }
+        if (current_floor != macro_setup.bp_floor) {
+            if (update_status) {
+                char buffer[160]{};
+                std::snprintf(
+                    buffer,
+                    sizeof(buffer),
+                    "Macro Setup failed: BP floor is %u, setup expects %u.",
+                    current_floor,
+                    macro_setup.bp_floor);
+                set_playback_status(buffer);
+            }
+            return false;
+        }
+    }
+
     return true;
+}
+
+bool match_macro_setup_enemies(std::vector<uEnemy_Old*>& matched_enemies, bool update_status) {
+    matched_enemies.clear();
+    if (macro_setup.enemies.empty()) {
+        return true;
+    }
+
+    const auto current_enemies = collect_enemy_chain();
+    std::vector<bool> used(current_enemies.size(), false);
+
+    for (const auto& setup_enemy : macro_setup.enemies) {
+        uEnemy_Old* match = nullptr;
+        for (size_t index = 0; index < current_enemies.size(); ++index) {
+            if (used[index]) {
+                continue;
+            }
+
+            auto* enemy = current_enemies[index];
+            if (!is_live_macro_setup_enemy(enemy) || (int)enemy->ID != setup_enemy.enemy_id) {
+                continue;
+            }
+
+            used[index] = true;
+            match = enemy;
+            break;
+        }
+
+        if (!match) {
+            if (update_status) {
+                char buffer[192]{};
+                std::snprintf(
+                    buffer,
+                    sizeof(buffer),
+                    "Macro Setup failed: missing live enemy %u of type %s.",
+                    setup_enemy.label_index,
+                    enemy_id_setup_label(setup_enemy.enemy_id));
+                set_playback_status(buffer);
+            }
+            matched_enemies.clear();
+            return false;
+        }
+
+        matched_enemies.push_back(match);
+    }
+
+    return true;
+}
+
+bool apply_macro_setup_unsafe(bool update_status) {
+    if (!macro_setup.valid) {
+        if (update_status) {
+            set_playback_status("Macro Setup failed: no setup block loaded.");
+        }
+        return false;
+    }
+
+    if (!macro_runtime_ready()) {
+        if (update_status) {
+            set_playback_status("Macro Setup failed: gameplay is unavailable.");
+        }
+        return false;
+    }
+
+    auto* player = get_local_player_safe();
+    if (!player) {
+        if (update_status) {
+            set_playback_status("Macro Setup failed: player is unavailable.");
+        }
+        return false;
+    }
+
+    const uint32_t current_role = character_role_from_player_safe(player);
+    if (macro_setup.character_role != MACRO_CHARACTER_INVALID && current_role != macro_setup.character_role) {
+        if (update_status) {
+            char buffer[192]{};
+            std::snprintf(
+                buffer,
+                sizeof(buffer),
+                "Macro Setup failed: current character is %s, setup expects %s.",
+                character_role_label(current_role),
+                character_role_label(macro_setup.character_role));
+            set_playback_status(buffer);
+        }
+        return false;
+    }
+
+    auto* mediator = get_s_mediator_safe();
+    if (!validate_macro_setup_room(mediator, update_status)) {
+        return false;
+    }
+
+    std::vector<uEnemy_Old*> matched_enemies{};
+    if (!match_macro_setup_enemies(matched_enemies, update_status)) {
+        return false;
+    }
+
+    if (update_status) {
+        clear_player_input_snapshot(player);
+    }
+
+    if (macro_setup.player_position_valid) {
+        player->mPos = macro_setup.player_position;
+        player->m_d_velocity = {};
+        player->groundInertiaX = 0.0f;
+        player->inertiaY = 0.0f;
+        player->groundInertiaZ = 0.0f;
+    }
+
+    if (macro_setup.player_facing_valid) {
+        player->facingDirection = macro_setup.player_facing_radians;
+        player->rotation2 = macro_setup.player_facing_radians;
+        player->rotation3 = macro_setup.player_facing_radians;
+    }
+
+    for (size_t index = 0; index < matched_enemies.size() && index < macro_setup.enemies.size(); ++index) {
+        auto* enemy = matched_enemies[index];
+        const auto& setup_enemy = macro_setup.enemies[index];
+        if (!enemy) {
+            continue;
+        }
+
+        if (setup_enemy.position_valid) {
+            enemy->position = setup_enemy.position;
+            enemy->velocity = {};
+        }
+        if (setup_enemy.facing_valid) {
+            enemy->rotation.y = setup_enemy.facing_radians;
+        }
+    }
+
+    if (macro_setup.camera_valid) {
+        auto* camera = get_local_camera_safe();
+        if (!camera) {
+            if (update_status) {
+                set_playback_status("Macro Setup failed: camera is unavailable.");
+            }
+            return false;
+        }
+
+        camera->mCameraPos = macro_setup.camera_position;
+        camera->mTargetPos = macro_setup.camera_target;
+        if (macro_setup.camera_up_valid) {
+            camera->mCameraUp = macro_setup.camera_up;
+        }
+        if (macro_setup.camera_fov_valid) {
+            camera->mFov = macro_setup.camera_fov;
+        }
+
+        if (auto* player_camera = camera->mpCamPlayer) {
+            player_camera->mCameraPos = macro_setup.camera_position;
+            player_camera->mTargetPos = macro_setup.camera_target;
+            if (macro_setup.camera_fov_valid) {
+                player_camera->mFov = macro_setup.camera_fov;
+            }
+        }
+    }
+
+    if (update_status) {
+        set_playback_status("Macro Setup loaded.");
+    }
+    return true;
+}
+
+bool apply_macro_setup(bool update_status) {
+    __try {
+        return apply_macro_setup_unsafe(update_status);
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        if (update_status) {
+            strncpy_s(Macro::playback_status, "Macro Setup failed: gameplay objects changed while loading.", _TRUNCATE);
+        }
+        return false;
+    }
+}
+
+std::string export_current_macro_setup() {
+    if (!macro_runtime_ready()) {
+        return {};
+    }
+
+    auto* player = get_local_player_safe();
+    auto* mediator = get_s_mediator_safe();
+    if (!player || !mediator) {
+        return {};
+    }
+
+    std::ostringstream stream{};
+    stream << std::setprecision(9);
+    stream << "[Setup]\n";
+    stream << "Character " << character_role_label(character_role_from_player_safe(player)) << "\n";
+
+    uint32_t bp_floor = 0;
+    if (read_current_bp_floor_safe(bp_floor)) {
+        stream << "Room BP " << bp_floor << "\n";
+    }
+    else {
+        stream << "Room ID " << mediator->roomID << "\n";
+    }
+
+    stream << "Player "
+           << player->mPos.x << " " << player->mPos.y << " " << player->mPos.z
+           << " Face " << setup_radians_to_degrees(player->facingDirection) << "\n";
+
+    if (auto* camera = get_local_camera_safe()) {
+        stream << "Camera Pos "
+               << camera->mCameraPos.x << " " << camera->mCameraPos.y << " " << camera->mCameraPos.z
+               << " Target "
+               << camera->mTargetPos.x << " " << camera->mTargetPos.y << " " << camera->mTargetPos.z
+               << " Up "
+               << camera->mCameraUp.x << " " << camera->mCameraUp.y << " " << camera->mCameraUp.z
+               << " Fov " << camera->mFov << "\n";
+    }
+
+    uint32_t setup_enemy_index = 1;
+    for (auto* enemy : collect_enemy_chain()) {
+        if (!is_live_macro_setup_enemy(enemy)) {
+            continue;
+        }
+
+        stream << "Enemy " << setup_enemy_index++ << " " << enemy_id_setup_label((int)enemy->ID)
+               << " Pos " << enemy->position.x << " " << enemy->position.y << " " << enemy->position.z
+               << " Face " << setup_radians_to_degrees(enemy->rotation.y) << "\n";
+    }
+
+    stream << "[/Setup]\n";
+    return stream.str();
 }
 
 bool set_screen_pause(bool paused) {
@@ -3431,35 +5258,35 @@ bool set_screen_pause(bool paused) {
         return false;
     }
 
-    __try {
-        if (paused) {
-            if (!Macro::screen_pause_active) {
-                Macro::screen_pause_restore_speed = work_rate->global_speed;
-                Macro::screen_pause_restore_valid = true;
-            }
-            work_rate->global_speed = 0.0f;
-            WorkRate::hotkey_paused = true;
-            Macro::screen_pause_active = true;
-            ++Macro::screen_pause_request_count;
-            return true;
+    if (paused) {
+        if (!Macro::screen_pause_active) {
+            Macro::screen_pause_restore_speed = work_rate->global_speed;
+            Macro::screen_pause_restore_valid = true;
+            screen_pause_restore_hotkey_paused = WorkRate::hotkey_paused;
         }
-
-        if (Macro::screen_pause_restore_valid) {
-            work_rate->global_speed = Macro::screen_pause_restore_speed;
-        }
-        else {
-            work_rate->global_speed = 1.0f;
-        }
-        WorkRate::hotkey_paused = false;
-        Macro::screen_pause_active = false;
-        Macro::screen_pause_restore_valid = false;
+        work_rate->global_speed = 0.0f;
+        WorkRate::hotkey_paused = true;
+        Macro::screen_pause_active = true;
         ++Macro::screen_pause_request_count;
         return true;
     }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        ++Macro::screen_pause_fail_count;
-        return false;
+
+    if (!Macro::screen_pause_active && !Macro::screen_pause_restore_valid) {
+        return true;
     }
+
+    if (Macro::screen_pause_restore_valid) {
+        work_rate->global_speed = Macro::screen_pause_restore_speed;
+    }
+    else {
+        work_rate->global_speed = 1.0f;
+    }
+    WorkRate::hotkey_paused = screen_pause_restore_hotkey_paused;
+    Macro::screen_pause_active = false;
+    Macro::screen_pause_restore_valid = false;
+    screen_pause_restore_hotkey_paused = false;
+    ++Macro::screen_pause_request_count;
+    return true;
 }
 
 void apply_screen_pause_action(const MacroFrame& frame) {
@@ -3471,24 +5298,6 @@ void apply_screen_pause_action(const MacroFrame& frame) {
     }
     if (frame.screen_resume) {
         set_screen_pause(false);
-    }
-}
-
-void apply_force_style_action(const MacroFrame& frame) {
-    if (!frame.force_style || frame.forced_style < 0 || frame.forced_style > 4) {
-        return;
-    }
-
-    auto* player = get_local_player_safe();
-    if (!player) {
-        return;
-    }
-
-    __try {
-        *reinterpret_cast<int*>(reinterpret_cast<uintptr_t>(player) + UPLAYER_CURRENT_STYLE_OFFSET) = frame.forced_style;
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        return;
     }
 }
 
@@ -3605,41 +5414,36 @@ bool evaluate_wait_condition(MacroFrame& frame) {
         return false;
     }
 
-    __try {
-        switch (frame.wait_condition) {
-        case MACRO_WAIT_GROUNDED:
-            return is_player_grounded(player);
-        case MACRO_WAIT_AIRBORNE:
-            return !is_player_grounded(player);
-        case MACRO_WAIT_STYLE:
-            return player->currentStyle == frame.wait_arg;
-        case MACRO_WAIT_CAN_EXCEED:
-            return wait_for_next_bool_edge(frame, player->canExceed == 1);
-        case MACRO_WAIT_HITSTOP:
-            return player->hitstop || player->hitstopTimer > 0.0f;
-        case MACRO_WAIT_HIT_CONFIRMED:
-            return evaluate_hit_confirmed_wait_condition(frame);
-        case MACRO_WAIT_LOCKED_ON:
-            return player->lockedOn;
-        case MACRO_WAIT_ANIM_FRAME:
-            return std::isfinite(player->animFrame) && compare_wait_float(player->animFrame, frame.wait_compare, frame.wait_value);
-        case MACRO_WAIT_MOVEID2:
-            return compare_wait_u32(player->moveID2, frame.wait_compare, frame.wait_value_u32);
-        case MACRO_WAIT_MOVEID2_CHANGED:
-            if (!frame.wait_initial_valid) {
-                frame.wait_initial_u32 = player->moveID2;
-                frame.wait_initial_valid = true;
-                return false;
-            }
-            return player->moveID2 != frame.wait_initial_u32;
-        case MACRO_WAIT_FRAME_REACHED_MAX:
-            return std::isfinite(player->animFrame) && has_valid_anim_frame_max(player->animFrameMax) &&
-                player->animFrame >= player->animFrameMax - 0.001f;
-        default:
+    switch (frame.wait_condition) {
+    case MACRO_WAIT_GROUNDED:
+        return is_player_grounded(player);
+    case MACRO_WAIT_AIRBORNE:
+        return !is_player_grounded(player);
+    case MACRO_WAIT_STYLE:
+        return player->currentStyle == frame.wait_arg;
+    case MACRO_WAIT_CAN_EXCEED:
+        return wait_for_next_bool_edge(frame, player->canExceed == 1);
+    case MACRO_WAIT_HITSTOP:
+        return player->hitstop || player->hitstopTimer > 0.0f;
+    case MACRO_WAIT_HIT_CONFIRMED:
+        return evaluate_hit_confirmed_wait_condition(frame);
+    case MACRO_WAIT_LOCKED_ON:
+        return player->lockedOn;
+    case MACRO_WAIT_ANIM_FRAME:
+        return std::isfinite(player->animFrame) && compare_wait_float(player->animFrame, frame.wait_compare, frame.wait_value);
+    case MACRO_WAIT_MOVEID2:
+        return compare_wait_u32(player->moveID2, frame.wait_compare, frame.wait_value_u32);
+    case MACRO_WAIT_MOVEID2_CHANGED:
+        if (!frame.wait_initial_valid) {
+            frame.wait_initial_u32 = player->moveID2;
+            frame.wait_initial_valid = true;
             return false;
         }
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return player->moveID2 != frame.wait_initial_u32;
+    case MACRO_WAIT_FRAME_REACHED_MAX:
+        return std::isfinite(player->animFrame) && has_valid_anim_frame_max(player->animFrameMax) &&
+            player->animFrame >= player->animFrameMax - 0.001f;
+    default:
         return false;
     }
 }
@@ -3909,6 +5713,9 @@ std::string clip_display_label(const MacroClip& clip, uint32_t clip_index) {
     if (clip.character_role != MACRO_CHARACTER_INVALID) {
         stream << " [" << character_role_label(clip.character_role) << "]";
     }
+    if (clip.switch_character_mode) {
+        stream << " [Switch]";
+    }
 
     return stream.str();
 }
@@ -3987,6 +5794,397 @@ bool hotkey_is_default_or_unbound(const utility::Hotkey& hotkey, uint32_t defaul
 
 }
 
+void Macro::queue_playback_after_loaded(uint32_t clip_index, bool setup_source) {
+    if (clip_index >= Macro::playback_clips.size()) {
+        clear_snapshot_play_delay();
+        update_input_active();
+        set_playback_status(setup_source
+            ? "Load Setup + Play failed: selected clip is unavailable."
+            : "Load Snapshot + Play failed: selected clip is unavailable.");
+        return;
+    }
+
+    const uint32_t delay_ticks = setup_source ? Macro::setup_play_delay_ticks : Macro::snapshot_play_delay_ticks;
+    if (delay_ticks == 0) {
+        restart_playback_clip(clip_index);
+        DISPLAY_MESSAGE(setup_source ? "Macro Setup loaded; Macro playback started" : "Snapshot loaded; Macro playback started");
+        return;
+    }
+
+    playback_delay_pending_clip_index = clip_index;
+    playback_delay_pending_uses_setup = setup_source;
+    playback_delay_pending_ticks = std::min(delay_ticks, MAX_SNAPSHOT_PLAY_DELAY_TICKS);
+    update_input_active();
+
+    const auto clip_label = clip_display_label(Macro::playback_clips[clip_index], clip_index);
+    char message[256]{};
+    std::snprintf(
+        message,
+        sizeof(message),
+        setup_source
+            ? "Macro Setup loaded; playback starts in %u ticks: %s."
+            : "Snapshot loaded; playback starts in %u ticks: %s.",
+        playback_delay_pending_ticks,
+        clip_label.c_str());
+    set_playback_status(message);
+}
+
+uint32_t Macro::load_position_snapshot_or_queue_character_switch(uint32_t play_after_load_clip_index) {
+    clear_pending_player_resource_restore();
+
+    if (position_snapshot.valid && macro_runtime_ready() && position_snapshot.player_character_role != MACRO_CHARACTER_INVALID) {
+        auto* player = get_local_player_safe();
+        const uint32_t current_character_role = character_role_from_player_safe(player);
+        if (current_character_role != MACRO_CHARACTER_INVALID && current_character_role != position_snapshot.player_character_role) {
+            if (CharSwitcher::request_switch_to_role(position_snapshot.player_character_role)) {
+                snapshot_switch_pending_ticks = SNAPSHOT_CHARACTER_SWITCH_TIMEOUT_TICKS;
+                snapshot_switch_pending_clip_index = play_after_load_clip_index;
+                update_input_active();
+
+                char buffer[192]{};
+                std::snprintf(
+                    buffer,
+                    sizeof(buffer),
+                    "Battle Snapshot queued: switching from %s to %s.",
+                    character_role_label(current_character_role),
+                    character_role_label(position_snapshot.player_character_role));
+                set_playback_status(buffer);
+                return SNAPSHOT_LOAD_QUEUED;
+            }
+
+            char buffer[192]{};
+            std::snprintf(
+                buffer,
+                sizeof(buffer),
+                "Battle Snapshot load blocked: current character is %s, state expects %s, and Character Switcher is not ready.",
+                character_role_label(current_character_role),
+                character_role_label(position_snapshot.player_character_role));
+            set_playback_status(buffer);
+            return SNAPSHOT_LOAD_FAILED;
+        }
+
+        if (current_character_role == position_snapshot.player_character_role &&
+            CharSwitcher::mod_enabled && !CharSwitcher::is_switch_settled()) {
+            snapshot_switch_pending_ticks = SNAPSHOT_CHARACTER_SWITCH_TIMEOUT_TICKS;
+            snapshot_switch_pending_clip_index = play_after_load_clip_index;
+            update_input_active();
+            set_playback_status("Battle Snapshot queued: waiting for Character Switcher to settle.");
+            return SNAPSHOT_LOAD_QUEUED;
+        }
+    }
+
+    if (!load_position_snapshot()) {
+        return SNAPSHOT_LOAD_FAILED;
+    }
+    return SNAPSHOT_LOAD_LOADED;
+}
+
+uint32_t Macro::begin_macro_setup_load(uint32_t play_after_load_clip_index) {
+    if (!macro_setup.valid) {
+        set_playback_status("Macro Setup failed: no setup block loaded.");
+        return SNAPSHOT_LOAD_FAILED;
+    }
+
+    if (!macro_runtime_ready()) {
+        set_playback_status("Macro Setup failed: gameplay is unavailable.");
+        return SNAPSHOT_LOAD_FAILED;
+    }
+
+    clear_macro_setup_load_state();
+    macro_setup_load.phase = MacroSetupLoadPhase::WAIT_CHARACTER;
+    macro_setup_load.timeout_ticks = SETUP_CHARACTER_SWITCH_TIMEOUT_TICKS;
+    macro_setup_load.play_after_load_clip_index = play_after_load_clip_index;
+
+    if (macro_setup.character_role != MACRO_CHARACTER_INVALID) {
+        auto* player = get_local_player_safe();
+        const uint32_t current_role = character_role_from_player_safe(player);
+        if (current_role != MACRO_CHARACTER_INVALID && current_role != macro_setup.character_role) {
+            if (!CharSwitcher::request_switch_to_role(macro_setup.character_role)) {
+                clear_macro_setup_load_state();
+                char buffer[192]{};
+                std::snprintf(
+                    buffer,
+                    sizeof(buffer),
+                    "Macro Setup blocked: current character is %s, setup expects %s, and Character Switcher is not ready.",
+                    character_role_label(current_role),
+                    character_role_label(macro_setup.character_role));
+                set_playback_status(buffer);
+                return SNAPSHOT_LOAD_FAILED;
+            }
+
+            char buffer[192]{};
+            std::snprintf(
+                buffer,
+                sizeof(buffer),
+                "Macro Setup queued: switching from %s to %s.",
+                character_role_label(current_role),
+                character_role_label(macro_setup.character_role));
+            set_playback_status(buffer);
+        }
+        else {
+            set_playback_status("Macro Setup queued: preparing character and room.");
+        }
+    }
+    else {
+        set_playback_status("Macro Setup queued: preparing room.");
+    }
+
+    update_input_active();
+    return SNAPSHOT_LOAD_QUEUED;
+}
+
+void Macro::tick_snapshot_character_switch() {
+    if (snapshot_switch_pending_ticks == 0) {
+        return;
+    }
+
+    if (!Macro::mod_enabled || !macro_cached_runtime_ready) {
+        clear_snapshot_play_delay();
+        return;
+    }
+
+    if (!position_snapshot.valid || position_snapshot.player_character_role == MACRO_CHARACTER_INVALID) {
+        clear_snapshot_play_delay();
+        set_playback_status("Battle Snapshot load failed: no valid character state captured.");
+        update_input_active();
+        return;
+    }
+
+    auto* player = get_local_player_safe();
+    const uint32_t current_character_role = character_role_from_player_safe(player);
+    if (current_character_role == position_snapshot.player_character_role && CharSwitcher::is_switch_settled()) {
+        const uint32_t play_after_load_clip_index = snapshot_switch_pending_clip_index;
+        snapshot_switch_pending_ticks = 0;
+        snapshot_switch_pending_clip_index = INVALID_CLIP_INDEX;
+
+        if (!load_position_snapshot()) {
+            update_input_active();
+            return;
+        }
+
+        if (play_after_load_clip_index != INVALID_CLIP_INDEX) {
+            queue_playback_after_loaded(play_after_load_clip_index, false);
+        }
+        else {
+            update_input_active();
+            DISPLAY_MESSAGE("Battle Snapshot loaded");
+        }
+        return;
+    }
+
+    --snapshot_switch_pending_ticks;
+    if (snapshot_switch_pending_ticks == 0) {
+        snapshot_switch_pending_clip_index = INVALID_CLIP_INDEX;
+        update_input_active();
+
+        char buffer[192]{};
+        std::snprintf(
+            buffer,
+            sizeof(buffer),
+            "Battle Snapshot load failed: timed out waiting for %s.",
+            character_role_label(position_snapshot.player_character_role));
+        set_playback_status(buffer);
+    }
+}
+
+void Macro::tick_macro_setup_load() {
+    if (!macro_setup_load_pending()) {
+        return;
+    }
+
+    auto fail = [](const std::string& message) {
+        clear_macro_setup_load_state();
+        CharSwitcher::clear_macro_switch_request();
+        set_playback_status(message);
+        Macro::update_input_active();
+    };
+
+    if (!mod_enabled || !macro_setup.valid) {
+        fail("Macro Setup failed: setup is no longer available.");
+        return;
+    }
+
+    if (!macro_runtime_ready()) {
+        return;
+    }
+
+    switch (macro_setup_load.phase) {
+    case MacroSetupLoadPhase::WAIT_CHARACTER: {
+        if (macro_setup.character_role == MACRO_CHARACTER_INVALID) {
+            macro_setup_load.phase = MacroSetupLoadPhase::WAIT_ROOM;
+            macro_setup_load.timeout_ticks = 0;
+            return;
+        }
+
+        const uint32_t current_role = character_role_from_player_safe(get_local_player_safe());
+        const bool switch_settled = !CharSwitcher::mod_enabled || CharSwitcher::is_switch_settled();
+        if (current_role == macro_setup.character_role && switch_settled) {
+            macro_setup_load.phase = MacroSetupLoadPhase::WAIT_ROOM;
+            macro_setup_load.timeout_ticks = 0;
+            CharSwitcher::clear_macro_switch_request();
+            return;
+        }
+
+        if (macro_setup_load.timeout_ticks > 0) {
+            --macro_setup_load.timeout_ticks;
+        }
+        if (macro_setup_load.timeout_ticks == 0) {
+            fail(std::string("Macro Setup failed: timed out waiting for ") +
+                character_role_label(macro_setup.character_role) + ".");
+        }
+        return;
+    }
+
+    case MacroSetupLoadPhase::WAIT_ROOM: {
+        auto* mediator = get_s_mediator_safe();
+        if (!mediator) {
+            return;
+        }
+
+        bool room_matches = true;
+        if (macro_setup.bp_floor_valid) {
+            uint32_t current_floor = 0;
+            room_matches = read_current_bp_floor_safe(current_floor) && current_floor == macro_setup.bp_floor;
+        }
+        else if (macro_setup.room_valid) {
+            room_matches = mediator->roomID == macro_setup.room_id;
+        }
+
+        if (room_matches) {
+            if (macro_setup_load.timeout_ticks > 0) {
+                macro_setup_load.phase = MacroSetupLoadPhase::SETTLE_ROOM;
+                macro_setup_load.settle_ticks = SETUP_ROOM_SETTLE_TICKS;
+                set_playback_status("Macro Setup: room loaded; waiting for native enemies.");
+            }
+            else {
+                macro_setup_load.phase = MacroSetupLoadPhase::PREPARE_ENEMIES;
+            }
+            return;
+        }
+
+        if (macro_setup_load.timeout_ticks == 0) {
+            bool jump_started = false;
+            if (macro_setup.bp_floor_valid) {
+                if (mediator->missionID != 50) {
+                    fail("Macro Setup failed: enter Bloody Palace before loading a BP setup.");
+                    return;
+                }
+                macro_setup_load.timeout_ticks = SETUP_ROOM_LOAD_TIMEOUT_TICKS;
+                jump_started = AreaJump::jump_to_bp_floor((int)macro_setup.bp_floor);
+            }
+            else if (macro_setup.room_valid) {
+                macro_setup_load.timeout_ticks = SETUP_ROOM_LOAD_TIMEOUT_TICKS;
+                jump_started = AreaJump::jump_to_room_id((int)macro_setup.room_id);
+            }
+
+            if (!jump_started) {
+                fail("Macro Setup failed: the requested room could not be loaded.");
+                return;
+            }
+            set_playback_status("Macro Setup: loading the requested room.");
+            return;
+        }
+
+        --macro_setup_load.timeout_ticks;
+        if (macro_setup_load.timeout_ticks == 0) {
+            fail("Macro Setup failed: timed out while loading the requested room.");
+        }
+        return;
+    }
+
+    case MacroSetupLoadPhase::SETTLE_ROOM:
+        if (macro_setup_load.settle_ticks > 0) {
+            --macro_setup_load.settle_ticks;
+        }
+        if (macro_setup_load.settle_ticks == 0) {
+            macro_setup_load.phase = MacroSetupLoadPhase::PREPARE_ENEMIES;
+        }
+        return;
+
+    case MacroSetupLoadPhase::PREPARE_ENEMIES: {
+        int missing_enemy_id = -1;
+        uint32_t required_count = 0;
+        for (size_t index = 0; index < macro_setup.enemies.size(); ++index) {
+            const int enemy_id = macro_setup.enemies[index].enemy_id;
+            uint32_t occurrence = 0;
+            for (size_t earlier = 0; earlier <= index; ++earlier) {
+                if (macro_setup.enemies[earlier].enemy_id == enemy_id) {
+                    ++occurrence;
+                }
+            }
+            if (count_live_macro_setup_enemies(enemy_id) < occurrence) {
+                missing_enemy_id = enemy_id;
+                required_count = occurrence;
+                break;
+            }
+        }
+
+        if (missing_enemy_id >= 0) {
+            SpawnableEnemyType spawn_type{};
+            if (!macro_setup_enemy_spawn_type(missing_enemy_id, spawn_type)) {
+                fail(std::string("Macro Setup failed: ") + enemy_id_setup_label(missing_enemy_id) +
+                    " cannot be generated by the current Enemy Spawn feature.");
+                return;
+            }
+
+            macro_setup_load.phase = MacroSetupLoadPhase::WAIT_ENEMY_SPAWN;
+            macro_setup_load.timeout_ticks = SETUP_ENEMY_SPAWN_TIMEOUT_TICKS;
+            macro_setup_load.waiting_enemy_id = missing_enemy_id;
+            macro_setup_load.waiting_enemy_count = required_count;
+            EnemySpawn::spawn_em00x(spawn_type);
+            set_playback_status(std::string("Macro Setup: generating missing ") +
+                enemy_id_setup_label(missing_enemy_id) + ".");
+            return;
+        }
+
+        const uint32_t play_after_load_clip_index = macro_setup_load.play_after_load_clip_index;
+        clear_macro_setup_load_state();
+        if (!apply_macro_setup(true)) {
+            update_input_active();
+            return;
+        }
+
+        if (play_after_load_clip_index != INVALID_CLIP_INDEX) {
+            queue_playback_after_loaded(play_after_load_clip_index, true);
+        }
+        else {
+            update_input_active();
+            DISPLAY_MESSAGE("Macro Setup loaded");
+        }
+        return;
+    }
+
+    case MacroSetupLoadPhase::WAIT_ENEMY_SPAWN:
+        if (count_live_macro_setup_enemies(macro_setup_load.waiting_enemy_id) >= macro_setup_load.waiting_enemy_count) {
+            macro_setup_load.phase = MacroSetupLoadPhase::SETTLE_ENEMY;
+            macro_setup_load.settle_ticks = SETUP_ENEMY_SETTLE_TICKS;
+            return;
+        }
+        if (macro_setup_load.timeout_ticks > 0) {
+            --macro_setup_load.timeout_ticks;
+        }
+        if (macro_setup_load.timeout_ticks == 0) {
+            fail(std::string("Macro Setup failed: timed out while generating ") +
+                enemy_id_setup_label(macro_setup_load.waiting_enemy_id) + ".");
+        }
+        return;
+
+    case MacroSetupLoadPhase::SETTLE_ENEMY:
+        if (macro_setup_load.settle_ticks > 0) {
+            --macro_setup_load.settle_ticks;
+        }
+        if (macro_setup_load.settle_ticks == 0) {
+            macro_setup_load.phase = MacroSetupLoadPhase::PREPARE_ENEMIES;
+        }
+        return;
+
+    default:
+        clear_macro_setup_load_state();
+        update_input_active();
+        return;
+    }
+}
+
 bool Macro::mod_enabled = false;
 bool Macro::playback_enabled = false;
 bool Macro::input_active = false;
@@ -3998,7 +6196,8 @@ uint32_t Macro::stop_vkey = DEFAULT_STOP_VKEY;
 uint32_t Macro::capture_snapshot_vkey = DEFAULT_CAPTURE_SNAPSHOT_VKEY;
 uint32_t Macro::load_snapshot_vkey = DEFAULT_LOAD_SNAPSHOT_VKEY;
 uint32_t Macro::load_snapshot_play_vkey = DEFAULT_LOAD_SNAPSHOT_PLAY_VKEY;
-uint32_t Macro::snapshot_play_delay_ticks = POSITION_SNAPSHOT_LOAD_TICKS;
+uint32_t Macro::snapshot_play_delay_ticks = DEFAULT_SNAPSHOT_PLAY_DELAY_TICKS;
+uint32_t Macro::setup_play_delay_ticks = DEFAULT_SNAPSHOT_PLAY_DELAY_TICKS;
 uint32_t Macro::action_button_map[MACRO_CHARACTER_ROLE_COUNT][MACRO_ACTION_COUNT] = {
     {
         PAD_BUTTON_Y,
@@ -4037,13 +6236,17 @@ uint32_t Macro::gamepad_hotkey_buttons[GAMEPAD_HOTKEY_COUNT] = {
     PAD_BUTTON_X,
     PAD_BUTTON_Y,
     PAD_BUTTON_R1,
+    PAD_BUTTON_L1,
+    PAD_BUTTON_R2,
 };
-bool Macro::stop_macro_on_game_pause = false;
 bool Macro::gamepad_hotkeys_enabled = false;
+bool Macro::playback_overlay_enabled = true;
 uint32_t Macro::playback_slot = PLAYBACK_SLOT_MAIN;
 uint32_t Macro::selected_clip_index = 0;
 uint32_t Macro::loaded_clip_index = INVALID_CLIP_INDEX;
 uint32_t Macro::playback_character_role = MACRO_CHARACTER_INVALID;
+bool Macro::playback_switch_character_mode = false;
+uint32_t Macro::playback_current_frame_index = INVALID_PLAYBACK_FRAME_INDEX;
 bool Macro::screen_pause_active = false;
 bool Macro::screen_pause_restore_valid = false;
 float Macro::screen_pause_restore_speed = 1.0f;
@@ -4054,6 +6257,7 @@ char Macro::loaded_playback_path[260] = "";
 char Macro::playback_status[256] = "No Macro file loaded.";
 std::vector<MacroClip> Macro::playback_clips{};
 std::vector<MacroFrame> Macro::playback_frames{};
+std::vector<MacroSourceLine> Macro::playback_source_lines{};
 
 std::optional<std::string> Macro::on_initialize() {
     macro_instance = this;
@@ -4061,30 +6265,41 @@ std::optional<std::string> Macro::on_initialize() {
     return Mod::on_initialize();
 }
 
+void Macro::prepare_for_external_transition() {
+    macro_cached_runtime_ready = false;
+    if (!has_pending_macro_output()) {
+        return;
+    }
+    suspend_macro_runtime_for_transition();
+}
+
+void Macro::on_stage_start() {
+    prepare_for_external_transition();
+}
+
+void Macro::on_stage_end() {
+    prepare_for_external_transition();
+}
+
 void __stdcall Macro::on_pad_update_tick(cPeripheral* peripheral) {
-    if (!mod_enabled) {
-        poll_raw_keyboard(false);
+    if (!pad_detour_work_pending()) {
+        return;
+    }
+
+    if (!macro_cached_runtime_ready) {
+        if (has_pending_macro_output()) {
+            suspend_macro_runtime_for_transition_once();
+        }
         poll_gamepad_hotkeys(peripheral, false);
         return;
     }
 
-    if (!macro_runtime_ready()) {
-        suspend_macro_runtime_for_transition();
-        poll_raw_keyboard(false);
-        poll_gamepad_hotkeys(peripheral, false);
-        return;
+    if (snapshot_work_pending()) {
+        tick_snapshot_character_switch();
+        tick_playback_delay();
     }
 
-    tick_snapshot_play_delay();
-
-    if (macro_instance) {
-        macro_instance->check_hotkeys();
-    }
-    else {
-        poll_raw_keyboard(true);
-    }
-
-    poll_gamepad_hotkeys(peripheral, true);
+    poll_gamepad_hotkeys(peripheral, gamepad_hotkeys_enabled || capture_gamepad_hotkey_target != 0);
 }
 
 void __stdcall Macro::on_player_pad_update(cPeripheral* peripheral) {
@@ -4092,14 +6307,14 @@ void __stdcall Macro::on_player_pad_update(cPeripheral* peripheral) {
         return;
     }
 
-    if (!macro_runtime_ready()) {
-        suspend_macro_runtime_for_transition();
+    if (!macro_cached_runtime_ready) {
+        suspend_macro_runtime_for_transition_once();
         return;
     }
 
     uint32_t player_index = 0;
     if (!read_peripheral_player_index_safe(peripheral, player_index)) {
-        suspend_macro_runtime_for_transition();
+        suspend_macro_runtime_for_transition_once();
         return;
     }
     if (player_index >= 4) {
@@ -4111,70 +6326,26 @@ void __stdcall Macro::on_player_pad_update(cPeripheral* peripheral) {
     write_test_input(peripheral, player_index);
 }
 
-void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
-    if (!peripheral || !macro_runtime_ready()) {
-        suspend_macro_runtime_for_transition();
-        return;
+bool apply_macro_output_to_peripheral(
+    cPeripheral* peripheral,
+    const MacroFrame& macro_frame,
+    uint32_t buttons,
+    uint32_t player_index) {
+    if (!peripheral) {
+        return false;
     }
     if (player_index >= 4) {
         player_index = 0;
     }
 
-    uint32_t buttons = 0;
-    MacroFrame macro_frame{};
-    const bool was_clearing_input = clear_input_frames > 0;
-
-    if (was_clearing_input) {
-        buttons = 0;
-        --clear_input_frames;
-    }
-    else if (playback_enabled) {
-        if (playback_frames.empty()) {
-            buttons = 0;
-        }
-        else {
-            begin_playback_timer_if_pending();
-
-            bool found_frame = false;
-            while (playback_frame_index < playback_frames.size()) {
-                auto& candidate_frame = playback_frames[playback_frame_index];
-                if (candidate_frame.wait_condition != MACRO_WAIT_NONE) {
-                    if (should_advance_wait_frame(candidate_frame)) {
-                        ++playback_frame_index;
-                        continue;
-                    }
-                }
-                else {
-                    ++playback_frame_index;
-                }
-
-                macro_frame = candidate_frame;
-                buttons = macro_frame.buttons | resolve_action_buttons(macro_frame.actions, playback_character_role);
-                found_frame = true;
-                break;
-            }
-
-            if (!found_frame) {
-                playback_enabled = false;
-                finalize_playback_timer();
-                buttons = 0;
-                set_playback_status("Playback finished.");
-                update_input_active();
-            }
-        }
-    }
-
-    if (!write_base_player_input_snapshot(peripheral)) {
-        suspend_macro_runtime_for_transition();
-        return;
-    }
+    const uint32_t previous_buttons = Macro::last_buttons[player_index];
+    const uint32_t action_role = playback_action_resolution_role();
+    const uint32_t routed_global_buttons =
+        macro_frame.global_buttons | resolve_global_action_buttons(macro_frame.actions, action_role);
+    const uint32_t previous_global_buttons = last_global_routed_buttons[player_index];
 
     const uint32_t base_buttons = peripheral->mPadBtnOn;
     const uint32_t output_buttons = base_buttons | buttons;
-    const uint32_t previous_buttons = last_buttons[player_index];
-    const uint32_t routed_global_buttons =
-        macro_frame.global_buttons | resolve_global_action_buttons(macro_frame.actions, playback_character_role);
-    const uint32_t previous_global_buttons = last_global_routed_buttons[player_index];
 
     peripheral->mPadBtnOn = output_buttons;
     peripheral->mPadBtnTrg = output_buttons & ~previous_buttons;
@@ -4198,11 +6369,79 @@ void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
     }
 
     apply_screen_pause_action(macro_frame);
-    apply_force_style_action(macro_frame);
     apply_character_switch_action(macro_frame);
     apply_one_hit_kill_action(macro_frame);
 
-    last_buttons[player_index] = output_buttons;
+    Macro::last_buttons[player_index] = output_buttons;
+    return true;
+}
+
+void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
+    if (!peripheral || !macro_cached_runtime_ready) {
+        suspend_macro_runtime_for_transition_once();
+        return;
+    }
+    if (player_index >= 4) {
+        player_index = 0;
+    }
+
+    uint32_t buttons = 0;
+    MacroFrame macro_frame{};
+    const bool was_clearing_input = clear_input_frames > 0;
+
+    if (was_clearing_input) {
+        buttons = 0;
+        --clear_input_frames;
+    }
+    else if (playback_enabled) {
+        if (playback_frames.empty()) {
+            buttons = 0;
+        }
+        else {
+            begin_playback_timer_if_pending();
+
+            bool found_frame = false;
+            while (playback_frame_index < playback_frames.size()) {
+                const uint32_t candidate_frame_index = playback_frame_index;
+                auto& candidate_frame = playback_frames[candidate_frame_index];
+                if (candidate_frame.wait_condition != MACRO_WAIT_NONE) {
+                    if (should_advance_wait_frame(candidate_frame)) {
+                        ++playback_frame_index;
+                        continue;
+                    }
+                }
+                else {
+                    ++playback_frame_index;
+                }
+
+                macro_frame = candidate_frame;
+                buttons = macro_frame.buttons | resolve_action_buttons(macro_frame.actions, playback_action_resolution_role());
+                playback_current_frame_index = candidate_frame_index;
+                found_frame = true;
+                break;
+            }
+
+            if (!found_frame) {
+                playback_enabled = false;
+                playback_current_frame_index = INVALID_PLAYBACK_FRAME_INDEX;
+                finalize_playback_timer();
+                buttons = 0;
+                set_playback_status("Playback finished.");
+                update_input_active();
+            }
+        }
+    }
+
+    if (!write_base_player_input_snapshot(peripheral)) {
+        suspend_macro_runtime_for_transition_once();
+        return;
+    }
+
+    if (!apply_macro_output_to_peripheral(peripheral, macro_frame, buttons, player_index)) {
+        suspend_macro_runtime_for_transition_once();
+        return;
+    }
+
     update_input_active();
 }
 
@@ -4213,6 +6452,7 @@ void Macro::reset_input_state() {
     }
     CharSwitcher::clear_macro_switch_request();
     playback_frame_index = 0;
+    playback_current_frame_index = INVALID_PLAYBACK_FRAME_INDEX;
     for (auto& frame : playback_frames) {
         frame.wait_elapsed_ticks = 0;
         frame.wait_initial_valid = false;
@@ -4224,26 +6464,36 @@ void Macro::reset_input_state() {
 static bool load_clip_into_playback_state(uint32_t clip_index) {
     if (clip_index >= Macro::playback_clips.size()) {
         Macro::playback_frames.clear();
+        Macro::playback_source_lines.clear();
         Macro::loaded_clip_index = INVALID_CLIP_INDEX;
         Macro::playback_character_role = MACRO_CHARACTER_INVALID;
+        Macro::playback_switch_character_mode = false;
+        Macro::playback_current_frame_index = INVALID_PLAYBACK_FRAME_INDEX;
         return false;
     }
 
     const auto& clip = Macro::playback_clips[clip_index];
     Macro::playback_frames = clip.frames;
+    Macro::playback_source_lines = clip.source_lines;
     Macro::playback_frame_index = 0;
     Macro::loaded_clip_index = clip_index;
     Macro::playback_character_role = clip.character_role;
+    Macro::playback_switch_character_mode = clip.switch_character_mode;
+    Macro::playback_current_frame_index = INVALID_PLAYBACK_FRAME_INDEX;
     return !Macro::playback_frames.empty();
 }
 
 bool Macro::load_playback_file() {
     playback_frames.clear();
+    playback_source_lines.clear();
     playback_clips.clear();
     playback_frame_index = 0;
+    playback_current_frame_index = INVALID_PLAYBACK_FRAME_INDEX;
     loaded_clip_index = INVALID_CLIP_INDEX;
     playback_character_role = MACRO_CHARACTER_INVALID;
+    playback_switch_character_mode = false;
     loaded_playback_path[0] = '\0';
+    macro_setup = {};
 
     const std::string file_path = resolve_playback_path();
     std::ifstream file{ utility::widen(file_path) };
@@ -4254,15 +6504,27 @@ bool Macro::load_playback_file() {
 
     auto clear_failed_load = [&]() {
         playback_frames.clear();
+        playback_source_lines.clear();
         playback_clips.clear();
+        playback_current_frame_index = INVALID_PLAYBACK_FRAME_INDEX;
         loaded_clip_index = INVALID_CLIP_INDEX;
         playback_character_role = MACRO_CHARACTER_INVALID;
+        playback_switch_character_mode = false;
         loaded_playback_path[0] = '\0';
+        macro_setup = {};
     };
 
     auto fail_with_message = [&](const char* format, uint32_t value) {
         char message[256]{};
         std::snprintf(message, sizeof(message), format, value);
+        set_playback_status(message);
+        clear_failed_load();
+        return false;
+    };
+
+    auto fail_with_text = [&](uint32_t line, const std::string& text) {
+        char message[256]{};
+        std::snprintf(message, sizeof(message), "Line %u: %s.", line, text.c_str());
         set_playback_status(message);
         clear_failed_load();
         return false;
@@ -4277,6 +6539,7 @@ bool Macro::load_playback_file() {
     std::string line{};
     uint32_t line_number = 0;
     HeldMacroInput held_input{};
+    bool in_setup_block = false;
     while (std::getline(file, line)) {
         ++line_number;
 
@@ -4291,6 +6554,61 @@ bool Macro::load_playback_file() {
         }
 
         if (line[0] == '[') {
+            auto read_single_header_tag = [&](std::string& value) {
+                size_t offset = 0;
+                while (offset < line.size() && std::isspace((unsigned char)line[offset]) != 0) {
+                    ++offset;
+                }
+                if (offset >= line.size() || line[offset] != '[') {
+                    return false;
+                }
+                const auto close = line.find(']', offset + 1);
+                if (close == std::string::npos) {
+                    return false;
+                }
+                value = trim_copy(line.substr(offset + 1, close - offset - 1));
+                offset = close + 1;
+                while (offset < line.size() && std::isspace((unsigned char)line[offset]) != 0) {
+                    ++offset;
+                }
+                return offset == line.size();
+            };
+
+            std::string single_tag{};
+            if (read_single_header_tag(single_tag)) {
+                const auto setup_tag = normalize_button_token(single_tag);
+                if (setup_tag == "SETUP" || setup_tag == "MACRO_SETUP") {
+                    if (in_setup_block) {
+                        return fail_with_text(line_number, "nested Setup block");
+                    }
+                    if (!playback_clips.empty()) {
+                        return fail_with_text(line_number, "Setup block must appear before macro clips");
+                    }
+                    if (macro_setup.header_line != 0) {
+                        return fail_with_text(line_number, "duplicate Setup block");
+                    }
+                    macro_setup = {};
+                    macro_setup.header_line = line_number;
+                    in_setup_block = true;
+                    continue;
+                }
+
+                if (setup_tag == "/SETUP" || setup_tag == "END_SETUP" || setup_tag == "ENDSETUP") {
+                    if (!in_setup_block) {
+                        return fail_with_text(line_number, "Setup end without Setup block");
+                    }
+                    if (!macro_setup.valid) {
+                        return fail_with_text(line_number, "empty Setup block");
+                    }
+                    in_setup_block = false;
+                    continue;
+                }
+            }
+
+            if (in_setup_block) {
+                return fail_with_text(line_number, "Setup block must end with [/Setup] before macro clips");
+            }
+
             if (!playback_clips.empty()) {
                 auto& previous_clip = playback_clips.back();
                 if (previous_clip.frames.empty()) {
@@ -4327,29 +6645,40 @@ bool Macro::load_playback_file() {
 
             std::string second_tag{};
             if (!read_header_tag(header_offset, second_tag)) {
-                return fail_with_message("Line %u: section header must include [Nero] or [Dante].", line_number);
+                return fail_with_message("Line %u: section header must include [Nero], [Dante], or [Switch].", line_number);
             }
 
             uint32_t character_role = MACRO_CHARACTER_INVALID;
             uint32_t gamepad_hotkey_button = 0;
-            if (!parse_character_role(second_tag, character_role)) {
+            bool switch_character_mode = false;
+            if (parse_switch_character_mode(second_tag)) {
+                switch_character_mode = true;
+            }
+            else if (!parse_character_role(second_tag, character_role)) {
                 if (!parse_gamepad_hotkey_button_expression(second_tag, gamepad_hotkey_button)) {
                     return fail_with_message("Line %u: invalid gamepad hotkey or character tag.", line_number);
                 }
 
                 std::string role_tag{};
-                if (!read_header_tag(header_offset, role_tag) || !parse_character_role(role_tag, character_role)) {
-                    return fail_with_message("Line %u: section header must end with [Nero] or [Dante].", line_number);
+                if (!read_header_tag(header_offset, role_tag)) {
+                    return fail_with_message("Line %u: section header must end with [Nero], [Dante], or [Switch].", line_number);
+                }
+                if (parse_switch_character_mode(role_tag)) {
+                    switch_character_mode = true;
+                }
+                else if (!parse_character_role(role_tag, character_role)) {
+                    return fail_with_message("Line %u: section header must end with [Nero], [Dante], or [Switch].", line_number);
                 }
             }
 
             for (const auto& clip : playback_clips) {
-                if (!clip_binds.empty() && clip.hotkey_binds == clip_binds && clip.character_role == character_role) {
-                    return fail_with_message("Line %u: duplicate section hotkey and character.", line_number);
+                if (!clip_binds.empty() && clip.hotkey_binds == clip_binds &&
+                    clip_start_modes_overlap(clip, character_role, switch_character_mode)) {
+                    return fail_with_message("Line %u: duplicate section hotkey and character mode.", line_number);
                 }
                 if (gamepad_hotkey_button != 0 && clip.gamepad_hotkey_button == gamepad_hotkey_button &&
-                    clip.character_role == character_role) {
-                    return fail_with_message("Line %u: duplicate section gamepad hotkey and character.", line_number);
+                    clip_start_modes_overlap(clip, character_role, switch_character_mode)) {
+                    return fail_with_message("Line %u: duplicate section gamepad hotkey and character mode.", line_number);
                 }
             }
 
@@ -4358,10 +6687,19 @@ bool Macro::load_playback_file() {
             new_clip.hotkey_binds = std::move(clip_binds);
             new_clip.gamepad_hotkey_button = gamepad_hotkey_button;
             new_clip.character_role = character_role;
+            new_clip.switch_character_mode = switch_character_mode;
             new_clip.name = trim_copy(line.substr(header_offset));
             new_clip.header_line = line_number;
             ensure_clip_name(new_clip, (uint32_t)playback_clips.size() - 1);
             held_input = {};
+            continue;
+        }
+
+        if (in_setup_block) {
+            std::string setup_error{};
+            if (!parse_macro_setup_line(line, macro_setup, setup_error)) {
+                return fail_with_text(line_number, setup_error);
+            }
             continue;
         }
 
@@ -4388,10 +6726,11 @@ bool Macro::load_playback_file() {
             }
 
             MacroFrame frame{};
-            if (!parse_playback_command(button_expression, frame, current_clip.character_role)) {
+            if (!parse_playback_command(button_expression, frame, current_clip.character_role, current_clip.switch_character_mode)) {
                 return fail_with_message("Line %u: invalid input token.", line_number);
             }
 
+            frame.source_line_index = add_macro_source_line(current_clip, line_number, line);
             if (!append_playback_frames(current_clip.frames, frame_count, frame)) {
                 set_playback_status("Macro file is too long.");
                 clear_failed_load();
@@ -4409,7 +6748,9 @@ bool Macro::load_playback_file() {
                 return fail_with_message("Line %u: invalid WAIT frame count.", line_number);
             }
 
-            if (!append_playback_frames(current_clip.frames, frame_count, frame_from_held(held_input))) {
+            auto frame = frame_from_held(held_input);
+            frame.source_line_index = add_macro_source_line(current_clip, line_number, line);
+            if (!append_playback_frames(current_clip.frames, frame_count, frame)) {
                 set_playback_status("Macro file is too long.");
                 clear_failed_load();
                 return false;
@@ -4429,7 +6770,9 @@ bool Macro::load_playback_file() {
                 return fail_with_message("Line %u: invalid WAIT_UNTIL condition.", line_number);
             }
 
-            if (!append_playback_frames(current_clip.frames, 1, frame_from_wait_condition(held_input, condition, arg, compare, value, value_u32, max_ticks))) {
+            auto frame = frame_from_wait_condition(held_input, condition, arg, compare, value, value_u32, max_ticks);
+            frame.source_line_index = add_macro_source_line(current_clip, line_number, line);
+            if (!append_playback_frames(current_clip.frames, 1, frame)) {
                 set_playback_status("Macro file is too long.");
                 clear_failed_load();
                 return false;
@@ -4443,7 +6786,7 @@ bool Macro::load_playback_file() {
             std::getline(stream, expression);
             expression = trim_copy(expression);
             ParsedMacroInput input{};
-            if (expression.empty() || !parse_macro_input(expression, input, current_clip.character_role)) {
+            if (expression.empty() || !parse_macro_input(expression, input, current_clip.character_role, current_clip.switch_character_mode)) {
                 return fail_with_message("Line %u: invalid HOLD input.", line_number);
             }
 
@@ -4462,7 +6805,7 @@ bool Macro::load_playback_file() {
             }
 
             ParsedMacroInput input{};
-            if (expression.empty() || !parse_macro_input(expression, input, current_clip.character_role)) {
+            if (expression.empty() || !parse_macro_input(expression, input, current_clip.character_role, current_clip.switch_character_mode)) {
                 return fail_with_message("Line %u: invalid RELEASE input.", line_number);
             }
 
@@ -4485,11 +6828,20 @@ bool Macro::load_playback_file() {
                 return fail_with_message("Line %u: invalid TAP command.", line_number);
             }
 
-            if (!append_tap_macro(current_clip.frames, held_input, input_expression, ticks, current_clip.character_role)) {
+            const auto first_frame = current_clip.frames.size();
+            const auto source_line_index = add_macro_source_line(current_clip, line_number, line);
+            if (!append_tap_macro(
+                    current_clip.frames,
+                    held_input,
+                    input_expression,
+                    ticks,
+                    current_clip.character_role,
+                    current_clip.switch_character_mode)) {
                 set_playback_status("Macro file is too long or TAP input is invalid.");
                 clear_failed_load();
                 return false;
             }
+            tag_appended_frames(current_clip.frames, first_frame, source_line_index);
 
             continue;
         }
@@ -4505,11 +6857,21 @@ bool Macro::load_playback_file() {
                 return fail_with_message("Line %u: invalid DIR command.", line_number);
             }
 
-            if (!append_direction_button_macro(current_clip.frames, held_input, direction_expression, input_expression, ticks, current_clip.character_role)) {
+            const auto first_frame = current_clip.frames.size();
+            const auto source_line_index = add_macro_source_line(current_clip, line_number, line);
+            if (!append_direction_button_macro(
+                    current_clip.frames,
+                    held_input,
+                    direction_expression,
+                    input_expression,
+                    ticks,
+                    current_clip.character_role,
+                    current_clip.switch_character_mode)) {
                 set_playback_status("Macro file is too long or DIR input is invalid.");
                 clear_failed_load();
                 return false;
             }
+            tag_appended_frames(current_clip.frames, first_frame, source_line_index);
 
             continue;
         }
@@ -4524,29 +6886,21 @@ bool Macro::load_playback_file() {
                 return fail_with_message("Line %u: invalid BACK_FORWARD command.", line_number);
             }
 
-            if (!append_back_forward_macro(current_clip.frames, held_input, back_expression, forward_expression, input_expression, current_clip.character_role)) {
+            const auto first_frame = current_clip.frames.size();
+            const auto source_line_index = add_macro_source_line(current_clip, line_number, line);
+            if (!append_back_forward_macro(
+                    current_clip.frames,
+                    held_input,
+                    back_expression,
+                    forward_expression,
+                    input_expression,
+                    current_clip.character_role,
+                    current_clip.switch_character_mode)) {
                 set_playback_status("Macro file is too long or BACK_FORWARD input is invalid.");
                 clear_failed_load();
                 return false;
             }
-
-            continue;
-        }
-
-        if (command == "STYLE" || command == "FORCE_STYLE" || command == "SET_STYLE") {
-            std::string style_token{};
-            stream >> style_token;
-
-            int style = -1;
-            if (!parse_style_name(style_token, style)) {
-                return fail_with_message("Line %u: invalid STYLE target.", line_number);
-            }
-
-            if (!append_playback_frames(current_clip.frames, 1, frame_from_forced_style(style))) {
-                set_playback_status("Macro file is too long.");
-                clear_failed_load();
-                return false;
-            }
+            tag_appended_frames(current_clip.frames, first_frame, source_line_index);
 
             continue;
         }
@@ -4557,11 +6911,13 @@ bool Macro::load_playback_file() {
             command == "SCREEN_RESUME" || command == "SCREEN_UNPAUSE" ||
             command == "TOGGLE_FREEZE" || command == "TOGGLE_PAUSE" || command == "SCREEN_PAUSE_TOGGLE") {
             ParsedMacroInput input{};
-            if (!parse_macro_input(command, input, current_clip.character_role)) {
+            if (!parse_macro_input(command, input, current_clip.character_role, current_clip.switch_character_mode)) {
                 return fail_with_message("Line %u: invalid screen pause command.", line_number);
             }
 
-            if (!append_playback_frames(current_clip.frames, 1, frame_from_input(input))) {
+            auto frame = frame_from_input(input);
+            frame.source_line_index = add_macro_source_line(current_clip, line_number, line);
+            if (!append_playback_frames(current_clip.frames, 1, frame)) {
                 set_playback_status("Macro file is too long.");
                 clear_failed_load();
                 return false;
@@ -4577,7 +6933,9 @@ bool Macro::load_playback_file() {
                 return fail_with_message("Line %u: invalid CHARACTER_SWITCH command.", line_number);
             }
 
-            if (!append_playback_frames(current_clip.frames, 1, frame_from_character_switch())) {
+            auto frame = frame_from_character_switch();
+            frame.source_line_index = add_macro_source_line(current_clip, line_number, line);
+            if (!append_playback_frames(current_clip.frames, 1, frame)) {
                 set_playback_status("Macro file is too long.");
                 clear_failed_load();
                 return false;
@@ -4610,7 +6968,9 @@ bool Macro::load_playback_file() {
                 return fail_with_message("Line %u: invalid ONE_HIT_KILL command.", line_number);
             }
 
-            if (!append_playback_frames(current_clip.frames, 1, frame_from_one_hit_kill(toggle, value))) {
+            auto frame = frame_from_one_hit_kill(toggle, value);
+            frame.source_line_index = add_macro_source_line(current_clip, line_number, line);
+            if (!append_playback_frames(current_clip.frames, 1, frame)) {
                 set_playback_status("Macro file is too long.");
                 clear_failed_load();
                 return false;
@@ -4624,7 +6984,7 @@ bool Macro::load_playback_file() {
             std::getline(stream, expression);
             expression = trim_copy(expression);
             ParsedMacroInput input{};
-            if (expression.empty() || !parse_macro_input(expression, input, current_clip.character_role)) {
+            if (expression.empty() || !parse_macro_input(expression, input, current_clip.character_role, current_clip.switch_character_mode)) {
                 return fail_with_message("Line %u: invalid SET input.", line_number);
             }
 
@@ -4638,10 +6998,24 @@ bool Macro::load_playback_file() {
         }
     }
 
+    if (in_setup_block) {
+        return fail_with_text(line_number, "Setup block is missing [/Setup]");
+    }
+
     if (playback_clips.empty()) {
-        set_playback_status("Macro file has no clips.");
-        clear_failed_load();
-        return false;
+        if (!macro_setup.valid) {
+            set_playback_status("Macro file has no clips or Setup block.");
+            clear_failed_load();
+            return false;
+        }
+
+        selected_clip_index = 0;
+        char message[160]{};
+        std::snprintf(message, sizeof(message), "Loaded Setup-only Macro file with %u enemies.", (uint32_t)macro_setup.enemies.size());
+        set_playback_status(message);
+        strncpy_s(loaded_playback_path, file_path.c_str(), _TRUNCATE);
+        remember_macro_file_write_time(file_path);
+        return true;
     }
 
     auto& last_clip = playback_clips.back();
@@ -4664,12 +7038,17 @@ bool Macro::load_playback_file() {
     }
 
     char message[256]{};
-    std::snprintf(message, sizeof(message), "Loaded %u clips; selected clip has %u ticks.", (uint32_t)playback_clips.size(), (uint32_t)playback_frames.size());
+    std::snprintf(
+        message,
+        sizeof(message),
+        macro_setup.valid ? "Loaded %u clips with Macro Setup; selected clip has %u ticks." : "Loaded %u clips; selected clip has %u ticks.",
+        (uint32_t)playback_clips.size(),
+        (uint32_t)playback_frames.size());
     set_playback_status(message);
     strncpy_s(loaded_playback_path, file_path.c_str(), _TRUNCATE);
     remember_macro_file_write_time(file_path);
 
-    return !playback_frames.empty();
+    return true;
 }
 
 std::string Macro::resolve_playback_path() {
@@ -4698,9 +7077,19 @@ bool Macro::reload_playback_file() {
     }
     update_input_active();
 
-    char message[256]{};
-    std::snprintf(message, sizeof(message), "Reloaded %u clips; selected clip has %u ticks.", (uint32_t)playback_clips.size(), (uint32_t)playback_frames.size());
-    set_playback_status(message);
+    if (playback_clips.empty() && macro_setup.valid) {
+        set_playback_status("Reloaded Setup-only Macro file.");
+    }
+    else {
+        char message[256]{};
+        std::snprintf(
+            message,
+            sizeof(message),
+            macro_setup.valid ? "Reloaded %u clips with Macro Setup; selected clip has %u ticks." : "Reloaded %u clips; selected clip has %u ticks.",
+            (uint32_t)playback_clips.size(),
+            (uint32_t)playback_frames.size());
+        set_playback_status(message);
+    }
     return true;
 }
 
@@ -4732,8 +7121,13 @@ void Macro::restart_playback_clip(uint32_t clip_index) {
         clear_playback_timer();
         update_input_active();
         char message[128]{};
-        std::snprintf(message, sizeof(message), "Selected clip is for %s; current character does not match.",
-            character_role_label(playback_clips[clip_index].character_role));
+        if (playback_clips[clip_index].switch_character_mode) {
+            std::snprintf(message, sizeof(message), "Selected Switch clip needs a valid Nero or Dante player.");
+        }
+        else {
+            std::snprintf(message, sizeof(message), "Selected clip is for %s; current character does not match.",
+                character_role_label(playback_clips[clip_index].character_role));
+        }
         set_playback_status(message);
         return;
     }
@@ -4758,12 +7152,24 @@ void Macro::restart_playback() {
         return;
     }
 
+    if (playback_clips.empty()) {
+        playback_enabled = false;
+        clear_playback_timer();
+        reset_input_state();
+        update_input_active();
+        set_playback_status("Play Macro failed: this file contains Setup but no macro clips.");
+        return;
+    }
+
     restart_playback_clip(selected_clip_index);
 }
 
 void Macro::clear_snapshot_play_delay() {
-    snapshot_play_pending_ticks = 0;
-    snapshot_play_pending_clip_index = INVALID_CLIP_INDEX;
+    playback_delay_pending_ticks = 0;
+    playback_delay_pending_clip_index = INVALID_CLIP_INDEX;
+    playback_delay_pending_uses_setup = false;
+    snapshot_switch_pending_ticks = 0;
+    snapshot_switch_pending_clip_index = INVALID_CLIP_INDEX;
 }
 
 bool Macro::load_snapshot_then_play() {
@@ -4782,64 +7188,94 @@ bool Macro::load_snapshot_then_play() {
         return false;
     }
 
+    if (playback_clips.empty()) {
+        playback_enabled = false;
+        clear_snapshot_play_delay();
+        update_input_active();
+        set_playback_status("Load Snapshot + Play failed: this file contains no macro clips.");
+        return false;
+    }
+
     const uint32_t clip_index = selected_clip_index < playback_clips.size() ? selected_clip_index : 0;
     playback_enabled = false;
     clear_playback_timer();
     reset_input_state();
     clear_last_peripheral_output();
 
-    if (!load_position_snapshot()) {
+    const uint32_t snapshot_load_result = load_position_snapshot_or_queue_character_switch(clip_index);
+    if (snapshot_load_result == SNAPSHOT_LOAD_FAILED) {
         clear_snapshot_play_delay();
         update_input_active();
         return false;
     }
-
-    if (snapshot_play_delay_ticks == 0) {
-        restart_playback_clip(clip_index);
+    if (snapshot_load_result == SNAPSHOT_LOAD_QUEUED) {
         return true;
     }
 
-    snapshot_play_pending_clip_index = clip_index;
-    snapshot_play_pending_ticks = std::min(snapshot_play_delay_ticks, MAX_SNAPSHOT_PLAY_DELAY_TICKS);
-    update_input_active();
-
-    const auto clip_label = clip_display_label(playback_clips[clip_index], clip_index);
-    char message[256]{};
-    std::snprintf(
-        message,
-        sizeof(message),
-        "Snapshot loaded; playback starts in %u ticks: %s.",
-        snapshot_play_pending_ticks,
-        clip_label.c_str());
-    set_playback_status(message);
+    queue_playback_after_loaded(clip_index, false);
     return true;
 }
 
-void Macro::tick_snapshot_play_delay() {
-    if (snapshot_play_pending_clip_index == INVALID_CLIP_INDEX) {
+bool Macro::load_macro_setup(bool play_after_load) {
+    if (!macro_runtime_ready()) {
+        clear_snapshot_play_delay();
+        clear_macro_setup_load_state();
+        set_playback_status("Load Setup failed: gameplay is unavailable.");
+        return false;
+    }
+
+    if (!load_playback_file()) {
+        clear_snapshot_play_delay();
+        clear_macro_setup_load_state();
+        return false;
+    }
+
+    if (play_after_load && playback_clips.empty()) {
+        set_playback_status("Load Setup + Play failed: this file contains Setup but no macro clips.");
+        return false;
+    }
+
+    const uint32_t clip_index = play_after_load
+        ? (selected_clip_index < playback_clips.size() ? selected_clip_index : 0)
+        : INVALID_CLIP_INDEX;
+
+    playback_enabled = false;
+    clear_playback_timer();
+    reset_input_state();
+    clear_last_peripheral_output();
+    clear_snapshot_play_delay();
+
+    return begin_macro_setup_load(clip_index) != SNAPSHOT_LOAD_FAILED;
+}
+
+void Macro::tick_playback_delay() {
+    if (playback_delay_pending_clip_index == INVALID_CLIP_INDEX) {
         return;
     }
 
-    if (!mod_enabled || !macro_runtime_ready()) {
+    if (!mod_enabled || !macro_cached_runtime_ready) {
         clear_snapshot_play_delay();
         return;
     }
 
-    if (snapshot_play_pending_ticks > 0) {
-        --snapshot_play_pending_ticks;
-        if (snapshot_play_pending_ticks > 0) {
+    if (playback_delay_pending_ticks > 0) {
+        --playback_delay_pending_ticks;
+        if (playback_delay_pending_ticks > 0) {
             return;
         }
     }
 
-    const uint32_t clip_index = snapshot_play_pending_clip_index;
+    const uint32_t clip_index = playback_delay_pending_clip_index;
+    const bool uses_setup = playback_delay_pending_uses_setup;
     clear_snapshot_play_delay();
     restart_playback_clip(clip_index);
-    DISPLAY_MESSAGE("Snapshot loaded; Macro playback started");
+    DISPLAY_MESSAGE(uses_setup ? "Macro Setup loaded; Macro playback started" : "Snapshot loaded; Macro playback started");
 }
 
 void Macro::stop_all_input() {
     clear_snapshot_play_delay();
+    clear_macro_setup_load_state();
+    clear_pending_player_resource_restore();
 
     if (screen_pause_active) {
         set_screen_pause(false);
@@ -4849,6 +7285,7 @@ void Macro::stop_all_input() {
     finalize_playback_timer();
     CharSwitcher::clear_macro_switch_request();
     playback_frame_index = 0;
+    playback_current_frame_index = INVALID_PLAYBACK_FRAME_INDEX;
     clear_last_peripheral_output();
     clear_input_frames = 4;
     reset_hit_confirmed_wait_state();
@@ -4857,7 +7294,7 @@ void Macro::stop_all_input() {
 }
 
 void Macro::check_auto_reload_file() {
-    if (!mod_enabled || playback_enabled || snapshot_play_pending_clip_index != INVALID_CLIP_INDEX) {
+    if (!mod_enabled || playback_enabled || snapshot_work_pending()) {
         return;
     }
 
@@ -4892,48 +7329,39 @@ void Macro::check_auto_reload_file() {
     }
 }
 
-void Macro::check_pause_interrupt() {
-    const bool game_paused = is_game_paused_safe();
-
-    if (!mod_enabled || !stop_macro_on_game_pause) {
-        last_game_pause_state = game_paused;
-        return;
-    }
-
-    if (game_paused && !last_game_pause_state && (playback_enabled || snapshot_play_pending_clip_index != INVALID_CLIP_INDEX)) {
-        stop_all_input();
-        set_playback_status("Playback stopped because the game paused.");
-    }
-
-    last_game_pause_state = game_paused;
-}
-
 void Macro::on_frame(fmilliseconds& dt) {
     (void)dt;
     check_auto_reload_file();
-    if (mod_enabled && !macro_runtime_ready()) {
-        suspend_macro_runtime_for_transition();
+
+    macro_cached_runtime_ready = mod_enabled && macro_runtime_ready();
+    const bool runtime_ready = macro_cached_runtime_ready;
+    if (mod_enabled && !runtime_ready) {
+        if (has_pending_macro_output()) {
+            suspend_macro_runtime_for_transition_once();
+        }
         poll_raw_keyboard(false);
         poll_gamepad_hotkeys(nullptr, false);
         return;
     }
 
-    if (macro_suspended_for_transition && macro_runtime_ready()) {
+    if (macro_suspended_for_transition && runtime_ready) {
         macro_suspended_for_transition = false;
-        set_playback_status("Macro ready.");
+        if (screen_pause_active) {
+            set_screen_pause(false);
+        }
+        if (!macro_setup_load_pending()) {
+            set_playback_status("Macro ready.");
+        }
     }
 
-    check_pause_interrupt();
-    check_hotkeys();
-    poll_gamepad_hotkeys(nullptr, mod_enabled);
-    if (position_snapshot_load_ticks > 0) {
-        if (apply_position_snapshot(false, false)) {
-            --position_snapshot_load_ticks;
-        }
-        else {
-            position_snapshot_load_ticks = 0;
-        }
+    if (runtime_ready) {
+        tick_macro_setup_load();
+        tick_pending_player_resource_restore();
     }
+
+    check_hotkeys();
+    poll_gamepad_hotkeys(nullptr, mod_enabled && (gamepad_hotkeys_enabled || capture_gamepad_hotkey_target != 0));
+    draw_macro_playback_overlay();
 }
 
 void Macro::update_input_active() {
@@ -5012,7 +7440,7 @@ void Macro::on_gui_frame(int display) {
                 }
             }
 
-            if (ImGui::CollapsingHeader(_("Keyboard Hotkeys"), ImGuiTreeNodeFlags_DefaultOpen) && m_hotkeys.size() >= 5) {
+            if (ImGui::CollapsingHeader(_("Keyboard Hotkeys"), ImGuiTreeNodeFlags_DefaultOpen) && m_hotkeys.size() >= 7) {
                 auto draw_macro_hotkey = [&](const char* action_label, uint32_t target, utility::Hotkey& hotkey) {
                     ImGui::PushID((int)target);
                     const auto label = hotkey_binds_label(hotkey.m_binds);
@@ -5042,6 +7470,8 @@ void Macro::on_gui_frame(int display) {
                 draw_macro_hotkey(_("Capture Snapshot"), 3, *m_hotkeys[2]);
                 draw_macro_hotkey(_("Load Snapshot"), 4, *m_hotkeys[3]);
                 draw_macro_hotkey(_("Load Snapshot + Play Macro"), 5, *m_hotkeys[4]);
+                draw_macro_hotkey(_("Load Setup"), 6, *m_hotkeys[5]);
+                draw_macro_hotkey(_("Load Setup + Play Macro"), 7, *m_hotkeys[6]);
 
                 if (capture_hotkey_target != 0) {
                     ImGui::TextWrapped(_("Capturing hotkey: press a non-modifier key. Ctrl, Shift, and Alt are captured as modifiers."));
@@ -5060,8 +7490,10 @@ void Macro::on_gui_frame(int display) {
                     _("Play"),
                     _("Stop"),
                     _("Capture"),
-                    _("Load"),
-                    _("Load + Play"),
+                    _("Load Snapshot"),
+                    _("Load Snapshot + Play"),
+                    _("Load Setup"),
+                    _("Load Setup + Play"),
                 };
 
                 for (uint32_t index = 0; index < GAMEPAD_HOTKEY_COUNT; ++index) {
@@ -5144,13 +7576,18 @@ void Macro::on_gui_frame(int display) {
             }
 
             ImGui::SeparatorText(_("Playback"));
-            ImGui::Checkbox(_("Stop Macro when game pauses"), &stop_macro_on_game_pause);
+            ImGui::Checkbox(_("Show Macro Playback Overlay"), &playback_overlay_enabled);
             ImGui::SameLine();
-            help_marker(_("Stop macro playback when DMC4 opens the pause menu so it will not continue after unpausing."));
+            help_marker(_("During playback, show the selected clip, current source line, tick progress, and wait progress directly on the game screen."));
             ImGui::TextWrapped(_("The selected macro file reloads automatically after saving, as long as playback is stopped."));
-            ImGui::TextWrapped(_("Play Macro and Load Snapshot + Play Macro use the selected Macro File and Macro Clip above."));
+            ImGui::TextWrapped(_("Play Macro, Load Snapshot + Play Macro, and Load Setup + Play Macro use the selected Macro File and Macro Clip above."));
             if (ImGui::Button(_("Play Macro"))) {
-                restart_playback();
+                if (playback_start_busy()) {
+                    set_playback_status("Playback already running; Play Macro ignored.");
+                }
+                else {
+                    restart_playback();
+                }
             }
             ImGui::SameLine();
             if (ImGui::Button(_("Stop Macro"))) {
@@ -5172,28 +7609,87 @@ void Macro::on_gui_frame(int display) {
                 snapshot_play_delay_ticks = (uint32_t)std::clamp(snapshot_delay_ticks, 0, (int)MAX_SNAPSHOT_PLAY_DELAY_TICKS);
             }
             if (ImGui::Button(_("Capture Snapshot"))) {
-                if (capture_position_snapshot()) {
+                if (playback_start_busy()) {
+                    set_playback_status("Playback or practice loading is already running; Capture Snapshot ignored.");
+                }
+                else if (capture_position_snapshot()) {
                     DISPLAY_MESSAGE("Snapshot captured");
                 }
             }
             ImGui::SameLine();
             if (ImGui::Button(_("Load Snapshot"))) {
-                if (load_position_snapshot()) {
-                    DISPLAY_MESSAGE("Snapshot loaded");
+                if (playback_start_busy()) {
+                    set_playback_status("Playback or practice loading is already running; Load Snapshot ignored.");
+                }
+                else {
+                    const uint32_t snapshot_load_result = load_position_snapshot_or_queue_character_switch(INVALID_CLIP_INDEX);
+                    if (snapshot_load_result == SNAPSHOT_LOAD_LOADED) {
+                        DISPLAY_MESSAGE("Snapshot loaded");
+                    }
                 }
             }
             ImGui::SameLine();
             if (ImGui::Button(_("Load Snapshot + Play Macro"))) {
-                if (load_snapshot_then_play()) {
-                    DISPLAY_MESSAGE("Snapshot loaded; Macro playback queued");
+                if (playback_start_busy()) {
+                    set_playback_status("Playback already running; Load Snapshot + Play ignored.");
+                }
+                else if (load_snapshot_then_play()) {
+                    DISPLAY_MESSAGE(snapshot_switch_pending_ticks > 0 ? "Snapshot load queued" : "Snapshot loaded; Macro playback queued");
                 }
             }
             ImGui::TextWrapped(_("%s"), position_snapshot_label().c_str());
-            if (position_snapshot_load_ticks > 0) {
-                ImGui::Text(_("Snapshot restore ticks: %u"), position_snapshot_load_ticks);
+            if (playback_delay_pending_clip_index != INVALID_CLIP_INDEX && !playback_delay_pending_uses_setup) {
+                ImGui::Text(_("Snapshot playback delay: %u"), playback_delay_pending_ticks);
             }
-            if (snapshot_play_pending_clip_index != INVALID_CLIP_INDEX) {
-                ImGui::Text(_("Snapshot playback delay: %u"), snapshot_play_pending_ticks);
+            if (snapshot_switch_pending_ticks > 0) {
+                ImGui::Text(_("Snapshot character switch wait: %u"), snapshot_switch_pending_ticks);
+            }
+
+            ImGui::SeparatorText(_("Macro Setup"));
+            int setup_delay_ticks = (int)std::min(setup_play_delay_ticks, MAX_SNAPSHOT_PLAY_DELAY_TICKS);
+            ImGui::TextUnformatted(_("Setup Play Delay Ticks"));
+            ImGui::SameLine();
+            help_marker(_("Delay between finishing Macro Setup and starting the selected macro clip."));
+            ImGui::SetNextItemWidth(120.0f);
+            if (ImGui::InputInt("##SetupPlayDelayTicks", &setup_delay_ticks)) {
+                setup_play_delay_ticks = (uint32_t)std::clamp(setup_delay_ticks, 0, (int)MAX_SNAPSHOT_PLAY_DELAY_TICKS);
+            }
+            ImGui::TextWrapped(_("%s"), macro_setup_label().c_str());
+            if (ImGui::Button(_("Copy Current Setup"))) {
+                const auto setup_text = export_current_macro_setup();
+                if (setup_text.empty()) {
+                    set_playback_status("Macro Setup export failed: gameplay is unavailable.");
+                }
+                else {
+                    ImGui::SetClipboardText(setup_text.c_str());
+                    set_playback_status("Current Macro Setup copied to clipboard.");
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(_("Load Setup"))) {
+                if (playback_start_busy()) {
+                    set_playback_status("Playback or practice loading is already running; Load Setup ignored.");
+                }
+                else if (load_macro_setup(false)) {
+                    DISPLAY_MESSAGE("Macro Setup load queued");
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(_("Load Setup + Play Macro"))) {
+                if (playback_start_busy()) {
+                    set_playback_status("Playback or practice loading is already running; Load Setup + Play ignored.");
+                }
+                else if (load_macro_setup(true)) {
+                    DISPLAY_MESSAGE("Macro Setup load queued");
+                }
+            }
+            ImGui::SameLine();
+            help_marker(_("Copy creates a [Setup] block from the current scene. Load Setup reads the selected Macro File, switches character if needed, loads the requested room, waits for native enemies, generates missing enemies, and applies player, enemy, and camera placement. Extra enemies are left alone."));
+            if (macro_setup_load_pending()) {
+                ImGui::TextWrapped(_("%s"), macro_setup_load_label().c_str());
+            }
+            if (playback_delay_pending_clip_index != INVALID_CLIP_INDEX && playback_delay_pending_uses_setup) {
+                ImGui::Text(_("Setup playback delay: %u"), playback_delay_pending_ticks);
             }
 
             ImGui::Unindent(lineIndent);
@@ -5207,7 +7703,9 @@ void Macro::handle_hotkey_actions(
     bool stop_pressed,
     bool capture_snapshot_pressed,
     bool load_snapshot_pressed,
-    bool load_snapshot_play_pressed) {
+    bool load_snapshot_play_pressed,
+    bool load_setup_pressed,
+    bool load_setup_play_pressed) {
     if (!mod_enabled) {
         return;
     }
@@ -5218,9 +7716,36 @@ void Macro::handle_hotkey_actions(
         return;
     }
 
+    if (playback_start_busy()) {
+        if (restart_pressed || capture_snapshot_pressed || load_snapshot_pressed || load_snapshot_play_pressed ||
+            load_setup_pressed || load_setup_play_pressed) {
+            set_playback_status("Playback already running; start request ignored.");
+        }
+        restart_pressed = false;
+        capture_snapshot_pressed = false;
+        load_snapshot_pressed = false;
+        load_snapshot_play_pressed = false;
+        load_setup_pressed = false;
+        load_setup_play_pressed = false;
+    }
+
+    if (load_setup_play_pressed) {
+        if (load_macro_setup(true)) {
+            DISPLAY_MESSAGE("Macro Setup load queued");
+        }
+        return;
+    }
+
+    if (load_setup_pressed) {
+        if (load_macro_setup(false)) {
+            DISPLAY_MESSAGE("Macro Setup load queued");
+        }
+        return;
+    }
+
     if (load_snapshot_play_pressed) {
         if (load_snapshot_then_play()) {
-            DISPLAY_MESSAGE("Snapshot loaded; Macro playback queued");
+            DISPLAY_MESSAGE(snapshot_switch_pending_ticks > 0 ? "Snapshot load queued" : "Snapshot loaded; Macro playback queued");
         }
         return;
     }
@@ -5239,7 +7764,8 @@ void Macro::handle_hotkey_actions(
 
     if (load_snapshot_pressed) {
         clear_snapshot_play_delay();
-        if (load_position_snapshot()) {
+        const uint32_t snapshot_load_result = load_position_snapshot_or_queue_character_switch(INVALID_CLIP_INDEX);
+        if (snapshot_load_result == SNAPSHOT_LOAD_LOADED) {
             DISPLAY_MESSAGE("Battle Snapshot loaded");
         }
     }
@@ -5251,6 +7777,8 @@ void Macro::poll_raw_keyboard(bool trigger_actions) {
     bool capture_snapshot_pressed = false;
     bool load_snapshot_pressed = false;
     bool load_snapshot_play_pressed = false;
+    bool load_setup_pressed = false;
+    bool load_setup_play_pressed = false;
     uint32_t clip_hotkey_index = INVALID_CLIP_INDEX;
     uint32_t clip_hotkey_score = 0;
 
@@ -5272,18 +7800,22 @@ void Macro::poll_raw_keyboard(bool trigger_actions) {
         }
 
         if (trigger_actions) {
-            if (macro_instance && macro_instance->m_hotkeys.size() >= 5) {
+            if (macro_instance && macro_instance->m_hotkeys.size() >= 7) {
                 auto& restart_hotkey = *macro_instance->m_hotkeys[0];
                 auto& stop_hotkey = *macro_instance->m_hotkeys[1];
                 auto& capture_snapshot_hotkey = *macro_instance->m_hotkeys[2];
                 auto& load_snapshot_hotkey = *macro_instance->m_hotkeys[3];
                 auto& load_snapshot_play_hotkey = *macro_instance->m_hotkeys[4];
+                auto& load_setup_hotkey = *macro_instance->m_hotkeys[5];
+                auto& load_setup_play_hotkey = *macro_instance->m_hotkeys[6];
 
                 restart_pressed |= hotkey_message_matches(restart_hotkey, vkey);
                 stop_pressed |= hotkey_message_matches(stop_hotkey, vkey);
                 capture_snapshot_pressed |= hotkey_message_matches(capture_snapshot_hotkey, vkey);
                 load_snapshot_pressed |= hotkey_message_matches(load_snapshot_hotkey, vkey);
                 load_snapshot_play_pressed |= hotkey_message_matches(load_snapshot_play_hotkey, vkey);
+                load_setup_pressed |= hotkey_message_matches(load_setup_hotkey, vkey);
+                load_setup_play_pressed |= hotkey_message_matches(load_setup_play_hotkey, vkey);
 
                 restart_pressed |= vkey == DEFAULT_RESTART_VKEY && !any_hotkey_modifier_down() && hotkey_is_default_or_unbound(restart_hotkey, DEFAULT_RESTART_VKEY);
                 stop_pressed |= vkey == DEFAULT_STOP_VKEY && !any_hotkey_modifier_down() && hotkey_is_default_or_unbound(stop_hotkey, DEFAULT_STOP_VKEY);
@@ -5303,7 +7835,7 @@ void Macro::poll_raw_keyboard(bool trigger_actions) {
             const uint32_t current_role = current_player_character_role();
             for (uint32_t clip_index = 0; clip_index < playback_clips.size(); ++clip_index) {
                 const auto& binds = playback_clips[clip_index].hotkey_binds;
-                if (playback_clips[clip_index].character_role == current_role &&
+                if (clip_matches_character_role(playback_clips[clip_index], current_role) &&
                     hotkey_binds_match_message(binds, vkey) && binds.size() > clip_hotkey_score) {
                     clip_hotkey_index = clip_index;
                     clip_hotkey_score = (uint32_t)binds.size();
@@ -5318,14 +7850,29 @@ void Macro::poll_raw_keyboard(bool trigger_actions) {
             capture_snapshot_pressed = false;
             load_snapshot_pressed = false;
             load_snapshot_play_pressed = false;
+            load_setup_pressed = false;
+            load_setup_play_pressed = false;
             clip_hotkey_index = INVALID_CLIP_INDEX;
         }
 
-        handle_hotkey_actions(restart_pressed, stop_pressed, capture_snapshot_pressed, load_snapshot_pressed, load_snapshot_play_pressed);
-        if (!restart_pressed && !stop_pressed && !capture_snapshot_pressed && !load_snapshot_pressed && !load_snapshot_play_pressed &&
+        handle_hotkey_actions(
+            restart_pressed,
+            stop_pressed,
+            capture_snapshot_pressed,
+            load_snapshot_pressed,
+            load_snapshot_play_pressed,
+            load_setup_pressed,
+            load_setup_play_pressed);
+        if (!restart_pressed && !stop_pressed && !capture_snapshot_pressed && !load_snapshot_pressed &&
+            !load_snapshot_play_pressed && !load_setup_pressed && !load_setup_play_pressed &&
             clip_hotkey_index != INVALID_CLIP_INDEX) {
-            restart_playback_clip(clip_hotkey_index);
-            DISPLAY_MESSAGE("Macro clip playback started");
+            if (playback_start_busy()) {
+                set_playback_status("Playback already running; clip hotkey ignored.");
+            }
+            else {
+                restart_playback_clip(clip_hotkey_index);
+                DISPLAY_MESSAGE("Macro clip playback started");
+            }
         }
     }
 }
@@ -5406,7 +7953,7 @@ void Macro::poll_gamepad_hotkeys(cPeripheral* peripheral, bool trigger_actions) 
         const uint32_t current_role = current_player_character_role();
         for (uint32_t clip_index = 0; clip_index < playback_clips.size(); ++clip_index) {
             const auto& clip = playback_clips[clip_index];
-            if (clip.character_role == current_role && clip.gamepad_hotkey_button != 0 &&
+            if (clip_matches_character_role(clip, current_role) && clip.gamepad_hotkey_button != 0 &&
                 (chord_buttons & clip.gamepad_hotkey_button) != 0) {
                 clip_hotkey_index = clip_index;
                 clip_hotkey_button = clip.gamepad_hotkey_button;
@@ -5417,8 +7964,13 @@ void Macro::poll_gamepad_hotkeys(cPeripheral* peripheral, bool trigger_actions) 
 
     if (clip_hotkey_index != INVALID_CLIP_INDEX) {
         consume_gamepad_hotkey_buttons(peripheral, (buttons & PAD_BUTTON_SELECT) | (buttons & clip_hotkey_button));
-        restart_playback_clip(clip_hotkey_index);
-        DISPLAY_MESSAGE("Macro clip playback started");
+        if (playback_start_busy()) {
+            set_playback_status("Playback already running; clip hotkey ignored.");
+        }
+        else {
+            restart_playback_clip(clip_hotkey_index);
+            DISPLAY_MESSAGE("Macro clip playback started");
+        }
         return;
     }
 
@@ -5439,17 +7991,23 @@ void Macro::poll_gamepad_hotkeys(cPeripheral* peripheral, bool trigger_actions) 
     bool capture_snapshot_pressed = (pressed_actions & GAMEPAD_HOTKEY_ACTION_CAPTURE_SNAPSHOT) != 0;
     bool load_snapshot_pressed = (pressed_actions & GAMEPAD_HOTKEY_ACTION_LOAD_SNAPSHOT) != 0;
     bool load_snapshot_play_pressed = (pressed_actions & GAMEPAD_HOTKEY_ACTION_LOAD_SNAPSHOT_PLAY) != 0;
+    bool load_setup_pressed = (pressed_actions & GAMEPAD_HOTKEY_ACTION_LOAD_SETUP) != 0;
+    bool load_setup_play_pressed = (pressed_actions & GAMEPAD_HOTKEY_ACTION_LOAD_SETUP_PLAY) != 0;
 
     if (!is_game_window_foreground()) {
         restart_pressed = false;
         capture_snapshot_pressed = false;
         load_snapshot_pressed = false;
         load_snapshot_play_pressed = false;
+        load_setup_pressed = false;
+        load_setup_play_pressed = false;
     }
 
-    if (playback_enabled || snapshot_play_pending_clip_index != INVALID_CLIP_INDEX) {
+    if (playback_start_busy()) {
         restart_pressed = false;
         load_snapshot_play_pressed = false;
+        load_setup_pressed = false;
+        load_setup_play_pressed = false;
     }
 
     handle_hotkey_actions(
@@ -5457,7 +8015,9 @@ void Macro::poll_gamepad_hotkeys(cPeripheral* peripheral, bool trigger_actions) 
         stop_pressed,
         capture_snapshot_pressed,
         load_snapshot_pressed,
-        load_snapshot_play_pressed);
+        load_snapshot_play_pressed,
+        load_setup_pressed,
+        load_setup_play_pressed);
 }
 
 void Macro::check_hotkeys() {
@@ -5518,11 +8078,14 @@ void Macro::on_config_load(const utility::Config& cfg) {
     load_snapshot_play_vkey =
         std::clamp(cfg.get<uint32_t>("keyboard_macro_load_snapshot_play_vkey").value_or(DEFAULT_LOAD_SNAPSHOT_PLAY_VKEY), 1u, 255u);
     snapshot_play_delay_ticks = std::min(
-        cfg.get<uint32_t>("keyboard_macro_snapshot_play_delay_ticks").value_or(POSITION_SNAPSHOT_LOAD_TICKS),
+        cfg.get<uint32_t>("keyboard_macro_snapshot_play_delay_ticks").value_or(DEFAULT_SNAPSHOT_PLAY_DELAY_TICKS),
+        MAX_SNAPSHOT_PLAY_DELAY_TICKS);
+    setup_play_delay_ticks = std::min(
+        cfg.get<uint32_t>("macro_setup_play_delay_ticks").value_or(DEFAULT_SNAPSHOT_PLAY_DELAY_TICKS),
         MAX_SNAPSHOT_PLAY_DELAY_TICKS);
     restore_resources_snapshot = cfg.get<bool>("keyboard_macro_restore_resources").value_or(false);
-    stop_macro_on_game_pause = cfg.get<bool>("keyboard_macro_stop_on_game_pause").value_or(false);
     gamepad_hotkeys_enabled = cfg.get<bool>("keyboard_macro_gamepad_hotkeys").value_or(false);
+    playback_overlay_enabled = cfg.get<bool>("keyboard_macro_playback_overlay").value_or(true);
     gamepad_hotkey_buttons[0] = sanitize_gamepad_hotkey_button(
         cfg.get<uint32_t>("keyboard_macro_gamepad_play_button").value_or(DEFAULT_GAMEPAD_HOTKEY_BUTTONS[0]),
         DEFAULT_GAMEPAD_HOTKEY_BUTTONS[0]);
@@ -5538,7 +8101,12 @@ void Macro::on_config_load(const utility::Config& cfg) {
     gamepad_hotkey_buttons[4] = sanitize_gamepad_hotkey_button(
         cfg.get<uint32_t>("keyboard_macro_gamepad_load_snapshot_play_button").value_or(DEFAULT_GAMEPAD_HOTKEY_BUTTONS[4]),
         DEFAULT_GAMEPAD_HOTKEY_BUTTONS[4]);
-    last_game_pause_state = is_game_paused_safe();
+    gamepad_hotkey_buttons[5] = sanitize_gamepad_hotkey_button(
+        cfg.get<uint32_t>("macro_gamepad_load_setup_button").value_or(DEFAULT_GAMEPAD_HOTKEY_BUTTONS[5]),
+        DEFAULT_GAMEPAD_HOTKEY_BUTTONS[5]);
+    gamepad_hotkey_buttons[6] = sanitize_gamepad_hotkey_button(
+        cfg.get<uint32_t>("macro_gamepad_load_setup_play_button").value_or(DEFAULT_GAMEPAD_HOTKEY_BUTTONS[6]),
+        DEFAULT_GAMEPAD_HOTKEY_BUTTONS[6]);
     size_t action_count = 0;
     const auto* actions = macro_action_choices(action_count);
     for (uint32_t role = 0; role < MACRO_CHARACTER_ROLE_COUNT; ++role) {
@@ -5555,7 +8123,7 @@ void Macro::on_config_load(const utility::Config& cfg) {
                 default_button);
         }
     }
-    if (m_hotkeys.size() >= 5) {
+    if (m_hotkeys.size() >= 7) {
         if (!cfg.get("keyboard_macro_restart_key")) {
             m_hotkeys[0]->m_default_keys = { restart_vkey };
         }
@@ -5597,7 +8165,7 @@ void Macro::on_config_save(utility::Config& cfg) {
     // Save legacy keyboard_macro_* keys for compatibility with earlier macro test builds.
     cfg.set<bool>("keyboard_macro_enabled", mod_enabled);
     ensure_keyboard_hotkeys(m_hotkeys);
-    if (m_hotkeys.size() >= 5) {
+    if (m_hotkeys.size() >= 7) {
         if (!m_hotkeys[0]->m_binds.empty()) {
             restart_vkey = m_hotkeys[0]->m_binds.back();
         }
@@ -5620,14 +8188,17 @@ void Macro::on_config_save(utility::Config& cfg) {
     cfg.set<uint32_t>("keyboard_macro_load_snapshot_vkey", load_snapshot_vkey);
     cfg.set<uint32_t>("keyboard_macro_load_snapshot_play_vkey", load_snapshot_play_vkey);
     cfg.set<uint32_t>("keyboard_macro_snapshot_play_delay_ticks", snapshot_play_delay_ticks);
+    cfg.set<uint32_t>("macro_setup_play_delay_ticks", setup_play_delay_ticks);
     cfg.set<bool>("keyboard_macro_restore_resources", restore_resources_snapshot);
-    cfg.set<bool>("keyboard_macro_stop_on_game_pause", stop_macro_on_game_pause);
     cfg.set<bool>("keyboard_macro_gamepad_hotkeys", gamepad_hotkeys_enabled);
+    cfg.set<bool>("keyboard_macro_playback_overlay", playback_overlay_enabled);
     cfg.set<uint32_t>("keyboard_macro_gamepad_play_button", gamepad_hotkey_buttons[0]);
     cfg.set<uint32_t>("keyboard_macro_gamepad_stop_button", gamepad_hotkey_buttons[1]);
     cfg.set<uint32_t>("keyboard_macro_gamepad_capture_snapshot_button", gamepad_hotkey_buttons[2]);
     cfg.set<uint32_t>("keyboard_macro_gamepad_load_snapshot_button", gamepad_hotkey_buttons[3]);
     cfg.set<uint32_t>("keyboard_macro_gamepad_load_snapshot_play_button", gamepad_hotkey_buttons[4]);
+    cfg.set<uint32_t>("macro_gamepad_load_setup_button", gamepad_hotkey_buttons[5]);
+    cfg.set<uint32_t>("macro_gamepad_load_setup_play_button", gamepad_hotkey_buttons[6]);
     size_t action_count = 0;
     const auto* actions = macro_action_choices(action_count);
     for (uint32_t role = 0; role < MACRO_CHARACTER_ROLE_COUNT; ++role) {

@@ -21,6 +21,7 @@
 #include "RotatingLaser.hpp"
 #include "CharSwitcher.hpp" // for external_spawn_requested, stops chars being registered to sMed
 #include "GermanWord.hpp"
+#include "EnemyReplace.hpp"
 
 static constexpr uintptr_t some_struct            = 0x00E552CC;
 static constexpr uintptr_t fptr_update_actor_list = 0x008DC540;
@@ -290,8 +291,13 @@ static const std::map<int, WaveConfig> WAVE_CONFIGS = {
 };
 
 static const WaveConfig& get_wave_config() {
+    int effective_wave = Survival::wave;
+    if (EnemyReplace::enemy_randomizer_enabled && effective_wave < 20) {
+        effective_wave = 20;
+    }
+
     for (const auto& [wave_threshold, config] : WAVE_CONFIGS) {
-        if (Survival::wave < wave_threshold) {
+        if (effective_wave < wave_threshold) {
             return config;
         }
     }
@@ -470,7 +476,7 @@ void Survival::on_timer_trigger() {
     const WaveConfig& config = get_wave_config();
     bool is_ldk = (sMed->gameDifficulty == GameDifficulty::LEGENDARY_DARK_KNIGHT);
 
-    // lasers does not care if an enemy can be spawned
+    // lasers do not care if an enemy can be spawned
     if (config.laser_spawn_chance > 0 && Survival::get_random_int(0, config.laser_spawn_chance - 1) == 0) {
         if (EnvironmentalHazards::laser_enabled) {
             if (RotatingLaser::s_lasers.size() < 6) {
@@ -612,6 +618,7 @@ void Survival::on_frame(fmilliseconds& dt) {
             }
             MutatorHolyWater::use_hw_asm_call();
             RotatingLaser::kill_all();
+            player->DT = 3000.0f;
         }
         
         if ((player_exists_now && !player_existed_last_frame) || 
