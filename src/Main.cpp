@@ -50,7 +50,7 @@ static void patch_more_memories() {
     static UINT* resMem    = (UINT*)0x8AFBAB; // resource
 
     VirtualProtect(globalMem, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
-    *globalMem = 0xA0000000; // was push 06000000
+    *globalMem = 0x0A000000; // was push 06000000
     VirtualProtect(globalMem, 4, PAGE_READONLY, &oldProtect);
 
     VirtualProtect(tempMem, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
@@ -58,7 +58,7 @@ static void patch_more_memories() {
     VirtualProtect(tempMem, 4, oldProtect, &oldProtect);
 
     VirtualProtect(resMem, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
-    *resMem = 0x90000000; // was push 06000000
+    *resMem = 0x10000000; // was push 06000000
     VirtualProtect(resMem, 4, oldProtect, &oldProtect);
 }
 
@@ -93,7 +93,7 @@ static bool reopen_console_stream(FILE** new_stream, const char* name, const cha
 //static DWORD WINAPI startup_thread([[maybe_unused]] LPVOID parameter) {
 static void WINAPI startup_proc() {
 
-    patch_more_memories();
+     patch_more_memories();
 
 #ifndef NDEBUG // TODO(deep): freopen_s fails for me in debug, doubt anyone else cares though
     AllocConsole();
@@ -158,7 +158,7 @@ static __declspec(naked) void start_hook_steam() {
 BOOL APIENTRY DllMain(HMODULE handle, DWORD reason, LPVOID reserved) { //NOLINT
     if (reason == DLL_PROCESS_ATTACH) {
 #ifndef NDEBUG
-        MessageBox(NULL, "Debug attach opportunity", "DMC4", MB_ICONINFORMATION);
+        //MessageBox(NULL, "Debug attach opportunity", "DMC4", MB_ICONINFORMATION);
 #endif
 
         assert(DisableThreadLibraryCalls(handle));

@@ -157,3 +157,13 @@ public:
     float y[8]; // 0x0020
 };              // Size: 0x0040
 static_assert(sizeof(MtHermiteCurve) == 0x40);
+
+struct MtPoint {
+    int x;
+    int y;
+};
+
+struct MtSize {
+    uint w;
+    uint h;
+};

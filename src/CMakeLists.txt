@@ -358,6 +358,8 @@ set(MODS_SRC
   mods/Coop.cpp
   mods/StageCallback.hpp
   mods/StageCallback.cpp
+  mods/Cock.hpp
+  mods/Cock.cpp
 )
 
 set(HOOKS_SRC
