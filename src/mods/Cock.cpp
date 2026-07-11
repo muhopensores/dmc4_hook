@@ -5,8 +5,7 @@
 
 static int x_pos = 0;
 static int y_pos = 0;
-static int x_scale = 0;
-static int y_scale = 0;
+static float scale = 1.0f;
 
 struct sprMapHead : MtObject {
     unsigned __int16 version;
@@ -180,9 +179,7 @@ void Cock::on_gui_frame(int display) {
     ImGui::SameLine();
     ImGui::SliderInt(_("y_pos"), &y_pos, -1000, 1000);
     ImGui::Text(_("Scale"));
-    ImGui::SliderInt(_("x_scale"), &x_scale, -1000, 1000);
-    ImGui::SameLine();
-    ImGui::SliderInt(_("y_scale"), &y_scale, -1000, 1000);
+    ImGui::SliderFloat(_("x_scale"), &scale, 0.0f, 2.0f);
     ImGui::PopItemWidth();
     if (su != nullptr) {
         MoveLine* uiLine = &(su->mMoveLine[25]);
@@ -192,10 +189,10 @@ void Cock::on_gui_frame(int display) {
             if (cock != nullptr) {
                 while (true) {
                     for (int i = 0; i < cock->mpResource->mSprMapHead.sprNum; i++) {
-                        cock->mpData[i].posHDTV.x = cock->mpResource->mpSprMap[i].posHDTV.x + x_pos;
-                        cock->mpData[i].posHDTV.y = cock->mpResource->mpSprMap[i].posHDTV.y + y_pos;
-                        cock->mpData[i].scaleHDTV.w = cock->mpResource->mpSprMap[i].scaleHDTV.w + x_scale;
-                        cock->mpData[i].scaleHDTV.h = cock->mpResource->mpSprMap[i].scaleHDTV.h + y_scale;
+                        cock->mpData[i].posHDTV.x = (uint)(cock->mpResource->mpSprMap[i].posHDTV.x * scale) + x_pos;
+                        cock->mpData[i].posHDTV.y = (uint)(cock->mpResource->mpSprMap[i].posHDTV.y * scale) + y_pos;
+                        cock->mpData[i].scaleHDTV.w = (uint)(cock->mpResource->mpSprMap[i].scaleHDTV.w * scale);
+                        cock->mpData[i].scaleHDTV.h = (uint)(cock->mpResource->mpSprMap[i].scaleHDTV.h * scale);
                     }
                     if (cock == cockmgr->mpEndPtr)
                         break;
