@@ -1,10 +1,12 @@
 #include "EnemyReplace.hpp"
 #include "Windows.h"
 #include <sdk/uEnemy.hpp>
+#include "../sdk/Devil4.hpp"
+#include "Survival.hpp"
 
 bool EnemyReplace::mod_enabled = false;
-
 bool EnemyReplace::enemy_randomizer_enabled = false;
+bool EnemyReplace::enemy_randomizer_arc_load = false;
 std::mt19937 EnemyReplace::rng;
 uintptr_t EnemyReplace::jmp_ret1 = NULL;
 uintptr_t EnemyReplace::jmp_ret2 = NULL;
@@ -87,6 +89,7 @@ struct EnemyEntry {
 
 static bool IsInvalidSwap(uintptr_t from, uintptr_t to) {
     if (to == gladius_from_address ||
+        from == gladius_from_address ||
 
         // (from == berial_address && to == dante_address) ||
         (from == berial_address && to == echidna_address) || // camera and collision goes crazy
@@ -255,9 +258,7 @@ static void WriteWorkingSpawnAnim(uintptr_t obj) {
     int anim = get_random_spawn_anim_from_enemy_id(id);
     if (anim >= 0) {
         em->m_enemy_spawn_effect_something = anim;
-        #ifndef NDEBUG
         spdlog::info("EnemyReplace: Enemy ID replaced with {}. Enemy Spawn Anim replaced with {}", id, anim);
-        #endif
     }
 }
 
@@ -586,9 +587,32 @@ const char* save_load_i_ds[] = {
     "ReplaceDante"          // 20
 };
 
+static void load_arcs() {
+    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em000", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Scarecrow (Leg Type)
+    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em001", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Scarecrow (Arm Type)
+    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em003", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Mega Scarecrow
+    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em005", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Bianco Angelo (White Armor)
+    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em006", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Alto Angelo (Gold Armor)
+    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em008", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Mephisto
+    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em009", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Faust
+    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em010", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Frost
+    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em011", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Assault
+    // devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em012", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Blitz
+    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em013", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Chimera
+    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em015", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Cutlass
+    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em016", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Gladius        
+    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em017", MODE_BLOCKING | MODE_USECACHE/* | MODE_QUALITY_HIGHEST*/); // Basilisk
+}
+
 // TODO Map??????
 int EnemyReplace::default_enemy[IM_ARRAYSIZE(combo_lists)] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
 int EnemyReplace::desired_enemy[IM_ARRAYSIZE(combo_items)];
+
+void EnemyReplace::on_stage_start() {
+    if (enemy_randomizer_arc_load && !Survival::mod_enabled) {
+        load_arcs();
+    }
+}
 
 void EnemyReplace::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
@@ -614,9 +638,25 @@ void EnemyReplace::on_gui_frame(int display) {
     }
 
     if (display == DISPLAY_SYSTEM_B) {
+        ImGui::BeginGroup();
         ImGui::Checkbox(_("Enemy Randomizer"), &enemy_randomizer_enabled);
         ImGui::SameLine();
         help_marker(_("Randomizes enemy spawns within reason so its still actually fun"));
+        if (enemy_randomizer_enabled) {
+            ImGui::Indent(lineIndent);
+            if (ImGui::Checkbox(_("Preload enemies"), &enemy_randomizer_arc_load)) {
+                if (!Survival::mod_enabled) {
+                    uPlayer* player = devil4_sdk::get_local_player();
+                    if (player) {
+                        load_arcs();
+                    }
+                }
+            }
+            ImGui::SameLine();
+            help_marker(_("Stops the lag that happens when enemies spawn, but might crash if too many enemies load"));
+            ImGui::Unindent(lineIndent);
+        }
+        ImGui::EndGroup();
     }
 }
 
@@ -626,6 +666,7 @@ void EnemyReplace::on_config_load(const utility::Config& cfg) {
         replace_enemy_with(default_enemy[i], desired_enemy[i]);
     }
     enemy_randomizer_enabled = cfg.get<bool>("enemy_randomizer_enabled").value_or(false);
+    enemy_randomizer_arc_load = cfg.get<bool>("enemy_randomizer_arc_load").value_or(false);
 }
 
 void EnemyReplace::on_config_save(utility::Config& cfg) {
@@ -633,4 +674,5 @@ void EnemyReplace::on_config_save(utility::Config& cfg) {
         cfg.set<int>("enemy_replace_id_"+std::to_string(i), desired_enemy[i]);
     }
     cfg.set<bool>("enemy_randomizer_enabled", enemy_randomizer_enabled);
+    cfg.set<bool>("enemy_randomizer_arc_load", enemy_randomizer_arc_load);
 }

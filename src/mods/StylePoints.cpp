@@ -1773,6 +1773,7 @@ void StylePoints::DrawHiddenCombos() {
         return;
 
     ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;
+    float resolutionScale = screenSize.y / 1080.0f;
     static ImVec2 windowPosModifier{ 0.475f, 0.20f };
     ImVec2 windowPos = ImVec2(screenSize.x * windowPosModifier.x, screenSize.y * windowPosModifier.y);
     static ImVec2 windowSizeModifier{ 0.35f, 0.25f };
@@ -1791,7 +1792,8 @@ void StylePoints::DrawHiddenCombos() {
     ImGui::Begin("Hidden Combos Panel", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar);
     ImVec2 availSpace = ImGui::GetContentRegionAvail();
     ImGui::BeginChild("ScrollingContent", availSpace, false, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar);
-    static float fontScale = 1.0f;
+    static float baseFontScale = 1.0f;
+    float fontScale = baseFontScale * resolutionScale;
     ImGui::UpdateCurrentFontSize(fontScale * ImGui::GetStyle().FontSizeBase);
 
     static ImVec4 TexCol{ 0.8f, 0.8f, 0.8f, 1.0f };

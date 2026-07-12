@@ -26,7 +26,7 @@ void FrostsDontJump::on_gui_frame(int display) {
             toggle(mod_enabled);
         }
         ImGui::SameLine();
-        help_marker(_("Disable Frosts jumping out of combos until they DT"));
+        help_marker(_("Disable Frosts jumping out of combos until they Devil Trigger"));
     }
 }
 

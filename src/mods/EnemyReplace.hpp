@@ -15,6 +15,7 @@ public:
     static int default_enemy[];
 
     static bool enemy_randomizer_enabled;
+    static bool enemy_randomizer_arc_load;
     static std::mt19937 rng;
     static uintptr_t jmp_ret1;
     static uintptr_t jmp_ret2;
@@ -29,6 +30,8 @@ public:
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
     void on_gui_frame(int display) override;
+    void on_stage_start() override;
+    // void on_stage_end() override;
 
 private:
     std::unique_ptr<Patch> replacement_address_two_patch, replace_scarecrow_leg_patch, replace_scarecrow_arm_patch, replace_scarecrow_mega_patch,

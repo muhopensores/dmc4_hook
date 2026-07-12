@@ -20,7 +20,6 @@ static void LetsNotTryThisInAsm() {
 
 naked void guard_steer_proc(void) {
     _asm {
-        pushfd
 		cmp byte ptr [GuardSteer::mod_enabled], 0
         je originalcode
         cmp dword ptr [eax+0x00001494], 0 // controller id dante
@@ -66,7 +65,6 @@ naked void guard_steer_proc(void) {
         originalcode:
         comiss xmm4, xmm3
         movss [eax+0x00000EC0], xmm0
-        popfd
 		jmp dword ptr [GuardSteer::guard_steer_continue]
     }
 }
