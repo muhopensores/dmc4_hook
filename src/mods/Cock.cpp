@@ -13,7 +13,6 @@ struct sprMapHead : MtObject {
 static_assert(sizeof(sprMapHead) == 0x10);
 
 struct sprMap : MtObject {
-    unsigned __int16 rot;
     bool isDisp; // 0x4
     char pad_05[3]; // 0x5
     unsigned __int16 sprId; // 0x8
