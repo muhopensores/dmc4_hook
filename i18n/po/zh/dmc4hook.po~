@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 09:46+0100\n"
-"PO-Revision-Date: 2026-07-09 17:48+0800\n"
+"POT-Creation-Date: 2026-07-09 10:57+0100\n"
+"PO-Revision-Date: 2026-07-09 10:58+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -455,9 +455,18 @@ msgstr "，命中"
 msgid ", locked-on"
 msgstr "，锁定"
 
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:192
+#, c-format
+msgid "Part %u"
+msgstr "第 %u 部分"
+
 #: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:255
 msgid "Animation"
 msgstr "动画"
+
+#: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:260
+msgid "Frame  "
+msgstr "帧数"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AnimationOverlay.cpp:264
 msgid "MoveID2"
