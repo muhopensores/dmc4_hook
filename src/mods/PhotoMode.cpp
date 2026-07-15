@@ -13,9 +13,25 @@
 #include "../sdk/uLight.hpp"
 
 bool PhotoMode::mod_enabled = false;
+bool PhotoMode::joint_rotation_enable = false;
 float PhotoMode::HUDCooldown = 0.0f;
 static bool spotLightsFollowPlayer = true;
 static bool forceHideCameraHUD     = false;
+
+// This is better placed in JointDisplay, but needs to be toggled off by PhotoMode
+void PhotoMode::joint_rotation_toggle(bool enable) {
+    if (enable) {
+        install_patch_offset(0x5FC949, patch1, "\x90\x90\x90\x90\x90", 5);
+        install_patch_offset(0x5FC954, patch2, "\x90\x90\x90\x90\x90", 5);
+        install_patch_offset(0x5FC95F, patch3, "\x90\x90\x90\x90\x90", 5);
+        install_patch_offset(0x5FC96A, patch4, "\x90\x90\x90\x90\x90", 5);
+    } else {
+        patch1.reset();
+        patch2.reset();
+        patch3.reset();
+        patch4.reset();
+    }
+}
 
 // Filter
 static uintptr_t uDOFFilterCons             = 0x0091F680;
@@ -159,10 +175,15 @@ void PhotoMode::on_gui_frame(int display) {
                 SetGameSpeeds(0.0f);
             } else {
                 SetGameSpeeds(1.0f);
+
                 DebugCam::toggle_gameplay_cam = true;
                 ToggleGameplayCam(DebugCam::toggle_gameplay_cam);
+
                 DebugCam::disable_player_inputs = mod_enabled;
                 DisablePlayerInputs(DebugCam::disable_player_inputs);
+
+                joint_rotation_enable = forceHideCameraHUD;
+                joint_rotation_toggle(joint_rotation_enable);
             }
         }
         ImGui::SameLine(sameLineWidth);
@@ -478,7 +499,7 @@ static void ImGuizmoManipulators() {
 
     ImGuizmo::MODE currentImGuizmode = ImGuizmo::WORLD;
     w2s::ImGuizmoKeyboardShortcuts(currentLightGizmoOperation, currentImGuizmode);
-    w2s::ImGuizmoDeselection(selectedLightIndex);
+    w2s::ImGuizmoDeselection(selectedLightIndex, isManipulatingLight);
 }
 
 void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
@@ -734,6 +755,10 @@ void PhotoMode::on_frame(fmilliseconds& dt) {
                     g_framework->get_mods().get()->on_draw_ui("CameraSettings"_hash, DISPLAY_SYSTEM_C);
                     ImGui::SameLine();
                     g_framework->get_mods().get()->on_draw_ui("DebugCam"_hash, DISPLAY_SYSTEM_B);
+                    g_framework->get_mods().get()->on_draw_ui("JointDisplay"_hash, DISPLAY_SYSTEM_A);
+                    if (ImGui::Checkbox(_("Enable Joint Rotation"), &joint_rotation_enable)) {
+                        joint_rotation_toggle(joint_rotation_enable);
+                    }
                     ImGui::EndChild();
                     ImGui::EndTabItem();
                 }

@@ -29,7 +29,7 @@ call damage
 */
 
 void RestoreMaxHp::restore_health_and_timer(sMediator* s_med_ptr, uPlayer* player) {
-    uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
+    uEnemy_Old* enemy = (uEnemy_Old*)devil4_sdk::get_moveline_top(15);
     while (enemy) {
         uintptr_t enemy_base = (uintptr_t)(enemy);
         if (enemy_base) {

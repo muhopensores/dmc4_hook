@@ -16,7 +16,7 @@ namespace w2s {
     bool DrawImGuizmoManipulator(const glm::vec3& worldPosition, glm::vec3& newPosition, int objectIndex, int& selectedIndex, bool& isManipulating, ImGuizmo::OPERATION operation,
         ImGuizmo::MODE mode, const float* viewMatrix, const float* projectionMatrix, ImU32 iconColor, float iconRadius, const char* debugName);
     bool GetImGuizmoMatrices(float viewMatrix[16], float projectionMatrix[16]);
-    void ImGuizmoDeselection(int& selectedIndex);
+    void ImGuizmoDeselection(int& selectedIndex, bool isManipulating);
     void ImGuizmoKeyboardShortcuts(ImGuizmo::OPERATION& operation, ImGuizmo::MODE&);
 	void DrawWireframeCube(const glm::vec3& center, float size, float rotation, ImU32 color, float thickness = 1.0f);
 	void DrawWireframeSphere(const glm::vec3& center, float radius, float rotation, ImU32 color, int segments = 16, float thickness = 1.0f);

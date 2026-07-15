@@ -354,7 +354,7 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
 
         if (showFlyingEnemyStats) {
             int enemyCount = 0;
-            uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
+            uEnemy_Old* enemy = (uEnemy_Old*)devil4_sdk::get_moveline_top(15);
             while (enemy) {
                 Vector3f objectPosition{};
                 uactor_sdk::get_center_pos(enemy, &objectPosition);

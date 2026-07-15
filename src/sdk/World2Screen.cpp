@@ -220,7 +220,9 @@ namespace w2s {
     }
 
     // rets true if the object was manipulated this frame
-    bool DrawImGuizmoManipulator(const glm::mat4& worldTransform, glm::mat4& newTransform, int objectIndex, int& selectedIndex, bool& isManipulating, ImGuizmo::OPERATION operation, ImGuizmo::MODE mode, const float* viewMatrix, const float* projectionMatrix, ImU32 iconColor, float iconRadius, const char* debugName) {
+    bool DrawImGuizmoManipulator(const glm::mat4& worldTransform, glm::mat4& newTransform, int objectIndex, int& selectedIndex,
+        bool& isManipulating, ImGuizmo::OPERATION operation, ImGuizmo::MODE mode, const float* viewMatrix, const float* projectionMatrix,
+        ImU32 iconColor, float iconRadius, const char* debugName) {
         bool wasManipulated = false;
         ImGuiIO& io = ImGui::GetIO();
 
@@ -240,11 +242,17 @@ namespace w2s {
         bool onScreen = ndcPos.x >= -1.0f && ndcPos.x <= 1.0f && ndcPos.y >= -1.0f && ndcPos.y <= 1.0f;
         screenPos.x = (ndcPos.x * 0.5f + 0.5f) * io.DisplaySize.x;
         screenPos.y = (1.0f - (ndcPos.y * 0.5f + 0.5f)) * io.DisplaySize.y;
-        if (selectedIndex != objectIndex && onScreen) {
-            ImGui::GetForegroundDrawList()->AddCircle(screenPos, iconRadius, iconColor, 8, 2.0f);
+
+        bool nearIcon = false;
+        if (onScreen) {
             ImVec2 mousePos = io.MousePos;
             float distance  = sqrtf(powf(mousePos.x - screenPos.x, 2) + powf(mousePos.y - screenPos.y, 2));
-            if (distance < 15.0f && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+            nearIcon        = distance < 15.0f;
+        }
+
+        if (selectedIndex != objectIndex && onScreen) {
+            ImGui::GetForegroundDrawList()->AddCircle(screenPos, iconRadius, iconColor, 8, 2.0f);
+            if (nearIcon && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
                 selectedIndex = objectIndex;
             }
         }
@@ -264,8 +272,8 @@ namespace w2s {
             wasManipulated = true;
             memcpy(&newTransform[0][0], objectMatrix, sizeof(float) * 16);
         } else {
-            newTransform   = worldTransform;
-            isManipulating = false;
+            newTransform = worldTransform;
+            isManipulating = nearIcon && ImGui::IsMouseClicked(ImGuiMouseButton_Left);
         }
 
         if (onScreen) {
@@ -304,7 +312,7 @@ namespace w2s {
     
         // glm::vec2 screen = glm::vec2(devil4_sdk::get_sRender()->screenRes);
         // float aspectRatio = screen.x / screen.y;
-        glm::mat4 proj    = cam->mProjMat; // glm::perspective(glm::radians(/*camera->mFov*/fovY), aspectRatio, 0.1f, 9999.0f);
+        glm::mat4 proj = cam->mProjMat; // glm::perspective(glm::radians(/*camera->mFov*/fovY), aspectRatio, 0.1f, 9999.0f);
     
         memcpy(viewMatrix, &view[0][0], sizeof(float) * 16);
         memcpy(projectionMatrix, &proj[0][0], sizeof(float) * 16);
@@ -313,7 +321,9 @@ namespace w2s {
     }
 
     // Helper function to handle deselection
-    void ImGuizmoDeselection(int& selectedIndex) {
+    void ImGuizmoDeselection(int& selectedIndex, bool isManipulating) {
+        if (isManipulating)
+            return;
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGuizmo::IsOver() && !ImGuizmo::IsUsing()) {
             selectedIndex = -1;
         }

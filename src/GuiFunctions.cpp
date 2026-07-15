@@ -729,7 +729,7 @@ namespace gui {
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("NoclipCam"_hash, DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("DebugCam"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui("PhotoMode"_hash, DISPLAY_SYSTEM_A); // needs its own line
 
                 pmods->on_draw_ui("CameraSettings"_hash, DISPLAY_SYSTEM_B);
 
@@ -768,9 +768,7 @@ namespace gui {
 
                 pmods->on_draw_ui("FlyingStats"_hash, DISPLAY_SYSTEM_A); // needs its own line
 
-                pmods->on_draw_ui("JointDisplay"_hash, DISPLAY_SYSTEM_A);
-
-                pmods->on_draw_ui("PhotoMode"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui("DebugCam"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("Coop"_hash, DISPLAY_SYSTEM_A);
 

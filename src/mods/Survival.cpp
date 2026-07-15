@@ -470,7 +470,7 @@ void Survival::on_timer_trigger() {
     sUnit* sUnit = devil4_sdk::get_sUnit();
     if (!sUnit) { return; }
         
-    uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
+    uEnemy_Old* enemy = (uEnemy_Old*)devil4_sdk::get_moveline_top(15);
     Survival::EnemyInfo enemy_info = Survival::get_enemy_info(enemy);
         
     const WaveConfig& config = get_wave_config();
@@ -517,7 +517,7 @@ void Survival::on_timer_trigger() {
     }
     
     // Recalculate enemy info after potential boss spawn
-    enemy_info = Survival::get_enemy_info(devil4_sdk::get_uEnemies());
+    enemy_info = Survival::get_enemy_info((uEnemy_Old*)devil4_sdk::get_moveline_top(15));
     
     // Check if we can still spawn standard enemies
     if (can_spawn_standard_enemy(enemy_info, sMed, config)) {
@@ -525,7 +525,7 @@ void Survival::on_timer_trigger() {
     }
         
     // spawn an extra dude in ldk
-    enemy_info = Survival::get_enemy_info(devil4_sdk::get_uEnemies());
+    enemy_info = Survival::get_enemy_info((uEnemy_Old*)devil4_sdk::get_moveline_top(15));
     if (is_ldk && can_spawn_standard_enemy(enemy_info, sMed, config)) {
         Survival::spawn_standard_enemy();
     }
@@ -610,7 +610,7 @@ void Survival::on_frame(fmilliseconds& dt) {
         if (player_existed_last_frame && player_exists_now && !player_is_alive && in_correct_room && Survival::survival_active) {
             
             // kill all enemies
-            uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
+            uEnemy_Old* enemy = (uEnemy_Old*)devil4_sdk::get_moveline_top(15);
             while (enemy) {
                 uDamage_Old* currentEnemyDamage = (uDamage_Old*)((char*)enemy + EnemyTracker::get_enemy_specific_damage_offset(enemy->ID));
                 currentEnemyDamage->HP = 0.0f;
@@ -618,6 +618,7 @@ void Survival::on_frame(fmilliseconds& dt) {
             }
             MutatorHolyWater::use_hw_asm_call();
             RotatingLaser::kill_all();
+            GermanWord::survival_doppel_enabled = false;
             player->DT = 3000.0f;
         }
         
@@ -672,7 +673,7 @@ void Survival::on_frame(fmilliseconds& dt) {
                             float game_seconds = sUnitHasDelta->m_delta_time / 60.0f;
                             UpdateTimer();
                         }
-                        EnemyInfo enemy_info = get_enemy_info(devil4_sdk::get_uEnemies());
+                        EnemyInfo enemy_info = get_enemy_info((uEnemy_Old*)devil4_sdk::get_moveline_top(15));
                         if (enemy_info.enemies_alive == 0) {
                             timer->m_time = (fseconds)timer->m_duration; // trigger timer reset if the player killed all enemies too fast
                         }
@@ -900,7 +901,7 @@ static PowerUpSystem::PowerUpDefinition createEnemySizePowerUp() {
         200.0f,                    // radius
         30.0f,                     // effectDuration
         []() {                     // onActivate
-            uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
+            uEnemy_Old* enemy = (uEnemy_Old*)devil4_sdk::get_moveline_top(15);
             while (enemy) {
                 float newScale = Survival::get_random_float(0.5f, 2.0f);
                 enemy->scale = { newScale, newScale, newScale };
@@ -911,7 +912,7 @@ static PowerUpSystem::PowerUpDefinition createEnemySizePowerUp() {
         
         },
         []() {                     // onExpire
-            uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
+            uEnemy_Old* enemy = (uEnemy_Old*)devil4_sdk::get_moveline_top(15);
             while (enemy) {
                 enemy->scale = {1.0f, 1.0f, 1.0f}; // not all enemies are 1.0 but its too annoying enemies staying random sizes after powerup expires
                 enemy = enemy->nextEnemy;

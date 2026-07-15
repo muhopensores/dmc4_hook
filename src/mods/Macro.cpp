@@ -3953,7 +3953,7 @@ uEnemy_Old* select_hit_confirm_enemy(uPlayer* player) {
     }
 
     uint32_t visited = 0;
-    for (uEnemy_Old* enemy = devil4_sdk::get_uEnemies(); enemy && visited < MAX_ENEMY_CHAIN_SCAN; enemy = enemy->nextEnemy, ++visited) {
+    for (uEnemy_Old* enemy = (uEnemy_Old*)devil4_sdk::get_moveline_top(15); enemy && visited < MAX_ENEMY_CHAIN_SCAN; enemy = enemy->nextEnemy, ++visited) {
         if (enemy->isActive) {
             return enemy;
         }
@@ -4048,7 +4048,7 @@ bool evaluate_hit_confirmed_wait_condition(const MacroFrame& frame) {
 
 uEnemy_Old* get_enemy_chain_head_safe() {
     __try {
-        return devil4_sdk::get_uEnemies();
+        return (uEnemy_Old*)devil4_sdk::get_moveline_top(15);
     }
     __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
         return nullptr;

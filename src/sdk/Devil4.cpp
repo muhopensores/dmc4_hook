@@ -182,20 +182,11 @@ namespace devil4_sdk {
         return false;
     }
 
-	uEnemy_Old* get_uEnemies() {
+	uActor* get_moveline_top(int ml) {
 		sUnit* s_unit_ptr = get_sUnit();
 		if (s_unit_ptr) {
-			uEnemy_Old* enemy = (uEnemy_Old*)s_unit_ptr->mMoveLine[15].mTop;
-			return enemy;
-		}
-		else return nullptr;
-	}
-
-	uEnemy_Old* get_objects() {
-		sUnit* s_unit_ptr = get_sUnit();
-		if (s_unit_ptr) {
-			uEnemy_Old* object = (uEnemy_Old*)s_unit_ptr->mMoveLine[16].mTop;
-			return object;
+			uActor* top = (uActor*)s_unit_ptr->mMoveLine[ml].mTop;
+			return top;
 		}
 		else return nullptr;
 	}

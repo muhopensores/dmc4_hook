@@ -282,11 +282,11 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
     if (mod_enabled3) { // enemy step
         static constexpr uintptr_t uActor__MtDTI = 0xE58158;
         if (uPlayer* player = devil4_sdk::get_local_player()) {
-            uEnemy_Old* enemy = devil4_sdk::get_uEnemies();
+            uEnemy_Old* enemy = (uEnemy_Old*)devil4_sdk::get_moveline_top(15);
             if (enemy && MtObject__isKindOf(enemy, uActor__MtDTI))
                 DisplayEnemyStepSpheres(enemy, player);
 
-            uEnemy_Old* object = devil4_sdk::get_objects();
+            uEnemy_Old* object = (uEnemy_Old*)devil4_sdk::get_moveline_top(16);
             if (object && MtObject__isKindOf(object, uActor__MtDTI))
                 DisplayEnemyStepSpheres(object, player);
 
