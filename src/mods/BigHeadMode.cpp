@@ -1,7 +1,7 @@
 #include "BigHeadMode.hpp"
 #include "glm/gtx/compatibility.hpp"
 #include "../sdk/Devil4.hpp"
-#include "JointDisplay.hpp"
+#include "PhotoMode.hpp"
 
 bool BigHeadMode::big_head_mode_nero = false;
 bool BigHeadMode::swole_mode_nero = false;
@@ -66,7 +66,7 @@ static int is_head_joint(UModelJoint* joint) {
 naked void joint_size_detour1() { // edi has player sometimes
 	__asm {
 		pushfd
-		cmp byte ptr [JointDisplay::mod_enabled], 1
+		cmp byte ptr [PhotoMode::mod_enabled], 1
 		je bailpopfd
 		pushad
 		push esi
@@ -100,7 +100,7 @@ naked void joint_size_detour1() { // edi has player sometimes
 naked void joint_size_detour2() {
 	__asm {
 		pushfd
-		cmp byte ptr [JointDisplay::mod_enabled], 1
+		cmp byte ptr [PhotoMode::mod_enabled], 1
 		je bailpopfd
 		pushad
 		push esi

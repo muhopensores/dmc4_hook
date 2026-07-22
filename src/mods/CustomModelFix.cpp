@@ -67,11 +67,11 @@ void CustomModelFix::on_gui_frame(int display) {
         ImGui::SameLine();
         help_marker(_("Remove exploding shadows on Dante mods"));
 
-        if (ImGui::Checkbox(_("Force Default Face Plate"), &force_default_faceplate)) {
+        /*if (ImGui::Checkbox(_("Force Default Face Plate"), &force_default_faceplate)) {
             toggle_force_faceplate(force_default_faceplate);
         }
         ImGui::SameLine();
-        help_marker(_("Force the character face that shows when not attacking or getting hurt so cutscene face mods display correctly"));
+        help_marker(_("Force the character face that shows when not attacking or getting hurt so cutscene face mods display correctly"));*/
     }
 }
 
@@ -79,13 +79,13 @@ void CustomModelFix::on_config_load(const utility::Config& cfg) {
     custom_nero_model_fix = cfg.get<bool>("custom_nero_model_fix").value_or(false);
     custom_dante_model_fix = cfg.get<bool>("custom_dante_model_fix").value_or(false);
     force_default_faceplate = cfg.get<bool>("force_default_faceplate").value_or(false);
-    if (force_default_faceplate) toggle_force_faceplate(force_default_faceplate);
+    // if (force_default_faceplate) toggle_force_faceplate(force_default_faceplate);
 }
 
 void CustomModelFix::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("custom_nero_model_fix", custom_nero_model_fix);
     cfg.set<bool>("custom_dante_model_fix", custom_dante_model_fix);
-    cfg.set<bool>("force_default_faceplate", force_default_faceplate);
+    // cfg.set<bool>("force_default_faceplate", force_default_faceplate);
 }
 
 #endif
