@@ -360,6 +360,8 @@ set(MODS_SRC
   mods/StageCallback.cpp
   mods/Cock.hpp
   mods/Cock.cpp
+  mods/RayTest.hpp
+  mods/RayTest.cpp
 )
 
 set(HOOKS_SRC
@@ -415,6 +417,7 @@ set(SDK_SRC
     sdk/StringData.cpp
     sdk/uMissionMenu.hpp
     sdk/uMissionStart.hpp
+    sdk/Custom.hpp
 )
 
 set(IMGUI_SRC

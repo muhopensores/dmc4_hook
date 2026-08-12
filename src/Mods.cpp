@@ -179,6 +179,7 @@
 #include "mods/BackForwardQuickDrive.hpp"
 #include "mods/ExceedLock.hpp"
 #include "mods/Cock.hpp"
+#include "mods/RayTest.hpp"
 
 constexpr size_t MODS_NUM{ 512 };
 
@@ -373,6 +374,7 @@ Mods::Mods() {
     ADD_MOD(EnvironmentalHazards);
     ADD_MOD(ExceedLock);
     ADD_MOD(Cock);
+    ADD_MOD(RayTest);
 #endif
 }
 
