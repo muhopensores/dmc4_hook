@@ -10,6 +10,7 @@ static uintptr_t submitLine = 0x0045D1F0;
 static uintptr_t getCPrim = 0x00A34EE0;
 static uint color = 0x00FF00;
 static uint thing = 0x20000; //wall
+static float ray_length = 100.0f;
 
 enum COLLISION_FILTER {
     COLL_DEFAULT = 0x10100,
@@ -122,6 +123,7 @@ static void* getCPrim_wr(void* pTrans, void* sPrim, uint prim_type, cUnit* p_uni
 
 struct CollLine : CustomActor {
     MtLineSegment ls;
+    LineInfo hit;
     uint color = 0xFF0000FF;
     void* cprim = nullptr;
     CollLine();
@@ -137,7 +139,7 @@ void CollLine::render(void* ptrans) {
     MtVector3 out;
     MtVector3 pl_now_pos = *(MtVector3*)(uintptr_t(pl) + 0x1350);
     MtVector3 ray_end    = pl_now_pos;
-    ray_end.z += 100.0f;
+    ray_end.z += ray_length;
     void* sPrim = (void*)0x00E559D4;
     void* cprim     = getCPrim_wr(ptrans, sPrim, 6, pl);
     uint flags[2]{ 0xffffffff , 16};
@@ -166,15 +168,14 @@ void CollLine::lifecycle_override() {
         param.filter           = thing;
         memset(&param.hitCallback_this, 0, 12);
 
-        LineInfo out; // stack fuck-up around here, todo
         MtVector3 pl_now_pos = *(MtVector3*)(uintptr_t(pl) + 0x1350);
         MtVector3 ray_end    = pl_now_pos;
-        ray_end.z += 100.0f;
+        ray_end.z += ray_length;
         this->ls.p0 = pl_now_pos;
         this->ls.p1 = ray_end;
         uintptr_t sCol = 0x00E559D0;
         CollLine* thisPtr = this;
-        if (findIntersection_wr(&param, (void*)sCol, &this->ls, 0, &out))
+        if (findIntersection_wr(&param, (void*)sCol, &this->ls, 0, &this->hit))
             thisPtr->color = 0x00FF00;
         else
             thisPtr->color = 0xFF0000;
@@ -186,18 +187,34 @@ CollLine::CollLine() {
     this->vtable_ptr = (uintptr_t*)CollLine_vtable.my_vtable.data();
 }
 
-void SpawnCollLine() {
-    void* projptr = devil4_sdk::mt_allocate_heap(sizeof(CollLine), 16);
+CollLine* SpawnCollLine() {
+    void* lineptr = devil4_sdk::mt_allocate_heap(sizeof(CollLine), 16);
     // void* projptr              = devil4_sdk::mt_allocate_heap(0x18D0, 16);
-    CollLine* proj = new (projptr) CollLine();
-    devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)proj, 12);
+    CollLine* line = new (lineptr) CollLine();
+    devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)line, 12);
+    return line;
 }
 
+
+CollLine* line = nullptr;
 void RayTest::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
         if (ImGui::Button("Coll Test")) {
             // if (fileExists)
-            SpawnCollLine();
+            line = SpawnCollLine();
+        }
+        if (line) {
+            ImGui::Text("Line");
+            ImGui::SliderFloat("Length", &ray_length, 0.0f, 1000.0f);
+            ImGui::InputFloat3("Line start", (float*)&line->ls.p0);
+            ImGui::InputFloat3("Line end", (float*)&line->ls.p1);
+            ImGui::Text("Hit output");
+            ImGui::InputFloat3("Tri plane normal", (float*)&line->hit.triPlaneNormal);
+            ImGui::InputFloat3("Tri plane vec 1", (float*)&line->hit.triPlaneVec1);
+            ImGui::InputFloat3("Tri plane vec 2", (float*)&line->hit.triPlaneVec2);
+            ImGui::InputFloat3("Hit pos", (float*)&line->hit.hitPos);
+            ImGui::InputFloat3("Hit normal", (float*)&line->hit.hitNormal);
+            ImGui::InputFloat("Hit distance", (float*)&line->hit.hitDistance);
         }
         ImGui::InputInt("Filter", (int*)&thing);
         // ImGui::SameLine();
