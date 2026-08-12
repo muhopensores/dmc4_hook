@@ -4,6 +4,7 @@
 #include "..\sdk\Custom.hpp"
 #include "..\sdk\MtDTI.hpp"
 #include "..\sdk\MtMath.hpp"
+#include "..\sdk\World2Screen.hpp"
 
 static uintptr_t findIntersection = 0x0095B320;
 static uintptr_t submitLine = 0x0045D1F0;
@@ -134,17 +135,46 @@ struct CollLine : CustomActor {
 };
 REGISTER_VTABLE(CollLine);
 
+static int selectedIndex = -1;
+static bool isManipulating = false;
+static ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::TRANSLATE;
+static bool show_manipulators = false;
+
+static Vector3f p0Offset{};
+static Vector3f p1Offset{};
+static MtVector3 basePos0{};
+static MtVector3 basePos1{};
+
+static bool DrawManipulator(const MtVector3& base, glm::vec3& offset, MtVector3& outPoint, int uniqueIndex, int& selectedIndex,
+    bool& isManipulating, ImGuizmo::OPERATION operation, ImGuizmo::MODE mode, float view[16], float projection[16], ImU32 normalColor,
+    ImU32 selectedColor, float size, const char* label) {
+
+    Vector3f basePos = base;
+    Vector3f currentPos = basePos + offset;
+
+    glm::mat4 transform = glm::translate(glm::mat4(1.0f), currentPos);
+    glm::mat4 newTransform;
+    ImU32 col = (selectedIndex == uniqueIndex) ? selectedColor : normalColor;
+
+    bool manipulated = w2s::DrawImGuizmoManipulator(
+        transform, newTransform, uniqueIndex, selectedIndex, isManipulating, operation, mode, view, projection, col, size, label);
+
+    if (manipulated) {
+        selectedIndex = uniqueIndex;
+        offset = glm::vec3(newTransform[3]) - basePos;
+    }
+
+    outPoint = basePos + offset;
+    return manipulated;
+}
+
 void CollLine::render(void* ptrans) {
     sMediator* smed = devil4_sdk::get_sMediator();
-    uPlayer* pl      = smed->player_ptr;
-    MtVector3 out;
-    MtVector3 pl_now_pos = *(MtVector3*)(uintptr_t(pl) + 0x1350);
-    MtVector3 ray_end    = pl_now_pos;
-    ray_end.z += ray_length;
-    void* sPrim = (void*)0x00E559D4;
+    uPlayer* pl     = smed->player_ptr;
+    void* sPrim     = (void*)0x00E559D4;
     void* cprim     = getCPrim_wr(ptrans, sPrim, 6, pl);
     uint flags[2]{ 0xffffffff , 16};
-    submitLine_wr(cprim, &pl_now_pos, &ray_end, this->color, flags);
+    submitLine_wr(cprim, &this->ls.p0, &this->ls.p1, this->color, flags);
 }
 
 void CollLine::lifecycle_override() {
@@ -172,8 +202,10 @@ void CollLine::lifecycle_override() {
         MtVector3 pl_now_pos = *(MtVector3*)(uintptr_t(pl) + 0x1350);
         MtVector3 ray_end    = pl_now_pos;
         ray_end.z += ray_length;
-        this->ls.p0 = pl_now_pos;
-        this->ls.p1 = ray_end;
+        basePos0          = pl_now_pos;
+        basePos1          = ray_end;
+        this->ls.p0       = (Vector3f)pl_now_pos + p0Offset;
+        this->ls.p1       = (Vector3f)ray_end + p1Offset;
         uintptr_t sCol = 0x00E559D0;
         CollLine* thisPtr = this;
         if (findIntersection_wr(&param, (void*)sCol, &this->ls, 0, &this->hit))
@@ -201,9 +233,13 @@ CollLine* line = nullptr;
 void RayTest::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
         if (ImGui::Button("Coll Test")) {
-            // if (fileExists)
             line = SpawnCollLine();
+            p0Offset = Vector3f(0.0f);
+            p1Offset = Vector3f(0.0f);
         }
+
+        ImGui::Checkbox("Ray manipulators", &show_manipulators);
+
         if (line) {
             ImGui::Text("Line");
             ImGui::SliderFloat("Length", &ray_length, 0.0f, 1000.0f);
@@ -217,8 +253,27 @@ void RayTest::on_gui_frame(int display) {
             ImGui::InputFloat3("Hit normal", (float*)&line->hit.hitNormal);
             ImGui::InputFloat("Hit distance", (float*)&line->hit.hitDistance);
         }
-        ImGui::InputInt("Filter", (int*)&thing);
-        // ImGui::SameLine();
-        // help_marker(_("I put a file check here so if this suddenly stopped working blame me")); // mf
+        ImGui::InputScalar("Filter", ImGuiDataType_U32, &thing, nullptr, nullptr, "%X", ImGuiInputTextFlags_CharsHexadecimal);
     }
+}
+
+void RayTest::on_frame(fmilliseconds& dt) {
+    if (!line || !show_manipulators)
+        return;
+
+    w2s::ImGuizmoSetup();
+    float view[16], projection[16];
+    if (!w2s::GetImGuizmoMatrices(view, projection))
+        return;
+
+    static ImGuizmo::MODE currentGizmoMode = ImGuizmo::WORLD;
+
+    DrawManipulator(basePos0, p0Offset, line->ls.p0, 2001, selectedIndex, isManipulating, currentGizmoOperation,
+        currentGizmoMode, view, projection, IM_COL32(255, 255, 0, 200), IM_COL32(0, 255, 0, 255), 10.0f, "Line Start");
+
+    DrawManipulator(basePos1, p1Offset, line->ls.p1, 2002, selectedIndex, isManipulating, currentGizmoOperation,
+        currentGizmoMode, view, projection, IM_COL32(255, 255, 0, 200), IM_COL32(255, 0, 0, 255), 10.0f, "Line End");
+
+    //w2s::ImGuizmoKeyboardShortcuts(currentGizmoOperation, currentGizmoMode);
+    w2s::ImGuizmoDeselection(selectedIndex, isManipulating);
 }

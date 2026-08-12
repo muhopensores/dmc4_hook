@@ -14,6 +14,8 @@
 #include "fw-imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
 
+#include <shlobj.h>
+
 #define GUI_VERSION "dmc4_hook 1.5.3 PRE RELEASE"
 
 static constexpr char* version{GUI_VERSION};
@@ -857,28 +859,42 @@ namespace gui {
                 if (ImGui::CollapsingHeader(_("Frequently Asked Questions"))) {
                     ImGui::Indent();
                     if (ImGui::CollapsingHeader(_("What mods do you recommend most?"))) {
-                        ImGui::TextWrapped(_("\"Fast Game Load\" and neighbouring options in the \"System\" tab. Get from your Desktop to BP in 2 seconds."));
+                        ImGui::TextWrapped(_("\"Fast Game Load\" and neighbouring options in the \"System\" tab. Get from your Desktop to BP in 2 seconds"));
                     }
                     if (ImGui::CollapsingHeader(_("Old mods I installed have suddenly turned on"))) {
                         ImGui::TextWrapped(_("\"HDD File Priority\" is ticked on the Debug page. If your DMC4 install contains any files left over from old mods, "
                             "this will load them. To clean up your directory you'll need to delete files manually as Steam verification does not check "
-                            "newly added files."));
+                            "newly added files"));
                     }
                     if (ImGui::CollapsingHeader(_("My combo points are stuck at 0"))) {
                         ImGui::TextWrapped(_("\"Respawn Enemies when visiting the same room multiple times\" is ticked on the Debug page. "
-                            "If you didn't turn this on manually, it would have been auto ticked when you used the reload current room hotkey."));
+                            "If you didn't turn this on manually, it would have been auto ticked when you used the reload current room hotkey"));
                     }
                     if (ImGui::CollapsingHeader(_("My camera is frozen"))) {
-                        ImGui::TextWrapped(_("The default hotkey for camera settings' freeze camera is Numpad 0."));
+                        ImGui::TextWrapped(_("The default hotkey for camera settings' freeze camera is Numpad 0"));
+                    }
+                    if (ImGui::CollapsingHeader(_("My HUD disappeared"))) {
+                        ImGui::TextWrapped(_("The default hotkey for Hide HUD camera is -"));
                     }
                     if (ImGui::CollapsingHeader(_("I crash entering mission 1"))) {
-                        ImGui::TextWrapped(_("\"Character Switcher\" crashes in this mission."));
+                        ImGui::TextWrapped(_("\"Character Switcher\" crashes in this mission"));
                     }
                     if (ImGui::CollapsingHeader(_("Payline is going through enemies"))) {
                         ImGui::TextWrapped(_("Tick \"HDD File Priority\""));
                     }
                     if (ImGui::CollapsingHeader(_("Enemies are white sometimes"))) {
                         ImGui::TextWrapped(_("This is a known issue with \"HDD File Priority\""));
+                    }
+                    if (ImGui::CollapsingHeader(_("Where are my saves stored?"))) {
+                        static char documentsPath[MAX_PATH] = {};
+                        static const bool initialized = SHGetFolderPathA(nullptr, CSIDL_MYDOCUMENTS, nullptr, SHGFP_TYPE_CURRENT, documentsPath) == S_OK;
+                        if (initialized) {
+                            std::string savePath = std::string(documentsPath) + "\\CAPCOM\\DevilMayCry4";
+                            // ImGui::TextWrapped("%s", savePath.c_str());
+                            if (ImGui::Button(_("Open Save Folder"))) {
+                                ShellExecuteA(nullptr, "explore", savePath.c_str(), nullptr, nullptr, 1);
+                            }
+                        }
                     }
                     ImGui::Unindent();
                 }

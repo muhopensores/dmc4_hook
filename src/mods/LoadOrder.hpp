@@ -9,6 +9,11 @@ public:
 
     // override getModName() method with your mod name for logging.
     std::string get_mod_name() override { return "LoadOrder"; };
+    std::vector<std::string> get_search_terms() override {
+        return {
+            "hdd file priority",
+        };
+    }
 
     // override onInitialize() method with routines required to initialize the
     // mod. return Mod::onInitialize() on success or error string on failure.
