@@ -206,4 +206,5 @@ void CustomActor::die() {
         OVERRIDE_DEFAULT_VTABLE(##cls, render, 0x24) \
         OVERRIDE_DEFAULT_VTABLE(##cls, lifecycle_override, 0x78) \
         OVERRIDE_DEFAULT_VTABLE(##cls, onhit_override, 0x94) \
-    }
+    } \
+    cls##Vtable cls##_vtable((void*)uActorVtablePtr, uActorVtableSize);

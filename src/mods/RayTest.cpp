@@ -11,6 +11,19 @@ static uintptr_t getCPrim = 0x00A34EE0;
 static uint color = 0x00FF00;
 static uint thing = 0x20000; //wall
 
+enum COLLISION_FILTER {
+    COLL_DEFAULT = 0x10100,
+    COLL_WALL = 0x20000,
+    COLL_PLAYER = 0x20200,
+    COLL_SHELL = 0x40400,
+    COLL_ENEMY = 0x80800,
+    COLL_ENEMY_SHELL = 0x101000,
+    COLL_HAND = 0x202000,
+    COLL_CAMERA = 0x404000,
+    COLL_FALLSTOP = 0x10000000,
+    COLL_CAMERASTOP = 0x20000000
+};
+
 #pragma pack(push, 2)
 struct Param {
     int type;
@@ -32,12 +45,30 @@ struct Param {
     float sweepRadiusCap;
     int partsFilter;
     int _pad3C;
-    char pad[0x40];
+    char pad[0x10];
 };
 #pragma pack(pop)
 //static_assert(sizeof(Param) == 0x40);
 
-static bool __stdcall findIntersection_wr(Param* param, void* sCol, MtLineSegment* ls, bool both_side, MtVector3* out) {
+struct LineInfo {
+    void* mpSbc;
+    void* member_0xc_copy;
+    void* pPartsInfo;
+    void* pTriangle;
+    void* pVertex;
+    char pad[0xC];
+    MtVector3 triPlaneNormal;
+    MtVector3 triPlaneVec1;
+    MtVector3 triPlaneVec2;
+    MtVector3 hitNormal;
+    MtVector3 hitPos;
+    MtVector3 sweepDirNeg;
+    float hitDistance;
+    char pad1[0x14];
+};
+//static_assert(sizeof(LineInfo) == 0x84);
+
+static bool __stdcall findIntersection_wr(Param* param, void* sCol, MtLineSegment* ls, bool both_side, void* out) {
     bool res = false;
     _asm {
         push ebx
@@ -94,7 +125,6 @@ struct CollLine : CustomActor {
     uint color = 0xFF0000FF;
     void* cprim = nullptr;
     CollLine();
-    MtDTI* getDTI();
     void startup_override() {};
     void render(void* ptrans);
     void lifecycle_override();
@@ -136,7 +166,7 @@ void CollLine::lifecycle_override() {
         param.filter           = thing;
         memset(&param.hitCallback_this, 0, 12);
 
-        char out[0x1000]; //stack fuck-up around here, todo
+        LineInfo out; // stack fuck-up around here, todo
         MtVector3 pl_now_pos = *(MtVector3*)(uintptr_t(pl) + 0x1350);
         MtVector3 ray_end    = pl_now_pos;
         ray_end.z += 100.0f;
@@ -144,38 +174,23 @@ void CollLine::lifecycle_override() {
         this->ls.p1 = ray_end;
         uintptr_t sCol = 0x00E559D0;
         CollLine* thisPtr = this;
-        if (findIntersection_wr(&param, (void*)sCol, &this->ls, 0, (MtVector3*)&out))
+        if (findIntersection_wr(&param, (void*)sCol, &this->ls, 0, &out))
             thisPtr->color = 0x00FF00;
         else
             thisPtr->color = 0xFF0000;
     }
 }
 
-static void sUnit_spawn_call(void* sUnit, void* obj_to_spawn, int moveline) {
-    constexpr uintptr_t fptr_spawn_or_something = 0x008DC540;
-    __asm {
-			mov eax, [sUnit]
-			mov eax, [eax]
-			mov esi, obj_to_spawn
-			push moveline
-			call fptr_spawn_or_something
-    }
-}
-
-std::unique_ptr<CollLineVtable> CustomVtable;
-static class MtDTI CustomDTI;
-
-MtDTI* CollLine::getDTI() { return &CustomDTI; }
 CollLine::CollLine() {
     custom_utils::uActorCons(this);
-    this->vtable_ptr = (uintptr_t*)CustomVtable->my_vtable.data();
+    this->vtable_ptr = (uintptr_t*)CollLine_vtable.my_vtable.data();
 }
 
 void SpawnCollLine() {
     void* projptr = devil4_sdk::mt_allocate_heap(sizeof(CollLine), 16);
     // void* projptr              = devil4_sdk::mt_allocate_heap(0x18D0, 16);
     CollLine* proj = new (projptr) CollLine();
-    sUnit_spawn_call((void*)0x00E552CC, (MtObject*)proj, 12);
+    devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)proj, 12);
 }
 
 void RayTest::on_gui_frame(int display) {
@@ -188,18 +203,4 @@ void RayTest::on_gui_frame(int display) {
         // ImGui::SameLine();
         // help_marker(_("I put a file check here so if this suddenly stopped working blame me")); // mf
     }
-}
-
-std::optional<std::string> RayTest::on_initialize() {
-    CustomDTI.m_size    = sizeof(CollLine);
-    CustomDTI.m_name    = "CollLine";
-    CustomDTI.mp_child  = 0;
-    CustomDTI.mp_link   = 0;
-    CustomDTI.mp_next   = 0;
-    CustomDTI.mp_parent = (MtDTI*)0xE5B310;
-    CustomDTI.m_id      = 7;
-
-    CustomVtable = std::make_unique<CollLineVtable>((void*)uActorVtablePtr, uActorVtableSize);
-
-    return Mod::on_initialize();
 }
