@@ -159,9 +159,18 @@ static void despawn_owned_projectiles(void* owner) {
     }
 }
 
+class uPlWpRightHand {
+public:
+    char pad_00[0x2720];
+    uEnemy_Old* heldEnemy; // 0x2720
+};
+static_assert(sizeof(uPlWpRightHand) == 0x2724);
+
 class NeroStand {
 public:
-    char pad_00[0x22c0];
+    char pad_00[0x1374];
+    uPlWpRightHand* rightHand; // 0x1374
+    char pad_1378[0xf48];
     int int22c0; // 0x22c0
     char pad_22c4[0x186];
     int int244A; // 0x244a

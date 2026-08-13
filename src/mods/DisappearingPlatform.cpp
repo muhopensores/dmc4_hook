@@ -74,7 +74,14 @@ void DisappearingPlatform::update(fmilliseconds& dt) {
     m_lifeTimer += delta;
     if (m_lifeTimer >= m_lifetime) {
         destroy();
+        return;
     }
+
+    // wow it works when you animate it too
+    // float t = m_lifeTimer / m_lifetime;
+    // Vector3f pos = m_pos;
+    // pos += 1000.0f * t;
+    // m_actor->mPos = pos;
 }
 
 void DisappearingPlatform::update_all(fmilliseconds& dt) {

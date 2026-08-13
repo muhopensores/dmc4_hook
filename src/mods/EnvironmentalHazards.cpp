@@ -84,8 +84,13 @@ void EnvironmentalHazards::on_frame(fmilliseconds& dt) {
         // bool platform_key_down = (player->inputHold[2] & 1) != 0; // l3
         bool platform_key_down = (player->inputHold[0] & 0x8) != 0;
         if (platform_key_down && !platform_key_was_down) {
-            //Vector3f pos = player->mPos;
-            Vector3f pos = player->lockOnTargetPtr3->position;
+            Vector3f pos;
+            if (player->lockOnTargetPtr0) {
+                pos = player->lockOnTargetPtr0->position;
+            } else {
+                pos = player->mPos;
+            }
+
             pos = {pos.x, pos.y - 100.0f, pos.z};
             Vector3f scale = {1.0f, 1.0f, 1.0f};
             Vector3f rot   = {0.0f, 0.0f, 0.0f};
@@ -141,8 +146,7 @@ void EnvironmentalHazards::on_gui_frame(int display) {
                 if (pillar_enabled && in_correct_room({700, 701, 702, 703, 704, 705})) {
                     BerialPillar::kill_all();
                     pillar_spawn_interval = random_pillar_interval(1.0f, 30.0f);
-                    devil4_sdk::get_stuff_from_files(
-                        (MtDTI*)0x00ead4a0, "rom\\enemy\\em018", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em018", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
                 } else {
                     BerialPillar::kill_all();
                 }

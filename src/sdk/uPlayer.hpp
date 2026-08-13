@@ -209,7 +209,8 @@ public:
     bool canWallHike; // 0x1f7f
     char pad_1f80[0x74];
     float jcTimer; // 0x1ff4
-    char pad_1ff8[0x8];
+    char pad_1ff8[0x4];
+    uEnemy_Old* lockOnTargetPtr0; // 0x1ffc
     uEnemy_Old* lockOnTargetPtr1; // 0x2000
     char pad_2004[0x1];
     bool enemyStepEnabled; // 0x2005
