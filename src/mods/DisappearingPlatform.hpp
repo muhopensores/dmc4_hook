@@ -10,8 +10,8 @@ public:
 
 class DisappearingPlatform {
 public:
-    DisappearingPlatform(Vector3f pos, Vector3f scale = {1.0f, 1.0f, 1.0f}, float speed = 1.0f, float spawnDelay = 0.0f, float lifetime = 3.3f);
-    static DisappearingPlatform* spawn(Vector3f pos, Vector3f scale = {1.0f, 1.0f, 1.0f}, float speed = 1.0f, float spawnDelay = 0.0f, float lifetime = 3.3f);
+    DisappearingPlatform(Vector3f pos, Vector3f rot = {0.0f, 0.0f, 0.0f}, Vector3f scale = {1.0f, 1.0f, 1.0f}, float speed = 1.0f, float spawnDelay = 0.0f, float lifetime = 3.3f);
+    static DisappearingPlatform* spawn(Vector3f pos, Vector3f rot = {0.0f, 0.0f, 0.0f}, Vector3f scale = {1.0f, 1.0f, 1.0f}, float speed = 1.0f, float spawnDelay = 0.0f, float lifetime = 3.3f);
     static void update_all(fmilliseconds& dt);
     void destroy();
     static void kill_all();
@@ -22,6 +22,7 @@ private:
     void spawn_actor();
     platform* m_actor    = nullptr;
     Vector3f m_pos     = {0.0f, 0.0f, 0.0f};
+    Vector3f m_rotEuler  = {0.0f, 0.0f, 0.0f};
     Vector3f m_scale   = {1.0f, 1.0f, 1.0f};
     float m_speed      = 0.0f;
     float m_spawnDelay = 0.0f;

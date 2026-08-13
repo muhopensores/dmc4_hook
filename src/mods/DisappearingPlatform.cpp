@@ -3,16 +3,17 @@
 #include "DisappearingPlatform.hpp"
 
 std::vector<std::unique_ptr<DisappearingPlatform>> DisappearingPlatform::s_platforms;
-DisappearingPlatform::DisappearingPlatform(Vector3f pos, Vector3f scale, float speed, float spawnDelay, float lifetime)
+DisappearingPlatform::DisappearingPlatform(Vector3f pos, Vector3f scale, Vector3f rotEuler, float speed, float spawnDelay, float lifetime)
     : m_pos(pos)
     , m_scale(scale)
+    , m_rotEuler(rotEuler)
     , m_speed(speed)
     , m_spawnDelay(spawnDelay)
     , m_lifetime(lifetime) {
 }
 
-DisappearingPlatform* DisappearingPlatform::spawn(Vector3f pos, Vector3f scale, float speed, float spawnDelay, float lifetime) {
-    auto platform = std::make_unique<DisappearingPlatform>(pos, scale, speed, spawnDelay, lifetime);
+DisappearingPlatform* DisappearingPlatform::spawn(Vector3f pos, Vector3f scale, Vector3f rotEuler, float speed, float spawnDelay, float lifetime) {
+    auto platform = std::make_unique<DisappearingPlatform>(pos, scale, rotEuler, speed, spawnDelay, lifetime);
     auto* ptr     = platform.get();
     s_platforms.emplace_back(std::move(platform));
     return ptr;
@@ -27,8 +28,12 @@ void DisappearingPlatform::spawn_actor() {
     m_actor->mPos                = m_pos;
     m_actor->mWorkRate.mWorkRate = m_speed;
     m_actor->mScale              = m_scale;
-    m_actor->mPlatformType       = 1;
-    m_spawned                    = true;
+
+    glm::quat rot  = glm::quat(glm::radians(glm::vec3(m_rotEuler.x, m_rotEuler.y, m_rotEuler.z)));
+    m_actor->mQuat = {rot.x, rot.y, rot.z, rot.w};
+
+    m_actor->mPlatformType = 1;
+    m_spawned = true;
 }
 
 void DisappearingPlatform::destroy() {

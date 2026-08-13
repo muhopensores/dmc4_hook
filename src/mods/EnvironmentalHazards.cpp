@@ -88,7 +88,8 @@ void EnvironmentalHazards::on_frame(fmilliseconds& dt) {
             Vector3f pos = player->lockOnTargetPtr3->position;
             pos = {pos.x, pos.y - 100.0f, pos.z};
             Vector3f scale = {1.0f, 1.0f, 1.0f};
-            DisappearingPlatform::spawn(pos, scale, 2.0f, 0.0f);
+            Vector3f rot   = {0.0f, 0.0f, 0.0f};
+            DisappearingPlatform::spawn(pos, scale, rot, 2.0f, 0.0f);
         }
         platform_key_was_down = platform_key_down;
 
