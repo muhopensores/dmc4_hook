@@ -314,6 +314,8 @@ namespace gui {
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui("CharSwitcher"_hash, DISPLAY_SYSTEM_A);
 
+                pmods->on_draw_ui("EnvironmentalHazards"_hash, DISPLAY_SYSTEM_B); // temp platforms
+
                 pmods->on_draw_ui("Macro"_hash, DISPLAY_SYSTEM_A); // needs its own line
                 
                 // pmods->on_draw_ui("TestMod"_hash, DISPLAY_SYSTEM_A);

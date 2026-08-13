@@ -2,6 +2,8 @@
 set(MODS_SRC
   mods/RoomRespawn.hpp
   mods/RoomRespawn.cpp
+  mods/DisappearingPlatform.hpp
+  mods/DisappearingPlatform.cpp
   mods/ExceedLock.hpp
   mods/ExceedLock.cpp
   mods/BackForwardQuickDrive.hpp

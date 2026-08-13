@@ -14,6 +14,8 @@ public:
 
     static bool pillar_enabled;
 
+    static bool platform_enabled;
+
     void on_frame(fmilliseconds& dt) override;
     void on_gui_frame(int display) override;
     std::optional<std::string> on_initialize() override;

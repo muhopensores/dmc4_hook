@@ -3,6 +3,7 @@
 #include "../sdk/sMediator.hpp"
 #include "BerialPillar.hpp"
 #include "RotatingLaser.hpp"
+#include "DisappearingPlatform.hpp"
 #include "../sdk/sArea.hpp"
 #include "../sdk/aGame.hpp"
 
@@ -15,6 +16,9 @@ static float laser_spawn_delay = 0.0f;
 bool EnvironmentalHazards::pillar_enabled = false;
 static float pillar_spawn_timer = 0.0f;
 static float pillar_spawn_interval = 0.0f;
+
+bool EnvironmentalHazards::platform_enabled = false;
+static bool platform_key_was_down = false;
 
 static bool in_correct_room(std::initializer_list<int> roomIDs) {
     sArea* sAreaPtr = devil4_sdk::get_sArea();
@@ -75,6 +79,21 @@ void EnvironmentalHazards::on_frame(fmilliseconds& dt) {
         }
         BerialPillar::update_all(dt);
     }
+    
+    if (EnvironmentalHazards::platform_enabled) {
+        // bool platform_key_down = (player->inputHold[2] & 1) != 0; // l3
+        bool platform_key_down = (player->inputHold[0] & 0x8) != 0;
+        if (platform_key_down && !platform_key_was_down) {
+            //Vector3f pos = player->mPos;
+            Vector3f pos = player->lockOnTargetPtr3->position;
+            pos = {pos.x, pos.y - 100.0f, pos.z};
+            Vector3f scale = {1.0f, 1.0f, 1.0f};
+            DisappearingPlatform::spawn(pos, scale, 2.0f, 0.0f);
+        }
+        platform_key_was_down = platform_key_down;
+
+        DisappearingPlatform::update_all(dt);
+    }
 }
 
 void EnvironmentalHazards::on_gui_frame(int display) {
@@ -86,12 +105,13 @@ void EnvironmentalHazards::on_gui_frame(int display) {
                 if (laser_enabled) {
                     RotatingLaser::kill_all();
                     pending_laser_spawn = true;
-                    laser_spawn_timer = 0.0f;
-                    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\room\\st405", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                    laser_spawn_timer   = 0.0f;
+                    devil4_sdk::get_stuff_from_files(
+                        (MtDTI*)0x00ead4a0, "rom\\room\\st405", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
                 } else {
                     RotatingLaser::kill_all();
                     pending_laser_spawn = false;
-                    laser_spawn_timer = 0.0f;
+                    laser_spawn_timer   = 0.0f;
                 }
             }
         }
@@ -120,7 +140,8 @@ void EnvironmentalHazards::on_gui_frame(int display) {
                 if (pillar_enabled && in_correct_room({700, 701, 702, 703, 704, 705})) {
                     BerialPillar::kill_all();
                     pillar_spawn_interval = random_pillar_interval(1.0f, 30.0f);
-                    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em018", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                    devil4_sdk::get_stuff_from_files(
+                        (MtDTI*)0x00ead4a0, "rom\\enemy\\em018", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
                 } else {
                     BerialPillar::kill_all();
                 }
@@ -128,6 +149,23 @@ void EnvironmentalHazards::on_gui_frame(int display) {
         }
         ImGui::SameLine();
         help_marker(_("Enable this with Survival for extra hazards"));
+        ImGui::EndGroup();
+    }
+
+    if (display == DISPLAY_SYSTEM_B) {
+        ImGui::BeginGroup();
+        if (ImGui::Checkbox(_("Temporary Platforms"), &platform_enabled)) {
+            if (devil4_sdk::get_local_player()) {
+                if (platform_enabled) {
+                    DisappearingPlatform::kill_all();
+                    devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\room\\st302", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+                } else {
+                    DisappearingPlatform::kill_all();
+                }
+            }
+        }
+        ImGui::SameLine();
+        help_marker(_("Press taunt to spawn a platform under the locked on enemy"));
         ImGui::EndGroup();
     }
 }
@@ -147,6 +185,12 @@ void EnvironmentalHazards::on_stage_start() {
         pillar_spawn_interval = random_pillar_interval(1.0f, 30.0f);
         devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\enemy\\em018", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
     }
+
+    DisappearingPlatform::kill_all();
+    platform_key_was_down = false;
+    if (platform_enabled && !devil4_sdk::is_loading_arc()) {
+        devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\room\\st302", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
+    }
 }
 
 std::optional<std::string> EnvironmentalHazards::on_initialize() {
@@ -157,10 +201,12 @@ void EnvironmentalHazards::on_config_load(const utility::Config& cfg) {
     laser_enabled       = cfg.get<bool>("EnvironmentalHazards.laser").value_or(false);
     laser_tracks_player = cfg.get<bool>("EnvironmentalHazards.laser_tracks_player").value_or(false);
     pillar_enabled      = cfg.get<bool>("EnvironmentalHazards.pillar").value_or(false);
+    platform_enabled    = cfg.get<bool>("EnvironmentalHazards.platform").value_or(false);
 }
 
 void EnvironmentalHazards::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("EnvironmentalHazards.laser", laser_enabled);
     cfg.set<bool>("EnvironmentalHazards.laser_tracks_player", laser_tracks_player);
     cfg.set<bool>("EnvironmentalHazards.pillar", pillar_enabled);
+    cfg.set<bool>("EnvironmentalHazards.platform", platform_enabled);
 }
