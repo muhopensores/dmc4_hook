@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-14 03:15+0100\n"
+"POT-Creation-Date: 2026-08-14 12:08+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -148,12 +148,12 @@ msgid "System"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:654
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:827
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:831
 msgid "dmc4_hook"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:678
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:783
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:775
 msgid "Misc"
 msgstr ""
 
@@ -192,69 +192,69 @@ msgstr ""
 msgid "Noclip"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:761
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:763
 msgid "Stats"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:779
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:799
 msgid "Multi-character Fixes"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:799
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:803
 msgid "Testing"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:801
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:805
 msgid "View ImGui Demo"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:813
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:817
 msgid "Hotkeys"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:824
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:828
 msgid "About"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:838
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:843
 msgid "Translation:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:839
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:844
 msgid "ttttchr"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:840
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:845
 msgid "raika87"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:843
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:848
 msgid "Special Thanks:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:856
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:861
 msgid "For more info and updates visit the github:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:861
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:866
 msgid "Frequently Asked Questions"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:863
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:868
 msgid "What mods do you recommend most?"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:864
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:869
 msgid ""
 "\"Fast Game Load\" and neighbouring options in the \"System\" tab. Get from "
 "your Desktop to BP in 2 seconds"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:866
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:871
 msgid "Old mods I installed have suddenly turned on"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:867
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:872
 msgid ""
 "\"HDD File Priority\" is ticked on the Debug page. If your DMC4 install "
 "contains any files left over from old mods, this will load them. To clean up "
@@ -262,75 +262,75 @@ msgid ""
 "does not check newly added files"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:871
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:876
 msgid "My combo points are stuck at 0"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:872
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:877
 msgid ""
 "\"Respawn Enemies when visiting the same room multiple times\" is ticked on "
 "the Debug page. If you didn't turn this on manually, it would have been auto "
 "ticked when you used the reload current room hotkey"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:875
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:880
 msgid "My camera is frozen"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:876
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:881
 msgid "The default hotkey for camera settings' freeze camera is Numpad 0"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:878
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:883
 msgid "My HUD disappeared"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:879
-msgid "The default hotkey for Hide HUD camera is -"
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:884
+msgid "The default hotkey for Hide HUD is -"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:881
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:886
 msgid "I crash entering mission 1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:882
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:887
 msgid "\"Character Switcher\" crashes in this mission"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:884
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:889
 msgid "Payline is going through enemies"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:885
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:890
 msgid "Tick \"HDD File Priority\""
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:887
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:892
 msgid "Enemies are white sometimes"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:888
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:893
 msgid "This is a known issue with \"HDD File Priority\""
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:890
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:895
 msgid "Where are my saves stored?"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:896
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:901
 msgid "Open Save Folder"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:908
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:913
 msgid "This trainer was made using:"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:928
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:929
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:933
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:934
 msgid "Licenses"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:961
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:966
 msgid "Search"
 msgstr ""
 
@@ -360,19 +360,19 @@ msgstr ""
 msgid "dmc4_hook (Pad)"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:528
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:532
 msgid "Keys will probably show up only on US keyboard layouts."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:529
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:533
 msgid "We use MapVirtualKeyA();"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:530
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:534
 msgid "Making sure dear imgui renders unicode properly is complicated"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:531
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:535
 msgid "please understand. ;_;"
 msgstr ""
 
@@ -2308,97 +2308,97 @@ msgid "Max HP##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:345
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1067
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1052
 msgid "Previous Hit Dealt"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:346
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1068
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1053
 msgid "Stun 1##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:347
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1069
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1054
 msgid "Stun 2##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:348
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1070
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1055
 msgid "Stun 3##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:349
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1071
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1056
 msgid "Stun 4##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:350
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1072
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1057
 msgid "Stun 5##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:351
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1073
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1058
 msgid "Displacement 1##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:352
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1074
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1059
 msgid "Displacement 2##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:353
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1075
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1060
 msgid "Displacement 3##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:354
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1076
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1061
 msgid "Displacement 4##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:355
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1077
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1062
 msgid "Displacement 5##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:356
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1078
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1063
 msgid "Unknown 1##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:357
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1079
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1064
 msgid "Unknown 2##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:358
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1080
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1065
 msgid "Unknown 3##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:359
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1081
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1066
 msgid "Unknown 4##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:360
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1082
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1067
 msgid "Unknown 5##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:361
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1083
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1068
 msgid "Unknown 6##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:362
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1084
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1069
 msgid "Unknown 7##2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:363
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1085
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1070
 msgid "Unknown 8##2"
 msgstr ""
 
@@ -3308,8 +3308,9 @@ msgstr ""
 msgid "Display the last hit enemy's HP in the Red Orb count"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\InfAirHikes.cpp:75
-#: C:\vs_projects\dmc4_hook\src\mods\InfAirHikes.cpp:78
+#: C:\vs_projects\dmc4_hook\src\mods\InfAirHikes.cpp:80
+#: C:\vs_projects\dmc4_hook\src\mods\InfAirHikes.cpp:83
+#: C:\vs_projects\dmc4_hook\src\mods\InfAirHikes.cpp:86
 msgid "Infinite Air Hikes"
 msgstr ""
 
@@ -4285,7 +4286,7 @@ msgid "Reset##ResetPos"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:62
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:988
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1115
 msgid "Colour"
 msgstr ""
 
@@ -4987,100 +4988,84 @@ msgid "Show Player Params"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:981
-msgid "Shadow Settings"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:987
-msgid "Rotation"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:989
-msgid "diffuse"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:990
-msgid "bloom"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:996
 msgid "View MoveLine Entries"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1027
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1012
 msgid "[OLD] Display Player Stats"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1032
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1017
 msgid "Save Current Move"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1036
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1021
 msgid "Play Saved Move"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1039
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1024
 msgid "Saved Player Position"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1047
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1032
 msgid "Play Animation ID"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1058
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1043
 msgid ""
 "uhh this only plays things that don't require a certain player state, e.g. "
 "You must have just taken damage to play a damage animation"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1061
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1046
 msgid "Loop"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1063
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1048
 msgid "HP ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1064
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1049
 msgid "Max HP ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1065
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1050
 msgid "DT ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1066
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1051
 msgid "Max DT ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1086
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1071
 msgid "BP Timer ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1087
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1072
 msgid "XYZ Position ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1088
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1073
 msgid "Rotation ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1089
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1074
 msgid "XYZ Scale ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1090
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1075
 msgid "XYZ Velocity ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1091
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1076
 msgid "Movement Speed ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1092
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1077
 msgid "Inertia ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1095
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1080
 msgid ""
 "Uhm, ehm, akshually, internia isn't a thing, it's a property of a thing, the "
 "shit you're showing is velocity, the measure of inertia is mass, resistance "
@@ -5090,61 +5075,77 @@ msgid ""
 "inertia isn't changing. Get it right NERD"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1099
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1084
 msgid "Weight ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1100
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1085
 msgid "Lock On ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1102
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1087
 msgid "Disaster Gauge ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1103
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1088
 msgid "Revenge Gauge ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1105
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1090
 msgid "Exceed Timer ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1107
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1092
 msgid ""
 "If you press exceed while this timer is between 0 and 1, you'll get MAX-Act."
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1109
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1094
 msgid "Animation Frame ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1110
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1095
 msgid "Animation ID ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1111
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1096
 msgid "Move ID ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1112
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1097
 msgid "Move ID2 ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1113
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1098
 msgid "Move Bank ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1114
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1099
 msgid "Move Part ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1115
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1100
 msgid "Saved Move Bank ##1"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1116
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1101
 msgid "Saved Move ID ##1"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1108
+msgid "Shadow Settings"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1114
+msgid "Rotation"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1116
+msgid "diffuse"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1117
+msgid "bloom"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\PsychoMantis.cpp:50
@@ -7725,17 +7726,12 @@ msgid ""
 "Applies when loading into a stage"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:388
+#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:394
 msgid "Visualize Hitboxes"
 msgstr ""
 
-#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:392
 #: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:398
 msgid "Draw hitbox outlines in red"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:394
-msgid "Visualize Hitboxes 2"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:400
@@ -7752,10 +7748,6 @@ msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:406
 msgid "Draw enemy step sphere outlines in green"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:409
-msgid "Debug Stats##EnemyStepSpheres"
 msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\WitchTime.cpp:84

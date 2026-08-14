@@ -16,7 +16,7 @@
 
 #include <shlobj.h>
 
-#define GUI_VERSION "dmc4_hook 1.6.0 PRE RELEASE"
+#define GUI_VERSION "dmc4_hook 1.6.0"
 
 static constexpr char* version{GUI_VERSION};
 static constexpr float uiWidth       = 600.0f;
@@ -833,7 +833,7 @@ namespace gui {
                 ImGui::Text("Mstislav Capusta");
                 ImGui::Text("SSSiyan");
                 ImGui::Text("Vieris");
-                ImGui::Text("mumu");
+                ImGui::Text("D-module");
                 ImGui::Text("CrazyMelody");
                 ImGui::Text("Dlupx");
                 ImGui::Text("cheburrat0r");
@@ -881,7 +881,7 @@ namespace gui {
                         ImGui::TextWrapped(_("The default hotkey for camera settings' freeze camera is Numpad 0"));
                     }
                     if (ImGui::CollapsingHeader(_("My HUD disappeared"))) {
-                        ImGui::TextWrapped(_("The default hotkey for Hide HUD camera is -"));
+                        ImGui::TextWrapped(_("The default hotkey for Hide HUD is -"));
                     }
                     if (ImGui::CollapsingHeader(_("I crash entering mission 1"))) {
                         ImGui::TextWrapped(_("\"Character Switcher\" crashes in this mission"));

@@ -1,21 +1,26 @@
-# SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
+# SPDX-FileCopyrightText: 2026 tronc 4t
+# SPDX-FileCopyrightText: 2026 tronc 4t
+# SPDX-FileCopyrightText: 2026 tronc 4t
+# SPDX-FileCopyrightText: 2026 tronc 4t
+# SPDX-FileCopyrightText: 2026 tronc 4t
+# SPDX-FileCopyrightText: 2026 tronc 4t
+# SPDX-FileCopyrightText: 2026 tronc 4t
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-14 03:15+0100\n"
-"PO-Revision-Date: 2026-08-14 03:18+0100\n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"POT-Creation-Date: 2026-08-14 12:05+0100\n"
+"PO-Revision-Date: 2026-08-14 12:07+0100\n"
+"Last-Translator: tronc4t <trondogsss5@gmail.com>\n"
+"Language-Team: Chinese <kde-i18n-doc@kde.org>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.9\n"
 
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:225
@@ -149,12 +154,12 @@ msgid "System"
 msgstr "系统"
 
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:654
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:827
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:831
 msgid "dmc4_hook"
 msgstr "dmc4_hook"
 
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:678
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:783
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:775
 msgid "Misc"
 msgstr "杂项"
 
@@ -193,59 +198,59 @@ msgstr "文件加载"
 msgid "Noclip"
 msgstr "去除边界"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:761
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:763
 msgid "Stats"
 msgstr "状态"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:779
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:799
 msgid "Multi-character Fixes"
 msgstr "多人修复"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:799
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:803
 msgid "Testing"
 msgstr "测试"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:801
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:805
 msgid "View ImGui Demo"
 msgstr "显示 ImGui 界面框架"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:813
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:817
 msgid "Hotkeys"
 msgstr "热键"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:824
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:828
 msgid "About"
 msgstr "关于"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:838
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:843
 msgid "Translation:"
 msgstr "翻译："
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:839
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:844
 msgid "ttttchr"
 msgstr "创到"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:840
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:845
 msgid "raika87"
 msgstr "雷卡"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:843
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:848
 msgid "Special Thanks:"
 msgstr "特别鸣谢："
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:856
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:861
 msgid "For more info and updates visit the github:"
 msgstr "访问 github 来获取更多信息和更新："
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:861
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:866
 msgid "Frequently Asked Questions"
 msgstr "常见问题"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:863
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:868
 msgid "What mods do you recommend most?"
 msgstr "最推荐哪些修改项？"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:864
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:869
 msgid ""
 "\"Fast Game Load\" and neighbouring options in the \"System\" tab. Get from "
 "your Desktop to BP in 2 seconds"
@@ -253,87 +258,92 @@ msgstr ""
 "\"系统\" 选项卡里的 \"快速进入游戏\" 以及和它相邻的两个修改项。你两秒就能 从"
 "电脑桌面进入血宫"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:866
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:871
 msgid "Old mods I installed have suddenly turned on"
 msgstr "我之前装的 mod 突然生效了"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:867
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:872
 msgid ""
 "\"HDD File Priority\" is ticked on the Debug page. If your DMC4 install "
 "contains any files left over from old mods, this will load them. To clean up "
 "your directory you'll need to delete files manually as Steam verification "
 "does not check newly added files"
 msgstr ""
+"\"优先加载硬盘文件\" 功能已在调试页面启用。如果你的游戏在安装时带有任何旧模组"
+"遗留文件，该功能都会加载它们。要清理目录，你需要手动删除这些文件，因为 Steam "
+"验证不会检查新添加的文件"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:871
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:876
 msgid "My combo points are stuck at 0"
 msgstr "我的风格点数一直是 0"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:872
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:877
 msgid ""
 "\"Respawn Enemies when visiting the same room multiple times\" is ticked on "
 "the Debug page. If you didn't turn this on manually, it would have been auto "
 "ticked when you used the reload current room hotkey"
 msgstr ""
+"\"重新进入相同房间时再次刷新敌人\" 功能已在调试页面中启用。如果不是你自己打开"
+"的，它在你使用 \"重新加载当前房间\" 热键时会自动启用"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:875
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:880
 msgid "My camera is frozen"
 msgstr "我的镜头不动了"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:876
-msgid "The default hotkey for camera settings' freeze camera is Numpad 0"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:878
-msgid "My HUD disappeared"
-msgstr ""
-
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:879
-msgid "The default hotkey for Hide HUD camera is -"
-msgstr ""
-
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:881
+msgid "The default hotkey for camera settings' freeze camera is Numpad 0"
+msgstr "镜头设定中的功能冻结镜头的默认热键是小键盘 \"0\" 键"
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:883
+msgid "My HUD disappeared"
+msgstr "我的界面消失了"
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:884
+msgid "The default hotkey for Hide HUD is -"
+msgstr "隐藏所有 UI 的默认热键是 -"
+
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:886
 msgid "I crash entering mission 1"
 msgstr "我进第一关会崩溃"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:882
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:887
 msgid "\"Character Switcher\" crashes in this mission"
-msgstr ""
+msgstr "即时切人功能在这关会崩溃"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:884
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:889
 msgid "Payline is going through enemies"
 msgstr "斜戳会穿过敌人"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:885
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:890
 msgid "Tick \"HDD File Priority\""
 msgstr "启用 \"调试\" 选项卡的 \"优先加载硬盘文件\" 修改项。"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:887
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:892
 msgid "Enemies are white sometimes"
 msgstr "敌人有时会变成白色"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:888
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:893
 msgid "This is a known issue with \"HDD File Priority\""
 msgstr "这是 \"优先加载硬盘文件\" 修改项的一个已知问题。"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:890
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:895
 msgid "Where are my saves stored?"
-msgstr ""
+msgstr "我存档存哪了？"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:896
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:901
 msgid "Open Save Folder"
-msgstr ""
+msgstr "打开存档文件夹"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:908
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:913
 msgid "This trainer was made using:"
 msgstr "此修改器用以下工具制作："
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:928
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:929
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:933
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:934
 msgid "Licenses"
 msgstr "许可"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:961
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:966
 msgid "Search"
 msgstr "搜索"
 
@@ -363,19 +373,19 @@ msgstr "dmc4_hook（键盘）"
 msgid "dmc4_hook (Pad)"
 msgstr "dmc4_hook（手柄）"
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:528
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:532
 msgid "Keys will probably show up only on US keyboard layouts."
 msgstr "按键可能只在美国键盘布局上显示。"
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:529
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:533
 msgid "We use MapVirtualKeyA();"
 msgstr "我们使用 MapVirtualKeyA() 函数"
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:530
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:534
 msgid "Making sure dear imgui renders unicode properly is complicated"
 msgstr "保证 Dear Imgui 正确渲染 unicode 编码是很麻烦的"
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:531
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:535
 msgid "please understand. ;_;"
 msgstr "请理解。;_;"
 
@@ -1654,9 +1664,9 @@ msgid ""
 msgstr ""
 "点击这个按钮会打开此网址：https://github.com/muhopensores/dmc4_hook/"
 "releases\n"
-"你可以从这里下载修改项所需的文件，可以在每个dmc4_hook版本发布的Assets部分找"
-"到\n"
-"下载完毕后安装这些文件（推荐使用Fluffy Mod Manager）然后重启游戏，在进入关卡"
+"你可以从这里下载修改项所需的文件，可以在每个 dmc4_hook 版本发布的 Assets 部分"
+"找到\n"
+"下载完毕后安装这些文件（推荐使用 Fluffy Mod Manager）然后重启游戏，在进入关卡"
 "前启用 \"调试\" 选项卡顶部的 \"优先加载硬盘文件\" 修改项\n"
 "这个修改项让但丁可以用出次元斩"
 
@@ -1954,8 +1964,8 @@ msgid ""
 msgstr ""
 "点击这个按钮会打开此网址：https://github.com/muhopensores/dmc4_hook/"
 "releases\n"
-"你可以在这里下载修改项所需的文件，可以在 dmc4_hook 每个 Release 页的 Assets下"
-"找到\n"
+"你可以在这里下载修改项所需的文件，可以在 dmc4_hook 每个 Release 页的 Assets "
+"下找到\n"
 "下载完毕后安装这些文件（推荐使用 Fluffy Mod Manager）然后重启游戏，在进入关卡"
 "前启用 \"调试\" 选项卡顶部的 \"优先加载硬盘文件\" 修改项\n"
 "此修改项允许你在按下绑定键时令尼禄释放替身攻击"
@@ -2149,13 +2159,13 @@ msgstr "在合理范围内将敌人的生成随机化，仍然很有趣"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:647
 msgid "Preload enemies"
-msgstr ""
+msgstr "预加载敌人"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:656
 msgid ""
 "Stops the lag that happens when enemies spawn, but might crash if too many "
 "enemies load"
-msgstr ""
+msgstr "防止刷怪时出现的卡顿，但加载太多敌人可能会崩溃"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySlotting.cpp:50
 msgid "Slot Limit"
@@ -2288,7 +2298,7 @@ msgstr "显示额外信息"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyStepDisplay.cpp:386
 msgid "Enemy Step Chart"
-msgstr ""
+msgstr "JC 时间轴"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:184
 msgid "Save Enemy Stats"
@@ -2375,97 +2385,97 @@ msgid "Max HP##2"
 msgstr "血量上限##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:345
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1067
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1052
 msgid "Previous Hit Dealt"
 msgstr "上一次攻击的血量消耗"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:346
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1068
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1053
 msgid "Stun 1##2"
 msgstr "硬直 1##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:347
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1069
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1054
 msgid "Stun 2##2"
 msgstr "硬直 2##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:348
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1070
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1055
 msgid "Stun 3##2"
 msgstr "硬直 3##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:349
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1071
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1056
 msgid "Stun 4##2"
 msgstr "硬直 4##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:350
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1072
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1057
 msgid "Stun 5##2"
 msgstr "硬直 5##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:351
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1073
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1058
 msgid "Displacement 1##2"
 msgstr "位移 1##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:352
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1074
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1059
 msgid "Displacement 2##2"
 msgstr "位移 2##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:353
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1075
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1060
 msgid "Displacement 3##2"
 msgstr "位移 3##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:354
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1076
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1061
 msgid "Displacement 4##2"
 msgstr "位移 4##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:355
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1077
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1062
 msgid "Displacement 5##2"
 msgstr "位移 5##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:356
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1078
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1063
 msgid "Unknown 1##2"
 msgstr "未知 1##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:357
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1079
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1064
 msgid "Unknown 2##2"
 msgstr "未知 2##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:358
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1080
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1065
 msgid "Unknown 3##2"
 msgstr "未知 3##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:359
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1081
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1066
 msgid "Unknown 4##2"
 msgstr "未知 4##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:360
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1082
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1067
 msgid "Unknown 5##2"
 msgstr "未知 5##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:361
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1083
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1068
 msgid "Unknown 6##2"
 msgstr "未知 6##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:362
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1084
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1069
 msgid "Unknown 7##2"
 msgstr "未知 7##2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemyTracker.cpp:363
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1085
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1070
 msgid "Unknown 8##2"
 msgstr "未知 8##2"
 
@@ -2570,11 +2580,11 @@ msgstr "血宫火柱"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnvironmentalHazards.cpp:162
 msgid "Temporary Platforms"
-msgstr ""
+msgstr "临时平台"
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnvironmentalHazards.cpp:173
 msgid "Press taunt to spawn a platform under the locked on enemy"
-msgstr ""
+msgstr "按嘲讽键可在锁定的敌人下方创建一个平台"
 
 #: C:\vs_projects\dmc4_hook\src\mods\ExceedDisplay.cpp:162
 msgid ""
@@ -3402,8 +3412,9 @@ msgstr "红魂显血"
 msgid "Display the last hit enemy's HP in the Red Orb count"
 msgstr "以红魂数量显示最后一个击中的敌人血量"
 
-#: C:\vs_projects\dmc4_hook\src\mods\InfAirHikes.cpp:75
-#: C:\vs_projects\dmc4_hook\src\mods\InfAirHikes.cpp:78
+#: C:\vs_projects\dmc4_hook\src\mods\InfAirHikes.cpp:80
+#: C:\vs_projects\dmc4_hook\src\mods\InfAirHikes.cpp:83
+#: C:\vs_projects\dmc4_hook\src\mods\InfAirHikes.cpp:86
 msgid "Infinite Air Hikes"
 msgstr "无限二段跳"
 
@@ -3545,15 +3556,15 @@ msgstr "显示 Gizmo 工具"
 
 #: C:\vs_projects\dmc4_hook\src\mods\JointDisplay.cpp:361
 msgid "Save Pose"
-msgstr ""
+msgstr "保存姿势"
 
 #: C:\vs_projects\dmc4_hook\src\mods\JointDisplay.cpp:366
 msgid "Load Pose"
-msgstr ""
+msgstr "加载姿势"
 
 #: C:\vs_projects\dmc4_hook\src\mods\JointDisplay.cpp:373
 msgid "Click a joint to select an entity."
-msgstr ""
+msgstr "点击一个关节来选中一个实体"
 
 #: C:\vs_projects\dmc4_hook\src\mods\KnockbackEdits.cpp:119
 msgid "AttackStatusUI"
@@ -4427,7 +4438,7 @@ msgid "Reset##ResetPos"
 msgstr "重置##ResetPos"
 
 #: C:\vs_projects\dmc4_hook\src\mods\MutatorSelfAdvertisement.cpp:62
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:988
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1115
 msgid "Colour"
 msgstr "颜色"
 
@@ -4905,7 +4916,7 @@ msgstr "玩家动画帧"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:759
 msgid "Enable Joint Rotation"
-msgstr ""
+msgstr "启用关节旋转"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:766
 msgid "Lights/Filters"
@@ -5014,231 +5025,215 @@ msgstr "尼禄参数"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:943
 msgid "MoveLine 0:"
-msgstr ""
+msgstr "MoveLine 0:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:944
 msgid "MoveLine 1 (uScheduler + uShadow):"
-msgstr ""
+msgstr "MoveLine 1 (uScheduler + uShadow):"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:945
 msgid "MoveLine 2:"
-msgstr ""
+msgstr "MoveLine 2:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:946
 msgid "MoveLine 3:"
-msgstr ""
+msgstr "MoveLine 3:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:947
 msgid "MoveLine 4:"
-msgstr ""
+msgstr "MoveLine 4:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:948
 msgid "MoveLine 5:"
-msgstr ""
+msgstr "MoveLine 5:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:949
 msgid "MoveLine 6:"
-msgstr ""
+msgstr "MoveLine 6:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:950
 msgid "MoveLine 7 (uScheduler):"
-msgstr ""
+msgstr "MoveLine 7 (uScheduler):"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:951
 msgid "MoveLine 8:"
-msgstr ""
+msgstr "MoveLine 8:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:952
 msgid "MoveLine 9 (BP portal effect + uSe):"
-msgstr ""
+msgstr "MoveLine 9 (BP portal effect + uSe):"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:953
 msgid "MoveLine 10:"
-msgstr ""
+msgstr "MoveLine 10:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:954
 msgid "MoveLine 11:"
-msgstr ""
+msgstr "MoveLine 11:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:955
 msgid "MoveLine 12:"
-msgstr ""
+msgstr "MoveLine 12:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:956
 msgid "MoveLine 13 (Players):"
-msgstr ""
+msgstr "MoveLine 13 (Players):"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:957
 msgid "MoveLine 14"
-msgstr ""
+msgstr "MoveLine 14"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:958
 msgid "MoveLine 15 (Enemies):"
-msgstr ""
+msgstr "MoveLine 15 (Enemies):"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:959
 msgid "MoveLine 16 (uEmAppear):"
-msgstr ""
+msgstr "MoveLine 16 (uEmAppear):"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:960
 msgid "MoveLine 17:"
-msgstr ""
+msgstr "MoveLine 17:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:961
 msgid "MoveLine 18 (Projectiles):"
-msgstr ""
+msgstr "MoveLine 18 (Projectiles):"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:962
 msgid "MoveLine 19:"
-msgstr ""
+msgstr "MoveLine 19:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:963
 msgid "MoveLine 20 (uDevil4Effect):"
-msgstr ""
+msgstr "MoveLine 20 (uDevil4Effect):"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:964
 msgid "MoveLine 21 (uEfctBlurHandlder:"
-msgstr ""
+msgstr "MoveLine 21 (uEfctBlurHandlder:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:965
 msgid "MoveLine 22:"
-msgstr ""
+msgstr "MoveLine 22:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:966
 msgid "MoveLine 23 (uCameraCtrl):"
-msgstr ""
+msgstr "MoveLine 23 (uCameraCtrl):"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:967
 msgid "MoveLine 24 (uLights):"
-msgstr ""
+msgstr "MoveLine 24 (uLights):"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:968
 msgid "MoveLine 25 (uCockpitMgr):"
-msgstr ""
+msgstr "MoveLine 25 (uCockpitMgr):"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:969
 msgid "MoveLine 26 (uMessage/uPause):"
-msgstr ""
+msgstr "MoveLine 26 (uMessage/uPause):"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:970
 msgid "MoveLine 27:"
-msgstr ""
+msgstr "MoveLine 27:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:971
 msgid "MoveLine 28:"
-msgstr ""
+msgstr "MoveLine 28:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:972
 msgid "MoveLine 29 (Filters):"
-msgstr ""
+msgstr "MoveLine 29 (Filters):"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:973
 msgid "MoveLine 30:"
-msgstr ""
+msgstr "MoveLine 30:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:974
 msgid "MoveLine 31:"
-msgstr ""
+msgstr "MoveLine 31:"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:979
 msgid "Show Player Params"
 msgstr "显示玩家参数"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:981
-msgid "Shadow Settings"
-msgstr "阴影设置"
-
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:987
-msgid "Rotation"
-msgstr "旋转"
-
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:989
-msgid "diffuse"
-msgstr "漫反射"
-
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:990
-msgid "bloom"
-msgstr "泛光"
-
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:996
 msgid "View MoveLine Entries"
 msgstr "查看 MoveLine 条目"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1027
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1012
 msgid "[OLD] Display Player Stats"
 msgstr "[旧版]显示玩家状态"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1032
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1017
 msgid "Save Current Move"
 msgstr "保存当前动作"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1036
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1021
 msgid "Play Saved Move"
 msgstr "播放已保存的动作"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1039
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1024
 msgid "Saved Player Position"
 msgstr "已保存的玩家位置"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1047
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1032
 msgid "Play Animation ID"
 msgstr "播放此 ID 动画"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1058
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1043
 msgid ""
 "uhh this only plays things that don't require a certain player state, e.g. "
 "You must have just taken damage to play a damage animation"
 msgstr "此修改项仅播放无特定状态要求的动画，例如：你必须受击以播放受击动画"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1061
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1046
 msgid "Loop"
 msgstr "循环"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1063
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1048
 msgid "HP ##1"
 msgstr "血量 ##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1064
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1049
 msgid "Max HP ##1"
 msgstr "血量上限 ##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1065
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1050
 msgid "DT ##1"
 msgstr "魔人槽 ##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1066
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1051
 msgid "Max DT ##1"
 msgstr "魔人槽上限 ##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1086
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1071
 msgid "BP Timer ##1"
 msgstr "血宫计时器 ##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1087
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1072
 msgid "XYZ Position ##1"
 msgstr "XYZ 位置 ##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1088
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1073
 msgid "Rotation ##1"
 msgstr "旋转 ##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1089
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1074
 msgid "XYZ Scale ##1"
 msgstr "XYZ 缩放 ##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1090
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1075
 msgid "XYZ Velocity ##1"
 msgstr "XYZ 速度 ##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1091
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1076
 msgid "Movement Speed ##1"
 msgstr "移动速度 ##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1092
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1077
 msgid "Inertia ##1"
 msgstr "惯性 ##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1095
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1080
 msgid ""
 "Uhm, ehm, akshually, internia isn't a thing, it's a property of a thing, the "
 "shit you're showing is velocity, the measure of inertia is mass, resistance "
@@ -5251,62 +5246,78 @@ msgstr ""
 "体抵抗加速度的能力（减速也是加速度，只是方向相反）如果没有跟飞机被空气摩擦烧"
 "掉一样受到阻力，那么惯性就不会改变，先搞懂再说吧池子"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1099
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1084
 msgid "Weight ##1"
 msgstr "重量"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1100
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1085
 msgid "Lock On ##1"
 msgstr "锁定"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1102
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1087
 msgid "Disaster Gauge ##1"
 msgstr "灾厄槽"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1103
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1088
 msgid "Revenge Gauge ##1"
 msgstr "RG 槽"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1105
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1090
 msgid "Exceed Timer ##1"
 msgstr "红刀计时器"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1107
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1092
 msgid ""
 "If you press exceed while this timer is between 0 and 1, you'll get MAX-Act."
 msgstr "在此计时器的 0~1 之间按下红刀键即可三红"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1109
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1094
 msgid "Animation Frame ##1"
 msgstr "动画帧##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1110
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1095
 msgid "Animation ID ##1"
 msgstr "动画 ID##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1111
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1096
 msgid "Move ID ##1"
 msgstr "动作 ID##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1112
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1097
 msgid "Move ID2 ##1"
 msgstr "动作 ID 2##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1113
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1098
 msgid "Move Bank ##1"
 msgstr "动作组##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1114
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1099
 msgid "Move Part ##1"
 msgstr "动作部分 ##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1115
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1100
 msgid "Saved Move Bank ##1"
 msgstr "已保存动作组##1"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1116
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1101
 msgid "Saved Move ID ##1"
 msgstr "已保存动作 ID"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1108
+msgid "Shadow Settings"
+msgstr "阴影设置"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1114
+msgid "Rotation"
+msgstr "旋转"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1116
+msgid "diffuse"
+msgstr "漫反射"
+
+#: C:\vs_projects\dmc4_hook\src\mods\PlayerTracker.cpp:1117
+msgid "bloom"
+msgstr "泛光"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PsychoMantis.cpp:50
 msgid "Stylevibe"
@@ -7907,18 +7918,13 @@ msgstr ""
 "三倍加速拳套蓄力\n"
 "进入关卡前启用"
 
-#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:388
+#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:394
 msgid "Visualize Hitboxes"
 msgstr "显示判定框"
 
-#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:392
 #: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:398
 msgid "Draw hitbox outlines in red"
 msgstr "用红色线条画出攻击判定框"
-
-#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:394
-msgid "Visualize Hitboxes 2"
-msgstr "显示判定框 2"
 
 #: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:400
 msgid "Visualize Hurtboxes"
@@ -7935,10 +7941,6 @@ msgstr "显示 JC 范围"
 #: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:406
 msgid "Draw enemy step sphere outlines in green"
 msgstr "用绿色线条画出 JC 范围"
-
-#: C:\vs_projects\dmc4_hook\src\mods\VisualizeHitbox.cpp:409
-msgid "Debug Stats##EnemyStepSpheres"
-msgstr "调试状态##EnemyStepSpheres"
 
 #: C:\vs_projects\dmc4_hook\src\mods\WitchTime.cpp:84
 msgid "Witch Time##Dante"
@@ -8260,7 +8262,7 @@ msgstr "路西法 Ⅱ 1"
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:358
 #: C:\vs_projects\dmc4_hook\src\sdk\StringData.cpp:81
 msgid "ATCK_ID_LF_ARRANGEMENT_COMBO"
-msgstr ""
+msgstr "ATCK_ID_LF_ARRANGEMENT_COMBO"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:360
 #: C:\vs_projects\dmc4_hook\src\sdk\StringData.cpp:83
@@ -8440,7 +8442,7 @@ msgstr "灾厄262: 嫉妒"
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:395
 #: C:\vs_projects\dmc4_hook\src\sdk\StringData.cpp:118
 msgid "ATCK_ID_SPD_BATTERY"
-msgstr ""
+msgstr "ATCK_ID_SPD_BATTERY"
 
 #: C:\vs_projects\dmc4_hook\src\sdk\ReClass_Internal.hpp:396
 #: C:\vs_projects\dmc4_hook\src\sdk\StringData.cpp:119
@@ -8934,6 +8936,15 @@ msgstr "保存"
 #: C:\vs_projects\dmc4_hook\src\utility\Input.cpp:373
 msgid "set"
 msgstr "设定"
+
+#~ msgid "The default hotkey for Hide HUD camera is -"
+#~ msgstr "隐藏所有 UI 的默认热键是 \"-\""
+
+#~ msgid "Visualize Hitboxes 2"
+#~ msgstr "显示判定框 2"
+
+#~ msgid "Debug Stats##EnemyStepSpheres"
+#~ msgstr "调试状态##EnemyStepSpheres"
 
 #~ msgid ""
 #~ "\"Fast Game Load\" and neighbouring options in the \"System\" tab. Get "
