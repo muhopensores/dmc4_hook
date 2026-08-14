@@ -134,7 +134,6 @@
 #include "mods/DebugCam.hpp"
 #include "mods/NoclipCam.hpp"
 #include "mods/CutscenePause.hpp"
-#include "mods/AfterImage.hpp"
 #include "mods/TrainerPause.hpp"
 #include "mods/GunStingerDistance.hpp"
 #include "mods/AnimationOverlay.hpp"
@@ -165,21 +164,24 @@
 #include "mods/ForceInCombat.hpp"
 #include "mods/PhotoMode.hpp"
 #include "mods/Macro.hpp"
-#include "mods/Coop.hpp"
 #include "mods/StageCallback.hpp"
 #include "mods/DarkSoulsStamina.hpp"
 #include "mods/TestMod.hpp"
 #include "mods/ArcadeMode.hpp"
 #include "mods/FpsFixes.hpp"
 #include "mods/WitchTime.hpp"
-#include "mods/SpiderTwerk.hpp"
 #include "mods/GermanWord.hpp"
-#include "mods/FriendlyFire.hpp"
 #include "mods/EnvironmentalHazards.hpp"
 #include "mods/BackForwardQuickDrive.hpp"
 #include "mods/ExceedLock.hpp"
+#ifndef PUBLIC_BUILD
+#include "mods/AfterImage.hpp"
+#include "mods/SpiderTwerk.hpp"
+#include "mods/Coop.hpp"
+#include "mods/FriendlyFire.hpp"
 #include "mods/Cock.hpp"
 #include "mods/RayTest.hpp"
+#endif
 
 constexpr size_t MODS_NUM{ 512 };
 
@@ -331,7 +333,6 @@ Mods::Mods() {
     ADD_MOD(DebugCam);
     ADD_MOD(NoclipCam);
     ADD_MOD(CutscenePause);
-    ADD_MOD(AfterImage);
     ADD_MOD(TrainerPause);
     ADD_MOD(GunStingerDistance);
     ADD_MOD(AnimationOverlay);
@@ -360,7 +361,6 @@ Mods::Mods() {
     ADD_MOD(JointDisplay);
     ADD_MOD(ForceInCombat);
     ADD_MOD(PhotoMode);
-    ADD_MOD(Coop);
     ADD_MOD(StageCallback);
     ADD_MOD(DarkSoulsStamina);
     ADD_MOD(TestMod);
@@ -368,13 +368,17 @@ Mods::Mods() {
     ADD_MOD(ArcadeMode);
     ADD_MOD(FpsFixes);
     ADD_MOD(WitchTime);
-    ADD_MOD(SpiderTwerk);
     ADD_MOD(GermanWord);
-    ADD_MOD(FriendlyFire);
     ADD_MOD(EnvironmentalHazards);
     ADD_MOD(ExceedLock);
+#ifndef PUBLIC_BUILD
+    ADD_MOD(AfterImage);
+    ADD_MOD(SpiderTwerk);
+    ADD_MOD(Coop);
+    ADD_MOD(FriendlyFire);
     ADD_MOD(Cock);
     ADD_MOD(RayTest);
+#endif
 #endif
 }
 

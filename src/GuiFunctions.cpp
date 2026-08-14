@@ -16,7 +16,7 @@
 
 #include <shlobj.h>
 
-#define GUI_VERSION "dmc4_hook 1.5.3 PRE RELEASE"
+#define GUI_VERSION "dmc4_hook 1.6.0 PRE RELEASE"
 
 static constexpr char* version{GUI_VERSION};
 static constexpr float uiWidth       = 600.0f;
@@ -773,9 +773,9 @@ namespace gui {
                 pmods->on_draw_ui("FlyingStats"_hash, DISPLAY_SYSTEM_A); // needs its own line
 
                 pmods->on_draw_ui("DebugCam"_hash, DISPLAY_SYSTEM_A);
-
+#ifndef PUBLIC_BUILD
                 pmods->on_draw_ui("Coop"_hash, DISPLAY_SYSTEM_A);
-
+#endif
                 ImGui::SeparatorText(_("Multi-character Fixes"));
                 
                 pmods->on_draw_ui("MultiCharFixes"_hash, DISPLAY_SYSTEM_A);
@@ -785,16 +785,16 @@ namespace gui {
                 pmods->on_draw_ui("RoomRespawn"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("MutatorSelfAdvertisement"_hash, DISPLAY_SYSTEM_A);
-
-                pmods->on_draw_ui("SpiderTwerk"_hash, DISPLAY_SYSTEM_A);
-
                 pmods->on_draw_ui("EffectColours"_hash, DISPLAY_SYSTEM_A);
+#ifndef PUBLIC_BUILD
+                pmods->on_draw_ui("SpiderTwerk"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("FriendlyFire"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("Cock"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("RayTest"_hash, DISPLAY_SYSTEM_A);
+#endif
 
                 ImGui::SeparatorText(_("Testing"));
 
@@ -803,9 +803,9 @@ namespace gui {
                 // pmods->onDrawUI("ShaderEditor"_hash, DISPLAY_SYSTEM_A);
 
                 // pmods->on_draw_ui("CustomProjectile"_hash, DISPLAY_SYSTEM_A);
-
-                // pmods->on_draw_ui("AfterImage"_hash, DISPLAY_SYSTEM_A);
-
+#ifndef PUBLIC_BUILD
+                pmods->on_draw_ui("AfterImage"_hash, DISPLAY_SYSTEM_A);
+#endif
                 tabHeight += ImGui::GetCursorPosY();
                 ImGui::EndChild();
                 ImGui::EndTabItem();
@@ -829,6 +829,7 @@ namespace gui {
                 ImGui::Text("Mstislav Capusta");
                 ImGui::Text("SSSiyan");
                 ImGui::Text("Vieris");
+                ImGui::Text("mumu");
                 ImGui::Text("CrazyMelody");
                 ImGui::Text("Dlupx");
                 ImGui::Text("cheburrat0r");

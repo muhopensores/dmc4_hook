@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 10:57+0100\n"
-"PO-Revision-Date: 2026-07-09 10:58+0100\n"
+"POT-Creation-Date: 2026-07-12 10:00+0100\n"
+"PO-Revision-Date: 2026-07-12 10:01+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -97,7 +97,7 @@ msgstr "整活类"
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:294
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:200
 #: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:698
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:536
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:537
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:116
 msgid "Dante"
 msgstr "但丁"
@@ -149,7 +149,7 @@ msgid "System"
 msgstr "系统"
 
 #: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:650
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:821
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:823
 msgid "dmc4_hook"
 msgstr "dmc4_hook"
 
@@ -201,51 +201,51 @@ msgstr "状态"
 msgid "Multi-character Fixes"
 msgstr "多人修复"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:793
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:795
 msgid "Testing"
 msgstr "测试"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:795
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:797
 msgid "View ImGui Demo"
 msgstr "显示 ImGui 界面框架"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:807
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:809
 msgid "Hotkeys"
 msgstr "热键"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:818
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:820
 msgid "About"
 msgstr "关于"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:832
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:834
 msgid "Translation:"
 msgstr "翻译："
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:833
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:835
 msgid "ttttchr"
 msgstr "创到"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:834
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:836
 msgid "raika87"
 msgstr "雷卡"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:837
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:839
 msgid "Special Thanks:"
 msgstr "特别鸣谢："
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:850
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:852
 msgid "For more info and updates visit the github:"
 msgstr "访问 github 来获取更多信息和更新："
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:855
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:857
 msgid "Frequently Asked Questions"
 msgstr "常见问题"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:857
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:859
 msgid "What mods do you recommend most?"
 msgstr "最推荐哪些修改项？"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:858
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:860
 msgid ""
 "\"Fast Game Load\" and neighbouring options in the \"System\" tab. Get from "
 "your Desktop to BP in 2 seconds."
@@ -253,11 +253,11 @@ msgstr ""
 "\"系统\" 选项卡里的 \"快速进入游戏\" 以及和它相邻的两个修改项。你两秒就能从电"
 "脑桌面进入血宫。"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:860
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:862
 msgid "Old mods I installed have suddenly turned on"
 msgstr "我之前装的 mod 突然生效了"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:861
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:863
 msgid ""
 "\"HDD File Priority\" is ticked on the Debug page. If your DMC4 install "
 "contains any files left over from old mods, this will load them. To clean up "
@@ -268,11 +268,11 @@ msgstr ""
 "DMC4 安装目录中包含任何老 mod 遗留的文件，它们就会被加载。要清理目录，你需要"
 "手动删除文件，因为 Steam 验证不会检查新添加的文件。"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:865
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:867
 msgid "My combo points are stuck at 0"
 msgstr "我的风格点数一直是 0"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:866
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:868
 msgid ""
 "\"Respawn Enemies when visiting the same room multiple times\" is ticked on "
 "the Debug page. If you didn't turn this on manually, it would have been auto "
@@ -281,48 +281,48 @@ msgstr ""
 "这是因为启用了 \"调试\" 选项卡中的 \"重进房间时重复刷怪\" 修改项。如果你没手"
 "动打开过，那么是因为当你使用 \"重新加载当前房间\" 热键时，它会自动启用。"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:869
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:871
 msgid "My camera is frozen"
 msgstr "我的镜头不动了"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:870
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:872
 msgid "The default hotkey for camera settings' freeze camera is Numpad 0."
 msgstr "\"冻结镜头\" 修改项的默认热键是小键盘 \"0\" 键。"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:872
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:874
 msgid "I crash entering mission 1"
 msgstr "我进第一关会崩溃"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:873
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:875
 msgid "\"Character Switcher\" crashes in this mission."
 msgstr "\"即时切人\" 修改项在这一关会导致崩溃。"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:875
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:877
 msgid "Payline is going through enemies"
 msgstr "斜戳会穿过敌人"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:876
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:878
 msgid "Tick \"HDD File Priority\""
 msgstr "启用 \"调试\" 选项卡的 \"优先加载硬盘文件\" 修改项。"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:878
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:880
 msgid "Enemies are white sometimes"
 msgstr "敌人有时会变成白色"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:879
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:881
 msgid "This is a known issue with \"HDD File Priority\""
 msgstr "这是 \"优先加载硬盘文件\" 修改项的一个已知问题。"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:888
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:890
 msgid "This trainer was made using:"
 msgstr "此修改器用以下工具制作："
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:908
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:909
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:910
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:911
 msgid "Licenses"
 msgstr "许可"
 
-#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:941
+#: C:\vs_projects\dmc4_hook\src\GuiFunctions.cpp:943
 msgid "Search"
 msgstr "搜索"
 
@@ -352,19 +352,19 @@ msgstr "dmc4_hook（键盘）"
 msgid "dmc4_hook (Pad)"
 msgstr "dmc4_hook（手柄）"
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:524
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:526
 msgid "Keys will probably show up only on US keyboard layouts."
 msgstr "按键可能只在美国键盘布局上显示。"
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:525
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:527
 msgid "We use MapVirtualKeyA();"
 msgstr "我们使用 MapVirtualKeyA() 函数"
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:526
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:528
 msgid "Making sure dear imgui renders unicode properly is complicated"
 msgstr "保证 Dear Imgui 正确渲染 unicode 编码是很麻烦的"
 
-#: C:\vs_projects\dmc4_hook\src\Mods.cpp:527
+#: C:\vs_projects\dmc4_hook\src\Mods.cpp:529
 msgid "please understand. ;_;"
 msgstr "请理解。;_;"
 
@@ -638,7 +638,7 @@ msgstr "难度##Arcade Mode Combo"
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:171
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:275
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:186
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:528
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:529
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:108
 msgid "Berial"
 msgstr "火牛"
@@ -646,7 +646,7 @@ msgstr "火牛"
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:172
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:276
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:187
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:529
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:530
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:109
 msgid "Bael"
 msgstr "蛤蟆"
@@ -654,18 +654,18 @@ msgstr "蛤蟆"
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:173
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:278
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:188
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:530
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:531
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:110
 msgid "Echidna"
 msgstr "花蛇"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:174
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:532
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:533
 msgid "Agnus"
 msgstr "苍蝇"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:175
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:531
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:532
 msgid "Credo"
 msgstr "克雷多"
 
@@ -993,7 +993,7 @@ msgstr "寄生脚布袋"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:260
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:174
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:518
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:519
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:96
 msgid "Mega Scarecrow"
 msgstr "大布袋"
@@ -1004,14 +1004,14 @@ msgstr "寄生手布袋"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:262
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:175
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:519
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:520
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:97
 msgid "Bianco Angelo"
 msgstr "银骑士"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:263
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:176
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:520
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:521
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:98
 msgid "Alto Angelo"
 msgstr "金骑士"
@@ -1022,42 +1022,42 @@ msgstr "寄生大布袋"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:265
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:177
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:521
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:522
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:99
 msgid "Mephisto"
 msgstr "小死神"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:266
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:178
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:522
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:523
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:100
 msgid "Faust"
 msgstr "大死神"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:267
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:179
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:523
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:524
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:101
 msgid "Frost"
 msgstr "冰刃"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:268
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:180
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:524
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:525
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:102
 msgid "Assault"
 msgstr "蜥蜴"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:269
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:181
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:525
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:526
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:103
 msgid "Blitz"
 msgstr "雷兽"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:270
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:182
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:526
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:527
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:104
 msgid "Chimera Seed"
 msgstr "种子"
@@ -1080,7 +1080,7 @@ msgstr "飞刀"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.cpp:274
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:185
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:527
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:528
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:107
 msgid "Basilisk"
 msgstr "火狗"
@@ -1201,7 +1201,7 @@ msgid "Credo human form"
 msgstr "人形克雷多"
 
 #: C:\vs_projects\dmc4_hook\src\mods\AreaJump.hpp:194
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:533
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:534
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:113
 msgid "Sanctus"
 msgstr "教皇"
@@ -1541,6 +1541,31 @@ msgstr "惯性保留"
 #: C:\vs_projects\dmc4_hook\src\mods\CharSwitcher.cpp:1005
 msgid "Enable inertia carryover on switching"
 msgstr "切人时保留当前惯性"
+
+#: C:\vs_projects\dmc4_hook\src\mods\Cock.cpp:177
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:260
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:328
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:516
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:535
+msgid "Pos"
+msgstr "位置"
+
+#: C:\vs_projects\dmc4_hook\src\mods\Cock.cpp:178
+msgid "x_pos"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Cock.cpp:180
+msgid "y_pos"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\Cock.cpp:181
+#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:605
+msgid "Scale"
+msgstr "缩放"
+
+#: C:\vs_projects\dmc4_hook\src\mods\Cock.cpp:182
+msgid "x_scale"
+msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\Coop.cpp:702
 msgid "Coop mode"
@@ -2027,125 +2052,135 @@ msgstr "敌人瞬间魔化"
 msgid "If available, enemies will Devil Trigger instantly"
 msgstr "如果敌人可以魔化，则会瞬间魔化"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:492
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:493
 msgid "Replace Scarecrow (Leg) with:"
 msgstr "将脚布袋替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:493
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:494
 msgid "Replace Scarecrow (Arm) with:"
 msgstr "将手布袋替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:494
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:495
 msgid "Replace Mega Scarecrow with:"
 msgstr "将大布袋替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:495
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:496
 msgid "Replace Bianco Angelo with:"
 msgstr "将银骑士替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:496
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:497
 msgid "Replace Alto Angelo with:"
 msgstr "将金骑士替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:497
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:498
 msgid "Replace Mephisto with:"
 msgstr "将小死神替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:498
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:499
 msgid "Replace Faust with:"
 msgstr "将大死神替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:499
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:500
 msgid "Replace Frost with:"
 msgstr "将冰刃替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:500
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:501
 msgid "Replace Assault with:"
 msgstr "将蜥蜴替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:501
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:502
 msgid "Replace Blitz with:"
 msgstr "将雷兽替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:502
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:503
 msgid "Replace Chimera Seed with:"
 msgstr "将种子替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:503
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:504
 msgid "Replace Basilisk with:"
 msgstr "将火狗替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:504
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:505
 msgid "Replace Berial with:"
 msgstr "将火牛替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:505
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:506
 msgid "Replace Bael with:"
 msgstr "将蛤蟆替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:506
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:507
 msgid "Replace Echidna with:"
 msgstr "将花蛇替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:507
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:508
 msgid "Replace Credo with:"
 msgstr "将克雷多替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:508
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:509
 msgid "Replace Agnus with:"
 msgstr "将苍蝇替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:509
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:510
 msgid "Replace Sanctus with:"
 msgstr "将教皇替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:510
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:511
 msgid "Replace Sanctus Diabolica with:"
 msgstr "将腐化教皇替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:511
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:512
 msgid "Replace Kyrie with:"
 msgstr "将姬莉叶替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:512
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:513
 msgid "Replace Dante with:"
 msgstr "将但丁替换为："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:516
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:517
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:94
 msgid "Scarecrow (Leg)"
 msgstr "脚布袋"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:517
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:518
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:95
 msgid "Scarecrow (Arm)"
 msgstr "手布袋"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:534
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:535
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:114
 msgid "Sanctus Diabolica"
 msgstr "腐化教皇"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:535
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:536
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySpawn.cpp:115
 msgid "Kyrie"
 msgstr "姬莉叶"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:606
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:630
 msgid "Reset Enemy Replacements:"
 msgstr "重置敌人替换："
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:608
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:632
 msgid "Reset"
 msgstr "重置"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:617
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:642
 msgid "Enemy Randomizer"
 msgstr "刷怪随机化"
 
-#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:619
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:644
 msgid "Randomizes enemy spawns within reason so its still actually fun"
 msgstr "在合理范围内将敌人的生成随机化，仍然很有趣"
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:647
+msgid "Preload enemies"
+msgstr ""
+
+#: C:\vs_projects\dmc4_hook\src\mods\EnemyReplace.cpp:656
+msgid ""
+"Stops the lag that happens when enemies spawn, but might crash if too many "
+"enemies load"
+msgstr ""
 
 #: C:\vs_projects\dmc4_hook\src\mods\EnemySlotting.cpp:50
 msgid "Slot Limit"
@@ -3067,7 +3102,7 @@ msgid "No DTless Frost Escape"
 msgstr "防止未魔化冰刃脱离"
 
 #: C:\vs_projects\dmc4_hook\src\mods\FrostsDontJump.cpp:29
-msgid "Disable Frosts jumping out of combos until they DT"
+msgid "Disable Frosts jumping out of combos until they Devil Trigger"
 msgstr "防止未魔化的冰刃脱离空连，直到它魔化"
 
 #: C:\vs_projects\dmc4_hook\src\mods\GermanWord.cpp:246
@@ -3136,11 +3171,11 @@ msgstr ""
 "使地面枪械攻击取消可以取消更多动作\n"
 "目前会影响双枪，散弹，普通射击，散弹后射，枪刺，枪花，潘多拉第一形态弩炮"
 
-#: C:\vs_projects\dmc4_hook\src\mods\GuardSteer.cpp:89
+#: C:\vs_projects\dmc4_hook\src\mods\GuardSteer.cpp:87
 msgid "Guardsteer"
 msgstr "皇家方向盘"
 
-#: C:\vs_projects\dmc4_hook\src\mods\GuardSteer.cpp:91
+#: C:\vs_projects\dmc4_hook\src\mods\GuardSteer.cpp:89
 msgid ""
 "See your body into the moonlight\n"
 "Even if I try to cancel\n"
@@ -4587,13 +4622,6 @@ msgstr "聚光灯"
 msgid "Color"
 msgstr "颜色"
 
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:260
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:328
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:516
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:535
-msgid "Pos"
-msgstr "位置"
-
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:261
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:329
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:521
@@ -4781,10 +4809,6 @@ msgstr "色彩校正滤镜"
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:601
 msgid "Colour Space Filter"
 msgstr "色彩空间滤镜"
-
-#: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:605
-msgid "Scale"
-msgstr "缩放"
 
 #: C:\vs_projects\dmc4_hook\src\mods\PhotoMode.cpp:611
 msgid "Level Correct Filter"
@@ -6836,34 +6860,34 @@ msgstr "躲避"
 msgid "Just Charge"
 msgstr "FS"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1798
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1800
 msgid "Hidden Combos"
 msgstr "隐藏连招"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1823
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1825
 #, c-format
 msgid "Dante - %i/%i Unlocked"
 msgstr "但丁 - %i/%i 未解锁"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1826
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1828
 #, c-format
 msgid "Nero - %i/%i Unlocked"
 msgstr "尼禄 - %i/%i 未解锁"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1930
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1932
 msgid "Clear Unlocks"
 msgstr "清除未解锁"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1951
 #: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1953
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1955
 msgid "Tony"
 msgstr "Tony 连段展示器"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1959
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1961
 msgid "Alternate Grouping"
 msgstr "招式分组"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1961
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1963
 msgid ""
 "Group attacks by the order you originally did them\n"
 "This helps show the variety in a combo over exact input order"
@@ -6871,19 +6895,19 @@ msgstr ""
 "合并输入的重复招式\n"
 "这有助于显示连段的多样性，而不是精确的招式顺序"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1991
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1993
 msgid "Style Point Display"
 msgstr "风格点数显示"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1993
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1995
 msgid "See exactly what goes into your style points count"
 msgstr "展示风格点数实时计算情况"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1997
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1999
 msgid "Use Original Names"
 msgstr "使用动作原始名称"
 
-#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:1999
+#: C:\vs_projects\dmc4_hook\src\mods\StylePoints.cpp:2001
 msgid ""
 "Instead of using our skill renames, use the developers'. Because there are "
 "more unique names, less skills will be grouped"
@@ -8895,6 +8919,9 @@ msgstr "保存"
 #: C:\vs_projects\dmc4_hook\src\utility\Input.cpp:373
 msgid "set"
 msgstr "设定"
+
+#~ msgid "Disable Frosts jumping out of combos until they DT"
+#~ msgstr "防止未魔化的冰刃脱离空连，直到它魔化"
 
 #, c-format
 #~ msgid "Anim: 0x%04X"
