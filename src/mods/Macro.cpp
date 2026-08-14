@@ -7441,37 +7441,51 @@ void Macro::on_gui_frame(int display) {
             }
 
             if (ImGui::CollapsingHeader(_("Keyboard Hotkeys"), ImGuiTreeNodeFlags_DefaultOpen) && m_hotkeys.size() >= 7) {
-                auto draw_macro_hotkey = [&](const char* action_label, uint32_t target, utility::Hotkey& hotkey) {
-                    ImGui::PushID((int)target);
-                    const auto label = hotkey_binds_label(hotkey.m_binds);
-                    ImGui::Text("%s: %s", action_label, label.c_str());
-                    ImGui::SameLine(sameLineWidth);
-                    if (ImGui::Button(_("Set"))) {
-                        capture_hotkey_target = target;
-                        hotkey.m_setting      = true;
-                        std::fill_n(raw_key_down, 256, false);
-                        set_playback_status("Press the new macro hotkey.");
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Button(_("Clear"))) {
-                        hotkey.m_binds   = hotkey.m_default_keys;
-                        hotkey.m_setting = false;
-                        if (capture_hotkey_target == target) {
-                            capture_hotkey_target = 0;
-                        }
-                        update_config_hotkey_vkeys(m_hotkeys);
-                        set_playback_status("Macro hotkey restored to default.");
-                    }
-                    ImGui::PopID();
-                };
+                const float set_width = ImGui::CalcTextSize(_("Set")).x + ImGui::GetStyle().FramePadding.x * 2.0f;
+                const float clear_width = ImGui::CalcTextSize(_("Clear")).x + ImGui::GetStyle().FramePadding.x * 2.0f;
+                if (ImGui::BeginTable(
+                        "##MacroKeyboardHotkeys",
+                        3,
+                        ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoSavedSettings)) {
+                    ImGui::TableSetupColumn("##Action", ImGuiTableColumnFlags_WidthStretch);
+                    ImGui::TableSetupColumn("##Set", ImGuiTableColumnFlags_WidthFixed, set_width);
+                    ImGui::TableSetupColumn("##Clear", ImGuiTableColumnFlags_WidthFixed, clear_width);
 
-                draw_macro_hotkey(_("Play Macro"), 1, *m_hotkeys[0]);
-                draw_macro_hotkey(_("Stop Macro / Clear Input"), 2, *m_hotkeys[1]);
-                draw_macro_hotkey(_("Capture Snapshot"), 3, *m_hotkeys[2]);
-                draw_macro_hotkey(_("Load Snapshot"), 4, *m_hotkeys[3]);
-                draw_macro_hotkey(_("Load Snapshot + Play Macro"), 5, *m_hotkeys[4]);
-                draw_macro_hotkey(_("Load Setup"), 6, *m_hotkeys[5]);
-                draw_macro_hotkey(_("Load Setup + Play Macro"), 7, *m_hotkeys[6]);
+                    auto draw_macro_hotkey = [&](const char* action_label, uint32_t target, utility::Hotkey& hotkey) {
+                        ImGui::PushID((int)target);
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        const auto label = hotkey_binds_label(hotkey.m_binds);
+                        ImGui::TextWrapped("%s: %s", action_label, label.c_str());
+                        ImGui::TableSetColumnIndex(1);
+                        if (ImGui::Button(_("Set"), ImVec2(-FLT_MIN, 0.0f))) {
+                            capture_hotkey_target = target;
+                            hotkey.m_setting      = true;
+                            std::fill_n(raw_key_down, 256, false);
+                            set_playback_status("Press the new macro hotkey.");
+                        }
+                        ImGui::TableSetColumnIndex(2);
+                        if (ImGui::Button(_("Clear"), ImVec2(-FLT_MIN, 0.0f))) {
+                            hotkey.m_binds   = hotkey.m_default_keys;
+                            hotkey.m_setting = false;
+                            if (capture_hotkey_target == target) {
+                                capture_hotkey_target = 0;
+                            }
+                            update_config_hotkey_vkeys(m_hotkeys);
+                            set_playback_status("Macro hotkey restored to default.");
+                        }
+                        ImGui::PopID();
+                    };
+
+                    draw_macro_hotkey(_("Play Macro"), 1, *m_hotkeys[0]);
+                    draw_macro_hotkey(_("Stop Macro / Clear Input"), 2, *m_hotkeys[1]);
+                    draw_macro_hotkey(_("Capture Snapshot"), 3, *m_hotkeys[2]);
+                    draw_macro_hotkey(_("Load Snapshot"), 4, *m_hotkeys[3]);
+                    draw_macro_hotkey(_("Load Snapshot + Play Macro"), 5, *m_hotkeys[4]);
+                    draw_macro_hotkey(_("Load Setup"), 6, *m_hotkeys[5]);
+                    draw_macro_hotkey(_("Load Setup + Play Macro"), 7, *m_hotkeys[6]);
+                    ImGui::EndTable();
+                }
 
                 if (capture_hotkey_target != 0) {
                     ImGui::TextWrapped(_("Capturing hotkey: press a non-modifier key. Ctrl, Shift, and Alt are captured as modifiers."));
@@ -7496,24 +7510,41 @@ void Macro::on_gui_frame(int display) {
                     _("Load Setup + Play"),
                 };
 
-                for (uint32_t index = 0; index < GAMEPAD_HOTKEY_COUNT; ++index) {
-                    ImGui::PushID((int)(100 + index));
-                    ImGui::Text("%s: Back/Select + %s", gamepad_action_labels[index], gamepad_hotkey_button_label(gamepad_hotkey_buttons[index]));
-                    ImGui::SameLine(sameLineWidth);
-                    if (ImGui::Button(_("Set"))) {
-                        capture_gamepad_hotkey_target = index + 1;
-                        gamepad_hotkey_raw_buttons = 0;
-                        set_playback_status("Hold Back/Select and press the new gamepad hotkey button.");
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Button(_("Clear"))) {
-                        gamepad_hotkey_buttons[index] = DEFAULT_GAMEPAD_HOTKEY_BUTTONS[index];
-                        if (capture_gamepad_hotkey_target == index + 1) {
-                            capture_gamepad_hotkey_target = 0;
+                const float set_width = ImGui::CalcTextSize(_("Set")).x + ImGui::GetStyle().FramePadding.x * 2.0f;
+                const float clear_width = ImGui::CalcTextSize(_("Clear")).x + ImGui::GetStyle().FramePadding.x * 2.0f;
+                if (ImGui::BeginTable(
+                        "##MacroGamepadHotkeys",
+                        3,
+                        ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoSavedSettings)) {
+                    ImGui::TableSetupColumn("##Action", ImGuiTableColumnFlags_WidthStretch);
+                    ImGui::TableSetupColumn("##Set", ImGuiTableColumnFlags_WidthFixed, set_width);
+                    ImGui::TableSetupColumn("##Clear", ImGuiTableColumnFlags_WidthFixed, clear_width);
+
+                    for (uint32_t index = 0; index < GAMEPAD_HOTKEY_COUNT; ++index) {
+                        ImGui::PushID((int)(100 + index));
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::TextWrapped(
+                            "%s: Back/Select + %s",
+                            gamepad_action_labels[index],
+                            gamepad_hotkey_button_label(gamepad_hotkey_buttons[index]));
+                        ImGui::TableSetColumnIndex(1);
+                        if (ImGui::Button(_("Set"), ImVec2(-FLT_MIN, 0.0f))) {
+                            capture_gamepad_hotkey_target = index + 1;
+                            gamepad_hotkey_raw_buttons = 0;
+                            set_playback_status("Hold Back/Select and press the new gamepad hotkey button.");
                         }
-                        set_playback_status("Gamepad hotkey restored to default.");
+                        ImGui::TableSetColumnIndex(2);
+                        if (ImGui::Button(_("Clear"), ImVec2(-FLT_MIN, 0.0f))) {
+                            gamepad_hotkey_buttons[index] = DEFAULT_GAMEPAD_HOTKEY_BUTTONS[index];
+                            if (capture_gamepad_hotkey_target == index + 1) {
+                                capture_gamepad_hotkey_target = 0;
+                            }
+                            set_playback_status("Gamepad hotkey restored to default.");
+                        }
+                        ImGui::PopID();
                     }
-                    ImGui::PopID();
+                    ImGui::EndTable();
                 }
 
                 if (capture_gamepad_hotkey_target != 0) {
