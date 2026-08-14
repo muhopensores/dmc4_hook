@@ -757,6 +757,8 @@ namespace gui {
                 ImGui::SeparatorText(_("Noclip"));
 
                 pmods->on_draw_ui("NoClip"_hash, DISPLAY_SYSTEM_A); // 1.5 lines
+                ImGui::SameLine(sameLineWidth);
+                pmods->on_draw_ui("InfAirHikes"_hash, DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Stats"));
 
@@ -765,27 +767,24 @@ namespace gui {
                 pmods->on_draw_ui("KnockbackEdits"_hash, DISPLAY_SYSTEM_A); // needs its own line
 
                 pmods->on_draw_ui("PlayerTracker"_hash, DISPLAY_SYSTEM_A); // needs its own line, also contains game pause
-
+                
                 pmods->on_draw_ui("EnemyTracker"_hash, DISPLAY_SYSTEM_A); // needs its own line
-
-                pmods->on_draw_ui("VisualizeHitbox"_hash, DISPLAY_SYSTEM_A); // needs its own line
 
                 pmods->on_draw_ui("FlyingStats"_hash, DISPLAY_SYSTEM_A); // needs its own line
 
-                pmods->on_draw_ui("DebugCam"_hash, DISPLAY_SYSTEM_A);
-#ifndef PUBLIC_BUILD
-                pmods->on_draw_ui("Coop"_hash, DISPLAY_SYSTEM_A);
-#endif
-                ImGui::SeparatorText(_("Multi-character Fixes"));
-                
-                pmods->on_draw_ui("MultiCharFixes"_hash, DISPLAY_SYSTEM_A);
-
                 ImGui::SeparatorText(_("Misc"));
+
+                pmods->on_draw_ui("VisualizeHitbox"_hash, DISPLAY_SYSTEM_A); // needs its own line
+
+                pmods->on_draw_ui("DebugCam"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("RoomRespawn"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("MutatorSelfAdvertisement"_hash, DISPLAY_SYSTEM_A);
+
                 pmods->on_draw_ui("EffectColours"_hash, DISPLAY_SYSTEM_A);
+
+                pmods->on_draw_ui("PlayerTracker"_hash, DISPLAY_SYSTEM_B); // shadow settings
 #ifndef PUBLIC_BUILD
                 pmods->on_draw_ui("SpiderTwerk"_hash, DISPLAY_SYSTEM_A);
 
@@ -794,7 +793,12 @@ namespace gui {
                 pmods->on_draw_ui("Cock"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("RayTest"_hash, DISPLAY_SYSTEM_A);
+
+                pmods->on_draw_ui("Coop"_hash, DISPLAY_SYSTEM_A);
 #endif
+                ImGui::SeparatorText(_("Multi-character Fixes"));
+
+                pmods->on_draw_ui("MultiCharFixes"_hash, DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Testing"));
 

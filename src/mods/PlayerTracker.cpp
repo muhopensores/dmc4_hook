@@ -978,21 +978,6 @@ void PlayerTracker::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
         ImGui::Checkbox(_("Show Player Params"), &show_player_params);
 
-        if (ImGui::CollapsingHeader(_("Shadow Settings"))) {
-            sUnit* sUnit = devil4_sdk::get_sUnit();
-            if (sUnit) {
-                uShadow* shadow = (uShadow*)sUnit->mMoveLine[1].mBottom;
-                if (shadow) {
-                    ImGui::Indent(lineIndent);
-                    ImGui::InputFloat3(_("Rotation"), &shadow->rotation.x);
-                    ImGui::InputFloat4(_("Colour"), &shadow->colour.x);
-                    ImGui::InputFloat(_("diffuse"), &shadow->diffuse);
-                    ImGui::InputFloat(_("bloom"), &shadow->bloom);
-                    ImGui::Unindent();
-                }
-            }
-        }
-
         if (ImGui::CollapsingHeader(_("View MoveLine Entries"))) {
             sUnit* sUnit = devil4_sdk::get_sUnit();
             if (sUnit) {
@@ -1118,6 +1103,23 @@ void PlayerTracker::on_gui_frame(int display) {
             }
         }
     }
+
+    if (display == DISPLAY_SYSTEM_B) {
+        if (ImGui::CollapsingHeader(_("Shadow Settings"))) {
+            sUnit* sUnit = devil4_sdk::get_sUnit();
+            if (sUnit) {
+                uShadow* shadow = (uShadow*)sUnit->mMoveLine[1].mBottom;
+                if (shadow) {
+                    ImGui::Indent(lineIndent);
+                    ImGui::InputFloat3(_("Rotation"), &shadow->rotation.x);
+                    ImGui::InputFloat4(_("Colour"), &shadow->colour.x);
+                    ImGui::InputFloat(_("diffuse"), &shadow->diffuse);
+                    ImGui::InputFloat(_("bloom"), &shadow->bloom);
+                    ImGui::Unindent();
+                }
+            }
+        }
+	}
 }
 
 // void PlayerTracker::on_config_save(utility::Config& cfg) {}

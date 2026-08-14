@@ -5,9 +5,12 @@ bool InfAirHikes::mod_enabled_nero = false;
 bool InfAirHikes::mod_enabled_dante = false;
 uintptr_t InfAirHikes::jmp_ret1 = NULL;
 uintptr_t InfAirHikes::jmp_ret2 = NULL;
+bool InfAirHikes::infAirHikesDebug = false;
 
 naked void detour1(void) { // player in ecx
     _asm {
+        cmp byte ptr [InfAirHikes::infAirHikesDebug], 1
+        je newcode
         cmp byte ptr [ecx+0x1494], 1 // controller id nero
         je CheckNero
 		cmp byte ptr [InfAirHikes::mod_enabled_dante], 0
@@ -29,6 +32,8 @@ naked void detour1(void) { // player in ecx
 
 naked void detour2(void) { // player in ecx
     _asm {
+        cmp byte ptr [InfAirHikes::infAirHikesDebug], 1
+        je retcode
         cmp byte ptr [ecx+0x1494], 1 // controller id nero
         je CheckNero
 		cmp byte ptr [InfAirHikes::mod_enabled_dante], 0
@@ -76,6 +81,9 @@ void InfAirHikes::on_gui_frame(int display) {
     }
     if (display == DISPLAY_DANTE_A) {
         ImGui::Checkbox(_("Infinite Air Hikes"), &mod_enabled_dante);
+    }
+    if (display == DISPLAY_SYSTEM_A) {
+        ImGui::Checkbox(_("Infinite Air Hikes"), &infAirHikesDebug);
     }
 }
 

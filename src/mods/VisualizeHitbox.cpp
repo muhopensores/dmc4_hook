@@ -385,13 +385,13 @@ std::optional<std::string> VisualizeHitbox::on_initialize() {
 
 void VisualizeHitbox::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
-        if (ImGui::Checkbox(_("Visualize Hitboxes"), &mod_enabled)) {
+        /*if (ImGui::Checkbox(_("Visualize Hitboxes"), &mod_enabled)) {
             mod_enabled4 = false;
         }
         ImGui::SameLine();
-        help_marker(_("Draw hitbox outlines in red"));
+        help_marker(_("Draw hitbox outlines in red"));*/
 
-        if (ImGui::Checkbox(_("Visualize Hitboxes 2"), &mod_enabled4)) {
+        if (ImGui::Checkbox(_("Visualize Hitboxes"), &mod_enabled4)) {
             mod_enabled = false;
         }
         ImGui::SameLine();
@@ -405,21 +405,23 @@ void VisualizeHitbox::on_gui_frame(int display) {
         ImGui::SameLine();
         help_marker(_("Draw enemy step sphere outlines in green"));
 
-        ImGui::Indent(lineIndent);
-        ImGui::Checkbox(_("Debug Stats##EnemyStepSpheres"), &enemyStepSphereDebug);
-        ImGui::Unindent();
+        /*if (mod_enabled3) {
+            ImGui::Indent(lineIndent);
+            ImGui::Checkbox(_("Debug Stats##EnemyStepSpheres"), &enemyStepSphereDebug);
+            ImGui::Unindent();
+        }*/
     }
 }
 
 void VisualizeHitbox::on_config_load(const utility::Config& cfg) {
-    mod_enabled = cfg.get<bool>("visualize_hitbox").value_or(false);
+    //mod_enabled = cfg.get<bool>("visualize_hitbox").value_or(false);
     mod_enabled2 = cfg.get<bool>("visualize_hurtbox").value_or(false);
     mod_enabled3 = cfg.get<bool>("visualize_enemystep").value_or(false);
     mod_enabled4  = cfg.get<bool>("visualize_hitbox2").value_or(false);
 };
 
 void VisualizeHitbox::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("visualize_hitbox", mod_enabled);
+    //cfg.set<bool>("visualize_hitbox", mod_enabled);
     cfg.set<bool>("visualize_hurtbox", mod_enabled2);
     cfg.set<bool>("visualize_enemystep", mod_enabled3);
     cfg.set<bool>("visualize_hitbox2", mod_enabled4);

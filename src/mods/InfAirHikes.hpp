@@ -8,6 +8,7 @@ public:
 
     static bool mod_enabled_nero;
     static bool mod_enabled_dante;
+    static bool infAirHikesDebug;
 
     static uintptr_t jmp_ret1;
     static uintptr_t jmp_ret2;
