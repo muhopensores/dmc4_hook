@@ -126,6 +126,32 @@ body {
   padding: 11px 13px;
   font-weight: 600;
 }
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0.9em 0;
+}
+.task-link {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 10px 12px;
+  background: var(--code-bg);
+  color: var(--text);
+  font-weight: 600;
+}
+.task-link:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  text-decoration: none;
+}
+.task-link small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-weight: 400;
+}
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 h1, h2, h3, h4 { line-height: 1.25; margin: 1.6em 0 0.55em; }
@@ -247,6 +273,7 @@ th {
   .page { padding: 14px 10px 36px; }
   .content { padding: 18px 14px; }
   .toc ul { columns: 1; }
+  .task-grid { grid-template-columns: 1fr; }
   h1 { font-size: 25px; }
   h2 { font-size: 21px; }
   .heading-link { opacity: 1; }
@@ -259,6 +286,7 @@ th {
 <div class="doc-switch">
 <strong>DMC4 Macro Docs</strong>
 <a href="macro_script_reference.html">Open Script Reference</a>
+<a href="https://github.com/muhopensores/dmc4_hook/releases/latest">Official Hook Release</a>
 </div>
 <label class="search-label" for="doc-search">Search this page</label>
 <input class="doc-search" id="doc-search" type="search" placeholder="TAP, MOVE_LEFT, Snapshot..." autocomplete="off">
@@ -267,8 +295,8 @@ th {
 <h2>Contents</h2>
 <ul>
 <li class="toc-level-1"><a href="#dmc4-macro-battle-snapshot-player-guide">DMC4 Macro + Battle Snapshot Player Guide</a></li>
-<li class="toc-level-2"><a href="#start-here">Start Here</a></li>
-<li class="toc-level-2"><a href="#reading-path">Reading Path</a></li>
+<li class="toc-level-2"><a href="#quick-start">Quick Start</a></li>
+<li class="toc-level-2"><a href="#find-what-you-need">Find What You Need</a></li>
 <li class="toc-level-2"><a href="#install">Install</a></li>
 <li class="toc-level-2"><a href="#ten-minute-first-macro">Ten-Minute First Macro</a></li>
 <li class="toc-level-2"><a href="#the-input-rule">The Input Rule</a></li>
@@ -301,61 +329,49 @@ th {
 <article class="content" id="document-content">
 <h1 id="dmc4-macro-battle-snapshot-player-guide" data-search-heading="DMC4 Macro + Battle Snapshot Player Guide">DMC4 Macro + Battle Snapshot Player Guide<a class="heading-link" href="#dmc4-macro-battle-snapshot-player-guide" aria-label="Link to DMC4 Macro + Battle Snapshot Player Guide">#</a></h1>
 
-<p>Use this guide to install the build, run your first macro, understand controller inputs, and choose a practice workflow. If you are new to macro scripts, start from the top and stop after <code>Timing Basics</code>; Snapshot, Setup, and advanced animation waits can wait until your first simple route works.</p>
+<p>Use this guide to run your first macro, understand controller inputs, and choose a repeatable practice workflow. New players can begin with the steps below and open the detailed sections only when they need them.</p>
 
-<p>For every accepted input name, command, alias, <code>WAIT_UNTIL</code> condition, and <code>[Setup]</code> field, open <code>macro_script_reference.html</code>.</p>
+<h2 id="quick-start" data-search-heading="Quick Start">Quick Start<a class="heading-link" href="#quick-start" aria-label="Link to Quick Start">#</a></h2>
 
-<h2 id="start-here" data-search-heading="Start Here">Start Here<a class="heading-link" href="#start-here" aria-label="Link to Start Here">#</a></h2>
+<ol>
+<li>Put <code>dinput8.dll</code> and <code>macro.txt</code> next to <code>DevilMayCry4_DX9.exe</code>. See <a href="#install">Install</a> for download links and details.</li>
+<li>Open the Hook GUI, go to <code>Training -&gt; Macro</code>, enable <code>Macro</code>, and make sure <code>Nero Action Mapping -&gt; JUMP</code> matches Nero's Jump button in DMC4.</li>
+<li>Put the clip below in <code>macro.txt</code>, save the file, select <code>Jump test</code> in the GUI, play as Nero, and press <code>V</code>.</li>
+</ol>
 
-<p>Macro reads <code>macro*.txt</code> files and sends input through DMC4's controller input layer. It does not send Windows keyboard events.</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">[V][Nero] Jump test
+TAP JUMP</code></pre></div>
 
-<p>Think of a macro file as an automatic controller note sheet. Macro reads from top to bottom and does exactly what the lines say: press this input, keep holding that input, wait a short time, release this input, or run a Hook action.</p>
+<div class="callout">Nero should jump once. If another action happens, fix Nero Action Mapping first. <code>TAP JUMP</code> follows that mapping; a physical name such as <code>TAP A</code> always presses A / Cross.</div>
 
-<p>The build also includes:</p>
+<p>Macro is an automatic controller note sheet: it reads a clip from top to bottom and sends DMC4 controller input. It does not send Windows keyboard events. Continue with <a href="#ten-minute-first-macro">Ten-Minute First Macro</a> to add waits, held inputs, simultaneous inputs, and an optional controller shortcut.</p>
 
-<ul>
-<li>Battle Snapshot for repeatable same-room practice</li>
-<li>Macro Setup blocks for text-based player, camera, and enemy placement</li>
-<li>Animation Overlay for observing animation state and timing</li>
-<li>Macro Playback Overlay for seeing the current line, next line, held inputs, and progress</li>
-<li>Character Switcher support for macros that intentionally use both characters</li>
-</ul>
+<h2 id="find-what-you-need" data-search-heading="Find What You Need">Find What You Need<a class="heading-link" href="#find-what-you-need" aria-label="Link to Find What You Need">#</a></h2>
+
+<div class="task-grid">
+<a class="task-link" href="#ten-minute-first-macro">Write my first combo<small>Learn TAP, WAIT, HOLD, RELEASE, and playback debugging.</small></a>
+<a class="task-link" href="#gamepad-shortcuts">Start clips with a controller<small>Use Back/Select plus one shortcut button.</small></a>
+<a class="task-link" href="#the-input-rule">Know what follows TAP or HOLD<small>Separate input names from complete Hook commands.</small></a>
+<a class="task-link" href="#buttons-and-sticks">Use sticks or D-pad<small>Find movement, camera, stick-click, and D-pad names.</small></a>
+<a class="task-link" href="#combining-inputs-with">Press several inputs together<small>Use + for same-tick controller input.</small></a>
+<a class="task-link" href="#timing-basics">Control combo timing<small>Understand WAIT, WAIT_UNTIL, and held input.</small></a>
+<a class="task-link" href="#battle-snapshot">Repeat the same encounter<small>Capture and restore supported battle state.</small></a>
+<a class="task-link" href="#macro-setup">Prepare a scene from text<small>Place the player, camera, and supported enemies.</small></a>
+<a class="task-link" href="#troubleshooting">Fix a script problem<small>Look up common symptoms and likely causes.</small></a>
+<a class="task-link" href="macro_script_reference.html">Look up every command<small>Open the complete input, command, wait, and Setup reference.</small></a>
+</div>
 
 <p>Battle Snapshot and Macro Setup are practice tools, not full savestates. They do not restore every projectile, effect, animation, enemy AI state, or mission script.</p>
 
-<h2 id="reading-path" data-search-heading="Reading Path">Reading Path<a class="heading-link" href="#reading-path" aria-label="Link to Reading Path">#</a></h2>
-
-<p>For a first macro, read only:</p>
-
-<ol>
-<li><code>Install</code></li>
-<li><code>Ten-Minute First Macro</code></li>
-<li><code>The Input Rule</code></li>
-<li><code>Buttons And Sticks</code></li>
-<li><code>Combining Inputs With +</code></li>
-<li><code>Timing Basics</code></li>
-</ol>
-
-<p>After that, use <code>Macro Playback Overlay</code> when something does not happen at the expected line.</p>
-
-<p>For regular combo writing, add:</p>
-
-<ul>
-<li><code>Character Tags And Action Mapping</code></li>
-<li><code>Gamepad Shortcuts</code></li>
-<li><code>Simple Recipes</code></li>
-</ul>
-
-<p>For repeatable practice setups, read:</p>
-
-<ul>
-<li><code>Battle Snapshot</code></li>
-<li><code>Macro Setup</code></li>
-</ul>
-
-<p>For advanced timing, open <code>macro_script_reference.html</code> and look up <code>WAIT_UNTIL</code>, <code>ANIM_FRAME</code>, <code>MOVEID2</code>, and the troubleshooting index.</p>
-
 <h2 id="install" data-search-heading="Install">Install<a class="heading-link" href="#install" aria-label="Link to Install">#</a></h2>
+
+<p>Required files:</p>
+
+<ul>
+<li><a href="https://github.com/muhopensores/dmc4_hook/releases/latest"><code>dinput8.dll</code> from the latest official Hook release</a></li>
+<li><a href="https://raw.githubusercontent.com/muhopensores/dmc4_hook/struct-revamp/macro.txt"><code>macro.txt</code> sample file</a>, or a new plain-text file with that name</li>
+<li><code>macro_release.html</code> and <code>macro_script_reference.html</code> kept together if you want the links between both guides to work offline</li>
+</ul>
 
 <ol>
 <li>Close the game.</li>
@@ -375,6 +391,8 @@ macro_boss_practice.txt</code></pre></div>
 <p>Use <code>Custom Macro File</code> when the file is stored somewhere else.</p>
 
 <h2 id="ten-minute-first-macro" data-search-heading="Ten-Minute First Macro">Ten-Minute First Macro<a class="heading-link" href="#ten-minute-first-macro" aria-label="Link to Ten-Minute First Macro">#</a></h2>
+
+<p>Before testing action names, open <code>Training -&gt; Macro -&gt; Nero Action Mapping</code> and match <code>JUMP</code>, <code>MELEE</code>, and <code>LOCK_ON</code> to Nero's current DMC4 controller settings. Action names follow this table; physical button names such as <code>A</code> or <code>Y</code> do not.</p>
 
 <p>Create or edit <code>macro.txt</code>:</p>
 
@@ -412,8 +430,6 @@ TAP JUMP</code></pre></div>
 <p>Nero should jump once.</p>
 
 <p>If you used the controller shortcut version, also enable <code>Gamepad Hotkeys</code>, then hold <code>Back/Select</code> first and press <code>A / Cross</code>. Pressing <code>A / Cross</code> first will not trigger the shortcut. While <code>Gamepad Hotkeys</code> is enabled, Back/Select is reserved by Macro shortcuts and will not trigger its normal in-game action manually.</p>
-
-<p>If a different action happens, open <code>Nero Action Mapping</code> and set <code>JUMP</code> to the same button used by Nero in DMC4's controller settings.</p>
 
 <p>For Dante, change the header to:</p>
 
