@@ -155,6 +155,26 @@ static __declspec(naked) void start_hook_steam() {
     }
 }
 
+static bool IsExecutableAddress(const uintptr_t addr)
+{
+    MEMORY_BASIC_INFORMATION mbi{};
+    if (VirtualQuery((void*)addr, &mbi, sizeof(mbi)) != sizeof(mbi))
+        return false;
+
+    if (mbi.State != MEM_COMMIT)
+        return false;
+
+    if (mbi.Protect & (PAGE_NOACCESS | PAGE_GUARD))
+        return false;
+
+    DWORD protect = mbi.Protect & 0xFF;
+
+    return protect == PAGE_EXECUTE ||
+           protect == PAGE_EXECUTE_READ ||
+           protect == PAGE_EXECUTE_READWRITE ||
+           protect == PAGE_EXECUTE_WRITECOPY;
+}
+
 BOOL APIENTRY DllMain(HMODULE handle, DWORD reason, LPVOID reserved) { //NOLINT
     if (reason == DLL_PROCESS_ATTACH) {
 #ifndef NDEBUG
@@ -162,17 +182,20 @@ BOOL APIENTRY DllMain(HMODULE handle, DWORD reason, LPVOID reserved) { //NOLINT
 #endif
 
         assert(DisableThreadLibraryCalls(handle));
+        FunctionHook::set_mh_skip_locks(TRUE);
 
-        load_original_dinput8();
-        assert(g_dinput != NULL);
+        static constexpr uintptr_t STEAM_STUB_EPILOGUE = 0x00EE6981;
 
-        if (check_pe_section(".bind")) { // fucking steam
-            g_start_hook = std::make_unique<FunctionHook>(0x00EE6981, &start_hook_steam);
+        if (IsExecutableAddress(STEAM_STUB_EPILOGUE)) { // fucking steam
+            g_start_hook = std::make_unique<FunctionHook>(STEAM_STUB_EPILOGUE, &start_hook_steam);
         }
         else { // fucking no steam
             g_start_hook = std::make_unique<FunctionHook>(0x00B53D9A, &start_hook);
         }
         g_start_hook->create();
+
+        load_original_dinput8();
+        assert(g_dinput != NULL);
 
         //CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)startup_thread, nullptr, 0, nullptr);
     }
