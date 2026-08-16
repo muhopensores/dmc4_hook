@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <initializer_list>
 #include <string>
 
 bool AnimationOverlay::mod_enabled = false;
@@ -158,9 +159,22 @@ void draw_shadow_text(const std::string& text, const ImVec4& color) {
     ImGui::TextColored(color, "%s", text.c_str());
 }
 
-void draw_key_value_line(const char* label, const std::string& value, const ImVec4& label_color, const ImVec4& value_color) {
+float key_value_column(std::initializer_list<const char*> labels) {
+    float label_width = 0.0f;
+    for (const char* label : labels) {
+        label_width = std::max(label_width, ImGui::CalcTextSize(label).x);
+    }
+    return ImGui::GetCursorPosX() + label_width + ImGui::GetStyle().ItemSpacing.x;
+}
+
+void draw_key_value_line(
+    const char* label,
+    const std::string& value,
+    float value_column,
+    const ImVec4& label_color,
+    const ImVec4& value_color) {
     ImGui::TextColored(label_color, "%s", label);
-    ImGui::SameLine(115.0f);
+    ImGui::SameLine(value_column);
     draw_shadow_text(value, value_color);
 }
 
@@ -189,7 +203,7 @@ std::string format_frame_line(const AnimationOverlayState& state) {
 
 std::string format_part_line(const AnimationOverlayState& state) {
     char buffer[64]{};
-    std::snprintf(buffer, sizeof(buffer), _("Part %u"), state.move_part);
+    std::snprintf(buffer, sizeof(buffer), "%u", state.move_part);
     return buffer;
 }
 
@@ -261,20 +275,33 @@ void AnimationOverlay::on_frame(fmilliseconds& dt) {
     draw_frame_progress_bar(state, palette);
 
     ImGui::UpdateCurrentFontSize(1.36f * ImGui::GetStyle().FontSizeBase);
-    draw_key_value_line(_("MoveID2"), format_hex32(state.move_id2), palette.muted, palette.body);
-    draw_key_value_line(_("Anim"), format_hex16(state.anim_id), palette.muted, palette.body);
-    draw_key_value_line(_("Move Part"), format_part_line(state), palette.muted, palette.body);
+    const float primary_value_column = key_value_column({ _("MoveID2"), _("Anim"), _("Move Part") });
+    draw_key_value_line(_("MoveID2"), format_hex32(state.move_id2), primary_value_column, palette.muted, palette.body);
+    draw_key_value_line(_("Anim"), format_hex16(state.anim_id), primary_value_column, palette.muted, palette.body);
+    draw_key_value_line(_("Move Part"), format_part_line(state), primary_value_column, palette.muted, palette.body);
 
     if (show_advanced) {
         ImGui::Separator();
         ImGui::UpdateCurrentFontSize(1.18f * ImGui::GetStyle().FontSizeBase);
-        draw_key_value_line(_("Bank"), format_hex32(state.move_bank), palette.muted, palette.body);
-        draw_key_value_line(_("Ground Raw"), std::to_string(state.grounded_raw), palette.muted, palette.body);
-        draw_key_value_line(_("Ground2"), state.grounded2 ? "1" : "0", palette.muted, palette.body);
-        draw_key_value_line(_("Land Flag"), state.has_collision_land ? (state.collision_land ? "1" : "0") : _("n/a"), palette.muted, palette.body);
+        const float advanced_value_column =
+            key_value_column({ _("Bank"), _("Ground Raw"), _("Ground2"), _("Land Flag"), _("Hitstop") });
+        draw_key_value_line(_("Bank"), format_hex32(state.move_bank), advanced_value_column, palette.muted, palette.body);
+        draw_key_value_line(_("Ground Raw"), std::to_string(state.grounded_raw), advanced_value_column, palette.muted, palette.body);
+        draw_key_value_line(_("Ground2"), state.grounded2 ? "1" : "0", advanced_value_column, palette.muted, palette.body);
+        draw_key_value_line(
+            _("Land Flag"),
+            state.has_collision_land ? (state.collision_land ? "1" : "0") : _("n/a"),
+            advanced_value_column,
+            palette.muted,
+            palette.body);
         char hitstop_buffer[32]{};
         std::snprintf(hitstop_buffer, sizeof(hitstop_buffer), "%.1f", state.hitstop_timer);
-        draw_key_value_line(_("Hitstop"), hitstop_buffer, palette.muted, state.hitstop ? palette.warning : palette.body);
+        draw_key_value_line(
+            _("Hitstop"),
+            hitstop_buffer,
+            advanced_value_column,
+            palette.muted,
+            state.hitstop ? palette.warning : palette.body);
     }
 
     ImGui::UpdateCurrentFontSize(0.0f);

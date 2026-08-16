@@ -32,7 +32,6 @@ static uintptr_t uCameraCtrl_setup_end = 0x04f76da;
 //std::vector<void*> CamArr;
 //std::vector<void*> HUDArr;
 
-uintptr_t Coop::jmp_ret1 = NULL;
 uintptr_t Coop::jmp_ret2 = NULL;
 uintptr_t Coop::jmp_ret3 = NULL;
 uintptr_t Coop::jmp_ret4 = NULL;
@@ -161,35 +160,13 @@ void __stdcall new_pad_update_func(cPeripheral* peri) {
     update_analog_info(&peri->mAnlgR);
 }
 
-naked void detour1() {
-    _asm {
-            pushad
-            push [esp+0x20+0x4]
-            call Macro::on_pad_update_tick
-            popad
-            cmp byte ptr [Macro::input_active], 1
-            jne coopcheck
-            pushad
-            push [esp+0x20+0x4]
-            call Macro::on_player_pad_update
-            popad
-            jmp handle
-        coopcheck:
-            cmp byte ptr [Coop::mod_enabled], 1
-            jne originalcode
-            pushad
-            push [esp+0x20+0x4]
-            call new_pad_update_func
-            popad
-            jmp handle
-        originalcode:
-            push ebp
-            mov ebp,esp
-            and esp,-0x08
-            jmp [Coop::jmp_ret1]
-        handle:
-            ret 4
+bool __stdcall coop_pad_update_fallback(cPeripheral* peripheral) {
+    if (!Coop::mod_enabled) {
+        return false;
     }
+
+    new_pad_update_func(peripheral);
+    return true;
 }
 
 sDevil4Pad* create_pad(int id) {
@@ -620,11 +597,6 @@ naked void detour12() {//Dante HUD
 }
 
 std::optional<std::string> Coop::on_initialize() {
-    if (!install_hook_offset(0x3AFD10, hook1, &detour1, &jmp_ret1, 6)) { //replace player pad update func
-        spdlog::error("Failed to init Coop mod1\n");
-        return "Failed to init Coop mod1";
-    }
-
     if (!install_hook_offset(0x4AEFA1, hook2, &detour2, &jmp_ret2, 6)) { //call sPad move loop
         spdlog::error("Failed to init Coop mod2\n");
         return "Failed to init Coop mod2";
@@ -682,6 +654,8 @@ std::optional<std::string> Coop::on_initialize() {
     //    return "Failed to init Coop mod4";
     //}
 
+
+    Macro::set_pad_update_fallback(&coop_pad_update_fallback);
 
     //std::thread init([]() {
     //    while (*sDevil4Pad_ptr == nullptr)

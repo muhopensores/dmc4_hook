@@ -61,6 +61,8 @@ struct MacroClip {
 
 class Macro : public Mod {
 public:
+    using PadUpdateFallback = bool(__stdcall*)(cPeripheral* peripheral);
+
     Macro() = default;
     std::string get_mod_name() override { return "Macro"; };
 
@@ -98,9 +100,12 @@ public:
     static std::vector<MacroClip> playback_clips;
     static std::vector<MacroFrame> playback_frames;
     static std::vector<MacroSourceLine> playback_source_lines;
+    static uintptr_t player_pad_jmp_ret;
 
+    static bool __stdcall dispatch_player_pad_update(cPeripheral* peripheral);
     static void __stdcall on_pad_update_tick(cPeripheral* peripheral);
     static void __stdcall on_player_pad_update(cPeripheral* peripheral);
+    static void set_pad_update_fallback(PadUpdateFallback fallback);
 
     std::optional<std::string> on_initialize() override;
     void on_frame(fmilliseconds& dt) override;
@@ -115,6 +120,8 @@ public:
     static void prepare_for_external_transition();
 
 private:
+    std::unique_ptr<FunctionHook> player_pad_hook;
+
     static void write_test_input(cPeripheral* peripheral, uint32_t player_index);
     static void reset_input_state();
     static bool load_playback_file();
