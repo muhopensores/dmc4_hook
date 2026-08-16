@@ -432,6 +432,25 @@ uint64_t known_macro_file_size = 0;
 uint32_t gamepad_hotkey_chord_state = 0;
 uint32_t gamepad_hotkey_raw_buttons = 0;
 uint32_t capture_gamepad_hotkey_target = 0;
+static Macro::PadUpdateFallback player_pad_update_fallback = nullptr;
+
+naked void player_pad_update_detour() {
+    _asm {
+            pushad
+            push [esp+0x20+0x4]
+            call Macro::dispatch_player_pad_update
+            test al,al
+            jz originalcode
+            popad
+            ret 4
+        originalcode:
+            popad
+            push ebp
+            mov ebp,esp
+            and esp,-0x08
+            jmp [Macro::player_pad_jmp_ret]
+    }
+}
 
 void update_config_hotkey_vkeys(const std::vector<std::unique_ptr<utility::Hotkey>>& hotkeys);
 std::string trim_copy(const std::string& value);
@@ -6258,11 +6277,32 @@ char Macro::playback_status[256] = "No Macro file loaded.";
 std::vector<MacroClip> Macro::playback_clips{};
 std::vector<MacroFrame> Macro::playback_frames{};
 std::vector<MacroSourceLine> Macro::playback_source_lines{};
+uintptr_t Macro::player_pad_jmp_ret = 0;
 
 std::optional<std::string> Macro::on_initialize() {
     macro_instance = this;
     ensure_keyboard_hotkeys(m_hotkeys);
+
+    if (!install_hook_offset(0x3AFD10, player_pad_hook, &player_pad_update_detour, &player_pad_jmp_ret, 6)) {
+        return "Failed to initialize Macro player input hook";
+    }
+
     return Mod::on_initialize();
+}
+
+bool __stdcall Macro::dispatch_player_pad_update(cPeripheral* peripheral) {
+    on_pad_update_tick(peripheral);
+
+    if (input_active) {
+        on_player_pad_update(peripheral);
+        return true;
+    }
+
+    return player_pad_update_fallback && player_pad_update_fallback(peripheral);
+}
+
+void Macro::set_pad_update_fallback(PadUpdateFallback fallback) {
+    player_pad_update_fallback = fallback;
 }
 
 void Macro::prepare_for_external_transition() {
