@@ -51,7 +51,7 @@ static void patch_more_memories() {
 
     VirtualProtect(globalMem, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
     *globalMem = 0x0A000000; // was push 06000000
-    VirtualProtect(globalMem, 4, PAGE_READONLY, &oldProtect);
+    VirtualProtect(globalMem, 4, oldProtect, &oldProtect);
 
     VirtualProtect(tempMem, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
     *tempMem = 0x03000000; // was push 02000000
@@ -92,8 +92,6 @@ static bool reopen_console_stream(FILE** new_stream, const char* name, const cha
 #endif
 //static DWORD WINAPI startup_thread([[maybe_unused]] LPVOID parameter) {
 static void WINAPI startup_proc() {
-
-     patch_more_memories();
 
 #ifndef NDEBUG // TODO(deep): freopen_s fails for me in debug, doubt anyone else cares though
     AllocConsole();
@@ -193,6 +191,8 @@ BOOL APIENTRY DllMain(HMODULE handle, DWORD reason, LPVOID reserved) { //NOLINT
             g_start_hook = std::make_unique<FunctionHook>(0x00B53D9A, &start_hook);
         }
         g_start_hook->create();
+
+        patch_more_memories();
 
         load_original_dinput8();
         assert(g_dinput != NULL);

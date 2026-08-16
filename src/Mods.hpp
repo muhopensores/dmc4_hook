@@ -1,6 +1,6 @@
 #pragma once
 
-// #define PUBLIC_BUILD
+#define PUBLIC_BUILD
 #include "Mod.hpp"
 //#include <unordered_map>
 
