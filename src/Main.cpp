@@ -24,6 +24,7 @@ __declspec(dllexport) HRESULT WINAPI direct_input8_create(
 }
 }
 
+#if 0
 static bool check_pe_section(const char* section_name) noexcept {
     HMODULE h_module                    = GetModuleHandle(NULL);
     IMAGE_NT_HEADERS* p_nt_hdr          = ImageNtHeader(h_module); // get PE info
@@ -39,6 +40,7 @@ static bool check_pe_section(const char* section_name) noexcept {
 
     return false;
 }
+#endif
 
 static void patch_more_memories() {
     // increase global, temp, resource mem
@@ -115,6 +117,8 @@ static void WINAPI startup_proc() {
     }
 #endif
 
+    patch_more_memories();
+
     g_framework = std::make_unique<ModFramework>();
 
     return /*ERROR_SUCCESS*/;
@@ -122,6 +126,8 @@ static void WINAPI startup_proc() {
 
 static std::unique_ptr<FunctionHook> g_start_hook;
 static int start_hook() {
+    static constexpr uintptr_t security_init_cookie_ = 0x00B5D11A;
+    _asm { call security_init_cookie_ }
 
 #ifndef NDEBUG
     assert(g_start_hook);
@@ -131,29 +137,26 @@ static int start_hook() {
 #endif // !NDEBUG
 
     startup_proc();
-    if (IsDebuggerPresent()) {
-        static constexpr uintptr_t security_init_cookie_ = 0x00B53D9A;
-        static constexpr uintptr_t tmain_CRT_startup_ = 0x00B53BBA;
-        __asm {
-            jmp  tmain_CRT_startup_
-        }
-    }
-    return g_start_hook->get_original<decltype(start_hook)>()();
+
+    static constexpr uintptr_t tmain_CRT_startup_ = 0x00B53BBA;
+    /*return*/ __asm { jmp  tmain_CRT_startup_ }
 }
+
 
 static uintptr_t g_steam_drm_jump_back = 0x00EE6987;
 #undef naked
 static __declspec(naked) void start_hook_steam() {
     __asm {
-        pushad
-        call startup_proc
-        popad
-        mov eax,[ebp-430h]
+        //pushad
+        //call startup_proc
+        //popad
+        //mov eax,[ebp-430h]
+        mov eax, start_hook
         jmp DWORD PTR [g_steam_drm_jump_back]
     }
 }
 
-static bool IsExecutableAddress(const uintptr_t addr)
+static bool is_executable_addr(const uintptr_t addr)
 {
     MEMORY_BASIC_INFORMATION mbi{};
     if (VirtualQuery((void*)addr, &mbi, sizeof(mbi)) != sizeof(mbi))
@@ -176,7 +179,7 @@ static bool IsExecutableAddress(const uintptr_t addr)
 BOOL APIENTRY DllMain(HMODULE handle, DWORD reason, LPVOID reserved) { //NOLINT
     if (reason == DLL_PROCESS_ATTACH) {
 #ifndef NDEBUG
-        //MessageBox(NULL, "Debug attach opportunity", "DMC4", MB_ICONINFORMATION);
+        MessageBox(NULL, "Debug attach opportunity", "DMC4", MB_ICONINFORMATION);
 #endif
 
         assert(DisableThreadLibraryCalls(handle));
@@ -184,15 +187,13 @@ BOOL APIENTRY DllMain(HMODULE handle, DWORD reason, LPVOID reserved) { //NOLINT
 
         static constexpr uintptr_t STEAM_STUB_EPILOGUE = 0x00EE6981;
 
-        if (IsExecutableAddress(STEAM_STUB_EPILOGUE)) { // fucking steam
+        if (is_executable_addr(STEAM_STUB_EPILOGUE)) { // fucking steam
             g_start_hook = std::make_unique<FunctionHook>(STEAM_STUB_EPILOGUE, &start_hook_steam);
         }
         else { // fucking no steam
             g_start_hook = std::make_unique<FunctionHook>(0x00B53D9A, &start_hook);
         }
         g_start_hook->create();
-
-        patch_more_memories();
 
         load_original_dinput8();
         assert(g_dinput != NULL);
