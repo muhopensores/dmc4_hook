@@ -88,7 +88,7 @@ void FloorIsLava::on_frame(fmilliseconds& dt) {
             ImGui::End();
         }
 
-        if (!grounded_allowed && player->collisionSettings->mLand == 1) {
+        if (!grounded_allowed && player->cancels2[0] & 2 /* player->collisionSettings->mLand == 1*/) {
             player->damageStruct.HP = 0.0f;
             KillPlayer();
         }
