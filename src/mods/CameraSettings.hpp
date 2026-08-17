@@ -28,6 +28,7 @@ public:
     static uintptr_t camera_sens_brakes_continue;
     static bool noclip_cam_enabled;
     static bool camera_lookdown_enabled;
+    static bool camera_disable_lookdown_enabled;
     static bool camera_reset_enabled;
     static bool cam_right;
     static bool disable_last_enemy_zoom;
@@ -48,6 +49,7 @@ public:
     void on_gui_frame(int display) override;
     void toggle_attack_towards_cam(bool toggle);
     void toggle_camera_lookdown(bool toggle);
+    void toggle_disable_camera_lookdown(bool toggle);
     void toggle_disable_last_enemy_zoom(bool toggle);
     void toggle_force_last_enemy_zoom(bool toggle);
     void toggle_pause_camera(bool toggle);
@@ -70,6 +72,7 @@ private:
     std::unique_ptr<Patch> disable_boss_cam_patch1;
     std::unique_ptr<Patch> attack_towards_cam_patch1;
     std::unique_ptr<Patch> patch_camera_lookdown;
+    std::unique_ptr<Patch> patch_disable_camera_lookdown;
     std::unique_ptr<Patch> camera_disable_last_enemy_zoom_patch;
     std::unique_ptr<Patch> patch_pause_camera;
     std::unique_ptr<Patch> camera_lockon_corrects_patch1;

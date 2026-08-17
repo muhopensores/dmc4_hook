@@ -13,6 +13,7 @@ float CameraSettings::camera_angle_lockon = 0;
 float CameraSettings::camera_fov_in_battle = 0;
 float CameraSettings::camera_fov = 0;
 bool CameraSettings::camera_lookdown_enabled = false;
+bool CameraSettings::camera_disable_lookdown_enabled = false;
 bool CameraSettings::camera_reset_enabled = false;
 bool CameraSettings::cam_right = false;
 bool CameraSettings::disable_last_enemy_zoom = false;
@@ -364,6 +365,14 @@ void CameraSettings::toggle_camera_lookdown(bool toggle) {
     }
 }
 
+void CameraSettings::toggle_disable_camera_lookdown(bool toggle) {
+    if (toggle) {
+        install_patch_offset(0x13244D, patch_disable_camera_lookdown, "\x90\x90", 2);
+    } else {
+        patch_disable_camera_lookdown.reset();
+    }
+}
+
 void CameraSettings::toggle_disable_last_enemy_zoom(bool toggle) {
     if (toggle) {
         install_patch_offset(0x1A4DA, camera_disable_last_enemy_zoom_patch, "\xEB\x50", 2); // jmp
@@ -457,10 +466,22 @@ void CameraSettings::on_gui_frame(int display) {
         help_marker(_("Increases the camera rotation speed"));
 
         if (ImGui::Checkbox(_("Camera Lookdown"), &camera_lookdown_enabled)) {
+            camera_disable_lookdown_enabled = false;
+            toggle_disable_camera_lookdown(camera_disable_lookdown_enabled);
+
             toggle_camera_lookdown(camera_lookdown_enabled);
         }
         ImGui::SameLine();
         help_marker(_("When above the locked on enemy the camera will look down"));
+        ImGui::SameLine(sameLineWidth);
+        if (ImGui::Checkbox(_("Disable Camera Lookdown"), &camera_disable_lookdown_enabled)) {
+            camera_lookdown_enabled = false;
+            toggle_camera_lookdown(camera_lookdown_enabled);
+
+            toggle_disable_camera_lookdown(camera_disable_lookdown_enabled);
+        }
+        ImGui::SameLine();
+        help_marker(_("Disable the camera looking down if you were on a platform above an locked on enemy"));
 
         if (ImGui::Checkbox(_("Disable Boss Camera"), &disable_boss_camera)) {
             toggle_boss_camera(disable_boss_camera);
@@ -678,6 +699,8 @@ void CameraSettings::on_config_load(const utility::Config& cfg) {
     if (camera_auto_correct_towards_cam_enabled) toggle_attack_towards_cam(camera_auto_correct_towards_cam_enabled);
     camera_lookdown_enabled = cfg.get<bool>("camera_lookdown").value_or(false);
     if (camera_lookdown_enabled) toggle_camera_lookdown(camera_lookdown_enabled);
+    camera_disable_lookdown_enabled = cfg.get<bool>("disable_camera_lookdown").value_or(false);
+    if (camera_disable_lookdown_enabled) toggle_disable_camera_lookdown(camera_disable_lookdown_enabled);
     camera_reset_enabled = cfg.get<bool>("camera_reset").value_or(false);
     cam_right = cfg.get<bool>("right_side_reset").value_or(false);
     disable_last_enemy_zoom = cfg.get<bool>("disable_last_enemy_zoom").value_or(false);
@@ -704,6 +727,7 @@ void CameraSettings::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("increased_camera_sensitivity", camera_sens_enabled);
     cfg.set<bool>("disable_camera_autocorrect_towards_camera", camera_auto_correct_towards_cam_enabled);
     cfg.set<bool>("camera_lookdown", camera_lookdown_enabled);
+    cfg.set<bool>("disable_camera_lookdown", camera_disable_lookdown_enabled);
     cfg.set<bool>("camera_reset", camera_reset_enabled);
     cfg.set<bool>("right_side_reset", cam_right);
     cfg.set<bool>("disable_last_enemy_zoom", disable_last_enemy_zoom);

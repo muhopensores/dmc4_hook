@@ -170,7 +170,7 @@ void EnvironmentalHazards::on_gui_frame(int display) {
             }
         }
         ImGui::SameLine();
-        help_marker(_("Press taunt to spawn a platform under the locked on enemy"));
+        help_marker(_("Press taunt to spawn a platform under the locked on enemy. I recommend pairing this with \"Disable Camera Lookdown\" in System->Camera"));
         ImGui::EndGroup();
     }
 }
