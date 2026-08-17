@@ -108,9 +108,12 @@ naked void call1(void) {
         cmp byte ptr [esi+0x2005], 0 // is enemy step banned
         je save_and_exit_false
         
-        mov esi, [esi+0x1e8c]
-        cmp dword ptr [esi+0x1c], 0 // groundedActual
-        jne save_and_exit_false
+        test dword ptr [esi+0x1554], 2
+        je save_and_exit_false
+
+        //mov esi, [esi+0x1e8c]
+        //cmp dword ptr [esi+0x1c], 0 // groundedActual
+        //jne save_and_exit_false
         
         cmp ebx, 0
         jne just_update_timer

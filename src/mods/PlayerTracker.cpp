@@ -20,7 +20,7 @@ float PlayerTracker::savedPlayerInertia = 0;
 int8_t PlayerTracker::savedPlayerMoveID   = 0;
 int8_t PlayerTracker::savedPlayerMoveBank = 0;
 uint8_t PlayerTracker::savedPlayerCancels1[]{ 0, 0, 0, 0 };
-uint32_t PlayerTracker::savedPlayerCancels2[]{ 0, 0, 0, 0 };
+uint32_t PlayerTracker::savedPlayerCancels2 = 0;
 uint32_t PlayerTracker::savedPlayerSword = 0;
 uint32_t PlayerTracker::savedPlayerGun = 0;
 uint32_t PlayerTracker::savedPlayerStyle = 0;
@@ -832,10 +832,7 @@ void PlayerTracker::SavePlayerMove() {
         savedPlayerCancels1[1]     = player->cancels1[1];
         savedPlayerCancels1[2]     = player->cancels1[2];
         savedPlayerCancels1[3]     = player->cancels1[3];
-        savedPlayerCancels2[0]     = player->cancels2[0];
-        savedPlayerCancels2[1]     = player->cancels2[1];
-        savedPlayerCancels2[2]     = player->cancels2[2];
-        savedPlayerCancels2[3]     = player->cancels2[3];
+        savedPlayerCancels2        = player->cancels2;
         savedPlayerLockonAnimation = player->isLockonAnimation;
         savedPlayerCanWeaponChange = player->canWeaponChange;
         SavePlayerXYZ();
@@ -857,10 +854,7 @@ void PlayerTracker::LoadPlayerMove() {
         player->cancels1[1]       = savedPlayerCancels1[1];
         player->cancels1[2]       = savedPlayerCancels1[2];
         player->cancels1[3]       = savedPlayerCancels1[3];
-        player->cancels2[0]       = savedPlayerCancels2[0]; // fixes grounded saves not being loaded in the air correctly
-        player->cancels2[1]       = savedPlayerCancels2[1];
-        player->cancels2[2]       = savedPlayerCancels2[2];
-        player->cancels2[3]       = savedPlayerCancels2[3];
+        player->cancels2          = savedPlayerCancels2; // fixes grounded saves not being loaded in the air correctly
         player->isLockonAnimation = savedPlayerLockonAnimation; // fixes not being able to load aerial animations while in the grounded lockon animation
         player->canWeaponChange   = savedPlayerCanWeaponChange;
 

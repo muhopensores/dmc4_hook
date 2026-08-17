@@ -16,7 +16,7 @@
 
 #include <shlobj.h>
 
-#define GUI_VERSION "dmc4_hook 1.6.2"
+#define GUI_VERSION "dmc4_hook 1.6.3 PRE RELEASE"
 
 static constexpr char* version{GUI_VERSION};
 static constexpr float uiWidth       = 600.0f;

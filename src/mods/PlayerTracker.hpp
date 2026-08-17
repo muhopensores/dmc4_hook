@@ -18,7 +18,7 @@ public:
     static int8_t savedPlayerMoveBank;
     static int8_t savedPlayerMoveID;
     static uint8_t savedPlayerCancels1[4];
-    static uint32_t savedPlayerCancels2[4];
+    static uint32_t savedPlayerCancels2;
     static uint32_t savedPlayerSword;
     static uint32_t savedPlayerGun;
     static uint32_t savedPlayerStyle;
