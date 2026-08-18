@@ -18,6 +18,10 @@ static ImGuizmo::MODE currentGizmoMode = ImGuizmo::LOCAL;
 static UModelJoint* lastManipulatedJoints = nullptr;
 static int lastManipulatedJointCount      = 0;
 
+static UModelJoint* selectedJointPtr = nullptr;
+static void* selectedJointEntity = nullptr;
+static int selectedJointIndex = -1;
+
 struct Transformable {
     glm::vec3* position    = nullptr;
     glm::vec3* scale       = nullptr;
@@ -77,6 +81,7 @@ char __fastcall MtObject__isKindOf(void* entity, uintptr_t MtDTI) {
 }
 static constexpr uintptr_t uCustomDemoActor_dti = 0xE586B8;*/
 
+static constexpr uint8_t kNoParentIndex = 0xFF;
 static inline int MakeEnemyId(int entityId) {
     return entityId << 1;
 }
@@ -202,8 +207,8 @@ static bool LoadPoseFromFile(UModelJoint* joints, int jointCount, const std::str
     return true;
 }
 
-static void drawJoints(UModelJoint* joints, int jointCount, int entityId, float view[16], float projection[16], int& selectedIndex,
-    bool& isManipulating, ImGuizmo::OPERATION& operation, ImGuizmo::MODE mode) {
+static void drawJoints(UModelJoint* joints, int jointCount, int entityId, void* entityPtr, float view[16], float projection[16],
+    int& selectedIndex, bool& isManipulating, ImGuizmo::OPERATION& operation, ImGuizmo::MODE mode) {
     constexpr float MAX_DELTA_PER_FRAME = 5.0f;
     constexpr float MAX_SCALE_CHANGE    = 0.1f;
 
@@ -224,6 +229,12 @@ static void drawJoints(UModelJoint* joints, int jointCount, int entityId, float 
             IM_COL32(255, 255, 0, 128), IM_COL32(0, 255, 0, 255), (selectedIndex == uniqueIndex) ? 8.0f : 5.0f, "Joint", false,
             &oldTransform, &newTransform);
 
+        if (selectedIndex == uniqueIndex) {
+            selectedJointPtr    = joint;
+            selectedJointEntity = entityPtr;
+            selectedJointIndex  = i;
+        }
+
         if (manipulated) {
             lastManipulatedJoints     = joints;
             lastManipulatedJointCount = jointCount;
@@ -235,7 +246,7 @@ static void drawJoints(UModelJoint* joints, int jointCount, int entityId, float 
                     delta = glm::normalize(delta) * MAX_DELTA_PER_FRAME;
 
                 glm::mat4 parentTransform(1.0f);
-                if (mode == ImGuizmo::LOCAL && joint->mParentIndex >= 0)
+                if (mode == ImGuizmo::LOCAL && joint->mParentIndex != kNoParentIndex && joint->mParentIndex < jointCount)
                     parentTransform = glm::make_mat4(&joints[joint->mParentIndex].mWmat.m1.x);
 
                 glm::vec3 localDelta = glm::vec3(glm::inverse(parentTransform) * glm::vec4(delta, 0.0f));
@@ -252,16 +263,24 @@ static void drawJoints(UModelJoint* joints, int jointCount, int entityId, float 
                 joint->mScale.z += deltaScale.z;
                 joint->mScale = glm::max(glm::vec3(joint->mScale.x, joint->mScale.y, joint->mScale.z), glm::vec3(0.1f));
             } else if (operation == ImGuizmo::ROTATE) {
-                glm::mat4 localTransform = newTransform;
-                if (joint->mParentIndex >= 0) {
+                glm::quat oldWorldQuat = glm::normalize(glm::quat_cast(glm::mat3(oldTransform)));
+                glm::quat newWorldQuat = glm::normalize(glm::quat_cast(glm::mat3(newTransform)));
+                glm::quat deltaWorld = newWorldQuat * glm::inverse(oldWorldQuat);
+
+                glm::quat parentQuat(1.0f, 0.0f, 0.0f, 0.0f);
+                if (joint->mParentIndex != kNoParentIndex && joint->mParentIndex < jointCount) {
                     glm::mat4 parentWorld = glm::make_mat4(&joints[joint->mParentIndex].mWmat.m1.x);
-                    localTransform        = glm::inverse(parentWorld) * newTransform;
+                    parentQuat = glm::normalize(glm::quat_cast(glm::mat3(parentWorld)));
                 }
-                glm::quat localQuat = glm::normalize(glm::quat_cast(glm::mat3(localTransform)));
-                joint->mQuat.w      = localQuat.w;
-                joint->mQuat.x      = localQuat.x;
-                joint->mQuat.y      = localQuat.y;
-                joint->mQuat.z      = localQuat.z;
+                glm::quat deltaLocal = glm::inverse(parentQuat) * deltaWorld * parentQuat;
+
+                glm::quat currentLocal(joint->mQuat.w, joint->mQuat.x, joint->mQuat.y, joint->mQuat.z);
+                glm::quat newLocal = glm::normalize(deltaLocal * currentLocal);
+
+                joint->mQuat.w = newLocal.w;
+                joint->mQuat.x = newLocal.x;
+                joint->mQuat.y = newLocal.y;
+                joint->mQuat.z = newLocal.z;
             }
         }
     }
@@ -289,8 +308,7 @@ static void drawAllJoints(void* ml, float view[16], float projection[16], int& s
     while (entity) {
         int entityId = (int)entity;
         if (entity->joints /* && MtObject__isKindOf(entity, uCustomDemoActor_dti)*/) {
-            drawJoints(entity->joints->joint, entity->m_joint_array_size, entityId, view, projection, selectedIndex, isManipulating,
-                operation, mode);
+            drawJoints(entity->joints->joint, entity->m_joint_array_size, entityId, entity, view, projection, selectedIndex, isManipulating, operation, mode);
         }
         entity = entity->nextEnemy;
     }
@@ -301,31 +319,25 @@ void JointDisplay::on_frame(fmilliseconds& dt) {
         uPlayer* player = devil4_sdk::get_local_player();
         if (!player) { return; }
 
-        if (ImGui::Begin(_("Manipulation Controls"))) {
-            ImGui::Text(_("G - Translate"));
-            ImGui::Text(_("R - Rotate"));
-            ImGui::Text(_("S - Scale"));
-            // ImGui::Text(_("T - Toggle World/Local space"));
-            ImGui::End();
-        }
-
         w2s::ImGuizmoSetup();
         float view[16], projection[16];
         if (!w2s::GetImGuizmoMatrices(view, projection))
             return;
 
-        // if (player) {
-            if (show_manipulators) {
-                drawEnemies((uEnemy_Old*)devil4_sdk::get_moveline_top(13), view, projection, selectedIndex, isManipulating, currentGizmoOperation); // players
-                drawEnemies((uEnemy_Old*)devil4_sdk::get_moveline_top(15), view, projection, selectedIndex, isManipulating, currentGizmoOperation); // enemies
-            }
+        if (show_manipulators) {
+            drawEnemies((uEnemy_Old*)devil4_sdk::get_moveline_top(13), view, projection, selectedIndex, isManipulating, currentGizmoOperation); // players
+            drawEnemies((uEnemy_Old*)devil4_sdk::get_moveline_top(15), view, projection, selectedIndex, isManipulating, currentGizmoOperation); // enemies
+        }
 
-            if (JointDisplay::mod_enabled) {
-                drawAllJoints((uEnemy_Old*)devil4_sdk::get_moveline_top(13), view, projection, selectedIndex, isManipulating, currentGizmoOperation, currentGizmoMode); // players
-                drawAllJoints((uEnemy_Old*)devil4_sdk::get_moveline_top(15), view, projection, selectedIndex, isManipulating, currentGizmoOperation, currentGizmoMode); // enemies
-            }
+        if (JointDisplay::mod_enabled) {
+            selectedJointPtr = nullptr;
+            selectedJointEntity = nullptr;
+            selectedJointIndex = -1;
+            drawAllJoints((uEnemy_Old*)devil4_sdk::get_moveline_top(13), view, projection, selectedIndex, isManipulating, currentGizmoOperation, currentGizmoMode); // players
+            drawAllJoints((uEnemy_Old*)devil4_sdk::get_moveline_top(15), view, projection, selectedIndex, isManipulating, currentGizmoOperation, currentGizmoMode); // enemies
+        }
 
-            w2s::ImGuizmoKeyboardShortcuts(currentGizmoOperation, currentGizmoMode);
+        w2s::ImGuizmoKeyboardShortcuts(currentGizmoOperation, currentGizmoMode);
         /* } else {
             if (show_manipulators) {
                 drawEnemies(
@@ -346,11 +358,13 @@ void JointDisplay::on_frame(fmilliseconds& dt) {
 
 void JointDisplay::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
-        ImGui::Checkbox(_("Joint Display"), &mod_enabled);
+        ImGui::Checkbox(_("Show Entity Manipulators"), &show_manipulators);
         ImGui::SameLine();
-        help_marker(_("Display Joints in the game world"));
+        help_marker(_("Edit entity positions by dragging a manipulator placed under them"));
 
-        ImGui::Checkbox(_("Show Manipulators"), &show_manipulators);
+        ImGui::Checkbox(_("Show Joint Manipulators"), &mod_enabled);
+        ImGui::SameLine();
+        help_marker(_("Edit joint positions by dragging a manipulator placed on every joint"));
 
         ImGui::Separator();
 
@@ -360,17 +374,31 @@ void JointDisplay::on_gui_frame(int display) {
 
         if (ImGui::Button(_("Save Pose"))) {
             std::string path = OpenSaveFileDialog();
-            if (!path.empty()) SavePoseToFile(lastManipulatedJoints, lastManipulatedJointCount, path);
+            if (!path.empty())
+                SavePoseToFile(lastManipulatedJoints, lastManipulatedJointCount, path);
         }
         ImGui::SameLine();
         if (ImGui::Button(_("Load Pose"))) {
             std::string path = OpenLoadFileDialog();
-            if (!path.empty()) LoadPoseFromFile(lastManipulatedJoints, lastManipulatedJointCount, path);
+            if (!path.empty())
+                LoadPoseFromFile(lastManipulatedJoints, lastManipulatedJointCount, path);
         }
 
         if (!haveEntity) {
             ImGui::EndDisabled();
             ImGui::TextDisabled(_("Click a joint to select an entity."));
+        }
+
+        ImGui::Separator();
+
+        if (selectedJointPtr) {
+            uintptr_t jointAddr = (uintptr_t)selectedJointPtr;
+            ImGui::Text("Addr: 0x%0X  (mNo: %d, index: %d)", jointAddr, selectedJointPtr->mNo, selectedJointIndex);
+            ImGui::Text("Offset: %.4f, %.4f, %.4f", selectedJointPtr->mOffset.x, selectedJointPtr->mOffset.y, selectedJointPtr->mOffset.z);
+            ImGui::Text("Scale: %.4f, %.4f, %.4f", selectedJointPtr->mScale.x, selectedJointPtr->mScale.y, selectedJointPtr->mScale.z);
+            glm::quat q(selectedJointPtr->mQuat.w, selectedJointPtr->mQuat.x, selectedJointPtr->mQuat.y, selectedJointPtr->mQuat.z);
+            glm::vec3 eulerDeg = glm::degrees(glm::eulerAngles(q));
+            ImGui::Text("Rot: %.2f, %.2f, %.2f", eulerDeg.x, eulerDeg.y, eulerDeg.z);
         }
     }
 }

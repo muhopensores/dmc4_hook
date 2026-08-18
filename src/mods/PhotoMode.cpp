@@ -203,13 +203,11 @@ static void ImGuizmoManipulators() {
     sUnit* s_unit      = (sUnit*)devil4_sdk::get_sUnit();
     MoveLine* moveline = &s_unit->mMoveLine[17];
     cUnit* obj         = moveline->mTop;
-    int lightIndex = 0;
     auto* drawList = ImGui::GetForegroundDrawList();
     while (obj != nullptr) {
         bool del_flag = obj->flags.bits.mBeFlag & BEFLAG_DELETE;
         bool pre_del_flag = obj->flags.bits.mBeFlag & BEFLAG_PRE_DELETE;
         if (!(del_flag || pre_del_flag)) {
-            lightIndex++;
             obj = obj->mp_next_unit;
             continue;
         }
@@ -217,6 +215,7 @@ static void ImGuizmoManipulators() {
         glm::vec3 lightPos;
         const char* objectName = nullptr;
         ImU32 lightColor       = IM_COL32(255, 255, 0, 200);
+        int lightId            = ((int)(uintptr_t)obj) << 1;
 
         switch (objectType) {
             case PM_SPOT_LIGHT: {
@@ -237,7 +236,7 @@ static void ImGuizmoManipulators() {
                 glm::vec3 worldEnd = lightPos + dir * spot_light->mEnd;
                 if (currentLightGizmoOperation == ImGuizmo::TRANSLATE) {
                     glm::vec3 newPos;
-                    if (w2s::DrawImGuizmoManipulator(lightPos, newPos, lightIndex, selectedLightIndex, isManipulatingLight, ImGuizmo::TRANSLATE,
+                    if (w2s::DrawImGuizmoManipulator(lightPos, newPos, lightId, selectedLightIndex, isManipulatingLight, ImGuizmo::TRANSLATE,
                             currentLightGizmoMode, view, projection, lightColor, 8.0f, objectName)) {
                         glm::vec3 delta = newPos - lightPos;
                         spot_light->mPos += delta;
@@ -255,20 +254,23 @@ static void ImGuizmoManipulators() {
                         up = glm::vec3(1, 0, 0);
 
                     glm::vec3 right = glm::normalize(glm::cross(up, dirRot));
-                    up              = glm::normalize(glm::cross(dirRot, right));
+                    up = glm::normalize(glm::cross(dirRot, right));
 
-                    float matrix[16] = {
-                        right.x, right.y, right.z, 0,
-                        up.x, up.y, up.z, 0,
-                        dirRot.x, dirRot.y, dirRot.z, 0,
-                        lightPos.x, lightPos.y, lightPos.z, 1
-                    };
-                    ImGuizmo::Manipulate(view, projection, ImGuizmo::ROTATE, currentLightGizmoMode, matrix);
-                    glm::vec3 newDir(matrix[8], matrix[9], matrix[10]);
-                    if (glm::length(newDir) > 0.0001f)
-                        newDir = glm::normalize(newDir);
+                    glm::mat4 rotTransform(1.0f);
+                    rotTransform[0] = glm::vec4(right, 0.0f);
+                    rotTransform[1] = glm::vec4(up, 0.0f);
+                    rotTransform[2] = glm::vec4(dirRot, 0.0f);
+                    rotTransform[3] = glm::vec4(lightPos, 1.0f);
 
-                    spot_light->mDir = newDir;
+                    glm::mat4 newRotTransform;
+                    if (w2s::DrawImGuizmoManipulator(rotTransform, newRotTransform, lightId, selectedLightIndex, isManipulatingLight,
+                            ImGuizmo::ROTATE, currentLightGizmoMode, view, projection, lightColor, 8.0f, objectName)) {
+                        glm::vec3 newDir(newRotTransform[2]);
+                        if (glm::length(newDir) > 0.0001f)
+                            newDir = glm::normalize(newDir);
+
+                        spot_light->mDir = newDir;
+                    }
                 }
 
                 if (currentLightGizmoOperation == ImGuizmo::SCALE) {
@@ -303,7 +305,7 @@ static void ImGuizmoManipulators() {
                     worldEnd = glm::vec3(worldTarget.x, worldTarget.y, worldTarget.z);
 
                     glm::vec3 newWorldTarget = worldTarget;
-                    int gizmoID = 100000 + lightIndex;
+                    int gizmoID = (((int)(uintptr_t)obj) << 1) | 1;
                     ImGuizmo::SetID(gizmoID);
                     if (w2s::DrawImGuizmoManipulator(worldTarget, newWorldTarget, gizmoID, selectedLightIndex, isManipulatingLight,
                             ImGuizmo::TRANSLATE, currentLightGizmoMode, view, projection, IM_COL32(0, 200, 255, 255), 6.0f, "Target")) {
@@ -333,7 +335,7 @@ static void ImGuizmoManipulators() {
                 objectName = _("PointLight");
                 if (currentLightGizmoOperation == ImGuizmo::TRANSLATE) {
                     glm::vec3 newPos;
-                    if (w2s::DrawImGuizmoManipulator(lightPos, newPos, lightIndex, selectedLightIndex, isManipulatingLight, ImGuizmo::TRANSLATE,
+                    if (w2s::DrawImGuizmoManipulator(lightPos, newPos, lightId, selectedLightIndex, isManipulatingLight, ImGuizmo::TRANSLATE,
                             currentLightGizmoMode, view, projection, lightColor, 8.0f, objectName)) {
                         point_light->mPos = newPos;
                     }
@@ -381,17 +383,21 @@ static void ImGuizmoManipulators() {
                     glm::vec3 right = glm::normalize(glm::cross(up, dirRot));
                     up              = glm::normalize(glm::cross(dirRot, right));
 
-                    float matrix[16] = {
-                        right.x, right.y, right.z, 0, up.x, up.y, up.z, 0, dirRot.x, dirRot.y, dirRot.z, 0, 0.0f, 0.0f, 0.0f, 1};
+                    glm::mat4 rotTransform(1.0f);
+                    rotTransform[0] = glm::vec4(right, 0.0f);
+                    rotTransform[1] = glm::vec4(up, 0.0f);
+                    rotTransform[2] = glm::vec4(dirRot, 0.0f);
+                    rotTransform[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-                    ImGuizmo::Manipulate(view, projection, ImGuizmo::ROTATE, currentLightGizmoMode, matrix);
+                    glm::mat4 newRotTransform;
+                    if (w2s::DrawImGuizmoManipulator(rotTransform, newRotTransform, lightId, selectedLightIndex, isManipulatingLight,
+                            ImGuizmo::ROTATE, currentLightGizmoMode, view, projection, lightColor, 8.0f, objectName)) {
+                        glm::vec3 newDir(newRotTransform[2]);
+                        if (glm::length(newDir) > 0.0001f)
+                            newDir = glm::normalize(newDir);
 
-                    glm::vec3 newDir(matrix[8], matrix[9], matrix[10]);
-
-                    if (glm::length(newDir) > 0.0001f)
-                        newDir = glm::normalize(newDir);
-
-                    hemi_light->mDir = newDir;
+                        hemi_light->mDir = newDir;
+                    }
                 }
 
                 if (currentLightGizmoOperation == ImGuizmo::SCALE) {
@@ -464,13 +470,21 @@ static void ImGuizmoManipulators() {
                         up = glm::vec3(1, 0, 0);
                     glm::vec3 right = glm::normalize(glm::cross(up, dirRot));
                     up              = glm::normalize(glm::cross(dirRot, right));
-                    float matrix[16] = {
-                        right.x, right.y, right.z, 0, up.x, up.y, up.z, 0, dirRot.x, dirRot.y, dirRot.z, 0, 0.0f, 0.0f, 0.0f, 1};
-                    ImGuizmo::Manipulate(view, projection, ImGuizmo::ROTATE, currentLightGizmoMode, matrix);
-                    glm::vec3 newDir(matrix[8], matrix[9], matrix[10]);
-                    if (glm::length(newDir) > 0.0001f)
-                        newDir = glm::normalize(newDir);
-                    inf_light->mDir = newDir;
+
+                    glm::mat4 rotTransform(1.0f);
+                    rotTransform[0] = glm::vec4(right, 0.0f);
+                    rotTransform[1] = glm::vec4(up, 0.0f);
+                    rotTransform[2] = glm::vec4(dirRot, 0.0f);
+                    rotTransform[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+                    glm::mat4 newRotTransform;
+                    if (w2s::DrawImGuizmoManipulator(rotTransform, newRotTransform, lightId, selectedLightIndex, isManipulatingLight,
+                            ImGuizmo::ROTATE, currentLightGizmoMode, view, projection, lightColor, 8.0f, objectName)) {
+                        glm::vec3 newDir(newRotTransform[2]);
+                        if (glm::length(newDir) > 0.0001f)
+                            newDir = glm::normalize(newDir);
+                        inf_light->mDir = newDir;
+                    }
                 }
 
                 if (currentLightGizmoOperation == ImGuizmo::SCALE) {
@@ -493,7 +507,6 @@ static void ImGuizmoManipulators() {
                 break;
             }
         }
-        lightIndex++;
         obj = obj->mp_next_unit;
     }
 
@@ -704,7 +717,11 @@ void PhotoMode::on_frame(fmilliseconds& dt) {
                 currentLightGizmoOperation = ImGuizmo::ROTATE;
             }
             ImGui::SameLine();
-            if (ImGui::RadioButton(_("S - Settings"), currentLightGizmoOperation == ImGuizmo::SCALE)) {
+            if (ImGui::RadioButton(_("S - Settings / Scale"), currentLightGizmoOperation == ImGuizmo::SCALE)) {
+                currentLightGizmoOperation = ImGuizmo::SCALE;
+            }
+            ImGui::SameLine();
+            if (ImGui::RadioButton(_("T - Local / World"), currentLightGizmoOperation == ImGuizmo::SCALE)) {
                 currentLightGizmoOperation = ImGuizmo::SCALE;
             }
 
