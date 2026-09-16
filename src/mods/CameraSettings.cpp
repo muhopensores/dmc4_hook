@@ -250,53 +250,147 @@ naked void camera_reset_proc(void) {
     }
 }*/
 
+#include "..\sdk\Cam.hpp"
+#include "..\sdk\Devil4.hpp"
+static float camRotationReadout = 0.0f; // these are displayed towards the bottom of the system tab when "Side Reset" is enabled in the Camera section
+static float playerRotationReadout = 0.0f;
+
+static float GetCamRotation(cCameraPlayer* cam) {
+    MtVector3 lookDirection = { cam->mTargetPos.x - cam->mCameraPos.x, cam->mTargetPos.y - cam->mCameraPos.y, cam->mTargetPos.z - cam->mCameraPos.z };
+    float cam_angle = glm::atan(lookDirection.z, lookDirection.x);
+    cam_angle = cam_angle - glm::half_pi<float>();
+    glm::quat rotationQuat = glm::angleAxis(cam_angle, glm::vec3(cam->mCameraUp.x, -cam->mCameraUp.y, cam->mCameraUp.z));
+    return glm::eulerAngles(rotationQuat).y;
+}
+
+static bool CameraIsRight(cCameraPlayer* cam, uPlayer* player) {
+    const float camRotation    = GetCamRotation(cam);
+    const float playerRotation = player->mQuat.y;
+
+    camRotationReadout          = camRotation;
+    playerRotationReadout       = playerRotation;
+
+    return false; // true = camera is to the right of the player
+}
+
 naked void camera_reset_keyboard_proc(void) {
     _asm {
-		    cmp byte ptr [CameraSettings::camera_reset_enabled], 0
-		    je originalcode
+        cmp byte ptr [CameraSettings::camera_reset_enabled], 0
+        je originalcode
 
-            cmp byte ptr [CameraSettings::cam_right], 1
-            je camright
+        sub esp, 0x84
 
-        //camleft:
-            movss xmm0, [edx+0x00001210]
-            subss xmm0, [degrees] // 90 degrees left
-            jmp retcode
+        movups [esp+0x00], xmm0
+        movups [esp+0x10], xmm1
+        movups [esp+0x20], xmm2
+        movups [esp+0x30], xmm3
+        movups [esp+0x40], xmm4
+        movups [esp+0x50], xmm5
+        movups [esp+0x60], xmm6
+        movups [esp+0x70], xmm7
 
-        camright:
-            movss xmm0, [edx+0x00001210]
-            addss xmm0, [degrees] // 90 degrees right
-            jmp retcode
+        pushad
 
-        originalcode:
-            movss xmm0, [edx+0x00001210]
-        retcode:
-            jmp dword ptr [CameraSettings::camera_reset_keyboard_continue]
+        push edx // player
+        push esi // camera
+        call CameraIsRight
+        add esp, 8
+
+        // Save result into the extra 4 bytes.
+        mov byte ptr [esp+0x80], al
+
+        popad
+
+        movups xmm0, [esp+0x00]
+        movups xmm1, [esp+0x10]
+        movups xmm2, [esp+0x20]
+        movups xmm3, [esp+0x30]
+        movups xmm4, [esp+0x40]
+        movups xmm5, [esp+0x50]
+        movups xmm6, [esp+0x60]
+        movups xmm7, [esp+0x70]
+
+        mov al, byte ptr [esp+0x80]
+
+        add esp, 0x84
+
+        test al, al
+        jnz camright
+
+    camleft:
+        movss xmm0, [edx+0x00001210]
+        subss xmm0, [degrees] // 90 degrees left
+        jmp retcode
+
+    camright:
+        movss xmm0, [edx+0x00001210]
+        addss xmm0, [degrees]  // 90 degrees right
+        jmp retcode
+
+    originalcode:
+        movss xmm0, [edx+0x00001210]
+    retcode:
+        jmp dword ptr [CameraSettings::camera_reset_keyboard_continue]
     }
 }
 
 naked void camera_reset_proc(void) {
     _asm {
-		    cmp byte ptr [CameraSettings::camera_reset_enabled], 0
-		    je originalcode
+        cmp byte ptr [CameraSettings::camera_reset_enabled], 0
+        je originalcode
 
-            cmp byte ptr [CameraSettings::cam_right], 1
-            je camright
+        sub esp, 0x84
 
-        //camleft:
-            movss xmm0, [edx+0x00001210]
-            subss xmm0, [degrees] // 90 degrees left
-            jmp retcode
+        movups [esp+0x00], xmm0
+        movups [esp+0x10], xmm1
+        movups [esp+0x20], xmm2
+        movups [esp+0x30], xmm3
+        movups [esp+0x40], xmm4
+        movups [esp+0x50], xmm5
+        movups [esp+0x60], xmm6
+        movups [esp+0x70], xmm7
 
-        camright:
-            movss xmm0, [edx+0x00001210]
-            addss xmm0, [degrees] // 90 degrees right
-            jmp retcode
+        pushad
 
-        originalcode:
-            movss xmm0, [edx+0x00001210]
-        retcode:
-            jmp dword ptr [CameraSettings::camera_reset_continue]
+        push edx // player
+        push esi // camera
+        call CameraIsRight
+        add esp, 8
+
+        mov byte ptr [esp+0x80], al
+
+        popad
+
+        movups xmm0, [esp+0x00]
+        movups xmm1, [esp+0x10]
+        movups xmm2, [esp+0x20]
+        movups xmm3, [esp+0x30]
+        movups xmm4, [esp+0x40]
+        movups xmm5, [esp+0x50]
+        movups xmm6, [esp+0x60]
+        movups xmm7, [esp+0x70]
+
+        mov al, byte ptr [esp+0x80]
+
+        add esp, 0x84
+
+        test al, al
+        jnz camright
+
+    camleft:
+        movss xmm0, [edx+0x00001210]
+        subss xmm0, [degrees] // 90 degrees left
+        jmp retcode
+
+    camright:
+        movss xmm0, [edx+0x00001210]
+        addss xmm0, [degrees] // 90 degrees right
+        jmp retcode
+
+    originalcode:
+        movss xmm0, [edx+0x00001210]
+    retcode:
+        jmp dword ptr [CameraSettings::camera_reset_continue]
     }
 }
 
@@ -457,6 +551,8 @@ void CameraSettings::on_gui_frame(int display) {
             ImGui::Checkbox(_("Right Side Reset"), &cam_right);
             ImGui::SameLine();
             help_marker(_("Set the camera to the right instead"));
+            ImGui::InputFloat("camRotationReadout", &camRotationReadout);
+            ImGui::InputFloat("playerRotationReadout", &playerRotationReadout);
             ImGui::Unindent(lineIndent);
         }
         ImGui::EndGroup();

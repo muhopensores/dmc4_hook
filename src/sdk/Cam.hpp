@@ -126,17 +126,17 @@ public:
 
 class cCameraBase {
 public:
-    void* vtable;
-    int padding4[3];
-    MtVector3 mCameraPos;
-    MtVector3 mTargetPos;
-    MtVector3 mCameraUp;
-    float mNearPlane;
-    float mFarPlane;
-    float mAspect;
-    float mFov;
-    float mRoll;
-    int padding54[3];
+    void* vtable; // 0x0
+    int padding4[3]; // 0x4
+    MtVector3 mCameraPos; // 0x10
+    MtVector3 mTargetPos; // 0x20
+    MtVector3 mCameraUp;  // 0x30
+    float mNearPlane;     // 0x40
+    float mFarPlane;      // 0x44
+    float mAspect;        // 0x48
+    float mFov;           // 0x4c
+    float mRoll;          // 0x50
+    int padding54[3];     // 0x54
 };
 static_assert(sizeof(cCameraBase) == 0x60);
 
