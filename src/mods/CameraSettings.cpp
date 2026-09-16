@@ -1,6 +1,8 @@
 ﻿#include "CameraSettings.hpp"
 #include "PhotoMode.hpp"
 #include "Windows.h"
+#include "..\sdk\Cam.hpp" // for side reset
+#include "..\sdk\Devil4.hpp" // for side reset
 
 static bool camera_sens_enabled = false;
 static bool camera_auto_correct_towards_cam_enabled = false;
@@ -250,27 +252,23 @@ naked void camera_reset_proc(void) {
     }
 }*/
 
-#include "..\sdk\Cam.hpp"
-#include "..\sdk\Devil4.hpp"
-static float camRotationReadout = 0.0f; // these are displayed towards the bottom of the system tab when "Side Reset" is enabled in the Camera section
-static float playerRotationReadout = 0.0f;
-
 static float GetCamRotation(cCameraPlayer* cam) {
-    MtVector3 lookDirection = { cam->mTargetPos.x - cam->mCameraPos.x, cam->mTargetPos.y - cam->mCameraPos.y, cam->mTargetPos.z - cam->mCameraPos.z };
-    float cam_angle = glm::atan(lookDirection.z, lookDirection.x);
-    cam_angle = cam_angle - glm::half_pi<float>();
-    glm::quat rotationQuat = glm::angleAxis(cam_angle, glm::vec3(cam->mCameraUp.x, -cam->mCameraUp.y, cam->mCameraUp.z));
-    return glm::eulerAngles(rotationQuat).y;
+    const float lookX = cam->mTargetPos.x - cam->mCameraPos.x;
+    const float lookZ = cam->mTargetPos.z - cam->mCameraPos.z;
+    return glm::atan(lookZ, lookX);
+}
+
+static float WrapAngle(float angle) {
+    while (angle > glm::pi<float>()) angle -= glm::two_pi<float>();
+    while (angle < -glm::pi<float>()) angle += glm::two_pi<float>();
+    return angle;
 }
 
 static bool CameraIsRight(cCameraPlayer* cam, uPlayer* player) {
-    const float camRotation    = GetCamRotation(cam);
-    const float playerRotation = player->mQuat.y;
-
-    camRotationReadout          = camRotation;
-    playerRotationReadout       = playerRotation;
-
-    return false; // true = camera is to the right of the player
+    const float camRotation = GetCamRotation(cam);
+    const float playerRotation = glm::half_pi<float>() - player->facingDirection;
+    const float difference = WrapAngle(camRotation - playerRotation);
+    return difference < 0.0f;
 }
 
 naked void camera_reset_keyboard_proc(void) {
@@ -278,8 +276,9 @@ naked void camera_reset_keyboard_proc(void) {
         cmp byte ptr [CameraSettings::camera_reset_enabled], 0
         je originalcode
 
-        sub esp, 0x84
-
+        push ebp
+        mov ebp, esp
+        sub esp, 0x84 // xmm + result
         movups [esp+0x00], xmm0
         movups [esp+0x10], xmm1
         movups [esp+0x20], xmm2
@@ -290,17 +289,13 @@ naked void camera_reset_keyboard_proc(void) {
         movups [esp+0x70], xmm7
 
         pushad
-
         push edx // player
         push esi // camera
         call CameraIsRight
         add esp, 8
 
-        // Save result into the extra 4 bytes.
-        mov byte ptr [esp+0x80], al
-
+        mov [ebp-4], al
         popad
-
         movups xmm0, [esp+0x00]
         movups xmm1, [esp+0x10]
         movups xmm2, [esp+0x20]
@@ -309,11 +304,10 @@ naked void camera_reset_keyboard_proc(void) {
         movups xmm5, [esp+0x50]
         movups xmm6, [esp+0x60]
         movups xmm7, [esp+0x70]
+        mov al, [ebp-4]
 
-        mov al, byte ptr [esp+0x80]
-
-        add esp, 0x84
-
+        mov esp, ebp
+        pop ebp
         test al, al
         jnz camright
 
@@ -324,7 +318,7 @@ naked void camera_reset_keyboard_proc(void) {
 
     camright:
         movss xmm0, [edx+0x00001210]
-        addss xmm0, [degrees]  // 90 degrees right
+        addss xmm0, [degrees] // 90 degrees right
         jmp retcode
 
     originalcode:
@@ -339,8 +333,9 @@ naked void camera_reset_proc(void) {
         cmp byte ptr [CameraSettings::camera_reset_enabled], 0
         je originalcode
 
+        push ebp
+        mov ebp, esp
         sub esp, 0x84
-
         movups [esp+0x00], xmm0
         movups [esp+0x10], xmm1
         movups [esp+0x20], xmm2
@@ -351,14 +346,11 @@ naked void camera_reset_proc(void) {
         movups [esp+0x70], xmm7
 
         pushad
-
         push edx // player
         push esi // camera
         call CameraIsRight
         add esp, 8
-
-        mov byte ptr [esp+0x80], al
-
+        mov [ebp-4], al
         popad
 
         movups xmm0, [esp+0x00]
@@ -370,10 +362,9 @@ naked void camera_reset_proc(void) {
         movups xmm6, [esp+0x60]
         movups xmm7, [esp+0x70]
 
-        mov al, byte ptr [esp+0x80]
-
-        add esp, 0x84
-
+        mov al, [ebp-4]
+        mov esp, ebp
+        pop ebp
         test al, al
         jnz camright
 
@@ -545,8 +536,8 @@ void CameraSettings::on_gui_frame(int display) {
         ImGui::BeginGroup();
         ImGui::Checkbox(_("Side Reset"), &camera_reset_enabled);
         ImGui::SameLine();
-        help_marker(_("When pressing camera reset, the camera will be set to the player's left"));
-        if (camera_reset_enabled) {
+        help_marker(_("When pressing camera reset, the camera will be set to the player's closest side"));
+        /* if (camera_reset_enabled) {
             ImGui::Indent(lineIndent);
             ImGui::Checkbox(_("Right Side Reset"), &cam_right);
             ImGui::SameLine();
@@ -554,7 +545,7 @@ void CameraSettings::on_gui_frame(int display) {
             ImGui::InputFloat("camRotationReadout", &camRotationReadout);
             ImGui::InputFloat("playerRotationReadout", &playerRotationReadout);
             ImGui::Unindent(lineIndent);
-        }
+        }*/
         ImGui::EndGroup();
         ImGui::SameLine(sameLineWidth);
         ImGui::Checkbox(_("Increased Sensitivity"), &camera_sens_enabled);
