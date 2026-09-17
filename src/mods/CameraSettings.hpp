@@ -30,6 +30,7 @@ public:
     static bool camera_lookdown_enabled;
     static bool camera_disable_lookdown_enabled;
     static bool camera_reset_enabled;
+    static bool cam_left;
     static bool cam_right;
     static bool disable_last_enemy_zoom;
     static bool force_last_enemy_zoom;

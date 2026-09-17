@@ -17,6 +17,7 @@ float CameraSettings::camera_fov = 0;
 bool CameraSettings::camera_lookdown_enabled = false;
 bool CameraSettings::camera_disable_lookdown_enabled = false;
 bool CameraSettings::camera_reset_enabled = false;
+bool CameraSettings::cam_left = false;
 bool CameraSettings::cam_right = false;
 bool CameraSettings::disable_last_enemy_zoom = false;
 bool CameraSettings::force_last_enemy_zoom = false;
@@ -276,6 +277,11 @@ naked void camera_reset_keyboard_proc(void) {
         cmp byte ptr [CameraSettings::camera_reset_enabled], 0
         je originalcode
 
+        cmp byte ptr [CameraSettings::cam_left], 1
+        je camleft
+        cmp byte ptr [CameraSettings::cam_right], 1
+        je camright
+
         push ebp
         mov ebp, esp
         sub esp, 0x84 // xmm + result
@@ -332,6 +338,11 @@ naked void camera_reset_proc(void) {
     _asm {
         cmp byte ptr [CameraSettings::camera_reset_enabled], 0
         je originalcode
+
+        cmp byte ptr [CameraSettings::cam_left], 1
+        je camleft
+        cmp byte ptr [CameraSettings::cam_right], 1
+        je camright
 
         push ebp
         mov ebp, esp
@@ -537,15 +548,20 @@ void CameraSettings::on_gui_frame(int display) {
         ImGui::Checkbox(_("Side Reset"), &camera_reset_enabled);
         ImGui::SameLine();
         help_marker(_("When pressing camera reset, the camera will be set to the player's closest side"));
-        /* if (camera_reset_enabled) {
+        if (camera_reset_enabled) {
             ImGui::Indent(lineIndent);
-            ImGui::Checkbox(_("Right Side Reset"), &cam_right);
+            if (ImGui::Checkbox(_("Left Side Reset"), &cam_left)) {
+                cam_right = false;
+            }
             ImGui::SameLine();
-            help_marker(_("Set the camera to the right instead"));
-            ImGui::InputFloat("camRotationReadout", &camRotationReadout);
-            ImGui::InputFloat("playerRotationReadout", &playerRotationReadout);
+            help_marker(_("Always set the camera to the left"));
+            if (ImGui::Checkbox(_("Right Side Reset"), &cam_right)) {
+                cam_left = false;
+            }
+            ImGui::SameLine();
+            help_marker(_("Always set the camera to the right"));
             ImGui::Unindent(lineIndent);
-        }*/
+        }
         ImGui::EndGroup();
         ImGui::SameLine(sameLineWidth);
         ImGui::Checkbox(_("Increased Sensitivity"), &camera_sens_enabled);
@@ -789,6 +805,7 @@ void CameraSettings::on_config_load(const utility::Config& cfg) {
     camera_disable_lookdown_enabled = cfg.get<bool>("disable_camera_lookdown").value_or(false);
     if (camera_disable_lookdown_enabled) toggle_disable_camera_lookdown(camera_disable_lookdown_enabled);
     camera_reset_enabled = cfg.get<bool>("camera_reset").value_or(false);
+    cam_left = cfg.get<bool>("left_side_reset").value_or(false);
     cam_right = cfg.get<bool>("right_side_reset").value_or(false);
     disable_last_enemy_zoom = cfg.get<bool>("disable_last_enemy_zoom").value_or(false);
     if (disable_last_enemy_zoom) toggle_disable_last_enemy_zoom(disable_last_enemy_zoom);
@@ -816,6 +833,7 @@ void CameraSettings::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("camera_lookdown", camera_lookdown_enabled);
     cfg.set<bool>("disable_camera_lookdown", camera_disable_lookdown_enabled);
     cfg.set<bool>("camera_reset", camera_reset_enabled);
+    cfg.set<bool>("left_side_reset", cam_left);
     cfg.set<bool>("right_side_reset", cam_right);
     cfg.set<bool>("disable_last_enemy_zoom", disable_last_enemy_zoom);
     cfg.set<bool>("force_last_enemy_zoom", force_last_enemy_zoom);
