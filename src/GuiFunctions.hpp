@@ -35,6 +35,9 @@ namespace gui {
             if (ImGui::IsItemHovered()) {
                 under_line(color_hover);
             }
+            else {
+                under_line(color_regular);
+            }
             if (ImGui::IsItemClicked()) {
                 #define SW_SHOWNORMAL 1
                 ShellExecuteA(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);

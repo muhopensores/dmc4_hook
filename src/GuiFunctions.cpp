@@ -785,6 +785,8 @@ namespace gui {
                 pmods->on_draw_ui("EffectColours"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("PlayerTracker"_hash, DISPLAY_SYSTEM_B); // shadow settings
+
+                pmods->on_draw_ui("BrainrotPalace"_hash, DISPLAY_SYSTEM_A);
 #ifndef PUBLIC_BUILD
                 pmods->on_draw_ui("SpiderTwerk"_hash, DISPLAY_SYSTEM_A);
 

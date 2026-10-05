@@ -174,6 +174,7 @@
 #include "mods/EnvironmentalHazards.hpp"
 #include "mods/BackForwardQuickDrive.hpp"
 #include "mods/ExceedLock.hpp"
+#include "mods/BrainrotPalace.hpp"
 #ifndef PUBLIC_BUILD
 #include "mods/AfterImage.hpp"
 #include "mods/SpiderTwerk.hpp"
@@ -371,6 +372,7 @@ Mods::Mods() {
     ADD_MOD(GermanWord);
     ADD_MOD(EnvironmentalHazards);
     ADD_MOD(ExceedLock);
+    ADD_MOD(BrainrotPalace);
 #ifndef PUBLIC_BUILD
     ADD_MOD(AfterImage);
     ADD_MOD(SpiderTwerk);
@@ -472,12 +474,13 @@ void Mods::on_stage_end() {
 
 
 bool Mods::on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param) {
+    bool res = true;
     for (auto& mod : m_mods) {
         if (!mod->on_message(wnd, message, w_param, l_param)) {
-            return false;
+            res = false;
         }
     }
-    return true;
+    return res;
 }
 
 // Called on every frame for mods that override this method

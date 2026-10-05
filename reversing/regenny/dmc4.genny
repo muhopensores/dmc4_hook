@@ -14,12 +14,20 @@ type bool 1 [[bool]]
 type uint8_t 1 [[u8]]
 type uint16_t 2 [[u16]]
 type uint32_t 4 [[u32]]
+type uint64_t 8 [[u64]]
 type int 4 [[u32]]
+type int64_t 8 [[i64]]
+type int32_t 8 [[i32]]
 type float 4 [[f32]]
 type wchar_t 2 [[u16]]
 type char 1 [[u8]]
 type uintptr_t 4 [[u32]]
 type virtual 4 [[u32]]
+
+struct Vector2 {
+        float x;
+        float y;
+};
 
 enum class GameDifficulty : int {
 	HUMAN = 0,
@@ -607,3 +615,263 @@ class SMediator {
 	bool turboEnabled @ 0x494
 	sWorkRate* workRate @ 0x820
 };
+
+enum class sMainJobMode : int32_t
+{
+	JOB_DYNAMIC = 0,
+	JOB_DYNAMICID = 1,
+	JOB_DYNAMIC32 = 2,
+	JOB_DYNAMIC64 = 3,
+	JOB_DYNAMICPTR = 4,
+	JOB_DYNAMICDPTR = 5
+};
+
+
+class cSystem : public MtObject
+{
+public:
+	char pad_0004[28] @ 0x0004
+}
+
+class sRender : public cSystem
+{
+public:
+	char pad_0020[20] @ 0x0020
+	class ID3DDevice9 *mp_device @ 0x0034
+	char pad_0038[12] @ 0x0038
+	Vector2 screenRes @ 0x0044
+	char pad_004C[88292] @ 0x004C
+	uint32_t mFrameNum @ 0x15930
+}
+
+class ID3DDevice9
+{
+public:
+	char pad_0000[68] @ 0x0000
+}
+
+class LARGE_INTEGER_
+{
+public:
+	uint64_t quadpart @ 0x0000
+}
+
+class sMainJobWorkData
+{
+public:
+	class MtObject *pObject @ 0x0000
+	void* pThreadFuncMaybe @ 0x0004
+}
+
+class sMainJobWorkParams
+{
+public:
+	uint32_t unkjobIdMaybe @ 0x0000
+	uint32_t unkthreadIdMaybe @ 0x0004
+	class MtObject *pObject @ 0x0008
+	uint32_t unkFlagMaybe @ 0x000C
+	uint32_t N00005B8D @ 0x0010
+	uint32_t N00005B8E @ 0x0014
+	uint32_t N00005B8F @ 0x0018
+	uint32_t jobParam0 @ 0x001C
+	uint32_t N00005C68 @ 0x0020
+	uint32_t threadHandle @ 0x0024
+}
+
+class sDevil4Main_ : public cSystem
+{
+public:
+	uint64_t mTimer @ 0x0020
+	int64_t mTimeStart @ 0x0028
+	int32_t mFrameTimer @ 0x0030
+	char pad_0034[4] @ 0x0034
+	float mFps @ 0x0038
+	float mFPSlock @ 0x003C
+	uint32_t mFrameWait @ 0x0040
+	float mFPSActual @ 0x0044
+	int64_t mRealCounter @ 0x0048
+	int64_t mIdealCounter @ 0x0050
+	int64_t mPrevCounter @ 0x0058
+	uint32_t mSkip @ 0x0060
+	bool mPause @ 0x0064
+	bool mUnpause @ 0x0065
+	bool mJobInit @ 0x0066
+	bool mFinalize @ 0x0067
+	float mDeltaTimeNorm @ 0x0068
+	float mDeltaTimeMax @ 0x006C
+	float mDletaTimeMax @ 0x0070
+	float mSpeedGlobal @ 0x0074
+	float mDelayFrame @ 0x0078
+	uint32_t mThreadHandle @ 0x007C
+	uint32_t mJobNum @ 0x0080
+	uint32_t mJobStats @ 0x0084
+	sMainJobMode mJobType @ 0x0088
+	uint32_t mNumThreads @ 0x008C
+	uint32_t N00005726 @ 0x0090
+	uint32_t mNumThreadsLateUpdate @ 0x0094
+	class sMainJobWorkData mJobs[8096] @ 0x0098
+	char pad_FD98[776] @ 0xFD98
+	class sMainJobWorkParams mJobParams[8] @ 0x100A0
+	float secs_per_tick @ 0x101E0
+	float currTimeSeconds @ 0x101E4
+	float appDt @ 0x101E8
+	float appTimeSeconds @ 0x101EC
+	float mftime @ 0x101F0
+	float mltime @ 0x101F4
+	float mffps @ 0x101F8
+	uint32_t mfrm_ctr @ 0x101FC
+	char pad_10200[8] @ 0x10200
+	class LARGE_INTEGER_ mPerfCounterLastTicks @ 0x10208
+	class LARGE_INTEGER_ mPerfCounterAppTicks @ 0x10210
+	class LARGE_INTEGER_ mPerfCounterAppDeltaTicks @ 0x10218
+	class LARGE_INTEGER_ mPerfCounterAppAccumTicks @ 0x10220
+	class LARGE_INTEGER_ mPerfCounterDeltaTicks @ 0x10228
+	uint32_t mCPUCaps @ 0x10230
+	uint32_t mCPUCoreNum @ 0x10234
+	uint32_t mCPULogicalProcessorNum @ 0x10238
+	bool mCPUHyperThreading @ 0x1023C
+	char mCPUName[256] @ 0x1023D
+	char pad_1033D[3] @ 0x1033D
+	class sCollisionGame *mpCollisionGame @ 0x10340
+	char pad_10344[4] @ 0x10344
+	class sRender *mpRender @ 0x10348
+	char pad_1034C[4] @ 0x1034C
+	class sUnit *mpUnit @ 0x10350
+	char pad_10354[16] @ 0x10354
+	class sDevil4Collision *mpD4Collision @ 0x10364
+	char pad_10368[48] @ 0x10368
+	class sMediator *mpMediator @ 0x10398
+	char pad_1039C[44] @ 0x1039C
+}
+
+class sDevil4Main_JobData
+{
+public:
+	class MtObject *mtObject @ 0x0000
+	void* callbackMaybe @ 0x0004
+}
+
+class sMainProcess
+{
+public:
+	float mftime @ 0x0000
+	float mltime @ 0x0004
+	float mffps @ 0x0008
+}
+
+class sUnit
+{
+public:
+	char pad_0000[68] @ 0x0000
+}
+
+class sDevil4Collision : public cSystem
+{
+public:
+	char pad_0020[64] @ 0x0020
+}
+
+class sMediator
+{
+public:
+	char pad_0000[68] @ 0x0000
+}
+
+class sCollisionGame : public cSystem
+{
+public:
+}
+
+class cResource : public MtObject
+{
+public:
+	char path[64] @ 0x0004
+	uint32_t refCount @ 0x0044
+	uint32_t mAttr @ 0x0048
+	uint32_t mSize @ 0x004C
+	uint64_t mId @ 0x0050
+	char pad_0058[8] @ 0x0058
+}
+
+class rModel : public cResource
+{
+public:
+	char pad_0060[32] @ 0x0060
+	class rMaterialMaybe *mpMaterial @ 0x0080
+	Matrix4x4 *N0000AF27 @ 0x0084
+	char pad_0088[208] @ 0x0088
+}
+
+class rMaterialMaybe
+{
+public:
+	char pad_0000[24] @ 0x0000
+	class rRenderTargetTexture *N0000AF54 @ 0x0018
+	char pad_001C[40] @ 0x001C
+}
+
+class rRenderTargetTexture : public cResource
+{
+public:
+	char pad_0060[116] @ 0x0060
+	class cTransTexture *cTransTexture @ 0x00D4
+	char pad_00D8[8] @ 0x00D8
+	uint32_t width @ 0x00E0
+	uint32_t height @ 0x00E4
+	char pad_00E8[184] @ 0x00E8
+}
+
+class cTransTexture
+{
+public:
+	char pad_0000[16] @ 0x0000
+	class D3D9Texture *mD3D9Texture @ 0x0010
+}
+
+class D3D9Texture
+{
+public:
+	char pad_0000[68] @ 0x0000
+}
+
+class uDevil4Model
+{
+public:
+	char pad_0000[2608] @ 0x0000
+	class rModel *rModelPtr @ 0x0A30
+	char pad_0A34[68] @ 0x0A34
+	class cMaterialPtr *cMaterialPtr @ 0x0A78
+	char pad_0A7C[1476] @ 0x0A7C
+}
+
+class cMaterialPtr
+{
+public:
+	class cMaterialStandard *matPtr @ 0x0000
+	char pad_0004[2112] @ 0x0004
+}
+
+class cMaterialStandard
+{
+public:
+	char pad_0000[28] @ 0x0000
+	class rTexture *rTexturePtr @ 0x001C
+	char pad_0020[2084] @ 0x0020
+}
+
+class rTexture
+{
+public:
+	char pad_0000[204] @ 0x0000
+	class cTransTexture *cTransTexturePtr @ 0x00CC
+	char pad_00D0[1908] @ 0x00D0
+}
+
+class N000067C1
+{
+public:
+	char pad_0000[16] @ 0x0000
+	uint32_t N000067C6 @ 0x0010
+	char pad_0014[48] @ 0x0014
+}
+

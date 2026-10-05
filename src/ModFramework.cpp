@@ -81,6 +81,9 @@ ModFramework::ModFramework()
         //FunctionHook::set_mh_skip_locks(TRUE);
         m_mods = std::make_unique<Mods>();
         e = m_mods->on_initialize(Mod::ModType::REGULAR);
+        if (e.has_value()) {
+            MessageBoxA(NULL, e.value().c_str(), "DMC4HOOK", MB_ICONERROR);
+        }
     //}
     //utility::resume_threads(tr);
     
