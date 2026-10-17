@@ -161,6 +161,28 @@ struct MPARAM_WORK {
 };
 static_assert(sizeof(MPARAM_WORK)==0x10);
 
+// uModel::MOT_ATTR: Motion::mAttr bits (Vibed/RE/motion_runtime_findings.md, confirmed in the DX9 code).
+// "NULL" = the root bone that carries root motion; FIX = absolute override, ADD = additive accumulation.
+// Callers pass only the low bits (0x1, 0x4, 0x5, 0x8, 0x10 seen); 0x20 and up come from the motion data / runtime.
+enum MOT_ATTR : uint16_t {
+    A_NULL_TRANS_OFF       = 0x0001, // disable root translation
+    A_FIRST_TRANS_ON       = 0x0002, // first-frame translation as the base
+    A_LOOP_OFF             = 0x0004, // clamp at the end, no wrap (forced when the block's loop value < 0)
+    A_ADD_TRANS_OFF        = 0x0008, // disable additive translation
+    A_STOP                 = 0x0010, // freeze frame: no mFrame advance, no sequence events (hitstop)
+    A_NULL_TRANS_FIX       = 0x0020, // absolute root translation (overwrites mPos, skips mScale)
+    A_ENABLE_SCALE         = 0x0040, // the block has a scale track
+    A_NULL_ANGLE_FIX       = 0x0080, // absolute root rotation (overwrites mQuat)
+    A_SYMMETRY             = 0x0100, // mirrored motion (calcSymmetry)
+    A_NULL_ONLY            = 0x0200, // suppress the root-rotation matrix build
+    A_PREV_TRANS_ON        = 0x0400, // previous-frame translation as the base
+    A_INTEGER_FRAME        = 0x0800, // floor mFrame before sampling
+    A_ADD_ROT_OFF          = 0x1000, // disable additive rotation
+    A_NULL_TRANS_FIX_SCALE = 0x2000, // absolute root translation including scale
+    A_SCALE_INHERIT_OFF    = 0x4000, // don't inherit the parent scale
+    A_NULL_SYMMETRY        = 0x8000, // mirror the root bone
+};
+
 struct Motion {
     void* vtable;
     ushort mMotionNo;

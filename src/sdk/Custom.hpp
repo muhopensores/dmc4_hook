@@ -1,7 +1,13 @@
+#pragma once
 #include "uActor.hpp"
 #include "uCollisionMgr.hpp"
+#include "Devil4.hpp"
 #include <concepts>
 #include <type_traits>
+#include <vector>
+#include <utility>
+#include <new>
+#include <cstring>
 #define naked __declspec(naked)
 
 
@@ -160,7 +166,7 @@ public:
     MtDTI* getDTI() { return (MtDTI*)rModelDTI; };
 };
 
-void CustomActor::render(void* ctrans) {
+inline void CustomActor::render(void* ctrans) {
     uintptr_t render_jmp = 0x00522DC0;
     _asm {
         pushad
@@ -170,16 +176,79 @@ void CustomActor::render(void* ctrans) {
     }
 }
 
-void CustomActor::destructor(uint32_t flag) {
+inline void CustomActor::destructor(uint32_t flag) {
     custom_utils::ushell_des(this);
     if (flag) {
         devil4_sdk::unit_deallocate((MtObject*)this);
     }
 }
 
-void CustomActor::die() {
+inline void CustomActor::die() {
     custom_utils::despawn(this);
 }
+
+
+// ---------------------------------------------------------------------------------------------------------------
+// CustomUnit<D>: the same thing as CustomActor + REGISTER_VTABLE, without the macro.
+//
+//     struct CollLine : CustomUnit<CollLine> {
+//         void tick();                 // every game tick (uActor vtable +0x78)
+//         void render(void* ptrans);   // +0x24
+//     };
+//     CollLine* line = CollLine::spawn(12);          // unit line 12; ctor arguments pass through
+//
+// The five slots are replaced by the subclass's methods, or by the defaults where it defines none (getDTI ->
+// rModelDTI, render -> CustomActor::render, startup / tick / onhit empty), as REGISTER_VTABLE did; the other 74
+// stay the game's uActor code. The vtable is built on first spawn, so static-init order doesn't matter.
+// ---------------------------------------------------------------------------------------------------------------
+constexpr uintptr_t sUnitPtr = 0x00E552CC;
+
+template <class D>
+struct CustomUnit : CustomActor {
+    enum Slot : size_t { GetDTI = 0x10 / 4, Startup = 0x14 / 4, Render = 0x24 / 4, Tick = 0x78 / 4, OnHit = 0x94 / 4 };
+
+    // the defaults a subclass may replace (same names, same signatures)
+    void startup() {}
+    void tick() {}
+    void onhit(void* atk_param, void* dfd_param) {}
+
+    static const std::vector<uintptr_t>& vtable() {
+        static const std::vector<uintptr_t> vt = [] {
+            std::vector<uintptr_t> v((uintptr_t*)uActorVtablePtr, (uintptr_t*)uActorVtablePtr + uActorVtableSize);
+            // &D::x is the subclass's method when it defines one, else the default below / in CustomActor:
+            // all five slots are always ours, exactly as REGISTER_VTABLE did it.
+            v[GetDTI]  = addr(&D::getDTI);
+            v[Startup] = addr(&D::startup);
+            v[Render]  = addr(&D::render);
+            v[Tick]    = addr(&D::tick);
+            v[OnHit]   = addr(&D::onhit);
+            return v;
+        }();
+        return vt;
+    }
+
+    CustomUnit() {
+        custom_utils::uActorCons(this);                     // the game's uActor constructor on our memory
+        this->vtable_ptr = (uintptr_t*)vtable().data();
+    }
+
+    template <class... A>
+    static D* spawn(int unit_line, A&&... args) {
+        void* mem = devil4_sdk::mt_allocate_heap(sizeof(D), 16);
+        D* obj = new (mem) D(std::forward<A>(args)...);
+        devil4_sdk::spawn_or_something((void*)sUnitPtr, (MtObject*)obj, unit_line);
+        return obj;
+    }
+
+private:
+    template <class M>
+    static uintptr_t addr(M m) {
+        static_assert(sizeof(M) == sizeof(uintptr_t), "member pointer isn't a plain code address here");
+        uintptr_t p;
+        std::memcpy(&p, &m, sizeof p);
+        return p;
+    }
+};
 
 
 #define METHOD_TO_VTABLE(cls, method, ofs) \

@@ -24,7 +24,8 @@ enum COLLISION_FILTER {
     COLL_HAND = 0x202000,
     COLL_CAMERA = 0x404000,
     COLL_FALLSTOP = 0x10000000,
-    COLL_CAMERASTOP = 0x20000000
+    COLL_CAMERASTOP = 0x20000000,
+    COLL_ALL = 0xffffffff
 };
 
 #pragma pack(push, 2)
@@ -123,17 +124,14 @@ static void* getCPrim_wr(void* pTrans, void* sPrim, uint prim_type, cUnit* p_uni
     return res;
 }
 
-struct CollLine : CustomActor {
+struct CollLine : CustomUnit<CollLine> {
     MtLineSegment ls;
     LineInfo hit;
     uint color = 0xFF0000FF;
     void* cprim = nullptr;
-    CollLine();
-    void startup_override() {};
     void render(void* ptrans);
-    void lifecycle_override();
+    void tick();
 };
-REGISTER_VTABLE(CollLine);
 
 static int selectedIndex = -1;
 static bool isManipulating = false;
@@ -177,7 +175,7 @@ void CollLine::render(void* ptrans) {
     submitLine_wr(cprim, &this->ls.p0, &this->ls.p1, this->color, flags);
 }
 
-void CollLine::lifecycle_override() {
+void CollLine::tick() {
     sMediator* smed = devil4_sdk::get_sMediator();
     uPlayer* pl      = smed->player_ptr;
     if (pl) {
@@ -215,25 +213,13 @@ void CollLine::lifecycle_override() {
     }
 }
 
-CollLine::CollLine() {
-    custom_utils::uActorCons(this);
-    this->vtable_ptr = (uintptr_t*)CollLine_vtable.my_vtable.data();
-}
-
-CollLine* SpawnCollLine() {
-    void* lineptr = devil4_sdk::mt_allocate_heap(sizeof(CollLine), 16);
-    // void* projptr              = devil4_sdk::mt_allocate_heap(0x18D0, 16);
-    CollLine* line = new (lineptr) CollLine();
-    devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)line, 12);
-    return line;
-}
 
 
 CollLine* line = nullptr;
 void RayTest::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
         if (ImGui::Button("Coll Test")) {
-            line = SpawnCollLine();
+            line = CollLine::spawn(12);
             p0Offset = Vector3f(0.0f);
             p1Offset = Vector3f(0.0f);
         }
@@ -246,6 +232,7 @@ void RayTest::on_gui_frame(int display) {
             ImGui::InputFloat3("Line start", (float*)&line->ls.p0);
             ImGui::InputFloat3("Line end", (float*)&line->ls.p1);
             ImGui::Text("Hit output");
+            ImGui::InputInt("Tag", (int*)&line->hit.member_0xc_copy);
             ImGui::InputFloat3("Tri plane normal", (float*)&line->hit.triPlaneNormal);
             ImGui::InputFloat3("Tri plane vec 1", (float*)&line->hit.triPlaneVec1);
             ImGui::InputFloat3("Tri plane vec 2", (float*)&line->hit.triPlaneVec2);
@@ -254,6 +241,13 @@ void RayTest::on_gui_frame(int display) {
             ImGui::InputFloat("Hit distance", (float*)&line->hit.hitDistance);
         }
         ImGui::InputScalar("Filter", ImGuiDataType_U32, &thing, nullptr, nullptr, "%X", ImGuiInputTextFlags_CharsHexadecimal);
+        if (ImGui::Button("Wall")) { thing=COLL_WALL; }
+        ImGui::SameLine();
+        if (ImGui::Button("Ground")) { thing=COLL_GROUND; }
+        ImGui::SameLine();
+        if (ImGui::Button("Stinger wall")) { thing=COLL_FALLSTOP; }
+        if (ImGui::Button("All")) { thing=COLL_ALL; }
+
     }
 }
 
