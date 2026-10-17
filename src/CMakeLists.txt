@@ -552,7 +552,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME dinput8)
 target_precompile_headers(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ModPCH.hpp")
-target_link_libraries(${PROJECT_NAME} imgui minhook glm_static shlwapi D3dx9 d3d9 csys::csys Winmm spdlog ImGuizmo)
+target_link_libraries(${PROJECT_NAME} imgui minhook glm_static shlwapi D3dx9 d3d9 csys::csys Winmm spdlog ImGuizmo pugixml)
 target_compile_features(${CMAKE_PROJECT_NAME} PUBLIC cxx_std_17)
 
 include_directories(${CMAKE_PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})

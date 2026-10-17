@@ -43,3 +43,5 @@ add_library(ImGuizmo STATIC
     ImGuizmo/ImGradient.h
 )
 target_link_libraries(ImGuizmo PUBLIC imgui)
+
+add_subdirectory(pugixml)
