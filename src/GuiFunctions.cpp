@@ -923,6 +923,7 @@ namespace gui {
                     ImGuiURL { "spdlog -> https://github.com/gabime/spdlog", "https://github.com/gabime/spdlog" },
                     ImGuiURL { "GNU gettext -> https://www.gnu.org/software/gettext/", "https://www.gnu.org/software/gettext/" },
                     ImGuiURL { "mo_file.zip -> http://number-none.com/blow/code/mo_file/index.html", "http://number-none.com/blow/code/mo_file/index.html" },
+                    ImGuiURL { "pugixml -> https://pugixml.org/", "https://pugixml.org/" },
                 };
                 for (auto& link : links) {
                     link.draw();
@@ -941,15 +942,16 @@ namespace gui {
                     };
 
                     static std::array licenses{
-                        License{ "REFramework",   license::reframework },
-                        License{ "GLM",           license::glm },
-                        License{ "ImGui",         license::imgui },
-                        License{ "MinHook",       license::minhook },
-                        License{ "spdlog",        license::spdlog },
-                        License{ "csys",          license::csys },
-                        License{ "imgui_console", license::imgui_console },
-                        License{ "GNU gettext",   license::gnu_gettext },
-                        License{ "mo_file.zip",   license::naysayer_gettext },
+                        License { "REFramework",   license::reframework },
+                        License { "GLM",           license::glm },
+                        License { "ImGui",         license::imgui },
+                        License { "MinHook",       license::minhook },
+                        License { "spdlog",        license::spdlog },
+                        License { "csys",          license::csys },
+                        License { "imgui_console", license::imgui_console },
+                        License { "GNU gettext",   license::gnu_gettext },
+                        License { "mo_file.zip",   license::naysayer_gettext },
+                        License { "pugixml",       license::pugixml_license }
                     };
 
                     for (const auto& license : licenses) {

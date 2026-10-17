@@ -12,6 +12,28 @@ static MultipleGameInstances* multiple_instances_mod = nullptr;
 
 static HMODULE g_dinput;
 
+struct Arena {
+    char* beg { nullptr };
+    char* end { nullptr };
+
+    void* alloc(Arena* a, ptrdiff_t size, ptrdiff_t align, ptrdiff_t count) {
+
+        ptrdiff_t padding   = -(uintptr_t)a->beg & (align - 1);
+        ptrdiff_t available = a->end - a->beg - padding;
+
+        if (available < 0 || count > available / size) {
+            abort();
+        }
+
+        void* p = a->beg + padding;
+        a->beg += padding + count * size;
+
+        return memset(p, 0, count * size);
+    }
+};
+
+Arena g_arena;
+
 extern "C" {
 // DirectInput8Create wrapper for dinput8.dll
 __declspec(dllexport) HRESULT WINAPI direct_input8_create(
@@ -41,6 +63,61 @@ static bool check_pe_section(const char* section_name) noexcept {
     return false;
 }
 #endif
+
+static void apply_laa_patch()
+{
+    HMODULE h_executable = GetModuleHandle(NULL);
+    if (!h_executable) return;
+
+    PIMAGE_DOS_HEADER dos_header = (PIMAGE_DOS_HEADER)h_executable;
+    if (dos_header->e_magic != IMAGE_DOS_SIGNATURE) return;
+
+    PIMAGE_NT_HEADERS nt_header = (PIMAGE_NT_HEADERS)((BYTE*)h_executable + dos_header->e_lfanew);
+    if (nt_header->Signature != IMAGE_NT_SIGNATURE) return;
+
+    DWORD oldProtect;
+    if (VirtualProtect(&nt_header->FileHeader.Characteristics, sizeof(WORD), PAGE_READWRITE, &oldProtect))
+    {
+        nt_header->FileHeader.Characteristics |= IMAGE_FILE_LARGE_ADDRESS_AWARE;
+        VirtualProtect(&nt_header->FileHeader.Characteristics, sizeof(WORD), oldProtect, &oldProtect);
+    }
+}
+
+static bool reserve_memory_virtual_alloc2() {
+    return false;
+    static constexpr auto get_new_memory_api_fptr = [](const char* procname) {
+        HMODULE handle = GetModuleHandleA("KernelBase.dll");
+        if (!handle) {
+            return (FARPROC)nullptr;
+        }
+        return GetProcAddress(handle, procname);
+    };
+
+    using va2 = PVOID WINAPI(HANDLE Process, PVOID Base, SIZE_T Size, ULONG AllocType, ULONG Prot, MEM_EXTENDED_PARAMETER*, ULONG);
+    va2* _VirtualAlloc2 = (va2*)get_new_memory_api_fptr("VirtualAlloc2");
+    
+    if (!_VirtualAlloc2) {
+        return false;
+    }
+
+#if 0
+    using mvof3 = PVOID(HANDLE Handle, HANDLE Process, PVOID Base, ULONG64 Off, SIZE_T ViewSize, ULONG AllocType, ULONG Prot, MEM_EXTENDED_PARAMETER*, ULONG);
+    mvof3* _MapViewOfFile3 = (mvof3*)get_new_memory_api_fptr("MapViewOfFile3");
+
+    using uvof2 = BOOL(HANDLE Process, PVOID BaseAddress, ULONG UnmapFlags);
+    uvof2* _UnmapViewOfFile2 = (uvof2*)get_new_memory_api_fptr("UnmapViewOfFile2");
+#endif
+
+    static constexpr size_t mt_mem_size = 0x1D000000ul;
+    
+    if (char* mem = (char*)_VirtualAlloc2(nullptr, (void*)0x80000000ul, mt_mem_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE, nullptr, NULL)) {
+        g_arena.beg = mem;
+        g_arena.end = g_arena.beg + mt_mem_size;
+        char buffer[MAX_PATH] = { 0 };
+        sprintf(buffer, "mt_mem_start: %p;\nmt_mem_end : %p;", (void*)g_arena.beg, (void*)g_arena.end);
+        MessageBoxA(NULL, buffer, "DMC4", MB_ICONINFORMATION);
+    }
+}
 
 static void patch_more_memories() {
     // increase global, temp, resource mem
@@ -137,6 +214,7 @@ static int start_hook() {
 #endif // !NDEBUG
 
     startup_proc();
+    //reserve_memory_virtual_alloc2();
 
     static constexpr uintptr_t tmain_CRT_startup_ = 0x00B53BBA;
     /*return*/ __asm { jmp  tmain_CRT_startup_ }
@@ -185,6 +263,7 @@ BOOL APIENTRY DllMain(HMODULE handle, DWORD reason, LPVOID reserved) { //NOLINT
         assert(DisableThreadLibraryCalls(handle));
         FunctionHook::set_mh_skip_locks(TRUE);
 
+        //apply_laa_patch();
         static constexpr uintptr_t STEAM_STUB_EPILOGUE = 0x00EE6981;
 
         if (is_executable_addr(STEAM_STUB_EPILOGUE)) { // fucking steam
