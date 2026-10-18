@@ -140,6 +140,13 @@ public:
     static float cast_height;  // cm above the feet the casts start from
     static float cast_angle;   // degrees off the forward axis, per side (45)
     static float corner_dot;   // two hits whose normals' dot is below this are a corner, not a wall
+    // Collision channels the casts and the entry check accept (sCollision::Param filter). The game's wall checks use
+    // COLL_WALL alone; invisible walls live in the fall-stop channel (what stops Stinger at a ledge).
+    enum : uint32_t { COLL_WALL = 0x20000, COLL_FALLSTOP = 0x10000000, COLL_CAMERASTOP = 0x20000000 };
+    static uint32_t wall_filter;
+    static bool run_on_invisible_walls;   // adds COLL_FALLSTOP
+    static bool run_on_camera_walls;      // adds COLL_CAMERASTOP
+    static uint32_t filter();             // wall_filter with the two options folded in
     static float climb_angle;  // degrees between the facing and the wall normal below which the run goes up, not sideways
     static float climb_speed;  // cm per frame up the wall
     static float away_deadzone; // a stick leaning away from the wall: its along-wall part below this (0-1) has no effect

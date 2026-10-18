@@ -25,6 +25,9 @@ float WallRun::cast_length  = 120.0f;
 float WallRun::cast_height  = 80.0f;
 float WallRun::cast_angle   = 45.0f;
 float WallRun::corner_dot   = 0.5f;    // normals more than 60 degrees apart = corner
+uint32_t WallRun::wall_filter = WallRun::COLL_WALL;
+bool  WallRun::run_on_invisible_walls = false;
+bool  WallRun::run_on_camera_walls    = false;
 float WallRun::climb_angle  = 35.0f;
 float WallRun::climb_speed  = 10.0f;
 float WallRun::away_deadzone = 0.3f;
@@ -241,7 +244,7 @@ glm::vec3 wmat_row(uintptr_t pl, int row) {           // rows: 0 right, 1 up, 2 
 CollParam wall_param() {
     CollParam p{};
     p.type             = 127;
-    p.filter           = 0x20000;           // walls
+    p.filter           = WallRun::filter(); // walls, plus the invisible channels when asked
     p.handle_exclude_0 = -1;
     p.handle_exclude_1 = -1;
     p.correctionNum    = 10;
@@ -265,6 +268,13 @@ constexpr int ACT_WALL_JUMP  = 0x18;   // mBdyAction[1].no of moveActWallJump
 // ---------------------------------------------------------------------------------------------------------------
 // Wall detection: two casts, +-cast_angle about the up axis, from cast_height above the feet.
 // ---------------------------------------------------------------------------------------------------------------
+uint32_t WallRun::filter() {
+    uint32_t f = wall_filter;
+    if (run_on_invisible_walls) f |= COLL_FALLSTOP;
+    if (run_on_camera_walls)    f |= COLL_CAMERASTOP;
+    return f;
+}
+
 glm::vec3 WallRun::heading(uintptr_t player, const Wall* running) {
     if (at<int>(player, pl::mAnlgPow) != 0) {                       // stick deflected: its world yaw
         const float yaw = at<float>(player, pl::mAnlgRadian);
@@ -414,7 +424,7 @@ void play_run_motion(RunState& s, uintptr_t pl) {
     // The custom cycles loop, with their root translation ignored (A_NULL_TRANS_OFF: the run's velocity moves the
     // player, the LMT's root track would walk the capsule into the wall); the placeholder kick-offs use the wall
     // jump's 5 (A_NULL_TRANS_OFF | A_LOOP_OFF).
-    request_motion(pl, motion, custom ? (uint32_t)A_NULL_TRANS_OFF : ATTR_KICK, 4.0f, 0.0f, 1.0f);
+    request_motion(pl, motion, custom ? (uint32_t)A_NULL_TRANS_OFF : ATTR_KICK, 6.0f, 0.0f, 1.0f);
     s.motion = motion;
 }
 
@@ -868,6 +878,15 @@ void WallRun::on_gui_frame(int display) {
     ImGui::SliderFloat(_("Cast height"), &cast_height, 0.0f, 200.0f);
     ImGui::SliderFloat(_("Cast angle"), &cast_angle, 5.0f, 85.0f);
     ImGui::SliderFloat(_("Corner dot"), &corner_dot, -1.0f, 1.0f);
+    ImGui::Checkbox(_("Run on invisible walls"), &run_on_invisible_walls);
+    ImGui::SameLine();
+    help_marker(_("Also accept the fall-stop channel (0x10000000: the invisible walls that stop Stinger at ledges) in the "
+                  "run's casts and the entry check. The game's own wall checks only see 0x20000."));
+    ImGui::SameLine(sameLineWidth);
+    ImGui::Checkbox(_("Camera-stop walls too"), &run_on_camera_walls);
+    ImGui::InputScalar(_("Wall filter"), ImGuiDataType_U32, &wall_filter, nullptr, nullptr, "%X", ImGuiInputTextFlags_CharsHexadecimal);
+    ImGui::SameLine();
+    help_marker(_("The base collision filter of the casts (hex). 20000 = walls, the game's value; the two options above add their channels to it."));
     ImGui::SliderFloat(_("Climb angle"), &climb_angle, 0.0f, 90.0f);
     ImGui::SameLine();
     help_marker(_("Facing the wall within this many degrees of its normal runs up it; otherwise the run goes sideways."));
@@ -962,6 +981,9 @@ void WallRun::on_config_load(const utility::Config& cfg) {
     jumpout_gravity  = cfg.get<float>("wall_run_jumpout_gravity").value_or(jumpout_gravity);
     jumpout_max_fall = cfg.get<float>("wall_run_jumpout_max_fall").value_or(jumpout_max_fall);
     climb_angle    = cfg.get<float>("wall_run_climb_angle").value_or(climb_angle);
+    wall_filter    = (uint32_t)cfg.get<int>("wall_run_filter").value_or((int)COLL_WALL);
+    run_on_invisible_walls = cfg.get<bool>("wall_run_invisible_walls").value_or(false);
+    run_on_camera_walls    = cfg.get<bool>("wall_run_camera_walls").value_or(false);
     climb_speed    = cfg.get<float>("wall_run_climb_speed").value_or(climb_speed);
     jumps_after_run = cfg.get<int>("wall_run_jumps_after").value_or(jumps_after_run);
     load_coat_lmt   = cfg.get<bool>("wall_run_coat_lmt").value_or(false);
@@ -993,6 +1015,9 @@ void WallRun::on_config_save(utility::Config& cfg) {
     cfg.set<float>("wall_run_jumpout_gravity", jumpout_gravity);
     cfg.set<float>("wall_run_jumpout_max_fall", jumpout_max_fall);
     cfg.set<float>("wall_run_climb_angle", climb_angle);
+    cfg.set<int>("wall_run_filter", (int)wall_filter);
+    cfg.set<bool>("wall_run_invisible_walls", run_on_invisible_walls);
+    cfg.set<bool>("wall_run_camera_walls", run_on_camera_walls);
     cfg.set<float>("wall_run_climb_speed", climb_speed);
     cfg.set<int>("wall_run_jumps_after", jumps_after_run);
     cfg.set<bool>("wall_run_coat_lmt", load_coat_lmt);
