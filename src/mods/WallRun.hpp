@@ -21,6 +21,7 @@ namespace pl {                                       // uPlayer offsets, DX9
     constexpr uintptr_t mAcc               = 0x0ED0;
     constexpr uintptr_t mNowFramePos       = 0x1350; // what RayTest casts from
     constexpr uintptr_t mpMotionListArr    = 0x0A38; // uModel: rMotionList*[16], one per motion bank
+    constexpr uintptr_t mMotionFrame0      = 0x0348; // uModel::MotionArray[0].mFrame: the lower-body motion's frame (animFrame)
     constexpr uintptr_t mBtnOn             = 0x140C; // cInterface::mBtnOn.bit (inputHold): 0x4 = jump
     constexpr uintptr_t mBtnTrg            = 0x1410; // (inputPress)
     constexpr uintptr_t mAnlgPow           = 0x141C; // stick deflection, 0 = centred (stickThreshold)
@@ -28,6 +29,7 @@ namespace pl {                                       // uPlayer offsets, DX9
     constexpr uintptr_t charType           = 0x1494; // 1 = Nero (controllerID; Payline's `cmp [esi+0x1494], 1`)
     constexpr uintptr_t mBdyActionLowerNo  = 0x1500; // mBdyAction[1].no (moveBank): 0x18 = wall jump
     constexpr uintptr_t mBdyActionLowerPhase = 0x1504; // mBdyAction[1].phase (movePart)
+    constexpr uintptr_t mActLimit          = 0x1550; // kActLimitBit: 0x8 = a jump may start now
     constexpr uintptr_t mActStat           = 0x1554; // bit 0x2 = in a jump
     constexpr uintptr_t mJumpType          = 0x16B8; // JUMP_TYPE
     constexpr uintptr_t mJumpMode          = 0x16BC; // JUMP_MODE
@@ -37,6 +39,7 @@ namespace pl {                                       // uPlayer offsets, DX9
     constexpr uintptr_t mRotateNow         = 0x1710; // facing yaw (rotation2)
     constexpr uintptr_t mActTimer0         = 0x177C;
     constexpr uintptr_t mMotContFree0      = 0x1D7E; // .ctn contact byte free0 (stage trigger)
+    constexpr uintptr_t mVelAdd            = 0x1E1C; // veladd: horizontal speed of a jump, loaded by setJumpRate from the jump table; calcSpeedXZ turns it into XZ velocity along mJump.moveAng every tick (sdk: inertia)
     constexpr uintptr_t mMoveAngle         = 0x1E24; // stick yaw used for movement (rotation3)
     constexpr uintptr_t mAtckLongCnt       = 0x1E7A;
     constexpr uintptr_t mJumpAtckCnt       = 0x1E7D;
@@ -55,6 +58,8 @@ namespace pl {                                       // uPlayer offsets, DX9
                                                          // points that half's cCharTblMgr at .ctn bank/idx instead of
                                                          // deriving them from the motion number, then clears it.
     constexpr uintptr_t mMotionFrameEnd0   = 0x2A54; // bool: lower-body motion reached its end
+    constexpr uintptr_t mMotCnclJumpStat   = 0x3174; // mMotCncl[4] (the C_JUMP window, 0x30C0 + 4 * 0x2C) .mStat: 2 = open
+    constexpr uintptr_t mMotCnclJumpReserve = 0x3178; // mMotCncl[4].mIsReserve: a jump press is buffered for it
 }
 
 enum JUMP_TYPE : int { JUMP_TYPE_F = 0, JUMP_TYPE_L = 1, JUMP_TYPE_B = 2, JUMP_TYPE_R = 3, JUMP_TYPE_V = 4 };
@@ -119,12 +124,18 @@ public:
     static bool mod_enabled;
     static bool replace_wall_jump;   // run wall_jump_port in place of uPlayer::moveActWallJump (hook at its entry 0x827200)
     static uintptr_t jmp_ret1;       // 0x827206, after the 6 prologue bytes the hook replaces
+    static bool replace_wall_jump_check; // run wall_jump_check_port in place of uPlayer::checkWallJumpBegin (entry 0x804650)
+    static uintptr_t jmp_ret2;       // 0x804656
+    static bool  require_wall_jumps; // the check's own rule: no entry when mWallJumpCnt is 0 (off = unlimited runs)
+    static float check_reach;        // cm the entry check looks forward and back for a wall (the game: 80)
+    static float check_height;       // cm above the feet it looks (the game: 10)
 
     // tunables (ImGui)
     static float run_speed;    // cm per frame along the wall
     static float run_frames;   // longest run in frames, 0 = as long as jump is held
     static float stick_speed;  // cm per frame pushed into the wall so the capsule stays on it
     static float wall_gap;     // cm the position is kept away from the wall plane each tick (0 = off): the root-motion backstop
+    static float lose_grace;   // frames the run keeps going on the last wall after the casts stop hitting, before jumping off
     static float cast_length;  // cm, each of the two casts
     static float cast_height;  // cm above the feet the casts start from
     static float cast_angle;   // degrees off the forward axis, per side (45)
@@ -143,6 +154,16 @@ public:
     static int  run_slot_left;    // block indices inside the custom LMT
     static int  run_slot_right;
     static int  run_slot_up;
+    static int  run_slot_jump_right; // jump-out cycles: the kick-off after a run on a right / left wall (3 / 4)
+    static int  run_slot_jump_left;
+    static float jumpout_launch_frame; // frame of the jump-out cycle at which the jump's velocity is applied (the take-off)
+    // Jump-out physics (cm per frame), used instead of the jump table's when `jumpout_custom_physics` is on.
+    static bool  jumpout_custom_physics;
+    static float jumpout_up;        // vertical speed at take-off
+    static float jumpout_out;       // speed away from the wall (along its normal)
+    static float jumpout_along;     // speed along the run's direction
+    static float jumpout_gravity;   // added to the vertical speed every frame (negative)
+    static float jumpout_max_fall;  // fastest fall speed
     static char lmt_body[128];    // game paths without extension, like effect paths
     static bool load_coat_lmt;    // off for now: only the body gets the custom bank; the coat keeps its pose on the run
     static char lmt_coat_nero[128];
@@ -171,6 +192,12 @@ public:
     // the port's 1-4 once the run has handed the wall to the game's wall jump (jump released, or no wall ahead).
     static void __stdcall move(uintptr_t player);
 
+    // uPlayer::checkWallJumpBegin 0x804650 line for line: the trigger of lower-body action 0x18. In a jump, with a
+    // jump press (fresh and allowed, or buffered in the C_JUMP window) and a wall jump left, it casts 80 cm back
+    // and forward at hip height; on a wall it charges initJumpBegin(3), sets the jump mode and starts the action.
+    // Runs in place of the game's when `replace_wall_jump_check` is on. Returns what the game's returns (al).
+    static bool wall_jump_check_port(uintptr_t player);
+
     // uPlayer::moveActWallJump 0x827200 line for line, over the offsets above. Runs in place of the game's when
     // `replace_wall_jump` is on (hook at the function entry 0x827200, `this` in eax).
     static void wall_jump_port(uintptr_t player);
@@ -181,5 +208,5 @@ public:
     void on_gui_frame(int display) override;
     void on_frame(fmilliseconds& dt) override;
 private:
-    std::unique_ptr<FunctionHook> hook1;
+    std::unique_ptr<FunctionHook> hook1, hook2;
 };

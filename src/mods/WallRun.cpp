@@ -11,10 +11,16 @@ using namespace wallrun;
 bool  WallRun::mod_enabled  = false;
 bool  WallRun::replace_wall_jump = true;
 uintptr_t WallRun::jmp_ret1 = NULL;
+bool  WallRun::replace_wall_jump_check = true;
+uintptr_t WallRun::jmp_ret2 = 0;
+bool  WallRun::require_wall_jumps = true;
+float WallRun::check_reach  = 80.0f;
+float WallRun::check_height = 10.0f;
 float WallRun::run_speed    = 12.0f;
 float WallRun::run_frames   = 0.0f;     // 0 = as long as jump is held
 float WallRun::stick_speed  = 2.0f;
 float WallRun::wall_gap     = 30.0f;
+float WallRun::lose_grace   = 4.0f;
 float WallRun::cast_length  = 120.0f;
 float WallRun::cast_height  = 80.0f;
 float WallRun::cast_angle   = 45.0f;
@@ -32,6 +38,15 @@ int   WallRun::lmt_bank        = 14;
 int   WallRun::run_slot_left   = 1;      // the custom LMT: 0 right, 1 left, 2 vertical, all attribute 0 (looping)
 int   WallRun::run_slot_right  = 0;
 int   WallRun::run_slot_up     = 2;
+int   WallRun::run_slot_jump_right = 3;
+int   WallRun::run_slot_jump_left  = 4;
+float WallRun::jumpout_launch_frame = 0.0f;
+bool  WallRun::jumpout_custom_physics = true;
+float WallRun::jumpout_up       = 22.0f;
+float WallRun::jumpout_out      = 10.0f;
+float WallRun::jumpout_along    = 6.0f;
+float WallRun::jumpout_gravity  = -1.1f;
+float WallRun::jumpout_max_fall = 30.0f;
 char  WallRun::lmt_body[128]       = "motion\\common\\wallrun";
 char  WallRun::lmt_coat_nero[128]  = "motion\\common\\wallrun_pl000_03";
 char  WallRun::lmt_coat_dante[128] = "motion\\common\\wallrun_pl006_03";
@@ -47,6 +62,7 @@ static uintptr_t fn_getNormalToTri    = 0x0048F1A0; // sMath::getNormalToTri(res
 static uintptr_t fn_setAction         = 0x007AA030; // uPlayer::setAction(this@ecx, int act)          vtbl slot 101
 static uintptr_t fn_initJumpBegin     = 0x007AC9E0; // uPlayer::initJumpBegin(this@ecx, int)          vtbl slot 109
 static uintptr_t fn_setActionLand     = 0x007AA6A0; // uPlayer::setActionLand(this@ecx)
+constexpr int JUMP_INIT_WALL_JUMP     = 3;          // initJumpBegin arg: --mWallJumpCnt, ++mWJumpCnt
 static uintptr_t fn_setJumpRate       = 0x007ACC70; // uPlayer::setJumpRate(this@eax)
 static uintptr_t fn_adjustJumpSpeed   = 0x007ACCE0; // uPlayer::adjustJumpSpeed(this@esi)
 static uintptr_t fn_calcSpeedXZ       = 0x007ACAB0; // uPlayer::calcSpeedXZ(this@esi, float yaw)      userpurge
@@ -344,6 +360,9 @@ struct RunState {                   // what the game's phase word can't hold
     uintptr_t player = 0;
     float timer = 0.0f;             // frames left when run_frames caps the run
     int motion = -1;                // the motion playing, to re-request when the direction mode changes
+    int kickoff = -1;               // custom jump-out motion for the port's kick-off (-1 = the vanilla one)
+    bool custom_kickoff = false;    // a jump-out cycle is playing: it is the whole jump, the port adds no fall motion
+    float lost = 0.0f;              // frames since the casts last hit (the wall ended, or bent too sharply)
     Wall wall{};
 };
 
@@ -419,19 +438,17 @@ void give_jumps_back(uintptr_t pl) {
     }
 }
 
-// Leave into the air: the fall motion and the game's neutral air state (ends action 0x18).
-void leave_to_air(uintptr_t pl) {
-    give_jumps_back(pl);
-    request_motion(pl, MOT_FALL, ATTR_FALL, 10.0f, 7.0f, 1.0f);
-    devil4_sdk::neutral_air_transition((uPlayer*)pl);
-}
-
 // Hand the action over to the game's wall jump: it reads the wall from mGroundPoly and runs its phases 0-4 in
 // the same phase word from here on (checkWallJumpBegin already set mJump.mode and the jump counters on entry).
 void hand_to_wall_jump(RunState& s, uintptr_t pl, bool from_run) {
+    s.kickoff = -1;
+    s.custom_kickoff = false;
     if (from_run) {
         at<LineResult>(pl, pl::mGroundPoly) = s.wall.poly;   // else keep checkWallJumpBegin's wall
         give_jumps_back(pl);                                 // the kick-off itself doesn't charge again
+        if (WallRun::custom_ready(pl) && !s.wall.vertical)   // the jump-out cycles (none for a climb yet)
+            s.kickoff = (WallRun::lmt_bank << 8) |
+                        ((s.wall.on_left ? WallRun::run_slot_jump_left : WallRun::run_slot_jump_right) & 0xFF);
     }
     at<int>(pl, pl::mBdyActionLowerPhase) = 0;
     s.motion = -1;
@@ -451,6 +468,8 @@ void __stdcall WallRun::move(uintptr_t pl) {
     if (phase == 0) {                                   // entry: this tick's jump press near a wall
         s.motion = -1;
         s.timer  = run_frames;
+        s.lost   = 0.0f;
+        s.custom_kickoff = false;
         const glm::vec3 h = heading(pl, nullptr);
         if (!detect(pl, s.wall, h)) { hand_to_wall_jump(s, pl, false); return; }   // nothing runnable that way: plain wall jump
         steer(pl, s.wall, h);
@@ -464,8 +483,16 @@ void __stdcall WallRun::move(uintptr_t pl) {
 
     // running
     if (!(at<uint32_t>(pl, pl::mBtnOn) & 0x4)) { hand_to_wall_jump(s, pl, true); return; }   // jump released: kick off
+    // The wall ended, or bent more than corner_dot allows: keep running on the last wall for lose_grace frames (a
+    // seam, a one-tick miss), then end the way a release does, with the kick-off off that wall. Never an abrupt
+    // fall mid-cycle.
     const glm::vec3 h = heading(pl, &s.wall);
-    if (!detect(pl, s.wall, h)) { leave_to_air(pl); return; }                        // wall ended, or a corner
+    if (!detect(pl, s.wall, h)) {                       // detect leaves s.wall as it was on a miss
+        s.lost += at<float>(pl, pl::m_delta_time);
+        if (s.lost > lose_grace) { hand_to_wall_jump(s, pl, true); return; }
+    } else {
+        s.lost = 0.0f;
+    }
     steer(pl, s.wall, h);
     play_run_motion(s, pl);                             // only when left / right / up changed
     face(pl, s.wall.yaw);
@@ -540,6 +567,37 @@ void WallRun::ensure_bank(uintptr_t player) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// uPlayer::checkWallJumpBegin 0x804650 (SE 0xA059D0), readable: the entry test for action 0x18.
+// ---------------------------------------------------------------------------------------------------------------
+bool WallRun::wall_jump_check_port(uintptr_t pl) {
+    if (!(at<uint32_t>(pl, pl::mActStat) & 0x2)) return false;             // only from a jump
+
+    // A jump input: buffered in the C_JUMP cancel window, or pressed now while a jump may start.
+    const bool buffered = at<int>(pl, pl::mMotCnclJumpStat) == 2 && at<bool>(pl, pl::mMotCnclJumpReserve);
+    const bool pressed  = (at<uint32_t>(pl, pl::mActLimit) & 0x8) && (at<uint32_t>(pl, pl::mBtnTrg) & 0x4);
+    if (!buffered && !pressed) return false;
+
+    if (require_wall_jumps && at<char>(pl, pl::mWallJumpCnt) <= 0) return false;
+
+    // A line through the player at hip height, check_reach back to check_reach forward, both sides, walls only.
+    const glm::vec3 up  = wmat_row(pl, 1);
+    const glm::vec3 fwd = wmat_row(pl, 2);
+    const glm::vec3 hip = glm::vec3(at<MtVector3>(pl, pl::mPos)) + up * check_height;
+    MtLineSegment segment;
+    segment.p0 = hip - fwd * check_reach;
+    segment.p1 = hip + fwd * check_reach;
+    CollParam param = wall_param();
+    LineResult& poly = at<LineResult>(pl, pl::mGroundPoly);              // the action reads the wall from here
+    if (!find_intersection(&param, &segment, true, &poly)) return false;
+    if (*(uint32_t*)(poly.pTriangle + 0x14) & 1) return false;           // surface_attr bit 0: no wall jump off it
+
+    init_jump_begin(pl, JUMP_INIT_WALL_JUMP);
+    at<int>(pl, pl::mJumpMode) = JUMP_MODE_NORM_WALL_LO;
+    set_action(pl, ACT_WALL_JUMP);
+    return true;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // Reference: uPlayer::moveActWallJump 0x827200 (SE 0xA2BCD0), readable. Phases in mBdyAction[1].phase.
 // ---------------------------------------------------------------------------------------------------------------
 void WallRun::wall_jump_port(uintptr_t pl) {
@@ -597,17 +655,31 @@ void WallRun::wall_jump_port(uintptr_t pl) {
     }
     case 1: {
         // Kick-off motion by type and side. Front-facing / back-facing pairs: F 20 / 25, L 23 / 27, R 22 / 26.
+        // After a wall run with the custom LMT, RunState.kickoff names a jump-out cycle that plays instead,
+        // borrowing the vanilla kick-off's .ctn script; the physics and the rest of the phases are unchanged.
+        int vanilla; float interp = 4.0f;
         switch (jumpType) {
-        case JUMP_TYPE_F: request_motion(pl, wallFront ? 20 : 25, ATTR_KICK, 4.0f, 0.0f, 1.0f); break;
-        case JUMP_TYPE_L: request_motion(pl, wallFront ? 23 : 27, ATTR_KICK, 4.0f, 0.0f, 1.0f); break;
-        case JUMP_TYPE_R: request_motion(pl, wallFront ? 22 : 26, ATTR_KICK, 4.0f, 0.0f, 1.0f); break;
+        case JUMP_TYPE_F: vanilla = wallFront ? 20 : 25; break;
+        case JUMP_TYPE_L: vanilla = wallFront ? 23 : 27; break;
+        case JUMP_TYPE_R: vanilla = wallFront ? 22 : 26; break;
         case JUMP_TYPE_B:
-            if (!wallFront) { request_motion(pl, 25, ATTR_KICK, 4.0f, 0.0f, 1.0f); break; }
+            if (!wallFront) { vanilla = 25; break; }
             if (!at<bool>(pl, pl::mMotionFrameEnd0)) return;           // still turning
-            request_motion(pl, 28, ATTR_KICK, 0.0f, 0.0f, 1.0f);
+            vanilla = 28; interp = 0.0f;
             face(pl, yaw_of(tri_normal(&poly)));
             break;
-        default:          request_motion(pl, wallFront ? 20 : 25, ATTR_KICK, 4.0f, 0.0f, 1.0f); break;   // V
+        default:          vanilla = wallFront ? 20 : 25; break;        // V
+        }
+        RunState& rs = state_for(pl);
+        if (rs.kickoff >= 0) {
+            // The jump-out cycle is the whole jump: take-off, flight and whatever it loops into until landing.
+            // Loop as its block says (A_LOOP_OFF not set), root translation off; phase 2 only launches.
+            borrow_ctn(pl, 0, vanilla);
+            request_motion(pl, rs.kickoff, (uint32_t)A_NULL_TRANS_OFF, interp, 0.0f, 1.0f);
+            rs.kickoff = -1;
+            rs.custom_kickoff = true;
+        } else {
+            request_motion(pl, vanilla, ATTR_KICK, interp, 0.0f, 1.0f);
         }
         // Turn toward the move direction, 20% of the remaining difference per request.
         if (jumpType != JUMP_TYPE_F || wallFront) {
@@ -618,7 +690,31 @@ void WallRun::wall_jump_port(uintptr_t pl) {
         ++phase;
         break;
     }
-    case 2:
+    case 2: {
+        RunState& rs = state_for(pl);
+        if (rs.custom_kickoff) {
+            // A jump-out cycle: launch at its take-off frame, keep the cycle playing, skip the fall motion and
+            // the phase-3 loop re-request (straight to the airborne phase).
+            if (at<float>(pl, pl::mMotionFrame0) >= jumpout_launch_frame) {
+                if (at<uint32_t>(pl, pl::mBtnOn) & 0x4)
+                    at<int>(pl, pl::mJumpMode) = JUMP_MODE_NORM_WALL_HI;
+                set_jump_rate(pl);                                  // the table's values (inertia, speed, gravity)
+                if (jumpout_custom_physics) {                       // ... replaced by the tunables
+                    const glm::vec3 n = tri_normal(&poly);
+                    const glm::vec3 v = n * jumpout_out + glm::vec3(rs.wall.run_dir) * jumpout_along;
+                    vel.x = v.x; vel.z = v.z;
+                    vel.y = jumpout_up;
+                    acc.x = acc.y = acc.z = 0.0f;
+                    // keep the game's own XZ model in step: veladd = horizontal speed, moveAng = its yaw
+                    const glm::vec3 xz(v.x, 0.0f, v.z);
+                    at<float>(pl, pl::mVelAdd) = glm::length(xz);
+                    if (glm::length(xz) > 1e-4f) at<float>(pl, pl::mJumpMoveAng) = yaw_of(xz);
+                }
+                wall_dust_effect(pl, tri_normal(&poly), poly.hitPos, efct_mtrl_flag(&poly));
+                phase = 4;
+            }
+            break;
+        }
         if (at<bool>(pl, pl::mMotionFrameEnd0)) {
             const int fall = jumpType == JUMP_TYPE_V ? 4 : (jumpType != JUMP_TYPE_F || wallFront) ? 5 : 9;
             request_motion(pl, fall, ATTR_FALL, 10.0f, 7.0f, 1.0f);
@@ -629,6 +725,7 @@ void WallRun::wall_jump_port(uintptr_t pl) {
             ++phase;
         }
         break;
+    }
     case 3:
         if (at<uint8_t>(pl, pl::mMotContFree0) >= 2) {                      // .ctn trigger: loop the fall
             request_motion(pl, at<int>(pl, pl::mMotionCtrl0No), ATTR_LOOP, 0.0f, 51.0f, 1.0f);
@@ -638,6 +735,13 @@ void WallRun::wall_jump_port(uintptr_t pl) {
     case 4: {
         uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
         if (vel.y <= 0.0f && at<bool>(coll, 0x1C)) { set_action_land(pl); return; }   // mLand
+        if (state_for(pl).custom_kickoff && jumpout_custom_physics) {
+            // Ballistic on the tunables: the horizontal speed set at take-off holds, gravity pulls, capped.
+            vel.y += jumpout_gravity * at<float>(pl, pl::m_delta_time);
+            if (vel.y < -jumpout_max_fall) vel.y = -jumpout_max_fall;
+            acc.x = acc.y = acc.z = 0.0f;
+            break;
+        }
         adjust_jump_speed(pl);
         calc_speed_xz(pl, at<float>(pl, pl::mJumpMoveAng));
         break;
@@ -681,10 +785,41 @@ naked void detour_wall_jump() {
     }
 }
 
+// Hook: the entry of uPlayer::checkWallJumpBegin 0x804650 (`this` in esi, result in al, no stack arguments; the
+// callers keep using esi afterwards). Same 6 prologue bytes as above; continues at 0x804656 when not replaced.
+static bool s_check_result = false;
+
+static bool __stdcall wall_jump_check_from_hook(uintptr_t player) { return WallRun::wall_jump_check_port(player); }
+
+naked void detour_wall_jump_check() {
+    _asm {
+        cmp byte ptr [WallRun::mod_enabled], 1
+        jne original
+        cmp byte ptr [WallRun::replace_wall_jump_check], 1
+        jne original
+        pushad
+        push esi                        // this
+        call wall_jump_check_from_hook  // __stdcall: pops its argument, result in al
+        mov byte ptr [s_check_result], al
+        popad
+        mov al, byte ptr [s_check_result]
+        ret
+    original:
+        push ebp
+        mov ebp, esp
+        and esp, 0xFFFFFFF0
+        jmp dword ptr [WallRun::jmp_ret2]
+    }
+}
+
 std::optional<std::string> WallRun::on_initialize() {
     if (!install_hook_absolute(0x827200, hook1, &detour_wall_jump, &jmp_ret1, 6)) {
         spdlog::error("Failed to init WallRun hook (moveActWallJump entry)\n");
         return "Failed to init WallRun hook (moveActWallJump entry)";
+    }
+    if (!install_hook_absolute(0x804650, hook2, &detour_wall_jump_check, &jmp_ret2, 6)) {
+        spdlog::error("Failed to init WallRun hook (checkWallJumpBegin entry)\n");
+        return "Failed to init WallRun hook (checkWallJumpBegin entry)";
     }
     return Mod::on_initialize();
 }
@@ -701,6 +836,17 @@ void WallRun::on_gui_frame(int display) {
     help_marker(_("Run along a wall found by two 45-degree casts. Jump kicks off into the game's wall jump."));
     if (!mod_enabled) return;
     ImGui::Indent(lineIndent);
+    ImGui::Checkbox(_("Replace the wall jump's entry check"), &replace_wall_jump_check);
+    ImGui::SameLine();
+    help_marker(_("Runs the C++ port of uPlayer::checkWallJumpBegin (the trigger: jump in the air near a wall) instead of the game's, "
+                  "so its reach, height and the wall-jump count rule below apply."));
+    if (replace_wall_jump_check) {
+        ImGui::Indent(lineIndent);
+        ImGui::Checkbox(_("Needs a wall jump left"), &require_wall_jumps);
+        ImGui::SliderFloat(_("Check reach"), &check_reach, 10.0f, 300.0f);
+        ImGui::SliderFloat(_("Check height"), &check_height, 0.0f, 150.0f);
+        ImGui::Unindent(lineIndent);
+    }
     ImGui::Checkbox(_("Replace the game's wall jump"), &replace_wall_jump);
     ImGui::SameLine();
     help_marker(_("Runs the C++ port of uPlayer::moveActWallJump instead of the game's own (same behaviour; the port is "
@@ -710,6 +856,10 @@ void WallRun::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("The run lasts while jump is held; this caps it (0 = no cap). Releasing jump kicks off with the game's wall jump."));
     ImGui::SliderFloat(_("Wall stick"), &stick_speed, 0.0f, 10.0f);
+    ImGui::SliderFloat(_("Lose grace"), &lose_grace, 0.0f, 30.0f);
+    ImGui::SameLine();
+    help_marker(_("Frames the run keeps going on the last wall after the casts stop hitting (the wall ended, or bent too sharply) "
+                  "before it ends with the jump-off from that wall."));
     ImGui::SliderFloat(_("Wall gap"), &wall_gap, 0.0f, 100.0f);
     ImGui::SameLine();
     help_marker(_("The position is pushed back out to this distance from the wall plane every tick of the run (0 = off). "
@@ -743,6 +893,25 @@ void WallRun::on_gui_frame(int display) {
         ImGui::InputInt(_("Slot left"), &run_slot_left);
         ImGui::InputInt(_("Slot right"), &run_slot_right);
         ImGui::InputInt(_("Slot up"), &run_slot_up);
+        ImGui::InputInt(_("Slot jump-out right"), &run_slot_jump_right);
+        ImGui::InputInt(_("Slot jump-out left"), &run_slot_jump_left);
+        ImGui::SliderFloat(_("Jump-out launch frame"), &jumpout_launch_frame, 0.0f, 60.0f);
+        ImGui::SameLine();
+        help_marker(_("Frame of the jump-out cycle at which the jump's velocity starts (the take-off). The cycle keeps playing "
+                      "through the flight; no fall motion is added."));
+        ImGui::Checkbox(_("Jump-out physics"), &jumpout_custom_physics);
+        ImGui::SameLine();
+        help_marker(_("Off: the game's jump table drives the jump-out (set_jump_rate / adjustJumpSpeed). On: the speeds below, "
+                      "in cm per frame, from the take-off frame until landing."));
+        if (jumpout_custom_physics) {
+            ImGui::Indent(lineIndent);
+            ImGui::SliderFloat(_("Up"), &jumpout_up, 0.0f, 60.0f);
+            ImGui::SliderFloat(_("Away from wall"), &jumpout_out, 0.0f, 40.0f);
+            ImGui::SliderFloat(_("Along the run"), &jumpout_along, -20.0f, 40.0f);
+            ImGui::SliderFloat(_("Gravity"), &jumpout_gravity, -5.0f, 0.0f);
+            ImGui::SliderFloat(_("Max fall"), &jumpout_max_fall, 1.0f, 80.0f);
+            ImGui::Unindent(lineIndent);
+        }
         ImGui::InputText(_("Body LMT"), lmt_body, sizeof(lmt_body));
         ImGui::Checkbox(_("Load coat LMT too"), &load_coat_lmt);
         ImGui::SameLine();
@@ -770,14 +939,28 @@ void WallRun::on_gui_frame(int display) {
 void WallRun::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("wall_run").value_or(false);
     replace_wall_jump = cfg.get<bool>("wall_run_replace_wall_jump").value_or(true);
+    replace_wall_jump_check = cfg.get<bool>("wall_run_replace_check").value_or(true);
+    require_wall_jumps = cfg.get<bool>("wall_run_require_wall_jumps").value_or(true);
+    check_reach  = cfg.get<float>("wall_run_check_reach").value_or(check_reach);
+    check_height = cfg.get<float>("wall_run_check_height").value_or(check_height);
     run_speed   = cfg.get<float>("wall_run_speed").value_or(run_speed);
     run_frames  = cfg.get<float>("wall_run_frames").value_or(run_frames);
     wall_gap    = cfg.get<float>("wall_run_wall_gap").value_or(wall_gap);
+    lose_grace  = cfg.get<float>("wall_run_lose_grace").value_or(lose_grace);
     use_custom_lmt = cfg.get<bool>("wall_run_custom_lmt").value_or(false);
     lmt_bank       = cfg.get<int>("wall_run_bank").value_or(lmt_bank);
     run_slot_left  = cfg.get<int>("wall_run_slot_left").value_or(run_slot_left);
     run_slot_right = cfg.get<int>("wall_run_slot_right").value_or(run_slot_right);
     run_slot_up    = cfg.get<int>("wall_run_slot_up").value_or(run_slot_up);
+    run_slot_jump_right = cfg.get<int>("wall_run_slot_jump_right").value_or(run_slot_jump_right);
+    run_slot_jump_left  = cfg.get<int>("wall_run_slot_jump_left").value_or(run_slot_jump_left);
+    jumpout_launch_frame = cfg.get<float>("wall_run_jumpout_launch").value_or(jumpout_launch_frame);
+    jumpout_custom_physics = cfg.get<bool>("wall_run_jumpout_physics").value_or(true);
+    jumpout_up       = cfg.get<float>("wall_run_jumpout_up").value_or(jumpout_up);
+    jumpout_out      = cfg.get<float>("wall_run_jumpout_out").value_or(jumpout_out);
+    jumpout_along    = cfg.get<float>("wall_run_jumpout_along").value_or(jumpout_along);
+    jumpout_gravity  = cfg.get<float>("wall_run_jumpout_gravity").value_or(jumpout_gravity);
+    jumpout_max_fall = cfg.get<float>("wall_run_jumpout_max_fall").value_or(jumpout_max_fall);
     climb_angle    = cfg.get<float>("wall_run_climb_angle").value_or(climb_angle);
     climb_speed    = cfg.get<float>("wall_run_climb_speed").value_or(climb_speed);
     jumps_after_run = cfg.get<int>("wall_run_jumps_after").value_or(jumps_after_run);
@@ -787,14 +970,28 @@ void WallRun::on_config_load(const utility::Config& cfg) {
 void WallRun::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("wall_run", mod_enabled);
     cfg.set<bool>("wall_run_replace_wall_jump", replace_wall_jump);
+    cfg.set<bool>("wall_run_replace_check", replace_wall_jump_check);
+    cfg.set<bool>("wall_run_require_wall_jumps", require_wall_jumps);
+    cfg.set<float>("wall_run_check_reach", check_reach);
+    cfg.set<float>("wall_run_check_height", check_height);
     cfg.set<float>("wall_run_speed", run_speed);
     cfg.set<float>("wall_run_frames", run_frames);
     cfg.set<float>("wall_run_wall_gap", wall_gap);
+    cfg.set<float>("wall_run_lose_grace", lose_grace);
     cfg.set<bool>("wall_run_custom_lmt", use_custom_lmt);
     cfg.set<int>("wall_run_bank", lmt_bank);
     cfg.set<int>("wall_run_slot_left", run_slot_left);
     cfg.set<int>("wall_run_slot_right", run_slot_right);
     cfg.set<int>("wall_run_slot_up", run_slot_up);
+    cfg.set<int>("wall_run_slot_jump_right", run_slot_jump_right);
+    cfg.set<int>("wall_run_slot_jump_left", run_slot_jump_left);
+    cfg.set<float>("wall_run_jumpout_launch", jumpout_launch_frame);
+    cfg.set<bool>("wall_run_jumpout_physics", jumpout_custom_physics);
+    cfg.set<float>("wall_run_jumpout_up", jumpout_up);
+    cfg.set<float>("wall_run_jumpout_out", jumpout_out);
+    cfg.set<float>("wall_run_jumpout_along", jumpout_along);
+    cfg.set<float>("wall_run_jumpout_gravity", jumpout_gravity);
+    cfg.set<float>("wall_run_jumpout_max_fall", jumpout_max_fall);
     cfg.set<float>("wall_run_climb_angle", climb_angle);
     cfg.set<float>("wall_run_climb_speed", climb_speed);
     cfg.set<int>("wall_run_jumps_after", jumps_after_run);
