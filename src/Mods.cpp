@@ -182,6 +182,7 @@
 #include "mods/FriendlyFire.hpp"
 #include "mods/Cock.hpp"
 #include "mods/RayTest.hpp"
+#include "mods/WallRun.hpp"
 #endif
 
 constexpr size_t MODS_NUM{ 512 };
@@ -380,6 +381,7 @@ Mods::Mods() {
     ADD_MOD(FriendlyFire);
     ADD_MOD(Cock);
     ADD_MOD(RayTest);
+    ADD_MOD(WallRun);
 #endif
 #endif
 }

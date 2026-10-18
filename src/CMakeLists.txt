@@ -330,6 +330,8 @@ set(MODS_SRC
   mods/LMTSlotFix.cpp
   mods/MoveTable.hpp
   mods/MoveTable.cpp
+  mods/WallRun.hpp
+  mods/WallRun.cpp
   mods/PinProperties.hpp
   mods/PinProperties.cpp
   mods/LuciAirThrow.hpp

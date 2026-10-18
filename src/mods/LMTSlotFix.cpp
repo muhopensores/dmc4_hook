@@ -3,11 +3,13 @@
 #include "AerialStinger.hpp"
 #include "Payline.hpp"
 #include "LuciAirThrow.hpp"
+#include "..\sdk\cResource.hpp"
+#include "..\sdk\uActor.hpp"
 // bool LMTSlotFix::mod_enabled = false;
 
 uintptr_t LMTSlotFix::jmp_ret1 = NULL;
-    constexpr uintptr_t detour1_default_jmp = 0x42B936;
-    constexpr uintptr_t detour1_jmp = 0x42B936;
+constexpr uintptr_t detour1_default_jmp = 0x42B945;
+constexpr uintptr_t detour1_jmp         = 0x42B945;
 
 /*void LMTSlotFix::toggle(bool enable) {
     if (enable) {
@@ -17,6 +19,56 @@ uintptr_t LMTSlotFix::jmp_ret1 = NULL;
         patch1.reset();
     }
 }*/
+
+struct rCharTbl : cResource {
+    uint8_t* mpRsrcTop; // 0x60 the file as loaded
+    uint8_t* mpDataTop; // 0x64 mpRsrcTop + 4
+};
+static_assert(sizeof(rCharTbl) == 0x68);
+
+struct kContactData {
+    uint8_t info[6];
+};
+
+struct cCharTblMgr : MtObject {
+    rCharTbl* mpRsrc;              // 0x04
+    Motion* mpMtn;                 // 0x08 the motion this table follows
+    uint8_t* mpDataTop;            // 0x0C start of the current script
+    uint8_t* mpDataCrnt;           // 0x10 next command
+    bool mIsDone;                  // 0x14
+    kContactData mContactData[2];  // 0x15
+    cCharTblMgr* set();
+};
+static_assert(sizeof(cCharTblMgr) == 0x24);
+static_assert(offsetof(cCharTblMgr, mIsDone) == 0x14);
+static_assert(offsetof(cCharTblMgr, mContactData) == 0x15);
+
+static uint32_t read_u32(const uint8_t* p) {
+    return *reinterpret_cast<const uint32_t*>(p);
+}
+
+static uint8_t* find_script(const rCharTbl* table, uint32_t bank, uint32_t slot) {
+    uint8_t* bank_table = table->mpDataTop + read_u32(table->mpDataTop + 4 * bank);
+    return bank_table + read_u32(bank_table + 4 * slot);
+}
+
+cCharTblMgr* cCharTblMgr::set() {
+    const uint32_t motion_no = mpMtn->mMotionNo;
+    if (motion_no == 0xFFFF) { // no motion: no script
+        mpDataTop  = nullptr;
+        mpDataCrnt = nullptr;
+        mIsDone    = true;
+        return this;
+    }
+    memset(mContactData, 0, sizeof(mContactData));
+    const uint32_t bank = (motion_no >> 8) & 0xF; // the LMT file: pl000_NN = bank NN - 1
+    const uint32_t slot = motion_no & 0xFF;       // the block in that LMT
+    mpDataTop  = find_script(mpRsrc, bank, slot);
+    mpDataCrnt = mpDataTop;
+    mIsDone    = false;
+    return this;
+}
+
 
 naked void detour1() {
     _asm {

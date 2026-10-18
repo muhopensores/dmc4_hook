@@ -2,6 +2,7 @@
 #include "sdk/Devil4.hpp"
 #include "sdk/uActor.hpp"
 #include "sdk/MtDTI.hpp"
+#include "sdk/MtMath.hpp"
 
 std::unique_ptr<AfterImgCtlVtable> CtlVtable;
 std::unique_ptr<AfterImgShlVtable> ShlVtable;
@@ -57,7 +58,7 @@ public:
     float fadeTime;
 
     AfterImgShl() = default;
-    AfterImgShl(uActor_t* parent, AfterImgCtl* spawnParent);
+    AfterImgShl(uActor_t* parent, AfterImgCtl* spawnParent, float keep_alive = 20.0f);
     void destructor(uint32_t flag);
     void die();
     void startup_override();
@@ -138,6 +139,146 @@ struct alignas(16) cMaterial {
 };
 //static_assert(offsetof(cMaterial, BaseMapFactor) == 0x24);
 static_assert(sizeof(cMaterial) == 0x60);
+
+#pragma pack(push, 2)
+struct cMaterialStandard : cMaterial {
+    float mDetailLodBias;
+    float mBaseBlendFactor;
+    unsigned int mFlags68;
+    uint gap6C;
+    float mLightMapFactorX;
+    float mLightMapFactorY;
+    float mLightMapFactorZ;
+    float dword7C;
+    float mDetailPower;
+    float mDetailWrap;
+    uint dword88;
+    float mAmbientOccBias;
+    float mFresnelFactor;
+    float mFresnelBias;
+    float mSpecularPow;
+    float mEnvMapPower;
+    float mParallaxFactorX;
+    float mParallaxFactorY;
+    float mNormalMapFlip;
+    uint dwordAC;
+    float mUVOffset0X;
+    float mUVOffset0Y;
+    uint dwordB8;
+    uint dwordBC;
+    float mUVOffset1X;
+    float mUVOffset1Y;
+    float mUVOffset2X;
+    float mUVOffset2Y;
+    void* mpTex_D0;
+    void* mpTex_D4;
+    void* mpTex_D8;
+    void* mpTex_DC;
+    void* mpTex_E0;
+    void* mpTex_E4;
+    void* mpTex_E8;
+    void* mpTex_EC;
+    void* mpTex_F0;
+    void* mpTex_F4;
+    uint dwordF8;
+    uint dwordFC;
+};
+#pragma pack(pop)
+
+
+struct __declspec(align(16)) cMaterialHandler : MtObject {
+    int mMtrlID;
+    bool mTransparencyEnable;
+    float mTransparency;
+    float mAddTransparency;
+    bool mLMFEnable;
+    char gap15[11];
+    MtVector3 mLMF;
+    MtVector3 mAddLMF;
+    bool mBMFEnable;
+    char gap41[15];
+    MtVector4 mBMF;
+    MtVector4 mAddBMF;
+    bool mDiffuseEnable;
+    char gap71[15];
+    MtVector3 mDiffuseFactor;
+    float mSpecularFactor;
+    bool mUVEnable;
+    float mUV0U;
+    float mUV0V;
+    float mUV1U;
+    float mUV1V;
+    float mUV2U;
+    float mUV2V;
+    float mAddUV0U;
+    float mAddUV0V;
+    float mAddUV1U;
+    float mAddUV1V;
+    float mAddUV2U;
+    float mAddUV2V;
+    float mFrameUV0U;
+    float mFrameUV0V;
+    float mFrameUV1U;
+    float mFrameUV1V;
+    float mFrameUV2U;
+    float mFrameUV2V;
+    bool mFrameUVPrio;
+    bool mBBFEnable;
+    float mBBF;
+    float mAddBBF;
+    bool mEnvMapPowerEnable;
+    float mEnvMapPower;
+    float mAddEnvMapPower;
+    bool mSpecularEnable;
+    float mSpecularPower;
+    float mFresnelFactor;
+    float mFresnelBias;
+    bool mZWriteEnable;
+    bool mZWrite;
+    bool mZThroughEnable;
+    bool mZThrough;
+    bool mMtrlTypeEnable;
+    uint mMtrlType;
+};
+static_assert(sizeof(cMaterialHandler)==0x120);
+
+auto update_mat = [](uDevil4Model* model) {
+    cMaterial** mat_arr = (cMaterial**)model->mpMaterial;
+    uint32_t mat_num    = model->MaterialNum;
+    for (int i = 0; i < mat_num; i++) {
+        cMaterial* mat         = mat_arr[i];
+        mat->BaseMapFactor.x   = 0.2f;
+        mat->BaseMapFactor.y   = 0.1f;
+        mat->BaseMapFactor.z   = 0.1f;
+        mat->Transparency      = 0.2f;
+        mat->SpecularFactor    = 10.0f;
+        mat->zwrite            = 0;
+        mat->draw_state.zwrite = 0;
+        mat->zthrough          = 1;
+    }
+};
+
+float fresnel_bias   = 1.0f;
+float fresnel_factor = 1.0f;
+float spec_factor = 10.0f;
+MtVector3 LMF {1.0f, 1.0f, 1.0f};
+float EnvMapPower = 1.0f;
+auto update_hmat     = [](uDevil4Model* thing) {
+    cMaterialHandler** handler_arr = (cMaterialHandler**)thing->mppMaterialHandlerArray;
+    uint32_t handler_num           = thing->MaterialHandlerNum;
+    for (int i = 0; i < handler_num; i++) {
+        cMaterialHandler* handler = handler_arr[i];
+        handler->mSpecularEnable  = true;
+        handler->mSpecularFactor  = spec_factor;
+        handler->mFresnelFactor   = fresnel_bias;
+        handler->mFresnelBias     = fresnel_factor;
+        handler->mLMFEnable = true;
+        handler->mLMF = LMF;
+        handler->mEnvMapPowerEnable = true;
+        handler->mEnvMapPower = EnvMapPower;
+    }
+};
+
 
 AfterImgCtlVtable::AfterImgCtlVtable(void* vtable, size_t size) {
     this->size      = size;
@@ -336,61 +477,11 @@ void AfterImgShl::startup_override() {
         actor_hair_jnt_ptr[i].mWmat        = parent_hair_jnt_ptr[i].mWmat;
         actor_hair_jnt_ptr[i].mpConstraint = parent_hair_jnt_ptr[i].mpConstraint;
     }
-
-
-    cMaterial** mat_arr = (cMaterial**)this->actor.mpMaterial;
-    uint32_t mat_num   = this->actor.MaterialNum;
-    for (int i = 0; i < mat_num; i++) {
-        cMaterial* mat = mat_arr[i];
-        mat->BaseMapFactor.x        = 0.1f;
-        mat->BaseMapFactor.y       = 0.1f;
-        mat->BaseMapFactor.z        = 0.1f;
-        mat->Transparency           = 0.2f;
-        mat->SpecularFactor         = 5.0f;
-        mat->zwrite = 0;
-        mat->draw_state.zwrite = 0;
-        mat->zthrough                 = 1;
-    }
-
-    mat_arr = (cMaterial**)this->jacket.mpMaterial;
-    mat_num = this->jacket.MaterialNum;
-    for (int i = 0; i < mat_num; i++) {
-        cMaterial* mat       = mat_arr[i];
-        mat->BaseMapFactor.x = 0.1f;
-        mat->BaseMapFactor.y = 0.1f;
-        mat->BaseMapFactor.z = 0.1f;
-        mat->Transparency    = 0.2f;
-        mat->SpecularFactor  = 5.0f;
-        mat->zwrite          = 0;
-        mat->draw_state.zwrite = 0;
-        mat->zthrough        = 1;
-    }
-    mat_arr = (cMaterial**)this->head.mpMaterial;
-    mat_num = this->head.MaterialNum;
-    for (int i = 0; i < mat_num; i++) {
-        cMaterial* mat       = mat_arr[i];
-        mat->BaseMapFactor.x = 0.1f;
-        mat->BaseMapFactor.y = 0.1f;
-        mat->BaseMapFactor.z = 0.1f;
-        mat->Transparency    = 0.2f;
-        mat->SpecularFactor  = 5.0f;
-        mat->zwrite          = 0;
-        mat->draw_state.zwrite = 0;
-        mat->zthrough        = 1;
-    }
-    mat_arr = (cMaterial**)this->hair.mpMaterial;
-    mat_num = this->hair.MaterialNum;
-    for (int i = 0; i < mat_num; i++) {
-        cMaterial* mat       = mat_arr[i];
-        mat->BaseMapFactor.x = 0.1f;
-        mat->BaseMapFactor.y = 0.1f;
-        mat->BaseMapFactor.z = 0.1f;
-        mat->Transparency    = 0.2f;
-        mat->SpecularFactor  = 5.0f;
-        mat->zwrite          = 0;
-        mat->draw_state.zwrite = 0;
-        mat->zthrough        = 1;
-    }
+    
+    update_mat(&this->actor);
+    update_mat(&this->jacket);
+    update_mat(&this->head);
+    update_mat(&this->hair);
     //memcpy((void*)this->actor.mpJoint, (void*)body_model->mpJoint, 0x90 * body_jnt_num);
     //int jacket_jnt_num = jacket_model->mJointNum;
     //memcpy((void*)this->jacket.mpJoint, (void*)jacket_model->mpJoint, 0x90 * jacket_jnt_num);
@@ -398,6 +489,12 @@ void AfterImgShl::startup_override() {
 }
 
 void AfterImgShl::lifecycle_override() {
+
+    update_hmat(&this->actor);
+    update_hmat(&this->jacket);
+    update_hmat(&this->head);
+    update_hmat(&this->hair);
+
     //uactor_sdk::updateLmat(this);
     void* body_ptr = (void*)this->actor.mpRModel;
     void* hair_ptr = (void*)this->hair.mpRModel;
@@ -422,7 +519,7 @@ void AfterImgShl::lifecycle_override() {
         this->fade = true;
 }
 
-AfterImgShl::AfterImgShl(uActor_t* parent, AfterImgCtl* spawnParent) {
+AfterImgShl::AfterImgShl(uActor_t* parent, AfterImgCtl* spawnParent, float keep_alive) {
     this->parent = parent;
     this->spawnParent = spawnParent;
     uactor_sdk::uActorCons(this);
@@ -441,7 +538,7 @@ AfterImgShl::AfterImgShl(uActor_t* parent, AfterImgCtl* spawnParent) {
 
     this->fade = false;
     this->fadeTime = 10.0f;
-    this->keepAliveTime = 20.0f;
+    this->keepAliveTime = keep_alive;
     this->actor.vtable_ptr = (uintptr_t*)ShlVtable->my_vtable.data();
     this->actor.mActorType                                            = 5;
     this->actor.mWorkRate.mType                            = 0x9;
@@ -455,10 +552,10 @@ AfterImgShl::AfterImgShl(uActor_t* parent, AfterImgCtl* spawnParent) {
 }
 
 
-void AfterImage::SpawnAfterImg(void* spawnParent = nullptr) {
+void AfterImage::SpawnAfterImg(void* spawnParent = nullptr, float keep_alive) {
     void* projptr = devil4_sdk::mt_allocate_heap(sizeof(AfterImgShl), 16);
     // void* projptr              = devil4_sdk::mt_allocate_heap(0x18D0, 16);
-    AfterImgShl* proj = new (projptr) AfterImgShl((uActor_t*)devil4_sdk::get_local_player(), (AfterImgCtl*)spawnParent);
+    AfterImgShl* proj = new (projptr) AfterImgShl((uActor_t*)devil4_sdk::get_local_player(), (AfterImgCtl*)spawnParent, keep_alive);
     devil4_sdk::spawn_or_something((void*)0x00E552CC, (MtObject*)proj, 1);
 }
 
@@ -495,8 +592,14 @@ void AfterImage::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
         if (ImGui::Button("After image")) {
             // if (fileExists)
-            AfterImage::SpawnAfterImg();
+            AfterImage::SpawnAfterImg(nullptr, 999.0f);
         }
+
+        ImGui::SliderFloat("Fresnel bias", &fresnel_bias, 0.0f, 10.0f);
+        ImGui::SliderFloat("Fresnel factor", &fresnel_factor, 0.0f, 10.0f);
+        ImGui::SliderFloat("Specular factor", &spec_factor, 0.0f, 100.0f);
+        ImGui::SliderFloat("Env map power", &EnvMapPower, 0.0f, 100.0f);
+        ImGui::SliderFloat3("LMF", (float*)&LMF, 0.0f, 10.0f);
         if (ImGui::Button("After image controller")) {
             // if (fileExists)
             AfterImage::SpawnAfterImgCtl();

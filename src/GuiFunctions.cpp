@@ -514,6 +514,7 @@ namespace gui {
                         pmods->on_draw_ui("RisingSun"_hash, DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui("AerialStinger"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui("WallRun"_hash, DISPLAY_DANTE_A); // needs its own line
 
                         // pmods->on_draw_ui("AirMustang"_hash, DISPLAY_DANTE_A);
                         // ImGui::SameLine(sameLineWidth);
@@ -797,6 +798,8 @@ namespace gui {
                 pmods->on_draw_ui("RayTest"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("Coop"_hash, DISPLAY_SYSTEM_A);
+
+                pmods->on_draw_ui("AfterImage"_hash, DISPLAY_SYSTEM_A);
 #endif
                 ImGui::SeparatorText(_("Multi-character Fixes"));
 
@@ -809,9 +812,6 @@ namespace gui {
                 // pmods->onDrawUI("ShaderEditor"_hash, DISPLAY_SYSTEM_A);
 
                 // pmods->on_draw_ui("CustomProjectile"_hash, DISPLAY_SYSTEM_A);
-#ifndef PUBLIC_BUILD
-                pmods->on_draw_ui("AfterImage"_hash, DISPLAY_SYSTEM_A);
-#endif
                 tabHeight += ImGui::GetCursorPosY();
                 ImGui::EndChild();
                 ImGui::EndTabItem();

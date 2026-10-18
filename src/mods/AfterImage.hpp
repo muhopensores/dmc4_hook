@@ -24,7 +24,7 @@ public:
     AfterImage() = default;
 
     static void __stdcall SpawnAfterImgCtl();
-    static void __stdcall SpawnAfterImg(void* spawnParent);
+    static void __stdcall SpawnAfterImg(void* spawnParent, float keep_alive = 20.0f);
     std::string get_mod_name() override { return "AfterImage"; };
     std::optional<std::string> on_initialize() override;
     // void on_config_load(const utility::Config& cfg) override;
