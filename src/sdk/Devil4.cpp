@@ -1,4 +1,5 @@
 #include "sdk/Devil4.hpp"
+#include <spdlog/spdlog.h>
 #include "sdk/StringData.hpp"
 #include "sdk/aGame.hpp"
 #include "sdk/sArea.hpp"
@@ -534,13 +535,48 @@ namespace devil4_sdk {
 		}
 	}
 
+	// cResource::release(sResource* this@eax, cResource* rsrc@edi) 0x8DDA00, __usercall: refcount--, destroyed at 0.
+	// (Until 2026-10-18 this pushed rsrc on the stack and passed the address of mpInstance in eax, which made
+	// the game decrement a garbage refcount and enter a bogus critical section: a hang on the spot.)
 	void __stdcall release_resource(cResource* rsrc) {
 		uintptr_t release_call = 0x8DDA00;
 		_asm {
-				push rsrc
-				mov eax,[sDevil4Resource]
+				pushad
+				mov edi, rsrc
+				mov eax, sDevil4Resource
+				mov eax, [eax]
 				call release_call
+				popad
 		}
+	}
+
+	// uModel::setMotionList(this@ecx, cResource* lmt, int bank) 0xA26340, __thiscall: releases the slot's old list,
+	// addRefs the new one, stores it and flags every blend slot for re-bind. Called through a __fastcall cast
+	// (ecx = this, edx = dummy) so no asm is needed.
+	static void set_motion_list(void* model, void* lmt, int bank) {
+		((void(__fastcall*)(void*, int, void*, int))0x00A26340)(model, 0, lmt, bank);
+	}
+
+	bool __stdcall load_motion_bank(void* model, const char* lmt_path, int bank) {
+		if (!model || bank < 0 || bank > 15) return false;
+		MtDTI* rMotionListDTI = (MtDTI*)0x00EAE348;
+		MtObject* lmt = get_stuff_from_files(rMotionListDTI, (char*)lmt_path);
+		if (!lmt) {
+			spdlog::error("load_motion_bank: '{}' did not load", lmt_path);
+			return false;
+		}
+		set_motion_list(model, lmt, bank);        // the slot now holds its own reference
+		release_resource((cResource*)lmt);        // drop the one sResource::create gave us
+		return true;
+	}
+
+	void __stdcall unload_motion_bank(void* model, int bank) {
+		if (model && bank >= 0 && bank <= 15) set_motion_list(model, nullptr, bank);
+	}
+
+	uintptr_t __stdcall get_motion_bank(void* model, int bank) {
+		if (!model || bank < 0 || bank > 15) return 0;
+		return *(uintptr_t*)((uintptr_t)model + 0xA38 + 4 * bank);
 	}
 
 	MtObject* __stdcall uEm010ShlCtrl_constructor_sub(void* projectile) {

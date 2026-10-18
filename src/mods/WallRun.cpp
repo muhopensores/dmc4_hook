@@ -1,20 +1,40 @@
 #include "WallRun.hpp"
 #include "../sdk/Devil4.hpp"
+#include "../sdk/uActor.hpp"
 #include <cmath>
 #include <cstring>
+#include <filesystem>
+#include <string>
 
 using namespace wallrun;
 
 bool  WallRun::mod_enabled  = false;
+bool  WallRun::replace_wall_jump = true;
+uintptr_t WallRun::jmp_ret1 = NULL;
 float WallRun::run_speed    = 12.0f;
-float WallRun::run_frames   = 45.0f;
+float WallRun::run_frames   = 0.0f;     // 0 = as long as jump is held
 float WallRun::stick_speed  = 2.0f;
+float WallRun::wall_gap     = 30.0f;
 float WallRun::cast_length  = 120.0f;
 float WallRun::cast_height  = 80.0f;
 float WallRun::cast_angle   = 45.0f;
 float WallRun::corner_dot   = 0.5f;    // normals more than 60 degrees apart = corner
-int   WallRun::motion_left  = 23;      // placeholder: the wall-jump side kick-offs (L 23 / R 22, pl000_01 slots)
+float WallRun::climb_angle  = 35.0f;
+float WallRun::climb_speed  = 10.0f;
+float WallRun::away_deadzone = 0.3f;
+int   WallRun::jumps_after_run = 1;
+int   WallRun::motion_left  = 23;      // placeholder: the wall-jump side kick-offs (L 23 / R 22, bank 0)
 int   WallRun::motion_right = 22;
+int   WallRun::motion_up    = 20;      // placeholder: the front kick-off (F, facing the wall)
+bool  WallRun::use_custom_lmt  = false;
+bool  WallRun::load_coat_lmt   = false;
+int   WallRun::lmt_bank        = 14;
+int   WallRun::run_slot_left   = 1;      // the custom LMT: 0 right, 1 left, 2 vertical, all attribute 0 (looping)
+int   WallRun::run_slot_right  = 0;
+int   WallRun::run_slot_up     = 2;
+char  WallRun::lmt_body[128]       = "motion\\common\\wallrun";
+char  WallRun::lmt_coat_nero[128]  = "motion\\common\\wallrun_pl000_03";
+char  WallRun::lmt_coat_dante[128] = "motion\\common\\wallrun_pl006_03";
 
 // ---------------------------------------------------------------------------------------------------------------
 // Game functions. All __usercall; each thunk saves the registers and the stack pointer around the call so the
@@ -229,10 +249,30 @@ constexpr int ACT_WALL_JUMP  = 0x18;   // mBdyAction[1].no of moveActWallJump
 // ---------------------------------------------------------------------------------------------------------------
 // Wall detection: two casts, +-cast_angle about the up axis, from cast_height above the feet.
 // ---------------------------------------------------------------------------------------------------------------
-bool WallRun::detect(uintptr_t player, Wall& out) {
-    const glm::vec3 right = wmat_row(player, 0);
+glm::vec3 WallRun::heading(uintptr_t player, const Wall* running) {
+    if (at<int>(player, pl::mAnlgPow) != 0) {                       // stick deflected: its world yaw
+        const float yaw = at<float>(player, pl::mAnlgRadian);
+        const glm::vec3 stick(std::sin(yaw), 0.0f, std::cos(yaw));
+        if (!running) return stick;
+        const glm::vec3 normal = running->normal;
+        if (glm::dot(stick, normal) <= 0.0f) return stick;          // into the wall or along it: as is
+        // Leaning away from the wall has no effect by itself: only its part along the wall steers, and when
+        // that part is small (mostly straight away) the run just keeps going.
+        const glm::vec3 along = stick - normal * glm::dot(stick, normal);
+        if (glm::length(along) >= away_deadzone) return glm::normalize(along);
+    }
+    if (running)                                                    // centred (or pushed away): keep going as we were
+        return running->vertical ? -glm::vec3(running->normal) : glm::vec3(running->run_dir);
+    return wmat_row(player, 2);                                     // no run yet: the facing, once
+}
+
+bool WallRun::detect(uintptr_t player, Wall& out, const glm::vec3& heading) {
     const glm::vec3 up    = wmat_row(player, 1);
-    const glm::vec3 fwd   = wmat_row(player, 2);
+    glm::vec3 fwd = heading - up * glm::dot(heading, up);            // the casts fan out around the heading, level
+    if (glm::length(fwd) < 1e-4f) fwd = wmat_row(player, 2);
+    fwd = glm::normalize(fwd);
+    glm::vec3 right = glm::cross(up, fwd);
+    if (glm::dot(right, wmat_row(player, 0)) < 0.0f) right = -right; // same handedness as the model's right axis
     const glm::vec3 feet  = at<MtVector3>(player, pl::mPos);
     const glm::vec3 origin = feet + up * cast_height;
 
@@ -263,38 +303,70 @@ bool WallRun::detect(uintptr_t player, Wall& out) {
     if (n == 2) normal += normals[1];
     normal = glm::normalize(normal);
 
-    glm::vec3 run_dir = glm::cross(normal, up);                 // parallel to the wall, level with the ground
-    if (glm::length(run_dir) < 1e-4f) return false;             // floor or ceiling, not a wall
-    run_dir = glm::normalize(run_dir);
-    if (glm::dot(run_dir, fwd) < 0.0f) run_dir = -run_dir;      // run the way we were already going
+    if (glm::length(glm::cross(normal, up)) < 1e-4f) return false;   // floor or ceiling, not a wall
 
     out.normal  = normal;
-    out.run_dir = run_dir;
     out.hit_pos = hits[nearest].hitPos;
-    out.yaw     = yaw_of(run_dir);
-    out.on_left = glm::dot(normal, right) > 0.0f;               // normal points at us from the left
     out.poly    = hits[nearest];
     return true;
 }
 
+void WallRun::steer(uintptr_t player, Wall& wall, const glm::vec3& heading) {
+    const glm::vec3 right  = wmat_row(player, 0);
+    const glm::vec3 up     = wmat_row(player, 1);
+    const glm::vec3 normal = wall.normal;
+    const glm::vec3 want   = heading;        // the stick, or the run's own direction while it's centred
+
+    // Into the wall within climb_angle: climb. Otherwise sideways, the way `want` leans along the wall.
+    const bool vertical = glm::dot(want, -normal) > std::cos(glm::radians(climb_angle));
+    glm::vec3 along = glm::normalize(glm::cross(normal, up));   // parallel to the wall, level with the ground
+    if (glm::dot(along, want) < 0.0f) along = -along;
+    if (vertical) {
+        wall.run_dir = glm::normalize(up - normal * glm::dot(up, normal));   // up, projected onto the wall plane
+        wall.yaw     = yaw_of(-normal);                                       // face into the wall
+    } else {
+        wall.run_dir = along;
+        wall.yaw     = yaw_of(along);
+    }
+    wall.vertical = vertical;
+    wall.on_left  = glm::dot(normal, right) > 0.0f;             // normal points at us from the left
+}
+
 // ---------------------------------------------------------------------------------------------------------------
-// The move. Phase is kept here, not in mBdyAction: the attack dispatch doesn't give us a phase word.
+// The move. It is the body of lower-body action 0x18 (the hook), so the phase is the game's mBdyAction[1].phase:
+// 0 = just entered, PHASE_RUN = running, 1-4 = handed over to wall_jump_port (the game's own wall jump).
 // ---------------------------------------------------------------------------------------------------------------
 namespace {
 
-struct RunState {
+constexpr int PHASE_RUN = 100;      // out of the port's 0-4
+
+struct RunState {                   // what the game's phase word can't hold
     uintptr_t player = 0;
-    int phase = 0;          // 0 start, 1 running, 2 finished (waiting to be re-entered)
-    float timer = 0.0f;
+    float timer = 0.0f;             // frames left when run_frames caps the run
+    int motion = -1;                // the motion playing, to re-request when the direction mode changes
     Wall wall{};
 };
 
-RunState g_runs[2];         // two players (co-op)
+RunState g_runs[2];                 // two players (co-op)
 
 RunState& state_for(uintptr_t player) {
     for (RunState& s : g_runs) if (s.player == player) return s;
     for (RunState& s : g_runs) if (s.player == 0) { s.player = player; return s; }
     g_runs[0] = RunState{}; g_runs[0].player = player; return g_runs[0];
+}
+
+// Backstop against clipping through the wall (root motion, push collision off for a frame, ...): keep the
+// position at least wall_gap from the wall plane, on the side the normal points to. Runs before moveMotion
+// integrates the velocity, so it corrects last tick's result.
+void keep_off_wall(uintptr_t pl, const Wall& wall) {
+    if (WallRun::wall_gap <= 0.0f) return;
+    MtVector3& pos = at<MtVector3>(pl, pl::mPos);
+    const glm::vec3 n = wall.normal;
+    const float d = glm::dot(glm::vec3(pos) - glm::vec3(wall.hit_pos), n);   // signed distance to the plane
+    if (d < WallRun::wall_gap) {
+        const glm::vec3 fixed = glm::vec3(pos) + n * (WallRun::wall_gap - d);
+        pos = fixed;
+    }
 }
 
 void face(uintptr_t pl, float yaw) {                 // snap, the way the wall jump does
@@ -303,58 +375,167 @@ void face(uintptr_t pl, float yaw) {                 // snap, the way the wall j
     at<bool>(pl, pl::mRotateIsMove)  = false;
 }
 
-void leave_to_air(RunState& s, uintptr_t pl) {
-    request_motion(pl, MOT_FALL, ATTR_FALL, 10.0f, 7.0f, 1.0f);
-    devil4_sdk::neutral_air_transition((uPlayer*)pl);
-    s.phase = 2;
+// .ctn borrow (D15): make the next motion request read the cancel script of `ctn_bank:ctn_slot` for both body
+// halves, as uPlayerNero::setShortGrabMotionSet does for the Buster motions. updateMotion consumes and clears it.
+void borrow_ctn(uintptr_t pl, uint32_t ctn_bank, uint32_t ctn_slot) {
+    for (int half = 0; half < 2; ++half) {
+        uintptr_t p = pl + pl::mMotionSetCharTblParam + 12 * half;
+        at<bool>(p, 0)     = true;
+        at<uint32_t>(p, 4) = ctn_bank;
+        at<uint32_t>(p, 8) = ctn_slot;
+    }
 }
 
-// Hand the wall to the game's own wall jump: exactly what checkWallJumpBegin does after its cast.
-void leave_to_wall_jump(RunState& s, uintptr_t pl) {
-    at<LineResult>(pl, pl::mGroundPoly) = s.wall.poly;
-    init_jump_begin(pl, 3);
-    at<int>(pl, pl::mJumpMode) = JUMP_MODE_NORM_WALL_LO;
-    set_action(pl, ACT_WALL_JUMP);
-    s.phase = 2;
+void play_run_motion(RunState& s, uintptr_t pl) {
+    const int motion = WallRun::motion_for(pl, s.wall);
+    if (motion == s.motion) return;
+    const bool custom = WallRun::custom_ready(pl);
+    if (custom)                                  // a runtime bank has no .ctn scripts: borrow the placeholder's
+        borrow_ctn(pl, 0, WallRun::placeholder_motion(s.wall));
+    // The custom cycles loop, with their root translation ignored (A_NULL_TRANS_OFF: the run's velocity moves the
+    // player, the LMT's root track would walk the capsule into the wall); the placeholder kick-offs use the wall
+    // jump's 5 (A_NULL_TRANS_OFF | A_LOOP_OFF).
+    request_motion(pl, motion, custom ? (uint32_t)A_NULL_TRANS_OFF : ATTR_KICK, 4.0f, 0.0f, 1.0f);
+    s.motion = motion;
+}
+
+// Entering action 0x18 cost a wall jump and counted an air jump (checkWallJumpBegin -> initJumpBegin(3):
+// --mWallJumpCnt, ++mWJumpCnt). Give them back when the run ends so the player can keep jumping.
+void give_jumps_back(uintptr_t pl) {
+    char& wall_left = at<char>(pl, pl::mWallJumpCnt);
+    char& air_used  = at<char>(pl, pl::mWJumpCnt);
+    switch (WallRun::jumps_after_run) {
+    case 1:                                                 // undo the entry's cost
+        ++wall_left;
+        if (air_used > 0) --air_used;
+        break;
+    case 2: {                                               // as if freshly airborne
+        const uint8_t* tbl = at<uint8_t*>(pl, pl::mpActDataTbl);
+        if (tbl) wall_left = (char)tbl[1];
+        air_used = 0;
+        break;
+    }
+    default: break;                                         // 0: the game's own accounting
+    }
+}
+
+// Leave into the air: the fall motion and the game's neutral air state (ends action 0x18).
+void leave_to_air(uintptr_t pl) {
+    give_jumps_back(pl);
+    request_motion(pl, MOT_FALL, ATTR_FALL, 10.0f, 7.0f, 1.0f);
+    devil4_sdk::neutral_air_transition((uPlayer*)pl);
+}
+
+// Hand the action over to the game's wall jump: it reads the wall from mGroundPoly and runs its phases 0-4 in
+// the same phase word from here on (checkWallJumpBegin already set mJump.mode and the jump counters on entry).
+void hand_to_wall_jump(RunState& s, uintptr_t pl, bool from_run) {
+    if (from_run) {
+        at<LineResult>(pl, pl::mGroundPoly) = s.wall.poly;   // else keep checkWallJumpBegin's wall
+        give_jumps_back(pl);                                 // the kick-off itself doesn't charge again
+    }
+    at<int>(pl, pl::mBdyActionLowerPhase) = 0;
+    s.motion = -1;
+    WallRun::wall_jump_port(pl);
 }
 
 } // namespace
 
 void __stdcall WallRun::move(uintptr_t pl) {
+    int& phase = at<int>(pl, pl::mBdyActionLowerPhase);
+    if (phase != 0 && phase != PHASE_RUN) { wall_jump_port(pl); return; }   // handed over earlier
+
     RunState& s = state_for(pl);
     MtVector3& vel = at<MtVector3>(pl, pl::mVel);
     MtVector3& acc = at<MtVector3>(pl, pl::mAcc);
 
-    switch (s.phase) {
-    case 2:                                     // a previous run ended; the dispatch calling again = a new one
-        s.phase = 0;
-        [[fallthrough]];
-    case 0:
-        if (!detect(pl, s.wall)) { leave_to_air(s, pl); return; }
+    if (phase == 0) {                                   // entry: this tick's jump press near a wall
+        s.motion = -1;
+        s.timer  = run_frames;
+        const glm::vec3 h = heading(pl, nullptr);
+        if (!detect(pl, s.wall, h)) { hand_to_wall_jump(s, pl, false); return; }   // nothing runnable that way: plain wall jump
+        steer(pl, s.wall, h);
         face(pl, s.wall.yaw);
         acc.x = acc.y = acc.z = 0.0f;
-        vel.y = 0.0f;
-        s.timer = run_frames;
-        request_motion(pl, s.wall.on_left ? motion_left : motion_right, ATTR_KICK, 4.0f, 0.0f, 1.0f);
-        s.phase = 1;
-        [[fallthrough]];
-    case 1: {
-        if (!detect(pl, s.wall)) { leave_to_air(s, pl); return; }       // wall ended, or a corner
-        if (at<uint32_t>(pl, pl::mBtnTrg) & 0x4) { leave_to_wall_jump(s, pl); return; }
-
-        face(pl, s.wall.yaw);
-        const glm::vec3 v = glm::vec3(s.wall.run_dir) * run_speed - glm::vec3(s.wall.normal) * stick_speed;
-        vel.x = v.x; vel.z = v.z;
-        vel.y = 0.0f;                           // level run; gravity is reapplied by the fall motion's state
-        acc.x = acc.y = acc.z = 0.0f;
-
-        s.timer -= at<float>(pl, pl::m_delta_time);
-        if (s.timer <= 0.0f) { leave_to_air(s, pl); return; }
-
-        uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
-        if (coll && at<bool>(coll, 0x1C)) { set_action_land(pl); s.phase = 2; }   // mLand
-        return;
+        vel.x = vel.y = vel.z = 0.0f;
+        play_run_motion(s, pl);
+        phase = PHASE_RUN;
+        return;                                         // the jump button is down on this tick by definition
     }
+
+    // running
+    if (!(at<uint32_t>(pl, pl::mBtnOn) & 0x4)) { hand_to_wall_jump(s, pl, true); return; }   // jump released: kick off
+    const glm::vec3 h = heading(pl, &s.wall);
+    if (!detect(pl, s.wall, h)) { leave_to_air(pl); return; }                        // wall ended, or a corner
+    steer(pl, s.wall, h);
+    play_run_motion(s, pl);                             // only when left / right / up changed
+    face(pl, s.wall.yaw);
+
+    const float speed = s.wall.vertical ? climb_speed : run_speed;
+    const glm::vec3 v = glm::vec3(s.wall.run_dir) * speed - glm::vec3(s.wall.normal) * stick_speed;
+    vel.x = v.x; vel.z = v.z;
+    vel.y = s.wall.vertical ? v.y : 0.0f;               // climb: up the wall; sideways: level
+    acc.x = acc.y = acc.z = 0.0f;
+    keep_off_wall(pl, s.wall);
+
+    if (run_frames > 0.0f) {
+        s.timer -= at<float>(pl, pl::m_delta_time);
+        if (s.timer <= 0.0f) { hand_to_wall_jump(s, pl, true); return; }
+    }
+
+    uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
+    if (coll && at<bool>(coll, 0x1C)) set_action_land(pl);   // mLand: back on the ground
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Custom LMT: a free motion bank filled at runtime (MoveDef D14), body and coat. Without the file the run keeps
+// the placeholder kick-offs, so the mod works for people who don't have the animation.
+// ---------------------------------------------------------------------------------------------------------------
+static bool lmt_file_exists(const char* game_path) {        // the loose-file root, as Payline checks its LMT
+    if (!game_path || !*game_path) return false;
+    return std::filesystem::exists(std::string(".\\nativePC\\") + game_path + ".lmt");
+}
+
+int WallRun::placeholder_motion(const Wall& wall) {
+    if (wall.vertical) return motion_up;
+    return wall.on_left ? motion_left : motion_right;
+}
+
+bool WallRun::custom_ready(uintptr_t player) {
+    return use_custom_lmt && player && devil4_sdk::get_motion_bank((void*)player, lmt_bank) != 0;
+}
+
+int WallRun::motion_for(uintptr_t player, const Wall& wall) {
+    if (!custom_ready(player)) return placeholder_motion(wall);   // no file for this player: the stand-ins
+    const int slot = wall.vertical ? run_slot_up : wall.on_left ? run_slot_left : run_slot_right;
+    return (lmt_bank << 8) | (slot & 0xFF);
+}
+
+void WallRun::ensure_bank(uintptr_t player) {
+    if (!use_custom_lmt || !player || lmt_bank < 10 || lmt_bank > 14) return;   // 0-9 are setup banks, 15 Buster
+    static uintptr_t s_failed_for = 0;       // don't retry (and spam the log) every frame on a missing file
+    if (s_failed_for == player) return;
+
+    void* body = (void*)player;
+    if (!devil4_sdk::get_motion_bank(body, lmt_bank)) {
+        if (!lmt_file_exists(lmt_body)) {                    // no file: the placeholders stay in use, say so once
+            spdlog::warn("WallRun: nativePC\\{}.lmt not found, using the placeholder motions", lmt_body);
+            s_failed_for = player;
+            return;
+        }
+        if (!devil4_sdk::load_motion_bank(body, lmt_body, lmt_bank)) { s_failed_for = player; return; }
+        spdlog::info("WallRun: '{}' -> bank {} of the body", lmt_body, lmt_bank);
+    }
+    if (!load_coat_lmt) return;                              // coat (and face) motions stay off for now
+    void* coat = (void*)at<uintptr_t>(player, pl::mpCoatMdl);   // requestSetMotion mirrors motion numbers to it
+    if (coat && !devil4_sdk::get_motion_bank(coat, lmt_bank)) {
+        const char* path = at<uint32_t>(player, pl::charType) == 1 ? lmt_coat_nero : lmt_coat_dante;
+        if (!lmt_file_exists(path)) {                        // body runs the custom cycles, the coat holds its pose
+            spdlog::warn("WallRun: nativePC\\{}.lmt not found, the coat won't animate on the run", path);
+            s_failed_for = player;
+            return;
+        }
+        if (!devil4_sdk::load_motion_bank(coat, path, lmt_bank)) { s_failed_for = player; return; }
+        spdlog::info("WallRun: '{}' -> bank {} of the coat", path, lmt_bank);
     }
 }
 
@@ -474,39 +655,148 @@ void WallRun::wall_jump_port(uintptr_t pl) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// Mod plumbing. No hooks: MoveTable's dispatch calls WallRun::move.
+// Hook: the entry of uPlayer::moveActWallJump 0x827200 (`this` in eax, no stack arguments, returns nothing). The
+// first 6 bytes are `push ebp; mov ebp, esp; and esp, -16`; the detour runs our port and returns straight to the
+// caller (moveActionLower), or replays those 6 bytes and continues the original at 0x827206.
+// WallRun::move itself needs no hook: MoveTable's dispatch calls it.
 // ---------------------------------------------------------------------------------------------------------------
+static void __stdcall wall_jump_from_hook(uintptr_t player) { WallRun::move(player); }
+
+naked void detour_wall_jump() {
+    _asm {
+        cmp byte ptr [WallRun::mod_enabled], 1
+        jne original
+        cmp byte ptr [WallRun::replace_wall_jump], 1
+        jne original
+        pushad
+        push eax                        // this
+        call wall_jump_from_hook        // __stdcall: pops its argument
+        popad
+        ret                             // back to moveActionLower, as the game's function would
+    original:
+        push ebp
+        mov ebp, esp
+        and esp, 0xFFFFFFF0
+        jmp dword ptr [WallRun::jmp_ret1]
+    }
+}
+
 std::optional<std::string> WallRun::on_initialize() {
+    if (!install_hook_absolute(0x827200, hook1, &detour_wall_jump, &jmp_ret1, 6)) {
+        spdlog::error("Failed to init WallRun hook (moveActWallJump entry)\n");
+        return "Failed to init WallRun hook (moveActWallJump entry)";
+    }
     return Mod::on_initialize();
 }
 
+void WallRun::on_frame(fmilliseconds& dt) {
+    if (!mod_enabled || !use_custom_lmt) return;
+    if (uPlayer* pl = devil4_sdk::get_local_player()) ensure_bank((uintptr_t)pl);
+}
+
 void WallRun::on_gui_frame(int display) {
-    if (display != DISPLAY_DANTE_A) return;        // the custom-move dispatch exists for Dante only today
+    if (display != DISPLAY_SYSTEM_A) return;       // debug page: it hooks the wall jump of both characters
     ImGui::Checkbox(_("Wall Run"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Run along a wall found by two 45-degree casts. Jump kicks off into the game's wall jump."));
     if (!mod_enabled) return;
     ImGui::Indent(lineIndent);
+    ImGui::Checkbox(_("Replace the game's wall jump"), &replace_wall_jump);
+    ImGui::SameLine();
+    help_marker(_("Runs the C++ port of uPlayer::moveActWallJump instead of the game's own (same behaviour; the port is "
+                  "the base the wall run is built on, so this checks it)."));
     ImGui::SliderFloat(_("Run speed"), &run_speed, 0.0f, 40.0f);
-    ImGui::SliderFloat(_("Run frames"), &run_frames, 1.0f, 180.0f);
+    ImGui::SliderFloat(_("Max run frames"), &run_frames, 0.0f, 300.0f);
+    ImGui::SameLine();
+    help_marker(_("The run lasts while jump is held; this caps it (0 = no cap). Releasing jump kicks off with the game's wall jump."));
     ImGui::SliderFloat(_("Wall stick"), &stick_speed, 0.0f, 10.0f);
+    ImGui::SliderFloat(_("Wall gap"), &wall_gap, 0.0f, 100.0f);
+    ImGui::SameLine();
+    help_marker(_("The position is pushed back out to this distance from the wall plane every tick of the run (0 = off). "
+                  "Stops the animation's root motion or a missed push from clipping through."));
     ImGui::SliderFloat(_("Cast length"), &cast_length, 10.0f, 400.0f);
     ImGui::SliderFloat(_("Cast height"), &cast_height, 0.0f, 200.0f);
     ImGui::SliderFloat(_("Cast angle"), &cast_angle, 5.0f, 85.0f);
     ImGui::SliderFloat(_("Corner dot"), &corner_dot, -1.0f, 1.0f);
-    ImGui::InputInt(_("Motion left"), &motion_left);
-    ImGui::InputInt(_("Motion right"), &motion_right);
+    ImGui::SliderFloat(_("Climb angle"), &climb_angle, 0.0f, 90.0f);
+    ImGui::SameLine();
+    help_marker(_("Facing the wall within this many degrees of its normal runs up it; otherwise the run goes sideways."));
+    ImGui::SliderFloat(_("Climb speed"), &climb_speed, 0.0f, 40.0f);
+    ImGui::SliderFloat(_("Away deadzone"), &away_deadzone, 0.0f, 1.0f);
+    ImGui::SameLine();
+    help_marker(_("A stick leaning away from the wall only steers by its part along the wall; below this much it does nothing."));
+    ImGui::Combo(_("Jumps after a run"), &jumps_after_run, "Costs one wall jump\0Costs nothing\0Reset to the maximum\0");
+    ImGui::SameLine();
+    help_marker(_("Entering the run spends a wall jump and counts an air jump, like the game's wall jump. "
+                  "Costs nothing gives both back when the run ends; Reset fills them to the character's maxima."));
+    ImGui::Checkbox(_("Custom wall run LMT"), &use_custom_lmt);
+    ImGui::SameLine();
+    help_marker(_("Off: the wall-jump kick-off motions stand in for the run cycles.\n"
+                  "On: the LMT below is loaded into a free motion bank of the body and coat at runtime, and the run "
+                  "plays bank:slot from it. The .ctn cancels of the placeholder motions are borrowed either way."));
+    if (!use_custom_lmt) {
+        ImGui::InputInt(_("Motion left"), &motion_left);
+        ImGui::InputInt(_("Motion right"), &motion_right);
+        ImGui::InputInt(_("Motion up"), &motion_up);
+    } else {
+        ImGui::SliderInt(_("Bank"), &lmt_bank, 10, 14);
+        ImGui::InputInt(_("Slot left"), &run_slot_left);
+        ImGui::InputInt(_("Slot right"), &run_slot_right);
+        ImGui::InputInt(_("Slot up"), &run_slot_up);
+        ImGui::InputText(_("Body LMT"), lmt_body, sizeof(lmt_body));
+        ImGui::Checkbox(_("Load coat LMT too"), &load_coat_lmt);
+        ImGui::SameLine();
+        help_marker(_("Off: only the body plays the custom cycles and the coat holds its pose during the run."));
+        if (load_coat_lmt) {
+            ImGui::InputText(_("Nero coat LMT"), lmt_coat_nero, sizeof(lmt_coat_nero));
+            ImGui::InputText(_("Dante coat LMT"), lmt_coat_dante, sizeof(lmt_coat_dante));
+        }
+        if (uPlayer* pl = devil4_sdk::get_local_player()) {
+            ImGui::Text(_("File: %s | in use: %s"), lmt_file_exists(lmt_body) ? "found" : "missing",
+                        custom_ready((uintptr_t)pl) ? "custom cycles" : "placeholders");
+            ImGui::Text(_("Loaded: body %s, coat %s"),
+                        devil4_sdk::get_motion_bank(pl, lmt_bank) ? "yes" : "no",
+                        devil4_sdk::get_motion_bank((void*)at<uintptr_t>((uintptr_t)pl, pl::mpCoatMdl), lmt_bank) ? "yes" : "no");
+            if (ImGui::Button(_("Reload LMT"))) {       // swap the slots out and let ensure_bank refill them
+                devil4_sdk::unload_motion_bank(pl, lmt_bank);
+                if (load_coat_lmt)
+                    devil4_sdk::unload_motion_bank((void*)at<uintptr_t>((uintptr_t)pl, pl::mpCoatMdl), lmt_bank);
+            }
+        }
+    }
     ImGui::Unindent(lineIndent);
 }
 
 void WallRun::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("wall_run").value_or(false);
+    replace_wall_jump = cfg.get<bool>("wall_run_replace_wall_jump").value_or(true);
     run_speed   = cfg.get<float>("wall_run_speed").value_or(run_speed);
     run_frames  = cfg.get<float>("wall_run_frames").value_or(run_frames);
+    wall_gap    = cfg.get<float>("wall_run_wall_gap").value_or(wall_gap);
+    use_custom_lmt = cfg.get<bool>("wall_run_custom_lmt").value_or(false);
+    lmt_bank       = cfg.get<int>("wall_run_bank").value_or(lmt_bank);
+    run_slot_left  = cfg.get<int>("wall_run_slot_left").value_or(run_slot_left);
+    run_slot_right = cfg.get<int>("wall_run_slot_right").value_or(run_slot_right);
+    run_slot_up    = cfg.get<int>("wall_run_slot_up").value_or(run_slot_up);
+    climb_angle    = cfg.get<float>("wall_run_climb_angle").value_or(climb_angle);
+    climb_speed    = cfg.get<float>("wall_run_climb_speed").value_or(climb_speed);
+    jumps_after_run = cfg.get<int>("wall_run_jumps_after").value_or(jumps_after_run);
+    load_coat_lmt   = cfg.get<bool>("wall_run_coat_lmt").value_or(false);
 }
 
 void WallRun::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("wall_run", mod_enabled);
+    cfg.set<bool>("wall_run_replace_wall_jump", replace_wall_jump);
     cfg.set<float>("wall_run_speed", run_speed);
     cfg.set<float>("wall_run_frames", run_frames);
+    cfg.set<float>("wall_run_wall_gap", wall_gap);
+    cfg.set<bool>("wall_run_custom_lmt", use_custom_lmt);
+    cfg.set<int>("wall_run_bank", lmt_bank);
+    cfg.set<int>("wall_run_slot_left", run_slot_left);
+    cfg.set<int>("wall_run_slot_right", run_slot_right);
+    cfg.set<int>("wall_run_slot_up", run_slot_up);
+    cfg.set<float>("wall_run_climb_angle", climb_angle);
+    cfg.set<float>("wall_run_climb_speed", climb_speed);
+    cfg.set<int>("wall_run_jumps_after", jumps_after_run);
+    cfg.set<bool>("wall_run_coat_lmt", load_coat_lmt);
 }

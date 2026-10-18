@@ -56,6 +56,12 @@ namespace devil4_sdk {
     bool is_loading_arc();
     uActor* easy_spawn(uintptr_t spawn_addr, int moveLine);
 	bool check_exists_in_moveline(void* actorToFind, int moveLine);
+	// Motion banks (uModel::mpMotionListArr[16] at +0xA38): load an .lmt into `bank` of `model` the way
+	// uPlayerNero::setBusterMotionRsrc 0x7E7F30 does (sResource::create -> uModel::setMotionList -> release our ref).
+	// Returns false when the file didn't load. The model's destructor releases the slot; unload only to swap early.
+	bool __stdcall load_motion_bank(void* model, const char* lmt_path, int bank);
+	void __stdcall unload_motion_bank(void* model, int bank);
+	uintptr_t __stdcall get_motion_bank(void* model, int bank);   // the rMotionList* in that slot, 0 = empty
 };
 
 namespace uactor_sdk {
