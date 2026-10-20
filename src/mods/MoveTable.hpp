@@ -14,12 +14,14 @@ public:
     static uintptr_t jmp_ret1;
     static uintptr_t jmp_ret2;
     static uintptr_t jmp_ret3;
+    static uintptr_t jmp_ret4;   // Nero dispatch (uPlayerNero::moveActAtckL 0x7F9CDB)
 
     static int extra_nero_moves;
     static int extra_dante_moves;
 
     static int AirThrow;
     static int backForwardQuickDrive;
+    static int Gerb;             // Nero row index marker (extra_nero_moves at insertion), see Gerb.cpp
 
     MoveTable() = default;
 
@@ -34,7 +36,7 @@ public:
     void on_gui_frame(int display) override;
     void on_frame(fmilliseconds& dt) override;
 private:
-    std::unique_ptr<FunctionHook> hook0, hook1, hook2, hook3;
+    std::unique_ptr<FunctionHook> hook0, hook1, hook2, hook3, hook4;
     // std::unique_ptr<Patch> patch1;
 
     static const int COLUMN_SEARCH_BUFFER_SIZE = 32;

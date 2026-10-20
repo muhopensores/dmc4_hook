@@ -1,4 +1,5 @@
 #include "MoveTable.hpp"
+#include "Gerb.hpp"
 #include "sdk/Devil4.hpp"
 #include "sdk/StringData.hpp"
 #include "sdk/sRender.hpp"
@@ -18,6 +19,8 @@ uintptr_t MoveTable::jmp_ret3 = NULL;
 
 // When we need to access values from this array, add this to keep it consistent
 int MoveTable::extra_nero_moves = 0;
+int MoveTable::Gerb = 0;
+uintptr_t MoveTable::jmp_ret4 = NULL;
 int MoveTable::extra_dante_moves = 0;
 
 constexpr uintptr_t NativeDanteKADTbl = 0x00C3FEA0;
@@ -38,14 +41,21 @@ int MoveTable::backForwardQuickDrive = 0;
     }
 }*/
 
+// 0x803C67 in uPlayer::checkAtck: `test [ecx+eax*4+18h], edx` is the unlocked-moves bitset test (ebx = atckId,
+// eax = atckId / 32, edx = 1 << (atckId % 32)); a row whose id has no bit is skipped. New ids are let through here.
 naked void detour0(void) { // MoveTable toggle() function
     _asm {
             cmp byte ptr [LuciAirThrow::mod_enabled], 1
             je checkcode
-            jmp originalcode
+            jmp gerbcheck
 
         checkcode:
             cmp ebx, 0x6d // luci air throw
+            je retcode
+        gerbcheck:
+            cmp byte ptr [Gerb::mod_enabled], 1
+            jne originalcode
+            cmp ebx, 0x40 // Gerb::move_id (Nero)
             je retcode
         originalcode:
             test [ecx+eax*4+0x18], edx
@@ -112,6 +122,35 @@ void __stdcall dante_move_switch(uint32_t moveID, uintptr_t actor) {
     }
 }
 
+// Handle Nero's new move ids. uPlayerNero::moveActAtckL 0x7F9CD0 switches on moveID2 1..0x2B (lower body);
+// moveActAtckU 0x7F9E90 on 0x2C..0x33 (gun / upper body) and returns for anything else, so new ids start at 0x34.
+void __stdcall nero_move_switch(uint32_t moveID, uintptr_t actor) {
+    switch (moveID + 1) {
+        case Gerb::move_id:
+            Gerb::move(actor);
+            break;
+        default:
+            return;
+    }
+}
+
+// 0x7F9CDB: `cmp ecx, 2Ah; ja default` (9 bytes); ecx = moveID2 - 1, eax = uPlayerNero; the function has no frame,
+// each case ends in ret, so a new id runs its switch and returns straight to the caller.
+naked void detour4(void) {
+    _asm {
+            cmp ecx, 0x2A
+            ja newcode
+            jmp dword ptr [MoveTable::jmp_ret4]     // a vanilla id: the game's jump table
+        newcode:
+            pushad
+            push eax // uPlayerNero
+            push ecx // moveID2 - 1
+            call nero_move_switch
+            popad
+            ret
+    }
+}
+
 // uintptr_t detour3_ja = 0x7CD504;
 naked void detour3(void) { // Handle Dante's move call
     _asm { 
@@ -161,6 +200,12 @@ void updateKDATbl() {
     MoveTable::extra_dante_moves++;
     MoveTable::backForwardQuickDrive = MoveTable::extra_dante_moves;
 
+    // Nero: Gerb (Gerb.cpp): COMMAND attr, id 0x40, start | cancel | repeat, input set by Gerb::apply_row (byte 1 of
+    // the command word = 1 keeps it unusable until the mod enables it), any weapon / style, ground + air.
+    NeroAtckDefTbl.insert(NeroAtckDefTbl.begin(), {2, Gerb::move_id, 7, 1, 0x00000100, (unsigned long)-1, (unsigned long)-1, 0, 3, 1, 0, 0, 0, 0x07000005}); // etc 0 = no extra condition
+    MoveTable::extra_nero_moves++;
+    MoveTable::Gerb = MoveTable::extra_nero_moves;
+
     // Terminate
     DanteAtckDefTbl.emplace_back(3);
     NeroAtckDefTbl.emplace_back(3);
@@ -199,6 +244,10 @@ std::optional<std::string> MoveTable::on_initialize() {
     if (!install_hook_offset(0x3CD1A1, hook3, &detour3, &jmp_ret3, 11)) {
 		spdlog::error("Failed to init MoveTable mod3\n");
 		return "Failed to init MoveTable mod 3";
+	}
+    if (!install_hook_offset(0x3F9CDB, hook4, &detour4, &jmp_ret4, 9)) { // Nero move dispatch
+		spdlog::error("Failed to init MoveTable mod4\n");
+		return "Failed to init MoveTable mod 4";
 	}
 
     return Mod::on_initialize();

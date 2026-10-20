@@ -53,6 +53,7 @@ namespace pl {                                       // uPlayer offsets, DX9
     constexpr uintptr_t mParamTbl0Data     = 0x1E9C; // float* into the .plp (charactersettingsTwo)
     constexpr uintptr_t mGroundPoly        = 0x1F60; // sCollision::LineResult (0x90): the wall the jump reads
     constexpr uintptr_t mpCoatMdl          = 0x20C4; // uDevil4Model*: plays the same motion numbers (mMotionCtrl[4..6])
+    constexpr uintptr_t mCharTblMgr        = 0x1DD4; // cCharTblMgr[2] (0x24 each: [0] upper, [1] lower at 0x1DF8): +0xC mpDataTop, +0x10 mpDataCrnt (the .ctn script cursor), +0x14 mIsDone
     constexpr uintptr_t isWallFront        = 0x1FF0;
     constexpr uintptr_t mDownMaxSpd        = 0x2164;
     constexpr uintptr_t mMotionCtrl0No     = 0x28A8; // cMotionCtrl[0].mMotionNo
@@ -61,6 +62,7 @@ namespace pl {                                       // uPlayer offsets, DX9
                                                          // points that half's cCharTblMgr at .ctn bank/idx instead of
                                                          // deriving them from the motion number, then clears it.
     constexpr uintptr_t mMotionFrameEnd0   = 0x2A54; // bool: lower-body motion reached its end
+    constexpr uintptr_t mMotCncl           = 0x30C0; // cMotCancel[8], 0x2C each, .mStat at +4 (1 = buffer window, 2 = cancel open): C_NORM0..2, C_COMMAND, C_JUMP, C_CHOUHATSU, C_GUN, C_ALL
     constexpr uintptr_t mMotCnclJumpStat   = 0x3174; // mMotCncl[4] (the C_JUMP window, 0x30C0 + 4 * 0x2C) .mStat: 2 = open
     constexpr uintptr_t mMotCnclJumpReserve = 0x3178; // mMotCncl[4].mIsReserve: a jump press is buffered for it
 }

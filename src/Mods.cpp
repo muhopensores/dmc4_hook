@@ -183,6 +183,7 @@
 #include "mods/Cock.hpp"
 #include "mods/RayTest.hpp"
 #include "mods/WallRun.hpp"
+#include "mods/Gerb.hpp"
 #endif
 
 constexpr size_t MODS_NUM{ 512 };
@@ -382,6 +383,7 @@ Mods::Mods() {
     ADD_MOD(Cock);
     ADD_MOD(RayTest);
     ADD_MOD(WallRun);
+    ADD_MOD(Gerb);
 #endif
 #endif
 }
