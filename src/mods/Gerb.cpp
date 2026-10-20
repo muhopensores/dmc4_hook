@@ -133,11 +133,13 @@ void arm_cancel_script(JumpState& s, uintptr_t pl) {
     if (Gerb::cancel_frame >= 0.0f) install_cancel_script(pl, slot_of(s), Gerb::cancel_frame);
 }
 
-// checkAtck's first gate wants a melee window (C_NORM0-2) open or mActLimit.atck; from the cancel frame on, give it
-// the limit bit too (the move functions OR bits into mActLimit the same way; setAction reloads it on the next action).
-void allow_attacks(uintptr_t pl) {
+// The gate every cancel goes through: uPlayer::main calls checkBeforeAction / checkAction (checkAtck, the jump
+// and gun checks, pose) only while mIsCancelCheckEnable is set. setActionAtck cleared it when this move started;
+// the vanilla attack functions set it back at their cancel frame, and so does this. Before that frame nothing can
+// interrupt the move whatever the .ctn windows say; after it the windows decide which rows may.
+void open_cancel_gate(uintptr_t pl) {
     if (Gerb::cancel_frame >= 0.0f && at<float>(pl, pl::mMotionFrame0) >= Gerb::cancel_frame)
-        at<uint32_t>(pl, pl::mActLimit) |= 0x400;   // AL_ATCK
+        at<bool>(pl, pl::mIsCancelCheckEnable) = true;
 }
 
 } // namespace
@@ -220,7 +222,7 @@ void __stdcall Gerb::move(uintptr_t pl) {
     case PHASE_WAIT: {
         acc.x = acc.y = acc.z = 0.0f;
         arm_cancel_script(s, pl);
-        allow_attacks(pl);
+        open_cancel_gate(pl);
         if (at<float>(pl, pl::mMotionFrame0) < launch_frame) return;
 
         glm::vec3 v;
@@ -247,7 +249,7 @@ void __stdcall Gerb::move(uintptr_t pl) {
         g_dbg_n0_at_move  = at<int>(pl, pl::mMotCncl + 4);
         g_dbg_all_at_move = at<int>(pl, pl::mMotCncl + 0x2C * 7 + 4);
         arm_cancel_script(s, pl);
-        allow_attacks(pl);
+        open_cancel_gate(pl);
         uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
         if (vel.y <= 0.0f && coll && at<bool>(coll, 0x1C)) { set_action_land(pl); return; }   // mLand
         vel.y += gravity * at<float>(pl, pl::m_delta_time);
@@ -357,7 +359,7 @@ void Gerb::on_gui_frame(int display) {
                     at<int>(P, pl::mBdyActionLowerPhase), at<uint32_t>(P, pl::mMotionCtrl0No) & 0xFFFF,
                     at<uint32_t>(P, pl::mMotionCtrl0No + 0x3C) & 0xFFFF,
                     (at<uint32_t>(P, pl::mMotionCtrl0No + 0x3C) & 0xFFFF) == 0xFFFF ? "lower = ctn[1]" : "upper = ctn[0]");
-        ImGui::Text("inside move(): N0 %d ALL %d", g_dbg_n0_at_move, g_dbg_all_at_move);
+        ImGui::Text("inside move(): N0 %d ALL %d | cancel checks enabled: %d", g_dbg_n0_at_move, g_dbg_all_at_move, (int)at<bool>(P, pl::mIsCancelCheckEnable));
         ImGui::Text("mStat N0 %d N1 %d N2 %d CMD %d JMP %d TNT %d GUN %d ALL %d",
                     at<int>(P, pl::mMotCncl + 0x2C * 0 + 4), at<int>(P, pl::mMotCncl + 0x2C * 1 + 4), at<int>(P, pl::mMotCncl + 0x2C * 2 + 4),
                     at<int>(P, pl::mMotCncl + 0x2C * 3 + 4), at<int>(P, pl::mMotCncl + 0x2C * 4 + 4), at<int>(P, pl::mMotCncl + 0x2C * 5 + 4),

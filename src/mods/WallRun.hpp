@@ -54,6 +54,7 @@ namespace pl {                                       // uPlayer offsets, DX9
     constexpr uintptr_t mGroundPoly        = 0x1F60; // sCollision::LineResult (0x90): the wall the jump reads
     constexpr uintptr_t mpCoatMdl          = 0x20C4; // uDevil4Model*: plays the same motion numbers (mMotionCtrl[4..6])
     constexpr uintptr_t mCharTblMgr        = 0x1DD4; // cCharTblMgr[2] (0x24 each: [0] upper, [1] lower at 0x1DF8): +0xC mpDataTop, +0x10 mpDataCrnt (the .ctn script cursor), +0x14 mIsDone
+    constexpr uintptr_t mIsCancelCheckEnable = 0x1F50; // bool (sdk: fullHouseSomething1): uPlayer::main runs checkBeforeAction / checkAction (checkAtck, jump, gun, pose: every cancel) only while set. setActionUpperBdy sets it, setActionAtck / setActionDamage clear it, each attack function sets it again at its cancel frame
     constexpr uintptr_t isWallFront        = 0x1FF0;
     constexpr uintptr_t mDownMaxSpd        = 0x2164;
     constexpr uintptr_t mMotionCtrl0No     = 0x28A8; // cMotionCtrl[0].mMotionNo
