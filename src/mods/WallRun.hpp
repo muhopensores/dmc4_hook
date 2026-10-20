@@ -29,8 +29,8 @@ namespace pl {                                       // uPlayer offsets, DX9
     constexpr uintptr_t charType           = 0x1494; // 1 = Nero (controllerID; Payline's `cmp [esi+0x1494], 1`)
     constexpr uintptr_t mBdyActionLowerNo  = 0x1500; // mBdyAction[1].no (moveBank): 0x18 = wall jump
     constexpr uintptr_t mBdyActionLowerPhase = 0x1504; // mBdyAction[1].phase (movePart)
-    constexpr uintptr_t mActLimit          = 0x1550; // kActLimitBit: 0x8 = a jump may start now
-    constexpr uintptr_t mActStat           = 0x1554; // bit 0x2 = in a jump
+    constexpr uintptr_t mActLimit          = 0x1550; // yActLimit (kActLimitBit): 1 fall (floor snap / may drop), 2 walk, 4 walkEnd, 8 jump, 0x10 pose, 0x20 poseEnd, 0x40 poseWalk, 0x80 poseWalkEnd, 0x100 poseWalkLo, 0x200 poseWalkEndLo, 0x400 atck, 0x800 guard, 0x1000 ik, 0x2000 atckVl, 0x4000 intr, 0x8000 pause. Loaded per action from uPlayer::actionTbl (action 24 = jump | atck | guard), then edited by the move
+    constexpr uintptr_t mActStat           = 0x1554; // ACT_STAT: 1 AST_STAND, 2 AST_JUMP (airborne), 4 AST_ATCK, 8 AST_POSE, 0x10 AST_GUARD, 0x20 AST_RUN, 0x40 AST_FLY; from the same table (0 = keep the previous minus guard)
     constexpr uintptr_t mJumpType          = 0x16B8; // JUMP_TYPE
     constexpr uintptr_t mJumpMode          = 0x16BC; // JUMP_MODE
     constexpr uintptr_t mJumpMoveAng       = 0x16C0; // yaw the jump moves along (inertiaDirectionReal)
@@ -39,8 +39,11 @@ namespace pl {                                       // uPlayer offsets, DX9
     constexpr uintptr_t mRotateNow         = 0x1710; // facing yaw (rotation2)
     constexpr uintptr_t mActTimer0         = 0x177C;
     constexpr uintptr_t mMotContFree0      = 0x1D7E; // .ctn contact byte free0 (stage trigger)
-    constexpr uintptr_t mVelAdd            = 0x1E1C; // veladd: horizontal speed of a jump, loaded by setJumpRate from the jump table; calcSpeedXZ turns it into XZ velocity along mJump.moveAng every tick (sdk: inertia)
+    constexpr uintptr_t mMoveVel           = 0x1E1C; // horizontal move speed of a jump, loaded by setJumpRate from the jump table; calcSpeedXZ turns it into XZ velocity along mJump.moveAng every tick (sdk: inertia)
+    constexpr uintptr_t mMoveAcc           = 0x1E20; // its per-frame change (deceleration), also from the table
     constexpr uintptr_t mMoveAngle         = 0x1E24; // stick yaw used for movement (rotation3)
+    constexpr uintptr_t mAddSpd            = 0x1E30; // MtVector3: additive speed the game adds to the motion while mIsAddSpeed (carried momentum, moving floors)
+    constexpr uintptr_t mIsAddSpeed        = 0x1E40; // bool
     constexpr uintptr_t mAtckLongCnt       = 0x1E7A;
     constexpr uintptr_t mJumpAtckCnt       = 0x1E7D;
     constexpr uintptr_t mWJumpCnt          = 0x1E7E; // air jumps used since leaving the ground (char)

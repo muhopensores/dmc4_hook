@@ -398,6 +398,14 @@ void keep_off_wall(uintptr_t pl, const Wall& wall) {
     }
 }
 
+// Drop any additive speed (mAddSpd while mIsAddSpeed): the run and the jump-out set the velocity themselves,
+// and a carried momentum would push the capsule through the wall.
+void clear_add_speed(uintptr_t pl) {
+    MtVector3& add = at<MtVector3>(pl, pl::mAddSpd);
+    add.x = add.y = add.z = 0.0f;
+    at<bool>(pl, pl::mIsAddSpeed) = false;
+}
+
 void face(uintptr_t pl, float yaw) {                 // snap, the way the wall jump does
     at<float>(pl, pl::mRotateTarget) = yaw;
     at<float>(pl, pl::mRotateNow)    = yaw;
@@ -486,6 +494,7 @@ void __stdcall WallRun::move(uintptr_t pl) {
         face(pl, s.wall.yaw);
         acc.x = acc.y = acc.z = 0.0f;
         vel.x = vel.y = vel.z = 0.0f;
+        clear_add_speed(pl);
         play_run_motion(s, pl);
         phase = PHASE_RUN;
         return;                                         // the jump button is down on this tick by definition
@@ -512,6 +521,7 @@ void __stdcall WallRun::move(uintptr_t pl) {
     vel.x = v.x; vel.z = v.z;
     vel.y = s.wall.vertical ? v.y : 0.0f;               // climb: up the wall; sideways: level
     acc.x = acc.y = acc.z = 0.0f;
+    clear_add_speed(pl);
     keep_off_wall(pl, s.wall);
 
     if (run_frames > 0.0f) {
@@ -715,10 +725,13 @@ void WallRun::wall_jump_port(uintptr_t pl) {
                     vel.x = v.x; vel.z = v.z;
                     vel.y = jumpout_up;
                     acc.x = acc.y = acc.z = 0.0f;
-                    // keep the game's own XZ model in step: veladd = horizontal speed, moveAng = its yaw
+                    // keep the game's own XZ model in step: mMoveVel = the horizontal speed, no table deceleration,
+                    // moveAng = its yaw, and no additive speed on top
                     const glm::vec3 xz(v.x, 0.0f, v.z);
-                    at<float>(pl, pl::mVelAdd) = glm::length(xz);
+                    at<float>(pl, pl::mMoveVel) = glm::length(xz);
+                    at<float>(pl, pl::mMoveAcc) = 0.0f;
                     if (glm::length(xz) > 1e-4f) at<float>(pl, pl::mJumpMoveAng) = yaw_of(xz);
+                    clear_add_speed(pl);
                 }
                 wall_dust_effect(pl, tri_normal(&poly), poly.hitPos, efct_mtrl_flag(&poly));
                 phase = 4;

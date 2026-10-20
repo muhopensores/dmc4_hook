@@ -514,6 +514,7 @@ set(MISC
   misc/PinTimerAtlas.cpp
   misc/TonyBg.cpp
   misc/kAtckDefTbl.cpp
+  misc/kActionTbl.hpp
 )
 
 set(LANG
