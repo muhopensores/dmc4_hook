@@ -13,9 +13,10 @@ bool  WallRun::replace_wall_jump = true;
 uintptr_t WallRun::jmp_ret1 = NULL;
 bool  WallRun::replace_wall_jump_check = true;
 uintptr_t WallRun::jmp_ret2 = 0;
-bool  WallRun::require_wall_jumps = true;
+bool  WallRun::require_wall_jumps = false;
 float WallRun::check_reach  = 80.0f;
 float WallRun::check_height = 10.0f;
+uint32_t WallRun::button_mask = 0x4;
 float WallRun::run_speed    = 12.0f;
 float WallRun::run_frames   = 0.0f;     // 0 = as long as jump is held
 float WallRun::stick_speed  = 2.0f;
@@ -590,12 +591,16 @@ void WallRun::ensure_bank(uintptr_t player) {
 // uPlayer::checkWallJumpBegin 0x804650 (SE 0xA059D0), readable: the entry test for action 0x18.
 // ---------------------------------------------------------------------------------------------------------------
 bool WallRun::wall_jump_check_port(uintptr_t pl) {
-    if (!(at<uint32_t>(pl, pl::mActStat) & 0x2)) return false;             // only from a jump
+    if (!(at<uint32_t>(pl, pl::mActStat) & 0x2)) return false;             // only while airborne
+    if (at<int>(pl, pl::mBdyActionLowerNo) == ACT_WALL_JUMP &&
+        at<int>(pl, pl::mBdyActionLowerPhase) == PHASE_RUN) return false;   // not from inside a run (a kick-off may chain)
 
-    // A jump input: buffered in the C_JUMP cancel window, or pressed now while a jump may start.
-    const bool buffered = at<int>(pl, pl::mMotCnclJumpStat) == 2 && at<bool>(pl, pl::mMotCnclJumpReserve);
-    const bool pressed  = (at<uint32_t>(pl, pl::mActLimit) & 0x8) && (at<uint32_t>(pl, pl::mBtnTrg) & 0x4);
-    if (!buffered && !pressed) return false;
+    // A press of the chosen button(s): this tick, or, for the jump button, latched by the game as the C_JUMP
+    // reserve (updateMotCancel keeps a press made while the window is open, which is how a press that started
+    // an air hike still reaches the wall jump on a later tick). No mActLimit.jump condition.
+    const bool pressed  = (at<uint32_t>(pl, pl::mBtnTrg) & button_mask) != 0;
+    const bool latched  = (button_mask & 0x4) && at<int>(pl, pl::mMotCnclJumpStat) != 0 && at<bool>(pl, pl::mMotCnclJumpReserve);
+    if (!pressed && !latched) return false;
 
     if (require_wall_jumps && at<char>(pl, pl::mWallJumpCnt) <= 0) return false;
 
@@ -868,6 +873,10 @@ void WallRun::on_gui_frame(int display) {
         ImGui::Checkbox(_("Needs a wall jump left"), &require_wall_jumps);
         ImGui::SliderFloat(_("Check reach"), &check_reach, 10.0f, 300.0f);
         ImGui::SliderFloat(_("Check height"), &check_height, 0.0f, 150.0f);
+        ImGui::InputScalar(_("Button (mBtnTrg bits)"), ImGuiDataType_U32, &button_mask, nullptr, nullptr, "%X", ImGuiInputTextFlags_CharsHexadecimal);
+        ImGui::SameLine();
+        help_marker(_("Hex mask of cInterface::mBtnTrg (+0x1410): a fresh press of any of these buttons while airborne starts the run. "
+                      "4 = jump. No jump-window or act-limit condition applies."));
         ImGui::Unindent(lineIndent);
     }
     ImGui::Checkbox(_("Replace the game's wall jump"), &replace_wall_jump);
@@ -972,9 +981,10 @@ void WallRun::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("wall_run").value_or(false);
     replace_wall_jump = cfg.get<bool>("wall_run_replace_wall_jump").value_or(true);
     replace_wall_jump_check = cfg.get<bool>("wall_run_replace_check").value_or(true);
-    require_wall_jumps = cfg.get<bool>("wall_run_require_wall_jumps").value_or(true);
+    require_wall_jumps = cfg.get<bool>("wall_run_require_wall_jumps").value_or(false);
     check_reach  = cfg.get<float>("wall_run_check_reach").value_or(check_reach);
     check_height = cfg.get<float>("wall_run_check_height").value_or(check_height);
+    button_mask  = (uint32_t)cfg.get<int>("wall_run_button").value_or((int)button_mask);
     run_speed   = cfg.get<float>("wall_run_speed").value_or(run_speed);
     run_frames  = cfg.get<float>("wall_run_frames").value_or(run_frames);
     wall_gap    = cfg.get<float>("wall_run_wall_gap").value_or(wall_gap);
@@ -1009,6 +1019,7 @@ void WallRun::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("wall_run_require_wall_jumps", require_wall_jumps);
     cfg.set<float>("wall_run_check_reach", check_reach);
     cfg.set<float>("wall_run_check_height", check_height);
+    cfg.set<int>("wall_run_button", (int)button_mask);
     cfg.set<float>("wall_run_speed", run_speed);
     cfg.set<float>("wall_run_frames", run_frames);
     cfg.set<float>("wall_run_wall_gap", wall_gap);

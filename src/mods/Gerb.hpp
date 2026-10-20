@@ -50,6 +50,14 @@ public:
     static bool  face_direction;      // turn the facing toward the jump direction (forward / left / right; a back jump keeps facing)
     static bool  airborne_status;     // mark the action as a jump (AST_JUMP) so the game's air rules apply
 
+    // the take-off: the air hike's effect and sound (uPlayerNero::setWJumpEffect 0x7E8850), fired at the launch frame
+    static bool  effect_enabled;
+    static int   effect_list, effect_index;   // sDevil4Effect list / index: Nero's air hike is 1 / 0x28 (effect\efl\com\ec000_00v2),
+                                              // Dante's 2 / 0x14 (ec005_20v1)
+    static float effect_tilt;                 // degrees the effect leans from the player's up toward the jump direction (level part)
+    static bool  se_enabled;
+    static int   se_id;                       // SE of the player's sound resource (+0x1D60): the air hike plays 40
+
     static Dir  pick_direction(uintptr_t player);
     static bool ready(uintptr_t player);          // the LMT is in this player's bank
     static void ensure_bank(uintptr_t player);    // loads it when the slot is empty (per player object)

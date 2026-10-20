@@ -16,6 +16,7 @@ template <class T> inline T& at(uintptr_t base, uintptr_t off) { return *reinter
 namespace pl {                                       // uPlayer offsets, DX9
     constexpr uintptr_t m_delta_time       = 0x0010; // cUnit: frames elapsed this tick
     constexpr uintptr_t mPos               = 0x0030; // uCoord
+    constexpr uintptr_t mQuat              = 0x0040; // uCoord: MtQuaternion x, y, z, w (what mWmat is built from)
     constexpr uintptr_t mWmat              = 0x00A0; // uCoord: row 0 right, 1 up, 2 forward, 3 position (MtVector4 each)
     constexpr uintptr_t mVel               = 0x0EC0; // uActor (groundInertiaX / inertiaY / groundInertiaZ)
     constexpr uintptr_t mAcc               = 0x0ED0;
@@ -53,6 +54,7 @@ namespace pl {                                       // uPlayer offsets, DX9
     constexpr uintptr_t mParamTbl0Data     = 0x1E9C; // float* into the .plp (charactersettingsTwo)
     constexpr uintptr_t mGroundPoly        = 0x1F60; // sCollision::LineResult (0x90): the wall the jump reads
     constexpr uintptr_t mpCoatMdl          = 0x20C4; // uDevil4Model*: plays the same motion numbers (mMotionCtrl[4..6])
+    constexpr uintptr_t mSeRsrc            = 0x1D60; // mSeCtrl.member_0x160: the cResource the player's SE requests name (sDevil4Sound::requestSe)
     constexpr uintptr_t mCharTblMgr        = 0x1DD4; // cCharTblMgr[2] (0x24 each: [0] upper, [1] lower at 0x1DF8): +0xC mpDataTop, +0x10 mpDataCrnt (the .ctn script cursor), +0x14 mIsDone
     constexpr uintptr_t mIsCancelCheckEnable = 0x1F50; // bool (sdk: fullHouseSomething1): uPlayer::main runs checkBeforeAction / checkAction (checkAtck, jump, gun, pose: every cancel) only while set. setActionUpperBdy sets it, setActionAtck / setActionDamage clear it, each attack function sets it again at its cancel frame
     constexpr uintptr_t isWallFront        = 0x1FF0;
@@ -135,6 +137,7 @@ public:
     static bool  require_wall_jumps; // the check's own rule: no entry when mWallJumpCnt is 0 (off = unlimited runs)
     static float check_reach;        // cm the entry check looks forward and back for a wall (the game: 80)
     static float check_height;       // cm above the feet it looks (the game: 10)
+    static uint32_t button_mask;     // mBtnTrg bits that start the run while airborne (4 = jump); no jump-window / act-limit logic
 
     // tunables (ImGui)
     static float run_speed;    // cm per frame along the wall

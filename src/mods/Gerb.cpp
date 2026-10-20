@@ -26,6 +26,12 @@ float Gerb::cancel_frame  = 10.0f;
 float Gerb::side_angle    = 50.0f;
 bool  Gerb::face_direction  = true;
 bool  Gerb::airborne_status = true;
+bool  Gerb::effect_enabled  = true;
+int   Gerb::effect_list     = 1;
+int   Gerb::effect_index    = 0x28;
+float Gerb::effect_tilt     = 30.0f;
+bool  Gerb::se_enabled      = true;
+int   Gerb::se_id           = 40;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Game functions (the few the jump needs; WallRun.cpp keeps its own copies file-local).
@@ -33,6 +39,11 @@ bool  Gerb::airborne_status = true;
 namespace {
 
 static uintptr_t fn_setActionLand = 0x007AA6A0;   // uPlayer::setActionLand(this@ecx)
+static uintptr_t fn_SetEffectStay = 0x004805D0;   // sDevil4Effect::SetEffectStay(list@eax, idx@ecx, quat*, pos*, group, material, line, owner) -> effect@eax, retn 18h
+static uintptr_t fn_setEffect     = 0x0081FD60;   // uPlayer::setEffect(effect@eax, this@ecx, EFCT_TYPE, id, bool, bool) userpurge
+static uintptr_t fn_requestSe     = 0x00A47AA0;   // sDevil4Sound::requestSe(inst, rsrc, id, owner, pos*, 1, 1, cb) stdcall
+static uintptr_t fn_sePositionCb  = 0x00486640;   // sSoundN::soundPositionUpdateCb
+static uintptr_t sSoundN_ptr      = 0x00E559D8;   // sSoundN::mpInstance
 
 void set_action_land(uintptr_t pl) { ((void(__fastcall*)(uintptr_t, int))fn_setActionLand)(pl, 0); }
 
@@ -86,6 +97,84 @@ void clear_add_speed(uintptr_t pl) {
     MtVector3& add = at<MtVector3>(pl, pl::mAddSpd);
     add.x = add.y = add.z = 0.0f;
     at<bool>(pl, pl::mIsAddSpeed) = false;
+}
+
+// The air hike's effect the way uPlayerNero::setWJumpEffect spawns it: SetEffectStay at `pos` oriented by `quat`
+// (group / material masks -1, unit line 0x14, the player as owner), then uPlayer::setEffect(effect, EFCT_TYPE_ERASE_RESET,
+// -1, true, true) so the player's effect list owns it (erased on a reset; released at once when effects are off).
+void stay_effect(uintptr_t pl, int list, int idx, const float* quat, const MtVector3* pos) {
+    _asm {
+        push ebx
+        mov ebx, esp
+        pushad
+        push pl                 // owner
+        push 0x14               // unit line
+        push 0xFFFFFFFF         // material mask
+        push 0xFFFFFFFF         // group mask
+        push pos
+        push quat
+        mov eax, list
+        mov ecx, idx
+        call fn_SetEffectStay
+        test eax, eax
+        jz stay_effect_done
+        mov ecx, pl             // uPlayer::setEffect(effect, this, 1, -1, 1, 1)
+        push 1
+        push 1
+        push 0xFFFFFFFF
+        push 1
+        call fn_setEffect
+    stay_effect_done:
+        popad
+        mov esp, ebx
+        pop ebx
+    }
+}
+
+// The air hike's sound: SE `id` of the player's own sound resource, positioned on the player.
+void play_se(uintptr_t pl, int id) {
+    const uintptr_t inst = *(uintptr_t*)sSoundN_ptr;
+    const uintptr_t rsrc = at<uintptr_t>(pl, pl::mSeRsrc);
+    if (!inst || !rsrc) return;
+    ((void(__stdcall*)(uintptr_t, uintptr_t, int, uintptr_t, const MtVector3*, int, int, uintptr_t))fn_requestSe)(
+        inst, rsrc, id, pl, &at<MtVector3>(pl, pl::mPos), 1, 1, fn_sePositionCb);
+}
+
+// The player's orientation (mWmat rows right / up / forward) with its up leaned `tilt_deg` toward the level part of
+// `dir`, as an MT quaternion (x, y, z, w). A vertical `dir` gives no lean. The conversion takes the rows as the columns
+// of a column-vector rotation (MT's (x, y, z, w) is Blender's (w, x, y, z) for the transposed matrix: RE notes,
+// uEffectVFR::setQuatParentOfs), so with no tilt it reproduces mQuat; the debug readout shows both to check that.
+glm::vec3 wmat_row(uintptr_t pl, int row);   // defined below
+void basis_quat(uintptr_t pl, const glm::vec3& dir, float tilt_deg, float out[4]) {
+    glm::vec3 b[3] = { wmat_row(pl, 0), wmat_row(pl, 1), wmat_row(pl, 2) };
+    const glm::vec3 h(dir.x, 0.0f, dir.z);
+    if (tilt_deg != 0.0f && glm::length(h) > 1e-3f) {
+        const glm::vec3 axis = glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), glm::normalize(h)));
+        const float a = tilt_deg * 3.14159265f / 180.0f, c = std::cos(a), s = std::sin(a);
+        for (glm::vec3& v : b) v = v * c + glm::cross(axis, v) * s + axis * (glm::dot(axis, v) * (1.0f - c));   // Rodrigues
+    }
+    const float m00 = b[0].x, m10 = b[0].y, m20 = b[0].z;
+    const float m01 = b[1].x, m11 = b[1].y, m21 = b[1].z;
+    const float m02 = b[2].x, m12 = b[2].y, m22 = b[2].z;
+    const float tr = m00 + m11 + m22;
+    float x, y, z, w, S;
+    if (tr > 0.0f)                       { S = std::sqrt(tr + 1.0f) * 2.0f;             w = 0.25f * S;       x = (m21 - m12) / S; y = (m02 - m20) / S; z = (m10 - m01) / S; }
+    else if (m00 > m11 && m00 > m22)     { S = std::sqrt(1.0f + m00 - m11 - m22) * 2.0f; w = (m21 - m12) / S; x = 0.25f * S;       y = (m01 + m10) / S; z = (m02 + m20) / S; }
+    else if (m11 > m22)                  { S = std::sqrt(1.0f + m11 - m00 - m22) * 2.0f; w = (m02 - m20) / S; x = (m01 + m10) / S; y = 0.25f * S;       z = (m12 + m21) / S; }
+    else                                 { S = std::sqrt(1.0f + m22 - m00 - m11) * 2.0f; w = (m10 - m01) / S; x = (m02 + m20) / S; y = (m12 + m21) / S; z = 0.25f * S; }
+    out[0] = x; out[1] = y; out[2] = z; out[3] = w;
+}
+
+// The air hike's effect and sound at the take-off, the effect leaned toward the jump.
+void take_off_fx(uintptr_t pl, const glm::vec3& dir) {
+    if (Gerb::effect_enabled) {
+        float q[4];
+        const glm::vec3 h(dir.x, 0.0f, dir.z);
+        if (Gerb::effect_tilt == 0.0f || glm::length(h) < 1e-3f) { const float* g = &at<float>(pl, pl::mQuat); q[0] = g[0]; q[1] = g[1]; q[2] = g[2]; q[3] = g[3]; }
+        else basis_quat(pl, dir, Gerb::effect_tilt, q);
+        stay_effect(pl, Gerb::effect_list, Gerb::effect_index, q, &at<MtVector3>(pl, pl::mPos));
+    }
+    if (Gerb::se_enabled) play_se(pl, Gerb::se_id);
 }
 
 void face(uintptr_t pl, float yaw) {
@@ -242,6 +331,7 @@ void __stdcall Gerb::move(uintptr_t pl) {
         // attack table apply; until then it keeps the status it was entered with (stand on the ground), so ground
         // rows can still cancel the wind-up.
         if (airborne_status) at<uint32_t>(pl, pl::mActStat) = (at<uint32_t>(pl, pl::mActStat) & ~0x1u) | 0x2u;
+        take_off_fx(pl, s.dir_vec);
         phase = PHASE_AIRBORNE;
         return;
     }
@@ -352,6 +442,23 @@ void Gerb::on_gui_frame(int display) {
                   "jumps can interrupt the jump: a .ctn script made in memory replaces the borrowed one. -1 = never (the borrowed "
                   "script's windows apply)."));
     ImGui::SliderFloat(_("Side angle"), &side_angle, 10.0f, 80.0f);
+    ImGui::Checkbox(_("Take-off effect"), &effect_enabled);
+    ImGui::SameLine();
+    help_marker(_("The air hike's effect at the launch frame, spawned the way uPlayerNero::setWJumpEffect does (list / index of "
+                  "the game's effect table, at the player's feet). Nero's air hike is list 1 index 0x28 (ec000_00v2); Dante's "
+                  "is 2 / 0x14 (ec005_20v1)."));
+    if (effect_enabled) {
+        ImGui::InputInt(_("Effect list"), &effect_list);
+        ImGui::InputInt(_("Effect index"), &effect_index);
+        ImGui::SliderFloat(_("Effect tilt"), &effect_tilt, -60.0f, 60.0f);
+        ImGui::SameLine();
+        help_marker(_("Degrees the effect leans from the player's up toward the direction of the jump (its level part, so the "
+                      "up / down jumps never lean). 0 = the player's own orientation, as the air hike has it."));
+    }
+    ImGui::Checkbox(_("Take-off sound"), &se_enabled);
+    ImGui::SameLine();
+    help_marker(_("The air hike's sound at the launch frame: an SE id of the player's own sound resource. The air hike plays 40."));
+    if (se_enabled) ImGui::InputInt(_("SE id"), &se_id);
     if (uPlayer* pl = devil4_sdk::get_local_player()) {      // live readout for debugging the cancel window
         const uintptr_t P = (uintptr_t)pl;
         ImGui::Text("actLimit %04X  actStat %02X  frame %.1f  phase %d  motion ctrl0 %04X ctrl1 %04X (half used: %s)",
@@ -360,6 +467,11 @@ void Gerb::on_gui_frame(int display) {
                     at<uint32_t>(P, pl::mMotionCtrl0No + 0x3C) & 0xFFFF,
                     (at<uint32_t>(P, pl::mMotionCtrl0No + 0x3C) & 0xFFFF) == 0xFFFF ? "lower = ctn[1]" : "upper = ctn[0]");
         ImGui::Text("inside move(): N0 %d ALL %d | cancel checks enabled: %d", g_dbg_n0_at_move, g_dbg_all_at_move, (int)at<bool>(P, pl::mIsCancelCheckEnable));
+        {   // the quaternion conversion check: both rows should match (tilt 0 = the player's basis as is)
+            float q[4]; basis_quat(P, glm::vec3(0.0f), 0.0f, q);
+            const float* g = &at<float>(P, pl::mQuat);
+            ImGui::Text("quat from wmat %.3f %.3f %.3f %.3f | mQuat %.3f %.3f %.3f %.3f", q[0], q[1], q[2], q[3], g[0], g[1], g[2], g[3]);
+        }
         ImGui::Text("mStat N0 %d N1 %d N2 %d CMD %d JMP %d TNT %d GUN %d ALL %d",
                     at<int>(P, pl::mMotCncl + 0x2C * 0 + 4), at<int>(P, pl::mMotCncl + 0x2C * 1 + 4), at<int>(P, pl::mMotCncl + 0x2C * 2 + 4),
                     at<int>(P, pl::mMotCncl + 0x2C * 3 + 4), at<int>(P, pl::mMotCncl + 0x2C * 4 + 4), at<int>(P, pl::mMotCncl + 0x2C * 5 + 4),
@@ -399,6 +511,12 @@ void Gerb::on_config_load(const utility::Config& cfg) {
     side_angle   = cfg.get<float>("gerb_side_angle").value_or(side_angle);
     face_direction  = cfg.get<bool>("gerb_face_direction").value_or(true);
     airborne_status = cfg.get<bool>("gerb_airborne_status").value_or(true);
+    effect_enabled  = cfg.get<bool>("gerb_effect").value_or(true);
+    effect_list     = cfg.get<int>("gerb_effect_list").value_or(effect_list);
+    effect_index    = cfg.get<int>("gerb_effect_index").value_or(effect_index);
+    effect_tilt     = cfg.get<float>("gerb_effect_tilt").value_or(effect_tilt);
+    se_enabled      = cfg.get<bool>("gerb_se").value_or(true);
+    se_id           = cfg.get<int>("gerb_se_id").value_or(se_id);
 }
 
 void Gerb::on_config_save(utility::Config& cfg) {
@@ -420,4 +538,10 @@ void Gerb::on_config_save(utility::Config& cfg) {
     cfg.set<float>("gerb_side_angle", side_angle);
     cfg.set<bool>("gerb_face_direction", face_direction);
     cfg.set<bool>("gerb_airborne_status", airborne_status);
+    cfg.set<bool>("gerb_effect", effect_enabled);
+    cfg.set<int>("gerb_effect_list", effect_list);
+    cfg.set<int>("gerb_effect_index", effect_index);
+    cfg.set<float>("gerb_effect_tilt", effect_tilt);
+    cfg.set<bool>("gerb_se", se_enabled);
+    cfg.set<int>("gerb_se_id", se_id);
 }
