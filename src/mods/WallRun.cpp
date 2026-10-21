@@ -375,14 +375,27 @@ struct RunState {                   // what the game's phase word can't hold
     bool custom_kickoff = false;    // a jump-out cycle is playing: it is the whole jump, the port adds no fall motion
     float lost = 0.0f;              // frames since the casts last hit (the wall ended, or bent too sharply)
     Wall wall{};
+    uint32_t last_seen = 0;         // state_for's tick when this player was last seen (eviction order)
 };
 
-RunState g_runs[2];                 // two players (co-op)
+RunState g_runs[4];                 // uPlayer objects tracked at once (the player, NPC / boss Dante, a co-op partner ...)
 
+// The hooks run for every uPlayer that ticks, and dead players are never reported, so a full table evicts the slot
+// seen longest ago (a live player is seen every tick and keeps its slot). Resetting slot 0 instead let two live
+// players evict each other every tick once stale pointers filled the table (Gerb's hop-in-place bug, 2026-10-21).
 RunState& state_for(uintptr_t player) {
-    for (RunState& s : g_runs) if (s.player == player) return s;
-    for (RunState& s : g_runs) if (s.player == 0) { s.player = player; return s; }
-    g_runs[0] = RunState{}; g_runs[0].player = player; return g_runs[0];
+    static uint32_t tick = 0;
+    ++tick;
+    for (RunState& s : g_runs) if (s.player == player) { s.last_seen = tick; return s; }
+    RunState* victim = &g_runs[0];
+    for (RunState& s : g_runs) {
+        if (s.player == 0) { victim = &s; break; }
+        if (s.last_seen < victim->last_seen) victim = &s;
+    }
+    *victim = RunState{};
+    victim->player = player;
+    victim->last_seen = tick;
+    return *victim;
 }
 
 // Backstop against clipping through the wall (root motion, push collision off for a frame, ...): keep the

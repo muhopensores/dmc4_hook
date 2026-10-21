@@ -22,6 +22,7 @@ public:
     static int AirThrow;
     static int backForwardQuickDrive;
     static int Gerb;             // Nero row index marker (extra_nero_moves at insertion), see Gerb.cpp
+    static int GerbVertical;     // its second row (the up / down jump, id 0x41)
 
     MoveTable() = default;
 

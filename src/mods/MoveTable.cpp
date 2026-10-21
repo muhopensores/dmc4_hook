@@ -20,6 +20,7 @@ uintptr_t MoveTable::jmp_ret3 = NULL;
 // When we need to access values from this array, add this to keep it consistent
 int MoveTable::extra_nero_moves = 0;
 int MoveTable::Gerb = 0;
+int MoveTable::GerbVertical = 0;
 uintptr_t MoveTable::jmp_ret4 = NULL;
 int MoveTable::extra_dante_moves = 0;
 
@@ -53,9 +54,11 @@ naked void detour0(void) { // MoveTable toggle() function
             cmp ebx, 0x6d // luci air throw
             je retcode
         gerbcheck:
-            cmp byte ptr [Gerb::mod_enabled], 1
+            cmp byte ptr [gerb::mod_enabled], 1
             jne originalcode
-            cmp ebx, 0x40 // Gerb::move_id (Nero)
+            cmp ebx, 0x40 // gerb::move_id (Nero)
+            je retcode
+            cmp ebx, 0x41 // gerb::move_id_vertical
             je retcode
         originalcode:
             test [ecx+eax*4+0x18], edx
@@ -126,8 +129,9 @@ void __stdcall dante_move_switch(uint32_t moveID, uintptr_t actor) {
 // moveActAtckU 0x7F9E90 on 0x2C..0x33 (gun / upper body) and returns for anything else, so new ids start at 0x34.
 void __stdcall nero_move_switch(uint32_t moveID, uintptr_t actor) {
     switch (moveID + 1) {
-        case Gerb::move_id:
-            Gerb::move(actor);
+        case gerb::move_id:
+        case gerb::move_id_vertical:
+            gerb::move(actor, moveID + 1);
             break;
         default:
             return;
@@ -200,11 +204,16 @@ void updateKDATbl() {
     MoveTable::extra_dante_moves++;
     MoveTable::backForwardQuickDrive = MoveTable::extra_dante_moves;
 
-    // Nero: Gerb (Gerb.cpp): COMMAND attr, id 0x40, start | cancel | repeat, input set by Gerb::apply_row (byte 1 of
-    // the command word = 1 keeps it unusable until the mod enables it), any weapon / style, ground + air.
-    NeroAtckDefTbl.insert(NeroAtckDefTbl.begin(), {2, Gerb::move_id, 7, 1, 0x00000100, (unsigned long)-1, (unsigned long)-1, 0, 3, 1, 0, 0, 0, 0x07000005}); // etc 0 = no extra condition
+    // Nero: Gerb (Gerb.cpp): COMMAND attr, start | cancel | repeat, input set by gerb::apply_row (byte 1 of the
+    // command word = 1 keeps a row unusable until the mod enables it), any weapon / style, etc 0 = no extra condition.
+    // Row 0x40: the forward / back / left / right jumps, air only (atckAs 2). Row 0x41: the up (ground) / down (air)
+    // jump on Gerb's own command bit, ground + air (atckAs 3).
+    NeroAtckDefTbl.insert(NeroAtckDefTbl.begin(), {2, gerb::move_id, 7, 1, 0x00000100, (unsigned long)-1, (unsigned long)-1, 0, 2, 1, 0, 0, 0, 0x07000005});
     MoveTable::extra_nero_moves++;
     MoveTable::Gerb = MoveTable::extra_nero_moves;
+    NeroAtckDefTbl.insert(NeroAtckDefTbl.begin(), {2, gerb::move_id_vertical, 7, 1, 0x00000100, (unsigned long)-1, (unsigned long)-1, 0, 3, 1, 0, 0, 0, 0x07000005});
+    MoveTable::extra_nero_moves++;
+    MoveTable::GerbVertical = MoveTable::extra_nero_moves;
 
     // Terminate
     DanteAtckDefTbl.emplace_back(3);
