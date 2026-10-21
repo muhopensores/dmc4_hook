@@ -39,6 +39,17 @@ namespace devil4_sdk {
 										uint32_t Group = -1, uint32_t Material = -1, bool isStationary = false,
 										float* PosBuffer = nullptr, float* RotBuffer = nullptr);
 	void __stdcall effect_cleanup(uintptr_t effect_ptr);
+	// A stay effect out of the game's effect table (sDevil4Effect::SetEffectStay 0x4805D0: `list` / `index` into the 0x39
+	// path lists at 0xDEB8B8, counts at 0xDEB9A0), placed at `pos` (a 16-byte vector) with orientation `quat` (MtQuaternion
+	// x y z w), unit line 0x14, group / material masks -1, `owner` as its owner. With `register_on_owner` the effect is
+	// then handed to uPlayer::setEffect(effect, EFCT_TYPE_ERASE_RESET, -1, true, true), as the air hike does, so the
+	// player's effect list owns it (erased on a reset, released at once when its effects are off): `owner` must be a
+	// uPlayer then. Nero's air hike is list 1 index 0x28 (effect\efl\com\ec000_00v2), Dante's 2 / 0x14 (ec005_20v1).
+	// Returns the uDevil4Effect, or null when the list / index is out of range or the .efl didn't load.
+	void* __stdcall effect_stay(int list, int index, const float* quat, const float* pos, void* owner, bool register_on_owner = true);
+	// SE `id` of a player's own sound resource (uPlayer +0x1D60, mSeCtrl.member_0x160), positioned on the player
+	// (sDevil4Sound::requestSe 0xA47AA0 with sSoundN::soundPositionUpdateCb). The air hike plays 40.
+	void __stdcall play_player_se(void* player, int id);
     void __stdcall indexed_anim_call(uint32_t id, uPlayer* actor, uint32_t mode = 0,
 									float speed = 1.0f, float startFrame = 0.0f,
 									float interpolationFrame = 3.0f);

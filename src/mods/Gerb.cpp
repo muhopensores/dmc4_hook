@@ -10,7 +10,6 @@ using namespace wallrun;
 
 namespace gerb {
 
-
 bool  mod_enabled   = false;
 int   input_cmd     = LOCKON_ANYDIRECTION_STYLE;   // lock-on + stick in any direction + style; the stick's direction picks the jump's
 int   input_cmd_vertical = cmd_bf_style;     // lock-on + back, forward + style (Gerb's own command)
@@ -45,11 +44,6 @@ namespace {
 
 static uintptr_t fn_setActionLand = 0x007AA6A0;   // uPlayer::setActionLand(this@ecx)
 static uintptr_t fn_commandCheckSub = 0x00805A10; // uPlayer::commandCheckSub(this, kSPlCmd*, kCmdHead*, kCmdData*) stdcall, result in al
-static uintptr_t fn_SetEffectStay = 0x004805D0;   // sDevil4Effect::SetEffectStay(list@eax, idx@ecx, quat*, pos*, group, material, line, owner) -> effect@eax, retn 18h
-static uintptr_t fn_setEffect     = 0x0081FD60;   // uPlayer::setEffect(effect@eax, this@ecx, EFCT_TYPE, id, bool, bool) userpurge
-static uintptr_t fn_requestSe     = 0x00A47AA0;   // sDevil4Sound::requestSe(inst, rsrc, id, owner, pos*, 1, 1, cb) stdcall
-static uintptr_t fn_sePositionCb  = 0x00486640;   // sSoundN::soundPositionUpdateCb
-static uintptr_t sSoundN_ptr      = 0x00E559D8;   // sSoundN::mpInstance
 
 void set_action_land(uintptr_t pl) { ((void(__fastcall*)(uintptr_t, int))fn_setActionLand)(pl, 0); }
 
@@ -168,47 +162,6 @@ void clear_add_speed(uintptr_t pl) {
     at<bool>(pl, pl::mIsAddSpeed) = false;
 }
 
-// The air hike's effect the way uPlayerNero::setWJumpEffect spawns it: SetEffectStay at `pos` oriented by `quat`
-// (group / material masks -1, unit line 0x14, the player as owner), then uPlayer::setEffect(effect, EFCT_TYPE_ERASE_RESET,
-// -1, true, true) so the player's effect list owns it (erased on a reset; released at once when effects are off).
-void stay_effect(uintptr_t pl, int list, int idx, const float* quat, const MtVector3* pos) {
-    _asm {
-        push ebx
-        mov ebx, esp
-        pushad
-        push pl                 // owner
-        push 0x14               // unit line
-        push 0xFFFFFFFF         // material mask
-        push 0xFFFFFFFF         // group mask
-        push pos
-        push quat
-        mov eax, list
-        mov ecx, idx
-        call fn_SetEffectStay
-        test eax, eax
-        jz stay_effect_done
-        mov ecx, pl             // uPlayer::setEffect(effect, this, 1, -1, 1, 1)
-        push 1
-        push 1
-        push 0xFFFFFFFF
-        push 1
-        call fn_setEffect
-    stay_effect_done:
-        popad
-        mov esp, ebx
-        pop ebx
-    }
-}
-
-// The air hike's sound: SE `id` of the player's own sound resource, positioned on the player.
-void play_se(uintptr_t pl, int id) {
-    const uintptr_t inst = *(uintptr_t*)sSoundN_ptr;
-    const uintptr_t rsrc = at<uintptr_t>(pl, pl::mSeRsrc);
-    if (!inst || !rsrc) return;
-    ((void(__stdcall*)(uintptr_t, uintptr_t, int, uintptr_t, const MtVector3*, int, int, uintptr_t))fn_requestSe)(
-        inst, rsrc, id, pl, &at<MtVector3>(pl, pl::mPos), 1, 1, fn_sePositionCb);
-}
-
 // The player's orientation (mWmat rows right / up / forward) with its up leaned `tilt_deg` toward the level part of
 // `dir`, as an MT quaternion (x, y, z, w). A vertical `dir` gives no lean. The conversion takes the rows as the columns
 // of a column-vector rotation (MT's (x, y, z, w) is Blender's (w, x, y, z) for the transposed matrix: RE notes,
@@ -252,9 +205,9 @@ void take_off_fx(uintptr_t pl, const glm::vec3& dir) {
         const float roll = dir.y < -0.5f ? 180.0f : 0.0f;
         if (roll == 0.0f && (effect_tilt == 0.0f || glm::length(h) < 1e-3f)) { const float* g = &at<float>(pl, pl::mQuat); q[0] = g[0]; q[1] = g[1]; q[2] = g[2]; q[3] = g[3]; }
         else basis_quat(pl, dir, effect_tilt, roll, q);
-        stay_effect(pl, effect_list, effect_index, q, &at<MtVector3>(pl, pl::mPos));
+        devil4_sdk::effect_stay(effect_list, effect_index, q, &at<float>(pl, pl::mPos), (void*)pl);   // the air hike's spawn + setEffect registration
     }
-    if (se_enabled) play_se(pl, se_id);
+    if (se_enabled) devil4_sdk::play_player_se((void*)pl, se_id);   // the air hike's SE on the player's own sound resource
 }
 
 void face(uintptr_t pl, float yaw) {

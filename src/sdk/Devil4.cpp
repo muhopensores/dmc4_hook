@@ -469,6 +469,54 @@ namespace devil4_sdk {
             pFunc((uintptr_t)effect_ptr);
     }
 
+	void* __stdcall effect_stay(int list, int index, const float* quat, const float* pos, void* owner, bool register_on_owner) {
+		uintptr_t fn_SetEffectStay = 0x004805D0;   // sDevil4Effect::SetEffectStay(list@eax, idx@ecx, quat*, pos*, group, material, line, owner) -> effect@eax, retn 18h
+		uintptr_t fn_setEffect     = 0x0081FD60;   // uPlayer::setEffect(effect@eax, this@ecx, EFCT_TYPE, id, bool, bool) userpurge
+		void* effect = nullptr;
+		_asm {
+			push ebx
+			mov ebx, esp
+			pushad
+			push owner              // owner
+			push 0x14               // unit line
+			push 0xFFFFFFFF         // material mask
+			push 0xFFFFFFFF         // group mask
+			push pos
+			push quat
+			mov eax, list
+			mov ecx, index
+			call fn_SetEffectStay
+			mov effect, eax
+			test eax, eax
+			jz effect_stay_done
+			cmp byte ptr register_on_owner, 0
+			je effect_stay_done
+			mov ecx, owner          // uPlayer::setEffect(effect, this, EFCT_TYPE_ERASE_RESET = 1, -1, true, true)
+			push 1
+			push 1
+			push 0xFFFFFFFF
+			push 1
+			call fn_setEffect
+		effect_stay_done:
+			popad
+			mov esp, ebx
+			pop ebx
+		}
+		return effect;
+	}
+
+	void __stdcall play_player_se(void* player, int id) {
+		uintptr_t fn_requestSe    = 0x00A47AA0;   // sDevil4Sound::requestSe(inst, rsrc, id, owner, pos*, 1, 1, cb) stdcall
+		uintptr_t fn_sePositionCb = 0x00486640;   // sSoundN::soundPositionUpdateCb
+		const uintptr_t inst = *(uintptr_t*)0x00E559D8;   // sSoundN::mpInstance
+		if (!inst || !player) return;
+		const uintptr_t rsrc = *(uintptr_t*)((uintptr_t)player + 0x1D60);
+		if (!rsrc) return;
+		const float* pos = (const float*)((uintptr_t)player + 0x30);   // uCoord::mPos (16 bytes, requestSe copies two qwords)
+		((void(__stdcall*)(uintptr_t, uintptr_t, int, void*, const float*, int, int, uintptr_t))fn_requestSe)(
+			inst, rsrc, id, player, pos, 1, 1, fn_sePositionCb);
+	}
+
 	void __stdcall indexed_anim_call(uint32_t id, uPlayer* actor, uint32_t mode, float speed,
 									float startFrame, float interpolationFrame) {
         uintptr_t anim_call = 0x00821450;
