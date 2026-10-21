@@ -1,6 +1,7 @@
 #include "GerbShell.hpp"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/sMediator.hpp"
+#include "../sdk/DebugDraw.hpp"
 #include "KnockbackEdits.hpp"      // the kAttackStatus enum name tables
 #include <vector>
 #include <cmath>
@@ -53,46 +54,10 @@ namespace {
 
 // ---- game functions ----------------------------------------------------------------------------------------------
 static uintptr_t fn_collMgrDtor       = 0x0050B480;   // uCollisionMgr::~uCollisionMgr(this@ecx)
-static uintptr_t fn_submitLine        = 0x0045D1F0;   // sPrim::submitLine(cprim@ecx, start@edi, end, color, flags*)
-static uintptr_t fn_getCPrim          = 0x00A34EE0;   // sPrim::getCPrim(ptrans@esi, sPrim inst, type, unit)
-static uintptr_t sPrim_ptr            = 0x00E559D4;   // sPrim::mpInstance
-
 
 void coll_mgr_dtor(uCollisionMgr* mgr) { ((void(__fastcall*)(uCollisionMgr*, int))fn_collMgrDtor)(mgr, 0); }
 
-void* get_cprim(void* ptrans, int prim_type, void* unit) {   // (`type` is a MASM operator)
-    void* res = nullptr;
-    _asm {
-        pushad
-        mov esi, ptrans
-        push unit
-        push prim_type
-        mov ecx, sPrim_ptr
-        mov eax, [ecx]
-        push eax
-        call fn_getCPrim
-        mov res, eax
-        popad
-    }
-    return res;
-}
-
-void submit_line(void* cprim, const MtVector3* a, const MtVector3* b, unsigned int color, unsigned int* flags) {
-    _asm {
-        pushad
-        mov ecx, cprim
-        mov edi, a
-        push flags
-        push color
-        push b
-        call fn_submitLine
-        popad
-    }
-}
-
 void update_matrices(void* unit) { custom_utils::updateLmat(unit); custom_utils::updateWmat(unit); }
-
-
 
 void assert_group_attrs(cCollisionGroup* g) {
     g->mKind   = (uint)shell_kind;
@@ -108,13 +73,7 @@ void yaw_quat(float yaw, MtVector4& q) {
     q.x = 0.0f; q.y = std::sin(yaw * 0.5f); q.z = 0.0f; q.w = std::cos(yaw * 0.5f);
 }
 
-glm::vec3 world_point(const MtMatrix& m, const glm::vec3& local) {   // rows: right, up, forward, position
-    const glm::vec3 r(m.m1.x, m.m1.y, m.m1.z), u(m.m2.x, m.m2.y, m.m2.z), f(m.m3.x, m.m3.y, m.m3.z), p(m.m4.x, m.m4.y, m.m4.z);
-    return p + r * local.x + u * local.y + f * local.z;
-}
-
 } // namespace
-
 
 GerbShell::GerbShell(uintptr_t owner_, const glm::vec3& dir_, float yaw_, uint32_t serial_)
     : owner(owner_), serial(serial_), dir(dir_), yaw(yaw_) {
@@ -214,41 +173,14 @@ void GerbShell::onhit(void* /*atk_param*/, void* /*dfd_param*/) {
     if (shell_one_hit) end();
 }
 
-// The capsule as in-game lines: the axis, four longitudinal edges, and rings at both ends (3 planes each).
+// The capsule as in-game lines (depth-tested), through sdk/DebugDraw.hpp.
 void GerbShell::render(void* ptrans) {
     if (!shell_show || ended || !group) return;
     sMediator* smed = devil4_sdk::get_sMediator();
-    void* cprim = get_cprim(ptrans, 6, smed ? (void*)smed->player_ptr : (void*)this);
-    if (!cprim) return;
-    unsigned int flags[2] = { 0xFFFFFFFF, 16 };
-    const unsigned int color = 0xFF00FFFF;
-    auto line = [&](const glm::vec3& a, const glm::vec3& b) {
-        MtVector3 va{ a.x, a.y, a.z, 0 }, vb{ b.x, b.y, b.z, 0 };
-        submit_line(cprim, &va, &vb, color, flags);
-    };
-    const glm::vec3 p0 = world_point(this->mWmat, glm::vec3(prim.mPos0.x, prim.mPos0.y, prim.mPos0.z));
-    const glm::vec3 p1 = world_point(this->mWmat, glm::vec3(prim.mPos1.x, prim.mPos1.y, prim.mPos1.z));
-    glm::vec3 axis = p1 - p0;
-    const float len = glm::length(axis);
-    axis = len > 1e-3f ? axis / len : glm::vec3(0.0f, 1.0f, 0.0f);
-    const glm::vec3 helper = std::fabs(axis.y) < 0.9f ? glm::vec3(0.0f, 1.0f, 0.0f) : glm::vec3(1.0f, 0.0f, 0.0f);
-    const glm::vec3 u = glm::normalize(glm::cross(axis, helper)), v = glm::cross(axis, u);
-    const float r = prim.mRadius;
-    const int N = 16;
-    line(p0, p1);
-    for (int k = 0; k < 4; ++k) {
-        const float a = k * 1.5707963f;
-        const glm::vec3 o = (u * std::cos(a) + v * std::sin(a)) * r;
-        line(p0 + o, p1 + o);
-    }
-    for (const glm::vec3& c : { p0, p1 }) {
-        for (int i = 0; i < N; ++i) {
-            const float a0 = i * 6.2831853f / N, a1 = (i + 1) * 6.2831853f / N;
-            line(c + (u * std::cos(a0) + v * std::sin(a0)) * r, c + (u * std::cos(a1) + v * std::sin(a1)) * r);   // ring around the axis
-            line(c + (axis * std::cos(a0) + u * std::sin(a0)) * r, c + (axis * std::cos(a1) + u * std::sin(a1)) * r);
-            line(c + (axis * std::cos(a0) + v * std::sin(a0)) * r, c + (axis * std::cos(a1) + v * std::sin(a1)) * r);
-        }
-    }
+    void* cprim = debug_draw::get_cprim(ptrans, 6, smed ? (void*)smed->player_ptr : (void*)this);
+    const glm::vec3 p0 = debug_draw::world_point(this->mWmat, glm::vec3(prim.mPos0.x, prim.mPos0.y, prim.mPos0.z));
+    const glm::vec3 p1 = debug_draw::world_point(this->mWmat, glm::vec3(prim.mPos1.x, prim.mPos1.y, prim.mPos1.z));
+    debug_draw::draw_capsule(cprim, p0, p1, prim.mRadius, 0xFF00FFFF);
 }
 
 void GerbShell::end() {

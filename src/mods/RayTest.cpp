@@ -5,10 +5,9 @@
 #include "..\sdk\MtDTI.hpp"
 #include "..\sdk\MtMath.hpp"
 #include "..\sdk\World2Screen.hpp"
+#include "..\sdk\DebugDraw.hpp"
 
 static uintptr_t findIntersection = 0x0095B320;
-static uintptr_t submitLine = 0x0045D1F0;
-static uintptr_t getCPrim = 0x00A34EE0;
 static uint color = 0x00FF00;
 static uint thing = 0x20000; //wall
 static float ray_length = 100.0f;
@@ -94,36 +93,6 @@ static bool __stdcall findIntersection_wr(Param* param, void* sCol, MtLineSegmen
     return res;
 }
 
-static void submitLine_wr(void* cprim, MtVector3* start, MtVector3* end, unsigned int color, uint* flags) {
-    _asm {
-        pushad
-        mov ecx,cprim
-        mov edi,start
-        push flags
-        push color
-        push end
-        call submitLine
-        popad
-    }
-}
-
-static void* getCPrim_wr(void* pTrans, void* sPrim, uint prim_type, cUnit* p_unit) {
-    void* res = nullptr;
-    __asm {
-        pushad
-        mov esi,pTrans
-        push ecx
-        push prim_type
-        mov ecx,[sPrim]
-        mov eax, [ecx]
-        push eax
-        call getCPrim
-        mov res,eax
-        popad
-    }
-    return res;
-}
-
 struct CollLine : CustomUnit<CollLine> {
     MtLineSegment ls;
     LineInfo hit;
@@ -169,10 +138,9 @@ static bool DrawManipulator(const MtVector3& base, glm::vec3& offset, MtVector3&
 void CollLine::render(void* ptrans) {
     sMediator* smed = devil4_sdk::get_sMediator();
     uPlayer* pl     = smed->player_ptr;
-    void* sPrim     = (void*)0x00E559D4;
-    void* cprim     = getCPrim_wr(ptrans, sPrim, 6, pl);
+    void* cprim     = debug_draw::get_cprim(ptrans, 6, pl);
     uint flags[2]{ 0xffffffff , 16};
-    submitLine_wr(cprim, &this->ls.p0, &this->ls.p1, this->color, flags);
+    debug_draw::submit_line(cprim, &this->ls.p0, &this->ls.p1, this->color, flags);
 }
 
 void CollLine::tick() {
@@ -212,8 +180,6 @@ void CollLine::tick() {
             thisPtr->color = 0xFF0000;
     }
 }
-
-
 
 CollLine* line = nullptr;
 void RayTest::on_gui_frame(int display) {
