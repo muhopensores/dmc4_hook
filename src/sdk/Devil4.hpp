@@ -72,6 +72,29 @@ namespace devil4_sdk {
 	// Returns false when the file didn't load. The model's destructor releases the slot; unload only to swap early.
 	bool __stdcall load_motion_bank(void* model, const char* lmt_path, int bank);
 	void __stdcall unload_motion_bank(void* model, int bank);
+	// .ctn borrow (MoveDef D15): the player's next motion request reads the cancel script of `bank` : `idx` of its
+	// rCharTbl for both body halves (uPlayer::mMotionSetCharTblParam +0x2A3C, 12 bytes per half), so a motion of a
+	// runtime-loaded bank (which has no script of its own) gets a vanilla one.
+	void __stdcall borrow_ctn(void* player, uint32_t bank, uint32_t idx);
+	// A .ctn script synthesised in memory (MoveDef D11): `wait(frame)` then one contact command opening every cancel
+	// category, then end. cCharTblMgr::update runs it like a vanilla script and updateContactInfoSub opens the windows.
+	//   00 mode pad16 f32 frame   wait until mFrame >= frame (mode 0: go on)
+	//   01 01 b0 .. b5            contact set 1: byte k's low nibble picks cancelNoTbl[k] (0 = C_NORM0, C_COMMAND, C_JUMP,
+	//                             C_CHOUHATSU, C_GUN, C_ALL for k = 0..5), high nibble 0x10 = open now, 0x30 = reserve
+	//   FF                        end
+#pragma pack(push, 1)
+	struct CancelScript {
+		uint8_t  wait_op = 0, wait_mode = 0; uint16_t wait_pad = 0; float wait_frame = 0.0f;
+		uint8_t  contact_op = 1, contact_idx = 1, info[6] = { 0x10, 0x10, 0x10, 0x10, 0x10, 0x10 };
+		uint8_t  end_op = 0xFF, pad[3] = { 0, 0, 0 };
+	};
+#pragma pack(pop)
+	static_assert(sizeof(CancelScript) == 20, "ctn script layout");
+	// Points both halves' cCharTblMgr cursors (uPlayer +0x1DD4, 0x24 per half: +0xC mpDataTop, +0x10 mpDataCrnt, +0x14
+	// mIsDone) at `script` with its wait set to `frame`. The script must outlive the motion (keep it static, one per
+	// player). Call on the tick after the motion request: updateMotion installs the borrowed script for the new motion
+	// first and would overwrite the cursors.
+	void __stdcall install_cancel_script(void* player, CancelScript& script, float frame);
 	uintptr_t __stdcall get_motion_bank(void* model, int bank);   // the rMotionList* in that slot, 0 = empty
 };
 

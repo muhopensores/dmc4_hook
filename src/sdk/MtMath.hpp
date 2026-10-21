@@ -3,6 +3,7 @@
 #define MTMATH_HPP
 #endif
 #include <cstdint>
+#include <cmath>
 #include "sdk/Math.hpp"
 
 typedef unsigned char undefined;
@@ -167,3 +168,34 @@ struct MtSize {
     uint w;
     uint h;
 };
+
+// Conventions (RE notes, uEffectVFR::setQuatParentOfs): an MtQuaternion / MtVector4 quaternion is x y z w and builds
+// the same rotation as Blender's (w, x, y, z); an MtMatrix's rows are the basis vectors right / up / forward and the
+// position; the game's yaw is atan2(x, z) (forward (0, 0, 1) -> (sin yaw, 0, cos yaw)).
+
+// v turned `deg` degrees about the unit `axis` (Rodrigues).
+inline glm::vec3 mt_rodrigues(const glm::vec3& v, const glm::vec3& axis, float deg) {
+    const float a = deg * 3.14159265f / 180.0f, c = std::cos(a), s = std::sin(a);
+    return v * c + glm::cross(axis, v) * s + axis * (glm::dot(axis, v) * (1.0f - c));
+}
+
+// A yaw about Y as an MT quaternion.
+inline void mt_yaw_quat(float yaw, MtVector4& q) {
+    q.x = 0.0f; q.y = std::sin(yaw * 0.5f); q.z = 0.0f; q.w = std::cos(yaw * 0.5f);
+}
+
+// An orthonormal basis (the rows of an MtMatrix: right, up, forward) as an MT quaternion (x, y, z, w). The rows are
+// taken as the columns of a column-vector rotation matrix, which is what makes the result equal the game's own mQuat
+// for its mWmat (checked against uPlayer::mQuat in Gerb's readout).
+inline void mt_basis_quat(const glm::vec3& right, const glm::vec3& up, const glm::vec3& fwd, float out[4]) {
+    const float m00 = right.x, m10 = right.y, m20 = right.z;
+    const float m01 = up.x,    m11 = up.y,    m21 = up.z;
+    const float m02 = fwd.x,   m12 = fwd.y,   m22 = fwd.z;
+    const float tr = m00 + m11 + m22;
+    float x, y, z, w, S;
+    if (tr > 0.0f)                       { S = std::sqrt(tr + 1.0f) * 2.0f;             w = 0.25f * S;       x = (m21 - m12) / S; y = (m02 - m20) / S; z = (m10 - m01) / S; }
+    else if (m00 > m11 && m00 > m22)     { S = std::sqrt(1.0f + m00 - m11 - m22) * 2.0f; w = (m21 - m12) / S; x = 0.25f * S;       y = (m01 + m10) / S; z = (m02 + m20) / S; }
+    else if (m11 > m22)                  { S = std::sqrt(1.0f + m11 - m00 - m22) * 2.0f; w = (m02 - m20) / S; x = (m01 + m10) / S; y = 0.25f * S;       z = (m12 + m21) / S; }
+    else                                 { S = std::sqrt(1.0f + m22 - m00 - m11) * 2.0f; w = (m10 - m01) / S; x = (m02 + m20) / S; y = (m12 + m21) / S; z = 0.25f * S; }
+    out[0] = x; out[1] = y; out[2] = z; out[3] = w;
+}

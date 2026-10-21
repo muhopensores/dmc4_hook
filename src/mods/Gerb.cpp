@@ -2,6 +2,7 @@
 #include "GerbShell.hpp"
 #include "MoveTable.hpp"
 #include "../sdk/Devil4.hpp"
+#include "../sdk/InputCommand.hpp"
 #include <cmath>
 #include <filesystem>
 #include <string>
@@ -13,7 +14,6 @@ namespace gerb {
 bool  mod_enabled   = false;
 int   input_cmd     = LOCKON_ANYDIRECTION_STYLE;   // lock-on + stick in any direction + style; the stick's direction picks the jump's
 int   input_cmd_vertical = cmd_bf_style;     // lock-on + back, forward + style (Gerb's own command)
-uintptr_t jmp_ret_cmd = 0;
 int   lmt_bank      = 13;
 char  lmt_path[128] = "motion\\pl000\\gerb";          // Nero's
 int   slot[DIR_COUNT] = { 0, 1, 2, 4, 3, 5 };   // forward, down, back, left, right, up
@@ -43,7 +43,6 @@ int   se_id           = 40;
 namespace {
 
 static uintptr_t fn_setActionLand = 0x007AA6A0;   // uPlayer::setActionLand(this@ecx)
-static uintptr_t fn_commandCheckSub = 0x00805A10; // uPlayer::commandCheckSub(this, kSPlCmd*, kCmdHead*, kCmdData*) stdcall, result in al
 
 void set_action_land(uintptr_t pl) { ((void(__fastcall*)(uintptr_t, int))fn_setActionLand)(pl, 0); }
 
@@ -52,65 +51,18 @@ void request_motion(uintptr_t pl, int motion, uint32_t attr, float interp, float
     devil4_sdk::indexed_anim_call(motion, (uPlayer*)pl, attr, speed, start, interp);
 }
 
-// .ctn borrow (MoveDef D15): the next motion request reads the cancel script of ctn_bank:ctn_slot for both halves.
-void borrow_ctn(uintptr_t pl, uint32_t bank, uint32_t idx) {
-    for (int half = 0; half < 2; ++half) {
-        uintptr_t p = pl + pl::mMotionSetCharTblParam + 12 * half;
-        at<bool>(p, 0)     = true;
-        at<uint32_t>(p, 4) = bank;
-        at<uint32_t>(p, 8) = idx;
-    }
-}
-
-// The cancel window the game's own way (MoveDef D11): a .ctn script synthesised in memory, `wait(frame)` then one
-// contact command opening every cancel category, and both cCharTblMgr cursors pointed at it. cCharTblMgr::update
-// then runs it like any vanilla script and updateContactInfoSub opens the windows, which stay open as a vanilla
-// cancel does. One script per player slot; the bytes must outlive the motion, so they're static.
-//   00 mode pad16 f32 frame          wait until mFrame >= frame (mode 0: go on)
-//   01 01 b0 b1 b2 b3 b4 b5          contact set 1: byte k's low nibble picks cancelNoTbl[k] (0 = C_NORM0, C_COMMAND,
-//                                    C_JUMP, C_CHOUHATSU, C_GUN, C_ALL for k = 0..5), high nibble 0x10 = open
-//   FF                               end
-#pragma pack(push, 1)
-struct CancelScript {
-    uint8_t  wait_op = 0, wait_mode = 0; uint16_t wait_pad = 0; float wait_frame = 0.0f;
-    uint8_t  contact_op = 1, contact_idx = 1, info[6] = { 0x10, 0x10, 0x10, 0x10, 0x10, 0x10 };
-    uint8_t  end_op = 0xFF, pad[3] = { 0, 0, 0 };
-};
-#pragma pack(pop)
-static_assert(sizeof(CancelScript) == 20, "ctn script layout");
 constexpr int kPlayerSlots = 4;        // uPlayer objects tracked at once (the player, NPC / boss Dante, a co-op partner ...)
-static CancelScript g_cancel_scripts[kPlayerSlots];
+// The cancel window the game's own way (MoveDef D11): one in-memory .ctn script per player slot (sdk CancelScript), its
+// wait set to cancel_frame; the bytes must outlive the motion, so they're static.
+static devil4_sdk::CancelScript g_cancel_scripts[kPlayerSlots];
 
-// Point both halves' cursors at the script. Call after updateMotion has installed the borrowed script for the new
-// motion (the tick after the request), else updateMotion overwrites the cursors again.
-void install_cancel_script(uintptr_t pl, int slot, float frame) {
-    CancelScript& sc = g_cancel_scripts[slot % kPlayerSlots];
-    sc.wait_frame = frame;
-    for (int half = 0; half < 2; ++half) {
-        uintptr_t mgr = pl + pl::mCharTblMgr + 0x24 * half;
-        at<uint8_t*>(mgr, 0x0C) = (uint8_t*)&sc;   // mpDataTop
-        at<uint8_t*>(mgr, 0x10) = (uint8_t*)&sc;   // mpDataCrnt
-        at<bool>(mgr, 0x14)     = false;           // mIsDone
-    }
-}
-
-// ---- Gerb's own input command ------------------------------------------------------------------------------------
-// uPlayer::executeCommandCheck 0x805920 runs the 85 commands of uPlayer::commandTbl (0xC3E328, 16-byte heads) each
-// tick, each through commandCheckSub with its own kSPlCmd state (mPlCmd[85] +0x2190), and sets bit CMD_ID of
-// mCmdFlag[3] (+0x2184) for the ones that fire; a COMMAND row then needs its bit. The table and the loop are fixed,
-// but the flag words hold 96 bits, so a command of our own gets bit 85: the same check, run from a hook right after
-// executeCommandCheck, with our own state. Steps (kCmdData: type, button, param {mode, lever}, timer):
+// ---- Gerb's own input command (sdk/InputCommand.hpp runs it): cmd 0x52 CMD_LOCK_BF_LEVER_SHORT's steps with the style
+// button in place of melee, condition CND_POSE = lock-on held.
 //   LEVER mode 1 (relative to the target / facing) lever 0 = stick centred, no time limit
 //   LEVER mode 1 lever 4 = back within 45 deg, within 15 frames
 //   LEVER mode 1 lever 1 = forward, within 15 frames
 //   BTN   mode 1 (mBtnTrg) 0x200 = style
-// = cmd 0x52 CMD_LOCK_BF_LEVER_SHORT with the style button in place of melee. Condition CND_POSE = lock-on held
-// (mBtnOn 0x10), else the state resets, as executeCommandCheck does.
-struct kCmdData { uint32_t type; uint32_t btn; uint16_t mode; uint16_t lever; int16_t timer; uint16_t pad; };
-struct kCmdHead { uint16_t num; uint16_t pad0; uint32_t condition; int16_t active; uint16_t pad1; const kCmdData* data; };
-struct kSPlCmd  { uint8_t step, status, pad0[2]; float activeF, timerF; uint8_t cnt, cmdFlag, pad1[2]; float tame; };
-static_assert(sizeof(kCmdData) == 16 && sizeof(kCmdHead) == 16 && sizeof(kSPlCmd) == 20, "command layouts");
-
+using input_commands::kCmdData; using input_commands::kCmdHead;
 static const kCmdData g_bf_style_steps[4] = {
     { 2, 0,     1, 0, -1, 0 },
     { 2, 0,     1, 4, 15, 0 },
@@ -118,43 +70,6 @@ static const kCmdData g_bf_style_steps[4] = {
     { 1, 0x200, 1, 0,  0, 0 },
 };
 static const kCmdHead g_bf_style_head = { 4, 0, 1 /* CND_POSE */, 1, 0, g_bf_style_steps };
-static kSPlCmd g_bf_style_state[kPlayerSlots];     // per player slot (state_for's order)
-
-// commandCheckSub is stdcall, but its helpers read the player from esi, so it is called with esi = this too.
-int command_check_sub(uintptr_t pl, kSPlCmd* pstate, const kCmdHead* phead, const kCmdData* psteps) {   // (`st` is a MASM register name)
-    int r;
-    _asm {
-        pushad
-        mov esi, pl
-        push psteps
-        push phead
-        push pstate
-        push esi
-        call fn_commandCheckSub
-        movzx eax, al
-        mov r, eax
-        popad
-    }
-    return r;
-}
-
-int player_slot(uintptr_t pl);   // below (JumpState)
-
-void __stdcall extra_commands_from_hook(uintptr_t pl) { extra_commands(pl); }
-
-// 0x7A83B5 in uPlayer::main, right after `call uPlayer::executeCommandCheck` (edi = this): the 8 bytes replaced are
-// `mov edx, [edi]; mov eax, [edx+248h]` (the next virtual call's load).
-naked void detour_extra_commands() {
-    _asm {
-        pushad
-        push edi
-        call extra_commands_from_hook
-        popad
-        mov edx, [edi]
-        mov eax, [edx + 0x248]
-        jmp dword ptr [jmp_ret_cmd]
-    }
-}
 
 void clear_add_speed(uintptr_t pl) {
     MtVector3& add = at<MtVector3>(pl, pl::mAddSpd);
@@ -163,14 +78,9 @@ void clear_add_speed(uintptr_t pl) {
 }
 
 // The player's orientation (mWmat rows right / up / forward) with its up leaned `tilt_deg` toward the level part of
-// `dir`, as an MT quaternion (x, y, z, w). A vertical `dir` gives no lean. The conversion takes the rows as the columns
-// of a column-vector rotation (MT's (x, y, z, w) is Blender's (w, x, y, z) for the transposed matrix: RE notes,
-// uEffectVFR::setQuatParentOfs), so with no tilt it reproduces mQuat; the debug readout shows both to check that.
+// `dir`, as an MT quaternion (x, y, z, w) through mt_basis_quat (MtMath.hpp). A vertical `dir` gives no lean; with no
+// tilt it reproduces mQuat (the debug readout shows both).
 glm::vec3 wmat_row(uintptr_t pl, int row);   // defined below
-glm::vec3 rodrigues(const glm::vec3& v, const glm::vec3& axis, float deg) {
-    const float a = deg * 3.14159265f / 180.0f, c = std::cos(a), s = std::sin(a);
-    return v * c + glm::cross(axis, v) * s + axis * (glm::dot(axis, v) * (1.0f - c));
-}
 
 // `roll_deg` then turns the basis about its own forward axis (180 = upside down, for the dive).
 void basis_quat(uintptr_t pl, const glm::vec3& dir, float tilt_deg, float roll_deg, float out[4]) {
@@ -178,23 +88,14 @@ void basis_quat(uintptr_t pl, const glm::vec3& dir, float tilt_deg, float roll_d
     const glm::vec3 h(dir.x, 0.0f, dir.z);
     if (tilt_deg != 0.0f && glm::length(h) > 1e-3f) {
         const glm::vec3 axis = glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), glm::normalize(h)));
-        for (glm::vec3& v : b) v = rodrigues(v, axis, tilt_deg);
+        for (glm::vec3& v : b) v = mt_rodrigues(v, axis, tilt_deg);
     }
     if (roll_deg != 0.0f) {
         const glm::vec3 axis = glm::normalize(b[2]);
-        b[0] = rodrigues(b[0], axis, roll_deg);
-        b[1] = rodrigues(b[1], axis, roll_deg);
+        b[0] = mt_rodrigues(b[0], axis, roll_deg);
+        b[1] = mt_rodrigues(b[1], axis, roll_deg);
     }
-    const float m00 = b[0].x, m10 = b[0].y, m20 = b[0].z;
-    const float m01 = b[1].x, m11 = b[1].y, m21 = b[1].z;
-    const float m02 = b[2].x, m12 = b[2].y, m22 = b[2].z;
-    const float tr = m00 + m11 + m22;
-    float x, y, z, w, S;
-    if (tr > 0.0f)                       { S = std::sqrt(tr + 1.0f) * 2.0f;             w = 0.25f * S;       x = (m21 - m12) / S; y = (m02 - m20) / S; z = (m10 - m01) / S; }
-    else if (m00 > m11 && m00 > m22)     { S = std::sqrt(1.0f + m00 - m11 - m22) * 2.0f; w = (m21 - m12) / S; x = 0.25f * S;       y = (m01 + m10) / S; z = (m02 + m20) / S; }
-    else if (m11 > m22)                  { S = std::sqrt(1.0f + m11 - m00 - m22) * 2.0f; w = (m02 - m20) / S; x = (m01 + m10) / S; y = 0.25f * S;       z = (m12 + m21) / S; }
-    else                                 { S = std::sqrt(1.0f + m22 - m00 - m11) * 2.0f; w = (m10 - m01) / S; x = (m02 + m20) / S; y = (m12 + m21) / S; z = 0.25f * S; }
-    out[0] = x; out[1] = y; out[2] = z; out[3] = w;
+    mt_basis_quat(b[0], b[1], b[2], out);
 }
 
 // The air hike's effect and sound at the take-off: the effect leaned toward the jump, upside down for the dive.
@@ -261,16 +162,14 @@ JumpState& state_for(uintptr_t player) {
     *victim = JumpState{};
     victim->player = player;
     victim->last_seen = tick;
-    g_bf_style_state[slot_of(*victim)] = kSPlCmd{};   // the command state belongs to the evicted player
     return *victim;
 }
-int player_slot(uintptr_t pl) { return slot_of(state_for(pl)); }
 
 // First tick after the motion request: swap the borrowed script for the cancel script (if a cancel frame is set).
 void arm_cancel_script(JumpState& s, uintptr_t pl) {
     if (s.script_set) return;
     s.script_set = true;
-    if (cancel_frame >= 0.0f) install_cancel_script(pl, slot_of(s), cancel_frame);
+    if (cancel_frame >= 0.0f) devil4_sdk::install_cancel_script((void*)pl, g_cancel_scripts[slot_of(s) % kPlayerSlots], cancel_frame);
 }
 
 // The gate every cancel goes through: uPlayer::main calls checkBeforeAction / checkAction (checkAtck, the jump
@@ -302,15 +201,6 @@ Dir pick_direction(uintptr_t pl, bool vertical) {
     if (along >=  cosA) return FORWARD;
     if (along <= -cosA) return BACK;
     return glm::dot(stick, right) >= 0.0f ? RIGHT : LEFT;
-}
-
-// The command hook's body: the extra command through the game's own checker, its bit into mCmdFlag.
-void __stdcall extra_commands(uintptr_t pl) {
-    if (!mod_enabled) return;
-    kSPlCmd& st = g_bf_style_state[player_slot(pl) % kPlayerSlots];
-    if (g_bf_style_head.condition == 1 && !(at<uint32_t>(pl, pl::mBtnOn) & 0x10)) { st = kSPlCmd{}; return; }
-    if (command_check_sub(pl, &st, &g_bf_style_head, g_bf_style_steps) == 1)
-        at<uint32_t>(pl, 0x2184 + 4 * (cmd_bf_style / 32)) |= 1u << (cmd_bf_style % 32);   // mCmdFlag[3]
 }
 
 bool ready(uintptr_t pl) {
@@ -359,7 +249,7 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
         if (face_direction && (s.dir == FORWARD || s.dir == LEFT || s.dir == RIGHT))   // a back jump keeps facing
             face(pl, yaw_of(s.dir_vec));
 
-        borrow_ctn(pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
+        devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
         // the cycle is the whole jump: loop as its block says, root translation off
         request_motion(pl, (lmt_bank << 8) | (slot[s.dir] & 0xFF), (uint32_t)A_NULL_TRANS_OFF, 4.0f, 0.0f, 1.0f);
 
@@ -469,7 +359,8 @@ static void input_combo(const char* label, int& cmd) {
 using namespace gerb;
 
 std::optional<std::string> Gerb::on_initialize() {
-    if (!install_hook_absolute(0x7A83B5, hook_cmd, &detour_extra_commands, &jmp_ret_cmd, 8)) {
+    input_commands::add(&g_bf_style_head, cmd_bf_style, &mod_enabled);   // bit 85 while the mod is on
+    if (!install_hook_absolute(0x7A83B5, hook_cmd, &input_commands::detour, &input_commands::jmp_ret, 8)) {
         spdlog::error("Gerb: failed to hook uPlayer::main after executeCommandCheck (0x7A83B5)");
         return "Failed to init Gerb (command hook)";
     }
@@ -490,6 +381,7 @@ void Gerb::on_gui_frame(int display) {
                   "(slots 0 forward, 1 down, 2 back, 3 left, 4 right, 5 up) and the two MoveTable rows (0x40, 0x41)."));
     if (!mod_enabled) return;
     ImGui::Indent(lineIndent);
+    ImGui::PushID("Gerb");            // WallRun's panel shares this page and some labels (Bank, Gravity, Slot ...)
     {   // the inputs: each row's CMD_ID
         input_combo(_("Input (directional)"), input_cmd);
         ImGui::SameLine();
@@ -581,6 +473,7 @@ void Gerb::on_gui_frame(int display) {
     ImGui::Checkbox(_("Count as airborne"), &airborne_status);
     ImGui::Separator();
     shell_gui();
+    ImGui::PopID();
     ImGui::Unindent(lineIndent);
 }
 

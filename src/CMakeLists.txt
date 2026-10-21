@@ -390,6 +390,8 @@ set(SDK_SRC
     sdk/uActor.hpp
     sdk/Math.hpp
     sdk/Devil4.cpp
+    sdk/InputCommand.hpp
+    sdk/InputCommand.cpp
     sdk/Devil4.hpp
     sdk/uActor.hpp
     sdk/uCollisionMgr.hpp
@@ -428,6 +430,7 @@ set(SDK_SRC
     sdk/uMissionMenu.hpp
     sdk/uMissionStart.hpp
     sdk/Custom.hpp
+    sdk/DebugDraw.hpp
 )
 
 set(IMGUI_SRC

@@ -286,13 +286,14 @@ inline void CustomActor::die() {
 //
 // The five slots are replaced by the subclass's methods, or by the defaults where it defines none (getDTI ->
 // rModelDTI, render -> CustomActor::render, startup / tick / onhit empty), as REGISTER_VTABLE did; the other 74
-// stay the game's uActor code. The vtable is built on first spawn, so static-init order doesn't matter.
+// stay the game's uActor code, except slot 0 (the deleting destructor) when the subclass declares its own
+// `destructor(uint32_t)`. The vtable is built on first spawn, so static-init order doesn't matter.
 // ---------------------------------------------------------------------------------------------------------------
 constexpr uintptr_t sUnitPtr = 0x00E552CC;
 
 template <class D>
 struct CustomUnit : CustomActor {
-    enum Slot : size_t { GetDTI = 0x10 / 4, Startup = 0x14 / 4, Render = 0x24 / 4, Tick = 0x78 / 4, OnHit = 0x94 / 4 };
+    enum Slot : size_t { Destructor = 0, GetDTI = 0x10 / 4, Startup = 0x14 / 4, Render = 0x24 / 4, Tick = 0x78 / 4, OnHit = 0x94 / 4 };
 
     // the defaults a subclass may replace (same names, same signatures)
     void startup() {}
@@ -309,6 +310,10 @@ struct CustomUnit : CustomActor {
             v[Render]  = addr(&D::render);
             v[Tick]    = addr(&D::tick);
             v[OnHit]   = addr(&D::onhit);
+            // slot 0, the deleting destructor, only when the subclass declares its own `void destructor(uint32_t flag)`
+            // (a unit that owns a uCollisionMgr destroys it there, then calls CustomActor::destructor(flag)); the
+            // others keep the game's uActor destructor.
+            if constexpr (std::is_same_v<decltype(&D::destructor), void (D::*)(uint32_t)>) v[Destructor] = addr(&D::destructor);
             return v;
         }();
         return vt;

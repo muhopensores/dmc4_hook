@@ -68,25 +68,10 @@ void assert_group_attrs(cCollisionGroup* g) {
 // ---- helpers -----------------------------------------------------------------------------------------------------
 inline float yaw_of(const glm::vec3& d) { return std::atan2(d.x, d.z); }
 
-// a yaw about Y as an MT quaternion (x, y, z, w): forward (0, 0, 1) -> (sin yaw, 0, cos yaw), the game's atan2(x, z)
-void yaw_quat(float yaw, MtVector4& q) {
-    q.x = 0.0f; q.y = std::sin(yaw * 0.5f); q.z = 0.0f; q.w = std::cos(yaw * 0.5f);
-}
-
 } // namespace
 
 GerbShell::GerbShell(uintptr_t owner_, const glm::vec3& dir_, float yaw_, uint32_t serial_)
     : owner(owner_), serial(serial_), dir(dir_), yaw(yaw_) {
-    // slot 0 (the deleting destructor) is ours too: CustomUnit replaces only the five others
-    static const std::vector<uintptr_t> vt = [] {
-        std::vector<uintptr_t> v = vtable();
-        void (GerbShell::*m)(uint32_t) = &GerbShell::destructor;
-        uintptr_t p; std::memcpy(&p, &m, sizeof p);
-        v[0] = p;
-        return v;
-    }();
-    this->vtable_ptr = (uintptr_t*)vt.data();
-
     std::memset(&coll, 0, sizeof(coll));
     custom_utils::uCollisionMgrCons(&coll);
     std::memset(&prim, 0, sizeof(prim));
@@ -96,7 +81,7 @@ GerbShell::GerbShell(uintptr_t owner_, const glm::vec3& dir_, float yaw_, uint32
     this->mWorkRate.mType = 9;
     const MtVector3& p = at<MtVector3>(owner, pl::mPos);
     this->mPos.x = p.x; this->mPos.y = p.y + shell_height; this->mPos.z = p.z;
-    yaw_quat(yaw, this->mQuat);
+    mt_yaw_quat(yaw, this->mQuat);
 }
 
 void GerbShell::destructor(uint32_t flag) {
@@ -159,7 +144,7 @@ void GerbShell::tick() {
     if (!jump_active(owner, serial)) { end(); return; }
     const MtVector3& p = at<MtVector3>(owner, pl::mPos);
     this->mPos.x = p.x; this->mPos.y = p.y + shell_height; this->mPos.z = p.z;
-    yaw_quat(yaw, this->mQuat);
+    mt_yaw_quat(yaw, this->mQuat);
     update_matrices(this);
     custom_utils::collide(&coll);       // uCollisionMgr::move: the group's world matrix and its life
     if (group && !custom_utils::group_in_table(&coll, group)) group = nullptr;   // freed by move (timer >= mLife)

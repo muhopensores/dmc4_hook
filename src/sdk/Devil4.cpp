@@ -622,6 +622,25 @@ namespace devil4_sdk {
 		if (model && bank >= 0 && bank <= 15) set_motion_list(model, nullptr, bank);
 	}
 
+	void __stdcall borrow_ctn(void* player, uint32_t bank, uint32_t idx) {
+		for (int half = 0; half < 2; ++half) {
+			const uintptr_t p = (uintptr_t)player + 0x2A3C + 12 * half;   // mMotionSetCharTblParam[half]
+			*(bool*)(p + 0) = true;
+			*(uint32_t*)(p + 4) = bank;
+			*(uint32_t*)(p + 8) = idx;
+		}
+	}
+
+	void __stdcall install_cancel_script(void* player, CancelScript& script, float frame) {
+		script.wait_frame = frame;
+		for (int half = 0; half < 2; ++half) {
+			const uintptr_t mgr = (uintptr_t)player + 0x1DD4 + 0x24 * half;   // cCharTblMgr[half]
+			*(uint8_t**)(mgr + 0x0C) = (uint8_t*)&script;   // mpDataTop
+			*(uint8_t**)(mgr + 0x10) = (uint8_t*)&script;   // mpDataCrnt
+			*(bool*)(mgr + 0x14) = false;                    // mIsDone
+		}
+	}
+
 	uintptr_t __stdcall get_motion_bank(void* model, int bank) {
 		if (!model || bank < 0 || bank > 15) return 0;
 		return *(uintptr_t*)((uintptr_t)model + 0xA38 + 4 * bank);

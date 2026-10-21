@@ -92,7 +92,7 @@ struct GerbShell : CustomUnit<GerbShell> {
     bool      ended = false;
 
     GerbShell(uintptr_t owner, const glm::vec3& dir, float yaw, uint32_t serial);
-    void destructor(uint32_t flag);     // vtable slot 0: the collision manager's destructor, then the actor's
+    void destructor(uint32_t flag);     // vtable slot 0 (CustomUnit wires it): the collision manager's destructor, then the actor's
     void startup();                     // +0x14: loads the .atk and registers the capsule
     void tick();                        // +0x78: follow the player, run the collision, end with the jump
     void onhit(void* atk_param, void* dfd_param);   // +0x94

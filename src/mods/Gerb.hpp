@@ -13,9 +13,8 @@
 // launch frame, 2 airborne.
 //
 // The vertical row's default input, lock-on + back-forward + style, is not one of the game's 85 input commands
-// (0x52 is back-forward + melee), so Gerb runs it itself: a hook after uPlayer::executeCommandCheck (0x7A83B5 in
-// uPlayer::main) feeds its own four-step command (cmd 0x52's steps with the style button) through the game's
-// uPlayer::commandCheckSub and sets bit `cmd_bf_style` (85) of mCmdFlag, a spare bit of the three flag words.
+// (0x52 is back-forward + melee), so Gerb registers it as an extra command (sdk/InputCommand.hpp: cmd 0x52's steps
+// with the style button, bit `cmd_bf_style` (85) of mCmdFlag) and installs the sdk's post-executeCommandCheck hook.
 //
 // Motions come from motion\pl000\gerb.lmt (Nero) loaded into a free bank at runtime (MoveDef D14): slots
 // 0 forward, 1 down, 2 back, 3 left, 4 right, 5 up. Without the file the move refuses to start (there is no
@@ -36,7 +35,6 @@ enum Dir : int { FORWARD = 0, DOWN = 1, BACK = 2, LEFT = 3, RIGHT = 4, UP = 5, D
 extern bool mod_enabled;
 extern int  input_cmd;                  // CMD_ID the directional row triggers on (its own input, not the jump button)
 extern int  input_cmd_vertical;         // CMD_ID the vertical row triggers on
-extern uintptr_t jmp_ret_cmd;           // 0x7A83BD, after the 8 bytes the command hook replaces
 
 // the LMT
 extern int  lmt_bank;             // 10-14 are free on both characters (WallRun uses 14)
@@ -69,7 +67,6 @@ Dir  pick_direction(uintptr_t player, bool vertical);
 bool ready(uintptr_t player);          // the LMT is in this player's bank
 void ensure_bank(uintptr_t player);    // loads it when the slot is empty (per player object)
 void __stdcall move(uintptr_t player, uint32_t atck_id);   // the per-tick state function (atck_id = the row)
-void __stdcall extra_commands(uintptr_t player);          // the command hook's body (after executeCommandCheck)
 void apply_row();                      // writes the inputs and the enable byte into the rows MoveTable inserted
 
 } // namespace gerb
