@@ -52,34 +52,11 @@ static int g_hit_count = 0;                 // onhit calls (uActor::damagePreMes
 namespace {
 
 // ---- game functions ----------------------------------------------------------------------------------------------
-static uintptr_t fn_setCollision      = 0x0050C290;   // uCollisionMgr::setCollision(slot@eax, mgr, colGroup, kCollPrim*, num, uniqueId, createdFrom) -> cCollisionGroup*@eax
 static uintptr_t fn_collMgrDtor       = 0x0050B480;   // uCollisionMgr::~uCollisionMgr(this@ecx)
 static uintptr_t fn_submitLine        = 0x0045D1F0;   // sPrim::submitLine(cprim@ecx, start@edi, end, color, flags*)
 static uintptr_t fn_getCPrim          = 0x00A34EE0;   // sPrim::getCPrim(ptrans@esi, sPrim inst, type, unit)
 static uintptr_t sPrim_ptr            = 0x00E559D4;   // sPrim::mpInstance
 
-// uCollisionMgr::setCollision(-1, mgr, -1, prim, 1, -1, -1): a group with one code-defined primitive, like the ice.
-cCollisionGroup* set_collision(uCollisionMgr* mgr, kCollPrim* prim) {
-    cCollisionGroup* g = nullptr;
-    _asm {
-        push ebx
-        mov ebx, esp
-        pushad
-        push 0xFFFFFFFF         // created-from index: none
-        push 0xFFFFFFFF         // unique id: new
-        push 1                  // one primitive
-        push prim
-        push 0xFFFFFFFF         // no .col group
-        push mgr
-        mov eax, 0xFFFFFFFF     // first free slot
-        call fn_setCollision
-        mov g, eax
-        popad
-        mov esp, ebx
-        pop ebx
-    }
-    return g;
-}
 
 void coll_mgr_dtor(uCollisionMgr* mgr) { ((void(__fastcall*)(uCollisionMgr*, int))fn_collMgrDtor)(mgr, 0); }
 
@@ -115,32 +92,12 @@ void submit_line(void* cprim, const MtVector3* a, const MtVector3* b, unsigned i
 
 void update_matrices(void* unit) { custom_utils::updateLmat(unit); custom_utils::updateWmat(unit); }
 
-// cCollisionGroup::setAttr's table for an attack group (mAttr & 1, not a friend attack): nibble k = target kind k,
-// bit 2 = reaches it. 0 Pl / 1 Ps: everything but players and player shells; 2 Em / 4 Es: players, their shells,
-// the other enemy class; 3 / 5; 6 Set; 7 Stg.
-uint32_t attack_vsattr_for_kind(int kind) {
-    switch (kind) {
-    case 0: case 1: return 0x22222200u;
-    case 2: case 4: return 0x22202022u;
-    case 3: case 5: return 0x22020222u;
-    case 6:         return 0x20222222u;
-    case 7:         return 0x02222222u;
-    default:        return 0x22222200u;
-    }
-}
 
-// The group is still one of the manager's 32 slots (mppCollisionGroup = mgr + 0x358): move frees a group whose
-// timer reached mLife, and clearExec frees marked ones, so a kept pointer must be checked before use.
-bool group_in_table(const uCollisionMgr* mgr, const cCollisionGroup* g) {
-    if (!mgr || !g) return false;
-    for (int i = 0; i < 32; ++i) if (at<cCollisionGroup*>((uintptr_t)mgr, 0x358 + 4 * i) == g) return true;
-    return false;
-}
 
 void assert_group_attrs(cCollisionGroup* g) {
     g->mKind   = (uint)shell_kind;
     g->mAttr   = 1;
-    g->mVsAttr = shell_vsattr ? shell_vsattr : attack_vsattr_for_kind(shell_kind);
+    g->mVsAttr = shell_vsattr ? shell_vsattr : custom_utils::attack_vsattr_for_kind(shell_kind);
 }
 
 // ---- helpers -----------------------------------------------------------------------------------------------------
@@ -158,21 +115,6 @@ glm::vec3 world_point(const MtMatrix& m, const glm::vec3& local) {   // rows: ri
 
 } // namespace
 
-// ---- the attack copy -----------------------------------------------------------------------------------------------
-// rAttackStatusData: +0x60 mNum, +0x64 cAttackStatus** (each: +0xC kAttackStatus*). Returns false when the entry
-// isn't there.
-static bool read_attack(uintptr_t atk_rsrc, int index, kAttackStatus& out) {
-    if (!atk_rsrc) return false;
-    const int num = at<int>(atk_rsrc, 0x60);
-    if (index < 0 || index >= num) return false;
-    uintptr_t* entries = at<uintptr_t*>(atk_rsrc, 0x64);
-    if (!entries || !entries[index]) return false;
-    const kAttackStatus* src = at<kAttackStatus*>(entries[index], 0x0C);
-    if (!src) return false;
-    std::memcpy(&out, src, sizeof(kAttackStatus));
-    out.mAsName[15] = 0;
-    return true;
-}
 
 GerbShell::GerbShell(uintptr_t owner_, const glm::vec3& dir_, float yaw_, uint32_t serial_)
     : owner(owner_), serial(serial_), dir(dir_), yaw(yaw_) {
@@ -210,7 +152,7 @@ void GerbShell::startup() {
     uintptr_t rsrc = (uintptr_t)devil4_sdk::get_stuff_from_files((MtDTI*)rAtckStatDTI, shell_atk_path, 1);
     if (!rsrc) { spdlog::warn("GerbShell: '{}.atk' did not load", shell_atk_path); end(); return; }
     custom_utils::load_atk_col((void*)rsrc, nullptr, &coll, this);      // uCollisionMgr::init_0(this, &coll, 0, atk)
-    if (!read_attack(rsrc, shell_atk_index, atk)) {
+    if (!custom_utils::read_attack_entry((const void*)rsrc, shell_atk_index, atk)) {
         spdlog::warn("GerbShell: '{}.atk' has no entry {}", shell_atk_path, shell_atk_index);
         devil4_sdk::release_resource((cResource*)rsrc); end(); return;
     }
@@ -246,16 +188,11 @@ void GerbShell::startup() {
     prim.mPos1.x = local.x; prim.mPos1.y = local.y; prim.mPos1.z = local.z;
     prim.mAttr = 0; prim.mId = 0; prim.mShrink = 0.0f; prim.mDummy = -1;
 
-    group = set_collision(&coll, &prim);
+    // the ice's steps 4-5: the group with this capsule, the attack copy, kind 1 Ps (a player shell; 0 Pl, 2 Em, 4 Es = the
+    // ice's), attr 1 = attack, the vs bits of that kind, life, following the shell's matrix
+    group = custom_utils::add_prim_attack_group(&coll, &prim, &atk, shell_kind, shell_life, &this->mWmat);
     if (!group) { spdlog::warn("GerbShell: setCollision failed"); end(); return; }
-    std::memcpy(&group->mAttackStatus, &atk, sizeof(kAttackStatus));
-    group->mAttackStatus.mAsName[15] = 0;
-    group->mpAttackStatusSrc = &atk;
-    assert_group_attrs(group);         // kind 1 Ps: a player shell (0 Pl, 2 Em, 4 Es = the ice's); attr 1 = attack; the
-                                       // vs bits written directly (cCollisionGroup::setAttr's values) and re-asserted each tick
-    group->mLife    = shell_life;
-    group->mpRefMat = &this->mWmat;
-    group->mOffset  = 0.0f;
+    assert_group_attrs(group);         // the panel's kind / vs overrides, re-asserted each tick
 }
 
 void GerbShell::tick() {
@@ -266,7 +203,7 @@ void GerbShell::tick() {
     yaw_quat(yaw, this->mQuat);
     update_matrices(this);
     custom_utils::collide(&coll);       // uCollisionMgr::move: the group's world matrix and its life
-    if (group && !group_in_table(&coll, group)) group = nullptr;   // freed by move (timer >= mLife)
+    if (group && !custom_utils::group_in_table(&coll, group)) group = nullptr;   // freed by move (timer >= mLife)
     if (group) assert_group_attrs(group);
     age += this->m_delta_time;
     if (age >= shell_life) end();
@@ -336,7 +273,7 @@ bool spawn_shell(uintptr_t player, const glm::vec3& dir, uint32_t serial) {
 
 // The live shell's group and the player's own groups (mppCollisionGroup = mgr + 0x358, 32 slots): kind / attr / vs.
 void shell_debug_readout(uintptr_t player) {
-    if (g_last_shell && g_last_shell->group && group_in_table(&g_last_shell->coll, g_last_shell->group)) {
+    if (g_last_shell && g_last_shell->group && custom_utils::group_in_table(&g_last_shell->coll, g_last_shell->group)) {
         const cCollisionGroup* g = g_last_shell->group;
         ImGui::Text("shell: groups in mgr %u, age %.0f, hits so far %d", g_last_shell->coll.mCollisionGroupNum, g_last_shell->age, g_hit_count);
         ImGui::Text("shell group: kind %u attr %u vs %08X life %.0f timer %.0f prim %d r %.0f  mgr enable %d mode %u  unit state %u",

@@ -151,6 +151,93 @@ namespace custom_utils {
                 popad
         }
     }
+
+    // ---- code-defined hitbox groups -------------------------------------------------------------------------------
+    // The way uEm019_ice::setup 0x680B80 gives a shell its hit without a .col (RE note player_move_pipeline.md, "Shells
+    // and code-defined hitboxes"): the manager init_0'd with the .atk (load_atk_col with rCol = 0), then
+    // uCollisionMgr::setCollision(-1, mgr, -1, prims, num, -1, -1) and the group filled by hand.
+
+    // uCollisionMgr::setCollision 0x50C290 (slot@eax -1 = first free of 32, mgr, colGroup -1, kCollPrim* prims, num,
+    // uniqueId -1 = new, createdFrom -1). Returns the cCollisionGroup; the prims must outlive it (the cCollisions
+    // point at them). Attack status, kind / attr / vs bits, life and ref matrix are still to be set.
+    static cCollisionGroup* set_collision_prims(uCollisionMgr* mgr, kCollPrim* prims, int num) {
+        uintptr_t fn_setCollision = 0x0050C290;
+        cCollisionGroup* g = nullptr;
+        _asm {
+            push ebx
+            mov ebx, esp
+            pushad
+            push 0xFFFFFFFF         // created-from index: none
+            push 0xFFFFFFFF         // unique id: new (sMediator::getCollisionUniqueID)
+            push num
+            push prims
+            push 0xFFFFFFFF         // no .col group
+            push mgr
+            mov eax, 0xFFFFFFFF     // first free slot
+            call fn_setCollision
+            mov g, eax
+            popad
+            mov esp, ebx
+            pop ebx
+        }
+        return g;
+    }
+
+    // cCollisionGroup::setAttr 0x509FE0's vs bits for an attack group (mAttr & 1, not a friend attack) of `kind`:
+    // nibble k = target kind k, bit 2 = this attack reaches that kind (bit 1 on a damage group = that kind's attacks
+    // reach it). Kinds: 0 Pl, 1 Ps (player shell), 2 Em, 3 Em2, 4 Es (enemy shell), 5 Es2, 6 Set, 7 Stg.
+    static uint32_t attack_vsattr_for_kind(int kind) {
+        switch (kind) {
+        case 0: case 1: return 0x22222200u;
+        case 2: case 4: return 0x22202022u;
+        case 3: case 5: return 0x22020222u;
+        case 6:         return 0x20222222u;
+        case 7:         return 0x02222222u;
+        default:        return 0x22222200u;
+        }
+    }
+
+    // Entry `index` of an rAttackStatusData (+0x60 mNum, +0x64 cAttackStatus**, each +0xC kAttackStatus*) copied out.
+    static bool read_attack_entry(const void* atk_rsrc, int index, kAttackStatus& out) {
+        if (!atk_rsrc) return false;
+        const uintptr_t r = (uintptr_t)atk_rsrc;
+        const int num = *(const int*)(r + 0x60);
+        if (index < 0 || index >= num) return false;
+        const uintptr_t* entries = *(const uintptr_t**)(r + 0x64);
+        if (!entries || !entries[index]) return false;
+        const kAttackStatus* src = *(const kAttackStatus**)(entries[index] + 0x0C);
+        if (!src) return false;
+        std::memcpy(&out, src, sizeof(kAttackStatus));
+        out.mAsName[15] = 0;
+        return true;
+    }
+
+    // The group is still one of the manager's 32 slots (mppCollisionGroup = mgr + 0x358). uCollisionMgr::move frees a
+    // group whose timer reached mLife and clearExec frees marked ones, so a kept pointer must be checked before use.
+    static bool group_in_table(const uCollisionMgr* mgr, const cCollisionGroup* g) {
+        if (!mgr || !g) return false;
+        const cCollisionGroup* const* slots = (const cCollisionGroup* const*)((uintptr_t)mgr + 0x358);
+        for (int i = 0; i < 32; ++i) if (slots[i] == g) return true;
+        return false;
+    }
+
+    // The whole recipe: one primitive, the attack status `atk` (kept pointed at: it must outlive the group), kind
+    // (1 = a player shell), `life` frames (the manager removes the group when its timer reaches it), following
+    // `ref_mat` (the owning unit's mWmat). Returns the group or null.
+    static cCollisionGroup* add_prim_attack_group(uCollisionMgr* mgr, kCollPrim* prim, kAttackStatus* atk, int kind, float life, MtMatrix* ref_mat) {
+        cCollisionGroup* g = set_collision_prims(mgr, prim, 1);
+        if (!g) return nullptr;
+        std::memcpy(&g->mAttackStatus, atk, sizeof(kAttackStatus));
+        g->mAttackStatus.mAsName[15] = 0;
+        g->mpAttackStatusSrc = atk;
+        g->mKind   = (uint)kind;
+        g->mAttr   = 1;                 // an attack group
+        g->mVsAttr = attack_vsattr_for_kind(kind);
+        g->mLife    = life;
+        g->mpRefMat = ref_mat;
+        g->mOffset  = 0.0f;
+        return g;
+    }
 }
 
 struct CustomActor: uActor {
