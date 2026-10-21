@@ -334,6 +334,8 @@ set(MODS_SRC
   mods/WallRun.cpp
   mods/Gerb.hpp
   mods/Gerb.cpp
+  mods/GerbShell.hpp
+  mods/GerbShell.cpp
   mods/PinProperties.hpp
   mods/PinProperties.cpp
   mods/LuciAirThrow.hpp

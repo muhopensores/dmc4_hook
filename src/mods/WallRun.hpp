@@ -54,6 +54,7 @@ namespace pl {                                       // uPlayer offsets, DX9
     constexpr uintptr_t mParamTbl0Data     = 0x1E9C; // float* into the .plp (charactersettingsTwo)
     constexpr uintptr_t mGroundPoly        = 0x1F60; // sCollision::LineResult (0x90): the wall the jump reads
     constexpr uintptr_t mpCoatMdl          = 0x20C4; // uDevil4Model*: plays the same motion numbers (mMotionCtrl[4..6])
+    constexpr uintptr_t mAtckId            = 0x1564; // the running attack row's atckId (set by setActionAtck)
     constexpr uintptr_t mSeRsrc            = 0x1D60; // mSeCtrl.member_0x160: the cResource the player's SE requests name (sDevil4Sound::requestSe)
     constexpr uintptr_t mCharTblMgr        = 0x1DD4; // cCharTblMgr[2] (0x24 each: [0] upper, [1] lower at 0x1DF8): +0xC mpDataTop, +0x10 mpDataCrnt (the .ctn script cursor), +0x14 mIsDone
     constexpr uintptr_t mIsCancelCheckEnable = 0x1F50; // bool (sdk: fullHouseSomething1): uPlayer::main runs checkBeforeAction / checkAction (checkAtck, jump, gun, pose: every cancel) only while set. setActionUpperBdy sets it, setActionAtck / setActionDamage clear it, each attack function sets it again at its cancel frame

@@ -20,7 +20,7 @@ constexpr uintptr_t uActorVtablePtr     = 0x00BC4B78; // uActor
 constexpr size_t uActorVtableSize = 79;
 
 namespace custom_utils {
-    naked void* __cdecl FuncToPtr(...) {
+    static naked void* __cdecl FuncToPtr(...) {   // static: the header is included by several mods now
         __asm {
             mov eax, [esp+4]
             ret

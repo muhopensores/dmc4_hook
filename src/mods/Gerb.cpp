@@ -1,4 +1,5 @@
 #include "Gerb.hpp"
+#include "GerbShell.hpp"
 #include "MoveTable.hpp"
 #include "../sdk/Devil4.hpp"
 #include <cmath>
@@ -287,6 +288,7 @@ struct JumpState {                   // what the phase word can't hold
     bool script_set = false;         // the cancel script has replaced the borrowed .ctn script
     bool vertical = false;           // entered through the vertical row (0x41)
     uint32_t last_seen = 0;          // state_for's tick when this player was last seen (eviction order)
+    uint32_t shell_serial = 0;       // the jump's serial, counted up at each launch: the shell ends when it changes
 };
 JumpState g_jumps[kPlayerSlots];
 int slot_of(const JumpState& s) { return (int)(&s - g_jumps); }
@@ -439,6 +441,7 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
         if (airborne_status) at<uint32_t>(pl, pl::mActStat) = (at<uint32_t>(pl, pl::mActStat) & ~0x1u) | 0x2u;
         take_off_fx(pl, s.dir_vec);
         phase = PHASE_AIRBORNE;
+        if (shell_enabled) spawn_shell(pl, s.dir_vec, ++s.shell_serial);   // after the phase: the shell checks it
         return;
     }
     case PHASE_AIRBORNE: {
@@ -456,6 +459,16 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
     default:
         return;
     }
+}
+
+// The shell's lifetime: the jump `serial` of `pl` is still the running attack row and still airborne.
+bool jump_active(uintptr_t pl, uint32_t serial) {
+    if (!pl) return false;
+    const JumpState& s = state_for(pl);
+    if (s.shell_serial != serial) return false;
+    const uint32_t id = at<uint32_t>(pl, pl::mAtckId);
+    if (id != move_id && id != move_id_vertical) return false;
+    return at<int>(pl, pl::mBdyActionLowerPhase) == PHASE_AIRBORNE;
 }
 
 // The row MoveTable::updateKDATbl inserted (index from the front = extra_nero_moves - MoveTable::Gerb, the same
@@ -596,6 +609,7 @@ void Gerb::on_gui_frame(int display) {
             const float* g = &at<float>(P, pl::mQuat);
             ImGui::Text("quat from wmat %.3f %.3f %.3f %.3f | mQuat %.3f %.3f %.3f %.3f", q[0], q[1], q[2], q[3], g[0], g[1], g[2], g[3]);
         }
+        shell_debug_readout(P);
         ImGui::Text("mStat N0 %d N1 %d N2 %d CMD %d JMP %d TNT %d GUN %d ALL %d",
                     at<int>(P, pl::mMotCncl + 0x2C * 0 + 4), at<int>(P, pl::mMotCncl + 0x2C * 1 + 4), at<int>(P, pl::mMotCncl + 0x2C * 2 + 4),
                     at<int>(P, pl::mMotCncl + 0x2C * 3 + 4), at<int>(P, pl::mMotCncl + 0x2C * 4 + 4), at<int>(P, pl::mMotCncl + 0x2C * 5 + 4),
@@ -612,6 +626,8 @@ void Gerb::on_gui_frame(int display) {
     ImGui::Checkbox(_("Face the direction"), &face_direction);
     ImGui::SameLine(sameLineWidth);
     ImGui::Checkbox(_("Count as airborne"), &airborne_status);
+    ImGui::Separator();
+    shell_gui();
     ImGui::Unindent(lineIndent);
 }
 
@@ -641,6 +657,7 @@ void Gerb::on_config_load(const utility::Config& cfg) {
     effect_tilt     = cfg.get<float>("gerb_effect_tilt").value_or(effect_tilt);
     se_enabled      = cfg.get<bool>("gerb_se").value_or(true);
     se_id           = cfg.get<int>("gerb_se_id").value_or(se_id);
+    shell_config_load(cfg);
 }
 
 void Gerb::on_config_save(utility::Config& cfg) {
@@ -668,4 +685,5 @@ void Gerb::on_config_save(utility::Config& cfg) {
     cfg.set<float>("gerb_effect_tilt", effect_tilt);
     cfg.set<bool>("gerb_se", se_enabled);
     cfg.set<int>("gerb_se_id", se_id);
+    shell_config_save(cfg);
 }
