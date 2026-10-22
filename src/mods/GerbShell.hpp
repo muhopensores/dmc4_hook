@@ -45,6 +45,8 @@ extern float shell_knock_angle;     // degrees added to the knock yaw (modes 0 /
 extern int   shell_damage_type;     // -1 = the entry's, else kAttackStatus::mDamageType and mDamageTypeI (vanilla attacks keep 0)
 extern int   shell_damage_type_b;   // -1 = the entry's, else mDamageTypeB: the reaction. Nero's data: 2 blown (Streak), 3 blown 2
                                     // (Dropkick), 4 upper / launch (High Roller), 5 ground (Split)
+extern int   shell_damage_type_b_up;    // the up jump's reaction instead (-1 = shell_damage_type_b): 4 upper / launch
+extern int   shell_damage_type_b_down;  // the down jump's (-1 = shell_damage_type_b): 5 ground
 extern int   shell_attack_lv_i;     // -1 = the entry's, else mAttackLvI (and mAttackLv): the interrupt level vs kDefendStatus::mMaxInterrupt
 extern int   shell_attack_lv_b;     // -1 = the entry's, else mAttackLvB: the blow level vs mMaxBlown. Streak / High Roller 2, Dropkick 3
 // the rest of kAttackStatus, each -1 (or < 0) = the entry's

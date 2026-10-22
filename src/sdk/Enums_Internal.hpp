@@ -98,6 +98,24 @@ enum ATTACK_DIRECTION_CMD {
     GUN = 84
 };
 
+// uPlayer::CANCEL_NO (SE PDB name): the cancel windows, uPlayer::mMotCncl[8] (+0x30C0, cMotCancel 0x2C each, mStat at
+// +4: 0 closed, 1 reserved / buffered, 2 open). A .ctn contact byte's low nibble picks one through uPlayer::cancelNoTbl
+// (0xC7781C): contact set 1 byte 0 -> {C_NORM0, C_NORM1, C_NORM2}, bytes 1..5 -> {C_COMMAND, C_JUMP, C_CHOUHATSU, C_GUN,
+// C_ALL}; the high nibble 0x10 opens (mStat 2), 0x30 reserves (mStat 1), 0x20 closes. An attack row's cancel entry
+// (cmdNo) names one of these; checkAtckCancel wants its mStat 2 (or 1, which queues the attack). RE note
+// player_move_pipeline.md "cancel verdict".
+enum CANCEL_NO {
+    C_NORM0       = 0,   // melee + gun (the usual "attack cancel" window)
+    C_NORM1       = 1,
+    C_NORM2       = 2,
+    C_COMMAND     = 3,   // command moves
+    C_JUMP        = 4,   // jump (WallRun's entry reads this one's reserve)
+    C_CHOUHATSU   = 5,   // taunt
+    C_GUN         = 6,
+    C_ALL         = 7,
+    CANCEL_NO_NUM = 8
+};
+
 enum class WEIGHT_TYPE : uint32_t {
   WT_NO_WEIGHT = 0x0,
   WT_LIGHT0 = 0x1,

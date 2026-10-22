@@ -24,6 +24,8 @@ int   shell_knock_mode    = KNOCK_JUMP_DIR;
 float shell_knock_angle   = 0.0f;
 int   shell_damage_type   = -1;     // vanilla attacks leave Type / TypeI at 0 and put the reaction in TypeB
 int   shell_damage_type_b = -1;     // the Dropkick entry has it all: TypeB 3, LvI 3, LvB 3
+int   shell_damage_type_b_up   = 4; // DAMAGE_EM_UPPER: the up jump launches
+int   shell_damage_type_b_down = 5; // DAMAGE_EM_GROUND: the dive slams down
 int   shell_attack_lv_i   = -1;
 int   shell_attack_lv_b   = -1;
 int   shell_attack_id     = -1;
@@ -104,6 +106,8 @@ void GerbShell::startup() {
     g_entry_raw = atk;
     if (shell_damage_type   >= 0)   atk.mDamageType  = atk.mDamageTypeI = shell_damage_type;   // damagePreMessage copies TypeI over Type
     if (shell_damage_type_b >= 0)   atk.mDamageTypeB = shell_damage_type_b;
+    if (dir.y >  0.5f && shell_damage_type_b_up   >= 0) atk.mDamageTypeB = shell_damage_type_b_up;     // the up jump
+    if (dir.y < -0.5f && shell_damage_type_b_down >= 0) atk.mDamageTypeB = shell_damage_type_b_down;   // the dive
     if (shell_attack_lv_i   >= 0)   atk.mAttackLv = atk.mAttackLvI = shell_attack_lv_i;   // damagePreMessage copies LvI over Lv
     if (shell_attack_lv_b   >= 0)   atk.mAttackLvB = shell_attack_lv_b;
     if (shell_damage        >= 0.0f) atk.mDamageValue = shell_damage;
@@ -276,6 +280,12 @@ void shell_gui() {
         ImGui::SameLine();
         Mod::help_marker(_("mDamageTypeB, the reaction. Nero's own entries keep Type / TypeI at 0 and use this: 2 blown (Streak), 3 blown 2 "
                            "(Dropkick), 4 upper / launch (High Roller), 5 ground (Split), 6 bound."));
+        combo_override(_("Reaction of the up jump"), &shell_damage_type_b_up, damage_type_names, IM_ARRAYSIZE(damage_type_names) - 1, "(same as above)");
+        ImGui::SameLine();
+        Mod::help_marker(_("mDamageTypeB for the vertical up jump only; 4 upper launches the enemy with the player."));
+        combo_override(_("Reaction of the down jump"), &shell_damage_type_b_down, damage_type_names, IM_ARRAYSIZE(damage_type_names) - 1, "(same as above)");
+        ImGui::SameLine();
+        Mod::help_marker(_("mDamageTypeB for the dive only; 5 ground slams the enemy down."));
         ImGui::InputInt(_("Attack level B"), &shell_attack_lv_b);
         ImGui::SameLine();
         Mod::help_marker(_("mAttackLvB: the blow level, judged against the enemy's kDefendStatus mMaxBlown. Streak / High Roller 2, Dropkick 3; "
@@ -338,6 +348,8 @@ void shell_config_load(const utility::Config& cfg) {
     shell_knock_angle   = cfg.get<float>("gerb_shell_knock_angle").value_or(shell_knock_angle);
     shell_damage_type   = cfg.get<int>("gerb_shell_damage_type").value_or(shell_damage_type);
     shell_damage_type_b = cfg.get<int>("gerb_shell_damage_type_b").value_or(shell_damage_type_b);
+    shell_damage_type_b_up   = cfg.get<int>("gerb_shell_damage_type_b_up").value_or(shell_damage_type_b_up);
+    shell_damage_type_b_down = cfg.get<int>("gerb_shell_damage_type_b_down").value_or(shell_damage_type_b_down);
     shell_attack_lv_i   = cfg.get<int>("gerb_shell_attack_lv_i").value_or(shell_attack_lv_i);
     shell_attack_lv_b   = cfg.get<int>("gerb_shell_attack_lv_b").value_or(shell_attack_lv_b);
     shell_attack_id     = cfg.get<int>("gerb_shell_attack_id").value_or(shell_attack_id);
@@ -370,6 +382,8 @@ void shell_config_save(utility::Config& cfg) {
     cfg.set<float>("gerb_shell_knock_angle", shell_knock_angle);
     cfg.set<int>("gerb_shell_damage_type", shell_damage_type);
     cfg.set<int>("gerb_shell_damage_type_b", shell_damage_type_b);
+    cfg.set<int>("gerb_shell_damage_type_b_up", shell_damage_type_b_up);
+    cfg.set<int>("gerb_shell_damage_type_b_down", shell_damage_type_b_down);
     cfg.set<int>("gerb_shell_attack_lv_i", shell_attack_lv_i);
     cfg.set<int>("gerb_shell_attack_lv_b", shell_attack_lv_b);
     cfg.set<int>("gerb_shell_attack_id", shell_attack_id);
