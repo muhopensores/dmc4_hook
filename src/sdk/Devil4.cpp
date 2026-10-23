@@ -631,14 +631,18 @@ namespace devil4_sdk {
 		}
 	}
 
-	void __stdcall install_cancel_script(void* player, CancelScript& script, float frame) {
-		script.wait_frame = frame;
+	void __stdcall install_ctn_script(void* player, const void* script) {
 		for (int half = 0; half < 2; ++half) {
 			const uintptr_t mgr = (uintptr_t)player + 0x1DD4 + 0x24 * half;   // cCharTblMgr[half]
-			*(uint8_t**)(mgr + 0x0C) = (uint8_t*)&script;   // mpDataTop
-			*(uint8_t**)(mgr + 0x10) = (uint8_t*)&script;   // mpDataCrnt
-			*(bool*)(mgr + 0x14) = false;                    // mIsDone
+			*(const uint8_t**)(mgr + 0x0C) = (const uint8_t*)script;   // mpDataTop
+			*(const uint8_t**)(mgr + 0x10) = (const uint8_t*)script;   // mpDataCrnt
+			*(bool*)(mgr + 0x14) = false;                               // mIsDone
 		}
+	}
+
+	void __stdcall install_cancel_script(void* player, CancelScript& script, float frame) {
+		script.wait_frame = frame;
+		install_ctn_script(player, &script);
 	}
 
 	uintptr_t __stdcall get_motion_bank(void* model, int bank) {

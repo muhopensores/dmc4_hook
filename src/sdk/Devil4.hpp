@@ -95,6 +95,8 @@ namespace devil4_sdk {
 	// player). Call on the tick after the motion request: updateMotion installs the borrowed script for the new motion
 	// first and would overwrite the cursors.
 	void __stdcall install_cancel_script(void* player, CancelScript& script, float frame);
+	// The same for any in-memory .ctn script (sdk/CtnScript.hpp builds them); `script` must outlive the motion.
+	void __stdcall install_ctn_script(void* player, const void* script);
 	uintptr_t __stdcall get_motion_bank(void* model, int bank);   // the rMotionList* in that slot, 0 = empty
 };
 

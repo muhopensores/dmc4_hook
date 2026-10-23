@@ -23,6 +23,7 @@ public:
     static int backForwardQuickDrive;
     static int Gerb;             // Nero row index marker (extra_nero_moves at insertion), see Gerb.cpp
     static int GerbVertical;     // its second row (the up / down jump, id 0x41)
+    static int DanteAirDodge;    // Dante row index marker (extra_dante_moves at insertion), see DanteAirDodge.cpp
 
     MoveTable() = default;
 

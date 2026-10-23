@@ -3,6 +3,7 @@
 #include "MoveTable.hpp"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/InputCommand.hpp"
+#include "../sdk/CtnScript.hpp"
 #include <cmath>
 #include <filesystem>
 #include <string>
@@ -52,9 +53,9 @@ void request_motion(uintptr_t pl, int motion, uint32_t attr, float interp, float
 }
 
 constexpr int kPlayerSlots = 4;        // uPlayer objects tracked at once (the player, NPC / boss Dante, a co-op partner ...)
-// The cancel window the game's own way (MoveDef D11): one in-memory .ctn script per player slot (sdk CancelScript), its
-// wait set to cancel_frame; the bytes must outlive the motion, so they're static.
-static devil4_sdk::CancelScript g_cancel_scripts[kPlayerSlots];
+// The cancel window the game's own way (MoveDef D11): one in-memory .ctn script per player slot (sdk/CtnScript.hpp):
+// wait(cancel_frame), then every cancel category opened; the bytes must outlive the motion, so they're static.
+static ctn::Script g_cancel_scripts[kPlayerSlots];
 
 // ---- Gerb's own input command (sdk/InputCommand.hpp runs it): cmd 0x52 CMD_LOCK_BF_LEVER_SHORT's steps with the style
 // button in place of melee, condition CND_POSE = lock-on held.
@@ -62,14 +63,7 @@ static devil4_sdk::CancelScript g_cancel_scripts[kPlayerSlots];
 //   LEVER mode 1 lever 4 = back within 45 deg, within 15 frames
 //   LEVER mode 1 lever 1 = forward, within 15 frames
 //   BTN   mode 1 (mBtnTrg) 0x200 = style
-using input_commands::kCmdData; using input_commands::kCmdHead;
-static const kCmdData g_bf_style_steps[4] = {
-    { 2, 0,     1, 0, -1, 0 },
-    { 2, 0,     1, 4, 15, 0 },
-    { 2, 0,     1, 1, 15, 0 },
-    { 1, 0x200, 1, 0,  0, 0 },
-};
-static const kCmdHead g_bf_style_head = { 4, 0, 1 /* CND_POSE */, 1, 0, g_bf_style_steps };
+static input_commands::Command g_bf_style_cmd;   // built in on_initialize
 
 void clear_add_speed(uintptr_t pl) {
     MtVector3& add = at<MtVector3>(pl, pl::mAddSpd);
@@ -169,7 +163,11 @@ JumpState& state_for(uintptr_t player) {
 void arm_cancel_script(JumpState& s, uintptr_t pl) {
     if (s.script_set) return;
     s.script_set = true;
-    if (cancel_frame >= 0.0f) devil4_sdk::install_cancel_script((void*)pl, g_cancel_scripts[slot_of(s) % kPlayerSlots], cancel_frame);
+    if (cancel_frame >= 0.0f) {
+        ctn::Script& sc = g_cancel_scripts[slot_of(s) % kPlayerSlots];
+        sc.reset().wait(cancel_frame).open_all().end();
+        devil4_sdk::install_ctn_script((void*)pl, sc.data());
+    }
 }
 
 // The gate every cancel goes through: uPlayer::main calls checkBeforeAction / checkAction (checkAtck, the jump
@@ -359,7 +357,9 @@ static void input_combo(const char* label, int& cmd) {
 using namespace gerb;
 
 std::optional<std::string> Gerb::on_initialize() {
-    input_commands::add(&g_bf_style_head, cmd_bf_style, &mod_enabled);   // bit 85 while the mod is on
+    using namespace input_commands;
+    g_bf_style_cmd.condition(CND_POSE).lever(LEVER_CENTRED).lever(LEVER_BACK, LEVER_TARGET_45, 15).lever(LEVER_FORWARD, LEVER_TARGET_45, 15).button(BTN_STYLE);
+    add(g_bf_style_cmd.head(), cmd_bf_style, &mod_enabled);   // bit 85 while the mod is on
     if (!install_hook_absolute(0x7A83B5, hook_cmd, &input_commands::detour, &input_commands::jmp_ret, 8)) {
         spdlog::error("Gerb: failed to hook uPlayer::main after executeCommandCheck (0x7A83B5)");
         return "Failed to init Gerb (command hook)";
@@ -464,7 +464,7 @@ void Gerb::on_gui_frame(int display) {
             const uint8_t* top = at<uint8_t*>(mgr, 0x0C); const uint8_t* cur = at<uint8_t*>(mgr, 0x10);
             const uint8_t* c1 = &at<uint8_t>(mgr, 0x15 + 6);
             ImGui::Text("ctn[%d] top %p cur +%d done %d ours %d  contact1 %02X %02X %02X %02X %02X %02X", half, top, cur && top ? (int)(cur - top) : -1,
-                        (int)at<bool>(mgr, 0x14), (int)(top >= (const uint8_t*)&g_cancel_scripts[0] && top < (const uint8_t*)&g_cancel_scripts[kPlayerSlots]),
+                        (int)at<bool>(mgr, 0x14), (int)(top >= g_cancel_scripts[0].bytes && top < g_cancel_scripts[kPlayerSlots - 1].bytes + ctn::Script::kCapacity),
                         c1[0], c1[1], c1[2], c1[3], c1[4], c1[5]);
         }
     }

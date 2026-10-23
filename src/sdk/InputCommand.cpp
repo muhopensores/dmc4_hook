@@ -16,6 +16,7 @@ struct Entry {
     const kCmdHead* head = nullptr;
     int bit = 0;
     const bool* enabled = nullptr;
+    Predicate predicate = nullptr;
     uintptr_t players[kPlayerSlots] = {};
     uint32_t  seen[kPlayerSlots] = {};
     kSPlCmd   states[kPlayerSlots] = {};
@@ -42,10 +43,10 @@ uintptr_t fn_commandCheckSub = 0x00805A10;
 
 } // namespace
 
-bool add(const kCmdHead* head, int bit, const bool* enabled) {
+bool add(const kCmdHead* head, int bit, const bool* enabled, Predicate predicate) {
     if (!head || bit < FIRST_FREE_BIT || bit > LAST_BIT) return false;
     for (const Entry& e : entries()) if (e.bit == bit) return false;
-    Entry e; e.head = head; e.bit = bit; e.enabled = enabled;
+    Entry e; e.head = head; e.bit = bit; e.enabled = enabled; e.predicate = predicate;
     entries().push_back(e);
     return true;
 }
@@ -74,6 +75,7 @@ void __stdcall run(uintptr_t player) {
     for (Entry& e : entries()) {
         kSPlCmd& st = e.state_for(player);
         if (e.enabled && !*e.enabled) { st = kSPlCmd{}; continue; }
+        if (e.predicate && !e.predicate(player)) { st = kSPlCmd{}; continue; }
         // the head's condition, as executeCommandCheck applies it: failing it resets the command's state
         bool ok = true;
         switch (e.head->condition) {

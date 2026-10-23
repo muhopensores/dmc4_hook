@@ -1,5 +1,6 @@
 #include "MoveTable.hpp"
 #include "Gerb.hpp"
+#include "DanteAirDodge.hpp"
 #include "sdk/Devil4.hpp"
 #include "sdk/StringData.hpp"
 #include "sdk/sRender.hpp"
@@ -21,6 +22,7 @@ uintptr_t MoveTable::jmp_ret3 = NULL;
 int MoveTable::extra_nero_moves = 0;
 int MoveTable::Gerb = 0;
 int MoveTable::GerbVertical = 0;
+int MoveTable::DanteAirDodge = 0;
 uintptr_t MoveTable::jmp_ret4 = NULL;
 int MoveTable::extra_dante_moves = 0;
 
@@ -46,19 +48,23 @@ int MoveTable::backForwardQuickDrive = 0;
 // eax = atckId / 32, edx = 1 << (atckId % 32)); a row whose id has no bit is skipped. New ids are let through here.
 naked void detour0(void) { // MoveTable toggle() function
     _asm {
+            // each mod's ids are let through while it is enabled; a disabled mod falls through to the next check,
+            // never straight to the original code (that skipped the later mods' ids)
             cmp byte ptr [LuciAirThrow::mod_enabled], 1
-            je checkcode
-            jmp gerbcheck
-
-        checkcode:
+            jne gerbcheck
             cmp ebx, 0x6d // luci air throw
             je retcode
         gerbcheck:
             cmp byte ptr [gerb::mod_enabled], 1
-            jne originalcode
+            jne dodgecheck
             cmp ebx, 0x40 // gerb::move_id (Nero)
             je retcode
             cmp ebx, 0x41 // gerb::move_id_vertical
+            je retcode
+        dodgecheck:
+            cmp byte ptr [dante_air_dodge::mod_enabled], 1
+            jne originalcode
+            cmp ebx, 0x6E // dante_air_dodge::move_id (Dante)
             je retcode
         originalcode:
             test [ecx+eax*4+0x18], edx
@@ -120,6 +126,9 @@ void __stdcall dante_move_switch(uint32_t moveID, uintptr_t actor) {
             (((void(__stdcall*)(uintptr_t))splash_func)(actor));
             break;
         }
+        case dante_air_dodge::move_id:
+            dante_air_dodge::move(actor);
+            break;
         default:
             return;
     }
@@ -214,6 +223,12 @@ void updateKDATbl() {
     NeroAtckDefTbl.insert(NeroAtckDefTbl.begin(), {2, gerb::move_id_vertical, 7, 1, 0x00000100, (unsigned long)-1, (unsigned long)-1, 0, 3, 1, 0, 0, 0, 0x07000005});
     MoveTable::extra_nero_moves++;
     MoveTable::GerbVertical = MoveTable::extra_nero_moves;
+
+    // Dante: DanteAirDodge (DanteAirDodge.cpp): COMMAND attr, id 0x6E, start | cancel | repeat, input set by its apply_row
+    // (byte 1 of the command word = 1 keeps the row unusable until the mod enables it), any weapon / style, air only.
+    DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {2, dante_air_dodge::move_id, 7, 1, 0x00000100, (unsigned long)-1, (unsigned long)-1, 0, 2, 1, 0, 0, 0, 0x07000005});
+    MoveTable::extra_dante_moves++;
+    MoveTable::DanteAirDodge = MoveTable::extra_dante_moves;
 
     // Terminate
     DanteAtckDefTbl.emplace_back(3);
