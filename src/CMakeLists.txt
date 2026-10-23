@@ -336,6 +336,8 @@ set(MODS_SRC
   mods/Gerb.cpp
   mods/GerbShell.hpp
   mods/GerbShell.cpp
+  mods/DanteAirDodge.hpp
+  mods/DanteAirDodge.cpp
   mods/PinProperties.hpp
   mods/PinProperties.cpp
   mods/LuciAirThrow.hpp
@@ -431,6 +433,7 @@ set(SDK_SRC
     sdk/uMissionStart.hpp
     sdk/Custom.hpp
     sdk/DebugDraw.hpp
+    sdk/CtnScript.hpp
 )
 
 set(IMGUI_SRC

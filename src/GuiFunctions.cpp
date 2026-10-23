@@ -791,6 +791,7 @@ namespace gui {
                 pmods->on_draw_ui("WallRun"_hash, DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui("Gerb"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui("DanteAirDodge"_hash, DISPLAY_SYSTEM_A);
 #ifndef PUBLIC_BUILD
                 pmods->on_draw_ui("SpiderTwerk"_hash, DISPLAY_SYSTEM_A);
 
