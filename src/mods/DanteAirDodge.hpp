@@ -44,7 +44,6 @@ extern bool  face_direction;           // turn the facing toward the dodge (off:
 extern bool  airborne_status;          // mark the action as a jump (AST_JUMP) so the game's air rules apply
 extern bool  enemy_step_from_start;    // the enemy step (jump cancel) can interrupt the dodge from frame 0
 extern bool  cost_air_hike;            // count as the air hike (mWJumpCnt++), so no air hike after it
-extern bool  cost_all_air_jumps;       // ... spending every air jump left (DT has two), not one
 extern int   dodges_per_air;           // dodges allowed between landings (0 = unlimited); a spent dodge leaves the press to the air hike
 
 // the take-off: Dante's air hike effect and sound (uPlayerDante::setWJumpEffect 0x7B9220)

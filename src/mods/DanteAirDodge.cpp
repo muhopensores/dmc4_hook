@@ -31,7 +31,6 @@ bool  face_direction  = false;
 bool  airborne_status = true;
 bool  enemy_step_from_start = true;   // the enemy step (jump cancel) can interrupt the dodge from frame 0, before the cancel frame
 bool  cost_air_hike   = true;        // the dodge is the air jump: no air hike after it (uPlayer::checkWJumpBegin: mWJumpCnt >= wJumpCnt)
-bool  cost_all_air_jumps = true;     // ... and spends every air jump left (Devil Trigger has two), not just one
 int   dodges_per_air  = 0;           // 0: the game's air-jump count is the only limit (2 in DT), since the dodge spends one
 bool  effect_enabled  = true;
 int   effect_list     = 2;
@@ -293,12 +292,7 @@ void __stdcall move(uintptr_t pl) {
         const Dir dir = glm::dot(stick, right) >= 0.0f ? RIGHT : LEFT;
         s.dir_vec = dir == RIGHT ? right : -right;
         if (face_direction) face(pl, yaw_of(s.dir_vec));
-        if (cost_air_hike) {
-            char& cnt = at<char>(pl, pl::mWJumpCnt);
-            const uintptr_t tbl = at<uintptr_t>(pl, pl::mpActDataTbl);
-            if (cost_all_air_jumps && tbl) cnt = std::max(cnt, at<char>(tbl, 0));   // none left for the air hike, DT's second included
-            else ++cnt;
-        }
+        if (cost_air_hike) ++at<char>(pl, pl::mWJumpCnt);              // one air jump; Devil Trigger keeps its second
 
         devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
         // the cycle is the whole dodge: loop as its block says, root translation off
@@ -463,10 +457,6 @@ void DanteAirDodge::on_gui_frame(int display) {
     ImGui::Checkbox(_("Costs the air hike"), &cost_air_hike);
     ImGui::SameLine();
     help_marker(_("Counts the dodge as the air jump (mWJumpCnt), so no air hike is left after it until landing."));
-    ImGui::Checkbox(_("Spends every air jump"), &cost_all_air_jumps);
-    ImGui::SameLine();
-    help_marker(_("With the cost on: the dodge uses up all the air jumps the character has left (Devil Trigger gives two), so neither "
-                  "an air hike nor a second dodge follows it. Off: it spends one."));
     ImGui::Checkbox(_("Take-off effect"), &effect_enabled);
     ImGui::SameLine();
     help_marker(_("Dante's air hike effect at the launch frame: list 2 index 0x14 (ec005_20v1), spawned as uPlayerDante::setWJumpEffect does."));
@@ -514,7 +504,6 @@ void DanteAirDodge::on_config_load(const utility::Config& cfg) {
     face_direction  = cfg.get<bool>("dante_air_dodge_face_direction").value_or(face_direction);
     airborne_status = cfg.get<bool>("dante_air_dodge_airborne_status").value_or(airborne_status);
     cost_air_hike   = cfg.get<bool>("dante_air_dodge_costs_air_hike").value_or(cost_air_hike);   // (key renamed so the old false default isn't reloaded)
-    cost_all_air_jumps = cfg.get<bool>("dante_air_dodge_costs_all_air_jumps").value_or(cost_all_air_jumps);
     dodges_per_air  = cfg.get<int>("dante_air_dodge_max_per_air").value_or(dodges_per_air);   // (key renamed: the old default 1 shouldn't reload)
     effect_enabled  = cfg.get<bool>("dante_air_dodge_effect").value_or(effect_enabled);
     effect_list     = cfg.get<int>("dante_air_dodge_effect_list").value_or(effect_list);
@@ -541,7 +530,6 @@ void DanteAirDodge::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("dante_air_dodge_face_direction", face_direction);
     cfg.set<bool>("dante_air_dodge_airborne_status", airborne_status);
     cfg.set<bool>("dante_air_dodge_costs_air_hike", cost_air_hike);
-    cfg.set<bool>("dante_air_dodge_costs_all_air_jumps", cost_all_air_jumps);
     cfg.set<int>("dante_air_dodge_max_per_air", dodges_per_air);
     cfg.set<bool>("dante_air_dodge_effect", effect_enabled);
     cfg.set<int>("dante_air_dodge_effect_list", effect_list);
