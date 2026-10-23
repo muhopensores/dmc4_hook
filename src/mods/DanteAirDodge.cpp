@@ -111,6 +111,10 @@ struct DodgeState {                   // what the phase word can't hold
     glm::vec3 dir_vec{0.0f};          // world direction of the dodge (unit, level)
     bool script_set = false;          // the cancel script has replaced the borrowed .ctn script
     bool jump_held = false;           // the jump button hasn't been released since the press that started the dodge
+    int  wait_ticks = 0;              // ticks spent in PHASE_WAIT (watchdog: a motion that never advances)
+    int  stuck_ticks = 0;             // airborne ticks with the motion frame not moving (same watchdog)
+    float last_frame = -1.0f;
+    Dir  dir = RIGHT;                 // the LMT slot in play
     int  used = 0;                    // dodges since the last landing
     uint32_t last_seen = 0;           // state_for's tick when this player was last seen (eviction order)
 };
@@ -291,6 +295,7 @@ void __stdcall move(uintptr_t pl) {
         const glm::vec3 right = wmat_row(pl, 0);
         const Dir dir = glm::dot(stick, right) >= 0.0f ? RIGHT : LEFT;
         s.dir_vec = dir == RIGHT ? right : -right;
+        s.dir = dir;
         if (face_direction) face(pl, yaw_of(s.dir_vec));
         if (cost_air_hike) ++at<char>(pl, pl::mWJumpCnt);              // one air jump; Devil Trigger keeps its second
 
@@ -299,6 +304,9 @@ void __stdcall move(uintptr_t pl) {
         request_motion(pl, (lmt_bank << 8) | (slot[dir] & 0xFF), (uint32_t)A_NULL_TRANS_OFF, 4.0f, 0.0f, 1.0f);
         s.script_set = false;                                           // the cancel script goes in next tick
         s.jump_held = true;                                             // this press is spent: see eat_held_jump
+        s.wait_ticks = 0; s.stuck_ticks = 0; s.last_frame = -1.0f;
+        spdlog::info("DanteAirDodge: start, motion {:04X} (bank {} slot {}), player {:#x}, frame {:.1f} of motion {:04X}",
+                     (lmt_bank << 8) | (slot[dir] & 0xFF), lmt_bank, slot[dir], pl, at<float>(pl, pl::mMotionFrame0), at<uint32_t>(pl, pl::mMotionCtrl0No));
         phase = PHASE_WAIT;                                             // momentum is left alone until the launch
         return;
     }
@@ -308,7 +316,18 @@ void __stdcall move(uintptr_t pl) {
         arm_cancel_script(s, pl);
         open_cancel_gate(pl);
         if (enemy_step_from_start && !gate_open(pl) && check_enemy_step(pl)) return;   // stepped: action 25 took over
-        if (at<float>(pl, pl::mMotionFrame0) < launch_frame) return;
+        if (at<float>(pl, pl::mMotionFrame0) < launch_frame) {
+            // Watchdog: a block that is missing / empty, or a bank something else overwrote, never reaches the launch
+            // frame, and the player would hang here with no animation. Report it and leave the move.
+            if (++s.wait_ticks > 60) {
+                spdlog::warn("DanteAirDodge: motion {:04X} did not reach the launch frame {} in 60 ticks (frame {:.1f}, controller plays {:04X}): "
+                             "is {}.lmt block {} present and not empty, and is bank {} free?",
+                             (lmt_bank << 8) | (slot[s.dir] & 0xFF), launch_frame,
+                             at<float>(pl, pl::mMotionFrame0), at<uint32_t>(pl, pl::mMotionCtrl0No), lmt_path, slot[s.dir], lmt_bank);
+                devil4_sdk::neutral_air_transition((uPlayer*)pl);
+            }
+            return;
+        }
 
         const glm::vec3 v = s.dir_vec * speed + glm::vec3(0.0f, rise, 0.0f);
         vel.x = v.x; vel.y = v.y; vel.z = v.z;
@@ -330,6 +349,18 @@ void __stdcall move(uintptr_t pl) {
         if (enemy_step_from_start && !gate_open(pl) && check_enemy_step(pl)) return;
         uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
         if (vel.y <= 0.0f && coll && at<bool>(coll, 0x1C)) { set_action_land(pl); return; }   // mLand
+        // Watchdog: the only exits are the landing and the cancels after cancel_frame, both of which need the motion to
+        // play. A frame that doesn't move for 60 ticks means it isn't: report and leave, instead of a soft lock.
+        const float frame = at<float>(pl, pl::mMotionFrame0);
+        s.stuck_ticks = (frame == s.last_frame) ? s.stuck_ticks + 1 : 0;
+        s.last_frame = frame;
+        if (s.stuck_ticks > 60) {
+            spdlog::warn("DanteAirDodge: motion frame stuck at {:.1f} for 60 ticks airborne (controller plays {:04X}, wanted {:04X}): "
+                         "is {}.lmt block {} present and not empty, and is bank {} free?",
+                         frame, at<uint32_t>(pl, pl::mMotionCtrl0No), (lmt_bank << 8) | (slot[s.dir] & 0xFF), lmt_path, slot[s.dir], lmt_bank);
+            devil4_sdk::neutral_air_transition((uPlayer*)pl);
+            return;
+        }
         vel.y += gravity * at<float>(pl, pl::m_delta_time);
         if (vel.y < -max_fall) vel.y = -max_fall;
         acc.x = acc.y = acc.z = 0.0f;
