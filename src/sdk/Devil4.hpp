@@ -50,6 +50,10 @@ namespace devil4_sdk {
 	// SE `id` of a player's own sound resource (uPlayer +0x1D60, mSeCtrl.member_0x160), positioned on the player
 	// (sDevil4Sound::requestSe 0xA47AA0 with sSoundN::soundPositionUpdateCb). The air hike plays 40.
 	void __stdcall play_player_se(void* player, int id);
+	// uPlayer::requestSetMotion 0x821210, the typed form (body 0 lower / 1 upper / 2 third; the coat controller is
+	// mirrored inside): unlike the whole-body indexed_anim_call (requestSetMotion_2) it leaves the other halves' motions
+	// alone. Convention: type@edx, this@ecx, motion@esi, attr@edi; stack: forcible, interpolation frames, start frame, speed.
+	void __stdcall request_motion_body(void* player, int body /* MOTION_CTRL 0-2 (Enums_Internal.hpp) */, int motion, uint32_t attr, float interp, float start, float speed);
 	// The effect calls the vanilla state functions make (Stinger, Million Stab: RE/player_move_pipeline.md).
 	// sDevil4Effect::setEffectConst 0x480480 (list@eax, index@edx; stack: parent, groupMask, materialMask, unitLine, owner;
 	// retn 14h): an effect of the 0x39-list table following `parent` (the player, or a weapon unit). Returns the effect.

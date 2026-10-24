@@ -602,6 +602,28 @@ namespace devil4_sdk {
 		return r;
 	}
 
+	void __stdcall request_motion_body(void* player, int body, int motion, uint32_t attr, float interp, float start, float speed) {
+		uintptr_t fn = 0x00821210;
+		if (!player) return;
+		_asm {
+			push ebx
+			mov ebx, esp
+			pushad
+			push speed
+			push start
+			push interp
+			push 1                  // forcible
+			mov ecx, player
+			mov esi, motion
+			mov edi, attr
+			mov edx, body
+			call fn
+			popad
+			mov esp, ebx
+			pop ebx
+		}
+	}
+
 	void __stdcall play_player_se(void* player, int id) {
 		uintptr_t fn_requestSe    = 0x00A47AA0;   // sDevil4Sound::requestSe(inst, rsrc, id, owner, pos*, 1, 1, cb) stdcall
 		uintptr_t fn_sePositionCb = 0x00486640;   // sSoundN::soundPositionUpdateCb

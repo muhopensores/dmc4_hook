@@ -87,7 +87,50 @@ namespace input_commands {
     // The same, with a context pointer handed back to the predicate (MoveDef: one predicate function for every move).
     bool add(const kCmdHead* head, int bit, const bool* enabled, PredicateCtx predicate, void* ctx);
     int  next_free_bit();            // the first of FIRST_FREE_BIT..LAST_BIT no command holds, -1 when none is left
-    extern bool hook_installed;      // the 0x7A83B5 hook is in place (whoever installs it sets this; one installer only)
+    // ---- Per-tick callbacks on the player ------------------------------------------------------------------------
+    // uPlayer::main 0x7A7DC0 runs a player's tick in this order (RE/player_move_pipeline.md, "The cancel gate" and
+    // "Upper-body gun shots"):
+    //   1. updateCharTbl (the .ctn scripts step: contact bytes, cancel windows)        0x7A7DF1
+    //   2. updateMotCancel (a press is latched into the windows' reserve flags)        0x7A7DF8
+    //   3. setInterface (mBtnOn / mBtnTrg / the stick for this tick)
+    //   4. executeCommandCheck (the 85 input commands -> mCmdFlag bits)                0x7A83B0
+    //      -> [PRE-CHECK TICK]  the commands registered with add(), then every add_tick() callback    0x7A83B5
+    //   5. checkBeforeAction / checkAction (vtbl 147 / 148): checkAtck (the rows), the jump checks, pose begin / end,
+    //      run begin ... only while mIsCancelCehckEnable is set; a match calls setAction* and the move starts
+    //   6. moveAction 0x821520: moveActionLower (the lower body's state function, incl. MoveTable's dispatch of custom
+    //      ids) THEN moveActionUpper (the upper body's: the gun shots, the gun pose)   0x7A844E
+    //      -> [POST-ACTION TICK] every add_post_tick() callback                        0x7A8453
+    //   7. checkAfterAction (vtbl 149), the process-speed controller, hit stop
+    //   8. updateMotion 0x820F50: the motion controllers' requests are consumed (cMotionCtrl::update: motion, blend
+    //      rate, attributes), a new motion resets the windows (initMotCancel) and picks its .ctn script
+    //   9. updateCollision, moveMotion (the frame advances) ...
+    //
+    // The pre-check tick (4) is where a mod sees the player before any of this tick's decisions: what the previous
+    // tick's state functions left in mActLimit / mActStat / the windows is what the checks in 5 will read, so this is
+    // the place to re-assert a move's words (a move that must stay airborne while an upper-body action keeps
+    // reloading the limits from its own table), to eat a press before checkAtck matches a row on it, or to set a
+    // command bit by hand. The post-action tick (6) sees what both halves' state functions requested this tick and
+    // runs before updateMotion consumes it: the place to rescale a blend rate or change a motion attribute a
+    // vanilla function just set (its mIsBlendRateSetReq / mIsMotionSetReq flags say what was set this tick). Both run
+    // for EVERY uPlayer that ticks (the player, NPC and boss copies, a co-op partner): key any state by the pointer
+    // (a 4-slot least-recently-seen table, never "reset slot 0"), and keep the callbacks cheap, they run 60+ times a
+    // second per player. A callback may call into the game (setActionAtck, requestSetMotion ...); it must not throw.
+    //
+    // Installation: the hooks are shared, one installer each. The pre-check hook at 0x7A83B5 replaces the 8 bytes
+    // `mov edx, [edi]; mov eax, [edx+248h]` (edi = the player) with `detour` and continues at jmp_ret = 0x7A83BD;
+    // the post-action hook at 0x7A8453 replaces `mov edx, [edi]; mov eax, [edx+254h]` (the checkAfterAction vtable
+    // fetch) with `detour_post`, jmp_ret_post = 0x7A845B. A mod that needs one checks the installed flag first:
+    //     if (!input_commands::hook_installed) { install_hook_absolute(0x7A83B5, hook, &input_commands::detour, &input_commands::jmp_ret, 8); input_commands::hook_installed = true; }
+    //     input_commands::add_tick(&my_tick);
+    // (Gerb and MoveDef do this for the pre-check hook; nothing installs the post-action hook today, its first user does.)
+    // Callbacks run in registration order and can't be removed; register from on_initialize.
+    typedef void (*TickFn)(uintptr_t player);
+    bool add_tick(TickFn fn);            // pre-check tick: after executeCommandCheck, before checkBeforeAction
+    bool add_post_tick(TickFn fn);       // post-action tick: after moveAction (both halves), before updateMotion
+    extern bool hook_installed;          // the 0x7A83B5 hook is in place (its installer sets this)
+    extern bool post_hook_installed;     // the 0x7A8453 hook is in place
+    extern uintptr_t jmp_ret_post;       // 0x7A845B once installed
+    void detour_post();
 
     // The hook: 0x7A83B5 in uPlayer::main, right after `call uPlayer::executeCommandCheck` (edi = this); the 8
     // bytes replaced are `mov edx, [edi]; mov eax, [edx+248h]`, so jmp_ret = 0x7A83BD.

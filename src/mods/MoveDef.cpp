@@ -65,7 +65,7 @@ bool lmt_file_exists(const std::string& game_path) {
     return !game_path.empty() && std::filesystem::exists(".\\nativePC\\" + game_path + ".lmt");
 }
 
-int character_of(uintptr_t pl) { return at<int>(pl, 0xE64) == 1 ? move_registry::NERO : move_registry::DANTE; }   // uPlayer::mPlayerID: 0 Dante, 1 Nero
+int character_of(uintptr_t pl) { return at<int>(pl, pl::mPlayerID) == 1 ? move_registry::NERO : move_registry::DANTE; }   // uPlayer::mPlayerID 0x1494: 0 Dante, 1 Nero
 
 // The player's orientation with its up leaned `tilt` degrees toward the level part of `dir`, then rolled `roll` degrees
 // about its forward (180 = upside down, Gerb's dive), as an MT quaternion (mt_basis_quat, MtMath.hpp).

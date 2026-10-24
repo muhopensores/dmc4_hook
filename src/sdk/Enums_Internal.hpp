@@ -105,6 +105,26 @@ enum ATTACK_DIRECTION_CMD {
 // C_ALL}; the high nibble 0x10 opens (mStat 2), 0x30 reserves (mStat 1), 0x20 closes. An attack row's cancel entry
 // (cmdNo) names one of these; checkAtckCancel wants its mStat 2 (or 1, which queues the attack). RE note
 // player_move_pipeline.md "cancel verdict".
+// uPlayer::mMotionCtrl[7] (+0x2894, cMotionCtrl 0x3C each: mMotionNo +0x14, mIsBlendRateSetReq +0x05, mBlendRate +0x30):
+// the motion drivers, one per thing that plays a motion on the player. 0-2 are the body halves the game's BODY_ID
+// names (uPlayer::requestSetMotion's type argument: 0 lower, 1 upper, 2 "third"); 3 the face model; 4-6 the coat
+// model's mirrors of 0-2 (requestSetMotion copies the motion number across when mpCoatMdl is set). The whole-body
+// request (requestSetMotion_2 / indexed_anim_call) fills LOWER and clears UPPER / AIM; the upper-body actions (gun
+// shots, the gun pose) drive UPPER with the pose motion and AIM with the elevation extreme at a blend rate = the
+// target's elevation over the pose's max angle (RE note player_move_pipeline.md "The gun pose system and the aim").
+// uPlayer::updateMotion runs cMotionCtrl::update on all seven; a new motion on LOWER or UPPER resets the cancel
+// windows and picks the .ctn script.
+enum MOTION_CTRL {
+    MC_LOWER      = 0,   // BODY_ID lower: the lower body (every MoveTable state function's motion)
+    MC_UPPER      = 1,   // BODY_ID upper: the upper body (attack 12's gun shot, pose 13 / 16)
+    MC_AIM        = 2,   // BODY_ID third: the aim layer blended over UPPER (elevation extreme, mMotionBlendWeight)
+    MC_FACE       = 3,   // the face model (mpFaceMdl): mirrors LOWER's motion number
+    MC_COAT_LOWER = 4,   // the coat model (mpCoatMdl): mirrors 0-2
+    MC_COAT_UPPER = 5,
+    MC_COAT_AIM   = 6,
+    MOTION_CTRL_NUM = 7
+};
+
 enum CANCEL_NO {
     C_NORM0       = 0,   // melee + gun (the usual "attack cancel" window)
     C_NORM1       = 1,

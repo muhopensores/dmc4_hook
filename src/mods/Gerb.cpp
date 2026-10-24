@@ -363,11 +363,13 @@ std::optional<std::string> Gerb::on_initialize() {
     move_registry::register_move(move_registry::NERO, move_id_vertical, &mod_enabled, &gerb::move);
     g_bf_style_cmd.condition(CND_POSE).lever(LEVER_CENTRED).lever(LEVER_BACK, LEVER_TARGET_45, 15).lever(LEVER_FORWARD, LEVER_TARGET_45, 15).button(BTN_STYLE);
     add(g_bf_style_cmd.head(), cmd_bf_style, &mod_enabled);   // bit 85 while the mod is on
-    if (!install_hook_absolute(0x7A83B5, hook_cmd, &input_commands::detour, &input_commands::jmp_ret, 8)) {
-        spdlog::error("Gerb: failed to hook uPlayer::main after executeCommandCheck (0x7A83B5)");
-        return "Failed to init Gerb (command hook)";
+    if (!input_commands::hook_installed) {     // one installer: whichever of Gerb / WallRun / MoveDef initialises first
+        if (!install_hook_absolute(0x7A83B5, hook_cmd, &input_commands::detour, &input_commands::jmp_ret, 8)) {
+            spdlog::error("Gerb: failed to hook uPlayer::main after executeCommandCheck (0x7A83B5)");
+            return "Failed to init Gerb (command hook)";
+        }
+        input_commands::hook_installed = true;
     }
-    input_commands::hook_installed = true;     // MoveDef installs it instead when Gerb is gone
     return Mod::on_initialize();
 }
 

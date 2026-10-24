@@ -88,8 +88,34 @@ int command_check_sub(uintptr_t player, kSPlCmd* pstate, const kCmdHead* phead, 
     return r;
 }
 
+namespace { std::vector<TickFn>& ticks() { static std::vector<TickFn> v; return v; } }
+bool add_tick(TickFn fn) { if (!fn) return false; ticks().push_back(fn); return true; }
+
+namespace { std::vector<TickFn>& post_ticks() { static std::vector<TickFn> v; return v; } }
+uintptr_t jmp_ret_post = 0;
+bool post_hook_installed = false;
+bool add_post_tick(TickFn fn) { if (!fn) return false; post_ticks().push_back(fn); return true; }
+
+void __stdcall run_post(uintptr_t player) {
+    if (!player) return;
+    for (TickFn f : post_ticks()) f(player);
+}
+
+naked void detour_post() {
+    _asm {
+        pushad
+        push edi
+        call run_post           // __stdcall: pops its argument
+        popad
+        mov edx, [edi]
+        mov eax, [edx + 0x254]
+        jmp dword ptr [jmp_ret_post]
+    }
+}
+
 void __stdcall run(uintptr_t player) {
     if (!player) return;
+    for (TickFn f : ticks()) f(player);
     const uint32_t btn_on = *(uint32_t*)(player + 0x140C);          // cInterface::mBtnOn
     uint32_t* cmd_flag = (uint32_t*)(player + 0x2184);              // mCmdFlag[3]
     for (Entry& e : entries()) {
