@@ -2,6 +2,7 @@
 #include "MoveTable.hpp"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/InputCommand.hpp"
+#include "../sdk/MoveRegistry.hpp"
 #include "../sdk/CtnScript.hpp"
 #include <algorithm>
 #include <cmath>
@@ -386,8 +387,12 @@ void apply_row() {
 // ---------------------------------------------------------------------------------------------------------------
 using namespace dante_air_dodge;
 
+// the registry's state-function shape (player, atckId): the dodge has one row
+static void __stdcall dodge_move(uintptr_t player, uint32_t) { dante_air_dodge::move(player); }
+
 std::optional<std::string> DanteAirDodge::on_initialize() {
     using namespace input_commands;
+    move_registry::register_move(move_registry::DANTE, move_id, &mod_enabled, &dodge_move);   // the ID gate + Dante dispatch
     g_dodge_cmd.condition(CND_POSE).button(BTN_JUMP);
     add(g_dodge_cmd.head(), cmd_bit, &mod_enabled, &can_dodge);   // bit 86: lock-on + jump while the stick leans sideways and a dodge is left
     if (!install_hook_absolute(0x7B8E30, hook_wjump, &detour_wjump_check, &jmp_ret_wjump, 6)) {

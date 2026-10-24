@@ -25,6 +25,12 @@ public:
     static int GerbVertical;     // its second row (the up / down jump, id 0x41)
     static int DanteAirDodge;    // Dante row index marker (extra_dante_moves at insertion), see DanteAirDodge.cpp
 
+    // A row from another mod (MoveDef): inserted at the front of `character`'s table (0 Nero, 1 Dante) like the ones
+    // above, 14 words = kAtckDefTbl. Returns the marker; `row(character, marker)` finds it again after later insertions.
+    // Rows must be added before the game hands the table to a player (on_initialize), or that player's pointer dangles.
+    static int add_row(int character, const uint32_t words[14]);
+    static kAtckDefTbl* row(int character, int marker);
+
     MoveTable() = default;
 
     // void toggle(bool enable);

@@ -7,6 +7,7 @@
 namespace input_commands {
 
 uintptr_t jmp_ret = 0;
+bool hook_installed = false;
 
 namespace {
 
@@ -17,6 +18,8 @@ struct Entry {
     int bit = 0;
     const bool* enabled = nullptr;
     Predicate predicate = nullptr;
+    PredicateCtx pred_ctx = nullptr;
+    void* ctx = nullptr;
     uintptr_t players[kPlayerSlots] = {};
     uint32_t  seen[kPlayerSlots] = {};
     kSPlCmd   states[kPlayerSlots] = {};
@@ -51,6 +54,23 @@ bool add(const kCmdHead* head, int bit, const bool* enabled, Predicate predicate
     return true;
 }
 
+bool add(const kCmdHead* head, int bit, const bool* enabled, PredicateCtx predicate, void* ctx) {
+    if (!head || bit < FIRST_FREE_BIT || bit > LAST_BIT) return false;
+    for (const Entry& e : entries()) if (e.bit == bit) return false;
+    Entry e; e.head = head; e.bit = bit; e.enabled = enabled; e.pred_ctx = predicate; e.ctx = ctx;
+    entries().push_back(e);
+    return true;
+}
+
+int next_free_bit() {
+    for (int bit = FIRST_FREE_BIT; bit <= LAST_BIT; ++bit) {
+        bool taken = false;
+        for (const Entry& e : entries()) if (e.bit == bit) { taken = true; break; }
+        if (!taken) return bit;
+    }
+    return -1;
+}
+
 int command_check_sub(uintptr_t player, kSPlCmd* pstate, const kCmdHead* phead, const kCmdData* psteps) {   // (`st` is a MASM register name)
     int r;
     _asm {
@@ -76,6 +96,7 @@ void __stdcall run(uintptr_t player) {
         kSPlCmd& st = e.state_for(player);
         if (e.enabled && !*e.enabled) { st = kSPlCmd{}; continue; }
         if (e.predicate && !e.predicate(player)) { st = kSPlCmd{}; continue; }
+        if (e.pred_ctx && !e.pred_ctx(player, e.ctx)) { st = kSPlCmd{}; continue; }
         // the head's condition, as executeCommandCheck applies it: failing it resets the command's state
         bool ok = true;
         switch (e.head->condition) {

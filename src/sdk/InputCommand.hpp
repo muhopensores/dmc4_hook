@@ -73,6 +73,7 @@ namespace input_commands {
     // game's steps can't express, e.g. the stick leaning sideways). Returns false when the bit is out of range or
     // already taken.
     typedef bool (*Predicate)(uintptr_t player);
+    typedef bool (*PredicateCtx)(uintptr_t player, void* ctx);   // the same with a context pointer (one function, many commands)
     bool add(const kCmdHead* head, int bit, const bool* enabled = nullptr, Predicate predicate = nullptr);
 
     // uPlayer::commandCheckSub 0x805A10 (stdcall this, kSPlCmd*, kCmdHead*, kCmdData*; result in al; its helpers
@@ -82,6 +83,11 @@ namespace input_commands {
     // The hook's body: every registered command for `player`, with a state per (command, player). Called by the
     // detour for every uPlayer::main (players, NPC / boss Dante ...).
     void __stdcall run(uintptr_t player);
+
+    // The same, with a context pointer handed back to the predicate (MoveDef: one predicate function for every move).
+    bool add(const kCmdHead* head, int bit, const bool* enabled, PredicateCtx predicate, void* ctx);
+    int  next_free_bit();            // the first of FIRST_FREE_BIT..LAST_BIT no command holds, -1 when none is left
+    extern bool hook_installed;      // the 0x7A83B5 hook is in place (whoever installs it sets this; one installer only)
 
     // The hook: 0x7A83B5 in uPlayer::main, right after `call uPlayer::executeCommandCheck` (edi = this); the 8
     // bytes replaced are `mov edx, [edi]; mov eax, [edx+248h]`, so jmp_ret = 0x7A83BD.

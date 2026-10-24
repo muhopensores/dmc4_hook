@@ -330,6 +330,10 @@ set(MODS_SRC
   mods/LMTSlotFix.cpp
   mods/MoveTable.hpp
   mods/MoveTable.cpp
+  mods/XmlMove.hpp
+  mods/XmlMove.cpp
+  mods/MoveDef.hpp
+  mods/MoveDef.cpp
   mods/WallRun.hpp
   mods/WallRun.cpp
   mods/Gerb.hpp
@@ -394,6 +398,8 @@ set(SDK_SRC
     sdk/Devil4.cpp
     sdk/InputCommand.hpp
     sdk/InputCommand.cpp
+    sdk/MoveRegistry.hpp
+    sdk/MoveRegistry.cpp
     sdk/Devil4.hpp
     sdk/uActor.hpp
     sdk/uCollisionMgr.hpp

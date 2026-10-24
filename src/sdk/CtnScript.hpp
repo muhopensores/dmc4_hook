@@ -79,14 +79,16 @@ namespace ctn {
         // with nibble = its number, and C_COMMAND .. C_ALL go in byte (c - 2) with nibble 0. The high nibble is the
         // mode; a 0 byte changes nothing. Only one of the three normals fits per command (byte 0): emit two commands
         // for more.
-        Script& cancels(CancelMode mode, std::initializer_list<CANCEL_NO> which) {
+        Script& cancels(CancelMode mode, const CANCEL_NO* which, size_t n) {
             uint8_t info[6] = { 0, 0, 0, 0, 0, 0 };
-            for (CANCEL_NO c : which) {
+            for (size_t i = 0; i < n; ++i) {
+                const CANCEL_NO c = which[i];
                 if (c <= C_NORM2)      info[0] = (uint8_t)(mode | (uint8_t)c);
                 else if (c <= C_ALL)   info[c - 2] = (uint8_t)mode;
             }
             return contact(CONTACT_CANCEL, info);
         }
+        Script& cancels(CancelMode mode, std::initializer_list<CANCEL_NO> which) { return cancels(mode, which.begin(), which.size()); }
         Script& open(std::initializer_list<CANCEL_NO> which)    { return cancels(CANCEL_OPEN, which); }
         Script& close(std::initializer_list<CANCEL_NO> which)   { return cancels(CANCEL_CLOSE, which); }
         Script& reserve(std::initializer_list<CANCEL_NO> which) { return cancels(CANCEL_RESERVE, which); }

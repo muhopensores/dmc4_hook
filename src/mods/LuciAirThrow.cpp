@@ -1,4 +1,5 @@
 #include "LuciAirThrow.hpp"
+#include "../sdk/MoveRegistry.hpp"
 #include "MoveTable.hpp"
 #include "sdk/uPlayer.hpp"
 
@@ -71,7 +72,14 @@ naked void detour4(void) { // Wp frame skip
     }
 }
 
+// id 0x6D's state function: the game's own splash routine (uPlayerDante 0x7D6ED0), reached through MoveTable's
+// Dante dispatch hook via the registry
+static void __stdcall splash_move(uintptr_t actor, uint32_t) {
+    ((void(__stdcall*)(uintptr_t))0x007D6ED0)(actor);
+}
+
 std::optional<std::string> LuciAirThrow::on_initialize() {
+    move_registry::register_move(move_registry::DANTE, 0x6D, &mod_enabled, &splash_move);
     if (!install_hook_offset(0x3D6F2B, hook1, &detour1, &jmp_ret1, 8)) {
 		spdlog::error("Failed to init LuciAirThrow mod\n");
 		return "Failed to init LuciAirThrow mod";

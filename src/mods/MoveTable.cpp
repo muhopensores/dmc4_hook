@@ -1,7 +1,8 @@
 #include "MoveTable.hpp"
-#include "Gerb.hpp"
+#include "Gerb.hpp"              // row ids only (the rows are inserted here; the moves register themselves)
 #include "DanteAirDodge.hpp"
 #include "sdk/Devil4.hpp"
+#include "sdk/MoveRegistry.hpp"
 #include "sdk/StringData.hpp"
 #include "sdk/sRender.hpp"
 // mods that require this:
@@ -45,28 +46,19 @@ int MoveTable::backForwardQuickDrive = 0;
 }*/
 
 // 0x803C67 in uPlayer::checkAtck: `test [ecx+eax*4+18h], edx` is the unlocked-moves bitset test (ebx = atckId,
-// eax = atckId / 32, edx = 1 << (atckId % 32)); a row whose id has no bit is skipped. New ids are let through here.
+// eax = atckId / 32, edx = 1 << (atckId % 32)); a row whose id has no bit is skipped. A registered id whose mod is
+// enabled is let through (sdk/MoveRegistry.hpp); every other id takes the game's test.
+static uint8_t s_id_allowed = 0;
+static bool __stdcall id_allowed_thunk(uint32_t id) { return move_registry::id_allowed(id); }   // a plain name for the asm
 naked void detour0(void) { // MoveTable toggle() function
     _asm {
-            // each mod's ids are let through while it is enabled; a disabled mod falls through to the next check,
-            // never straight to the original code (that skipped the later mods' ids)
-            cmp byte ptr [LuciAirThrow::mod_enabled], 1
-            jne gerbcheck
-            cmp ebx, 0x6d // luci air throw
-            je retcode
-        gerbcheck:
-            cmp byte ptr [gerb::mod_enabled], 1
-            jne dodgecheck
-            cmp ebx, 0x40 // gerb::move_id (Nero)
-            je retcode
-            cmp ebx, 0x41 // gerb::move_id_vertical
-            je retcode
-        dodgecheck:
-            cmp byte ptr [dante_air_dodge::mod_enabled], 1
-            jne originalcode
-            cmp ebx, 0x6E // dante_air_dodge::move_id (Dante)
-            je retcode
-        originalcode:
+            pushad
+            push ebx                              // atckId
+            call id_allowed_thunk                 // __stdcall: pops it; result in al
+            mov byte ptr [s_id_allowed], al
+            popad
+            cmp byte ptr [s_id_allowed], 0
+            jne retcode
             test [ecx+eax*4+0x18], edx
             je jecode
         retcode:
@@ -118,33 +110,17 @@ naked void detour2(void) { // Assign Nero's kAtckDefTbl
     }
 }
 
-// Handle Dante's new >0x6B move ids
+// Handle Dante's new >0x6B move ids: whoever registered the id (sdk/MoveRegistry.hpp) runs; nobody = nothing, like
+// the vanilla default. (LuciAirThrow registers 0x6D, DanteAirDodge 0x6E.)
 void __stdcall dante_move_switch(uint32_t moveID, uintptr_t actor) {
-    switch (moveID + 1) {
-        case 0x6D: {
-            uintptr_t splash_func = 0x007D6ED0;
-            (((void(__stdcall*)(uintptr_t))splash_func)(actor));
-            break;
-        }
-        case dante_air_dodge::move_id:
-            dante_air_dodge::move(actor);
-            break;
-        default:
-            return;
-    }
+    move_registry::dispatch(move_registry::DANTE, moveID + 1, actor);
 }
 
 // Handle Nero's new move ids. uPlayerNero::moveActAtckL 0x7F9CD0 switches on moveID2 1..0x2B (lower body);
 // moveActAtckU 0x7F9E90 on 0x2C..0x33 (gun / upper body) and returns for anything else, so new ids start at 0x34.
+// (Gerb registers 0x40 / 0x41.)
 void __stdcall nero_move_switch(uint32_t moveID, uintptr_t actor) {
-    switch (moveID + 1) {
-        case gerb::move_id:
-        case gerb::move_id_vertical:
-            gerb::move(actor, moveID + 1);
-            break;
-        default:
-            return;
-    }
+    move_registry::dispatch(move_registry::NERO, moveID + 1, actor);
 }
 
 // 0x7F9CDB: `cmp ecx, 2Ah; ja default` (9 bytes); ecx = moveID2 - 1, eax = uPlayerNero; the function has no frame,
@@ -245,6 +221,23 @@ uint32_t CompareArrays(const std::vector<unsigned int>& arr1,const std::vector<u
     return 0x6969;
 }
 #endif
+
+int MoveTable::add_row(int character, const uint32_t words[14]) {
+    std::vector<uint32_t>& tbl = character == 0 ? NeroAtckDefTbl : DanteAtckDefTbl;
+    int& extra = character == 0 ? extra_nero_moves : extra_dante_moves;
+    tbl.insert(tbl.begin(), words, words + 14);
+    ++extra;
+    HookNeroKADTbl  = (uintptr_t)NeroAtckDefTbl.data();
+    HookDanteKADTbl = (uintptr_t)DanteAtckDefTbl.data();
+    return extra;
+}
+
+kAtckDefTbl* MoveTable::row(int character, int marker) {
+    const uintptr_t base = character == 0 ? HookNeroKADTbl : HookDanteKADTbl;
+    const int extra = character == 0 ? extra_nero_moves : extra_dante_moves;
+    if (!base || marker <= 0 || marker > extra) return nullptr;
+    return (kAtckDefTbl*)base + (extra - marker);
+}
 
 std::optional<std::string> MoveTable::on_initialize() {
     updateKDATbl();
