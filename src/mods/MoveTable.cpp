@@ -165,19 +165,12 @@ naked void detour4(void) {
 }
 
 // uintptr_t detour3_ja = 0x7CD504;
+// Every id above 0x6B goes to dante_move_switch, whatever mods are on: an id no enabled mod claims does nothing there
+// and falls into the epilogue, which is the vanilla `ja` path for those ids anyway. (Until 2026-10-24 this was gated
+// on LuciAirThrow::mod_enabled, so with that mod off a DanteAirDodge row could set its action but its state function
+// never ran: no motion, no exit, no cancels, the player frozen until a restart.)
 naked void detour3(void) { // Handle Dante's move call
     _asm { 
-            cmp byte ptr [LuciAirThrow::mod_enabled], 1
-            je newcode
-
-            cmp ecx, 0x6B
-            push esi
-            push edi
-            ja jacode
-        retcode:
-            jmp dword ptr [MoveTable::jmp_ret3]
-
-        newcode:
             cmp ecx, 0x6B
             push esi
             push edi
@@ -193,6 +186,8 @@ naked void detour3(void) { // Handle Dante's move call
             mov esp,ebp
             pop ebp
             ret
+        retcode:
+            jmp dword ptr [MoveTable::jmp_ret3]
     }
 }
 
