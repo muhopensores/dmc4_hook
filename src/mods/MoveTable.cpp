@@ -116,6 +116,12 @@ void __stdcall dante_move_switch(uint32_t moveID, uintptr_t actor) {
     move_registry::dispatch(move_registry::DANTE, moveID + 1, actor);
 }
 
+// A vanilla id's tick (both characters): MoveDef overlays get to look at the move before the game's function runs;
+// true = they handed off to another move, the game's function is skipped this tick (its phase word is the new move's).
+static uint8_t s_vanilla_handled = 0;
+bool __stdcall dante_vanilla_tick(uint32_t moveID, uintptr_t actor) { return move_registry::vanilla_tick(move_registry::DANTE, moveID + 1, actor); }
+bool __stdcall nero_vanilla_tick(uint32_t moveID, uintptr_t actor)  { return move_registry::vanilla_tick(move_registry::NERO, moveID + 1, actor); }
+
 // Handle Nero's new move ids. uPlayerNero::moveActAtckL 0x7F9CD0 switches on moveID2 1..0x2B (lower body);
 // moveActAtckU 0x7F9E90 on 0x2C..0x33 (gun / upper body) and returns for anything else, so new ids start at 0x34.
 // (Gerb registers 0x40 / 0x41.)
@@ -129,7 +135,17 @@ naked void detour4(void) {
     _asm {
             cmp ecx, 0x2A
             ja newcode
-            jmp dword ptr [MoveTable::jmp_ret4]     // a vanilla id: the game's jump table
+            pushad                                  // a vanilla id: the overlays first (eax = uPlayerNero, ecx = id - 1)
+            push eax
+            push ecx
+            call nero_vanilla_tick                  // __stdcall(id - 1, player), pops both; result in al
+            mov byte ptr [s_vanilla_handled], al
+            popad
+            cmp byte ptr [s_vanilla_handled], 0
+            jne handled
+            jmp dword ptr [MoveTable::jmp_ret4]     // the game's jump table
+        handled:
+            ret                                     // no frame: back to the caller, like every case
         newcode:
             pushad
             push eax // uPlayerNero
@@ -146,24 +162,37 @@ naked void detour4(void) {
 // on LuciAirThrow::mod_enabled, so with that mod off a DanteAirDodge row could set its action but its state function
 // never ran: no motion, no exit, no cancels, the player frozen until a restart.)
 naked void detour3(void) { // Handle Dante's move call
-    _asm { 
+    _asm {
             cmp ecx, 0x6B
+            ja custom
+            pushad                                  // a vanilla id: the overlays first (eax = uPlayerDante, ecx = id - 1)
+            push eax
+            push ecx
+            call dante_vanilla_tick
+            mov byte ptr [s_vanilla_handled], al
+            popad
+            cmp byte ptr [s_vanilla_handled], 0
+            jne handled
+            push esi                                // the replaced bytes, then the game's switch
+            push edi
+            jmp dword ptr [MoveTable::jmp_ret3]
+        handled:
+            mov esp,ebp                             // the function's epilogue without the pushes
+            pop ebp
+            ret
+        custom:
             push esi
             push edi
-            jna retcode // old moveid, continue
             pushad
             push eax // uPlayerDante
             push ecx // moveID
             call dante_move_switch
             popad
-        jacode:
             pop edi
             pop esi
             mov esp,ebp
             pop ebp
             ret
-        retcode:
-            jmp dword ptr [MoveTable::jmp_ret3]
     }
 }
 

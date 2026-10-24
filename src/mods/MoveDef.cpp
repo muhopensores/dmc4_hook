@@ -84,6 +84,46 @@ void basis_quat(uintptr_t pl, const glm::vec3& dir, float tilt, float roll, floa
     mt_basis_quat(b[0], b[1], b[2], out);
 }
 
+// uPlayer::setActionAtck 0x7AAC80 (__userpurge: this@eax, atckId@ecx, body on the stack, callee pops): the hand-off
+// the vanilla moves use to chain without a new row match (Stinger -> Million Stab: `setActionAtck(this, 6, -1)` then the
+// new state function in the same tick). It swaps mAtckId (mOldAtckId keeps the previous), zeroes the lower phase through
+// setActionLowerBdy(12) and the upper's when `body` is non-zero, bumps the attack counters, sets AST_ATCK and clears the
+// cancel gate. RE: player_move_pipeline.md "Hand-off between moves".
+constexpr uintptr_t fn_setActionAtck = 0x007AAC80;
+void set_action_atck(uintptr_t pl, uint32_t id, int body) {
+    uintptr_t fn = fn_setActionAtck;
+    __asm {
+        pushad
+        mov eax, pl
+        mov ecx, id
+        push body
+        call fn
+        popad
+    }
+}
+
+// uPlayer::setActionFootwork 0x7AA2C0 (__userpurge: this@esi, float hokan, char isMotSet; callee pops): how a ground
+// move ends (Million Stab, Stinger: `setActionFootwork(10.0, 1)`): zeroes velocity / mMoveVel / mYoyakuAtckId / mAtckId,
+// requests the (battle) footwork motion with `hokan` interpolation frames, setAction(1) (13 when posing).
+constexpr uintptr_t fn_setActionFootwork = 0x007AA2C0;
+void set_action_footwork(uintptr_t pl, float hokan, int is_mot_set) {
+    uintptr_t fn = fn_setActionFootwork;
+    __asm {
+        pushad
+        mov esi, pl
+        push is_mot_set
+        push hokan
+        call fn
+        popad
+    }
+}
+
+// Leave the move: the footwork on the ground, the neutral air transition in the air.
+void exit_move(uintptr_t pl) {
+    if (at<uint32_t>(pl, pl::mActStat) & 0x1) set_action_footwork(pl, 10.0f, 1);
+    else devil4_sdk::neutral_air_transition((uPlayer*)pl);
+}
+
 // uPlayer::checkEmJumpBegin: the enemy step (jump cancel) reads no cancel window, only a jump press, the upgrade and an
 // enemy to step on; on success it starts action 25 itself. Called by the move while its gate is still off.
 bool check_enemy_step(uintptr_t pl) {
@@ -111,8 +151,22 @@ struct PlayerState {                   // what the phase word can't hold, per pl
     int used = 0;                      // starts since the last landing
     int wait_ticks = 0, stuck_ticks = 0;
     float last_frame = -1.0f;
+    int idle[4] = { 0, 0, 0, 0 };      // ticks since melee / gun / jump / style was last pressed (<next idle=>)
+    uint64_t fx_fired = 0;             // timeline events fired this entry (bit per event, 64 at most)
+    float fx_prev = -1.0f;             // the motion frame last tick (fires on prev < frame <= cur)
+    uint32_t fx_motion = 0xFFFF;       // the motion the timeline is running on (overlays: reset when it changes)
+    uintptr_t bank_rsrc = 0;           // the rMotionList this move put in its bank for this player (0 = none yet)
+    bool bank_conflict = false;        // the bank already held another LMT (another mod's): reported once, the move refuses
     ctn::Script script;                // the in-memory .ctn script (its bytes must outlive the motion)
 };
+constexpr uint32_t kIdleButtons[4] = { 0x1, 0x2, 0x4, 0x200 };
+
+int idle_index(uint32_t button) { for (int i = 0; i < 4; ++i) if (kIdleButtons[i] & button) return i; return -1; }
+
+void count_idle(PlayerState& s, uintptr_t pl) {
+    const uint32_t trg = at<uint32_t>(pl, pl::mBtnTrg);
+    for (int i = 0; i < 4; ++i) s.idle[i] = (trg & kIdleButtons[i]) ? 0 : s.idle[i] + 1;
+}
 
 struct Move {
     xmlmove::File def;
@@ -363,24 +417,43 @@ void open_cancel_gate(const xmlmove::Stage& st, uintptr_t pl) {
 void arm_script(const xmlmove::Stage& st, PlayerState& s, uintptr_t pl) {
     if (s.script_set) return;
     s.script_set = true;
-    if (st.cancels.empty()) return;
+    if (st.cancels.empty() && st.triggers.empty()) return;
     ctn::Script& sc = s.script;
     sc.reset();
+    // cancels and triggers merged by frame (both lists are sorted)
+    size_t ci = 0, ti = 0;
     float cur = -1.0f;
-    for (const xmlmove::Cancel& c : st.cancels) {
-        if (c.frame != cur) { sc.wait(c.frame); cur = c.frame; }
-        if (c.categories.empty()) {
-            if (c.mode == ctn::CANCEL_CLOSE) sc.close_all();
-            else if (c.mode == ctn::CANCEL_RESERVE) sc.reserve({ C_NORM0, C_COMMAND, C_JUMP, C_CHOUHATSU, C_GUN, C_ALL });
-            else sc.open_all();
+    while (ci < st.cancels.size() || ti < st.triggers.size()) {
+        const bool take_cancel = ti >= st.triggers.size() || (ci < st.cancels.size() && st.cancels[ci].frame <= st.triggers[ti].frame);
+        const float frame = take_cancel ? st.cancels[ci].frame : st.triggers[ti].frame;
+        if (frame != cur) { sc.wait(frame); cur = frame; }
+        if (take_cancel) {
+            const xmlmove::Cancel& c = st.cancels[ci++];
+            if (c.categories.empty()) {
+                if (c.mode == ctn::CANCEL_CLOSE) sc.close_all();
+                else if (c.mode == ctn::CANCEL_RESERVE) sc.reserve({ C_NORM0, C_COMMAND, C_JUMP, C_CHOUHATSU, C_GUN, C_ALL });
+                else sc.open_all();
+            } else {
+                CANCEL_NO cats[8]; size_t n = 0;
+                for (int cat : c.categories) if (n < 8) cats[n++] = (CANCEL_NO)cat;
+                sc.cancels((ctn::CancelMode)c.mode, cats, n);
+            }
         } else {
-            CANCEL_NO cats[8]; size_t n = 0;
-            for (int cat : c.categories) if (n < 8) cats[n++] = (CANCEL_NO)cat;
-            sc.cancels((ctn::CancelMode)c.mode, cats, n);
+            const xmlmove::Trigger& t = st.triggers[ti++];
+            uint8_t info[6] = { 0, 0, 0, 0, 0, 0 };     // set 0: atck, free2, camVib, free1, free0, padVib; a zero byte changes nothing
+            info[t.byte] = t.value;
+            sc.contact(ctn::CONTACT_MOVE, info);
         }
     }
     sc.end();
     devil4_sdk::install_ctn_script((void*)pl, sc.data());
+}
+
+// gate_open / arm_script above make the script's cancels usable; this makes the stage's <trigger> bytes readable:
+// mMotCont is {atck, camVib, free0, free1, free2, padVib} in memory (+0x1D7C ..), the .ctn info order differs
+uint8_t contact_value(uintptr_t pl, int info_index) {
+    static const int kOffsetOf[6] = { 0, 4, 1, 3, 2, 5 };   // info index -> byte offset in mMotCont
+    return info_index >= 0 && info_index < 6 ? at<uint8_t>(pl, 0x1D7C + kOffsetOf[info_index]) : 0;
 }
 
 // The press that started the move can outlive its tick (the pad reports slower than the game ticks) and
@@ -392,26 +465,134 @@ void eat_held_press(const xmlmove::Stage& st, PlayerState& s, uintptr_t pl) {
     if (st.eat_press & 0x4) at<bool>(pl, pl::mMotCnclJumpReserve) = false;
 }
 
+// ---- the runtime timeline (<effect> / <se> / <kill_effect> / <finish_effect>) -----------------------------------
+void fire_fx(const xmlmove::FxEvent& e, uintptr_t pl) {
+    switch (e.kind) {
+    case xmlmove::FxEvent::EFFECT: {
+        void* parent = (void*)pl;
+        if (e.joint == "weapon") { parent = devil4_sdk::held_weapon((void*)pl); if (!parent) return; }
+        const uint32_t material = e.material == -2 ? devil4_sdk::ground_material((void*)pl) : (uint32_t)e.material;
+        void* effect = nullptr;
+        if (e.list >= 0) effect = devil4_sdk::effect_const(e.list, e.index, parent, (uint32_t)e.group, material, e.unit_line, (void*)pl);
+        else             effect = devil4_sdk::effect_generator((char*)e.efl.c_str(), (void*)pl, (uint8_t)e.unit_line, (uint32_t)e.group, material);
+        if (effect) devil4_sdk::register_effect(effect, (void*)pl, e.type, e.id);
+        return;
+    }
+    case xmlmove::FxEvent::SE:     devil4_sdk::play_player_se((void*)pl, e.id); return;
+    case xmlmove::FxEvent::KILL:   devil4_sdk::kill_effect((void*)pl, e.id); return;
+    case xmlmove::FxEvent::FINISH: devil4_sdk::finish_effect((void*)pl, e.id); return;
+    }
+}
+
+// Once per entry (or per loop with repeat="loop"), when the motion frame passes the event's frame: prev < frame <= cur.
+// The first tick after the request has prev = -1, so events at or before the start frame fire then.
+void run_fx(const xmlmove::Stage& st, PlayerState& s, uintptr_t pl) {
+    if (st.fx.empty()) return;
+    const uint32_t motion = at<uint32_t>(pl, pl::mMotionCtrl0No);
+    const float cur = at<float>(pl, pl::mMotionFrame0);
+    if (motion != s.fx_motion) { s.fx_motion = motion; s.fx_fired = 0; s.fx_prev = -1.0f; }
+    if (cur < s.fx_prev) {                                            // the block looped: re-arm the looping events
+        for (size_t i = 0; i < st.fx.size() && i < 64; ++i) if (st.fx[i].repeat) s.fx_fired &= ~(1ull << i);
+        s.fx_prev = -1.0f;
+    }
+    for (size_t i = 0; i < st.fx.size() && i < 64; ++i) {
+        const uint64_t bit = 1ull << i;
+        if (s.fx_fired & bit) continue;
+        if (s.fx_prev < st.fx[i].frame && st.fx[i].frame <= cur) { s.fx_fired |= bit; fire_fx(st.fx[i], pl); }
+    }
+    s.fx_prev = cur;
+}
+
+// ---- stage transitions (<next>) --------------------------------------------------------------------------------
+bool next_fires(const xmlmove::Next& n, const PlayerState& s, uintptr_t pl) {
+    if (n.always) return true;
+    const MtVector3& vel = at<MtVector3>(pl, pl::mVel);
+    if (n.motion_end && !at<bool>(pl, pl::mMotionFrameEnd0)) return false;
+    if (n.landing) {
+        const uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
+        if (!(vel.y <= 0.0f && coll && at<bool>(coll, 0x1C))) return false;
+    }
+    if (n.frame >= 0.0f && at<float>(pl, pl::mMotionFrame0) < n.frame) return false;
+    if (n.byte >= 0 && contact_value(pl, n.byte) != (uint8_t)n.value) return false;
+    if (n.button && n.idle >= 0) {                      // the mash stopped: no press of that button for `idle` ticks
+        const int i = idle_index(n.button);
+        if (i < 0 || s.idle[i] < n.idle) return false;
+    } else if (n.button) {
+        const uint32_t word = n.held ? at<uint32_t>(pl, pl::mBtnOn) : at<uint32_t>(pl, pl::mBtnTrg);
+        if (!(word & n.button)) return false;
+    }
+    if (n.stick_neutral && at<int>(pl, pl::mAnlgPow) != 0) return false;
+    return n.frame >= 0.0f || n.motion_end || n.landing || n.byte >= 0 || n.button;   // no condition = never
+}
+
+// Returns true when the stage ended (the caller returns at once). "exit" leaves through the neutral transition; a move
+// name hands off the Stinger way: setActionAtck(id, both halves) then that move's state function this same tick.
+bool run_nexts(Move& m, uintptr_t pl);
+
 // ---- the LMT bank, per player object ---------------------------------------------------------------------------
-bool ready(const Move& m, uintptr_t pl) {
-    return m.def.lmt.bank < 0 || devil4_sdk::get_motion_bank((void*)pl, m.def.lmt.bank) != 0;
+// The bank is ready only when it holds the LMT this move loaded: a bank another mod filled first (Gerb's, the wall
+// run's, a second XML move's) would play that file's blocks under our slot numbers (a six-block file asked for slot 8
+// wedges the motion controller: T-pose, frames stuck). Such a conflict is reported once and the move refuses.
+bool ready(Move& m, uintptr_t pl) {
+    if (m.def.lmt.bank < 0) return true;
+    const uintptr_t existing = devil4_sdk::get_motion_bank((void*)pl, m.def.lmt.bank);
+    PlayerState& s = m.state_for(pl);
+    return existing != 0 && existing == s.bank_rsrc;
 }
 
 void ensure_bank(Move& m, uintptr_t pl) {
     const xmlmove::Lmt& l = m.def.lmt;
     if (!pl || l.bank < 10 || l.bank > 14 || l.path.empty()) return;     // 0-9 are setup banks, 15 Nero's Buster bank
     if (m.bank_failed_for == pl) return;
-    if (devil4_sdk::get_motion_bank((void*)pl, l.bank) != 0) return;
+    PlayerState& s = m.state_for(pl);
+    const uintptr_t existing = devil4_sdk::get_motion_bank((void*)pl, l.bank);
+    if (existing != 0) {
+        if (existing == s.bank_rsrc) return;                            // ours
+        if (!s.bank_conflict) {
+            s.bank_conflict = true;
+            spdlog::warn("MoveDef: {}: bank {} of player {:#x} already holds another LMT ({:#x}): another mod's (Gerb / WallRun / "
+                         "another XML move)? pick a free bank in <lmt bank=>; the move refuses to start", m.def.name, l.bank, pl, existing);
+        }
+        return;
+    }
     if (!lmt_file_exists(l.path)) {
-        spdlog::warn("MoveDef: {}: nativePC\\{}.lmt not found; the move refuses to start until it is", m.def.name, l.path);
+        spdlog::warn("MoveDef: {}: nativePC\{}.lmt not found; the move refuses to start until it is", m.def.name, l.path);
         m.bank_failed_for = pl;
         return;
     }
     if (!devil4_sdk::load_motion_bank((void*)pl, l.path.c_str(), l.bank)) { m.bank_failed_for = pl; return; }
-    spdlog::info("MoveDef: {}: '{}' -> bank {} of player {:#x}", m.def.name, l.path, l.bank, pl);
+    s.bank_rsrc = devil4_sdk::get_motion_bank((void*)pl, l.bank);
+    s.bank_conflict = false;
+    spdlog::info("MoveDef: {}: '{}' -> bank {} of player {:#x} ({:#x})", m.def.name, l.path, l.bank, pl, s.bank_rsrc);
 }
 
 // ---- the state function ----------------------------------------------------------------------------------------
+void run_stage(Move& m, uintptr_t pl);
+
+bool run_nexts(Move& m, uintptr_t pl) {
+    const xmlmove::Stage& st = m.stage();
+    const PlayerState& s = m.state_for(pl);
+    for (const xmlmove::Next& n : st.nexts) {
+        if (!next_fires(n, s, pl)) continue;
+        if (n.to == "exit") {
+            note("%s: exit (<next>)", m.def.name.c_str());
+            exit_move(pl);
+            return true;
+        }
+        Move* other = find_move_by_name(n.to);
+        if (!other || other->def.character != m.def.character) {
+            note("%s: <next to='%s'> names no loaded move of this character", m.def.name.c_str(), n.to.c_str());
+            return false;
+        }
+        if (!other->enabled) continue;
+        note("%s -> %s (hand-off)", m.def.name.c_str(), other->def.name.c_str());
+        set_action_atck(pl, other->def.id, -1);           // mAtckId = other, phases zeroed, AST_ATCK, gate closed
+        run_stage(*other, pl);                            // its entry this tick, as Stinger runs Million Stab's
+        return true;
+    }
+    return false;
+}
+
 void run_stage(Move& m, uintptr_t pl) {
     const xmlmove::Stage& st = m.stage();
     const xmlmove::Launch& L = st.launch;
@@ -425,7 +606,12 @@ void run_stage(Move& m, uintptr_t pl) {
         ++m.entries;
         ++s.used;
         ensure_bank(m, pl);
-        if (!ready(m, pl)) { devil4_sdk::neutral_air_transition((uPlayer*)pl); return; }
+        if (!ready(m, pl)) {
+            note("%s: bank %d of player %p is empty or holds another mod's LMT (nativePC\%s.lmt missing, or the bank is taken: see the log): leaving",
+                 m.def.name.c_str(), m.def.lmt.bank, (void*)pl, m.def.lmt.path.c_str());
+            exit_move(pl);
+            return;
+        }
         glm::vec3 dv;
         const int dir = resolve_dir(m, pl, dv);
         const int motion = motion_for(m, dir);
@@ -435,6 +621,12 @@ void run_stage(Move& m, uintptr_t pl) {
             return;
         }
         s.dir = dir; s.dir_vec = dv;
+        for (int& i : s.idle) i = 0;                                   // the starting press counts as a press
+        if (st.stop) {
+            vel.x = vel.y = vel.z = 0.0f; acc.x = acc.y = acc.z = 0.0f;
+            at<float>(pl, pl::mMoveVel) = 0.0f; at<float>(pl, pl::mMoveAcc) = 0.0f;
+            clear_add_speed(pl);
+        }
         if (L.present && L.face && dir != xmlmove::UP && dir != xmlmove::DOWN) face(pl, yaw_of(dv));
         if (st.air_jump.cost > 0) at<char>(pl, pl::mWJumpCnt) += (char)st.air_jump.cost;
         if (st.ctn_bank >= 0) devil4_sdk::borrow_ctn((void*)pl, (uint32_t)st.ctn_bank, (uint32_t)st.ctn_slot);
@@ -442,22 +634,26 @@ void run_stage(Move& m, uintptr_t pl) {
         s.script_set = false;
         s.jump_held = st.eat_press != 0;
         s.wait_ticks = s.stuck_ticks = 0; s.last_frame = -1.0f;
+        s.fx_fired = 0; s.fx_prev = -1.0f; s.fx_motion = 0xFFFF;
         note("%s start: %s, motion %04X, player %p", m.def.name.c_str(), xmlmove::dir_name(dir), motion, (void*)pl);
         phase = PHASE_WAIT;
         return;
     }
     case PHASE_WAIT: {
         acc.x = acc.y = acc.z = 0.0f;
+        count_idle(s, pl);
         eat_held_press(st, s, pl);
         arm_script(st, s, pl);
         open_cancel_gate(st, pl);
+        run_fx(st, s, pl);
         if (st.enemy_step && !gate_open(st, pl) && check_enemy_step(pl)) return;      // stepped: action 25 took over
+        if (run_nexts(m, pl)) return;
         if (!L.present) { phase = PHASE_AIRBORNE; return; }                             // no ballistics: just the motion
         if (at<float>(pl, pl::mMotionFrame0) < L.frame) {
             if (++s.wait_ticks > st.watchdog) {
                 note("%s: motion did not reach the launch frame %.1f in %d ticks (frame %.1f, controller plays %04X): block missing / empty, or bank %d taken?",
                      m.def.name.c_str(), L.frame, st.watchdog, at<float>(pl, pl::mMotionFrame0), at<uint32_t>(pl, pl::mMotionCtrl0No), m.def.lmt.bank);
-                devil4_sdk::neutral_air_transition((uPlayer*)pl);
+                exit_move(pl);
             }
             return;
         }
@@ -480,12 +676,15 @@ void run_stage(Move& m, uintptr_t pl) {
         return;
     }
     case PHASE_AIRBORNE: {
+        count_idle(s, pl);
         eat_held_press(st, s, pl);
         arm_script(st, s, pl);
         open_cancel_gate(st, pl);
+        run_fx(st, s, pl);
         if (st.enemy_step && !gate_open(st, pl) && check_enemy_step(pl)) return;
+        if (run_nexts(m, pl)) return;
         const uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
-        if (st.land == "exit" && vel.y <= 0.0f && coll && at<bool>(coll, 0x1C)) { set_action_land(pl); return; }   // mLand
+        if (st.land == "exit" && L.present && vel.y <= 0.0f && coll && at<bool>(coll, 0x1C)) { set_action_land(pl); return; }   // mLand (ballistic moves only)
         if (L.present) {
             vel.y += L.gravity * at<float>(pl, pl::m_delta_time);
             if (vel.y < -L.max_fall) vel.y = -L.max_fall;
@@ -497,7 +696,7 @@ void run_stage(Move& m, uintptr_t pl) {
         if (s.stuck_ticks > st.watchdog) {
             note("%s: motion frame stuck at %.1f for %d ticks (controller plays %04X): block missing / empty, or bank %d taken?",
                  m.def.name.c_str(), frame, st.watchdog, at<uint32_t>(pl, pl::mMotionCtrl0No), m.def.lmt.bank);
-            devil4_sdk::neutral_air_transition((uPlayer*)pl);
+            exit_move(pl);
         }
         return;
     }
@@ -510,9 +709,14 @@ void run_stage(Move& m, uintptr_t pl) {
 bool validate(const xmlmove::File& f) {
     if (f.name.empty())            { spdlog::error("MoveDef: {}: <move> needs a name", f.source); return false; }
     if (f.character < 0)           { spdlog::error("MoveDef: {}: character must be pl000 or pl006", f.source); return false; }
-    if (f.id < MIN_ID[f.character]) { spdlog::error("MoveDef: {}: id {:#x} is below the first free id {:#x} for that character", f.source, f.id, MIN_ID[f.character]); return false; }
     if (f.stages.empty())          { spdlog::error("MoveDef: {}: no <stage>", f.source); return false; }
-    if (!f.table.present)          { spdlog::error("MoveDef: {}: no <table> (overlays on vanilla moves are not run yet)", f.source); return false; }
+    if (f.overlay) {               // a vanilla move's overlay: only its <next>s matter
+        if (f.id == 0 || f.id >= MIN_ID[f.character]) { spdlog::error("MoveDef: {}: an overlay's id must be a vanilla atckId (below {:#x})", f.source, MIN_ID[f.character]); return false; }
+        if (f.stages[0].nexts.empty()) { spdlog::error("MoveDef: {}: an overlay needs <next>s", f.source); return false; }
+        return true;
+    }
+    if (f.id < MIN_ID[f.character]) { spdlog::error("MoveDef: {}: id {:#x} is below the first free id {:#x} for that character", f.source, f.id, MIN_ID[f.character]); return false; }
+    // no <table> = a hand-off-only move: no row, reached through another move's <next to=> (it still gets its id)
     if (f.lmt.bank >= 0 && (f.lmt.bank < 10 || f.lmt.bank > 14)) { spdlog::error("MoveDef: {}: <lmt bank> must be 10-14", f.source); return false; }
     const xmlmove::Stage& st = f.stages[0];
     if (st.slots.empty() && st.motion < 0) { spdlog::error("MoveDef: {}: the stage needs <slot>s or motion=", f.source); return false; }
@@ -583,12 +787,19 @@ void build_command(Move& m) {
 void add_move(xmlmove::File&& f, const std::vector<xmlmove::File>& pending) {
     if (!validate(f)) return;
     if (Move* dup = find_move(f.id)) {
-        spdlog::error("MoveDef: {}: id {:#x} is already '{}' ({})", f.source, f.id, dup->def.name, dup->def.source);
-        return;
+        if (!(dup->def.overlay && f.overlay && dup->def.character != f.character)) {   // the same vanilla id on both characters is fine
+            spdlog::error("MoveDef: {}: id {:#x} is already '{}' ({})", f.source, f.id, dup->def.name, dup->def.source);
+            return;
+        }
     }
     auto up = std::make_unique<Move>();
     Move& m = *up;
     m.def = std::move(f);
+    if (m.def.overlay) {               // no row, no registry entry, no bank: the vanilla tick finds it by id
+        moves().push_back(std::move(up));
+        spdlog::info("MoveDef: loaded overlay '{}' on vanilla id {:#x} ({})", moves().back()->def.name, moves().back()->def.id, moves().back()->def.character == 0 ? "Nero" : "Dante");
+        return;
+    }
     // the command
     if (m.def.command.present) {
         build_command(m);
@@ -600,18 +811,20 @@ void add_move(xmlmove::File&& f, const std::vector<xmlmove::File>& pending) {
         m.cmd_bit = bit;
     }
     m.cmd_id = command_id_for(m);
-    uint32_t cw[5];
-    if (!cancel_words_for(m, pending, cw)) return;
-    // the row: {attr, id, level, info, command, weapon, style, etc, as, cancelId[5]}
-    const xmlmove::Table& t = m.def.table;
-    const uint32_t info = (t.start ? 1u : 0u) | (t.cancel ? 2u : 0u) | (t.repeat ? 4u : 0u);
-    const uint32_t words[14] = { t.attr, m.def.id, t.level, info, (m.cmd_id & 0xFF) | 0x100u, (uint32_t)t.weapon, (uint32_t)t.style,
-                                 t.etc, t.air, cw[0], cw[1], cw[2], cw[3], cw[4] };
-    m.row_marker = MoveTable::add_row(m.def.character, words);
+    if (m.def.table.present) {
+        uint32_t cw[5];
+        if (!cancel_words_for(m, pending, cw)) return;
+        // the row: {attr, id, level, info, command, weapon, style, etc, as, cancelId[5]}
+        const xmlmove::Table& t = m.def.table;
+        const uint32_t info = (t.start ? 1u : 0u) | (t.cancel ? 2u : 0u) | (t.repeat ? 4u : 0u);
+        const uint32_t words[14] = { t.attr, m.def.id, t.level, info, (m.cmd_id & 0xFF) | 0x100u, (uint32_t)t.weapon, (uint32_t)t.style,
+                                     t.etc, t.air, cw[0], cw[1], cw[2], cw[3], cw[4] };
+        m.row_marker = MoveTable::add_row(m.def.character, words);
+    }
     move_registry::register_move(m.def.character, m.def.id, &m.enabled, &run_move);
     moves().push_back(std::move(up));
     apply_row(*moves().back());
-    spdlog::info("MoveDef: loaded '{}' ({}, id {:#x}, row marker {}, command bit {})", moves().back()->def.name,
+    spdlog::info("MoveDef: loaded '{}' ({}, id {:#x}, row marker {} (0 = hand-off only), command bit {})", moves().back()->def.name,
                  moves().back()->def.character == 0 ? "Nero" : "Dante", moves().back()->def.id, moves().back()->row_marker, moves().back()->cmd_bit);
 }
 
@@ -636,6 +849,25 @@ void add_shared_commands(const xmlmove::File& f) {
         shared_commands().push_back(std::move(up));
         spdlog::info("MoveDef: shared command '{}' ({}) on bit {}", c.name, f.character == 0 ? "Nero" : "Dante", bit);
     }
+}
+
+// The dispatch detours call this for every tick of a vanilla move (MoveRegistry::vanilla_tick): an overlay with that id
+// evaluates its <next>s, on the stage's motion only when motion= is given. True = a hand-off happened and the game's
+// function must not run this tick (its phase word now belongs to the new move).
+bool __stdcall overlay_tick(int character, uint32_t id, uintptr_t pl) {
+    if (!mod_enabled) return false;
+    for (auto& up : moves()) {
+        Move& m = *up;
+        if (!m.def.overlay || !m.enabled || m.def.character != character) continue;
+        if (m.def.id != id && std::find(m.def.extra_ids.begin(), m.def.extra_ids.end(), id) == m.def.extra_ids.end()) continue;
+        const xmlmove::Stage& st = m.stage();
+        if (st.motion >= 0 && (int)at<uint32_t>(pl, pl::mMotionCtrl0No) != st.motion) continue;
+        PlayerState& s = m.state_for(pl);
+        count_idle(s, pl);
+        run_fx(st, s, pl);
+        if (run_nexts(m, pl)) { ++m.entries; return true; }
+    }
+    return false;
 }
 
 } // namespace
@@ -713,6 +945,7 @@ using namespace movedef;
 
 std::optional<std::string> MoveDef::on_initialize() {
     load_all();
+    move_registry::set_vanilla_tick(&overlay_tick);
     if (!input_commands::hook_installed) {       // Gerb installs the same hook when it is built in; one installer only
         if (!install_hook_absolute(0x7A83B5, hook_cmd, &input_commands::detour, &input_commands::jmp_ret, 8)) {
             spdlog::error("MoveDef: failed to hook uPlayer::main after executeCommandCheck (0x7A83B5)");
@@ -752,8 +985,11 @@ void MoveDef::on_gui_frame(int display) {
             ImGui::PushID(&m);
             if (ImGui::Checkbox(m.def.name.c_str(), &m.enabled)) apply_row(m);
             ImGui::SameLine();
-            ImGui::Text("%s id %#x | bank %d '%s' | command bit %d (row cmd %u) | entries %d",
-                        m.def.character == 0 ? "Nero" : "Dante", m.def.id, m.def.lmt.bank, m.def.lmt.path.c_str(), m.cmd_bit, m.cmd_id, m.entries);
+            if (m.def.overlay)
+                ImGui::Text("%s overlay on vanilla id %#x | hand-offs %d", m.def.character == 0 ? "Nero" : "Dante", m.def.id, m.entries);
+            else
+                ImGui::Text("%s id %#x | bank %d '%s' | command bit %d (row cmd %u) | entries %d",
+                            m.def.character == 0 ? "Nero" : "Dante", m.def.id, m.def.lmt.bank, m.def.lmt.path.c_str(), m.cmd_bit, m.cmd_id, m.entries);
             ImGui::PopID();
         }
         ImGui::TreePop();

@@ -50,6 +50,17 @@ namespace devil4_sdk {
 	// SE `id` of a player's own sound resource (uPlayer +0x1D60, mSeCtrl.member_0x160), positioned on the player
 	// (sDevil4Sound::requestSe 0xA47AA0 with sSoundN::soundPositionUpdateCb). The air hike plays 40.
 	void __stdcall play_player_se(void* player, int id);
+	// The effect calls the vanilla state functions make (Stinger, Million Stab: RE/player_move_pipeline.md).
+	// sDevil4Effect::setEffectConst 0x480480 (list@eax, index@edx; stack: parent, groupMask, materialMask, unitLine, owner;
+	// retn 14h): an effect of the 0x39-list table following `parent` (the player, or a weapon unit). Returns the effect.
+	void* __stdcall effect_const(int list, int index, void* parent, uint32_t group, uint32_t material, int unit_line, void* owner);
+	// uPlayer::setEffect 0x81FD60 (effect@eax, this@ecx; EFCT_TYPE, id, bool, bool; userpurge): registers it on the player
+	// (128-entry list +0x2A5C) under `type` / `id` so the move can kill / finish it later (id -1 = unnamed).
+	void __stdcall register_effect(void* effect, void* player, int type, int id);
+	void __stdcall kill_effect(void* player, int id);            // uPlayer::killEffectId 0x81FAF0 (this@eax, id; retn 4)
+	void __stdcall finish_effect(void* player, int id);          // uPlayer::finishEffectId 0x81FB70 (this@eax, id, 1)
+	uint32_t __stdcall ground_material(void* player);            // uPlayer::getEfctMtrlFlg 0x820060 (this@eax): the material mask under the player
+	void* __stdcall held_weapon(void* player);                   // uPlayer::cWeaponCtrl::getHeldWeapon 0x7B1F90 (&mWeaponCtrl@esi): the weapon unit, or null
     void __stdcall indexed_anim_call(uint32_t id, uPlayer* actor, uint32_t mode = 0,
 									float speed = 1.0f, float startFrame = 0.0f,
 									float interpolationFrame = 3.0f);

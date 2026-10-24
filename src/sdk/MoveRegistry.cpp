@@ -45,6 +45,10 @@ void __stdcall dispatch(int character, uint32_t id, uintptr_t player) {
     if (e.fn && (!e.enabled || *e.enabled)) e.fn(player, id);
 }
 
+namespace { VanillaTick g_vanilla = nullptr; }
+void set_vanilla_tick(VanillaTick fn) { g_vanilla = fn; }
+bool __stdcall vanilla_tick(int character, uint32_t id, uintptr_t player) { return g_vanilla ? g_vanilla(character, id, player) : false; }
+
 int count() { return g_count; }
 const Entry& entry(int i) { return g_entries[i]; }
 

@@ -56,6 +56,37 @@ struct Cancel {                                         // <cancel frame= kind= 
     std::vector<int> categories;                        // CANCEL_NO values; empty = every category
 };
 
+struct Trigger {                                        // <trigger byte= value= frame=>: a .ctn contact byte (set 0) for <next on="contact">
+    float frame = 0.0f;
+    int byte = 4;                                       // info index: 0 atck, 1 free2, 2 camVib, 3 free1, 4 free0, 5 padVib
+    uint8_t value = 1;
+};
+
+struct Next {                                           // <next ... to=>: a stage transition, checked in order every tick
+    std::string to;                                     // "exit", or a move name (same character; "move:name" accepted)
+    float frame = -1.0f;                                // frame="N": the motion frame has reached N
+    bool motion_end = false;                            // on="motion_end"
+    bool landing = false;                               // on="landing": vel.y <= 0 and ground contact
+    bool always = false;                                // on="always"
+    int byte = -1; int value = 0;                       // byte="free0" value="2": that contact byte equals value
+    uint32_t button = 0; bool held = false;             // button="melee" [held="true"]: pressed this tick, or held
+    int idle = -1;                                      // button= with idle="N": that button has NOT been pressed for N ticks (a mash that stopped)
+    bool stick_neutral = false;                         // stick="neutral": mAnlgPow == 0
+};
+
+struct FxEvent {                                        // <effect> / <se> / <kill_effect> / <finish_effect> in a <stage>: fired by frame
+    enum Kind { EFFECT = 0, SE = 1, KILL = 2, FINISH = 3 } kind = EFFECT;
+    float frame = 0.0f;
+    bool repeat = false;                                // repeat="loop": re-armed when the motion frame wraps (a looping block)
+    int list = -1, index = 0;                           // EFFECT by list / index of the effect table ...
+    std::string efl;                                    // ... or by .efl path (effect_generator)
+    std::string joint = "self";                         // self | weapon (the held weapon unit)
+    int32_t group = -1;                                 // spawn masks: -1 = all
+    int32_t material = -1;                              // -1 = all, -2 = "ground" (getEfctMtrlFlg under the player)
+    int unit_line = 0x14;
+    int type = 0, id = -1;                              // uPlayer::setEffect registration (id -1 = unnamed); KILL / FINISH: the id
+};
+
 struct Fx {                                             // <effect stay> / <se> inside <launch>
     bool effect = false; int list = 0, index = 0; float tilt = 0.0f, roll = 0.0f;
     bool se = false; int se_id = 0;
@@ -83,6 +114,7 @@ struct Stage {
     int ctn_bank = -1, ctn_slot = -1;                   // ctn="bank:slot": the vanilla .ctn script borrowed for the motion
     uint32_t attr = 1;                                  // the request's attribute word (1 = A_NULL_TRANS_OFF)
     float interp = 4.0f, start = 0.0f, speed = 1.0f;
+    bool stop = false;                                  // stop="true": zero the velocity / acceleration at entry (a stationary move)
     bool status_jump = false;                           // status="jump": set AST_JUMP at the launch
     std::string land = "exit";                          // what a landing does: exit (setActionLand) | none
     bool enemy_step = true;                             // the enemy step can interrupt from frame 0 (checkEmJumpBegin)
@@ -90,6 +122,9 @@ struct Stage {
     int watchdog = 60;                                  // ticks without motion progress before the move bails out
     std::vector<Slot> slots;
     std::vector<Cancel> cancels;                        // sorted by frame at load
+    std::vector<Trigger> triggers;                      // sorted by frame at load
+    std::vector<Next> nexts;
+    std::vector<FxEvent> fx;                            // the runtime timeline, sorted by frame at load
     Launch launch;
     AirJump air_jump;
 };
@@ -99,6 +134,8 @@ struct Lmt { int bank = -1; std::string path; };        // <lmt bank= path=>: lo
 struct File {
     std::string source;                                 // the file path
     bool commands_only = false;                         // a <commands character=> file: shared <command>s, no move
+    bool overlay = false;                               // overlay="true": `id` is a VANILLA move; the stage's <next>s run on it (no row, no motion)
+    std::vector<uint32_t> extra_ids;                    // ids="28 29": further vanilla ids an overlay covers (a move with several rows)
     std::vector<Command> shared_commands;               // its <command>s (also any extra <command>s of a move file)
     std::string name;
     int character = -1;                                 // 0 Nero (pl000), 1 Dante (pl006)
@@ -115,5 +152,6 @@ bool load(const char* path, File& out);                 // false + spdlog::error
 // name tables shared with the runner
 uint32_t button_bits(const char* name);                 // melee 1, gun 2, jump 4, lockon 0x10, style 0x200, or a number
 int cancel_category(const char* name);                  // C_NORM0 .. C_ALL, -1 unknown
+int contact_byte(const char* name);                     // atck / free2 / camVib / free1 / free0 / padVib -> info index, -1 unknown
 
 } // namespace xmlmove

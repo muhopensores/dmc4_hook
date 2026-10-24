@@ -505,6 +505,103 @@ namespace devil4_sdk {
 		return effect;
 	}
 
+	void* __stdcall effect_const(int list, int index, void* parent, uint32_t group, uint32_t material, int unit_line, void* owner) {
+		uintptr_t fn = 0x00480480;   // sDevil4Effect::setEffectConst
+		void* effect = nullptr;
+		_asm {
+			pushad
+			push owner
+			push unit_line
+			push material
+			push group
+			push parent
+			mov eax, list
+			mov edx, index
+			call fn                  // retn 14h: pops the five
+			mov effect, eax
+			popad
+		}
+		return effect;
+	}
+
+	void __stdcall register_effect(void* effect, void* player, int efx_type, int id) {
+		uintptr_t fn = 0x0081FD60;   // uPlayer::setEffect, userpurge (callee pops the four)
+		if (!effect || !player) return;
+		_asm {
+			push ebx
+			mov ebx, esp
+			pushad
+			mov eax, effect
+			mov ecx, player
+			push 1
+			push 1
+			push id
+			push efx_type
+			call fn
+			popad
+			mov esp, ebx
+			pop ebx
+		}
+	}
+
+	void __stdcall kill_effect(void* player, int id) {
+		uintptr_t fn = 0x0081FAF0;   // uPlayer::killEffectId (this@eax, id; retn 4)
+		if (!player) return;
+		_asm {
+			pushad
+			mov eax, player
+			push id
+			call fn
+			popad
+		}
+	}
+
+	void __stdcall finish_effect(void* player, int id) {
+		uintptr_t fn = 0x0081FB70;   // uPlayer::finishEffectId (this@eax, id, bool; callee pops)
+		if (!player) return;
+		_asm {
+			push ebx
+			mov ebx, esp
+			pushad
+			mov eax, player
+			push 1
+			push id
+			call fn
+			popad
+			mov esp, ebx
+			pop ebx
+		}
+	}
+
+	uint32_t __stdcall ground_material(void* player) {
+		uintptr_t fn = 0x00820060;   // uPlayer::getEfctMtrlFlg (this@eax)
+		uint32_t r = 0;
+		if (!player) return 0;
+		_asm {
+			pushad
+			mov eax, player
+			call fn
+			mov r, eax
+			popad
+		}
+		return r;
+	}
+
+	void* __stdcall held_weapon(void* player) {
+		uintptr_t fn = 0x007B1F90;   // uPlayer::cWeaponCtrl::getHeldWeapon (&mWeaponCtrl@esi)
+		void* r = nullptr;
+		if (!player) return nullptr;
+		_asm {
+			pushad
+			mov esi, player
+			add esi, 0x1D88
+			call fn
+			mov r, eax
+			popad
+		}
+		return r;
+	}
+
 	void __stdcall play_player_se(void* player, int id) {
 		uintptr_t fn_requestSe    = 0x00A47AA0;   // sDevil4Sound::requestSe(inst, rsrc, id, owner, pos*, 1, 1, cb) stdcall
 		uintptr_t fn_sePositionCb = 0x00486640;   // sSoundN::soundPositionUpdateCb

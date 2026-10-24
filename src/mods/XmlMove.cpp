@@ -52,6 +52,7 @@ const Name kMotAttrs[]  = { {"none", 0}, {"null_trans_off", 1} };
 const Name kCancels[]   = { {"C_NORM0", C_NORM0}, {"C_NORM1", C_NORM1}, {"C_NORM2", C_NORM2}, {"C_COMMAND", C_COMMAND},
                             {"C_JUMP", C_JUMP}, {"C_CHOUHATSU", C_CHOUHATSU}, {"C_GUN", C_GUN}, {"C_ALL", C_ALL} };
 const char* kDirs[DIR_COUNT] = { "forward", "down", "back", "left", "right", "up" };
+const Name kContactBytes[] = { {"atck", 0}, {"free2", 1}, {"camvib", 2}, {"cam", 2}, {"free1", 3}, {"free0", 4}, {"padvib", 5}, {"pad", 5} };
 
 #define N(tbl) tbl, sizeof(tbl) / sizeof(tbl[0])
 
@@ -95,6 +96,7 @@ int dir_from_name(const char* name) {
 const char* dir_name(int dir) { return dir >= 0 && dir < DIR_COUNT ? kDirs[dir] : "?"; }
 uint32_t button_bits(const char* name) { return (uint32_t)lookup(N(kButtons), name, 0); }
 int cancel_category(const char* name) { return (int)lookup(N(kCancels), name, -1); }
+int contact_byte(const char* name) { return (int)lookup(N(kContactBytes), name, -1); }
 
 bool load(const char* path, File& out) {
     pugi::xml_document doc;
@@ -127,6 +129,16 @@ bool load(const char* path, File& out) {
     out.name      = move.attribute("name").as_string();
     out.id        = (uint32_t)num(move.attribute("id"), 0);
     out.version   = (int)num(move.attribute("version"), 2);
+    out.overlay   = bnum(move.attribute("overlay"), false) || move.child("routine");   // <routine native/> also marks one
+    if (pugi::xml_attribute ids = move.attribute("ids")) {                             // "28 29" / "28,29": the first is `id`
+        char buf[128]; strncpy_s(buf, ids.as_string(), sizeof buf - 1);
+        char* ctx = nullptr;
+        for (char* tok = strtok_s(buf, " ,", &ctx); tok; tok = strtok_s(nullptr, " ,", &ctx)) {
+            const uint32_t v = (uint32_t)num(tok, 0);
+            if (!v) continue;
+            if (!out.id) out.id = v; else if (v != out.id) out.extra_ids.push_back(v);
+        }
+    }
     const char* ch = move.attribute("character").as_string();
     if (ieq(ch, "pl000") || ieq(ch, "nero")) out.character = 0;
     else if (ieq(ch, "pl006") || ieq(ch, "dante")) out.character = 1;
@@ -193,6 +205,7 @@ bool load(const char* path, File& out) {
         s.interp      = fnum(st.attribute("interp"), 4.0f);
         s.start       = fnum(st.attribute("start"), 0.0f);
         s.speed       = fnum(st.attribute("speed"), 1.0f);
+        s.stop        = bnum(st.attribute("stop"), false);
         s.status_jump = ieq(st.attribute("status").as_string(), "jump");
         s.land        = st.attribute("land").as_string("exit");
         s.enemy_step  = bnum(st.attribute("enemy_step"), true);
@@ -227,6 +240,62 @@ bool load(const char* path, File& out) {
             s.cancels.push_back(c);
         }
         std::stable_sort(s.cancels.begin(), s.cancels.end(), [](const Cancel& a, const Cancel& b) { return a.frame < b.frame; });
+        for (pugi::xml_node tr : st.children("trigger")) {
+            Trigger t;
+            t.frame = fnum(tr.attribute("frame"), 0.0f);
+            t.byte  = contact_byte(tr.attribute("byte").as_string("free0"));
+            t.value = (uint8_t)num(tr.attribute("value"), 1);
+            if (t.byte < 0) { spdlog::warn("MoveDef: {}: <trigger byte='{}'> unknown", path, tr.attribute("byte").as_string()); continue; }
+            s.triggers.push_back(t);
+        }
+        std::stable_sort(s.triggers.begin(), s.triggers.end(), [](const Trigger& a, const Trigger& b) { return a.frame < b.frame; });
+        for (pugi::xml_node el : st.children()) {           // the runtime timeline: <effect> / <se> / <kill_effect> / <finish_effect>
+            FxEvent e;
+            if (ieq(el.name(), "effect"))             e.kind = FxEvent::EFFECT;
+            else if (ieq(el.name(), "se"))            e.kind = FxEvent::SE;
+            else if (ieq(el.name(), "kill_effect"))   e.kind = FxEvent::KILL;
+            else if (ieq(el.name(), "finish_effect")) e.kind = FxEvent::FINISH;
+            else continue;
+            e.frame  = fnum(el.attribute("frame"), 0.0f);
+            e.repeat = ieq(el.attribute("repeat").as_string(), "loop");
+            e.list   = (int)num(el.attribute("list"), -1);
+            e.index  = (int)num(el.attribute("index"), 0);
+            e.efl    = el.attribute("efl").as_string();
+            e.joint  = el.attribute("joint").as_string("self");
+            e.group  = (int32_t)num(el.attribute("group"), -1);
+            const char* mat = el.attribute("material").as_string();
+            e.material = ieq(mat, "ground") ? -2 : (int32_t)num(mat, -1);
+            e.unit_line = (int)num(el.attribute("unitline"), 0x14);
+            e.type   = (int)num(el.attribute("type"), 0);
+            e.id     = (int)num(el.attribute("id"), -1);
+            if (e.kind == FxEvent::EFFECT && e.list < 0 && e.efl.empty()) { spdlog::warn("MoveDef: {}: <effect> needs list= + index=, or efl=", path); continue; }
+            if ((e.kind == FxEvent::KILL || e.kind == FxEvent::FINISH) && e.id < 0) { spdlog::warn("MoveDef: {}: <{}> needs id=", path, el.name()); continue; }
+            s.fx.push_back(e);
+        }
+        std::stable_sort(s.fx.begin(), s.fx.end(), [](const FxEvent& a, const FxEvent& b) { return a.frame < b.frame; });
+        for (pugi::xml_node nx : st.children("next")) {
+            Next n;
+            n.to = nx.attribute("to").as_string();
+            if (n.to.rfind("move:", 0) == 0) n.to = n.to.substr(5);
+            const char* on = nx.attribute("on").as_string();
+            if (ieq(on, "motion_end")) n.motion_end = true;
+            else if (ieq(on, "landing") || ieq(on, "land")) n.landing = true;
+            else if (ieq(on, "always")) n.always = true;
+            n.frame = fnum(nx.attribute("frame"), -1.0f);
+            if (pugi::xml_attribute by = nx.attribute("byte")) {
+                n.byte  = contact_byte(by.as_string());
+                n.value = (int)num(nx.attribute("value"), 1);
+                if (n.byte < 0) spdlog::warn("MoveDef: {}: <next byte='{}'> unknown", path, by.as_string());
+            }
+            n.button        = button_bits(nx.attribute("button").as_string());
+            n.held          = bnum(nx.attribute("held"), false);
+            n.idle          = (int)num(nx.attribute("idle"), -1);
+            n.stick_neutral = ieq(nx.attribute("stick").as_string(), "neutral");
+            if (n.to.empty()) { spdlog::warn("MoveDef: {}: <next> needs to=", path); continue; }
+            if (n.frame < 0.0f && !n.motion_end && !n.landing && !n.always && n.byte < 0 && !n.button)
+                spdlog::warn("MoveDef: {}: <next to='{}'> has no condition and never fires", path, n.to);
+            s.nexts.push_back(n);
+        }
         if (pugi::xml_node la = st.child("launch")) {
             Launch& L = s.launch;
             L.present    = true;

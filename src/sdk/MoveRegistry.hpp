@@ -33,6 +33,12 @@ namespace move_registry {
     bool __stdcall id_allowed(uint32_t id);                                       // any enabled entry with this id
     void __stdcall dispatch(int character, uint32_t id, uintptr_t player);        // run the entry's fn if enabled
 
+    // A tick on a VANILLA move (MoveDef overlays): called by the dispatch detours before the game's own state function
+    // for ids they don't own; returning true means "handled, skip the game's function this tick" (a hand-off happened).
+    typedef bool (__stdcall *VanillaTick)(int character, uint32_t id, uintptr_t player);
+    void set_vanilla_tick(VanillaTick fn);
+    bool __stdcall vanilla_tick(int character, uint32_t id, uintptr_t player);    // false when none is set
+
     // readout
     struct Entry { int character; uint32_t id; const bool* enabled; StateFn fn; };
     int count();
