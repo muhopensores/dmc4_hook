@@ -27,6 +27,7 @@ namespace pl {                                       // uPlayer offsets, DX9
     constexpr uintptr_t mBtnTrg            = 0x1410; // (inputPress)
     constexpr uintptr_t mAnlgPow           = 0x141C; // stick deflection, 0 = centred (stickThreshold)
     constexpr uintptr_t mAnlgRadian        = 0x1420; // stick angle as a world yaw (stickFacingWorldAdjusted)
+    constexpr uintptr_t mPlayerID          = 0x1494; // 0 Dante, 1 Nero (uPlayer::checkEmJumpBegin picks sSave's mDante / mNero by it); NOT sdk/uPlayer.hpp's playerID 0xE64
     constexpr uintptr_t charType           = 0x1494; // 1 = Nero (controllerID; Payline's `cmp [esi+0x1494], 1`)
     constexpr uintptr_t mBdyActionLowerNo  = 0x1500; // mBdyAction[1].no (moveBank): 0x18 = wall jump
     constexpr uintptr_t mBdyActionLowerPhase = 0x1504; // mBdyAction[1].phase (movePart)
@@ -141,6 +142,19 @@ public:
     static uint32_t button_mask;     // mBtnTrg bits that start the run while airborne (4 = jump); no jump-window / act-limit logic
 
     // tunables (ImGui)
+    // The gun during the run (WallRun.cpp "the gun during the run"): the game's own walking shot, upper half only, over the
+    // running legs (its shot motion and the elevation layer on the upper controllers; the lower controller keeps the run
+    // cycle, so the steps never go out of sync), back to the run cycle after each shot, rapid fire by mashing as on the
+    // ground, a torso lean through SpineAim. No charge shots, no Pandora.
+    static bool  gun_while_running;
+    static float shoot_lean_deg;   // torso lean while shooting (SpineAim's lean on joint 1): negative = away from the wall
+    static float lean_blend_frames; // frames the lean takes to come in when the gun comes up, and to go when it goes down
+    static float shot_end_ticks;   // safety: a shot action still running this many ticks after its start is ended (0 = never)
+    static float upper_blend_min;  // frames: the least interpolation a shot's upper / aim request gets during the run (the shot
+                                   // starts with the draw timer as its blend, 0 once the gun counts as held: a cut from the run's arms).
+                                   // Short (3): the shots are short and a long blend makes the gun rise slowly
+    static float run_blend_frames; // frames the arms take to blend back into the run cycle after a shot
+    static bool  gun_readout;      // the debug lines under the gun options
     static float run_speed;    // cm per frame along the wall
     static float run_frames;   // longest run in frames, 0 = as long as jump is held
     static float stick_speed;  // cm per frame pushed into the wall so the capsule stays on it
@@ -225,5 +239,5 @@ public:
     void on_gui_frame(int display) override;
     void on_frame(fmilliseconds& dt) override;
 private:
-    std::unique_ptr<FunctionHook> hook1, hook2;
+    std::unique_ptr<FunctionHook> hook1, hook2, hook_pre, hook_post, hook_pose, hook_pose_upper;
 };

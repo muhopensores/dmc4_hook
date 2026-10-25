@@ -342,6 +342,8 @@ set(MODS_SRC
   mods/GerbShell.cpp
   mods/DanteAirDodge.hpp
   mods/DanteAirDodge.cpp
+  mods/SpineAim.hpp
+  mods/SpineAim.cpp
   mods/PinProperties.hpp
   mods/PinProperties.cpp
   mods/LuciAirThrow.hpp
