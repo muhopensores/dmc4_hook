@@ -344,6 +344,8 @@ set(MODS_SRC
   mods/DanteAirDodge.cpp
   mods/SpineAim.hpp
   mods/SpineAim.cpp
+  mods/ThirdPersonAim.hpp
+  mods/ThirdPersonAim.cpp
   mods/PinProperties.hpp
   mods/PinProperties.cpp
   mods/LuciAirThrow.hpp

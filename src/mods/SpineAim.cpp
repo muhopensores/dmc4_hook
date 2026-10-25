@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <cstring>
 
-#undef naked                     // mod.hpp's `naked` is `static __declspec(naked)`; detour() is declared in the header
+#undef naked                     // mod.hpp's `naked` is `static __declspec(naked)`; detour_unpoke() is declared in the header
 #define naked __declspec(naked)
 
 using namespace wallrun;
@@ -30,8 +30,8 @@ bool  flip            = false;
 bool  hips_flip       = false;
 float test_deg        = 0.0f;
 float test_hips_deg   = 0.0f;
-uintptr_t jmp_ret     = 0;
 uintptr_t jmp_ret_unpoke = 0;
+constexpr uintptr_t kUpdateLocalMatrix = 0x9E87E0;   // uModel::updateLocalMatrix, what the players' vtable slot 13 held
 
 namespace {
 
@@ -126,8 +126,8 @@ struct State {
     // The pokes are deltas on what the motion blend wrote this tick. A joint no playing motion has a track for is NOT
     // rewritten by updateLocalMatrix, so last tick's poke would still be in it and the deltas would pile up (Dante's
     // pelvis spun about the run axis under the lean). So the value last written is remembered: a joint still holding
-    // it gets its pre-poke value back first. unpoke does the same right after the world pass, so the next tick's
-    // motion snapshot (moveMotion) and interpolation (updateLocalMatrix) never start from a poked value.
+    // it gets its pre-poke value back first. unpoke does the same at the next tick's moveMotion entry, so the motion
+    // snapshot and the interpolation (updateLocalMatrix) never start from a poked value.
     float base[4][4]  = {};        // joints 0..3: the local quaternion before this tick's pokes
     float poked[4][4] = {};        // what the pokes left in it
     bool  has_poked[4] = {};
@@ -175,7 +175,7 @@ void __stdcall tick(uintptr_t pl) {
         Request r;
         if (!g_providers[i](pl, r)) continue;
         if (r.aim) req.aim = true;
-        if (r.wanted_set) { req.wanted_set = true; req.wanted_yaw = r.wanted_yaw; }
+        if (r.wanted_set) { req.wanted_set = true; req.wanted_yaw = r.wanted_yaw; req.ref_facing = r.ref_facing; req.aim_arms = r.aim_arms; }
         if (r.hips_set) { req.hips_set = true; req.hips_deg = r.hips_deg; req.return_deg = r.return_deg; }
         if (r.lean_deg != 0.0f) { req.lean_deg = r.lean_deg; req.lean_axis = r.lean_axis; }
     }
@@ -239,8 +239,11 @@ void __stdcall tick(uintptr_t pl) {
     }
     if (test_deg != 0.0f) want = test_deg;
     else if (have_wanted) {
-        const float ref = (ref_mode == 1 && chest_ok) ? chest_yaw : at<float>(pl, pl::mRotateNow);
-        err_deg = wrap_pi(ref - wanted) * 180.0f / 3.14159265f;
+        const float ref = (ref_mode == 1 && chest_ok && !req.ref_facing) ? chest_yaw : at<float>(pl, pl::mRotateNow);
+        // the turn that brings the reference onto the wanted yaw (a positive rotation about up raises the yaw). Until
+        // 2026-10-25 this was ref - wanted, which twisted away from the target unless Flip was on (seen in TPS aim:
+        // the gun arm swung the error further out; Flip lined it up)
+        err_deg = wrap_pi(wanted - ref) * 180.0f / 3.14159265f;
         if (std::fabs(err_deg) > 150.0f && s.aim * err_deg < 0.0f) err_deg = -err_deg;   // target behind: keep the side we are on
         if (std::fabs(err_deg) > unwind_deg) want = 0.0f;                                // too far round to aim at: back to neutral
         else want = clampf(err_deg * aim_gain + (err_deg < 0.0f ? -aim_offset_deg : aim_offset_deg), -max_deg, max_deg);
@@ -280,6 +283,25 @@ void __stdcall tick(uintptr_t pl) {
                 ret_k[k] += take; left -= take;
             }
     }
+    // the aim twist per joint: the shares within the joint limits; with aim_arms the whole twist on joints 1 and 2 (the
+    // arms hang off 2 through the clavicles, so the neck's share turned only the head and a gun fell short by it), the
+    // shares renormalised over the two and what one can't take spilled to the other
+    float aim_k[3] = { 0, 0, 0 };
+    if (std::fabs(s.aim) >= 0.01f) {
+        if (req.aim_arms) {
+            const float sum = (share[0] + share[1]) > 0.0f ? share[0] + share[1] : 1.0f;
+            float left = s.aim;
+            for (int k = 0; k < 2; ++k) { aim_k[k] = clampf(s.aim * share[k] / sum, -joint_max[k], joint_max[k]); left -= aim_k[k]; }
+            for (int k = 0; k < 2 && std::fabs(left) > 0.01f; ++k) {
+                const float room = joint_max[k] - std::fabs(aim_k[k]);
+                if (room <= 0.0f) continue;
+                const float take = clampf(left, -room, room);
+                aim_k[k] += take; left -= take;
+            }
+        } else {
+            for (int k = 0; k < 3; ++k) aim_k[k] = clampf(s.aim * share[k], -joint_max[k], joint_max[k]);
+        }
+    }
     bool checked = false;
     for (int k = 0; k < 3; ++k) {
         const uintptr_t jp = joint(pl, kSpine[k]);
@@ -295,8 +317,7 @@ void __stdcall tick(uintptr_t pl) {
             rotate_local(jp, glm::normalize(glm::inverse(Rj) * req.lean_axis), s.lean);
             Rj = R * mt_quat(&at<float>(jp, kJQuat));
         }
-        const float aim_k = std::fabs(s.aim) >= 0.01f ? clampf(s.aim * share[k], -joint_max[k], joint_max[k]) : 0.0f;
-        const float total = sign * aim_k + hsign * ret_k[k];
+        const float total = sign * aim_k[k] + hsign * ret_k[k];
         if (std::fabs(total) >= 0.01f) {                                  // this joint's turn: aim share + return share
             glm::vec3 axis;
             bool ok = true;
@@ -324,18 +345,16 @@ void __stdcall tick(uintptr_t pl) {
     }
 }
 
-// 0x7A8D4A in uPlayer::updateMatrix: the 7 bytes replaced are `mov eax,[esi]; mov edx,[eax+38h]; mov ecx,esi`
-naked void detour() {
-    _asm {
-        pushad
-        push esi
-        call tick               // __stdcall: pops its argument
-        popad
-        mov eax, [esi]
-        mov edx, [eax + 0x38]
-        mov ecx, esi
-        jmp dword ptr [jmp_ret]
-    }
+// The players' local pass, then the pokes: uPlayerNero / uPlayerDante vtable slot 13 (+0x34, uModel::updateLocalMatrix
+// 0x9E87E0, thiscall, no arguments) points here. uPlayer::updateMatrix calls it before the world pass; so does whatever
+// re-runs the player's joints during a shot (with a hook inside updateMatrix only, the twist vanished for the shot).
+// The pokes come off first: a second local pass in the same frame blended (interpolating slots lerp from the current
+// value) from joints still holding the first pass's poke, and the poke went on again on top: the wall run's lean piled
+// up and spun Dante's hips through rapid E&I shots again (2026-10-25).
+void __fastcall local_pass(uintptr_t model, uintptr_t) {
+    unpoke(model);
+    ((void(__thiscall*)(uintptr_t))kUpdateLocalMatrix)(model);
+    tick(model);
 }
 
 void __stdcall unpoke(uintptr_t pl) {
@@ -352,15 +371,17 @@ void __stdcall unpoke(uintptr_t pl) {
     }
 }
 
-// 0x7A8D53 in uPlayer::updateMatrix, after the updateWorldMatrix call (vtbl +0x38): the 6 bytes replaced are
-// `lea eax,[esi+1D88h]` (then `pop esi; jmp cWeaponCtrl::updateMatrix`, which reads the joints' world matrices).
+// uModel::moveMotion 0x9F89D0 (__stdcall, the model on the stack), its entry: the 6 bytes replaced are
+// `push ebp; mov ebp, esp; and esp, -8`.
 naked void detour_unpoke() {
     _asm {
         pushad
-        push esi
-        call unpoke             // __stdcall: pops its argument
+        push dword ptr [esp + 36]   // the model (above the 8 saved registers and the return address)
+        call unpoke                 // __stdcall: pops its argument
         popad
-        lea eax, [esi + 0x1D88]
+        push ebp
+        mov ebp, esp
+        and esp, 0xFFFFFFF8
         jmp dword ptr [jmp_ret_unpoke]
     }
 }
@@ -371,12 +392,11 @@ naked void detour_unpoke() {
 using namespace spine_aim;
 
 std::optional<std::string> SpineAim::on_initialize() {
-    if (!install_hook_absolute(0x7A8D4A, hook, &detour, &jmp_ret, 7)) {
-        spdlog::error("SpineAim: failed to hook uPlayer::updateMatrix (0x7A8D4A)");
-        return "Failed to init SpineAim";
-    }
-    if (!install_hook_absolute(0x7A8D53, hook_unpoke, &detour_unpoke, &jmp_ret_unpoke, 6)) {
-        spdlog::error("SpineAim: failed to hook uPlayer::updateMatrix after updateWorldMatrix (0x7A8D53)");
+    const uintptr_t fn = (uintptr_t)&local_pass;   // vtable slot 13 of uPlayerNero (0xBE4FD4) and uPlayerDante (0xBE3C84)
+    install_patch_absolute(0xBE4FD4, patch_local_nero, (const char*)&fn, 4);
+    install_patch_absolute(0xBE3C84, patch_local_dante, (const char*)&fn, 4);
+    if (!install_hook_absolute(0x9F89D0, hook_unpoke, &detour_unpoke, &jmp_ret_unpoke, 6)) {
+        spdlog::error("SpineAim: failed to hook uModel::moveMotion (0x9F89D0)");
         return "Failed to init SpineAim (unpoke hook)";
     }
     return Mod::on_initialize();
@@ -400,7 +420,7 @@ void SpineAim::on_config_load(const utility::Config& cfg) {
     ref_mode        = cfg.get<int>("spine_aim_ref").value_or(ref_mode);
     return_slew_deg = cfg.get<float>("spine_aim_return_slew").value_or(return_slew_deg);
     order           = cfg.get<int>("spine_aim_order").value_or(order);
-    flip            = cfg.get<bool>("spine_aim_flip").value_or(flip);
+    flip            = cfg.get<bool>("spine_aim_flip_v2").value_or(flip);   // new key: the sign was fixed, an old "on" would undo it
     hips_flip       = cfg.get<bool>("spine_aim_hips_flip").value_or(hips_flip);
 }
 
@@ -422,7 +442,7 @@ void SpineAim::on_config_save(utility::Config& cfg) {
     cfg.set<int>("spine_aim_ref", ref_mode);
     cfg.set<float>("spine_aim_return_slew", return_slew_deg);
     cfg.set<int>("spine_aim_order", order);
-    cfg.set<bool>("spine_aim_flip", flip);
+    cfg.set<bool>("spine_aim_flip_v2", flip);
     cfg.set<bool>("spine_aim_hips_flip", hips_flip);
 }
 

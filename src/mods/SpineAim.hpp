@@ -19,10 +19,12 @@
 //     the same angle given back along the spine (Request::return_deg), so the legs can face one way and the upper
 //     body another: the game turns the whole actor toward a target, the hips turn back to the movement direction;
 //   - lean: joint 1 about a world axis (Request::lean_axis / lean_deg).
-// The hook is the 7-byte window in uPlayer::updateMatrix 0x7A8D40 between its two virtual calls: 0x7A8D4A
-// `mov eax,[esi]; mov edx,[eax+38h]; mov ecx,esi` (esi = the player) sits after uModel::updateLocalMatrix (vtbl
-// +0x34, which rewrites every joint's mQuat each tick) and before uModel::updateWorldMatrix (+0x38, the FK pass
-// and the leg IK). RE: Vibed\RE\player_move_pipeline.md "Procedural spine aim" and the sections after it. Both
+// The pokes go on right after every local pass of a player: uPlayerNero / uPlayerDante vtable slot 13 (+0x34,
+// uModel::updateLocalMatrix 0x9E87E0, which rewrites every joint's mQuat) is replaced by local_pass, which runs it and
+// then the tick, before any world pass (+0x38, the FK pass and the leg IK) uses the joints. (The first hook sat in the
+// window between the two calls inside uPlayer::updateMatrix, 0x7A8D4A; during a shot the player's local pass also runs
+// from elsewhere, and the drawn pose lost the twist.) RE: Vibed\RE\player_move_pipeline.md "Procedural spine aim" and
+// the sections after it. Both
 // characters share the joint numbers (checked in pl000.mod / pl006.mod); Nero's coat and Dante's head / hair / coat
 // hang on body joints and follow for free.
 //
@@ -51,13 +53,17 @@ extern bool  flip;             // negate the aim twist
 extern bool  hips_flip;        // negate the hips counter-yaw and the spine's return together
 extern float test_deg;         // non-zero: a constant aim twist (calibration)
 extern float test_hips_deg;    // non-zero: a constant rotation of joint 0 about world up (the whole character must yaw)
-extern uintptr_t jmp_ret;      // 0x7A8D51
 
 // What a provider answers for one player on one pass.
 struct Request {
     bool  aim = false;                           // twist toward the lock-on point (SpineAim computes the yaw unless wanted_set)
     bool  wanted_set = false;                    // the provider knows where the body should face
     float wanted_yaw = 0.0f;                     // that yaw, radians, the game's convention (atan2(x, z))
+    bool  ref_facing = false;                    // measure the twist against the actor's facing whatever ref_mode says: what
+                                                 // the motion aims along (the gun shots: their stances turn the chest side-on,
+                                                 // so a chest reference swung the gun arm off by the stance angle)
+    bool  aim_arms = false;                      // the whole aim twist on joints 1 and 2, which carry the arms (none on the neck,
+                                                 // whose share only turned the head: a gun fell short by it)
     bool  hips_set = false;                      // turn joint 0 about world up by hips_deg (exact, every tick)
     float hips_deg = 0.0f;
     float return_deg = 0.0f;                     // the twist to give back along the spine (shares, joint limits), slewed
@@ -68,16 +74,18 @@ typedef bool (*Provider)(uintptr_t player, Request& out);   // true = `out` fill
 bool add_provider(Provider fn);                              // register from on_initialize; at most 8
 
 void __stdcall tick(uintptr_t player);   // runs between updateLocalMatrix and updateWorldMatrix
-void detour();
-// runs right after updateWorldMatrix: the world matrices (what is drawn, what the weapons and the coat follow) carry the
-// pokes, and the joints' local quaternions get their pre-poke values back, so nothing poked survives into the next
-// tick. Two engine paths start from the joints' current values: a slot given a new motion snapshots them in
-// uModel::moveMotion (top of the next tick) and crossfades from that, and a slot interpolating lerps from them in
-// updateLocalMatrix. With the poke still in, the lean was carried over and added again, a pile-up that spun Dante's hips
-// through his rapid E&I shots (every shot a new motion, a slot always interpolating).
+void __fastcall local_pass(uintptr_t model, uintptr_t edx);   // the players' vtable slot 13: the local pass, then tick
+// runs at the entry of uModel::moveMotion 0x9F89D0 (top of the next tick, for every model; only players with a slot
+// are touched): the joints' local quaternions get their pre-poke values back just before the engine reads them. Two
+// engine paths start from the joints' current values: a slot given a new motion snapshots them there and crossfades
+// from that, and a slot interpolating lerps from them in updateLocalMatrix. With the poke still in, the lean was
+// carried over and added again, a pile-up that spun Dante's hips through his rapid E&I shots (every shot a new motion,
+// a slot always interpolating). Undoing it right after the world pass instead (the first try) lost the twist while a
+// shot played: something during a shot builds the player's world matrices again from the joints (the drawn pose then
+// had no poke), so the pokes now stay in until the next tick's motion step.
 void __stdcall unpoke(uintptr_t player);
 void detour_unpoke();
-extern uintptr_t jmp_ret_unpoke;  // 0x7A8D59
+extern uintptr_t jmp_ret_unpoke;  // 0x9F89D6
 
 } // namespace spine_aim
 
@@ -91,5 +99,6 @@ public:
     void on_config_save(utility::Config& cfg) override;
     void on_gui_frame(int display) override;
 
-    std::unique_ptr<FunctionHook> hook, hook_unpoke;
+    std::unique_ptr<FunctionHook> hook_unpoke;
+    std::unique_ptr<Patch> patch_local_nero, patch_local_dante;
 };
