@@ -28,7 +28,9 @@
 //     a turn point instead of the fake, and the post-action tick holds any other turn within the limit;
 //   - gun pose: mPose.stat / holdTimer kept up while aiming, so the game's own checkPoseBegin / checkPoseRunBegin raise
 //     the gun and walk in the strafing pose walk (lower 15-17, which faces the aim itself); its velocity and leg
-//     motion are scaled by strafe_speed.
+//     motion are scaled by strafe_speed;
+//   - blends: a new motion on the upper / aim controllers while aiming cuts in, and SpineAim's inertialization fades
+//     the gap over gun_blend frames (the shots play at full strength, the recoil shows).
 // Seen in-game: the game's yaw (atan2(x, z)) grows to the LEFT on screen, so mouse right lowers it and the right
 // shoulder is (-cos, 0, sin).
 
@@ -51,6 +53,7 @@ extern bool  cam_collision;      // the camera comes in before walls (pivot -> c
 extern float collision_margin;   // cm kept between the camera and the wall
 extern bool  gun_pose;           // aiming holds the game's gun pose (mPose.stat / holdTimer kept up; the pose walk strafes)
 extern float strafe_speed;       // the pose walk's velocity and leg motion are scaled by this while aiming
+extern float gun_blend;          // frames: the gun's new upper / aim motions cut in and SpineAim's inertialization fades the gap (0 = the game's blends)
 extern uint32_t pad_combo;       // mPeripheral.mPadBtnOn bits that, all held, aim (captured in the GUI)
 extern float pad_speed_deg;      // right stick: degrees per frame at full deflection
 extern float pad_deadzone;       // right stick length (0-128) below which nothing turns

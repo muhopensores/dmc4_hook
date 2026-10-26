@@ -5,7 +5,9 @@
 #include "../sdk/Math.hpp"
 #include "SpineAim.hpp"              // the chest turns toward the aim before the body does
 #include "../sdk/Cam.hpp"            // sCamera: viewport 0's camera
+#include "../sdk/Enums_Internal.hpp" // MC_UPPER / MC_AIM
 #include <Windows.h>
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 
@@ -36,6 +38,7 @@ bool  cam_collision  = true;
 float collision_margin = 20.0f;
 float strafe_speed   = 1.6f;
 bool  gun_pose       = true;
+float gun_blend      = 6.0f;
 bool  use_mouse      = true;
 bool  use_pad        = true;
 uint32_t pad_combo   = 0;        // pad bits (mPadBtnOn) that, all held, aim; 0 = none set
@@ -74,6 +77,29 @@ inline bool pose_walk(uintptr_t pl) { const int l = at<int>(pl, pl::mBdyActionLo
 constexpr uintptr_t kModelSlot0Speed = 0x330 + 0x24;
 float g_vel_scale = 1.0f;                       // the factor in mVel right now (1 = untouched)
 bool  g_legs_scaled = false;
+// The gun's upper-body motions (the pose, the shots, the hand-offs between them: controllers 1 upper / 2 aim) cut in
+// and SpineAim's inertialization fades the gap out over gun_blend frames (or the request's own blend if longer): the
+// shot plays at full strength from its first frame (the game cuts into it with the draw timer, 0 once the gun counts
+// as held, and its crossfades play the short shots diluted). Only a new motion: the gun pose asks for its aim layer
+// again every tick. The coat's controllers (5 / 6) keep the crossfade.
+constexpr uintptr_t kMotionCtrl = 0x2894, kMotionCtrlSize = 0x3C;                // uPlayer::mMotionCtrl, cMotionCtrl[7]
+constexpr uintptr_t kMcMotionSetReq = 0x04, kMcMotionNo = 0x14, kMcInterp = 0x1C; // byte, uint, float
+constexpr uintptr_t kModelMotionNo = 0x330 + 0x04, kModelMotionSize = 0xE0;       // uModel::MotionArray[i].mMotionNo (u16)
+void inertial_gun_blend(uintptr_t pl) {
+    if (gun_blend <= 0.0f) return;
+    float frames = 0.0f;
+    for (int i : { MC_UPPER, MC_AIM }) {
+        const uintptr_t c = pl + kMotionCtrl + kMotionCtrlSize * i;
+        if (at<bool>(c, kMcMotionSetReq) && at<uint32_t>(c, kMcMotionNo) != at<uint16_t>(pl, kModelMotionNo + kModelMotionSize * i))
+            frames = std::max(frames, std::max(gun_blend, at<float>(c, kMcInterp)));
+    }
+    if (frames > 0.0f && spine_aim::inertialize(pl, frames))
+        for (int i : { MC_UPPER, MC_AIM }) {
+            const uintptr_t c = pl + kMotionCtrl + kMotionCtrlSize * i;
+            if (at<bool>(c, kMcMotionSetReq)) at<float>(c, kMcInterp) = 0.0f;
+        }
+}
+
 void set_leg_speed(uintptr_t pl, float k) {
     at<float>(pl, kModelSlot0Speed) = k;
     if (const uintptr_t coat = at<uintptr_t>(pl, pl::mpCoatMdl)) at<float>(coat, kModelSlot0Speed) = k;
@@ -350,6 +376,7 @@ void post_action_tick(uintptr_t pl) {
     if (pl != local_player()) return;
     scale_walk(pl, aiming() && pose_walk(pl));  // the strafe speed (also off again once not aiming / not walking)
     if (!aiming()) return;
+    if (at<int>(pl, pl::mBdyActionLowerNo) != 0x18) inertial_gun_blend(pl);   // the wall run blends its own shots
     if (!free_aim(pl)) { release(pl); return; }  // lock-on held: the game's target and turns
     hand_target(pl);
     if (pose_walk(pl)) return;                  // the pose walk faces the aim and strafes: the game's own turn
@@ -731,6 +758,11 @@ void ThirdPersonAim::on_gui_frame(int display) {
     help_marker(_("Aiming holds the game's gun pose: the gun stays raised between shots and, moving, the character walks in the "
                   "gun pose's strafing walk facing the crosshair. Guns that have no pose (Coyote-A, Pandora) keep their usual "
                   "stance. Not on the wall run."));
+    ImGui::SliderFloat(_("Gun blend (frames)"), &gun_blend, 0.0f, 20.0f, "%.0f");
+    ImGui::SameLine();
+    help_marker(_("While aiming, the gun's upper-body motions (raising it, each shot, back to the pose) cut in at full strength and "
+                  "the gap from the old pose fades out over this many frames, so the recoil plays out and nothing snaps. Needs "
+                  "Spine aim's inertial blends; 0 = the game's own blends."));
     ImGui::Checkbox(_("Charge shots"), &charge_shots);
     ImGui::SameLine();
     help_marker(_("Holding the left mouse button charges the gun as holding the gun button does (Blue Rose levels at 1, 4 and 7 "
@@ -781,6 +813,7 @@ void ThirdPersonAim::on_config_load(const utility::Config& cfg) {
     collision_margin = cfg.get<float>("tps_collision_margin").value_or(collision_margin);
     gun_pose       = cfg.get<bool>("tps_gun_pose").value_or(gun_pose);
     strafe_speed   = cfg.get<float>("tps_strafe_speed").value_or(strafe_speed);
+    gun_blend      = cfg.get<float>("tps_gun_blend").value_or(gun_blend);
     use_mouse      = cfg.get<bool>("tps_mouse").value_or(use_mouse);
     use_pad        = cfg.get<bool>("tps_pad").value_or(use_pad);
     pad_combo      = (uint32_t)cfg.get<int>("tps_pad_combo").value_or((int)pad_combo);
@@ -812,6 +845,7 @@ void ThirdPersonAim::on_config_save(utility::Config& cfg) {
     cfg.set<float>("tps_collision_margin", collision_margin);
     cfg.set<bool>("tps_gun_pose", gun_pose);
     cfg.set<float>("tps_strafe_speed", strafe_speed);
+    cfg.set<float>("tps_gun_blend", gun_blend);
     cfg.set<bool>("tps_mouse", use_mouse);
     cfg.set<bool>("tps_pad", use_pad);
     cfg.set<int>("tps_pad_combo", (int)pad_combo);
