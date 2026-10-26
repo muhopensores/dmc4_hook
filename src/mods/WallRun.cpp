@@ -22,10 +22,10 @@ float WallRun::check_reach  = 80.0f;
 float WallRun::check_height = 10.0f;
 uint32_t WallRun::button_mask = 0x4;
 bool  WallRun::gun_while_running = true;
-float WallRun::shoot_lean_deg     = -35.0f;   // away from the wall
+float WallRun::shoot_lean_deg     = -45.0f;   // away from the wall
 float WallRun::lean_blend_frames  = 8.0f;
 float WallRun::shot_end_ticks = 0.0f;
-float WallRun::upper_blend_min = 3.0f;
+float WallRun::upper_blend_min = 6.0f;
 float WallRun::run_blend_frames = 8.0f;
 bool  WallRun::gun_readout = false;
 float WallRun::run_speed    = 12.0f;
@@ -546,6 +546,7 @@ constexpr uintptr_t kMotionCtrl     = 0x2894, kMotionCtrlSize = 0x3C;           
 constexpr uintptr_t kMcMotionSetReq = 0x04, kMcMotionNo = 0x14, kMcInterp = 0x1C, kMcAddAttribute = 0x2A;   // byte, uint, float, s16
 constexpr int16_t   A_STOP_BIT      = 0x10;
 constexpr uintptr_t kModelMotion0Frame = 0x330 + 0x18;   // uModel::MotionArray[0].mFrame (0xE0 per slot, slot = controller type)
+constexpr uintptr_t kModelMotionNo = 0x330 + 0x04, kModelMotionSize = 0xE0;   // MotionArray[i].mMotionNo (u16)
 static int  g_shots = 0;                        // readout
 static char g_last[96] = "";
 uintptr_t jmp_ret_pose = 0;                     // 0x7AA8C8
@@ -728,6 +729,8 @@ void back_to_run(RunState& s, uintptr_t pl) {
     const float interp = WallRun::run_blend_frames > 1.0f ? WallRun::run_blend_frames : 1.0f;
     for (int body : { MC_UPPER, MC_AIM })   // mirrored to the coat's 5 / 6 by requestSetMotion
         devil4_sdk::request_motion_body((void*)pl, body, s.motion, s.motion_attr, interp, frame, 1.0f);
+    if (spine_aim::inertialize(pl, interp))  // the body's controllers cut to the run, the fade takes the frames (the coat keeps the crossfade)
+        for (int body : { MC_UPPER, MC_AIM }) at<float>(pl + kMotionCtrl + kMotionCtrlSize * body, kMcInterp) = 0.0f;
 }
 
 void post_action_tick(uintptr_t pl) {
@@ -739,12 +742,24 @@ void post_action_tick(uintptr_t pl) {
         at<uint32_t>(pl, pl::mActStat)  = s.run_stat;
         face(pl, s.wall.yaw);                               // the shot's setLockOnTargetAngle turned the facing toward the target
         // the shot's upper and aim requests stand, but with at least upper_blend_min frames of interpolation: the shot
-        // cuts in with the draw timer as its blend, 0 once the gun counts as held, a snap from the running arms
-        if (WallRun::upper_blend_min > 0.0f)
+        // cuts in with the draw timer as its blend, 0 once the gun counts as held, a snap from the running arms. With
+        // SpineAim's inertial blends, a new motion on the body's controllers cuts in (0) and the fade takes the frames
+        // instead; the coat's (5 / 6) keep the crossfade (its tails hang on the body and swing anyway)
+        if (WallRun::upper_blend_min > 0.0f) {
+            float frames = 0.0f;
             for (int i : { 1, 2, 5, 6 }) {
                 const uintptr_t c = pl + kMotionCtrl + kMotionCtrlSize * i;
-                if (at<bool>(c, kMcMotionSetReq) && at<float>(c, kMcInterp) < WallRun::upper_blend_min) at<float>(c, kMcInterp) = WallRun::upper_blend_min;
+                if (!at<bool>(c, kMcMotionSetReq)) continue;
+                if (at<float>(c, kMcInterp) < WallRun::upper_blend_min) at<float>(c, kMcInterp) = WallRun::upper_blend_min;
+                if ((i == MC_UPPER || i == MC_AIM) && at<uint32_t>(c, kMcMotionNo) != at<uint16_t>(pl, kModelMotionNo + kModelMotionSize * i))
+                    frames = std::max(frames, at<float>(c, kMcInterp));   // a new motion, not the same one asked again
             }
+            if (frames > 0.0f && spine_aim::inertialize(pl, frames))
+                for (int i : { MC_UPPER, MC_AIM }) {
+                    const uintptr_t c = pl + kMotionCtrl + kMotionCtrlSize * i;
+                    if (at<bool>(c, kMcMotionSetReq)) at<float>(c, kMcInterp) = 0.0f;
+                }
+        }
         // a foreign lower request (the charge shot's own) and its A_STOP go
         const uintptr_t c0 = pl + kMotionCtrl;
         if (at<bool>(c0, kMcMotionSetReq) && (int)at<uint32_t>(c0, kMcMotionNo) != s.motion)
@@ -1305,11 +1320,13 @@ void WallRun::on_gui_frame(int display) {
     ImGui::SliderFloat(_("Shot blend in (frames)"), &upper_blend_min, 0.0f, 20.0f);
     ImGui::SameLine();
     help_marker(_("The least blend a shot (and its aim layer) gets coming in during the run. The game cuts into the shot with no "
-                  "blend once the gun counts as held, which snaps from the running arms; the shots are short, so a long blend "
-                  "makes the gun rise slowly. 3 is a quick blend."));
+                  "blend once the gun counts as held, which snaps from the running arms. With Spine aim's inertial blends the shot "
+                  "plays at full strength at once and only the gap from the running arms fades out over these frames, so 6-8 is "
+                  "smooth and keeps the recoil; with the game's crossfade a long blend dilutes the short shots (3 is quick)."));
     ImGui::SliderFloat(_("Back to run blend (frames)"), &run_blend_frames, 1.0f, 30.0f);
     ImGui::SameLine();
-    help_marker(_("How long the arms take to blend from the end of a shot back into the run cycle."));
+    help_marker(_("How long the arms take to blend from the end of a shot back into the run cycle (with inertial blends: the fade "
+                  "of the gap, the run cycle playing at once)."));
     ImGui::Checkbox(_("Gun readout"), &gun_readout);
     ImGui::SameLine();
     help_marker(_("Debug lines for the local player: shots fired, the controllers' motions, the lower motion's state and the "

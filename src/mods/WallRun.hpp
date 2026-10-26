@@ -152,7 +152,8 @@ public:
     static float shot_end_ticks;   // safety: a shot action still running this many ticks after its start is ended (0 = never)
     static float upper_blend_min;  // frames: the least interpolation a shot's upper / aim request gets during the run (the shot
                                    // starts with the draw timer as its blend, 0 once the gun counts as held: a cut from the run's arms).
-                                   // Short (3): the shots are short and a long blend makes the gun rise slowly
+                                   // With SpineAim's inertial blends it is the fade length (6: the shot plays at full strength
+                                   // at once); with the crossfade keep it short (3), or the short shots play diluted
     static float run_blend_frames; // frames the arms take to blend back into the run cycle after a shot
     static bool  gun_readout;      // the debug lines under the gun options
     static float run_speed;    // cm per frame along the wall

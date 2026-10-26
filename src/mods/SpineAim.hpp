@@ -75,17 +75,28 @@ bool add_provider(Provider fn);                              // register from on
 
 void __stdcall tick(uintptr_t player);   // runs between updateLocalMatrix and updateWorldMatrix
 void __fastcall local_pass(uintptr_t model, uintptr_t edx);   // the players' vtable slot 13: the local pass, then tick
-// runs at the entry of uModel::moveMotion 0x9F89D0 (top of the next tick, for every model; only players with a slot
-// are touched): the joints' local quaternions get their pre-poke values back just before the engine reads them. Two
+// runs at the entry of uModel::moveMotion 0x9F89D0 (through step_begin; top of the next tick, for every model; only
+// players with a slot are touched): the joints' local quaternions get their pre-poke values back just before the engine reads them. Two
 // engine paths start from the joints' current values: a slot given a new motion snapshots them there and crossfades
 // from that, and a slot interpolating lerps from them in updateLocalMatrix. With the poke still in, the lean was
 // carried over and added again, a pile-up that spun Dante's hips through his rapid E&I shots (every shot a new motion,
 // a slot always interpolating). Undoing it right after the world pass instead (the first try) lost the twist while a
 // shot played: something during a shot builds the player's world matrices again from the joints (the drawn pose then
 // had no poke), so the pokes now stay in until the next tick's motion step.
-void __stdcall unpoke(uintptr_t player);
+void __stdcall unpoke(uintptr_t player);       // also takes off the inertialization offsets
+void __stdcall step_begin(uintptr_t model);    // the moveMotion-entry hook: unpoke, and a new motion step for the fades
 void detour_unpoke();
 extern uintptr_t jmp_ret_unpoke;  // 0x9F89D6
+
+// Inertialization (2026-10-26; David Bollo, GDC 2018, the Gears of War transitions): instead of the engine's crossfade
+// (a frozen snapshot of the pose on screen lerped toward the new motion, which dilutes a short shot for most of its
+// length), the caller cuts to the new motion (its request's interpolation set to 0) and calls inertialize(): at the
+// next local pass, per joint, the rotation / translation from the new motion's pose to the pose shown last tick, and
+// the speed it had, become an offset that a quintic fades to zero over `frames` (shorter when the speed would get there
+// first). The new motion plays at full strength at once and the joints carry on at the speed they had. Every joint of
+// the model; the offsets go on before SpineAim's pokes and come off with them. Players only (the vtable slot 13 wrapper).
+extern bool inertial_enabled;
+bool inertialize(uintptr_t player, float frames);   // false = not available (Spine aim or the fades off): keep the crossfade
 
 } // namespace spine_aim
 

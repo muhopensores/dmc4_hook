@@ -2,6 +2,7 @@
 #include "WallRun.hpp"          // wallrun::at / wallrun::pl offsets; shares no state with WallRun
 #include "../sdk/Devil4.hpp"
 #include "../sdk/Math.hpp"      // glm quaternions: this tick's chain orientations by forward kinematics
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -30,6 +31,7 @@ bool  flip            = false;
 bool  hips_flip       = false;
 float test_deg        = 0.0f;
 float test_hips_deg   = 0.0f;
+bool  inertial_enabled = true;
 uintptr_t jmp_ret_unpoke = 0;
 constexpr uintptr_t kUpdateLocalMatrix = 0x9E87E0;   // uModel::updateLocalMatrix, what the players' vtable slot 13 held
 
@@ -157,7 +159,209 @@ int g_provider_count = 0;
 // readout
 struct Debug { float err = 0, want = 0, now = 0, lean = 0, fk_check = 0, torso_deg = 0, hips = 0, ret = 0; int upper = -1; bool target = false, asked = false, from_provider = false; int joints = 0; } g_dbg;
 
+// --- inertialization (see the header) ---
+// One offset per joint and channel: x(t) = A t^5 + B t^4 + C t^3 + a0 / 2 t^2 + v0 t + x0, with x(tf) = x'(tf) = x''(tf)
+// = 0, in frames. x0 >= 0 along `axis` (rotation: radians about it, translation: cm along it); v0 is clamped to <= 0
+// (no overshoot) and tf shortened to -5 x0 / v0 when that is sooner, as in the talk.
+constexpr int kInertJoints = 256;
+struct Fade {
+    float x0 = 0, v0 = 0, a0 = 0, A = 0, B = 0, C = 0, tf = 0;
+    float axis[3] = {};
+};
+void make_fade(Fade& f, float x0, float v0, float tf, const float axis[3]) {
+    f.tf = 0.0f;
+    if (x0 < 1e-5f) return;
+    if (v0 > 0.0f) v0 = 0.0f;
+    if (v0 < 0.0f) tf = std::min(tf, -5.0f * x0 / v0);
+    if (tf < 1e-2f) return;
+    float a0 = (-8.0f * v0 * tf - 20.0f * x0) / (tf * tf);
+    if (a0 < 0.0f) a0 = 0.0f;
+    const float tf2 = tf * tf, tf3 = tf2 * tf, tf4 = tf3 * tf, tf5 = tf4 * tf;
+    f.x0 = x0; f.v0 = v0; f.a0 = a0; f.tf = tf;
+    f.A = -(a0 * tf2 + 6.0f * v0 * tf + 12.0f * x0) / (2.0f * tf5);
+    f.B =  (3.0f * a0 * tf2 + 16.0f * v0 * tf + 30.0f * x0) / (2.0f * tf4);
+    f.C = -(3.0f * a0 * tf2 + 12.0f * v0 * tf + 20.0f * x0) / (2.0f * tf3);
+    for (int i = 0; i < 3; ++i) f.axis[i] = axis[i];
+}
+inline float fade_at(const Fade& f, float t) {
+    if (t >= f.tf) return 0.0f;
+    return ((((f.A * t + f.B) * t + f.C) * t + 0.5f * f.a0) * t + f.v0) * t + f.x0;
+}
+
+// Per player: the pose shown the last two motion steps (before the pokes), the fades, and what they wrote (so the next
+// pass gets the engine's values back: an interpolating slot lerps from the joints, as with the pokes). Big (~50 KB), so
+// slots are cleared field by field, never copied.
+struct Inert {
+    uintptr_t player;
+    uint32_t  step, hist_step, last_seen;
+    int   n;                                       // joints recorded (the model's count, at most kInertJoints)
+    bool  have_last, have_last2;
+    float last_dt;                                 // frames between the two recorded steps
+    bool  pending;  float pending_frames;
+    bool  active;   float t, t_end;
+    int   fading;                                  // readout: joints with a fade
+    float last_q[kInertJoints][4],  last_t[kInertJoints][3];
+    float last2_q[kInertJoints][4], last2_t[kInertJoints][3];
+    Fade  rot[kInertJoints], pos[kInertJoints];
+    bool  written[kInertJoints];
+    float base_q[kInertJoints][4], base_t[kInertJoints][3], out_q[kInertJoints][4], out_t[kInertJoints][3];
+};
+Inert g_inert[4];
+uint32_t g_inert_clock = 0;
+
+Inert* find_inert(uintptr_t model) {
+    for (Inert& in : g_inert) if (in.player == model) return &in;
+    return nullptr;
+}
+Inert& inert_for(uintptr_t model) {
+    Inert* lru = &g_inert[0];
+    for (Inert& in : g_inert) {
+        if (in.player == model) { in.last_seen = g_inert_clock; return in; }
+        if (in.last_seen < lru->last_seen) lru = &in;
+    }
+    Inert& in = *lru;
+    in.player = model; in.step = in.hist_step = 0; in.last_seen = g_inert_clock; in.n = 0;
+    in.have_last = in.have_last2 = false; in.last_dt = 1.0f;
+    in.pending = in.active = false; in.pending_frames = in.t = in.t_end = 0.0f; in.fading = 0;
+    std::memset(in.written, 0, sizeof in.written);
+    return in;
+}
+
+// the joints back to the engine's values where a fade's value is still in them
+void inert_undo(Inert& in, uintptr_t model) {
+    const uintptr_t joints = at<uintptr_t>(model, kpJoint);
+    for (int j = 0; j < in.n; ++j) {
+        if (!in.written[j]) continue;
+        in.written[j] = false;
+        if (!joints) continue;
+        const uintptr_t jp = joints + j * kJointSize;
+        float* q = &at<float>(jp, kJQuat);
+        float* p = &at<float>(jp, kJTrans);
+        if (std::memcmp(q, in.out_q[j], sizeof in.out_q[j]) == 0) std::memcpy(q, in.base_q[j], sizeof in.base_q[j]);
+        if (std::memcmp(p, in.out_t[j], sizeof in.out_t[j]) == 0) std::memcpy(p, in.base_t[j], sizeof in.base_t[j]);
+    }
+}
+
+// The fades from the pose shown last step to this pass's (the new motion's), with the speed of the last two steps.
+void inert_start(Inert& in, uintptr_t joints, float frames) {
+    in.active = false; in.t_end = 0.0f; in.fading = 0;
+    for (int j = 0; j < in.n; ++j) {
+        const uintptr_t jp = joints + j * kJointSize;
+        const float* tq = &at<float>(jp, kJQuat);
+        const float* tt = &at<float>(jp, kJTrans);
+        const float conj[4] = { -tq[0], -tq[1], -tq[2], tq[3] };
+        // rotation: q0 = last * conj(target), so last = q0 * target
+        float q0[4];
+        qmul(in.last_q[j], conj, q0);
+        if (q0[3] < 0.0f) for (float& c : q0) c = -c;
+        const float s = std::sqrt(q0[0] * q0[0] + q0[1] * q0[1] + q0[2] * q0[2]);
+        in.rot[j].tf = 0.0f;
+        if (s > 1e-6f) {
+            const float axis[3] = { q0[0] / s, q0[1] / s, q0[2] / s };
+            const float x0 = 2.0f * std::atan2(s, q0[3]);
+            float v0 = 0.0f;
+            if (in.have_last2) {   // the step before, measured about the same axis against the same target
+                float qm[4];
+                qmul(in.last2_q[j], conj, qm);
+                const float xm = wrap_pi(2.0f * std::atan2(qm[0] * axis[0] + qm[1] * axis[1] + qm[2] * axis[2], qm[3]));
+                v0 = (x0 - xm) / in.last_dt;
+            }
+            make_fade(in.rot[j], x0, v0, frames, axis);
+        }
+        // translation: last = target + x0 * dir
+        const float d[3] = { in.last_t[j][0] - tt[0], in.last_t[j][1] - tt[1], in.last_t[j][2] - tt[2] };
+        const float len = std::sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]);
+        in.pos[j].tf = 0.0f;
+        if (len > 1e-3f) {
+            const float dir[3] = { d[0] / len, d[1] / len, d[2] / len };
+            float v0 = 0.0f;
+            if (in.have_last2) {
+                const float xm = (in.last2_t[j][0] - tt[0]) * dir[0] + (in.last2_t[j][1] - tt[1]) * dir[1] + (in.last2_t[j][2] - tt[2]) * dir[2];
+                v0 = (len - xm) / in.last_dt;
+            }
+            make_fade(in.pos[j], len, v0, frames, dir);
+        }
+        if (in.rot[j].tf > 0.0f || in.pos[j].tf > 0.0f) ++in.fading;
+        in.t_end = std::max(in.t_end, std::max(in.rot[j].tf, in.pos[j].tf));
+    }
+    in.active = in.t_end > 0.0f;
+}
+
+// After the engine's local pass: start a requested fade, apply the running ones, record the pose shown.
+void inert_pass(uintptr_t model) {
+    if (!mod_enabled || !inertial_enabled) return;
+    ++g_inert_clock;
+    Inert& in = inert_for(model);
+    const uintptr_t joints = at<uintptr_t>(model, kpJoint);
+    const int n = (int)std::min<uint32_t>(at<uint32_t>(model, kJointNum), kInertJoints);
+    if (!joints || n <= 0) return;
+    if (n != in.n) { in.n = n; in.have_last = in.have_last2 = false; in.pending = in.active = false; }
+    const bool new_step = !in.have_last || in.hist_step != in.step;   // a second local pass in the same tick repeats this one
+    const float dt_raw = at<float>(model, pl::m_delta_time);
+    const float dt = dt_raw > 0.0f ? dt_raw : 1.0f;
+
+    if (new_step && in.active) in.t += dt;
+    if (new_step && in.pending) {
+        in.pending = false;
+        if (in.have_last) {
+            inert_start(in, joints, in.pending_frames);
+            in.t = dt;   // the first shown step is one step on: the joints carry on from last step at their speed
+        }
+    }
+    if (in.active && in.t >= in.t_end) in.active = false;
+    if (in.active) {
+        for (int j = 0; j < n; ++j) {
+            const Fade& fr = in.rot[j];
+            const Fade& fp = in.pos[j];
+            const float xr = fade_at(fr, in.t), xp = fade_at(fp, in.t);
+            if (xr == 0.0f && xp == 0.0f) continue;
+            const uintptr_t jp = joints + j * kJointSize;
+            float* q = &at<float>(jp, kJQuat);
+            float* p = &at<float>(jp, kJTrans);
+            std::memcpy(in.base_q[j], q, sizeof in.base_q[j]);
+            std::memcpy(in.base_t[j], p, sizeof in.base_t[j]);
+            if (xr != 0.0f) {
+                const float h = 0.5f * xr, s = std::sin(h);
+                const float dq[4] = { fr.axis[0] * s, fr.axis[1] * s, fr.axis[2] * s, std::cos(h) };
+                float o[4];
+                qmul(dq, q, o);
+                const float len = std::sqrt(o[0] * o[0] + o[1] * o[1] + o[2] * o[2] + o[3] * o[3]);
+                if (len > 1e-6f) for (int i = 0; i < 4; ++i) q[i] = o[i] / len;
+            }
+            if (xp != 0.0f) for (int i = 0; i < 3; ++i) p[i] += fp.axis[i] * xp;
+            std::memcpy(in.out_q[j], q, sizeof in.out_q[j]);
+            std::memcpy(in.out_t[j], p, sizeof in.out_t[j]);
+            in.written[j] = true;
+        }
+    }
+    // the pose shown this step (before the pokes): the start of the next fade
+    if (new_step) {
+        if (in.have_last) {
+            std::memcpy(in.last2_q, in.last_q, sizeof(float) * 4 * n);
+            std::memcpy(in.last2_t, in.last_t, sizeof(float) * 3 * n);
+            in.have_last2 = true;
+            in.last_dt = dt;
+        }
+        in.hist_step = in.step;
+    }
+    for (int j = 0; j < n; ++j) {
+        const uintptr_t jp = joints + j * kJointSize;
+        std::memcpy(in.last_q[j], &at<float>(jp, kJQuat), sizeof in.last_q[j]);
+        std::memcpy(in.last_t[j], &at<float>(jp, kJTrans), sizeof in.last_t[j]);
+    }
+    in.have_last = true;
+}
+
 } // namespace
+
+bool inertialize(uintptr_t player, float frames) {
+    if (!mod_enabled || !inertial_enabled || !player || frames <= 0.0f) return false;
+    Inert* in = find_inert(player);
+    if (!in || !in->have_last) return false;     // no pose recorded yet: nothing to fade from
+    if (!in->pending || frames > in->pending_frames) in->pending_frames = frames;
+    in->pending = true;
+    return true;
+}
 
 bool add_provider(Provider fn) {
     if (!fn || g_provider_count >= 8) return false;
@@ -351,24 +555,33 @@ void __stdcall tick(uintptr_t pl) {
 // The pokes come off first: a second local pass in the same frame blended (interpolating slots lerp from the current
 // value) from joints still holding the first pass's poke, and the poke went on again on top: the wall run's lean piled
 // up and spun Dante's hips through rapid E&I shots again (2026-10-25).
+// The inertialization offsets go on between the two (inert_pass), so the pokes measure from the faded pose.
 void __fastcall local_pass(uintptr_t model, uintptr_t) {
     unpoke(model);
     ((void(__thiscall*)(uintptr_t))kUpdateLocalMatrix)(model);
+    inert_pass(model);
     tick(model);
 }
 
+// The pokes come off first (they went on last), then the fades' offsets.
 void __stdcall unpoke(uintptr_t pl) {
     if (!pl) return;
-    State* s = find_state(pl);
-    if (!s) return;
-    for (int k = 0; k < 4; ++k) {
-        if (!s->has_poked[k]) continue;
-        s->has_poked[k] = false;
-        const uintptr_t jp = joint(pl, kPoked[k]);
-        if (!jp) continue;
-        float* q = &at<float>(jp, kJQuat);
-        if (std::memcmp(q, s->poked[k], sizeof s->poked[k]) == 0) std::memcpy(q, s->base[k], sizeof s->base[k]);   // ours, untouched since
+    if (State* s = find_state(pl)) {
+        for (int k = 0; k < 4; ++k) {
+            if (!s->has_poked[k]) continue;
+            s->has_poked[k] = false;
+            const uintptr_t jp = joint(pl, kPoked[k]);
+            if (!jp) continue;
+            float* q = &at<float>(jp, kJQuat);
+            if (std::memcmp(q, s->poked[k], sizeof s->poked[k]) == 0) std::memcpy(q, s->base[k], sizeof s->base[k]);   // ours, untouched since
+        }
     }
+    if (Inert* in = find_inert(pl)) inert_undo(*in, pl);
+}
+
+void __stdcall step_begin(uintptr_t model) {
+    unpoke(model);
+    if (Inert* in = find_inert(model)) ++in->step;
 }
 
 // uModel::moveMotion 0x9F89D0 (__stdcall, the model on the stack), its entry: the 6 bytes replaced are
@@ -377,7 +590,7 @@ naked void detour_unpoke() {
     _asm {
         pushad
         push dword ptr [esp + 36]   // the model (above the 8 saved registers and the return address)
-        call unpoke                 // __stdcall: pops its argument
+        call step_begin             // __stdcall: pops its argument
         popad
         push ebp
         mov ebp, esp
@@ -422,6 +635,7 @@ void SpineAim::on_config_load(const utility::Config& cfg) {
     order           = cfg.get<int>("spine_aim_order").value_or(order);
     flip            = cfg.get<bool>("spine_aim_flip_v2").value_or(flip);   // new key: the sign was fixed, an old "on" would undo it
     hips_flip       = cfg.get<bool>("spine_aim_hips_flip").value_or(hips_flip);
+    inertial_enabled = cfg.get<bool>("spine_aim_inertial").value_or(inertial_enabled);
 }
 
 void SpineAim::on_config_save(utility::Config& cfg) {
@@ -444,6 +658,7 @@ void SpineAim::on_config_save(utility::Config& cfg) {
     cfg.set<int>("spine_aim_order", order);
     cfg.set<bool>("spine_aim_flip_v2", flip);
     cfg.set<bool>("spine_aim_hips_flip", hips_flip);
+    cfg.set<bool>("spine_aim_inertial", inertial_enabled);
 }
 
 void SpineAim::on_gui_frame(int display) {
@@ -457,6 +672,17 @@ void SpineAim::on_gui_frame(int display) {
     if (!mod_enabled) return;
     ImGui::Indent(lineIndent);
     ImGui::PushID("SpineAim");
+    ImGui::Checkbox(_("Inertial blends"), &inertial_enabled);
+    ImGui::SameLine();
+    help_marker(_("Moves that ask for it (the wall run's shots and its return to the run) cut to their new motion and fade the "
+                  "difference from the old pose out over their blend time, keeping the joints' speed, instead of the game's "
+                  "crossfade, which plays a short shot diluted. Off = the game's crossfade."));
+    {
+        const Inert* in = nullptr;
+        if (uPlayer* P = devil4_sdk::get_local_player()) in = find_inert((uintptr_t)P);
+        if (in && in->active) ImGui::Text("fading: %d joints, %.1f / %.1f frames", in->fading, in->t, in->t_end);
+        else ImGui::TextUnformatted("fading: none");
+    }
     ImGui::Checkbox(_("Aim on every gun pose (debug)"), &aim_always);
     ImGui::SameLine();
     help_marker(_("Twist toward the lock-on point on every gun pose even when no move asks. On the ground the game turns the whole "
