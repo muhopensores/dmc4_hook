@@ -1,5 +1,6 @@
 #include "ThirdPersonAim.hpp"
-#include "WallRun.hpp"               // wallrun::at, the collision structs (CollParam, LineResult); shares no state with WallRun
+#include "WallRun.hpp"               // wallrun::at and the player offsets; shares no state with WallRun
+#include "../sdk/Collision.hpp"      // the crosshair ray, camera collision
 #include "../sdk/Devil4.hpp"
 #include "../sdk/InputCommand.hpp"   // the pre-check and post-action ticks
 #include "../sdk/Math.hpp"
@@ -47,7 +48,9 @@ float pad_deadzone   = 24.0f;
 bool  pad_invert_x   = false;
 bool  pad_invert_y   = false;
 bool  readout        = false;
+bool  virtual_lockon = true;
 uintptr_t jmp_ret_lock = 0;
+uintptr_t jmp_ret_cmd  = 0;
 uintptr_t jmp_ret_turn = 0;
 uintptr_t jmp_ret_sync = 0;
 
@@ -58,11 +61,8 @@ namespace {
 constexpr uintptr_t kCamPos = 0x30, kCamUp = 0x40, kCamTarget = 0x50;
 constexpr uintptr_t kpLockTargetParent = 0x1FFC, kpLockTarget = 0x2000; // uPlayer (updatePtr clears the target with its parent)
 constexpr uintptr_t kTargetPos = 0x10;         // cLockOnTarget::mPos
-constexpr uint32_t  BTN_MELEE = 0x1, BTN_GUN = 0x2;
-constexpr uint32_t  COLL_SHELL = 0x40400;      // the channel the bullets collide in
-constexpr uint32_t  COLL_CAMERA = 0x404000, COLL_CAMERASTOP = 0x20000000;   // what the camera stops at (RayTest's names)
-constexpr uintptr_t fn_findIntersection  = 0x0095B320;   // sDevil4Collision::findIntersection(query@eax, inst, seg*, bothSides, hitOut*)
-constexpr uintptr_t sDevil4Collision_ptr = 0x00E559D0;
+constexpr uint32_t  BTN_GUN = 0x2;
+using namespace collision;                     // the bullets collide in COLL_SHELL, the camera stops at COLL_CAMERA | COLL_CAMERASTOP
 constexpr uintptr_t sMain_ptr = 0x00E5574C, kMouse = 0x10384, kMouseDx = 0x2C, kMouseDy = 0x30;   // DebugCam's mouse reading
 constexpr uintptr_t fn_rotateRequest = 0x00458210;   // cRotateCtrl::request(this@eax, target@xmm3, float max step) userpurge
 constexpr uintptr_t kRotateCtrl = 0x1704;            // uPlayer::mRotate (cRotateCtrl)
@@ -135,41 +135,6 @@ bool      g_hit = false;
 glm::vec3 g_aim{};
 bool      g_lmb_last = false;
 
-bool find_intersection(CollParam* param, MtLineSegment* segment, bool both_sides, LineResult* out) {
-    bool hit = false;
-    _asm {
-        push ebx
-        mov ebx, esp
-        pushad
-        mov eax, param
-        push out
-        movzx ecx, byte ptr both_sides
-        push ecx
-        push segment
-        mov edi, sDevil4Collision_ptr
-        push dword ptr [edi]
-        call fn_findIntersection
-        mov byte ptr hit, al
-        popad
-        mov esp, ebx
-        pop ebx
-    }
-    return hit;
-}
-
-CollParam shell_param() {
-    CollParam p{};
-    p.type             = 127;
-    p.filter           = COLL_SHELL;
-    p.handle_exclude_0 = -1;
-    p.handle_exclude_1 = -1;
-    p.correctionNum    = 10;
-    p.bAdjMvRelSet     = 1;
-    p.bAdjAntiStop     = 1;
-    p.capsuleFwdLimit  = 3.4028235e38f;
-    p.capsuleBwdLimit  = 3.4028235e38f;
-    return p;
-}
 
 // the mouse counts with the game in front, unpaused and the dmc4_hook menu closed
 bool aim_allowed() {
@@ -231,7 +196,54 @@ void release(uintptr_t pl) {                    // letting go: no fake left behi
 // lock-on camera, the HUD, the lock-on update) take over: they expect an actor behind the target, and handing them the
 // fake (no actor) crashed. The guns then aim at the locked enemy as usual; the camera stays the shoulder camera.
 constexpr uint32_t BTN_LOCKON = 0x10;
-bool free_aim(uintptr_t pl) { return aiming() && !(at<uint32_t>(pl, pl::mBtnOn) & BTN_LOCKON); }
+bool g_virtual_bit = false;                     // the lock-on bit in mBtnOn is ours this tick (the virtual lock-on, below)
+bool free_aim(uintptr_t pl) { return aiming() && (!(at<uint32_t>(pl, pl::mBtnOn) & BTN_LOCKON) || g_virtual_bit); }
+
+// The virtual lock-on: while free-aiming, the moves see the lock-on button held, with the crosshair point as the target
+// (getLockOnTarget hands out the fake; checkCmdLever's directions, setLockOnTargetAngle's turns and the moves' homing all
+// read it). The bit goes into mInterface.mBtnOn at the entry of uPlayer::executeCommandCheck 0x805920, after
+// updateLockOn (main 0x7A83A0: the real lock-on never sees it, so no enemy is locked and the lock-on camera / HUD stay
+// off) and is taken out again in the post-action tick, after checkAction and moveAction: in that window the lock-on
+// commands (CND_POSE: lock-on + forward / back + melee ...), Nero's lock-on rows (checkAtckSub / checkAtckEtcSub /
+// checkDevilTriggerAtck) and Dante's Trickster dash read it as held. The jumps' rolls / back flips read the copy of
+// mBtnOn that the jump-cancel slot took when the press was buffered (uPlayer::updateMotCancel 0x803320, at the top of
+// main, before the bit goes in: mMotCncl[k].mBtnOn +0xC; checkJumpBegin tests mMotCncl[C_JUMP]'s), so the bit is put into
+// every buffered slot's copy as well.
+// Nero's grabs need an enemy behind their target (Snatch and Buster store its actor: setSnatchParam, checkTarget,
+// mpAtckTarget from checkAtckSub), so those callers get what the game gives without lock-on: the Snatch and the
+// mpAtckTarget store the soft target; changeAutoAtckIdGrab and setBusterAngleNearEnemy nothing (their lock-on branch,
+// which measures the Buster's reach against the lock-on target only, then falls through to the no-lock-on pick of the
+// nearest enemy in reach, so the Buster grabs again instead of always snatching). uPlDanteShl016 keeps the target's
+// actor too.
+constexpr uintptr_t kLockPTarget = 0x3080, kLockPInter = 0x3088, kLockPInterLong = 0x3090;   // mLockOn (+0x3070) +0x10 / +0x18 / +0x20
+constexpr uintptr_t kTargetModel = 0x08;        // cLockOnTarget::mpModel
+constexpr uintptr_t kMotCncl = 0x30C0, kMotCnclSize = 0x2C, kMotCnclReserve = 0x08, kMotCnclBtnOn = 0x0C;   // cMotCancel[8]
+struct Range { uintptr_t lo, hi; };
+constexpr Range kSoftTargetCallers[] = {
+    { 0x7E5B00, 0x7E5CAB },   // uPlayerNero::checkAtckSub (stores mpAtckTarget for the grabs)
+    { 0x7F9FA0, 0x7FA174 },   // uPlayerNero::moveAtckRightHandLongGrab (Snatch)
+    { 0x7FA190, 0x7FA47D },   // uPlayerNero::moveAtckRightHandLongAirGrab
+    { 0x82EB00, 0x82F16F },   // uPlNeroShl003::updateCnst (the Snatch arm)
+    { 0x81D750, 0x81DE70 },   // uPlDanteShl016::main
+};
+constexpr Range kNoTargetCallers[] = {
+    { 0x7EAB50, 0x7EACB5 },   // uPlayerNero::changeAutoAtckIdGrab (Buster or Snatch)
+    { 0x7FABA0, 0x7FAD08 },   // uPlayerNero::setBusterAngleNearEnemy
+};
+template <size_t N> bool in_ranges(const Range (&rs)[N], uintptr_t ret) {
+    for (const Range& r : rs) if (ret >= r.lo && ret < r.hi) return true;
+    return false;
+}
+
+// A gun action is running: the shot (12, counted by the gun counter: setActionAtck adds to mAtckLongCnt for gun rows and
+// zeroes it for melee ones) or the gun pose (13 / 16, the pose walk 15-17). Only those keep the chest-first aim (the
+// body held within body_turn_deg, the chest twisting); everything else (melee, Trickster, rolls ...) turns fully toward
+// the crosshair point, as toward a lock-on target.
+bool gun_action(uintptr_t pl) {
+    const int upper = at<int>(pl, kBdyUpperNo);
+    if (upper == 12) return at<uint8_t>(pl, pl::mAtckLongCnt) != 0;
+    return upper == 13 || upper == 16 || pose_walk(pl);
+}
 
 constexpr float kPi = 3.14159265f;
 inline float clampf(float v, float lo, float hi) { return v < lo ? lo : v > hi ? hi : v; }
@@ -314,8 +326,8 @@ void live_stick(uintptr_t pl) {
 }
 
 // Pre-check tick (after executeCommandCheck, before checkAction): the stick on the shoulder camera; the fake target
-// back in mpLockTarget (updatePtr dropped it); the left button is the gun button (press, hold), melee waits; the charge
-// as above.
+// back in mpLockTarget (updatePtr dropped it); the left button is the gun button (press, hold); the charge as above.
+// Melee goes through as usual (with the virtual lock-on: the lock-on moves toward the crosshair).
 bool     g_capturing = false;                   // the GUI's Capture: the pad buttons pressed together until all are let go
 uint32_t g_capture_bits = 0;
 
@@ -362,8 +374,6 @@ void precheck_tick(uintptr_t pl) {
         }
     }
     g_lmb_last = lmb;
-    at<uint32_t>(pl, pl::mBtnTrg) &= ~BTN_MELEE;
-    at<uint32_t>(pl, pl::mBtnOn)  &= ~BTN_MELEE;
 }
 
 // After the state functions (cRotateCtrl::update runs after this, 0x7A862F): a bullet made this tick sets up from the
@@ -374,16 +384,18 @@ void precheck_tick(uintptr_t pl) {
 // moves along the facing.
 void post_action_tick(uintptr_t pl) {
     if (pl != local_player()) return;
+    if (g_virtual_bit) {                        // the virtual lock-on's window ends: the camera, the HUD and next tick's
+        at<uint32_t>(pl, pl::mBtnOn) &= ~BTN_LOCKON;   // updateLockOn see the button as it is
+        g_virtual_bit = false;
+    }
     scale_walk(pl, aiming() && pose_walk(pl));  // the strafe speed (also off again once not aiming / not walking)
     if (!aiming()) return;
     if (at<int>(pl, pl::mBdyActionLowerNo) != 0x18) inertial_gun_blend(pl);   // the wall run blends its own shots
     if (!free_aim(pl)) { release(pl); return; }  // lock-on held: the game's target and turns
     hand_target(pl);
+    if (!gun_action(pl)) return;                // not the gun: the move's own turns (toward the crosshair point)
     if (pose_walk(pl)) return;                  // the pose walk faces the aim and strafes: the game's own turn
-    const int upper = at<int>(pl, kBdyUpperNo);
-    const bool gun = upper == 12 || upper == 13 || upper == 16;
     const bool stick = at<int>(pl, pl::mAnlgPow) != 0;
-    if (stick && !gun) return;
     const float goal = stick ? base_yaw(pl)
                      : at<bool>(pl, pl::mRotateIsMove) ? at<float>(pl, pl::mRotateTarget) : at<float>(pl, pl::mRotateNow);
     const float want = body_yaw_for(pl, goal);
@@ -397,6 +409,9 @@ void post_action_tick(uintptr_t pl) {
 // the gun off); the body follows only past body_turn_deg.
 bool spine_provider(uintptr_t pl, spine_aim::Request& out) {
     if (!spine_twist || pl != local_player() || !free_aim(pl)) return false;
+    // the gun, or standing / walking / running (base actions 0-5) with no attack: not during melee, dashes, rolls, jumps
+    const bool neutral = at<int>(pl, pl::mBdyActionLowerNo) <= 5 && at<int>(pl, kBdyUpperNo) != 12;
+    if (!gun_action(pl) && !neutral) return false;
     out.aim = true;
     out.wanted_set = true;
     out.wanted_yaw = aim_yaw(pl);
@@ -473,8 +488,7 @@ static void aim_apply(uintptr_t cam, uintptr_t off_pos, uintptr_t off_target, ui
         MtLineSegment cs;
         cs.p0 = pivot;
         cs.p1 = eye_free;
-        CollParam cp = shell_param();
-        cp.filter = COLL_CAMERA | COLL_CAMERASTOP;
+        CollParam cp = line_param(COLL_CAMERA | COLL_CAMERASTOP);
         LineResult ch{};
         const float len = glm::length(eye_free - pivot);
         if (len > 1.0f && find_intersection(&cp, &cs, true, &ch))
@@ -493,7 +507,7 @@ static void aim_apply(uintptr_t cam, uintptr_t off_pos, uintptr_t off_target, ui
     MtLineSegment seg;
     seg.p0 = eye_free + fwd * distance;
     seg.p1 = eye_free + fwd * range;
-    CollParam param = shell_param();
+    CollParam param = line_param(COLL_SHELL);
     LineResult hit{};
     g_hit = find_intersection(&param, &seg, false, &hit);
     g_aim = g_hit ? glm::vec3(hit.hitPos) : glm::vec3(seg.p1);
@@ -579,22 +593,71 @@ naked void detour_sync() {
     }
 }
 
-// uPlayer::getLockOnTarget 0x820AE0 (thiscall: this@ecx, 3 stack arguments, retn 0Ch): the fake target while the local
-// player aims. The 6 bytes replaced are `mov eax, [ecx+140Ch]`.
-static bool __stdcall lock_fake(uintptr_t pl) { return pl == local_player() && free_aim(pl); }
+// uPlayer::getLockOnTarget(this@ecx, bool a2, bool a3, uActor* exclude) 0x820AE0 (thiscall, retn 0Ch): the fake target
+// while the local player aims; for the grabs (by the return address, see g_virtual_bit) under the virtual lock-on,
+// what the game returns without lock-on (a2: a3 == 1 the long soft target, else the soft target; !a2: mLockOn.pTarget,
+// which no real lock-on set), or nothing for the Buster's pick. kRunOriginal = the game's own code. The 6 bytes
+// replaced are `mov eax, [ecx+140Ch]`.
+constexpr uintptr_t kRunOriginal = 0xFFFFFFFFu;
+static uintptr_t __stdcall lock_pick(uintptr_t pl, uintptr_t ret, uint32_t a2, uint32_t a3, uintptr_t exclude) {
+    if (pl != local_player() || !free_aim(pl)) return kRunOriginal;
+    const bool none = in_ranges(kNoTargetCallers, ret), soft = in_ranges(kSoftTargetCallers, ret);
+    if (!none && !soft) return (uintptr_t)g_fake;
+    if (!g_virtual_bit) return kRunOriginal;    // the bit is the real one's (it isn't held: free_aim): the game's own path
+    if (none) return 0;
+    const uintptr_t t = !(uint8_t)a2 ? at<uintptr_t>(pl, kLockPTarget)
+                      : (uint8_t)a3 == 1 ? at<uintptr_t>(pl, kLockPInterLong) : at<uintptr_t>(pl, kLockPInter);
+    if (exclude && t && at<uintptr_t>(t, kTargetModel) == exclude) return 0;
+    return t;
+}
+static uintptr_t s_lock_pick = 0;
 naked void detour_lock() {
     _asm {
         pushad
+        push dword ptr [esp + 44]   // exclude (above the 8 saved registers, the return address, a2, a3)
+        push dword ptr [esp + 44]   // a3
+        push dword ptr [esp + 44]   // a2
+        push dword ptr [esp + 44]   // the return address
         push ecx
-        call lock_fake              // __stdcall: pops its argument; al = hand out the fake
-        test al, al
+        call lock_pick              // __stdcall: pops its 5 arguments; eax = the target, or kRunOriginal
+        mov [s_lock_pick], eax
         popad
-        jnz fake
+        cmp dword ptr [s_lock_pick], 0xFFFFFFFF
+        je original
+        mov eax, [s_lock_pick]
+        ret 0x0C
+    original:
         mov eax, [ecx + 0x140C]
         jmp dword ptr [jmp_ret_lock]
-    fake:
-        lea eax, g_fake
-        ret 0x0C
+    }
+}
+
+// uPlayer::executeCommandCheck 0x805920 (this@esi), its entry: the virtual lock-on's bit goes in (see g_virtual_bit).
+// The 5 bytes replaced are `xorps xmm0, xmm0; push ebx; push ebp`.
+static void __stdcall lock_bit_on(uintptr_t pl) {
+    if (pl != local_player()) return;
+    if (g_virtual_bit) {                        // last tick's never came out (no post-action tick): out first
+        at<uint32_t>(pl, pl::mBtnOn) &= ~BTN_LOCKON;
+        g_virtual_bit = false;
+    }
+    if (!virtual_lockon || (at<uint32_t>(pl, pl::mBtnOn) & BTN_LOCKON) || !free_aim(pl)) return;
+    at<uint32_t>(pl, pl::mBtnOn) |= BTN_LOCKON;
+    g_virtual_bit = true;
+    for (int k = 0; k < 8; ++k) {               // the buffered presses' copies (the rolls read the jump's)
+        const uintptr_t c = pl + kMotCncl + kMotCnclSize * k;
+        if (at<bool>(c, kMotCnclReserve)) at<uint32_t>(c, kMotCnclBtnOn) |= BTN_LOCKON;
+    }
+}
+naked void detour_cmd() {
+    _asm {
+        pushad
+        push esi
+        call lock_bit_on            // __stdcall: pops its argument
+        popad
+        xorps xmm0, xmm0
+        push ebx
+        push ebp
+        jmp dword ptr [jmp_ret_cmd]
     }
 }
 
@@ -605,6 +668,8 @@ naked void detour_lock() {
 static uintptr_t __stdcall turn_point(uintptr_t target, uintptr_t pl) {
     if (target != (uintptr_t)g_fake || pl != local_player()) return target;
     if (pose_walk(pl)) return target;           // the pose walk: the body faces the aim, the legs strafe
+    if (!gun_action(pl)) return target;         // not the gun: face the crosshair point, as a lock-on target (melee,
+                                                // Trickster: its lever direction is measured against this turn)
     const float yaw = body_yaw_for(pl, base_yaw(pl));
     const glm::vec3 p = at<MtVector3>(pl, pl::mPos);
     at<MtVector3>((uintptr_t)g_turn, kTargetPos) = p + glm::vec3(std::sin(yaw), 0.0f, std::cos(yaw)) * 100.0f;
@@ -648,6 +713,10 @@ std::optional<std::string> ThirdPersonAim::on_initialize() {
     if (!install_hook_absolute(0x820CE0, hook_turn, &detour_turn, &jmp_ret_turn, 6)) {
         spdlog::error("ThirdPersonAim: failed to hook uPlayer::setLockOnTargetAngle_2 (0x820CE0)");
         return "Failed to init ThirdPersonAim (turn hook)";
+    }
+    if (!install_hook_absolute(0x805920, hook_cmd, &detour_cmd, &jmp_ret_cmd, 5)) {
+        spdlog::error("ThirdPersonAim: failed to hook uPlayer::executeCommandCheck (0x805920)");
+        return "Failed to init ThirdPersonAim (virtual lock-on hook)";
     }
     spine_aim::add_provider(&spine_provider);           // the chest leads the aim
     if (!input_commands::hook_installed) {
@@ -753,6 +822,12 @@ void ThirdPersonAim::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("How much faster than the game's gun-pose walk the strafing walk goes while aiming (its steps play faster to "
                   "match). 1 = the game's own pace."));
+    ImGui::Checkbox(_("Aim counts as lock-on"), &virtual_lockon);
+    ImGui::SameLine();
+    help_marker(_("While aiming, moves treat the crosshair point as a locked-on target: lock-on + direction + melee moves (Stinger, "
+                  "High Time ...), directional dodges and rolls, Trickster dashes and the moves' homing go by the crosshair. The "
+                  "real lock-on (camera, HUD, enemy switching) stays off. Nero's Snatch and Buster still reach for the enemy the "
+                  "game picks, since they need an enemy to grab."));
     ImGui::Checkbox(_("Gun up while aiming"), &gun_pose);
     ImGui::SameLine();
     help_marker(_("Aiming holds the game's gun pose: the gun stays raised between shots and, moving, the character walks in the "
@@ -822,6 +897,7 @@ void ThirdPersonAim::on_config_load(const utility::Config& cfg) {
     pad_invert_x   = cfg.get<bool>("tps_pad_invert_x").value_or(pad_invert_x);
     pad_invert_y   = cfg.get<bool>("tps_pad_invert_y").value_or(pad_invert_y);
     readout        = cfg.get<bool>("tps_readout").value_or(readout);
+    virtual_lockon = cfg.get<bool>("tps_virtual_lockon").value_or(virtual_lockon);
     charge_shots   = cfg.get<bool>("tps_charge").value_or(charge_shots);
     spine_twist    = cfg.get<bool>("tps_spine_twist").value_or(spine_twist);
     body_turn_deg  = cfg.get<float>("tps_body_turn").value_or(body_turn_deg);
@@ -854,6 +930,7 @@ void ThirdPersonAim::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("tps_pad_invert_x", pad_invert_x);
     cfg.set<bool>("tps_pad_invert_y", pad_invert_y);
     cfg.set<bool>("tps_readout", readout);
+    cfg.set<bool>("tps_virtual_lockon", virtual_lockon);
     cfg.set<bool>("tps_charge", charge_shots);
     cfg.set<bool>("tps_spine_twist", spine_twist);
     cfg.set<float>("tps_body_turn", body_turn_deg);

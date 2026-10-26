@@ -27,6 +27,7 @@ float WallRun::lean_blend_frames  = 8.0f;
 float WallRun::shot_end_ticks = 0.0f;
 float WallRun::upper_blend_min = 6.0f;
 float WallRun::run_blend_frames = 8.0f;
+float WallRun::gun_hold_frames = 10.0f;
 bool  WallRun::gun_readout = false;
 float WallRun::run_speed    = 12.0f;
 float WallRun::run_frames   = 0.0f;     // 0 = as long as jump is held
@@ -72,9 +73,7 @@ char  WallRun::lmt_coat_dante[128] = "motion\\common\\wallrun_pl006_03";
 // ---------------------------------------------------------------------------------------------------------------
 namespace {
 
-static uintptr_t fn_findIntersection  = 0x0095B320; // sDevil4Collision::findIntersection(query@eax, inst, seg*, bothSides, hitOut*)
-static uintptr_t fn_getNormalToTri    = 0x0048F1A0; // sMath::getNormalToTri(result@eax, out@edi) -> out
-static uintptr_t fn_setAction         = 0x007AA030; // uPlayer::setAction(this@ecx, int act)          vtbl slot 101
+static uintptr_t fn_setAction        = 0x007AA030; // uPlayer::setAction(this@ecx, int act)          vtbl slot 101
 static uintptr_t fn_initJumpBegin     = 0x007AC9E0; // uPlayer::initJumpBegin(this@ecx, int)          vtbl slot 109
 static uintptr_t fn_setActionLand     = 0x007AA6A0; // uPlayer::setActionLand(this@ecx)
 static uintptr_t fn_setActionAtck     = 0x007AAC80; // uPlayer::setActionAtck(this@eax, atckId@ecx, body on the stack) userpurge: body 0 = the upper half only
@@ -89,43 +88,10 @@ static uintptr_t fn_setEffectStayDir  = 0x004806A0; // sDevil4Effect::setEffectS
 static uintptr_t fn_setEffect         = 0x0081FD60; // uPlayer::setEffect(effect@eax, this@ecx, a, b, c, d)  userpurge
 static uintptr_t fn_rotateDifference  = 0x004581A0; // cRotateCtrl::getDifference(a@xmm0, b@xmm1) -> xmm0
 static uintptr_t fn_rotateRequest     = 0x00458210; // cRotateCtrl::request(this@eax, target@xmm3, float max) userpurge
-static uintptr_t sDevil4Collision_ptr = 0x00E559D0; // sDevil4Collision::mpInstance
 static uintptr_t sDevil4Effect_ptr    = 0x00E559C8; // sDevil4Effect::mpInstance
 
-bool find_intersection(CollParam* param, MtLineSegment* segment, bool both_sides, LineResult* out) {
-    bool hit = false;
-    _asm {
-        push ebx
-        mov ebx, esp
-        pushad
-        mov eax, param
-        push out
-        movzx ecx, byte ptr both_sides
-        push ecx
-        push segment
-        mov edi, sDevil4Collision_ptr
-        push dword ptr [edi]
-        call fn_findIntersection
-        mov byte ptr hit, al
-        popad
-        mov esp, ebx
-        pop ebx
-    }
-    return hit;
-}
-
-MtVector3 tri_normal(const LineResult* poly) {
-    MtVector3 out{};
-    MtVector3* p = &out;
-    _asm {
-        pushad
-        mov eax, poly
-        mov edi, p
-        call fn_getNormalToTri
-        popad
-    }
-    return out;
-}
+using collision::find_intersection;   // the line casts (sdk/Collision.hpp)
+using collision::tri_normal;
 
 void set_action(uintptr_t pl, int act)        { ((void(__fastcall*)(uintptr_t, int, int))fn_setAction)(pl, 0, act); }
 void init_jump_begin(uintptr_t pl, int arg)   { ((void(__fastcall*)(uintptr_t, int, int))fn_initJumpBegin)(pl, 0, arg); }
@@ -255,19 +221,7 @@ glm::vec3 wmat_row(uintptr_t pl, int row) {           // rows: 0 right, 1 up, 2 
     return glm::vec3(r[0], r[1], r[2]);
 }
 
-CollParam wall_param() {
-    CollParam p{};
-    p.type             = 127;
-    p.filter           = WallRun::filter(); // walls, plus the invisible channels when asked
-    p.handle_exclude_0 = -1;
-    p.handle_exclude_1 = -1;
-    p.correctionNum    = 10;
-    p.bAdjMvRelSet     = 1;
-    p.bAdjAntiStop     = 1;
-    p.capsuleFwdLimit  = 3.4028235e38f;
-    p.capsuleBwdLimit  = 3.4028235e38f;
-    return p;
-}
+CollParam wall_param() { return collision::line_param(WallRun::filter()); }   // walls, plus the invisible channels when asked
 
 inline float yaw_of(const glm::vec3& d) { return std::atan2(d.x, d.z); }   // the game's yaw: dir = (sin, 0, cos)
 
@@ -397,7 +351,8 @@ struct RunState {                   // what the game's phase word can't hold
     float lost = 0.0f;              // frames since the casts last hit (the wall ended, or bent too sharply)
     uint32_t run_limit = 0, run_stat = 0;   // mActLimit / mActStat as the wall jump's entry left them: re-asserted while the upper body shoots
     float shot_age = -1.0f;         // ticks since the shot action started (-1 = none)
-    uint32_t motion_attr = 0;       // the attribute the run cycle was requested with (back_to_run copies it)
+    float gun_hold = -1.0f;         // frames left with the gun up after a shot ended (-1 = none): the arms keep the shot's last frame
+    uint32_t motion_attr = 0;      // the attribute the run cycle was requested with (back_to_run copies it)
     float lean_w = 0.0f;            // 0-1: how much of shoot_lean_deg applies (ramped by post_action_tick, read by spine_provider)
     bool  gun_buffered = false;     // a shot press waiting for the current shot's cancel window (the .ctn buffer window, mStat 1)
     Wall wall{};
@@ -470,8 +425,8 @@ void play_run_motion(RunState& s, uintptr_t pl) {
     // With the gun up (a direction change mid-shot), the legs only: the whole-body request clears the upper and aim
     // controllers, which cut the shot's motion, so its end (phase 4 at mMotionFrameEnd[1]) never came and no shot
     // could start again.
-    const bool lower_only = upper_busy(pl);
-    if (custom)                                  // a runtime bank has no .ctn scripts: borrow the placeholder's
+    const bool lower_only = upper_busy(pl) || s.gun_hold >= 0.0f;   // (held after a shot: the arms stay up too)
+    if (custom)                                 // a runtime bank has no .ctn scripts: borrow the placeholder's
         borrow_ctn(pl, 0, WallRun::placeholder_motion(s.wall), lower_only);
     // The custom cycles loop, with their root translation ignored (A_NULL_TRANS_OFF: the run's velocity moves the
     // player, the LMT's root track would walk the capsule into the wall); the placeholder kick-offs use the wall
@@ -526,8 +481,9 @@ void give_jumps_back(uintptr_t pl) {
 //    is the full-body standing row, whose leg tracks froze the run cycle;
 //  - setActionAtckGun (the Automatic mode's auto-repeat) and the shot functions' last phase call setActionPoseLowerBdy
 //    (lower -> the pose): hooked at 0x7AA8C0 to return at once while the run is active;
-//  - the shot functions' hand-off to the gun pose, setActionPoseUpperBdy 0x7AA860, is hooked: the upper action ends and
-//    the run cycle goes on the upper / aim controllers at the legs' frame;
+//  - the shot functions' hand-off to the gun pose, setActionPoseUpperBdy 0x7AA860, is hooked: the upper action ends and,
+//    after gun_hold_frames with the arms on the shot's last frame, the run cycle goes on the upper / aim controllers at
+//    the legs' frame;
 //  - a run-cycle change while the gun is up (a direction change) is requested on the lower body only: the whole-body
 //    request would clear the shot's upper motion, and the shot would never end;
 //  - a lower-body motion request that isn't the run's (the charge shot's own) is dropped, with its A_STOP;
@@ -698,6 +654,7 @@ void precheck_tick(uintptr_t pl) {
         started = true;
         s.gun_buffered = false;
         s.shot_age = 0.0f;
+        s.gun_hold = -1.0f;                                               // the next shot comes in from the held gun
     }
     at<uint32_t>(pl, pl::mBtnTrg) &= ~0x2u;
     at<bool>(pl, kMotCncl + kMotCnclSize * C_NORM0 + kMotCnclReserve) = false;
@@ -724,6 +681,7 @@ void end_upper_shot(RunState& s, uintptr_t pl) {
 // direction change, the kick-off) clears both controllers.
 void back_to_run(RunState& s, uintptr_t pl) {
     end_upper_shot(s, pl);
+    s.gun_hold = -1.0f;
     if (s.motion < 0) return;
     const float frame = at<float>(pl, kModelMotion0Frame);
     const float interp = WallRun::run_blend_frames > 1.0f ? WallRun::run_blend_frames : 1.0f;
@@ -775,10 +733,13 @@ void post_action_tick(uintptr_t pl) {
         const uintptr_t c1 = pl + kMotionCtrl + kMotionCtrlSize * MC_UPPER;
         if (at<int>(pl, kBdyUpperNo) == 12 && at<uint32_t>(c1, kMcMotionNo) == 0xFFFF && !at<bool>(c1, kMcMotionSetReq))
             back_to_run(s, pl);
+    } else if (s.gun_hold >= 0.0f) {                       // the gun held after a shot: back to the run when it runs out
+        s.gun_hold -= at<float>(pl, pl::m_delta_time);
+        if (s.gun_hold <= 0.0f) back_to_run(s, pl);
     }
     // the lean comes in and goes out over lean_blend_frames instead of popping with the upper action
     {
-        const float target = upper_busy(pl) ? 1.0f : 0.0f;
+        const float target = (upper_busy(pl) || s.gun_hold >= 0.0f) ? 1.0f : 0.0f;
         const float step = WallRun::lean_blend_frames > 0.0f ? at<float>(pl, pl::m_delta_time) / WallRun::lean_blend_frames : 1.0f;
         s.lean_w = target > s.lean_w ? std::min(target, s.lean_w + step) : std::max(target, s.lean_w - step);
     }
@@ -806,10 +767,14 @@ naked void detour_pose_lower() {
 
 // uPlayer::setActionPoseUpperBdy 0x7AA860 (this@esi; called only by the shots' last phases: the E&I, Coyote-A, Blue Rose
 // and Blue Rose charge shots): the upper body into the gun pose. While the run is active it goes back to the run cycle
-// instead (back_to_run). The same 8 bytes as setActionPoseLowerBdy's are replaced.
+// instead (back_to_run), after gun_hold_frames with the gun up: the shot action ends at once (the next press fires as
+// between shots), but nothing is requested on the upper / aim controllers, so the arms keep the shot's last frame and a
+// burst doesn't dip into the run between shots. The same 8 bytes as setActionPoseLowerBdy's are replaced.
 bool __stdcall pose_upper_redirect(uintptr_t pl) {
     if (!pose_lower_blocked(pl)) return false;  // the same condition: the run is active
-    back_to_run(state_for(pl), pl);
+    RunState& s = state_for(pl);
+    if (WallRun::gun_hold_frames > 0.0f) { end_upper_shot(s, pl); s.gun_hold = WallRun::gun_hold_frames; }
+    else back_to_run(s, pl);
     return true;
 }
 uintptr_t jmp_ret_pose_upper = 0;               // 0x7AA868
@@ -864,6 +829,7 @@ void __stdcall WallRun::move(uintptr_t pl) {
         s.run_limit = at<uint32_t>(pl, pl::mActLimit);  // the wall jump's row (jump | atck | guard), as its entry set them
         s.run_stat  = at<uint32_t>(pl, pl::mActStat);
         s.shot_age = -1.0f;
+        s.gun_hold = -1.0f;
         s.lean_w = 0.0f;
         s.gun_buffered = false;
         const glm::vec3 h = heading(pl, nullptr);
@@ -1327,6 +1293,10 @@ void WallRun::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("How long the arms take to blend from the end of a shot back into the run cycle (with inertial blends: the fade "
                   "of the gap, the run cycle playing at once)."));
+    ImGui::SliderFloat(_("Gun held after a shot (frames)"), &gun_hold_frames, 0.0f, 120.0f, "%.0f");
+    ImGui::SameLine();
+    help_marker(_("How long the gun stays up after the last shot before the arms go back to the run (60 = one second). A burst "
+                  "then stays aimed instead of dipping into the run between shots. 0 = back to the run after every shot."));
     ImGui::Checkbox(_("Gun readout"), &gun_readout);
     ImGui::SameLine();
     help_marker(_("Debug lines for the local player: shots fired, the controllers' motions, the lower motion's state and the "
@@ -1458,6 +1428,7 @@ void WallRun::on_config_load(const utility::Config& cfg) {
     shot_end_ticks    = cfg.get<float>("wall_run_shot_end").value_or(shot_end_ticks);
     upper_blend_min   = cfg.get<float>("wall_run_shot_blend").value_or(upper_blend_min);   // new key: the old one held 8
     run_blend_frames  = cfg.get<float>("wall_run_back_blend").value_or(run_blend_frames);
+    gun_hold_frames   = cfg.get<float>("wall_run_gun_hold").value_or(gun_hold_frames);
     gun_readout       = cfg.get<bool>("wall_run_gun_readout").value_or(gun_readout);
     shoot_lean_deg     = cfg.get<float>("wall_run_shot_lean").value_or(shoot_lean_deg);
     lean_blend_frames  = cfg.get<float>("wall_run_lean_blend").value_or(lean_blend_frames);
@@ -1500,6 +1471,7 @@ void WallRun::on_config_save(utility::Config& cfg) {
     cfg.set<float>("wall_run_shot_end", shot_end_ticks);
     cfg.set<float>("wall_run_shot_blend", upper_blend_min);
     cfg.set<float>("wall_run_back_blend", run_blend_frames);
+    cfg.set<float>("wall_run_gun_hold", gun_hold_frames);
     cfg.set<bool>("wall_run_gun_readout", gun_readout);
     cfg.set<float>("wall_run_shot_lean", shoot_lean_deg);
     cfg.set<float>("wall_run_lean_blend", lean_blend_frames);

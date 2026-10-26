@@ -2,6 +2,7 @@
 
 #include "../mod.hpp"
 #include "../sdk/MtMath.hpp"
+#include "../sdk/Collision.hpp"
 
 // Wall run, a MoveTable move, modelled on the game's wall jump (uPlayer::moveActWallJump 0x827200), which is
 // ported readably at the bottom of WallRun.cpp as a reference (`wall_jump_port`, not hooked).
@@ -75,44 +76,9 @@ namespace pl {                                       // uPlayer offsets, DX9
 enum JUMP_TYPE : int { JUMP_TYPE_F = 0, JUMP_TYPE_L = 1, JUMP_TYPE_B = 2, JUMP_TYPE_R = 3, JUMP_TYPE_V = 4 };
 enum JUMP_MODE : int { JUMP_MODE_NORM_WALL_LO = 4, JUMP_MODE_NORM_WALL_HI = 5 };
 
-// sCollision::Param, as RayTest fills it (sCollision::Param(127, 0x20000, 0, 0, 10) in checkWallJumpBegin).
-#pragma pack(push, 2)
-struct CollParam {
-    int type;                 // 127
-    int filter;               // 0x20000 = walls (RayTest COLL_WALL)
-    int hitCallback_this, hitCallback;
-    void* hitCallback_data;
-    int _pad14;
-    int handle_exclude_0, handle_exclude_1;   // -1
-    int _pad20;
-    int correctionNum;        // 10
-    unsigned __int8 bAdjMvRelSet, _pad29, bAdjAntiStop, _pad2B;
-    float capsuleFwdLimit, capsuleBwdLimit;   // FLT_MAX
-    float sweepRadiusCap;     // 0
-    int partsFilter;          // 0
-    int _pad3C;
-    char pad[0x10];
-};
-#pragma pack(pop)
-
-// sCollision::LineResult, the hitOut of findIntersection (RayTest's LineInfo; uPlayer::mGroundPoly is one).
-struct LineResult {
-    void* pSbc;               // 0x00
-    void* tag;                // 0x04
-    void* pPartsInfo;         // 0x08
-    uint8_t* pTriangle;       // 0x0C  28-byte .sbc triangle: +0x14 surface_attr (bit 0 = no wall jump)
-    uint8_t* pVertex;         // 0x10  16-byte vertices
-    char pad14[0xC];
-    MtVector3 triPlaneNormal; // 0x20
-    MtVector3 triEdge1;       // 0x30
-    MtVector3 triEdge2;       // 0x40
-    MtVector3 hitPlane;       // 0x50  (RayTest: hitNormal)
-    MtVector3 hitPos;         // 0x60
-    MtVector3 hitNormal;      // 0x70  (RayTest: sweepDirNeg; which one it is isn't settled, use getNormalToTri)
-    float hitDistance;        // 0x80
-    char pad84[0xC];
-};
-static_assert(sizeof(LineResult) == 0x90, "LineResult is the 0x90 PlayerLineResult");
+// the line casts (sdk/Collision.hpp); uPlayer::mGroundPoly is a LineResult
+using collision::CollParam;
+using collision::LineResult;
 
 struct Wall {
     MtVector3 normal;         // averaged triangle normal, unit, pointing at the player
@@ -155,6 +121,7 @@ public:
                                    // With SpineAim's inertial blends it is the fade length (6: the shot plays at full strength
                                    // at once); with the crossfade keep it short (3), or the short shots play diluted
     static float run_blend_frames; // frames the arms take to blend back into the run cycle after a shot
+    static float gun_hold_frames;  // frames the gun stays up after the last shot before the arms go back to the run (0 = at once)
     static bool  gun_readout;      // the debug lines under the gun options
     static float run_speed;    // cm per frame along the wall
     static float run_frames;   // longest run in frames, 0 = as long as jump is held

@@ -400,6 +400,8 @@ set(SDK_SRC
     sdk/uActor.hpp
     sdk/Math.hpp
     sdk/Devil4.cpp
+    sdk/Collision.hpp
+    sdk/Collision.cpp
     sdk/InputCommand.hpp
     sdk/InputCommand.cpp
     sdk/MoveRegistry.hpp

@@ -5,7 +5,7 @@
 
 // ThirdPersonAim: an over-the-shoulder aim mode for the guns (2026-10-25). Mouse: hold (or toggle) the right button to
 // aim, the mouse turns the camera, the left button fires and charges. Gamepad: a captured button combination aims, the
-// right stick turns, the gun button fires and charges as usual. The local player only; melee waits while aiming.
+// right stick turns, the gun button fires and charges as usual. The local player only; melee works while aiming.
 // How (RE: Vibed\RE\player_move_pipeline.md "Where a gun's target comes from" and the notes after it):
 //   - camera, by camera kind: the normal rooms' controller cCameraPlayer::Main 0x417A10 and the fixed / rail rooms'
 //     cCameraRailBase::Main 0x428400 (six controller vtables) are wrapped in their vtable slots and their output
@@ -29,6 +29,12 @@
 //   - gun pose: mPose.stat / holdTimer kept up while aiming, so the game's own checkPoseBegin / checkPoseRunBegin raise
 //     the gun and walk in the strafing pose walk (lower 15-17, which faces the aim itself); its velocity and leg
 //     motion are scaled by strafe_speed;
+//   - virtual lock-on: while free-aiming, the lock-on bit is in mBtnOn from executeCommandCheck's entry 0x805920 (after
+//     updateLockOn, so nothing is really locked) to the post-action tick, so the lock-on commands, rows and maneuvers
+//     work toward the crosshair point (the buffered presses' button copies get it too: the rolls read the jump's); Nero's
+//     grabs (by getLockOnTarget's return address) get what the game gives without lock-on (the Snatch the soft target,
+//     the Buster's pick none, so it grabs the nearest enemy in reach). Everything but the gun turns fully toward the
+//     point, and the chest twists only for the gun and standing / walking;
 //   - blends: a new motion on the upper / aim controllers while aiming cuts in, and SpineAim's inertialization fades
 //     the gap over gun_blend frames (the shots play at full strength, the recoil shows).
 // Seen in-game: the game's yaw (atan2(x, z)) grows to the LEFT on screen, so mouse right lowers it and the right
@@ -47,6 +53,7 @@ extern float pitch_up_deg, pitch_down_deg;
 extern bool  crosshair;
 extern bool  toggle_aim;         // the right button toggles aiming instead of being held
 extern bool  readout;            // the debug lines in the GUI
+extern bool  virtual_lockon;     // aiming counts as holding lock-on for the moves (the crosshair point is the target)
 extern bool  charge_shots;       // holding the left button charges the gun (the charge input commands' state, written by hand)
 extern bool  use_mouse, use_pad; // the inputs that aim
 extern bool  cam_collision;      // the camera comes in before walls (pivot -> camera line, COLL_CAMERA | COLL_CAMERASTOP)
@@ -64,6 +71,7 @@ extern float turn_speed_deg;     // degrees per frame the body turns while stand
 extern uintptr_t jmp_ret_lock;   // 0x820AE6
 extern uintptr_t jmp_ret_turn;   // 0x820CE6
 extern uintptr_t jmp_ret_sync;   // 0x52EAC6
+extern uintptr_t jmp_ret_cmd;    // 0x805925
 
 bool __stdcall aim_camera(uintptr_t cam);   // the shoulder camera, from the uDevilCamera::sync hook (the boss cameras): lends their fields
 void __stdcall give_back_camera();          // ... given back when sync returns
@@ -85,6 +93,6 @@ public:
     void on_gui_frame(int display) override;
 
 private:
-    std::unique_ptr<FunctionHook> hook_sync, hook_lock, hook_turn, hook_pre, hook_post;
+    std::unique_ptr<FunctionHook> hook_sync, hook_lock, hook_turn, hook_cmd, hook_pre, hook_post;
     std::unique_ptr<Patch> patch_player, patch_rail[6];
 };
