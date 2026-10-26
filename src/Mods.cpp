@@ -188,6 +188,7 @@
 #include "mods/SpineAim.hpp"
 #include "mods/ThirdPersonAim.hpp"
 #include "mods/MoveDef.hpp"
+#include "mods/ViewportWindow.hpp"
 #endif
 
 constexpr size_t MODS_NUM{ 512 };
@@ -392,6 +393,7 @@ Mods::Mods() {
     ADD_MOD(DanteAirDodge);
     ADD_MOD(SpineAim);      // standalone: procedural spine / hips rotations for a move that asks (the wall run's lean)
     ADD_MOD(MoveDef);        // after the hand-coded moves: they install the shared command hook first
+    ADD_MOD(ViewportWindow);
 #endif
 #endif
 }

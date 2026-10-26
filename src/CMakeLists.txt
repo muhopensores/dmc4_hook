@@ -346,6 +346,8 @@ set(MODS_SRC
   mods/SpineAim.cpp
   mods/ThirdPersonAim.hpp
   mods/ThirdPersonAim.cpp
+  mods/ViewportWindow.hpp
+  mods/ViewportWindow.cpp
   mods/PinProperties.hpp
   mods/PinProperties.cpp
   mods/LuciAirThrow.hpp
