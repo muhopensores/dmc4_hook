@@ -5,7 +5,10 @@
 #include "../sdk/InputCommand.hpp"
 #include "../sdk/MoveRegistry.hpp"
 #include "../sdk/CtnScript.hpp"
+#include <Windows.h>
 #include <cmath>
+#include <cstring>
+#include <cstdio>
 #include <filesystem>
 #include <string>
 
@@ -14,8 +17,11 @@ using namespace wallrun;
 namespace gerb {
 
 bool  mod_enabled   = false;
-int   input_cmd     = LOCKON_ANYDIRECTION_STYLE;   // lock-on + stick in any direction + style; the stick's direction picks the jump's
-int   input_cmd_vertical = cmd_bf_style;     // lock-on + back, forward + style (Gerb's own command)
+// the rows' inputs (Gerb.hpp): directional = lock-on + any direction + style, vertical = lock-on + back, forward + style
+CustomInput custom_input[2] = {
+    { SRC_GAME, 0x200, true, STICK_ANY },
+    { SRC_GAME, 0x200, true, STICK_BACK_FORWARD },
+};
 int   lmt_bank      = 13;
 char  lmt_path[128] = "motion\\pl000\\gerb";          // Nero's
 int   slot[DIR_COUNT] = { 0, 1, 2, 4, 3, 5 };   // forward, down, back, left, right, up
@@ -58,13 +64,10 @@ constexpr int kPlayerSlots = 4;        // uPlayer objects tracked at once (the p
 // wait(cancel_frame), then every cancel category opened; the bytes must outlive the motion, so they're static.
 static ctn::Script g_cancel_scripts[kPlayerSlots];
 
-// ---- Gerb's own input command (sdk/InputCommand.hpp runs it): cmd 0x52 CMD_LOCK_BF_LEVER_SHORT's steps with the style
-// button in place of melee, condition CND_POSE = lock-on held.
-//   LEVER mode 1 (relative to the target / facing) lever 0 = stick centred, no time limit
-//   LEVER mode 1 lever 4 = back within 45 deg, within 15 frames
-//   LEVER mode 1 lever 1 = forward, within 15 frames
-//   BTN   mode 1 (mBtnTrg) 0x200 = style
-static input_commands::Command g_bf_style_cmd;   // built in on_initialize
+// The rows' command bits are set by custom_tick, not by a command of the game's checker; an empty command on each, never
+// enabled, keeps them reserved (input_commands::next_free_bit, which MoveDef uses, skips registered bits).
+static input_commands::Command g_reserved_cmd[2];
+static const bool kNever = false;
 
 void clear_add_speed(uintptr_t pl) {
     MtVector3& add = at<MtVector3>(pl, pl::mAddSpd);
@@ -319,35 +322,161 @@ bool jump_active(uintptr_t pl, uint32_t serial) {
 void apply_row() {
     if (!HookNeroKADTbl || !MoveTable::Gerb || !MoveTable::GerbVertical) return;
     kAtckDefTbl* row = (kAtckDefTbl*)HookNeroKADTbl + (MoveTable::extra_nero_moves - MoveTable::Gerb);
-    row->command.buffer = (uint32_t)(input_cmd & 0xFF) | (mod_enabled ? 0u : 0x100u);
+    row->command.buffer = (uint32_t)cmd_row[ROW_DIRECTIONAL] | (mod_enabled ? 0u : 0x100u);
     kAtckDefTbl* vrow = (kAtckDefTbl*)HookNeroKADTbl + (MoveTable::extra_nero_moves - MoveTable::GerbVertical);
-    vrow->command.buffer = (uint32_t)(input_cmd_vertical & 0xFF) | (mod_enabled ? 0u : 0x100u);
+    vrow->command.buffer = (uint32_t)cmd_row[ROW_VERTICAL] | (mod_enabled ? 0u : 0x100u);
 }
 
-static const struct { int id; const char* name; } kInputs[] = {
-    { LOCKON_MELEE, "lock-on + melee" }, { LOCKON_GUN, "lock-on + gun" }, { LOCKON_STYLE, "lock-on + style" },
-    { LOCKON_FORWARD_MELEE, "lock-on + forward + melee" }, { LOCKON_BACK_MELEE, "lock-on + back + melee" },
-    { LOCKON_FORWARD_GUN, "lock-on + forward + gun" }, { LOCKON_BACK_GUN, "lock-on + back + gun" },
-    { LOCKON_FORWARD_STYLE, "lock-on + forward + style" }, { LOCKON_BACK_STYLE, "lock-on + back + style" },
-    { LOCKON_FORWARD_MELEE2, "lock-on + forward + melee (2)" }, { LOCKON_BACK_MELEE2, "lock-on + back + melee (2)" },
-    { LOCKON_FORWARD_GUN2, "lock-on + forward + gun (2)" }, { LOCKON_BACK_GUN2, "lock-on + back + gun (2)" },
-    { LOCKON_FORWARD_STYLE2, "lock-on + forward + style (2)" }, { LOCKON_BACK_STYLE2, "lock-on + back + style (2)" },
-    { LOCKON_ANYDIRECTION_MELEE, "lock-on + any direction + melee" }, { LOCKON_ANYDIRECTION_GUN, "lock-on + any direction + gun" },
-    { LOCKON_ANYDIRECTION_STYLE, "lock-on + any direction + style" }, { ANYDIRECTION_MELEE, "any direction + melee" },
-    { ANYDIRECTION_GUN, "any direction + gun" }, { ANYDIRECTION_STYLE, "any direction + style" },
-    { MELEE_STYLE, "melee + style" }, { LOCKON_BACKFORWARD_MELEE, "lock-on + back-forward + melee" },
-    { cmd_bf_style, "lock-on + back-forward + style (Gerb's own)" },
-};
+// ---- The rows' inputs (Gerb.hpp): checked in the pre-check tick (after executeCommandCheck, before checkAtck reads
+// mCmdFlag), the local player only (the pad / keyboard are its). A press with its conditions met sets the row's bit.
+constexpr uintptr_t kPadBtnOn = 0x1374;          // mPeripheral.mPadBtnOn: the raw pad bits, before the button config maps them
+constexpr uintptr_t kCmdFlagWords = 0x2184;      // mCmdFlag[3]
+constexpr uint32_t  kBackForwardFrames = 15;     // STICK_BACK_FORWARD: back -> forward, and forward -> the trigger, each within this
+static bool     g_custom_held[2] = {};           // last tick's trigger state (the press edge of pad / key triggers)
+static uint32_t g_custom_fired[2] = {};          // readout: times each row's input fired
+static uint32_t g_tick = 0;                      // the local player's ticks (the back-forward timing)
+static uint32_t g_back_at = 0, g_fwd_at = 0;     // when the stick was last back, and last forward right after a back (0 = never)
+static int      g_capture = -1;                  // the row whose trigger is being captured (-1 none)
+static uint32_t g_capture_bits = 0;              // pad capture: the buttons pressed together so far
 
-static void input_combo(const char* label, int& cmd) {
-    int cur = -1;
-    for (int i = 0; i < (int)(sizeof(kInputs) / sizeof(kInputs[0])); ++i) if (kInputs[i].id == cmd) cur = i;
-    if (ImGui::BeginCombo(label, cur >= 0 ? kInputs[cur].name : "(raw id)")) {
-        for (int i = 0; i < (int)(sizeof(kInputs) / sizeof(kInputs[0])); ++i) {
-            if (ImGui::Selectable(kInputs[i].name, i == cur)) { cmd = kInputs[i].id; apply_row(); }
-        }
-        ImGui::EndCombo();
+static bool keyboard_allowed() { return !g_framework->m_draw_ui && GetForegroundWindow() == g_framework->get_window_handle(); }
+
+// getLockOnTarget (vtbl 170, thiscall (this, a2, a3, exclude), retn 0Ch) as the game's lever check asks it: (0, 0, 0)
+static uintptr_t lock_target(uintptr_t pl) {
+    const uintptr_t fn = (*(uintptr_t**)pl)[170];
+    return ((uintptr_t(__fastcall*)(uintptr_t, int, int, int, uintptr_t))fn)(pl, 0, 0, 0, 0);
+}
+
+// Where the stick leans: centred, or forward / back (within 45 deg) / left / right against the lock-on target's direction
+// (TPS aim's crosshair point when it aims), else the facing.
+static int stick_class(uintptr_t pl) {
+    if (at<int>(pl, pl::mAnlgPow) == 0) return STICK_CENTRED;
+    float ref = at<float>(pl, pl::mRotateNow);
+    if (const uintptr_t t = lock_target(pl)) {
+        const MtVector3& tp = at<MtVector3>(t, 0x10);
+        const MtVector3& pp = at<MtVector3>(pl, pl::mPos);
+        const float dx = tp.x - pp.x, dz = tp.z - pp.z;
+        if (dx * dx + dz * dz > 1.0f) ref = std::atan2(dx, dz);
     }
+    const float yaw = at<float>(pl, pl::mAnlgRadian);
+    const glm::vec3 stick(std::sin(yaw), 0.0f, std::cos(yaw));
+    const glm::vec3 fwd(std::sin(ref), 0.0f, std::cos(ref));
+    const glm::vec3 right(-std::cos(ref), 0.0f, std::sin(ref));   // the game's yaw grows to the left
+    const float along = glm::dot(stick, fwd), c45 = 0.70710678f;
+    if (along >= c45)  return STICK_FORWARD;
+    if (along <= -c45) return STICK_BACK;
+    return glm::dot(stick, right) >= 0.0f ? STICK_RIGHT : STICK_LEFT;
+}
+
+static bool stick_ok(int now, int want) {
+    switch (want) {
+    case STICK_NONE:         return true;
+    case STICK_ANY:          return now != STICK_CENTRED;
+    case STICK_BACK_FORWARD: return g_fwd_at != 0 && g_tick - g_fwd_at <= kBackForwardFrames;
+    default:                 return now == want;
+    }
+}
+
+void custom_tick(uintptr_t pl) {
+    if (!mod_enabled || !pl || pl != (uintptr_t)devil4_sdk::get_local_player()) return;
+    if (g_capture >= 0 && custom_input[g_capture].source == SRC_PAD) {   // capture: every button down together, done on release
+        const uint32_t bits = at<uint32_t>(pl, kPadBtnOn);
+        if (bits) g_capture_bits |= bits;
+        else if (g_capture_bits) { custom_input[g_capture].bits = g_capture_bits; g_capture_bits = 0; g_capture = -1; }
+        return;                                                          // nothing fires while capturing
+    }
+    ++g_tick;
+    const int now = stick_class(pl);                                     // the back-forward motion
+    if (now == STICK_BACK) g_back_at = g_tick;
+    else if (now == STICK_FORWARD && g_back_at != 0 && g_tick - g_back_at <= kBackForwardFrames) g_fwd_at = g_tick;
+    for (int i = 0; i < 2; ++i) {
+        const CustomInput& ci = custom_input[i];
+        bool held = false, pressed = false;
+        if (ci.bits) switch (ci.source) {
+        case SRC_GAME:
+            held = (at<uint32_t>(pl, pl::mBtnOn) & ci.bits) == ci.bits;
+            pressed = held && (at<uint32_t>(pl, pl::mBtnTrg) & ci.bits) != 0;
+            break;
+        case SRC_PAD:
+            held = (at<uint32_t>(pl, kPadBtnOn) & ci.bits) == ci.bits;
+            pressed = held && !g_custom_held[i];
+            break;
+        case SRC_KEY:
+            held = keyboard_allowed() && (GetAsyncKeyState((int)ci.bits) & 0x8000) != 0;
+            pressed = held && !g_custom_held[i];
+            break;
+        default: break;
+        }
+        g_custom_held[i] = held;
+        if (!pressed) continue;
+        if (ci.lockon && !(at<uint32_t>(pl, pl::mBtnOn) & 0x10)) continue;
+        if (!stick_ok(now, ci.stick)) continue;
+        at<uint32_t>(pl, kCmdFlagWords + 4 * (cmd_row[i] >> 5)) |= 1u << (cmd_row[i] & 31);
+        ++g_custom_fired[i];
+    }
+}
+
+static void key_name(uint32_t vk, char* out, int size) {
+    const UINT sc = MapVirtualKeyA(vk, MAPVK_VK_TO_VSC);
+    if (!sc || !GetKeyNameTextA((LONG)(sc << 16), out, size)) snprintf(out, size, "VK 0x%02X", vk);
+}
+
+// A row's input: the trigger (with a capture for the pad / keyboard) on one line, the conditions on the next.
+static void input_editor(int row, const char* title) {
+    static const char* kSources[] = { "Game buttons", "Gamepad buttons", "Keyboard key" };
+    static const char* kSticks[] = { "any stick", "stick centred", "forward", "back", "left", "right", "any direction", "back, forward" };
+    static const struct { uint32_t bit; const char* name; } kButtons[] = { { 0x1, "melee" }, { 0x2, "gun" }, { 0x4, "jump" }, { 0x10, "lock-on" }, { 0x200, "style / Buster" } };
+    CustomInput& ci = custom_input[row];
+    ImGui::PushID(row);
+    ImGui::TextUnformatted(title);
+    ImGui::SameLine();
+    ImGui::TextDisabled(ci.bits ? "(fired %u)" : "(no trigger: never fires)", g_custom_fired[row]);
+    ImGui::SetNextItemWidth(Mod::sameLineItemWidth);
+    if (ImGui::Combo("##source", &ci.source, kSources, 3)) { ci.bits = 0; if (g_capture == row) g_capture = -1; }
+    ImGui::SameLine();
+    if (ci.source == SRC_GAME) {
+        ImGui::SetNextItemWidth(Mod::sameLineItemWidth);
+        char preview[64] = "";
+        for (const auto& b : kButtons) if (ci.bits & b.bit) { if (*preview) strcat_s(preview, " + "); strcat_s(preview, b.name); }
+        if (ImGui::BeginCombo("##buttons", *preview ? preview : "(none)")) {   // tick the buttons; all held, one pressed
+            for (const auto& b : kButtons) {
+                bool on = (ci.bits & b.bit) != 0;
+                if (ImGui::Checkbox(b.name, &on)) ci.bits = on ? (ci.bits | b.bit) : (ci.bits & ~b.bit);
+            }
+            ImGui::EndCombo();
+        }
+    } else if (ci.source == SRC_PAD) {
+        if (g_capture == row) ImGui::TextUnformatted(_("press, then let go ..."));
+        else ImGui::Text("0x%X", ci.bits);
+        ImGui::SameLine();
+        if (ImGui::Button(_("Capture"))) { g_capture = row; g_capture_bits = 0; }
+    } else {
+        if (g_capture == row) {   // the first key pressed (not the mouse buttons)
+            ImGui::TextUnformatted(_("press a key ..."));
+            for (int vk = 0x08; vk <= 0xFE; ++vk) {
+                if (vk == VK_SHIFT || vk == VK_CONTROL || vk == VK_MENU) continue;   // the left / right variants are reported
+                if (GetAsyncKeyState(vk) & 0x8000) { ci.bits = (uint32_t)vk; g_capture = -1; break; }
+            }
+        } else {
+            char name[64] = "(none)";
+            if (ci.bits) key_name(ci.bits, name, sizeof(name));
+            ImGui::TextUnformatted(name);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Capture"))) g_capture = row;
+    }
+    ImGui::Checkbox(_("Lock-on held"), &ci.lockon);
+    ImGui::SameLine();
+    int stick = ci.stick + 1;
+    ImGui::SetNextItemWidth(Mod::sameLineItemWidth);
+    if (ImGui::Combo("##stick", &stick, kSticks, 8)) ci.stick = stick - 1;
+    ImGui::SameLine();
+    Mod::help_marker(_("The trigger: game buttons (after your button config: the ticked ones held, one pressed), gamepad buttons "
+                       "(the raw pad, before the button config: Capture, press the button or several together, let go) or a "
+                       "keyboard key (Capture, press it; counts while the game is in front and this menu is closed). Optional: "
+                       "lock-on held (TPS aim's counts) and where the stick leans, against the lock-on target (else the facing): "
+                       "forward / back within 45 degrees, left / right between, or back then forward within 15 frames."));
+    ImGui::PopID();
 }
 
 } // namespace gerb
@@ -361,8 +490,8 @@ std::optional<std::string> Gerb::on_initialize() {
     using namespace input_commands;
     move_registry::register_move(move_registry::NERO, move_id, &mod_enabled, &gerb::move);            // the ID gate + Nero dispatch
     move_registry::register_move(move_registry::NERO, move_id_vertical, &mod_enabled, &gerb::move);
-    g_bf_style_cmd.condition(CND_POSE).lever(LEVER_CENTRED).lever(LEVER_BACK, LEVER_TARGET_45, 15).lever(LEVER_FORWARD, LEVER_TARGET_45, 15).button(BTN_STYLE);
-    add(g_bf_style_cmd.head(), cmd_bf_style, &mod_enabled);   // bit 85 while the mod is on
+    for (int i = 0; i < 2; ++i) add(g_reserved_cmd[i].head(), cmd_row[i], &kNever);   // bits 85 / 86 reserved
+    add_tick(&custom_tick);                   // the rows' inputs set them
     if (!input_commands::hook_installed) {     // one installer: whichever of Gerb / WallRun / MoveDef initialises first
         if (!install_hook_absolute(0x7A83B5, hook_cmd, &input_commands::detour, &input_commands::jmp_ret, 8)) {
             spdlog::error("Gerb: failed to hook uPlayer::main after executeCommandCheck (0x7A83B5)");
@@ -388,21 +517,8 @@ void Gerb::on_gui_frame(int display) {
     if (!mod_enabled) return;
     ImGui::Indent(lineIndent);
     ImGui::PushID("Gerb");            // WallRun's panel shares this page and some labels (Bank, Gravity, Slot ...)
-    {   // the inputs: each row's CMD_ID
-        input_combo(_("Input (directional)"), input_cmd);
-        ImGui::SameLine();
-        help_marker(_("The command (CMD_ID) the directional row triggers on; air only. Its own input, separate from the jump "
-                      "button; pick one no vanilla Nero move uses in the air."));
-        ImGui::InputInt(_("Directional id (raw)"), &input_cmd);
-        if (ImGui::IsItemDeactivatedAfterEdit()) apply_row();
-        input_combo(_("Input (vertical)"), input_cmd_vertical);
-        ImGui::SameLine();
-        help_marker(_("The command the vertical row triggers on: up on the ground, down in the air. The default, lock-on + "
-                      "back-forward + style, is Gerb's own command (bit 85 of mCmdFlag, set by its hook after "
-                      "executeCommandCheck: cmd 0x52's lever steps with the style button)."));
-        ImGui::InputInt(_("Vertical id (raw)"), &input_cmd_vertical);
-        if (ImGui::IsItemDeactivatedAfterEdit()) apply_row();
-    }
+    input_editor(ROW_DIRECTIONAL, _("Directional input (air): forward / back / left / right by the stick"));
+    input_editor(ROW_VERTICAL, _("Vertical input: up on the ground, down in the air"));
     ImGui::SliderInt(_("Bank"), &lmt_bank, 10, 14);
     ImGui::InputText(_("LMT"), lmt_path, sizeof(lmt_path));
     if (uPlayer* pl = devil4_sdk::get_local_player()) {
@@ -485,13 +601,10 @@ void Gerb::on_gui_frame(int display) {
 
 void Gerb::on_config_load(const utility::Config& cfg) {
     mod_enabled  = cfg.get<bool>("gerb").value_or(false);
-    input_cmd    = cfg.get<int>("gerb_input").value_or(input_cmd);
-    apply_row();
-    lmt_bank     = cfg.get<int>("gerb_bank").value_or(lmt_bank);
+    lmt_bank    = cfg.get<int>("gerb_bank").value_or(lmt_bank);
     for (int i = 0; i < DIR_COUNT; ++i) slot[i] = cfg.get<int>("gerb_slot_" + std::to_string(i)).value_or(slot[i]);
     ctn_bank     = cfg.get<int>("gerb_ctn_bank").value_or(ctn_bank);
     ctn_slot     = cfg.get<int>("gerb_ctn_slot").value_or(ctn_slot);
-    input_cmd_vertical = cfg.get<int>("gerb_input_vertical").value_or(input_cmd_vertical);
     launch_frame = cfg.get<float>("gerb_launch_frame").value_or(launch_frame);
     speed        = cfg.get<float>("gerb_speed").value_or(speed);
     rise         = cfg.get<float>("gerb_rise").value_or(rise);
@@ -509,17 +622,24 @@ void Gerb::on_config_load(const utility::Config& cfg) {
     effect_tilt     = cfg.get<float>("gerb_effect_tilt").value_or(effect_tilt);
     se_enabled      = cfg.get<bool>("gerb_se").value_or(true);
     se_id           = cfg.get<int>("gerb_se_id").value_or(se_id);
+    for (int i = 0; i < 2; ++i) {           // the rows' inputs: gerb_in<row>_source / _bits / _lockon / _stick
+        CustomInput& ci = custom_input[i];
+        const std::string p = "gerb_in" + std::to_string(i) + "_";
+        ci.source = cfg.get<int>(p + "source").value_or(ci.source);
+        ci.bits   = (uint32_t)cfg.get<int>(p + "bits").value_or((int)ci.bits);
+        ci.lockon = cfg.get<bool>(p + "lockon").value_or(ci.lockon);
+        ci.stick  = cfg.get<int>(p + "stick").value_or(ci.stick);
+    }
+    apply_row();
     shell_config_load(cfg);
 }
 
 void Gerb::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("gerb", mod_enabled);
-    cfg.set<int>("gerb_input", input_cmd);
     cfg.set<int>("gerb_bank", lmt_bank);
     for (int i = 0; i < DIR_COUNT; ++i) cfg.set<int>("gerb_slot_" + std::to_string(i), slot[i]);
     cfg.set<int>("gerb_ctn_bank", ctn_bank);
     cfg.set<int>("gerb_ctn_slot", ctn_slot);
-    cfg.set<int>("gerb_input_vertical", input_cmd_vertical);
     cfg.set<float>("gerb_launch_frame", launch_frame);
     cfg.set<float>("gerb_speed", speed);
     cfg.set<float>("gerb_rise", rise);
@@ -537,5 +657,13 @@ void Gerb::on_config_save(utility::Config& cfg) {
     cfg.set<float>("gerb_effect_tilt", effect_tilt);
     cfg.set<bool>("gerb_se", se_enabled);
     cfg.set<int>("gerb_se_id", se_id);
+    for (int i = 0; i < 2; ++i) {
+        const CustomInput& ci = custom_input[i];
+        const std::string p = "gerb_in" + std::to_string(i) + "_";
+        cfg.set<int>(p + "source", ci.source);
+        cfg.set<int>(p + "bits", (int)ci.bits);
+        cfg.set<bool>(p + "lockon", ci.lockon);
+        cfg.set<int>(p + "stick", ci.stick);
+    }
     shell_config_save(cfg);
 }

@@ -12,9 +12,12 @@
 // The phase lives in the game's mBdyAction[1].phase, which setAction zeroes on entry: 0 entry, 1 waiting for the
 // launch frame, 2 airborne.
 //
-// The vertical row's default input, lock-on + back-forward + style, is not one of the game's 85 input commands
-// (0x52 is back-forward + melee), so Gerb registers it as an extra command (sdk/InputCommand.hpp: cmd 0x52's steps
-// with the style button, bit `cmd_bf_style` (85) of mCmdFlag) and installs the sdk's post-executeCommandCheck hook.
+// Inputs: each row has its own (`custom_input[ROW_DIRECTIONAL / ROW_VERTICAL]`): a trigger (game buttons, a gamepad
+// button combination or a keyboard key) with lock-on held and a stick direction as optional conditions. Gerb's
+// pre-check tick (the shared hook after executeCommandCheck, which Gerb installs) checks them and sets the row's command
+// bit (`cmd_row`, 85 / 86 of mCmdFlag: reserved with input_commands::add so MoveDef doesn't take them), which the row
+// (a COMMAND row: checkAtckSubCommand tests the bit) triggers on. Defaults: lock-on + any direction + style (directional),
+// lock-on + back, forward + style (vertical: the stick back, then forward within 15 frames each, as the game's cmd 0x52).
 //
 // Motions come from motion\pl000\gerb.lmt (Nero) loaded into a free bank at runtime (MoveDef D14): slots
 // 0 forward, 1 down, 2 back, 3 left, 4 right, 5 up. Without the file the move refuses to start (there is no
@@ -28,13 +31,27 @@ namespace gerb {
 constexpr uint32_t move_id = 0x40;            // atckId of the directional row. Nero's vanilla ids: 1-0x2B lower-body
                                               // (moveActAtckL), 0x2C-0x33 upper-body / gun (moveActAtckU 0x7F9E90); 0x34+ are free
 constexpr uint32_t move_id_vertical = 0x41;   // the up / down row
-constexpr int cmd_bf_style = 85;              // Gerb's own command bit: lock-on + back, forward + style (see above)
+enum Row : int { ROW_DIRECTIONAL = 0, ROW_VERTICAL = 1 };
+constexpr int cmd_row[2] = { 85, 86 };        // the rows' command bits (85 was the fixed back-forward + style command)
+
+// A row's input: the trigger, pressed this tick, and the optional conditions.
+enum InputSource : int { SRC_GAME = 0 /* game buttons */, SRC_PAD = 1 /* gamepad buttons */, SRC_KEY = 2 /* a keyboard key */ };
+enum StickReq : int { STICK_NONE = -1, STICK_CENTRED = 0, STICK_FORWARD, STICK_BACK, STICK_LEFT, STICK_RIGHT, STICK_ANY,
+                      STICK_BACK_FORWARD /* back, then forward within 15 frames, the trigger within 15 more */ };
+struct CustomInput {
+    int      source;     // InputSource
+    uint32_t bits;       // SRC_GAME: mBtnOn bits (1 melee, 2 gun, 4 jump, 0x10 lock-on, 0x200 style / Buster), all held and one
+                         // pressed this tick; SRC_PAD: mPeripheral.mPadBtnOn raw bits (captured), all held; SRC_KEY: a virtual-key
+                         // code (the game in front, the dmc4_hook menu closed). 0 = unset, never fires
+    bool     lockon;     // lock-on must be held (TPS aim's virtual lock-on counts)
+    int      stick;      // StickReq: the stick against the lock-on target's direction (else the facing): forward / back within
+                         // 45 deg, left / right between
+};
+extern CustomInput custom_input[2];   // [Row]
 
 enum Dir : int { FORWARD = 0, DOWN = 1, BACK = 2, LEFT = 3, RIGHT = 4, UP = 5, DIR_COUNT = 6 };   // = the LMT slots
 
 extern bool mod_enabled;
-extern int  input_cmd;                  // CMD_ID the directional row triggers on (its own input, not the jump button)
-extern int  input_cmd_vertical;         // CMD_ID the vertical row triggers on
 
 // the LMT
 extern int  lmt_bank;             // 10-14 are free on both characters (WallRun uses 14)
