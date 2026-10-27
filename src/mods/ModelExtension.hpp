@@ -51,6 +51,7 @@ extern bool mod_enabled;
 extern char folder[128];
 
 void reload();     // reads the lists again; every chain comes off and the known models get theirs again next frame
+void write_example();   // example.xml in the lists folder (all commented out), unless it exists
 
 void __stdcall on_set_model(uintptr_t model);    // the hooks' bodies
 void __stdcall on_model_dtor(uintptr_t model);

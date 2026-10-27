@@ -12,6 +12,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
+#include <fstream>
+#include <Windows.h>
+#include <shellapi.h>
 #include <mutex>
 #include <unordered_map>
 
@@ -381,6 +384,35 @@ void reload() {
         if (!model_attach::is_attachment(m)) g_pending.push_back(m);   // attachments: they're dying, new ones queue themselves)
 }
 
+// A starter list in the lists folder (example.xml, never overwritten): every entry commented out, so it changes nothing
+// until a line is copied out of its comment.
+void write_example() {
+    namespace fs = std::filesystem;
+    std::error_code ec;
+    fs::create_directories(folder, ec);
+    const fs::path p = fs::path(folder) / "example.xml";
+    if (fs::exists(p)) { spdlog::info("ModelExtension: {} already exists", p.string()); return; }
+    std::ofstream out(p);
+    out << "<!-- Model Extension list (guide: docs\\model_extension.html in the dmc4_hook repo).\n"
+           "     Game paths have no extension; copy a model's path from the Models list in the panel.\n"
+           "     Chain files must be named .clt on disk (Albam / extraction tools call them .phs).\n"
+           "     Copy a line out of this comment, change the paths, save, then press Reload lists. -->\n"
+           "<extensions>\n"
+           "  <!-- a hat riding joint 4 of Nero's body, 5 cm up, turned 90 degrees:\n"
+           "  <attach path=\"model\\game\\pl000\\my_hat\" to=\"model\\game\\pl000\\pl000\" joint=\"4\" pos=\"0 5 0\" rot=\"0 90 0\"/>\n"
+           "  -->\n"
+           "  <!-- clothing made on Nero's skeleton, following his body joint for joint:\n"
+           "  <attach path=\"model\\game\\pl000\\my_jacket\" to=\"model\\game\\pl000\\pl000\"/>\n"
+           "  -->\n"
+           "  <!-- a swinging chain on Nero's coat, colliding with the coat's shapes on his body:\n"
+           "  <model path=\"model\\game\\pl000\\pl000_03\" collision_model=\"model\\game\\pl000\\pl000\">\n"
+           "    <chain clt=\"model\\game\\pl000\\my_tail\" col=\"model\\game\\pl000\\pl000_03\"/>\n"
+           "  </model>\n"
+           "  -->\n"
+           "</extensions>\n";
+    spdlog::info("ModelExtension: wrote {}", p.string());
+}
+
 } // namespace model_extension
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -438,10 +470,21 @@ void ModelExtension::on_gui_frame(int display) {
     ImGui::PushItemWidth(sameLineWidth);
     ImGui::InputText(_("Lists folder"), folder, sizeof(folder));
     ImGui::PopItemWidth();
+    ImGui::TextDisabled(_("Put .xml lists in this folder, then Reload lists. Guide: docs\\model_extension.html in the hook's repo."));
     if (ImGui::Button(_("Reload lists"))) reload();   // also takes every chain off: they come back next frame from the new lists
     ImGui::SameLine();
-    help_marker(_("Reads the .xml files again and spawns every chain and attachment again, which also loads edited .clt / .col / "
-                  ".mod files (the game keeps a loaded file until nothing uses it)."));
+    if (ImGui::Button(_("Open folder"))) {            // made when missing, so a first-time user has somewhere to put a list
+        std::error_code ec;
+        std::filesystem::create_directories(folder, ec);
+        ShellExecuteA(nullptr, "open", std::filesystem::absolute(folder, ec).string().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(_("Create example"))) write_example();
+    ImGui::SameLine();
+    help_marker(_("Reload lists reads the .xml files again and spawns every chain and attachment again, which also loads edited "
+                  ".clt / .col / .mod files (the game keeps a loaded file until nothing uses it). Open folder opens the lists "
+                  "folder in Explorer. Create example writes example.xml there (everything in it is commented out: copy a "
+                  "line out of its comment and change the paths)."));
     ImGui::Text(_("%d attachment(s) listed, %d out"), (int)g_attach_entries.size(), (int)g_attached.size());
     for (size_t e = 0; e < g_attach_entries.size(); ++e) {
         const AttachEntry& ae = g_attach_entries[e];

@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Model Extension Guide</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f6f7f9;
+  --page: #ffffff;
+  --text: #17202a;
+  --muted: #5f6b7a;
+  --border: #d9dee7;
+  --accent: #0b6bcb;
+  --accent-soft: #e8f2fd;
+  --code-bg: #eef2f7;
+  --shadow: rgba(24, 36, 52, 0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111418;
+    --page: #181c22;
+    --text: #e9edf3;
+    --muted: #a9b4c2;
+    --border: #303844;
+    --accent: #65b7ff;
+    --accent-soft: #1c3044;
+    --code-bg: #242b35;
+    --shadow: rgba(0, 0, 0, 0.25);
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Arial, sans-serif;
+  line-height: 1.58;
+}
+.page {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 24px 20px 64px;
+  display: grid;
+  grid-template-columns: 286px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+.sidebar {
+  position: sticky;
+  top: 18px;
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 8px 30px var(--shadow);
+}
+.content {
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 30px 34px 48px;
+  min-width: 0;
+  box-shadow: 0 8px 30px var(--shadow);
+}
+.doc-switch {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.doc-switch strong { color: var(--text); font-size: 16px; }
+.doc-switch a {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 7px 9px;
+  background: var(--code-bg);
+}
+.search-label {
+  display: block;
+  margin: 12px 0 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.doc-search {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--page);
+  color: var(--text);
+  padding: 9px 10px;
+  font: inherit;
+}
+.doc-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.search-results {
+  display: none;
+  margin: 8px 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.search-results.active { display: block; }
+.search-results a {
+  display: block;
+  padding: 8px 9px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+}
+.search-results a:last-child { border-bottom: 0; }
+.search-results a:hover { background: var(--accent-soft); text-decoration: none; }
+.search-empty { padding: 8px 9px; color: var(--muted); font-size: 13px; }
+.callout {
+  margin: 0.9em 0;
+  border-left: 4px solid var(--accent);
+  border-radius: 4px;
+  background: var(--accent-soft);
+  padding: 11px 13px;
+  font-weight: 600;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1, h2, h3, h4 { line-height: 1.25; margin: 1.6em 0 0.55em; }
+h1 { margin-top: 0; font-size: 32px; }
+h2 { border-top: 1px solid var(--border); padding-top: 22px; font-size: 24px; }
+h1 + h2, .toc h2 { border-top: 0; padding-top: 0; }
+h3 { font-size: 19px; }
+.heading-link {
+  margin-left: 0.4em;
+  color: var(--muted);
+  font-size: 0.72em;
+  opacity: 0;
+}
+h1:hover .heading-link,
+h2:hover .heading-link,
+h3:hover .heading-link,
+h4:hover .heading-link,
+.heading-link:focus { opacity: 1; }
+p, ul, ol, table, pre { margin: 0.85em 0; }
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.3em 0; }
+code {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.08em 0.35em;
+  font-family: Consolas, "Cascadia Mono", monospace;
+  font-size: 0.94em;
+}
+.code-block {
+  position: relative;
+  margin: 0.9em 0;
+}
+.code-block pre { margin: 0; }
+pre {
+  overflow: auto;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.copy-code {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 1;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--muted);
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.copy-code:hover { color: var(--text); border-color: var(--accent); }
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 0.85em 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  vertical-align: top;
+}
+th {
+  background: var(--code-bg);
+  text-align: left;
+}
+.toc {
+  margin-top: 14px;
+}
+.toc h2 { margin: 0 0 8px; font-size: 15px; }
+.toc ul { margin: 0; padding-left: 0; list-style: none; }
+.toc li { margin: 1px 0; }
+.toc a {
+  display: block;
+  padding: 4px 6px;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.toc a:hover { background: var(--accent-soft); color: var(--text); text-decoration: none; }
+.toc-level-1 { font-weight: 600; }
+.toc-level-2 { margin-left: 0; }
+.toc-level-3 { margin-left: 0.75em !important; }
+.back-to-top {
+  display: block;
+  margin-top: 12px;
+  font-size: 13px;
+}
+@media (max-width: 900px) {
+  .page { display: block; }
+  .sidebar {
+    position: static;
+    max-height: none;
+    margin-bottom: 14px;
+  }
+  .toc {
+    max-height: 340px;
+    overflow: auto;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+  .toc ul { columns: 2; column-gap: 18px; }
+}
+@media (max-width: 620px) {
+  .page { padding: 14px 10px 36px; }
+  .content { padding: 18px 14px; }
+  .toc ul { columns: 1; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+  .heading-link { opacity: 1; }
+}
+</style>
+</head>
+<body>
+<main class="page" id="top">
+<aside class="sidebar">
+<div class="doc-switch">
+<strong>dmc4_hook: Model Extension</strong>
+<a href="https://github.com/muhopensores/dmc4_hook/releases/latest">Official Hook Release</a>
+</div>
+<label class="search-label" for="doc-search">Search this page</label>
+<input class="doc-search" id="doc-search" type="search" placeholder="attach, chain, joint..." autocomplete="off">
+<div class="search-results" id="search-results" aria-live="polite"></div>
+<nav class="toc" aria-label="Page contents">
+<h2>Contents</h2>
+<ul>
+<li class="toc-level-1"><a href="#model-extension">Model Extension</a></li>
+<li class="toc-level-2"><a href="#quick-start">Quick Start</a></li>
+<li class="toc-level-2"><a href="#paths">Paths: How The Game Names Files</a></li>
+<li class="toc-level-2"><a href="#examples">Examples</a></li>
+<li class="toc-level-3"><a href="#example-hat">A Hat On A Joint</a></li>
+<li class="toc-level-3"><a href="#example-jacket">Clothing Made On The Body</a></li>
+<li class="toc-level-3"><a href="#example-tail">A Swinging Tail</a></li>
+<li class="toc-level-3"><a href="#example-coat">A New Coat With Swinging Tails</a></li>
+<li class="toc-level-2"><a href="#reference">Reference</a></li>
+<li class="toc-level-3"><a href="#ref-attach">&lt;attach&gt;: An Extra Model</a></li>
+<li class="toc-level-3"><a href="#ref-model">&lt;model&gt; And &lt;chain&gt;: Physics Chains</a></li>
+<li class="toc-level-2"><a href="#making-files">Making The Files</a></li>
+<li class="toc-level-3"><a href="#joint-numbers">Joint Numbers</a></li>
+<li class="toc-level-2"><a href="#rules">Rules And Limits</a></li>
+<li class="toc-level-2"><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</nav>
+</aside>
+<article class="content" id="document-content">
+<h1 id="model-extension" data-search-heading="Model Extension">Model Extension<a class="heading-link" href="#model-extension" aria-label="Link to Model Extension">#</a></h1>
+
+<p>Model Extension adds things to the game's characters and objects without touching their files:</p>
+<ul>
+<li><strong>Physics chains</strong>: hanging, swinging parts such as coat tails, hair, tails, straps (the game's <code>.clt</code> chain files).</li>
+<li><strong>Extra models</strong>: a hat on Nero's head, a jacket over Dante's body, a pouch on a belt. They move with the character and hide when the character is hidden.</li>
+</ul>
+<p>You describe what goes where in a small text file (XML). The hook reads it and adds the pieces whenever the character they belong to appears: on every level start and every room change.</p>
+
+<div class="callout">Model Extension is in the <strong>Debug</strong> tab of the hook menu. Tick <strong>Model extension</strong> to turn it on.</div>
+
+<h2 id="quick-start" data-search-heading="Quick Start">Quick Start<a class="heading-link" href="#quick-start" aria-label="Link to Quick Start">#</a></h2>
+<ol>
+<li>Put your files (<code>.mod</code>, <code>.tex</code>, <code>.clt</code>, <code>.col</code>) in the game's <code>nativePC</code> folder at the path you want them to have, the same way as any loose-file mod. Example: <code>nativePC\model\game\pl000\my_hat.mod</code>.</li>
+<li>Create the folder <code>nativePC\model_ext</code> and in it a file ending in <code>.xml</code>, for example <code>my_hat.xml</code>. You can have as many of these files as you like; the hook reads them all.</li>
+<li>Write what you want in it (see the examples below), save it.</li>
+<li>In the hook menu, Debug tab: tick <strong>Model extension</strong>, press <strong>Reload lists</strong>. Load a level (or change rooms) if the character isn't on screen yet.</li>
+<li>The panel shows how many of each piece are out. If a count stays at 0, see <a href="#troubleshooting">Troubleshooting</a>.</li>
+</ol>
+
+<h2 id="paths" data-search-heading="Paths">Paths: How The Game Names Files<a class="heading-link" href="#paths" aria-label="Link to Paths">#</a></h2>
+<p>Every file is named by its <strong>game path</strong>: the path below <code>nativePC</code>, <strong>without the extension</strong>. <code>nativePC\model\game\pl000\pl000.mod</code> is <code>model\game\pl000\pl000</code>.</p>
+<p>To find the path of a character, open <strong>Models</strong> in the Model Extension panel: it lists every model the game has loaded since the hook started, each with a <strong>Copy</strong> button. Some you will see often:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Path</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>model\game\pl000\pl000</code></td><td>Nero's body</td></tr>
+<tr><td><code>model\game\pl000\pl000_03</code></td><td>Nero's coat (a separate model riding his body)</td></tr>
+<tr><td><code>model\game\pl006\pl006</code></td><td>Dante's body</td></tr>
+<tr><td><code>model\game\pl006\pl006_03</code></td><td>Dante's coat</td></tr>
+</tbody></table></div>
+<div class="callout">Chain files must be named <code>.clt</code> on disk: that is the extension the game asks for. Extraction tools and Albam call the same files <code>.phs</code>; rename them to <code>.clt</code>.</div>
+
+<h2 id="examples" data-search-heading="Examples">Examples<a class="heading-link" href="#examples" aria-label="Link to Examples">#</a></h2>
+
+<h3 id="example-hat" data-search-heading="A Hat On A Joint">A Hat On A Joint<a class="heading-link" href="#example-hat" aria-label="Link to A Hat On A Joint">#</a></h3>
+<p>The hat rides joint 4 of Nero's body (his head; check the number in Albam, see <a href="#joint-numbers">Joint numbers</a>), lifted 5 cm and turned 90 degrees:</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;extensions&gt;
+  &lt;attach path="model\game\pl000\my_hat" to="model\game\pl000\pl000" joint="4" pos="0 5 0" rot="0 90 0"/&gt;
+&lt;/extensions&gt;</code></pre></div>
+
+<h3 id="example-jacket" data-search-heading="Clothing Made On The Body">Clothing Made On The Body<a class="heading-link" href="#example-jacket" aria-label="Link to Clothing Made On The Body">#</a></h3>
+<p>A jacket modelled and weighted on Nero's own skeleton follows his body joint for joint. No <code>joint=</code> means this mode:</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;extensions&gt;
+  &lt;attach path="model\game\pl000\my_jacket" to="model\game\pl000\pl000"/&gt;
+&lt;/extensions&gt;</code></pre></div>
+
+<h3 id="example-tail" data-search-heading="A Swinging Tail">A Swinging Tail<a class="heading-link" href="#example-tail" aria-label="Link to A Swinging Tail">#</a></h3>
+<p>A chain on joints of Nero's coat model, colliding with the coat's collision shapes, which sit on his body:</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;extensions&gt;
+  &lt;model path="model\game\pl000\pl000_03" collision_model="model\game\pl000\pl000"&gt;
+    &lt;chain clt="model\game\pl000\my_tail" col="model\game\pl000\pl000_03"/&gt;
+  &lt;/model&gt;
+&lt;/extensions&gt;</code></pre></div>
+
+<h3 id="example-coat" data-search-heading="A New Coat With Swinging Tails">A New Coat With Swinging Tails<a class="heading-link" href="#example-coat" aria-label="Link to A New Coat With Swinging Tails">#</a></h3>
+<p>Both together: a new coat follows the body, and its extra tail joints (joints the body doesn't have) swing on chains:</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;extensions&gt;
+  &lt;attach path="model\game\pl000\my_coat" to="model\game\pl000\pl000"/&gt;
+  &lt;model path="model\game\pl000\my_coat" collision_model="model\game\pl000\pl000"&gt;
+    &lt;chain clt="model\game\pl000\my_coat_tail_l"/&gt;
+    &lt;chain clt="model\game\pl000\my_coat_tail_r"/&gt;
+  &lt;/model&gt;
+&lt;/extensions&gt;</code></pre></div>
+
+<h2 id="reference" data-search-heading="Reference">Reference<a class="heading-link" href="#reference" aria-label="Link to Reference">#</a></h2>
+<p>A file has one <code>&lt;extensions&gt;</code> around everything, then any number of <code>&lt;attach&gt;</code> and <code>&lt;model&gt;</code> entries in any order. Paths are game paths (see <a href="#paths">Paths</a>); upper / lower case and <code>/</code> or <code>\</code> don't matter.</p>
+
+<h3 id="ref-attach" data-search-heading="attach">&lt;attach&gt;: An Extra Model<a class="heading-link" href="#ref-attach" aria-label="Link to attach">#</a></h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Setting</th><th>Needed?</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>path</code></td><td>Yes</td><td>The extra model (<code>.mod</code>).</td></tr>
+<tr><td><code>to</code></td><td>Yes</td><td>The model it goes on. Every model with this path gets one (both players in co-op, every enemy of that kind).</td></tr>
+<tr><td><code>joint</code></td><td>No</td><td>A joint number of the <code>to</code> model. With it, the extra model rides that joint rigidly (hats, props). Without it, each joint of the extra model follows the joint with the same number (clothing).</td></tr>
+<tr><td><code>pos</code></td><td>No</td><td>With <code>joint</code>: an offset in centimetres, <code>"x y z"</code>, in the joint's own directions.</td></tr>
+<tr><td><code>rot</code></td><td>No</td><td>With <code>joint</code>: a turn in degrees, <code>"x y z"</code>, about the joint's X, then Y, then Z.</td></tr>
+<tr><td><code>scale</code></td><td>No</td><td>With <code>joint</code>: one number (<code>"1.2"</code>) or three (<code>"1 1 2"</code>).</td></tr>
+<tr><td><code>mode</code></td><td>No</td><td><code>rigid</code> or <code>skin</code>, if you want to say it explicitly.</td></tr>
+<tr><td><code>line</code></td><td>No</td><td>Advanced: the update slot (default 29). Leave it out.</td></tr>
+</tbody></table></div>
+
+<h3 id="ref-model" data-search-heading="model and chain">&lt;model&gt; And &lt;chain&gt;: Physics Chains<a class="heading-link" href="#ref-model" aria-label="Link to model and chain">#</a></h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Setting</th><th>Needed?</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;model path&gt;</code></td><td>Yes</td><td>The model the chains hang on. It can be a game model or one of your <code>&lt;attach&gt;</code> models.</td></tr>
+<tr><td><code>&lt;model collision_model&gt;</code></td><td>No</td><td>The model the collision shapes sit on (usually the character's body), for all the chains inside.</td></tr>
+<tr><td><code>&lt;chain clt&gt;</code></td><td>Yes</td><td>The chain file (<code>.clt</code>). Its joint numbers are joints of the <code>&lt;model&gt;</code>.</td></tr>
+<tr><td><code>&lt;chain col&gt;</code></td><td>No</td><td>Collision shapes (<code>.col</code>) the chain bumps into. Needs a <code>collision_model</code>.</td></tr>
+<tr><td><code>&lt;chain collision_model&gt;</code></td><td>No</td><td>Overrides the <code>&lt;model&gt;</code>'s for this chain.</td></tr>
+</tbody></table></div>
+
+<h2 id="making-files" data-search-heading="Making The Files">Making The Files<a class="heading-link" href="#making-files" aria-label="Link to Making The Files">#</a></h2>
+<p>Albam (the Blender add-on) imports and exports all of these:</p>
+<ul>
+<li><strong>A rigid prop</strong> (hat, sword, pouch): any <code>.mod</code>. Model it around the origin as it should sit on the joint; <code>pos</code> / <code>rot</code> fine-tune it in the game.</li>
+<li><strong>Clothing</strong>: import the character's body <code>.mod</code>, model the clothing on its armature and weight it to the body's bones, export it as a new <code>.mod</code>. It must use the body's skeleton in the body's rest pose, or it comes out shifted. Extra bones you add (coat tails) get new joint numbers on export and can carry chains.</li>
+<li><strong>Chains</strong>: in Albam, select the bones in Pose Mode, Object Properties &gt; Model Chains &gt; New Chain from Selected Bones, tune, export; rename the <code>.phs</code> to <code>.clt</code>.</li>
+<li><strong>Collision shapes</strong> (<code>.col</code>): Albam's Collision Shapes panel; the shapes sit on the bones of the model you give as <code>collision_model</code>.</li>
+</ul>
+
+<h3 id="joint-numbers" data-search-heading="Joint Numbers">Joint Numbers<a class="heading-link" href="#joint-numbers" aria-label="Link to Joint Numbers">#</a></h3>
+<p>Joints are named by <strong>number</strong>, the number the game uses, which is not the bone's position in a list. In Albam, select the bone: <strong>Bone Properties &gt; Game Joint</strong> shows it. Chain files store these numbers too.</p>
+
+<h2 id="rules" data-search-heading="Rules And Limits">Rules And Limits<a class="heading-link" href="#rules" aria-label="Link to Rules And Limits">#</a></h2>
+<ul>
+<li><strong>One thing per joint.</strong> A joint can be driven by one chain or constraint at a time. Don't give your chain joints that another chain already moves (Nero's and Dante's coat tails), and never joint 0 of a coat model (it attaches the coat to the body).</li>
+<li><strong>Clothing needs the body's rest pose.</strong> Joints with the same number as the body's copy the body's joints exactly; if the clothing was built on a different rest pose it will be offset.</li>
+<li><strong>Every model with that path.</strong> A hat <code>to</code> an enemy's path goes on every enemy of that kind.</li>
+<li><strong>Edits:</strong> after changing an <code>.xml</code>, <code>.mod</code>, <code>.clt</code> or <code>.col</code>, press <strong>Reload lists</strong>: everything is taken off and put back with the new files.</li>
+<li><strong>Room changes</strong> rebuild everything automatically.</li>
+</ul>
+
+<h2 id="troubleshooting" data-search-heading="Troubleshooting">Troubleshooting<a class="heading-link" href="#troubleshooting" aria-label="Link to Troubleshooting">#</a></h2>
+<p>The hook writes what it does to <code>dmc4_hook_framework_log.txt</code> in the game folder. Lines start with <code>ModelExtension:</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>You see</th><th>Likely cause</th></tr></thead>
+<tbody>
+<tr><td>The panel lists 0 entries</td><td>The folder or the file name is wrong (<code>nativePC\model_ext\something.xml</code>), the file isn't valid XML (the log gives the position), or the root isn't <code>&lt;extensions&gt;</code>. Press Reload lists after fixing.</td></tr>
+<tr><td>Listed, but the count stays 0</td><td>The <code>to</code> / <code>&lt;model path&gt;</code> doesn't match a loaded model: copy it from <strong>Models</strong>. Or the character isn't in the level.</td></tr>
+<tr><td>"didn't load" in the log</td><td>The file isn't at that path in <code>nativePC</code>, or a chain is still named <code>.phs</code>.</td></tr>
+<tr><td>A hat floats or is turned</td><td>Adjust <code>pos</code> / <code>rot</code>, or check the joint number.</td></tr>
+<tr><td>Clothing sits shifted</td><td>It wasn't built on the body's skeleton in its rest pose.</td></tr>
+<tr><td>A chain hangs stiff or jitters</td><td>Its joints are shared with another chain, or it lists a joint 0 of a coat.</td></tr>
+<tr><td>A coat lost its attachment</td><td>A chain listed the coat's joint 0. Remove it, then reload the level.</td></tr>
+</tbody></table></div>
+
+<p><a class="back-to-top" href="#top">Back to top</a></p>
+</article>
+</main>
+<script>
+const content = document.getElementById("document-content");
+const searchInput = document.getElementById("doc-search");
+const searchResults = document.getElementById("search-results");
+const searchable = Array.from(content.querySelectorAll("h1, h2, h3, h4, p, li, tr, pre"));
+
+function nearestHeading(element) {
+  if (/^H[1-4]$/.test(element.tagName)) {
+    return element;
+  }
+
+  let current = element.previousElementSibling;
+  while (current) {
+    if (/^H[1-4]$/.test(current.tagName)) {
+      return current;
+    }
+    current = current.previousElementSibling;
+  }
+  return content.querySelector("h1");
+}
+
+function runSearch() {
+  const query = searchInput.value.trim().toLowerCase();
+  searchResults.innerHTML = "";
+  if (query.length < 2) {
+    searchResults.classList.remove("active");
+    return;
+  }
+
+  const seen = new Set();
+  const matches = [];
+  for (const element of searchable) {
+    const text = element.textContent.replace(/\s+/g, " ").trim();
+    if (!text.toLowerCase().includes(query)) {
+      continue;
+    }
+
+    const heading = nearestHeading(element);
+    const id = heading && heading.id ? heading.id : "top";
+    const key = id + "|" + text.slice(0, 90);
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    matches.push({
+      id,
+      text,
+      heading: heading ? heading.textContent.replace(/#$/, "").trim() : "Top",
+    });
+    if (matches.length >= 12) {
+      break;
+    }
+  }
+
+  searchResults.classList.add("active");
+  if (matches.length === 0) {
+    searchResults.innerHTML = '<div class="search-empty">No matches on this page.</div>';
+    return;
+  }
+
+  for (const match of matches) {
+    const link = document.createElement("a");
+    link.href = "#" + match.id;
+    link.textContent = match.heading + ": " + match.text.slice(0, 105);
+    link.addEventListener("click", () => searchResults.classList.remove("active"));
+    searchResults.appendChild(link);
+  }
+}
+
+searchInput.addEventListener("input", runSearch);
+searchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    searchInput.value = "";
+    searchResults.classList.remove("active");
+  }
+});
+
+for (const button of document.querySelectorAll(".copy-code")) {
+  button.addEventListener("click", async () => {
+    const codeElement = button.parentElement.querySelector("code");
+    try {
+      await navigator.clipboard.writeText(codeElement.textContent);
+      button.textContent = "Copied";
+      window.setTimeout(() => { button.textContent = "Copy"; }, 1200);
+    }
+    catch {
+      button.textContent = "Select";
+      const range = document.createRange();
+      range.selectNodeContents(codeElement);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  });
+}
+</script>
+</body>
+</html>
