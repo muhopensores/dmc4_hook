@@ -187,6 +187,7 @@
 #include "mods/DanteAirDodge.hpp"
 #include "mods/SpineAim.hpp"
 #include "mods/ThirdPersonAim.hpp"
+#include "mods/ModelExtension.hpp"
 #include "mods/MoveDef.hpp"
 #include "mods/ViewportWindow.hpp"
 #endif
@@ -394,6 +395,7 @@ Mods::Mods() {
     ADD_MOD(SpineAim);      // standalone: procedural spine / hips rotations for a move that asks (the wall run's lean)
     ADD_MOD(MoveDef);        // after the hand-coded moves: they install the shared command hook first
     ADD_MOD(ViewportWindow);
+    ADD_MOD(ModelExtension); // runtime chains (and attachments) on models, from nativePC\model_ext\*.xml
 #endif
 #endif
 }

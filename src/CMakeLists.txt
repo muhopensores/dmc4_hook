@@ -346,6 +346,8 @@ set(MODS_SRC
   mods/SpineAim.cpp
   mods/ThirdPersonAim.hpp
   mods/ThirdPersonAim.cpp
+  mods/ModelExtension.hpp
+  mods/ModelExtension.cpp
   mods/ViewportWindow.hpp
   mods/ViewportWindow.cpp
   mods/PinProperties.hpp
@@ -402,6 +404,10 @@ set(SDK_SRC
     sdk/uActor.hpp
     sdk/Math.hpp
     sdk/Devil4.cpp
+    sdk/CnsChain.hpp
+    sdk/CnsChain.cpp
+    sdk/ModelAttach.hpp
+    sdk/ModelAttach.cpp
     sdk/Collision.hpp
     sdk/Collision.cpp
     sdk/InputCommand.hpp

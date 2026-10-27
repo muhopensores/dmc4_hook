@@ -794,6 +794,7 @@ namespace gui {
                 pmods->on_draw_ui("DanteAirDodge"_hash, DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui("SpineAim"_hash, DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui("ThirdPersonAim"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui("ModelExtension"_hash, DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui("MoveDef"_hash, DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui("ViewportWindow"_hash, DISPLAY_SYSTEM_A);
 #ifndef PUBLIC_BUILD
