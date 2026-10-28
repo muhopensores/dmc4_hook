@@ -18,7 +18,7 @@ uintptr_t WallRun::jmp_ret1 = NULL;
 bool  WallRun::replace_wall_jump_check = true;
 uintptr_t WallRun::jmp_ret2 = 0;
 bool  WallRun::require_wall_jumps = false;
-float WallRun::check_reach  = 80.0f;
+float WallRun::check_reach  = 150.0f;
 float WallRun::check_height = 10.0f;
 uint32_t WallRun::button_mask = 0x4;
 bool  WallRun::gun_while_running = true;
@@ -59,7 +59,7 @@ int   WallRun::run_slot_jump_left  = 4;
 float WallRun::jumpout_launch_frame = 0.0f;
 bool  WallRun::jumpout_custom_physics = true;
 float WallRun::jumpout_up       = 22.0f;
-float WallRun::jumpout_out      = 10.0f;
+float WallRun::jumpout_out      = 14.0f;
 float WallRun::jumpout_along    = 6.0f;
 float WallRun::jumpout_gravity  = -1.1f;
 float WallRun::jumpout_max_fall = 30.0f;
@@ -348,6 +348,7 @@ struct RunState {                   // what the game's phase word can't hold
     int motion = -1;                // the motion playing, to re-request when the direction mode changes
     int kickoff = -1;               // custom jump-out motion for the port's kick-off (-1 = the vanilla one)
     bool custom_kickoff = false;    // a jump-out cycle is playing: it is the whole jump, the port adds no fall motion
+    bool from_run = false;          // the port's next phase 0 follows a sideways run (set by hand_to_wall_jump, read once)
     float lost = 0.0f;              // frames since the casts last hit (the wall ended, or bent too sharply)
     uint32_t run_limit = 0, run_stat = 0;   // mActLimit / mActStat as the wall jump's entry left them: re-asserted while the upper body shoots
     float shot_age = -1.0f;         // ticks since the shot action started (-1 = none)
@@ -798,6 +799,7 @@ naked void detour_pose_upper() {
 void hand_to_wall_jump(RunState& s, uintptr_t pl, bool from_run) {
     s.kickoff = -1;
     s.custom_kickoff = false;
+    s.from_run = from_run && !s.wall.vertical;               // a climb faces the wall: the port's own choice is clear
     if (from_run) {
         at<LineResult>(pl, pl::mGroundPoly) = s.wall.poly;   // else keep checkWallJumpBegin's wall
         give_jumps_back(pl);                                 // the kick-off itself doesn't charge again
@@ -989,6 +991,29 @@ void WallRun::wall_jump_port(uintptr_t pl) {
     MtVector3& acc   = at<MtVector3>(pl, pl::mAcc);
     const LineResult& poly = at<LineResult>(pl, pl::mGroundPoly);
 
+    // The jump-out cycle's take-off: the jump's velocity, the dust, straight to the airborne phase.
+    auto launch_jumpout = [&](RunState& rs) {
+        if (at<uint32_t>(pl, pl::mBtnOn) & 0x4)
+            at<int>(pl, pl::mJumpMode) = JUMP_MODE_NORM_WALL_HI;
+        set_jump_rate(pl);                                  // the table's values (inertia, speed, gravity)
+        if (jumpout_custom_physics) {                       // ... replaced by the tunables
+            const glm::vec3 n = tri_normal(&poly);
+            const glm::vec3 v = n * jumpout_out + glm::vec3(rs.wall.run_dir) * jumpout_along;
+            vel.x = v.x; vel.z = v.z;
+            vel.y = jumpout_up;
+            acc.x = acc.y = acc.z = 0.0f;
+            // keep the game's own XZ model in step: mMoveVel = the horizontal speed, no table deceleration,
+            // moveAng = its yaw, and no additive speed on top
+            const glm::vec3 xz(v.x, 0.0f, v.z);
+            at<float>(pl, pl::mMoveVel) = glm::length(xz);
+            at<float>(pl, pl::mMoveAcc) = 0.0f;
+            if (glm::length(xz) > 1e-4f) at<float>(pl, pl::mJumpMoveAng) = yaw_of(xz);
+            clear_add_speed(pl);
+        }
+        wall_dust_effect(pl, tri_normal(&poly), poly.hitPos, efct_mtrl_flag(&poly));
+        phase = 4;
+    };
+
     switch (phase) {
     case 0: {
         at<float>(pl, pl::mDownMaxSpd) = at<float*>(pl, pl::mParamTbl0Data)[103];
@@ -1013,15 +1038,30 @@ void WallRun::wall_jump_port(uintptr_t pl) {
 
         const float facing = at<float>(pl, pl::mRotateNow);
         const float facingDot = std::sin(facing) * n.x + std::cos(facing) * n.z;
+        RunState& rs = state_for(pl);
+        const bool from_run = rs.from_run;
+        rs.from_run = false;
 
         acc.x = acc.y = acc.z = 0.0f;
-        vel.x = vel.y = vel.z = 0.0f;
+        if (from_run) {                          // keep the run's speed along the wall until the launch (no dead stop),
+            const float into = vel.x * n.x + vel.y * n.y + vel.z * n.z;   // only its push into the wall goes
+            vel.x -= n.x * into; vel.y -= n.y * into; vel.z -= n.z * into;
+        } else {
+            vel.x = vel.y = vel.z = 0.0f;
+        }
         at<int8_t>(pl, pl::mJumpAtckCnt) = 0;
         if ((at<uint32_t>(pl, pl::mActStat) & 2) && at<uint8_t>(pl, pl::mAtckLongCnt) > 2)
             at<uint8_t>(pl, pl::mAtckLongCnt) = 2;
         phase = 1;
 
-        if (facingDot >= 0.0f) {                 // facing away from the wall
+        if (from_run) {
+            // The run faces along the wall, so facingDot is about 0 and the test below was a coin flip between
+            // two 90-degree snaps (which phase 1's turn then swung back: a twitch). Back to the wall, always; the
+            // jump-out cycle is authored from the run's facing, so it keeps it; the placeholder kicks (back-to-wall
+            // motions 25 / 26 / 27) still need the back to the wall.
+            wallFront = false;
+            if (rs.kickoff < 0) face(pl, wallYaw);
+        } else if (facingDot >= 0.0f) {          // facing away from the wall
             wallFront = false;
             face(pl, wallYaw);
         } else {                                 // facing the wall
@@ -1069,6 +1109,8 @@ void WallRun::wall_jump_port(uintptr_t pl) {
             rotate_request(pl, moveAng, std::fabs(diff * 0.2f));
         }
         ++phase;
+        // A take-off on the cycle's first frame launches on this tick, not the next (one tick standing still).
+        if (rs.custom_kickoff && jumpout_launch_frame <= 0.0f) launch_jumpout(rs);
         break;
     }
     case 2: {
@@ -1076,27 +1118,7 @@ void WallRun::wall_jump_port(uintptr_t pl) {
         if (rs.custom_kickoff) {
             // A jump-out cycle: launch at its take-off frame, keep the cycle playing, skip the fall motion and
             // the phase-3 loop re-request (straight to the airborne phase).
-            if (at<float>(pl, pl::mMotionFrame0) >= jumpout_launch_frame) {
-                if (at<uint32_t>(pl, pl::mBtnOn) & 0x4)
-                    at<int>(pl, pl::mJumpMode) = JUMP_MODE_NORM_WALL_HI;
-                set_jump_rate(pl);                                  // the table's values (inertia, speed, gravity)
-                if (jumpout_custom_physics) {                       // ... replaced by the tunables
-                    const glm::vec3 n = tri_normal(&poly);
-                    const glm::vec3 v = n * jumpout_out + glm::vec3(rs.wall.run_dir) * jumpout_along;
-                    vel.x = v.x; vel.z = v.z;
-                    vel.y = jumpout_up;
-                    acc.x = acc.y = acc.z = 0.0f;
-                    // keep the game's own XZ model in step: mMoveVel = the horizontal speed, no table deceleration,
-                    // moveAng = its yaw, and no additive speed on top
-                    const glm::vec3 xz(v.x, 0.0f, v.z);
-                    at<float>(pl, pl::mMoveVel) = glm::length(xz);
-                    at<float>(pl, pl::mMoveAcc) = 0.0f;
-                    if (glm::length(xz) > 1e-4f) at<float>(pl, pl::mJumpMoveAng) = yaw_of(xz);
-                    clear_add_speed(pl);
-                }
-                wall_dust_effect(pl, tri_normal(&poly), poly.hitPos, efct_mtrl_flag(&poly));
-                phase = 4;
-            }
+            if (at<float>(pl, pl::mMotionFrame0) >= jumpout_launch_frame) launch_jumpout(rs);
             break;
         }
         if (at<bool>(pl, pl::mMotionFrameEnd0)) {
