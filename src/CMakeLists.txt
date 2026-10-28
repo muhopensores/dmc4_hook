@@ -342,8 +342,6 @@ set(MODS_SRC
   mods/SpineAim.cpp
   mods/ThirdPersonAim.hpp
   mods/ThirdPersonAim.cpp
-  mods/ModelExtension.hpp
-  mods/ModelExtension.cpp
   mods/ViewportWindow.hpp
   mods/ViewportWindow.cpp
   mods/PinProperties.hpp
@@ -392,6 +390,8 @@ set(DEV_SRC
   dev/movedef/MoveDef.cpp
   dev/movedef/MoveDefShell.hpp
   dev/movedef/MoveDefShell.cpp
+  dev/model_ext/ModelExtension.hpp
+  dev/model_ext/ModelExtension.cpp
 )
 
 set(HOOKS_SRC

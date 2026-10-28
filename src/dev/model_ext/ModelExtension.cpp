@@ -1,9 +1,9 @@
 #include "ModelExtension.hpp"
-#include "../sdk/CnsChain.hpp"
-#include "../sdk/ModelAttach.hpp"
-#include "../sdk/Devil4.hpp"
-#include "../sdk/MtDTI.hpp"
-#include "../sdk/sUnit.hpp"
+#include "../../sdk/CnsChain.hpp"
+#include "../../sdk/ModelAttach.hpp"
+#include "../../sdk/Devil4.hpp"
+#include "../../sdk/MtDTI.hpp"
+#include "../../sdk/sUnit.hpp"
 #include <pugixml.hpp>
 #include <algorithm>
 #include <cctype>

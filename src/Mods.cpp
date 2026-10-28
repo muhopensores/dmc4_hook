@@ -187,9 +187,11 @@
 #include "mods/DanteAirDodge.hpp"
 #include "mods/SpineAim.hpp"
 #include "mods/ThirdPersonAim.hpp"
-#include "mods/ModelExtension.hpp"
-#include "dev/movedef/MoveDef.hpp"
 #include "mods/ViewportWindow.hpp"
+
+//Include dev features here
+#include "dev/model_ext/ModelExtension.hpp"
+#include "dev/movedef/MoveDef.hpp"
 #endif
 
 constexpr size_t MODS_NUM{ 512 };
