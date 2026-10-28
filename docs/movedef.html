@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XML Moves Guide</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f6f7f9;
+  --page: #ffffff;
+  --text: #17202a;
+  --muted: #5f6b7a;
+  --border: #d9dee7;
+  --accent: #0b6bcb;
+  --accent-soft: #e8f2fd;
+  --code-bg: #eef2f7;
+  --shadow: rgba(24, 36, 52, 0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111418;
+    --page: #181c22;
+    --text: #e9edf3;
+    --muted: #a9b4c2;
+    --border: #303844;
+    --accent: #65b7ff;
+    --accent-soft: #1c3044;
+    --code-bg: #242b35;
+    --shadow: rgba(0, 0, 0, 0.25);
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Arial, sans-serif;
+  line-height: 1.58;
+}
+.page {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 24px 20px 64px;
+  display: grid;
+  grid-template-columns: 286px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+.sidebar {
+  position: sticky;
+  top: 18px;
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 8px 30px var(--shadow);
+}
+.content {
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 30px 34px 48px;
+  min-width: 0;
+  box-shadow: 0 8px 30px var(--shadow);
+}
+.doc-switch {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.doc-switch strong { color: var(--text); font-size: 16px; }
+.doc-switch a {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 7px 9px;
+  background: var(--code-bg);
+}
+.search-label {
+  display: block;
+  margin: 12px 0 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.doc-search {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--page);
+  color: var(--text);
+  padding: 9px 10px;
+  font: inherit;
+}
+.doc-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.search-results {
+  display: none;
+  margin: 8px 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.search-results.active { display: block; }
+.search-results a {
+  display: block;
+  padding: 8px 9px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+}
+.search-results a:last-child { border-bottom: 0; }
+.search-results a:hover { background: var(--accent-soft); text-decoration: none; }
+.search-empty { padding: 8px 9px; color: var(--muted); font-size: 13px; }
+.callout {
+  margin: 0.9em 0;
+  border-left: 4px solid var(--accent);
+  border-radius: 4px;
+  background: var(--accent-soft);
+  padding: 11px 13px;
+  font-weight: 600;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1, h2, h3, h4 { line-height: 1.25; margin: 1.6em 0 0.55em; }
+h1 { margin-top: 0; font-size: 32px; }
+h2 { border-top: 1px solid var(--border); padding-top: 22px; font-size: 24px; }
+h1 + h2, .toc h2 { border-top: 0; padding-top: 0; }
+h3 { font-size: 19px; }
+.heading-link {
+  margin-left: 0.4em;
+  color: var(--muted);
+  font-size: 0.72em;
+  opacity: 0;
+}
+h1:hover .heading-link,
+h2:hover .heading-link,
+h3:hover .heading-link,
+h4:hover .heading-link,
+.heading-link:focus { opacity: 1; }
+p, ul, ol, table, pre { margin: 0.85em 0; }
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.3em 0; }
+code {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.08em 0.35em;
+  font-family: Consolas, "Cascadia Mono", monospace;
+  font-size: 0.94em;
+}
+.code-block {
+  position: relative;
+  margin: 0.9em 0;
+}
+.code-block pre { margin: 0; }
+pre {
+  overflow: auto;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.copy-code {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 1;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--muted);
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.copy-code:hover { color: var(--text); border-color: var(--accent); }
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 0.85em 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  vertical-align: top;
+}
+th {
+  background: var(--code-bg);
+  text-align: left;
+}
+.toc {
+  margin-top: 14px;
+}
+.toc h2 { margin: 0 0 8px; font-size: 15px; }
+.toc ul { margin: 0; padding-left: 0; list-style: none; }
+.toc li { margin: 1px 0; }
+.toc a {
+  display: block;
+  padding: 4px 6px;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.toc a:hover { background: var(--accent-soft); color: var(--text); text-decoration: none; }
+.toc-level-1 { font-weight: 600; }
+.toc-level-2 { margin-left: 0; }
+.toc-level-3 { margin-left: 0.75em !important; }
+.back-to-top {
+  display: block;
+  margin-top: 12px;
+  font-size: 13px;
+}
+@media (max-width: 900px) {
+  .page { display: block; }
+  .sidebar {
+    position: static;
+    max-height: none;
+    margin-bottom: 14px;
+  }
+  .toc {
+    max-height: 340px;
+    overflow: auto;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+  .toc ul { columns: 2; column-gap: 18px; }
+}
+@media (max-width: 620px) {
+  .page { padding: 14px 10px 36px; }
+  .content { padding: 18px 14px; }
+  .toc ul { columns: 1; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+  .heading-link { opacity: 1; }
+}
+</style>
+</head>
+<body>
+<main class="page" id="top">
+<aside class="sidebar">
+<div class="doc-switch">
+<strong>dmc4_hook: XML Moves</strong>
+<a href="https://github.com/muhopensores/dmc4_hook/releases/latest">Official Hook Release</a>
+</div>
+<label class="search-label" for="doc-search">Search this page</label>
+<input class="doc-search" id="doc-search" type="search" placeholder="cancel, next, effect..." autocomplete="off">
+<div class="search-results" id="search-results" aria-live="polite"></div>
+<nav class="toc" aria-label="Page contents">
+<h2>Contents</h2>
+<ul>
+<li class="toc-level-1"><a href="#xml-moves">XML Moves</a></li>
+<li class="toc-level-2"><a href="#quick-start">Quick Start</a></li>
+<li class="toc-level-2"><a href="#how">How A Move Works</a></li>
+<li class="toc-level-3"><a href="#ids">Move Ids</a></li>
+<li class="toc-level-3"><a href="#motions">Motions: Banks And Blocks</a></li>
+<li class="toc-level-3"><a href="#rows">The Move List And Input</a></li>
+<li class="toc-level-3"><a href="#cancels">Cancel Windows</a></li>
+<li class="toc-level-3"><a href="#kinds">Four Kinds Of File</a></li>
+<li class="toc-level-2"><a href="#examples">Examples</a></li>
+<li class="toc-level-3"><a href="#example-dodge">An Air Dodge</a></li>
+<li class="toc-level-3"><a href="#example-stab">Million Stab For Nero</a></li>
+<li class="toc-level-3"><a href="#example-overlay">Holding Melee Out Of Streak</a></li>
+<li class="toc-level-2"><a href="#reference">Reference</a></li>
+<li class="toc-level-3"><a href="#ref-move">&lt;move&gt;</a></li>
+<li class="toc-level-3"><a href="#ref-table">&lt;table&gt;: The Move List Entry</a></li>
+<li class="toc-level-3"><a href="#ref-command">&lt;command&gt;: A New Input</a></li>
+<li class="toc-level-3"><a href="#ref-lmt">&lt;lmt&gt;: The Animations</a></li>
+<li class="toc-level-3"><a href="#ref-stage">&lt;stage&gt;: What Plays</a></li>
+<li class="toc-level-3"><a href="#ref-launch">&lt;launch&gt; And &lt;air_jump&gt;</a></li>
+<li class="toc-level-3"><a href="#ref-cancel">&lt;cancel&gt; And &lt;trigger&gt;</a></li>
+<li class="toc-level-3"><a href="#ref-next">&lt;next&gt;: Ending And Chaining</a></li>
+<li class="toc-level-3"><a href="#ref-effects">Effects And Sounds</a></li>
+<li class="toc-level-3"><a href="#ref-values">Names And Values</a></li>
+<li class="toc-level-2"><a href="#making-files">Making The Files</a></li>
+<li class="toc-level-2"><a href="#rules">Rules And Limits</a></li>
+<li class="toc-level-2"><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</nav>
+</aside>
+<article class="content" id="document-content">
+<h1 id="xml-moves" data-search-heading="XML Moves">XML Moves<a class="heading-link" href="#xml-moves" aria-label="Link to XML Moves">#</a></h1>
+
+<p>XML Moves (MoveDef) lets you add moves to Nero and Dante, or change how their own moves continue, by writing a small text file instead of code. One file describes one move:</p>
+<ul>
+<li>how it is started: a button, a stick motion plus a button, or as the next hit of a combo;</li>
+<li>which animations it plays (an <code>.lmt</code> file made in Albam, or one of the game's own);</li>
+<li>when it can be cancelled into jumps, guns, taunts and other attacks;</li>
+<li>how it moves the character (a jump, a dodge, a dash), when it ends, and which move it leads into;</li>
+<li>which effects and sounds fire, at which frame.</li>
+</ul>
+<p>The hook reads every file when the game starts and adds the moves to the character's move list, so the game picks them up the same way it picks its own moves.</p>
+
+<div class="callout">XML Moves is in the <strong>Debug</strong> tab of the hook menu, under Misc. Tick <strong>XML moves (MoveDef)</strong> to turn it on; each loaded move can be switched on and off under <strong>Moves</strong>.</div>
+
+<h2 id="quick-start" data-search-heading="Quick Start">Quick Start<a class="heading-link" href="#quick-start" aria-label="Link to Quick Start">#</a></h2>
+<p>The fastest way in is to install the Million Stab example (Nero gets Dante's Million Stab out of Streak) and change it.</p>
+<ol>
+<li>In the panel, press <strong>Open folder</strong>: it makes <code>nativePC\movedef</code> in the game folder if it's missing and opens it. (<strong>Create example</strong> puts a commented-out starter file, <code>example.xml</code>, there: a small Nero move that needs no files of its own. Its first lines say how to switch it on.)</li>
+<li>Make three files in it with the Copy buttons of the examples: <code>nero_million_stab.xml</code> and <code>nero_million_stab_finish.xml</code> (<a href="#example-stab">Million Stab For Nero</a>) and <code>nero_streak_hold.xml</code> (<a href="#example-overlay">Holding Melee Out Of Streak</a>).</li>
+<li>Make the animation file <code>nativePC\motion\pl000\million_stab.lmt</code>: Dante's own Million Stab. In Albam, import Dante's body (<code>model\game\pl006\pl006.mod</code>) and his <code>motion\pl006\pl006_03.lmt</code>, make a New LMT with the stab loop (block 8 of the file) as animation 0 and the finish (block 9) as animation 1, and export it to that path. See <a href="#making-files">Making The Files</a>.</li>
+<li>Start the game. Files are read at start-up, so a <strong>new</strong> file always needs a restart.</li>
+<li>Open the hook menu, Debug tab: <strong>Moves</strong> lists the three files. Play Nero, do Streak (lock-on, forward + melee) and hold melee, or press melee again as it ends.</li>
+<li>Change a number in a file (a frame, the speed), save, press <strong>Reload</strong> and try again. See <a href="#rules">Rules And Limits</a> for what Reload can change.</li>
+</ol>
+<p>The panel's last line (<code>last: ...</code>) tells you what the move did most recently: started, handed off, left, or why it refused. Everything else is in the log, see <a href="#troubleshooting">Troubleshooting</a>.</p>
+
+<h2 id="how" data-search-heading="How A Move Works">How A Move Works<a class="heading-link" href="#how" aria-label="Link to How A Move Works">#</a></h2>
+
+<h3 id="ids" data-search-heading="Move Ids">Move Ids<a class="heading-link" href="#ids" aria-label="Link to Move Ids">#</a></h3>
+<p>Every move has a number, its <strong>id</strong>. The game's own moves use the low numbers; a new move needs one of its own:</p>
+<ul>
+<li>Nero: <code>0x34</code> (52) and up.</li>
+<li>Dante: <code>0x6C</code> (108) and up.</li>
+</ul>
+<p>Each id may be used once per character, by one file. Numbers can be written in decimal (<code>80</code>) or hexadecimal (<code>0x50</code>) anywhere in a file. To learn the id of one of the game's moves, do the move and read <code>atckId</code> in the panel (it is shown in decimal).</p>
+
+<h3 id="motions" data-search-heading="Motions: Banks And Blocks">Motions: Banks And Blocks<a class="heading-link" href="#motions" aria-label="Link to Motions">#</a></h3>
+<p>A character's animations live in up to 16 <strong>banks</strong>, one <code>.lmt</code> file each, and each file holds numbered animations, its <strong>blocks</strong>. A motion is written <code>bank:block</code>, for example <code>3:0x17</code> = block 0x17 of bank 3.</p>
+<ul>
+<li>The game's own files: <code>motion\pl000\pl000_NN.lmt</code> is bank NN - 1 (Nero's <code>pl000_04.lmt</code> is bank 3); Dante's <code>pl006_NN.lmt</code> the same way. The block is the animation's number in Albam's LMT list.</li>
+<li>Your own animations go in a <strong>free bank</strong>, 10 to 14, loaded by the hook from the file you give in <code>&lt;lmt&gt;</code>. Banks 0-9 and 15 belong to the game.</li>
+<li><strong>One bank, one file.</strong> Other hook features also load animations into free banks (Gerb, the wall run, the Dante air dodge; their banks are in their settings). If two things share a bank on the same character, one of them plays the wrong animations. The hook refuses a move whose bank is already taken and says so in the log.</li>
+</ul>
+<p>Nero and Dante's bodies share joint numbers, so one character's animations play on the other.</p>
+
+<h3 id="rows" data-search-heading="The Move List And Input">The Move List And Input<a class="heading-link" href="#rows" aria-label="Link to The Move List And Input">#</a></h3>
+<p>The game keeps a list of moves per character. When you press a button it walks the list from the top and starts the first move whose input, conditions (weapon, style, ground or air) and combo position fit. A file's <code>&lt;table&gt;</code> becomes one entry of that list, put at the <strong>top</strong>, so it wins over the game's own moves when both fit.</p>
+<p>Input is one of:</p>
+<ul>
+<li>a plain button: <code>attr="melee"</code> or <code>attr="gun"</code> with no <code>&lt;input&gt;</code>;</li>
+<li>a new input you define with <code>&lt;command&gt;</code>: buttons and stick directions in order, optionally "while locked on" (see <a href="#ref-command">&lt;command&gt;</a>);</li>
+<li>a combo step: <code>&lt;follows move="..."&gt;</code> says "the next hit after that move".</li>
+</ul>
+
+<h3 id="cancels" data-search-heading="Cancel Windows">Cancel Windows<a class="heading-link" href="#cancels" aria-label="Link to Cancel Windows">#</a></h3>
+<p>While a move plays, nothing interrupts it until a <strong>cancel window</strong> opens. A window is opened by a category (jump, gun, taunt, the next attack, everything) at a frame of the animation. Two rules:</p>
+<ul>
+<li><strong>Before the first window opens, the move can't be cancelled at all</strong>: not even into a jump. (The enemy step is the exception; see <code>enemy_step</code>.)</li>
+<li>A window is either <strong>open</strong> (the next move starts at once) or <strong>buffer</strong> (the press is remembered and the next move starts when the window opens; this is how the game makes combos feel responsive).</li>
+</ul>
+<p>Windows also decide combo steps: a row with <code>&lt;follows move="28"/&gt;</code> and <code>&lt;window category="C_NORM0"/&gt;</code> only starts while move 28 has its C_NORM0 window open.</p>
+
+<h3 id="kinds" data-search-heading="Four Kinds Of File">Four Kinds Of File<a class="heading-link" href="#kinds" aria-label="Link to Four Kinds Of File">#</a></h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Kind</th><th>What makes it one</th><th>Use it for</th></tr></thead>
+<tbody>
+<tr><td>A new move</td><td><code>&lt;move&gt;</code> with a <code>&lt;table&gt;</code> and a new id</td><td>Anything the player starts with an input or as a combo step.</td></tr>
+<tr><td>A follow-up only move</td><td><code>&lt;move&gt;</code> with a new id and <strong>no</strong> <code>&lt;table&gt;</code></td><td>The second part of a move (a finisher), reached only through another move's <code>&lt;next to="move:..."&gt;</code>.</td></tr>
+<tr><td>An addition to a game move</td><td><code>&lt;move overlay="true"&gt;</code> with the game move's id</td><td>New ways out of one of the game's moves (hold melee in Streak to go into your move), and effects or sounds on it.</td></tr>
+<tr><td>Shared inputs</td><td><code>&lt;commands character="..."&gt;</code></td><td>Inputs several move files use.</td></tr>
+</tbody></table></div>
+
+<h2 id="examples" data-search-heading="Examples">Examples<a class="heading-link" href="#examples" aria-label="Link to Examples">#</a></h2>
+
+<h3 id="example-dodge" data-search-heading="An Air Dodge">An Air Dodge<a class="heading-link" href="#example-dodge" aria-label="Link to An Air Dodge">#</a></h3>
+<p>Dante dodges sideways in the air: lock-on held, stick left or right, jump. It costs his air jump, plays a left or right animation from the stick, shows his air hike effect leaned into the dodge, and lands normally. Needs <code>nativePC\motion\pl006\airdodge.lmt</code> with the left dodge as animation 0 and the right as 1.</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;move name="dante_air_dodge" character="pl006" id="0x6F" version="2"&gt;
+  &lt;table attr="command" level="7" start="true" air="air"&gt;
+    &lt;input command="dodge"/&gt;
+  &lt;/table&gt;
+  &lt;command name="dodge" condition="lockon" predicate="stick_sideways"&gt;
+    &lt;btn id="jump" mode="trg"/&gt;
+  &lt;/command&gt;
+  &lt;lmt bank="12" path="motion\pl006\airdodge"/&gt;
+  &lt;stage name="dodge" ctn="0:5" interp="4" status="jump" land="exit" cancel_frame="10"
+         eat_press="jump" watchdog="60"&gt;
+    &lt;slot dir="right" block="1"/&gt;
+    &lt;slot dir="left" block="0"/&gt;
+    &lt;launch frame="0" direction="stick" speed="20" rise="8" gravity="-1.1" max_fall="30" side_angle="50"&gt;
+      &lt;effect list="2" index="0x14" tilt="45"/&gt;
+      &lt;se id="40"/&gt;
+    &lt;/launch&gt;
+    &lt;air_jump cost="1" required="true" suppress_air_hike="true"/&gt;
+  &lt;/stage&gt;
+&lt;/move&gt;</code></pre></div>
+<p>The hook has the same dodge built in (Dante air dodge, on bank 12 by default). Turn that one off, or move this file to another bank and id, before loading both.</p>
+
+<h3 id="example-stab" data-search-heading="Million Stab For Nero">Million Stab For Nero<a class="heading-link" href="#example-stab" aria-label="Link to Million Stab For Nero">#</a></h3>
+<p>Two files. The first is the stabbing: a melee press while Streak's follow-up window is open starts it; it keeps stabbing while melee is mashed and hands over to the finisher 18 ticks after the last press.</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;move name="nero_million_stab" character="pl000" id="0x50" version="2"&gt;
+  &lt;table attr="melee" level="7" start="false" cancel="true" air="ground"&gt;
+    &lt;follows move="28"/&gt;                      &lt;!-- after Streak (it has two ids, 28 and 29) --&gt;
+    &lt;follows move="29"/&gt;
+    &lt;window category="C_NORM0"/&gt;              &lt;!-- once its next-attack window is open --&gt;
+  &lt;/table&gt;
+  &lt;lmt bank="10" path="motion\pl000\million_stab"/&gt;
+  &lt;stage name="stab" motion="10:0" ctn="3:0x15" interp="3" start="9" stop="true" land="none"
+         eat_press="melee" watchdog="90"&gt;
+    &lt;next frame="12" button="melee" idle="18" to="move:nero_million_stab_finish"/&gt;
+    &lt;next frame="300" to="move:nero_million_stab_finish"/&gt;   &lt;!-- five seconds at most --&gt;
+    &lt;cancel frame="12" categories="C_JUMP"/&gt;
+    &lt;effect frame="9" list="2" index="0xB" material="ground" id="4"/&gt;   &lt;!-- the dust, named 4 --&gt;
+  &lt;/stage&gt;
+&lt;/move&gt;</code></pre></div>
+<p>The second is the finisher. It has no <code>&lt;table&gt;</code>, so nothing starts it but the hand-over above:</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;move name="nero_million_stab_finish" character="pl000" id="0x51" version="2"&gt;
+  &lt;lmt bank="10" path="motion\pl000\million_stab"/&gt;
+  &lt;stage name="finish" motion="10:1" ctn="3:0x15" interp="10" stop="true" land="none" watchdog="90"&gt;
+    &lt;cancel frame="20" categories="C_JUMP C_GUN C_CHOUHATSU"/&gt;   &lt;!-- jump, guns, taunt --&gt;
+    &lt;cancel frame="40" categories="C_NORM0 C_COMMAND C_ALL"/&gt;    &lt;!-- the next attack: later, so mashing doesn't cancel it --&gt;
+    &lt;kill_effect frame="0" id="4"/&gt;                              &lt;!-- the stab dust off --&gt;
+    &lt;effect frame="0" list="2" index="0xC" material="ground"/&gt;   &lt;!-- the finish burst --&gt;
+    &lt;next on="motion_end" to="exit"/&gt;
+  &lt;/stage&gt;
+&lt;/move&gt;</code></pre></div>
+
+<h3 id="example-overlay" data-search-heading="Holding Melee Out Of Streak">Holding Melee Out Of Streak<a class="heading-link" href="#example-overlay" aria-label="Link to Holding Melee Out Of Streak">#</a></h3>
+<p>Dante starts Million Stab by <strong>holding</strong> melee through his Stinger. This file adds the same to Nero's own Streak, without replacing it: while Streak's finish animation plays, once it reaches its follow-up point, melee held with the stick centred hands over to the stab file above.</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;move name="nero_streak_hold" character="pl000" ids="28 29" overlay="true" version="2"&gt;
+  &lt;stage name="finish" motion="3:0x17"&gt;
+    &lt;next byte="free1" value="2" button="melee" held="true" stick="neutral" to="move:nero_million_stab"/&gt;
+  &lt;/stage&gt;
+&lt;/move&gt;</code></pre></div>
+<p><code>free1</code> = 2 is a marker the game's own cancel script for that animation sets at frame 20; markers like it are how the game times the stages of its moves (see <a href="#ref-cancel">&lt;trigger&gt;</a>).</p>
+
+<h2 id="reference" data-search-heading="Reference">Reference<a class="heading-link" href="#reference" aria-label="Link to Reference">#</a></h2>
+<p>A file holds one <code>&lt;move&gt;</code> (or one <code>&lt;commands&gt;</code>). Names and values are not case sensitive. A setting the hook doesn't know is skipped; a value it can't read takes the default. Frames are frames of the animation, 60 per second.</p>
+
+<h3 id="ref-move" data-search-heading="move">&lt;move&gt;<a class="heading-link" href="#ref-move" aria-label="Link to move">#</a></h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Setting</th><th>Needed?</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>name</code></td><td>Yes</td><td>The move's name: shown in the panel and the log, and how other files refer to it (<code>move:name</code>, <code>&lt;follows move="name"&gt;</code>).</td></tr>
+<tr><td><code>character</code></td><td>Yes</td><td><code>pl000</code> (or <code>nero</code>) / <code>pl006</code> (or <code>dante</code>).</td></tr>
+<tr><td><code>id</code></td><td>Yes</td><td>The move's id (<a href="#ids">Move Ids</a>). For <code>overlay</code>, the game move's id.</td></tr>
+<tr><td><code>ids</code></td><td>No</td><td>Overlays: several game ids at once, <code>"28 29"</code>; some game moves have two (Streak).</td></tr>
+<tr><td><code>overlay</code></td><td>No</td><td><code>true</code> = an addition to the game move <code>id</code>: only its stage's <code>&lt;next&gt;</code>s and effects are used. It gets no list entry and no bank.</td></tr>
+<tr><td><code>version</code></td><td>No</td><td><code>2</code>.</td></tr>
+</tbody></table></div>
+<p>Inside: <code>&lt;table&gt;</code>, <code>&lt;command&gt;</code>, <code>&lt;lmt&gt;</code>, and one <code>&lt;stage&gt;</code>. Only the first <code>&lt;stage&gt;</code> is used; a move with several parts is several files joined by <code>&lt;next to="move:..."&gt;</code>.</p>
+
+<h3 id="ref-table" data-search-heading="table">&lt;table&gt;: The Move List Entry<a class="heading-link" href="#ref-table" aria-label="Link to table">#</a></h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Setting</th><th>Default</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>attr</code></td><td><code>command</code></td><td><code>melee</code> / <code>gun</code>: started by that button. <code>command</code>: started by the <code>&lt;input&gt;</code>.</td></tr>
+<tr><td><code>air</code></td><td><code>air</code></td><td>Where it can start: <code>ground</code>, <code>air</code>, <code>both</code>. <strong>Set it for ground moves</strong>, the default is air.</td></tr>
+<tr><td><code>start</code></td><td><code>true</code></td><td>Can start from standing, walking or falling (no attack playing).</td></tr>
+<tr><td><code>cancel</code></td><td><code>false</code></td><td>Can start by cancelling an attack (needed for combo steps).</td></tr>
+<tr><td><code>repeat</code></td><td><code>false</code></td><td>Can cancel into itself.</td></tr>
+<tr><td><code>weapon</code></td><td><code>-1</code></td><td>-1 = any weapon, else only with the weapon of that number (as the game's own entries use it).</td></tr>
+<tr><td><code>style</code></td><td><code>-1</code></td><td>Dante: -1 = any style, else 0 Swordmaster, 1 Gunslinger, 2 Trickster, 3 Royal Guard, 4 Dark Slayer.</td></tr>
+<tr><td><code>level</code></td><td><code>7</code></td><td>The entry's attack level, as the game's entries have it. Leave it.</td></tr>
+<tr><td><code>etc</code></td><td><code>0</code></td><td>An extra game condition (Devil Trigger states). Leave it.</td></tr>
+</tbody></table></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Inside</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;input command="name"/&gt;</code></td><td>The input: a <code>&lt;command&gt;</code> of this file or a shared one, by name. Left out: the file's own <code>&lt;command&gt;</code> if it has one, else the plain button of <code>attr</code>. A number = one of the game's own inputs by its number.</td></tr>
+<tr><td><code>&lt;follows move="..." window="..."/&gt;</code></td><td>A combo step: only after that move (a file's name, or a game move's id). <code>window</code> = a <a href="#ref-values">category</a> that must be open in that move. Several <code>&lt;follows&gt;</code> = after any of them.</td></tr>
+<tr><td><code>&lt;window category="..." or="true"/&gt;</code></td><td>A window that must be open, whatever move is playing.</td></tr>
+</tbody></table></div>
+<p>With neither <code>&lt;follows&gt;</code> nor <code>&lt;window&gt;</code>, the entry takes the hook's usual: during an attack it needs that attack's next-attack or all-cancels window. The entry holds five conditions: a <code>&lt;follows&gt;</code> takes one, two with a <code>window</code>, and a <code>&lt;window&gt;</code> takes one.</p>
+
+<h3 id="ref-command" data-search-heading="command">&lt;command&gt;: A New Input<a class="heading-link" href="#ref-command" aria-label="Link to command">#</a></h3>
+<p>Steps are checked in order, like the game's own inputs (a back-forward motion followed by a button). Up to 8 steps.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Setting</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>name</code></td><td>Needed: what <code>&lt;input command=&gt;</code> calls it.</td></tr>
+<tr><td><code>condition</code></td><td><code>lockon</code> = only while lock-on is held. <code>none</code> (default). The game also has <code>dash</code> and <code>laser</code>.</td></tr>
+<tr><td><code>predicate</code></td><td><code>stick_sideways</code> = only while the stick leans left or right of the facing, by more than <code>side_angle</code> (degrees off straight ahead / back; default 50). On a move's own command, the stage's <code>&lt;launch side_angle&gt;</code> is used.</td></tr>
+<tr><td><code>&lt;btn id= mode= timer=/&gt;</code></td><td>A button step. <code>id</code>: <code>melee</code>, <code>gun</code>, <code>jump</code>, <code>lockon</code>, <code>style</code>. <code>mode</code>: <code>trg</code> pressed (default), <code>rel</code> released, <code>on</code> held. <code>timer</code>: frames allowed since the previous step (default 0 = the same frame).</td></tr>
+<tr><td><code>&lt;lever dir= mode= timer=/&gt;</code></td><td>A stick step. <code>dir</code>: <code>centred</code>, <code>forward</code>, <code>back</code>, <code>any</code>. <code>mode</code>: <code>target45</code> (within 45 degrees of the direction to the locked-on enemy, else the facing; default), <code>target70</code>, <code>screen</code>. <code>timer</code>: as above (default -1 = no limit).</td></tr>
+</tbody></table></div>
+<p>The game's lock-on + back, forward + melee would be:</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;command name="back_forward_melee" condition="lockon"&gt;
+  &lt;lever dir="centred"/&gt;
+  &lt;lever dir="back" timer="15"/&gt;
+  &lt;lever dir="forward" timer="15"/&gt;
+  &lt;btn id="melee"/&gt;
+&lt;/command&gt;</code></pre></div>
+<p><strong>Shared inputs</strong>: a file with <code>&lt;commands character="pl000"&gt;</code> around one or more <code>&lt;command&gt;</code>s defines inputs any of that character's moves can name. A move file's second and later <code>&lt;command&gt;</code>s are shared the same way. There are only 11 new inputs in the whole game (for every file and every hook feature together); see <a href="#rules">Rules And Limits</a>.</p>
+
+<h3 id="ref-lmt" data-search-heading="lmt">&lt;lmt&gt;: The Animations<a class="heading-link" href="#ref-lmt" aria-label="Link to lmt">#</a></h3>
+<p><code>&lt;lmt bank="10" path="motion\pl000\my_move"/&gt;</code> loads <code>nativePC\motion\pl000\my_move.lmt</code> into bank 10 of the character, for every copy of the character (co-op, the boss fights). <code>bank</code> must be 10-14 and free (<a href="#motions">Banks</a>). Leave <code>&lt;lmt&gt;</code> out to play only the game's own animations. Several files of one character may name the same bank <strong>with the same path</strong> (the stab and its finisher do).</p>
+
+<h3 id="ref-stage" data-search-heading="stage">&lt;stage&gt;: What Plays<a class="heading-link" href="#ref-stage" aria-label="Link to stage">#</a></h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Setting</th><th>Default</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>motion</code></td><td></td><td>The animation, <code>bank:block</code>. Needed unless the stage has <code>&lt;slot&gt;</code>s. On an overlay: the game animation it applies to (left out: every animation of that move).</td></tr>
+<tr><td><code>&lt;slot dir= block=/&gt;</code></td><td></td><td>Inside the stage, one per direction: <code>forward</code>, <code>back</code>, <code>left</code>, <code>right</code>, <code>up</code>, <code>down</code>, and the block of the <code>&lt;lmt&gt;</code> bank to play for it. The direction comes from the stick (with <code>&lt;launch direction="stick"&gt;</code>) among the slots you give; stick centred = forward.</td></tr>
+<tr><td><code>ctn</code></td><td></td><td>Borrow the game's cancel script of that animation (<code>bank:block</code>), so the move gets its cancels, rumble and markers. <strong>Give it for animations in your own bank</strong>, which have no script; pick a game move that feels similar. Your <code>&lt;cancel&gt;</code>s and <code>&lt;trigger&gt;</code>s replace it when the stage has any.</td></tr>
+<tr><td><code>speed</code></td><td><code>1</code></td><td>Playback speed.</td></tr>
+<tr><td><code>start</code></td><td><code>0</code></td><td>First frame (skip a wind-up).</td></tr>
+<tr><td><code>interp</code></td><td><code>4</code></td><td>Frames of blending from the previous animation.</td></tr>
+<tr><td><code>stop</code></td><td><code>false</code></td><td><code>true</code> = the character stops moving when the move starts (ground attacks).</td></tr>
+<tr><td><code>status</code></td><td></td><td><code>jump</code> = counts as airborne from the launch (air rules apply).</td></tr>
+<tr><td><code>land</code></td><td><code>exit</code></td><td>With a <code>&lt;launch&gt;</code>: <code>exit</code> lands normally when the character touches ground falling; <code>none</code> keeps the move going.</td></tr>
+<tr><td><code>cancel_frame</code></td><td></td><td>Every cancel window opens at this frame. For finer control use <code>&lt;cancel&gt;</code>.</td></tr>
+<tr><td><code>enemy_step</code></td><td><code>true</code></td><td>The enemy step (jump off an enemy) works before the first window opens.</td></tr>
+<tr><td><code>eat_press</code></td><td></td><td>A button name: the press that started the move is ignored until the button is let go once, so it can't also start a jump or the next attack.</td></tr>
+<tr><td><code>watchdog</code></td><td><code>60</code></td><td>Ticks the animation may stand still (or not reach the launch frame) before the move gives up and ends. A safety net against a missing animation.</td></tr>
+<tr><td><code>attr</code></td><td><code>null_trans_off</code></td><td>Advanced: the animation request's flags. Leave it.</td></tr>
+</tbody></table></div>
+<p>How a stage ends: a <code>&lt;next&gt;</code> fires, it lands (<code>land="exit"</code>), a cancel window lets another move take over, or the watchdog. A stage without any of these ends by the watchdog when its animation finishes; give it <code>&lt;next on="motion_end" to="exit"/&gt;</code> instead.</p>
+
+<h3 id="ref-launch" data-search-heading="launch and air_jump">&lt;launch&gt; And &lt;air_jump&gt;<a class="heading-link" href="#ref-launch" aria-label="Link to launch">#</a></h3>
+<p><code>&lt;launch&gt;</code> throws the character: at <code>frame</code> its speed becomes direction x <code>speed</code> plus <code>rise</code> upward, then <code>gravity</code> is added every tick until it falls at <code>max_fall</code>. Units are the game's (cm per tick); the air dodge uses 20 / 8 / -1.1 / 30.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Setting</th><th>Default</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>frame</code></td><td><code>0</code></td><td>When it happens.</td></tr>
+<tr><td><code>direction</code></td><td><code>stick</code></td><td><code>stick</code> = the slot direction picked from the stick; <code>facing</code> = the first slot in the order forward, right, left, back.</td></tr>
+<tr><td><code>speed</code>, <code>rise</code>, <code>gravity</code>, <code>max_fall</code></td><td>0, 0, 0, 30</td><td>As above.</td></tr>
+<tr><td><code>side_angle</code></td><td><code>50</code></td><td>How far off straight ahead the stick must lean to count as left / right.</td></tr>
+<tr><td><code>face</code></td><td><code>false</code></td><td><code>true</code> = turn the character toward the direction.</td></tr>
+<tr><td><code>&lt;effect list= index= tilt= roll=/&gt;</code></td><td></td><td>Inside: an effect left behind at the launch point (like the air hike's), leaned <code>tilt</code> degrees toward the direction and turned <code>roll</code> degrees (180 = upside down). Air hike effects: Nero <code>list="1" index="0x28"</code>, Dante <code>list="2" index="0x14"</code>.</td></tr>
+<tr><td><code>&lt;se id=/&gt;</code></td><td></td><td>Inside: a sound at the launch.</td></tr>
+</tbody></table></div>
+<p><code>&lt;air_jump cost= required= suppress_air_hike= per_air=/&gt;</code> ties the move to the character's air jumps: <code>cost</code> air jumps used at the start, <code>required="true"</code> = can't start with none left, <code>suppress_air_hike="true"</code> = a jump press that starts this move doesn't also air hike (needed when the input uses jump), <code>per_air</code> = times it can start before landing (0 = no limit).</p>
+
+<h3 id="ref-cancel" data-search-heading="cancel and trigger">&lt;cancel&gt; And &lt;trigger&gt;<a class="heading-link" href="#ref-cancel" aria-label="Link to cancel">#</a></h3>
+<p>Inside a stage. Together they make the stage's cancel script, which replaces the borrowed <code>ctn</code> one.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Element</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;cancel frame= kind= categories=/&gt;</code></td><td>At <code>frame</code>, the windows of <code>categories</code> (space separated <a href="#ref-values">names</a>; left out = all) become <code>kind</code>: <code>open</code> (default), <code>buffer</code> or <code>close</code>. The first window's frame is when the move becomes cancellable at all.</td></tr>
+<tr><td><code>&lt;trigger frame= byte= value=/&gt;</code></td><td>At <code>frame</code>, a marker <code>byte</code> (<code>free0</code>, <code>free1</code>, <code>free2</code>) takes <code>value</code> (1-255). Read back by <code>&lt;next byte= value=&gt;</code>. Advanced: <code>camvib</code> / <code>padvib</code> start camera shake / pad rumble by the game's number.</td></tr>
+</tbody></table></div>
+<p>A combo window: <code>&lt;cancel frame="26" kind="buffer" categories="C_NORM0"/&gt;</code> then <code>&lt;cancel frame="36" categories="C_NORM0"/&gt;</code> = presses from frame 26 are kept, the next attack starts at 36 (Streak's timing).</p>
+
+<h3 id="ref-next" data-search-heading="next">&lt;next&gt;: Ending And Chaining<a class="heading-link" href="#ref-next" aria-label="Link to next">#</a></h3>
+<p>Checked every tick, in file order; the first whose conditions <strong>all</strong> hold fires.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Setting</th><th>Fires when / does</th></tr></thead>
+<tbody>
+<tr><td><code>to</code></td><td>Needed. <code>exit</code> = end the move (back to standing on the ground, falling in the air). <code>move:name</code> = hand over to that move file of the same character, at once, the way the game goes from Stinger into Million Stab.</td></tr>
+<tr><td><code>on</code></td><td><code>motion_end</code> = the animation finished; <code>landing</code> = touched ground falling; <code>always</code> = at once.</td></tr>
+<tr><td><code>frame</code></td><td>The animation is at this frame or later.</td></tr>
+<tr><td><code>byte</code> + <code>value</code></td><td>A marker (<code>free0</code> / <code>free1</code> / <code>free2</code>) has that value: one of your <code>&lt;trigger&gt;</code>s, or the game's own on an overlay.</td></tr>
+<tr><td><code>button</code></td><td>That button was pressed this tick; with <code>held="true"</code>, is held.</td></tr>
+<tr><td><code>button</code> + <code>idle</code></td><td>That button has <strong>not</strong> been pressed for <code>idle</code> ticks (a mash ended). The press that started the move counts.</td></tr>
+<tr><td><code>stick="neutral"</code></td><td>The stick is centred.</td></tr>
+</tbody></table></div>
+<p>A <code>&lt;next&gt;</code> with only <code>to</code> never fires (the log warns).</p>
+
+<h3 id="ref-effects" data-search-heading="Effects And Sounds">Effects And Sounds<a class="heading-link" href="#ref-effects" aria-label="Link to Effects And Sounds">#</a></h3>
+<p>Inside a stage, each fires once when the animation passes its <code>frame</code> (also with a changed speed or hit stop). Events at or before the start frame fire on the first tick. On an overlay they follow the game animation's frames.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Element</th><th>Settings</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;effect/&gt;</code></td><td><code>efl</code> = an effect file by its game path without extension (<code>effect\efl\com\ec001_51v4</code>; your own <code>.efl</code> from Albam), <strong>or</strong> <code>list</code> + <code>index</code> = one of the game's numbered effects. <code>joint</code>: <code>self</code> (default, the character) or <code>weapon</code> (the weapon in hand). <code>material</code>: <code>ground</code> = the variant for the floor under the character (dust on grass vs stone), -1 = all. <code>group</code>: the effect's variant mask, -1 = all. <code>id</code>: a number of your choice, so a later element can end it. <code>repeat="loop"</code>: fire again each time a looping animation wraps.</td></tr>
+<tr><td><code>&lt;kill_effect frame= id=/&gt;</code></td><td>Removes the effects with that <code>id</code> at once.</td></tr>
+<tr><td><code>&lt;finish_effect frame= id=/&gt;</code></td><td>Ends them the gentle way: they stop and fade out.</td></tr>
+<tr><td><code>&lt;se frame= id=/&gt;</code></td><td>A sound from the character's sound set, by number.</td></tr>
+</tbody></table></div>
+<p>Up to 64 of these per stage.</p>
+
+<h3 id="ref-values" data-search-heading="Names And Values">Names And Values<a class="heading-link" href="#ref-values" aria-label="Link to Names And Values">#</a></h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Cancel category</th><th>Lets the move be cancelled into</th></tr></thead>
+<tbody>
+<tr><td><code>C_NORM0</code></td><td>the next attack of a combo (the usual follow-up window); <code>C_NORM1</code> / <code>C_NORM2</code> are its other two variants</td></tr>
+<tr><td><code>C_COMMAND</code></td><td>moves with a stick input (command moves)</td></tr>
+<tr><td><code>C_JUMP</code></td><td>jump</td></tr>
+<tr><td><code>C_CHOUHATSU</code></td><td>taunt</td></tr>
+<tr><td><code>C_GUN</code></td><td>guns</td></tr>
+<tr><td><code>C_ALL</code></td><td>everything</td></tr>
+</tbody></table></div>
+<p>Buttons: <code>melee</code>, <code>gun</code>, <code>jump</code>, <code>lockon</code>, <code>style</code>. Markers: <code>free0</code>, <code>free1</code>, <code>free2</code>. Directions: <code>forward</code>, <code>back</code>, <code>left</code>, <code>right</code>, <code>up</code>, <code>down</code>.</p>
+
+<h2 id="making-files" data-search-heading="Making The Files">Making The Files<a class="heading-link" href="#making-files" aria-label="Link to Making The Files">#</a></h2>
+<ul>
+<li><strong>Animations</strong>: in Albam (the Blender add-on), import the character's body <code>.mod</code>, then make a new LMT (Dope Sheet &gt; Action Editor sidebar &gt; Albam &gt; New LMT) and Add Animation for each action, or import a game LMT and keep the ones you want. The animation's slot number in the list is its block. Export to <code>nativePC\motion\pl000\your_name.lmt</code> (any folder works; <code>&lt;lmt path&gt;</code> must match it without <code>.lmt</code>).</li>
+<li><strong>Finding a game animation</strong>: import the character's <code>pl000_NN.lmt</code> in Albam (bank NN - 1) and play its animations; the list position is the block. Good <code>ctn</code> donors are the game animations closest to your move (a ground attack for a ground attack).</li>
+<li><strong>Effects</strong>: Albam edits and makes <code>.efl</code> effects; Save to Game Folder puts them at their game path, which is the <code>efl</code> value.</li>
+<li><strong>Timing</strong>: Albam's Dope Sheet shows the frames; with the scene at 60 fps they are the frames this file uses.</li>
+</ul>
+
+<h2 id="rules" data-search-heading="Rules And Limits">Rules And Limits<a class="heading-link" href="#rules" aria-label="Link to Rules And Limits">#</a></h2>
+<ul>
+<li><strong>New files need a restart.</strong> Reload re-reads the files already loaded: stage settings, slots, cancels, launch, effects, nexts and input steps. A new file, a new or removed <code>&lt;command&gt;</code>, a changed <code>id</code> or <code>character</code>, and changes to <code>&lt;table&gt;</code> need a restart.</li>
+<li><strong>One file, one stage.</strong> Chain files with <code>&lt;next to="move:..."&gt;</code> for moves in several parts.</li>
+<li><strong>Ids</strong>: unique per character, Nero 0x34 and up, Dante 0x6C and up.</li>
+<li><strong>Banks</strong>: 10-14, one file per bank per character, shared with the hook's built-in moves (check their settings).</li>
+<li><strong>11 new inputs in total</strong>: every <code>&lt;command&gt;</code> and every built-in hook move with its own input (Gerb, the air dodge) takes one. A file that finds none left isn't loaded.</li>
+<li><strong>Five conditions per list entry</strong> (<a href="#ref-table">&lt;table&gt;</a>).</li>
+<li><strong>64 effects / sounds per stage.</strong></li>
+<li><strong>New list entries go to the top</strong> of the character's list: a new move with the same input and conditions as a game move replaces it while the file is on.</li>
+<li>Files are read in name order; it doesn't matter, names are resolved after all files are read.</li>
+<li>Not available yet: hitboxes of a move's own (use a <code>ctn</code> donor and animations whose game hitboxes you want), several stages per file, a new cancel script on a game animation.</li>
+</ul>
+
+<h2 id="troubleshooting" data-search-heading="Troubleshooting">Troubleshooting<a class="heading-link" href="#troubleshooting" aria-label="Link to Troubleshooting">#</a></h2>
+<p>The hook writes what it does to <code>dmc4_hook_framework_log.txt</code> in the game folder. Lines start with <code>MoveDef:</code>. At start-up each file gets a line (<code>... id 0x50: table yes, command none, lmt bank 10 ...</code>) and each loaded move a <code>loaded '...'</code> line; the panel's <code>last:</code> line shows the latest event while you play.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>You see</th><th>Likely cause</th></tr></thead>
+<tbody>
+<tr><td><code>no nativePC\movedef folder</code></td><td>The folder is missing or misspelt (it sits in the game folder's <code>nativePC</code>).</td></tr>
+<tr><td>A file's error with a position (<code>(offset N)</code>)</td><td>The XML is broken at that character: a missing <code>"</code>, <code>&gt;</code> or closing tag.</td></tr>
+<tr><td><code>has no &lt;move&gt; (or &lt;commands&gt;) root</code></td><td>The outermost element is misspelt.</td></tr>
+<tr><td><code>holds only comments, skipped</code></td><td>Everything in the file is commented out, e.g. <code>example.xml</code> before its two comment lines are deleted.</td></tr>
+<tr><td><code>id ... is below the first free id</code> / <code>is already '...'</code></td><td>Pick another <code>id</code> (<a href="#ids">Move Ids</a>).</td></tr>
+<tr><td><code>&lt;lmt bank&gt; must be 10-14</code></td><td>Use a free bank.</td></tr>
+<tr><td><code>the stage needs &lt;slot&gt;s or motion=</code> / <code>&lt;slot&gt;s need an &lt;lmt bank=&gt;</code></td><td>The stage doesn't say what to play.</td></tr>
+<tr><td><code>no free command bit</code></td><td>All 11 new inputs are taken: drop a <code>&lt;command&gt;</code>, share one, or turn a built-in move off.</td></tr>
+<tr><td><code>&lt;input command='...'&gt; names no &lt;command&gt;</code> / <code>&lt;follows move='...'&gt; names no loaded move</code></td><td>A name is misspelt, the other file failed to load, or it's for the other character.</td></tr>
+<tr><td>The move is listed but never starts</td><td>Check <code>air</code> (the default is air only), <code>start</code> / <code>cancel</code> (combo steps need <code>cancel="true"</code>), the input's <code>condition</code>, and that the move's checkbox and the main checkbox are on. A game move with the same input higher in the list can't win: new entries go first, so look for another of your files with the same input.</td></tr>
+<tr><td><code>bank N ... already holds another LMT</code></td><td>Another feature uses that bank on this character (Gerb, wall run, air dodge, another file with a different path). Pick a free bank.</td></tr>
+<tr><td><code>.lmt not found; the move refuses to start</code></td><td><code>&lt;lmt path&gt;</code> doesn't match the file under <code>nativePC</code> (no <code>.lmt</code> in the setting).</td></tr>
+<tr><td>The character T-poses or freezes, then <code>motion frame stuck</code> / <code>did not reach the launch frame</code></td><td>The block number doesn't exist in that file, or is empty, or the bank holds another file. The watchdog ends the move.</td></tr>
+<tr><td><code>no motion for direction ...</code></td><td>The stick picked a direction without a <code>&lt;slot&gt;</code> and the stage has no <code>motion</code>.</td></tr>
+<tr><td>The move can't be cancelled, not even into jump</td><td>No window opens: add <code>cancel_frame</code> or a <code>&lt;cancel&gt;</code>, or a <code>ctn</code> donor that has windows.</td></tr>
+<tr><td>Starting the move also jumps / attacks again</td><td>Add <code>eat_press</code> with the starting button (and <code>suppress_air_hike</code> for jump inputs).</td></tr>
+<tr><td><code>&lt;next to='...'&gt; has no condition and never fires</code></td><td>Give it <code>on</code>, <code>frame</code>, <code>byte</code> or <code>button</code>.</td></tr>
+<tr><td>A hand-over doesn't happen</td><td>The target file isn't loaded or is switched off, or a condition never holds: on an overlay, the stage's <code>motion</code> must be the animation playing at that moment.</td></tr>
+<tr><td>An effect doesn't show</td><td>Wrong <code>efl</code> path, or the <code>material</code> / <code>group</code> mask leaves nothing of it; try <code>-1</code> for both.</td></tr>
+<tr><td><code>new move ... needs a restart</code></td><td>Reload only updates loaded files; restart the game.</td></tr>
+</tbody></table></div>
+
+<p><a class="back-to-top" href="#top">Back to top</a></p>
+</article>
+</main>
+<script>
+const content = document.getElementById("document-content");
+const searchInput = document.getElementById("doc-search");
+const searchResults = document.getElementById("search-results");
+const searchable = Array.from(content.querySelectorAll("h1, h2, h3, h4, p, li, tr, pre"));
+
+function nearestHeading(element) {
+  if (/^H[1-4]$/.test(element.tagName)) {
+    return element;
+  }
+
+  let current = element.previousElementSibling;
+  while (current) {
+    if (/^H[1-4]$/.test(current.tagName)) {
+      return current;
+    }
+    current = current.previousElementSibling;
+  }
+  return content.querySelector("h1");
+}
+
+function runSearch() {
+  const query = searchInput.value.trim().toLowerCase();
+  searchResults.innerHTML = "";
+  if (query.length < 2) {
+    searchResults.classList.remove("active");
+    return;
+  }
+
+  const seen = new Set();
+  const matches = [];
+  for (const element of searchable) {
+    const text = element.textContent.replace(/\s+/g, " ").trim();
+    if (!text.toLowerCase().includes(query)) {
+      continue;
+    }
+
+    const heading = nearestHeading(element);
+    const id = heading && heading.id ? heading.id : "top";
+    const key = id + "|" + text.slice(0, 90);
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    matches.push({
+      id,
+      text,
+      heading: heading ? heading.textContent.replace(/#$/, "").trim() : "Top",
+    });
+    if (matches.length >= 12) {
+      break;
+    }
+  }
+
+  searchResults.classList.add("active");
+  if (matches.length === 0) {
+    searchResults.innerHTML = '<div class="search-empty">No matches on this page.</div>';
+    return;
+  }
+
+  for (const match of matches) {
+    const link = document.createElement("a");
+    link.href = "#" + match.id;
+    link.textContent = match.heading + ": " + match.text.slice(0, 105);
+    link.addEventListener("click", () => searchResults.classList.remove("active"));
+    searchResults.appendChild(link);
+  }
+}
+
+searchInput.addEventListener("input", runSearch);
+searchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    searchInput.value = "";
+    searchResults.classList.remove("active");
+  }
+});
+
+for (const button of document.querySelectorAll(".copy-code")) {
+  button.addEventListener("click", async () => {
+    const codeElement = button.parentElement.querySelector("code");
+    try {
+      await navigator.clipboard.writeText(codeElement.textContent);
+      button.textContent = "Copied";
+      window.setTimeout(() => { button.textContent = "Copy"; }, 1200);
+    }
+    catch {
+      button.textContent = "Select";
+      const range = document.createRange();
+      range.selectNodeContents(codeElement);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  });
+}
+</script>
+</body>
+</html>

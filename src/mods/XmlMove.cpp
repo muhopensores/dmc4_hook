@@ -105,6 +105,10 @@ bool load(const char* path, File& out) {
         spdlog::error("MoveDef: {} : {} (offset {})", path, res.description(), res.offset);
         return false;
     }
+    if (!doc.document_element()) {      // comments only (the panel's example.xml until its move is taken out of the comment)
+        spdlog::info("MoveDef: {} holds only comments, skipped", path);
+        return false;
+    }
     pugi::xml_node move = doc.child("move");
     out = File{};
     out.source = path;

@@ -14,6 +14,9 @@
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
+#include <fstream>
+#include <Windows.h>
+#include <shellapi.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -540,6 +543,18 @@ bool ready(Move& m, uintptr_t pl) {
     return existing != 0 && existing == s.bank_rsrc;
 }
 
+// Another loaded move of this character put `existing` into the same bank from the same file (a move and its hand-off
+// finisher share one LMT): the bank is ours too.
+bool loaded_by_same_file(const Move& m, uintptr_t pl, uintptr_t existing) {
+    for (const auto& up : moves()) {
+        const Move& o = *up;
+        if (&o == &m || o.def.character != m.def.character || o.def.lmt.bank != m.def.lmt.bank) continue;
+        if (_stricmp(o.def.lmt.path.c_str(), m.def.lmt.path.c_str()) != 0) continue;
+        for (const PlayerState& os : o.states) if (os.player == pl && os.bank_rsrc == existing) return true;
+    }
+    return false;
+}
+
 void ensure_bank(Move& m, uintptr_t pl) {
     const xmlmove::Lmt& l = m.def.lmt;
     if (!pl || l.bank < 10 || l.bank > 14 || l.path.empty()) return;     // 0-9 are setup banks, 15 Nero's Buster bank
@@ -548,6 +563,7 @@ void ensure_bank(Move& m, uintptr_t pl) {
     const uintptr_t existing = devil4_sdk::get_motion_bank((void*)pl, l.bank);
     if (existing != 0) {
         if (existing == s.bank_rsrc) return;                            // ours
+        if (loaded_by_same_file(m, pl, existing)) { s.bank_rsrc = existing; s.bank_conflict = false; return; }
         if (!s.bank_conflict) {
             s.bank_conflict = true;
             spdlog::warn("MoveDef: {}: bank {} of player {:#x} already holds another LMT ({:#x}): another mod's (Gerb / WallRun / "
@@ -556,7 +572,7 @@ void ensure_bank(Move& m, uintptr_t pl) {
         return;
     }
     if (!lmt_file_exists(l.path)) {
-        spdlog::warn("MoveDef: {}: nativePC\{}.lmt not found; the move refuses to start until it is", m.def.name, l.path);
+        spdlog::warn("MoveDef: {}: nativePC\\{}.lmt not found; the move refuses to start until it is", m.def.name, l.path);
         m.bank_failed_for = pl;
         return;
     }
@@ -607,7 +623,7 @@ void run_stage(Move& m, uintptr_t pl) {
         ++s.used;
         ensure_bank(m, pl);
         if (!ready(m, pl)) {
-            note("%s: bank %d of player %p is empty or holds another mod's LMT (nativePC\%s.lmt missing, or the bank is taken: see the log): leaving",
+            note("%s: bank %d of player %p is empty or holds another mod's LMT (nativePC\\%s.lmt missing, or the bank is taken: see the log): leaving",
                  m.def.name.c_str(), m.def.lmt.bank, (void*)pl, m.def.lmt.path.c_str());
             exit_move(pl);
             return;
@@ -936,6 +952,44 @@ void reload() {
     }
 }
 
+// A starter file in the moves folder (example.xml, never overwritten): one complete move inside a comment, so it loads
+// as nothing until the two comment lines around it are deleted. The move plays Nero's own Streak finish (bank 3 block
+// 0x17, with its .ctn script) on lock-on + back, forward + melee, so it needs no files of its own.
+void write_example() {
+    namespace fs = std::filesystem;
+    std::error_code ec;
+    fs::create_directories(folder, ec);
+    const fs::path p = fs::path(folder) / "example.xml";
+    if (fs::exists(p)) { spdlog::info("MoveDef: {} already exists", p.string()); return; }
+    std::ofstream out(p);
+    out << "<!-- XML move example (guide: docs\\movedef.html in the dmc4_hook repo).\n"
+           "     A new Nero move on lock-on + back, forward + melee, on the ground: it plays the game's own Streak finish\n"
+           "     (motion 3:0x17 with its cancel script) with its dust effect, then returns to standing. While it is on, it\n"
+           "     takes the place of any game move with the same input.\n"
+           "     To try it: delete the line right after this comment (it opens the comment around the move) and the last\n"
+           "     line of the file (it closes it), save, restart the game, and look for my_first_move under Moves in the\n"
+           "     panel. Then copy this file under a new name and make it your own:\n"
+           "     every file needs its own name and id (Nero 0x34 and up, Dante 0x6C and up). -->\n"
+           "<!--\n"
+           "<move name=\"my_first_move\" character=\"pl000\" id=\"0x60\" version=\"2\">\n"
+           "  <table attr=\"command\" air=\"ground\" start=\"true\" cancel=\"true\">\n"
+           "    <input command=\"my_input\"/>\n"
+           "  </table>\n"
+           "  <command name=\"my_input\" condition=\"lockon\">\n"
+           "    <lever dir=\"centred\"/>\n"
+           "    <lever dir=\"back\" timer=\"15\"/>\n"
+           "    <lever dir=\"forward\" timer=\"15\"/>\n"
+           "    <btn id=\"melee\"/>\n"
+           "  </command>\n"
+           "  <stage name=\"main\" motion=\"3:0x17\" ctn=\"3:0x17\" interp=\"4\" stop=\"true\" land=\"none\" eat_press=\"melee\">\n"
+           "    <effect frame=\"0\" list=\"1\" index=\"0xE\" material=\"ground\"/>\n"
+           "    <next on=\"motion_end\" to=\"exit\"/>\n"
+           "  </stage>\n"
+           "</move>\n"
+           "-->\n";
+    spdlog::info("MoveDef: wrote {}", p.string());
+}
+
 } // namespace movedef
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -973,11 +1027,23 @@ void MoveDef::on_gui_frame(int display) {
     ImGui::PushID("MoveDef");
     if (ImGui::Checkbox(_("XML moves (MoveDef)"), &mod_enabled)) apply_rows();
     ImGui::SameLine();
-    help_marker(_("Player moves defined in nativePC\\movedef\\*.xml (E:\\DMC mod stuffs\\Vibed\\MoveDef\\schema.md). Each file adds a move-table "
-                  "row, an input command and a motion bank, and runs through one generic state function. Reload re-reads the "
+    help_marker(_("Player moves defined in nativePC\\movedef\\*.xml (guide: docs\\movedef.html in the hook's repo). Each file adds a "
+                  "move-list entry, an input and an animation bank, or adds ways out of one of the game's moves. Reload re-reads the "
                   "loaded files; a new file needs a restart."));
     ImGui::SameLine();
     if (ImGui::Button(_("Reload"))) reload();
+    ImGui::TextDisabled(_("Put move .xml files in %s and restart the game. Guide: docs\\movedef.html in the hook's repo."), folder);
+    if (ImGui::Button(_("Open folder"))) {            // made when missing, so a first-time user has somewhere to put a file
+        std::error_code ec;
+        std::filesystem::create_directories(folder, ec);
+        ShellExecuteA(nullptr, "open", std::filesystem::absolute(folder, ec).string().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(_("Create example"))) write_example();
+    ImGui::SameLine();
+    help_marker(_("Open folder opens the moves folder in Explorer (it is made if missing). Create example writes example.xml "
+                  "there: a complete move inside a comment, which loads as nothing until you delete the two comment lines around "
+                  "it. Files are read when the game starts; Reload only updates files already loaded."));
     if (ImGui::TreeNode(_("Moves"))) {
         if (moves().empty()) ImGui::TextDisabled("%s", _("none loaded"));
         for (auto& up : moves()) {

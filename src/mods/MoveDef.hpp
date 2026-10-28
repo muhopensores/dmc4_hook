@@ -23,6 +23,7 @@ extern char folder[128];             // where the .xml files are, relative to th
 void load_all();                     // at start-up
 void reload();                       // re-read the loaded moves' files in place
 void apply_rows();                   // the rows' enable bits after a toggle
+void write_example();                // example.xml in the folder (its move commented out), unless it exists
 void __stdcall run_move(uintptr_t player, uint32_t atck_id);   // the registry's state function for every XML move
 
 } // namespace movedef
