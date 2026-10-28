@@ -1,5 +1,5 @@
 #include "XmlMove.hpp"
-#include "../sdk/Enums_Internal.hpp"   // CANCEL_NO
+#include "../../sdk/Enums_Internal.hpp"   // CANCEL_NO
 #include <pugixml.hpp>
 #include <spdlog/spdlog.h>
 #include <algorithm>
@@ -86,6 +86,42 @@ bool parse_command(const char* path, const pugi::xml_node& c, Command& cm) {
         cm.steps.push_back(st);
     }
     return true;
+}
+
+const Name kKnocks[] = { {"direction", 0}, {"facing", 1}, {"away", 2} };
+
+// <shell atk= entry= kind= vsattr= unitline= radius= length= height= life= knock= knock_angle= one_hit= show= + overrides>
+void parse_shell(const pugi::xml_node& n, int character, Shell& s) {
+    const char* atk = n.attribute("atk").as_string(character == 1 ? "Collision\\pl006" : "Collision\\pl000");
+    strncpy_s(s.atk, atk, sizeof s.atk - 1);
+    s.entry       = (int)num(n.attribute("entry"), 0);
+    s.kind        = (int)num(n.attribute("kind"), 1);
+    s.vsattr      = (uint32_t)num(n.attribute("vsattr"), 0);
+    s.unit_line   = (int)num(n.attribute("unitline"), 0x12);
+    s.radius      = fnum(n.attribute("radius"), 60.0f);
+    s.length      = fnum(n.attribute("length"), 120.0f);
+    s.height      = fnum(n.attribute("height"), 80.0f);
+    s.life        = fnum(n.attribute("life"), 90.0f);
+    s.knock       = (int)lookup(N(kKnocks), n.attribute("knock").as_string(), 0);
+    s.knock_angle = fnum(n.attribute("knock_angle"), 0.0f);
+    s.one_hit     = bnum(n.attribute("one_hit"), false);
+    s.show        = bnum(n.attribute("show"), false);
+    s.damage_type   = (int)num(n.attribute("damage_type"), -1);
+    s.damage_type_b = (int)num(n.attribute("damage_type_b"), -1);
+    s.level_i       = (int)num(n.attribute("level_i"), -1);
+    s.level_b       = (int)num(n.attribute("level_b"), -1);
+    s.attack_id     = (int)num(n.attribute("attack_id"), -1);
+    s.range_type    = (int)num(n.attribute("range_type"), -1);
+    s.hit_stop      = (int)num(n.attribute("hit_stop"), -1);
+    s.hitmark       = (int)num(n.attribute("hitmark"), -1);
+    s.hit_se        = (int)num(n.attribute("hit_se"), -1);
+    s.attack_flag   = (int)num(n.attribute("attack_flag"), -1);
+    s.blown_angle   = (int)num(n.attribute("blown_angle"), -1);
+    s.element       = (int)num(n.attribute("element"), -1);
+    s.damage        = fnum(n.attribute("damage"), -1.0f);
+    s.stylish_point = fnum(n.attribute("stylish_point"), -1.0f);
+    s.stylish_timer = fnum(n.attribute("stylish_timer"), -1.0f);
+    s.dt_add        = fnum(n.attribute("dt_add"), -1.0f);
 }
 } // namespace
 
@@ -219,6 +255,10 @@ bool load(const char* path, File& out) {
             Slot slot;
             slot.dir   = dir_from_name(sl.attribute("dir").as_string());
             slot.block = (int)num(sl.attribute("block"), -1);
+            slot.speed = fnum(sl.attribute("speed"), -1.0f);
+            if (sl.attribute("rise"))        { slot.has_rise = true; slot.rise = fnum(sl.attribute("rise"), 0.0f); }
+            if (sl.attribute("effect_roll")) { slot.has_roll = true; slot.roll = fnum(sl.attribute("effect_roll"), 0.0f); }
+            slot.damage_type_b = (int)num(sl.attribute("damage_type_b"), -1);
             if (slot.dir < 0 || slot.block < 0) { spdlog::warn("MoveDef: {}: bad <slot dir='{}' block='{}'>", path, sl.attribute("dir").as_string(), sl.attribute("block").as_string()); continue; }
             s.slots.push_back(slot);
         }
@@ -310,7 +350,17 @@ bool load(const char* path, File& out) {
             L.gravity    = fnum(la.attribute("gravity"), 0.0f);
             L.max_fall   = fnum(la.attribute("max_fall"), 30.0f);
             L.side_angle = fnum(la.attribute("side_angle"), 50.0f);
-            L.face       = bnum(la.attribute("face"), false);
+            const char* fc = la.attribute("face").as_string("false");
+            L.face       = ieq(fc, "all") ? 2 : la.attribute("face").as_bool(false) ? 1 : 0;
+            if (!ieq(L.direction.c_str(), "stick") && !ieq(L.direction.c_str(), "facing") && !ieq(L.direction.c_str(), "vertical"))
+                spdlog::warn("MoveDef: {}: <launch direction='{}'> unknown (stick, facing, vertical); taken as facing", path, L.direction);
+            for (pugi::xml_node sh : la.children("shell")) {     // spawned at the launch, along its direction
+                Shell def;
+                parse_shell(sh, out.character, def);
+                def.in_launch = true;
+                def.frame = L.frame;
+                s.shells.push_back(def);
+            }
             if (pugi::xml_node ef = la.child("effect")) {
                 L.fx.effect = true;
                 L.fx.list   = (int)num(ef.attribute("list"), 0);
@@ -322,6 +372,16 @@ bool load(const char* path, File& out) {
                 L.fx.se    = true;
                 L.fx.se_id = (int)num(se.attribute("id"), 0);
             }
+        }
+        for (pugi::xml_node sh : st.children("shell")) {         // spawned at its frame of the stage's motion
+            Shell def;
+            parse_shell(sh, out.character, def);
+            def.frame = fnum(sh.attribute("frame"), 0.0f);
+            s.shells.push_back(def);
+        }
+        if (s.shells.size() > 8) {
+            spdlog::warn("MoveDef: {}: {} <shell>s in one stage, 8 are used", path, s.shells.size());
+            s.shells.resize(8);
         }
         if (pugi::xml_node aj = st.child("air_jump")) {
             s.air_jump.cost              = (int)num(aj.attribute("cost"), 0);

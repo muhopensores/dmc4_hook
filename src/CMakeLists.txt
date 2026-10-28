@@ -330,10 +330,6 @@ set(MODS_SRC
   mods/LMTSlotFix.cpp
   mods/MoveTable.hpp
   mods/MoveTable.cpp
-  mods/XmlMove.hpp
-  mods/XmlMove.cpp
-  mods/MoveDef.hpp
-  mods/MoveDef.cpp
   mods/WallRun.hpp
   mods/WallRun.cpp
   mods/Gerb.hpp
@@ -386,6 +382,16 @@ set(MODS_SRC
   mods/Cock.cpp
   mods/RayTest.hpp
   mods/RayTest.cpp
+)
+
+# Dev: hook extensions and stuff, one folder each
+set(DEV_SRC
+  dev/movedef/XmlMove.hpp
+  dev/movedef/XmlMove.cpp
+  dev/movedef/MoveDef.hpp
+  dev/movedef/MoveDef.cpp
+  dev/movedef/MoveDefShell.hpp
+  dev/movedef/MoveDefShell.cpp
 )
 
 set(HOOKS_SRC
@@ -556,6 +562,7 @@ set(LANG
 source_group("imgui"   FILES ${IMGUI_SRC})
 source_group("Hooks"   FILES ${HOOKS_SRC})
 source_group("Mods"    FILES ${MODS_SRC})
+source_group("Dev"     FILES ${DEV_SRC})
 source_group("Utility" FILES ${UTILITY_SRC})
 source_group("SDK"     FILES ${SDK_SRC})
 source_group("Twitch"  FILES ${TWITCH_SRC})
@@ -574,6 +581,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
             LicenseStrings.hpp
             ${IMGUI_SRC}
             ${MODS_SRC}
+            ${DEV_SRC}
             ${HOOKS_SRC}
             ${UTILITY_SRC}
             ${SDK_SRC}

@@ -1,13 +1,14 @@
 #include "MoveDef.hpp"
 #include "XmlMove.hpp"
-#include "MoveTable.hpp"
-#include "WallRun.hpp"               // wallrun::at / wallrun::pl offsets
-#include "../sdk/Devil4.hpp"
-#include "../sdk/InputCommand.hpp"
-#include "../sdk/CtnScript.hpp"
-#include "../sdk/MoveRegistry.hpp"
-#include "../sdk/MtMath.hpp"
-#include "../sdk/uPlayer.hpp"      // kAtckDefTbl
+#include "MoveDefShell.hpp"
+#include "../../mods/MoveTable.hpp"
+#include "../../mods/WallRun.hpp"               // wallrun::at / wallrun::pl offsets
+#include "../../sdk/Devil4.hpp"
+#include "../../sdk/InputCommand.hpp"
+#include "../../sdk/CtnScript.hpp"
+#include "../../sdk/MoveRegistry.hpp"
+#include "../../sdk/MtMath.hpp"
+#include "../../sdk/uPlayer.hpp"      // kAtckDefTbl
 #include <algorithm>
 #include <cmath>
 #include <cstdarg>
@@ -158,6 +159,8 @@ struct PlayerState {                   // what the phase word can't hold, per pl
     uint64_t fx_fired = 0;             // timeline events fired this entry (bit per event, 64 at most)
     float fx_prev = -1.0f;             // the motion frame last tick (fires on prev < frame <= cur)
     uint32_t fx_motion = 0xFFFF;       // the motion the timeline is running on (overlays: reset when it changes)
+    uint32_t entry_serial = 0;         // this entry's number (a global count): its <shell>s live while it is the running one
+    uint32_t shells_fired = 0;         // <shell>s spawned this entry (bit per shell)
     uintptr_t bank_rsrc = 0;           // the rMotionList this move put in its bank for this player (0 = none yet)
     bool bank_conflict = false;        // the bank already held another LMT (another mod's): reported once, the move refuses
     ctn::Script script;                // the in-memory .ctn script (its bytes must outlive the motion)
@@ -249,10 +252,12 @@ void apply_row(Move& m) {
 }
 
 // ---- direction and slots ---------------------------------------------------------------------------------------
-bool has_slot(const xmlmove::Stage& st, int dir) {
-    for (const xmlmove::Slot& s : st.slots) if (s.dir == dir) return true;
-    return false;
+const xmlmove::Slot* slot_for(const xmlmove::Stage& st, int dir) {
+    for (const xmlmove::Slot& s : st.slots) if (s.dir == dir) return &s;
+    return nullptr;
 }
+
+bool has_slot(const xmlmove::Stage& st, int dir) { return slot_for(st, dir) != nullptr; }
 
 // The motion word for `dir`: the stage's <slot> block in the move's bank, else the stage's motion=; -1 none.
 int motion_for(const Move& m, int dir) {
@@ -281,7 +286,10 @@ void stick_dirs(uintptr_t pl, float side_angle, int order[4]) {
 int resolve_dir(const Move& m, uintptr_t pl, glm::vec3& out) {
     const xmlmove::Stage& st = m.stage();
     int dir = xmlmove::FORWARD;
-    if (!st.slots.empty()) {
+    if (!st.slots.empty() && st.launch.direction == "vertical") {   // Gerb's vertical row: up on the ground, down in the air
+        dir = (at<uint32_t>(pl, pl::mActStat) & 0x2) ? xmlmove::DOWN : xmlmove::UP;
+        if (!has_slot(st, dir)) dir = st.slots[0].dir;
+    } else if (!st.slots.empty()) {
         int order[4] = { xmlmove::FORWARD, xmlmove::RIGHT, xmlmove::LEFT, xmlmove::BACK };
         if (st.launch.direction == "stick" && at<int>(pl, pl::mAnlgPow) != 0) stick_dirs(pl, st.launch.side_angle, order);
         dir = -1;
@@ -506,6 +514,31 @@ void run_fx(const xmlmove::Stage& st, PlayerState& s, uintptr_t pl) {
     s.fx_prev = cur;
 }
 
+// ---- <shell>s ----------------------------------------------------------------------------------------------------
+// One spawn per shell per entry: stage shells when the motion reaches their frame, launch shells at the launch. The
+// direction's <slot damage_type_b=> overrides the shell's reaction (Gerb's launching up jump, slamming dive).
+uint32_t g_entry_serial = 0;
+
+void fire_shell(const Move& m, PlayerState& s, uintptr_t pl, size_t i) {
+    s.shells_fired |= 1u << i;
+    xmlmove::Shell d = m.stage().shells[i];
+    if (const xmlmove::Slot* sl = slot_for(m.stage(), s.dir); sl && sl->damage_type_b >= 0) d.damage_type_b = sl->damage_type_b;
+    if (!spawn_shell(d, pl, s.dir_vec, m.def.id, s.entry_serial)) note("%s: <shell> %u did not spawn", m.def.name.c_str(), (unsigned)i);
+}
+
+void run_shells(const Move& m, PlayerState& s, uintptr_t pl) {
+    const std::vector<xmlmove::Shell>& shells = m.stage().shells;
+    const float frame = at<float>(pl, pl::mMotionFrame0);
+    for (size_t i = 0; i < shells.size() && i < 32; ++i)
+        if (!shells[i].in_launch && !(s.shells_fired & (1u << i)) && frame >= shells[i].frame) fire_shell(m, s, pl, i);
+}
+
+void launch_shells(const Move& m, PlayerState& s, uintptr_t pl) {
+    const std::vector<xmlmove::Shell>& shells = m.stage().shells;
+    for (size_t i = 0; i < shells.size() && i < 32; ++i)
+        if (shells[i].in_launch && !(s.shells_fired & (1u << i))) fire_shell(m, s, pl, i);
+}
+
 // ---- stage transitions (<next>) --------------------------------------------------------------------------------
 bool next_fires(const xmlmove::Next& n, const PlayerState& s, uintptr_t pl) {
     if (n.always) return true;
@@ -643,7 +676,8 @@ void run_stage(Move& m, uintptr_t pl) {
             at<float>(pl, pl::mMoveVel) = 0.0f; at<float>(pl, pl::mMoveAcc) = 0.0f;
             clear_add_speed(pl);
         }
-        if (L.present && L.face && dir != xmlmove::UP && dir != xmlmove::DOWN) face(pl, yaw_of(dv));
+        if (L.present && L.face && dir != xmlmove::UP && dir != xmlmove::DOWN && (dir != xmlmove::BACK || L.face == 2))
+            face(pl, yaw_of(dv));                                      // face="true": a back jump keeps facing (Gerb)
         if (st.air_jump.cost > 0) at<char>(pl, pl::mWJumpCnt) += (char)st.air_jump.cost;
         if (st.ctn_bank >= 0) devil4_sdk::borrow_ctn((void*)pl, (uint32_t)st.ctn_bank, (uint32_t)st.ctn_slot);
         request_motion(pl, motion, st.attr, st.interp, st.start, st.speed);
@@ -651,6 +685,7 @@ void run_stage(Move& m, uintptr_t pl) {
         s.jump_held = st.eat_press != 0;
         s.wait_ticks = s.stuck_ticks = 0; s.last_frame = -1.0f;
         s.fx_fired = 0; s.fx_prev = -1.0f; s.fx_motion = 0xFFFF;
+        s.entry_serial = ++g_entry_serial; s.shells_fired = 0;          // the previous entry's shells end
         note("%s start: %s, motion %04X, player %p", m.def.name.c_str(), xmlmove::dir_name(dir), motion, (void*)pl);
         phase = PHASE_WAIT;
         return;
@@ -662,6 +697,7 @@ void run_stage(Move& m, uintptr_t pl) {
         arm_script(st, s, pl);
         open_cancel_gate(st, pl);
         run_fx(st, s, pl);
+        run_shells(m, s, pl);
         if (st.enemy_step && !gate_open(st, pl) && check_enemy_step(pl)) return;      // stepped: action 25 took over
         if (run_nexts(m, pl)) return;
         if (!L.present) { phase = PHASE_AIRBORNE; return; }                             // no ballistics: just the motion
@@ -673,7 +709,10 @@ void run_stage(Move& m, uintptr_t pl) {
             }
             return;
         }
-        const glm::vec3 v = s.dir_vec * L.speed + glm::vec3(0.0f, L.rise, 0.0f);
+        const xmlmove::Slot* sl = slot_for(st, s.dir);                // a direction's own speed / rise (Gerb's up / down)
+        const float speed = sl && sl->speed >= 0.0f ? sl->speed : L.speed;
+        const float rise  = sl && sl->has_rise ? sl->rise : L.rise;
+        const glm::vec3 v = s.dir_vec * speed + glm::vec3(0.0f, rise, 0.0f);
         vel.x = v.x; vel.y = v.y; vel.z = v.z;
         const glm::vec3 xz(v.x, 0.0f, v.z);                       // keep the game's own XZ model in step
         at<float>(pl, pl::mMoveVel) = glm::length(xz);
@@ -683,12 +722,14 @@ void run_stage(Move& m, uintptr_t pl) {
         if (st.status_jump) at<uint32_t>(pl, pl::mActStat) = (at<uint32_t>(pl, pl::mActStat) & ~0x1u) | 0x2u;
         if (L.fx.effect) {
             float q[4];
-            if (L.fx.tilt == 0.0f && L.fx.roll == 0.0f) { const float* g = &at<float>(pl, pl::mQuat); q[0] = g[0]; q[1] = g[1]; q[2] = g[2]; q[3] = g[3]; }
-            else basis_quat(pl, s.dir_vec, L.fx.tilt, L.fx.roll, q);
+            const float roll = sl && sl->has_roll ? sl->roll : L.fx.roll;
+            if (L.fx.tilt == 0.0f && roll == 0.0f) { const float* g = &at<float>(pl, pl::mQuat); q[0] = g[0]; q[1] = g[1]; q[2] = g[2]; q[3] = g[3]; }
+            else basis_quat(pl, s.dir_vec, L.fx.tilt, roll, q);
             devil4_sdk::effect_stay(L.fx.list, L.fx.index, q, &at<float>(pl, pl::mPos), (void*)pl);
         }
         if (L.fx.se) devil4_sdk::play_player_se((void*)pl, L.fx.se_id);
         phase = PHASE_AIRBORNE;
+        launch_shells(m, s, pl);
         return;
     }
     case PHASE_AIRBORNE: {
@@ -697,6 +738,7 @@ void run_stage(Move& m, uintptr_t pl) {
         arm_script(st, s, pl);
         open_cancel_gate(st, pl);
         run_fx(st, s, pl);
+        run_shells(m, s, pl);
         if (st.enemy_step && !gate_open(st, pl) && check_enemy_step(pl)) return;
         if (run_nexts(m, pl)) return;
         const uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
@@ -894,6 +936,18 @@ void __stdcall run_move(uintptr_t player, uint32_t atck_id) {
     if (m && m->enabled) run_stage(*m, player);
 }
 
+// A <shell>'s lifetime (MoveDefShell.cpp): its entry is still the running one. Lower action 12 = attack (setActionAtck);
+// a landing, a cancel into a jump or another action, a hand-off (mAtckId changes) or a new entry (serial) ends it.
+bool shell_alive(uintptr_t player, uint32_t move_id, uint32_t serial) {
+    const Move* m = find_move(move_id);
+    if (!m || !player) return false;
+    for (const PlayerState& s : m->states) {
+        if (s.player != player) continue;
+        return s.entry_serial == serial && at<uint32_t>(player, pl::mBdyActionLowerNo) == 12 && at<uint32_t>(player, pl::mAtckId) == move_id;
+    }
+    return false;                      // the player's state was evicted: not ours any more
+}
+
 void apply_rows() { for (auto& m : moves()) apply_row(*m); }
 
 void load_all() {
@@ -1065,6 +1119,7 @@ void MoveDef::on_gui_frame(int display) {
         ImGui::Text("actStat %02X  frame %.1f  phase %d  atckId %u  wjump %d  air hikes suppressed %d",
                     at<uint32_t>(P, pl::mActStat), at<float>(P, pl::mMotionFrame0), at<int>(P, pl::mBdyActionLowerPhase),
                     at<uint32_t>(P, pl::mAtckId), (int)at<char>(P, pl::mWJumpCnt), g_suppressed);
+        ImGui::Text("shells alive %d, hits %d", shells_alive(), shell_hits());
         ImGui::TextWrapped("last: %s", g_last_event);
     }
     ImGui::PopID();

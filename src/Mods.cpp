@@ -188,7 +188,7 @@
 #include "mods/SpineAim.hpp"
 #include "mods/ThirdPersonAim.hpp"
 #include "mods/ModelExtension.hpp"
-#include "mods/MoveDef.hpp"
+#include "dev/movedef/MoveDef.hpp"
 #include "mods/ViewportWindow.hpp"
 #endif
 

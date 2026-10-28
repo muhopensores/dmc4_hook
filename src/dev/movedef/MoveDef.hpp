@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../mod.hpp"
+#include "../../mod.hpp"
 
 // MoveDef: player moves defined in XML files (E:\DMC mod stuffs\Vibed\MoveDef\: design.md, schema.md v0.2), run by a
 // generic state function. It is the recipe Gerb and DanteAirDodge settled (design.md 5b), data-driven:

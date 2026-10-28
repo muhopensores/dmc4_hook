@@ -1,6 +1,7 @@
 #pragma once
-// MoveDef: one player move read from an XML file (E:\DMC mod stuffs\Vibed\MoveDef\schema.md, v0.2). Parsing only;
-// mods/MoveDef.cpp runs it. The subset of XML used: elements, attributes, comments. Numbers accept decimal or 0x hex.
+// MoveDef: one player move read from an XML file (E:\DMC mod stuffs\Vibed\MoveDef\schema.md, v0.2; user guide
+// docs\movedef.html). Parsing only;
+// dev/movedef/MoveDef.cpp runs it. The subset of XML used: elements, attributes, comments. Numbers accept decimal or 0x hex.
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -48,7 +49,31 @@ struct Table {                              // <table>: the kAtckDefTbl row
     std::vector<Window> windows;
 };
 
-struct Slot { int dir = 0; int block = 0; };            // <slot dir= block=>: the LMT block (in <lmt bank=>) per direction
+struct Slot {                                           // <slot dir= block=>: the LMT block (in <lmt bank=>) per direction
+    int dir = 0; int block = 0;
+    float speed = -1.0f;                                // speed= / rise=: this direction's <launch> values (Gerb's up / down
+    bool has_rise = false; float rise = 0.0f;           // jumps), < 0 / absent = the launch's
+    bool has_roll = false; float roll = 0.0f;           // effect_roll=: the take-off effect's roll for this direction (the dive's 180)
+    int damage_type_b = -1;                             // damage_type_b=: the <shell>s' reaction for this direction (-1 = the shell's)
+};
+
+struct Shell {                                          // <shell>: a code-defined attack capsule riding the player (D18, GerbShell's recipe)
+    bool in_launch = false;                             // inside <launch>: spawned at the launch, along its direction
+    float frame = 0.0f;                                 // in a <stage>: the motion frame it spawns at (once per entry)
+    char atk[128] = "";                                 // rAttackStatusData path without extension (default Collision\pl000 / pl006)
+    int entry = 0;                                      // the .atk entry copied into the group
+    int kind = 1;                                       // cCollisionGroup::mKind (1 = a player shell)
+    uint32_t vsattr = 0;                                // 0 = the game's table for the kind
+    int unit_line = 0x12;
+    float radius = 60.0f, length = 120.0f, height = 80.0f, life = 90.0f;   // cm, cm along the direction, cm above the feet, ticks
+    int knock = 0;                                      // 0 direction (ANG along the move's direction), 1 facing (ANG), 2 away (POS)
+    float knock_angle = 0.0f;                           // degrees added to the knock yaw (0 / 1)
+    bool one_hit = false, show = false;
+    // kAttackStatus overrides, < 0 = the entry's
+    int damage_type = -1, damage_type_b = -1, level_i = -1, level_b = -1, attack_id = -1, range_type = -1, hit_stop = -1,
+        hitmark = -1, hit_se = -1, attack_flag = -1, blown_angle = -1, element = -1;
+    float damage = -1.0f, stylish_point = -1.0f, stylish_timer = -1.0f, dt_add = -1.0f;
+};
 
 struct Cancel {                                         // <cancel frame= kind= categories=>
     float frame = 0.0f;
@@ -95,9 +120,10 @@ struct Fx {                                             // <effect stay> / <se> 
 struct Launch {                                         // <launch>: the ballistic jump (Gerb / DanteAirDodge)
     bool present = false;
     float frame = 0.0f;
-    std::string direction = "stick";                    // stick | facing
+    std::string direction = "stick";                    // stick | facing | vertical (up on the ground, down in the air)
     float speed = 0.0f, rise = 0.0f, gravity = 0.0f, max_fall = 30.0f, side_angle = 50.0f;
-    bool face = false;
+    int face = 0;                                       // face="true" 1: turn toward forward / left / right (a back jump keeps
+                                                        // facing, as Gerb's); "all" 2: back too; "false" 0
     Fx fx;
 };
 
@@ -127,6 +153,7 @@ struct Stage {
     std::vector<FxEvent> fx;                            // the runtime timeline, sorted by frame at load
     Launch launch;
     AirJump air_jump;
+    std::vector<Shell> shells;                          // in the stage and in its <launch>
 };
 
 struct Lmt { int bank = -1; std::string path; };        // <lmt bank= path=>: loaded per player object

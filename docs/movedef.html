@@ -278,6 +278,7 @@ th {
 <li class="toc-level-3"><a href="#example-dodge">An Air Dodge</a></li>
 <li class="toc-level-3"><a href="#example-stab">Million Stab For Nero</a></li>
 <li class="toc-level-3"><a href="#example-overlay">Holding Melee Out Of Streak</a></li>
+<li class="toc-level-3"><a href="#example-gerb">A Jump That Hits</a></li>
 <li class="toc-level-2"><a href="#reference">Reference</a></li>
 <li class="toc-level-3"><a href="#ref-move">&lt;move&gt;</a></li>
 <li class="toc-level-3"><a href="#ref-table">&lt;table&gt;: The Move List Entry</a></li>
@@ -285,6 +286,7 @@ th {
 <li class="toc-level-3"><a href="#ref-lmt">&lt;lmt&gt;: The Animations</a></li>
 <li class="toc-level-3"><a href="#ref-stage">&lt;stage&gt;: What Plays</a></li>
 <li class="toc-level-3"><a href="#ref-launch">&lt;launch&gt; And &lt;air_jump&gt;</a></li>
+<li class="toc-level-3"><a href="#ref-shell">&lt;shell&gt;: A Hitbox</a></li>
 <li class="toc-level-3"><a href="#ref-cancel">&lt;cancel&gt; And &lt;trigger&gt;</a></li>
 <li class="toc-level-3"><a href="#ref-next">&lt;next&gt;: Ending And Chaining</a></li>
 <li class="toc-level-3"><a href="#ref-effects">Effects And Sounds</a></li>
@@ -431,6 +433,52 @@ th {
 &lt;/move&gt;</code></pre></div>
 <p><code>free1</code> = 2 is a marker the game's own cancel script for that animation sets at frame 20; markers like it are how the game times the stages of its moves (see <a href="#ref-cancel">&lt;trigger&gt;</a>).</p>
 
+<h3 id="example-gerb" data-search-heading="A Jump That Hits">A Jump That Hits<a class="heading-link" href="#example-gerb" aria-label="Link to A Jump That Hits">#</a></h3>
+<p>Nero jumps in the air toward where the stick leans (lock-on + stick + style) and knocks every enemy in his way along the jump with his Dropkick's hit. Needs <code>nativePC\motion\pl000\gerb.lmt</code> with the forward, back, right and left jumps as animations 0, 2, 3 and 4 (the hook's Gerb uses the same file).</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;move name="gerb" character="pl000" id="0x44" version="2"&gt;
+  &lt;table attr="command" level="7" start="true" air="air"&gt;
+    &lt;input command="gerb_directional"/&gt;
+  &lt;/table&gt;
+  &lt;command name="gerb_directional" condition="lockon"&gt;
+    &lt;lever dir="any"/&gt;
+    &lt;btn id="style"/&gt;
+  &lt;/command&gt;
+  &lt;lmt bank="11" path="motion\pl000\gerb"/&gt;
+  &lt;stage name="jump" ctn="0:5" interp="4" status="jump" land="exit" cancel_frame="10" enemy_step="false" watchdog="300"&gt;
+    &lt;slot dir="forward" block="0"/&gt;
+    &lt;slot dir="back" block="2"/&gt;
+    &lt;slot dir="left" block="4"/&gt;
+    &lt;slot dir="right" block="3"/&gt;
+    &lt;launch frame="0" direction="stick" speed="20" rise="14" gravity="-1.1" max_fall="30" side_angle="40" face="true"&gt;
+      &lt;effect list="1" index="0x28" tilt="45"/&gt;
+      &lt;se id="40"/&gt;
+      &lt;shell atk="Collision\pl000" entry="14" radius="60" length="120" height="80" life="90" knock="direction"/&gt;
+    &lt;/launch&gt;
+  &lt;/stage&gt;
+&lt;/move&gt;</code></pre></div>
+<p>A second file adds straight up from the ground and straight down in the air, each direction with its own speed, and a shell that launches enemies on the way up and slams them on the dive:</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;move name="gerb_vertical" character="pl000" id="0x45" version="2"&gt;
+  &lt;table attr="command" level="7" start="true" air="both"&gt;
+    &lt;input command="gerb_vertical"/&gt;
+  &lt;/table&gt;
+  &lt;command name="gerb_vertical" condition="lockon"&gt;
+    &lt;lever dir="back"/&gt;
+    &lt;lever dir="forward" timer="15"/&gt;
+    &lt;btn id="style" timer="15"/&gt;
+  &lt;/command&gt;
+  &lt;lmt bank="11" path="motion\pl000\gerb"/&gt;
+  &lt;stage name="jump" ctn="0:5" interp="4" status="jump" land="exit" cancel_frame="10" enemy_step="false" watchdog="300"&gt;
+    &lt;slot dir="up" block="5" speed="32" rise="0" damage_type_b="4"/&gt;
+    &lt;slot dir="down" block="1" speed="24" rise="0" effect_roll="180" damage_type_b="5"/&gt;
+    &lt;launch frame="0" direction="vertical" gravity="-1.1" max_fall="30"&gt;
+      &lt;effect list="1" index="0x28" tilt="45"/&gt;
+      &lt;se id="40"/&gt;
+      &lt;shell atk="Collision\pl000" entry="14" radius="60" length="120" height="80" life="90" knock="direction"/&gt;
+    &lt;/launch&gt;
+  &lt;/stage&gt;
+&lt;/move&gt;</code></pre></div>
+<p>The hook's built-in Gerb is the same move; turn it off while these files are on, they use the same inputs.</p>
+
 <h2 id="reference" data-search-heading="Reference">Reference<a class="heading-link" href="#reference" aria-label="Link to Reference">#</a></h2>
 <p>A file holds one <code>&lt;move&gt;</code> (or one <code>&lt;commands&gt;</code>). Names and values are not case sensitive. A setting the hook doesn't know is skipped; a value it can't read takes the default. Frames are frames of the animation, 60 per second.</p>
 
@@ -498,7 +546,7 @@ th {
 <thead><tr><th>Setting</th><th>Default</th><th>What it does</th></tr></thead>
 <tbody>
 <tr><td><code>motion</code></td><td></td><td>The animation, <code>bank:block</code>. Needed unless the stage has <code>&lt;slot&gt;</code>s. On an overlay: the game animation it applies to (left out: every animation of that move).</td></tr>
-<tr><td><code>&lt;slot dir= block=/&gt;</code></td><td></td><td>Inside the stage, one per direction: <code>forward</code>, <code>back</code>, <code>left</code>, <code>right</code>, <code>up</code>, <code>down</code>, and the block of the <code>&lt;lmt&gt;</code> bank to play for it. The direction comes from the stick (with <code>&lt;launch direction="stick"&gt;</code>) among the slots you give; stick centred = forward.</td></tr>
+<tr><td><code>&lt;slot dir= block=/&gt;</code></td><td></td><td>Inside the stage, one per direction: <code>forward</code>, <code>back</code>, <code>left</code>, <code>right</code>, <code>up</code>, <code>down</code>, and the block of the <code>&lt;lmt&gt;</code> bank to play for it. The direction comes from the stick (with <code>&lt;launch direction="stick"&gt;</code>) among the slots you give; stick centred = forward. A slot may also set its own <code>speed</code> / <code>rise</code> (instead of the launch's), <code>effect_roll</code> (the take-off effect's roll, 180 for a dive) and <code>damage_type_b</code> (the <a href="#ref-shell">&lt;shell&gt;</a>s' reaction in that direction).</td></tr>
 <tr><td><code>ctn</code></td><td></td><td>Borrow the game's cancel script of that animation (<code>bank:block</code>), so the move gets its cancels, rumble and markers. <strong>Give it for animations in your own bank</strong>, which have no script; pick a game move that feels similar. Your <code>&lt;cancel&gt;</code>s and <code>&lt;trigger&gt;</code>s replace it when the stage has any.</td></tr>
 <tr><td><code>speed</code></td><td><code>1</code></td><td>Playback speed.</td></tr>
 <tr><td><code>start</code></td><td><code>0</code></td><td>First frame (skip a wind-up).</td></tr>
@@ -520,14 +568,41 @@ th {
 <thead><tr><th>Setting</th><th>Default</th><th>What it does</th></tr></thead>
 <tbody>
 <tr><td><code>frame</code></td><td><code>0</code></td><td>When it happens.</td></tr>
-<tr><td><code>direction</code></td><td><code>stick</code></td><td><code>stick</code> = the slot direction picked from the stick; <code>facing</code> = the first slot in the order forward, right, left, back.</td></tr>
+<tr><td><code>direction</code></td><td><code>stick</code></td><td><code>stick</code> = the slot direction picked from the stick; <code>facing</code> = the first slot in the order forward, right, left, back; <code>vertical</code> = the <code>up</code> slot on the ground, the <code>down</code> slot in the air.</td></tr>
 <tr><td><code>speed</code>, <code>rise</code>, <code>gravity</code>, <code>max_fall</code></td><td>0, 0, 0, 30</td><td>As above.</td></tr>
 <tr><td><code>side_angle</code></td><td><code>50</code></td><td>How far off straight ahead the stick must lean to count as left / right.</td></tr>
-<tr><td><code>face</code></td><td><code>false</code></td><td><code>true</code> = turn the character toward the direction.</td></tr>
+<tr><td><code>face</code></td><td><code>false</code></td><td><code>true</code> = turn the character toward a forward, left or right direction (a back jump keeps facing, like a backflip); <code>all</code> = turn for back too.</td></tr>
 <tr><td><code>&lt;effect list= index= tilt= roll=/&gt;</code></td><td></td><td>Inside: an effect left behind at the launch point (like the air hike's), leaned <code>tilt</code> degrees toward the direction and turned <code>roll</code> degrees (180 = upside down). Air hike effects: Nero <code>list="1" index="0x28"</code>, Dante <code>list="2" index="0x14"</code>.</td></tr>
 <tr><td><code>&lt;se id=/&gt;</code></td><td></td><td>Inside: a sound at the launch.</td></tr>
 </tbody></table></div>
 <p><code>&lt;air_jump cost= required= suppress_air_hike= per_air=/&gt;</code> ties the move to the character's air jumps: <code>cost</code> air jumps used at the start, <code>required="true"</code> = can't start with none left, <code>suppress_air_hike="true"</code> = a jump press that starts this move doesn't also air hike (needed when the input uses jump), <code>per_air</code> = times it can start before landing (0 = no limit).</p>
+
+<h3 id="ref-shell" data-search-heading="shell">&lt;shell&gt;: A Hitbox<a class="heading-link" href="#ref-shell" aria-label="Link to shell">#</a></h3>
+<p>A <code>&lt;shell&gt;</code> gives the move a hitbox of its own: a capsule that rides the character and hits enemies with the damage and reaction of an entry of an attack file (<code>.atk</code>), like a projectile the character carries. Inside <code>&lt;launch&gt;</code> it appears at the launch, along the launch direction; inside the <code>&lt;stage&gt;</code> it appears at its <code>frame</code>, along the move's direction (the facing for a move without slots). It lasts while the move runs: landing, a cancel, a hand-over or <code>life</code> ends it. Up to 8 per stage.</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;launch frame="0" direction="stick" speed="20" rise="14" gravity="-1.1" max_fall="30"&gt;
+  &lt;shell atk="Collision\pl000" entry="14" radius="60" length="120" height="80" life="90" knock="direction"/&gt;
+&lt;/launch&gt;</code></pre></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Setting</th><th>Default</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>atk</code></td><td>the character's</td><td>The attack file, game path without extension: <code>Collision\pl000</code> (Nero) / <code>Collision\pl006</code> (Dante) are the characters' own.</td></tr>
+<tr><td><code>entry</code></td><td><code>0</code></td><td>Which attack of that file to copy (damage, reaction, hit stop, spark, sound), counted from 0 in the file's order. Nero's 14 is the Dropkick.</td></tr>
+<tr><td><code>radius</code>, <code>length</code>, <code>height</code></td><td>60, 120, 80</td><td>The capsule in cm: its thickness, how far it reaches along the direction, how high above the feet it starts.</td></tr>
+<tr><td><code>life</code></td><td><code>90</code></td><td>Ticks at most.</td></tr>
+<tr><td><code>frame</code></td><td><code>0</code></td><td>In a stage: when it appears.</td></tr>
+<tr><td><code>knock</code></td><td><code>direction</code></td><td>Where the enemy is knocked: <code>direction</code> = along the move's direction (straight up / down moves: the facing), <code>facing</code> = along the character's facing, <code>away</code> = away from the character.</td></tr>
+<tr><td><code>knock_angle</code></td><td><code>0</code></td><td>Degrees added to the knock direction (<code>direction</code> / <code>facing</code>).</td></tr>
+<tr><td><code>one_hit</code></td><td><code>false</code></td><td><code>true</code> = it ends on its first hit.</td></tr>
+<tr><td><code>show</code></td><td><code>false</code></td><td><code>true</code> = draws the capsule in the game, for tuning.</td></tr>
+<tr><td><code>damage</code></td><td></td><td>The damage instead of the entry's.</td></tr>
+<tr><td><code>damage_type_b</code></td><td></td><td>The reaction instead of the entry's: 2 blown (Streak), 3 blown hard (Dropkick), 4 launched up (High Roller), 5 slammed down (Split), 6 bounce. A <code>&lt;slot damage_type_b=&gt;</code> overrides it per direction.</td></tr>
+<tr><td><code>level_i</code>, <code>level_b</code></td><td></td><td>How strongly it interrupts and blows the enemy (Streak 2, Dropkick 3, 0 = never), judged against the enemy's resistance.</td></tr>
+<tr><td><code>hit_stop</code>, <code>hitmark</code>, <code>hit_se</code></td><td></td><td>The hit pause in frames, the hit spark, the hit sound.</td></tr>
+<tr><td><code>stylish_point</code>, <code>stylish_timer</code>, <code>dt_add</code></td><td></td><td>Style meter points and time, Devil Trigger gained.</td></tr>
+<tr><td><code>attack_id</code>, <code>range_type</code>, <code>damage_type</code>, <code>attack_flag</code>, <code>element</code>, <code>blown_angle</code></td><td></td><td>Advanced: the remaining fields of the attack, by the game's numbers.</td></tr>
+<tr><td><code>kind</code>, <code>vsattr</code>, <code>unitline</code></td><td>1, 0, 0x12</td><td>Advanced: who the hitbox counts as (1 = the player's projectile, so enemies take it as the player's attack), what it can reach (0 = the game's usual for that kind) and its update slot. Leave them.</td></tr>
+</tbody></table></div>
+<p>Settings left out keep the entry's values. <a href="#example-gerb">A Jump That Hits</a> uses this.</p>
 
 <h3 id="ref-cancel" data-search-heading="cancel and trigger">&lt;cancel&gt; And &lt;trigger&gt;<a class="heading-link" href="#ref-cancel" aria-label="Link to cancel">#</a></h3>
 <p>Inside a stage. Together they make the stage's cancel script, which replaces the borrowed <code>ctn</code> one.</p>
@@ -598,7 +673,8 @@ th {
 <li><strong>64 effects / sounds per stage.</strong></li>
 <li><strong>New list entries go to the top</strong> of the character's list: a new move with the same input and conditions as a game move replaces it while the file is on.</li>
 <li>Files are read in name order; it doesn't matter, names are resolved after all files are read.</li>
-<li>Not available yet: hitboxes of a move's own (use a <code>ctn</code> donor and animations whose game hitboxes you want), several stages per file, a new cancel script on a game animation.</li>
+<li><strong>8 shells per stage.</strong></li>
+<li>Not available yet: several stages per file, a new cancel script on a game animation, hitboxes from <code>.col</code> shapes on the character's joints (a <code>&lt;shell&gt;</code> is a capsule from the character's position).</li>
 </ul>
 
 <h2 id="troubleshooting" data-search-heading="Troubleshooting">Troubleshooting<a class="heading-link" href="#troubleshooting" aria-label="Link to Troubleshooting">#</a></h2>
@@ -624,6 +700,8 @@ th {
 <tr><td>Starting the move also jumps / attacks again</td><td>Add <code>eat_press</code> with the starting button (and <code>suppress_air_hike</code> for jump inputs).</td></tr>
 <tr><td><code>&lt;next to='...'&gt; has no condition and never fires</code></td><td>Give it <code>on</code>, <code>frame</code>, <code>byte</code> or <code>button</code>.</td></tr>
 <tr><td>A hand-over doesn't happen</td><td>The target file isn't loaded or is switched off, or a condition never holds: on an overlay, the stage's <code>motion</code> must be the animation playing at that moment.</td></tr>
+<tr><td><code>&lt;shell&gt; '....atk' did not load</code> / <code>has no entry N</code></td><td>The <code>atk</code> path is wrong (no extension in the setting) or the file has fewer entries.</td></tr>
+<tr><td>A shell hits nothing</td><td>Turn on <code>show="true"</code> to see it. It lives only while the move runs, so a move that ends quickly takes it along; check <code>height</code> / <code>length</code> / <code>radius</code> against the enemies. The panel counts live shells and their hits.</td></tr>
 <tr><td>An effect doesn't show</td><td>Wrong <code>efl</code> path, or the <code>material</code> / <code>group</code> mask leaves nothing of it; try <code>-1</code> for both.</td></tr>
 <tr><td><code>new move ... needs a restart</code></td><td>Reload only updates loaded files; restart the game.</td></tr>
 </tbody></table></div>
