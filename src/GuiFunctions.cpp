@@ -792,6 +792,7 @@ namespace gui {
 
                 pmods->on_draw_ui("Gerb"_hash, DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui("DanteAirDodge"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui("FreeRide"_hash, DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui("SpineAim"_hash, DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui("ThirdPersonAim"_hash, DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui("ModelExtension"_hash, DISPLAY_SYSTEM_A);

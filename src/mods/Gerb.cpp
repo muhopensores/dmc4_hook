@@ -331,11 +331,32 @@ void apply_row() {
 // mCmdFlag), the local player only (the pad / keyboard are its). A press with its conditions met sets the row's bit.
 constexpr uintptr_t kPadBtnOn = 0x1374;          // mPeripheral.mPadBtnOn: the raw pad bits, before the button config maps them
 constexpr uintptr_t kCmdFlagWords = 0x2184;      // mCmdFlag[3]
-constexpr uint32_t  kBackForwardFrames = 15;     // STICK_BACK_FORWARD: back -> forward, and forward -> the trigger, each within this
+constexpr float     kBackForwardFrames = 15.0f;  // STICK_BACK_FORWARD: back -> forward, and forward -> the trigger, each within this
 static bool     g_custom_held[2] = {};           // last tick's trigger state (the press edge of pad / key triggers)
 static uint32_t g_custom_fired[2] = {};          // readout: times each row's input fired
-static uint32_t g_tick = 0;                      // the local player's ticks (the back-forward timing)
-static uint32_t g_back_at = 0, g_fwd_at = 0;     // when the stick was last back, and last forward right after a back (0 = never)
+// STICK_BACK_FORWARD runs like the game's command 0x52, Calibur's input (uPlayer::commandTbl 0xC3E328 + 0x52 * 16, run by
+// uPlayer::commandCheckSub 0x805A10): stick centred (no time limit after it), back, forward within 15 frames of reaching
+// back, the trigger within 15 frames of reaching forward. Each window starts when its step is reached and a window that
+// runs out starts the input over (back held too long, too slow to the trigger); firing starts it over too. Frames are
+// game frames (m_delta_time is subtracted every tick), so the windows don't depend on the tick rate.
+enum BackForwardStep : int { BF_CENTRED = 0, BF_BACK = 1, BF_FORWARD = 2, BF_READY = 3 };
+static int   g_bf_step = BF_CENTRED;             // the step being waited for (BF_READY: the trigger may fire)
+static float g_bf_timer = 0.0f;                  // frames left in the current window, 0 = none
+
+// The game's window when a step is reached: timer - 1 + this tick's delta for timers above 1 (commandCheckSub 0x805B96).
+static float bf_window(float dt) { return kBackForwardFrames > 1.0f ? kBackForwardFrames - 1.0f + dt : kBackForwardFrames; }
+
+static void back_forward_tick(uintptr_t pl, int now) {
+    const float dt = at<float>(pl, pl::m_delta_time);
+    if (g_bf_timer > 0.0f) {
+        g_bf_timer -= dt;
+        if (g_bf_timer <= 0.0f) { g_bf_step = BF_CENTRED; g_bf_timer = 0.0f; }   // too slow: start over
+    }
+    // steps reached this tick cascade, as the game checks the next step in the same call
+    if (g_bf_step == BF_CENTRED && now == STICK_CENTRED) g_bf_step = BF_BACK;
+    if (g_bf_step == BF_BACK && now == STICK_BACK)       { g_bf_step = BF_FORWARD; g_bf_timer = bf_window(dt); }
+    if (g_bf_step == BF_FORWARD && now == STICK_FORWARD) { g_bf_step = BF_READY;   g_bf_timer = bf_window(dt); }
+}
 static int      g_capture = -1;                  // the row whose trigger is being captured (-1 none)
 static uint32_t g_capture_bits = 0;              // pad capture: the buttons pressed together so far
 
@@ -372,7 +393,7 @@ static bool stick_ok(int now, int want) {
     switch (want) {
     case STICK_NONE:         return true;
     case STICK_ANY:          return now != STICK_CENTRED;
-    case STICK_BACK_FORWARD: return g_fwd_at != 0 && g_tick - g_fwd_at <= kBackForwardFrames;
+    case STICK_BACK_FORWARD: return g_bf_step == BF_READY;
     default:                 return now == want;
     }
 }
@@ -385,10 +406,8 @@ void custom_tick(uintptr_t pl) {
         else if (g_capture_bits) { custom_input[g_capture].bits = g_capture_bits; g_capture_bits = 0; g_capture = -1; }
         return;                                                          // nothing fires while capturing
     }
-    ++g_tick;
-    const int now = stick_class(pl);                                     // the back-forward motion
-    if (now == STICK_BACK) g_back_at = g_tick;
-    else if (now == STICK_FORWARD && g_back_at != 0 && g_tick - g_back_at <= kBackForwardFrames) g_fwd_at = g_tick;
+    const int now = stick_class(pl);
+    back_forward_tick(pl, now);                                          // the back-forward motion
     for (int i = 0; i < 2; ++i) {
         const CustomInput& ci = custom_input[i];
         bool held = false, pressed = false;
@@ -413,6 +432,7 @@ void custom_tick(uintptr_t pl) {
         if (!stick_ok(now, ci.stick)) continue;
         at<uint32_t>(pl, kCmdFlagWords + 4 * (cmd_row[i] >> 5)) |= 1u << (cmd_row[i] & 31);
         ++g_custom_fired[i];
+        if (ci.stick == STICK_BACK_FORWARD) { g_bf_step = BF_CENTRED; g_bf_timer = 0.0f; }   // used up, as the game's
     }
 }
 
@@ -475,7 +495,7 @@ static void input_editor(int row, const char* title) {
                        "(the raw pad, before the button config: Capture, press the button or several together, let go) or a "
                        "keyboard key (Capture, press it; counts while the game is in front and this menu is closed). Optional: "
                        "lock-on held (TPS aim's counts) and where the stick leans, against the lock-on target (else the facing): "
-                       "forward / back within 45 degrees, left / right between, or back then forward within 15 frames."));
+                       "forward / back within 45 degrees, left / right between, or Calibur's back, forward (stick centred first, back, forward within 15 frames, the trigger within 15 more)."));
     ImGui::PopID();
 }
 

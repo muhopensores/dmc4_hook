@@ -37,7 +37,8 @@ constexpr int cmd_row[2] = { 85, 86 };        // the rows' command bits (85 was 
 // A row's input: the trigger, pressed this tick, and the optional conditions.
 enum InputSource : int { SRC_GAME = 0 /* game buttons */, SRC_PAD = 1 /* gamepad buttons */, SRC_KEY = 2 /* a keyboard key */ };
 enum StickReq : int { STICK_NONE = -1, STICK_CENTRED = 0, STICK_FORWARD, STICK_BACK, STICK_LEFT, STICK_RIGHT, STICK_ANY,
-                      STICK_BACK_FORWARD /* back, then forward within 15 frames, the trigger within 15 more */ };
+                      STICK_BACK_FORWARD /* Calibur's input (game command 0x52): centred, back, forward within 15 frames,
+                                            the trigger within 15 more */ };
 struct CustomInput {
     int      source;     // InputSource
     uint32_t bits;       // SRC_GAME: mBtnOn bits (1 melee, 2 gun, 4 jump, 0x10 lock-on, 0x200 style / Buster), all held and one
