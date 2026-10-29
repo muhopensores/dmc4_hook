@@ -422,6 +422,10 @@ set(SDK_SRC
     sdk/InputCommand.cpp
     sdk/MoveRegistry.hpp
     sdk/MoveRegistry.cpp
+    sdk/LmtMerge.hpp
+    sdk/LmtMerge.cpp
+    sdk/MotionRegistry.hpp
+    sdk/MotionRegistry.cpp
     sdk/Devil4.hpp
     sdk/uActor.hpp
     sdk/uCollisionMgr.hpp

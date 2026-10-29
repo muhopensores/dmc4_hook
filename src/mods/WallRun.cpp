@@ -2,6 +2,7 @@
 #include "../sdk/Devil4.hpp"
 #include "../sdk/uActor.hpp"
 #include "../sdk/InputCommand.hpp"   // the pre-check and post-action ticks
+#include "../sdk/MotionRegistry.hpp"  // the custom LMT's bank
 #include "../sdk/Enums_Internal.hpp" // CANCEL_NO
 #include "MoveTable.hpp"             // HookNeroKADTbl / HookDanteKADTbl: the gun rows the run matches itself
 #include "SpineAim.hpp"              // the torso lean while shooting
@@ -50,7 +51,7 @@ int   WallRun::motion_right = 22;
 int   WallRun::motion_up    = 20;      // placeholder: the front kick-off (F, facing the wall)
 bool  WallRun::use_custom_lmt  = false;
 bool  WallRun::load_coat_lmt   = false;
-int   WallRun::lmt_bank        = 14;
+int   WallRun::lmt_set         = -1;
 int   WallRun::run_slot_left   = 1;      // the custom LMT: 0 right, 1 left, 2 vertical, all attribute 0 (looping)
 int   WallRun::run_slot_right  = 0;
 int   WallRun::run_slot_up     = 2;
@@ -803,9 +804,9 @@ void hand_to_wall_jump(RunState& s, uintptr_t pl, bool from_run) {
     if (from_run) {
         at<LineResult>(pl, pl::mGroundPoly) = s.wall.poly;   // else keep checkWallJumpBegin's wall
         give_jumps_back(pl);                                 // the kick-off itself doesn't charge again
-        if (WallRun::custom_ready(pl) && !s.wall.vertical)   // the jump-out cycles (none for a climb yet)
-            s.kickoff = (WallRun::lmt_bank << 8) |
-                        ((s.wall.on_left ? WallRun::run_slot_jump_left : WallRun::run_slot_jump_right) & 0xFF);
+        if (WallRun::custom_ready(pl) && !s.wall.vertical)   // the jump-out cycles (none for a climb yet; -1 = none)
+            s.kickoff = motion_registry::word(WallRun::lmt_set, pl,
+                                              s.wall.on_left ? WallRun::run_slot_jump_left : WallRun::run_slot_jump_right);
     }
     at<int>(pl, pl::mBdyActionLowerPhase) = 0;
     end_upper_shot(s, pl);
@@ -893,14 +894,15 @@ int WallRun::placeholder_motion(const Wall& wall) {
     return wall.on_left ? motion_left : motion_right;
 }
 
-bool WallRun::custom_ready(uintptr_t player) {
-    return use_custom_lmt && player && devil4_sdk::get_motion_bank((void*)player, lmt_bank) != 0;
+bool WallRun::custom_ready(uintptr_t player) {     // builds the player's banks when needed (call from its tick)
+    return use_custom_lmt && player && lmt_set >= 0 && motion_registry::ready(lmt_set, player);
 }
 
 int WallRun::motion_for(uintptr_t player, const Wall& wall) {
     if (!custom_ready(player)) return placeholder_motion(wall);   // no file for this player: the stand-ins
     const int slot = wall.vertical ? run_slot_up : wall.on_left ? run_slot_left : run_slot_right;
-    return (lmt_bank << 8) | (slot & 0xFF);
+    const int word = motion_registry::word(lmt_set, player, slot);
+    return word >= 0 ? word : placeholder_motion(wall);           // a slot past the file's blocks: the stand-in
 }
 
 // SpineAim asks this during its pass: the torso leans away from the wall while the gun is up (the walking shot has none
@@ -916,33 +918,23 @@ bool spine_provider(uintptr_t pl, spine_aim::Request& out) {
     return true;
 }
 
-void WallRun::ensure_bank(uintptr_t player) {
-    if (!use_custom_lmt || !player || lmt_bank < 10 || lmt_bank > 14) return;   // 0-9 are setup banks, 15 Buster
-    static uintptr_t s_failed_for = 0;       // don't retry (and spam the log) every frame on a missing file
-    if (s_failed_for == player) return;
-
-    void* body = (void*)player;
-    if (!devil4_sdk::get_motion_bank(body, lmt_bank)) {
-        if (!lmt_file_exists(lmt_body)) {                    // no file: the placeholders stay in use, say so once
-            spdlog::warn("WallRun: nativePC\\{}.lmt not found, using the placeholder motions", lmt_body);
-            s_failed_for = player;
-            return;
+// The custom LMT as one motion registry set: the body file for both characters, a coat file each (the coats' skeletons
+// differ; Dante's goes on both of his coats). Without the custom LMT nothing is registered. A missing file is logged by
+// the registry, and the run keeps its placeholder motions.
+void WallRun::register_lmt() {
+    const int old = lmt_set;
+    lmt_set = -1;
+    if (use_custom_lmt && lmt_body[0]) {
+        motion_registry::SetDesc d;
+        d.owner = "WallRun";
+        d.body[motion_registry::NERO] = d.body[motion_registry::DANTE] = lmt_body;
+        if (load_coat_lmt) {
+            d.coat[motion_registry::NERO] = lmt_coat_nero;
+            d.coat[motion_registry::DANTE] = lmt_coat_dante;
         }
-        if (!devil4_sdk::load_motion_bank(body, lmt_body, lmt_bank)) { s_failed_for = player; return; }
-        spdlog::info("WallRun: '{}' -> bank {} of the body", lmt_body, lmt_bank);
+        lmt_set = motion_registry::add(d);
     }
-    if (!load_coat_lmt) return;                              // coat (and face) motions stay off for now
-    void* coat = (void*)at<uintptr_t>(player, pl::mpCoatMdl);   // requestSetMotion mirrors motion numbers to it
-    if (coat && !devil4_sdk::get_motion_bank(coat, lmt_bank)) {
-        const char* path = at<uint32_t>(player, pl::charType) == 1 ? lmt_coat_nero : lmt_coat_dante;
-        if (!lmt_file_exists(path)) {                        // body runs the custom cycles, the coat holds its pose
-            spdlog::warn("WallRun: nativePC\\{}.lmt not found, the coat won't animate on the run", path);
-            s_failed_for = player;
-            return;
-        }
-        if (!devil4_sdk::load_motion_bank(coat, path, lmt_bank)) { s_failed_for = player; return; }
-        spdlog::info("WallRun: '{}' -> bank {} of the coat", path, lmt_bank);
-    }
+    if (old >= 0) motion_registry::remove(old);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1256,11 +1248,6 @@ std::optional<std::string> WallRun::on_initialize() {
     return Mod::on_initialize();
 }
 
-void WallRun::on_frame(fmilliseconds& dt) {
-    if (!mod_enabled || !use_custom_lmt) return;
-    if (uPlayer* pl = devil4_sdk::get_local_player()) ensure_bank((uintptr_t)pl);
-}
-
 void WallRun::on_gui_frame(int display) {
     if (display != DISPLAY_SYSTEM_A) return;       // debug page: it hooks the wall jump of both characters
     ImGui::Checkbox(_("Wall Run"), &mod_enabled);
@@ -1328,7 +1315,7 @@ void WallRun::on_gui_frame(int display) {
             const uintptr_t p = (uintptr_t)P;
             ImGui::Text("gun: shots %d | %s | lower motion %04X upper %04X aim %04X | custom LMT %s | upper action %d",
                         g_shots, g_last, at<uint32_t>(p, pl::mMotionCtrl0No), at<uint32_t>(p, kMotionCtrl + kMotionCtrlSize * 1 + kMcMotionNo),
-                        at<uint32_t>(p, kMotionCtrl + kMotionCtrlSize * 2 + kMcMotionNo), WallRun::custom_ready(p) ? "yes" : "no", at<int>(p, kBdyUpperNo));
+                        at<uint32_t>(p, kMotionCtrl + kMotionCtrlSize * 2 + kMcMotionNo), (WallRun::use_custom_lmt && motion_registry::placed(WallRun::lmt_set, p)) ? "yes" : "no", at<int>(p, kBdyUpperNo));
             // the lower motion's life signs: its frame, the controller's speed and attribute word (0x10 = A_STOP), the actor's
             // motion work rate (mProcSpdCtrl.mpWorkRate[1], what the characters' setActionUpperBdy rewrite)
             const float* work = at<float*>(p, 0x145C);
@@ -1380,17 +1367,16 @@ void WallRun::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("Entering the run spends a wall jump and counts an air jump, like the game's wall jump. "
                   "Costs nothing gives both back when the run ends; Reset fills them to the character's maxima."));
-    ImGui::Checkbox(_("Custom wall run LMT"), &use_custom_lmt);
+    if (ImGui::Checkbox(_("Custom wall run LMT"), &use_custom_lmt)) register_lmt();
     ImGui::SameLine();
     help_marker(_("Off: the wall-jump kick-off motions stand in for the run cycles.\n"
-                  "On: the LMT below is loaded into a free motion bank of the body and coat at runtime, and the run "
-                  "plays bank:slot from it. The .ctn cancels of the placeholder motions are borrowed either way."));
+                  "On: the run plays the slots below from the LMT below, which the hook places in a free motion bank of the "
+                  "body and coat itself. The .ctn cancels of the placeholder motions are borrowed either way."));
     if (!use_custom_lmt) {
         ImGui::InputInt(_("Motion left"), &motion_left);
         ImGui::InputInt(_("Motion right"), &motion_right);
         ImGui::InputInt(_("Motion up"), &motion_up);
     } else {
-        ImGui::SliderInt(_("Bank"), &lmt_bank, 10, 14);
         ImGui::InputInt(_("Slot left"), &run_slot_left);
         ImGui::InputInt(_("Slot right"), &run_slot_right);
         ImGui::InputInt(_("Slot up"), &run_slot_up);
@@ -1413,25 +1399,21 @@ void WallRun::on_gui_frame(int display) {
             ImGui::SliderFloat(_("Max fall"), &jumpout_max_fall, 1.0f, 80.0f);
             ImGui::Unindent(lineIndent);
         }
-        ImGui::InputText(_("Body LMT"), lmt_body, sizeof(lmt_body));
-        ImGui::Checkbox(_("Load coat LMT too"), &load_coat_lmt);
+        if (ImGui::InputText(_("Body LMT"), lmt_body, sizeof(lmt_body), ImGuiInputTextFlags_EnterReturnsTrue)) register_lmt();
+        ImGui::SameLine();
+        help_marker(_("Game paths under nativePC, without .lmt; Enter applies them."));
+        if (ImGui::Checkbox(_("Load coat LMT too"), &load_coat_lmt)) register_lmt();
         ImGui::SameLine();
         help_marker(_("Off: only the body plays the custom cycles and the coat holds its pose during the run."));
         if (load_coat_lmt) {
-            ImGui::InputText(_("Nero coat LMT"), lmt_coat_nero, sizeof(lmt_coat_nero));
-            ImGui::InputText(_("Dante coat LMT"), lmt_coat_dante, sizeof(lmt_coat_dante));
+            if (ImGui::InputText(_("Nero coat LMT"), lmt_coat_nero, sizeof(lmt_coat_nero), ImGuiInputTextFlags_EnterReturnsTrue)) register_lmt();
+            if (ImGui::InputText(_("Dante coat LMT"), lmt_coat_dante, sizeof(lmt_coat_dante), ImGuiInputTextFlags_EnterReturnsTrue)) register_lmt();
         }
         if (uPlayer* pl = devil4_sdk::get_local_player()) {
             ImGui::Text(_("File: %s | in use: %s"), lmt_file_exists(lmt_body) ? "found" : "missing",
-                        custom_ready((uintptr_t)pl) ? "custom cycles" : "placeholders");
-            ImGui::Text(_("Loaded: body %s, coat %s"),
-                        devil4_sdk::get_motion_bank(pl, lmt_bank) ? "yes" : "no",
-                        devil4_sdk::get_motion_bank((void*)at<uintptr_t>((uintptr_t)pl, pl::mpCoatMdl), lmt_bank) ? "yes" : "no");
-            if (ImGui::Button(_("Reload LMT"))) {       // swap the slots out and let ensure_bank refill them
-                devil4_sdk::unload_motion_bank(pl, lmt_bank);
-                if (load_coat_lmt)
-                    devil4_sdk::unload_motion_bank((void*)at<uintptr_t>((uintptr_t)pl, pl::mpCoatMdl), lmt_bank);
-            }
+                        motion_registry::placed(lmt_set, (uintptr_t)pl) ? "custom cycles" : "placeholders");
+            ImGui::Text("%s", motion_registry::describe(lmt_set, (uintptr_t)pl).c_str());
+            if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();   // read again from disk on the next run
         }
     }
     ImGui::Unindent(lineIndent);
@@ -1458,7 +1440,6 @@ void WallRun::on_config_load(const utility::Config& cfg) {
     wall_gap    = cfg.get<float>("wall_run_wall_gap").value_or(wall_gap);
     lose_grace  = cfg.get<float>("wall_run_lose_grace").value_or(lose_grace);
     use_custom_lmt = cfg.get<bool>("wall_run_custom_lmt").value_or(false);
-    lmt_bank       = cfg.get<int>("wall_run_bank").value_or(lmt_bank);
     run_slot_left  = cfg.get<int>("wall_run_slot_left").value_or(run_slot_left);
     run_slot_right = cfg.get<int>("wall_run_slot_right").value_or(run_slot_right);
     run_slot_up    = cfg.get<int>("wall_run_slot_up").value_or(run_slot_up);
@@ -1478,6 +1459,7 @@ void WallRun::on_config_load(const utility::Config& cfg) {
     climb_speed    = cfg.get<float>("wall_run_climb_speed").value_or(climb_speed);
     jumps_after_run = cfg.get<int>("wall_run_jumps_after").value_or(jumps_after_run);
     load_coat_lmt   = cfg.get<bool>("wall_run_coat_lmt").value_or(false);
+    register_lmt();
 }
 
 void WallRun::on_config_save(utility::Config& cfg) {
@@ -1501,7 +1483,6 @@ void WallRun::on_config_save(utility::Config& cfg) {
     cfg.set<float>("wall_run_wall_gap", wall_gap);
     cfg.set<float>("wall_run_lose_grace", lose_grace);
     cfg.set<bool>("wall_run_custom_lmt", use_custom_lmt);
-    cfg.set<int>("wall_run_bank", lmt_bank);
     cfg.set<int>("wall_run_slot_left", run_slot_left);
     cfg.set<int>("wall_run_slot_right", run_slot_right);
     cfg.set<int>("wall_run_slot_up", run_slot_up);

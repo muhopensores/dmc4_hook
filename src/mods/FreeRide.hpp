@@ -29,9 +29,10 @@
 // in uPlayer::checkBeforeAction 0x803500, so the pre-check tick eats the jump press once the command has fired: the
 // row then gets it, the jump check doesn't.
 //
-// Motions: motion\pl000\freeride.lmt (Nero) / motion\pl006\freeride.lmt (Dante) in a free bank when present, slots
-// 0 mount, 1 ride (looping). Without the file the game's own motions stand in: the enemy step's hop (0x11) for the
-// mount and the jump motion (5) held still for the ride.
+// Motions: motion\pl000\freeride.lmt (Nero) / motion\pl006\freeride.lmt (Dante) when present, one motion_registry set
+// that the registry merges into a free bank of the player's models (it picks the bank and hands out the words), slots
+// by default -1 = the game's hop for the mount and 0 for the ride (looping). Without the file, or for a slot of -1, the
+// game's own motions stand in: the enemy step's hop (0x11) for the mount and the jump motion (5) held still for the ride.
 //
 // The move is `namespace free_ride`; the FreeRide Mod class is the framework plumbing.
 
@@ -50,9 +51,9 @@ extern float mount_height;        // cm, the target's height difference allowed 
 extern bool  allow_bosses;        // lock-on type 1 (bosses) as well as 0 (enemies)
 
 // the LMT, per character
-extern int  lmt_bank[2];          // 10-14 are free; Nero: 10 / 11 MoveDef, 13 Gerb, 14 WallRun. Dante: 12 the dodge, 14 WallRun
+extern int  lmt_set;              // the motion registry's handle of our set (a body LMT per character), -1 = none
 extern char lmt_path[2][128];     // game path without extension
-extern int  slot_mount, slot_ride;
+extern int  slot_mount, slot_ride;   // LMT blocks, -1 = the stand-in (default: mount -1, ride 0)
 extern int  ctn_bank, ctn_slot;   // the .ctn script borrowed for the LMT motions (runtime banks have none)
 // the stand-ins without the LMT (bank 0 motions both characters share)
 extern int   vanilla_mount_motion;   // 0x11 = the enemy step (uPlayer::moveActEmJump 0x827890)
@@ -91,7 +92,6 @@ public:
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
     void on_gui_frame(int display) override;
-    void on_frame(fmilliseconds& dt) override;
 
     std::unique_ptr<FunctionHook> hook_cmd;
 };

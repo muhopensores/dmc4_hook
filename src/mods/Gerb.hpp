@@ -55,7 +55,7 @@ enum Dir : int { FORWARD = 0, DOWN = 1, BACK = 2, LEFT = 3, RIGHT = 4, UP = 5, D
 extern bool mod_enabled;
 
 // the LMT
-extern int  lmt_bank;             // 10-14 are free on both characters (WallRun uses 14)
+extern int  lmt_set;              // the motion_registry handle of lmt_path (-1 none): the registry picks the bank
 extern char lmt_path[128];        // game path without extension
 extern int  slot[DIR_COUNT];      // block per direction, 0 forward, 1 down, 2 back, 3 left, 4 right, 5 up
 extern int  ctn_bank, ctn_slot;   // vanilla .ctn script borrowed for the cycles (runtime banks have none)
@@ -82,8 +82,8 @@ extern bool  se_enabled;
 extern int   se_id;                       // SE of the player's sound resource (+0x1D60): the air hike plays 40
 
 Dir  pick_direction(uintptr_t player, bool vertical);
-bool ready(uintptr_t player);          // the LMT is in this player's bank
-void ensure_bank(uintptr_t player);    // loads it when the slot is empty (per player object)
+bool ready(uintptr_t player);          // the LMT is on this player's models (the registry builds them if needed)
+void register_lmt();                   // (re-)registers lmt_path with the motion registry
 void __stdcall move(uintptr_t player, uint32_t atck_id);   // the per-tick state function (atck_id = the row)
 void apply_row();                      // writes the inputs and the enable byte into the rows MoveTable inserted
 
@@ -98,7 +98,6 @@ public:
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
     void on_gui_frame(int display) override;
-    void on_frame(fmilliseconds& dt) override;
 
     std::unique_ptr<FunctionHook> hook_cmd;
 };

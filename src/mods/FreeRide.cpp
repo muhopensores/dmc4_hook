@@ -4,6 +4,7 @@
 #include "../sdk/Collision.hpp"
 #include "../sdk/InputCommand.hpp"
 #include "../sdk/MoveRegistry.hpp"
+#include "../sdk/MotionRegistry.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -19,10 +20,10 @@ bool  need_forward  = true;
 float mount_range   = 350.0f;
 float mount_height  = 120.0f;
 bool  allow_bosses  = false;
-int   lmt_bank[2]   = { 12, 13 };
+int   lmt_set       = -1;
 char  lmt_path[2][128] = { "motion\\pl000\\freeride", "motion\\pl006\\freeride" };
-int   slot_mount    = 0;
-int   slot_ride     = 1;
+int   slot_mount    = -1;            // -1 = the game's enemy-step hop; the LMT is for the ride
+int   slot_ride     = 0;
 int   ctn_bank      = 0;
 int   ctn_slot      = 5;             // the fall motion's script, as Gerb borrows: no windows of its own
 int   vanilla_mount_motion = 0x11;
@@ -216,36 +217,28 @@ void set_airborne(uintptr_t pl, bool air) {
     st = air ? ((st & ~0x1u) | 0x2u) : ((st & ~0x2u) | 0x1u);
 }
 
-// ---- the LMT, per character: ours only when the bank holds the resource this mod loaded (another mod's file in the
-// same bank would play its blocks under our slot numbers) ----
-struct Bank { uintptr_t player = 0, rsrc = 0; bool failed = false, warned = false; };
-Bank g_bank[2];
-
+// ---- the LMT, per character, through the motion registry: one set with a body file per character, merged into a
+// free bank of the player's models by the registry, which hands out the motion words (never bank << 8 | block here) ----
 bool lmt_file_exists(const char* game_path) {
     if (!game_path || !*game_path) return false;
     return std::filesystem::exists(std::string(".\\nativePC\\") + game_path + ".lmt");
 }
 
-bool lmt_ready(uintptr_t pl, int c) {
-    const Bank& b = g_bank[c];
-    return b.player == pl && b.rsrc && devil4_sdk::get_motion_bank((void*)pl, lmt_bank[c]) == b.rsrc;
+void register_lmt() {
+    motion_registry::SetDesc d;
+    d.owner = "FreeRide";
+    d.body[motion_registry::NERO]  = lmt_path[NERO];
+    d.body[motion_registry::DANTE] = lmt_path[DANTE];
+    const int old = lmt_set;
+    lmt_set = (lmt_path[NERO][0] || lmt_path[DANTE][0]) ? motion_registry::add(d) : -1;
+    if (old >= 0) motion_registry::remove(old);
 }
 
-void ensure_bank(uintptr_t pl) {
-    const int c = character_of(pl);
-    Bank& b = g_bank[c];
-    if (b.player != pl) b = Bank{ pl };
-    if (b.failed || lmt_ready(pl, c) || lmt_bank[c] < 10 || lmt_bank[c] > 14) return;   // 0-9 setup banks, 15 Nero's Buster bank
-    const uintptr_t existing = devil4_sdk::get_motion_bank((void*)pl, lmt_bank[c]);
-    if (existing) {
-        if (!b.warned) spdlog::warn("FreeRide: bank {} already holds another mod's LMT; the game's motions stand in", lmt_bank[c]);
-        b.warned = true;
-        return;
-    }
-    if (!lmt_file_exists(lmt_path[c])) { b.failed = true; return; }   // optional: the stand-ins play
-    if (!devil4_sdk::load_motion_bank((void*)pl, lmt_path[c], lmt_bank[c])) { b.failed = true; return; }
-    b.rsrc = devil4_sdk::get_motion_bank((void*)pl, lmt_bank[c]);
-    spdlog::info("FreeRide: '{}' -> bank {}", lmt_path[c], lmt_bank[c]);
+// The word of one of our slots for this player, or -1 without the file (the stand-ins play). ready() builds the
+// player's banks, so this runs from the player's own tick only (the move), never from on_frame or the GUI.
+int motion_word(uintptr_t pl, int slot) {
+    if (slot < 0 || lmt_set < 0 || !motion_registry::ready(lmt_set, pl)) return -1;   // slot -1 = the stand-in
+    return motion_registry::word(lmt_set, pl, slot);
 }
 
 // ---- per player ----
@@ -261,6 +254,7 @@ struct RideState {
     float     t = 0.0f;              // frames into the mount / the ride
     bool      jump_held = false;     // the press that started the ride hasn't been let go yet (eaten until it is)
     bool      melee_held = false;
+    bool      custom = false;        // the mount played our LMT (so a one-block file can run on as the ride)
 };
 RideState g_rides[kPlayerSlots];
 
@@ -424,10 +418,11 @@ void __stdcall move(uintptr_t pl, uint32_t) {
         face(pl, s.yaw);
         hold(e);
         ignore_enemy(pl, e, true);
-        ensure_bank(pl);
-        if (lmt_ready(pl, c)) {
+        s.custom = false;
+        if (const int mount = motion_word(pl, slot_mount); mount >= 0) {   // the word first: a bail-out leaves no .ctn override armed
             devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
-            request_motion(pl, (lmt_bank[c] << 8) | (slot_mount & 0xFF), (uint32_t)A_NULL_TRANS_OFF, 3.0f, 0.0f, 1.0f);
+            request_motion(pl, mount, (uint32_t)A_NULL_TRANS_OFF, 3.0f, 0.0f, 1.0f);
+            s.custom = true;
         } else {
             request_motion(pl, vanilla_mount_motion, (uint32_t)A_NULL_TRANS_OFF, 3.0f, 0.0f, 1.0f);
         }
@@ -448,9 +443,12 @@ void __stdcall move(uintptr_t pl, uint32_t) {
         set_velocity(pl, (want - vec(pos)) / dt);
         if (k < 1.0f) return;
         s.t = 0.0f;
-        if (lmt_ready(pl, c))
-            request_motion(pl, (lmt_bank[c] << 8) | (slot_ride & 0xFF), (uint32_t)A_NULL_TRANS_OFF, 4.0f, 0.0f, 1.0f);
-        else
+        if (s.custom && slot_ride == slot_mount) {
+            // one block for the whole move: the mount's motion runs on as the ride (loop it in the LMT)
+        } else if (const int ride = motion_word(pl, slot_ride); ride >= 0) {
+            devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);   // updateMotion clears the override after each use
+            request_motion(pl, ride, (uint32_t)A_NULL_TRANS_OFF, 4.0f, 0.0f, 1.0f);
+        } else
             request_motion(pl, vanilla_ride_motion, (uint32_t)A_NULL_TRANS_OFF, 4.0f, vanilla_ride_frame, 0.0f);
         phase = PHASE_RIDE;
         return;
@@ -534,11 +532,6 @@ std::optional<std::string> FreeRide::on_initialize() {
     return Mod::on_initialize();
 }
 
-void FreeRide::on_frame(fmilliseconds& dt) {
-    if (!mod_enabled) return;
-    if (uPlayer* pl = devil4_sdk::get_local_player()) ensure_bank((uintptr_t)pl);
-}
-
 void FreeRide::on_gui_frame(int display) {
     if (display != DISPLAY_SYSTEM_A) return;        // debug page, like Gerb and the dodge
     if (ImGui::Checkbox(_("Free Ride"), &mod_enabled)) apply_rows();
@@ -547,7 +540,7 @@ void FreeRide::on_gui_frame(int display) {
                   "it along the ground. The stick steers; jump steps off (the enemy step), melee launches it (Nero's High Roller, "
                   "Dante's High Time with Rebellion). The enemy is held with the game's own hit stop, so it lies still under the "
                   "board and carries on when the ride ends. Optional motions: motion\\pl000\\freeride.lmt (Nero) / "
-                  "motion\\pl006\\freeride.lmt (Dante), slot 0 mount, 1 ride."));
+                  "motion\\pl006\\freeride.lmt (Dante): by default block 0 is the ride and the mount keeps the game's hop."));
     if (!mod_enabled) return;
     ImGui::Indent(lineIndent);
     ImGui::PushID("FreeRide");
@@ -609,22 +602,24 @@ void FreeRide::on_gui_frame(int display) {
     help_marker(_("Dante's attack per held sword. 0xB = Rebellion's High Time. -1 = melee hops off with that sword."));
     ImGui::SliderFloat(_("Finisher step back"), &finish_back, 0.0f, 250.0f, "%.0f cm");
     ImGui::SameLine();
-    help_marker(_("Before the launcher the player is put on the floor this far behind the enemy, so the swing meets it."));
-    ImGui::SameLine();
-    help_marker(_("The plain dismount (ride over, a ledge, the enemy gone, or an exit with nothing set): backward and up, then the game's fall."));
+    help_marker(_("Before the launcher the player is put on the floor this far behind the enemy, so the swing meets it. Every other dismount is the game's enemy step: the hop toward the stick, or straight up."));
 
     ImGui::TextUnformatted(_("Motions"));
     for (int c = 0; c < 2; ++c) {
         ImGui::PushID(c);
-        ImGui::SliderInt(c == NERO ? _("Nero bank") : _("Dante bank"), &lmt_bank[c], 10, 14);
-        ImGui::InputText(c == NERO ? _("Nero LMT") : _("Dante LMT"), lmt_path[c], sizeof(lmt_path[c]));
+        if (ImGui::InputText(c == NERO ? _("Nero LMT") : _("Dante LMT"), lmt_path[c], sizeof(lmt_path[c]), ImGuiInputTextFlags_EnterReturnsTrue))
+            register_lmt();
         ImGui::PopID();
     }
     ImGui::SameLine();
-    help_marker(_("Optional. A free motion bank per character (Nero: 10 / 11 MoveDef, 13 Gerb, 14 the wall run; Dante: 12 the air dodge, "
-                  "14 the wall run) and the LMT loaded into it. Without the file the game's own motions stand in."));
+    help_marker(_("Optional; Enter applies. One LMT per character (game path without the extension, under nativePC). The motion registry "
+                  "merges it into a free motion bank and picks the bank. Without the file the game's own motions stand in."));
     ImGui::InputInt(_("Slot mount"), &slot_mount);
     ImGui::InputInt(_("Slot ride"), &slot_ride);
+    ImGui::SameLine();
+    help_marker(_("Blocks of the LMT, -1 = the game's own motion instead. Default: the enemy-step hop for the mount, block 0 for the ride "
+                  "(from frame 0 once the player is on the enemy; loop it in the LMT). The same block for both = one animation for the "
+                  "whole move, the mount's motion running on as the ride. A block the file doesn't have plays the stand-in."));
     ImGui::InputInt(_("Stand-in mount motion"), &vanilla_mount_motion, 1, 1, ImGuiInputTextFlags_CharsHexadecimal);
     ImGui::InputInt(_("Stand-in ride motion"), &vanilla_ride_motion, 1, 1, ImGuiInputTextFlags_CharsHexadecimal);
     ImGui::SliderFloat(_("Stand-in ride frame"), &vanilla_ride_frame, 0.0f, 40.0f);
@@ -637,11 +632,12 @@ void FreeRide::on_gui_frame(int display) {
         const RideState* s = find_state(P);
         const uintptr_t ridden = s ? s->enemy : 0;
         ImGui::Text("command bit %d | fired %u | entries %u | finishers %u | hops %u", g_cmd_bit, g_fired, g_entries, g_finishes, g_hops);
-        ImGui::Text("riding %d phase %d t %.1f | target in reach %s | ridden %p hitstop %.1f | floor %.1f | LMT %s",
+        ImGui::Text("riding %d phase %d t %.1f | target in reach %s | ridden %p hitstop %.1f | floor %.1f",
                     (int)riding(P), at<int>(P, pl::mBdyActionLowerPhase), s ? s->t : 0.0f, g_in_reach ? "yes" : "no", (void*)ridden,
-                    enemy_alive(ridden) ? at<float>(ridden, em::mEmHitStopTimer) : 0.0f, s ? s->floor_y : 0.0f,
-                    lmt_ready(P, c) ? "loaded" : (lmt_file_exists(lmt_path[c]) ? "not loaded" : "none (stand-ins)"));
-        if (ImGui::Button(_("Reload LMT"))) { devil4_sdk::unload_motion_bank(pl, lmt_bank[c]); g_bank[c] = Bank{}; }
+                    enemy_alive(ridden) ? at<float>(ridden, em::mEmHitStopTimer) : 0.0f, s ? s->floor_y : 0.0f);
+        ImGui::Text(_("LMT file: %s | %s"), lmt_file_exists(lmt_path[c]) ? "found" : "missing",
+                    lmt_set >= 0 ? motion_registry::describe(lmt_set, P).c_str() : "no set registered");
+        if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();   // read again from disk on the next ride
     }
     ImGui::PopID();
     ImGui::Unindent(lineIndent);
@@ -653,10 +649,8 @@ void FreeRide::on_config_load(const utility::Config& cfg) {
     mount_range   = cfg.get<float>("free_ride_mount_range").value_or(mount_range);
     mount_height  = cfg.get<float>("free_ride_mount_height").value_or(mount_height);
     allow_bosses  = cfg.get<bool>("free_ride_bosses").value_or(allow_bosses);
-    for (int c = 0; c < 2; ++c) {
-        lmt_bank[c] = cfg.get<int>("free_ride_bank_" + std::to_string(c)).value_or(lmt_bank[c]);
+    for (int c = 0; c < 2; ++c)
         if (auto p = cfg.get("free_ride_lmt_" + std::to_string(c))) strcpy_s(lmt_path[c], p->c_str());
-    }
     slot_mount    = cfg.get<int>("free_ride_slot_mount").value_or(slot_mount);
     slot_ride     = cfg.get<int>("free_ride_slot_ride").value_or(slot_ride);
     vanilla_mount_motion = cfg.get<int>("free_ride_vanilla_mount").value_or(vanilla_mount_motion);
@@ -677,6 +671,7 @@ void FreeRide::on_config_load(const utility::Config& cfg) {
     finish_back   = cfg.get<float>("free_ride_finish_back").value_or(finish_back);
     build_command();                           // the steps follow need_forward
     apply_rows();
+    register_lmt();
 }
 
 void FreeRide::on_config_save(utility::Config& cfg) {
@@ -685,10 +680,7 @@ void FreeRide::on_config_save(utility::Config& cfg) {
     cfg.set<float>("free_ride_mount_range", mount_range);
     cfg.set<float>("free_ride_mount_height", mount_height);
     cfg.set<bool>("free_ride_bosses", allow_bosses);
-    for (int c = 0; c < 2; ++c) {
-        cfg.set<int>("free_ride_bank_" + std::to_string(c), lmt_bank[c]);
-        cfg.set("free_ride_lmt_" + std::to_string(c), std::string(lmt_path[c]));
-    }
+    for (int c = 0; c < 2; ++c) cfg.set("free_ride_lmt_" + std::to_string(c), std::string(lmt_path[c]));
     cfg.set<int>("free_ride_slot_mount", slot_mount);
     cfg.set<int>("free_ride_slot_ride", slot_ride);
     cfg.set<int>("free_ride_vanilla_mount", vanilla_mount_motion);

@@ -27,7 +27,7 @@ extern bool mod_enabled;
 extern uintptr_t jmp_ret_wjump;        // 0x7B8E36, after the 6 prologue bytes the air-hike hook replaces
 
 // the LMT
-extern int  lmt_bank;                  // 10-14 are free (WallRun 14, Gerb 13)
+extern int  lmt_set;                   // the motion_registry handle of lmt_path (-1 none): the registry picks the bank
 extern char lmt_path[128];             // game path without extension
 extern int  slot[DIR_COUNT];           // block per direction, 0 right, 1 left
 extern int  ctn_bank, ctn_slot;        // vanilla .ctn script borrowed for the cycles (runtime banks have none)
@@ -55,8 +55,8 @@ extern int   se_id;                       // SE of the player's sound resource: 
 
 bool stick_sideways(uintptr_t player);        // the stick leans left or right of the facing
 bool can_dodge(uintptr_t player);             // the command's predicate: stick sideways and a dodge left this airtime
-bool ready(uintptr_t player);                 // the LMT is in this player's bank
-void ensure_bank(uintptr_t player);           // loads it when the slot is empty (per player object)
+bool ready(uintptr_t player);                 // the LMT is on this player's models (the registry builds them if needed)
+void register_lmt();                          // (re-)registers lmt_path with the motion registry
 void __stdcall move(uintptr_t player);        // the per-tick state function (MoveTable's Dante dispatch)
 void apply_row();                             // writes the input and the enable byte into the row MoveTable inserted
 

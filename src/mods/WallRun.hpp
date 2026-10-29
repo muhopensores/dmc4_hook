@@ -147,9 +147,10 @@ public:
     static int motion_right;
     static int motion_up;
 
-    // Custom LMT (D14 / D15 in MoveDef): loaded into a free bank of the body and coat models at runtime.
-    static bool use_custom_lmt;   // off = the placeholder motions above, on = lmt_bank:run_slot_* when the file is there
-    static int  lmt_bank;         // 10-14 are free on both characters; 15 is Nero's Buster bank
+    // Custom LMT (MoveDef D26): one motion_registry set for both characters (the body file shared, a coat file each);
+    // the registry picks the bank on the body and coat models.
+    static bool use_custom_lmt;   // off = the placeholder motions above, on = the custom LMT's run_slot_* when the file is there
+    static int  lmt_set;          // the motion_registry handle (-1 none)
     static int  run_slot_left;    // block indices inside the custom LMT
     static int  run_slot_right;
     static int  run_slot_up;
@@ -168,10 +169,8 @@ public:
     static char lmt_coat_nero[128];
     static char lmt_coat_dante[128];
 
-    // Loads the custom LMT into `lmt_bank` of the body and coat models if the slot is empty (a new player object
-    // after a level load has empty slots again). Cheap when already loaded: one dword read per model.
-    static void ensure_bank(uintptr_t player);
-    static bool custom_ready(uintptr_t player);          // the custom LMT is in this player's bank (else placeholders)
+    static void register_lmt();                          // (re-)registers the custom LMT with the motion registry
+    static bool custom_ready(uintptr_t player);          // the custom LMT is on this player's models (else placeholders)
     static int  motion_for(uintptr_t player, const wallrun::Wall& wall);   // the motion the run plays now
     static int  placeholder_motion(const wallrun::Wall& wall);   // the vanilla kick-off that stands in (also the .ctn borrowed)
 
@@ -205,7 +204,6 @@ public:
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
     void on_gui_frame(int display) override;
-    void on_frame(fmilliseconds& dt) override;
 private:
     std::unique_ptr<FunctionHook> hook1, hook2, hook_pre, hook_post, hook_pose, hook_pose_upper;
 };

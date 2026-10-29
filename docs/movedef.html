@@ -340,8 +340,8 @@ th {
 <p>A character's animations live in up to 16 <strong>banks</strong>, one <code>.lmt</code> file each, and each file holds numbered animations, its <strong>blocks</strong>. A motion is written <code>bank:block</code>, for example <code>3:0x17</code> = block 0x17 of bank 3.</p>
 <ul>
 <li>The game's own files: <code>motion\pl000\pl000_NN.lmt</code> is bank NN - 1 (Nero's <code>pl000_04.lmt</code> is bank 3); Dante's <code>pl006_NN.lmt</code> the same way. The block is the animation's number in Albam's LMT list.</li>
-<li>Your own animations go in a <strong>free bank</strong>, 10 to 14, loaded by the hook from the file you give in <code>&lt;lmt&gt;</code>. Banks 0-9 and 15 belong to the game.</li>
-<li><strong>One bank, one file.</strong> Other hook features also load animations into free banks (Gerb, the wall run, the Dante air dodge; their banks are in their settings). If two things share a bank on the same character, one of them plays the wrong animations. The hook refuses a move whose bank is already taken and says so in the log.</li>
+<li>Your own animations come from the file you give in <code>&lt;lmt path&gt;</code>, and you name them by their number in that file: <code>block="0"</code> on the stage, or <code>&lt;slot block=&gt;</code>. You don't pick a bank: the hook's <strong>motion registry</strong> puts every file that hook features and move files ask for into the character's free banks (a bank holds 256 animations, so files share banks) and works out the motion numbers. Banks 0-9 and 15 belong to the game.</li>
+<li><strong>Fixed banks</strong> (<code>&lt;lmt bank="10" ...&gt;</code>, 10 to 14) are the older way: the whole bank is that file's, and the registry keeps out of it. The built-in features (Gerb, the Dante air dodge, the wall run, Free Ride) go through the registry like move files, so a fixed bank only clashes with another file that names the same bank. The hook refuses a fixed bank that already holds another file and says so in the log.</li>
 </ul>
 <p>Nero and Dante's bodies share joint numbers, so one character's animations play on the other.</p>
 
@@ -383,7 +383,7 @@ th {
   &lt;command name="dodge" condition="lockon" predicate="stick_sideways"&gt;
     &lt;btn id="jump" mode="trg"/&gt;
   &lt;/command&gt;
-  &lt;lmt bank="12" path="motion\pl006\airdodge"/&gt;
+  &lt;lmt path="motion\pl006\airdodge"/&gt;
   &lt;stage name="dodge" ctn="0:5" interp="4" status="jump" land="exit" cancel_frame="10"
          eat_press="jump" watchdog="60"&gt;
     &lt;slot dir="right" block="1"/&gt;
@@ -395,7 +395,7 @@ th {
     &lt;air_jump cost="1" required="true" suppress_air_hike="true"/&gt;
   &lt;/stage&gt;
 &lt;/move&gt;</code></pre></div>
-<p>The hook has the same dodge built in (Dante air dodge, on bank 12 by default). Turn that one off, or move this file to another bank and id, before loading both.</p>
+<p>The hook has the same dodge built in (Dante air dodge). Turn that one off before loading this file: both use the same input.</p>
 
 <h3 id="example-stab" data-search-heading="Million Stab For Nero">Million Stab For Nero<a class="heading-link" href="#example-stab" aria-label="Link to Million Stab For Nero">#</a></h3>
 <p>Two files. The first is the stabbing: a melee press while Streak's follow-up window is open starts it; it keeps stabbing while melee is mashed and hands over to the finisher 18 ticks after the last press.</p>
@@ -405,8 +405,8 @@ th {
     &lt;follows move="29"/&gt;
     &lt;window category="C_NORM0"/&gt;              &lt;!-- once its next-attack window is open --&gt;
   &lt;/table&gt;
-  &lt;lmt bank="10" path="motion\pl000\million_stab"/&gt;
-  &lt;stage name="stab" motion="10:0" ctn="3:0x15" interp="3" start="9" stop="true" land="none"
+  &lt;lmt path="motion\pl000\million_stab"/&gt;
+  &lt;stage name="stab" block="0" ctn="3:0x15" interp="3" start="9" stop="true" land="none"
          eat_press="melee" watchdog="90"&gt;
     &lt;next frame="12" button="melee" idle="18" to="move:nero_million_stab_finish"/&gt;
     &lt;next ticks="300" to="move:nero_million_stab_finish"/&gt;   &lt;!-- five seconds at most --&gt;
@@ -416,8 +416,8 @@ th {
 &lt;/move&gt;</code></pre></div>
 <p>The second is the finisher. It has no <code>&lt;table&gt;</code>, so nothing starts it but the hand-over above:</p>
 <div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;move name="nero_million_stab_finish" character="pl000" id="0x51" version="2"&gt;
-  &lt;lmt bank="10" path="motion\pl000\million_stab"/&gt;
-  &lt;stage name="finish" motion="10:1" ctn="3:0x15" interp="10" stop="true" land="none" watchdog="90"&gt;
+  &lt;lmt path="motion\pl000\million_stab"/&gt;
+  &lt;stage name="finish" block="1" ctn="3:0x15" interp="10" stop="true" land="none" watchdog="90"&gt;
     &lt;cancel frame="20" categories="C_JUMP C_GUN C_CHOUHATSU"/&gt;   &lt;!-- jump, guns, taunt --&gt;
     &lt;cancel frame="40" categories="C_NORM0 C_COMMAND C_ALL"/&gt;    &lt;!-- the next attack: later, so mashing doesn't cancel it --&gt;
     &lt;kill_effect frame="0" id="4"/&gt;                              &lt;!-- the stab dust off --&gt;
@@ -458,7 +458,7 @@ th {
     &lt;lever dir="any" timer="2"/&gt;
     &lt;btn id="style"/&gt;
   &lt;/command&gt;
-  &lt;lmt bank="11" path="motion\pl000\gerb"/&gt;
+  &lt;lmt path="motion\pl000\gerb"/&gt;
   &lt;stage name="jump" ctn="0:5" interp="4" status="jump" land="exit" cancel_frame="10" enemy_step="false" watchdog="300"&gt;
     &lt;slot dir="forward" block="0"/&gt;
     &lt;slot dir="back" block="2"/&gt;
@@ -482,7 +482,7 @@ th {
     &lt;lever dir="forward" timer="15"/&gt;
     &lt;btn id="style"/&gt;
   &lt;/command&gt;
-  &lt;lmt bank="11" path="motion\pl000\gerb"/&gt;
+  &lt;lmt path="motion\pl000\gerb"/&gt;
   &lt;stage name="jump" ctn="0:5" interp="4" status="jump" land="exit" cancel_frame="10" enemy_step="false" watchdog="300"&gt;
     &lt;slot dir="up" block="5" speed="32" rise="0" damage_type_b="4"/&gt;
     &lt;slot dir="down" block="1" speed="24" rise="0" effect_roll="180" damage_type_b="5"/&gt;
@@ -556,14 +556,15 @@ th {
 <p><strong>Shared inputs</strong>: a file with <code>&lt;commands character="pl000"&gt;</code> around one or more <code>&lt;command&gt;</code>s defines inputs any of that character's moves can name. A move file's second and later <code>&lt;command&gt;</code>s are shared the same way. There are only 11 new inputs in the whole game (for every file and every hook feature together); see <a href="#rules">Rules And Limits</a>.</p>
 
 <h3 id="ref-lmt" data-search-heading="lmt">&lt;lmt&gt;: The Animations<a class="heading-link" href="#ref-lmt" aria-label="Link to lmt">#</a></h3>
-<p><code>&lt;lmt bank="10" path="motion\pl000\my_move"/&gt;</code> loads <code>nativePC\motion\pl000\my_move.lmt</code> into bank 10 of the character, for every copy of the character (co-op, the boss fights). <code>bank</code> must be 10-14 and free (<a href="#motions">Banks</a>). Leave <code>&lt;lmt&gt;</code> out to play only the game's own animations. Several files of one character may name the same bank <strong>with the same path</strong> (the stab and its finisher do).</p>
+<p><code>&lt;lmt path="motion\pl000\my_move"/&gt;</code> makes <code>nativePC\motion\pl000\my_move.lmt</code> (an LMT made in Albam) available to the move, for every copy of the character (co-op, the boss fights). The hook places it in a free bank the first time the move starts (<a href="#motions">Banks</a>); the stage then names its animations with <code>block=</code> or <code>&lt;slot block=&gt;</code>. Files that name the same path share it (the stab and its finisher do). After a Reload that changes the file, a player who is in the middle of one of these animations gets the new one when it ends. Leave <code>&lt;lmt&gt;</code> out to play only the game's own animations. <code>bank="10"</code> to <code>"14"</code> loads the file into that bank instead (the older way; the bank must be free).</p>
 
 <h3 id="ref-stage" data-search-heading="stage">&lt;stage&gt;: What Plays<a class="heading-link" href="#ref-stage" aria-label="Link to stage">#</a></h3>
 <div class="table-wrap"><table>
 <thead><tr><th>Setting</th><th>Default</th><th>What it does</th></tr></thead>
 <tbody>
-<tr><td><code>motion</code></td><td></td><td>The animation, <code>bank:block</code>. Needed unless the stage has <code>&lt;slot&gt;</code>s. On an overlay: the game animation it applies to (left out: every animation of that move; needed for <code>&lt;cancel&gt;</code> / <code>&lt;trigger&gt;</code>s).</td></tr>
-<tr><td><code>&lt;slot dir= block=/&gt;</code></td><td></td><td>Inside the stage, one per direction: <code>forward</code>, <code>back</code>, <code>left</code>, <code>right</code>, <code>up</code>, <code>down</code>, and the block of the <code>&lt;lmt&gt;</code> bank to play for it. The direction comes from the stick (with <code>&lt;launch direction="stick"&gt;</code>) among the slots you give; stick centred = forward. A slot may also set its own <code>speed</code> / <code>rise</code> (instead of the launch's), <code>effect_roll</code> (the take-off effect's roll, 180 for a dive) and <code>damage_type_b</code> (the <a href="#ref-shell">&lt;shell&gt;</a>s' reaction in that direction).</td></tr>
+<tr><td><code>block</code></td><td></td><td>The animation of your own <code>&lt;lmt&gt;</code>: its number in the file (0 = the first). Needed unless the stage has <code>&lt;slot&gt;</code>s or plays a game animation with <code>motion</code>.</td></tr>
+<tr><td><code>motion</code></td><td></td><td>A game animation, <code>bank:block</code> (instead of <code>block</code>). On an overlay: the game animation it applies to (left out: every animation of that move; needed for <code>&lt;cancel&gt;</code> / <code>&lt;trigger&gt;</code>s).</td></tr>
+<tr><td><code>&lt;slot dir= block=/&gt;</code></td><td></td><td>Inside the stage, one per direction: <code>forward</code>, <code>back</code>, <code>left</code>, <code>right</code>, <code>up</code>, <code>down</code>, and the block of the <code>&lt;lmt&gt;</code> file to play for it. The direction comes from the stick (with <code>&lt;launch direction="stick"&gt;</code>) among the slots you give; stick centred = forward. A slot may also set its own <code>speed</code> / <code>rise</code> (instead of the launch's), <code>effect_roll</code> (the take-off effect's roll, 180 for a dive) and <code>damage_type_b</code> (the <a href="#ref-shell">&lt;shell&gt;</a>s' reaction in that direction).</td></tr>
 <tr><td><code>ctn</code></td><td></td><td>Borrow the game's cancel script of that animation (<code>bank:block</code>), so the move gets its cancels, rumble and markers. <strong>Give it for animations in your own bank</strong>, which have no script; pick a game move that feels similar. Your <code>&lt;cancel&gt;</code>s and <code>&lt;trigger&gt;</code>s replace it when the stage has any.</td></tr>
 <tr><td><code>speed</code></td><td><code>1</code></td><td>Playback speed.</td></tr>
 <tr><td><code>start</code></td><td><code>0</code></td><td>First frame (skip a wind-up).</td></tr>
@@ -707,7 +708,7 @@ th {
 <li><strong>New files need a restart.</strong> Reload re-reads the files already loaded: stage settings, slots, cancels, launch, effects, nexts and input steps. A new file, a new or removed <code>&lt;command&gt;</code>, a changed <code>id</code> or <code>character</code>, and changes to <code>&lt;table&gt;</code> need a restart.</li>
 <li><strong>One file, one stage.</strong> Chain files with <code>&lt;next to="move:..."&gt;</code> for moves in several parts.</li>
 <li><strong>Ids</strong>: unique per character, Nero 0x34 and up, Dante 0x6C and up.</li>
-<li><strong>Banks</strong>: 10-14, one file per bank per character, shared with the hook's built-in moves (check their settings).</li>
+<li><strong>Banks</strong>: none to choose with <code>&lt;lmt path&gt;</code> alone; a fixed <code>bank</code> (10-14) must not be one a built-in feature uses (check their settings).</li>
 <li><strong>11 new inputs in total</strong>: every <code>&lt;command&gt;</code> and every built-in hook move with its own input (Gerb, the air dodge) takes one. A file that finds none left isn't loaded.</li>
 <li><strong>Five conditions per list entry</strong> (<a href="#ref-table">&lt;table&gt;</a>).</li>
 <li><strong>64 effects / sounds per stage.</strong></li>
@@ -718,7 +719,7 @@ th {
 </ul>
 
 <h2 id="troubleshooting" data-search-heading="Troubleshooting">Troubleshooting<a class="heading-link" href="#troubleshooting" aria-label="Link to Troubleshooting">#</a></h2>
-<p>The hook writes what it does to <code>dmc4_hook_framework_log.txt</code> in the game folder. Lines start with <code>MoveDef:</code>. At start-up each file gets a line (<code>... id 0x50: table yes, command none, lmt bank 10 ...</code>) and each loaded move a <code>loaded '...'</code> line; the panel's <code>last:</code> line shows the latest event while you play.</p>
+<p>The hook writes what it does to <code>dmc4_hook_framework_log.txt</code> in the game folder. Lines start with <code>MoveDef:</code>. At start-up each file gets a line (<code>... id 0x50: table yes, command none, lmt auto 'motion\pl000\million_stab' ...</code>) and each loaded move a <code>loaded '...'</code> line; the panel's <code>last:</code> line shows the latest event while you play.</p>
 <div class="table-wrap"><table>
 <thead><tr><th>You see</th><th>Likely cause</th></tr></thead>
 <tbody>
@@ -728,7 +729,12 @@ th {
 <tr><td><code>holds only comments, skipped</code></td><td>Everything in the file is commented out, e.g. <code>example.xml</code> before its two comment lines are deleted.</td></tr>
 <tr><td><code>id ... is below the first free id</code> / <code>is already '...'</code></td><td>Pick another <code>id</code> (<a href="#ids">Move Ids</a>).</td></tr>
 <tr><td><code>&lt;lmt bank&gt; must be 10-14</code></td><td>Use a free bank.</td></tr>
-<tr><td><code>the stage needs &lt;slot&gt;s or motion=</code> / <code>&lt;slot&gt;s need an &lt;lmt bank=&gt;</code></td><td>The stage doesn't say what to play.</td></tr>
+<tr><td><code>the stage needs &lt;slot&gt;s, block= or motion=</code> / <code>&lt;slot&gt;s and block= need an &lt;lmt path=&gt;</code></td><td>The stage doesn't say what to play.</td></tr>
+<tr><td><code>block= and motion= on one stage</code></td><td><code>block</code> plays your file's animation, <code>motion</code> a game one: keep one.</td></tr>
+<tr><td><code>motion= bank N is past 15</code></td><td>Animations live in banks 0-15. Nero's Buster grabs all play from bank 15 (their cancel scripts sit in banks 10-29 of <code>pl000.ctn</code>, which is a different numbering).</td></tr>
+<tr><td><code>motion= names runtime bank N</code></td><td>Banks 10-14 (and Nero's 4, 6-9) hold whatever the hook placed there; name your own animations with <code>block=</code>.</td></tr>
+<tr><td><code>... .lmt isn't on player ... (...)</code></td><td>The move's file couldn't be placed: the reason in brackets says why (the file is missing or not an LMT from Albam, or no free bank has room). The log has a <code>motion_registry:</code> line with details.</td></tr>
+<tr><td><code>motion_registry: ... already holds an LMT the registry didn't put there</code></td><td>A feature loaded its own file into a bank without telling the registry. The registry moves its files elsewhere by itself; nothing to do unless a feature misbehaves.</td></tr>
 <tr><td><code>no free command bit</code></td><td>All 11 new inputs are taken: drop a <code>&lt;command&gt;</code>, share one, or turn a built-in move off.</td></tr>
 <tr><td><code>&lt;input command='...'&gt; names no &lt;command&gt;</code> / <code>&lt;follows move='...'&gt; names no loaded move</code></td><td>A name is misspelt, the other file failed to load, or it's for the other character.</td></tr>
 <tr><td>The move is listed but never starts</td><td>Check <code>air</code> (the default is air only), <code>start</code> / <code>cancel</code> (combo steps need <code>cancel="true"</code>), the input's <code>condition</code>, and that the move's checkbox and the main checkbox are on. A game move with the same input higher in the list can't win: new entries go first, so look for another of your files with the same input.</td></tr>

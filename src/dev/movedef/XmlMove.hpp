@@ -153,7 +153,8 @@ struct AirJump {                                        // <air_jump cost= requi
 
 struct Stage {
     std::string name;
-    int motion = -1;                                    // motion="bank:slot" as a word, when no <slot>s
+    int motion = -1;                                    // motion="bank:slot" as a word, when no <slot>s (a vanilla motion)
+    int block = -1;                                     // block="N": block N of the move's own <lmt>, when no <slot>s
     int ctn_bank = -1, ctn_slot = -1;                   // ctn="bank:slot": the vanilla .ctn script borrowed for the motion
     uint32_t attr = 1;                                  // the request's attribute word (1 = A_NULL_TRANS_OFF)
     float interp = 4.0f, start = 0.0f, speed = 1.0f;
@@ -173,7 +174,8 @@ struct Stage {
     std::vector<Shell> shells;                          // in the stage and in its <launch>
 };
 
-struct Lmt { int bank = -1; std::string path; };        // <lmt bank= path=>: loaded per player object
+struct Lmt { int bank = -1; std::string path; };        // <lmt path= [bank=]>: no bank = placed by the motion registry
+                                                        // (sdk/MotionRegistry.hpp); bank 10-14 = loaded into that bank
 
 struct File {
     std::string source;                                 // the file path

@@ -3,6 +3,7 @@
 #include "../sdk/Devil4.hpp"
 #include "../sdk/InputCommand.hpp"
 #include "../sdk/MoveRegistry.hpp"
+#include "../sdk/MotionRegistry.hpp"
 #include "../sdk/CtnScript.hpp"
 #include <algorithm>
 #include <cmath>
@@ -16,7 +17,7 @@ namespace dante_air_dodge {
 
 bool  mod_enabled     = false;
 uintptr_t jmp_ret_wjump = 0;
-int   lmt_bank        = 12;
+int   lmt_set         = -1;
 char  lmt_path[128]   = "motion\\pl006\\airdodge";
 int   slot[DIR_COUNT] = { 1, 0 };        // right, left
 int   ctn_bank        = 0;
@@ -261,21 +262,19 @@ bool can_dodge(uintptr_t pl) {
     return stick_sideways(pl);
 }
 
+// The LMT goes through the motion registry (sdk/MotionRegistry.hpp), which picks a free bank (dante_air_dodge.xml
+// names the same file, so both get the same blocks). A missing file is logged there.
 bool ready(uintptr_t pl) {
-    return pl && devil4_sdk::get_motion_bank((void*)pl, lmt_bank) != 0;
+    return pl && lmt_set >= 0 && motion_registry::ready(lmt_set, pl);
 }
 
-void ensure_bank(uintptr_t pl) {
-    if (!pl || lmt_bank < 10 || lmt_bank > 14) return;      // 0-9 are setup banks, 15 Nero's Buster bank
-    static uintptr_t s_failed_for = 0;
-    if (s_failed_for == pl || ready(pl)) return;
-    if (!lmt_file_exists(lmt_path)) {
-        spdlog::warn("DanteAirDodge: nativePC\\{}.lmt not found; the move is disabled until it is", lmt_path);
-        s_failed_for = pl;
-        return;
-    }
-    if (!devil4_sdk::load_motion_bank((void*)pl, lmt_path, lmt_bank)) { s_failed_for = pl; return; }
-    spdlog::info("DanteAirDodge: '{}' -> bank {}", lmt_path, lmt_bank);
+void register_lmt() {
+    motion_registry::SetDesc d;
+    d.owner = "DanteAirDodge";
+    d.body[motion_registry::DANTE] = lmt_path;
+    const int old = lmt_set;
+    lmt_set = lmt_path[0] ? motion_registry::add(d) : -1;
+    if (old >= 0) motion_registry::remove(old);
 }
 
 void __stdcall move(uintptr_t pl) {
@@ -288,7 +287,6 @@ void __stdcall move(uintptr_t pl) {
     case PHASE_ENTRY: {
         ++g_moves;
         ++s.used;
-        ensure_bank(pl);
         if (!ready(pl)) { devil4_sdk::neutral_air_transition((uPlayer*)pl); return; }   // no LMT: bail out
 
         const float yaw = at<float>(pl, pl::mAnlgRadian);
@@ -297,17 +295,19 @@ void __stdcall move(uintptr_t pl) {
         const Dir dir = glm::dot(stick, right) >= 0.0f ? RIGHT : LEFT;
         s.dir_vec = dir == RIGHT ? right : -right;
         s.dir = dir;
+        const int motion = motion_registry::word(lmt_set, pl, slot[dir]);
+        if (motion < 0) { devil4_sdk::neutral_air_transition((uPlayer*)pl); return; }   // slot past the file's blocks
         if (face_direction) face(pl, yaw_of(s.dir_vec));
         if (cost_air_hike) ++at<char>(pl, pl::mWJumpCnt);              // one air jump; Devil Trigger keeps its second
 
         devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
         // the cycle is the whole dodge: loop as its block says, root translation off
-        request_motion(pl, (lmt_bank << 8) | (slot[dir] & 0xFF), (uint32_t)A_NULL_TRANS_OFF, 4.0f, 0.0f, 1.0f);
+        request_motion(pl, motion, (uint32_t)A_NULL_TRANS_OFF, 4.0f, 0.0f, 1.0f);
         s.script_set = false;                                           // the cancel script goes in next tick
         s.jump_held = true;                                             // this press is spent: see eat_held_jump
         s.wait_ticks = 0; s.stuck_ticks = 0; s.last_frame = -1.0f;
         spdlog::info("DanteAirDodge: start, motion {:04X} (bank {} slot {}), player {:#x}, frame {:.1f} of motion {:04X}",
-                     (lmt_bank << 8) | (slot[dir] & 0xFF), lmt_bank, slot[dir], pl, at<float>(pl, pl::mMotionFrame0), at<uint32_t>(pl, pl::mMotionCtrl0No));
+                     motion, motion >> 8, slot[dir], pl, at<float>(pl, pl::mMotionFrame0), at<uint32_t>(pl, pl::mMotionCtrl0No));
         phase = PHASE_WAIT;                                             // momentum is left alone until the launch
         return;
     }
@@ -322,9 +322,10 @@ void __stdcall move(uintptr_t pl) {
             // frame, and the player would hang here with no animation. Report it and leave the move.
             if (++s.wait_ticks > 60) {
                 spdlog::warn("DanteAirDodge: motion {:04X} did not reach the launch frame {} in 60 ticks (frame {:.1f}, controller plays {:04X}): "
-                             "is {}.lmt block {} present and not empty, and is bank {} free?",
-                             (lmt_bank << 8) | (slot[s.dir] & 0xFF), launch_frame,
-                             at<float>(pl, pl::mMotionFrame0), at<uint32_t>(pl, pl::mMotionCtrl0No), lmt_path, slot[s.dir], lmt_bank);
+                             "is {}.lmt block {} present and not empty ({})?",
+                             motion_registry::word(lmt_set, pl, slot[s.dir]), launch_frame,
+                             at<float>(pl, pl::mMotionFrame0), at<uint32_t>(pl, pl::mMotionCtrl0No), lmt_path, slot[s.dir],
+                             motion_registry::describe(lmt_set, pl));
                 devil4_sdk::neutral_air_transition((uPlayer*)pl);
             }
             return;
@@ -357,8 +358,9 @@ void __stdcall move(uintptr_t pl) {
         s.last_frame = frame;
         if (s.stuck_ticks > 60) {
             spdlog::warn("DanteAirDodge: motion frame stuck at {:.1f} for 60 ticks airborne (controller plays {:04X}, wanted {:04X}): "
-                         "is {}.lmt block {} present and not empty, and is bank {} free?",
-                         frame, at<uint32_t>(pl, pl::mMotionCtrl0No), (lmt_bank << 8) | (slot[s.dir] & 0xFF), lmt_path, slot[s.dir], lmt_bank);
+                         "is {}.lmt block {} present and not empty ({})?",
+                         frame, at<uint32_t>(pl, pl::mMotionCtrl0No), motion_registry::word(lmt_set, pl, slot[s.dir]), lmt_path, slot[s.dir],
+                         motion_registry::describe(lmt_set, pl));
             devil4_sdk::neutral_air_transition((uPlayer*)pl);
             return;
         }
@@ -439,7 +441,6 @@ static void log_transitions(uintptr_t P) {
 void DanteAirDodge::on_frame(fmilliseconds& dt) {
     if (!mod_enabled) return;
     if (uPlayer* pl = devil4_sdk::get_local_player()) {
-        ensure_bank((uintptr_t)pl);
         if ((at<uint32_t>((uintptr_t)pl, 0x2184 + 8) >> (cmd_bit - 64)) & 1) ++g_bit_seen;
         log_transitions((uintptr_t)pl);
     }
@@ -455,11 +456,14 @@ void DanteAirDodge::on_gui_frame(int display) {
     if (!mod_enabled) return;
     ImGui::Indent(lineIndent);
     ImGui::PushID("DanteAirDodge");            // the page's other panels share some labels
-    ImGui::SliderInt(_("Bank"), &lmt_bank, 10, 14);
-    ImGui::InputText(_("LMT"), lmt_path, sizeof(lmt_path));
+    if (ImGui::InputText(_("LMT"), lmt_path, sizeof(lmt_path), ImGuiInputTextFlags_EnterReturnsTrue)) register_lmt();
+    ImGui::SameLine();
+    help_marker(_("Game path of the LMT under nativePC, without .lmt; Enter applies it. The hook places it in a free motion "
+                  "bank itself (shared with the other features that add animations)."));
     if (uPlayer* pl = devil4_sdk::get_local_player()) {
-        ImGui::Text(_("File: %s | loaded: %s"), lmt_file_exists(lmt_path) ? "found" : "missing", ready((uintptr_t)pl) ? "yes" : "no");
-        if (ImGui::Button(_("Reload LMT"))) devil4_sdk::unload_motion_bank(pl, lmt_bank);
+        ImGui::Text(_("File: %s | %s"), lmt_file_exists(lmt_path) ? "found" : "missing",
+                    motion_registry::describe(lmt_set, (uintptr_t)pl).c_str());
+        if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();   // read again from disk on the next dodge
     }
     ImGui::InputInt(_("Slot right"), &slot[RIGHT]);
     ImGui::InputInt(_("Slot left"), &slot[LEFT]);
@@ -525,7 +529,6 @@ void DanteAirDodge::on_gui_frame(int display) {
 void DanteAirDodge::on_config_load(const utility::Config& cfg) {
     mod_enabled     = cfg.get<bool>("dante_air_dodge").value_or(false);
     apply_row();
-    lmt_bank        = cfg.get<int>("dante_air_dodge_bank").value_or(lmt_bank);
     for (int i = 0; i < DIR_COUNT; ++i) slot[i] = cfg.get<int>("dante_air_dodge_slot_" + std::to_string(i)).value_or(slot[i]);
     ctn_bank        = cfg.get<int>("dante_air_dodge_ctn_bank").value_or(ctn_bank);
     ctn_slot        = cfg.get<int>("dante_air_dodge_ctn_slot").value_or(ctn_slot);
@@ -547,11 +550,11 @@ void DanteAirDodge::on_config_load(const utility::Config& cfg) {
     effect_tilt     = cfg.get<float>("dante_air_dodge_effect_tilt").value_or(effect_tilt);
     se_enabled      = cfg.get<bool>("dante_air_dodge_se").value_or(se_enabled);
     se_id           = cfg.get<int>("dante_air_dodge_se_id").value_or(se_id);
+    register_lmt();
 }
 
 void DanteAirDodge::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("dante_air_dodge", mod_enabled);
-    cfg.set<int>("dante_air_dodge_bank", lmt_bank);
     for (int i = 0; i < DIR_COUNT; ++i) cfg.set<int>("dante_air_dodge_slot_" + std::to_string(i), slot[i]);
     cfg.set<int>("dante_air_dodge_ctn_bank", ctn_bank);
     cfg.set<int>("dante_air_dodge_ctn_slot", ctn_slot);

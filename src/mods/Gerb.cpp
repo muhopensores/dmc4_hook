@@ -4,6 +4,7 @@
 #include "../sdk/Devil4.hpp"
 #include "../sdk/InputCommand.hpp"
 #include "../sdk/MoveRegistry.hpp"
+#include "../sdk/MotionRegistry.hpp"
 #include "../sdk/CtnScript.hpp"
 #include <Windows.h>
 #include <cmath>
@@ -22,7 +23,7 @@ CustomInput custom_input[2] = {
     { SRC_GAME, 0x200, true, STICK_ANY },
     { SRC_GAME, 0x200, true, STICK_BACK_FORWARD },
 };
-int   lmt_bank      = 13;
+int   lmt_set       = -1;
 char  lmt_path[128] = "motion\\pl000\\gerb";          // Nero's
 int   slot[DIR_COUNT] = { 0, 1, 2, 4, 3, 5 };   // forward, down, back, left, right, up
 int   ctn_bank      = 0;
@@ -205,21 +206,19 @@ Dir pick_direction(uintptr_t pl, bool vertical) {
     return glm::dot(stick, right) >= 0.0f ? RIGHT : LEFT;
 }
 
+// The LMT goes through the motion registry (sdk/MotionRegistry.hpp), which picks a free bank and merges the file with
+// the other mods' (gerb.xml names the same file, so both get the same blocks). A missing file is logged there.
 bool ready(uintptr_t pl) {
-    return pl && devil4_sdk::get_motion_bank((void*)pl, lmt_bank) != 0;
+    return pl && lmt_set >= 0 && motion_registry::ready(lmt_set, pl);
 }
 
-void ensure_bank(uintptr_t pl) {
-    if (!pl || lmt_bank < 10 || lmt_bank > 14) return;      // 0-9 are setup banks, 15 Nero's Buster bank
-    static uintptr_t s_failed_for = 0;
-    if (s_failed_for == pl || ready(pl)) return;
-    if (!lmt_file_exists(lmt_path)) {
-        spdlog::warn("Gerb: nativePC\\{}.lmt not found; the move is disabled until it is", lmt_path);
-        s_failed_for = pl;
-        return;
-    }
-    if (!devil4_sdk::load_motion_bank((void*)pl, lmt_path, lmt_bank)) { s_failed_for = pl; return; }
-    spdlog::info("Gerb: '{}' -> bank {}", lmt_path, lmt_bank);
+void register_lmt() {
+    motion_registry::SetDesc d;
+    d.owner = "Gerb";
+    d.body[motion_registry::NERO] = lmt_path;
+    const int old = lmt_set;
+    lmt_set = lmt_path[0] ? motion_registry::add(d) : -1;
+    if (old >= 0) motion_registry::remove(old);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -233,11 +232,12 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
 
     switch (phase) {
     case PHASE_ENTRY: {
-        ensure_bank(pl);
         if (!ready(pl)) { devil4_sdk::neutral_air_transition((uPlayer*)pl); return; }   // no LMT: bail out
 
         s.vertical = atck_id == move_id_vertical;
         s.dir = pick_direction(pl, s.vertical);
+        const int motion = motion_registry::word(lmt_set, pl, slot[s.dir]);
+        if (motion < 0) { devil4_sdk::neutral_air_transition((uPlayer*)pl); return; }   // slot past the file's blocks
         const glm::vec3 fwd = wmat_row(pl, 2), right = wmat_row(pl, 0);
         switch (s.dir) {
         case FORWARD: s.dir_vec = fwd;    break;
@@ -253,7 +253,7 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
 
         devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
         // the cycle is the whole jump: loop as its block says, root translation off
-        request_motion(pl, (lmt_bank << 8) | (slot[s.dir] & 0xFF), (uint32_t)A_NULL_TRANS_OFF, 4.0f, 0.0f, 1.0f);
+        request_motion(pl, motion, (uint32_t)A_NULL_TRANS_OFF, 4.0f, 0.0f, 1.0f);
 
         s.script_set = false;                                           // the cancel script goes in next tick
         // momentum is left alone until the launch frame writes the velocity (zeroing it here froze the player
@@ -522,11 +522,6 @@ std::optional<std::string> Gerb::on_initialize() {
     return Mod::on_initialize();
 }
 
-void Gerb::on_frame(fmilliseconds& dt) {
-    if (!mod_enabled) return;
-    if (uPlayer* pl = devil4_sdk::get_local_player()) ensure_bank((uintptr_t)pl);
-}
-
 void Gerb::on_gui_frame(int display) {
     if (display != DISPLAY_SYSTEM_A) return;        // debug page
     if (ImGui::Checkbox(_("Gerb"), &mod_enabled)) apply_row();
@@ -539,11 +534,14 @@ void Gerb::on_gui_frame(int display) {
     ImGui::PushID("Gerb");            // WallRun's panel shares this page and some labels (Bank, Gravity, Slot ...)
     input_editor(ROW_DIRECTIONAL, _("Directional input (air): forward / back / left / right by the stick"));
     input_editor(ROW_VERTICAL, _("Vertical input: up on the ground, down in the air"));
-    ImGui::SliderInt(_("Bank"), &lmt_bank, 10, 14);
-    ImGui::InputText(_("LMT"), lmt_path, sizeof(lmt_path));
+    if (ImGui::InputText(_("LMT"), lmt_path, sizeof(lmt_path), ImGuiInputTextFlags_EnterReturnsTrue)) register_lmt();
+    ImGui::SameLine();
+    help_marker(_("Game path of the LMT under nativePC, without .lmt; Enter applies it. The hook places it in a free motion "
+                  "bank itself (shared with the other features that add animations)."));
     if (uPlayer* pl = devil4_sdk::get_local_player()) {
-        ImGui::Text(_("File: %s | loaded: %s"), lmt_file_exists(lmt_path) ? "found" : "missing", ready((uintptr_t)pl) ? "yes" : "no");
-        if (ImGui::Button(_("Reload LMT"))) devil4_sdk::unload_motion_bank(pl, lmt_bank);
+        ImGui::Text(_("File: %s | %s"), lmt_file_exists(lmt_path) ? "found" : "missing",
+                    motion_registry::describe(lmt_set, (uintptr_t)pl).c_str());
+        if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();   // read again from disk on the next jump
     }
     ImGui::InputInt(_("Slot forward"), &slot[gerb::FORWARD]);
     ImGui::InputInt(_("Slot down"), &slot[gerb::DOWN]);
@@ -621,7 +619,6 @@ void Gerb::on_gui_frame(int display) {
 
 void Gerb::on_config_load(const utility::Config& cfg) {
     mod_enabled  = cfg.get<bool>("gerb").value_or(false);
-    lmt_bank    = cfg.get<int>("gerb_bank").value_or(lmt_bank);
     for (int i = 0; i < DIR_COUNT; ++i) slot[i] = cfg.get<int>("gerb_slot_" + std::to_string(i)).value_or(slot[i]);
     ctn_bank     = cfg.get<int>("gerb_ctn_bank").value_or(ctn_bank);
     ctn_slot     = cfg.get<int>("gerb_ctn_slot").value_or(ctn_slot);
@@ -652,11 +649,11 @@ void Gerb::on_config_load(const utility::Config& cfg) {
     }
     apply_row();
     shell_config_load(cfg);
+    register_lmt();
 }
 
 void Gerb::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("gerb", mod_enabled);
-    cfg.set<int>("gerb_bank", lmt_bank);
     for (int i = 0; i < DIR_COUNT; ++i) cfg.set<int>("gerb_slot_" + std::to_string(i), slot[i]);
     cfg.set<int>("gerb_ctn_bank", ctn_bank);
     cfg.set<int>("gerb_ctn_slot", ctn_slot);

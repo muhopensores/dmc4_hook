@@ -7,6 +7,7 @@
 #include "../../sdk/InputCommand.hpp"
 #include "../../sdk/CtnScript.hpp"
 #include "../../sdk/MoveRegistry.hpp"
+#include "../../sdk/MotionRegistry.hpp"
 #include "../../sdk/MtMath.hpp"
 #include "../../sdk/uPlayer.hpp"      // kAtckDefTbl
 #include <algorithm>
@@ -190,6 +191,7 @@ struct Move {
     PlayerState states[kPlayerSlots];
     uint32_t tick = 0;
     uintptr_t bank_failed_for = 0;     // the player object the LMT load failed for (reported once)
+    motion_registry::Handle motion_set = -1;   // <lmt path> without bank=: the registry set (a fixed bank is reserved instead)
     int entries = 0;                   // readout
     int scripts = 0;                   // overlays: synthesised scripts installed on the vanilla motion (readout)
     bool merge_warned = false;         // overlays: a refused merge was logged
@@ -274,11 +276,32 @@ const xmlmove::Slot* slot_for(const xmlmove::Stage& st, int dir) {
 
 bool has_slot(const xmlmove::Stage& st, int dir) { return slot_for(st, dir) != nullptr; }
 
-// The motion word for `dir`: the stage's <slot> block in the move's bank, else the stage's motion=; -1 none.
-int motion_for(const Move& m, int dir) {
+// The motion word of block `block` of the move's own LMT for this player: from the registry, or in the fixed bank.
+int own_motion(const Move& m, uintptr_t pl, int block) {
+    if (m.motion_set >= 0) return motion_registry::word(m.motion_set, pl, block);
+    return m.def.lmt.bank >= 0 ? (m.def.lmt.bank << 8) | (block & 0xFF) : -1;
+}
+
+// The motion word for `dir`: the stage's <slot> block of the move's LMT, else its block=, else its motion=; -1 none.
+int motion_for(const Move& m, uintptr_t pl, int dir) {
     const xmlmove::Stage& st = m.stage();
-    for (const xmlmove::Slot& s : st.slots) if (s.dir == dir && m.def.lmt.bank >= 0) return (m.def.lmt.bank << 8) | (s.block & 0xFF);
+    for (const xmlmove::Slot& s : st.slots) if (s.dir == dir) return own_motion(m, pl, s.block);
+    if (st.block >= 0) return own_motion(m, pl, st.block);
     return st.motion;
+}
+
+// "auto" for a registry LMT, else the fixed bank (log lines)
+std::string bank_text(const Move& m) { return m.motion_set >= 0 ? std::string("auto") : std::to_string(m.def.lmt.bank); }
+
+// The LMT's place: a registry set for <lmt path> alone, a reservation for a fixed bank= (so the registry keeps out).
+void register_lmt(Move& m) {
+    if (m.def.overlay || m.def.lmt.path.empty()) return;
+    const std::string owner = "MoveDef " + m.def.name;
+    if (m.def.lmt.bank >= 0) { motion_registry::reserve(owner.c_str(), m.def.character, m.def.lmt.bank); return; }
+    motion_registry::SetDesc d;
+    d.owner = owner;
+    d.body[m.def.character] = m.def.lmt.path;
+    m.motion_set = motion_registry::add(d);
 }
 
 // The stick relative to the facing: left / right beyond `side_angle` off the facing axis, else forward / back.
@@ -589,6 +612,7 @@ bool run_nexts(Move& m, uintptr_t pl);
 // run's, a second XML move's) would play that file's blocks under our slot numbers (a six-block file asked for slot 8
 // wedges the motion controller: T-pose, frames stuck). Such a conflict is reported once and the move refuses.
 bool ready(Move& m, uintptr_t pl) {
+    if (m.motion_set >= 0) return motion_registry::ready(m.motion_set, pl);   // builds the player's banks when needed
     if (m.def.lmt.bank < 0) return true;
     const uintptr_t existing = devil4_sdk::get_motion_bank((void*)pl, m.def.lmt.bank);
     PlayerState& s = m.state_for(pl);
@@ -608,6 +632,7 @@ bool loaded_by_same_file(const Move& m, uintptr_t pl, uintptr_t existing) {
 }
 
 void ensure_bank(Move& m, uintptr_t pl) {
+    if (m.motion_set >= 0) return;          // the registry builds in ready(), from the player's own tick (never from on_frame)
     const xmlmove::Lmt& l = m.def.lmt;
     if (!pl || l.bank < 10 || l.bank > 14 || l.path.empty()) return;     // 0-9 are setup banks, 15 Nero's Buster bank
     if (m.bank_failed_for == pl) return;
@@ -675,14 +700,18 @@ void run_stage(Move& m, uintptr_t pl) {
         ++s.used;
         ensure_bank(m, pl);
         if (!ready(m, pl)) {
-            note("%s: bank %d of player %p is empty or holds another mod's LMT (nativePC\\%s.lmt missing, or the bank is taken: see the log): leaving",
-                 m.def.name.c_str(), m.def.lmt.bank, (void*)pl, m.def.lmt.path.c_str());
+            if (m.motion_set >= 0)
+                note("%s: nativePC\\%s.lmt isn't on player %p (%s; see the log): leaving",
+                     m.def.name.c_str(), m.def.lmt.path.c_str(), (void*)pl, motion_registry::describe(m.motion_set, pl).c_str());
+            else
+                note("%s: bank %d of player %p is empty or holds another mod's LMT (nativePC\\%s.lmt missing, or the bank is taken: see the log): leaving",
+                     m.def.name.c_str(), m.def.lmt.bank, (void*)pl, m.def.lmt.path.c_str());
             exit_move(pl);
             return;
         }
         glm::vec3 dv;
         const int dir = resolve_dir(m, pl, dv);
-        const int motion = motion_for(m, dir);
+        const int motion = motion_for(m, pl, dir);
         if (motion < 0) {
             note("%s: no motion for direction %s (no <slot> and no motion=)", m.def.name.c_str(), xmlmove::dir_name(dir));
             devil4_sdk::neutral_air_transition((uPlayer*)pl);
@@ -724,8 +753,8 @@ void run_stage(Move& m, uintptr_t pl) {
         if (!L.present) { phase = PHASE_AIRBORNE; return; }                             // no ballistics: just the motion
         if (at<float>(pl, pl::mMotionFrame0) < L.frame) {
             if (++s.wait_ticks > st.watchdog) {
-                note("%s: motion did not reach the launch frame %.1f in %d ticks (frame %.1f, controller plays %04X): block missing / empty, or bank %d taken?",
-                     m.def.name.c_str(), L.frame, st.watchdog, at<float>(pl, pl::mMotionFrame0), at<uint32_t>(pl, pl::mMotionCtrl0No), m.def.lmt.bank);
+                note("%s: motion did not reach the launch frame %.1f in %d ticks (frame %.1f, controller plays %04X): block missing / empty, or bank %s taken?",
+                     m.def.name.c_str(), L.frame, st.watchdog, at<float>(pl, pl::mMotionFrame0), at<uint32_t>(pl, pl::mMotionCtrl0No), bank_text(m).c_str());
                 exit_move(pl);
             }
             return;
@@ -774,8 +803,8 @@ void run_stage(Move& m, uintptr_t pl) {
         s.stuck_ticks = (frame == s.last_frame) ? s.stuck_ticks + 1 : 0;
         s.last_frame = frame;
         if (s.stuck_ticks > st.watchdog) {
-            note("%s: motion frame stuck at %.1f for %d ticks (controller plays %04X): block missing / empty, or bank %d taken?",
-                 m.def.name.c_str(), frame, st.watchdog, at<uint32_t>(pl, pl::mMotionCtrl0No), m.def.lmt.bank);
+            note("%s: motion frame stuck at %.1f for %d ticks (controller plays %04X): block missing / empty, or bank %s taken?",
+                 m.def.name.c_str(), frame, st.watchdog, at<uint32_t>(pl, pl::mMotionCtrl0No), bank_text(m).c_str());
             exit_move(pl);
         }
         return;
@@ -790,6 +819,10 @@ bool validate(const xmlmove::File& f) {
     if (f.name.empty())            { spdlog::error("MoveDef: {}: <move> needs a name", f.source); return false; }
     if (f.character < 0)           { spdlog::error("MoveDef: {}: character must be pl000 or pl006", f.source); return false; }
     if (f.stages.empty())          { spdlog::error("MoveDef: {}: no <stage>", f.source); return false; }
+    if (f.stages[0].motion > 0xFFF) {  // the bank is one nibble; .ctn banks 10-29 (Buster grabs) play from motion bank 15
+        spdlog::error("MoveDef: {}: motion= bank {} is past 15 (motion banks are 0-15; a Buster grab plays from bank 15)", f.source, f.stages[0].motion >> 8);
+        return false;
+    }
     if (f.overlay) {               // a vanilla move's overlay: its <next>s, its runtime timeline, its script changes
         if (f.id == 0 || f.id >= MIN_ID[f.character]) { spdlog::error("MoveDef: {}: an overlay's id must be a vanilla atckId (below {:#x})", f.source, MIN_ID[f.character]); return false; }
         const xmlmove::Stage& st = f.stages[0];
@@ -808,8 +841,17 @@ bool validate(const xmlmove::File& f) {
     // no <table> = a hand-off-only move: no row, reached through another move's <next to=> (it still gets its id)
     if (f.lmt.bank >= 0 && (f.lmt.bank < 10 || f.lmt.bank > 14)) { spdlog::error("MoveDef: {}: <lmt bank> must be 10-14", f.source); return false; }
     const xmlmove::Stage& st = f.stages[0];
-    if (st.slots.empty() && st.motion < 0) { spdlog::error("MoveDef: {}: the stage needs <slot>s or motion=", f.source); return false; }
-    if (!st.slots.empty() && f.lmt.bank < 0) { spdlog::error("MoveDef: {}: <slot>s need an <lmt bank=>", f.source); return false; }
+    if (st.slots.empty() && st.block < 0 && st.motion < 0) { spdlog::error("MoveDef: {}: the stage needs <slot>s, block= or motion=", f.source); return false; }
+    if (st.block >= 0 && st.motion >= 0) { spdlog::error("MoveDef: {}: block= and motion= on one stage: block= plays the move's own LMT, motion= a vanilla motion", f.source); return false; }
+    if (st.block > 255) { spdlog::error("MoveDef: {}: block= {} is past 255", f.source, st.block); return false; }
+    if ((!st.slots.empty() || st.block >= 0) && f.lmt.path.empty()) { spdlog::error("MoveDef: {}: <slot>s and block= need an <lmt path=>", f.source); return false; }
+    // motion= in a runtime bank (the motion registry's: 10-14, Nero's 4 / 6-9) plays whatever was put there, unless it
+    // is this file's own fixed bank
+    const int mb = st.motion >= 0 ? (st.motion >> 8) & 0xF : -1;
+    if (mb >= 0 && mb != f.lmt.bank && (mb >= 10 && mb <= 14 || (f.character == 0 && (mb == 4 || (mb >= 6 && mb <= 9))))) {
+        spdlog::error("MoveDef: {}: motion= names runtime bank {}, whose blocks belong to the motion registry: use block= for the move's own <lmt>", f.source, mb);
+        return false;
+    }
     return true;
 }
 
@@ -911,6 +953,7 @@ void add_move(xmlmove::File&& f, const std::vector<xmlmove::File>& pending) {
         m.row_marker = MoveTable::add_row(m.def.character, words);
     }
     move_registry::register_move(m.def.character, m.def.id, &m.enabled, &run_move);
+    register_lmt(m);
     moves().push_back(std::move(up));
     apply_row(*moves().back());
     spdlog::info("MoveDef: loaded '{}' ({}, id {:#x}, row marker {} (0 = hand-off only), command bit {})", moves().back()->def.name,
@@ -1143,7 +1186,18 @@ void reload() {
         if (!m) { spdlog::warn("MoveDef: {}: new move '{}' (id {:#x}) needs a restart to get its row", f.source, f.name, f.id); continue; }
         if (m->def.character != f.character) { spdlog::warn("MoveDef: {}: the character of a loaded move can't change (restart)", f.source); continue; }
         const bool had_cmd = m->def.command.present;
+        // the LMT: register the file's (an unchanged one gets the same set back), then let go of the old; players keep
+        // the old placement until no registry motion plays (motion_registry)
+        const motion_registry::Handle old_set = m->motion_set;
+        const std::string old_owner = "MoveDef " + m->def.name;
+        const int old_character = m->def.character;
+        const bool old_reserved = m->def.lmt.bank >= 0 && !m->def.lmt.path.empty();
         m->def = std::move(f);
+        m->motion_set = -1;
+        if (old_reserved && (old_owner != "MoveDef " + m->def.name || m->def.lmt.bank < 0))
+            motion_registry::reserve(old_owner.c_str(), old_character, -1);
+        register_lmt(*m);
+        if (old_set >= 0) motion_registry::remove(old_set);
         if (m->def.command.present && had_cmd) build_command(*m);          // the steps are read in place by the game
         else if (m->def.command.present != had_cmd) spdlog::warn("MoveDef: {}: adding / removing <command> needs a restart", m->def.source);
         m->cmd_id = command_id_for(*m);
@@ -1261,8 +1315,11 @@ void MoveDef::on_gui_frame(int display) {
             if (m.def.overlay)
                 ImGui::Text("%s overlay on vanilla id %#x | hand-offs %d | scripts %d", m.def.character == 0 ? "Nero" : "Dante", m.def.id, m.entries, m.scripts);
             else
-                ImGui::Text("%s id %#x | bank %d '%s' | command bit %d (row cmd %u) | entries %d",
-                            m.def.character == 0 ? "Nero" : "Dante", m.def.id, m.def.lmt.bank, m.def.lmt.path.c_str(), m.cmd_bit, m.cmd_id, m.entries);
+                ImGui::Text("%s id %#x | lmt '%s' %s | command bit %d (row cmd %u) | entries %d",
+                            m.def.character == 0 ? "Nero" : "Dante", m.def.id, m.def.lmt.path.c_str(),
+                            m.motion_set >= 0 ? motion_registry::describe(m.motion_set, (uintptr_t)devil4_sdk::get_local_player()).c_str()
+                                              : ("bank " + std::to_string(m.def.lmt.bank)).c_str(),
+                            m.cmd_bit, m.cmd_id, m.entries);
             ImGui::PopID();
         }
         ImGui::TreePop();

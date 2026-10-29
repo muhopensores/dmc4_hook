@@ -301,6 +301,7 @@ bool load(const char* path, File& out) {
         Stage s;
         s.name        = st.attribute("name").as_string();
         s.motion      = parse_motion(st.attribute("motion").as_string());
+        s.block       = (int)num(st.attribute("block"), -1);
         const int ctn = parse_motion(st.attribute("ctn").as_string());
         if (ctn >= 0) { s.ctn_bank = ctn >> 8; s.ctn_slot = ctn & 0xFF; }
         s.attr        = (uint32_t)lookup(N(kMotAttrs), st.attribute("attr").as_string(), 1);
@@ -455,9 +456,11 @@ bool load(const char* path, File& out) {
         out.stages.push_back(s);
     }
 
-    spdlog::info("MoveDef: {} '{}' {} id {:#x}: table {}, command {}, lmt bank {} '{}', {} stage(s)", path, out.name,
+    spdlog::info("MoveDef: {} '{}' {} id {:#x}: table {}, command {}, lmt {} '{}', {} stage(s)", path, out.name,
                  out.character == 0 ? "Nero" : out.character == 1 ? "Dante" : "?", out.id,
-                 out.table.present ? "yes" : "no", out.command.present ? out.command.name : "none", out.lmt.bank, out.lmt.path, out.stages.size());
+                 out.table.present ? "yes" : "no", out.command.present ? out.command.name : "none",
+                 out.lmt.bank >= 0 ? "bank " + std::to_string(out.lmt.bank) : std::string(out.lmt.path.empty() ? "none" : "auto"),
+                 out.lmt.path, out.stages.size());
     return true;
 }
 
