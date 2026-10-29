@@ -192,11 +192,14 @@ void FileTracker::on_gui_frame(int display) {
     if (!mod_enabled) return;
     ImGui::Indent(lineIndent);
     ImGui::PushID("FileTracker");
+    ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(8.0f, 4.0f));   // the tables
 
+    ImGui::Spacing();
     ImGui::SliderInt(_("Scan every N frames"), &scan_interval, 1, 60);
     ImGui::SameLine();
     help_marker(_("How often the resource table is read. A file loaded and freed within one interval is missed by the log."));
 
+    ImGui::Spacing();
     g_filter.Draw(_("Filter"), 260.0f);
     ImGui::SameLine();
     help_marker(_("Matches the path, type, class or arc; several words = any of them, -word excludes. The buttons set common types."));
@@ -208,15 +211,15 @@ void FileTracker::on_gui_frame(int display) {
     ImGui::Checkbox(_("Only files in use"), &g_only_used);
     ImGui::SameLine();
     help_marker(_("Hide arc entries nothing but their arc holds (a loaded arc keeps every file in it; the game references the ones it uses)."));
-    ImGui::SameLine();
+    ImGui::SameLine(0.0f, 24.0f);
     ImGui::Checkbox(_("Hide the arcs"), &g_only_files);
 
     const std::vector<Entry> list = entries();
     int arcs = 0;
     for (const Entry& e : list) if (e.is_arc) ++arcs;
+    ImGui::Spacing();
     ImGui::Text(_("%d resources, %d arcs | click a path to copy it"), (int)list.size(), arcs);
-    ImGui::SameLine();
-    ImGui::PushItemWidth(160.0f);
+    ImGui::PushItemWidth(200.0f);
     ImGui::InputText("##save_name", g_save_name, sizeof(g_save_name));
     ImGui::PopItemWidth();
     ImGui::SameLine();
@@ -225,6 +228,9 @@ void FileTracker::on_gui_frame(int display) {
     if (ImGui::Button(_("Save log"))) save_log((std::string("log_") + g_save_name).c_str());
     ImGui::SameLine();
     help_marker(_("Tab-separated text files in the game folder: the list as it is now, and the whole change log."));
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
 
     // ---- the arcs ----
     if (!g_only_files && ImGui::CollapsingHeader(_("Loaded arcs"))) {
@@ -247,6 +253,7 @@ void FileTracker::on_gui_frame(int display) {
         }
     }
 
+    ImGui::Spacing();
     // ---- the files ----
     std::vector<const Entry*> shown;
     shown.reserve(list.size());
@@ -259,7 +266,7 @@ void FileTracker::on_gui_frame(int display) {
     std::sort(shown.begin(), shown.end(), [](const Entry* a, const Entry* b) { return a->path < b->path; });
     if (ImGui::CollapsingHeader((std::string(_("Loaded now")) + " (" + std::to_string(shown.size()) + ")###loaded").c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
         if (ImGui::BeginTable("files", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp,
-                              ImVec2(0.0f, 300.0f))) {
+                              ImVec2(0.0f, 360.0f))) {
             ImGui::TableSetupScrollFreeze(0, 1);
             ImGui::TableSetupColumn(_("Path"), ImGuiTableColumnFlags_WidthStretch, 4.0f);
             ImGui::TableSetupColumn(_("Class"), ImGuiTableColumnFlags_WidthStretch, 1.5f);
@@ -289,6 +296,7 @@ void FileTracker::on_gui_frame(int display) {
         }
     }
 
+    ImGui::Spacing();
     // ---- the player's motion banks: not all of them are files (the motion registry's merged lists never enter the
     // resource table: path motion\registry_bankN, no file behind them) ----
     if (ImGui::CollapsingHeader(_("Player motion banks"))) {
@@ -322,6 +330,7 @@ void FileTracker::on_gui_frame(int display) {
         } else ImGui::TextDisabled(_("no player"));
     }
 
+    ImGui::Spacing();
     // ---- the log ----
     const std::vector<Event> log = events();
     if (ImGui::CollapsingHeader((std::string(_("Changes")) + " (" + std::to_string(log.size()) + ")###changes").c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -334,6 +343,7 @@ void FileTracker::on_gui_frame(int display) {
         if (ImGui::Button(_("Clear log"))) { clear_log(); g_mark = 0; }
         ImGui::SameLine();
         ImGui::Checkbox(_("Filter applies"), &g_log_filtered);
+        ImGui::Spacing();
         std::vector<const Event*> rows;
         rows.reserve(log.size());
         for (const Event& ev : log) {
@@ -342,7 +352,7 @@ void FileTracker::on_gui_frame(int display) {
             rows.push_back(&ev);
         }
         if (ImGui::BeginTable("log", 5, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp,
-                              ImVec2(0.0f, 240.0f))) {
+                              ImVec2(0.0f, 280.0f))) {
             ImGui::TableSetupScrollFreeze(0, 1);
             ImGui::TableSetupColumn(_("Time"));
             ImGui::TableSetupColumn("+/-");
@@ -370,6 +380,7 @@ void FileTracker::on_gui_frame(int display) {
         }
     }
 
+    ImGui::PopStyleVar();
     ImGui::PopID();
     ImGui::Unindent(lineIndent);
 }

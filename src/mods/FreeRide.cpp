@@ -1,5 +1,6 @@
 #include "FreeRide.hpp"
 #include "MoveTable.hpp"
+#include "FreeRideShell.hpp"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/Collision.hpp"
 #include "../sdk/InputCommand.hpp"
@@ -37,7 +38,11 @@ float turn_rate     = 3.0f;
 float ride_frames   = 240.0f;
 float step_down     = 120.0f;
 float hold_frames   = 4.0f;
+int   hit_mode      = HIT_DAMAGE;
+float up_grace      = 20.0f;
 bool  align_enemy   = true;
+bool  exceed_fill   = true;
+float exceed_frames = 80.0f;
 float enemy_yaw_offset = 0.0f;
 int   nero_finisher = 0x1F;          // uPlayerNero::moveAtckRedQueenHiTime (High Roller; the move picks its jump follow-up itself)
 int   dante_finisher[3] = { 0x0B, -1, -1 };   // uPlayerDante::moveAtckRevellionHiTime; Gilgamesh / Lucifer: none chosen yet
@@ -76,6 +81,12 @@ constexpr uintptr_t kEmJumpTimer = 0x1FF4, kWJumpTimer = 0x1FF8;   // uPlayer: c
 // player there while it carries him (preMain 0x5DE230 -> setIgnoreModel 0x50C1A0; clearIgnoreModel 0x50C1F0 otherwise).
 constexpr uintptr_t kIgnoreModels = 0xE8, kIgnoreModelNum = 0x128;
 constexpr int kIgnoreModelMax = 16;
+// Nero's Exceed gauge: uPlayerNero::cOverDriveGuage, embedded at uPlayerNero+0xCCE4 (RE note Vibed\RE\nero_exceed_gauge.md).
+// +0x04 stocks (0-3), +0x10 the bar (0 .. +0x44, what the HUD draws: uCockpitNero::checkPtr), +0x24 the rev button's
+// pressure this tick (the game's own revving), +0x50 the effect parent (null = the gauge isn't set up; addStock's gate).
+constexpr uintptr_t kOdGauge = 0xCCE4;
+constexpr uintptr_t kOdStock = 0x04, kOdValue = 0x10, kOdPress = 0x24, kOdMax = 0x44, kOdParent = 0x50;
+constexpr uintptr_t fn_odAddStock = 0x007EA340;   // cOverDriveGuage::addStock (this@edi; int count, bool se, bool seAlt; retn 0Ch)
 constexpr uintptr_t fn_setActionFootwork = 0x007AA2C0;  // uPlayer::setActionFootwork (this@esi, float hokan, char isMotSet; callee pops)
 
 // how a ground move ends (Stinger, Million Stab: setActionFootwork(10.0, 1))
@@ -98,6 +109,20 @@ void set_action_atck(uintptr_t pl, uint32_t id, int body) {
         mov eax, pl
         mov ecx, id
         push body
+        call fn
+        popad
+    }
+}
+
+// One Exceed stock with the game's light and sound (what a rev reaching the top of the bar does). Nothing past 3.
+void od_add_stock(uintptr_t gauge) {
+    uintptr_t fn = fn_odAddStock;
+    __asm {
+        pushad
+        mov edi, gauge
+        push 0          // seAlt
+        push 1          // se
+        push 1          // count
         call fn
         popad
     }
@@ -155,11 +180,14 @@ bool enemy_alive(uintptr_t e) {
 
 // The enemy stands still in its own pose while its hit-stop timer runs (uEnemy::move -> mEmHitStop -> every main skips
 // its routine); topping the timer up each tick is the whole hold. Stopping is the release.
+void still(uintptr_t e) {
+    MtVector3& v = at<MtVector3>(e, em::mVel);
+    v.x = v.y = v.z = 0.0f;
+}
 void hold(uintptr_t e) {
     float& t = at<float>(e, em::mEmHitStopTimer);
     if (t < hold_frames) t = hold_frames;
-    MtVector3& v = at<MtVector3>(e, em::mVel);
-    v.x = v.y = v.z = 0.0f;
+    still(e);
 }
 void release(uintptr_t e) {
     if (enemy_alive(e)) at<float>(e, em::mEmHitStopTimer) = 0.0f;
@@ -255,8 +283,12 @@ struct RideState {
     bool      jump_held = false;     // the press that started the ride hasn't been let go yet (eaten until it is)
     bool      melee_held = false;
     bool      custom = false;        // the mount played our LMT (so a one-block file can run on as the ride)
+    float     exceed = 0.0f;         // Nero: frames of ride toward the next Exceed stock
+    uint32_t  serial = 0;            // this ride's number: the hit shell ends when the player's ride isn't it any more
+    float     up_frames = 0.0f;      // hit mode: frames the enemy has been off AS_DOWN
 };
 RideState g_rides[kPlayerSlots];
+static uint32_t g_ride_serial = 0;
 
 // One slot per uPlayer seen, the least recently seen evicted (Gerb's table).
 RideState& state_for(uintptr_t player) {
@@ -284,6 +316,16 @@ bool riding(uintptr_t pl) {
     const uint32_t id = at<uint32_t>(pl, pl::mAtckId);
     return at<uint32_t>(pl, pl::mBdyActionLowerNo) == 12 && (id == nero_move_id || id == dante_move_id);
 }
+
+} // namespace
+
+// The hit shell's lifetime: the ride `serial` of `pl` is still on the board.
+bool ride_active(uintptr_t pl, uint32_t serial) {
+    const RideState* s = find_state(pl);
+    return s && s->serial == serial && s->enemy != 0 && riding(pl) && at<int>(pl, pl::mBdyActionLowerPhase) == PHASE_RIDE;
+}
+
+namespace {
 
 // The target the ride would take: the lock-on target's model when it is an enemy lying down, alive, within range.
 uintptr_t ride_target(uintptr_t pl) {
@@ -342,6 +384,24 @@ void pre_tick(uintptr_t pl) {
         if (!(on & 0x1)) s.melee_held = false;
         else at<uint32_t>(pl, pl::mBtnTrg) &= ~0x1u;
     }
+}
+
+// ---- Nero's Exceed gauge ----
+// The ride revs the gauge by itself: the bar fills over `exceed_frames` and a stock is added at the top, over and over
+// until the three stocks are in. The bar is written as an absolute value each tick (the game's update runs after the
+// move and takes one frame of its release decay off it, which doesn't show), unless the player is revving by hand, whose
+// own rev then shows. With three stocks the game holds the bar full itself. What's left in the bar at the dismount decays
+// as after a released rev.
+void fill_exceed(uintptr_t pl, RideState& s, float dt) {
+    const uintptr_t g = pl + kOdGauge;
+    if (!at<uintptr_t>(g, kOdParent) || at<int>(g, kOdStock) >= 3) return;
+    s.exceed += dt;
+    if (s.exceed >= exceed_frames) {
+        s.exceed -= exceed_frames;
+        od_add_stock(g);
+        if (at<int>(g, kOdStock) >= 3) return;
+    }
+    if (at<float>(g, kOdPress) <= 0.0f) at<float>(g, kOdValue) = at<float>(g, kOdMax) * (s.exceed / exceed_frames);
 }
 
 // ---- the exits ----
@@ -411,6 +471,7 @@ void __stdcall move(uintptr_t pl, uint32_t) {
         s.t = 0.0f;
         s.jump_held = (at<uint32_t>(pl, pl::mBtnOn) & 0x4) != 0;
         s.melee_held = (at<uint32_t>(pl, pl::mBtnOn) & 0x1) != 0;
+        s.exceed = 0.0f;
         const glm::vec3 ep = vec(at<MtVector3>(e, em::mPos));
         const glm::vec3 to = ep - s.start;
         s.yaw = (to.x * to.x + to.z * to.z > 1.0f) ? std::atan2(to.x, to.z) : at<float>(pl, pl::mRotateNow);
@@ -450,7 +511,13 @@ void __stdcall move(uintptr_t pl, uint32_t) {
             request_motion(pl, ride, (uint32_t)A_NULL_TRANS_OFF, 4.0f, 0.0f, 1.0f);
         } else
             request_motion(pl, vanilla_ride_motion, (uint32_t)A_NULL_TRANS_OFF, 4.0f, vanilla_ride_frame, 0.0f);
+        s.serial = ++g_ride_serial;
+        s.up_frames = 0.0f;
         phase = PHASE_RIDE;
+        if (hit_mode == HIT_DAMAGE) {       // the hits hold it from here: its own down flinch, not the hit stop
+            release(s.enemy);
+            spawn_ride_shell(pl, s.enemy, s.serial);
+        }
         return;
     }
     case PHASE_RIDE: {
@@ -464,6 +531,7 @@ void __stdcall move(uintptr_t pl, uint32_t) {
             return;
         }
         if (ride_frames > 0.0f && s.t >= ride_frames) { hop_off(pl, s); return; }
+        if (c == NERO && exceed_fill && exceed_frames > 0.0f) fill_exceed(pl, s, dt);
 
         if (at<int>(pl, pl::mAnlgPow) != 0)                     // steer: the board turns toward the stick
             s.yaw = turn_toward(s.yaw, at<float>(pl, pl::mAnlgRadian), glm::radians(turn_rate) * dt);
@@ -475,7 +543,13 @@ void __stdcall move(uintptr_t pl, uint32_t) {
         s.floor_y = fy;
         const glm::vec3 v(dir_of(s.yaw).x * ride_speed, (fy + ride_height - pos.y) / dt, dir_of(s.yaw).z * ride_speed);
         set_velocity(pl, v);
-        hold(s.enemy);
+        if (hit_mode == HIT_DAMAGE) {
+            still(s.enemy);
+            if (at<uint32_t>(s.enemy, em::mActorStatus) & AS_DOWN) s.up_frames = 0.0f;
+            else if ((s.up_frames += dt) > up_grace) { hop_off(pl, s); return; }   // it got up: the hits don't interrupt it
+        } else {
+            hold(s.enemy);
+        }
         place_enemy(s.enemy, glm::vec3(next.x, fy, next.z), s.yaw);
         return;
     }
@@ -589,6 +663,33 @@ void FreeRide::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("Sets the enemy's yaw to the board's direction plus the offset below every tick."));
     if (align_enemy) ImGui::SliderFloat(_("Enemy yaw offset"), &enemy_yaw_offset, -180.0f, 180.0f, "%.0f deg");
+    ImGui::Checkbox(_("Nero: rev the Exceed gauge"), &exceed_fill);
+    ImGui::SameLine();
+    help_marker(_("The ride fills Nero's Exceed gauge by itself: the bar rises over the frames below and a stock lights at the top, "
+                  "until all three are in. Revving by hand still works on top of it. Dante has no gauge to fill."));
+    if (exceed_fill) {
+        ImGui::SliderFloat(_("Frames per Exceed stock"), &exceed_frames, 10.0f, 600.0f, "%.0f frames");
+        ImGui::SameLine();
+        help_marker(_("Frames of riding for one stock. 80 = the three stocks over the default 240-frame ride."));
+    }
+
+    ImGui::TextUnformatted(_("Holding the enemy"));
+    {
+        const char* modes[] = { "Hits (damage keeps it down)", "Hit stop (frozen)" };
+        int mode = hit_mode == HIT_DAMAGE ? 0 : 1;
+        if (ImGui::Combo(_("Hold"), &mode, modes, 2)) hit_mode = mode == 0 ? HIT_DAMAGE : HIT_STOP;
+        ImGui::SameLine();
+        help_marker(_("How the enemy is kept under the board. Hits: a hitbox on it deals a little damage every few frames, and each "
+                      "hit replays its down flinch so it stays down the game's own way (and takes damage, as in DMC3). Hit stop: its "
+                      "hit-stop timer is topped up every tick, so it stands frozen in its pose. The mount always uses the hit stop."));
+    }
+    if (hit_mode == HIT_DAMAGE) {
+        hit_gui();
+        ImGui::SliderFloat(_("Stand-up grace"), &up_grace, 0.0f, 120.0f, "%.0f frames");
+        ImGui::SameLine();
+        help_marker(_("Frames the enemy may be off its down status before the ride hops off (an enemy the hits can't interrupt gets "
+                      "up under the player)."));
+    }
 
     ImGui::TextUnformatted(_("Exits"));
     ImGui::InputInt(_("Nero finisher atckId"), &nero_finisher, 1, 1, ImGuiInputTextFlags_CharsHexadecimal);
@@ -635,6 +736,10 @@ void FreeRide::on_gui_frame(int display) {
         ImGui::Text("riding %d phase %d t %.1f | target in reach %s | ridden %p hitstop %.1f | floor %.1f",
                     (int)riding(P), at<int>(P, pl::mBdyActionLowerPhase), s ? s->t : 0.0f, g_in_reach ? "yes" : "no", (void*)ridden,
                     enemy_alive(ridden) ? at<float>(ridden, em::mEmHitStopTimer) : 0.0f, s ? s->floor_y : 0.0f);
+        if (hit_mode == HIT_DAMAGE) hit_readout();
+        if (c == NERO)
+            ImGui::Text("exceed: stocks %d | bar %.1f / %.1f | ride %.0f / %.0f", at<int>(P + kOdGauge, kOdStock),
+                        at<float>(P + kOdGauge, kOdValue), at<float>(P + kOdGauge, kOdMax), s ? s->exceed : 0.0f, exceed_frames);
         ImGui::Text(_("LMT file: %s | %s"), lmt_file_exists(lmt_path[c]) ? "found" : "missing",
                     lmt_set >= 0 ? motion_registry::describe(lmt_set, P).c_str() : "no set registered");
         if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();   // read again from disk on the next ride
@@ -666,6 +771,11 @@ void FreeRide::on_config_load(const utility::Config& cfg) {
     hold_frames   = cfg.get<float>("free_ride_hold_frames").value_or(hold_frames);
     align_enemy   = cfg.get<bool>("free_ride_align_enemy").value_or(align_enemy);
     enemy_yaw_offset = cfg.get<float>("free_ride_enemy_yaw").value_or(enemy_yaw_offset);
+    hit_mode      = cfg.get<int>("free_ride_hit_mode").value_or(hit_mode);
+    up_grace      = cfg.get<float>("free_ride_up_grace").value_or(up_grace);
+    hit_config_load(cfg);
+    exceed_fill   = cfg.get<bool>("free_ride_exceed").value_or(exceed_fill);
+    exceed_frames = cfg.get<float>("free_ride_exceed_frames").value_or(exceed_frames);
     nero_finisher = cfg.get<int>("free_ride_nero_finisher").value_or(nero_finisher);
     for (int i = 0; i < 3; ++i) dante_finisher[i] = cfg.get<int>("free_ride_dante_finisher_" + std::to_string(i)).value_or(dante_finisher[i]);
     finish_back   = cfg.get<float>("free_ride_finish_back").value_or(finish_back);
@@ -696,6 +806,11 @@ void FreeRide::on_config_save(utility::Config& cfg) {
     cfg.set<float>("free_ride_hold_frames", hold_frames);
     cfg.set<bool>("free_ride_align_enemy", align_enemy);
     cfg.set<float>("free_ride_enemy_yaw", enemy_yaw_offset);
+    cfg.set<int>("free_ride_hit_mode", hit_mode);
+    cfg.set<float>("free_ride_up_grace", up_grace);
+    hit_config_save(cfg);
+    cfg.set<bool>("free_ride_exceed", exceed_fill);
+    cfg.set<float>("free_ride_exceed_frames", exceed_frames);
     cfg.set<int>("free_ride_nero_finisher", nero_finisher);
     for (int i = 0; i < 3; ++i) cfg.set<int>("free_ride_dante_finisher_" + std::to_string(i), dante_finisher[i]);
     cfg.set<float>("free_ride_finish_back", finish_back);

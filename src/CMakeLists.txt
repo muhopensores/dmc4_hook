@@ -340,6 +340,8 @@ set(MODS_SRC
   mods/DanteAirDodge.cpp
   mods/FreeRide.hpp
   mods/FreeRide.cpp
+  mods/FreeRideShell.hpp
+  mods/FreeRideShell.cpp
   mods/SpineAim.hpp
   mods/SpineAim.cpp
   mods/ThirdPersonAim.hpp

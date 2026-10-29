@@ -10,7 +10,11 @@
 // but the launcher is the game's own enemy step (uPlayer action 25).
 //
 // How the enemy is held (RE notes Vibed\RE\nero_snatch_grab_long.md / nero_charge_shot_launch.md, 2026-10-29):
-//   - every enemy class's main runs its routine only while uEnemy::mEmHitStop (+0x1438) is clear, and uEnemy::move
+//   - the default since 2026-10-30 (hit_mode HIT_DAMAGE): a hitbox shell on the enemy (FreeRideShell.hpp) hits it for a
+//     little damage every few frames; each interrupting hit replays its down flinch (action 97 -> motion 65 -> 60 frames
+//     of setDownLoop), so it stays down the game's own way and takes damage, as DMC3's Free Ride does. The mount still
+//     uses the hit stop below, and the ride hops off if the enemy is off AS_DOWN for `up_grace` frames.
+//   - HIT_STOP: every enemy class's main runs its routine only while uEnemy::mEmHitStop (+0x1438) is clear, and uEnemy::move
 //     (0x7308B0) sets that flag while the hit-stop timer mEmHitStopTimer (+0x1434) is above 0. The ride tops the timer
 //     up every tick, so the enemy's AI, motion and down timer stand still in the pose it was knocked into, and its
 //     position follows the board (written each tick under the player). When the ride stops topping it up, for any
@@ -33,6 +37,9 @@
 // that the registry merges into a free bank of the player's models (it picks the bank and hands out the words), slots
 // by default -1 = the game's hop for the mount and 0 for the ride (looping). Without the file, or for a slot of -1, the
 // game's own motions stand in: the enemy step's hop (0x11) for the mount and the jump motion (5) held still for the ride.
+//
+// Nero's Exceed gauge (uPlayerNero::cOverDriveGuage at +0xCCE4) revs by itself during the ride: the bar is written each
+// tick and cOverDriveGuage::addStock 0x7EA340 lights a stock every `exceed_frames`, with the game's effect and sound.
 //
 // The move is `namespace free_ride`; the FreeRide Mod class is the framework plumbing.
 
@@ -68,9 +75,14 @@ extern float ride_speed;
 extern float turn_rate;           // degrees per frame the board turns toward the stick
 extern float ride_frames;         // the ride's length (0 = until an exit)
 extern float step_down;           // how far below the board the floor may drop before the ride leaves the ledge
-extern float hold_frames;         // the enemy's hit-stop timer is kept at least this high
+extern float hold_frames;         // the enemy's hit-stop timer is kept at least this high (the mount; the ride in HIT_STOP)
+enum HitMode : int { HIT_STOP = 0, HIT_DAMAGE = 1 };
+extern int   hit_mode;            // how the ride holds the enemy (the hit shell's settings are in FreeRideShell.hpp)
+extern float up_grace;            // HIT_DAMAGE: frames off AS_DOWN before the ride hops off
 extern bool  align_enemy;         // turn the enemy with the board
 extern float enemy_yaw_offset;    // degrees added to the board's direction for the enemy's yaw
+extern bool  exceed_fill;         // Nero: the ride revs the Exceed gauge (cOverDriveGuage) by itself
+extern float exceed_frames;       // frames of riding per Exceed stock
 
 // the exits
 extern int   nero_finisher;       // melee: the atckId handed off to (0x1F High Roller), -1 = melee hops off
@@ -78,6 +90,7 @@ extern int   dante_finisher[3];   // per sword (4 Rebellion, 5 Gilgamesh, 6 Luci
 extern float finish_back;         // cm the player is put back from the enemy before the launcher, on the floor
 
 bool can_mount(uintptr_t player);                      // the command's predicate
+bool ride_active(uintptr_t player, uint32_t serial);   // the ride `serial` of `player` is still on the board (the hit shell's lifetime)
 void __stdcall move(uintptr_t player, uint32_t atck_id);
 void apply_rows();                                     // writes the command bit and the enable byte into both rows
 
