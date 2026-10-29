@@ -216,17 +216,20 @@ void updateKDATbl() {
     // Nero: Gerb (Gerb.cpp): COMMAND attr, start | cancel | repeat, input set by gerb::apply_row (byte 1 of the
     // command word = 1 keeps a row unusable until the mod enables it), any weapon / style, etc 0 = no extra condition.
     // Row 0x40: the forward / back / left / right jumps, air only (atckAs 2). Row 0x41: the up (ground) / down (air)
-    // jump on Gerb's own command bit, ground + air (atckAs 3).
-    NeroAtckDefTbl.insert(NeroAtckDefTbl.begin(), {2, gerb::move_id, 7, 1, 0x00000100, (unsigned long)-1, (unsigned long)-1, 0, 2, 1, 0, 0, 0, 0x07000005});
+    // jump on Gerb's own command bit, ground + air (atckAs 3). Cancel words as every vanilla COMMAND row (Calibur's 0x03000001):
+    // C_COMMAND open (or buffered), or C_ALL; with C_NORM0 instead, the first buffer frames of a move (the aerial charged
+    // shot buffers C_COMMAND at 25, C_NORM0 only at 30) gave the same lock-on + style press to Snatch (2026-10-29).
+    NeroAtckDefTbl.insert(NeroAtckDefTbl.begin(), {2, gerb::move_id, 7, 1, 0x00000100, (unsigned long)-1, (unsigned long)-1, 0, 2, 0x03000001, 0, 0, 0, 0x07000005});
     MoveTable::extra_nero_moves++;
     MoveTable::Gerb = MoveTable::extra_nero_moves;
-    NeroAtckDefTbl.insert(NeroAtckDefTbl.begin(), {2, gerb::move_id_vertical, 7, 1, 0x00000100, (unsigned long)-1, (unsigned long)-1, 0, 3, 1, 0, 0, 0, 0x07000005});
+    NeroAtckDefTbl.insert(NeroAtckDefTbl.begin(), {2, gerb::move_id_vertical, 7, 1, 0x00000100, (unsigned long)-1, (unsigned long)-1, 0, 3, 0x03000001, 0, 0, 0, 0x07000005});
     MoveTable::extra_nero_moves++;
     MoveTable::GerbVertical = MoveTable::extra_nero_moves;
 
     // Dante: DanteAirDodge (DanteAirDodge.cpp): COMMAND attr, id 0x6E, start | cancel | repeat, input set by its apply_row
-    // (byte 1 of the command word = 1 keeps the row unusable until the mod enables it), any weapon / style, air only.
-    DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {2, dante_air_dodge::move_id, 7, 1, 0x00000100, (unsigned long)-1, (unsigned long)-1, 0, 2, 1, 0, 0, 0, 0x07000005});
+    // (byte 1 of the command word = 1 keeps the row unusable until the mod enables it), any weapon / style, air only. Cancel words as
+    // Gerb's: C_COMMAND (or C_ALL), as the game's command rows.
+    DanteAtckDefTbl.insert(DanteAtckDefTbl.begin(), {2, dante_air_dodge::move_id, 7, 1, 0x00000100, (unsigned long)-1, (unsigned long)-1, 0, 2, 0x03000001, 0, 0, 0, 0x07000005});
     MoveTable::extra_dante_moves++;
     MoveTable::DanteAirDodge = MoveTable::extra_dante_moves;
 

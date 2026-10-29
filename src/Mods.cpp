@@ -185,6 +185,7 @@
 #include "mods/WallRun.hpp"
 #include "mods/Gerb.hpp"
 #include "mods/DanteAirDodge.hpp"
+#include "mods/FreeRide.hpp"
 #include "mods/SpineAim.hpp"
 #include "mods/ThirdPersonAim.hpp"
 #include "mods/ViewportWindow.hpp"
@@ -394,6 +395,7 @@ Mods::Mods() {
     ADD_MOD(WallRun);
     ADD_MOD(Gerb);
     ADD_MOD(DanteAirDodge);
+    ADD_MOD(FreeRide);      // before MoveDef: its command bit is taken before MoveDef picks free ones
     ADD_MOD(SpineAim);      // standalone: procedural spine / hips rotations for a move that asks (the wall run's lean)
     ADD_MOD(MoveDef);        // after the hand-coded moves: they install the shared command hook first
     ADD_MOD(ViewportWindow);

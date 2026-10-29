@@ -338,6 +338,8 @@ set(MODS_SRC
   mods/GerbShell.cpp
   mods/DanteAirDodge.hpp
   mods/DanteAirDodge.cpp
+  mods/FreeRide.hpp
+  mods/FreeRide.cpp
   mods/SpineAim.hpp
   mods/SpineAim.cpp
   mods/ThirdPersonAim.hpp
