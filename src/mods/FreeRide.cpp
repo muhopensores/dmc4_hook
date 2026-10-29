@@ -65,8 +65,9 @@ namespace em {
 }
 constexpr uint32_t AS_DOWN = 0x4, AS_DEAD = 0x80;
 
-// cLockonTarget (sdk/uActor.hpp): +8 mpModel, +0x10 mPos, +0x1C mType (LOCKON_MODEL_TYPE: 0 enemy, 1 boss)
-constexpr uintptr_t kTargetModel = 0x08, kTargetType = 0x1C;
+// cLockonTarget (sdk/uActor.hpp): +8 mpModel, +0x10 mPos (16 bytes), +0x20 mType (LOCKON_MODEL_TYPE: 0 enemy, 1 boss, 2 enemy shell,
+// 3 object ...). Until 2026-10-30 this read +0x1C = mPos.w, so Frosts / Mega Scarecrows (and some Angelo lock-on points) were refused.
+constexpr uintptr_t kTargetModel = 0x08, kTargetType = 0x20;
 constexpr uintptr_t kCurrentSword = 0x1DC0;      // uPlayer: Dante's held sword, 4 Rebellion 5 Gilgamesh 6 Lucifer (the rows' atckConditionWp)
 constexpr uintptr_t kCmdFlagWords = 0x2184;      // mCmdFlag[3]
 
