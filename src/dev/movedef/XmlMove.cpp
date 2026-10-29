@@ -3,6 +3,7 @@
 #include <pugixml.hpp>
 #include <spdlog/spdlog.h>
 #include <algorithm>
+#include <cctype>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -91,21 +92,14 @@ bool parse_command(const char* path, const pugi::xml_node& c, Command& cm) {
 const Name kKnocks[] = { {"direction", 0}, {"facing", 1}, {"away", 2} };
 
 // <shell atk= entry= kind= vsattr= unitline= radius= length= height= life= knock= knock_angle= one_hit= show= + overrides>
-void parse_shell(const pugi::xml_node& n, int character, Shell& s) {
-    const char* atk = n.attribute("atk").as_string(character == 1 ? "Collision\\pl006" : "Collision\\pl000");
-    strncpy_s(s.atk, atk, sizeof s.atk - 1);
-    s.entry       = (int)num(n.attribute("entry"), 0);
-    s.kind        = (int)num(n.attribute("kind"), 1);
-    s.vsattr      = (uint32_t)num(n.attribute("vsattr"), 0);
-    s.unit_line   = (int)num(n.attribute("unitline"), 0x12);
-    s.radius      = fnum(n.attribute("radius"), 60.0f);
-    s.length      = fnum(n.attribute("length"), 120.0f);
-    s.height      = fnum(n.attribute("height"), 80.0f);
-    s.life        = fnum(n.attribute("life"), 90.0f);
-    s.knock       = (int)lookup(N(kKnocks), n.attribute("knock").as_string(), 0);
-    s.knock_angle = fnum(n.attribute("knock_angle"), 0.0f);
-    s.one_hit     = bnum(n.attribute("one_hit"), false);
-    s.show        = bnum(n.attribute("show"), false);
+// entry="14" or entry="Dropkick" (the entry's mAsName)
+void parse_entry(const pugi::xml_attribute& a, int& index, char* name, size_t name_size) {
+    const char* e = a.as_string();
+    if (*e && !std::isdigit((unsigned char)*e) && *e != '-') { strncpy_s(name, name_size, e, name_size - 1); index = -1; }
+    else index = (int)num(a, index);
+}
+
+void parse_attack_fields(const pugi::xml_node& n, AttackFields& s) {
     s.damage_type   = (int)num(n.attribute("damage_type"), -1);
     s.damage_type_b = (int)num(n.attribute("damage_type_b"), -1);
     s.level_i       = (int)num(n.attribute("level_i"), -1);
@@ -122,6 +116,51 @@ void parse_shell(const pugi::xml_node& n, int character, Shell& s) {
     s.stylish_point = fnum(n.attribute("stylish_point"), -1.0f);
     s.stylish_timer = fnum(n.attribute("stylish_timer"), -1.0f);
     s.dt_add        = fnum(n.attribute("dt_add"), -1.0f);
+}
+
+// a shell's attack="name": its source (an .atk entry, or defined by values) and the attack's values under the shell's
+bool resolve_attack(const char* path, const File& f, Shell& s) {
+    if (s.attack.empty()) return true;
+    const Attack* a = nullptr;
+    for (const Attack& x : f.attacks) if (x.name == s.attack) { a = &x; break; }
+    if (!a) { spdlog::warn("MoveDef: {}: <shell attack='{}'> names no <attack> of this file; the shell is dropped", path, s.attack); return false; }
+    if (s.explicit_file) spdlog::warn("MoveDef: {}: <shell> has attack= and atk= / entry=; the <attack> is used", path);
+    if (!a->atk.empty() || a->entry >= 0 || !a->entry_name.empty()) {
+        if (!a->atk.empty()) strncpy_s(s.atk, a->atk.c_str(), sizeof s.atk - 1);
+        s.entry = a->entry >= 0 ? a->entry : 0;
+        strncpy_s(s.entry_name, a->entry_name.c_str(), sizeof s.entry_name - 1);
+        s.defined = false;
+    } else {
+        s.defined = true;
+        strncpy_s(s.as_name, a->name.c_str(), sizeof s.as_name - 1);
+    }
+#define TAKE(field) if (s.field < 0) s.field = a->field
+    TAKE(damage_type); TAKE(damage_type_b); TAKE(level_i); TAKE(level_b); TAKE(attack_id); TAKE(range_type); TAKE(hit_stop);
+    TAKE(hitmark); TAKE(hit_se); TAKE(attack_flag); TAKE(blown_angle); TAKE(element);
+    TAKE(damage); TAKE(stylish_point); TAKE(stylish_timer); TAKE(dt_add);
+#undef TAKE
+    return true;
+}
+
+void parse_shell(const pugi::xml_node& n, int character, Shell& s) {
+    const char* atk = n.attribute("atk").as_string(character == 1 ? "Collision\\pl006" : "Collision\\pl000");
+    strncpy_s(s.atk, atk, sizeof s.atk - 1);
+    s.entry       = 0;
+    if (n.attribute("entry")) parse_entry(n.attribute("entry"), s.entry, s.entry_name, sizeof s.entry_name);
+    s.attack        = n.attribute("attack").as_string();
+    s.explicit_file = n.attribute("atk") || n.attribute("entry");
+    s.kind        = (int)num(n.attribute("kind"), 1);
+    s.vsattr      = (uint32_t)num(n.attribute("vsattr"), 0);
+    s.unit_line   = (int)num(n.attribute("unitline"), 0x12);
+    s.radius      = fnum(n.attribute("radius"), 60.0f);
+    s.length      = fnum(n.attribute("length"), 120.0f);
+    s.height      = fnum(n.attribute("height"), 80.0f);
+    s.life        = fnum(n.attribute("life"), 90.0f);
+    s.knock       = (int)lookup(N(kKnocks), n.attribute("knock").as_string(), 0);
+    s.knock_angle = fnum(n.attribute("knock_angle"), 0.0f);
+    s.one_hit     = bnum(n.attribute("one_hit"), false);
+    s.show        = bnum(n.attribute("show"), false);
+    parse_attack_fields(n, s);
 }
 } // namespace
 
@@ -200,8 +239,12 @@ bool load(const char* path, File& out) {
         t.style   = (int32_t)num(tb.attribute("style"), -1);
         t.etc     = (uint32_t)num(tb.attribute("etc"), 0);
         t.air     = (uint32_t)lookup(N(kAir), tb.attribute("air").as_string(), 2);
+        // without <follows> / <window>: the window the game's own rows of that attr wait for, or C_ALL (0x07000005):
+        // command rows C_COMMAND (0x03000001, Calibur's), gun rows C_GUN (0x06000001), melee rows C_NORM0 (1). A command
+        // row on C_NORM0 lost the first buffer frames of a move to the game's command rows (Gerb vs Snatch, 2026-10-29).
+        t.cancel_words[0] = t.attr == 2 ? 0x03000001u : t.attr == 1 ? 0x06000001u : 1u;
         if (pugi::xml_attribute cw = tb.attribute("cancel_words")) {       // five words, comma separated
-            unsigned w[5] = { 1, 0, 0, 0, 0x07000005 };
+            unsigned w[5] = { t.cancel_words[0], 0, 0, 0, 0x07000005 };
             sscanf_s(cw.as_string(), "%i,%i,%i,%i,%i", &w[0], &w[1], &w[2], &w[3], &w[4]);
             for (int i = 0; i < 5; ++i) t.cancel_words[i] = w[i];
         }
@@ -222,6 +265,25 @@ bool load(const char* path, File& out) {
             if (w.category < 0) { spdlog::warn("MoveDef: {}: <window> needs a known category", path); continue; }
             t.windows.push_back(w);
         }
+    }
+
+    // <attack>s: attack data for the file's shells (D25), before the stages that name them
+    for (pugi::xml_node at : move.children("attack")) {
+        Attack a;
+        a.name = at.attribute("name").as_string();
+        if (a.name.empty()) { spdlog::warn("MoveDef: {}: <attack> needs name=", path); continue; }
+        bool dup = false;
+        for (const Attack& x : out.attacks) dup = dup || x.name == a.name;
+        if (dup) { spdlog::warn("MoveDef: {}: a second <attack name='{}'>, ignored", path, a.name); continue; }
+        a.atk = at.attribute("atk").as_string();
+        if (at.attribute("entry")) {
+            char nm[16] = "";
+            parse_entry(at.attribute("entry"), a.entry, nm, sizeof nm);
+            a.entry_name = nm;
+        }
+        if (a.name.size() > 15) spdlog::warn("MoveDef: {}: <attack name='{}'> is cut to 15 characters in the game", path, a.name);
+        parse_attack_fields(at, a);
+        out.attacks.push_back(a);
     }
 
     // the move's own <command> (the first), further ones are shared like a <commands> file's
@@ -326,6 +388,7 @@ bool load(const char* path, File& out) {
             else if (ieq(on, "landing") || ieq(on, "land")) n.landing = true;
             else if (ieq(on, "always")) n.always = true;
             n.frame = fnum(nx.attribute("frame"), -1.0f);
+            n.ticks = (int)num(nx.attribute("ticks"), -1);
             if (pugi::xml_attribute by = nx.attribute("byte")) {
                 n.byte  = contact_byte(by.as_string());
                 n.value = (int)num(nx.attribute("value"), 1);
@@ -336,7 +399,7 @@ bool load(const char* path, File& out) {
             n.idle          = (int)num(nx.attribute("idle"), -1);
             n.stick_neutral = ieq(nx.attribute("stick").as_string(), "neutral");
             if (n.to.empty()) { spdlog::warn("MoveDef: {}: <next> needs to=", path); continue; }
-            if (n.frame < 0.0f && !n.motion_end && !n.landing && !n.always && n.byte < 0 && !n.button)
+            if (n.frame < 0.0f && n.ticks < 0 && !n.motion_end && !n.landing && !n.always && n.byte < 0 && !n.button)
                 spdlog::warn("MoveDef: {}: <next to='{}'> has no condition and never fires", path, n.to);
             s.nexts.push_back(n);
         }
@@ -359,7 +422,7 @@ bool load(const char* path, File& out) {
                 parse_shell(sh, out.character, def);
                 def.in_launch = true;
                 def.frame = L.frame;
-                s.shells.push_back(def);
+                if (resolve_attack(path, out, def)) s.shells.push_back(def);
             }
             if (pugi::xml_node ef = la.child("effect")) {
                 L.fx.effect = true;
@@ -377,7 +440,7 @@ bool load(const char* path, File& out) {
             Shell def;
             parse_shell(sh, out.character, def);
             def.frame = fnum(sh.attribute("frame"), 0.0f);
-            s.shells.push_back(def);
+            if (resolve_attack(path, out, def)) s.shells.push_back(def);
         }
         if (s.shells.size() > 8) {
             spdlog::warn("MoveDef: {}: {} <shell>s in one stage, 8 are used", path, s.shells.size());

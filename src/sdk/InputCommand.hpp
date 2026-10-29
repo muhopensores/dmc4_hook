@@ -50,11 +50,12 @@ namespace input_commands {
 
         Command& condition(uint32_t cnd) { head_.condition = cnd; return *this; }
         Command& active(int16_t frames)  { head_.active = frames; return *this; }   // frames the result stays true (the game: 1)
-        // a button step: `timer` = frames allowed to reach it from the previous step (0 = this tick, -1 = no limit)
+        // a button step: `timer` = frames allowed, once this step is reached, to reach the NEXT one (<= 0 = no limit; a
+        // window that runs out starts the command over; unused on the last step). uPlayer::commandCheckSub 0x805A10
         Command& button(uint32_t btn, uint16_t mode = BTN_TRG, int16_t timer = 0) {
             return step(CMD_TYPE_BTN, btn, mode, 0, timer);
         }
-        // a lever step (see Lever / LeverMode); `timer` as above (-1 for the first step, as the game's commands do)
+        // a lever step (see Lever / LeverMode); `timer` as above. Calibur's 0x52: centred -1, back 15, forward 15, melee 0
         Command& lever(uint16_t lever, uint16_t mode = LEVER_TARGET_45, int16_t timer = -1) {
             return step(CMD_TYPE_LEVER, 0, mode, lever, timer);
         }

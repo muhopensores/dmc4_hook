@@ -10,6 +10,7 @@
 #include "../../sdk/MtMath.hpp"
 #include "../../sdk/uPlayer.hpp"      // kAtckDefTbl
 #include <algorithm>
+#include <cfloat>
 #include <cmath>
 #include <cstdarg>
 #include <cstdio>
@@ -28,6 +29,7 @@ namespace movedef {
 
 bool mod_enabled = true;
 uintptr_t jmp_ret_wjump = 0;
+uintptr_t jmp_ret_motion = 0;
 char folder[128] = "nativePC\\movedef";
 
 namespace {
@@ -154,6 +156,8 @@ struct PlayerState {                   // what the phase word can't hold, per pl
     bool jump_held = false;            // the starting press hasn't been released yet (eat_press)
     int used = 0;                      // starts since the last landing
     int wait_ticks = 0, stuck_ticks = 0;
+    int stage_ticks = 0;               // ticks since the stage's entry (<next ticks=>); overlays: since their motion started
+    uint32_t ticks_motion = 0xFFFF;    // overlays: the motion stage_ticks counts for
     float last_frame = -1.0f;
     int idle[4] = { 0, 0, 0, 0 };      // ticks since melee / gun / jump / style was last pressed (<next idle=>)
     uint64_t fx_fired = 0;             // timeline events fired this entry (bit per event, 64 at most)
@@ -163,7 +167,9 @@ struct PlayerState {                   // what the phase word can't hold, per pl
     uint32_t shells_fired = 0;         // <shell>s spawned this entry (bit per shell)
     uintptr_t bank_rsrc = 0;           // the rMotionList this move put in its bank for this player (0 = none yet)
     bool bank_conflict = false;        // the bank already held another LMT (another mod's): reported once, the move refuses
-    ctn::Script script;                // the in-memory .ctn script (its bytes must outlive the motion)
+    ctn::BasicScript<1024> script;     // the in-memory .ctn script (its bytes must outlive the motion); room for an overlay's
+                                       // merge with a vanilla script (those run up to 825 bytes)
+    const uint8_t* refused_top = nullptr;   // overlays: the vanilla script the merge refused (not retried every tick)
 };
 constexpr uint32_t kIdleButtons[4] = { 0x1, 0x2, 0x4, 0x200 };
 
@@ -185,6 +191,8 @@ struct Move {
     uint32_t tick = 0;
     uintptr_t bank_failed_for = 0;     // the player object the LMT load failed for (reported once)
     int entries = 0;                   // readout
+    int scripts = 0;                   // overlays: synthesised scripts installed on the vanilla motion (readout)
+    bool merge_warned = false;         // overlays: a refused merge was logged
 
     const xmlmove::Stage& stage() const { return def.stages[0]; }
 
@@ -226,6 +234,13 @@ bool shared_predicate(uintptr_t pl, void* ctx);   // below
 Move* find_move(uint32_t id) {
     for (auto& m : moves()) if (m->def.id == id) return m.get();
     return nullptr;
+}
+Move* find_overlay(const std::string& source) {    // overlays share vanilla ids: a reload finds them by file
+    for (auto& m : moves()) if (m->def.overlay && _stricmp(m->def.source.c_str(), source.c_str()) == 0) return m.get();
+    return nullptr;
+}
+bool covers(const Move& m, uint32_t id) {           // an overlay's id or one of its extra ids
+    return m.def.id == id || std::find(m.def.extra_ids.begin(), m.def.extra_ids.end(), id) != m.def.extra_ids.end();
 }
 Move* find_move_by_name(const std::string& name) {
     for (auto& m : moves()) if (m->def.name == name) return m.get();
@@ -424,12 +439,30 @@ void open_cancel_gate(const xmlmove::Stage& st, uintptr_t pl) {
     if (gate_open(st, pl)) at<bool>(pl, pl::mIsCancelCheckEnable) = true;
 }
 
+// One <cancel> / <trigger> as a contact command (set 1 / set 0)
+template <class S> void emit_cancel(S& sc, const xmlmove::Cancel& c) {
+    if (c.categories.empty()) {
+        if (c.mode == ctn::CANCEL_CLOSE) sc.close_all();
+        else if (c.mode == ctn::CANCEL_RESERVE) sc.reserve({ C_NORM0, C_COMMAND, C_JUMP, C_CHOUHATSU, C_GUN, C_ALL });
+        else sc.open_all();
+    } else {
+        CANCEL_NO cats[8]; size_t n = 0;
+        for (int cat : c.categories) if (n < 8) cats[n++] = (CANCEL_NO)cat;
+        sc.cancels((ctn::CancelMode)c.mode, cats, n);
+    }
+}
+template <class S> void emit_trigger(S& sc, const xmlmove::Trigger& t) {
+    uint8_t info[6] = { 0, 0, 0, 0, 0, 0 };     // set 0: atck, free2, camVib, free1, free0, padVib; a zero byte changes nothing
+    info[t.byte] = t.value;
+    sc.contact(ctn::CONTACT_MOVE, info);
+}
+
 // First tick after the motion request: replace the borrowed script with one built from the stage's <cancel>s.
 void arm_script(const xmlmove::Stage& st, PlayerState& s, uintptr_t pl) {
     if (s.script_set) return;
     s.script_set = true;
     if (st.cancels.empty() && st.triggers.empty()) return;
-    ctn::Script& sc = s.script;
+    auto& sc = s.script;
     sc.reset();
     // cancels and triggers merged by frame (both lists are sorted)
     size_t ci = 0, ti = 0;
@@ -438,23 +471,8 @@ void arm_script(const xmlmove::Stage& st, PlayerState& s, uintptr_t pl) {
         const bool take_cancel = ti >= st.triggers.size() || (ci < st.cancels.size() && st.cancels[ci].frame <= st.triggers[ti].frame);
         const float frame = take_cancel ? st.cancels[ci].frame : st.triggers[ti].frame;
         if (frame != cur) { sc.wait(frame); cur = frame; }
-        if (take_cancel) {
-            const xmlmove::Cancel& c = st.cancels[ci++];
-            if (c.categories.empty()) {
-                if (c.mode == ctn::CANCEL_CLOSE) sc.close_all();
-                else if (c.mode == ctn::CANCEL_RESERVE) sc.reserve({ C_NORM0, C_COMMAND, C_JUMP, C_CHOUHATSU, C_GUN, C_ALL });
-                else sc.open_all();
-            } else {
-                CANCEL_NO cats[8]; size_t n = 0;
-                for (int cat : c.categories) if (n < 8) cats[n++] = (CANCEL_NO)cat;
-                sc.cancels((ctn::CancelMode)c.mode, cats, n);
-            }
-        } else {
-            const xmlmove::Trigger& t = st.triggers[ti++];
-            uint8_t info[6] = { 0, 0, 0, 0, 0, 0 };     // set 0: atck, free2, camVib, free1, free0, padVib; a zero byte changes nothing
-            info[t.byte] = t.value;
-            sc.contact(ctn::CONTACT_MOVE, info);
-        }
+        if (take_cancel) emit_cancel(sc, st.cancels[ci++]);
+        else             emit_trigger(sc, st.triggers[ti++]);
     }
     sc.end();
     devil4_sdk::install_ctn_script((void*)pl, sc.data());
@@ -549,6 +567,7 @@ bool next_fires(const xmlmove::Next& n, const PlayerState& s, uintptr_t pl) {
         if (!(vel.y <= 0.0f && coll && at<bool>(coll, 0x1C))) return false;
     }
     if (n.frame >= 0.0f && at<float>(pl, pl::mMotionFrame0) < n.frame) return false;
+    if (n.ticks >= 0 && s.stage_ticks < n.ticks) return false;
     if (n.byte >= 0 && contact_value(pl, n.byte) != (uint8_t)n.value) return false;
     if (n.button && n.idle >= 0) {                      // the mash stopped: no press of that button for `idle` ticks
         const int i = idle_index(n.button);
@@ -558,7 +577,7 @@ bool next_fires(const xmlmove::Next& n, const PlayerState& s, uintptr_t pl) {
         if (!(word & n.button)) return false;
     }
     if (n.stick_neutral && at<int>(pl, pl::mAnlgPow) != 0) return false;
-    return n.frame >= 0.0f || n.motion_end || n.landing || n.byte >= 0 || n.button;   // no condition = never
+    return n.frame >= 0.0f || n.ticks >= 0 || n.motion_end || n.landing || n.byte >= 0 || n.button;   // no condition = never
 }
 
 // Returns true when the stage ended (the caller returns at once). "exit" leaves through the neutral transition; a move
@@ -684,6 +703,7 @@ void run_stage(Move& m, uintptr_t pl) {
         s.script_set = false;
         s.jump_held = st.eat_press != 0;
         s.wait_ticks = s.stuck_ticks = 0; s.last_frame = -1.0f;
+        s.stage_ticks = 0;
         s.fx_fired = 0; s.fx_prev = -1.0f; s.fx_motion = 0xFFFF;
         s.entry_serial = ++g_entry_serial; s.shells_fired = 0;          // the previous entry's shells end
         note("%s start: %s, motion %04X, player %p", m.def.name.c_str(), xmlmove::dir_name(dir), motion, (void*)pl);
@@ -692,6 +712,7 @@ void run_stage(Move& m, uintptr_t pl) {
     }
     case PHASE_WAIT: {
         acc.x = acc.y = acc.z = 0.0f;
+        ++s.stage_ticks;
         count_idle(s, pl);
         eat_held_press(st, s, pl);
         arm_script(st, s, pl);
@@ -733,6 +754,7 @@ void run_stage(Move& m, uintptr_t pl) {
         return;
     }
     case PHASE_AIRBORNE: {
+        ++s.stage_ticks;
         count_idle(s, pl);
         eat_held_press(st, s, pl);
         arm_script(st, s, pl);
@@ -768,9 +790,18 @@ bool validate(const xmlmove::File& f) {
     if (f.name.empty())            { spdlog::error("MoveDef: {}: <move> needs a name", f.source); return false; }
     if (f.character < 0)           { spdlog::error("MoveDef: {}: character must be pl000 or pl006", f.source); return false; }
     if (f.stages.empty())          { spdlog::error("MoveDef: {}: no <stage>", f.source); return false; }
-    if (f.overlay) {               // a vanilla move's overlay: only its <next>s matter
+    if (f.overlay) {               // a vanilla move's overlay: its <next>s, its runtime timeline, its script changes
         if (f.id == 0 || f.id >= MIN_ID[f.character]) { spdlog::error("MoveDef: {}: an overlay's id must be a vanilla atckId (below {:#x})", f.source, MIN_ID[f.character]); return false; }
-        if (f.stages[0].nexts.empty()) { spdlog::error("MoveDef: {}: an overlay needs <next>s", f.source); return false; }
+        const xmlmove::Stage& st = f.stages[0];
+        const bool script = !st.cancels.empty() || !st.triggers.empty();
+        if (st.nexts.empty() && st.fx.empty() && !script) {
+            spdlog::error("MoveDef: {}: an overlay needs <next>s, timeline events (<effect> / <se> ...) or <cancel> / <trigger>s", f.source);
+            return false;
+        }
+        if (script && st.motion < 0) {
+            spdlog::error("MoveDef: {}: an overlay's <cancel> / <trigger>s need the stage's motion= (the vanilla motion whose .ctn script they change)", f.source);
+            return false;
+        }
         return true;
     }
     if (f.id < MIN_ID[f.character]) { spdlog::error("MoveDef: {}: id {:#x} is below the first free id {:#x} for that character", f.source, f.id, MIN_ID[f.character]); return false; }
@@ -845,7 +876,7 @@ void build_command(Move& m) {
 void add_move(xmlmove::File&& f, const std::vector<xmlmove::File>& pending) {
     if (!validate(f)) return;
     if (Move* dup = find_move(f.id)) {
-        if (!(dup->def.overlay && f.overlay && dup->def.character != f.character)) {   // the same vanilla id on both characters is fine
+        if (!(dup->def.overlay && f.overlay)) {   // overlays own no row: several files may cover one vanilla id
             spdlog::error("MoveDef: {}: id {:#x} is already '{}' ({})", f.source, f.id, dup->def.name, dup->def.source);
             return;
         }
@@ -917,15 +948,131 @@ bool __stdcall overlay_tick(int character, uint32_t id, uintptr_t pl) {
     for (auto& up : moves()) {
         Move& m = *up;
         if (!m.def.overlay || !m.enabled || m.def.character != character) continue;
-        if (m.def.id != id && std::find(m.def.extra_ids.begin(), m.def.extra_ids.end(), id) == m.def.extra_ids.end()) continue;
+        if (!covers(m, id)) continue;
         const xmlmove::Stage& st = m.stage();
         if (st.motion >= 0 && (int)at<uint32_t>(pl, pl::mMotionCtrl0No) != st.motion) continue;
         PlayerState& s = m.state_for(pl);
+        const uint32_t now = at<uint32_t>(pl, pl::mMotionCtrl0No);
+        if (now != s.ticks_motion) { s.ticks_motion = now; s.stage_ticks = 0; }
+        ++s.stage_ticks;
         count_idle(s, pl);
+        if (!st.cancels.empty()) open_cancel_gate(st, pl);   // the game's function may open it later than the file's first cancel
         run_fx(st, s, pl);
         if (run_nexts(m, pl)) { ++m.entries; return true; }
     }
     return false;
+}
+
+// ---- synthesised scripts on vanilla motions (an overlay's <cancel> / <trigger>s) ---------------------------------
+// uPlayer::updateMotion 0x820F50 picks a new motion's .ctn script (cCharTblMgr::set 0x42BA50, or the inlined override
+// lookup: cursor = top, mIsDone off) and the next tick's updateCharTbl 0x7AB720 runs it. In between (the hook after
+// updateMotion, 0x7A86A0) the lower half's script (manager 1 at +0x1DF8, controller 0's) is replaced by the game's own
+// with the overlay's commands merged in by frame: a stage with <cancel>s replaces the script's cancel commands (contact
+// set 1), one with <trigger>s its set-0 commands (stage triggers, camera / pad vibration); what the file doesn't name
+// stays the game's. At equal frames the file's commands come after the game's, so they win a shared byte.
+constexpr uintptr_t kLowerCharTblMgr = 0x1DF8;      // cCharTblMgr: +0x0C mpDataTop, +0x10 mpDataCrnt, +0x14 mIsDone
+
+struct ScriptCmd { float key; const uint8_t* src; uint8_t own[8]; uint8_t len; };   // key: the frame waited for, FLT_MAX = the motion's end
+
+// The game's script as commands keyed by frame, without the kinds the overlay replaces. False + why for a script the
+// merge can't keep (12 vanilla scripts loop; no vanilla wait has a mode other than 0).
+bool read_game_script(const uint8_t* p, std::vector<ScriptCmd>& out, bool drop_cancels, bool drop_moves, const char*& why) {
+    float key = 0.0f;
+    for (size_t off = 0; off < 1024;) {
+        const uint8_t* c = p + off;
+        switch (c[0]) {
+        case 0x00: {
+            if (c[1] != 0) { why = "it has a wait with a mode other than 0"; return false; }
+            float f; std::memcpy(&f, &c[4], 4);
+            key = f < 0.0f ? FLT_MAX : (std::max)(key, f);   // a wait for a passed frame passes at once: same key
+            off += 8;
+            break;
+        }
+        case 0x01: case 0x02: {
+            const size_t n = c[0] == 0x01 ? 8 : 4;
+            const bool cancel = c[1] == ctn::CONTACT_CANCEL;
+            if (!(cancel ? drop_cancels : drop_moves)) out.push_back(ScriptCmd{ key, c, {}, (uint8_t)n });
+            off += n;
+            break;
+        }
+        case 0x03: why = "it loops (a looping motion's script)"; return false;
+        case 0xFF: return true;
+        default:   why = "it has an unknown opcode"; return false;
+        }
+    }
+    why = "it has no end within 1 KB";
+    return false;
+}
+
+bool build_overlay_script(const xmlmove::Stage& st, const uint8_t* game, PlayerState& s, const char*& why) {
+    std::vector<ScriptCmd> cmds;
+    if (!read_game_script(game, cmds, !st.cancels.empty(), !st.triggers.empty(), why)) return false;
+    auto add = [&](float frame, const ctn::Script& one) {
+        ScriptCmd c{ frame < 0.0f ? 0.0f : frame, nullptr, {}, 8 };
+        std::memcpy(c.own, one.bytes, 8);
+        cmds.push_back(c);
+    };
+    ctn::Script one;
+    for (const xmlmove::Cancel& c : st.cancels)   { one.reset(); emit_cancel(one, c);  add(c.frame, one); }
+    for (const xmlmove::Trigger& t : st.triggers) { one.reset(); emit_trigger(one, t); add(t.frame, one); }
+    std::stable_sort(cmds.begin(), cmds.end(), [](const ScriptCmd& a, const ScriptCmd& b) { return a.key < b.key; });
+    auto& sc = s.script;
+    sc.reset();
+    float cur = 0.0f;
+    for (const ScriptCmd& c : cmds) {
+        if (c.key != cur) { sc.wait(c.key == FLT_MAX ? -1.0f : c.key); cur = c.key; }
+        sc.raw(c.src ? c.src : c.own, c.len);
+    }
+    sc.end();
+    if (sc.overflow) { why = "the merged script is longer than 1 KB"; return false; }
+    return true;
+}
+
+// After updateMotion: a lower-half script that hasn't run yet, on an attack an overlay covers, on the motion it names.
+void __stdcall after_update_motion(uintptr_t pl) {
+    if (!mod_enabled || !pl || at<uint32_t>(pl, pl::mBdyActionLowerNo) != 12) return;
+    const uintptr_t mgr = pl + kLowerCharTblMgr;
+    const uint8_t* top = at<const uint8_t*>(mgr, 0x0C);
+    if (!top || top != at<const uint8_t*>(mgr, 0x10) || at<bool>(mgr, 0x14)) return;
+    const uint32_t id = at<uint32_t>(pl, pl::mAtckId);
+    const int motion = (int)at<uint32_t>(pl, pl::mMotionCtrl0No);
+    const int character = character_of(pl);
+    for (auto& up : moves()) {
+        Move& m = *up;
+        if (!m.def.overlay || !m.enabled || m.def.character != character || !covers(m, id)) continue;
+        const xmlmove::Stage& st = m.stage();
+        if (st.motion != motion || (st.cancels.empty() && st.triggers.empty())) continue;
+        PlayerState& s = m.state_for(pl);
+        if (top == s.script.data() || top == s.refused_top) return;          // ours already / refused once
+        const char* why = "";
+        if (!build_overlay_script(st, top, s, why)) {
+            s.refused_top = top;
+            if (!m.merge_warned) {
+                m.merge_warned = true;
+                spdlog::warn("MoveDef: {}: the game's script of motion {:04X} can't take the file's <cancel> / <trigger>s: {}; it runs unchanged",
+                             m.def.name, motion, why);
+            }
+            note("%s: script of %04X kept (%s)", m.def.name.c_str(), motion, why);
+            return;
+        }
+        at<const uint8_t*>(mgr, 0x0C) = s.script.data();
+        at<const uint8_t*>(mgr, 0x10) = s.script.data();
+        ++m.scripts;
+        note("%s: script on motion %04X (%u bytes)", m.def.name.c_str(), motion, (unsigned)s.script.len);
+        return;                                                              // the first overlay that names the motion wins
+    }
+}
+
+// The 6 bytes after the call to updateMotion in uPlayer::main (lea eax, [edi + 0x1D88]; edi = the player), re-executed.
+naked void detour_after_update_motion() {
+    _asm {
+        pushad
+        push edi
+        call after_update_motion
+        popad
+        lea eax, [edi + 0x1D88]
+        jmp dword ptr [jmp_ret_motion]
+    }
 }
 
 } // namespace
@@ -992,7 +1139,7 @@ void reload() {
             continue;
         }
         if (!validate(f)) continue;
-        Move* m = find_move(f.id);
+        Move* m = f.overlay ? find_overlay(f.source) : find_move(f.id);
         if (!m) { spdlog::warn("MoveDef: {}: new move '{}' (id {:#x}) needs a restart to get its row", f.source, f.name, f.id); continue; }
         if (m->def.character != f.character) { spdlog::warn("MoveDef: {}: the character of a loaded move can't change (restart)", f.source); continue; }
         const bool had_cmd = m->def.command.present;
@@ -1001,6 +1148,8 @@ void reload() {
         else if (m->def.command.present != had_cmd) spdlog::warn("MoveDef: {}: adding / removing <command> needs a restart", m->def.source);
         m->cmd_id = command_id_for(*m);
         m->bank_failed_for = 0;
+        m->merge_warned = false;
+        for (PlayerState& ps : m->states) ps.refused_top = nullptr;
         apply_row(*m);
         spdlog::info("MoveDef: reloaded '{}'", m->def.name);
     }
@@ -1065,6 +1214,10 @@ std::optional<std::string> MoveDef::on_initialize() {
         spdlog::error("MoveDef: failed to hook uPlayer::checkWJumpBegin (0x803880)");
         return "Failed to init MoveDef (air hike hook)";
     }
+    if (!install_hook_absolute(0x7A86A0, hook_motion, &detour_after_update_motion, &jmp_ret_motion, 6)) {
+        spdlog::error("MoveDef: failed to hook uPlayer::main after updateMotion (0x7A86A0)");
+        return "Failed to init MoveDef (script hook)";
+    }
     return Mod::on_initialize();
 }
 
@@ -1106,7 +1259,7 @@ void MoveDef::on_gui_frame(int display) {
             if (ImGui::Checkbox(m.def.name.c_str(), &m.enabled)) apply_row(m);
             ImGui::SameLine();
             if (m.def.overlay)
-                ImGui::Text("%s overlay on vanilla id %#x | hand-offs %d", m.def.character == 0 ? "Nero" : "Dante", m.def.id, m.entries);
+                ImGui::Text("%s overlay on vanilla id %#x | hand-offs %d | scripts %d", m.def.character == 0 ? "Nero" : "Dante", m.def.id, m.entries, m.scripts);
             else
                 ImGui::Text("%s id %#x | bank %d '%s' | command bit %d (row cmd %u) | entries %d",
                             m.def.character == 0 ? "Nero" : "Dante", m.def.id, m.def.lmt.bank, m.def.lmt.path.c_str(), m.cmd_bit, m.cmd_id, m.entries);

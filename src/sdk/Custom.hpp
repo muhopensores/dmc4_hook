@@ -212,6 +212,21 @@ namespace custom_utils {
         return true;
     }
 
+    // The index of the entry named `name` (mAsName, case-insensitive), -1 if none.
+    static int find_attack_entry(const void* atk_rsrc, const char* name) {
+        if (!atk_rsrc || !name || !*name) return -1;
+        const uintptr_t r = (uintptr_t)atk_rsrc;
+        const int num = *(const int*)(r + 0x60);
+        const uintptr_t* entries = *(const uintptr_t**)(r + 0x64);
+        if (!entries) return -1;
+        for (int i = 0; i < num; ++i) {
+            if (!entries[i]) continue;
+            const kAttackStatus* src = *(const kAttackStatus**)(entries[i] + 0x0C);
+            if (src && _strnicmp(src->mAsName, name, 15) == 0 && (std::strlen(name) >= 15 || src->mAsName[std::strlen(name)] == 0)) return i;
+        }
+        return -1;
+    }
+
     // The group is still one of the manager's 32 slots (mppCollisionGroup = mgr + 0x358). uCollisionMgr::move frees a
     // group whose timer reached mLife and clearExec frees marked ones, so a kept pointer must be checked before use.
     static bool group_in_table(const uCollisionMgr* mgr, const cCollisionGroup* g) {

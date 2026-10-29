@@ -18,7 +18,7 @@ struct CommandStep {                        // one <btn> / <lever> of a <command
     uint32_t btn = 0;                       // BTN: the button bits
     uint16_t mode = 1;                      // BTN: 1 trg / 2 rel / 3 on; LEVER: 1 target 45 / 2 target 70 / 3 screen
     uint16_t lever = 0;                     // LEVER: 0 centred / 1 forward / 4 back / 15 any
-    int16_t timer = 0;                      // frames allowed to reach this step (0 = this tick, -1 = no limit)
+    int16_t timer = 0;                      // frames allowed from this step to the NEXT (<= 0 = no limit), the game's meaning
 };
 
 struct Command {                            // <command name= condition= predicate= active=>: an extra input command (MoveDef D17)
@@ -44,7 +44,8 @@ struct Table {                              // <table>: the kAtckDefTbl row
     uint32_t etc = 0;                       // atckConditionEtc (word 7)
     uint32_t air = 2;                       // atckAs: 1 ground, 2 air, 3 both, 0x40 fly
     bool explicit_words = false;            // cancel_words="..." given: used as they are
-    uint32_t cancel_words[5] = { 1, 0, 0, 0, 0x07000005 };   // cancelId[5] as the hand-coded rows carry them (C_NORM0 open, or C_ALL open)
+    uint32_t cancel_words[5] = { 1, 0, 0, 0, 0x07000005 };   // cancelId[5]: word 0 set by attr at load (command C_COMMAND, gun
+                                                             // C_GUN, melee C_NORM0), or C_ALL; as the game's own rows
     std::vector<Follows> follows;           // the string position: resolved to ids across the loaded files (MoveDef D22)
     std::vector<Window> windows;
 };
@@ -57,11 +58,29 @@ struct Slot {                                           // <slot dir= block=>: t
     int damage_type_b = -1;                             // damage_type_b=: the <shell>s' reaction for this direction (-1 = the shell's)
 };
 
-struct Shell {                                          // <shell>: a code-defined attack capsule riding the player (D18, GerbShell's recipe)
+struct AttackFields {                                   // kAttackStatus values given in the file, < 0 = not given
+    int damage_type = -1, damage_type_b = -1, level_i = -1, level_b = -1, attack_id = -1, range_type = -1, hit_stop = -1,
+        hitmark = -1, hit_se = -1, attack_flag = -1, blown_angle = -1, element = -1;
+    float damage = -1.0f, stylish_point = -1.0f, stylish_timer = -1.0f, dt_add = -1.0f;
+};
+
+struct Attack : AttackFields {                          // <attack name= [atk= entry=] .../> under <move> (D25): attack data for
+    std::string name;                                   // the file's <shell attack=>s; without atk= / entry= it is defined by
+    std::string atk;                                    // its values alone (the rest from kDefaultAttack, MoveDefShell.cpp),
+    int entry = -1;                                     // with them it is that .atk entry with the values as overrides
+    std::string entry_name;                             // entry="Dropkick": the entry by its mAsName
+};
+
+struct Shell : AttackFields {                           // <shell>: a code-defined attack capsule riding the player (D18, GerbShell's recipe)
     bool in_launch = false;                             // inside <launch>: spawned at the launch, along its direction
     float frame = 0.0f;                                 // in a <stage>: the motion frame it spawns at (once per entry)
     char atk[128] = "";                                 // rAttackStatusData path without extension (default Collision\pl000 / pl006)
     int entry = 0;                                      // the .atk entry copied into the group
+    char entry_name[16] = "";                           // entry="Dropkick": the entry by its mAsName instead of its index
+    std::string attack;                                 // attack="name": a <attack> of the file (resolved at load)
+    bool defined = false;                               // the attack is defined in the file: no entry is read
+    char as_name[16] = "";                              // its name (mAsName, which the style display shows)
+    bool explicit_file = false;                         // atk= / entry= given on the shell itself
     int kind = 1;                                       // cCollisionGroup::mKind (1 = a player shell)
     uint32_t vsattr = 0;                                // 0 = the game's table for the kind
     int unit_line = 0x12;
@@ -69,10 +88,7 @@ struct Shell {                                          // <shell>: a code-defin
     int knock = 0;                                      // 0 direction (ANG along the move's direction), 1 facing (ANG), 2 away (POS)
     float knock_angle = 0.0f;                           // degrees added to the knock yaw (0 / 1)
     bool one_hit = false, show = false;
-    // kAttackStatus overrides, < 0 = the entry's
-    int damage_type = -1, damage_type_b = -1, level_i = -1, level_b = -1, attack_id = -1, range_type = -1, hit_stop = -1,
-        hitmark = -1, hit_se = -1, attack_flag = -1, blown_angle = -1, element = -1;
-    float damage = -1.0f, stylish_point = -1.0f, stylish_timer = -1.0f, dt_add = -1.0f;
+    // the AttackFields are the kAttackStatus overrides, < 0 = the entry's (or the <attack>'s)
 };
 
 struct Cancel {                                         // <cancel frame= kind= categories=>
@@ -89,7 +105,8 @@ struct Trigger {                                        // <trigger byte= value=
 
 struct Next {                                           // <next ... to=>: a stage transition, checked in order every tick
     std::string to;                                     // "exit", or a move name (same character; "move:name" accepted)
-    float frame = -1.0f;                                // frame="N": the motion frame has reached N
+    float frame = -1.0f;                                // frame="N": the motion frame has reached N (a looping block wraps: N past its end never fires)
+    int ticks = -1;                                     // ticks="N": N ticks since the stage started (overlays: since its motion started)
     bool motion_end = false;                            // on="motion_end"
     bool landing = false;                               // on="landing": vel.y <= 0 and ground contact
     bool always = false;                                // on="always"
@@ -172,6 +189,7 @@ struct File {
     Table table;
     Command command;
     std::vector<Stage> stages;
+    std::vector<Attack> attacks;                        // its <attack>s (D25)
 };
 
 bool load(const char* path, File& out);                 // false + spdlog::error on a missing / malformed file

@@ -278,6 +278,7 @@ th {
 <li class="toc-level-3"><a href="#example-dodge">An Air Dodge</a></li>
 <li class="toc-level-3"><a href="#example-stab">Million Stab For Nero</a></li>
 <li class="toc-level-3"><a href="#example-overlay">Holding Melee Out Of Streak</a></li>
+<li class="toc-level-3"><a href="#example-streak-cancels">Changing Streak's Cancel Windows</a></li>
 <li class="toc-level-3"><a href="#example-gerb">A Jump That Hits</a></li>
 <li class="toc-level-2"><a href="#reference">Reference</a></li>
 <li class="toc-level-3"><a href="#ref-move">&lt;move&gt;</a></li>
@@ -287,6 +288,7 @@ th {
 <li class="toc-level-3"><a href="#ref-stage">&lt;stage&gt;: What Plays</a></li>
 <li class="toc-level-3"><a href="#ref-launch">&lt;launch&gt; And &lt;air_jump&gt;</a></li>
 <li class="toc-level-3"><a href="#ref-shell">&lt;shell&gt;: A Hitbox</a></li>
+<li class="toc-level-3"><a href="#ref-attack">&lt;attack&gt;: What A Hit Does</a></li>
 <li class="toc-level-3"><a href="#ref-cancel">&lt;cancel&gt; And &lt;trigger&gt;</a></li>
 <li class="toc-level-3"><a href="#ref-next">&lt;next&gt;: Ending And Chaining</a></li>
 <li class="toc-level-3"><a href="#ref-effects">Effects And Sounds</a></li>
@@ -366,7 +368,7 @@ th {
 <tbody>
 <tr><td>A new move</td><td><code>&lt;move&gt;</code> with a <code>&lt;table&gt;</code> and a new id</td><td>Anything the player starts with an input or as a combo step.</td></tr>
 <tr><td>A follow-up only move</td><td><code>&lt;move&gt;</code> with a new id and <strong>no</strong> <code>&lt;table&gt;</code></td><td>The second part of a move (a finisher), reached only through another move's <code>&lt;next to="move:..."&gt;</code>.</td></tr>
-<tr><td>An addition to a game move</td><td><code>&lt;move overlay="true"&gt;</code> with the game move's id</td><td>New ways out of one of the game's moves (hold melee in Streak to go into your move), and effects or sounds on it.</td></tr>
+<tr><td>An addition to a game move</td><td><code>&lt;move overlay="true"&gt;</code> with the game move's id</td><td>New ways out of one of the game's moves (hold melee in Streak to go into your move), effects or sounds on it, and its cancel windows moved. Several files may add to the same game move.</td></tr>
 <tr><td>Shared inputs</td><td><code>&lt;commands character="..."&gt;</code></td><td>Inputs several move files use.</td></tr>
 </tbody></table></div>
 
@@ -407,7 +409,7 @@ th {
   &lt;stage name="stab" motion="10:0" ctn="3:0x15" interp="3" start="9" stop="true" land="none"
          eat_press="melee" watchdog="90"&gt;
     &lt;next frame="12" button="melee" idle="18" to="move:nero_million_stab_finish"/&gt;
-    &lt;next frame="300" to="move:nero_million_stab_finish"/&gt;   &lt;!-- five seconds at most --&gt;
+    &lt;next ticks="300" to="move:nero_million_stab_finish"/&gt;   &lt;!-- five seconds at most --&gt;
     &lt;cancel frame="12" categories="C_JUMP"/&gt;
     &lt;effect frame="9" list="2" index="0xB" material="ground" id="4"/&gt;   &lt;!-- the dust, named 4 --&gt;
   &lt;/stage&gt;
@@ -433,6 +435,19 @@ th {
 &lt;/move&gt;</code></pre></div>
 <p><code>free1</code> = 2 is a marker the game's own cancel script for that animation sets at frame 20; markers like it are how the game times the stages of its moves (see <a href="#ref-cancel">&lt;trigger&gt;</a>).</p>
 
+<h3 id="example-streak-cancels" data-search-heading="Changing Streak's Cancel Windows">Changing Streak's Cancel Windows<a class="heading-link" href="#example-streak-cancels" aria-label="Link to Changing Streak's Cancel Windows">#</a></h3>
+<p>The same overlay kind of file can move a game animation's cancel windows. Here Nero can jump out of Streak's finish from frame 20 (the game: 31). Edit a frame and press Reload; the next Streak uses it. No game file changes.</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;move name="nero_streak_cancels" character="pl000" ids="28 29" overlay="true" version="2"&gt;
+  &lt;stage name="finish" motion="3:0x17"&gt;
+    &lt;cancel frame="16" kind="buffer" categories="C_JUMP"/&gt;    &lt;!-- the game: 26 --&gt;
+    &lt;cancel frame="20" kind="open"   categories="C_JUMP"/&gt;    &lt;!-- the game: 31 --&gt;
+    &lt;cancel frame="26" kind="buffer" categories="C_NORM0 C_COMMAND C_CHOUHATSU C_GUN"/&gt;
+    &lt;cancel frame="36" kind="open"   categories="C_NORM0 C_COMMAND C_CHOUHATSU C_GUN"/&gt;
+    &lt;cancel frame="56" kind="open"   categories="C_ALL"/&gt;
+  &lt;/stage&gt;
+&lt;/move&gt;</code></pre></div>
+<p>The file's <code>&lt;cancel&gt;</code>s replace <strong>all</strong> of the animation's own windows, so it lists every window the animation should have; the others above are the game's own. The animation's markers and its camera shake stay the game's (<code>&lt;trigger&gt;</code>s would replace those). To read a game animation's windows: dmc4_xml's <code>tests/test_ctn.py --show 3:0x17</code> (in the <code>dmc4_xml</code> repo). It works next to <a href="#example-overlay">Holding Melee Out Of Streak</a>.</p>
+
 <h3 id="example-gerb" data-search-heading="A Jump That Hits">A Jump That Hits<a class="heading-link" href="#example-gerb" aria-label="Link to A Jump That Hits">#</a></h3>
 <p>Nero jumps in the air toward where the stick leans (lock-on + stick + style) and knocks every enemy in his way along the jump with his Dropkick's hit. Needs <code>nativePC\motion\pl000\gerb.lmt</code> with the forward, back, right and left jumps as animations 0, 2, 3 and 4 (the hook's Gerb uses the same file).</p>
 <div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;move name="gerb" character="pl000" id="0x44" version="2"&gt;
@@ -440,7 +455,7 @@ th {
     &lt;input command="gerb_directional"/&gt;
   &lt;/table&gt;
   &lt;command name="gerb_directional" condition="lockon"&gt;
-    &lt;lever dir="any"/&gt;
+    &lt;lever dir="any" timer="2"/&gt;
     &lt;btn id="style"/&gt;
   &lt;/command&gt;
   &lt;lmt bank="11" path="motion\pl000\gerb"/&gt;
@@ -462,9 +477,10 @@ th {
     &lt;input command="gerb_vertical"/&gt;
   &lt;/table&gt;
   &lt;command name="gerb_vertical" condition="lockon"&gt;
-    &lt;lever dir="back"/&gt;
+    &lt;lever dir="centred"/&gt;
+    &lt;lever dir="back" timer="15"/&gt;
     &lt;lever dir="forward" timer="15"/&gt;
-    &lt;btn id="style" timer="15"/&gt;
+    &lt;btn id="style"/&gt;
   &lt;/command&gt;
   &lt;lmt bank="11" path="motion\pl000\gerb"/&gt;
   &lt;stage name="jump" ctn="0:5" interp="4" status="jump" land="exit" cancel_frame="10" enemy_step="false" watchdog="300"&gt;
@@ -490,7 +506,7 @@ th {
 <tr><td><code>character</code></td><td>Yes</td><td><code>pl000</code> (or <code>nero</code>) / <code>pl006</code> (or <code>dante</code>).</td></tr>
 <tr><td><code>id</code></td><td>Yes</td><td>The move's id (<a href="#ids">Move Ids</a>). For <code>overlay</code>, the game move's id.</td></tr>
 <tr><td><code>ids</code></td><td>No</td><td>Overlays: several game ids at once, <code>"28 29"</code>; some game moves have two (Streak).</td></tr>
-<tr><td><code>overlay</code></td><td>No</td><td><code>true</code> = an addition to the game move <code>id</code>: only its stage's <code>&lt;next&gt;</code>s and effects are used. It gets no list entry and no bank.</td></tr>
+<tr><td><code>overlay</code></td><td>No</td><td><code>true</code> = an addition to the game move <code>id</code>: only its stage's <code>&lt;next&gt;</code>s, effects, <code>&lt;cancel&gt;</code>s and <code>&lt;trigger&gt;</code>s are used. It gets no list entry and no bank, and several overlay files may name the same game move.</td></tr>
 <tr><td><code>version</code></td><td>No</td><td><code>2</code>.</td></tr>
 </tbody></table></div>
 <p>Inside: <code>&lt;table&gt;</code>, <code>&lt;command&gt;</code>, <code>&lt;lmt&gt;</code>, and one <code>&lt;stage&gt;</code>. Only the first <code>&lt;stage&gt;</code> is used; a move with several parts is several files joined by <code>&lt;next to="move:..."&gt;</code>.</p>
@@ -516,7 +532,7 @@ th {
 <tr><td><code>&lt;follows move="..." window="..."/&gt;</code></td><td>A combo step: only after that move (a file's name, or a game move's id). <code>window</code> = a <a href="#ref-values">category</a> that must be open in that move. Several <code>&lt;follows&gt;</code> = after any of them.</td></tr>
 <tr><td><code>&lt;window category="..." or="true"/&gt;</code></td><td>A window that must be open, whatever move is playing.</td></tr>
 </tbody></table></div>
-<p>With neither <code>&lt;follows&gt;</code> nor <code>&lt;window&gt;</code>, the entry takes the hook's usual: during an attack it needs that attack's next-attack or all-cancels window. The entry holds five conditions: a <code>&lt;follows&gt;</code> takes one, two with a <code>window</code>, and a <code>&lt;window&gt;</code> takes one.</p>
+<p>With neither <code>&lt;follows&gt;</code> nor <code>&lt;window&gt;</code>, the entry waits for the window the game's own entries of that kind use, or the all-cancels window: <code>command</code> entries the command window (C_COMMAND), <code>gun</code> entries the gun window, <code>melee</code> entries the next-attack window (C_NORM0). Many moves buffer the command window a few frames before the others (the aerial charged shot: from frame 25, the next-attack one from 30), so a command move on C_NORM0 would lose those frames to the game's own command moves with the same buttons (Snatch for lock-on + style). The entry holds five conditions: a <code>&lt;follows&gt;</code> takes one, two with a <code>window</code>, and a <code>&lt;window&gt;</code> takes one.</p>
 
 <h3 id="ref-command" data-search-heading="command">&lt;command&gt;: A New Input<a class="heading-link" href="#ref-command" aria-label="Link to command">#</a></h3>
 <p>Steps are checked in order, like the game's own inputs (a back-forward motion followed by a button). Up to 8 steps.</p>
@@ -526,10 +542,11 @@ th {
 <tr><td><code>name</code></td><td>Needed: what <code>&lt;input command=&gt;</code> calls it.</td></tr>
 <tr><td><code>condition</code></td><td><code>lockon</code> = only while lock-on is held. <code>none</code> (default). The game also has <code>dash</code> and <code>laser</code>.</td></tr>
 <tr><td><code>predicate</code></td><td><code>stick_sideways</code> = only while the stick leans left or right of the facing, by more than <code>side_angle</code> (degrees off straight ahead / back; default 50). On a move's own command, the stage's <code>&lt;launch side_angle&gt;</code> is used.</td></tr>
-<tr><td><code>&lt;btn id= mode= timer=/&gt;</code></td><td>A button step. <code>id</code>: <code>melee</code>, <code>gun</code>, <code>jump</code>, <code>lockon</code>, <code>style</code>. <code>mode</code>: <code>trg</code> pressed (default), <code>rel</code> released, <code>on</code> held. <code>timer</code>: frames allowed since the previous step (default 0 = the same frame).</td></tr>
-<tr><td><code>&lt;lever dir= mode= timer=/&gt;</code></td><td>A stick step. <code>dir</code>: <code>centred</code>, <code>forward</code>, <code>back</code>, <code>any</code>. <code>mode</code>: <code>target45</code> (within 45 degrees of the direction to the locked-on enemy, else the facing; default), <code>target70</code>, <code>screen</code>. <code>timer</code>: as above (default -1 = no limit).</td></tr>
+<tr><td><code>&lt;btn id= mode= timer=/&gt;</code></td><td>A button step. <code>id</code>: <code>melee</code>, <code>gun</code>, <code>jump</code>, <code>lockon</code>, <code>style</code>. <code>mode</code>: <code>trg</code> pressed (default), <code>rel</code> released, <code>on</code> held. <code>timer</code>: see below (default 0).</td></tr>
+<tr><td><code>&lt;lever dir= mode= timer=/&gt;</code></td><td>A stick step. <code>dir</code>: <code>centred</code>, <code>forward</code>, <code>back</code>, <code>any</code>. <code>mode</code>: <code>target45</code> (within 45 degrees of the direction to the locked-on enemy, else the facing; default), <code>target70</code>, <code>screen</code>. <code>timer</code>: see below (default -1).</td></tr>
 </tbody></table></div>
-<p>The game's lock-on + back, forward + melee would be:</p>
+<p><strong>Timers</strong> work the way the game's own inputs do: a step's <code>timer</code> is how many frames the player has, once that step is done, to do the <strong>next</strong> one; 0 or -1 = no limit. If the time runs out, the input starts over from its first step, so a stick held back too long, or a button pressed too late, doesn't count. The last step's timer isn't used. A stick step right before a button ("leaning, then press") wants a short timer, e.g. <code>timer="2"</code> like the game's forward + melee: with no limit the button would still fire after the stick came back to the centre.</p>
+<p>The game's lock-on + back, forward + melee (Calibur's input: back, then forward within 15 frames, then melee within 15 more) is:</p>
 <div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;command name="back_forward_melee" condition="lockon"&gt;
   &lt;lever dir="centred"/&gt;
   &lt;lever dir="back" timer="15"/&gt;
@@ -545,7 +562,7 @@ th {
 <div class="table-wrap"><table>
 <thead><tr><th>Setting</th><th>Default</th><th>What it does</th></tr></thead>
 <tbody>
-<tr><td><code>motion</code></td><td></td><td>The animation, <code>bank:block</code>. Needed unless the stage has <code>&lt;slot&gt;</code>s. On an overlay: the game animation it applies to (left out: every animation of that move).</td></tr>
+<tr><td><code>motion</code></td><td></td><td>The animation, <code>bank:block</code>. Needed unless the stage has <code>&lt;slot&gt;</code>s. On an overlay: the game animation it applies to (left out: every animation of that move; needed for <code>&lt;cancel&gt;</code> / <code>&lt;trigger&gt;</code>s).</td></tr>
 <tr><td><code>&lt;slot dir= block=/&gt;</code></td><td></td><td>Inside the stage, one per direction: <code>forward</code>, <code>back</code>, <code>left</code>, <code>right</code>, <code>up</code>, <code>down</code>, and the block of the <code>&lt;lmt&gt;</code> bank to play for it. The direction comes from the stick (with <code>&lt;launch direction="stick"&gt;</code>) among the slots you give; stick centred = forward. A slot may also set its own <code>speed</code> / <code>rise</code> (instead of the launch's), <code>effect_roll</code> (the take-off effect's roll, 180 for a dive) and <code>damage_type_b</code> (the <a href="#ref-shell">&lt;shell&gt;</a>s' reaction in that direction).</td></tr>
 <tr><td><code>ctn</code></td><td></td><td>Borrow the game's cancel script of that animation (<code>bank:block</code>), so the move gets its cancels, rumble and markers. <strong>Give it for animations in your own bank</strong>, which have no script; pick a game move that feels similar. Your <code>&lt;cancel&gt;</code>s and <code>&lt;trigger&gt;</code>s replace it when the stage has any.</td></tr>
 <tr><td><code>speed</code></td><td><code>1</code></td><td>Playback speed.</td></tr>
@@ -586,7 +603,8 @@ th {
 <thead><tr><th>Setting</th><th>Default</th><th>What it does</th></tr></thead>
 <tbody>
 <tr><td><code>atk</code></td><td>the character's</td><td>The attack file, game path without extension: <code>Collision\pl000</code> (Nero) / <code>Collision\pl006</code> (Dante) are the characters' own.</td></tr>
-<tr><td><code>entry</code></td><td><code>0</code></td><td>Which attack of that file to copy (damage, reaction, hit stop, spark, sound), counted from 0 in the file's order. Nero's 14 is the Dropkick.</td></tr>
+<tr><td><code>entry</code></td><td><code>0</code></td><td>Which attack of that file to copy (damage, reaction, hit stop, spark, sound): its number, counted from 0 in the file's order (Nero's 14 is the Dropkick), or its name, <code>entry="Dropkick"</code>.</td></tr>
+<tr><td><code>attack</code></td><td></td><td>The name of an <a href="#ref-attack">&lt;attack&gt;</a> of this file, instead of <code>atk</code> / <code>entry</code>.</td></tr>
 <tr><td><code>radius</code>, <code>length</code>, <code>height</code></td><td>60, 120, 80</td><td>The capsule in cm: its thickness, how far it reaches along the direction, how high above the feet it starts.</td></tr>
 <tr><td><code>life</code></td><td><code>90</code></td><td>Ticks at most.</td></tr>
 <tr><td><code>frame</code></td><td><code>0</code></td><td>In a stage: when it appears.</td></tr>
@@ -602,7 +620,27 @@ th {
 <tr><td><code>attack_id</code>, <code>range_type</code>, <code>damage_type</code>, <code>attack_flag</code>, <code>element</code>, <code>blown_angle</code></td><td></td><td>Advanced: the remaining fields of the attack, by the game's numbers.</td></tr>
 <tr><td><code>kind</code>, <code>vsattr</code>, <code>unitline</code></td><td>1, 0, 0x12</td><td>Advanced: who the hitbox counts as (1 = the player's projectile, so enemies take it as the player's attack), what it can reach (0 = the game's usual for that kind) and its update slot. Leave them.</td></tr>
 </tbody></table></div>
-<p>Settings left out keep the entry's values. <a href="#example-gerb">A Jump That Hits</a> uses this.</p>
+<p>Settings left out keep the entry's (or the <code>&lt;attack&gt;</code>'s) values. <a href="#example-gerb">A Jump That Hits</a> uses this.</p>
+
+<h3 id="ref-attack" data-search-heading="attack">&lt;attack&gt;: What A Hit Does<a class="heading-link" href="#ref-attack" aria-label="Link to attack">#</a></h3>
+<p>Inside <code>&lt;move&gt;</code>, one per attack the file's shells use, named so that a <code>&lt;shell attack="..."&gt;</code> can use it. An attack is either <strong>defined here</strong> by its settings, or <strong>taken from an attack file</strong> (<code>atk</code> + <code>entry</code>) with the settings given changing it. Several shells can use one attack, and a shell's own settings still change it for that shell.</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;move name="..." character="pl000" id="0x51" version="2"&gt;
+  &lt;attack name="RisingKick" damage="150" level_i="3" level_b="3" damage_type_b="4" hit_stop="6"/&gt;   &lt;!-- defined here --&gt;
+  &lt;attack name="HeavyKick" atk="Collision\pl000" entry="Dropkick" damage="250"/&gt;                  &lt;!-- the Dropkick, harder --&gt;
+  ...
+  &lt;stage ...&gt;
+    &lt;shell frame="6" attack="RisingKick" radius="70" length="90"/&gt;
+    &lt;shell frame="20" attack="HeavyKick"/&gt;
+  &lt;/stage&gt;
+&lt;/move&gt;</code></pre></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Setting</th><th>Default</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>name</code></td><td></td><td>Needed: what shells call it. It is also the attack's name in the game (up to 15 characters), which the style display shows.</td></tr>
+<tr><td><code>atk</code>, <code>entry</code></td><td></td><td>Take the attack from that file's entry (number or name, as on a shell); <code>entry</code> alone uses the character's own file; <code>atk</code> alone uses entry 0 (in the characters' own files an unused one, so give <code>entry</code>). Left out: the attack is defined by the settings below.</td></tr>
+<tr><td><code>damage</code>, <code>level_i</code>, <code>level_b</code>, <code>damage_type_b</code>, <code>hit_stop</code>, <code>hitmark</code>, <code>hit_se</code>, <code>stylish_point</code>, <code>stylish_timer</code>, <code>dt_add</code>, and the advanced ones</td><td>see below</td><td>The same settings as on a <a href="#ref-shell">&lt;shell&gt;</a>.</td></tr>
+</tbody></table></div>
+<p>An attack defined here starts from a plain Red Queen hit (Nero's Combo A first hit: damage 80, interrupts at level 2, never blows away, hit stop 3, style 130 points for 250 frames, 120 Devil Trigger), and its settings replace what they name. To find values for a kind of hit, look at a similar move's entry in the character's <code>.atk</code>.</p>
 
 <h3 id="ref-cancel" data-search-heading="cancel and trigger">&lt;cancel&gt; And &lt;trigger&gt;<a class="heading-link" href="#ref-cancel" aria-label="Link to cancel">#</a></h3>
 <p>Inside a stage. Together they make the stage's cancel script, which replaces the borrowed <code>ctn</code> one.</p>
@@ -613,6 +651,7 @@ th {
 <tr><td><code>&lt;trigger frame= byte= value=/&gt;</code></td><td>At <code>frame</code>, a marker <code>byte</code> (<code>free0</code>, <code>free1</code>, <code>free2</code>) takes <code>value</code> (1-255). Read back by <code>&lt;next byte= value=&gt;</code>. Advanced: <code>camvib</code> / <code>padvib</code> start camera shake / pad rumble by the game's number.</td></tr>
 </tbody></table></div>
 <p>A combo window: <code>&lt;cancel frame="26" kind="buffer" categories="C_NORM0"/&gt;</code> then <code>&lt;cancel frame="36" categories="C_NORM0"/&gt;</code> = presses from frame 26 are kept, the next attack starts at 36 (Streak's timing).</p>
+<p><strong>On an overlay</strong> they change the game animation named by the stage's <code>motion</code> while the game move plays it: the game's own script for that animation is kept, except that <code>&lt;cancel&gt;</code>s replace all of its windows and <code>&lt;trigger&gt;</code>s all of its markers and shakes. A file with only <code>&lt;cancel&gt;</code>s keeps the game's markers, and the reverse. The move becomes cancellable from the first <code>&lt;cancel&gt;</code>'s frame. If two overlays change the same animation, the first file (by name) wins. Game animations whose script loops (some looping animations) can't be changed this way; the log says so. The panel counts the changed scripts (<code>scripts N</code>).</p>
 
 <h3 id="ref-next" data-search-heading="next">&lt;next&gt;: Ending And Chaining<a class="heading-link" href="#ref-next" aria-label="Link to next">#</a></h3>
 <p>Checked every tick, in file order; the first whose conditions <strong>all</strong> hold fires.</p>
@@ -621,7 +660,8 @@ th {
 <tbody>
 <tr><td><code>to</code></td><td>Needed. <code>exit</code> = end the move (back to standing on the ground, falling in the air). <code>move:name</code> = hand over to that move file of the same character, at once, the way the game goes from Stinger into Million Stab.</td></tr>
 <tr><td><code>on</code></td><td><code>motion_end</code> = the animation finished; <code>landing</code> = touched ground falling; <code>always</code> = at once.</td></tr>
-<tr><td><code>frame</code></td><td>The animation is at this frame or later.</td></tr>
+<tr><td><code>frame</code></td><td>The animation is at this frame or later. An animation that loops starts over, so a frame past its end never comes.</td></tr>
+<tr><td><code>ticks</code></td><td>This many ticks (60 a second) since the stage started; on an overlay, since its animation started. Use it for time limits on looping animations.</td></tr>
 <tr><td><code>byte</code> + <code>value</code></td><td>A marker (<code>free0</code> / <code>free1</code> / <code>free2</code>) has that value: one of your <code>&lt;trigger&gt;</code>s, or the game's own on an overlay.</td></tr>
 <tr><td><code>button</code></td><td>That button was pressed this tick; with <code>held="true"</code>, is held.</td></tr>
 <tr><td><code>button</code> + <code>idle</code></td><td>That button has <strong>not</strong> been pressed for <code>idle</code> ticks (a mash ended). The press that started the move counts.</td></tr>
@@ -674,7 +714,7 @@ th {
 <li><strong>New list entries go to the top</strong> of the character's list: a new move with the same input and conditions as a game move replaces it while the file is on.</li>
 <li>Files are read in name order; it doesn't matter, names are resolved after all files are read.</li>
 <li><strong>8 shells per stage.</strong></li>
-<li>Not available yet: several stages per file, a new cancel script on a game animation, hitboxes from <code>.col</code> shapes on the character's joints (a <code>&lt;shell&gt;</code> is a capsule from the character's position).</li>
+<li>Not available yet: several stages per file, hitboxes from <code>.col</code> shapes on the character's joints (a <code>&lt;shell&gt;</code> is a capsule from the character's position).</li>
 </ul>
 
 <h2 id="troubleshooting" data-search-heading="Troubleshooting">Troubleshooting<a class="heading-link" href="#troubleshooting" aria-label="Link to Troubleshooting">#</a></h2>
@@ -700,10 +740,15 @@ th {
 <tr><td>Starting the move also jumps / attacks again</td><td>Add <code>eat_press</code> with the starting button (and <code>suppress_air_hike</code> for jump inputs).</td></tr>
 <tr><td><code>&lt;next to='...'&gt; has no condition and never fires</code></td><td>Give it <code>on</code>, <code>frame</code>, <code>byte</code> or <code>button</code>.</td></tr>
 <tr><td>A hand-over doesn't happen</td><td>The target file isn't loaded or is switched off, or a condition never holds: on an overlay, the stage's <code>motion</code> must be the animation playing at that moment.</td></tr>
-<tr><td><code>&lt;shell&gt; '....atk' did not load</code> / <code>has no entry N</code></td><td>The <code>atk</code> path is wrong (no extension in the setting) or the file has fewer entries.</td></tr>
+<tr><td><code>&lt;shell&gt; '....atk' did not load</code> / <code>has no entry N</code> / <code>has no entry named '...'</code></td><td>The <code>atk</code> path is wrong (no extension in the setting), the file has fewer entries, or no entry has that name.</td></tr>
+<tr><td><code>&lt;shell attack='...'&gt; names no &lt;attack&gt; of this file</code></td><td>The name is misspelt, or the <code>&lt;attack&gt;</code> is in another file (attacks are per file). The shell is left out.</td></tr>
 <tr><td>A shell hits nothing</td><td>Turn on <code>show="true"</code> to see it. It lives only while the move runs, so a move that ends quickly takes it along; check <code>height</code> / <code>length</code> / <code>radius</code> against the enemies. The panel counts live shells and their hits.</td></tr>
 <tr><td>An effect doesn't show</td><td>Wrong <code>efl</code> path, or the <code>material</code> / <code>group</code> mask leaves nothing of it; try <code>-1</code> for both.</td></tr>
 <tr><td><code>new move ... needs a restart</code></td><td>Reload only updates loaded files; restart the game.</td></tr>
+<tr><td><code>an overlay needs &lt;next&gt;s, timeline events ... or &lt;cancel&gt; / &lt;trigger&gt;s</code></td><td>The overlay's stage does nothing: add what it should do.</td></tr>
+<tr><td><code>an overlay's &lt;cancel&gt; / &lt;trigger&gt;s need the stage's motion=</code></td><td>Name the game animation whose windows change, <code>bank:block</code>.</td></tr>
+<tr><td><code>the game's script of motion ... can't take the file's &lt;cancel&gt; / &lt;trigger&gt;s</code></td><td>That animation's script loops (or is longer than the hook can hold); it plays the game's windows.</td></tr>
+<tr><td>Changed windows don't apply on a game move</td><td>The stage's <code>motion</code> isn't the animation playing when you want them (check the panel's <code>last:</code> line and <code>scripts N</code>), or another overlay changes the same animation first.</td></tr>
 </tbody></table></div>
 
 <p><a class="back-to-top" href="#top">Back to top</a></p>

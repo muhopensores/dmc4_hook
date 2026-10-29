@@ -11,13 +11,16 @@
 //     <slot>, the borrowed .ctn script then a synthesised one (sdk/CtnScript) with the cancel gate, the <launch>
 //     ballistics with the take-off effect / SE, the landing exit, the watchdog, the press hygiene and the enemy step;
 //   - the air hike steps aside for a move whose command uses the jump button (hook on uPlayer::checkWJumpBegin
-//     0x803880, the base both characters' overrides call; the C++ dodge hooks Dante's override, a different address).
+//     0x803880, the base both characters' overrides call; the C++ dodge hooks Dante's override, a different address);
+//   - an overlay (a vanilla move's file) with <cancel> / <trigger>s changes the vanilla motion's .ctn script: the hook after
+//     uPlayer::updateMotion (0x7A86A0) merges them into the game's script as the motion starts.
 // Reload re-reads the files for the moves already loaded (tunables); a new file needs a restart (its row must exist
 // before the game hands the table to a player).
 namespace movedef {
 
 extern bool mod_enabled;
 extern uintptr_t jmp_ret_wjump;      // 0x803886, after the 6 prologue bytes the air-hike hook replaces
+extern uintptr_t jmp_ret_motion;     // 0x7A86A6, after the 6 bytes the script hook replaces (uPlayer::main after updateMotion)
 extern char folder[128];             // where the .xml files are, relative to the game folder
 
 void load_all();                     // at start-up
@@ -39,5 +42,5 @@ public:
     void on_gui_frame(int display) override;
     void on_frame(fmilliseconds& dt) override;
 
-    std::unique_ptr<FunctionHook> hook_wjump, hook_cmd;
+    std::unique_ptr<FunctionHook> hook_wjump, hook_cmd, hook_motion;
 };

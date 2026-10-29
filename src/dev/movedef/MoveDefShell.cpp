@@ -23,6 +23,21 @@ void update_matrices(void* unit) { custom_utils::updateLmat(unit); custom_utils:
 
 inline float yaw_of(const glm::vec3& d) { return std::atan2(d.x, d.z); }
 
+// An attack defined in the file (<attack> without atk= / entry=, D25) starts from Nero's Red Queen Combo A first hit
+// (Collision\pl000.atk entry 22, RED-ComboA_00), a plain working hit; the file's values replace what they name.
+void default_attack(kAttackStatus& a, const char* name) {
+    std::memset(&a, 0, sizeof a);
+    strncpy_s(a.mAsName, name, sizeof a.mAsName - 1);
+    a.mDamageValue = 80.0f;
+    a.mAttackLvI = 2;
+    a.mHitStopTimer = 3;
+    a.mDamageTypeB = 2;
+    a.mHitmarkAngle = 7;
+    a.mStylishPoint = 130.0f;
+    a.mStylishTimer = 250.0f;
+    a.mDTAdd = 120.0f;
+}
+
 // The entry's kAttackStatus with the file's overrides (each < 0 = keep), as GerbShell::startup does it.
 void apply_overrides(const xmlmove::Shell& d, kAttackStatus& a) {
     if (d.damage_type   >= 0)    a.mDamageType  = a.mDamageTypeI = d.damage_type;   // damagePreMessage copies TypeI over Type
@@ -76,9 +91,14 @@ void AttackShell::startup() {
     const uintptr_t rsrc = (uintptr_t)devil4_sdk::get_stuff_from_files((MtDTI*)rAtckStatDTI, def.atk, 1);
     if (!rsrc) { spdlog::warn("MoveDef: <shell> '{}.atk' did not load", def.atk); end(); return; }
     custom_utils::load_atk_col((void*)rsrc, nullptr, &coll, this);      // uCollisionMgr::init_0(this, &coll, 0, atk)
-    if (!custom_utils::read_attack_entry((const void*)rsrc, def.entry, atk)) {
-        spdlog::warn("MoveDef: <shell> '{}.atk' has no entry {}", def.atk, def.entry);
-        devil4_sdk::release_resource((cResource*)rsrc); end(); return;
+    if (def.defined) default_attack(atk, def.as_name);                  // the attack's data is the file's (<attack>)
+    else {
+        const int index = def.entry_name[0] ? custom_utils::find_attack_entry((const void*)rsrc, def.entry_name) : def.entry;
+        if (!custom_utils::read_attack_entry((const void*)rsrc, index, atk)) {
+            if (def.entry_name[0]) spdlog::warn("MoveDef: <shell> '{}.atk' has no entry named '{}'", def.atk, def.entry_name);
+            else spdlog::warn("MoveDef: <shell> '{}.atk' has no entry {}", def.atk, def.entry);
+            devil4_sdk::release_resource((cResource*)rsrc); end(); return;
+        }
     }
     devil4_sdk::release_resource((cResource*)rsrc);                      // init_0 holds its own reference
     apply_overrides(def, atk);
