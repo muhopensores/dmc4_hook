@@ -13,6 +13,7 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include <thread>
 #include <vector>
 
 namespace motion_registry {
@@ -82,12 +83,20 @@ namespace {
     struct Reservation { std::string owner; int character, bank; };
     std::vector<Reservation> g_reserved;
     std::set<int> g_foreign;             // character * 64 + target * 16 + bank: held another LMT when the registry built
-    uint32_t g_version = 1;              // bumped by every change that can move a set
+    uint32_t g_version = 1;              // bumped by every change that can move a set (bump())
 
-    bool blocked(int character, int target, int bank) {
-        if (g_foreign.count(character * 64 + target * 16 + bank)) return true;
+    // What a build works from, copied under g_mx: the builder runs on its own thread without the lock
+    struct Snapshot {
+        uint32_t version = 0;
+        std::vector<Set> sets;
+        std::vector<Reservation> reserved;
+        std::set<int> foreign;
+    };
+
+    bool blocked(const Snapshot& s, int character, int target, int bank) {
+        if (s.foreign.count(character * 64 + target * 16 + bank)) return true;
         if (target != PLAYER) return false;
-        for (const Reservation& r : g_reserved) if (r.character == character && r.bank == bank) return true;
+        for (const Reservation& r : s.reserved) if (r.character == character && r.bank == bank) return true;
         return false;
     }
 
@@ -118,40 +127,49 @@ namespace {
             return false;
         }
     };
-    std::shared_ptr<Layout> g_layouts[2][2];        // [character][target]
+    std::shared_ptr<Layout> g_layouts[2][2];        // [character][target]: the newest finished build (published by the builder)
+
+    // The builder's file cache (one builder runs at a time, so only it touches this): a rebuild for a new set or a taken
+    // bank reads only the new files; refresh() empties it. Missing files aren't cached, so a file added later is found.
+    std::map<std::string, std::vector<uint8_t>> g_files;
+    bool g_reread = false;                          // refresh(): the next build empties g_files first (under g_mx)
+    bool g_building = false;                        // a builder thread runs (under g_mx)
 
     bool read_file(const std::string& path, std::vector<uint8_t>& out) {
-        std::ifstream f(".\\nativePC\\" + path + ".lmt", std::ios::binary);
+        std::ifstream f(".\\nativePC\\" + path + ".lmt", std::ios::binary | std::ios::ate);
         if (!f) return false;
-        out.assign(std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>());
-        return true;
+        const std::streamoff size = f.tellg();
+        if (size < 0) return false;
+        out.resize((size_t)size);
+        f.seekg(0);
+        return (bool)f.read((char*)out.data(), (std::streamsize)size);   // one read (istreambuf_iterator was ~6x slower)
     }
 
     const char* kCharName[2] = { "Nero", "Dante" };
 
-    std::shared_ptr<Layout> build_layout(int c, int t) {
+    // Runs on the builder thread: reads the files (g_files), merges, and touches no game memory and no g_* state but g_files.
+    std::shared_ptr<Layout> build_layout(const Snapshot& snap, int c, int t) {
         auto L = std::make_shared<Layout>();
-        L->version = g_version;
-        std::map<std::string, std::vector<uint8_t>> files;          // read once per build
-        std::map<std::string, int> counts;
+        L->version = snap.version;
+        std::map<std::string, std::string> bad_files;              // this build's refusals, by key
         auto load = [&](const std::string& path, std::string& why) -> const std::vector<uint8_t>* {
             const std::string key = norm(path);
-            auto it = files.find(key);
-            if (it == files.end()) {
+            if (auto b = bad_files.find(key); b != bad_files.end()) { why = b->second; return nullptr; }
+            auto it = g_files.find(key);
+            if (it == g_files.end()) {
                 std::vector<uint8_t> b;
-                if (!read_file(path, b)) { why = "nativePC\\" + path + ".lmt not found"; counts[key] = -1; files[key]; return nullptr; }
                 std::string bad;
-                counts[key] = lmt_merge::block_count(b, &bad);
-                if (counts[key] < 0) { why = "nativePC\\" + path + ".lmt: " + bad; files[key]; return nullptr; }
-                it = files.emplace(key, std::move(b)).first;
+                if (!read_file(path, b)) why = "nativePC\\" + path + ".lmt not found";
+                else if (lmt_merge::block_count(b, &bad) < 0) why = "nativePC\\" + path + ".lmt: " + bad;
+                else it = g_files.emplace(key, std::move(b)).first;
+                if (it == g_files.end()) { bad_files[key] = why; return nullptr; }
             }
-            if (counts[key] < 0) { why = "nativePC\\" + path + ".lmt is missing or not a v49 LMT"; return nullptr; }
             return &it->second;
         };
         struct Cand { Handle h; bool shared; std::string key; const std::vector<uint8_t>* file[kKinds]; int count; };
         std::vector<Cand> cands;
-        for (Handle h = 0; h < (Handle)g_sets.size(); ++h) {
-            const Set& s = g_sets[h];
+        for (Handle h = 0; h < (Handle)snap.sets.size(); ++h) {
+            const Set& s = snap.sets[h];
             if (s.refs <= 0 || s.d.target != t || file_of(s.d, c, 0).empty()) continue;
             Cand cd{ h, shared(s.d), norm(file_of(s.d, c, 0)), { nullptr, nullptr }, 0 };
             std::string why;
@@ -180,7 +198,7 @@ namespace {
         for (const Cand& cd : cands) {
             bool placed = false;
             for (int b : pool(c, t, cd.shared)) {
-                if (blocked(c, t, b) || used[b] + cd.count > lmt_merge::kMaxBlocks) continue;
+                if (blocked(snap, c, t, b) || used[b] + cd.count > lmt_merge::kMaxBlocks) continue;
                 L->places.push_back({ cd.h, b, used[b], cd.count });
                 by_bank[b].push_back(&cd);
                 used[b] += cd.count;
@@ -189,7 +207,7 @@ namespace {
             }
             if (!placed) {
                 L->unplaced[cd.h] = "no free bank has room";
-                spdlog::warn("motion_registry: {} ({}): no free bank has room for its {} blocks", g_sets[cd.h].d.owner, kCharName[c], cd.count);
+                spdlog::warn("motion_registry: {} ({}): no free bank has room for its {} blocks", snap.sets[cd.h].d.owner, kCharName[c], cd.count);
             }
         }
         for (auto& [bank, list] : by_bank) {
@@ -211,15 +229,55 @@ namespace {
             }
             L->banks.push_back(std::move(img));
         }
-        spdlog::info("motion_registry: {} {} layout v{}: {} set(s) in {} bank(s), {} not placed", kCharName[c],
-                     t == PLAYER ? "player" : "stand", L->version, L->places.size(), L->banks.size(), L->unplaced.size());
+        if (!L->places.empty() || !L->unplaced.empty())
+            spdlog::info("motion_registry: {} {} layout v{}: {} set(s) in {} bank(s), {} not placed", kCharName[c],
+                         t == PLAYER ? "player" : "stand", L->version, L->places.size(), L->banks.size(), L->unplaced.size());
         return L;
     }
 
-    std::shared_ptr<Layout> layout_for(int c, int t) {
-        std::shared_ptr<Layout>& L = g_layouts[c][t];
-        if (!L || L->version != g_version) L = build_layout(c, t);
-        return L;
+    // The builder thread: builds every layout from a snapshot and publishes them if nothing changed meanwhile, else goes
+    // again. Reading and merging the files took a frame or more (more from a cold disk) when it ran in the move that
+    // first asked for its blocks; on this thread the game only pays for installing the finished bytes.
+    void build_all() {
+        for (;;) {
+            Snapshot snap;
+            {
+                std::lock_guard<std::mutex> lock(g_mx);
+                snap.version = g_version;
+                snap.sets = g_sets;
+                snap.reserved = g_reserved;
+                snap.foreign = g_foreign;
+                if (g_reread) { g_files.clear(); g_reread = false; }
+            }
+            std::shared_ptr<Layout> built[2][2];
+            try {
+                for (int c = 0; c < 2; ++c)
+                    for (int t = 0; t < 2; ++t) built[c][t] = build_layout(snap, c, t);
+            } catch (const std::exception& e) {
+                spdlog::error("motion_registry: building the banks failed: {}", e.what());
+                std::lock_guard<std::mutex> lock(g_mx);
+                g_building = false;
+                return;
+            }
+            std::lock_guard<std::mutex> lock(g_mx);
+            if (g_version != snap.version) continue;               // changed while building: the layouts are already stale
+            for (int c = 0; c < 2; ++c)
+                for (int t = 0; t < 2; ++t) g_layouts[c][t] = built[c][t];
+            g_building = false;
+            return;
+        }
+    }
+
+    void bump() {                                   // under g_mx: a change that can move a set; (re)build in the background
+        ++g_version;
+        if (g_building) return;                     // the running builder sees the new version and builds again
+        g_building = true;
+        try {
+            std::thread(build_all).detach();
+        } catch (const std::exception& e) {
+            g_building = false;
+            spdlog::error("motion_registry: can't start the builder thread: {}", e.what());
+        }
     }
 
     // ---- per player object: what the registry put on its models ----------------------------------------------------
@@ -281,9 +339,11 @@ namespace {
         return false;
     }
 
-    // Put the current layout on the player's models when it isn't there yet (or was lost with a new player object).
+    // Put the newest built layout on the player's models when it isn't there yet (or was lost with a new player object).
+    // Until the builder has the current version, the player keeps what it has.
     void ensure(PlayerBanks& ps, uintptr_t pl, int c, int t) {
-        std::shared_ptr<Layout> want = layout_for(c, t);
+        std::shared_ptr<Layout> want = g_layouts[c][t];
+        if (!want) return;
         const bool ok = intact(ps, t);
         if (ok && ps.layout[t] == want) return;
         if (ok && t == PLAYER && playing_from(pl, *ps.layout[t])) return;         // swap once no registry motion plays
@@ -297,11 +357,12 @@ namespace {
             bool ours = false;
             for (const Installed& i : ps.lists[t]) if (i.model == models[0].second && i.bank == img.bank && i.list == cur) ours = true;
             if (ours) continue;
-            spdlog::warn("motion_registry: {} bank {} already holds an LMT the registry didn't put there (a mod that loads its own "
-                         "bank without motion_registry::reserve?); the registry leaves that bank alone", kCharName[c], img.bank);
-            g_foreign.insert(c * 64 + t * 16 + img.bank);
-            ++g_version;
-            return;                                                                 // the next call places the sets elsewhere
+            if (g_foreign.insert(c * 64 + t * 16 + img.bank).second) {             // once; then wait for the rebuild
+                spdlog::warn("motion_registry: {} bank {} already holds an LMT the registry didn't put there (a mod that loads its own "
+                             "bank without motion_registry::reserve?); the registry leaves that bank alone", kCharName[c], img.bank);
+                bump();
+            }
+            return;                                                                 // the rebuilt layout places the sets elsewhere
         }
         for (const Installed& i : ps.lists[t])                                     // take the old layout's lists off
             if (devil4_sdk::get_motion_bank((void*)i.model, i.bank) == i.list) set_motion_list(i.model, 0, i.bank);
@@ -333,14 +394,14 @@ Handle add(const SetDesc& d) {
     for (Handle h = 0; h < (Handle)g_sets.size(); ++h)
         if (g_sets[h].refs > 0 && same(g_sets[h].d, d)) { ++g_sets[h].refs; return h; }
     g_sets.push_back(Set{ d, 1 });
-    ++g_version;
+    bump();
     return (Handle)g_sets.size() - 1;
 }
 
 void remove(Handle h) {
     std::lock_guard<std::mutex> lock(g_mx);
     if (h < 0 || h >= (Handle)g_sets.size() || g_sets[h].refs <= 0) return;
-    if (--g_sets[h].refs == 0) ++g_version;
+    if (--g_sets[h].refs == 0) bump();
 }
 
 void reserve(const char* owner, int character, int bank) {
@@ -350,12 +411,12 @@ void reserve(const char* owner, int character, int bank) {
             if (r.bank == bank) return;                     // unchanged: no rebuild
             if (bank >= 0) r.bank = bank;
             else g_reserved.erase(g_reserved.begin() + (&r - g_reserved.data()));
-            ++g_version;
+            bump();
             return;
         }
     if (bank < 0) return;
     g_reserved.push_back({ owner, character, bank });
-    ++g_version;
+    bump();
 }
 
 bool ready(Handle h, uintptr_t player) {
@@ -365,11 +426,7 @@ bool ready(Handle h, uintptr_t player) {
     const int c = character_of(player), t = s->d.target;
     if (file_of(s->d, c, 0).empty()) return false;
     PlayerBanks& ps = state_for(player);
-    for (int i = 0; i < 4; ++i) {                                   // a bank found taken moves the sets: place them again
-        const uint32_t v = g_version;
-        ensure(ps, player, c, t);
-        if (g_version == v) break;
-    }
+    ensure(ps, player, c, t);                                       // installs only: the files are read and merged by the builder
     return ps.layout[t] && ps.layout[t]->find(h) && intact(ps, t);
 }
 
@@ -399,7 +456,8 @@ bool placed(Handle h, uintptr_t player) {
 
 void refresh() {
     std::lock_guard<std::mutex> lock(g_mx);
-    ++g_version;
+    g_reread = true;
+    bump();
 }
 
 std::string describe(Handle h, uintptr_t player) {
@@ -416,7 +474,7 @@ std::string describe(Handle h, uintptr_t player) {
             return it != ps.layout[t]->unplaced.end() ? it->second : "not on this player yet (a rebuild waits for the current motion)";
         }
     }
-    return "not built for this player yet";
+    return g_building ? "building" : "not on this player yet (placed at its first use)";
 }
 
 } // namespace motion_registry

@@ -10,8 +10,8 @@
 // (lmt_merge, LmtMerge.hpp), as real rMotionList resources the game refcounts and frees with the model.
 //
 // Rules for a mod:
-//   - register at init (`add`), ask `ready` before playing (it builds or refreshes the player's banks when needed; call
-//     it from the player's own tick or a serial point, never from another unit's tick), then get each motion's word
+//   - register at init (`add`), ask `ready` before playing (it installs or refreshes the player's banks when needed;
+//     call it from the player's own tick or a serial point, never from another unit's tick), then get each motion's word
 //     with `word` for that player: never store `bank << 8 | block`, a set can sit on other blocks for the other
 //     character, and moves after a reload;
 //   - always install a .ctn script for a registry motion (borrow_ctn or a synthesised one): the game would read the
@@ -24,7 +24,9 @@
 // LMT, and in DT the stand replays Nero's Red Queen motion words). The stand (STAND sets, Nero) has 4-14. Sets
 // are placed shared-first, then by path, so the same mods always give the same words. A rebuild (a set added or removed
 // after a player has its banks) waits until none of the player's motion controllers plays a registry motion.
-// Files are loose files: nativePC\<path>.lmt, LMT v49.
+// Files are loose files: nativePC\<path>.lmt, LMT v49. Reading and merging them runs on a builder thread started by
+// every change (add / remove / reserve / refresh), so the game thread only installs finished bytes; until a rebuild
+// is done a player keeps the banks it has, and a set added since isn't ready yet (a few ms after the change).
 namespace motion_registry {
 
     enum Character : int { NERO = 0, DANTE = 1 };      // as move_registry
@@ -48,13 +50,14 @@ namespace motion_registry {
     // A bank a mod fills itself (`owner` again with another bank moves the reservation; bank < 0 drops it).
     void reserve(const char* owner, int character, int bank);
 
-    // The set's motions are on `player`'s models (builds / refreshes them when needed).
+    // The set's motions are on `player`'s models (installs / refreshes them when needed; false while the builder works
+    // on a set added since the last build).
     bool ready(Handle h, uintptr_t player);
 
     // The motion word of the set's `block` (its file's block index) for `player`; -1 when not ready or out of range.
     int word(Handle h, uintptr_t player, int block);
 
-    // Read-only for GUIs and other threads (never builds): the set is on this player's models right now.
+    // Read-only for GUIs and other threads (never installs): the set is on this player's models right now.
     bool placed(Handle h, uintptr_t player);
 
     // Read every registered file from disk again (a "Reload LMT" button); players get the new bytes on their next

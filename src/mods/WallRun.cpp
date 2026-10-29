@@ -894,7 +894,7 @@ int WallRun::placeholder_motion(const Wall& wall) {
     return wall.on_left ? motion_left : motion_right;
 }
 
-bool WallRun::custom_ready(uintptr_t player) {     // builds the player's banks when needed (call from its tick)
+bool WallRun::custom_ready(uintptr_t player) {     // installs the player's banks when needed (call from its tick)
     return use_custom_lmt && player && lmt_set >= 0 && motion_registry::ready(lmt_set, player);
 }
 

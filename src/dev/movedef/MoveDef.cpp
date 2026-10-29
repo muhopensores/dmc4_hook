@@ -612,7 +612,7 @@ bool run_nexts(Move& m, uintptr_t pl);
 // run's, a second XML move's) would play that file's blocks under our slot numbers (a six-block file asked for slot 8
 // wedges the motion controller: T-pose, frames stuck). Such a conflict is reported once and the move refuses.
 bool ready(Move& m, uintptr_t pl) {
-    if (m.motion_set >= 0) return motion_registry::ready(m.motion_set, pl);   // builds the player's banks when needed
+    if (m.motion_set >= 0) return motion_registry::ready(m.motion_set, pl);   // installs the player's banks when needed
     if (m.def.lmt.bank < 0) return true;
     const uintptr_t existing = devil4_sdk::get_motion_bank((void*)pl, m.def.lmt.bank);
     PlayerState& s = m.state_for(pl);
@@ -632,7 +632,7 @@ bool loaded_by_same_file(const Move& m, uintptr_t pl, uintptr_t existing) {
 }
 
 void ensure_bank(Move& m, uintptr_t pl) {
-    if (m.motion_set >= 0) return;          // the registry builds in ready(), from the player's own tick (never from on_frame)
+    if (m.motion_set >= 0) return;          // the registry installs in ready(), from the player's own tick (never from on_frame)
     const xmlmove::Lmt& l = m.def.lmt;
     if (!pl || l.bank < 10 || l.bank > 14 || l.path.empty()) return;     // 0-9 are setup banks, 15 Nero's Buster bank
     if (m.bank_failed_for == pl) return;
