@@ -394,6 +394,8 @@ set(DEV_SRC
   dev/movedef/MoveDefShell.cpp
   dev/model_ext/ModelExtension.hpp
   dev/model_ext/ModelExtension.cpp
+  dev/file_tracker/FileTracker.hpp
+  dev/file_tracker/FileTracker.cpp
 )
 
 set(HOOKS_SRC

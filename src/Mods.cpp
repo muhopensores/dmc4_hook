@@ -193,6 +193,7 @@
 //Include dev features here
 #include "dev/model_ext/ModelExtension.hpp"
 #include "dev/movedef/MoveDef.hpp"
+#include "dev/file_tracker/FileTracker.hpp"
 #endif
 
 constexpr size_t MODS_NUM{ 512 };
@@ -400,6 +401,7 @@ Mods::Mods() {
     ADD_MOD(MoveDef);        // after the hand-coded moves: they install the shared command hook first
     ADD_MOD(ViewportWindow);
     ADD_MOD(ModelExtension); // runtime chains (and attachments) on models, from nativePC\model_ext\*.xml
+    ADD_MOD(FileTracker);    // debug: what the game has loaded (files, arcs) and what it loads and drops
 #endif
 #endif
 }
