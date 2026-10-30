@@ -108,7 +108,7 @@ public:
     static uint32_t button_mask;     // mBtnTrg bits that start the run while airborne (4 = jump); no jump-window / act-limit logic
 
     // tunables (ImGui)
-    // The gun during the run (WallRun.cpp "the gun during the run"): the game's own walking shot, upper half only, over the
+    // The gun during the run (UpperGun.hpp; the run is one of its hosts): the game's own walking shot, upper half only, over the
     // running legs (its shot motion and the elevation layer on the upper controllers; the lower controller keeps the run
     // cycle, so the steps never go out of sync), back to the run cycle after each shot, rapid fire by mashing as on the
     // ground, a torso lean through SpineAim. No charge shots, no Pandora.
@@ -205,5 +205,5 @@ public:
     void on_config_save(utility::Config& cfg) override;
     void on_gui_frame(int display) override;
 private:
-    std::unique_ptr<FunctionHook> hook1, hook2, hook_pre, hook_post, hook_pose, hook_pose_upper;
+    std::unique_ptr<FunctionHook> hook1, hook2;   // the gun's hooks are UpperGun's
 };

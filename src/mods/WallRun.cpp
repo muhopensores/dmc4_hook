@@ -6,6 +6,7 @@
 #include "../sdk/Enums_Internal.hpp" // CANCEL_NO
 #include "MoveTable.hpp"             // HookNeroKADTbl / HookDanteKADTbl: the gun rows the run matches itself
 #include "SpineAim.hpp"              // the torso lean while shooting
+#include "UpperGun.hpp"              // the gun during the run: the run is one of its hosts
 #include <cmath>
 #include <cstring>
 #include <filesystem>
@@ -77,8 +78,6 @@ namespace {
 static uintptr_t fn_setAction        = 0x007AA030; // uPlayer::setAction(this@ecx, int act)          vtbl slot 101
 static uintptr_t fn_initJumpBegin     = 0x007AC9E0; // uPlayer::initJumpBegin(this@ecx, int)          vtbl slot 109
 static uintptr_t fn_setActionLand     = 0x007AA6A0; // uPlayer::setActionLand(this@ecx)
-static uintptr_t fn_setActionAtck     = 0x007AAC80; // uPlayer::setActionAtck(this@eax, atckId@ecx, body on the stack) userpurge: body 0 = the upper half only
-static uintptr_t fn_setPoseWeapon     = 0x007AADE0; // uPlayer::setPoseWeapon(this@edi) -> al: mPose.wpnId = the long weapon when it can pose, else -1
 constexpr int JUMP_INIT_WALL_JUMP     = 3;          // initJumpBegin arg: --mWallJumpCnt, ++mWJumpCnt
 static uintptr_t fn_setJumpRate       = 0x007ACC70; // uPlayer::setJumpRate(this@eax)
 static uintptr_t fn_adjustJumpSpeed   = 0x007ACCE0; // uPlayer::adjustJumpSpeed(this@esi)
@@ -335,9 +334,7 @@ namespace {
 
 constexpr int PHASE_RUN = 100;      // out of the port's 0-4
 
-// the upper body during the run (see "the gun during the run" below)
-constexpr uintptr_t kBdyUpperNo = 0x14F8;   // mBdyAction[0].no: 12 = attack (the shot), 13 / 16 = the gun pose
-inline bool upper_busy(uintptr_t pl) { const int u = at<int>(pl, kBdyUpperNo); return u == 12 || u == 13 || u == 16; }
+// the upper body during the run: UpperGun (the run is one of its hosts, see "the gun during the run" below)
 inline bool running(uintptr_t pl) {
     return at<int>(pl, pl::mBdyActionLowerNo) == ACT_WALL_JUMP && at<int>(pl, pl::mBdyActionLowerPhase) == PHASE_RUN;
 }
@@ -351,12 +348,7 @@ struct RunState {                   // what the game's phase word can't hold
     bool custom_kickoff = false;    // a jump-out cycle is playing: it is the whole jump, the port adds no fall motion
     bool from_run = false;          // the port's next phase 0 follows a sideways run (set by hand_to_wall_jump, read once)
     float lost = 0.0f;              // frames since the casts last hit (the wall ended, or bent too sharply)
-    uint32_t run_limit = 0, run_stat = 0;   // mActLimit / mActStat as the wall jump's entry left them: re-asserted while the upper body shoots
-    float shot_age = -1.0f;         // ticks since the shot action started (-1 = none)
-    float gun_hold = -1.0f;         // frames left with the gun up after a shot ended (-1 = none): the arms keep the shot's last frame
-    uint32_t motion_attr = 0;      // the attribute the run cycle was requested with (back_to_run copies it)
-    float lean_w = 0.0f;            // 0-1: how much of shoot_lean_deg applies (ramped by post_action_tick, read by spine_provider)
-    bool  gun_buffered = false;     // a shot press waiting for the current shot's cancel window (the .ctn buffer window, mStat 1)
+    uint32_t motion_attr = 0;      // the attribute the run cycle was requested with (the arms go back to it after a shot)
     Wall wall{};
     uint32_t last_seen = 0;         // state_for's tick when this player was last seen (eviction order)
 };
@@ -427,7 +419,7 @@ void play_run_motion(RunState& s, uintptr_t pl) {
     // With the gun up (a direction change mid-shot), the legs only: the whole-body request clears the upper and aim
     // controllers, which cut the shot's motion, so its end (phase 4 at mMotionFrameEnd[1]) never came and no shot
     // could start again.
-    const bool lower_only = upper_busy(pl) || s.gun_hold >= 0.0f;   // (held after a shot: the arms stay up too)
+    const bool lower_only = upper_gun::busy(pl);   // (held after a shot: the arms stay up too)
     if (custom)                                 // a runtime bank has no .ctn scripts: borrow the placeholder's
         borrow_ctn(pl, 0, WallRun::placeholder_motion(s.wall), lower_only);
     // The custom cycles loop, with their root translation ignored (A_NULL_TRANS_OFF: the run's velocity moves the
@@ -462,341 +454,6 @@ void give_jumps_back(uintptr_t pl) {
 
 // Hand the action over to the game's wall jump: it reads the wall from mGroundPoly and runs its phases 0-4 in
 // the same phase word from here on (checkWallJumpBegin already set mJump.mode and the jump counters on entry).
-// ---- the gun during the run (RE/player_move_pipeline.md "Upper-body gun shots") ----------------------------------
-// The game's own gun rows would take the whole body in the air (the air shots), so while the run is active the
-// PRE-CHECK tick (before checkAction) matches the character's GROUND plain-shot row itself and starts it on the UPPER
-// half only (setActionAtck(id, 0), the way setActionAtckGun starts Nero's Blue Rose while walking), then eats the
-// press, the gun reserves and the charge-release command bits so checkAtck sees nothing gun-shaped (charge shots are
-// consumed, not fired). Melee rows are untouched. It applies checkAtck's own row tests (unlocked bit, the row's extra
-// condition through checkAtckEtcSub, and mid-shot the cancel windows the shot's .ctn opens), so mashing chains shots
-// as on the ground, Dante's rapid follow-up rows included; Pandora is left out. The shot then runs exactly as the
-// game's walking shot: its upper motion (the pose table's column 3 of the front walking row, setGunShotMotion[_2] on
-// controller 1) and the elevation layer (the column by elevation on controller 2), upper-body blocks over the running
-// legs; the Blue Rose's own recoil (setShot: motion 1 of the gun's LMT) and the Coyote-A's cartridges come from the shot
-// functions on their own frames. When it ends, the arms go back to the run cycle (back_to_run), not to the gun pose,
-// and a torso lean away from the wall comes through SpineAim while the gun is up. What keeps it on the wall:
-//  - setActionUpperBdy writes the whole-player words (mActionNo = 12: checkAction switches on it, and case 12 runs
-//    checkWallJumpBegin and the air hike; mActLimit from action 12's row; the lock-on turn: setLockOnTargetAngle
-//    0x820CE0 writes mRotate.mTarget AND mNow): post_action_tick (after both halves' state functions, before anything
-//    reads the words) puts the run's own back every tick;
-//  - mPose.dir is pinned to 1 (front) while running: the shot setters pick their row by it, and dir 0 (stick centred)
-//    is the full-body standing row, whose leg tracks froze the run cycle;
-//  - setActionAtckGun (the Automatic mode's auto-repeat) and the shot functions' last phase call setActionPoseLowerBdy
-//    (lower -> the pose): hooked at 0x7AA8C0 to return at once while the run is active;
-//  - the shot functions' hand-off to the gun pose, setActionPoseUpperBdy 0x7AA860, is hooked: the upper action ends and,
-//    after gun_hold_frames with the arms on the shot's last frame, the run cycle goes on the upper / aim controllers at
-//    the legs' frame;
-//  - a run-cycle change while the gun is up (a direction change) is requested on the lower body only: the whole-body
-//    request would clear the shot's upper motion, and the shot would never end;
-//  - a lower-body motion request that isn't the run's (the charge shot's own) is dropped, with its A_STOP;
-//  - upper / aim requests get at least upper_blend_min frames (the game cuts in with 0 once the gun counts as held);
-//  - the shot action ends on its own (phase 4 at its upper motion's end); shot_end_ticks and the stuck-shot check are
-//    safety nets.
-constexpr uintptr_t kActionNo       = 0x14F0;   // the whole-player action number (checkAction's switch, setActionStatus)
-constexpr uintptr_t kPoseDir        = 0x16C4;   // mPose.dir: 1 front, 2 / 8 sides, 6 / 12 back diagonals, 0 none (the standing row)
-constexpr uintptr_t kBdyUpperPhase  = 0x14FC;
-constexpr uintptr_t kWpGripId       = 0x1DBC;   // mWeaponCtrl.mGripId
-constexpr uintptr_t kWpEnableLongId = 0x1DC4;   // mWeaponCtrl.mEnableLongId (Blue Rose = 1, the rows' atckConditionWp)
-constexpr uintptr_t kIsWpChangeCancel = 0x20C9; // mIsWpChangeCancel
-constexpr uintptr_t kCmdFlag        = 0x2184;   // uint32[3]: bit = CMD_ID, set by executeCommandCheck this tick
-constexpr uintptr_t kMotCncl        = 0x30C0, kMotCnclSize = 0x2C, kMotCnclReserve = 0x08;   // mMotCncl[k].mIsReserve
-constexpr uintptr_t kMotionCtrl     = 0x2894, kMotionCtrlSize = 0x3C;                       // cMotionCtrl[7]
-constexpr uintptr_t kMcMotionSetReq = 0x04, kMcMotionNo = 0x14, kMcInterp = 0x1C, kMcAddAttribute = 0x2A;   // byte, uint, float, s16
-constexpr int16_t   A_STOP_BIT      = 0x10;
-constexpr uintptr_t kModelMotion0Frame = 0x330 + 0x18;   // uModel::MotionArray[0].mFrame (0xE0 per slot, slot = controller type)
-constexpr uintptr_t kModelMotionNo = 0x330 + 0x04, kModelMotionSize = 0xE0;   // MotionArray[i].mMotionNo (u16)
-static int  g_shots = 0;                        // readout
-static char g_last[96] = "";
-uintptr_t jmp_ret_pose = 0;                     // 0x7AA8C8
-
-inline uintptr_t gun_table(uintptr_t pl) { return at<int>(pl, pl::mPlayerID) == 1 ? HookNeroKADTbl : HookDanteKADTbl; }
-inline void clear_cmd_bit(uintptr_t pl, uint32_t bit) { at<uint32_t>(pl, kCmdFlag + 4 * (bit >> 5)) &= ~(1u << (bit & 31)); }
-
-void set_action_atck(uintptr_t pl, uint32_t id, int body) {
-    _asm {
-        pushad
-        mov eax, pl
-        mov ecx, id
-        push body
-        call fn_setActionAtck
-        popad
-    }
-}
-
-bool set_pose_weapon(uintptr_t pl) {
-    uint8_t r = 0;
-    _asm {
-        pushad
-        mov edi, pl
-        call fn_setPoseWeapon
-        mov byte ptr [r], al
-        popad
-    }
-    return r != 0;
-}
-
-// The upper-body shot, the way setActionAtckGun starts it, minus the lower-body pose.
-void start_upper_shot(uintptr_t pl, uint32_t id) {
-    set_pose_weapon(pl);                                 // mPose.wpnId = the weapon when it can pose (Blue Rose, E&I); the Coyote-A can't and shoots anyway
-    if (!at<bool>(pl, kIsWpChangeCancel)) at<uint32_t>(pl, kWpGripId) = at<uint32_t>(pl, kWpEnableLongId);
-    set_action_atck(pl, id, 0);
-    ++g_shots;
-    snprintf(g_last, sizeof g_last, "shot id %u", id);
-}
-
-// checkAtck's own row tests, for the rows the pre-check tick matches itself (RE player_move_pipeline.md "Rapid shots"):
-// the unlocked-moves bitset (vtbl 120 checkAtckBit(this, buf) -> a struct with the bits at +0x18), the row's extra
-// condition (vtbl 108 checkAtckEtcSub(this, etc): Dante 10 / 11 = the E&I / Coyote-A follow-up window, the rapid timer
-// at +0x14DA4 still running; 14 = Pandora free) and its cancel rule against the .ctn windows (checkAtckCancel 0x7AC4A0).
-bool atck_unlocked(uintptr_t pl, uint32_t id) {
-    static uint8_t buf[64];
-    uint8_t* b = buf;
-    const uintptr_t fn = (*(uintptr_t**)pl)[120];
-    uintptr_t r = 0, saved = 0;
-    _asm {
-        pushad
-        mov saved, esp              // whoever cleans the argument, esp comes back before popad (locals are ebp-relative)
-        push b
-        mov ecx, pl
-        call fn
-        mov r, eax
-        mov esp, saved
-        popad
-    }
-    return r && (at<uint32_t>(r, 0x18 + 4 * (id >> 5)) & (1u << (id & 31))) != 0;
-}
-
-bool atck_etc_ok(uintptr_t pl, uint32_t etc) {
-    if (!etc) return true;
-    const uintptr_t fn = (*(uintptr_t**)pl)[108];
-    uint8_t r = 0;
-    uintptr_t saved = 0;
-    _asm {
-        pushad
-        mov saved, esp
-        push etc
-        mov ecx, pl
-        call fn
-        mov byte ptr [r], al
-        mov esp, saved
-        popad
-    }
-    return r == 1;
-}
-
-enum CancelVerdict { CANCEL_SHUT, CANCEL_BUFFER, CANCEL_OPEN };
-// checkAtckCancel's rule: each cmdNo entry (bit 0) needs mMotCncl[val].mStat 1 or 2; every one without cmdOr (bit 2)
-// must pass, one passing cmdOr entry is enough on its own; cmdId entries (bit 1) need one equal to mAtckId. mStat 1 (the
-// .ctn high nibble 0x30) only buffers the input, 2 (0x10) starts the move.
-CancelVerdict atck_cancel(uintptr_t pl, const kAtckDefTbl* row) {
-    bool or_open = false, or_buffer = false, and_ok = true, and_any = false, and_buffer = false, id_any = false, id_hit = false;
-    for (uint32_t e : row->cancelId) {
-        if (!e) continue;
-        const int val = (int8_t)(e >> 24);
-        if (e & 1) {
-            const int st = (val >= 0 && val < CANCEL_NO_NUM) ? at<int>(pl, kMotCncl + kMotCnclSize * val + 4) : 0;
-            const bool ok = st == 1 || st == 2;
-            if (e & 4) { if (st == 2) or_open = true; else if (st == 1) or_buffer = true; }
-            else { and_any = true; if (!ok) and_ok = false; else if (st == 1) and_buffer = true; }
-        } else if (e & 2) {
-            id_any = true;
-            if (val == at<int>(pl, pl::mAtckId)) id_hit = true;
-        }
-    }
-    if (or_open) return CANCEL_OPEN;
-    if (and_any && and_ok && (!id_any || id_hit)) return and_buffer ? CANCEL_BUFFER : CANCEL_OPEN;
-    return or_buffer ? CANCEL_BUFFER : CANCEL_SHUT;
-}
-
-// Pre-check tick: the character's ground plain-shot row, matched here and started upper-only; checkAtck then sees no
-// press, no gun reserve and no charge command.
-void precheck_tick(uintptr_t pl) {
-    if (!WallRun::mod_enabled || !WallRun::gun_while_running || !running(pl)) return;
-    // Pandora (Dante's long weapon 8) has no place on the wall (and its row started upper-only, after a switch mid-shot,
-    // crashed the game): no shot, nothing touched, only the press eaten so checkAtck doesn't start its air row
-    if (at<int>(pl, pl::mPlayerID) != 1 && at<uint32_t>(pl, kWpEnableLongId) == 8) {
-        at<uint32_t>(pl, pl::mBtnTrg) &= ~0x2u;
-        at<bool>(pl, kMotCncl + kMotCnclSize * C_NORM0 + kMotCnclReserve) = false;
-        at<bool>(pl, kMotCncl + kMotCnclSize * C_GUN   + kMotCnclReserve) = false;
-        state_for(pl).gun_buffered = false;
-        return;
-    }
-    // The pose table's STANDING row (mPose.dir 0, what setPoseDir gives with the stick centred: blocks 0502-0505) is
-    // full-body on both characters, legs and root included; on the upper controller it froze the legs over the run
-    // cycle. The walking rows are upper-body blocks. Pin the direction to front (1) every running tick, before a shot
-    // starts: the shot setters pick their row from it (a footwork leaves 0 behind).
-    at<int>(pl, kPoseDir) = 1;
-    const kAtckDefTbl* row = (const kAtckDefTbl*)gun_table(pl);
-    if (!row) return;
-    const uint32_t wp = at<uint32_t>(pl, kWpEnableLongId);
-    RunState& s = state_for(pl);
-    if (at<uint32_t>(pl, pl::mBtnTrg) & 0x2) s.gun_buffered = true;    // a press waits for the shot's cancel window (the
-    const bool mid_shot = at<int>(pl, kBdyUpperNo) == 12;              // game's buffer: mStat 1 holds it, 2 fires it)
-    if (!mid_shot && !(at<uint32_t>(pl, pl::mBtnTrg) & 0x2)) s.gun_buffered = false;   // between shots only a fresh press fires
-    bool started = false;
-    for (; row->atckAttr != 3; ++row) {
-        if (row->atckAttr != 1 || row->atckAs != 1) continue;             // a gun row, its ground version
-        if (row->command.atckCommandNo) continue;                          // disabled row (MoveTable's convention)
-        if (row->atckConditionWp != 0xFFFFFFFFu && row->atckConditionWp != wp) continue;
-        const uint32_t cmd = row->command.atckCommand;
-        if (cmd) { clear_cmd_bit(pl, cmd); continue; }                     // a charge release: consumed, never fired on the wall
-        if (started || !s.gun_buffered) continue;
-        // checkAtck's order: unlocked, the extra condition (the E&I / Coyote-A follow-up rows 61-63 / 72-74 come first
-        // and pass only inside their rapid window), then mid-shot the string rules: AI_REPEAT / AI_CANCEL (atckLevel
-        // here is the RE note's atckInfo: 7 on every gun row) and the cancel windows the shot's .ctn opens
-        if (!atck_unlocked(pl, row->atckId) || !atck_etc_ok(pl, row->ukn)) continue;
-        if (mid_shot) {
-            if (!(row->atckLevel & 2)) continue;                                                // AI_CANCEL
-            if ((int)row->atckId == at<int>(pl, pl::mAtckId) && !(row->atckLevel & 4)) continue;  // AI_REPEAT
-            const CancelVerdict v = atck_cancel(pl, row);
-            if (v == CANCEL_SHUT) { s.gun_buffered = false; break; }      // as checkAtck: a press outside the windows is lost
-            if (v == CANCEL_BUFFER) break;                                 // held until the window opens (mStat 2)
-        }
-        start_upper_shot(pl, row->atckId);
-        started = true;
-        s.gun_buffered = false;
-        s.shot_age = 0.0f;
-        s.gun_hold = -1.0f;                                               // the next shot comes in from the held gun
-    }
-    at<uint32_t>(pl, pl::mBtnTrg) &= ~0x2u;
-    at<bool>(pl, kMotCncl + kMotCnclSize * C_NORM0 + kMotCnclReserve) = false;
-    at<bool>(pl, kMotCncl + kMotCnclSize * C_GUN   + kMotCnclReserve) = false;
-}
-
-// The run ends (kick-off, landing): the upper half must not stay in the shot / pose, or moveActPoseU keeps asking for
-// the gun stance over the next whole-body motion; and the words go back to the run's.
-void end_upper_shot(RunState& s, uintptr_t pl) {
-    s.shot_age = -1.0f;
-    if (!upper_busy(pl)) return;
-    at<int>(pl, kBdyUpperNo)    = at<int>(pl, pl::mBdyActionLowerNo);
-    at<int>(pl, kBdyUpperPhase) = 0;
-    at<int>(pl, kActionNo)      = at<int>(pl, pl::mBdyActionLowerNo);
-    at<uint32_t>(pl, pl::mActLimit) = s.run_limit;
-    at<uint32_t>(pl, pl::mActStat)  = s.run_stat;
-}
-
-// The shot is over (its last phase, through the setActionPoseUpperBdy hook below, or a safety net): the upper action
-// ends and the run cycle itself goes on the upper and aim controllers, at the legs' frame. A slot given a new motion
-// crossfades from a snapshot of the pose on screen (uModel::moveMotion copies the joints into the slot when mState & 2),
-// so the arms blend back into the run over run_blend_frames, and the next shot blends in from there (upper_blend_min).
-// The same motion at the same frame as the legs looks exactly like the run; the next whole-body run request (a
-// direction change, the kick-off) clears both controllers.
-void back_to_run(RunState& s, uintptr_t pl) {
-    end_upper_shot(s, pl);
-    s.gun_hold = -1.0f;
-    if (s.motion < 0) return;
-    const float frame = at<float>(pl, kModelMotion0Frame);
-    const float interp = WallRun::run_blend_frames > 1.0f ? WallRun::run_blend_frames : 1.0f;
-    for (int body : { MC_UPPER, MC_AIM })   // mirrored to the coat's 5 / 6 by requestSetMotion
-        devil4_sdk::request_motion_body((void*)pl, body, s.motion, s.motion_attr, interp, frame, 1.0f);
-    if (spine_aim::inertialize(pl, interp))  // the body's controllers cut to the run, the fade takes the frames (the coat keeps the crossfade)
-        for (int body : { MC_UPPER, MC_AIM }) at<float>(pl + kMotionCtrl + kMotionCtrlSize * body, kMcInterp) = 0.0f;
-}
-
-void post_action_tick(uintptr_t pl) {
-    if (!WallRun::mod_enabled || !WallRun::gun_while_running || !running(pl)) return;
-    RunState& s = state_for(pl);
-    if (upper_busy(pl)) {
-        at<int>(pl, kActionNo) = ACT_WALL_JUMP;             // checkAction: the wall jump's case, not 12 / 13 / 16
-        at<uint32_t>(pl, pl::mActLimit) = s.run_limit;
-        at<uint32_t>(pl, pl::mActStat)  = s.run_stat;
-        face(pl, s.wall.yaw);                               // the shot's setLockOnTargetAngle turned the facing toward the target
-        // the shot's upper and aim requests stand, but with at least upper_blend_min frames of interpolation: the shot
-        // cuts in with the draw timer as its blend, 0 once the gun counts as held, a snap from the running arms. With
-        // SpineAim's inertial blends, a new motion on the body's controllers cuts in (0) and the fade takes the frames
-        // instead; the coat's (5 / 6) keep the crossfade (its tails hang on the body and swing anyway)
-        if (WallRun::upper_blend_min > 0.0f) {
-            float frames = 0.0f;
-            for (int i : { 1, 2, 5, 6 }) {
-                const uintptr_t c = pl + kMotionCtrl + kMotionCtrlSize * i;
-                if (!at<bool>(c, kMcMotionSetReq)) continue;
-                if (at<float>(c, kMcInterp) < WallRun::upper_blend_min) at<float>(c, kMcInterp) = WallRun::upper_blend_min;
-                if ((i == MC_UPPER || i == MC_AIM) && at<uint32_t>(c, kMcMotionNo) != at<uint16_t>(pl, kModelMotionNo + kModelMotionSize * i))
-                    frames = std::max(frames, at<float>(c, kMcInterp));   // a new motion, not the same one asked again
-            }
-            if (frames > 0.0f && spine_aim::inertialize(pl, frames))
-                for (int i : { MC_UPPER, MC_AIM }) {
-                    const uintptr_t c = pl + kMotionCtrl + kMotionCtrlSize * i;
-                    if (at<bool>(c, kMcMotionSetReq)) at<float>(c, kMcInterp) = 0.0f;
-                }
-        }
-        // a foreign lower request (the charge shot's own) and its A_STOP go
-        const uintptr_t c0 = pl + kMotionCtrl;
-        if (at<bool>(c0, kMcMotionSetReq) && (int)at<uint32_t>(c0, kMcMotionNo) != s.motion)
-            for (int i : { 0, 3, 4 }) at<bool>(pl + kMotionCtrl + kMotionCtrlSize * i, kMcMotionSetReq) = false;   // lower, face, coat lower
-        for (int i : { 0, 3, 4 }) at<int16_t>(pl + kMotionCtrl + kMotionCtrlSize * i, kMcAddAttribute) &= ~A_STOP_BIT;
-        // safety: a shot action that never reaches its end (phase 4 needs its upper motion's end) is ended here
-        if (WallRun::shot_end_ticks > 0.0f && at<int>(pl, kBdyUpperNo) == 12) {
-            if (s.shot_age >= 0.0f) s.shot_age += at<float>(pl, pl::m_delta_time);
-            if (s.shot_age >= WallRun::shot_end_ticks) back_to_run(s, pl);
-        }
-        // a shot whose upper motion is gone (cleared by a whole-body request: nothing on the run does that any more, but a
-        // stuck shot blocks every later press) never reaches its end: end it here
-        const uintptr_t c1 = pl + kMotionCtrl + kMotionCtrlSize * MC_UPPER;
-        if (at<int>(pl, kBdyUpperNo) == 12 && at<uint32_t>(c1, kMcMotionNo) == 0xFFFF && !at<bool>(c1, kMcMotionSetReq))
-            back_to_run(s, pl);
-    } else if (s.gun_hold >= 0.0f) {                       // the gun held after a shot: back to the run when it runs out
-        s.gun_hold -= at<float>(pl, pl::m_delta_time);
-        if (s.gun_hold <= 0.0f) back_to_run(s, pl);
-    }
-    // the lean comes in and goes out over lean_blend_frames instead of popping with the upper action
-    {
-        const float target = (upper_busy(pl) || s.gun_hold >= 0.0f) ? 1.0f : 0.0f;
-        const float step = WallRun::lean_blend_frames > 0.0f ? at<float>(pl, pl::m_delta_time) / WallRun::lean_blend_frames : 1.0f;
-        s.lean_w = target > s.lean_w ? std::min(target, s.lean_w + step) : std::max(target, s.lean_w - step);
-    }
-}
-
-// uPlayer::setActionPoseLowerBdy 0x7AA8C0 (this@esi, no stack arguments): the lower body into the gun pose. While
-// the run is active it returns at once. The 8 bytes replaced are `push ecx; cmp dword ptr [esi+141Ch], 0`.
-bool __stdcall pose_lower_blocked(uintptr_t pl) { return WallRun::mod_enabled && WallRun::gun_while_running && running(pl); }
-naked void detour_pose_lower() {
-    _asm {
-        pushad
-        push esi
-        call pose_lower_blocked     // __stdcall: pops its argument; al = blocked
-        test al, al
-        popad                       // registers back, flags kept
-        jnz blocked
-        push ecx
-        cmp dword ptr [esi + 0x141C], 0
-        jmp dword ptr [jmp_ret_pose]
-    blocked:
-        xor eax, eax
-        ret
-    }
-}
-
-// uPlayer::setActionPoseUpperBdy 0x7AA860 (this@esi; called only by the shots' last phases: the E&I, Coyote-A, Blue Rose
-// and Blue Rose charge shots): the upper body into the gun pose. While the run is active it goes back to the run cycle
-// instead (back_to_run), after gun_hold_frames with the gun up: the shot action ends at once (the next press fires as
-// between shots), but nothing is requested on the upper / aim controllers, so the arms keep the shot's last frame and a
-// burst doesn't dip into the run between shots. The same 8 bytes as setActionPoseLowerBdy's are replaced.
-bool __stdcall pose_upper_redirect(uintptr_t pl) {
-    if (!pose_lower_blocked(pl)) return false;  // the same condition: the run is active
-    RunState& s = state_for(pl);
-    if (WallRun::gun_hold_frames > 0.0f) { end_upper_shot(s, pl); s.gun_hold = WallRun::gun_hold_frames; }
-    else back_to_run(s, pl);
-    return true;
-}
-uintptr_t jmp_ret_pose_upper = 0;               // 0x7AA868
-naked void detour_pose_upper() {
-    _asm {
-        pushad
-        push esi
-        call pose_upper_redirect    // __stdcall: pops its argument; al = handled
-        test al, al
-        popad
-        jnz handled
-        push ecx
-        cmp dword ptr [esi + 0x141C], 0
-        jmp dword ptr [jmp_ret_pose_upper]
-    handled:
-        xor eax, eax
-        ret
-    }
-}
-
 void hand_to_wall_jump(RunState& s, uintptr_t pl, bool from_run) {
     s.kickoff = -1;
     s.custom_kickoff = false;
@@ -809,7 +466,7 @@ void hand_to_wall_jump(RunState& s, uintptr_t pl, bool from_run) {
                                               s.wall.on_left ? WallRun::run_slot_jump_left : WallRun::run_slot_jump_right);
     }
     at<int>(pl, pl::mBdyActionLowerPhase) = 0;
-    end_upper_shot(s, pl);
+    upper_gun::end(pl);
     s.motion = -1;
     WallRun::wall_jump_port(pl);
 }
@@ -829,12 +486,6 @@ void __stdcall WallRun::move(uintptr_t pl) {
         s.timer  = run_frames;
         s.lost   = 0.0f;
         s.custom_kickoff = false;
-        s.run_limit = at<uint32_t>(pl, pl::mActLimit);  // the wall jump's row (jump | atck | guard), as its entry set them
-        s.run_stat  = at<uint32_t>(pl, pl::mActStat);
-        s.shot_age = -1.0f;
-        s.gun_hold = -1.0f;
-        s.lean_w = 0.0f;
-        s.gun_buffered = false;
         const glm::vec3 h = heading(pl, nullptr);
         if (!detect(pl, s.wall, h)) { hand_to_wall_jump(s, pl, false); return; }   // nothing runnable that way: plain wall jump
         steer(pl, s.wall, h);
@@ -877,7 +528,7 @@ void __stdcall WallRun::move(uintptr_t pl) {
     }
 
     uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
-    if (coll && at<bool>(coll, 0x1C)) { end_upper_shot(s, pl); set_action_land(pl); }   // mLand: back on the ground
+    if (coll && at<bool>(coll, 0x1C)) { upper_gun::end(pl); set_action_land(pl); }   // mLand: back on the ground
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -910,11 +561,25 @@ int WallRun::motion_for(uintptr_t player, const Wall& wall) {
 bool spine_provider(uintptr_t pl, spine_aim::Request& out) {
     if (!WallRun::mod_enabled || !WallRun::gun_while_running || WallRun::shoot_lean_deg == 0.0f || !running(pl)) return false;
     RunState& s = state_for(pl);
-    if (s.wall.vertical || s.lean_w <= 0.0f) return false;
+    const float w = upper_gun::lean_weight(pl);
+    if (s.wall.vertical || w <= 0.0f) return false;
     const glm::vec3 axis = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), -glm::vec3(s.wall.normal));
     if (glm::length(axis) <= 1e-3f) return false;
     out.lean_axis = glm::normalize(axis);
-    out.lean_deg = WallRun::shoot_lean_deg * s.lean_w;
+    out.lean_deg = WallRun::shoot_lean_deg * w;
+    return true;
+}
+
+// ---- the gun during the run: UpperGun's host (RE/player_move_pipeline.md "Upper-body gun shots"; the code is UpperGun.cpp) ----
+// The run is lower-body action 0x18, so the shot's mAtckId is its own (no id swap). The words the shot overwrites
+// (mActionNo = 12, the limits) are saved before the first shot and put back every post-action tick, with the run's
+// facing; after a shot the arms go back to the run cycle on the upper / aim controllers.
+bool gun_active(uintptr_t pl) { return WallRun::mod_enabled && running(pl); }
+bool gun_facing(uintptr_t pl, float* yaw) { *yaw = state_for(pl).wall.yaw; return true; }
+bool gun_lower_motion(uintptr_t pl, upper_gun::Motion* m) {
+    const RunState& s = state_for(pl);
+    if (s.motion < 0) return false;
+    m->motion = s.motion; m->attr = s.motion_attr; m->speed = 1.0f;
     return true;
 }
 
@@ -1219,32 +884,26 @@ std::optional<std::string> WallRun::on_initialize() {
         spdlog::error("Failed to init WallRun hook (checkWallJumpBegin entry)\n");
         return "Failed to init WallRun hook (checkWallJumpBegin entry)";
     }
-    // the gun during the run: the shared pre-check and post-action ticks (sdk/InputCommand.hpp) and the two pose-setter hooks
-    if (!input_commands::hook_installed) {
-        if (!install_hook_absolute(0x7A83B5, hook_pre, &input_commands::detour, &input_commands::jmp_ret, 8)) {
-            spdlog::error("WallRun: failed to hook uPlayer::main after executeCommandCheck (0x7A83B5)");
-            return "Failed to init WallRun (pre-check hook)";
+    // the gun during the run: UpperGun (the shared pre-check / post-action ticks and the two pose-setter hooks, installed once
+    // for every host); the run's own tunables are read through the pointers
+    {
+        upper_gun::Host h;
+        h.name = "WallRun";
+        h.enabled = &gun_while_running;
+        h.active = &gun_active;
+        h.facing = &gun_facing;
+        h.lower_motion = &gun_lower_motion;
+        h.shot_end_ticks = &shot_end_ticks;
+        h.upper_blend_min = &upper_blend_min;
+        h.back_blend_frames = &run_blend_frames;
+        h.gun_hold_frames = &gun_hold_frames;
+        h.lean_blend_frames = &lean_blend_frames;
+        if (!upper_gun::add_host(h)) {
+            spdlog::error("WallRun: UpperGun refused the host (hooks)");
+            return "Failed to init WallRun (UpperGun hooks)";
         }
-        input_commands::hook_installed = true;
     }
-    input_commands::add_tick(&precheck_tick);
-    if (!input_commands::post_hook_installed) {
-        if (!install_hook_absolute(0x7A8453, hook_post, &input_commands::detour_post, &input_commands::jmp_ret_post, 8)) {
-            spdlog::error("WallRun: failed to hook uPlayer::main after moveAction (0x7A8453)");
-            return "Failed to init WallRun (post-action hook)";
-        }
-        input_commands::post_hook_installed = true;
-    }
-    input_commands::add_post_tick(&post_action_tick);
     spine_aim::add_provider(&spine_provider);           // the torso lean while shooting
-    if (!install_hook_absolute(0x7AA8C0, hook_pose, &detour_pose_lower, &jmp_ret_pose, 8)) {
-        spdlog::error("WallRun: failed to hook uPlayer::setActionPoseLowerBdy (0x7AA8C0)");
-        return "Failed to init WallRun (pose hook)";
-    }
-    if (!install_hook_absolute(0x7AA860, hook_pose_upper, &detour_pose_upper, &jmp_ret_pose_upper, 8)) {
-        spdlog::error("WallRun: failed to hook uPlayer::setActionPoseUpperBdy (0x7AA860)");
-        return "Failed to init WallRun (upper pose hook)";
-    }
     return Mod::on_initialize();
 }
 
@@ -1313,8 +972,9 @@ void WallRun::on_gui_frame(int display) {
     if (gun_readout) {
         if (uPlayer* P = devil4_sdk::get_local_player()) {
             const uintptr_t p = (uintptr_t)P;
+            using namespace upper_gun;     // the offsets of the readout
             ImGui::Text("gun: shots %d | %s | lower motion %04X upper %04X aim %04X | custom LMT %s | upper action %d",
-                        g_shots, g_last, at<uint32_t>(p, pl::mMotionCtrl0No), at<uint32_t>(p, kMotionCtrl + kMotionCtrlSize * 1 + kMcMotionNo),
+                        upper_gun::shots, upper_gun::last, at<uint32_t>(p, pl::mMotionCtrl0No), at<uint32_t>(p, kMotionCtrl + kMotionCtrlSize * 1 + kMcMotionNo),
                         at<uint32_t>(p, kMotionCtrl + kMotionCtrlSize * 2 + kMcMotionNo), (WallRun::use_custom_lmt && motion_registry::placed(WallRun::lmt_set, p)) ? "yes" : "no", at<int>(p, kBdyUpperNo));
             // the lower motion's life signs: its frame, the controller's speed and attribute word (0x10 = A_STOP), the actor's
             // motion work rate (mProcSpdCtrl.mpWorkRate[1], what the characters' setActionUpperBdy rewrite)
@@ -1327,8 +987,8 @@ void WallRun::on_gui_frame(int display) {
             ImGui::Text("rapid: C_NORM0 %d | C_GUN %d | C_ALL %d | atck id %d | buffered %s | upper frame %.1f",
                         at<int>(p, kMotCncl + kMotCnclSize * C_NORM0 + 4), at<int>(p, kMotCncl + kMotCnclSize * C_GUN + 4),
                         at<int>(p, kMotCncl + kMotCnclSize * C_ALL + 4), at<int>(p, pl::mAtckId),
-                        state_for(p).gun_buffered ? "yes" : "no", at<float>(p, kModelMotion0Frame + 0xE0));
-        } else ImGui::Text("gun: shots %d | %s", g_shots, g_last);
+                        upper_gun::buffered(p) ? "yes" : "no", at<float>(p, kModelMotion0Frame + 0xE0));
+        } else ImGui::Text("gun: shots %d | %s", upper_gun::shots, upper_gun::last);
     }
     ImGui::SliderFloat(_("Run speed"), &run_speed, 0.0f, 40.0f);
     ImGui::SliderFloat(_("Max run frames"), &run_frames, 0.0f, 300.0f);

@@ -332,6 +332,8 @@ set(MODS_SRC
   mods/MoveTable.cpp
   mods/WallRun.hpp
   mods/WallRun.cpp
+  mods/UpperGun.hpp
+  mods/UpperGun.cpp
   mods/Gerb.hpp
   mods/Gerb.cpp
   mods/GerbShell.hpp

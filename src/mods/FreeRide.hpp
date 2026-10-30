@@ -41,6 +41,20 @@
 // Nero's Exceed gauge (uPlayerNero::cOverDriveGuage at +0xCCE4) revs by itself during the ride: the bar is written each
 // tick and cOverDriveGuage::addStock 0x7EA340 lights a stock every `exceed_frames`, with the game's effect and sound.
 //
+// The gun during the ride (2026-10-30): UpperGun (mods/UpperGun.hpp, the wall run's shooting made shareable) starts the
+// character's ground gun row on the upper half over the riding legs. The ride is attack 12 with its own mAtckId, which the
+// shot shares, so UpperGun swaps the word between the two halves' passes (move() ends with lower_pass_done) and keeps
+// the cancel gate off while riding. Dante's Gunslinger moves (Twosome Time, Fireworks ...) are whole-body moves that run in
+// the lower phase word, so they can't ride the legs: the style button hands the body to the game's own row ON the board
+// (`gunslinger_moves`): the ride action is suspended, its physics (the board's motion, the floor, the enemy under the
+// player, the hits) go on from the post-action tick, and when the move ends in the footwork the ride action and its motion
+// come back (FreeRide.cpp style_gun_move / style_post / resume_ride).
+//
+// Weapon and style changes work during the ride as on the ground (2026-10-30): the game reads them in checkBeforeAction,
+// which only runs with the cancel gate on, so the pre-check tick runs uPlayer::checkWeaponChange / uPlayerDante::checkStyleChange
+// itself; the model swap (cWeaponCtrl::update) is withheld from attack actions, so the post-action tick sets its flag while
+// the arms aren't in a shot.
+//
 // The move is `namespace free_ride`; the FreeRide Mod class is the framework plumbing.
 
 namespace free_ride {
@@ -83,6 +97,12 @@ extern bool  align_enemy;         // turn the enemy with the board
 extern float enemy_yaw_offset;    // degrees added to the board's direction for the enemy's yaw
 extern bool  exceed_fill;         // Nero: the ride revs the Exceed gauge (cOverDriveGuage) by itself
 extern float exceed_frames;       // frames of riding per Exceed stock
+extern bool  gun_while_riding;    // the game's gun shot on the upper half during the ride (UpperGun)
+extern float gun_hold_frames;     // frames the gun stays up after the last shot before the arms go back to the ride
+extern float gun_blend_min;       // frames: the least blend a shot's upper / aim request gets
+extern float gun_back_blend;      // frames the arms take back into the ride's motion after a shot
+extern float gun_shot_end;        // safety: ticks after which a stuck shot action is ended (0 = off)
+extern bool  gunslinger_moves;    // Dante in Gunslinger: the style button plays the gun's style move on the board, the ride goes on after
 
 // the exits
 extern int   nero_finisher;       // melee: the atckId handed off to (0x1F High Roller), -1 = melee hops off
@@ -106,5 +126,5 @@ public:
     void on_config_save(utility::Config& cfg) override;
     void on_gui_frame(int display) override;
 
-    std::unique_ptr<FunctionHook> hook_cmd;
+    std::unique_ptr<FunctionHook> hook_cmd, hook_post;
 };

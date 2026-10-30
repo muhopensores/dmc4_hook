@@ -1,6 +1,7 @@
 #include "FreeRide.hpp"
 #include "MoveTable.hpp"
 #include "FreeRideShell.hpp"
+#include "UpperGun.hpp"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/Collision.hpp"
 #include "../sdk/InputCommand.hpp"
@@ -43,6 +44,12 @@ float up_grace      = 20.0f;
 bool  align_enemy   = true;
 bool  exceed_fill   = true;
 float exceed_frames = 80.0f;
+bool  gun_while_riding = true;
+float gun_hold_frames  = 10.0f;
+float gun_blend_min    = 6.0f;
+float gun_back_blend   = 8.0f;
+float gun_shot_end     = 0.0f;
+bool  gunslinger_moves = true;
 float enemy_yaw_offset = 0.0f;
 int   nero_finisher = 0x1F;          // uPlayerNero::moveAtckRedQueenHiTime (High Roller; the move picks its jump follow-up itself)
 int   dante_finisher[3] = { 0x0B, -1, -1 };   // uPlayerDante::moveAtckRevellionHiTime; Gilgamesh / Lucifer: none chosen yet
@@ -68,6 +75,8 @@ constexpr uint32_t AS_DOWN = 0x4, AS_DEAD = 0x80;
 // cLockonTarget (sdk/uActor.hpp): +8 mpModel, +0x10 mPos (16 bytes), +0x20 mType (LOCKON_MODEL_TYPE: 0 enemy, 1 boss, 2 enemy shell,
 // 3 object ...). Until 2026-10-30 this read +0x1C = mPos.w, so Frosts / Mega Scarecrows (and some Angelo lock-on points) were refused.
 constexpr uintptr_t kTargetModel = 0x08, kTargetType = 0x20;
+constexpr uintptr_t kStyleKind = 0x156C;         // uPlayer::mStyle.kind (kStyleParam): STYLE_KIND_LONG 1 = Gunslinger
+constexpr uint32_t  STYLE_KIND_LONG = 1;
 constexpr uintptr_t kCurrentSword = 0x1DC0;      // uPlayer: Dante's held sword, 4 Rebellion 5 Gilgamesh 6 Lucifer (the rows' atckConditionWp)
 constexpr uintptr_t kCmdFlagWords = 0x2184;      // mCmdFlag[3]
 
@@ -89,6 +98,17 @@ constexpr uintptr_t kOdGauge = 0xCCE4;
 constexpr uintptr_t kOdStock = 0x04, kOdValue = 0x10, kOdPress = 0x24, kOdMax = 0x44, kOdParent = 0x50;
 constexpr uintptr_t fn_odAddStock = 0x007EA340;   // cOverDriveGuage::addStock (this@edi; int count, bool se, bool seAlt; retn 0Ch)
 constexpr uintptr_t fn_setActionFootwork = 0x007AA2C0;  // uPlayer::setActionFootwork (this@esi, float hokan, char isMotSet; callee pops)
+// Weapon and style changes live in checkBeforeAction (vtbl 147), which uPlayer::main runs only while the cancel gate is on; the
+// ride keeps it off, so it runs the two checks itself. uPlayer::checkWeaponChange 0x8045B0 (this@esi): the change buttons
+// (mBtnTrg 0x80 short / 0x100 long) advance mWeaponCtrl's mShortId / mLongId past their cooldowns. uPlayerDante::checkStyleChange
+// 0x7B6C20 (this@esi; edi is passed on to getProperSaveData, which ignores it): the d-pad -> mStyle with the 12-frame cooldown,
+// flash and sound; it only starts the style pose (action 35) from footwork, so during the ride the switch is instant.
+// cWeaponCtrl::update 0x7B0F10 (after the post-action tick) swaps the models only while mIsChangeEnable is set, which
+// moveAction 0x821552 sets unless mActionNo == 12 (isWeaponChange): an attack defers the swap to its end, so the ride
+// (attack 12) sets the flag itself once the arms are free of a shot.
+constexpr uintptr_t fn_checkWeaponChange = 0x008045B0;
+constexpr uintptr_t fn_checkStyleChange  = 0x007B6C20;
+constexpr uintptr_t kWpIsChangeEnable = 0x1DC8;    // mWeaponCtrl.mIsChangeEnable (cWeaponCtrl +0x40; +0x2C / +0x30 the chosen ids, +0x38 / +0x3C the held)
 
 // how a ground move ends (Stinger, Million Stab: setActionFootwork(10.0, 1))
 void set_action_footwork(uintptr_t pl, float hokan, int is_mot_set) {
@@ -124,6 +144,29 @@ void od_add_stock(uintptr_t gauge) {
         push 0          // seAlt
         push 1          // se
         push 1          // count
+        call fn
+        popad
+    }
+}
+
+// The weapon-change buttons, as checkBeforeAction would read them (the chosen weapon advances; the swap waits for the flag).
+void check_weapon_change(uintptr_t pl) {
+    uintptr_t fn = fn_checkWeaponChange;
+    __asm {
+        pushad
+        mov esi, pl
+        call fn
+        popad
+    }
+}
+
+// Dante's style buttons, as checkBeforeAction would read them.
+void check_style_change(uintptr_t pl) {
+    uintptr_t fn = fn_checkStyleChange;
+    __asm {
+        pushad
+        mov esi, pl
+        mov edi, pl
         call fn
         popad
     }
@@ -287,6 +330,13 @@ struct RideState {
     float     exceed = 0.0f;         // Nero: frames of ride toward the next Exceed stock
     uint32_t  serial = 0;            // this ride's number: the hit shell ends when the player's ride isn't it any more
     float     up_frames = 0.0f;      // hit mode: frames the enemy has been off AS_DOWN
+    int       ride_motion = -1;      // the motion on the legs during the ride (the arms go back to it after a shot)
+    uint32_t  ride_attr = 0;
+    float     ride_speed_mul = 1.0f; // its speed (the stand-in is held still: 0)
+    float     ride_start = 0.0f;     // its start frame (the stand-in is held at vanilla_ride_frame)
+    bool      ride_custom = false;   // a registry word (its .ctn is borrowed)
+    bool      style_active = false;  // Dante: one of the game's Gunslinger moves has the body; the ride goes on from the post tick
+    uint32_t  style_id = 0;          // the atckId it started with (readout)
 };
 RideState g_rides[kPlayerSlots];
 static uint32_t g_ride_serial = 0;
@@ -314,8 +364,14 @@ RideState* find_state(uintptr_t player) {
 }
 
 bool riding(uintptr_t pl) {
-    const uint32_t id = at<uint32_t>(pl, pl::mAtckId);
+    const uint32_t id = upper_gun::effective_atck_id(pl);   // the ride's id even while a shot's id is swapped in (the upper pass)
     return at<uint32_t>(pl, pl::mBdyActionLowerNo) == 12 && (id == nero_move_id || id == dante_move_id);
+}
+
+// The board goes on under one of the game's Gunslinger moves (the ride action is suspended, the post tick drives it).
+bool style_riding(uintptr_t pl) {
+    const RideState* s = find_state(pl);
+    return s && s->style_active && s->enemy != 0;
 }
 
 } // namespace
@@ -323,7 +379,8 @@ bool riding(uintptr_t pl) {
 // The hit shell's lifetime: the ride `serial` of `pl` is still on the board.
 bool ride_active(uintptr_t pl, uint32_t serial) {
     const RideState* s = find_state(pl);
-    return s && s->serial == serial && s->enemy != 0 && riding(pl) && at<int>(pl, pl::mBdyActionLowerPhase) == PHASE_RIDE;
+    return s && s->serial == serial && s->enemy != 0 &&
+           (s->style_active || (riding(pl) && at<int>(pl, pl::mBdyActionLowerPhase) == PHASE_RIDE));
 }
 
 namespace {
@@ -343,7 +400,7 @@ uintptr_t ride_target(uintptr_t pl) {
 
 static input_commands::Command g_cmd;
 static int g_cmd_bit = -1;
-static uint32_t g_fired = 0, g_entries = 0, g_finishes = 0, g_hops = 0;   // readout
+static uint32_t g_fired = 0, g_entries = 0, g_finishes = 0, g_hops = 0, g_style_moves = 0;   // readout
 static bool g_in_reach = false;   // readout: the local player's lock-on target could be ridden (set on the game thread)
 
 // lock-on held, (the stick toward the target within 10 frames of) jump pressed. The game thread reads g_cmd's head and
@@ -371,11 +428,12 @@ void pre_tick(uintptr_t pl) {
         ++g_fired;
         return;
     }
-    if (!riding(pl)) {                                   // a ride cut short (hit out of it): the enemy goes free, the push comes back
-        if (RideState* s = find_state(pl); s && s->enemy) { release(s->enemy); ignore_enemy(pl, s->enemy, false); s->enemy = 0; }
+    if (!riding(pl) && !style_riding(pl)) {              // a ride cut short (hit out of it): the enemy goes free, the push comes back
+        if (RideState* s = find_state(pl); s && s->enemy) { release(s->enemy); ignore_enemy(pl, s->enemy, false); s->enemy = 0; s->style_active = false; }
         return;
     }
     RideState& s = state_for(pl);
+    if (s.style_active) return;                          // the game's move has the buttons (its own repeats and cancels)
     const uint32_t on = at<uint32_t>(pl, pl::mBtnOn);
     if (s.jump_held) {
         if (!(on & 0x4)) s.jump_held = false;
@@ -385,6 +443,8 @@ void pre_tick(uintptr_t pl) {
         if (!(on & 0x1)) s.melee_held = false;
         else at<uint32_t>(pl, pl::mBtnTrg) &= ~0x1u;
     }
+    check_weapon_change(pl);                             // the game's checks live behind the cancel gate, which the ride keeps off
+    if (character_of(pl) == DANTE) check_style_change(pl);
 }
 
 // ---- Nero's Exceed gauge ----
@@ -405,13 +465,23 @@ void fill_exceed(uintptr_t pl, RideState& s, float dt) {
     if (at<float>(g, kOdPress) <= 0.0f) at<float>(g, kOdValue) = at<float>(g, kOdMax) * (s.exceed / exceed_frames);
 }
 
+// The ride's motion as the state remembers it (a registry word with the borrowed .ctn, or the stand-in held still), with
+// `interp` frames of blend: the mount's hand-over, and the return from a Gunslinger move.
+void request_ride_motion(uintptr_t pl, const RideState& s, float interp) {
+    if (s.ride_motion < 0) return;
+    if (s.ride_custom) devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);   // updateMotion clears the override after each use
+    request_motion(pl, s.ride_motion, s.ride_attr, interp, s.ride_start, s.ride_speed_mul);
+}
+
 // ---- the exits ----
 // Off the board with the game's own enemy step: action 25, what checkEmJumpBegin 0x804970 starts (the 0x11 hop toward the
 // stick, or straight up, then the fall), with the timers it sets; the air rules take it from there.
 void hop_off(uintptr_t pl, RideState& s) {
+    upper_gun::end(pl);                 // the arms out of a shot, the words back, before the whole-body action
     release(s.enemy);
     ignore_enemy(pl, s.enemy, false);
     s.enemy = 0;
+    s.style_active = false;
     ++g_hops;
     set_velocity(pl, glm::vec3(0.0f));
     set_airborne(pl, true);
@@ -419,6 +489,30 @@ void hop_off(uintptr_t pl, RideState& s) {
     at<float>(pl, kEmJumpTimer) = prm[79];
     at<float>(pl, kWJumpTimer)  = prm[80];
     set_action(pl, 25);
+}
+
+// Off the board onto the floor `finish_back` cm behind the enemy, facing it, standing: where a ground move takes over.
+void dismount_to_floor(uintptr_t pl, RideState& s) {
+    upper_gun::end(pl);
+    release(s.enemy);
+    ignore_enemy(pl, s.enemy, false);
+    MtVector3& pos = at<MtVector3>(pl, pl::mPos);
+    const glm::vec3 p = vec(at<MtVector3>(s.enemy, em::mPos)) - dir_of(s.yaw) * finish_back;
+    pos.x = p.x; pos.y = s.floor_y; pos.z = p.z;
+    set_velocity(pl, glm::vec3(0.0f));
+    set_airborne(pl, false);
+    face(pl, s.yaw);
+    s.enemy = 0;
+    s.style_active = false;
+}
+
+// The ride ends under a move that keeps the body (the enemy died or got up, a ledge, a cancel into another action): the
+// enemy goes free where it is, the player stays in that action (standing in the air at ride height, so he falls).
+void drop_ride(uintptr_t pl, RideState& s) {
+    release(s.enemy);
+    ignore_enemy(pl, s.enemy, false);
+    s.enemy = 0;
+    s.style_active = false;
 }
 
 // The launcher: the player back on the floor behind the enemy, then the Stinger -> Million Stab hand-off (setActionAtck
@@ -430,20 +524,54 @@ bool finish(uintptr_t pl, RideState& s, int c) {
         if (sword >= 4 && sword <= 6) id = dante_finisher[sword - 4];
     }
     if (id <= 0) return false;
-    release(s.enemy);
-    ignore_enemy(pl, s.enemy, false);
-    MtVector3& pos = at<MtVector3>(pl, pl::mPos);
-    const glm::vec3 p = vec(at<MtVector3>(s.enemy, em::mPos)) - dir_of(s.yaw) * finish_back;
-    pos.x = p.x; pos.y = s.floor_y; pos.z = p.z;
-    set_velocity(pl, glm::vec3(0.0f));
-    set_airborne(pl, false);
-    face(pl, s.yaw);
-    s.enemy = 0;
+    dismount_to_floor(pl, s);
     ++g_finishes;
     set_action_atck(pl, (uint32_t)id, -1);
     run_dispatch(pl, c);
     return true;
 }
+
+// Dante in Gunslinger: the style button does the held gun's style move (Twosome Time 68 for Ebony & Ivory, Fireworks 79 for
+// the Coyote-A, Pandora's 88) ON the board. Those are whole-body moves (uPlayerDante::moveAtckStyleEbonyIvoryTwoSometime
+// 0x7D8B90 / ...CoyoteAceNunchaku 0x7DA3A0 run their phases in the LOWER phase word mBdyAction[1].phase, request whole-body
+// motions on controller 0 and hand off with setActionAtck(id, -1)), so unlike the plain shots they can't play on the upper
+// half over the riding legs: instead the game's own row takes the body (atckAttr 4, the style button; uPlayer::kAtckDefTbl
+// rows 69 / 87 / 93 of Dante's table 0xC3FEA0; its ground version, the current style and gun, unlocked and its extra
+// condition through checkAtckEtcSub, started as checkAtckSub does: setActionAtck(id, -1) and the dispatch this tick), and
+// the ride is suspended: `style_active`, with the board's motion, floor, enemy and hits kept up by the post-action tick
+// (style_post) while the move's state function runs instead of ours. The stick aims the shots (setStylGunTwoSome reads it),
+// so the board runs straight meanwhile. When the move ends (its last phase calls uPlayer::setActionFootwork 0x7AA2C0:
+// action 1, or 13 with the gun held, mAtckId 0) the ride action and its motion come back (resume_ride). Honeycomb (69) and
+// the repeats follow from the move itself (it chains with setActionAtck(68 / 69, -1), the lower body staying attack 12);
+// a cancel into anything else (Gun Stinger / Backslide 81 / 82 dash away, a melee row, a jump, damage) ends the ride.
+bool style_gun_move(uintptr_t pl, RideState& s) {
+    if (at<uint32_t>(pl, kStyleKind) != STYLE_KIND_LONG) return false;
+    const kAtckDefTbl* row = (const kAtckDefTbl*)HookDanteKADTbl;
+    if (!row) return false;
+    const uint32_t wp = at<uint32_t>(pl, upper_gun::kWpEnableLongId);
+    int id = -1;
+    for (; row->atckAttr != 3; ++row) {
+        if (row->atckAttr != 4 || row->atckAs != 1) continue;              // a style-button row, its ground version
+        if (row->command.atckCommandNo) continue;                          // disabled row (MoveTable's convention)
+        if (row->atckConditionStyle != 0xFFFFFFFFu && row->atckConditionStyle != STYLE_KIND_LONG) continue;
+        if (row->atckConditionWp != 0xFFFFFFFFu && row->atckConditionWp != wp) continue;
+        if (!upper_gun::row_allowed(pl, row->atckId, row->ukn)) continue;
+        id = (int)row->atckId;
+        break;
+    }
+    if (id < 0) return false;
+    upper_gun::end(pl);                 // a plain shot's upper action and saved words out of the way first
+    ++g_style_moves;
+    s.style_active = true;
+    s.style_id = (uint32_t)id;
+    set_action_atck(pl, (uint32_t)id, -1);   // phase 0 for its state function; its own cancel gate from here
+    run_dispatch(pl, DANTE);            // the lower pass as checkAtckSub's tick would run it; the upper pass (the move itself) follows
+    return true;
+}
+
+// A gun atckId the ride stays under: Dante's gun rows 60-90 (the style moves and what they chain into), less the two
+// command moves that carry the player away (Backslide 81, Gun Stinger 82).
+bool style_gun_id(uint32_t id) { return id >= 60 && id <= 90 && id != 81 && id != 82; }
 
 } // namespace
 
@@ -455,7 +583,78 @@ bool can_mount(uintptr_t pl) {
     return ride_target(pl) != 0;
 }
 
-void __stdcall move(uintptr_t pl, uint32_t) {
+namespace {
+// One tick of the board in PHASE_RIDE: the Exceed rev, the facing (steering toward the stick when `steer`), the motion
+// along the floor, the hold / hits and the enemy under the player. false = the ride can't go on (a ledge, the enemy got up).
+bool ride_tick(uintptr_t pl, RideState& s, int c, float dt, bool steer) {
+    MtVector3& pos = at<MtVector3>(pl, pl::mPos);
+    if (c == NERO && exceed_fill && exceed_frames > 0.0f) fill_exceed(pl, s, dt);
+
+    if (steer && at<int>(pl, pl::mAnlgPow) != 0)            // steer: the board turns toward the stick
+        s.yaw = turn_toward(s.yaw, at<float>(pl, pl::mAnlgRadian), glm::radians(turn_rate) * dt);
+    face(pl, s.yaw);
+
+    const glm::vec3 next = vec(pos) + dir_of(s.yaw) * ride_speed * dt;
+    float fy;
+    if (!floor_at(next.x, next.z, next.y + 60.0f, next.y - ride_height - step_down, &fy)) return false;   // a ledge
+    s.floor_y = fy;
+    const glm::vec3 v(dir_of(s.yaw).x * ride_speed, (fy + ride_height - pos.y) / dt, dir_of(s.yaw).z * ride_speed);
+    set_velocity(pl, v);
+    if (hit_mode == HIT_DAMAGE) {
+        still(s.enemy);
+        if (at<uint32_t>(s.enemy, em::mActorStatus) & AS_DOWN) s.up_frames = 0.0f;
+        else if ((s.up_frames += dt) > up_grace) return false;   // it got up: the hits don't interrupt it
+    } else {
+        hold(s.enemy);
+    }
+    place_enemy(s.enemy, glm::vec3(next.x, fy, next.z), s.yaw);
+    return true;
+}
+
+// Back on the board after a Gunslinger move: the ride action with both halves (setActionAtck resets the phase word; the
+// ride goes straight on in PHASE_RIDE, its timer where it was), the ride's motion over `gun_back_blend` frames (the
+// footwork the move requested is overridden before updateMotion), the facing and the air status the ride keeps.
+void resume_ride(uintptr_t pl, RideState& s, int c, float dt) {
+    s.style_active = false;
+    set_action_atck(pl, c == NERO ? nero_move_id : dante_move_id, -1);
+    at<int>(pl, pl::mBdyActionLowerPhase) = PHASE_RIDE;
+    set_airborne(pl, true);
+    face(pl, s.yaw);
+    request_ride_motion(pl, s, gun_back_blend);
+    if (!ride_tick(pl, s, c, dt, false)) hop_off(pl, s);   // this tick's velocity (setActionFootwork zeroed it)
+}
+
+// After both halves' state functions while a Gunslinger move has the body: the board goes on; when the move is over the
+// ride comes back, when something else took the body the ride is dropped.
+void style_post(uintptr_t pl, RideState& s) {
+    const int c = character_of(pl);
+    const float dt = std::max(at<float>(pl, pl::m_delta_time), 0.01f);
+    if (!enemy_alive(s.enemy)) { drop_ride(pl, s); return; }
+    s.t += dt;
+    const uint32_t lower = at<uint32_t>(pl, pl::mBdyActionLowerNo);
+    const uint32_t id = at<uint32_t>(pl, pl::mAtckId);
+    if (lower == 12 && style_gun_id(id)) {                   // the move (or what it chained into) is still running
+        if (!ride_tick(pl, s, c, dt, false)) drop_ride(pl, s);
+        return;
+    }
+    const int action = at<int>(pl, upper_gun::kActionNo);
+    if (action != 1 && action != 13) { drop_ride(pl, s); return; }   // a jump, damage, a melee row, a dash: the ride is over
+    if (ride_frames > 0.0f && s.t >= ride_frames) { hop_off(pl, s); return; }   // the ride ran out under the move
+    resume_ride(pl, s, c, dt);
+}
+
+// The post-action tick: the board under a Gunslinger move, and a weapon change chosen during the ride applied this tick
+// (cWeaponCtrl::update runs after this and only swaps with the flag set, which moveAction withholds from attack 12), once the
+// arms are out of a shot (a swap under the shot's motion would pull its weapon away; the choice keeps until then).
+void post_tick(uintptr_t pl) {
+    if (!mod_enabled || !pl) return;
+    RideState* sp = find_state(pl);
+    if (!sp) return;
+    if (sp->style_active) style_post(pl, *sp);
+    if (riding(pl) && !upper_gun::busy(pl)) at<bool>(pl, kWpIsChangeEnable) = true;
+}
+
+void move_impl(uintptr_t pl) {
     int& phase = at<int>(pl, pl::mBdyActionLowerPhase);
     RideState& s = state_for(pl);
     const int c = character_of(pl);
@@ -485,6 +684,7 @@ void __stdcall move(uintptr_t pl, uint32_t) {
             devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
             request_motion(pl, mount, (uint32_t)A_NULL_TRANS_OFF, 3.0f, 0.0f, 1.0f);
             s.custom = true;
+            s.ride_motion = mount; s.ride_attr = (uint32_t)A_NULL_TRANS_OFF; s.ride_speed_mul = 1.0f; s.ride_start = 0.0f; s.ride_custom = true;   // (stays if one block is the whole move)
         } else {
             request_motion(pl, vanilla_mount_motion, (uint32_t)A_NULL_TRANS_OFF, 3.0f, 0.0f, 1.0f);
         }
@@ -508,10 +708,12 @@ void __stdcall move(uintptr_t pl, uint32_t) {
         if (s.custom && slot_ride == slot_mount) {
             // one block for the whole move: the mount's motion runs on as the ride (loop it in the LMT)
         } else if (const int ride = motion_word(pl, slot_ride); ride >= 0) {
-            devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);   // updateMotion clears the override after each use
-            request_motion(pl, ride, (uint32_t)A_NULL_TRANS_OFF, 4.0f, 0.0f, 1.0f);
-        } else
-            request_motion(pl, vanilla_ride_motion, (uint32_t)A_NULL_TRANS_OFF, 4.0f, vanilla_ride_frame, 0.0f);
+            s.ride_motion = ride; s.ride_attr = (uint32_t)A_NULL_TRANS_OFF; s.ride_speed_mul = 1.0f; s.ride_start = 0.0f; s.ride_custom = true;
+            request_ride_motion(pl, s, 4.0f);
+        } else {
+            s.ride_motion = vanilla_ride_motion; s.ride_attr = (uint32_t)A_NULL_TRANS_OFF; s.ride_speed_mul = 0.0f; s.ride_start = vanilla_ride_frame; s.ride_custom = false;
+            request_ride_motion(pl, s, 4.0f);
+        }
         s.serial = ++g_ride_serial;
         s.up_frames = 0.0f;
         phase = PHASE_RIDE;
@@ -531,32 +733,44 @@ void __stdcall move(uintptr_t pl, uint32_t) {
             hop_off(pl, s);
             return;
         }
+        if (c == DANTE && gunslinger_moves && (trg & 0x200) && style_gun_move(pl, s)) return;   // Gunslinger: the gun's style move takes the body, the board goes on (style_post)
         if (ride_frames > 0.0f && s.t >= ride_frames) { hop_off(pl, s); return; }
-        if (c == NERO && exceed_fill && exceed_frames > 0.0f) fill_exceed(pl, s, dt);
-
-        if (at<int>(pl, pl::mAnlgPow) != 0)                     // steer: the board turns toward the stick
-            s.yaw = turn_toward(s.yaw, at<float>(pl, pl::mAnlgRadian), glm::radians(turn_rate) * dt);
-        face(pl, s.yaw);
-
-        const glm::vec3 next = vec(pos) + dir_of(s.yaw) * ride_speed * dt;
-        float fy;
-        if (!floor_at(next.x, next.z, next.y + 60.0f, next.y - ride_height - step_down, &fy)) { hop_off(pl, s); return; }   // a ledge
-        s.floor_y = fy;
-        const glm::vec3 v(dir_of(s.yaw).x * ride_speed, (fy + ride_height - pos.y) / dt, dir_of(s.yaw).z * ride_speed);
-        set_velocity(pl, v);
-        if (hit_mode == HIT_DAMAGE) {
-            still(s.enemy);
-            if (at<uint32_t>(s.enemy, em::mActorStatus) & AS_DOWN) s.up_frames = 0.0f;
-            else if ((s.up_frames += dt) > up_grace) { hop_off(pl, s); return; }   // it got up: the hits don't interrupt it
-        } else {
-            hold(s.enemy);
-        }
-        place_enemy(s.enemy, glm::vec3(next.x, fy, next.z), s.yaw);
+        if (!ride_tick(pl, s, c, dt, true)) hop_off(pl, s);     // a ledge, or the enemy got up
         return;
     }
     default:
         return;
     }
+}
+
+// ---- the gun during the ride: UpperGun's host (RE/player_move_pipeline.md "Upper-body gun shots") ----
+// The ride is attack 12 with its own mAtckId, which the upper-only shot shares: UpperGun keeps the ride's id in the
+// word through the pre-check tick and the lower pass (the dispatch reaches move()), the gun's through the upper pass
+// (lower_pass_done at the end of move()), and puts the ride's back in the post-action tick; riding() reads the
+// effective id. The cancel gate stays off during the ride (the shot's phase 0 turns it on; with it on, checkAction's
+// case 12 would run the enemy-step / air-hike checks and checkAtck over a move that handles its own exits).
+bool gun_active(uintptr_t pl) { return mod_enabled && riding(pl) && at<int>(pl, pl::mBdyActionLowerPhase) == PHASE_RIDE; }
+bool gun_facing(uintptr_t pl, float* yaw) { const RideState* s = find_state(pl); if (!s) return false; *yaw = s->yaw; return true; }
+bool gun_lower_motion(uintptr_t pl, upper_gun::Motion* m) {
+    const RideState* s = find_state(pl);
+    if (!s || s->ride_motion < 0) return false;
+    m->motion = s->ride_motion; m->attr = s->ride_attr; m->speed = s->ride_speed_mul;
+    return true;
+}
+// before the arms' request after a shot: a registry word has no .ctn of its own, so the upper half borrows the ride's
+// (the lower half's flag is cleared again: left armed, the next lower request (the hop off) would read it instead of its own)
+void gun_before_back(uintptr_t pl) {
+    const RideState* s = find_state(pl);
+    if (!s || !s->ride_custom) return;
+    devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
+    at<bool>(pl, pl::mMotionSetCharTblParam + 12) = false;   // [1] = the lower half
+}
+uint32_t gun_lower_id(uintptr_t pl) { return character_of(pl) == NERO ? nero_move_id : dante_move_id; }
+} // namespace
+
+void __stdcall move(uintptr_t pl, uint32_t) {
+    move_impl(pl);
+    upper_gun::lower_pass_done(pl);     // the upper pass comes next: a shot's id into mAtckId for its state function
 }
 
 // The rows MoveFreeRide added (one per character): byte 0 of the command word = the command bit, byte 1 = 1 makes the
@@ -596,6 +810,30 @@ std::optional<std::string> FreeRide::on_initialize() {
         g_cmd_bit = -1;
     }
     add_tick(&pre_tick);
+    {                                          // the gun during the ride (UpperGun; WallRun may have installed the hooks already)
+        upper_gun::Host h;
+        h.name = "FreeRide";
+        h.enabled = &gun_while_riding;
+        h.active = &gun_active;
+        h.facing = &gun_facing;
+        h.lower_motion = &gun_lower_motion;
+        h.before_back = &gun_before_back;
+        h.lower_atck_id = &gun_lower_id;
+        h.clear_cancel_gate = true;
+        h.shot_end_ticks = &gun_shot_end;
+        h.upper_blend_min = &gun_blend_min;
+        h.back_blend_frames = &gun_back_blend;
+        h.gun_hold_frames = &gun_hold_frames;
+        if (!upper_gun::add_host(h)) spdlog::error("FreeRide: UpperGun refused the host; no shooting during the ride");
+    }
+    {                                          // the post-action tick: the board under a Gunslinger move, weapon swaps (UpperGun's add_host installs the hook; else here)
+        if (!input_commands::post_hook_installed) {
+            if (!install_hook_absolute(0x7A8453, hook_post, &input_commands::detour_post, &input_commands::jmp_ret_post, 8))
+                spdlog::error("FreeRide: failed to hook uPlayer::main after moveAction (0x7A8453); no Gunslinger moves or weapon swaps on the board");
+            else input_commands::post_hook_installed = true;
+        }
+        if (input_commands::post_hook_installed && !add_post_tick(&post_tick)) spdlog::error("FreeRide: no room for the post-action tick");
+    }
     if (!input_commands::hook_installed) {     // one installer: whichever command mod initialises first
         if (!install_hook_absolute(0x7A83B5, hook_cmd, &input_commands::detour, &input_commands::jmp_ret, 8)) {
             spdlog::error("FreeRide: failed to hook uPlayer::main after executeCommandCheck (0x7A83B5)");
@@ -692,6 +930,39 @@ void FreeRide::on_gui_frame(int display) {
                       "up under the player)."));
     }
 
+    ImGui::TextUnformatted(_("Guns"));
+    ImGui::Checkbox(_("Shoot while riding"), &gun_while_riding);
+    ImGui::SameLine();
+    help_marker(_("The gun fires from the upper half while the ride goes on, as the game's walking shot does over walking legs: its "
+                  "shot motion and the elevation layer on the upper body, the ride's motion on the legs; after each shot the arms "
+                  "blend back. Bullets, effects, sound, mashing for rapid fire and the guns' own animations are the game's. No "
+                  "charge shots, no Pandora. Jump and melee still end the ride."));
+    if (gun_while_riding) {
+        ImGui::SliderFloat(_("Gun held after a shot"), &gun_hold_frames, 0.0f, 120.0f, "%.0f frames");
+        ImGui::SameLine();
+        help_marker(_("How long the gun stays up after the last shot before the arms go back to the ride (60 = one second). A burst "
+                      "then stays aimed instead of dipping between shots. 0 = back to the ride after every shot."));
+        ImGui::SliderFloat(_("Shot blend in"), &gun_blend_min, 0.0f, 20.0f, "%.0f frames");
+        ImGui::SameLine();
+        help_marker(_("The least blend a shot (and its aim layer) gets coming in. With Spine aim's inertial blends the shot plays at "
+                      "full strength at once and only the gap from the riding arms fades over these frames (6-8); with the game's "
+                      "crossfade a long blend dilutes the short shots (3 is quick)."));
+        ImGui::SliderFloat(_("Back to ride blend"), &gun_back_blend, 1.0f, 30.0f, "%.0f frames");
+        ImGui::SameLine();
+        help_marker(_("How long the arms take to blend from the end of a shot back into the ride's motion."));
+        ImGui::SliderFloat(_("Shot hand-off (0 = off)"), &gun_shot_end, 0.0f, 120.0f, "%.0f ticks");
+        ImGui::SameLine();
+        help_marker(_("Safety only: a shot action still running this many ticks after it started is ended, so the next press can "
+                      "shoot again. The shots end on their own, so 0 is right unless a weapon gets stuck."));
+    }
+    ImGui::Checkbox(_("Dante: Gunslinger moves from the board"), &gunslinger_moves);
+    ImGui::SameLine();
+    help_marker(_("In Gunslinger, the style button does the held gun's style move (Twosome Time, Fireworks, Pandora's) on the board: "
+                  "the game's own move plays with its whole-body animation while the board carries on straight ahead (the stick "
+                  "aims the shots meanwhile, as it does on the ground), Honeycomb and the repeats included; when the move ends the "
+                  "ride animation comes back. Gun Stinger and Backslide carry the player off the board, as do jump and melee. Rain "
+                  "Storm (an air move) isn't offered."));
+
     ImGui::TextUnformatted(_("Exits"));
     ImGui::InputInt(_("Nero finisher atckId"), &nero_finisher, 1, 1, ImGuiInputTextFlags_CharsHexadecimal);
     ImGui::SameLine();
@@ -733,11 +1004,16 @@ void FreeRide::on_gui_frame(int display) {
         const int c = character_of(P);
         const RideState* s = find_state(P);
         const uintptr_t ridden = s ? s->enemy : 0;
-        ImGui::Text("command bit %d | fired %u | entries %u | finishers %u | hops %u", g_cmd_bit, g_fired, g_entries, g_finishes, g_hops);
+        ImGui::Text("command bit %d | fired %u | entries %u | finishers %u | hops %u | style moves %u%s", g_cmd_bit, g_fired, g_entries, g_finishes, g_hops, g_style_moves,
+                    (s && s->style_active) ? " (one running)" : "");
         ImGui::Text("riding %d phase %d t %.1f | target in reach %s | ridden %p hitstop %.1f | floor %.1f",
                     (int)riding(P), at<int>(P, pl::mBdyActionLowerPhase), s ? s->t : 0.0f, g_in_reach ? "yes" : "no", (void*)ridden,
                     enemy_alive(ridden) ? at<float>(ridden, em::mEmHitStopTimer) : 0.0f, s ? s->floor_y : 0.0f);
         if (hit_mode == HIT_DAMAGE) hit_readout();
+        if (gun_while_riding)
+            ImGui::Text("gun: shots %d | %s | upper action %d | atck id %u (effective %u) | busy %s", upper_gun::shots, upper_gun::last,
+                        at<int>(P, upper_gun::kBdyUpperNo), at<uint32_t>(P, pl::mAtckId), upper_gun::effective_atck_id(P),
+                        upper_gun::busy(P) ? "yes" : "no");
         if (c == NERO)
             ImGui::Text("exceed: stocks %d | bar %.1f / %.1f | ride %.0f / %.0f", at<int>(P + kOdGauge, kOdStock),
                         at<float>(P + kOdGauge, kOdValue), at<float>(P + kOdGauge, kOdMax), s ? s->exceed : 0.0f, exceed_frames);
@@ -777,6 +1053,12 @@ void FreeRide::on_config_load(const utility::Config& cfg) {
     hit_config_load(cfg);
     exceed_fill   = cfg.get<bool>("free_ride_exceed").value_or(exceed_fill);
     exceed_frames = cfg.get<float>("free_ride_exceed_frames").value_or(exceed_frames);
+    gun_while_riding = cfg.get<bool>("free_ride_gun").value_or(gun_while_riding);
+    gun_hold_frames  = cfg.get<float>("free_ride_gun_hold").value_or(gun_hold_frames);
+    gun_blend_min    = cfg.get<float>("free_ride_gun_blend").value_or(gun_blend_min);
+    gun_back_blend   = cfg.get<float>("free_ride_gun_back_blend").value_or(gun_back_blend);
+    gun_shot_end     = cfg.get<float>("free_ride_gun_shot_end").value_or(gun_shot_end);
+    gunslinger_moves = cfg.get<bool>("free_ride_gunslinger").value_or(gunslinger_moves);
     nero_finisher = cfg.get<int>("free_ride_nero_finisher").value_or(nero_finisher);
     for (int i = 0; i < 3; ++i) dante_finisher[i] = cfg.get<int>("free_ride_dante_finisher_" + std::to_string(i)).value_or(dante_finisher[i]);
     finish_back   = cfg.get<float>("free_ride_finish_back").value_or(finish_back);
@@ -812,6 +1094,12 @@ void FreeRide::on_config_save(utility::Config& cfg) {
     hit_config_save(cfg);
     cfg.set<bool>("free_ride_exceed", exceed_fill);
     cfg.set<float>("free_ride_exceed_frames", exceed_frames);
+    cfg.set<bool>("free_ride_gun", gun_while_riding);
+    cfg.set<float>("free_ride_gun_hold", gun_hold_frames);
+    cfg.set<float>("free_ride_gun_blend", gun_blend_min);
+    cfg.set<float>("free_ride_gun_back_blend", gun_back_blend);
+    cfg.set<float>("free_ride_gun_shot_end", gun_shot_end);
+    cfg.set<bool>("free_ride_gunslinger", gunslinger_moves);
     cfg.set<int>("free_ride_nero_finisher", nero_finisher);
     for (int i = 0; i < 3; ++i) cfg.set<int>("free_ride_dante_finisher_" + std::to_string(i), dante_finisher[i]);
     cfg.set<float>("free_ride_finish_back", finish_back);
