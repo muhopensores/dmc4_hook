@@ -143,11 +143,22 @@ void unswap(GunState& s, const Host& h, uintptr_t pl) {
     s.swapped = false;
 }
 
-// The upper-body shot, the way setActionAtckGun starts it, minus the lower-body pose.
+// The upper-body shot, the way setActionAtckGun 0x7AAE20 starts it, minus the lower-body pose. A weapon change chosen since
+// the last shot (L2 / R2: mLongId != mEnableLongId) is taken over as the game does: the row is the chosen gun's, its tables
+// are set up here (vtbl 140) and the models swap at the end of this tick (setActionUpperBdy enables cWeaponCtrl::update).
+// Until 2026-10-30 the row was matched against the held gun, so a switch mid-shot started the old gun's row over the new
+// weapon: a glitch or a crash (Pandora's).
 void start_upper_shot(GunState& s, const Host& h, uintptr_t pl, uint32_t id) {
     if (!upper_busy(pl)) save_words(s, pl);
+    if (!at<bool>(pl, kIsWpChangeCancel)) {
+        at<uint32_t>(pl, kWpGripId) = at<uint32_t>(pl, kWpEnableLongId);
+        if (at<uint32_t>(pl, kWpEnableLongId) != at<uint32_t>(pl, kWpLongId)) {
+            at<bool>(pl, kPoseIsHoldGun) = false;
+            using SetupFn = void(__thiscall*)(uintptr_t);
+            (*(SetupFn*)(*(uintptr_t*)pl + kVtSetupLongWeaponChange))(pl);
+        }
+    }
     set_pose_weapon(pl);                                 // mPose.wpnId = the weapon when it can pose (Blue Rose, E&I); the Coyote-A can't and shoots anyway
-    if (!at<bool>(pl, kIsWpChangeCancel)) at<uint32_t>(pl, kWpGripId) = at<uint32_t>(pl, kWpEnableLongId);
     set_action_atck(pl, id, 0);
     s.shot_id = id;
     unswap(s, h, pl);                                    // the lower pass comes next: the host's dispatch needs its own id
@@ -227,9 +238,9 @@ void precheck_tick(uintptr_t pl) {
     const Host& h = g_hosts[hi];
     GunState& s = state_for(pl);
     s.host = hi;
-    // Pandora (Dante's long weapon 8) has no place here (its row started upper-only, after a switch mid-shot, crashed the
-    // game): no shot, nothing touched, only the press eaten so checkAtck doesn't start its air row
-    if (at<int>(pl, pl::mPlayerID) != 1 && at<uint32_t>(pl, kWpEnableLongId) == 8) {
+    // Pandora (Dante's long weapon 8) has no place here (its row started upper-only crashed the game): no shot, nothing
+    // touched, only the press eaten so checkAtck doesn't start its air row. The chosen gun is what the row would be.
+    if (at<int>(pl, pl::mPlayerID) != 1 && (at<uint32_t>(pl, kWpLongId) == 8 || at<uint32_t>(pl, kWpEnableLongId) == 8)) {
         at<uint32_t>(pl, pl::mBtnTrg) &= ~0x2u;
         at<bool>(pl, kMotCncl + kMotCnclSize * C_NORM0 + kMotCnclReserve) = false;
         at<bool>(pl, kMotCncl + kMotCnclSize * C_GUN   + kMotCnclReserve) = false;
@@ -243,7 +254,7 @@ void precheck_tick(uintptr_t pl) {
     at<int>(pl, kPoseDir) = 1;
     const kAtckDefTbl* row = (const kAtckDefTbl*)gun_table(pl);
     if (!row) return;
-    const uint32_t wp = at<uint32_t>(pl, kWpEnableLongId);
+    const uint32_t wp = at<uint32_t>(pl, kWpLongId);                   // the chosen gun, as checkAtckWeapon tests the rows
     if (at<uint32_t>(pl, pl::mBtnTrg) & 0x2) s.gun_buffered = true;    // a press waits for the shot's cancel window (the
     const bool mid_shot = at<int>(pl, kBdyUpperNo) == 12;              // game's buffer: mStat 1 holds it, 2 fires it)
     if (!mid_shot && !(at<uint32_t>(pl, pl::mBtnTrg) & 0x2)) s.gun_buffered = false;   // between shots only a fresh press fires
@@ -320,7 +331,10 @@ void post_action_tick(uintptr_t pl) {
     s.host = hi;
     if (s.swapped) unswap(s, h, pl);                       // the upper pass is over: the host's id until the next lower pass
     if (h.clear_cancel_gate) at<bool>(pl, kIsCancelCheckEnable) = false;
-    if (upper_busy(pl)) {
+    // A shot is running while shot_id is set (start_upper_shot .. end_upper_shot), not while the upper half reads as busy:
+    // a host whose own action is attack 12 on both halves (FreeRide) is upper-busy all the time, which kept this branch
+    // and never reached the hold's countdown below, so the arms looped the shot for good (in game 2026-10-30).
+    if (s.shot_id != 0) {
         restore_words(s, pl);                               // checkAction: the host's case, not 12 / 13 / 16; the limits as the host left them
         float yaw;
         if (h.facing && h.facing(pl, &yaw)) face(pl, yaw);  // the shot's setLockOnTargetAngle turned the facing toward the target
@@ -368,7 +382,7 @@ void post_action_tick(uintptr_t pl) {
     }
     // the lean comes in and goes out over lean_blend_frames instead of popping with the upper action
     {
-        const float target = (upper_busy(pl) || s.gun_hold >= 0.0f) ? 1.0f : 0.0f;
+        const float target = (s.shot_id != 0 || s.gun_hold >= 0.0f) ? 1.0f : 0.0f;
         const float blend = tune(h.lean_blend_frames);
         const float step = blend > 0.0f ? at<float>(pl, pl::m_delta_time) / blend : 1.0f;
         s.lean_w = target > s.lean_w ? std::min(target, s.lean_w + step) : std::max(target, s.lean_w - step);
@@ -504,5 +518,6 @@ uint32_t effective_atck_id(uintptr_t pl) {
 bool row_allowed(uintptr_t pl, uint32_t atck_id, uint32_t etc) { return atck_unlocked(pl, atck_id) && atck_etc_ok(pl, etc); }
 bool buffered(uintptr_t pl) { const GunState* s = find_state(pl); return s && s->gun_buffered; }
 uint32_t shot_id(uintptr_t pl) { const GunState* s = find_state(pl); return s ? s->shot_id : 0; }
+bool shooting(uintptr_t pl) { const GunState* s = find_state(pl); return s && (s->shot_id != 0 || s->gun_hold >= 0.0f); }
 
 } // namespace upper_gun

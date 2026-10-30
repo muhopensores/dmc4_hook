@@ -35,8 +35,10 @@
 //
 // Motions: motion\pl000\freeride.lmt (Nero) / motion\pl006\freeride.lmt (Dante) when present, one motion_registry set
 // that the registry merges into a free bank of the player's models (it picks the bank and hands out the words), slots
-// by default -1 = the game's hop for the mount and 0 for the ride (looping). Without the file, or for a slot of -1, the
-// game's own motions stand in: the enemy step's hop (0x11) for the mount and the jump motion (5) held still for the ride.
+// by default -1 = the game's hop for the mount, 0 for the start-up (2026-10-30: played on the board, standing still over
+// the enemy, between the mount and the ride, until its block ends or `start_frames`; none without it) and 1 for the ride
+// (looping). Without the file, or for a slot of -1, the game's own motions stand in: the enemy step's hop (0x11) for the
+// mount and the jump motion (5) held still for the ride; the start-up is skipped.
 //
 // Nero's Exceed gauge (uPlayerNero::cOverDriveGuage at +0xCCE4) revs by itself during the ride: the bar is written each
 // tick and cOverDriveGuage::addStock 0x7EA340 lights a stock every `exceed_frames`, with the game's effect and sound.
@@ -53,7 +55,8 @@
 // Weapon and style changes work during the ride as on the ground (2026-10-30): the game reads them in checkBeforeAction,
 // which only runs with the cancel gate on, so the pre-check tick runs uPlayer::checkWeaponChange / uPlayerDante::checkStyleChange
 // itself; the model swap (cWeaponCtrl::update) is withheld from attack actions, so the post-action tick sets its flag while
-// the arms aren't in a shot.
+// the arms aren't in a shot. A press under a shot is kept until the shot is over: the gun shots end in a whole-body footwork
+// when the chosen gun differs from the held one (that cut the ride short). Pandora is disabled for the ride.
 //
 // The move is `namespace free_ride`; the FreeRide Mod class is the framework plumbing.
 

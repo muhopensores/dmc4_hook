@@ -85,6 +85,8 @@ extern int  shots;                   // shots started by the pre-check tick
 extern char last[96];
 bool buffered(uintptr_t player);     // a shot press waits for the current shot's cancel window
 uint32_t shot_id(uintptr_t player);  // the gun row started (0 = none)
+bool  shooting(uintptr_t player);    // a shot is running or the gun is held up after one. Not busy(): a host whose own action is
+                                     // attack 12 on both halves (FreeRide) reads as upper-busy all the time
 
 // uPlayer offsets the hosts' readouts share (DX9)
 constexpr uintptr_t kActionNo       = 0x14F0;   // the whole-player action number (checkAction's switch, setActionStatus)
@@ -92,7 +94,12 @@ constexpr uintptr_t kBdyUpperNo     = 0x14F8;   // mBdyAction[0].no: 12 = attack
 constexpr uintptr_t kBdyUpperPhase  = 0x14FC;
 constexpr uintptr_t kPoseDir        = 0x16C4;   // mPose.dir: 1 front, 2 / 8 sides, 6 / 12 back diagonals, 0 none (the standing row)
 constexpr uintptr_t kWpGripId       = 0x1DBC;   // mWeaponCtrl.mGripId
-constexpr uintptr_t kWpEnableLongId = 0x1DC4;   // mWeaponCtrl.mEnableLongId (Blue Rose = 1, the rows' atckConditionWp)
+constexpr uintptr_t kWpLongId       = 0x1DB8;   // mWeaponCtrl.mLongId: the CHOSEN long weapon (L2 / R2 advance it at once; what the rows'
+                                                 // atckConditionWp is checked against, uPlayer::checkAtckWeapon 0x7E5CB0 (vtbl 111))
+constexpr uintptr_t kWpEnableLongId = 0x1DC4;   // mWeaponCtrl.mEnableLongId: the HELD long weapon (Blue Rose = 1), swapped to mLongId by
+                                                 // cWeaponCtrl::update once mIsChangeEnable is set (setActionUpperBdy sets it)
+constexpr uintptr_t kPoseIsHoldGun  = 0x16F1;   // mPose.isHoldGun
+constexpr uintptr_t kVtSetupLongWeaponChange = 140 * 4;   // uPlayer vtbl 140: the gun tables for mLongId (uPlayerDante::setupLongWeaponChange 0x7B8750)
 constexpr uintptr_t kIsWpChangeCancel = 0x20C9; // mIsWpChangeCancel
 constexpr uintptr_t kCmdFlag        = 0x2184;   // uint32[3]: bit = CMD_ID, set by executeCommandCheck this tick
 constexpr uintptr_t kMotCncl        = 0x30C0, kMotCnclSize = 0x2C, kMotCnclReserve = 0x08;   // mMotCncl[k].mIsReserve
