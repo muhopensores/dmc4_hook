@@ -183,6 +183,7 @@
 #include "mods/Cock.hpp"
 #include "mods/RayTest.hpp"
 #include "mods/WallRun.hpp"
+#include "mods/NeroStyle.hpp"
 #include "mods/Gerb.hpp"
 #include "mods/DanteAirDodge.hpp"
 #include "mods/FreeRide.hpp"
@@ -394,6 +395,7 @@ Mods::Mods() {
     ADD_MOD(RayTest);
     ADD_MOD(ThirdPersonAim); // before WallRun: its pre-check tick turns the left mouse button into the gun press the wall run's matcher reads
     ADD_MOD(WallRun);
+    ADD_MOD(NeroStyle);     // before Gerb: Gerb's rows take their style condition from it (config load order)
     ADD_MOD(Gerb);
     ADD_MOD(DanteAirDodge);
     ADD_MOD(FreeRide);      // before MoveDef: its command bit is taken before MoveDef picks free ones

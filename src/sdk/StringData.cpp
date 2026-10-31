@@ -263,6 +263,10 @@ const char* styleNames[] = {
     __("2 - Trickster"),
     __("3 - Royal Guard"),
     __("4 - Darkslayer"),
+    __("5 - Nero: Devil Bringer"),   // NeroStyle: Nero's styles are 5-8 (the four style buttons: up, right, left, down)
+    __("6 - Nero: Gerbera"),
+    __("7 - Nero style 3"),
+    __("8 - Nero style 4"),
 };
 
 const char* aerialNames[] = {

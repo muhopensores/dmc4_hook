@@ -790,6 +790,7 @@ namespace gui {
 
                 pmods->on_draw_ui("WallRun"_hash, DISPLAY_SYSTEM_A);
 
+                pmods->on_draw_ui("NeroStyle"_hash, DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui("Gerb"_hash, DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui("DanteAirDodge"_hash, DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui("FreeRide"_hash, DISPLAY_SYSTEM_A);

@@ -1,4 +1,5 @@
 #include "Gerb.hpp"
+#include "NeroStyle.hpp"
 #include "GerbShell.hpp"
 #include "MoveTable.hpp"
 #include "../sdk/Devil4.hpp"
@@ -18,10 +19,10 @@ using namespace wallrun;
 namespace gerb {
 
 bool  mod_enabled   = false;
-// the rows' inputs (Gerb.hpp): directional = lock-on + any direction + style, vertical = lock-on + back, forward + style
+// the rows' inputs (Gerb.hpp): directional = lock-on + any direction + style, vertical = lock-on + stick centred + style
 CustomInput custom_input[2] = {
     { SRC_GAME, 0x200, true, STICK_ANY },
-    { SRC_GAME, 0x200, true, STICK_BACK_FORWARD },
+    { SRC_GAME, 0x200, true, STICK_CENTRED },
 };
 int   lmt_set       = -1;
 char  lmt_path[128] = "motion\\pl000\\gerb";          // Nero's
@@ -318,13 +319,16 @@ bool jump_active(uintptr_t pl, uint32_t serial) {
 
 // The row MoveTable::updateKDATbl inserted (index from the front = extra_nero_moves - MoveTable::Gerb, the same
 // arithmetic LuciAirThrow uses). Byte 0 of the command word = the ATTACK_DIRECTION_CMD, byte 1 = 1 makes the row
-// unmatchable (the table's convention for a disabled custom move).
+// unmatchable (the table's convention for a disabled custom move). The style word (atckConditionStyle, -1 = any) is
+// NeroStyle's: the Gerbera style's value while that mod gates Gerb, so the game's own row filter keeps the jump to it.
 void apply_row() {
     if (!HookNeroKADTbl || !MoveTable::Gerb || !MoveTable::GerbVertical) return;
     kAtckDefTbl* row = (kAtckDefTbl*)HookNeroKADTbl + (MoveTable::extra_nero_moves - MoveTable::Gerb);
     row->command.buffer = (uint32_t)cmd_row[ROW_DIRECTIONAL] | (mod_enabled ? 0u : 0x100u);
+    row->atckConditionStyle = nero_style::gerb_condition();
     kAtckDefTbl* vrow = (kAtckDefTbl*)HookNeroKADTbl + (MoveTable::extra_nero_moves - MoveTable::GerbVertical);
     vrow->command.buffer = (uint32_t)cmd_row[ROW_VERTICAL] | (mod_enabled ? 0u : 0x100u);
+    vrow->atckConditionStyle = nero_style::gerb_condition();
 }
 
 // ---- The rows' inputs (Gerb.hpp): checked in the pre-check tick (after executeCommandCheck, before checkAtck reads

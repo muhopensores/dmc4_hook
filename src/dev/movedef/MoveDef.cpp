@@ -1166,6 +1166,7 @@ void load_all() {
 void reload() {
     namespace fs = std::filesystem;
     if (!fs::exists(folder)) return;
+    bool registry_lmt = false;          // a reloaded move plays a registry set: its file may have been re-exported
     for (const fs::directory_entry& e : fs::directory_iterator(folder)) {
         if (!e.is_regular_file() || _stricmp(e.path().extension().string().c_str(), ".xml") != 0) continue;
         xmlmove::File f;
@@ -1205,8 +1206,12 @@ void reload() {
         m->merge_warned = false;
         for (PlayerState& ps : m->states) ps.refused_top = nullptr;
         apply_row(*m);
+        if (m->motion_set >= 0) registry_lmt = true;
         spdlog::info("MoveDef: reloaded '{}'", m->def.name);
     }
+    // an unchanged <lmt> gets its set back without a rebuild, and the registry caches file bytes: read them again
+    // (players get the new bytes once none of their registry motions plays)
+    if (registry_lmt) motion_registry::refresh();
 }
 
 // A starter file in the moves folder (example.xml, never overwritten): one complete move inside a comment, so it loads

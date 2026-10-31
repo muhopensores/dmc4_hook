@@ -56,6 +56,14 @@ float enemy_yaw_offset = 0.0f;
 int   nero_finisher = 0x1F;          // uPlayerNero::moveAtckRedQueenHiTime (High Roller; the move picks its jump follow-up itself)
 int   dante_finisher[3] = { 0x0B, -1, -1 };   // uPlayerDante::moveAtckRevellionHiTime; Gilgamesh / Lucifer: none chosen yet
 float finish_back   = 90.0f;
+float flat_frames   = 6.0f;          // the mount gate: frames the target has to lie flat on the floor first
+float flat_gap      = 12.0f;         // cm above the floor under it an enemy may be and still lie on it
+bool  se_enabled    = true;
+SeRef se_mount_foot      = { SE_FOOT, 0 };                           // FT_Jump
+SeRef se_mount_whoosh[2] = { { SE_CORE, 32 }, { SE_CORE, 30 } };     // Nero Whoosh01, Dante mantowoosh (the coat)
+SeRef se_land            = { SE_FOOT, 1 };                           // FT_Land
+SeRef se_ride            = { SE_FOOT, 11 };                          // FT_Sliding
+float se_ride_interval   = 20.0f;    // frames between two sliding sounds (0 = once, at the start of the ride)
 
 // ---------------------------------------------------------------------------------------------------------------
 // Game functions, offsets and helpers.
@@ -72,10 +80,13 @@ namespace em {
     constexpr uintptr_t mEmHitStopTimer = 0x1434;   // uEnemy: frames; uEnemy::setHitStop (vtbl 52) writes it
     constexpr uintptr_t mEmHitStop      = 0x1438;   // uEnemy: set by uEnemy::move while the timer runs; every main skips its routine then
 }
-constexpr uint32_t AS_DOWN = 0x4, AS_DEAD = 0x80;
+// uActor::ACTOR_STATUS: 0x1 ground, 0x2 air (uEm000Base::interruptMessage 0x558090 picks the air flinch by it), 0x4 down,
+// 0x8 damage, 0x80 dead. Each enemy class writes its own mix in its down states (em000Base: 0xC while falling, 4 in the
+// down loop, 0xC getting up; em010 / em029 / em030 8; em017's loop 0), so only AS_DOWN and AS_AIR are read here.
+constexpr uint32_t AS_AIR = 0x2, AS_DOWN = 0x4, AS_DEAD = 0x80;
 
 // cLockonTarget (sdk/uActor.hpp): +8 mpModel, +0x10 mPos (16 bytes), +0x20 mType (LOCKON_MODEL_TYPE: 0 enemy, 1 boss, 2 enemy shell,
-// 3 object ...). Until 2026-10-30 this read +0x1C = mPos.w, so Frosts / Mega Scarecrows (and some Angelo lock-on points) were refused.
+// 3 object ...).
 constexpr uintptr_t kTargetModel = 0x08, kTargetType = 0x20;
 constexpr uintptr_t kStyleKind = 0x156C;         // uPlayer::mStyle.kind (kStyleParam): STYLE_KIND_LONG 1 = Gunslinger
 constexpr uint32_t  STYLE_KIND_LONG = 1;
@@ -180,9 +191,8 @@ void change_weapon(uintptr_t pl, uintptr_t fn) {
 void change_long_weapon(uintptr_t pl)  { change_weapon(pl, fn_changeLongWeapon); }
 void change_short_weapon(uintptr_t pl) { change_weapon(pl, fn_changeShortWeapon); }
 
-// Pandora is disabled for the ride (its shots and Omen are whole-body moves that go wrong there: in game 2026-10-30 Dante locked
-// up with it, and the next ride looped; user: "better to just disable it"): no mount with it in hand (can_mount), and on the
-// board the weapon cycle skips it: chosen Pandora -> the next gun.
+// Pandora is disabled for the ride (its shots and Omen are whole-body moves that go wrong there): no mount with it in hand
+// (can_mount), and on the board the weapon cycle skips it: chosen Pandora -> the next gun.
 bool pandora_in_hand(uintptr_t pl) {
     return at<int>(pl, pl::mPlayerID) != 1 && (at<uint32_t>(pl, upper_gun::kWpLongId) == WP_PANDORA || at<uint32_t>(pl, upper_gun::kWpEnableLongId) == WP_PANDORA);   // Dante
 }
@@ -266,6 +276,53 @@ void hold(uintptr_t e) {
 void release(uintptr_t e) {
     if (enemy_alive(e)) at<float>(e, em::mEmHitStopTimer) = 0.0f;
 }
+
+// Lying flat on the floor: knocked down (AS_DOWN) but not in the air (AS_AIR: the launch and the fall of a knockdown carry
+// AS_DOWN too, and the hit stop would freeze the enemy in mid-air), not moving up or down, and within `flat_gap` of the floor
+// under it. ride_target asks for this for `flat_frames` running (pre_tick counts), so a bounce doesn't count either.
+bool enemy_flat(uintptr_t e) {
+    const uint32_t st = at<uint32_t>(e, em::mActorStatus);
+    if (!(st & AS_DOWN) || (st & AS_AIR)) return false;
+    if (std::fabs(at<MtVector3>(e, em::mVel).y) > 1.0f) return false;
+    const glm::vec3 p = vec(at<MtVector3>(e, em::mPos));
+    float fy;
+    if (!floor_at(p.x, p.z, p.y + 50.0f, p.y - 100.0f, &fy)) return false;
+    return std::fabs(p.y - fy) < flat_gap;
+}
+
+// ---- sounds ----
+// sDevil4Sound::requestSe 0xA47AA0 (stdcall: sSoundN::mpInstance, the rSoundRequest bank, request id, owner, 16-byte position,
+// 1 play / 2 stop, 1, sSoundN::soundPositionUpdateCb) queues a request on a .sreq bank, as uPlayer::cSECtrl::request 0x4A6E20
+// does with the player's banks (uPlayer +0x1D60 = cSECtrl::mpSndReqRsrc[3], filled by cSECtrl::setupRsrc 0x7B17C0: [0]
+// pl00X_core, [1] pl00X_style00) and the rMotionSe (.msse) events do with the bank each entry names, e.g. the common footstep
+// bank sound\\se\\player\\common\\foot_default (0 FT_Jump, 1 FT_Land, 2-5 walk / run, 6-10 steps, 11 FT_Sliding, 14-15 DOWN; the
+// names are the .msse entries' mComment). uEffectVFR::stopSoundSe 0xA45F50 is the same request with mode 2.
+constexpr uintptr_t fn_requestSe = 0x00A47AA0, fn_sePositionCb = 0x00486640, kSoundInstance = 0x00E559D8;
+constexpr uintptr_t kSeBanks = 0x1D60;
+constexpr uintptr_t kDtiSoundRequest = 0x00EAD7E0;   // rSoundRequest::DTI
+const char* const kFootBankPath = "sound\\se\\player\\common\\foot_default";
+void* g_foot_bank = nullptr;   // our reference to the footstep bank (sResource::create: the game's cached copy), kept for the session
+
+uintptr_t se_bank(uintptr_t pl, int bank) {
+    if (bank == SE_FOOT) {
+        if (!g_foot_bank) g_foot_bank = devil4_sdk::get_stuff_from_files((MtDTI*)kDtiSoundRequest, (char*)kFootBankPath, 1);
+        return (uintptr_t)g_foot_bank;
+    }
+    if (bank < 0 || bank > 2) return 0;
+    return at<uintptr_t>(pl, kSeBanks + 4 * bank);
+}
+void se_request(uintptr_t pl, const SeRef& se, int mode) {
+    if (!se_enabled || se.id < 0) return;
+    const uintptr_t inst = *(uintptr_t*)kSoundInstance;
+    const uintptr_t rsrc = se_bank(pl, se.bank);
+    if (!inst || !rsrc) return;
+    const float zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    const bool play = mode == 1;
+    ((void(__stdcall*)(uintptr_t, uintptr_t, int, uintptr_t, const float*, int, int, uintptr_t))fn_requestSe)(
+        inst, rsrc, se.id, pl, play ? (const float*)&at<MtVector3>(pl, pl::mPos) : zero, mode, play ? 1 : 0, play ? fn_sePositionCb : 0);
+}
+void play_se(uintptr_t pl, const SeRef& se) { se_request(pl, se, 1); }
+void stop_se(uintptr_t pl, const SeRef& se) { se_request(pl, se, 2); }
 
 // The push capsules: the player's against the enemy's shoved the rider off and the two chased each other, so for the
 // ride the enemy sits on the player's collision manager's ignore list (push, attack and grab checks all skip the pair;
@@ -370,9 +427,19 @@ struct RideState {
     bool      ride_custom = false;   // a registry word (its .ctn is borrowed)
     bool      style_active = false;  // Dante: one of the game's Gunslinger moves has the body; the ride goes on from the post tick
     uint32_t  style_id = 0;          // the atckId it started with (readout)
+    uintptr_t flat_enemy = 0;        // the lock-on target found lying flat, and for how many frames (pre_tick; ride_target's gate)
+    float     flat_t = 0.0f;
+    float     se_t = 0.0f;           // frames since the ride's last sliding sound
+    bool      landed = false;        // the landing sound played (the mount's end may wait for its block)
 };
 RideState g_rides[kPlayerSlots];
-static uint32_t g_ride_serial = 0;
+
+// The motion the state remembers for the ride (request_ride_motion plays it; the arms come back to it after a shot):
+// a registry word (`custom`: its .ctn is borrowed) at speed 1 from frame 0, or the stand-in held still at its frame.
+void set_ride_motion(RideState& s, int motion, float speed, float start, bool custom) {
+    s.ride_motion = motion; s.ride_attr = (uint32_t)A_NULL_TRANS_OFF; s.ride_speed_mul = speed; s.ride_start = start; s.ride_custom = custom;
+}
+uint32_t g_ride_serial = 0;
 
 // One slot per uPlayer seen, the least recently seen evicted (Gerb's table).
 RideState& state_for(uintptr_t player) {
@@ -407,35 +474,43 @@ bool style_riding(uintptr_t pl) {
     return s && s->style_active && s->enemy != 0;
 }
 
-} // namespace
-
-// The hit shell's lifetime: the ride `serial` of `pl` is still on the board.
-bool ride_active(uintptr_t pl, uint32_t serial) {
-    const RideState* s = find_state(pl);
-    return s && s->serial == serial && s->enemy != 0 &&
-           (s->style_active || (riding(pl) && (at<int>(pl, pl::mBdyActionLowerPhase) == PHASE_RIDE ||
-                                              at<int>(pl, pl::mBdyActionLowerPhase) == PHASE_START)));
+// The enemy goes free: the ride sound stopped, the hit stop off, the push back, and the state rides nothing. Every way
+// off the board ends here (the exits, and the pre-check tick after a ride cut short).
+void let_go(uintptr_t pl, RideState& s) {
+    stop_se(pl, se_ride);
+    release(s.enemy);
+    ignore_enemy(pl, s.enemy, false);
+    s.enemy = 0;
+    s.style_active = false;
 }
 
-namespace {
-
-// The target the ride would take: the lock-on target's model when it is an enemy lying down, alive, within range.
-uintptr_t ride_target(uintptr_t pl) {
+// The target the ride would take this tick: the lock-on target's model when it is an enemy lying flat (enemy_flat), alive,
+// within range.
+uintptr_t ride_target_now(uintptr_t pl) {
     const uintptr_t t = lock_target(pl);
     if (!t) return 0;
     const uint32_t type = at<uint32_t>(t, kTargetType);
     if (type != 0 && !(allow_bosses && type == 1)) return 0;
     const uintptr_t e = at<uintptr_t>(t, kTargetModel);
-    if (!enemy_alive(e) || !(at<uint32_t>(e, em::mActorStatus) & AS_DOWN)) return 0;
+    if (!enemy_alive(e) || !enemy_flat(e)) return 0;
     const glm::vec3 d = vec(at<MtVector3>(e, em::mPos)) - vec(at<MtVector3>(pl, pl::mPos));
     if (std::fabs(d.y) > mount_height || d.x * d.x + d.z * d.z > mount_range * mount_range) return 0;
     return e;
 }
 
-static input_commands::Command g_cmd;
-static int g_cmd_bit = -1;
-static uint32_t g_fired = 0, g_entries = 0, g_finishes = 0, g_hops = 0, g_style_moves = 0;   // readout
-static bool g_in_reach = false;   // readout: the local player's lock-on target could be ridden (set on the game thread)
+// ... and lying there for `flat_frames` running (pre_tick counts them): the moment it touches down between two bounces
+// doesn't count.
+uintptr_t ride_target(uintptr_t pl) {
+    const uintptr_t e = ride_target_now(pl);
+    if (!e) return 0;
+    const RideState* s = find_state(pl);
+    return (s && s->flat_enemy == e && s->flat_t >= flat_frames) ? e : 0;
+}
+
+input_commands::Command g_cmd;
+int g_cmd_bit = -1;
+uint32_t g_fired = 0, g_entries = 0, g_finishes = 0, g_hops = 0, g_style_moves = 0;   // readout
+bool g_in_reach = false;   // readout: the local player's lock-on target could be ridden (set on the game thread)
 
 // lock-on held, (the stick toward the target within 10 frames of) jump pressed. The game thread reads g_cmd's head and
 // steps in place, so a rebuild (the GUI, a config load) writes the steps first and the count last, never a blank head.
@@ -455,6 +530,12 @@ void build_command() {
 // ahead of checkAtck) takes it, so the row gets it. Riders: the press that started the ride is eaten until let go.
 void pre_tick(uintptr_t pl) {
     if (!mod_enabled || !pl || g_cmd_bit < 0) return;
+    {                                                   // how long the lock-on target has lain flat (ride_target's gate)
+        RideState& s = state_for(pl);
+        const uintptr_t e = ride_target_now(pl);
+        if (e != s.flat_enemy) { s.flat_enemy = e; s.flat_t = 0.0f; }
+        else if (e) s.flat_t += std::max(at<float>(pl, pl::m_delta_time), 0.01f);
+    }
     if (pl == (uintptr_t)devil4_sdk::get_local_player()) g_in_reach = ride_target(pl) != 0;
     if ((at<uint32_t>(pl, kCmdFlagWords + 4 * (g_cmd_bit >> 5)) >> (g_cmd_bit & 31)) & 1) {
         at<uint32_t>(pl, pl::mBtnTrg) &= ~0x4u;
@@ -463,7 +544,7 @@ void pre_tick(uintptr_t pl) {
         return;
     }
     if (!riding(pl) && !style_riding(pl)) {              // a ride cut short (hit out of it): the enemy goes free, the push comes back
-        if (RideState* s = find_state(pl); s && s->enemy) { release(s->enemy); ignore_enemy(pl, s->enemy, false); s->enemy = 0; s->style_active = false; }
+        if (RideState* s = find_state(pl); s && s->enemy) let_go(pl, *s);
         return;
     }
     RideState& s = state_for(pl);
@@ -480,8 +561,8 @@ void pre_tick(uintptr_t pl) {
     // The game's weapon / style checks live behind the cancel gate, which the ride keeps off, so they run here. Not under a
     // shot (the arms in it or held up after it): a gun chosen then would differ from the held one at the shot's last phase,
     // which the shot functions end with setActionFootwork(5, 1) instead of the upper pose (moveAtckEbonyIvoryShot 0x7D8412,
-    // CoyoteAceShot too): a whole-body footwork over the ride, which cut it short (in game 2026-10-30: "switching and using
-    // guns" locked Dante up). The press is kept and the change made once the arms are free; the swap follows in post_tick.
+    // CoyoteAceShot too): a whole-body footwork over the ride, which cuts it short. The press is kept and the change made once
+    // the arms are free; the swap follows in post_tick.
     if (upper_gun::shooting(pl)) {                       // (busy() is always true here: the ride's own upper half is attack 12)
         const uint32_t trg = at<uint32_t>(pl, pl::mBtnTrg);
         if (trg & 0x80)  s.change_short = true;
@@ -526,10 +607,7 @@ void request_ride_motion(uintptr_t pl, const RideState& s, float interp) {
 // stick, or straight up, then the fall), with the timers it sets; the air rules take it from there.
 void hop_off(uintptr_t pl, RideState& s) {
     upper_gun::end(pl);                 // the arms out of a shot, the words back, before the whole-body action
-    release(s.enemy);
-    ignore_enemy(pl, s.enemy, false);
-    s.enemy = 0;
-    s.style_active = false;
+    let_go(pl, s);
     ++g_hops;
     set_velocity(pl, glm::vec3(0.0f));
     set_airborne(pl, true);
@@ -542,26 +620,18 @@ void hop_off(uintptr_t pl, RideState& s) {
 // Off the board onto the floor `finish_back` cm behind the enemy, facing it, standing: where a ground move takes over.
 void dismount_to_floor(uintptr_t pl, RideState& s) {
     upper_gun::end(pl);
-    release(s.enemy);
-    ignore_enemy(pl, s.enemy, false);
-    MtVector3& pos = at<MtVector3>(pl, pl::mPos);
     const glm::vec3 p = vec(at<MtVector3>(s.enemy, em::mPos)) - dir_of(s.yaw) * finish_back;
+    let_go(pl, s);
+    MtVector3& pos = at<MtVector3>(pl, pl::mPos);
     pos.x = p.x; pos.y = s.floor_y; pos.z = p.z;
     set_velocity(pl, glm::vec3(0.0f));
     set_airborne(pl, false);
     face(pl, s.yaw);
-    s.enemy = 0;
-    s.style_active = false;
 }
 
 // The ride ends under a move that keeps the body (the enemy died or got up, a ledge, a cancel into another action): the
 // enemy goes free where it is, the player stays in that action (standing in the air at ride height, so he falls).
-void drop_ride(uintptr_t pl, RideState& s) {
-    release(s.enemy);
-    ignore_enemy(pl, s.enemy, false);
-    s.enemy = 0;
-    s.style_active = false;
-}
+void drop_ride(uintptr_t pl, RideState& s) { let_go(pl, s); }
 
 // The launcher: the player back on the floor behind the enemy, then the Stinger -> Million Stab hand-off (setActionAtck
 // with both halves, the new move's state function this same tick).
@@ -622,18 +692,6 @@ bool style_gun_move(uintptr_t pl, RideState& s) {
 // command moves that carry the player away (Backslide 81, Gun Stinger 82).
 bool style_gun_id(uint32_t id) { return id >= 60 && id <= 90 && id != 81 && id != 82; }
 
-} // namespace
-
-// ---------------------------------------------------------------------------------------------------------------
-// The predicate and the move.
-// ---------------------------------------------------------------------------------------------------------------
-bool can_mount(uintptr_t pl) {
-    if (!pl || (at<uint32_t>(pl, pl::mActStat) & 0x2)) return false;    // the rows are ground only
-    if (pandora_in_hand(pl)) return false;                              // disabled with Pandora (see put_pandora_away)
-    return ride_target(pl) != 0;
-}
-
-namespace {
 // One tick of the board in PHASE_RIDE: the Exceed rev, the facing (steering toward the stick when `steer`), the motion
 // along the floor, the hold / hits and the enemy under the player. false = the ride can't go on (a ledge, the enemy got up).
 bool ride_tick(uintptr_t pl, RideState& s, int c, float dt, bool steer, float speed = ride_speed) {
@@ -666,13 +724,15 @@ bool ride_tick(uintptr_t pl, RideState& s, int c, float dt, bool steer, float sp
 // on the legs right now (-1 = a stand-in).
 void begin_ride(uintptr_t pl, RideState& s, int playing) {
     s.t = 0.0f;
+    s.se_t = 0.0f;
+    play_se(pl, se_ride);
     if (s.custom && playing >= 0 && slot_ride == playing) {
         // one block for both: the motion runs on as the ride (loop it in the LMT); s.ride_motion already names it
     } else if (const int ride = motion_word(pl, slot_ride); ride >= 0) {
-        s.ride_motion = ride; s.ride_attr = (uint32_t)A_NULL_TRANS_OFF; s.ride_speed_mul = 1.0f; s.ride_start = 0.0f; s.ride_custom = true;
+        set_ride_motion(s, ride, 1.0f, 0.0f, true);
         request_ride_motion(pl, s, 10.0f);
     } else {
-        s.ride_motion = vanilla_ride_motion; s.ride_attr = (uint32_t)A_NULL_TRANS_OFF; s.ride_speed_mul = 0.0f; s.ride_start = vanilla_ride_frame; s.ride_custom = false;
+        set_ride_motion(s, vanilla_ride_motion, 0.0f, vanilla_ride_frame, false);
         request_ride_motion(pl, s, 10.0f);
     }
     at<int>(pl, pl::mBdyActionLowerPhase) = PHASE_RIDE;
@@ -753,11 +813,14 @@ void move_impl(uintptr_t pl) {
             devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
             request_motion(pl, mount, (uint32_t)A_NULL_TRANS_OFF, 3.0f, 0.0f, 1.0f);
             s.custom = true;
-            s.ride_motion = mount; s.ride_attr = (uint32_t)A_NULL_TRANS_OFF; s.ride_speed_mul = 1.0f; s.ride_start = 0.0f; s.ride_custom = true;   // (stays if one block is the whole move)
+            set_ride_motion(s, mount, 1.0f, 0.0f, true);   // (stays if one block is the whole move)
         } else {
             request_motion(pl, vanilla_mount_motion, (uint32_t)A_NULL_TRANS_OFF, 3.0f, 0.0f, 1.0f);
         }
         set_airborne(pl, true);
+        s.landed = false;
+        play_se(pl, se_mount_foot);
+        play_se(pl, se_mount_whoosh[c == NERO ? 0 : 1]);
         phase = PHASE_MOUNT;
         return;
     }
@@ -774,6 +837,7 @@ void move_impl(uintptr_t pl) {
         const glm::vec3 want = s.start + (end - s.start) * k + glm::vec3(0.0f, hop_height * 4.0f * k * (1.0f - k), 0.0f);
         set_velocity(pl, (want - vec(pos)) / dt);
         if (k < 1.0f) return;
+        if (!s.landed) { s.landed = true; play_se(pl, se_land); }   // on the board (the phase may now wait for its block)
         // Our mount block plays to its end before the next phase starts its own block (the player holds on the board
         // meanwhile, the hop's end point held each tick above); not when the next phase runs this block on, and not past
         // 300 frames (a looping block). The stand-in hop isn't waited for.
@@ -794,7 +858,7 @@ void move_impl(uintptr_t pl) {
                 request_motion(pl, start, (uint32_t)A_NULL_TRANS_OFF, 3.0f, 0.0f, 1.0f);
             }
             s.custom = true;
-            s.ride_motion = start; s.ride_attr = (uint32_t)A_NULL_TRANS_OFF; s.ride_speed_mul = 1.0f; s.ride_start = 0.0f; s.ride_custom = true;   // (stays if the ride has this block too)
+            set_ride_motion(s, start, 1.0f, 0.0f, true);   // (stays if the ride has this block too)
             s.motion_ended = false;
             phase = PHASE_START;
             return;
@@ -825,6 +889,7 @@ void move_impl(uintptr_t pl) {
     case PHASE_RIDE: {
         if (!enemy_alive(s.enemy)) { hop_off(pl, s); return; }
         s.t += dt;
+        if (se_ride_interval > 0.0f && (s.se_t += dt) >= se_ride_interval) { s.se_t = 0.0f; play_se(pl, se_ride); }
         const uint32_t trg = at<uint32_t>(pl, pl::mBtnTrg);
         if (!s.jump_held && (trg & 0x4)) { hop_off(pl, s); return; }   // jump: the enemy step off the board
         if (!s.melee_held && (trg & 0x1)) {                    // melee: the launcher, else a hop
@@ -865,7 +930,25 @@ void gun_before_back(uintptr_t pl) {
     at<bool>(pl, pl::mMotionSetCharTblParam + 12) = false;   // [1] = the lower half
 }
 uint32_t gun_lower_id(uintptr_t pl) { return character_of(pl) == NERO ? nero_move_id : dante_move_id; }
+
 } // namespace
+
+// ---------------------------------------------------------------------------------------------------------------
+// The predicate and the move.
+// ---------------------------------------------------------------------------------------------------------------
+bool can_mount(uintptr_t pl) {
+    if (!pl || (at<uint32_t>(pl, pl::mActStat) & 0x2)) return false;    // the rows are ground only
+    if (pandora_in_hand(pl)) return false;                              // disabled with Pandora (see put_pandora_away)
+    return ride_target(pl) != 0;
+}
+
+// The hit shell's lifetime: the ride `serial` of `pl` is still on the board.
+bool ride_active(uintptr_t pl, uint32_t serial) {
+    const RideState* s = find_state(pl);
+    return s && s->serial == serial && s->enemy != 0 &&
+           (s->style_active || (riding(pl) && (at<int>(pl, pl::mBdyActionLowerPhase) == PHASE_RIDE ||
+                                              at<int>(pl, pl::mBdyActionLowerPhase) == PHASE_START)));
+}
 
 void __stdcall move(uintptr_t pl, uint32_t) {
     move_impl(pl);
@@ -970,6 +1053,14 @@ void FreeRide::on_gui_frame(int display) {
     ImGui::Checkbox(_("Bosses too"), &allow_bosses);
     ImGui::SameLine();
     help_marker(_("Also ride lock-on targets of the boss type. Off by default: bosses are large and some don't lie down the way normal enemies do."));
+    ImGui::SliderFloat(_("Lying-flat frames"), &flat_frames, 0.0f, 30.0f, "%.0f frames");
+    ImGui::SameLine();
+    help_marker(_("The target must have lain flat on the floor this long before the input takes it: knocked down, not in the air, "
+                  "not moving up or down, within the floor gap of the ground under it. Keeps the hop (and its hit stop) off an enemy "
+                  "that is still falling or bouncing after a launch, which would freeze it in mid-air. 0 = as soon as it lies flat."));
+    ImGui::SliderFloat(_("Floor gap"), &flat_gap, 2.0f, 60.0f, "%.0f cm");
+    ImGui::SameLine();
+    help_marker(_("How far above the floor under it the enemy's position may be and still count as lying on it (big enemies lie higher)."));
 
     ImGui::TextUnformatted(_("Ride"));
     ImGui::SliderFloat(_("Hop frames"), &mount_frames, 1.0f, 40.0f);
@@ -1105,6 +1196,39 @@ void FreeRide::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("Without the LMT: the mount plays motion 0x11 (the enemy step) and the ride holds motion 5 (the jump) still at this frame."));
 
+    ImGui::TextUnformatted(_("Sounds"));
+    ImGui::Checkbox(_("Sound effects"), &se_enabled);
+    ImGui::SameLine();
+    help_marker(_("Sounds for the ride, played on the player the way the game plays its own (a request on one of the player's sound "
+                  "banks). Each is a bank and a request id, -1 = none. Character = the character's own bank (Nero: 31 Jump, 32 / 33 "
+                  "Whoosh, 34 Stamp, 41 Dash, 42 warp; Dante: 30 coat whoosh, 31-33 attack whoosh, 34 punch hit, 39 warp). Style = "
+                  "the style bank (Nero: 0 gun fire, 2 gun aim, 93 Streak impact, 94 High Roller; Dante: 81-83 sword whoosh, 86 "
+                  "sword hit, 96 Stinger wind). Footsteps = the common foley bank (0 jump, 1 land, 2-5 walk / run, 6-10 steps, "
+                  "11 sliding, 14-15 fall). The exits keep the game's own sounds: the enemy step's and the launcher's."));
+    if (se_enabled) {
+        const auto se_gui = [&](const char* label, SeRef& se, const char* help) {   // one sound: the bank and the request id on one row
+            ImGui::PushID(label);
+            const char* banks[] = { "Character", "Style", "Footsteps" };
+            ImGui::SetNextItemWidth(110.0f);
+            ImGui::Combo("##bank", &se.bank, banks, 3);
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(100.0f);
+            ImGui::InputInt(label, &se.id);
+            ImGui::SameLine();
+            help_marker(help);
+            ImGui::PopID();
+        };
+        se_gui(_("Mount: footstep"), se_mount_foot, _("Played as the player hops onto the enemy. Default: the jump foley."));
+        se_gui(_("Mount: whoosh (Nero)"), se_mount_whoosh[0], _("Played with it for Nero. Default: his whoosh."));
+        se_gui(_("Mount: whoosh (Dante)"), se_mount_whoosh[1], _("Played with it for Dante. Default: his coat's whoosh."));
+        se_gui(_("Landing"), se_land, _("Played when the player lands on the enemy. Default: the landing foley."));
+        se_gui(_("Ride"), se_ride, _("Played as the ride starts and then every so many frames (below), stopped by the exits. Default: "
+                                     "the sliding foley."));
+        ImGui::SliderFloat(_("Ride sound every"), &se_ride_interval, 0.0f, 120.0f, "%.0f frames");
+        ImGui::SameLine();
+        help_marker(_("Frames between two plays of the ride sound. 0 = only once, when the ride starts."));
+    }
+
     if (uPlayer* pl = devil4_sdk::get_local_player()) {      // live readout
         const uintptr_t P = (uintptr_t)pl;
         const int c = character_of(P);
@@ -1112,8 +1236,8 @@ void FreeRide::on_gui_frame(int display) {
         const uintptr_t ridden = s ? s->enemy : 0;
         ImGui::Text("command bit %d | fired %u | entries %u | finishers %u | hops %u | style moves %u%s", g_cmd_bit, g_fired, g_entries, g_finishes, g_hops, g_style_moves,
                     (s && s->style_active) ? " (one running)" : "");
-        ImGui::Text("riding %d phase %d t %.1f | target in reach %s | ridden %p hitstop %.1f | floor %.1f",
-                    (int)riding(P), at<int>(P, pl::mBdyActionLowerPhase), s ? s->t : 0.0f, g_in_reach ? "yes" : "no", (void*)ridden,
+        ImGui::Text("riding %d phase %d t %.1f | target in reach %s (flat %.0f) | ridden %p hitstop %.1f | floor %.1f",
+                    (int)riding(P), at<int>(P, pl::mBdyActionLowerPhase), s ? s->t : 0.0f, g_in_reach ? "yes" : "no", s ? s->flat_t : 0.0f, (void*)ridden,
                     enemy_alive(ridden) ? at<float>(ridden, em::mEmHitStopTimer) : 0.0f, s ? s->floor_y : 0.0f);
         if (hit_mode == HIT_DAMAGE) hit_readout();
         if (gun_while_riding)
@@ -1143,7 +1267,7 @@ void FreeRide::on_config_load(const utility::Config& cfg) {
     const auto saved_start = cfg.get<int>("free_ride_slot_start");
     slot_start    = saved_start.value_or(slot_start);
     slot_ride     = cfg.get<int>("free_ride_slot_ride").value_or(slot_ride);
-    if (!saved_start && slot_ride == 0) slot_ride = 1;   // a config from before the start-up slot (2026-10-30): the ride moved to block 1
+    if (!saved_start && slot_ride == 0) slot_ride = 1;   // a config saved before the start-up slot existed: the ride is block 1 now
     start_frames  = cfg.get<float>("free_ride_start_frames").value_or(start_frames);
     vanilla_mount_motion = cfg.get<int>("free_ride_vanilla_mount").value_or(vanilla_mount_motion);
     vanilla_ride_motion  = cfg.get<int>("free_ride_vanilla_ride").value_or(vanilla_ride_motion);
@@ -1172,6 +1296,19 @@ void FreeRide::on_config_load(const utility::Config& cfg) {
     nero_finisher = cfg.get<int>("free_ride_nero_finisher").value_or(nero_finisher);
     for (int i = 0; i < 3; ++i) dante_finisher[i] = cfg.get<int>("free_ride_dante_finisher_" + std::to_string(i)).value_or(dante_finisher[i]);
     finish_back   = cfg.get<float>("free_ride_finish_back").value_or(finish_back);
+    flat_frames   = cfg.get<float>("free_ride_flat_frames").value_or(flat_frames);
+    flat_gap      = cfg.get<float>("free_ride_flat_gap").value_or(flat_gap);
+    se_enabled    = cfg.get<bool>("free_ride_se").value_or(se_enabled);
+    const auto load_se = [&](const char* key, SeRef& se) {
+        se.bank = cfg.get<int>(std::string("free_ride_se_") + key + "_bank").value_or(se.bank);
+        se.id   = cfg.get<int>(std::string("free_ride_se_") + key + "_id").value_or(se.id);
+    };
+    load_se("mount_foot", se_mount_foot);
+    load_se("mount_whoosh_nero", se_mount_whoosh[0]);
+    load_se("mount_whoosh_dante", se_mount_whoosh[1]);
+    load_se("land", se_land);
+    load_se("ride", se_ride);
+    se_ride_interval = cfg.get<float>("free_ride_se_ride_interval").value_or(se_ride_interval);
     build_command();                           // the steps follow need_forward
     apply_rows();
     register_lmt();
@@ -1214,5 +1351,18 @@ void FreeRide::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("free_ride_gunslinger", gunslinger_moves);
     cfg.set<int>("free_ride_nero_finisher", nero_finisher);
     for (int i = 0; i < 3; ++i) cfg.set<int>("free_ride_dante_finisher_" + std::to_string(i), dante_finisher[i]);
+    cfg.set<float>("free_ride_flat_frames", flat_frames);
+    cfg.set<float>("free_ride_flat_gap", flat_gap);
+    cfg.set<bool>("free_ride_se", se_enabled);
+    const auto save_se = [&](const char* key, const SeRef& se) {
+        cfg.set<int>(std::string("free_ride_se_") + key + "_bank", se.bank);
+        cfg.set<int>(std::string("free_ride_se_") + key + "_id", se.id);
+    };
+    save_se("mount_foot", se_mount_foot);
+    save_se("mount_whoosh_nero", se_mount_whoosh[0]);
+    save_se("mount_whoosh_dante", se_mount_whoosh[1]);
+    save_se("land", se_land);
+    save_se("ride", se_ride);
+    cfg.set<float>("free_ride_se_ride_interval", se_ride_interval);
     cfg.set<float>("free_ride_finish_back", finish_back);
 }

@@ -334,6 +334,8 @@ set(MODS_SRC
   mods/WallRun.cpp
   mods/UpperGun.hpp
   mods/UpperGun.cpp
+  mods/NeroStyle.hpp
+  mods/NeroStyle.cpp
   mods/Gerb.hpp
   mods/Gerb.cpp
   mods/GerbShell.hpp

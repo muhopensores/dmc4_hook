@@ -17,7 +17,9 @@
 // pre-check tick (the shared hook after executeCommandCheck, which Gerb installs) checks them and sets the row's command
 // bit (`cmd_row`, 85 / 86 of mCmdFlag: reserved with input_commands::add so MoveDef doesn't take them), which the row
 // (a COMMAND row: checkAtckSubCommand tests the bit) triggers on. Defaults: lock-on + any direction + style (directional),
-// lock-on + back, forward + style (vertical: the stick back, then forward within 15 frames each, as the game's cmd 0x52).
+// lock-on + the stick centred + style (vertical). The grab button is free for these because Gerb's rows run in the
+// Gerbera style only (NeroStyle), where the game's Snatch rows are off; Calibur's back, forward (STICK_BACK_FORWARD, the
+// game's cmd 0x52) stays a choice in the GUI.
 //
 // Motions come from motion\pl000\gerb.lmt (Nero) loaded into a free bank at runtime (MoveDef D14): slots
 // 0 forward, 1 down, 2 back, 3 left, 4 right, 5 up. Without the file the move refuses to start (there is no
