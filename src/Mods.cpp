@@ -107,7 +107,7 @@
 #include "mods/DanteJdc.hpp"
 #include "mods/RevFlying.hpp"
 #include "mods/AngelSnatch.hpp"
-#include "mods/DtKnuckle.hpp"
+#include "mods/GuardianDevil.hpp"
 #include "mods/EffectColours.hpp"
 #include "mods/CharSwitcher.hpp"
 #include "mods/RisingSun.hpp"
@@ -321,7 +321,6 @@ Mods::Mods() {
     ADD_MOD(DanteJdc);
     ADD_MOD(RevFlying);
     ADD_MOD(AngelSnatch);
-    ADD_MOD(DtKnuckle);
     ADD_MOD(EffectColours);
     ADD_MOD(CharSwitcher);
     ADD_MOD(RisingSun);
@@ -397,6 +396,7 @@ Mods::Mods() {
     ADD_MOD(WallRun);
     ADD_MOD(NeroStyle);     // before Gerb: Gerb's rows take their style condition from it (config load order)
     ADD_MOD(Gerb);
+    ADD_MOD(GuardianDevil); // after NeroStyle: its action sets are per style slot
     ADD_MOD(DanteAirDodge);
     ADD_MOD(FreeRide);      // before MoveDef: its command bit is taken before MoveDef picks free ones
     ADD_MOD(SpineAim);      // standalone: procedural spine / hips rotations for a move that asks (the wall run's lean)

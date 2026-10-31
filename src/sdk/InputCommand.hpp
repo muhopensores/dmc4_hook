@@ -95,7 +95,8 @@ namespace input_commands {
     //   2. updateMotCancel (a press is latched into the windows' reserve flags)        0x7A7DF8
     //   3. setInterface (mBtnOn / mBtnTrg / the stick for this tick)
     //   4. executeCommandCheck (the 85 input commands -> mCmdFlag bits)                0x7A83B0
-    //      -> [PRE-CHECK TICK]  the commands registered with add(), then every add_tick() callback    0x7A83B5
+    //      -> [PRE-CHECK TICK]  every add_tick() callback, then the commands registered with add(), then every
+    //         add_post_command_tick() callback (it sees the bits the commands just set)            0x7A83B5
     //   5. checkBeforeAction / checkAction (vtbl 147 / 148): checkAtck (the rows), the jump checks, pose begin / end,
     //      run begin ... only while mIsCancelCehckEnable is set; a match calls setAction* and the move starts
     //   6. moveAction 0x821520: moveActionLower (the lower body's state function, incl. MoveTable's dispatch of custom
@@ -125,8 +126,15 @@ namespace input_commands {
     //     input_commands::add_tick(&my_tick);
     // (Gerb and MoveDef do this for the pre-check hook; nothing installs the post-action hook today, its first user does.)
     // Callbacks run in registration order and can't be removed; register from on_initialize.
+    //
+    // A command on a mapped game input: a BTN step reads mBtnTrg / mBtnOn, so any bit uPlayer::getInterfaceBtnInfo
+    // 0x7A96D0 produces works (1 melee, 2 gun, 4 jump, 8 taunt, 0x10 lock-on, 0x40 DT, 0x80 change Devil Arm, 0x100
+    // change gun, 0x200 grab / style, 0x1000-0x8000 the style buttons); the weapon-change inputs are free on Nero.
+    // The game's checker is run after the add_tick callbacks, so a mod that wants to read its own bits the same tick
+    // registers an add_post_command_tick callback (GuardianDevil); a mod whose rows carry the bits needs nothing.
     typedef void (*TickFn)(uintptr_t player);
-    bool add_tick(TickFn fn);            // pre-check tick: after executeCommandCheck, before checkBeforeAction
+    bool add_tick(TickFn fn);            // pre-check tick: after executeCommandCheck, before the registered commands
+    bool add_post_command_tick(TickFn fn);   // pre-check tick, after the registered commands set their mCmdFlag bits
     bool add_post_tick(TickFn fn);       // post-action tick: after moveAction (both halves), before updateMotion
     extern bool hook_installed;          // the 0x7A83B5 hook is in place (its installer sets this)
     extern bool post_hook_installed;     // the 0x7A8453 hook is in place

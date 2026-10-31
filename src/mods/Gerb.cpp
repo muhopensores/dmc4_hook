@@ -24,6 +24,7 @@ CustomInput custom_input[2] = {
     { SRC_GAME, 0x200, true, STICK_ANY },
     { SRC_GAME, 0x200, true, STICK_CENTRED },
 };
+bool  vertical_ground_any_stick = true;   // a lean on the ground has no directional jump to go to: the up jump takes it
 int   lmt_set       = -1;
 char  lmt_path[128] = "motion\\pl000\\gerb";          // Nero's
 int   slot[DIR_COUNT] = { 0, 1, 2, 4, 3, 5 };   // forward, down, back, left, right, up
@@ -433,7 +434,8 @@ void custom_tick(uintptr_t pl) {
         g_custom_held[i] = held;
         if (!pressed) continue;
         if (ci.lockon && !(at<uint32_t>(pl, pl::mBtnOn) & 0x10)) continue;
-        if (!stick_ok(now, ci.stick)) continue;
+        const bool grounded_vertical = i == ROW_VERTICAL && vertical_ground_any_stick && !(at<uint32_t>(pl, pl::mActStat) & 0x2);
+        if (!stick_ok(now, ci.stick) && !grounded_vertical) continue;   // on the ground the vertical row takes any stick
         at<uint32_t>(pl, kCmdFlagWords + 4 * (cmd_row[i] >> 5)) |= 1u << (cmd_row[i] & 31);
         ++g_custom_fired[i];
         if (ci.stick == STICK_BACK_FORWARD) { g_bf_step = BF_CENTRED; g_bf_timer = 0.0f; }   // used up, as the game's
@@ -491,6 +493,14 @@ static void input_editor(int row, const char* title) {
     }
     ImGui::Checkbox(_("Lock-on held"), &ci.lockon);
     ImGui::SameLine();
+    if (row == ROW_VERTICAL) {
+        ImGui::Checkbox(_("Any stick on the ground"), &vertical_ground_any_stick);
+        ImGui::SameLine();
+        Mod::help_marker(_("On the ground the stick condition below is ignored: the directional jump is air only, so a lean "
+                           "with the trigger would do nothing there; with this on it does the up jump. In the air the condition "
+                           "holds (centred = up / down, leaning = the directional jump)."));
+        ImGui::SameLine();
+    }
     int stick = ci.stick + 1;
     ImGui::SetNextItemWidth(Mod::sameLineItemWidth);
     if (ImGui::Combo("##stick", &stick, kSticks, 8)) ci.stick = stick - 1;
@@ -651,6 +661,7 @@ void Gerb::on_config_load(const utility::Config& cfg) {
         ci.lockon = cfg.get<bool>(p + "lockon").value_or(ci.lockon);
         ci.stick  = cfg.get<int>(p + "stick").value_or(ci.stick);
     }
+    vertical_ground_any_stick = cfg.get<bool>("gerb_in1_ground_any").value_or(vertical_ground_any_stick);
     apply_row();
     shell_config_load(cfg);
     register_lmt();
@@ -686,5 +697,6 @@ void Gerb::on_config_save(utility::Config& cfg) {
         cfg.set<bool>(p + "lockon", ci.lockon);
         cfg.set<int>(p + "stick", ci.stick);
     }
+    cfg.set<bool>("gerb_in1_ground_any", vertical_ground_any_stick);
     shell_config_save(cfg);
 }

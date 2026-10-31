@@ -368,7 +368,7 @@ namespace gui {
 
                         pmods->on_draw_ui("Payline"_hash, DISPLAY_NERO_A); // needs its own line // keep on the last line, it has a download button
 
-                        pmods->on_draw_ui("DtKnuckle"_hash, DISPLAY_NERO_A); // keep on the last line, it has a download button
+                        pmods->on_draw_ui("GuardianDevil"_hash, DISPLAY_NERO_A); // keep on the last line, it has a download button
 
                         ImGui::SeparatorText(_("Speedups"));
 

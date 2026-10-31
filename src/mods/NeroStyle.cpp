@@ -63,6 +63,8 @@ const char* name_of(int value) {
     return slots[slot].name[0] ? slots[slot].name : kSlotButton[slot];
 }
 
+void apply_bringer_rows();   // below
+
 // The pre-check tick (after executeCommandCheck): the press, the cooldown, the field.
 void tick(uintptr_t pl) {
     if (!mod_enabled || !is_nero(pl)) return;
@@ -83,18 +85,25 @@ void tick(uintptr_t pl) {
     }
     int& st = at<int>(pl, kStyle);
     if (st != g_selected) st = g_selected;     // also the write-back on a new player object (the constructor's -1)
+    apply_bringer_rows();
 }
 
 // Nero's own Devil Bringer rows: attr 4 / 5 with ids 1 Snatch, 2 air Snatch, 5 Buster, 6 air Buster (rows 27-34 of the
-// vanilla table, style -1 every one). They take the Devil Bringer slot's value while the mod gates them, so the grab
-// belongs to that style as Gerb belongs to Gerbera. Walked in MoveTable's copy (the added rows in front, the terminator
-// attr 3 last); ids past 0x33 are added rows and stay as their mods wrote them.
+// vanilla table). Their style word isn't read: the base uPlayer::checkAtckSub 0x7AC710 handles attr 0 / 1 / 2 only and
+// uPlayerNero::checkAtckSub 0x7E5B00 runs attr 4 / 5 itself (lock-on + the grab press, the etc check), without the style
+// compare. So the gate switches the attr: 4 / 5 while the Devil Bringer is picked, 6 / 7 otherwise, which neither function
+// handles (checkAtck 0x803B70 only compares attr with 3, the terminator, and 2). Walked in MoveTable's copy (the added rows
+// in front); ids past 0x33 are added rows and stay as their mods wrote them. Run every pre-check tick: the switch is live.
+constexpr uint32_t kAttrOff = 2;   // 4 -> 6, 5 -> 7
 void apply_bringer_rows() {
     if (!HookNeroKADTbl) return;
-    const uint32_t cond = bringer_condition();
+    const bool on = bringer_rows_on();
     kAtckDefTbl* row = (kAtckDefTbl*)HookNeroKADTbl;
-    for (int i = 0; i < 256 && row->atckAttr != 3; ++i, ++row)
-        if ((row->atckAttr == 4 || row->atckAttr == 5) && row->atckId <= 0x33) row->atckConditionStyle = cond;
+    for (int i = 0; i < 256 && row->atckAttr != 3; ++i, ++row) {
+        if (row->atckId > 0x33) continue;
+        if (!on && (row->atckAttr == 4 || row->atckAttr == 5)) row->atckAttr += kAttrOff;
+        else if (on && (row->atckAttr == 4 + kAttrOff || row->atckAttr == 5 + kAttrOff)) row->atckAttr -= kAttrOff;
+    }
 }
 
 // The style words of the gated rows follow the mod (and the field goes back to -1 when the mod is turned off).
@@ -111,7 +120,7 @@ int value_of(int slot) { return (slot < 0 || slot >= kSlots) ? NONE : BASE + slo
 int selected() { return mod_enabled ? g_selected : NONE; }
 int current(uintptr_t player) { return (mod_enabled && is_nero(player)) ? at<int>(player, kStyle) : NONE; }
 uint32_t gerb_condition() { return (mod_enabled && gate_gerb) ? (uint32_t)value_of(gerb_slot) : 0xFFFFFFFFu; }
-uint32_t bringer_condition() { return (mod_enabled && gate_bringer) ? (uint32_t)value_of(bringer_slot) : 0xFFFFFFFFu; }
+bool bringer_rows_on() { return !(mod_enabled && gate_bringer) || g_selected == value_of(bringer_slot); }
 
 } // namespace nero_style
 
@@ -171,9 +180,9 @@ void NeroStyle::on_gui_frame(int display) {
     for (int i = 0; i < kSlots; ++i) names[i] = slots[i].name[0] ? slots[i].name : kSlotButton[i];
     ImGui::Checkbox(_("Snatch and Buster need their style"), &gate_bringer);
     ImGui::SameLine();
-    help_marker(_("On: the game's eight Devil Bringer rows (Snatch, air Snatch, Buster, air Buster, and their second set) carry the "
-                  "Devil Bringer slot's value as their style condition, so the grab only works while that style is picked. Off: "
-                  "they work in every style, as in the vanilla game."));
+    help_marker(_("On: the game's eight Devil Bringer rows (Snatch, air Snatch, Buster, air Buster, and their second set) are "
+                  "switched off while another style is picked, so the grab only works in the Devil Bringer. Off: they work in "
+                  "every style, as in the vanilla game."));
     if (gate_bringer) {
         ImGui::SetNextItemWidth(200.0f);
         ImGui::Combo(_("Devil Bringer slot"), &bringer_slot, names, kSlots);
@@ -197,9 +206,9 @@ void NeroStyle::on_gui_frame(int display) {
         const uintptr_t P = (uintptr_t)lp;
         if (is_nero(P)) {
             const State& s = state_for(P);
-            ImGui::Text("style %d (%s) | field %d | pending %d | cooldown %.0f | presses %u switches %u | rows: Bringer %d Gerb %d",
+            ImGui::Text("style %d (%s) | field %d | pending %d | cooldown %.0f | presses %u switches %u | Bringer rows %s | Gerb rows style %d",
                         g_selected, name_of(g_selected), at<int>(P, kStyle), s.pending, std::max(s.timer, 0.0f), g_presses, g_switches,
-                        (int)bringer_condition(), (int)gerb_condition());
+                        bringer_rows_on() ? "on" : "off", (int)gerb_condition());
         } else {
             ImGui::TextUnformatted(_("(the local player isn't Nero)"));
         }

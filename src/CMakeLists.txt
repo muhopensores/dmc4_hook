@@ -114,8 +114,8 @@ set(MODS_SRC
   mods/CharSwitcher.cpp
   mods/EffectColours.hpp
   mods/EffectColours.cpp
-  mods/DtKnuckle.hpp
-  mods/DtKnuckle.cpp
+  mods/GuardianDevil.hpp
+  mods/GuardianDevil.cpp
   mods/AngelSnatch.hpp
   mods/AngelSnatch.cpp
   mods/RevFlying.hpp
@@ -428,6 +428,7 @@ set(SDK_SRC
     sdk/Collision.cpp
     sdk/InputCommand.hpp
     sdk/InputCommand.cpp
+    sdk/NeroStand.hpp
     sdk/MoveRegistry.hpp
     sdk/MoveRegistry.cpp
     sdk/LmtMerge.hpp

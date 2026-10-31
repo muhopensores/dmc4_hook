@@ -51,6 +51,7 @@ struct CustomInput {
                          // 45 deg, left / right between
 };
 extern CustomInput custom_input[2];   // [Row]
+extern bool vertical_ground_any_stick;   // on the ground the vertical row takes any stick (the directional row is air only)
 
 enum Dir : int { FORWARD = 0, DOWN = 1, BACK = 2, LEFT = 3, RIGHT = 4, UP = 5, DIR_COUNT = 6 };   // = the LMT slots
 

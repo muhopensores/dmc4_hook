@@ -90,6 +90,8 @@ int command_check_sub(uintptr_t player, kSPlCmd* pstate, const kCmdHead* phead, 
 
 namespace { std::vector<TickFn>& ticks() { static std::vector<TickFn> v; return v; } }
 bool add_tick(TickFn fn) { if (!fn) return false; ticks().push_back(fn); return true; }
+namespace { std::vector<TickFn>& post_command_ticks() { static std::vector<TickFn> v; return v; } }
+bool add_post_command_tick(TickFn fn) { if (!fn) return false; post_command_ticks().push_back(fn); return true; }
 
 namespace { std::vector<TickFn>& post_ticks() { static std::vector<TickFn> v; return v; } }
 uintptr_t jmp_ret_post = 0;
@@ -135,6 +137,7 @@ void __stdcall run(uintptr_t player) {
         if (command_check_sub(player, &st, e.head, e.head->data) == 1)
             cmd_flag[e.bit / 32] |= 1u << (e.bit % 32);
     }
+    for (TickFn f : post_command_ticks()) f(player);
 }
 
 naked void detour() {
