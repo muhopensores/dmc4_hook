@@ -80,7 +80,7 @@ namespace {
 
     std::mutex g_mx;
     std::vector<Set> g_sets;
-    struct Reservation { std::string owner; int character, bank; };
+    struct Reservation { std::string owner; int character, bank, target; };
     std::vector<Reservation> g_reserved;
     std::set<int> g_foreign;             // character * 64 + target * 16 + bank: held another LMT when the registry built
     uint32_t g_version = 1;              // bumped by every change that can move a set (bump())
@@ -95,8 +95,7 @@ namespace {
 
     bool blocked(const Snapshot& s, int character, int target, int bank) {
         if (s.foreign.count(character * 64 + target * 16 + bank)) return true;
-        if (target != PLAYER) return false;
-        for (const Reservation& r : s.reserved) if (r.character == character && r.bank == bank) return true;
+        for (const Reservation& r : s.reserved) if (r.character == character && r.target == target && r.bank == bank) return true;
         return false;
     }
 
@@ -404,10 +403,10 @@ void remove(Handle h) {
     if (--g_sets[h].refs == 0) bump();
 }
 
-void reserve(const char* owner, int character, int bank) {
+void reserve(const char* owner, int character, int bank, int target) {
     std::lock_guard<std::mutex> lock(g_mx);
     for (Reservation& r : g_reserved)
-        if (r.owner == owner && r.character == character) {
+        if (r.owner == owner && r.character == character && r.target == target) {
             if (r.bank == bank) return;                     // unchanged: no rebuild
             if (bank >= 0) r.bank = bank;
             else g_reserved.erase(g_reserved.begin() + (&r - g_reserved.data()));
@@ -415,7 +414,7 @@ void reserve(const char* owner, int character, int bank) {
             return;
         }
     if (bank < 0) return;
-    g_reserved.push_back({ owner, character, bank });
+    g_reserved.push_back({ owner, character, bank, target });
     bump();
 }
 

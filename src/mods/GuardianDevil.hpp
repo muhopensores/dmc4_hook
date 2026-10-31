@@ -42,6 +42,14 @@
 // stand (dt_cancel_keeps_hold: uPlayerNero::checkActionDevilTrgAtOnce refuses it while the stand holds, and
 // moveActDevilTrg / moveActDevilTrgAir call the stand's Appear action; both are gated).
 //
+// Taunt mimic (taunt_mimic): when Nero starts a taunt (lower action 0x17, motions 0x96-0x9E / 0xA5 / 0xA6 of his bank
+// 0), the stand plays the same taunt beside him. The stand's own motion lists (pl020_01..04) have no taunts and its
+// joints are numbered differently from Nero's (its left arm is 7-10 where Nero's is 9-12; its right arm is the separate
+// model wp024, whose own blocks place the whole arm on the shoulder), so Nero's taunts are retargeted onto both rigs
+// with Albam (scripts/stand_taunt_retarget.py there) into two LMTs with Nero's block indices, loaded by the motion
+// registry as a STAND set (taunt_lmt for the body, taunt_arm_lmt for the arm, loose files under nativePC); the stand
+// plays the registry's word for Nero's motion id. It stops when Nero's taunt ends.
+//
 // Needs the downloaded nativePC\Collision\wp024.col (the stand's attack data; the mod turns itself off without it).
 // The stand hits with that file's attack entries, so the style-points repetition penalty and which enemies a hit
 // reaches are that data's, not the mod's.
@@ -74,6 +82,11 @@ extern bool  rush_effect;          // the rush's effects (effect\efl\vie\vi020_0
 extern float height_offset;        // cm added to the stand's height at the start (0)
 extern bool  hold_stays_put;       // the stand stays in place while it holds an enemy (Buster hold) instead of following Nero
 extern bool  dt_cancel_keeps_hold; // the instant DT activation runs during that hold, without summoning the stand
+extern bool  taunt_mimic;          // the stand plays Nero's taunt beside him
+extern char  taunt_lmt[128];       // the stand body's taunt LMT (Nero's taunts retargeted; game path without .lmt)
+extern char  taunt_arm_lmt[128];   // the arm model's (empty = the arm plays nothing)
+extern float taunt_back;           // where the stand taunts: cm behind Nero (negative = in front)
+extern float taunt_side;           // cm to Nero's right (negative = left)
 extern ActionSet sets[nero_style::kSlots];
 
 int  slot_for(uintptr_t player);   // the NeroStyle slot whose set applies (0 when styles are off or the player isn't Nero)
@@ -81,6 +94,7 @@ bool active(uintptr_t player);     // a guardian attack runs for this Nero
 void pre_tick(uintptr_t player);   // input_commands::add_tick: end detection, the hold, the stand bytes, the rush loop
 void post_command_tick(uintptr_t player);   // input_commands::add_post_command_tick: the four command bits -> a start
 uint32_t trigger_bit();            // the button bit the four commands test (trigger_game, or the virtual button)
+void register_taunt_set();         // (re)registers the taunt LMTs with the motion registry
 void rebuild_commands();           // after a trigger change: rewrites the four commands' button step
 
 } // namespace guardian_devil

@@ -3,6 +3,8 @@
 #include "../sdk/InputCommand.hpp"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/StringData.hpp"
+#include "../sdk/MotionRegistry.hpp"
+#include <cmath>
 #include <Windows.h>
 #undef WIN32_LEAN_AND_MEAN
 #include <shellapi.h>
@@ -29,6 +31,11 @@ bool  rush_effect          = true;
 float height_offset        = 0.0f;
 bool  hold_stays_put       = false;
 bool  dt_cancel_keeps_hold = false;
+bool  taunt_mimic          = true;
+char  taunt_lmt[128]       = "motion\\pl020\\pl020_taunt";
+char  taunt_arm_lmt[128]   = "motion\\wp024\\wp024_taunt";
+float taunt_back           = 80.0f;
+float taunt_side           = 0.0f;
 static const ActionSet kDefaultSet = { true, 0x31C, 0x317, 0x330, 0x35F, 135.0f, 170.0f, 172.0f, 150.0f };
 ActionSet sets[nero_style::kSlots] = { kDefaultSet, kDefaultSet, kDefaultSet, kDefaultSet };
 
@@ -39,6 +46,10 @@ char* const kRushEffectRun = "effect\\efl\\vie\\vi020_00v0";   // while the rush
 char* const kRushEffectEnd = "effect\\efl\\vie\\vi020_00v1";   // when it ends
 constexpr uintptr_t kCmdFlagWords = 0x2184;                    // uPlayer::mCmdFlag[3]
 constexpr uintptr_t kPadBtnOn = 0x1374;                        // uPlayer::mPeripheral.mPadBtnOn: the raw pad bits
+constexpr uint32_t  kActProvoke = 0x17;                        // Nero's lower action while he taunts
+int g_taunt_set = -1;                                          // the registry handle of the taunt set
+// Nero's taunt motions (uPlayerNero::setProvokeMtn 0x7E6F30: three tables by style rank), bank 0 so word == block
+bool is_taunt_motion(uint32_t m) { return (m >= 0x96 && m <= 0x9E) || m == 0xA5 || m == 0xA6; }
 const char* const kDataFile = ".\\nativePC\\Collision\\wp024.col";
 
 // Hook sites (uPlNeroDevil / uPlayerNero, DX9) and where their detours continue or jump. The resume addresses are
@@ -93,6 +104,8 @@ struct State {
     bool        hold_detached = false;// hold_stays_put took the stand off Nero
     float       hold_pos[3] = {};     // where it was when the hold began (the hold motions' root motion is undone to it)
     bool        held = false;         // the pad / key trigger was down last tick (the press edge)
+    bool        taunting = false;     // the running attack is a taunt mimic (ends with Nero's taunt)
+    bool        taunt_tried = false;  // this taunt of Nero's was answered (or refused) already
     uint32_t    starts = 0, refused = 0;
     const char* last_refusal = "";
 };
@@ -192,13 +205,14 @@ void write_bytes(uintptr_t stand, const State& s) {
     at<uint8_t>(stand, st::kShown) = (at<uint8_t>(stand, st::mIsDevilTrigger) || s.phase != IDLE) ? 1 : 0;
 }
 
-// The start: what setRedQueenMotion does in DT, on a stand placed on Nero and detached, fading in at once.
-void start(uintptr_t pl, uintptr_t stand, State& s, int slot, int motion) {
+// The start: what setRedQueenMotion does in DT, on a stand placed on Nero (`back` / `side` cm from him along his
+// facing) and detached, fading in at once. `taunt`: the motion is Nero's taunt (no lock-out on his taunt action).
+void start(uintptr_t pl, uintptr_t stand, State& s, int slot, int motion, bool taunt = false, float back = 0.0f, float side = 0.0f) {
     const ActionSet& set = sets[slot];
     const char* why = nullptr;
     const int action = at<int>(stand, st::mActionNo);
     if (!set.enabled)                                            why = "no stand in this style";
-    else if (motion < 0)                                         why = "no motion for this input";
+    else if (motion < 0)                                         why = taunt ? "the taunt LMTs aren't on the stand yet" : "no motion for this input";
     else if (action != st::ACT_NONE && action != st::ACT_YAMATO) why = "the stand is busy";
     else if (at<uint8_t>(stand, st::mIsDevilTriggerReserve))     why = "a DT change is pending";
     else nero_locked_out(pl, &why);
@@ -206,11 +220,16 @@ void start(uintptr_t pl, uintptr_t stand, State& s, int slot, int motion) {
 
     std::memcpy(&at<float>(stand, st::mPos), &at<float>(pl, pl::mPos), 12);
     at<float>(stand, st::mPos + 4) += height_offset;
+    if (back != 0.0f || side != 0.0f) {                          // game axes: forward = (sin yaw, 0, cos yaw), right = (-cos, 0, sin)
+        const float yaw = at<float>(pl, st::pl_mFacingYaw);
+        at<float>(stand, st::mPos)     += -std::sin(yaw) * back - std::cos(yaw) * side;
+        at<float>(stand, st::mPos + 8) += -std::cos(yaw) * back + std::sin(yaw) * side;
+    }
     std::memcpy(&at<float>(stand, st::mQuat), &at<float>(pl, pl::mQuat), 16);
     at<float>(stand, st::mAnglY) = at<float>(pl, st::pl_mFacingYaw);
     at<uint8_t>(stand, st::mIsTraceParent) = 0;
     st::set_action(stand, st::ACT_YAMATO);
-    const bool rush = motion == set.rush;
+    const bool rush = !taunt && motion == set.rush;
     st::yamato_param(stand, motion, 4, rush ? set.rush_start : 0.0f);
     at<int>(stand, st::mTpPhase) = st::TP_FADE_IN;
     if (const uintptr_t target = at<uintptr_t>(pl, st::pl_mLockOnTarget)) st::set_snatch_param(stand, target);
@@ -221,6 +240,7 @@ void start(uintptr_t pl, uintptr_t stand, State& s, int slot, int motion) {
     s.phase = ATTACK;
     s.motion = motion;
     s.slot = slot;
+    s.taunting = taunt;
     s.cooldown = cooldown_frames;
     ++s.starts;
     write_bytes(stand, s);
@@ -231,6 +251,26 @@ void start(uintptr_t pl, uintptr_t stand, State& s, int slot, int motion) {
 void end_attack(uintptr_t stand, State& s) {
     stop_effect(s);
     s.phase = FADE;
+    s.taunting = false;
+}
+
+// Nero started a taunt: the stand plays the same taunt beside him, once the registry has the files on it.
+void taunt_tick(uintptr_t pl, uintptr_t stand, State& s) {
+    const bool provoking = at<uint32_t>(pl, pl::mBdyActionLowerNo) == kActProvoke;
+    if (!provoking) s.taunt_tried = false;
+    if (s.phase == ATTACK && s.taunting && !provoking) {         // Nero stopped taunting: the stand stops too (the game's gate cancels it)
+        stop_effect(s);
+        s.phase = FADE;
+        s.taunting = false;
+        return;
+    }
+    if (!taunt_mimic || !provoking || s.taunt_tried || s.phase == ATTACK) return;
+    const uint32_t motion = at<uint32_t>(pl, pl::mMotionCtrl0No);
+    if (!is_taunt_motion(motion)) return;                        // the taunt motion is requested a tick after the action starts
+    s.taunt_tried = true;
+    int word = -1;
+    if (g_taunt_set >= 0 && motion_registry::ready(g_taunt_set, pl)) word = motion_registry::word(g_taunt_set, pl, (int)motion);
+    start(pl, stand, s, slot_for(pl), word, true, taunt_back, taunt_side);
 }
 void end_fade(uintptr_t stand, State& s) {
     at<uint8_t>(stand, st::mIsTraceParent) = 1;
@@ -262,6 +302,7 @@ void release(uintptr_t stand, State& s) {
     if (s.phase != IDLE || s.hold_detached) at<uint8_t>(stand, st::mIsTraceParent) = 1;
     s.phase = IDLE;
     s.hold_detached = false;
+    s.taunting = false;
     at<uint8_t>(stand, st::kMod) = 0;
     at<uint8_t>(stand, st::kShown) = at<uint8_t>(stand, st::mIsDevilTrigger);
 }
@@ -432,6 +473,17 @@ bool active(uintptr_t pl) {
 
 uint32_t trigger_bit() { return trigger_source == TRIG_GAME ? (uint32_t)trigger_game : kVirtualButton; }
 
+void register_taunt_set() {
+    motion_registry::SetDesc d;
+    d.owner = "GuardianDevil taunt";
+    d.target = motion_registry::STAND;
+    d.stand = taunt_lmt;
+    d.stand_sub = taunt_arm_lmt;
+    const int old = g_taunt_set;
+    g_taunt_set = taunt_lmt[0] ? motion_registry::add(d) : -1;
+    if (old >= 0) motion_registry::remove(old);
+}
+
 void rebuild_commands() {
     const uint32_t bit = trigger_bit();
     for (input_commands::Command& c : g_cmd)
@@ -469,8 +521,9 @@ void pre_tick(uintptr_t pl) {
         s.hold_detached = false;
     }
 
+    taunt_tick(pl, stand, s);
     write_bytes(stand, s);
-    if (s.phase == ATTACK) rush_loop(pl, stand, s);
+    if (s.phase == ATTACK && !s.taunting) rush_loop(pl, stand, s);
 
     // the pad / key trigger as the virtual button, for the commands that run after this tick (the local player's pad)
     if (trigger_source != TRIG_GAME && pl == (uintptr_t)devil4_sdk::get_local_player()) {
@@ -550,6 +603,7 @@ std::optional<std::string> GuardianDevil::on_initialize() {
             g_cmd_bit[i] = -1;
         }
     }
+    register_taunt_set();
     add_tick(&pre_tick);
     add_post_command_tick(&post_command_tick);
     if (!input_commands::hook_installed) {     // one installer: whichever command mod initialises first
@@ -752,6 +806,37 @@ void GuardianDevil::on_gui_frame(int display) {
                   "path instead. On: the instant activation runs, cancelling Nero's move with the aura, and the stand keeps the "
                   "hold instead of being summoned to Nero."));
 
+    ImGui::SeparatorText(_("Taunt mimic"));
+    ImGui::Checkbox(_("Stand mimics Nero's taunt"), &taunt_mimic);
+    ImGui::SameLine();
+    help_marker(_("When Nero taunts, the stand appears beside him and plays the same taunt, and stops when he does. The stand's own "
+                  "motion files have no taunts and its bones are numbered differently, so Nero's taunts are retargeted onto the "
+                  "stand and its arm with Albam (scripts/stand_taunt_retarget.py) into the two LMTs below, loose files under "
+                  "nativePC, which the motion registry puts on the stand."));
+    ImGui::PushItemWidth(sameLineWidth);
+    bool lmt_changed = ImGui::InputText(_("Taunt LMT (stand)"), taunt_lmt, sizeof taunt_lmt);
+    ImGui::SameLine();
+    help_marker(_("Game path without .lmt, read from nativePC: the stand body's taunts, with Nero's block numbers."));
+    lmt_changed |= ImGui::InputText(_("Taunt LMT (arm)"), taunt_arm_lmt, sizeof taunt_arm_lmt);
+    ImGui::SameLine();
+    help_marker(_("The same for the arm model (wp024). Clear it to leave the arm still."));
+    ImGui::PopItemWidth();
+    if (lmt_changed) register_taunt_set();
+    ImGui::SameLine();
+    if (ImGui::Button(_("Reload LMTs"))) motion_registry::refresh();
+    ImGui::SameLine();
+    help_marker(_("Reads every registry LMT from disk again (after re-exporting the files)."));
+    ImGui::PushItemWidth(sameLineItemWidth);
+    ImGui::SliderFloat(_("Taunt: behind Nero"), &taunt_back, -200.0f, 200.0f, "%.0f cm");
+    ImGui::SameLine();
+    help_marker(_("Where the stand stands for the taunt: cm behind Nero along his facing (negative = in front)."));
+    ImGui::SliderFloat(_("Taunt: to the right"), &taunt_side, -200.0f, 200.0f, "%.0f cm");
+    ImGui::SameLine();
+    help_marker(_("cm to Nero's right (negative = left)."));
+    ImGui::PopItemWidth();
+    if (const uintptr_t P = (uintptr_t)devil4_sdk::get_local_player(); P && is_nero(P) && g_taunt_set >= 0)
+        ImGui::TextDisabled("taunt set: %s", motion_registry::describe(g_taunt_set, P).c_str());
+
     ImGui::SeparatorText(_("Actions per style"));
     static int gui_slot = 0;
     ImGui::PushItemWidth(sameLineItemWidth);
@@ -808,6 +893,12 @@ void GuardianDevil::on_config_load(const utility::Config& cfg) {
     height_offset        = cfg.get<float>("dt_knuckle_height_offset").value_or(height_offset);
     hold_stays_put       = cfg.get<bool>("dt_knuckle_hold_stays_put").value_or(hold_stays_put);
     dt_cancel_keeps_hold = cfg.get<bool>("dt_knuckle_dt_cancel_keeps_hold").value_or(dt_cancel_keeps_hold);
+    taunt_mimic          = cfg.get<bool>("dt_knuckle_taunt_mimic").value_or(taunt_mimic);
+    if (auto p = cfg.get("dt_knuckle_taunt_lmt")) strcpy_s(taunt_lmt, p->c_str());
+    if (auto p = cfg.get("dt_knuckle_taunt_arm_lmt")) strcpy_s(taunt_arm_lmt, p->c_str());
+    taunt_back           = cfg.get<float>("dt_knuckle_taunt_back").value_or(taunt_back);
+    taunt_side           = cfg.get<float>("dt_knuckle_taunt_side").value_or(taunt_side);
+    register_taunt_set();
     for (int i = 0; i < nero_style::kSlots; ++i) {
         ActionSet& set = sets[i];
         const std::string p = "dt_knuckle_s" + std::to_string(i) + "_";
@@ -837,6 +928,11 @@ void GuardianDevil::on_config_save(utility::Config& cfg) {
     cfg.set<float>("dt_knuckle_height_offset", height_offset);
     cfg.set<bool>("dt_knuckle_hold_stays_put", hold_stays_put);
     cfg.set<bool>("dt_knuckle_dt_cancel_keeps_hold", dt_cancel_keeps_hold);
+    cfg.set<bool>("dt_knuckle_taunt_mimic", taunt_mimic);
+    cfg.set("dt_knuckle_taunt_lmt", std::string(taunt_lmt));
+    cfg.set("dt_knuckle_taunt_arm_lmt", std::string(taunt_arm_lmt));
+    cfg.set<float>("dt_knuckle_taunt_back", taunt_back);
+    cfg.set<float>("dt_knuckle_taunt_side", taunt_side);
     for (int i = 0; i < nero_style::kSlots; ++i) {
         const ActionSet& set = sets[i];
         const std::string p = "dt_knuckle_s" + std::to_string(i) + "_";

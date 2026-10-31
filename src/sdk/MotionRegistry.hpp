@@ -48,7 +48,8 @@ namespace motion_registry {
     void remove(Handle h);
 
     // A bank a mod fills itself (`owner` again with another bank moves the reservation; bank < 0 drops it).
-    void reserve(const char* owner, int character, int bank);
+    // `target`: PLAYER banks (the character's models), or STAND banks (Nero's stand and its arm, pool 4-14).
+    void reserve(const char* owner, int character, int bank, int target = PLAYER);
 
     // The set's motions are on `player`'s models (installs / refreshes them when needed; false while the builder works
     // on a set added since the last build).
