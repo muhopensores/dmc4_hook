@@ -18,7 +18,11 @@
 //       <model path="model\game\pl000\my_jacket" collision_model="model\game\pl000\pl000">       chains on the jacket
 //         <chain clt="model\game\pl000\my_jacket_tail" col="model\game\pl000\pl000_03"/>
 //       </model>
+//       <hide path="model\game\pl000\pl000_03"/>                                                 not drawn
 //     </extensions>
+//   <hide>: every model with this path isn't drawn (mTransparency 0, written every frame). It stays loaded and animated:
+//   the players' setup code needs the sub-models' joints, and the coat motions and chains go on as usual. Nero's face, hair,
+//   coat = pl000\pl000_01, _02, _03; Dante's = pl006\pl006_01, _02, _03, his Devil Trigger coat pl006\pl009_01.
 //   <attach>: without joint= (or mode="skin") every joint of the extra model follows the owner's joint with the same number
 //   (the body's bind pose needed); with joint= (an owner joint NUMBER; mode="rigid") it rides that joint, offset by pos (cm),
 //   rot (degrees about X, then Y, then Z) and scale (one number or three). line= overrides its move line (29). An attached

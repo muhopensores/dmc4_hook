@@ -274,9 +274,11 @@ th {
 <li class="toc-level-3"><a href="#example-jacket">Clothing Made On The Body</a></li>
 <li class="toc-level-3"><a href="#example-tail">A Swinging Tail</a></li>
 <li class="toc-level-3"><a href="#example-coat">A New Coat With Swinging Tails</a></li>
+<li class="toc-level-3"><a href="#example-hide">Hiding The Character's Own Parts</a></li>
 <li class="toc-level-2"><a href="#reference">Reference</a></li>
 <li class="toc-level-3"><a href="#ref-attach">&lt;attach&gt;: An Extra Model</a></li>
 <li class="toc-level-3"><a href="#ref-model">&lt;model&gt; And &lt;chain&gt;: Physics Chains</a></li>
+<li class="toc-level-3"><a href="#ref-hide">&lt;hide&gt;: A Model Not Drawn</a></li>
 <li class="toc-level-2"><a href="#making-files">Making The Files</a></li>
 <li class="toc-level-3"><a href="#joint-numbers">Joint Numbers</a></li>
 <li class="toc-level-2"><a href="#rules">Rules And Limits</a></li>
@@ -291,6 +293,7 @@ th {
 <ul>
 <li><strong>Physics chains</strong>: hanging, swinging parts such as coat tails, hair, tails, straps (the game's <code>.clt</code> chain files).</li>
 <li><strong>Extra models</strong>: a hat on Nero's head, a jacket over Dante's body, a pouch on a belt. They move with the character and hide when the character is hidden.</li>
+<li><strong>Hidden models</strong>: the character's own face, hair or coat left undrawn, for a body model that has its own.</li>
 </ul>
 <p>You describe what goes where in a small text file (XML). The hook reads it and adds the pieces whenever the character they belong to appears: on every level start and every room change.</p>
 
@@ -350,8 +353,18 @@ th {
   &lt;/model&gt;
 &lt;/extensions&gt;</code></pre></div>
 
+<h3 id="example-hide" data-search-heading="Hiding The Character's Own Parts">Hiding The Character's Own Parts<a class="heading-link" href="#example-hide" aria-label="Link to Hiding The Character's Own Parts">#</a></h3>
+<p>Nero and Dante are a body plus separate face, hair and coat models. A replacement body that has its own needs those out of the way. List what you don't want drawn:</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;extensions&gt;
+  &lt;hide path="model\game\pl006\pl006_01"/&gt;
+  &lt;hide path="model\game\pl006\pl006_02"/&gt;
+  &lt;hide path="model\game\pl006\pl006_03"/&gt;
+  &lt;hide path="model\game\pl006\pl009_01"/&gt;
+&lt;/extensions&gt;</code></pre></div>
+<p>The paths are <code>_01</code> face, <code>_02</code> hair, <code>_03</code> coat, for Nero under <code>model\game\pl000\pl000</code> and for Dante under <code>model\game\pl006\pl006</code>. <code>pl006\pl009_01</code> is Dante's Devil Trigger coat.</p>
+
 <h2 id="reference" data-search-heading="Reference">Reference<a class="heading-link" href="#reference" aria-label="Link to Reference">#</a></h2>
-<p>A file has one <code>&lt;extensions&gt;</code> around everything, then any number of <code>&lt;attach&gt;</code> and <code>&lt;model&gt;</code> entries in any order. Paths are game paths (see <a href="#paths">Paths</a>); upper / lower case and <code>/</code> or <code>\</code> don't matter.</p>
+<p>A file has one <code>&lt;extensions&gt;</code> around everything, then any number of <code>&lt;attach&gt;</code>, <code>&lt;model&gt;</code> and <code>&lt;hide&gt;</code> entries in any order. Paths are game paths (see <a href="#paths">Paths</a>); upper / lower case and <code>/</code> or <code>\</code> don't matter.</p>
 
 <h3 id="ref-attach" data-search-heading="attach">&lt;attach&gt;: An Extra Model<a class="heading-link" href="#ref-attach" aria-label="Link to attach">#</a></h3>
 <div class="table-wrap"><table>
@@ -377,6 +390,14 @@ th {
 <tr><td><code>&lt;chain col&gt;</code></td><td>No</td><td>Collision shapes (<code>.col</code>) the chain bumps into. Needs a <code>collision_model</code>.</td></tr>
 <tr><td><code>&lt;chain collision_model&gt;</code></td><td>No</td><td>Overrides the <code>&lt;model&gt;</code>'s for this chain.</td></tr>
 </tbody></table></div>
+
+<h3 id="ref-hide" data-search-heading="hide">&lt;hide&gt;: A Model Not Drawn<a class="heading-link" href="#ref-hide" aria-label="Link to hide">#</a></h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Setting</th><th>Needed?</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>path</code></td><td>Yes</td><td>Every model with this path isn't drawn, shadows included.</td></tr>
+</tbody></table></div>
+<p>The model is only invisible. It still loads and animates, and its chains still run, so the game's coat motions behave as usual and anything you <code>&lt;attach&gt;</code> to it stays visible and follows it. Turning off <strong>Model extension</strong> or removing the entry and pressing <strong>Reload lists</strong> brings it back.</p>
 
 <h2 id="making-files" data-search-heading="Making The Files">Making The Files<a class="heading-link" href="#making-files" aria-label="Link to Making The Files">#</a></h2>
 <p>Albam (the Blender add-on) imports and exports all of these:</p>

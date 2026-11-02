@@ -32,9 +32,17 @@ namespace {
 constexpr uintptr_t kRModel = 0xA30;            // uModel::mpRModel (the .mod resource; cResource::path at +4)
 constexpr uintptr_t kResPath = 0x04;
 constexpr uintptr_t kFaceModel = 0x20C0, kCoatModel = 0x20C4;   // uPlayer::mpFaceMdl / mpCoatMdl (members, not units)
+constexpr uintptr_t kTransparency = 0xE20;      // uDevil4Model::mTransparency: draw 0x522DC0 skips the model at <= 0
 constexpr int kCheckEvery = 10;                 // frames between the checks of the chains out (a room change kills them)
 
 std::vector<ListEntry> g_entries;
+
+// <hide path=/>: every model with this path stays loaded, moving and animated, and isn't drawn
+struct HideEntry {
+    std::string path;                           // normalized
+    std::string source;
+};
+std::vector<HideEntry> g_hide_entries;
 
 // <attach path= to= [joint=] [mode=] [pos=] [rot=] [scale=] [line=]/>: an extra model on every model whose path is `to`
 struct AttachEntry {
@@ -116,6 +124,20 @@ uintptr_t collision_model_for(uintptr_t model, const std::string& path) {
 
 bool chain_exists(const Spawned& s) { return devil4_sdk::check_exists_in_moveline((void*)s.chain, s.line); }
 
+bool is_hidden(const std::string& path) {
+    return std::any_of(g_hide_entries.begin(), g_hide_entries.end(), [&](const HideEntry& h) { return h.path == path; });
+}
+
+// Written every frame: nothing in the game sets a player sub-model's transparency, but a model's own move can (the camera
+// fade of a model on a move line).
+void apply_hidden() {
+    for (const auto& [m, p] : g_models) if (is_hidden(p)) *(float*)(m + kTransparency) = 0.0f;
+}
+
+void show_hidden() {
+    for (const auto& [m, p] : g_models) if (is_hidden(p)) *(float*)(m + kTransparency) = 1.0f;
+}
+
 // Every listed chain `model` doesn't carry yet, on the line before the model's (at most 12; sub-models aren't on a line:
 // 12, which runs before the players' 13 and the enemies' 15+).
 void spawn_for(uintptr_t model, const std::string& path) {
@@ -181,11 +203,16 @@ void frame() {
     for (uintptr_t m : pending) {
         const std::string path = model_path(m);
         auto it = g_models.find(m);
-        if (it != g_models.end() && it->second != path) { despawn_of(m); detach_of(m); }   // another .mod: those were the old one's
+        if (it != g_models.end() && it->second != path) {   // another .mod: those were the old one's
+            despawn_of(m);
+            detach_of(m);
+            if (is_hidden(it->second)) *(float*)(m + kTransparency) = 1.0f;
+        }
         g_models[m] = path;
         spawn_for(m, path);
         attach_for(m, path);
     }
+    if (mod_enabled) apply_hidden();
     if (++g_frame % kCheckEvery != 0) return;
     // the chains out: one a room change killed comes back while its model lives on (the player, his coat); one whose
     // model is dying (the chain nulled its pointer) goes, the destructor hook forgets the model
@@ -333,15 +360,18 @@ void parse_attach(const pugi::xml_node a, const std::string& file, int n) {
 
 // The lists: nativePC\model_ext\*.xml (ModelExtension.hpp):
 //   <extensions><model path= [collision_model=]><chain clt= [col=] [collision_model=]/> ...</model>
-//               <attach path= to= [joint=] [mode=rigid|skin] [pos=] [rot=] [scale=] [line=]/> ...</extensions>
+//               <attach path= to= [joint=] [mode=rigid|skin] [pos=] [rot=] [scale=] [line=]/> ...
+//               <hide path=/> ...</extensions>
 // A chain's collision_model overrides its model's; a col without any collision model is ignored (collision needs both).
 void reload() {
     namespace fs = std::filesystem;
     std::lock_guard<std::recursive_mutex> lock(g_lock);
     despawn_of(0);                                   // the records index the old lists
     detach_of(0);
+    show_hidden();                                   // the lists still listed hide theirs again next frame
     g_entries.clear();
     g_attach_entries.clear();
+    g_hide_entries.clear();
     if (fs::exists(folder)) {
         std::vector<std::string> files;
         for (const fs::directory_entry& e : fs::directory_iterator(folder))
@@ -375,8 +405,14 @@ void reload() {
             }
             int n = 0;
             for (const pugi::xml_node a : root.children("attach")) parse_attach(a, name, ++n);
+            for (const pugi::xml_node h : root.children("hide")) {
+                const std::string path = normalize(h.attribute("path").as_string());
+                if (path.empty()) { spdlog::warn("ModelExtension: {}: a <hide> without path", name); continue; }
+                g_hide_entries.push_back({ path, name });
+            }
         }
-        spdlog::info("ModelExtension: {} chain(s), {} attachment(s) listed in {}", g_entries.size(), g_attach_entries.size(), folder);
+        spdlog::info("ModelExtension: {} chain(s), {} attachment(s), {} hidden model(s) listed in {}", g_entries.size(),
+                     g_attach_entries.size(), g_hide_entries.size(), folder);
     } else {
         spdlog::info("ModelExtension: no {} folder, nothing listed", folder);
     }
@@ -408,6 +444,12 @@ void write_example() {
            "  <model path=\"model\\game\\pl000\\pl000_03\" collision_model=\"model\\game\\pl000\\pl000\">\n"
            "    <chain clt=\"model\\game\\pl000\\my_tail\" col=\"model\\game\\pl000\\pl000_03\"/>\n"
            "  </model>\n"
+           "  -->\n"
+           "  <!-- Nero's own face, hair and coat not drawn, for a body that has its own (Dante: pl006\\pl006_01, _02, _03, and\n"
+           "       pl006\\pl009_01 for his Devil Trigger coat). They still load and animate:\n"
+           "  <hide path=\"model\\game\\pl000\\pl000_01\"/>\n"
+           "  <hide path=\"model\\game\\pl000\\pl000_02\"/>\n"
+           "  <hide path=\"model\\game\\pl000\\pl000_03\"/>\n"
            "  -->\n"
            "</extensions>\n";
     spdlog::info("ModelExtension: wrote {}", p.string());
@@ -443,7 +485,7 @@ void ModelExtension::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Model extension"), &mod_enabled)) {
         std::lock_guard<std::recursive_mutex> lock(g_lock);
         if (mod_enabled) { for (const auto& [m, p] : g_models) g_pending.push_back(m); }   // the models already out get theirs
-        else { despawn_of(0); detach_of(0); }
+        else { despawn_of(0); detach_of(0); show_hidden(); }
     }
     ImGui::SameLine();
     help_marker(_("Extends the game's models from the lists in nativePC\\model_ext\\*.xml: physics chains (.clt: coats, hair, "
@@ -455,7 +497,10 @@ void ModelExtension::on_gui_frame(int display) {
                   "  <model path=\"model\\game\\pl000\\my_jacket\" collision_model=\"model\\game\\pl000\\pl000\">\n"
                   "    <chain clt=\"model\\game\\pl000\\my_jacket_tail\" col=\"model\\game\\pl000\\pl000_03\"/>\n"
                   "  </model>\n"
+                  "  <hide path=\"model\\game\\pl000\\pl000_03\"/>\n"
                   "</extensions>\n"
+                  "<hide>: the model isn't drawn. It stays loaded and keeps animating, so the game's coat motions and chains go on "
+                  "as usual (for a body that has its own face, hair or coat).\n"
                   "<attach>: without a joint the extra model is skinned to its owner (each of its joints follows the owner's joint "
                   "with the same number: clothing made on the body rig, with the body's bind pose); with joint= (a joint number) it "
                   "rides that joint rigidly, offset by pos (cm), rot (degrees about X, Y, Z) and scale. Its own extra joints can "
@@ -491,6 +536,11 @@ void ModelExtension::on_gui_frame(int display) {
         const int out = (int)std::count_if(g_attached.begin(), g_attached.end(), [&](const Attached& a) { return a.entry == e; });
         if (ae.mode == model_attach::SKIN) ImGui::BulletText("%s on %s, skinned: %d  (%s)", ae.path.c_str(), ae.to.c_str(), out, ae.source.c_str());
         else ImGui::BulletText("%s on %s, joint %d: %d  (%s)", ae.path.c_str(), ae.to.c_str(), ae.joint, out, ae.source.c_str());
+    }
+    ImGui::Text(_("%d model(s) hidden"), (int)g_hide_entries.size());
+    for (const HideEntry& h : g_hide_entries) {
+        const int out = (int)std::count_if(g_models.begin(), g_models.end(), [&](const auto& m) { return m.second == h.path; });
+        ImGui::BulletText("%s: %d  (%s)", h.path.c_str(), out, h.source.c_str());
     }
     ImGui::Text(_("%d chain(s) listed, %d out, %d model(s) known"), (int)g_entries.size(), (int)g_spawned.size(), (int)g_models.size());
     for (size_t e = 0; e < g_entries.size(); ++e) {
