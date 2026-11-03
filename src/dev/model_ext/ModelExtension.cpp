@@ -1,9 +1,12 @@
 #include "ModelExtension.hpp"
 #include "../../sdk/CnsChain.hpp"
 #include "../../sdk/ModelAttach.hpp"
+#include "../../sdk/ModelCns.hpp"
 #include "../../sdk/Devil4.hpp"
 #include "../../sdk/MtDTI.hpp"
 #include "../../sdk/sUnit.hpp"
+#include "../../sdk/World2Screen.hpp"
+#include "../../sdk/uCollisionMgr.hpp"
 #include <pugixml.hpp>
 #include <algorithm>
 #include <cctype>
@@ -24,8 +27,9 @@
 namespace model_extension {
 
 bool mod_enabled = false;
+bool show_collision = false;
 char folder[128] = "nativePC\\model_ext";
-uintptr_t jmp_ret_set_model = 0, jmp_ret_model_dtor = 0, jmp_ret_chain_dtor = 0;
+uintptr_t jmp_ret_set_model = 0, jmp_ret_model_dtor = 0, jmp_ret_chain_dtor = 0, jmp_ret_joint_alloc = 0;
 
 namespace {
 
@@ -33,6 +37,7 @@ constexpr uintptr_t kRModel = 0xA30;            // uModel::mpRModel (the .mod re
 constexpr uintptr_t kResPath = 0x04;
 constexpr uintptr_t kFaceModel = 0x20C0, kCoatModel = 0x20C4;   // uPlayer::mpFaceMdl / mpCoatMdl (members, not units)
 constexpr uintptr_t kTransparency = 0xE20;      // uDevil4Model::mTransparency: draw 0x522DC0 skips the model at <= 0
+constexpr uintptr_t kCoordParent = 0x18;        // uCoord::mpParent (coats, attachments: their owner)
 constexpr int kCheckEvery = 10;                 // frames between the checks of the chains out (a room change kills them)
 
 std::vector<ListEntry> g_entries;
@@ -64,7 +69,31 @@ struct Spawned {
     size_t entry;                               // index into g_entries
     uintptr_t model, chain;
     int line;
+    bool has_shapes;                            // its .col is set (the collision model may still be missing)
+    bool missed;                                // the missing collision model was reported
 };
+
+// <pin> / <offset> / <aim> inside a <model>: a joint constraint on every model with that path
+struct CnsEntry {
+    std::string model;                          // normalized
+    model_cns::Kind kind;
+    int joint, to;                              // joint numbers: of the model, of the source model
+    std::string of;                             // normalized source model; "" = the model's owner, "self" = the model itself
+    model_cns::Pin pin;
+    model_cns::Offset offset;
+    model_cns::Aim aim;
+    std::string source;
+};
+std::vector<CnsEntry> g_cns_entries;
+
+struct CnsLive {
+    size_t entry;                               // index into g_cns_entries
+    uintptr_t model, source;                    // source 0: not found yet
+    uintptr_t block;
+    bool installed;
+    bool warned;                                // a problem with it was logged
+};
+std::vector<CnsLive> g_cns;
 
 // Shared with the hooks (setModel / the destructor can run inside the game's loading), so behind one lock; the spawning
 // itself only happens in on_frame, on the main thread.
@@ -109,15 +138,37 @@ int line_of(uintptr_t unit) {
     return -1;
 }
 
-// The model a list's collision_model names: the owner of `model` when it is a player's coat / face model and the owner
-// has that path (a coat's body), else the first live model with the path.
-uintptr_t collision_model_for(uintptr_t model, const std::string& path) {
+// The known model `m` hangs under (uCoord::mpParent: a coat's player, an attachment's owner), 0 at the top.
+uintptr_t owner_model(uintptr_t m) {
+    const uintptr_t p = *(uintptr_t*)(m + kCoordParent);
+    return g_models.count(p) ? p : 0;
+}
+
+uintptr_t top_owner(uintptr_t m) {
+    for (int depth = 0; depth < 8; ++depth) {
+        const uintptr_t p = owner_model(m);
+        if (!p) break;
+        m = p;
+    }
+    return m;
+}
+
+// The model a list names for `model`: the nearest owner with the path, else one on the same character (an attachment's
+// sibling), else the first live model with the path.
+uintptr_t related_model(uintptr_t model, const std::string& path) {
     static std::unordered_map<uintptr_t, bool> is_player;
+    uintptr_t m = model;
+    for (int depth = 0; depth < 8 && (m = owner_model(m)) != 0; ++depth) {
+        auto it = g_models.find(m);
+        if (it != g_models.end() && it->second == path) return m;
+    }
+    const uintptr_t top = top_owner(model);
     uintptr_t first = 0;
-    for (const auto& [m, p] : g_models) {
+    for (const auto& [c, p] : g_models) {
         if (p != path) continue;
-        if (derives_from(m, "uPlayer", is_player) && (*(uintptr_t*)(m + kCoatModel) == model || *(uintptr_t*)(m + kFaceModel) == model)) return m;
-        if (!first) first = m;
+        if (top_owner(c) == top) return c;
+        if (derives_from(c, "uPlayer", is_player) && (*(uintptr_t*)(c + kCoatModel) == model || *(uintptr_t*)(c + kFaceModel) == model)) return c;
+        if (!first) first = c;
     }
     return first;
 }
@@ -152,12 +203,90 @@ void spawn_for(uintptr_t model, const std::string& path) {
             line = own < 0 ? cns_chain::kDefaultLine : std::min(cns_chain::kDefaultLine, own - 1);
         }
         if (line < 0) { spdlog::warn("ModelExtension: {} is on line 0, no line runs before it", path); return; }
-        const uintptr_t coll = le.collision_model.empty() ? 0 : collision_model_for(model, le.collision_model);
+        const uintptr_t coll = le.collision_model.empty() ? 0 : related_model(model, le.collision_model);
         const uintptr_t chain = cns_chain::spawn(model, le.chain.c_str(), le.col.empty() ? nullptr : le.col.c_str(), coll, line);
         if (!chain) { spdlog::warn("ModelExtension: {} didn't load ({})", le.chain, le.source); continue; }
-        g_spawned.push_back({ e, model, chain, line });
+        g_spawned.push_back({ e, model, chain, line, coll != 0 && !le.col.empty(), false });
         spdlog::info("ModelExtension: {} on {} (line {})", le.chain, path, line);
     }
+}
+
+// A chain whose collision model wasn't out when it spawned, or died: `collision_model` is looked up until it is found.
+void resolve_collision(Spawned& s) {
+    const ListEntry& le = g_entries[s.entry];
+    if (le.col.empty() || le.collision_model.empty() || cns_chain::collision_model_of(s.chain)) return;
+    const uintptr_t coll = related_model(s.model, le.collision_model);
+    if (!coll) {
+        if (!s.missed) spdlog::warn("ModelExtension: {} waits for its collision model {} ({})", le.chain, le.collision_model, le.source);
+        s.missed = true;
+        return;
+    }
+    cns_chain::set_collision(s.chain, s.has_shapes ? nullptr : le.col.c_str(), coll);
+    s.has_shapes = true;
+    s.missed = false;
+}
+
+uintptr_t cns_source(const CnsLive& c) {
+    const CnsEntry& ce = g_cns_entries[c.entry];
+    if (ce.kind == model_cns::OFFSET) return 0;
+    if (ce.of == "self") return c.model;
+    if (ce.of.empty()) { const uintptr_t o = owner_model(c.model); return o ? o : c.model; }
+    return related_model(c.model, ce.of);
+}
+
+// Every listed constraint `model` doesn't carry yet.
+void cns_for(uintptr_t model, const std::string& path) {
+    if (!mod_enabled || path.empty()) return;
+    for (size_t e = 0; e < g_cns_entries.size(); ++e) {
+        const CnsEntry& ce = g_cns_entries[e];
+        if (ce.model != path) continue;
+        if (std::any_of(g_cns.begin(), g_cns.end(), [&](const CnsLive& c) { return c.entry == e && c.model == model; })) continue;
+        const uintptr_t block = ce.kind == model_cns::PIN ? model_cns::make_pin(ce.pin)
+                              : ce.kind == model_cns::AIM ? model_cns::make_aim(ce.aim) : model_cns::make_offset(ce.offset);
+        if (block) g_cns.push_back({ e, model, 0, block, false, false });
+    }
+}
+
+// Run every frame: a source's joints move with its setModel, and a chain's destructor clears the constraints of its model.
+void update_cns() {
+    for (CnsLive& c : g_cns) {
+        const CnsEntry& ce = g_cns_entries[c.entry];
+        if (ce.kind != model_cns::OFFSET) {
+            if (!c.source) c.source = cns_source(c);
+            const float* m = c.source ? model_cns::joint_matrix(c.source, ce.to) : nullptr;
+            model_cns::bind(c.block, m);
+            if (!m) {
+                if (!c.warned && c.source) spdlog::warn("ModelExtension: {}: the source model has no joint {}", ce.source, ce.to);
+                c.warned = c.warned || c.source != 0;
+                if (c.installed) { model_cns::remove(c.block, c.model, ce.joint); c.installed = false; }
+                continue;
+            }
+        }
+        const model_cns::Install r = model_cns::install(c.block, c.model, ce.joint);
+        c.installed = r == model_cns::INSTALLED;
+        if (!c.installed && !c.warned) {
+            spdlog::warn("ModelExtension: {}: joint {} of {} {}", ce.source, ce.joint, ce.model,
+                         r == model_cns::TAKEN ? "is driven by a chain or another constraint" : "doesn't exist");
+            c.warned = true;
+        }
+    }
+}
+
+// Takes `model`'s constraints off (model 0: all of them). `alive`: its joints are still there.
+void remove_cns(uintptr_t model, bool alive) {
+    for (size_t i = 0; i < g_cns.size();) {
+        CnsLive& c = g_cns[i];
+        if (model && c.model != model) { ++i; continue; }
+        if (alive && c.installed) model_cns::remove(c.block, c.model, g_cns_entries[c.entry].joint);
+        model_cns::release(c.block);
+        g_cns.erase(g_cns.begin() + i);
+    }
+}
+
+// `model`'s joints are about to go: nothing may read them any more. update_cns looks the source up again.
+void drop_cns_source(uintptr_t model) {
+    for (CnsLive& c : g_cns)
+        if (c.source == model) { model_cns::bind(c.block, nullptr); c.source = 0; }
 }
 
 // Every listed attachment `owner` doesn't carry yet. Not on an attachment made from the same entry (a list attaching a
@@ -197,7 +326,8 @@ void despawn_of(uintptr_t model) {
 
 void frame() {
     std::lock_guard<std::recursive_mutex> lock(g_lock);
-    // the models setModel saw: their path now (the rModel is in place once setModel returned), chains for them
+    // the models setModel saw: their path now (the rModel is in place once setModel returned). All of them are known before
+    // anything spawns, so what a list says doesn't depend on which model came first.
     std::vector<uintptr_t> pending;
     pending.swap(g_pending);
     for (uintptr_t m : pending) {
@@ -206,14 +336,21 @@ void frame() {
         if (it != g_models.end() && it->second != path) {   // another .mod: those were the old one's
             despawn_of(m);
             detach_of(m);
+            remove_cns(m, true);
             if (is_hidden(it->second)) *(float*)(m + kTransparency) = 1.0f;
         }
         g_models[m] = path;
-        spawn_for(m, path);
-        attach_for(m, path);
     }
-    if (mod_enabled) apply_hidden();
+    for (uintptr_t m : pending) {
+        auto it = g_models.find(m);
+        if (it == g_models.end()) continue;
+        spawn_for(m, it->second);
+        attach_for(m, it->second);
+        cns_for(m, it->second);
+    }
+    if (mod_enabled) { apply_hidden(); update_cns(); }
     if (++g_frame % kCheckEvery != 0) return;
+    for (Spawned& s : g_spawned) if (chain_exists(s)) resolve_collision(s);
     // the chains out: one a room change killed comes back while its model lives on (the player, his coat); one whose
     // model is dying (the chain nulled its pointer) goes, the destructor hook forgets the model
     for (size_t i = 0; i < g_spawned.size();) {
@@ -233,11 +370,130 @@ void frame() {
     }
 }
 
+// --- Show collision: the listed chains' .col shapes and segments, as the solver tests them ------------------------------
+// cCnsChain::collide 0x438DB0 (per segment, every group and prim, no flag filter): type 0 sphere = mPos0 in the frame of
+// collision-model joint mBone0; type 3 capsule = mPos0 in mBone0's frame to mPos1 in mBone1's; other types and joint 255
+// are skipped. The chain segment is node i -> node i + 1 (the tip's tail sits in the -1 slot after it), radius
+// mCollisionSize. rCollisionShape::load 0x4684F0 builds the groups.
+constexpr uintptr_t kChainBones = cns_chain::kChainInUnit + 0x20;        // mBone[32]: s16 joint numbers, -1 between tendrils
+constexpr uintptr_t kChainNodes = cns_chain::kChainInUnit + 0x590;       // mat[k] translation rows, 64 bytes apart (33 nodes)
+constexpr uintptr_t kChainSize = cns_chain::kChainInUnit + 0xFC0;        // mCollisionSize
+constexpr uintptr_t kChainMute = cns_chain::kChainInUnit + 0xFCD;        // mMuteCollision
+constexpr uintptr_t kChainShape = cns_chain::kChainInUnit + 0xFBC;       // mpCollisionShape
+constexpr uintptr_t kShapeGroupNum = 0x64, kShapeGroups = 0x68;          // rCollisionShape: count, cCollGroup*[]
+constexpr uintptr_t kGroupPrimNum = 0x04, kGroupPrims = 0x08;            // cCollGroup: count, cCollPrim*[]
+constexpr uintptr_t kPrimData = 0x0C;                                    // cCollPrim -> the file's 64-byte kCollPrim
+
+constexpr ImU32 kShapeColor = IM_COL32(0, 200, 255, 255), kTouchColor = IM_COL32(255, 40, 40, 255);
+constexpr ImU32 kChainColor = IM_COL32(255, 220, 0, 255), kMutedColor = IM_COL32(140, 140, 140, 255);
+
+glm::vec3 joint_point(const float* m, const float* p) {   // a joint-local point in world space (MT rows: x, y, z, position)
+    return { m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12], m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13],
+             m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14] };
+}
+
+// The closest distance between segments p0-p1 and q0-q1 (Ericson, Real-Time Collision Detection 5.1.9).
+float segment_distance(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& q0, const glm::vec3& q1) {
+    const glm::vec3 d1 = p1 - p0, d2 = q1 - q0, r = p0 - q0;
+    const float a = glm::dot(d1, d1), e = glm::dot(d2, d2), f = glm::dot(d2, r);
+    float s = 0.0f, t = 0.0f;
+    if (a <= 1e-6f && e <= 1e-6f) return glm::length(r);
+    if (a <= 1e-6f) t = std::clamp(f / e, 0.0f, 1.0f);
+    else {
+        const float c = glm::dot(d1, r);
+        if (e <= 1e-6f) s = std::clamp(-c / a, 0.0f, 1.0f);
+        else {
+            const float b = glm::dot(d1, d2), denom = a * e - b * b;
+            s = denom > 1e-6f ? std::clamp((b * f - c * e) / denom, 0.0f, 1.0f) : 0.0f;
+            t = (b * s + f) / e;
+            if (t < 0.0f) { t = 0.0f; s = std::clamp(-c / a, 0.0f, 1.0f); }
+            else if (t > 1.0f) { t = 1.0f; s = std::clamp((b - c) / a, 0.0f, 1.0f); }
+        }
+    }
+    return glm::length((p0 + d1 * s) - (q0 + d2 * t));
+}
+
+void draw_ring(const glm::vec3& c, const glm::vec3& u, const glm::vec3& v, float r, ImU32 color) {
+    constexpr int kSegments = 16;
+    for (int i = 0; i < kSegments; ++i) {
+        const float a0 = i * 6.2831853f / kSegments, a1 = (i + 1) * 6.2831853f / kSegments;
+        w2s::DrawLine3D(c + (u * std::cos(a0) + v * std::sin(a0)) * r, c + (u * std::cos(a1) + v * std::sin(a1)) * r, color);
+    }
+}
+
+// A wireframe capsule (a sphere when the ends meet): three rings at each end, four edges along the axis.
+void draw_capsule(const glm::vec3& p0, const glm::vec3& p1, float r, ImU32 color) {
+    glm::vec3 axis = p1 - p0;
+    const float len = glm::length(axis);
+    axis = len > 1e-3f ? axis / len : glm::vec3(0.0f, 1.0f, 0.0f);
+    const glm::vec3 helper = std::fabs(axis.y) < 0.9f ? glm::vec3(0.0f, 1.0f, 0.0f) : glm::vec3(1.0f, 0.0f, 0.0f);
+    const glm::vec3 u = glm::normalize(glm::cross(axis, helper)), v = glm::cross(axis, u);
+    if (len > 1e-3f)
+        for (int k = 0; k < 4; ++k) {
+            const glm::vec3 o = (u * std::cos(k * 1.5707963f) + v * std::sin(k * 1.5707963f)) * r;
+            w2s::DrawLine3D(p0 + o, p1 + o, color);
+        }
+    for (const glm::vec3& c : { p0, p1 }) {
+        draw_ring(c, u, v, r, color);
+        draw_ring(c, axis, u, r, color);
+        draw_ring(c, axis, v, r, color);
+        if (len <= 1e-3f) break;
+    }
+}
+
+struct Segment { glm::vec3 a, b; };
+
+void draw_chain_collision(const Spawned& s) {
+    const uintptr_t chain = s.chain;
+    const uintptr_t coll = cns_chain::collision_model_of(chain);
+    const uintptr_t shape = *(uintptr_t*)(chain + kChainShape);
+    const float size = *(float*)(chain + kChainSize);
+    const bool muted = *(uint8_t*)(chain + kChainMute) != 0;
+    // the chain's segments, from the solved nodes
+    std::vector<Segment> segs;
+    const int16_t* bones = (const int16_t*)(chain + kChainBones);
+    for (int i = 0; i < 32; ++i) {
+        if (bones[i] < 0) continue;
+        const float* a = (const float*)(chain + kChainNodes + i * 0x40);
+        const float* b = (const float*)(chain + kChainNodes + (i + 1) * 0x40);
+        segs.push_back({ { a[0], a[1], a[2] }, { b[0], b[1], b[2] } });
+    }
+    for (const Segment& g : segs) draw_capsule(g.a, g.b, size, muted ? kMutedColor : kChainColor);
+    if (!coll || !shape || !g_models.count(coll)) return;
+    const int groups = *(int*)(shape + kShapeGroupNum);
+    const uintptr_t* group_array = *(const uintptr_t**)(shape + kShapeGroups);
+    for (int gi = 0; group_array && gi < groups; ++gi) {
+        const uintptr_t group = group_array[gi];
+        if (!group) continue;
+        const int prims = *(int*)(group + kGroupPrimNum);
+        const uintptr_t* prim_array = *(const uintptr_t**)(group + kGroupPrims);
+        for (int pi = 0; prim_array && pi < prims; ++pi) {
+            const kCollPrim* p = prim_array[pi] ? *(const kCollPrim**)(prim_array[pi] + kPrimData) : nullptr;
+            if (!p || (p->mType != PRIM_TYPE_SPHERE && p->mType != PRIM_TYPE_CAPSULE)) continue;
+            const float* m0 = model_cns::joint_matrix(coll, p->mBone0);
+            const float* m1 = p->mType == PRIM_TYPE_CAPSULE ? model_cns::joint_matrix(coll, p->mBone1) : m0;
+            if (!m0 || !m1) continue;
+            const glm::vec3 q0 = joint_point(m0, &p->mPos0.x);
+            const glm::vec3 q1 = p->mType == PRIM_TYPE_CAPSULE ? joint_point(m1, &p->mPos1.x) : q0;
+            bool touched = false;
+            for (const Segment& g : segs)
+                if (segment_distance(g.a, g.b, q0, q1) <= size + p->mRadius) { touched = true; break; }
+            draw_capsule(q0, q1, p->mRadius, touched && !muted ? kTouchColor : kShapeColor);
+        }
+    }
+}
+
+void draw_collision() {
+    for (const Spawned& s : g_spawned)
+        if (chain_exists(s) && cns_chain::model_of(s.chain) == s.model) draw_chain_collision(s);
+}
+
 } // namespace
 
 // uModel::setModel 0x9E6D70 (this@ecx, rModel*), its entry: the model is queued, its chains spawn next frame.
 void __stdcall on_set_model(uintptr_t model) {
     std::lock_guard<std::recursive_mutex> lock(g_lock);
+    drop_cns_source(model);                     // setModel frees the joint array
     if (std::find(g_pending.begin(), g_pending.end(), model) == g_pending.end()) g_pending.push_back(model);
 }
 
@@ -248,6 +504,8 @@ void __stdcall on_set_model(uintptr_t model) {
 void __stdcall on_model_dtor(uintptr_t model) {
     std::lock_guard<std::recursive_mutex> lock(g_lock);
     g_pending.erase(std::remove(g_pending.begin(), g_pending.end(), model), g_pending.end());
+    drop_cns_source(model);
+    remove_cns(model, false);
     for (size_t i = 0; i < g_attached.size(); ++i)
         if (g_attached[i].model == model) {
             const uintptr_t owner = g_attached[i].owner;
@@ -284,8 +542,14 @@ naked void detour_chain_dtor() {
 }
 
 // 6 bytes replaced: `push ebp; mov ebp, esp; and esp, -16`
+// setModel frees the joint array and puts the new rModel's joint table in place (0x9E6EDB, nopped) before the new array
+// is allocated (mpJoint 0 till 0x9E6F75). The enemies' job threads read the player's joints meanwhile (uActor::getCenterPos
+// 0x4559B0: joint 0; getJointPos 0x455A60 and ~140 more by number), and their `mpJoint + index * 0x90 == 0` check only
+// catches index 0: a body whose joint 0 isn't first (an own-size root before it) crashed at 0x4559F2 on a DT swap. So the
+// table is the game's own no-joints table (0xB99EA0, all 0xFF: every reader falls back) until the array is there.
 naked void detour_set_model() {
     _asm {
+        mov dword ptr [ecx + 0x2E8], 0x00B99EA0     // uModel::mJointTable
         pushad
         push ecx
         call on_set_model           // __stdcall: pops its argument
@@ -294,6 +558,24 @@ naked void detour_set_model() {
         mov ebp, esp
         and esp, 0xFFFFFFF0
         jmp dword ptr [jmp_ret_set_model]
+    }
+}
+
+// 0x9E6F75, 6 bytes replaced: `mov [ebx+2E4h], edi` (ebx = the model, edi = the new joint array or 0). The real table
+// follows the array (x86 keeps store order, the readers load the table first). A failed allocation keeps the no-joints
+// table. Flags: the next `jnz` reads ZF from `cmp edi, 0`, which `test edi, edi` gives the same; lea / mov keep them.
+naked void detour_joint_alloc() {
+    _asm {
+        mov [ebx + 0x2E4], edi                      // uModel::mpJoint
+        test edi, edi
+        jz done
+        push eax
+        mov eax, [ebx + 0xA30]                      // mpRModel
+        lea eax, [eax + 0x120]                      // its joint table
+        mov [ebx + 0x2E8], eax
+        pop eax
+    done:
+        jmp dword ptr [jmp_ret_joint_alloc]
     }
 }
 
@@ -356,22 +638,83 @@ void parse_attach(const pugi::xml_node a, const std::string& file, int n) {
     ae.source = file + " attach#" + std::to_string(n);
     g_attach_entries.push_back(std::move(ae));
 }
+
+// "x" / "+x" / "-z" -> the class's axis code (0 +x, 1 +y, 2 +z, 3 -x, 4 -y, 5 -z), -1 when it is none of them
+int parse_axis(const char* s) {
+    const bool minus = *s == '-';
+    if (*s == '+' || *s == '-') ++s;
+    const char c = (char)std::tolower((unsigned char)*s);
+    if ((c != 'x' && c != 'y' && c != 'z') || s[1]) return -1;
+    return (c - 'x') + (minus ? 3 : 0);
+}
+
+void parse_scale(const pugi::xml_node c, float* scale) {
+    if (parse_floats(c.attribute("scale").as_string(), scale, 3) == 1) scale[1] = scale[2] = scale[0];
+}
+
+// <pin joint= to= [of=] [mode=all|rot] [blend=] [pos=] [rot=] [scale=]/>, <aim joint= to= [of=] [axis=] [up=] [blend=] [limit=]/>,
+// <offset joint= [pos=] [rot=] [scale=] [add=]/>
+void parse_cns(const pugi::xml_node c, const std::string& model, const std::string& file) {
+    CnsEntry ce;
+    ce.model = model;
+    const std::string tag = c.name();
+    ce.kind = tag == "pin" ? model_cns::PIN : tag == "aim" ? model_cns::AIM : model_cns::OFFSET;
+    ce.joint = c.attribute("joint").as_int(-1);
+    ce.to = c.attribute("to").as_int(-1);
+    ce.source = file + " <" + tag + "> joint " + std::to_string(ce.joint);
+    if (ce.joint < 0 || ce.joint > 255) { spdlog::warn("ModelExtension: {}: needs joint=, a joint number 0-255", ce.source); return; }
+    if (ce.kind != model_cns::OFFSET) {
+        if (ce.to < 0 || ce.to > 255) { spdlog::warn("ModelExtension: {}: needs to=, a joint number 0-255", ce.source); return; }
+        ce.of = normalize(c.attribute("of").as_string());
+    }
+    const float blend = std::clamp(c.attribute("blend").as_float(1.0f), 0.0f, 1.0f);
+    if (ce.kind == model_cns::PIN) {
+        const std::string mode = c.attribute("mode").as_string("all");
+        if (mode != "all" && mode != "rot") { spdlog::warn("ModelExtension: {}: mode \"{}\" (all or rot)", ce.source, mode); return; }
+        ce.pin.rotation_only = mode == "rot";
+        ce.pin.blend = blend;
+        parse_floats(c.attribute("pos").as_string(), ce.pin.pos, 3);
+        parse_floats(c.attribute("rot").as_string(), ce.pin.rot, 3);
+        parse_scale(c, ce.pin.scale);
+    } else if (ce.kind == model_cns::AIM) {
+        ce.aim.axis = parse_axis(c.attribute("axis").as_string("+z"));
+        ce.aim.up = parse_axis(c.attribute("up").as_string("+y"));
+        if (ce.aim.axis < 0 || ce.aim.up < 0 || ce.aim.axis % 3 == ce.aim.up % 3) {
+            spdlog::warn("ModelExtension: {}: axis and up must be two different axes (x, y, z, with + or -)", ce.source);
+            return;
+        }
+        ce.aim.blend = blend;
+        if (const char* limit = c.attribute("limit").as_string(nullptr)) {
+            ce.aim.limited = true;
+            if (parse_floats(limit, ce.aim.limit, 3) == 1) ce.aim.limit[1] = ce.aim.limit[2] = ce.aim.limit[0];
+        }
+    } else {
+        parse_floats(c.attribute("pos").as_string(), ce.offset.pos, 3);
+        parse_floats(c.attribute("rot").as_string(), ce.offset.rot, 3);
+        parse_scale(c, ce.offset.scale);
+        ce.offset.add_motion = c.attribute("add").as_bool(true);
+    }
+    g_cns_entries.push_back(std::move(ce));
+}
 } // namespace
 
 // The lists: nativePC\model_ext\*.xml (ModelExtension.hpp):
 //   <extensions><model path= [collision_model=]><chain clt= [col=] [collision_model=]/> ...</model>
 //               <attach path= to= [joint=] [mode=rigid|skin] [pos=] [rot=] [scale=] [line=]/> ...
 //               <hide path=/> ...</extensions>
+// and inside a <model>: <pin .../> <aim .../> <offset .../> (parse_cns).
 // A chain's collision_model overrides its model's; a col without any collision model is ignored (collision needs both).
 void reload() {
     namespace fs = std::filesystem;
     std::lock_guard<std::recursive_mutex> lock(g_lock);
     despawn_of(0);                                   // the records index the old lists
     detach_of(0);
+    remove_cns(0, true);
     show_hidden();                                   // the lists still listed hide theirs again next frame
     g_entries.clear();
     g_attach_entries.clear();
     g_hide_entries.clear();
+    g_cns_entries.clear();
     if (fs::exists(folder)) {
         std::vector<std::string> files;
         for (const fs::directory_entry& e : fs::directory_iterator(folder))
@@ -402,6 +745,10 @@ void reload() {
                     le.source = name + " " + fs::path(model).filename().string() + "#" + std::to_string(n);
                     g_entries.push_back(std::move(le));
                 }
+                for (const pugi::xml_node c : m.children()) {
+                    const std::string tag = c.name();
+                    if (tag == "pin" || tag == "aim" || tag == "offset") parse_cns(c, model, name);
+                }
             }
             int n = 0;
             for (const pugi::xml_node a : root.children("attach")) parse_attach(a, name, ++n);
@@ -411,8 +758,8 @@ void reload() {
                 g_hide_entries.push_back({ path, name });
             }
         }
-        spdlog::info("ModelExtension: {} chain(s), {} attachment(s), {} hidden model(s) listed in {}", g_entries.size(),
-                     g_attach_entries.size(), g_hide_entries.size(), folder);
+        spdlog::info("ModelExtension: {} chain(s), {} attachment(s), {} constraint(s), {} hidden model(s) listed in {}", g_entries.size(),
+                     g_attach_entries.size(), g_cns_entries.size(), g_hide_entries.size(), folder);
     } else {
         spdlog::info("ModelExtension: no {} folder, nothing listed", folder);
     }
@@ -451,6 +798,14 @@ void write_example() {
            "  <hide path=\"model\\game\\pl000\\pl000_02\"/>\n"
            "  <hide path=\"model\\game\\pl000\\pl000_03\"/>\n"
            "  -->\n"
+           "  <!-- joint constraints on a model: joint 40 follows joint 9 of its owner half way, joint 41 points its +z at the\n"
+           "       owner's joint 4 (limit: degrees either way), joint 42 is scaled up 1.5 times:\n"
+           "  <model path=\"model\\game\\pl000\\my_jacket\">\n"
+           "    <pin joint=\"40\" to=\"9\" mode=\"rot\" blend=\"0.5\"/>\n"
+           "    <aim joint=\"41\" to=\"4\" axis=\"+z\" up=\"+y\" limit=\"30\"/>\n"
+           "    <offset joint=\"42\" scale=\"1.5\"/>\n"
+           "  </model>\n"
+           "  -->\n"
            "</extensions>\n";
     spdlog::info("ModelExtension: wrote {}", p.string());
 }
@@ -465,6 +820,11 @@ std::optional<std::string> ModelExtension::on_initialize() {
         spdlog::error("ModelExtension: failed to hook uModel::setModel (0x9E6D70)");
         return "Failed to init ModelExtension (setModel hook)";
     }
+    // the joint table waits for the joint array (detour_set_model's comment); the early store goes only once the late one is in
+    if (install_hook_absolute(0x9E6F75, hook_joint_alloc, &detour_joint_alloc, &jmp_ret_joint_alloc, 6))
+        install_patch_absolute(0x9E6EDB, patch_table_store, "\x90\x90\x90\x90\x90\x90", 6);   // mov [ebx+2E8h], edi
+    else
+        spdlog::error("ModelExtension: failed to hook setModel's joint allocation (0x9E6F75): joint reads stay racy");
     if (!install_hook_absolute(0x9E6AB0, hook_model_dtor, &detour_model_dtor, &jmp_ret_model_dtor, 6)) {
         spdlog::error("ModelExtension: failed to hook the uModel destructor (0x9E6AB0)");
         return "Failed to init ModelExtension (destructor hook)";
@@ -478,14 +838,20 @@ std::optional<std::string> ModelExtension::on_initialize() {
 }
 
 // The present hook runs on the game's main thread between frames: the units added here first move next frame.
-void ModelExtension::on_frame(fmilliseconds& dt) { frame(); }
+void ModelExtension::on_frame(fmilliseconds& dt) {
+    frame();
+    if (mod_enabled && show_collision) {
+        std::lock_guard<std::recursive_mutex> lock(g_lock);
+        draw_collision();
+    }
+}
 
 void ModelExtension::on_gui_frame(int display) {
     if (display != DISPLAY_SYSTEM_A) return;
     if (ImGui::Checkbox(_("Model extension"), &mod_enabled)) {
         std::lock_guard<std::recursive_mutex> lock(g_lock);
         if (mod_enabled) { for (const auto& [m, p] : g_models) g_pending.push_back(m); }   // the models already out get theirs
-        else { despawn_of(0); detach_of(0); show_hidden(); }
+        else { despawn_of(0); detach_of(0); remove_cns(0, true); show_hidden(); }
     }
     ImGui::SameLine();
     help_marker(_("Extends the game's models from the lists in nativePC\\model_ext\\*.xml: physics chains (.clt: coats, hair, "
@@ -501,6 +867,11 @@ void ModelExtension::on_gui_frame(int display) {
                   "</extensions>\n"
                   "<hide>: the model isn't drawn. It stays loaded and keeps animating, so the game's coat motions and chains go on "
                   "as usual (for a body that has its own face, hair or coat).\n"
+                  "Inside a <model>, per joint: <pin joint= to=> makes the joint follow joint `to` (mode=\"rot\": its rotation only; "
+                  "blend: how much, 0-1; pos / rot / scale: an offset), <aim joint= to=> points an axis of the joint at joint `to` "
+                  "(axis, up: x, y, z with + or -; limit: degrees either way), <offset joint=> moves, turns or scales the joint "
+                  "(pos / rot / scale). `to` is a joint of the model's owner unless of= names another model (of=\"self\": this one). "
+                  "Children of the joint follow it.\n"
                   "<attach>: without a joint the extra model is skinned to its owner (each of its joints follows the owner's joint "
                   "with the same number: clothing made on the body rig, with the body's bind pose); with joint= (a joint number) it "
                   "rides that joint rigidly, offset by pos (cm), rot (degrees about X, Y, Z) and scale. Its own extra joints can "
@@ -530,12 +901,25 @@ void ModelExtension::on_gui_frame(int display) {
                   ".clt / .col / .mod files (the game keeps a loaded file until nothing uses it). Open folder opens the lists "
                   "folder in Explorer. Create example writes example.xml there (everything in it is commented out: copy a "
                   "line out of its comment and change the paths)."));
+    ImGui::Checkbox(_("Show chain collision"), &show_collision);
+    ImGui::SameLine();
+    help_marker(_("Draws the listed chains' collision as the game's chain solver tests it: each chain's segments in yellow "
+                  "(grey when the chain mutes its collision; thickness = its collision size), and the shapes of its .col on "
+                  "the collision model in blue, red while a segment touches one. Only the spheres and capsules count; a "
+                  "shape on a joint the collision model lacks isn't drawn (the game skips it too)."));
     ImGui::Text(_("%d attachment(s) listed, %d out"), (int)g_attach_entries.size(), (int)g_attached.size());
     for (size_t e = 0; e < g_attach_entries.size(); ++e) {
         const AttachEntry& ae = g_attach_entries[e];
         const int out = (int)std::count_if(g_attached.begin(), g_attached.end(), [&](const Attached& a) { return a.entry == e; });
         if (ae.mode == model_attach::SKIN) ImGui::BulletText("%s on %s, skinned: %d  (%s)", ae.path.c_str(), ae.to.c_str(), out, ae.source.c_str());
         else ImGui::BulletText("%s on %s, joint %d: %d  (%s)", ae.path.c_str(), ae.to.c_str(), ae.joint, out, ae.source.c_str());
+    }
+    ImGui::Text(_("%d constraint(s) listed, %d on a joint"), (int)g_cns_entries.size(),
+                (int)std::count_if(g_cns.begin(), g_cns.end(), [](const CnsLive& c) { return c.installed; }));
+    for (size_t e = 0; e < g_cns_entries.size(); ++e) {
+        const CnsEntry& ce = g_cns_entries[e];
+        const int out = (int)std::count_if(g_cns.begin(), g_cns.end(), [&](const CnsLive& c) { return c.entry == e && c.installed; });
+        ImGui::BulletText("%s: %d  (%s)", ce.model.c_str(), out, ce.source.c_str());
     }
     ImGui::Text(_("%d model(s) hidden"), (int)g_hide_entries.size());
     for (const HideEntry& h : g_hide_entries) {
@@ -567,6 +951,7 @@ void ModelExtension::on_gui_frame(int display) {
 
 void ModelExtension::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("model_extension").value_or(false);
+    show_collision = cfg.get<bool>("model_extension_show_collision").value_or(false);
     const std::string f = cfg.get("model_extension_folder").value_or(std::string(folder));
     strncpy_s(folder, f.c_str(), sizeof(folder) - 1);
     reload();
@@ -574,5 +959,6 @@ void ModelExtension::on_config_load(const utility::Config& cfg) {
 
 void ModelExtension::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("model_extension", mod_enabled);
+    cfg.set<bool>("model_extension_show_collision", show_collision);
     cfg.set("model_extension_folder", std::string(folder));
 }

@@ -279,6 +279,7 @@ th {
 <li class="toc-level-3"><a href="#ref-attach">&lt;attach&gt;: An Extra Model</a></li>
 <li class="toc-level-3"><a href="#ref-model">&lt;model&gt; And &lt;chain&gt;: Physics Chains</a></li>
 <li class="toc-level-3"><a href="#ref-hide">&lt;hide&gt;: A Model Not Drawn</a></li>
+<li class="toc-level-3"><a href="#ref-cns">&lt;pin&gt;, &lt;aim&gt;, &lt;offset&gt;: Joint Constraints</a></li>
 <li class="toc-level-2"><a href="#making-files">Making The Files</a></li>
 <li class="toc-level-3"><a href="#joint-numbers">Joint Numbers</a></li>
 <li class="toc-level-2"><a href="#rules">Rules And Limits</a></li>
@@ -399,6 +400,30 @@ th {
 </tbody></table></div>
 <p>The model is only invisible. It still loads and animates, and its chains still run, so the game's coat motions behave as usual and anything you <code>&lt;attach&gt;</code> to it stays visible and follows it. Turning off <strong>Model extension</strong> or removing the entry and pressing <strong>Reload lists</strong> brings it back.</p>
 
+<h3 id="ref-cns" data-search-heading="pin aim offset constraint">&lt;pin&gt;, &lt;aim&gt;, &lt;offset&gt;: Joint Constraints<a class="heading-link" href="#ref-cns" aria-label="Link to joint constraints">#</a></h3>
+<p>These go inside a <code>&lt;model&gt;</code> and drive one joint of it. The joint's children follow it.</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;extensions&gt;
+  &lt;model path="model\game\pl000\my_jacket"&gt;
+    &lt;pin joint="40" to="9" mode="rot" blend="0.5"/&gt;
+    &lt;aim joint="41" to="4" axis="+z" up="+y" limit="30"/&gt;
+    &lt;offset joint="42" scale="1.5"/&gt;
+  &lt;/model&gt;
+&lt;/extensions&gt;</code></pre></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Entry</th><th>Setting</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td>All</td><td><code>joint</code></td><td>The joint number to drive. Needed.</td></tr>
+<tr><td><code>&lt;pin&gt;</code>, <code>&lt;aim&gt;</code></td><td><code>to</code></td><td>The joint number to follow or point at. Needed.</td></tr>
+<tr><td><code>&lt;pin&gt;</code>, <code>&lt;aim&gt;</code></td><td><code>of</code></td><td>The model that joint is on. Leave it out for the model's owner; <code>of="self"</code> means this model.</td></tr>
+<tr><td><code>&lt;pin&gt;</code>, <code>&lt;aim&gt;</code></td><td><code>blend</code></td><td>How much of the effect to use, 0 to 1. Default 1. A <code>&lt;pin&gt;</code> mixes bend and twist alike.</td></tr>
+<tr><td><code>&lt;pin&gt;</code></td><td><code>mode</code></td><td><code>all</code> follows fully; <code>rot</code> takes only the rotation and stays where the animation puts it.</td></tr>
+<tr><td><code>&lt;aim&gt;</code></td><td><code>axis</code>, <code>up</code></td><td>Which axis of the joint points at the target (default <code>+z</code>) and which one stays up (default <code>+y</code>). They must be different axes.</td></tr>
+<tr><td><code>&lt;aim&gt;</code></td><td><code>limit</code></td><td>How far it may turn, in degrees either way: one number or three.</td></tr>
+<tr><td><code>&lt;pin&gt;</code>, <code>&lt;offset&gt;</code></td><td><code>pos</code>, <code>rot</code>, <code>scale</code></td><td>An offset: centimetres, degrees, one number or three.</td></tr>
+<tr><td><code>&lt;offset&gt;</code></td><td><code>add</code></td><td><code>true</code> (default) adds to the animation; <code>false</code> replaces it for this joint.</td></tr>
+</tbody></table></div>
+<p>A joint has room for one of these. A chain keeps its joints, and the game's own attachments stay as they are, so an entry on such a joint is refused and the log says so. On clothing that follows the body joint for joint, an entry takes that one joint over.</p>
+
 <h2 id="making-files" data-search-heading="Making The Files">Making The Files<a class="heading-link" href="#making-files" aria-label="Link to Making The Files">#</a></h2>
 <p>Albam (the Blender add-on) imports and exports all of these:</p>
 <ul>
@@ -430,6 +455,7 @@ th {
 <tr><td>"didn't load" in the log</td><td>The file isn't at that path in <code>nativePC</code>, or a chain is still named <code>.phs</code>.</td></tr>
 <tr><td>A hat floats or is turned</td><td>Adjust <code>pos</code> / <code>rot</code>, or check the joint number.</td></tr>
 <tr><td>Clothing sits shifted</td><td>It wasn't built on the body's skeleton in its rest pose.</td></tr>
+<tr><td>A chain passes through the body, or bounces off nothing</td><td>Tick <strong>Show chain collision</strong> under Reload lists. It draws each chain's segments in yellow, as thick as its collision size, and its <code>.col</code> shapes in blue, red while a segment touches one. No blue shapes: the <code>col</code> didn't load or the <code>collision_model</code> isn't out (the log says it waits). Shapes in the wrong place: the <code>.col</code>'s joint numbers aren't the collision model's.</td></tr>
 <tr><td>A chain hangs stiff or jitters</td><td>Its joints are shared with another chain, or it lists a joint 0 of a coat.</td></tr>
 <tr><td>A coat lost its attachment</td><td>A chain listed the coat's joint 0. Remove it, then reload the level.</td></tr>
 </tbody></table></div>

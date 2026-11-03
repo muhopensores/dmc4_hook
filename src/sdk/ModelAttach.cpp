@@ -15,7 +15,7 @@ constexpr uintptr_t kNullsub          = 0x00507330;
 constexpr uintptr_t kCnsMatrixVtbl    = 0x00B9919C;
 constexpr size_t    kModelSize        = 0xEA0;
 // uModel / uCoord
-constexpr uintptr_t kFlags = 0x04, kParent = 0x18, kParentNo = 0x1C, kPos = 0x30, kQuat = 0x40, kScale = 0x50;
+constexpr uintptr_t kFlags = 0x04, kTransMode = 0x06, kParent = 0x18, kParentNo = 0x1C, kPos = 0x30, kQuat = 0x40, kScale = 0x50;
 constexpr uintptr_t kLightGroup = 0x130, kShadowCast = 0x134, kShadowRecv = 0x138, kPriorityBias = 0x294;
 constexpr uintptr_t kJointNum = 0x2E0, kpJoint = 0x2E4, kJointTable = 0x2E8, kCameraTrans = 0xD08;
 constexpr uintptr_t kJointSize = 0x90, kJNo = 0x07, kJCns = 0x0C, kJWmat = 0x50;
@@ -71,6 +71,10 @@ void __fastcall move_after(uintptr_t self, uintptr_t) {
     if (visible && at<uint32_t>(self, kActor)) visible = at<uint8_t>(owner, kActorTrans) == 1;
     uint32_t& sf = at<uint32_t>(self, kFlags);
     sf = visible ? (sf | ATTR_VISIBLE) : (sf & ~ATTR_VISIBLE);
+    // the passes it draws in (sUnit::draw needs TransMode & the pass's mode) are the owner's, as the players keep their
+    // sub-models': setDrawMode (vtbl slot 123, Nero 0x7E3C80 / Dante 0x7B6A20) writes the body's byte and theirs, 0x0F at
+    // setup, 0x0B during a freeze effect. The ctor's 0x27 casts no shadow and draws in the 0x20 pass the body skips.
+    at<uint8_t>(self, kTransMode) = at<uint8_t>(owner, kTransMode);
     if (at<int>(self, kMode) == SKIN) {
         const uint32_t n = at<uint32_t>(self, kJointNum), on = at<uint32_t>(owner, kJointNum);
         const uintptr_t joints = at<uintptr_t>(self, kpJoint), ojoints = at<uintptr_t>(owner, kpJoint);
@@ -130,7 +134,9 @@ uintptr_t spawn(uintptr_t owner, const char* mod_path, Mode mode, int joint, con
     at<uint32_t>(self, kCount) = n;
     at<uint32_t>(self, kTag) = kTagValue;
     at<uint32_t>(self, kActor) = derives_from_actor(owner) ? 1 : 0;
-    // the owner's look: light / shadow groups, the players' parts' draw priority, no camera fade
+    // the owner's look: draw passes (kept in step in move_after), light / shadow groups, the players' parts' draw
+    // priority, no camera fade
+    at<uint8_t>(self, kTransMode)    = at<uint8_t>(owner, kTransMode);
     at<uint32_t>(self, kLightGroup)  = at<uint32_t>(owner, kLightGroup);
     at<uint32_t>(self, kShadowCast)  = at<uint32_t>(owner, kShadowCast);
     at<uint32_t>(self, kShadowRecv)  = at<uint32_t>(owner, kShadowRecv);
@@ -158,6 +164,12 @@ void despawn(uintptr_t model) {
     at<uintptr_t>(model, kParent) = 0;
     uint32_t& f = at<uint32_t>(model, kFlags);
     if ((f & 7) == 1 || (f & 7) == 2) f = (f & ~7u) | 3;   // dying: sUnit runs the deleting destructor (it frees the block)
+}
+
+bool is_skin_constraint(uintptr_t model, uintptr_t constraint) {
+    if (!is_attachment(model) || at<int>(model, kMode) != SKIN) return false;
+    const uintptr_t lo = model + kCns;
+    return constraint >= lo && constraint < lo + at<uint32_t>(model, kCount) * kCnsSize;
 }
 
 bool is_attachment(uintptr_t model) { return model && at<uintptr_t>(model, 0) == (uintptr_t)g_vtbl && at<uint32_t>(model, kTag) == kTagValue; }

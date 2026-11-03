@@ -32,6 +32,11 @@ void despawn(uintptr_t chain, bool model_alive = true);
 void detach(uintptr_t chain, bool model_alive = true);
 constexpr uintptr_t kChainInUnit = 0x20;   // the cCnsChain inside the unit (~cCnsChain's esi = unit + 0x20)
 
+// Gives a running chain its collision: the shapes (`col_path`, nullptr = keep the ones it has) on `collision_model`. For a
+// model that wasn't out yet when the chain spawned, or that died (the chain nulled its pointer) and came back.
+void set_collision(uintptr_t chain, const char* col_path, uintptr_t collision_model);
+uintptr_t collision_model_of(uintptr_t chain);   // +0xFD8, 0 without one or once it died
+
 uintptr_t model_of(uintptr_t chain);    // +0xFD4, 0 once the model died (the chain nulled it)
 inline bool orphaned(uintptr_t chain) { return model_of(chain) == 0; }
 

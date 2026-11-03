@@ -80,6 +80,19 @@ void despawn(uintptr_t chain, bool model_alive) {
     uactor_sdk::despawn((void*)chain);      // state 3: sUnit unlinks and deletes it
 }
 
+void set_collision(uintptr_t chain, const char* col_path, uintptr_t collision_model) {
+    if (!chain) return;
+    if (col_path) {
+        const uintptr_t col = load(kDtiCollisionShape, col_path);
+        if (!col) return;
+        set_resource(fn_setCollisionShape, chain + kChain, col);
+        devil4_sdk::release_resource((cResource*)col);
+    }
+    *(uintptr_t*)(chain + kCollisionModel) = collision_model;
+}
+
+uintptr_t collision_model_of(uintptr_t chain) { return chain ? *(uintptr_t*)(chain + kCollisionModel) : 0; }
+
 uintptr_t model_of(uintptr_t chain) { return chain ? *(uintptr_t*)(chain + kModel) : 0; }
 
 } // namespace cns_chain

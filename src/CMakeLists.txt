@@ -424,6 +424,8 @@ set(SDK_SRC
     sdk/CnsChain.cpp
     sdk/ModelAttach.hpp
     sdk/ModelAttach.cpp
+    sdk/ModelCns.hpp
+    sdk/ModelCns.cpp
     sdk/Collision.hpp
     sdk/Collision.cpp
     sdk/InputCommand.hpp

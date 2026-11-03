@@ -23,6 +23,12 @@
 //   <hide>: every model with this path isn't drawn (mTransparency 0, written every frame). It stays loaded and animated:
 //   the players' setup code needs the sub-models' joints, and the coat motions and chains go on as usual. Nero's face, hair,
 //   coat = pl000\pl000_01, _02, _03; Dante's = pl006\pl006_01, _02, _03, his Devil Trigger coat pl006\pl009_01.
+//   Inside a <model>, joint constraints (sdk/ModelCns.hpp; RE note model_constraints.md; every value in joint numbers):
+//     <pin joint= to= [of=] [mode=all|rot] [blend=] [pos=] [rot=] [scale=]/>   the joint follows joint `to`
+//     <aim joint= to= [of=] [axis=] [up=] [blend=] [limit=]/>                   an axis of the joint points at joint `to`
+//     <offset joint= [pos=] [rot=] [scale=] [add=]/>                            the joint moved / turned / scaled
+//   of= names the source model: left out = the model's owner (or the model when it has none), "self" = the model. The full
+//   reference is Vibed\ModelExt\schema.md.
 //   <attach>: without joint= (or mode="skin") every joint of the extra model follows the owner's joint with the same number
 //   (the body's bind pose needed); with joint= (an owner joint NUMBER; mode="rigid") it rides that joint, offset by pos (cm),
 //   rot (degrees about X, then Y, then Z) and scale (one number or three). line= overrides its move line (29). An attached
@@ -43,6 +49,8 @@
 // the constraints that claim a joint once (Nero's coat joint 0 cCnsMatrix); one of our chains lets go of its own joints
 // and of its model first, so the sweep finds nothing. Don't list joints another constraint drives (Nero's coat joint 0,
 // the vanilla coat chains' joints): a joint holds one constraint and the chain takes it every frame.
+// setModel is also patched (always, enabled or not) so its joint table reads "no joints" until the new joint array exists:
+// the game's own guard against reading a swapping model only works when joint 0 is index 0 (detour_set_model).
 
 namespace model_extension {
 
@@ -52,6 +60,7 @@ struct ListEntry {
 };
 
 extern bool mod_enabled;
+extern bool show_collision;   // draws the listed chains' segments and .col shapes (ModelExtension.cpp, draw_collision)
 extern char folder[128];
 
 void reload();     // reads the lists again; every chain comes off and the known models get theirs again next frame
@@ -63,7 +72,9 @@ void detour_set_model();
 void detour_model_dtor();
 void __stdcall on_chain_dtor(uintptr_t cns);
 void detour_chain_dtor();
+void detour_joint_alloc();
 extern uintptr_t jmp_ret_set_model;   // 0x9E6D76
+extern uintptr_t jmp_ret_joint_alloc; // 0x9E6F7B
 extern uintptr_t jmp_ret_model_dtor;  // 0x9E6AB6
 extern uintptr_t jmp_ret_chain_dtor;  // 0x42C7A6
 
@@ -81,5 +92,6 @@ public:
     void on_gui_frame(int display) override;
 
 private:
-    std::unique_ptr<FunctionHook> hook_set_model, hook_model_dtor, hook_chain_dtor;
+    std::unique_ptr<FunctionHook> hook_set_model, hook_model_dtor, hook_chain_dtor, hook_joint_alloc;
+    std::unique_ptr<Patch> patch_table_store;
 };

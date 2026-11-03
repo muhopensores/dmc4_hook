@@ -37,5 +37,6 @@ void despawn(uintptr_t model);
 
 bool      is_attachment(uintptr_t model);   // one of ours (a tag in the block after the model)
 uintptr_t owner_of(uintptr_t model);        // 0 once let go
+bool      is_skin_constraint(uintptr_t model, uintptr_t constraint);   // `constraint` is one of this SKIN attachment's own
 
 } // namespace model_attach
