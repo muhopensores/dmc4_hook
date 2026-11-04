@@ -46,13 +46,18 @@ int MoveTable::backForwardQuickDrive = 0;
 }*/
 
 // 0x803C67 in uPlayer::checkAtck: `test [ecx+eax*4+18h], edx` is the unlocked-moves bitset test (ebx = atckId,
-// eax = atckId / 32, edx = 1 << (atckId % 32)); a row whose id has no bit is skipped. A registered id whose mod is
-// enabled is let through (sdk/MoveRegistry.hpp); every other id takes the game's test.
+// eax = atckId / 32, edx = 1 << (atckId % 32), esi = the uPlayer); a row whose id has no bit is skipped. A registered
+// id of the player's character whose mod is enabled is let through (sdk/MoveRegistry.hpp); every other id takes the
+// game's test. (The character matters: Nero's custom ids are Dante vanilla ids, which stay locked until bought.)
 static uint8_t s_id_allowed = 0;
-static bool __stdcall id_allowed_thunk(uint32_t id) { return move_registry::id_allowed(id); }   // a plain name for the asm
+static bool __stdcall id_allowed_thunk(uint32_t id, uintptr_t player) {   // a plain name for the asm
+    const int character = *(int*)(player + 0x1494) == 1 ? move_registry::NERO : move_registry::DANTE;   // uPlayer::mPlayerID
+    return move_registry::id_allowed(character, id);
+}
 naked void detour0(void) { // MoveTable toggle() function
     _asm {
             pushad
+            push esi                              // uPlayer
             push ebx                              // atckId
             call id_allowed_thunk                 // __stdcall: pops it; result in al
             mov byte ptr [s_id_allowed], al

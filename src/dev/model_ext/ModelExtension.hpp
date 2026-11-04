@@ -27,8 +27,10 @@
 //     <pin joint= to= [of=] [mode=all|rot] [blend=] [pos=] [rot=] [scale=]/>   the joint follows joint `to`
 //     <aim joint= to= [of=] [axis=] [up=] [blend=] [limit=]/>                   an axis of the joint points at joint `to`
 //     <offset joint= [pos=] [rot=] [scale=] [add=]/>                            the joint moved / turned / scaled
-//   of= names the source model: left out = the model's owner (or the model when it has none), "self" = the model. The full
-//   reference is Vibed\ModelExt\schema.md.
+//   of= names the source model: left out = the model's owner (or the model when it has none), "self" = the model.
+//   Also inside a <model>: <link a= b= max= [stiffness=]/>, two joints of the model's chains at most max cm apart
+//   (sdk/ChainLink.hpp), run after the model's world pass (uModel::updateWorldMatrix 0x9EA8B0, a function hook).
+//   The full reference is Vibed\ModelExt\schema.md.
 //   <attach>: without joint= (or mode="skin") every joint of the extra model follows the owner's joint with the same number
 //   (the body's bind pose needed); with joint= (an owner joint NUMBER; mode="rigid") it rides that joint, offset by pos (cm),
 //   rot (degrees about X, then Y, then Z) and scale (one number or three). line= overrides its move line (29). An attached
@@ -77,6 +79,8 @@ extern uintptr_t jmp_ret_set_model;   // 0x9E6D76
 extern uintptr_t jmp_ret_joint_alloc; // 0x9E6F7B
 extern uintptr_t jmp_ret_model_dtor;  // 0x9E6AB6
 extern uintptr_t jmp_ret_chain_dtor;  // 0x42C7A6
+void __fastcall detour_world_matrix(uintptr_t model, int edx);
+extern uintptr_t orig_world_matrix;   // the trampoline to uModel::updateWorldMatrix 0x9EA8B0
 
 } // namespace model_extension
 
@@ -92,6 +96,6 @@ public:
     void on_gui_frame(int display) override;
 
 private:
-    std::unique_ptr<FunctionHook> hook_set_model, hook_model_dtor, hook_chain_dtor, hook_joint_alloc;
+    std::unique_ptr<FunctionHook> hook_set_model, hook_model_dtor, hook_chain_dtor, hook_joint_alloc, hook_world_matrix;
     std::unique_ptr<Patch> patch_table_store;
 };

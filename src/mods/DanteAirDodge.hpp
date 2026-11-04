@@ -19,7 +19,8 @@
 namespace dante_air_dodge {
 
 constexpr uint32_t move_id = 0x6E;     // Dante's vanilla ids end at 0x6B; LuciAirThrow took 0x6D
-constexpr int cmd_bit = 86;            // its command bit in mCmdFlag (Gerb's back-forward-style is 85)
+extern int cmd_bit;                    // its command bit in mCmdFlag, taken with input_commands::next_free_bit (-1 none):
+                                       // it was a fixed 86 until Gerb reserved 85 / 86 for its rows, and the clash killed the dodge
 
 enum Dir : int { RIGHT = 0, LEFT = 1, DIR_COUNT = 2 };   // = the LMT slots
 

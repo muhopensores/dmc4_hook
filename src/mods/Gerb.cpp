@@ -405,6 +405,7 @@ static bool stick_ok(int now, int want) {
 
 void custom_tick(uintptr_t pl) {
     if (!mod_enabled || !pl || pl != (uintptr_t)devil4_sdk::get_local_player()) return;
+    if (at<int>(pl, pl::mPlayerID) != 1) return;   // Nero's rows: on Dante the bits would match whatever row of his holds them
     if (g_capture >= 0 && custom_input[g_capture].source == SRC_PAD) {   // capture: every button down together, done on release
         const uint32_t bits = at<uint32_t>(pl, kPadBtnOn);
         if (bits) g_capture_bits |= bits;

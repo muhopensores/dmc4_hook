@@ -422,6 +422,8 @@ set(SDK_SRC
     sdk/Devil4.cpp
     sdk/CnsChain.hpp
     sdk/CnsChain.cpp
+    sdk/ChainLink.hpp
+    sdk/ChainLink.cpp
     sdk/ModelAttach.hpp
     sdk/ModelAttach.cpp
     sdk/ModelCns.hpp

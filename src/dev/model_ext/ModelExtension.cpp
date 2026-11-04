@@ -1,5 +1,6 @@
 #include "ModelExtension.hpp"
 #include "../../sdk/CnsChain.hpp"
+#include "../../sdk/ChainLink.hpp"
 #include "../../sdk/ModelAttach.hpp"
 #include "../../sdk/ModelCns.hpp"
 #include "../../sdk/Devil4.hpp"
@@ -18,6 +19,7 @@
 #include <fstream>
 #include <Windows.h>
 #include <shellapi.h>
+#include <atomic>
 #include <mutex>
 #include <unordered_map>
 
@@ -29,7 +31,7 @@ namespace model_extension {
 bool mod_enabled = false;
 bool show_collision = false;
 char folder[128] = "nativePC\\model_ext";
-uintptr_t jmp_ret_set_model = 0, jmp_ret_model_dtor = 0, jmp_ret_chain_dtor = 0, jmp_ret_joint_alloc = 0;
+uintptr_t jmp_ret_set_model = 0, jmp_ret_model_dtor = 0, jmp_ret_chain_dtor = 0, jmp_ret_joint_alloc = 0, orig_world_matrix = 0;
 
 namespace {
 
@@ -94,6 +96,23 @@ struct CnsLive {
     bool warned;                                // a problem with it was logged
 };
 std::vector<CnsLive> g_cns;
+
+// <link a= b= max= [stiffness=]/> inside a <model>: two joints of the model's chains at most `max` cm apart
+struct LinkEntry {
+    std::string model;                          // normalized
+    int a, b;                                   // joint numbers of the model, held by chains listed on it
+    float max, stiffness;
+    std::string source;
+    bool warned;                                // a problem with it was logged
+};
+std::vector<LinkEntry> g_link_entries;
+
+// The links of each live model, rebuilt every frame (frame()) from the chains out; read by the world-pass hook, which
+// runs wherever the model updates (a line job for some). Its own lock: the hook never takes g_lock.
+std::mutex g_link_lock;
+std::unordered_map<uintptr_t, std::vector<chain_link::Link>> g_links;
+std::atomic<bool> g_any_links{ false };
+int g_links_live = 0;                           // for the readout
 
 // Shared with the hooks (setModel / the destructor can run inside the game's loading), so behind one lock; the spawning
 // itself only happens in on_frame, on the main thread.
@@ -324,6 +343,48 @@ void despawn_of(uintptr_t model) {
     }
 }
 
+// The live links: for each listed link and each model out with its path, the two joints' slots in the model's chains.
+void update_links() {
+    std::unordered_map<uintptr_t, std::vector<chain_link::Link>> live;
+    int count = 0;
+    if (mod_enabled)
+        for (LinkEntry& le : g_link_entries)
+            for (const auto& [m, p] : g_models) {
+                if (p != le.model) continue;
+                chain_link::Link l{ 0, 0, -1, -1, le.max, le.stiffness };
+                for (const Spawned& s : g_spawned) {
+                    if (s.model != m || !chain_exists(s) || cns_chain::model_of(s.chain) != m) continue;
+                    if (l.slot_a < 0 && (l.slot_a = chain_link::slot_of(s.chain, le.a)) >= 0) l.chain_a = s.chain;
+                    if (l.slot_b < 0 && (l.slot_b = chain_link::slot_of(s.chain, le.b)) >= 0) l.chain_b = s.chain;
+                }
+                const char* problem = nullptr;
+                if (l.slot_a < 0 || l.slot_b < 0) problem = "isn't held by a chain listed on the model";
+                else if (chain_link::is_root(l.chain_a, l.slot_a) && chain_link::is_root(l.chain_b, l.slot_b))
+                    problem = "links two tendril roots (they keep their animated places: nothing to move)";
+                if (problem) {
+                    if (!le.warned) spdlog::warn("ModelExtension: {}: joint {} {}", le.source, l.slot_a < 0 ? le.a : le.b, problem);
+                    le.warned = true;
+                    continue;
+                }
+                live[m].push_back(l);
+                ++count;
+            }
+    std::lock_guard<std::mutex> lock(g_link_lock);
+    g_links.swap(live);
+    g_links_live = count;
+    g_any_links.store(!g_links.empty(), std::memory_order_release);
+}
+
+// A model whose joints go, or a chain that goes: its links are dropped at once (the world-pass hook may run before the
+// next frame rebuilds them).
+void drop_links(uintptr_t model, uintptr_t chain) {
+    std::lock_guard<std::mutex> lock(g_link_lock);
+    if (model) g_links.erase(model);
+    if (chain)
+        for (auto& [m, v] : g_links)
+            v.erase(std::remove_if(v.begin(), v.end(), [&](const chain_link::Link& l) { return l.chain_a == chain || l.chain_b == chain; }), v.end());
+}
+
 void frame() {
     std::lock_guard<std::recursive_mutex> lock(g_lock);
     // the models setModel saw: their path now (the rModel is in place once setModel returned). All of them are known before
@@ -349,6 +410,7 @@ void frame() {
         cns_for(m, it->second);
     }
     if (mod_enabled) { apply_hidden(); update_cns(); }
+    update_links();
     if (++g_frame % kCheckEvery != 0) return;
     for (Spawned& s : g_spawned) if (chain_exists(s)) resolve_collision(s);
     // the chains out: one a room change killed comes back while its model lives on (the player, his coat); one whose
@@ -486,6 +548,15 @@ void draw_chain_collision(const Spawned& s) {
 void draw_collision() {
     for (const Spawned& s : g_spawned)
         if (chain_exists(s) && cns_chain::model_of(s.chain) == s.model) draw_chain_collision(s);
+    // the links: green while held, magenta while over their max (the solved points, after the links' pass)
+    std::lock_guard<std::mutex> lock(g_link_lock);
+    for (const auto& [m, links] : g_links)
+        for (const chain_link::Link& l : links) {
+            const float* a = (const float*)(l.chain_a + kChainNodes + l.slot_a * 0x40);
+            const float* b = (const float*)(l.chain_b + kChainNodes + l.slot_b * 0x40);
+            const glm::vec3 pa(a[0], a[1], a[2]), pb(b[0], b[1], b[2]);
+            w2s::DrawLine3D(pa, pb, glm::length(pb - pa) > l.max + 0.1f ? IM_COL32(255, 0, 255, 255) : IM_COL32(0, 255, 0, 255), 2.0f);
+        }
 }
 
 } // namespace
@@ -494,6 +565,7 @@ void draw_collision() {
 void __stdcall on_set_model(uintptr_t model) {
     std::lock_guard<std::recursive_mutex> lock(g_lock);
     drop_cns_source(model);                     // setModel frees the joint array
+    drop_links(model, 0);
     if (std::find(g_pending.begin(), g_pending.end(), model) == g_pending.end()) g_pending.push_back(model);
 }
 
@@ -505,6 +577,7 @@ void __stdcall on_model_dtor(uintptr_t model) {
     std::lock_guard<std::recursive_mutex> lock(g_lock);
     g_pending.erase(std::remove(g_pending.begin(), g_pending.end(), model), g_pending.end());
     drop_cns_source(model);
+    drop_links(model, 0);
     remove_cns(model, false);
     for (size_t i = 0; i < g_attached.size(); ++i)
         if (g_attached[i].model == model) {
@@ -525,6 +598,7 @@ void __stdcall on_model_dtor(uintptr_t model) {
 void __stdcall on_chain_dtor(uintptr_t cns) {
     const uintptr_t unit = cns - cns_chain::kChainInUnit;
     std::lock_guard<std::recursive_mutex> lock(g_lock);
+    drop_links(0, unit);
     for (const Spawned& s : g_spawned)
         if (s.chain == unit) { cns_chain::detach(unit, cns_chain::model_of(unit) == s.model && g_models.count(s.model) != 0); return; }
 }
@@ -591,6 +665,17 @@ naked void detour_model_dtor() {
         mov ebp, ecx
         jmp dword ptr [jmp_ret_model_dtor]
     }
+}
+
+// uModel::updateWorldMatrix 0x9EA8B0 (this@ecx, no stack arguments, retn), a function hook: the model's chains solve inside
+// it (each chain joint's constraint), so the links run right after, before anything reads the joints (the draw, the
+// models that follow this one). It runs for every model, on line jobs too: the lock is only taken while links exist.
+void __fastcall detour_world_matrix(uintptr_t model, int edx) {
+    ((void(__fastcall*)(uintptr_t, int))orig_world_matrix)(model, edx);
+    if (!g_any_links.load(std::memory_order_acquire)) return;
+    std::lock_guard<std::mutex> lock(g_link_lock);
+    auto it = g_links.find(model);
+    if (it != g_links.end() && !it->second.empty()) chain_link::solve(model, it->second.data(), it->second.size());
 }
 
 namespace {
@@ -696,6 +781,24 @@ void parse_cns(const pugi::xml_node c, const std::string& model, const std::stri
     }
     g_cns_entries.push_back(std::move(ce));
 }
+
+// <link a= b= max= [stiffness=]/>
+void parse_link(const pugi::xml_node c, const std::string& model, const std::string& file) {
+    LinkEntry le;
+    le.model = model;
+    le.a = c.attribute("a").as_int(-1);
+    le.b = c.attribute("b").as_int(-1);
+    le.max = c.attribute("max").as_float(-1.0f);
+    le.stiffness = std::clamp(c.attribute("stiffness").as_float(1.0f), 0.0f, 1.0f);
+    le.warned = false;
+    le.source = file + " <link> " + std::to_string(le.a) + "-" + std::to_string(le.b);
+    if (le.a < 0 || le.a > 255 || le.b < 0 || le.b > 255 || le.a == le.b) {
+        spdlog::warn("ModelExtension: {}: needs a= and b=, two different joint numbers 0-255", le.source);
+        return;
+    }
+    if (le.max < 0.0f) { spdlog::warn("ModelExtension: {}: needs max=, a distance in cm", le.source); return; }
+    g_link_entries.push_back(std::move(le));
+}
 } // namespace
 
 // The lists: nativePC\model_ext\*.xml (ModelExtension.hpp):
@@ -715,6 +818,7 @@ void reload() {
     g_attach_entries.clear();
     g_hide_entries.clear();
     g_cns_entries.clear();
+    g_link_entries.clear();
     if (fs::exists(folder)) {
         std::vector<std::string> files;
         for (const fs::directory_entry& e : fs::directory_iterator(folder))
@@ -748,6 +852,7 @@ void reload() {
                 for (const pugi::xml_node c : m.children()) {
                     const std::string tag = c.name();
                     if (tag == "pin" || tag == "aim" || tag == "offset") parse_cns(c, model, name);
+                    else if (tag == "link") parse_link(c, model, name);
                 }
             }
             int n = 0;
@@ -758,8 +863,8 @@ void reload() {
                 g_hide_entries.push_back({ path, name });
             }
         }
-        spdlog::info("ModelExtension: {} chain(s), {} attachment(s), {} constraint(s), {} hidden model(s) listed in {}", g_entries.size(),
-                     g_attach_entries.size(), g_cns_entries.size(), g_hide_entries.size(), folder);
+        spdlog::info("ModelExtension: {} chain(s), {} attachment(s), {} constraint(s), {} link(s), {} hidden model(s) listed in {}",
+                     g_entries.size(), g_attach_entries.size(), g_cns_entries.size(), g_link_entries.size(), g_hide_entries.size(), folder);
     } else {
         spdlog::info("ModelExtension: no {} folder, nothing listed", folder);
     }
@@ -833,6 +938,9 @@ std::optional<std::string> ModelExtension::on_initialize() {
         spdlog::error("ModelExtension: failed to hook ~cCnsChain (0x42C7A0)");
         return "Failed to init ModelExtension (chain destructor hook)";
     }
+    // the links' pass after a model's world pass (detour_world_matrix); without it the rest still works
+    if (!install_hook_absolute(0x9EA8B0, hook_world_matrix, &detour_world_matrix, &orig_world_matrix))
+        spdlog::error("ModelExtension: failed to hook uModel::updateWorldMatrix (0x9EA8B0): <link> entries do nothing");
     reload();
     return Mod::on_initialize();
 }
@@ -872,6 +980,9 @@ void ModelExtension::on_gui_frame(int display) {
                   "(axis, up: x, y, z with + or -; limit: degrees either way), <offset joint=> moves, turns or scales the joint "
                   "(pos / rot / scale). `to` is a joint of the model's owner unless of= names another model (of=\"self\": this one). "
                   "Children of the joint follow it.\n"
+                  "<link a= b= max=> (inside a <model>): two joints of the model's chains, at most `max` cm apart (neighbouring "
+                  "tendrils of a skirt, so the cloth between them can't open); stiffness 0-1 (default 1). A tendril's first "
+                  "joint keeps its place, so link the joints below it.\n"
                   "<attach>: without a joint the extra model is skinned to its owner (each of its joints follows the owner's joint "
                   "with the same number: clothing made on the body rig, with the body's bind pose); with joint= (a joint number) it "
                   "rides that joint rigidly, offset by pos (cm), rot (degrees about X, Y, Z) and scale. Its own extra joints can "
@@ -921,6 +1032,9 @@ void ModelExtension::on_gui_frame(int display) {
         const int out = (int)std::count_if(g_cns.begin(), g_cns.end(), [&](const CnsLive& c) { return c.entry == e && c.installed; });
         ImGui::BulletText("%s: %d  (%s)", ce.model.c_str(), out, ce.source.c_str());
     }
+    ImGui::Text(_("%d link(s) listed, %d live"), (int)g_link_entries.size(), g_links_live);
+    for (const LinkEntry& le : g_link_entries)
+        ImGui::BulletText("%s: %d - %d, at most %.1f cm  (%s)", le.model.c_str(), le.a, le.b, le.max, le.source.c_str());
     ImGui::Text(_("%d model(s) hidden"), (int)g_hide_entries.size());
     for (const HideEntry& h : g_hide_entries) {
         const int out = (int)std::count_if(g_models.begin(), g_models.end(), [&](const auto& m) { return m.second == h.path; });

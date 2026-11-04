@@ -30,12 +30,11 @@ void unregister_move(int character, uint32_t id) {
     --g_count;
 }
 
-bool __stdcall id_allowed(uint32_t id) {
-    for (int i = 0; i < g_count; ++i) {
-        const Entry& e = g_entries[i];
-        if (e.id == id && (!e.enabled || *e.enabled)) return true;
-    }
-    return false;
+bool __stdcall id_allowed(int character, uint32_t id) {
+    const int i = find(character, id);
+    if (i < 0) return false;
+    const Entry& e = g_entries[i];
+    return !e.enabled || *e.enabled;
 }
 
 void __stdcall dispatch(int character, uint32_t id, uintptr_t player) {

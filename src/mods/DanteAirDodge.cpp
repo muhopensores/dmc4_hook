@@ -16,6 +16,7 @@ using namespace wallrun;
 namespace dante_air_dodge {
 
 bool  mod_enabled     = false;
+int   cmd_bit         = -1;
 uintptr_t jmp_ret_wjump = 0;
 int   lmt_set         = -1;
 char  lmt_path[128]   = "motion\\pl006\\airdodge";
@@ -198,7 +199,7 @@ static int g_moves = 0;               // readout: entries into the move
 // The air hike's check, suppressed when this press is the dodge's: the hook returns 0 from
 // uPlayerDante::checkWJumpBegin so checkAtck, which runs after it, can match the row instead.
 bool __stdcall suppress_air_hike(uintptr_t pl) {
-    if (!mod_enabled || !pl) return false;
+    if (!mod_enabled || !pl || cmd_bit < 0) return false;          // no command: the row can't match, leave the air hike
     if (!(at<uint32_t>(pl, pl::mBtnOn) & 0x10)) return false;     // lock-on
     if (!(at<uint32_t>(pl, pl::mBtnTrg) & 0x4)) return false;     // jump pressed this tick
     const bool yes = can_dodge(pl);
@@ -379,7 +380,7 @@ void __stdcall move(uintptr_t pl) {
 void apply_row() {
     if (!HookDanteKADTbl || !MoveTable::DanteAirDodge) return;
     kAtckDefTbl* row = (kAtckDefTbl*)HookDanteKADTbl + (MoveTable::extra_dante_moves - MoveTable::DanteAirDodge);
-    row->command.buffer = (uint32_t)(cmd_bit & 0xFF) | (mod_enabled ? 0u : 0x100u);
+    row->command.buffer = (uint32_t)(cmd_bit & 0xFF) | (mod_enabled && cmd_bit >= 0 ? 0u : 0x100u);
 }
 
 } // namespace dante_air_dodge
@@ -396,7 +397,12 @@ std::optional<std::string> DanteAirDodge::on_initialize() {
     using namespace input_commands;
     move_registry::register_move(move_registry::DANTE, move_id, &mod_enabled, &dodge_move);   // the ID gate + Dante dispatch
     g_dodge_cmd.condition(CND_POSE).button(BTN_JUMP);
-    add(g_dodge_cmd.head(), cmd_bit, &mod_enabled, &can_dodge);   // bit 86: lock-on + jump while the stick leans sideways and a dodge is left
+    // lock-on + jump while the stick leans sideways and a dodge is left, on a free bit (Gerb holds 85 / 86)
+    cmd_bit = next_free_bit();
+    if (cmd_bit < 0 || !add(g_dodge_cmd.head(), cmd_bit, &mod_enabled, &can_dodge)) {
+        spdlog::error("DanteAirDodge: no free command bit for the dodge ({}-{} are all taken)", FIRST_FREE_BIT, LAST_BIT);
+        cmd_bit = -1;
+    }
     if (!install_hook_absolute(0x7B8E30, hook_wjump, &detour_wjump_check, &jmp_ret_wjump, 6)) {
         spdlog::error("DanteAirDodge: failed to hook uPlayerDante::checkWJumpBegin (0x7B8E30)");
         return "Failed to init DanteAirDodge (air hike hook)";
@@ -441,7 +447,7 @@ static void log_transitions(uintptr_t P) {
 void DanteAirDodge::on_frame(fmilliseconds& dt) {
     if (!mod_enabled) return;
     if (uPlayer* pl = devil4_sdk::get_local_player()) {
-        if ((at<uint32_t>((uintptr_t)pl, 0x2184 + 8) >> (cmd_bit - 64)) & 1) ++g_bit_seen;
+        if (cmd_bit >= 0 && (at<uint32_t>((uintptr_t)pl, 0x2184 + 4 * (cmd_bit >> 5)) >> (cmd_bit & 31)) & 1) ++g_bit_seen;
         log_transitions((uintptr_t)pl);
     }
 }
@@ -510,11 +516,12 @@ void DanteAirDodge::on_gui_frame(int display) {
     if (uPlayer* pl = devil4_sdk::get_local_player()) {      // live readout
         const uintptr_t P = (uintptr_t)pl;
         const uint32_t* f = &at<uint32_t>(P, 0x2184);
-        ImGui::Text("actStat %02X  frame %.1f  phase %d  atckId %u  stick sideways %d  bit86 %d  wjumpCnt %d  jump window stat %d reserve %d",
+        ImGui::Text("actStat %02X  frame %.1f  phase %d  atckId %u  stick sideways %d  bit %d: %d  wjumpCnt %d  jump window stat %d reserve %d",
                     at<uint32_t>(P, pl::mActStat), at<float>(P, pl::mMotionFrame0), at<int>(P, pl::mBdyActionLowerPhase),
-                    at<uint32_t>(P, pl::mAtckId), (int)stick_sideways(P), (int)((f[2] >> (cmd_bit - 64)) & 1), (int)at<char>(P, pl::mWJumpCnt),
+                    at<uint32_t>(P, pl::mAtckId), (int)stick_sideways(P), cmd_bit,
+                    cmd_bit >= 0 ? (int)((f[cmd_bit >> 5] >> (cmd_bit & 31)) & 1) : 0, (int)at<char>(P, pl::mWJumpCnt),
                     at<int>(P, pl::mMotCnclJumpStat), (int)at<bool>(P, pl::mMotCnclJumpReserve));
-        ImGui::Text("counters: air hikes suppressed %d | ticks with bit86 %d | move entries %d | used this airtime %d | row cmd %08X | hook %s",
+        ImGui::Text("counters: air hikes suppressed %d | ticks with the bit %d | move entries %d | used this airtime %d | row cmd %08X | hook %s",
                     g_suppressed, g_bit_seen, g_moves, state_for(P).used,
                     (HookDanteKADTbl && MoveTable::DanteAirDodge) ? ((kAtckDefTbl*)HookDanteKADTbl + (MoveTable::extra_dante_moves - MoveTable::DanteAirDodge))->command.buffer : 0,
                     hook_wjump ? "installed" : "MISSING");

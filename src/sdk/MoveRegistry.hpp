@@ -13,7 +13,9 @@
 // hid every later mod's id, and Dante's dispatch gated on one mod froze players with that mod off (2026-10-22/24).
 //
 // Registration is static data (plain arrays), so a mod may register from its on_initialize whatever the mod order.
-// Ids are per character (Nero's new ids start at 0x34, Dante's at 0x6C); the gate itself is character-agnostic.
+// Ids are per character (Nero's new ids start at 0x34, Dante's at 0x6C), and so is the gate: Nero's custom ids overlap
+// Dante's vanilla ones (Gerb 0x40 / 0x41, FreeRide 0x42), and a character-agnostic gate unlocked those Dante moves
+// whenever the Nero mod was on (until 2026-11-04).
 namespace move_registry {
 
     enum Character : int { NERO = 0, DANTE = 1 };
@@ -30,7 +32,7 @@ namespace move_registry {
     void unregister_move(int character, uint32_t id);
 
     // read by MoveTable's detours
-    bool __stdcall id_allowed(uint32_t id);                                       // any enabled entry with this id
+    bool __stdcall id_allowed(int character, uint32_t id);                        // an enabled entry of this character + id
     void __stdcall dispatch(int character, uint32_t id, uintptr_t player);        // run the entry's fn if enabled
 
     // A tick on a VANILLA move (MoveDef overlays): called by the dispatch detours before the game's own state function

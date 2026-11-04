@@ -424,6 +424,24 @@ th {
 </tbody></table></div>
 <p>A joint has room for one of these. A chain keeps its joints, and the game's own attachments stay as they are, so an entry on such a joint is refused and the log says so. On clothing that follows the body joint for joint, an entry takes that one joint over.</p>
 
+<h3 id="ref-link" data-search-heading="link chain tendrils skirt">&lt;link&gt;: Keeping Two Chain Joints Together<a class="heading-link" href="#ref-link" aria-label="Link to link">#</a></h3>
+<p>Each tendril of a chain swings on its own, so on a skirt made of several tendrils a leg can push two of them apart and the cloth between them opens. A <code>&lt;link&gt;</code> inside the <code>&lt;model&gt;</code> keeps two chain joints at most <code>max</code> centimetres apart. Use one per row of a seam:</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;model path="model\game\pl006\my_skirt" collision_model="model\game\pl006\my_skirt"&gt;
+  &lt;chain clt="chains\my_skirt_01" col="chains\my_skirt"/&gt;
+  &lt;chain clt="chains\my_skirt_02" col="chains\my_skirt"/&gt;
+  &lt;link a="224" b="219" max="9"/&gt;
+  &lt;link a="223" b="218" max="10"/&gt;
+  &lt;link a="222" b="217" max="11"/&gt;
+&lt;/model&gt;</code></pre></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Setting</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>a</code>, <code>b</code></td><td>Two joint numbers of this model, each part of a chain listed in this <code>&lt;model&gt;</code>. Needed.</td></tr>
+<tr><td><code>max</code></td><td>The furthest apart they may be, in centimetres. Needed. Start with their distance in the rest pose, or a little more.</td></tr>
+<tr><td><code>stiffness</code></td><td>0 to 1, how firmly it pulls (default 1). Lower values let the seam give a little.</td></tr>
+</tbody></table></div>
+<p>The first joint of a tendril stays where the animation puts it, so link the joints below it. The pull happens after the chains have swung and collided, so a firm link can pull cloth back into a leg for a frame. <strong>Show chain collision</strong> draws each link in green, or magenta while it is stretched past <code>max</code>.</p>
+
 <h2 id="making-files" data-search-heading="Making The Files">Making The Files<a class="heading-link" href="#making-files" aria-label="Link to Making The Files">#</a></h2>
 <p>Albam (the Blender add-on) imports and exports all of these:</p>
 <ul>
