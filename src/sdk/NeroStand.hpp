@@ -51,7 +51,8 @@ constexpr uintptr_t pl_mLockOnTarget       = 0x3080;   // cLockOnTarget*
 enum Action : int { ACT_NONE = 0, ACT_APPEAR = 1, ACT_BUSTER = 2, ACT_SNATCH = 3, ACT_YAMATO = 4, ACT_EM_BLOCK = 7, ACT_ILLUSION_SWORD = 8 };
 enum TpPhase : int { TP_HIDDEN = 0, TP_APPEAR_WAIT = 10, TP_FADE_IN = 20, TP_SHOWN = 30, TP_FADE_OUT = 40, TP_FADE_OUT_RUN = 41 };
 enum ModBit : uint8_t { MOD_ATTACK = 1 /* a guardian attack runs */, MOD_HOLD = 2 /* the stand is held in place during EmBlock */,
-                        MOD_PLACED = 4 /* the mod detached the stand and it hasn't faded out yet */ };
+                        MOD_PLACED = 4 /* the mod detached the stand and it hasn't faded out yet */,
+                        MOD_GUARD = 8 /* the guardian attack is a guard */ };
 
 constexpr uintptr_t fn_setAction      = 0x829BE0;   // uPlNeroDevil::setAction: this = edi, action = eax
 constexpr uintptr_t fn_setSnatchParam = 0x829CE0;   // uPlNeroDevil::setSnatchParam: ecx = cLockOnTarget*, dl = bool, stack = this, retn 4

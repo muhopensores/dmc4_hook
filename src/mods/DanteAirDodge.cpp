@@ -397,10 +397,10 @@ std::optional<std::string> DanteAirDodge::on_initialize() {
     using namespace input_commands;
     move_registry::register_move(move_registry::DANTE, move_id, &mod_enabled, &dodge_move);   // the ID gate + Dante dispatch
     g_dodge_cmd.condition(CND_POSE).button(BTN_JUMP);
-    // lock-on + jump while the stick leans sideways and a dodge is left, on a free bit (Gerb holds 85 / 86)
-    cmd_bit = next_free_bit();
-    if (cmd_bit < 0 || !add(g_dodge_cmd.head(), cmd_bit, &mod_enabled, &can_dodge)) {
-        spdlog::error("DanteAirDodge: no free command bit for the dodge ({}-{} are all taken)", FIRST_FREE_BIT, LAST_BIT);
+    // lock-on + jump while the stick leans sideways and a dodge is left, on a free bit of Dante's
+    cmd_bit = next_free_bit(CHAR_DANTE);
+    if (cmd_bit < 0 || !add_for(CHAR_DANTE, g_dodge_cmd.head(), cmd_bit, &mod_enabled, &can_dodge)) {
+        spdlog::error("DanteAirDodge: no free command bit for the dodge (Dante's {}-{} are all taken)", FIRST_FREE_BIT, LAST_BIT);
         cmd_bit = -1;
     }
     if (!install_hook_absolute(0x7B8E30, hook_wjump, &detour_wjump_check, &jmp_ret_wjump, 6)) {
@@ -447,7 +447,8 @@ static void log_transitions(uintptr_t P) {
 void DanteAirDodge::on_frame(fmilliseconds& dt) {
     if (!mod_enabled) return;
     if (uPlayer* pl = devil4_sdk::get_local_player()) {
-        if (cmd_bit >= 0 && (at<uint32_t>((uintptr_t)pl, 0x2184 + 4 * (cmd_bit >> 5)) >> (cmd_bit & 31)) & 1) ++g_bit_seen;
+        if (cmd_bit >= 0 && at<int>((uintptr_t)pl, pl::mPlayerID) == 0       // Dante's bit: on Nero it is another command's
+            && (at<uint32_t>((uintptr_t)pl, 0x2184 + 4 * (cmd_bit >> 5)) >> (cmd_bit & 31)) & 1) ++g_bit_seen;
         log_transitions((uintptr_t)pl);
     }
 }

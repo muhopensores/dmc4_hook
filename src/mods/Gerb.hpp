@@ -15,7 +15,7 @@
 // Inputs: each row has its own (`custom_input[ROW_DIRECTIONAL / ROW_VERTICAL]`): a trigger (game buttons, a gamepad
 // button combination or a keyboard key) with lock-on held and a stick direction as optional conditions. Gerb's
 // pre-check tick (the shared hook after executeCommandCheck, which Gerb installs) checks them and sets the row's command
-// bit (`cmd_row`, 85 / 86 of mCmdFlag: reserved with input_commands::add so MoveDef doesn't take them), which the row
+// bit (`cmd_row`, 85 / 86 of Nero's mCmdFlag: reserved with input_commands::add_for so MoveDef doesn't take them), which the row
 // (a COMMAND row: checkAtckSubCommand tests the bit) triggers on. Defaults: lock-on + any direction + style (directional),
 // lock-on + the stick centred + style (vertical). The grab button is free for these because Gerb's rows run in the
 // Gerbera style only (NeroStyle), where the game's Snatch rows are off; Calibur's back, forward (STICK_BACK_FORWARD, the

@@ -934,9 +934,10 @@ void add_move(xmlmove::File&& f, const std::vector<xmlmove::File>& pending) {
     // the command
     if (m.def.command.present) {
         build_command(m);
-        const int bit = input_commands::next_free_bit();
-        if (bit < 0 || !input_commands::add(m.cmd.head(), bit, &m.enabled, &predicate_thunk, &m)) {
-            spdlog::error("MoveDef: {}: no free command bit (85-95 all taken); the move is not loaded", m.def.name);
+        const int bit = input_commands::next_free_bit(m.def.character);   // per character: move_registry's numbering
+        if (bit < 0 || !input_commands::add_for(m.def.character, m.cmd.head(), bit, &m.enabled, &predicate_thunk, &m)) {
+            spdlog::error("MoveDef: {}: no free command bit ({}'s 85-95 all taken); the move is not loaded", m.def.name,
+                          m.def.character == 0 ? "Nero" : "Dante");
             return;
         }
         m.cmd_bit = bit;
@@ -972,8 +973,8 @@ void add_shared_commands(const xmlmove::File& f) {
             if (s.type == 1) sc.cmd.button(s.btn, s.mode, s.timer);
             else             sc.cmd.lever(s.lever, s.mode, s.timer);
         }
-        const int bit = input_commands::next_free_bit();
-        if (bit < 0 || !input_commands::add(sc.cmd.head(), bit, &mod_enabled, &shared_predicate, &sc)) {
+        const int bit = input_commands::next_free_bit(f.character);
+        if (bit < 0 || !input_commands::add_for(f.character, sc.cmd.head(), bit, &mod_enabled, &shared_predicate, &sc)) {
             spdlog::error("MoveDef: {}: no free command bit for shared command '{}'", f.source, c.name);
             continue;
         }

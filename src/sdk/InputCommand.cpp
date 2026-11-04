@@ -16,6 +16,7 @@ constexpr int kPlayerSlots = 4;    // uPlayer objects tracked at once (the playe
 struct Entry {
     const kCmdHead* head = nullptr;
     int bit = 0;
+    int character = CHAR_ANY;
     const bool* enabled = nullptr;
     Predicate predicate = nullptr;
     PredicateCtx pred_ctx = nullptr;
@@ -46,28 +47,48 @@ uintptr_t fn_commandCheckSub = 0x00805A10;
 
 } // namespace
 
-bool add(const kCmdHead* head, int bit, const bool* enabled, Predicate predicate) {
-    if (!head || bit < FIRST_FREE_BIT || bit > LAST_BIT) return false;
-    for (const Entry& e : entries()) if (e.bit == bit) return false;
-    Entry e; e.head = head; e.bit = bit; e.enabled = enabled; e.predicate = predicate;
+namespace {
+
+// `bit` is held for `character` by a command of that character or a CHAR_ANY one (CHAR_ANY: by any command)
+bool taken(int bit, int character) {
+    for (const Entry& e : entries())
+        if (e.bit == bit && (e.character == CHAR_ANY || character == CHAR_ANY || e.character == character)) return true;
+    return false;
+}
+
+bool valid(int character, const kCmdHead* head, int bit) {
+    return head && bit >= FIRST_FREE_BIT && bit <= LAST_BIT && character >= CHAR_ANY && character <= CHAR_DANTE && !taken(bit, character);
+}
+
+} // namespace
+
+int character_of(uintptr_t player) { return *(int*)(player + 0x1494) == 1 ? CHAR_NERO : CHAR_DANTE; }   // uPlayer::mPlayerID
+
+bool add_for(int character, const kCmdHead* head, int bit, const bool* enabled, Predicate predicate) {
+    if (!valid(character, head, bit)) return false;
+    Entry e; e.head = head; e.bit = bit; e.character = character; e.enabled = enabled; e.predicate = predicate;
     entries().push_back(e);
     return true;
+}
+
+bool add_for(int character, const kCmdHead* head, int bit, const bool* enabled, PredicateCtx predicate, void* ctx) {
+    if (!valid(character, head, bit)) return false;
+    Entry e; e.head = head; e.bit = bit; e.character = character; e.enabled = enabled; e.pred_ctx = predicate; e.ctx = ctx;
+    entries().push_back(e);
+    return true;
+}
+
+bool add(const kCmdHead* head, int bit, const bool* enabled, Predicate predicate) {
+    return add_for(CHAR_ANY, head, bit, enabled, predicate);
 }
 
 bool add(const kCmdHead* head, int bit, const bool* enabled, PredicateCtx predicate, void* ctx) {
-    if (!head || bit < FIRST_FREE_BIT || bit > LAST_BIT) return false;
-    for (const Entry& e : entries()) if (e.bit == bit) return false;
-    Entry e; e.head = head; e.bit = bit; e.enabled = enabled; e.pred_ctx = predicate; e.ctx = ctx;
-    entries().push_back(e);
-    return true;
+    return add_for(CHAR_ANY, head, bit, enabled, predicate, ctx);
 }
 
-int next_free_bit() {
-    for (int bit = FIRST_FREE_BIT; bit <= LAST_BIT; ++bit) {
-        bool taken = false;
-        for (const Entry& e : entries()) if (e.bit == bit) { taken = true; break; }
-        if (!taken) return bit;
-    }
+int next_free_bit(int character) {
+    for (int bit = FIRST_FREE_BIT; bit <= LAST_BIT; ++bit)
+        if (!taken(bit, character)) return bit;
     return -1;
 }
 
@@ -120,7 +141,9 @@ void __stdcall run(uintptr_t player) {
     for (TickFn f : ticks()) f(player);
     const uint32_t btn_on = *(uint32_t*)(player + 0x140C);          // cInterface::mBtnOn
     uint32_t* cmd_flag = (uint32_t*)(player + 0x2184);              // mCmdFlag[3]
+    const int character = character_of(player);
     for (Entry& e : entries()) {
+        if (e.character != CHAR_ANY && e.character != character) continue;   // the other character's: its bit is another command's here
         kSPlCmd& st = e.state_for(player);
         if (e.enabled && !*e.enabled) { st = kSPlCmd{}; continue; }
         if (e.predicate && !e.predicate(player)) { st = kSPlCmd{}; continue; }

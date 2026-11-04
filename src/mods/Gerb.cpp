@@ -68,7 +68,8 @@ constexpr int kPlayerSlots = 4;        // uPlayer objects tracked at once (the p
 static ctn::Script g_cancel_scripts[kPlayerSlots];
 
 // The rows' command bits are set by custom_tick, not by a command of the game's checker; an empty command on each, never
-// enabled, keeps them reserved (input_commands::next_free_bit, which MoveDef uses, skips registered bits).
+// enabled, keeps them reserved for Nero (input_commands::next_free_bit, which MoveDef uses, skips registered bits;
+// Dante's 85 / 86 stay free, since custom_tick sets the bits on Nero only).
 static input_commands::Command g_reserved_cmd[2];
 static const bool kNever = false;
 
@@ -525,7 +526,7 @@ std::optional<std::string> Gerb::on_initialize() {
     using namespace input_commands;
     move_registry::register_move(move_registry::NERO, move_id, &mod_enabled, &gerb::move);            // the ID gate + Nero dispatch
     move_registry::register_move(move_registry::NERO, move_id_vertical, &mod_enabled, &gerb::move);
-    for (int i = 0; i < 2; ++i) add(g_reserved_cmd[i].head(), cmd_row[i], &kNever);   // bits 85 / 86 reserved
+    for (int i = 0; i < 2; ++i) add_for(CHAR_NERO, g_reserved_cmd[i].head(), cmd_row[i], &kNever);   // Nero's bits 85 / 86 reserved
     add_tick(&custom_tick);                   // the rows' inputs set them
     if (!input_commands::hook_installed) {     // one installer: whichever of Gerb / WallRun / MoveDef initialises first
         if (!install_hook_absolute(0x7A83B5, hook_cmd, &input_commands::detour, &input_commands::jmp_ret, 8)) {

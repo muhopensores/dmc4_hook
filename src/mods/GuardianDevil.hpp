@@ -50,6 +50,33 @@
 // registry as a STAND set (taunt_lmt for the body, taunt_arm_lmt for the arm, loose files under nativePC); the stand
 // plays the registry's word for Nero's motion id. It stops when Nero's taunt ends.
 //
+// Guard (guard_enabled): a timed stand shield on the Guardian action itself, Nero's aerial defence that works in any
+// situation. Every Guardian action start (neutral, forward, back, rush) opens a guard window: from the press a counter
+// adds the frame's delta time, as Dante's Just Block counter does (uPlayerDante::checkStyle / movePlayerBefore, checked
+// <= 5 by checkJustBlock); while it is at most guard_window, a hit on Nero is cancelled whole:
+// uPlayerNero::procBeforeDamageCalc (vtable slot 83, called by uPlayer::damageMessage before any damage) returns 1, which
+// skips the damage, the DT gain from being hit, the hit reaction, blood and the style rank drop. The first guarded hit
+// of a window cancels the attack into the guard: the next tick the stand is placed back on Nero with the style's guard
+// motion (0x302 from frame 0: the sword clash, which uPlayerNero::moveActFlip hands the stand in DT when Nero's sword is
+// knocked back), with the vanilla stand block's effect and sound (procBeforeDamageCalc's own: stay effect list 0 /
+// 0x28 and SE 69 of the player's second bank) and the clash's pad rumble (reverseMessage's 1); its setAction turns the
+// hand's attack collision off, so the guard does nothing to the attacker (no damage or push-back). With guard_style it
+// adds style as the vanilla block does (uPlayer::addComboGauge, ADD_COMBO_GUAGE_ENEMY_GUARD 6, with Nero's own block
+// values from his player params), without the block's DT bonus. The
+// clash marks every frame with the stand's "disappear outside DT" event bit (11; bit 10, the DT one, from frame 20), so
+// uPlNeroDevil::checkDevilDisappear would fade a guard out on its first frame: during a guard (kMod MOD_GUARD) it takes
+// its DT branch, and the guard fades from frame 20 as the clash does in DT. The stand holds the clash pose (guard_hold_frame, where the knockback settles) for guard_hold frames, as the rush loop holds
+// its frames, then plays the motion's recovery. Later
+// hits inside the same window are cancelled too. While the guard plays, a Guardian action press guards again instead of
+// attacking: a new window, no cost until it catches a hit; a re-guard window that catches nothing ends the re-guards
+// until the next guard, so each one has to be timed. After the guard, guard_recovery frames pass before a stand attack.
+// Attacks that skip slot 83 (checkPressureDamage ones, enemy grabs through grabHitMessage) aren't guarded.
+//
+// DT cost (dt_cost, off by default): each start takes its cost from Nero's DT gauge (uPlayer::mDevilTrg.now +0x1F24,
+// 1000 = one bar) and is refused when the gauge has less; the rush also drains rush_drain per second while it is held
+// past its wind-up, and stops looping when the gauge runs dry (as if the trigger were let go). In Devil Trigger (the
+// stand's mIsDevilTrigger) every cost and the drain are multiplied by cost_in_dt (0.5). The taunt mimic is free.
+//
 // Needs the downloaded nativePC\Collision\wp024.col (the stand's attack data; the mod turns itself off without it).
 // The stand hits with that file's attack entries, so the style-points repetition penalty and which enemies a hit
 // reaches are that data's, not the mod's.
@@ -66,6 +93,9 @@ struct ActionSet {
     float loop_from;      // while the button is held, a rush frame in [loop_from, loop_to] jumps back to loop_dest
     float loop_to;
     float loop_dest;
+    int   guard;          // the guard's motion (0x302, the stand's sword clash)
+    float guard_start;    // its start frame (0)
+    float guard_hold_frame; // the frame the guard holds (9: the clash pose, where the knockback settles)
 };
 
 enum TriggerSource : int { TRIG_PAD = 0 /* gamepad buttons */, TRIG_KEY = 1 /* a keyboard key */, TRIG_GAME = 2 /* a mapped game input */ };
@@ -87,10 +117,25 @@ extern char  taunt_lmt[128];       // the stand body's taunt LMT (Nero's taunts 
 extern char  taunt_arm_lmt[128];   // the arm model's (empty = the arm plays nothing)
 extern float taunt_back;           // where the stand taunts: cm behind Nero (negative = in front)
 extern float taunt_side;           // cm to Nero's right (negative = left)
+extern bool  guard_enabled;        // a Guardian action's press opens a guard window
+extern float guard_window;         // frames after the press in which a hit is cancelled (5)
+extern bool  guard_effects;        // a guard plays the vanilla block's effect, sound and pad rumble
+extern float guard_hold;           // frames the guard holds its pose (20; 0 = the motion plays straight through)
+extern bool  guard_style;          // a guard adds style, as the vanilla stand block does
+extern float guard_recovery;       // frames after a guard before the next guard or attack (30)
+extern bool  dt_cost;              // the stand's actions cost DT
+extern float cost_neutral;         // DT per start (1000 = one bar)
+extern float cost_forward;
+extern float cost_back;
+extern float cost_rush;            // the rush's start
+extern float cost_guard;           // taken by the first guarded hit (0: the guard stays free)
+extern float rush_drain;           // DT per second while the rush is held
+extern float cost_in_dt;           // multiplier on every cost and the drain while Nero is in Devil Trigger (0.5)
 extern ActionSet sets[nero_style::kSlots];
 
 int  slot_for(uintptr_t player);   // the NeroStyle slot whose set applies (0 when styles are off or the player isn't Nero)
 bool active(uintptr_t player);     // a guardian attack runs for this Nero
+bool guarding(uintptr_t player);   // a guard's window is open for this Nero (a hit now is cancelled)
 void pre_tick(uintptr_t player);   // input_commands::add_tick: end detection, the hold, the stand bytes, the rush loop
 void post_command_tick(uintptr_t player);   // input_commands::add_post_command_tick: the four command bits -> a start
 uint32_t trigger_bit();            // the button bit the four commands test (trigger_game, or the virtual button)
@@ -113,6 +158,7 @@ public:
     void toggle(bool enable);   // the ten kShown patches
 
     std::unique_ptr<FunctionHook> hook_cmd, hook_gate, hook_phase0, hook_follow, hook_position, hook_dt_request, hook_kabuto,
-                                  hook_dt_at_once, hook_dt_appear, hook_dt_appear_air;
+                                  hook_dt_at_once, hook_dt_appear, hook_dt_appear_air, hook_disappear;
     std::unique_ptr<Patch> patch_shown[10];
+    std::unique_ptr<Patch> patch_guard[3];   // uPlayerNero's (and its Benchmark / Tutorial copies') vtable slot 83
 };

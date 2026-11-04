@@ -31,6 +31,15 @@ namespace input_commands {
     constexpr int FIRST_FREE_BIT = 85;   // 0-84 are the game's
     constexpr int LAST_BIT = 95;
 
+    // The bits are per character. A bit only matters to the rows of the character it is set on, so Nero and Dante
+    // each get 85-95: a command added for one character (add_for) runs only on that character's uPlayer objects
+    // (mPlayerID 0x1494: 0 Dante, 1 Nero) and holds its bit for that character only; add() is CHAR_ANY (runs on
+    // both, holds the bit for both). Until 2026-11-04 the 11 bits were one pool for every mod of both characters.
+    // A mod that reads, clears or sets its bits by hand must do so on its own character only: on the other one the
+    // same bit belongs to another mod (Gerb set its bits on Dante and started his air dodge, 2026-11-04).
+    enum Character : int { CHAR_ANY = -1, CHAR_NERO = 0, CHAR_DANTE = 1 };   // the numbering of sdk/MoveRegistry
+    int character_of(uintptr_t player);  // CHAR_NERO / CHAR_DANTE from mPlayerID
+
     enum BtnMode : uint16_t { BTN_TRG = 1 /* pressed this tick */, BTN_REL = 2 /* released */, BTN_ON = 3 /* held */ };
     enum Button : uint32_t { BTN_MELEE = 0x1, BTN_GUN = 0x2, BTN_JUMP = 0x4, BTN_LOCKON = 0x10, BTN_STYLE = 0x200 };
     enum LeverMode : uint16_t { LEVER_TARGET_45 = 1 /* vs the lock-on target's direction (else the facing) */, LEVER_TARGET_70 = 2, LEVER_SCREEN = 3 /* vs the camera */ };
@@ -40,8 +49,9 @@ namespace input_commands {
     //     static input_commands::Command cmd;
     //     cmd.condition(CND_POSE).lever(LEVER_CENTRED).lever(LEVER_BACK, LEVER_TARGET_45, 15).lever(LEVER_FORWARD, LEVER_TARGET_45, 15)
     //        .button(BTN_STYLE);
-    //     input_commands::add(cmd.head(), 85, &mod_enabled);
-    // = the game's 0x52 (lock-on + back, forward + melee) with the style button.
+    //     const int bit = input_commands::next_free_bit(input_commands::CHAR_NERO);
+    //     input_commands::add_for(input_commands::CHAR_NERO, cmd.head(), bit, &mod_enabled);
+    // = the game's 0x52 (lock-on + back, forward + melee) with the style button, for Nero.
     struct Command {
         static constexpr int kMaxSteps = 8;
         kCmdData steps[kMaxSteps] = {};
@@ -72,10 +82,12 @@ namespace input_commands {
     // (85-95) when it fires. `enabled`, when given, is read every tick and the command is skipped (state reset)
     // while it is false; `predicate`, when given, must hold for the player that tick as well (a condition the
     // game's steps can't express, e.g. the stick leaning sideways). Returns false when the bit is out of range or
-    // already taken.
+    // already taken for that character (by its own command or a CHAR_ANY one).
     typedef bool (*Predicate)(uintptr_t player);
     typedef bool (*PredicateCtx)(uintptr_t player, void* ctx);   // the same with a context pointer (one function, many commands)
-    bool add(const kCmdHead* head, int bit, const bool* enabled = nullptr, Predicate predicate = nullptr);
+    bool add_for(int character, const kCmdHead* head, int bit, const bool* enabled = nullptr, Predicate predicate = nullptr);
+    bool add_for(int character, const kCmdHead* head, int bit, const bool* enabled, PredicateCtx predicate, void* ctx);
+    bool add(const kCmdHead* head, int bit, const bool* enabled = nullptr, Predicate predicate = nullptr);   // CHAR_ANY
 
     // uPlayer::commandCheckSub 0x805A10 (stdcall this, kSPlCmd*, kCmdHead*, kCmdData*; result in al; its helpers
     // read the player from esi, so it is called with esi = this too). 1 = the command fired this tick.
@@ -86,8 +98,9 @@ namespace input_commands {
     void __stdcall run(uintptr_t player);
 
     // The same, with a context pointer handed back to the predicate (MoveDef: one predicate function for every move).
-    bool add(const kCmdHead* head, int bit, const bool* enabled, PredicateCtx predicate, void* ctx);
-    int  next_free_bit();            // the first of FIRST_FREE_BIT..LAST_BIT no command holds, -1 when none is left
+    bool add(const kCmdHead* head, int bit, const bool* enabled, PredicateCtx predicate, void* ctx);   // CHAR_ANY
+    // the first of FIRST_FREE_BIT..LAST_BIT no command holds for `character` (CHAR_ANY: free for both), -1 when none is left
+    int  next_free_bit(int character = CHAR_ANY);
     // ---- Per-tick callbacks on the player ------------------------------------------------------------------------
     // uPlayer::main 0x7A7DC0 runs a player's tick in this order (RE/player_move_pipeline.md, "The cancel gate" and
     // "Upper-body gun shots"):
