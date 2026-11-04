@@ -32,6 +32,11 @@
 // forward; lock-on + back + trigger = back; the trigger alone = neutral. The post-command tick reads the four bits
 // (rush > forward > back > neutral) and starts the stand.
 //
+// Stand LMT blocks: each motion (neutral, forward, back, rush, guard) is either a vanilla stand motion number or a block
+// of the stand LMT pair the taunt mimic registers (taunt_lmt / taunt_arm_lmt: one shared file for every custom stand
+// animation, so they cost one set of registry blocks). A block is played by its registry word (motion_registry::word);
+// while the set isn't on the stand yet, the vanilla motion plays instead.
+//
 // Per style: the action set (the four motions, the rush's start frame and loop window) is one per NeroStyle slot,
 // picked with nero_style::current(player) (slot 0 when Nero styles are off). Starts are refused while the stand is busy
 // (Buster, Snatch, a hold, Illusion Sword), while a DT change is pending, and while Nero is hit / down / grabbed / dying,
@@ -65,9 +70,7 @@
 // values from his player params), without the block's DT bonus. The
 // clash marks every frame with the stand's "disappear outside DT" event bit (11; bit 10, the DT one, from frame 20), so
 // uPlNeroDevil::checkDevilDisappear would fade a guard out on its first frame: during a guard (kMod MOD_GUARD) it takes
-// its DT branch, and the guard fades from frame 20 as the clash does in DT. The stand holds the clash pose (guard_hold_frame, where the knockback settles) for guard_hold frames, as the rush loop holds
-// its frames, then plays the motion's recovery. Later
-// hits inside the same window are cancelled too. While the guard plays, a Guardian action press guards again instead of
+// its DT branch, and the guard fades from frame 20 as the clash does in DT. Later hits inside the same window are cancelled too. While the guard plays, a Guardian action press guards again instead of
 // attacking: a new window, no cost until it catches a hit; a re-guard window that catches nothing ends the re-guards
 // until the next guard, so each one has to be timed. After the guard, guard_recovery frames pass before a stand attack.
 // Attacks that skip slot 83 (checkPressureDamage ones, enemy grabs through grabHitMessage) aren't guarded.
@@ -95,7 +98,11 @@ struct ActionSet {
     float loop_dest;
     int   guard;          // the guard's motion (0x302, the stand's sword clash)
     float guard_start;    // its start frame (0)
-    float guard_hold_frame; // the frame the guard holds (9: the clash pose, where the knockback settles)
+    int   neutral_block;  // the stand LMT block each motion plays instead of the vanilla number (-1 = the vanilla one)
+    int   forward_block;
+    int   back_block;
+    int   rush_block;
+    int   guard_block;    // 0 by default: block 0 of the stand LMT (the guardian_ex package's guard); the others -1
 };
 
 enum TriggerSource : int { TRIG_PAD = 0 /* gamepad buttons */, TRIG_KEY = 1 /* a keyboard key */, TRIG_GAME = 2 /* a mapped game input */ };
@@ -113,14 +120,13 @@ extern float height_offset;        // cm added to the stand's height at the star
 extern bool  hold_stays_put;       // the stand stays in place while it holds an enemy (Buster hold) instead of following Nero
 extern bool  dt_cancel_keeps_hold; // the instant DT activation runs during that hold, without summoning the stand
 extern bool  taunt_mimic;          // the stand plays Nero's taunt beside him
-extern char  taunt_lmt[128];       // the stand body's taunt LMT (Nero's taunts retargeted; game path without .lmt)
+extern char  taunt_lmt[128];       // the stand LMT (Nero's taunts retargeted, custom stand moves; game path without .lmt)
 extern char  taunt_arm_lmt[128];   // the arm model's (empty = the arm plays nothing)
 extern float taunt_back;           // where the stand taunts: cm behind Nero (negative = in front)
 extern float taunt_side;           // cm to Nero's right (negative = left)
 extern bool  guard_enabled;        // a Guardian action's press opens a guard window
 extern float guard_window;         // frames after the press in which a hit is cancelled (5)
 extern bool  guard_effects;        // a guard plays the vanilla block's effect, sound and pad rumble
-extern float guard_hold;           // frames the guard holds its pose (20; 0 = the motion plays straight through)
 extern bool  guard_style;          // a guard adds style, as the vanilla stand block does
 extern float guard_recovery;       // frames after a guard before the next guard or attack (30)
 extern bool  dt_cost;              // the stand's actions cost DT
