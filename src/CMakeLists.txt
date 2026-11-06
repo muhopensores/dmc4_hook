@@ -548,6 +548,7 @@ set(FRAMEWORK_SRC
   Mod.hpp
   ModBase.hpp
   Mods.hpp
+  ModsHeaders.hpp
   Mods.cpp
   ModFramework.hpp
   ModFramework.cpp

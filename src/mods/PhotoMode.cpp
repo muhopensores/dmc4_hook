@@ -1,15 +1,15 @@
 ﻿#include "PhotoMode.hpp"
-#include "DebugCam.hpp"
-#include "CameraSettings.hpp"
 #include "sdk/Devil4.hpp"
 #include "sdk/Cam.hpp"
 #include "sdk/World2Screen.hpp"
 #include "sdk/uFilter.hpp"
 #include "sdk/sWorkRate.hpp"
 #include "sdk/sUnit.hpp"
-#include <Mods.hpp>
 #include "utility/Hash.hpp"
-
+#include "Mods.hpp"
+#include "CameraSettings.hpp"
+#include "DebugCam.hpp"
+#include "JointDisplay.hpp"
 #include "../sdk/uLight.hpp"
 
 bool PhotoMode::mod_enabled = false;
@@ -769,10 +769,11 @@ void PhotoMode::on_frame(fmilliseconds& dt) {
                 if (ImGui::BeginTabItem(_("Camera"))) {
                     ImGui::BeginChild("PhotoTabBarChild");
                     ImGui::SeparatorText(_("Camera"));
-                    g_framework->get_mods().get()->on_draw_ui("CameraSettings"_hash, DISPLAY_SYSTEM_C);
+                    
+                    g_framework->get_mods().get()->on_draw_ui<CameraSettings>(DISPLAY_SYSTEM_C);
                     ImGui::SameLine();
-                    g_framework->get_mods().get()->on_draw_ui("DebugCam"_hash, DISPLAY_SYSTEM_B);
-                    g_framework->get_mods().get()->on_draw_ui("JointDisplay"_hash, DISPLAY_SYSTEM_A);
+                    g_framework->get_mods().get()->on_draw_ui<DebugCam>(DISPLAY_SYSTEM_B);
+                    g_framework->get_mods().get()->on_draw_ui<JointDisplay>(DISPLAY_SYSTEM_A);
                     if (ImGui::Checkbox(_("Enable Joint Rotation"), &joint_rotation_enable)) {
                         joint_rotation_toggle(joint_rotation_enable);
                     }

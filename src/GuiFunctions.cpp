@@ -1,11 +1,10 @@
 #include "Windows.h"
 #include "GuiFunctions.hpp"
+#include "ModsHeaders.hpp"
 #include "Config.hpp"
-#include "utility/Hash.hpp"
 #include "utility/Locales.hpp"
 #include <string>
 #include "LicenseStrings.hpp"
-#include "mods/MessageDisplay.hpp"
 #include "sdk/Devil4.hpp"
 #include "sdk/sRender.hpp"
 #include "sdk/ReClass_Internal.hpp"
@@ -224,7 +223,7 @@ namespace gui {
         else maxUIHeight = 1080.0f * 0.9f;
         ImGui::Text(_("Average %.3f ms/frame (%.1f FPS)"), 1000.0f / io.Framerate, io.Framerate);
         ImGui::SameLine();
-        pmods->on_draw_ui("LocalizationManager"_hash);
+        pmods->on_draw_ui<LocalizationManager>();
         const char* save_config_label = _("Save Config");
         ImVec2 btn_size = ImGui::CalcTextSize(save_config_label);
         btn_size.x += ImGui::GetStyle().FramePadding.x * 2.0f;
@@ -242,83 +241,83 @@ namespace gui {
 
                 ImGui::SeparatorText(_("Practice"));
 
-                pmods->on_draw_ui("HealthSettings"_hash, DISPLAY_SYSTEM_A); // needs its own line // damage modifier
+                pmods->on_draw_ui<HealthSettings>(DISPLAY_SYSTEM_A); // needs its own line // damage modifier
 
-                pmods->on_draw_ui("InfDT"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<InfDT>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("InfRevive"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<InfRevive>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("RestoreMaxHp"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<RestoreMaxHp>(DISPLAY_SYSTEM_A); // needs its own line
 
-                pmods->on_draw_ui("StunAnything"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<StunAnything>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("RemoveLaunchArmour"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<RemoveLaunchArmour>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("DtEnemiesDontStun"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<DtEnemiesDontStun>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("BerialDaze"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<BerialDaze>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("InfFaustCloak"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<InfFaustCloak>(DISPLAY_SYSTEM_A); // needs its own line
 
-                pmods->on_draw_ui("InfFrostHeal"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<InfFrostHeal>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("FreezeEnemies"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<FreezeEnemies>(DISPLAY_SYSTEM_A);
                 
-                pmods->on_draw_ui("InfiniteTime"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<InfiniteTime>(DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Difficulty"));
 
-                pmods->on_draw_ui("DifficultySelect"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<DifficultySelect>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("EnemySlotting"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<EnemySlotting>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("DmdBloodyPalace"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<DmdBloodyPalace>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("DmdLevelAi"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<DmdLevelAi>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("LdkWithDmd"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<LdkWithDmd>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("FrenziedBossAI"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<FrenziedBossAI>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("EnemyDT"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<EnemyDT>(DISPLAY_SYSTEM_A); // needs its own line
 
-                pmods->on_draw_ui("EnemyAttackOffScreen"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<EnemyAttackOffScreen>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("DisableChimeraBlades"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<DisableChimeraBlades>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("FrostsDontJump"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<FrostsDontJump>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("AssaultsDontJump"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<AssaultsDontJump>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("GhostWalls"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<GhostWalls>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("EnvironmentalHazards"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<EnvironmentalHazards>(DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Game Mode"));
 
-                pmods->on_draw_ui("Survival"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<Survival>(DISPLAY_SYSTEM_A); // needs its own line
 
-                pmods->on_draw_ui("HealthSettings"_hash, DISPLAY_SYSTEM_B); // needs its own line // must style
+                pmods->on_draw_ui<HealthSettings>(DISPLAY_SYSTEM_B); // needs its own line // must style
 
-                pmods->on_draw_ui("AreaJump"_hash, DISPLAY_SYSTEM_B); // needs its own line // random bp & boss rush
+                pmods->on_draw_ui<AreaJump>(DISPLAY_SYSTEM_B); // needs its own line // random bp & boss rush
 
-                pmods->on_draw_ui("FloorIsLava"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<FloorIsLava>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("DarkSoulsStamina"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<DarkSoulsStamina>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("EnemyReplace"_hash, DISPLAY_SYSTEM_B); // enemy randomizer
+                pmods->on_draw_ui<EnemyReplace>(DISPLAY_SYSTEM_B); // enemy randomizer
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("GermanWord"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<GermanWord>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("ArcadeMode"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<ArcadeMode>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("CharSwitcher"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<CharSwitcher>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("EnvironmentalHazards"_hash, DISPLAY_SYSTEM_B); // temp platforms
+                pmods->on_draw_ui<EnvironmentalHazards>(DISPLAY_SYSTEM_B); // temp platforms
 
-                pmods->on_draw_ui("Macro"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<Macro>(DISPLAY_SYSTEM_A); // needs its own line
                 
-                // pmods->on_draw_ui("TestMod"_hash, DISPLAY_SYSTEM_A);
+                // pmods->on_draw_ui<TestMod>(DISPLAY_SYSTEM_A);
 
                 tabHeight += ImGui::GetCursorPosY();
                 ImGui::EndChild();
@@ -342,69 +341,69 @@ namespace gui {
 
                         ImGui::SeparatorText(_("Limit Removal"));
 
-                        pmods->on_draw_ui("HeightRestriction"_hash, DISPLAY_NERO_A); // needs its own line
+                        pmods->on_draw_ui<HeightRestriction>(DISPLAY_NERO_A); // needs its own line
 
-                        pmods->on_draw_ui("LimitAdjust"_hash, DISPLAY_NERO_A); // needs its own line
+                        pmods->on_draw_ui<LimitAdjust>(DISPLAY_NERO_A); // needs its own line
 
                         ImGui::SeparatorText(_("Abilities"));
 
-                        pmods->on_draw_ui("RevFlying"_hash, DISPLAY_NERO_A); // needs its own line
+                        pmods->on_draw_ui<RevFlying>(DISPLAY_NERO_A); // needs its own line
 
-                        pmods->on_draw_ui("NeroSnatchLength"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<NeroSnatchLength>(DISPLAY_NERO_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("AngelSnatch"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<AngelSnatch>(DISPLAY_NERO_A);
                         
-                        pmods->on_draw_ui("Quicksilver"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<Quicksilver>(DISPLAY_NERO_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("WitchTime"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<WitchTime>(DISPLAY_NERO_A);
 
-                        pmods->on_draw_ui("RunWhileHolding"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<RunWhileHolding>(DISPLAY_NERO_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("NoHbKnockback"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<NoHbKnockback>(DISPLAY_NERO_A);
 
-                        pmods->on_draw_ui("ExceedLock"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<ExceedLock>(DISPLAY_NERO_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("ExceedLimiter"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<ExceedLimiter>(DISPLAY_NERO_A);
 
-                        pmods->on_draw_ui("Payline"_hash, DISPLAY_NERO_A); // needs its own line // keep on the last line, it has a download button
+                        pmods->on_draw_ui<Payline>(DISPLAY_NERO_A); // needs its own line // keep on the last line, it has a download button
 
-                        pmods->on_draw_ui("GuardianDevil"_hash, DISPLAY_NERO_A); // keep on the last line, it has a download button
+                        pmods->on_draw_ui<GuardianDevil>(DISPLAY_NERO_A); // keep on the last line, it has a download button
 
                         ImGui::SeparatorText(_("Speedups"));
 
-                        pmods->on_draw_ui("FastSprint"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<FastSprint>(DISPLAY_NERO_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("ChargeChecker"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<ChargeChecker>(DISPLAY_NERO_A);
 
                         ImGui::SeparatorText(_("Infinite"));
 
-                        pmods->on_draw_ui("InfAirHikes"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<InfAirHikes>(DISPLAY_NERO_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("FreeJc"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<FreeJc>(DISPLAY_NERO_A);
 
-                        pmods->on_draw_ui("InfTableHopper"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<InfTableHopper>(DISPLAY_NERO_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("InfCalibur"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<InfCalibur>(DISPLAY_NERO_A);
 
                         ImGui::SeparatorText(_("Accessibility"));
 
-                        pmods->on_draw_ui("EasyJc"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<EasyJc>(DISPLAY_NERO_A);
 
                         ImGui::SeparatorText(_("Selective Cancels"));
 
-                        pmods->on_draw_ui("SelectiveCancels"_hash, DISPLAY_NERO_A); // needs its own line
+                        pmods->on_draw_ui<SelectiveCancels>(DISPLAY_NERO_A); // needs its own line
 
                         ImGui::SeparatorText(_("Taunt Select"));
                         
-                        pmods->on_draw_ui("TauntSelect"_hash, DISPLAY_NERO_A); // needs its own line
+                        pmods->on_draw_ui<TauntSelect>(DISPLAY_NERO_A); // needs its own line
                         
                         ImGui::SeparatorText(_("Memes"));
                         
-                        pmods->on_draw_ui("BigHeadMode"_hash, DISPLAY_NERO_A); // needs its own line
+                        pmods->on_draw_ui<BigHeadMode>(DISPLAY_NERO_A); // needs its own line
                         
-                        pmods->on_draw_ui("MutatorSuperhot"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<MutatorSuperhot>(DISPLAY_NERO_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("PlayerRotation"_hash, DISPLAY_NERO_A);
+                        pmods->on_draw_ui<PlayerRotation>(DISPLAY_NERO_A);
 
                         tabHeight += ImGui::GetCursorPosY();
                         ImGui::EndChild();
@@ -422,168 +421,168 @@ namespace gui {
 
                         ImGui::SeparatorText(_("Limit Removal"));
 
-                        pmods->on_draw_ui("HeightRestriction"_hash, DISPLAY_DANTE_A); // needs its own line
+                        pmods->on_draw_ui<HeightRestriction>(DISPLAY_DANTE_A); // needs its own line
 
-                        pmods->on_draw_ui("LimitAdjust"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<LimitAdjust>(DISPLAY_DANTE_A);
 
                         ImGui::SeparatorText(_("Abilities"));
 
-                        pmods->on_draw_ui("NoLockonRestriction"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<NoLockonRestriction>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("SwordSpin"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<SwordSpin>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("NoHbKnockback"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<NoHbKnockback>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("Quicksilver"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<Quicksilver>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("TrackingFullHouse"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<TrackingFullHouse>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("TrickDown"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<TrickDown>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("ManualTwosomeTime"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<ManualTwosomeTime>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("LiveMoveTableSwaps"_hash, DISPLAY_DANTE_A); // instant honeycomb
+                        pmods->on_draw_ui<LiveMoveTableSwaps>(DISPLAY_DANTE_A); // instant honeycomb
 
-                        pmods->on_draw_ui("ActiveBlock"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<ActiveBlock>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("RgMultiplier"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<RgMultiplier>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("KnockbackEdits"_hash, DISPLAY_DANTE_A); // needs its own line
+                        pmods->on_draw_ui<KnockbackEdits>(DISPLAY_DANTE_A); // needs its own line
 
-                        pmods->on_draw_ui("TurnSpeedEdits"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<TurnSpeedEdits>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("TrackingSkyStar"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<TrackingSkyStar>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("DisableDTStinger"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<DisableDTStinger>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("GunStingerDistance"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<GunStingerDistance>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("InfDreadnaught"_hash, DISPLAY_DANTE_B); // run in dread
+                        pmods->on_draw_ui<InfDreadnaught>(DISPLAY_DANTE_B); // run in dread
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("CrossGunCharge"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<CrossGunCharge>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("PandoraCharge"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<PandoraCharge>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("TrackingJealousy"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<TrackingJealousy>(DISPLAY_DANTE_A);
 
-                        // pmods->on_draw_ui("FireworksTweaks"_hash, DISPLAY_DANTE_A);
-                        pmods->on_draw_ui("LongerJealousy"_hash, DISPLAY_DANTE_A);
+                        // pmods->on_draw_ui<FireworksTweaks>(DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<LongerJealousy>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("ReversableDraw"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<ReversableDraw>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("MustangWalls"_hash, DISPLAY_DANTE_A); 
+                        pmods->on_draw_ui<MustangWalls>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("WitchTime"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<WitchTime>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("BackForwardQuickDrive"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<BackForwardQuickDrive>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("DanteJdc"_hash, DISPLAY_DANTE_A); // keep on the last line, it has a download button
+                        pmods->on_draw_ui<DanteJdc>(DISPLAY_DANTE_A); // keep on the last line, it has a download button
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("GroundedGunCancels"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<GroundedGunCancels>(DISPLAY_DANTE_A);
 
                         ImGui::SeparatorText(_("Lucifer"));
 
-                        pmods->on_draw_ui("ForceLucifer"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<ForceLucifer>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("InputStates"_hash, DISPLAY_DANTE_A); // taunt ecstasy
+                        pmods->on_draw_ui<InputStates>(DISPLAY_DANTE_A); // taunt ecstasy
 
-                        pmods->on_draw_ui("InfinitePinTimer"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<InfinitePinTimer>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("LuciAirThrow"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<LuciAirThrow>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("PinTrick"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<PinTrick>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("ManualLuciferAim"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<ManualLuciferAim>(DISPLAY_DANTE_A);
 
                         ImGui::Spacing();
                         ImGui::Text(_("Rose"));
                         ImGui::Spacing();
 
-                        pmods->on_draw_ui("RoseOptions"_hash, DISPLAY_DANTE_A); // 1.5 lines
+                        pmods->on_draw_ui<RoseOptions>(DISPLAY_DANTE_A); // 1.5 lines
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("RoseRemovesPins"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<RoseRemovesPins>(DISPLAY_DANTE_A);
 
                         ImGui::Spacing();
                         ImGui::Text(_("Pins"));
                         ImGui::Spacing();
 
-                        pmods->on_draw_ui("PinProperties"_hash, DISPLAY_DANTE_A); // needs its own line // Gunslinger passive, Consistent embedding
+                        pmods->on_draw_ui<PinProperties>(DISPLAY_DANTE_A); // needs its own line // Gunslinger passive, Consistent embedding
 
                         ImGui::SeparatorText(_("Aerial grounded moves"));
 
-                        pmods->on_draw_ui("RisingSun"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<RisingSun>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("AerialStinger"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<AerialStinger>(DISPLAY_DANTE_A);
 
-                        // pmods->on_draw_ui("AirMustang"_hash, DISPLAY_DANTE_A);
+                        // pmods->on_draw_ui<AirMustang>(DISPLAY_DANTE_A);
                         // ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("AerialDrive"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<AerialDrive>(DISPLAY_DANTE_A);
 
                         ImGui::SeparatorText(_("Accessibility"));
 
-                        pmods->on_draw_ui("SkipWeapons"_hash, DISPLAY_DANTE_A); // needs its own line
+                        pmods->on_draw_ui<SkipWeapons>(DISPLAY_DANTE_A); // needs its own line
 
-                        pmods->on_draw_ui("EasyJc"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<EasyJc>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("HighTimeWeaponSwitch"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<HighTimeWeaponSwitch>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("FasterFastDrive"_hash, DISPLAY_DANTE_B); // easier quickdrive
+                        pmods->on_draw_ui<FasterFastDrive>(DISPLAY_DANTE_B); // easier quickdrive
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("TricksterDashDT"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<TricksterDashDT>(DISPLAY_DANTE_A);
 
                         ImGui::SeparatorText(_("Speedups"));
 
-                        pmods->on_draw_ui("FastSprint"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<FastSprint>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("InstantTrick"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<InstantTrick>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("FastPandora"_hash, DISPLAY_DANTE_A); // needs its own line
+                        pmods->on_draw_ui<FastPandora>(DISPLAY_DANTE_A); // needs its own line
                         
-                        pmods->on_draw_ui("ChargeChecker"_hash, DISPLAY_DANTE_A); // fast round trip charge
+                        pmods->on_draw_ui<ChargeChecker>(DISPLAY_DANTE_A); // fast round trip charge
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("FastRoundTrip"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<FastRoundTrip>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("FasterFastDrive"_hash, DISPLAY_DANTE_A); // faster quickdrive
+                        pmods->on_draw_ui<FasterFastDrive>(DISPLAY_DANTE_A); // faster quickdrive
 
                         ImGui::SeparatorText(_("Infinite"));
 
-                        pmods->on_draw_ui("InfTrickRange"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<InfTrickRange>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("InfDreadnaught"_hash, DISPLAY_DANTE_A); // inf dread
+                        pmods->on_draw_ui<InfDreadnaught>(DISPLAY_DANTE_A); // inf dread
                         
-                        pmods->on_draw_ui("InfSkyStars"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<InfSkyStars>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("AlwaysRoyalRelease"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<AlwaysRoyalRelease>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("InfAirHikes"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<InfAirHikes>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("FreeJc"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<FreeJc>(DISPLAY_DANTE_A);
 
                         ImGui::SeparatorText(_("Darkslayer"));
 
-                        pmods->on_draw_ui("DoubleTapDarkslayer"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<DoubleTapDarkslayer>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("TargetChangeDarkslayer"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<TargetChangeDarkslayer>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("DisableDarkslayer"_hash, DISPLAY_DANTE_A); // needs its own line
+                        pmods->on_draw_ui<DisableDarkslayer>(DISPLAY_DANTE_A); // needs its own line
 
                         ImGui::SeparatorText(_("Selective Cancels"));
 
-                        pmods->on_draw_ui("SelectiveCancels"_hash, DISPLAY_DANTE_A); // needs its own line
+                        pmods->on_draw_ui<SelectiveCancels>(DISPLAY_DANTE_A); // needs its own line
 
                         ImGui::SeparatorText(_("Taunt Select"));
 
-                        pmods->on_draw_ui("TauntSelect"_hash, DISPLAY_DANTE_A); // needs its own line
+                        pmods->on_draw_ui<TauntSelect>(DISPLAY_DANTE_A); // needs its own line
 
                         ImGui::SeparatorText(_("Memes"));
 
-                        pmods->on_draw_ui("BigHeadMode"_hash, DISPLAY_DANTE_A); // needs its own line
+                        pmods->on_draw_ui<BigHeadMode>(DISPLAY_DANTE_A); // needs its own line
 
-                        pmods->on_draw_ui("MutatorSuperhot"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<MutatorSuperhot>(DISPLAY_DANTE_A);
                         ImGui::SameLine(sameLineWidth);
-                        pmods->on_draw_ui("PlayerRotation"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<PlayerRotation>(DISPLAY_DANTE_A);
 
-                        pmods->on_draw_ui("GuardSteer"_hash, DISPLAY_DANTE_A);
+                        pmods->on_draw_ui<GuardSteer>(DISPLAY_DANTE_A);
 
                         tabHeight += ImGui::GetCursorPosY();
                         ImGui::EndChild();
@@ -613,7 +612,7 @@ namespace gui {
                         ImGui::PopStyleVar(2);
             
                         ImGui::BeginChild("StageChild");
-                        pmods->on_draw_ui("AreaJump"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                        pmods->on_draw_ui<AreaJump>(DISPLAY_SYSTEM_A); // needs its own line
                         tabHeight += ImGui::GetCursorPosY();
                         ImGui::EndChild();
                         ImGui::EndTabItem();
@@ -629,10 +628,10 @@ namespace gui {
             
                         ImGui::BeginChild("EnemiesChild");
                         ImGui::SeparatorText(_("Enemy Spawner"));
-                        pmods->on_draw_ui("EnemySpawn"_hash, DISPLAY_SYSTEM_A); // needs its own line
-                        pmods->on_draw_ui("SpawnedEnemiesAttack"_hash, DISPLAY_SYSTEM_A);
+                        pmods->on_draw_ui<EnemySpawn>(DISPLAY_SYSTEM_A); // needs its own line
+                        pmods->on_draw_ui<SpawnedEnemiesAttack>(DISPLAY_SYSTEM_A);
                         ImGui::SeparatorText(_("Enemy Replacement"));
-                        pmods->on_draw_ui("EnemyReplace"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                        pmods->on_draw_ui<EnemyReplace>(DISPLAY_SYSTEM_A); // needs its own line
                         tabHeight += ImGui::GetCursorPosY();
                         ImGui::EndChild();
                         ImGui::EndTabItem();
@@ -653,93 +652,93 @@ namespace gui {
 
                 ImGui::SeparatorText(_("dmc4_hook"));
                 
-                pmods->on_draw_ui("DisableKeyboard"_hash, DISPLAY_SYSTEM_B);
+                pmods->on_draw_ui<DisableKeyboard>(DISPLAY_SYSTEM_B);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("TrainerPause"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<TrainerPause>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("MessageDisplayMod"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<MessageDisplayMod>(DISPLAY_SYSTEM_A); // needs its own line
                 
-                pmods->on_draw_ui("WorkRate"_hash, DISPLAY_SYSTEM_B);
+                pmods->on_draw_ui<WorkRate>(DISPLAY_SYSTEM_B);
 
                 ImGui::SeparatorText(_("System"));
 
-                pmods->on_draw_ui("BackgroundRendering"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<BackgroundRendering>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("DisableKeyboard"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<DisableKeyboard>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("FpsLimit"_hash, DISPLAY_SYSTEM_A); // 1.5 lines
+                pmods->on_draw_ui<FpsLimit>(DISPLAY_SYSTEM_A); // 1.5 lines
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("Borderless"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<Borderless>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("FastStart"_hash, DISPLAY_SYSTEM_A); // 1.5 lines
+                pmods->on_draw_ui<FastStart>(DISPLAY_SYSTEM_A); // 1.5 lines
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("FpsFixes"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<FpsFixes>(DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Misc"));
 
-                pmods->on_draw_ui("CharacterSwap"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<CharacterSwap>(DISPLAY_SYSTEM_A); // needs its own line
 
-                pmods->on_draw_ui("NoAutomaticCharacters"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<NoAutomaticCharacters>(DISPLAY_SYSTEM_A); // needs its own line
                     
-                pmods->on_draw_ui("CustomModelFix"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<CustomModelFix>(DISPLAY_SYSTEM_A); // needs its own line
 
-                pmods->on_draw_ui("BpPortal"_hash, DISPLAY_SYSTEM_A); // needs to be on the left
+                pmods->on_draw_ui<BpPortal>(DISPLAY_SYSTEM_A); // needs to be on the left
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("PsychoMantis"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<PsychoMantis>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("ForceInCombat"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<ForceInCombat>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("SlowWalk"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<SlowWalk>(DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Graphics"));
 
-                pmods->on_draw_ui("GraphicsSettings"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<GraphicsSettings>(DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Cutscenes"));
 
-                pmods->on_draw_ui("CutsceneSkip"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<CutsceneSkip>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("CutscenePause"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<CutscenePause>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("DisableCameraEvents"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<DisableCameraEvents>(DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("HUD"));
 
-                pmods->on_draw_ui("HideHud"_hash, DISPLAY_SYSTEM_A); // 1.5
+                pmods->on_draw_ui<HideHud>(DISPLAY_SYSTEM_A); // 1.5
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("HpInOrbsDisplay"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<HpInOrbsDisplay>(DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Custom HUD elements"));
 
-                pmods->on_draw_ui("PinTimer"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<PinTimer>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("RedOrbCompletion"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<RedOrbCompletion>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("EnemyStepDisplay"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<EnemyStepDisplay>(DISPLAY_SYSTEM_A); // needs its own line
 
-                pmods->on_draw_ui("ExceedDisplay"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<ExceedDisplay>(DISPLAY_SYSTEM_A); // needs its own line
 
-                pmods->on_draw_ui("GuardTimer"_hash, DISPLAY_SYSTEM_A); // guard timer
+                pmods->on_draw_ui<GuardTimer>(DISPLAY_SYSTEM_A); // guard timer
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("GuardTimer"_hash, DISPLAY_SYSTEM_B); // guard chart
+                pmods->on_draw_ui<GuardTimer>(DISPLAY_SYSTEM_B); // guard chart
 
-                pmods->on_draw_ui("StylePoints"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<StylePoints>(DISPLAY_SYSTEM_A); // needs its own line
 
-                pmods->on_draw_ui("AnimationOverlay"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<AnimationOverlay>(DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Camera"));
 
-                pmods->on_draw_ui("CameraSettings"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<CameraSettings>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("NoclipCam"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<NoclipCam>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("PhotoMode"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<PhotoMode>(DISPLAY_SYSTEM_A); // needs its own line
 
-                pmods->on_draw_ui("CameraSettings"_hash, DISPLAY_SYSTEM_B);
+                pmods->on_draw_ui<CameraSettings>(DISPLAY_SYSTEM_B);
 
-                pmods->on_draw_ui("WorkRate"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<WorkRate>(DISPLAY_SYSTEM_A); // needs its own line
 
-                pmods->on_draw_ui("TwitchClient"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<TwitchClient>(DISPLAY_SYSTEM_A); // needs its own line
 
                 tabHeight += ImGui::GetCursorPosY();
                 ImGui::EndChild();
@@ -752,78 +751,78 @@ namespace gui {
 
                 ImGui::SeparatorText(_("File Loading"));
 
-                pmods->on_draw_ui("LoadOrder"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<LoadOrder>(DISPLAY_SYSTEM_A);
                     
                 ImGui::SeparatorText(_("Noclip"));
 
-                pmods->on_draw_ui("NoClip"_hash, DISPLAY_SYSTEM_A); // 1.5 lines
+                pmods->on_draw_ui<NoClip>(DISPLAY_SYSTEM_A); // 1.5 lines
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui("InfAirHikes"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<InfAirHikes>(DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Stats"));
 
-                pmods->on_draw_ui("MoveTable"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<MoveTable>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("KnockbackEdits"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<KnockbackEdits>(DISPLAY_SYSTEM_A); // needs its own line
 
-                pmods->on_draw_ui("PlayerTracker"_hash, DISPLAY_SYSTEM_A); // needs its own line, also contains game pause
+                pmods->on_draw_ui<PlayerTracker>(DISPLAY_SYSTEM_A); // needs its own line, also contains game pause
                 
-                pmods->on_draw_ui("EnemyTracker"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<EnemyTracker>(DISPLAY_SYSTEM_A); // needs its own line
 
-                pmods->on_draw_ui("FlyingStats"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<FlyingStats>(DISPLAY_SYSTEM_A); // needs its own line
 
                 ImGui::SeparatorText(_("Misc"));
 
-                pmods->on_draw_ui("VisualizeHitbox"_hash, DISPLAY_SYSTEM_A); // needs its own line
+                pmods->on_draw_ui<VisualizeHitbox>(DISPLAY_SYSTEM_A); // needs its own line
 
-                pmods->on_draw_ui("DebugCam"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<DebugCam>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("RoomRespawn"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<RoomRespawn>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("MutatorSelfAdvertisement"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<MutatorSelfAdvertisement>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("EffectColours"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<EffectColours>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("PlayerTracker"_hash, DISPLAY_SYSTEM_B); // shadow settings
+                pmods->on_draw_ui<PlayerTracker>(DISPLAY_SYSTEM_B); // shadow settings
 
-                pmods->on_draw_ui("BrainrotPalace"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<BrainrotPalace>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("WallRun"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<WallRun>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("NeroStyle"_hash, DISPLAY_SYSTEM_A);
-                pmods->on_draw_ui("Gerb"_hash, DISPLAY_SYSTEM_A);
-                pmods->on_draw_ui("DanteAirDodge"_hash, DISPLAY_SYSTEM_A);
-                pmods->on_draw_ui("FreeRide"_hash, DISPLAY_SYSTEM_A);
-                pmods->on_draw_ui("SpineAim"_hash, DISPLAY_SYSTEM_A);
-                pmods->on_draw_ui("ThirdPersonAim"_hash, DISPLAY_SYSTEM_A);
-                pmods->on_draw_ui("ModelExtension"_hash, DISPLAY_SYSTEM_A);
-                pmods->on_draw_ui("MoveDef"_hash, DISPLAY_SYSTEM_A);
-                pmods->on_draw_ui("FileTracker"_hash, DISPLAY_SYSTEM_A);
-                pmods->on_draw_ui("ViewportWindow"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<NeroStyle>(DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<Gerb>(DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<DanteAirDodge>(DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<FreeRide>(DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<SpineAim>(DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<ThirdPersonAim>(DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<ModelExtension>(DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<MoveDef>(DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<FileTracker>(DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<ViewportWindow>(DISPLAY_SYSTEM_A);
 #ifndef PUBLIC_BUILD
-                pmods->on_draw_ui("SpiderTwerk"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<SpiderTwerk>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("FriendlyFire"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<FriendlyFire>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("Cock"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<Cock>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("RayTest"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<RayTest>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("Coop"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<Coop>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui("AfterImage"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<AfterImage>(DISPLAY_SYSTEM_A);
 #endif
                 ImGui::SeparatorText(_("Multi-character Fixes"));
 
-                pmods->on_draw_ui("MultiCharFixes"_hash, DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<MultiCharFixes>(DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Testing"));
 
                 ImGui::Checkbox(_("View ImGui Demo"), &showDemoWindow);
 
-                // pmods->onDrawUI("ShaderEditor"_hash, DISPLAY_SYSTEM_A);
+                // pmods->on_draw_ui<ShaderEditor>(DISPLAY_SYSTEM_A);
 
-                // pmods->on_draw_ui("CustomProjectile"_hash, DISPLAY_SYSTEM_A);
+                // pmods->on_draw_ui<CustomProjectile>(DISPLAY_SYSTEM_A);
                 tabHeight += ImGui::GetCursorPosY();
                 ImGui::EndChild();
                 ImGui::EndTabItem();

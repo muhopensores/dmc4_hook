@@ -2,38 +2,52 @@
 
 //#define PUBLIC_BUILD
 #include "Mod.hpp"
-//#include <unordered_map>
+
+// Default index for a mod type; -1 means "not in the list", caught at runtime by on_draw_ui's guard.
+namespace mod_index {
+template <typename T> inline int id = -1;
+}
 
 class Mods {
 public:
-	Mods();
+    Mods();
     ~Mods() = default;
-	//virtual ~Mods() {};
+    // virtual ~Mods() {};
 
-	std::optional<std::string> on_initialize(Mod::ModType type) const;
+    std::optional<std::string> on_initialize(Mod::ModType type) const;
 
     void on_config_save();
 
-	void on_frame(fmilliseconds& dt);
-	void on_draw_ui(uint32_t hash, int display = 0);
+    void on_frame(fmilliseconds& dt);
+    void on_draw_ui(uint32_t hash, int display = 0);
+    template <typename ModDerived>
+    void on_draw_ui(int display = 0);
 
     void on_update_input(utility::Input& input);
-	void on_game_pause(bool toggle);
+    void on_game_pause(bool toggle);
     void on_stage_start();
-	void on_stage_end();
-	bool on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param);
-	void on_chat_command(const std::string& message);
+    void on_stage_end();
+    bool on_message(HWND wnd, UINT message, WPARAM w_param, LPARAM l_param);
+    void on_chat_command(const std::string& message);
     void on_hotkey_tab(utility::Input& input);
 
-	uint32_t get_hash(size_t index) const {
-		return m_hash[index];
-	}
+    uint32_t get_hash(size_t index) const { return m_hash[index]; }
 
-	const auto& get_mods() const {
-		return m_mods;
-    };
+    const auto& get_mods() const { return m_mods; };
 
 private:
-	std::vector<std::unique_ptr<Mod>> m_mods;
+    std::vector<std::unique_ptr<Mod>> m_mods;
     std::vector<std::uint32_t> m_hash;
 };
+
+template <typename ModDerived> void Mods::on_draw_ui(int display) {
+    const int index = mod_index::id<ModDerived>;
+    if (index < 0 || index >= static_cast<int>(m_mods.size())) {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f),"Mods::on_draw_ui mod not registered: %s (index %d of %d)", typeid(ModDerived).name(), index, m_mods.size());
+        if (IsDebuggerPresent()) {
+            __debugbreak();
+        }
+        return;
+    }
+    static_cast<ModDerived*>(m_mods[index].get())->ModDerived::on_gui_frame(display);
+}

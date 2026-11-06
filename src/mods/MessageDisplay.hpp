@@ -1,3 +1,4 @@
+#pragma once
 #include "Mod.hpp"
 
 class MessageDisplayMod : public Mod
