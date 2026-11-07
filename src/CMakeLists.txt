@@ -576,6 +576,8 @@ set(MISC
   misc/kActionTbl.hpp
   misc/unit_packs/UnitPackManifest.hpp
   misc/unit_packs/UnitPackManifest.cpp
+  misc/unit_packs/UnitPackRooms.hpp
+  misc/unit_packs/UnitPackRooms.cpp
 )
 
 set(LANG

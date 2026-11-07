@@ -40,6 +40,45 @@ void release(int pack);           // game thread
 const Loaded& state(int pack);
 uintptr_t spawn(int pack, int resource, const float pos[3], std::string& error);   // game thread
 
+// The rooms manifest (misc/unit_packs/rooms/<room>.xml, built in): per room the rows its units need and the units its
+// .pla / .sdl place, each with the indices of its rows, in load order.
+struct File {
+    std::string path, type, arc;      // arc: relative to nativePC
+    uint32_t    dti = 0, stored = 0;
+    bool        global = false;       // also in the always-loaded arcs
+};
+// One track of a unit's one-unit .pla (dmc4xml/pla.py layout): 1 root, 4 unit, 5 object, 6 bool, 7 int, 8 float,
+// 9 vector, 10 ref (a track index in this .pla), 11 resource (rdti + path; no path = null).
+struct PlaTrack {
+    uint32_t    type = 0, prop = 0, parent = 0, line = 0, index = 0;   // index: the dti field (array index; class hash for the unit)
+    std::string name, path;
+    uint32_t    u = 0, rdti = 0;     // int / bool / ref value; resource class hash
+    float       v[4] = {};           // float (v[0]) / vector value
+};
+struct Unit {
+    std::string           name, cls, source, values;   // values: one "kind name = value" line each, for the panel
+    int                   line = 0, track = 0;
+    uint32_t              stored = 0;      // bytes of its rows that aren't in the always-loaded arcs
+    std::vector<int>      files;
+    std::vector<PlaTrack> tracks;          // the unit as a .pla: Root, the unit, its values and objects
+    Loaded                loaded;
+};
+struct Room {
+    std::string       name, arc;
+    std::vector<File> files;
+    std::vector<Unit> units;
+};
+
+int  read_manifest();                     // game thread; releases what the old manifest's units loaded; -> unit count
+const std::vector<Room>& rooms();
+const std::string& manifest_error();
+bool load_unit(int room, int unit);       // game thread
+void release_unit(int room, int unit);    // game thread
+// The unit as its room creates it: a .pla of just this unit (mPos replaced by `pos` when given) handed to a one-shot
+// uPlacement, which makes the unit, sets its values and kills itself (as rooms do). Returns the uPlacement or 0.
+uintptr_t spawn_unit(int room, int unit, const float* pos, std::string& error);   // game thread
+std::vector<uint8_t> build_pla(const Unit& u, const float* pos);
+
 } // namespace unit_packs
 
 class UnitPacks : public Mod {
