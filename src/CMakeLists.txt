@@ -402,6 +402,8 @@ set(DEV_SRC
   dev/model_ext/ModelExtension.cpp
   dev/file_tracker/FileTracker.hpp
   dev/file_tracker/FileTracker.cpp
+  dev/unit_packs/UnitPacks.hpp
+  dev/unit_packs/UnitPacks.cpp
 )
 
 set(HOOKS_SRC
@@ -439,6 +441,7 @@ set(SDK_SRC
     sdk/LmtMerge.cpp
     sdk/MotionRegistry.hpp
     sdk/MotionRegistry.cpp
+    sdk/MtMemoryStream.hpp
     sdk/Devil4.hpp
     sdk/uActor.hpp
     sdk/uCollisionMgr.hpp
@@ -571,6 +574,8 @@ set(MISC
   misc/TonyBg.cpp
   misc/kAtckDefTbl.cpp
   misc/kActionTbl.hpp
+  misc/unit_packs/UnitPackManifest.hpp
+  misc/unit_packs/UnitPackManifest.cpp
 )
 
 set(LANG

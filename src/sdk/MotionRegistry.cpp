@@ -1,6 +1,7 @@
 #include "MotionRegistry.hpp"
 #include "LmtMerge.hpp"
 #include "Devil4.hpp"
+#include "MtMemoryStream.hpp"
 
 #include <spdlog/spdlog.h>
 #include <algorithm>
@@ -32,14 +33,6 @@ namespace {
         ((void(__fastcall*)(uintptr_t, int, uintptr_t, int))0x00A26340)(model, 0, lmt, bank);
     }
 
-    struct MemStream {                   // MtMemoryStream (vftable 0xBFF448): what rMotionList::load reads (+0x30 read, +0x44 size)
-        uintptr_t vtable;
-        const void* data;
-        uint32_t pos;
-        uint32_t size;
-        uint32_t flags;                  // 1 readable (4 would free `data` through TempAllocator)
-    };
-
     // An rMotionList made the way sResource::create makes one, loaded from memory, never in sResource's cache: its last
     // release (uModel::setMotionList or the model's destructor) frees it like a loaded list.
     uintptr_t make_list(const std::vector<uint8_t>& bytes, int bank) {
@@ -48,9 +41,8 @@ namespace {
         const uintptr_t l = (uintptr_t)list;
         std::snprintf((char*)(l + 0x04), 64, "motion\\registry_bank%d", bank);       // cResource path: a name for debuggers only
         *(uint64_t*)(l + 0x58) = 0;                                                  // mID: no sResource table entry
-        MemStream s{ 0x00BFF448, bytes.data(), 0, (uint32_t)bytes.size(), 1 };
-        void** vt = *(void***)list;
-        if (!((bool(__thiscall*)(void*, void*))vt[8])(list, &s)) {                  // rMotionList::load 0xA69F20
+        MtMemoryStream s(bytes.data(), (uint32_t)bytes.size());
+        if (!load_resource_from(list, s)) {                                           // rMotionList::load 0xA69F20
             devil4_sdk::release_resource((cResource*)list);
             return 0;
         }

@@ -1018,33 +1018,44 @@ void ModelExtension::on_gui_frame(int display) {
                   "(grey when the chain mutes its collision; thickness = its collision size), and the shapes of its .col on "
                   "the collision model in blue, red while a segment touches one. Only the spheres and capsules count; a "
                   "shape on a joint the collision model lacks isn't drawn (the game skips it too)."));
-    ImGui::Text(_("%d attachment(s) listed, %d out"), (int)g_attach_entries.size(), (int)g_attached.size());
-    for (size_t e = 0; e < g_attach_entries.size(); ++e) {
-        const AttachEntry& ae = g_attach_entries[e];
-        const int out = (int)std::count_if(g_attached.begin(), g_attached.end(), [&](const Attached& a) { return a.entry == e; });
-        if (ae.mode == model_attach::SKIN) ImGui::BulletText("%s on %s, skinned: %d  (%s)", ae.path.c_str(), ae.to.c_str(), out, ae.source.c_str());
-        else ImGui::BulletText("%s on %s, joint %d: %d  (%s)", ae.path.c_str(), ae.to.c_str(), ae.joint, out, ae.source.c_str());
+    // readouts: one closed tree node per kind, the counts in its label (the str_id keeps it open while they change)
+    if (ImGui::TreeNode("Attachments", _("%d attachment(s) listed, %d out"), (int)g_attach_entries.size(), (int)g_attached.size())) {
+        for (size_t e = 0; e < g_attach_entries.size(); ++e) {
+            const AttachEntry& ae = g_attach_entries[e];
+            const int out = (int)std::count_if(g_attached.begin(), g_attached.end(), [&](const Attached& a) { return a.entry == e; });
+            if (ae.mode == model_attach::SKIN) ImGui::BulletText("%s on %s, skinned: %d  (%s)", ae.path.c_str(), ae.to.c_str(), out, ae.source.c_str());
+            else ImGui::BulletText("%s on %s, joint %d: %d  (%s)", ae.path.c_str(), ae.to.c_str(), ae.joint, out, ae.source.c_str());
+        }
+        ImGui::TreePop();
     }
-    ImGui::Text(_("%d constraint(s) listed, %d on a joint"), (int)g_cns_entries.size(),
-                (int)std::count_if(g_cns.begin(), g_cns.end(), [](const CnsLive& c) { return c.installed; }));
-    for (size_t e = 0; e < g_cns_entries.size(); ++e) {
-        const CnsEntry& ce = g_cns_entries[e];
-        const int out = (int)std::count_if(g_cns.begin(), g_cns.end(), [&](const CnsLive& c) { return c.entry == e && c.installed; });
-        ImGui::BulletText("%s: %d  (%s)", ce.model.c_str(), out, ce.source.c_str());
+    if (ImGui::TreeNode("Constraints", _("%d constraint(s) listed, %d on a joint"), (int)g_cns_entries.size(),
+                        (int)std::count_if(g_cns.begin(), g_cns.end(), [](const CnsLive& c) { return c.installed; }))) {
+        for (size_t e = 0; e < g_cns_entries.size(); ++e) {
+            const CnsEntry& ce = g_cns_entries[e];
+            const int out = (int)std::count_if(g_cns.begin(), g_cns.end(), [&](const CnsLive& c) { return c.entry == e && c.installed; });
+            ImGui::BulletText("%s: %d  (%s)", ce.model.c_str(), out, ce.source.c_str());
+        }
+        ImGui::TreePop();
     }
-    ImGui::Text(_("%d link(s) listed, %d live"), (int)g_link_entries.size(), g_links_live);
-    for (const LinkEntry& le : g_link_entries)
-        ImGui::BulletText("%s: %d - %d, at most %.1f cm  (%s)", le.model.c_str(), le.a, le.b, le.max, le.source.c_str());
-    ImGui::Text(_("%d model(s) hidden"), (int)g_hide_entries.size());
-    for (const HideEntry& h : g_hide_entries) {
-        const int out = (int)std::count_if(g_models.begin(), g_models.end(), [&](const auto& m) { return m.second == h.path; });
-        ImGui::BulletText("%s: %d  (%s)", h.path.c_str(), out, h.source.c_str());
+    if (ImGui::TreeNode("Links", _("%d link(s) listed, %d live"), (int)g_link_entries.size(), g_links_live)) {
+        for (const LinkEntry& le : g_link_entries)
+            ImGui::BulletText("%s: %d - %d, at most %.1f cm  (%s)", le.model.c_str(), le.a, le.b, le.max, le.source.c_str());
+        ImGui::TreePop();
     }
-    ImGui::Text(_("%d chain(s) listed, %d out, %d model(s) known"), (int)g_entries.size(), (int)g_spawned.size(), (int)g_models.size());
-    for (size_t e = 0; e < g_entries.size(); ++e) {
-        const ListEntry& le = g_entries[e];
-        const int out = (int)std::count_if(g_spawned.begin(), g_spawned.end(), [&](const Spawned& s) { return s.entry == e; });
-        ImGui::BulletText("%s -> %s: %d  (%s)", le.chain.c_str(), le.model.c_str(), out, le.source.c_str());
+    if (ImGui::TreeNode("Hidden", _("%d model(s) hidden"), (int)g_hide_entries.size())) {
+        for (const HideEntry& h : g_hide_entries) {
+            const int out = (int)std::count_if(g_models.begin(), g_models.end(), [&](const auto& m) { return m.second == h.path; });
+            ImGui::BulletText("%s: %d  (%s)", h.path.c_str(), out, h.source.c_str());
+        }
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Chains", _("%d chain(s) listed, %d out, %d model(s) known"), (int)g_entries.size(), (int)g_spawned.size(), (int)g_models.size())) {
+        for (size_t e = 0; e < g_entries.size(); ++e) {
+            const ListEntry& le = g_entries[e];
+            const int out = (int)std::count_if(g_spawned.begin(), g_spawned.end(), [&](const Spawned& s) { return s.entry == e; });
+            ImGui::BulletText("%s -> %s: %d  (%s)", le.chain.c_str(), le.model.c_str(), out, le.source.c_str());
+        }
+        ImGui::TreePop();
     }
     if (ImGui::TreeNode(_("Models"))) {   // the paths a list can name, as the game loaded them
         std::vector<std::string> paths;

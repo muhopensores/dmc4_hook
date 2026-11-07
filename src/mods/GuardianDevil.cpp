@@ -13,6 +13,7 @@
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
+#include <random>
 #include <string>
 
 using namespace wallrun;
@@ -40,7 +41,10 @@ bool  guard_enabled        = true;
 float guard_window         = 5.0f;
 bool  guard_effects        = true;
 bool  guard_style          = true;
+bool  guard_dt             = true;
+float guard_dt_gain        = -1.0f;
 float guard_recovery       = 15.0f;
+float reguard_time         = 45.0f;
 bool  dt_cost              = false;
 float cost_neutral         = 500.0f;   // half a bar per move
 float cost_forward         = 500.0f;
@@ -50,7 +54,7 @@ float cost_guard           = 0.0f;
 float rush_drain           = 500.0f;
 float cost_in_dt           = 0.5f;    // in Devil Trigger every cost and the drain are halved
 static const ActionSet kDefaultSet = { true, 0x31C, 0x317, 0x330, 0x35F, 135.0f, 170.0f, 172.0f, 150.0f, 0x302, 0.0f,
-                                           -1, -1, -1, -1, 0 };   // the guard plays block 0 of the stand LMT (guardian_ex)
+                                           -1, -1, -1, -1, 0, 3 };   // the guard plays block 0, 1 or 2 of the stand LMT (guardian_ex)
 ActionSet sets[nero_style::kSlots] = { kDefaultSet, kDefaultSet, kDefaultSet, kDefaultSet };
 
 namespace {
@@ -149,7 +153,9 @@ struct State {
     bool        window_blocked = false;// the open window caught a hit
     bool        guard_pending = false;// a hit was guarded: the stand turns to the guard on the next tick
     bool        guarding = false;     // the running action is the guard
-    bool        reguard_ok = true;    // a press during the guard may guard again (off after a re-guard caught nothing)
+    bool        reguard_ok = true;    // a press may guard again (off after a re-guard caught nothing)
+    float       reguard_left = 0.0f;  // frames left in which a press re-guards (reguard_time from each guard)
+    bool        reguard_window = false;// the open window is a re-guard's (it guards whatever the stand does)
     uint32_t    guards = 0, blocked = 0;
     uint32_t    starts = 0, refused = 0;
     const char* last_refusal = "";
@@ -301,6 +307,18 @@ int resolve_motion(uintptr_t pl, int motion, int block) {
     return word;
 }
 
+// The guard's motion: a random block of guard_block .. guard_block + guard_blocks - 1 (one the stand LMT lacks falls back to the
+// first).
+int guard_motion(uintptr_t pl, const ActionSet& set) {
+    static std::minstd_rand rng(GetTickCount());
+    int block = set.guard_block;
+    if (block >= 0 && set.guard_blocks > 1) {
+        const int pick = block + (int)(rng() % (uint32_t)set.guard_blocks);
+        if (g_taunt_set < 0 || !motion_registry::ready(g_taunt_set, pl) || motion_registry::word(g_taunt_set, pl, pick) >= 0) block = pick;
+    }
+    return resolve_motion(pl, set.guard, block);
+}
+
 void start(uintptr_t pl, uintptr_t stand, State& s, int slot, int motion, bool taunt = false, float back = 0.0f, float side = 0.0f,
            bool guard = false, float cost = 0.0f, bool rush = false) {
     const ActionSet& set = sets[slot];
@@ -343,11 +361,15 @@ void start(uintptr_t pl, uintptr_t stand, State& s, int slot, int motion, bool t
     s.rushing = rush;
     s.guarding = guard;
     s.guard_pending = false;
-    if (guard) s.reguard_ok = true;
-    else {
+    if (guard) {
+        s.reguard_ok = true;
+        s.reguard_left = reguard_time;
+    } else {
         s.window = guard_enabled && !taunt;
         s.guard_timer = 0.0f;
         s.window_blocked = false;
+        s.reguard_window = false;
+        s.reguard_left = 0.0f;
     }
     s.cooldown = guard ? guard_recovery : cooldown_frames;
     ++s.starts;
@@ -459,12 +481,27 @@ void add_guard_style(uintptr_t pl) {
     }
 }
 
-// A Guardian action press while the guard plays: a new window, once the last one has closed, unless a re-guard missed.
+// The DT a guard adds: the vanilla stand block's bonus (player params +0x48, what procBeforeDamageCalc hands addComboGauge)
+// unless guard_dt_gain sets one. Added here rather than through addComboGauge, which skips it while a recent guard is
+// still in sStylishCount's list; like addComboGauge, nothing while Nero is in Devil Trigger.
+float guard_dt_amount(uintptr_t pl) {
+    if (guard_dt_gain >= 0.0f) return guard_dt_gain;
+    const uintptr_t prm = at<uintptr_t>(pl, kPlayerParam);
+    return prm ? at<float>(prm, 0x48) : 0.0f;
+}
+void add_guard_dt(uintptr_t pl, uintptr_t stand) {
+    if (!guard_dt || at<uint8_t>(stand, st::mIsDevilTrigger)) return;
+    float& now = at<float>(pl, kDevilTrgNow);
+    now = std::min(now + guard_dt_amount(pl), at<float>(pl, kDevilTrgNow + 4));   // mDevilTrg.max
+}
+
+// A Guardian action press after a guard: a new window, once the last one has closed, unless a re-guard missed.
 void reguard(State& s) {
     if (!guard_enabled || !s.reguard_ok || (s.window && s.guard_timer <= guard_window)) return;
     s.window = true;
     s.guard_timer = 0.0f;
     s.window_blocked = false;
+    s.reguard_window = true;
 }
 
 // The mod turned off (or never on) for a player whose stand still carries our state: give the stand back.
@@ -477,6 +514,8 @@ void release(uintptr_t stand, State& s) {
     s.guarding = false;
     s.window = false;
     s.window_blocked = false;
+    s.reguard_window = false;
+    s.reguard_left = 0.0f;
     s.guard_pending = false;
     at<uint8_t>(stand, st::kMod) = 0;
     at<uint8_t>(stand, st::kShown) = at<uint8_t>(stand, st::mIsDevilTrigger);
@@ -688,7 +727,8 @@ bool active(uintptr_t pl) {
 bool guarding(uintptr_t pl) {
     if (!mod_enabled || !guard_enabled) return false;
     const State* s = find_state(pl);
-    if (!s || !s->window || s->phase != ATTACK || s->guard_timer > guard_window) return false;
+    if (!s || !s->window || s->guard_timer > guard_window) return false;
+    if (s->phase != ATTACK && !s->reguard_window) return false;    // an attack's window ends with it; a re-guard's doesn't
     if (!dt_cost || s->window_blocked) return true;               // the guard's cost is taken once per window, by its first hit
     const uintptr_t stand = st::stand_of(pl);
     const float cost = (stand && at<uint8_t>(stand, st::mIsDevilTrigger)) ? cost_guard * cost_in_dt : cost_guard;
@@ -727,11 +767,16 @@ void pre_tick(uintptr_t pl) {
     State& s = state_for(pl);
     const float dt = at<float>(pl, pl::m_delta_time);
     if (s.cooldown > 0.0f) s.cooldown = std::max(0.0f, s.cooldown - dt);
+    if (s.reguard_left > 0.0f) s.reguard_left = std::max(0.0f, s.reguard_left - dt);
     if (s.window) {
         s.guard_timer += dt;
         if (s.guard_timer > guard_window) {                      // closed: a re-guard that caught nothing ends the re-guards
-            if (s.guarding && !s.window_blocked) s.reguard_ok = false;
+            if (s.reguard_window && !s.window_blocked) {
+                s.reguard_ok = false;
+                s.reguard_left = 0.0f;
+            }
             s.window = false;
+            s.reguard_window = false;
         }
     }
 
@@ -756,15 +801,15 @@ void pre_tick(uintptr_t pl) {
     if (s.guard_pending) {
         guard_feedback(pl);
         add_guard_style(pl);
-        start(pl, stand, s, s.slot, resolve_motion(pl, sets[s.slot].guard, sets[s.slot].guard_block), false, 0.0f, 0.0f, true,
-              cost_guard);
+        start(pl, stand, s, s.slot, guard_motion(pl, sets[s.slot]), false, 0.0f, 0.0f, true, cost_guard);
+        add_guard_dt(pl, stand);
     }
     s.guard_pending = false;
     // the GUI's test: the style's guard motion as a guard plays it, without a hit (no effect, style or cost)
     if (g_test_guard && pl == (uintptr_t)devil4_sdk::get_local_player()) {
         g_test_guard = false;
         const int slot = slot_for(pl);
-        start(pl, stand, s, slot, resolve_motion(pl, sets[slot].guard, sets[slot].guard_block), false, 0.0f, 0.0f, true, 0.0f);
+        start(pl, stand, s, slot, guard_motion(pl, sets[slot]), false, 0.0f, 0.0f, true, 0.0f);
     }
 
     taunt_tick(pl, stand, s);
@@ -791,7 +836,7 @@ void post_command_tick(uintptr_t pl) {
     const uintptr_t stand = st::stand_of(pl);
     if (!stand) return;
     State& s = state_for(pl);
-    if (s.guarding && s.phase == ATTACK) { reguard(s); return; }   // during the guard a press guards again
+    if (s.reguard_left > 0.0f) { reguard(s); return; }             // after a guard a press guards again (reguard_time)
     if (s.cooldown > 0.0f) return;
     const int slot = slot_for(pl);
     const ActionSet& set = sets[slot];
@@ -960,6 +1005,15 @@ void action_set_editor(int slot) {
     hex_input(_("Guard"), set.guard, _("Motion the stand plays when it guards (hex). Default 302: its sword clash, the motion it plays "
                                        "in Devil Trigger when Nero's sword is knocked back."));
     block_input("guard", set.guard_block);
+    ImGui::Indent(Mod::lineIndent);
+    ImGui::PushItemWidth(90.0f);
+    ImGui::InputInt(_("Guard variants"), &set.guard_blocks, 1, 1);
+    ImGui::PopItemWidth();
+    ImGui::Unindent(Mod::lineIndent);
+    set.guard_blocks = std::clamp(set.guard_blocks, 1, 16);
+    ImGui::SameLine();
+    Mod::help_marker(_("How many guard animations to pick from at random: the LMT block above and the ones after it (3 with block 0: "
+                       "blocks 0, 1 and 2). 1 = always that block. A block the stand LMT doesn't have plays the first one."));
     ImGui::PushItemWidth(Mod::sameLineItemWidth);
     ImGui::SliderFloat(_("Guard start frame"), &set.guard_start, 0.0f, 60.0f, "%.0f");
     ImGui::SameLine();
@@ -1162,12 +1216,30 @@ void GuardianDevil::on_gui_frame(int display) {
                       "in game time, so slow motion stretches it as it does for the game."));
         ImGui::SliderFloat(_("Guard recovery"), &guard_recovery, 0.0f, 120.0f, "%.0f frames");
         ImGui::SameLine();
-        help_marker(_("Frames after a guard before the next stand attack can start (15). Guarding again during the guard "
-                      "doesn't wait for it."));
+        help_marker(_("Frames after a guard before the next stand attack can start (15). Guarding again doesn't wait for it."));
+        ImGui::SliderFloat(_("Re-guard time"), &reguard_time, 0.0f, 120.0f, "%.0f frames");
+        ImGui::SameLine();
+        help_marker(_("For this long after a guard, pressing the Guardian action guards the next hit instead of attacking, "
+                      "however short the guard animation is (45 frames). A re-guard that catches a hit brings the stand back in "
+                      "its guard pose and starts this time again; one that catches nothing ends the re-guards until the next "
+                      "guard."));
         ImGui::PopItemWidth();
         ImGui::Checkbox(_("Guard effect and sound"), &guard_effects);
         ImGui::SameLine();
         help_marker(_("A guard plays the game's own stand block spark and sound, and the pad rumble of a sword clash."));
+        ImGui::Checkbox(_("Guard adds DT"), &guard_dt);
+        ImGui::SameLine();
+        help_marker(_("A guard that catches a hit fills the Devil Trigger gauge, as the game's own stand block does. Nothing "
+                      "while Nero is in Devil Trigger (as the game's other DT gains). With a guard cost, the cost is taken too."));
+        if (guard_dt) {
+            ImGui::PushItemWidth(sameLineItemWidth);
+            ImGui::SliderFloat(_("Guard DT gain"), &guard_dt_gain, -1.0f, 3000.0f, guard_dt_gain < 0.0f ? "game value" : "%.0f");
+            ImGui::PopItemWidth();
+            ImGui::SameLine();
+            help_marker(_("DT per guard (1000 = one bar). All the way left = the game's own stand block value, read from Nero's "
+                          "parameters (the readout shows it)."));
+            if (guard_dt_gain > -1.0f && guard_dt_gain < 0.0f) guard_dt_gain = 0.0f;
+        }
         ImGui::Checkbox(_("Guard adds style"), &guard_style);
         ImGui::SameLine();
         help_marker(_("A guard adds style points as the game's own stand block does (without the block's Devil Trigger gain)."));
@@ -1247,9 +1319,10 @@ void GuardianDevil::on_gui_frame(int display) {
                         !stand ? "-" : at<int>(stand, kSwordParentJoint) == 150 ? "the hand (150)"
                                      : at<int>(stand, kSwordParentJoint) == 151 ? "the sheath (151)" : "?");
             if (stand) ImGui::Text("%s", sword_event_debug(stand).c_str());
-            ImGui::Text("guard %s%s | %.1f frames since the press | guards %u blocked %u | DT %.0f%s",
+            ImGui::Text("guard %s%s | re-guard %.0f | %.1f frames since the press | guards %u blocked %u | DT %.0f (+%.0f a guard)%s",
                         guarding(P) ? "OPEN" : (s && s->guarding) ? "playing" : "-", (s && !s->reguard_ok) ? " (re-guards locked)" : "",
-                        s ? s->guard_timer : 0.0f, s ? s->guards : 0u, s ? s->blocked : 0u, at<float>(P, kDevilTrgNow), (s && s->drained) ? " (rush ran dry)" : "");
+                        s ? s->reguard_left : 0.0f, s ? s->guard_timer : 0.0f, s ? s->guards : 0u, s ? s->blocked : 0u, at<float>(P, kDevilTrgNow),
+                        guard_dt ? guard_dt_amount(P) : 0.0f, (s && s->drained) ? " (rush ran dry)" : "");
         } else {
             ImGui::TextDisabled(_("(the local player isn't Nero)"));
         }
@@ -1284,8 +1357,11 @@ void GuardianDevil::on_config_load(const utility::Config& cfg) {
     guard_enabled        = cfg.get<bool>("dt_knuckle_guard").value_or(guard_enabled);
     guard_window         = cfg.get<float>("dt_knuckle_guard_window").value_or(guard_window);
     guard_recovery       = cfg.get<float>("dt_knuckle_guard_recovery").value_or(guard_recovery);
+    reguard_time         = cfg.get<float>("dt_knuckle_reguard_time").value_or(reguard_time);
     guard_effects        = cfg.get<bool>("dt_knuckle_guard_effects").value_or(guard_effects);
     guard_style          = cfg.get<bool>("dt_knuckle_guard_style").value_or(guard_style);
+    guard_dt             = cfg.get<bool>("dt_knuckle_guard_dt").value_or(guard_dt);
+    guard_dt_gain        = cfg.get<float>("dt_knuckle_guard_dt_gain").value_or(guard_dt_gain);
     dt_cost              = cfg.get<bool>("dt_knuckle_dt_cost").value_or(dt_cost);
     cost_neutral         = cfg.get<float>("dt_knuckle_cost_neutral").value_or(cost_neutral);
     cost_forward         = cfg.get<float>("dt_knuckle_cost_forward").value_or(cost_forward);
@@ -1314,6 +1390,7 @@ void GuardianDevil::on_config_load(const utility::Config& cfg) {
         set.back_block    = cfg.get<int>(p + "back_block").value_or(set.back_block);
         set.rush_block    = cfg.get<int>(p + "rush_block").value_or(set.rush_block);
         set.guard_block   = cfg.get<int>(p + "guard_block").value_or(set.guard_block);
+        set.guard_blocks  = cfg.get<int>(p + "guard_blocks").value_or(set.guard_blocks);
     }
     check_data_file();
     toggle(mod_enabled);
@@ -1339,8 +1416,11 @@ void GuardianDevil::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("dt_knuckle_guard", guard_enabled);
     cfg.set<float>("dt_knuckle_guard_window", guard_window);
     cfg.set<float>("dt_knuckle_guard_recovery", guard_recovery);
+    cfg.set<float>("dt_knuckle_reguard_time", reguard_time);
     cfg.set<bool>("dt_knuckle_guard_effects", guard_effects);
     cfg.set<bool>("dt_knuckle_guard_style", guard_style);
+    cfg.set<bool>("dt_knuckle_guard_dt", guard_dt);
+    cfg.set<float>("dt_knuckle_guard_dt_gain", guard_dt_gain);
     cfg.set<bool>("dt_knuckle_dt_cost", dt_cost);
     cfg.set<float>("dt_knuckle_cost_neutral", cost_neutral);
     cfg.set<float>("dt_knuckle_cost_forward", cost_forward);
@@ -1368,5 +1448,6 @@ void GuardianDevil::on_config_save(utility::Config& cfg) {
         cfg.set<int>(p + "back_block", set.back_block);
         cfg.set<int>(p + "rush_block", set.rush_block);
         cfg.set<int>(p + "guard_block", set.guard_block);
+        cfg.set<int>(p + "guard_blocks", set.guard_blocks);
     }
 }

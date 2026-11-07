@@ -192,4 +192,5 @@
 #include "dev/model_ext/ModelExtension.hpp"
 #include "dev/movedef/MoveDef.hpp"
 #include "dev/file_tracker/FileTracker.hpp"
+#include "dev/unit_packs/UnitPacks.hpp"
 #endif

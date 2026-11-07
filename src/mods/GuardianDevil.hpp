@@ -70,9 +70,11 @@
 // values from his player params), without the block's DT bonus. The
 // clash marks every frame with the stand's "disappear outside DT" event bit (11; bit 10, the DT one, from frame 20), so
 // uPlNeroDevil::checkDevilDisappear would fade a guard out on its first frame: during a guard (kMod MOD_GUARD) it takes
-// its DT branch, and the guard fades from frame 20 as the clash does in DT. Later hits inside the same window are cancelled too. While the guard plays, a Guardian action press guards again instead of
+// its DT branch, and the guard fades from frame 20 as the clash does in DT. Later hits inside the same window are cancelled too. After a guard, a Guardian action press guards again instead of
 // attacking: a new window, no cost until it catches a hit; a re-guard window that catches nothing ends the re-guards
-// until the next guard, so each one has to be timed. After the guard, guard_recovery frames pass before a stand attack.
+// until the next guard, so each one has to be timed. Re-guards last reguard_time frames from each guard, whether its motion
+// still plays or not (a caught re-guard brings the stand back in the guard pose and starts them again). After the guard,
+// guard_recovery frames pass before a stand attack.
 // Attacks that skip slot 83 (checkPressureDamage ones, enemy grabs through grabHitMessage) aren't guarded.
 //
 // DT cost (dt_cost, off by default): each start takes its cost from Nero's DT gauge (uPlayer::mDevilTrg.now +0x1F24,
@@ -103,6 +105,7 @@ struct ActionSet {
     int   back_block;
     int   rush_block;
     int   guard_block;    // 0 by default: block 0 of the stand LMT (the guardian_ex package's guard); the others -1
+    int   guard_blocks;   // each guard picks one of this many blocks from guard_block on at random (3: blocks 0-2)
 };
 
 enum TriggerSource : int { TRIG_PAD = 0 /* gamepad buttons */, TRIG_KEY = 1 /* a keyboard key */, TRIG_GAME = 2 /* a mapped game input */ };
@@ -128,7 +131,10 @@ extern bool  guard_enabled;        // a Guardian action's press opens a guard wi
 extern float guard_window;         // frames after the press in which a hit is cancelled (5)
 extern bool  guard_effects;        // a guard plays the vanilla block's effect, sound and pad rumble
 extern bool  guard_style;          // a guard adds style, as the vanilla stand block does
-extern float guard_recovery;       // frames after a guard before the next guard or attack (30)
+extern bool  guard_dt;             // a guard adds DT (not while in Devil Trigger, as the game's own gains)
+extern float guard_dt_gain;        // how much: -1 = the vanilla stand block's (Nero's player params +0x48), else this
+extern float guard_recovery;       // frames after a guard before the next stand attack (15)
+extern float reguard_time;         // frames after a guard in which a Guardian action press guards again instead of attacking (45)
 extern bool  dt_cost;              // the stand's actions cost DT
 extern float cost_neutral;         // DT per start (1000 = one bar)
 extern float cost_forward;
