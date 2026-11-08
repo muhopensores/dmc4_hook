@@ -1,5 +1,6 @@
 #include "NeroStyle.hpp"
 #include "Gerb.hpp"
+#include "NeroGunslinger.hpp"
 #include "MoveTable.hpp"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/InputCommand.hpp"
@@ -16,7 +17,7 @@ StyleSlot slots[kSlots] = {
     { true,  "Devil Bringer" },   // up: Snatch / Buster
     { true,  "Gerbera" },         // right: Gerb
     { false, "" },
-    { false, "" },
+    { true,  "Gunslinger" },      // down: the Gunslinger mod
 };
 float cooldown_frames    = 12.0f;
 bool  press_again_clears = false;
@@ -24,6 +25,8 @@ bool  gate_bringer       = true;
 int   bringer_slot       = SLOT_SM;
 bool  gate_gerb          = true;
 int   gerb_slot          = SLOT_GS;
+bool  gate_gunslinger    = true;
+int   gunslinger_slot    = SLOT_RG;
 
 namespace {
 
@@ -110,6 +113,7 @@ void apply_bringer_rows() {
 void apply(bool reset_field) {
     apply_bringer_rows();
     gerb::apply_row();
+    gunslinger::apply_row();
     if (reset_field)
         if (uPlayer* lp = devil4_sdk::get_local_player(); lp && is_nero((uintptr_t)lp)) at<int>((uintptr_t)lp, kStyle) = NONE;
 }
@@ -120,6 +124,7 @@ int value_of(int slot) { return (slot < 0 || slot >= kSlots) ? NONE : BASE + slo
 int selected() { return mod_enabled ? g_selected : NONE; }
 int current(uintptr_t player) { return (mod_enabled && is_nero(player)) ? at<int>(player, kStyle) : NONE; }
 uint32_t gerb_condition() { return (mod_enabled && gate_gerb) ? (uint32_t)value_of(gerb_slot) : 0xFFFFFFFFu; }
+uint32_t gunslinger_condition() { return (mod_enabled && gate_gunslinger) ? (uint32_t)value_of(gunslinger_slot) : 0xFFFFFFFFu; }
 bool bringer_rows_on() { return !(mod_enabled && gate_bringer) || g_selected == value_of(bringer_slot); }
 
 } // namespace nero_style
@@ -149,7 +154,7 @@ void NeroStyle::on_gui_frame(int display) {
                   "buttons do nothing on Nero otherwise). A style is a number in the player's style field: the move table "
                   "runs a row only when the row's style condition is -1 (any) or equal to it, so moves made for a style "
                   "(the vanilla Snatch / Buster, Gerb's rows, MoveDef rows with style=) are only available while it is picked. "
-                  "Slot values: 5 (up, the Devil Bringer), 6 (right, Gerbera), 7 (left), 8 (down). The Devil Bringer is picked "
+                  "Slot values: 5 (up, the Devil Bringer), 6 (right, Gerbera), 7 (left), 8 (down, Gunslinger). The Devil Bringer is picked "
                   "at the start, so the vanilla moves work until a switch. No stance pose, flash or sound yet."));
     if (!mod_enabled) return;
     ImGui::Indent(lineIndent);
@@ -199,16 +204,27 @@ void NeroStyle::on_gui_frame(int display) {
         ImGui::SameLine();
         help_marker(_("Which style is Gerbera (the Gerb jump). MoveDef rows use the value directly: style=\"6\" for the second slot."));
     }
+    ImGui::Checkbox(_("Gunslinger moves need their style"), &gate_gunslinger);
+    ImGui::SameLine();
+    help_marker(_("On: the Gunslinger mod's rows (the back dodge shot, 0x43) only work while the Gunslinger slot's style is picked, so "
+                  "lock-on + back + grab is Snatch / Gerb in the other styles. Off: they work in every style."));
+    if (gate_gunslinger) {
+        ImGui::SetNextItemWidth(200.0f);
+        ImGui::Combo(_("Gunslinger slot"), &gunslinger_slot, names, kSlots);
+        ImGui::SameLine();
+        help_marker(_("Which style is Gunslinger (value 8 for the fourth slot, d-pad down)."));
+    }
     apply_bringer_rows();  // every frame while the panel is open: cheap, and the rows follow the controls above
     gerb::apply_row();
+    gunslinger::apply_row();
 
     if (uPlayer* lp = devil4_sdk::get_local_player()) {    // live readout
         const uintptr_t P = (uintptr_t)lp;
         if (is_nero(P)) {
             const State& s = state_for(P);
-            ImGui::Text("style %d (%s) | field %d | pending %d | cooldown %.0f | presses %u switches %u | Bringer rows %s | Gerb rows style %d",
+            ImGui::Text("style %d (%s) | field %d | pending %d | cooldown %.0f | presses %u switches %u | Bringer rows %s | Gerb rows style %d | Gunslinger rows style %d",
                         g_selected, name_of(g_selected), at<int>(P, kStyle), s.pending, std::max(s.timer, 0.0f), g_presses, g_switches,
-                        bringer_rows_on() ? "on" : "off", (int)gerb_condition());
+                        bringer_rows_on() ? "on" : "off", (int)gerb_condition(), (int)gunslinger_condition());
         } else {
             ImGui::TextUnformatted(_("(the local player isn't Nero)"));
         }
@@ -221,8 +237,12 @@ void NeroStyle::on_config_load(const utility::Config& cfg) {
     mod_enabled        = cfg.get<bool>("nero_style").value_or(false);
     for (int i = 0; i < kSlots; ++i) {
         const std::string k = "nero_style_slot_" + std::to_string(i);
+        // a slot saved without a name while it now has a default one was saved by a build without that style: it keeps
+        // the default name and on / off, so a style added later isn't switched off by an old config
+        const auto n = cfg.get(k + "_name");
+        if ((!n || n->empty()) && slots[i].name[0]) continue;
         slots[i].enabled = cfg.get<bool>(k + "_on").value_or(slots[i].enabled);
-        if (auto n = cfg.get(k + "_name")) strcpy_s(slots[i].name, n->c_str());
+        if (n) strcpy_s(slots[i].name, n->c_str());
     }
     cooldown_frames    = cfg.get<float>("nero_style_cooldown").value_or(cooldown_frames);
     press_again_clears = cfg.get<bool>("nero_style_press_again_clears").value_or(press_again_clears);
@@ -230,6 +250,8 @@ void NeroStyle::on_config_load(const utility::Config& cfg) {
     bringer_slot       = std::clamp(cfg.get<int>("nero_style_bringer_slot").value_or(bringer_slot), 0, kSlots - 1);
     gate_gerb          = cfg.get<bool>("nero_style_gate_gerb").value_or(gate_gerb);
     gerb_slot          = std::clamp(cfg.get<int>("nero_style_gerb_slot").value_or(gerb_slot), 0, kSlots - 1);
+    gate_gunslinger    = cfg.get<bool>("nero_style_gate_gunslinger").value_or(gate_gunslinger);
+    gunslinger_slot    = std::clamp(cfg.get<int>("nero_style_gunslinger_slot").value_or(gunslinger_slot), 0, kSlots - 1);
     g_selected         = cfg.get<int>("nero_style_selected").value_or(g_selected);
     if (g_selected != NONE && (g_selected < BASE || g_selected >= BASE + kSlots)) g_selected = value_of(bringer_slot);
     apply(false);
@@ -248,5 +270,7 @@ void NeroStyle::on_config_save(utility::Config& cfg) {
     cfg.set<int>("nero_style_bringer_slot", bringer_slot);
     cfg.set<bool>("nero_style_gate_gerb", gate_gerb);
     cfg.set<int>("nero_style_gerb_slot", gerb_slot);
+    cfg.set<bool>("nero_style_gate_gunslinger", gate_gunslinger);
+    cfg.set<int>("nero_style_gunslinger_slot", gunslinger_slot);
     cfg.set<int>("nero_style_selected", g_selected);
 }

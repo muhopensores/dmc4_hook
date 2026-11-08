@@ -18,8 +18,8 @@
 // are free. Each button is a slot with a name and an on / off; slot n is style value BASE + n (5-8: Dante's own values
 // 0-4 are also what GuardTimer and PinProperties test, which don't check the character). The user's order: slot 0 (up)
 // is the **Devil Bringer** (the vanilla Snatch / Buster rows, attr 4 / 5 of Nero's table, are switched off outside it,
-// so the grab belongs to that style), slot 1 (right) is **Gerbera** (Gerb's rows). The selection starts
-// as the Devil Bringer, so the vanilla moves work until a switch.
+// so the grab belongs to that style), slot 1 (right) is **Gerbera** (Gerb's rows), slot 3 (down) is **Gunslinger** (the
+// Gunslinger mod's rows). The selection starts as the Devil Bringer, so the vanilla moves work until a switch.
 //
 // The switch follows checkStyleChange: a press goes into a pending style at once (kept through the cooldown), the
 // field changes once the 12-frame cooldown is over. The selection is the mod's (a new player object starts at -1 again:
@@ -48,11 +48,14 @@ extern bool      gate_bringer;       // the vanilla Snatch / Buster rows run in 
 extern int       bringer_slot;       // the slot that is the Devil Bringer
 extern bool      gate_gerb;          // Gerb's rows carry the Gerbera slot's value as their style condition
 extern int       gerb_slot;          // the slot that is Gerbera
+extern bool      gate_gunslinger;    // the Gunslinger mod's rows carry the Gunslinger slot's value as their style condition
+extern int       gunslinger_slot;    // the slot that is Gunslinger
 
 int      value_of(int slot);         // BASE + slot
 int      selected();                 // the chosen style value (NONE = none)
 int      current(uintptr_t player);  // the style of this player: its mStyle for a Nero with the mod on, else NONE
 uint32_t gerb_condition();           // Gerb's rows' style word: the Gerbera value with the mod on and gate_gerb, else -1 (any)
+uint32_t gunslinger_condition();     // the Gunslinger rows' style word, the same way
 bool     bringer_rows_on();          // the vanilla Snatch / Buster rows are live (the gate off, or the Devil Bringer picked)
 
 } // namespace nero_style

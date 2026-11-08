@@ -346,6 +346,8 @@ set(MODS_SRC
   mods/FreeRide.cpp
   mods/FreeRideShell.hpp
   mods/FreeRideShell.cpp
+  mods/NeroGunslinger.hpp
+  mods/NeroGunslinger.cpp
   mods/SpineAim.hpp
   mods/SpineAim.cpp
   mods/ThirdPersonAim.hpp
