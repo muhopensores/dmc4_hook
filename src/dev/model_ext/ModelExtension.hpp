@@ -30,6 +30,9 @@
 //   of= names the source model: left out = the model's owner (or the model when it has none), "self" = the model.
 //   Also inside a <model>: <link a= b= max= [stiffness=]/>, two joints of the model's chains at most max cm apart
 //   (sdk/ChainLink.hpp), run after the model's world pass (uModel::updateWorldMatrix 0x9EA8B0, a function hook).
+//   And <shape shp= [shw= speed= rate= frame= loop=]> [<weights .../>]... </shape>: the engine's morph targets (.shp) with up
+//   to four weight lists (.shw) on the model's cShape (sdk/ModelShape.hpp; RE note shape_morph.md); the weight update is run
+//   here for the models whose move doesn't (the players').
 //   The full reference is Vibed\ModelExt\schema.md.
 //   <attach>: without joint= (or mode="skin") every joint of the extra model follows the owner's joint with the same number
 //   (the body's bind pose needed); with joint= (an owner joint NUMBER; mode="rigid") it rides that joint, offset by pos (cm),

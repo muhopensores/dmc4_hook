@@ -280,6 +280,8 @@ th {
 <li class="toc-level-3"><a href="#ref-model">&lt;model&gt; And &lt;chain&gt;: Physics Chains</a></li>
 <li class="toc-level-3"><a href="#ref-hide">&lt;hide&gt;: A Model Not Drawn</a></li>
 <li class="toc-level-3"><a href="#ref-cns">&lt;pin&gt;, &lt;aim&gt;, &lt;offset&gt;: Joint Constraints</a></li>
+<li class="toc-level-3"><a href="#ref-link">&lt;link&gt;: Keeping Two Chain Joints Together</a></li>
+<li class="toc-level-3"><a href="#ref-shape">&lt;shape&gt;: Shape Keys (Morph Targets)</a></li>
 <li class="toc-level-2"><a href="#making-files">Making The Files</a></li>
 <li class="toc-level-3"><a href="#joint-numbers">Joint Numbers</a></li>
 <li class="toc-level-2"><a href="#rules">Rules And Limits</a></li>
@@ -441,6 +443,24 @@ th {
 <tr><td><code>stiffness</code></td><td>0 to 1, how firmly it pulls (default 1). Lower values let the seam give a little.</td></tr>
 </tbody></table></div>
 <p>The first joint of a tendril stays where the animation puts it, so link the joints below it. The pull happens after the chains have swung and collided, so a firm link can pull cloth back into a leg for a frame. <strong>Show chain collision</strong> draws each link in green, or magenta while it is stretched past <code>max</code>.</p>
+
+<h3 id="ref-shape" data-search-heading="shape morph shape keys weights">&lt;shape&gt;: Shape Keys (Morph Targets)<a class="heading-link" href="#ref-shape" aria-label="Link to shape">#</a></h3>
+<p>The game engine can morph a model's vertices on the graphics card: Blender's shape keys, played by weight curves. No original model uses it, but it works. A <code>&lt;shape&gt;</code> inside the <code>&lt;model&gt;</code> puts the shapes (a <code>.shp</code>) and their weight curves (a <code>.shw</code>) on every model with that path:</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;model path="model\game\pl000\pl000"&gt;
+  &lt;shape shp="model\game\pl000\pl000" shw="model\game\pl000\pl000_idle" speed="1"/&gt;
+&lt;/model&gt;</code></pre></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Setting</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>shp</code></td><td>The shapes (<code>.shp</code>). Needed.</td></tr>
+<tr><td><code>shw</code></td><td>The weight curves (<code>.shw</code>) to play.</td></tr>
+<tr><td><code>speed</code></td><td>How fast they play: 1 = as made, 0.5 = half speed, negative = backwards, 0 = held at <code>frame</code>. Default 1.</td></tr>
+<tr><td><code>frame</code></td><td>The frame they start on. Default 0.</td></tr>
+<tr><td><code>loop</code></td><td><code>true</code> (default) loops; <code>false</code> stops on the last frame.</td></tr>
+<tr><td><code>rate</code></td><td>When several play at once: how much this one counts. Default 1.</td></tr>
+</tbody></table></div>
+<p>Up to four sets of curves can play together: put <code>&lt;weights shw="..." speed="..."/&gt;</code> entries inside the <code>&lt;shape&gt;</code> (same settings). A model takes one <code>&lt;shape&gt;</code>.</p>
+<p>Only meshes exported for it move (Albam marks them). Their lighting keeps the unmorphed shape, so large changes can look slightly off. At most 15 shapes per part of the model can be active at once. The panel's <strong>Shapes</strong> list shows each live one with its frame. If a <code>.shw</code> lacks a curve for one of the shapes, its curves stay off and the log says so.</p>
 
 <h2 id="making-files" data-search-heading="Making The Files">Making The Files<a class="heading-link" href="#making-files" aria-label="Link to Making The Files">#</a></h2>
 <p>Albam (the Blender add-on) imports and exports all of these:</p>

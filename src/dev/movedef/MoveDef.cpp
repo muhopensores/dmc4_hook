@@ -9,6 +9,7 @@
 #include "../../sdk/MoveRegistry.hpp"
 #include "../../sdk/MotionRegistry.hpp"
 #include "../../sdk/MtMath.hpp"
+#include "../../sdk/ModelShape.hpp"
 #include "../../sdk/uPlayer.hpp"      // kAtckDefTbl
 #include <algorithm>
 #include <cfloat>
@@ -517,9 +518,27 @@ void eat_held_press(const xmlmove::Stage& st, PlayerState& s, uintptr_t pl) {
     if (st.eat_press & 0x4) at<bool>(pl, pl::mMotCnclJumpReserve) = false;
 }
 
-// ---- the runtime timeline (<effect> / <se> / <kill_effect> / <finish_effect>) -----------------------------------
+// ---- the runtime timeline (<effect> / <se> / <kill_effect> / <finish_effect> / <shape> / <shape_stop>) ------------
+// <shape on=>: the player's body, or its face / coat model (uPlayer::mpFaceMdl / mpCoatMdl, members, not units)
+uintptr_t shape_model(int on, uintptr_t pl) {
+    return on == 1 ? at<uintptr_t>(pl, 0x20C0) : on == 2 ? at<uintptr_t>(pl, 0x20C4) : pl;
+}
+
 void fire_fx(const xmlmove::FxEvent& e, uintptr_t pl) {
     switch (e.kind) {
+    case xmlmove::FxEvent::SHAPE: {
+        model_shape::List l;
+        l.shw = e.shw;
+        l.speed = e.speed;
+        l.rate = e.rate;
+        l.frame = e.start;
+        l.loop = e.loop;
+        l.hold = e.hold;
+        std::string error;
+        if (!model_shape::play(shape_model(e.on, pl), e.shape_list, l, error)) note("<shape %s>: %s", e.shw.c_str(), error.c_str());
+        return;
+    }
+    case xmlmove::FxEvent::SHAPE_STOP: model_shape::stop(shape_model(e.on, pl), e.shape_list); return;
     case xmlmove::FxEvent::EFFECT: {
         void* parent = (void*)pl;
         if (e.joint == "weapon") { parent = devil4_sdk::held_weapon((void*)pl); if (!parent) return; }

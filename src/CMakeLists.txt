@@ -432,6 +432,8 @@ set(SDK_SRC
     sdk/ModelAttach.cpp
     sdk/ModelCns.hpp
     sdk/ModelCns.cpp
+    sdk/ModelShape.hpp
+    sdk/ModelShape.cpp
     sdk/Collision.hpp
     sdk/Collision.cpp
     sdk/InputCommand.hpp

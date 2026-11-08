@@ -3,6 +3,7 @@
 #include "../../sdk/ChainLink.hpp"
 #include "../../sdk/ModelAttach.hpp"
 #include "../../sdk/ModelCns.hpp"
+#include "../../sdk/ModelShape.hpp"
 #include "../../sdk/Devil4.hpp"
 #include "../../sdk/MtDTI.hpp"
 #include "../../sdk/sUnit.hpp"
@@ -106,6 +107,26 @@ struct LinkEntry {
     bool warned;                                // a problem with it was logged
 };
 std::vector<LinkEntry> g_link_entries;
+
+// <shape shp= [shw= speed= rate= frame= loop=]> [<weights shw= .../>]... </shape> inside a <model>: morph targets (.shp) and up
+// to four weight lists (.shw) on every model with that path (sdk/ModelShape.hpp). A model has one shape: the first entry wins.
+struct ShapeEntry {
+    std::string model, shp;                     // normalized
+    std::vector<model_shape::List> lists;
+    std::string source;
+};
+std::vector<ShapeEntry> g_shape_entries;
+
+// Only uDevil4Model::move runs a shape's update and the players' move doesn't: whether the game runs it for a model is
+// measured (a list's frame moves on its own between two of our frames, or not), and we run it where the game doesn't.
+struct ShapeLive {
+    size_t entry;                               // index into g_shape_entries
+    uintptr_t model;
+    int runs = -1;                              // who runs the update: -1 not known yet, 0 the game, 1 us
+    bool probed = false;                        // a frame left to the game, measured at the next
+    float last[model_shape::kLists] = {};
+};
+std::vector<ShapeLive> g_shapes;
 
 // The links of each live model, rebuilt every frame (frame()) from the chains out; read by the world-pass hook, which
 // runs wherever the model updates (a line job for some). Its own lock: the hook never takes g_lock.
@@ -308,6 +329,71 @@ void drop_cns_source(uintptr_t model) {
         if (c.source == model) { model_cns::bind(c.block, nullptr); c.source = 0; }
 }
 
+// The listed shape `model` doesn't carry yet (one per model: the first entry with its path).
+void shape_for(uintptr_t model, const std::string& path) {
+    if (!mod_enabled || path.empty()) return;
+    if (std::any_of(g_shapes.begin(), g_shapes.end(), [&](const ShapeLive& l) { return l.model == model; })) return;
+    for (size_t e = 0; e < g_shape_entries.size(); ++e) {
+        const ShapeEntry& se = g_shape_entries[e];
+        if (se.model != path) continue;
+        std::string error;
+        if (!model_shape::set(model, se.shp.c_str(), se.lists.data(), (int)se.lists.size(), error)) {
+            spdlog::warn("ModelExtension: {}: {}", se.source, error);
+            return;
+        }
+        ShapeLive l;
+        l.entry = e;
+        l.model = model;
+        g_shapes.push_back(l);
+        spdlog::info("ModelExtension: {} on {} ({} target(s))", se.shp, path, model_shape::targets(model));
+        for (int i = 0; i < (int)se.lists.size(); ++i)
+            if (!model_shape::list_on(model, i))
+                spdlog::warn("ModelExtension: {}: {} stayed off (a .shw needs a curve for every target of the .shp)", se.source, se.lists[i].shw);
+        return;
+    }
+}
+
+// Run every frame: the shapes' update where the game doesn't run it (shape_for's comment). All four lists count as they
+// are now, not only the entry's: a move can start one on demand (model_shape::play, MoveDef's <shape>).
+void update_shapes() {
+    constexpr int n = model_shape::kLists;
+    for (ShapeLive& l : g_shapes) {
+        if (!model_shape::shape_of(l.model)) continue;   // cleared by someone else
+        const ShapeEntry& se = g_shape_entries[l.entry];
+        const float delta = model_shape::delta_of(l.model);
+        bool moving = false;
+        for (int i = 0; i < n; ++i) moving = moving || (model_shape::speed(l.model, i) != 0.0f && model_shape::list_on(l.model, i));
+        if (!moving) {                              // still weights: running the update twice changes nothing
+            model_shape::update(l.model, delta);
+            model_shape::retire(l.model);
+            continue;
+        }
+        if (l.runs < 0 && delta > 0.0f) {
+            if (!l.probed) l.probed = true;
+            else {
+                bool advanced = false;
+                for (int i = 0; i < n; ++i) advanced = advanced || model_shape::frame(l.model, i) != l.last[i];
+                l.runs = advanced ? 0 : 1;
+                spdlog::info("ModelExtension: {}: the weight update is run by {}", se.source, l.runs ? "ModelExtension" : "the game");
+            }
+        }
+        if (l.runs == 1) model_shape::update(l.model, delta);
+        model_shape::retire(l.model);              // one-shots started on demand that ended (List::hold)
+        for (int i = 0; i < n; ++i) l.last[i] = model_shape::frame(l.model, i);
+    }
+}
+
+// Takes `model`'s shape off (model 0: every one). `alive`: the model stays, so its cShape is cleared (a dying model's
+// destructor releases the files itself).
+void remove_shapes(uintptr_t model, bool alive) {
+    for (size_t i = 0; i < g_shapes.size();) {
+        if (model && g_shapes[i].model != model) { ++i; continue; }
+        if (alive) model_shape::clear(g_shapes[i].model);
+        else model_shape::forget(g_shapes[i].model);
+        g_shapes.erase(g_shapes.begin() + i);
+    }
+}
+
 // Every listed attachment `owner` doesn't carry yet. Not on an attachment made from the same entry (a list attaching a
 // model to its own path would nest it without end).
 void attach_for(uintptr_t owner, const std::string& path) {
@@ -398,6 +484,7 @@ void frame() {
             despawn_of(m);
             detach_of(m);
             remove_cns(m, true);
+            remove_shapes(m, true);
             if (is_hidden(it->second)) *(float*)(m + kTransparency) = 1.0f;
         }
         g_models[m] = path;
@@ -408,8 +495,9 @@ void frame() {
         spawn_for(m, it->second);
         attach_for(m, it->second);
         cns_for(m, it->second);
+        shape_for(m, it->second);
     }
-    if (mod_enabled) { apply_hidden(); update_cns(); }
+    if (mod_enabled) { apply_hidden(); update_cns(); update_shapes(); }
     update_links();
     if (++g_frame % kCheckEvery != 0) return;
     for (Spawned& s : g_spawned) if (chain_exists(s)) resolve_collision(s);
@@ -579,6 +667,7 @@ void __stdcall on_model_dtor(uintptr_t model) {
     drop_cns_source(model);
     drop_links(model, 0);
     remove_cns(model, false);
+    remove_shapes(model, false);
     for (size_t i = 0; i < g_attached.size(); ++i)
         if (g_attached[i].model == model) {
             const uintptr_t owner = g_attached[i].owner;
@@ -799,13 +888,45 @@ void parse_link(const pugi::xml_node c, const std::string& model, const std::str
     if (le.max < 0.0f) { spdlog::warn("ModelExtension: {}: needs max=, a distance in cm", le.source); return; }
     g_link_entries.push_back(std::move(le));
 }
+
+model_shape::List parse_weights(const pugi::xml_node c) {
+    model_shape::List l;
+    l.shw = normalize(c.attribute("shw").as_string());
+    l.speed = c.attribute("speed").as_float(1.0f);
+    l.rate = c.attribute("rate").as_float(1.0f);
+    l.frame = c.attribute("frame").as_float(0.0f);
+    l.loop = c.attribute("loop").as_bool(true);
+    return l;
+}
+
+// <shape shp= [shw= speed= rate= frame= loop=]> [<weights shw= [speed=] [rate=] [frame=] [loop=]/>]... </shape>
+void parse_shape(const pugi::xml_node c, const std::string& model, const std::string& file) {
+    ShapeEntry se;
+    se.model = model;
+    se.shp = normalize(c.attribute("shp").as_string());
+    se.source = file + " <shape> " + std::filesystem::path(se.shp).filename().string();
+    if (se.shp.empty()) { spdlog::warn("ModelExtension: {}: a <shape> of {} without shp", file, model); return; }
+    if (c.attribute("shw")) se.lists.push_back(parse_weights(c));
+    for (const pugi::xml_node w : c.children("weights")) {
+        if ((int)se.lists.size() == model_shape::kLists) {
+            spdlog::warn("ModelExtension: {}: more than {} weight lists, the rest are ignored", se.source, model_shape::kLists);
+            break;
+        }
+        model_shape::List l = parse_weights(w);
+        if (l.shw.empty()) { spdlog::warn("ModelExtension: {}: a <weights> without shw", se.source); continue; }
+        se.lists.push_back(std::move(l));
+    }
+    if (std::any_of(g_shape_entries.begin(), g_shape_entries.end(), [&](const ShapeEntry& o) { return o.model == model; }))
+        spdlog::warn("ModelExtension: {}: {} already has a <shape>; a model takes one, the first listed", se.source, model);
+    g_shape_entries.push_back(std::move(se));
+}
 } // namespace
 
 // The lists: nativePC\model_ext\*.xml (ModelExtension.hpp):
 //   <extensions><model path= [collision_model=]><chain clt= [col=] [collision_model=]/> ...</model>
 //               <attach path= to= [joint=] [mode=rigid|skin] [pos=] [rot=] [scale=] [line=]/> ...
 //               <hide path=/> ...</extensions>
-// and inside a <model>: <pin .../> <aim .../> <offset .../> (parse_cns).
+// and inside a <model>: <pin .../> <aim .../> <offset .../> (parse_cns), <link .../>, <shape ...> (parse_shape).
 // A chain's collision_model overrides its model's; a col without any collision model is ignored (collision needs both).
 void reload() {
     namespace fs = std::filesystem;
@@ -813,12 +934,14 @@ void reload() {
     despawn_of(0);                                   // the records index the old lists
     detach_of(0);
     remove_cns(0, true);
+    remove_shapes(0, true);
     show_hidden();                                   // the lists still listed hide theirs again next frame
     g_entries.clear();
     g_attach_entries.clear();
     g_hide_entries.clear();
     g_cns_entries.clear();
     g_link_entries.clear();
+    g_shape_entries.clear();
     if (fs::exists(folder)) {
         std::vector<std::string> files;
         for (const fs::directory_entry& e : fs::directory_iterator(folder))
@@ -853,6 +976,7 @@ void reload() {
                     const std::string tag = c.name();
                     if (tag == "pin" || tag == "aim" || tag == "offset") parse_cns(c, model, name);
                     else if (tag == "link") parse_link(c, model, name);
+                    else if (tag == "shape") parse_shape(c, model, name);
                 }
             }
             int n = 0;
@@ -863,8 +987,9 @@ void reload() {
                 g_hide_entries.push_back({ path, name });
             }
         }
-        spdlog::info("ModelExtension: {} chain(s), {} attachment(s), {} constraint(s), {} link(s), {} hidden model(s) listed in {}",
-                     g_entries.size(), g_attach_entries.size(), g_cns_entries.size(), g_link_entries.size(), g_hide_entries.size(), folder);
+        spdlog::info("ModelExtension: {} chain(s), {} attachment(s), {} constraint(s), {} link(s), {} shape(s), {} hidden model(s) listed in {}",
+                     g_entries.size(), g_attach_entries.size(), g_cns_entries.size(), g_link_entries.size(), g_shape_entries.size(),
+                     g_hide_entries.size(), folder);
     } else {
         spdlog::info("ModelExtension: no {} folder, nothing listed", folder);
     }
@@ -909,6 +1034,11 @@ void write_example() {
            "    <pin joint=\"40\" to=\"9\" mode=\"rot\" blend=\"0.5\"/>\n"
            "    <aim joint=\"41\" to=\"4\" axis=\"+z\" up=\"+y\" limit=\"30\"/>\n"
            "    <offset joint=\"42\" scale=\"1.5\"/>\n"
+           "  </model>\n"
+           "  -->\n"
+           "  <!-- morph targets (shape keys exported by Albam) on a model, their weights played from a .shw, looping:\n"
+           "  <model path=\"model\\game\\pl000\\pl000\">\n"
+           "    <shape shp=\"model\\game\\pl000\\pl000\" shw=\"model\\game\\pl000\\pl000_idle\" speed=\"1\"/>\n"
            "  </model>\n"
            "  -->\n"
            "</extensions>\n";
@@ -959,7 +1089,7 @@ void ModelExtension::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Model extension"), &mod_enabled)) {
         std::lock_guard<std::recursive_mutex> lock(g_lock);
         if (mod_enabled) { for (const auto& [m, p] : g_models) g_pending.push_back(m); }   // the models already out get theirs
-        else { despawn_of(0); detach_of(0); remove_cns(0, true); show_hidden(); }
+        else { despawn_of(0); detach_of(0); remove_cns(0, true); remove_shapes(0, true); show_hidden(); }
     }
     ImGui::SameLine();
     help_marker(_("Extends the game's models from the lists in nativePC\\model_ext\\*.xml: physics chains (.clt: coats, hair, "
@@ -983,6 +1113,9 @@ void ModelExtension::on_gui_frame(int display) {
                   "<link a= b= max=> (inside a <model>): two joints of the model's chains, at most `max` cm apart (neighbouring "
                   "tendrils of a skirt, so the cloth between them can't open); stiffness 0-1 (default 1). A tendril's first "
                   "joint keeps its place, so link the joints below it.\n"
+                  "<shape shp= shw=> (inside a <model>): morph targets (.shp, shape keys exported by Albam) with their weights played "
+                  "from a .shw (speed, loop, frame: where it starts); up to four <weights shw=> inside it play together, mixed by "
+                  "rate. Only meshes exported for it move.\n"
                   "<attach>: without a joint the extra model is skinned to its owner (each of its joints follows the owner's joint "
                   "with the same number: clothing made on the body rig, with the body's bind pose); with joint= (a joint number) it "
                   "rides that joint rigidly, offset by pos (cm), rot (degrees about X, Y, Z) and scale. Its own extra joints can "
@@ -1040,6 +1173,24 @@ void ModelExtension::on_gui_frame(int display) {
     if (ImGui::TreeNode("Links", _("%d link(s) listed, %d live"), (int)g_link_entries.size(), g_links_live)) {
         for (const LinkEntry& le : g_link_entries)
             ImGui::BulletText("%s: %d - %d, at most %.1f cm  (%s)", le.model.c_str(), le.a, le.b, le.max, le.source.c_str());
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Shapes", _("%d shape(s) listed, %d on a model"), (int)g_shape_entries.size(), (int)g_shapes.size())) {
+        for (const ShapeEntry& se : g_shape_entries)
+            ImGui::BulletText("%s on %s, %d weight list(s)  (%s)", se.shp.c_str(), se.model.c_str(), (int)se.lists.size(), se.source.c_str());
+        for (const ShapeLive& l : g_shapes) {
+            const ShapeEntry& se = g_shape_entries[l.entry];
+            std::string frames;
+            char buf[48];
+            for (int i = 0; i < model_shape::kLists; ++i) {
+                if (!model_shape::list_on(l.model, i)) continue;
+                std::snprintf(buf, sizeof(buf), "%s%d: %.0f", frames.empty() ? "" : ", ", i, model_shape::frame(l.model, i));
+                frames += buf;
+            }
+            ImGui::BulletText(_("live: %s, %d target(s), lists playing %s, update by %s"), g_models.count(l.model) ? g_models[l.model].c_str() : "?",
+                              model_shape::targets(l.model), frames.empty() ? "-" : frames.c_str(),
+                              l.runs < 0 ? "(measuring)" : l.runs ? "ModelExtension" : "the game");
+        }
         ImGui::TreePop();
     }
     if (ImGui::TreeNode("Hidden", _("%d model(s) hidden"), (int)g_hide_entries.size())) {

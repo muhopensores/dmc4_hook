@@ -116,8 +116,9 @@ struct Next {                                           // <next ... to=>: a sta
     bool stick_neutral = false;                         // stick="neutral": mAnlgPow == 0
 };
 
-struct FxEvent {                                        // <effect> / <se> / <kill_effect> / <finish_effect> in a <stage>: fired by frame
-    enum Kind { EFFECT = 0, SE = 1, KILL = 2, FINISH = 3 } kind = EFFECT;
+struct FxEvent {                                        // <effect> / <se> / <kill_effect> / <finish_effect> / <shape> / <shape_stop>
+                                                        // in a <stage>: fired by frame
+    enum Kind { EFFECT = 0, SE = 1, KILL = 2, FINISH = 3, SHAPE = 4, SHAPE_STOP = 5 } kind = EFFECT;
     float frame = 0.0f;
     bool repeat = false;                                // repeat="loop": re-armed when the motion frame wraps (a looping block)
     int list = -1, index = 0;                           // EFFECT by list / index of the effect table ...
@@ -127,6 +128,15 @@ struct FxEvent {                                        // <effect> / <se> / <ki
     int32_t material = -1;                              // -1 = all, -2 = "ground" (getEfctMtrlFlg under the player)
     int unit_line = 0x14;
     int type = 0, id = -1;                              // uPlayer::setEffect registration (id -1 = unnamed); KILL / FINISH: the id
+    // SHAPE / SHAPE_STOP: a morph-target animation (.shw) on one of the model's four weight lists (sdk/ModelShape.hpp); the
+    // model needs its .shp from a ModelExtension <shape>
+    std::string shw;
+    int shape_list = 1;                                 // list= 0-3 (ModelExtension's <shape shw=> is list 0)
+    float speed = 1.0f, rate = 1.0f, start = 0.0f;      // speed=, rate=, start= (the .shw frame it starts on)
+    bool loop = false;                                  // loop="true": keeps playing after the move
+    bool hold = false;                                  // hold="true" (with loop false): keeps its last frame's weights; else
+                                                        // the list is stopped at its end (ModelExtension's runner)
+    int on = 0;                                         // on= 0 body (the player), 1 face (mpFaceMdl), 2 coat (mpCoatMdl)
 };
 
 struct Fx {                                             // <effect stay> / <se> inside <launch>

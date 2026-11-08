@@ -357,11 +357,13 @@ bool load(const char* path, File& out) {
         }
         std::stable_sort(s.triggers.begin(), s.triggers.end(), [](const Trigger& a, const Trigger& b) { return a.frame < b.frame; });
         for (pugi::xml_node el : st.children()) {           // the runtime timeline: <effect> / <se> / <kill_effect> / <finish_effect>
-            FxEvent e;
+            FxEvent e;                                      // / <shape> / <shape_stop>
             if (ieq(el.name(), "effect"))             e.kind = FxEvent::EFFECT;
             else if (ieq(el.name(), "se"))            e.kind = FxEvent::SE;
             else if (ieq(el.name(), "kill_effect"))   e.kind = FxEvent::KILL;
             else if (ieq(el.name(), "finish_effect")) e.kind = FxEvent::FINISH;
+            else if (ieq(el.name(), "shape"))         e.kind = FxEvent::SHAPE;
+            else if (ieq(el.name(), "shape_stop"))    e.kind = FxEvent::SHAPE_STOP;
             else continue;
             e.frame  = fnum(el.attribute("frame"), 0.0f);
             e.repeat = ieq(el.attribute("repeat").as_string(), "loop");
@@ -377,6 +379,20 @@ bool load(const char* path, File& out) {
             e.id     = (int)num(el.attribute("id"), -1);
             if (e.kind == FxEvent::EFFECT && e.list < 0 && e.efl.empty()) { spdlog::warn("MoveDef: {}: <effect> needs list= + index=, or efl=", path); continue; }
             if ((e.kind == FxEvent::KILL || e.kind == FxEvent::FINISH) && e.id < 0) { spdlog::warn("MoveDef: {}: <{}> needs id=", path, el.name()); continue; }
+            if (e.kind == FxEvent::SHAPE || e.kind == FxEvent::SHAPE_STOP) {
+                e.shw        = el.attribute("shw").as_string();
+                e.shape_list = (int)num(el.attribute("list"), 1);
+                e.speed      = fnum(el.attribute("speed"), 1.0f);
+                e.rate       = fnum(el.attribute("rate"), 1.0f);
+                e.start      = fnum(el.attribute("start"), 0.0f);
+                e.loop       = el.attribute("loop").as_bool(false);
+                e.hold       = el.attribute("hold").as_bool(false);
+                const char* on = el.attribute("on").as_string("body");
+                e.on = ieq(on, "face") ? 1 : ieq(on, "coat") ? 2 : ieq(on, "body") ? 0 : -1;
+                if (e.on < 0) { spdlog::warn("MoveDef: {}: <{} on='{}'>: body, face or coat", path, el.name(), on); continue; }
+                if (e.shape_list < 0 || e.shape_list > 3) { spdlog::warn("MoveDef: {}: <{}> list= 0-3", path, el.name()); continue; }
+                if (e.kind == FxEvent::SHAPE && e.shw.empty()) { spdlog::warn("MoveDef: {}: <shape> needs shw=", path); continue; }
+            }
             s.fx.push_back(e);
         }
         std::stable_sort(s.fx.begin(), s.fx.end(), [](const FxEvent& a, const FxEvent& b) { return a.frame < b.frame; });
