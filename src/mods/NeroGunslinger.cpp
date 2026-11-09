@@ -1,5 +1,6 @@
 #include "NeroGunslinger.hpp"
 #include "NeroStyle.hpp"
+#include "AfterImage.hpp"
 #include "MoveTable.hpp"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/InputCommand.hpp"
@@ -37,10 +38,10 @@ int   heavy_sound      = 1;
 bool  heavy_sound_all  = true;
 int   neutral_heavy_sound = 0;
 ShotMove dodges[DIR_COUNT] = {
-    { true,  0, 22.0f, -1.0f, -1.0f, 33.0f },   // back (made at 48 fps): the landing at 32.5 (39 frames, the travel ends at 31)
-    { true,  1,  8.0f, -1.0f, -1.0f, 38.0f },   // left: 41 frames, travelling to 39
-    { true,  3, 10.0f, -1.0f, -1.0f, 35.0f },   // forward (made at 48 fps): 45 frames, the travel ends at 34
-    { true,  2,  8.0f, -1.0f, -1.0f, 38.0f },   // right: 41 frames, travelling to 40
+    { true,  0, 22.0f, -1.0f, -1.0f, 33.0f, 0, true, 31.0f },   // back (made at 48 fps): the landing at 32.5 (39 frames, the travel ends at 31)
+    { true,  1,  8.0f, -1.0f, -1.0f, 38.0f, 0, true, 39.0f },   // left: 41 frames, travelling to 39
+    { true,  3, 10.0f, -1.0f, -1.0f, 35.0f, 0, true, 34.0f },   // forward (made at 48 fps): 45 frames, the travel ends at 34
+    { true,  2,  8.0f, -1.0f, -1.0f, 38.0f, 0, true, 40.0f },   // right: 41 frames, travelling to 40
 };
 const char* const dir_names[DIR_COUNT] = { "Back", "Left", "Forward", "Right" };
 ShotMove air_shots[AIR_STEPS] = {
@@ -53,6 +54,7 @@ ShotMove ground_shot   = { true, 6, 0.0f, 6.0f, 14.0f, 15.0f };   // 19 frames (
 int   fan_shots        = 3;
 float fan_frames[FAN_MAX] = { 0.0f, 6.0f, 12.0f, 18.0f, 24.0f, 30.0f };
 int   fan_bullets      = 1;
+Spin  spin             = { true, 8, 14.0f, 0.0f, 4.0f, 0.0f, { 10.0f, 25.0f, 45.0f }, true };   // after the third shot (12), at the neutral shot's Next move at
 float air_gravity      = -1.1f;         // Gerb's
 float air_max_fall     = 30.0f;
 float air_lift         = 12.0f;         // with Gerb's gravity about 65 cm up, back down by the clip's end (24 frames)
@@ -81,6 +83,13 @@ constexpr uintptr_t fn_vibReq2          = 0x00531A80;   // uDevilCamera::vibReq_
 constexpr uintptr_t fn_shl000_hit       = 0x0082C590;   // uPlNeroShl000::hitMessage(this@ecx, own group, other group), retn 8
 constexpr uintptr_t fn_shl000_dtor      = 0x0082BF60;   // uPlNeroShl000's scalar deleting destructor(this@ecx, flags), retn 4
 constexpr uintptr_t kShl000Vtbl         = 0x00BE8E40;   // uPlNeroShl000::vftable
+constexpr uintptr_t fn_setEffectConst  = 0x00480480;   // sDevil4Effect::setEffectConst(list@eax, file@edx, parent, group mask, material mask, unit line, owner), retn 14h
+constexpr uintptr_t fn_setEffectSync    = 0x0081FDA0;   // uPlayer::setEffectSync(effect@eax, this@ecx, 1, type, 1), retn 0Ch: the effect kept as `type`
+constexpr uintptr_t fn_finishEffectId   = 0x0081FB70;   // uPlayer::finishEffectId(this@eax, type, bool), retn 8
+constexpr uintptr_t fn_requestSeWPos    = 0x00488FF0;   // uPlayer::requestSeWPos(rsrc@ecx, this@edx, cResource*, se, owner), retn 0Ch
+constexpr uintptr_t fn_checkAtckBit     = 0x007ACE10;   // uPlayer::checkAtckBit(this@ecx, atckId@esi) -> al: the move is learned
+constexpr uintptr_t fn_setActionAtckGun = 0x007AAE20;   // uPlayer::setActionAtckGun(this@edi, atckId), retn 4: a gun attack as the gun rows start it
+constexpr uintptr_t kSeResource         = 0x1D64;       // uPlayer's sound resource (the charge sounds' bank)
 constexpr uintptr_t kCameraOfMediator   = 0xD0;         // sMediator -> uDevilCamera
 constexpr uintptr_t kGroupAttack        = 0xA4;         // cCollisionGroup::mAttackStatus (hitStopMessage reads +0xCC = its mHitStopTimer)
 
@@ -242,6 +251,97 @@ void fire_charged(uintptr_t pl, int level, const Shake& shake) {
     camera_shake(shake);
 }
 
+// The vanilla charge's glow and sounds (uPlayerNero::updateChargeShotEffect 0x7E8180): effect file 0x29 kept as type
+// 0xB (the glow), 0x2A as type 0xC (the level's flash), sounds 14 (charging), 10 / 11 / 12 (levels), 13 (let go).
+constexpr uint32_t kGlowType = 0xB, kFlashType = 0xC;
+
+uintptr_t effect_const(uintptr_t pl, uint32_t file, uint32_t group) {
+    uintptr_t fn = fn_setEffectConst, result = 0;
+    __asm {
+        pushad
+        push pl
+        push 14h
+        push 0FFFFFFFFh
+        push group
+        push pl
+        mov eax, 1
+        mov edx, file
+        call fn
+        mov result, eax
+        popad
+    }
+    return result;
+}
+
+void keep_effect(uintptr_t pl, uint32_t file, uint32_t group, uint32_t kind) {
+    const uintptr_t effect = effect_const(pl, file, group);
+    if (!effect) return;
+    uintptr_t fn = fn_setEffectSync;
+    __asm {
+        pushad
+        push 1
+        push kind
+        push 1
+        mov eax, effect
+        mov ecx, pl
+        call fn
+        popad
+    }
+}
+
+void finish_effect(uintptr_t pl, uint32_t kind) {
+    uintptr_t fn = fn_finishEffectId;
+    __asm {
+        pushad
+        push 1
+        push kind
+        mov eax, pl
+        call fn
+        popad
+    }
+}
+
+void player_se(uintptr_t pl, uint32_t se) {
+    const uintptr_t rsrc = at<uintptr_t>(pl, kSeResource);
+    if (!rsrc) return;
+    uintptr_t fn = fn_requestSeWPos;
+    __asm {
+        pushad
+        push pl
+        push se
+        push rsrc
+        mov ecx, rsrc
+        mov edx, pl
+        call fn
+        popad
+    }
+}
+
+bool learned(uintptr_t pl, uint32_t atck_id) {
+    uintptr_t fn = fn_checkAtckBit;
+    uint8_t result = 0;
+    __asm {
+        pushad
+        mov ecx, pl
+        mov esi, atck_id
+        call fn
+        mov result, al
+        popad
+    }
+    return result != 0;
+}
+
+void start_gun_attack(uintptr_t pl, uint32_t atck_id) {
+    uintptr_t fn = fn_setActionAtckGun;
+    __asm {
+        pushad
+        mov edi, pl
+        push atck_id
+        call fn
+        popad
+    }
+}
+
 void request_motion(uintptr_t pl, int motion, uint32_t attr, float interp) {
     devil4_sdk::indexed_anim_call((uint32_t)motion, (uPlayer*)pl, attr, 1.0f, 0.0f, interp);   // requestSetMotion_2, whole body
 }
@@ -309,6 +409,7 @@ constexpr int PHASE_ENTRY = 0;
 constexpr int PHASE_DODGE = 1;
 constexpr int PHASE_AIR   = 1;     // the air shot's (its own move id)
 constexpr int PHASE_GROUND = 1;    // the neutral ground shot's (its own move id)
+constexpr int PHASE_SPIN  = 2;     // the neutral shot held: the spin
 constexpr int kAirTicks   = 4;     // ticks off the ground before the dodge turns into a fall (a ledge behind)
 
 constexpr int kPlayerSlots = 4;
@@ -328,6 +429,10 @@ struct State {
     int air_count = 0;               // air shots since he last stood on the ground (the lift shrinks with each)
     int air_step = 0;                // the air combo's step playing (or last played)
     int fan_next = 0;                // the neutral shot's next shot (fan_frames index)
+    bool held = false;               // the neutral shot's button has stayed down since the press
+    float spin_time = 0.0f;          // frames the spin has run
+    int charge_level = 0;            // the spin's charge level reached (0-3)
+    bool charge_fx = false;          // its glow is on
     uint32_t ticks = 0;              // Nero's ticks (pre_tick)
     float air_gap = 1e9f;            // frames since the air shot last ran (pre_tick counts them; landing ends the combo)
     float drift_x = 0.0f, drift_z = 0.0f;   // the air shot's sideways speed (cm per frame)
@@ -396,6 +501,8 @@ static input_commands::Command g_dodge_cmd;   // lock-on held + a stick directio
 static input_commands::Command g_air_cmd;     // the grab button (the row is air only)
 static uint32_t g_cmd_seen = 0, g_dodges = 0, g_air_shots = 0, g_shots = 0;   // readout
 static char g_last[96] = "";
+static float g_spin_frames = 0.0f;   // readout: the last spin's length so far
+static uint32_t g_charge_shots = 0;  // readout
 
 // A shot of `count` bullets: the first now, the rest left to pre_tick's timer. `last_shot` = the move's last shot.
 void shoot(uintptr_t pl, State& s, int count, bool last_shot, const Shake& shake, int heavy) {
@@ -409,6 +516,12 @@ void shoot(uintptr_t pl, State& s, int count, bool last_shot, const Shake& shake
 }
 
 // The move's shot once the clip reaches its frame (the dodges and air shots have one): true on the tick it fires.
+// AfterImage's trail while the move's clip is before its after_image_until frame.
+void after_images(uintptr_t pl, const ShotMove& m) {
+    if (m.after_images && (m.after_image_until <= 0.0f || at<float>(pl, pl::mMotionFrame0) < m.after_image_until))
+        after_image::trail_request(pl);
+}
+
 bool fire_due(uintptr_t pl, State& s, const ShotMove& m) {
     if (s.fired || at<float>(pl, pl::mMotionFrame0) < m.shot_frame) return false;
     s.fired = true;
@@ -442,6 +555,42 @@ void fire_pending(uintptr_t pl, State& s) {
         --s.pending;
         s.next_in += bullet_interval;
     }
+}
+
+// The highest charge level the spin may reach: 3, or with learned_only the levels Nero has learned (level 1 always,
+// 2 / 3 as the vanilla charge checks them).
+int charge_cap(uintptr_t pl) {
+    if (!spin.learned_only) return 3;
+    if (!learned(pl, kBlueRoseShotId + 2)) return 1;
+    return learned(pl, kBlueRoseShotId + 3) ? 3 : 2;
+}
+
+// The charge's glow and level sounds as the vanilla charge plays them, for each level the spin reaches.
+void charge_start(uintptr_t pl, State& s) {
+    s.charge_level = 0;
+    s.charge_fx = true;
+    keep_effect(pl, 0x29, 1, kGlowType);
+    player_se(pl, 14);
+}
+
+void charge_update(uintptr_t pl, State& s) {
+    static const uint32_t glow[4] = { 1, 2, 4, 8 }, flash[4] = { 0, 1, 2, 4 };
+    const int cap = charge_cap(pl);
+    while (s.charge_level < cap && s.spin_time >= spin.charge_frames[s.charge_level]) {
+        const int level = ++s.charge_level;
+        finish_effect(pl, kGlowType);
+        keep_effect(pl, 0x2A, flash[level], kFlashType);
+        keep_effect(pl, 0x29, glow[level], kGlowType);
+        player_se(pl, 9 + (uint32_t)level);
+    }
+}
+
+void charge_end(uintptr_t pl, State& s) {
+    if (!s.charge_fx) return;
+    s.charge_fx = false;
+    finish_effect(pl, kGlowType);
+    finish_effect(pl, kFlashType);
+    player_se(pl, 13);
 }
 
 } // namespace
@@ -550,6 +699,7 @@ static void air_move(uintptr_t pl, State& s, int& phase) {
         arm_cancel_script(s, pl, windows);
         open_cancel_gate(pl, windows);
         const float dt = at<float>(pl, pl::m_delta_time);
+        after_images(pl, m);
         const float fade = std::pow(std::clamp(air_kick_decay, 0.0f, 1.0f), dt);
         s.kick_x *= fade;
         s.kick_z *= fade;
@@ -591,6 +741,7 @@ static void ground_move(uintptr_t pl, State& s, int& phase) {
         s.script_set = false;                                               // the cancel script goes in next tick
         s.fan_next = 0;
         s.air_ticks = 0;
+        s.held = (at<uint32_t>(pl, pl::mBtnOn) & input_commands::BTN_STYLE) != 0;
         ++g_dodges;
         snprintf(g_last, sizeof(g_last), "neutral shot: motion %04X", motion);
         phase = PHASE_GROUND;
@@ -600,11 +751,58 @@ static void ground_move(uintptr_t pl, State& s, int& phase) {
         arm_cancel_script(s, pl, ground_shot);
         open_cancel_gate(pl, ground_shot);
         hold_still(pl);
+        after_images(pl, ground_shot);
         fire_fan(pl, s);
         const uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
         s.air_ticks = (coll && !at<bool>(coll, 0x1C)) ? s.air_ticks + 1 : 0;   // mLand
         if (s.air_ticks > kAirTicks) { devil4_sdk::neutral_air_transition((uPlayer*)pl); return; }
+        if (!(at<uint32_t>(pl, pl::mBtnOn) & input_commands::BTN_STYLE)) s.held = false;
+        if (s.held && spin.enabled && s.fan_next >= std::clamp(fan_shots, 1, FAN_MAX) &&
+            at<float>(pl, pl::mMotionFrame0) >= spin.from_frame) {
+            const int motion = ready(pl) ? motion_registry::word(lmt_set, pl, spin.block) : -1;
+            if (motion >= 0) {
+                devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
+                request_motion(pl, motion, root_motion ? 0u : (uint32_t)A_NULL_TRANS_OFF, spin.blend);
+                s.script_set = false;                                       // the spin's cancel script goes in next tick
+                s.spin_time = 0.0f;
+                charge_start(pl, s);
+                snprintf(g_last, sizeof(g_last), "neutral shot held: spin, motion %04X", motion);
+                phase = PHASE_SPIN;
+                return;
+            }
+            s.held = false;                                                 // no clip: the neutral shot plays out
+            snprintf(g_last, sizeof(g_last), "spin: no motion: %s", motion_registry::describe(lmt_set, pl).c_str());
+        }
         if (at<bool>(pl, pl::mMotionFrameEnd0)) { set_action_footwork(pl, 10.0f, 1); return; }
+        return;
+    }
+    case PHASE_SPIN: {                                                      // the spin until the button is let go
+        const ShotMove windows = { true, spin.block, 0.0f, -1.0f, -1.0f, spin.cancel_frame };
+        arm_cancel_script(s, pl, windows);
+        open_cancel_gate(pl, windows);
+        hold_still(pl);
+        s.spin_time += at<float>(pl, pl::m_delta_time);
+        g_spin_frames = s.spin_time;
+        charge_update(pl, s);
+        const uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
+        s.air_ticks = (coll && !at<bool>(coll, 0x1C)) ? s.air_ticks + 1 : 0;   // mLand
+        if (s.air_ticks > kAirTicks) { devil4_sdk::neutral_air_transition((uPlayer*)pl); return; }
+        if (!(at<uint32_t>(pl, pl::mBtnOn) & input_commands::BTN_STYLE)) {     // let go: the charge shot of the level reached
+            const int level = s.charge_level;
+            charge_end(pl, s);
+            if (level > 0) {
+                g_charge_shots++;
+                snprintf(g_last, sizeof(g_last), "spin released: charge shot level %d after %.0f frames", level, s.spin_time);
+                start_gun_attack(pl, kBlueRoseShotId + (uint32_t)level);
+            } else {
+                set_action_footwork(pl, 10.0f, 1);
+            }
+            return;
+        }
+        if (at<bool>(pl, pl::mMotionFrameEnd0)) {                           // the clip's end, still held: round again
+            at<float>(pl, pl::mMotionFrame0) = std::max(spin.loop_from, 0.0f);
+            at<bool>(pl, pl::mMotionFrameEnd0) = false;
+        }
         return;
     }
     default:
@@ -649,6 +847,7 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
         arm_cancel_script(s, pl, dodges[s.dir]);
         open_cancel_gate(pl, dodges[s.dir]);
         hold_still(pl);
+        after_images(pl, dodges[s.dir]);
         fire_due(pl, s, dodges[s.dir]);
         const uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
         s.air_ticks = (coll && !at<bool>(coll, 0x1C)) ? s.air_ticks + 1 : 0;   // mLand
@@ -698,6 +897,9 @@ static void pre_tick(uintptr_t pl) {
     s.last_dt = at<float>(pl, pl::m_delta_time);
     if (s.seen < 2) ++s.seen;
     fire_pending(pl, s);
+    if (s.charge_fx && !(at<uint32_t>(pl, pl::mAtckId) == ground_move_id && at<int>(pl, pl::mBdyActionLowerNo) == 12 &&
+                         at<int>(pl, pl::mBdyActionLowerPhase) == PHASE_SPIN))
+        charge_end(pl, s);                                              // the spin ended some other way: the glow goes
     if (!(at<uint32_t>(pl, pl::mActStat) & 0x2u)) {                    // not AST_JUMP: on the ground
         s.air_count = 0;
         s.air_gap = 1e9f;
@@ -757,6 +959,14 @@ static void shot_fields(ShotMove& m, bool shot_frame = true) {
     ImGui::SameLine();
     Mod::help_marker(_("From this frame of the clip every cancel window (attacks, jump, gun, taunt) is open, so the move can be cancelled "
                   "by anything. -1 = only the borrowed script's windows and the next move's window."));
+    ImGui::Checkbox(_("After images"), &m.after_images);
+    ImGui::SameLine();
+    Mod::help_marker(_("The move leaves after images (the AfterImage mod's trail, with its Mod moves trigger on) while it plays."));
+    if (m.after_images) {
+        ImGui::SliderFloat(_("After images until"), &m.after_image_until, 0.0f, 60.0f);
+        ImGui::SameLine();
+        Mod::help_marker(_("The clip's frame the after images stop on (the end of the dodge's travel, say). 0 = the whole clip."));
+    }
 }
 
 std::optional<std::string> NeroGunslinger::on_initialize() {
@@ -949,6 +1159,47 @@ void NeroGunslinger::on_gui_frame(int display) {
         ImGui::SameLine();
         help_marker(_("Bullets each shot sends, Bullet interval apart (1 = one hit a shot). The Bullets setting above is the other "
                       "moves'."));
+        ImGui::Checkbox(_("Hold to spin"), &spin.enabled);
+        ImGui::SameLine();
+        help_marker(_("Keep the button held through the volley and Nero spins Blue Rose once it has fired, until the button is let go "
+                      "(then he stands). Its clip goes in the block below. Off, the neutral shot always plays out."));
+        if (spin.enabled) {
+            ImGui::Indent(lineIndent);
+            ImGui::InputInt(_("Spin block"), &spin.block);
+            ImGui::SameLine();
+            help_marker(_("The LMT block (the animation's slot in Albam's LMT list) of the spin."));
+            ImGui::SliderFloat(_("Spin from"), &spin.from_frame, 0.0f, 60.0f);
+            ImGui::SameLine();
+            help_marker(_("The neutral shot's frame the spin starts on, the button held since the press. It waits for the volley's last "
+                          "shot either way."));
+            ImGui::SliderFloat(_("Loop from"), &spin.loop_from, 0.0f, 60.0f);
+            ImGui::SameLine();
+            help_marker(_("The spin clip's frame it goes back to when it reaches its end while the button is still held (0 = the whole "
+                          "clip again). Smoother: give the clip a Loop Start in Albam's LMT panel, and the game loops it itself, blending "
+                          "its last frame into the loop frame (end the clip one frame's step before the loop frame's pose); this "
+                          "setting then isn't used. Here the clip stops on its last frame for a frame before jumping back."));
+            ImGui::SliderFloat(_("Spin blend"), &spin.blend, 0.0f, 15.0f);
+            ImGui::SameLine();
+            help_marker(_("Frames the body takes to blend from the neutral shot into the spin."));
+            ImGui::SliderFloat(_("Spin cancel frame"), &spin.cancel_frame, -1.0f, 60.0f);
+            ImGui::SameLine();
+            help_marker(_("From this frame of the spin every cancel window (attacks, jump, gun, taunt) is open, so anything can break it. "
+                          "-1 = nothing does: only letting go of the button ends it."));
+            for (int i = 0; i < 3; ++i) {
+                char label[32];
+                snprintf(label, sizeof(label), "Charge level %d at", i + 1);
+                ImGui::SliderFloat(label, &spin.charge_frames[i], 0.0f, 120.0f);
+                ImGui::SameLine();
+                help_marker(_("Frames of spinning (60 a second, from the spin's start) this charge level takes. Letting go fires the vanilla "
+                              "charge shot of the level reached, its own animation, bullet and flash; before level 1 Nero just stands. "
+                              "Each level lights the vanilla charge glow and plays its sound. Keep them in order."));
+            }
+            ImGui::Checkbox(_("Learned levels only"), &spin.learned_only);
+            ImGui::SameLine();
+            help_marker(_("Levels 2 and 3 only once Nero has learned Charge Shot 2 and 3, as the vanilla charge. Off: every level, whatever "
+                          "he has learned."));
+            ImGui::Unindent(lineIndent);
+        }
         ImGui::Unindent(lineIndent);
     }
     ImGui::PopID();
@@ -1024,12 +1275,23 @@ void NeroGunslinger::on_gui_frame(int display) {
     ImGui::PopID();
     if (uPlayer* pl = devil4_sdk::get_local_player()) {
         const uintptr_t P = (uintptr_t)pl;
-        ImGui::Text("command bits %d / %d (fired %u) | dodges %u air %u shots %u hard hits %u | style %d, row style %d | atckId %02X phase %d frame %.1f | %s",
-                    cmd_bit, air_cmd_bit, g_cmd_seen, g_dodges, g_air_shots, g_shots, g_power_hits, nero_style::current(P), (int)nero_style::gunslinger_condition(),
-                    at<uint32_t>(P, pl::mAtckId), at<int>(P, pl::mBdyActionLowerPhase), at<float>(P, pl::mMotionFrame0), g_last);
+        ImGui::Text("command bits %d / %d (fired %u) | dodges %u air %u shots %u hard hits %u charge shots %u | style %d, row style %d | atckId %02X phase %d frame %.1f spin %.0f | %s",
+                    cmd_bit, air_cmd_bit, g_cmd_seen, g_dodges, g_air_shots, g_shots, g_power_hits, g_charge_shots, nero_style::current(P),
+                    (int)nero_style::gunslinger_condition(), at<uint32_t>(P, pl::mAtckId), at<int>(P, pl::mBdyActionLowerPhase),
+                    at<float>(P, pl::mMotionFrame0), g_spin_frames, g_last);
     }
     ImGui::PopID();
     ImGui::Unindent(lineIndent);
+}
+
+static void load_after_images(const utility::Config& cfg, const std::string& k, ShotMove& m) {
+    m.after_images      = cfg.get<bool>(k + "_after_images").value_or(m.after_images);
+    m.after_image_until = cfg.get<float>(k + "_after_images_until").value_or(m.after_image_until);
+}
+
+static void save_after_images(utility::Config& cfg, const std::string& k, const ShotMove& m) {
+    cfg.set<bool>(k + "_after_images", m.after_images);
+    cfg.set<float>(k + "_after_images_until", m.after_image_until);
 }
 
 void NeroGunslinger::on_config_load(const utility::Config& cfg) {
@@ -1073,6 +1335,7 @@ void NeroGunslinger::on_config_load(const utility::Config& cfg) {
         m.next_at      = cfg.get<float>(k + "_next_at").value_or(m.next_at);
         m.cancel_frame = cfg.get<float>(k + "_cancel_frame").value_or(m.cancel_frame);
         m.charge       = std::clamp(cfg.get<int>(k + "_charge").value_or(m.charge), 0, 3);
+        load_after_images(cfg, k, m);
     }
     {   // the single air shot's keys from before the combo: that clip is now the second step
         ShotMove& m = air_shots[1];
@@ -1094,6 +1357,7 @@ void NeroGunslinger::on_config_load(const utility::Config& cfg) {
         m.cancel_frame = cfg.get<float>(k + "_cancel_frame").value_or(m.cancel_frame);
         air_momentum[i] = cfg.get<float>(k + "_momentum").value_or(air_momentum[i]);
         m.charge       = std::clamp(cfg.get<int>(k + "_charge").value_or(m.charge), 0, 3);
+        load_after_images(cfg, k, m);
         air_kick[i].knockback = cfg.get<float>(k + "_knockback").value_or(air_kick[i].knockback);
         air_kick[i].lift      = cfg.get<float>(k + "_kick_lift").value_or(air_kick[i].lift);
     }
@@ -1105,11 +1369,21 @@ void NeroGunslinger::on_config_load(const utility::Config& cfg) {
         m.next_from    = cfg.get<float>("gunslinger_ground_next_from").value_or(m.next_from);
         m.next_at      = cfg.get<float>("gunslinger_ground_next_at").value_or(m.next_at);
         m.cancel_frame = cfg.get<float>("gunslinger_ground_cancel_frame").value_or(m.cancel_frame);
+        load_after_images(cfg, "gunslinger_ground", m);
         fan_shots      = std::clamp(cfg.get<int>("gunslinger_ground_shots").value_or(fan_shots), 1, FAN_MAX);
         for (int i = 0; i < FAN_MAX; ++i)
             fan_frames[i] = cfg.get<float>("gunslinger_ground_shot" + std::to_string(i + 1)).value_or(fan_frames[i]);
         fan_bullets    = std::clamp(cfg.get<int>("gunslinger_ground_bullets").value_or(fan_bullets), 1, 8);
     }
+    spin.enabled      = cfg.get<bool>("gunslinger_spin_on").value_or(spin.enabled);
+    spin.block        = cfg.get<int>("gunslinger_spin_block").value_or(spin.block);
+    spin.from_frame   = cfg.get<float>("gunslinger_spin_from").value_or(spin.from_frame);
+    spin.loop_from    = cfg.get<float>("gunslinger_spin_loop_from").value_or(spin.loop_from);
+    spin.blend        = cfg.get<float>("gunslinger_spin_blend").value_or(spin.blend);
+    spin.cancel_frame = cfg.get<float>("gunslinger_spin_cancel_frame").value_or(spin.cancel_frame);
+    for (int i = 0; i < 3; ++i)
+        spin.charge_frames[i] = cfg.get<float>("gunslinger_spin_charge" + std::to_string(i + 1)).value_or(spin.charge_frames[i]);
+    spin.learned_only = cfg.get<bool>("gunslinger_spin_learned_only").value_or(spin.learned_only);
     air_gravity           = cfg.get<float>("gunslinger_air_gravity").value_or(air_gravity);
     air_max_fall          = cfg.get<float>("gunslinger_air_max_fall").value_or(air_max_fall);
     air_lift              = cfg.get<float>("gunslinger_air_lift").value_or(air_lift);
@@ -1156,6 +1430,7 @@ void NeroGunslinger::on_config_save(utility::Config& cfg) {
         cfg.set<float>(k + "_next_at", dodges[i].next_at);
         cfg.set<float>(k + "_cancel_frame", dodges[i].cancel_frame);
         cfg.set<int>(k + "_charge", dodges[i].charge);
+        save_after_images(cfg, k, dodges[i]);
     }
     for (int i = 0; i < AIR_STEPS; ++i) {
         const std::string k = "gunslinger_air" + std::to_string(i + 1);
@@ -1167,6 +1442,7 @@ void NeroGunslinger::on_config_save(utility::Config& cfg) {
         cfg.set<float>(k + "_cancel_frame", air_shots[i].cancel_frame);
         cfg.set<float>(k + "_momentum", air_momentum[i]);
         cfg.set<int>(k + "_charge", air_shots[i].charge);
+        save_after_images(cfg, k, air_shots[i]);
         cfg.set<float>(k + "_knockback", air_kick[i].knockback);
         cfg.set<float>(k + "_kick_lift", air_kick[i].lift);
     }
@@ -1176,9 +1452,18 @@ void NeroGunslinger::on_config_save(utility::Config& cfg) {
     cfg.set<float>("gunslinger_ground_next_from", ground_shot.next_from);
     cfg.set<float>("gunslinger_ground_next_at", ground_shot.next_at);
     cfg.set<float>("gunslinger_ground_cancel_frame", ground_shot.cancel_frame);
+    save_after_images(cfg, "gunslinger_ground", ground_shot);
     cfg.set<int>("gunslinger_ground_shots", fan_shots);
     for (int i = 0; i < FAN_MAX; ++i) cfg.set<float>("gunslinger_ground_shot" + std::to_string(i + 1), fan_frames[i]);
     cfg.set<int>("gunslinger_ground_bullets", fan_bullets);
+    cfg.set<bool>("gunslinger_spin_on", spin.enabled);
+    cfg.set<int>("gunslinger_spin_block", spin.block);
+    cfg.set<float>("gunslinger_spin_from", spin.from_frame);
+    cfg.set<float>("gunslinger_spin_loop_from", spin.loop_from);
+    cfg.set<float>("gunslinger_spin_blend", spin.blend);
+    cfg.set<float>("gunslinger_spin_cancel_frame", spin.cancel_frame);
+    for (int i = 0; i < 3; ++i) cfg.set<float>("gunslinger_spin_charge" + std::to_string(i + 1), spin.charge_frames[i]);
+    cfg.set<bool>("gunslinger_spin_learned_only", spin.learned_only);
     cfg.set<float>("gunslinger_air_gravity", air_gravity);
     cfg.set<float>("gunslinger_air_max_fall", air_max_fall);
     cfg.set<float>("gunslinger_air_lift", air_lift);

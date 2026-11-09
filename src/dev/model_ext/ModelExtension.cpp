@@ -23,6 +23,7 @@
 #include <atomic>
 #include <mutex>
 #include <unordered_map>
+#include <unordered_set>
 
 #undef naked                     // mod.hpp's `naked` is `static __declspec(naked)`; the detours are declared in the header
 #define naked __declspec(naked)
@@ -140,6 +141,7 @@ int g_links_live = 0;                           // for the readout
 std::recursive_mutex g_lock;
 std::vector<uintptr_t> g_pending;               // models given an rModel since the last frame (setModel's entry)
 std::unordered_map<uintptr_t, std::string> g_models;   // the live models with their .mod path (setModel -> the destructor)
+std::unordered_set<uintptr_t> g_excluded;       // other mods' models the lists leave alone (exclude())
 std::vector<Spawned> g_spawned;
 int g_frame = 0;
 
@@ -654,6 +656,7 @@ void __stdcall on_set_model(uintptr_t model) {
     std::lock_guard<std::recursive_mutex> lock(g_lock);
     drop_cns_source(model);                     // setModel frees the joint array
     drop_links(model, 0);
+    if (g_excluded.count(model)) return;
     if (std::find(g_pending.begin(), g_pending.end(), model) == g_pending.end()) g_pending.push_back(model);
 }
 
@@ -663,6 +666,7 @@ void __stdcall on_set_model(uintptr_t model) {
 // alive, is queued again so the next frame attaches a new one.
 void __stdcall on_model_dtor(uintptr_t model) {
     std::lock_guard<std::recursive_mutex> lock(g_lock);
+    g_excluded.erase(model);
     g_pending.erase(std::remove(g_pending.begin(), g_pending.end(), model), g_pending.end());
     drop_cns_source(model);
     drop_links(model, 0);
@@ -677,6 +681,36 @@ void __stdcall on_model_dtor(uintptr_t model) {
         }
     detach_of(model);
     if (g_models.erase(model)) despawn_of(model);
+}
+
+void exclude(uintptr_t model) {
+    if (!model) return;
+    std::lock_guard<std::recursive_mutex> lock(g_lock);
+    g_excluded.insert(model);
+    g_pending.erase(std::remove(g_pending.begin(), g_pending.end(), model), g_pending.end());
+    auto it = g_models.find(model);
+    if (it == g_models.end()) return;
+    despawn_of(model);
+    detach_of(model);
+    remove_cns(model, true);
+    remove_shapes(model, true);
+    drop_links(model, 0);
+    g_models.erase(it);
+}
+
+std::vector<uintptr_t> attachments_of(uintptr_t owner) {
+    std::lock_guard<std::recursive_mutex> lock(g_lock);
+    std::vector<uintptr_t> out;
+    for (const Attached& a : g_attached)
+        if (a.owner == owner) out.push_back(a.model);
+    return out;
+}
+
+bool hidden(uintptr_t model) {
+    if (!mod_enabled || !model) return false;
+    std::lock_guard<std::recursive_mutex> lock(g_lock);
+    auto it = g_models.find(model);
+    return it != g_models.end() && is_hidden(it->second);
 }
 
 // ~cCnsChain 0x42C7A0 (esi = the cCnsChain), its entry: the destructor clears the constraint of EVERY joint of its model,

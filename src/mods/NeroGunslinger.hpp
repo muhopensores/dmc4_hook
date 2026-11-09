@@ -12,7 +12,13 @@
 //   0x47 (ground_move_id) grab on the ground without the dodge's lock-on + direction: Nero fans the hammer, a full shot
 //                       (flash, recoil, sound) on each of fan_frames, standing (the clip's root motion as the dodges').
 //                       Its row shares the air shot's command (the grab button alone; the rows' ground / air conditions
-//                       pick one), and a dodge press clears that bit on the ground so the dodge wins.
+//                       pick one), and a dodge press clears that bit on the ground so the dodge wins. With the
+//                       button still held once the volley has fired (from spin.from_frame), Nero spins Blue Rose
+//                       (spin.block, looped from spin.loop_from) and charges it, far faster than the vanilla charge
+//                       (spin.charge_frames, with the vanilla charge glow and level sounds); letting go fires the
+//                       vanilla charge shot of the level reached (uPlayer::setActionAtckGun with atckId 44 + level, as
+//                       the gun rows start it; uPlayerNero::moveAtckBlueRoseChargeShot reads the level from the id),
+//                       or before level 1 stands him up.
 //   0x46 (air_move_id)  grab in the air (any stick, lock-on or not): an air combo. Each press in a step's next-move
 //                       window plays the next step (after the last, the first again); a press outside one starts the
 //                       first. Every step: Nero hops (air_lift, less on each air shot before he lands, as the vanilla air
@@ -85,6 +91,8 @@ struct ShotMove {
     float next_at;                    // from this frame the next move starts, a queued press at once (-1 = none)
     float cancel_frame;               // from this frame every cancel window is open (-1 = the borrowed script's windows)
     int   charge = 0;                 // 0 = Blue Rose's plain shot; 1-3 = a charge shot of that level (one charged bullet)
+    bool  after_images = false;       // AfterImage's trail while the move plays (after_image::trail_request)
+    float after_image_until = 0.0f;   // up to this frame of the clip (0 = the whole clip)
 };
 extern ShotMove dodges[DIR_COUNT];
 extern const char* const dir_names[DIR_COUNT];
@@ -95,6 +103,19 @@ extern ShotMove ground_shot;
 extern int   fan_shots;               // the shots it fires (1 - FAN_MAX)
 extern float fan_frames[FAN_MAX];     // the clip's frame of each, in order
 extern int   fan_bullets;             // bullets each of them sends (bullet_interval apart)
+
+// the neutral shot held: after the volley Nero spins the gun while the button stays down (the charge to come)
+struct Spin {
+    bool  enabled;                    // the spin has its clip
+    int   block;                      // its LMT block
+    float from_frame;                 // the neutral shot's frame the spin starts on, the button held since the press
+    float loop_from;                  // the spin clip's frame it goes back to at its end, while still held
+    float blend;                      // interpolation from the neutral shot into the spin
+    float cancel_frame;               // from this frame of the spin every cancel window is open (-1 = none: only letting go ends it)
+    float charge_frames[3];           // frames of spinning each charge level takes (from the spin's start)
+    bool  learned_only;               // levels 2 / 3 only once Nero has learned Charge Shot 2 / 3, as the vanilla charge
+};
+extern Spin spin;
 
 // the air shots: the air combo's steps, in order (a step that is off ends the combo: the next press starts step 1)
 constexpr int AIR_STEPS = 3;

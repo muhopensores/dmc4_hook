@@ -71,6 +71,16 @@ extern char folder[128];
 void reload();     // reads the lists again; every chain comes off and the known models get theirs again next frame
 void write_example();   // example.xml in the lists folder (all commented out), unless it exists
 
+// For other mods (any thread):
+// A model the lists never apply to (no chains, attachments, constraints, shapes, hiding): another mod's copy of a model
+// whose .mod path a list names (AfterImage's copies of the player). Call it before the model gets its .mod; the uModel
+// destructor forgets it.
+void exclude(uintptr_t model);
+// The models the lists' <attach>es hang on `owner` now.
+std::vector<uintptr_t> attachments_of(uintptr_t owner);
+// `model` is one a <hide> keeps from being drawn (the mod on and its path listed).
+bool hidden(uintptr_t model);
+
 void __stdcall on_set_model(uintptr_t model);    // the hooks' bodies
 void __stdcall on_model_dtor(uintptr_t model);
 void detour_set_model();
