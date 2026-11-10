@@ -390,6 +390,8 @@ set(MODS_SRC
   mods/Cock.cpp
   mods/RayTest.hpp
   mods/RayTest.cpp
+  mods/ChainFix.hpp
+  mods/ChainFix.cpp
 )
 
 # Dev: hook extensions and stuff, one folder each
@@ -428,6 +430,8 @@ set(SDK_SRC
     sdk/CnsChain.cpp
     sdk/ChainLink.hpp
     sdk/ChainLink.cpp
+    sdk/ChainSolver.hpp
+    sdk/ChainSolver.cpp
     sdk/ModelAttach.hpp
     sdk/ModelAttach.cpp
     sdk/ModelCns.hpp

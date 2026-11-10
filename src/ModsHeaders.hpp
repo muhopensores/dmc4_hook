@@ -188,6 +188,7 @@
 #include "mods/SpineAim.hpp"
 #include "mods/ThirdPersonAim.hpp"
 #include "mods/ViewportWindow.hpp"
+#include "mods/ChainFix.hpp"
 
 //Include dev features here
 #include "dev/model_ext/ModelExtension.hpp"

@@ -33,6 +33,11 @@
 //   And <shape shp= [shw= speed= rate= frame= loop=]> [<weights .../>]... </shape>: the engine's morph targets (.shp) with up
 //   to four weight lists (.shw) on the model's cShape (sdk/ModelShape.hpp; RE note shape_morph.md); the weight update is run
 //   here for the models whose move doesn't (the players').
+//   And <physics clt= [substeps=] [iterations=] [stiffness=] [pin=] [inertia=] [limit=] [friction=] [damping=] [radius=] [ground=] [self=]
+//   [axis=]/>: every chain with that .clt on the model (the game's own, Nero's coat, or a <chain>'s) is solved by ours
+//   (sdk/ChainSolver.hpp; Vibed\ModelExt\chain_solver.md) through hooks on cCnsChain::move 0x42DB00 / calcJoint 0x430A00.
+//   And <cloth roots= [closed=] [stretch=] [shear=] [bend=]/>: tendrils of the model's chains on that solver (their first
+//   joints, in order across the sheet) solved together and joined point by point into one sheet.
 //   The full reference is Vibed\ModelExt\schema.md.
 //   <attach>: without joint= (or mode="skin") every joint of the extra model follows the owner's joint with the same number
 //   (the body's bind pose needed); with joint= (an owner joint NUMBER; mode="rigid") it rides that joint, offset by pos (cm),
@@ -94,6 +99,9 @@ extern uintptr_t jmp_ret_model_dtor;  // 0x9E6AB6
 extern uintptr_t jmp_ret_chain_dtor;  // 0x42C7A6
 void __fastcall detour_world_matrix(uintptr_t model, int edx);
 extern uintptr_t orig_world_matrix;   // the trampoline to uModel::updateWorldMatrix 0x9EA8B0
+void __fastcall detour_chain_move(uintptr_t chain, int edx);
+void __fastcall detour_chain_joint(uintptr_t chain, int edx, uintptr_t joint, uintptr_t model);
+extern uintptr_t orig_chain_move, orig_chain_joint;   // cCnsChain::move 0x42DB00, calcJoint 0x430A00
 
 } // namespace model_extension
 
@@ -110,5 +118,6 @@ public:
 
 private:
     std::unique_ptr<FunctionHook> hook_set_model, hook_model_dtor, hook_chain_dtor, hook_joint_alloc, hook_world_matrix;
+    std::unique_ptr<FunctionHook> hook_chain_move, hook_chain_joint;
     std::unique_ptr<Patch> patch_table_store;
 };

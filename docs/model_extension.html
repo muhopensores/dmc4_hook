@@ -282,6 +282,8 @@ th {
 <li class="toc-level-3"><a href="#ref-cns">&lt;pin&gt;, &lt;aim&gt;, &lt;offset&gt;: Joint Constraints</a></li>
 <li class="toc-level-3"><a href="#ref-link">&lt;link&gt;: Keeping Two Chain Joints Together</a></li>
 <li class="toc-level-3"><a href="#ref-shape">&lt;shape&gt;: Shape Keys (Morph Targets)</a></li>
+<li class="toc-level-3"><a href="#ref-physics">&lt;physics&gt;: Better Chain Physics</a></li>
+<li class="toc-level-3"><a href="#ref-cloth">&lt;cloth&gt;: Tails Joined Into One Sheet</a></li>
 <li class="toc-level-2"><a href="#making-files">Making The Files</a></li>
 <li class="toc-level-3"><a href="#joint-numbers">Joint Numbers</a></li>
 <li class="toc-level-2"><a href="#rules">Rules And Limits</a></li>
@@ -461,6 +463,59 @@ th {
 </tbody></table></div>
 <p>Up to four sets of curves can play together: put <code>&lt;weights shw="..." speed="..."/&gt;</code> entries inside the <code>&lt;shape&gt;</code> (same settings). A model takes one <code>&lt;shape&gt;</code>.</p>
 <p>Only meshes exported for it move (Albam marks them). Their lighting keeps the unmorphed shape, so large changes can look slightly off. At most 15 shapes per part of the model can be active at once. The panel's <strong>Shapes</strong> list shows each live one with its frame. If a <code>.shw</code> lacks a curve for one of the shapes, its curves stay off and the log says so.</p>
+
+<h3 id="ref-physics" data-search-heading="physics chain solver coat substeps ground stiffness">&lt;physics&gt;: Better Chain Physics<a class="heading-link" href="#ref-physics" aria-label="Link to physics">#</a></h3>
+<p>The game's own chain physics has limits:</p>
+<ul>
+<li>Tails pass through legs in fast moves.</li>
+<li>Coats sink into the floor.</li>
+<li>With the frame rate unlocked, the players' coats swing too fast.</li>
+</ul>
+<p>A <code>&lt;physics&gt;</code> inside the <code>&lt;model&gt;</code> hands a chain file to the hook's own solver instead. It works on chains you add with <code>&lt;chain&gt;</code> and on the game's own, such as Nero's coat (six chain files, one entry each):</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;model path="model\game\pl000\pl000_03"&gt;
+  &lt;physics clt="model\game\pl000\pl000_03_00" ground="true" stiffness="0.05"/&gt;
+  &lt;physics clt="model\game\pl000\pl000_03_01" ground="true" stiffness="0.05"/&gt;
+&lt;/model&gt;</code></pre></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Setting</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>clt</code></td><td>The chain file. Needed.</td></tr>
+<tr><td><code>substeps</code></td><td>Steps per frame, 1 to 16 (default 4). Raise it if a fast move still carries the chain through the body.</td></tr>
+<tr><td><code>iterations</code></td><td>How many times per step the chain is checked against lengths and shapes, 1 to 8 (default 2).</td></tr>
+<tr><td><code>stiffness</code></td><td>0 to 1 (default 0): each piece turns back toward the shape the animation gives it. A little (0.02 to 0.1) keeps skirts and capes from folding up.</td></tr>
+<tr><td><code>pin</code></td><td>0 to 1 (default 0): each joint is pulled toward where the animation puts it.</td></tr>
+<tr><td><code>inertia</code></td><td>0 to 1: how much the chain lags behind when the character moves (1 = trails fully, 0 = carried along). The default follows the chain file.</td></tr>
+<tr><td><code>limit</code></td><td>Degrees each piece may swing away from where the animation points it (default: no limit).</td></tr>
+<tr><td><code>friction</code></td><td>0 to 1 (default 0.2): how much sliding along the body or floor slows the chain.</td></tr>
+<tr><td><code>damping</code></td><td>0 to 1: how much of its speed the chain loses each frame. Lower swings longer, higher calms it. Default 0.1 (more if the chain file damps more).</td></tr>
+<tr><td><code>radius</code></td><td>The chain's thickness in centimetres (default: the chain file's collision size).</td></tr>
+<tr><td><code>ground</code></td><td><code>true</code>: the chain stays above the floor of the stage. Default <code>false</code>.</td></tr>
+<tr><td><code>self</code></td><td><code>true</code>: the chain's tails push each other apart instead of passing through each other. Default <code>false</code>.</td></tr>
+<tr><td><code>axis</code></td><td>Which axis of the chain's bones points down the chain (<code>+x</code>, <code>-y</code>, <code>+z</code>, ...). Default: the chain file's. Unlike the game, <code>+z</code> works.</td></tr>
+</tbody></table></div>
+<p>The chain file's own settings (gravity, wind, speed limit, collision shapes, blend) still apply. With the hook's solver the chain moves the same at any frame rate. <code>&lt;link&gt;</code> entries work with it. The panel's <strong>Physics</strong> list shows the entries and how many chains use them.</p>
+
+<h3 id="ref-cloth" data-search-heading="cloth sheet coat skirt cape tails joined">&lt;cloth&gt;: Tails Joined Into One Sheet<a class="heading-link" href="#ref-cloth" aria-label="Link to cloth">#</a></h3>
+<p>A coat or skirt made of several tails can still open gaps: each tail swings on its own. A <code>&lt;cloth&gt;</code> joins tails on the hook's solver into one sheet. Each joint is tied to the joint at the same depth on the next tail, and diagonals stop the sheet skewing. The tails then move as one piece of cloth. Every tail in it needs a <code>&lt;physics&gt;</code> entry. Nero's coat, all six tails:</p>
+<div class="code-block"><button class="copy-code" type="button">Copy</button><pre><code class="language-text">&lt;model path="model\game\pl000\pl000_03"&gt;
+  &lt;physics clt="model\game\pl000\pl000_03_00"/&gt;
+  &lt;physics clt="model\game\pl000\pl000_03_01"/&gt;
+  &lt;physics clt="model\game\pl000\pl000_03_02"/&gt;
+  &lt;physics clt="model\game\pl000\pl000_03_03"/&gt;
+  &lt;physics clt="model\game\pl000\pl000_03_04"/&gt;
+  &lt;physics clt="model\game\pl000\pl000_03_05"/&gt;
+  &lt;cloth roots="1 8 14 20 26 32"/&gt;
+&lt;/model&gt;</code></pre></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Setting</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>roots</code></td><td>The first joint number of each tail, in order across the sheet. Needed. Nero's coat: <code>1 8 14 20 26 32</code>. Dante's: <code>8 15 21 27 33 39</code>.</td></tr>
+<tr><td><code>closed</code></td><td><code>true</code> joins the last tail to the first, for a skirt that goes all the way round. Default <code>false</code> (the coats are open at the front).</td></tr>
+<tr><td><code>stretch</code></td><td>0 to 1 (default 1): how firmly neighbouring tails keep their distance.</td></tr>
+<tr><td><code>shear</code></td><td>0 to 1 (default 0.5): how firmly the sheet resists skewing.</td></tr>
+<tr><td><code>bend</code></td><td>0 to 1 (default 0): how firmly the sheet resists folding across. A little stiffens a cape.</td></tr>
+</tbody></table></div>
+<p>Tails of different lengths are fine: the extra joints of the longer one hang free. The tails can come from different chain files, but they must be on the same model. A tail belongs to one sheet. The panel's <strong>Cloth</strong> list shows the sheets and how many are live. If a root is wrong, the log says which, and the tails swing on their own.</p>
 
 <h2 id="making-files" data-search-heading="Making The Files">Making The Files<a class="heading-link" href="#making-files" aria-label="Link to Making The Files">#</a></h2>
 <p>Albam (the Blender add-on) imports and exports all of these:</p>

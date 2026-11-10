@@ -1,6 +1,7 @@
 #include "ModelExtension.hpp"
 #include "../../sdk/CnsChain.hpp"
 #include "../../sdk/ChainLink.hpp"
+#include "../../sdk/ChainSolver.hpp"
 #include "../../sdk/ModelAttach.hpp"
 #include "../../sdk/ModelCns.hpp"
 #include "../../sdk/ModelShape.hpp"
@@ -34,6 +35,7 @@ bool mod_enabled = false;
 bool show_collision = false;
 char folder[128] = "nativePC\\model_ext";
 uintptr_t jmp_ret_set_model = 0, jmp_ret_model_dtor = 0, jmp_ret_chain_dtor = 0, jmp_ret_joint_alloc = 0, orig_world_matrix = 0;
+uintptr_t orig_chain_move = 0, orig_chain_joint = 0;
 
 namespace {
 
@@ -128,6 +130,41 @@ struct ShapeLive {
     float last[model_shape::kLists] = {};
 };
 std::vector<ShapeLive> g_shapes;
+
+// <physics clt= [substeps=] ...> inside a <model>: our solver (sdk/ChainSolver.hpp; Vibed\ModelExt\chain_solver.md) in place
+// of the game's for every chain with that .clt on a model with that path: the game's own (Nero's coat) or a <chain>'s.
+struct PhysicsEntry {
+    std::string model, clt;                     // normalized
+    chain_solver::Settings settings;
+    std::string source;
+};
+std::vector<PhysicsEntry> g_physics_entries;
+
+// Each chain's entry, looked up by the solver hooks (line jobs too) and cached per chain; another .clt or model on it
+// (setCltRes, setModel) looks it up again. Its own lock: the hooks never take g_lock.
+struct PhysicsCache {
+    uintptr_t res, model;
+    int entry;                                  // -1: the game's solver
+    chain_solver::Settings settings;
+};
+std::mutex g_physics_lock;
+std::unordered_map<uintptr_t, PhysicsCache> g_physics_cache;
+std::atomic<bool> g_any_physics{ false };
+// <cloth roots= [closed=] [stretch=] [shear=] [bend=]/> inside a <model>: tendrils of the model's chains on our solver, in
+// order across a sheet, solved together and joined point by point (chain_solver.md "Sheets")
+struct ClothEntry {
+    std::string model;                          // normalized
+    std::vector<int> roots;                     // joint numbers: each a tendril's first joint
+    bool closed;
+    float stretch, shear, bend;
+    std::string source;
+    bool warned;
+};
+std::vector<ClothEntry> g_cloth_entries;
+int g_cloths_live = 0;                          // for the readout
+
+// cCnsChain (RE note chain_cnschain.md section 2): mpCltRes (the .clt, cResource path at +4) and mpModel
+constexpr uintptr_t kCnsCltRes = 0xFB0, kCnsModel = 0xFB4;
 
 // The links of each live model, rebuilt every frame (frame()) from the chains out; read by the world-pass hook, which
 // runs wherever the model updates (a line job for some). Its own lock: the hook never takes g_lock.
@@ -431,22 +468,36 @@ void despawn_of(uintptr_t model) {
     }
 }
 
-// The live links: for each listed link and each model out with its path, the two joints' slots in the model's chains.
+// The live links: for each listed link and each model out with its path, the two joints' slots in the model's chains: the
+// <chain>s out on it, and the game's own chains on it that a <physics> entry puts on our solver (Nero's coat). ChainLink
+// takes uCnsChain units (the cCnsChain at +0x20) and reads nothing outside the cCnsChain, so a bare cCnsChain is passed as
+// "unit" = chain - 0x20, as the chain destructor hook's drop_links does.
 void update_links() {
     std::unordered_map<uintptr_t, std::vector<chain_link::Link>> live;
     int count = 0;
+    std::vector<std::pair<uintptr_t, uintptr_t>> solved;    // (model, unit) of the <physics> chains seen by the hooks
+    if (mod_enabled && !g_link_entries.empty()) {
+        std::lock_guard<std::mutex> plock(g_physics_lock);
+        for (const auto& [c, pc] : g_physics_cache)
+            if (pc.entry >= 0 && pc.model) solved.push_back({ pc.model, c - cns_chain::kChainInUnit });
+    }
     if (mod_enabled)
         for (LinkEntry& le : g_link_entries)
             for (const auto& [m, p] : g_models) {
                 if (p != le.model) continue;
                 chain_link::Link l{ 0, 0, -1, -1, le.max, le.stiffness };
+                auto take = [&](uintptr_t unit) {
+                    if (l.slot_a < 0 && (l.slot_a = chain_link::slot_of(unit, le.a)) >= 0) l.chain_a = unit;
+                    if (l.slot_b < 0 && (l.slot_b = chain_link::slot_of(unit, le.b)) >= 0) l.chain_b = unit;
+                };
                 for (const Spawned& s : g_spawned) {
                     if (s.model != m || !chain_exists(s) || cns_chain::model_of(s.chain) != m) continue;
-                    if (l.slot_a < 0 && (l.slot_a = chain_link::slot_of(s.chain, le.a)) >= 0) l.chain_a = s.chain;
-                    if (l.slot_b < 0 && (l.slot_b = chain_link::slot_of(s.chain, le.b)) >= 0) l.chain_b = s.chain;
+                    take(s.chain);
                 }
+                for (const auto& [model, unit] : solved)
+                    if (model == m && *(uintptr_t*)(unit + cns_chain::kChainInUnit + kCnsModel) == m) take(unit);
                 const char* problem = nullptr;
-                if (l.slot_a < 0 || l.slot_b < 0) problem = "isn't held by a chain listed on the model";
+                if (l.slot_a < 0 || l.slot_b < 0) problem = "isn't held by a chain listed on the model (a <chain>, or a <physics> one)";
                 else if (chain_link::is_root(l.chain_a, l.slot_a) && chain_link::is_root(l.chain_b, l.slot_b))
                     problem = "links two tendril roots (they keep their animated places: nothing to move)";
                 if (problem) {
@@ -461,6 +512,53 @@ void update_links() {
     g_links.swap(live);
     g_links_live = count;
     g_any_links.store(!g_links.empty(), std::memory_order_release);
+}
+
+// The live sheets: for each listed <cloth> and each model out with its path, its roots' tendrils among the model's chains
+// on our solver (the hooks' cache: <physics> chains, the game's own and <chain>s alike), handed to the solver.
+void update_cloths() {
+    std::vector<chain_solver::Cloth> live;
+    if (mod_enabled && !g_cloth_entries.empty()) {
+        struct Solved { uintptr_t chain, model; chain_solver::Settings settings; };
+        std::vector<Solved> solved;
+        {
+            std::lock_guard<std::mutex> plock(g_physics_lock);
+            for (const auto& [c, pc] : g_physics_cache)
+                if (pc.entry >= 0 && pc.model && *(uintptr_t*)(c + kCnsModel) == pc.model) solved.push_back({ c, pc.model, pc.settings });
+        }
+        for (ClothEntry& ce : g_cloth_entries)
+            for (const auto& [m, p] : g_models) {
+                if (p != ce.model) continue;
+                chain_solver::Cloth cloth;
+                cloth.model = m;
+                cloth.closed = ce.closed;
+                cloth.stretch = ce.stretch;
+                cloth.shear = ce.shear;
+                cloth.bend = ce.bend;
+                int missing = -1;
+                for (int root : ce.roots) {
+                    bool found = false;
+                    for (const Solved& sv : solved) {
+                        if (sv.model != m) continue;
+                        const uintptr_t unit = sv.chain - cns_chain::kChainInUnit;   // ChainLink's convention
+                        const int slot = chain_link::slot_of(unit, root);
+                        if (slot < 0 || !chain_link::is_root(unit, slot)) continue;
+                        cloth.members.push_back({ sv.chain, slot, sv.settings });
+                        found = true;
+                        break;
+                    }
+                    if (!found) { missing = root; break; }
+                }
+                if (missing >= 0) {
+                    if (!ce.warned) spdlog::warn("ModelExtension: {}: joint {} isn't the first joint of a tendril on the hook's solver (a <physics> chain on the model)", ce.source, missing);
+                    ce.warned = true;
+                    continue;
+                }
+                live.push_back(std::move(cloth));
+            }
+    }
+    g_cloths_live = (int)live.size();
+    chain_solver::set_cloths(std::move(live));
 }
 
 // A model whose joints go, or a chain that goes: its links are dropped at once (the world-pass hook may run before the
@@ -501,6 +599,7 @@ void frame() {
     }
     if (mod_enabled) { apply_hidden(); update_cns(); update_shapes(); }
     update_links();
+    update_cloths();
     if (++g_frame % kCheckEvery != 0) return;
     for (Spawned& s : g_spawned) if (chain_exists(s)) resolve_collision(s);
     // the chains out: one a room change killed comes back while its model lives on (the player, his coat); one whose
@@ -713,12 +812,58 @@ bool hidden(uintptr_t model) {
     return it != g_models.end() && is_hidden(it->second);
 }
 
+// `chain`'s <physics> settings into `out`; false: the game solves it.
+bool physics_for(uintptr_t chain, chain_solver::Settings& out) {
+    if (!mod_enabled || !g_any_physics.load(std::memory_order_acquire)) return false;
+    const uintptr_t res = *(uintptr_t*)(chain + kCnsCltRes), model = *(uintptr_t*)(chain + kCnsModel);
+    std::lock_guard<std::mutex> lock(g_physics_lock);
+    auto it = g_physics_cache.find(chain);
+    if (it == g_physics_cache.end() || it->second.res != res || it->second.model != model) {
+        PhysicsCache c{ res, model, -1, {} };
+        if (res && model) {
+            const char* p = (const char*)(res + kResPath);
+            const std::string clt = normalize(std::string(p, strnlen(p, 64))), path = model_path(model);
+            for (size_t e = 0; e < g_physics_entries.size(); ++e)
+                if (g_physics_entries[e].clt == clt && g_physics_entries[e].model == path) {
+                    c.entry = (int)e;
+                    c.settings = g_physics_entries[e].settings;
+                    break;
+                }
+        }
+        if (it != g_physics_cache.end() && it->second.entry >= 0) chain_solver::forget(chain);   // its points were another file's
+        it = g_physics_cache.insert_or_assign(chain, c).first;
+    }
+    if (it->second.entry < 0) return false;
+    out = it->second.settings;
+    return true;
+}
+
+// cCnsChain::move 0x42DB00 (this@ecx, retn) and cCnsChain::calcJoint 0x430A00 (this@ecx, joint, model; retn 8), function
+// hooks: a chain a <physics> entry names still moves as the game moves it (wind, turbulence, the blend fade, the reset
+// timer) and is solved by ours.
+void __fastcall detour_chain_move(uintptr_t chain, int edx) {
+    ((void(__fastcall*)(uintptr_t, int))orig_chain_move)(chain, edx);
+    chain_solver::Settings s;
+    if (physics_for(chain, s)) chain_solver::on_move(chain);
+}
+
+void __fastcall detour_chain_joint(uintptr_t chain, int edx, uintptr_t joint, uintptr_t model) {
+    chain_solver::Settings s;
+    if (physics_for(chain, s)) { chain_solver::calc_joint(chain, joint, model, s); return; }
+    ((void(__fastcall*)(uintptr_t, int, uintptr_t, uintptr_t))orig_chain_joint)(chain, edx, joint, model);
+}
+
 // ~cCnsChain 0x42C7A0 (esi = the cCnsChain), its entry: the destructor clears the constraint of EVERY joint of its model,
 // which would drop constraints that claim their joint only once (Nero's coat joint 0 cCnsMatrix, installed by
 // uPlayerNero::initModel: its move is a nullsub). The game deletes our chains itself when a room change kills their line,
 // so for one of ours the chain lets go of its own joints and its model pointer is cleared first: the sweep then sees no
 // model. The record stays: the next check finds the unit gone and spawns the chain again for a model still alive.
 void __stdcall on_chain_dtor(uintptr_t cns) {
+    {
+        std::lock_guard<std::mutex> lock(g_physics_lock);
+        g_physics_cache.erase(cns);
+    }
+    chain_solver::forget(cns);
     const uintptr_t unit = cns - cns_chain::kChainInUnit;
     std::lock_guard<std::recursive_mutex> lock(g_lock);
     drop_links(0, unit);
@@ -954,6 +1099,65 @@ void parse_shape(const pugi::xml_node c, const std::string& model, const std::st
         spdlog::warn("ModelExtension: {}: {} already has a <shape>; a model takes one, the first listed", se.source, model);
     g_shape_entries.push_back(std::move(se));
 }
+
+// <physics clt= [substeps=] [iterations=] [stiffness=] [pin=] [inertia=] [limit=] [friction=] [damping=] [radius=] [ground=] [self=] [axis=]/>
+void parse_physics(const pugi::xml_node c, const std::string& model, const std::string& file) {
+    PhysicsEntry pe;
+    pe.model = model;
+    pe.clt = normalize(c.attribute("clt").as_string());
+    pe.source = file + " <physics> " + std::filesystem::path(pe.clt).filename().string();
+    if (pe.clt.empty()) { spdlog::warn("ModelExtension: {}: a <physics> of {} without clt", file, model); return; }
+    chain_solver::Settings& s = pe.settings;
+    s.substeps = std::clamp(c.attribute("substeps").as_int(s.substeps), 1, 16);
+    s.iterations = std::clamp(c.attribute("iterations").as_int(s.iterations), 1, 8);
+    s.stiffness = std::clamp(c.attribute("stiffness").as_float(s.stiffness), 0.0f, 1.0f);
+    s.pin = std::clamp(c.attribute("pin").as_float(s.pin), 0.0f, 1.0f);
+    if (c.attribute("inertia")) s.inertia = std::clamp(c.attribute("inertia").as_float(1.0f), 0.0f, 1.0f);
+    s.limit = std::clamp(c.attribute("limit").as_float(s.limit), 0.0f, 180.0f);
+    s.friction = std::clamp(c.attribute("friction").as_float(s.friction), 0.0f, 1.0f);
+    if (c.attribute("damping")) s.damping = std::clamp(c.attribute("damping").as_float(0.1f), 0.0f, 1.0f);
+    if (c.attribute("radius")) s.radius = std::max(0.0f, c.attribute("radius").as_float(0.0f));
+    s.ground = c.attribute("ground").as_bool(s.ground);
+    s.self = c.attribute("self").as_bool(s.self);
+    if (const char* axis = c.attribute("axis").as_string(nullptr)) {
+        s.axis = parse_axis(axis);
+        if (s.axis < 0) { spdlog::warn("ModelExtension: {}: axis \"{}\" (x, y, z with + or -)", pe.source, axis); return; }
+    }
+    if (std::any_of(g_physics_entries.begin(), g_physics_entries.end(), [&](const PhysicsEntry& o) { return o.model == model && o.clt == pe.clt; })) {
+        spdlog::warn("ModelExtension: {}: {} on {} already has a <physics>; the first listed wins", pe.source, pe.clt, model);
+        return;
+    }
+    g_physics_entries.push_back(std::move(pe));
+}
+
+// <cloth roots= [closed=] [stretch=] [shear=] [bend=]/>
+void parse_cloth(const pugi::xml_node c, const std::string& model, const std::string& file) {
+    ClothEntry ce;
+    ce.model = model;
+    ce.source = file + " <cloth> on " + std::filesystem::path(model).filename().string();
+    float roots[32];
+    const int n = parse_floats(c.attribute("roots").as_string(), roots, 32);
+    for (int i = 0; i < n; ++i) ce.roots.push_back((int)roots[i]);
+    ce.closed = c.attribute("closed").as_bool(false);
+    ce.stretch = std::clamp(c.attribute("stretch").as_float(1.0f), 0.0f, 1.0f);
+    ce.shear = std::clamp(c.attribute("shear").as_float(0.5f), 0.0f, 1.0f);
+    ce.bend = std::clamp(c.attribute("bend").as_float(0.0f), 0.0f, 1.0f);
+    ce.warned = false;
+    if (ce.roots.size() < 2) { spdlog::warn("ModelExtension: {}: needs roots=, two or more joint numbers", ce.source); return; }
+    for (size_t i = 0; i < ce.roots.size(); ++i) {
+        if (ce.roots[i] < 0 || ce.roots[i] > 255) { spdlog::warn("ModelExtension: {}: root {} isn't a joint number 0-255", ce.source, ce.roots[i]); return; }
+        for (size_t j = 0; j < i; ++j)
+            if (ce.roots[j] == ce.roots[i]) { spdlog::warn("ModelExtension: {}: root {} is listed twice", ce.source, ce.roots[i]); return; }
+    }
+    for (const ClothEntry& o : g_cloth_entries)
+        if (o.model == model)
+            for (int r : o.roots)
+                if (std::find(ce.roots.begin(), ce.roots.end(), r) != ce.roots.end()) {
+                    spdlog::warn("ModelExtension: {}: root {} is already in another <cloth> ({}); a tendril takes one, the first listed", ce.source, r, o.source);
+                    return;
+                }
+    g_cloth_entries.push_back(std::move(ce));
+}
 } // namespace
 
 // The lists: nativePC\model_ext\*.xml (ModelExtension.hpp):
@@ -976,6 +1180,14 @@ void reload() {
     g_cns_entries.clear();
     g_link_entries.clear();
     g_shape_entries.clear();
+    {
+        std::lock_guard<std::mutex> plock(g_physics_lock);   // the hooks read the entries
+        g_any_physics.store(false, std::memory_order_release);
+        g_physics_entries.clear();
+        g_physics_cache.clear();
+        chain_solver::forget_all();
+    }
+    g_cloth_entries.clear();
     if (fs::exists(folder)) {
         std::vector<std::string> files;
         for (const fs::directory_entry& e : fs::directory_iterator(folder))
@@ -1011,6 +1223,8 @@ void reload() {
                     if (tag == "pin" || tag == "aim" || tag == "offset") parse_cns(c, model, name);
                     else if (tag == "link") parse_link(c, model, name);
                     else if (tag == "shape") parse_shape(c, model, name);
+                    else if (tag == "physics") parse_physics(c, model, name);
+                    else if (tag == "cloth") parse_cloth(c, model, name);
                 }
             }
             int n = 0;
@@ -1021,12 +1235,13 @@ void reload() {
                 g_hide_entries.push_back({ path, name });
             }
         }
-        spdlog::info("ModelExtension: {} chain(s), {} attachment(s), {} constraint(s), {} link(s), {} shape(s), {} hidden model(s) listed in {}",
+        spdlog::info("ModelExtension: {} chain(s), {} attachment(s), {} constraint(s), {} link(s), {} shape(s), {} physics, {} cloth(s), {} hidden model(s) listed in {}",
                      g_entries.size(), g_attach_entries.size(), g_cns_entries.size(), g_link_entries.size(), g_shape_entries.size(),
-                     g_hide_entries.size(), folder);
+                     g_physics_entries.size(), g_cloth_entries.size(), g_hide_entries.size(), folder);
     } else {
         spdlog::info("ModelExtension: no {} folder, nothing listed", folder);
     }
+    g_any_physics.store(!g_physics_entries.empty(), std::memory_order_release);
     for (const auto& [m, p] : g_models)              // the models already out get the new lists next frame (not our old
         if (!model_attach::is_attachment(m)) g_pending.push_back(m);   // attachments: they're dying, new ones queue themselves)
 }
@@ -1070,6 +1285,18 @@ void write_example() {
            "    <offset joint=\"42\" scale=\"1.5\"/>\n"
            "  </model>\n"
            "  -->\n"
+           "  <!-- Nero's coat (the game's own six coat chains) on the hook's chain solver: substeps, every segment colliding,\n"
+           "       the floor under it, a little pull toward the animated shape (one <physics> per chain file):\n"
+           "  <model path=\"model\\game\\pl000\\pl000_03\">\n"
+           "    <physics clt=\"model\\game\\pl000\\pl000_03_00\" ground=\"true\" stiffness=\"0.05\"/>\n"
+           "  </model>\n"
+           "  -->\n"
+           "  <!-- the coat's six tails (all on the hook's solver: a <physics> per chain file) joined into one sheet; roots are the\n"
+           "       first joint of each tail, in order across the coat:\n"
+           "  <model path=\"model\\game\\pl000\\pl000_03\">\n"
+           "    <cloth roots=\"1 8 14 20 26 32\" stretch=\"1\" shear=\"0.5\"/>\n"
+           "  </model>\n"
+           "  -->\n"
            "  <!-- morph targets (shape keys exported by Albam) on a model, their weights played from a .shw, looping:\n"
            "  <model path=\"model\\game\\pl000\\pl000\">\n"
            "    <shape shp=\"model\\game\\pl000\\pl000\" shw=\"model\\game\\pl000\\pl000_idle\" speed=\"1\"/>\n"
@@ -1105,6 +1332,10 @@ std::optional<std::string> ModelExtension::on_initialize() {
     // the links' pass after a model's world pass (detour_world_matrix); without it the rest still works
     if (!install_hook_absolute(0x9EA8B0, hook_world_matrix, &detour_world_matrix, &orig_world_matrix))
         spdlog::error("ModelExtension: failed to hook uModel::updateWorldMatrix (0x9EA8B0): <link> entries do nothing");
+    // our chain solver for the chains a <physics> entry names (detour_chain_move / detour_chain_joint)
+    if (!install_hook_absolute(0x42DB00, hook_chain_move, &detour_chain_move, &orig_chain_move)
+        || !install_hook_absolute(0x430A00, hook_chain_joint, &detour_chain_joint, &orig_chain_joint))
+        spdlog::error("ModelExtension: failed to hook cCnsChain::move / calcJoint (0x42DB00 / 0x430A00): <physics> entries do nothing");
     reload();
     return Mod::on_initialize();
 }
@@ -1226,6 +1457,33 @@ void ModelExtension::on_gui_frame(int display) {
                               l.runs < 0 ? "(measuring)" : l.runs ? "ModelExtension" : "the game");
         }
         ImGui::TreePop();
+    }
+    {
+        int solved = 0;
+        {
+            std::lock_guard<std::mutex> plock(g_physics_lock);
+            for (const auto& [c, pc] : g_physics_cache) solved += pc.entry >= 0;
+        }
+        if (ImGui::TreeNode("Physics", _("%d physics entr(ies) listed, %d chain(s) on our solver"), (int)g_physics_entries.size(), solved)) {
+            for (const PhysicsEntry& pe : g_physics_entries) {
+                char damping[16] = "auto";
+                if (pe.settings.damping >= 0.0f) snprintf(damping, sizeof(damping), "%.2f", pe.settings.damping);
+                ImGui::BulletText("%s on %s: substeps %d, stiffness %.2f, pin %.2f, damping %s, limit %.0f, ground %s, self %s  (%s)", pe.clt.c_str(),
+                                  pe.model.c_str(), pe.settings.substeps, pe.settings.stiffness, pe.settings.pin, damping, pe.settings.limit,
+                                  pe.settings.ground ? "on" : "off", pe.settings.self ? "on" : "off", pe.source.c_str());
+            }
+            ImGui::BulletText(_("last tendril / sheet solve: %.3f ms"), chain_solver::stats().last_ms);
+            ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("Cloth", _("%d cloth sheet(s) listed, %d live"), (int)g_cloth_entries.size(), g_cloths_live)) {
+            for (const ClothEntry& ce : g_cloth_entries) {
+                std::string roots;
+                for (int r : ce.roots) roots += (roots.empty() ? "" : " ") + std::to_string(r);
+                ImGui::BulletText("%s: roots %s%s, stretch %.2f, shear %.2f, bend %.2f  (%s)", ce.model.c_str(), roots.c_str(),
+                                  ce.closed ? " (closed)" : "", ce.stretch, ce.shear, ce.bend, ce.source.c_str());
+            }
+            ImGui::TreePop();
+        }
     }
     if (ImGui::TreeNode("Hidden", _("%d model(s) hidden"), (int)g_hide_entries.size())) {
         for (const HideEntry& h : g_hide_entries) {
