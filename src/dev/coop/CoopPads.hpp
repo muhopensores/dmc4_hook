@@ -52,11 +52,21 @@ constexpr uintptr_t kTickSite       = 0x8AEFA1;  // sDevil4Main move loop, befor
 constexpr uintptr_t kKbMergeSite    = 0x7A94A1;  // uPlayer::setInterface: push esi; call setInterfaceInfoKB
 constexpr uintptr_t kKbExceedSite   = 0x7A9440;  // uPlayer::setInterface: the Exceed key's sKeyboard read
 constexpr uintptr_t kVibSite        = 0x7AC130;  // uPlayer::setPadVibration entry
+// The follow camera's keyboard camera keys (cCameraPlayer::moveRightStickAxisX / Y): each loads
+// sKeyboard::mpInstance (6 bytes, mov reg, [0xE559C0]) and tests key bits at +0x120 (held) / +0x160 (pressed). Every
+// player's camera read them, so the keyboard turned all cameras; a camera whose player hasn't the keyboard now reads
+// a blank keyboard (the camera's player: CoopContext::view_slot, -1 = player 1).
+constexpr uintptr_t kKbCamSiteX     = 0x421EBB;  // mov edi
+constexpr uintptr_t kKbCamSiteY     = 0x4224E6;  // mov edx
+constexpr uintptr_t kKbCamSiteY2    = 0x422666;  // mov edi
 constexpr uintptr_t kVibStopSite    = 0x7AB817;  // uPlayer::updateContactInfoSub: stopVibration on the game's pad
 
-extern uintptr_t ret_kb_merge, ret_kb_exceed, ret_vib, ret_vib_stop;
+extern uintptr_t ret_kb_merge, ret_kb_exceed, ret_vib, ret_vib_stop, ret_kb_cam_x, ret_kb_cam_y, ret_kb_cam_y2;
 void detour_kb_merge();
 void detour_kb_exceed();
+void detour_kb_cam_x();
+void detour_kb_cam_y();
+void detour_kb_cam_y2();
 void detour_vib();
 void detour_vib_stop();
 void __stdcall game_tick();

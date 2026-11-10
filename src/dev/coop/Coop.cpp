@@ -511,11 +511,33 @@ void update_revive() {
     }
 }
 
+// Control. uPlayer::main reads the pad only while uPlayer::mIsInterfaceSetting (+0x1509) is set, and the exception
+// inputs while mIsEnableExceptionInput (+0x150A). uPlayer::setup 0x7A7BB9 clears both when sMediator +0xA0 is 1 (a
+// mission that opens on a script: M12), and the mission script's player control commands write them on mpPlayer only
+// (on 0x44BDC6 / 0x44B339, off 0x44BD93): players 2-4 never got control back. They follow player 1's every tick, so
+// they also lose it with him in scripted moments.
+constexpr uintptr_t kInterfaceSetting = 0x1509;
+constexpr uintptr_t kExceptionInput   = 0x150A;
+
+void sync_control() {
+    const uintptr_t p1 = players[0].unit;
+    if (!set_up(p1)) {
+        return;
+    }
+    for (int i = 1; i < (int)Coop::player_num && i < kMaxPlayers; i++) {
+        const uintptr_t pl = players[i].unit;
+        if (!set_up(pl)) continue;
+        *reinterpret_cast<uint8_t*>(pl + kInterfaceSetting) = *reinterpret_cast<uint8_t*>(p1 + kInterfaceSetting);
+        *reinterpret_cast<uint8_t*>(pl + kExceptionInput) = *reinterpret_cast<uint8_t*>(p1 + kExceptionInput);
+    }
+}
+
 void __stdcall coop_game_tick() {
     check_units();
     update_split();
     apply_carry();
     update_revive();
+    sync_control();
     bool extra = false;
     for (int i = 1; i < (int)Coop::player_num && i < kMaxPlayers; i++) {
         extra |= players[i].unit != 0;
@@ -898,6 +920,9 @@ std::optional<std::string> Coop::on_initialize() {
         {coop_pads::kKbMergeSite, &hook_kb_merge, (void*)&coop_pads::detour_kb_merge, &coop_pads::ret_kb_merge, 6, "keyboard merge"},
         {coop_pads::kKbExceedSite, &hook_kb_exceed, (void*)&coop_pads::detour_kb_exceed, &coop_pads::ret_kb_exceed, 6, "keyboard Exceed"},
         {coop_pads::kVibSite, &hook_vib, (void*)&coop_pads::detour_vib, &coop_pads::ret_vib, 10, "rumble"},
+        {coop_pads::kKbCamSiteX, &hook_kb_cam_x, (void*)&coop_pads::detour_kb_cam_x, &coop_pads::ret_kb_cam_x, 6, "camera keys X"},
+        {coop_pads::kKbCamSiteY, &hook_kb_cam_y, (void*)&coop_pads::detour_kb_cam_y, &coop_pads::ret_kb_cam_y, 6, "camera keys Y"},
+        {coop_pads::kKbCamSiteY2, &hook_kb_cam_y2, (void*)&coop_pads::detour_kb_cam_y2, &coop_pads::ret_kb_cam_y2, 6, "camera keys Y 2"},
         {coop_pads::kVibStopSite, &hook_vib_stop, (void*)&coop_pads::detour_vib_stop, &coop_pads::ret_vib_stop, 6, "rumble stop"},
         {0xAC205B, &hook_water, (void*)&detour_water, &jmp_ret_water, 13, "water draw per view"},
         {kFogLoad1, &hook_fog1, (void*)&detour_fog1, &jmp_ret_fog1, 5, "fog per view 1"},

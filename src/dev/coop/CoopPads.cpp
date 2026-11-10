@@ -1,5 +1,6 @@
 #include "CoopPads.hpp"
 #include "Coop.hpp"
+#include "CoopContext.hpp"
 #include <Xinput.h>
 #include <algorithm>
 #include <cmath>
@@ -23,6 +24,9 @@ uintptr_t ret_kb_merge  = 0;
 uintptr_t ret_kb_exceed = 0;
 uintptr_t ret_vib       = 0;
 uintptr_t ret_vib_stop  = 0;
+uintptr_t ret_kb_cam_x  = 0;
+uintptr_t ret_kb_cam_y  = 0;
+uintptr_t ret_kb_cam_y2 = 0;
 
 } // namespace coop_pads
 
@@ -555,6 +559,58 @@ naked_extern void detour_kb_exceed() {
         jmp dword ptr [ret_kb_exceed]
     skip:
         jmp dword ptr [skip_kb_exceed]
+    }
+}
+
+// The cameras' keyboard keys (kKbCamSite*): the real keyboard for the keyboard owner's camera, else a blank one.
+alignas(16) uint8_t blank_keyboard[0x400] = {};
+
+uintptr_t __stdcall camera_keyboard() {
+    const uintptr_t real = *reinterpret_cast<uintptr_t*>(0xE559C0);
+    if (!Coop::mod_enabled) {
+        return real;
+    }
+    const int slot = coop_context::view_slot >= 1 ? coop_context::view_slot : 0;
+    return slot == keyboard_owner ? real : reinterpret_cast<uintptr_t>(blank_keyboard);
+}
+
+naked_extern void detour_kb_cam_x() {   // mov edi, [sKeyboard]
+    __asm {
+        push eax
+        push ecx
+        push edx
+        call camera_keyboard
+        mov edi, eax
+        pop edx
+        pop ecx
+        pop eax
+        jmp dword ptr [ret_kb_cam_x]
+    }
+}
+
+naked_extern void detour_kb_cam_y() {   // mov edx, [sKeyboard]
+    __asm {
+        push eax
+        push ecx
+        call camera_keyboard
+        mov edx, eax
+        pop ecx
+        pop eax
+        jmp dword ptr [ret_kb_cam_y]
+    }
+}
+
+naked_extern void detour_kb_cam_y2() {  // mov edi, [sKeyboard]
+    __asm {
+        push eax
+        push ecx
+        push edx
+        call camera_keyboard
+        mov edi, eax
+        pop edx
+        pop ecx
+        pop eax
+        jmp dword ptr [ret_kb_cam_y2]
     }
 }
 
