@@ -73,6 +73,17 @@ extern int view_slot;
 // sCamera::isDispSphere against viewport `slot` (MtSphere: x y z r).
 bool sphere_in_viewport(const void* camera_system, int slot, const float* sphere);
 
+// Enemies (step 4a): each enemy unit, its shells and the boss Dante's shots update in the context of the player it is
+// after (enter(); none for player 1). Kept per enemy, picked once a game tick: the nearest player, switching only to
+// one clearly nearer (0.7 of the distance) and not within 60 ticks of the last switch; a hit sets it to the attacker
+// for 180 ticks, a Nero's grab to the holder. The enemy's own lock-on targets are refilled for that player by its
+// update; player 1's values for them are computed again when it ends.
+// Hits (step 4e): uActor::damagePreMessage 0x4A7F30 (edi = the actor hit, stack: attacker group, target group; called
+// only from sCollisionGame::checkAttackObj 0x47C4A7, main thread, outside unit updates) runs in the context of the
+// player hit, else of the attacking player (cCollisionGroup +0x98 -> uCollisionMgr +0xD8 mpReportActor), so damage,
+// Devil Trigger gain, style and the reactions read the right player. True when it swapped (leave() after).
+bool hit_enter(uintptr_t attacker_group, uintptr_t target);
+
 // Readout.
 uint32_t swaps_last_frame();
 // The grab hit wrapper reports each hit (game thread): the hand's Nero, whether it swapped, the target group.

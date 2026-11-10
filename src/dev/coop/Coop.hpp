@@ -61,8 +61,8 @@ public:
 
 private:
     std::unique_ptr<FunctionHook> hook2, hook5;
-    std::unique_ptr<FunctionHook> hook_kb_merge, hook_kb_exceed, hook_vib, hook_vib_stop;
-    std::unique_ptr<FunctionHook> hook_water, hook_unit_init, hook_unit_tick, hook_unit_pass2, hook_unit_pass3, hook_grab_hit, hook_set_game_system,
+    std::unique_ptr<FunctionHook> hook_kb_merge, hook_kb_exceed, hook_vib, hook_vib_stop, hook_fog1, hook_fog2;
+    std::unique_ptr<FunctionHook> hook_water, hook_unit_init, hook_unit_tick, hook_unit_pass2, hook_unit_pass3, hook_grab_hit, hook_damage_pre, hook_set_game_system,
         hook_lock_on, hook_common_save, hook_dante_save, hook_nero_save, hook_disp_sphere;
     std::unique_ptr<Patch> patch1;
 };

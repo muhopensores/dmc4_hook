@@ -132,19 +132,22 @@ uCameraCtrl* make_cam() {
     return cam;
 }
 
-void apply_viewport_layout() {
+const int kModes[3][4] = {
+    {REGION_TOP, REGION_BOTTOM, 0, 0},
+    {REGION_TOPLEFT, REGION_TOPRIGHT, REGION_BOTTOMLEFT, 0},
+    {REGION_TOPLEFT, REGION_TOPRIGHT, REGION_BOTTOMLEFT, REGION_BOTTOMRIGHT},
+};
+
+// The split layout. `main_camera`: viewport 0 also gets player 1's follow camera (a new main camera, the Refresh
+// button); otherwise viewport 0 keeps the camera it has (a boss camera).
+void apply_viewport_layout(bool main_camera = true) {
     sCamera* s_cam = *(sCamera**)sCamera_ptr;
     if (!s_cam) {
         return;
     }
-    static const int kModes[3][4] = {
-        {REGION_TOP, REGION_BOTTOM, 0, 0},
-        {REGION_TOPLEFT, REGION_TOPRIGHT, REGION_BOTTOMLEFT, 0},
-        {REGION_TOPLEFT, REGION_TOPRIGHT, REGION_BOTTOMLEFT, REGION_BOTTOMRIGHT},
-    };
     const int n = (int)Coop::player_num;
     for (int i = 0; i < n; i++) {
-        if (i > 0 || players[0].cam) {   // viewport 0 keeps the game's camera until Coop knows player 1's
+        if (i > 0 || (main_camera && players[0].cam)) {   // viewport 0 keeps the game's camera until Coop knows player 1's
             s_cam->viewports[i].mpCamera = players[i].cam;
         }
         s_cam->viewports[i].mAttr = 0x17;
@@ -168,26 +171,111 @@ void apply_single_view() {
     }
 }
 
-// The split screen follows the game: split while a player 2-4 has his unit and camera and the game isn't paused (the
-// pause menu and its screens draw in view 0, which then was a half). Only on a change, so a camera event's own
-// viewport changes in between are left alone ("Refresh cameras" puts the split back). Entering a mission split only
-// after "Refresh cameras" before: the extra camera's setup took its viewport but nothing set the modes.
+// Viewport 0 shows a player's view: player 1's follow camera, or the boss camera (sMediator +0xD4, uCameraBoss::setup
+// 0x4C39E0; it stays player 1's, the others keep their follow cameras). Anything else there is an event camera
+// (uIdCamera 0x7495C0, uItemGetCamera, uPowerUpCamera, uGameOverCamera, uMotionCamera ...: their setup puts them on
+// viewport 0 through sCamera::setCamera and their end puts the saved camera back).
+bool player_view_on_main(const sCamera* s_cam) {
+    const void* cam0 = s_cam->viewports[0].mpCamera;
+    if (!cam0) {
+        return false;
+    }
+    if (cam0 == players[0].cam) {
+        return true;
+    }
+    const uintptr_t med = *(uintptr_t*)sMediator_ptr;
+    return med && cam0 == *(void**)(med + 0xD4);
+}
 
+// The split's modes or extra cameras were changed under it: uCameraCtrl::resumeCamera 0x4F7B50 / resetCamera 0x4F7A90
+// (portals, the end of an event) set viewport 0 back to the whole screen.
+bool layout_broken(const sCamera* s_cam) {
+    const int n = (int)Coop::player_num;
+    if (s_cam->viewports[0].mMode != (uint8_t)kModes[n - 2][0]) {
+        return true;
+    }
+    for (int i = 1; i < n && i < kMaxPlayers; i++) {
+        if (players[i].cam && s_cam->viewports[i].mpCamera != players[i].cam) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// The split screen follows the game, checked every game tick: split while a player 2-4 has his unit and camera, the
+// game isn't paused (the pause menu and its screens draw in view 0) and viewport 0 shows a player's view; else player
+// 1's view on the whole screen, so events and cutscenes play full screen. While split, a layout the game changed is
+// put back (no Refresh needed after a portal or an event).
 void update_split() {
+    sCamera* s_cam = *(sCamera**)sCamera_ptr;
+    if (!s_cam) {
+        return;
+    }
     bool extra = false;
     for (int i = 1; i < (int)Coop::player_num && i < kMaxPlayers; i++) {
         extra |= players[i].unit != 0 && players[i].cam != nullptr;
     }
-    const bool want = extra && !devil4_sdk::is_paused();
-    if (want == coop_hud::split_shown) {
-        return;
-    }
+    const bool want = extra && !devil4_sdk::is_paused() && player_view_on_main(s_cam);
     if (want) {
-        apply_viewport_layout();
-    } else {
+        if (!coop_hud::split_shown || layout_broken(s_cam)) {
+            apply_viewport_layout(false);
+            coop_hud::split_shown = true;
+        }
+    } else if (coop_hud::split_shown) {
         apply_single_view();
+        coop_hud::split_shown = false;
     }
-    coop_hud::split_shown = want;
+}
+
+// uCameraCtrl::sync 0x4F90B0 writes its fog (sCamera +0x1E0..+0x21C = viewport 0's +0x1B0..+0x1EC: mFogStart / End,
+// the plane, the colour ...) into viewport 0 three times, after loading sCamera::mpInstance at 0x4F94F2 and 0x4F985A
+// (A1 D4 52 E5 00; the third block at 0x4F9A18 reuses the second load). An extra camera's sync runs in its context,
+// so the load is moved to its viewport (sCamera + slot * 0x590): his view had no fog of its own and player 1's
+// changed with player 2's room.
+constexpr uintptr_t kFogLoad1 = 0x4F94F2;
+constexpr uintptr_t kFogLoad2 = 0x4F985A;
+uintptr_t jmp_ret_fog1 = 0, jmp_ret_fog2 = 0;
+
+naked_extern void detour_fog1() {
+    __asm {
+        pushfd
+        push ecx
+        mov ecx, 0xE552D4
+        mov ecx, [ecx]
+        mov eax, [coop_context::view_slot]
+        cmp eax, 1
+        jl own_view
+        imul eax, eax, 0x590
+        add eax, ecx
+        jmp done
+    own_view:
+        mov eax, ecx
+    done:
+        pop ecx
+        popfd
+        jmp dword ptr [jmp_ret_fog1]
+    }
+}
+
+naked_extern void detour_fog2() {
+    __asm {
+        pushfd
+        push ecx
+        mov ecx, 0xE552D4
+        mov ecx, [ecx]
+        mov eax, [coop_context::view_slot]
+        cmp eax, 1
+        jl own_view
+        imul eax, eax, 0x590
+        add eax, ecx
+        jmp done
+    own_view:
+        mov eax, ecx
+    done:
+        pop ecx
+        popfd
+        jmp dword ptr [jmp_ret_fog2]
+    }
 }
 
 void __stdcall setup_cam(void* cam) {
@@ -462,6 +550,34 @@ int __fastcall grab_hit_message(uintptr_t clsn, uintptr_t edx, void* group, void
     return result;
 }
 
+// uActor::damagePreMessage (edi = the actor hit; stack: attacker group, target group; retn 8): the hit in the context
+// of the player it counts for (CoopContext::hit_enter).
+constexpr uintptr_t kDamagePreMessage = 0x4A7F30;
+uintptr_t damage_pre_original = 0;
+
+bool __stdcall damage_enter(uintptr_t attacker_group, uintptr_t target) {
+    return Coop::mod_enabled && coop_context::hit_enter(attacker_group, target);
+}
+
+naked_extern void detour_damage_pre() {
+    __asm {
+        push edi
+        push dword ptr [esp+8]
+        call damage_enter
+        test al, al
+        jz plain
+        push dword ptr [esp+8]
+        push dword ptr [esp+8]
+        call dword ptr [damage_pre_original]
+        push eax
+        call context_leave
+        pop eax
+        ret 8
+    plain:
+        jmp dword ptr [damage_pre_original]
+    }
+}
+
 // uPlayer::setGameSystem 0x7A91C0 (vtable slot 93, run when a player is set up): sMediator::mpPlayer = this, then
 // sub_4A5AA0 resets sStylishCount (the style meter). Players 2-4 skip it, or the last one spawned becomes the game's
 // player for every mpPlayer read outside CoopContext's swaps (player 1's Snatch took player 2's arm return point, his
@@ -612,6 +728,8 @@ std::optional<std::string> Coop::on_initialize() {
         {coop_pads::kVibSite, &hook_vib, (void*)&coop_pads::detour_vib, &coop_pads::ret_vib, 10, "rumble"},
         {coop_pads::kVibStopSite, &hook_vib_stop, (void*)&coop_pads::detour_vib_stop, &coop_pads::ret_vib_stop, 6, "rumble stop"},
         {0xAC205B, &hook_water, (void*)&detour_water, &jmp_ret_water, 13, "water draw per view"},
+        {kFogLoad1, &hook_fog1, (void*)&detour_fog1, &jmp_ret_fog1, 5, "fog per view 1"},
+        {kFogLoad2, &hook_fog2, (void*)&detour_fog2, &jmp_ret_fog2, 5, "fog per view 2"},
         {0x8DC324, &hook_unit_init, (void*)&detour_unit_init, &jmp_ret_unit_init, 9, "unit init context"},
         {0x8DC39C, &hook_unit_tick, (void*)&detour_unit_tick, &jmp_ret_unit_tick, 9, "unit tick context"},
         {0x8DC44B, &hook_unit_pass2, (void*)&detour_unit_pass2, &jmp_ret_unit_pass2, 9, "unit pass 2 context"},
@@ -629,6 +747,12 @@ std::optional<std::string> Coop::on_initialize() {
         return "Failed to init Coop: grab hit context";
     }
     grab_hit_original = hook_grab_hit->get_original<std::remove_pointer_t<GrabHitFn>>();
+    hook_damage_pre = std::make_unique<FunctionHook>(kDamagePreMessage, (uintptr_t)&detour_damage_pre);
+    if (!hook_damage_pre->create()) {
+        spdlog::error("Failed to init Coop (hit context)\n");
+        return "Failed to init Coop: hit context";
+    }
+    damage_pre_original = hook_damage_pre->get_original();
     hook_set_game_system = std::make_unique<FunctionHook>(kSetGameSystem, (uintptr_t)&set_game_system);
     if (!hook_set_game_system->create()) {
         spdlog::error("Failed to init Coop (setGameSystem)\n");
