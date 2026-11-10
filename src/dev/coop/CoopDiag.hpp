@@ -1,7 +1,7 @@
 #pragma once
 
-// CoopDiag: the measurements the player-context step needs, and the serial context lines: on by the toggle, and forced
-// on by Coop while players 2-4 are in the room (CoopContext swaps mpPlayer at the serial call sites only).
+// CoopDiag: the measurements the player-context step needs, and the serial context lines: on by default (the toggle),
+// and forced on by Coop while players 2-4 are in the room (CoopContext swaps mpPlayer at the serial call sites only).
 //
 // sUnit runs its 32 move lines through the job threads when a line's mParallel bit is set (sUnit::sUnit 0x8DBF20 sets it
 // on every line; RE note Vibed\RE\sunit_moveline_findings.md). Swapping sMediator's mpPlayer / mpCamera around each
@@ -18,6 +18,7 @@ void set_serial(bool serial);
 void set_forced(bool forced);
 bool serial_now();
 void game_tick();   // applies the line flags; game thread only (the game ORs mPause into the same dword)
+void release();     // the saved threading back, when Coop is turned off (its game tick stops)
 void on_frame(float ms);
 void draw();
 

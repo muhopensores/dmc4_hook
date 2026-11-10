@@ -35,6 +35,8 @@ uintptr_t Coop::jmp_ret_water = NULL;
 uintptr_t Coop::jmp_ret_unit_tick = NULL;
 uintptr_t Coop::jmp_ret_unit_pass2 = NULL;
 uintptr_t Coop::jmp_ret_unit_pass3 = NULL;
+uintptr_t Coop::jmp_ret_unit_init = NULL;
+bool Coop::site_hooks = true;
 
 namespace coop {
 
@@ -238,6 +240,8 @@ naked_extern void detour3() {
     __asm {
         cmp byte ptr [Coop::mod_enabled], 1
         jne originalcode
+        cmp byte ptr [Coop::site_hooks], 1
+        jne originalcode
         push edi
         call get_pl_from_cam
         test eax, eax
@@ -255,6 +259,8 @@ naked_extern void detour3() {
 naked_extern void detour4() {
     __asm {
         cmp byte ptr [Coop::mod_enabled], 1
+        jne originalcode
+        cmp byte ptr [Coop::site_hooks], 1
         jne originalcode
         push eax
         push esi
@@ -304,6 +310,8 @@ naked_extern void detour6() {
     __asm {
         cmp byte ptr [Coop::mod_enabled], 1
         jne originalcode
+        cmp byte ptr [Coop::site_hooks], 1
+        jne originalcode
         push esi
         call get_pad_from_cam
         test eax, eax
@@ -321,6 +329,8 @@ naked_extern void detour6() {
 naked_extern void detour7() {
     __asm {
         cmp byte ptr [Coop::mod_enabled], 1
+        jne originalcode
+        cmp byte ptr [Coop::site_hooks], 1
         jne originalcode
         push esi
         call get_cam_from_pl
@@ -343,6 +353,8 @@ naked_extern void detour8() {
     __asm {
         cmp byte ptr [Coop::mod_enabled], 1
         jne originalcode
+        cmp byte ptr [Coop::site_hooks], 1
+        jne originalcode
         push ebx
         call get_pl_from_cam
         jmp handle
@@ -357,6 +369,8 @@ naked_extern void detour8() {
 naked_extern void detour9() {
     __asm {
         cmp byte ptr [Coop::mod_enabled], 1
+        jne originalcode
+        cmp byte ptr [Coop::site_hooks], 1
         jne originalcode
         push ebx
         call get_pl_from_cam
@@ -373,6 +387,8 @@ naked_extern void detour10() {
     __asm {
         cmp byte ptr [Coop::mod_enabled], 1
         jne originalcode
+        cmp byte ptr [Coop::site_hooks], 1
+        jne originalcode
         push ebx
         call get_pl_from_cam
         jmp handle
@@ -388,6 +404,8 @@ naked_extern void detour10() {
 naked_extern void detour11() {
     __asm {
         cmp byte ptr [Coop::mod_enabled], 1
+        jne originalcode
+        cmp byte ptr [Coop::site_hooks], 1
         jne originalcode
         push edi
         mov edi, eax
@@ -443,9 +461,30 @@ void __stdcall context_leave() {
     coop_context::leave();
 }
 
-// sUnit::move's serial unit tick (esi = unit), pass 2 (edi = unit) and pass 3 (esi = unit): the unit's update between
+// sUnit::move's unit init (esi = unit), serial tick (esi), pass 2 (edi) and pass 3 (esi): the unit's update between
 // the context swap.
 // eax / ecx / edx are free afterwards (the next instruction reloads sDevil4Main); the stdcall helpers keep the rest.
+naked_extern void detour_unit_init() {
+    __asm {
+        cmp byte ptr [Coop::mod_enabled], 1
+        jne originalcode
+        push esi
+        call context_enter
+        mov eax, [esi]
+        mov edx, [eax+0x14]
+        mov ecx, esi
+        call edx
+        call context_leave
+        jmp dword ptr [Coop::jmp_ret_unit_init]
+    originalcode:
+        mov eax, [esi]
+        mov edx, [eax+0x14]
+        mov ecx, esi
+        call edx
+        jmp dword ptr [Coop::jmp_ret_unit_init]
+    }
+}
+
 naked_extern void detour_unit_tick() {
     __asm {
         cmp byte ptr [Coop::mod_enabled], 1
@@ -555,11 +594,16 @@ using UpdateLockOnFn = void*(__fastcall*)(uintptr_t player, uintptr_t edx);
 UpdateLockOnFn update_lock_on_original = nullptr;
 
 void* __fastcall update_lock_on(uintptr_t player, uintptr_t edx) {
-    if (!Coop::mod_enabled || !coop_context::lock_on_begin(player)) {
+    if (!Coop::mod_enabled) {
         return update_lock_on_original(player, edx);
     }
+    coop_context::inter_flags_for(player);
+    const bool began = coop_context::lock_on_begin(player);
     void* result = update_lock_on_original(player, edx);
-    coop_context::lock_on_end();
+    coop_context::lock_on_report(player);
+    if (began) {
+        coop_context::lock_on_end();
+    }
     return result;
 }
 
@@ -632,6 +676,7 @@ void Coop::toggle(bool enable) {
     } else {
         patch1.reset();
         coop_pads::stop_all();
+        coop_diag::release();   // Coop's game tick no longer runs: put the lines' threading back now
     }
     CharSwitcher::blocked = enable; // it swaps the game's player too: CharSwitcher turns itself off on its next frame
 }
@@ -657,6 +702,7 @@ std::optional<std::string> Coop::on_initialize() {
         {coop_pads::kVibSite, &hook_vib, (void*)&coop_pads::detour_vib, &coop_pads::ret_vib, 10, "rumble"},
         {coop_pads::kVibStopSite, &hook_vib_stop, (void*)&coop_pads::detour_vib_stop, &coop_pads::ret_vib_stop, 6, "rumble stop"},
         {0xAC205B, &hook_water, (void*)&detour_water, &jmp_ret_water, 13, "water draw per view"},
+        {0x8DC324, &hook_unit_init, (void*)&detour_unit_init, &jmp_ret_unit_init, 9, "unit init context"},
         {0x8DC39C, &hook_unit_tick, (void*)&detour_unit_tick, &jmp_ret_unit_tick, 9, "unit tick context"},
         {0x8DC44B, &hook_unit_pass2, (void*)&detour_unit_pass2, &jmp_ret_unit_pass2, 9, "unit pass 2 context"},
         {0x8DC4C4, &hook_unit_pass3, (void*)&detour_unit_pass3, &jmp_ret_unit_pass3, 9, "unit pass 3 context"},
@@ -774,21 +820,6 @@ void Coop::on_gui_frame(int display) {
     }
     ImGui::SameLine();
     help_marker(_("Give every camera its viewport again, after a camera event took the screen back"));
-    if (ImGui::Button(_("Spawn Nero as player 2"))) {
-        spawn_player(0, 1);
-        players[1].cam = make_cam();
-        apply_viewport_layout();
-    }
-    ImGui::SameLine();
-    help_marker(_("Spawn player 2 now instead of waiting for the next stage"));
-    ImGui::SameLine(sameLineWidth + lineIndent);
-    if (ImGui::Button(_("Spawn Dante as player 2"))) {
-        spawn_player(1, 1);
-        players[1].cam = make_cam();
-        apply_viewport_layout();
-    }
-    ImGui::SameLine();
-    help_marker(_("Spawn player 2 now instead of waiting for the next stage"));
 
     if (ImGui::TreeNode(_("Diagnostics"))) {
         if (ImGui::Checkbox(_("Serial context lines"), &coop_diag::serial_lines)) {
@@ -796,8 +827,13 @@ void Coop::on_gui_frame(int display) {
         }
         ImGui::SameLine();
         help_marker(_("Runs the player, stand, enemy, camera and HUD move lines one unit at a time instead of on the job "
-                      "threads. Compare the frame time with it on and off in a busy fight. They run that way anyway "
-                      "while players 2-4 are in the room, so enemies the other players grab follow them"));
+                      "threads (on by default). They run that way anyway while players 2-4 are in the room: the players' "
+                      "cameras, lock-on and grabs need it. Off only to compare frame times"));
+        ImGui::Checkbox(_("Per-site camera hooks"), &site_hooks);
+        ImGui::SameLine();
+        help_marker(_("The older fixes at single spots in the camera, the stick direction and Nero's HUD. The player context "
+                      "now covers them (each player's camera, HUD and moves run with that player as the game's player). "
+                      "Turn this off to test without them; they will be removed once that works"));
         ImGui::Text(_("Lines serial now: %s, context swaps last frame: %u"), coop_diag::serial_now() ? _("yes") : _("no"),
                     coop_context::swaps_last_frame());
         coop_context::draw_diag();

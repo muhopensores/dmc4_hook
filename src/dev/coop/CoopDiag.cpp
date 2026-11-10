@@ -7,7 +7,7 @@
 
 namespace coop_diag {
 
-bool serial_lines = false;
+bool serial_lines = true;
 
 } // namespace coop_diag
 
@@ -80,6 +80,14 @@ void game_tick() {
     const bool want = serial_lines || forced;
     if (want || saved_valid) {
         apply(su, want);   // every tick while serial, in case the game set a line parallel again
+    }
+}
+
+void release() {
+    if (saved_valid) {
+        if (sUnit* su = devil4_sdk::get_sUnit()) {
+            apply(su, false);
+        }
     }
 }
 
