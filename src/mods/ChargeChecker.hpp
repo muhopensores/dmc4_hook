@@ -8,12 +8,14 @@ public:
 
     static bool roundTripCharge_enabled;
     static bool blueRoseCharge_enabled;
+    static bool keepCharge_enabled;
     static uintptr_t jmp_ret;
     static uintptr_t jmp_ret2;
 
     std::string get_mod_name() override { return "ChargeChecker"; };
-    std::vector<std::string> get_search_terms() override { return {"fast round trip charge", "fast blue rose charge"};}
+    std::vector<std::string> get_search_terms() override { return {"fast round trip charge", "fast blue rose charge", "keep charge through doors"};}
     std::optional<std::string> on_initialize() override;
+    void on_stage_end() override;
 
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
@@ -23,4 +25,5 @@ public:
 private:
     std::unique_ptr<FunctionHook> hook;
     std::unique_ptr<FunctionHook> hook2;
+    std::unique_ptr<FunctionHook> hook_cmd;
 };
