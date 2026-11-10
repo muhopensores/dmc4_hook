@@ -353,7 +353,7 @@ struct RunState {                   // what the game's phase word can't hold
     uint32_t last_seen = 0;         // state_for's tick when this player was last seen (eviction order)
 };
 
-RunState g_runs[4];                 // uPlayer objects tracked at once (the player, NPC / boss Dante, a co-op partner ...)
+RunState g_runs[8];                 // uPlayer objects tracked at once (the player, NPC / boss Dante, a co-op partner ...)
 
 // The hooks run for every uPlayer that ticks, and dead players are never reported, so a full table evicts the slot
 // seen longest ago (a live player is seen every tick and keeps its slot). Resetting slot 0 instead let two live

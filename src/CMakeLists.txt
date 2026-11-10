@@ -382,8 +382,6 @@ set(MODS_SRC
   mods/PhotoMode.cpp
   mods/Macro.hpp
   mods/Macro.cpp
-  mods/Coop.hpp
-  mods/Coop.cpp
   mods/StageCallback.hpp
   mods/StageCallback.cpp
   mods/Cock.hpp
@@ -408,6 +406,14 @@ set(DEV_SRC
   dev/file_tracker/FileTracker.cpp
   dev/unit_packs/UnitPacks.hpp
   dev/unit_packs/UnitPacks.cpp
+  dev/coop/Coop.hpp
+  dev/coop/Coop.cpp
+  dev/coop/CoopPads.hpp
+  dev/coop/CoopPads.cpp
+  dev/coop/CoopDiag.hpp
+  dev/coop/CoopDiag.cpp
+  dev/coop/CoopContext.hpp
+  dev/coop/CoopContext.cpp
 )
 
 set(HOOKS_SRC

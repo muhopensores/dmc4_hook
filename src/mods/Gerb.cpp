@@ -62,7 +62,7 @@ void request_motion(uintptr_t pl, int motion, uint32_t attr, float interp, float
     devil4_sdk::indexed_anim_call(motion, (uPlayer*)pl, attr, speed, start, interp);
 }
 
-constexpr int kPlayerSlots = 4;        // uPlayer objects tracked at once (the player, NPC / boss Dante, a co-op partner ...)
+constexpr int kPlayerSlots = 8;        // uPlayer objects tracked at once (the player, NPC / boss Dante, a co-op partner ...)
 // The cancel window the game's own way (MoveDef D11): one in-memory .ctn script per player slot (sdk/CtnScript.hpp):
 // wait(cancel_frame), then every cancel category opened; the bytes must outlive the motion, so they're static.
 static ctn::Script g_cancel_scripts[kPlayerSlots];

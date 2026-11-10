@@ -35,12 +35,21 @@ constexpr uint32_t  kSlotBit[kSlots] = { 0x8000, 0x4000, 0x1000, 0x2000 };   // 
 const char* const kSlotButton[kSlots] = { "Swordmaster button (d-pad up)", "Gunslinger button (d-pad right)",
                                           "Trickster button (d-pad left)", "Royal Guard button (d-pad down)" };
 
-int g_selected = BASE + SLOT_SM;   // the chosen style value, one for the game (as Dante's save slot holds one); the Devil Bringer at first
+// The chosen style value per player, by uPlayer::padID (+0x1405: 0 = player 1, co-op's players 2-4 = 1-3); player 1's is
+// the one saved. The Devil Bringer at first.
+constexpr uintptr_t kPadID = 0x1405;
+constexpr int       kPads  = 4;
+int g_selected[kPads] = { BASE + SLOT_SM, BASE + SLOT_SM, BASE + SLOT_SM, BASE + SLOT_SM };
+
+int& selected_for(uintptr_t pl) {
+    const uint8_t id = at<uint8_t>(pl, kPadID);
+    return g_selected[id < kPads ? id : 0];
+}
 uint32_t g_presses = 0, g_switches = 0;   // readout
 
 // The cooldown per Nero player object (co-op or a new object after a load each get their own).
 struct State { uintptr_t player = 0; int pending = NONE; float timer = 0.0f; uint32_t last_seen = 0; };
-State g_states[4];
+State g_states[8];
 
 State& state_for(uintptr_t pl) {
     static uint32_t tick = 0;
@@ -53,7 +62,7 @@ State& state_for(uintptr_t pl) {
     }
     *victim = State{};
     victim->player = pl;
-    victim->pending = g_selected;
+    victim->pending = selected_for(pl);
     victim->last_seen = tick;
     return *victim;
 }
@@ -66,29 +75,30 @@ const char* name_of(int value) {
     return slots[slot].name[0] ? slots[slot].name : kSlotButton[slot];
 }
 
-void apply_bringer_rows();   // below
+void apply_bringer_rows(int selected);   // below
 
 // The pre-check tick (after executeCommandCheck): the press, the cooldown, the field.
 void tick(uintptr_t pl) {
     if (!mod_enabled || !is_nero(pl)) return;
     State& s = state_for(pl);
+    int& sel = selected_for(pl);
     if (s.timer > 0.0f) s.timer -= at<float>(pl, pl::m_delta_time);
     const uint32_t trg = at<uint32_t>(pl, pl::mBtnTrg);
     for (int i = 0; i < kSlots; ++i) {
         if (!(trg & kSlotBit[i]) || !slots[i].enabled) continue;
         const int v = value_of(i);
-        s.pending = (press_again_clears && v == g_selected) ? NONE : v;
+        s.pending = (press_again_clears && v == sel) ? NONE : v;
         ++g_presses;
         break;
     }
-    if (s.timer <= 0.0f && s.pending != g_selected) {
-        g_selected = s.pending;
+    if (s.timer <= 0.0f && s.pending != sel) {
+        sel = s.pending;
         s.timer = cooldown_frames;
         ++g_switches;
     }
     int& st = at<int>(pl, kStyle);
-    if (st != g_selected) st = g_selected;     // also the write-back on a new player object (the constructor's -1)
-    apply_bringer_rows();
+    if (st != sel) st = sel;     // also the write-back on a new player object (the constructor's -1)
+    apply_bringer_rows(sel);     // the table is shared: set for this Nero, whose attack check comes next in his update
 }
 
 // Nero's own Devil Bringer rows: attr 4 / 5 with ids 1 Snatch, 2 air Snatch, 5 Buster, 6 air Buster (rows 27-34 of the
@@ -98,9 +108,10 @@ void tick(uintptr_t pl) {
 // handles (checkAtck 0x803B70 only compares attr with 3, the terminator, and 2). Walked in MoveTable's copy (the added rows
 // in front); ids past 0x33 are added rows and stay as their mods wrote them. Run every pre-check tick: the switch is live.
 constexpr uint32_t kAttrOff = 2;   // 4 -> 6, 5 -> 7
-void apply_bringer_rows() {
+bool rows_on_for(int selected) { return !(mod_enabled && gate_bringer) || selected == value_of(bringer_slot); }
+void apply_bringer_rows(int selected) {
     if (!HookNeroKADTbl) return;
-    const bool on = bringer_rows_on();
+    const bool on = rows_on_for(selected);
     kAtckDefTbl* row = (kAtckDefTbl*)HookNeroKADTbl;
     for (int i = 0; i < 256 && row->atckAttr != 3; ++i, ++row) {
         if (row->atckId > 0x33) continue;
@@ -111,7 +122,7 @@ void apply_bringer_rows() {
 
 // The style words of the gated rows follow the mod (and the field goes back to -1 when the mod is turned off).
 void apply(bool reset_field) {
-    apply_bringer_rows();
+    apply_bringer_rows(g_selected[0]);
     gerb::apply_row();
     gunslinger::apply_row();
     if (reset_field)
@@ -121,11 +132,11 @@ void apply(bool reset_field) {
 } // namespace
 
 int value_of(int slot) { return (slot < 0 || slot >= kSlots) ? NONE : BASE + slot; }
-int selected() { return mod_enabled ? g_selected : NONE; }
+int selected() { return mod_enabled ? g_selected[0] : NONE; }
 int current(uintptr_t player) { return (mod_enabled && is_nero(player)) ? at<int>(player, kStyle) : NONE; }
 uint32_t gerb_condition() { return (mod_enabled && gate_gerb) ? (uint32_t)value_of(gerb_slot) : 0xFFFFFFFFu; }
 uint32_t gunslinger_condition() { return (mod_enabled && gate_gunslinger) ? (uint32_t)value_of(gunslinger_slot) : 0xFFFFFFFFu; }
-bool bringer_rows_on() { return !(mod_enabled && gate_bringer) || g_selected == value_of(bringer_slot); }
+bool bringer_rows_on() { return rows_on_for(g_selected[0]); }
 
 } // namespace nero_style
 
@@ -214,16 +225,16 @@ void NeroStyle::on_gui_frame(int display) {
         ImGui::SameLine();
         help_marker(_("Which style is Gunslinger (value 8 for the fourth slot, d-pad down)."));
     }
-    apply_bringer_rows();  // every frame while the panel is open: cheap, and the rows follow the controls above
-    gerb::apply_row();
+    gerb::apply_row();     // every frame while the panel is open: cheap, and the rows follow the controls above
     gunslinger::apply_row();
 
     if (uPlayer* lp = devil4_sdk::get_local_player()) {    // live readout
         const uintptr_t P = (uintptr_t)lp;
         if (is_nero(P)) {
             const State& s = state_for(P);
+            const int sel = selected_for(P);
             ImGui::Text("style %d (%s) | field %d | pending %d | cooldown %.0f | presses %u switches %u | Bringer rows %s | Gerb rows style %d | Gunslinger rows style %d",
-                        g_selected, name_of(g_selected), at<int>(P, kStyle), s.pending, std::max(s.timer, 0.0f), g_presses, g_switches,
+                        sel, name_of(sel), at<int>(P, kStyle), s.pending, std::max(s.timer, 0.0f), g_presses, g_switches,
                         bringer_rows_on() ? "on" : "off", (int)gerb_condition(), (int)gunslinger_condition());
         } else {
             ImGui::TextUnformatted(_("(the local player isn't Nero)"));
@@ -252,8 +263,9 @@ void NeroStyle::on_config_load(const utility::Config& cfg) {
     gerb_slot          = std::clamp(cfg.get<int>("nero_style_gerb_slot").value_or(gerb_slot), 0, kSlots - 1);
     gate_gunslinger    = cfg.get<bool>("nero_style_gate_gunslinger").value_or(gate_gunslinger);
     gunslinger_slot    = std::clamp(cfg.get<int>("nero_style_gunslinger_slot").value_or(gunslinger_slot), 0, kSlots - 1);
-    g_selected         = cfg.get<int>("nero_style_selected").value_or(g_selected);
-    if (g_selected != NONE && (g_selected < BASE || g_selected >= BASE + kSlots)) g_selected = value_of(bringer_slot);
+    int saved = cfg.get<int>("nero_style_selected").value_or(g_selected[0]);
+    if (saved != NONE && (saved < BASE || saved >= BASE + kSlots)) saved = value_of(bringer_slot);
+    for (int& v : g_selected) v = saved;
     apply(false);
 }
 
@@ -272,5 +284,5 @@ void NeroStyle::on_config_save(utility::Config& cfg) {
     cfg.set<int>("nero_style_gerb_slot", gerb_slot);
     cfg.set<bool>("nero_style_gate_gunslinger", gate_gunslinger);
     cfg.set<int>("nero_style_gunslinger_slot", gunslinger_slot);
-    cfg.set<int>("nero_style_selected", g_selected);
+    cfg.set<int>("nero_style_selected", g_selected[0]);
 }

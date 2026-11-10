@@ -129,7 +129,7 @@ uint8_t g_dt_cancel = 0;   // mod_enabled && dt_cancel_keeps_hold, for the detou
 bool g_test_guard = false; // the GUI's Play Guard Motion: the local Nero's next tick plays the style's guard motion
 
 // ---- Per-player state ---------------------------------------------------------------------------------------------
-constexpr int kPlayerSlots = 4;
+constexpr int kPlayerSlots = 8;
 enum Phase : int { IDLE = 0, ATTACK = 1, FADE = 2 };
 
 struct State {

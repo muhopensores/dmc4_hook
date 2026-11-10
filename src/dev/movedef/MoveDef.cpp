@@ -36,7 +36,7 @@ char folder[128] = "nativePC\\movedef";
 
 namespace {
 
-constexpr int kPlayerSlots = 4;        // uPlayer objects tracked at once per move (the player, NPC / boss copies, a partner)
+constexpr int kPlayerSlots = 8;        // uPlayer objects tracked at once per move (the player, NPC / boss copies, a partner)
 constexpr int PHASE_ENTRY = 0, PHASE_WAIT = 1, PHASE_AIRBORNE = 2;   // the game's mBdyAction[1].phase, zeroed by setAction
 
 constexpr uintptr_t fn_setActionLand    = 0x007AA6A0;   // uPlayer::setActionLand(this@ecx)
@@ -199,7 +199,7 @@ struct Move {
 
     const xmlmove::Stage& stage() const { return def.stages[0]; }
 
-    PlayerState& state_for(uintptr_t p) {           // 4 slots, least-recently-seen eviction (design.md 5b)
+    PlayerState& state_for(uintptr_t p) {           // kPlayerSlots slots, least-recently-seen eviction (design.md 5b)
         ++tick;
         for (PlayerState& s : states) if (s.player == p) { s.last_seen = tick; return s; }
         PlayerState* victim = &states[0];

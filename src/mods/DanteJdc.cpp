@@ -72,9 +72,7 @@ naked void detour1(void) {
 			je originalcode
 
             pushad
-            mov ebp, [static_mediator_ptr] // 0x00E558B8
-            mov ebp, [ebp]
-            mov ebp, [ebp+0x24]
+            mov ebp, esi // the Dante doing the move (sMediator's mpPlayer is player 1 only)
             mov eax, [ebp+0x16D0]
             cmp byte ptr [DanteJdc::alt_input_enabled], 0
             je flagset
@@ -127,9 +125,7 @@ naked void detour2(void) {
 			je originalcode
         
             pushad
-            mov ebp, [static_mediator_ptr]
-            mov ebp, [ebp]
-            mov ebp, [ebp+0x24]
+            mov ebp, esi // the Dante doing the move
             mov al, [jdcFlag]
             test eax, eax
             je handler
@@ -172,9 +168,7 @@ naked void detour3(void) {
 
             push eax
             push ebp
-            mov ebp, [static_mediator_ptr]
-            mov ebp, [ebp]
-            mov ebp, [ebp+0x24]
+            mov ebp, ebx // the Dante that spawned the slash dimension
             cmp dword ptr [ebp+0x00001564], 0x6B
             je handler
             cmp dword ptr [ebp+0x00001564], 0x6C

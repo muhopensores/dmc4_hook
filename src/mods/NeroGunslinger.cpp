@@ -412,7 +412,7 @@ constexpr int PHASE_GROUND = 1;    // the neutral ground shot's (its own move id
 constexpr int PHASE_SPIN  = 2;     // the neutral shot held: the spin
 constexpr int kAirTicks   = 4;     // ticks off the ground before the dodge turns into a fall (a ledge behind)
 
-constexpr int kPlayerSlots = 4;
+constexpr int kPlayerSlots = 8;
 static ctn::Script g_cancel_scripts[kPlayerSlots];   // the bytes outlive the motion: static
 
 struct State {

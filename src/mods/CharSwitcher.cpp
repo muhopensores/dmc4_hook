@@ -3,6 +3,7 @@
 #include "sdk/StringData.hpp"
 
 bool CharSwitcher::mod_enabled = false;
+bool CharSwitcher::blocked = false;
 bool CharSwitcher::mod_pending = false;
 bool CharSwitcher::inertia_enabled = true;
 constexpr uintptr_t sArea               = 0x00E552C8;
@@ -79,6 +80,10 @@ naked void detour2(void) {
     _asm {
             push eax
             mov al, [CharSwitcher::mod_pending]
+            cmp byte ptr [CharSwitcher::blocked], 0
+            je storeenabled
+            xor al, al
+        storeenabled:
             mov [CharSwitcher::mod_enabled], al
             cmp al, 1
             pop eax
@@ -921,6 +926,10 @@ std::optional<std::string> CharSwitcher::on_initialize() {
 
 void CharSwitcher::on_frame(fmilliseconds& dt) {
     (void)dt;
+    if (blocked && (mod_enabled || patch1)) {
+        mod_enabled = false;
+        toggle(false);
+    }
     if (mod_enabled) {
         if (macroSwitchTargetRole != CHARACTER_INVALID) {
             const uint32_t current_role = current_character_role();
@@ -957,16 +966,19 @@ void CharSwitcher::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
         ImGui::BeginGroup();
 
+        ImGui::BeginDisabled(blocked);
         if (PendingCheckbox(_("Character Switcher"), mod_pending, mod_enabled)) {
             toggle(mod_enabled);
         }
+        ImGui::EndDisabled();
 
         ImGui::SameLine();
-        help_marker(_("Enable before loading into a stage\n"
-                      "On keyboard this is currently locked to F\n"
-                      "This has a few unintentional side effects:\n"
-                      "- Lock on is a little less accurate\n"
-                      "- Style drains twice as fast\n"));
+        help_marker(blocked ? _("Off while Coop mode is on: both swap the game's player and would crash together")
+                            : _("Enable before loading into a stage\n"
+                                "On keyboard this is currently locked to F\n"
+                                "This has a few unintentional side effects:\n"
+                                "- Lock on is a little less accurate\n"
+                                "- Style drains twice as fast\n"));
         if (mod_enabled || mod_pending) {
             ImGui::Indent(lineIndent);
             ImGui::PushItemWidth(sameLineItemWidth);
@@ -1012,7 +1024,7 @@ void CharSwitcher::on_gui_frame(int display) {
 
 void CharSwitcher::on_config_load(const utility::Config& cfg) {
     mod_pending = cfg.get<bool>("char_switcher").value_or(false);
-    mod_enabled = mod_pending;
+    mod_enabled = mod_pending && !blocked;
     if (mod_enabled) toggle(mod_enabled);
     desiredInput1 = cfg.get<int16_t>("char_swap_input1").value_or(0x8000);
     desiredInput2 = cfg.get<int16_t>("char_swap_input2").value_or(0x1000);

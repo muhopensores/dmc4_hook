@@ -47,7 +47,7 @@ struct GunState {
     bool      swapped = false;      // mAtckId holds the gun id (the upper pass), not the host's
 };
 
-GunState g_states[4];               // uPlayer objects tracked at once (the player, NPC / boss Dante, a co-op partner ...)
+GunState g_states[8];               // uPlayer objects tracked at once (the player, NPC / boss Dante, a co-op partner ...)
 
 // The ticks run for every uPlayer that ticks, and dead players are never reported, so a full table evicts the slot seen
 // longest ago (a live player is seen every tick and keeps its slot).

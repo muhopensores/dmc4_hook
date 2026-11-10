@@ -402,7 +402,7 @@ int motion_word(uintptr_t pl, int slot) {
 
 // ---- per player ----
 constexpr int PHASE_ENTRY = 0, PHASE_MOUNT = 1, PHASE_RIDE = 2, PHASE_START = 3;   // START: on the board, the start-up block playing, before the ride
-constexpr int kPlayerSlots = 4;
+constexpr int kPlayerSlots = 8;
 
 struct RideState {
     uintptr_t player = 0, enemy = 0;

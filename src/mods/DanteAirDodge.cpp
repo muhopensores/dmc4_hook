@@ -106,7 +106,7 @@ constexpr int PHASE_ENTRY    = 0;
 constexpr int PHASE_WAIT     = 1;     // cycle playing, waiting for launch_frame
 constexpr int PHASE_AIRBORNE = 2;
 
-constexpr int kPlayerSlots = 4;       // uPlayer objects tracked at once (the player, NPC / boss Dante, a co-op partner ...)
+constexpr int kPlayerSlots = 8;       // uPlayer objects tracked at once (the player, NPC / boss Dante, a co-op partner ...)
 static ctn::Script g_cancel_scripts[kPlayerSlots];   // the in-memory .ctn script per player slot (MoveDef D11, sdk/CtnScript.hpp)
 
 struct DodgeState {                   // what the phase word can't hold

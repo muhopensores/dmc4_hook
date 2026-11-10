@@ -14,6 +14,7 @@ public:
 
     static bool mod_enabled;
     static bool mod_pending;
+    static bool blocked;                // set by another mod (Coop) that can't run with the switcher: forces it off
     static bool inertia_enabled;
     static uintptr_t jmp_ret1;
     static uintptr_t jmp_ret2;

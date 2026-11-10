@@ -175,7 +175,7 @@
 #ifndef PUBLIC_BUILD
 #include "mods/AfterImage.hpp"
 #include "mods/SpiderTwerk.hpp"
-#include "mods/Coop.hpp"
+#include "dev/coop/Coop.hpp"
 #include "mods/FriendlyFire.hpp"
 #include "mods/Cock.hpp"
 #include "mods/RayTest.hpp"
