@@ -8,11 +8,11 @@
 // own uCameraCtrl (line 23, after the game's) and HUD (line 25), and the sCamera viewports are split between the cameras.
 //
 // Each player carries a control number in cPeripheral padding (uPlayer +0x1405, peripheral +0x95): 0 is player 1, who
-// reads the game's own pad; 1-3 read the XInput pad picked for them (CoopPads). The cameras and HUDs find their player
-// through this registry, which is why the hooks below match a camera or a HUD against `coop::players`.
+// reads the game's own pad unless he picks one; 1-3 read the XInput pad picked for them (CoopPads). Everything a player
+// owns updates with him as the game's player (CoopContext), found through this registry.
 //
-// Layout of the work (Vibed\Coop\README.md has the plan): CoopPads = input, keyboard owner, rumble; CoopDiag = the
-// measurements (job threads, move-line flags, frame time) the player-context step needs.
+// Layout of the work (Vibed\Coop\README.md has the plan): CoopPads = input, keyboard owner, rumble; CoopContext = each
+// player's context (mpPlayer / mpCamera / pad / lock-on values); CoopDiag = serial move lines and measurements.
 
 namespace coop {
 
@@ -23,7 +23,8 @@ struct Player {
     int xinput    = 0;          // XInput user index; player 1: -1 = the game's own pad (default)
     uintptr_t unit = 0;         // uPlayer
     uCameraCtrl* cam = nullptr;
-    void* hud = nullptr;
+    void* hud = nullptr;        // his cockpit (uCockpitNero / uCockpitDante)
+    void* reticle = nullptr;    // his lock-on reticle (uLockOnCock), players 2-4
 };
 
 extern Player players[kMaxPlayers];
@@ -39,21 +40,12 @@ public:
     static unsigned int player_num;
 
     static uintptr_t jmp_ret2;
-    static uintptr_t jmp_ret3;
-    static uintptr_t jmp_ret4;
     static uintptr_t jmp_ret5;
-    static uintptr_t jmp_ret6;
-    static uintptr_t jmp_ret7;
-    static uintptr_t jmp_ret8;
-    static uintptr_t jmp_ret9;
-    static uintptr_t jmp_ret10;
-    static uintptr_t jmp_ret11;
     static uintptr_t jmp_ret_water;
     static uintptr_t jmp_ret_unit_tick;
     static uintptr_t jmp_ret_unit_pass2;
     static uintptr_t jmp_ret_unit_pass3;
     static uintptr_t jmp_ret_unit_init;
-    static bool site_hooks;   // the per-site camera / HUD detours (3-4, 6-11), before the context swap covered them
 
     void toggle(bool enable);
 
@@ -68,7 +60,7 @@ public:
     void on_config_save(utility::Config& cfg) override;
 
 private:
-    std::unique_ptr<FunctionHook> hook2, hook3, hook4, hook5, hook6, hook7, hook8, hook9, hook10, hook11;
+    std::unique_ptr<FunctionHook> hook2, hook5;
     std::unique_ptr<FunctionHook> hook_kb_merge, hook_kb_exceed, hook_vib, hook_vib_stop;
     std::unique_ptr<FunctionHook> hook_water, hook_unit_init, hook_unit_tick, hook_unit_pass2, hook_unit_pass3, hook_grab_hit, hook_set_game_system,
         hook_lock_on, hook_common_save, hook_dante_save, hook_nero_save, hook_disp_sphere;

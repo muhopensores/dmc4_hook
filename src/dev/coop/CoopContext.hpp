@@ -12,7 +12,8 @@
 // serially (coop_diag).
 //
 // Owners:
-// - A player 2-4 himself, his HUD (coop::Player::hud) and his camera (coop::Player::cam; mpCamera = the camera itself).
+// - A player 2-4 himself, his HUD and lock-on reticle (coop::Player::hud / reticle) and his camera (coop::Player::cam;
+//   mpCamera = the camera itself).
 //   The player code reads mpCamera for the stick's direction (setInterfaceAnlgInfo 0x7A9553, setCameraAngle 0x7ABCB6),
 //   moveEx and a few moves, the HUDs read mpPlayer (uCockpit::checkPtr and the Nero / Dante ones), the camera reads
 //   mpPlayer's lock-on and the pad's right stick.

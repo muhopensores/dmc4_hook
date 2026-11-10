@@ -1100,7 +1100,34 @@ void parse_shape(const pugi::xml_node c, const std::string& model, const std::st
     g_shape_entries.push_back(std::move(se));
 }
 
-// <physics clt= [substeps=] [iterations=] [stiffness=] [pin=] [inertia=] [limit=] [friction=] [damping=] [radius=] [ground=] [self=] [axis=]/>
+// A <physics> setting that may vary along the tendril: one value, or 2-8 separated by spaces or commas (root to tail),
+// each clamped to [lo, hi]. False (with the warning) when it isn't numbers or holds more than 8.
+bool parse_curve(const pugi::xml_node c, const char* name, chain_solver::Curve& out, float lo, float hi, const std::string& source) {
+    const char* text = c.attribute(name).as_string(nullptr);
+    if (!text) return true;
+    chain_solver::Curve cv;
+    cv.n = 0;
+    const char* p = text;
+    while (*p) {
+        while (*p == ' ' || *p == ',' || *p == '	') ++p;
+        if (!*p) break;
+        char* end = nullptr;
+        const float f = std::strtof(p, &end);
+        if (end == p || cv.n == 8) {
+            spdlog::warn("ModelExtension: {}: {}=\"{}\" (1 to 8 numbers, root to tail)", source, name, text);
+            return false;
+        }
+        cv.v[cv.n++] = std::clamp(f, lo, hi);
+        p = end;
+    }
+    if (cv.n == 0) return true;
+    out = cv;
+    return true;
+}
+
+// <physics clt= [substeps=] [iterations=] [stiffness=] [pin=] [inertia=] [inertia_move=] [inertia_turn=] [limit=]
+// [friction=] [damping=] [radius=] [gravity=] [ground=] [self=] [axis=]/>; stiffness, pin, limit, damping, radius and
+// gravity may be lists (chain_solver.md V2.2)
 void parse_physics(const pugi::xml_node c, const std::string& model, const std::string& file) {
     PhysicsEntry pe;
     pe.model = model;
@@ -1110,13 +1137,14 @@ void parse_physics(const pugi::xml_node c, const std::string& model, const std::
     chain_solver::Settings& s = pe.settings;
     s.substeps = std::clamp(c.attribute("substeps").as_int(s.substeps), 1, 16);
     s.iterations = std::clamp(c.attribute("iterations").as_int(s.iterations), 1, 8);
-    s.stiffness = std::clamp(c.attribute("stiffness").as_float(s.stiffness), 0.0f, 1.0f);
-    s.pin = std::clamp(c.attribute("pin").as_float(s.pin), 0.0f, 1.0f);
+    if (!parse_curve(c, "stiffness", s.stiffness, 0.0f, 1.0f, pe.source) || !parse_curve(c, "pin", s.pin, 0.0f, 1.0f, pe.source)
+        || !parse_curve(c, "limit", s.limit, 0.0f, 180.0f, pe.source) || !parse_curve(c, "damping", s.damping, 0.0f, 1.0f, pe.source)
+        || !parse_curve(c, "radius", s.radius, 0.0f, 1000.0f, pe.source) || !parse_curve(c, "gravity", s.gravity, -100.0f, 100.0f, pe.source))
+        return;
     if (c.attribute("inertia")) s.inertia = std::clamp(c.attribute("inertia").as_float(1.0f), 0.0f, 1.0f);
-    s.limit = std::clamp(c.attribute("limit").as_float(s.limit), 0.0f, 180.0f);
+    if (c.attribute("inertia_move")) s.inertia_move = std::clamp(c.attribute("inertia_move").as_float(1.0f), 0.0f, 1.0f);
+    if (c.attribute("inertia_turn")) s.inertia_turn = std::clamp(c.attribute("inertia_turn").as_float(1.0f), 0.0f, 1.0f);
     s.friction = std::clamp(c.attribute("friction").as_float(s.friction), 0.0f, 1.0f);
-    if (c.attribute("damping")) s.damping = std::clamp(c.attribute("damping").as_float(0.1f), 0.0f, 1.0f);
-    if (c.attribute("radius")) s.radius = std::max(0.0f, c.attribute("radius").as_float(0.0f));
     s.ground = c.attribute("ground").as_bool(s.ground);
     s.self = c.attribute("self").as_bool(s.self);
     if (const char* axis = c.attribute("axis").as_string(nullptr)) {
@@ -1465,12 +1493,22 @@ void ModelExtension::on_gui_frame(int display) {
             for (const auto& [c, pc] : g_physics_cache) solved += pc.entry >= 0;
         }
         if (ImGui::TreeNode("Physics", _("%d physics entr(ies) listed, %d chain(s) on our solver"), (int)g_physics_entries.size(), solved)) {
+            // a setting as listed: one value, or root..tip for a list; "auto" for the default of damping / radius
+            auto curve = [](const chain_solver::Curve& cv, const char* fmt, char (&buf)[32]) -> const char* {
+                if (cv.unset()) return "auto";
+                char a[12], b[12];
+                snprintf(a, sizeof(a), fmt, cv.v[0]);
+                snprintf(b, sizeof(b), fmt, cv.v[cv.n - 1]);
+                if (cv.n > 1) snprintf(buf, sizeof(buf), "%s..%s", a, b); else snprintf(buf, sizeof(buf), "%s", a);
+                return buf;
+            };
             for (const PhysicsEntry& pe : g_physics_entries) {
-                char damping[16] = "auto";
-                if (pe.settings.damping >= 0.0f) snprintf(damping, sizeof(damping), "%.2f", pe.settings.damping);
-                ImGui::BulletText("%s on %s: substeps %d, stiffness %.2f, pin %.2f, damping %s, limit %.0f, ground %s, self %s  (%s)", pe.clt.c_str(),
-                                  pe.model.c_str(), pe.settings.substeps, pe.settings.stiffness, pe.settings.pin, damping, pe.settings.limit,
-                                  pe.settings.ground ? "on" : "off", pe.settings.self ? "on" : "off", pe.source.c_str());
+                const chain_solver::Settings& s = pe.settings;
+                char st[32], pi[32], da[32], li[32];
+                ImGui::BulletText("%s on %s: substeps %d, stiffness %s, pin %s, damping %s, limit %s, ground %s, self %s  (%s)", pe.clt.c_str(),
+                                  pe.model.c_str(), s.substeps, curve(s.stiffness, "%.2f", st), curve(s.pin, "%.2f", pi),
+                                  curve(s.damping, "%.2f", da), curve(s.limit, "%.0f", li), s.ground ? "on" : "off",
+                                  s.self ? "on" : "off", pe.source.c_str());
             }
             ImGui::BulletText(_("last tendril / sheet solve: %.3f ms"), chain_solver::stats().last_ms);
             ImGui::TreePop();

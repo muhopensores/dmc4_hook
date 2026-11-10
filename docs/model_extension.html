@@ -480,19 +480,22 @@ th {
 <thead><tr><th>Setting</th><th>What it does</th></tr></thead>
 <tbody>
 <tr><td><code>clt</code></td><td>The chain file. Needed.</td></tr>
-<tr><td><code>substeps</code></td><td>Steps per frame, 1 to 16 (default 4). Raise it if a fast move still carries the chain through the body.</td></tr>
-<tr><td><code>iterations</code></td><td>How many times per step the chain is checked against lengths and shapes, 1 to 8 (default 2).</td></tr>
+<tr><td><code>substeps</code></td><td>Steps per frame, 1 to 16 (default 8). Raise it if a fast move still carries the chain through the body.</td></tr>
+<tr><td><code>iterations</code></td><td>How many times per step the chain is checked against lengths and shapes, 1 to 8 (default 1). More steps help more than more checks at the same cost.</td></tr>
 <tr><td><code>stiffness</code></td><td>0 to 1 (default 0): each piece turns back toward the shape the animation gives it. A little (0.02 to 0.1) keeps skirts and capes from folding up.</td></tr>
 <tr><td><code>pin</code></td><td>0 to 1 (default 0): each joint is pulled toward where the animation puts it.</td></tr>
 <tr><td><code>inertia</code></td><td>0 to 1: how much the chain lags behind when the character moves (1 = trails fully, 0 = carried along). The default follows the chain file.</td></tr>
+<tr><td><code>inertia_move</code>, <code>inertia_turn</code></td><td>The same, for the character's travel and for its turning separately (default: <code>inertia</code>). <code>inertia_move="0" inertia_turn="1"</code> gives a coat that rides along when the character runs or is launched but swings out when it spins.</td></tr>
 <tr><td><code>limit</code></td><td>Degrees each piece may swing away from where the animation points it (default: no limit).</td></tr>
 <tr><td><code>friction</code></td><td>0 to 1 (default 0.2): how much sliding along the body or floor slows the chain.</td></tr>
-<tr><td><code>damping</code></td><td>0 to 1: how much of its speed the chain loses each frame. Lower swings longer, higher calms it. Default 0.1 (more if the chain file damps more).</td></tr>
+<tr><td><code>damping</code></td><td>0 to 1: how much of its own swing the chain loses each frame. It keeps up with the animation either way; lower swings longer after a stop, higher calms it. Default 0.1 (more if the chain file damps more).</td></tr>
 <tr><td><code>radius</code></td><td>The chain's thickness in centimetres (default: the chain file's collision size).</td></tr>
+<tr><td><code>gravity</code></td><td>How strongly gravity pulls, times the chain file's own (default 1).</td></tr>
 <tr><td><code>ground</code></td><td><code>true</code>: the chain stays above the floor of the stage. Default <code>false</code>.</td></tr>
 <tr><td><code>self</code></td><td><code>true</code>: the chain's tails push each other apart instead of passing through each other. Default <code>false</code>.</td></tr>
 <tr><td><code>axis</code></td><td>Which axis of the chain's bones points down the chain (<code>+x</code>, <code>-y</code>, <code>+z</code>, ...). Default: the chain file's. Unlike the game, <code>+z</code> works.</td></tr>
 </tbody></table></div>
+<p><strong>Root to tip:</strong> <code>stiffness</code>, <code>pin</code>, <code>limit</code>, <code>damping</code>, <code>radius</code> and <code>gravity</code> also take a list of up to 8 numbers, spread from the root of each tail to its tip. <code>stiffness="0.15 0.02"</code> holds a coat at the waist and leaves the hem loose; <code>radius="6 2"</code> makes the collision thinner toward the tip.</p>
 <p>The chain file's own settings (gravity, wind, speed limit, collision shapes, blend) still apply. With the hook's solver the chain moves the same at any frame rate. <code>&lt;link&gt;</code> entries work with it. The panel's <strong>Physics</strong> list shows the entries and how many chains use them.</p>
 
 <h3 id="ref-cloth" data-search-heading="cloth sheet coat skirt cape tails joined">&lt;cloth&gt;: Tails Joined Into One Sheet<a class="heading-link" href="#ref-cloth" aria-label="Link to cloth">#</a></h3>

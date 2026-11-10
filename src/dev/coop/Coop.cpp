@@ -2,6 +2,7 @@
 #include "CoopPads.hpp"
 #include "CoopDiag.hpp"
 #include "CoopContext.hpp"
+#include "CoopHud.hpp"
 #include "../../sdk/Devil4.hpp"
 #include "../../sdk/sUnit.hpp"
 #include "../../sdk/cUnit.hpp"
@@ -22,21 +23,12 @@ bool Coop::mod_enabled = false;
 unsigned int Coop::player_num = 2;
 
 uintptr_t Coop::jmp_ret2 = NULL;
-uintptr_t Coop::jmp_ret3 = NULL;
-uintptr_t Coop::jmp_ret4 = NULL;
 uintptr_t Coop::jmp_ret5 = NULL;
-uintptr_t Coop::jmp_ret6 = NULL;
-uintptr_t Coop::jmp_ret7 = NULL;
-uintptr_t Coop::jmp_ret8 = NULL;
-uintptr_t Coop::jmp_ret9 = NULL;
-uintptr_t Coop::jmp_ret10 = NULL;
-uintptr_t Coop::jmp_ret11 = NULL;
 uintptr_t Coop::jmp_ret_water = NULL;
 uintptr_t Coop::jmp_ret_unit_tick = NULL;
 uintptr_t Coop::jmp_ret_unit_pass2 = NULL;
 uintptr_t Coop::jmp_ret_unit_pass3 = NULL;
 uintptr_t Coop::jmp_ret_unit_init = NULL;
-bool Coop::site_hooks = true;
 
 namespace coop {
 
@@ -59,6 +51,16 @@ constexpr uintptr_t kDanteCtor    = 0x7B2130; // uPlayerDante::uPlayerDante
 constexpr uintptr_t kNeroHudCtor  = 0x507A60;
 constexpr uintptr_t kDanteHudCtor = 0x503210;
 constexpr uintptr_t kCameraCtor   = 0x4F71B0; // uCameraCtrl::uCameraCtrl
+// The lock-on reticle: uCockpitMgr::uCockpitMgr 0x507370 makes the game's one, uLockOnCock for Nero (0x5074CF) or
+// uLockOnDante for Dante (0x507473), and runs it from its own list (move / draw by the cock's status bits +0x2C). Its
+// draw check (sub_76FAA0 for Nero) reads mpPlayer's lock-on target and the target's mIsCameraIn. Players 2-4 get their
+// own as a unit of its own on the HUD line, like their cockpit, drawn in their view, updated and drawn in their context
+// (CoopContext, CoopHud). Each constructor builds one in memory passed in eax, from UnitAllocator 0xE1434C (vtbl +0x14).
+constexpr uintptr_t kUnitAllocator   = 0xE1434C;
+constexpr uintptr_t kLockOnNeroCtor  = 0x76E790; // uLockOnCock
+constexpr uint32_t  kLockOnNeroSize  = 0x70;
+constexpr uintptr_t kLockOnDanteCtor = 0x76F200; // uLockOnDante
+constexpr uint32_t  kLockOnDanteSize = 0x58;
 
 constexpr int kLinePlayer = 13;
 constexpr int kLineCamera = 0x17;
@@ -71,6 +73,27 @@ constexpr int kLineHud = 25;
 
 void* construct(uintptr_t ctor) { return ((void* (*)())ctor)(); }
 
+void* make_reticle(int character) {
+    void* allocator = *reinterpret_cast<void**>(kUnitAllocator);
+    if (!allocator) {
+        return nullptr;
+    }
+    const uint32_t size = character == 0 ? kLockOnNeroSize : kLockOnDanteSize;
+    using AllocFn = void*(__fastcall*)(void* self, void* edx, uint32_t size, uint32_t align);
+    void* mem = reinterpret_cast<AllocFn>((*reinterpret_cast<uintptr_t**>(allocator))[5])(allocator, nullptr, size, 16);
+    if (!mem) {
+        return nullptr;
+    }
+    const uintptr_t ctor = character == 0 ? kLockOnNeroCtor : kLockOnDanteCtor;
+    void* reticle = nullptr;
+    __asm {
+        mov eax, mem
+        call ctor
+        mov reticle, eax
+    }
+    return reticle;
+}
+
 void spawn_player(int character, int slot) {
     void* player = construct(character == 0 ? kNeroCtor : kDanteCtor);
     *reinterpret_cast<uint8_t*>((uintptr_t)player + coop::kControlNumber) = (uint8_t)slot;
@@ -81,6 +104,12 @@ void spawn_player(int character, int slot) {
     players[slot].hud = hud;
     ((cUnit*)hud)->flags.bits.mTransView = (1 << slot);
     devil4_sdk::sUnit_spawn(hud, kLineHud);
+
+    if (void* reticle = make_reticle(character)) {
+        players[slot].reticle = reticle;
+        ((cUnit*)reticle)->flags.bits.mTransView = (1 << slot);
+        devil4_sdk::sUnit_spawn(reticle, kLineHud);
+    }
 }
 
 void __stdcall setup_develop(uCameraCtrl* cam) {
@@ -103,40 +132,6 @@ uCameraCtrl* make_cam() {
     return cam;
 }
 
-int slot_of_cam(void* cam) {
-    const uintptr_t ucam = *(uintptr_t*)((uintptr_t)cam + 0x6C);
-    for (int i = 0; i < (int)Coop::player_num; i++) {
-        if (ucam && ucam == (uintptr_t)players[i].cam) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-void* __stdcall get_pl_from_cam(void* cam) {
-    const int i = slot_of_cam(cam);
-    return i < 0 ? nullptr : (void*)players[i].unit;
-}
-
-void* __stdcall get_pad_from_cam(void* cam) {
-    const int i = slot_of_cam(cam);
-    return i < 0 ? nullptr : coop_pads::pad_for(i);
-}
-
-void* __stdcall get_cam_from_pl(void* player) {
-    const uint8_t id = *(uint8_t*)((uintptr_t)player + coop::kControlNumber);
-    return (id < Coop::player_num && id < kMaxPlayers) ? players[id].cam : nullptr;
-}
-
-void* __stdcall get_pl_from_hud(void* hud) {
-    for (int i = 1; i < (int)Coop::player_num; i++) {
-        if (hud == players[i].hud) {
-            return (void*)players[i].unit;
-        }
-    }
-    return nullptr;
-}
-
 void apply_viewport_layout() {
     sCamera* s_cam = *(sCamera**)sCamera_ptr;
     if (!s_cam) {
@@ -149,10 +144,50 @@ void apply_viewport_layout() {
     };
     const int n = (int)Coop::player_num;
     for (int i = 0; i < n; i++) {
-        s_cam->viewports[i].mpCamera = players[i].cam;
+        if (i > 0 || players[0].cam) {   // viewport 0 keeps the game's camera until Coop knows player 1's
+            s_cam->viewports[i].mpCamera = players[i].cam;
+        }
         s_cam->viewports[i].mAttr = 0x17;
         s_cam->viewports[i].mMode = (uint8_t)kModes[n - 2][i];
     }
+}
+
+// Player 1's view on the whole screen, the extra views off (a viewport without a camera isn't drawn).
+void apply_single_view() {
+    sCamera* s_cam = *(sCamera**)sCamera_ptr;
+    if (!s_cam) {
+        return;
+    }
+    s_cam->viewports[0].mMode = REGION_FULLSCREEN;
+    for (int v = 1; v < kMaxPlayers; v++) {
+        for (int i = 1; i < kMaxPlayers; i++) {
+            if (players[i].cam && s_cam->viewports[v].mpCamera == players[i].cam) {
+                s_cam->viewports[v].mpCamera = nullptr;
+            }
+        }
+    }
+}
+
+// The split screen follows the game: split while a player 2-4 has his unit and camera and the game isn't paused (the
+// pause menu and its screens draw in view 0, which then was a half). Only on a change, so a camera event's own
+// viewport changes in between are left alone ("Refresh cameras" puts the split back). Entering a mission split only
+// after "Refresh cameras" before: the extra camera's setup took its viewport but nothing set the modes.
+
+void update_split() {
+    bool extra = false;
+    for (int i = 1; i < (int)Coop::player_num && i < kMaxPlayers; i++) {
+        extra |= players[i].unit != 0 && players[i].cam != nullptr;
+    }
+    const bool want = extra && !devil4_sdk::is_paused();
+    if (want == coop_hud::split_shown) {
+        return;
+    }
+    if (want) {
+        apply_viewport_layout();
+    } else {
+        apply_single_view();
+    }
+    coop_hud::split_shown = want;
 }
 
 void __stdcall setup_cam(void* cam) {
@@ -208,6 +243,9 @@ void check_units() {
         if (p.hud && !in_line(kLineHud, p.hud)) {
             p.hud = nullptr;
         }
+        if (p.reticle && !in_line(kLineHud, p.reticle)) {
+            p.reticle = nullptr;
+        }
         if (p.cam && !in_line(kLineExtraCamera, p.cam)) {
             drop_viewport_camera(p.cam);
             p.cam = nullptr;
@@ -217,6 +255,7 @@ void check_units() {
 
 void __stdcall coop_game_tick() {
     check_units();
+    update_split();
     bool extra = false;
     for (int i = 1; i < (int)Coop::player_num && i < kMaxPlayers; i++) {
         extra |= players[i].unit != 0;
@@ -239,49 +278,23 @@ naked_extern void detour2() {
     }
 }
 
-// Delock cam player pos (edi = camera).
-naked_extern void detour3() {
-    __asm {
-        cmp byte ptr [Coop::mod_enabled], 1
-        jne originalcode
-        cmp byte ptr [Coop::site_hooks], 1
-        jne originalcode
-        push edi
-        call get_pl_from_cam
-        test eax, eax
-        je originalcode
-        jmp handle
-    originalcode:
-        mov eax, [esi+0x24]
-    handle:
-        test eax, eax
-        jmp dword ptr [Coop::jmp_ret3]
-    }
-}
+// Camera setup's viewport step: 1 = handled here (skip the game's viewport 0 assignment).
+uint8_t cam_setup_handled = 0;
 
-// Camera pad Y axis (esi = camera, pad in edi).
-naked_extern void detour4() {
-    __asm {
-        cmp byte ptr [Coop::mod_enabled], 1
-        jne originalcode
-        cmp byte ptr [Coop::site_hooks], 1
-        jne originalcode
-        push eax
-        push esi
-        call get_pad_from_cam
-        test eax, eax
-        je handle2
-        mov edi, eax
-        pop eax
-        jmp handle
-    originalcode:
-        mov edi, 0x00E559C4
-        mov edi, [edi]
-    handle:
-        jmp dword ptr [Coop::jmp_ret4]
-    handle2:
-        pop eax
-        jmp originalcode
+void __stdcall route_cam_setup(void* cam) {
+    cam_setup_handled = 0;
+    for (int i = 1; i < (int)Coop::player_num && i < kMaxPlayers; i++) {
+        if (cam == players[i].cam) {   // an extra camera: checked first, its setup runs in its own context (mpCamera = itself)
+            setup_cam(cam);
+            cam_setup_handled = 1;
+            return;
+        }
+    }
+    const uintptr_t med = *(uintptr_t*)sMediator_ptr;
+    const uintptr_t active = med ? *(uintptr_t*)(med + 0xD0) : 0;
+    if (active && active != (uintptr_t)cam) {   // a new camera while another is active: the new main one
+        setup_cam(cam);
+        cam_setup_handled = 1;
     }
 }
 
@@ -290,146 +303,17 @@ naked_extern void detour5() {
     __asm {
         cmp byte ptr [Coop::mod_enabled], 1
         jne originalcode
-        mov ecx, [sMediator_ptr]
-        mov ecx, [ecx]
-        mov ecx, [ecx+0xD0]
-        test ecx, ecx
-        je originalcode
-        cmp ecx, esi
-        je originalcode
         pushad
         push esi
-        call setup_cam
+        call route_cam_setup
         popad
+        cmp byte ptr [cam_setup_handled], 1
+        jne originalcode
         jmp dword ptr [uCameraCtrl_setup_end]
     originalcode:
         mov ecx, [0x00E552D4]
         mov ecx, [ecx]
         jmp dword ptr [Coop::jmp_ret5]
-    }
-}
-
-// Camera pad X axis (esi = camera, pad in eax).
-naked_extern void detour6() {
-    __asm {
-        cmp byte ptr [Coop::mod_enabled], 1
-        jne originalcode
-        cmp byte ptr [Coop::site_hooks], 1
-        jne originalcode
-        push esi
-        call get_pad_from_cam
-        test eax, eax
-        je originalcode
-        jmp handle
-    originalcode:
-        mov eax, 0x00E559C4
-        mov eax, [eax]
-    handle:
-        jmp dword ptr [Coop::jmp_ret6]
-    }
-}
-
-// Input relative to the camera (esi = player).
-naked_extern void detour7() {
-    __asm {
-        cmp byte ptr [Coop::mod_enabled], 1
-        jne originalcode
-        cmp byte ptr [Coop::site_hooks], 1
-        jne originalcode
-        push esi
-        call get_cam_from_pl
-        test eax, eax
-        je handle2
-        jmp handle
-    originalcode:
-        mov eax, dword ptr [eax+0xD0]
-    handle:
-        jmp dword ptr [Coop::jmp_ret7]
-    handle2:
-        mov eax, [sMediator_ptr]
-        mov eax, [eax]
-        jmp originalcode
-    }
-}
-
-// Lock-on camera (ebx = camera), three sites.
-naked_extern void detour8() {
-    __asm {
-        cmp byte ptr [Coop::mod_enabled], 1
-        jne originalcode
-        cmp byte ptr [Coop::site_hooks], 1
-        jne originalcode
-        push ebx
-        call get_pl_from_cam
-        jmp handle
-    originalcode:
-        mov eax, dword ptr [esi+0x24]
-    handle:
-        test eax, eax
-        jmp dword ptr [Coop::jmp_ret8]
-    }
-}
-
-naked_extern void detour9() {
-    __asm {
-        cmp byte ptr [Coop::mod_enabled], 1
-        jne originalcode
-        cmp byte ptr [Coop::site_hooks], 1
-        jne originalcode
-        push ebx
-        call get_pl_from_cam
-        jmp handle
-    originalcode:
-        mov eax, dword ptr [esi+0x24]
-    handle:
-        test eax, eax
-        jmp dword ptr [Coop::jmp_ret9]
-    }
-}
-
-naked_extern void detour10() {
-    __asm {
-        cmp byte ptr [Coop::mod_enabled], 1
-        jne originalcode
-        cmp byte ptr [Coop::site_hooks], 1
-        jne originalcode
-        push ebx
-        call get_pl_from_cam
-        jmp handle
-    originalcode:
-        mov eax, dword ptr [esi+0x24]
-    handle:
-        test eax, eax
-        jmp dword ptr [Coop::jmp_ret10]
-    }
-}
-
-// Nero HUD (esi = HUD).
-naked_extern void detour11() {
-    __asm {
-        cmp byte ptr [Coop::mod_enabled], 1
-        jne originalcode
-        cmp byte ptr [Coop::site_hooks], 1
-        jne originalcode
-        push edi
-        mov edi, eax
-        push esi
-        call get_pl_from_hud
-        test eax, eax
-        je handle2
-        jmp handle
-    originalcode:
-        mov eax, dword ptr [eax+0x24]
-        test eax, eax
-        jmp dword ptr [Coop::jmp_ret11]
-    handle:
-        pop edi
-        test eax, eax
-        jmp dword ptr [Coop::jmp_ret11]
-    handle2:
-        mov eax, edi
-        pop edi
-        jmp originalcode
     }
 }
 
@@ -462,6 +346,11 @@ bool __stdcall context_enter(uintptr_t unit) {
 }
 
 void __stdcall context_leave() {
+    coop_context::leave();
+}
+
+void __stdcall context_leave_tick(uintptr_t unit) {
+    coop_hud::after_update(unit);
     coop_context::leave();
 }
 
@@ -499,7 +388,8 @@ naked_extern void detour_unit_tick() {
         mov eax, [edx+0x18]
         mov ecx, esi
         call eax
-        call context_leave
+        push esi
+        call context_leave_tick
         jmp dword ptr [Coop::jmp_ret_unit_tick]
     originalcode:
         mov edx, [esi]
@@ -701,6 +591,8 @@ void Coop::toggle(bool enable) {
         install_patch_offset(0xDE86, patch1, "\xEB\x13", 2); // no pause on a pad disconnect
     } else {
         patch1.reset();
+        apply_single_view();
+        coop_hud::split_shown = false;
         coop_pads::stop_all();
         coop_diag::release();   // Coop's game tick no longer runs: put the lines' threading back now
     }
@@ -714,15 +606,7 @@ std::optional<std::string> Coop::on_initialize() {
     struct Site { uintptr_t addr; std::unique_ptr<FunctionHook>* hook; void* detour; uintptr_t* ret; int len; const char* what; };
     const Site sites[] = {
         {coop_pads::kTickSite, &hook2, (void*)&detour2, &jmp_ret2, 6, "pad tick"},
-        {0x419189, &hook3, (void*)&detour3, &jmp_ret3, 5, "camera player position"},
-        {0x422449, &hook4, (void*)&detour4, &jmp_ret4, 6, "camera pad Y"},
         {0x4F75DA, &hook5, (void*)&detour5, &jmp_ret5, 6, "camera setup"},
-        {0x421E14, &hook6, (void*)&detour6, &jmp_ret6, 5, "camera pad X"},
-        {0x7ABCBB, &hook7, (void*)&detour7, &jmp_ret7, 6, "input relative to camera"},
-        {0x419857, &hook8, (void*)&detour8, &jmp_ret8, 5, "lock-on camera 1"},
-        {0x41A1DE, &hook9, (void*)&detour9, &jmp_ret9, 5, "lock-on camera 2"},
-        {0x41A286, &hook10, (void*)&detour10, &jmp_ret10, 5, "lock-on camera 3"},
-        {0x508D82, &hook11, (void*)&detour11, &jmp_ret11, 5, "Nero HUD"},
         {coop_pads::kKbMergeSite, &hook_kb_merge, (void*)&coop_pads::detour_kb_merge, &coop_pads::ret_kb_merge, 6, "keyboard merge"},
         {coop_pads::kKbExceedSite, &hook_kb_exceed, (void*)&coop_pads::detour_kb_exceed, &coop_pads::ret_kb_exceed, 6, "keyboard Exceed"},
         {coop_pads::kVibSite, &hook_vib, (void*)&coop_pads::detour_vib, &coop_pads::ret_vib, 10, "rumble"},
@@ -776,6 +660,10 @@ std::optional<std::string> Coop::on_initialize() {
             return std::string("Failed to init Coop: ") + s.what;
         }
         *s.original = (*s.hook)->get_original<std::remove_pointer_t<SaveDataFn>>();
+    }
+    if (auto err = coop_hud::install()) {
+        spdlog::error("{}\n", *err);
+        return err;
     }
     Macro::set_pad_update_fallback(&pad_update_fallback);
     return Mod::on_initialize();
@@ -858,8 +746,16 @@ void Coop::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("Players 2-4 feel their own hits on their own pad. Player 1's rumble is the game's"));
 
+    ImGui::SetNextItemWidth(sameLineItemWidth);
+    ImGui::SliderFloat(_("HUD size"), &coop_hud::hud_scale, 0.25f, 1.0f, "%.2f");
+    ImGui::SameLine();
+    help_marker(_("Every player's HUD (gauges, timer, minimap) is shrunk by this toward the corner of their part of the "
+                  "screen while it is split (full size while paused). 0.5 fits a half or a quarter of the screen, 1 is the normal size. The "
+                  "lock-on reticle keeps its size, as it follows the target"));
+
     if (ImGui::Button(_("Refresh cameras"))) {
         apply_viewport_layout();
+        coop_hud::split_shown = true;
     }
     ImGui::SameLine();
     help_marker(_("Give every camera its viewport again, after a camera event took the screen back"));
@@ -872,11 +768,6 @@ void Coop::on_gui_frame(int display) {
         help_marker(_("Runs the player, stand, enemy, camera and HUD move lines one unit at a time instead of on the job "
                       "threads (on by default). They run that way anyway while players 2-4 are in the room: the players' "
                       "cameras, lock-on and grabs need it. Off only to compare frame times"));
-        ImGui::Checkbox(_("Per-site camera hooks"), &site_hooks);
-        ImGui::SameLine();
-        help_marker(_("The older fixes at single spots in the camera, the stick direction and Nero's HUD. The player context "
-                      "now covers them (each player's camera, HUD and moves run with that player as the game's player). "
-                      "Turn this off to test without them; they will be removed once that works"));
         ImGui::Text(_("Lines serial now: %s, context swaps last frame: %u"), coop_diag::serial_now() ? _("yes") : _("no"),
                     coop_context::swaps_last_frame());
         coop_context::draw_diag();
@@ -909,7 +800,10 @@ void Coop::on_stage_start() {
 }
 
 void Coop::on_stage_end() {
-    // aRoom::cleanRoom is about to free the extra cameras: sCamera must not keep them.
+    // aRoom::cleanRoom is about to free the extra cameras: sCamera must not keep them. The screens after the mission
+    // (results, shop) draw in view 0, which goes back to the whole screen.
+    apply_single_view();
+    coop_hud::split_shown = false;
     for (int i = 1; i < kMaxPlayers; i++) {
         drop_viewport_camera(players[i].cam);
     }
@@ -917,6 +811,7 @@ void Coop::on_stage_end() {
         players[i].unit = 0;
         players[i].cam = nullptr;
         players[i].hud = nullptr;
+        players[i].reticle = nullptr;
     }
     coop_context::reset();
     coop_pads::stop_all();
@@ -940,6 +835,7 @@ void Coop::on_config_load(const utility::Config& cfg) {
     }
     coop_pads::set_keyboard_owner(std::clamp(cfg.get<int>("coop_keyboard").value_or(0), -1, kMaxPlayers - 1));
     coop_pads::rumble = cfg.get<bool>("coop_rumble").value_or(true);
+    coop_hud::hud_scale = std::clamp(cfg.get<float>("coop_hud_scale").value_or(0.5f), 0.25f, 1.0f);
 }
 
 void Coop::on_config_save(utility::Config& cfg) {
@@ -958,6 +854,7 @@ void Coop::on_config_save(utility::Config& cfg) {
     }
     cfg.set<int>("coop_keyboard", coop_pads::keyboard_owner);
     cfg.set<bool>("coop_rumble", coop_pads::rumble);
+    cfg.set<float>("coop_hud_scale", coop_hud::hud_scale);
 }
 
 #undef naked_extern

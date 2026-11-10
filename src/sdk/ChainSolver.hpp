@@ -1,13 +1,16 @@
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <vector>
 
 // Our own solver for model chains (cCnsChain: coats, hair, tails), in place of the game's for the chains a list opts in
 // (ModelExtension <physics>). Position based, with substeps; the algorithm, step by step, is Vibed\ModelExt\chain_solver.md
 // (Albam's chain preview follows the same text), the game's solver it replaces is RE note chain_cnschain.md section 3.
-// Over the game's:
+// Over the game's (version 2 of the spec):
 //   - substeps on the frame's real length: the same motion at any frame rate, no tunnelling through shapes in fast moves;
+//   - soft constraints with fixed compliances (XPBD), so a setting means the same at any substep or pass count;
+//   - settings that vary from root to tip, damping toward the animated motion, inertia split into travel and turning;
 //   - collision on every segment, both ends pushed (the game keeps only the root's push), with friction;
 //   - optional: the stage floor under each point, the tendrils colliding with each other, a pull toward the animation's
 //     shape (stiffness) or place (pin), a cone limit around the animated direction, a partial inertia;
@@ -17,16 +20,34 @@
 // in the chain's own mat[] / vel[], so <link> (sdk/ChainLink) and the collision readout work on it unchanged.
 namespace chain_solver {
 
+// A setting along a tendril (chain_solver.md V2.2): one value, or 2-8 spread evenly from the root (u = 0) to the tail
+// (u = 1), read linearly.
+struct Curve {
+    float v[8] = {};
+    int n = 1;
+    Curve(float value = 0.0f) { v[0] = value; }
+    bool unset() const { return n == 1 && v[0] < 0.0f; }   // a single negative value: the setting's own default
+    float at(float u) const {
+        if (n <= 1) return v[0];
+        const float f = std::clamp(u, 0.0f, 1.0f) * (n - 1);
+        const int i = std::min((int)f, n - 2);
+        return v[i] + (v[i + 1] - v[i]) * (f - i);
+    }
+};
+
 struct Settings {
-    int substeps = 4;           // per 60 fps frame, 1-16
-    int iterations = 2;         // constraint passes per substep, 1-8
-    float stiffness = 0.0f;     // 0-1 per frame: each segment turns toward its animated direction
-    float pin = 0.0f;           // 0-1 per frame: each point moves toward its animated place
+    int substeps = 8;           // per 60 fps frame, 1-16
+    int iterations = 1;         // constraint passes per substep, 1-8
+    Curve stiffness = 0.0f;     // 0-1 per frame: each segment turns toward its animated direction
+    Curve pin = 0.0f;           // 0-1 per frame: each point moves toward its animated place
     float inertia = -1.0f;      // 0-1: how much of the model's motion the chain lags behind; < 0 = from the Local flags
-    float limit = 0.0f;         // degrees a segment may leave its animated direction, 0 = no limit
+    float inertia_move = -1.0f; // the same for the model's travel only; < 0 = inertia
+    float inertia_turn = -1.0f; // the same for the model's turning only; < 0 = inertia
+    Curve limit = 0.0f;         // degrees a segment may leave its animated direction, 0 = no limit
     float friction = 0.2f;      // 0-1 per frame: sliding speed lost on a contact
-    float damping = -1.0f;      // 0-1 per frame: speed lost; < 0 = 0.1, or 1 - the .clt's mDamping when that's more
-    float radius = -1.0f;       // cm, < 0 = the .clt's mCollisionSize
+    Curve damping = -1.0f;      // 0-1 per frame: speed lost against the animated motion; < 0 = 0.1, or 1 - mDamping if more
+    Curve radius = -1.0f;       // cm, < 0 = the .clt's mCollisionSize
+    Curve gravity = 1.0f;       // times the .clt's mGravity
     bool ground = false;        // points stay above the stage floor (one line cast per point per frame)
     bool self = false;          // the chain's tendrils push each other apart
     int axis = -1;              // the axis aimed down the chain, 0-5 = +x +y +z -x -y -z; -1 = the .clt's mDir

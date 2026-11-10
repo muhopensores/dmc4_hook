@@ -414,6 +414,8 @@ set(DEV_SRC
   dev/coop/CoopDiag.cpp
   dev/coop/CoopContext.hpp
   dev/coop/CoopContext.cpp
+  dev/coop/CoopHud.hpp
+  dev/coop/CoopHud.cpp
 )
 
 set(HOOKS_SRC

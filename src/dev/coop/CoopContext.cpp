@@ -148,7 +148,7 @@ int own_unit_owner(uintptr_t unit) {
     for (int i = 1; i < n; i++) {
         if (!players[i].unit) continue;
         any = true;
-        if (players[i].unit == unit || (uintptr_t)players[i].hud == unit) {
+        if (players[i].unit == unit || (uintptr_t)players[i].hud == unit || (uintptr_t)players[i].reticle == unit) {
             return i;
         }
     }

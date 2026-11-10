@@ -207,6 +207,42 @@ Rows fk_world(uintptr_t model, int index, int current) {
     return fk(j, fk_world(model, parent, current));
 }
 
+// A 0-1 per-frame rate as a compliance in frames squared (chain_solver.md V2.1): version 1's share per substep at 4
+// substeps, so lists keep their look; 1 = hard (0), <= 0 = off (-1). A constraint moving points of total weight W uses
+// W times it, which keeps the match for links and stretch.
+float compliance(float r) {
+    if (r <= 0.0f) return -1.0f;
+    if (r >= 1.0f) return 0.0f;
+    return (1.0f / 16.0f) * (1.0f / (1.0f - std::pow(1.0f - r, 0.25f)) - 1.0f);
+}
+
+// One XPBD projection of x (weight 1) toward the goal g; `alpha` = compliance / h^2, `lam` its multiplier this substep.
+void goal(glm::vec3& x, const glm::vec3& g, float alpha, float& lam) {
+    const glm::vec3 d = x - g;
+    const float c = glm::length(d);
+    if (c < 1e-6f) return;
+    const float dl = (-c - alpha * lam) / (1.0f + alpha);
+    lam += dl;
+    x += d * (dl / c);
+}
+
+// One XPBD projection of the distance p-q toward `rest`, weights 0 = kinematic, `alpha` = W x compliance / h^2.
+// `stretch_only`: a shorter distance is left alone.
+void distance(glm::vec3& p, float wp, glm::vec3& q, float wq, float rest, float alpha, float& lam, bool stretch_only) {
+    const float w = wp + wq;
+    if (w <= 0.0f) return;
+    const glm::vec3 d = p - q;
+    const float len = glm::length(d);
+    if (len < 1e-5f) return;
+    const float c = len - rest;
+    if (stretch_only && c <= 0.0f) return;
+    const float dl = (-c - alpha * lam) / (w + alpha);
+    lam += dl;
+    const glm::vec3 n = d / len;
+    p += n * (wp * dl);
+    q -= n * (wq * dl);
+}
+
 // One tendril being solved: its chain's settings and its points, root..tail.
 struct Tendril {
     uintptr_t chain = 0, model = 0;
@@ -215,29 +251,36 @@ struct Tendril {
     int root = 0, tip = 0, tail = 0, axis = 0, up = 0;
     int index[kSlots] = {};
     Rows A[kSlots + 1];
-    glm::vec3 a[kSlots + 1], x[kSlots + 1], v[kSlots + 1], old[kSlots + 1], contact[kSlots + 1], at_[kSlots + 1];
+    glm::vec3 a[kSlots + 1], aprev[kSlots + 1], x[kSlots + 1], v[kSlots + 1], old[kSlots + 1], contact[kSlots + 1], at_[kSlots + 1];
     float L[kSlots + 1] = {};
     bool touched[kSlots + 1] = {};
     bool reset = false;
     // per frame
     glm::vec3 g, wind;
-    float damp_rate, max_speed, r, spring_rate, floor_level, stretch_limit;
+    float max_speed, spring_c, floor_level, stretch_limit, radius_auto, damping_auto;
     bool stretch;
+    // per node, from the settings' curves: compliances (< 0 = off), the speed kept per frame against the animated
+    // motion, the radius, the limit's cosine and sine (cos < -1 = no limit), the gravity factor
+    float stiff_c[kSlots + 1], pin_c[kSlots + 1], keep[kSlots + 1], rad[kSlots + 1], lim_cos[kSlots + 1], lim_sin[kSlots + 1],
+        grav[kSlots + 1];
     std::vector<Capsule> shapes;
     Plane ground[kSlots + 1];
     bool has_ground[kSlots + 1] = {};
-    struct Seg { glm::vec3 a, b; };
+    struct Seg { glm::vec3 a, b; float ra, rb; };
     std::vector<Seg> others;
     std::vector<int> neighbours;                // root slots of this chain's sheet neighbours (no self collision with them)
     // per substep
-    float damp, pin, stiff, fric;
+    float h = 1.0f, fric = 0.0f;
+    float lam_stiff[kSlots + 1], lam_pin[kSlots + 1], lam_stretch[kSlots + 1];
 
     uintptr_t jptr(int k) const { return at<uintptr_t>(model, kpJoint) + index[k] * kJointSize; }
     int nodes() const { return tail - root; }   // after the root
     float weight(int k) const { return k == root ? 0.0f : 1.0f; }
+    float radius_at(float u) const { return s.radius.unset() ? radius_auto : std::max(0.0f, s.radius.at(u)); }
 
     // Steps 1-4 of chain_solver.md: the animated pose (the root's FK as the world pass has it at joint `current`), the
-    // points, the reset, the inertia carry. False: a joint is missing (the tendril is left to its FK).
+    // points, the reset, the inertia carry (V2.3), the per-node settings (V2.2). False: a joint is missing (the tendril is
+    // left to its FK).
     bool prepare(uintptr_t chain_, uintptr_t model_, int root_, const Settings& s_, int current) {
         chain = chain_; model = model_; root = root_; s = s_;
         st = state_of(chain);
@@ -275,6 +318,7 @@ struct Tendril {
             v[k] = reset ? glm::vec3(0.0f) : v3(chain + kVels + k * 0x10);
             if (reset || !st->seen[k]) st->anim_prev[k] = a[k];
             st->seen[k] = true;
+            aprev[k] = st->anim_prev[k];
         }
         x[root] = a[root];
 
@@ -286,42 +330,56 @@ struct Tendril {
         for (int i = 0; i < 3; ++i) ref_rot[i] = safe_normalize(ref.r[i], glm::vec3(i == 0, i == 1, i == 2));
         auto ref_dir = [&](const glm::vec3& d) { return d.x * ref_rot[0] + d.y * ref_rot[1] + d.z * ref_rot[2]; };
         if (!reset) {
-            // inertia: the part of the frame's reference motion the points are carried by (Local flags: all of it)
-            float inertia = s.inertia;
-            if (inertia < 0.0f) inertia = (at<uint8_t>(chain, kPosLocal) || at<uint8_t>(chain, kPosLocalY) || at<uint8_t>(chain, kRotLocal)) ? 0.0f : 1.0f;
-            const float carry = 1.0f - std::clamp(inertia, 0.0f, 1.0f);
-            if (carry > 0.0f && st->ref_valid[root] && st->pending[root] > 0.0f) {
-                // p -> p . inv(prev) . cur, with the rows normalised (scale changes aren't carried)
+            // inertia: the carried part of the frame's reference motion, turning and travel apart (Local flags: all of
+            // it). The previous animated pose is carried too, so the substep targets start where the points are.
+            float base = s.inertia;
+            if (base < 0.0f) base = (at<uint8_t>(chain, kPosLocal) || at<uint8_t>(chain, kPosLocalY) || at<uint8_t>(chain, kRotLocal)) ? 0.0f : 1.0f;
+            const float ct = 1.0f - std::clamp(s.inertia_turn >= 0.0f ? s.inertia_turn : base, 0.0f, 1.0f);
+            const float cm = 1.0f - std::clamp(s.inertia_move >= 0.0f ? s.inertia_move : base, 0.0f, 1.0f);
+            if ((ct > 0.0f || cm > 0.0f) && st->ref_valid[root] && st->pending[root] > 0.0f) {
                 const Rows& prev = st->ref_prev[root];
                 glm::vec3 pr[3];
                 for (int i = 0; i < 3; ++i) pr[i] = safe_normalize(prev.r[i], glm::vec3(i == 0, i == 1, i == 2));
-                auto carry_dir = [&](const glm::vec3& d) {
-                    const glm::vec3 local(glm::dot(d, pr[0]), glm::dot(d, pr[1]), glm::dot(d, pr[2]));
-                    return local.x * ref_rot[0] + local.y * ref_rot[1] + local.z * ref_rot[2];
-                };
+                const glm::quat turn = glm::slerp(glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+                                                  glm::normalize(rows_quat(ref_rot) * glm::conjugate(rows_quat(pr))), ct);
+                const glm::vec3 move = (ref.t - prev.t) * cm;
+                auto carry = [&](const glm::vec3& p) { return prev.t + turn * (p - prev.t) + move; };
                 for (int k = root + 1; k <= tail; ++k) {
-                    x[k] = glm::mix(x[k], carry_dir(x[k] - prev.t) + ref.t, carry);
-                    v[k] = glm::mix(v[k], carry_dir(v[k]), carry);
+                    x[k] = carry(x[k]);
+                    v[k] = turn * v[k];
                 }
+                for (int k = root; k <= tail; ++k) aprev[k] = carry(aprev[k]);
             }
         }
         st->ref_prev[root] = ref;
         st->ref_valid[root] = true;
+        for (int k = root; k <= tail; ++k) at_[k] = aprev[k];
 
         g = v3(chain + kGravity);
         if (at<uint8_t>(chain, kGravityLocal)) g = ref_dir(g);
         wind = at<uint8_t>(chain, kMuteWind) ? glm::vec3(0.0f) : v3(chain + kWindNow);
         if (at<uint8_t>(chain, kWindLocal)) wind = ref_dir(wind);
-        // the speed kept per frame. The game's mDamping can't be used as it is: its solver drops the speed a length
-        // correction would give (RE note 3.2g), so 1.0 (Nero's and Dante's coats) still loses energy there; here the
-        // corrections are speed, and 1.0 would swing for good
-        damp_rate = 1.0f - (s.damping >= 0.0f ? s.damping : std::max(0.1f, 1.0f - std::clamp(at<float>(chain, kDamping), 0.0f, 1.0f)));
+        // the game's mDamping can't be used as it is: its solver drops the speed a length correction would give (RE note
+        // 3.2g), so 1.0 (Nero's and Dante's coats) still loses energy there; here the corrections are speed, and 1.0
+        // swung for good. It only raises the default.
+        damping_auto = std::max(0.1f, 1.0f - std::clamp(at<float>(chain, kDamping), 0.0f, 1.0f));
         max_speed = at<float>(chain, kMaxSpeed);
-        r = s.radius >= 0.0f ? s.radius : at<float>(chain, kCollSize);
+        radius_auto = at<float>(chain, kCollSize);
         stretch = at<uint8_t>(chain, kStretch) != 0;
         stretch_limit = at<float>(chain, kStretchLimit);
-        spring_rate = at<float>(chain, kSpring);
+        spring_c = compliance(at<float>(chain, kSpring));
         floor_level = at<float>(chain, kFloorLevel);
+        for (int k = root; k <= tail; ++k) {
+            const float u = (float)(k - root) / (float)(tail - root);
+            stiff_c[k] = compliance(s.stiffness.at(u));
+            pin_c[k] = compliance(s.pin.at(u));
+            keep[k] = 1.0f - std::clamp(s.damping.unset() ? damping_auto : s.damping.at(u), 0.0f, 1.0f);
+            rad[k] = radius_at(u);
+            const float lim = std::clamp(s.limit.at(u), 0.0f, 180.0f);
+            lim_cos[k] = lim > 0.0f ? std::cos(glm::radians(lim)) : -2.0f;
+            lim_sin[k] = lim > 0.0f ? std::sin(glm::radians(lim)) : 0.0f;
+            grav[k] = s.gravity.at(u);
+        }
         return true;
     }
 
@@ -353,55 +411,66 @@ struct Tendril {
                 int owner = k;                  // the root of k's tendril: sheet neighbours don't collide
                 while (owner > 0 && bone(chain, owner - 1) >= 0) --owner;
                 if (std::find(neighbours.begin(), neighbours.end(), owner) != neighbours.end()) continue;
+                int otail = k + 1;              // that tendril's tail, for its radius along it
+                while (otail < kSlots && bone(chain, otail) >= 0) ++otail;
+                const float span = (float)(otail - owner);
                 const float* m0 = &at<float>(chain, kMats + k * 0x40);
                 const float* m1 = &at<float>(chain, kMats + (k + 1) * 0x40);
-                others.push_back({ { m0[12], m0[13], m0[14] }, { m1[12], m1[13], m1[14] } });
+                others.push_back({ { m0[12], m0[13], m0[14] }, { m1[12], m1[13], m1[14] },
+                                   radius_at((k - owner) / span), radius_at((k + 1 - owner) / span) });
             }
     }
 
-    void begin_substep(float h, float f) {
-        damp = std::pow(damp_rate, h);
-        pin = rate_per(s.pin, h);
-        stiff = rate_per(s.stiffness, h);
+    // Targets, root push, forces (damping toward the animated speed, V2.3), prediction.
+    void begin_substep(float h_, float f) {
+        h = h_;
         fric = rate_per(s.friction, h);
-        for (int k = root; k <= tail; ++k) at_[k] = glm::mix(st->anim_prev[k], a[k], f);
+        glm::vec3 before[kSlots + 1];
+        for (int k = root; k <= tail; ++k) {
+            lam_stiff[k] = lam_pin[k] = lam_stretch[k] = 0.0f;
+            before[k] = at_[k];
+            at_[k] = glm::mix(aprev[k], a[k], f);
+        }
         x[root] = at_[root];
-        // the root pushed out of the shapes as a sphere of the chain's radius: the game keeps a root's push too (RE note
-        // 3.2g step 3), and a root that sits inside a shape at bind (Nero's coat _02 / _03) would hold its first segment
-        // in it for good
+        // the root pushed out of the shapes as a sphere of its radius: the game keeps a root's push too (RE note 3.2g
+        // step 3), and a root that sits inside a shape at bind (Nero's coat _02 / _03) would hold its first segment in it
+        // for good
         for (const Capsule& c : shapes) {
             float u, w;
             closest(x[root], x[root], c.a, c.b, u, w);
             const glm::vec3 q = glm::mix(c.a, c.b, w), d = x[root] - q;
-            const float dist = glm::length(d), pen = r + c.r - dist;
+            const float dist = glm::length(d), pen = rad[root] + c.r - dist;
             if (pen > 0.0f) x[root] += safe_normalize(d, glm::vec3(0.0f, 1.0f, 0.0f)) * pen;
         }
         for (int k = root + 1; k <= tail; ++k) {
-            v[k] = (v[k] + (g + wind) * h) * damp;
+            const glm::vec3 va = (at_[k] - before[k]) / h;
+            v[k] = va + (v[k] - va) * std::pow(keep[k], h);
+            v[k] += (g * grav[k] + wind) * h;
             old[k] = x[k];
             x[k] += v[k] * h;
             touched[k] = false;
         }
     }
 
-    // One constraint pass up to the lengths (stiffness and pin in the first pass only).
-    void constrain(bool first) {
-        if (first && (pin > 0.0f || stiff > 0.0f))
-            for (int k = root + 1; k <= tail; ++k) {
-                if (stiff > 0.0f) {
-                    const float len = glm::length(x[k] - x[k - 1]);
-                    const glm::vec3 d = safe_normalize(at_[k] - at_[k - 1], glm::vec3(0.0f, -1.0f, 0.0f));
-                    x[k] += (x[k - 1] + d * len - x[k]) * stiff;
-                }
-                if (pin > 0.0f) x[k] += (at_[k] - x[k]) * pin;
+    // One constraint pass up to the lengths.
+    void constrain() {
+        const float ih2 = 1.0f / (h * h);
+        for (int k = root + 1; k <= tail; ++k) {
+            if (stiff_c[k] >= 0.0f) {
+                const float len = glm::length(x[k] - x[k - 1]);
+                const glm::vec3 d = safe_normalize(at_[k] - at_[k - 1], glm::vec3(0.0f, -1.0f, 0.0f));
+                goal(x[k], x[k - 1] + d * len, stiff_c[k] * ih2, lam_stiff[k]);
             }
-        // shapes: each segment's closest point pushed out, split over its two ends (the root doesn't move)
+            if (pin_c[k] >= 0.0f) goal(x[k], at_[k], pin_c[k] * ih2, lam_pin[k]);
+        }
+        // shapes: each segment's closest point pushed out, split over its two ends (the root doesn't move); the segment's
+        // radius tapers between its ends' values
         for (int k = root; k < tail; ++k)
             for (const Capsule& c : shapes) {
                 float u, w;
                 closest(x[k], x[k + 1], c.a, c.b, u, w);
                 const glm::vec3 p = glm::mix(x[k], x[k + 1], u), q = glm::mix(c.a, c.b, w);
-                const float dist = glm::length(p - q), pen = r + c.r - dist;
+                const float dist = glm::length(p - q), pen = glm::mix(rad[k], rad[k + 1], u) + c.r - dist;
                 if (pen <= 0.0f) continue;
                 const glm::vec3 nrm = safe_normalize(p - q, safe_normalize(x[k + 1] - c.a, glm::vec3(0.0f, 1.0f, 0.0f)));
                 const float wa = k == root ? 0.0f : 1.0f - u, wb = u, den = wa * wa + wb * wb;
@@ -417,7 +486,7 @@ struct Tendril {
                 float u, w;
                 closest(x[k], x[k + 1], o.a, o.b, u, w);
                 const glm::vec3 p = glm::mix(x[k], x[k + 1], u), q = glm::mix(o.a, o.b, w);
-                const float dist = glm::length(p - q), pen = 2.0f * r - dist;
+                const float dist = glm::length(p - q), pen = glm::mix(rad[k], rad[k + 1], u) + glm::mix(o.ra, o.rb, w) - dist;
                 if (pen <= 0.0f || dist < 1e-5f) continue;
                 const glm::vec3 nrm = (p - q) / dist;
                 const float wa = k == root ? 0.0f : 1.0f - u, wb = u, den = wa * wa + wb * wb;
@@ -428,47 +497,51 @@ struct Tendril {
             }
         for (int k = root + 1; k <= tail; ++k) {
             if (has_ground[k]) {
-                const float d = glm::dot(x[k] - ground[k].p, ground[k].n) - r;
+                const float d = glm::dot(x[k] - ground[k].p, ground[k].n) - rad[k];
                 if (d < 0.0f) { x[k] -= ground[k].n * d; touched[k] = true; contact[k] = ground[k].n; }
             }
-            if (floor_level > -9000.0f && x[k].y < floor_level + r) {
-                x[k].y = floor_level + r;
+            if (floor_level > -9000.0f && x[k].y < floor_level + rad[k]) {
+                x[k].y = floor_level + rad[k];
                 touched[k] = true;
                 contact[k] = glm::vec3(0.0f, 1.0f, 0.0f);
             }
         }
-        if (s.limit > 0.0f) {
-            const float lim = glm::radians(std::min(s.limit, 180.0f)), cl = std::cos(lim), sl = std::sin(lim);
-            for (int k = root + 1; k <= tail; ++k) {
-                const glm::vec3 seg = x[k] - x[k - 1];
-                const float len = glm::length(seg);
-                if (len < 1e-5f) continue;
-                const glm::vec3 d = safe_normalize(at_[k] - at_[k - 1], seg / len);
-                if (glm::dot(seg / len, d) >= cl) continue;
-                const glm::vec3 side = safe_normalize(seg - d * glm::dot(seg, d), glm::vec3(0.0f));
-                if (side == glm::vec3(0.0f)) continue;
-                x[k] = x[k - 1] + (d * cl + side * sl) * len;
-            }
+        for (int k = root + 1; k <= tail; ++k) {
+            if (lim_cos[k] < -1.0f) continue;
+            const glm::vec3 seg = x[k] - x[k - 1];
+            const float len = glm::length(seg);
+            if (len < 1e-5f) continue;
+            const glm::vec3 d = safe_normalize(at_[k] - at_[k - 1], seg / len);
+            if (glm::dot(seg / len, d) >= lim_cos[k]) continue;
+            const glm::vec3 side = safe_normalize(seg - d * glm::dot(seg, d), glm::vec3(0.0f));
+            if (side == glm::vec3(0.0f)) continue;
+            x[k] = x[k - 1] + (d * lim_cos[k] + side * lim_sin[k]) * len;
         }
     }
 
-    // Lengths last, root to tail, each child moved onto its parent's sphere.
-    void lengths(float h) {
-        const float spring = rate_per(spring_rate, h);
+    // Lengths last in each pass, root to tail: each child put on its parent's sphere. With mStretch a soft stretch
+    // (mSpring) instead, capped at L x mStretchLimit.
+    void lengths() {
+        const float ih2 = 1.0f / (h * h);
         for (int k = root; k < tail; ++k) {
+            if (stretch) {
+                if (spring_c >= 0.0f) {
+                    const float wa = weight(k);
+                    distance(x[k], wa, x[k + 1], 1.0f, L[k], (wa + 1.0f) * spring_c * ih2, lam_stretch[k], true);
+                }
+                const glm::vec3 d = x[k + 1] - x[k];
+                const float len = glm::length(d), cap = L[k] * stretch_limit;
+                if (stretch_limit >= 0.0f && len > cap && len > 1e-5f) x[k + 1] = x[k] + d * (cap / len);
+                continue;
+            }
             const glm::vec3 d = x[k + 1] - x[k];
             const float len = glm::length(d);
             const glm::vec3 dir = len > 1e-5f ? d / len : safe_normalize(at_[k + 1] - at_[k], glm::vec3(0.0f, -1.0f, 0.0f));
-            float want = L[k];
-            if (stretch) {
-                want = len > L[k] ? len + (L[k] - len) * spring : len;
-                if (stretch_limit >= 0.0f) want = std::min(want, L[k] * stretch_limit);
-            }
-            x[k + 1] = x[k] + dir * want;
+            x[k + 1] = x[k] + dir * L[k];
         }
     }
 
-    void end_substep(float h) {
+    void end_substep() {
         for (int k = root + 1; k <= tail; ++k) {
             v[k] = (x[k] - old[k]) / h;
             if (touched[k]) {
@@ -523,17 +596,6 @@ struct Tendril {
     }
 };
 
-// A distance constraint between two points of the set, softened to `k` (this pass's share), roots unmoved.
-void link(glm::vec3& p, float wp, glm::vec3& q, float wq, float rest, float k) {
-    if (k <= 0.0f || wp + wq <= 0.0f) return;
-    const glm::vec3 d = q - p;
-    const float len = glm::length(d);
-    if (len < 1e-5f) return;
-    const glm::vec3 c = d * ((len - rest) / len * k / (wp + wq));
-    p += c * wp;
-    q -= c * wq;
-}
-
 // Steps 5-6 for a set of tendrils: one, or a <cloth>'s sheet (its links between the pass's other constraints and the
 // lengths). `T` is the time the solve covers; the tendrils are prepared.
 void solve_set(std::vector<Tendril>& set, const Cloth* cloth, float T) {
@@ -551,14 +613,15 @@ void solve_set(std::vector<Tendril>& set, const Cloth* cloth, float T) {
         for (Tendril& t : set) t.gather();
         // the sheet's links: neighbours point by point at the same depth (stretch), the diagonals (shear), the tendril
         // after next (bend); rest lengths from the animated pose, tails included, up to the shorter tendril
-        struct Link { int ta, ka, tb, kb; float rest, rate; };
+        struct Link { int ta, ka, tb, kb; float rest, comp, lam; };
         std::vector<Link> links;
         if (cloth && set.size() > 1) {
             const int n = (int)set.size();
             auto add = [&](int ta, int da, int tb, int db, float rate) {
-                if (rate <= 0.0f || da > set[ta].nodes() || db > set[tb].nodes() || (da == 0 && db == 0)) return;
+                const float comp = compliance(rate);
+                if (comp < 0.0f || da > set[ta].nodes() || db > set[tb].nodes() || (da == 0 && db == 0)) return;
                 const int ka = set[ta].root + da, kb = set[tb].root + db;
-                links.push_back({ ta, ka, tb, kb, glm::length(set[tb].a[kb] - set[ta].a[ka]), rate });
+                links.push_back({ ta, ka, tb, kb, glm::length(set[tb].a[kb] - set[ta].a[ka]), comp, 0.0f });
             };
             for (int i = 0; i < n; ++i) {
                 const int j = i + 1 < n ? i + 1 : (cloth->closed && n > 2 ? 0 : -1);
@@ -576,19 +639,19 @@ void solve_set(std::vector<Tendril>& set, const Cloth* cloth, float T) {
         }
         for (int step = 1; step <= steps; ++step) {
             for (Tendril& t : set) t.begin_substep(h, (float)step / steps);
+            for (Link& l : links) l.lam = 0.0f;
             for (int it = 0; it < iterations; ++it) {
                 // the sheet's links first, so the members' shapes / ground then push out what they pulled in (after the
                 // shapes they ended passes inside the body: albam-9d's preview, 0.53 cm against 0.09 alone)
-                for (const Link& l : links) {
-                    // a per-frame rate, as a share per substep, spread over the passes
-                    const float k = 1.0f - std::pow(1.0f - rate_per(l.rate, h), 1.0f / iterations);
+                for (Link& l : links) {
                     Tendril &ta = set[l.ta], &tb = set[l.tb];
-                    link(ta.x[l.ka], ta.weight(l.ka), tb.x[l.kb], tb.weight(l.kb), l.rest, k);
+                    const float wa = ta.weight(l.ka), wb = tb.weight(l.kb);
+                    distance(ta.x[l.ka], wa, tb.x[l.kb], wb, l.rest, (wa + wb) * l.comp / (h * h), l.lam, false);
                 }
-                for (Tendril& t : set) t.constrain(it == 0);
-                for (Tendril& t : set) t.lengths(h);
+                for (Tendril& t : set) t.constrain();
+                for (Tendril& t : set) t.lengths();
             }
-            for (Tendril& t : set) t.end_substep(h);
+            for (Tendril& t : set) t.end_substep();
         }
     }
     for (Tendril& t : set) t.output();
