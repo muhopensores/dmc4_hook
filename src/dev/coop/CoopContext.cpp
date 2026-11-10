@@ -331,12 +331,21 @@ void restore_lock() {
     lock_applied_slot = -1;
 }
 
+int view_slot = -1;
+
+bool sphere_in_viewport(const void* camera_system, int slot, const float* sphere) {
+    const sCamera* cam = static_cast<const sCamera*>(camera_system);
+    const sCamera_ViewPort& vp = cam->viewports[slot];
+    return vp.mpCamera != nullptr && sphere_in_view(vp, sphere);
+}
+
 // Player `slot`'s context: him, his camera (or `camera`), his pad, and (`lock`) his lock-on values in the targets.
 bool swap_for(int slot, uintptr_t camera = 0, bool lock = true) {
     if (!camera) camera = (uintptr_t)players[slot].cam;
     if (!swap_to(players[slot].unit, camera, (uintptr_t)coop_pads::pad_for(slot))) {
         return false;
     }
+    view_slot = slot >= 1 ? slot : -1;
     if (lock) {
         apply_lock(slot, players[slot].unit);
     }
@@ -344,6 +353,12 @@ bool swap_for(int slot, uintptr_t camera = 0, bool lock = true) {
 }
 
 bool enter(uintptr_t unit) {
+    // player 1 on an XInput pad: his camera reads its stick from sDevil4Pad::mpInstance, so give it his stand-in (the
+    // game's player and camera stay as they are; a boss camera may be the active one)
+    if (coop_pads::uses_stand_in(0) && players[0].cam && unit == (uintptr_t)players[0].cam) {
+        const uintptr_t med = at<uintptr_t>(kMediator, 0);
+        return med && swap_to(at<uintptr_t>(med, kMedPlayer), 0, (uintptr_t)coop_pads::pad_for(0));
+    }
     const int cam_owner = camera_owner(unit);
     if (cam_owner >= 0) {
         return swap_for(cam_owner, unit);
@@ -366,6 +381,7 @@ void leave() {
         return;
     }
     restore_lock();
+    view_slot = -1;
     if (const uintptr_t med = at<uintptr_t>(kMediator, 0)) {
         at<uintptr_t>(med, kMedPlayer) = saved_player;
         if (camera_swapped) {
@@ -444,6 +460,7 @@ void reset() {
     swapped = false;
     camera_swapped = false;
     pad_swapped = false;
+    view_slot = -1;
 }
 
 uint32_t swaps_last_frame() { return swaps_shown; }

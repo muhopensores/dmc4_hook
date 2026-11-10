@@ -6,7 +6,8 @@
 
 // CoopPads: input for every coop player, read on the game thread.
 //
-// Player 1 keeps the game's sDevil4Pad (sDevil4Pad::mpInstance 0xE559C4, mPadInfo[0]). Players 2-4 each get a stand-in
+// Player 1 keeps the game's sDevil4Pad (sDevil4Pad::mpInstance 0xE559C4, mPadInfo[0]) unless he picks an XInput pad,
+// which gives him a stand-in like the others (his camera's stick then reads it through CoopContext). Players 2-4 each get a stand-in
 // sDevil4Pad that is never constructed by the game (sPad::sPad 0x8E3D60 would overwrite the singleton and open
 // DirectInput): only mPadInfo[0] and mPad[0].Data are filled, once a frame from XInputGetState, with the game's own
 // mapping (sub_8E4950 for the bits, sDevil4Pad::cPadInfo::update 0x485F20 for sticks and press values). The camera hooks
@@ -36,7 +37,8 @@ constexpr int kButtons = 16;
 extern int remap[coop::kMaxPlayers][kButtons];   // remap[player][game button] = the player's button, -1 = none
 
 bool init();                                 // resolves XInput; false = no XInput DLL
-sDevil4Pad* pad_for(int control);            // 0 = the game's pad, 1-3 = the stand-ins
+bool uses_stand_in(int control);             // players 2-4, and player 1 with an XInput pad picked
+sDevil4Pad* pad_for(int control);            // the stand-in, or the game's pad for player 1 on it
 bool connected(int control);
 void set_keyboard_owner(int control);
 void stop_all();

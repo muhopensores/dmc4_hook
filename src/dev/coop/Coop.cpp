@@ -62,7 +62,11 @@ constexpr uintptr_t kCameraCtor   = 0x4F71B0; // uCameraCtrl::uCameraCtrl
 
 constexpr int kLinePlayer = 13;
 constexpr int kLineCamera = 0x17;
-constexpr int kLineExtraCamera = 18;
+// Players 2-4's cameras run on the game camera's line, after it (sUnit::addBottom 0x8DC540): after every player, enemy and
+// shell has moved, with the camera line's time step. On line 18 they ran among some enemies (half of them moved, half
+// not) and on the shells' time step, and the follow camera's auto-adjust (cCameraPlayer::cameraAngleYHosei 0x4255B0)
+// snapped.
+constexpr int kLineExtraCamera = kLineCamera;
 constexpr int kLineHud = 25;
 
 void* construct(uintptr_t ctor) { return ((void* (*)())ctor)(); }
@@ -657,12 +661,34 @@ void* __fastcall nero_save_data(uintptr_t player, uintptr_t edx, void* dst) {
     return nero_save_original(player, edx, dst);
 }
 
+// sCamera::isDispSphere (edi = MtSphere, esi = sCamera, result in al): in a player 2-4's context, his viewport.
+constexpr uintptr_t kIsDispSphere = 0x8EE300;
+uintptr_t disp_sphere_original = 0;
+
+bool __stdcall disp_sphere_for_view(const void* camera_system, const float* sphere) {
+    return coop_context::sphere_in_viewport(camera_system, coop_context::view_slot, sphere);
+}
+
+naked_extern void detour_disp_sphere() {
+    __asm {
+        cmp dword ptr [coop_context::view_slot], 1
+        jl originalcode
+        push edi
+        push esi
+        call disp_sphere_for_view
+        ret
+    originalcode:
+        jmp dword ptr [disp_sphere_original]
+    }
+}
+
 bool __stdcall pad_update_fallback(cPeripheral* peripheral) {
     return coop_pads::update_peripheral(peripheral);
 }
 
 const char* kCharNames[] = {"Nero", "Dante"};
 const char* kPadNames[] = {"XInput 1", "XInput 2", "XInput 3", "XInput 4"};
+const char* kP1PadNames[] = {"Game's pad", "XInput 1", "XInput 2", "XInput 3", "XInput 4"};
 
 } // namespace
 
@@ -731,6 +757,12 @@ std::optional<std::string> Coop::on_initialize() {
         return "Failed to init Coop: lock-on";
     }
     update_lock_on_original = hook_lock_on->get_original<std::remove_pointer_t<UpdateLockOnFn>>();
+    hook_disp_sphere = std::make_unique<FunctionHook>(kIsDispSphere, (uintptr_t)&detour_disp_sphere);
+    if (!hook_disp_sphere->create()) {
+        spdlog::error("Failed to init Coop (isDispSphere)\n");
+        return "Failed to init Coop: isDispSphere";
+    }
+    disp_sphere_original = hook_disp_sphere->get_original();
     struct TrampolineSite { uintptr_t addr; std::unique_ptr<FunctionHook>* hook; void* detour; SaveDataFn* original; const char* what; };
     const TrampolineSite save_sites[] = {
         {0x7E2AF0, &hook_common_save, (void*)&common_save_data, &common_save_original, "getCommonSaveData"},
@@ -782,17 +814,28 @@ void Coop::on_gui_frame(int display) {
             ImGui::SetNextItemWidth(sameLineItemWidth);
             ImGui::Combo(_("Character"), &players[i].character, kCharNames, IM_ARRAYSIZE(kCharNames));
             ImGui::SameLine();
-            help_marker(_("Who this player spawns as. Picking Dante while player 1 is Nero crashes; the opposite works"));
+            help_marker(_("Who this player spawns as, at the next stage start"));
             ImGui::SameLine();
             ImGui::SetNextItemWidth(sameLineItemWidth / 1.5f);
             ImGui::Combo(_("Pad"), &players[i].xinput, kPadNames, IM_ARRAYSIZE(kPadNames));
             ImGui::SameLine();
-            help_marker(_("The XInput controller this player uses. Player 1 always uses the game's own pad, which is "
-                          "usually XInput 1"));
+            help_marker(_("The XInput controller this player uses"));
+        } else {
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(sameLineItemWidth / 1.5f);
+            int p1_pad = players[0].xinput + 1;
+            if (ImGui::Combo(_("Pad"), &p1_pad, kP1PadNames, IM_ARRAYSIZE(kP1PadNames))) {
+                players[0].xinput = p1_pad - 1;
+                coop_pads::stop_all();
+            }
+            ImGui::SameLine();
+            help_marker(_("Game's pad: player 1 plays on whatever the game reads (its own controller settings). An XInput "
+                          "pad: player 1 uses that controller like the other players, with his own button layout below "
+                          "and rumble on it. Menus still follow the game's pad"));
         }
         ImGui::SameLine();
         ImGui::TextUnformatted(coop_pads::connected(i) ? _("connected") : _("no pad"));
-        if (i > 0) {
+        if (coop_pads::uses_stand_in(i)) {
             ImGui::Indent(lineIndent);
             coop_pads::draw_bindings(i);
             ImGui::Unindent(lineIndent);
@@ -881,6 +924,11 @@ void Coop::on_stage_end() {
 
 void Coop::on_config_load(const utility::Config& cfg) {
     player_num = (unsigned)std::clamp(cfg.get<int>("coop_players").value_or(2), 2, kMaxPlayers);
+    players[0].xinput = std::clamp(cfg.get<int>("coop_p1_pad").value_or(-1), -1, 3);
+    for (int b = 0; b < coop_pads::kButtons; b++) {
+        const int v = cfg.get<int>("coop_p1_button" + std::to_string(b)).value_or(b);
+        coop_pads::remap[0][b] = std::clamp(v, -1, coop_pads::kButtons - 1);
+    }
     for (int i = 1; i < kMaxPlayers; i++) {
         const std::string n = std::to_string(i + 1);
         players[i].character = std::clamp(cfg.get<int>("coop_p" + n + "_character").value_or(0), 0, 1);
@@ -896,6 +944,10 @@ void Coop::on_config_load(const utility::Config& cfg) {
 
 void Coop::on_config_save(utility::Config& cfg) {
     cfg.set<int>("coop_players", (int)player_num);
+    cfg.set<int>("coop_p1_pad", players[0].xinput);
+    for (int b = 0; b < coop_pads::kButtons; b++) {
+        cfg.set<int>("coop_p1_button" + std::to_string(b), coop_pads::remap[0][b]);
+    }
     for (int i = 1; i < kMaxPlayers; i++) {
         const std::string n = std::to_string(i + 1);
         cfg.set<int>("coop_p" + n + "_character", players[i].character);

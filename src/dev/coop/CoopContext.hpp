@@ -65,6 +65,13 @@ void lock_on_end();
 // (kept while bit 4 is set, or always with the Targeting Fix).
 void inter_flags_for(uintptr_t player);
 
+// The viewport of the player whose context is in (1-3), -1 for player 1 / none. sCamera::isDispSphere 0x8EE300 tests
+// viewport 0's frustum only, and the lock-on camera (cCameraPlayer::main01 0x41A5AE) adjusts by it: player 2's camera
+// turned whenever his target left player 1's view, and snapped back. Coop's hook tests this viewport instead.
+extern int view_slot;
+// sCamera::isDispSphere against viewport `slot` (MtSphere: x y z r).
+bool sphere_in_viewport(const void* camera_system, int slot, const float* sphere);
+
 // Readout.
 uint32_t swaps_last_frame();
 // The grab hit wrapper reports each hit (game thread): the hand's Nero, whether it swapped, the target group.

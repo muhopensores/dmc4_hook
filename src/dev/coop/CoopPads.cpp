@@ -52,6 +52,7 @@ bool stand_in_connected[coop::kMaxPlayers] = {};
 
 // Control number owning the keyboard as the asm gates compare it (0xFF = nobody).
 uint8_t kb_owner_byte = 0;
+uint8_t p1_stand_in = 0;   // player 1 uses an XInput stand-in: his rumble goes through the envelopes too
 uintptr_t set_interface_info_kb = 0x7A9870;   // uPlayer::setInterfaceInfoKB (__stdcall uPlayer*)
 uintptr_t skip_kb_exceed = 0x7A9463;           // setInterface: "Exceed key not down"
 uintptr_t skip_vib_stop  = 0x7AB824;           // updateContactInfoSub: after the stopVibration call
@@ -280,7 +281,7 @@ int control_of(uintptr_t player) {
 
 void __stdcall rumble_start(uintptr_t player, int index) {
     const int c = control_of(player);
-    if (c < 1 || !coop_pads::rumble || at<int>(player, kActorType) != 1) {
+    if (c < 0 || !coop_pads::uses_stand_in(c) || !coop_pads::rumble || at<int>(player, kActorType) != 1) {
         return;
     }
     sDevil4Pad* real = game_pad();
@@ -302,7 +303,7 @@ void __stdcall rumble_start(uintptr_t player, int index) {
 
 void __stdcall rumble_stop(uintptr_t player) {
     const int c = control_of(player);
-    if (c >= 1) {
+    if (c >= 0 && coop_pads::uses_stand_in(c)) {
         clear_rumble(c);
     }
 }
@@ -368,22 +369,23 @@ bool init() {
     return xinput_get != nullptr;
 }
 
+bool uses_stand_in(int control) {
+    return control > 0 || (control == 0 && coop::players[0].xinput >= 0);
+}
+
 sDevil4Pad* pad_for(int control) {
-    if (control == 0) {
-        return game_pad();
-    }
     if (control < 0 || control >= coop::kMaxPlayers) {
         return nullptr;
     }
-    return stand_in(control);
+    return uses_stand_in(control) ? stand_in(control) : game_pad();
 }
 
 bool connected(int control) {
-    if (control == 0) {
+    if (control == 0 && !uses_stand_in(0)) {
         sDevil4Pad* real = game_pad();
         return real && real->mPad[0].Info.Kind != 0;
     }
-    return control > 0 && control < coop::kMaxPlayers && stand_in_connected[control];
+    return control >= 0 && control < coop::kMaxPlayers && stand_in_connected[control];
 }
 
 void set_keyboard_owner(int control) {
@@ -392,8 +394,8 @@ void set_keyboard_owner(int control) {
 }
 
 void stop_all() {
-    for (int c = 1; c < coop::kMaxPlayers; c++) {
-        clear_rumble(c);
+    for (int c = 0; c < coop::kMaxPlayers; c++) {
+        if (uses_stand_in(c)) clear_rumble(c);
     }
 }
 
@@ -405,7 +407,11 @@ void __stdcall game_tick() {
     last_tick = now;
     dt = (std::min)(dt, 100.0f);
 
-    for (int c = 1; c < coop::kMaxPlayers; c++) {
+    p1_stand_in = uses_stand_in(0) ? 1 : 0;
+    for (int c = 0; c < coop::kMaxPlayers; c++) {
+        if (!uses_stand_in(c)) {
+            continue;
+        }
         sDevil4Pad* pad = stand_in(c);
         XINPUT_STATE st{};
         const int index = coop::players[c].xinput;
@@ -558,7 +564,10 @@ naked_extern void detour_vib() {
         cmp byte ptr [Coop::mod_enabled], 1
         jne originalcode
         cmp byte ptr [edx+0x1405], 0
-        je originalcode
+        jne ours
+        cmp byte ptr [p1_stand_in], 1
+        jne originalcode
+    ours:
         pushad
         push eax
         push edx
@@ -578,7 +587,10 @@ naked_extern void detour_vib_stop() {
         cmp byte ptr [Coop::mod_enabled], 1
         jne originalcode
         cmp byte ptr [esi+0x1405], 0
-        je originalcode
+        jne ours
+        cmp byte ptr [p1_stand_in], 1
+        jne originalcode
+    ours:
         pushad
         push esi
         call rumble_stop

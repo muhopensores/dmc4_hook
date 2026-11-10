@@ -5,7 +5,7 @@
 #include "../../sdk/Cam.hpp"
 
 // Coop: split-screen co-op. Extra players are spawned as their own uPlayerNero / uPlayerDante on move line 13 with their
-// own uCameraCtrl (line 18) and HUD (line 25), and the sCamera viewports are split between the cameras.
+// own uCameraCtrl (line 23, after the game's) and HUD (line 25), and the sCamera viewports are split between the cameras.
 //
 // Each player carries a control number in cPeripheral padding (uPlayer +0x1405, peripheral +0x95): 0 is player 1, who
 // reads the game's own pad; 1-3 read the XInput pad picked for them (CoopPads). The cameras and HUDs find their player
@@ -20,7 +20,7 @@ constexpr int kMaxPlayers = 4;
 
 struct Player {
     int character = 0;          // 0 Nero, 1 Dante
-    int xinput    = 0;          // XInput user index (players 2-4; player 1 reads the game's pad)
+    int xinput    = 0;          // XInput user index; player 1: -1 = the game's own pad (default)
     uintptr_t unit = 0;         // uPlayer
     uCameraCtrl* cam = nullptr;
     void* hud = nullptr;
@@ -71,6 +71,6 @@ private:
     std::unique_ptr<FunctionHook> hook2, hook3, hook4, hook5, hook6, hook7, hook8, hook9, hook10, hook11;
     std::unique_ptr<FunctionHook> hook_kb_merge, hook_kb_exceed, hook_vib, hook_vib_stop;
     std::unique_ptr<FunctionHook> hook_water, hook_unit_init, hook_unit_tick, hook_unit_pass2, hook_unit_pass3, hook_grab_hit, hook_set_game_system,
-        hook_lock_on, hook_common_save, hook_dante_save, hook_nero_save;
+        hook_lock_on, hook_common_save, hook_dante_save, hook_nero_save, hook_disp_sphere;
     std::unique_ptr<Patch> patch1;
 };
