@@ -449,6 +449,8 @@ set(SDK_SRC
     sdk/InputCommand.hpp
     sdk/InputCommand.cpp
     sdk/NeroStand.hpp
+    sdk/Players.hpp
+    sdk/Players.cpp
     sdk/MoveRegistry.hpp
     sdk/MoveRegistry.cpp
     sdk/LmtMerge.hpp

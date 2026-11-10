@@ -1,6 +1,7 @@
 #include "GuardianDevil.hpp"
 #include "../sdk/NeroStand.hpp"
 #include "../sdk/InputCommand.hpp"
+#include "../sdk/Players.hpp"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/StringData.hpp"
 #include "../sdk/MotionRegistry.hpp"
@@ -205,7 +206,7 @@ bool keyboard_allowed() { return !g_framework->m_draw_ui && GetForegroundWindow(
 bool input_down(uintptr_t pl, int source, int pad, int key, int game) {
     switch (source) {
     case TRIG_PAD:  return pad != 0 && (at<uint32_t>(pl, kPadBtnOn) & (uint32_t)pad) == (uint32_t)pad;
-    case TRIG_KEY:  return key != 0 && keyboard_allowed() && (GetAsyncKeyState(key) & 0x8000) != 0;
+    case TRIG_KEY:  return key != 0 && players::has_keyboard(pl) && keyboard_allowed() && (GetAsyncKeyState(key) & 0x8000) != 0;
     case TRIG_GAME: return game != 0 && (at<uint32_t>(pl, pl::mBtnOn) & (uint32_t)game) != 0;
     default: return false;
     }
@@ -816,8 +817,9 @@ void pre_tick(uintptr_t pl) {
     write_bytes(stand, s);
     if (s.phase == ATTACK && !s.taunting && !s.guarding) rush_loop(pl, stand, s);
 
-    // the pad / key trigger as the virtual button, for the commands that run after this tick (the local player's pad)
-    if (trigger_source != TRIG_GAME && pl == (uintptr_t)devil4_sdk::get_local_player()) {
+    // the pad / key trigger as the virtual button, for the commands that run after this tick (each player's own pad; the
+    // key for the player who has the keyboard)
+    if (trigger_source != TRIG_GAME && players::index_of(pl) >= 0) {
         const bool down = trigger_down(pl);
         if (down) at<uint32_t>(pl, pl::mBtnOn) |= kVirtualButton;
         if (down && !s.held) at<uint32_t>(pl, pl::mBtnTrg) |= kVirtualButton;

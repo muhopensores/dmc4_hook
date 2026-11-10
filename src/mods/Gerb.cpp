@@ -4,6 +4,7 @@
 #include "MoveTable.hpp"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/InputCommand.hpp"
+#include "../sdk/Players.hpp"
 #include "../sdk/MoveRegistry.hpp"
 #include "../sdk/MotionRegistry.hpp"
 #include "../sdk/CtnScript.hpp"
@@ -145,6 +146,9 @@ struct JumpState {                   // what the phase word can't hold
     bool vertical = false;           // entered through the vertical row (0x41)
     uint32_t last_seen = 0;          // state_for's tick when this player was last seen (eviction order)
     uint32_t shell_serial = 0;       // the jump's serial, counted up at each launch: the shell ends when it changes
+    bool custom_held[2] = {};        // the rows' inputs: last tick's trigger state (the press edge of pad / key triggers)
+    int bf_step = 0;                 // STICK_BACK_FORWARD: the step being waited for (BackForwardStep)
+    float bf_timer = 0.0f;           // frames left in its current window, 0 = none
 };
 JumpState g_jumps[kPlayerSlots];
 int slot_of(const JumpState& s) { return (int)(&s - g_jumps); }
@@ -334,11 +338,11 @@ void apply_row() {
 }
 
 // ---- The rows' inputs (Gerb.hpp): checked in the pre-check tick (after executeCommandCheck, before checkAtck reads
-// mCmdFlag), the local player only (the pad / keyboard are its). A press with its conditions met sets the row's bit.
+// mCmdFlag), for every player: the pad sources read his own pad, the keyboard only the player who has it
+// (players::has_keyboard). A press with its conditions met sets the row's bit.
 constexpr uintptr_t kPadBtnOn = 0x1374;          // mPeripheral.mPadBtnOn: the raw pad bits, before the button config maps them
 constexpr uintptr_t kCmdFlagWords = 0x2184;      // mCmdFlag[3]
 constexpr float     kBackForwardFrames = 15.0f;  // STICK_BACK_FORWARD: back -> forward, and forward -> the trigger, each within this
-static bool     g_custom_held[2] = {};           // last tick's trigger state (the press edge of pad / key triggers)
 static uint32_t g_custom_fired[2] = {};          // readout: times each row's input fired
 // STICK_BACK_FORWARD runs like the game's command 0x52, Calibur's input (uPlayer::commandTbl 0xC3E328 + 0x52 * 16, run by
 // uPlayer::commandCheckSub 0x805A10): stick centred (no time limit after it), back, forward within 15 frames of reaching
@@ -346,22 +350,20 @@ static uint32_t g_custom_fired[2] = {};          // readout: times each row's in
 // runs out starts the input over (back held too long, too slow to the trigger); firing starts it over too. Frames are
 // game frames (m_delta_time is subtracted every tick), so the windows don't depend on the tick rate.
 enum BackForwardStep : int { BF_CENTRED = 0, BF_BACK = 1, BF_FORWARD = 2, BF_READY = 3 };
-static int   g_bf_step = BF_CENTRED;             // the step being waited for (BF_READY: the trigger may fire)
-static float g_bf_timer = 0.0f;                  // frames left in the current window, 0 = none
 
 // The game's window when a step is reached: timer - 1 + this tick's delta for timers above 1 (commandCheckSub 0x805B96).
 static float bf_window(float dt) { return kBackForwardFrames > 1.0f ? kBackForwardFrames - 1.0f + dt : kBackForwardFrames; }
 
-static void back_forward_tick(uintptr_t pl, int now) {
+static void back_forward_tick(JumpState& s, uintptr_t pl, int now) {
     const float dt = at<float>(pl, pl::m_delta_time);
-    if (g_bf_timer > 0.0f) {
-        g_bf_timer -= dt;
-        if (g_bf_timer <= 0.0f) { g_bf_step = BF_CENTRED; g_bf_timer = 0.0f; }   // too slow: start over
+    if (s.bf_timer > 0.0f) {
+        s.bf_timer -= dt;
+        if (s.bf_timer <= 0.0f) { s.bf_step = BF_CENTRED; s.bf_timer = 0.0f; }   // too slow: start over
     }
     // steps reached this tick cascade, as the game checks the next step in the same call
-    if (g_bf_step == BF_CENTRED && now == STICK_CENTRED) g_bf_step = BF_BACK;
-    if (g_bf_step == BF_BACK && now == STICK_BACK)       { g_bf_step = BF_FORWARD; g_bf_timer = bf_window(dt); }
-    if (g_bf_step == BF_FORWARD && now == STICK_FORWARD) { g_bf_step = BF_READY;   g_bf_timer = bf_window(dt); }
+    if (s.bf_step == BF_CENTRED && now == STICK_CENTRED) s.bf_step = BF_BACK;
+    if (s.bf_step == BF_BACK && now == STICK_BACK)       { s.bf_step = BF_FORWARD; s.bf_timer = bf_window(dt); }
+    if (s.bf_step == BF_FORWARD && now == STICK_FORWARD) { s.bf_step = BF_READY;   s.bf_timer = bf_window(dt); }
 }
 static int      g_capture = -1;                  // the row whose trigger is being captured (-1 none)
 static uint32_t g_capture_bits = 0;              // pad capture: the buttons pressed together so far
@@ -395,26 +397,28 @@ static int stick_class(uintptr_t pl) {
     return glm::dot(stick, right) >= 0.0f ? STICK_RIGHT : STICK_LEFT;
 }
 
-static bool stick_ok(int now, int want) {
+static bool stick_ok(const JumpState& s, int now, int want) {
     switch (want) {
     case STICK_NONE:         return true;
     case STICK_ANY:          return now != STICK_CENTRED;
-    case STICK_BACK_FORWARD: return g_bf_step == BF_READY;
+    case STICK_BACK_FORWARD: return s.bf_step == BF_READY;
     default:                 return now == want;
     }
 }
 
 void custom_tick(uintptr_t pl) {
-    if (!mod_enabled || !pl || pl != (uintptr_t)devil4_sdk::get_local_player()) return;
+    if (!mod_enabled || players::index_of(pl) < 0) return;
     if (at<int>(pl, pl::mPlayerID) != 1) return;   // Nero's rows: on Dante the bits would match whatever row of his holds them
     if (g_capture >= 0 && custom_input[g_capture].source == SRC_PAD) {   // capture: every button down together, done on release
+        if (players::index_of(pl) != 0) return;                          // player 1's pad; nothing fires meanwhile
         const uint32_t bits = at<uint32_t>(pl, kPadBtnOn);
         if (bits) g_capture_bits |= bits;
         else if (g_capture_bits) { custom_input[g_capture].bits = g_capture_bits; g_capture_bits = 0; g_capture = -1; }
         return;                                                          // nothing fires while capturing
     }
+    JumpState& s = state_for(pl);
     const int now = stick_class(pl);
-    back_forward_tick(pl, now);                                          // the back-forward motion
+    back_forward_tick(s, pl, now);                                       // the back-forward motion
     for (int i = 0; i < 2; ++i) {
         const CustomInput& ci = custom_input[i];
         bool held = false, pressed = false;
@@ -425,22 +429,22 @@ void custom_tick(uintptr_t pl) {
             break;
         case SRC_PAD:
             held = (at<uint32_t>(pl, kPadBtnOn) & ci.bits) == ci.bits;
-            pressed = held && !g_custom_held[i];
+            pressed = held && !s.custom_held[i];
             break;
         case SRC_KEY:
-            held = keyboard_allowed() && (GetAsyncKeyState((int)ci.bits) & 0x8000) != 0;
-            pressed = held && !g_custom_held[i];
+            held = players::has_keyboard(pl) && keyboard_allowed() && (GetAsyncKeyState((int)ci.bits) & 0x8000) != 0;
+            pressed = held && !s.custom_held[i];
             break;
         default: break;
         }
-        g_custom_held[i] = held;
+        s.custom_held[i] = held;
         if (!pressed) continue;
         if (ci.lockon && !(at<uint32_t>(pl, pl::mBtnOn) & 0x10)) continue;
         const bool grounded_vertical = i == ROW_VERTICAL && vertical_ground_any_stick && !(at<uint32_t>(pl, pl::mActStat) & 0x2);
-        if (!stick_ok(now, ci.stick) && !grounded_vertical) continue;   // on the ground the vertical row takes any stick
+        if (!stick_ok(s, now, ci.stick) && !grounded_vertical) continue;   // on the ground the vertical row takes any stick
         at<uint32_t>(pl, kCmdFlagWords + 4 * (cmd_row[i] >> 5)) |= 1u << (cmd_row[i] & 31);
         ++g_custom_fired[i];
-        if (ci.stick == STICK_BACK_FORWARD) { g_bf_step = BF_CENTRED; g_bf_timer = 0.0f; }   // used up, as the game's
+        if (ci.stick == STICK_BACK_FORWARD) { s.bf_step = BF_CENTRED; s.bf_timer = 0.0f; }   // used up, as the game's
     }
 }
 
