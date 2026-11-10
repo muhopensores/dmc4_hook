@@ -51,6 +51,7 @@ public:
     static uintptr_t jmp_ret_water;
     static uintptr_t jmp_ret_unit_tick;
     static uintptr_t jmp_ret_unit_pass2;
+    static uintptr_t jmp_ret_unit_pass3;
 
     void toggle(bool enable);
 
@@ -67,7 +68,7 @@ public:
 private:
     std::unique_ptr<FunctionHook> hook2, hook3, hook4, hook5, hook6, hook7, hook8, hook9, hook10, hook11;
     std::unique_ptr<FunctionHook> hook_kb_merge, hook_kb_exceed, hook_vib, hook_vib_stop;
-    std::unique_ptr<FunctionHook> hook_water, hook_unit_tick, hook_unit_pass2, hook_grab_hit, hook_set_game_system,
-        hook_lock_on;
+    std::unique_ptr<FunctionHook> hook_water, hook_unit_tick, hook_unit_pass2, hook_unit_pass3, hook_grab_hit, hook_set_game_system,
+        hook_lock_on, hook_common_save, hook_dante_save, hook_nero_save;
     std::unique_ptr<Patch> patch1;
 };

@@ -3,7 +3,7 @@
 #include "../dev/coop/Coop.hpp"
 #include "../dev/coop/CoopPads.hpp"
 
-namespace players {
+namespace player_info {
 
 int index_of(uintptr_t player) {
     if (!player) {
@@ -31,4 +31,4 @@ bool has_keyboard(uintptr_t player) {
     return Coop::mod_enabled ? i == coop_pads::keyboard_owner : i == 0;
 }
 
-} // namespace players
+} // namespace player_info

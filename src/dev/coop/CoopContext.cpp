@@ -13,6 +13,7 @@ template <class T> inline T& at(uintptr_t base, uintptr_t off) { return *reinter
 
 constexpr uintptr_t kMediator     = 0xE558B8; // sMediator::mpInstance
 constexpr uintptr_t kMedPlayer    = 0x24;     // sMediator::mpPlayer
+constexpr uintptr_t kMedCamera    = 0xD0;     // sMediator::mpCamera
 constexpr uintptr_t kNeroVtable   = 0xBE4FA0; // uPlayerNero::vftable
 constexpr uintptr_t kLowerAction  = 0x1500;   // uPlayer::mBdyAction[1].no
 constexpr uintptr_t kAtckId       = 0x1564;   // uPlayer::mAtckId
@@ -70,12 +71,23 @@ struct StandDiag { uintptr_t player = 0, stand = 0, hand = 0, hand_owner = 0, ne
 GrabDiag  grab_diag;
 StandDiag stand_diag[kMaxPlayers];
 Hold      holds[kMaxPlayers];
-uintptr_t saved_player = 0;
-bool      swapped = false;
+uintptr_t saved_player = 0, saved_camera = 0;
+bool      swapped = false, camera_swapped = false;
 uint32_t  swaps = 0, swaps_shown = 0;
 
 bool grab_attack(uint32_t id) {
     return id == 1 || id == 2 || id == 5 || id == 6 || id == 7 || id == 8;
+}
+
+// The player 2-4 whose camera `unit` is, -1 if none.
+int camera_owner(uintptr_t unit) {
+    const int n = (int)Coop::player_num < kMaxPlayers ? (int)Coop::player_num : kMaxPlayers;
+    for (int i = 1; i < n; i++) {
+        if (players[i].cam && (uintptr_t)players[i].cam == unit && players[i].unit) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 // The extra player holding `unit`, -1 if none.
@@ -104,19 +116,28 @@ int owner_of(uintptr_t unit) {
 
 namespace coop_context {
 
-bool swap_to(uintptr_t player) {
+bool swap_to(uintptr_t player, uintptr_t camera = 0) {
     const uintptr_t med = at<uintptr_t>(kMediator, 0);
     if (!med || swapped) {
         return false;
     }
     saved_player = at<uintptr_t>(med, kMedPlayer);
     at<uintptr_t>(med, kMedPlayer) = player;
+    camera_swapped = camera != 0;
+    if (camera_swapped) {
+        saved_camera = at<uintptr_t>(med, kMedCamera);
+        at<uintptr_t>(med, kMedCamera) = camera;
+    }
     swapped = true;
     ++swaps;
     return true;
 }
 
 bool enter(uintptr_t unit) {
+    const int cam_owner = camera_owner(unit);
+    if (cam_owner >= 0) {
+        return swap_to(players[cam_owner].unit, unit);
+    }
     const int owner = owner_of(unit);
     return owner >= 0 && swap_to(players[owner].unit);
 }
@@ -139,8 +160,12 @@ void leave() {
     }
     if (const uintptr_t med = at<uintptr_t>(kMediator, 0)) {
         at<uintptr_t>(med, kMedPlayer) = saved_player;
+        if (camera_swapped) {
+            at<uintptr_t>(med, kMedCamera) = saved_camera;
+        }
     }
     swapped = false;
+    camera_swapped = false;
 }
 
 void note_grab_hit(uintptr_t hand_owner, bool did_swap, const void* target_group) {
@@ -197,6 +222,7 @@ void reset() {
         h = Hold{};
     }
     swapped = false;
+    camera_swapped = false;
 }
 
 uint32_t swaps_last_frame() { return swaps_shown; }

@@ -5,9 +5,11 @@
 #include "../../sdk/Devil4.hpp"
 #include "../../sdk/sUnit.hpp"
 #include "../../sdk/cUnit.hpp"
+#include "../../sdk/Players.hpp"
 #include "../../mods/CharSwitcher.hpp"
 #include "../../mods/DebugCam.hpp" // REGION_* viewport modes
 #include "../../mods/Macro.hpp"
+#include <cstring>
 
 #pragma push_macro("naked")
 #undef naked
@@ -32,6 +34,7 @@ uintptr_t Coop::jmp_ret11 = NULL;
 uintptr_t Coop::jmp_ret_water = NULL;
 uintptr_t Coop::jmp_ret_unit_tick = NULL;
 uintptr_t Coop::jmp_ret_unit_pass2 = NULL;
+uintptr_t Coop::jmp_ret_unit_pass3 = NULL;
 
 namespace coop {
 
@@ -440,7 +443,8 @@ void __stdcall context_leave() {
     coop_context::leave();
 }
 
-// sUnit::move's serial unit tick (esi = unit) and pass 2 (edi = unit): the unit's update between the context swap.
+// sUnit::move's serial unit tick (esi = unit), pass 2 (edi = unit) and pass 3 (esi = unit): the unit's update between
+// the context swap.
 // eax / ecx / edx are free afterwards (the next instruction reloads sDevil4Main); the stdcall helpers keep the rest.
 naked_extern void detour_unit_tick() {
     __asm {
@@ -481,6 +485,27 @@ naked_extern void detour_unit_pass2() {
         mov ecx, edi
         call eax
         jmp dword ptr [Coop::jmp_ret_unit_pass2]
+    }
+}
+
+naked_extern void detour_unit_pass3() {
+    __asm {
+        cmp byte ptr [Coop::mod_enabled], 1
+        jne originalcode
+        push esi
+        call context_enter
+        mov eax, [esi]
+        mov edx, [eax+0x20]
+        mov ecx, esi
+        call edx
+        call context_leave
+        jmp dword ptr [Coop::jmp_ret_unit_pass3]
+    originalcode:
+        mov eax, [esi]
+        mov edx, [eax+0x20]
+        mov ecx, esi
+        call edx
+        jmp dword ptr [Coop::jmp_ret_unit_pass3]
     }
 }
 
@@ -538,6 +563,56 @@ void* __fastcall update_lock_on(uintptr_t player, uintptr_t edx) {
     return result;
 }
 
+// A character's save data in the mission: sGameState::player_spawn_state -> sub_494B30 copies ONE block of sSave into
+// sMediator +0x368, Nero's (sSave +0x1D8, 0x3A dwords) in a Nero mission, Dante's (+0xD8, 0x40 dwords) otherwise, and the
+// players read it through uPlayerNero::getCommonSaveData 0x7E2AF0 (vtable +0x1E0 of both: equipped weapon ids, the
+// first 0x38 bytes) and getProperSaveData (+0x2D4: Dante 0x7B3700, 0x20 bytes at +0x38, which guns exist; Nero 0x7E2B30,
+// 7 bytes at +0x38). A Dante player 2 in a Nero mission got Nero's ids and gun flags, and uPlayer::cWeaponCtrl::
+// setShortEnable 0x7A5630 called a gun he never created (null, 0x7A5653). Players 2-4 of the other character read their
+// own block of sSave instead (same layout: the mission block is a plain copy).
+constexpr uintptr_t kSave = 0xE558C8;   // sSave::mpInstance
+constexpr uintptr_t kSaveDante = 0xD8, kSaveNero = 0x1D8;
+constexpr uintptr_t kPlayerID = 0x1494;  // uPlayer::mPlayerID (0 Dante, 1 Nero)
+
+const uint8_t* own_save_block(uintptr_t player) {
+    if (!Coop::mod_enabled || player_info::index_of(player) < 1 || !players[0].unit) {
+        return nullptr;
+    }
+    const uint32_t id = *(uint32_t*)(player + kPlayerID);
+    if (id == *(uint32_t*)(players[0].unit + kPlayerID) || id > 1) {
+        return nullptr;   // player 1's character: the mission block is his
+    }
+    const uintptr_t save = *(uintptr_t*)kSave;
+    return save ? (const uint8_t*)(save + (id == 0 ? kSaveDante : kSaveNero)) : nullptr;
+}
+
+using SaveDataFn = void*(__fastcall*)(uintptr_t player, uintptr_t edx, void* dst);
+SaveDataFn common_save_original = nullptr, dante_save_original = nullptr, nero_save_original = nullptr;
+
+void* __fastcall common_save_data(uintptr_t player, uintptr_t edx, void* dst) {
+    if (const uint8_t* block = own_save_block(player)) {
+        std::memcpy(dst, block, 0x38);
+        return dst;
+    }
+    return common_save_original(player, edx, dst);
+}
+
+void* __fastcall dante_save_data(uintptr_t player, uintptr_t edx, void* dst) {
+    if (const uint8_t* block = own_save_block(player)) {
+        std::memcpy(dst, block + 0x38, 0x20);
+        return dst;
+    }
+    return dante_save_original(player, edx, dst);
+}
+
+void* __fastcall nero_save_data(uintptr_t player, uintptr_t edx, void* dst) {
+    if (const uint8_t* block = own_save_block(player)) {
+        std::memcpy(dst, block + 0x38, 7);
+        return dst;
+    }
+    return nero_save_original(player, edx, dst);
+}
+
 bool __stdcall pad_update_fallback(cPeripheral* peripheral) {
     return coop_pads::update_peripheral(peripheral);
 }
@@ -584,6 +659,7 @@ std::optional<std::string> Coop::on_initialize() {
         {0xAC205B, &hook_water, (void*)&detour_water, &jmp_ret_water, 13, "water draw per view"},
         {0x8DC39C, &hook_unit_tick, (void*)&detour_unit_tick, &jmp_ret_unit_tick, 9, "unit tick context"},
         {0x8DC44B, &hook_unit_pass2, (void*)&detour_unit_pass2, &jmp_ret_unit_pass2, 9, "unit pass 2 context"},
+        {0x8DC4C4, &hook_unit_pass3, (void*)&detour_unit_pass3, &jmp_ret_unit_pass3, 9, "unit pass 3 context"},
     };
     for (const Site& s : sites) {
         if (!install_hook_absolute(s.addr, *s.hook, s.detour, s.ret, s.len)) {
@@ -609,6 +685,20 @@ std::optional<std::string> Coop::on_initialize() {
         return "Failed to init Coop: lock-on";
     }
     update_lock_on_original = hook_lock_on->get_original<std::remove_pointer_t<UpdateLockOnFn>>();
+    struct TrampolineSite { uintptr_t addr; std::unique_ptr<FunctionHook>* hook; void* detour; SaveDataFn* original; const char* what; };
+    const TrampolineSite save_sites[] = {
+        {0x7E2AF0, &hook_common_save, (void*)&common_save_data, &common_save_original, "getCommonSaveData"},
+        {0x7B3700, &hook_dante_save, (void*)&dante_save_data, &dante_save_original, "Dante getProperSaveData"},
+        {0x7E2B30, &hook_nero_save, (void*)&nero_save_data, &nero_save_original, "Nero getProperSaveData"},
+    };
+    for (const TrampolineSite& s : save_sites) {
+        *s.hook = std::make_unique<FunctionHook>(s.addr, (uintptr_t)s.detour);
+        if (!(*s.hook)->create()) {
+            spdlog::error("Failed to init Coop ({})\n", s.what);
+            return std::string("Failed to init Coop: ") + s.what;
+        }
+        *s.original = (*s.hook)->get_original<std::remove_pointer_t<SaveDataFn>>();
+    }
     Macro::set_pad_update_fallback(&pad_update_fallback);
     return Mod::on_initialize();
 }

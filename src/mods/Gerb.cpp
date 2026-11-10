@@ -339,7 +339,7 @@ void apply_row() {
 
 // ---- The rows' inputs (Gerb.hpp): checked in the pre-check tick (after executeCommandCheck, before checkAtck reads
 // mCmdFlag), for every player: the pad sources read his own pad, the keyboard only the player who has it
-// (players::has_keyboard). A press with its conditions met sets the row's bit.
+// (player_info::has_keyboard). A press with its conditions met sets the row's bit.
 constexpr uintptr_t kPadBtnOn = 0x1374;          // mPeripheral.mPadBtnOn: the raw pad bits, before the button config maps them
 constexpr uintptr_t kCmdFlagWords = 0x2184;      // mCmdFlag[3]
 constexpr float     kBackForwardFrames = 15.0f;  // STICK_BACK_FORWARD: back -> forward, and forward -> the trigger, each within this
@@ -407,10 +407,10 @@ static bool stick_ok(const JumpState& s, int now, int want) {
 }
 
 void custom_tick(uintptr_t pl) {
-    if (!mod_enabled || players::index_of(pl) < 0) return;
+    if (!mod_enabled || player_info::index_of(pl) < 0) return;
     if (at<int>(pl, pl::mPlayerID) != 1) return;   // Nero's rows: on Dante the bits would match whatever row of his holds them
     if (g_capture >= 0 && custom_input[g_capture].source == SRC_PAD) {   // capture: every button down together, done on release
-        if (players::index_of(pl) != 0) return;                          // player 1's pad; nothing fires meanwhile
+        if (player_info::index_of(pl) != 0) return;                          // player 1's pad; nothing fires meanwhile
         const uint32_t bits = at<uint32_t>(pl, kPadBtnOn);
         if (bits) g_capture_bits |= bits;
         else if (g_capture_bits) { custom_input[g_capture].bits = g_capture_bits; g_capture_bits = 0; g_capture = -1; }
@@ -432,7 +432,7 @@ void custom_tick(uintptr_t pl) {
             pressed = held && !s.custom_held[i];
             break;
         case SRC_KEY:
-            held = players::has_keyboard(pl) && keyboard_allowed() && (GetAsyncKeyState((int)ci.bits) & 0x8000) != 0;
+            held = player_info::has_keyboard(pl) && keyboard_allowed() && (GetAsyncKeyState((int)ci.bits) & 0x8000) != 0;
             pressed = held && !s.custom_held[i];
             break;
         default: break;

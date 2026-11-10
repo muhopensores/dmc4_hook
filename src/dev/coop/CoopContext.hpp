@@ -3,11 +3,16 @@
 
 // CoopContext: which player a unit's update runs for. sMediator::mpPlayer (+0x24) is the one player most of the game
 // reads, so a unit acting for player 2-4 gets that player written there for the length of its update and player 1 put
-// back after. Done at sUnit's serial call sites only, tick 0x8DC39C (esi = unit, vtbl +0x18) and pass 2 0x8DC44B (edi,
-// +0x1C); a unit ticked as a job never swaps (jobs go through 0x8DC7C0 / 0x8DC7D0), so the swap can't leak into units
-// running beside it on other threads. While players 2-4 are in the room the context lines run serially (coop_diag).
+// back after. Done at sUnit's serial call sites only, tick 0x8DC39C (esi = unit, vtbl +0x18), pass 2 0x8DC44B (edi,
+// +0x1C) and pass 3 0x8DC4C4 (esi, +0x20, always serial); a unit ticked as a job never swaps (jobs go through 0x8DC7C0 /
+// 0x8DC7D0), so the swap can't leak into units running beside it on other threads. While players 2-4 are in the room
+// the context lines run serially (coop_diag).
 //
-// Owners so far: an enemy held by an extra Nero. Nero's grab moves (moveAtckRightHand{Long,Short}{,Air}Grab, mAtckId
+// Owners so far:
+// - A player 2-4's camera (coop::Player::cam): mpPlayer = that player and mpCamera (+0xD0, the active main camera, set
+//   by uCameraCtrl::resetCamera 0x4F7AF5 / resumeCamera 0x4F7B60 and the boss cameras' setup) = the camera itself, so
+//   its modes, lock-on framing and throw cameras follow its player (player 1's lock-on used to swing it).
+// - An enemy held by an extra Nero. Nero's grab moves (moveAtckRightHand{Long,Short}{,Air}Grab, mAtckId
 // 1 / 2 Snatch, 5 / 6 Buster, 7 / 8 Buster on a blocking enemy) clear mGrabHitInfo.actor (+0xCCD0) at their start and
 // uPlayerNero::setGrabHitInfo 0x83B04F sets it on the hit; the held enemy's own grab actions (uEm000Base::grabNear
 // 0x5532F0 ...) place it from mpPlayer / sMediator::getPlayerMat, which put it on player 1. The owner stays for kGrace

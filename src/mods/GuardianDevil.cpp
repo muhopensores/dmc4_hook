@@ -206,12 +206,13 @@ bool keyboard_allowed() { return !g_framework->m_draw_ui && GetForegroundWindow(
 bool input_down(uintptr_t pl, int source, int pad, int key, int game) {
     switch (source) {
     case TRIG_PAD:  return pad != 0 && (at<uint32_t>(pl, kPadBtnOn) & (uint32_t)pad) == (uint32_t)pad;
-    case TRIG_KEY:  return key != 0 && players::has_keyboard(pl) && keyboard_allowed() && (GetAsyncKeyState(key) & 0x8000) != 0;
+    case TRIG_KEY:  return key != 0 && player_info::has_keyboard(pl) && keyboard_allowed() && (GetAsyncKeyState(key) & 0x8000) != 0;
     case TRIG_GAME: return game != 0 && (at<uint32_t>(pl, pl::mBtnOn) & (uint32_t)game) != 0;
     default: return false;
     }
 }
-bool trigger_down(uintptr_t pl) { return input_down(pl, trigger_source, trigger_pad, trigger_key, trigger_game); }
+bool key_down(uintptr_t pl) { return input_down(pl, TRIG_KEY, 0, trigger_key, 0); }
+bool trigger_down(uintptr_t pl) { return input_down(pl, trigger_source, trigger_pad, 0, trigger_game) || key_down(pl); }
 
 bool bit_set(uintptr_t pl, int bit) { return bit >= 0 && (at<uint32_t>(pl, kCmdFlagWords + 4 * (bit >> 5)) & (1u << (bit & 31))) != 0; }
 void bit_clear(uintptr_t pl, int bit) { if (bit >= 0) at<uint32_t>(pl, kCmdFlagWords + 4 * (bit >> 5)) &= ~(1u << (bit & 31)); }
@@ -817,12 +818,14 @@ void pre_tick(uintptr_t pl) {
     write_bytes(stand, s);
     if (s.phase == ATTACK && !s.taunting && !s.guarding) rush_loop(pl, stand, s);
 
-    // the pad / key trigger as the virtual button, for the commands that run after this tick (each player's own pad; the
-    // key for the player who has the keyboard)
-    if (trigger_source != TRIG_GAME && players::index_of(pl) >= 0) {
-        const bool down = trigger_down(pl);
-        if (down) at<uint32_t>(pl, pl::mBtnOn) |= kVirtualButton;
-        if (down && !s.held) at<uint32_t>(pl, pl::mBtnTrg) |= kVirtualButton;
+    // the trigger's bit for the commands that run after this tick: the pad buttons and the key as the virtual button; with a
+    // game input the pad sets that bit itself, so the key sets it too. Each player's own pad, the key for the player who
+    // has the keyboard.
+    if (player_info::index_of(pl) >= 0) {
+        const bool down = trigger_source == TRIG_GAME ? key_down(pl) : trigger_down(pl);
+        const uint32_t bit = trigger_bit();
+        if (down) at<uint32_t>(pl, pl::mBtnOn) |= bit;
+        if (down && !s.held) at<uint32_t>(pl, pl::mBtnTrg) |= bit;
         s.held = down;
     }
 }
@@ -1041,15 +1044,15 @@ void action_set_editor(int slot) {
 
 const char* phase_name(int phase) { return phase == ATTACK ? "attack" : phase == FADE ? "fading" : "idle"; }
 
-// An input's settings: where it comes from (pad buttons / key / game input) and the binding. `commands`: the trigger,
-// whose four commands are rebuilt when the button bit changes.
+// An input's settings: the controller's (pad buttons or a game input) and a keyboard key, both live. `commands`: the
+// trigger, whose four commands are rebuilt when the button bit changes.
 void input_editor(const char* label, const char* help, int& source, int& pad, int& key, int& game, bool commands) {
-    static const char* kSources[] = { "Gamepad buttons", "Keyboard key", "Game input" };
+    static const struct { int source; const char* name; } kSources[] = { { TRIG_PAD, "Gamepad buttons" }, { TRIG_GAME, "Game input" } };
     ImGui::PushID(label);
     ImGui::PushItemWidth(Mod::sameLineItemWidth);
-    if (ImGui::BeginCombo(label, kSources[source])) {
-        for (int i = 0; i < 3; ++i)
-            if (ImGui::Selectable(kSources[i], source == i)) { source = i; if (commands) rebuild_commands(); }
+    if (ImGui::BeginCombo(label, source == TRIG_GAME ? kSources[1].name : kSources[0].name)) {
+        for (const auto& s : kSources)
+            if (ImGui::Selectable(s.name, source == s.source)) { source = s.source; if (commands) rebuild_commands(); }
         ImGui::EndCombo();
     }
     ImGui::PopItemWidth();
@@ -1075,15 +1078,6 @@ void input_editor(const char* label, const char* help, int& source, int& pad, in
         ImGui::SameLine();
         Mod::help_marker(_("One pad button from the list, or Capture to press one or several pad buttons together (the combination "
                            "is taken when you let go)."));
-    } else if (source == TRIG_KEY) {
-        char name[64];
-        key_name(key, name, sizeof name);
-        ImGui::Text("%s: %s", _("Key"), name);
-        ImGui::SameLine();
-        if (g_capture == TRIG_KEY && g_capture_dst == &key) ImGui::TextDisabled(_("press a key (Escape = none)"));
-        else if (ImGui::Button(_("Capture"))) { g_capture = TRIG_KEY; g_capture_dst = &key; }
-        ImGui::SameLine();
-        Mod::help_marker(_("Capture, then press the key to use. Escape clears it."));
     } else {
         static const struct { int bit; const char* name; } kGameInputs[] = { { 0x100, "Change Gun" }, { 0x80, "Change Devil Arm" }, { 0x8, "Taunt" } };
         const char* game_name = "custom";
@@ -1099,6 +1093,17 @@ void input_editor(const char* label, const char* help, int& source, int& pad, in
         Mod::help_marker(_("A mapped game input, bound on your pad and keyboard in the game's control settings. Change Gun and Change "
                            "Devil Arm do nothing on Nero, but they only work if Nero's settings let you bind them; Taunt also taunts."));
     }
+    char name[64];
+    if (key) key_name(key, name, sizeof name);
+    else snprintf(name, sizeof name, "%s", _("none"));
+    ImGui::Text("%s: %s", _("Keyboard key"), name);
+    ImGui::SameLine();
+    if (g_capture == TRIG_KEY && g_capture_dst == &key) ImGui::TextDisabled(_("press a key (Escape = none)"));
+    else if (ImGui::Button(_("Capture##key"))) { g_capture = TRIG_KEY; g_capture_dst = &key; }
+    ImGui::SameLine();
+    Mod::help_marker(_("A key that works as the trigger too, alongside the controller's: for the player who has the keyboard (in "
+                       "co-op, the one picked in Coop's Keyboard setting), while the game is in front and this menu is closed. "
+                       "Capture, then press the key. Escape clears it."));
     ImGui::Unindent(Mod::lineIndent);
     ImGui::PopID();
 }
@@ -1136,10 +1141,10 @@ void GuardianDevil::on_gui_frame(int display) {
 
     capture_tick();
     input_editor(_("Trigger"),
-                 _("What triggers the stand. Gamepad buttons: raw pad buttons (held together), whatever the game maps them to. "
-                   "Keyboard key: a key, while the game is in front and this menu is closed. Game input: one of Nero's mapped "
-                   "inputs, bound in the game's control settings. Either way the stick part is the game's own command checker: "
-                   "lock-on + forward / back, or lock-on + back, forward for the rush."),
+                 _("What triggers the stand on a controller. Gamepad buttons: raw pad buttons (held together), whatever the "
+                   "game maps them to. Game input: one of Nero's mapped inputs, bound in the game's control settings. The "
+                   "keyboard key below works too, at the same time. Either way the stick part is the game's own command "
+                   "checker: lock-on + forward / back, or lock-on + back, forward for the rush."),
                  trigger_source, trigger_pad, trigger_key, trigger_game, true);
     ImGui::PushItemWidth(sameLineItemWidth);
     ImGui::SliderFloat(_("Cooldown"), &cooldown_frames, 0.0f, 120.0f, "%.0f frames");
@@ -1341,7 +1346,7 @@ void GuardianDevil::on_config_load(const utility::Config& cfg) {
     trigger_source = cfg.get<int>("dt_knuckle_trigger_source").value_or(trigger_source);
     trigger_key    = cfg.get<int>("dt_knuckle_trigger_key").value_or(trigger_key);
     trigger_game   = cfg.get<int>("dt_knuckle_trigger_game").value_or(trigger_game);
-    if (trigger_source < TRIG_PAD || trigger_source > TRIG_GAME) trigger_source = TRIG_PAD;
+    if (trigger_source != TRIG_GAME) trigger_source = TRIG_PAD;   // a key-only trigger (old TRIG_KEY) keeps its key, beside the pad's
     rebuild_commands();
     cooldown_frames      = cfg.get<float>("dt_knuckle_cooldown").value_or(cooldown_frames);
     cancel_on_hit        = cfg.get<bool>("dt_knuckle_cancel_on_hit").value_or(cancel_on_hit);

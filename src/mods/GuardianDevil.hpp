@@ -112,9 +112,10 @@ enum TriggerSource : int { TRIG_PAD = 0 /* gamepad buttons */, TRIG_KEY = 1 /* a
 constexpr uint32_t kVirtualButton = 0x800;   // the pad / key trigger as a game button bit, for the command checker
 
 extern bool  mod_enabled;
-extern int   trigger_source;       // TriggerSource
+extern int   trigger_source;       // the controller's trigger: TRIG_PAD or TRIG_GAME (TRIG_KEY only in old configs)
 extern int   trigger_pad;          // raw pad bits (mPeripheral.mPadBtnOn), all held to count as the trigger
-extern int   trigger_key;          // virtual-key code (0 = none)
+extern int   trigger_key;          // virtual-key code (0 = none), a trigger too alongside the controller's, for the player
+                                   // who has the keyboard (players::has_keyboard)
 extern int   trigger_game;         // the mapped game input (mBtnTrg bit): 0x100 Change Gun, 0x80 Change Devil Arm, 0x8 Taunt
 extern float cooldown_frames;      // frames between starts (30)
 extern bool  cancel_on_hit;        // a hit / grab on Nero ends a running guardian attack (off: the stand finishes it)
