@@ -24,6 +24,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:threadSafeInit- /MP /std:c++17")
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # for msvc hot reload
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	set(CMAKE_CXX_FLAGS_DEBUG "/MDd /ZI /Ob0 /Od /RTC1")
@@ -54,7 +57,9 @@ configure_file(Config.hpp.in ${CMAKE_SOURCE_DIR}/src/Config.hpp @ONLY)
 #add_compile_options(/W0)
 #add_compile_options(/MT)
 add_compile_options(/MP)
-
+# Disable stupid c++20 char8t crap that breaks imgui u8 string literals
+add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:/Zc:char8_t->")
+add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:/Zc:strictStrings->")
 # Statically compile runtime
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 # doesn't work in new cmakes?
