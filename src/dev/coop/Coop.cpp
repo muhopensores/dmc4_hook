@@ -10,6 +10,7 @@
 #include "../../mods/CharSwitcher.hpp"
 #include "../../mods/DebugCam.hpp" // REGION_* viewport modes
 #include "../../mods/Macro.hpp"
+#include "../../mods/ViewportWindow.hpp"
 #include <cstring>
 
 #pragma push_macro("naked")
@@ -138,21 +139,57 @@ const int kModes[3][4] = {
     {REGION_TOPLEFT, REGION_TOPRIGHT, REGION_BOTTOMLEFT, REGION_BOTTOMRIGHT},
 };
 
+// The viewport ViewportWindow shows in its window when it is one of the players' (-1: none). That one keeps its own
+// settings (off the screen, its render target); the views left on the screen share it.
+int layout_detached = -1;
+
+int detached_player_view() {
+    const int v = vpwin::detached_viewport();
+    return (v >= 1 && v < (int)Coop::player_num && v < kMaxPlayers) ? v : -1;
+}
+
+// The mode of each player's viewport on the screen (-1 = in the window).
+void screen_modes(int detached, int* modes) {
+    const int n = (int)Coop::player_num;
+    int order[kMaxPlayers];
+    int m = 0;
+    for (int i = 0; i < n && i < kMaxPlayers; i++) {
+        modes[i] = -1;
+        if (i != detached) order[m++] = i;
+    }
+    for (int k = 0; k < m; k++) {
+        modes[order[k]] = m >= 2 ? kModes[m - 2][k] : REGION_FULLSCREEN;
+    }
+}
+
 // The split layout. `main_camera`: viewport 0 also gets player 1's follow camera (a new main camera, the Refresh
-// button); otherwise viewport 0 keeps the camera it has (a boss camera).
+// button); otherwise viewport 0 keeps the camera it has (a boss camera). A view in ViewportWindow's window only gets
+// its player's camera; the others share the screen (one left: the whole screen), and only their HUDs are scaled.
 void apply_viewport_layout(bool main_camera = true) {
     sCamera* s_cam = *(sCamera**)sCamera_ptr;
     if (!s_cam) {
         return;
     }
     const int n = (int)Coop::player_num;
-    for (int i = 0; i < n; i++) {
+    const int detached = detached_player_view();
+    int modes[kMaxPlayers];
+    screen_modes(detached, modes);
+    int on_screen = 0;
+    for (int i = 0; i < n && i < kMaxPlayers; i++) {
+        on_screen += modes[i] >= 0 ? 1 : 0;
+    }
+    for (int i = 0; i < n && i < kMaxPlayers; i++) {
         if (i > 0 || (main_camera && players[0].cam)) {   // viewport 0 keeps the game's camera until Coop knows player 1's
             s_cam->viewports[i].mpCamera = players[i].cam;
         }
+        coop_hud::view_scaled[i] = modes[i] >= 0 && on_screen >= 2;
+        if (modes[i] < 0) {
+            continue;
+        }
         s_cam->viewports[i].mAttr = 0x17;
-        s_cam->viewports[i].mMode = (uint8_t)kModes[n - 2][i];
+        s_cam->viewports[i].mMode = (uint8_t)modes[i];
     }
+    layout_detached = detached;
 }
 
 // Player 1's view on the whole screen, the extra views off (a viewport without a camera isn't drawn).
@@ -162,7 +199,9 @@ void apply_single_view() {
         return;
     }
     s_cam->viewports[0].mMode = REGION_FULLSCREEN;
+    const int detached = vpwin::detached_viewport();   // the window keeps its view
     for (int v = 1; v < kMaxPlayers; v++) {
+        if (v == detached) continue;
         for (int i = 1; i < kMaxPlayers; i++) {
             if (players[i].cam && s_cam->viewports[v].mpCamera == players[i].cam) {
                 s_cam->viewports[v].mpCamera = nullptr;
@@ -191,7 +230,13 @@ bool player_view_on_main(const sCamera* s_cam) {
 // (portals, the end of an event) set viewport 0 back to the whole screen.
 bool layout_broken(const sCamera* s_cam) {
     const int n = (int)Coop::player_num;
-    if (s_cam->viewports[0].mMode != (uint8_t)kModes[n - 2][0]) {
+    const int detached = detached_player_view();
+    if (detached != layout_detached) {   // the window opened, closed or took another view
+        return true;
+    }
+    int modes[kMaxPlayers];
+    screen_modes(detached, modes);
+    if (s_cam->viewports[0].mMode != (uint8_t)modes[0]) {
         return true;
     }
     for (int i = 1; i < n && i < kMaxPlayers; i++) {

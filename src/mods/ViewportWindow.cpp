@@ -1,5 +1,6 @@
 #include "ViewportWindow.hpp"
 #include "../sdk/Devil4.hpp"
+#include "../dev/coop/Coop.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -72,6 +73,19 @@ struct Saved {
 };
 static Saved g_saved;
 
+int detached_viewport() {
+    return (mod_enabled && g_rt) ? g_saved.index : -1;
+}
+
+// Coop with players 2-4 lays out viewport 0 itself (the views left on the screen).
+static bool coop_lays_out() {
+    if (!Coop::mod_enabled) return false;
+    for (int i = 1; i < coop::kMaxPlayers; i++) {
+        if (coop::players[i].unit) return true;
+    }
+    return false;
+}
+
 static sCamera* get_camera_system() {
     return *(sCamera**)0x00E552D4;
 }
@@ -118,7 +132,7 @@ static void attach() {
         g_saved.lent = nullptr; // Coop / DebugCam put a camera there
     }
     if (vp.mpRenderTarget != g_rt) set_render_target(&vp, g_rt);
-    if (full_main) cam->viewports[0].mMode = 0;
+    if (full_main && !coop_lays_out()) cam->viewports[0].mMode = 0;
 }
 
 // The window: its own thread and message loop (the game's pump only serves the game's thread). WS_EX_NOACTIVATE: a
@@ -338,7 +352,8 @@ void ViewportWindow::on_gui_frame(int display) {
     height = std::clamp(height, 64, 4096);
     ImGui::Checkbox(_("Full-screen main view"), &full_main);
     ImGui::SameLine();
-    help_marker(_("Keep viewport 0 on the whole screen while the other viewport is in the window (Coop would split it)."));
+    help_marker(_("Keep viewport 0 on the whole screen while the other viewport is in the window. With Coop's players in, "
+                  "Coop lays out the views left on the screen itself (one left: the whole screen)."));
     if (g_rt) {
         if (IDirect3DTexture9* tex = d3d_texture(g_rt)) {
             float w = 320.0f;

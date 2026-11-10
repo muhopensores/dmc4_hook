@@ -24,6 +24,9 @@ extern int  viewport_index; // 1-3: the viewport shown in the window
 extern int  width, height;  // the render target's size (the window scales it)
 extern bool full_main;      // keep viewport 0 full screen while the other one is in the window (Coop lays them out)
 
+// The viewport shown in the window now, -1 for none. Coop lays out the viewports left on the screen around it.
+int detached_viewport();
+
 } // namespace vpwin
 
 class ViewportWindow : public Mod {

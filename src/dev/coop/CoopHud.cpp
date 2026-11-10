@@ -12,6 +12,7 @@ namespace coop_hud {
 
 float hud_scale = 0.5f;
 bool split_shown = false;
+bool view_scaled[4] = {};
 
 } // namespace coop_hud
 
@@ -54,6 +55,14 @@ bool is_reticle(uintptr_t cock) {
     return vtbl == kLockOnCockVtbl || vtbl == kLockOnDanteVtbl;
 }
 
+// The player whose view a HUD piece draws in: players 2-4's cockpit and reticle, else player 1's (the game's own).
+int piece_slot(uintptr_t cock) {
+    for (int i = 1; i < coop::kMaxPlayers; i++) {
+        if ((uintptr_t)coop::players[i].hud == cock || (uintptr_t)coop::players[i].reticle == cock) return i;
+    }
+    return 0;
+}
+
 // The slot (1-3) whose reticle this is, -1 for none.
 int reticle_slot(uintptr_t unit) {
     for (int i = 1; i < coop::kMaxPlayers; i++) {
@@ -76,11 +85,11 @@ int __fastcall cock_draw(uintptr_t cock, uintptr_t edx, int view) {
     const int prev_view = reticle_view;
     const bool split = split_screen();
     const bool reticle = is_reticle(cock);
-    if (split && !reticle && coop_hud::hud_scale != 1.0f) {
+    if (split && !reticle && coop_hud::hud_scale != 1.0f && coop_hud::view_scaled[piece_slot(cock)]) {
         active_scale = coop_hud::hud_scale;
         scaling = 1;
     }
-    if (split && reticle) {
+    if (Coop::mod_enabled && reticle) {   // through its own view's matrices, split, full screen or in a window alike
         const int slot = reticle_slot(cock);
         reticle_view = slot >= 0 ? slot : 0;
     }
