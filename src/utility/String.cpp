@@ -50,7 +50,7 @@ namespace utility {
     }
 
     string to_lower(string str) {
-        transform(str.begin(), str.end(), str.begin(), tolower);
+        transform(str.begin(), str.end(), str.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
         return str;
     };

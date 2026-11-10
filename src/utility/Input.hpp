@@ -73,7 +73,7 @@ namespace utility
         std::array<InputStatus, XIBtn::XIBTN_MAX> m_gpad_status = {0};
 
         void update_gamepads();
-        void Input::get_state(bool keydown, InputStatus& current_status);
+        void get_state(bool keydown, InputStatus& current_status);
     };
 
     struct Hotkey {

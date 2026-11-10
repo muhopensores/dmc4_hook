@@ -306,7 +306,8 @@ void MoveTable::on_frame(fmilliseconds& dt) {
     if (!display_move_table) { return; }
     uPlayer* player = devil4_sdk::get_local_player();
     if (player) {
-        ImVec2 screenRes = devil4_sdk::get_sRender()->screenRes;
+        auto screen_px = devil4_sdk::get_sRender()->screenRes;
+        ImVec2 screenRes(screen_px.x, screen_px.y);
         ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Once);
         ImGui::SetNextWindowSize(ImVec2(screenRes.x * 1.0f, screenRes.y * 0.4f), ImGuiCond_Once);
         if (ImGui::Begin(_("Attack Definitions UI"), &display_move_table)) {
