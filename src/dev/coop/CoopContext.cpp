@@ -5,6 +5,8 @@
 #include "../../mod.hpp"
 #include "../../sdk/Cam.hpp"
 #include "../../mods/MultiCharFixes.hpp"
+#include <cstring>
+#include <vector>
 
 namespace {
 
@@ -40,6 +42,7 @@ constexpr uintptr_t kPos          = 0x30;     // uCoord::mPos
 constexpr uintptr_t kTargetIsPlayer = 0x14B1; // uEnemy::mTargetEnemyPlayer
 constexpr uintptr_t kTargetEnemy  = 0x14B4;   // uEnemy::mpTargetEnemy (the actor it is after)
 constexpr uint32_t  kActionDamage = 0x14;     // uPlayer lower action: hit, knocked down, caught by an enemy
+constexpr uintptr_t kIsDead       = 0x1E82;   // uPlayer::mIsDead (cleared by the revive)
 constexpr uintptr_t kParamTbl     = 0x1E9C;   // uPlayer: rPlParamTbl data, set by uPlayer::setup 0x7A7A45 (his first update)
 constexpr uintptr_t kGroupMgr     = 0x98;     // cCollisionGroup::mpCollisionMgr
 constexpr uintptr_t kMgrReport    = 0xD8;     // uCollisionMgr::mpReportActor (the actor a hit counts for)
@@ -266,6 +269,87 @@ int player_index(uintptr_t pl) {
     return -1;
 }
 
+// Rail and pan cameras. A uCameraCtrl picks its area camera from its rDevilCamera (+0x3A0; definitions: u16 count
+// +0x64, array +0x6C). The follow areas (type 2) run the camera's own cCameraPlayer (+0x498), but uCameraCtrl::
+// changeCamera 0x4F9B30 runs every other kind straight from the resource's object: +0x494 = the object, its owner
+// +0xF8 = the camera, its reset (vtbl +0x18) on entering the area, uCameraCtrl::sync 0x4F90B0 its update (vtbl +0x14)
+// each frame. Players 2-4's cameras share player 1's rDevilCamera, so two cameras in one rail area drove one object
+// (its rail state, smoothing and owner flipping between them). Each extra camera keeps its own copy of every such
+// object, swapped in for the length of its update and player 1's put back after.
+struct SpecialClass { uintptr_t vtable; uint32_t size; };
+constexpr SpecialClass kSpecialCameras[] = {
+    {0xB98B60, 0x1F0},    // cCameraPan (cCameraPan::MyDTI::newInstance 0x428050)
+    {0xB98BA0, 0x21B0},   // cCameraRail (0x428070)
+    {0xB98BE0, 0x21C0},   // cCameraRailEm025 (0x428090)
+    {0xB98C20, 0x21B0},   // cCameraRailEm026 (0x4280B0)
+};
+constexpr uintptr_t kCamResource  = 0x3A0;    // uCameraCtrl::mpResource (rDevilCamera)
+constexpr uintptr_t kCamDefCount  = 0x64;     // rDevilCamera: number of area cameras (u16)
+constexpr uintptr_t kCamDefs      = 0x6C;     // rDevilCamera: the area cameras' array
+
+struct CamCopy { uintptr_t obj = 0, vtable = 0; std::vector<uint8_t> mine; };
+std::vector<CamCopy> cam_copies[kMaxPlayers];   // per extra player: his copy of each special camera object
+uintptr_t cam_copies_res[kMaxPlayers] = {};
+struct CamHeld { CamCopy* copy; std::vector<uint8_t> player1; };
+std::vector<CamHeld> cam_held;                  // swapped in now (player 1's bytes kept here)
+size_t cam_held_n = 0;
+
+uint32_t special_size(uintptr_t vtable) {
+    for (const SpecialClass& c : kSpecialCameras) {
+        if (c.vtable == vtable) return c.size;
+    }
+    return 0;
+}
+
+void cameras_in(int slot, uintptr_t cam) {
+    cam_held_n = 0;
+    const uintptr_t res = at<uintptr_t>(cam, kCamResource);
+    if (!res) return;
+    if (cam_copies_res[slot] != res) {
+        cam_copies[slot].clear();
+        cam_copies_res[slot] = res;
+    }
+    const uintptr_t defs = at<uintptr_t>(res, kCamDefs);
+    const int n = at<uint16_t>(res, kCamDefCount);
+    if (!defs) return;
+    cam_copies[slot].reserve(cam_copies[slot].size() + n);   // no reallocation while cam_held points into it
+    for (int k = 0; k < n; k++) {
+        const uintptr_t obj = at<uintptr_t>(defs, 4 * k);
+        if (!obj) continue;
+        const uintptr_t vtable = at<uintptr_t>(obj, 0);
+        const uint32_t size = special_size(vtable);
+        if (!size) continue;
+        CamCopy* copy = nullptr;
+        for (CamCopy& c : cam_copies[slot]) {
+            if (c.obj == obj) { copy = &c; break; }
+        }
+        if (!copy) {
+            cam_copies[slot].push_back(CamCopy{});
+            copy = &cam_copies[slot].back();
+            copy->obj = obj;
+        }
+        if (copy->vtable != vtable || copy->mine.size() != size) {   // first use, or another object at that address
+            copy->vtable = vtable;
+            copy->mine.assign(reinterpret_cast<const uint8_t*>(obj), reinterpret_cast<const uint8_t*>(obj) + size);
+        }
+        if (cam_held.size() <= cam_held_n) cam_held.emplace_back();
+        CamHeld& h = cam_held[cam_held_n++];
+        h.copy = copy;
+        h.player1.assign(reinterpret_cast<const uint8_t*>(obj), reinterpret_cast<const uint8_t*>(obj) + size);
+        std::memcpy(reinterpret_cast<void*>(obj), copy->mine.data(), size);
+    }
+}
+
+void cameras_out() {
+    for (size_t i = 0; i < cam_held_n; i++) {
+        CamHeld& h = cam_held[i];
+        void* obj = reinterpret_cast<void*>(h.copy->obj);
+        std::memcpy(h.copy->mine.data(), obj, h.copy->mine.size());
+        std::memcpy(obj, h.player1.data(), h.player1.size());
+    }
+    cam_held_n = 0;
+}
+
 uintptr_t dti_of(uintptr_t unit) {
     const uintptr_t vtable = at<uintptr_t>(unit, 0);
     return reinterpret_cast<uintptr_t(__fastcall*)(uintptr_t, uintptr_t)>(at<uintptr_t>(vtable, kGetDTI))(unit, 0);
@@ -338,6 +422,9 @@ void pick_target(Aggro& a) {
         a.slot = 0;
         a.hold = 0;
     }
+    if (at<uint8_t>(players[a.slot].unit, kIsDead)) {
+        a.hold = 0;   // his player is down: the nearest one standing
+    }
     if (target_locked(a)) {
         return;
     }
@@ -348,11 +435,16 @@ void pick_target(Aggro& a) {
     int best = -1;
     float best_d = 0.0f;
     for (int i = 0; i < n; i++) {
-        if (!ready(players[i].unit)) continue;
+        if (!ready(players[i].unit) || at<uint8_t>(players[i].unit, kIsDead)) continue;   // a downed player is left alone
         const float d = dist2(a.enemy, players[i].unit);
         if (best < 0 || d < best_d) { best = i; best_d = d; }
     }
     if (best < 0 || best == a.slot) return;
+    if (at<uint8_t>(players[a.slot].unit, kIsDead)) {
+        a.slot = best;
+        a.hold = kSwitchHold;
+        return;
+    }
     const float cur = dist2(a.enemy, players[a.slot].unit);
     if (best_d < cur * kSwitchRatio * kSwitchRatio) {
         a.slot = best;
@@ -591,7 +683,11 @@ bool enter(uintptr_t unit) {
     }
     const int cam_owner = camera_owner(unit);
     if (cam_owner >= 0) {
-        return swap_for(cam_owner, unit);
+        if (!swap_for(cam_owner, unit)) {
+            return false;
+        }
+        cameras_in(cam_owner, unit);   // his own rail / pan camera objects
+        return true;
     }
     const int own = own_unit_owner(unit);
     if (own >= 0) {
@@ -626,6 +722,7 @@ void leave() {
     if (!swapped) {
         return;
     }
+    cameras_out();
     restore_lock();
     view_slot = -1;
     if (const uintptr_t med = at<uintptr_t>(kMediator, 0)) {
@@ -731,6 +828,11 @@ void reset() {
         a = Aggro{};
     }
     enemy_swapped = 0;
+    cam_held_n = 0;   // the room's rDevilCamera goes with it
+    for (int i = 0; i < kMaxPlayers; i++) {
+        cam_copies[i].clear();
+        cam_copies_res[i] = 0;
+    }
     lock_saved_n = 0;
     lock_applied = false;
     lock_applied_slot = -1;

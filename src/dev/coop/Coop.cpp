@@ -22,6 +22,8 @@
 
 bool Coop::mod_enabled = false;
 unsigned int Coop::player_num = 2;
+float Coop::revive_delay = 5.0f;
+float Coop::revive_hp = 0.5f;
 
 uintptr_t Coop::jmp_ret2 = NULL;
 uintptr_t Coop::jmp_ret5 = NULL;
@@ -52,6 +54,7 @@ constexpr uintptr_t kDanteCtor    = 0x7B2130; // uPlayerDante::uPlayerDante
 constexpr uintptr_t kNeroHudCtor  = 0x507A60;
 constexpr uintptr_t kDanteHudCtor = 0x503210;
 constexpr uintptr_t kCameraCtor   = 0x4F71B0; // uCameraCtrl::uCameraCtrl
+constexpr uintptr_t kResourceAddRef = 0x8E1F00; // cResource::addRef (edi = resource)
 // The lock-on reticle: uCockpitMgr::uCockpitMgr 0x507370 makes the game's one, uLockOnCock for Nero (0x5074CF) or
 // uLockOnDante for Dante (0x507473), and runs it from its own list (move / draw by the cock's status bits +0x2C). Its
 // draw check (sub_76FAA0 for Nero) reads mpPlayer's lock-on target and the target's mIsCameraIn. Players 2-4 get their
@@ -120,6 +123,20 @@ void __stdcall setup_develop(uCameraCtrl* cam) {
     }
 }
 
+// cResource::addRef 0x8E1F00 (edi = the resource): uCameraCtrl's destructor 0x4F7440 releases mpResource (+0x3A0), so
+// a shared one needs its own reference.
+void add_ref(void* resource) {
+    const uintptr_t fn = kResourceAddRef;
+    __asm {
+        mov edi, resource
+        call fn
+    }
+}
+
+// As aRoom::setRoom 0x40DB4C builds the room's camera: the room's rDevilCamera (scr\stXXX\cam\stXXX: the follow
+// camera's distance, height, angles, field of view per area), shared with player 1's camera; uCameraCtrl::setupDevelop
+// only when there is none (the game's fallback: it replaces mpResource with a default cCameraNormal setup, the
+// developer camera, which is what the extra cameras used to get: closer than the room's).
 uCameraCtrl* make_cam() {
     uCameraCtrl* cam = (uCameraCtrl*)construct(kCameraCtor);
     devil4_sdk::sUnit_spawn(cam, kLineExtraCamera);
@@ -128,8 +145,13 @@ uCameraCtrl* make_cam() {
         main_cam = (uCameraCtrl*)devil4_sdk::get_sUnit()->mMoveLine[kLineCamera].mTop;
         players[0].cam = main_cam;
     }
-    cam->mpResource = main_cam->mpResource;
-    setup_develop(cam);
+    void* resource = main_cam ? (void*)main_cam->mpResource : nullptr;
+    if (resource) {
+        add_ref(resource);
+        cam->mpResource = decltype(cam->mpResource)(resource);
+    } else {
+        setup_develop(cam);
+    }
     return cam;
 }
 
@@ -386,9 +408,114 @@ void check_units() {
     }
 }
 
+// Rooms. aRoom::setRoom rebuilds every player, and uPlayer::setup 0x7A7A00 starts each from the state the game keeps in
+// sMediator for player 1: HP +0x38 (-> +0x15CC) and its max +0x34 (+0x15D0), Devil Trigger +0x40 (+0x1F24) and its
+// max +0x3C (+0x1F28), position +0x60 (mPos) and angle +0x70. So players 2-4 arrived with player 1's HP and DT. Their
+// own are kept when a room ends and given back once the new room's players are set up, changed by what the room change
+// did to player 1's (a door: nothing; a retry or a checkpoint: refilled), so no door / retry / mission start rule is
+// needed. They still arrive at player 1's spot.
+constexpr uintptr_t kHp = 0x15CC, kHpMax = 0x15D0, kDt = 0x1F24, kDtMax = 0x1F28;
+constexpr uintptr_t kParamTbl = 0x1E9C;   // set by uPlayer::setup: the player is set up
+
+struct Carry { bool saved = false; float hp = 0.0f, dt = 0.0f; };
+Carry carry[kMaxPlayers];
+
+float& field(uintptr_t pl, uintptr_t off) { return *reinterpret_cast<float*>(pl + off); }
+bool set_up(uintptr_t pl) { return pl && *reinterpret_cast<uintptr_t*>(pl + kParamTbl) != 0; }
+
+void save_carry() {
+    for (int i = 0; i < kMaxPlayers; i++) {
+        carry[i] = Carry{};
+        const uintptr_t pl = players[i].unit;
+        if (i < (int)Coop::player_num && set_up(pl)) {
+            carry[i] = {true, field(pl, kHp), field(pl, kDt)};
+        }
+    }
+}
+
+void apply_carry() {
+    const uintptr_t p1 = players[0].unit;
+    if (!carry[0].saved || !set_up(p1)) {
+        return;
+    }
+    const float d_hp = field(p1, kHp) - carry[0].hp;
+    const float d_dt = field(p1, kDt) - carry[0].dt;
+    bool waiting = false;
+    for (int i = 1; i < kMaxPlayers; i++) {
+        const uintptr_t pl = players[i].unit;
+        if (!carry[i].saved) continue;
+        if (!set_up(pl)) { waiting = true; continue; }
+        // at least 1 HP until the death rule (step 6) decides what a downed player does
+        field(pl, kHp) = std::clamp(carry[i].hp + d_hp, 1.0f, field(pl, kHpMax));
+        field(pl, kDt) = std::clamp(carry[i].dt + d_dt, 0.0f, field(pl, kDtMax));
+        carry[i].saved = false;
+    }
+    if (!waiting) {
+        carry[0].saved = false;
+    }
+}
+
+// Death (the user's rule: down, then up again). The game ends the mission only for player 1: aRoom::move's dead state
+// (6, sub_40D120) waits for uPlayer::checkDeadEnd 0x826D90 on mpPlayer, outside every player's update. A player 2-4
+// whose death motion has ended (checkDeadEnd: lower action 0x15 finished) stays down revive_delay seconds (game time,
+// sDevil4Main +0x68, not while paused), then gets uPlayer::mIsReviveReq (+0x216B), the Gold Orb continue's switch:
+// his own update (uPlayer::main 0x7A83FA) refills his HP, clears mIsDead (+0x1E82) and the damage block's dead flag
+// and starts the revive action. Once it has, his HP is cut to revive_hp of the max. Enemies leave a dead player alone
+// (CoopContext's target pick skips mIsDead).
+constexpr uintptr_t kReviveReq = 0x216B;
+constexpr uintptr_t kIsDead    = 0x1E82;
+constexpr uintptr_t kMain      = 0xE5574C;   // sDevil4Main::mpInstance
+constexpr uintptr_t kCheckDeadEnd = 0x826D90; // uPlayer::checkDeadEnd (eax = player, al = ended)
+
+struct Down { float frames = 0.0f; bool reviving = false; };
+Down down[kMaxPlayers];
+
+bool dead_end(uintptr_t pl) {
+    bool ended = false;
+    const uintptr_t fn = kCheckDeadEnd;
+    __asm {
+        mov eax, pl
+        call fn
+        mov ended, al
+    }
+    return ended;
+}
+
+void update_revive() {
+    const uintptr_t main = *reinterpret_cast<uintptr_t*>(kMain);
+    const float dt = (main && !devil4_sdk::is_paused()) ? *reinterpret_cast<float*>(main + 0x68) : 0.0f;
+    for (int i = 1; i < kMaxPlayers; i++) {
+        Down& d = down[i];
+        const uintptr_t pl = players[i].unit;
+        if (i >= (int)Coop::player_num || !set_up(pl)) {
+            d = Down{};
+            continue;
+        }
+        uint8_t& req = *reinterpret_cast<uint8_t*>(pl + kReviveReq);
+        if (d.reviving) {
+            if (!req) {   // his update took it: up again with full HP
+                field(pl, kHp) = std::max(1.0f, field(pl, kHpMax) * Coop::revive_hp);
+                d = Down{};
+            }
+            continue;
+        }
+        if (!dead_end(pl)) {
+            d.frames = 0.0f;
+            continue;
+        }
+        d.frames += dt;
+        if (d.frames >= Coop::revive_delay * 60.0f) {
+            req = 1;
+            d.reviving = true;
+        }
+    }
+}
+
 void __stdcall coop_game_tick() {
     check_units();
     update_split();
+    apply_carry();
+    update_revive();
     bool extra = false;
     for (int i = 1; i < (int)Coop::player_num && i < kMaxPlayers; i++) {
         extra |= players[i].unit != 0;
@@ -918,9 +1045,10 @@ void Coop::on_gui_frame(int display) {
     ImGui::SetNextItemWidth(sameLineItemWidth);
     ImGui::SliderFloat(_("HUD size"), &coop_hud::hud_scale, 0.25f, 1.0f, "%.2f");
     ImGui::SameLine();
-    help_marker(_("Every player's HUD (gauges, timer, minimap) is shrunk by this toward the corner of their part of the "
-                  "screen while it is split (full size while paused). 0.5 fits a half or a quarter of the screen, 1 is the normal size. The "
-                  "lock-on reticle keeps its size, as it follows the target"));
+    help_marker(_("The size of every player's HUD while the screen is split (full size while paused). Each part keeps to "
+                  "its own edge of the player's view: gauges top-left, style meter and orbs on the right, centred text in "
+                  "the middle. 0.5 fits a half or a quarter of the screen, 1 is the normal size. The lock-on reticle keeps "
+                  "its size, as it follows the target"));
 
     if (ImGui::Button(_("Refresh cameras"))) {
         apply_viewport_layout();
@@ -928,6 +1056,14 @@ void Coop::on_gui_frame(int display) {
     }
     ImGui::SameLine();
     help_marker(_("Give every camera its viewport again, after a camera event took the screen back"));
+
+    ImGui::SliderFloat(_("Revive after"), &revive_delay, 1.0f, 30.0f, "%.0f s");
+    ImGui::SameLine();
+    help_marker(_("A player 2-4 who dies stays down this long, then gets up by himself. Player 1's death is the game's own "
+                  "(game over or a Gold Orb continue). Enemies leave a downed player alone"));
+    ImGui::SliderFloat(_("Revive HP"), &revive_hp, 0.1f, 1.0f, "%.2f");
+    ImGui::SameLine();
+    help_marker(_("The share of his maximum HP a revived player gets up with"));
 
     if (ImGui::TreeNode(_("Diagnostics"))) {
         if (ImGui::Checkbox(_("Serial context lines"), &coop_diag::serial_lines)) {
@@ -940,6 +1076,7 @@ void Coop::on_gui_frame(int display) {
         ImGui::Text(_("Lines serial now: %s, context swaps last frame: %u"), coop_diag::serial_now() ? _("yes") : _("no"),
                     coop_context::swaps_last_frame());
         coop_context::draw_diag();
+        coop_hud::draw_diag();
         coop_diag::draw();
         ImGui::TreePop();
     }
@@ -969,6 +1106,7 @@ void Coop::on_stage_start() {
 }
 
 void Coop::on_stage_end() {
+    save_carry();   // the players are still alive here
     // aRoom::cleanRoom is about to free the extra cameras: sCamera must not keep them. The screens after the mission
     // (results, shop) draw in view 0, which goes back to the whole screen.
     apply_single_view();
@@ -1005,6 +1143,8 @@ void Coop::on_config_load(const utility::Config& cfg) {
     coop_pads::set_keyboard_owner(std::clamp(cfg.get<int>("coop_keyboard").value_or(0), -1, kMaxPlayers - 1));
     coop_pads::rumble = cfg.get<bool>("coop_rumble").value_or(true);
     coop_hud::hud_scale = std::clamp(cfg.get<float>("coop_hud_scale").value_or(0.5f), 0.25f, 1.0f);
+    revive_delay = std::clamp(cfg.get<float>("coop_revive_delay").value_or(5.0f), 1.0f, 30.0f);
+    revive_hp = std::clamp(cfg.get<float>("coop_revive_hp").value_or(0.5f), 0.1f, 1.0f);
 }
 
 void Coop::on_config_save(utility::Config& cfg) {
@@ -1024,6 +1164,8 @@ void Coop::on_config_save(utility::Config& cfg) {
     cfg.set<int>("coop_keyboard", coop_pads::keyboard_owner);
     cfg.set<bool>("coop_rumble", coop_pads::rumble);
     cfg.set<float>("coop_hud_scale", coop_hud::hud_scale);
+    cfg.set<float>("coop_revive_delay", revive_delay);
+    cfg.set<float>("coop_revive_hp", revive_hp);
 }
 
 #undef naked_extern

@@ -8,7 +8,7 @@
 // each HUD took half its viewport. Every one draws through uDevilCock::draw 0x532F50 (vtbl +0x24; the game's
 // uCockpitMgr 0x507610 calls it for its own list), and every sprite and glyph ends in sPrim::drawSprite 0x45B410 with
 // its four corners in eax (x / y at +0 / +4, 0x10 apart; built by sub_45A420 for sprites, sub_45ABA0 for text). While a
-// piece other than the reticle draws, the corners are scaled about the view's top-left. The reticle (uLockOnCock /
+// piece other than the reticle draws, each element / text is fitted to its edge of the view (CoopHud.cpp: anchors). The reticle (uLockOnCock /
 // uLockOnDante) is placed by projecting its target, so it keeps its size and place.
 // The reticle's draw check (sub_76FAA0, both classes) picks the target from mpPlayer and shows it only while the
 // target's mIsCameraIn is set, and runs in the draw pass, outside every unit's update: player 2's reticle drew player
@@ -28,5 +28,7 @@ extern bool split_shown;  // the views are split now (Coop's update_split; the H
 std::optional<std::string> install();   // the hooks; an error text on failure
 // Called after a unit's update, still in its player's context.
 void after_update(uintptr_t unit);
+// Readout (Coop > Diagnostics): sizes, the cockpit sprites' range, the anchors picked.
+void draw_diag();
 
 } // namespace coop_hud
