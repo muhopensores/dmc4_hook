@@ -1,4 +1,5 @@
 build86/
+build_ninja/
 lsp/
 i18n/mo
 .clangd/
