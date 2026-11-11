@@ -942,7 +942,8 @@ static void DrawTrickScores() {
     if (devil4_sdk::get_local_player()) {
         if (!StylePoints::originalNames) UpdateTrickNames();
         auto now = std::chrono::steady_clock::now();
-        ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;
+        auto screen_px = devil4_sdk::get_sRender()->screenRes;
+        ImVec2 screenSize(screen_px.x, screen_px.y);
         ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.6f, screenSize.y * 0.4f));
         ImGui::SetNextWindowSize(ImVec2(screenSize.x * 0.3f, screenSize.y * 0.3f));
         ImGui::Begin("TrickScoresWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoScrollbar);
@@ -1101,7 +1102,8 @@ static void DrawTonyScores() {
     auto* player = devil4_sdk::get_local_player();
     if (!player) return;
 
-    ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;
+    auto screen_px = devil4_sdk::get_sRender()->screenRes;
+    ImVec2 screenSize(screen_px.x, screen_px.y);
     //if (!StylePoints::originalNames)
     UpdateTrickNames();
     auto now = std::chrono::steady_clock::now();
@@ -1772,7 +1774,8 @@ void StylePoints::DrawHiddenCombos() {
     if (sArea->aRoomPtr == nullptr || sArea->aRoomPtr->pauseMenuPtr1 == nullptr || sArea->aRoomPtr->pauseMenuPtr1->draw != 1)
         return;
 
-    ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;
+    auto screen_px = devil4_sdk::get_sRender()->screenRes;
+    ImVec2 screenSize(screen_px.x, screen_px.y);
     float resolutionScale = screenSize.y / 1080.0f;
     static ImVec2 windowPosModifier{ 0.475f, 0.20f };
     ImVec2 windowPos = ImVec2(screenSize.x * windowPosModifier.x, screenSize.y * windowPosModifier.y);
@@ -2007,13 +2010,15 @@ void StylePoints::on_gui_frame(int display) {
 
 void StylePoints::on_frame(fmilliseconds& dt) {
     if (tonyHawk) {
-        ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;
+        auto screen_px = devil4_sdk::get_sRender()->screenRes;
+        ImVec2 screenSize(screen_px.x, screen_px.y);
         correctedWindowFontScale = (screenSize.x / baseWidth);
         DrawTonyScores();
         DrawHiddenCombos();
     }
     else if (style_points_display) {
-        ImVec2 screenSize = devil4_sdk::get_sRender()->screenRes;
+        auto screen_px = devil4_sdk::get_sRender()->screenRes;
+        ImVec2 screenSize(screen_px.x, screen_px.y);
         correctedWindowFontScale = (screenSize.x / baseWidth);
         DrawTrickScores();
     }

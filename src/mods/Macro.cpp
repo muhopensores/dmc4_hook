@@ -1348,7 +1348,7 @@ ImVec2 get_render_screen_size_safe() {
         return {};
     }
 
-    return render->screenRes;
+    return ImVec2(render->screenRes.x, render->screenRes.y);
 }
 
 const MacroFrame* get_current_playback_frame() {

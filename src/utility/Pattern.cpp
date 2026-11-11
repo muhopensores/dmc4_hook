@@ -63,7 +63,7 @@ namespace utility {
 
     vector<int16_t> build_pattern(string pattern_str) {
         // Remove spaces from the pattern string.
-        pattern_str.erase(remove_if(begin(pattern_str), end(pattern_str), isspace), end(pattern_str));
+        pattern_str.erase(remove_if(begin(pattern_str), end(pattern_str), [](unsigned char ch) { return std::isspace(ch) != 0; }), end(pattern_str));
 
         auto length = pattern_str.length();
         vector<int16_t> pattern{};

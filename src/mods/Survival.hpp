@@ -27,8 +27,8 @@ public:
     static bool meme_effects;
     static ImVec2 window_pos;
     static int wave;
-    static utility::Timer* Survival::timer;
-    static utility::Timer* Survival::meme_timer;
+    static utility::Timer* timer;
+    static utility::Timer* meme_timer;
     static float survivedTimer;
     static std::random_device rd;
     static std::mt19937 rng;
