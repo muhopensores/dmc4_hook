@@ -2,6 +2,8 @@
 #include "sdk/Devil4.hpp"
 #include "sdk/sRender.hpp"
 #include "sdk/uPlayer.hpp"
+#include "sdk/Players.hpp"
+#include <cstdio>
 uintptr_t DarkSoulsStamina::jmp_ret1 = NULL;
 static glm::ivec2 screen_res{0, 0};
 
@@ -11,17 +13,31 @@ float DarkSoulsStamina::stamina_delay_max = 1.0f;
 
 bool DarkSoulsStamina::stamina_enabled = false;
 bool DarkSoulsStamina::meme_stamina_enabled = false;
-float DarkSoulsStamina::stamina_delay_current = 0.0f;
-float DarkSoulsStamina::stamina = stamina_max;
 
-float DarkSoulsStamina::stamina_spent_visual = DarkSoulsStamina::stamina_max;
-float DarkSoulsStamina::stamina_ghost_delay_current = 0.0f;
 float DarkSoulsStamina::stamina_ghost_delay_max = 0.5f;
 float DarkSoulsStamina::stamina_ghost_rate = 500.0f;
 
-static int currentMoveID = 0; // for imgui debug
+uintptr_t DarkSoulsStamina::gauge_player[DarkSoulsStamina::kSlots] = {};
+uint8_t DarkSoulsStamina::exhausted[DarkSoulsStamina::kSlots] = {};
+
+namespace {
+
+// one player's gauge; reset to full when the slot's player changes (a new room makes new players)
+struct Gauge {
+    uintptr_t player     = 0;
+    float stamina        = 0.0f;
+    float delay          = 0.0f;   // since the last spend; regen starts at stamina_delay_max
+    float spent_visual   = 0.0f;   // the ghost bar
+    float ghost_delay    = 0.0f;
+    int   prev_move      = -1;
+    float prev_frame     = -1.0f;
+};
+Gauge gauges[DarkSoulsStamina::kSlots];
+
+} // namespace
+
 // atm I kill inputs because I don't know how to stop the player from being able to do actions other than movement
-naked void detour1() { // gamepad inputs (keyboard is handled by detour2 in InputStates.cpp)
+naked void detour1() { // gamepad inputs (keyboard is handled by detour2 in InputStates.cpp), player in esi
     _asm {
             cmp byte ptr [DarkSoulsStamina::stamina_enabled], 1
             je newcode
@@ -29,26 +45,28 @@ naked void detour1() { // gamepad inputs (keyboard is handled by detour2 in Inpu
             jne originalcode
 
         newcode:
-            sub esp, 4
-            movss [esp], xmm0
-            xorps xmm0, xmm0
-            comiss xmm0, [DarkSoulsStamina::stamina]
-            ja popret
-            movss xmm0, [esp]
-            add esp, 4
+            push ecx
+            xor ecx, ecx
+        find:
+            cmp esi, DarkSoulsStamina::gauge_player[ecx*4]
+            je found
+            inc ecx
+            cmp ecx, 4 // kSlots
+            jb find
+            pop ecx
+            jmp originalcode
+        found:
+            cmp byte ptr DarkSoulsStamina::exhausted[ecx], 0
+            pop ecx
+            jne skip
         originalcode:
             mov [esi+0x00001410], eax
-            jmp dword ptr [DarkSoulsStamina::jmp_ret1]
-
-        popret:
-            movss xmm0, [esp]
-            add esp, 4
+        skip:
             jmp dword ptr [DarkSoulsStamina::jmp_ret1]
     }
 }
 
-float DarkSoulsStamina::get_move_cost(int moveID) {
-    uPlayer* player = devil4_sdk::get_local_player();
+float DarkSoulsStamina::get_move_cost(uPlayer* player, int moveID) {
     if (!player) return 0.0f;
 
     if (player->controllerID == 0) {// dante
@@ -113,84 +131,77 @@ float DarkSoulsStamina::get_move_cost(int moveID) {
     return 0.0f;
 }
 
-void DarkSoulsStamina::stamina_regen(float seconds) {
-    if (stamina_delay_current < stamina_delay_max) {
-        stamina_delay_current += seconds;
+static void stamina_regen(Gauge& g, float seconds) {
+    if (g.delay < DarkSoulsStamina::stamina_delay_max) {
+        g.delay += seconds;
     } else {
-        if (stamina < stamina_max) {
-            stamina += stamina_regen_rate * seconds;
-            if (stamina > stamina_max)
-                stamina = stamina_max;
+        if (g.stamina < DarkSoulsStamina::stamina_max) {
+            g.stamina += DarkSoulsStamina::stamina_regen_rate * seconds;
+            if (g.stamina > DarkSoulsStamina::stamina_max)
+                g.stamina = DarkSoulsStamina::stamina_max;
         }
     }
 }
 
-void DarkSoulsStamina::check_for_stamina_use(uPlayer* player) {
+static void ghost_drain(Gauge& g, float seconds) {
+    if (g.ghost_delay < DarkSoulsStamina::stamina_ghost_delay_max) {
+        g.ghost_delay += seconds;
+    } else {
+        float diff = g.spent_visual - g.stamina;
+        if (diff > 0.0f) {
+            float drain = DarkSoulsStamina::stamina_ghost_rate * seconds;
+            g.spent_visual -= std::min(drain, diff);
+        } else {
+            // snap when stamina refills past ghost
+            g.spent_visual = g.stamina;
+        }
+    }
+}
+
+static void check_for_stamina_use(uPlayer* player, Gauge& g) {
     int moveID    = player->moveIDBest;
     float moveFrame = player->animFrame;
     if ((player->movePart == 1) ||
         (player->movePart == 2 && (moveID == 0x20B || moveID == 0x31)) ||  // dante+nero high time have move part 2 :harold:
         (player->movePart == 0 && (moveID == 0x525 || moveID == 0x52E || moveID == 0x52B))) { // nero air normal shot + charge shots have move part 0 :harold:
-        static int prevMoveID    = -1;
-        static float prevAnimFrame = -1;
-        bool moveReset = (moveID != prevMoveID) || (moveID == prevMoveID && moveFrame < prevAnimFrame);
+        bool moveReset = (moveID != g.prev_move) || (moveID == g.prev_move && moveFrame < g.prev_frame);
         if (moveReset) {
-            float cost = get_move_cost(moveID);
+            float cost = DarkSoulsStamina::get_move_cost(player, moveID);
             if (cost > 0.0f) {
-                stamina -= cost;
-                stamina_ghost_delay_current = 0.0f;
-                stamina_delay_current       = 0.0f;
+                g.stamina -= cost;
+                g.ghost_delay = 0.0f;
+                g.delay       = 0.0f;
             }
         }
-        prevMoveID    = moveID;
-        prevAnimFrame = moveFrame;
+        g.prev_move  = moveID;
+        g.prev_frame = moveFrame;
     }
 }
 
-void DarkSoulsStamina::on_frame(fmilliseconds& dt) {
-    if (!stamina_enabled && !meme_stamina_enabled) return;
-    uPlayer* player = devil4_sdk::get_local_player();
-    if (!player) return;
-    sRender* sRen = devil4_sdk::get_sRender();
-    if (!sRen) return;
-    screen_res = sRen->screenRes;
-    ImGui::Begin("StaminaGUI", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize);
+// the bar at the same place in the player's own view (the whole screen without a split)
+static void draw_bar(const Gauge& g, int slot, const float rect[4]) {
+    const float vx = rect[0] * screen_res.x, vy = rect[1] * screen_res.y;
+    const float vw = (rect[2] - rect[0]) * screen_res.x;
+    const float vh = (rect[3] - rect[1]) * screen_res.y;
+    char name[32];
+    std::snprintf(name, sizeof name, slot == 0 ? "StaminaGUI" : "StaminaGUI##%d", slot);
+    ImGui::Begin(name, nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize);
 
     // pos
-    float bar_width  = screen_res.x * 0.250f;
-    float bar_height = screen_res.x * 0.0075f;
+    float bar_width  = vw * 0.250f;
+    float bar_height = vw * 0.0075f;
     ImVec2 window_size = ImGui::GetWindowSize();
-    ImVec2 window_pos(screen_res.x * 0.16f, screen_res.y * 0.2375f);
+    ImVec2 window_pos(vx + vw * 0.16f, vy + vh * 0.2375f);
     ImGui::SetWindowPos(window_pos);
     float wideLeftX = (window_size.x - bar_width) * 0.75f;
     ImGui::SetCursorPosX(wideLeftX);
 
-    // time
-    float seconds = dt.count() / 1000.0f;
-    if (!devil4_sdk::is_paused()) {
-        stamina_regen(seconds);
-        // ghost delay
-        if (stamina_ghost_delay_current < stamina_ghost_delay_max) {
-            stamina_ghost_delay_current += seconds;
-        } else {
-            // ghost drain
-            float diff = stamina_spent_visual - stamina;
-            if (diff > 0.0f) {
-                float drain = stamina_ghost_rate * seconds;
-                stamina_spent_visual -= std::min(drain, diff);
-            } else {
-                // snap when stamina refills past ghost
-                stamina_spent_visual = stamina;
-            }
-        }
-    }
-
     // bar
     ImDrawList* draw = ImGui::GetWindowDrawList();
     ImVec2 pos       = ImGui::GetCursorScreenPos();
-    float stamina_frac       = stamina / stamina_max;
+    float stamina_frac       = g.stamina / DarkSoulsStamina::stamina_max;
     stamina_frac             = std::clamp(stamina_frac, 0.0f, 1.0f);
-    float stamina_spent_frac = stamina_spent_visual / stamina_max;
+    float stamina_spent_frac = g.spent_visual / DarkSoulsStamina::stamina_max;
     stamina_spent_frac       = std::clamp(stamina_spent_frac, 0.0f, 1.0f);
 
     ImU32 col_bg      = IM_COL32(15, 15, 15, 220);
@@ -203,18 +214,57 @@ void DarkSoulsStamina::on_frame(fmilliseconds& dt) {
     draw->AddRectFilled(pos, ImVec2(pos.x + bar_width * stamina_frac, pos.y + bar_height), col_current, 2.0f); // stamina
     draw->AddRect(pos, ImVec2(pos.x + bar_width, pos.y + bar_height), col_border, 2.0f); // border
     ImGui::Dummy(ImVec2(bar_width, bar_height));
-    // ImGui::InputScalar("MoveID", ImGuiDataType_S32, &currentMoveID, NULL, NULL, "%8X"); // debug
-
-    check_for_stamina_use(player);
 
     ImGui::End();
+}
+
+void DarkSoulsStamina::on_frame(fmilliseconds& dt) {
+    if (!stamina_enabled && !meme_stamina_enabled) {
+        for (int i = 0; i < kSlots; i++) {
+            gauge_player[i] = 0;
+            exhausted[i] = 0;
+        }
+        return;
+    }
+    sRender* sRen = devil4_sdk::get_sRender();
+    if (!sRen) return;
+    screen_res = sRen->screenRes;
+
+    const float seconds = dt.count() / 1000.0f;
+    const bool paused = devil4_sdk::is_paused();
+    const int n = player_info::count();
+    for (int i = 0; i < kSlots; i++) {
+        const uintptr_t pl = i < n ? player_info::player(i) : 0;
+        Gauge& g = gauges[i];
+        if (g.player != pl) {
+            g = Gauge{};
+            g.player = pl;
+            g.stamina = g.spent_visual = stamina_max;
+        }
+        gauge_player[i] = pl;
+        if (!pl) {
+            exhausted[i] = 0;
+            continue;
+        }
+        if (!paused) {
+            stamina_regen(g, seconds);
+            ghost_drain(g, seconds);
+        }
+        float rect[4];
+        if (player_info::view_rect(i, rect)) {
+            draw_bar(g, i, rect);
+        }
+        check_for_stamina_use((uPlayer*)pl, g);
+        exhausted[i] = g.stamina < 0.0f;
+    }
 }
 
 void DarkSoulsStamina::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
         ImGui::Checkbox(_("Stamina"), &stamina_enabled);
         ImGui::SameLine();
-        help_marker(_("I played a lot of Dark Souls recently and thought this would be funny"));
+        help_marker(_("I played a lot of Dark Souls recently and thought this would be funny. In co-op each player has his "
+                      "own stamina, shown in his own view"));
     }
 }
 

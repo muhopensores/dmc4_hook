@@ -12,14 +12,14 @@ public:
 
     static uint32_t inputpressed;
     static float input_timer;
-    static float input_timer2;
     static bool touchpad_rose_enabled;
-    static bool rose_timer_active;
 
-    void rose_input();
-    void rose_buffer();
-    void play_rose();
-    void on_timer_callback();
+    // Taunt Ecstasy's Rose, per player (player_info's index): the press, the buffered Rose, and the timer that hides
+    // Lucifer afterwards. The hooks pass the player they run for.
+    static void __stdcall rose_tick(uintptr_t player);    // each tick: the buffer, the hide timer
+    static void __stdcall rose_press(uintptr_t player);   // Taunt pressed in the air
+    // the Rose's hide timer runs for this player (his Lucifer stays out: ForceLucifer, the change to Lucifer)
+    static bool __stdcall rose_active(uintptr_t player);
 
     std::string get_mod_name() override { return "InputStates"; };
     std::vector<std::string> get_search_terms() override {

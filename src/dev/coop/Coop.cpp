@@ -8,7 +8,7 @@
 #include "../../sdk/cUnit.hpp"
 #include "../../sdk/Players.hpp"
 #include "../../mods/CharSwitcher.hpp"
-#include "../../mods/DebugCam.hpp" // REGION_* viewport modes
+#include "../../mods/DebugCam.hpp" // REGION_* viewport modes; the free camera (Gameplay Cam off) takes the screen
 #include "../../mods/Macro.hpp"
 #include "../../mods/ViewportWindow.hpp"
 #include <cstring>
@@ -270,9 +270,11 @@ bool layout_broken(const sCamera* s_cam) {
 }
 
 // The split screen follows the game, checked every game tick: split while a player 2-4 has his unit and camera, the
-// game isn't paused (the pause menu and its screens draw in view 0) and viewport 0 shows a player's view; else player
-// 1's view on the whole screen, so events and cutscenes play full screen. While split, a layout the game changed is
-// put back (no Refresh needed after a portal or an event).
+// game isn't paused (the pause menu and its screens draw in view 0), viewport 0 shows a player's view and the free
+// camera is off; else player 1's view on the whole screen, so events and cutscenes play full screen. While split, a
+// layout the game changed is put back (no Refresh needed after a portal or an event). DebugCam's / PhotoMode's free
+// camera (Gameplay Cam off) hides viewport 0 and puts itself full screen in viewport 1, player 2's: the split waits
+// until Gameplay Cam is back on.
 void update_split() {
     sCamera* s_cam = *(sCamera**)sCamera_ptr;
     if (!s_cam) {
@@ -282,7 +284,7 @@ void update_split() {
     for (int i = 1; i < (int)Coop::player_num && i < kMaxPlayers; i++) {
         extra |= players[i].unit != 0 && players[i].cam != nullptr;
     }
-    const bool want = extra && !devil4_sdk::is_paused() && player_view_on_main(s_cam);
+    const bool want = extra && !devil4_sdk::is_paused() && player_view_on_main(s_cam) && DebugCam::toggle_gameplay_cam;
     if (want) {
         if (!coop_hud::split_shown || layout_broken(s_cam)) {
             apply_viewport_layout(false);

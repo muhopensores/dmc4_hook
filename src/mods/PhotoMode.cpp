@@ -11,6 +11,7 @@
 #include "DebugCam.hpp"
 #include "JointDisplay.hpp"
 #include "../sdk/uLight.hpp"
+#include "../sdk/Players.hpp"
 
 bool PhotoMode::mod_enabled = false;
 bool PhotoMode::joint_rotation_enable = false;
@@ -162,10 +163,12 @@ static void ToggleGameplayCam(bool enable) {
     vp->mActive = enable;
 }
 
-static void DisablePlayerInputs(bool enable) {
-    uPlayer* player = devil4_sdk::get_local_player();
-    if (!player) { return; }
-    player->pad_1e80[2] = enable;
+static void DisablePlayerInputs(bool enable) { // every player
+    for (int i = 0; i < player_info::count(); i++) {
+        if (uPlayer* player = (uPlayer*)player_info::player(i)) {
+            player->pad_1e80[2] = enable;
+        }
+    }
 }
 
 void PhotoMode::on_gui_frame(int display) {

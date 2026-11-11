@@ -1,4 +1,5 @@
 #include "LiveMoveTableSwaps.hpp"
+#include "../sdk/Players.hpp"
 #include "TrickDown.hpp"
 #include "MoveTable.hpp"
 
@@ -16,12 +17,10 @@ naked void live_move_table_swaps_detour(void) { // player in ecx
 
 		playercheck:
 			push eax
-			mov eax, [static_mediator_ptr]
-			mov eax, [eax]
-			mov eax, [eax+0x24]
-			cmp eax, ecx
+			mov eax, ecx
+			call player_info::asm_is_player
 			pop eax
-			jne originalcode // only inc timer if player
+			jz originalcode // only inc timer if player
 			cmp byte ptr [ecx+0x1494], 0 // dante controller id
 			je dantecode
 			jmp originalcode

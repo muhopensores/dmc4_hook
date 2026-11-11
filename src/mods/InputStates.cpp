@@ -5,6 +5,7 @@
 #include "DarkSoulsStamina.hpp" // stamina
 #include "../sdk/Devil4.hpp"
 #include "sdk/uPlayer.hpp"
+#include "sdk/Players.hpp"
 #if 1
 
 uintptr_t InputStates::jmp_return = NULL;
@@ -13,13 +14,47 @@ uintptr_t InputStates::jmp_return3 = NULL;
 
 uint32_t InputStates::inputpressed = 0;
 float InputStates::input_timer = 0.0f;
-float InputStates::input_timer2 = 0.0f;
 
 bool InputStates::touchpad_rose_enabled = false;
-bool InputStates::rose_timer_active = false;
 
-static bool b_rose_input = false;
-static bool b_buffered_rose = false;
+namespace {
+struct Rose {
+    bool input    = false;   // Taunt pressed, not yet played or buffered
+    bool buffered = false;   // pressed in the buffer frames: plays at the next free frame
+    bool active   = false;   // the hide timer runs
+    float timer   = 0.0f;
+};
+Rose roses[4];               // per player_info index
+uint8_t rose_flag = 0;       // a hook's answer from rose_active
+
+Rose* rose_of(uintptr_t player) {
+    const int i = player_info::index_of(player);
+    return i >= 0 && i < 4 ? &roses[i] : nullptr;
+}
+
+void play_rose(uPlayer* player, Rose& r) {
+    player->lucifer->visible = true;
+    player->moveBank         = 12;
+    player->moveID2          = 55;
+    player->movePart         = 00;
+    player->cancels1[0]      = 0;
+    player->cancels1[1]      = 0;
+    player->cancels1[2]      = 0;
+    player->cancels1[3]      = 0;
+    player->canWeaponChange  = 12;
+    player->weight++; // we miss out on a weight+1 because we miss initial call at DevilMayCry4_DX9.exe+3AAD35
+    r.timer  = 0.0f;
+    r.active = true;
+}
+
+void hide_lucifer(uPlayer* player) { // hide lucifer after rose if weaponid is not lucifer
+    if (player->lucifer->visible == true && player->currentSword != 6 && player->controllerID == 0) {
+        if (!ForceLucifer::mod_enabled) {
+            player->lucifer->visible = false;
+        }
+    }
+}
+} // namespace
 
 constexpr uintptr_t change_to_lucifer_call = 0x00836190;
 
@@ -68,31 +103,10 @@ naked void detour() { // inputpressed // inputs are edx // player is in edi // A
     TouchpadRoseCheck:
         cmp byte ptr [InputStates::touchpad_rose_enabled], 0
         je code
-        push ecx
-        push eax
-        push edx
-        call InputStates::rose_buffer
-        pop edx
-        pop eax
-        pop ecx
-        cmp byte ptr [InputStates::rose_timer_active], 1
-        je IncRoseTimer
-        jmp code
-
-    IncRoseTimer: // timer for HideLucifer
-        movss xmm0, [InputStates::input_timer2]
-        addss xmm0, [edi+0x10]
-        movss [InputStates::input_timer2], xmm0
-        cmp dword ptr [InputStates::input_timer2], 0x43480000 // 200.0f
-        jl code
-        mov byte ptr [InputStates::rose_timer_active], 0
-        push ecx
-        push eax
-        push edx
-        call InputStates::on_timer_callback
-        pop edx
-        pop eax
-        pop ecx
+        pushad
+        push edi
+        call InputStates::rose_tick
+        popad
 
     code:
         cmp [eax+0x41], cl
@@ -143,39 +157,45 @@ naked void detour2() { // inputonpress // touchpad ecstasy // player is in edx /
         jnz rosethrow
         jmp jmpret
 
-    staminaPop:
-        movss xmm0, [esp]
-        add esp, 4
     jmpret:
 		jmp dword ptr [InputStates::jmp_return2]
 
     rosethrow:
-        mov byte ptr [b_rose_input], 1
-        push ecx
-        push eax
+        pushad
         push edx
-        call InputStates::rose_input
-        pop edx
-        pop eax
-        pop ecx
+        call InputStates::rose_press
+        popad
         jmp jmpret
 
-    staminaCode:
-        sub esp, 4
-        movss [esp], xmm0
-        xorps xmm0, xmm0
-        comiss xmm0, [DarkSoulsStamina::stamina]
-        ja staminaPop
-        movss xmm0, [esp]
-        add esp, 4
+    staminaCode: // the player's own gauge (DarkSoulsStamina::gauge_player / exhausted); not a player: no stamina
+        push ecx
+        xor ecx, ecx
+    staminaFind:
+        cmp edx, DarkSoulsStamina::gauge_player[ecx*4]
+        je staminaFound
+        inc ecx
+        cmp ecx, 4 // DarkSoulsStamina::kSlots
+        jb staminaFind
+        pop ecx
+        jmp originalcode
+    staminaFound:
+        cmp byte ptr DarkSoulsStamina::exhausted[ecx], 0
+        pop ecx
+        jne jmpret
         jmp originalcode
     }
 }
 
+// uPlWpLucifer::setEnable 0x83600F (esi = the Lucifer, +0x1378 its owner): no initRose while the owner's Rose runs
 naked void detour_changing_to_lucifer() {
     _asm {
-        cmp byte ptr [InputStates::rose_timer_active], 1
-        jne code
+        pushad
+        push dword ptr [esi+0x1378]
+        call InputStates::rose_active
+        mov [rose_flag], al
+        popad
+        cmp byte ptr [rose_flag], 0
+        je code
         jmp dword ptr [InputStates::jmp_return3]
 
     code:
@@ -184,68 +204,48 @@ naked void detour_changing_to_lucifer() {
     }
 }
 
-void InputStates::on_timer_callback() { // hide lucifer after rose if weaponid is not lucifer
-    uPlayer* player = devil4_sdk::get_local_player();
-    if (player) {
-        if (player->lucifer->visible == true && player->currentSword != 6 && player->controllerID == 0) {
-            if (!ForceLucifer::mod_enabled) {
-                player->lucifer->visible = false;
+bool __stdcall InputStates::rose_active(uintptr_t player) {
+    const Rose* r = rose_of(player);
+    return r && r->active;
+}
+
+void __stdcall InputStates::rose_press(uintptr_t pl) {
+    Rose* r = rose_of(pl);
+    if (!r) return;
+    uPlayer* player = (uPlayer*)pl;
+    if (player->grounded == 2) {
+        if (player->jumpCancelPermissions1[1] == 0x10 || player->moveIDBest == 0x10 || player->moveIDBest == 0x11) { // if (in free frames, post trick, airhike)
+            play_rose(player, *r);
+        }
+        if (player->jumpCancelPermissions1[1] == 0x30) { // if in buffer frames
+            r->buffered = true;
+        }
+    }
+    r->input = false; // played, buffered, in active frames or grounded
+}
+
+void __stdcall InputStates::rose_tick(uintptr_t pl) {
+    Rose* r = rose_of(pl);
+    if (!r) return;
+    uPlayer* player = (uPlayer*)pl;
+    if (r->buffered) {
+        if (player->grounded == 2) { // aerial?
+            if (player->jumpCancelPermissions1[1] == 0x10) { // if in free frames
+                r->buffered = false;
+                play_rose(player, *r);
             }
-        }
+            if (player->jumpCancelPermissions1[1] == 0x00) { // if another attack starts, kill the buffer
+                r->buffered = false;
+            }
+        } else
+            r->buffered = false; // grounded.
     }
-}
-
-void InputStates::rose_input(void) {
-    uPlayer* player = devil4_sdk::get_local_player();
-    if (player) {
-        if (b_rose_input) { // if touchpad is pressed
-            if (player->grounded == 2) {
-                if (player->jumpCancelPermissions1[1] == 0x10 || player->moveIDBest == 0x10 || player->moveIDBest == 0x11) { // if (in free frames, post trick, airhike)
-                    InputStates::play_rose();
-                }
-                if (player->jumpCancelPermissions1[1] == 0x30) { // if in buffer frames
-                    b_buffered_rose = true;
-                }
-                b_rose_input = false; // in active frames
-            } else
-                b_rose_input = false; // grounded.
+    if (r->active) { // timer for HideLucifer
+        r->timer += *(float*)(pl + 0x10);   // the player's delta
+        if (r->timer >= 200.0f) {
+            r->active = false;
+            hide_lucifer(player);
         }
-    }
-}
-
-void InputStates::rose_buffer(void) {
-    uPlayer* player = devil4_sdk::get_local_player();
-    if (player) {
-        if (b_buffered_rose) {
-            if (player->grounded == 2) { // aerial?
-                if (player->jumpCancelPermissions1[1] == 0x10) { // if in free frames
-                    b_buffered_rose = false;
-                    InputStates::play_rose();
-                }
-                if (player->jumpCancelPermissions1[1] == 0x00) { // if another attack starts, kill the buffer
-                    b_buffered_rose = false;
-                }
-            } else
-                b_buffered_rose = false; // grounded.
-        }
-    }
-}
-
-void InputStates::play_rose(void) {
-    uPlayer* player = devil4_sdk::get_local_player();
-    if (player) {
-        player->lucifer->visible = true;
-        player->moveBank         = 12;
-        player->moveID2          = 55;
-        player->movePart         = 00;
-        player->cancels1[0]      = 0;
-        player->cancels1[1]      = 0;
-        player->cancels1[2]      = 0;
-        player->cancels1[3]      = 0;
-        player->canWeaponChange  = 12;
-        player->weight++; // we miss out on a weight+1 because we miss initial call at DevilMayCry4_DX9.exe+3AAD35
-        InputStates::input_timer2      = 0.0f;
-        InputStates::rose_timer_active = true;
     }
 }
 

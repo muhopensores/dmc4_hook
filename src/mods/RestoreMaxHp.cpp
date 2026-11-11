@@ -2,6 +2,7 @@
 #include "EnemyTracker.hpp"
 #include "sdk/Devil4.hpp"
 #include "sdk/sMediator.hpp"
+#include "sdk/Players.hpp"
 
 bool RestoreMaxHp::mod_enabled = false;
 
@@ -47,32 +48,30 @@ void RestoreMaxHp::restore_health_and_timer(sMediator* s_med_ptr, uPlayer* playe
     }
 }
 
+// any player holding Lock On + Taunt, within his own ground / air limit
 void RestoreMaxHp::on_frame(fmilliseconds& dt) {
-    uPlayer* player = devil4_sdk::get_local_player();
     sMediator* s_med_ptr = reinterpret_cast<sMediator*>(*reinterpret_cast<uintptr_t*>(static_mediator_ptr));
-    if (!player) {
+    if (!s_med_ptr) {
         return;
     }
-    bool is_grounded = (player->grounded == 1);
-    if (reset_timer && is_grounded && (player->inputHold[0] & 0x10) && (player->inputHold[0] & 0x08)) {
-        s_med_ptr->bpTimer = two_minutes_timer;
-    }
-    if (!mod_enabled) {
-        return;
-    }
-    if ((limit_to_ground && !is_grounded) || (limit_to_air && is_grounded)) {
-        return;
-    }
-    if (!(player->inputHold[0] & 0x10) || !(player->inputHold[0] & 0x08)) {
-        return;
-    }
-    if (!limit_to_ground && !limit_to_air ||
-        (limit_to_ground && is_grounded) ||
-        (limit_to_air && !is_grounded)) {
+    for (int i = 0; i < player_info::count(); i++) {
+        uPlayer* player = (uPlayer*)player_info::player(i);
+        if (!player || !(player->inputHold[0] & 0x10) || !(player->inputHold[0] & 0x08)) {
+            continue;
+        }
+        const bool is_grounded = (player->grounded == 1);
+        if (reset_timer && is_grounded) {
+            s_med_ptr->bpTimer = two_minutes_timer;
+        }
+        if (!mod_enabled) {
+            continue;
+        }
+        if ((limit_to_ground && !is_grounded) || (limit_to_air && is_grounded)) {
+            continue;
+        }
         restore_health_and_timer(s_med_ptr, player);
-        return;
+        return;   // once a frame
     }
-    restore_health_and_timer(s_med_ptr, player);
 }
 
 void RestoreMaxHp::on_gui_frame(int display) {

@@ -4,6 +4,9 @@
 #include "Windows.h"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/Cam.hpp"
+#include "../sdk/Players.hpp"
+#include "../dev/coop/Coop.hpp"
+#include "../dev/coop/CoopHud.hpp"
 #define _USE_MATH_DEFINES
 #include <math.h>
 
@@ -224,10 +227,12 @@ static void ToggleGameplayCam(bool enable) {
     cam->mCameraUp = ((uCamera*)*(uintptr_t*)&first_vp->mpCamera)->mCameraUp;
 }
 
-static void DisablePlayerInputs(bool enable) {
-    uPlayer* player = devil4_sdk::get_local_player();
-    if (!player) { return; }
-    player->pad_1e80[2] = enable;
+static void DisablePlayerInputs(bool enable) { // every player
+    for (int i = 0; i < player_info::count(); i++) {
+        if (uPlayer* player = (uPlayer*)player_info::player(i)) {
+            player->pad_1e80[2] = enable;
+        }
+    }
 }
 
 void DebugCam::DrawDebugCamSettings(int ImGuiID) {
@@ -245,6 +250,9 @@ void DebugCam::DrawDebugCamSettings(int ImGuiID) {
             ImGui::Text(_("Extra Cam %i"), viewportId);
         }
         ImGui::SetNextItemWidth(sameLineItemWidth);
+        // co-op's split gives viewports 1-3 to players 2-4: an extra camera there would be put back at once
+        const bool coop_views = viewportId > 0 && Coop::mod_enabled && coop_hud::split_shown;
+        if (coop_views) ImGui::BeginDisabled();
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
                 const RegionButton& rb = REGION_BUTTONS[row][col];
@@ -274,6 +282,13 @@ void DebugCam::DrawDebugCamSettings(int ImGuiID) {
                     ImGui::SameLine(0, BUTTON_SPACING);
                 }
             }
+        }
+        if (coop_views) {
+            ImGui::EndDisabled();
+            ImGui::TextDisabled(_("Used by co-op"));
+            ImGui::SameLine();
+            help_marker(_("Co-op's split screen gives this view to player 2. Turn Gameplay Cam off for a free camera: co-op "
+                          "shows it full screen until Gameplay Cam is back on"));
         }
         ImGui::EndGroup();
         ImGui::PopID();

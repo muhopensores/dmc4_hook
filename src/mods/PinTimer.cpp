@@ -5,6 +5,8 @@
 #include "misc/PinTimerAtlas.cpp"
 #include "sdk/Devil4.hpp"
 #include "Console.hpp"
+#include "sdk/Players.hpp"
+#include <cstdio>
 
 // hopefully mister compiler calculates those at compile time, we dont have consteval from c++20
 // cba to switch to newer standards
@@ -36,7 +38,6 @@ void PinTimer::after_reset() {
     free(data);
 }
 
-static float G_WINDOW_HEIGHT_HACK_IDK = 270.0f; // fresh from my ass
 static bool CON_PIN_UI_DEBUG = false;
 bool PinTimer::mod_enabled = false;
 
@@ -64,103 +65,117 @@ std::optional<std::string> PinTimer::on_initialize() {
 	return Mod::on_initialize();
 }
 
-void PinTimer::on_frame(fmilliseconds& dt) {
-        if (mod_enabled || CON_PIN_UI_DEBUG ) {
-        uPlayer* player = devil4_sdk::get_local_player();
-        if (player) {
-            if (player->controllerID == 0) { // 0 = dante, some were crashing with nero and this might:tm: fix it
-                 if (player->luciferPins[0]) {
-                    // this should be played every time someone 
-                    // scrolls through the section below
-                    // https://youtu.be/nmEX1rlt4pk
+// One window per Dante with pins out, at the top right of his own view (player 1 without a split: placed once, then
+// where it's dragged).
+static float window_heights[4] = { 270.0f, 270.0f, 270.0f, 270.0f }; // fresh from my ass
 
-                    ImGuiIO& io = ImGui::GetIO();
-                    ImGuiWindowFlags window_flags = 
-                        ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoBackground;
+static void draw_pins(uPlayer* player, int slot, const float rect[4], bool split) {
+    float& height = window_heights[slot];
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuiWindowFlags window_flags = 
+        ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoBackground;
 
-                    // bandaid
-                    const float text_height = ImGui::GetTextLineHeightWithSpacing();
-                    const glm::vec2 margin = glm::vec2(text_height * 1.666f, text_height * 5.6f);
-                    glm::vec2 window_size = glm::vec2(pui::backdrop.size_.x + margin.x, G_WINDOW_HEIGHT_HACK_IDK/*pui::backdrop.size_.y + margin.y*/);
-                    glm::vec2 window_pos  = glm::vec2(io.DisplaySize.x - window_size.x - 128.0f, 128.0f);
-                    const float fucktor = glm::smoothstep(window_pos.y, window_pos.y + window_size.y + 150.0f, G_WINDOW_HEIGHT_HACK_IDK);
+    // bandaid
+    const float text_height = ImGui::GetTextLineHeightWithSpacing();
+    const glm::vec2 margin = glm::vec2(text_height * 1.666f, text_height * 5.6f);
+    glm::vec2 window_size = glm::vec2(pui::backdrop.size_.x + margin.x, height/*pui::backdrop.size_.y + margin.y*/);
+    const float vx = rect[0] * io.DisplaySize.x, vy = rect[1] * io.DisplaySize.y, vw = (rect[2] - rect[0]) * io.DisplaySize.x;
+    glm::vec2 window_pos  = glm::vec2(vx + vw - window_size.x - 128.0f, vy + 128.0f);
+    const float fucktor = glm::smoothstep(window_pos.y, window_pos.y + window_size.y + 150.0f, height);
 
-                    ImGui::SetNextWindowPos(window_pos, ImGuiCond_Once);
-                    ImGui::SetNextWindowSize(window_size);
-                    ImGui::Begin("Lucifer Pin Timers", NULL, window_flags);
-                    ImGui::NewLine();
+    ImGui::SetNextWindowPos(window_pos, split ? ImGuiCond_Always : ImGuiCond_Once);   // split: kept on his view
+    ImGui::SetNextWindowSize(window_size);
+    char name[40];
+    std::snprintf(name, sizeof name, slot == 0 ? "Lucifer Pin Timers" : "Lucifer Pin Timers##p%d", slot);
+    ImGui::Begin(name, NULL, window_flags);
+    ImGui::NewLine();
 
-                    //const glm::vec2 window_size = glm::vec2(pui::backdrop.size_.x + margin.x, pui::backdrop.size_.y + margin.y);
-                    //window_size = (max_region - min_region) + glm::vec2(0.0f, ImGui::GetTextLineHeight() * 2.22f);
-                    window_size = ImGui::GetWindowSize();
-                    //const glm::vec2 window_pos  = glm::vec2(io.DisplaySize.x - window_size.x - 128.0f, 128.0f);
-                    glm::vec2 newpos = ImGui::GetWindowPos();
-                    window_pos = newpos;
-                    //window_pos = (newpos - min_region) - (ImGui::GetTextLineHeight() * 1.0f);
+    //const glm::vec2 window_size = glm::vec2(pui::backdrop.size_.x + margin.x, pui::backdrop.size_.y + margin.y);
+    //window_size = (max_region - min_region) + glm::vec2(0.0f, ImGui::GetTextLineHeight() * 2.22f);
+    window_size = ImGui::GetWindowSize();
+    //const glm::vec2 window_pos  = glm::vec2(io.DisplaySize.x - window_size.x - 128.0f, 128.0f);
+    glm::vec2 newpos = ImGui::GetWindowPos();
+    window_pos = newpos;
+    //window_pos = (newpos - min_region) - (ImGui::GetTextLineHeight() * 1.0f);
 
-                    // cba to use window draw list since buttplugs would get cut off
-                    auto* dl = ImGui::GetBackgroundDrawList();
-#ifndef NDEBUG
-                    if (CON_PIN_UI_DEBUG) {
-                        // testing
-                        int alpha = (int)(glm::smoothstep(0.0, 0.5, glm::sin(ImGui::GetTime()*10.0)) * 255.0);
-                        dl->AddRectFilled(window_pos, window_pos + window_size, ImColor::ImColor(255,0,0,alpha));
-                    }
-#endif
-                    // background
-                    const glm::vec2 bgsize = glm::vec2(window_size.x * 1.1f, (window_size.y + (pui::buttplug_bottom.size_.y / 2.0f) + text_height * fucktor) );
-                    const glm::vec2 bgpos =  glm::vec2(window_pos.x - text_height * 1.2f, window_pos.y);
-                    dl->AddImage((ImTextureID)pui::texture_handle, bgpos, bgpos + bgsize, pui::backdrop.uv0, pui::backdrop.uv1);
+    // cba to use window draw list since buttplugs would get cut off
+    auto* dl = ImGui::GetBackgroundDrawList();
+    #ifndef NDEBUG
+    if (CON_PIN_UI_DEBUG) {
+        // testing
+        int alpha = (int)(glm::smoothstep(0.0, 0.5, glm::sin(ImGui::GetTime()*10.0)) * 255.0);
+        dl->AddRectFilled(window_pos, window_pos + window_size, ImColor::ImColor(255,0,0,alpha));
+    }
+    #endif
+    // background
+    const glm::vec2 bgsize = glm::vec2(window_size.x * 1.1f, (window_size.y + (pui::buttplug_bottom.size_.y / 2.0f) + text_height * fucktor) );
+    const glm::vec2 bgpos =  glm::vec2(window_pos.x - text_height * 1.2f, window_pos.y);
+    dl->AddImage((ImTextureID)pui::texture_handle, bgpos, bgpos + bgsize, pui::backdrop.uv0, pui::backdrop.uv1);
 
-                    // header buttplug
-                    const glm::vec2 header_pos = glm::vec2(window_pos.x - (window_size.x * 0.38f), window_pos.y - (pui::wing_header.size_.y / 2));
-                    dl->AddImage((ImTextureID)pui::texture_handle, header_pos, header_pos + (pui::wing_header.size_ * 1.11f), pui::wing_header.uv0, pui::wing_header.uv1);
+    // header buttplug
+    const glm::vec2 header_pos = glm::vec2(window_pos.x - (window_size.x * 0.38f), window_pos.y - (pui::wing_header.size_.y / 2));
+    dl->AddImage((ImTextureID)pui::texture_handle, header_pos, header_pos + (pui::wing_header.size_ * 1.11f), pui::wing_header.uv0, pui::wing_header.uv1);
 
-                    // pin timer text
-                    const glm::vec2 htxt_pos = glm::vec2(window_pos.x + (pui::pin_timer_text.size_.x / 2.0f), window_pos.y - pui::pin_timer_text.size_.y);
-                    dl->AddImage((ImTextureID)pui::texture_handle, htxt_pos, htxt_pos + (pui::pin_timer_text.size_), pui::pin_timer_text.uv0, pui::pin_timer_text.uv1);
+    // pin timer text
+    const glm::vec2 htxt_pos = glm::vec2(window_pos.x + (pui::pin_timer_text.size_.x / 2.0f), window_pos.y - pui::pin_timer_text.size_.y);
+    dl->AddImage((ImTextureID)pui::texture_handle, htxt_pos, htxt_pos + (pui::pin_timer_text.size_), pui::pin_timer_text.uv0, pui::pin_timer_text.uv1);
 
-                    // bottom buttplug
-                    const glm::vec2 bottom_buttplug_pos = glm::vec2(window_pos.x, window_pos.y + window_size.y - (pui::buttplug_bottom.size_.y / 2.0f));
-                    dl->AddImage((ImTextureID)pui::texture_handle, bottom_buttplug_pos, bottom_buttplug_pos + (pui::buttplug_bottom.size_), pui::buttplug_bottom.uv0, pui::buttplug_bottom.uv1);
+    // bottom buttplug
+    const glm::vec2 bottom_buttplug_pos = glm::vec2(window_pos.x, window_pos.y + window_size.y - (pui::buttplug_bottom.size_.y / 2.0f));
+    dl->AddImage((ImTextureID)pui::texture_handle, bottom_buttplug_pos, bottom_buttplug_pos + (pui::buttplug_bottom.size_), pui::buttplug_bottom.uv0, pui::buttplug_bottom.uv1);
 
-                    ImGui::BeginTable("pin_table", 2);
-                    for (int i = 0; i < 15; i++) {
-                        if (!player->luciferPins[i]) { continue; }
-                        ImGui::TableNextRow();
-                        ImGui::TableNextColumn();
-                        if (player->luciferPins[i]->penetrated) {
-                            glm::vec2 pos = ImGui::GetCursorScreenPos();
-                            const float window_content_region_width = (window_size.x);
-                            dl->AddImage((ImTextureID)pui::texture_handle, glm::vec2(pos.x,pos.y), glm::vec2(pos.x + (window_content_region_width * 0.8), pos.y + (ImGui::GetTextLineHeight())), pui::red_highlight.uv0, pui::red_highlight.uv1);
-                        }
-                        ImGui::Image((ImTextureID)pui::texture_handle, ImVec2(pui::pin_text.size_.x, ImGui::GetTextLineHeight()), pui::pin_text.uv0, pui::pin_text.uv1); ImGui::SameLine();
-                        ImGui::Text("%d", i + 1);
-                        ImGui::TableNextColumn();
-                        float adjusted_timer = player->luciferPins[i]->timer / 60.0f;
-                        float adjusted_timer_max = player->luciferPins[i]->timerMax / 60.0f;
-                        ImGui::Text("%.2f / %.2f", adjusted_timer, adjusted_timer_max);
-#if 0 // old menu
-                        if (!player->luciferPins[i]) {
-                            if (player->luciferPins[i]->penetrated) {
-                                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
-                            } else {
-                                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
-                            }
-                            ImGui::Text("Pin %i = %.0f", i + 1, player->luciferPins[i]->timer);
-                            ImGui::SameLine();
-                            ImGui::Text("/ %.0f", player->luciferPins[i]->timerMax);
-                            ImGui::PopStyleColor();
-                        }
-#endif
-                    }
-                    ImGui::EndTable();
-                    ImGui::NewLine();
-                    G_WINDOW_HEIGHT_HACK_IDK = ImGui::GetCursorPosY();
-                    ImGui::End();
-                }
-            }
+    ImGui::BeginTable("pin_table", 2);
+    for (int i = 0; i < 15; i++) {
+        if (!player->luciferPins[i]) { continue; }
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if (player->luciferPins[i]->penetrated) {
+            glm::vec2 pos = ImGui::GetCursorScreenPos();
+            const float window_content_region_width = (window_size.x);
+            dl->AddImage((ImTextureID)pui::texture_handle, glm::vec2(pos.x,pos.y), glm::vec2(pos.x + (window_content_region_width * 0.8), pos.y + (ImGui::GetTextLineHeight())), pui::red_highlight.uv0, pui::red_highlight.uv1);
         }
+        ImGui::Image((ImTextureID)pui::texture_handle, ImVec2(pui::pin_text.size_.x, ImGui::GetTextLineHeight()), pui::pin_text.uv0, pui::pin_text.uv1); ImGui::SameLine();
+        ImGui::Text("%d", i + 1);
+        ImGui::TableNextColumn();
+        float adjusted_timer = player->luciferPins[i]->timer / 60.0f;
+        float adjusted_timer_max = player->luciferPins[i]->timerMax / 60.0f;
+        ImGui::Text("%.2f / %.2f", adjusted_timer, adjusted_timer_max);
+    #if 0 // old menu
+        if (!player->luciferPins[i]) {
+            if (player->luciferPins[i]->penetrated) {
+                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+            } else {
+                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
+            }
+            ImGui::Text("Pin %i = %.0f", i + 1, player->luciferPins[i]->timer);
+            ImGui::SameLine();
+            ImGui::Text("/ %.0f", player->luciferPins[i]->timerMax);
+            ImGui::PopStyleColor();
+        }
+    #endif
+    }
+    ImGui::EndTable();
+    ImGui::NewLine();
+    height = ImGui::GetCursorPosY();
+    ImGui::End();
+}
+
+void PinTimer::on_frame(fmilliseconds& dt) {
+    if (!(mod_enabled || CON_PIN_UI_DEBUG)) {
+        return;
+    }
+    for (int i = 0; i < player_info::count() && i < 4; i++) {
+        uPlayer* player = (uPlayer*)player_info::player(i);
+        // 0 = dante, some were crashing with nero and this might:tm: fix it
+        if (!player || player->controllerID != 0 || !player->luciferPins[0]) {
+            continue;
+        }
+        float rect[4];
+        if (!player_info::view_rect(i, rect)) {
+            continue;
+        }
+        const bool split = rect[0] != 0.0f || rect[1] != 0.0f || rect[2] != 1.0f || rect[3] != 1.0f;
+        draw_pins(player, i, rect, split);
     }
 }
 

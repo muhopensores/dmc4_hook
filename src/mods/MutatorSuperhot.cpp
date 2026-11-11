@@ -1,6 +1,7 @@
 #include "MutatorSuperhot.hpp"
 #include "sdk/Devil4.hpp"
 #include "sdk/sWorkRate.hpp"
+#include "sdk/Players.hpp"
 #include "glm/gtx/compatibility.hpp"
 
 static bool mod_enabled_nero = false;
@@ -44,15 +45,29 @@ std::optional<std::string> MutatorSuperhot::on_initialize() {
 }
 
 float previous{ 0.0f };
+
+// the fastest player of that character (controllerID: 0 Dante, 1 Nero); false when none plays him
+static bool fastest(int character, float& vel) {
+	bool found = false;
+	vel = 0.0f;
+	for (int i = 0; i < player_info::count(); i++) {
+		uPlayer* pl = (uPlayer*)player_info::player(i);
+		if (pl && pl->controllerID == character) {
+			vel = std::max(vel, pl->m_d_vel_magnitude);
+			found = true;
+		}
+	}
+	return found;
+}
 // onFrame()
 // do something each frame example
 void MutatorSuperhot::on_frame(fmilliseconds& dt) {
 	if (mod_enabled_nero) {
-		uPlayer* pl = devil4_sdk::get_local_player();
 		sWorkRate* sw = devil4_sdk::get_work_rate();
-		if (!pl || !sw) { return; }
-		if (pl->controllerID == 1) {
-			float result = exponential_ease_out(glm::smoothstep(0.0f, 6.0f, pl->m_d_vel_magnitude * 1.4f));
+		float vel = 0.0f;
+		if (!sw) { return; }
+		if (fastest(1, vel)) {
+			float result = exponential_ease_out(glm::smoothstep(0.0f, 6.0f, vel * 1.4f));
 			float value = (result * tiny[0]) + (1.0f - tiny[0]) * previous;
 			sw->room_speed = value;
 			sw->enemy_speed = value;
@@ -60,11 +75,11 @@ void MutatorSuperhot::on_frame(fmilliseconds& dt) {
 		}
 	}
 	if (mod_enabled_dante) {
-		uPlayer* pl = devil4_sdk::get_local_player();
 		sWorkRate* sw = devil4_sdk::get_work_rate();
-		if (!pl || !sw) { return; }
-		if (pl->controllerID == 0) {
-			float result = exponential_ease_out(glm::smoothstep(0.0f, 6.0f, pl->m_d_vel_magnitude * 1.4f));
+		float vel = 0.0f;
+		if (!sw) { return; }
+		if (fastest(0, vel)) {
+			float result = exponential_ease_out(glm::smoothstep(0.0f, 6.0f, vel * 1.4f));
 			float value = (result * tiny[1]) + (1.0f - tiny[1]) * previous;
 			sw->room_speed = value;
 			sw->enemy_speed = value;

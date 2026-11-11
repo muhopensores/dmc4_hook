@@ -1,6 +1,8 @@
 #pragma once
 #include "../mod.hpp"
 
+class uPlayer;
+
 using PowerUpActivateCallback = std::function<void()>;
 using PowerUpUpdateCallback = std::function<void(float)>;
 using PowerUpExpireCallback = std::function<void()>;
@@ -59,6 +61,7 @@ public:
         float effectTimeLeft; // Time left for the effect
         std::shared_ptr<utility::Timer> effectTimer; // Timer for this effect
         uintptr_t* visualEffectPtr; // Pointer to the effect
+        uintptr_t picker = 0; // the player who collected it (his effect, his expiry)
     };
     
     struct SpawnArea {
@@ -80,7 +83,10 @@ public:
     void spawnRandomPowerUp();
     void spawnSpecificPowerUp(const std::string& typeId);
     void checkPlayerProximity();
-    void applyPowerUpEffect(PowerUp& powerup);
+    void applyPowerUpEffect(PowerUp& powerup, uintptr_t picker);
+    // The player a callback runs for: the one who collected the pickup (onActivate / onUpdate / onExpire); player 1
+    // outside a callback. Per-player effects apply to him; world effects ignore it.
+    static uPlayer* picker();
     void clearPowerUps();
     void toggle(bool enable);
     

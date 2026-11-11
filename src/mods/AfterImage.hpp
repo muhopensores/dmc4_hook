@@ -38,7 +38,7 @@ namespace after_image {
 
 constexpr int kPoolMax = 16;
 
-extern bool  trail;                   // copies are left behind the local player while he moves fast
+extern bool  trail;                   // copies are left behind every player while he moves fast (each his own timer)
 // the trail's gates (any one on and open leaves copies)
 extern bool  gate_inertia;            // his mMoveVel (the game's move speed, inertia) above trail_speed
 extern float trail_speed;             // cm per frame
@@ -63,7 +63,7 @@ extern bool  through_walls;           // the zthrough bit: drawn over what is in
 extern bool  use_model_paths;         // replacement models for the copies (e.g. pl006_afimg), when they load
 extern char  model_paths[2][4][128];  // per character (0 Dante, 1 Nero): body, head, hair, coat ("" = the player's own)
 
-void request_spawn();                 // one copy of the local player at his next tick (any thread)
+void request_spawn();                 // one copy of player 1 at his next tick (any thread)
 bool spawn(uintptr_t player);         // one copy of this player now (his tick only); false when it couldn't be made
 void trail_request(uintptr_t player); // a mod's move wants the trail: call it on every tick it does (the next tick reads it)
 

@@ -1,4 +1,5 @@
 #include "ChargeChecker.hpp"
+#include "../sdk/Players.hpp"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/InputCommand.hpp"
 #include "../sdk/sUnit.hpp"
@@ -23,9 +24,9 @@ naked void detour(void) { // player in edi
         DanteChecks:
         push eax // keep player in eax
         push edx // put compares in edx
-        mov eax, [static_mediator_ptr] // only get player (thanks boss dante)
-        mov eax, [eax]
-        mov eax, [eax+0x24]
+        mov eax, edi // the hooked player; a unit that isn't a player (boss Dante) is left alone
+        call player_info::asm_is_player
+        jz popcode
         cmp dword ptr [edi+0x1494], 0 // controller id (0 Dante 1 Nero)
         je GotDante
         pop edx
@@ -53,9 +54,9 @@ naked void detour(void) { // player in edi
         je code
         push eax // keep player in eax
         push edx // put compares in edx
-        mov eax, [static_mediator_ptr] // only get player (thanks boss dante)
-        mov eax, [eax]
-        mov eax, [eax+0x24]
+        mov eax, edi // the hooked player; a unit that isn't a player (boss Dante) is left alone
+        call player_info::asm_is_player
+        jz popcode
         cmp dword ptr [edi+0x1494], 1 // Nero
         je GotNero
 

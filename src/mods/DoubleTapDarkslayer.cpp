@@ -1,4 +1,5 @@
 #include "DoubleTapDarkslayer.hpp"
+#include "../sdk/Players.hpp"
 
 #if 1
 uintptr_t DoubleTapDarkslayer::jmp_ret1 = NULL;
@@ -19,22 +20,47 @@ uintptr_t DoubleTapDarkslayer::jmp_jb5 = 0x007B6DB3;
 
 bool DoubleTapDarkslayer::mod_enabled = false;
 
-float DoubleTapDarkslayer::darkslayerTimer = 0.0f;
 float DoubleTapDarkslayer::darkslayerTimerFill = 0.0f;
 float DoubleTapDarkslayer::zeroFloat = 0.0f;
+
+// The double-tap timer, one per player (player_info's index). Every hook below runs in uPlayerDante::checkStyleChange
+// with the player in esi; a Dante who isn't a player (the boss) has no timer and keeps the game's own style change.
+static float darkslayer_timers[4] = {};
+static float* cur_timer = nullptr;   // load_timer's answer: esi's timer, or null
+
+static float* __stdcall darkslayer_timer_of(uintptr_t player) {
+    const int i = player_info::index_of(player);
+    return i >= 0 && i < 4 ? &darkslayer_timers[i] : nullptr;
+}
+
+// esi = the player -> cur_timer; every register and xmm0 / xmm1 kept
+naked void load_timer(void) {
+    _asm {
+            sub esp, 32
+            movdqu [esp], xmm0
+            movdqu [esp+16], xmm1
+            pushad
+            push esi
+            call darkslayer_timer_of
+            mov [cur_timer], eax
+            popad
+            movdqu xmm0, [esp]
+            movdqu xmm1, [esp+16]
+            add esp, 32
+            ret
+    }
+}
 
 naked void detour1(void) { // ticks and resets the timer // player in esi
     _asm {
             cmp byte ptr [DoubleTapDarkslayer::mod_enabled], 0
             je originalcode
 
-            push ecx
-            mov ecx, [static_mediator_ptr]
-            mov ecx, [ecx]
-            mov ecx, [ecx+0x24]
-            cmp esi, ecx
-            pop ecx
-            jne originalcode
+            call load_timer
+            cmp dword ptr [cur_timer], 0
+            je originalcode
+            push eax
+            mov eax, [cur_timer]
 
             test dword ptr [esi+0x00001410], 0x00001000
             jne timerreset
@@ -47,15 +73,17 @@ naked void detour1(void) { // ticks and resets the timer // player in esi
             jmp timertick
         timerreset:
             movss xmm1, [DoubleTapDarkslayer::darkslayerTimerFill]
-            movss [DoubleTapDarkslayer::darkslayerTimer],xmm1
+            movss [eax],xmm1
 
         timertick:
-            movss xmm0, [DoubleTapDarkslayer::darkslayerTimer]
+            movss xmm0, [eax]
             comiss xmm0, [DoubleTapDarkslayer::zeroFloat]
-            jna originalcode
+            jna popeax
             subss xmm0, [esi+0x10] // delta
-            movss [DoubleTapDarkslayer::darkslayerTimer],xmm0
+            movss [eax],xmm0
             xorps xmm0, xmm0
+        popeax:
+            pop eax
 
 	    originalcode:
 		    comiss xmm0, [esi+0x00014D9C]
@@ -68,7 +96,13 @@ naked void detour2(void) { // trickster
             cmp byte ptr [DoubleTapDarkslayer::mod_enabled], 0
             je originalcode
 
-            movss xmm0, [DoubleTapDarkslayer::darkslayerTimer]
+            call load_timer
+            cmp dword ptr [cur_timer], 0
+            je originalcode
+            push eax
+            mov eax, [cur_timer]
+            movss xmm0, [eax]
+            pop eax
             comiss xmm0, [DoubleTapDarkslayer::zeroFloat]
             jbe jbjmp // dont run
 
@@ -86,7 +120,13 @@ naked void detour3(void) { // royal guard
             cmp byte ptr [DoubleTapDarkslayer::mod_enabled], 0
             je originalcode
 
-            movss xmm0, [DoubleTapDarkslayer::darkslayerTimer]
+            call load_timer
+            cmp dword ptr [cur_timer], 0
+            je originalcode
+            push eax
+            mov eax, [cur_timer]
+            movss xmm0, [eax]
+            pop eax
             comiss xmm0, [DoubleTapDarkslayer::zeroFloat]
             jbe jbjmp // dont run
 
@@ -104,7 +144,13 @@ naked void detour4(void) { // gunslinger
             cmp byte ptr [DoubleTapDarkslayer::mod_enabled], 0
             je originalcode
 
-            movss xmm0, [DoubleTapDarkslayer::darkslayerTimer]
+            call load_timer
+            cmp dword ptr [cur_timer], 0
+            je originalcode
+            push eax
+            mov eax, [cur_timer]
+            movss xmm0, [eax]
+            pop eax
             comiss xmm0, [DoubleTapDarkslayer::zeroFloat]
             jbe jbjmp // dont run
 
@@ -122,7 +168,13 @@ naked void detour5(void) { // swordmaster
             cmp byte ptr [DoubleTapDarkslayer::mod_enabled], 0
             je originalcode
 
-            movss xmm0, [DoubleTapDarkslayer::darkslayerTimer]
+            call load_timer
+            cmp dword ptr [cur_timer], 0
+            je originalcode
+            push eax
+            mov eax, [cur_timer]
+            movss xmm0, [eax]
+            pop eax
             comiss xmm0, [DoubleTapDarkslayer::zeroFloat]
             jbe jbjmp // dont run
 

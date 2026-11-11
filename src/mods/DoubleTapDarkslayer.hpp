@@ -22,7 +22,6 @@ public:
 
     static bool mod_enabled;
 
-    static float darkslayerTimer;
     static float darkslayerTimerFill;
     static float zeroFloat;
 

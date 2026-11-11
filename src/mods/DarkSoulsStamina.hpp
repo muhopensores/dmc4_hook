@@ -10,23 +10,24 @@ public:
     std::vector<std::string> get_search_terms() override { return {"dark souls stamina"}; }
     // Mod::ModType get_mod_type() override { return SLOW; };
 
+    // settings, shared by every player
     static float stamina_regen_rate;
     static float stamina_max;
     static float stamina_delay_max;
+    static float stamina_ghost_delay_max;
+    static float stamina_ghost_rate;
 
     static bool stamina_enabled;
     static bool meme_stamina_enabled;
-    static float stamina;
-    static float stamina_delay_current;
 
-    float get_move_cost(int moveID);
-    void stamina_regen(float seconds);
-    void check_for_stamina_use(uPlayer* player);
+    // Each player has his own gauge (by player_info's index). The input hooks (detour1 here, InputStates' keyboard
+    // detour2) look the hooked player up in gauge_player and drop his input while exhausted[slot] is set; on_frame
+    // fills both.
+    static constexpr int kSlots = 4;
+    static uintptr_t gauge_player[kSlots];
+    static uint8_t exhausted[kSlots];
 
-    static float stamina_spent_visual;
-    static float stamina_ghost_delay_current;
-    static float stamina_ghost_delay_max;
-    static float stamina_ghost_rate;
+    static float get_move_cost(uPlayer* player, int moveID);
 
     static uintptr_t jmp_ret1;
 

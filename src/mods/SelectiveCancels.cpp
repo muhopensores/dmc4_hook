@@ -1,4 +1,5 @@
 #include "SelectiveCancels.hpp"
+#include "../sdk/Players.hpp"
 #include "FireworksTweaks.hpp"
 
 #if 1
@@ -34,15 +35,9 @@ naked void detour1() { // player in eax + edi
 			test cl, cl
 			pop ecx
 			je originalcode
-		// validate this is player 1
-			push ecx
-			mov ecx, [static_mediator_ptr]
-			mov ecx, [ecx]
-			test ecx, ecx
-			mov ecx, [ecx+0x24]
-			cmp eax, ecx
-			pop ecx
-			jne originalcode
+		// validate this is a player (eax)
+			call player_info::asm_is_player
+			jz originalcode
 
 			// after this, always use popcode
 			sub esp, 4

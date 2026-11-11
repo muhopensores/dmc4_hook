@@ -6,6 +6,7 @@
 #include "DisappearingPlatform.hpp"
 #include "../sdk/sArea.hpp"
 #include "../sdk/aGame.hpp"
+#include "../sdk/Players.hpp"
 
 bool EnvironmentalHazards::laser_enabled = false;
 bool EnvironmentalHazards::laser_tracks_player = false;
@@ -18,7 +19,7 @@ static float pillar_spawn_timer = 0.0f;
 static float pillar_spawn_interval = 0.0f;
 
 bool EnvironmentalHazards::platform_enabled = false;
-static bool platform_key_was_down = false;
+static bool platform_key_was_down[4] = {};   // per player_info index
 
 static bool in_correct_room(std::initializer_list<int> roomIDs) {
     sArea* sAreaPtr = devil4_sdk::get_sArea();
@@ -81,22 +82,26 @@ void EnvironmentalHazards::on_frame(fmilliseconds& dt) {
     }
     
     if (EnvironmentalHazards::platform_enabled) {
-        // bool platform_key_down = (player->inputHold[2] & 1) != 0; // l3
-        bool platform_key_down = (player->inputHold[0] & 0x8) != 0;
-        if (platform_key_down && !platform_key_was_down) {
-            Vector3f pos;
-            if (player->lockOnTargetPtr0) {
-                pos = player->lockOnTargetPtr0->position;
-            } else {
-                pos = player->mPos;
-            }
+        // each player's Taunt: a platform under his target, or under him
+        for (int i = 0; i < 4; i++) {
+            uPlayer* pl = i < player_info::count() ? (uPlayer*)player_info::player(i) : nullptr;
+            // bool platform_key_down = pl && (pl->inputHold[2] & 1) != 0; // l3
+            bool platform_key_down = pl && (pl->inputHold[0] & 0x8) != 0;
+            if (platform_key_down && !platform_key_was_down[i]) {
+                Vector3f pos;
+                if (pl->lockOnTargetPtr0) {
+                    pos = pl->lockOnTargetPtr0->position;
+                } else {
+                    pos = pl->mPos;
+                }
 
-            pos = {pos.x, pos.y - 100.0f, pos.z};
-            Vector3f scale = {1.0f, 1.0f, 1.0f};
-            Vector3f rot   = {0.0f, 0.0f, 0.0f};
-            DisappearingPlatform::spawn(pos, scale, rot, 2.0f, 0.0f);
+                pos = {pos.x, pos.y - 100.0f, pos.z};
+                Vector3f scale = {1.0f, 1.0f, 1.0f};
+                Vector3f rot   = {0.0f, 0.0f, 0.0f};
+                DisappearingPlatform::spawn(pos, scale, rot, 2.0f, 0.0f);
+            }
+            platform_key_was_down[i] = platform_key_down;
         }
-        platform_key_was_down = platform_key_down;
 
         DisappearingPlatform::update_all(dt);
     }
@@ -192,7 +197,7 @@ void EnvironmentalHazards::on_stage_start() {
     }
 
     DisappearingPlatform::kill_all();
-    platform_key_was_down = false;
+    for (bool& down : platform_key_was_down) down = false;
     if (platform_enabled && !devil4_sdk::is_loading_arc()) {
         devil4_sdk::get_stuff_from_files((MtDTI*)0x00ead4a0, "rom\\room\\st302", MODE_BLOCKING | MODE_USECACHE | MODE_QUALITY_HIGHEST);
     }

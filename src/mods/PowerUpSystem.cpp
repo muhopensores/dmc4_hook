@@ -3,6 +3,14 @@
 #include "../sdk/World2Screen.hpp"
 #include "EnemySpawn.hpp"
 #include "Quicksilver.hpp"
+#include "../sdk/Players.hpp"
+#include "../sdk/uPlayer.hpp"
+
+static uintptr_t s_picker = 0;   // the collector while a callback runs
+
+uPlayer* PowerUpSystem::picker() {
+    return s_picker ? (uPlayer*)s_picker : devil4_sdk::get_local_player();
+}
 
 PowerUpSystem::PowerUpSystem() : 
     m_enabled(false),
@@ -116,7 +124,9 @@ void PowerUpSystem::on_frame(fmilliseconds& dt) {
             // Call update callback while effect is active
             const PowerUpDefinition* def = getPowerUpDefinition(powerup.typeId);
             if (def && def->onUpdate) {
+                s_picker = powerup.picker;
                 def->onUpdate(dtSeconds);
+                s_picker = 0;
             }
             
             if (powerup.effectTimeLeft <= 0) {
@@ -125,7 +135,9 @@ void PowerUpSystem::on_frame(fmilliseconds& dt) {
                 
                 // Call expire callback
                 if (def && def->onExpire) {
+                    s_picker = powerup.picker;
                     def->onExpire();
+                    s_picker = 0;
                 }
                 
                 it = m_powerUps.erase(it);
@@ -235,35 +247,40 @@ void PowerUpSystem::spawnSpecificPowerUp(const std::string& typeId) {
     m_powerUps.push_back(newPowerUp);
 }
 
+// any player: the first one inside a pickup's radius collects it (radius 0: player 1 at once)
 void PowerUpSystem::checkPlayerProximity() {
-    uPlayer* player = devil4_sdk::get_local_player();
-    if (!player) return;
-    
-    Vector3f playerPos = player->mPos;
-    
+    const int n = player_info::count();
+    if (n <= 0) return;
+
     for (auto& powerup : m_powerUps) {
         if (!powerup.active || powerup.effectActive) continue;
 
-        float distance = glm::distance(
-            glm::vec3(playerPos.x, playerPos.y, playerPos.z), glm::vec3(powerup.location.x, powerup.location.y, powerup.location.z));
+        for (int i = 0; i < n; i++) {
+            uPlayer* player = (uPlayer*)player_info::player(i);
+            if (!player) continue;
+            Vector3f playerPos = player->mPos;
+            float distance = glm::distance(
+                glm::vec3(playerPos.x, playerPos.y, playerPos.z), glm::vec3(powerup.location.x, powerup.location.y, powerup.location.z));
 
-        if (powerup.radius == 0.0f) {
-            applyPowerUpEffect(powerup);
-        }
-        else if (distance <= powerup.radius) {
-            applyPowerUpEffect(powerup);
+            if (powerup.radius == 0.0f || distance <= powerup.radius) {
+                applyPowerUpEffect(powerup, (uintptr_t)player);
+                break;
+            }
         }
     }
 }
 
-void PowerUpSystem::applyPowerUpEffect(PowerUp& powerup) {
+void PowerUpSystem::applyPowerUpEffect(PowerUp& powerup, uintptr_t picker) {
     const PowerUpDefinition* def = getPowerUpDefinition(powerup.typeId);
     if (!def) return;
     
     std::string currentTypeId = powerup.typeId;
+    powerup.picker = picker;
     
     if (def->onActivate) {
+        s_picker = picker;
         def->onActivate();
+        s_picker = 0;
     }
 
     if (powerup.visualEffectPtr) {

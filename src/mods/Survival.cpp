@@ -19,6 +19,7 @@
 #include "..\sdk\sArea.hpp"
 #include "EnvironmentalHazards.hpp"
 #include "RotatingLaser.hpp"
+#include "../sdk/Players.hpp"
 #include "CharSwitcher.hpp" // for external_spawn_requested, stops chars being registered to sMed
 #include "GermanWord.hpp"
 #include "EnemyReplace.hpp"
@@ -380,6 +381,17 @@ static int get_random_spawn_anim(SpawnableEnemyType type) {
     return anims[Survival::get_random_int(0, (int)(anims.size()) - 1)];
 }
 
+// a random player who is standing (HP left, not downed: uPlayer::mIsDead +0x1E82); player 1 when none is
+static uPlayer* random_standing_player() {
+    uPlayer* standing[4];
+    int n = 0;
+    for (int i = 0; i < player_info::count() && n < 4; i++) {
+        uPlayer* pl = (uPlayer*)player_info::player(i);
+        if (pl && pl->damageStruct.HP > 0.0f && !*(uint8_t*)((uintptr_t)pl + 0x1E82)) standing[n++] = pl;
+    }
+    return n ? standing[Survival::get_random_int(0, n - 1)] : devil4_sdk::get_local_player();
+}
+
 static void set_survival_enemy_pos_and_anim(uEnemySomething* enemy, SpawnableEnemyType type, int spawnAnim) { // not in survival.hpp to save including EnemySpawn.hpp
     if (!enemy) {
         return;
@@ -390,7 +402,7 @@ static void set_survival_enemy_pos_and_anim(uEnemySomething* enemy, SpawnableEne
         enemy->m_enemy_spawn_effect_something = get_random_spawn_anim(type);
     }
     if (type == SpawnableEnemyType::ASSAULT && enemy->m_enemy_spawn_effect_something == 0) { // sry
-        enemy->m_spawn_coords = devil4_sdk::get_local_player()->mPos;
+        if (uPlayer* target = random_standing_player()) enemy->m_spawn_coords = target->mPos;   // drops in on a player
     }
     else {
         enemy->m_spawn_coords = Survival::get_random_spawn_position();
@@ -758,7 +770,7 @@ static PowerUpSystem::PowerUpDefinition createHealthRestorePowerUp() {
         200.0f,                   // radius
         0.0f,                     // effectDuration
         []() {                    // onActivate
-            uPlayer* player = devil4_sdk::get_local_player();
+            uPlayer* player = PowerUpSystem::picker();
             if (player) {
                 player->damageStruct.HP += std::min(3000.0f, 20000.0f - player->damageStruct.HP);
             }
@@ -782,7 +794,7 @@ static PowerUpSystem::PowerUpDefinition createDevilTriggerPowerUp() {
         200.0f,                     // radius
         0.0f,                       // effectDuration
         []() {                      // onActivate
-            uPlayer* player = devil4_sdk::get_local_player();
+            uPlayer* player = PowerUpSystem::picker();
             if (player) {
                 player->DT += std::min(3000.0f, 10000.0f - player->DT);
             }
@@ -851,7 +863,7 @@ static PowerUpSystem::PowerUpDefinition createPlayerSmolPowerUp() {
         200.0f,                    // radius
         30.0f,                     // effectDuration
         []() {                     // onActivate
-            uPlayer* player = devil4_sdk::get_local_player();
+            uPlayer* player = PowerUpSystem::picker();
             if (player) {
                 player->mScale = MtVector3{ 0.5f, 0.5f, 0.5f };
             }
@@ -860,7 +872,7 @@ static PowerUpSystem::PowerUpDefinition createPlayerSmolPowerUp() {
         
         },
         []() {                     // onExpire
-            uPlayer* player = devil4_sdk::get_local_player();
+            uPlayer* player = PowerUpSystem::picker();
             if (player) {
                 player->mScale = MtVector3{ 1.0f, 1.0f, 1.0f };
             }

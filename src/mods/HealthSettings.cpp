@@ -1,4 +1,5 @@
 #include "HealthSettings.hpp"
+#include "../sdk/Players.hpp"
 #include "sdk/Devil4.hpp"
 #include "sdk/sStylishCount.hpp"
 #include "glm/gtx/compatibility.hpp"
@@ -41,18 +42,13 @@ naked void health_detour() {
             or cl, [HealthSettings::mightStyleToggle]
             test cl, cl
             je popcode
-        // playercheck:
-            mov ecx, [static_mediator_ptr]
-            mov ecx, [ecx]
-            test ecx, ecx
-            je popcode
-            mov ecx, [ecx+0x24]
-            test ecx, ecx
-            je popcode
-            lea ecx, [ecx+0x15B4]
-            cmp ecx, esi
+        // playercheck: the damaged unit (esi = its damage block, uPlayer +0x15B4) is a player
+            push eax
+            lea eax, [esi-0x15B4]
+            call player_info::asm_is_player
+            pop eax
             pop ecx
-            jne EnemyDamaged
+            jz EnemyDamaged
         // playerDamaged:
             cmp byte ptr [HealthSettings::player_invincible], 1
             je retcode
@@ -134,17 +130,12 @@ naked void one_hit_kill_detour(void) {
 		jmpout:
 			jmp dword ptr [HealthSettings::one_hit_kill_jmp_out]
 
-        playercheck:
-            push ecx
-            push edx
-            mov ecx, [static_mediator_ptr]
-            mov ecx, [ecx]
-            mov ecx, [ecx+0x24]
-            mov edx, [esi+0xC0]
-            cmp edx, ecx
-            pop edx
-            pop ecx
-            je code
+        playercheck: // the target is a player
+            push eax
+            mov eax, [esi+0xC0]
+            call player_info::asm_is_player
+            pop eax
+            jnz code
             jmp jmpret
     }
 }

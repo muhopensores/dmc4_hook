@@ -1,4 +1,5 @@
 #include "BigHeadMode.hpp"
+#include "../sdk/Players.hpp"
 #include "glm/gtx/compatibility.hpp"
 #include "../sdk/Devil4.hpp"
 #include "PhotoMode.hpp"
@@ -36,52 +37,44 @@ static void scale_head_joint(UModelJoint* joint, uPlayer* player) {
     }
 }
 
-static int is_head_joint(UModelJoint* joint) {
-	uPlayer* u_plr = devil4_sdk::get_local_player();
-	if (u_plr) {
-		if (u_plr->controllerID == 0) {
-			if (BigHeadMode::swole_mode_dante) {
-				UModelJoint* torso = &u_plr->joint_array->joint[2]; // seems to be torso for both chars
-				return joint == torso;
-			}
-			if (BigHeadMode::big_head_mode_dante) {
-				UModelJoint* head = &u_plr->joint_array->joint[4]; // seems to be heads for both chars
-				return joint == head;
-			}
-		}
-		if (u_plr->controllerID == 1) {
-			if (BigHeadMode::swole_mode_nero) {
-				UModelJoint* torso = &u_plr->joint_array->joint[2]; // seems to be torso for both chars
-				return joint == torso;
-			}
-			if (BigHeadMode::big_head_mode_nero) {
-				UModelJoint* head = &u_plr->joint_array->joint[4]; // seems to be heads for both chars
-				return joint == head;
-			}
-		}
-	}
-	return 0;
+// The player this joint is the head (big head) or torso (swole) of, under his own character's toggles; null for any
+// other joint. Every player is checked, so it doesn't matter which context the joint update runs in.
+static uPlayer* joint_owner(UModelJoint* joint) {
+    for (int i = 0; i < player_info::count(); i++) {
+        uPlayer* u_plr = (uPlayer*)player_info::player(i);
+        if (!u_plr || !u_plr->joint_array) continue;
+        const bool dante = u_plr->controllerID == 0, nero = u_plr->controllerID == 1;
+        const bool swole = (dante && BigHeadMode::swole_mode_dante) || (nero && BigHeadMode::swole_mode_nero);
+        const bool big   = (dante && BigHeadMode::big_head_mode_dante) || (nero && BigHeadMode::big_head_mode_nero);
+        if (swole) {
+            if (joint == &u_plr->joint_array->joint[2]) return u_plr; // seems to be torso for both chars
+        } else if (big) {
+            if (joint == &u_plr->joint_array->joint[4]) return u_plr; // seems to be heads for both chars
+        }
+    }
+    return nullptr;
 }
 
-naked void joint_size_detour1() { // edi has player sometimes
+// 1 = the joint was a player's head / torso and is scaled (the original scale write is skipped)
+static int __cdecl scale_if_head(UModelJoint* joint) {
+    uPlayer* owner = joint_owner(joint);
+    if (!owner) return 0;
+    scale_head_joint(joint, owner);
+    return 1;
+}
+
+naked void joint_size_detour1() {
 	__asm {
 		pushfd
 		cmp byte ptr [PhotoMode::mod_enabled], 1
 		je bailpopfd
 		pushad
-		push esi
-		call is_head_joint
+		push esi // joint
+		call scale_if_head
+		add esp, 4
 		test eax, eax
-		pop esi
 		popad
 	    je originalCode1
-		pushad
-		push edi // player
-		push esi // joint
-		call scale_head_joint
-		pop esi
-		pop edi
-		popad
 	bailpopfd:
 		popfd
 		jmp bail
@@ -103,19 +96,12 @@ naked void joint_size_detour2() {
 		cmp byte ptr [PhotoMode::mod_enabled], 1
 		je bailpopfd
 		pushad
-		push esi
-		call is_head_joint
+		push esi // joint
+		call scale_if_head
+		add esp, 4
 		test eax, eax
-		pop esi
 		popad
 		je originalCode2
-		pushad
-		push edi // player
-		push esi // joint
-		call scale_head_joint
-		pop esi
-		pop edi
-		popad
 	bailpopfd:
 		popfd
 		jmp bail

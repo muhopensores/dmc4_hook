@@ -1,4 +1,5 @@
 #include "Payline.hpp"
+#include "../sdk/Players.hpp"
 #include "MoveTable.hpp"
 #include "TrackingFullHouse.hpp"
 #include "sdk/uPlayer.hpp"
@@ -119,15 +120,12 @@ naked void detour4(void) { // set frame of animation, player in ecx, this should
     _asm {
             cmp byte ptr [Payline::mod_enabled], 1
             jne code
-            cmp byte ptr [ecx+0x1494], 1 // nero
-            jne code
-
-            push eax
-            mov eax, [static_mediator_ptr]
-            mov eax, [eax]
-            mov eax, [eax+0x24]
-            cmp ecx, eax
+            push eax // a player first: this runs for every model
+            mov eax, ecx
+            call player_info::asm_is_player
             pop eax
+            jz code
+            cmp byte ptr [ecx+0x1494], 1 // nero
             jne code
 
         // payline loop - loop frame while aerial
@@ -163,12 +161,10 @@ naked void detour5(void) { // cancellable payline ending // player in esi
             cmp byte ptr [esi+0x1494], 1 // nero
             jne code
             push eax
-            mov eax, [static_mediator_ptr]
-            mov eax, [eax]
-            mov eax, [eax+0x24]
-            cmp esi, eax
+            mov eax, esi
+            call player_info::asm_is_player
             pop eax
-            jne code
+            jz code
 
             cmp ecx, 0x351
             je retcode

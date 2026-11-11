@@ -6,20 +6,31 @@ bool ForceLucifer::mod_enabled = false;
 uintptr_t ForceLucifer::force_lucifer_continue = NULL;
 bool ForceLucifer::enable_force_ecstasy_timer = false;
 
+static uint8_t rose_flag = 0;
+
+// uPlWpLucifer::setEnable 0x835F9D: esi = the Lucifer, +0x1378 its owner (the Dante it belongs to), al = on / off
 naked void force_lucifer_proc(void) {
     _asm {
         push eax
-        mov eax, [static_mediator_ptr]
-        mov eax, [eax]
-        mov eax, [eax+0x24]
+        mov eax, [esi+0x1378]
+        test eax, eax
+        jz notdante
         cmp byte ptr [eax+0x1494], 0 // controller id in case Nero uses this
+    notdante:
         pop eax
         jne code
+        cmp dword ptr [esi+0x1378], 0
+        je code
         cmp byte ptr [ForceLucifer::mod_enabled], 1
         je ForceLuci
 
-    // check2:
-        cmp byte ptr [InputStates::rose_timer_active], 1
+    // check2: the owner's Rose (Taunt Ecstasy) keeps it out
+        pushad
+        push dword ptr [esi+0x1378]
+        call InputStates::rose_active
+        mov [rose_flag], al
+        popad
+        cmp byte ptr [rose_flag], 1
         jne code
     ForceLuci:
         cmp edi, 6 // ID (this accesses gilg etc too)

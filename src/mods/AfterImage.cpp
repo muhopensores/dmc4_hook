@@ -3,6 +3,7 @@
 #include "../sdk/Devil4.hpp"
 #include "../sdk/InputCommand.hpp"
 #include "../sdk/MtDTI.hpp"
+#include "../sdk/Players.hpp"
 #include "../sdk/sUnit.hpp"
 #include "../dev/model_ext/ModelExtension.hpp"
 #include <algorithm>
@@ -498,14 +499,21 @@ void despawn(int slot) {
 }
 
 std::atomic<bool> g_spawn_request{ false };
-float g_trail_timer = 0.0f;
 int g_active = 0;
-// the gates' readings at the last tick (readout)
+// player 1's gate readings at his last tick (readout)
 float g_inertia = 0.0f, g_speed = 0.0f;
 bool g_dodging = false, g_requested = false;
-std::atomic<uintptr_t> g_trail_request{ 0 };   // the player a mod's move asked the trail for since the last tick
-uintptr_t g_last_player = 0;
-float g_last_pos[3] = {};
+
+// Each player's trail (player_info's index): his copy timer and his last position (for the speed gate). The pool of
+// copies is shared: a copy takes the pose of whoever asked for it.
+constexpr int kPlayers = 4;
+struct Trail {
+    uintptr_t player = 0;
+    float timer = 0.0f;
+    float last_pos[3] = {};
+};
+Trail g_trails[kPlayers];
+std::atomic<bool> g_trail_request[kPlayers] = {};   // a mod's move asked for this player's trail since his last tick
 
 // The player has a live uPlCmnShl000: the game's own dodge detector (the shell that pays the last-moment dodge bonus),
 // which the start of every evasive move spawns (the lock-on side / back rolls, enemy steps, Trickster dashes, air
@@ -529,34 +537,43 @@ bool dodging(uintptr_t pl) {
 }
 
 void tick(uintptr_t pl) {
-    if (pl != (uintptr_t)devil4_sdk::get_local_player()) return;
-    if (g_reload) {
-        g_reload = false;
-        release_loaded();
+    const int idx = player_info::index_of(pl);
+    if (idx < 0 || idx >= kPlayers) return;
+    if (idx == 0) {                          // the pool's upkeep and the panel's Spawn one: once a frame, in player 1's tick
+        if (g_reload) {
+            g_reload = false;
+            release_loaded();
+        }
+        const int size = std::clamp(pool_size, 1, kPoolMax);
+        for (int i = size; i < kPoolMax; ++i) despawn(i);
+        g_active = 0;
+        for (int i = 0; i < size; ++i) if (g_pool[i] && g_pool[i]->active) ++g_active;
+        if (g_spawn_request.exchange(false)) spawn(pl);
     }
-    const int size = std::clamp(pool_size, 1, kPoolMax);
-    for (int i = size; i < kPoolMax; ++i) despawn(i);
-    g_active = 0;
-    for (int i = 0; i < size; ++i) if (g_pool[i] && g_pool[i]->active) ++g_active;
-    if (g_spawn_request.exchange(false)) spawn(pl);
 
     // the gates: any one that is on and open leaves copies
+    Trail& t = g_trails[idx];
     const float dt = at<float>(pl, 0x10);   // cUnit::m_delta_time
     const float* pos = &at<float>(pl, 0x30);   // uCoord::mPos
-    const float d[3] = { pos[0] - g_last_pos[0], pos[1] - g_last_pos[1], pos[2] - g_last_pos[2] };
-    g_speed = (g_last_player == pl && dt > 0.0f) ? std::sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]) / dt : 0.0f;
-    std::memcpy(g_last_pos, pos, sizeof g_last_pos);
-    g_last_player = pl;
-    g_inertia = at<float>(pl, kMoveVel);
-    g_dodging = gate_dodge && dodging(pl);
-    g_requested = gate_mods && g_trail_request.exchange(0) == pl;
+    const float d[3] = { pos[0] - t.last_pos[0], pos[1] - t.last_pos[1], pos[2] - t.last_pos[2] };
+    const float speed = (t.player == pl && dt > 0.0f) ? std::sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]) / dt : 0.0f;
+    std::memcpy(t.last_pos, pos, sizeof t.last_pos);
+    t.player = pl;
+    const float inertia = at<float>(pl, kMoveVel);
+    const bool dodge = gate_dodge && dodging(pl);
+    const bool requested = g_trail_request[idx].exchange(false) && gate_mods;
+    if (idx == 0) {
+        g_speed = speed;
+        g_inertia = inertia;
+        g_dodging = dodge;
+        g_requested = requested;
+    }
     if (!trail) return;
-    g_trail_timer -= dt;
-    const bool open = (gate_inertia && g_inertia > trail_speed) || (gate_velocity && g_speed > velocity_speed) || g_dodging ||
-                      g_requested;
-    if (open && g_trail_timer <= 0.0f) {
+    t.timer -= dt;
+    const bool open = (gate_inertia && inertia > trail_speed) || (gate_velocity && speed > velocity_speed) || dodge || requested;
+    if (open && t.timer <= 0.0f) {
         spawn(pl);
-        g_trail_timer = trail_interval;
+        t.timer = trail_interval;
     }
 }
 
@@ -564,7 +581,10 @@ void tick(uintptr_t pl) {
 
 void request_spawn() { g_spawn_request = true; }
 
-void trail_request(uintptr_t pl) { g_trail_request = pl; }
+void trail_request(uintptr_t pl) {
+    const int idx = player_info::index_of(pl);
+    if (idx >= 0 && idx < kPlayers) g_trail_request[idx] = true;
+}
 
 bool spawn(uintptr_t pl) {
     if (!pl) return false;

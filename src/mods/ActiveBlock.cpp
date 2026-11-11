@@ -1,4 +1,5 @@
 #include "ActiveBlock.hpp"
+#include "../sdk/Players.hpp"
 
 bool ActiveBlock::mod_enabled = false;
 uintptr_t ActiveBlock::jmp_return = NULL;
@@ -10,13 +11,11 @@ naked void detour() {
         cmp byte ptr [ActiveBlock::mod_enabled], 0
         je code
 
-        push ecx
-        mov ecx, [static_mediator_ptr]
-        mov ecx, [ecx]
-        mov ecx, [ecx+0x24]
-        cmp esi, ecx
-        pop ecx
-        jne code
+        push eax // a player (esi)
+        mov eax, esi
+        call player_info::asm_is_player
+        pop eax
+        jz code
 
         sub esp, 8
         movss [esp], xmm0
