@@ -27,11 +27,16 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# for msvc hot reload
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+	# for msvc hot reload
 	set(CMAKE_CXX_FLAGS_DEBUG "/MDd /ZI /Ob0 /Od /RTC1")
 	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
 	set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
+
+	add_compile_options(/MP)
+	# Disable stupid c++20 char8t crap that breaks imgui u8 string literals
+	add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:/Zc:char8_t->")
+	add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:/Zc:strictStrings->")
 endif()
 
 foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
@@ -56,16 +61,12 @@ set(CONFIG_FILENAME "${CMAKE_PROJECT_NAME}.cfg")
 configure_file(Config.hpp.in ${CMAKE_SOURCE_DIR}/src/Config.hpp @ONLY)
 #add_compile_options(/W0)
 #add_compile_options(/MT)
-add_compile_options(/MP)
-# Disable stupid c++20 char8t crap that breaks imgui u8 string literals
-add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:/Zc:char8_t->")
-add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:/Zc:strictStrings->")
+
 # Statically compile runtime
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 # doesn't work in new cmakes?
 #string(REGEX REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 #string(REGEX REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELEASE   "${CMAKE_C_FLAGS_RELEASE}") # minhook
-
 
 add_subdirectory(dependencies)
 add_subdirectory(src)
