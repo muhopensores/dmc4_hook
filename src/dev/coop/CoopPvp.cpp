@@ -645,6 +645,7 @@ struct Victim {
     uintptr_t impact = 0;       // the Buster's impact hit, until its box gets the players bit
     uint32_t armor = 0;         // the victim's own uDamage mState bits 0-2, put back on release
     bool armored = false;
+    bool near_pull = false;     // Snatch: pulled from within 300 cm (onto Nero, landing without the slide)
 };
 
 // Super armor while thrown, as the boss: uPlayerDanteBoss::damageMessage 0x7C54A0 -> setStatusSuperArmor 0x7C5B10 sets
@@ -1300,8 +1301,13 @@ bool victim_move_impl(uintptr_t player) {
     case 1:
         v.timer -= dt;
         if (v.timer <= 0.0f) {
+            // uPlayerDanteBoss::moveActSnatch 0x7C406F: 300 cm or more from Nero across the floor = pulled to 300 cm in
+            // front of him, then the landing slides 18 (15 in the air) a frame toward him; closer = pulled onto him,
+            // no slide (+0x1621D)
             Vec3 target = gpos;
-            if (std::fabs(gpos.y - pos.y) >= 300.0f) {   // far above or below: stop 300 cm in front of him
+            const float hx = gpos.x - pos.x, hz = gpos.z - pos.z;
+            v.near_pull = std::sqrt(hx * hx + hz * hz) < 300.0f;
+            if (!v.near_pull) {
                 const Vec3 f = forward(gyaw, 300.0f);
                 target.x += f.x;
                 target.z += f.z;
@@ -1322,7 +1328,7 @@ bool victim_move_impl(uintptr_t player) {
                 release_footwork(player, v);
                 return true;
             }
-            const Vec3 f = forward(yaw, ground ? 18.0f : 15.0f);
+            const Vec3 f = v.near_pull ? Vec3{0.0f, 0.0f, 0.0f} : forward(yaw, ground ? 18.0f : 15.0f);
             at<Vec3>(player, kVel) = {f.x, 0.0f, f.z};
             at<Vec3>(player, kAcc) = {0.0f, -1.0f, 0.0f};
             v.phase = 3;

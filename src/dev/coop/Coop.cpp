@@ -992,7 +992,7 @@ struct EmJumpPoint { int32_t joint; float radius, unused[3], x, y, z; };
 #pragma pack(pop)
 static_assert(sizeof(EmJumpPoint) == 0x20, "em jump entry");
 const EmJumpPoint kPlayerStep[] = {
-    {2, 150.0f, {0.0f, 0.0f, 0.0f}, 0.0f, 0.0f, 0.0f},
+    {2, 300.0f, {0.0f, 0.0f, 0.0f}, 0.0f, 0.0f, 0.0f},
     {-1, 0.0f, {0.0f, 0.0f, 0.0f}, 0.0f, 0.0f, 0.0f},
 };
 constexpr uintptr_t kEmJumpData = 0x1318, kEmJumpMask = 0x131C, kEmJumpOn = 0x1320;
