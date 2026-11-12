@@ -836,6 +836,9 @@ constexpr uintptr_t kDamagePreMessage = 0x4A7F30;
 uintptr_t damage_pre_original = 0;
 
 bool __stdcall damage_enter(uintptr_t attacker_group, uintptr_t target) {
+    if (Coop::mod_enabled) {
+        coop_pvp::note_damage_pre(attacker_group, target);
+    }
     return Coop::mod_enabled && coop_context::hit_enter(attacker_group, target);
 }
 
@@ -1251,6 +1254,11 @@ void Coop::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("The share of his maximum HP a revived player gets up with"));
 
+    ImGui::Checkbox(_("Players push each other"), &coop_pvp::push);
+    ImGui::SameLine();
+    help_marker(_("Players' bodies collide and push each other apart, as an enemy and a player do (not while one is held by "
+                  "a grab). Off: they pass through each other, as the game alone would"));
+
     if (ImGui::Checkbox(_("PvP hits"), &coop_pvp::hits)) {
         coop_pvp::retry();
     }
@@ -1288,12 +1296,22 @@ void Coop::on_gui_frame(int display) {
         ImGui::SameLine();
         help_marker(_("A hit on another player gives the attacker the attack's Devil Trigger, as a hit on an enemy does (not "
                       "while he is in Devil Trigger). Off: hitting players gives none, as the game alone would"));
+        ImGui::SliderFloat(_("Grab window after a flinch"), &coop_pvp::grab_window, 0.0f, 3.0f, "%.2f s");
+        ImGui::SameLine();
+        help_marker(_("A player can be snatched or bustered while he reels from a hit, and for this long after he recovers "
+                      "(his own game time), unless he is invincible. 0 = only during the hit reaction"));
+        ImGui::SliderFloat(_("Grab grace"), &coop_pvp::grab_grace, 0.0f, 10.0f, "%.1f s");
+        ImGui::SameLine();
+        help_marker(_("After a player is let go from a Snatch, Buster or hold, no Nero can grab him again for this long (his "
+                      "own game time), so he can't be grabbed over and over while stunned. Hits still land. 0 = no grace"));
         ImGui::Unindent(lineIndent);
     }
     if (coop_pvp::hits && ImGui::TreeNode(_("PvP flinching"))) {
-        static char* rows[] = {"Flinch", "Blow away", "Flinch in DT", "Blow away in DT"};
-        int* data[] = {coop_pvp::flinch[0], coop_pvp::blow[0], coop_pvp::flinch[1], coop_pvp::blow[1]};
-        for (int r = 0; r < 4; r++) {
+        static char* rows[] = {"Flinch", "Blow away", "Flinch in DT", "Blow away in DT", "Flinch in the air",
+                               "Blow away in the air"};
+        int* data[] = {coop_pvp::flinch[0], coop_pvp::blow[0], coop_pvp::flinch[1], coop_pvp::blow[1], coop_pvp::flinch[2],
+                       coop_pvp::blow[2]};
+        for (int r = 0; r < 6; r++) {
             ImGui::SetNextItemWidth(sameLineItemWidth * 1.5f);
             ImGui::InputScalarN(_(rows[r]), ImGuiDataType_S32, data[r], 5);
             for (int lv = 0; lv < 5; lv++) {
@@ -1303,17 +1321,20 @@ void Coop::on_gui_frame(int display) {
             help_marker(_("Hits from another player needed before this reaction, for attack levels 0 to 4 (each attack's "
                           "level is in its .atk entry; combo hits are mostly 2, launchers and finishers 3 and 4). -1 = "
                           "never, 1 = every hit. The count starts over after the reaction, or 3 seconds after the last hit. "
-                          "The DT rows apply while the player is in Devil Trigger. Enemies' hits use the game's own values"));
+                          "The DT rows apply while the player is in Devil Trigger, the air rows while he is off the ground "
+                          "(launched, knocked up, jumping; DT or not), so a launched player can be juggled. Enemies' hits use "
+                          "the game's own values"));
         }
         if (ImGui::Button(_("Default flinching"))) {
-            const int f[2][5] = {{-1, -1, 3, 2, 1}, {-1, -1, -1, 3, 2}};
-            const int b[2][5] = {{-1, -1, -1, 2, 1}, {-1, -1, -1, 3, 1}};
+            const int f[3][5] = {{-1, -1, 3, 2, 1}, {-1, -1, -1, 3, 2}, {-1, -1, 1, 1, 1}};
+            const int b[3][5] = {{-1, -1, -1, 2, 1}, {-1, -1, -1, 3, 1}, {-1, -1, -1, 2, 1}};
             memcpy(coop_pvp::flinch, f, sizeof(f));
             memcpy(coop_pvp::blow, b, sizeof(b));
         }
         ImGui::SameLine();
-        help_marker(_("Light combo hits need three in a row to stun, finishers still land at once; Devil Trigger takes more. "
-                      "The game's own values are 1 for every attack level from 2 up"));
+        help_marker(_("Light combo hits need three in a row to stun, finishers still land at once; Devil Trigger takes more; "
+                      "in the air every hit flinches (juggles) and finishers blow away. The game's own values are 1 for "
+                      "every attack level from 2 up"));
         ImGui::TreePop();
     }
     if (coop_pvp::hits && !coop_pvp::grabs_ready()) {
@@ -1418,9 +1439,12 @@ void Coop::on_config_load(const utility::Config& cfg) {
         coop_tint::colors[i][1] = std::clamp(cfg.get<float>("coop_tint_p" + n + "_g").value_or(coop_tint::colors[i][1]), 0.0f, 2.0f);
         coop_tint::colors[i][2] = std::clamp(cfg.get<float>("coop_tint_p" + n + "_b").value_or(coop_tint::colors[i][2]), 0.0f, 2.0f);
     }
+    coop_pvp::push = cfg.get<bool>("coop_push").value_or(true);
     coop_pvp::players_first = cfg.get<bool>("coop_pvp_players_first").value_or(true);
     coop_pvp::dt_from_players = cfg.get<bool>("coop_pvp_dt_from_players").value_or(true);
-    for (int s = 0; s < 2; s++) {
+    coop_pvp::grab_grace = std::clamp(cfg.get<float>("coop_pvp_grab_grace").value_or(2.0f), 0.0f, 10.0f);
+    coop_pvp::grab_window = std::clamp(cfg.get<float>("coop_pvp_grab_window").value_or(0.5f), 0.0f, 3.0f);
+    for (int s = 0; s < 3; s++) {
         for (int lv = 0; lv < 5; lv++) {
             const std::string k = std::to_string(s) + "_" + std::to_string(lv);
             coop_pvp::flinch[s][lv] = std::clamp(cfg.get<int>("coop_pvp_flinch" + k).value_or(coop_pvp::flinch[s][lv]), -1, 100);
@@ -1456,9 +1480,12 @@ void Coop::on_config_save(utility::Config& cfg) {
         cfg.set<float>("coop_tint_p" + n + "_g", coop_tint::colors[i][1]);
         cfg.set<float>("coop_tint_p" + n + "_b", coop_tint::colors[i][2]);
     }
+    cfg.set<bool>("coop_push", coop_pvp::push);
     cfg.set<bool>("coop_pvp_players_first", coop_pvp::players_first);
     cfg.set<bool>("coop_pvp_dt_from_players", coop_pvp::dt_from_players);
-    for (int s = 0; s < 2; s++) {
+    cfg.set<float>("coop_pvp_grab_grace", coop_pvp::grab_grace);
+    cfg.set<float>("coop_pvp_grab_window", coop_pvp::grab_window);
+    for (int s = 0; s < 3; s++) {
         for (int lv = 0; lv < 5; lv++) {
             const std::string k = std::to_string(s) + "_" + std::to_string(lv);
             cfg.set<int>("coop_pvp_flinch" + k, coop_pvp::flinch[s][lv]);

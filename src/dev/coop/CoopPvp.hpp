@@ -41,6 +41,10 @@
 //   file in his bank 9 (reserved from the motion registry; his coat gets the empty pl000_03_pl006_00, as the Buster
 //   loader does), with a .ctn script that only ends (his .ctn has no bank 9).
 //
+// Push: a player's body push groups get side 0's push bit (4) after setVsAttr, as GermanWord's Doppelganger gives every
+// player push group mVsAttrEmPush; checkPush 0x47BDA0's mask test (0x47BEFE) skips two groups of one player and a
+// player held by a grab.
+//
 // V2, lock-on: while PvP hits is on each player is a lock-on target for the others (a cLockOnTarget of ours in
 // sLockOnTargetMgr's list, the boss Dante's way); see CoopPvp.cpp.
 //
@@ -50,12 +54,15 @@
 namespace coop_pvp {
 
 extern bool hits;   // players' attacks hit the other players; Nero's Snatch / Buster grab them
+extern bool push;   // players' bodies push each other (not while one is grabbed)
 extern bool players_first;   // lock-on picks another player over enemies while one is in reach and in view
 extern bool dt_from_players; // hitting a player fills the attacker's Devil Trigger as hitting an enemy does
+extern float grab_grace;     // seconds after a grab ends during which that player can't be grabbed again
+extern float grab_window;    // seconds after a hit reaction ends during which that player can still be grabbed
 // Hits from another player needed to flinch / blow a player, per attack level 0-4 (-1 = never); [0] normal, [1] in
 // Devil Trigger. Counters reset after the reaction or 3 s after the last hit.
-extern int flinch[2][5];
-extern int blow[2][5];
+extern int flinch[3][5];
+extern int blow[3][5];
 
 std::optional<std::string> install();   // the hooks; an error text on failure
 void tick();                            // game thread, once a frame: the em_dante rows in while PvP hits is on
@@ -67,5 +74,6 @@ void after_lock_on();                   // after it: what prefer_players hid com
 bool grabs_ready();                     // the rows are in: players can be grabbed
 const char* grabs_error();              // why not
 void draw_grab_diag();                   // the grab counters (Coop's Diagnostics)
+void note_damage_pre(uintptr_t attack_group, uintptr_t target);   // uActor::damagePreMessage was called (Diagnostics)
 
 } // namespace coop_pvp

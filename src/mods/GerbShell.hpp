@@ -74,6 +74,10 @@ bool spawn_shell(uintptr_t player, const glm::vec3& dir, uint32_t serial);
 // Gerb.cpp: true while the jump `serial` of `player` is still airborne in Gerb's move (the shell's lifetime).
 bool jump_active(uintptr_t player, uint32_t serial);
 
+// The player a live Gerb hitbox belongs to, 0 when `actor` isn't one (Coop's PvP: whose attack it is). A pointer
+// compare against the live shells, so any address can be passed.
+uintptr_t shell_owner(uintptr_t actor);
+
 void shell_gui();
 void shell_debug_readout(uintptr_t player);   // the live shell's group next to the player's own attack groups
 void shell_config_load(const utility::Config& cfg);

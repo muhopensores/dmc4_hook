@@ -50,6 +50,7 @@ uint32_t shell_vsattr     = 0;
 int   shell_unit_line     = 0x12;
 
 static GerbShell* g_last_shell = nullptr;   // for the readout; cleared by its destructor
+static GerbShell* g_live[8] = {};           // the live shells, for shell_owner
 static int g_hit_count = 0;                 // onhit calls (uActor::damagePreMessage -> attacker vtable slot 37), for the readout
 
 namespace {
@@ -80,14 +81,27 @@ GerbShell::GerbShell(uintptr_t owner_, const glm::vec3& dir_, float yaw_, uint32
     std::memset(&atk, 0, sizeof(atk));
     this->mActorType = 5;               // a shell, as the game's own
     g_last_shell = this;
+    for (GerbShell*& slot : g_live) {
+        if (!slot) { slot = this; break; }
+    }
     this->mWorkRate.mType = 9;
     const MtVector3& p = at<MtVector3>(owner, pl::mPos);
     this->mPos.x = p.x; this->mPos.y = p.y + shell_height; this->mPos.z = p.z;
     mt_yaw_quat(yaw, this->mQuat);
 }
 
+uintptr_t shell_owner(uintptr_t actor) {
+    for (GerbShell* s : g_live) {
+        if (s && (uintptr_t)s == actor) return s->owner;
+    }
+    return 0;
+}
+
 void GerbShell::destructor(uint32_t flag) {
     if (g_last_shell == this) g_last_shell = nullptr;
+    for (GerbShell*& slot : g_live) {
+        if (slot == this) slot = nullptr;
+    }
     coll_mgr_dtor(&coll);               // releases the groups and the .atk reference init_0 took
     CustomActor::destructor(flag);
 }

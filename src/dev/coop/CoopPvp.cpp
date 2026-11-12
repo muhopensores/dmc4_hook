@@ -5,6 +5,7 @@
 #include "../../sdk/Devil4.hpp"
 #include "../../sdk/MotionRegistry.hpp"
 #include "../../sdk/ArcRows.hpp"
+#include "../../mods/GerbShell.hpp"
 #include <algorithm>
 #include <cmath>
 #include <memory>
@@ -16,10 +17,13 @@
 namespace coop_pvp {
 
 bool hits = false;
+bool push = true;
 bool players_first = true;
 bool dt_from_players = true;
-int flinch[2][5] = {{-1, -1, 3, 2, 1}, {-1, -1, -1, 3, 2}};
-int blow[2][5]   = {{-1, -1, -1, 2, 1}, {-1, -1, -1, 3, 1}};
+float grab_grace = 2.0f;
+float grab_window = 0.5f;
+int flinch[3][5] = {{-1, -1, 3, 2, 1}, {-1, -1, -1, 3, 2}, {-1, -1, 1, 1, 1}};
+int blow[3][5]   = {{-1, -1, -1, 2, 1}, {-1, -1, -1, 3, 1}, {-1, -1, -1, 2, 1}};
 
 } // namespace coop_pvp
 
@@ -41,6 +45,13 @@ constexpr uintptr_t kGroupNext   = 0x130;      // cCollisionGroup::mpNext[4] (at
 constexpr uintptr_t kMgrReport   = 0xD8;       // uCollisionMgr::mpReportActor
 constexpr uint32_t  kAttacksPlayers = 0x2;     // side 0's attack bit
 constexpr uint32_t  kHitByPlayers   = 0x11;    // sides 0 and 1's damage bits
+
+// Push: setVsAttr gives a player's push group mVsAttrPlPush (+0x2B8, 0x44444400: enemies only); GermanWord's
+// Doppelganger reads mVsAttrEmPush (+0x2E0, 0x44444444) there instead (0x50C6B9), for every side-0 push group. Coop adds
+// side 0's push bit to the players' own bodies' push groups. checkPush 0x47BDA0 pushes a pair when the outer group's
+// mask has the inner's side (checkPushProcess) and the inner's has the outer's (0x47BEFE).
+constexpr uint32_t  kPushPlayers    = 0x4;     // side 0's push bit
+constexpr uintptr_t kPushPairSite   = 0x47BEFE;  // checkPush: test [edx+0Ch], ecx / jz 47BF52 (edx = inner group)
 
 // V2: grabs
 constexpr uintptr_t kGrabPassEnd     = 0x47BCB1;   // sCollisionGame::checkAttackMain after both checkGrabProcess (edi = this): cmp byte [edi+1Ch],0 / jnz
@@ -123,6 +134,9 @@ std::unique_ptr<FunctionHook> hook_vs_attr, hook_own_hit, hook_grab_pass, hook_g
 uintptr_t vs_attr_original = 0;
 uintptr_t ret_own_hit = 0;                     // 0x47C463: the pair is tested (checkGroup_)
 uintptr_t ret_no_hit = 0x47C4AC;               // the next damage group
+uintptr_t ret_forced_hit = 0x47C479;           // after a passing checkGroup_: the hit goes on to damagePreMessage
+uintptr_t ret_push_pair = 0x47BF03, ret_no_push = 0x47BF52;   // checkPush: the pair is tested / the next group
+std::unique_ptr<FunctionHook> hook_push_pair;
 uintptr_t ret_grab_pass = 0x47BCB7, ret_grab_pass_cs = 0x47BCC0;
 uintptr_t ret_grab_type = 0;
 uintptr_t grab_msg_original = 0;
@@ -143,6 +157,9 @@ int owner_of_actor(uintptr_t actor) {
     }
     if (at<uintptr_t>(actor, 0) == kHandCtrlVtable) {
         return coop_context::player_of(at<uintptr_t>(actor, kHandCtrlNero));
+    }
+    if (const uintptr_t gerb_owner = gerb::shell_owner(actor)) {   // a Gerb jump's hitbox (dmc4_hook's GerbShell)
+        return coop_context::player_of(gerb_owner);
     }
     return coop_context::player_of(actor);
 }
@@ -171,15 +188,52 @@ bool active() {
 
 // ---- V1: hits ----
 
-// Nero's charged shot (uPlNeroShl001, wp000.col groups, side 1) passed through players in game: what its attack groups get
-// from setVsAttr, and whether the hit pass ever tests one against a player's damage group (Diagnostics).
+// Nero's charged shot (uPlNeroShl001, wp000.col groups, side 1) and the Gunslinger fan's bullets (uPlNeroShl000) passed
+// through players in game while the Gunslinger dodge's bullets (uPlNeroShl000 too) hit: per class, what its attack
+// groups get from setVsAttr, and how the hit pass weighs them against a player's damage group (Diagnostics).
+constexpr uintptr_t kBulletVtable     = 0xBE8E40;   // uPlNeroShl000::vftable
 constexpr uintptr_t kChargeShotVtable = 0xBE8FA8;   // uPlNeroShl001::vftable
 struct ChargeDiag {
-    uint32_t groups = 0, pairs = 0;
+    uint32_t groups = 0, pairs = 0, overlaps = 0;
     int owner = -1;
     uint32_t kind = 0, attr = 0, vs = 0;
+    float shot[3] = {}, body[3] = {}, dist = -1.0f;   // last pair: bounds centres (cCollisionGroup +0x70 min, +0x80 max)
+    // closest pair since the reset: distance, the shell's own mPos then, the shot box's size, the shooter's mPos
+    float min_dist = -1.0f, shell[3] = {}, size[3] = {}, shooter[3] = {};
+    // ... and its shapes (cCollisionGroup +0x94 count, +0x9C cCollision*[]; cCollision +4 kCollPrim (+0 type, +0xC
+    // radius), +8 scale, +0x10 / +0x20 its box): the shot's first shape, the body's shape count, and how many shot x
+    // body shape pairs have overlapping boxes (checkGroup_'s first test, 0x47DB77)
+    int shot_shapes = 0, body_shapes = 0, shape_overlaps = 0, shot_type = -1;
+    float shot_radius = 0.0f, shot_scale = 0.0f, shot_box[3] = {};
+    int body_bone = -2;   // the body group's first shape: joint (-1 = the model's own matrix), radius, centre
+    float body_radius = 0.0f, body_centre[3] = {};
+    // the hit itself: uActor::damagePreMessage calls with a player's body as the actor hit (Coop.cpp's hook), the
+    // victim's HP then, and the attack ID the group carried
+    uint32_t damage_calls = 0;
+    float damage_hp = -1.0f;
+    int damage_attack_id = -1;
+    uint32_t forced = 0;   // hits Coop's own sweep let through (the charged shot)
+    // the sweep checkGroup_ tests (0x47DBB6: an attack group's sphere becomes a capsule from cCollision +0x40 mMat0 to
+    // +0xC0, the last frame's): their translation rows (+0x70, +0xF0), the body sphere's (+0x70), and the closest
+    // distance from that segment to it minus both radii (<= 0 = touching)
+    float sweep_now[3] = {}, sweep_old[3] = {}, sweep_body[3] = {}, sweep_gap = 0.0f;
 };
-ChargeDiag charge_diag;
+
+bool shape_boxes_overlap(uintptr_t a, uintptr_t b) {
+    for (int k = 0; k < 3; k++) {
+        if (at<float>(a, 0x10 + 4 * k) > at<float>(b, 0x20 + 4 * k) || at<float>(b, 0x10 + 4 * k) > at<float>(a, 0x20 + 4 * k)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void bounds_centre(uintptr_t group, float* c) {
+    for (int k = 0; k < 3; k++) {
+        c[k] = 0.5f * (at<float>(group, 0x70 + 4 * k) + at<float>(group, 0x80 + 4 * k));
+    }
+}
+ChargeDiag charge_diag[2];   // [0] Blue Rose bullets (uPlNeroShl000), [1] charged shots (uPlNeroShl001)
 
 // The Buster's impact hit (uPlGrabShortHit) on a thrown player: made, its box found and given the players bit, weighed
 // against a player by the hit pass (Diagnostics).
@@ -196,18 +250,23 @@ bool is_impact(uintptr_t mgr) {
     return r && at<uintptr_t>(r, 0) == kImpactVtable;
 }
 
-bool is_charge_shot(uintptr_t mgr) {
+// 0 a Blue Rose bullet, 1 a charged shot, -1 neither.
+int shot_class(uintptr_t mgr) {
     const uintptr_t r = mgr ? at<uintptr_t>(mgr, kMgrReport) : 0;
-    return r && at<uintptr_t>(r, 0) == kChargeShotVtable;
+    const uintptr_t vt = r ? at<uintptr_t>(r, 0) : 0;
+    return vt == kBulletVtable ? 0 : vt == kChargeShotVtable ? 1 : -1;
 }
 
 void __stdcall after_vs_attr(uintptr_t group, uintptr_t mgr) {
     if (!group || !Coop::mod_enabled) {
         return;
     }
-    const bool charge = is_charge_shot(mgr);
+    if (coop_pvp::push && mgr && (at<uint32_t>(group, kGroupAttr) & 4) && body_player(at<uintptr_t>(mgr, kMgrReport)) >= 0) {
+        at<uint32_t>(group, kGroupVsAttr) |= kPushPlayers;
+    }
+    const int shot = shot_class(mgr);
     const int owner = owner_of_mgr(mgr);
-    if (owner >= 0) {
+    if (owner >= 0 && coop_pvp::hits) {
         const uint32_t attr = at<uint32_t>(group, kGroupAttr);
         uint32_t& vs = at<uint32_t>(group, kGroupVsAttr);
         if (attr & 1) {
@@ -217,37 +276,269 @@ void __stdcall after_vs_attr(uintptr_t group, uintptr_t mgr) {
             vs |= kHitByPlayers;
         }
     }
-    if (charge) {
-        charge_diag.groups++;
-        charge_diag.owner = owner;
-        charge_diag.kind = at<uint32_t>(group, 0x04);
-        charge_diag.attr = at<uint32_t>(group, kGroupAttr);
-        charge_diag.vs = at<uint32_t>(group, kGroupVsAttr);
+    if (shot >= 0) {
+        ChargeDiag& c = charge_diag[shot];
+        c.groups++;
+        c.owner = owner;
+        c.kind = at<uint32_t>(group, 0x04);
+        c.attr = at<uint32_t>(group, kGroupAttr);
+        c.vs = at<uint32_t>(group, kGroupVsAttr);
     }
 }
 
-bool __stdcall same_player(uintptr_t attack_group, uintptr_t damage_group) {
+bool thrown_player(int i);   // after the grab code: player i is in a Buster throw
+bool __stdcall check_group(void* scratch, uintptr_t grab_group, uintptr_t target_group, uint32_t mode);
+
+// The player whose stand arm `arm` is (the Buster impact's +0x13C8), -1 if none.
+int arm_owner(uintptr_t arm) {
+    for (int i = 0; arm && i < (int)Coop::player_num && i < coop::kMaxPlayers; i++) {
+        const uintptr_t pl = coop::players[i].unit;
+        if (!pl || at<uint32_t>(pl, 0x1494) != 1) continue;
+        const uintptr_t stand = at<uintptr_t>(pl, 0xCDF8);
+        if (stand && at<uintptr_t>(stand, 0x1374) == arm) return i;
+    }
+    return -1;
+}
+
+// A player's shot (any uPlShl: Blue Rose bullets and charged shots, Ebony & Ivory, Coyote's pellets) against another
+// player: at the hit test its collision shapes still sit where it was fired (cCollision +0x70 and +0xF0, the two ends
+// checkGroup_ sweeps between, both at the spawn point, measured in game on the charged shot; the shotgun only hit point
+// blank), so checkGroup_ misses the player it flies through. Coop sweeps the shot itself: each attack shape (its pos0,
+// and pos1 for a capsule, turned by the shell's world matrix +0xA0) from the shell's position (+0x30) to where
+// uPlShl::updatePos 0x830650 puts it next (+0x17A0), against every sphere of the body group (centre = the shape's
+// mMat0 (+0x40 rows) times the prim's pos0 (+0x10), radius = prim +0xC x scale +8). A stopped shot (+0x17B4, set by
+// uPlNeroShl001::hitMessage 0x82D820 and the like) is left alone, and a shot hits a player through Coop's sweep once.
+constexpr uintptr_t kPlShlDti     = 0xE5AB70;   // uPlShl::DTI
+constexpr uintptr_t kDtiParent    = 0x10;       // MtDTI::mp_parent
+constexpr uintptr_t kGetDtiSlot   = 0x10;       // vtable: getDTI
+constexpr uintptr_t kShellWmat    = 0xA0;       // uModel::mWmat
+constexpr uintptr_t kShellNextPos = 0x17A0;
+constexpr uintptr_t kShellStopped = 0x17B4;
+
+bool is_player_shot(uintptr_t actor) {
+    if (!actor || !at<uintptr_t>(actor, 0)) return false;
+    uintptr_t dti = reinterpret_cast<uintptr_t(__fastcall*)(uintptr_t, uintptr_t)>(at<uintptr_t>(at<uintptr_t>(actor, 0), kGetDtiSlot))(actor, 0);
+    for (int depth = 0; dti && depth < 32; depth++, dti = at<uintptr_t>(dti, kDtiParent)) {
+        if (dti == kPlShlDti) return true;
+    }
+    return false;
+}
+
+struct ForcedHit { uintptr_t shell = 0, victim = 0; uint32_t id = 0; };   // id = the attack group's mUniqueID (+0x14): shells reuse addresses
+ForcedHit forced_hits[32];
+int forced_next = 0;
+
+bool already_forced(uintptr_t shell, uintptr_t victim, uint32_t id) {
+    for (const ForcedHit& f : forced_hits) {
+        if (f.shell == shell && f.victim == victim && f.id == id) return true;
+    }
+    return false;
+}
+
+bool swept_touch(const float* a, const float* b, float r, uintptr_t group) {
+    const int n = at<int>(group, 0x94);
+    const uintptr_t* shapes = at<uintptr_t*>(group, 0x9C);
+    const float d[3] = {b[0] - a[0], b[1] - a[1], b[2] - a[2]};
+    const float dd = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
+    for (int s = 0; shapes && s < n && s < 64; s++) {
+        const uintptr_t sh = shapes[s];
+        const uintptr_t prim = sh ? at<uintptr_t>(sh, 4) : 0;
+        if (!prim || at<int>(prim, 0) != 0) continue;   // spheres
+        float q[3];
+        for (int k = 0; k < 3; k++) {
+            q[k] = at<float>(prim, 0x10) * at<float>(sh, 0x40 + 4 * k) + at<float>(prim, 0x14) * at<float>(sh, 0x50 + 4 * k) +
+                   at<float>(prim, 0x18) * at<float>(sh, 0x60 + 4 * k) + at<float>(sh, 0x70 + 4 * k);
+        }
+        const float w[3] = {q[0] - a[0], q[1] - a[1], q[2] - a[2]};
+        float t = dd > 1e-6f ? (w[0] * d[0] + w[1] * d[1] + w[2] * d[2]) / dd : 0.0f;
+        t = t < 0.0f ? 0.0f : t > 1.0f ? 1.0f : t;
+        const float ex = a[0] + t * d[0] - q[0], ey = a[1] + t * d[1] - q[1], ez = a[2] + t * d[2] - q[2];
+        const float reach = r + at<float>(prim, 0xC) * at<float>(sh, 8);
+        if (ex * ex + ey * ey + ez * ez <= reach * reach) return true;
+    }
+    return false;
+}
+
+// One point of a shot's shape (local offset `ofs`) at the shell's position `at_pos`, turned by its world matrix.
+void shot_point(uintptr_t shell, const float* at_pos, uintptr_t ofs, uintptr_t prim, float* out) {
+    for (int k = 0; k < 3; k++) {
+        out[k] = at_pos[k] + at<float>(prim, ofs) * at<float>(shell, kShellWmat + 4 * k) +
+                 at<float>(prim, ofs + 4) * at<float>(shell, kShellWmat + 0x10 + 4 * k) +
+                 at<float>(prim, ofs + 8) * at<float>(shell, kShellWmat + 0x20 + 4 * k);
+    }
+}
+
+bool shot_touches(uintptr_t shell, uintptr_t attack_group, uintptr_t damage_group) {
+    if (at<uint8_t>(shell, kShellStopped)) return false;
+    const float now[3] = {at<float>(shell, 0x30), at<float>(shell, 0x34), at<float>(shell, 0x38)};
+    const float next[3] = {at<float>(shell, kShellNextPos), at<float>(shell, kShellNextPos + 4), at<float>(shell, kShellNextPos + 8)};
+    const int n = at<int>(attack_group, 0x94);
+    const uintptr_t* shapes = at<uintptr_t*>(attack_group, 0x9C);
+    for (int s = 0; shapes && s < n && s < 64; s++) {
+        const uintptr_t sh = shapes[s];
+        const uintptr_t prim = sh ? at<uintptr_t>(sh, 4) : 0;
+        if (!prim) continue;
+        const int type = at<int>(prim, 0);
+        if (type != 0 && type != 3) continue;
+        const float r = at<float>(prim, 0xC) * at<float>(sh, 8);
+        for (int end = 0; end < (type == 3 ? 2 : 1); end++) {
+            float a[3], c[3];
+            shot_point(shell, now, end ? 0x20 : 0x10, prim, a);
+            shot_point(shell, next, end ? 0x20 : 0x10, prim, c);
+            if (swept_touch(a, c, r, damage_group)) return true;
+        }
+    }
+    return false;
+}
+
+// 0 = the game tests the pair, 1 = no hit, 2 = a hit without the game's test (the charged shot, above). No hit: a
+// player's own groups, and a player in a Buster throw hits nobody (he plays the boss Dante's motions, whose collision
+// events switch on attack groups of his own .col: enemies and the grabbing Nero were hit at the landing).
+int __stdcall same_player(uintptr_t attack_group, uintptr_t damage_group) {
     if (!Coop::mod_enabled || !attack_group || !damage_group) {
-        return false;
+        return 0;
     }
     const uintptr_t amgr = at<uintptr_t>(attack_group, kGroupMgr);
-    const int attacker = owner_of_mgr(amgr);
+    int attacker = owner_of_mgr(amgr);
+    if (attacker < 0 && is_impact(amgr)) {
+        attacker = arm_owner(at<uintptr_t>(at<uintptr_t>(amgr, kMgrReport), 0x13C8));
+    }
+    if (attacker >= 0 && !is_impact(amgr) && thrown_player(attacker)) {
+        return 1;
+    }
     const int target = owner_of_mgr(at<uintptr_t>(damage_group, kGroupMgr));
-    if (target >= 0 && target != attacker && is_charge_shot(amgr)) {
-        charge_diag.pairs++;
+    const int shot = target >= 0 && target != attacker ? shot_class(amgr) : -1;
+    if (shot >= 0) {
+        ChargeDiag& c = charge_diag[shot];
+        c.pairs++;
+        bounds_centre(attack_group, c.shot);
+        bounds_centre(damage_group, c.body);
+        const float dx = c.shot[0] - c.body[0], dy = c.shot[1] - c.body[1], dz = c.shot[2] - c.body[2];
+        c.dist = std::sqrt(dx * dx + dy * dy + dz * dz);
+        if (c.min_dist < 0.0f || c.dist < c.min_dist) {
+            c.min_dist = c.dist;
+            const uintptr_t shell = at<uintptr_t>(amgr, kMgrReport);
+            const uintptr_t shooter = attacker >= 0 ? coop::players[attacker].unit : 0;
+            for (int k = 0; k < 3; k++) {
+                c.shell[k] = at<float>(shell, 0x30 + 4 * k);
+                c.size[k] = at<float>(attack_group, 0x80 + 4 * k) - at<float>(attack_group, 0x70 + 4 * k);
+                c.shooter[k] = shooter ? at<float>(shooter, 0x30 + 4 * k) : 0.0f;
+            }
+            const int ns = at<int>(attack_group, 0x94), nb = at<int>(damage_group, 0x94);
+            const uintptr_t* ss = at<uintptr_t*>(attack_group, 0x9C);
+            const uintptr_t* bs = at<uintptr_t*>(damage_group, 0x9C);
+            c.shot_shapes = ns;
+            c.body_shapes = nb;
+            c.shape_overlaps = 0;
+            c.shot_type = -1;
+            for (int s = 0; ss && s < ns && s < 64; s++) {
+                const uintptr_t sh = ss[s];
+                if (!sh) continue;
+                if (s == 0) {
+                    const uintptr_t prim = at<uintptr_t>(sh, 4);
+                    c.shot_type = prim ? at<int>(prim, 0) : -1;
+                    c.shot_radius = prim ? at<float>(prim, 0xC) : 0.0f;
+                    c.shot_scale = at<float>(sh, 8);
+                    for (int k = 0; k < 3; k++) {
+                        c.shot_box[k] = at<float>(sh, 0x20 + 4 * k) - at<float>(sh, 0x10 + 4 * k);
+                    }
+                }
+                for (int d = 0; bs && d < nb && d < 64; d++) {
+                    if (bs[d] && shape_boxes_overlap(sh, bs[d])) c.shape_overlaps++;
+                }
+            }
+            if (ss && ns > 0 && ss[0] && bs && nb > 0 && bs[0]) {
+                float a[3], o[3], q[3];
+                for (int k = 0; k < 3; k++) {
+                    a[k] = c.sweep_now[k] = at<float>(ss[0], 0x70 + 4 * k);
+                    o[k] = c.sweep_old[k] = at<float>(ss[0], 0xF0 + 4 * k);
+                    q[k] = c.sweep_body[k] = at<float>(bs[0], 0x70 + 4 * k);
+                }
+                float d[3] = {o[0] - a[0], o[1] - a[1], o[2] - a[2]}, w[3] = {q[0] - a[0], q[1] - a[1], q[2] - a[2]};
+                const float dd = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
+                float t = dd > 1e-6f ? (w[0] * d[0] + w[1] * d[1] + w[2] * d[2]) / dd : 0.0f;
+                t = t < 0.0f ? 0.0f : t > 1.0f ? 1.0f : t;
+                const float ex = a[0] + t * d[0] - q[0], ey = a[1] + t * d[1] - q[1], ez = a[2] + t * d[2] - q[2];
+                const uintptr_t sp = at<uintptr_t>(ss[0], 4), bp = at<uintptr_t>(bs[0], 4);
+                const float rs = sp ? at<float>(sp, 0xC) * at<float>(ss[0], 8) : 0.0f;
+                const float rb = bp ? at<float>(bp, 0xC) * at<float>(bs[0], 8) : 0.0f;
+                c.sweep_gap = std::sqrt(ex * ex + ey * ey + ez * ez) - rs - rb;
+            }
+            c.body_bone = -2;
+            if (bs && nb > 0 && bs[0]) {
+                const uintptr_t prim = at<uintptr_t>(bs[0], 4);
+                c.body_bone = prim ? at<int>(prim, 4) : -2;
+                c.body_radius = prim ? at<float>(prim, 0xC) * at<float>(bs[0], 8) : 0.0f;
+                for (int k = 0; k < 3; k++) {
+                    c.body_centre[k] = 0.5f * (at<float>(bs[0], 0x10 + 4 * k) + at<float>(bs[0], 0x20 + 4 * k));
+                }
+            }
+        }
+        alignas(16) uint8_t scratch[64];
+        if (check_group(scratch, attack_group, damage_group, 1)) {
+            c.overlaps++;
+        }
     }
     if (target >= 0 && is_impact(amgr)) {
         impact_diag.pairs++;
         impact_diag.owner = attacker;
     }
-    return attacker >= 0 && attacker == target;
+    if (attacker >= 0 && attacker == target) {
+        return 1;
+    }
+    const uintptr_t shell = at<uintptr_t>(amgr, kMgrReport);
+    const uintptr_t victim = at<uintptr_t>(at<uintptr_t>(damage_group, kGroupMgr), kMgrReport);
+    if (attacker >= 0 && target >= 0 && body_player(victim) >= 0 && is_player_shot(shell) && !already_forced(shell, victim, at<uint32_t>(attack_group, 0x14)) &&
+        shot_touches(shell, attack_group, damage_group)) {
+        forced_hits[forced_next] = {shell, victim, at<uint32_t>(attack_group, 0x14)};
+        forced_next = (forced_next + 1) % 32;
+        if (shot >= 0) charge_diag[shot].forced++;
+        return 2;
+    }
+    return 0;
+}
+
+bool grabbed_player(int i);   // after the grab code: player i is held by a grab (Snatch, Buster, hold)
+
+// Two players' bodies push each other unless it's off or one is in a grab (he sits on the grabbing Nero). true = no push.
+bool __stdcall push_blocked(uintptr_t outer, uintptr_t inner) {
+    if (!Coop::mod_enabled || !outer || !inner) {
+        return false;
+    }
+    const int a = body_player(at<uintptr_t>(at<uintptr_t>(outer, kGroupMgr), kMgrReport));
+    const int b = body_player(at<uintptr_t>(at<uintptr_t>(inner, kGroupMgr), kMgrReport));
+    if (a < 0 || b < 0) {
+        return false;
+    }
+    return !coop_pvp::push || a == b || grabbed_player(a) || grabbed_player(b);
+}
+
+// edx = the inner group, [ebp+8] = the outer one.
+naked_extern void detour_push_pair() {
+    __asm {
+        test dword ptr [edx+0Ch], ecx
+        jz no_push
+        pushad
+        push edx
+        push dword ptr [ebp+8]
+        call push_blocked
+        test al, al
+        popad
+        jnz no_push
+        jmp dword ptr [ret_push_pair]
+    no_push:
+        jmp dword ptr [ret_no_push]
+    }
 }
 
 // setVsAttr's arguments are pushed again for the original, which pops them (retn 0Ch); eax is the group throughout.
 naked_extern void detour_vs_attr() {
     __asm {
         cmp byte ptr [coop_pvp::hits], 0
+        jne extra
+        cmp byte ptr [coop_pvp::push], 0
         je plain
+    extra:
         push dword ptr [esp+0Ch]
         push dword ptr [esp+0Ch]
         push dword ptr [esp+0Ch]
@@ -274,13 +565,16 @@ naked_extern void detour_own_hit() {
         push edx
         push dword ptr [ebp+8]
         call same_player
-        test al, al
+        cmp eax, 1
         popad
-        jnz no_hit
+        je no_hit
+        ja forced
     hit:
         jmp dword ptr [ret_own_hit]
     no_hit:
         jmp dword ptr [ret_no_hit]
+    forced:
+        jmp dword ptr [ret_forced_hit]
     }
 }
 
@@ -388,6 +682,8 @@ struct HoldDiag {
     uint32_t ticks = 0, nero_action = 0, nero_phase = 0;
     bool nero_holds_him = false, nero_motion_end = false;
     uintptr_t nero_fn = 0;
+    bool on_hand = false;   // last held frame: placed by the joints (else at the arm's origin)
+    float gap = -1.0f;      // its chest's distance from the hand before placing, cm
 };
 HoldDiag hold_diag;
 
@@ -406,6 +702,29 @@ void note_hold_end(const Victim& v, uintptr_t player, int why) {
     }
 }
 Victim victims[coop::kMaxPlayers];
+
+// Grace after a grab: once a player's grab (Snatch, Buster, hold) ends, no Nero can grab him for coop_pvp::grab_grace
+// seconds of his own game time, so a stunned player can't be snatched or bustered again and again.
+bool was_grabbed[coop::kMaxPlayers] = {};
+float grace_left[coop::kMaxPlayers] = {};   // seconds
+
+// Grab window after a flinch: a player stays grabbable for coop_pvp::grab_window seconds of his own game time after his
+// hit reaction ends (the PvP flinch thresholds make reactions short). Still refused while uPlayer::canBeGrabbed
+// 0x7AEF60 would (invincible, Holy Water, getting up from a revive). The boss Dante has no window: canBeGrabbed lets
+// him be grabbed at any time.
+float window_left[coop::kMaxPlayers] = {};   // seconds
+
+bool grabbed_player(int i) {
+    return i >= 0 && i < coop::kMaxPlayers && victims[i].active;
+}
+
+bool thrown_player(int i) {
+    if (i < 0 || i >= coop::kMaxPlayers || !victims[i].active || victims[i].kind != kModeBuster) {
+        return false;
+    }
+    const uintptr_t pl = coop::players[i].unit;
+    return pl && at<int>(pl, kDamageType) == kDmgPvpGrab;
+}
 
 // The player a grab group grabs for, -1 if none. The Snatch's box is on the Devil Bringer's collision (uPlWpRightHand::
 // uCollisionCtrl, its mode at +0x137C); the Buster's is on Nero's own body collision, and uPlayerNero::grabHitMessage
@@ -432,8 +751,9 @@ int grab_source(uintptr_t reporter) {
 struct GrabDiag {
     uint32_t hand_frames = 0, contacts = 0, sent = 0, messages = 0;
     uint32_t stunned_boxes = 0, stunned_off = 0, stunned_status = 0, stunned_apart = 0;   // a stunned player's body boxes while a hand is out
-    int last_action = -1, last_type = -1, last_reaction = -1;
-    bool last_stunned = false, last_invincible = false;
+    uint32_t stunned_grace = 0;   // ... skipped: his grace after a grab was running
+    int last_action = -1, last_type = -1, last_reaction = -1, last_mode = -1;
+    bool last_stunned = false, last_invincible = false, last_window = false;
     float last_holy = 0.0f, last_revive = 0.0f;
 };
 GrabDiag grab_diag;
@@ -441,9 +761,12 @@ GrabDiag grab_diag;
 // A player can be grabbed only while stunned: in the damage action with a hit reaction (DMAGE_ID 1 HIT, 2 ZURI, 3 BUT,
 // 5 KIRI, 6 HITIME launched, 10 COMBO, 11 AIR_COMBO), and not while uPlayer::canBeGrabbed 0x7AEF60 refuses
 // (invincible, Holy Water, getting up from a revive).
+bool grab_refused(uintptr_t player) {
+    return at<bool>(player, kInvincible) || at<float>(player, kHolyTimer) > 0.0f || at<float>(player, kReviveTimer) > 0.0f;
+}
+
 bool stunned(uintptr_t player) {
-    if (at<int>(player, kActionNo) != kActionDamage || at<bool>(player, kInvincible) ||
-        at<float>(player, kHolyTimer) > 0.0f || at<float>(player, kReviveTimer) > 0.0f) {
+    if (at<int>(player, kActionNo) != kActionDamage || grab_refused(player)) {
         return false;
     }
     switch (at<int>(player, kDamageType)) {
@@ -451,6 +774,40 @@ bool stunned(uintptr_t player) {
         return true;
     default:
         return false;
+    }
+}
+
+// A Gerb jump's hitbox (dmc4_hook's GerbShell) builds its attack group itself, so setVsAttr never runs on it, and it
+// writes its kind's mask back every tick (its unit line runs before the collision pass): the attacks-players bit goes
+// on here, at the start of the attack pass (checkAttackMain 0x47BC53, before its eight checkAttackProcess calls), for
+// its groups in the attack chains of sides 0 and 1.
+constexpr uintptr_t kAttackPassStart = 0x47BC53;   // checkAttackMain: mov eax, 7 (edi = sCollisionGame)
+uintptr_t ret_attack_pass = 0x47BC58;
+std::unique_ptr<FunctionHook> hook_attack_pass;
+
+void __stdcall arm_gerb_shells(uintptr_t game) {
+    if (!active() || !game) {
+        return;
+    }
+    const uintptr_t* chains = reinterpret_cast<const uintptr_t*>(game + kChainTop);
+    for (int kind = 0; kind < 2; kind++) {
+        for (uintptr_t g = chains[kind * 4 + 0]; g; g = at<uintptr_t>(g, kGroupNext)) {
+            const uintptr_t mgr = at<uintptr_t>(g, kGroupMgr);
+            if (mgr && gerb::shell_owner(at<uintptr_t>(mgr, kMgrReport))) {
+                at<uint32_t>(g, kGroupVsAttr) |= kAttacksPlayers;
+            }
+        }
+    }
+}
+
+naked_extern void detour_attack_pass() {
+    __asm {
+        pushad
+        push edi
+        call arm_gerb_shells
+        popad
+        mov eax, 7
+        jmp dword ptr [ret_attack_pass]
     }
 }
 
@@ -474,7 +831,9 @@ void __stdcall grab_players(uintptr_t game) {
                 const uintptr_t target = dmgr ? at<uintptr_t>(dmgr, kMgrReport) : 0;
                 const int victim = body_player(target);
                 if (victim < 0 || victim == grabber) continue;
-                const bool is_stunned = stunned(target);
+                const bool in_window = !stunned(target) && window_left[victim] > 0.0f && !grab_refused(target) &&
+                                       !victims[victim].active;
+                const bool is_stunned = stunned(target) || in_window;
                 if (is_stunned) grab_diag.stunned_boxes++;
                 if (at<bool>(d, kGroupClear)) {
                     if (is_stunned) grab_diag.stunned_off++;
@@ -482,6 +841,10 @@ void __stdcall grab_players(uintptr_t game) {
                 }
                 if (at<int8_t>(target, kActorStatus) < 0) {
                     if (is_stunned) grab_diag.stunned_status++;
+                    continue;
+                }
+                if (grace_left[victim] > 0.0f) {
+                    if (is_stunned) grab_diag.stunned_grace++;
                     continue;
                 }
                 if (!check_group(scratch, g, d, 2)) {
@@ -495,6 +858,7 @@ void __stdcall grab_players(uintptr_t game) {
                 grab_diag.last_holy = at<float>(target, kHolyTimer);
                 grab_diag.last_revive = at<float>(target, kReviveTimer);
                 grab_diag.last_stunned = is_stunned;
+                grab_diag.last_window = in_window;
                 if (!grab_diag.last_stunned) continue;
                 grab_diag.sent++;
                 grab_pre(d, target, g);
@@ -617,8 +981,10 @@ void release_footwork(uintptr_t player, Victim& v) {
 // Nero's hold (enemy block): with the Buster button held, uPlayerNero::checkEnemyBlock 0x7E9060 turns the Buster into
 // attack 7 / 8 (moveAtckRightHandShortEnemyBlock: one motion, then footwork) and his stand into action 7
 // (uPlNeroDevil::moveActEmBlock 0x82AA80), which keeps holding while his mGrabHitInfo.actor (+0xCCD0) is set. A held
-// enemy puts itself on the stand's arm every frame (uEm000Base::moveEx 0x543F44: the arm's mPos, its yaw + pi). The boss
-// Dante is never held, so a held player's pose is the Buster motion paused at kHoldFrame.
+// enemy puts itself on the stand's arm every frame (uEm000Base::moveEx 0x543F44: the arm's mPos, its yaw + pi). The arm's
+// mPos is the stand's own (its sync copies it; its LMT moves the hand), and the enemy's held motion is authored from there.
+// The boss Dante is never held, so a held player's pose is the Buster motion paused at kHoldFrame, authored from the
+// grabbing Nero's origin: his upper chest goes on the palm of the arm's hand instead, from the joints' world matrices.
 constexpr uintptr_t kAtckId       = 0x1564;   // uPlayer::mAtckId
 constexpr uintptr_t kNeroStand    = 0xCDF8;   // uPlayerNero::mpDevilStand
 constexpr uintptr_t kStandArm     = 0x1374;   // uPlNeroDevil::mpRightHand
@@ -646,6 +1012,50 @@ bool nero_holds(uintptr_t g, uintptr_t player) {
     return stand && at<int>(stand, kStandAction) == kStandEmBlock;
 }
 
+constexpr uintptr_t kJointNum   = 0x2E0;   // uModel::mJointNum
+constexpr uintptr_t kJoints     = 0x2E4;   // uModel::mpJoint (uModel::Joint, 0x90 each)
+constexpr uintptr_t kJointTable = 0x2E8;   // uModel::mJointTable (u8[256], joint number -> index, 255 = none)
+constexpr uintptr_t kJointSize  = 0x90;
+constexpr uintptr_t kJointWpos  = 0x80;    // Joint::mWmat (+0x50, row vectors): its translation row
+// the arm model wp024: 2 wrist, 3 / 6 / 9 / 12 / 16 the fingers' first joints; the player: 2 / 3 upper spine / neck
+constexpr int kArmWrist = 2, kArmFingers[5] = {3, 6, 9, 12, 16};
+constexpr int kChestA = 2, kChestB = 3;
+
+// World position of joint number n of a model, as its last matrix update left it.
+bool joint_pos(uintptr_t model, int n, Vec3& out) {
+    const uintptr_t joints = at<uintptr_t>(model, kJoints);
+    const uintptr_t table = at<uintptr_t>(model, kJointTable);
+    if (!joints || !table) {
+        return false;
+    }
+    const uint8_t idx = at<uint8_t>(table, n & 0xFF);
+    if (idx == 0xFF || idx >= at<uint32_t>(model, kJointNum)) {
+        return false;
+    }
+    out = at<Vec3>(joints + idx * kJointSize, kJointWpos);
+    return true;
+}
+
+// The palm: halfway from the wrist to the fingers' first joints (the ones the model has).
+bool palm_pos(uintptr_t model, int wrist, const int* fingers, Vec3& out) {
+    Vec3 w, f, sum = {};
+    int n = 0;
+    if (!joint_pos(model, wrist, w)) {
+        return false;
+    }
+    for (int k = 0; k < 5; k++) {
+        if (joint_pos(model, fingers[k], f)) {
+            sum.x += f.x; sum.y += f.y; sum.z += f.z;
+            n++;
+        }
+    }
+    if (!n) {
+        return false;
+    }
+    out = {0.5f * (w.x + sum.x / n), 0.5f * (w.y + sum.y / n), 0.5f * (w.z + sum.z / n)};
+    return true;
+}
+
 void place_on_arm(uintptr_t player, uintptr_t g) {
     const uintptr_t stand = at<uintptr_t>(g, kNeroStand);
     const uintptr_t arm = stand ? at<uintptr_t>(stand, kStandArm) : 0;
@@ -658,7 +1068,21 @@ void place_on_arm(uintptr_t player, uintptr_t g) {
     float yaw = (a ? a[1] : 0.0f) + kPi;
     if (yaw > kPi) yaw -= 2.0f * kPi;
     stop(player);
-    at<Vec3>(player, kPos) = at<Vec3>(arm, kPos);
+    Vec3& pos = at<Vec3>(player, kPos);
+    Vec3 hand, c0, c1;
+    if (palm_pos(arm, kArmWrist, kArmFingers, hand) && joint_pos(player, kChestA, c0) && joint_pos(player, kChestB, c1)) {
+        // the chest relative to his origin in last frame's matrices, turned from last frame's yaw to the new one
+        const float dx = 0.5f * (c0.x + c1.x) - pos.x, dy = 0.5f * (c0.y + c1.y) - pos.y, dz = 0.5f * (c0.z + c1.z) - pos.z;
+        const float t = yaw - at<float>(player, kRotNow), s = std::sin(t), c = std::cos(t);
+        const float rx = dx * c + dz * s, rz = -dx * s + dz * c;
+        hold_diag.gap = std::sqrt((hand.x - pos.x - dx) * (hand.x - pos.x - dx) + (hand.y - pos.y - dy) * (hand.y - pos.y - dy) +
+                                  (hand.z - pos.z - dz) * (hand.z - pos.z - dz));
+        hold_diag.on_hand = true;
+        pos = {hand.x - rx, hand.y - dy, hand.z - rz};
+    } else {
+        hold_diag.on_hand = false;
+        pos = at<Vec3>(arm, kPos);
+    }
     face(player, yaw);
     set_coll_init_pos(player);
 }
@@ -714,7 +1138,26 @@ void arm_impact(uintptr_t hit) {
 
 // uPlayer::moveActDamage for a held player, from uPlayerDanteBoss::moveActSnatch 0x7C3EE0 / moveActBuster 0x7C4630
 // (generic reactions only: no Devil Trigger version, no counter).
+bool victim_move_impl(uintptr_t player);
+
+// moveActDamage's own tail (0x8239B8): while the player's hit stop runs (+0x1E68 > 0) it sets +0x1201, which freezes his
+// motion that frame (uPlayer::moveAction does the same for other actions, 0x821520). Replacing moveActDamage skipped it,
+// so a thrown player ignored the 14 frames of hit stop Nero's throw starts with (uPlayerNero::moveEx 0x7E4150: +0xCDFC
+// -> vtable +0xD0 on the held actor, the stand and Nero) and ran ahead of him.
+constexpr uintptr_t kHitStop      = 0x1E68;
+constexpr uintptr_t kHitStopFrame = 0x1201;
+
 bool __stdcall victim_move(uintptr_t player) {
+    if (!victim_move_impl(player)) {
+        return false;
+    }
+    if (at<float>(player, kHitStop) > 0.0f) {
+        at<uint8_t>(player, kHitStopFrame) = 1;
+    }
+    return true;
+}
+
+bool victim_move_impl(uintptr_t player) {
     if (at<int>(player, kDamageType) != kDmgPvpGrab) {
         return false;
     }
@@ -937,7 +1380,12 @@ int __fastcall grab_message(uintptr_t actor, uintptr_t edx, uintptr_t grab_group
     if (grabber == victim) {
         return 0;
     }
-    const int mode = hand ? at<int>(src, kHandCtrlMode) : kModeBuster;   // a Nero's own box: the Buster
+    // The hand box's mMvType: 1 Snatch (MV_TYPE_LONG_GRAB), 2 the Devil Trigger Snatch (LONG_GRAB_D), 3 Buster
+    // (SHORT_GRAB), 0 once the Snatch's ray hit something (update clears it); only 3 is a Buster. A Nero's own body box
+    // (uPlayerNero::grabHitMessage, +0xCCE2) is the Buster.
+    const int hand_mode = hand ? at<int>(src, kHandCtrlMode) : -1;
+    const int mode = !hand || hand_mode == kModeBuster ? kModeBuster : kModeSnatch;
+    grab_diag.last_mode = hand_mode;
     grab_diag.messages++;
     grab_diag.last_reaction = mode == kModeSnatch ? kReactSnatch : kReactBuster;
     hold_diag.holds++;
@@ -1055,7 +1503,7 @@ constexpr uintptr_t kPlayerDamage = 0x15B4;   // uPlayer::mDamage.mgr
 constexpr uintptr_t kDefendStatus = 0xB8;     // uDamage::mpDefendStatus
 constexpr size_t    kDefendSize   = 0x30;
 uintptr_t damage_calc_original = 0;
-alignas(4) uint8_t pvp_defend[2][kDefendSize];
+alignas(4) uint8_t pvp_defend[3][kDefendSize];
 uintptr_t swapped_damage = 0, swapped_entry = 0;
 
 // The attacker's Devil Trigger for a hit on a player. uDamage::calc credits mpPlayer (DT and style) only when the hit
@@ -1087,7 +1535,9 @@ void __stdcall defend_begin(uintptr_t damage, uintptr_t attack_group, uintptr_t 
     if (!entry || _strnicmp((const char*)entry, "no-deffend", 10) == 0) {
         return;
     }
-    const int set = _strnicmp((const char*)entry, "d-majin", 7) == 0 ? 1 : 0;
+    // in the air (not landed: launched, knocked up, jumping) the air set, so a launched player can be juggled; else his
+    // Devil Trigger entry (d-majin) picks the DT set
+    const int set = !landed(player) ? 2 : _strnicmp((const char*)entry, "d-majin", 7) == 0 ? 1 : 0;
     uint8_t* mine = pvp_defend[set];
     memcpy(mine, (const void*)entry, kDefendSize);
     for (int lv = 0; lv < 5; lv++) {
@@ -1287,9 +1737,19 @@ void lock_tick() {
             }
             add_target(mgr, t);
         }
-        float c[4] = {};
-        center_of(unit, c);
-        at<Vec3>(t, 0x10) = {c[0], c[1], c[2]};
+        // The aim point (the guns' bullets fly at the shooter's target +0x10: uPlNeroShl000::setup 0x82BFD0,
+        // uPlNeroShl001::setup 0x82C870, uPlDanteShl000::setup 0x806420): joint 0, the hips, as the boss's sphere. A
+        // player's hurt group (pl000.col / pl006.col group 6) is a 45 cm sphere on joint 0 (122 cm up) and a 25 cm one
+        // on joint 4 (head, 174 cm). getCenterPos is the joint of vtable +0x88 (uPlayer::getUpperBdyVibJoint), at the
+        // spheres' edge, so a shot at it from the side grazed past them.
+        Vec3 hips;
+        if (joint_pos(unit, 0, hips)) {
+            at<Vec3>(t, 0x10) = hips;
+        } else {
+            float c[4] = {};
+            center_of(unit, c);
+            at<Vec3>(t, 0x10) = {c[0], c[1], c[2]};
+        }
         at<float>(t, 0x28) = at<float>(unit, kHpMax);
         at<float>(t, 0x2C) = at<float>(unit, kHp);
     }
@@ -1384,6 +1844,12 @@ std::optional<std::string> install() {
         return "Failed to init Coop: PvP own hits";
     }
     ret_own_hit = kOwnHitSite + 5;
+    if (!make(hook_attack_pass, kAttackPassStart, &detour_attack_pass)) {
+        return "Failed to init Coop: Gerb hitboxes on players";
+    }
+    if (!make(hook_push_pair, kPushPairSite, &detour_push_pair)) {
+        return "Failed to init Coop: players pushing players";
+    }
     if (!make(hook_grab_pass, kGrabPassEnd, &detour_grab_pass)) {
         return "Failed to init Coop: PvP grab pass";
     }
@@ -1428,8 +1894,25 @@ std::optional<std::string> install() {
 void victims_tick() {
     for (int i = 0; i < coop::kMaxPlayers; i++) {
         Victim& v = victims[i];
+        const uintptr_t unit = i < (int)Coop::player_num ? coop::players[i].unit : 0;
+        if (v.active) {
+            was_grabbed[i] = true;
+            grace_left[i] = 0.0f;
+        } else if (was_grabbed[i]) {
+            was_grabbed[i] = false;
+            grace_left[i] = coop_pvp::grab_grace;
+        } else if (grace_left[i] > 0.0f) {
+            grace_left[i] = unit ? grace_left[i] - at<float>(unit, kDelta) / 60.0f : 0.0f;
+        }
+        if (!unit || v.active) {
+            window_left[i] = 0.0f;
+        } else if (stunned(unit)) {
+            window_left[i] = coop_pvp::grab_window;
+        } else if (window_left[i] > 0.0f) {
+            window_left[i] -= at<float>(unit, kDelta) / 60.0f;
+        }
         if (!v.armored) continue;
-        const uintptr_t pl = i < (int)Coop::player_num ? coop::players[i].unit : 0;
+        const uintptr_t pl = unit;
         if (!pl) {
             v = {};
             continue;
@@ -1486,64 +1969,129 @@ const char* grabs_error() {
     return rows.error.c_str();
 }
 
+void note_damage_pre(uintptr_t attack_group, uintptr_t target) {
+    if (!attack_group || !target || body_player(target) < 0) {
+        return;
+    }
+    const int shot = shot_class(at<uintptr_t>(attack_group, kGroupMgr));
+    if (shot < 0) {
+        return;
+    }
+    ChargeDiag& c = charge_diag[shot];
+    c.damage_calls++;
+    c.damage_hp = at<float>(target, kHp);
+    c.damage_attack_id = at<int>(attack_group, 0xB4);   // cCollisionGroup::mAttackStatus.mAttackID (damagePreMessage 0x4A804E)
+}
+
 void draw_grab_diag() {
+    if (ImGui::Button(_("Reset grab counters"))) {
+        grab_diag = {};
+        hold_diag = {};
+        charge_diag[0] = {};
+        charge_diag[1] = {};
+        impact_diag = {};
+    }
+    ImGui::SameLine();
+    Mod::help_marker(_("Sets the PvP counters below back to zero, to watch one attempt"));
     const GrabDiag& d = grab_diag;
-    ImGui::Text("PvP grabs: hand out %u frames, contacts %u, sent %u, messages %u", d.hand_frames, d.contacts, d.sent,
+    ImGui::TextWrapped("PvP grabs: hand out %u frames, contacts %u, sent %u, messages %u", d.hand_frames, d.contacts, d.sent,
                 d.messages);
     ImGui::SameLine();
     Mod::help_marker(_("How far grabbing another player gets. Hand out: frames a Snatch / Buster grab box was active. Contacts: "
                   "it touched another player's body. Sent: he was stunned, so the grab went to the game. Messages: the "
                   "game accepted it (line of sight from the arm, the grabbing Nero's state) and the victim was told"));
-    ImGui::Text("stunned player's boxes: %u seen, %u off, %u status, %u out of reach", d.stunned_boxes, d.stunned_off,
-                d.stunned_status, d.stunned_apart);
+    ImGui::TextWrapped("stunned player's boxes: %u seen, %u off, %u status, %u in grace, %u out of reach", d.stunned_boxes,
+                d.stunned_off, d.stunned_status, d.stunned_grace, d.stunned_apart);
     ImGui::SameLine();
     Mod::help_marker(_("While a grab box is out: body boxes of another player who is stunned (grabbable). Off: the box is "
-                       "switched off. Status: the game marks him as not hittable. Out of reach: the grab box didn't touch it"));
-    ImGui::Text("last contact: action %d, damage type %d, invincible %d, holy %.1f, revive %.1f, stunned %s, reaction %d",
+                       "switched off. Status: the game marks him as not hittable. In grace: he was grabbed moments ago (Grab "
+                       "grace). Out of reach: the grab box didn't touch it"));
+    ImGui::TextWrapped("last contact: action %d, damage type %d, invincible %d, holy %.1f, revive %.1f, stunned %s, reaction %d",
                 d.last_action, d.last_type, d.last_invincible ? 1 : 0, d.last_holy, d.last_revive,
-                d.last_stunned ? "yes" : "no", d.last_reaction);
+                d.last_stunned ? (d.last_window ? "yes (window after a flinch)" : "yes") : "no", d.last_reaction);
+    ImGui::TextWrapped("last grab box: %s", d.last_mode < 0 ? "Nero's body (Buster)" : d.last_mode == 3 ? "hand, Buster (3)" :
+                       d.last_mode == 1 ? "hand, Snatch (1)" : d.last_mode == 2 ? "hand, DT Snatch (2)" : "hand, mode 0 (Snatch)");
+    ImGui::SameLine();
+    Mod::help_marker(_("Which box grabbed the last player and how it was read: the Devil Bringer's hand box (its move type: 1 "
+                       "Snatch, 2 Devil Trigger Snatch, 3 Buster, 0 after a Snatch's reach hit something) or Nero's own body "
+                       "box, which only the Buster uses"));
     ImGui::SameLine();
     Mod::help_marker(_("The player touched last: action 20 = hit reaction, its damage type 1 / 2 / 3 / 5 / 6 / 10 / 11 can be "
                   "grabbed, unless invincible or a holy / revive timer runs. Reaction 3 = pulled by a Snatch, 9 = Buster"));
     const HoldDiag& h = hold_diag;
     const char* fn_name = h.nero_fn == 0x7EBC00 ? "SGScare" : h.nero_fn == 0x7EBE40 ? "SGAScare" : h.nero_fn ? "other" : "none";
-    ImGui::Text("holds %u, last ended: %s after %u ticks (%s)", h.holds, kHoldEndNames[h.end], h.ticks,
+    ImGui::TextWrapped("holds %u, last ended: %s after %u ticks (%s)", h.holds, kHoldEndNames[h.end], h.ticks,
                 h.kind == kModeSnatch ? "Snatch" : h.kind == kModeBuster ? "Buster" : "-");
     ImGui::SameLine();
     Mod::help_marker(_("Why the last grab of a player ended, and how many of the victim's updates it lasted. Nero let go: "
                        "the grabbing Nero left his grab move or stopped holding this player. Victim motion ended: his "
                        "thrown animation finished (the normal end of a Buster)"));
-    ImGui::Text("Nero then: lower action %u phase %u, holds him %s, motion ended %s, reaction %s (%08X)", h.nero_action,
+    ImGui::TextWrapped("Nero then: lower action %u phase %u, holds him %s, motion ended %s, reaction %s (%08X)", h.nero_action,
                 h.nero_phase, h.nero_holds_him ? "yes" : "no", h.nero_motion_end ? "yes" : "no", fn_name,
                 (unsigned)h.nero_fn);
+    ImGui::TextWrapped("held: %s, chest %.0f cm from the hand before placing", h.on_hand ? "on the stand's hand" :
+                       "at the arm's origin (joints missing)", h.gap);
+    ImGui::SameLine();
+    Mod::help_marker(_("During Nero's hold the held player's upper chest is put on the palm of the stand's hand every frame. "
+                       "The distance is how far it had drifted since the frame before: a few cm while the hand moves, "
+                       "large only on the first frame of a hold"));
     ImGui::SameLine();
     Mod::help_marker(_("The grabbing Nero when the hold ended. Lower action 12 = an attack (the grab move); phase 2 = its "
                        "reaction (the throw) is running. Reaction SGScare / SGAScare = the boss Dante's Buster, none = Nero "
                        "never got a throw to play"));
-    const ChargeDiag& c = charge_diag;
-    ImGui::Text("charged shot: %u attack boxes (last: player %d, side %u, attr %X, mask %08X), tested on a player %u",
-                c.groups, c.owner + 1, c.kind, c.attr, c.vs);
-    ImGui::SameLine();
-    Mod::help_marker(_("Nero's charged Blue Rose shot. Attack boxes: how many it made and the last one's owner (0 = not "
-                       "known as a player's), side and mask; the mask needs bit 2 (attacks players). Tested on a player: "
-                       "times the game's hit test weighed one of its boxes against another player's body. 0 there while "
-                       "the mask has bit 2 = the boxes never overlapped in the game's test"));
+    for (int pass = 0; pass < 2; pass++) {
+        const int shot = 1 - pass;   // the charged shot first: the panel's bottom gets cut off
+        const ChargeDiag& c = charge_diag[shot];
+        ImGui::PushID(shot);
+        ImGui::TextWrapped("%s: %u attack boxes (last: player %d, side %u, attr %X, mask %08X), tested on a player %u, "
+                           "shapes touching %u; last pair: shot at %.0f %.0f %.0f, body at %.0f %.0f %.0f, %.0f apart",
+                           shot ? "charged shot" : "Blue Rose bullet", c.groups, c.owner + 1, c.kind, c.attr, c.vs, c.pairs,
+                           c.overlaps, c.shot[0], c.shot[1], c.shot[2], c.body[0], c.body[1], c.body[2], c.dist);
+        ImGui::SameLine();
+        Mod::help_marker(_("Nero's Blue Rose shots against players: the plain bullet (also every Gunslinger bullet) and the "
+                           "charged shot. Attack boxes: how many it made and the last one's owner (0 = not known as a "
+                           "player's), side and mask; the mask needs bit 2 (attacks players). Tested on a player: times "
+                           "the game's hit test weighed one of its boxes against another player's body. Shapes touching: "
+                           "how many of those the game's own shape test passed"));
+        ImGui::TextWrapped("  closest: %.0f apart; shell at %.0f %.0f %.0f, box size %.0f %.0f %.0f, shooter at %.0f %.0f %.0f",
+                           c.min_dist, c.shell[0], c.shell[1], c.shell[2], c.size[0], c.size[1], c.size[2], c.shooter[0],
+                           c.shooter[1], c.shooter[2]);
+        ImGui::SameLine();
+        Mod::help_marker(_("The pair where the shot's box came closest to another player's body: how far apart their "
+                           "centres were, where the shot itself was, how big its box was (swept from its last position) "
+                           "and where the player who fired it stood"));
+        ImGui::TextWrapped("  its shapes: shot %d (first: type %d, radius %.0f, scale %.2f, box %.0f %.0f %.0f), body %d, "
+                           "shape boxes overlapping %d", c.shot_shapes, c.shot_type, c.shot_radius, c.shot_scale,
+                           c.shot_box[0], c.shot_box[1], c.shot_box[2], c.body_shapes, c.shape_overlaps);
+        ImGui::TextWrapped("  body's first shape: joint %d, radius %.0f, at %.0f %.0f %.0f", c.body_bone, c.body_radius,
+                           c.body_centre[0], c.body_centre[1], c.body_centre[2]);
+        ImGui::TextWrapped("  hit calls on a player %u (last: his HP then %.0f, attack ID %d), let through by Coop's sweep %u",
+                           c.damage_calls, c.damage_hp, c.damage_attack_id, c.forced);
+        ImGui::TextWrapped("  sweep tested: now %.0f %.0f %.0f, last frame %.0f %.0f %.0f, body sphere %.0f %.0f %.0f, gap %.0f",
+                           c.sweep_now[0], c.sweep_now[1], c.sweep_now[2], c.sweep_old[0], c.sweep_old[1], c.sweep_old[2],
+                           c.sweep_body[0], c.sweep_body[1], c.sweep_body[2], c.sweep_gap);
+        ImGui::SameLine();
+        Mod::help_marker(_("The two ends of the swept shot the game's shape test uses (where the shot is now and where it was "
+                           "last frame), the centre of the body sphere it was tested against, and how far apart they "
+                           "really are once both radii are taken off: 0 or below means they touch"));
+        ImGui::SameLine();
+        Mod::help_marker(_("Times the game went on to hurt a player with this shot (uActor::damagePreMessage on his body), his HP "
+                           "at that moment and the attack ID the shot carried. Above 0 while he takes no damage = the hit "
+                           "lands and something refuses the damage; 0 = the hit test never let it through"));
+        ImGui::SameLine();
+        Mod::help_marker(_("At that closest pair: the shot's collision shapes (type 0 sphere, 3 capsule; its radius and "
+                           "the scale the game multiplies it by), the body's shape count, and how many shot / body shape "
+                           "pairs had overlapping boxes, the first thing the game's shape test checks"));
+        ImGui::PopID();
+    }
     const ImpactDiag& im = impact_diag;
-    ImGui::Text("Buster impact: made %u, armed %u (mask %08X), no box yet %u, weighed on a player %u (owner player %d)",
+    ImGui::TextWrapped("Buster impact: made %u, armed %u (mask %08X), no box yet %u, weighed on a player %u (owner player %d)",
                 im.made, im.armed, im.vs, im.no_box, im.pairs, im.owner + 1);
     ImGui::SameLine();
     Mod::help_marker(_("The hit that lands a thrown player (the Buster's damage). Armed: its box got the attacks-players "
                        "bit (mask bit 2) the frame after it was made; no box yet = it wasn't set up by then. Weighed on a "
                        "player: times the game's hit test tried it against a player's body; owner = the player it counts "
                        "for (0 = nobody, then Coop skips nothing but the hit counts for no one)"));
-    if (ImGui::Button(_("Reset grab counters"))) {
-        grab_diag = {};
-        hold_diag = {};
-        charge_diag = {};
-        impact_diag = {};
-    }
-    ImGui::SameLine();
-    Mod::help_marker(_("Sets the counters above back to zero, to watch one attempt"));
 }
 
 } // namespace coop_pvp
