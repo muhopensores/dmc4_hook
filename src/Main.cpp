@@ -139,6 +139,23 @@ static void patch_more_memories() {
     VirtualProtect(resMem, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
     *resMem = 0x10000000; // was push 06000000
     VirtualProtect(resMem, 4, oldProtect, &oldProtect);
+
+    // The draw-command buffer. sRender::sRender 0x8EF930 takes (size / 2 - 0x80000) for each of its two frame buffers
+    // from the System heap (0x8EFCB2); buildDisplayList 0x8F6480 splits a frame's buffer between the job threads'
+    // cTrans (tags grow up from the start, commands down from the end, cTrans::begin 0xA583C0) and nothing checks
+    // that they meet: an overflow corrupts tags, and the render thread crashes reading one (dispatchCommands
+    // 0x8F4478). Split screen draws every scene once per view, so the buffers get four times the room and the System
+    // heap grows by what they take.
+    static UINT* renderCmdMem = (UINT*)0x8AE16B; // sDevil4Main::sDevil4Main: push 0C00000h, sRender's size
+    static UINT* systemMem    = (UINT*)0x8AFC1B; // System heap
+
+    VirtualProtect(renderCmdMem, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
+    *renderCmdMem = 0x02C00000; // was push 00C00000 (2 x 0x580000 -> 2 x 0x1580000)
+    VirtualProtect(renderCmdMem, 4, oldProtect, &oldProtect);
+
+    VirtualProtect(systemMem, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
+    *systemMem = 0x04E00000; // was push 02E00000 (+ the 0x2000000 the buffers gained)
+    VirtualProtect(systemMem, 4, oldProtect, &oldProtect);
 }
 
 static void failed() {
