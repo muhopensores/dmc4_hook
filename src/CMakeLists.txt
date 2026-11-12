@@ -18,8 +18,6 @@ set(MODS_SRC
   mods/EnvironmentalHazards.cpp
   mods/GermanWord.hpp
   mods/GermanWord.cpp
-  mods/FriendlyFire.hpp
-  mods/FriendlyFire.cpp
   mods/SpiderTwerk.hpp
   mods/SpiderTwerk.cpp
   mods/WitchTime.hpp
@@ -416,6 +414,8 @@ set(DEV_SRC
   dev/coop/CoopContext.cpp
   dev/coop/CoopHud.hpp
   dev/coop/CoopHud.cpp
+  dev/coop/CoopPvp.hpp
+  dev/coop/CoopPvp.cpp
 )
 
 set(HOOKS_SRC
@@ -459,6 +459,8 @@ set(SDK_SRC
     sdk/LmtMerge.cpp
     sdk/MotionRegistry.hpp
     sdk/MotionRegistry.cpp
+    sdk/ArcRows.hpp
+    sdk/ArcRows.cpp
     sdk/MtMemoryStream.hpp
     sdk/Devil4.hpp
     sdk/uActor.hpp

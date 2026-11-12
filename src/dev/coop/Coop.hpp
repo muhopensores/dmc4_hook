@@ -29,6 +29,15 @@ struct Player {
 
 extern Player players[kMaxPlayers];
 
+} // namespace coop
+
+namespace coop_tint {
+extern bool enabled;           // each player's models get his colour (Coop.cpp, tint_after_update)
+extern float colors[4][4];     // RGB multipliers per player (the 4th float unused: the game reads a MtVector3)
+} // namespace coop_tint
+
+namespace coop {
+
 // uPlayer +0x1405: the control number (cPeripheral padding), 0 = player 1.
 constexpr uintptr_t kControlNumber = 0x1405;
 
@@ -48,6 +57,7 @@ public:
     static uintptr_t jmp_ret_unit_pass2;
     static uintptr_t jmp_ret_unit_pass3;
     static uintptr_t jmp_ret_unit_init;
+    static uintptr_t jmp_ret_em_step;
 
     void toggle(bool enable);
 
@@ -66,6 +76,6 @@ private:
     std::unique_ptr<FunctionHook> hook_kb_merge, hook_kb_exceed, hook_vib, hook_vib_stop, hook_fog1, hook_fog2,
         hook_kb_cam_x, hook_kb_cam_y, hook_kb_cam_y2;
     std::unique_ptr<FunctionHook> hook_water, hook_unit_init, hook_unit_tick, hook_unit_pass2, hook_unit_pass3, hook_grab_hit, hook_damage_pre, hook_set_game_system,
-        hook_lock_on, hook_common_save, hook_dante_save, hook_nero_save, hook_disp_sphere;
+        hook_lock_on, hook_common_save, hook_dante_save, hook_nero_save, hook_disp_sphere, hook_em_step;
     std::unique_ptr<Patch> patch1;
 };

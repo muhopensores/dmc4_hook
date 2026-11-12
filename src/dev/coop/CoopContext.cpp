@@ -524,6 +524,10 @@ void refresh_player1_lock(uintptr_t enemy) {
 
 namespace coop_context {
 
+int player_of(uintptr_t unit) {
+    return player_slot(unit);
+}
+
 bool swap_to(uintptr_t player, uintptr_t camera = 0, uintptr_t pad = 0) {
     const uintptr_t med = at<uintptr_t>(kMediator, 0);
     if (!med || swapped) {

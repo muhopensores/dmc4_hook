@@ -805,8 +805,6 @@ namespace gui {
                 pmods->on_draw_ui<ChainFix>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<SpiderTwerk>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui<FriendlyFire>(DISPLAY_SYSTEM_A);
-
                 pmods->on_draw_ui<Cock>(DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui<RayTest>(DISPLAY_SYSTEM_A);

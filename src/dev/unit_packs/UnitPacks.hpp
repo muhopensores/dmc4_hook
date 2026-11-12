@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../mod.hpp"
+#include "../../sdk/ArcRows.hpp"
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -21,14 +22,7 @@
 
 namespace unit_packs {
 
-struct Loaded {
-    uintptr_t   arc = 0;          // our rArchive (not in sResource's table), 0 = not loaded
-    int         rows = 0;         // rows the arc holds (a row already cached is shared, not reloaded)
-    int         failed = 0;       // rows the game didn't create
-    uint32_t    bytes = 0;        // size of the in-memory arc (stored bytes + header)
-    double      ms = 0.0;         // time the load took
-    std::string error;
-};
+using Loaded = arc_rows::Result;   // sdk/ArcRows: arc, rows, failed, bytes, ms, error
 
 struct Spawned {
     uintptr_t   unit = 0;

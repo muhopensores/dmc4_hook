@@ -3,6 +3,7 @@
 #include "CoopDiag.hpp"
 #include "CoopContext.hpp"
 #include "CoopHud.hpp"
+#include "CoopPvp.hpp"
 #include "../../sdk/Devil4.hpp"
 #include "../../sdk/sUnit.hpp"
 #include "../../sdk/cUnit.hpp"
@@ -22,6 +23,11 @@
 
 bool Coop::mod_enabled = false;
 unsigned int Coop::player_num = 2;
+
+namespace coop_tint {
+bool enabled = false;
+float colors[4][4] = {{1.0f, 1.0f, 1.0f, 0.0f}, {1.0f, 0.6f, 0.6f, 0.0f}, {0.6f, 0.6f, 1.0f, 0.0f}, {0.6f, 1.0f, 0.6f, 0.0f}};
+} // namespace coop_tint
 float Coop::revive_delay = 5.0f;
 float Coop::revive_hp = 0.5f;
 
@@ -32,6 +38,7 @@ uintptr_t Coop::jmp_ret_unit_tick = NULL;
 uintptr_t Coop::jmp_ret_unit_pass2 = NULL;
 uintptr_t Coop::jmp_ret_unit_pass3 = NULL;
 uintptr_t Coop::jmp_ret_unit_init = NULL;
+uintptr_t Coop::jmp_ret_em_step = NULL;
 
 namespace coop {
 
@@ -633,8 +640,85 @@ void __stdcall context_leave() {
     coop_context::leave();
 }
 
+// Player tints. uDevil4Model::setBaseMapFactor 0x9F7A80 (thiscall, MtVector3*) writes an RGB multiplier into every
+// material of one model (+0x30..+0x38; 1 1 1 = as authored; uDevil4Model::setBMF 0x526B60 is the same with the colour
+// times its alpha). The boss Dante's dark colouring is this, every frame after his update (uPlayerDanteBoss::
+// movePlayerBefore 0x7C04E0): body, head +0x3270, hair +0x4340, coat +0x52C0 and each weapon through its own method
+// (uPlWeapon::setBaseMapFactor, vtable +0x150; uPlayer::mWeaponCtrl.mpWeapon[7] +0x1D90). Dante's own code writes 1 1 1
+// back during Devil Trigger changes (uPlayerDante::updateChgDevilType), so a tint goes on after every update of the
+// player and, for a Nero, of his stand (mpDevilStand +0xCDF8) and its arm (uPlNeroDevil::mpRightHand +0x1374); Dante's
+// Devil Trigger coat (+0xCFC0) too. Turning tints off puts 1 1 1 back once.
+constexpr uintptr_t kSetBaseMapFactor = 0x9F7A80;
+constexpr uintptr_t kWeaponSetBmf     = 0x150;
+constexpr uintptr_t kHeadMdl = 0x3270, kHairMdl = 0x4340, kCoatMdl = 0x52C0, kCoatDevilMdl = 0xCFC0;
+constexpr uintptr_t kWeapons = 0x1D90, kStand = 0xCDF8, kStandHand = 0x1374;
+constexpr uintptr_t kTintPlayerId = 0x1494;   // uPlayer::mPlayerID (0 Dante, 1 Nero)
+using BmfFn = void(__fastcall*)(uintptr_t, uintptr_t, const float*);
+bool tint_restore = false;   // tints went off: put 1 1 1 back on the next frame
+
+void set_bmf(uintptr_t model, const float* f) {
+    if (model) reinterpret_cast<BmfFn>(kSetBaseMapFactor)(model, 0, f);
+}
+
+void tint_player(uintptr_t pl, const float* f) {
+    set_bmf(pl, f);
+    set_bmf(pl + kHeadMdl, f);
+    set_bmf(pl + kHairMdl, f);
+    set_bmf(pl + kCoatMdl, f);
+    if (*(uint32_t*)(pl + kTintPlayerId) == 0) {
+        set_bmf(pl + kCoatDevilMdl, f);
+    }
+    for (int w = 0; w < 7; w++) {
+        const uintptr_t weapon = *(uintptr_t*)(pl + kWeapons + 4 * w);
+        if (weapon) reinterpret_cast<BmfFn>(*(uintptr_t*)(*(uintptr_t*)weapon + kWeaponSetBmf))(weapon, 0, f);
+    }
+}
+
+uintptr_t stand_of(uintptr_t pl) {
+    return *(uint32_t*)(pl + kTintPlayerId) == 1 ? *(uintptr_t*)(pl + kStand) : 0;
+}
+
+void tint_after_update(uintptr_t unit) {
+    if (!coop_tint::enabled || !unit) {
+        return;
+    }
+    for (int i = 0; i < (int)Coop::player_num && i < kMaxPlayers; i++) {
+        const uintptr_t pl = players[i].unit;
+        if (!pl) continue;
+        const float* f = coop_tint::colors[i];
+        if (unit == pl) {
+            tint_player(pl, f);
+            return;
+        }
+        const uintptr_t stand = stand_of(pl);
+        if (stand && unit == stand) {
+            set_bmf(stand, f);
+            set_bmf(*(uintptr_t*)(stand + kStandHand), f);
+            return;
+        }
+        if (stand && unit == *(uintptr_t*)(stand + kStandHand)) {
+            set_bmf(unit, f);
+            return;
+        }
+    }
+}
+
+void tint_restore_all() {
+    const float one[4] = {1.0f, 1.0f, 1.0f, 0.0f};
+    for (int i = 0; i < kMaxPlayers; i++) {
+        const uintptr_t pl = players[i].unit;
+        if (!pl) continue;
+        tint_player(pl, one);
+        if (const uintptr_t stand = stand_of(pl)) {
+            set_bmf(stand, one);
+            set_bmf(*(uintptr_t*)(stand + kStandHand), one);
+        }
+    }
+}
+
 void __stdcall context_leave_tick(uintptr_t unit) {
     coop_hud::after_update(unit);
+    tint_after_update(unit);
     coop_context::leave();
 }
 
@@ -803,9 +887,12 @@ void* __fastcall update_lock_on(uintptr_t player, uintptr_t edx) {
     if (!Coop::mod_enabled) {
         return update_lock_on_original(player, edx);
     }
+    coop_pvp::before_lock_on(player);
     coop_context::inter_flags_for(player);
     const bool began = coop_context::lock_on_begin(player);
+    coop_pvp::prefer_players(player);
     void* result = update_lock_on_original(player, edx);
+    coop_pvp::after_lock_on();
     coop_context::lock_on_report(player);
     if (began) {
         coop_context::lock_on_end();
@@ -888,6 +975,66 @@ bool __stdcall pad_update_fallback(cPeripheral* peripheral) {
     return coop_pads::update_peripheral(peripheral);
 }
 
+// Enemy step off the other players. uPlayer::checkEmJumpBegin 0x804970 (edi = the jumper) looks for a step target on
+// move lines 15 / 16 only (the enemies) with uActor::isEmJump 0x4AB170: the actor's step points (+0x1318 a table of
+// 32-byte entries: joint, radius, 3 unused, offset in the joint's frame; -1 ends it; +0x131C the mask of points in use,
+// +0x1320 on), each against the jumper's position + 85 cm. Enemies get theirs from uEnemy::setup (emjump_data_tbl
+// 0xC79070 by kind); players have none and stand on line 13. At the miss (0x804A71) the other players are tried with
+// step points of their own (the chest, as the Scarecrow's / Angelo's first point); a hit goes on at 0x804A7C as the
+// game's: the target's enemyJumpMessage (vtable +0xE8, a nullsub on players), the step timers, action 25.
+#pragma pack(push, 1)
+struct EmJumpPoint { int32_t joint; float radius, unused[3], x, y, z; };
+#pragma pack(pop)
+static_assert(sizeof(EmJumpPoint) == 0x20, "em jump entry");
+const EmJumpPoint kPlayerStep[] = {
+    {2, 150.0f, {0.0f, 0.0f, 0.0f}, 0.0f, 0.0f, 0.0f},
+    {-1, 0.0f, {0.0f, 0.0f, 0.0f}, 0.0f, 0.0f, 0.0f},
+};
+constexpr uintptr_t kEmJumpData = 0x1318, kEmJumpMask = 0x131C, kEmJumpOn = 0x1320;
+constexpr uintptr_t kIsEmJump = 0x4AB170;
+uintptr_t em_step_target = 0;
+uintptr_t em_step_hit = 0x804A7C;
+
+uintptr_t __stdcall find_player_step(uintptr_t jumper) {
+    em_step_target = 0;
+    if (!Coop::mod_enabled) {
+        return 0;
+    }
+    using IsEmJumpFn = bool(__stdcall*)(uintptr_t);
+    for (int i = 0; i < (int)Coop::player_num && i < kMaxPlayers; i++) {
+        const uintptr_t pl = players[i].unit;
+        if (!pl || pl == jumper) continue;
+        uintptr_t& data = *reinterpret_cast<uintptr_t*>(pl + kEmJumpData);
+        if (data && data != (uintptr_t)kPlayerStep) continue;   // someone else's points: leave them
+        data = (uintptr_t)kPlayerStep;
+        *reinterpret_cast<uint32_t*>(pl + kEmJumpMask) = 1;
+        *reinterpret_cast<uint8_t*>(pl + kEmJumpOn) = 1;
+        if (reinterpret_cast<IsEmJumpFn>(kIsEmJump)(pl)) {
+            em_step_target = pl;
+            return pl;
+        }
+    }
+    return 0;
+}
+
+naked_extern void detour_em_step() {
+    __asm {
+        pushad
+        push edi
+        call find_player_step
+        popad
+        mov esi, [em_step_target]
+        test esi, esi
+        jz miss
+        jmp dword ptr [em_step_hit]
+    miss:
+        xor al, al
+        pop esi
+        mov esp, ebp
+        jmp dword ptr [Coop::jmp_ret_em_step]
+    }
+}
+
 const char* kCharNames[] = {"Nero", "Dante"};
 const char* kPadNames[] = {"XInput 1", "XInput 2", "XInput 3", "XInput 4"};
 const char* kP1PadNames[] = {"Game's pad", "XInput 1", "XInput 2", "XInput 3", "XInput 4"};
@@ -933,6 +1080,7 @@ std::optional<std::string> Coop::on_initialize() {
         {0x8DC39C, &hook_unit_tick, (void*)&detour_unit_tick, &jmp_ret_unit_tick, 9, "unit tick context"},
         {0x8DC44B, &hook_unit_pass2, (void*)&detour_unit_pass2, &jmp_ret_unit_pass2, 9, "unit pass 2 context"},
         {0x8DC4C4, &hook_unit_pass3, (void*)&detour_unit_pass3, &jmp_ret_unit_pass3, 9, "unit pass 3 context"},
+        {0x804A71, &hook_em_step, (void*)&detour_em_step, &jmp_ret_em_step, 5, "enemy step off players"},
     };
     for (const Site& s : sites) {
         if (!install_hook_absolute(s.addr, *s.hook, s.detour, s.ret, s.len)) {
@@ -988,12 +1136,21 @@ std::optional<std::string> Coop::on_initialize() {
         spdlog::error("{}\n", *err);
         return err;
     }
+    if (auto err = coop_pvp::install()) {
+        spdlog::error("Coop: {}", *err);
+        return err;
+    }
     Macro::set_pad_update_fallback(&pad_update_fallback);
     return Mod::on_initialize();
 }
 
 void Coop::on_frame(fmilliseconds& dt) {
     coop_diag::on_frame(dt.count());
+    if (tint_restore) {
+        tint_restore = false;
+        tint_restore_all();
+    }
+    coop_pvp::tick();   // also with Coop off: takes the players' lock-on targets and the em_dante rows out
 }
 
 void Coop::on_gui_frame(int display) {
@@ -1092,6 +1249,83 @@ void Coop::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("The share of his maximum HP a revived player gets up with"));
 
+    if (ImGui::Checkbox(_("PvP hits"), &coop_pvp::hits)) {
+        coop_pvp::retry();
+    }
+    ImGui::SameLine();
+    help_marker(_("Players' attacks and shots hit the other players (never their own player), and Nero's Snatch and "
+                  "Buster grab them while they're stunned (hit, launched or blown away; the generic reactions of the Dante boss fight). Enemies still hit everyone as usual. "
+                  "Players can lock on to each other. Rounds come later"));
+    if (ImGui::Checkbox(_("Tint players"), &coop_tint::enabled) && !coop_tint::enabled) {
+        tint_restore = true;
+    }
+    ImGui::SameLine();
+    help_marker(_("Each player's character, weapons and (Nero) Devil Trigger stand get his colour, so two of the same "
+                  "character can be told apart. White = as the game draws it"));
+    if (coop_tint::enabled) {
+        ImGui::Indent(lineIndent);
+        for (int i = 0; i < (int)player_num && i < kMaxPlayers; i++) {
+            ImGui::PushID(100 + i);
+            char label[32];
+            std::snprintf(label, sizeof(label), "Player %d", i + 1);
+            ImGui::ColorEdit3(label, coop_tint::colors[i], ImGuiColorEditFlags_NoInputs);
+            ImGui::SameLine();
+            help_marker(_("Multiplies this player's colours: white leaves them as they are, red (1, 0.6, 0.6) reddens"));
+            ImGui::PopID();
+        }
+        ImGui::Unindent(lineIndent);
+    }
+
+    if (coop_pvp::hits) {
+        ImGui::Indent(lineIndent);
+        ImGui::Checkbox(_("Lock on to players first"), &coop_pvp::players_first);
+        ImGui::SameLine();
+        help_marker(_("While another player is in reach and in your view, lock-on picks a player and skips the enemies. "
+                      "Off: players and enemies are picked alike, the nearest first"));
+        ImGui::Checkbox(_("Hitting players fills Devil Trigger"), &coop_pvp::dt_from_players);
+        ImGui::SameLine();
+        help_marker(_("A hit on another player gives the attacker the attack's Devil Trigger, as a hit on an enemy does (not "
+                      "while he is in Devil Trigger). Off: hitting players gives none, as the game alone would"));
+        ImGui::Unindent(lineIndent);
+    }
+    if (coop_pvp::hits && ImGui::TreeNode(_("PvP flinching"))) {
+        static char* rows[] = {"Flinch", "Blow away", "Flinch in DT", "Blow away in DT"};
+        int* data[] = {coop_pvp::flinch[0], coop_pvp::blow[0], coop_pvp::flinch[1], coop_pvp::blow[1]};
+        for (int r = 0; r < 4; r++) {
+            ImGui::SetNextItemWidth(sameLineItemWidth * 1.5f);
+            ImGui::InputScalarN(_(rows[r]), ImGuiDataType_S32, data[r], 5);
+            for (int lv = 0; lv < 5; lv++) {
+                data[r][lv] = std::clamp(data[r][lv], -1, 100);
+            }
+            ImGui::SameLine();
+            help_marker(_("Hits from another player needed before this reaction, for attack levels 0 to 4 (each attack's "
+                          "level is in its .atk entry; combo hits are mostly 2, launchers and finishers 3 and 4). -1 = "
+                          "never, 1 = every hit. The count starts over after the reaction, or 3 seconds after the last hit. "
+                          "The DT rows apply while the player is in Devil Trigger. Enemies' hits use the game's own values"));
+        }
+        if (ImGui::Button(_("Default flinching"))) {
+            const int f[2][5] = {{-1, -1, 3, 2, 1}, {-1, -1, -1, 3, 2}};
+            const int b[2][5] = {{-1, -1, -1, 2, 1}, {-1, -1, -1, 3, 1}};
+            memcpy(coop_pvp::flinch, f, sizeof(f));
+            memcpy(coop_pvp::blow, b, sizeof(b));
+        }
+        ImGui::SameLine();
+        help_marker(_("Light combo hits need three in a row to stun, finishers still land at once; Devil Trigger takes more. "
+                      "The game's own values are 1 for every attack level from 2 up"));
+        ImGui::TreePop();
+    }
+    if (coop_pvp::hits && !coop_pvp::grabs_ready()) {
+        ImGui::SameLine();
+        ImGui::TextDisabled(_("(grabs off)"));
+        ImGui::SameLine();
+        help_marker(_("Grabbing players needs the Dante boss fight's Buster motions, read from nativePC\\rom\\enemy\\"
+                      "em_dante.arc while PvP hits is on. They didn't load"));
+        const char* why = coop_pvp::grabs_error();
+        if (why && *why) {
+            ImGui::TextDisabled("%s", why);
+        }
+    }
+
     if (ImGui::TreeNode(_("Diagnostics"))) {
         if (ImGui::Checkbox(_("Serial context lines"), &coop_diag::serial_lines)) {
             coop_diag::set_serial(coop_diag::serial_lines);
@@ -1134,6 +1368,7 @@ void Coop::on_stage_start() {
 
 void Coop::on_stage_end() {
     save_carry();   // the players are still alive here
+    coop_pvp::stage_end();
     // aRoom::cleanRoom is about to free the extra cameras: sCamera must not keep them. The screens after the mission
     // (results, shop) draw in view 0, which goes back to the whole screen.
     apply_single_view();
@@ -1172,6 +1407,23 @@ void Coop::on_config_load(const utility::Config& cfg) {
     coop_hud::hud_scale = std::clamp(cfg.get<float>("coop_hud_scale").value_or(0.5f), 0.25f, 1.0f);
     revive_delay = std::clamp(cfg.get<float>("coop_revive_delay").value_or(5.0f), 1.0f, 30.0f);
     revive_hp = std::clamp(cfg.get<float>("coop_revive_hp").value_or(0.5f), 0.1f, 1.0f);
+    coop_pvp::hits = cfg.get<bool>("coop_pvp_hits").value_or(cfg.get<bool>("FriendlyFire").value_or(false));
+    coop_tint::enabled = cfg.get<bool>("coop_tint").value_or(false);
+    for (int i = 0; i < kMaxPlayers; i++) {
+        const std::string n = std::to_string(i + 1);
+        coop_tint::colors[i][0] = std::clamp(cfg.get<float>("coop_tint_p" + n + "_r").value_or(coop_tint::colors[i][0]), 0.0f, 2.0f);
+        coop_tint::colors[i][1] = std::clamp(cfg.get<float>("coop_tint_p" + n + "_g").value_or(coop_tint::colors[i][1]), 0.0f, 2.0f);
+        coop_tint::colors[i][2] = std::clamp(cfg.get<float>("coop_tint_p" + n + "_b").value_or(coop_tint::colors[i][2]), 0.0f, 2.0f);
+    }
+    coop_pvp::players_first = cfg.get<bool>("coop_pvp_players_first").value_or(true);
+    coop_pvp::dt_from_players = cfg.get<bool>("coop_pvp_dt_from_players").value_or(true);
+    for (int s = 0; s < 2; s++) {
+        for (int lv = 0; lv < 5; lv++) {
+            const std::string k = std::to_string(s) + "_" + std::to_string(lv);
+            coop_pvp::flinch[s][lv] = std::clamp(cfg.get<int>("coop_pvp_flinch" + k).value_or(coop_pvp::flinch[s][lv]), -1, 100);
+            coop_pvp::blow[s][lv] = std::clamp(cfg.get<int>("coop_pvp_blow" + k).value_or(coop_pvp::blow[s][lv]), -1, 100);
+        }
+    }
 }
 
 void Coop::on_config_save(utility::Config& cfg) {
@@ -1193,6 +1445,23 @@ void Coop::on_config_save(utility::Config& cfg) {
     cfg.set<float>("coop_hud_scale", coop_hud::hud_scale);
     cfg.set<float>("coop_revive_delay", revive_delay);
     cfg.set<float>("coop_revive_hp", revive_hp);
+    cfg.set<bool>("coop_pvp_hits", coop_pvp::hits);
+    cfg.set<bool>("coop_tint", coop_tint::enabled);
+    for (int i = 0; i < kMaxPlayers; i++) {
+        const std::string n = std::to_string(i + 1);
+        cfg.set<float>("coop_tint_p" + n + "_r", coop_tint::colors[i][0]);
+        cfg.set<float>("coop_tint_p" + n + "_g", coop_tint::colors[i][1]);
+        cfg.set<float>("coop_tint_p" + n + "_b", coop_tint::colors[i][2]);
+    }
+    cfg.set<bool>("coop_pvp_players_first", coop_pvp::players_first);
+    cfg.set<bool>("coop_pvp_dt_from_players", coop_pvp::dt_from_players);
+    for (int s = 0; s < 2; s++) {
+        for (int lv = 0; lv < 5; lv++) {
+            const std::string k = std::to_string(s) + "_" + std::to_string(lv);
+            cfg.set<int>("coop_pvp_flinch" + k, coop_pvp::flinch[s][lv]);
+            cfg.set<int>("coop_pvp_blow" + k, coop_pvp::blow[s][lv]);
+        }
+    }
 }
 
 #undef naked_extern

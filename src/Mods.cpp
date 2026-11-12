@@ -199,7 +199,6 @@ Mods::Mods() {
     ADD_MOD(AfterImage);
     ADD_MOD(SpiderTwerk);
     ADD_MOD(Coop);
-    ADD_MOD(FriendlyFire);
     ADD_MOD(Cock);
     ADD_MOD(RayTest);
     ADD_MOD(ThirdPersonAim); // before WallRun: its pre-check tick turns the left mouse button into the gun press the wall run's matcher reads

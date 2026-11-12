@@ -84,6 +84,9 @@ bool sphere_in_viewport(const void* camera_system, int slot, const float* sphere
 // Devil Trigger gain, style and the reactions read the right player. True when it swapped (leave() after).
 bool hit_enter(uintptr_t attacker_group, uintptr_t target);
 
+// The player (0-3) a unit is or belongs to (his shells, weapons, stand), -1 if none.
+int player_of(uintptr_t unit);
+
 // Readout.
 uint32_t swaps_last_frame();
 // The grab hit wrapper reports each hit (game thread): the hand's Nero, whether it swapped, the target group.

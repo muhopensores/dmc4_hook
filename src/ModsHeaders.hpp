@@ -176,7 +176,6 @@
 #include "mods/AfterImage.hpp"
 #include "mods/SpiderTwerk.hpp"
 #include "dev/coop/Coop.hpp"
-#include "mods/FriendlyFire.hpp"
 #include "mods/Cock.hpp"
 #include "mods/RayTest.hpp"
 #include "mods/WallRun.hpp"
