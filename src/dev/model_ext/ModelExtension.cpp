@@ -50,6 +50,11 @@ constexpr uintptr_t kTransparency = 0xE20;      // uDevil4Model::mTransparency: 
 constexpr uintptr_t kCoordParent = 0x18;        // uCoord::mpParent (coats, attachments: their owner)
 constexpr uintptr_t kChainModel = 0xFB4;        // cCnsChain: its model (the unit's +0xFD4)
 constexpr uintptr_t kChainStep = 0x10B0;        // cCnsChain: the frame's step t, written by move, read by calcJoint
+constexpr uintptr_t kChainFixedStep = 0x18;     // cConstraint: players' fixed step (calcJointImpl solves with 1.0, not t)
+constexpr uintptr_t kWorkRate = 0xCF4, kWorkRateType = 0xCF8;   // uDevil4Model::mWorkRate (cWorkRate): rate, speed bits
+constexpr uintptr_t kWorkRatePtr = 0xE558D0;    // sWorkRate*: +0x20 game, +0x28 global, +0x2C player, +0x30 enemy,
+                                                // +0x34 room, +0x38 turbo
+constexpr uintptr_t kMediatorPtr = 0xE558B8;    // sMediator*: +0x494 turbo mode, +0x495 turbo cancel
 constexpr int kCheckEvery = 10;                 // frames between the checks of the chains out (a room change kills them)
 
 std::vector<ListEntry> g_entries;
@@ -223,18 +228,47 @@ int line_of(uintptr_t unit) {
     return -1;
 }
 
-// Whether `model`'s move line is paused (MoveLine::mPause: sUnit::move 0x8DC290 skips its units), or the line of a model
-// above it (uCoord::mpParent: a coat's player, an attachment's owner). A chain unit runs on its own line (12, or the one
-// before its model's), which goes on moving while the model's is paused.
-bool model_line_paused(uintptr_t model) {
+bool is_devil4_model(uintptr_t unit) {
+    static std::mutex lock;
+    static std::unordered_map<uintptr_t, bool> cache;
+    std::lock_guard<std::mutex> guard(lock);
+    return derives_from(unit, "uDevil4Model", cache);
+}
+
+// A model's speed from its cWorkRate, as the game reads it for things that follow an owner (uDevil4Effect::move 0x521920:
+// sub_4A6800(mType) x mWorkRate), without the game speed (bit 1), which a chain's step already holds. Bits: 4 global
+// (x turbo while turbo mode is on), 8 player, 0x10 enemy, 0x20 room.
+float work_rate(uintptr_t model) {
+    const uintptr_t wr = *(uintptr_t*)kWorkRatePtr;
+    if (!wr) return 1.0f;
+    const uint32_t bits = *(uint32_t*)(model + kWorkRateType);
+    float r = *(float*)(model + kWorkRate);
+    if (bits & 4) {
+        const uintptr_t med = *(uintptr_t*)kMediatorPtr;
+        const bool turbo = med && *(uint8_t*)(med + 0x494) && !*(uint8_t*)(med + 0x495);
+        r *= turbo ? *(float*)(wr + 0x38) * *(float*)(wr + 0x28) : *(float*)(wr + 0x28);
+    }
+    if (bits & 8) r *= *(float*)(wr + 0x2C);
+    if (bits & 0x10) r *= *(float*)(wr + 0x30);
+    if (bits & 0x20) r *= *(float*)(wr + 0x34);
+    return r;
+}
+
+// The speed a chain on `model` runs at, beyond the game speed: the product of the work rates of the model and the models
+// above it (uCoord::mpParent: a coat's player, an attachment's owner), so the trainer's pause (global speed 0), slow
+// motion and a frozen character carry over; 0 when any of their move lines is paused (MoveLine::mPause: sUnit::move
+// 0x8DC290 skips its units). A chain unit runs on its own line (12, or the one before its model's) at the game speed
+// alone, so without this it went on swinging while its character stood still.
+float chain_rate(uintptr_t model) {
     sUnit* su = devil4_sdk::get_sUnit();
-    if (!su) return false;
+    float r = 1.0f;
     for (int depth = 0; model && depth < 8; ++depth) {
-        const int line = line_of(model);
-        if (line >= 0 && su->mMoveLine[line].mPause) return true;
+        const int line = su ? line_of(model) : -1;
+        if (line >= 0 && su->mMoveLine[line].mPause) return 0.0f;
+        if (is_devil4_model(model)) r *= work_rate(model);
         model = *(uintptr_t*)(model + kCoordParent);
     }
-    return false;
+    return std::max(r, 0.0f);
 }
 
 // The known model `m` hangs under (uCoord::mpParent: a coat's player, an attachment's owner), 0 at the top.
@@ -875,22 +909,30 @@ bool physics_for(uintptr_t chain, chain_solver::Settings& out) {
 // cCnsChain::move 0x42DB00 (this@ecx, retn) and cCnsChain::calcJoint 0x430A00 (this@ecx, joint, model; retn 8), function
 // hooks: a chain a <physics> entry names still moves as the game moves it (wind, turbulence, the blend fade, the reset
 // timer) and is solved by ours.
-// A chain whose model's move line is paused (its owner's, for an attachment) pauses with it: its step is 0, which both
-// solvers take as "keep the stored result" (the game's: RE note chain_cnschain.md 3.2b; ours: no pending time). The game's
-// move still runs (it registers the chain on the model's joints).
+// Every chain runs at its character's speed (chain_rate): the step is scaled by it, and at 0 both solvers keep the stored
+// result (the game's: RE note chain_cnschain.md 3.2b; ours: no pending time). The game's move still runs (it registers
+// the chain on the model's joints).
 void __fastcall detour_chain_move(uintptr_t chain, int edx) {
     ((void(__fastcall*)(uintptr_t, int))orig_chain_move)(chain, edx);
-    if (model_line_paused(*(uintptr_t*)(chain + kChainModel))) {
-        *(float*)(chain + kChainStep) = 0.0f;
-        return;
-    }
+    const float rate = chain_rate(*(uintptr_t*)(chain + kChainModel));
+    float& step = *(float*)(chain + kChainStep);
+    step = rate > 0.0f ? std::min(step * rate, 2.0f) : 0.0f;
     chain_solver::Settings s;
-    if (physics_for(chain, s)) chain_solver::on_move(chain);
+    if (rate > 0.0f && physics_for(chain, s)) chain_solver::on_move(chain, rate);
 }
 
 void __fastcall detour_chain_joint(uintptr_t chain, int edx, uintptr_t joint, uintptr_t model) {
     chain_solver::Settings s;
     if (physics_for(chain, s)) { chain_solver::calc_joint(chain, joint, model, s); return; }
+    // the game's solver: a fixed-step chain (a player's coat) solves with 1.0 whatever the step, so while it's stopped the
+    // fixed step is lifted for the call, and the zero step keeps the stored result
+    uint8_t& fixed = *(uint8_t*)(chain + kChainFixedStep);
+    if (fixed && *(float*)(chain + kChainStep) <= 0.0f) {
+        fixed = 0;
+        ((void(__fastcall*)(uintptr_t, int, uintptr_t, uintptr_t))orig_chain_joint)(chain, edx, joint, model);
+        fixed = 1;
+        return;
+    }
     ((void(__fastcall*)(uintptr_t, int, uintptr_t, uintptr_t))orig_chain_joint)(chain, edx, joint, model);
 }
 

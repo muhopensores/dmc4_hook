@@ -56,6 +56,7 @@ constexpr uintptr_t kSysTextures    = 0x6868;           // sShader::mpSysTexture
 constexpr uintptr_t kPlayerId       = 0x1494;           // uPlayer::mPlayerID: 0 Dante, 1 Nero
 constexpr uintptr_t kMoveVel        = 0x1E1C;           // uPlayer::mMoveVel
 constexpr uintptr_t kActionNo       = 0x14F0;           // uPlayer::mActionNo
+constexpr uint32_t  kActionDamage   = 20;               // a hit reaction (being knocked away moves him fast too)
 constexpr uintptr_t kCmnShlVtbl     = 0x00BE6720;       // uPlCmnShl000::vftable (the evade sensor)
 constexpr uintptr_t kCmnShlOwner    = 0x17B0;           // its owner (uPlayer*)
 constexpr int       kCmnShlLine     = 0x12;             // the unit line uPlCmnShl000::create puts it on
@@ -570,7 +571,11 @@ void tick(uintptr_t pl) {
     }
     if (!trail) return;
     t.timer -= dt;
-    const bool open = (gate_inertia && inertia > trail_speed) || (gate_velocity && speed > velocity_speed) || dodge || requested;
+    // the movement gates stay shut while he reels from a hit: a player knocked across the room (another player's combo in
+    // co-op) read as fast and left copies where he had been, taking pool copies from the attacker's trail
+    const bool hit = at<uint32_t>(pl, kActionNo) == kActionDamage;
+    const bool moving = !hit && ((gate_inertia && inertia > trail_speed) || (gate_velocity && speed > velocity_speed));
+    const bool open = moving || dodge || requested;
     if (open && t.timer <= 0.0f) {
         spawn(pl);
         t.timer = trail_interval;
@@ -645,14 +650,15 @@ void AfterImage::on_gui_frame(int display) {
     ImGui::Checkbox(_("Inertia"), &gate_inertia);
     ImGui::SameLine();
     help_marker(_("Leave copies while the game's move speed (inertia: runs, dashes, momentum carried into the air) is "
-                  "above Inertia above. Moves that carry you with their animation don't count."));
+                  "above Inertia above. Moves that carry you with their animation don't count, nor does being knocked "
+                  "away by a hit."));
     ImGui::SliderFloat(_("Inertia above"), &trail_speed, 0.0f, 30.0f, "%.1f");
     ImGui::SameLine();
     help_marker(_("The move speed the trail needs (cm per frame)."));
     ImGui::Checkbox(_("Speed"), &gate_velocity);
     ImGui::SameLine();
     help_marker(_("Leave copies while you actually move faster than Speed above, in any direction and for any reason: "
-                  "animations that carry you, falls, launches, teleports."));
+                  "animations that carry you, falls, launches, teleports; not while you reel from a hit."));
     ImGui::SliderFloat(_("Speed above"), &velocity_speed, 0.0f, 60.0f, "%.1f");
     ImGui::SameLine();
     help_marker(_("How far you have to move in one frame for the trail (cm per frame; walking is about 5, a run about 10)."));

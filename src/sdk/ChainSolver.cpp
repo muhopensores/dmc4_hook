@@ -933,11 +933,12 @@ bool cloth_of(uintptr_t chain, int slot, Cloth& out) {
 }
 } // namespace
 
-void on_move(uintptr_t chain) {
+void on_move(uintptr_t chain, float rate) {
     float t = at<float>(chain, kStep);
     if (at<uint8_t>(chain, kFixedStep)) {           // players: one step per drawn frame in the game; the real frame here
         const uintptr_t main = *reinterpret_cast<uintptr_t*>(kDevil4Main);
         t = main ? std::min(at<float>(main, 0x68), 2.0f) : 1.0f;
+        t *= rate;                                  // the others' step was scaled by the hook already
     }
     // the largest step since the last solve, as the game's solver reads only the last move's step (RE note 3.1): with
     // a sum, moves without a world pass in between (a pause, a hitch) piled up into one solve of up to 4 frames of

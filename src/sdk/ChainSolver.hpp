@@ -75,8 +75,10 @@ struct Cloth {
 // The live sheets, replacing the last set (main thread; the solves read them on any thread).
 void set_cloths(std::vector<Cloth> cloths);
 
-// cCnsChain::move 0x42DB00 has run for `chain`: its frame step joins the time the next solve covers. Any thread.
-void on_move(uintptr_t chain);
+// cCnsChain::move 0x42DB00 has run for `chain`: its frame step, times `rate` (its character's speed beyond the game speed
+// the step already holds: global / player / enemy / room speed, the model's work rate), joins the time the next solve
+// covers. Any thread.
+void on_move(uintptr_t chain, float rate = 1.0f);
 // The chain's constraint call for `joint` of `model` (cCnsChain::calcJoint 0x430A00, from the model's world pass; any
 // thread): the joint's mWmat holds its FK. A tendril's root call solves the whole tendril; every call writes its joint.
 void calc_joint(uintptr_t chain, uintptr_t joint, uintptr_t model, const Settings& s);
