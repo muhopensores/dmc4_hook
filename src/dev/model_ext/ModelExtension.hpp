@@ -34,8 +34,8 @@
 //   to four weight lists (.shw) on the model's cShape (sdk/ModelShape.hpp; RE note shape_morph.md); the weight update is run
 //   here for the models whose move doesn't (the players').
 //   And <physics clt= [substeps=] [iterations=] [stiffness=] [pin=] [inertia=] [inertia_move=] [inertia_turn=] [limit=]
-//   [friction=] [damping=] [radius=] [gravity=] [ground=] [self=] [axis=]/>: every chain with that .clt on the model (the
-//   game's own, Nero's coat, or a <chain>'s) is solved by ours
+//   [friction=] [damping=] [damp_to=] [radius=] [gravity=] [ground=] [self=] [backstop=] [axis=]/>: every chain with that .clt on
+//   the model (the game's own, Nero's coat, or a <chain>'s) is solved by ours
 //   (sdk/ChainSolver.hpp; Vibed\ModelExt\chain_solver.md) through hooks on cCnsChain::move 0x42DB00 / calcJoint 0x430A00.
 //   And <cloth roots= [closed=] [stretch=] [shear=] [bend=]/>: tendrils of the model's chains on that solver (their first
 //   joints, in order across the sheet) solved together and joined point by point into one sheet.

@@ -3,12 +3,15 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <climits>
 #include <cmath>
+#include <cstdio>
 #include <cstring>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -38,7 +41,7 @@ constexpr uintptr_t kJParent = 0x05, kJNo = 0x07, kJQuat = 0x20, kJScale = 0x30,
 // rCollisionShape / cCollGroup / cCollPrim -> the file's 64-byte prim
 constexpr uintptr_t kShapeGroupNum = 0x64, kShapeGroups = 0x68, kGroupPrimNum = 0x04, kGroupPrims = 0x08, kPrimData = 0x0C;
 constexpr uintptr_t kDevil4Main = 0xE5574C;     // sDevil4Main::mpInstance, +0x68 mDeltaTime (60 fps frames)
-constexpr float kMaxPending = 4.0f;             // frames one solve may cover
+constexpr float kMaxPending = 2.0f;             // frames one solve may cover (the game's step is clamped to 2 too)
 constexpr float kTeleport = 500.0f;             // cm a root may jump in a frame before the chain snaps to the animation
 
 template <class T> T& at(uintptr_t base, uintptr_t off) { return *reinterpret_cast<T*>(base + off); }
@@ -157,13 +160,20 @@ void gather_shapes(uintptr_t chain, std::vector<Capsule>& out) {
 }
 
 struct State {                                  // per chain; the per-tendril parts are indexed by the root's slot
-    float pending[kSlots] = {};                 // frames since the tendril last solved
+    float pending[kSlots] = {};                 // the frame step to solve: the largest since the tendril last solved
+    int moves[kSlots] = {};                     // cCnsChain::move calls since then (the state dump)
     bool ref_valid[kSlots] = {};
     Rows ref_prev[kSlots];
     bool seen[kSlots + 1] = {};                 // the node has a previous animated place
     glm::vec3 anim_prev[kSlots + 1];
     Rows out[kSlots];
     bool out_valid[kSlots] = {};
+    std::vector<Capsule> shapes_prev[kSlots];   // the shapes at the tendril's last solve (V2.6)
+    bool shapes_valid[kSlots] = {};
+    // the solved points (V2.7): mBlend applies to the drawn matrices only, so the next solve starts from these, not from
+    // the blended positions in mat[]; `written` = the position stored in mat[], to tell whether something else wrote it
+    glm::vec3 solved[kSlots + 1], written[kSlots + 1];
+    bool solved_valid[kSlots + 1] = {};
 };
 
 std::mutex g_lock;
@@ -172,6 +182,18 @@ float g_last_ms = 0.0f;
 
 std::mutex g_cloth_lock;                        // the sheets, swapped in by set_cloths (main thread), read by the solves
 std::vector<Cloth> g_cloths;
+
+std::atomic<bool> g_debug{ false };             // the debug view, by (chain, root slot)
+std::mutex g_debug_lock;
+std::unordered_map<uint64_t, DebugPath> g_debug_paths;
+
+// The state recording (request_dump): armed, it collects every tendril / sheet solve as JSON; a frame ends when a set
+// of it solves again, and the file is written after the frames asked for.
+std::atomic<bool> g_dump_armed{ false };
+std::mutex g_dump_lock;
+std::string g_dump_path, g_dump_text, g_dump_status = "none";
+std::vector<uint64_t> g_dump_keys;              // the sets of the frame being collected
+int g_dump_frames = 1, g_dump_done = 0;
 
 State* state_of(uintptr_t chain) {
     std::lock_guard<std::mutex> lock(g_lock);
@@ -263,7 +285,12 @@ struct Tendril {
     // motion, the radius, the limit's cosine and sine (cos < -1 = no limit), the gravity factor
     float stiff_c[kSlots + 1], pin_c[kSlots + 1], keep[kSlots + 1], rad[kSlots + 1], lim_cos[kSlots + 1], lim_sin[kSlots + 1],
         grav[kSlots + 1];
-    std::vector<Capsule> shapes;
+    // the shapes this substep, moved from where they were at the last solve (carried like the points) to where they are
+    // now (V2.6): taken once at the frame's pose, a leg's whole frame of motion hit the points in the first substep
+    std::vector<Capsule> shapes, shapes_from, shapes_to;
+    bool carried = false;                       // the frame's carry, for the shapes at the last solve
+    glm::vec3 carry_o{ 0.0f }, carry_move{ 0.0f };
+    glm::quat carry_turn{ 1.0f, 0.0f, 0.0f, 0.0f };
     Plane ground[kSlots + 1];
     bool has_ground[kSlots + 1] = {};
     struct Seg { glm::vec3 a, b; float ra, rb; };
@@ -271,12 +298,24 @@ struct Tendril {
     std::vector<int> neighbours;                // root slots of this chain's sheet neighbours (no self collision with them)
     // per substep
     float h = 1.0f, fric = 0.0f;
+    float dbg_move = 0.0f, dbg_turn = 0.0f;     // the debug view: the reference frame's motion since the last prepare
+    Rows dbg_ref, dbg_ref_prev;                 // the state dump: the reference frame now and before, the carried parts
+    bool dbg_ref_prev_valid = false;
+    float dbg_ct = 0.0f, dbg_cm = 0.0f;
+    int dbg_moves = 0;                          // cCnsChain::move calls since the tendril's last solve
     float lam_stiff[kSlots + 1], lam_pin[kSlots + 1], lam_stretch[kSlots + 1];
 
     uintptr_t jptr(int k) const { return at<uintptr_t>(model, kpJoint) + index[k] * kJointSize; }
     int nodes() const { return tail - root; }   // after the root
     float weight(int k) const { return k == root ? 0.0f : 1.0f; }
     float radius_at(float u) const { return s.radius.unset() ? radius_auto : std::max(0.0f, s.radius.at(u)); }
+    // node k's point as the solver left it (V2.7): the solved point while mat[k] still holds what output() wrote there,
+    // else mat[k]'s position (the game's solver or a reset wrote it)
+    glm::vec3 state_point(int k) const {
+        const float* m = &at<float>(chain, kMats + k * 0x40);
+        const glm::vec3 drawn(m[12], m[13], m[14]);
+        return st->solved_valid[k] && glm::length(drawn - st->written[k]) < 1e-3f ? st->solved[k] : drawn;
+    }
 
     // Steps 1-4 of chain_solver.md: the animated pose (the root's FK as the world pass has it at joint `current`), the
     // points, the reset, the inertia carry (V2.3), the per-node settings (V2.2). False: a joint is missing (the tendril is
@@ -313,19 +352,26 @@ struct Tendril {
         reset = !st->seen[root] || (at<uint8_t>(chain, kResetState) == 1 && !at<uint8_t>(chain, kDemoDriven))
                 || glm::length(a[root] - st->anim_prev[root]) > kTeleport;
         for (int k = root; k <= tail; ++k) {
-            const float* m = &at<float>(chain, kMats + k * 0x40);
-            x[k] = reset ? a[k] : glm::vec3(m[12], m[13], m[14]);
+            x[k] = reset ? a[k] : state_point(k);
             v[k] = reset ? glm::vec3(0.0f) : v3(chain + kVels + k * 0x10);
             if (reset || !st->seen[k]) st->anim_prev[k] = a[k];
             st->seen[k] = true;
             aprev[k] = st->anim_prev[k];
         }
         x[root] = a[root];
+        if (reset) st->shapes_valid[root] = false;
+        carried = false;
 
         // the reference frame: the model's world matrix, or its parent's (mParentMode 1)
         uintptr_t ref_unit = model;
         if (at<uint32_t>(chain, kParentMode) == 1 && at<uintptr_t>(model, kCoordParent)) ref_unit = at<uintptr_t>(model, kCoordParent);
         const Rows ref = Rows::load(&at<float>(ref_unit, kModelWmat));
+        dbg_ref = ref;
+        dbg_moves = st->moves[root];
+        st->moves[root] = 0;
+        dbg_ref_prev = st->ref_prev[root];
+        dbg_ref_prev_valid = st->ref_valid[root];
+        dbg_ct = dbg_cm = 0.0f;
         glm::vec3 ref_rot[3];
         for (int i = 0; i < 3; ++i) ref_rot[i] = safe_normalize(ref.r[i], glm::vec3(i == 0, i == 1, i == 2));
         auto ref_dir = [&](const glm::vec3& d) { return d.x * ref_rot[0] + d.y * ref_rot[1] + d.z * ref_rot[2]; };
@@ -336,6 +382,8 @@ struct Tendril {
             if (base < 0.0f) base = (at<uint8_t>(chain, kPosLocal) || at<uint8_t>(chain, kPosLocalY) || at<uint8_t>(chain, kRotLocal)) ? 0.0f : 1.0f;
             const float ct = 1.0f - std::clamp(s.inertia_turn >= 0.0f ? s.inertia_turn : base, 0.0f, 1.0f);
             const float cm = 1.0f - std::clamp(s.inertia_move >= 0.0f ? s.inertia_move : base, 0.0f, 1.0f);
+            dbg_ct = ct;
+            dbg_cm = cm;
             if ((ct > 0.0f || cm > 0.0f) && st->ref_valid[root] && st->pending[root] > 0.0f) {
                 const Rows& prev = st->ref_prev[root];
                 glm::vec3 pr[3];
@@ -344,12 +392,24 @@ struct Tendril {
                                                   glm::normalize(rows_quat(ref_rot) * glm::conjugate(rows_quat(pr))), ct);
                 const glm::vec3 move = (ref.t - prev.t) * cm;
                 auto carry = [&](const glm::vec3& p) { return prev.t + turn * (p - prev.t) + move; };
+                carried = true;
+                carry_o = prev.t;
+                carry_turn = turn;
+                carry_move = move;
                 for (int k = root + 1; k <= tail; ++k) {
                     x[k] = carry(x[k]);
                     v[k] = turn * v[k];
                 }
                 for (int k = root; k <= tail; ++k) aprev[k] = carry(aprev[k]);
             }
+        }
+        if (st->ref_valid[root] && g_debug.load(std::memory_order_relaxed)) {
+            const Rows& prev = st->ref_prev[root];
+            glm::vec3 pr[3];
+            for (int i = 0; i < 3; ++i) pr[i] = safe_normalize(prev.r[i], glm::vec3(i == 0, i == 1, i == 2));
+            const glm::quat d = glm::normalize(rows_quat(ref_rot) * glm::conjugate(rows_quat(pr)));
+            dbg_turn = glm::degrees(2.0f * std::acos(std::min(1.0f, std::abs(d.w))));
+            dbg_move = glm::length(ref.t - prev.t);
         }
         st->ref_prev[root] = ref;
         st->ref_valid[root] = true;
@@ -385,8 +445,18 @@ struct Tendril {
 
     // Before the substeps: the shapes, the ground under each point, the other tendrils' segments (self).
     void gather() {
-        shapes.clear();
-        gather_shapes(chain, shapes);
+        shapes_to.clear();
+        gather_shapes(chain, shapes_to);
+        shapes_from = shapes_to;
+        std::vector<Capsule>& prev = st->shapes_prev[root];
+        if (st->shapes_valid[root] && prev.size() == shapes_to.size())
+            for (size_t i = 0; i < prev.size(); ++i) {
+                shapes_from[i].a = carried ? carry_o + carry_turn * (prev[i].a - carry_o) + carry_move : prev[i].a;
+                shapes_from[i].b = carried ? carry_o + carry_turn * (prev[i].b - carry_o) + carry_move : prev[i].b;
+            }
+        prev = shapes_to;
+        st->shapes_valid[root] = true;
+        shapes = shapes_to;
         for (int k = root + 1; k <= tail; ++k) {
             has_ground[k] = false;
             if (!s.ground) continue;
@@ -414,14 +484,13 @@ struct Tendril {
                 int otail = k + 1;              // that tendril's tail, for its radius along it
                 while (otail < kSlots && bone(chain, otail) >= 0) ++otail;
                 const float span = (float)(otail - owner);
-                const float* m0 = &at<float>(chain, kMats + k * 0x40);
-                const float* m1 = &at<float>(chain, kMats + (k + 1) * 0x40);
-                others.push_back({ { m0[12], m0[13], m0[14] }, { m1[12], m1[13], m1[14] },
+                others.push_back({ state_point(k), state_point(k + 1),
                                    radius_at((k - owner) / span), radius_at((k + 1 - owner) / span) });
             }
     }
 
-    // Targets, root push, forces (damping toward the animated speed, V2.3), prediction.
+    // Targets, root push, forces (damping toward the animated speed, V2.3, or zero world speed with damp_to="world", V2.5),
+    // prediction.
     void begin_substep(float h_, float f) {
         h = h_;
         fric = rate_per(s.friction, h);
@@ -431,6 +500,11 @@ struct Tendril {
             before[k] = at_[k];
             at_[k] = glm::mix(aprev[k], a[k], f);
         }
+        for (size_t i = 0; i < shapes.size(); ++i) {
+            shapes[i].a = glm::mix(shapes_from[i].a, shapes_to[i].a, f);
+            shapes[i].b = glm::mix(shapes_from[i].b, shapes_to[i].b, f);
+        }
+        old[root] = x[root];                    // where the root was (the shape step's side, V2.4)
         x[root] = at_[root];
         // the root pushed out of the shapes as a sphere of its radius: the game keeps a root's push too (RE note 3.2g
         // step 3), and a root that sits inside a shape at bind (Nero's coat _02 / _03) would hold its first segment in it
@@ -443,7 +517,7 @@ struct Tendril {
             if (pen > 0.0f) x[root] += safe_normalize(d, glm::vec3(0.0f, 1.0f, 0.0f)) * pen;
         }
         for (int k = root + 1; k <= tail; ++k) {
-            const glm::vec3 va = (at_[k] - before[k]) / h;
+            const glm::vec3 va = s.damp_world ? glm::vec3(0.0f) : (at_[k] - before[k]) / h;
             v[k] = va + (v[k] - va) * std::pow(keep[k], h);
             v[k] += (g * grav[k] + wind) * h;
             old[k] = x[k];
@@ -470,9 +544,22 @@ struct Tendril {
                 float u, w;
                 closest(x[k], x[k + 1], c.a, c.b, u, w);
                 const glm::vec3 p = glm::mix(x[k], x[k + 1], u), q = glm::mix(c.a, c.b, w);
-                const float dist = glm::length(p - q), pen = glm::mix(rad[k], rad[k + 1], u) + c.r - dist;
+                const float reach = glm::mix(rad[k], rad[k + 1], u) + c.r;
+                float pen = reach - glm::length(p - q);
                 if (pen <= 0.0f) continue;
-                const glm::vec3 nrm = safe_normalize(p - q, safe_normalize(x[k + 1] - c.a, glm::vec3(0.0f, 1.0f, 0.0f)));
+                glm::vec3 nrm = safe_normalize(p - q, safe_normalize(x[k + 1] - c.a, glm::vec3(0.0f, 1.0f, 0.0f)));
+                // out on the side the segment came from (chain_solver.md V2.4): where it was at the substep's start, so a
+                // segment that crossed the shape within one step goes back out where it went in; with backstop, the side
+                // its animated pose is on, so a segment trapped behind the shape comes back
+                const glm::vec3* from = s.backstop ? at_ : old;
+                float ua, wa_;
+                closest(from[k], from[k + 1], c.a, c.b, ua, wa_);
+                const glm::vec3 side = glm::mix(from[k], from[k + 1], ua) - glm::mix(c.a, c.b, wa_);
+                const float side_len = glm::length(side);
+                if (side_len > 1e-4f && glm::dot(p - q, side) < 0.0f) {
+                    nrm = side / side_len;
+                    pen = reach - glm::dot(p - q, nrm);
+                }
                 const float wa = k == root ? 0.0f : 1.0f - u, wb = u, den = wa * wa + wb * wb;
                 if (den < 1e-6f) continue;
                 const float lam = pen / den;
@@ -584,11 +671,17 @@ struct Tendril {
             st->out[k] = o;
             st->out_valid[k] = true;
             o.store(&at<float>(chain, kMats + k * 0x40));
+            st->written[k] = o.t;
+        }
+        for (int k = root; k <= tail; ++k) {
+            st->solved[k] = x[k];
+            st->solved_valid[k] = true;
         }
         for (int k = root + 1; k <= tail; ++k) {
             if (k == tail) {
                 float* m = &at<float>(chain, kMats + k * 0x40);
                 m[12] = x[k].x; m[13] = x[k].y; m[14] = x[k].z;
+                st->written[k] = x[k];
             }
             float* vv = &at<float>(chain, kVels + k * 0x10);
             vv[0] = v[k].x; vv[1] = v[k].y; vv[2] = v[k].z;
@@ -596,10 +689,150 @@ struct Tendril {
     }
 };
 
+// The state dump's JSON for one solved set: `before` = the tendrils as prepared (after the carry), `after` = solved.
+// Game world cm; matrices as their 4 rows (x, y, z axes scaled, position), as the game stores them.
+void dump_set(const std::vector<Tendril>& before, const std::vector<Tendril>& after, const Cloth* cloth, float T, int steps,
+              int substeps, int iterations) {
+    std::string& o = g_dump_text;
+    char b[256];
+    auto num = [&](float f) {                   // NaN / inf as null: JSON has no spelling for them
+        if (!std::isfinite(f)) { o += "null"; return; }
+        snprintf(b, sizeof(b), "%.9g", f);
+        o += b;
+    };
+    auto vec = [&](const glm::vec3& v) { o += "["; num(v.x); o += ","; num(v.y); o += ","; num(v.z); o += "]"; };
+    auto rows = [&](const Rows& m) { o += "["; for (int i = 0; i < 3; ++i) { vec(m.r[i]); o += ","; } vec(m.t); o += "]"; };
+    auto curve = [&](const Curve& c) { o += "["; for (int i = 0; i < c.n; ++i) { if (i) o += ","; num(c.v[i]); } o += "]"; };
+    auto key = [&](const char* k) { o += "\""; o += k; o += "\":"; };
+    auto hex = [&](uintptr_t p) { snprintf(b, sizeof(b), "\"0x%08X\"", (unsigned)p); o += b; };
+    auto flag = [&](bool f) { o += f ? "true" : "false"; };
+    if (!g_dump_keys.empty()) o += ",\n";
+    o += "{";
+    key("T"); num(T); o += ","; key("steps"); o += std::to_string(steps); o += ",";
+    key("moves"); o += std::to_string(after[0].dbg_moves); o += ",";
+    key("substeps"); o += std::to_string(substeps); o += ","; key("iterations"); o += std::to_string(iterations); o += ",";
+    key("cloth");
+    if (cloth) {
+        o += "{"; key("model"); hex(cloth->model); o += ","; key("closed"); flag(cloth->closed); o += ",";
+        key("stretch"); num(cloth->stretch); o += ","; key("shear"); num(cloth->shear); o += ","; key("bend"); num(cloth->bend);
+        o += ","; key("members"); o += "[";
+        for (size_t i = 0; i < cloth->members.size(); ++i) {
+            if (i) o += ",";
+            o += "["; hex(cloth->members[i].chain); o += "," + std::to_string(cloth->members[i].slot) + "]";
+        }
+        o += "]}";
+    } else o += "null";
+    o += ",\n "; key("tendrils"); o += "[";
+    for (size_t ti = 0; ti < after.size(); ++ti) {
+        const Tendril& p = before[ti];
+        const Tendril& t = after[ti];
+        const uintptr_t c = t.chain;
+        const Settings& s = t.s;
+        if (ti) o += ",";
+        o += "\n  {"; key("chain"); hex(c); o += ","; key("model"); hex(t.model); o += ",";
+        key("root"); o += std::to_string(t.root); o += ","; key("tip"); o += std::to_string(t.tip); o += ",";
+        key("tail"); o += std::to_string(t.tail); o += ","; key("joints"); o += "[";
+        for (int k = t.root; k <= t.tip; ++k) { if (k > t.root) o += ","; o += std::to_string(bone(c, k)); }
+        o += "],"; key("joint_index"); o += "[";
+        for (int k = t.root; k <= t.tip; ++k) { if (k > t.root) o += ","; o += std::to_string(t.index[k]); }
+        o += "],"; key("reset"); flag(t.reset); o += ","; key("axis"); o += std::to_string(t.axis); o += ",";
+        key("up"); o += std::to_string(t.up); o += ","; key("neighbours"); o += "[";
+        for (size_t i = 0; i < t.neighbours.size(); ++i) { if (i) o += ","; o += std::to_string(t.neighbours[i]); }
+        o += "],\n   "; key("settings"); o += "{";
+        key("substeps"); o += std::to_string(s.substeps); o += ","; key("iterations"); o += std::to_string(s.iterations); o += ",";
+        key("stiffness"); curve(s.stiffness); o += ","; key("pin"); curve(s.pin); o += ","; key("limit"); curve(s.limit); o += ",";
+        key("damping"); curve(s.damping); o += ","; key("radius"); curve(s.radius); o += ","; key("gravity"); curve(s.gravity); o += ",";
+        key("inertia"); num(s.inertia); o += ","; key("inertia_move"); num(s.inertia_move); o += ",";
+        key("inertia_turn"); num(s.inertia_turn); o += ","; key("friction"); num(s.friction); o += ",";
+        key("ground"); flag(s.ground); o += ","; key("self"); flag(s.self); o += ","; key("backstop"); flag(s.backstop); o += ",";
+        key("damp_world"); flag(s.damp_world); o += ","; key("axis"); o += std::to_string(s.axis); o += "},\n   ";
+        key("chain_values"); o += "{";
+        key("g"); vec(t.g); o += ","; key("wind"); vec(t.wind); o += ","; key("max_speed"); num(t.max_speed); o += ",";
+        key("floor_level"); num(t.floor_level); o += ","; key("blend"); num(at<float>(c, kBlend)); o += ",";
+        key("blend_target"); num(at<float>(c, 0x10)); o += ","; key("mDamping"); num(at<float>(c, kDamping)); o += ",";
+        key("damping_auto"); num(t.damping_auto); o += ","; key("mSpring"); num(at<float>(c, kSpring)); o += ",";
+        key("radius_auto"); num(t.radius_auto); o += ","; key("stretch"); flag(t.stretch); o += ",";
+        key("stretch_limit"); num(t.stretch_limit); o += ","; key("tail_length"); num(at<float>(c, kTailLength)); o += ",";
+        key("step"); num(at<float>(c, kStep)); o += ","; key("fixed_step"); flag(at<uint8_t>(c, kFixedStep) != 0); o += ",";
+        key("parent_mode"); o += std::to_string(at<uint32_t>(c, kParentMode)); o += ",";
+        key("pos_local"); flag(at<uint8_t>(c, kPosLocal) != 0); o += ","; key("pos_local_y"); flag(at<uint8_t>(c, kPosLocalY) != 0); o += ",";
+        key("rot_local"); flag(at<uint8_t>(c, kRotLocal) != 0); o += ","; key("gravity_local"); flag(at<uint8_t>(c, kGravityLocal) != 0);
+        o += ","; key("mute_collision"); flag(at<uint8_t>(c, kMuteCollision) != 0); o += "},\n   ";
+        key("carry"); o += "{"; key("turn"); num(t.dbg_ct); o += ","; key("move"); num(t.dbg_cm); o += "},";
+        key("ref"); rows(t.dbg_ref); o += ","; key("ref_prev");
+        if (t.dbg_ref_prev_valid) rows(t.dbg_ref_prev); else o += "null";
+        o += ",\n   "; key("nodes"); o += "[";
+        for (int k = t.root; k <= t.tail; ++k) {
+            if (k > t.root) o += ",";
+            o += "\n    {"; key("k"); o += std::to_string(k); o += ",";
+            key("a"); vec(t.a[k]); o += ","; key("aprev"); vec(p.aprev[k]); o += ",";
+            key("x_before"); vec(p.x[k]); o += ","; key("v_before"); vec(p.v[k]); o += ",";
+            key("x_after"); vec(t.x[k]); o += ","; key("v_after"); vec(t.v[k]); o += ",";
+            key("L"); num(t.L[k]); o += ","; key("rad"); num(t.rad[k]); o += ","; key("keep"); num(t.keep[k]); o += ",";
+            key("stiff_c"); num(t.stiff_c[k]); o += ","; key("pin_c"); num(t.pin_c[k]); o += ",";
+            key("lim_cos"); num(t.lim_cos[k]); o += ","; key("grav"); num(t.grav[k]); o += "}";
+        }
+        o += "],\n   "; key("shapes"); o += "[";
+        for (size_t i = 0; i < t.shapes.size(); ++i) {
+            if (i) o += ",";
+            o += "{"; key("a"); vec(t.shapes[i].a); o += ","; key("b"); vec(t.shapes[i].b); o += ","; key("r"); num(t.shapes[i].r); o += "}";
+        }
+        o += "],\n   "; key("shapes_from"); o += "[";     // V2.6: where the substeps moved them from (the last solve's, carried)
+        for (size_t i = 0; i < t.shapes_from.size(); ++i) {
+            if (i) o += ",";
+            o += "{"; key("a"); vec(t.shapes_from[i].a); o += ","; key("b"); vec(t.shapes_from[i].b); o += "}";
+        }
+        o += "]}";
+    }
+    o += "]}";
+}
+
+// The state recording after a solve: the set joins the frame being collected; a set already in it ends the frame (and
+// after the last frame the file is written) and opens the next.
+void dump_after(const std::vector<Tendril>& before, const std::vector<Tendril>& after, const Cloth* cloth, float T, int steps,
+                int substeps, int iterations) {
+    std::lock_guard<std::mutex> lock(g_dump_lock);
+    if (!g_dump_armed.load()) return;
+    auto open_frame = [&] {
+        const uintptr_t main = *reinterpret_cast<uintptr_t*>(kDevil4Main);
+        char b[96];
+        snprintf(b, sizeof(b), "%s{\"frame\":%d,\"delta\":%.9g,\"sets\":[\n", g_dump_done ? ",\n" : "", g_dump_done,
+                 main ? at<float>(main, 0x68) : 0.0f);
+        g_dump_text += b;
+    };
+    const uint64_t k = ((uint64_t)after[0].chain << 8) | (uint64_t)after[0].root;
+    if (g_dump_done == 0 && g_dump_keys.empty() && g_dump_text.empty()) open_frame();
+    if (std::find(g_dump_keys.begin(), g_dump_keys.end(), k) != g_dump_keys.end()) {
+        g_dump_text += "]}";
+        g_dump_keys.clear();
+        if (++g_dump_done >= g_dump_frames) {
+            g_dump_armed.store(false);
+            FILE* f = nullptr;
+            if (fopen_s(&f, g_dump_path.c_str(), "wb") != 0 || !f) {
+                g_dump_status = "couldn't write " + g_dump_path;
+            } else {
+                std::fputs("{\"version\":2,\"units\":\"game world cm; matrices as 4 rows (x, y, z axes, position)\",\"frames\":[\n", f);
+                std::fwrite(g_dump_text.data(), 1, g_dump_text.size(), f);
+                std::fputs("]}\n", f);
+                std::fclose(f);
+                g_dump_status = std::to_string(g_dump_done) + " frame(s) written to " + g_dump_path;
+            }
+            g_dump_text.clear();
+            g_dump_text.shrink_to_fit();
+            return;
+        }
+        g_dump_status = "recording: frame " + std::to_string(g_dump_done + 1) + " of " + std::to_string(g_dump_frames);
+        open_frame();
+    }
+    dump_set(before, after, cloth, T, steps, substeps, iterations);
+    g_dump_keys.push_back(k);
+}
+
 // Steps 5-6 for a set of tendrils: one, or a <cloth>'s sheet (its links between the pass's other constraints and the
 // lengths). `T` is the time the solve covers; the tendrils are prepared.
 void solve_set(std::vector<Tendril>& set, const Cloth* cloth, float T) {
     if (set.empty()) return;
+    int steps_done = 0;
     bool any_reset = false;
     int substeps = 1, iterations = 1;
     for (const Tendril& t : set) {
@@ -607,9 +840,14 @@ void solve_set(std::vector<Tendril>& set, const Cloth* cloth, float T) {
         substeps = std::max(substeps, std::clamp(t.s.substeps, 1, 16));
         iterations = std::max(iterations, std::clamp(t.s.iterations, 1, 8));
     }
+    // the state dump keeps the tendrils as prepared (points and speeds before the solve, after the carry)
+    const bool dumping = g_dump_armed.load(std::memory_order_relaxed) && (T > 0.0f || any_reset);
+    std::vector<Tendril> before;
+    if (dumping) before = set;
     if (T > 0.0f && !any_reset) {
         const int steps = std::clamp((int)std::ceil(T * substeps - 1e-4f), 1, 64);
         const float h = T / steps;
+        steps_done = steps;
         for (Tendril& t : set) t.gather();
         // the sheet's links: neighbours point by point at the same depth (stretch), the diagonals (shear), the tendril
         // after next (bend); rest lengths from the animated pose, tails included, up to the shorter tendril
@@ -654,7 +892,35 @@ void solve_set(std::vector<Tendril>& set, const Cloth* cloth, float T) {
             for (Tendril& t : set) t.end_substep();
         }
     }
-    for (Tendril& t : set) t.output();
+    // with no time to solve (paused, or the model's world pass running again in the same frame) the joints keep their
+    // stored results, as the game's solver does (RE note 3.2b): output() again would blend the already blended points
+    // with the FK once more (mBlend < 1), pulling the tail toward the animation on every extra pass
+    if (T > 0.0f || any_reset)
+        for (Tendril& t : set) t.output();
+    if (dumping) dump_after(before, set, cloth, T, steps_done, substeps, iterations);
+    if (g_debug.load(std::memory_order_relaxed)) {
+        std::lock_guard<std::mutex> lock(g_debug_lock);
+        for (const Tendril& t : set) {
+            DebugPath& d = g_debug_paths[((uint64_t)t.chain << 8) | (uint64_t)t.root];
+            if (T <= 0.0f && !t.reset && d.chain) { ++d.extra_passes; continue; }   // another world pass, nothing to solve
+            d.chain = t.chain;
+            d.root = t.root;
+            d.T = T;
+            d.steps = steps_done;
+            d.reset = t.reset;
+            d.extra_passes = 0;
+            d.ref_move = t.dbg_move;
+            d.ref_turn = t.dbg_turn;
+            d.targets.clear();
+            d.prev_targets.clear();
+            d.points.clear();
+            for (int k = t.root; k <= t.tail; ++k) {
+                d.targets.insert(d.targets.end(), { t.a[k].x, t.a[k].y, t.a[k].z });
+                d.prev_targets.insert(d.prev_targets.end(), { t.aprev[k].x, t.aprev[k].y, t.aprev[k].z });
+                d.points.insert(d.points.end(), { t.x[k].x, t.x[k].y, t.x[k].z });
+            }
+        }
+    }
 }
 
 // The sheet `chain`'s tendril at `slot` belongs to (copied out), false when it belongs to none.
@@ -673,8 +939,14 @@ void on_move(uintptr_t chain) {
         const uintptr_t main = *reinterpret_cast<uintptr_t*>(kDevil4Main);
         t = main ? std::min(at<float>(main, 0x68), 2.0f) : 1.0f;
     }
+    // the largest step since the last solve, as the game's solver reads only the last move's step (RE note 3.1): with
+    // a sum, moves without a world pass in between (a pause, a hitch) piled up into one solve of up to 4 frames of
+    // gravity and damping against one frame of motion (albam-af's dump, 2026-11-12)
     State* st = state_of(chain);
-    for (float& p : st->pending) p = std::min(p + std::max(t, 0.0f), kMaxPending);
+    for (int k = 0; k < kSlots; ++k) {
+        st->pending[k] = std::min(std::max(st->pending[k], std::max(t, 0.0f)), kMaxPending);
+        ++st->moves[k];
+    }
 }
 
 void calc_joint(uintptr_t chain, uintptr_t joint, uintptr_t model, const Settings& s) {
@@ -735,7 +1007,44 @@ void set_cloths(std::vector<Cloth> cloths) {
     g_cloths.swap(cloths);
 }
 
+void set_debug(bool on) {
+    g_debug.store(on, std::memory_order_relaxed);
+    if (!on) {
+        std::lock_guard<std::mutex> lock(g_debug_lock);
+        g_debug_paths.clear();
+    }
+}
+
+void request_dump(const std::string& path, int frames) {
+    std::lock_guard<std::mutex> lock(g_dump_lock);
+    g_dump_path = path;
+    g_dump_text.clear();
+    g_dump_keys.clear();
+    g_dump_frames = std::clamp(frames, 1, 3600);
+    g_dump_done = 0;
+    g_dump_status = "waiting for the next solve (the game must be running)";
+    g_dump_armed.store(true);
+}
+
+std::string dump_status() {
+    std::lock_guard<std::mutex> lock(g_dump_lock);
+    return g_dump_status;
+}
+
+std::vector<DebugPath> debug_paths() {
+    std::lock_guard<std::mutex> lock(g_debug_lock);
+    std::vector<DebugPath> out;
+    out.reserve(g_debug_paths.size());
+    for (const auto& [key, d] : g_debug_paths) out.push_back(d);
+    std::sort(out.begin(), out.end(), [](const DebugPath& a, const DebugPath& b) { return a.chain != b.chain ? a.chain < b.chain : a.root < b.root; });
+    return out;
+}
+
 void forget(uintptr_t chain) {
+    {
+        std::lock_guard<std::mutex> lock(g_debug_lock);
+        for (auto it = g_debug_paths.begin(); it != g_debug_paths.end();) it = it->second.chain == chain ? g_debug_paths.erase(it) : std::next(it);
+    }
     {
         std::lock_guard<std::mutex> lock(g_cloth_lock);
         g_cloths.erase(std::remove_if(g_cloths.begin(), g_cloths.end(), [&](const Cloth& c) {
@@ -747,6 +1056,10 @@ void forget(uintptr_t chain) {
 }
 
 void forget_all() {
+    {
+        std::lock_guard<std::mutex> lock(g_debug_lock);
+        g_debug_paths.clear();
+    }
     {
         std::lock_guard<std::mutex> lock(g_cloth_lock);
         g_cloths.clear();

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <string>
 #include <vector>
 
 // Our own solver for model chains (cCnsChain: coats, hair, tails), in place of the game's for the chains a list opts in
@@ -50,6 +51,11 @@ struct Settings {
     Curve gravity = 1.0f;       // times the .clt's mGravity
     bool ground = false;        // points stay above the stage floor (one line cast per point per frame)
     bool self = false;          // the chain's tendrils push each other apart
+    bool backstop = false;      // a contact pushes toward the animated side of the shape (frees trapped skirt strips;
+                                // throws long tails that legitimately swing round a shape, so not for coats)
+    bool damp_world = false;    // damping slows the points toward zero world speed (the game's way: the chain lags its
+                                // model) instead of toward the animated motion; for animation that is only "rigid to the
+                                // parent" and clips the shapes (MMD skirts), V2.5
     int axis = -1;              // the axis aimed down the chain, 0-5 = +x +y +z -x -y -z; -1 = the .clt's mDir
 };
 
@@ -79,5 +85,32 @@ void forget_all();
 
 struct Stats { int chains; float last_ms; };
 Stats stats();
+
+// Debug view: while on, every solve records each tendril's state, world cm, xyz per node root..tail. Any thread records;
+// the main thread reads a copy.
+struct DebugPath {
+    uintptr_t chain = 0;
+    int root = 0;
+    float T = 0.0f;             // the time the last solve covered, 60 fps frames
+    int steps = 0;              // its substeps (0: a reset, or nothing to solve)
+    bool reset = false;
+    int extra_passes = 0;       // world passes since then with no time to solve (the model's pass ran again)
+    float ref_move = 0.0f;      // the reference frame's travel (cm) and turn (deg) since the previous prepare
+    float ref_turn = 0.0f;
+    std::vector<float> targets;         // a: the animated pose (step 1)
+    std::vector<float> prev_targets;    // a_prev carried: where the substep targets started
+    std::vector<float> points;          // x: the solved points
+};
+void set_debug(bool on);
+std::vector<DebugPath> debug_paths();
+
+// State recording, for replaying solves elsewhere (Albam's preview): every tendril / sheet solved over the next `frames`
+// frames (a frame ends when one of its sets solves again), written as JSON to `path` (relative = the game folder). Per
+// frame: the frame delta; per set: T, steps, the move calls since the last solve, the sheet; per tendril: settings as
+// parsed, the chain's values, the reference frame now and before (4 rows), per node the animated place, the carried
+// previous one, the points and speeds before and after the solve, L and the per-node settings; the shapes as used. Game
+// world cm. Any thread collects; dump_status() says where it stands.
+void request_dump(const std::string& path, int frames = 1);
+std::string dump_status();
 
 } // namespace chain_solver

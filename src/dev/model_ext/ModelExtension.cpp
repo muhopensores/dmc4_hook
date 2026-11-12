@@ -33,6 +33,10 @@ namespace model_extension {
 
 bool mod_enabled = false;
 bool show_collision = false;
+bool show_targets = false;      // the hook's chain solver's debug view (draw_targets, the Physics readout)
+#define PHYSICS_DUMP_NAME "dmc4_hook_physics_dump.json"
+constexpr const char* kPhysicsDumpPath = PHYSICS_DUMP_NAME;   // the state recording (chain_solver::request_dump), game folder
+int g_record_frames = 600;      // frames the recording covers
 char folder[128] = "nativePC\\model_ext";
 uintptr_t jmp_ret_set_model = 0, jmp_ret_model_dtor = 0, jmp_ret_chain_dtor = 0, jmp_ret_joint_alloc = 0, orig_world_matrix = 0;
 uintptr_t orig_chain_move = 0, orig_chain_joint = 0;
@@ -734,6 +738,20 @@ void draw_chain_collision(const Spawned& s) {
     }
 }
 
+// The hook's chain solver's debug view: each tendril's animated targets (cyan), where its substep targets started this
+// frame (the carried previous pose, blue) and its solved points (orange), as the last solve left them.
+void draw_targets() {
+    auto pt = [](const std::vector<float>& v, size_t i) { return glm::vec3(v[i * 3], v[i * 3 + 1], v[i * 3 + 2]); };
+    for (const chain_solver::DebugPath& d : chain_solver::debug_paths()) {
+        const size_t n = d.points.size() / 3;
+        for (size_t i = 0; i + 1 < n; ++i) {
+            w2s::DrawLine3D(pt(d.prev_targets, i), pt(d.prev_targets, i + 1), IM_COL32(60, 90, 255, 255));
+            w2s::DrawLine3D(pt(d.targets, i), pt(d.targets, i + 1), IM_COL32(0, 255, 255, 255), 2.0f);
+            w2s::DrawLine3D(pt(d.points, i), pt(d.points, i + 1), IM_COL32(255, 140, 0, 255), 2.0f);
+        }
+    }
+}
+
 void draw_collision() {
     for (const Spawned& s : g_spawned)
         if (chain_exists(s) && cns_chain::model_of(s.chain) == s.model) draw_chain_collision(s);
@@ -1126,8 +1144,8 @@ bool parse_curve(const pugi::xml_node c, const char* name, chain_solver::Curve& 
 }
 
 // <physics clt= [substeps=] [iterations=] [stiffness=] [pin=] [inertia=] [inertia_move=] [inertia_turn=] [limit=]
-// [friction=] [damping=] [radius=] [gravity=] [ground=] [self=] [axis=]/>; stiffness, pin, limit, damping, radius and
-// gravity may be lists (chain_solver.md V2.2)
+// [friction=] [damping=] [damp_to=] [radius=] [gravity=] [ground=] [self=] [backstop=] [axis=]/>; stiffness, pin, limit,
+// damping, radius and gravity may be lists (chain_solver.md V2.2); damp_to = animation (default) or world (V2.5)
 void parse_physics(const pugi::xml_node c, const std::string& model, const std::string& file) {
     PhysicsEntry pe;
     pe.model = model;
@@ -1147,6 +1165,13 @@ void parse_physics(const pugi::xml_node c, const std::string& model, const std::
     s.friction = std::clamp(c.attribute("friction").as_float(s.friction), 0.0f, 1.0f);
     s.ground = c.attribute("ground").as_bool(s.ground);
     s.self = c.attribute("self").as_bool(s.self);
+    s.backstop = c.attribute("backstop").as_bool(s.backstop);
+    if (const char* to = c.attribute("damp_to").as_string(nullptr)) {
+        const std::string v = to;
+        if (v == "world") s.damp_world = true;
+        else if (v == "animation") s.damp_world = false;
+        else { spdlog::warn("ModelExtension: {}: damp_to \"{}\" (animation or world)", pe.source, to); return; }
+    }
     if (const char* axis = c.attribute("axis").as_string(nullptr)) {
         s.axis = parse_axis(axis);
         if (s.axis < 0) { spdlog::warn("ModelExtension: {}: axis \"{}\" (x, y, z with + or -)", pe.source, axis); return; }
@@ -1375,6 +1400,7 @@ void ModelExtension::on_frame(fmilliseconds& dt) {
         std::lock_guard<std::recursive_mutex> lock(g_lock);
         draw_collision();
     }
+    if (mod_enabled && show_targets) draw_targets();
 }
 
 void ModelExtension::on_gui_frame(int display) {
@@ -1444,6 +1470,12 @@ void ModelExtension::on_gui_frame(int display) {
                   "(grey when the chain mutes its collision; thickness = its collision size), and the shapes of its .col on "
                   "the collision model in blue, red while a segment touches one. Only the spheres and capsules count; a "
                   "shape on a joint the collision model lacks isn't drawn (the game skips it too)."));
+    if (ImGui::Checkbox(_("Show physics targets"), &show_targets)) chain_solver::set_debug(show_targets);
+    ImGui::SameLine();
+    help_marker(_("Debug view of the hook's chain solver (<physics> chains): each tail's animated pose, the one it is pulled "
+                  "toward, in cyan; where this frame's pull started (last frame's pose, carried along with the character) in "
+                  "blue; the solved tail in orange. The Physics list then shows per tail the time and steps of its last solve "
+                  "and how far the character's frame, the targets and the tail moved."));
     // readouts: one closed tree node per kind, the counts in its label (the str_id keeps it open while they change)
     if (ImGui::TreeNode("Attachments", _("%d attachment(s) listed, %d out"), (int)g_attach_entries.size(), (int)g_attached.size())) {
         for (size_t e = 0; e < g_attach_entries.size(); ++e) {
@@ -1505,12 +1537,42 @@ void ModelExtension::on_gui_frame(int display) {
             for (const PhysicsEntry& pe : g_physics_entries) {
                 const chain_solver::Settings& s = pe.settings;
                 char st[32], pi[32], da[32], li[32];
-                ImGui::BulletText("%s on %s: substeps %d, stiffness %s, pin %s, damping %s, limit %s, ground %s, self %s  (%s)", pe.clt.c_str(),
-                                  pe.model.c_str(), s.substeps, curve(s.stiffness, "%.2f", st), curve(s.pin, "%.2f", pi),
-                                  curve(s.damping, "%.2f", da), curve(s.limit, "%.0f", li), s.ground ? "on" : "off",
+                ImGui::BulletText("%s on %s: substeps %d, stiffness %s, pin %s, damping %s%s, limit %s, ground %s, self %s  (%s)",
+                                  pe.clt.c_str(), pe.model.c_str(), s.substeps, curve(s.stiffness, "%.2f", st), curve(s.pin, "%.2f", pi),
+                                  curve(s.damping, "%.2f", da), s.damp_world ? " to world" : "", curve(s.limit, "%.0f", li),
+                                  s.ground ? "on" : "off",
                                   s.self ? "on" : "off", pe.source.c_str());
             }
             ImGui::BulletText(_("last tendril / sheet solve: %.3f ms"), chain_solver::stats().last_ms);
+            if (ImGui::Button(_("Record physics state"))) chain_solver::request_dump(kPhysicsDumpPath, g_record_frames);
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(100.0f);
+            if (ImGui::InputInt(_("frames##physics_record"), &g_record_frames)) g_record_frames = std::clamp(g_record_frames, 1, 3600);
+            ImGui::SameLine();
+            help_marker(_("Records every <physics> tendril and sheet as the next frames solve them (settings, the chain's "
+                          "values, targets, points and speeds before and after, the collision shapes) to " PHYSICS_DUMP_NAME
+                          " in the game folder, for replaying them in Albam's preview. 1 frame is about 65 KB per sheet; the "
+                          "game may stutter once while the file is written."));
+            ImGui::TextWrapped(_("Last recording: %s"), chain_solver::dump_status().c_str());
+            if (show_targets) {
+                // per tendril: the last solve's time and steps, the reference frame's motion, how far the targets moved
+                // since last frame (a - carried a_prev, the most of any node) and how far the solved points sit off them
+                for (const chain_solver::DebugPath& d : chain_solver::debug_paths()) {
+                    float moved = 0.0f, off = 0.0f;
+                    for (size_t i = 0; i + 2 < d.points.size(); i += 3) {
+                        const glm::vec3 a(d.targets[i], d.targets[i + 1], d.targets[i + 2]);
+                        const glm::vec3 p(d.prev_targets[i], d.prev_targets[i + 1], d.prev_targets[i + 2]);
+                        const glm::vec3 x(d.points[i], d.points[i + 1], d.points[i + 2]);
+                        moved = std::max(moved, glm::length(a - p));
+                        off = std::max(off, glm::length(x - a));
+                    }
+                    // wrapped: the panel can't be widened, and the end of the line is what matters
+                    ImGui::Bullet();
+                    ImGui::TextWrapped(_("chain %08X slot %d: T %.2f, %d steps%s, +%d passes; frame %.2f cm %.2f deg; targets moved %.2f cm; tail off targets %.1f cm"),
+                                       (unsigned)d.chain, d.root, d.T, d.steps, d.reset ? _(" (reset)") : "", d.extra_passes,
+                                       d.ref_move, d.ref_turn, moved, off);
+                }
+            }
             ImGui::TreePop();
         }
         if (ImGui::TreeNode("Cloth", _("%d cloth sheet(s) listed, %d live"), (int)g_cloth_entries.size(), g_cloths_live)) {
@@ -1558,6 +1620,8 @@ void ModelExtension::on_gui_frame(int display) {
 void ModelExtension::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("model_extension").value_or(false);
     show_collision = cfg.get<bool>("model_extension_show_collision").value_or(false);
+    show_targets = cfg.get<bool>("model_extension_show_targets").value_or(false);
+    chain_solver::set_debug(show_targets);
     const std::string f = cfg.get("model_extension_folder").value_or(std::string(folder));
     strncpy_s(folder, f.c_str(), sizeof(folder) - 1);
     reload();
@@ -1566,5 +1630,6 @@ void ModelExtension::on_config_load(const utility::Config& cfg) {
 void ModelExtension::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("model_extension", mod_enabled);
     cfg.set<bool>("model_extension_show_collision", show_collision);
+    cfg.set<bool>("model_extension_show_targets", show_targets);
     cfg.set("model_extension_folder", std::string(folder));
 }
