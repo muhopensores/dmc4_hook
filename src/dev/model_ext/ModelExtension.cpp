@@ -48,6 +48,8 @@ constexpr uintptr_t kResPath = 0x04;
 constexpr uintptr_t kFaceModel = 0x20C0, kCoatModel = 0x20C4;   // uPlayer::mpFaceMdl / mpCoatMdl (members, not units)
 constexpr uintptr_t kTransparency = 0xE20;      // uDevil4Model::mTransparency: draw 0x522DC0 skips the model at <= 0
 constexpr uintptr_t kCoordParent = 0x18;        // uCoord::mpParent (coats, attachments: their owner)
+constexpr uintptr_t kChainModel = 0xFB4;        // cCnsChain: its model (the unit's +0xFD4)
+constexpr uintptr_t kChainStep = 0x10B0;        // cCnsChain: the frame's step t, written by move, read by calcJoint
 constexpr int kCheckEvery = 10;                 // frames between the checks of the chains out (a room change kills them)
 
 std::vector<ListEntry> g_entries;
@@ -219,6 +221,20 @@ int line_of(uintptr_t unit) {
         for (uintptr_t u = (uintptr_t)su->mMoveLine[line].mTop; u; u = *(uintptr_t*)(u + 8))
             if (u == unit) return line;
     return -1;
+}
+
+// Whether `model`'s move line is paused (MoveLine::mPause: sUnit::move 0x8DC290 skips its units), or the line of a model
+// above it (uCoord::mpParent: a coat's player, an attachment's owner). A chain unit runs on its own line (12, or the one
+// before its model's), which goes on moving while the model's is paused.
+bool model_line_paused(uintptr_t model) {
+    sUnit* su = devil4_sdk::get_sUnit();
+    if (!su) return false;
+    for (int depth = 0; model && depth < 8; ++depth) {
+        const int line = line_of(model);
+        if (line >= 0 && su->mMoveLine[line].mPause) return true;
+        model = *(uintptr_t*)(model + kCoordParent);
+    }
+    return false;
 }
 
 // The known model `m` hangs under (uCoord::mpParent: a coat's player, an attachment's owner), 0 at the top.
@@ -859,8 +875,15 @@ bool physics_for(uintptr_t chain, chain_solver::Settings& out) {
 // cCnsChain::move 0x42DB00 (this@ecx, retn) and cCnsChain::calcJoint 0x430A00 (this@ecx, joint, model; retn 8), function
 // hooks: a chain a <physics> entry names still moves as the game moves it (wind, turbulence, the blend fade, the reset
 // timer) and is solved by ours.
+// A chain whose model's move line is paused (its owner's, for an attachment) pauses with it: its step is 0, which both
+// solvers take as "keep the stored result" (the game's: RE note chain_cnschain.md 3.2b; ours: no pending time). The game's
+// move still runs (it registers the chain on the model's joints).
 void __fastcall detour_chain_move(uintptr_t chain, int edx) {
     ((void(__fastcall*)(uintptr_t, int))orig_chain_move)(chain, edx);
+    if (model_line_paused(*(uintptr_t*)(chain + kChainModel))) {
+        *(float*)(chain + kChainStep) = 0.0f;
+        return;
+    }
     chain_solver::Settings s;
     if (physics_for(chain, s)) chain_solver::on_move(chain);
 }
